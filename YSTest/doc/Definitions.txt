@@ -1,0 +1,5610 @@
+﻿// YSLib::Definitions by Franksoft 2010
+// CodePage = UTF-8;
+// CTime = 2010-1-26 19:34:51;
+// UTime = 2010-7-9 10:27;
+// Version = r6294;
+
+
+// Definitions ： 方法和公共域定义与说明。
+
+//平台定义文件（platform.h）定义示例。
+
+code header "platform.h" {
+
+
+#ifndef _ATTRIBUTE
+#	ifdef __GNUC__
+#		define _ATTRIBUTE(attrs) __attribute__ (attrs)
+#	else
+#		define _ATTRIBUTE(attrs)
+#	endif
+#endif
+
+import header <stdio.h>, <stdlib.h>, <stdarg.h>;
+
+//像素类型。
+import type $pixeltype;
+
+import typedef signed char s8;
+import typedef unsigned char u8;
+import typedef signed short s16;
+import typedef unsigned short u16;
+import typedef signed long s32;
+import typedef unsigned long u32;
+
+//主屏幕的宽与高。
+extern const u16 $SCREEN_WIDTH, $SCREEN_HEIGHT;
+
+//定义使用 Unicode 编码字符串。
+#ifndef UNICODE
+#define UNICODE
+// Unicode 宽字符支持。
+#endif
+
+typedef $pixeltype PixelType; //像素。
+typedef PixelType SCRBUF[SCREEN_WIDTH * SCREEN_HEIGHT]; //主显示屏缓冲区。
+#define BITALPHA BIT(15) // Alpha 位。
+
+}//code;
+
+
+// CHRLib 定义。
+
+code CHRLib {
+
+import typedef unsigned short u16;
+
+header CHRDefinition "chrdef.h"
+{
+	!import;
+
+
+	#define CHRLIB_BEGIN	namespace CHRLib {
+	#define CHRLIB_END		}
+	#define _CHRLIB_			::CHRLib::
+	#define _CHRLIB			::CHRLib
+
+	#define CHRLIB_BEGIN_NAMESPACE(s)	namespace s {
+	#define CHRLIB_END_NAMESPACE(s)	}
+
+	CHRLIB_BEGIN
+
+	typedef unsigned char ubyte_t;
+	typedef unsigned long usize_t;
+
+	// UCS-2 字符类型定义。
+	typedef unsigned short uchar_t;
+	typedef signed int uchardiff_t;
+
+	typedef enum {Deg0 = 0, Deg90 = 1, Deg180 = 2, Deg270 = 3} CROT;
+
+	CHRLIB_END
+
+}//header CHRDefinition;
+
+
+unit CHRMap "chrmap.h"
+{
+	import unit CHRDefinition, header <cstdio>;
+
+
+	CHRLIB_BEGIN
+
+	CHRLIB_BEGIN_NAMESPACE(CharSet)
+
+	//编码字符集：使用 IANA 官方字符集名称和 MIBenum ，详见 http://www.iana.org/assignments/character-sets 。
+	typedef enum
+	{
+		//保留。
+		Null = 0, //空字符集。
+		Reserved_1 = 1,
+		Reserved_2 = 2,
+
+		US_ASCII = 3,
+		SHIFT_JIS = 17,
+		KS_C_5601_1987 = 36,
+		EUC_KR = 38,
+	//	ASMO_449 = 65,
+		UTF_8 = 106,
+		GBK = 113,
+		GB18030 = 114,
+
+		ISO_10646_UCS_2 = 1000,
+		ISO_10646_UCS_4 = 1001,
+		ISO_10646_UCS_Basic = 1002,
+
+		UTF_7 = 1012,
+		UTF_16BE = 1013,
+		UTF_16LE = 1014,
+		UTF_16 = 1015,
+		UTF_32 = 1017,
+		UTF_32BE = 1018,
+		UTF_32LE = 1019,
+
+		GB2312 = 2025, //仅 EUC-CN ，GB2312 最常用实现。
+		Big5 = 2026,
+
+		//其它。
+		/*
+		HZ_GB_2312 = 52396, // Chinese Simplified (HZ)，GB2312 的另一种实现。
+		MIK, // Supports Bulgarian and Russian as well
+		*/
+	} CSID; //字符集标识。
+
+	//别名。
+	const CSID
+		iso_ir_6(US_ASCII), ISO646_US(US_ASCII), ASCII(US_ASCII), us(US_ASCII), IBM367(US_ASCII), cp367(US_ASCII), csASCII(US_ASCII),
+		MS_Kanji(SHIFT_JIS), csShiftJIS(SHIFT_JIS), windows_932_(SHIFT_JIS),
+		iso_ir_149(KS_C_5601_1987), KS_C_5601_1989(KS_C_5601_1987), KSC_5601(KS_C_5601_1987), korean(KS_C_5601_1987), csKSC56011987(KS_C_5601_1987), windows_949_(KS_C_5601_1987),
+		windows_65001_(UTF_8),
+		CP936(GBK), MS936(GBK), windows_936(GBK),
+		windows_54936_(GB18030),
+
+		csUnicode(ISO_10646_UCS_2),
+		csUCS4(ISO_10646_UCS_4),
+		csUnicodeASCII(ISO_10646_UCS_Basic),
+		windows_1201_(UTF_16BE),
+		windows_1200_(UTF_16LE),
+
+		csGB2312(GB2312), EUC_CN_(GB2312), windows_51936_(GB2312),
+		windows_950_(Big5);
+
+	CHRLIB_END_NAMESPACE(CharSet)
+
+	using CharSet::CSID;
+
+	//默认字符集。
+	const CSID CS_Default = CharSet::UTF_8;
+	const CSID CS_Local = CharSet::GBK;
+
+
+	//编码转换表。
+	const ubyte_t cp17[] = {0};
+	extern "C"
+	{
+		extern const ubyte_t cp113[];
+		//extern const ubyte_t cp2026[13658];
+	}
+	const ubyte_t cp2026[] = {0};
+
+
+	//取小端序双字节字符。
+	inline u16
+	getword_LE(const char* c);
+	//取大端序双字节字符。
+	inline u16
+	getword_BE(const char* c);
+
+
+	// Shift_JIS / 日文。
+	uchar_t
+	codemap_17(ubyte_t&, const char*);
+	uchar_t
+	codemap_17(ubyte_t&, FILE*);
+
+	// UTF-8 / Unicode。
+	uchar_t
+	codemap_106(ubyte_t&, const char*);
+	uchar_t
+	codemap_106(ubyte_t&, FILE*);
+
+	// GBK / 简体中文。
+	inline uchar_t
+	codemap_113(ubyte_t& l, const char* c);
+	inline uchar_t
+	codemap_113(ubyte_t& l, FILE* fp);
+
+	// UCS-2_UTF-16BE / Unicode 双字节字符 - 大端序。
+	inline uchar_t
+	codemap_1013(ubyte_t& l, const char* c);
+	inline uchar_t
+	codemap_1013(ubyte_t& l, FILE* fp);
+
+	// UCS-2_UTF-16LE / Unicode 双字节字符 - 小端序。
+	inline uchar_t
+	codemap_1014(ubyte_t& l, const char* c).
+	inline uchar_t
+	codemap_1014(ubyte_t& l, FILE* fp);
+
+	// Big5 / 繁体中文。
+	uchar_t
+	codemap_2026(ubyte_t&, const char*);
+	uchar_t
+	codemap_2026(ubyte_t&, FILE*);
+
+	CHRLIB_END
+
+}//unit CHRMap;
+
+
+unit CHRProcessing "chrproc"
+{
+	import unit CHRDefinition, CHRMap, header <cctype>, <cstdlib>, <cstring>, <cwchar>;
+
+
+	CHRLIB_BEGIN
+
+	//判断是否为 ASCII 字符。
+	template<typename _charType>
+	inline bool
+	IsASCII(_charType c);
+
+	//计算 UCS-2 字符串长度。
+	usize_t
+	ucslen(const uchar_t*);
+
+	//逐字节比较 UCS-2 字符串。
+	uchar_t
+	ucscmp(const uchar_t*, const uchar_t*);
+
+	//逐字节比较 UCS-2 字符串（忽略大小写）。
+	uchar_t
+	ucsicmp(const uchar_t*, const uchar_t*);
+
+	//宽字符转换为 ASCII 字符（截取低字节）。
+	template<typename _charType>
+	inline char
+	ToASCII(_charType c);
+
+	//按字符集转换字符串中字符为 UCS-2 字符，返回转换的字节数。
+	ubyte_t
+	ToUTF(const char*, uchar_t&, const CSID&);
+	//按字符集转换字符流中字符为 UCS-2 字符，返回转换的字节数。
+	ubyte_t
+	ToUTF(FILE*, uchar_t&, const CSID&);
+
+	//转换 MBCS 字符串为 ANSI 字符串（非 ANSI 字符替换为第三参数），返回转换的串长。
+	usize_t
+	MBCSToANSI(char*, const char*, char = ' ');
+	//转换 UCS2 字符串为 ANSI 字符串（非 UTF16LE 字符替换为第三参数），返回转换的串长。
+	usize_t
+	UCS2ToANSI(char*, const uchar_t*, char = ' ');
+	//转换 UCS4 字符串为 ANSI 字符串（非 UTF16BE 字符替换为第三参数），返回转换的串长。
+	usize_t
+	UCS4ToANSI(char*, const wchar_t*, char = ' ');
+
+	//按字符集转换 MBCS 字符串为 UTF-16LE 字符串，返回转换的串长。
+	usize_t
+	MBCSToUTF16LE(uchar_t*, const char*, const CSID& = CS_Default);
+	//按字符集转换 MBCS 字符串为 UCS-4 字符串，返回转换的串长。
+	usize_t
+	MBCSToUCS(wchar_t*, const char*, const CSID& = CS_Default);
+	//按字符集转换 UTF-16LE 字符串为 MBCS 字符串，返回转换的串长。
+	usize_t
+	UTF16LEToMBCS(char*, const uchar_t*, const CSID& = CS_Default);
+	//转换 UCS-4 字符串为 UCS-2 字符串，返回转换的串长。
+	usize_t
+	UCS4ToUCS2(uchar_t*, const wchar_t*);
+
+	//复制 MBCS 字符串为 ANSI 字符串（非 ANSI 字符替换为第二参数）。空间由 free() 释放。
+	char*
+	sdup(const char*, char = ' ');
+	//复制 UCS-2 字符串为 ANSI 字符串（非 ANSI 字符替换为第二参数）。空间由 free() 释放。
+	char*
+	sdup(const uchar_t*, char = ' ');
+	//复制 UCS-4 字符串为 ANSI 字符串（非 ANSI 字符替换为第二参数）。空间由 free() 释放。
+	char*
+	sdup(const wchar_t*, char = ' ');
+
+	//复制 MBCS 字符串为 UCS-2/UTF-16LE 字符串。空间由 free() 释放。
+	uchar_t*
+	ucsdup(const char*, const CSID& = CS_Default);
+	//复制 UCS-2 字符串。空间由 free() 释放。
+	uchar_t*
+	ucsdup(const uchar_t*);
+	//复制 UCS-4 字符串为 UCS-2 字符串。空间由 free() 释放。
+	uchar_t*
+	ucsdup(const wchar_t*);
+
+	CHRLIB_END
+
+}//unit CHRProcessing;
+
+}//code CHRLib;
+
+
+// YCLib 定义。
+
+code YCLib {
+
+import header <platform.h>;
+
+header YDefinition "ydef.h"
+{
+	#define __nullterminated
+	#define UNALIGNED
+	#define UNALIGNED64
+
+	#ifndef NULL
+	#ifdef __cplusplus
+	#define NULL 0
+	#else
+	#define NULL ((void *)0)
+	#endif
+	#endif
+
+	#ifndef FALSE
+	#define FALSE 0
+	#endif
+
+	#ifndef TRUE
+	#define TRUE 1
+	#endif
+
+	#undef  FAR
+	#undef  NEAR
+	#define FAR
+	#define NEAR
+	#ifndef CONST
+	#define CONST const
+	#endif
+
+	#ifndef BASETYPES
+	#define BASETYPES
+	typedef unsigned char UCHAR, *PUCHAR;
+	typedef unsigned short USHORT, *PUSHORT;
+	typedef unsigned long ULONG, *PULONG;
+	typedef char* PSZ;
+	#endif
+
+	typedef void VOID, *PVOID;
+	typedef int INT;
+	typedef unsigned int UINT, *PUINT;
+	typedef char CHAR, *PCHAR;
+	typedef short SHORT, *PSHORT;
+	typedef long LONG, *PLONG;
+	typedef float FLOAT, *PFLOAT;
+
+	typedef int             BOOL;
+	typedef unsigned char   BYTE;
+	typedef unsigned short  WORD;
+	typedef unsigned long   DWORD;
+
+	typedef void FAR        *LPVOID;
+	typedef const void FAR  *LPCVOID;
+	typedef INT NEAR        *PINT;
+	typedef INT FAR         *LPINT;
+	typedef LONG FAR        *LPLONG;
+	typedef BOOL NEAR       *PBOOL;
+	typedef BOOL FAR        *LPBOOL;
+	typedef BYTE NEAR       *PBYTE;
+	typedef BYTE FAR        *LPBYTE;
+	typedef WORD NEAR       *PWORD;
+	typedef WORD FAR        *LPWORD;
+	typedef DWORD NEAR      *PDWORD;
+	typedef DWORD FAR       *LPDWORD;
+
+	typedef BYTE BOOLEAN, *PBOOLEAN;
+
+	typedef BYTE    FCHAR;
+	typedef WORD    FSHORT;
+	typedef DWORD   FLONG;
+
+	typedef long long LONGLONG, *PLONGLONG;
+	typedef unsigned long long ULONGLONG, *PULONGLONG;
+	#define MAXLONGLONG (0x7fffffffffffffff)
+
+	typedef VOID FVOID();
+	typedef FVOID *PFVOID;
+
+	// Unicode 宽字符类型定义。
+
+	typedef wchar_t WCHAR;
+
+	typedef WCHAR *PWCHAR, *PWCH, *LPWCH;
+	typedef const WCHAR *PCWCH, *LPCWCH;
+	typedef __nullterminated WCHAR *NWPSTR, *PWSTR, *LPWSTR;
+	typedef __nullterminated PWSTR *PZPWSTR;
+	typedef __nullterminated const PWSTR *PCZPWSTR;
+	typedef __nullterminated WCHAR UNALIGNED *LPUWSTR, *PUWSTR;
+	typedef __nullterminated const WCHAR *LPCWSTR, *PCWSTR;
+	typedef __nullterminated PCWSTR *PZPCWSTR;
+	typedef __nullterminated const WCHAR UNALIGNED *LPCUWSTR, *PCUWSTR;
+
+	typedef const WCHAR *LPCWCHAR, *PCWCHAR;
+	typedef const WCHAR UNALIGNED *LPCUWCHAR, *PCUWCHAR;
+
+	// UCS(Universal Character Set) 字符类型定义。
+
+	typedef unsigned long UCSCHAR;
+
+	#define UCSCHAR_INVALID_CHARACTER (0xFFFFFFFF)
+	#define MIN_UCSCHAR (0)
+	#define MAX_UCSCHAR (0x0010FFFF)
+
+	typedef UCSCHAR *PUCSCHAR;
+	typedef const UCSCHAR *PCUCSCHAR;
+	typedef UCSCHAR *PUCSSTR;
+	typedef UCSCHAR UNALIGNED *PUUCSSTR;
+	typedef const UCSCHAR *PCUCSSTR;
+	typedef const UCSCHAR UNALIGNED *PCUUCSSTR;
+	typedef UCSCHAR UNALIGNED *PUUCSCHAR;
+	typedef const UCSCHAR UNALIGNED *PCUUCSCHAR;
+
+	// ANSI 多字节字符定义。
+
+	typedef CHAR *PCHAR, *LPCH, *PCH;
+	typedef const CHAR *LPCCH, *PCCH;
+	typedef __nullterminated CHAR *NPSTR, *LPSTR, *PSTR;
+	typedef __nullterminated PSTR *PZPSTR;
+	typedef __nullterminated const PSTR *PCZPSTR;
+	typedef __nullterminated const CHAR *LPCSTR, *PCSTR;
+	typedef __nullterminated PCSTR *PZPCSTR;
+
+	#define ANSI_NULL ((CHAR)0)
+	#define UNICODE_NULL ((WCHAR)0)
+	#define UNICODE_STRING_MAX_BYTES ((WORD) 65534)
+	#define UNICODE_STRING_MAX_CHARS (32767)
+
+	// 编码中立的 ANSI / Unicode 类型和宏定义。
+
+	#ifdef UNICODE
+
+	#ifndef _TCHAR_DEFINED
+	typedef WCHAR TCHAR, *PTCHAR;
+	typedef WCHAR TBYTE, *PTBYTE ;
+	#define _TCHAR_DEFINED
+	#endif
+
+	typedef LPWCH LPTCH, PTCH;
+	typedef LPWSTR PTSTR, LPTSTR;
+	typedef LPCWSTR PCTSTR, LPCTSTR;
+	typedef LPUWSTR PUTSTR, LPUTSTR;
+	typedef LPCUWSTR PCUTSTR, LPCUTSTR;
+	typedef LPWSTR LP;
+	#define __TEXT(quote) L##quote
+
+	#define TEXT(quote) __TEXT(quote)
+	#define _T(quote) TEXT(quote)
+
+	typedef unsigned int UINT_PTR, *PUINT_PTR;
+	typedef long LONG_PTR, *PLONG_PTR;
+	typedef unsigned long ULONG_PTR, *PULONG_PTR;
+
+	typedef int				IRES;
+	typedef unsigned int	URES;
+	typedef long			LRES;
+	typedef IRES			ERRNO;
+
+	typedef UINT_PTR        WPARAM;
+	typedef LONG_PTR        LPARAM;
+	typedef LONG_PTR        LRES;
+
+	#define LOBYTE(w)       ((BYTE)(((DWORD_PTR)(w)) & 0xff))
+	#define HIBYTE(w)       ((BYTE)((((DWORD_PTR)(w)) >> 8) & 0xff))
+	#define LOWORD(l)       ((WORD)(((DWORD_PTR)(l)) & 0xffff))
+	#define HIWORD(l)       ((WORD)((((DWORD_PTR)(l)) >> 16) & 0xffff))
+	#define MAKEWORD(a, b)  ((WORD)(((BYTE)(((DWORD_PTR)(a)) & 0xff)) | ((WORD)((BYTE)(((DWORD_PTR)(b)) & 0xff))) << 8))
+	#define MAKELONG(a, b)  ((LONG)(((WORD)(((DWORD_PTR)(a)) & 0xffff)) | ((DWORD)((WORD)(((DWORD_PTR)(b)) & 0xffff))) << 16))
+
+	//路径类型定义：独立于字符流。
+	typedef LPSTR PATH;
+	typedef LPCSTR CPATH;
+
+}//header YDefinition;
+
+
+unit YCommon "ycommon"
+{
+	//最大路径长度。
+	export #define YC_MAX_PATH;
+
+	//平台无关部分。
+
+	namespace stdex
+	{
+		//判断指针所指字符串长度，若为 NULL 则返回 -1 。
+		size_t
+		strnlen(const char*);
+
+		//判断指针所指字符串长度，若为 NULL 则返回 0 。
+		size_t
+		strnlen2(const char*);
+
+		//从头开始逐字节比较字符串，返回相同字符数（传入参数含空指针时返回 -1）。
+		size_t
+		strncmpx(const char*, const char*);
+
+		//串接给定的两个字符串，结果复制至指定位置（对传入参数进行非空检查，目标参数为空时返回 NULL）。
+		char*
+		strcpycat(char*, const char*, const char*);
+
+		//串接给定的两个字符串，结果复制至用 malloc 新分配的空间（对传入参数进行非空检查，目标参数为空时返回 NULL）。
+		char*
+		strcatdup(const char*, const char*);
+
+
+		//通过 C 标准函数库操作判断给定路径的文件是否存在。
+		bool
+		fexists(CPATH);
+	}
+
+
+	//平台相关部分。
+
+	//最大路径长度。
+	#define YC_MAX_PATH MAXPATHLEN;
+
+	namespace platform_type
+	{
+		typedef PIXEL* BitmapPtr;
+		typedef const PIXEL* ConstBitmapPtr;
+
+
+		//按键集合。
+		class Keys
+		{
+		public:
+			typedef enum KeysSet
+			{
+				Empty	= 0,
+				A		= KEY_A,
+				B		= KEY_B,
+				Select	= KEY_SELECT,
+				Start	= KEY_START,
+				Right	= KEY_RIGHT,
+				Left	= KEY_LEFT,
+				Up		= KEY_UP,
+				Down	= KEY_DOWN,
+				R		= KEY_R,
+				L		= KEY_L,
+				X		= KEY_X,
+				Y		= KEY_Y,
+				Touch	= KEY_TOUCH,
+				Lid		= KEY_LID
+			} KeysSet;
+			typedef u32 InputType;
+
+		private:
+			InputType _value;
+
+		public:
+			//按键别名。
+			static const KeysSet
+				Enter = A,
+				ESC = B,
+				PgUp = L,
+				PgDn = R;
+
+			Keys(InputType = 0);
+
+			operator InputType() const;
+		};
+
+
+		//按键信息。
+		typedef struct KeysInfo
+		{
+			Keys up, down, held;
+		} KeysInfo;
+
+
+		//屏幕光标信息。
+		typedef struct CursorInfo : public touchPosition
+		{
+			u16 GetX() const;
+			u16 GetY() const;
+		} CursorInfo;
+
+		inline u16
+		CursorInfo::GetX() const
+		{
+			return px;
+		}
+		inline u16
+		CursorInfo::GetY() const
+		{
+			return py;
+		}
+	}
+
+	namespace platform
+	{
+		//定长路径字符串类型。
+		typedef CHAR PATHSTR[MAXPATHLEN];
+
+
+		//判断指定目录是否存在。
+		bool
+		direxists(CPATH);
+
+		//按路径新建一个或多个目录。
+		bool
+		mkdirs(CPATH);
+
+
+		void
+		terminate(); //异常终止函数。
+
+		//快速刷新缓存映像到屏幕。
+		inline void
+		scrCopy(PIXEL* scr, const PIXEL* buf);
+
+		//复位屏幕显示模式。
+		void
+		resetVideo();
+
+
+		//启动控制台（fc 为前景色，bc为背景色）。
+		void
+		YConsoleInit(u8 dspIndex, PixelType fc = RGB15(31, 31, 31), PixelType bc = RGB15( 0, 0, 31));
+
+		//输出控制台字符串。
+		inline const char*
+		iputs(const char* s);
+
+		//输出控制台字（int 型数据）。
+		inline void
+		iputw(int n);
+
+
+		//等待任意按键。
+		void
+		waitForInput();
+
+		//等待 mask 包含的按键。
+		void
+		waitForKey(u32 mask);
+
+		//等待任意按键（除触摸屏、翻盖外）。
+		inline void
+		waitForKeypad()
+
+		//等待任意按键（除 L 、 R 和翻盖外）。
+		inline void
+		waitForFrontKey()
+
+		//等待任意按键（除 L 、 R 、触摸屏和翻盖外）。
+		inline void
+		waitForFrontKeypad()
+
+		//等待方向键。
+		inline void
+		waitForArrowKey()
+
+		//等待按键 A 、 B 、 X 、 Y 键。
+		inline void
+		waitForABXY()
+
+
+		//写入当前按键信息。
+		void
+		WriteKeysInfo(platform_type::KeysInfo&, platform_type::CursorInfo&);
+
+
+		//寄存器 - 毫秒转换。
+		inline vu32
+		timers2msRaw(vu16, vu16);
+		inline vu32
+		timers2ms(vu16, vu16);
+
+		//初始化计时器。
+		void
+		InitTimers(vu16&, vu16&);
+		void
+		InitTimers();
+
+		//清除计时器。
+		inline void
+		ClearTimers(vu16& = TIMER0_DATA, vu16& = TIMER1_DATA);
+
+		//初始化实时时钟。
+		inline void
+		InitRTC();
+
+		//清除实时时钟。
+		inline void
+		ClearRTC();
+
+		//复位实时时钟。
+		inline void
+		ResetRTC();
+
+		//取实时时钟计数。
+		inline vu32
+		GetRTC();
+
+		//开始 tick 计时。
+		void
+		StartTicks();
+
+		//取 tick 数。
+		u32
+		GetTicks();
+
+		//延时 ms 毫秒（ms 仅低 25 位有效）。
+		void
+		Delay(u32 ms);
+
+
+		//调试部分。
+
+		//调试模式：设置状态。
+		void
+		YDebugSetStatus(bool = true);
+
+		//调试模式：取得状态。
+		bool
+		YDebugGetStatus();
+
+		//调试模式：显示（fc 为前景色，bc为背景色）。
+		void
+		YDebugBegin(PixelType fc = RGB15(31, 31, 31), PixelType bc = RGB15( 0, 0, 31));
+
+		//调试模式：按键继续。
+		void
+		YDebug();
+		//调试模式：显示控制台字符串，按键继续。
+		void
+		YDebug(const char*);
+
+		//调试模式：显示控制台字（int 型数据），按键继续。
+		void
+		YDebugW(int);
+
+		//调试模式：显示控制台 printf ，按键继续。
+		int
+		yprintf(const char*, ...)
+			_ATTRIBUTE ((format (printf, 1, 2)));
+
+		//断言。
+		#ifdef YC_USE_YASSERT
+
+		#undef YAssert
+
+		inline void
+		yassert(bool exp, const char* expstr, const char* message, int line, const char* file);
+
+		#define YAssert(exp, message) yassert(exp, #exp, message, __LINE__, __FILE__);
+
+		#else
+
+		#	include <assert.h>
+		#	define YAssert(exp, message) assert(exp)
+
+		#endif
+	}
+
+}//unit YCommon;
+
+}//code YCLib;
+
+
+// YSLib 定义。
+
+code YSLib {
+
+export adapter YSLib::Adapter::YAdapter;
+
+using namespace ::YSLib;
+
+
+code YSLib::Adapter {
+
+header YAdapter "yadapter.h"
+{
+	//编译配置。
+	//#define NDEBUG
+	#define YC_USE_YASSERT
+
+	//包含平台文件。
+	#include <platform.h>
+
+	//包含 CHRLib 。
+
+	import Lib CHRLib;
+
+	namespace stdex
+	{
+		using CHRLib::uchar_t;
+	}
+
+	namespace YSLib
+	{
+		namespace Text
+		{
+			using namespace CHRLib;
+		}
+		using Text::uchar_t;
+	}
+
+
+	//包含 YCLib 。
+
+	import Lib YCLib
+	{
+		namespace Drawing
+		{
+			using platform_type::BitmapPtr;
+			using platform_type::ConstBitmapPtr;
+		}
+		namespace Runtime
+		{
+			using platform_type::Keys;
+			using platform_type::KeysInfo;
+			using platform_type::CursorInfo;
+		}
+		using platform::yassert;
+		namespace $platform
+		{
+			using namespace platform;
+		}
+		$...;
+	};
+
+
+	//包含 FreeType2 。
+
+	import Lib FreeType2;
+
+
+	//包含 Anti-Grain Geometry 。
+	//import Lib AGG;
+
+
+	//包含 Loki 。
+	#include <loki/Function.h>
+	#include <loki/SmartPtr.h>
+	#include <loki/StrongPtr.h>
+
+	namespace YSLib
+	{
+		namespace Design
+		{
+			//类型操作和类型特征。
+			using Loki::Typelist;
+			namespace TL = Loki::TL;
+			using Loki::NullType;
+			using Loki::EmptyType;
+			using Loki::Int2Type;
+			using Loki::Type2Type;
+			using Loki::Select;
+			using Loki::IsCustomUnsignedInt;
+			using Loki::IsCustomSignedInt;
+			using Loki::IsCustomFloat;
+			using Loki::TypeTraits;
+
+			// Function 和 Function 。
+			using Loki::Function;
+			using Loki::Functor;
+
+			//设计模式。
+			namespace Pattern
+			{
+			}
+		}
+		//使用 Loki 智能指针。
+		using Loki::SmartPtr;
+		using Loki::RefCounted;
+		using Loki::AllowConversion;
+		using Loki::DisallowConversion;
+		using Loki::RejectNull;
+		using Loki::DefaultSPStorage;
+		using Loki::HeapStorage;
+		using Loki::RefToValue;
+		using Loki::SmallObject;
+	}
+
+	//使用 Loki 的编译期静态检查。
+	#define YSL_STATIC_CHECK(expr, msg) LOKI_STATIC_CHECK(expr, msg)
+
+	//使用 Loki 的 Typelist 。
+	#define YSL_TL(n, ...) LOKI_TYPELIST##n(...)
+
+	//使用智能指针实现的句柄。
+	//#define YSL_USE_SIMPLE_HANDLE
+	#define YSL_HANDLEPOLICY_SIMPLE
+
+
+	//多播事件。
+	#define YSL_EVENT_MULTICAST
+
+}//header YAdapter;
+
+
+header YRefrence "yref.hpp"
+{
+	import header YAdapter;
+
+
+	namespace YSLib
+	{
+
+	template<class P>
+	struct YSP_OP_Simple
+	{
+		enum
+		{
+			destructiveCopy = false
+		};
+
+		inline
+		YSP_OP_Simple();
+
+		template <class P1>
+		inline
+		YSP_OP_Simple(const YSP_OP_Simple<P1>& rhs);
+
+		inline static P
+		Clone(const P& val)
+
+		inline bool
+		Release(const P&);
+
+		static void
+		Swap(YSP_OP_Simple&)
+		{}
+	}; //template<class P> class YSP_OP_Simple;
+
+	template <class P>
+	class YSP_OP_RefCounted
+	{
+	private:
+		uintptr_t* pCount_;
+
+	protected:
+		inline void
+		AddRef();
+
+	public:
+		enum { destructiveCopy = false };
+
+		inline
+		YSP_OP_RefCounted();
+
+		inline
+		YSP_OP_RefCounted(const YSP_OP_RefCounted& rhs);
+
+		template <typename P1>
+		inline
+		YSP_OP_RefCounted(const YSP_OP_RefCounted<P1>& rhs);
+
+		inline P
+		Clone(const P& val);
+
+		inline bool
+		Release(const P&);
+
+		inline void
+		Swap(YSP_OP_RefCounted& rhs);
+	}; //template <class P> class YSP_OP_RefCounted;
+
+
+	template<typename T,
+		template <class> class OP = YSP_OP_RefCounted,
+		class CP = AllowConversion,
+		template <class> class KP = RejectNull,
+		template <class> class SP = DefaultSPStorage,
+		typename SPType = SmartPtr<T, OP, CP, KP, SP> >
+	class HResource : public SPType //资源指针类。
+	{
+	public:
+		inline
+		HResource(T* = NULL);
+		inline
+		HResource(T&);
+		inline
+		HResource(RefToValue<HResource>);
+
+		inline
+		operator RefToValue<HResource>();
+
+		inline T*
+		operator->() const;
+
+		inline HResource&
+		operator=(T& rhs);
+
+		inline T*
+		GetPtr() const;
+		inline void
+		Swap(HResource& rhs);
+	}; //template class HResource;
+
+
+	//#ifdef YSL_HANDLEPOLICY_SIMPLE
+	#	define YHandleOP YSP_OP_Simple
+	//句柄不会被自动回收，需要手动释放。
+	#	define YDelete(h) delete h
+	/*#else
+	#	define YHandleOP YSP_OP_RefCounted
+	#	define YDelete(h)
+	#endif*/
+
+
+	template<typename T,
+		template <class> class OP = YHandleOP,
+		class CP = AllowConversion,
+		template <class> class KP = RejectNull,
+		template <class> class SP = DefaultSPStorage,
+		typename SPType = SmartPtr<T, OP, CP, KP, SP> >
+	class GHHandle : public SPType //句柄类。
+	{
+	public:
+		inline
+		GHHandle(T* = NULL);
+		inline
+		GHHandle(T&);
+		inline
+		GHHandle(RefToValue<GHHandle>);
+		template<class C>
+		inline explicit
+		GHHandle(GHHandle<C>& h);
+
+		inline
+		operator RefToValue<GHHandle>();
+		inline
+		operator u32();
+
+		inline T*
+		operator->() const;
+
+		inline GHHandle&
+		operator=(T& rhs);
+
+		inline T*
+		GetPtr() const;
+		inline void
+		Swap(GHHandle& rhs);
+	};
+
+
+	#undef YHandleOP
+
+
+	#ifdef YSL_USE_SIMPLE_HANDLE
+
+	template<class _type>
+	inline _type*
+	GetPointer(_type* h)
+	{
+		return h;
+	}
+
+	#else
+
+	template<class _type>
+	inline _type*
+	GetPointer(GHHandle<_type>);
+
+	#endif
+}
+
+}//unit YRefrence;
+
+
+unit YFont "yfont"
+{
+	import header Core::YFunc, unit YCoreUtilities, header <set>, <map>, unit Core::YFileSystem/*, Helper::YGlobal*/;
+
+
+	YSL_BEGIN_NAMESPACE(Drawing)
+
+	//默认字体大小（pt）。
+	export const u8 DEFAULT_FONT_SIZE;
+
+	//前向声明。
+	class YFont;
+	class YFontFamily;
+	class YTypeface;
+	class YFontFile;
+	class YFontCache;
+
+
+	//字体样式。
+	enum YFontStyle
+	{
+		Regular = 0, //常规字体。
+		Bold = 1, //粗体。
+		Italic = 2, //斜体。
+		Underline = 4, //下划线。
+		Strikeout = 8, //删除线。
+	};
+
+
+	//字型家族 (Typeface Family) 标识。
+	class YFontFamily// : implements GIEquatable<YFontFamily>, implements GILess<YFontFamily>, implements GIContainer<YTypeface>
+	{
+		friend class YTypeface;
+		friend class YFontCache;
+
+	public:
+		typedef std::map<const FT_String*, YTypeface*, deref_str_comp<FT_String> > FTypes; //字型组类型。
+
+		YFontCache& Cache;
+
+	private:
+		FT_String* family_name;
+		FTypes sTypes;
+
+	public:
+		YFontFamily(YFontCache&, FT_String*);
+		~YFontFamily();
+
+		bool
+		operator==(const YFontFamily&) const;
+		bool
+		operator<(const YFontFamily&) const;
+
+		const FT_String*
+		GetFamilyName() const;
+		const YTypeface*
+		GetTypefacePtr(const FT_String*) const; //取指定名称字型指针。
+
+	private:
+		void
+		operator+=(YTypeface&); //向字型组添加字型对象。
+		bool
+		operator-=(YTypeface&); //从字型组中移除指定字型对象。
+	};
+
+
+	//字型标识。
+	class YTypeface// : implements GIEquatable<YTypeface>, implements GILess<YTypeface>
+	{
+		friend class YFontCache;
+		friend FT_Error simpleFaceRequester(FTC_FaceID, FT_Library, FT_Pointer, FT_Face*);
+
+	//	static const FT_Matrix MItalic = {0x10000, 0x5800, 0, 0x1000};
+	public:
+		YFontCache& Cache;
+		const YFontFile& File;
+
+	private:
+		YFontFamily* pFontFamily;
+	//	FT_Face face;
+	//	bool bBold, bOblique, bUnderline;
+		FT_String* style_name;
+
+		FT_Long faceIndex;
+		FT_Int cmapIndex;
+	/*	FT_Long nGlyphs;
+		FT_UShort uUnitPerEM;
+		FT_Int nCharmaps;
+		FT_Long lUnderlinePos;
+		FT_Matrix matrix;
+		std::vector<u8> fixSizes;*/
+
+	public:
+		YTypeface(YFontCache&, const YFontFile&, u32 = 0);
+		~YTypeface();
+
+		bool
+		operator==(const YTypeface&) const;
+		bool
+		operator<(const YTypeface&) const;
+
+		inline const YFontFamily*
+		GetFontFamilyPtr() const;
+		inline const FT_String*
+		GetFamilyName() const;
+		inline const FT_String*
+		GetStyleName() const;
+	};//struct YTypeface;
+
+
+	//字体文件。
+	class YFontFile// : implements GIEquatable<YFontFile>, implements GILess<YFontFile>
+	{
+	public:
+		static const u8 MaxFontPathLength = YC_MAX_PATH; //最大字体文件路径长度。
+
+	private:
+		CPATH path;
+		FT_Library& library;
+		FT_Long nFace;
+
+	public:
+		YFontFile(const CPATH, FT_Library&);
+		YFontFile(const CPATH, const char*, FT_Library&);
+
+		bool operator==(const YFontFile& rhs) const;
+
+		inline const char*
+		GetPath() const;
+		inline FT_Long
+		GetFaceN() const;
+
+		void ReloadFaces(); //读取字体文件，载入全部字体。
+	};//class YFontFile;
+
+
+	//取默认字型。
+	const YTypeface* GetDefaultTypefacePtr();
+
+	//取默认字型家族。
+	inline const YFontFamily* GetDefaultFontFamilyPtr();
+
+
+	//字体：字模，包含字型和大小。
+	class YFont
+	{
+	public:
+		typedef u8 SizeType;
+
+		static const SizeType
+			DefSize = 16, //DEF_SHELL_FONTSIZE,
+			MinSize = 4, //DEF_SHELL_FONTSIZE_MIN,
+			MaxSize = 72; //DEF_SHELL_FONTSIZE_MAX;
+
+	private:
+		static YFont* pDefFont; //默认 Shell 字体。
+
+		const YFontFamily* pFontFamily;
+		YFontStyle Style;
+		SizeType Size;
+
+	public:
+		explicit
+		YFont(const YFontFamily& = *GetDefaultFontFamilyPtr(), const SizeType = DefSize, YFontStyle = Regular);
+
+		inline bool
+		IsBold() const;
+		inline bool
+		IsItalic() const;
+		inline bool
+		IsUnderline() const;
+		inline bool
+		IsStrikeout() const;
+
+		inline static const YFont&
+		GetDefault() const;
+		inline YFontFamily&
+		GetFontFamily() const;
+		inline YFontStyle
+		GetStyle() const;
+		inline SizeType
+		GetSize() const;
+		inline const YFontCache&
+		GetCache() const;
+		inline const FT_String*
+		GetFamilyName() const;
+		const FT_String*
+		GetStyleName() const;
+		SizeType GetHeight() const;
+
+	/*	YFontFamily&
+		SetFontFamily(const YFontFamily&);*/
+		inline void
+		SetStyle(YFontStyle);
+		void
+		SetSize(SizeType);
+
+		void
+		Update(); //更新字体缓存中当前处理的字体。
+		void
+		UpdateSize(); //更新字体缓存中当前处理的字体大小。
+
+		static void
+		InitialDefault(); //初始化默认字体。
+		static void
+		ReleaseDefault(); //释放默认字体。
+	};//class YFont;
+
+
+	//字体缓存。
+	class YFontCache : implements GIContainer<YFontFile>, implements GIContainer<YTypeface>, implements GIContainer<YFontFamily>
+	{
+		friend class YTypeface;
+
+	private:
+		FT_Library library; //库实例。
+		FTC_Manager manager; //内存管理器实例。
+		FTC_ScalerRec scaler;
+		FTC_CMapCache cmapCache;
+		FTC_SBitCache sbitCache;
+		FTC_SBit sbit;
+
+	public:
+		typedef std::set<YFontFile*, deref_comp<YFontFile> > FFiles; //字体文件组类型。
+		typedef std::set<YTypeface*, deref_comp<YTypeface> > FTypes; //字型组类型。
+		typedef std::map<const FT_String*, YFontFamily*, deref_str_comp<FT_String> > FFaces; //字型家族组类型。
+
+	private:
+		FFiles sFiles; //字体文件组。
+		FTypes sTypes; //字型组。
+		FFaces sFaces; //字型家族组。
+
+		const YTypeface* pDefaultFace; //默认字型指针。
+		const YTypeface* pType; //当前处理的字型指针。
+		u8 fontSize; //当前处理的字体大小。
+
+	public:
+		explicit
+		YFontCache(CPATH, u32 cacheSize = GLYPH_CACHE_SIZE); //读取指定路径的字体文件并分配指定大小的缓存空间。
+		virtual
+		~YFontCache();
+
+	private:
+		FT_Face GetInternalFaceInfo() const; //取当前处理的内部字型结构体指针。
+
+	public:
+		inline const FFiles&
+		GetFiles() const; //取字体文件组。
+		inline const FTypes&
+		GetTypes() const; //取字型组。
+		inline const FFaces&
+		GetFaces() const; //取字型家族组。
+		inline FFiles::size_type
+		GetFilesN() const; //取字体文件组储存的文件数。
+		inline FTypes::size_type
+		GetTypesN() const; //取字型组储存的字型数。
+		inline FFaces::size_type
+		GetFacesN() const; //取字型家族组储存的字型家族数。
+	//	YFont*
+	//	GetFontPtr() const;
+		const YFontFamily*
+		GetFontFamilyPtr(const FT_String*) const; //取指定名称字型家族指针。
+		const YTypeface*
+		GetDefaultTypefacePtr() const; //取默认字型指针。
+		inline const YTypeface*
+		GetTypefacePtr() const; //取当前处理的字型指针。
+	//	YTypeface*
+	//	GetTypefacePtr(u16) const; //取字型组储存的指定索引的字型指针。
+		YTypeface*
+		GetTypefacePtr(const FT_String*, const FT_String*); //取指定名称字型指针。
+		inline u8
+		GetFontSize() const; //取当前处理的字体大小。
+		FTC_SBit
+		GetGlyph(u32); //取当前字型和大小渲染的指定字符的字形。
+		s8
+		GetAdvance(u32, FTC_SBit sbit = NULL); //取跨距。
+		u8
+		GetHeight() const; //取行高。
+		s8
+		GetAscender() const; //取升部。
+		s8
+		GetDescender() const; //取降部。
+
+		const YTypeface*
+		SetTypeface(const YTypeface*); //设置字型组中指定索引的字型为当前字型。
+		void
+		SetFontSize(YFont::SizeType); //设置当前处理的字体大小。
+
+	public:
+		//SetFont;
+
+	private:
+		void
+		operator+=(YFontFile&); //向字体文件组添加字体文件对象。
+		bool
+		operator-=(YFontFile&); //从字体文件组中移除指定字体文件对象。
+
+		void
+		operator+=(YTypeface&); //向字型组添加字型对象。
+		bool
+		operator-=(YTypeface&); //从字型组中移除指定字型对象。
+
+		void
+		operator+=(YFontFamily&); //向字型家族组添加字型对象。
+		bool
+		operator-=(YFontFamily&); //从字型家族组中移除指定字型对象。
+
+		void
+		LoadTypefaces(); //从字体文件组中载入字体信息。
+		void
+		LoadTypefaces(const YFontFile&); //从指定字体文件中载入字体信息。
+
+	public:
+		void
+		LoadFontFileDirectory(const CPATH, const CPATH = "ttf"); //读取字体文件目录并载入目录下指定后缀名的字体文件。
+		void
+		LoadFontFile(const CPATH); //按路径加入字体文件并载入字体信息。
+
+	private:
+		void
+		ClearFontFiles();
+		void
+		ClearTypefaces();
+		void
+		ClearFontFamilies();
+		void
+		ClearContainers();
+
+	public:
+		void
+		ClearCache();
+	};//class YFontCache;
+
+	//以路径 p 创建字体缓存 f 。
+	inline void
+	CreateFontCache(YFontCache*& f, CPATH p);
+
+	//销毁字体缓存 f 。
+	inline void
+	DestroyFontCache(YFontCache*& f);
+
+	YSL_END_NAMESPACE(Drawing)
+
+}//unit YFont;
+
+
+};//code YSLib::Adapter;
+
+
+code YSLib::Core {
+
+header YShellDefinition "ysdef.h"
+{
+	import header <platform.h>, unit YAdapter::YAdapter, YAdapter::YRefrence;
+
+
+	/*
+	 ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
+	 GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，该宏不会被展开。详见： http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
+	解决方案来源： https://www.securecoding.cert.org/confluence/display/cplusplus/PRE05-CPP.+Understand+macro+replacement+when+concatenating+tokens+or+performing+stringification 。
+	*/
+	#define _yJOIN(x, y) x ## y
+
+
+	//接口类型宏。
+
+	#define __interface struct
+	#define _yInterface __interface
+
+	#define implements public
+
+	#define _yInterfaceHead(_name) { \
+		virtual ~_name() {}
+
+	//prefix "PDecl" = Pre-declare;
+	#define PDeclInterface(_name) _yInterface _name;
+
+	#define DeclInterface(_name) _yInterface _name _yInterfaceHead(_name)
+
+	#ifdef __GNUC__
+	//对于基接口需要显示指定访问权限和继承方式。由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
+	#	define DeclBasedInterface(_name, _base...) \
+		_yInterface _name : _base _yInterfaceHead(_name)
+	#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+	#	define DeclBasedInterface(_name, _base, ...) \
+		_yInterface _name : _base, __VA_ARGS__ _yInterfaceHead(_name)
+	#else
+	//注意 ISO/IEC C++ 不支持宏的可变参数列表，因此无法实现接口多继承。
+	#	define DeclBasedInterface(_name, _base) \
+		_yInterface _name : _base _yInterfaceHead(_name)
+	#endif
+
+	//"DeclIEntry" = Declare Interface Entry;
+	#define DeclIEntry(_signature) virtual _signature = 0;
+
+	#define EndDecl };
+
+
+	//函数宏。
+
+	//通用函数头定义。
+	//prefix "PDef" = Partially Define;
+	#ifdef __GNUC__
+	#	define PDefHead(_type, _name, _paralist...) _type _name(_paralist)
+	#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist)
+	#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+	#	define PDefHead(_type, _name, _paralist, ...) _type _name(_paralist, __VA_ARGS__)
+	#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist, __VA_ARGS__)
+	#else
+	#	define PDefHead(_type, _name, _paralist) _type _name(_paralist)
+	#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist)
+	#endif
+
+
+	//简单通用函数实现。
+	//prefix "Impl" = Implement;
+	#define ImplExpr(_expr) { _expr; }
+	#define ImplRet(_expr) { return _expr; }
+
+	//基类同名函数映射和成员同名函数映射实现。
+	//prefix "Impl" = Implement;
+	#ifdef __GNUC__
+	#	define ImplBodyBase(_base, _name, _arglist...) { return _base::_name(_arglist); }
+	#	define ImplBodyBaseVoid(_base, _name, _arglist...) { _base::_name(_arglist); }
+	#	define ImplBodyMember(_member, _name, _arglist...) { return _member._name(_arglist); }
+	#	define ImplBodyMemberVoid(_member, _name, _arglist...) { _member._name(_arglist); }
+	#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+	#	define ImplBodyBase(_base, _name, _arglist, ...) { return _base::_name(_arglist, __VA_ARGS__); }
+	#	define ImplBodyBaseVoid(_base, _name, _arglist, ...) { _base::_name(_arglist, __VA_ARGS__); }
+	#	define ImplBodyMember(_member, _name, _arglist...) { return _member._name(_arglist); }
+	#	define ImplBodyMemberVoid(_member, _name, _arglist...) { _member._name(_arglist); }
+	#else
+	#	define ImplBodyBase(_base, _name, _arglist) { return _base::_name(_arglist); }
+	#	define ImplBodyBaseVoid(_base, _name, _arglist) { _base::_name(_arglist); }
+	#	define ImplBodyMember(_member, _name, _arglist) { return _member._name(_arglist); }
+	#	define ImplBodyMemberVoid(_member, _name, _arglist) { _member._name(_arglist); }
+	#endif
+
+
+	//简单通用成员函数定义。
+	//prefix "Def" = Define;
+	#define DefConverter(_type, _expr) operator _type() const { return _expr; }
+	#define DefConverterBase(_type, _base) operator _type() const { return _base::operator _type(); }
+	#define DefConverterMember(_type, _member) operator _type() const { return _member.operator _type(); }
+
+	#define DefGetter(_type, _name, _member) _type _yJOIN(Get, _name)() const { return _member; }
+	#define DefGetterBase(_type, _name, _base) _type _yJOIN(Get, _name)() const { return _base::_yJOIN(Get, _name)(); }
+	#define DefGetterMember(_type, _name, _member) _type _yJOIN(Get, _name)() const { return _member._yJOIN(Get, _name)(); }
+
+	#define DefBoolGetter(_name, _member) bool _yJOIN(Is, _name)() const { return _member; }
+	#define DefBoolGetterBase(_name, _base) bool _yJOIN(Is, _name)() const { return _base::_yJOIN(Is, _name)(); }
+	#define DefBoolGetterMember(_name, _member) bool _yJOIN(Is, _name)() const { return _member._yJOIN(Is, _name)(); }
+
+	#define DefStaticGetter(_type, _name, _member) static _type _yJOIN(Get, _name)() { return _member; }
+	#define DefStaticGetterBase(_type, _name, _base) static _type _yJOIN(Get, _name)() { return _base::_yJOIN(Get, _name)(); }
+
+	#define DefStaticBoolGetter(_name, _member) static bool _yJOIN(Is, _name)() { return _member; }
+	#define DefStaticBoolGetterBase(_name, _base) static bool _yJOIN(Is, _name)() { return _base::_yJOIN(Is, _name)(); }
+
+	#define DefSetter(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) { _member = _tempArgName; }
+	#define DefSetterDef(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _tempArgName; }
+	#define DefSetterBase(_type, _name, _base) void _yJOIN(Set, _name)(_type _tempArgName) { _base::_yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterBaseDef(_type, _name, _base, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _base::_yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterMember(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) { _member._yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterMemberDef(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member._yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterEx(_type, _name, _member, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName) { _member = _expr; }
+	#define DefSetterDefEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _expr; }
+
+
+	#define YSL_BEGIN	namespace YSLib {
+	#define YSL_END		}
+	#define YSL_			::YSLib::
+	#define YSL			::YSLib
+
+	#define YSL_BEGIN_NAMESPACE(s)	namespace s {
+	#define YSL_END_NAMESPACE(s)		}
+
+	#define YSL_BEGIN_SHELL(s)	namespace _yJOIN(_YSHL_, s) {
+	#define YSL_END_SHELL(s)	}
+	#define YSL_SHL_(s)		YSL_ _yJOIN(_YSHL_, s)::
+	#define YSL_SHL(s)		YSL_ _yJOIN(_YSHL_, s)
+
+
+	#ifndef YSL_SHLMAIN_NAME
+	#	define YSL_SHLMAIN_NAME ShlMain
+	#endif
+
+	#ifndef YSL_SHLMAIN_SHLPROC
+	#	define YSL_SHLMAIN_SHLPROC ShlProc
+	#endif
+
+	#define YSL_MAIN_SHLPROC YSL_ YSL_SHLMAIN_SHLPROC
+
+	// YSLib 选项。
+	/*
+	YSLib No_Cursor
+	定义无指针设备。
+	消息成员列表中不会包含 SPoint pt 。
+	*/
+	//#define YSLIB_NO_CURSOR
+
+	// YSLib Debug 选项。
+	/*
+	YSLib MSG Debug
+	bit0 ： InsertMessage ；
+	bit1 ： PeekMessage 。
+	注意： PeekMessage 包含 InsertMessage 。
+	*/
+	#define YSLIB_DEBUG_MSG 0
+
+	//抽象描述接口。
+
+	//值类型相等关系。
+	template<typename T>
+	DeclInterface(GIEquatable)
+		DeclIEntry(bool operator==(const T&) const)
+		virtual bool
+		operator!=(const T& rhs) const
+		{
+			return !this->operator==(rhs);
+		}
+	EndDecl
+
+	//值类型小于关系。
+	template<typename T>
+	DeclInterface(GILess)
+		DeclIEntry(bool operator<(const T&) const);
+	EndDecl
+
+	//容器。
+	template<typename T>
+	DeclInterface(GIContainer)
+		DeclIEntry(void operator+=(T&))
+		DeclIEntry(bool operator-=(T&))
+	EndDecl
+
+	//对象复制构造性。
+	template<typename T>
+	DeclInterface(GIClonable)
+		DeclIEntry(T* Clone() const)
+	EndDecl
+
+
+	//前向声明。
+
+	class YObject;
+	typedef YObject YEventArgs; //事件参数基类。
+
+	YSL_BEGIN_NAMESPACE(Runtime)
+	struct YEventArgs;
+	YSL_END_NAMESPACE(Runtime)
+
+	YSL_BEGIN_NAMESPACE(Device)
+	class YScreen;
+	class YDesktop;
+	YSL_END_NAMESPACE(Device)
+
+	YSL_BEGIN_NAMESPACE(Drawing)
+	class YFontCache;
+	YSL_END_NAMESPACE(Drawing)
+
+	YSL_BEGIN_NAMESPACE(Shells)
+	class YMessageQueue;
+	class YShell;
+	class YShellMain;
+	YSL_END_NAMESPACE(Shells)
+
+	YSL_BEGIN_NAMESPACE(Components)
+
+	YSL_BEGIN_NAMESPACE(Controls)
+	PDeclInterface(IControl)
+	PDeclInterface(IVisualControl)
+	YSL_END_NAMESPACE(Controls)
+
+	YSL_BEGIN_NAMESPACE(Forms)
+	PDeclInterface(IWindow)
+	class YFrameWindow;
+	class YForm;
+	YSL_END_NAMESPACE(Forms)
+
+	YSL_BEGIN_NAMESPACE(Widgets)
+	PDeclInterface(IWidget)
+	PDeclInterface(IWidgetContainer)
+	YSL_END_NAMESPACE(Widgets)
+
+	YSL_END_NAMESPACE(Components)
+
+	YSL_BEGIN_NAMESPACE(Text)
+	class YString;
+	YSL_END_NAMESPACE(Text)
+
+	class YApplication;
+	class YLog;
+
+	using Components::Controls::IControl;
+	using Components::Controls::IVisualControl;
+	using Components::Forms::IWindow;
+	using Components::Forms::YForm;
+	using Components::Forms::YFrameWindow;
+	using Components::Widgets::IWidget;
+	using Components::Widgets::IWidgetContainer;
+
+	using Device::YScreen;
+	using Device::YDesktop;
+
+	using Drawing::YFontCache;
+
+	using Shells::YMessageQueue;
+	using Shells::YShell;
+	using Shells::YShellMain;
+
+	using Text::YString;
+
+	#ifdef YSL_USE_SIMPLE_HANDLE
+	#define DeclareHandle(type, handle) typedef type* handle
+	#define handle_cast reinterpret_cast
+	#else
+	#define DeclareHandle(type, handle) typedef GHHandle<type> handle
+	#define handle_cast static_cast
+	#endif
+
+
+	//类型定义。
+	typedef s16 SPOS; //屏幕坐标度量。
+	typedef u16 SDST; //屏幕坐标距离。
+	DeclareHandle(IWindow, HWND);
+	DeclareHandle(YShell, HSHL);
+	DeclareHandle(YApplication, HINSTANCE);
+	typedef enum {RDeg0 = 0, RDeg90 = 1, RDeg180 = 2, RDeg270 = 3} ROT; //逆时针旋转角度指示输出朝向。
+
+	//全局常量。
+	extern LPCTSTR G_COMP_NAME, G_APP_NAME, G_APP_VER; //制作机构名称，程序名称和版本号。
+	extern CPATH DEF_DIRECTORY;
+	extern const SDST SCRW, SCRH;
+
+	//全局变量。
+	extern YFontCache*& pDefaultFontCache;
+
+	//访问全局程序实例对象。
+	extern YApplication& theApp;
+	extern YFontCache*& pDefaultFontCache;
+	extern YApplication* const pApp;
+	extern YLog DefaultMQ; //全局日志。
+	extern YMessageQueue DefaultMQ; //全局消息队列。
+	extern YMessageQueue DefaultMQ_Backup; //全局备份消息队列。
+	extern YScreen*& pDefaultScreen;
+	extern YDesktop*& pDefaultDesktop;
+	extern const HSHL hShellMain;
+
+};//header YShellDefinition;
+
+
+header YCounter "ycounter.hpp"
+{
+	import header YShellDefinition;
+
+
+	//模板类实例计数器。
+	template<class T, typename count_t = u32>
+	class GMCounter
+	{
+	public:
+		inline
+		GMCounter();
+		inline
+		GMCounter(const GMCounter&);
+
+	protected:
+		inline
+		~GMCounter();
+
+	public:
+		inline static count_t
+		GetCount();
+		inline static count_t
+		GetTotal();
+		inline count_t
+		GetID() const;
+
+	protected:
+		inline static void
+		ResetCount();
+		inline static void
+		ResetTotal();
+		inline void ResetID();
+	};//class GMCounter;
+
+}//header GMCounter;
+
+
+header YFunc "yfunc.hpp"
+{
+	import header YShellDefinition;
+
+
+	//函数对象基类。
+	template<typename _ptrType>
+	class GHBase
+	{
+	protected:
+		mutable _ptrType _ptr; //对象指针。
+
+		inline explicit
+		GHBase(_ptrType= NULL);
+		template<typename P>
+		inline explicit
+		GHBase(GHBase<P>);
+		inline
+		~GHBase();
+
+	public:
+		inline
+		operator _ptrType() const;
+
+		inline bool
+		empty() const;
+		inline _ptrType
+		GetPtr() const;
+
+	};//class GHBase;
+
+}//header YFunc;
+
+
+unit YCoreUtilities "ycutil"
+{
+	import header YShellDefinition, <cstring>, <functional>;
+
+	//取指定类型的零元素。
+	inline int
+	GetZeroElement();
+	template<typename _type>
+	inline _type
+	GetZeroElement();
+
+
+	//取值类型最值。
+	template<typename _type>
+	inline _type
+	vmin(_type, _type);
+	template<typename _type>
+	inline _type
+	vmax(_type, _type);
+	template<typename _type, typename _cmpType>
+	inline _type
+	vmin(_type, _type, _cmpType);
+	template<typename _type, typename _cmpType>
+	inline _type
+	vmax(_type, _type, _cmpType);
+
+
+	//符号函数，当 a < b 时返回 -1 ，否则当 a = b 时返回 0 ，否则返回 1 。
+	inline int
+	sgn(int a, int b);
+	template<typename _type>
+	int
+	sgn(const _type& a, const _type& b);
+
+	//判断 d 和以 [a, b](a ≤ b) 或 [b, a](a > b) 区间的关系，无精度修正。
+	//返回值意义—— < 0 ：d 在区间外； = 0 ：d 在区间端点上；> 0 ：d 在区间内。
+	inline int
+	sgnInterval(int d, int a, int b);
+	template<typename _type>
+	int
+	sgnInterval(const _type& d, const _type& a, const _type& b);
+
+	//判断是否在左闭右开区间中。
+	template<typename _type = int>
+	inline bool
+	isInIntervalRegular(_type, _type);
+	template<typename _type = int>
+	inline bool
+	isInIntervalRegular(_type, _type, _type);
+
+	//判断是否在开区间内。
+	template<typename _type>
+	inline bool
+	isInIntervalStrict(_type, _type);
+	template<typename _type>
+	inline bool
+	isInIntervalStrict(_type, _type, _type);
+
+	//约束整数在左闭右开区间中。
+	template<typename _type>
+	void
+	restrictInIntervalRegular(type&, int, int);
+
+	//约束无符号整数在区间上界内。
+	template<typename _type>
+	void
+	restrictUnsigned(_type&, unsigned);
+	template<typename _type>
+	void
+	restrictUnsignedRegular(_type&, unsigned);
+
+	//约束关系： a ≤ b 。
+	template<typename _type>
+	inline void
+	restrictLessEqual(_type& a, _type& b);
+
+
+	//清除指定的连续区域。
+	template<typename _type>
+	void
+	ClearSequence(_type*, size_t);
+
+
+	// delete 仿函数。
+	struct delete_obj
+	{
+		template<typename _type>
+		inline void
+		operator()(_type*);
+	};
+
+
+	//带置空指针操作的 delete 仿函数。
+	struct safe_delete_obj
+	{
+		template<typename _type>
+		inline void
+		operator()(_type*&);
+	};
+
+
+	//解引用仿函数。
+	template<typename _type>
+	struct deref_op : std::unary_function<_type, _type*>
+	{
+		inline _type*
+		operator()(_type&) const;
+	};
+
+
+	//常量解引用仿函数。
+	template<typename _type>
+	struct const_deref_op : std::unary_function<const _type, const _type*>
+	{
+		inline const _type*
+		operator()(const _type&) const;
+	};
+
+
+	//间接访问（解引用）比较仿函数。
+	template<
+		typename _type,
+		template <typename _type> class _cmpType = std::less
+	>
+	struct deref_comp : _cmpType<_type>
+	{
+		bool
+		operator()(_type* const& _x, _type* const& _y) const;
+	};
+
+
+	//间接访问字符串（解引用）比较仿函数。
+	template<
+		typename _charType,
+		int (*_lexi_cmp)(const _charType*, const _charType*) = std::strcmp,
+		class _cmpType = std::less<int>
+	>
+	struct deref_str_comp : _cmpType
+	{
+		bool
+		operator()(_type* const&, _type* const&) const;
+	};
+
+
+	//删除指定标准容器中所有相同元素算法。
+	template<typename _containerType>
+	typename _containerType::size_type
+	erase_all(_containerType& _container, const typename _containerType::value_type& _value);
+
+
+	//删除指定标准容器中所有满足条件元素算法。
+	template<typename _containerType, typename _predicateType>
+	typename _containerType::size_type
+	erase_all_if(_containerType& _container, const typename _containerType::value_type& _pred);
+
+}//unit YCoreUtilities;
+
+
+header YEvent "yevt.hpp"
+{
+	import unit YObject, header YFunc, <list>, <set>, <map>;
+
+
+	YSL_BEGIN_NAMESPACE(Runtime)
+
+	//事件处理器接口模板。
+	template<
+		class _tSender = YObject, class _tEventArgs = YEventArgs,
+		typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
+	>
+	DeclBasedInterface(GIHEventHandler, GIClonable<GIHEventHandler<_tSender, _tEventArgs, _fEventHandler, _pfEventHandler> >)
+		typedef _tSender SenderType;
+		typedef _tEventArgs EventArgsType;
+
+		DeclIEntry(void operator()(_tSender&, const _tEventArgs&) const)
+
+		DeclIEntry(std::size_t GetSizeOf() const)
+	EndDecl
+
+	//标准事件处理器接口。
+	typedef GIHEventHandler<> IHEventHandler;
+
+
+	//非成员函数事件处理器类模板。
+	template<
+		class _tSender = YObject, class _tEventArgs = YEventArgs,
+		typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
+	>
+	class GHEventNormal : private GHBase<_pfEventHandler>,
+		implements GIHEventHandler<_tSender, _tEventArgs>
+	{
+	public:
+		typedef GIHEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
+
+		inline
+		GHEventNormal();
+		inline explicit
+		GHEventNormal(const _fEventHandler&);
+		template<class _giEventHandler>
+		inline explicit
+		GHEventNormal(const _giEventHandler&);
+		inline virtual
+		~GHEventNormal();
+
+		void
+		operator()(_tSender&, const _tEventArgs&) const;
+
+		virtual DefGetter(std::size_t, SizeOf, sizeof(*this))
+
+		virtual IHEventHandlerType*
+		Clone() const;
+	};
+
+	//成员函数事件处理器类模板。
+	template<
+		class _type,
+		class _tSender = YObject, class _tEventArgs = YEventArgs,
+		typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
+	>
+	class GHEventMember : implements GIHEventHandler<_tSender, _tEventArgs>
+	{
+	public:
+		typedef GIHEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
+		typedef void(_type::*MemFunPtrType)(const _tEventArgs&);
+
+	private:
+		MemFunPtrType _ptrMemFun;
+
+	public:
+		inline explicit
+		GHEventMember(MemFunPtrType = NULL);
+		inline virtual
+		~GHEventMember();
+
+		virtual void
+		operator()(_tSendersender, const _tEventArgs&) const;
+
+		virtual DefGetter(std::size_t, SizeOf, sizeof(*this))
+
+		virtual IHEventHandlerType*
+		Clone() const;
+	};
+
+	//成员函数对象绑定事件处理器类模板。
+	template<
+		class _type,
+		class _tSender = YObject, class _tEventArgs = YEventArgs,
+		typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
+	>
+	class GHEventMemberBinder : implements GIHEventHandler<_tSender, _tEventArgs>
+	{
+	public:
+		typedef GIHEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
+		typedef void(_type::*MemFunPtrType)(const _tEventArgs&);
+
+	private:
+		_type& _obj;
+		MemFunPtrType _ptrMemFun;
+
+	public:
+		inline explicit
+		GHEventMemberBinder(_type& obj, MemFunPtrType = NULL);
+		inline virtual
+		~GHEventMemberBinder();
+
+		virtual void
+		operator()(_tSender&, const _tEventArgs&) const;
+
+		virtual DefGetter(std::size_t, SizeOf, sizeof(*this))
+
+		virtual IHEventHandlerType*
+		Clone() const;
+	};
+
+	template<class _tSender, class _tEventArgs>
+	bool
+	operator==(GIHEventHandler<_tSender, _tEventArgs>&, GIHEventHandler<_tSender, _tEventArgs>&);
+
+
+	//事件处理器类模板。
+	template<
+		class _tSender = YObject, class _tEventArgs = YEventArgs,
+		typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
+	>
+	class GHEvent : implements GIHEventHandler<_tSender, _tEventArgs>
+	{
+	public:
+		typedef GIHEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
+
+	protected:
+		IHEventHandlerType* _h_ptr;
+
+	public:
+		inline
+		GHEvent();
+		inline explicit
+		GHEvent(const _fEventHandler&);
+		// GCC 4.5.0 之前版本对构造函数模板解析有误，无法显式实例化此实例。
+		template<class _type>
+		inline
+		GHEvent(typename GHEventMember<_type, _tSender, _tEventArgs>::MemFunPtrType);
+		//解决方案：调用 NewMemberHandler ，返回值作为参数再调用构造函数。
+		inline explicit
+		GHEvent(IHEventHandlerType*);
+
+		inline explicit
+		GHEvent(const GHEvent&);
+		inline virtual
+		~GHEvent();
+
+		bool
+		operator==(const GHEvent&);
+		virtual void
+		operator()(_tSender&, const _tEventArgs&) const;
+
+		virtual DefGetter(std::size_t, SizeOf, _h_ptr->GetSizeOf())
+
+		virtual IHEventHandlerType*
+		Clone() const;
+	};
+
+	template<class _type, class _tSender, class _tEventArgs>
+	inline GHEventMember<_type, _tSender, _tEventArgs>*
+	NewMemberHandler(typename GHEventMember<_type, _tSender, _tEventArgs>::MemFunPtrType);
+
+
+	//标准事件处理器类。
+	typedef GHEvent<> HEvent;
+
+
+	//事件类模板。
+
+	//多播版本。
+	template<
+	bool _bMulticast = true,
+	class _tSender = YObject, class _tEventArgs = YEventArgs,
+	class _iEventHandler = _GIEventHandler<_tSender, _tEventArgs>,
+	class _tEventHandler = _GEventHandler<_tSender, _tEventArgs>
+	>
+	class GEvent
+	{
+	public:
+		typedef void FuncType(_tSender&, const _tEventArgs&);
+
+	protected:
+		std::list<_tEventHandler> EventHandlerSet;
+
+	public:
+		GEvent&
+		operator+=(const _tEventHandler&);
+		inline GEvent&
+		operator+=(const FuncType&);
+		template<class _type>
+		inline GEvent&
+		//使显式实例化非必要。
+	//	operator+=(typename GHEventMember<_type, _tSender, _tEventArgs>::MemFunPtrType)
+		operator+=(void(_type::*)(const _tEventArgs&))
+		GEvent&
+		operator-=(const _tEventHandler&);
+		inline GEvent&
+		operator-=(const FuncType&);
+		template<class _type>
+		inline GEvent&
+		operator-=(typename GHEventMember<_type, _tSender, _tEventArgs>::MemFunPtrType);
+	};
+
+	//单播版本。
+	template<
+		class _tSender, class _tEventArgs,
+		class _iEventHandler,
+		class _tEventHandler
+	>
+	struct GEvent<false, _tSender, _tEventArgs, _iEventHandler, _tEventHandler> : public _tEventHandler
+	{
+		typedef void FuncType(_tSender&, const _tEventArgs&);
+
+		inline
+		GEvent();
+
+		inline GEvent&
+		operator=(const _tEventHandler*);
+		inline GEvent&
+		operator+=(const _tEventHandler&);
+		inline GEvent&
+		operator+=(const FuncType&);
+		inline GEvent&
+		operator-=(const _tEventHandler&);
+		inline GEvent&
+		operator-=(const FuncType&);
+
+		inline _tEventHandler*
+		GetHandlerPtr();
+	};
+
+
+	//定义事件处理器委托。
+	#define DefDelegate(_name, _tSender, _tEventArgs)\
+		typedef Runtime::GHEvent<_tSender, _tEventArgs> _name;
+
+
+	#ifdef YSL_EVENT_MULTICAST
+
+	//标准多播事件类。
+	typedef GEvent<> YEvent;
+
+	//定义多播事件。
+	#	define DefEvent(_tEventHandler, _name)\
+			Runtime::GEvent<true, _tEventHandler::SenderType, _tEventHandler::EventArgsType> _name;
+
+	#else
+
+	//标准单播事件类。
+	typedef GEvent<false> YEvent;
+
+	//定义单播事件。
+	#	define DefEvent(_tEventHandler, _name)\
+			Runtime::GEvent<false, _tEventHandler::SenderType, _tEventHandler::EventArgsType> _name;
+
+	#endif
+
+
+	//事件映射表模板。
+	template<class _EventSpace, class _Event = YEvent>
+	class GEventMap
+	{
+	public:
+		typedef typename _EventSpace::EventID ID;
+		typedef _Event Event;
+
+	private:
+		std::map<ID, Event> Map;
+
+	public:
+		inline
+		GEventMap();
+		inline Event&
+		operator[](const ID& id);
+
+		inline void
+		clear();
+	};
+
+
+	//标准事件回调函数对象类接口模板。
+	template<class _responser, class _eventArgsType>
+	struct GIEventCallback : public _eventArgsType
+	{
+		inline explicit
+		GIEventCallback(const _eventArgsType& e)
+		: _eventArgsType(e)
+		{}
+		DeclIEntry(bool operator()(_responser&))
+	};
+
+	YSL_END_NAMESPACE(Runtime)
+
+	//标准事件处理器委托。
+	DefDelegate(YEventHandler, YObject, YEventArgs)
+
+}//unit YEvent;
+
+
+unit YModule "ymodule"
+{
+	import header YEvent, unit YEventArgs;
+
+
+	YSL_BEGIN_NAMESPACE(Components)
+
+	//通用对象组类模板。
+	template<class _type, class _container = std::set<_type*> >
+	class GMContainer : public _container,
+		implements GIContainer<_type>
+	{
+	public:
+		typedef _container ContainerType; //对象组类型。
+
+		inline GMContainer();
+
+		inline ContainerType&
+		GetContainer();
+		inline const ContainerType&
+		GetContainer() const;
+
+		inline void
+		operator+=(_type& w); //向对象组添加对象。
+		inline bool
+		operator-=(_type& w); //从对象组移除对象。
+	}; //template<class _type, class = std::set<_type*> > GMContainer;
+
+	YSL_END_NAMESPACE(Components)
+
+	YSL_BEGIN_NAMESPACE(Runtime)
+
+	class AFocusRequester;
+
+
+	//焦点响应器模板。
+	template<class _type>
+	class GMFocusResponser// : implements GIContainer<_type>
+	{
+		friend class AFocusRequester;
+
+	protected:
+		_Tp* pFocusing; //焦点对象指针。
+		Components::GMContainer<_Tp> sFOs; //焦点对象组。
+
+		typedef typename Components::GMContainer<_Tp>::ContainerType FOs; //焦点对象组类型。
+
+		inline
+		GMFocusResponser();
+		inline
+		~GMFocusResponser();
+
+	public:
+		//判断给定指针是否和焦点对象指针相等。
+		inline bool
+		IsFocusing(_type* p) const;
+
+		//取焦点对象指针。
+		inline _type*
+		GetFocusingPtr() const;
+		//取焦点对象组（只读）。
+		inline const FOs&
+		GetFocusingSet() const;
+
+	protected:
+		//设置焦点对象指针。
+		bool
+		SetFocusingPtr(_Tp*);
+
+		//向焦点对象组添加焦点对象。
+		inline void
+		operator+=(_Tp&);
+		//从焦点对象组移除焦点对象。
+		inline bool
+		operator-=(_Tp&);
+
+	public:
+		//清空焦点指针。
+		inline bool
+		ClearFocusingPtr();
+	};//template<class _type> class GMFocusReponser;
+
+
+	//焦点申请器接口模板。
+	template<class _type = AFocusRequester>
+	DeclInterface(GIFocusRequester)
+		DeclIEntry(bool IsFocused() const)
+		DeclIEntry(bool IsFocusOfContainer(GMFocusResponser<_type>&) const)
+
+		DeclIEntry(bool CheckRemoval(GMFocusResponser<_type>&) const)
+
+		DeclIEntry(void ReleaseFocus(const YEventArgs& = YEventArgs::Empty))
+	EndDecl
+
+
+	//焦点申请器。
+	class AFocusRequester: implements GIFocusRequester<AFocusRequester>
+	{
+	protected:
+		bool bFocused; //是否为所在容器的焦点。
+
+	public:
+		inline
+		AFocusRequester();
+		inline virtual
+		~AFocusRequester();
+
+		//判断是否为获得焦点状态。
+		inline bool
+		IsFocused() const;
+		//判断是否已在指定响应器中获得焦点。
+		inline bool
+		IsFocusOfContainer(GMFocusResponser<AFocusRequester>&) const;
+		template<class _type>
+		inline bool
+		IsFocusOfContainer(GMFocusResponser<_type>&) const;
+
+		//判断是否已在指定响应器中获得焦点，若是则释放焦点。
+		bool
+		CheckRemoval(GMFocusResponser<AFocusRequester>&) const;
+		template<class _type>
+		bool
+		CheckRemoval(GMFocusResponser<_type>&) const;
+
+		//向指定响应器对应的容器申请获得焦点。
+		bool
+		RequestFocus(GMFocusResponser<AFocusRequester>&);
+		template<class _type>
+		bool
+		RequestFocus(GMFocusResponser<_type>&);
+		//释放焦点。
+		bool
+		ReleaseFocus(GMFocusResponser<AFocusRequester>&);
+		template<class _type>
+		bool
+		ReleaseFocus(GMFocusResponser<_type>&);
+
+		DeclIEntry(void ReleaseFocus(const YEventArgs& = YEventArgs::Empty))
+	};//class AFocusRequester;
+
+	YSL_END_NAMESPACE(Runtime)
+
+	YSL_BEGIN_NAMESPACE(Components)
+
+	//序列视图类模板。
+	template<class _containerType>
+	class GMSequenceViewer
+	{
+	public:
+		typedef typename _containerType::size_type size_type; //项目下标类型。
+
+	private:
+		_containerType& c; //序列容器引用。
+		size_type nIndex, //视图中首个项目下标。
+			nLength, //视图长度。
+			nSelected; //选中项目下标，大于等于 GetTotal() 时无效。
+		bool bSelected; //选中状态。
+
+	public:
+		explicit
+		GMSequenceViewer(_containerType& c_);
+
+		inline GMSequenceViewer&
+		operator++(); //选中项目下标自增。
+		inline GMSequenceViewer&
+		operator--(); //选中项目下标自减。
+		inline GMSequenceViewer&
+		operator++(int); //视图中首个项目下标自增。
+		inline GMSequenceViewer&
+		operator--(int); //视图中首个项目下标自减。
+		inline GMSequenceViewer&
+		operator>>(size_type d); //视图中首个项目下标增加 d 。
+		inline GMSequenceViewer&
+		operator<<(size_type d); //视图中首个项目下标减少 d 。
+		inline GMSequenceViewer&
+		operator+=(size_type d); //选中项目下标增加 d 。
+		inline GMSequenceViewer&
+		operator-=(size_type d); //选中项目下标减少 d 。
+
+		DefBoolGetter(Selected, bSelected) //判断是否为选中状态。
+
+		DefGetter(size_type, Total, c.size()) //取容器中元素个数。
+		DefGetter(size_type, Index, nIndex)
+		DefGetter(size_type, Length, nLength)
+		DefGetter(size_type, Selected, nSelected)
+		DefGetter(size_type, Valid, vmin(GetTotal() - GetIndex(), GetLength())) //取当前视图有效元素个数。
+
+		bool
+		SetIndex(size_type);
+		bool
+		SetLength(size_type);
+		bool
+		SetSelected(size_type);
+
+		bool
+		ClearSelected(); //取消选中状态。
+
+		bool
+		RestrictSelected(); //约束被选中的元素在视图内。
+		bool
+		RestrictViewer(); //约束视图包含被选中的元素。
+
+		bool
+		MoveViewerToBegin(); //移动视图至序列起始。
+		bool
+		MoveViewerToEnd(); //移动视图至序列结尾。
+	};
+
+	YSL_END_NAMESPACE(Components)
+
+}//unit YModule;
+
+
+unit YObject "yobject"
+{
+	import header GMCounter;
+
+
+	//全局静态单例存储器。
+	template<class _type>
+	class GStaticCache
+	{
+	private:
+		static _type* _ptr = NULL;
+
+		GStaticCache();
+
+		static void
+		Check();
+
+	public:
+		DefStaticGetter(_type*, PointerRaw, _ptr)
+		static _type*
+		GetPointer();
+		static _type&
+		GetInstance();
+
+		inline void
+		Release();
+	};
+
+	YSL_BEGIN_NAMESPACE(Drawing)
+
+	//前向声明。
+
+	class SOBG;
+	class SPoint;
+	class SVec;
+	class SSize;
+	class SRect;
+
+
+	class SOBG //屏幕二元组。
+	{
+	public:
+		SPOS x, y; //分量。
+
+		inline
+		SOBG()
+		inline explicit
+		SOBG(const SSize&);
+		inline template<typename _type>
+		explicit
+		SOBG(const _type& v);
+		inline template<typename _type>
+		SOBG(_type, _type);
+
+		inline SOBG
+		operator-(); //负运算：返回相反元素。
+
+		DefGetter(SPOS, X, X)
+		DefGetter(SPOS, Y, Y)
+	};
+
+	inline bool
+	operator==(const SOBG& a, const SOBG& b);
+	inline bool
+	operator!=(const SOBG& a, const SOBG& b);
+
+
+	class SPoint : public SOBG //屏幕二维点坐标。
+	{
+	public:
+		typedef SOBG ParentType;
+
+		static const SPoint Zero = SPoint(); //默认构造参数构造的原点对象。
+		static const SPoint FullScreen = SPoint(SCRW, SCRH); //默认构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
+
+		inline
+		SPoint()
+		inline explicit
+		SPoint(const SSize&);
+		inline template<typename _type>
+		explicit
+		SPoint(const _type& v);
+		inline template<typename _type>
+		SPoint(_type, _type);
+
+		inline
+		operator SVec() const;
+
+		inline SPoint
+		operator-(); //负运算：返回与原点对称的元素。
+		inline SPoint&
+		operator+=(const SVec&);
+		inline SPoint&
+		operator-=(const SVec&);
+	};
+
+
+	class SVec : public SOBG //屏幕二维向量。
+	{
+	public:
+		typedef SOBG ParentType;
+
+		static const SVec Zero = SVec(); //默认构造参数构造的零向量对象。
+		static const SVec FullScreen = SVec(SCRW, SCRH); //默认构造参数构造的由屏幕坐标系原点到屏幕右下角边界（不在屏幕坐标系中）对象。
+
+		inline
+		SVec()
+		inline explicit
+		SVec(const SSize&);
+		inline template<typename _type>
+		explicit
+		SVec(const _type& v);
+		inline template<typename _type>
+		SVec(_type, _type);
+
+		inline
+		operator SPoint() const;
+
+		inline SVec
+		operator-(); //负运算：返回相反向量。
+		inline SVec&
+		operator+=(const SVec&);
+		inline SVec&
+		operator-=(const SVec&);
+	};
+
+
+	//屏幕二维向量二元运算。
+
+	inline SVec
+	operator-(const SPoint&, const SPoint&);
+	inline SVec
+	operator+(const SVec&, const SVec&);
+	inline SVec
+	operator-(const SVec&, const SVec&);
+
+
+	struct SSize //屏幕区域大小。
+	{
+		SDST Width, Height;
+
+		static const SSize Zero = SSize(); //默认构造参数构造的零元素对象。
+		static const SSize FullScreen = SSize(SCRW, SCRH); //默认构造参数构造的全屏幕对象。
+
+		inline
+		SSize()
+		inline template<typename _type>
+		explicit
+		SSize(const _type& v);
+		inline template<typename _type>
+		SSize(_type, _type);
+
+		inline
+		operator SVec() const;
+
+		DefGetter(SDST, Width, Width)
+		DefGetter(SDST, Height, Height)
+		DefGetter(u32, Area, Width * Height) //取面积。
+	};
+
+	inline bool
+	operator==(const SSize& a, const SSize& b);
+	inline bool
+	operator!=(const SSize& a, const SSize& b);
+
+
+	class SRect : public SPoint //屏幕坐标系的正则（边平行于水平直线的）矩形：使用左上点屏幕坐标、宽和高表示。
+	{
+	public:
+		SDST w, h; //宽和高。
+
+		static const SRect Empty = SRect(); //默认构造参数构造的空矩形对象。
+		static const SRect FullScreen = SRect(SPoint::Zero, SCRW, SCRH); //默认构造参数构造的全屏幕矩形对象。
+
+		inline
+		SRect();
+		inline explicit
+		SRect(const SPoint&);
+		inline explicit
+		SRect(const SSize&);
+		inline
+		SRect(const SPoint&, const SSize&);
+		inline
+		SRect(const SPoint&, SDST, SDST);
+		inline
+		SRect(SPOS, SPOS, const SSize&);
+		inline
+		SRect(SPOS, SPOS, SDST, SDST);
+
+		inline bool
+		IsInBounds(const SPoint&) const; //判断点是否在矩形内或边上。
+		inline bool
+		IsInBounds(int px, int py) const; //判断点 (px, py) 是否在矩形内或边上。
+		inline bool
+		IsInBoundsRegular(const SPoint& p) const; //判断点是否在矩形内或左侧或上侧边上。
+		inline bool
+		IsInBoundsRegular(int px, int py) const; //判断点 (px, py) 是否在矩形内或左侧或上侧边上。
+		inline bool
+		IsInBoundsStrict(const SPoint& p) const; //判断点是否在矩形内。
+		inline bool
+		IsInBoundsStrict(int px, int py) const; //判断点 (px, py) 是否在矩形内。
+		SPoint
+		GetPoint() const; //取左上角位置。
+	};
+
+	inline bool
+	operator==(const SRect& a, const SRect& b);
+	inline bool
+	operator!=(const SRect& a, const SRect& b);
+
+	YSL_BEGIN_NAMESPACE(Drawing)
+
+	//基本对象定义。
+
+	//基本对象类：所有类名以 Y 作前缀类（除模板类、非直接实例化类和模块类）的公共基类。
+	class YObject
+	{
+	public:
+		static const YObject Empty = YObject();
+
+		virtual
+		~YObject();
+
+		inline bool
+		ReferenceEquals(const YObject&, const YObject&);
+	};
+
+
+	//基本可数对象类：所有可数的基本对象类的公共基类。
+	class YCountableObject : public GMCounter<YCountableObject>, public YObject
+	{
+	public:
+		typedef YObject ParentType;
+
+	protected:
+		YCountableObject();
+	};
+
+}//unit YObject;
+
+
+unit YException "yexcept"
+{
+	import unit YObject, header <new>, <typeinfo>, <string>;
+
+
+	YSL_BEGIN_NAMESPACE(Exceptions)
+
+	class YException : public YObject, public std::exception
+	{
+	public:
+		YException();
+		virtual
+		~YException() throw();
+	}; //class YException;
+
+	class YGeneralError : public YException
+	{
+	private:
+		std::string what_;
+
+	public:
+		YGeneralError(const std::string& what);
+		virtual
+		~YGeneralError() throw();
+
+		const char*
+		what() const throw();
+	}; //class YException;
+
+	YSL_END_NAMESPACE(Exceptions)
+
+} //unit YException;
+
+
+unit YString "ystring"
+{
+	#ifndef UNICODE
+	#define UNICODE
+	#endif
+
+	import unit YObject, header <string>;
+
+	namespace ..::stdex
+	{
+		typedef basic_string<uchar_t> ustring;
+	}
+
+
+	YSL_BEGIN_NAMESPACE(Text)
+
+	class YString : public YObject, public std::ustring
+	{
+		typedef YObject ParentType;
+
+		inline
+		YString();
+		template<class _charType>
+		YString(const _charType*);
+		inline
+		YString(const stdex::ustring&);
+		inline virtual
+		~YString();
+	};//class YString;
+
+	YSL_END_NAMESPACE(Text)
+
+}//unit YString;
+
+
+unit YResource "yres"
+{
+	import unit YObject, Shell::YGDI;
+
+
+	//全局默认共享资源生成函数（线程空间内共享；全局资源初始化之后可调用）。
+	template<class T>
+	HResource<T>&
+	GetGlobalResource()
+	{
+		static HResource<T> p(new T);
+		return p;
+	}
+
+	//资源定义。
+
+	YSL_BEGIN_NAMESPACE(Drawing)
+
+	class YImage : public GMCounter<YImage>, public YCountableObject, public MBitmapBuffer //图像资源。
+	{
+	public:
+		typedef YCountableObject ParentType;
+
+		static const YImage Empty = YImage();
+
+		explicit
+		YImage(ConstBitmapPtr = NULL, SDST = 0, SDST = 0);
+
+		BitmapPtr
+		GetImagePtr() const;
+
+		void
+		SetImage(ConstBitmapPtr, SDST = SCRW, SDST = SCRH);
+	};//class YImage;
+
+	YSL_END_NAMESPACE(Drawing)
+
+}//unit YResource;
+
+
+unit YEventArgs "yevtarg"
+{
+	import unit YObject;
+
+	YSL_BEGIN_NAMESPACE(Runtime)
+
+	//转换指针设备光标位置为屏幕点。
+	inline Drawing::SPoint
+	ToSPoint(const CursorInfo& c);
+
+
+	//屏幕事件参数类。
+	struct YScreenPositionEventArgs : public YEventArgs, public Drawing::SPoint
+	{
+		static const YEventArgs Empty = YScreenPositionEventArgs();
+
+		inline
+		YScreenPositionEventArgs(const Drawing::SPoint& = Drawing::SPoint::Zero);
+	};
+
+
+	//输入事件参数模块类。
+	struct MInputEventArgs : public Keys
+	{
+		static const MInputEventArgs Empty = MInputEventArgs();
+
+		inline
+		MInputEventArgs(const Keys& = 0);
+	};
+
+
+	//指针设备输入事件参数类。
+	struct YTouchEventArgs : public YScreenPositionEventArgs, public MInputEventArgs
+	{
+		typedef Drawing::SPoint InputType;
+
+		static const YTouchEventArgs Empty = YTouchEventArgs();
+
+		inline
+		YTouchEventArgs(const InputType& = InputType::Empty);
+	};
+
+
+	//键盘输入事件参数类。
+	struct YKeyEventArgs : public YEventArgs, public MInputEventArgs
+	{
+		typedef MInputEventArgs InputType;
+
+		static const YKeyEventArgs Empty = YKeyEventArgs();
+
+		inline
+		YKeyEventArgs(const InputType& = InputType::Empty);
+		inline
+		YKeyEventArgs(const BaseInputType&);
+	};
+
+	YSL_END_NAMESPACE(Runtime)
+
+}//unit YEeventArgs;
+
+
+unit YDevice "ydevice"
+{
+	import unit Helper::YGlobal, unit Core::YShell, Shell::YGDI;
+
+
+	YSL_BEGIN_NAMESPACE(Device)
+
+	//图形设备。
+	class YGraphicDevice : public YObject, protected Drawing::SSize
+	{
+	public:
+		typedef YObject ParentType;
+
+	private:
+		Drawing::BitmapPtr ptr;
+
+	public:
+		inline
+		YGraphicDevice(SDST w, SDST h, Drawing::BitmapPtr p = NULL);
+
+		DefGetter(const SSize&, Size, *this)
+		DefGetterBase(u32, Area, SSize)
+		virtual DefGetter(Drawing::BitmapPtr, Ptr, ptr)
+
+		virtual DefSetter(Drawing::BitmapPtr, Ptr, ptr)
+	};//class YGraphicDevice;
+
+
+	//屏幕。
+	class YScreen : public YGraphicDevice
+	{
+		friend class YSLib::Def;
+
+	public:
+		typedef YGraphicDevice ParentType;
+		typedef int BGType;
+
+	private:
+		static bool S_InitScr;
+
+		static void InitScreen();
+		static void CheckInit();
+
+		BGType bg;
+
+	public:
+		YScreen(SDST, SDST, Drawing::BitmapPtr = NULL);
+
+		static void
+		Reset();
+
+		inline virtual Drawing::BitmapPtr
+		GetPtr() const;
+		DefGetter(const BGType&, BgID, bg)
+
+		DefSetter(const BGType&, BgID, bg)
+
+		void
+		Update(Drawing::BitmapPtr);
+		void
+		Update(Drawing::PixelType = 0); //以纯色填充屏幕。
+	};//class YScreen;
+
+	YSL_END_NAMESPACE(Device)
+
+}//unit YDevice;
+
+
+header YShellMessageDefinition "ysmsgdef.h"
+{
+	!import;
+
+
+	export list "Message.txt";
+}//header YShellMessageDefinition;
+
+unit YShellMessage "ysmsg"
+{
+	import header Core::YShellDefinition, YShellMessageDefinition, unit YObject, header <queue>, <ctime>, unit YWindow/* for HWND delete procedure; */;
+
+	import typedef unsigned char u8;
+	using Drawing::SPoint;
+
+	YSL_BEGIN_NAMESPACE(Shells)
+
+	typedef UINT MSGID;
+	typedef u8 MSGPRIORITY;
+
+	export const time_t DEF_TIMEOUT;
+
+	class MMSG //消息类定义。
+	{
+		extern friend class YMessageQueue;
+
+	private:
+		HSHL hShl; // Shell 句柄。
+		MSGID msg; //消息标识。
+		MSGPRIORITY prior; //消息优先级。
+		WPARAM wParam; //字长相关参数。
+		LPARAM lParam; //字长无关参数。
+
+	#ifndef YSLIB_NO_CURSOR
+
+		SPoint pt; //光标位置。
+
+	#endif
+
+		std::clock_t timestamp; //消息时间戳：消息产生的进程时间。
+		std::clock_t timeout; //消息有效期。
+
+	public:
+
+	#ifdef YSLIB_NO_CURSOR
+
+		MMSG(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0);
+
+	#else
+
+		MMSG(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0, const SPoint& pt_ = SPoint::Zero);
+
+	#endif
+
+		bool operator==(const MMSG&) const;
+		inline bool operator!=(const MMSG&) const;
+
+		DefBoolGetter(TimeOut, timestamp + timeout < std::clock()) //判断消息是否过期。
+		DefBoolGetter(Valid, msg) //判断消息是否有效。
+
+		DefGetter(HSHL, ShellHandle, hShl) //取关联的 Shell 句柄。
+		DefGetter(MSGID, MsgID, msg) //取消息标识。
+		DefGetter(MSGPRIORITY, Priority, prior) //取消息优先级。
+		DefGetter(WPARAM, WParam, wParam)
+		DefGetter(LPARAM, LParam, lParam)
+
+	#ifndef YSLIB_NO_CURSOR
+
+		DefGetter(const SPoint&, CursorLocation, pt)
+
+	#endif
+
+		DefGetter(std::clock_t, Timestamp, timestamp) //取消息时间戳。
+
+		inline void
+		SetParam(WPARAM, LPARAM); //设置消息参数。
+		DefSetter(std::clock_t, Timestamp, timestamp) //设置消息时间戳。
+
+		void
+		UpdateTimestamp() //更新消息时间戳。
+	}; //class MMSG;
+
+
+	//消息队列类。
+	class YMessageQueue : public YObject
+	{
+	private:
+		//消息优先级比较函数对象。
+		struct cmp
+		{
+			bool
+			operator ()(const MMSG& i, const MMSG& j)
+			{
+				if(i.prior == j.prior)
+				//	return i.time > j.time;
+					return i.GetID() > j.GetID();
+				return i.prior < j.prior;
+			}
+		};
+
+		//消息优先队列。
+		std::priority_queue<MMSG, std::vector<MMSG>, cmp> q;
+
+		PDefHead(const MMSG&, top) const
+			ImplBodyMember(q, top)
+		PDefHead(void, push, const MMSG& msg)
+			ImplBodyMemberVoid(q, push, msg)
+		PDefHead(void, pop)
+			ImplBodyMemberVoid(q, pop)
+	public:
+
+		typedef std::priority_queue<int, std::vector<int>, cmp>::size_type size_type;
+
+		YMessageQueue(); //默认构造函数：非内联。
+		virtual
+		~YMessageQueue(); //默认析构函数：非内联。
+
+		PDefHead(bool, empty) const //判断消息队列是否为空。
+			ImplBodyMember(q, empty)
+		PDefHead(size_type, size) const //取队列中消息容量。
+			ImplBodyMember(q, size)
+
+		void
+		GetMessage(MMSG& m); //从消息队列中取优先级最高的消息存至 m 中（不在队列中保留消息）。
+		void
+		PeekMessage(MMSG& m) const; //从消息队列中取优先级最高的消息存至 m 中（在队列中保留消息）。
+
+		size_type
+		Clear(); //清除消息队列，并返回清除的消息数。
+		void
+		Update(); //更新消息队列。
+		bool
+		InsertMessage(const MMSG& m); //若消息 m 有效，插入 m 至消息队列中。返回 m 是否有效。
+
+	};//class YMessageQueue;
+
+
+	//合并 src 所有消息至 dst 中。
+	void
+	Merge(YMessageQueue& dst, std::vector<MMSG>& src);
+	void
+	Merge(YMessageQueue& dst, YMessageQueue& src);
+
+
+	//全局默认消息插入函数。
+	inline void
+	InsertMessage(const MMSG&);
+	inline void
+	InsertMessage(const HSHL&, const MSGID&, const MSGPRIORITY&, const WPARAM& = 0, const LPARAM& = 0, const SPoint& = SPoint::Zero);
+
+	YSL_BEGIN_NAMESPACE(Shells)
+
+	using Shells::MMSG;
+	using Shells::MMSG;
+	using Shells::InsertMessage;
+
+}//unit YShellMessage;
+
+
+/* -deprecated -*
+unit YShellProcessing "ysproc"
+{
+	import header YFunc, unit YShell, YGUI;
+
+
+	YSL_BEGIN_NAMESPACE(Shells)
+
+	typedef LRES FSHLPROC(const MMSG&);
+	typedef FSHLPROC* PFSHLPROC;
+
+
+	struct HShellProc : public GHBase<PFSHLPROC>
+	{
+		inline
+		HShellProc(const PFSHLPROC = NULL);
+
+		inline LRES
+		operator()(const MMSG&) const;
+
+	};//struct HShellProc;
+
+
+	// Shell 终止请求。
+	void
+	PostQuitMessage(int);
+
+	//默认 Shell 处理函数：调用默认 Shell 过程来为应用程序没有处理的任何 Shell 消息提供缺省的处理，以确保每一个消息得到处理。
+	inline LRES
+	DefShellProc(const MMSG&);
+
+	/*
+	PeekMessage
+	//从全局消息队列中取消息。
+	lpMsg：接收消息信息的 MMSG 结构指针。
+	hShl：消息关联（发送目标）的 Shell 的句柄，为 NULL 时无限制（为全局对象）。
+	wMsgFilterMin：指定被检查的消息范围里的第一个消息。
+	wMsgFilterMax：指定被检查的消息范围里的最后一个消息。
+	wRemoveMsg：确定消息如何被处理。此参数可取下列值之一：
+		PM_NOREMOVE：PeekMessage处理后，消息不从队列中清除。
+		PM_REMOVE：PeekMessage处理后，消息从队列中清除。
+	*/
+	#define PM_NOREMOVE 0x0
+	#define PM_REMOVE 0x1
+	IRES
+	PeekMessage(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg = PM_NOREMOVE);
+
+	IRES
+	GetMessage(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax);
+
+	ERRNO
+	TranslateMessage(const MMSG& msg);
+
+	LRES
+	DispatchMessage(const MMSG& msg);
+
+	//备份队列消息。
+	ERRNO
+	BackupMessage(const MMSG& msg);
+
+	//恢复消息队列。
+	void
+	RecoverMessageQueue();
+
+	//清除默认消息队列。
+	inline YMessageQueue::size_type
+	ClearDefaultMessageQueue();
+
+	#endif
+
+}//unit YShellProcessing;
+
+
+unit YShellMessageMapping "ysmsgmap"
+{
+	import unit YShellProcessing;
+
+
+	YSL_BEGIN_NAMESPACE(Shells)
+
+	typedef HShellProc HResponse; //消息响应类型。
+
+	struct YSMsgMap //消息映射表。
+	{
+		typedef std::map<MSGID, HResponse> MapType; //表类型。
+		typedef MapType::value_type ItemType; //映射条目类型。
+
+		YSMsgMap* pBase; //基类映射表指针。
+		MapType map; //映射表。
+
+		explicit
+		YSMsgMap(YSMsgMap* = NULL, const MapType& = MapType());
+
+		HResponse
+		GetResponse(MSGID) const; //查找指定消息标识的消息响应。
+
+		void
+		Add(const ItemType);
+		void
+		Add(MSGID, HResponse);
+	};//class YSMsgMap;
+
+	YSL_END_NAMESPACE(Shells)
+
+}//unit YShellMessageMapping;
+*/
+
+
+unit YShell "yshell"
+{
+	import header Helper::YGlobal, header <set>, <list>, unit YApplication,
+		unit Shell::YWindow, Shell::YControl, Shell::YGUI;
+
+
+	YSL_BEGIN_NAMESPACE(Shells)
+
+	//外壳程序：实现线程语义。
+	class YShell : public YObject,
+		implements GIContainer<IWindow>
+	{
+	public:
+		typedef std::list<HWND> WNDs;
+
+	private:
+		WNDs sWnds; //窗口组。
+
+	public:
+		bool insRefresh; //即时刷新：自动加入屏幕刷新消息。
+		UINT scrType; //即时刷新屏幕选取设置。
+
+		YShell();
+		virtual
+		~YShell();
+
+		bool
+		IsActive() const; //判断 Shell 是否处于激活状态。
+
+		bool
+		Activate(); //激活 Shell 对象： shlProc 控制权转移给此对象以维持单线程运行。
+
+		void
+		operator+=(IWindow&); //向窗口组添加窗口对象。
+		bool
+		operator-=(IWindow&); //从窗口组中移除指定窗口对象。
+		WNDs::size_type
+		RemoveAll(IWindow&); //从窗口组中移除所有指定窗口对象，返回移除的对象数。
+		void RemoveWindow(); //移除窗口队列中首个窗口对象。
+		HWND
+		GetFirstWindowHandle() const; //取得窗口组中首个窗口对象的句柄。
+		HWND
+		GetTopWindowHandle() const; //取得窗口组中顶端窗口对象的句柄。
+		HWND
+		GetTopWindowHandle(YDesktop&, const SPoint&) const; //取得窗口组中指定屏幕的指定的点所处的最顶层窗口对象的句柄。
+
+		bool
+		SendWindow(IWindow&); //向屏幕发送指定窗口对象。
+		void
+		DispatchWindows(); //向屏幕发送窗口对象。
+		void
+		ClearScreenWindows(YDesktop&); //清除指定屏幕中属于窗口组的窗口对象。
+
+		static LRES
+		DefShlProc(const MMSG&); //默认 Shell 处理函数。
+		virtual PDefHead(LRES, ShlProc, const MMSG& m) // Shell 处理函数：响应线程的直接调用。
+			ImplRet(DefShlProc(m))
+		inline virtual LRES
+		OnActivated(const MMSG&); // Shell 处理函数：响应线程的激活。
+		inline virtual LRES
+		OnDeactivated(const MMSG&); // Shell 处理函数：响应线程的撤销。
+	};//class YShell;
+
+	class YShellMain : /*public GMCounter<YShellMain>, public YCountableObject,*/ public YShell
+	{
+	public:
+		YShellMain(HSHL);
+		inline virtual
+		~YShellMain();
+		inline virtual LRES
+		ShlProc(const MMSG&);
+	};//class YShellMain;
+
+	YSL_END_NAMESPACE(Shells)
+
+}//unit YShell;
+
+
+unit YApplication "yapp"
+{
+	import unit YDevice, YShell, YFileSystem, header YEvent;
+
+
+	//程序日志。
+	class YLog : public YObject
+	{
+	public:
+		YLog();
+		virtual
+		~YLog();
+		YLog&
+		operator<<(char);
+		YLog&
+		operator<<(const std::string&);
+
+		void
+		Error(std::string&)
+		{}
+		void
+		FatalError(std::string&)
+		{}
+	}; //class YLog;
+
+
+	//程序实例：通过单例实现进程唯一性语义。
+	class YApplication : public YObject,
+		implements GIContainer<YShell>
+	{
+	public:
+		typedef YObject ParentType;
+		typedef std::set<HSHL> SHLs;
+
+		//全局常量。
+		static const IO::YPath CommonAppDataPath; //程序默认路径。
+		static const YString CompanyName; //制作组织名称。
+		static const YString ProductName; //产品名称。
+		static const YString ProductVersion; //产品版本。
+
+		//标准程序实例事件。
+		DefEvent(YEventHandler, ApplicationExit) //资源释放函数。
+		DefEvent(YEventHandler, Idle)
+
+		//全局资源。
+		YLog& log; //默认程序日志。
+		YFontCache* fc; //默认字体缓存。
+		YMessageQueue& mq; //主消息队列：在程序实例中实现以保证单线程。
+
+	private:
+		SHLs sShls; // Shell 对象组：实现 Shell 存储。
+		const HSHL hShellMain; //主 Shell 句柄。
+		HSHL hShell; //当前 Shell 句柄：指示当前线程空间中运行的 Shell ；应初始化为主 Shell ：全局单线程，生存期与进程相同。
+
+		YApplication();
+		YApplication(const YApplication&);
+		YApplication
+		operator=(const YApplication&);
+		static YApplication*
+		GetInstancePtr(); //单例构造函数：取得自身实例指针。
+
+	public:
+		virtual
+		~YApplication();
+
+		void
+		operator+=(YShell&); //添加 Shell 对象。
+		bool
+		operator-=(YShell&); //移除指定 Shell 对象。
+
+		bool
+		Contains(HSHL) const; //判断给定句柄的 Shell 是否被实例所有。
+
+		DefStaticGetter(YApplication&, App, *GetInstancePtr()) //取得自身实例引用。
+		DefStaticGetter(HINSTANCE, InstanceHandle, HINSTANCE(GetInstancePtr())) //取得自身实例句柄。
+		DefGetter(const SHLs, ShellSet, sShls) //取 Shell 对象组。
+		DefGetter(HSHL, ShellHandle, hShell) //取得线程空间中当前运行的 Shell 的句柄。
+
+		bool
+		SetShellHandle(HSHL h); //设置线程空间中当前运行的 Shell 的句柄。
+
+		void
+		ResetShellHandle(); //复位线程：设置当前运行的线程为主线程。
+	};//class YApplication;
+
+	YSL_END_NAMESPACE(Shells)
+
+}//unit YApplication;
+
+
+unit YFileSystem "yfilesys"
+{
+	import unit Core::YString, Core::YFunc, Helper::YGlobal, Core::YShell/* for HSHL delete procedure; */, header <vector>, <list>, unit Shell::YWindow;
+
+
+	YSL_BEGIN_NAMESPACE(IO)
+
+	//文件系统常量：前缀 FS 表示文件系统 (File System) 。
+	export const CPATH FS_Root;
+	export const CPATH FS_Seperator;
+	export const CPATH FS_Now;
+	export const CPATH FS_Parent;
+
+	typedef YString YPath; //文件路径类型。
+
+	//截取路径末尾的文件名。
+	const char*
+	GetFileName(CPATH);
+	YString
+	GetFileName(const YPath&);
+
+	//截取路径中的目录名并返回字符串。
+	YString
+	GetDirectoryName(const YPath&);
+
+	//截取路径中的目录名和文件名保存至字符串，并返回最后一个目录分隔符的位置。
+	YPath::const_iterator
+	SplitPath(const YPath&, YPath&, YString&);
+
+
+	//截取文件名开头的主文件名（贪婪匹配）。
+	YString
+	GetBaseName(const YString&, const YString&);
+
+	//对于两个字符串，判断前者是否是后者的主文件名。
+	bool
+	IsBaseName(const char*, const char*);
+	bool
+	IsBaseName(const YString&, const YString&);
+
+	//判断给定两个文件名的主文件名是否相同（忽略大小写；贪婪匹配）。
+	bool
+	SameBaseNames(const char*, const char*);
+	bool
+	SameBaseNames(const YString&, const YString&);
+
+	//截取文件名末尾的扩展名（非贪婪匹配）。
+	const char*
+	GetExtendName(const char*);
+	YString
+	GetExtendName(const YString&);
+
+	//对于两个字符串，判断前者是否是后者的扩展名。
+	bool
+	IsExtendName(const char*, const char*);
+	bool
+	IsExtendName(const YString&, const YString&);
+
+	//判断给定两个文件名的扩展名是否相同（忽略大小写；非贪婪匹配）。
+	bool
+	SameExtendNames(const char*, const char*);
+	bool
+	SameExtendNames(const YString&, const YString&);
+
+
+	//切换路径。
+	inline int
+	ChDir(CPATH);
+	int
+	ChDir(const YPath&);
+
+	//取当前工作目录。
+	YPath
+	GetNowDirectory();
+
+
+	//文件名过滤器。
+	typedef bool FNFILTER(const YString&);
+	typedef FNFILTER* PFNFILTER;
+
+	struct HFileNameFilter : public GHBase<PFNFILTER>
+	{
+		typedef GHBase<PFNFILTER> ParentType;
+
+		inline
+		HFileNameFilter(const PFNFILTER = NULL);
+
+		inline bool
+		operator()(const YString&) const;
+	};
+
+
+	//文件列表模块。
+	class MFileList
+	{
+	public:
+		typedef YString ItemType; //项目名称类型。
+		typedef std::vector<ItemType> ListType; //项目列表类型。
+
+	protected:
+		YPath Directory; //目录的完整路径。
+		ListType List; //目录中的项目列表。
+
+	public:
+		MFileList();
+		virtual
+		~MFileList();
+
+		const YPath&
+		GetDirectory() const; //取目录的完整路径。
+		u32
+		LoadSubItems(); //在目录中取子项目保存至参数。
+		const ListType&
+		GetList() const; //取项目列表。
+
+		u32
+		ListItems(); //遍历目录中的项目，更新至列表。
+
+		void
+		GoToPath(const YPath&); //导航至指定路径对应目录。
+		void
+		GoToSubDirectory(const YString&); //导航至子目录。
+		void
+		GoToRoot(); //返回根目录。
+		void
+		GoToParent(); //返回上一级目录。
+	}; //class MFileList;
+
+	YSL_END_NAMESPACE(IO)
+
+}//unit YFileSystem;
+
+
+unit YFile "yfile"
+{
+	import unit YString;
+
+
+	//文件基类。
+	export class YFile : public YObject
+	{
+	public:
+		typedef YObject ParentType;
+
+	protected:
+		FILE* fp; //默认文件指针。
+		u32 fsize; //文件大小。
+
+	public:
+		explicit
+		YFile(CPATH); //按指定文件路径初始化对象。
+		virtual
+		~YFile();
+
+		inline bool
+		IsValid() const; //判断文件指针是否有效。
+		inline FILE*
+		GetFilePtr() const; //取文件指针。
+		inline u32
+		GetFileLen() const; //取文件长度。
+
+		inline bool
+		OpenFile(CPATH); //打开指定路径的文件。
+		long
+		ftell() const; //取文件指针的位置。
+		inline void
+		rewind() const; //文件指针返回到文件头。
+		inline int
+		fseek(s32 offset, int origin) const; //设置文件指针位置，offset 和 origin 语义同 fseek 函数。
+		inline int
+		fread(void *p, int size, int count); //读文件到 p 中。
+		inline int
+		fEOF(); //检测文件结束符。
+	};//class YFile;
+
+}//unit YFile;
+
+
+unit YFile_(Text) "yftext"
+{
+	import unit YFile;
+
+
+	//文本文件类。
+	export class YTextFile : public YFile
+	{
+	public:
+		typedef YFile ParentType;
+
+	private:
+		u8 bl; // BOM 长度。
+		Text::CSID cp; //默认编码。
+
+	public:
+		explicit
+		YTextFile(CPATH); //按指定文件路径初始化对象。
+		virtual
+		~YTextFile();
+
+		DefGetter(u8, BOMLen, bl) //取 BOM 长度。
+		DefGetter(Text::CSID, CP, cp) //取默认编码。
+		DefGetter(u32, Pos, ftell() - bl) //取文件指针关于文本区段的位置。
+
+		u8
+		CheckBOM(Text::CSID&); //检查文件头是否有 BOM (Byte Order Mark) ，若有则据此判断编码，返回 BOM 长度。
+		void
+		Rewind() const; //文件读位置返回到文本区段头。
+		void
+		SetPos(u32) const; //设置文件读位置。
+		void
+		Seek(s32, int origin) const; //设置文件读位置， origin 语义同 fseek 函数（SEEK_SET 起始为文本区段头）。
+		u32
+		Read(void* s, u32 n); //读文件 n 字节到 s 中。
+		u32
+		ReadS(uchar_t* s, u32 n) const; //读文件 n 字节（按默认编码转化为 UTF-16LE）到 s 中。
+	}//class YTextFile;
+
+}//unit YFile_(Text);
+
+
+}//code YSLib::Core;
+
+
+code YSLib::Shell {
+
+unit YGDI "ygdi"
+{
+	import unit Core::YObject, Adapter::YFont;
+
+
+	// GDI 基本数据类型和宏定义。
+
+	#ifdef UNICODE
+	typedef WCHAR BCHAR;
+	#else
+	typedef BYTE BCHAR;
+	#endif
+
+	YSL_BEGIN_NAMESPACE(Drawing)
+
+	//基本函数对象。
+
+	//像素填充器。
+	template<typename _pixelType>
+	struct FillPixel
+	{
+		_pixelType Color;
+
+		inline explicit
+		FillPixel(_pixelType);
+		inline void
+		operator()(_pixelType*);
+	};
+
+	//序列转换器。
+	struct transSeq
+	{
+		template<typename _pixelType, class _transpType>
+		void
+		operator()(_pixelType*, size_t, _transpType);
+	};
+
+	//竖直线转换器。
+	struct transVLine
+	{
+		template<typename _pixelType, class _transpType>
+		void
+		operator()(_pixelType* dst, size_t n, SDST dw, _transpType tp);
+	};
+
+
+	//贴图位置计算器。
+	void
+	blitScale(const SPoint& sp, const SPoint& dp, const SSize& ss, const SSize& ds, const SSize& cs,
+			  int& minX, int& minY, int& maxX, int& maxY);
+
+
+	//正则矩形转换器。
+	struct transRect
+	{
+		template<typename _pixelType, class _transpType, class _translType>
+		void
+		operator()(_pixelType* dst, const SSize& ds,
+			const SPoint& dp, const SSize& ss, _transpType, _translType);
+		template<typename _pixelType, class _transpType, class _translType>
+		inline void
+		operator()(_pixelType*, const SSize&, const SRect&, _transpType, _translType);
+	};
+
+
+	//显示缓存操作：清除/以纯色像素填充。
+
+	//清除指定位置的 n 个连续像素。
+	template<typename _pixelType>
+	inline void
+	ClearPixel(_pixelType* dst, size_t n);
+
+	//使用 n 个指定像素连续填充指定位置。
+	template<typename _pixelType>
+	inline void
+	FillSeq(_pixelType* dst, size_t n, _pixelType c);
+
+	//使用 n 个指定像素竖直填充指定位置。
+	template<typename _pixelType>
+	inline void
+	FillVLine(_pixelType* dst, size_t n, SDST dw, _pixelType c);
+
+	//使用指定像素填充指定的正则矩形区域。
+	template<typename _pixelType>
+	inline void
+	FillRect(_pixelType*, SDST, SDST, SPOS, SPOS, SDST, SDST, _pixelType);
+	template<typename _pixelType>
+	inline void
+	FillRect(_pixelType*, const SRect&, const SSize&,  _pixelType);
+
+
+	//显示缓存操作：简单复制。
+
+	//显示缓存操作：简单贴图。
+
+	//复制一块矩形区域的像素。
+	void
+	blit(BitmapPtr dst, const SSize& ds,
+		 ConstBitmapPtr src, const SSize& ss,
+		 const SPoint& sp, const SPoint& dp, const SSize& sc);
+	//水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素。
+	void
+	blitH(BitmapPtr dst, const SSize& ds,
+		  ConstBitmapPtr src, const SSize& ss,
+		  const SPoint& sp, const SPoint& dp, const SSize& sc);
+	//竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素。
+	void
+	blitV(BitmapPtr dst, const SSize& ds,
+		  ConstBitmapPtr src, const SSize& ss,
+		  const SPoint& sp, const SPoint& dp, const SSize& sc);
+	//倒置复制一块矩形区域的像素。
+	void
+	blitU(BitmapPtr dst, const SSize& ds,
+		  ConstBitmapPtr src, const SSize& ss,
+		  const SPoint& sp, const SPoint& dp, const SSize& sc);
+
+	//复制一块矩形区域的像素（使用第 15 位表示透明性）。
+	void
+	blit2(BitmapPtr dst, const SSize& ds,
+		  ConstBitmapPtr src, const SSize& ss,
+		  const SPoint& sp, const SPoint& dp, const SSize& sc);
+	//水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素（使用第 15 位表示透明性）。
+	void
+	blit2H(BitmapPtr dst, const SSize& ds,
+		   ConstBitmapPtr src, const SSize& ss,
+		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	//竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素（使用第 15 位表示透明性）。
+	void
+	blit2V(BitmapPtr dst, const SSize& ds,
+		   ConstBitmapPtr src, const SSize& ss,
+		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	//倒置复制一块矩形区域的像素（使用第 15 位表示透明性）。
+	void
+	blit2U(BitmapPtr dst, const SSize& ds,
+		   ConstBitmapPtr src, const SSize& ss,
+		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+
+	//复制一块矩形区域的像素（使用 Alpha 通道表示透明性）。
+	void
+	blit2(BitmapPtr dst, const SSize& ds,
+		  ConstBitmapPtr src, const u8* srcA, const SSize& ss,
+		  const SPoint& sp, const SPoint& dp, const SSize& sc);
+	//水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素（使用 Alpha 通道表示透明性）。
+	void
+	blit2H(BitmapPtr dst, const SSize& ds,
+		   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
+		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	//竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素（使用 Alpha 通道表示透明性）。
+	void
+	blit2V(BitmapPtr dst, const SSize& ds,
+		   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
+		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	//倒置复制一块矩形区域的像素（使用 Alpha 通道表示透明性）。
+	void
+	blit2U(BitmapPtr dst, const SSize& ds,
+		   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
+		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+
+	//复制一块矩形区域的像素（使用 Alpha 通道表示 8 位透明度）。
+	void
+	blitAlpha(BitmapPtr dst, const SSize& ds,
+			  ConstBitmapPtr src, const u8* srcA, const SSize& ss,
+			  const SPoint& sp, const SPoint& dp, const SSize& sc);
+	//水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素（使用 Alpha 通道表示 8 位透明度）。
+	void
+	blitAlphaH(BitmapPtr dst, const SSize& ds,
+			   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
+			   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	//竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素（使用 Alpha 通道表示 8 位透明度）。
+	void
+	blitAlphaV(BitmapPtr dst, const SSize& ds,
+			   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
+			   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	//倒置复制一块矩形区域的像素（使用 Alpha 通道表示 8 位透明度）。
+	void
+	blitAlphaU(BitmapPtr dst, const SSize& ds,
+			   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
+			   const SPoint& sp, const SPoint& dp, const SSize& sc);
+
+
+	//图形接口上下文。
+	class YGIC : public YObject
+	{
+	private:
+		BitmapPtr pBuffer;
+		SSize Size;
+
+	public:
+		inline
+		YGIC(BitmapPtr, const SSize&);
+
+		DefBoolGetter(Valid, pBuffer && Size.Width && Size.Height)
+
+		DefGetter(BitmapPtr, BufferPtr, pBuffer)
+		DefGetter(const SSize&, Size, Size)
+		DefGetter(SDST, Width, Size.Width)
+		DefGetter(SDST, Height, Size.Height)
+	};
+
+
+	//图形接口上下文操作：绘图。
+
+	//绘制像素：(x, y) 。
+	inline void
+	DrawPoint(YGIC& g, SPOS x, SPOS y, PixelType c);
+
+	//绘制点：p(x, y) 。
+	inline bool
+	DrawPoint(YGIC& g, SPOS x, SPOS y, PixelType c);
+	inline bool
+	DrawPoint(YGIC& g, const SPoint& p, PixelType c);
+
+	//绘制水平线段：指定水平坐标 x1 、 x2 ，竖直坐标 y 。
+	bool
+	DrawHLineSeg(YGIC* pGDC, SPOS y, SPOS x1, SPOS x2, PixelType c);
+
+	//绘制竖直线段：指定水平坐标 x ，竖直坐标 y1 、 y2 。
+	bool
+	DrawVLineSeg(YGIC* pGDC, SPOS x, SPOS y1, SPOS y2, PixelType c);
+
+	//绘制一般线段：顶点 p1(x1, y1), p2(x2, y2) 。
+	bool
+	DrawLineSeg(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
+	inline bool
+	DrawLineSeg(YGIC& g, const SPoint& p1, const SPoint& p2, PixelType c);
+
+	//绘制空心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2)。
+	bool
+	DrawRect(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
+	inline bool
+	DrawRect(YGIC& g, const SPoint& p1, const SPoint& p2, PixelType c);
+	inline bool
+	DrawRect(YGIC& g, const SPoint& p, const SSize& s, PixelType c);
+	inline bool
+	DrawRect(YGIC& g, const SRect& r, PixelType c);
+
+
+	// GDI 逻辑对象。
+
+	class YPenStyle : YObject //笔样式：字体和笔颜色。
+	{
+	public:
+		typedef YObject ParentType;
+
+	protected:
+		YFont Font; //字体。
+		PixelType Color; //笔颜色。
+
+	public:
+		inline explicit
+		YPenStyle(const YFontFamily& = *GetDefaultFontFamilyPtr(), YFont::SizeType = YFont::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
+
+		inline YFont&
+		GetFont();
+		inline const YFont&
+		GetFont() const;
+		inline const YFontFamily&
+		GetFontFamily() const;
+		inline YFont::SizeType
+		GetFontSize() const;
+		inline PixelType
+		GetColor() const;
+
+		inline void
+		SetFont(const YFont&); //设置字体。
+		inline void
+		SetFontStyle(YFontStyle); //设置字体样式。
+		inline void
+		SetFontSize(YFont::SizeType); //设置字体大小。
+		inline void
+		SetColor(PixelType c = RGB15(31, 31, 31)); //设置颜色。
+
+		inline void
+		UpdateFont(); //更新字体缓存中当前处理的字体。
+		inline void
+		UpdateFontSize(); //更新字体缓存中当前处理的字体大小。
+	};
+
+	struct MPadding //边距样式。
+	{
+		typedef YObject ParentType;
+
+		SDST Left, Right, Top, Bottom; //边距：左、右、上、下。
+
+		explicit
+		MPadding(SDST = 4, SDST = 4, SDST = 4, SDST = 4); //使用 4 个 16 位无符号整数形式初始化边距。
+		explicit
+		MPadding(u64); //使用 64 位无符号整数形式初始化边距。
+
+		inline SDST
+		GetHorizontal() const; //取水平边距和。
+		inline SDST
+		GetVertical() const; //取竖直边距和。
+		u64
+		GetAll() const; //取边距（64 位无符号整数形式）。
+
+		inline void
+		SetAll(u64); //设置边距（64 位无符号整数形式）。
+		inline void
+		SetAll(SDST, SDST); //设置边距（2 个 16 位无符号整数形式，分别表示水平边距和竖直边距）。
+		void
+		SetAll(SDST, SDST, SDST, SDST); //设置边距（4 个 16 位无符号整数形式）。
+
+		MPadding&
+		operator+=(const MPadding&);
+		friend MPadding
+		operator+(const MPadding& a, const MPadding& b);
+	};//struct MPadding;
+
+
+	class MBitmapBuffer : public SSize //矩形图像缓冲区。
+	{
+	protected:
+		BitmapPtr img; //显示缓冲区指针。
+
+	public:
+		inline
+		MBitmapBuffer();
+		MBitmapBuffer(ConstBitmapPtr, SDST, SDST);
+		inline virtual
+		~MBitmapBuffer();
+
+		inline friend bool
+		operator==(const MBitmapBuffer&, const MBitmapBuffer&);
+
+		inline
+		operator YGIC() const; //生成图形接口上下文。
+
+		DefGetter(SDST, Width, Width) //取缓冲区的宽。
+		DefGetter(SDST, Height, Height) //取缓冲区的高。
+		DefGetter(BitmapPtr, BufferPtr, img) //取缓冲区指针。
+		DefGetter(size_t, SizeOfBuffer, sizeof(PixelType) * GetArea()) //取缓冲区占用空间。
+
+		//重新设置缓冲区的大小。
+		virtual void
+		SetSize(SPOS, SPOS); 
+		virtual void
+		SetSizeSwap(); //交换宽和高；同时交换边距。
+
+		virtual void
+		ClearImage() const; //清除缓冲区。
+		virtual void
+		Fill(PixelType) const; //以纯色填充显示缓冲区。
+
+		virtual void
+		CopyToBuffer(BitmapPtr, ROT = RDeg0, const SSize& ds = SSize::FullScreen,
+			const SPoint& sp = SPoint::Zero, const SPoint& dp = SPoint::Zero, const SSize& sc = SSize::FullScreen) const; //复制至屏幕指定区域。
+	};//class MBitmapBuffer;
+
+
+	class MBitmapBufferEx : public MBitmapBuffer //矩形增强图像缓冲区。
+	{
+	protected:
+		u8* imgAlpha; // Alpha 缓冲区指针。
+
+	public:
+		inline
+		MBitmapBufferEx();
+		inline
+		MBitmapBufferEx(ConstBitmapPtr, SDST, SDST);
+		inline virtual
+		~MBitmapBufferEx();
+
+		inline friend bool
+		operator==(const MBitmapBufferEx&, const MBitmapBufferEx&);
+
+		DefGetter(u8*, BufferAlphaPtr, imgAlpha) //取 Alpha 缓冲区的指针。
+		DefGetter(size_t, SizeOfBufferAlpha, sizeof(u8) * GetArea()) //取 Alpha 缓冲区占用空间。
+
+		//重新设置缓冲区的大小。
+		virtual void
+		SetSize(SPOS, SPOS); 
+		virtual void
+		SetSizeSwap(); //交换宽和高；同时交换边距。
+
+		virtual void
+		ClearImage() const; //清除缓冲区。
+
+		void
+		CopyToBuffer(BitmapPtr, ROT = RDeg0, const SSize& ds = SSize::FullScreen,
+			const SPoint& sp = SPoint::Zero, const SPoint& dp = SPoint::Zero, const SSize& sc = SSize::FullScreen) const; //复制至屏幕指定区域。
+		void
+		BlitToBuffer(BitmapPtr, ROT = RDeg0, const SSize& ds = SSize::FullScreen,
+			const SPoint& sp = SPoint::Zero, const SPoint& dp = SPoint::Zero, const SSize& sc = SSize::FullScreen) const; //贴图至屏幕指定区域。
+	};//class MBitmapBufferEx;
+
+	YSL_END_NAMESPACE(Drawing)
+
+}//unit YGDI;
+
+
+unit YGUI "ygui"
+{
+	import unit Core::YShellProcessing, Shell::YDesktop, Shell::YForm;
+
+	YSL_BEGIN_NAMESPACE(Runtime)
+
+	//从指定 Shell 传递指定屏幕的指针设备光标至 GUI 界面，返回部件指针。
+	IWidget*
+	GetCursorWidgetPtr(HSHL, YDesktop&, const SPoint&);
+
+	//取指定屏幕中的当前焦点对象。
+	IVisualControl*
+	GetFocusedObject(YDesktop&);
+
+	//级联请求可视控件及上层容器焦点。
+	void
+	RequestFocusCascade(IVisualControl&);
+
+	//级联释放可视控件及上层容器焦点。
+	void
+	ReleaseFocusCascade(IVisualControl&);
+
+
+	//标准 GUI 事件回调函数对象类接口。
+	typedef GIEventCallback<Components::Controls::MVisualControl, YEvent> IEventCallback;
+	typedef GIEventCallback<Components::Controls::MVisualControl, Runtime::YTouchEventArgs> ITouchCallback;
+	typedef GIEventCallback<Components::Controls::MVisualControl, Runtime::YKeyEventArgs> IKeyCallback;
+
+	//标准 GUI 事件回调函数类型。
+	typedef bool FTouchCallback(Components::Controls::MVisualControl&, const Runtime::YTouchEventArgs&);
+	typedef bool FKeyCallback(Components::Controls::MVisualControl&, const Runtime::YKeyEventArgs&);
+	typedef FTouchCallback* PFTouchCallback;
+	typedef FKeyCallback* PFKeyCallback;
+
+	//标准 GUI 事件回调函数对象类。
+	struct HTouchCallback : public GHBase<PFTouchCallback>,
+		implements ITouchCallback
+	{
+		inline explicit
+		HTouchCallback(Runtime::YTouchEventArgs e, PFTouchCallback p)
+		: GHBase<PFTouchCallback>(p),
+		ITouchCallback(e)
+		{}
+
+		inline bool
+		operator()(Components::Controls::MVisualControl& c)
+		{
+			return GetPtr()(c, *this);
+		}
+	};
+
+	struct HKeyCallback : public GHBase<PFKeyCallback>,
+		implements IKeyCallback
+	{
+		inline explicit
+		HKeyCallback(Runtime::YKeyEventArgs e, PFKeyCallback p)
+		: GHBase<PFKeyCallback>(p),
+		IKeyCallback(e)
+		{}
+
+		inline bool
+		operator()(Components::Controls::MVisualControl& c)
+		{
+			return GetPtr()(c, *this);
+		}
+	};
+
+
+	//记录输入保持状态。
+	class TouchStatus
+	{
+	private:
+		static SVec v_DragOffset;
+
+	public:
+		DefStaticBoolGetter(OnDragging, v_DragOffset != SVec::FullScreen)
+
+		DefStaticGetter(const SVec&, DragOffset, v_DragOffset)
+
+		static DefSetterDef(const SVec&, DragOffset, v_DragOffset, SVec::FullScreen)
+	};
+
+
+	//响应标准屏幕点击状态。
+	bool
+	ResponseTouchUp(IWidgetContainer&, const Runtime::YTouchEventArgs&);
+	bool
+	ResponseTouchDown(IWidgetContainer&, const Runtime::YTouchEventArgs&);
+	bool
+	ResponseTouchHeld(IWidgetContainer&, const Runtime::YTouchEventArgs&);
+
+	//响应标准按键状态。
+	bool
+	ResponseKeyUp(YDesktop&, const Runtime::YKeyEventArgs&);
+	bool
+	ResponseKeyDown(YDesktop&, const Runtime::YKeyEventArgs&);
+	bool
+	ResponseKeyHeld(YDesktop&, const Runtime::YKeyEventArgs&);
+
+	YSL_END_NAMESPACE(Runtime)
+
+	YSL_BEGIN_NAMESPACE(Drawing)
+
+	//取图形接口上下文。
+	inline YGIC
+	GetGraphicInterfaceContext(HWND);
+
+
+	//绘制界面元素边框。
+	void
+	DrawBounds(YGIC&, const SPoint&, const SSize&, PixelType);
+
+	//绘制窗口边框。
+	void
+	DrawWindowBounds(HWND, PixelType);
+
+	//绘制部件边框。
+	void
+	DrawWidgetBounds(IWidget&, PixelType);
+
+	YSL_END_NAMESPACE(Drawing)
+
+}//unit YGUI;
+
+
+unit YComponent "ycomp"
+{
+	import unit Core::YApplication;
+
+
+	YSL_BEGIN_NAMESPACE(Components)
+
+	//基本组件接口。
+	DeclInterface(IComponent)
+	EndDecl
+
+
+	class YComponent : public GMCounter<YComponent>, public YCountableObject //基本组件。
+	{
+	public:
+		typedef YCountableObject ParentType;
+	};
+
+	YSL_END_NAMESPACE(Components)
+
+}//unit YComponent;
+
+
+unit YDesktop "ydesktop"
+{
+	import unit YWindow, header <list>;
+
+
+	YSL_BEGIN_NAMESPACE(Device)
+
+	//桌面。
+	class YDesktop : public YFrameWindow
+	{
+		friend class YSLib::Def;
+
+	public:
+		typedef YComponent ParentType;
+		typedef std::list<IVisualControl*> DOs; //桌面对象组类型。
+
+	private:
+		YScreen& Screen; //屏幕对象。
+		DOs sDOs; //桌面对象组（末尾表示顶端）。
+
+	public:
+		explicit
+		YDesktop(YScreen&, Drawing::PixelType = 0, HResource<Drawing::YImage> = NULL);
+		virtual
+		~YDesktop();
+
+		DefGetter(const YScreen&, Screen, Screen) //取屏幕对象。
+		DefGetter(const Drawing::MBitmapBuffer&, Buffer, *this) //取显示缓冲区。
+		DefGetter(Drawing::BitmapPtr, BackgroundPtr, Screen.GetPtr()) //取背景指针。
+
+		virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const SPoint& p) const
+			ImplBodyBase(YDesktop, GetTopDesktopObjectPtr, p)
+
+		void
+		operator+=(IVisualControl&); //向桌面对象组添加桌面对象。
+		bool
+		operator-=(IVisualControl&); //从桌面对象组中移除指定桌面对象。
+		DOs::size_type
+		RemoveAll(IVisualControl&); //从桌面对象组中移除所有指定桌面对象，返回移除的对象数。
+		bool
+		MoveToTop(IVisualControl&); //从桌面对象组中查找指定桌面对象对象并重新插入至顶端。
+		void
+		RemoveTopDesktopObject(); //移除桌面对象组中首个桌面对象。
+		void
+		ClearDesktopObjects(); //清除桌面对象组。
+		IVisualControl*
+		GetFirstDesktopObjectPtr() const; //取得桌面对象组中首个桌面对象的句柄。
+		IVisualControl*
+		GetTopDesktopObjectPtr() const; //取得桌面对象组中顶端桌面对象的句柄。
+		IVisualControl*
+		GetTopDesktopObjectPtr(const SPoint&) const; //取得桌面对象组中包含指定点的顶端桌面对象的句柄。
+
+		virtual void
+		DrawBackground();
+		void
+		DrawDesktopObjects(); //依次绘制窗口组对象。
+		virtual void
+		Draw();
+
+		virtual void
+		Refresh();
+		virtual void
+		Update(); //更新缓冲区内容至屏幕。
+	};//class YDesktop;
+
+	YSL_END_NAMESPACE(Device)
+
+}//unit YDesktop;
+
+
+unit YWidget "ywidget"
+{
+	import unit YComponent, Core::YModule, Core::YResource, header <set>, unit YWindow, unit YControl;
+
+
+	YSL_BEGIN_NAMESPACE(Components)
+
+	//前向声明。
+
+	using Drawing::SPoint;
+	using Drawing::SVec;
+	using Drawing::SSize;
+	using Drawing::SRect;
+
+	using Drawing::YImage;
+
+	YSL_BEGIN_NAMESPACE(Widgets)
+
+	// GUI 部件定义。
+
+	//部件接口。
+	DeclInterface(IWidget)
+		DeclIEntry(bool IsVisible() const) //判断是否可见。
+		DeclIEntry(bool IsTransparent() const) //判断是否透明。
+		DeclIEntry(bool IsBgRedrawing() const) //判断是否需要重绘。
+
+		DeclIEntry(bool Contains(const Drawing::SPoint&) const) //判断点是否在边界内或边界上。
+
+		DeclIEntry(const SPoint& GetLocation() const)
+		DeclIEntry(const SSize& GetSize() const)
+		DeclIEntry(IWidgetContainer* GetContainerPtr() const)
+		DeclIEntry(HWND GetWindowHandle() const)
+
+		DeclIEntry(void SetVisible(bool = true)) //设置可见。
+		DeclIEntry(void SetTransparent(bool = true)) //设置透明。
+		DeclIEntry(void SetBgRedrawing(bool = true)) //设置重绘。
+		DeclIEntry(void SetLocation(const SPoint&)) //设置左上角所在位置（相对于容器的偏移坐标）。
+
+		DeclIEntry(void DrawBackground()) //绘制背景。
+		DeclIEntry(void DrawForeground()) //绘制前景。
+
+		DeclIEntry(void Refresh()) //刷新至窗口缓冲区。
+
+		DeclIEntry(void RequestToTop()) //请求提升至容器顶端。
+	EndDecl
+
+
+	//部件容器接口。
+	DeclBasedInterface(IWidgetContainer, IWidget)
+		DeclIEntry(void operator+=(IWidget&)) //向部件组添加部件。
+		DeclIEntry(bool operator-=(IWidget&)) //从部件组移除部件。
+		DeclIEntry(void operator+=(IVisualControl&)) //向焦点对象组添加可视控件。
+		DeclIEntry(bool operator-=(IVisualControl&)) //从焦点对象组移除可视控件。
+		DeclIEntry(void operator+=(Runtime::GMFocusResponser<IVisualControl>&)) //向焦点对象组添加子焦点对象容器。
+		DeclIEntry(bool operator-=(Runtime::GMFocusResponser<IVisualControl>&)) //从焦点对象组移除子焦点对象容器。
+
+		DeclIEntry(IWidget* GetTopWidgetPtr(const SPoint&) const) //取指定的点（屏幕坐标）所处的部件的指针。
+		DeclIEntry(IVisualControl* GetTopVisualControlPtr(const SPoint&) const) //取指定的点（屏幕坐标）所处的焦点对象的指针。
+		DeclIEntry(SPoint GetContainerLocationOffset(const SPoint& = SPoint::Zero) const) //取指定的点（相对此容器的坐标）相对于此容器的父容器的偏移坐标。
+		DeclIEntry(SPoint GetWindowLocationOffset(const SPoint& = SPoint::Zero) const) //取指定的点（相对此容器的坐标）相对于此容器的父窗口的偏移坐标。
+
+		DeclIEntry(void ClearFocusingPtr()) //清除焦点指针。
+	EndDecl
+
+
+	SPoint
+	GetLocationOffset(IWidget*, const SPoint&, const HWND&);
+
+
+	//可视样式模块。
+	class MVisual
+	{
+	public:
+		bool Visible; //可见性。
+		bool Transparent; //透明性。
+
+	private:
+		mutable bool bBgRedraw; //背景重绘属性。
+
+	protected:
+		SPoint Location; //左上角所在位置（相对于容器的偏移坐标）。
+		SSize Size; //部件大小。
+
+	public:
+		explicit
+		MVisual(const SRect& = SRect::Empty);
+
+		DefBoolGetter(Visible, Visible)
+		DefBoolGetter(Transparent, Transparent)
+		DefBoolGetter(BgRedrawing, bBgRedraw)
+
+		//判断包含关系。
+		PDefHead(bool, Contains, const SPoint& p) const
+			ImplBodyMember(GetBounds(), IsInBoundsRegular, p)
+		PDefHead(bool, Contains, const int& x, const int& y) const //判断点(x, y)是否在边界内或边界上。
+			ImplBodyMember(GetBounds(), IsInBoundsRegular, x, y)
+
+		DefGetter(SPOS, X, Location.X)
+		DefGetter(SPOS, Y, Location.Y)
+		DefGetter(SDST, Width, Size.Width)
+		DefGetter(SDST, Height, Size.Height)
+		virtual DefGetter(const SPoint&, Location, Location)
+		virtual DefGetter(const SSize&, Size, Size)
+		virtual DefGetter(SRect, Bounds, SRect(Location, Size.Width, Size.Height))
+
+		DefSetterDef(bool, Visible, Visible, true)
+		DefSetterDef(bool, Transparent, Transparent, true)
+		DefSetterDef(bool, BgRedrawing, bBgRedraw, true)
+		virtual DefSetter(const SPoint&, Location, Location)
+		virtual PDefHead(void, SetLocation, SPOS x, SPOS y)
+			ImplBodyBaseVoid(MVisual, SetLocation, SPoint(x, y))
+		virtual void
+		SetSize(SDST, SDST);
+		virtual void
+		SetBounds(const SRect& r);
+	};//class MVisual;
+
+
+	typedef GIContainer<IVisualControl> IWidgetContainer;
+
+
+	//部件模块。
+	class MWidget : public MVisual
+	{
+	protected:
+		HWND hWindow; //从属的窗口的句柄。
+
+	public:
+		IWidgetContainer* const pContainer; //从属的部件容器的指针。
+
+		explicit
+		MWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL);
+
+		//判断从属关系。
+		inline bool
+		BelongsTo(HWND) const;
+		inline bool
+		BelongsTo(IWidgetContainer*) const;
+
+		virtual DefGetter(IWidgetContainer*, ContainerPtr, pContainer)
+		virtual DefGetter(HWND, WindowHandle, hWindow)
+		SPoint
+		GetLocationForWindow() const; //取部件相对于最直接的窗口的位置（若无窗口则返回 FullScreen ）。
+		SPoint
+		GetLocationForParentContainer() const; //取部件相对于容器的父容器的位置（若无容器则返回 FullScreen ）。
+		SPoint
+		GetLocationForParentWindow() const; //取部件相对于容器的父窗口的位置（若无容器则返回 FullScreen ）。
+
+		virtual void
+		Refresh();
+	};//class MWidget;
+
+
+	//部件。
+	class YWidget : public GMCounter<YWidget>, public YComponent, public MWidget,
+		implements IWidget
+	{
+	public:
+		typedef YComponent ParentType;
+
+		explicit
+		YWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL);
+		virtual
+		~YWidget();
+
+		virtual DefBoolGetterBase(Visible, MVisual)
+		virtual DefBoolGetterBase(Transparent, MVisual)
+		virtual DefBoolGetterBase(BgRedrawing, MVisual)
+
+		//判断包含关系。
+		virtual PDefHead(bool, Contains, const SPoint& p) const
+			ImplBodyBase(MVisual, Contains, p)
+
+		virtual DefGetterBase(const SPoint&, Location, MVisual)
+		virtual DefGetterBase(const SSize&, Size, MVisual)
+		virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
+		virtual DefGetterBase(HWND, WindowHandle, MWidget)
+
+		virtual DefSetterBaseDef(bool, Visible, MVisual, true)
+		virtual DefSetterBaseDef(bool, Transparent, MVisual, true)
+		virtual DefSetterBaseDef(bool, BgRedrawing, MVisual, true)
+		virtual DefSetterBase(const SPoint&, Location, MVisual)
+
+		virtual void
+		DrawBackground();
+		virtual void
+		DrawForeground();
+
+		virtual PDefHead(void, Refresh)
+			ImplBodyBaseVoid(MWidget, Refresh)
+
+		inline virtual void
+		RequestToTop();
+	};//class YWidget;
+
+
+	//部件容器模块。
+	class MWidgetContainer : public Runtime::GMFocusResponser<IVisualControl>,
+		implements GIContainer<IVisualControl>
+	{
+	public:
+		typedef Components::GMContainer<IWidget> WidgetSet;
+		typedef WidgetSet::ContainerType WGTs; //部件组类型。
+		typedef Components::GMContainer<Runtime::GMFocusResponser<IVisualControl> > FOCs; //子焦点对象容器组类型。
+
+	protected:
+		WidgetSet sWgtSet; //部件对象组模块。
+		FOCs sFOCSet; //子焦点对象容器组。
+
+	public:
+		MWidgetContainer();
+		virtual
+		~MWidgetContainer();
+
+	protected:
+		PDefOpHead(void, +=, IVisualControl& r) //向焦点对象组添加焦点对象。
+			ImplBodyBaseVoid(Runtime::GMFocusResponser<IVisualControl>, operator+=, r)
+		PDefOpHead(bool, -=, IVisualControl& r) //从焦点对象组移除焦点对象。
+			ImplBodyBase(Runtime::GMFocusResponser<IVisualControl>, operator-=, r)
+		PDefOpHead(void, +=, Runtime::GMFocusResponser<IVisualControl>& c) //向子焦点对象容器组添加子焦点对象容器。
+			ImplBodyMemberVoid(sFOCSet, insert, &c)
+		PDefOpHead(bool, -=, Runtime::GMFocusResponser<IVisualControl>& c) //从子焦点对象容器组移除子焦点对象容器。
+			ImplBodyMember(sFOCSet, erase, &c)
+
+	public:
+		virtual Controls::IComponent*
+		GetFocusingPtr() const;
+		virtual IWidget*
+		GetTopWidgetPtr(const SPoint&);
+		virtual IVisualControl*
+		GetTopVisualControlPtr(const SPoint&);
+	};
+
+	//部件容器。
+	class YWidgetContainer : public GMCounter<YWidgetContainer>, public YComponent, public MWidget, public MWidgetContainer,
+		implements IWidgetContainer
+	{
+	public:
+		typedef YComponent ParentType;
+
+		explicit
+		YWidgetContainer(HWND, const SRect& = SRect::Zero, IWidgetContainer* = NULL);
+		virtual
+		~YWidgetContainer();
+
+		inline void
+		operator+=(IWidget&);
+		inline bool
+		operator-=(IWidget&);
+		inline void
+		operator+=(IVisualControl&);
+		inline bool
+		operator-=(IVisualControl&);
+		inline virtual void
+		operator+=(Runtime::GMFocusResponser<IVisualControl>&);
+		inline virtual bool
+		operator-=(Runtime::GMFocusResponser<IVisualControl>&);
+
+		virtual DefBoolGetterBase(Visible, MVisual)
+		virtual DefBoolGetterBase(Transparent, MVisual)
+		virtual DefBoolGetterBase(BgRedrawing, MVisual)
+
+		//判断包含关系。
+		virtual PDefHead(bool, Contains, const SPoint& p) const
+			ImplBodyBase(MVisual, Contains, p)
+
+		virtual DefGetterBase(const SPoint&, Location, MVisual)
+		virtual DefGetterBase(const SSize&, Size, MVisual)
+		virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
+		virtual DefGetterBase(HWND, WindowHandle, MWidget)
+		virtual PDefHead(IWidget*, GetTopWidgetPtr, const SPoint& p) const
+			ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
+		virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const SPoint& p) const
+			ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
+		virtual SPoint
+		GetContainerLocationOffset(const SPoint& = SPoint::Zero) const;
+		virtual SPoint
+		GetWindowLocationOffset(const SPoint& = SPoint::Zero) const;
+
+		virtual DefSetterBaseDef(bool, Visible, MVisual, true)
+		virtual DefSetterBaseDef(bool, Transparent, MVisual, true)
+		virtual DefSetterBaseDef(bool, BgRedrawing, MVisual, true)
+		virtual DefSetterBase(const SPoint&, Location, MVisual)
+
+		virtual PDefHead(void, ClearFocusingPtr)
+			ImplBodyBaseVoid(MWidgetContainer, ClearFocusingPtr)
+
+		virtual void
+		DrawBackground();
+		virtual void
+		DrawForeground();
+
+		virtual PDefHead(void, Refresh)
+			ImplBodyBaseVoid(MWidget, Refresh)
+
+		inline virtual void
+		RequestToTop();
+	};//class YWidgetContainer;
+
+	YSL_END_NAMESPACE(Widgets)
+
+	YSL_END_NAMESPACE(Components)
+
+}//unit YWidget;
+
+
+unit YControl "ycontrol"
+{
+	import unit YWidget, YText,
+		unit YWindow, YGUI, Core::YException;
+
+
+	YSL_BEGIN_NAMESPACE(Components)
+
+	YSL_BEGIN_NAMESPACE(Controls)
+
+	//控件事件参数类型。
+	struct YIndexEventArgs : public YEventArgs
+	{
+		IVisualControl& con;
+		int index;
+
+		inline
+		YIndexEventArgs(IVisualControl& c, const int& i)'
+	};
+
+
+	//控件事件类型。
+	typedef Runtime::GEvent<true, IControl, YEventArgs> YControlEvent;
+
+
+	//事件处理器类型。
+	DefDelegate(YTouchEventHandler, IVisualControl, Runtime::YTouchEventArgs)
+	DefDelegate(YKeyEventHandler, IVisualControl, Runtime::YKeyEventArgs)
+	DefDelegate(YIndexEventHandler, IVisualControl, YIndexEventArgs)
+
+
+	//可视控件事件空间。
+	struct EControl
+	{
+		typedef enum EventSpace
+		{
+		//	AutoSizeChanged,
+		//	BackColorChanged,
+		//	ForeColorChanged,
+		//	LocationChanged,
+		//	MarginChanged,
+		//	VisibleChanged,
+
+		//	EnabledChanged,
+		//	Resize,
+		//	Move,
+
+			GotFocus,
+			LostFocus,
+
+		//	TextChanged,
+		//	FontChanged,
+		//	FontColorChanged,
+		} EventID;
+	};//struct EControl;
+
+
+	//控件接口。
+	DeclInterface(IControl)
+		typedef Runtime::GEventMap<EControl> EventMapType;
+
+		DeclIEntry(EventMapType::Event& operator[](const EventMapType::ID&))
+
+		DeclIEntry(bool IsEnabled() const) //判断是否有效。
+
+		DeclIEntry(void SetEnabled(bool)) //设置有效性。
+	EndDecl
+
+
+	//可视控件接口。
+	DeclBasedInterface(IVisualControl, IControl, Runtime::GIFocusRequester<IVisualControl>)
+		DeclIEntry(void RequestFocus(const YEventArgs& = YEventArgs::Empty))
+		DeclIEntry(void ReleaseFocus(const YEventArgs& = YEventArgs::Empty))
+	EndDecl
+
+
+	//控件模块类。
+	class MControl// : implements IControl
+	{
+	protected:
+		bool Enabled; //控件有效性。
+		IControl::EventMapType EventMap; //事件映射表。
+
+	public:
+		inline explicit
+		MControl(bool = true);
+		inline virtual
+		~MControl();
+
+		virtual PDefOpHead(IControl::EventMapType::Event&, [], const IControl::EventMapType::ID& id)
+			ImplRet(EventMap[id])
+
+		inline IControl::EventMapType::Event&
+		operator[](const IControl::EventMapType::ID&);
+
+		virtual DefBoolGetter(Enabled, Enabled)
+
+		virtual DefSetterDef(bool, Enabled, Enabled, true)
+	};//struct MControl;
+
+
+	//可视控件模块类。
+	class MVisualControl : public MControl, public Runtime::AFocusRequester
+	{
+		Drawing::PixelType BackColor; //默认背景色。
+		Drawing::PixelType ForeColor; //默认前景色。
+
+		DefEvent(YTouchEventHandler, TouchUp)
+		DefEvent(YTouchEventHandler, TouchDown)
+		DefEvent(YTouchEventHandler, TouchHeld)
+		DefEvent(YTouchEventHandler, TouchMove)
+		DefEvent(YTouchEventHandler, Click)
+		DefEvent(YKeyEventHandler, KeyUp)
+		DefEvent(YKeyEventHandler, KeyDown)
+		DefEvent(YKeyEventHandler, KeyHeld)
+		DefEvent(YKeyEventHandler, KeyPress)
+
+	protected:
+		Runtime::GMFocusResponser<IVisualControl>*
+		CheckFocusContainer(IWidgetContainer*); //检查给定的容器指针是否有效且指向接受焦点的容器。
+
+	private:
+		void
+		_m_OnTouchHeld(const Runtime::YTouchEventArgs&);
+		void
+		_m_OnTouchMove(const Runtime::YTouchEventArgs&);
+
+	public:
+		explicit
+		MVisualControl(Drawing::PixelType = 0, Drawing::PixelType = ~0);
+		inline virtual
+		~MVisualControl();
+
+		static void
+		OnGotFocus(IControl&, const YEventArgs& = YEventArgs::Empty);
+		static void
+		OnLostFocus(IControl&, const YEventArgs& = YEventArgs::Empty);
+		static void
+		OnTouchDown(IVisualControl&, const Runtime::YTouchEventArgs& = Runtime::YEventArgs::Empty);
+		static void
+		OnTouchHeld(IVisualControl&, const Runtime::YTouchEventArgs& = Runtime::YTouchEventArgs::Empty);
+		static void
+		OnTouchMove(IVisualControl&, const Runtime::YTouchEventArgs& = Runtime::YTouchEventArgs::Empty);
+	};//class MVisualControl;
+
+
+	//控件基类。
+	class YControl : public YComponent, public MControl
+	{
+		typedef YComponent ParentType;
+	};//class YControl;
+
+
+	//可视控件基类。
+	class YVisualControl : public YComponent, public Widgets::MWidget, public MVisualControl,
+		implements IWidget, implements IVisualControl
+	{
+	public:
+		typedef YComponent ParentType;
+
+		explicit
+		YVisualControl(HWND = NULL, const SRect& = SRect::FullScreen, IWidgetContainer* = NULL);
+
+		virtual PDefHead(EventMapType::Event&, operator[], const EventMapType::ID& id)
+			ImplBodyBase(MVisualControl, operator[], id)
+
+		virtual DefBoolGetterBase(Visible, MVisual)
+		virtual DefBoolGetterBase(Transparent, MVisual)
+		virtual DefBoolGetterBase(BgRedrawing, MVisual)
+		virtual DefBoolGetterBase(Enabled, MControl)
+		virtual DefBoolGetterBase(Focused, AFocusRequester)
+		virtual PDefHead(bool, IsFocusOfContainer, Runtime::GMFocusResponser<IVisualControl>& c) const
+			ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
+
+		//判断包含关系。
+		virtual PDefHead(bool, Contains, const SPoint& p) const
+			ImplBodyBase(MVisual, Contains, p)
+
+		virtual PDefHead(bool, CheckRemoval, Runtime::GMFocusResponser<IVisualControl>& c) const
+			ImplBodyBase(MVisualControl, CheckRemoval, c)
+
+		virtual DefGetterBase(const SPoint&, Location, MVisual)
+		virtual DefGetterBase(const SSize&, Size, MVisual)
+		virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
+		virtual DefGetterBase(HWND, WindowHandle, MWidget)
+
+		virtual DefSetterBaseDef(bool, Visible, MVisual, true)
+		virtual DefSetterBaseDef(bool, Transparent, MVisual, true)
+		virtual DefSetterBaseDef(bool, BgRedrawing, MVisual, true)
+		virtual DefSetterBase(const SPoint&, Location, MVisual)
+		virtual DefSetterBaseDef(bool, Enabled, MControl, true)
+
+		virtual void
+		DrawBackground();
+		virtual void
+		DrawForeground();
+
+		virtual PDefHead(void, Refresh)
+			ImplBodyBaseVoid(MWidget, Refresh)
+
+		virtual void
+		RequestFocus(const YEventArgs& = YEventArgs::Empty); //向部件容器申请获得焦点，若成功则引发 GotFocus 事件。
+		virtual void
+		ReleaseFocus(const YEventArgs& = YEventArgs::Empty); //释放焦点，并引发 LostFocus 事件。
+		inline virtual void
+		RequestToTop();
+	};//class YVisualControl;
+
+
+	//标签。
+	class YLabel : public GMCounter<YLabel>, public YVisualControl
+	{
+	public:
+		typedef YVisualControl ParentType;
+
+	protected:
+		HResource<Drawing::YTextRegion> prTextRegion; //文本区域指针。
+
+	public:
+		Drawing::YFont& Font; //字体。
+		Drawing::MPadding& Margin; //文本和容器的间距。
+		bool AutoSize; //启用根据字号自动调整大小。
+		bool AutoEllipsis; //启用对超出标签宽度的文本调整大小。
+		YString Text; //标签文本。
+	/*
+		YImage BackgroundImage; //背景图像。
+		YImage Image; //前景图像。
+	*/
+
+		//用字符串在窗口中以给定字号初始化标签。
+		template<class _charType>
+		YLabel(HWND, const _charType*, const SRect& = SRect::FullScreen,
+			const Drawing::YFont& = Drawing::YFont::GetDefault(), IWidgetContainer* = NULL, HResource<Drawing::YTextRegion> = NULL);
+		virtual
+		~YLabel();
+
+		virtual void
+		DrawBackground();
+		virtual void
+		DrawForeground();
+	};//class YLabel;
+
+	YSL_END_NAMESPACE(Controls)
+
+	YSL_END_NAMESPACE(Components)
+
+}//unit YVisualControl;
+
+
+unit YWindow "ywindow"
+{
+	import unit YWidget, unit YControl,
+		unit YDesktop;
+
+
+	YSL_BEGIN_NAMESPACE(Components)
+
+	YSL_BEGIN_NAMESPACE(Forms)
+
+	//窗口接口。
+	DeclBasedInterface(IWindow, IWidgetContainer, IVisualControl)
+		DeclIEntry(operator YGIC() const) //生成图形接口上下文。
+
+		DeclIEntry(bool IsRefreshRequired() const)
+		DeclIEntry(bool IsUpdateRequired() const)
+
+		DeclIEntry(YDesktop* GetDesktopPtr() const)
+		DeclIEntry(IVisualControl* GetFocusingPtr() const)
+		DeclIEntry(const Drawing::MBitmapBuffer& GetBuffer() const) //取显示缓冲区。
+		DeclIEntry(BitmapPtr GetBufferPtr() const) //取缓冲区指针。
+
+		DeclIEntry(void SetRefresh(bool = true))
+		DeclIEntry(void SetUpdate(bool = true))
+
+		DeclIEntry(void Draw())
+
+		DeclIEntry(void Update()) //按需更新（以父窗口、屏幕优先顺序）。
+	EndDecl
+
+
+	//桌面对象模块。
+	class MDesktopObject
+	{
+	protected:
+		YDesktop* pDesktop; //桌面指针。
+
+		inline explicit
+		MDesktopObject(YDesktop*);
+
+	public:
+		//判断从属关系。
+		inline bool
+		BelongsTo(YDesktop*) const;
+
+		inline YDesktop*
+		GetDesktopPtr() const;
+	};
+
+
+	//窗口模块。
+	class MWindow : public MDesktopObject, public Controls::MVisualControl
+	{
+	protected:
+		Drawing::MBitmapBuffer Buffer; //显示缓冲区。
+		//基类中的 hWindow 为父窗口对象句柄，若为空则说明无父窗口。
+		HSHL hShell;
+		HResource<YImage> prBackImage; //背景图像指针。
+		bool bRefresh; //刷新属性：表示有新的绘制请求。
+		bool bUpdate; //更新属性：表示绘制结束，缓冲区准备完毕。
+
+		explicit
+		MWindow(const HResource<YImage> = new YImage(), YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle());
+
+	public:
+		DefBoolGetter(RefreshRequired, bRefresh)
+		DefBoolGetter(UpdateRequired, bUpdate)
+
+		DefGetter(HSHL, ShellHandle, hShell)
+	};
+
+
+	//抽象窗口模块基类。
+	class AWindow : public Widgets::MWidget, public MWindow,
+		implements IWindow
+	{
+	public:
+		explicit
+		AWindow(const SRect& = SRect::Empty, const HResource<YImage> = new YImage(),
+			YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
+		virtual
+		~AWindow();
+
+		virtual PDefOpHead(EventMapType::Event&, [], const EventMapType::ID& id)
+			ImplBodyBase(MVisualControl, operator[], id)
+
+		virtual DefConverterMember(YGIC, Buffer)
+
+		virtual DefBoolGetterBase(Visible, MVisual)
+		virtual DefBoolGetterBase(Transparent, MVisual)
+		virtual DefBoolGetterBase(BgRedrawing, MVisual)
+		virtual DefBoolGetterBase(Enabled, MVisualControl)
+		virtual DefBoolGetterBase(Focused, AFocusRequester)
+		virtual PDefHead(bool, IsFocusOfContainer, Runtime::GMFocusResponser<IVisualControl>& c) const
+			ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
+		virtual DefBoolGetterBase(RefreshRequired, MWindow)
+		virtual DefBoolGetterBase(UpdateRequired, MWindow)
+
+		//判断从属关系。
+		PDefHead(bool, BelongsTo, HSHL h) const
+			ImplRet(hShell == h)
+		PDefHead(bool, BelongsTo, YDesktop* pDsk) const
+			ImplBodyBase(MDesktopObject, BelongsTo, pDsk)
+
+		//判断包含关系。
+		virtual PDefHead(bool, Contains, const SPoint& p) const
+			ImplBodyBase(MVisual, Contains, p)
+
+		virtual PDefHead(bool, CheckRemoval, Runtime::GMFocusResponser<IVisualControl>& c) const
+			ImplBodyBase(MVisualControl, CheckRemoval, c)
+
+		virtual DefGetterBase(const SPoint&, Location, MVisual)
+		virtual DefGetterBase(const SSize&, Size, MVisual)
+		virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
+		virtual DefGetterBase(HWND, WindowHandle, MWidget)
+		virtual DefGetterBase(YDesktop*, DesktopPtr, MDesktopObject)
+		virtual DefGetter(const Drawing::MBitmapBuffer&, Buffer, Buffer)
+		virtual DefGetterMember(BitmapPtr, BufferPtr, Buffer)
+		DefGetter(HWND, Handle, HWND(const_cast<AWindow*>(this)))
+		virtual DefGetterBase(HSHL, ShellHandle, MWindow)
+		BitmapPtr
+		GetBackgroundPtr() const;
+
+		virtual DefSetterBaseDef(bool, Visible, MVisual, true)
+		virtual DefSetterBaseDef(bool, Transparent, MVisual, true)
+		virtual DefSetterBaseDef(bool, BgRedrawing, MVisual, true)
+		virtual DefSetterBase(const SPoint&, Location, MVisual)
+		virtual DefSetterDef(bool, Refresh, bRefresh, true)
+		virtual DefSetterDef(bool, Update, bUpdate, true)
+		virtual void
+		SetSize(SDST, SDST);
+		virtual void
+		SetBounds(const SRect&);
+		virtual DefSetterEx(YImage&, Background, prBackImage, bg, &bg)
+		virtual DefSetterBaseDef(bool, Enabled, MVisualControl, true)
+
+		PDefHead(void, ClearBackground) const //清除背景。
+			ImplExpr(Buffer.ClearImage())
+
+	private:
+		bool
+		DrawBackgroundImage();
+
+	public:
+		virtual void
+		DrawBackground();
+		virtual void
+		DrawForeground();
+		virtual bool
+		DrawWidgets() = 0;
+		virtual void
+		Draw();
+
+		virtual void
+		Refresh();
+		virtual void
+		Update();
+
+	private:
+		virtual PDefHead(bool, ReleaseFocus, Runtime::GMFocusResponser<IVisualControl>& c)
+			ImplBodyBase(MVisualControl, ReleaseFocus, c)
+
+	public:
+		virtual void
+		RequestFocus(const YEventArgs& = YEventArgs::Empty); //向部件容器申请获得焦点。
+		virtual void
+		ReleaseFocus(const YEventArgs& = YEventArgs::Empty); //释放焦点。
+		virtual void
+		RequestToTop();
+
+		inline virtual void
+		UpdateToScreen() const; //更新至屏幕。
+		inline virtual void
+		UpdateToWindow() const; //更新至上层窗口缓冲区。
+		void
+		UpdateToScreen(YDesktop&) const; //更新至指定桌面所在的屏幕。
+		void
+		UpdateToWindow(IWindow&) const; //更新至指定窗口缓冲区。
+		void
+		Show();
+
+		static void
+		OnGotFocus(IControl&, const YEventArgs& = YEventArgs::Empty);
+		static void
+		OnLostFocus(IControl&, const YEventArgs& = YEventArgs::Empty);
+	}; //class AWindow;
+
+
+	//框架窗口。
+	class YFrameWindow : public GMCounter<YFrameWindow>, public YComponent, public AWindow, public Widgets::MWidgetContainer
+	{
+	public:
+		typedef YComponent ParentType;
+
+		explicit
+		YFrameWindow(const SRect& = SRect::Empty, const HResource<YImage> = new YImage(),
+			YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
+		virtual
+		~YFrameWindow();
+
+		virtual PDefOpHead(void, +=, IWidget& w)
+			ImplExpr(sWgtSet += w)
+		virtual PDefOpHead(bool, -=, IWidget& w)
+			ImplRet(sWgtSet -= w)
+		virtual PDefOpHead(void, +=, IVisualControl& c)
+			ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
+		virtual PDefOpHead(bool, -=, IVisualControl& c)
+			ImplBodyBase(MWidgetContainer, operator-=, c)
+		virtual PDefOpHead(void, +=, Runtime::GMFocusResponser<IVisualControl>& c)
+			ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
+		virtual PDefOpHead(bool, -=, Runtime::GMFocusResponser<IVisualControl>& c)
+			ImplBodyBase(MWidgetContainer, operator-=, c)
+
+		virtual PDefHead(IWidget*, GetTopWidgetPtr, const SPoint& p) const
+			ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
+		virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const SPoint& p) const
+			ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
+		virtual SPoint
+		GetContainerLocationOffset(const SPoint& = SPoint::Zero) const;
+		virtual SPoint
+		GetWindowLocationOffset(const SPoint& = SPoint::Zero) const;
+		virtual DefGetterBase(IVisualControl*, FocusingPtr, Runtime::GMFocusResponser<IVisualControl>)
+
+		virtual PDefHead(void, ClearFocusingPtr)
+			ImplBodyBaseVoid(MWidgetContainer, ClearFocusingPtr)
+
+		virtual bool
+		DrawWidgets();
+	}; //class YFrameWindow;
+
+	YSL_END_NAMESPACE(Forms)
+
+	YSL_END_NAMESPACE(Components)
+
+}//unit YWindow;
+
+
+unit YForm "yform"
+{
+	import unit YWindow, YControl;
+
+
+	YSL_BEGIN_NAMESPACE(Components)
+
+	YSL_BEGIN_NAMESPACE(Forms)
+
+	//窗体。
+	class YForm : public GMCounter<YForm>, public YFrameWindow
+	{
+	public:
+		typedef YFrameWindow ParentType;
+
+	//	Widgets::YWidgetContainer Client;
+
+	public:
+		explicit
+			YForm(const SRect& = SRect::Zero, const HResource<YImage> = new YImage(),
+			YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
+		virtual
+		~YForm();
+
+		HWND GetHandle();
+
+		virtual void
+		SetSize(SDST, SDST);
+		virtual void
+		SetBounds(const SRect&);
+
+		virtual void
+		DrawBackground();
+		virtual void
+		DrawForeground();
+		virtual void
+		Draw();
+	};
+
+	YSL_END_NAMESPACE(Forms)
+
+	YSL_END_NAMESPACE(Components)
+
+}//unit YForm;
+
+
+unit YText "ytext"
+{
+	import unit Core::YString, YFile_(Text), YGDI, header <wctype.h>;
+
+
+	YSL_BEGIN_NAMESPACE(Drawing)
+
+	export const u8 Alpha_Threshold;
+
+	class YTextState : public YPenStyle //文本状态：笔样式、边框样式、字体缓存和行距。
+	{
+	public:
+		typedef YPenStyle ParentType;
+
+		MPadding Margin; //显示区域到边框的距离。
+
+	protected:
+		YFontCache* pCache; //字体缓存。
+		SPOS penX, penY; //笔坐标。
+		u8 lnGap; //行距。
+
+	public:
+		YTextState();
+		explicit
+		YTextState(YFont&);
+		explicit
+		YTextState(YFontCache*);
+
+		inline YTextState&
+		operator=(const YPenStyle& ps); //从 ts 中恢复样式。
+		inline YTextState&
+		operator=(const MPadding& ms); //从 ms 中恢复样式。
+		YTextState& operator=(const YTextState& ms); //从 ts 中恢复状态。
+
+		inline SPOS
+		GetPenX() const;
+		inline SPOS
+		GetPenY() const;
+		inline u8
+		GetLineGap() const; //取当前字体设置对应的行距。
+		SDST
+		GetLnHeight() const; //取当前字体设置对应的行高。
+		SDST
+		GetLnHeightEx() const; //取当前字体设置对应的行高与行距之和。
+		u16
+		GetLnNNow() const; //取笔所在的当前行数。
+
+	//	YTypeface*
+	//	SetFont(CPATH); //设置字体。
+		inline void
+		SetPen(); //按字体大小在设置笔的默认位置（区域左上角）。
+		inline void
+		SetPen(SPOS, SPOS); //设置笔位置。
+		inline void
+		SetMargins(u64); //设置边距（64 位无符号整数形式）。
+		inline void
+		SetMargins(SDST, SDST); //设置边距（2 个 16 位无符号整数形式，分别表示水平边距和竖直边距）。
+		inline void
+		SetMargins(SDST, SDST, SDST, SDST); //设置边距（4 个 16 位无符号整数形式）。
+		inline void
+		SetLineGap(u8);
+		void
+		SetLnNNow(u16); //设置笔的行位置。
+	};//class YTextState;
+
+	class YTextRegion : public YTextState, public MBitmapBufferEx //文本区域。
+	{
+	public:
+		typedef YTextState ParentType;
+
+	private:
+		void PrintChar(u32); //打印单个字符。
+
+	public:
+		YTextRegion();
+		explicit
+		YTextRegion(YFont&);
+		explicit
+		YTextRegion(YFontCache*);
+		~YTextRegion();
+
+		inline YTextRegion&
+		operator=(const YTextState& ts); //从 ts 中恢复状态。
+
+		inline SDST
+		GetBufWidthN() const; //取缓冲区的文本显示区域的宽。
+		inline SDST
+		GetBufHeightN() const; //取缓冲区的文本显示区域的高。
+		SDST
+		GetMarginResized() const; //根据字体大小、行距和缓冲区的高调整边距，返回调整后的底边距值。
+		SDST
+		GetBufferHeightResized() const; //取根据字体大小和行距调整后的缓冲区的高（不含底边距）。
+		u16
+		GetLnN() const; //取按当前行高和行距所能显示的最大行数。
+		u16
+		GetLnNEx() const; //取按当前行高和行距（行间距数小于行数 1）所能显示的最大行数。
+		SPOS
+		GetLineLast() const; //取最底行的基线位置。
+		u32
+		GetPrevLnOff(const uchar_t* s, u32 n) const; //取前一行首对应文本指针至当前文本指针 &s[n] 的字符数。
+		u32
+		GetPrevLnOff(const uchar_t* s, u32 n, u16 l) const; //取前 l 行首对应文本指针至当前文本指针 &s[n] 的字符数。
+		u32
+		GetNextLnOff(const uchar_t* s, u32 n) const; //取当前文本指针 &s[n] 至后一行首对应文本指针的字符数。
+	//	u32
+	//	GetNextLnOff(const uchar_t* s, u32 n, u16 l) const; //取当前文本指针 &s[n] 至后 l 行首对应文本指针的字符数。
+
+		void
+		SetLnLast(); //设置笔的行位置为最底行。
+
+		void
+		ClearLine(u16 l, SDST n); //清除缓冲区第 l 行起始的 n 行像素（n 为 0 时清除之后的所有行）。
+		void
+		ClearLn(u16 l); //清除缓冲区第 l 个文本行。
+		void
+		ClearLnLast(); //清除缓冲区最后一个文本行。
+
+		void
+		Move(s16 n); //缓冲区（除上下边界区域）特效：整体移动 n 像素（n > 0 时下移， n < 0 时上移）。
+		void
+		Move(s16 n, SDST h); //缓冲区（从缓冲区顶端起高 h 的区域内，除上下边界区域）特效：整体移动 n 像素（n > 0 时下移， n < 0 时上移）。
+
+		void
+		PutNewline(); //输出换行。
+		u8
+		PutChar(u32); //输出单个字符。
+
+		//输出字符串，直至行尾或字符串结束，并返回输出字符数。
+		template<class _charType>
+		u32
+		PutLine(const _charType*);
+		//u32
+		//PutLine(const uchar_t*);
+		u32
+		PutLine(const YString& s);
+
+		//输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
+		template<class _charType>
+		u32
+		PutString(const _charType*);
+		//u32 PutString(const uchar_t*);
+	};//class YTextRegion;
+
+
+	u32
+	ReadX(YTextFile& f, YTextRegion& txtbox, u32 n); //无文本缓冲方式从文本文件 f 中读取 n 字节（按默认编码转化为 UTF-16LE）到 txtbox 中。
+
+	YSL_END_NAMESPACE(Drawing)
+
+}//unit YText;
+
+}//Code YSLib::Shell;
+
+
+code YSLib::Service {
+
+unit YSystemUtilities "ysutil"
+{
+	import unit Core::YShellDefinition;
+
+
+	//默认字体缓存。
+	extern YFontCache*& pDefaultFontCache;
+
+	inline void
+	DestroyDefFontCache();
+	inline void
+	CreateDefFontCache(CPATH p);
+
+}//unit YSystemUtilities;
+
+
+unit YShellInitialization "ysinit"
+{
+	import unit Core::YShellDefinition, Adapter::YFont;
+	import extern CPATH DEF_FONT_PATH, DEF_FONT_DIRECTORY;
+
+
+	//初始化主控制台。
+	void
+	InitYSConsole();
+
+
+	//默认字型路径和目录。
+	extern CPATH DEF_FONT_PATH;
+	extern CPATH DEF_FONT_DIRECTORY;
+
+	//以默认字型路径创建默认字体缓存并加载默认字型目录中的字体文件。
+	void
+	InitialSystemFontCache()
+
+	void
+	epicFail();
+
+	void
+	libfatFail();
+
+	void
+	checkInstall();
+
+	void
+	checkSystemFontCache();
+
+}//unit YShellInitialization;
+
+
+unit YTextManager "ytmgr"
+{
+	import unit Core::YString, Core::YFile_(Text),
+		Core::YApplication;
+
+
+	YSL_BEGIN_NAMESPACE(Text)
+
+	class MTextBuffer
+	//文本缓冲区。
+	{
+	private:
+		const u32 mlen; //最大长度（字符数）。
+
+	protected:
+		//文本缓冲区的首地址和长度。
+		uchar_t* const text;
+		u32 len;
+
+		explicit
+		MTextBuffer(u32 tlen);
+		inline
+		~MTextBuffer();
+
+	public:
+		inline size_t
+		GetSizeOfBuffer() const; //取文本缓冲区的大小。
+		inline uchar_t* const
+		GetPtr() const; //取文本缓冲区的指针。
+		u32
+		GetPrevChar(u32 o, uchar_t c); //从文本缓冲区下标 o （不含）起逆序查找字符 c 。返回结果的直接后继下标；查找失败时返回 0 。
+		u32
+		GetNextChar(u32 o, uchar_t c); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
+		inline u32
+		GetPrevNewline(u32 o); //从文本缓冲区下标 o （不含）起逆序查找换行符。返回结果的直接后继下标；查找失败时返回 0 。
+		inline u32
+		GetNextNewline(u32 o); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
+
+		inline void
+		ClearText(); //清空缓冲区。
+		inline bool
+		Load(const uchar_t* s); //从起始地址 s 中读取连续的 mlen 个 uchar_t 字符。
+		bool
+		Load(const uchar_t* s, u32 n); //从起始地址 s 中读取连续的 n 个 uchar_t 字符。
+		inline u32
+		Load(YTextFile& f); //从文本文件 f 中读取连续的 mlen 个字符（自动校验换行并转换为 Unix / Linux 格式），并返回成功读取的字符数。
+		u32
+		Load(YTextFile& f, u32 n); //从文本文件 f 中读取连续的 n 个字符，并返回成功读取的字符数。
+
+		bool
+		Output(uchar_t* d, u32 p, u32 n) const; //从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
+
+	};//class MTextBuffer;
+
+	YSL_END_NAMESPACE(Text)
+
+}//unit YTextManager;
+
+
+unit YTimer "ytimer"
+{
+	import unit Core::YObject, header <map>;
+
+
+	YSL_BEGIN_NAMESPACE(Timers)
+
+	//计时器。
+	class YTimer : public YCountableObject
+	{
+	private:
+		typedef std::map<u32, YTimer*> TMRs; //计时器组。
+
+		static bool NotInitialized;
+		static vu32 SystemTick;
+		static TMRs Timers;
+
+		u32 nInterval;
+		u32 nStart;
+
+	public:
+		explicit
+		YTimer(u32 = 1000, bool = true);
+
+		DefStaticGetter(u32, SystemTick, S_Timer)
+		DefGetter(u32, Interval, nInterval)
+		DefGetter(u32, StartTick, nStart)
+
+		inline void
+		SetInterval(u32);
+
+	private:
+		static void
+		InitializeSystemTimer();
+		static void
+		ResetSystemTimer();
+		static void
+		Synchronize();
+
+		bool
+		RefreshRaw();
+
+	public:
+		bool
+		Refresh();
+		static bool
+		RefreshAll();
+
+		void
+		Activate();
+		void
+		Deactivate();
+		inline void
+		Reset();
+		static void
+		ResetAll();
+		static void
+		ResetYTimer();
+	};//class YTimer;
+
+	YSL_END_NAMESPACE(Timers)
+
+}//unit YTimer;
+
+}//code YSLib::Service;
+
+
+code Helper {
+
+unit YGlobal "yglobal"
+{
+	import header YSBuild, unit Core::YShellMessage, YException;
+
+
+	//全局常量。
+	export #define MAX_FILENAME_LENGTH
+	export #define MAX_PATH_LENGTH
+	export #define DEF_SHELL_FONTSIZE;
+	export #define DEF_SHELL_FONTSIZE_MIN;
+	export #define DEF_SHELL_FONTSIZE_MAX;
+	const SDST SCRW(SCREEN_WIDTH), SCRH(SCREEN_HEIGHT);
+
+	export const char DEF_PATH_DELIMITER; //文件路径分隔符。
+	export const char* const DEF_PATH_SEPERATOR; //文件路径分隔字符串。
+	export #define DEF_PATH_ROOT DEF_PATH_SEPERATOR
+
+	//全局变量。
+	export YScreen *pScreenUp, *pScreenDown;
+	export YDesktop *pDesktopUp, *pDesktopDown;
+	export YLog DefaultLog;
+	export YMessageQueue DefaultMQ, DefaultMQ_Backup;
+
+	//类型定义。
+	typedef CHAR PATHSTR[MAX_PATH_LENGTH];
+	typedef CHAR FILENAMESTR[MAX_FILENAME_LENGTH];
+
+	//全局变量映射。
+	YDesktop*& pDefaultDesktop = pDesktopUp;
+	YApplication& theApp = YApplication::GetApp();
+	YFontCache*& pDefaultFontCache = theApp.fc;
+	YApplication* const pApp = &theApp;
+
+	const HSHL hShellMain = theApp.GetShellHandle(); //取主 Shell 句柄。
+
+
+	struct Def
+	{
+		static void
+		Idle(); //默认消息发生函数。
+
+		static void
+		InitVideo(); //初始化屏幕。
+		static void
+		InitScreenAll(); //默认屏幕初始化函数。
+		static void
+		InitScrUp(); //默认上屏初始化函数。
+		static void
+		InitScrDown(); //默认下屏初始化函数。
+
+		static void
+		Destroy(YObject&, const YEventArgs&); //资源释放函数。
+
+		static LRES
+		ShlProc(HSHL, const MMSG&); //公共消息处理函数。
+	};
+
+	//全局函数。
+
+	YSL_BEGIN_SHELL(YSL_SHLMAIN_NAME)
+
+	LRES
+	YSL_SHLMAIN_SHLPROC(const MMSG&);
+
+	YSL_END_SHELL(YSL_SHLMAIN_NAME)
+
+
+	//默认 Shell 消息处理函数。
+	inline LRES
+	DefaultMainShlProc(const MMSG& msg);
+
+	//异常终止函数。
+	void
+	Terminate(int);
+
+}//unit YGlobal;
+
+}//code YSLib::Helper;
+
+
+// std 命名空间扩展。
+namespace std
+{
+	unit YString;
+}
+
+//命名空间单元分布。
+
+namespace Components
+{
+	unit Shell::YComponents;
+	unit Shell::YDesktop;
+	namespace Controls
+	{
+		unit Shell::Controls;
+	}
+	namespace Forms
+	{
+		unit Shell::YWindow;
+		unit Shell::YForm;
+	}
+	namespace Widgets
+	{
+		unit Shell::YWidgets;
+	}
+}
+
+namespace Device
+{
+	unit Core::YGraphicDevice;
+}
+
+namespace Drawing
+{
+	unit Adapter::YFont;
+	unit Core::YObject;
+	unit Core::YResourse;
+}
+
+namespace IO
+{
+	unit Core::YFile;
+}
+
+namespace Runtime
+{
+	header Core::YEvent;
+	unit Core::YModule;
+	unit Shell::YGUI;
+}
+
+namespace Shells
+{
+	unit Core::YShell;
+	unit Core::YShellMessage;
+	unit Core::YShellMessageMapping;
+	unit Core::YShellProcessing;
+}
+
+namespace Timers
+{
+	unit Service::YTimer;
+}
+
+namespace Text
+{
+	unit Core::YString;
+}
+
+//既定 stdex 命名空间污染列表。
+
+header Adapter
+{
+	using CHRLib::uchar_t;
+}
+
+unit Core::YString
+{
+	typedef basic_string<uchar_t> ustring;
+}
+
+//既定内部命名空间污染列表。
+
+header Adapter
+{
+	using namespace CHRLib;
+	namespace Text
+	{
+		using CHRLib::uchar_t;
+	}
+}
+
+header Core::YShellDefinition : Adapter
+{
+	using Components::Controls::IControl, Components::Controls::IVisualControl;
+	using Components::Forms::YForm, Components::Forms::YFrameWindow;
+	using Components::Widgets::IWidget, Components::Widgets::IWidgetContainer;
+
+	using Device::YScreen, Device::YDesktop;
+
+	using Drawing::YFontCache;
+
+	using Shells::YMessageQueue;
+	using Shells::YShell, Shells::YShellMain;
+	
+	using Text::YString;
+}
+
+header Core::YShellMessage : Core::YShellDefinition
+{
+	using Drawing::SPoint;
+
+	using Shells::MMSG, Shells MMSG, Shells InsertMessage;
+}
+
+//header Core::YResource : Shell::YGDI;
+
+header Shell::YGDI
+{
+}
+
+header Shell::YComponent : YShellMessage;
+
+header Shell::YWidget : Shell::YComponent, Core::YResource
+{
+	namespace Components
+	{
+		using Drawing::SPoint, SVec, Drawing::SSize, Drawing::SRect;
+		using Drawing::YImage;
+	}
+}
+
+}//code YSLib;
+
+///
+

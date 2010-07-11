@@ -1,0 +1,36 @@
+﻿ Franksoft YSLib PreAlpha 1
+2010-5-9
+意义不明的框架库和附属品，半成品，对于开发人员以外完全没有价值。包含了框架库的测试程序，不过似乎完全无法体现设计目标= =...
+嗯，基本上就是能用 TTF 字体，然后一些显示简单界面焦点响应什么的一个玩意……理论上来说做好了能完秒 MoonShell ，不过实际又是另外一回事了……
+
+工程名字什么的……是随机取的。如有雷同纯属巧合。
+库文件组织，代码风格，为什么用 VS 等请勿吐槽。
+本体基本上是平台无关的，不过程序初始化部分还是保留了和一些 DS 相关的东西。
+源码很大部分抄自 VNDS ，不过除了一些没删掉的注释和空行以外，基本上每行都修改过。
+测试程序中，除了本体以外的是支持用的库。Freetype 改用了新版本结果发现编译出来的文件很大只能用旧的.a文件， AGG 移植好了发现不实用（姑且保留）、 Loki 太深奥所以基本上没用到，感觉灰常失败o.o。。。
+其它部分都是自己写的（当然，参考了下载到的一些资源）。  
+文档基本属于摆设。
+
+efsroot是放外部文件的（以前用到 EFS ，名字也懒得改了）。
+efsroot\Font\下需要自己往里面放 TTF 文件（可以多于一个）。
+剩下的除了文档以外是一个完整的 VS2008 工程。当然，可以手动 make 。
+
+用到了 DLDIrc ，不需要的话在 Makefile 里面找下面的路径改掉：
+@D:/Progra~2/DLDIrc/dlditool.exe "D:\Program Files (x86)\DLDIrc\drivers\mpcf.dldi" $(OUTPUT).nds。
+另外，Makefile 是基于 devkitPro 的，没装的话当然编译不了。 devkitPro 我用的是最新的（对应devkitARM r30） ，旧的 Makefile 应该有点不一样，需要手动修改（具体哪些地方我忘了- -...）。不过规模不大，新写一个应该也不会太困难。
+话说工程是用 VS2008 配合 PALibAppWizard 创建的，后来移除了 PALib 的部分，不知道还需不需要……
+我用到的一些环境变量：
+DEVKITARM = /F/devkitPro/devkitARM
+DEVKITPPC = /F/devkitPro/devkitPPC
+DEVKITPRO = /F/devkitPro
+DEVKITPSP = /F/devkitPro/devkitPSP
+DKP_HOME = F:\devkitPro
+NDSEmulator = "F:\devkitPro\PALib\emulators\DeSmuME\DeSmuME.exe"
+
+用 DeSmuME 调试命令行看起来是这样：
+$(NDSEmulator) $(TargetPath) --cflash-path=H:\NDS\efsroot
+
+使用了一些外部的库，虽然都可以不用GNU GPL的，不过保留在注释的一部分 VNDS 代码没删干净，不得不用GPL发布。
+
+感想：伟大的雷叔在程序群里曾经教导过说，在 DS 上面写界面库是愚蠢的行为。果然如此。所以我决定把愚蠢贯彻到底（虽然有点微妙的变化= =），这样好歹对自己随口挖的坑有个交待……
+

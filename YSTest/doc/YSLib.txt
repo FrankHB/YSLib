@@ -1,0 +1,124 @@
+﻿// YSLib -> YSLib by Franksoft 2009 - 2010
+// CodePage = UTF-8;
+// CTime = 2009-12-2 5:14:30;
+// UTime = 2010-6-29 4:17;
+// Version = 0.1818;
+
+
+// YSLib ： YSLib说明。
+
+// 方法和公共域定义与说明见 Definition.txt 。
+
+// Shell 消息列表。
+
+/*
+
+//全局系统消息。
+
+//空消息。参考优先级 0xFF 。
+//应被无条件忽略。
+SM_NULL					0x0000
+
+// Shell 创建消息：构造一个 Shell 对象时自动产生。参考优先级 0xF0 。
+// wParam 是被构造的 Shell 句柄。
+//默认忽略。可用于加载窗口和其它 GUI 对象。
+SM_CREATE				0x0001
+
+// Shell 注销消息：析构一个 Shell 对象时自动产生。参考优先级 0xF0 。
+// wParam 是被注销的 Shell 句柄。
+//若主 Shell 被注销，则调用 PostQuitMessage(lParam) ，预备退出进程。除此之外默认忽略。
+SM_DESTROY				0x0002
+
+// Shell 设置消息：指示线程控制权移交给目标 Shell 。参考优先级 0x80 。
+// wParam 是目标 Shell 句柄。
+SM_SET					0x0003
+
+// Shell 预注销消息：指示取消指定 Shell 的线程控制权。参考优先级 0x80 。
+// wParam 是预注销的 Shell 句柄。
+//线程控制权转移至主 Shell ，若成功则删除句柄指向的 Shell 对象。对主 Shell 作用无效。
+SM_DROP					0x0004
+
+// Shell 被激活消息： Shell 被激活后自动产生。参考优先级 0xF0 。
+// wParam 是被激活的 Shell 句柄。
+SM_ACTIVATED			0x0005
+
+// Shell 被撤销消息： Shell 被撤销激活状态后自动产生。参考优先级 0xF0 。
+// wParam 是被撤销的 Shell 句柄。
+//转移线程控制权时，总在 SM_ACTIVATED 之前产生。应保持和 SM_ACTIVATED 具有相同的优先级，以保证该消息总在对应的 SM_ACTIVATED 之前被处理。
+SM_DEACTIVATED			0x0006
+
+// Shell 焦点消息。
+
+// Shell 焦点创建消息。
+SM_SETFOCUS				0x0007
+
+// Shell 焦点注销消息。
+SM_KILLFOCUS			0x0008
+
+// Shell 系统消息。
+
+// Shell 控件启用消息：指示取消当前 Shell 的线程控制权。参考优先级 0xF0 。
+// wParam 是当前 Shell 句柄。
+SM_ENABLE				0x000A
+SM_SETREDRAW			0x000B
+SM_SETTEXT				0x000C
+SM_GETTEXT				0x000D
+SM_GETTEXTLENGTH		0x000E
+
+//绘制 Shell 窗口组客户区。参考优先级 0xE0 。
+// wParam 是发起绘制的 Shell 对象句柄（实际会被忽略）。 lParam 是被绘制的窗口组所在屏幕的指针。
+SM_PAINT				0x000F
+
+// Shell 窗口退出消息。参考优先级 0xF0 。
+//调用窗口卸载函数，并在进程消息队列中产生 SM_DESTROY 事件。
+SM_CLOSE				0x0010
+
+//退出 Shell 及进程。参考优先级 0xFF 。
+//通过调用PostQuitMessage函数产生。 lParam 被传递作为退出码。
+SM_QUIT					0x0012
+
+SM_ERASEBKGND			0x0014
+SM_SYSCOLORCHANGE		0x0015
+SM_SHOWWINDOW			0x0018
+
+// Shell 通用交互消息。
+SM_DEVMODECHANGE		0x001B
+SM_ACTIVATEAPP			0x001C
+SM_FONTCHANGE			0x001D
+SM_TIMECHANGE			0x001E
+SM_CANCELMODE			0x001F
+SM_SETCURSOR			0x0020
+SM_MOUSEACTIVATE		0x0021
+SM_CHILDACTIVATE		0x0022
+SM_QUEUESYNC			0x0023
+
+// Shell 图形用户界面消息。
+
+//窗口创建消息：构造一个窗口对象时自动产生。参考优先级 0xF0 。
+// wParam 是被构造的窗口的父窗口句柄。 lParam 是被构造的窗口句柄。
+SM_WNDCREATE			0x2001
+
+//窗口注销消息：析构一个窗口对象时自动产生。参考优先级 0xF0 。
+// wParam 是注销的窗口的父窗口句柄。 lParam 是被注销的窗口句柄。
+SM_WNDDESTROY			0x2002
+
+//窗口预注销消息：指示注销一个窗口对象。参考优先级 0x80 。
+// wParam 是将被注销的窗口句柄。
+//默认删除窗口句柄指向的窗口对象。
+SM_WNDDROP				0x2004
+
+
+// Shell 扩展消息。
+
+//输入消息：记录标准输入设备的输入事件。参考优先级 0x40 。
+// wParam 表示按键信息。
+SM_INPUT				0x4001
+
+//屏幕刷新消息：触发屏幕刷新和重绘。参考优先级 0x80 。
+// wParam 表示参数。
+SM_SCRREFRESH			0x4002
+
+*/
+
+///
+

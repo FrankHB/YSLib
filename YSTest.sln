@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YSTest", "YSTest\YSTest.vcproj", "{2843D63B-952F-4EB3-9620-D1B97301898F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|DS = Debug|DS
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Release|Any CPU = Release|Any CPU
+		Release|DS = Release|DS
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Description = YSLib Test
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Debug|Any CPU.ActiveCfg = Release|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Debug|DS.ActiveCfg = Release|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Debug|Mixed Platforms.ActiveCfg = Release|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Debug|Mixed Platforms.Build.0 = Release|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Release|Any CPU.ActiveCfg = Release|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Release|DS.ActiveCfg = Release|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Release|DS.Build.0 = Release|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Release|DS.Deploy.0 = Release|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Release|Mixed Platforms.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
