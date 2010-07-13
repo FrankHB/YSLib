@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YResource by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40;
-// UTime = 2010-6-20 21:54;
-// Version = 0.1294;
+// UTime = 2010-6-13 11:54;
+// Version = 0.1304;
 
 
 #ifndef INCLUDED_YRES_H_
@@ -17,10 +17,10 @@ YSL_BEGIN
 
 //全局默认共享资源生成函数（线程空间内共享；全局资源初始化之后可调用）。
 template<class T>
-HResource<T>&
+GHResource<T>&
 GetGlobalResource()
 {
-	static HResource<T> p(new T);
+	static GHResource<T> p(new T);
 	return p;
 }
 

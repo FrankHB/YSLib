@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8
 // CTime = 2010-3-13 14:17:14;
-// UTime = 2010-7-11 15:58;
-// Version = 0.1392;
+// UTime = 2010-7-13 3:12;
+// Version = 0.1424;
 
 
 #ifndef INCLUDED_SHLDS_H_
@@ -24,10 +24,11 @@ public:
 
 	void
 	SendDrawingMessage();
-	void
-	DrawWindows();
 	virtual void
 	UpdateToScreen();
+
+	virtual LRES
+	OnDeactivated(const MMSG&);
 };
 
 
@@ -44,24 +45,15 @@ public:
 	virtual
 	~ShlDS();
 
-	HWND
-	GetUpWindowHandle();
-	HWND
-	GetDownWindowHandle();
+	DefGetter(HWND, UpWindowHandle, hWndUp)
+	DefGetter(HWND, DownWindowHandle, hWndDown)
+
 	virtual LRES
 	ShlProc(const MMSG&);
-};
 
-inline HWND
-ShlDS::GetUpWindowHandle()
-{
-	return hWndUp;
-}
-inline HWND
-ShlDS::GetDownWindowHandle()
-{
-	return hWndDown;
-}
+	virtual LRES
+	OnDeactivated(const MMSG&);
+};
 
 
 //平台相关输入处理。
@@ -115,17 +107,17 @@ NowShellInsertDropMessage(Shells::MSGPRIORITY p = 0x80)
 }
 
 inline void
-NowShellClearBothScreen()
+ShlClearBothScreen(HSHL h = NowShell())
 {
-	NowShell()->ClearScreenWindows(*pDesktopUp);
-	NowShell()->ClearScreenWindows(*pDesktopDown);
+	h->ClearScreenWindows(*pDesktopUp);
+	h->ClearScreenWindows(*pDesktopDown);
 }
 
 inline void
 NowShellDrop(Shells::MSGPRIORITY p = 0x80)
 {
 	NowShellInsertDropMessage(p);
-	NowShellClearBothScreen();
+	ShlClearBothScreen();
 }
 
 YSL_END_NAMESPACE(DS)

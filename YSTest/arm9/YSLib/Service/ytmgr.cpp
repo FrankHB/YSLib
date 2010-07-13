@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 17:48:09;
-// UTime = 2010-7-9 9:15;
-// Version = 0.3562;
+// UTime = 2010-7-13 19:01;
+// Version = 0.3566;
 
 
 #include "ytmgr.h"
@@ -19,7 +19,7 @@ try : mlen(tlen), text(new uchar_t[mlen]), len(0)
 }
 catch(...)
 {
-	theApp.log.Error("MTextBuffer::MTextBuffer");
+	theApp.Log.Error("MTextBuffer::MTextBuffer");
 }
 
 u32

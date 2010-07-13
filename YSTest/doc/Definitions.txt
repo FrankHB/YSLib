@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-7-9 10:27;
-// Version = r6294;
+// UTime = 2010-7-13 19:56;
+// Version = r6338;
 
 
 // Definitions ： 方法和公共域定义与说明。
@@ -976,30 +976,30 @@ header YRefrence "yref.hpp"
 		template <class> class KP = RejectNull,
 		template <class> class SP = DefaultSPStorage,
 		typename SPType = SmartPtr<T, OP, CP, KP, SP> >
-	class HResource : public SPType //资源指针类。
+	class GHResource : public SPType //资源指针类。
 	{
 	public:
 		inline
-		HResource(T* = NULL);
+		GHResource(T* = NULL);
 		inline
-		HResource(T&);
+		GHResource(T&);
 		inline
-		HResource(RefToValue<HResource>);
+		GHResource(RefToValue<GHResource>);
 
 		inline
-		operator RefToValue<HResource>();
+		operator RefToValue<GHResource>();
 
 		inline T*
 		operator->() const;
 
-		inline HResource&
+		inline GHResource&
 		operator=(T& rhs);
 
 		inline T*
 		GetPtr() const;
 		inline void
-		Swap(HResource& rhs);
-	}; //template class HResource;
+		Swap(GHResource& rhs);
+	}; //template class GHResource;
 
 
 	//#ifdef YSL_HANDLEPOLICY_SIMPLE
@@ -1713,11 +1713,11 @@ header YShellDefinition "ysdef.h"
 
 	//访问全局程序实例对象。
 	extern YApplication& theApp;
+	extern YMessageQueue& DefaultMQ; //全局消息队列。
+	extern YMessageQueue& DefaultMQ_Backup; //全局备份消息队列。
 	extern YFontCache*& pDefaultFontCache;
 	extern YApplication* const pApp;
-	extern YLog DefaultMQ; //全局日志。
-	extern YMessageQueue DefaultMQ; //全局消息队列。
-	extern YMessageQueue DefaultMQ_Backup; //全局备份消息队列。
+	extern YLog DefaultLog; //全局日志。
 	extern YScreen*& pDefaultScreen;
 	extern YDesktop*& pDefaultDesktop;
 	extern const HSHL hShellMain;
@@ -2789,10 +2789,10 @@ unit YResource "yres"
 
 	//全局默认共享资源生成函数（线程空间内共享；全局资源初始化之后可调用）。
 	template<class T>
-	HResource<T>&
+	GHResource<T>&
 	GetGlobalResource()
 	{
-		static HResource<T> p(new T);
+		static GHResource<T> p(new T);
 		return p;
 	}
 
@@ -3311,14 +3311,18 @@ unit YApplication "yapp"
 		YLog&
 		operator<<(char);
 		YLog&
+		operator<<(const char*);
+		YLog&
 		operator<<(const std::string&);
 
 		void
-		Error(std::string&)
-		{}
+		Error(const char*);
 		void
-		FatalError(std::string&)
-		{}
+		Error(std::string&);
+		void
+		FatalError(const char*);
+		void
+		FatalError(std::string&);
 	}; //class YLog;
 
 
@@ -3341,9 +3345,10 @@ unit YApplication "yapp"
 		DefEvent(YEventHandler, Idle)
 
 		//全局资源。
-		YLog& log; //默认程序日志。
-		YFontCache* fc; //默认字体缓存。
-		YMessageQueue& mq; //主消息队列：在程序实例中实现以保证单线程。
+		YLog& Log; //默认程序日志。
+		YMessageQueue DefaultMQ; //主消息队列：在程序实例中实现以保证单线程。
+		YMessageQueue DefaultMQ_Backup; //备份消息队列：在程序实例中实现以保证单线程。
+		YFontCache* FontCache; //默认字体缓存。
 
 	private:
 		SHLs sShls; // Shell 对象组：实现 Shell 存储。
@@ -4041,32 +4046,20 @@ unit YGUI "ygui"
 		implements ITouchCallback
 	{
 		inline explicit
-		HTouchCallback(Runtime::YTouchEventArgs e, PFTouchCallback p)
-		: GHBase<PFTouchCallback>(p),
-		ITouchCallback(e)
-		{}
+		HTouchCallback(Runtime::YTouchEventArgs, PFTouchCallback);
 
 		inline bool
-		operator()(Components::Controls::MVisualControl& c)
-		{
-			return GetPtr()(c, *this);
-		}
+		operator()(Components::Controls::MVisualControl&);
 	};
 
 	struct HKeyCallback : public GHBase<PFKeyCallback>,
 		implements IKeyCallback
 	{
 		inline explicit
-		HKeyCallback(Runtime::YKeyEventArgs e, PFKeyCallback p)
-		: GHBase<PFKeyCallback>(p),
-		IKeyCallback(e)
-		{}
+		HKeyCallback(Runtime::YKeyEventArgs, PFKeyCallback);
 
 		inline bool
-		operator()(Components::Controls::MVisualControl& c)
-		{
-			return GetPtr()(c, *this);
-		}
+		operator()(Components::Controls::MVisualControl&);
 	};
 
 
@@ -4172,7 +4165,7 @@ unit YDesktop "ydesktop"
 
 	public:
 		explicit
-		YDesktop(YScreen&, Drawing::PixelType = 0, HResource<Drawing::YImage> = NULL);
+		YDesktop(YScreen&, Drawing::PixelType = 0, GHResource<Drawing::YImage> = NULL);
 		virtual
 		~YDesktop();
 
@@ -4742,7 +4735,7 @@ unit YControl "ycontrol"
 		typedef YVisualControl ParentType;
 
 	protected:
-		HResource<Drawing::YTextRegion> prTextRegion; //文本区域指针。
+		GHResource<Drawing::YTextRegion> prTextRegion; //文本区域指针。
 
 	public:
 		Drawing::YFont& Font; //字体。
@@ -4758,7 +4751,7 @@ unit YControl "ycontrol"
 		//用字符串在窗口中以给定字号初始化标签。
 		template<class _charType>
 		YLabel(HWND, const _charType*, const SRect& = SRect::FullScreen,
-			const Drawing::YFont& = Drawing::YFont::GetDefault(), IWidgetContainer* = NULL, HResource<Drawing::YTextRegion> = NULL);
+			const Drawing::YFont& = Drawing::YFont::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::YTextRegion> = NULL);
 		virtual
 		~YLabel();
 
@@ -4832,18 +4825,21 @@ unit YWindow "ywindow"
 		Drawing::MBitmapBuffer Buffer; //显示缓冲区。
 		//基类中的 hWindow 为父窗口对象句柄，若为空则说明无父窗口。
 		HSHL hShell;
-		HResource<YImage> prBackImage; //背景图像指针。
+		GHResource<YImage> prBackImage; //背景图像指针。
 		bool bRefresh; //刷新属性：表示有新的绘制请求。
 		bool bUpdate; //更新属性：表示绘制结束，缓冲区准备完毕。
 
 		explicit
-		MWindow(const HResource<YImage> = new YImage(), YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle());
+		MWindow(const GHResource<YImage> = new YImage(), YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle());
 
 	public:
 		DefBoolGetter(RefreshRequired, bRefresh)
 		DefBoolGetter(UpdateRequired, bUpdate)
 
 		DefGetter(HSHL, ShellHandle, hShell)
+		DefGetter(GHResource<YImage>, Background, prBackImage)
+
+		DefSetterDef(GHResource<YImage>, Background, prBackImage, NULL)
 	};
 
 
@@ -4853,7 +4849,7 @@ unit YWindow "ywindow"
 	{
 	public:
 		explicit
-		AWindow(const SRect& = SRect::Empty, const HResource<YImage> = new YImage(),
+		AWindow(const SRect& = SRect::Empty, const GHResource<YImage> = new YImage(),
 			YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
 		virtual
 		~AWindow();
@@ -4894,7 +4890,8 @@ unit YWindow "ywindow"
 		virtual DefGetter(const Drawing::MBitmapBuffer&, Buffer, Buffer)
 		virtual DefGetterMember(BitmapPtr, BufferPtr, Buffer)
 		DefGetter(HWND, Handle, HWND(const_cast<AWindow*>(this)))
-		virtual DefGetterBase(HSHL, ShellHandle, MWindow)
+		DefGetterBase(HSHL, ShellHandle, MWindow)
+		DefGetterBase(GHResource<YImage>, Background, MWindow)
 		BitmapPtr
 		GetBackgroundPtr() const;
 
@@ -4908,8 +4905,8 @@ unit YWindow "ywindow"
 		SetSize(SDST, SDST);
 		virtual void
 		SetBounds(const SRect&);
-		virtual DefSetterEx(YImage&, Background, prBackImage, bg, &bg)
 		virtual DefSetterBaseDef(bool, Enabled, MVisualControl, true)
+		virtual DefSetterBaseDef(GHResource<YImage>, Background, MWindow, NULL)
 
 		PDefHead(void, ClearBackground) const //清除背景。
 			ImplExpr(Buffer.ClearImage())
@@ -4970,7 +4967,7 @@ unit YWindow "ywindow"
 		typedef YComponent ParentType;
 
 		explicit
-		YFrameWindow(const SRect& = SRect::Empty, const HResource<YImage> = new YImage(),
+		YFrameWindow(const SRect& = SRect::Empty, const GHResource<YImage> = new YImage(),
 			YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
 		virtual
 		~YFrameWindow();
@@ -5031,7 +5028,7 @@ unit YForm "yform"
 
 	public:
 		explicit
-			YForm(const SRect& = SRect::Zero, const HResource<YImage> = new YImage(),
+			YForm(const SRect& = SRect::Zero, const GHResource<YImage> = new YImage(),
 			YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
 		virtual
 		~YForm();

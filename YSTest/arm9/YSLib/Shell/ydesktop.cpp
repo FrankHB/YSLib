@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-2 12:00:08;
-// UTime = 2010-7-4 3:10;
-// Version = 0.1948;
+// UTime = 2010-7-13 1:53;
+// Version = 0.1953;
 
 
 #include "ydesktop.h"
@@ -16,7 +16,7 @@ YSL_BEGIN_NAMESPACE(Device)
 
 using namespace Components::Controls;
 
-YDesktop::YDesktop(YScreen& s, PixelType c, HResource<YImage> i)
+YDesktop::YDesktop(YScreen& s, PixelType c, GHResource<YImage> i)
 : YFrameWindow(SRect::FullScreen, i, NULL, hShellMain),
 Screen(s), sDOs()
 {

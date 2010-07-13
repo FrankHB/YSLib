@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YRefrence by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-21 23:09:06;
-// UTime = 2010-7-4 5:17;
-// Version = 0.2116;
+// UTime = 2010-7-13 1:54;
+// Version = 0.2124;
 
 
 #ifndef INCLUDED_YREF_HPP_
@@ -112,28 +112,28 @@ template<typename T,
 	template <class> class KP = RejectNull,
 	template <class> class SP = DefaultSPStorage,
 	typename SPType = SmartPtr<T, OP, CP, KP, SP> >
-class HResource : public SPType //资源指针类。
+class GHResource : public SPType //资源指针类。
 {
 public:
-	HResource(T* p = NULL) : SPType(p) {};
-	HResource(T& rhs) : SPType(rhs) {}
-	HResource(RefToValue<HResource> rhs) : SPType(rhs) {}
+	GHResource(T* p = NULL) : SPType(p) {};
+	GHResource(T& rhs) : SPType(rhs) {}
+	GHResource(RefToValue<GHResource> rhs) : SPType(rhs) {}
 
-	operator RefToValue<HResource>()
+	operator RefToValue<GHResource>()
 	{
-		return RefToValue<HResource>(*this);
+		return RefToValue<GHResource>(*this);
 	}
 
 	T*
 	operator->() const
 	{
-		return HResource<T>::GetPointer(*this);
+		return GHResource<T>::GetPointer(*this);
 	}
 
-	HResource&
+	GHResource&
 	operator=(T& rhs)
 	{
-		HResource temp(rhs);
+		GHResource temp(rhs);
 		temp.Swap(*this);
 		return *this;
 	}
@@ -144,11 +144,19 @@ public:
 		return operator->();
 	}
 	void
-	Swap(HResource& rhs)
+	Swap(GHResource& rhs)
 	{
 		Swap(rhs);
 	}
 };
+
+
+template<class _Tp>
+inline _Tp*
+GetPointer(GHResource<_Tp> h)
+{
+	return h.GetPtr();
+}
 
 
 //#ifdef YSL_HANDLEPOLICY_SIMPLE

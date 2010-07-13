@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28;
-// UTime = 2010-7-8 12:48;
-// Version = 0.2892;
+// UTime = 2010-7-13 1:54;
+// Version = 0.2897;
 
 
 #include "ydesktop.h"
@@ -19,13 +19,13 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Forms)
 
-MWindow::MWindow(const HResource<YImage> i, YDesktop* pDsk, HSHL hShl)
+MWindow::MWindow(const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl)
 : MDesktopObject(pDsk), MVisualControl(~0, 0),
 Buffer(), hShell(hShl), prBackImage(i), bRefresh(false), bUpdate(false)
 {}
 
 
-AWindow::AWindow(const SRect& r, const HResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
+AWindow::AWindow(const SRect& r, const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
 : MWidget(hWnd ? hWnd : HWND(pDsk), r), MWindow(i, pDsk, hShl)
 {
 }
@@ -177,7 +177,7 @@ AWindow::OnLostFocus(IControl& c, const YEventArgs& e)
 }
 
 
-YFrameWindow::YFrameWindow(const SRect& r, const HResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
+YFrameWindow::YFrameWindow(const SRect& r, const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
 : YComponent(), AWindow(r, i, pDsk, hShl, hWnd), MWidgetContainer()
 {
 	if(pContainer)

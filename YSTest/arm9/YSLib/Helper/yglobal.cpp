@@ -1,12 +1,13 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52;
-// UTime = 2010-7-8 15:14;
-// Version = 0.2201;
+// UTime = 2010-7-13 19:59;
+// Version = 0.2229;
 
 
 #include "yglobal.h"
 #include "../ysbuild.h"
+#include "../Core/yexcept.h"
 
 using namespace platform;
 
@@ -21,13 +22,14 @@ const SDST SCRW(SCREEN_WIDTH), SCRH(SCREEN_HEIGHT);
 YScreen *pScreenUp, *pScreenDown;
 YDesktop *pDesktopUp, *pDesktopDown;
 YLog DefaultLog;
-YMessageQueue DefaultMQ, DefaultMQ_Backup;
 
 //全局变量映射。
 YScreen*& pDefaultScreen(pScreenUp);
 YDesktop*& pDefDesktop(pDesktopUp);
 YApplication& theApp(YApplication::GetApp());
-YFontCache*& pDefaultFontCache(theApp.fc);
+YMessageQueue& DefaultMQ(theApp.DefaultMQ);
+YMessageQueue& DefaultMQ_Backup(theApp.DefaultMQ_Backup);
+YFontCache*& pDefaultFontCache(theApp.FontCache);
 YApplication* const pApp(&theApp);
 const HSHL hShellMain(new YShellMain); //取主 Shell 句柄。
 
@@ -182,11 +184,11 @@ YInit()
 	if((pScreenUp = new YScreen(SCRW, SCRH)))
 		pDesktopUp = new YDesktop(*pScreenUp);
 	else //初始化上屏失败。
-		theApp.log.FatalError("Initialization of up screen failed.");
+		throw Exceptions::YGeneralError("Initialization of up screen failed.");
 	if((pScreenDown = new YScreen(SCRW, SCRH)))
 		pDesktopDown = new YDesktop(*pScreenDown);
 	else //初始化下屏失败。
-		theApp.log.FatalError("Initialization of down screen failed.");
+		throw Exceptions::YGeneralError("Initialization of down screen failed.");
 
 	//注册全局应用程序对象。
 	theApp.ResetShellHandle();
@@ -202,9 +204,16 @@ YMain(int argc, char* argv[]);
 int
 main(int argc, char* argv[])
 {
-	//全局初始化。
-	YSL_ YInit();
+	try
+	{
+		//全局初始化。
+		YSL_ YInit();
 
-	return YMain(argc, argv);
+		return YMain(argc, argv);
+	}
+	catch(YSL_ Exceptions::YGeneralError& e)
+	{
+		YSL_ theApp.Log.FatalError(e.what());
+	}
 }
 

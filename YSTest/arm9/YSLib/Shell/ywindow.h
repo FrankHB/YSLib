@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40;
-// UTime = 2010-7-4 15:09;
-// Version = 0.3197;
+// UTime = 2010-7-13 2:13;
+// Version = 0.3221;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -82,18 +82,21 @@ protected:
 	Drawing::MBitmapBuffer Buffer; //显示缓冲区。
 	//基类中的 hWindow 为父窗口对象句柄，若为空则说明无父窗口。
 	HSHL hShell;
-	HResource<YImage> prBackImage; //背景图像指针。
+	GHResource<YImage> prBackImage; //背景图像指针。
 	bool bRefresh; //刷新属性：表示有新的绘制请求。
 	bool bUpdate; //更新属性：表示绘制结束，缓冲区准备完毕。
 
 	explicit
-	MWindow(const HResource<YImage> = new YImage(), YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle());
+	MWindow(const GHResource<YImage> = new YImage(), YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle());
 
 public:
 	DefBoolGetter(RefreshRequired, bRefresh)
 	DefBoolGetter(UpdateRequired, bUpdate)
 
 	DefGetter(HSHL, ShellHandle, hShell)
+	DefGetter(GHResource<YImage>, Background, prBackImage)
+
+	DefSetterDef(GHResource<YImage>, Background, prBackImage, NULL)
 };
 
 
@@ -103,7 +106,7 @@ class AWindow : public Widgets::MWidget, public MWindow,
 {
 public:
 	explicit
-	AWindow(const SRect& = SRect::Empty, const HResource<YImage> = new YImage(),
+	AWindow(const SRect& = SRect::Empty, const GHResource<YImage> = new YImage(),
 		YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
 	virtual
 	~AWindow();
@@ -144,7 +147,8 @@ public:
 	virtual DefGetter(const Drawing::MBitmapBuffer&, Buffer, Buffer)
 	virtual DefGetterMember(BitmapPtr, BufferPtr, Buffer)
 	DefGetter(HWND, Handle, HWND(const_cast<AWindow*>(this)))
-	virtual DefGetterBase(HSHL, ShellHandle, MWindow)
+	DefGetterBase(HSHL, ShellHandle, MWindow)
+	DefGetterBase(GHResource<YImage>, Background, MWindow)
 	BitmapPtr
 	GetBackgroundPtr() const;
 
@@ -158,8 +162,8 @@ public:
 	SetSize(SDST, SDST);
 	virtual void
 	SetBounds(const SRect&);
-	virtual DefSetterEx(YImage&, Background, prBackImage, bg, &bg)
 	virtual DefSetterBaseDef(bool, Enabled, MVisualControl, true)
+	virtual DefSetterBaseDef(GHResource<YImage>, Background, MWindow, NULL)
 
 	PDefHead(void, ClearBackground) const //清除背景。
 		ImplExpr(Buffer.ClearImage())
@@ -233,7 +237,7 @@ public:
 	typedef YComponent ParentType;
 
 	explicit
-	YFrameWindow(const SRect& = SRect::Empty, const HResource<YImage> = new YImage(),
+	YFrameWindow(const SRect& = SRect::Empty, const GHResource<YImage> = new YImage(),
 		YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
 	virtual
 	~YFrameWindow();

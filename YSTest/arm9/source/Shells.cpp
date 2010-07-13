@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-7-10 14:32;
-// Version = 0.2801;
+// UTime = 2010-7-13 19:02;
+// Version = 0.2858;
 
 
 #include <Shells.h>
@@ -19,53 +19,6 @@ char strtbuf[0x400],
 //static CPATH TXTPATH("/test.txt");//"/Data/test.txt";
 
 YSL_BEGIN
-
-//测试用变量。
-static BitmapPtr gbuf;
-static int nCountInput;
-static char strCount[40];
-
-//测试函数。
-
-//背景测试。
-static void
-dfa(BitmapPtr buf, SDST x, SDST y)
-{
-	//raz2
-	buf[y * SCRW + x] = ARGB16(1, ((x >> 2) + 15) & 31, ((y >> 2) + 15) & 31, ((~(x * y) >> 2) + 15) & 31);
-}
-static void
-dfap(BitmapPtr buf, SDST x, SDST y)
-{
-	//bza1
-	buf[y * SCRW + x] = ARGB16(1, ((x | y << 1) % (y + 2)) & 31, ((~y | x << 1) % 27 + 3) & 31, ((x << 4) / (y | 1)) & 31);
-}
-static void
-dfac1(BitmapPtr buf, SDST x, SDST y)
-{
-	//fl1
-	buf[y * SCRW + x] = ARGB16(1, (x + y * y) & 31, (x * x + y) & 31, ((x & y) ^ (x | y)) & 31);
-}
-static void
-dfac1p(BitmapPtr buf, SDST x, SDST y)
-{
-	//rz3
-	buf[y * SCRW + x] = ARGB16(1, ((x * y) | y) & 31, ((x * y) | x) & 31, ((x ^ y) * (x ^ y)) & 31);
-}
-static void
-dfac2(BitmapPtr buf, SDST x, SDST y)
-{
-	//v1
-	buf[y * SCRW + x] = ARGB16(1, ((x + y) % ((y - 2) & 1) + (x << 2)) & 31, (~x % 101 + y) & 31, ((x << 4) / (y & 1)) & 31);
-}
-static void
-dfac2p(BitmapPtr buf, SDST x, SDST y)
-{
-	//arz1
-	buf[y * SCRW + x] = ARGB16(1, ((x | y) % (y + 2)) & 31, ((~y | x) % 27 + 3) & 31, ((x << 6) / (y | 1)) & 31);
-}
-
-////
 
 YSL_BEGIN_SHELL(ShlMain)
 
@@ -87,7 +40,7 @@ ShlProc(const MMSG& msg)
 		}
 		catch(...)
 		{
-			theApp.log.FatalError("Run shell failed at end of ShlMain.");
+			theApp.Log.FatalError("Run shell failed at end of ShlMain.");
 			return -1;
 		}
 		return 0;
@@ -104,53 +57,193 @@ YSL_END_SHELL(ShlMain)
 
 namespace
 {
+	//测试函数。
+
+	//背景测试。
+	static void
+	dfa(BitmapPtr buf, SDST x, SDST y)
+	{
+		//raz2
+		buf[y * SCRW + x] = ARGB16(1, ((x >> 2) + 15) & 31, ((y >> 2) + 15) & 31, ((~(x * y) >> 2) + 15) & 31);
+	}
+	static void
+	dfap(BitmapPtr buf, SDST x, SDST y)
+	{
+		//bza1
+		buf[y * SCRW + x] = ARGB16(1, ((x | y << 1) % (y + 2)) & 31, ((~y | x << 1) % 27 + 3) & 31, ((x << 4) / (y | 1)) & 31);
+	}
+	static void
+	dfac1(BitmapPtr buf, SDST x, SDST y)
+	{
+		//fl1
+		buf[y * SCRW + x] = ARGB16(1, (x + y * y) & 31, (x * x + y) & 31, ((x & y) ^ (x | y)) & 31);
+	}
+	static void
+	dfac1p(BitmapPtr buf, SDST x, SDST y)
+	{
+		//rz3
+		buf[y * SCRW + x] = ARGB16(1, ((x * y) | y) & 31, ((x * y) | x) & 31, ((x ^ y) * (x ^ y)) & 31);
+	}
+	static void
+	dfac2(BitmapPtr buf, SDST x, SDST y)
+	{
+		//v1
+		buf[y * SCRW + x] = ARGB16(1, ((x + y) % ((y - 2) & 1) + (x << 2)) & 31, (~x % 101 + y) & 31, ((x << 4) / (y & 1)) & 31);
+	}
+	static void
+	dfac2p(BitmapPtr buf, SDST x, SDST y)
+	{
+		//arz1
+		buf[y * SCRW + x] = ARGB16(1, ((x | y) % (y + 2)) & 31, ((~y | x) % 27 + 3) & 31, ((x << 6) / (y | 1)) & 31);
+	}
+
+	////
+
+	//测试用变量。
+	static BitmapPtr gbuf;
+	static int nCountInput;
+	static char strCount[40];
+	GHResource<YImage> g_pi[10];
+
+	void
+	LoadL()
+	{
+		//色块覆盖测试用程序段。
+		if(!g_pi[1])
+		{
+			try
+			{
+				gbuf = new SCRBUF;
+			}
+			catch(...)
+			{
+				return;
+			}
+		//	memset(gbuf, 0xEC, sizeof(SCRBUF));
+			g_pi[1] = NewScrImage(dfa, gbuf);
+		//	memset(gbuf, 0xF2, sizeof(SCRBUF));
+			g_pi[2] = NewScrImage(dfap, gbuf);
+			delete gbuf;
+		}
+	}
+
+	void
+	LoadS()
+	{
+		if(!g_pi[3])
+		{
+			try
+			{
+				gbuf = new SCRBUF;
+			}
+			catch(...)
+			{
+				return;
+			}
+			g_pi[3] = NewScrImage(dfac1, gbuf);
+			g_pi[4] = NewScrImage(dfac1p, gbuf);
+			delete gbuf;
+		}
+	}
+
+	void
+	LoadA()
+	{
+		if(!g_pi[5])
+		{
+			try
+			{
+				gbuf = new SCRBUF;
+			}
+			catch(...)
+			{
+				return;
+			}
+			g_pi[5] = NewScrImage(dfac2, gbuf);
+			g_pi[6] = NewScrImage(dfac2p, gbuf);
+			delete gbuf;
+		}
+	}
+
 	void
 	switchShl1()
 	{
 		CallStored<ShlA>();
 	}
+
 	void
 	switchShl2()
 	{
 		CallStored<ShlReader>();
 	}
+
+	static void
+	InputCounter(const SPoint& pt)
+	{
+		sprintf(strCount, "%d,%d,%d;Count = %d, Pos = (%d, %d);", sizeof(AWindow), sizeof(YFrameWindow), sizeof(YForm), nCountInput++, pt.X, pt.Y);
+	}
+
+	static void
+	InputCounterAnother(const SPoint& pt)
+	{
+		nCountInput++;
+		//	sprintf(strCount, "%d,%d,%d,%d,",sizeof(YForm),sizeof(YShell),sizeof(YApplication),sizeof(YFrameWindow));
+		struct mallinfo t(mallinfo());
+		/*	sprintf(strCount, "%d,%d,%d,%d,%d;",
+		t.arena,    // total space allocated from system 2742496
+		t.ordblks,  // number of non-inuse chunks 37
+		t.smblks,   // unused -- always zero 0
+		t.hblks,    // number of mmapped regions 0
+		t.hblkhd   // total space in mmapped regions 0
+		);*/
+		sprintf(strCount, "%d,%d,%d,%d,%d;",
+			t.usmblks,  // unused -- always zero 0
+			t.fsmblks,  // unused -- always zero 0
+			t.uordblks, // total allocated space 2413256
+			t.fordblks, // total non-inuse space 329240
+			t.keepcost // top-most, releasable (via malloc_trim) space 46496
+			);
+	}
+}
+
+GHResource<YImage>&
+GetImage(int i)
+{
+	switch(i)
+	{
+	case 1:
+	case 2:
+		LoadL();
+		break;
+	case 3:
+	case 4:
+		LoadS();
+		break;
+	case 5:
+	case 6:
+	case 7:
+		LoadA();
+		break;
+	case 8:
+	case 9:
+	//	LoadR();
+		break;
+	default:
+		i = 0;
+	}
+	return g_pi[i];
 }
 
 using namespace DS;
-
-HResource<YImage> ShlLoad::pi, ShlLoad::pip;
-
-void
-ShlLoad::Load()
-{
-	static bool unInit(true);
-
-	if(unInit)
-	{
-		try
-		{
-			gbuf = new SCRBUF;
-		}
-		catch(...)
-		{
-			return;
-		}
-		pi = NewScrImage(dfa, gbuf);
-		pip = NewScrImage(dfap, gbuf);
-		delete gbuf;
-		unInit = false;
-	}
-}
 
 LRES
 ShlLoad::OnActivated(const MMSG& m)
 {
 	try
 	{
-		Load();
 		hWndUp = NewWindow<TFrmLoadUp>(this);
 		hWndDown = NewWindow<TFrmLoadDown>(this);
-		DrawWindows();
+		DispatchWindows();
 		UpdateToScreen();
 	}
 	catch(...)
@@ -161,47 +254,10 @@ ShlLoad::OnActivated(const MMSG& m)
 	}
 	catch(...)
 	{
-		theApp.log.FatalError("Run shell failed at end of ShlLoad.");
+		theApp.Log.FatalError("Run shell failed at end of ShlLoad.");
 		return -1;
 	}
 	return 0;
-}
-
-LRES
-ShlLoad::OnDeactivated(const MMSG& m)
-{
-	NowShellClearBothScreen();
-	YDelete(hWndUp);
-	YDelete(hWndDown);
-	return 0;
-}
-
-
-HResource<YImage> ShlS::pic1, ShlS::pic1p;
-
-void
-ShlS::Load()
-{
-	//色块覆盖测试用程序段。
-	static bool unInit(true);
-
-	if(unInit)
-	{
-		try
-		{
-			gbuf = new SCRBUF;
-		}
-		catch(...)
-		{
-			return;
-		}
-//		memset(gbuf, 0xEC, sizeof(SCRBUF));
-		pic1 = NewScrImage(dfac1, gbuf);
-//		memset(gbuf, 0xF2, sizeof(SCRBUF));
-		pic1p = NewScrImage(dfac1p, gbuf);
-		delete gbuf;
-		unInit = false;
-	}
 }
 
 void
@@ -303,7 +359,6 @@ ShlS::OnActivated(const MMSG&)
 {
 	try
 	{
-		ShlS::Load();
 		hWndUp = NewWindow<TFrmFileListMonitor>(this);
 		hWndDown = NewWindow<TFrmFileListSelecter>(this);
 /*
@@ -313,20 +368,11 @@ ShlS::OnActivated(const MMSG&)
 	//	HandleCast<TFrmFileListSelecter>(hWndDown)->fbMain.RequestFocus();
 	//	hWndDown->RequestFocus();
 		RequestFocusCascade(HandleCast<TFrmFileListSelecter>(hWndDown)->fbMain);
-		DrawWindows();
+		DispatchWindows();
 		UpdateToScreen();
 	}
 	catch(...)
 	{}
-	return 0;
-}
-
-LRES
-ShlS::OnDeactivated(const MMSG&)
-{
-	NowShellClearBothScreen();
-	YDelete(hWndUp);
-	YDelete(hWndDown);
 	return 0;
 }
 
@@ -337,42 +383,13 @@ YSL_BEGIN_SHELL(ShlA)
 //输出设备刷新函数。
 /*static void ScrRefresh()
 {
-InsertMessage(NULL, SM_SCRREFRESH, 0x80, hShellMain->scrType, 0);
+	InsertMessage(NULL, SM_SCRREFRESH, 0x80, hShellMain->scrType, 0);
 }
 */
 
 YSL_END_SHELL(ShlA)
 
-HResource<YImage> ShlA::pic2, ShlA::pic2p;
-
 HWND ShlA::hWndC(NULL);
-
-static void
-InputCounter(const SPoint& pt)
-{
-	sprintf(strCount, "%d,%d,%d;Count = %d, Pos = (%d, %d);", sizeof(AWindow), sizeof(YFrameWindow), sizeof(YForm), nCountInput++, pt.X, pt.Y);
-}
-static void
-InputCounterAnother(const SPoint& pt)
-{
-	nCountInput++;
-//	sprintf(strCount, "%d,%d,%d,%d,",sizeof(YForm),sizeof(YShell),sizeof(YApplication),sizeof(YFrameWindow));
-	struct mallinfo t(mallinfo());
-/*	sprintf(strCount, "%d,%d,%d,%d,%d;",
-  t.arena,    // total space allocated from system 2742496
-  t.ordblks,  // number of non-inuse chunks 37
-  t.smblks,   // unused -- always zero 0
-  t.hblks,    // number of mmapped regions 0
-  t.hblkhd   // total space in mmapped regions 0
-  );*/
-	sprintf(strCount, "%d,%d,%d,%d,%d;",
-  t.usmblks,  // unused -- always zero 0
-  t.fsmblks,  // unused -- always zero 0
-  t.uordblks, // total allocated space 2413256
-  t.fordblks, // total non-inuse space 329240
-  t.keepcost // top-most, releasable (via malloc_trim) space 46496
-  );
-}
 
 void
 ShlA::TFormC::lblC_TouchUp(const YTouchEventArgs& e)
@@ -485,28 +502,6 @@ ShlA::TFormC::btnReturn_Click(const YTouchEventArgs&)
 	CallStored<ShlS>();
 }
 
-void
-ShlA::Load()
-{
-	static bool unInit(true);
-
-	if(unInit)
-	{
-		try
-		{
-			gbuf = new SCRBUF;
-		}
-		catch(...)
-		{
-			return;
-		}
-		ShlA::pic2 = NewScrImage(dfac2, gbuf);
-		ShlA::pic2p = NewScrImage(dfac2p, gbuf);
-		delete gbuf;
-		unInit = false;
-	}
-}
-
 LRES
 ShlA::ShlProc(const MMSG& msg)
 {
@@ -535,16 +530,14 @@ ShlA::OnActivated(const MMSG& msg)
 {
 	try
 	{
-		ShlA::Load();
 		pDesktopDown->BackColor = ARGB16(1, 15, 15, 31);
-		pDesktopDown->SetBackground(*ShlA::pic2p);
+		pDesktopDown->SetBackground(GetImage(6));
 		hWndUp = NewWindow<TFormA>(this);
 		hWndDown = NewWindow<TFormB>(this);
 		hWndC = NewWindow<TFormC>(this);
 		hWndUp->Draw();
 		hWndDown->Draw();
 		hWndC->Draw();
-	/*	DrawWindows();*/
 		UpdateToScreen();
 	}
 	catch(...)
@@ -552,61 +545,41 @@ ShlA::OnActivated(const MMSG& msg)
 	return 0;
 }
 LRES
-ShlA::OnDeactivated(const MMSG& msg)
+ShlA::OnDeactivated(const MMSG& m)
 {
-	NowShellClearBothScreen();
-	YDelete(hWndUp);
-	YDelete(hWndDown);
+	ParentType::OnDeactivated(m);
 	YDelete(hWndC);
 	return 0;
 }
 
 
-MDualScreenReader* ShlReader::pdsr(NULL);
-YTextFile* ShlReader::ptf(NULL);
+ShlReader::ShlReader()
+: ShlDS(),
+tf("/test.txt"), dsr(tf) //"/Data/test.txt";
+{
+//	sprintf(strtbuf, "pDefaultFontCache addr : 0x%x\n",(int)pDefaultFontCache);
+	dsr.SetFontSize(18);
+	dsr.SetColor(ARGB16(1, 31, 31, 31));
+	dsr.SetLineGap();
+	dsr.TextInit();
+}
 
 void
 ShlReader::UpdateToScreen()
 {
+//	dsr.Refresh();
 	ParentType::UpdateToScreen();
-//	ShlReader::pdsr->Refresh();
+	dsr.PrintText();
 }
 
 LRES
 ShlReader::ShlProc(const MMSG& msg)
 {
-	using namespace YSL_SHL(ShlA);
-//	ClearDefaultMessageQueue();
-
-	const WPARAM& wParam(msg.GetWParam());
-/*
-		InitYSConsole();
-	//	YDebugBegin();
-		iprintf("time : %u ticks\n", GetTicks());
-		iprintf("MMSG : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
-		waitForInput();
-*/
-//	UpdateToScreen();
-
 	switch(msg.GetMsgID())
 	{
 	case SM_INPUT:
 		ResponseInput(msg);
 		UpdateToScreen();
-		return 0;
-
-	case SM_DSR_INIT:
-		ShlReader::DSReaderInit("/test.txt"); //"/Data/test.txt";
-		ShlReader::pdsr->Refresh();
-		return 0;
-
-	case SM_DSR_REFRESH:
-		InsertMessage(NULL, SM_DSR_PRINTTEXT, 0xD8, reinterpret_cast<WPARAM>(ShlReader::pdsr));
-		return 0;
-
-	case SM_DSR_PRINTTEXT:
-		UpdateToScreen();
-		reinterpret_cast<MDualScreenReader*>(wParam)->PrintText();
 		return 0;
 
 	default:
@@ -620,14 +593,12 @@ ShlReader::OnActivated(const MMSG& msg)
 {
 	try
 	{
-	//	ShlReader::Load();
 		pDesktopDown->BackColor = ARGB16(1, 15, 31, 31);
 		hWndUp = NewWindow<TFormUp>(this);
 		hWndDown = NewWindow<TFormDn>(this);
-		InsertMessage(NULL, SM_DSR_INIT, 0xF8);
+		dsr.Refresh();
 		hWndUp->Draw();
 		hWndDown->Draw();
-/*		DrawWindows();*/
 		UpdateToScreen();
 	}
 	catch(...)
@@ -638,7 +609,7 @@ ShlReader::OnActivated(const MMSG& msg)
 LRES
 ShlReader::OnDeactivated(const MMSG& msg)
 {
-	NowShellClearBothScreen();
+	ShlClearBothScreen();
 	YDelete(hWndUp);
 	YDelete(hWndDown);
 	return 0;

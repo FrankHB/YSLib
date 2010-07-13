@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-13 14:17:14;
-// UTime = 2010-7-11 15:56;
-// Version = 0.1314;
+// UTime = 2010-7-13 3:09;
+// Version = 0.1344;
 
 
 #include "shlds.h"
@@ -18,31 +18,11 @@ ShlGUI::~ShlGUI()
 void
 ShlGUI::SendDrawingMessage()
 {
+//	pDesktopUp->ClearDesktopObjects();
+//	pDesktopDown->ClearDesktopObjects();
 	DispatchWindows();
 	InsertMessage(NULL, SM_PAINT, 0xE0, reinterpret_cast<WPARAM>(this), reinterpret_cast<LPARAM>(pDesktopUp));
 	InsertMessage(NULL, SM_PAINT, 0xE0, reinterpret_cast<WPARAM>(this), reinterpret_cast<LPARAM>(pDesktopDown));
-}
-void
-ShlGUI::DrawWindows()
-{
-	YAssert(pDesktopUp,
-		"In function \"void\n"
-		"DS::ShlGUI::DrawWindows()\": \n"
-		"The desktop pointer is null.");
-	YAssert(pDesktopDown,
-		"In function \"void\n"
-		"DS::ShlGUI::DrawWindows()\": \n"
-		"The desktop pointer is null.");
-
-	pDesktopUp->ClearDesktopObjects();
-	pDesktopDown->ClearDesktopObjects();
-	DispatchWindows();
-	/*
-	pDesktopUp->SetRefresh();
-	pDesktopUp->Refresh();
-	pDesktopDown->SetRefresh();
-	pDesktopDown->Refresh();
-	*/
 }
 void
 ShlGUI::UpdateToScreen()
@@ -56,6 +36,14 @@ ShlGUI::UpdateToScreen()
 
 	pDesktopUp->Update();
 	pDesktopDown->Update();
+}
+
+LRES
+ShlGUI::OnDeactivated(const MMSG&)
+{
+	ClearScreenWindows(*pDesktopUp);
+	ClearScreenWindows(*pDesktopDown);
+	return 0;
 }
 
 
@@ -80,6 +68,15 @@ ShlDS::ShlProc(const MMSG& msg)
 	default:
 		return DefShellProc(msg);
 	}
+}
+
+LRES
+ShlDS::OnDeactivated(const MMSG& m)
+{
+	ShlGUI::OnDeactivated(m);
+	YDelete(hWndUp);
+	YDelete(hWndDown);
+	return 0;
 }
 
 

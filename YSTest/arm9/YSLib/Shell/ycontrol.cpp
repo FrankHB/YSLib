@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-7-8 13:07;
-// Version = 0.2891;
+// UTime = 2010-7-13 1:53;
+// Version = 0.2896;
 
 
 #include "ycontrol.h"
@@ -343,7 +343,7 @@ YLabel::DrawForeground()
 }
 
 
-YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, HResource<YTextRegion> prTr_)
+YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<YTextRegion> prTr_)
 : YVisualControl(hWnd, r, pCon),
 prTextRegion(pCon ? prTr_ : GetGlobalResource<YTextRegion>()), bDisposeList(true),
 Font(prTextRegion->GetFont()), Margin(prTextRegion->Margin),
@@ -351,7 +351,7 @@ List(*new ListType()), Viewer(List)
 {
 	Init_();
 }
-YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, HResource<YTextRegion> prTr_, YListBox::ListType& List_)
+YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<YTextRegion> prTr_, YListBox::ListType& List_)
 : YVisualControl(hWnd, r, pCon),
 prTextRegion(pCon ? prTr_ : GetGlobalResource<YTextRegion>()), bDisposeList(false),
 Font(prTextRegion->GetFont()), Margin(prTextRegion->Margin),
@@ -567,7 +567,7 @@ YListBox::OnConfirmed(IVisualControl& c, const YIndexEventArgs& e)
 }
 
 
-YFileBox::YFileBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, HResource<YTextRegion> prTr_)
+YFileBox::YFileBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<YTextRegion> prTr_)
 : YListBox(hWnd, r, pCon, prTr_, MFileList::List), MFileList(),
 List(ParentType::List)
 {}

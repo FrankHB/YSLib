@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YForm by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-4-30 0:51:36;
-// UTime = 2010-7-4 5:32;
-// Version = 0.1414;
+// UTime = 2010-7-13 1:53;
+// Version = 0.1419;
 
 
 #include "yform.h"
@@ -15,7 +15,7 @@ YSL_BEGIN_NAMESPACE(Forms)
 
 using namespace Controls;
 
-YForm::YForm(const SRect& r, const HResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
+YForm::YForm(const SRect& r, const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
 : YFrameWindow(r, i, pDsk, hShl, hWnd)//,
 //Client(this, SRect::Empty/*r*/)
 {

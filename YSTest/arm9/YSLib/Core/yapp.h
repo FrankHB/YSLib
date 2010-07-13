@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:27;
-// UTime = 2010-6-24 20:38;
-// Version = 0.1632;
+// UTime = 2010-7-13 19:56;
+// Version = 0.1654;
 
 
 #ifndef INCLUDED_YAPP_H_
@@ -28,10 +28,16 @@ public:
 	YLog&
 	operator<<(char);
 	YLog&
+	operator<<(const char*);
+	YLog&
 	operator<<(const std::string&);
 
 	void
+	Error(const char*);
+	void
 	Error(const std::string&);
+	void
+	FatalError(const char*);
 	void
 	FatalError(const std::string&);
 };
@@ -56,9 +62,10 @@ public:
 	DefEvent(YEventHandler, Idle)
 
 	//全局资源。
-	YLog& log; //默认程序日志。
-	YFontCache* fc; //默认字体缓存。
-	YMessageQueue& mq; //主消息队列：在程序实例中实现以保证单线程。
+	YLog& Log; //默认程序日志。
+	YMessageQueue DefaultMQ; //主消息队列：在程序实例中实现以保证单线程。
+	YMessageQueue DefaultMQ_Backup; //备份消息队列：在程序实例中实现以保证单线程。
+	YFontCache* FontCache; //默认字体缓存。
 
 private:
 	SHLs sShls; // Shell 对象组：实现 Shell 存储。

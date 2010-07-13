@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:36;
-// UTime = 2010-7-10 6:44;
-// Version = 0.1640;
+// UTime = 2010-7-13 19:57;
+// Version = 0.1664;
 
 
 #include "yapp.h"
@@ -18,18 +18,32 @@ YLog& YLog::operator<<(char)
 {
 	return *this;
 }
-YLog& YLog::operator<<(const std::string&)
+YLog& YLog::operator<<(const char*)
 {
 	return *this;
 }
+YLog& YLog::operator<<(const std::string& s)
+{
+	return operator<<(s);
+}
 
 void
-YLog::Error(const std::string&)
+YLog::Error(const char*)
 {}
 void
-YLog::FatalError(const std::string&)
+YLog::Error(const std::string& s)
+{
+	Error(s.c_str());
+}
+void
+YLog::FatalError(const char*)
 {
 	platform::terminate();
+}
+void
+YLog::FatalError(const std::string& s)
+{
+	FatalError(s.c_str());
 }
 
 
@@ -39,7 +53,7 @@ const YString YApplication::ProductName(G_APP_NAME);
 const YString YApplication::ProductVersion(G_APP_VER);
 
 YApplication::YApplication()
-: YObject(), log(DefaultLog), fc(NULL), mq(DefaultMQ), sShls(), hShell(NULL)
+: YObject(), Log(DefaultLog), DefaultMQ(), DefaultMQ_Backup(), FontCache(NULL), sShls(), hShell(NULL)
 {
 	ApplicationExit += Def::Destroy;
 }
@@ -88,7 +102,7 @@ void
 YApplication::ResetShellHandle()
 {
 	if(!SetShellHandle(hShellMain))
-		log.FatalError("YApplication::ResetShellHandle();");
+		Log.FatalError("YApplication::ResetShellHandle();");
 }
 
 YSL_END

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:24;
-// UTime = 2010-7-4 15:10;
-// Version = 0.3316;
+// UTime = 2010-7-13 1:54;
+// Version = 0.3321;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -240,7 +240,7 @@ public:
 	typedef YVisualControl ParentType;
 
 protected:
-	HResource<Drawing::YTextRegion> prTextRegion; //文本区域指针。
+	GHResource<Drawing::YTextRegion> prTextRegion; //文本区域指针。
 
 public:
 	Drawing::YFont& Font; //字体。
@@ -256,7 +256,7 @@ public:
 	//用字符串在窗口中以给定字号初始化标签。
 	template<class _charType>
 	YLabel(HWND, const _charType*, const SRect& = SRect::FullScreen,
-		const Drawing::YFont& = Drawing::YFont::GetDefault(), IWidgetContainer* = NULL, HResource<Drawing::YTextRegion> = NULL);
+		const Drawing::YFont& = Drawing::YFont::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::YTextRegion> = NULL);
 	virtual
 	~YLabel();
 
@@ -268,7 +268,7 @@ public:
 
 template<class _charType>
 YLabel::YLabel(HWND hWnd, const _charType* l, const SRect& r,
-			   const Drawing::YFont& f, IWidgetContainer* pCon, HResource<Drawing::YTextRegion> prTr_)
+			   const Drawing::YFont& f, IWidgetContainer* pCon, GHResource<Drawing::YTextRegion> prTr_)
 : YVisualControl(hWnd, r, pCon),
 prTextRegion(pCon ? prTr_ : GetGlobalResource<Drawing::YTextRegion>()), Font(prTextRegion->GetFont()),
 Margin(prTextRegion->Margin), AutoSize(true), AutoEllipsis(false), Text(l)
@@ -288,7 +288,7 @@ public:
 protected:
 	static const SDST defMarginH = 4, defMarginV = 2;
 
-	HResource<Drawing::YTextRegion> prTextRegion; //文本区域指针。
+	GHResource<Drawing::YTextRegion> prTextRegion; //文本区域指针。
 	const bool bDisposeList;
 
 public:
@@ -303,8 +303,8 @@ public:
 	DefEvent(YIndexEventHandler, Selected) //项目选择状态改变事件。
 	DefEvent(YIndexEventHandler, Confirmed) //项目选中确定事件。
 
-	YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, HResource<Drawing::YTextRegion> = NULL);
-	YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, HResource<Drawing::YTextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
+	YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::YTextRegion> = NULL);
+	YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::YTextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
 	virtual
 	~YListBox();
 
@@ -389,7 +389,7 @@ public:
 
 	ListType& List;
 
-	YFileBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, HResource<Drawing::YTextRegion> = NULL);
+	YFileBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::YTextRegion> = NULL);
 	virtual
 	~YFileBox();
 

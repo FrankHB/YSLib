@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-2 12:00:08;
-// UTime = 2010-7-4 3:10;
-// Version = 0.1970;
+// UTime = 2010-7-13 1:53;
+// Version = 0.1975;
 
 
 #ifndef INCLUDED_YDESKTOP_H_
@@ -34,7 +34,7 @@ public:
 	Drawing::PixelType BackColor; //背景色。
 
 	explicit
-	YDesktop(YScreen&, Drawing::PixelType = 0, HResource<Drawing::YImage> = NULL);
+	YDesktop(YScreen&, Drawing::PixelType = 0, GHResource<Drawing::YImage> = NULL);
 	virtual
 	~YDesktop();
 

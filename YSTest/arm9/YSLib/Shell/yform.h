@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YForm by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-4-30 0:51:36;
-// UTime = 2010-7-4 5:32;
-// Version = 0.1359;
+// UTime = 2010-7-13 1:53;
+// Version = 0.1364;
 
 
 #ifndef INCLUDED_YFORM_H_
@@ -30,7 +30,7 @@ protected:
 
 public:
 	explicit
-	YForm(const SRect& = SRect::Empty, const HResource<YImage> = new YImage(),
+	YForm(const SRect& = SRect::Empty, const GHResource<YImage> = new YImage(),
 		YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
 	virtual
 	~YForm();
