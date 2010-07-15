@@ -1,13 +1,16 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46;
-// UTime = 2010-7-8 13:12;
-// Version = 0.2204;
+// UTime = 2010-7-14 0:40;
+// Version = 0.2218;
 
 
 #include "ygdi.h"
+#include "../Core/yexcept.h"
 
 YSL_BEGIN
+
+using namespace Exceptions;
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
@@ -645,9 +648,9 @@ MBitmapBuffer::SetSize(SPOS w, SPOS h)
 			{
 				img = new PixelType[w * h];
 			}
-			catch(...)
+			catch(std::bad_alloc&)
 			{
-				throw;
+				throw YLoggedError("Allocation failed @@ MBitmapBuffer::SetSize(SPOS, SPOS);", 1);
 			}
 		}
 	}
@@ -730,9 +733,9 @@ MBitmapBufferEx::SetSize(SPOS w, SPOS h)
 					delete[] imgAlpha;
 				imgAlpha = new u8[w * h];
 			}
-			catch(...)
+			catch(std::bad_alloc&)
 			{
-				throw;
+				throw YLoggedError("Allocation failed @@ MBitmapBufferEx::SetSize(SPOS, SPOS);", 1);;
 			}
 		}
 	}

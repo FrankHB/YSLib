@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15;
-// UTime = 2010-7-4 1:47;
-// Version = 0.2674;
+// UTime = 2010-7-14 15:10;
+// Version = 0.2692;
 
 
 #include "../Shell/ywindow.h"
@@ -222,7 +222,7 @@ PeekMessage
 
 #endif
 
-	(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg)
+	(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, u32 wRemoveMsg)
 {
 	if(!DefaultMQ.empty())
 	{
@@ -261,11 +261,7 @@ IRES
 GetMessage(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax)
 {
 	if(DefaultMQ.empty())
-	{
 		Def::Idle();
-		if(DefaultMQ.empty())
-			return -1;
-	}
 	return PeekMessage(msg, hShl, wMsgFilterMin, wMsgFilterMax, PM_REMOVE);
 }
 

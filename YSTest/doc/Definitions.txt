@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-7-13 19:56;
-// Version = r6338;
+// UTime = 2010-7-16 0:28;
+// Version = r6436;
 
 
 // Definitions ： 方法和公共域定义与说明。
@@ -311,33 +311,36 @@ import header <platform.h>;
 
 header YDefinition "ydef.h"
 {
-	#define __nullterminated
-	#define UNALIGNED
-	#define UNALIGNED64
-
-	#ifndef NULL
 	#ifdef __cplusplus
-	#define NULL 0
+	extern "C" {
+	#endif
+
+	#if defined __GNUC__ || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L)
+
+	#	include <stddef.h>
+	#	include <stdint.h>
+
+	typedef intptr_t INT_PTR;
+	typedef uintptr_t UINT_PTR;
+
 	#else
-	#define NULL ((void *)0)
-	#endif
+
+	typedef int INT_PTR;
+	typedef unsigned int UINT_PTR;
+
 	#endif
 
-	#ifndef FALSE
+	typedef long LONG_PTR;
+	typedef unsigned long ULONG_PTR;
+
+
+	#define _nullterminated
+
+	#undef FALSE
 	#define FALSE 0
-	#endif
 
-	#ifndef TRUE
+	#undef TRUE
 	#define TRUE 1
-	#endif
-
-	#undef  FAR
-	#undef  NEAR
-	#define FAR
-	#define NEAR
-	#ifndef CONST
-	#define CONST const
-	#endif
 
 	#ifndef BASETYPES
 	#define BASETYPES
@@ -347,62 +350,15 @@ header YDefinition "ydef.h"
 	typedef char* PSZ;
 	#endif
 
-	typedef void VOID, *PVOID;
-	typedef int INT;
-	typedef unsigned int UINT, *PUINT;
-	typedef char CHAR, *PCHAR;
-	typedef short SHORT, *PSHORT;
-	typedef long LONG, *PLONG;
-	typedef float FLOAT, *PFLOAT;
-
 	typedef int             BOOL;
 	typedef unsigned char   BYTE;
 	typedef unsigned short  WORD;
 	typedef unsigned long   DWORD;
 
-	typedef void FAR        *LPVOID;
-	typedef const void FAR  *LPCVOID;
-	typedef INT NEAR        *PINT;
-	typedef INT FAR         *LPINT;
-	typedef LONG FAR        *LPLONG;
-	typedef BOOL NEAR       *PBOOL;
-	typedef BOOL FAR        *LPBOOL;
-	typedef BYTE NEAR       *PBYTE;
-	typedef BYTE FAR        *LPBYTE;
-	typedef WORD NEAR       *PWORD;
-	typedef WORD FAR        *LPWORD;
-	typedef DWORD NEAR      *PDWORD;
-	typedef DWORD FAR       *LPDWORD;
 
-	typedef BYTE BOOLEAN, *PBOOLEAN;
-
-	typedef BYTE    FCHAR;
-	typedef WORD    FSHORT;
-	typedef DWORD   FLONG;
-
-	typedef long long LONGLONG, *PLONGLONG;
-	typedef unsigned long long ULONGLONG, *PULONGLONG;
-	#define MAXLONGLONG (0x7fffffffffffffff)
-
-	typedef VOID FVOID();
+	typedef void FVOID(void);
 	typedef FVOID *PFVOID;
 
-	// Unicode 宽字符类型定义。
-
-	typedef wchar_t WCHAR;
-
-	typedef WCHAR *PWCHAR, *PWCH, *LPWCH;
-	typedef const WCHAR *PCWCH, *LPCWCH;
-	typedef __nullterminated WCHAR *NWPSTR, *PWSTR, *LPWSTR;
-	typedef __nullterminated PWSTR *PZPWSTR;
-	typedef __nullterminated const PWSTR *PCZPWSTR;
-	typedef __nullterminated WCHAR UNALIGNED *LPUWSTR, *PUWSTR;
-	typedef __nullterminated const WCHAR *LPCWSTR, *PCWSTR;
-	typedef __nullterminated PCWSTR *PZPCWSTR;
-	typedef __nullterminated const WCHAR UNALIGNED *LPCUWSTR, *PCUWSTR;
-
-	typedef const WCHAR *LPCWCHAR, *PCWCHAR;
-	typedef const WCHAR UNALIGNED *LPCUWCHAR, *PCUWCHAR;
 
 	// UCS(Universal Character Set) 字符类型定义。
 
@@ -412,63 +368,15 @@ header YDefinition "ydef.h"
 	#define MIN_UCSCHAR (0)
 	#define MAX_UCSCHAR (0x0010FFFF)
 
-	typedef UCSCHAR *PUCSCHAR;
-	typedef const UCSCHAR *PCUCSCHAR;
-	typedef UCSCHAR *PUCSSTR;
-	typedef UCSCHAR UNALIGNED *PUUCSSTR;
-	typedef const UCSCHAR *PCUCSSTR;
-	typedef const UCSCHAR UNALIGNED *PCUUCSSTR;
-	typedef UCSCHAR UNALIGNED *PUUCSCHAR;
-	typedef const UCSCHAR UNALIGNED *PCUUCSCHAR;
 
-	// ANSI 多字节字符定义。
-
-	typedef CHAR *PCHAR, *LPCH, *PCH;
-	typedef const CHAR *LPCCH, *PCCH;
-	typedef __nullterminated CHAR *NPSTR, *LPSTR, *PSTR;
-	typedef __nullterminated PSTR *PZPSTR;
-	typedef __nullterminated const PSTR *PCZPSTR;
-	typedef __nullterminated const CHAR *LPCSTR, *PCSTR;
-	typedef __nullterminated PCSTR *PZPCSTR;
-
-	#define ANSI_NULL ((CHAR)0)
-	#define UNICODE_NULL ((WCHAR)0)
-	#define UNICODE_STRING_MAX_BYTES ((WORD) 65534)
-	#define UNICODE_STRING_MAX_CHARS (32767)
-
-	// 编码中立的 ANSI / Unicode 类型和宏定义。
-
-	#ifdef UNICODE
-
-	#ifndef _TCHAR_DEFINED
-	typedef WCHAR TCHAR, *PTCHAR;
-	typedef WCHAR TBYTE, *PTBYTE ;
-	#define _TCHAR_DEFINED
-	#endif
-
-	typedef LPWCH LPTCH, PTCH;
-	typedef LPWSTR PTSTR, LPTSTR;
-	typedef LPCWSTR PCTSTR, LPCTSTR;
-	typedef LPUWSTR PUTSTR, LPUTSTR;
-	typedef LPCUWSTR PCUTSTR, LPCUTSTR;
-	typedef LPWSTR LP;
-	#define __TEXT(quote) L##quote
-
-	#define TEXT(quote) __TEXT(quote)
-	#define _T(quote) TEXT(quote)
-
-	typedef unsigned int UINT_PTR, *PUINT_PTR;
-	typedef long LONG_PTR, *PLONG_PTR;
-	typedef unsigned long ULONG_PTR, *PULONG_PTR;
-
-	typedef int				IRES;
-	typedef unsigned int	URES;
-	typedef long			LRES;
-	typedef IRES			ERRNO;
+	typedef INT_PTR			IRES;
+	typedef UINT_PTR		URES;
+	typedef LONG_PTR		LRES;
 
 	typedef UINT_PTR        WPARAM;
 	typedef LONG_PTR        LPARAM;
-	typedef LONG_PTR        LRES;
+
+	typedef IRES			ERRNO;
 
 	#define LOBYTE(w)       ((BYTE)(((DWORD_PTR)(w)) & 0xff))
 	#define HIBYTE(w)       ((BYTE)((((DWORD_PTR)(w)) >> 8) & 0xff))
@@ -477,9 +385,16 @@ header YDefinition "ydef.h"
 	#define MAKEWORD(a, b)  ((WORD)(((BYTE)(((DWORD_PTR)(a)) & 0xff)) | ((WORD)((BYTE)(((DWORD_PTR)(b)) & 0xff))) << 8))
 	#define MAKELONG(a, b)  ((LONG)(((WORD)(((DWORD_PTR)(a)) & 0xffff)) | ((DWORD)((WORD)(((DWORD_PTR)(b)) & 0xffff))) << 16))
 
-	//路径类型定义：独立于字符流。
-	typedef LPSTR PATH;
-	typedef LPCSTR CPATH;
+	typedef char* STR;
+	typedef const char* CSTR;
+
+	//路径类型定义。
+	typedef char* PATH;
+	typedef const char* CPATH;
+
+	#ifdef __cplusplus
+	}
+	#endif
 
 }//header YDefinition;
 
@@ -601,7 +516,7 @@ unit YCommon "ycommon"
 	namespace platform
 	{
 		//定长路径字符串类型。
-		typedef CHAR PATHSTR[MAXPATHLEN];
+		typedef char PATHSTR[MAXPATHLEN];
 
 
 		//判断指定目录是否存在。
@@ -1126,8 +1041,7 @@ unit YFont "yfont"
 		bool
 		operator<(const YFontFamily&) const;
 
-		const FT_String*
-		GetFamilyName() const;
+		DefGetter(const FT_String*, FamilyName, family_name)
 		const YTypeface*
 		GetTypefacePtr(const FT_String*) const; //取指定名称字型指针。
 
@@ -1174,12 +1088,9 @@ unit YFont "yfont"
 		bool
 		operator<(const YTypeface&) const;
 
-		inline const YFontFamily*
-		GetFontFamilyPtr() const;
-		inline const FT_String*
-		GetFamilyName() const;
-		inline const FT_String*
-		GetStyleName() const;
+		DefGetter(const YFontFamily*, FontFamilyPtr, pFontFamily)
+		DefGetter(const FT_String*, FamilyName, pFontFamily ? pFontFamily->GetFamilyName() : NULL)
+		DefGetter(const FT_String*, StyleName, style_name)
 	};//struct YTypeface;
 
 
@@ -1200,10 +1111,8 @@ unit YFont "yfont"
 
 		bool operator==(const YFontFile& rhs) const;
 
-		inline const char*
-		GetPath() const;
-		inline FT_Long
-		GetFaceN() const;
+		DefGetter(const char*, Path, path)
+		DefGetter(s32, FaceN, nFace)
 
 		void ReloadFaces(); //读取字体文件，载入全部字体。
 	};//class YFontFile;
@@ -1238,35 +1147,25 @@ unit YFont "yfont"
 		explicit
 		YFont(const YFontFamily& = *GetDefaultFontFamilyPtr(), const SizeType = DefSize, YFontStyle = Regular);
 
-		inline bool
-		IsBold() const;
-		inline bool
-		IsItalic() const;
-		inline bool
-		IsUnderline() const;
-		inline bool
-		IsStrikeout() const;
+		DefBoolGetter(Bold, Style | Bold)
+		DefBoolGetter(Italic, Style | Italic)
+		DefBoolGetter(Underline, Style | Underline)
+		DefBoolGetter(Strikeout, Style | Strikeout)
 
-		inline static const YFont&
-		GetDefault() const;
-		inline YFontFamily&
-		GetFontFamily() const;
-		inline YFontStyle
-		GetStyle() const;
-		inline SizeType
-		GetSize() const;
-		inline const YFontCache&
-		GetCache() const;
-		inline const FT_String*
-		GetFamilyName() const;
+		DefStaticGetter(const YFont&, Default, *pDefFont)
+		DefGetter(const YFontFamily&, FontFamily, *pFontFamily)
+		DefGetter(YFontStyle, Style, Style)
+		DefGetter(SizeType, Size, Size)
+		DefGetter(YFontCache&, Cache, GetFontFamily().Cache)
+		DefGetterMember(const FT_String*, FamilyName, GetFontFamily())
+	//	DefGetterMember(const FT_String*, StyleName, GetFontFamily())
 		const FT_String*
 		GetStyleName() const;
 		SizeType GetHeight() const;
 
 	/*	YFontFamily&
 		SetFontFamily(const YFontFamily&);*/
-		inline void
-		SetStyle(YFontStyle);
+		DefSetter(YFontStyle, Style, Style)
 		void
 		SetSize(SizeType);
 
@@ -1319,32 +1218,24 @@ unit YFont "yfont"
 		FT_Face GetInternalFaceInfo() const; //取当前处理的内部字型结构体指针。
 
 	public:
-		inline const FFiles&
-		GetFiles() const; //取字体文件组。
-		inline const FTypes&
-		GetTypes() const; //取字型组。
-		inline const FFaces&
-		GetFaces() const; //取字型家族组。
-		inline FFiles::size_type
-		GetFilesN() const; //取字体文件组储存的文件数。
-		inline FTypes::size_type
-		GetTypesN() const; //取字型组储存的字型数。
-		inline FFaces::size_type
-		GetFacesN() const; //取字型家族组储存的字型家族数。
+		DefGetter(const FFiles&, Files, sFiles) //取字体文件组。
+		DefGetter(const FTypes&, Types, sTypes) //取字型组。
+		DefGetter(const FFaces&, Faces, sFaces) //取字型家族组。
+		DefGetter(FFiles::size_type, FilesN, sFiles.size()) //取字体文件组储存的文件数。
+		DefGetter(FTypes::size_type, TypesN, sTypes.size()) //取字型组储存的字型数。
+		DefGetter(FFaces::size_type, FacesN, sFaces.size()) //取字型家族组储存的字型家族数。
 	//	YFont*
 	//	GetFontPtr() const;
 		const YFontFamily*
 		GetFontFamilyPtr(const FT_String*) const; //取指定名称字型家族指针。
 		const YTypeface*
 		GetDefaultTypefacePtr() const; //取默认字型指针。
-		inline const YTypeface*
-		GetTypefacePtr() const; //取当前处理的字型指针。
+		DefGetter(const YTypeface*, TypefacePtr, pType) //取当前处理的字型指针。
 	//	YTypeface*
 	//	GetTypefacePtr(u16) const; //取字型组储存的指定索引的字型指针。
 		YTypeface*
 		GetTypefacePtr(const FT_String*, const FT_String*); //取指定名称字型指针。
-		inline u8
-		GetFontSize() const; //取当前处理的字体大小。
+		DefGetter(u8, FontSize, fontSize) //取当前处理的字体大小。
 		FTC_SBit
 		GetGlyph(u32); //取当前字型和大小渲染的指定字符的字形。
 		s8
@@ -1406,13 +1297,14 @@ unit YFont "yfont"
 		ClearCache();
 	};//class YFontCache;
 
-	//以路径 p 创建字体缓存 f 。
-	inline void
-	CreateFontCache(YFontCache*& f, CPATH p);
 
-	//销毁字体缓存 f 。
+	//以路径 path 创建字体缓存，指针存储至 p 。
 	inline void
-	DestroyFontCache(YFontCache*& f);
+	CreateFontCache(YFontCache*& p, CPATH path);
+
+	//销毁 p 指向的字体缓存。
+	inline void
+	DestroyFontCache(YFontCache*& p);
 
 	YSL_END_NAMESPACE(Drawing)
 
@@ -1704,7 +1596,7 @@ header YShellDefinition "ysdef.h"
 	typedef enum {RDeg0 = 0, RDeg90 = 1, RDeg180 = 2, RDeg270 = 3} ROT; //逆时针旋转角度指示输出朝向。
 
 	//全局常量。
-	extern LPCTSTR G_COMP_NAME, G_APP_NAME, G_APP_VER; //制作机构名称，程序名称和版本号。
+	extern CSTR G_COMP_NAME, G_APP_NAME, G_APP_VER; //制作机构名称，程序名称和版本号。
 	extern CPATH DEF_DIRECTORY;
 	extern const SDST SCRW, SCRH;
 
@@ -2240,12 +2132,12 @@ header YEvent "yevt.hpp"
 	};
 
 
-	//标准事件回调函数对象类接口模板。
+	//标准事件回调函数抽象类模板。
 	template<class _responser, class _eventArgsType>
-	struct GIEventCallback : public _eventArgsType
+	struct GAHEventCallback : public _eventArgsType
 	{
 		inline explicit
-		GIEventCallback(const _eventArgsType& e)
+		GAHEventCallback(const _eventArgsType& e)
 		: _eventArgsType(e)
 		{}
 		DeclIEntry(bool operator()(_responser&))
@@ -2728,6 +2620,7 @@ unit YException "yexcept"
 		~YException() throw();
 	}; //class YException;
 
+
 	class YGeneralError : public YException
 	{
 	private:
@@ -2740,7 +2633,22 @@ unit YException "yexcept"
 
 		const char*
 		what() const throw();
-	}; //class YException;
+	}; //class YGeneralError;
+
+
+	class YLoggedError : public YGeneralError
+	{
+	private:
+		u8 level;
+
+	public:
+		YLoggedError(const std::string&, u8 = 0);
+		YLoggedError(const YGeneralError&, u8 = 0);
+		virtual
+		~YLoggedError() throw();
+
+		DefGetter(u8, Level, level);
+	}; //YLoggedError;
 
 	YSL_END_NAMESPACE(Exceptions)
 
@@ -2968,7 +2876,7 @@ unit YShellMessage "ysmsg"
 
 	YSL_BEGIN_NAMESPACE(Shells)
 
-	typedef UINT MSGID;
+	typedef u32 MSGID;
 	typedef u8 MSGPRIORITY;
 
 	export const time_t DEF_TIMEOUT;
@@ -3155,10 +3063,10 @@ unit YShellProcessing "ysproc"
 	#define PM_NOREMOVE 0x0
 	#define PM_REMOVE 0x1
 	IRES
-	PeekMessage(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg = PM_NOREMOVE);
+	PeekMessage(MMSG& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0, u32 wRemoveMsg = PM_NOREMOVE);
 
 	IRES
-	GetMessage(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax);
+	GetMessage(MMSG& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0);
 
 	ERRNO
 	TranslateMessage(const MMSG& msg);
@@ -3238,7 +3146,7 @@ unit YShell "yshell"
 
 	public:
 		bool insRefresh; //即时刷新：自动加入屏幕刷新消息。
-		UINT scrType; //即时刷新屏幕选取设置。
+		u32 scrType; //即时刷新屏幕选取设置。
 
 		YShell();
 		virtual
@@ -3622,12 +3530,6 @@ unit YGDI "ygdi"
 
 
 	// GDI 基本数据类型和宏定义。
-
-	#ifdef UNICODE
-	typedef WCHAR BCHAR;
-	#else
-	typedef BYTE BCHAR;
-	#endif
 
 	YSL_BEGIN_NAMESPACE(Drawing)
 
@@ -4030,10 +3932,10 @@ unit YGUI "ygui"
 	ReleaseFocusCascade(IVisualControl&);
 
 
-	//标准 GUI 事件回调函数对象类接口。
-	typedef GIEventCallback<Components::Controls::MVisualControl, YEvent> IEventCallback;
-	typedef GIEventCallback<Components::Controls::MVisualControl, Runtime::YTouchEventArgs> ITouchCallback;
-	typedef GIEventCallback<Components::Controls::MVisualControl, Runtime::YKeyEventArgs> IKeyCallback;
+	//标准 GUI 事件回调函数抽象类。
+	typedef GAHEventCallback<Components::Controls::MVisualControl, YEvent> AHEventCallback;
+	typedef GAHEventCallback<Components::Controls::MVisualControl, Runtime::YTouchEventArgs> AHTouchCallback;
+	typedef GAHEventCallback<Components::Controls::MVisualControl, Runtime::YKeyEventArgs> AHKeyCallback;
 
 	//标准 GUI 事件回调函数类型。
 	typedef bool FTouchCallback(Components::Controls::MVisualControl&, const Runtime::YTouchEventArgs&);
@@ -4042,8 +3944,7 @@ unit YGUI "ygui"
 	typedef FKeyCallback* PFKeyCallback;
 
 	//标准 GUI 事件回调函数对象类。
-	struct HTouchCallback : public GHBase<PFTouchCallback>,
-		implements ITouchCallback
+	struct HTouchCallback : public GHBase<PFTouchCallback>, public AHTouchCallback
 	{
 		inline explicit
 		HTouchCallback(Runtime::YTouchEventArgs, PFTouchCallback);
@@ -4052,8 +3953,7 @@ unit YGUI "ygui"
 		operator()(Components::Controls::MVisualControl&);
 	};
 
-	struct HKeyCallback : public GHBase<PFKeyCallback>,
-		implements IKeyCallback
+	struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 	{
 		inline explicit
 		HKeyCallback(Runtime::YKeyEventArgs, PFKeyCallback);
@@ -5413,8 +5313,8 @@ unit YGlobal "yglobal"
 	export YMessageQueue DefaultMQ, DefaultMQ_Backup;
 
 	//类型定义。
-	typedef CHAR PATHSTR[MAX_PATH_LENGTH];
-	typedef CHAR FILENAMESTR[MAX_FILENAME_LENGTH];
+	typedef char PATHSTR[MAX_PATH_LENGTH];
+	typedef char FILENAMESTR[MAX_FILENAME_LENGTH];
 
 	//全局变量映射。
 	YDesktop*& pDefaultDesktop = pDesktopUp;

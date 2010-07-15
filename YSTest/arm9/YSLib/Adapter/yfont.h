@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:02:40;
-// UTime = 2010-7-3 4:59;
-// Version = 0.6462;
+// UTime = 2010-7-15 18:39;
+// Version = 0.6518;
 
 
 #ifndef INCLUDED_YFONT_H_
@@ -11,7 +11,7 @@
 // YFontCache ：平台无关的字体缓存库。
 
 #include "../Core/yfunc.hpp"
-#include "../Core/ycutil.h"
+#include "../Core/ystring.h"
 #include <set>
 #include <map>
 
@@ -67,8 +67,7 @@ public:
 	bool
 	operator<(const YFontFamily&) const;
 
-	const FT_String*
-	GetFamilyName() const;
+	DefGetter(const FT_String*, FamilyName, family_name)
 	const YTypeface*
 	GetTypefacePtr(const FT_String*) const; //取指定名称字型指针。
 
@@ -78,11 +77,6 @@ private:
 	bool
 	operator-=(YTypeface&); //从字型组中移除指定字型对象。
 };
-
-inline const FT_String* YFontFamily::GetFamilyName() const
-{
-	return family_name;
-}
 
 
 //字型标识。
@@ -120,29 +114,10 @@ public:
 	bool
 	operator<(const YTypeface&) const;
 
-	const YFontFamily*
-	GetFontFamilyPtr() const;
-	const FT_String*
-	GetFamilyName() const;
-	const FT_String*
-	GetStyleName() const;
+	DefGetter(const YFontFamily*, FontFamilyPtr, pFontFamily)
+	DefGetter(const FT_String*, FamilyName, pFontFamily ? pFontFamily->GetFamilyName() : NULL)
+	DefGetter(const FT_String*, StyleName, style_name)
 };
-
-inline const YFontFamily*
-YTypeface::GetFontFamilyPtr() const
-{
-	return pFontFamily;
-}
-inline const FT_String*
-YTypeface::GetFamilyName() const
-{
-	return pFontFamily ? pFontFamily->GetFamilyName() : NULL;
-}
-inline const FT_String*
-YTypeface::GetStyleName() const
-{
-	return style_name;
-}
 
 
 //字体文件。
@@ -165,25 +140,12 @@ public:
 	bool
 	operator<(const YFontFile&) const;
 
-	const char*
-	GetPath() const;
-	FT_Long
-	GetFaceN() const;
+	DefGetter(const char*, Path, path)
+	DefGetter(s32, FaceN, nFace)
 
 	void
 	ReloadFaces(); //读取字体文件，载入全部字体。
 };
-
-inline const char*
-YFontFile::GetPath() const
-{
-	return path;
-}
-inline FT_Long
-YFontFile::GetFaceN() const
-{
-	return nFace;
-}
 
 
 //取默认字型。
@@ -216,27 +178,18 @@ public:
 	explicit
 	YFont(const YFontFamily& = *GetDefaultFontFamilyPtr(), const SizeType = DefSize, YFontStyle = Regular);
 
-	bool
-	IsBold() const;
-	bool
-	IsItalic() const;
-	bool
-	IsUnderline() const;
-	bool
-	IsStrikeout() const;
+	DefBoolGetter(Bold, Style | Bold)
+	DefBoolGetter(Italic, Style | Italic)
+	DefBoolGetter(Underline, Style | Underline)
+	DefBoolGetter(Strikeout, Style | Strikeout)
 
-	static const YFont&
-	GetDefault();
-	const YFontFamily&
-	GetFontFamily() const;
-	YFontStyle
-	GetStyle() const;
-	SizeType
-	GetSize() const;
-	YFontCache&
-	GetCache() const;
-	const FT_String*
-	GetFamilyName() const;
+	DefStaticGetter(const YFont&, Default, *pDefFont)
+	DefGetter(const YFontFamily&, FontFamily, *pFontFamily)
+	DefGetter(YFontStyle, Style, Style)
+	DefGetter(SizeType, Size, Size)
+	DefGetter(YFontCache&, Cache, GetFontFamily().Cache)
+	DefGetterMember(const FT_String*, FamilyName, GetFontFamily())
+//	DefGetterMember(const FT_String*, StyleName, GetFontFamily())
 	const FT_String*
 	GetStyleName() const;
 	SizeType
@@ -244,8 +197,7 @@ public:
 
 /*	YFontFamily&
 	SetFontFamily(const YFontFamily&);*/
-	void
-	SetStyle(YFontStyle);
+	DefSetter(YFontStyle, Style, Style)
 	void
 	SetSize(SizeType);
 
@@ -260,27 +212,7 @@ public:
 	ReleaseDefault(); //释放默认字体。
 };
 
-inline bool
-YFont::IsBold() const
-{
-	return Style | Bold;
-}
-inline bool
-YFont::IsItalic() const
-{
-	return Style | Italic;
-}
-inline bool
-YFont::IsUnderline() const
-{
-	return Style | Underline;
-}
-inline bool
-YFont::IsStrikeout() const
-{
-	return Style | Strikeout;
-}
-
+/*
 inline const YFontFamily&
 YFont::GetFontFamily() const
 {
@@ -288,37 +220,7 @@ YFont::GetFontFamily() const
 	// pFontfamily 不可能为 NULL 。
 	return *pFontFamily;
 }
-inline YFontStyle
-YFont::GetStyle() const
-{
-	return Style;
-}
-inline YFont::SizeType
-YFont::GetSize() const
-{
-	return Size;
-}
-inline YFontCache&
-YFont::GetCache() const
-{
-	return GetFontFamily().Cache;
-}
-inline const FT_String*
-YFont::GetFamilyName() const
-{
-	return GetFontFamily().GetFamilyName();
-}
-/*inline const FT_String*
-YFont::GetStyleName() const
-{
-	return GetFontFamily().GetStyleName;
-}*/
-
-inline void
-YFont::SetStyle(YFontStyle s)
-{
-	Style = s;
-}
+*/
 
 
 //字体缓存。
@@ -358,32 +260,24 @@ private:
 	FT_Face GetInternalFaceInfo() const; //取当前处理的内部字型结构体指针。
 
 public:
-	const FFiles&
-	GetFiles() const; //取字体文件组。
-	const FTypes&
-	GetTypes() const; //取字型组。
-	const FFaces&
-	GetFaces() const; //取字型家族组。
-	FFiles::size_type
-	GetFilesN() const; //取字体文件组储存的文件数。
-	FTypes::size_type
-	GetTypesN() const; //取字型组储存的字型数。
-	FFaces::size_type
-	GetFacesN() const; //取字型家族组储存的字型家族数。
+	DefGetter(const FFiles&, Files, sFiles) //取字体文件组。
+	DefGetter(const FTypes&, Types, sTypes) //取字型组。
+	DefGetter(const FFaces&, Faces, sFaces) //取字型家族组。
+	DefGetter(FFiles::size_type, FilesN, sFiles.size()) //取字体文件组储存的文件数。
+	DefGetter(FTypes::size_type, TypesN, sTypes.size()) //取字型组储存的字型数。
+	DefGetter(FFaces::size_type, FacesN, sFaces.size()) //取字型家族组储存的字型家族数。
 //	YFont*
 //	GetFontPtr() const;
 	const YFontFamily*
 	GetFontFamilyPtr(const FT_String*) const; //取指定名称字型家族指针。
 	const YTypeface*
 	GetDefaultTypefacePtr() const; //取默认字型指针。
-	const YTypeface*
-	GetTypefacePtr() const; //取当前处理的字型指针。
+	DefGetter(const YTypeface*, TypefacePtr, pType) //取当前处理的字型指针。
 //	YTypeface*
 //	GetTypefacePtr(u16) const; //取字型组储存的指定索引的字型指针。
 	const YTypeface*
 	GetTypefacePtr(const FT_String*, const FT_String*) const;//取指定名称字型指针。
-	u8
-	GetFontSize() const; //取当前处理的字体大小。
+	DefGetter(u8, FontSize, fontSize) //取当前处理的字体大小。
 	FTC_SBit
 	GetGlyph(u32); //取当前字型和大小渲染的指定字符的字形。
 	s8
@@ -445,67 +339,26 @@ public:
 	ClearCache(); //清除缓存。
 };
 
-inline const YFontCache::FFiles&
-YFontCache::GetFiles() const
-{
-	return sFiles;
-}
-inline const YFontCache::FTypes&
-YFontCache::GetTypes() const
-{
-	return sTypes;
-}
-inline const YFontCache::FFaces&
-YFontCache::GetFaces() const
-{
-	return sFaces;
-}
-inline YFontCache::FFiles::size_type
-YFontCache::GetFilesN() const
-{
-	return sFiles.size();
-}
-inline YFontCache::FTypes::size_type
-YFontCache::GetTypesN() const
-{
-	return sTypes.size();
-}
-inline YFontCache::FFaces::size_type
-YFontCache::GetFacesN() const
-{
-	return sFaces.size();
-}
-inline const YTypeface*
-YFontCache::GetTypefacePtr() const
-{
-	return pType;
-}
-inline u8
-YFontCache::GetFontSize() const
-{
-	return fontSize;
-}
 
-
-//以路径 p 创建字体缓存 f 。
+//以路径 path 创建字体缓存，指针存储至 p 。
 inline void
-CreateFontCache(YFontCache*& f, CPATH p)
+CreateFontCache(YFontCache*& p, CPATH path)
 {
-	delete f;
-	f = new YFontCache(p);
+	delete p;
+	p = new YFontCache(path);
 }
 
-//销毁字体缓存 f 。
+//销毁 p 指向的字体缓存。
 inline void
-DestroyFontCache(YFontCache*& f)
+DestroyFontCache(YFontCache*& p)
 {
-	delete f;
-	f = NULL;
+	delete p;
+	p = NULL;
 }
 
 YSL_END_NAMESPACE(Drawing)
 
-YSL_END;
+YSL_END
 
 #endif
 

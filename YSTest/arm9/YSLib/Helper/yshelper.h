@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> YShellHelper by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2009-3-14 14:07:22;
-// UTime = 2010-7-11 15:58;
-// Version = 0.1588;
+// UTime = 2010-7-14 0:29;
+// Version = 0.1594;
 
 
 #ifndef INCLUDED_YSHELPER_H_
@@ -131,12 +131,7 @@ template<class _tShl>
 inline void
 CallStoredAtOnce()
 {
-	try
-	{
-		NowShellToStored<_tShl>();
-	}
-	catch(...)
-	{}
+	NowShellToStored<_tShl>();
 }
 
 //封装通过消息队列向全局 Shell 管理器的对象转移控制权。
@@ -144,12 +139,7 @@ template<class _tShl>
 inline void
 CallStored()
 {
-	try
-	{
-		SetShellToStored<_tShl>();
-	}
-	catch(...)
-	{}
+	SetShellToStored<_tShl>();
 }
 
 

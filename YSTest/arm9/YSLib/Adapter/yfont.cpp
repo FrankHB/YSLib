@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13;
-// UTime = 2010-6-23 23:28;
-// Version = 0.6485;
+// UTime = 2010-7-15 20:35;
+// Version = 0.6492;
 
 
 #include "yfont.h"
@@ -181,11 +181,6 @@ YFont::YFont(const YFontFamily& family, const SizeType size, YFontStyle style)
 {
 }
 
-const YFont&
-YFont::GetDefault()
-{
-	return *pDefFont;
-}
 YFont::SizeType YFont::GetHeight() const
 {
 	return GetCache().GetHeight();
@@ -363,7 +358,7 @@ YFontCache::SetTypeface(const YTypeface& p)
 	return t;
 }
 void
-YFontCache::SetFontSize(u8 s)
+YFontCache::SetFontSize(YFont::SizeType s)
 {
 	if(s == 0)
 		s = YFont::DefSize;

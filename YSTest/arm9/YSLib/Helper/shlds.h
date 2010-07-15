@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8
 // CTime = 2010-3-13 14:17:14;
-// UTime = 2010-7-13 3:12;
-// Version = 0.1424;
+// UTime = 2010-7-14 11:53;
+// Version = 0.1426;
 
 
 #ifndef INCLUDED_SHLDS_H_
@@ -71,6 +71,12 @@ OnTouchDown(const Runtime::YTouchEventArgs::InputType& pt)
 }
 
 inline void
+OnTouchHeld(const Runtime::YTouchEventArgs::InputType& pt)
+{
+	Runtime::ResponseTouchHeld(*pDesktopDown, Runtime::YTouchEventArgs(pt));
+}
+
+inline void
 OnKeyUp(const Runtime::YKeyEventArgs::InputType& key)
 {
 	Runtime::ResponseKeyUp(*pDesktopDown, Runtime::YKeyEventArgs(key));
@@ -80,12 +86,6 @@ inline void
 OnKeyDown(const Runtime::YKeyEventArgs::InputType& key)
 {
 	Runtime::ResponseKeyDown(*pDesktopDown, Runtime::YKeyEventArgs(key));
-}
-
-inline void
-OnTouchHeld(const Runtime::YTouchEventArgs::InputType& pt)
-{
-	Runtime::ResponseTouchHeld(*pDesktopDown, Runtime::YTouchEventArgs(pt));
 }
 
 inline void

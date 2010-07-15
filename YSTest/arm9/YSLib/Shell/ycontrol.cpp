@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-7-13 1:53;
-// Version = 0.2896;
+// UTime = 2010-7-14 11:35;
+// Version = 0.2911;
 
 
 #include "ycontrol.h"
@@ -192,7 +192,7 @@ MVisualControl::_m_OnTouchHeld(const Runtime::YTouchEventArgs& e)
 		else if(w.GetLocation() != e + TouchStatus::GetDragOffset())
 			OnTouchMove(dynamic_cast<IVisualControl&>(*this), e);
 	}
-	catch(...)
+	catch(std::bad_cast&)
 	{}
 }
 void
@@ -205,7 +205,7 @@ MVisualControl::_m_OnTouchMove(const Runtime::YTouchEventArgs& e)
 		w.SetLocation(e + TouchStatus::GetDragOffset());
 		w.Refresh();
 	}
-	catch(...)
+	catch(std::bad_cast&)
 	{}
 }
 
@@ -218,7 +218,7 @@ MVisualControl::OnGotFocus(IControl& c, const YEventArgs& e)
 	}
 //	catch(std::bad_cast)
 //	{}
-	catch(...)
+	catch(std::bad_cast&)
 	{
 	//	throw;
 	}
@@ -231,7 +231,7 @@ MVisualControl::OnLostFocus(IControl& c, const YEventArgs& e)
 	{
 		dynamic_cast<IWidget&>(c).Refresh();
 	}
-	catch(...)
+	catch(std::bad_cast&)
 	{}*/
 }
 void
@@ -246,7 +246,7 @@ MVisualControl::OnTouchHeld(IVisualControl& c, const YTouchEventArgs& e)
 	{
 		dynamic_cast<MVisualControl&>(c)._m_OnTouchHeld(e);
 	}
-	catch(...)
+	catch(std::bad_cast&)
 	{}
 }
 void
@@ -256,7 +256,7 @@ MVisualControl::OnTouchMove(IVisualControl& c, const YTouchEventArgs& e)
 	{
 		dynamic_cast<MVisualControl&>(c)._m_OnTouchMove(e);
 	}
-	catch(...)
+	catch(std::bad_cast&)
 	{}
 }
 
@@ -492,10 +492,12 @@ YListBox::_m_OnKeyPress(const YKeyEventArgs& k)
 		case Keys::Enter:
 			CallConfirmed();
 			break;
+
 		case Keys::ESC:
 			ClearSelected();
 			CallSelected();
 			break;
+
 		case Keys::Up:
 		case Keys::Down:
 		case Keys::PgUp:
@@ -508,12 +510,15 @@ YListBox::_m_OnKeyPress(const YKeyEventArgs& k)
 				case Keys::Up:
 					--Viewer;
 					break;
+
 				case Keys::Down:
 					++Viewer;
 					break;
+
 				case Keys::PgUp:
 					Viewer -= Viewer.GetLength();
 					break;
+
 				case Keys::PgDn:
 					Viewer += Viewer.GetLength();
 					break;
@@ -522,6 +527,7 @@ YListBox::_m_OnKeyPress(const YKeyEventArgs& k)
 					CallSelected();
 			}
 			break;
+
 		default:
 			return;
 		}
@@ -537,7 +543,7 @@ YListBox::OnClick(IVisualControl& c, const YTouchEventArgs& e)
 	{
 		dynamic_cast<YListBox&>(c)._m_OnClick(e);
 	}
-	catch(...)
+	catch(std::bad_cast&)
 	{}
 }
 void
@@ -547,7 +553,7 @@ YListBox::OnKeyPress(IVisualControl& c, const YKeyEventArgs& e)
 	{
 		dynamic_cast<YListBox&>(c)._m_OnKeyPress(e);
 	}
-	catch(...)
+	catch(std::bad_cast&)
 	{}
 }
 void
@@ -557,7 +563,7 @@ YListBox::OnSelected(IVisualControl& c, const YIndexEventArgs&)
 	{
 		dynamic_cast<YListBox&>(c).Refresh();
 	}
-	catch(...)
+	catch(std::bad_cast&)
 	{}
 }
 void

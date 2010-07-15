@@ -1,8 +1,8 @@
 ﻿// YShell DS 测试程序 -> ARM9 主程序 by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 21:26:30;
-// UTime = 2010-6-12 2:28;
-// Version = 0.1916;
+// UTime = 2010-7-14 15:09;
+// Version = 0.1997;
 
 
 //标识主源文件。
@@ -32,9 +32,9 @@ using namespace platform;
 
 YSL_BEGIN
 
-LPCTSTR G_COMP_NAME = _T("Franksoft");
-LPCTSTR G_APP_NAME = _T("YShell Test");
-LPCTSTR G_APP_VER = _T("0.2400");
+CSTR G_COMP_NAME = "Franksoft";
+CSTR G_APP_NAME = "YShell Test";
+CSTR G_APP_VER = "0.2600";
 
 //调试函数。
 static void YSDebug_MSG_Print(const MMSG& msg)
@@ -66,7 +66,7 @@ int YMain(int argc, char* argv[])
 	MMSG msg;
 
 	//消息循环。
-	while(GetMessage(msg, NULL, 0, 0))
+	while(GetMessage(msg))
 	{
 		TranslateMessage(msg);
 		DispatchMessage(msg);

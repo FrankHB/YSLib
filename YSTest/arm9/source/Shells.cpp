@@ -1,22 +1,18 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-7-13 19:02;
-// Version = 0.2858;
+// UTime = 2010-7-14 15:48;
+// Version = 0.2926;
 
 
 #include <Shells.h>
 
 ////////
-//测试用声明。
-//测试用资源定义。
+//测试用声明：资源定义。
 extern char gstr[128];
 char strtbuf[0x400],
 	strtf[0x400],
 	strttxt[0x400];
-
-//测试用常量。
-//static CPATH TXTPATH("/test.txt");//"/Data/test.txt";
 
 YSL_BEGIN
 
@@ -40,7 +36,7 @@ ShlProc(const MMSG& msg)
 		}
 		catch(...)
 		{
-			theApp.Log.FatalError("Run shell failed at end of ShlMain.");
+			throw YLoggedError("Run shell failed at end of ShlMain.");
 			return -1;
 		}
 		return 0;
@@ -115,7 +111,7 @@ namespace
 			{
 				gbuf = new SCRBUF;
 			}
-			catch(...)
+			catch(std::bad_alloc&)
 			{
 				return;
 			}
@@ -136,7 +132,7 @@ namespace
 			{
 				gbuf = new SCRBUF;
 			}
-			catch(...)
+			catch(std::bad_alloc&)
 			{
 				return;
 			}
@@ -155,7 +151,7 @@ namespace
 			{
 				gbuf = new SCRBUF;
 			}
-			catch(...)
+			catch(std::bad_alloc&)
 			{
 				return;
 			}
@@ -239,22 +235,17 @@ using namespace DS;
 LRES
 ShlLoad::OnActivated(const MMSG& m)
 {
-	try
-	{
-		hWndUp = NewWindow<TFrmLoadUp>(this);
-		hWndDown = NewWindow<TFrmLoadDown>(this);
-		DispatchWindows();
-		UpdateToScreen();
-	}
-	catch(...)
-	{}
+	hWndUp = NewWindow<TFrmLoadUp>(this);
+	hWndDown = NewWindow<TFrmLoadDown>(this);
+	DispatchWindows();
+	UpdateToScreen();
 	try
 	{
 		SetShellToStored<ShlS>();
 	}
 	catch(...)
 	{
-		theApp.Log.FatalError("Run shell failed at end of ShlLoad.");
+		throw YLoggedError("Run shell failed at end of ShlLoad.");
 		return -1;
 	}
 	return 0;
@@ -357,22 +348,17 @@ ShlS::ShlProc(const MMSG& msg)
 LRES
 ShlS::OnActivated(const MMSG&)
 {
-	try
-	{
-		hWndUp = NewWindow<TFrmFileListMonitor>(this);
-		hWndDown = NewWindow<TFrmFileListSelecter>(this);
+	hWndUp = NewWindow<TFrmFileListMonitor>(this);
+	hWndDown = NewWindow<TFrmFileListSelecter>(this);
 /*
-		ReplaceHandle<HWND>(hWndUp, new TFrmFileListMonitor(HSHL(this)));
-		ReplaceHandle<HWND>(hWndDown, new TFrmFileListSelecter(HSHL(this)));
+	ReplaceHandle<HWND>(hWndUp, new TFrmFileListMonitor(HSHL(this)));
+	ReplaceHandle<HWND>(hWndDown, new TFrmFileListSelecter(HSHL(this)));
 */
 	//	HandleCast<TFrmFileListSelecter>(hWndDown)->fbMain.RequestFocus();
 	//	hWndDown->RequestFocus();
-		RequestFocusCascade(HandleCast<TFrmFileListSelecter>(hWndDown)->fbMain);
-		DispatchWindows();
-		UpdateToScreen();
-	}
-	catch(...)
-	{}
+	RequestFocusCascade(HandleCast<TFrmFileListSelecter>(hWndDown)->fbMain);
+	DispatchWindows();
+	UpdateToScreen();
 	return 0;
 }
 
@@ -443,47 +429,13 @@ ShlA::TFormC::lblC_KeyPress(IVisualControl& sender, const YKeyEventArgs& e)
 {
 	//测试程序。
 
-	u32 x(e);
-/*
-	if(x & Keys::A)
-		InsertMessage(NULL, SM_DSR_INIT, 0xE0);
-	else if(x & Keys::Up)
-		ShlReader::pdsr->LineUp();
-	else if(x & Keys::Down)
-		ShlReader::pdsr->LineDown();
-	else if(x & Keys::Left)
-		ShlReader::pdsr->ScreenUp();
-	else if(x & Keys::Right)
-		ShlReader::pdsr->ScreenDown();
-	else if(x & Keys::X)
-	{
-		ShlReader::pdsr->SetLineGap(5);
-		ShlReader::pdsr->Update();
-	}
-	else if(x & Keys::Y)
-	{
-		ShlReader::pdsr->SetLineGap(8);
-		ShlReader::pdsr->Update();
-	}
-	else if(x & Keys::L)
-	{
-		//ShlReader::pdsr->SetFontSize(ShlReader::pdsr->GetFontSize()+1);
-		ShlReader::pdsr->SetLineGap(ShlReader::pdsr->GetLineGap() + 1);
-		ShlReader::pdsr->Update();
-	}
-	else if(x & Keys::R)
-	{
-		//PixelType cc(ShlReader::pdsr->GetColor());
-		//ShlReader::pdsr->SetColor(ARGB16(1,(cc&(15<<5))>>5,cc&29,(cc&(31<<10))>>10));
-		ShlReader::pdsr->SetLineGap(ShlReader::pdsr->GetLineGap() - 1);
-		ShlReader::pdsr->Update();
-	}*/
+	u32 k(e);
 
 	YLabel& lbl(static_cast<TFormA&>(*(static_cast<ShlA&>(*NowShell()).hWndUp)).lblA2);
 	lbl.Transparent ^= 1;
 	++lbl.ForeColor;
 	--lbl.BackColor;
-	sprintf(strttxt, "%d;\n", x);
+	sprintf(strttxt, "%d;\n", k);
 	lbl.Text = strttxt;
 	lbl.Refresh();
 /*
@@ -528,20 +480,15 @@ ShlA::ShlProc(const MMSG& msg)
 LRES
 ShlA::OnActivated(const MMSG& msg)
 {
-	try
-	{
-		pDesktopDown->BackColor = ARGB16(1, 15, 15, 31);
-		pDesktopDown->SetBackground(GetImage(6));
-		hWndUp = NewWindow<TFormA>(this);
-		hWndDown = NewWindow<TFormB>(this);
-		hWndC = NewWindow<TFormC>(this);
-		hWndUp->Draw();
-		hWndDown->Draw();
-		hWndC->Draw();
-		UpdateToScreen();
-	}
-	catch(...)
-	{}
+	pDesktopDown->BackColor = ARGB16(1, 15, 15, 31);
+	pDesktopDown->SetBackground(GetImage(6));
+	hWndUp = NewWindow<TFormA>(this);
+	hWndDown = NewWindow<TFormB>(this);
+	hWndC = NewWindow<TFormC>(this);
+	hWndUp->Draw();
+	hWndDown->Draw();
+	hWndC->Draw();
+	UpdateToScreen();
 	return 0;
 }
 LRES
@@ -554,22 +501,97 @@ ShlA::OnDeactivated(const MMSG& m)
 
 
 ShlReader::ShlReader()
-: ShlDS(),
-tf("/test.txt"), dsr(tf) //"/Data/test.txt";
+: ShlGUI(), //"/Data/test.txt";
+TextFile("/test.txt"), Reader(TextFile), hUp(NULL), hDn(NULL), bgDirty(true)
 {
-//	sprintf(strtbuf, "pDefaultFontCache addr : 0x%x\n",(int)pDefaultFontCache);
-	dsr.SetFontSize(18);
-	dsr.SetColor(ARGB16(1, 31, 31, 31));
-	dsr.SetLineGap();
-	dsr.TextInit();
+	Reader.TextInit();
 }
 
 void
 ShlReader::UpdateToScreen()
 {
-//	dsr.Refresh();
-	ParentType::UpdateToScreen();
-	dsr.PrintText();
+//	Reader.Refresh();
+	if(bgDirty)
+	{
+		pDesktopUp->SetRefresh();
+		pDesktopDown->SetRefresh();
+		ParentType::UpdateToScreen();
+		Reader.PrintText();
+		bgDirty = false;
+	}
+}
+
+void
+ShlReader::OnClick(const YTouchEventArgs& e)
+{
+	CallStored<ShlS>();
+}
+
+void
+ShlReader::OnKeyPress(const YKeyEventArgs& e)
+{
+	u32 k(e);
+
+	bgDirty = true;
+	switch(k)
+	{
+	case Keys::Enter:
+		Reader.Update();
+		break;
+
+	case Keys::ESC:
+		CallStored<ShlS>();
+		break;
+
+	case Keys::Up:
+	case Keys::Down:
+	case Keys::PgUp:
+	case Keys::PgDn:
+		{
+			switch(k)
+			{
+			case Keys::Up:
+				Reader.LineUp();
+				break;
+			case Keys::Down:
+				Reader.LineDown();
+				break;
+			case Keys::PgUp:
+				Reader.ScreenUp();
+				break;
+			case Keys::PgDn:
+				Reader.ScreenDown();
+				break;
+			}
+		}
+		break;
+
+	case Keys::X:
+		Reader.SetLineGap(5);
+		Reader.Update();
+		break;
+
+	case Keys::Y:
+		Reader.SetLineGap(8);
+		Reader.Update();
+		break;
+
+	case Keys::Left:
+		//Reader.SetFontSize(Reader.GetFontSize()+1);
+		Reader.SetLineGap(Reader.GetLineGap() + 1);
+		Reader.Update();
+		break;
+
+	case Keys::Right:
+		//PixelType cc(Reader.GetColor());
+		//Reader.SetColor(ARGB16(1,(cc&(15<<5))>>5,cc&29,(cc&(31<<10))>>10));
+		Reader.SetLineGap(Reader.GetLineGap() - 1);
+		Reader.Update();
+		break;
+
+	default:
+		return;
+	}
 }
 
 LRES
@@ -591,18 +613,17 @@ ShlReader::ShlProc(const MMSG& msg)
 LRES
 ShlReader::OnActivated(const MMSG& msg)
 {
-	try
-	{
-		pDesktopDown->BackColor = ARGB16(1, 15, 31, 31);
-		hWndUp = NewWindow<TFormUp>(this);
-		hWndDown = NewWindow<TFormDn>(this);
-		dsr.Refresh();
-		hWndUp->Draw();
-		hWndDown->Draw();
-		UpdateToScreen();
-	}
-	catch(...)
-	{}
+	hUp = pDesktopUp->GetBackground();
+	hDn = pDesktopDown->GetBackground();
+	pDesktopUp->SetBackground(NULL);
+	pDesktopDown->SetBackground(NULL);
+	pDesktopUp->BackColor = ARGB16(1, 30, 27, 24);
+	pDesktopDown->BackColor = ARGB16(1, 24, 27, 30);
+	pDesktopDown->Click.Add(*this, &ShlReader::OnClick);
+	pDesktopDown->KeyPress.Add(*this, &ShlReader::OnKeyPress);
+	RequestFocusCascade(*pDesktopDown);
+	Reader.Refresh();
+	UpdateToScreen();
 	return 0;
 }
 
@@ -610,8 +631,10 @@ LRES
 ShlReader::OnDeactivated(const MMSG& msg)
 {
 	ShlClearBothScreen();
-	YDelete(hWndUp);
-	YDelete(hWndDown);
+	pDesktopDown->Click.Remove(*this, &ShlReader::OnClick);
+	pDesktopDown->KeyPress.Remove(*this, &ShlReader::OnKeyPress);
+	pDesktopUp->SetBackground(hUp);
+	pDesktopDown->SetBackground(hDn);
 	return 0;
 }
 

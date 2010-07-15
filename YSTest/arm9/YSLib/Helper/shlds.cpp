@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-13 14:17:14;
-// UTime = 2010-7-13 3:09;
-// Version = 0.1344;
+// UTime = 2010-7-16 0:26;
+// Version = 0.1348;
 
 
 #include "shlds.h"

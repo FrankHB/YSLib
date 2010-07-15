@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YEvent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-4-23 23:08:23;
-// UTime = 2010-7-4 14:45;
-// Version = 0.3048;
+// UTime = 2010-7-14 12:32;
+// Version = 0.3060;
 
 
 #ifndef INCLUDED_YEVT_HPP_
@@ -114,7 +114,7 @@ public:
 			if(_ptrMemFun)
 				(dynamic_cast<_type&>(sender).*_ptrMemFun)(e);
 		}
-		catch(...)
+		catch(std::bad_cast&)
 		{}
 	}
 
@@ -155,13 +155,8 @@ public:
 	virtual void
 	operator()(_tSender& sender, const _tEventArgs& e) const
 	{
-		try
-		{
-			if(_ptrMemFun)
-				(_obj.*_ptrMemFun)(e);
-		}
-		catch(...)
-		{}
+		if(_ptrMemFun)
+			(_obj.*_ptrMemFun)(e);
 	}
 
 	virtual DefGetter(std::size_t, SizeOf, sizeof(*this))
@@ -440,12 +435,12 @@ public:
 };
 
 
-//标准事件回调函数对象类接口模板。
+//标准事件回调函数抽象类模板。
 template<class _responser, class _eventArgsType>
-struct GIEventCallback : public _eventArgsType
+struct GAHEventCallback : public _eventArgsType
 {
 	inline explicit
-	GIEventCallback(const _eventArgsType& e)
+	GAHEventCallback(const _eventArgsType& e)
 	: _eventArgsType(e)
 	{}
 	DeclIEntry(bool operator()(_responser&))

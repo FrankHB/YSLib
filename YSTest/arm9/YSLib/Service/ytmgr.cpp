@@ -1,14 +1,16 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 17:48:09;
-// UTime = 2010-7-13 19:01;
-// Version = 0.3566;
+// UTime = 2010-7-14 0:41;
+// Version = 0.3572;
 
 
 #include "ytmgr.h"
 #include "../Core/yapp.h"
 
 YSL_BEGIN
+
+using namespace Exceptions;
 
 YSL_BEGIN_NAMESPACE(Text)
 
@@ -19,7 +21,7 @@ try : mlen(tlen), text(new uchar_t[mlen]), len(0)
 }
 catch(...)
 {
-	theApp.Log.Error("MTextBuffer::MTextBuffer");
+	throw YLoggedError("Error occured @@ MTextBuffer::MTextBuffer();");
 }
 
 u32

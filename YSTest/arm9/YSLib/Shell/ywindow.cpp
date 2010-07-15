@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28;
-// UTime = 2010-7-13 1:54;
-// Version = 0.2897;
+// UTime = 2010-7-14 0:34;
+// Version = 0.2907;
 
 
 #include "ydesktop.h"
@@ -161,7 +161,7 @@ AWindow::OnGotFocus(IControl& c, const YEventArgs& e)
 	{
 		dynamic_cast<AWindow&>(c).Refresh();
 	}
-	catch(...)
+	catch(std::bad_cast&)
 	{}
 }
 void
@@ -172,7 +172,7 @@ AWindow::OnLostFocus(IControl& c, const YEventArgs& e)
 	{
 		dynamic_cast<AWindow&>(c).Refresh();
 	}
-	catch(...)
+	catch(std::bad_cast&)
 	{}*/
 }
 

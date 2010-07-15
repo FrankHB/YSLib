@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46;
-// UTime = 2010-7-8 13:06;
-// Version = 0.2544;
+// UTime = 2010-7-13 21:26;
+// Version = 0.2549;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -16,12 +16,6 @@
 YSL_BEGIN
 
 // GDI 基本数据类型和宏定义。
-
-#ifdef UNICODE
-typedef WCHAR BCHAR;
-#else
-typedef BYTE BCHAR;
-#endif
 
 YSL_BEGIN_NAMESPACE(Drawing)
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15;
-// UTime = 2010-7-4 1:47;
-// Version = 0.2388;
+// UTime = 2010-7-14 15:11;
+// Version = 0.2397;
 
 
 #ifndef INCLUDED_YSHELL_H_
@@ -31,7 +31,7 @@ private:
 
 public:
 	bool insRefresh; //即时刷新：自动加入屏幕刷新消息。
-	UINT scrType; //即时刷新屏幕选取设置。
+	u32 scrType; //即时刷新屏幕选取设置。
 
 	YShell();
 	virtual
@@ -157,10 +157,10 @@ wRemoveMsg：确定消息如何被处理。此参数可取下列值之一：
 #define PM_NOREMOVE 0x0
 #define PM_REMOVE 0x1
 IRES
-PeekMessage(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg = PM_NOREMOVE);
+PeekMessage(MMSG& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0, u32 wRemoveMsg = PM_NOREMOVE);
 
 IRES
-GetMessage(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax);
+GetMessage(MMSG& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0);
 
 ERRNO
 TranslateMessage(const MMSG& msg);

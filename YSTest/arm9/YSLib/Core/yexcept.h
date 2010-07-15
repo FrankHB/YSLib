@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YException by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-6-15 20:30:14;
-// UTime = 2010-6-24 0:38;
-// Version = 0.1049;
+// UTime = 2010-7-14 0:18;
+// Version = 0.1063;
 
 
 #ifndef INCLUDED_YEXCEPT_H_
@@ -31,16 +31,32 @@ public:
 class YGeneralError : public YException
 {
 private:
-	std::string what_;
+	std::string str;
 
 public:
-	YGeneralError(const std::string& what);
+	YGeneralError(const std::string&);
 	virtual
 	~YGeneralError() throw();
 
 	const char*
 	what() const throw();
 };
+
+
+class YLoggedError : public YGeneralError
+{
+private:
+	u8 level;
+
+public:
+	YLoggedError(const std::string&, u8 = 0);
+	YLoggedError(const YGeneralError&, u8 = 0);
+	virtual
+	~YLoggedError() throw();
+
+	DefGetter(u8, Level, level);
+};
+
 
 YSL_END_NAMESPACE(Exceptions)
 

@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:03:47;
-// UTime = 2010-7-9 9:55;
-// Version = 0.1965;
+// UTime = 2010-7-15 20:38;
+// Version = 0.1978;
 
 
 #ifndef _DSREADER_H_
@@ -89,17 +89,13 @@ public:
 	DefGetter(u16, Color, GetColorUp()) //取字符区域的字体颜色。
 	DefGetter(u8, LineGap, GetLnGapUp()) //取字符区域的行距。
 
-	DefSetterDef(u16, Left, left, 0) //设置字符区域距离屏幕左边距离。
-	//设置字符区域字体大小。
+	DefSetterDef(SDST, Left, left, 0) //设置字符区域距离屏幕左边距离。
 	void
-	SetFontSize(u16 = 16);
-
-	//设置字符颜色。
+	SetFontSize(YFont::SizeType = YFont::DefSize); //设置字符区域字体大小。
 	void
-	SetColor(u16 = ARGB16(1, 0, 0, 0));
-	//设置行距。
+	SetColor(PixelType = 0); //设置字符颜色。
 	void
-	SetLineGap(u8 = 0);
+	SetLineGap(u8 = 0); //设置行距。
 
 	//设置笔的行位置。
 	//void
@@ -108,15 +104,19 @@ public:
 	//复位输出状态。
 	void
 	Reset();
+
 	//绘制文本。
 	void
 	PrintText();
+
 	//刷新到屏幕。
 	void
 	Refresh();
+
 	//初始化载入文本。
 	void
 	TextInit();
+
 	//更新缓冲区文本。
 	void
 	Update();
@@ -124,15 +124,19 @@ public:
 	//上移一行。
 	bool
 	LineUp();
+
 	//下移一行。
 	bool
 	LineDown();
+
 	//上移一屏。
 	bool
 	ScreenUp();
+
 	//下移一屏。
 	bool
 	ScreenDown();
+
 	//自动滚屏。 pCheck ：输入检测函数指针。
 	void
 	Scroll(PFVOID pCheck);

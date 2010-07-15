@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-7-8 10:38;
-// Version = 0.1761;
+// UTime = 2010-7-14 12:32;
+// Version = 0.1776;
 
 
 #ifndef INCLUDED_YGUI_H_
@@ -35,10 +35,10 @@ void
 ReleaseFocusCascade(IVisualControl&);
 
 
-//标准 GUI 事件回调函数对象类接口。
-typedef GIEventCallback<Components::Controls::MVisualControl, YEventArgs> IEventCallback;
-typedef GIEventCallback<Components::Controls::MVisualControl, Runtime::YTouchEventArgs> ITouchCallback;
-typedef GIEventCallback<Components::Controls::MVisualControl, Runtime::YKeyEventArgs> IKeyCallback;
+//标准 GUI 事件回调函数抽象类。
+typedef GAHEventCallback<Components::Controls::MVisualControl, YEventArgs> AHEventCallback;
+typedef GAHEventCallback<Components::Controls::MVisualControl, Runtime::YTouchEventArgs> AHTouchCallback;
+typedef GAHEventCallback<Components::Controls::MVisualControl, Runtime::YKeyEventArgs> AHKeyCallback;
 
 //标准 GUI 事件回调函数类型。
 typedef bool FTouchCallback(Components::Controls::MVisualControl&, const Runtime::YTouchEventArgs&);
@@ -47,13 +47,11 @@ typedef FTouchCallback* PFTouchCallback;
 typedef FKeyCallback* PFKeyCallback;
 
 //标准 GUI 事件回调函数对象类。
-struct HTouchCallback : public GHBase<PFTouchCallback>,
-	implements ITouchCallback
+struct HTouchCallback : public GHBase<PFTouchCallback>, public AHTouchCallback
 {
 	inline explicit
 	HTouchCallback(Runtime::YTouchEventArgs e, PFTouchCallback p)
-	: GHBase<PFTouchCallback>(p),
-	ITouchCallback(e)
+	: GHBase<PFTouchCallback>(p), AHTouchCallback(e)
 	{}
 
 	inline bool
@@ -63,13 +61,11 @@ struct HTouchCallback : public GHBase<PFTouchCallback>,
 	}
 };
 
-struct HKeyCallback : public GHBase<PFKeyCallback>,
-	implements IKeyCallback
+struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 {
 	inline explicit
 	HKeyCallback(Runtime::YKeyEventArgs e, PFKeyCallback p)
-	: GHBase<PFKeyCallback>(p),
-	IKeyCallback(e)
+	: GHBase<PFKeyCallback>(p), AHKeyCallback(e)
 	{}
 
 	inline bool

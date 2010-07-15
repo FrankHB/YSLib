@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-7-13 18:46;
-// Version = 0.2564;
+// UTime = 2010-7-16 0:23;
+// Version = 0.2591;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -23,6 +23,7 @@ using namespace Components::Widgets;
 using namespace Components::Controls;
 using namespace Components::Forms;
 using namespace Runtime;
+using namespace Exceptions;
 
 using namespace DS;
 using namespace DS::Components;
@@ -237,7 +238,7 @@ public:
 			frm.BackColor = ARGB16(1, rand(), rand(), rand());
 			frm.Refresh();
 		}
-		catch(...)
+		catch(std::bad_cast&)
 		{}
 	}
 
@@ -252,41 +253,29 @@ public:
 };
 
 
-class ShlReader : public ShlDS
+class ShlReader : public ShlGUI
 {
 public:
-	typedef ShlDS ParentType;
+	typedef ShlGUI ParentType;
 
 //	static YString path;
-	YTextFile tf;
-	MDualScreenReader dsr;
 
-	struct TFormUp : public YForm
-	{
-		TFormUp(HSHL hShl) : YForm(SRect::FullScreen, GetImage(8), pDesktopUp, hShl)
-		{
-			BackColor = ARGB16(1, 21, 24, 17);
-		}
-	};
-	struct TFormDn : public YForm
-	{
-		TFormDn(HSHL hShl) : YForm(SRect::FullScreen, GetImage(9), pDesktopDown, hShl)
-		{
-			BackColor = ARGB16(1, 27, 24, 21);
-			Click += &TFormDn::OnClick;
-		}
+	YTextFile TextFile;
+	MDualScreenReader Reader;
 
-		void
-		OnClick(const YTouchEventArgs&)
-		{
-			CallStored<ShlS>();
-		}
-	};
+	GHResource<YImage> hUp, hDn;
+	bool bgDirty;
 
 	ShlReader();
 
 	virtual void
 	UpdateToScreen();
+
+	void
+	OnClick(const YTouchEventArgs&);
+
+	void
+	OnKeyPress(const YKeyEventArgs&);
 
 	virtual LRES
 	ShlProc(const MMSG&);

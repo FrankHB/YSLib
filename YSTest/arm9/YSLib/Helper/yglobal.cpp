@@ -1,13 +1,12 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52;
-// UTime = 2010-7-13 19:59;
-// Version = 0.2229;
+// UTime = 2010-7-14 15:13;
+// Version = 0.2266;
 
 
 #include "yglobal.h"
 #include "../ysbuild.h"
-#include "../Core/yexcept.h"
 
 using namespace platform;
 
@@ -34,38 +33,41 @@ YApplication* const pApp(&theApp);
 const HSHL hShellMain(new YShellMain); //取主 Shell 句柄。
 
 
-static bool
-operator!=(const KeysInfo& a, const KeysInfo& b)
+namespace
 {
-	return a.up != b.up || a.down != b.down || a.held != b.held;
-}
-
-//图形用户界面输入等待函数。
-static void
-WaitForGUIInput()
-{
-	static KeysInfo Keys;
-	static CursorInfo TouchPos_Old, TouchPos;
-	static MMSG /*InputMessage_Old, */InputMessage;
-
-	if(Keys.held & Keys::Touch)
-		TouchPos_Old = TouchPos;
-	scanKeys();
-	WriteKeysInfo(Keys, TouchPos);
-
-	const SPoint pt(ToSPoint(Keys.held & Keys::Touch ? TouchPos : TouchPos_Old));
-
-	if(Keys != *reinterpret_cast<KeysInfo*>(InputMessage.GetWParam()) || pt != InputMessage.GetCursorLocation())
-		InsertMessage((InputMessage = MMSG(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Keys), 0, pt)));
-/*
-	InputMessage = MMSG(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Keys), 0, ToSPoint(tp));
-
-	if(InputMessage != InputMessage_Old)
+	bool
+	operator!=(const KeysInfo& a, const KeysInfo& b)
 	{
-		InsertMessage(InputMessage);
-		InputMessage_Old = InputMessage;
+		return a.up != b.up || a.down != b.down || a.held != b.held;
 	}
-*/
+
+	//图形用户界面输入等待函数。
+	void
+	WaitForGUIInput()
+	{
+		static KeysInfo Keys;
+		static CursorInfo TouchPos_Old, TouchPos;
+		static MMSG /*InputMessage_Old, */InputMessage;
+
+		if(Keys.held & Keys::Touch)
+			TouchPos_Old = TouchPos;
+		scanKeys();
+		WriteKeysInfo(Keys, TouchPos);
+
+		const SPoint pt(ToSPoint(Keys.held & Keys::Touch ? TouchPos : TouchPos_Old));
+
+		if(DefaultMQ.empty() || Keys != *reinterpret_cast<KeysInfo*>(InputMessage.GetWParam()) || pt != InputMessage.GetCursorLocation())
+			InsertMessage((InputMessage = MMSG(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Keys), 0, pt)));
+	/*
+		InputMessage = MMSG(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Keys), 0, ToSPoint(tp));
+
+		if(InputMessage != InputMessage_Old)
+		{
+			InsertMessage(InputMessage);
+			InputMessage_Old = InputMessage;
+		}
+	*/
+	}
 }
 
 
@@ -143,57 +145,60 @@ Terminate(int exitCode)
 }
 
 
-//初始化函数。
-static void
-YInit()
+namespace
 {
-	//启用设备。
-	powerOn(POWER_ALL);
-
-	//启用 LibNDS 默认异常处理。
-	defaultExceptionHandler();
-
-	//初始化文件系统。
-	//初始化 EFSLib 和 LibFAT 。
-	//当 .nds 文件大于32MB时， EFS 行为异常。
-#ifdef USE_EFS
-	if(!EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, NULL))
+	//初始化函数。
+	void
+	YInit()
 	{
-		//如果初始化 EFS 失败则初始化 FAT 。
-#endif
-		if(!fatInitDefault())
+		//启用设备。
+		powerOn(POWER_ALL);
+
+		//启用 LibNDS 默认异常处理。
+		defaultExceptionHandler();
+
+		//初始化文件系统。
+		//初始化 EFSLib 和 LibFAT 。
+		//当 .nds 文件大于32MB时， EFS 行为异常。
+	#ifdef USE_EFS
+		if(!EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, NULL))
 		{
-			libfatFail();
-			Terminate(1);
+			//如果初始化 EFS 失败则初始化 FAT 。
+	#endif
+			if(!fatInitDefault())
+			{
+				libfatFail();
+				Terminate(1);
+			}
+			IO::ChDir(DEF_DIRECTORY);
+	#ifdef USE_EFS
 		}
-		IO::ChDir(DEF_DIRECTORY);
-#ifdef USE_EFS
+	#endif
+
+		//初始化主控制台。
+		InitYSConsole();
+
+		//检查程序是否被正确安装。
+		checkInstall();
+
+		//初始化系统字体资源。
+		InitialSystemFontCache();
+
+		//初始化显示设备。
+		if((pScreenUp = new YScreen(SCRW, SCRH)))
+			pDesktopUp = new YDesktop(*pScreenUp);
+		else //初始化上屏失败。
+			throw Exceptions::YLoggedError("Initialization of up screen failed.");
+		if((pScreenDown = new YScreen(SCRW, SCRH)))
+			pDesktopDown = new YDesktop(*pScreenDown);
+		else //初始化下屏失败。
+			throw Exceptions::YLoggedError("Initialization of down screen failed.");
+
+		//注册全局应用程序对象。
+		theApp.ResetShellHandle();
+		//theApp.SetOutputPtr(pDesktopUp);
+		//hShellMain->SetShlProc(ShlProc);
 	}
-#endif
-
-	//初始化主控制台。
-	InitYSConsole();
-
-	//检查程序是否被正确安装。
-	checkInstall();
-
-	//初始化系统字体资源。
-	InitialSystemFontCache();
-
-	//初始化显示设备。
-	if((pScreenUp = new YScreen(SCRW, SCRH)))
-		pDesktopUp = new YDesktop(*pScreenUp);
-	else //初始化上屏失败。
-		throw Exceptions::YGeneralError("Initialization of up screen failed.");
-	if((pScreenDown = new YScreen(SCRW, SCRH)))
-		pDesktopDown = new YDesktop(*pScreenDown);
-	else //初始化下屏失败。
-		throw Exceptions::YGeneralError("Initialization of down screen failed.");
-
-	//注册全局应用程序对象。
-	theApp.ResetShellHandle();
-	//theApp.SetOutputPtr(pDesktopUp);
-	//hShellMain->SetShlProc(ShlProc);
 }
 
 YSL_END
@@ -211,7 +216,15 @@ main(int argc, char* argv[])
 
 		return YMain(argc, argv);
 	}
-	catch(YSL_ Exceptions::YGeneralError& e)
+	catch(std::bad_alloc&)
+	{
+		YSL_ theApp.Log.FatalError("Unhandled std::bad_alloc @@ int main(int, char*[]);");
+	}
+	catch(std::bad_cast&)
+	{
+		YSL_ theApp.Log.FatalError("Unhandled std::bad_cast @@ int main(int, char*[]);");
+	}
+	catch(YSL_ Exceptions::YLoggedError& e)
 	{
 		YSL_ theApp.Log.FatalError(e.what());
 	}

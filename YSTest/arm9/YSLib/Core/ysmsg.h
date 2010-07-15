@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-6 2:44:31;
-// UTime = 2010-7-3 4:54;
-// Version = 0.1731;
+// UTime = 2010-7-13 21:35;
+// Version = 0.1734;
 
 
 #ifndef INCLUDED_YSMSG_H_
@@ -22,7 +22,7 @@ using Drawing::SPoint;
 
 YSL_BEGIN_NAMESPACE(Shells)
 
-typedef UINT MSGID;
+typedef u32 MSGID;
 typedef u8 MSGPRIORITY;
 
 extern const time_t DEF_TIMEOUT;

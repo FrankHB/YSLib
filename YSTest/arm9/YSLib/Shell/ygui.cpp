@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-7-8 10:54;
-// Version = 0.2236;
+// UTime = 2010-7-14 13:56;
+// Version = 0.2278;
 
 
 #include "ygui.h"
@@ -65,74 +65,140 @@ ReleaseFocusCascade(IVisualControl& c)
 //记录输入保持状态。
 SVec TouchStatus::v_DragOffset(SVec::FullScreen);
 
-static MVisualControl* p_TouchDown;
-static MVisualControl* p_KeyDown;
-
-static MVisualControl*
-GetFocusedEnabledVisualControlPtr(IVisualControl* pFocused)
+namespace
 {
-	MVisualControl* p(dynamic_cast<MVisualControl*>(pFocused));
+	MVisualControl* p_TouchDown;
+	MVisualControl* p_KeyDown;
 
-	return p && p->IsEnabled() ? p : NULL;
-}
-inline static MVisualControl*
-GetFocusedEnabledVisualControlPtr(YDesktop& d)
-{
-	return GetFocusedEnabledVisualControlPtr(GetFocusedObject(d));
-}
-
-static bool
-ResponseTouchUpBase(MVisualControl& c, const YTouchEventArgs& e)
-{
-	try
+	MVisualControl*
+	GetFocusedEnabledVisualControlPtr(IVisualControl* pFocused)
 	{
-		IVisualControl& con(dynamic_cast<IVisualControl&>(c));
+		MVisualControl* p(dynamic_cast<MVisualControl*>(pFocused));
 
-		c.TouchUp(con, e);
-		if(p_TouchDown == &c)
+		return p && p->IsEnabled() ? p : NULL;
+	}
+
+	inline MVisualControl*
+	GetFocusedEnabledVisualControlPtr(YDesktop& d)
+	{
+		return GetFocusedEnabledVisualControlPtr(GetFocusedObject(d));
+	}
+
+	bool
+	ResponseTouchUpBase(MVisualControl& c, const YTouchEventArgs& e)
+	{
+		try
 		{
-			c.Click(con, e);
-			p_TouchDown = NULL;
+			IVisualControl& con(dynamic_cast<IVisualControl&>(c));
+
+			c.TouchUp(con, e);
+			if(p_TouchDown == &c)
+			{
+				c.Click(con, e);
+				p_TouchDown = NULL;
+			}
 		}
+		catch(std::bad_cast&)
+		{
+			return false;
+		}
+		return true;
 	}
-	catch(...)
+
+	bool
+	ResponseTouchDownBase(MVisualControl& c, const YTouchEventArgs& e)
 	{
-		return false;
-	}
-	return true;
-}
-static bool
-ResponseTouchDownBase(MVisualControl& c, const YTouchEventArgs& e)
-{
-	p_TouchDown = &c;
-	try
-	{
-		c.TouchDown(dynamic_cast<IVisualControl&>(c), e);
-	}
-	catch(...)
-	{
-		return false;
-	}
-	TouchStatus::SetDragOffset();
-	return true;
-}
-static bool
-ResponseTouchHeldBase(MVisualControl& c, const YTouchEventArgs& e)
-{
-	if(p_TouchDown != &c)
-	{
+		p_TouchDown = &c;
+		try
+		{
+			c.TouchDown(dynamic_cast<IVisualControl&>(c), e);
+		}
+		catch(std::bad_cast&)
+		{
+			return false;
+		}
 		TouchStatus::SetDragOffset();
-		return false;
+		return true;
 	}
-	try
+
+	bool
+	ResponseTouchHeldBase(MVisualControl& c, const YTouchEventArgs& e)
 	{
-		c.TouchHeld(dynamic_cast<IVisualControl&>(c), e);
+		if(p_TouchDown != &c)
+		{
+			TouchStatus::SetDragOffset();
+			return false;
+		}
+		try
+		{
+			c.TouchHeld(dynamic_cast<IVisualControl&>(c), e);
+		}
+		catch(std::bad_cast&)
+		{
+			return false;
+		}
+		return true;
 	}
-	catch(...)
+
+	bool
+	ResponseKeyUpBase(MVisualControl& c, const YKeyEventArgs& e)
 	{
-		return false;
+		try
+		{
+			IVisualControl& con(dynamic_cast<IVisualControl&>(c));
+
+			c.KeyUp(con, e);
+			if(p_KeyDown == &c)
+			{
+				c.KeyPress(con, e);
+				p_KeyDown = NULL;
+			}
+		}
+		catch(std::bad_cast&)
+		{
+			return false;
+		}
+		return true;
 	}
-	return true;
+
+	bool
+	ResponseKeyDownBase(MVisualControl& c, const YKeyEventArgs& e)
+	{
+		p_KeyDown = &c;
+		try
+		{
+			c.KeyDown(dynamic_cast<IVisualControl&>(c), e);
+		}
+		catch(std::bad_cast&)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	bool
+	ResponseKeyHeldBase(MVisualControl& c, const YKeyEventArgs& e)
+	{
+		if(p_KeyDown != &c)
+			return false;
+		try
+		{
+			c.KeyHeld(dynamic_cast<IVisualControl&>(c), e);
+		}
+		catch(std::bad_cast&)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	bool
+	ResponseKeyBase(YDesktop& d, HKeyCallback f)
+	{
+		MVisualControl* const p(GetFocusedEnabledVisualControlPtr(d));
+
+		return f(p ? *p : d);
+	}
 }
 
 bool
@@ -153,6 +219,7 @@ ResponseTouchUp(IWidgetContainer& c, const YTouchEventArgs& e)
 
 	return pVC ? ResponseTouchUpBase(*pVC, e) : false;
 }
+
 bool
 ResponseTouchDown(IWidgetContainer& c, const YTouchEventArgs& e)
 {
@@ -174,6 +241,7 @@ ResponseTouchDown(IWidgetContainer& c, const YTouchEventArgs& e)
 
 	return pVC ? ResponseTouchDownBase(*pVC, e) : false;
 }
+
 bool
 ResponseTouchHeld(IWidgetContainer& c, const YTouchEventArgs& e)
 {
@@ -192,64 +260,6 @@ ResponseTouchHeld(IWidgetContainer& c, const YTouchEventArgs& e)
 	MVisualControl* pVC(p ? dynamic_cast<MVisualControl*>(p) : dynamic_cast<MVisualControl*>(pCon));
 
 	return pVC ? ResponseTouchHeldBase(*pVC, e) : false;
-}
-
-static bool
-ResponseKeyUpBase(MVisualControl& c, const YKeyEventArgs& e)
-{
-	try
-	{
-		IVisualControl& con(dynamic_cast<IVisualControl&>(c));
-
-		c.KeyUp(con, e);
-		if(p_KeyDown == &c)
-		{
-			c.KeyPress(con, e);
-			p_KeyDown = NULL;
-		}
-	}
-	catch(...)
-	{
-		return false;
-	}
-	return true;
-}
-static bool
-ResponseKeyDownBase(MVisualControl& c, const YKeyEventArgs& e)
-{
-	p_KeyDown = &c;
-	try
-	{
-		c.KeyDown(dynamic_cast<IVisualControl&>(c), e);
-	}
-	catch(...)
-	{
-		return false;
-	}
-	return true;
-}
-static bool
-ResponseKeyHeldBase(MVisualControl& c, const YKeyEventArgs& e)
-{
-	if(p_KeyDown != &c)
-		return false;
-	try
-	{
-		c.KeyHeld(dynamic_cast<IVisualControl&>(c), e);
-	}
-	catch(...)
-	{
-		return false;
-	}
-	return true;
-}
-
-static bool
-ResponseKeyBase(YDesktop& d, HKeyCallback f)
-{
-	MVisualControl* const p(GetFocusedEnabledVisualControlPtr(d));
-
-	return p ? f(*p) : false;
 }
 
 bool

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-24 15:29:11;
-// UTime = 2010-7-13 18:58;
-// Version = 0.2088;
+// UTime = 2010-7-13 21:38;
+// Version = 0.2090;
 
 
 #ifndef INCLUDED_YSDEF_H_
@@ -290,7 +290,7 @@ DeclareHandle(YApplication, HINSTANCE);
 typedef enum {RDeg0 = 0, RDeg90 = 1, RDeg180 = 2, RDeg270 = 3} ROT; //逆时针旋转角度指示输出朝向。
 
 //全局常量。
-extern LPCTSTR G_COMP_NAME, G_APP_NAME, G_APP_VER; //制作机构名称，程序名称和版本号。
+extern CSTR G_COMP_NAME, G_APP_NAME, G_APP_VER; //制作机构名称，程序名称和版本号。
 extern CPATH DEF_DIRECTORY;
 extern const SDST SCRW, SCRH;
 

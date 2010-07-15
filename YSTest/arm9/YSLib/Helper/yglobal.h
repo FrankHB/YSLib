@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper::YGlobal by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:14:57;
-// UTime = 2010-6-24 3:06;
-// Version = 0.1568;
+// UTime = 2010-7-13 21:34;
+// Version = 0.1572;
 
 
 #ifndef INCLUDED_YGLOBAL_H_
@@ -30,9 +30,9 @@ const char* const DEF_PATH_SEPERATOR = "/"; //文件路径分隔字符串。
 extern YDesktop *pDesktopUp, *pDesktopDown;
 
 //类型定义。
-typedef CHAR PATHSTR[MAX_PATH_LENGTH];
-//typedef CHAR PATHSTR[MAXPATHLEN];
-typedef CHAR FILENAMESTR[MAX_FILENAME_LENGTH];
+typedef char PATHSTR[MAX_PATH_LENGTH];
+//typedef char PATHSTR[MAXPATHLEN];
+typedef char FILENAMESTR[MAX_FILENAME_LENGTH];
 
 struct Def
 {

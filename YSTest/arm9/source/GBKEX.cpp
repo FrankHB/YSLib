@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-7-13;
-// Version = 0.2590; *Build 132 r31;
+// UTime = 2010-7-16;
+// Version = 0.2595; *Build 133 r37;
 
 
 #include "../YCLib/ydef.h"
@@ -23,11 +23,17 @@ Record prefix and abbrevations:
 & ::= and
 | ::= or
 ^ ::= used
+-> ::= changed to
 >> ::= moved to
 => ::= renamed to
 @ ::= identifier
 @@ ::= in / belongs to
-\c ::= classes
+\a ::= all
+\bg ::= background
+\c ::= const
+\cl ::= classes
+\cv ::= const & volatile
+\d ::= derived
 \e ::= exceptions
 \eh ::= exception handling
 \err ::= errors
@@ -48,8 +54,10 @@ Record prefix and abbrevations:
 \para.def ::= default parameters
 \ptr ::= pointers
 \rem ::= remarked
+\ref ::= references
 \s ::= static
 \sf ::= non-member static functions
+\simp ::= simplified
 \smf ::= static member functions
 \sm ::= static member
 \snm ::= static non-member
@@ -57,94 +65,98 @@ Record prefix and abbrevations:
 \tc ::= class templates
 \tf ::= function templates
 \tr ::= trivial
+\ty ::= types
+\v ::= volatile
+\val ::= values
 
 DONE:
 
+r1:
+/= \m @tf => @TextFile @@ @ShlReader;
+/= \m @dsr => @Reader @@ @ShlReader;
+
 r2:
-/ window deleting processing procedures
-	>> @OnDeactive ~ @ShlDS::~ShlDS();
-/ \tf @NewHWND
-	=> @NewWindow;
-/ \if @NowShellClearDefaultGUI
-	=> @NowShellDrop;
+- \simp: !@YCLib::Definition \mac;
+- \simp: !@YGDI \mac;
+/ \a @UINT ~ @u32;
+/ \a @CHAR => @char;
+/ \a @LPTSTR => @STR;
+/ \a @CSTR => @CSTR;
 
-r3-r15:
-* \impl btnReturn;
-	- windows background graphics;
-/ background image \ptr
-	>> <Shells.cpp> ~ <Shells.h>;
+r3:
+- \simp: windows @@ @ShlReader;
 
-r16:
-/ all \smf @Load <Shells.h>
-	>> non-member unnamed \ns @@ <Shells.cpp>;
+r4:
+- \simp: null \eh @@ <Shells.cpp>;
 
-r17:
-/ all \sf @@ <Shells.cpp>
-	>> non-member unnamed \ns;
-+ windows background @@ \init again;
+r5:
++ \eh @@ @std::bad_alloc @@ !@::main;
++ \cl @Exceptions::YLoggedError \d \cl @Exceptions::YGeneralError @@ !@YException;
+/ \a \cl @Exceptions::YLoggedError ~ @Exceptions::YGeneralError !@@ !@YException;
++ \eh @@ @std::bad_cast @@ !@::main;
+- \simp: \a null \eh @@ <Shells.cpp>;
+/ \a \eh @@ @std::bad_cast&|@std::bad_alloc& ~ @...;
 
-r18-r22:
-* image resources loading \f;
-	/ @SetBackground @@ \c @Froms::AWindow \para type ~ @YImage& => @HResource<YImage>;
-	+ @SetBackground @@ \c @Froms::AWindow \para.def = NULL;
+r6-r7:
++ \m GHResource<YImage> hUp, hDn @@ \cl @ShlReader to store desktop \bg images;
++ procedure @@ @ShlReader::OnActive & @ShlReader::OnDeactive to store & recover desktop \bg images;
 
-r23:
-+ \tf GetPointer for \tc @HResource;
-/ \tc @HResource
-	=> @GHResource;
-/ \mf @SetBackground(GHResource<YImage>) @@ \c @Froms::AWindow
-	>> \c @Forms::MWindow;
-+ \mf @Froms::MWindow::GetBackground();
-+ \mf @Froms::AWindow::SetBackground(GHResource<YImage>);
-+ \mf @Froms::MWindow::GetBackground();
-+ \mf @Froms::AWindow::GetBackground();
+r8-r10:
+/ reader colors -> black words & light \bg;
++ \impl key \eh @@ \cl @ShlReader;
+	+ \mf \eh @OnKeyPress(const YKeyEventArgs&) @@ \cl @ShlReader, linked to @OnActived & @OnDeactivated;
+/= @OnTouchHeld >> before @OnKeyUp @@ <shlds.h>;
 
-r24:
-- \mf @ShlDS::DrawWindows() @@ !@Helper::ShlDS;
-+ \mf @ShlGUI::OnDeactivated() @@ !@Helper::ShlDS;
-+ \mf @ShlDS::OnDeactivated() @@ !@Helper::ShlDS;
-- \mf @ShlLoad::OnDeactivated() @@ <Shell.cpp>;
-- \mf @ShlS::OnDeactivated() @@ <Shell.cpp>;
-/ \i \fun NowShellClearBothScreen() to ShlClearBothScreen(HSHL = NowShell());
+r11:
+/ \sf @ResponseKeyBase @@ !@YGUI restricted desktop focus;
+/= \a \sf @@ !@YGUI >> unnamed \ns;
 
-r25:
-/= ^ \mac @DefGetter \impl @ShlDS::UpWindowHandle @@ !@Helper::ShlDS;
-/= ^ \mac @DefGetter \impl @ShlDS::DownWindowHandle @@ !@Helper::ShlDS;
-/= \impl \f ShlA::OnDeactivated(const MMSG&) ^ ShlDS::OnDeactivated(const MMSG&);
+r12:
+/= \a @GIEventCallback => @GAHEventCallback;
+/= \a @IEventCallback => @AHEventCallback;
+/= \a @ITouchCallback => @AHTouchCallback;
+/= \a @IKeyCallback => @AHKeyCallback;
+
+r13-r25:
+*= testing invalid input @@ @ShlReader::ShlProc;
 
 r26:
-+ \impl \c @ShlReader @@ <Shells.cpp>;
-	- \sm @pdsr & \sm @ptf @@ \c @ShlReader;
-	+ \snm @tf & \snm @dsr @@ \c @ShlReader;
+/= \simp: @IRES @GetMessage(MMSG&, HSHL, MSGID, MSGID);
+* @WaitForGUIInput @@ !@YGlobal;
+/= @IRES @PeekMessage(MMSG&, HSHL, MSGID, MSGID, MSGID = PM_NOREMOVE)
+	-> @IRES @PeekMessage(MMSG&, HSHL = NULL, MSGID = 0, MSGID = 0, u32 = PM_NOREMOVE);
+/= @IRES @GetMessage(MMSG&, HSHL, MSGID, MSGID)
+	-> @IRES @GetMessage(MMSG&, HSHL = NULL, MSGID = 0, MSGID = 0);
+/= \simp: @::main(int, char*[]);
+/= \a \sf @@ !@YGlobal >> unnamed \ns;
 
-r27-r28:
-/ \impl \c @ShlReader @@ <Shells.cpp>;
-	/ text drawing procedure
-		>> @ShlReader::UpdateToScreen();
-	+ reader refreshing procedure @@ @ShlReader::UpdateToScreen();
+r27:
++ \m bool @bgDirty @@ \cl @ShlReader;
 
-r29:
-/ \rem reader refreshing procedure @@ @ShlReader::UpdateToScreen();
+r28-r29:
++ desktop @SetRefresh() @@ @ShlReader::UpdateToScreen();
 
 r30:
-/ \m @mq >> @DefaultMQ @@ \c @YApplication ~ \gs;
-/ \m @mq >> @DefaultMQ_Backup @@ \c @YApplication ~ \gs;
-/ \m @mq => @DefaultMQ >> \gs ~ @@ \c @YApplication;
-/ \m @log => @Log @@ \c @YApplication;
+/= @SetFontSize(u16 = YFont::DefSize) -> @SetFontSize(u16 = YFont::DefSize) @@MDualScreenReader;
+/= @SetColor(u16 = ARGB16(1, 0, 0, 0)) -> SetColor(PixelType = 0) @@MDualScreenReader;
 
-r31:
-+ @YInit \eh;
-+ @::main \eh;
-+ \mf @YLog::operator<<(const char*);
-+ \mf @YLog::Error(const char*);
-+ \mf @YLog::FatalError(const char*);
+r31-r35:
+/= \simp \a \i \mf getters (^ \mac (@DefGetter & @DefBoolGetter)) @@ \cl !@YFont;
+/ +\i \smf @GetDefault() @@ \cl @YFont;
+/= \simp \a \i \mf getters (^ \mac (@DefStaticGetter & @DefGetterMember)) @@ \cl !@YFont;
+/= \simp \a \i \mf setters (^ \mac @DefSetter) @@ \cl !@YFont;
+
+r36:
+/= DefSetterDef(SDST, Left, left, 0) -> DefSetterDef(SDST, Left, left, 0) @@ \cl @MDualScreenReader;
+/ \mf SetFontSize(u16 = YFont::DefSize) -> SetFontSize(YFont::SizeType = YFont::DefSize);
+/= \mf \impl SetFontSize(u8 s) -> SetFontSize(YFont::SizeType s) @@ \cl @YFontCache;
 
 DOING:
-r31:
+r36:
 / ...
 
 NEXT:
-+ \impl \c ShlReader;
++ \impl \cl ShlReader;
 + fully \impl btnTest;
 
 TODO:

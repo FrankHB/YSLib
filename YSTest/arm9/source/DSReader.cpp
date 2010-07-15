@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:04:05;
-// UTime = 2010-7-9 9:15;
-// Version = 0.2470;
+// UTime = 2010-7-14 20:36;
+// Version = 0.2478;
 
 
 #include "DSReader.h"
@@ -33,8 +33,9 @@ nLoad(Load(tf)), offUp(-!tf.IsValid()), offDn(0)
 {
 	trUp.SetSize(w, h_up);
 	trDn.SetSize(w, h_down);
-	SetFontSize(YFont::DefSize);
-	SetColor(0);
+	SetFontSize();
+	SetColor();
+	SetLineGap();
 	Reset();
 	if(offUp < 0)
 		trUp.PutString(L"文件打开失败！\n");
@@ -57,7 +58,7 @@ MDualScreenReader::IsTextBottom()
 }
 
 void
-MDualScreenReader::SetColor(u16 c)
+MDualScreenReader::SetColor(PixelType c)
 {
 	trUp.SetColor(c);
 	trDn.SetColor(c);
@@ -69,7 +70,7 @@ MDualScreenReader::SetLineGap(u8 g)
 	trDn.SetLineGap(g);
 }
 void
-MDualScreenReader::SetFontSize(u16 fz)
+MDualScreenReader::SetFontSize(YFont::SizeType fz)
 {
 	pfc->SetFontSize(fz);	
 	lnHeight = pfc->GetHeight();

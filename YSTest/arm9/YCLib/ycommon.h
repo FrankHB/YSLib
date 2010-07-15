@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28;
-// UTime = 2010-7-8 15:08;
-// Version = 0.1816;
+// UTime = 2010-7-13 21:34;
+// Version = 0.1820;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -140,7 +140,7 @@ namespace platform_type
 namespace platform
 {
 	//定长路径字符串类型。
-	typedef CHAR PATHSTR[MAXPATHLEN];
+	typedef char PATHSTR[MAXPATHLEN];
 
 	//判断指定目录是否存在。
 	bool
