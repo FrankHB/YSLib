@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28;
-// UTime = 2010-7-13 21:34;
-// Version = 0.1820;
+// UTime = 2010-7-16 22:42;
+// Version = 0.1852;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -15,31 +15,46 @@
 #ifndef UNICODE
 #define UNICODE
 #endif
+
 #include "ydef.h"
+#include <cstdlib>
 
 //平台无关部分。
 
 namespace stdex
 {
-	//判断指针所指字符串长度，若为 NULL 则返回 -1 。
-	size_t
-	strnlen(const char*);
+	//判断字符指针是否非空。
+	inline bool
+	isvalidstr(char* d)
+	{
+		return d != NULL;
+	}
+	inline bool
+	isvalidstr(const char* s)
+	{
+		return s != NULL;
+	}
+	inline bool
+	isvalidstr(char* d, const char* s)
+	{
+		return isvalidstr(s) && isvalidstr(d);
+	}
 
-	//判断指针所指字符串长度，若为 NULL 则返回 0 。
-	size_t
-	strnlen2(const char*);
+	//当字符指针非空时返回 strlen 计算的串长，否则返回 0 。
+	char*
+	strdup_n(const char*);
 
-	//从头开始逐字节比较字符串，返回相同字符数（传入参数含空指针时返回 -1）。
-	size_t
-	strncmpx(const char*, const char*);
+	//当字符指针非空时用 strdup 复制字符串并返回复制的字符串，否则返回空指针。
+	char*
+	strdup_n(const char*);
 
-	//串接给定的两个字符串，结果复制至指定位置（对传入参数进行非空检查，目标参数为空时返回 NULL）。
+	//串接给定的两个字符串，结果复制至指定位置（对传入参数进行非空检查），返回目标参数。
 	char*
 	strcpycat(char*, const char*, const char*);
 
-	//串接给定的两个字符串，结果复制至用 malloc 新分配的空间（对传入参数进行非空检查，目标参数为空时返回 NULL）。
+	//串接给定的两个字符串，结果复制至用指定分配函数（默认为 std::malloc）新分配的空间（对传入参数进行非空检查），返回目标参数。
 	char*
-	strcatdup(const char*, const char*);
+	strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
 
 
 	//通过 C 标准函数库操作判断给定路径的文件是否存在。

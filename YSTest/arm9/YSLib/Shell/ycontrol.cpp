@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-7-14 11:35;
-// Version = 0.2911;
+// UTime = 2010-7-16 18:50;
+// Version = 0.2913;
 
 
 #include "ycontrol.h"
@@ -118,7 +118,7 @@ transPixelEx(BitmapPtr dst)
 static void
 RectDrawFocusDefault(const SPoint& l, const SSize& s, HWND hWnd)
 {
-	YAssert(hWnd, "err: hWnd cannot be a null pointer.");
+	YAssert(hWnd, "err: @hWnd is null.");
 
 	DrawWindowBounds(hWnd, ARGB16(1, 1, 1, 31));
 
@@ -135,7 +135,7 @@ RectDrawFocusDefault(const SPoint& l, const SSize& s, HWND hWnd)
 static void
 RectDrawFocusX(const SPoint& l, const SSize& s, HWND hWnd)
 {
-	YAssert(hWnd, "err: hWnd cannot be a null pointer.");
+	YAssert(hWnd, "err: @hWnd is null.");
 
 	BitmapPtr const dst(hWnd->GetBufferPtr());
 	const SDST dw(hWnd->GetWidth()),
@@ -452,7 +452,7 @@ YListBox::DrawForeground()
 YListBox::ListType::size_type
 YListBox::CheckPoint(SPOS x, SPOS y)
 {
-	YAssert(prTextRegion,
+	YAssert(prTextRegion != NULL,
 		"In function \"Components::Controls::YListBox::ListType::size_type\n"
 		"Components::Controls::YListBox::CheckClick(const SPoint& pt)\":\n"
 		"The text region pointer is null.");

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-7-14 12:32;
-// Version = 0.1776;
+// UTime = 2010-7-16 18:50;
+// Version = 0.1780;
 
 
 #ifndef INCLUDED_YGUI_H_
@@ -115,9 +115,9 @@ YSL_BEGIN_NAMESPACE(Drawing)
 inline YGIC
 GetGraphicInterfaceContext(HWND hWnd)
 {
-	YAssert(hWnd,
+	YAssert(hWnd != NULL,
 		"In function \"inline YGIC\nDrawing::GetGraphicInterfaceContext(HWND hWnd)\": \n"
-		"Handle 'hWnd' cannot be null.");
+		"The input handle is null.");
 
 	return static_cast<YGIC>(*hWnd);
 }

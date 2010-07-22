@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-7-3 5:09;
-// Version = 0.5935;
+// UTime = 2010-7-20 15:50;
+// Version = 0.5945;
 
 
 #ifndef INCLUDED_YTEXT_H_
@@ -33,7 +33,7 @@ protected:
 public:
 	YTextState();
 	explicit
-	YTextState(YFont&);
+	YTextState(MFont&);
 	explicit
 	YTextState(YFontCache*);
 
@@ -57,7 +57,7 @@ public:
 	u16
 	GetLnNNow() const; //取笔所在的当前行数。
 
-//	YTypeface*
+//	MTypeface*
 //	SetFont(const char*, CPATH); //设置字体。
 	void
 	SetMargins(u64); //设置边距（64 位无符号整数形式）。
@@ -155,7 +155,7 @@ private:
 public:
 	YTextRegion();
 	explicit
-	YTextRegion(YFont&);
+	YTextRegion(MFont&);
 	explicit
 	YTextRegion(YFontCache*);
 	~YTextRegion();

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46;
-// UTime = 2010-7-13 21:26;
-// Version = 0.2549;
+// UTime = 2010-7-20 16:41;
+// Version = 0.2580;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -324,7 +324,7 @@ DrawLineSeg(YGIC& g, const SPoint& p1, const SPoint& p2, PixelType c)
 	return DrawLineSeg(g, p1.X, p1.Y, p2.X, p2.Y, c);
 }
 
-//绘制空心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2)。
+//绘制空心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2) 。
 bool
 DrawRect(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
 inline bool
@@ -352,32 +352,27 @@ public:
 	typedef YObject ParentType;
 
 protected:
-	YFont Font; //字体。
+	MFont Font; //字体。
 	PixelType Color; //笔颜色。
 
 public:
 	explicit
-	YPenStyle(const YFontFamily& = *GetDefaultFontFamilyPtr(), YFont::SizeType = YFont::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
+	YPenStyle(const MFontFamily& = *GetDefaultFontFamilyPtr(), MFont::SizeType = MFont::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
 
-	YFont&
+	MFont&
 	GetFont();
-	const YFont&
-	GetFont() const;
-	const YFontFamily&
-	GetFontFamily() const;
-	YFont::SizeType
-	GetFontSize() const;
-	PixelType
-	GetColor() const;
+	DefGetter(const MFont&, Font, Font)
+	DefGetterMember(const MFontFamily&, FontFamily, Font)
+	DefGetter(MFont::SizeType, FontSize, Font.GetSize())
+	DefGetter(PixelType, Color, Color)
 
 	void
-	SetFont(const YFont&); //设置字体。
+	SetFont(const MFont&); //设置字体。
 	void
-	SetFontStyle(YFontStyle); //设置字体样式。
+	SetFontStyle(EFontStyle); //设置字体样式。
 	void
-	SetFontSize(YFont::SizeType); //设置字体大小。
-	void
-	SetColor(PixelType c = RGB15(31, 31, 31)); //设置颜色。
+	SetFontSize(MFont::SizeType); //设置字体大小。
+	DefSetterDef(PixelType, Color, Color, ~0) //设置颜色。
 
 	void
 	UpdateFont(); //更新字体缓存中当前处理的字体。
@@ -386,58 +381,33 @@ public:
 };
 
 inline
-YPenStyle::YPenStyle(const YFontFamily& family, YFont::SizeType size, PixelType c)
-:Font(family, size), Color(c)
+YPenStyle::YPenStyle(const MFontFamily& family, MFont::SizeType size, PixelType c)
+: Font(family, size), Color(c)
 {}
 
-inline YFont&
+inline MFont&
 YPenStyle::GetFont()
 {
 	return Font;
 }
-inline const YFont&
-YPenStyle::GetFont() const
-{
-	return Font;
-}
-inline const YFontFamily&
-YPenStyle::GetFontFamily() const
-{
-	return Font.GetFontFamily();
-}
-inline YFont::SizeType
-YPenStyle::GetFontSize() const
-{
-	return Font.GetSize();
-}
-inline PixelType
-YPenStyle::GetColor() const
-{
-	return Color;
-}
 
 inline void
-YPenStyle::SetFont(const YFont& f)
+YPenStyle::SetFont(const MFont& f)
 {
 	Font = f;
 	UpdateFont();
 }
 inline void
-YPenStyle::SetFontStyle(YFontStyle s)
+YPenStyle::SetFontStyle(EFontStyle s)
 {
 	Font.SetStyle(s);
 	UpdateFont();
 }
 inline void
-YPenStyle::SetFontSize(YFont::SizeType s)
+YPenStyle::SetFontSize(MFont::SizeType s)
 {
 	Font.SetSize(s);
 	UpdateFont();
-}
-inline void
-YPenStyle::SetColor(PixelType c)
-{
-	Color = c;
 }
 
 inline void

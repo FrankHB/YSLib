@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:42;
-// UTime = 2010-7-4 5:17;
-// Version = 0.1690;
+// UTime = 2010-7-16 22:42;
+// Version = 0.1730;
 
 
 #include <errno.h>
@@ -11,51 +11,33 @@
 namespace stdex
 {
 	size_t
-	strnlen(const char* s)
+	strlen_n(const char* s)
 	{
-		return s ? strlen(s) : -1;
+		return isvalidstr(s) ? strlen(s) : 0;
 	}
 
-	size_t
-	strnlen2(const char* s)
+	char*
+	strdup_n(const char* s)
 	{
-		return s ? strlen(s) : 0;
-	}
-
-	size_t
-	strcmpx(const char* s1, const char* s2)
-	{
-		if(s1 && s2)
-		{
-			size_t n = 0;
-
-			while(*s1 == *s2)
-			{
-				++n;
-				++s1;
-				++s2;
-			}
-			return n;
-		}
-		return -1;
+		return isvalidstr(s) ? strdup(s) : NULL;
 	}
 
 	char*
 	strcpycat(char* d, const char* s1, const char* s2)
 	{
-		if(!d)
+		if(!isvalidstr(d))
 			return NULL;
-		if(s1)
+		if(isvalidstr(s1))
 			strcpy(d, s1);
-		if(s2)
+		if(isvalidstr(s2))
 			strcat(d, s2);
 		return d;
 	}
 
 	char*
-	strcatdup(const char* s1, const char* s2)
+	strcatdup(const char* s1, const char* s2, void*(*fun)(size_t))
 	{
-		char* d = static_cast<char*>(malloc((strlen(s1) + strlen(s2) + 1) * sizeof(char)));
+		char* d(static_cast<char*>(fun((strlen(s1) + strlen(s2) + 1) * sizeof(char))));
 
 		return strcpycat(d, s1, s2);
 	}

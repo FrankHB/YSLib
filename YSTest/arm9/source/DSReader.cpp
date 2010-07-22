@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:04:05;
-// UTime = 2010-7-14 20:36;
-// Version = 0.2478;
+// UTime = 2010-7-20 15:49;
+// Version = 0.2488;
 
 
 #include "DSReader.h"
@@ -70,7 +70,7 @@ MDualScreenReader::SetLineGap(u8 g)
 	trDn.SetLineGap(g);
 }
 void
-MDualScreenReader::SetFontSize(YFont::SizeType fz)
+MDualScreenReader::SetFontSize(MFont::SizeType fz)
 {
 	pfc->SetFontSize(fz);	
 	lnHeight = pfc->GetHeight();

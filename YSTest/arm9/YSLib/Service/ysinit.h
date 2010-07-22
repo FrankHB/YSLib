@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YShellInitialization by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-10-21 23:15:08;
-// UTime = 2010-5-19 21:40;
-// Version = 0.1441;
+// UTime = 2010-7-21 8:14;
+// Version = 0.1476;
 
 
 #ifndef INCLUDED_YSINIT_H_
@@ -23,21 +23,25 @@ InitYSConsole();
 extern CPATH DEF_FONT_PATH;
 extern CPATH DEF_FONT_DIRECTORY;
 
-//以默认字型路径创建默认字体缓存并加载默认字型目录中的字体文件。
+//初始化系统字体缓存：以默认字型路径创建默认字体缓存并加载默认字型目录中的字体文件。
 void
-InitialSystemFontCache();
+InitializeSystemFontCache();
+
+//注销系统字体缓存。
+void
+DestroySystemFontCache();
 
 void
-epicFail();
+EpicFail();
 
 void
-libfatFail();
+LibfatFail();
 
 void
-checkInstall();
+CheckInstall();
 
 void
-checkSystemFontCache();
+CheckSystemFontCache();
 
 YSL_END
 

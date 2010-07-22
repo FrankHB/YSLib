@@ -542,7 +542,7 @@ _testStr(const YString& s)
 static void
 RectDarken(BitmapPtr src, const SPoint& l, const SSize& s, HWND hWnd)
 {
-	YAssert(hWnd, "err: hWnd cannot be a null pointer.");
+	YAssert(hWnd, "err: hWnd is null.");
 
 	transRect()(hWnd->GetBufferPtr(), hWnd->GetSize(), SRect(l, s), s, transPixelEx, transSeq());
 //	transRect()(hWnd->GetBufferPtr(), hWnd->GetSize(), SRect(l, s), transPixelShiftRight(1), transSeq());
@@ -710,7 +710,7 @@ protected:
 
 public:
 	template<class _CharT>
-		YLabeledWidget(HWND hWnd, const _CharT*, YWidget*, const YFont::SizeType = YFont::DefSize);
+		YLabeledWidget(HWND hWnd, const _CharT*, YWidget*, const MFont::SizeType = MFont::DefSize);
 	virtual ~LabeledWidget();
 
 	virtual void SetBounds(s16 x, s16 y, u16 w, u16 h);

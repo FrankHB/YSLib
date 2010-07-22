@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YShellInitialization by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-10-21 23:15:08;
-// UTime = 2010-6-23 3:42;
-// Version = 0.1558;
+// UTime = 2010-7-21 13:57;
+// Version = 0.1612;
 
 
 #include "ysinit.h"
@@ -22,48 +22,62 @@ InitYSConsole()
 		YConsoleInit(true, RGB15(31, 31, 31), RGB15(0, 31, 0));
 }
 
-
-static inline void
-fatalError()
-{
-	terminate();
-}
-
 void
-epicFail()
+EpicFail()
 {
 	YDebugSetStatus();
 	//videoSetMode(MODE_0_2D);
 	YDebugBegin();
 }
 
-static void
-printFailInfo(const char* t, const char* s)
+namespace
 {
-	epicFail();
+	inline void
+	fatalError()
+	{
+		terminate();
+	}
 
-	const char* line =
-		"--------------------------------";
+	void
+	printFailInfo(const char* t, const char* s)
+	{
+		EpicFail();
 
-	iprintf("%s%s%s\n%s\n%s", line, t, line, s, line);
-}
+		const char* line =
+			"--------------------------------";
 
+		iprintf("%s%s%s\n%s\n%s", line, t, line, s, line);
+	}
 
-static void
-defFontFail()
-{
-	const char* title =
-		"    Fontface Caching Failure    ";
-	const char* warning =
-		" Please make sure the fonts are "
-		" stored in correct directory.   ";
+	void
+	defFontFail()
+	{
+		const char* title =
+			"    Fontface Caching Failure    ";
+		const char* warning =
+			" Please make sure the fonts are "
+			" stored in correct directory.   ";
 
-	printFailInfo(title, warning);
-	fatalError();
+		printFailInfo(title, warning);
+		fatalError();
+	}
+
+	void
+	installFail()
+	{
+		const char* title =
+			"      Invalid Installation      ";
+		const char* warning =
+			" Please make sure the data is   "
+			" stored in correct directory.   ";
+
+		printFailInfo(title, warning);
+		fatalError();
+	}
 }
 
 void
-libfatFail()
+LibfatFail()
 {
 	const char* title =
 		"         LibFAT Failure         ";
@@ -91,45 +105,38 @@ libfatFail()
 	fatalError();
 }
 
-static void
-installFail()
-{
-	const char* title =
-		"      Invalid Installation      ";
-	const char* warning =
-		" Please make sure the data is   "
-		" stored in correct directory.   ";
-
-	printFailInfo(title, warning);
-	fatalError();
-}
 
 void
-InitialSystemFontCache()
+InitializeSystemFontCache()
 {
 	iputs("Loading font files...");
 	CreateFontCache(pDefaultFontCache, DEF_FONT_PATH);
-	if(pDefaultFontCache && DEF_FONT_DIRECTORY)
+	if(pDefaultFontCache != NULL && DEF_FONT_DIRECTORY != NULL)
 		pDefaultFontCache->LoadFontFileDirectory(DEF_FONT_DIRECTORY);
-	checkSystemFontCache();
+	CheckSystemFontCache();
 	iprintf("%u font file(s) are loaded\nsuccessfully.\n", pDefaultFontCache->GetFilesN());
+	iputs("Setting default font face...");
 
-	const Drawing::YTypeface* pf = pDefaultFontCache->GetDefaultTypefacePtr();
+	const Drawing::MTypeface* const pf(pDefaultFontCache->GetDefaultTypefacePtr());
 
-	if(pf)
-	{
-		Drawing::YFont::InitialDefault();
-		iprintf("Default font face \n\"%s\":\"%s\"\nis set successfully.\n", pf->GetFamilyName(), pf->GetStyleName());
-	}
+	if(pf && Drawing::MFont::InitializeDefault())
+		iprintf("\"%s\":\"%s\",\nsuccessfully.\n", pf->GetFamilyName(), pf->GetStyleName());
 	else
 	{
-		iputs("Set default font face failed.");
+		iputs("failed.");
 		defFontFail();
 	}
 }
 
 void
-checkInstall()
+DestroySystemFontCache()
+{
+	Drawing::DestroyFontCache(pDefaultFontCache);
+	Drawing::MFont::ReleaseDefault();
+}
+
+void
+CheckInstall()
 {
 	iputs("Checking installation...");
 	if(!(fexists(DEF_FONT_PATH) || direxists(DEF_FONT_DIRECTORY)))
@@ -138,9 +145,9 @@ checkInstall()
 }
 
 void
-checkSystemFontCache()
+CheckSystemFontCache()
 {
-	if(!(pDefaultFontCache && pDefaultFontCache->GetTypesN()))
+	if(!(pDefaultFontCache != NULL && pDefaultFontCache->GetTypesN() > 0))
 		defFontFail();
 }
 

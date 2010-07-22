@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YCoreUtilities by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-23 6:10:59;
-// UTime = 2010-6-24 1:23;
-// Version = 0.1916;
+// UTime = 2010-7-21 14:21;
+// Version = 0.1936;
 
 
 #ifndef INCLUDED_YCUTIL_H_
@@ -15,6 +15,15 @@
 #include <functional>
 
 YSL_BEGIN
+
+//判断引用相等关系。
+template<typename _type>
+inline bool
+ReferenceEquals(const _type& a, const _type& b)
+{
+	return &a == &b;
+}
+
 
 //取指定类型的零元素。
 inline int

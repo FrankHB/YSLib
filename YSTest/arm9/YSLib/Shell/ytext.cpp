@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-7-9 10:15;
-// Version = 0.5848;
+// UTime = 2010-7-20 15:50;
+// Version = 0.5858;
 
 
 #include "ytext.h"
@@ -22,7 +22,7 @@ YTextState::YTextState()
 :YPenStyle(*GetDefaultFontFamilyPtr()), Margin(), pCache(&GetFontFamily().Cache),
 penX(0), penY(0), lnGap(0)
 {}
-YTextState::YTextState(YFont& font)
+YTextState::YTextState(MFont& font)
 :YPenStyle(font.GetFontFamily()), Margin(), pCache(&GetFontFamily().Cache),
 penX(0), penY(0), lnGap(0)
 {}
@@ -58,7 +58,7 @@ YTextState::GetLnNNow() const
 	return (penY - Margin.Top) / GetLnHeightEx();
 }
 
-/*YTypeface*
+/*MTypeface*
 YTextState::SetFont(const char* name, CPATH filename)
 {
 	return pFont = pCache->SetFont(name, filename);
@@ -161,17 +161,17 @@ YTextRegion::PrintChar(u32 c)
 
 YTextRegion::YTextRegion() : YTextState(), MBitmapBufferEx()
 {
-	SetFontSize(YFont::DefSize);
+	SetFontSize(MFont::DefSize);
 	SetPen();
 }
-YTextRegion::YTextRegion(YFont& font) : YTextState(font), MBitmapBufferEx()
+YTextRegion::YTextRegion(MFont& font) : YTextState(font), MBitmapBufferEx()
 {
-	SetFontSize(YFont::DefSize);
+	SetFontSize(MFont::DefSize);
 	SetPen();
 }
 YTextRegion::YTextRegion(YFontCache* fc) : YTextState(fc), MBitmapBufferEx()
 {
-	SetFontSize(YFont::DefSize);
+	SetFontSize(MFont::DefSize);
 	SetPen();
 }
 YTextRegion::~YTextRegion()

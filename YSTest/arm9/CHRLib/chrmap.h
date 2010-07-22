@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CharacterMapping by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-17 17:52:35;
-// UTime = 2010-6-14 18:57;
-// Version = 0.1528;
+// UTime = 2010-6-16 22:41;
+// Version = 0.1529;
 
 
 #ifndef INCLUDED_CHRMAP_H_
@@ -116,7 +116,7 @@ codemap_17(ubyte_t&, const char*);
 uchar_t
 codemap_17(ubyte_t&, std::FILE*);
 
-// UTF-8 / Unicode。
+// UTF-8 / Unicode 。
 uchar_t
 codemap_106(ubyte_t&, const char*);
 uchar_t

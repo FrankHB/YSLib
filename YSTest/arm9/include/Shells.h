@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-7-16 0:23;
-// Version = 0.2591;
+// UTime = 2010-7-21 23:18;
+// Version = 0.2593;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -186,7 +186,7 @@ public:
 		YLabel lblC;
 		YLabel btnReturn;
 
-		TFormC(HSHL hShl) : YForm(SRect(5, 60, 98, 120), /*GetImage(7)*/NULL, pDesktopDown, hShl),
+		TFormC(HSHL hShl) : YForm(SRect(5, 60, 180, 120), /*GetImage(7)*/NULL, pDesktopDown, hShl),
 			lblC(HWND(this), L"测试y", SRect(13, 45, 184, size)),
 			btnReturn(HWND(this), L"返回", SRect(13, 82, 60, size))
 		{

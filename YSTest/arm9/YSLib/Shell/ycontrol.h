@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:24;
-// UTime = 2010-7-13 1:54;
-// Version = 0.3321;
+// UTime = 2010-7-20 15:50;
+// Version = 0.3331;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -243,7 +243,7 @@ protected:
 	GHResource<Drawing::YTextRegion> prTextRegion; //文本区域指针。
 
 public:
-	Drawing::YFont& Font; //字体。
+	Drawing::MFont& Font; //字体。
 	Drawing::MPadding& Margin; //文本和容器的间距。
 	bool AutoSize; //启用根据字号自动调整大小。
 	bool AutoEllipsis; //启用对超出标签宽度的文本调整大小。
@@ -256,7 +256,7 @@ public:
 	//用字符串在窗口中以给定字号初始化标签。
 	template<class _charType>
 	YLabel(HWND, const _charType*, const SRect& = SRect::FullScreen,
-		const Drawing::YFont& = Drawing::YFont::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::YTextRegion> = NULL);
+		const Drawing::MFont& = Drawing::MFont::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::YTextRegion> = NULL);
 	virtual
 	~YLabel();
 
@@ -268,7 +268,7 @@ public:
 
 template<class _charType>
 YLabel::YLabel(HWND hWnd, const _charType* l, const SRect& r,
-			   const Drawing::YFont& f, IWidgetContainer* pCon, GHResource<Drawing::YTextRegion> prTr_)
+			   const Drawing::MFont& f, IWidgetContainer* pCon, GHResource<Drawing::YTextRegion> prTr_)
 : YVisualControl(hWnd, r, pCon),
 prTextRegion(pCon ? prTr_ : GetGlobalResource<Drawing::YTextRegion>()), Font(prTextRegion->GetFont()),
 Margin(prTextRegion->Margin), AutoSize(true), AutoEllipsis(false), Text(l)
@@ -292,7 +292,7 @@ protected:
 	const bool bDisposeList;
 
 public:
-	Drawing::YFont& Font; //字体。
+	Drawing::MFont& Font; //字体。
 	Drawing::MPadding& Margin; //文本和容器的间距。
 	ListType& List; //列表。
 

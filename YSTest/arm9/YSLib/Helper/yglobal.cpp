@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52;
-// UTime = 2010-7-14 15:13;
-// Version = 0.2266;
+// UTime = 2010-7-21 8:14;
+// Version = 0.2280;
 
 
 #include "yglobal.h"
@@ -102,7 +102,7 @@ Def::InitScreenAll()
 void
 Def::InitScrUp()
 {
-	//初始化背景，并得到屏幕背景ID。
+	//初始化背景，并得到屏幕背景ID 。
 	pScreenUp->bg = bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
 
 	//获得屏幕背景所用的显存地址。
@@ -111,7 +111,7 @@ Def::InitScrUp()
 void
 Def::InitScrDown()
 {
-	//初始化背景，并得到屏幕背景ID。
+	//初始化背景，并得到屏幕背景ID 。
 	pScreenDown->bg = bgInitSub(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
 
 	//获得屏幕背景所用的显存地址。
@@ -122,7 +122,7 @@ void
 Def::Destroy(YObject&, const YEventArgs&)
 {
 	//释放默认字体资源。
-	DestroyDefFontCache();
+	DestroySystemFontCache();
 
 	//释放显示设备。
 	delete pDesktopUp;
@@ -167,7 +167,7 @@ namespace
 	#endif
 			if(!fatInitDefault())
 			{
-				libfatFail();
+				LibfatFail();
 				Terminate(1);
 			}
 			IO::ChDir(DEF_DIRECTORY);
@@ -179,10 +179,10 @@ namespace
 		InitYSConsole();
 
 		//检查程序是否被正确安装。
-		checkInstall();
+		CheckInstall();
 
 		//初始化系统字体资源。
-		InitialSystemFontCache();
+		InitializeSystemFontCache();
 
 		//初始化显示设备。
 		if((pScreenUp = new YScreen(SCRW, SCRH)))

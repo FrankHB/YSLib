@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-7-14 15:48;
-// Version = 0.2926;
+// UTime = 2010-7-21 23:19;
+// Version = 0.2933;
 
 
 #include <Shells.h>
@@ -182,7 +182,7 @@ namespace
 	static void
 	InputCounterAnother(const SPoint& pt)
 	{
-		nCountInput++;
+	//	nCountInput++;
 		//	sprintf(strCount, "%d,%d,%d,%d,",sizeof(YForm),sizeof(YShell),sizeof(YApplication),sizeof(YFrameWindow));
 		struct mallinfo t(mallinfo());
 		/*	sprintf(strCount, "%d,%d,%d,%d,%d;",
@@ -613,6 +613,7 @@ ShlReader::ShlProc(const MMSG& msg)
 LRES
 ShlReader::OnActivated(const MMSG& msg)
 {
+	bgDirty = true;
 	hUp = pDesktopUp->GetBackground();
 	hDn = pDesktopDown->GetBackground();
 	pDesktopUp->SetBackground(NULL);

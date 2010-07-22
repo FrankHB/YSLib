@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YObject by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-7-10 6:44;
-// Version = 0.2114;
+// UTime = 2010-7-21 14:21;
+// Version = 0.2124;
 
 
 #ifndef INCLUDED_YOBJECT_H_
@@ -416,16 +416,7 @@ public:
 	virtual
 	~YObject()
 	{}
-
-	bool
-	ReferenceEquals(const YObject&, const YObject&);
 };
-
-inline bool
-ReferenceEquals(const YObject& a, const YObject& b)
-{
-	return &a == &b;
-}
 
 
 //基本可数对象类：所有可数的基本对象类的公共基类。

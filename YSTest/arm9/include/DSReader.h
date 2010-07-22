@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:03:47;
-// UTime = 2010-7-15 20:38;
-// Version = 0.1978;
+// UTime = 2010-7-20 15:49;
+// Version = 0.1988;
 
 
 #ifndef _DSREADER_H_
@@ -91,7 +91,7 @@ public:
 
 	DefSetterDef(SDST, Left, left, 0) //设置字符区域距离屏幕左边距离。
 	void
-	SetFontSize(YFont::SizeType = YFont::DefSize); //设置字符区域字体大小。
+	SetFontSize(MFont::SizeType = MFont::DefSize); //设置字符区域字体大小。
 	void
 	SetColor(PixelType = 0); //设置字符颜色。
 	void

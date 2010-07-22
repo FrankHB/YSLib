@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTimer by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-6-5 10:28:58;
-// UTime = 2010-7-9 9:18;
-// Version = 0.1440;
+// UTime = 2010-7-21 21:52;
+// Version = 0.1446;
 
 
 #include "ytimer.h"
@@ -60,8 +60,8 @@ YTimer::RefreshAll()
 	bool t(false);
 	Synchronize();
 	for(TMRs::iterator i(Timers.begin()); i != Timers.end(); ++i)
-		if((*i).second)
-			t |= ((*i).second)->RefreshRaw();
+		if(i->second != NULL)
+			t |= i->second->RefreshRaw();
 	return t;
 }
 
@@ -83,15 +83,15 @@ void
 YTimer::ResetAll()
 {
 	for(TMRs::iterator i(Timers.begin()); i != Timers.end(); ++i)
-		if((*i).second)
-			((*i).second)->Reset();
+		if(i->second != NULL)
+			i->second->Reset();
 }
 void
 YTimer::ResetYTimer()
 {
 	for(TMRs::iterator i(Timers.begin()); i != Timers.end(); ++i)
 	{
-		YTimer* const p((*i).second);
+		YTimer* const p(i->second);
 		if(p)
 		{
 			p->SetInterval(0);

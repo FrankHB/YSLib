@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13;
-// UTime = 2010-7-15 20:35;
-// Version = 0.6492;
+// UTime = 2010-7-22 10:53;
+// Version = 0.6705;
 
 
 #include "yfont.h"
@@ -18,15 +18,44 @@ using namespace platform;
 YSL_BEGIN
 
 using namespace IO;
+using namespace Exceptions;
 
 YSL_BEGIN_NAMESPACE(Drawing)
+
+const char*
+EFontStyle::GetName() const
+{
+	const char* ss(NULL);
+
+	switch(style)
+	{
+	case Bold:
+		ss = "Bold";
+		break;
+	case Italic:
+		ss = "Italic";
+		break;
+	case Underline:
+		ss = "Underline";
+		break;
+	case Strikeout:
+		ss = "Strikeout";
+		break;
+	case Regular:
+	default:
+		ss = "Regular";
+		break;
+	}
+	return ss;
+}
+
 
 //供 FreeType 使用的客户端字体查询函数，从由 face_id 提供的参数对应的字体文件中读取字体，写入 aface 。
 FT_Error
 simpleFaceRequester(FTC_FaceID face_id, FT_Library library,
 					FT_Pointer request_data, FT_Face* aface)
 {
-	YTypeface* fontFace(static_cast<YTypeface*>(face_id));
+	MTypeface* fontFace(static_cast<MTypeface*>(face_id));
 	FT_Face& face(*aface);
 	FT_Error error(FT_New_Face(library, fontFace->File.GetPath(), fontFace->faceIndex, aface));
 
@@ -63,93 +92,94 @@ simpleFaceRequester(FTC_FaceID face_id, FT_Library library,
 }
 
 
-YFontFamily::YFontFamily(YFontCache& cache, FT_String* name)
-: Cache(cache), family_name(name ? name : NULL), sTypes()
+MFontFamily::MFontFamily(YFontCache& cache, const FT_String* name)
+: Cache(cache), family_name(strdup_n(name)), sTypes()
 {
 }
-YFontFamily::~YFontFamily()
+MFontFamily::~MFontFamily()
 {
 	free(family_name);
 }
 
 bool
-YFontFamily::operator==(const YFontFamily& rhs) const
+MFontFamily::operator==(const MFontFamily& rhs) const
 {
 	return &Cache == &rhs.Cache && (family_name == rhs.family_name || (family_name && rhs.family_name && !strcmp(family_name, rhs.family_name)));
 }
 bool
-YFontFamily::operator<(const YFontFamily& rhs) const
+MFontFamily::operator<(const MFontFamily& rhs) const
 {
-	return &Cache < &rhs.Cache || (&Cache == &rhs.Cache && family_name && rhs.family_name && strcmp(family_name, rhs.family_name) < 0);
+	return &Cache < &rhs.Cache || (ReferenceEquals(Cache, rhs.Cache) && family_name && rhs.family_name && strcmp(family_name, rhs.family_name) < 0);
 }
 
-const YTypeface*
-YFontFamily::GetTypefacePtr(const FT_String* style_name) const
+const MTypeface*
+MFontFamily::GetTypefacePtr(const FT_String* style_name) const
 {
-	const FTypes::const_iterator i(sTypes.find(style_name));
+	const FTypesIndex::const_iterator i(mTypesIndex.find(style_name));
 
-	return (i == sTypes.end()) ? NULL : (*i).second;
+	return (i == mTypesIndex.end()) ? NULL : i->second;
 }
 
 void
-YFontFamily::operator+=(YTypeface& f)
+MFontFamily::operator+=(const MTypeface& f)
 {
-	sTypes.insert(std::make_pair(f.GetStyleName(), &f));
+	sTypes.insert(&f);
+	mTypesIndex.insert(std::make_pair(f.GetStyleName(), &f));
 }
 bool
-YFontFamily::operator-=(YTypeface& f)
+MFontFamily::operator-=(const MTypeface& f)
 {
-	return sTypes.erase(f.GetStyleName());
+	return mTypesIndex.erase(f.GetStyleName()) != 0 && sTypes.erase(&f) != 0;
 }
 
 
-/*const FT_Matrix YTypeface::MNormal = {0x10000, 0, 0, 0x10000},
-	YTypeface::MOblique = {0x10000, 0x5800, 0, 0x10000};*/
+/*const FT_Matrix MTypeface::MNormal = {0x10000, 0, 0, 0x10000},
+	MTypeface::MOblique = {0x10000, 0x5800, 0, 0x10000};*/
 
-YTypeface::YTypeface(YFontCache& cache, const YFontFile& file, u32 i/*, const bool bb, const bool bi, const bool bu*/)
+MTypeface::MTypeface(YFontCache& cache, const MFontFile& file, u32 i/*, const bool bb, const bool bi, const bool bu*/)
 : Cache(cache), File(file), pFontFamily(NULL), style_name(NULL), faceIndex(i), cmapIndex(-1)/*, bBold(bb), bOblique(bi), bUnderline(bu), matrix(bi ? MOblique : MNormal)*/
 {}
-YTypeface::~YTypeface()
+MTypeface::~MTypeface()
 {
 	free(style_name);
 }
 
 bool
-YTypeface::operator==(const YTypeface& rhs) const
+MTypeface::operator==(const MTypeface& rhs) const
 {
 	return &File == &rhs.File && faceIndex == rhs.faceIndex;
 }
 bool
-YTypeface::operator<(const YTypeface& rhs) const
+MTypeface::operator<(const MTypeface& rhs) const
 {
 	return &File < &rhs.File || (&File == &rhs.File && faceIndex < rhs.faceIndex);
 }
 
 
-YFontFile::YFontFile(const CPATH p, FT_Library& l)
-: path(strdup(p)), library(l), nFace(0)
+MFontFile::MFontFile(CPATH p, FT_Library& l)
+: path(strdup_n(p)), library(l), nFace(0)
 {
 	ReloadFaces();
 }
-YFontFile::YFontFile(const CPATH p, const char* n, FT_Library& l)
+MFontFile::MFontFile(CPATH p, const char* n, FT_Library& l)
 : path(strcatdup(p, n)), library(l)
 {
 	ReloadFaces();
 }
 
 bool
-YFontFile::operator==(const YFontFile& rhs) const
+MFontFile::operator==(const MFontFile& rhs) const
 {
 	return &library == &rhs.library && (!(path && rhs.path) || !strncmp(path, rhs.path, MaxFontPathLength));
 }
 bool
-YFontFile::operator<(const YFontFile& rhs) const
+MFontFile::operator<(const MFontFile& rhs) const
 {
 	return &library < &rhs.library || (&library == &rhs.library && path && rhs.path && strncmp(path, rhs.path, MaxFontPathLength) < 0);
 }
 
 void
-YFontFile::ReloadFaces()
+MFontFile::ReloadFaces()
 {
 	FT_Face face(NULL);
 
@@ -163,81 +193,69 @@ YFontFile::ReloadFaces()
 }
 
 
-const YTypeface*
+const MTypeface*
 GetDefaultTypefacePtr()
 {
 	return pDefaultFontCache->GetDefaultTypefacePtr();
 }
 
 
-const YFont::SizeType
-YFont::DefSize(16), //DEF_SHELL_FONTSIZE,
-YFont::MinSize(4), //DEF_SHELL_FONTSIZE_MIN,
-YFont::MaxSize(72); //DEF_SHELL_FONTSIZE_MAX;
-YFont* YFont::pDefFont(NULL);
+const MFont::SizeType
+MFont::DefSize(16), //DEF_SHELL_FONTSIZE,
+MFont::MinSize(4), //DEF_SHELL_FONTSIZE_MIN,
+MFont::MaxSize(72); //DEF_SHELL_FONTSIZE_MAX;
+MFont* MFont::pDefFont(NULL);
 
-YFont::YFont(const YFontFamily& family, const SizeType size, YFontStyle style)
+MFont::MFont(const MFontFamily& family, const SizeType size, EFontStyle style)
 : pFontFamily(&family), Style(style), Size(size)
 {
 }
 
-YFont::SizeType YFont::GetHeight() const
+MFont::SizeType MFont::GetHeight() const
 {
 	return GetCache().GetHeight();
 }
-const FT_String*
-YFont::GetStyleName() const
-{
-	const FT_String* ss(NULL);
-
-	switch(Style)
-	{
-	case Bold:
-		ss = "Bold";
-		break;
-	case Italic:
-		ss = "Italic";
-		break;
-	case Regular:
-	default:
-		ss = "Regular";
-		break;
-	}
-	return ss;
-}
 
 void
-YFont::SetSize(YFont::SizeType s)
+MFont::SetSize(MFont::SizeType s)
 {
 	if(s >= MinSize && s <= MaxSize)
 		Size = s;
 }
 
 void
-YFont::Update()
+MFont::Update()
 {
-	const YTypeface* t(pFontFamily->GetTypefacePtr(GetStyleName()));
+	const MTypeface* t(pFontFamily->GetTypefacePtr(GetStyleName()));
 
 	if(!(t || Style))
 		t = pFontFamily->GetTypefacePtr("Regular");
 	if(t)
-		GetCache().SetTypeface(*t);
+		GetCache().SetTypeface(t);
 	UpdateSize();
 }
 void
-YFont::UpdateSize()
+MFont::UpdateSize()
 {
 	GetCache().SetFontSize(Size);
 }
 
-void
-YFont::InitialDefault()
+bool
+MFont::InitializeDefault()
 {
-	if(!pDefFont)
-		pDefFont = new YFont();
+	try
+	{
+		if(pDefFont == NULL)
+			pDefFont = new MFont();
+	}
+	catch(...)
+	{
+		return false;
+	}
+	return pDefFont != NULL;
 }
 void
-YFont::ReleaseDefault()
+MFont::ReleaseDefault()
 {
 	if(!pDefaultFontCache)
 		delete pDefFont;
@@ -246,7 +264,7 @@ YFont::ReleaseDefault()
 
 
 YFontCache::YFontCache(CPATH defFontPath, u32 cacheSize)
-: pType(NULL), fontSize(0)
+: pFace(NULL), curSize(0)
 {
 	FT_Error error(FT_Init_FreeType(&library));
 
@@ -263,7 +281,7 @@ YFontCache::YFontCache(CPATH defFontPath, u32 cacheSize)
 		goto err;
 	LoadFontFile(defFontPath);
 	if(!sTypes.empty())
-		SetTypeface(**sTypes.begin());
+		SetTypeface(*sTypes.begin());
 err:
 	if(error)
 		yprintf("Font init failed: %08x\n", error);
@@ -276,27 +294,27 @@ YFontCache::~YFontCache()
 	ClearContainers();
 }
 
-const YFontFamily*
+const MFontFamily*
 YFontCache::GetFontFamilyPtr(const FT_String* family_name) const
 {
-	const FFaces::const_iterator i(sFaces.find(family_name));
+	const FFacesIndex::const_iterator i(mFacesIndex.find(family_name));
 
-	return (i == sFaces.end()) ? NULL : (*i).second;
+	return (i == mFacesIndex.end()) ? NULL : i->second;
 }
-/*YTypeface* YFontCache::GetTypefacePtr(u16 i) const
+/*MTypeface* YFontCache::GetTypefacePtr(u16 i) const
 {
 	return i < sTypes.size() ? sTypes[i] : NULL;
 }*/
-const YTypeface*
+const MTypeface*
 YFontCache::GetDefaultTypefacePtr() const
 {
 	//默认字体缓存的默认字型指针由初始化保证为非空指针。
 	return pDefaultFace ? pDefaultFace : pDefaultFontCache->GetDefaultTypefacePtr();
 }
-const YTypeface*
+const MTypeface*
 YFontCache::GetTypefacePtr(const FT_String* family_name, const FT_String* style_name) const
 {
-	const YFontFamily* f(GetFontFamilyPtr(family_name));
+	const MFontFamily* f(GetFontFamilyPtr(family_name));
 
 	if(!f)
 		return NULL;
@@ -309,7 +327,7 @@ YFontCache::GetGlyph(u32 c)
 		return NULL;
 
 	const u32 flags(FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL);
-	const u32 index(FTC_CMapCache_Lookup(cmapCache, scaler.face_id, pType->cmapIndex, c));
+	const u32 index(FTC_CMapCache_Lookup(cmapCache, scaler.face_id, pFace->cmapIndex, c));
 
 	FTC_SBitCache_LookupScaler(sbitCache, &scaler, flags, index, &sbit, NULL);
 	return sbit;
@@ -347,27 +365,26 @@ YFontCache::GetDescender() const
 	return GetInternalFaceInfo()->size->metrics.descender >> 6;
 }
 
-const YTypeface*
-YFontCache::SetTypeface(const YTypeface& p)
+void
+YFontCache::SetTypeface(const MTypeface* p)
 {
-	const YTypeface* const t(pType);
-	YTypeface* q(const_cast<YTypeface*>(&p));
-
-	if(sTypes.find(q) != sTypes.end())
-		scaler.face_id = (FTC_FaceID)(pType = q);
-	return t;
+	if(sTypes.find(p) != sTypes.end())
+	{
+		pFace = p;
+		scaler.face_id = reinterpret_cast<FTC_FaceID>(const_cast<MTypeface*>(p));
+	}
 }
 void
-YFontCache::SetFontSize(YFont::SizeType s)
+YFontCache::SetFontSize(MFont::SizeType s)
 {
 	if(s == 0)
-		s = YFont::DefSize;
-	if(s != fontSize)
+		s = MFont::DefSize;
+	if(s != curSize)
 	{
 		//ClearCache();
-		fontSize = s;
-		scaler.width  = (FT_UInt)fontSize;
-		scaler.height = (FT_UInt)fontSize;
+		curSize = s;
+		scaler.width  = static_cast<FT_UInt>(curSize);
+		scaler.height = static_cast<FT_UInt>(curSize);
 		scaler.pixel  = 72;
 		scaler.x_res  = 0;
 		scaler.y_res  = 0;
@@ -376,36 +393,37 @@ YFontCache::SetFontSize(YFont::SizeType s)
 }
 
 void
-YFontCache::operator+=(YFontFile& f)
+YFontCache::operator+=(const MFontFile& f)
 {
 	sFiles.insert(&f);
 }
 bool
-YFontCache::operator-=(YFontFile& f)
+YFontCache::operator-=(const MFontFile& f)
 {
 	return sFiles.erase(&f);
 }
 
 void
-YFontCache::operator+=(YTypeface& f)
+YFontCache::operator+=(const MTypeface& f)
 {
 	sTypes.insert(&f);
 }
 bool
-YFontCache::operator-=(YTypeface& f)
+YFontCache::operator-=(const MTypeface& f)
 {
 	return sTypes.erase(&f);
 }
 
 void
-YFontCache::operator+=(YFontFamily& f)
+YFontCache::operator+=(MFontFamily& f)
 {
-	sFaces.insert(std::make_pair(f.family_name, &f));
+	sFaces.insert(&f);
+	mFacesIndex.insert(std::make_pair(f.family_name, &f));
 }
 bool
-YFontCache::operator-=(YFontFamily& f)
+YFontCache::operator-=(MFontFamily& f)
 {
-	return sFaces.erase(f.family_name);
+	return mFacesIndex.erase(f.family_name) != 0 && sFaces.erase(&f) != 0;
 }
 
 void
@@ -415,61 +433,73 @@ YFontCache::LoadTypefaces()
 		LoadTypefaces(**i);
 }
 void
-YFontCache::LoadTypefaces(const YFontFile& f)
+YFontCache::LoadTypefaces(const MFontFile& f)
 {
 	const FT_Long t(f.GetFaceN());
-	YTypeface* q;
 
 	for(FT_Long i(0); i < t; ++i)
-		if((q = new YTypeface(*this, f, i)) && sTypes.find(q) == sTypes.end())
+	{
+		MTypeface* q;
+		MFontFamily* r(NULL);
+
+		try
 		{
-			scaler.face_id = static_cast<FTC_FaceID>(q);
-
-			//读取字型名称并构造名称映射。
-			FT_Face f(GetInternalFaceInfo());
-			if(f)
+			try
 			{
-				if(sFaces.find(f->family_name) == sFaces.end())
+				try
 				{
-					YFontFamily* r(new YFontFamily(*this, strdup(f->family_name)));
-
-					if((q->pFontFamily = r) && (q->style_name = strdup(f->style_name)))
+					q = new MTypeface(*this, f, i);
+					if(sTypes.find(q) == sTypes.end())
 					{
-						operator+=(*r);
+						scaler.face_id = static_cast<FTC_FaceID>(q);
+
+						//读取字型名称并构造名称映射。
+						FT_Face face(GetInternalFaceInfo());
+
+						if(face == NULL || face->family_name == NULL)
+							throw YLoggedError("Face loading failed.", 2);
+
+						FFacesIndex::iterator i(mFacesIndex.find(face->family_name));
+
+						q->pFontFamily = r = i == mFacesIndex.end() ? new MFontFamily(*this, face->family_name) : i->second;
 						*r += *q;
+						if(i == mFacesIndex.end())
+							*this += *r;
+						q->style_name = strdup_n(face->style_name);
+						*this += *q;
 					}
 					else
-					{
-						delete r;
-						goto test_face_err;
-					}
+						throw YLoggedError("Repeated face neglected.", 3);
 				}
-				else
+				catch(std::bad_alloc&)
 				{
-					q->style_name = strdup(f->style_name);
-					if(!q->style_name)
-						goto test_face_err;
-					*(q->pFontFamily = sFaces[f->family_name]) += *q;
+					throw YLoggedError("Allocation failed @@ YFontCache::LoadTypefaces(const MFontFile&);", 2);
 				}
-				operator+=(*q);
 			}
-			else
+			catch(...)
 			{
-test_face_err:
-				delete q;
 				scaler.face_id = NULL;
+				delete r;
+				delete q;
+				throw;
 			}
 		}
-		if(!(pDefaultFace || sTypes.empty()))
-			pDefaultFace = *sTypes.begin();
+		catch(YLoggedError& e)
+		{
+			if(e.GetLevel() < 2)
+				throw;
+		}
+	}
+	if(pDefaultFace == NULL && !sTypes.empty())
+		pDefaultFace = *sTypes.begin();
 }
 
 void
-YFontCache::LoadFontFileDirectory(const CPATH path, const CPATH ext)
+YFontCache::LoadFontFileDirectory(CPATH path, CPATH ext)
 {
 	DIR_ITER* dir(diropen(path));
 	u32 n(0);
-	YFontFile* p;
+	MFontFile* p;
 
 	if(dir)
 	{
@@ -477,31 +507,43 @@ YFontCache::LoadFontFileDirectory(const CPATH path, const CPATH ext)
 		struct stat st;
 
 		while(!dirnext(dir, name, &st))
-			if(*name != '.' && !(st.st_mode & S_IFDIR) && IsExtendName(ext, name))
+			if(name[0] != '.' && !(st.st_mode & S_IFDIR) && IsExtendName(ext, name))
 				++n;
 		//	sFiles.reserve(n);
 		dirreset(dir);
 		while(!dirnext(dir, name, &st))
-			if(*name != '.' && !(st.st_mode & S_IFDIR) && IsExtendName(ext, name) && (p = new YFontFile(path, name, library)))
-				operator+=(*p);
+			if(name[0] != '.' && !(st.st_mode & S_IFDIR) && IsExtendName(ext, name))
+			{
+				try
+				{
+					*this += *new MFontFile(path, name, library);
+				}
+				catch(std::bad_alloc&)
+				{
+					throw YLoggedError("Allocation failed @@ YFontCache::LoadFontFileDirectory(CPATH, CPATH);", 2);
+				}
+			}
 		dirclose(dir);
 	}
 	LoadTypefaces();
 	if(pDefaultFace)
-		SetTypeface(*pDefaultFace);
+		SetTypeface(pDefaultFace);
 }
 void
-YFontCache::LoadFontFile(const CPATH path)
+YFontCache::LoadFontFile(CPATH path)
 {
-	YFontFile* p;
+	if(GetFileName(path) != NULL && fexists(path))
+		try
+		{
+			MFontFile* p(new MFontFile(path, library));
 
-	if(GetFileName(path) && fexists(path) && (p = new YFontFile(path, library)))
-	{
-		operator+=(*p);
-		LoadTypefaces(*p);
-		if(pDefaultFace)
-			SetTypeface(*pDefaultFace);
-	}
+			*this += *p;
+			LoadTypefaces(*p);
+			if(pDefaultFace)
+				SetTypeface(pDefaultFace);
+		}
+		catch(...)
+		{}
 	else
 		LoadFontFileDirectory(path);
 }
@@ -521,9 +563,9 @@ YFontCache::ClearTypefaces()
 void
 YFontCache::ClearFontFamilies()
 {
-	for(FFaces::const_iterator i(sFaces.begin()); i != sFaces.end(); ++i)
-		delete (*i).second;
-	sFaces.clear();
+	for(FFacesIndex::const_iterator i(mFacesIndex.begin()); i != mFacesIndex.end(); ++i)
+		delete i->second;
+	mFacesIndex.clear();
 }
 void
 YFontCache::ClearContainers()

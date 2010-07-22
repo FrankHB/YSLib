@@ -1,11 +1,11 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-7-16 0:28;
-// Version = r6436;
+// UTime = 2010-7-21 23:19;
+// Version = r6539;
 
 
-// Definitions ： 方法和公共域定义与说明。
+// Definitions ：方法和公共域定义与说明。
 
 //平台定义文件（platform.h）定义示例。
 
@@ -182,7 +182,7 @@ unit CHRMap "chrmap.h"
 	uchar_t
 	codemap_17(ubyte_t&, FILE*);
 
-	// UTF-8 / Unicode。
+	// UTF-8 / Unicode 。
 	uchar_t
 	codemap_106(ubyte_t&, const char*);
 	uchar_t
@@ -404,29 +404,35 @@ unit YCommon "ycommon"
 	//最大路径长度。
 	export #define YC_MAX_PATH;
 
+	#ifndef UNICODE
+	#define UNICODE
+	#endif
+	
+	import header "ydef.h", <cstdlib>;
+
 	//平台无关部分。
 
 	namespace stdex
 	{
-		//判断指针所指字符串长度，若为 NULL 则返回 -1 。
-		size_t
-		strnlen(const char*);
+		//判断字符指针是否非 NULL 。
+		inline bool
+		isvalidstr(char*);
+		inline bool
+		isvalidstr(const char*);
+		inline bool
+		isvalidstr(char*, const char*);
 
-		//判断指针所指字符串长度，若为 NULL 则返回 0 。
-		size_t
-		strnlen2(const char*);
+		//当字符指针非空时用 strdup 复制字符串并返回复制的字符串，否则返回空指针。
+		char*
+		strdup_n(const char*);
 
-		//从头开始逐字节比较字符串，返回相同字符数（传入参数含空指针时返回 -1）。
-		size_t
-		strncmpx(const char*, const char*);
-
-		//串接给定的两个字符串，结果复制至指定位置（对传入参数进行非空检查，目标参数为空时返回 NULL）。
+		//串接给定的两个字符串，结果复制至指定位置（对传入参数进行非空检查），返回目标参数。
 		char*
 		strcpycat(char*, const char*, const char*);
 
-		//串接给定的两个字符串，结果复制至用 malloc 新分配的空间（对传入参数进行非空检查，目标参数为空时返回 NULL）。
+		//串接给定的两个字符串，结果复制至用指定分配函数（默认为 std::malloc）新分配的空间（对传入参数进行非空检查），返回目标参数。
 		char*
-		strcatdup(const char*, const char*);
+		strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
 
 
 		//通过 C 标准函数库操作判断给定路径的文件是否存在。
@@ -988,7 +994,7 @@ header YRefrence "yref.hpp"
 }//unit YRefrence;
 
 
-unit YFont "yfont"
+unit MFont "yfont"
 {
 	import header Core::YFunc, unit YCoreUtilities, header <set>, <map>, unit Core::YFileSystem/*, Helper::YGlobal*/;
 
@@ -999,62 +1005,82 @@ unit YFont "yfont"
 	export const u8 DEFAULT_FONT_SIZE;
 
 	//前向声明。
-	class YFont;
-	class YFontFamily;
-	class YTypeface;
-	class YFontFile;
+	class MFont;
+	class MFontFamily;
+	class MTypeface;
+	class MFontFile;
 	class YFontCache;
 
 
 	//字体样式。
-	enum YFontStyle
+	struct EFontStyle
 	{
-		Regular = 0, //常规字体。
-		Bold = 1, //粗体。
-		Italic = 2, //斜体。
-		Underline = 4, //下划线。
-		Strikeout = 8, //删除线。
-	};
+	public:
+		typedef enum Styles
+		{
+			Regular = 0, //常规字体。
+			Bold = 1, //粗体。
+			Italic = 2, //斜体。
+			Underline = 4, //下划线。
+			Strikeout = 8, //删除线。
+		} Styles;
+
+	private:
+		Styles style;
+
+	public:
+		inline
+		EFontStyle(Styles = Regular);
+
+		DefConverter(const Styles&, style);
+		inline
+		operator Styles&();
+
+		const char*
+		GetName() const; //取样式名称。
+	}; //struct EFontStyle;
 
 
 	//字型家族 (Typeface Family) 标识。
-	class YFontFamily// : implements GIEquatable<YFontFamily>, implements GILess<YFontFamily>, implements GIContainer<YTypeface>
+	class MFontFamily// : implements GIEquatable<MFontFamily>, implements GILess<MFontFamily>, implements GIContainer<MTypeface>
 	{
-		friend class YTypeface;
+		friend class MTypeface;
 		friend class YFontCache;
 
 	public:
-		typedef std::map<const FT_String*, YTypeface*, deref_str_comp<FT_String> > FTypes; //字型组类型。
+		typedef std::set<const MTypeface*> FTypes; //字型组类型。
+		typedef std::map<const FT_String*, const MTypeface*, deref_str_comp<FT_String> > FTypesIndex; //字型组索引类型。
 
 		YFontCache& Cache;
 
 	private:
 		FT_String* family_name;
-		FTypes sTypes;
+		FTypes sTypes; //字型组类型。
+		FTypesIndex mTypesIndex; //字型组索引类型。
 
 	public:
-		YFontFamily(YFontCache&, FT_String*);
-		~YFontFamily();
+		MFontFamily(YFontCache&, const FT_String*);
+		~MFontFamily();
 
 		bool
-		operator==(const YFontFamily&) const;
+		operator==(const MFontFamily&) const;
 		bool
-		operator<(const YFontFamily&) const;
+		operator<(const MFontFamily&) const;
 
 		DefGetter(const FT_String*, FamilyName, family_name)
-		const YTypeface*
+		const MTypeface*
 		GetTypefacePtr(const FT_String*) const; //取指定名称字型指针。
 
 	private:
 		void
-		operator+=(YTypeface&); //向字型组添加字型对象。
+		operator+=(const MTypeface&); //向字型组和字型组索引添加字型对象。
 		bool
-		operator-=(YTypeface&); //从字型组中移除指定字型对象。
+		operator-=(const MTypeface&); //从字型组和字型组索引中移除指定字型对象。
 	};
 
 
 	//字型标识。
-	class YTypeface// : implements GIEquatable<YTypeface>, implements GILess<YTypeface>
+	class MTypeface// : implements GIEquatable<MTypeface>, implements GILess<MTypeface>
 	{
 		friend class YFontCache;
 		friend FT_Error simpleFaceRequester(FTC_FaceID, FT_Library, FT_Pointer, FT_Face*);
@@ -1062,10 +1088,10 @@ unit YFont "yfont"
 	//	static const FT_Matrix MItalic = {0x10000, 0x5800, 0, 0x1000};
 	public:
 		YFontCache& Cache;
-		const YFontFile& File;
+		const MFontFile& File;
 
 	private:
-		YFontFamily* pFontFamily;
+		MFontFamily* pFontFamily;
 	//	FT_Face face;
 	//	bool bBold, bOblique, bUnderline;
 		FT_String* style_name;
@@ -1080,22 +1106,22 @@ unit YFont "yfont"
 		std::vector<u8> fixSizes;*/
 
 	public:
-		YTypeface(YFontCache&, const YFontFile&, u32 = 0);
-		~YTypeface();
+		MTypeface(YFontCache&, const MFontFile&, u32 = 0);
+		~MTypeface();
 
 		bool
-		operator==(const YTypeface&) const;
+		operator==(const MTypeface&) const;
 		bool
-		operator<(const YTypeface&) const;
+		operator<(const MTypeface&) const;
 
-		DefGetter(const YFontFamily*, FontFamilyPtr, pFontFamily)
+		DefGetter(const MFontFamily*, FontFamilyPtr, pFontFamily)
 		DefGetter(const FT_String*, FamilyName, pFontFamily ? pFontFamily->GetFamilyName() : NULL)
 		DefGetter(const FT_String*, StyleName, style_name)
-	};//struct YTypeface;
+	};//struct MTypeface;
 
 
 	//字体文件。
-	class YFontFile// : implements GIEquatable<YFontFile>, implements GILess<YFontFile>
+	class MFontFile// : implements GIEquatable<MFontFile>, implements GILess<MFontFile>
 	{
 	public:
 		static const u8 MaxFontPathLength = YC_MAX_PATH; //最大字体文件路径长度。
@@ -1106,27 +1132,27 @@ unit YFont "yfont"
 		FT_Long nFace;
 
 	public:
-		YFontFile(const CPATH, FT_Library&);
-		YFontFile(const CPATH, const char*, FT_Library&);
+		MFontFile(CPATH, FT_Library&);
+		MFontFile(CPATH, const char*, FT_Library&);
 
-		bool operator==(const YFontFile& rhs) const;
+		bool operator==(const MFontFile& rhs) const;
 
 		DefGetter(const char*, Path, path)
 		DefGetter(s32, FaceN, nFace)
 
 		void ReloadFaces(); //读取字体文件，载入全部字体。
-	};//class YFontFile;
+	};//class MFontFile;
 
 
 	//取默认字型。
-	const YTypeface* GetDefaultTypefacePtr();
+	const MTypeface* GetDefaultTypefacePtr();
 
 	//取默认字型家族。
-	inline const YFontFamily* GetDefaultFontFamilyPtr();
+	inline const MFontFamily* GetDefaultFontFamilyPtr();
 
 
 	//字体：字模，包含字型和大小。
-	class YFont
+	class MFont
 	{
 	public:
 		typedef u8 SizeType;
@@ -1137,35 +1163,35 @@ unit YFont "yfont"
 			MaxSize = 72; //DEF_SHELL_FONTSIZE_MAX;
 
 	private:
-		static YFont* pDefFont; //默认 Shell 字体。
+		static MFont* pDefFont; //默认 Shell 字体。
 
-		const YFontFamily* pFontFamily;
-		YFontStyle Style;
+		const MFontFamily* pFontFamily;
+		EFontStyle Style;
 		SizeType Size;
 
 	public:
 		explicit
-		YFont(const YFontFamily& = *GetDefaultFontFamilyPtr(), const SizeType = DefSize, YFontStyle = Regular);
+		MFont(const MFontFamily& = *GetDefaultFontFamilyPtr(), SizeType = DefSize, EFontStyle = Regular);
 
 		DefBoolGetter(Bold, Style | Bold)
 		DefBoolGetter(Italic, Style | Italic)
 		DefBoolGetter(Underline, Style | Underline)
 		DefBoolGetter(Strikeout, Style | Strikeout)
 
-		DefStaticGetter(const YFont&, Default, *pDefFont)
-		DefGetter(const YFontFamily&, FontFamily, *pFontFamily)
-		DefGetter(YFontStyle, Style, Style)
+		DefStaticGetter(const MFont&, Default, *pDefFont)
+		DefGetter(const MFontFamily&, FontFamily, *pFontFamily)
+		DefGetter(EFontStyle, Style, Style)
 		DefGetter(SizeType, Size, Size)
 		DefGetter(YFontCache&, Cache, GetFontFamily().Cache)
 		DefGetterMember(const FT_String*, FamilyName, GetFontFamily())
-	//	DefGetterMember(const FT_String*, StyleName, GetFontFamily())
+		DefGetter(const FT_String*, StyleName, Style.GetName())
 		const FT_String*
 		GetStyleName() const;
 		SizeType GetHeight() const;
 
-	/*	YFontFamily&
-		SetFontFamily(const YFontFamily&);*/
-		DefSetter(YFontStyle, Style, Style)
+	/*	MFontFamily&
+		SetFontFamily(const MFontFamily&);*/
+		DefSetter(EFontStyle, Style, Style)
 		void
 		SetSize(SizeType);
 
@@ -1174,17 +1200,18 @@ unit YFont "yfont"
 		void
 		UpdateSize(); //更新字体缓存中当前处理的字体大小。
 
-		static void
-		InitialDefault(); //初始化默认字体。
+		static bool
+		InitializeDefault(); //初始化默认字体。
 		static void
 		ReleaseDefault(); //释放默认字体。
-	};//class YFont;
+	};//class MFont;
 
 
 	//字体缓存。
-	class YFontCache : implements GIContainer<YFontFile>, implements GIContainer<YTypeface>, implements GIContainer<YFontFamily>
+	class YFontCache : public YObject,
+		implements GIContainer<const MFontFile>, implements GIContainer<const MTypeface>, implements GIContainer<MFontFamily>
 	{
-		friend class YTypeface;
+		friend class MTypeface;
 
 	private:
 		FT_Library library; //库实例。
@@ -1195,18 +1222,20 @@ unit YFont "yfont"
 		FTC_SBit sbit;
 
 	public:
-		typedef std::set<YFontFile*, deref_comp<YFontFile> > FFiles; //字体文件组类型。
-		typedef std::set<YTypeface*, deref_comp<YTypeface> > FTypes; //字型组类型。
-		typedef std::map<const FT_String*, YFontFamily*, deref_str_comp<FT_String> > FFaces; //字型家族组类型。
+		typedef std::set<const MFontFile*> FFiles; //字体文件组类型。
+		typedef std::set<const MTypeface*> FTypes; //字型组类型。
+		typedef std::set<const MTypeface*> FFaces; //字型家族组类型。
+		typedef std::map<const FT_String*, MFontFamily*, deref_str_comp<FT_String> > FFacesIndex; //字型家族组索引类型。
 
 	private:
 		FFiles sFiles; //字体文件组。
 		FTypes sTypes; //字型组。
-		FFaces sFaces; //字型家族组。
+		FFaces sFaces; //字型家族组索引。
+		FFacesIndex mFacesIndex; //字型家族组索引。
 
-		const YTypeface* pDefaultFace; //默认字型指针。
-		const YTypeface* pType; //当前处理的字型指针。
-		u8 fontSize; //当前处理的字体大小。
+		const MTypeface* pDefaultFace; //默认字型指针。
+		const MTypeface* pFace; //当前处理的字型指针。
+		MFont::SizeType curSize; //当前处理的字体大小。
 
 	public:
 		explicit
@@ -1215,27 +1244,28 @@ unit YFont "yfont"
 		~YFontCache();
 
 	private:
-		FT_Face GetInternalFaceInfo() const; //取当前处理的内部字型结构体指针。
+		FT_Face
+		GetInternalFaceInfo() const; //取当前处理的内部字型结构体指针。
 
 	public:
 		DefGetter(const FFiles&, Files, sFiles) //取字体文件组。
 		DefGetter(const FTypes&, Types, sTypes) //取字型组。
-		DefGetter(const FFaces&, Faces, sFaces) //取字型家族组。
+		DefGetter(const FFacesIndex&, Faces, mFacesIndex) //取字型家族组。
 		DefGetter(FFiles::size_type, FilesN, sFiles.size()) //取字体文件组储存的文件数。
 		DefGetter(FTypes::size_type, TypesN, sTypes.size()) //取字型组储存的字型数。
-		DefGetter(FFaces::size_type, FacesN, sFaces.size()) //取字型家族组储存的字型家族数。
-	//	YFont*
+		DefGetter(FFacesIndex::size_type, FacesN, mFacesIndex.size()) //取字型家族组储存的字型家族数。
+	//	MFont*
 	//	GetFontPtr() const;
-		const YFontFamily*
+		const MFontFamily*
 		GetFontFamilyPtr(const FT_String*) const; //取指定名称字型家族指针。
-		const YTypeface*
+		const MTypeface*
 		GetDefaultTypefacePtr() const; //取默认字型指针。
-		DefGetter(const YTypeface*, TypefacePtr, pType) //取当前处理的字型指针。
-	//	YTypeface*
+		DefGetter(const MTypeface*, TypefacePtr, pFace) //取当前处理的字型指针。
+	//	MTypeface*
 	//	GetTypefacePtr(u16) const; //取字型组储存的指定索引的字型指针。
-		YTypeface*
+		MTypeface*
 		GetTypefacePtr(const FT_String*, const FT_String*); //取指定名称字型指针。
-		DefGetter(u8, FontSize, fontSize) //取当前处理的字体大小。
+		DefGetter(u8, FontSize, curSize) //取当前处理的字体大小。
 		FTC_SBit
 		GetGlyph(u32); //取当前字型和大小渲染的指定字符的字形。
 		s8
@@ -1247,40 +1277,40 @@ unit YFont "yfont"
 		s8
 		GetDescender() const; //取降部。
 
-		const YTypeface*
-		SetTypeface(const YTypeface*); //设置字型组中指定索引的字型为当前字型。
 		void
-		SetFontSize(YFont::SizeType); //设置当前处理的字体大小。
+		SetTypeface(const MTypeface*); //设置字型组中指定的字型为当前字型（忽略不属于字型组的字型）。
+		void
+		SetFontSize(MFont::SizeType); //设置当前处理的字体大小。
 
 	public:
 		//SetFont;
 
 	private:
 		void
-		operator+=(YFontFile&); //向字体文件组添加字体文件对象。
+		operator+=(const MFontFile&); //向字体文件组添加字体文件对象。
 		bool
-		operator-=(YFontFile&); //从字体文件组中移除指定字体文件对象。
+		operator-=(const MFontFile&); //从字体文件组中移除指定字体文件对象。
 
 		void
-		operator+=(YTypeface&); //向字型组添加字型对象。
+		operator+=(const MTypeface&); //向字型组添加字型对象。
 		bool
-		operator-=(YTypeface&); //从字型组中移除指定字型对象。
+		operator-=(const MTypeface&); //从字型组中移除指定字型对象。
 
 		void
-		operator+=(YFontFamily&); //向字型家族组添加字型对象。
+		operator+=(MFontFamily&); //向字型家族组添加字型对象。
 		bool
-		operator-=(YFontFamily&); //从字型家族组中移除指定字型对象。
+		operator-=(MFontFamily&); //从字型家族组中移除指定字型对象。
 
 		void
 		LoadTypefaces(); //从字体文件组中载入字体信息。
 		void
-		LoadTypefaces(const YFontFile&); //从指定字体文件中载入字体信息。
+		LoadTypefaces(const MFontFile&); //从指定字体文件中载入字体信息。
 
 	public:
 		void
-		LoadFontFileDirectory(const CPATH, const CPATH = "ttf"); //读取字体文件目录并载入目录下指定后缀名的字体文件。
+		LoadFontFileDirectory(CPATH, CPATH = "ttf"); //读取字体文件目录并载入目录下指定后缀名的字体文件。
 		void
-		LoadFontFile(const CPATH); //按路径加入字体文件并载入字体信息。
+		LoadFontFile(CPATH); //按路径加入字体文件并载入字体信息。
 
 	private:
 		void
@@ -1308,7 +1338,7 @@ unit YFont "yfont"
 
 	YSL_END_NAMESPACE(Drawing)
 
-}//unit YFont;
+}//unit MFont;
 
 
 };//code YSLib::Adapter;
@@ -1692,6 +1722,15 @@ header YFunc "yfunc.hpp"
 unit YCoreUtilities "ycutil"
 {
 	import header YShellDefinition, <cstring>, <functional>;
+
+
+	//判断引用相等关系。
+	template<typename _type>
+	inline bool
+	ReferenceEquals(const _type& a, const _type& b)
+	{
+		return &a == &b;
+	}
 
 	//取指定类型的零元素。
 	inline int
@@ -2586,9 +2625,6 @@ unit YObject "yobject"
 
 		virtual
 		~YObject();
-
-		inline bool
-		ReferenceEquals(const YObject&, const YObject&);
 	};
 
 
@@ -3526,7 +3562,7 @@ code YSLib::Shell {
 
 unit YGDI "ygdi"
 {
-	import unit Core::YObject, Adapter::YFont;
+	import unit Core::YObject, Adapter::MFont;
 
 
 	// GDI 基本数据类型和宏定义。
@@ -3744,7 +3780,7 @@ unit YGDI "ygdi"
 	inline bool
 	DrawLineSeg(YGIC& g, const SPoint& p1, const SPoint& p2, PixelType c);
 
-	//绘制空心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2)。
+	//绘制空心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2) 。
 	bool
 	DrawRect(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
 	inline bool
@@ -3763,30 +3799,26 @@ unit YGDI "ygdi"
 		typedef YObject ParentType;
 
 	protected:
-		YFont Font; //字体。
+		MFont Font; //字体。
 		PixelType Color; //笔颜色。
 
 	public:
 		inline explicit
-		YPenStyle(const YFontFamily& = *GetDefaultFontFamilyPtr(), YFont::SizeType = YFont::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
+		YPenStyle(const MFontFamily& = *GetDefaultFontFamilyPtr(), MFont::SizeType = MFont::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
 
-		inline YFont&
+		inline MFont&
 		GetFont();
-		inline const YFont&
-		GetFont() const;
-		inline const YFontFamily&
-		GetFontFamily() const;
-		inline YFont::SizeType
-		GetFontSize() const;
-		inline PixelType
-		GetColor() const;
+		DefGetter(const MFont&, Font, Font)
+		DefGetterMember(const MFontFamily&, FontFamily, Font)
+		DefGetter(MFont::SizeType, FontSize, Font.GetSize())
+		DefGetter(PixelType, Color, Color)
 
 		inline void
-		SetFont(const YFont&); //设置字体。
+		SetFont(const MFont&); //设置字体。
 		inline void
-		SetFontStyle(YFontStyle); //设置字体样式。
+		SetFontStyle(EFontStyle); //设置字体样式。
 		inline void
-		SetFontSize(YFont::SizeType); //设置字体大小。
+		SetFontSize(MFont::SizeType); //设置字体大小。
 		inline void
 		SetColor(PixelType c = RGB15(31, 31, 31)); //设置颜色。
 
@@ -4638,7 +4670,7 @@ unit YControl "ycontrol"
 		GHResource<Drawing::YTextRegion> prTextRegion; //文本区域指针。
 
 	public:
-		Drawing::YFont& Font; //字体。
+		Drawing::MFont& Font; //字体。
 		Drawing::MPadding& Margin; //文本和容器的间距。
 		bool AutoSize; //启用根据字号自动调整大小。
 		bool AutoEllipsis; //启用对超出标签宽度的文本调整大小。
@@ -4651,7 +4683,7 @@ unit YControl "ycontrol"
 		//用字符串在窗口中以给定字号初始化标签。
 		template<class _charType>
 		YLabel(HWND, const _charType*, const SRect& = SRect::FullScreen,
-			const Drawing::YFont& = Drawing::YFont::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::YTextRegion> = NULL);
+			const Drawing::MFont& = Drawing::MFont::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::YTextRegion> = NULL);
 		virtual
 		~YLabel();
 
@@ -4979,7 +5011,7 @@ unit YText "ytext"
 	public:
 		YTextState();
 		explicit
-		YTextState(YFont&);
+		YTextState(MFont&);
 		explicit
 		YTextState(YFontCache*);
 
@@ -5002,7 +5034,7 @@ unit YText "ytext"
 		u16
 		GetLnNNow() const; //取笔所在的当前行数。
 
-	//	YTypeface*
+	//	MTypeface*
 	//	SetFont(CPATH); //设置字体。
 		inline void
 		SetPen(); //按字体大小在设置笔的默认位置（区域左上角）。
@@ -5031,7 +5063,7 @@ unit YText "ytext"
 	public:
 		YTextRegion();
 		explicit
-		YTextRegion(YFont&);
+		YTextRegion(MFont&);
 		explicit
 		YTextRegion(YFontCache*);
 		~YTextRegion();
@@ -5116,20 +5148,12 @@ unit YSystemUtilities "ysutil"
 	import unit Core::YShellDefinition;
 
 
-	//默认字体缓存。
-	extern YFontCache*& pDefaultFontCache;
-
-	inline void
-	DestroyDefFontCache();
-	inline void
-	CreateDefFontCache(CPATH p);
-
 }//unit YSystemUtilities;
 
 
 unit YShellInitialization "ysinit"
 {
-	import unit Core::YShellDefinition, Adapter::YFont;
+	import unit Core::YShellDefinition, Adapter::MFont;
 	import extern CPATH DEF_FONT_PATH, DEF_FONT_DIRECTORY;
 
 
@@ -5142,21 +5166,25 @@ unit YShellInitialization "ysinit"
 	extern CPATH DEF_FONT_PATH;
 	extern CPATH DEF_FONT_DIRECTORY;
 
-	//以默认字型路径创建默认字体缓存并加载默认字型目录中的字体文件。
+	//初始化系统字体缓存：以默认字型路径创建默认字体缓存并加载默认字型目录中的字体文件。
 	void
-	InitialSystemFontCache()
+	InitializeSystemFontCache()
+
+	//注销系统字体缓存。
+	inline void
+	DestroySystemFontCache();
 
 	void
-	epicFail();
+	EpicFail();
 
 	void
-	libfatFail();
+	LibfatFail();
 
 	void
-	checkInstall();
+	CheckInstall();
 
 	void
-	checkSystemFontCache();
+	CheckSystemFontCache();
 
 }//unit YShellInitialization;
 
@@ -5403,7 +5431,7 @@ namespace Device
 
 namespace Drawing
 {
-	unit Adapter::YFont;
+	unit Adapter::MFont;
 	unit Core::YObject;
 	unit Core::YResourse;
 }
