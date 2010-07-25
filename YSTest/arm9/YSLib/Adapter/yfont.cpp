@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13;
-// UTime = 2010-7-22 10:53;
-// Version = 0.6705;
+// UTime = 2010-7-24 10:56;
+// Version = 0.6734;
 
 
 #include "yfont.h"
@@ -46,6 +46,10 @@ EFontStyle::GetName() const
 		ss = "Regular";
 		break;
 	}
+	YAssert(ss != NULL,
+		"In function \"const char*\n"
+		"EFontStyle::GetName() const\":\n"
+		"Font style name string is null.");
 	return ss;
 }
 
@@ -112,6 +116,13 @@ MFontFamily::operator<(const MFontFamily& rhs) const
 	return &Cache < &rhs.Cache || (ReferenceEquals(Cache, rhs.Cache) && family_name && rhs.family_name && strcmp(family_name, rhs.family_name) < 0);
 }
 
+const MTypeface*
+MFontFamily::GetTypefacePtr(EFontStyle s) const
+{
+	const MTypeface* p(GetTypefacePtr(s.GetName()));
+
+	return p ? p : (s == EFontStyle::Regular ? NULL : GetTypefacePtr("Regular"));
+}
 const MTypeface*
 MFontFamily::GetTypefacePtr(const FT_String* style_name) const
 {
@@ -196,6 +207,10 @@ MFontFile::ReloadFaces()
 const MTypeface*
 GetDefaultTypefacePtr()
 {
+	YAssert(pDefaultFontCache != NULL,
+		"In function \"const MTypeface*\n"
+		"GetDefaultTypefacePtr()\": \n"
+		"The default font cache pointer is null.");
 	return pDefaultFontCache->GetDefaultTypefacePtr();
 }
 
@@ -223,21 +238,20 @@ MFont::SetSize(MFont::SizeType s)
 		Size = s;
 }
 
-void
+bool
 MFont::Update()
 {
-	const MTypeface* t(pFontFamily->GetTypefacePtr(GetStyleName()));
+	const MTypeface* t(pFontFamily->GetTypefacePtr(Style));
+	bool b(false);
 
-	if(!(t || Style))
-		t = pFontFamily->GetTypefacePtr("Regular");
-	if(t)
-		GetCache().SetTypeface(t);
-	UpdateSize();
+	if(t != NULL)
+		b = GetCache().SetTypeface(t);
+	return b || UpdateSize();
 }
-void
+bool
 MFont::UpdateSize()
 {
-	GetCache().SetFontSize(Size);
+	return GetCache().SetFontSize(Size);
 }
 
 bool
@@ -365,16 +379,16 @@ YFontCache::GetDescender() const
 	return GetInternalFaceInfo()->size->metrics.descender >> 6;
 }
 
-void
+bool
 YFontCache::SetTypeface(const MTypeface* p)
 {
-	if(sTypes.find(p) != sTypes.end())
-	{
-		pFace = p;
-		scaler.face_id = reinterpret_cast<FTC_FaceID>(const_cast<MTypeface*>(p));
-	}
+	if(p == NULL || sTypes.find(p) == sTypes.end())
+		return false;
+	pFace = p;
+	scaler.face_id = reinterpret_cast<FTC_FaceID>(const_cast<MTypeface*>(p));
+	return true;
 }
-void
+bool
 YFontCache::SetFontSize(MFont::SizeType s)
 {
 	if(s == 0)
@@ -389,7 +403,10 @@ YFontCache::SetFontSize(MFont::SizeType s)
 		scaler.x_res  = 0;
 		scaler.y_res  = 0;
 		GetGlyph(' '); //更新当前字形，否则 GetHeight() 会返回错误的值。
+		return true;
 	}
+	else
+		return false;
 }
 
 void
@@ -439,7 +456,7 @@ YFontCache::LoadTypefaces(const MFontFile& f)
 
 	for(FT_Long i(0); i < t; ++i)
 	{
-		MTypeface* q;
+		MTypeface* q(NULL);
 		MFontFamily* r(NULL);
 
 		try
@@ -499,7 +516,6 @@ YFontCache::LoadFontFileDirectory(CPATH path, CPATH ext)
 {
 	DIR_ITER* dir(diropen(path));
 	u32 n(0);
-	MFontFile* p;
 
 	if(dir)
 	{

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YCoreUtilities by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-23 6:10:59;
-// UTime = 2010-7-21 14:21;
-// Version = 0.1936;
+// UTime = 2010-7-24 17:52;
+// Version = 0.1948;
 
 
 #ifndef INCLUDED_YCUTIL_H_
@@ -15,6 +15,28 @@
 #include <functional>
 
 YSL_BEGIN
+
+YSL_BEGIN_NAMESPACE(Design)
+
+//不可复制对象：继承此类的对象在外部无法调用复制构造函数和复制赋值操作符。
+class NonCopyable
+{
+//保护非多态类。
+protected:
+	NonCopyable()
+	{}
+	~NonCopyable()
+	{}
+
+private: 
+	NonCopyable(const NonCopyable&);
+	NonCopyable& operator=(const NonCopyable&);
+};
+
+YSL_END_NAMESPACE(Design)
+
+using Design::NonCopyable;
+
 
 //判断引用相等关系。
 template<typename _type>

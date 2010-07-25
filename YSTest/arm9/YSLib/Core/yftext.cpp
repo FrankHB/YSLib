@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFile_(Text) by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-24 23:14:51;
-// UTime = 2010-7-9 10:14;
-// Version = 0.1725;
+// UTime = 2010-7-25 10:37;
+// Version = 0.1729;
 
 
 #include "yftext.h"
@@ -118,7 +118,7 @@ YTextFile::ReadS(uchar_t* s, u32 n) const
 
 		while(i < n)
 		{
-			if(feof(fp))
+			if(feof())
 				break;
 			i += ToUTF(fp, s[l++], cp);
 		}

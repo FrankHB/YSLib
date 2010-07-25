@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:24;
-// UTime = 2010-7-20 15:50;
-// Version = 0.3331;
+// UTime = 2010-7-23 18:36;
+// Version = 0.3344;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -110,7 +110,7 @@ public:
 
 	virtual DefBoolGetter(Enabled, Enabled)
 
-	virtual DefSetterDef(bool, Enabled, Enabled, true)
+	virtual DefSetterDe(bool, Enabled, Enabled, true)
 };
 
 inline
@@ -208,11 +208,11 @@ public:
 	virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 	virtual DefGetterBase(HWND, WindowHandle, MWidget)
 
-	virtual DefSetterBaseDef(bool, Visible, MVisual, true)
-	virtual DefSetterBaseDef(bool, Transparent, MVisual, true)
-	virtual DefSetterBaseDef(bool, BgRedrawing, MVisual, true)
+	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
+	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
+	virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
 	virtual DefSetterBase(const SPoint&, Location, MVisual)
-	virtual DefSetterBaseDef(bool, Enabled, MControl, true)
+	virtual DefSetterBaseDe(bool, Enabled, MControl, true)
 
 	virtual void
 	DrawBackground();
@@ -232,7 +232,7 @@ public:
 };
 
 
-//V0.1580;
+//V0.1600;
 //标签。
 class YLabel : public GMCounter<YLabel>, public YVisualControl
 {
@@ -243,8 +243,8 @@ protected:
 	GHResource<Drawing::YTextRegion> prTextRegion; //文本区域指针。
 
 public:
-	Drawing::MFont& Font; //字体。
-	Drawing::MPadding& Margin; //文本和容器的间距。
+	Drawing::MFont Font; //字体。
+	Drawing::MPadding Margin; //文本和容器的间距。
 	bool AutoSize; //启用根据字号自动调整大小。
 	bool AutoEllipsis; //启用对超出标签宽度的文本调整大小。
 	YString Text; //标签文本。
@@ -259,6 +259,10 @@ public:
 		const Drawing::MFont& = Drawing::MFont::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::YTextRegion> = NULL);
 	virtual
 	~YLabel();
+
+	DefGetter(const MFont&, Font, Font)
+
+	DefSetterMember(const MFont&, Font, Font); //设置字体。
 
 	virtual void
 	DrawBackground();
@@ -292,8 +296,8 @@ protected:
 	const bool bDisposeList;
 
 public:
-	Drawing::MFont& Font; //字体。
-	Drawing::MPadding& Margin; //文本和容器的间距。
+	Drawing::MFont Font; //字体。
+	Drawing::MPadding Margin; //文本和容器的间距。
 	ListType& List; //列表。
 
 protected:

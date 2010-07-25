@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:02:40;
-// UTime = 2010-7-22 9:34;
-// Version = 0.6662;
+// UTime = 2010-7-24 10:41;
+// Version = 0.6708;
 
 
 #ifndef INCLUDED_YFONT_H_
@@ -98,7 +98,9 @@ public:
 
 	DefGetter(const FT_String*, FamilyName, family_name)
 	const MTypeface*
-	GetTypefacePtr(const FT_String*) const; //取指定名称字型指针。
+	GetTypefacePtr(EFontStyle) const; //取指定样式的字型指针，若非 Regular 样式失败则尝试取 Regular 样式的字型指针。
+	const MTypeface*
+	GetTypefacePtr(const FT_String*) const; //取指定样式名称的字型指针。
 
 private:
 	void
@@ -184,7 +186,24 @@ const MTypeface* GetDefaultTypefacePtr();
 inline const MFontFamily*
 GetDefaultFontFamilyPtr()
 {
-	return GetDefaultTypefacePtr()->GetFontFamilyPtr();
+	const MTypeface* p(GetDefaultTypefacePtr());
+
+	YAssert(p != NULL,
+		"In function \"inline const MFontFamily*\n"
+		"GetDefaultFontFamilyPtr()\": \n"
+		"The default font face pointer is null.");
+	return p->GetFontFamilyPtr();
+}
+inline const MFontFamily&
+GetDefaultFontFamily()
+{
+	const MFontFamily* p(GetDefaultFontFamilyPtr());
+
+	YAssert(p != NULL,
+		"In function \"inline const MFontFamily&\n"
+		"GetDefaultFontFamily()\": \n"
+		"The default font family pointer is null.");
+	return *p;
 }
 
 
@@ -227,10 +246,12 @@ public:
 	DefSetter(EFontStyle, Style, Style)
 	void
 	SetSize(SizeType);
+	void
+	SetFont(const MFont&);
 
-	void
+	bool
 	Update(); //更新字体缓存中当前处理的字体。
-	void
+	bool
 	UpdateSize(); //更新字体缓存中当前处理的字体大小。
 
 	static bool
@@ -252,6 +273,13 @@ MFont::GetFontFamily() const
 	return *pFontFamily;
 }
 */
+
+inline void
+MFont::SetFont(const MFont& f)
+{
+	*this = f;
+	Update();
+}
 
 
 //字体缓存。
@@ -324,9 +352,9 @@ public:
 	s8
 	GetDescender() const; //取降部。
 
-	void
+	bool
 	SetTypeface(const MTypeface*); //设置字型组中指定的字型为当前字型（忽略不属于字型组的字型）。
-	void
+	bool
 	SetFontSize(MFont::SizeType); //设置当前处理的字体大小。
 
 public:

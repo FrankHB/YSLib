@@ -1,8 +1,8 @@
 ﻿// 通用平台描述文件 -> DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // UTime = 2009-11-24 0:05:08;
-// UTime = 2010-5-8 16:12;
-// Version = 0.1192;
+// UTime = 2010-7-22 12:09;
+// Version = 0.1200;
 
 
 #ifndef _PLATFORM_H_
@@ -17,13 +17,9 @@
 #	endif
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
 #include <nds.h>
 #include <fat.h>
 #include <unistd.h>
-#include <malloc.h>
 #include <sys/dir.h>
 
 #define YC_YCOMMON_H "../YCLib/ycommon.h"

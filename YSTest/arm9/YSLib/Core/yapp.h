@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:27;
-// UTime = 2010-7-13 19:56;
-// Version = 0.1654;
+// UTime = 2010-7-24 18:28;
+// Version = 0.1662;
 
 
 #ifndef INCLUDED_YAPP_H_
@@ -44,7 +44,7 @@ public:
 
 
 //程序实例：通过单例实现进程唯一性语义。
-class YApplication : public YObject,
+class YApplication : private NonCopyable, public YObject,
 	implements GIContainer<YShell>
 {
 public:
@@ -72,9 +72,6 @@ private:
 	HSHL hShell; //当前 Shell 句柄：指示当前线程空间中运行的 Shell ；应初始化为主 Shell ：全局单线程，生存期与进程相同。
 
 	YApplication();
-	YApplication(const YApplication&);
-	YApplication
-	operator=(const YApplication&);
 	static YApplication*
 	GetInstancePtr(); //单例构造函数：取得自身实例指针。
 

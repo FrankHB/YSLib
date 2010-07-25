@@ -518,17 +518,11 @@
 //	++*i;
 //	tf.SetPos(0);
 //	tf.Seek(-128, SEEK_END);
-//	sprintf(strtf, "%d,%d,%d,%d,%d", tf.IsValid(), tf.GetBOMLen(), tf.GetFileLen(), tf.GetCP(), tf.GetPos());
+//	sprintf(strtf, "%d,%d,%d,%d,%d", tf.IsValid(), tf.GetBOMLen(), tf.GetLen(), tf.GetCP(), tf.GetPos());
 
 /*
-struct non_copyable non_inheritable
+struct non_inheritable
 {
-protected:
-	non_copyable()
-	{}
-
-private:
-	non_copyable(const non_copyable&);
 };
 static void
 _testStr(const YString& s)

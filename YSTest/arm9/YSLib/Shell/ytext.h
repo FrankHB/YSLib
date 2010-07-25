@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-7-20 15:50;
-// Version = 0.5945;
+// UTime = 2010-7-24 10:51;
+// Version = 0.5978;
 
 
 #ifndef INCLUDED_YTEXT_H_
@@ -35,21 +35,16 @@ public:
 	explicit
 	YTextState(MFont&);
 	explicit
-	YTextState(YFontCache*);
+	YTextState(YFontCache&);
 
 	YTextState&
 	operator=(const YPenStyle& ps); //从 ts 中恢复样式。
 	YTextState&
 	operator=(const MPadding& ms); //从 ms 中恢复样式。
-	YTextState&
-	operator=(const YTextState& ms); //从 ts 中恢复状态。
 
-	SPOS
-	GetPenX() const;
-	SPOS
-	GetPenY() const;
-	u8
-	GetLineGap() const; //取当前字体设置对应的行距。
+	DefGetter(SPOS, PenX, penX)
+	DefGetter(SPOS, PenY, penY)
+	DefGetter(u8, LineGap, lnGap) //取当前字体设置对应的行距。
 	SDST
 	GetLnHeight() const; //取当前字体设置对应的行高。
 	SDST
@@ -57,8 +52,6 @@ public:
 	u16
 	GetLnNNow() const; //取笔所在的当前行数。
 
-//	MTypeface*
-//	SetFont(const char*, CPATH); //设置字体。
 	void
 	SetMargins(u64); //设置边距（64 位无符号整数形式）。
 	void
@@ -69,8 +62,7 @@ public:
 	SetPen(); //按字体大小在设置笔的默认位置（区域左上角）。
 	void
 	SetPen(SPOS, SPOS); //设置笔位置。
-	void
-	SetLineGap(u8);
+	DefSetter(u8, LineGap, lnGap) //设置行距。
 	void
 	SetLnNNow(u16 n); //设置笔的行位置。
 };
@@ -87,22 +79,6 @@ YTextState::operator=(const MPadding& ms)
 {
 	Margin = ms;
 	return *this;
-}
-
-inline SPOS
-YTextState::GetPenX() const
-{
-	return penX;
-}
-inline SPOS
-YTextState::GetPenY() const
-{
-	return penY;
-}
-inline u8
-YTextState::GetLineGap() const
-{
-	return lnGap;
 }
 
 inline void
@@ -137,11 +113,6 @@ YTextState::SetPen(SPOS x, SPOS y)
 	penX = x;
 	penY = y;
 }
-inline void
-YTextState::SetLineGap(u8 g)
-{
-	lnGap = g;
-}
 
 
 class YTextRegion : public YTextState, public MBitmapBufferEx //文本区域。
@@ -157,15 +128,13 @@ public:
 	explicit
 	YTextRegion(MFont&);
 	explicit
-	YTextRegion(YFontCache*);
+	YTextRegion(YFontCache&);
 	~YTextRegion();
 
 	YTextRegion& operator=(const YTextState& ts); //从 ts 中恢复状态。
 
-	SDST
-	GetBufWidthN() const; //取缓冲区的文本显示区域的宽。
-	SDST
-	GetBufHeightN() const; //取缓冲区的文本显示区域的高。
+	DefGetter(SDST, BufWidthN, Width - Margin.GetHorizontal()) //取缓冲区的文本显示区域的宽。
+	DefGetter(SDST, BufHeightN, Height - Margin.GetVertical()) //取缓冲区的文本显示区域的高。
 	SDST
 	GetMarginResized() const; //根据字体大小、行距和缓冲区的高调整边距，返回调整后的底边距值。
 	SDST
@@ -227,17 +196,6 @@ YTextRegion::operator=(const YTextState& ts)
 {
 	YTextState::operator=(ts);
 	return *this;
-}
-
-inline SDST
-YTextRegion::GetBufWidthN() const
-{
-	return Width - Margin.GetHorizontal();
-}
-inline SDST
-YTextRegion::GetBufHeightN() const
-{
-	return Height - Margin.GetVertical();
 }
 
 template<class _CharT>

@@ -1,36 +1,56 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:42;
-// UTime = 2010-7-16 22:42;
-// Version = 0.1730;
+// UTime = 2010-7-22 12:33;
+// Version = 0.1750;
 
 
-#include <errno.h>
 #include "ycommon.h"
+#include <cstdarg>
+#include <cstring>
+#include <cerrno>
 
 namespace stdex
 {
-	size_t
+	std::size_t
 	strlen_n(const char* s)
 	{
-		return isvalidstr(s) ? strlen(s) : 0;
+		return s != NULL ? std::strlen(s) : 0;
+	}
+
+	char*
+	strcpy_n(char* d, const char* s)
+	{
+		return d != NULL && s != NULL ? std::strcpy(d, s) : NULL;
+	}
+
+	char*
+	stpcpy_n(char* d, const char* s)
+	{
+		return d != NULL && s != NULL ? stpcpy(d, s) : NULL;
+	}
+
+	int
+	stricmp_n(const char* s1, const char* s2)
+	{
+		return s1 != NULL && s2 != NULL ? stricmp(s1, s2) : EOF;
 	}
 
 	char*
 	strdup_n(const char* s)
 	{
-		return isvalidstr(s) ? strdup(s) : NULL;
+		return s != NULL ? strdup(s) : NULL;
 	}
 
 	char*
 	strcpycat(char* d, const char* s1, const char* s2)
 	{
-		if(!isvalidstr(d))
+		if(d == NULL)
 			return NULL;
-		if(isvalidstr(s1))
-			strcpy(d, s1);
-		if(isvalidstr(s2))
-			strcat(d, s2);
+		if(s1 != NULL)
+			std::strcpy(d, s1);
+		if(s2 != NULL)
+			std::strcat(d, s2);
 		return d;
 	}
 

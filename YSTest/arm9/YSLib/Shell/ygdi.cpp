@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46;
-// UTime = 2010-7-14 0:40;
-// Version = 0.2218;
+// UTime = 2010-7-23 8:26;
+// Version = 0.2244;
 
 
 #include "ygdi.h"
@@ -20,25 +20,28 @@ YSL_BEGIN_NAMESPACE(Drawing)
 #define BLT_THRESHOLD	8
 #define BLT_THRESHOLD2	128
 
-static inline SPOS
-blitMinX(SPOS sx, SPOS dx)
+namespace
 {
-	return sx + vmax<int>(0, -dx);
-}
-static inline SPOS
-blitMinY(SPOS sy, SPOS dy)
-{
-	return sy + vmax<int>(0, -dy);
-}
-static inline SPOS
-blitMaxX(SPOS minX, SDST sw, SDST dw, SPOS sx, SPOS dx, SDST cw)
-{
-	return sx + vmin<int>(vmin<int>(dw - dx, sw - sx), cw);
-}
-static inline SPOS
-blitMaxY(SPOS minY, SDST sh, SDST dh, SPOS sy, SPOS dy, SDST ch)
-{
-	return sy + vmin<int>(vmin<int>(dh - dy, sh - sy), ch);
+	inline SPOS
+	blitMinX(SPOS sx, SPOS dx)
+	{
+		return sx + vmax<int>(0, -dx);
+	}
+	inline SPOS
+	blitMinY(SPOS sy, SPOS dy)
+	{
+		return sy + vmax<int>(0, -dy);
+	}
+	inline SPOS
+	blitMaxX(SPOS minX, SDST sw, SDST dw, SPOS sx, SPOS dx, SDST cw)
+	{
+		return sx + vmin<int>(vmin<int>(dw - dx, sw - sx), cw);
+	}
+	inline SPOS
+	blitMaxY(SPOS minY, SDST sh, SDST dh, SPOS sy, SPOS dy, SDST ch)
+	{
+		return sy + vmin<int>(vmin<int>(dh - dy, sh - sy), ch);
+	}
 }
 
 
@@ -474,7 +477,8 @@ DrawHLineSeg(YGIC& g, SPOS y, SPOS x1, SPOS x2, PixelType c)
 		"DrawHLineSeg(YGIC& g, SPOS y, SPOS x1, SPOS x2, PixelType c)\": \n"
 		"The graphic device context is invalid.");
 
-	if(isInIntervalRegular<int>(y, g.GetHeight()) && (isInIntervalRegular<int>(x1, g.GetWidth()) || isInIntervalRegular<int>(x2, g.GetWidth())))
+	if(isInIntervalRegular<int>(y, g.GetHeight())
+		&& !((x1 < 0 && x2 < 0) || (x1 >= g.GetWidth() && x2 >= g.GetWidth())))
 	{
 		restrictInIntervalRegular(x1, 0, g.GetWidth());
 		restrictInIntervalRegular(x2, 0, g.GetWidth());
@@ -493,7 +497,8 @@ DrawVLineSeg(YGIC& g, SPOS x, SPOS y1, SPOS y2, PixelType c)
 		"DrawVLineSeg(YGIC& g, SPOS x, SPOS y1, SPOS y2, PixelType c)\": \n"
 		"The graphic device context is invalid.");
 
-	if(isInIntervalRegular<int>(x, g.GetWidth()) && (isInIntervalRegular<int>(y1, g.GetHeight()) || isInIntervalRegular<int>(y2, g.GetHeight())))
+	if(isInIntervalRegular<int>(x, g.GetWidth())
+		&& !((y1 < 0 && y2 < 0) || (y1 >= g.GetHeight() && y2 >= g.GetHeight())))
 	{
 		restrictInIntervalRegular(y1, 0, g.GetHeight());
 		restrictInIntervalRegular(y2, 0, g.GetHeight());
@@ -504,57 +509,61 @@ DrawVLineSeg(YGIC& g, SPOS x, SPOS y1, SPOS y2, PixelType c)
 	return false;
 }
 
-//倾斜直线光栅化函数。
-static bool
-DrawObliqueLine(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
+namespace
 {
-	YAssert(y1 != y2,
-		"In function \"static void\n"
-		"DrawObliqueLine(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)\": \n"
-		"Not drawing an oblique line: the line is horizontal.");
-	YAssert(x1 != x2,
-		"In function \"static void\n"
-		"DrawObliqueLine(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)\": \n"
-		"Not drawing an oblique line: the line is vertical.");
-
-	if(SRect(g.GetSize()).IsInBoundsRegular(x1, y1) && SRect(g.GetSize()).IsInBoundsRegular(x2, y2))
+	//倾斜直线光栅化函数。
+	bool
+	DrawObliqueLine(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
 	{
-		//一般 Bresenham 算法：实现自 http://cg.sjtu.edu.cn/lecture_site/chap2/mainframe212.htm 伪代码。
-		//起点 (x1, y1) 和终点 (x2, y2) 不同。
+		YAssert(y1 != y2,
+			"In function \"static void\n"
+			"DrawObliqueLine(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)\": \n"
+			"Not drawing an oblique line: the line is horizontal.");
+		YAssert(x1 != x2,
+			"In function \"static void\n"
+			"DrawObliqueLine(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)\": \n"
+			"Not drawing an oblique line: the line is vertical.");
 
-		const s8 sx(sgn(x2 - x1)), sy(sgn(y2 - y1));
-		SDST dx(abs(x2 - x1)), dy(abs(y2 - y1));
-		bool f(dy > dx);
-
-		if(f)
-			std::swap(dx, dy);
-
-		//初始化误差项以补偿非零截断。
-		const SDST dx2(dx << 1), dy2(dy << 1);
-		int e(dy2 - dx);
-
-		//主循环。
-		while(dx--)
+		if(SRect(g.GetSize()).IsInBoundsRegular(x1, y1) && SRect(g.GetSize()).IsInBoundsRegular(x2, y2))
 		{
-			PutPixel(g, x1, y1, c);
-			if(e >= 0)
-			{
-				if(f)
-					x1 += sx;
-				else
-					y1 += sy;
-				e -= dx2;
-			}
+			//一般 Bresenham 算法：实现自 http://cg.sjtu.edu.cn/lecture_site/chap2/mainframe212.htm 伪代码。
+			//起点 (x1, y1) 和终点 (x2, y2) 不同。
+
+			const s8 sx(sgn(x2 - x1)), sy(sgn(y2 - y1));
+			SDST dx(abs(x2 - x1)), dy(abs(y2 - y1));
+			bool f(dy > dx);
+
 			if(f)
-				y1 += sy;
-			else
-				x1 += sx;
-			e += dy2;
+				std::swap(dx, dy);
+
+			//初始化误差项以补偿非零截断。
+			const SDST dx2(dx << 1), dy2(dy << 1);
+			int e(dy2 - dx);
+
+			//主循环。
+			while(dx--)
+			{
+				PutPixel(g, x1, y1, c);
+				if(e >= 0)
+				{
+					if(f)
+						x1 += sx;
+					else
+						y1 += sy;
+					e -= dx2;
+				}
+				if(f)
+					y1 += sy;
+				else
+					x1 += sx;
+				e += dy2;
+			}
+			return true;
 		}
-		return true;
+		return false;
 	}
-	return false;
 }
+
 bool
 DrawLineSeg(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
 {
@@ -569,15 +578,11 @@ DrawLineSeg(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
 bool
 DrawRect(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
 {
-	if(SRect(g.GetSize()).IsInBoundsRegular(x1, y1) || SRect(g.GetSize()).IsInBoundsRegular(x2, y2))
-	{
-		DrawVLineSeg(g, x1, y1, y2, c);
-		DrawHLineSeg(g, y2, x1, x2, c);
-		DrawVLineSeg(g, x2, y2, y1, c);
-		DrawHLineSeg(g, y1, x2, x1, c);
-		return true;
-	}
-	return false;
+	bool b(DrawVLineSeg(g, x1, y1, y2, c));
+	b |= DrawHLineSeg(g, y2, x1, x2, c);
+	b |= DrawVLineSeg(g, x2, y2, y1, c);
+	b |= DrawHLineSeg(g, y1, x2, x1, c);
+	return b;
 }
 
 

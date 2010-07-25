@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-24 15:29:11;
-// UTime = 2010-7-13 21:38;
-// Version = 0.2090;
+// UTime = 2010-7-22 18:15;
+// Version = 0.2100;
 
 
 #ifndef INCLUDED_YSDEF_H_
@@ -61,10 +61,10 @@
 #	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist)
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #	define PDefHead(_type, _name, _paralist, ...) _type _name(_paralist, __VA_ARGS__)
-#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist, __VA_ARGS__)
+#	define PDefOpHead(_type, _op, _paralist, ...) _type operator _op(_paralist, __VA_ARGS__)
 #else
 #	define PDefHead(_type, _name, _paralist) _type _name(_paralist)
-#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist)
+#	define PDefOpHead(_type, _op, _paralist) _type operator _op(_paralist)
 #endif
 
 
@@ -114,13 +114,13 @@
 #define DefStaticBoolGetterBase(_name, _base) static bool _yJOIN(Is, _name)() { return _base::_yJOIN(Is, _name)(); }
 
 #define DefSetter(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) { _member = _tempArgName; }
-#define DefSetterDef(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _tempArgName; }
+#define DefSetterDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _tempArgName; }
 #define DefSetterBase(_type, _name, _base) void _yJOIN(Set, _name)(_type _tempArgName) { _base::_yJOIN(Set, _name)(_tempArgName); }
-#define DefSetterBaseDef(_type, _name, _base, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _base::_yJOIN(Set, _name)(_tempArgName); }
+#define DefSetterBaseDe(_type, _name, _base, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _base::_yJOIN(Set, _name)(_tempArgName); }
 #define DefSetterMember(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) { _member._yJOIN(Set, _name)(_tempArgName); }
-#define DefSetterMemberDef(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member._yJOIN(Set, _name)(_tempArgName); }
+#define DefSetterMemberDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member._yJOIN(Set, _name)(_tempArgName); }
 #define DefSetterEx(_type, _name, _member, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName) { _member = _expr; }
-#define DefSetterDefEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _expr; }
+#define DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _expr; }
 
 
 #define YSL_BEGIN	namespace YSLib {

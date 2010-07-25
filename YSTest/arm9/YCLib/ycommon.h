@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28;
-// UTime = 2010-7-16 22:42;
-// Version = 0.1852;
+// UTime = 2010-7-22 12:32;
+// Version = 0.1870;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -17,32 +17,28 @@
 #endif
 
 #include "ydef.h"
+#include <cstdio>
 #include <cstdlib>
 
 //平台无关部分。
 
 namespace stdex
 {
-	//判断字符指针是否非空。
-	inline bool
-	isvalidstr(char* d)
-	{
-		return d != NULL;
-	}
-	inline bool
-	isvalidstr(const char* s)
-	{
-		return s != NULL;
-	}
-	inline bool
-	isvalidstr(char* d, const char* s)
-	{
-		return isvalidstr(s) && isvalidstr(d);
-	}
+	//当字符指针非空时返回 std::strlen 计算的串长，否则返回 0 。
+	std::size_t
+	strlen_n(const char*);
 
-	//当字符指针非空时返回 strlen 计算的串长，否则返回 0 。
+	//当目标字符串和源字符串都非空时用 std::strcpy 复制字符串并返回复制的字符串，否则返回空指针。
 	char*
-	strdup_n(const char*);
+	strcpy_n(char*, const char*);
+
+	//当目标字符串和源字符串都非空时用 stpcpy 复制字符串并返回复制的字符串的结尾指针，否则返回空指针。
+	char*
+	stpcpy_n(char*, const char*);
+
+	//当两个字符串都非空时返回 stricmp 比较的字符串结果，否则返回 EOF 。
+	int
+	stricmp_n(const char*, const char*);
 
 	//当字符指针非空时用 strdup 复制字符串并返回复制的字符串，否则返回空指针。
 	char*

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YResource by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40;
-// UTime = 2010-6-13 11:54;
-// Version = 0.1304;
+// UTime = 2010-7-23 21:18;
+// Version = 0.1312;
 
 
 #ifndef INCLUDED_YRES_H_
@@ -20,7 +20,10 @@ template<class T>
 GHResource<T>&
 GetGlobalResource()
 {
-	static GHResource<T> p(new T);
+	static GHResource<T> p;
+
+	if(p == NULL)
+		p = new T;
 	return p;
 }
 

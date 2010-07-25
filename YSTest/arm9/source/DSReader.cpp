@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:04:05;
-// UTime = 2010-7-20 15:49;
-// Version = 0.2488;
+// UTime = 2010-7-25 10:28;
+// Version = 0.2558;
 
 
 #include "DSReader.h"
@@ -12,24 +12,26 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(DS)
 
 using namespace Drawing;
+using namespace Exceptions;
+using namespace Text;
 
 YSL_BEGIN_NAMESPACE(Components)
 
 u32 MDualScreenReader::TextFill(u32 off)
 {
-	const uchar_t* s = text + off;
+	const uchar_t* s = Blocks[0].GetPtr() + off;
 	s += trUp.PutString(s);
-	return s + trDn.PutString(s) - off - text;
+	return s + trDn.PutString(s) - off - Blocks[0].GetPtr();
 }
 
-MDualScreenReader::MDualScreenReader(YTextFile& srcf,
+MDualScreenReader::MDualScreenReader(YTextFile& tf_,
 				   u16 l, u16 w, u16 t_up, u16 h_up, u16 t_down, u16 h_down,
-				   YFontCache* fc)
-: MTextBuffer(0x2000), tf(srcf), pfc(fc),
+				   YFontCache& fc_)
+try : tf(tf_), Blocks(tf), fc(fc_),
 left(l), top_up(t_up), top_down(t_down),
 pBgUp(pDesktopUp->GetBackgroundPtr()), pBgDn(pDesktopDown->GetBackgroundPtr()),
-trUp(*new YTextRegion(fc)), trDn(*new YTextRegion(fc)), rot(RDeg0),
-nLoad(Load(tf)), offUp(-!tf.IsValid()), offDn(0)
+trUp(*new YTextRegion(fc_)), trDn(*new YTextRegion(fc_)), rot(RDeg0),
+nLoad(0), offUp(0), offDn(0)
 {
 	trUp.SetSize(w, h_up);
 	trDn.SetSize(w, h_down);
@@ -37,8 +39,17 @@ nLoad(Load(tf)), offUp(-!tf.IsValid()), offDn(0)
 	SetColor();
 	SetLineGap();
 	Reset();
-	if(offUp < 0)
+	if(!tf.IsValid())
 		trUp.PutString(L"文件打开失败！\n");
+	nLoad = Blocks[0].Load(tf);
+}
+catch(YLoggedError&)
+{
+	throw;
+}
+catch(...)
+{
+	throw YLoggedError("Error occured @@ MDualScreenReader::MDualScreenReader();");
 }
 MDualScreenReader::~MDualScreenReader()
 {
@@ -72,8 +83,8 @@ MDualScreenReader::SetLineGap(u8 g)
 void
 MDualScreenReader::SetFontSize(MFont::SizeType fz)
 {
-	pfc->SetFontSize(fz);	
-	lnHeight = pfc->GetHeight();
+	fc.SetFontSize(fz);	
+	lnHeight = fc.GetHeight();
 }
 /*
 void MDualScreenReader::SetLnNNow(u8 n)
@@ -131,8 +142,8 @@ MDualScreenReader::LineUp()
 	trUp.Move(hx, trUp.GetBufferHeightResized());
 	trUp.ClearLn(0);
 	trUp.SetLnNNow(0);
-	trUp.PutLine(&text[offUp = trUp.GetPrevLnOff(text, offUp)]);
-	offDn = trDn.GetPrevLnOff(text, offDn);
+	trUp.PutLine(&Blocks[0].GetPtr()[offUp = trUp.GetPrevLnOff(Blocks[0].GetPtr(), offUp)]);
+	offDn = trDn.GetPrevLnOff(Blocks[0].GetPtr(), offDn);
 	return true;
 }
 bool
@@ -151,8 +162,8 @@ MDualScreenReader::LineDown()
 	trDn.Move(-hx);
 	trDn.ClearLnLast();
 	trDn.SetLnLast();
-	offDn += trDn.PutLine(&text[offDn]);
-	offUp = trUp.GetNextLnOff(text, offUp);
+	offDn += trDn.PutLine(&Blocks[0].GetPtr()[offDn]);
+	offUp = trUp.GetNextLnOff(Blocks[0].GetPtr(), offUp);
 	return true;
 }
 
@@ -161,7 +172,7 @@ MDualScreenReader::ScreenUp()
 {
 	if(IsTextTop())
 		return false;
-	offUp = trUp.GetPrevLnOff(text, offUp, trUp.GetLnN() + trDn.GetLnN());
+	offUp = trUp.GetPrevLnOff(Blocks[0].GetPtr(), offUp, trUp.GetLnN() + trDn.GetLnN());
 	Update();
 	return true;
 }

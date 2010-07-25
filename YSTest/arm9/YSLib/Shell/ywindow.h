@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40;
-// UTime = 2010-7-13 2:13;
-// Version = 0.3221;
+// UTime = 2010-7-22 11:26;
+// Version = 0.3226;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -96,7 +96,7 @@ public:
 	DefGetter(HSHL, ShellHandle, hShell)
 	DefGetter(GHResource<YImage>, Background, prBackImage)
 
-	DefSetterDef(GHResource<YImage>, Background, prBackImage, NULL)
+	DefSetterDe(GHResource<YImage>, Background, prBackImage, NULL)
 };
 
 
@@ -152,18 +152,18 @@ public:
 	BitmapPtr
 	GetBackgroundPtr() const;
 
-	virtual DefSetterBaseDef(bool, Visible, MVisual, true)
-	virtual DefSetterBaseDef(bool, Transparent, MVisual, true)
-	virtual DefSetterBaseDef(bool, BgRedrawing, MVisual, true)
+	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
+	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
+	virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
 	virtual DefSetterBase(const SPoint&, Location, MVisual)
-	virtual DefSetterDef(bool, Refresh, bRefresh, true)
-	virtual DefSetterDef(bool, Update, bUpdate, true)
+	virtual DefSetterDe(bool, Refresh, bRefresh, true)
+	virtual DefSetterDe(bool, Update, bUpdate, true)
 	virtual void
 	SetSize(SDST, SDST);
 	virtual void
 	SetBounds(const SRect&);
-	virtual DefSetterBaseDef(bool, Enabled, MVisualControl, true)
-	virtual DefSetterBaseDef(GHResource<YImage>, Background, MWindow, NULL)
+	virtual DefSetterBaseDe(bool, Enabled, MVisualControl, true)
+	virtual DefSetterBaseDe(GHResource<YImage>, Background, MWindow, NULL)
 
 	PDefHead(void, ClearBackground) const //清除背景。
 		ImplExpr(Buffer.ClearImage())

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-7-4 4:11;
-// Version = 0.4524;
+// UTime = 2010-7-22 11:22;
+// Version = 0.4529;
 
 
 #ifndef INCLUDED_YWIDGET_H_
@@ -117,9 +117,9 @@ public:
 	virtual DefGetter(const SSize&, Size, Size)
 	virtual DefGetter(SRect, Bounds, SRect(Location, Size.Width, Size.Height))
 
-	DefSetterDef(bool, Visible, Visible, true)
-	DefSetterDef(bool, Transparent, Transparent, true)
-	DefSetterDef(bool, BgRedrawing, bBgRedraw, true)
+	DefSetterDe(bool, Visible, Visible, true)
+	DefSetterDe(bool, Transparent, Transparent, true)
+	DefSetterDe(bool, BgRedrawing, bBgRedraw, true)
 	virtual DefSetter(const SPoint&, Location, Location)
 	virtual PDefHead(void, SetLocation, SPOS x, SPOS y)
 		ImplBodyBaseVoid(MVisual, SetLocation, SPoint(x, y))
@@ -198,9 +198,9 @@ public:
 	virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 	virtual DefGetterBase(HWND, WindowHandle, MWidget)
 
-	virtual DefSetterBaseDef(bool, Visible, MVisual, true)
-	virtual DefSetterBaseDef(bool, Transparent, MVisual, true)
-	virtual DefSetterBaseDef(bool, BgRedrawing, MVisual, true)
+	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
+	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
+	virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
 	virtual DefSetterBase(const SPoint&, Location, MVisual)
 
 	virtual void
@@ -301,9 +301,9 @@ public:
 	virtual SPoint
 	GetWindowLocationOffset(const SPoint& = SPoint::Zero) const;
 
-	virtual DefSetterBaseDef(bool, Visible, MVisual, true)
-	virtual DefSetterBaseDef(bool, Transparent, MVisual, true)
-	virtual DefSetterBaseDef(bool, BgRedrawing, MVisual, true)
+	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
+	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
+	virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
 	virtual DefSetterBase(const SPoint&, Location, MVisual)
 
 	virtual PDefHead(void, ClearFocusingPtr)

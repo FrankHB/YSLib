@@ -1,8 +1,8 @@
 // YSLib::Adapter::YAdapter by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-22 20:16:21;
-// UTime = 2010-7-9 10:11;
-// Version = 0.1666;
+// UTime = 2010-7-22 12:12;
+// Version = 0.1668;
 
 
 #ifndef INCLUDED_YADAPTER_H_
@@ -13,6 +13,8 @@
 //编译配置。
 //#define NDEBUG
 #define YC_USE_YASSERT
+
+#include <cstdio>
 
 //包含平台文件。
 #include <platform.h>

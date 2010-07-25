@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFile by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-24 23:14:41;
-// UTime = 2010-6-24 0:42;
-// Version = 0.1250;
+// UTime = 2010-7-25 10:39;
+// Version = 0.1489;
 
 
 #ifndef INCLUDED_YFILE_H_
@@ -19,10 +19,11 @@ class YFile : public YObject
 {
 public:
 	typedef YObject ParentType;
+	typedef u32 SizeType;
 
 protected:
 	FILE* fp; //默认文件指针。
-	u32 fsize; //文件大小。
+	SizeType fsize; //文件大小。
 
 public:
 	explicit
@@ -30,71 +31,52 @@ public:
 	virtual
 	~YFile();
 
-	bool
-	IsValid() const; //判断文件指针是否有效。
-	FILE*
-	GetFilePtr() const; //取文件指针。
-	u32
-	GetFileLen() const; //取文件长度。
+	DefBoolGetter(Valid, fp) //判断文件指针是否有效。
+	DefGetter(FILE*, Ptr, fp) //取文件指针。
+	DefGetter(SizeType, Length, fsize) //取文件长度。
+
+	void
+	Release(); //清除文件指针。
 
 	bool
-	OpenFile(CPATH); //打开指定路径的文件。
+	Open(CPATH); //打开指定路径的文件。
+
 	long
 	ftell() const; //取文件指针的位置。
 	void
 	rewind() const; //文件指针返回到文件头。
 	int
-	fseek(s32 offset, int origin) const; //设置文件指针位置，offset 和 origin 语义同 fseek 函数。
+	fseek(SizeType offset, int origin) const; //设置文件指针位置，offset 和 origin 语义同 fseek 函数。
 	int
 	fread(void *p, int size, int count); //读文件到 p 中。
 	int
-	fEOF(); //检测文件结束符。
+	feof() const; //检测文件结束符。
 };
-
-inline bool
-YFile::IsValid() const
-{
-	return fp;
-}
-inline FILE*
-YFile::GetFilePtr() const
-{
-	return fp;
-}
-inline u32
-YFile::GetFileLen() const
-{
-	return fsize;
-}
 
 inline long
 YFile::ftell() const
 {
-	return ::ftell(fp);
+	return std::ftell(fp);
 }
 inline void
 YFile::rewind() const
 {
-	::rewind(fp);
+	std::rewind(fp);
 }
 inline int
-YFile::fseek(s32 offset, int origin) const
+YFile::fseek(SizeType offset, int origin) const
 {
-	return ::fseek(fp, offset, origin);
+	return std::fseek(fp, offset, origin);
 }
 inline int
 YFile::fread(void *p, int size, int count)
 {
-	return ::fread(p, size, count, fp);
+	return std::fread(p, size, count, fp);
 }
 inline int
-YFile::fEOF()
+YFile::feof() const
 {
-#ifdef feof
-	return feof(fp);
-#else
-	return ::feof(fp);
-#endif
+	return std::feof(fp);
 }
 
 YSL_END

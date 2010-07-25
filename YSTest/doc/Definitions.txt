@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-7-21 23:19;
-// Version = r6539;
+// UTime = 2010-7-25 10:43;
+// Version = r6624;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -20,7 +20,8 @@ code header "platform.h" {
 #	endif
 #endif
 
-import header <stdio.h>, <stdlib.h>, <stdarg.h>;
+//$example:
+import header <nds.h>, <fat.h>, <unistd.h>, <sys/dir.h>;
 
 //像素类型。
 import type $pixeltype;
@@ -408,19 +409,28 @@ unit YCommon "ycommon"
 	#define UNICODE
 	#endif
 	
-	import header "ydef.h", <cstdlib>;
+	import header "ydef.h", <cstdio>,
+		<cstdarg>, <cstring>, <cstdarg>;
 
 	//平台无关部分。
 
 	namespace stdex
 	{
-		//判断字符指针是否非 NULL 。
-		inline bool
-		isvalidstr(char*);
-		inline bool
-		isvalidstr(const char*);
-		inline bool
-		isvalidstr(char*, const char*);
+		//当字符指针非空时返回 std::strlen 计算的串长，否则返回 0 。
+		std::size_t
+		strlen_n(const char*);
+
+		//当目标字符串和源字符串都非空时用 std::strcpy 复制字符串并返回复制的字符串，否则返回空指针。
+		char*
+		strcpy_n(char*, const char*);
+
+		//当目标字符串和源字符串都非空时用 stpcpy 复制字符串并返回复制的字符串的结尾指针，否则返回空指针。
+		char*
+		stpcpy_n(char*, const char*);
+
+		//当两个字符串都非空时返回 stricmp 比较的字符串结果，否则返回 EOF 。
+		int
+		stricmp_n(const char*, const char*);
 
 		//当字符指针非空时用 strdup 复制字符串并返回复制的字符串，否则返回空指针。
 		char*
@@ -707,6 +717,8 @@ header YAdapter "yadapter.h"
 	//编译配置。
 	//#define NDEBUG
 	#define YC_USE_YASSERT
+
+	#include <cstdio>
 
 	//包含平台文件。
 	#include <platform.h>
@@ -1069,7 +1081,9 @@ unit MFont "yfont"
 
 		DefGetter(const FT_String*, FamilyName, family_name)
 		const MTypeface*
-		GetTypefacePtr(const FT_String*) const; //取指定名称字型指针。
+		GetTypefacePtr(EFontStyle) const; //取指定样式的字型指针，若非 Regular 样式失败则尝试取 Regular 样式的字型指针。
+		const MTypeface*
+		GetTypefacePtr(const FT_String*) const; //取指定样式名称的字型指针。
 
 	private:
 		void
@@ -1148,8 +1162,10 @@ unit MFont "yfont"
 	const MTypeface* GetDefaultTypefacePtr();
 
 	//取默认字型家族。
-	inline const MFontFamily* GetDefaultFontFamilyPtr();
-
+	inline const MFontFamily*
+	GetDefaultFontFamilyPtr();
+	inline const MFontFamily&
+	GetDefaultFontFamily()
 
 	//字体：字模，包含字型和大小。
 	class MFont
@@ -1194,10 +1210,12 @@ unit MFont "yfont"
 		DefSetter(EFontStyle, Style, Style)
 		void
 		SetSize(SizeType);
+		void
+		SetFont(const MFont&);
 
-		void
+		bool
 		Update(); //更新字体缓存中当前处理的字体。
-		void
+		bool
 		UpdateSize(); //更新字体缓存中当前处理的字体大小。
 
 		static bool
@@ -1277,9 +1295,9 @@ unit MFont "yfont"
 		s8
 		GetDescender() const; //取降部。
 
-		void
+		bool
 		SetTypeface(const MTypeface*); //设置字型组中指定的字型为当前字型（忽略不属于字型组的字型）。
-		void
+		bool
 		SetFontSize(MFont::SizeType); //设置当前处理的字体大小。
 
 	public:
@@ -1455,13 +1473,13 @@ header YShellDefinition "ysdef.h"
 	#define DefStaticBoolGetterBase(_name, _base) static bool _yJOIN(Is, _name)() { return _base::_yJOIN(Is, _name)(); }
 
 	#define DefSetter(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) { _member = _tempArgName; }
-	#define DefSetterDef(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _tempArgName; }
+	#define DefSetterDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _tempArgName; }
 	#define DefSetterBase(_type, _name, _base) void _yJOIN(Set, _name)(_type _tempArgName) { _base::_yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterBaseDef(_type, _name, _base, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _base::_yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterBaseDe(_type, _name, _base, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _base::_yJOIN(Set, _name)(_tempArgName); }
 	#define DefSetterMember(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) { _member._yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterMemberDef(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member._yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterMemberDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member._yJOIN(Set, _name)(_tempArgName); }
 	#define DefSetterEx(_type, _name, _member, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName) { _member = _expr; }
-	#define DefSetterDefEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _expr; }
+	#define DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _expr; }
 
 
 	#define YSL_BEGIN	namespace YSLib {
@@ -1722,6 +1740,28 @@ header YFunc "yfunc.hpp"
 unit YCoreUtilities "ycutil"
 {
 	import header YShellDefinition, <cstring>, <functional>;
+
+
+	YSL_BEGIN_NAMESPACE(Design)
+
+	//不可复制对象：继承此类的对象在外部无法调用复制构造函数和复制赋值操作符。
+	class NonCopyable
+	{
+	//保护非多态类。
+	protected:
+		NonCopyable()
+		{}
+		~NonCopyable()
+		{}
+
+	private: 
+		NonCopyable(const NonCopyable&);
+		NonCopyable& operator=(const NonCopyable&);
+	};
+
+	YSL_END_NAMESPACE(Design)
+
+	using Design::NonCopyable;
 
 
 	//判断引用相等关系。
@@ -3271,7 +3311,7 @@ unit YApplication "yapp"
 
 
 	//程序实例：通过单例实现进程唯一性语义。
-	class YApplication : public YObject,
+	class YApplication : private NonCopyable, public YObject,
 		implements GIContainer<YShell>
 	{
 	public:
@@ -3489,15 +3529,12 @@ unit YFile "yfile"
 		virtual
 		~YFile();
 
-		inline bool
-		IsValid() const; //判断文件指针是否有效。
-		inline FILE*
-		GetFilePtr() const; //取文件指针。
-		inline u32
-		GetFileLen() const; //取文件长度。
+		DefBoolGetter(Valid, fp) //判断文件指针是否有效。
+		DefGetter(FILE*, Ptr, fp) //取文件指针。
+		DefGetter(SizeType, Length, fsize) //取文件长度。
 
 		inline bool
-		OpenFile(CPATH); //打开指定路径的文件。
+		Open(CPATH); //打开指定路径的文件。
 		long
 		ftell() const; //取文件指针的位置。
 		inline void
@@ -3507,7 +3544,7 @@ unit YFile "yfile"
 		inline int
 		fread(void *p, int size, int count); //读文件到 p 中。
 		inline int
-		fEOF(); //检测文件结束符。
+		feof() const; //检测文件结束符。
 	};//class YFile;
 
 }//unit YFile;
@@ -3804,28 +3841,21 @@ unit YGDI "ygdi"
 
 	public:
 		inline explicit
-		YPenStyle(const MFontFamily& = *GetDefaultFontFamilyPtr(), MFont::SizeType = MFont::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
+		YPenStyle(const MFontFamily& = GetDefaultFontFamily(), MFont::SizeType = MFont::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
 
-		inline MFont&
-		GetFont();
+		PDefHead(MFont&, GetFont)
+			ImplRet(Font)
 		DefGetter(const MFont&, Font, Font)
 		DefGetterMember(const MFontFamily&, FontFamily, Font)
 		DefGetter(MFont::SizeType, FontSize, Font.GetSize())
 		DefGetter(PixelType, Color, Color)
 
-		inline void
-		SetFont(const MFont&); //设置字体。
-		inline void
+		DefSetterMember(const MFont&, Font, Font); //设置字体。
+		inline bool
 		SetFontStyle(EFontStyle); //设置字体样式。
-		inline void
+		inline bool
 		SetFontSize(MFont::SizeType); //设置字体大小。
-		inline void
-		SetColor(PixelType c = RGB15(31, 31, 31)); //设置颜色。
-
-		inline void
-		UpdateFont(); //更新字体缓存中当前处理的字体。
-		inline void
-		UpdateFontSize(); //更新字体缓存中当前处理的字体大小。
+		DefSetterDe(PixelType, Color, Color, ~0) //设置颜色。
 	};
 
 	struct MPadding //边距样式。
@@ -4006,7 +4036,7 @@ unit YGUI "ygui"
 
 		DefStaticGetter(const SVec&, DragOffset, v_DragOffset)
 
-		static DefSetterDef(const SVec&, DragOffset, v_DragOffset, SVec::FullScreen)
+		static DefSetterDe(const SVec&, DragOffset, v_DragOffset, SVec::FullScreen)
 	};
 
 
@@ -4250,9 +4280,9 @@ unit YWidget "ywidget"
 		virtual DefGetter(const SSize&, Size, Size)
 		virtual DefGetter(SRect, Bounds, SRect(Location, Size.Width, Size.Height))
 
-		DefSetterDef(bool, Visible, Visible, true)
-		DefSetterDef(bool, Transparent, Transparent, true)
-		DefSetterDef(bool, BgRedrawing, bBgRedraw, true)
+		DefSetterDe(bool, Visible, Visible, true)
+		DefSetterDe(bool, Transparent, Transparent, true)
+		DefSetterDe(bool, BgRedrawing, bBgRedraw, true)
 		virtual DefSetter(const SPoint&, Location, Location)
 		virtual PDefHead(void, SetLocation, SPOS x, SPOS y)
 			ImplBodyBaseVoid(MVisual, SetLocation, SPoint(x, y))
@@ -4323,9 +4353,9 @@ unit YWidget "ywidget"
 		virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 		virtual DefGetterBase(HWND, WindowHandle, MWidget)
 
-		virtual DefSetterBaseDef(bool, Visible, MVisual, true)
-		virtual DefSetterBaseDef(bool, Transparent, MVisual, true)
-		virtual DefSetterBaseDef(bool, BgRedrawing, MVisual, true)
+		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
+		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
+		virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
 		virtual DefSetterBase(const SPoint&, Location, MVisual)
 
 		virtual void
@@ -4424,9 +4454,9 @@ unit YWidget "ywidget"
 		virtual SPoint
 		GetWindowLocationOffset(const SPoint& = SPoint::Zero) const;
 
-		virtual DefSetterBaseDef(bool, Visible, MVisual, true)
-		virtual DefSetterBaseDef(bool, Transparent, MVisual, true)
-		virtual DefSetterBaseDef(bool, BgRedrawing, MVisual, true)
+		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
+		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
+		virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
 		virtual DefSetterBase(const SPoint&, Location, MVisual)
 
 		virtual PDefHead(void, ClearFocusingPtr)
@@ -4548,7 +4578,7 @@ unit YControl "ycontrol"
 
 		virtual DefBoolGetter(Enabled, Enabled)
 
-		virtual DefSetterDef(bool, Enabled, Enabled, true)
+		virtual DefSetterDe(bool, Enabled, Enabled, true)
 	};//struct MControl;
 
 
@@ -4637,11 +4667,11 @@ unit YControl "ycontrol"
 		virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 		virtual DefGetterBase(HWND, WindowHandle, MWidget)
 
-		virtual DefSetterBaseDef(bool, Visible, MVisual, true)
-		virtual DefSetterBaseDef(bool, Transparent, MVisual, true)
-		virtual DefSetterBaseDef(bool, BgRedrawing, MVisual, true)
+		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
+		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
+		virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
 		virtual DefSetterBase(const SPoint&, Location, MVisual)
-		virtual DefSetterBaseDef(bool, Enabled, MControl, true)
+		virtual DefSetterBaseDe(bool, Enabled, MControl, true)
 
 		virtual void
 		DrawBackground();
@@ -4771,7 +4801,7 @@ unit YWindow "ywindow"
 		DefGetter(HSHL, ShellHandle, hShell)
 		DefGetter(GHResource<YImage>, Background, prBackImage)
 
-		DefSetterDef(GHResource<YImage>, Background, prBackImage, NULL)
+		DefSetterDe(GHResource<YImage>, Background, prBackImage, NULL)
 	};
 
 
@@ -4827,18 +4857,18 @@ unit YWindow "ywindow"
 		BitmapPtr
 		GetBackgroundPtr() const;
 
-		virtual DefSetterBaseDef(bool, Visible, MVisual, true)
-		virtual DefSetterBaseDef(bool, Transparent, MVisual, true)
-		virtual DefSetterBaseDef(bool, BgRedrawing, MVisual, true)
+		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
+		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
+		virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
 		virtual DefSetterBase(const SPoint&, Location, MVisual)
-		virtual DefSetterDef(bool, Refresh, bRefresh, true)
-		virtual DefSetterDef(bool, Update, bUpdate, true)
+		virtual DefSetterDe(bool, Refresh, bRefresh, true)
+		virtual DefSetterDe(bool, Update, bUpdate, true)
 		virtual void
 		SetSize(SDST, SDST);
 		virtual void
 		SetBounds(const SRect&);
-		virtual DefSetterBaseDef(bool, Enabled, MVisualControl, true)
-		virtual DefSetterBaseDef(GHResource<YImage>, Background, MWindow, NULL)
+		virtual DefSetterBaseDe(bool, Enabled, MVisualControl, true)
+		virtual DefSetterBaseDe(GHResource<YImage>, Background, MWindow, NULL)
 
 		PDefHead(void, ClearBackground) const //清除背景。
 			ImplExpr(Buffer.ClearImage())
@@ -5013,20 +5043,16 @@ unit YText "ytext"
 		explicit
 		YTextState(MFont&);
 		explicit
-		YTextState(YFontCache*);
+		YTextState(YFontCache&);
 
 		inline YTextState&
 		operator=(const YPenStyle& ps); //从 ts 中恢复样式。
 		inline YTextState&
 		operator=(const MPadding& ms); //从 ms 中恢复样式。
-		YTextState& operator=(const YTextState& ms); //从 ts 中恢复状态。
 
-		inline SPOS
-		GetPenX() const;
-		inline SPOS
-		GetPenY() const;
-		inline u8
-		GetLineGap() const; //取当前字体设置对应的行距。
+		DefGetter(SPOS, PenX, penX)
+		DefGetter(SPOS, PenY, penY)
+		DefGetter(u8, LineGap, lnGap) //取当前字体设置对应的行距。
 		SDST
 		GetLnHeight() const; //取当前字体设置对应的行高。
 		SDST
@@ -5046,8 +5072,7 @@ unit YText "ytext"
 		SetMargins(SDST, SDST); //设置边距（2 个 16 位无符号整数形式，分别表示水平边距和竖直边距）。
 		inline void
 		SetMargins(SDST, SDST, SDST, SDST); //设置边距（4 个 16 位无符号整数形式）。
-		inline void
-		SetLineGap(u8);
+		DefSetter(u8, LineGap, lnGap) //设置行距。
 		void
 		SetLnNNow(u16); //设置笔的行位置。
 	};//class YTextState;
@@ -5065,16 +5090,14 @@ unit YText "ytext"
 		explicit
 		YTextRegion(MFont&);
 		explicit
-		YTextRegion(YFontCache*);
+		YTextRegion(YFontCache&);
 		~YTextRegion();
 
 		inline YTextRegion&
 		operator=(const YTextState& ts); //从 ts 中恢复状态。
 
-		inline SDST
-		GetBufWidthN() const; //取缓冲区的文本显示区域的宽。
-		inline SDST
-		GetBufHeightN() const; //取缓冲区的文本显示区域的高。
+		DefGetter(SDST, BufWidthN, Width - Margin.GetHorizontal()) //取缓冲区的文本显示区域的宽。
+		DefGetter(SDST, BufHeightN, Height - Margin.GetVertical()) //取缓冲区的文本显示区域的高。
 		SDST
 		GetMarginResized() const; //根据字体大小、行距和缓冲区的高调整边距，返回调整后的底边距值。
 		SDST
@@ -5191,57 +5214,118 @@ unit YShellInitialization "ysinit"
 
 unit YTextManager "ytmgr"
 {
-	import unit Core::YString, Core::YFile_(Text),
+	import unit Core::YString, Core::YFile_(Text), header <map>
 		Core::YApplication;
 
 
 	YSL_BEGIN_NAMESPACE(Text)
 
-	class MTextBuffer
+
 	//文本缓冲区。
+	class MTextBuffer : private NonCopyable;
 	{
+	public:
+		typedef size_t SizeType; //字符数类型。
+
 	private:
-		const u32 mlen; //最大长度（字符数）。
+		const SizeType mlen; //最大长度（字符数）。
 
 	protected:
 		//文本缓冲区的首地址和长度。
 		uchar_t* const text;
-		u32 len;
+		SizeType len;
 
 		explicit
-		MTextBuffer(u32 tlen);
+		MTextBuffer(SizeType tlen);
 		inline
 		~MTextBuffer();
 
 	public:
-		inline size_t
-		GetSizeOfBuffer() const; //取文本缓冲区的大小。
-		inline uchar_t* const
-		GetPtr() const; //取文本缓冲区的指针。
-		u32
-		GetPrevChar(u32 o, uchar_t c); //从文本缓冲区下标 o （不含）起逆序查找字符 c 。返回结果的直接后继下标；查找失败时返回 0 。
-		u32
-		GetNextChar(u32 o, uchar_t c); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
-		inline u32
-		GetPrevNewline(u32 o); //从文本缓冲区下标 o （不含）起逆序查找换行符。返回结果的直接后继下标；查找失败时返回 0 。
-		inline u32
-		GetNextNewline(u32 o); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
+		DefGetter(size_t, SizeOfBuffer, sizeof(uchar_t) * mlen) //取文本缓冲区的大小。
+		DefGetter(uchar_t*, Ptr, text) //取文本缓冲区的指针。
+		SizeType
+		GetPrevChar(SizeType o, uchar_t c); //从文本缓冲区下标 o （不含）起逆序查找字符 c 。返回结果的直接后继下标；查找失败时返回 0 。
+		SizeType
+		GetNextChar(SizeType o, uchar_t c); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
+		inline SizeType
+		GetPrevNewline(SizeType o); //从文本缓冲区下标 o （不含）起逆序查找换行符。返回结果的直接后继下标；查找失败时返回 0 。
+		inline SizeType
+		GetNextNewline(SizeType o); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
 
 		inline void
 		ClearText(); //清空缓冲区。
 		inline bool
 		Load(const uchar_t* s); //从起始地址 s 中读取连续的 mlen 个 uchar_t 字符。
 		bool
-		Load(const uchar_t* s, u32 n); //从起始地址 s 中读取连续的 n 个 uchar_t 字符。
+		Load(const uchar_t* s, SizeType n); //从起始地址 s 中读取连续的 n 个 uchar_t 字符。
 		inline u32
 		Load(YTextFile& f); //从文本文件 f 中读取连续的 mlen 个字符（自动校验换行并转换为 Unix / Linux 格式），并返回成功读取的字符数。
-		u32
-		Load(YTextFile& f, u32 n); //从文本文件 f 中读取连续的 n 个字符，并返回成功读取的字符数。
+		SizeType
+		Load(YTextFile& f, SizeType n); //从文本文件 f 中读取连续的 n 个字符，并返回成功读取的字符数。
 
 		bool
-		Output(uchar_t* d, u32 p, u32 n) const; //从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
+		Output(uchar_t* d, SizeType p, SizeType n) const; //从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
 
 	};//class MTextBuffer;
+
+
+	//文本缓冲块。
+	class MTextBlock : public MTextBuffer
+	{
+	public:
+		typedef u16 IndexType;
+
+		IndexType Index;
+
+		inline
+		MTextBlock(IndexType, SizeType);
+		inline virtual
+		~MTextBlock();
+	}; //class MTextBlock;
+
+
+	//文本缓冲块映射。
+	class MTextMap
+	{
+	public:
+		typedef MTextBlock::IndexType IndexType;
+		typedef std::map<IndexType, MTextBlock*> MapType;
+
+	protected:
+		MapType Map;
+
+	public:
+		inline virtual
+		~MTextMap();
+
+		inline MTextBlock*
+		operator[](const IndexType&);
+		inline void
+		operator+=(const std::pair<const IndexType&, MTextBlock*>&);
+		inline void
+		operator-=(const IndexType&);
+
+		void
+		clear();
+	}; //class YTextMap;
+
+
+	//文本文件块缓冲区。
+	class MTextFileBuffer : public MTextMap
+	{
+	public:
+		YTextFile& File;
+
+	private:
+		SizeType nPos;
+
+	public:
+		explicit
+		MTextFileBuffer(YTextFile&);
+
+		MTextBlock&
+		operator[](const IndexType&);
+	}; //class MTextFileBuffer;
 
 	YSL_END_NAMESPACE(Text)
 
@@ -5503,6 +5587,11 @@ header Core::YShellDefinition : Adapter
 	using Shells::YShell, Shells::YShellMain;
 	
 	using Text::YString;
+}
+
+header Core::YCoreUtilities : Core::YShellDefinition
+{
+	using Design::NonCopyable;
 }
 
 header Core::YShellMessage : Core::YShellDefinition

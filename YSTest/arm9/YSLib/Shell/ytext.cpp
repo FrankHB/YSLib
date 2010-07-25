@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-7-20 15:50;
-// Version = 0.5858;
+// UTime = 2010-7-25 10:40;
+// Version = 0.5889;
 
 
 #include "ytext.h"
@@ -19,28 +19,17 @@ YSL_BEGIN_NAMESPACE(Drawing)
 static const u8 Alpha_Threshold = 16;
 
 YTextState::YTextState()
-:YPenStyle(*GetDefaultFontFamilyPtr()), Margin(), pCache(&GetFontFamily().Cache),
+:YPenStyle(GetDefaultFontFamily()), Margin(), pCache(&GetFontFamily().Cache),
 penX(0), penY(0), lnGap(0)
 {}
 YTextState::YTextState(MFont& font)
 :YPenStyle(font.GetFontFamily()), Margin(), pCache(&GetFontFamily().Cache),
 penX(0), penY(0), lnGap(0)
 {}
-YTextState::YTextState(YFontCache* fc)
-:YPenStyle(*(fc ? fc : pDefaultFontCache)->GetDefaultTypefacePtr()->GetFontFamilyPtr()), Margin(), pCache(&GetFontFamily().Cache),
+YTextState::YTextState(YFontCache& fc)
+:YPenStyle(*fc.GetDefaultTypefacePtr()->GetFontFamilyPtr()), Margin(), pCache(&GetFontFamily().Cache),
 penX(0), penY(0), lnGap(0)
 {}
-
-YTextState& YTextState::operator=(const YTextState& ts)
-{
-	YPenStyle::operator=(ts);
-	Margin = ts.Margin;
-//	if (ts.GetFontPtr() && pFont != ts.GetFontPtr())
-//		SetFont(DEF_FONT_NAME, ts.GetFontPtr()->file->path);
-	if (GetFontSize() != ts.GetFontSize())
-		SetFontSize(ts.GetFontSize());
-	return *this;
-}
 
 SDST
 YTextState::GetLnHeight() const
@@ -159,17 +148,20 @@ YTextRegion::PrintChar(u32 c)
 	penX = tx;
 }
 
-YTextRegion::YTextRegion() : YTextState(), MBitmapBufferEx()
+YTextRegion::YTextRegion()
+: YTextState(), MBitmapBufferEx()
 {
 	SetFontSize(MFont::DefSize);
 	SetPen();
 }
-YTextRegion::YTextRegion(MFont& font) : YTextState(font), MBitmapBufferEx()
+YTextRegion::YTextRegion(MFont& font)
+: YTextState(font), MBitmapBufferEx()
 {
 	SetFontSize(MFont::DefSize);
 	SetPen();
 }
-YTextRegion::YTextRegion(YFontCache* fc) : YTextState(fc), MBitmapBufferEx()
+YTextRegion::YTextRegion(YFontCache& fc)
+: YTextState(fc), MBitmapBufferEx()
 {
 	SetFontSize(MFont::DefSize);
 	SetPen();
@@ -330,7 +322,7 @@ YTextRegion::Move(s16 n, SDST h)
 void
 YTextRegion::PutNewline()
 {
-	UpdateFontSize();
+	Font.Update();
 	penX = Margin.Left;
 	penY += GetLnHeightEx();
 }
@@ -357,7 +349,7 @@ YTextRegion::PutChar(u32 c)
 		PutNewline();
 		return 1;
 	}
-	UpdateFont();
+	Font.Update();
 	PrintChar(c);
 	return 0;
 }
@@ -397,7 +389,7 @@ ReadX(YTextFile& f, YTextRegion& tr, u32 n)
 	if(f.IsValid())
 	{
 		u32 i(0), t;
-		FILE* const fp(f.GetFilePtr());
+		FILE* const fp(f.GetPtr());
 		const CSID cp(f.GetCP());
 		uchar_t c;
 

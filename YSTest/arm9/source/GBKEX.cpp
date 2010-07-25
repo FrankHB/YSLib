@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-7-22;
-// Version = 0.2601; *Build 134 r34;
+// UTime = 2010-7-25;
+// Version = 0.2604; *Build 135 r32;
 
 
 #include "../YCLib/ydef.h"
@@ -36,6 +36,9 @@ Record prefix and abbrevations:
 \ctor ::= constructors;
 \cv ::= const & volatile
 \d ::= derived
+\de ::= default
+\def ::= definitions
+\decl ::= declations
 \dtor ::= destructors;
 \e ::= exceptions
 \en ::= enums
@@ -43,9 +46,12 @@ Record prefix and abbrevations:
 \err ::= errors
 \ev ::= events
 \evh ::= event handling
+\ex ::= extra
+\exp ::= explicit
 \f ::= functions
 \g ::= global
 \gs ::= global scpoe
+\h ::= headers
 \i ::= inline
 \impl ::= implementations
 \init ::= initializations
@@ -78,181 +84,149 @@ Record prefix and abbrevations:
 \tf ::= function templates
 \tr ::= trivial
 \tp ::= types
-\u ::= unit
+\u ::= units
 \v ::= volatile
 \val ::= values
 
 DONE:
 
 r1:
-/ make \a @YAssert call expressions about null pointer comparison strict.
-- \f @stdex::strnlen(const char*) @@ \u !@YCommon;
-- \f @stdex::strnlen2(const char*) @@ \u !@YCommon;
-- \f @stdex::strcmpx(const char*, const char*) @@ \u !@YCommon;
-+ \i \f @stdex::isstrvalid(char*) @@ \u !@YCommon;
-+ \i \f @stdex::isstrvalid(const char*) @@ \u !@YCommon;
-+ \i \f @stdex::isstrvalid(char*, const char*) @@ \u !@YCommon;
-/ \f char* @stdex::strcatdup(const char*, const char*) -> char* @strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc) @@ \u !@YCommon;
+* \decl \f char* stdex::@strdup_n => std::size_t stdex::@strlen_n @@ \u YCommon;
+/= \a \mac @*Def => @*De \def @@ \h "ysdef.h";
 
 r2:
-/= \a @isstrvalid => @isvalidstr;
-+ \f char* @stdex::strdup_n(const char*) @@ \u !@YCommon;
-* ^ \a \f @strdup @@ !(\u !@)YCommon -> \f @strdup_n;
-+ \f char* @stdex::strlen_n(const char*) @@ \u !@YCommon;
++ \i \f char* strcpy_n(char*, const char*) @@ \u !@YCommon;
+/= ^ stdc++ \h instead of stdc \h;
++ \i \f char* stpcpy_n(char*, const char*) @@ \u !@YCommon;
++ \i \f int stricmp_n(const char*, const char*) @@ \u !@YCommon;
+- \a \i \f @stdex::isstrvalid @@ \u !@YCommon;
 
 r3:
-- \i \f void @CreateDefFontCache(CPATH) @@ \u !@YShellUtilities;
-/ \a \i \f @DestroyDefFontCache => @DestroySystemFontCache;
-/ (\i \f @DestroySystemFontCache @@ \u !@YShellUtilities) => (!\i \f @DestroySystemFontCache @@ \u !@YShellInitialization);
++ \mf const MTypeface* MFontFamily::GetTypefacePtr(EFontStyle) const;
++ assertion @@ \mf EFontStyle::GetName();
+/ \tr @@ \mf MFont::Update();
 
 r4:
-/= \m @u8 @fontSize => \m @YFont::@SizeType @fontSize @@ \c @YFontCache;
-/= ^ \mac (@DefGetter & @DefGetterMember & @DefSetterDef) to \impl (getters & setters) @@ \c @YPenStyle;
++ \mf MFont::SetFont @@ \u YFont;
+/ ^ \mac DefSetterMember to \impl \i \mf YPenstyle::SetFont @@\u YGDI;
++ ^ \mac DefGetter to \impl \mf YLabel::GetFont @@\u YControl;
++ ^ \mac DefSetterMember to \impl \mf YLabel::SetFont @@\u YControl;
+* \mac @@ \h "ysdef.h";
+/= ^ \mac to \impl \i \mf @GetFont @@ \cl YPenStyle @@ \u YGDI;
 
 r5:
-/= \a \m @pType => \m @pFace @@ \c @YFontCache @@ \u !@YFont;
-/= \a \m @fontSize => \m @curSize @@ \c @YFontCache @@ \u !@YFont;
-/= ^ C++ style casting @@ \u !@YFont;
-/= YFontFamily::YFontFamily(YFontCache&, FT_String*) -> YFontFamily::YFontFamily(YFontCache&, const FT_String*);
-/= YFontFile::YFontFile(const CPATH, FT_Library&) -> YFontFile::YFontFile(CPATH, FT_Library&);
-/= YFontFile::YFontFile(const CPATH, const char*, FT_Library&) -> YFontFile::YFontFile(CPATH, const char*, FT_Library&);
-/= YFont::YFont(const YFontFamily& = *GetDefaultFontFamilyPtr(), const SizeType = DefSize, YFontStyle = Regular)
-	-> YFont::YFont(const YFontFamily& = *GetDefaultFontFamilyPtr(), SizeType = DefSize, YFontStyle = Regular);
-/ \mf const YTypeface* @YFontCache::SetTypeface(const YTypeface&) -> \mf void @YFontCache::SetTypeface(const YTypeface*);
-/= \a \tp \c @CPATH -> \a \tp @CPATH @@ \u !@YFont;
+/ @@ \u YFont:
+	/ \ret \tp of \mf YFontCache::SetTypeface(const MTypeface*): void -> bool;
+	/ \ret \tp of \mf YFontCache::SetFontSize(MFont::SizeType): void -> bool;
+	/ \ret \tp of \mf MFont::UpdateSize(): void -> bool;
+	/ \ret \tp of \mf MFont::Update(): void -> bool;
+/ @@ \u YGDI:
+	- \i \mf void YPenStyle::UpdateFont();
+	- \i \mf void YPenStyle::UpdateFontSize();
+	/ \ret \tp of \i \mf YPenStyle::SetFontStyle(EFontStyle): void -> bool;
+	/ \ret \tp of \i \mf YPenStyle::SetFontSize(MFont::SizeType): void -> bool;
+- \mf YTextState& YTextState::operator=(const YTextState&) @@ \u YText;
+/ \tr @@ \mf YTextRegion::PutNewline() @@ \u YText;
 
-r6:
-/ @@ \cl @YFontCache:
-	/ public \m:
-		typedef std::set<YFontFile*, deref_comp<YFontFile> > FFiles
-			-> typedef std::set<const YFontFile*, deref_comp<const YFontFile> > FFiles,
-		typedef std::set<YTypeface*, deref_comp<YTypeface> > FTypes
-			-> typedef std::set<const YTypeface*, deref_comp<const YTypeface> > FTypes;
-	/ private \mf:
-		void operator+=(YFontFile&) -> void operator+=(const YFontFile&),
-		void operator-=(YFontFile&) -> void operator-=(const YFontFile&),
-		void operator+=(YTypeface&) -> void operator+=(const YTypeface&),
-		void operator-=(YTypeface&) -> void operator-=(const YTypeface&);
-	/ \impl GIContainer<YFontFile>, implements GIContainer<YTypeface>, implements GIContainer<YFontFamily>
-		->GIContainer<const YFontFile>, implements GIContainer<const YTypeface>, implements GIContainer<YFontFamily>;
-
-r7:
-/= \a @YFont => @MFont;
-/= \a @YFontFamily => @MFontFamily;
-/= \a @YTypeface => @MTypeface;
-/= \a @YFontFile => @MFontFile;
-+ \cl @YFontCache \inh public \cl @YObject;
+r6-r7:
+* \impl @@ bool DrawRect(YGIC&, SPOS, SPOS, SPOS, SPOS, PixelType) @@ \u YGDI;
 
 r8:
-+ style \str "Underline" & "Strikeout" @@ \mf @YFont::@GetStyleName();
-/ \tp \en @YFontStyle wrapped to \st @EFontStyle::Styles;
-\+ \mf @YFont::@GetStyleName() >> @EFontStyle::GetName();
-+ \mf \mac @DefConverter to \type \c @Styles& @@ \st @EFontStyle;
-\+ \impl @YFont::@GetStyleName();
-+ \mf \op @Styles&() @@ \st @EFontStyle;
-+ \ctor @EFontStyle(Styles = Regular) @@ \st @EFontStyle;
-/ GetStyleName() -> DefGetter(const FT_String*, StyleName, Style.GetName()) @@ \cl @MFont @@ \u !@YFont;
+* @@ \u YGDI:
+	* \impl @@ bool DrawHLineSeg(YGIC&, SPOS, SPOS, SPOS, PixelType);
+	* \impl @@ bool DrawVLineSeg(YGIC&, SPOS, SPOS, SPOS, PixelType);
+	* \impl @@ bool DrawRect(YGIC&, SPOS, SPOS, SPOS, SPOS, PixelType);
+/= @@ \u YGDI:
+	\= \sf bool DrawObliqueLine(YGIC&, SPOS, SPOS, SPOS, SPOS, PixelType) >> unnamed \ns;
+	\= \i \sf SPOS blitMinX(SPOS, SPOS) >> unnamed \ns;
+	\= \i \sf SPOS blitMinY(SPOS, SPOS) >> unnamed \ns;
+	\= \i \sf SPOS blitMaxX(SPOS, SPOS) >> unnamed \ns;
+	\= \i \sf SPOS blitMaxY(SPOS, SPOS) >> unnamed \ns;
 
 r9:
-* reader not auto-refresh on re-activated by touch screen;
+/ @@ \u YControl:
+	/ @@ \cl YLabel:
+		/ \m Drawing::MFont& Font -> Drawing::MFont Font;
+		/ \m Drawing::MPadding& Margin -> Drawing::MPadding Margin;
+	/ @@ \cl YListBox:
+		/ \m Drawing::MFont& Font -> Drawing::MFont Font;
+		/ \m Drawing::MPadding& Margin -> Drawing::MPadding Margin;
 
-r10:
-/= \a \f @InitialSystemFontCache => \f @InitializeSystemFontCache;
-/= \a \f @checkSystemFontCache => \f @CheckSystemFontCache;
-/= (\sf @printFailInfo >> @@ unnamed \ns) @@ \u !@YShellInitialization;
-/= (\sf @defFontFail >> @@ unnamed \ns) @@ \u !@YShellInitialization;
-/= (\sf @defFontFail >> @@ unnamed \ns) @@ \u !@YShellInitialization;
-/= (\sif @fatalError) >> @@ unnamed \ns) @@ \u !@YShellInitialization;
-/= \f (@libfatFail => @LibfatFail) @@ \u !@YShellInitialization;
-/= (\sf @installFail >> @@ unnamed \ns) @@ \u !@YShellInitialization;
-/= (\f @printFailInfo >> @@ unnamed \ns) @@ \u !@YShellInitialization;
-/= \a \f @epicFail => \f @EpicFail;
-/= \a \f @checkInstall => \f @CheckInstall;
-/ \tr output modified @@ \f @InitializeSystemFontCache @@ \u !@YShellInitialization;
-/+ \tb @ \smf YFont::@InitialDefault;
-/ (\smf (void InitialDefault() -> bool InitialDefault())) @@ \cl @MFont @@ \u !@YFont;
-/= \a \smf @InitialDefault => \smf @InitializeDefault;
-
-r11:
-/ \tr @@ \mf @YFontCache::LoadFontFile @@ \u !@YFont:
-	+ \tb;
+r10-r11:
+*= \tf template<class T> GHResource<T>& GetGlobalResource() @@ \u YResource;
+/= ^ \mac @DefGetter @@ \cl YTextBuffer @@ \u YTextManager;
+/= + \m typedef size_t SizeType @@ \cl YTextBuffer @@ \u YTextManager;
+/= \tr @@ \cl MDualScreenReader;
 
 r12:
-/ @@ \u !@YFont:
-	/@@ \c MFontFamily:
-		/= \a \m @FTypes => @FTypesIndex:
-			/= private \m FTypes sTypes => FTypesIndex sTypes;
-		/ typedef std::map<const FT_String*, MTypeface*, deref_str_comp<FT_String> > FTypesIndex
-			-> typedef std::map<const FT_String*, const MTypeface*> FTypesIndex:
-			/= private \m FTypesIndex sTypes => FTypesIndex mTypesIndex;
-		+ typedef std::set<const MTypeface*> FTypes;
-		+ FTypes sTypes;
-		+ private \m FTypes sTypes => FTypesIndex mTypesIndex;
-			void operator+=(MTypeface&) -> void operator+=(const MTypeface&),
-			void operator-=(MTypeface&) -> void operator-=(const MTypeface&);
-/= \a @FFaces => @FFacesIndex:
-	/= \m @sFaces => @mFacesIndex @@ \cl @YFontCache @@ !@YFont; 
+/+ @@ \u YFont:
+	/+= asseration @@ (\f const MTypeface* GetDefaultTypefacePtr() & \i \f const MFontFamily* GetDefaultFontFamilyPtr()) @@ \u YFont;
+	+ \i \f inline const MFontFamily& GetDefaultFontFamily() with asseration;
+/= \a ^ of \i \f GetDefaultFontFamilyPtr -> GetDefaultFontFamily; 
+/ @@ \u YText:
+	/ \exp \ctor YTextState(YFontCache*) -> YTextState(YFontCache&);
+	/ \exp \ctor YTextRegion(YFontCache*) -> YTextRegion(YFontCache&);
+	/= ^ \mac (DefGetter & DefSetter) @@ \cl YTextState;
+	/= ^ \mac DefGetter @@ \cl YTextRegion;
+/= \tr @@ \u YFont:
+	- unused variable @@ \mf void YSLib::Drawing::YFontCache::LoadFontFileDirectory(const char*, const char*);
+	* \init variable @@ \mf bool YSLib::Drawing::MFont::Update();
+	*= \init variable @@ \mf void YSLib::Drawing::YFontCache::LoadTypefaces(const YSLib::Drawing::MFontFile&);
 
 r13:
-*- \i \mf bool @YObject::@ReferenceEquals(const YObject&, const YObject&) @@ \u !@ YObject;
-/+ \f bool @ReferenceEquals(const YObject&, const YObject&) @@ \u !@ YObject >>+ \tf template<typename _type> bool ReferenceEquals(const _type&, const _type&) @@ \u !@YCommonUtilities;
-* excessive \f @strdup_n \inv lead to \mem leak @@ \mf @YFontCache::@LoadTypefaces @@ \u !@YFont;
-/= \a @sFaces => @mFacesIndex;
-/ @@ \u !@YFont:
-	/@@ \c YFontCache:
-		+ typedef std::set<MFontFamily*> FFaces;
-		+ \m FFaces sFaces;
-		/ typedef std::set<const MFontFile*, deref_comp<const MFontFile> > FFiles
-			-> typedef std::set<const MFontFile*> FFiles,
-		/ typedef std::set<const MTypeface*, deref_comp<const MTypeface> > FFiles
-			-> typedef std::set<const MTypeface*> FFiles;
-		/ \mf LoadTypefaces:
-			+ 2-level combined \tb & \cb,
-			/ \tr;
+/ \m YFontCache* pfc -> YFontCache& fc @@ \cl MDualScreenReader;
+	/ \ctor @@ \cl MDualScreenReader;
 
-r14-r15:
-= font loading testing 1;
+r14:
+/= \tr @@ \decl @@ \cl MDualScreenReader @@ \h "DSReader.h";
++ \cl Design::NonCopyable @@ \u YCoreUtilities;
++ using Design::NonCopyable @@ \h "ycutil.h";
+/ \cl Text::MTextBuffer \inh NonCopyable;
 
-r16:
-/= \tr ^ iterator operator-> instead of (operator. & operator*) @@ \u (!@YFont & !@YTemer);
-/ @@ \cl @YFontCache @@ \u !@YFont:
-/= \tr @@ \mf YFontCache::@LoadFontFileDirectory @@ \u !@YFont;
-/= \tr @@ \mf YFontCache::@LoadFontFile @@ \u !@YFont;
-* \tr @@ \mf YFontCache::@LoadTypefaces @@ \u !@YFont;
+r15:
+/= @@ \cl YApplication:
+	- private copy \ctor;
+	- private operator=;
+	+ \inh NonCopyable;
+
+r16;
++ @@ \u YTextManager:
+	+ \cl MTextBlock : public MTextBuffer;
+	+ \cl MTextMap;
 
 r17:
-= font loading testing 2;
++ \tb @@ \ctor @@ \cl MDualScreenReader;
+/ \inh Text::MTextBuffer-> \m Text::MTextMap Blocks @@ \cl MDualScreenReader;
 
 r18:
-/ \tr @@ \mf LoadTypefaces;
-	/ \tb & \cb;
-/ \tr @@ \mf LoadFontFileDirectory;
-	+ \tb & \cb;
++/ @@ \u YTextManager;
+	+ \cl Text::MTextFileBuffer;
+	/ ^ \cl Text::MTextFileBuffer @@ \u YTextManager instead of \cl Text::MTextMap;
+	+ typedef MTextBuffer::SizeType SizeType @@ \cl MTextMap;
 
 r19:
-/ \tr @ShlA::TFormC @@ \u !@Shells;
++/ @@ \u YTextManager;
+	/ private \m MapType Map -> \protected \m MapType Map @@ \cl MTextMap;
+	+/ MTextBlock& operator[](const IndexType&) @@ \cl MTextFileBuffer;
+	/ void operator+=(std::pair<const IndexType&, MTextBlock*>&) -> void operator+=(MTextBlock&) @@ \cl MTextMap;
+	/ void operator-=(const IndexType&) -> bool operator-=(const IndexType&) @@ \cl MTextMap;
 
-r20:
-* \tr @@ \mf YFontCache::@LoadTypefaces @@ \u !@YFont;
+r20-r31:
+/+ \tr range checking & \tb @@ MTextBlock& MTextFileBuffer::operator[](const IndexType&);
+/ @@ \cl YFile @@ \u YFile
+	/= typedef u32 SizeType;
+	/ ^ \mac (DefBoolGetter & DefGetter);
+	/ \tr @@ \mf @OpenFile;
+-= \tb @@ \cl @MDualScreenReader;
 
-r21:
-= font loading testing 3;
-
-r22:
-* \tr @@ \cl YFontCache @@ \u !@YFont;
-	/ typedef std::set<const MFontFile*> FFiles
-		-> typedef std::set<const MFontFile*, deref_comp<const MFontFile> > FFiles,
-	/ typedef std::set<const MTypeface*> FFiles
-		-> typedef std::set<const MTypeface*, deref_comp<const MTypeface> > FFiles;
-	/ typedef std::set<MFontFamily*> FFiles
-		-> typedef std::set<MFontFamily*, deref_comp<MFontFamily> > FFiles;
-
-r23-r33:
-= font loading testing 4;
-
-r34:
-/ \mf LoadTypefaces @@ \cl YFontCache @@ \u !@YFont:
-	*+ 3-level combined \tb & \cb,
+r32:
+/ @@ \cl YFile @@ \u YFile:
+	+ \mf void Release();
+	/ \mf OpenFile => Open;
+	/ \i \mf GetFilePtr => GetPtr;
+	/ \i \mf GetFileLen => GetLength;
+	/ \i \mf fEOF => feof const;
+	/ \i \mf int feof() -> int feof() const;
 
 DOING:
 
@@ -264,11 +238,15 @@ NEXT:
 
 TODO:
 
+Clarify the log levels.
+
 Make "UpdateFont()" more efficienct.
 
-Use in-buffer background color rendering and function "CopyToScreen()" to inplements "TextRegion" background outputing more efficienct.
+More efficient  @YTextRegion output:
+Use in-buffer background color rendering and function @CopyToScreen() to inplements @YTextRegion background;
+Use pre-refershing to make font changing.
 
-Consider to simplify the general window class: "YForm".
+Consider to simplify the general window class: @YForm.
 
 Rewrite system RTC.
 

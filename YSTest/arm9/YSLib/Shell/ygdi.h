@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46;
-// UTime = 2010-7-20 16:41;
-// Version = 0.2580;
+// UTime = 2010-7-24 10:36;
+// Version = 0.2609;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -357,27 +357,21 @@ protected:
 
 public:
 	explicit
-	YPenStyle(const MFontFamily& = *GetDefaultFontFamilyPtr(), MFont::SizeType = MFont::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
+	YPenStyle(const MFontFamily& = GetDefaultFontFamily(), MFont::SizeType = MFont::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
 
-	MFont&
-	GetFont();
+	PDefHead(MFont&, GetFont)
+		ImplRet(Font)
 	DefGetter(const MFont&, Font, Font)
 	DefGetterMember(const MFontFamily&, FontFamily, Font)
 	DefGetter(MFont::SizeType, FontSize, Font.GetSize())
 	DefGetter(PixelType, Color, Color)
 
-	void
-	SetFont(const MFont&); //设置字体。
-	void
+	DefSetterMember(const MFont&, Font, Font); //设置字体。
+	bool
 	SetFontStyle(EFontStyle); //设置字体样式。
-	void
+	bool
 	SetFontSize(MFont::SizeType); //设置字体大小。
-	DefSetterDef(PixelType, Color, Color, ~0) //设置颜色。
-
-	void
-	UpdateFont(); //更新字体缓存中当前处理的字体。
-	void
-	UpdateFontSize(); //更新字体缓存中当前处理的字体大小。
+	DefSetterDe(PixelType, Color, Color, ~0) //设置颜色。
 };
 
 inline
@@ -385,40 +379,17 @@ YPenStyle::YPenStyle(const MFontFamily& family, MFont::SizeType size, PixelType 
 : Font(family, size), Color(c)
 {}
 
-inline MFont&
-YPenStyle::GetFont()
-{
-	return Font;
-}
-
-inline void
-YPenStyle::SetFont(const MFont& f)
-{
-	Font = f;
-	UpdateFont();
-}
-inline void
+inline bool
 YPenStyle::SetFontStyle(EFontStyle s)
 {
 	Font.SetStyle(s);
-	UpdateFont();
+	return Font.Update();
 }
-inline void
+inline bool
 YPenStyle::SetFontSize(MFont::SizeType s)
 {
 	Font.SetSize(s);
-	UpdateFont();
-}
-
-inline void
-YPenStyle::UpdateFont()
-{
-	Font.Update();
-}
-inline void
-YPenStyle::UpdateFontSize()
-{
-	Font.UpdateSize();
+	return Font.UpdateSize();
 }
 
 

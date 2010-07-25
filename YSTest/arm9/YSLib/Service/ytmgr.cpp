@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 17:48:09;
-// UTime = 2010-7-14 0:41;
-// Version = 0.3572;
+// UTime = 2010-7-25 10:41;
+// Version = 0.3686;
 
 
 #include "ytmgr.h"
@@ -14,7 +14,7 @@ using namespace Exceptions;
 
 YSL_BEGIN_NAMESPACE(Text)
 
-MTextBuffer::MTextBuffer(u32 tlen)
+MTextBuffer::MTextBuffer(SizeType tlen)
 try : mlen(tlen), text(new uchar_t[mlen]), len(0)
 {
 	ClearText();
@@ -24,15 +24,15 @@ catch(...)
 	throw YLoggedError("Error occured @@ MTextBuffer::MTextBuffer();");
 }
 
-u32
-MTextBuffer::GetPrevChar(u32 o, uchar_t c)
+MTextBuffer::SizeType
+MTextBuffer::GetPrevChar(SizeType o, uchar_t c)
 {
 	while(o-- && text[o] != c)
 		;
 	return ++o;
 }
-u32
-MTextBuffer::GetNextChar(u32 o, uchar_t c)
+MTextBuffer::SizeType
+MTextBuffer::GetNextChar(SizeType o, uchar_t c)
 {
 	while(o < mlen && text[o++] != c)
 		;
@@ -40,7 +40,7 @@ MTextBuffer::GetNextChar(u32 o, uchar_t c)
 }
 
 bool
-MTextBuffer::Load(const uchar_t* s, u32 n)
+MTextBuffer::Load(const uchar_t* s, SizeType n)
 {
 	if(n > mlen)
 		return false;
@@ -48,17 +48,16 @@ MTextBuffer::Load(const uchar_t* s, u32 n)
 	len = n;
 	return true;
 }
-
-u32
-MTextBuffer::Load(YTextFile& f, u32 n)
+MTextBuffer::SizeType
+MTextBuffer::Load(YTextFile& f, SizeType n)
 {
-	u32 l(0);
+	SizeType l(0);
 
 	if(f.IsValid())
 	{
-		u32 i(0), t;
+		SizeType i(0), t;
 		uchar_t cb(0), c;
-		FILE* const fp(f.GetFilePtr());
+		FILE* const fp(f.GetPtr());
 		const CSID cp(f.GetCP());
 
 		while(i < n && (t = ToUTF(fp, c, cp)))
@@ -77,12 +76,50 @@ MTextBuffer::Load(YTextFile& f, u32 n)
 }
 
 bool
-MTextBuffer::Output(uchar_t* d, u32 p, u32 n) const
+MTextBuffer::MTextBuffer::Output(uchar_t* d, SizeType p, SizeType n) const
 {
 	if(p + n > mlen)
 		return false;
 	memcpy(d, &text[p], sizeof(uchar_t) * n);
 	return true;
+}
+
+void
+MTextMap::clear()
+{
+	for(MapType::const_iterator i(Map.begin()); i != Map.end(); ++i)
+		delete i->second;
+	Map.clear();
+}
+
+
+MTextFileBuffer::MTextFileBuffer(YTextFile& file)
+: File(file), nPos(0)
+{}
+
+MTextBlock&
+MTextFileBuffer::operator[](const IndexType& i)
+{
+	try
+	{
+		if(i * 0x2000 > File.GetLength())
+			throw std::out_of_range("");
+
+		MapType::const_iterator it(Map.find(i));
+		MTextBlock* p(it == Map.end() ? new MTextBlock(i, 0x2000) : it->second);
+
+		if(it == Map.end())
+			*this += *p;
+		return *p;
+	}
+	catch(std::out_of_range&)
+	{
+		throw YLoggedError("Wrong range of file @@ MTextFileBuffer::operator[];", 3);
+	}
+	catch(std::bad_alloc&)
+	{
+		throw YLoggedError("Allocation failed @@ MTextFileBuffer::operator[];", 2);
+	}
 }
 
 YSL_END_NAMESPACE(Text)

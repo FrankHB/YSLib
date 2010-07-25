@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-7-21 23:19;
-// Version = 0.2933;
+// UTime = 2010-7-25 10:44;
+// Version = 0.2938;
 
 
 #include <Shells.h>
@@ -410,6 +410,7 @@ ShlA::TFormC::lblC_Click(const YTouchEventArgs& e)
 		++itype;
 		++it;
 		sprintf(strtf, "%d file(s), %d type(s), %d faces(s);\n", ffilen, ftypen, ffacen);
+		lblC.SetFont(MFont(*(*it)->GetFontFamilyPtr(), 18, EFontStyle::Bold));
 		lblC.Text = strtf;
 	}
 	else

@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:03:47;
-// UTime = 2010-7-20 15:49;
-// Version = 0.1988;
+// UTime = 2010-7-25 0:34;
+// Version = 0.2027;
 
 
 #ifndef _DSREADER_H_
@@ -20,11 +20,12 @@ YSL_BEGIN_NAMESPACE(DS)
 
 YSL_BEGIN_NAMESPACE(Components)
 
-class MDualScreenReader : public Text::MTextBuffer
+class MDualScreenReader
 {
 private:
 	YTextFile& tf; //文本文件对象。
-	YFontCache* pfc; //字体缓存。
+	Text::MTextFileBuffer Blocks; //文本缓存映射。
+	YFontCache& fc; //字体缓存。
 	u16 left, top_up, top_down; // left ：上下字符区域距离屏幕左边距离； top_up ：上字符区域距离上屏顶端距离； top_down ：下字符区域距离下屏顶端距离。
 	PixelType *pBgUp, *pBgDn; //上下屏幕背景层显存地址。
 	YTextRegion &trUp, &trDn; //上下屏幕对应字符区域。
@@ -38,9 +39,9 @@ private:
 	DefGetter(u8, LnGapUp, trUp.GetLineGap()) //取上字符区域的行距。
 	DefGetter(u8, LnGapDn, trDn.GetLineGap()) //取下字符区域的行距。
 
-	PDefHead(void, SetColorUp, u16 c = ARGB16(1, 0, 0, 0)) //设置上字符区域的字体颜色。
+	PDefHead(void, SetColorUp, u16 c = 0) //设置上字符区域的字体颜色。
 		ImplBodyMemberVoid(trUp, SetColor, c)
-	PDefHead(void, SetColorDn, u16 c = ARGB16(1, 0, 0, 0)) //设置下字符区域的字体颜色。
+	PDefHead(void, SetColorDn, u16 c = 0) //设置下字符区域的字体颜色。
 		ImplBodyMemberVoid(trDn, SetColor, c)
 	PDefHead(void, SetLnGapUp, u16 g = 0) //设置上字符区域的行距。
 		ImplBodyMemberVoid(trUp, SetLineGap, g)
@@ -71,25 +72,26 @@ private:
 public:
 	/*
 	//构造函数。
+	tf_ ：文本文件。
 	l ：距离屏幕左边距离； w ：字符区域宽。
 	t_up ：上字符区域距离上屏顶端距离； h_up：上字符区域高。
 	t_down ：下字符区域距离下屏顶端距离； h_down：下字符区域高。
-	fc ：字体缓存对象指针。
+	fc_ ：字体缓存对象引用。
 	*/
-	MDualScreenReader(YTextFile& srcf, u16 l = 0, u16 w = SCRW,
-		u16 t_up = 0, u16 h_up = SCRH, u16 t_down = 0, u16 h_down = SCRH, YFontCache* fc = pDefaultFontCache);
+	MDualScreenReader(YTextFile& tf_, u16 l = 0, u16 w = SCRW,
+		u16 t_up = 0, u16 h_up = SCRH, u16 t_down = 0, u16 h_down = SCRH, YFontCache& fc_ = *pDefaultFontCache);
 	~MDualScreenReader(); //析构函数。
 
 	bool IsTextTop(); //判断输出位置是否到文本顶端。	
 	bool IsTextBottom(); //判断输出位置是否到文本底端。
 
-	DefGetter(u8, FontSize, pfc->GetFontSize()) //取字符区域的字体大小。
+	DefGetter(u8, FontSize, fc.GetFontSize()) //取字符区域的字体大小。
 	DefGetter(YTextRegion&, Up, trUp) //取上字符区域的引用。
 	DefGetter(YTextRegion&, Dn, trDn) //取下字符区域的引用。
 	DefGetter(u16, Color, GetColorUp()) //取字符区域的字体颜色。
 	DefGetter(u8, LineGap, GetLnGapUp()) //取字符区域的行距。
 
-	DefSetterDef(SDST, Left, left, 0) //设置字符区域距离屏幕左边距离。
+	DefSetterDe(SDST, Left, left, 0) //设置字符区域距离屏幕左边距离。
 	void
 	SetFontSize(MFont::SizeType = MFont::DefSize); //设置字符区域字体大小。
 	void
