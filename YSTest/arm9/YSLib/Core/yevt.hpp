@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YEvent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-4-23 23:08:23;
-// UTime = 2010-7-14 12:32;
-// Version = 0.3060;
+// UTime = 2010-7-26 7:37;
+// Version = 0.3090;
 
 
 #ifndef INCLUDED_YEVT_HPP_
@@ -22,7 +22,7 @@ YSL_BEGIN_NAMESPACE(Runtime)
 
 //事件处理器接口模板。
 template<
-	class _tSender = YObject, class _tEventArgs = YEventArgs,
+	class _tSender = YObject, class _tEventArgs = MEventArgs,
 	typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 >
 DeclBasedInterface(GIHEventHandler, GIClonable<GIHEventHandler<_tSender, _tEventArgs, _fEventHandler, _pfEventHandler> >)
@@ -40,7 +40,7 @@ typedef GIHEventHandler<> IHEventHandler;
 
 //非成员函数事件处理器类模板。
 template<
-	class _tSender = YObject, class _tEventArgs = YEventArgs,
+	class _tSender = YObject, class _tEventArgs = MEventArgs,
 	typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 >
 class GHEventNormal : private GHBase<_pfEventHandler>,
@@ -85,7 +85,7 @@ public:
 //成员函数事件处理器类模板。
 template<
 	class _type,
-	class _tSender = YObject, class _tEventArgs = YEventArgs,
+	class _tSender = YObject, class _tEventArgs = MEventArgs,
 	typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 >
 class GHEventMember : implements GIHEventHandler<_tSender, _tEventArgs>
@@ -130,7 +130,7 @@ public:
 //成员函数对象绑定事件处理器类模板。
 template<
 	class _type,
-	class _tSender = YObject, class _tEventArgs = YEventArgs,
+	class _tSender = YObject, class _tEventArgs = MEventArgs,
 	typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 >
 class GHEventMemberBinder : implements GIHEventHandler<_tSender, _tEventArgs>
@@ -180,7 +180,7 @@ operator==(GIHEventHandler<_tSender, _tEventArgs>& l, GIHEventHandler<_tSender, 
 
 //事件处理器类模板。
 template<
-	class _tSender = YObject, class _tEventArgs = YEventArgs,
+	class _tSender = YObject, class _tEventArgs = MEventArgs,
 	typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 >
 class GHEvent : implements GIHEventHandler<_tSender, _tEventArgs>
@@ -257,7 +257,7 @@ typedef GHEvent<> HEvent;
 //多播版本。
 template<
 	bool _bMulticast = true,
-	class _tSender = YObject, class _tEventArgs = YEventArgs,
+	class _tSender = YObject, class _tEventArgs = MEventArgs,
 	class _iEventHandler = GIHEventHandler<_tSender, _tEventArgs>,
 	class _tEventHandler = GHEvent<_tSender, _tEventArgs>
 >
@@ -449,7 +449,7 @@ struct GAHEventCallback : public _eventArgsType
 YSL_END_NAMESPACE(Runtime)
 
 //标准事件处理器委托。
-DefDelegate(YEventHandler, YObject, YEventArgs)
+DefDelegate(YEventHandler, YObject, MEventArgs)
 
 YSL_END
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:36;
-// UTime = 2010-7-13 19:57;
-// Version = 0.1664;
+// UTime = 2010-7-26 7:37;
+// Version = 0.1674;
 
 
 #include "yapp.h"
@@ -48,9 +48,9 @@ YLog::FatalError(const std::string& s)
 
 
 const IO::YPath YApplication::CommonAppDataPath("/");
-const YString YApplication::CompanyName(G_COMP_NAME);
-const YString YApplication::ProductName(G_APP_NAME);
-const YString YApplication::ProductVersion(G_APP_VER);
+const MString YApplication::CompanyName(G_COMP_NAME);
+const MString YApplication::ProductName(G_APP_NAME);
+const MString YApplication::ProductVersion(G_APP_VER);
 
 YApplication::YApplication()
 : YObject(), Log(DefaultLog), DefaultMQ(), DefaultMQ_Backup(), FontCache(NULL), sShls(), hShell(NULL)
@@ -63,7 +63,7 @@ YApplication::~YApplication()
 		YDelete(*i);
 	//释放主 Shell 。
 //	YDelete(hShellMain);
-	ApplicationExit(*this, YEventArgs::Empty);
+	ApplicationExit(*this, GetZeroElement<MEventArgs>());
 }
 
 void

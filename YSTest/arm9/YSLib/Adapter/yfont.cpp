@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13;
-// UTime = 2010-7-24 10:56;
-// Version = 0.6734;
+// UTime = 2010-7-26 6:06;
+// Version = 0.6756;
 
 
 #include "yfont.h"
@@ -456,17 +456,16 @@ YFontCache::LoadTypefaces(const MFontFile& f)
 
 	for(FT_Long i(0); i < t; ++i)
 	{
-		MTypeface* q(NULL);
-		MFontFamily* r(NULL);
-
 		try
 		{
+			MTypeface* q(NULL);
+			MFontFamily* r(NULL);
+
 			try
 			{
 				try
 				{
-					q = new MTypeface(*this, f, i);
-					if(sTypes.find(q) == sTypes.end())
+					if(sTypes.find(q = new MTypeface(*this, f, i)) == sTypes.end())
 					{
 						scaler.face_id = static_cast<FTC_FaceID>(q);
 
@@ -474,7 +473,7 @@ YFontCache::LoadTypefaces(const MFontFile& f)
 						FT_Face face(GetInternalFaceInfo());
 
 						if(face == NULL || face->family_name == NULL)
-							throw YLoggedError("Face loading failed.", 2);
+							throw MLoggedEvent("Face loading failed.", 2);
 
 						FFacesIndex::iterator i(mFacesIndex.find(face->family_name));
 
@@ -486,11 +485,11 @@ YFontCache::LoadTypefaces(const MFontFile& f)
 						*this += *q;
 					}
 					else
-						throw YLoggedError("Repeated face neglected.", 3);
+						throw MLoggedEvent("Repeated face is neglected.", 3);
 				}
 				catch(std::bad_alloc&)
 				{
-					throw YLoggedError("Allocation failed @@ YFontCache::LoadTypefaces(const MFontFile&);", 2);
+					throw MLoggedEvent("Allocation failed @@ YFontCache::LoadTypefaces(const MFontFile&);", 2);
 				}
 			}
 			catch(...)
@@ -501,7 +500,7 @@ YFontCache::LoadTypefaces(const MFontFile& f)
 				throw;
 			}
 		}
-		catch(YLoggedError& e)
+		catch(MLoggedEvent& e)
 		{
 			if(e.GetLevel() < 2)
 				throw;
@@ -536,7 +535,7 @@ YFontCache::LoadFontFileDirectory(CPATH path, CPATH ext)
 				}
 				catch(std::bad_alloc&)
 				{
-					throw YLoggedError("Allocation failed @@ YFontCache::LoadFontFileDirectory(CPATH, CPATH);", 2);
+					throw MLoggedEvent("Allocation failed @@ YFontCache::LoadFontFileDirectory(CPATH, CPATH);", 2);
 				}
 			}
 		dirclose(dir);

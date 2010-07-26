@@ -1,14 +1,14 @@
 ﻿// YSLib::Core::YEventArgs by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-6-8 13:21:10;
-// UTime = 2010-6-12 14:37;
-// Version = 0.1752;
+// UTime = 2010-6-26 7:38;
+// Version = 0.1792;
 
 
 #ifndef INCLUDED_YEVTARG_H_
 #define INCLUDED_YEVTARG_H_
 
-// YEventArgs ：事件参数模块。
+// MEventArgs ：事件参数模块。
 
 #include "yobject.h"
 
@@ -25,13 +25,13 @@ ToSPoint(const CursorInfo& c)
 
 
 //屏幕事件参数类。
-struct YScreenPositionEventArgs : public YEventArgs, public Drawing::SPoint
+struct MScreenPositionEventArgs : public MEventArgs, public Drawing::SPoint
 {
-	static const YScreenPositionEventArgs Empty;
+	static const MScreenPositionEventArgs Empty;
 
 	explicit
-	YScreenPositionEventArgs(const Drawing::SPoint& pt = Drawing::SPoint::Zero)
-	: YEventArgs(), SPoint(pt)
+	MScreenPositionEventArgs(const Drawing::SPoint& pt = Drawing::SPoint::Zero)
+	: MEventArgs(), SPoint(pt)
 	{}
 };
 
@@ -48,26 +48,26 @@ struct MInputEventArgs : public Keys
 
 
 //指针设备输入事件参数类。
-struct YTouchEventArgs : public YScreenPositionEventArgs, public MInputEventArgs
+struct MTouchEventArgs : public MScreenPositionEventArgs, public MInputEventArgs
 {
 	typedef Drawing::SPoint InputType;
 
-	static const YTouchEventArgs Empty;
+	static const MTouchEventArgs Empty;
 
-	YTouchEventArgs(const InputType& pt = InputType::Zero)
-	: YScreenPositionEventArgs(pt), MInputEventArgs()
+	MTouchEventArgs(const InputType& pt = InputType::Zero)
+	: MScreenPositionEventArgs(pt), MInputEventArgs()
 	{}
 };
 
 
 //键盘输入事件参数类。
-struct YKeyEventArgs : public YEventArgs, public MInputEventArgs
+struct MKeyEventArgs : public MEventArgs, public MInputEventArgs
 {
 	typedef Keys InputType;
 
-	static const YKeyEventArgs Empty;
+	static const MKeyEventArgs Empty;
 
-	YKeyEventArgs(const InputType& k = InputType::Empty)
+	MKeyEventArgs(const InputType& k = InputType::Empty)
 	: MInputEventArgs(k)
 	{}
 };

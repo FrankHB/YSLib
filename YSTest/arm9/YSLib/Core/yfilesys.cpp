@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:36:30;
-// UTime = 2010-7-9 10:13;
-// Version = 0.1489;
+// UTime = 2010-7-26 5:54;
+// Version = 0.1509;
 
 
 #include "yfilesys.h"
@@ -30,28 +30,28 @@ GetFileName(CPATH path)
 
 	return p ? (*++p ? p : NULL) : path;
 }
-YString
+MString
 GetFileName(const YPath& path)
 {
-	const YString::size_type p(path.rfind(DEF_PATH_DELIMITER));
+	const MString::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
-	return p == YString::npos ? YString(path) : path.substr(p + 1);
+	return p == MString::npos ? MString(path) : path.substr(p + 1);
 }
 
-YString
+MString
 GetDirectoryName(const YPath& path)
 {
-	const YString::size_type p(path.rfind(DEF_PATH_DELIMITER));
+	const MString::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
-	return p == YString::npos ? YString() : path.substr(0, p + 1);
+	return p == MString::npos ? MString() : path.substr(0, p + 1);
 }
 
 YPath::size_type
-SplitPath(const YPath& path, YPath& directory, YString& file)
+SplitPath(const YPath& path, YPath& directory, MString& file)
 {
-	const YString::size_type p(path.rfind(DEF_PATH_DELIMITER));
+	const MString::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
-	if(p == YString::npos)
+	if(p == MString::npos)
 	{
 		directory = "";
 		file = path;
@@ -64,12 +64,12 @@ SplitPath(const YPath& path, YPath& directory, YString& file)
 	return p;
 }
 
-YString
-GetBaseName(const YString& name)
+MString
+GetBaseName(const MString& name)
 {
-	const YString::size_type p(name.rfind('.'));
+	const MString::size_type p(name.rfind('.'));
 
-	return p == YString::npos ? YString(name) : name.substr(0, p);
+	return p == MString::npos ? MString(name) : name.substr(0, p);
 }
 
 bool
@@ -82,7 +82,7 @@ IsBaseName(const char* str, const char* name)
 	return !strncmp(str, name, strlen(str));
 }
 bool
-IsBaseName(const YString& str, const YString& name)
+IsBaseName(const MString& str, const MString& name)
 {
 	if(str.length() > name.length())
 		return false;
@@ -106,7 +106,7 @@ SameBaseNames(const char* a, const char* b)
 	return true;
 }
 bool
-SameBaseNames(const YString& a, const YString& b)
+SameBaseNames(const MString& a, const MString& b)
 {
 	return GetBaseName(a) == GetBaseName(b);
 }
@@ -121,12 +121,12 @@ GetExtendName(const char* name)
 
 	return p && *++p ? p : NULL;
 }
-YString
-GetExtendName(const YString& name)
+MString
+GetExtendName(const MString& name)
 {
-	const YString::size_type p(name.rfind('.'));
+	const MString::size_type p(name.rfind('.'));
 
-	return p == YString::npos ? YString() : name.substr(p + 1);
+	return p == MString::npos ? MString() : name.substr(p + 1);
 }
 
 bool
@@ -139,7 +139,7 @@ IsExtendName(const char* str, const char* name)
 	return !stricmp(str, p);
 }
 bool
-IsExtendName(const YString& str, const YString& name)
+IsExtendName(const MString& str, const MString& name)
 {
 	if(str.length() > name.length())
 		return false;
@@ -159,9 +159,9 @@ SameExtendNames(const char* a, const char* b)
 	return stricmp(pa, pb);
 }
 bool
-SameExtendNames(const YString& a, const YString& b)
+SameExtendNames(const MString& a, const MString& b)
 {
-	YString ea(GetExtendName(a)), eb(GetExtendName(b));
+	MString ea(GetExtendName(a)), eb(GetExtendName(b));
 
 	return ucsicmp(ea.c_str(), eb.c_str());
 }
@@ -183,7 +183,7 @@ GetNowDirectory()
 {
 	PATHSTR buf;
 
-	return getcwd(buf, MAX_PATH_LENGTH - 1) ? YString() : YString(buf);
+	return getcwd(buf, MAX_PATH_LENGTH - 1) ? MString() : MString(buf);
 }
 
 
@@ -213,7 +213,7 @@ MFileList::LoadSubItems()
 		dirreset(dir);
 		while(!dirnext(dir, name, &st))
 			if(strcmp(name, FS_Now))
-				List.push_back(st.st_mode & S_IFDIR ? YString(strlwr(name)) + YString(FS_Seperator) : YString(strlwr(name)));
+				List.push_back(st.st_mode & S_IFDIR ? MString(strlwr(name)) + MString(FS_Seperator) : MString(strlwr(name)));
 		dirclose(dir);
 	}
 	return n;
@@ -233,7 +233,7 @@ MFileList::GoToPath(const YPath& p)
 		Directory = GetNowDirectory();
 }
 void
-MFileList::GoToSubDirectory(const YString& d)
+MFileList::GoToSubDirectory(const MString& d)
 {
 
 	if(ChDir(d.c_str()))

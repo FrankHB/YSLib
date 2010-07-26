@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:03:47;
-// UTime = 2010-7-25 0:34;
-// Version = 0.2027;
+// UTime = 2010-7-26 12:40;
+// Version = 0.2042;
 
 
 #ifndef _DSREADER_H_
@@ -28,21 +28,19 @@ private:
 	YFontCache& fc; //字体缓存。
 	u16 left, top_up, top_down; // left ：上下字符区域距离屏幕左边距离； top_up ：上字符区域距离上屏顶端距离； top_down ：下字符区域距离下屏顶端距离。
 	PixelType *pBgUp, *pBgDn; //上下屏幕背景层显存地址。
-	YTextRegion &trUp, &trDn; //上下屏幕对应字符区域。
+	MTextRegion &trUp, &trDn; //上下屏幕对应字符区域。
 	ROT rot; //屏幕指向。
 	u32 nLoad; //从文本文件读取的字符数。
 	s32 offUp, offDn; //字符区域读取文本文件的输出位置（偏移字符量）。
 	u8 lnHeight; //行高。
 
-	DefGetter(u16, ColorUp, trUp.GetColor()) //取上字符区域的字体颜色。
-	DefGetter(u16, ColorDn, trDn.GetColor()) //取下字符区域的字体颜色。
+	DefGetter(u16, ColorUp, trUp.Color) //取上字符区域的字体颜色。
+	DefGetter(u16, ColorDn, trDn.Color) //取下字符区域的字体颜色。
 	DefGetter(u8, LnGapUp, trUp.GetLineGap()) //取上字符区域的行距。
 	DefGetter(u8, LnGapDn, trDn.GetLineGap()) //取下字符区域的行距。
 
-	PDefHead(void, SetColorUp, u16 c = 0) //设置上字符区域的字体颜色。
-		ImplBodyMemberVoid(trUp, SetColor, c)
-	PDefHead(void, SetColorDn, u16 c = 0) //设置下字符区域的字体颜色。
-		ImplBodyMemberVoid(trDn, SetColor, c)
+	DefSetterDe(PixelType, ColorUp, trUp.Color, 0) //设置上字符区域的字体颜色。
+	DefSetterDe(PixelType, ColorDn, trDn.Color, 0) //设置下字符区域的字体颜色。
 	PDefHead(void, SetLnGapUp, u16 g = 0) //设置上字符区域的行距。
 		ImplBodyMemberVoid(trUp, SetLineGap, g)
 	PDefHead(void, SetLnGapDn, u16 g = 0) //设置下字符区域的行距。
@@ -86,8 +84,8 @@ public:
 	bool IsTextBottom(); //判断输出位置是否到文本底端。
 
 	DefGetter(u8, FontSize, fc.GetFontSize()) //取字符区域的字体大小。
-	DefGetter(YTextRegion&, Up, trUp) //取上字符区域的引用。
-	DefGetter(YTextRegion&, Dn, trDn) //取下字符区域的引用。
+	DefGetter(MTextRegion&, Up, trUp) //取上字符区域的引用。
+	DefGetter(MTextRegion&, Dn, trDn) //取下字符区域的引用。
 	DefGetter(u16, Color, GetColorUp()) //取字符区域的字体颜色。
 	DefGetter(u8, LineGap, GetLnGapUp()) //取字符区域的行距。
 

@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:04:05;
-// UTime = 2010-7-25 10:28;
-// Version = 0.2558;
+// UTime = 2010-7-26 12:41;
+// Version = 0.2581;
 
 
 #include "DSReader.h"
@@ -30,7 +30,7 @@ MDualScreenReader::MDualScreenReader(YTextFile& tf_,
 try : tf(tf_), Blocks(tf), fc(fc_),
 left(l), top_up(t_up), top_down(t_down),
 pBgUp(pDesktopUp->GetBackgroundPtr()), pBgDn(pDesktopDown->GetBackgroundPtr()),
-trUp(*new YTextRegion(fc_)), trDn(*new YTextRegion(fc_)), rot(RDeg0),
+trUp(*new MTextRegion(fc_)), trDn(*new MTextRegion(fc_)), rot(RDeg0),
 nLoad(0), offUp(0), offDn(0)
 {
 	trUp.SetSize(w, h_up);
@@ -43,13 +43,13 @@ nLoad(0), offUp(0), offDn(0)
 		trUp.PutString(L"文件打开失败！\n");
 	nLoad = Blocks[0].Load(tf);
 }
-catch(YLoggedError&)
+catch(MLoggedEvent&)
 {
 	throw;
 }
 catch(...)
 {
-	throw YLoggedError("Error occured @@ MDualScreenReader::MDualScreenReader();");
+	throw MLoggedEvent("Error occured @@ MDualScreenReader::MDualScreenReader();");
 }
 MDualScreenReader::~MDualScreenReader()
 {
@@ -71,8 +71,8 @@ MDualScreenReader::IsTextBottom()
 void
 MDualScreenReader::SetColor(PixelType c)
 {
-	trUp.SetColor(c);
-	trDn.SetColor(c);
+	trUp.Color = c;
+	trDn.Color = c;
 }
 void
 MDualScreenReader::SetLineGap(u8 g)

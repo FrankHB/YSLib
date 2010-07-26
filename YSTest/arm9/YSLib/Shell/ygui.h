@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-7-22 11:26;
-// Version = 0.1785;
+// UTime = 2010-7-26 14:02;
+// Version = 0.1829;
 
 
 #ifndef INCLUDED_YGUI_H_
@@ -36,13 +36,13 @@ ReleaseFocusCascade(IVisualControl&);
 
 
 //标准 GUI 事件回调函数抽象类。
-typedef GAHEventCallback<Components::Controls::MVisualControl, YEventArgs> AHEventCallback;
-typedef GAHEventCallback<Components::Controls::MVisualControl, Runtime::YTouchEventArgs> AHTouchCallback;
-typedef GAHEventCallback<Components::Controls::MVisualControl, Runtime::YKeyEventArgs> AHKeyCallback;
+typedef GAHEventCallback<Components::Controls::MVisualControl, MEventArgs> AHEventCallback;
+typedef GAHEventCallback<Components::Controls::MVisualControl, Runtime::MTouchEventArgs> AHTouchCallback;
+typedef GAHEventCallback<Components::Controls::MVisualControl, Runtime::MKeyEventArgs> AHKeyCallback;
 
 //标准 GUI 事件回调函数类型。
-typedef bool FTouchCallback(Components::Controls::MVisualControl&, const Runtime::YTouchEventArgs&);
-typedef bool FKeyCallback(Components::Controls::MVisualControl&, const Runtime::YKeyEventArgs&);
+typedef bool FTouchCallback(Components::Controls::MVisualControl&, const Runtime::MTouchEventArgs&);
+typedef bool FKeyCallback(Components::Controls::MVisualControl&, const Runtime::MKeyEventArgs&);
 typedef FTouchCallback* PFTouchCallback;
 typedef FKeyCallback* PFKeyCallback;
 
@@ -50,7 +50,7 @@ typedef FKeyCallback* PFKeyCallback;
 struct HTouchCallback : public GHBase<PFTouchCallback>, public AHTouchCallback
 {
 	inline explicit
-	HTouchCallback(Runtime::YTouchEventArgs e, PFTouchCallback p)
+	HTouchCallback(Runtime::MTouchEventArgs e, PFTouchCallback p)
 	: GHBase<PFTouchCallback>(p), AHTouchCallback(e)
 	{}
 
@@ -64,7 +64,7 @@ struct HTouchCallback : public GHBase<PFTouchCallback>, public AHTouchCallback
 struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 {
 	inline explicit
-	HKeyCallback(Runtime::YKeyEventArgs e, PFKeyCallback p)
+	HKeyCallback(Runtime::MKeyEventArgs e, PFKeyCallback p)
 	: GHBase<PFKeyCallback>(p), AHKeyCallback(e)
 	{}
 
@@ -77,7 +77,7 @@ struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 
 
 //记录输入保持状态。
-class TouchStatus
+class MTouchStatus
 {
 private:
 	static SVec v_DragOffset;
@@ -93,39 +93,39 @@ public:
 
 //响应标准屏幕点击状态。
 bool
-ResponseTouchUp(IWidgetContainer&, const Runtime::YTouchEventArgs&);
+ResponseTouchUp(IWidgetContainer&, const Runtime::MTouchEventArgs&);
 bool
-ResponseTouchDown(IWidgetContainer&, const Runtime::YTouchEventArgs&);
+ResponseTouchDown(IWidgetContainer&, const Runtime::MTouchEventArgs&);
 bool
-ResponseTouchHeld(IWidgetContainer&, const Runtime::YTouchEventArgs&);
+ResponseTouchHeld(IWidgetContainer&, const Runtime::MTouchEventArgs&);
 
 //响应标准按键状态。
 bool
-ResponseKeyUp(YDesktop&, const Runtime::YKeyEventArgs&);
+ResponseKeyUp(YDesktop&, const Runtime::MKeyEventArgs&);
 bool
-ResponseKeyDown(YDesktop&, const Runtime::YKeyEventArgs&);
+ResponseKeyDown(YDesktop&, const Runtime::MKeyEventArgs&);
 bool
-ResponseKeyHeld(YDesktop&, const Runtime::YKeyEventArgs&);
+ResponseKeyHeld(YDesktop&, const Runtime::MKeyEventArgs&);
 
 YSL_END_NAMESPACE(Runtime)
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
 //取图形接口上下文。
-inline YGIC
+inline MGIC
 GetGraphicInterfaceContext(HWND hWnd)
 {
 	YAssert(hWnd != NULL,
-		"In function \"inline YGIC\nDrawing::GetGraphicInterfaceContext(HWND hWnd)\": \n"
+		"In function \"inline MGIC\nDrawing::GetGraphicInterfaceContext(HWND hWnd)\": \n"
 		"The input handle is null.");
 
-	return static_cast<YGIC>(*hWnd);
+	return static_cast<MGIC>(*hWnd);
 }
 
 
 //绘制界面元素边框。
 void
-DrawBounds(YGIC&, const SPoint&, const SSize&, PixelType);
+DrawBounds(MGIC&, const SPoint&, const SSize&, PixelType);
 
 //绘制窗口边框。
 void

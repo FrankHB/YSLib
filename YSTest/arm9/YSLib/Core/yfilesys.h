@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:09:28;
-// UTime = 2010-6-21 2:14;
-// Version = 0.1379;
+// UTime = 2010-7-26 5:54;
+// Version = 0.1399;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -27,56 +27,56 @@ extern const CPATH FS_Seperator;
 extern const CPATH FS_Now;
 extern const CPATH FS_Parent;
 
-typedef YString YPath; //文件路径类型。
+typedef MString YPath; //文件路径类型。
 
 //截取路径末尾的文件名。
 const char*
 GetFileName(CPATH);
-YString
+MString
 GetFileName(const YPath&);
 
 //截取路径中的目录名并返回字符串。
-YString
+MString
 GetDirectoryName(const YPath&);
 
 //截取路径中的目录名和文件名保存至字符串，并返回最后一个目录分隔符的位置。
 YPath::size_type
-SplitPath(const YPath&, YPath&, YString&);
+SplitPath(const YPath&, YPath&, MString&);
 
 
 //截取文件名开头的主文件名（贪婪匹配）。
-YString
-GetBaseName(const YString&, const YString&);
+MString
+GetBaseName(const MString&, const MString&);
 
 //对于两个字符串，判断前者是否是后者的主文件名。
 bool
 IsBaseName(const char*, const char*);
 bool
-IsBaseName(const YString&, const YString&);
+IsBaseName(const MString&, const MString&);
 
 //判断给定两个文件名的主文件名是否相同（忽略大小写；贪婪匹配）。
 bool
 SameBaseNames(const char*, const char*);
 bool
-SameBaseNames(const YString&, const YString&);
+SameBaseNames(const MString&, const MString&);
 
 //截取文件名末尾的扩展名（非贪婪匹配）。
 const char*
 GetExtendName(const char*);
-YString
-GetExtendName(const YString&);
+MString
+GetExtendName(const MString&);
 
 //对于两个字符串，判断前者是否是后者的扩展名。
 bool
 IsExtendName(const char*, const char*);
 bool
-IsExtendName(const YString&, const YString&);
+IsExtendName(const MString&, const MString&);
 
 //判断给定两个文件名的扩展名是否相同（忽略大小写；非贪婪匹配）。
 bool
 SameExtendNames(const char*, const char*);
 bool
-SameExtendNames(const YString&, const YString&);
+SameExtendNames(const MString&, const MString&);
 
 
 //切换路径。
@@ -94,7 +94,7 @@ GetNowDirectory();
 
 
 //文件名过滤器。
-typedef bool FNFILTER(const YString&);
+typedef bool FNFILTER(const MString&);
 typedef FNFILTER* PFNFILTER;
 
 struct HFileNameFilter : public GHBase<PFNFILTER>
@@ -106,7 +106,7 @@ struct HFileNameFilter : public GHBase<PFNFILTER>
 	{}
 
 	bool
-	operator()(const YString& name) const
+	operator()(const MString& name) const
 	{
 		if(_ptr)
 			return _ptr(name);
@@ -119,7 +119,7 @@ struct HFileNameFilter : public GHBase<PFNFILTER>
 class MFileList
 {
 public:
-	typedef YString ItemType; //项目名称类型。
+	typedef MString ItemType; //项目名称类型。
 	typedef std::vector<ItemType> ListType; //项目列表类型。
 
 protected:
@@ -144,7 +144,7 @@ public:
 	void
 	GoToPath(const YPath&); //导航至指定路径对应目录。
 	void
-	GoToSubDirectory(const YString&); //导航至子目录。
+	GoToSubDirectory(const MString&); //导航至子目录。
 	void
 	GoToRoot(); //返回根目录。
 	void

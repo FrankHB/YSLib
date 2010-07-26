@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-7-25;
-// Version = 0.2604; *Build 135 r32;
+// UTime = 2010-7-26;
+// Version = 0.2606; *Build 136 r36;
 
 
 #include "../YCLib/ydef.h"
@@ -90,143 +90,109 @@ Record prefix and abbrevations:
 
 DONE:
 
-r1:
-* \decl \f char* stdex::@strdup_n => std::size_t stdex::@strlen_n @@ \u YCommon;
-/= \a \mac @*Def => @*De \def @@ \h "ysdef.h";
-
 r2:
-+ \i \f char* strcpy_n(char*, const char*) @@ \u !@YCommon;
-/= ^ stdc++ \h instead of stdc \h;
-+ \i \f char* stpcpy_n(char*, const char*) @@ \u !@YCommon;
-+ \i \f int stricmp_n(const char*, const char*) @@ \u !@YCommon;
-- \a \i \f @stdex::isstrvalid @@ \u !@YCommon;
+/ @@ \h "yfont.h";
+	/ DefGetter(FFacesIndex::size_type, FacesN, mFacesIndex.size()) -> DefGetter(FFaces::size_type, FacesN, sFaces.size()) @@ \cl YFontCache;
+	/= \exp \ctor MFont(const MFontFamily& = *GetDefaultFontFamilyPtr(), SizeType = DefSize, EFontStyle = EFontStyle::Regular)
+		-> MFont(const MFontFamily& = GetDefaultFontFamily(), SizeType = DefSize, EFontStyle = EFontStyle::Regular) @@ \cl MFont;
+	/ DefGetter(const FFacesIndex&, Faces, mFacesIndex) => DefGetter(const FFacesIndex&, FacesIndex, mFacesIndex);
+	+ DefGetter(const FFaces&, Faces, sFaces);
 
 r3:
-+ \mf const MTypeface* MFontFamily::GetTypefacePtr(EFontStyle) const;
-+ assertion @@ \mf EFontStyle::GetName();
-/ \tr @@ \mf MFont::Update();
++ DefGetterMember(YFontCache&, Cache, Font) @@ \cl YPenStyle @@ \u YGDI;
+/ \tr @@ \i \mf YTextState& YTextState::operator=(const YPenStyle&) @@ \u YText;
+/ @@ \cl MFont @@ \u YFont:
 
-r4:
-+ \mf MFont::SetFont @@ \u YFont;
-/ ^ \mac DefSetterMember to \impl \i \mf YPenstyle::SetFont @@\u YGDI;
-+ ^ \mac DefGetter to \impl \mf YLabel::GetFont @@\u YControl;
-+ ^ \mac DefSetterMember to \impl \mf YLabel::SetFont @@\u YControl;
-* \mac @@ \h "ysdef.h";
-/= ^ \mac to \impl \i \mf @GetFont @@ \cl YPenStyle @@ \u YGDI;
+r4-r6:
+/ \tr @@ \mf void YFontCache::LoadTypefaces(const MFontFile&) @@ \u YFont;
 
-r5:
-/ @@ \u YFont:
-	/ \ret \tp of \mf YFontCache::SetTypeface(const MTypeface*): void -> bool;
-	/ \ret \tp of \mf YFontCache::SetFontSize(MFont::SizeType): void -> bool;
-	/ \ret \tp of \mf MFont::UpdateSize(): void -> bool;
-	/ \ret \tp of \mf MFont::Update(): void -> bool;
-/ @@ \u YGDI:
-	- \i \mf void YPenStyle::UpdateFont();
-	- \i \mf void YPenStyle::UpdateFontSize();
-	/ \ret \tp of \i \mf YPenStyle::SetFontStyle(EFontStyle): void -> bool;
-	/ \ret \tp of \i \mf YPenStyle::SetFontSize(MFont::SizeType): void -> bool;
-- \mf YTextState& YTextState::operator=(const YTextState&) @@ \u YText;
-/ \tr @@ \mf YTextRegion::PutNewline() @@ \u YText;
-
-r6-r7:
-* \impl @@ bool DrawRect(YGIC&, SPOS, SPOS, SPOS, SPOS, PixelType) @@ \u YGDI;
-
-r8:
-* @@ \u YGDI:
-	* \impl @@ bool DrawHLineSeg(YGIC&, SPOS, SPOS, SPOS, PixelType);
-	* \impl @@ bool DrawVLineSeg(YGIC&, SPOS, SPOS, SPOS, PixelType);
-	* \impl @@ bool DrawRect(YGIC&, SPOS, SPOS, SPOS, SPOS, PixelType);
-/= @@ \u YGDI:
-	\= \sf bool DrawObliqueLine(YGIC&, SPOS, SPOS, SPOS, SPOS, PixelType) >> unnamed \ns;
-	\= \i \sf SPOS blitMinX(SPOS, SPOS) >> unnamed \ns;
-	\= \i \sf SPOS blitMinY(SPOS, SPOS) >> unnamed \ns;
-	\= \i \sf SPOS blitMaxX(SPOS, SPOS) >> unnamed \ns;
-	\= \i \sf SPOS blitMaxY(SPOS, SPOS) >> unnamed \ns;
+r7-r8:
+= test 1;
 
 r9:
-/ @@ \u YControl:
-	/ @@ \cl YLabel:
-		/ \m Drawing::MFont& Font -> Drawing::MFont Font;
-		/ \m Drawing::MPadding& Margin -> Drawing::MPadding Margin;
-	/ @@ \cl YListBox:
-		/ \m Drawing::MFont& Font -> Drawing::MFont Font;
-		/ \m Drawing::MPadding& Margin -> Drawing::MPadding Margin;
+* \tr @@ \cl ShlA::TFormC::lblC_Click @@ \u Shells;
 
-r10-r11:
-*= \tf template<class T> GHResource<T>& GetGlobalResource() @@ \u YResource;
-/= ^ \mac @DefGetter @@ \cl YTextBuffer @@ \u YTextManager;
-/= + \m typedef size_t SizeType @@ \cl YTextBuffer @@ \u YTextManager;
-/= \tr @@ \cl MDualScreenReader;
+r10-r15:
+= test 2;
 
-r12:
-/+ @@ \u YFont:
-	/+= asseration @@ (\f const MTypeface* GetDefaultTypefacePtr() & \i \f const MFontFamily* GetDefaultFontFamilyPtr()) @@ \u YFont;
-	+ \i \f inline const MFontFamily& GetDefaultFontFamily() with asseration;
-/= \a ^ of \i \f GetDefaultFontFamilyPtr -> GetDefaultFontFamily; 
-/ @@ \u YText:
-	/ \exp \ctor YTextState(YFontCache*) -> YTextState(YFontCache&);
-	/ \exp \ctor YTextRegion(YFontCache*) -> YTextRegion(YFontCache&);
-	/= ^ \mac (DefGetter & DefSetter) @@ \cl YTextState;
-	/= ^ \mac DefGetter @@ \cl YTextRegion;
-/= \tr @@ \u YFont:
-	- unused variable @@ \mf void YSLib::Drawing::YFontCache::LoadFontFileDirectory(const char*, const char*);
-	* \init variable @@ \mf bool YSLib::Drawing::MFont::Update();
-	*= \init variable @@ \mf void YSLib::Drawing::YFontCache::LoadTypefaces(const YSLib::Drawing::MFontFile&);
-
-r13:
-/ \m YFontCache* pfc -> YFontCache& fc @@ \cl MDualScreenReader;
-	/ \ctor @@ \cl MDualScreenReader;
-
-r14:
-/= \tr @@ \decl @@ \cl MDualScreenReader @@ \h "DSReader.h";
-+ \cl Design::NonCopyable @@ \u YCoreUtilities;
-+ using Design::NonCopyable @@ \h "ycutil.h";
-/ \cl Text::MTextBuffer \inh NonCopyable;
-
-r15:
-/= @@ \cl YApplication:
-	- private copy \ctor;
-	- private operator=;
-	+ \inh NonCopyable;
-
-r16;
-+ @@ \u YTextManager:
-	+ \cl MTextBlock : public MTextBuffer;
-	+ \cl MTextMap;
+r16:
+* \tr @@ \mf u8 YTextRegion::PutChar(u32) @@ \u YText;
+/= \tr @@ \mf void YTextRegion::PrintChar(u32) @@ \u YText;
+/ \tr @@ \ctor YLabel @@ \u YControl;
+- \mf void YLabel::DrawBackground();
+/ \tr @@ \mf void YTextRegion::PutNewline();
+/= \h changed:
+	- <wctype.h>,
+	+ <cwctype>;
 
 r17:
-+ \tb @@ \ctor @@ \cl MDualScreenReader;
-/ \inh Text::MTextBuffer-> \m Text::MTextMap Blocks @@ \cl MDualScreenReader;
+/ \cl MString @@ \u YString:
+	- \inh YObject;
+	- typedef YObject ParentType;
+/= \a MString => MString;
+- \i \dtor MString::~MString() @@ \u YString;
 
-r18:
-+/ @@ \u YTextManager;
-	+ \cl Text::MTextFileBuffer;
-	/ ^ \cl Text::MTextFileBuffer @@ \u YTextManager instead of \cl Text::MTextMap;
-	+ typedef MTextBuffer::SizeType SizeType @@ \cl MTextMap;
+u18:
+- \inh YObject @@ \cl YException @@ \u YException;
+/= \a YException => MException;
+/= \a YGeneralError => MGeneralError;
+/= \a YLoggedError => MLoggedEvent;
 
-r19:
-+/ @@ \u YTextManager;
-	/ private \m MapType Map -> \protected \m MapType Map @@ \cl MTextMap;
-	+/ MTextBlock& operator[](const IndexType&) @@ \cl MTextFileBuffer;
-	/ void operator+=(std::pair<const IndexType&, MTextBlock*>&) -> void operator+=(MTextBlock&) @@ \cl MTextMap;
-	/ void operator-=(const IndexType&) -> bool operator-=(const IndexType&) @@ \cl MTextMap;
+u19:
+- YObject::Empty @@ \cl YObject @@ \u YObject;
+/ YObject::Empty -> GetZeroElement<YObject>;
+/ YEventArgs::Empty -> GetZeroElement<YEventArgs>;
 
-r20-r31:
-/+ \tr range checking & \tb @@ MTextBlock& MTextFileBuffer::operator[](const IndexType&);
-/ @@ \cl YFile @@ \u YFile
-	/= typedef u32 SizeType;
-	/ ^ \mac (DefBoolGetter & DefGetter);
-	/ \tr @@ \mf @OpenFile;
--= \tb @@ \cl @MDualScreenReader;
+u20:
+- YImage::Empty @@ \cl YImage @@ \u YResource;
+- \inh YObject @@ \cl YGIC @@ \u YGDI;
+/= \a YGIC => MGIC;
 
-r32:
-/ @@ \cl YFile @@ \u YFile:
-	+ \mf void Release();
-	/ \mf OpenFile => Open;
-	/ \i \mf GetFilePtr => GetPtr;
-	/ \i \mf GetFileLen => GetLength;
-	/ \i \mf fEOF => feof const;
-	/ \i \mf int feof() -> int feof() const;
+u21:
+/ @@ \h "ysdef.h":
+	+ struct EmptyType {};
+	/ typedef YObject YEventArgs -> typedef EmptyType YEventArgs;
+
+u22:
+/= \a YEventArgs => MEventArgs;
+/= \a YTouchEventArgs => MTouchEventArgs;
+/= \a YKeyEventArgs => MKeyEventArgs;
+/= \a YScreenPositionEventArgs => MScreenPositionEventArgs;
+
+r23:
+/= \a YIndexEventArgs => MIndexEventArgs;
+
+r24:
+- \inh YObject @@ \cl YPenStyle @@ \u YGDI;
+- typedef YObject ParentType @@ \cl YPenStyle @@ \u YGDI;
+/= \a YPenStyle => MPenStyle;
+/= \a YTextState => MTextState;
+/= \a YTextRegion => MTextRegion;
+
+r25:
+- \inh NonCopyable @@ \cl YApplication @@ \u YApplication;
++ \inh NonCopyable @@ \cl YObject @@ \u YObject;
+
+r26-r34:
+/ DefSetterMember(const MFont&, Font, Font) -> DefSetter(const MFont&, Font, Font) @@ \cl YLabel @@ \u YControl;
+/ \simp @@ \cl MPenStyle @@ \u YGDI:
+	/ \m (MFont Font & PixelType Color) accessibility: private -> public;
+	- PDefHead(MFont&, GetFont) ImplRet(Font);
+	- DefGetter(const MFont&, Font, Font);
+	- DefGetter(MFont::SizeType, FontSize, Font.GetSize());
+	- DefGetter(PixelType, Color, Color);
+	- DefSetterMember(const MFont&, Font, Font);
+	- \i \mf bool SetFontStyle(EFontStyle);
+	- \i \mf bool SetFontSize(MFont::SizeType);
+	- DefSetterDe(PixelType, Color, Color, ~0);
+	/ \tr @@ \u (DSReader & YControl & MTextRegion);
+
+r35:
+\decl \mf void SetSize(SizeType) -> void SetSize(SizeType = DefSize) @@ \cl MFont @@ \u YFont;
+
+r36:
+/= \tr @@ \h ("ycutil.h" & "yref.h" & "yfont.h");
+/= \a YTouchState => MTouchState;
 
 DOING:
 

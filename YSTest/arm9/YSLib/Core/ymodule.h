@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YModule -> YModule by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-1 13:52:56;
-// UTime = 2010-7-11 15:45;
-// Version = 0.1863;
+// UTime = 2010-7-26 7:36;
+// Version = 0.1898;
 
 
 #ifndef INCLUDED_YMODULE_H_
@@ -147,7 +147,7 @@ DeclInterface(GIFocusRequester)
 
 	DeclIEntry(bool CheckRemoval(GMFocusResponser<_Tp>&) const)
 
-	DeclIEntry(void ReleaseFocus(const YEventArgs& = YEventArgs::Empty))
+	DeclIEntry(void ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
 EndDecl
 
 
@@ -193,7 +193,7 @@ public:
 	bool
 	ReleaseFocus(GMFocusResponser<_Tp>&);
 
-	DeclIEntry(void ReleaseFocus(const YEventArgs& = YEventArgs::Empty))
+	DeclIEntry(void ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
 };
 
 inline

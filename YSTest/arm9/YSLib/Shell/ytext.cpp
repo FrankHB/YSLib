@@ -1,12 +1,12 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-7-25 10:40;
-// Version = 0.5889;
+// UTime = 2010-7-26 13:22;
+// Version = 0.5934;
 
 
 #include "ytext.h"
-#include <wctype.h>
+#include <cwctype>
 
 YSL_BEGIN
 
@@ -18,58 +18,58 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 static const u8 Alpha_Threshold = 16;
 
-YTextState::YTextState()
-:YPenStyle(GetDefaultFontFamily()), Margin(), pCache(&GetFontFamily().Cache),
+MTextState::MTextState()
+:MPenStyle(GetDefaultFontFamily()), Margin(), pCache(&GetFontFamily().Cache),
 penX(0), penY(0), lnGap(0)
 {}
-YTextState::YTextState(MFont& font)
-:YPenStyle(font.GetFontFamily()), Margin(), pCache(&GetFontFamily().Cache),
+MTextState::MTextState(MFont& font)
+:MPenStyle(font.GetFontFamily()), Margin(), pCache(&GetFontFamily().Cache),
 penX(0), penY(0), lnGap(0)
 {}
-YTextState::YTextState(YFontCache& fc)
-:YPenStyle(*fc.GetDefaultTypefacePtr()->GetFontFamilyPtr()), Margin(), pCache(&GetFontFamily().Cache),
+MTextState::MTextState(YFontCache& fc)
+:MPenStyle(*fc.GetDefaultTypefacePtr()->GetFontFamilyPtr()), Margin(), pCache(&GetFontFamily().Cache),
 penX(0), penY(0), lnGap(0)
 {}
 
 SDST
-YTextState::GetLnHeight() const
+MTextState::GetLnHeight() const
 {
 	return pCache->GetHeight();
 }
 SDST
-YTextState::GetLnHeightEx() const
+MTextState::GetLnHeightEx() const
 {
 	return pCache->GetHeight() + lnGap;
 }
 u16
-YTextState::GetLnNNow() const
+MTextState::GetLnNNow() const
 {
 	return (penY - Margin.Top) / GetLnHeightEx();
 }
 
 /*MTypeface*
-YTextState::SetFont(const char* name, CPATH filename)
+MTextState::SetFont(const char* name, CPATH filename)
 {
 	return pFont = pCache->SetFont(name, filename);
 }*/
 void
-YTextState::SetLnNNow(u16 n)
+MTextState::SetLnNNow(u16 n)
 {
 	penY = Margin.Top + pCache->GetAscender() + GetLnHeightEx() * n;
 }
 
 
 void
-YTextRegion::PrintChar(u32 c)
+MTextRegion::PrintChar(u32 c)
 {
-	if(!img)
+	if(img == NULL)
 		//无缓冲区时无法绘图。
 		return;
 
 	FTC_SBit sbit(pCache->GetGlyph(c));
 	const int tx(penX + pCache->GetAdvance(c, sbit));
 
-	if(INVISIBLE_CHAR(c) || !sbit->buffer)
+	if(INVISIBLE_CHAR(c) || sbit->buffer == NULL)
 	{
 		penX = tx;
 		return;
@@ -148,59 +148,62 @@ YTextRegion::PrintChar(u32 c)
 	penX = tx;
 }
 
-YTextRegion::YTextRegion()
-: YTextState(), MBitmapBufferEx()
+MTextRegion::MTextRegion()
+: MTextState(), MBitmapBufferEx()
 {
-	SetFontSize(MFont::DefSize);
+	Font.SetSize(MFont::DefSize);
+	Font.UpdateSize();
 	SetPen();
 }
-YTextRegion::YTextRegion(MFont& font)
-: YTextState(font), MBitmapBufferEx()
+MTextRegion::MTextRegion(MFont& font)
+: MTextState(font), MBitmapBufferEx()
 {
-	SetFontSize(MFont::DefSize);
+	Font.SetSize(MFont::DefSize);
+	Font.UpdateSize();
 	SetPen();
 }
-YTextRegion::YTextRegion(YFontCache& fc)
-: YTextState(fc), MBitmapBufferEx()
+MTextRegion::MTextRegion(YFontCache& fc)
+: MTextState(fc), MBitmapBufferEx()
 {
-	SetFontSize(MFont::DefSize);
+	Font.SetSize(MFont::DefSize);
+	Font.UpdateSize();
 	SetPen();
 }
-YTextRegion::~YTextRegion()
+MTextRegion::~MTextRegion()
 {
 }
 
 SDST
-YTextRegion::GetMarginResized() const
+MTextRegion::GetMarginResized() const
 {
 	const u8 t(GetLnHeightEx());
 
 	return t ? Margin.Bottom + (Height + lnGap - Margin.Top - Margin.Bottom) % t : 0;
 }
 SDST
-YTextRegion::GetBufferHeightResized() const
+MTextRegion::GetBufferHeightResized() const
 {
 	const u8 t(GetLnHeightEx());
 
 	return t ? Margin.Top + (Height + lnGap - Margin.Top - Margin.Bottom) / t * t : Height;
 }
 u16
-YTextRegion::GetLnN() const
+MTextRegion::GetLnN() const
 {
 	return GetBufHeightN() / GetLnHeightEx();
 }
 u16
-YTextRegion::GetLnNEx() const
+MTextRegion::GetLnNEx() const
 {
 	return (GetBufHeightN() + lnGap) / GetLnHeightEx();
 }
 SPOS
-YTextRegion::GetLineLast() const
+MTextRegion::GetLineLast() const
 {
 	return Height - Margin.Bottom + pCache->GetDescender();
 }
 u32
-YTextRegion::GetPrevLnOff(const uchar_t* s, u32 n) const
+MTextRegion::GetPrevLnOff(const uchar_t* s, u32 n) const
 {
 	SDST nw(GetBufWidthN());
 	const uchar_t* p(s + n);
@@ -214,7 +217,7 @@ YTextRegion::GetPrevLnOff(const uchar_t* s, u32 n) const
 	return p + (w <= nw) - s;
 }
 u32
-YTextRegion::GetPrevLnOff(const uchar_t* s, u32 n, SDST l) const
+MTextRegion::GetPrevLnOff(const uchar_t* s, u32 n, SDST l) const
 {
 	SDST nw(GetBufWidthN());
 	const uchar_t* p(s + n);
@@ -231,7 +234,7 @@ YTextRegion::GetPrevLnOff(const uchar_t* s, u32 n, SDST l) const
 	return p + (w <= nw) - s;
 }
 u32
-YTextRegion::GetNextLnOff(const uchar_t* s, u32 n) const
+MTextRegion::GetNextLnOff(const uchar_t* s, u32 n) const
 {
 	SDST nw(GetBufWidthN());
 	const uchar_t* p(s + n);
@@ -244,14 +247,14 @@ YTextRegion::GetNextLnOff(const uchar_t* s, u32 n) const
 }
 /*
 u32
-YTextRegion::GetNextLnOff(const uchar_t* s, u32 n, u16 l) const
+MTextRegion::GetNextLnOff(const uchar_t* s, u32 n, u16 l) const
 {
 	return 0;
 }
 */
 
 void
-YTextRegion::SetLnLast()
+MTextRegion::SetLnLast()
 {
 	const u16 n(GetLnN());
 
@@ -260,7 +263,7 @@ YTextRegion::SetLnLast()
 }
 
 void
-YTextRegion::ClearLine(u16 l, SDST n)
+MTextRegion::ClearLine(u16 l, SDST n)
 {
 	if(l > Height)
 		return;
@@ -276,14 +279,14 @@ YTextRegion::ClearLine(u16 l, SDST n)
 	}
 }
 void
-YTextRegion::ClearLn(u16 l)
+MTextRegion::ClearLn(u16 l)
 {
 	SDST h(GetLnHeightEx());
 
 	ClearLine(Margin.Top + h * l, h);
 }
 void
-YTextRegion::ClearLnLast()
+MTextRegion::ClearLnLast()
 {
 	SDST h(GetLnHeightEx());
 
@@ -291,13 +294,13 @@ YTextRegion::ClearLnLast()
 }
 
 void
-YTextRegion::Move(s16 n)
+MTextRegion::Move(s16 n)
 {
 	if(Height > Margin.Bottom)
 		Move(n, Height - Margin.Bottom);
 }
 void
-YTextRegion::Move(s16 n, SDST h)
+MTextRegion::Move(s16 n, SDST h)
 {
 	if(img && imgAlpha)
 	{
@@ -320,22 +323,22 @@ YTextRegion::Move(s16 n, SDST h)
 }
 
 void
-YTextRegion::PutNewline()
+MTextRegion::PutNewline()
 {
-	Font.Update();
 	penX = Margin.Left;
 	penY += GetLnHeightEx();
 }
 
 u8
-YTextRegion::PutChar(u32 c)
+MTextRegion::PutChar(u32 c)
 {
+	Font.Update();
 	if(c == '\n')
 	{
 		PutNewline();
 		return 0;
 	}
-	if(!iswprint(c))
+	if(!std::iswprint(c))
 		return 0;
 /*
 	const int maxW = GetBufWidthN() - 1,
@@ -349,14 +352,13 @@ YTextRegion::PutChar(u32 c)
 		PutNewline();
 		return 1;
 	}
-	Font.Update();
 	PrintChar(c);
 	return 0;
 }
 
 /*
 u32
-YTextRegion::PutLine(const uchar_t* s)
+MTextRegion::PutLine(const uchar_t* s)
 {
 	SPOS fpy(penY);
 	const uchar_t* t(s);
@@ -368,7 +370,7 @@ YTextRegion::PutLine(const uchar_t* s)
 }
 
 u32
-YTextRegion::PutString(const uchar_t* s)
+MTextRegion::PutString(const uchar_t* s)
 {
 	SPOS mpy(GetLineLast());
 	const uchar_t* t(s);
@@ -382,7 +384,7 @@ YTextRegion::PutString(const uchar_t* s)
 
 
 u32
-ReadX(YTextFile& f, YTextRegion& tr, u32 n)
+ReadX(YTextFile& f, MTextRegion& tr, u32 n)
 {
 	u32 l(0);
 

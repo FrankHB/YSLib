@@ -1,8 +1,8 @@
 ﻿// YSLib -> Designation by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-2 5:14:30;
-// UTime = 2010-7-24 21:41;
-// Version = 0.2872;
+// UTime = 2010-7-26 7:53;
+// Version = 0.2910;
 
 
 // Designation ：设计说明文档。
@@ -336,7 +336,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 以下所有权关系中，被托管对象类包括派生类：
  YApplication 拥有 Shells::YShell 所有权。
  Drawing::YFontCache 拥有 Drawing::MTypeface 、 Drawing::MFontFile 、 Drawing::MFontFamily 的所有权。
- Text::MTextMap 拥有 Text::MTextBlock 的所有权。
+ Text::MTextMap 及其派生类 Text::MTextFileBuffer 拥有 Text::MTextBlock 的所有权。
 
 @2 实现概览：
 外部库参考 @3 。
@@ -394,6 +394,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 @2.3.1 命名必须和标识符命名规约兼容。
 
 @2.3.2 类型特性：
+空结构体类型 EmptyType 。
 除了 I 和 A 前缀的类，都可以被实例化。
  Y 前缀类名的类不可被多继承。
 
@@ -402,14 +403,14 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 作为带有域的形式接口（为了实现效率，不由编译器对此进行语法检查），参与多重继承构建新的类。
 可实例化，也可作为类的成员域。
 对于模块类，应尽可能减少虚表体积，并降低额外的运行时效率开销。
+标准库异常以外的异常公共基类 MException ：派生自std::exception 。
+事件参数基类 MEventArgs ：即 EmptyType 。
 
 @2.3.4 Y 前缀类名的类：
 一般构件类，包括 YObject 和直接或间接派生自 YObject 的类。
 基本对象类 YObject ：所有类名以 Y 作前缀（除模板类、非直接实例化类和模块类）的公共基类，为多态类。
 提供引用相等判断等公共方法。
 基本可数对象类 YCountableObject ：所有可数的基本对象类的公共基类，通过继承 GMCounter 模板实现静态实例计数器。
-标准库异常以外的异常公共基类 YException ：派生自 YObject 和 std::exception 。
-事件参数基类 YEventArgs ：即 YObject 。
 
 @2.3.3 S 前缀类名的类：
 屏幕对象类。
@@ -432,7 +433,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 函数对象封装模块 YFunc ；
 核心实用模块 YCoreUtilities ；
 平台无关的基础对象实现 YObject ；
-异常处理模块 YException ；
+异常处理模块 MException ；
 基础字符串管理 YString ；
 应用程序实例类抽象 YApplication ；
  Shell 定义 YShell ；
@@ -457,13 +458,13 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 @2.4.3 事件的实现：
 位于单元 YEvent 中。
 简单事件调用的标准实现位于命名空间 Runtime 中。
-传递事件参数的参数基类是 YEventArgs ，可从这个类派生自定义参数类。
+传递事件参数的参数基类是 MEventArgs ，可从这个类派生自定义参数类。
 除此之外，默认提供以下参数类：
- YScreenPositionEventArgs ，屏幕事件参数类；
+ MScreenPositionEventArgs ，屏幕事件参数类；
  MInputEventArgs ，输入事件参数模块类；
- YTouchEventArgs ，指针设备输入事件参数类；
- YKeyEventArgs ，键盘输入事件参数类；
-为了实现和派生上的便利性，包括 YEventArgs 以上类实际为结构体类型。
+ MTouchEventArgs ，指针设备输入事件参数类；
+ MKeyEventArgs ，键盘输入事件参数类；
+为了实现和派生上的便利性，包括 MEventArgs 以上类实际为结构体类型。
 用模板定义用于事件处理机制的接口和实现类：
 事件处理器接口模板 GIHEventHandler ，标准版 IHEventHandler ；
 事件处理器模板 GHEvent ，标准版 HEvent ；
@@ -527,7 +528,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 窗口是实现了 IWindow 接口（继承 IWidgetContainer 和 IVisualControl 接口）的类（标准模块基类为 AWindow 抽象类），是作为一种能在桌面显示的自带缓冲区的特殊组件，不涉及界面以外的任务，不通过事件映射方式响应事件（尽管同时是焦点响应类和焦点请求类）。
 框架窗口（基类为 YFrameWindow ）是具有一般化的部件容器功能的窗口。
 窗体（基类为 YForm ）是增加了事件映射响应能力和客户区布局管理的框架窗口。
-默认组件中，除继承自窗口的组件（基类为 YWindow ，缓冲区继承自类 MBitmapBuffer ）外，所有部件默认不带显示缓冲区。实际使用时可以用其它类型成员（如 YTextRegion ）提供显示缓冲区。
+默认组件中，除继承自窗口的组件（基类为 YWindow ，缓冲区继承自类 MBitmapBuffer ）外，所有部件默认不带显示缓冲区。实际使用时可以用其它类型成员（如 MTextRegion ）提供显示缓冲区。
 
 @2.6.2 用于 GUI 的焦点特性：
 焦点标识当前（通常是用于响应输入的）操作作用的对象。 YSLib 中用指针实现，同时在每个可识别自身焦点状态的对象中用 bool 变量指示状态。

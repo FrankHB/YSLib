@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-7-14 13:56;
-// Version = 0.2278;
+// UTime = 2010-7-26 14:02;
+// Version = 0.2296;
 
 
 #include "ygui.h"
@@ -63,7 +63,7 @@ ReleaseFocusCascade(IVisualControl& c)
 
 
 //记录输入保持状态。
-SVec TouchStatus::v_DragOffset(SVec::FullScreen);
+SVec MTouchStatus::v_DragOffset(SVec::FullScreen);
 
 namespace
 {
@@ -85,7 +85,7 @@ namespace
 	}
 
 	bool
-	ResponseTouchUpBase(MVisualControl& c, const YTouchEventArgs& e)
+	ResponseTouchUpBase(MVisualControl& c, const MTouchEventArgs& e)
 	{
 		try
 		{
@@ -106,7 +106,7 @@ namespace
 	}
 
 	bool
-	ResponseTouchDownBase(MVisualControl& c, const YTouchEventArgs& e)
+	ResponseTouchDownBase(MVisualControl& c, const MTouchEventArgs& e)
 	{
 		p_TouchDown = &c;
 		try
@@ -117,16 +117,16 @@ namespace
 		{
 			return false;
 		}
-		TouchStatus::SetDragOffset();
+		MTouchStatus::SetDragOffset();
 		return true;
 	}
 
 	bool
-	ResponseTouchHeldBase(MVisualControl& c, const YTouchEventArgs& e)
+	ResponseTouchHeldBase(MVisualControl& c, const MTouchEventArgs& e)
 	{
 		if(p_TouchDown != &c)
 		{
-			TouchStatus::SetDragOffset();
+			MTouchStatus::SetDragOffset();
 			return false;
 		}
 		try
@@ -141,7 +141,7 @@ namespace
 	}
 
 	bool
-	ResponseKeyUpBase(MVisualControl& c, const YKeyEventArgs& e)
+	ResponseKeyUpBase(MVisualControl& c, const MKeyEventArgs& e)
 	{
 		try
 		{
@@ -162,7 +162,7 @@ namespace
 	}
 
 	bool
-	ResponseKeyDownBase(MVisualControl& c, const YKeyEventArgs& e)
+	ResponseKeyDownBase(MVisualControl& c, const MKeyEventArgs& e)
 	{
 		p_KeyDown = &c;
 		try
@@ -177,7 +177,7 @@ namespace
 	}
 
 	bool
-	ResponseKeyHeldBase(MVisualControl& c, const YKeyEventArgs& e)
+	ResponseKeyHeldBase(MVisualControl& c, const MKeyEventArgs& e)
 	{
 		if(p_KeyDown != &c)
 			return false;
@@ -202,7 +202,7 @@ namespace
 }
 
 bool
-ResponseTouchUp(IWidgetContainer& c, const YTouchEventArgs& e)
+ResponseTouchUp(IWidgetContainer& c, const MTouchEventArgs& e)
 {
 	IWidgetContainer* pCon(&c);
 	IVisualControl* p;
@@ -221,7 +221,7 @@ ResponseTouchUp(IWidgetContainer& c, const YTouchEventArgs& e)
 }
 
 bool
-ResponseTouchDown(IWidgetContainer& c, const YTouchEventArgs& e)
+ResponseTouchDown(IWidgetContainer& c, const MTouchEventArgs& e)
 {
 	IWidgetContainer* pCon(&c);
 	IVisualControl* p;
@@ -243,7 +243,7 @@ ResponseTouchDown(IWidgetContainer& c, const YTouchEventArgs& e)
 }
 
 bool
-ResponseTouchHeld(IWidgetContainer& c, const YTouchEventArgs& e)
+ResponseTouchHeld(IWidgetContainer& c, const MTouchEventArgs& e)
 {
 	IWidgetContainer* pCon(&c);
 	IVisualControl* p;
@@ -263,17 +263,17 @@ ResponseTouchHeld(IWidgetContainer& c, const YTouchEventArgs& e)
 }
 
 bool
-ResponseKeyUp(YDesktop& d, const YKeyEventArgs& e)
+ResponseKeyUp(YDesktop& d, const MKeyEventArgs& e)
 {
 	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyUpBase));
 }
 bool
-ResponseKeyDown(YDesktop& d, const YKeyEventArgs& e)
+ResponseKeyDown(YDesktop& d, const MKeyEventArgs& e)
 {
 	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyDownBase));
 }
 bool
-ResponseKeyHeld(YDesktop& d, const YKeyEventArgs& e)
+ResponseKeyHeld(YDesktop& d, const MKeyEventArgs& e)
 {
 	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyHeldBase));
 }
@@ -283,7 +283,7 @@ YSL_END_NAMESPACE(Runtime)
 YSL_BEGIN_NAMESPACE(Drawing)
 
 void
-DrawBounds(YGIC& g, const SPoint& location, const SSize& size, PixelType c)
+DrawBounds(MGIC& g, const SPoint& location, const SSize& size, PixelType c)
 {
 	DrawRect(g, location, SPoint(location + size - SVec(1, 1)), c);
 }
@@ -291,7 +291,7 @@ DrawBounds(YGIC& g, const SPoint& location, const SSize& size, PixelType c)
 void
 DrawWindowBounds(HWND hWnd, PixelType c)
 {
-	YGIC g(GetGraphicInterfaceContext(hWnd));
+	MGIC g(GetGraphicInterfaceContext(hWnd));
 
 	DrawBounds(g, SPoint::Zero, hWnd->GetSize(), c);
 }
@@ -301,7 +301,7 @@ DrawWidgetBounds(IWidget& w, PixelType c)
 {
 	if(w.GetWindowHandle())
 	{
-		YGIC g(GetGraphicInterfaceContext(w.GetWindowHandle()));
+		MGIC g(GetGraphicInterfaceContext(w.GetWindowHandle()));
 
 		DrawBounds(g, w.GetLocation(), w.GetSize(), c);
 	}

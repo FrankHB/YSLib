@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52;
-// UTime = 2010-7-21 8:14;
-// Version = 0.2280;
+// UTime = 2010-7-26 7:36;
+// Version = 0.2300;
 
 
 #include "yglobal.h"
@@ -119,7 +119,7 @@ Def::InitScrDown()
 }
 
 void
-Def::Destroy(YObject&, const YEventArgs&)
+Def::Destroy(YObject&, const MEventArgs&)
 {
 	//释放默认字体资源。
 	DestroySystemFontCache();
@@ -188,11 +188,11 @@ namespace
 		if((pScreenUp = new YScreen(SCRW, SCRH)))
 			pDesktopUp = new YDesktop(*pScreenUp);
 		else //初始化上屏失败。
-			throw Exceptions::YLoggedError("Initialization of up screen failed.");
+			throw Exceptions::MLoggedEvent("Initialization of up screen failed.");
 		if((pScreenDown = new YScreen(SCRW, SCRH)))
 			pDesktopDown = new YDesktop(*pScreenDown);
 		else //初始化下屏失败。
-			throw Exceptions::YLoggedError("Initialization of down screen failed.");
+			throw Exceptions::MLoggedEvent("Initialization of down screen failed.");
 
 		//注册全局应用程序对象。
 		theApp.ResetShellHandle();
@@ -224,7 +224,7 @@ main(int argc, char* argv[])
 	{
 		YSL_ theApp.Log.FatalError("Unhandled std::bad_cast @@ int main(int, char*[]);");
 	}
-	catch(YSL_ Exceptions::YLoggedError& e)
+	catch(YSL_ Exceptions::MLoggedEvent& e)
 	{
 		YSL_ theApp.Log.FatalError(e.what());
 	}

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YResource by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40;
-// UTime = 2010-7-23 21:18;
-// Version = 0.1312;
+// UTime = 2010-7-26 6:27;
+// Version = 0.1314;
 
 
 #ifndef INCLUDED_YRES_H_
@@ -35,8 +35,6 @@ class YImage : public GMCounter<YImage>, public YCountableObject, public MBitmap
 {
 public:
 	typedef YCountableObject ParentType;
-
-	static const YImage Empty;
 
 	explicit
 	YImage(ConstBitmapPtr = NULL, SDST = 0, SDST = 0);

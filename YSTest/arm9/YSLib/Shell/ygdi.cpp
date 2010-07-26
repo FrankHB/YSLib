@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46;
-// UTime = 2010-7-23 8:26;
-// Version = 0.2244;
+// UTime = 2010-7-26 6:31;
+// Version = 0.2270;
 
 
 #include "ygdi.h"
@@ -470,11 +470,11 @@ blitAlphaU(BitmapPtr dst, const SSize& ds,
 
 
 bool
-DrawHLineSeg(YGIC& g, SPOS y, SPOS x1, SPOS x2, PixelType c)
+DrawHLineSeg(MGIC& g, SPOS y, SPOS x1, SPOS x2, PixelType c)
 {
 	YAssert(g.IsValid(),
 		"In function \"void\n"
-		"DrawHLineSeg(YGIC& g, SPOS y, SPOS x1, SPOS x2, PixelType c)\": \n"
+		"DrawHLineSeg(MGIC& g, SPOS y, SPOS x1, SPOS x2, PixelType c)\": \n"
 		"The graphic device context is invalid.");
 
 	if(isInIntervalRegular<int>(y, g.GetHeight())
@@ -490,11 +490,11 @@ DrawHLineSeg(YGIC& g, SPOS y, SPOS x1, SPOS x2, PixelType c)
 }
 
 bool
-DrawVLineSeg(YGIC& g, SPOS x, SPOS y1, SPOS y2, PixelType c)
+DrawVLineSeg(MGIC& g, SPOS x, SPOS y1, SPOS y2, PixelType c)
 {
 	YAssert(g.IsValid(),
 		"In function \"void\n"
-		"DrawVLineSeg(YGIC& g, SPOS x, SPOS y1, SPOS y2, PixelType c)\": \n"
+		"DrawVLineSeg(MGIC& g, SPOS x, SPOS y1, SPOS y2, PixelType c)\": \n"
 		"The graphic device context is invalid.");
 
 	if(isInIntervalRegular<int>(x, g.GetWidth())
@@ -513,15 +513,15 @@ namespace
 {
 	//倾斜直线光栅化函数。
 	bool
-	DrawObliqueLine(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
+	DrawObliqueLine(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
 	{
 		YAssert(y1 != y2,
 			"In function \"static void\n"
-			"DrawObliqueLine(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)\": \n"
+			"DrawObliqueLine(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)\": \n"
 			"Not drawing an oblique line: the line is horizontal.");
 		YAssert(x1 != x2,
 			"In function \"static void\n"
-			"DrawObliqueLine(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)\": \n"
+			"DrawObliqueLine(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)\": \n"
 			"Not drawing an oblique line: the line is vertical.");
 
 		if(SRect(g.GetSize()).IsInBoundsRegular(x1, y1) && SRect(g.GetSize()).IsInBoundsRegular(x2, y2))
@@ -565,7 +565,7 @@ namespace
 }
 
 bool
-DrawLineSeg(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
+DrawLineSeg(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
 {
 	if(y1 == y2)
 		return DrawHLineSeg(g, y1, x1, x2, c);
@@ -576,7 +576,7 @@ DrawLineSeg(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
 }
 
 bool
-DrawRect(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
+DrawRect(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
 {
 	bool b(DrawVLineSeg(g, x1, y1, y2, c));
 	b |= DrawHLineSeg(g, y2, x1, x2, c);
@@ -655,7 +655,7 @@ MBitmapBuffer::SetSize(SPOS w, SPOS h)
 			}
 			catch(std::bad_alloc&)
 			{
-				throw YLoggedError("Allocation failed @@ MBitmapBuffer::SetSize(SPOS, SPOS);", 1);
+				throw MLoggedEvent("Allocation failed @@ MBitmapBuffer::SetSize(SPOS, SPOS);", 1);
 			}
 		}
 	}
@@ -740,7 +740,7 @@ MBitmapBufferEx::SetSize(SPOS w, SPOS h)
 			}
 			catch(std::bad_alloc&)
 			{
-				throw YLoggedError("Allocation failed @@ MBitmapBufferEx::SetSize(SPOS, SPOS);", 1);;
+				throw MLoggedEvent("Allocation failed @@ MBitmapBufferEx::SetSize(SPOS, SPOS);", 1);;
 			}
 		}
 	}

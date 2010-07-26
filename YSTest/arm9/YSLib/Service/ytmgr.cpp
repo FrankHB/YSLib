@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 17:48:09;
-// UTime = 2010-7-25 10:41;
-// Version = 0.3686;
+// UTime = 2010-7-26 6:06;
+// Version = 0.3696;
 
 
 #include "ytmgr.h"
@@ -21,7 +21,7 @@ try : mlen(tlen), text(new uchar_t[mlen]), len(0)
 }
 catch(...)
 {
-	throw YLoggedError("Error occured @@ MTextBuffer::MTextBuffer();");
+	throw MLoggedEvent("Error occured @@ MTextBuffer::MTextBuffer();");
 }
 
 MTextBuffer::SizeType
@@ -114,11 +114,11 @@ MTextFileBuffer::operator[](const IndexType& i)
 	}
 	catch(std::out_of_range&)
 	{
-		throw YLoggedError("Wrong range of file @@ MTextFileBuffer::operator[];", 3);
+		throw MLoggedEvent("Wrong range of file @@ MTextFileBuffer::operator[];", 3);
 	}
 	catch(std::bad_alloc&)
 	{
-		throw YLoggedError("Allocation failed @@ MTextFileBuffer::operator[];", 2);
+		throw MLoggedEvent("Allocation failed @@ MTextFileBuffer::operator[];", 2);
 	}
 }
 

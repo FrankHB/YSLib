@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YObject by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-6-8 14:56;
-// Version = 0.1391;
+// UTime = 2010-6-26 6:17;
+// Version = 0.1408;
 
 
 #include "yobject.h"
@@ -24,8 +24,6 @@ const SRect SRect::Empty = SRect();
 const SRect SRect::FullScreen = SRect(SPoint::Zero, SCRW, SCRH);
 
 YSL_END_NAMESPACE(Drawing)
-
-const YObject YObject::Empty = YObject();
 
 YSL_END
 

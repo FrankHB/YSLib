@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-7-21 23:18;
-// Version = 0.2593;
+// UTime = 2010-7-26 7:40;
+// Version = 0.2618;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -109,22 +109,22 @@ private:
 			Draw();
 		}
 		void
-		frm_KeyPress(const YKeyEventArgs&);
+		frm_KeyPress(const MKeyEventArgs&);
 		void
-		fb_Selected(const YIndexEventArgs&);
+		fb_Selected(const MIndexEventArgs&);
 		void
-		btnTest_Click(const YTouchEventArgs&);
+		btnTest_Click(const MTouchEventArgs&);
 		void
-		btnOK_Click(const YTouchEventArgs&);
+		btnOK_Click(const MTouchEventArgs&);
 	};
 	void LoadNextWindows();
 
 public:
 	static void
-	fb_KeyPress(IVisualControl&, const YKeyEventArgs&);
+	fb_KeyPress(IVisualControl&, const MKeyEventArgs&);
 
 	static void
-	fb_Confirmed(IVisualControl&, const YIndexEventArgs&);
+	fb_Confirmed(IVisualControl&, const MIndexEventArgs&);
 
 	virtual LRES
 	ShlProc(const MMSG&);
@@ -156,7 +156,7 @@ public:
 			lblA2.Transparent = true;
 		}
 
-		void ShowString(const YString& s)
+		void ShowString(const MString& s)
 		{
 			lblA.Text = s;
 			lblA.DrawForeground();
@@ -204,32 +204,32 @@ public:
 		}
 
 		void
-		lblC_TouchUp(const YTouchEventArgs&);
+		lblC_TouchUp(const MTouchEventArgs&);
 
 		void
-		lblC_TouchDown(const YTouchEventArgs&);
+		lblC_TouchDown(const MTouchEventArgs&);
 
 		void
-		lblC_Click(const YTouchEventArgs&);
+		lblC_Click(const MTouchEventArgs&);
 
 		static void
-		lblC_KeyPress(IVisualControl& sender, const YKeyEventArgs& e);
+		lblC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e);
 
 		void
-		btnReturn_Click(const YTouchEventArgs&);
+		btnReturn_Click(const MTouchEventArgs&);
 	};
 
-	void ShowString(const YString& s)
+	void ShowString(const MString& s)
 	{
 		GHHandle<TFormA>(hWndUp)->ShowString(s);
 	}
 	void ShowString(const char* s)
 	{
-		ShowString(YString(s));
+		ShowString(MString(s));
 	}
 
 	static void
-	TFormC_TouchDown(IVisualControl& sender, const YTouchEventArgs& e)
+	TFormC_TouchDown(IVisualControl& sender, const MTouchEventArgs& e)
 	{
 		try
 		{
@@ -258,7 +258,7 @@ class ShlReader : public ShlGUI
 public:
 	typedef ShlGUI ParentType;
 
-//	static YString path;
+//	static MString path;
 
 	YTextFile TextFile;
 	MDualScreenReader Reader;
@@ -272,10 +272,10 @@ public:
 	UpdateToScreen();
 
 	void
-	OnClick(const YTouchEventArgs&);
+	OnClick(const MTouchEventArgs&);
 
 	void
-	OnKeyPress(const YKeyEventArgs&);
+	OnKeyPress(const MKeyEventArgs&);
 
 	virtual LRES
 	ShlProc(const MMSG&);

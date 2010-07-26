@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-7-16 18:50;
-// Version = 0.2913;
+// UTime = 2010-7-26 14:02;
+// Version = 0.2966;
 
 
 #include "ycontrol.h"
@@ -129,7 +129,7 @@ RectDrawFocusDefault(const SPoint& l, const SSize& s, HWND hWnd)
 	if(pWgt)
 		DrawWidgetBounds(*pWgt, ARGB16(1, 31, 1, 31));
 
-//	YGIC g(hWnd->GetBufferPtr(), hWnd->GetBounds());
+//	MGIC g(hWnd->GetBufferPtr(), hWnd->GetBounds());
 }
 /*
 static void
@@ -182,27 +182,27 @@ MVisualControl::CheckFocusContainer(IWidgetContainer* pCon)
 }
 
 void
-MVisualControl::_m_OnTouchHeld(const Runtime::YTouchEventArgs& e)
+MVisualControl::_m_OnTouchHeld(const Runtime::MTouchEventArgs& e)
 {
 	try
 	{
 		IWidget& w(dynamic_cast<IWidget&>(*this));
-		if(!TouchStatus::IsOnDragging())
-			TouchStatus::SetDragOffset(w.GetLocation() - e);
-		else if(w.GetLocation() != e + TouchStatus::GetDragOffset())
+		if(!MTouchStatus::IsOnDragging())
+			MTouchStatus::SetDragOffset(w.GetLocation() - e);
+		else if(w.GetLocation() != e + MTouchStatus::GetDragOffset())
 			OnTouchMove(dynamic_cast<IVisualControl&>(*this), e);
 	}
 	catch(std::bad_cast&)
 	{}
 }
 void
-MVisualControl::_m_OnTouchMove(const Runtime::YTouchEventArgs& e)
+MVisualControl::_m_OnTouchMove(const Runtime::MTouchEventArgs& e)
 {
 	try
 	{
 		IWidget& w(dynamic_cast<IWidget&>(*this));
 
-		w.SetLocation(e + TouchStatus::GetDragOffset());
+		w.SetLocation(e + MTouchStatus::GetDragOffset());
 		w.Refresh();
 	}
 	catch(std::bad_cast&)
@@ -210,7 +210,7 @@ MVisualControl::_m_OnTouchMove(const Runtime::YTouchEventArgs& e)
 }
 
 void
-MVisualControl::OnGotFocus(IControl& c, const YEventArgs& e)
+MVisualControl::OnGotFocus(IControl& c, const MEventArgs& e)
 {
 	try
 	{
@@ -224,7 +224,7 @@ MVisualControl::OnGotFocus(IControl& c, const YEventArgs& e)
 	}
 }
 void
-MVisualControl::OnLostFocus(IControl& c, const YEventArgs& e)
+MVisualControl::OnLostFocus(IControl& c, const MEventArgs& e)
 {
 	OnGotFocus(c, e);
 /*	try
@@ -235,12 +235,12 @@ MVisualControl::OnLostFocus(IControl& c, const YEventArgs& e)
 	{}*/
 }
 void
-MVisualControl::OnTouchDown(IVisualControl& c, const YTouchEventArgs& e)
+MVisualControl::OnTouchDown(IVisualControl& c, const MTouchEventArgs& e)
 {
 	c.RequestFocus(e);
 }
 void
-MVisualControl::OnTouchHeld(IVisualControl& c, const YTouchEventArgs& e)
+MVisualControl::OnTouchHeld(IVisualControl& c, const MTouchEventArgs& e)
 {
 	try
 	{
@@ -250,7 +250,7 @@ MVisualControl::OnTouchHeld(IVisualControl& c, const YTouchEventArgs& e)
 	{}
 }
 void
-MVisualControl::OnTouchMove(IVisualControl& c, const YTouchEventArgs& e)
+MVisualControl::OnTouchMove(IVisualControl& c, const MTouchEventArgs& e)
 {
 	try
 	{
@@ -293,7 +293,7 @@ YVisualControl::DrawForeground()
 }
 
 void
-YVisualControl::RequestFocus(const YEventArgs& e)
+YVisualControl::RequestFocus(const MEventArgs& e)
 {
 	GMFocusResponser<IVisualControl>* const p(CheckFocusContainer(pContainer));
 
@@ -301,7 +301,7 @@ YVisualControl::RequestFocus(const YEventArgs& e)
 		EventMap[EControl::GotFocus](*this, e);
 }
 void
-YVisualControl::ReleaseFocus(const YEventArgs& e)
+YVisualControl::ReleaseFocus(const MEventArgs& e)
 {
 	GMFocusResponser<IVisualControl>* const p(CheckFocusContainer(pContainer));
 
@@ -315,11 +315,6 @@ YLabel::~YLabel()
 }
 
 void
-YLabel::DrawBackground()
-{
-	YVisualControl::DrawBackground();
-}
-void
 YLabel::DrawForeground()
 {
 	YVisualControl::DrawForeground();
@@ -327,9 +322,8 @@ YLabel::DrawForeground()
 		RectOnGotFocus(Location, Size, hWindow);
 	if(prTextRegion)
 	{
-	//	BackColor = ARGB16(1, 15, 15, 31);
-		prTextRegion->SetFont(Font);
-		prTextRegion->SetColor(ForeColor);
+		prTextRegion->Font = Font;
+		prTextRegion->Color = ForeColor;
 		prTextRegion->SetSize(GetWidth(), GetHeight());
 		prTextRegion->SetMargins(2, 2, 2, 2);
 		prTextRegion->PutLine(Text);
@@ -343,18 +337,18 @@ YLabel::DrawForeground()
 }
 
 
-YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<YTextRegion> prTr_)
+YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<MTextRegion> prTr_)
 : YVisualControl(hWnd, r, pCon),
-prTextRegion(pCon ? prTr_ : GetGlobalResource<YTextRegion>()), bDisposeList(true),
-Font(prTextRegion->GetFont()), Margin(prTextRegion->Margin),
+prTextRegion(pCon ? prTr_ : GetGlobalResource<MTextRegion>()), bDisposeList(true),
+Font(), Margin(prTextRegion->Margin),
 List(*new ListType()), Viewer(List)
 {
 	Init_();
 }
-YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<YTextRegion> prTr_, YListBox::ListType& List_)
+YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<MTextRegion> prTr_, YListBox::ListType& List_)
 : YVisualControl(hWnd, r, pCon),
-prTextRegion(pCon ? prTr_ : GetGlobalResource<YTextRegion>()), bDisposeList(false),
-Font(prTextRegion->GetFont()), Margin(prTextRegion->Margin),
+prTextRegion(pCon ? prTr_ : GetGlobalResource<MTextRegion>()), bDisposeList(false),
+Font(), Margin(prTextRegion->Margin),
 List(List_), Viewer(List)
 {
 	Init_();
@@ -430,13 +424,13 @@ YListBox::DrawForeground()
 			{
 				if(isSelected && i == Viewer.GetSelected())
 				{
-					prTextRegion->SetColor(ARGB16(1, 31, 31, 31));
+					prTextRegion->Color = ~0;
 					FillRect(hWindow->GetBufferPtr(), hWindow->GetSize(),
 						SRect(pt.X + 1, pt.Y + 1, prTextRegion->GetWidth() - 2, prTextRegion->GetHeight() - 2),
 						PixelType(ARGB16(1, 6, 27, 31)));
 				}
 				else
-					prTextRegion->SetColor(ForeColor);
+					prTextRegion->Color = ForeColor;
 				prTextRegion->PutLine(List[i]);
 				prTextRegion->SetPen();
 			}
@@ -465,17 +459,17 @@ YListBox::CheckPoint(SPOS x, SPOS y)
 void
 YListBox::CallSelected()
 {
-	Selected(*this, YIndexEventArgs(*this, Viewer.GetSelected()));
+	Selected(*this, MIndexEventArgs(*this, Viewer.GetSelected()));
 }
 void
 YListBox::CallConfirmed()
 {
 	if(Viewer.IsSelected())
-		Confirmed(*this, YIndexEventArgs(*this, Viewer.GetSelected()));
+		Confirmed(*this, MIndexEventArgs(*this, Viewer.GetSelected()));
 }
 
 void
-YListBox::_m_OnClick(const YTouchEventArgs& pt)
+YListBox::_m_OnClick(const MTouchEventArgs& pt)
 {
 	SetSelected(pt);
 
@@ -483,7 +477,7 @@ YListBox::_m_OnClick(const YTouchEventArgs& pt)
 	CallConfirmed();
 }
 void
-YListBox::_m_OnKeyPress(const YKeyEventArgs& k)
+YListBox::_m_OnKeyPress(const MKeyEventArgs& k)
 {
 	if(Viewer.IsSelected())
 	{
@@ -531,13 +525,13 @@ YListBox::_m_OnKeyPress(const YKeyEventArgs& k)
 		default:
 			return;
 		}
-	//	(*this)[es](*this, YIndexEventArgs(*this, Viewer.GetSelected()));
+	//	(*this)[es](*this, MIndexEventArgs(*this, Viewer.GetSelected()));
 		Refresh();
 	}
 }
 
 void
-YListBox::OnClick(IVisualControl& c, const YTouchEventArgs& e)
+YListBox::OnClick(IVisualControl& c, const MTouchEventArgs& e)
 {
 	try
 	{
@@ -547,7 +541,7 @@ YListBox::OnClick(IVisualControl& c, const YTouchEventArgs& e)
 	{}
 }
 void
-YListBox::OnKeyPress(IVisualControl& c, const YKeyEventArgs& e)
+YListBox::OnKeyPress(IVisualControl& c, const MKeyEventArgs& e)
 {
 	try
 	{
@@ -557,7 +551,7 @@ YListBox::OnKeyPress(IVisualControl& c, const YKeyEventArgs& e)
 	{}
 }
 void
-YListBox::OnSelected(IVisualControl& c, const YIndexEventArgs&)
+YListBox::OnSelected(IVisualControl& c, const MIndexEventArgs&)
 {
 	try
 	{
@@ -567,13 +561,13 @@ YListBox::OnSelected(IVisualControl& c, const YIndexEventArgs&)
 	{}
 }
 void
-YListBox::OnConfirmed(IVisualControl& c, const YIndexEventArgs& e)
+YListBox::OnConfirmed(IVisualControl& c, const MIndexEventArgs& e)
 {
 	OnSelected(c, e);
 }
 
 
-YFileBox::YFileBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<YTextRegion> prTr_)
+YFileBox::YFileBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<MTextRegion> prTr_)
 : YListBox(hWnd, r, pCon, prTr_, MFileList::List), MFileList(),
 List(ParentType::List)
 {}
@@ -594,7 +588,7 @@ YFileBox::DrawForeground()
 }
 
 void
-YFileBox::OnClick(IVisualControl& c, const YTouchEventArgs& e)
+YFileBox::OnClick(IVisualControl& c, const MTouchEventArgs& e)
 {
 }
 

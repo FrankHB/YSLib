@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40;
-// UTime = 2010-7-22 11:26;
-// Version = 0.3226;
+// UTime = 2010-7-26 7:35;
+// Version = 0.3253;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -21,7 +21,7 @@ YSL_BEGIN_NAMESPACE(Forms)
 
 //窗口接口。
 DeclBasedInterface(IWindow, IWidgetContainer, IVisualControl)
-	DeclIEntry(operator YGIC() const) //生成图形接口上下文。
+	DeclIEntry(operator MGIC() const) //生成图形接口上下文。
 
 	DeclIEntry(bool IsRefreshRequired() const)
 	DeclIEntry(bool IsUpdateRequired() const)
@@ -114,7 +114,7 @@ public:
 	virtual PDefOpHead(EventMapType::Event&, [], const EventMapType::ID& id)
 		ImplBodyBase(MVisualControl, operator[], id)
 
-	virtual DefConverterMember(YGIC, Buffer)
+	virtual DefConverterMember(MGIC, Buffer)
 
 	virtual DefBoolGetterBase(Visible, MVisual)
 	virtual DefBoolGetterBase(Transparent, MVisual)
@@ -193,9 +193,9 @@ private:
 
 public:
 	virtual void
-	RequestFocus(const YEventArgs& = YEventArgs::Empty); //向部件容器申请获得焦点。
+	RequestFocus(const MEventArgs& = GetZeroElement<MEventArgs>()); //向部件容器申请获得焦点。
 	virtual void
-	ReleaseFocus(const YEventArgs& = YEventArgs::Empty); //释放焦点。
+	ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()); //释放焦点。
 	virtual void
 	RequestToTop();
 
@@ -211,9 +211,9 @@ public:
 	Show();
 
 	static void
-	OnGotFocus(IControl&, const YEventArgs& = YEventArgs::Empty);
+	OnGotFocus(IControl&, const MEventArgs& = GetZeroElement<MEventArgs>());
 	static void
-	OnLostFocus(IControl&, const YEventArgs& = YEventArgs::Empty);
+	OnLostFocus(IControl&, const MEventArgs& = GetZeroElement<MEventArgs>());
 };
 
 inline void

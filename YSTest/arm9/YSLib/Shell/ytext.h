@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-7-24 10:51;
-// Version = 0.5978;
+// UTime = 2010-7-26 7:55;
+// Version = 0.6040;
 
 
 #ifndef INCLUDED_YTEXT_H_
@@ -18,10 +18,10 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-class YTextState : public YPenStyle //文本状态：笔样式、边框样式、字体缓存和行距。
+class MTextState : public MPenStyle //文本状态：笔样式、边框样式、字体缓存和行距。
 {
 public:
-	typedef YPenStyle ParentType;
+	typedef MPenStyle ParentType;
 
 	MPadding Margin; //显示区域到边框的距离。
 
@@ -31,15 +31,15 @@ protected:
 	u8 lnGap; //行距。
 
 public:
-	YTextState();
+	MTextState();
 	explicit
-	YTextState(MFont&);
+	MTextState(MFont&);
 	explicit
-	YTextState(YFontCache&);
+	MTextState(YFontCache&);
 
-	YTextState&
-	operator=(const YPenStyle& ps); //从 ts 中恢复样式。
-	YTextState&
+	MTextState&
+	operator=(const MPenStyle& ps); //从 ts 中恢复样式。
+	MTextState&
 	operator=(const MPadding& ms); //从 ms 中恢复样式。
 
 	DefGetter(SPOS, PenX, penX)
@@ -67,40 +67,40 @@ public:
 	SetLnNNow(u16 n); //设置笔的行位置。
 };
 
-inline YTextState&
-YTextState::operator=(const YPenStyle& ps)
+inline MTextState&
+MTextState::operator=(const MPenStyle& ps)
 {
-	YPenStyle::operator=(ps);
-	pCache = &GetFontFamily().Cache;
+	MPenStyle::operator=(ps);
+	pCache = &GetCache();
 	return *this;
 }
-inline YTextState&
-YTextState::operator=(const MPadding& ms)
+inline MTextState&
+MTextState::operator=(const MPadding& ms)
 {
 	Margin = ms;
 	return *this;
 }
 
 inline void
-YTextState::SetMargins(u64 m)
+MTextState::SetMargins(u64 m)
 {
 	Margin.SetAll(m);
 	SetPen();
 }
 inline void
-YTextState::SetMargins(SDST h, SDST v)
+MTextState::SetMargins(SDST h, SDST v)
 {
 	Margin.SetAll(h, v);
 	SetPen();
 }
 inline void
-YTextState::SetMargins(SDST l, SDST r, SDST t, SDST b)
+MTextState::SetMargins(SDST l, SDST r, SDST t, SDST b)
 {
 	Margin.SetAll(l, r, t, b);
 	SetPen();
 }
 inline void
-YTextState::SetPen()
+MTextState::SetPen()
 {
 	penX = Margin.Left;
 	//	penY = Top + GetLnHeightEx();
@@ -108,30 +108,30 @@ YTextState::SetPen()
 	SetLnNNow(0);
 }
 inline void
-YTextState::SetPen(SPOS x, SPOS y)
+MTextState::SetPen(SPOS x, SPOS y)
 {
 	penX = x;
 	penY = y;
 }
 
 
-class YTextRegion : public YTextState, public MBitmapBufferEx //文本区域。
+class MTextRegion : public MTextState, public MBitmapBufferEx //文本区域。
 {
 public:
-	typedef YTextState ParentType;
+	typedef MTextState ParentType;
 
 private:
 	void PrintChar(u32); //打印单个字符。
 
 public:
-	YTextRegion();
+	MTextRegion();
 	explicit
-	YTextRegion(MFont&);
+	MTextRegion(MFont&);
 	explicit
-	YTextRegion(YFontCache&);
-	~YTextRegion();
+	MTextRegion(YFontCache&);
+	~MTextRegion();
 
-	YTextRegion& operator=(const YTextState& ts); //从 ts 中恢复状态。
+	MTextRegion& operator=(const MTextState& ts); //从 ts 中恢复状态。
 
 	DefGetter(SDST, BufWidthN, Width - Margin.GetHorizontal()) //取缓冲区的文本显示区域的宽。
 	DefGetter(SDST, BufHeightN, Height - Margin.GetVertical()) //取缓冲区的文本显示区域的高。
@@ -181,7 +181,7 @@ public:
 	//u32
 	//PutLine(const uchar_t*);
 	u32
-	PutLine(const YString& s);
+	PutLine(const MString& s);
 
 	//输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
 	template<class _CharT>
@@ -191,16 +191,16 @@ public:
 	//PutString(const uchar_t*);
 };
 
-inline YTextRegion&
-YTextRegion::operator=(const YTextState& ts)
+inline MTextRegion&
+MTextRegion::operator=(const MTextState& ts)
 {
-	YTextState::operator=(ts);
+	MTextState::operator=(ts);
 	return *this;
 }
 
 template<class _CharT>
 u32
-YTextRegion::PutLine(const _CharT* s)
+MTextRegion::PutLine(const _CharT* s)
 {
 	SPOS fpy(penY);
 	const _CharT* t(s);
@@ -211,14 +211,14 @@ YTextRegion::PutLine(const _CharT* s)
 	return t - s;
 }
 inline u32
-YTextRegion::PutLine(const YString& s)
+MTextRegion::PutLine(const MString& s)
 {
 	return PutLine(s.c_str());
 }
 
 template<class _CharT>
 u32
-YTextRegion::PutString(const _CharT* s)
+MTextRegion::PutString(const _CharT* s)
 {
 	SPOS mpy(GetLineLast());
 	const _CharT* t(s);
@@ -230,7 +230,7 @@ YTextRegion::PutString(const _CharT* s)
 }
 
 u32
-ReadX(YTextFile& f, YTextRegion& txtbox, u32 n); //无文本缓冲方式从文本文件 f 中读取 n 字节（按默认编码转化为 UTF-16LE）到 txtbox 中。
+ReadX(YTextFile& f, MTextRegion& txtbox, u32 n); //无文本缓冲方式从文本文件 f 中读取 n 字节（按默认编码转化为 UTF-16LE）到 txtbox 中。
 
 YSL_END_NAMESPACE(Drawing)
 

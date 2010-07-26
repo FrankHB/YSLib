@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YCoreUtilities by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-23 6:10:59;
-// UTime = 2010-7-24 17:52;
-// Version = 0.1948;
+// UTime = 2010-7-26 13:57;
+// Version = 0.1950;
 
 
 #ifndef INCLUDED_YCUTIL_H_
@@ -278,7 +278,7 @@ struct const_deref_op : std::unary_function<const _type, const _type*>
 //间接访问（解引用）比较仿函数。
 template<
 	typename _type,
-	template <typename _type> class _cmpType = std::less
+	template<typename _type> class _cmpType = std::less
 >
 struct deref_comp : _cmpType<_type>
 {

@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YRefrence by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-21 23:09:06;
-// UTime = 2010-7-13 1:54;
-// Version = 0.2124;
+// UTime = 2010-7-26 13:58;
+// Version = 0.2127;
 
 
 #ifndef INCLUDED_YREF_HPP_
@@ -26,7 +26,7 @@ struct YSP_OP_Simple
 	YSP_OP_Simple()
 	{}
 
-	template <class P1>
+	template<class P1>
 	YSP_OP_Simple(const YSP_OP_Simple<P1>& rhs)
 	{}
 
@@ -47,7 +47,7 @@ struct YSP_OP_Simple
 	{}
 };
 
-template <class P>
+template<class P>
 class YSP_OP_RefCounted
 {
 private:
@@ -74,7 +74,7 @@ public:
 		: pCount_(rhs.pCount_)
 	{}
 
-	template <typename P1>
+	template<typename P1>
 	YSP_OP_RefCounted(const YSP_OP_RefCounted<P1>& rhs)
 		: pCount_(reinterpret_cast<const YSP_OP_RefCounted&>(rhs).pCount_)
 	{}
@@ -107,10 +107,10 @@ public:
 
 
 template<typename T,
-	template <class> class OP = YSP_OP_RefCounted,
+	template<class> class OP = YSP_OP_RefCounted,
 	class CP = AllowConversion,
-	template <class> class KP = RejectNull,
-	template <class> class SP = DefaultSPStorage,
+	template<class> class KP = RejectNull,
+	template<class> class SP = DefaultSPStorage,
 	typename SPType = SmartPtr<T, OP, CP, KP, SP> >
 class GHResource : public SPType //资源指针类。
 {
@@ -170,10 +170,10 @@ GetPointer(GHResource<_Tp> h)
 
 
 template<typename T,
-	template <class> class OP = YHandleOP,
+	template<class> class OP = YHandleOP,
 	class CP = AllowConversion,
-	template <class> class KP = RejectNull,
-	template <class> class SP = DefaultSPStorage,
+	template<class> class KP = RejectNull,
+	template<class> class SP = DefaultSPStorage,
 	typename SPType = SmartPtr<T, OP, CP, KP, SP> >
 class GHHandle : public SPType //句柄类。
 {

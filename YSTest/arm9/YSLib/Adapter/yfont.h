@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:02:40;
-// UTime = 2010-7-24 10:41;
-// Version = 0.6708;
+// UTime = 2010-7-26 14:00;
+// Version = 0.6718;
 
 
 #ifndef INCLUDED_YFONT_H_
@@ -224,7 +224,7 @@ private:
 
 public:
 	explicit
-	MFont(const MFontFamily& = *GetDefaultFontFamilyPtr(), SizeType = DefSize, EFontStyle = EFontStyle::Regular);
+	MFont(const MFontFamily& = GetDefaultFontFamily(), SizeType = DefSize, EFontStyle = EFontStyle::Regular);
 
 	DefBoolGetter(Bold, Style | EFontStyle::Bold)
 	DefBoolGetter(Italic, Style | EFontStyle::Italic)
@@ -245,7 +245,7 @@ public:
 	SetFontFamily(const MFontFamily&);*/
 	DefSetter(EFontStyle, Style, Style)
 	void
-	SetSize(SizeType);
+	SetSize(SizeType = DefSize);
 	void
 	SetFont(const MFont&);
 
@@ -259,20 +259,6 @@ public:
 	static void
 	ReleaseDefault(); //释放默认字体。
 };
-
-/*
-inline const MFontFamily&
-MFont::GetFontFamily() const
-{
-//	return *(pFontFamily ? pFontFamily : GetDefaultTypefacePtr()->pFontFamily);
-	// pFontFamily 不可能为 NULL 。
-	YAssert(pFontFamily != NULL, 
-		"In function \"inline const MFontFamily&\n"
-		"MFont::GetFontFamily()\": \n"
-		"The default global @MFontFamily pointer is null.");
-	return *pFontFamily;
-}
-*/
 
 inline void
 MFont::SetFont(const MFont& f)
@@ -325,10 +311,11 @@ private:
 public:
 	DefGetter(const FFiles&, Files, sFiles) //取字体文件组。
 	DefGetter(const FTypes&, Types, sTypes) //取字型组。
-	DefGetter(const FFacesIndex&, Faces, mFacesIndex) //取字型家族组。
+	DefGetter(const FFaces&, Faces, sFaces) //取字型家族组。
+	DefGetter(const FFacesIndex&, FacesIndex, mFacesIndex) //取字型家族组索引。
 	DefGetter(FFiles::size_type, FilesN, sFiles.size()) //取字体文件组储存的文件数。
 	DefGetter(FTypes::size_type, TypesN, sTypes.size()) //取字型组储存的字型数。
-	DefGetter(FFacesIndex::size_type, FacesN, mFacesIndex.size()) //取字型家族组储存的字型家族数。
+	DefGetter(FFaces::size_type, FacesN, sFaces.size()) //取字型家族组储存的字型家族数。
 //	MFont*
 //	GetFontPtr() const;
 	const MFontFamily*
@@ -339,7 +326,7 @@ public:
 //	MTypeface*
 //	GetTypefacePtr(u16) const; //取字型组储存的指定索引的字型指针。
 	const MTypeface*
-	GetTypefacePtr(const FT_String*, const FT_String*) const;//取指定名称字型指针。
+	GetTypefacePtr(const FT_String*, const FT_String*) const; //取指定名称字型指针。
 	DefGetter(u8, FontSize, curSize) //取当前处理的字体大小。
 	FTC_SBit
 	GetGlyph(u32); //取当前字型和大小渲染的指定字符的字形。

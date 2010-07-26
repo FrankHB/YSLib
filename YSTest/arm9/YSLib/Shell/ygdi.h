@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46;
-// UTime = 2010-7-24 10:36;
-// Version = 0.2609;
+// UTime = 2010-7-26 13:23;
+// Version = 0.2678;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -249,14 +249,14 @@ blitAlphaU(BitmapPtr dst, const SSize& ds,
 
 
 //图形接口上下文。
-class YGIC : public YObject
+class MGIC
 {
 private:
 	BitmapPtr pBuffer;
 	SSize Size;
 
 public:
-	YGIC(BitmapPtr, const SSize&);
+	MGIC(BitmapPtr, const SSize&);
 
 	DefBoolGetter(Valid, pBuffer && Size.Width && Size.Height)
 
@@ -267,7 +267,7 @@ public:
 };
 
 inline
-YGIC::YGIC(BitmapPtr b, const SSize& s)
+MGIC::MGIC(BitmapPtr b, const SSize& s)
 : pBuffer(b), Size(s)
 {}
 
@@ -276,15 +276,15 @@ YGIC::YGIC(BitmapPtr b, const SSize& s)
 
 //绘制像素：(x, y) 。
 inline void
-PutPixel(YGIC& g, SPOS x, SPOS y, PixelType c)
+PutPixel(MGIC& g, SPOS x, SPOS y, PixelType c)
 {
 	YAssert(g.IsValid(),
 		"In function \"inline void\n"
-		"PutPixel(YGIC& g, SPOS x, SPOS y, PixelType c)\": \n"
+		"PutPixel(MGIC& g, SPOS x, SPOS y, PixelType c)\": \n"
 		"The graphic device context is invalid.");
 	YAssert(SRect(g.GetSize()).IsInBoundsRegular(x, y),
 		"In function \"inline void\n"
-		"PutPixel(YGIC& g, SPOS x, SPOS y, PixelType c)\": \n"
+		"PutPixel(MGIC& g, SPOS x, SPOS y, PixelType c)\": \n"
 		"The pixel is not in the device context buffer.");
 
 	g.GetBufferPtr()[y * g.GetWidth() + x] = c;
@@ -292,7 +292,7 @@ PutPixel(YGIC& g, SPOS x, SPOS y, PixelType c)
 
 //绘制点：p(x, y) 。
 inline bool
-DrawPoint(YGIC& g, SPOS x, SPOS y, PixelType c)
+DrawPoint(MGIC& g, SPOS x, SPOS y, PixelType c)
 {
 	if(g.IsValid() && SRect(g.GetSize()).IsInBoundsRegular(x, y))
 	{
@@ -302,43 +302,43 @@ DrawPoint(YGIC& g, SPOS x, SPOS y, PixelType c)
 	return false;
 }
 inline bool
-DrawPoint(YGIC& g, const SPoint& p, PixelType c)
+DrawPoint(MGIC& g, const SPoint& p, PixelType c)
 {
 	return DrawPoint(g, p.X, p.Y, c);
 }
 
 //绘制水平线段：指定水平坐标 x1 、 x2 ，竖直坐标 y 。
 bool
-DrawHLineSeg(YGIC& g, SPOS y, SPOS x1, SPOS x2, PixelType c);
+DrawHLineSeg(MGIC& g, SPOS y, SPOS x1, SPOS x2, PixelType c);
 
 //绘制竖直线段：指定水平坐标 x ，竖直坐标 y1 、 y2 。
 bool
-DrawVLineSeg(YGIC& g, SPOS x, SPOS y1, SPOS y2, PixelType c);
+DrawVLineSeg(MGIC& g, SPOS x, SPOS y1, SPOS y2, PixelType c);
 
 //绘制一般线段：顶点 p1(x1, y1), p2(x2, y2) 。
 bool
-DrawLineSeg(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
+DrawLineSeg(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
 inline bool
-DrawLineSeg(YGIC& g, const SPoint& p1, const SPoint& p2, PixelType c)
+DrawLineSeg(MGIC& g, const SPoint& p1, const SPoint& p2, PixelType c)
 {
 	return DrawLineSeg(g, p1.X, p1.Y, p2.X, p2.Y, c);
 }
 
 //绘制空心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2) 。
 bool
-DrawRect(YGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
+DrawRect(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
 inline bool
-DrawRect(YGIC& g, const SPoint& p1, const SPoint& p2, PixelType c)
+DrawRect(MGIC& g, const SPoint& p1, const SPoint& p2, PixelType c)
 {
 	return DrawRect(g, p1.X, p1.Y, p2.X, p2.Y, c);
 }
 inline bool
-DrawRect(YGIC& g, const SPoint& p, const SSize& s, PixelType c)
+DrawRect(MGIC& g, const SPoint& p, const SSize& s, PixelType c)
 {
 	return DrawRect(g, p.X, p.Y, p.X + s.Width, p.Y + s.Height, c);
 }
 inline bool
-DrawRect(YGIC& g, const SRect& r, PixelType c)
+DrawRect(MGIC& g, const SRect& r, PixelType c)
 {
 	return DrawRect(g, r.X, r.Y, r.X + r.Width, r.Y + r.Height, c);
 }
@@ -346,51 +346,23 @@ DrawRect(YGIC& g, const SRect& r, PixelType c)
 
 // GDI 逻辑对象。
 
-class YPenStyle : YObject //笔样式：字体和笔颜色。
+class MPenStyle //笔样式：字体和笔颜色。
 {
 public:
-	typedef YObject ParentType;
-
-protected:
 	MFont Font; //字体。
 	PixelType Color; //笔颜色。
 
-public:
 	explicit
-	YPenStyle(const MFontFamily& = GetDefaultFontFamily(), MFont::SizeType = MFont::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
+	MPenStyle(const MFontFamily& = GetDefaultFontFamily(), MFont::SizeType = MFont::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
 
-	PDefHead(MFont&, GetFont)
-		ImplRet(Font)
-	DefGetter(const MFont&, Font, Font)
 	DefGetterMember(const MFontFamily&, FontFamily, Font)
-	DefGetter(MFont::SizeType, FontSize, Font.GetSize())
-	DefGetter(PixelType, Color, Color)
-
-	DefSetterMember(const MFont&, Font, Font); //设置字体。
-	bool
-	SetFontStyle(EFontStyle); //设置字体样式。
-	bool
-	SetFontSize(MFont::SizeType); //设置字体大小。
-	DefSetterDe(PixelType, Color, Color, ~0) //设置颜色。
+	DefGetterMember(YFontCache&, Cache, Font)
 };
 
 inline
-YPenStyle::YPenStyle(const MFontFamily& family, MFont::SizeType size, PixelType c)
+MPenStyle::MPenStyle(const MFontFamily& family, MFont::SizeType size, PixelType c)
 : Font(family, size), Color(c)
 {}
-
-inline bool
-YPenStyle::SetFontStyle(EFontStyle s)
-{
-	Font.SetStyle(s);
-	return Font.Update();
-}
-inline bool
-YPenStyle::SetFontSize(MFont::SizeType s)
-{
-	Font.SetSize(s);
-	return Font.UpdateSize();
-}
 
 
 struct MPadding //边距样式。
@@ -459,7 +431,7 @@ public:
 	friend bool
 	operator==(const MBitmapBuffer&, const MBitmapBuffer&);
 
-	DefConverter(YGIC, YGIC(img, *this)) //生成图形接口上下文。
+	DefConverter(MGIC, MGIC(img, *this)) //生成图形接口上下文。
 
 	DefGetter(SDST, Width, Width) //取缓冲区的宽。
 	DefGetter(SDST, Height, Height) //取缓冲区的高。

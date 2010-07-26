@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:27;
-// UTime = 2010-7-24 18:28;
-// Version = 0.1662;
+// UTime = 2010-7-26 8:01;
+// Version = 0.1692;
 
 
 #ifndef INCLUDED_YAPP_H_
@@ -44,7 +44,7 @@ public:
 
 
 //程序实例：通过单例实现进程唯一性语义。
-class YApplication : private NonCopyable, public YObject,
+class YApplication : public YObject,
 	implements GIContainer<YShell>
 {
 public:
@@ -53,9 +53,9 @@ public:
 
 	//全局常量。
 	static const IO::YPath CommonAppDataPath; //程序默认路径。
-	static const YString CompanyName; //制作组织名称。
-	static const YString ProductName; //产品名称。
-	static const YString ProductVersion; //产品版本。
+	static const MString CompanyName; //制作组织名称。
+	static const MString ProductName; //产品名称。
+	static const MString ProductVersion; //产品版本。
 
 	//标准程序实例事件。
 	DefEvent(YEventHandler, ApplicationExit) //资源释放函数。

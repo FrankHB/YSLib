@@ -1,14 +1,14 @@
 ﻿// YSLib::Core::YException by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-6-15 20:30:14;
-// UTime = 2010-7-14 0:18;
-// Version = 0.1063;
+// UTime = 2010-7-26 6:13;
+// Version = 0.1114;
 
 
 #ifndef INCLUDED_YEXCEPT_H_
 #define INCLUDED_YEXCEPT_H_
 
-// YException ：异常处理模块。
+// MException ：异常处理模块。
 
 #include "yobject.h"
 #include <new>
@@ -19,40 +19,40 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Exceptions)
 
-class YException : public YObject, public std::exception
+class MException : public std::exception
 {
 public:
-	YException();
+	MException();
 	virtual
-	~YException() throw();
+	~MException() throw();
 };
 
 
-class YGeneralError : public YException
+class MGeneralError : public MException
 {
 private:
 	std::string str;
 
 public:
-	YGeneralError(const std::string&);
+	MGeneralError(const std::string&);
 	virtual
-	~YGeneralError() throw();
+	~MGeneralError() throw();
 
 	const char*
 	what() const throw();
 };
 
 
-class YLoggedError : public YGeneralError
+class MLoggedEvent : public MGeneralError
 {
 private:
 	u8 level;
 
 public:
-	YLoggedError(const std::string&, u8 = 0);
-	YLoggedError(const YGeneralError&, u8 = 0);
+	MLoggedEvent(const std::string&, u8 = 0);
+	MLoggedEvent(const MGeneralError&, u8 = 0);
 	virtual
-	~YLoggedError() throw();
+	~MLoggedEvent() throw();
 
 	DefGetter(u8, Level, level);
 };

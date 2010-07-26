@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper::YGlobal by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:14:57;
-// UTime = 2010-7-13 21:34;
-// Version = 0.1572;
+// UTime = 2010-7-26 7:34;
+// Version = 0.1582;
 
 
 #ifndef INCLUDED_YGLOBAL_H_
@@ -49,7 +49,7 @@ struct Def
 	InitScrDown(); //默认下屏初始化函数。
 
 	static void
-	Destroy(YObject&, const YEventArgs&); //资源释放函数。
+	Destroy(YObject&, const MEventArgs&); //资源释放函数。
 
 	static LRES
 	ShlProc(HSHL, const MMSG&); //公共消息处理函数。

@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-7-25 10:44;
-// Version = 0.2938;
+// UTime = 2010-7-26 7:40;
+// Version = 0.2953;
 
 
 #include <Shells.h>
@@ -36,7 +36,7 @@ ShlProc(const MMSG& msg)
 		}
 		catch(...)
 		{
-			throw YLoggedError("Run shell failed at end of ShlMain.");
+			throw MLoggedEvent("Run shell failed at end of ShlMain.");
 			return -1;
 		}
 		return 0;
@@ -245,22 +245,22 @@ ShlLoad::OnActivated(const MMSG& m)
 	}
 	catch(...)
 	{
-		throw YLoggedError("Run shell failed at end of ShlLoad.");
+		throw MLoggedEvent("Run shell failed at end of ShlLoad.");
 		return -1;
 	}
 	return 0;
 }
 
 void
-ShlS::TFrmFileListSelecter::frm_KeyPress(const YKeyEventArgs& e)
+ShlS::TFrmFileListSelecter::frm_KeyPress(const MKeyEventArgs& e)
 {
 	switch(e)
 	{
 	case Keys::X:
-		btnTest.Click(btnTest, YTouchEventArgs::FullScreen);
+		btnTest.Click(btnTest, MTouchEventArgs::FullScreen);
 		break;
 	case Keys::R:
-		btnOK.Click(btnOK, YTouchEventArgs::FullScreen);
+		btnOK.Click(btnOK, MTouchEventArgs::FullScreen);
 		break;
 	default:
 		break;
@@ -268,7 +268,7 @@ ShlS::TFrmFileListSelecter::frm_KeyPress(const YKeyEventArgs& e)
 }
 
 void
-ShlS::TFrmFileListSelecter::fb_Selected(const YIndexEventArgs& e)
+ShlS::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs& e)
 {
 	YLabel& l(HandleCast<TFrmFileListMonitor>(HandleCast<ShlS>(hShell)->hWndUp)->lblPath);
 
@@ -278,7 +278,7 @@ ShlS::TFrmFileListSelecter::fb_Selected(const YIndexEventArgs& e)
 }
 
 void
-ShlS::fb_KeyPress(IVisualControl& sender, const YKeyEventArgs& e)
+ShlS::fb_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
 {
 	Keys x(e);
 
@@ -287,20 +287,20 @@ ShlS::fb_KeyPress(IVisualControl& sender, const YKeyEventArgs& e)
 }
 
 void
-ShlS::fb_Confirmed(IVisualControl& sender, const YIndexEventArgs& e)
+ShlS::fb_Confirmed(IVisualControl& sender, const MIndexEventArgs& e)
 {
 	if(e.index == 2)
 		switchShl1();
 }
 void
-ShlS::TFrmFileListSelecter::btnTest_Click(const YTouchEventArgs&)
+ShlS::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&)
 {
 	if(fbMain.IsSelected())
 		switchShl1();
 }
 
 void
-ShlS::TFrmFileListSelecter::btnOK_Click(const YTouchEventArgs&)
+ShlS::TFrmFileListSelecter::btnOK_Click(const MTouchEventArgs&)
 {
 	if(fbMain.IsSelected())
 		switchShl2();
@@ -378,7 +378,7 @@ YSL_END_SHELL(ShlA)
 HWND ShlA::hWndC(NULL);
 
 void
-ShlA::TFormC::lblC_TouchUp(const YTouchEventArgs& e)
+ShlA::TFormC::lblC_TouchUp(const MTouchEventArgs& e)
 {
 	InputCounter(e);
 	HandleCast<ShlA>(hShell)->ShowString(strCount);
@@ -386,15 +386,15 @@ ShlA::TFormC::lblC_TouchUp(const YTouchEventArgs& e)
 }
 
 void
-ShlA::TFormC::lblC_TouchDown(const YTouchEventArgs& e)
+ShlA::TFormC::lblC_TouchDown(const MTouchEventArgs& e)
 {
 	InputCounterAnother(e);
 	HandleCast<ShlA>(hShell)->ShowString(strCount);
-	lblC.Refresh();
+//	lblC.Refresh();
 }
 
 void
-ShlA::TFormC::lblC_Click(const YTouchEventArgs& e)
+ShlA::TFormC::lblC_Click(const MTouchEventArgs& e)
 {
 
 	static const int ffilen(pDefaultFontCache->GetFilesN());
@@ -407,17 +407,15 @@ ShlA::TFormC::lblC_Click(const YTouchEventArgs& e)
 	if(nCountInput & 1)
 	{
 		//	lblC.Visible ^= 1;
-		++itype;
-		++it;
+		++itype %= ftypen;
+		if(++it == pDefaultFontCache->GetTypes().end())
+			it = pDefaultFontCache->GetTypes().begin();
 		sprintf(strtf, "%d file(s), %d type(s), %d faces(s);\n", ffilen, ftypen, ffacen);
-		lblC.SetFont(MFont(*(*it)->GetFontFamilyPtr(), 18, EFontStyle::Bold));
+		lblC.SetFont(MFont(/**(*it)->GetFontFamilyPtr()*/GetDefaultFontFamily(), 18 - (itype << 1), EFontStyle::Regular));
 		lblC.Text = strtf;
 	}
 	else
 	{
-		itype %= ftypen;
-		if(it == pDefaultFontCache->GetTypes().end())
-			it = pDefaultFontCache->GetTypes().begin();
 		sprintf(strtf, "%d/%d;%s:%s;\n", itype + 1, ftypen, (*it)->GetFamilyName(), (*it)->GetStyleName());
 		//	sprintf(strtf, "B%p\n", pDefaultFontCache->GetTypefacePtr("FZYaoti", "Regular"));
 		lblC.Text = strtf;
@@ -426,7 +424,7 @@ ShlA::TFormC::lblC_Click(const YTouchEventArgs& e)
 }
 
 void
-ShlA::TFormC::lblC_KeyPress(IVisualControl& sender, const YKeyEventArgs& e)
+ShlA::TFormC::lblC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
 {
 	//测试程序。
 
@@ -450,7 +448,7 @@ ShlA::TFormC::lblC_KeyPress(IVisualControl& sender, const YKeyEventArgs& e)
 }
 
 void
-ShlA::TFormC::btnReturn_Click(const YTouchEventArgs&)
+ShlA::TFormC::btnReturn_Click(const MTouchEventArgs&)
 {
 	CallStored<ShlS>();
 }
@@ -523,13 +521,13 @@ ShlReader::UpdateToScreen()
 }
 
 void
-ShlReader::OnClick(const YTouchEventArgs& e)
+ShlReader::OnClick(const MTouchEventArgs& e)
 {
 	CallStored<ShlS>();
 }
 
 void
-ShlReader::OnKeyPress(const YKeyEventArgs& e)
+ShlReader::OnKeyPress(const MKeyEventArgs& e)
 {
 	u32 k(e);
 

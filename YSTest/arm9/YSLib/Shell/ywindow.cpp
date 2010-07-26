@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28;
-// UTime = 2010-7-14 0:34;
-// Version = 0.2907;
+// UTime = 2010-7-26 7:31;
+// Version = 0.2918;
 
 
 #include "ydesktop.h"
@@ -118,7 +118,7 @@ AWindow::Update()
 }
 
 void
-AWindow::RequestFocus(const YEventArgs& e)
+AWindow::RequestFocus(const MEventArgs& e)
 {
 	GMFocusResponser<IVisualControl>* const p(CheckFocusContainer(pContainer));
 
@@ -126,7 +126,7 @@ AWindow::RequestFocus(const YEventArgs& e)
 		EventMap[EControl::GotFocus](*this, e);
 }
 void
-AWindow::ReleaseFocus(const YEventArgs& e)
+AWindow::ReleaseFocus(const MEventArgs& e)
 {
 	GMFocusResponser<IVisualControl>* const p(CheckFocusContainer(pContainer));
 
@@ -155,7 +155,7 @@ AWindow::Show()
 }
 
 void
-AWindow::OnGotFocus(IControl& c, const YEventArgs& e)
+AWindow::OnGotFocus(IControl& c, const MEventArgs& e)
 {
 	try
 	{
@@ -165,7 +165,7 @@ AWindow::OnGotFocus(IControl& c, const YEventArgs& e)
 	{}
 }
 void
-AWindow::OnLostFocus(IControl& c, const YEventArgs& e)
+AWindow::OnLostFocus(IControl& c, const MEventArgs& e)
 {
 	OnGotFocus(c, e);
 /*	try

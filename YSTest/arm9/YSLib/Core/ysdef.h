@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-24 15:29:11;
-// UTime = 2010-7-22 18:15;
-// Version = 0.2100;
+// UTime = 2010-7-26 7:38;
+// Version = 0.2114;
 
 
 #ifndef INCLUDED_YSDEF_H_
@@ -207,8 +207,12 @@ EndDecl
 
 //前向声明和类型定义。
 
+//空结构体类型。
+struct EmptyType
+{};
+
 class YObject;
-typedef YObject YEventArgs; //事件参数基类。
+typedef EmptyType MEventArgs; //事件参数基类。
 
 YSL_BEGIN_NAMESPACE(Device)
 class YScreen;
@@ -246,7 +250,7 @@ YSL_END_NAMESPACE(Widgets)
 YSL_END_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Text)
-class YString;
+class MString;
 YSL_END_NAMESPACE(Text)
 
 class YApplication;
@@ -269,7 +273,7 @@ using Shells::YMessageQueue;
 using Shells::YShell;
 using Shells::YShellMain;
 
-using Text::YString;
+using Text::MString;
 
 
 #ifdef YSL_USE_SIMPLE_HANDLE

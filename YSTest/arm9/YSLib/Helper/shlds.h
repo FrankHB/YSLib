@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8
 // CTime = 2010-3-13 14:17:14;
-// UTime = 2010-7-14 11:53;
-// Version = 0.1426;
+// UTime = 2010-7-26 7:29;
+// Version = 0.1444;
 
 
 #ifndef INCLUDED_SHLDS_H_
@@ -59,39 +59,39 @@ public:
 //平台相关输入处理。
 
 inline void
-OnTouchUp(const Runtime::YTouchEventArgs::InputType& pt)
+OnTouchUp(const Runtime::MTouchEventArgs::InputType& pt)
 {
-	Runtime::ResponseTouchUp(*pDesktopDown, Runtime::YTouchEventArgs(pt));
+	Runtime::ResponseTouchUp(*pDesktopDown, Runtime::MTouchEventArgs(pt));
 }
 
 inline void
-OnTouchDown(const Runtime::YTouchEventArgs::InputType& pt)
+OnTouchDown(const Runtime::MTouchEventArgs::InputType& pt)
 {
-	Runtime::ResponseTouchDown(*pDesktopDown, Runtime::YTouchEventArgs(pt));
+	Runtime::ResponseTouchDown(*pDesktopDown, Runtime::MTouchEventArgs(pt));
 }
 
 inline void
-OnTouchHeld(const Runtime::YTouchEventArgs::InputType& pt)
+OnTouchHeld(const Runtime::MTouchEventArgs::InputType& pt)
 {
-	Runtime::ResponseTouchHeld(*pDesktopDown, Runtime::YTouchEventArgs(pt));
+	Runtime::ResponseTouchHeld(*pDesktopDown, Runtime::MTouchEventArgs(pt));
 }
 
 inline void
-OnKeyUp(const Runtime::YKeyEventArgs::InputType& key)
+OnKeyUp(const Runtime::MKeyEventArgs::InputType& key)
 {
-	Runtime::ResponseKeyUp(*pDesktopDown, Runtime::YKeyEventArgs(key));
+	Runtime::ResponseKeyUp(*pDesktopDown, Runtime::MKeyEventArgs(key));
 }
 
 inline void
-OnKeyDown(const Runtime::YKeyEventArgs::InputType& key)
+OnKeyDown(const Runtime::MKeyEventArgs::InputType& key)
 {
-	Runtime::ResponseKeyDown(*pDesktopDown, Runtime::YKeyEventArgs(key));
+	Runtime::ResponseKeyDown(*pDesktopDown, Runtime::MKeyEventArgs(key));
 }
 
 inline void
-OnKeyHeld(const Runtime::YKeyEventArgs::InputType& key)
+OnKeyHeld(const Runtime::MKeyEventArgs::InputType& key)
 {
-	Runtime::ResponseKeyHeld(*pDesktopDown, Runtime::YKeyEventArgs(key));
+	Runtime::ResponseKeyHeld(*pDesktopDown, Runtime::MKeyEventArgs(key));
 }
 
 void

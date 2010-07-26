@@ -514,7 +514,7 @@
 //	lblC.Text = L"²âÊÔ= =";
 //	HWND h(lblC.GetWindowHandle());
 //	lblC.Text[0] ^= 1;
-//	YString::iterator i(lblC.Text.begin());
+//	MString::iterator i(lblC.Text.begin());
 //	++*i;
 //	tf.SetPos(0);
 //	tf.Seek(-128, SEEK_END);
@@ -525,7 +525,7 @@ struct non_inheritable
 {
 };
 static void
-_testStr(const YString& s)
+_testStr(const MString& s)
 {
 	char* str = sdup(str.c_str(), '?');
 	yprintf("%s\n",x,str);
@@ -547,7 +547,7 @@ RectDarken(BitmapPtr src, const SPoint& l, const SSize& s, HWND hWnd)
 	if(pWgt)
 		DrawWidgetBounds(*pWgt, ARGB16(1, 31, 1, 31));
 
-	YGIC g(hWnd->GetBufferPtr(), hWnd->GetBounds());
+	MGIC g(hWnd->GetBufferPtr(), hWnd->GetBounds());
 //	DrawLineSeg(g, 2, 4, hWnd->GetWidth(), hWnd->GetHeight(), PixelType(ARGB16(1, 9, 4, 31)));
 //	DrawLineSeg(g, 2, 10, 12, 65, PixelType(ARGB16(1, 1, 31, 1)));
 
@@ -586,7 +586,7 @@ pDefaultFontCache->GetFontFamilyPtr("Microsoft YaHei")
 class YPath
 {
 public:
-	typedef YString PathType;
+	typedef MString PathType;
 	typedef PathType& RefType;
 	typedef const PathType& CRefType;
 
@@ -731,7 +731,7 @@ protected:
 	YImage* image;
 
 public:
-	YString& Caption;
+	MString& Caption;
 	u8& FontSize;
 
 	YCommandButton();
@@ -773,7 +773,7 @@ public:
 	/*
 	sprintf(strttxt + strlen(strttxt), "%x,", shltxt.GetBufferPtr()[i]);
 	MDualScreenReader& dsr = *pdsr;
-	YTextRegion& shltxt = dsr.GetUp();
+	MTextRegion& shltxt = dsr.GetUp();
 	sprintf(strtbuf + strlen(strtbuf), "buffer addr : 0x%x", (int)shltxt.GetBufferPtr());
 	sprintf(strtmargin, "%d, %d, %d, %d;", shltxt.Margin.GetLeft(), shltxt.Margin.GetRight(), shltxt.Margin.GetTop(), shltxt.Margin.GetBottom());
 	sprintf(strtf,"xxx:%u,%u;%u,%u\n",shltxt.Margin.GetBottom(),shltxt.ResizeMargin(),shltxt.GetPenX(),shltxt.GetPenY());

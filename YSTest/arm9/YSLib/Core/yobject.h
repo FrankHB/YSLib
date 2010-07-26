@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YObject by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-7-21 14:21;
-// Version = 0.2124;
+// UTime = 2010-7-26 8:01;
+// Version = 0.2144;
 
 
 #ifndef INCLUDED_YOBJECT_H_
@@ -408,11 +408,9 @@ YSL_END_NAMESPACE(Drawing)
 //基本对象定义。
 
 //基本对象类：所有类名以 Y 作前缀类（除模板类、非直接实例化类和模块类）的公共基类。
-class YObject
+class YObject : private NonCopyable
 {
 public:
-	static const YObject Empty;
-
 	virtual
 	~YObject()
 	{}
