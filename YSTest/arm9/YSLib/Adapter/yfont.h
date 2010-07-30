@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:02:40;
-// UTime = 2010-7-26 14:00;
-// Version = 0.6718;
+// UTime = 2010-7-26 22:33;
+// Version = 0.6728;
 
 
 #ifndef INCLUDED_YFONT_H_
@@ -251,7 +251,7 @@ public:
 
 	bool
 	Update(); //更新字体缓存中当前处理的字体。
-	bool
+	void
 	UpdateSize(); //更新字体缓存中当前处理的字体大小。
 
 	static bool
@@ -341,8 +341,8 @@ public:
 
 	bool
 	SetTypeface(const MTypeface*); //设置字型组中指定的字型为当前字型（忽略不属于字型组的字型）。
-	bool
-	SetFontSize(MFont::SizeType); //设置当前处理的字体大小。
+	void
+	SetFontSize(MFont::SizeType); //设置当前处理的字体大小（0 表示默认字体大小）。
 
 public:
 	//SetFont;

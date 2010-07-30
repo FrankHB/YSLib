@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:24;
-// UTime = 2010-7-26 12:56;
-// Version = 0.3380;
+// UTime = 2010-7-26 19:31;
+// Version = 0.3384;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -259,10 +259,6 @@ public:
 		const Drawing::MFont& = Drawing::MFont::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::MTextRegion> = NULL);
 	virtual
 	~YLabel();
-
-	DefGetter(const MFont&, Font, Font)
-
-	DefSetter(const MFont&, Font, Font); //设置字体。
 
 	virtual void
 	DrawForeground();

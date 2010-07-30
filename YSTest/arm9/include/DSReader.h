@@ -30,7 +30,6 @@ private:
 	PixelType *pBgUp, *pBgDn; //上下屏幕背景层显存地址。
 	MTextRegion &trUp, &trDn; //上下屏幕对应字符区域。
 	ROT rot; //屏幕指向。
-	u32 nLoad; //从文本文件读取的字符数。
 	s32 offUp, offDn; //字符区域读取文本文件的输出位置（偏移字符量）。
 	u8 lnHeight; //行高。
 

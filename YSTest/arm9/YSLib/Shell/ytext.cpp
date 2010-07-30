@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-7-26 13:22;
-// Version = 0.5934;
+// UTime = 2010-7-30 21:12;
+// Version = 0.5991;
 
 
 #include "ytext.h"
@@ -19,27 +19,27 @@ YSL_BEGIN_NAMESPACE(Drawing)
 static const u8 Alpha_Threshold = 16;
 
 MTextState::MTextState()
-:MPenStyle(GetDefaultFontFamily()), Margin(), pCache(&GetFontFamily().Cache),
+:MPenStyle(GetDefaultFontFamily()), Margin(),
 penX(0), penY(0), lnGap(0)
 {}
 MTextState::MTextState(MFont& font)
-:MPenStyle(font.GetFontFamily()), Margin(), pCache(&GetFontFamily().Cache),
+:MPenStyle(font.GetFontFamily()), Margin(),
 penX(0), penY(0), lnGap(0)
 {}
 MTextState::MTextState(YFontCache& fc)
-:MPenStyle(*fc.GetDefaultTypefacePtr()->GetFontFamilyPtr()), Margin(), pCache(&GetFontFamily().Cache),
+:MPenStyle(*fc.GetDefaultTypefacePtr()->GetFontFamilyPtr()), Margin(),
 penX(0), penY(0), lnGap(0)
 {}
 
 SDST
 MTextState::GetLnHeight() const
 {
-	return pCache->GetHeight();
+	return GetCache().GetHeight();
 }
 SDST
 MTextState::GetLnHeightEx() const
 {
-	return pCache->GetHeight() + lnGap;
+	return GetCache().GetHeight() + lnGap;
 }
 u16
 MTextState::GetLnNNow() const
@@ -50,12 +50,12 @@ MTextState::GetLnNNow() const
 /*MTypeface*
 MTextState::SetFont(const char* name, CPATH filename)
 {
-	return pFont = pCache->SetFont(name, filename);
+	return pFont = GetCache().SetFont(name, filename);
 }*/
 void
 MTextState::SetLnNNow(u16 n)
 {
-	penY = Margin.Top + pCache->GetAscender() + GetLnHeightEx() * n;
+	penY = Margin.Top + GetCache().GetAscender() + GetLnHeightEx() * n;
 }
 
 
@@ -66,84 +66,82 @@ MTextRegion::PrintChar(u32 c)
 		//无缓冲区时无法绘图。
 		return;
 
-	FTC_SBit sbit(pCache->GetGlyph(c));
-	const int tx(penX + pCache->GetAdvance(c, sbit));
+	YFontCache& cache(GetCache());
+	FTC_SBit sbit(cache.GetGlyph(c));
+	const int tx(penX + cache.GetAdvance(c, sbit));
 
-	if(INVISIBLE_CHAR(c) || sbit->buffer == NULL)
+	if(!INVISIBLE_CHAR(c) && sbit->buffer != NULL)
 	{
-		penX = tx;
-		return;
-	}
-
-	/*
-	u8* bitmap = sbit->buf;
-	if(!bitmap)
-	{
-		penX = tx;
-		return;
-	}
-
-	int maxX = Width - Right;
-	int maxY = Height - Bottom;
-
-	PixelType col(color | BITALPHA);
-	int t(0);
-	for(int y(0); y < sbit->height; ++y)
-	{
-		for(int x(0); x < sbit->width; ++x)
+		/*
+		u8* bitmap = sbit->buf;
+		if(!bitmap)
 		{
-			if(bitmap[t] >= Alpha_Threshold)
-			{
-				int sy = penY + y - sbit->top;
-				int sx = penX + x + sbit->left;
+			penX = tx;
+			return;
+		}
 
-				if(sx >= Left && sy >= Top && sx < maxX && sy < maxY)
+		int maxX = Width - Right;
+		int maxY = Height - Bottom;
+
+		PixelType col(color | BITALPHA);
+		int t(0);
+		for(int y(0); y < sbit->height; ++y)
+		{
+			for(int x(0); x < sbit->width; ++x)
+			{
+				if(bitmap[t] >= Alpha_Threshold)
 				{
-					int s = sy * Width + sx;
-					imgAlpha[s] = bitmap[t];
-					img[s] = col;
+					int sy = penY + y - sbit->top;
+					int sx = penX + x + sbit->left;
+
+					if(sx >= Left && sy >= Top && sx < maxX && sy < maxY)
+					{
+						int s = sy * Width + sx;
+						imgAlpha[s] = bitmap[t];
+						img[s] = col;
+					}
 				}
+				++t;
 			}
-			++t;
+		}
+		*/
+
+		PixelType col(Color | BITALPHA);
+		const int dx(penX + sbit->left),
+			dy(penY - sbit->top),
+			xmin(vmax<int>(0, Margin.Left - dx)),
+			ymin(vmax<int>(0, Margin.Top - dy)),
+			xmax(vmin<int>(Width - Margin.Right - dx, sbit->width)),
+			ymax(vmin<int>(Height - Margin.Bottom - dy, sbit->height));
+
+		if(xmax >= xmin && ymax >= ymin)
+		{
+			const int sJmp(sbit->width - xmax + xmin),
+				dJmp(Width - xmax + xmin),
+				dOff(vmax<int>(Margin.Top, dy) * Width + vmax<int>(Margin.Left, dx));
+			u8* sa(sbit->buffer + ymin * sbit->width + xmin);
+			BitmapPtr dc(img + dOff);
+			u8* da(imgAlpha + dOff);
+
+			for(int y(ymin); y < ymax; ++y)
+			{
+				for(int x(xmin); x < xmax; ++x)
+				{
+					if(*sa >= Alpha_Threshold)
+					{
+						*da = *sa;
+						*dc = col;
+					}
+					++sa;
+					++dc;
+					++da;
+				}
+				sa += sJmp;
+				dc += dJmp;
+				da += dJmp;
+			}
 		}
 	}
-	*/
-
-	PixelType col(Color | BITALPHA);
-	const int dx(penX + sbit->left),
-		dy(penY - sbit->top),
-		xmin(vmax<int>(0, Margin.Left - dx)),
-		ymin(vmax<int>(0, Margin.Top - dy)),
-		xmax(vmin<int>(Width - Margin.Right - dx, sbit->width)),
-		ymax(vmin<int>(Height - Margin.Bottom - dy, sbit->height));
-
-	if(xmax >= xmin && ymax >= ymin)
-	{
-		const int sJmp(sbit->width - xmax + xmin),
-			dJmp(Width - xmax + xmin),
-			dOff(vmax<int>(Margin.Top, dy) * Width + vmax<int>(Margin.Left, dx));
-		u8* sa(sbit->buffer + ymin * sbit->width + xmin);
-		BitmapPtr dc(img + dOff);
-		u8* da(imgAlpha + dOff);
-		for(int y(ymin); y < ymax; ++y)
-		{
-			for(int x(xmin); x < xmax; ++x)
-			{
-				if(*sa >= Alpha_Threshold)
-				{
-					*da = *sa;
-					*dc = col;
-				}
-				++sa;
-				++dc;
-				++da;
-			}
-			sa += sJmp;
-			dc += dJmp;
-			da += dJmp;
-		}
-	}
-
 	//移动笔。
 	penX = tx;
 }
@@ -200,58 +198,8 @@ MTextRegion::GetLnNEx() const
 SPOS
 MTextRegion::GetLineLast() const
 {
-	return Height - Margin.Bottom + pCache->GetDescender();
+	return Height - Margin.Bottom + GetCache().GetDescender();
 }
-u32
-MTextRegion::GetPrevLnOff(const uchar_t* s, u32 n) const
-{
-	SDST nw(GetBufWidthN());
-	const uchar_t* p(s + n);
-	SDST w(0);
-	uchar_t c(*--p);
-
-	if(c == '\n')
-		--p;
-	while(p >= s && (c = *p) != '\n' && !(iswprint(c) && (w += pCache->GetAdvance(c)) > nw))
-		--p;
-	return p + (w <= nw) - s;
-}
-u32
-MTextRegion::GetPrevLnOff(const uchar_t* s, u32 n, SDST l) const
-{
-	SDST nw(GetBufWidthN());
-	const uchar_t* p(s + n);
-	SDST w(0);
-	uchar_t c(*--p);
-
-	while(p >= s && (w = 0, l--))
-	{
-		if(c == '\n')
-			--p;
-		while(p >= s && (c = *p) != '\n' && !(iswprint(c) && (w += pCache->GetAdvance(c)) > nw))
-			--p;
-	}
-	return p + (w <= nw) - s;
-}
-u32
-MTextRegion::GetNextLnOff(const uchar_t* s, u32 n) const
-{
-	SDST nw(GetBufWidthN());
-	const uchar_t* p(s + n);
-	SDST w(0);
-	uchar_t c;
-
-	while(c = *p++, c != '\n' && !(iswprint(c) && (w += pCache->GetAdvance(c)) > nw))
-		;
-	return p - s;
-}
-/*
-u32
-MTextRegion::GetNextLnOff(const uchar_t* s, u32 n, u16 l) const
-{
-	return 0;
-}
-*/
 
 void
 MTextRegion::SetLnLast()
@@ -332,7 +280,6 @@ MTextRegion::PutNewline()
 u8
 MTextRegion::PutChar(u32 c)
 {
-	Font.Update();
 	if(c == '\n')
 	{
 		PutNewline();
@@ -347,7 +294,7 @@ MTextRegion::PutChar(u32 c)
 	if(maxW < spaceW)
 		return lineBreaksL = 1;
 */
-	if(penX + pCache->GetAdvance(c) >= Width - Margin.Right)
+	if(penX + GetCache().GetAdvance(c) >= Width - Margin.Right)
 	{
 		PutNewline();
 		return 1;
@@ -356,29 +303,59 @@ MTextRegion::PutChar(u32 c)
 	return 0;
 }
 
-/*
-u32
-MTextRegion::PutLine(const uchar_t* s)
-{
-	SPOS fpy(penY);
-	const uchar_t* t(s);
 
-	while(*t && fpy == penY)
-		if(!PutChar(*t))
-			++t;
-	return t - s;
+u32
+GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n)
+{
+	SDST nw(r.GetBufWidthN());
+	const uchar_t* p(s + n);
+	SDST w(0);
+	uchar_t c(*--p);
+	YFontCache& cache(r.GetCache());
+
+	if(c == '\n')
+		--p;
+	while(p >= s && (c = *p) != '\n' && !(iswprint(c) && (w += cache.GetAdvance(c)) > nw))
+		--p;
+	return p + (w <= nw) - s;
+}
+u32
+GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n, SDST l)
+{
+	SDST nw(r.GetBufWidthN());
+	const uchar_t* p(s + n);
+	SDST w(0);
+	uchar_t c(*--p);
+	YFontCache& cache(r.GetCache());
+
+	while(p >= s && (w = 0, l--))
+	{
+		if(c == '\n')
+			--p;
+		while(p >= s && (c = *p) != '\n' && !(iswprint(c) && (w += cache.GetAdvance(c)) > nw))
+			--p;
+	}
+	return p + (w <= nw) - s;
 }
 
 u32
-MTextRegion::PutString(const uchar_t* s)
+GetNextLnOff(const MTextRegion& r, const uchar_t* s, u32 n)
 {
-	SPOS mpy(GetLineLast());
-	const uchar_t* t(s);
+	SDST nw(r.GetBufWidthN());
+	const uchar_t* p(s + n);
+	SDST w(0);
+	uchar_t c;
+	YFontCache& cache(r.GetCache());
 
-	while(*t && penY <= mpy)
-		if(!PutChar(*t))
-			++t;
-	return t - s;
+	while(c = *p++, c != '\n' && !(iswprint(c) && (w += cache.GetAdvance(c)) > nw))
+		;
+	return p - s;
+}
+/*
+u32
+GetNextLnOff(const MTextRegion& r, const uchar_t* s, u32 n, u16 l)
+{
+	return 0;
 }
 */
 

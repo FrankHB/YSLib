@@ -1,8 +1,8 @@
 // YSLib::Adapter::YAdapter by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-22 20:16:21;
-// UTime = 2010-7-22 12:12;
-// Version = 0.1668;
+// UTime = 2010-7-29 21:48;
+// Version = 0.1688;
 
 
 #ifndef INCLUDED_YADAPTER_H_
@@ -11,8 +11,9 @@
 // YAdapter ：外部库关联。
 
 //编译配置。
-//#define NDEBUG
-#define YC_USE_YASSERT
+//#define NDEBUG //非调试模式。
+#define YC_USE_YASSERT //使用 YCLib 断言。
+//#define YSL_USE_EXCEPTION_SPECIFICATION //使用 YSLib 异常规范。
 
 #include <cstdio>
 

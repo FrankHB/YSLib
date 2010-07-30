@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-7-26 7:55;
-// Version = 0.6040;
+// UTime = 2010-7-30 21:10;
+// Version = 0.6094;
 
 
 #ifndef INCLUDED_YTEXT_H_
@@ -26,7 +26,6 @@ public:
 	MPadding Margin; //显示区域到边框的距离。
 
 protected:
-	YFontCache* pCache; //字体缓存。
 	SPOS penX, penY; //笔坐标。
 	u8 lnGap; //行距。
 
@@ -71,7 +70,6 @@ inline MTextState&
 MTextState::operator=(const MPenStyle& ps)
 {
 	MPenStyle::operator=(ps);
-	pCache = &GetCache();
 	return *this;
 }
 inline MTextState&
@@ -145,14 +143,6 @@ public:
 	GetLnNEx() const; //取按当前行高和行距（行间距数小于行数 1）所能显示的最大行数。
 	SPOS
 	GetLineLast() const; //取最底行的基线位置。
-	u32
-	GetPrevLnOff(const uchar_t* s, u32 n) const; //取前一行首对应文本指针至当前文本指针 &s[n] 的字符数。
-	u32
-	GetPrevLnOff(const uchar_t* s, u32 n, u16 l) const; //取前 l 行首对应文本指针至当前文本指针 &s[n] 的字符数。
-	u32
-	GetNextLnOff(const uchar_t* s, u32 n) const; //取当前文本指针 &s[n] 至后一行首对应文本指针的字符数。
-//	u32
-//	GetNextLnOff(const uchar_t* s, u32 n, u16 l) const; //取当前文本指针 &s[n] 至后 l 行首对应文本指针的字符数。
 
 	void
 	SetLnLast(); //设置笔的行位置为最底行。
@@ -175,20 +165,16 @@ public:
 	PutChar(u32); //输出单个字符。
 
 	//输出字符串，直至行尾或字符串结束，并返回输出字符数。
-	template<class _CharT>
+	template<class _constCharIteratorType>
 	u32
-	PutLine(const _CharT*);
-	//u32
-	//PutLine(const uchar_t*);
+	PutLine(_constCharIteratorType);
 	u32
 	PutLine(const MString& s);
 
 	//输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
-	template<class _CharT>
+	template<typename _constCharIteratorType>
 	u32
-	PutString(const _CharT*);
-	//u32
-	//PutString(const uchar_t*);
+	PutString(_constCharIteratorType);
 };
 
 inline MTextRegion&
@@ -198,14 +184,14 @@ MTextRegion::operator=(const MTextState& ts)
 	return *this;
 }
 
-template<class _CharT>
+template<typename _constCharIteratorType>
 u32
-MTextRegion::PutLine(const _CharT* s)
+MTextRegion::PutLine(_constCharIteratorType s)
 {
-	SPOS fpy(penY);
-	const _CharT* t(s);
+	const SPOS fpy(penY);
+	_constCharIteratorType t(s);
 
-	while(*t && fpy == penY)
+	while(*t != 0 && fpy == penY)
 		if(!PutChar(*t))
 			++t;
 	return t - s;
@@ -216,18 +202,30 @@ MTextRegion::PutLine(const MString& s)
 	return PutLine(s.c_str());
 }
 
-template<class _CharT>
+template<typename _constCharIteratorType>
 u32
-MTextRegion::PutString(const _CharT* s)
+MTextRegion::PutString(_constCharIteratorType s)
 {
-	SPOS mpy(GetLineLast());
-	const _CharT* t(s);
+	const SPOS mpy(GetLineLast());
+	_constCharIteratorType t(s);
 
-	while(*t && penY <= mpy)
+	while(*t != 0 && penY <= mpy)
 		if(!PutChar(*t))
 			++t;
 	return t - s;
 }
+
+
+u32
+GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n); //在 r 中取前一行首对应文本指针至当前文本指针 &s[n] 的字符数。
+u32
+GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n, u16 l); //在 r 中取前 l 行首对应文本指针至当前文本指针 &s[n] 的字符数。
+
+u32
+GetNextLnOff(const MTextRegion& r, const uchar_t* s, u32 n); //在 r 中取当前文本指针 &s[n] 至后一行首对应文本指针的字符数。
+//	u32
+//	GetNextLnOff(const MTextRegion& r, const uchar_t* s, u32 n, u16 l); //在 r 中取当前文本指针 &s[n] 至后 l 行首对应文本指针的字符数。
+
 
 u32
 ReadX(YTextFile& f, MTextRegion& txtbox, u32 n); //无文本缓冲方式从文本文件 f 中读取 n 字节（按默认编码转化为 UTF-16LE）到 txtbox 中。

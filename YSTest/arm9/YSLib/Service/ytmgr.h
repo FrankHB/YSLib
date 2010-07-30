@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 17:48:09;
-// UTime = 2010-7-25 10:29;
-// Version = 0.3827;
+// UTime = 2010-7-30 20:55;
+// Version = 0.3891;
 
 
 #ifndef INCLUDED_YTMGR_H_
@@ -50,6 +50,7 @@ public:
 
 	void
 	ClearText(); //清空缓冲区。
+
 	bool
 	Load(const uchar_t* s); //从起始地址 s 中读取连续的 mlen 个 uchar_t 字符。
 	bool
@@ -58,6 +59,9 @@ public:
 	Load(YTextFile& f); //从文本文件 f 中读取连续的 mlen 个字符（自动校验换行并转换为 Unix / Linux 格式），并返回成功读取的字符数。
 	SizeType
 	Load(YTextFile& f, SizeType n); //从文本文件 f 中读取连续的 n 个字符，并返回成功读取的字符数。
+
+	SizeType
+	LoadN(YTextFile& f, SizeType n); //从文本文件 f 中读取连续的 n 个字节，并返回成功读取的字符数。
 
 	bool
 	Output(uchar_t* d, SizeType p, SizeType n) const; //从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
@@ -174,10 +178,60 @@ MTextMap::operator-=(const IndexType& i)
 class MTextFileBuffer : public MTextMap
 {
 public:
-	YTextFile& File;
+	static const SizeType nBlockSize = 0x2000; //文本块容量。
+
+	//只读文本迭代器类。
+	class TextIterator
+	{
+		friend class MTextFileBuffer;
+
+	public:
+		typedef MTextFileBuffer ContainerType;
+		typedef ContainerType::SizeType SizeType;
+
+		static const SizeType nBlockSize = MTextFileBuffer::nBlockSize;
+
+	private:
+		MTextFileBuffer* pBuf;
+		SizeType nPos; //文本读取位置。
+
+	public:
+		explicit
+		TextIterator(MTextFileBuffer&, SizeType = 0) ythrow(); //指定文本读取位置初始化。
+
+		TextIterator&
+		operator++() ythrow();
+
+		TextIterator&
+		operator--() ythrow();
+
+		uchar_t
+		operator*() ythrow();
+
+		TextIterator
+		operator+(std::ptrdiff_t);
+
+		TextIterator
+		operator-(std::ptrdiff_t);
+
+		friend std::ptrdiff_t
+		operator-(TextIterator, TextIterator);
+
+		TextIterator&
+		operator+=(std::ptrdiff_t);
+
+		TextIterator&
+		operator-=(std::ptrdiff_t);
+
+		DefGetter(SizeType, Position, nPos)
+		const uchar_t*
+		GetTextPtr() ythrow();
+	};
+
+	YTextFile& File; //文本文件。
 
 private:
-	SizeType nPos;
+	const SizeType nLen; //文本区段长度。
 
 public:
 	explicit
@@ -185,7 +239,27 @@ public:
 
 	MTextBlock&
 	operator[](const IndexType&);
+
+	DefGetter(SizeType, TextLength, nLen)
 };
+
+inline std::ptrdiff_t
+operator-(MTextFileBuffer::TextIterator::TextIterator a, MTextFileBuffer::TextIterator::TextIterator b)
+{
+	return a.nPos - b.nPos;
+}
+
+inline MTextFileBuffer::TextIterator
+MTextFileBuffer::TextIterator::operator-(std::ptrdiff_t o)
+{
+	return *this + -o;
+}
+
+inline MTextFileBuffer::TextIterator&
+MTextFileBuffer::TextIterator::operator-=(std::ptrdiff_t o)
+{
+	return *this += -o;
+}
 
 YSL_END_NAMESPACE(Text)
 

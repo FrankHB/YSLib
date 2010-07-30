@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-7-26 14:06;
-// Version = r6785;
+// UTime = 2010-7-26 22:58;
+// Version = r6795;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -704,8 +704,9 @@ code YSLib::Adapter {
 header YAdapter "yadapter.h"
 {
 	//编译配置。
-	//#define NDEBUG
-	#define YC_USE_YASSERT
+	//#define NDEBUG //非调试模式。
+	#define YC_USE_YASSERT //使用 YCLib 断言。
+	#define YSL_USE_EXCEPTION_SPECIFICATION //使用 YSLib 异常规范宏。
 
 	#include <cstdio>
 
@@ -1203,7 +1204,7 @@ unit YFont "yfont"
 
 		bool
 		Update(); //更新字体缓存中当前处理的字体。
-		bool
+		void
 		UpdateSize(); //更新字体缓存中当前处理的字体大小。
 
 		static bool
@@ -1286,8 +1287,8 @@ unit YFont "yfont"
 
 		bool
 		SetTypeface(const MTypeface*); //设置字型组中指定的字型为当前字型（忽略不属于字型组的字型）。
-		bool
-		SetFontSize(MFont::SizeType); //设置当前处理的字体大小。
+		void
+		SetFontSize(MFont::SizeType); //设置当前处理的字体大小（0 表示默认字体大小）。
 
 	public:
 		//SetFont;
@@ -1364,6 +1365,16 @@ header YShellDefinition "ysdef.h"
 	解决方案来源： https://www.securecoding.cert.org/confluence/display/cplusplus/PRE05-CPP.+Understand+macro+replacement+when+concatenating+tokens+or+performing+stringification 。
 	*/
 	#define _yJOIN(x, y) x ## y
+
+
+	//异常规范宏。
+
+	// ythrow = "yielded throwing";
+	#ifdef YSL_USE_EXCEPTION_SPECIFICATION
+	#	define ythrow throw
+	#else
+	#	define ythrow(...)
+	#endif
 
 
 	//接口类型宏。
@@ -4666,10 +4677,6 @@ unit YControl "ycontrol"
 		virtual
 		~YLabel();
 
-		DefGetter(const MFont&, Font, Font)
-
-		DefSetter(const MFont&, Font, Font); //设置字体。
-
 		virtual void
 		DrawForeground();
 	}; //class YLabel;
@@ -5060,14 +5067,6 @@ unit YText "ytext"
 		GetLnNEx() const; //取按当前行高和行距（行间距数小于行数 1）所能显示的最大行数。
 		SPOS
 		GetLineLast() const; //取最底行的基线位置。
-		u32
-		GetPrevLnOff(const uchar_t* s, u32 n) const; //取前一行首对应文本指针至当前文本指针 &s[n] 的字符数。
-		u32
-		GetPrevLnOff(const uchar_t* s, u32 n, u16 l) const; //取前 l 行首对应文本指针至当前文本指针 &s[n] 的字符数。
-		u32
-		GetNextLnOff(const uchar_t* s, u32 n) const; //取当前文本指针 &s[n] 至后一行首对应文本指针的字符数。
-	//	u32
-	//	GetNextLnOff(const uchar_t* s, u32 n, u16 l) const; //取当前文本指针 &s[n] 至后 l 行首对应文本指针的字符数。
 
 		void
 		SetLnLast(); //设置笔的行位置为最底行。
@@ -5090,20 +5089,28 @@ unit YText "ytext"
 		PutChar(u32); //输出单个字符。
 
 		//输出字符串，直至行尾或字符串结束，并返回输出字符数。
-		template<class _charType>
+		template<typename _constCharIteratorType>
 		u32
-		PutLine(const _charType*);
-		//u32
-		//PutLine(const uchar_t*);
+		PutLine(_constCharIteratorType);
 		u32
 		PutLine(const MString& s);
 
 		//输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
-		template<class _charType>
+		template<typename _constCharIteratorType>
 		u32
-		PutString(const _charType*);
-		//u32 PutString(const uchar_t*);
+		PutString(_constCharIteratorType);
 	}; //class MTextRegion;
+
+
+	u32
+	GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n) const; //在 r 中取前一行首对应文本指针至当前文本指针 &s[n] 的字符数。
+	u32
+	GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n, u16 l) const; //在 r 中取前 l 行首对应文本指针至当前文本指针 &s[n] 的字符数。
+
+	u32
+	GetNextLnOff(const MTextRegion& r, const uchar_t* s, u32 n) const; //在 r 中取当前文本指针 &s[n] 至后一行首对应文本指针的字符数。
+//	u32
+//	GetNextLnOff(const MTextRegion& r, const uchar_t* s, u32 n, u16 l) const; //在 r 中取当前文本指针 &s[n] 至后 l 行首对应文本指针的字符数。
 
 
 	u32
@@ -5206,6 +5213,7 @@ unit YTextManager "ytmgr"
 
 		inline void
 		ClearText(); //清空缓冲区。
+
 		inline bool
 		Load(const uchar_t* s); //从起始地址 s 中读取连续的 mlen 个 uchar_t 字符。
 		bool
@@ -5214,6 +5222,9 @@ unit YTextManager "ytmgr"
 		Load(YTextFile& f); //从文本文件 f 中读取连续的 mlen 个字符（自动校验换行并转换为 Unix / Linux 格式），并返回成功读取的字符数。
 		SizeType
 		Load(YTextFile& f, SizeType n); //从文本文件 f 中读取连续的 n 个字符，并返回成功读取的字符数。
+
+		SizeType
+		LoadN(YTextFile& f, SizeType n); //从文本文件 f 中读取连续的 n 个字节，并返回成功读取的字符数。
 
 		bool
 		Output(uchar_t* d, SizeType p, SizeType n) const; //从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
@@ -5266,10 +5277,61 @@ unit YTextManager "ytmgr"
 	class MTextFileBuffer : public MTextMap
 	{
 	public:
-		YTextFile& File;
+		static const SizeType nBlockSize = 0x2000; //文本块容量。
+
+		//只读文本迭代器类。
+		class TextIterator
+		{
+			friend class MTextFileBuffer;
+
+		public:
+			typedef MTextFileBuffer ContainerType;
+			typedef ContainerType::SizeType SizeType;
+
+			static const SizeType nBlockSize = MTextFileBuffer::nBlockSize;
+
+		private:
+			MTextFileBuffer* pBuf;
+			SizeType nPos; //文本读取位置。
+
+		public:
+			explicit
+			TextIterator(MTextFileBuffer&, SizeType = 0) ythrow(); //指定文本读取位置初始化。
+
+			TextIterator&
+			operator++() ythrow();
+
+			TextIterator&
+			operator--() ythrow();
+
+			uchar_t
+			operator*() ythrow();
+
+			TextIterator
+			operator+(std::ptrdiff_t);
+
+			inline TextIterator
+			operator-(std::ptrdiff_t);
+
+			inline friend std::ptrdiff_t
+			operator-(TextIterator, TextIterator);
+
+			TextIterator&
+			operator+=(std::ptrdiff_t);
+
+			inline TextIterator&
+			operator-=(std::ptrdiff_t);
+
+			operator const uchar_t*() ythrow();
+
+			DefGetter(SizeType, Position, nPos)
+		}; //class TextIterator;
+
+		YTextFile& File; //文本文件。
 
 	private:
-		SizeType nPos;
+		SizeType nLen; //文本区段长度。
+		TextIterator it; //文本迭代器。
 
 	public:
 		explicit
@@ -5277,6 +5339,13 @@ unit YTextManager "ytmgr"
 
 		MTextBlock&
 		operator[](const IndexType&);
+
+		DefGetter(SizeType, TextLength, nLen)
+		const uchar_t*
+		GetTextPtr();
+
+		void
+		SetPosition(SizeType);
 	}; //class MTextFileBuffer;
 
 	YSL_END_NAMESPACE(Text)
@@ -5510,10 +5579,10 @@ namespace Text
 
 //既定 stdex 命名空间污染列表。
 
-header Adapter
+header YAdapter
 {
 	using CHRLib::uchar_t;
-} //header Adapter;
+} //header YAdapter;
 
 unit Core::YString
 {

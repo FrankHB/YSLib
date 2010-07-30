@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-7-26;
-// Version = 0.2606; *Build 136 r36;
+// UTime = 2010-7-30;
+// Version = 0.2608; *Build 137 r26;
 
 
 #include "../YCLib/ydef.h"
@@ -91,108 +91,138 @@ Record prefix and abbrevations:
 DONE:
 
 r2:
-/ @@ \h "yfont.h";
-	/ DefGetter(FFacesIndex::size_type, FacesN, mFacesIndex.size()) -> DefGetter(FFaces::size_type, FacesN, sFaces.size()) @@ \cl YFontCache;
-	/= \exp \ctor MFont(const MFontFamily& = *GetDefaultFontFamilyPtr(), SizeType = DefSize, EFontStyle = EFontStyle::Regular)
-		-> MFont(const MFontFamily& = GetDefaultFontFamily(), SizeType = DefSize, EFontStyle = EFontStyle::Regular) @@ \cl MFont;
-	/ DefGetter(const FFacesIndex&, Faces, mFacesIndex) => DefGetter(const FFacesIndex&, FacesIndex, mFacesIndex);
-	+ DefGetter(const FFaces&, Faces, sFaces);
-
-r3:
-+ DefGetterMember(YFontCache&, Cache, Font) @@ \cl YPenStyle @@ \u YGDI;
-/ \tr @@ \i \mf YTextState& YTextState::operator=(const YPenStyle&) @@ \u YText;
-/ @@ \cl MFont @@ \u YFont:
-
-r4-r6:
-/ \tr @@ \mf void YFontCache::LoadTypefaces(const MFontFile&) @@ \u YFont;
-
-r7-r8:
 = test 1;
 
-r9:
-* \tr @@ \cl ShlA::TFormC::lblC_Click @@ \u Shells;
+r3:
+/ @@ \cl YLabel @@ \u YControl:
+	- DefGetter(const MFont&, Font, Font);
+	- DefSetter(const MFont&, Font, Font);
 
-r10-r15:
+r4:
+/ @@ \u YText:
+	/ \mf void MTextRegion::PrintChar(u32);
+	/ \tr \t \mf template<class _CharT> u32 MTextRegion::PutLine(const _CharT*);
+
+r5:
+/ @@ \u YText:
+	- \m YFontCache* MTextState::pCache;
+	/ \mf void MTextRegion::PrintChar(u32);
+r6:
+* \tr @@ \mf bool MFont::Update() @@ \u YFont;
+/= \tr @@ \mf void MTextRegion::PrintChar(u32) @@ \u YText;
+
+r7-r8:
+* @@ \u YControl:
+	* \tr @@ \mf void YLabel::DrawForeground();
+	* \tr @@ \mf void YListBox::DrawForeground();
+
+r9:
+/ @@ \u YFont:
+	/ \tr @@ \mf bool MFont::Update();
+	/ \mf (bool YFontCache::SetFontSize(MFont::SizeType) -> void YFontCache::SetFontSize(MFont::SizeType));
+	/ \mf (bool UpdateSize() -> void UpdateSize()) @@ \cl MFont;
+
+r10:
+* @@ \u YControl:
+	* \tr @@ \mf void YListBox::DrawForeground();
+	* \tr @@ \mf void YLabel::DrawForeground();
+
+r11:
+/= \simp \mf u8 MTextRegion::PutChar(u32 c) @@ \u YText;
+
+r12:
 = test 2;
 
+r13-r14:
+/ \impl buffered reader:
+	/ @@ \cl MTextFileBuffer @@ \u YText:
+		/ \tr @@ \mf \op [];
+		+ \mf void SetPosition(SizeType);
+		+ \m SizeType nLen @@ \cl MTextFileBuffer;
+		+ \mf DefGetter(SizeType, TextLength, nLen);
+		+ \mf DefGetter(SizeType, Position, nPos);
+	/ \tr @@ \cl MDualScreenReader @@ \u DSReader;
+
+r15:
+/ \impl buffered reader:
+	/ @@ \cl MTextFileBuffer @@ \u YText:
+		+ \mf uchar_t* GetTextPtr();
+	/ \tr @@ \cl MDualScreenReader @@ \u DSReader;
+
 r16:
-* \tr @@ \mf u8 YTextRegion::PutChar(u32) @@ \u YText;
-/= \tr @@ \mf void YTextRegion::PrintChar(u32) @@ \u YText;
-/ \tr @@ \ctor YLabel @@ \u YControl;
-- \mf void YLabel::DrawBackground();
-/ \tr @@ \mf void YTextRegion::PutNewline();
-/= \h changed:
-	- <wctype.h>,
-	+ <cwctype>;
+/ @@ \u YText:
+	+ \mf SizeType YTextBuffer::LoadN(YTextFile&, SizeType);
+	/ \tr @@ \mf MTextBlock& MTextFileBuffer::operator[](const IndexType&);
+	+ \cl TextIterator @@ \cl MTextFileBuffer;
 
 r17:
-/ \cl MString @@ \u YString:
-	- \inh YObject;
-	- typedef YObject ParentType;
-/= \a MString => MString;
-- \i \dtor MString::~MString() @@ \u YString;
+/ @@ \u YText:
+	/ \cl TextIterator @@ \cl MTextFileBuffer;
+	/ \tr @@ \cl MTextFileBuffer;
 
-u18:
-- \inh YObject @@ \cl YException @@ \u YException;
-/= \a YException => MException;
-/= \a YGeneralError => MGeneralError;
-/= \a YLoggedError => MLoggedEvent;
+r18:
+/ @@ \u YText:
+	/ \tr @@ \cl TextIterator @@ \cl MTextFileBuffer;
+	/ \cl MTextFileBuffer;
+/= \mf u32 MDualScreenReader::TextFill(u32) @@ \u DSReader;
 
-u19:
-- YObject::Empty @@ \cl YObject @@ \u YObject;
-/ YObject::Empty -> GetZeroElement<YObject>;
-/ YEventArgs::Empty -> GetZeroElement<YEventArgs>;
+r19:
++ \mac of exception specification @@ \h "ysdef.h";
+^ \mac ythrow @@ \u YText;
+/ test:
+	+ \mac of exception specification @@ \h "yadapter.h";
 
-u20:
-- YImage::Empty @@ \cl YImage @@ \u YResource;
-- \inh YObject @@ \cl YGIC @@ \u YGDI;
-/= \a YGIC => MGIC;
+r20:
+/ test: undo:
+	/ \rem \mac of exception specification @@ \h "yadapter.h";
 
-u21:
-/ @@ \h "ysdef.h":
-	+ struct EmptyType {};
-	/ typedef YObject YEventArgs -> typedef EmptyType YEventArgs;
+r21:
++ DefGetter(SizeType, Position, nPos) @@ \cl MTextFileBuffer::TextIterator @@ \u YTextManager;
+/+ @@ \cl MTextRegion @@ \u YText:
+	/+ template<class _CharT> u32 PutLine(_CharT) -> template<typename _constCharIteratorType> u32 PutLine(_constCharIteratorType);
+	/+ template<class _charType> u32 PutString(const _charType*) -> template<typename _constCharIteratorType> u32 PutString(_constCharIteratorType);
 
-u22:
-/= \a YEventArgs => MEventArgs;
-/= \a YTouchEventArgs => MTouchEventArgs;
-/= \a YKeyEventArgs => MKeyEventArgs;
-/= \a YScreenPositionEventArgs => MScreenPositionEventArgs;
+r22:
++ @@ \cl MTextFileBuffer::TextIterator @@ \u YTextManager:
+	+ \mf TextIterator operator+(std::ptrdiff_t);
+	+ \i TextIterator operator-(std::ptrdiff_t);
+	+ \mf TextIterator& operator+=(std::ptrdiff_t);
+	+ \i \mf TextIterator& operator-=(std::ptrdiff_t);
+/ u32 MDualScreenReader::TextFill(u32) @@ \u DSReader;
 
 r23:
-/= \a YIndexEventArgs => MIndexEventArgs;
+/ @@ \u YTextManager:
+	/ \a \mf operator const uchar_t* -> GetTextPtr @@ \cl MTextFileBuffer;
+	+ \i friend std::ptrdiff_t operator-(TextIterator, TextIterator) @@ \cl MTextFileBuffer::TextIterator;
+	/ uchar_t MTextFileBuffer::TextIterator::operator*() ythrow();
+/ \impl @@ u32 MDualScreenReader::TextFill(u32) @@ \u DSReader;
 
 r24:
-- \inh YObject @@ \cl YPenStyle @@ \u YGDI;
-- typedef YObject ParentType @@ \cl YPenStyle @@ \u YGDI;
-/= \a YPenStyle => MPenStyle;
-/= \a YTextState => MTextState;
-/= \a YTextRegion => MTextRegion;
+/= \impl @@ u32 MDualScreenReader::TextFill(u32) @@ \u DSReader;
+	/ ^ \mf MTextFileBuffer::TextIterator::GetPosition @@ \u YTextManager;
 
 r25:
-- \inh NonCopyable @@ \cl YApplication @@ \u YApplication;
-+ \inh NonCopyable @@ \cl YObject @@ \u YObject;
+- u32 nLoad @@ \cl MDualScreenReader @@ \u DSReader;
 
-r26-r34:
-/ DefSetterMember(const MFont&, Font, Font) -> DefSetter(const MFont&, Font, Font) @@ \cl YLabel @@ \u YControl;
-/ \simp @@ \cl MPenStyle @@ \u YGDI:
-	/ \m (MFont Font & PixelType Color) accessibility: private -> public;
-	- PDefHead(MFont&, GetFont) ImplRet(Font);
-	- DefGetter(const MFont&, Font, Font);
-	- DefGetter(MFont::SizeType, FontSize, Font.GetSize());
-	- DefGetter(PixelType, Color, Color);
-	- DefSetterMember(const MFont&, Font, Font);
-	- \i \mf bool SetFontStyle(EFontStyle);
-	- \i \mf bool SetFontSize(MFont::SizeType);
-	- DefSetterDe(PixelType, Color, Color, ~0);
-	/ \tr @@ \u (DSReader & YControl & MTextRegion);
-
-r35:
-\decl \mf void SetSize(SizeType) -> void SetSize(SizeType = DefSize) @@ \cl MFont @@ \u YFont;
-
-r36:
-/= \tr @@ \h ("ycutil.h" & "yref.h" & "yfont.h");
-/= \a YTouchState => MTouchState;
+r26:
+/ @@ \cl MTextFileBuffer @@ \u YTextManager:
+	/ private (SizeType nLen -> const SizeType nLen);
+	* \ctor;
+	/ TextIterator TextIterator::operator+(std::ptrdiff_t);
+	/ TextIterator& TextIterator::operator+=(std::ptrdiff_t);
+	/ TextIterator& TextIterator::operator++() ythrow();
+	/ TextIterator& TextIterator::operator--() ythrow();
+	* TextIterator& TextIterator::operator++(int) ythrow();
+	* TextIterator& TextIterator::operator--(int) ythrow();
+/ @@ \u YText:
+/ \mf >> \ns @Text ~ \cl MTextRegion:
+	u32 MTextRegion::GetPrevLnOff(const uchar_t*, u32) const => u32 GetPrevLnOff(const MTextRegion&, const uchar_t*, u32);
+	u32 MTextRegion::GetPrevLnOff(const uchar_t*, u32, u16) const => u32 GetPrevLnOff(const MTextRegion&, const uchar_t*, u32, u16);
+	u32 MTextRegion::GetNextLnOff(const uchar_t*, u32) const => u32 GetNextLnOff(const MTextRegion&, const uchar_t*, u32);
+/ @@ \u YReader;
+	/ bool MDualScreenReader::LineUp();
+	/ bool MDualScreenReader::LineDown();
+	/ bool MDualScreenReader::ScreenUp();
 
 DOING:
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13;
-// UTime = 2010-7-26 6:06;
-// Version = 0.6756;
+// UTime = 2010-7-26 22:33;
+// Version = 0.6786;
 
 
 #include "yfont.h"
@@ -242,16 +242,26 @@ bool
 MFont::Update()
 {
 	const MTypeface* t(pFontFamily->GetTypefacePtr(Style));
-	bool b(false);
 
-	if(t != NULL)
-		b = GetCache().SetTypeface(t);
-	return b || UpdateSize();
+	if(t == NULL)
+		return false;
+	if(t != GetCache().GetTypefacePtr())
+	{
+		if(GetCache().SetTypeface(t))
+			UpdateSize();
+		else
+			return false;
+	}
+	else if(GetCache().GetFontSize() != Size)
+		UpdateSize();
+	else
+		return false;
+	return true;
 }
-bool
+void
 MFont::UpdateSize()
 {
-	return GetCache().SetFontSize(Size);
+	GetCache().SetFontSize(Size);
 }
 
 bool
@@ -388,25 +398,20 @@ YFontCache::SetTypeface(const MTypeface* p)
 	scaler.face_id = reinterpret_cast<FTC_FaceID>(const_cast<MTypeface*>(p));
 	return true;
 }
-bool
+void
 YFontCache::SetFontSize(MFont::SizeType s)
 {
 	if(s == 0)
 		s = MFont::DefSize;
-	if(s != curSize)
-	{
-		//ClearCache();
-		curSize = s;
-		scaler.width  = static_cast<FT_UInt>(curSize);
-		scaler.height = static_cast<FT_UInt>(curSize);
-		scaler.pixel  = 72;
-		scaler.x_res  = 0;
-		scaler.y_res  = 0;
-		GetGlyph(' '); //更新当前字形，否则 GetHeight() 会返回错误的值。
-		return true;
-	}
-	else
-		return false;
+//	if(s != curSize)
+//	ClearCache();
+	curSize = s;
+	scaler.width  = static_cast<FT_UInt>(curSize);
+	scaler.height = static_cast<FT_UInt>(curSize);
+	scaler.pixel  = 72;
+	scaler.x_res  = 0;
+	scaler.y_res  = 0;
+	GetGlyph(' '); //更新当前字形，否则 GetHeight() 会返回错误的值。
 }
 
 void

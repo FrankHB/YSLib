@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-24 15:29:11;
-// UTime = 2010-7-26 7:38;
-// Version = 0.2114;
+// UTime = 2010-7-29 17:54;
+// Version = 0.2164;
 
 
 #ifndef INCLUDED_YSDEF_H_
@@ -16,6 +16,16 @@
 解决方案来源： https://www.securecoding.cert.org/confluence/display/cplusplus/PRE05-CPP.+Understand+macro+replacement+when+concatenating+tokens+or+performing+stringification 。
 */
 #define _yJOIN(x, y) x ## y
+
+
+//异常规范宏。
+
+// ythrow = "yielded throwing";
+#ifdef YSL_USE_EXCEPTION_SPECIFICATION
+#	define ythrow throw
+#else
+#	define ythrow(...)
+#endif
 
 
 //接口类型宏。

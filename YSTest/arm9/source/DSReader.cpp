@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:04:05;
-// UTime = 2010-7-26 12:41;
-// Version = 0.2581;
+// UTime = 2010-7-30 21:10;
+// Version = 0.2681;
 
 
 #include "DSReader.h"
@@ -19,9 +19,11 @@ YSL_BEGIN_NAMESPACE(Components)
 
 u32 MDualScreenReader::TextFill(u32 off)
 {
-	const uchar_t* s = Blocks[0].GetPtr() + off;
-	s += trUp.PutString(s);
-	return s + trDn.PutString(s) - off - Blocks[0].GetPtr();
+	MTextFileBuffer::TextIterator it(Blocks, off);
+
+	it += trUp.PutString(it);
+	it += trDn.PutString(it);
+	return it.GetPosition() - off;
 }
 
 MDualScreenReader::MDualScreenReader(YTextFile& tf_,
@@ -31,7 +33,7 @@ try : tf(tf_), Blocks(tf), fc(fc_),
 left(l), top_up(t_up), top_down(t_down),
 pBgUp(pDesktopUp->GetBackgroundPtr()), pBgDn(pDesktopDown->GetBackgroundPtr()),
 trUp(*new MTextRegion(fc_)), trDn(*new MTextRegion(fc_)), rot(RDeg0),
-nLoad(0), offUp(0), offDn(0)
+offUp(0), offDn(0)
 {
 	trUp.SetSize(w, h_up);
 	trDn.SetSize(w, h_down);
@@ -41,7 +43,6 @@ nLoad(0), offUp(0), offDn(0)
 	Reset();
 	if(!tf.IsValid())
 		trUp.PutString(L"文件打开失败！\n");
-	nLoad = Blocks[0].Load(tf);
 }
 catch(MLoggedEvent&)
 {
@@ -142,8 +143,8 @@ MDualScreenReader::LineUp()
 	trUp.Move(hx, trUp.GetBufferHeightResized());
 	trUp.ClearLn(0);
 	trUp.SetLnNNow(0);
-	trUp.PutLine(&Blocks[0].GetPtr()[offUp = trUp.GetPrevLnOff(Blocks[0].GetPtr(), offUp)]);
-	offDn = trDn.GetPrevLnOff(Blocks[0].GetPtr(), offDn);
+	trUp.PutLine(&Blocks[0].GetPtr()[offUp = GetPrevLnOff(trUp, Blocks[0].GetPtr(), offUp)]);
+	offDn = GetPrevLnOff(trDn, Blocks[0].GetPtr(), offDn);
 	return true;
 }
 bool
@@ -163,7 +164,7 @@ MDualScreenReader::LineDown()
 	trDn.ClearLnLast();
 	trDn.SetLnLast();
 	offDn += trDn.PutLine(&Blocks[0].GetPtr()[offDn]);
-	offUp = trUp.GetNextLnOff(Blocks[0].GetPtr(), offUp);
+	offUp = GetNextLnOff(trUp, Blocks[0].GetPtr(), offUp);
 	return true;
 }
 
@@ -172,7 +173,7 @@ MDualScreenReader::ScreenUp()
 {
 	if(IsTextTop())
 		return false;
-	offUp = trUp.GetPrevLnOff(Blocks[0].GetPtr(), offUp, trUp.GetLnN() + trDn.GetLnN());
+	offUp = GetPrevLnOff(trUp, Blocks[0].GetPtr(), offUp, trUp.GetLnN() + trDn.GetLnN());
 	Update();
 	return true;
 }

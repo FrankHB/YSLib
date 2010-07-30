@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-7-26 14:02;
-// Version = 0.2966;
+// UTime = 2010-7-26 22:49;
+// Version = 0.2982;
 
 
 #include "ycontrol.h"
@@ -323,6 +323,8 @@ YLabel::DrawForeground()
 	if(prTextRegion)
 	{
 		prTextRegion->Font = Font;
+		prTextRegion->Font.Update();
+		prTextRegion->SetPen();
 		prTextRegion->Color = ForeColor;
 		prTextRegion->SetSize(GetWidth(), GetHeight());
 		prTextRegion->SetMargins(2, 2, 2, 2);
@@ -404,11 +406,12 @@ YListBox::DrawForeground()
 		RectOnGotFocus(Location, Size, hWindow);
 	if(prTextRegion && prTextRegion->GetLnHeight() <= Size.Height)
 	{
-		YVisualControl::DrawForeground();
-
 		const SDST lnWidth(GetWidth());
 		const SDST lnHeight(GetItemHeight());
 
+		prTextRegion->Font = Font;
+		prTextRegion->Font.Update();
+		prTextRegion->SetPen();
 		prTextRegion->SetSize(lnWidth, lnHeight);
 		prTextRegion->SetMargins(defMarginH, defMarginV);
 		Viewer.SetLength((Size.Height + prTextRegion->GetLineGap()) / lnHeight);
