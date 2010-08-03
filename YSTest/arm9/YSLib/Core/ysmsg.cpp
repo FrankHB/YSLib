@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-6 2:44:31;
-// UTime = 2010-6-15 4:51;
-// Version = 0.1408;
+// UTime = 2010-8-2 14:58;
+// Version = 0.1412;
 
 
 #include "ysmsg.h"
@@ -49,7 +49,7 @@ bool MMSG::operator==(const MMSG& m) const
 YMessageQueue::YMessageQueue()
 : q()
 {}
-YMessageQueue::~YMessageQueue()
+YMessageQueue::~YMessageQueue() ythrow()
 {}
 
 void

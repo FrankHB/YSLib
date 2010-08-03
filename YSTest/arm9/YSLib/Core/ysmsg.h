@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-6 2:44:31;
-// UTime = 2010-7-13 21:35;
-// Version = 0.1734;
+// UTime = 2010-8-2 15:00;
+// Version = 0.1744;
 
 
 #ifndef INCLUDED_YSMSG_H_
@@ -138,7 +138,7 @@ public:
 
 	YMessageQueue(); //默认构造函数：非内联。
 	virtual
-	~YMessageQueue(); //默认析构函数：非内联。
+	~YMessageQueue() ythrow(); //默认析构函数：非内联。
 
 	PDefHead(bool, empty) const //判断消息队列是否为空。
 		ImplBodyMember(q, empty)

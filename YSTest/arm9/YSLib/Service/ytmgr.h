@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 17:48:09;
-// UTime = 2010-7-30 20:55;
-// Version = 0.3891;
+// UTime = 2010-8-3 13:14;
+// Version = 0.3972;
 
 
 #ifndef INCLUDED_YTMGR_H_
@@ -22,31 +22,40 @@ YSL_BEGIN_NAMESPACE(Text)
 class MTextBuffer : private NonCopyable
 {
 public:
-	typedef size_t SizeType; //字符数类型。
+	typedef std::size_t SizeType; //字符大小类型。
+	typedef std::size_t IndexType; //字符索引类型。
 
 private:
-	const SizeType mlen; //最大长度（字符数）。
+	const IndexType mlen; //最大长度（字符数）。
 
 protected:
 	//文本缓冲区的首地址和长度。
 	uchar_t* const text;
-	SizeType len;
+	IndexType len;
 
 	explicit
-	MTextBuffer(SizeType);
+	MTextBuffer(IndexType);
 	~MTextBuffer();
 
 public:
-	DefGetter(size_t, SizeOfBuffer, sizeof(uchar_t) * mlen) //取文本缓冲区的大小。
+	uchar_t&
+	operator[](IndexType) ythrow(); //按下标返回字符，无运行期范围检查。
+
+	DefGetter(IndexType, MaxLength, mlen) //取最大文本长度。
+	DefGetter(SizeType, SizeOfBuffer, sizeof(uchar_t) * mlen) //取文本缓冲区的大小。
 	DefGetter(uchar_t*, Ptr, text) //取文本缓冲区的指针。
-	SizeType
-	GetPrevChar(SizeType o, uchar_t c); //从文本缓冲区下标 o （不含）起逆序查找字符 c 。返回结果的直接后继下标；查找失败时返回 0 。
-	SizeType
-	GetNextChar(SizeType o, uchar_t c); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
-	SizeType
-	GetPrevNewline(SizeType o); //从文本缓冲区下标 o （不含）起逆序查找换行符。返回结果的直接后继下标；查找失败时返回 0 。
-	SizeType
-	GetNextNewline(SizeType o); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
+	DefGetter(IndexType, Length, len) //取文本缓冲区的长度。
+	IndexType
+	GetPrevChar(IndexType o, uchar_t c); //从文本缓冲区下标 o （不含）起逆序查找字符 c 。返回结果的直接后继下标；查找失败时返回 0 。
+	IndexType
+	GetNextChar(IndexType o, uchar_t c); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
+	IndexType
+	GetPrevNewline(IndexType o); //从文本缓冲区下标 o （不含）起逆序查找换行符。返回结果的直接后继下标；查找失败时返回 0 。
+	IndexType
+	GetNextNewline(IndexType o); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
+
+	uchar_t&
+	at(IndexType) ythrow(std::out_of_range); //按下标返回字符，当越界时抛出 std::out_of_range 。
 
 	void
 	ClearText(); //清空缓冲区。
@@ -54,17 +63,17 @@ public:
 	bool
 	Load(const uchar_t* s); //从起始地址 s 中读取连续的 mlen 个 uchar_t 字符。
 	bool
-	Load(const uchar_t* s, SizeType n); //从起始地址 s 中读取连续的 n 个 uchar_t 字符。
-	SizeType
+	Load(const uchar_t* s, IndexType n); //从起始地址 s 中读取连续的 n 个 uchar_t 字符。
+	IndexType
 	Load(YTextFile& f); //从文本文件 f 中读取连续的 mlen 个字符（自动校验换行并转换为 Unix / Linux 格式），并返回成功读取的字符数。
-	SizeType
-	Load(YTextFile& f, SizeType n); //从文本文件 f 中读取连续的 n 个字符，并返回成功读取的字符数。
+	IndexType
+	Load(YTextFile& f, IndexType n); //从文本文件 f 中读取连续的 n 个字符，并返回成功读取的字符数。
 
-	SizeType
-	LoadN(YTextFile& f, SizeType n); //从文本文件 f 中读取连续的 n 个字节，并返回成功读取的字符数。
+	IndexType
+	LoadN(YTextFile& f, IndexType n); //从文本文件 f 中读取连续的 n 个字节，并返回成功读取的字符数。
 
 	bool
-	Output(uchar_t* d, SizeType p, SizeType n) const; //从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
+	Output(uchar_t* d, IndexType p, IndexType n) const; //从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
 
 };
 
@@ -74,12 +83,12 @@ MTextBuffer::~MTextBuffer()
 	delete[] text;
 }
 
-inline MTextBuffer::SizeType
+inline MTextBuffer::IndexType
 MTextBuffer::GetPrevNewline(SizeType o)
 {
 	return GetPrevChar(o, '\n');
 }
-inline MTextBuffer::SizeType
+inline MTextBuffer::IndexType
 MTextBuffer::GetNextNewline(SizeType o)
 {
 	return GetNextChar(o, '\n');
@@ -95,7 +104,7 @@ MTextBuffer::Load(const uchar_t* s)
 {
 	return Load(s, mlen);
 }
-inline MTextBuffer::SizeType
+inline MTextBuffer::IndexType
 MTextBuffer::Load(YTextFile& f)
 {
 	return Load(f, mlen);
@@ -106,17 +115,17 @@ MTextBuffer::Load(YTextFile& f)
 class MTextBlock : public MTextBuffer
 {
 public:
-	typedef u16 IndexType;
+	typedef u16 BlockIndexType;
 
-	IndexType Index;
+	BlockIndexType Index;
 
-	MTextBlock(IndexType, SizeType);
+	MTextBlock(BlockIndexType, IndexType);
 	virtual
 	~MTextBlock();
 };
 
 inline
-MTextBlock::MTextBlock(IndexType i, SizeType tlen)
+MTextBlock::MTextBlock(BlockIndexType i, IndexType tlen)
 : MTextBuffer(tlen), Index(i)
 {}
 inline
@@ -128,9 +137,8 @@ MTextBlock::~MTextBlock()
 class MTextMap
 {
 public:
-	typedef MTextBuffer::SizeType SizeType;
-	typedef MTextBlock::IndexType IndexType;
-	typedef std::map<IndexType, MTextBlock*> MapType;
+	typedef MTextBlock::BlockIndexType BlockIndexType;
+	typedef std::map<BlockIndexType, MTextBlock*> MapType;
 
 protected:
 	MapType Map;
@@ -140,11 +148,11 @@ public:
 	~MTextMap();
 
 	MTextBlock*
-	operator[](const IndexType&);
+	operator[](const BlockIndexType&);
 	void
 	operator+=(MTextBlock&);
 	bool
-	operator-=(const IndexType&);
+	operator-=(const BlockIndexType&);
 
 	void
 	clear();
@@ -157,7 +165,7 @@ MTextMap::~MTextMap()
 }
 
 inline MTextBlock*
-MTextMap::operator[](const IndexType& id)
+MTextMap::operator[](const BlockIndexType& id)
 {
 	return Map[id];
 }
@@ -168,7 +176,7 @@ MTextMap::operator+=(MTextBlock& item)
 	Map.insert(std::make_pair(item.Index, &item));
 }
 inline bool
-MTextMap::operator-=(const IndexType& i)
+MTextMap::operator-=(const BlockIndexType& i)
 {
 	return Map.erase(i) != 0;
 }
@@ -178,6 +186,10 @@ MTextMap::operator-=(const IndexType& i)
 class MTextFileBuffer : public MTextMap
 {
 public:
+	typedef MTextBlock::SizeType SizeType; //字符大小类型。
+	typedef MTextBlock::IndexType IndexType; //字符索引类型。
+	typedef MTextMap::BlockIndexType BlockIndexType; //块索引类型。
+
 	static const SizeType nBlockSize = 0x2000; //文本块容量。
 
 	//只读文本迭代器类。
@@ -188,16 +200,18 @@ public:
 	public:
 		typedef MTextFileBuffer ContainerType;
 		typedef ContainerType::SizeType SizeType;
-
-		static const SizeType nBlockSize = MTextFileBuffer::nBlockSize;
+		typedef ContainerType::IndexType IndexType;
+		typedef ContainerType::BlockIndexType BlockIndexType;
 
 	private:
 		MTextFileBuffer* pBuf;
-		SizeType nPos; //文本读取位置。
+		//文本读取位置。
+		BlockIndexType blk;
+		IndexType idx;
 
 	public:
 		explicit
-		TextIterator(MTextFileBuffer&, SizeType = 0) ythrow(); //指定文本读取位置初始化。
+		TextIterator(MTextFileBuffer&, BlockIndexType = 0, IndexType = 0) ythrow(); //指定文本读取位置初始化。
 
 		TextIterator&
 		operator++() ythrow();
@@ -214,40 +228,41 @@ public:
 		TextIterator
 		operator-(std::ptrdiff_t);
 
-		friend std::ptrdiff_t
-		operator-(TextIterator, TextIterator);
-
 		TextIterator&
 		operator+=(std::ptrdiff_t);
 
 		TextIterator&
 		operator-=(std::ptrdiff_t);
 
-		DefGetter(SizeType, Position, nPos)
 		const uchar_t*
-		GetTextPtr() ythrow();
+		GetTextPtr() const ythrow();
+		IndexType
+		GetBlockLength() const;
+		IndexType
+		GetBlockLength(BlockIndexType) const;
 	};
 
 	YTextFile& File; //文本文件。
 
 private:
-	const SizeType nLen; //文本区段长度。
+	const SizeType nTextSize; //文本区段长度。
+	const BlockIndexType nBlock; //文本区块数。
 
 public:
 	explicit
 	MTextFileBuffer(YTextFile&);
 
 	MTextBlock&
-	operator[](const IndexType&);
+	operator[](const BlockIndexType&);
 
-	DefGetter(SizeType, TextLength, nLen)
+	DefGetter(SizeType, TextSize, nTextSize)
+
+	TextIterator
+	begin() ythrow();
+
+	TextIterator
+	end() ythrow();
 };
-
-inline std::ptrdiff_t
-operator-(MTextFileBuffer::TextIterator::TextIterator a, MTextFileBuffer::TextIterator::TextIterator b)
-{
-	return a.nPos - b.nPos;
-}
 
 inline MTextFileBuffer::TextIterator
 MTextFileBuffer::TextIterator::operator-(std::ptrdiff_t o)
@@ -259,6 +274,24 @@ inline MTextFileBuffer::TextIterator&
 MTextFileBuffer::TextIterator::operator-=(std::ptrdiff_t o)
 {
 	return *this += -o;
+}
+
+inline MTextFileBuffer::IndexType
+MTextFileBuffer::TextIterator::GetBlockLength() const
+{
+	return GetBlockLength(blk);
+}
+
+inline MTextFileBuffer::TextIterator
+MTextFileBuffer::begin() ythrow()
+{
+	return MTextFileBuffer::TextIterator(*this);
+}
+
+inline MTextFileBuffer::TextIterator
+MTextFileBuffer::end() ythrow()
+{
+	return MTextFileBuffer::TextIterator(*this, nTextSize / nBlockSize);
 }
 
 YSL_END_NAMESPACE(Text)

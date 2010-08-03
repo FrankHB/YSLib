@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFile_(Text) by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-24 23:14:51;
-// UTime = 2010-7-25 10:37;
-// Version = 0.1729;
+// UTime = 2010-8-2 14:00;
+// Version = 0.1761;
 
 
 #include "yftext.h"
@@ -20,7 +20,7 @@ YTextFile::YTextFile(CPATH p)
 		bl = CheckBOM(cp);
 		Rewind();
 	}
-	if(!bl)
+	if(bl == 0)
 	{
 		cp = CS_Local;
 	}
@@ -38,7 +38,7 @@ YTextFile::CheckBOM(CSID& cp)
 	char tmp[4];
 	fread(tmp, 1, 4);
 
-	const char BOM_UTF_16LE[2] = {0xFF, 0xFE};
+	static const char BOM_UTF_16LE[2] = {0xFF, 0xFE};
 
 	if(!memcmp(tmp, BOM_UTF_16LE, 2))
 	{
@@ -54,7 +54,7 @@ YTextFile::CheckBOM(CSID& cp)
 		return 2;
 	}
 
-	const char BOM_UTF_8[3] = {0xEF, 0xBB, 0xBF};
+	static const char BOM_UTF_8[3] = {0xEF, 0xBB, 0xBF};
 
 	if(!memcmp(tmp, BOM_UTF_8, 3))
 	{
@@ -62,7 +62,7 @@ YTextFile::CheckBOM(CSID& cp)
 		return 3;
 	}
 
-	const char BOM_UTF_32LE[4] = {0xFF, 0xFE, 0x00, 0x00};
+	static const char BOM_UTF_32LE[4] = {0xFF, 0xFE, 0x00, 0x00};
 
 	if(!memcmp(tmp, BOM_UTF_32LE, 4))
 	{
@@ -70,7 +70,7 @@ YTextFile::CheckBOM(CSID& cp)
 		return 4;
 	}
 
-	const char BOM_UTF_32BE[4] = {0x00, 0x00, 0xFE, 0xFF};
+	static const char BOM_UTF_32BE[4] = {0x00, 0x00, 0xFE, 0xFF};
 
 	if(!memcmp(tmp, BOM_UTF_32BE, 4))
 	{
@@ -93,21 +93,21 @@ YTextFile::SetPos(u32 pos) const
 }
 
 void
-YTextFile::Seek(s32 offset, int origin) const
+YTextFile::Seek(long offset, int whence) const
 {
-	if(origin == SEEK_SET)
+	if(whence == SEEK_SET)
 		SetPos(offset);
 	else
-		fseek(offset, origin);
+		fseek(offset, whence);
 }
 
-u32
-YTextFile::Read(void* s, u32 n)
+YTextFile::SizeType
+YTextFile::Read(void* s, u32 n) const
 {
 	return fread(s, n, 1);
 }
 
-u32
+YTextFile::SizeType
 YTextFile::ReadS(uchar_t* s, u32 n) const
 {
 	u32 l(0);

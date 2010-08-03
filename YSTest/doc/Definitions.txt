@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-7-26 22:58;
-// Version = r6795;
+// UTime = 2010-8-3 13:44;
+// Version = r6876;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -442,7 +442,7 @@ unit YCommon "ycommon"
 
 		//串接给定的两个字符串，结果复制至用指定分配函数（默认为 std::malloc）新分配的空间（对传入参数进行非空检查），返回目标参数。
 		char*
-		strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
+		strcatdup(const char*, const char*, void*(*)(std::size_t) = std::malloc);
 
 
 		//通过 C 标准函数库操作判断给定路径的文件是否存在。
@@ -1038,7 +1038,7 @@ unit YFont "yfont"
 		operator Styles&();
 
 		const char*
-		GetName() const; //取样式名称。
+		GetName() const ythrow(); //取样式名称。
 	}; //struct EFontStyle;
 
 
@@ -1061,7 +1061,7 @@ unit YFont "yfont"
 
 	public:
 		MFontFamily(YFontCache&, const FT_String*);
-		~MFontFamily();
+		~MFontFamily() ythrow();
 
 		bool
 		operator==(const MFontFamily&) const;
@@ -1110,7 +1110,7 @@ unit YFont "yfont"
 
 	public:
 		MTypeface(YFontCache&, const MFontFile&, u32 = 0);
-		~MTypeface();
+		~MTypeface() ythrow();
 
 		bool
 		operator==(const MTypeface&) const;
@@ -1318,7 +1318,7 @@ unit YFont "yfont"
 		void
 		LoadFontFileDirectory(CPATH, CPATH = "ttf"); //读取字体文件目录并载入目录下指定后缀名的字体文件。
 		void
-		LoadFontFile(CPATH); //按路径加入字体文件并载入字体信息。
+		LoadFontFile(CPATH) ythrow(); //按路径加入字体文件并载入字体信息。
 
 	private:
 		void
@@ -1356,7 +1356,7 @@ code YSLib::Core {
 
 header YShellDefinition "ysdef.h"
 {
-	import header <platform.h>, unit YAdapter::YAdapter, YAdapter::YRefrence;
+	import header <platform.h>;
 
 
 	/*
@@ -1365,6 +1365,9 @@ header YShellDefinition "ysdef.h"
 	解决方案来源： https://www.securecoding.cert.org/confluence/display/cplusplus/PRE05-CPP.+Understand+macro+replacement+when+concatenating+tokens+or+performing+stringification 。
 	*/
 	#define _yJOIN(x, y) x ## y
+
+
+	import unit YAdapter::YAdapter;
 
 
 	//异常规范宏。
@@ -1454,32 +1457,32 @@ header YShellDefinition "ysdef.h"
 
 	//简单通用成员函数定义。
 	//prefix "Def" = Define;
-	#define DefConverter(_type, _expr) operator _type() const { return _expr; }
-	#define DefConverterBase(_type, _base) operator _type() const { return _base::operator _type(); }
-	#define DefConverterMember(_type, _member) operator _type() const { return _member.operator _type(); }
+	#define DefConverter(_type, _expr) operator _type() const ythrow() { return _expr; }
+	#define DefConverterBase(_type, _base) operator _type() const ythrow() { return _base::operator _type(); }
+	#define DefConverterMember(_type, _member) operator _type() const ythrow() { return _member.operator _type(); }
 
-	#define DefGetter(_type, _name, _member) _type _yJOIN(Get, _name)() const { return _member; }
-	#define DefGetterBase(_type, _name, _base) _type _yJOIN(Get, _name)() const { return _base::_yJOIN(Get, _name)(); }
-	#define DefGetterMember(_type, _name, _member) _type _yJOIN(Get, _name)() const { return _member._yJOIN(Get, _name)(); }
+	#define DefGetter(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return _member; }
+	#define DefGetterBase(_type, _name, _base) _type _yJOIN(Get, _name)() const ythrow() { return _base::_yJOIN(Get, _name)(); }
+	#define DefGetterMember(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return _member._yJOIN(Get, _name)(); }
 
-	#define DefBoolGetter(_name, _member) bool _yJOIN(Is, _name)() const { return _member; }
-	#define DefBoolGetterBase(_name, _base) bool _yJOIN(Is, _name)() const { return _base::_yJOIN(Is, _name)(); }
-	#define DefBoolGetterMember(_name, _member) bool _yJOIN(Is, _name)() const { return _member._yJOIN(Is, _name)(); }
+	#define DefBoolGetter(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return _member; }
+	#define DefBoolGetterBase(_name, _base) bool _yJOIN(Is, _name)() const ythrow() { return _base::_yJOIN(Is, _name)(); }
+	#define DefBoolGetterMember(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return _member._yJOIN(Is, _name)(); }
 
-	#define DefStaticGetter(_type, _name, _member) static _type _yJOIN(Get, _name)() { return _member; }
-	#define DefStaticGetterBase(_type, _name, _base) static _type _yJOIN(Get, _name)() { return _base::_yJOIN(Get, _name)(); }
+	#define DefStaticGetter(_type, _name, _member) static _type _yJOIN(Get, _name)() ythrow() { return _member; }
+	#define DefStaticGetterBase(_type, _name, _base) static _type _yJOIN(Get, _name)() ythrow() { return _base::_yJOIN(Get, _name)(); }
 
-	#define DefStaticBoolGetter(_name, _member) static bool _yJOIN(Is, _name)() { return _member; }
-	#define DefStaticBoolGetterBase(_name, _base) static bool _yJOIN(Is, _name)() { return _base::_yJOIN(Is, _name)(); }
+	#define DefStaticBoolGetter(_name, _member) static bool _yJOIN(Is, _name)() ythrow() { return _member; }
+	#define DefStaticBoolGetterBase(_name, _base) static bool _yJOIN(Is, _name)() ythrow() { return _base::_yJOIN(Is, _name)(); }
 
-	#define DefSetter(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) { _member = _tempArgName; }
-	#define DefSetterDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _tempArgName; }
-	#define DefSetterBase(_type, _name, _base) void _yJOIN(Set, _name)(_type _tempArgName) { _base::_yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterBaseDe(_type, _name, _base, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _base::_yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterMember(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) { _member._yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterMemberDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member._yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterEx(_type, _name, _member, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName) { _member = _expr; }
-	#define DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _expr; }
+	#define DefSetter(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _member = _tempArgName; }
+	#define DefSetterDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _member = _tempArgName; }
+	#define DefSetterBase(_type, _name, _base) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _base::_yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterBaseDe(_type, _name, _base, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _base::_yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterMember(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _member._yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterMemberDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _member._yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterEx(_type, _name, _member, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _member = _expr; }
+	#define DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _member = _expr; }
 
 
 	#define YSL_BEGIN	namespace YSLib {
@@ -1522,6 +1525,10 @@ header YShellDefinition "ysdef.h"
 	注意： PeekMessage 包含 InsertMessage 。
 	*/
 	#define YSLIB_DEBUG_MSG 0
+
+	import unit YAdapter::YAdapter, YAdapter::YRefrence;
+
+	YSL_BEGIN
 
 	//抽象描述接口。
 
@@ -1658,6 +1665,8 @@ header YShellDefinition "ysdef.h"
 	extern YScreen*& pDefaultScreen;
 	extern YDesktop*& pDefaultDesktop;
 	extern const HSHL hShellMain;
+	
+	YSL_END
 
 }; //header YShellDefinition;
 
@@ -1840,7 +1849,7 @@ unit YCoreUtilities "ycutil"
 	//清除指定的连续区域。
 	template<typename _type>
 	void
-	ClearSequence(_type*, size_t);
+	ClearSequence(_type*, std::size_t);
 
 
 	// delete 仿函数。
@@ -2899,7 +2908,7 @@ unit YDevice "ydevice"
 		Reset();
 
 		inline virtual Drawing::BitmapPtr
-		GetPtr() const;
+		GetPtr() const ythrow();
 		DefGetter(const BGType&, BgID, bg)
 
 		DefSetter(const BGType&, BgID, bg)
@@ -3024,7 +3033,7 @@ unit YShellMessage "ysmsg"
 
 		YMessageQueue(); //默认构造函数：非内联。
 		virtual
-		~YMessageQueue(); //默认析构函数：非内联。
+		~YMessageQueue() ythrow(); //默认析构函数：非内联。
 
 		PDefHead(bool, empty) const //判断消息队列是否为空。
 			ImplBodyMember(q, empty)
@@ -3200,7 +3209,7 @@ unit YShell "yshell"
 
 		YShell();
 		virtual
-		~YShell();
+		~YShell() ythrow();
 
 		bool
 		IsActive() const; //判断 Shell 是否处于激活状态。
@@ -3244,7 +3253,8 @@ unit YShell "yshell"
 	public:
 		YShellMain(HSHL);
 		inline virtual
-		~YShellMain();
+		~YShellMain() ythrow();
+
 		inline virtual LRES
 		ShlProc(const MMSG&);
 	}; //class YShellMain;
@@ -3341,7 +3351,7 @@ unit YApplication "yapp"
 		SetShellHandle(HSHL h); //设置线程空间中当前运行的 Shell 的句柄。
 
 		void
-		ResetShellHandle(); //复位线程：设置当前运行的线程为主线程。
+		ResetShellHandle() ythrow(); //复位线程：设置当前运行的线程为主线程。
 	}; //class YApplication;
 
 	YSL_END_NAMESPACE(Shells)
@@ -3492,10 +3502,11 @@ unit YFile "yfile"
 	{
 	public:
 		typedef YObject ParentType;
+		typedef std::size_t SizeType;
 
 	protected:
 		FILE* fp; //默认文件指针。
-		u32 fsize; //文件大小。
+		SizeType fsize; //文件大小。
 
 	public:
 		explicit
@@ -3505,18 +3516,18 @@ unit YFile "yfile"
 
 		DefBoolGetter(Valid, fp) //判断文件指针是否有效。
 		DefGetter(FILE*, Ptr, fp) //取文件指针。
-		DefGetter(SizeType, Length, fsize) //取文件长度。
+		DefGetter(SizeType, Size, fsize) //取文件长度。
 
 		inline bool
 		Open(CPATH); //打开指定路径的文件。
 		long
-		ftell() const; //取文件指针的位置。
+		ftell() const; //取文件指针的位置，返回值语义同 std::ftell 。
 		inline void
-		rewind() const; //文件指针返回到文件头。
+		rewind() const; //文件指针返回到文件头，同 std:: rewind 。
 		inline int
-		fseek(s32 offset, int origin) const; //设置文件指针位置，offset 和 origin 语义同 fseek 函数。
-		inline int
-		fread(void *p, int size, int count); //读文件到 p 中。
+		fseek(long offset, int whence) const; //设置文件指针位置，参数和返回值语义同 std::fseek 函数。
+		inline SizeType
+		fread(void* ptr, SizeType size, SizeType nmemb); //连续读 nmemb 个大小为 size 文件块到 ptr 中，返回成功读取的文件块数。
 		inline int
 		feof() const; //检测文件结束符。
 	}; //class YFile;
@@ -3536,8 +3547,8 @@ unit YFile_(Text) "yftext"
 		typedef YFile ParentType;
 
 	private:
-		u8 bl; // BOM 长度。
-		Text::CSID cp; //默认编码。
+		SizeType bl; // BOM 大小。
+		Text::CSID cp; //编码。
 
 	public:
 		explicit
@@ -3545,8 +3556,9 @@ unit YFile_(Text) "yftext"
 		virtual
 		~YTextFile();
 
-		DefGetter(u8, BOMLen, bl) //取 BOM 长度。
-		DefGetter(Text::CSID, CP, cp) //取默认编码。
+		DefGetter(u8, BOMSize, bl) //取 BOM 大小。
+		DefGetter(Text::CSID, CP, cp) //取编码。
+		DefGetter(SizeType, TextSize, GetSize() - GetBOMSize()) //取文本区段大小。
 		DefGetter(u32, Pos, ftell() - bl) //取文件指针关于文本区段的位置。
 
 		u8
@@ -3556,11 +3568,11 @@ unit YFile_(Text) "yftext"
 		void
 		SetPos(u32) const; //设置文件读位置。
 		void
-		Seek(s32, int origin) const; //设置文件读位置， origin 语义同 fseek 函数（SEEK_SET 起始为文本区段头）。
-		u32
-		Read(void* s, u32 n); //读文件 n 字节到 s 中。
-		u32
-		ReadS(uchar_t* s, u32 n) const; //读文件 n 字节（按默认编码转化为 UTF-16LE）到 s 中。
+		Seek(long, int origin) const; //设置文件读位置， origin 语义同 fseek 函数（SEEK_SET 起始为文本区段头）。
+		SizeType
+		Read(void* s, SizeType n) const; //从文件读 n 字节到 s 中。
+		SizeType
+		ReadS(uchar_t* s, SizeType n) const; //从文件读 n 字节（按默认编码转化为 UTF-16LE）到 s 中。
 	} //class YTextFile;
 
 } //unit YFile_(Text);
@@ -3599,7 +3611,7 @@ unit YGDI "ygdi"
 	{
 		template<typename _pixelType, class _transpType>
 		void
-		operator()(_pixelType*, size_t, _transpType);
+		operator()(_pixelType*, std::size_t, _transpType);
 	}; //struct transSeq;
 
 	//竖直线转换器。
@@ -3607,7 +3619,7 @@ unit YGDI "ygdi"
 	{
 		template<typename _pixelType, class _transpType>
 		void
-		operator()(_pixelType* dst, size_t n, SDST dw, _transpType tp);
+		operator()(_pixelType* dst, std::size_t n, SDST dw, _transpType tp);
 	}; //struct transVLine;
 
 
@@ -3635,17 +3647,17 @@ unit YGDI "ygdi"
 	//清除指定位置的 n 个连续像素。
 	template<typename _pixelType>
 	inline void
-	ClearPixel(_pixelType* dst, size_t n);
+	ClearPixel(_pixelType* dst, std::size_t n);
 
 	//使用 n 个指定像素连续填充指定位置。
 	template<typename _pixelType>
 	inline void
-	FillSeq(_pixelType* dst, size_t n, _pixelType c);
+	FillSeq(_pixelType* dst, std::size_t n, _pixelType c);
 
 	//使用 n 个指定像素竖直填充指定位置。
 	template<typename _pixelType>
 	inline void
-	FillVLine(_pixelType* dst, size_t n, SDST dw, _pixelType c);
+	FillVLine(_pixelType* dst, std::size_t n, SDST dw, _pixelType c);
 
 	//使用指定像素填充指定的正则矩形区域。
 	template<typename _pixelType>
@@ -3870,7 +3882,7 @@ unit YGDI "ygdi"
 		DefGetter(SDST, Width, Width) //取缓冲区的宽。
 		DefGetter(SDST, Height, Height) //取缓冲区的高。
 		DefGetter(BitmapPtr, BufferPtr, img) //取缓冲区指针。
-		DefGetter(size_t, SizeOfBuffer, sizeof(PixelType) * GetArea()) //取缓冲区占用空间。
+		DefGetter(std::size_t, SizeOfBuffer, sizeof(PixelType) * GetArea()) //取缓冲区占用空间。
 
 		//重新设置缓冲区的大小。
 		virtual void
@@ -3906,7 +3918,7 @@ unit YGDI "ygdi"
 		operator==(const MBitmapBufferEx&, const MBitmapBufferEx&);
 
 		DefGetter(u8*, BufferAlphaPtr, imgAlpha) //取 Alpha 缓冲区的指针。
-		DefGetter(size_t, SizeOfBufferAlpha, sizeof(u8) * GetArea()) //取 Alpha 缓冲区占用空间。
+		DefGetter(std::size_t, SizeOfBufferAlpha, sizeof(u8) * GetArea()) //取 Alpha 缓冲区占用空间。
 
 		//重新设置缓冲区的大小。
 		virtual void
@@ -5090,14 +5102,14 @@ unit YText "ytext"
 
 		//输出字符串，直至行尾或字符串结束，并返回输出字符数。
 		template<typename _constCharIteratorType>
-		u32
+		std::size_t
 		PutLine(_constCharIteratorType);
-		u32
+		std::size_t
 		PutLine(const MString& s);
 
 		//输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
 		template<typename _constCharIteratorType>
-		u32
+		std::size_t
 		PutString(_constCharIteratorType);
 	}; //class MTextRegion;
 
@@ -5184,32 +5196,41 @@ unit YTextManager "ytmgr"
 	class MTextBuffer : private NonCopyable;
 	{
 	public:
-		typedef size_t SizeType; //字符数类型。
+		typedef std::size_t SizeType; //字符大小类型。
+		typedef std::size_t IndexType; //字符索引类型。
 
 	private:
-		const SizeType mlen; //最大长度（字符数）。
+		const IndexType mlen; //最大长度（字符数）。
 
 	protected:
 		//文本缓冲区的首地址和长度。
 		uchar_t* const text;
-		SizeType len;
+		IndexType len;
 
 		explicit
-		MTextBuffer(SizeType tlen);
+		MTextBuffer(IndexType tlen);
 		inline
 		~MTextBuffer();
 
 	public:
-		DefGetter(size_t, SizeOfBuffer, sizeof(uchar_t) * mlen) //取文本缓冲区的大小。
+		uchar_t&
+		operator[](IndexType) ythrow(); //按下标返回字符，无运行期范围检查。
+
+		DefGetter(IndexType, MaxLength, mlen) //取最大文本长度。
+		DefGetter(SizeType, SizeOfBuffer, sizeof(uchar_t) * mlen) //取文本缓冲区的大小。
 		DefGetter(uchar_t*, Ptr, text) //取文本缓冲区的指针。
-		SizeType
-		GetPrevChar(SizeType o, uchar_t c); //从文本缓冲区下标 o （不含）起逆序查找字符 c 。返回结果的直接后继下标；查找失败时返回 0 。
-		SizeType
-		GetNextChar(SizeType o, uchar_t c); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
-		inline SizeType
-		GetPrevNewline(SizeType o); //从文本缓冲区下标 o （不含）起逆序查找换行符。返回结果的直接后继下标；查找失败时返回 0 。
-		inline SizeType
-		GetNextNewline(SizeType o); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
+		DefGetter(IndexType, Length, len) //取文本缓冲区的长度。
+		IndexType
+		GetPrevChar(IndexType o, uchar_t c); //从文本缓冲区下标 o （不含）起逆序查找字符 c 。返回结果的直接后继下标；查找失败时返回 0 。
+		IndexType
+		GetNextChar(IndexType o, uchar_t c); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
+		inline IndexType
+		GetPrevNewline(IndexType o); //从文本缓冲区下标 o （不含）起逆序查找换行符。返回结果的直接后继下标；查找失败时返回 0 。
+		inline IndexType
+		GetNextNewline(IndexType o); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
+
+		uchar_t&
+		at(IndexType) ythrow(std::out_of_range); //按下标返回字符，当越界时抛出 std::out_of_range 。
 
 		inline void
 		ClearText(); //清空缓冲区。
@@ -5217,17 +5238,17 @@ unit YTextManager "ytmgr"
 		inline bool
 		Load(const uchar_t* s); //从起始地址 s 中读取连续的 mlen 个 uchar_t 字符。
 		bool
-		Load(const uchar_t* s, SizeType n); //从起始地址 s 中读取连续的 n 个 uchar_t 字符。
+		Load(const uchar_t* s, IndexType n); //从起始地址 s 中读取连续的 n 个 uchar_t 字符。
 		inline u32
 		Load(YTextFile& f); //从文本文件 f 中读取连续的 mlen 个字符（自动校验换行并转换为 Unix / Linux 格式），并返回成功读取的字符数。
-		SizeType
-		Load(YTextFile& f, SizeType n); //从文本文件 f 中读取连续的 n 个字符，并返回成功读取的字符数。
+		IndexType
+		Load(YTextFile& f, IndexType n); //从文本文件 f 中读取连续的 n 个字符，并返回成功读取的字符数。
 
-		SizeType
-		LoadN(YTextFile& f, SizeType n); //从文本文件 f 中读取连续的 n 个字节，并返回成功读取的字符数。
+		IndexType
+		LoadN(YTextFile& f, IndexType n); //从文本文件 f 中读取连续的 n 个字节，并返回成功读取的字符数。
 
 		bool
-		Output(uchar_t* d, SizeType p, SizeType n) const; //从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
+		Output(uchar_t* d, IndexType p, IndexType n) const; //从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
 
 	}; //class MTextBuffer;
 
@@ -5236,12 +5257,13 @@ unit YTextManager "ytmgr"
 	class MTextBlock : public MTextBuffer
 	{
 	public:
-		typedef u16 IndexType;
+		typedef u16 BlockIndexType;
+		typedef MTextBuffer::IndexType IndexType;
 
 		IndexType Index;
 
 		inline
-		MTextBlock(IndexType, SizeType);
+		MTextBlock(BlockIndexType, IndexType);
 		inline virtual
 		~MTextBlock();
 	}; //class MTextBlock;
@@ -5251,8 +5273,8 @@ unit YTextManager "ytmgr"
 	class MTextMap
 	{
 	public:
-		typedef MTextBlock::IndexType IndexType;
-		typedef std::map<IndexType, MTextBlock*> MapType;
+		typedef MTextBlock::BlockIndexType BlockIndexType;
+		typedef std::map<BlockIndexType, MTextBlock*> MapType;
 
 	protected:
 		MapType Map;
@@ -5262,11 +5284,11 @@ unit YTextManager "ytmgr"
 		~MTextMap();
 
 		inline MTextBlock*
-		operator[](const IndexType&);
+		operator[](const BlockIndexType&);
 		inline void
-		operator+=(const std::pair<const IndexType&, MTextBlock*>&);
+		operator+=(const MTextBlock&);
 		inline void
-		operator-=(const IndexType&);
+		operator-=(const BlockIndexType&);
 
 		void
 		clear();
@@ -5277,6 +5299,10 @@ unit YTextManager "ytmgr"
 	class MTextFileBuffer : public MTextMap
 	{
 	public:
+		typedef MTextBlock::SizeType SizeType; //字符大小类型。
+		typedef MTextBlock::IndexType IndexType; //字符索引类型。
+		typedef MTextMap::BlockIndexType BlockIndexType; //块索引类型。
+
 		static const SizeType nBlockSize = 0x2000; //文本块容量。
 
 		//只读文本迭代器类。
@@ -5286,17 +5312,16 @@ unit YTextManager "ytmgr"
 
 		public:
 			typedef MTextFileBuffer ContainerType;
-			typedef ContainerType::SizeType SizeType;
-
-			static const SizeType nBlockSize = MTextFileBuffer::nBlockSize;
 
 		private:
 			MTextFileBuffer* pBuf;
-			SizeType nPos; //文本读取位置。
+			//文本读取位置。
+			BlockIndexType blk;
+			IndexType idx;
 
 		public:
 			explicit
-			TextIterator(MTextFileBuffer&, SizeType = 0) ythrow(); //指定文本读取位置初始化。
+			TextIterator(MTextFileBuffer&, BlockIndexType = 0, IndexType = 0) ythrow(); //指定文本读取位置初始化。
 
 			TextIterator&
 			operator++() ythrow();
@@ -5310,27 +5335,27 @@ unit YTextManager "ytmgr"
 			TextIterator
 			operator+(std::ptrdiff_t);
 
-			inline TextIterator
+			TextIterator
 			operator-(std::ptrdiff_t);
-
-			inline friend std::ptrdiff_t
-			operator-(TextIterator, TextIterator);
 
 			TextIterator&
 			operator+=(std::ptrdiff_t);
 
-			inline TextIterator&
+			TextIterator&
 			operator-=(std::ptrdiff_t);
 
-			operator const uchar_t*() ythrow();
-
-			DefGetter(SizeType, Position, nPos)
+			const uchar_t*
+			GetTextPtr() const ythrow();
+			IndexType
+			GetBlockLength() const;
+			IndexType
+			GetBlockLength(BlockIndexType) const;
 		}; //class TextIterator;
 
 		YTextFile& File; //文本文件。
 
 	private:
-		SizeType nLen; //文本区段长度。
+		SizeType nTextSize; //文本区段长度。
 		TextIterator it; //文本迭代器。
 
 	public:
@@ -5338,14 +5363,15 @@ unit YTextManager "ytmgr"
 		MTextFileBuffer(YTextFile&);
 
 		MTextBlock&
-		operator[](const IndexType&);
+		operator[](const BlockIndexType&);
 
-		DefGetter(SizeType, TextLength, nLen)
-		const uchar_t*
-		GetTextPtr();
+		DefGetter(SizeType, TextSize, nTextSize)
 
-		void
-		SetPosition(SizeType);
+		TextIterator
+		begin() ythrow();
+
+		TextIterator
+		end() ythrow();	
 	}; //class MTextFileBuffer;
 
 	YSL_END_NAMESPACE(Text)

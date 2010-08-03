@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:04:05;
-// UTime = 2010-7-30 21:10;
-// Version = 0.2681;
+// UTime = 2010-8-3 13:43;
+// Version = 0.2701;
 
 
 #include "DSReader.h"
@@ -17,13 +17,15 @@ using namespace Text;
 
 YSL_BEGIN_NAMESPACE(Components)
 
-u32 MDualScreenReader::TextFill(u32 off)
+u32 MDualScreenReader::TextFill()
 {
-	MTextFileBuffer::TextIterator it(Blocks, off);
+//	MTextFileBuffer::TextIterator it(Blocks.begin());
+	MTextFileBuffer::TextIterator it(Blocks, 0, offUp);
+	std::size_t n(0);
 
-	it += trUp.PutString(it);
+	it += n = trUp.PutString(it);
 	it += trDn.PutString(it);
-	return it.GetPosition() - off;
+	return n;
 }
 
 MDualScreenReader::MDualScreenReader(YTextFile& tf_,
@@ -118,13 +120,14 @@ void
 MDualScreenReader::TextInit()
 {
 	Reset();
-	offDn = TextFill(offUp = 0);
+	offUp = 0;
+	offDn = TextFill();
 }
 void
 MDualScreenReader::Update()
 {
 	Reset();
-	offDn = offUp + TextFill(offUp);
+	offDn = offUp + TextFill();
 }
 
 bool

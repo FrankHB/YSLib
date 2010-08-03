@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFile by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-24 23:14:41;
-// UTime = 2010-7-25 10:39;
-// Version = 0.1489;
+// UTime = 2010-7-31 21:38;
+// Version = 0.1529;
 
 
 #ifndef INCLUDED_YFILE_H_
@@ -19,7 +19,8 @@ class YFile : public YObject
 {
 public:
 	typedef YObject ParentType;
-	typedef u32 SizeType;
+	typedef std::size_t SizeType; //大小类型。
+	typedef std::ptrdiff_t OffType; //偏移量类型。
 
 protected:
 	FILE* fp; //默认文件指针。
@@ -33,7 +34,7 @@ public:
 
 	DefBoolGetter(Valid, fp) //判断文件指针是否有效。
 	DefGetter(FILE*, Ptr, fp) //取文件指针。
-	DefGetter(SizeType, Length, fsize) //取文件长度。
+	DefGetter(SizeType, Size, fsize) //取文件大小。
 
 	void
 	Release(); //清除文件指针。
@@ -41,19 +42,19 @@ public:
 	bool
 	Open(CPATH); //打开指定路径的文件。
 
-	long
-	ftell() const; //取文件指针的位置。
+	OffType
+	ftell() const; //取文件指针的位置，返回值语义同 std::ftell 。
 	void
-	rewind() const; //文件指针返回到文件头。
+	rewind() const; //文件指针返回到文件头，同 std:: rewind 。
 	int
-	fseek(SizeType offset, int origin) const; //设置文件指针位置，offset 和 origin 语义同 fseek 函数。
-	int
-	fread(void *p, int size, int count); //读文件到 p 中。
+	fseek(OffType, int) const; //设置文件指针位置，参数和返回值语义同 std::fseek 。
+	SizeType
+	fread(void* ptr, SizeType size, SizeType nmemb) const; //连续读 nmemb 个大小为 size 文件块到 ptr 中，返回成功读取的文件块数。
 	int
 	feof() const; //检测文件结束符。
 };
 
-inline long
+inline YFile::OffType
 YFile::ftell() const
 {
 	return std::ftell(fp);
@@ -64,14 +65,14 @@ YFile::rewind() const
 	std::rewind(fp);
 }
 inline int
-YFile::fseek(SizeType offset, int origin) const
+YFile::fseek(YFile::OffType offset, int whence) const
 {
-	return std::fseek(fp, offset, origin);
+	return std::fseek(fp, offset, whence);
 }
-inline int
-YFile::fread(void *p, int size, int count)
+inline std::size_t
+YFile::fread(void* ptr, std::size_t size, std::size_t nmemb) const
 {
-	return std::fread(p, size, count, fp);
+	return std::fread(ptr, size, nmemb, fp);
 }
 inline int
 YFile::feof() const

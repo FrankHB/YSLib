@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-13 14:17:14;
-// UTime = 2010-7-16 18:50;
-// Version = 0.1352;
+// UTime = 2010-8-2 15:44;
+// Version = 0.1358;
 
 
 #include "shlds.h"
@@ -12,7 +12,7 @@ YSL_BEGIN
 ShlGUI::ShlGUI()
 : YShellMain()
 {}
-ShlGUI::~ShlGUI()
+ShlGUI::~ShlGUI() ythrow()
 {}
 
 void
@@ -52,9 +52,8 @@ YSL_BEGIN_NAMESPACE(DS)
 ShlDS::ShlDS()
 : ShlGUI()
 {}
-ShlDS::~ShlDS()
-{
-}
+ShlDS::~ShlDS() ythrow()
+{}
 
 LRES
 ShlDS::ShlProc(const MMSG& msg)

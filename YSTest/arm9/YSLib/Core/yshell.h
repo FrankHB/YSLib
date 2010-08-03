@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15;
-// UTime = 2010-7-14 15:11;
-// Version = 0.2397;
+// UTime = 2010-8-2 15:42;
+// Version = 0.2404;
 
 
 #ifndef INCLUDED_YSHELL_H_
@@ -35,7 +35,7 @@ public:
 
 	YShell();
 	virtual
-	~YShell();
+	~YShell() ythrow();
 
 	bool
 	IsActive() const; //判断 Shell 是否处于激活状态。
@@ -95,14 +95,14 @@ public:
 
 	YShellMain();
 	virtual
-	~YShellMain();
+	~YShellMain() ythrow();
 
 	virtual LRES
 	ShlProc(const MMSG&);
 };
 
 inline
-YShellMain::~YShellMain()
+YShellMain::~YShellMain() ythrow()
 {}
 
 inline LRES

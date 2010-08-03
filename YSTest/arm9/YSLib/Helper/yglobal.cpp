@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52;
-// UTime = 2010-7-26 7:36;
-// Version = 0.2300;
+// UTime = 2010-8-2 15:50;
+// Version = 0.2318;
 
 
 #include "yglobal.h"
@@ -227,6 +227,10 @@ main(int argc, char* argv[])
 	catch(YSL_ Exceptions::MLoggedEvent& e)
 	{
 		YSL_ theApp.Log.FatalError(e.what());
+	}
+	catch(...)
+	{
+		YSL_ theApp.Log.FatalError("Unhandled exception @@ int main(int, char*[]);");
 	}
 }
 

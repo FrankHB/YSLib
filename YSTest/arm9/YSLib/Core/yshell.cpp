@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15;
-// UTime = 2010-7-14 15:10;
-// Version = 0.2692;
+// UTime = 2010-8-2 14:58;
+// Version = 0.2696;
 
 
 #include "../Shell/ywindow.h"
@@ -22,7 +22,7 @@ YShell::YShell()
 {
 	InsertMessage(NULL, SM_CREATE, 0xF0, reinterpret_cast<WPARAM>(this));
 }
-YShell::~YShell()
+YShell::~YShell() ythrow()
 {
 	if(theApp.GetShellHandle() == this)
 		theApp.ResetShellHandle();

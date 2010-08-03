@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46;
-// UTime = 2010-7-26 13:23;
-// Version = 0.2678;
+// UTime = 2010-8-2 13:56;
+// Version = 0.2684;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -44,7 +44,7 @@ struct transSeq
 {
 	template<typename _pixelType, class _transpType>
 	void
-	operator()(_pixelType* dst, size_t n, _transpType tp)
+	operator()(_pixelType* dst, std::size_t n, _transpType tp)
 	{
 		if(dst && n)
 		{
@@ -61,7 +61,7 @@ struct transVLine
 {
 	template<typename _pixelType, class _transpType>
 	void
-	operator()(_pixelType* dst, size_t n, SDST dw, _transpType tp)
+	operator()(_pixelType* dst, std::size_t n, SDST dw, _transpType tp)
 	{
 		if(dst && n)
 			while(n--)
@@ -116,7 +116,7 @@ struct transRect
 //清除指定位置的 n 个连续像素。
 template<typename _pixelType>
 inline void
-ClearPixel(_pixelType* dst, size_t n)
+ClearPixel(_pixelType* dst, std::size_t n)
 {
 	ClearSequence(dst, n);
 }
@@ -124,7 +124,7 @@ ClearPixel(_pixelType* dst, size_t n)
 //使用 n 个指定像素连续填充指定位置。
 template<typename _pixelType>
 inline void
-FillSeq(_pixelType* dst, size_t n, _pixelType c)
+FillSeq(_pixelType* dst, std::size_t n, _pixelType c)
 {
 	transSeq()(dst, n, FillPixel<_pixelType>(c));
 }
@@ -132,7 +132,7 @@ FillSeq(_pixelType* dst, size_t n, _pixelType c)
 //使用 n 个指定像素竖直填充指定位置。
 template<typename _pixelType>
 inline void
-FillVLine(_pixelType* dst, size_t n, SDST dw, _pixelType c)
+FillVLine(_pixelType* dst, std::size_t n, SDST dw, _pixelType c)
 {
 	transVLine()(dst, n, dw, FillPixel<_pixelType>(c));
 }
@@ -436,7 +436,7 @@ public:
 	DefGetter(SDST, Width, Width) //取缓冲区的宽。
 	DefGetter(SDST, Height, Height) //取缓冲区的高。
 	DefGetter(BitmapPtr, BufferPtr, img) //取缓冲区指针。
-	DefGetter(size_t, SizeOfBuffer, sizeof(PixelType) * GetArea()) //取缓冲区占用空间。
+	DefGetter(std::size_t, SizeOfBuffer, sizeof(PixelType) * GetArea()) //取缓冲区占用空间。
 
 	//重新设置缓冲区大小。
 	virtual void
@@ -484,7 +484,7 @@ public:
 	operator==(const MBitmapBufferEx&, const MBitmapBufferEx&);
 
 	DefGetter(u8*, BufferAlphaPtr, imgAlpha) //取 Alpha 缓冲区的指针。
-	DefGetter(size_t, SizeOfBufferAlpha, sizeof(u8) * GetArea()) //取 Alpha 缓冲区占用空间。
+	DefGetter(std::size_t, SizeOfBufferAlpha, sizeof(u8) * GetArea()) //取 Alpha 缓冲区占用空间。
 
 	//重新设置缓冲区大小。
 	virtual void

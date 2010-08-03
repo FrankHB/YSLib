@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:03:47;
-// UTime = 2010-7-26 12:40;
-// Version = 0.2042;
+// UTime = 2010-8-3 13:43;
+// Version = 0.2049;
 
 
 #ifndef _DSREADER_H_
@@ -30,6 +30,7 @@ private:
 	PixelType *pBgUp, *pBgDn; //上下屏幕背景层显存地址。
 	MTextRegion &trUp, &trDn; //上下屏幕对应字符区域。
 	ROT rot; //屏幕指向。
+//	MTextFileBuffer::TextIterator it; //字符区域读取文本缓存迭代器。
 	s32 offUp, offDn; //字符区域读取文本文件的输出位置（偏移字符量）。
 	u8 lnHeight; //行高。
 
@@ -45,14 +46,14 @@ private:
 	PDefHead(void, SetLnGapDn, u16 g = 0) //设置下字符区域的行距。
 		ImplBodyMemberVoid(trDn, SetLineGap, g)
 
-	void Clear()
 	//清除字符区域缓冲区。
+	void Clear()
 	{
 		trUp.ClearImage();
 		trDn.ClearImage();
 	}
-	void ResetPen()
 	//复位缓存区域写入位置。
+	void ResetPen()
 	{
 		trUp.SetPen();
 		trDn.SetPen();
@@ -63,8 +64,7 @@ private:
 		YTextFile& f,
 	}
 */
-	u32 TextFill(u32);
-	//文本填充：输出文本缓冲区指定偏移量的字符串，并返回填充字符数。
+	u32 TextFill(); //文本填充：输出文本缓冲区字符串，并返回填充字符数。
 
 public:
 	/*

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YDevice by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:39:39;
-// UTime = 2010-7-8 15:09;
-// Version = 0.2684;
+// UTime = 2010-8-2 15:42;
+// Version = 0.2688;
 
 
 #ifndef INCLUDED_YOUTPUT_H_
@@ -65,7 +65,7 @@ public:
 	Reset();
 
 	virtual Drawing::BitmapPtr
-	GetPtr() const;
+	GetPtr() const ythrow();
 	DefGetter(const BGType&, BgID, bg)
 
 	DefSetter(const BGType&, BgID, bg)
@@ -83,7 +83,7 @@ YScreen::InitScreen()
 }
 
 inline Drawing::BitmapPtr
-YScreen::GetPtr() const
+YScreen::GetPtr() const ythrow()
 {
 	CheckInit();
 	return ParentType::GetPtr();

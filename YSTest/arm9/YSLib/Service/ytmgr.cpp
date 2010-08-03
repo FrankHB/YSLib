@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 17:48:09;
-// UTime = 2010-7-30 21:15;
-// Version = 0.3790;
+// UTime = 2010-8-3 13:22;
+// Version = 0.3869;
 
 
 #include "ytmgr.h"
@@ -14,7 +14,7 @@ using namespace Exceptions;
 
 YSL_BEGIN_NAMESPACE(Text)
 
-MTextBuffer::MTextBuffer(SizeType tlen)
+MTextBuffer::MTextBuffer(IndexType tlen)
 try : mlen(tlen), text(new uchar_t[mlen]), len(0)
 {
 	ClearText();
@@ -24,23 +24,41 @@ catch(...)
 	throw MLoggedEvent("Error occured @@ MTextBuffer::MTextBuffer();");
 }
 
-MTextBuffer::SizeType
-MTextBuffer::GetPrevChar(SizeType o, uchar_t c)
+uchar_t&
+MTextBuffer::operator[](IndexType i) ythrow()
+{
+	YAssert(i < mlen,
+		"In function \"uchar_t\n"
+		"MTextBuffer::operator[](SizeType i)\":\n"
+		"Subscript is not less than the length.")
+	return text[i];
+}
+
+MTextBuffer::IndexType
+MTextBuffer::GetPrevChar(IndexType o, uchar_t c)
 {
 	while(o-- && text[o] != c)
 		;
 	return ++o;
 }
-MTextBuffer::SizeType
-MTextBuffer::GetNextChar(SizeType o, uchar_t c)
+MTextBuffer::IndexType
+MTextBuffer::GetNextChar(IndexType o, uchar_t c)
 {
 	while(o < mlen && text[o++] != c)
 		;
 	return o;
 }
 
+uchar_t&
+MTextBuffer::at(IndexType i) ythrow(std::out_of_range)
+{
+	if(i >= mlen)
+		throw std::out_of_range("YSLib::Text::MTextBuffer");
+	return text[i];
+}
+
 bool
-MTextBuffer::Load(const uchar_t* s, SizeType n)
+MTextBuffer::Load(const uchar_t* s, IndexType n)
 {
 	if(n > mlen)
 		return false;
@@ -48,14 +66,14 @@ MTextBuffer::Load(const uchar_t* s, SizeType n)
 	len = n;
 	return true;
 }
-MTextBuffer::SizeType
-MTextBuffer::Load(YTextFile& f, SizeType n)
+MTextBuffer::IndexType
+MTextBuffer::Load(YTextFile& f, IndexType n)
 {
-	SizeType l(0);
+	IndexType l(0);
 
 	if(f.IsValid())
 	{
-		SizeType i(0), t;
+		IndexType i(0), t;
 		uchar_t cb(len == 0 ? 0 : text[len - 1]), c;
 		FILE* const fp(f.GetPtr());
 		const CSID cp(f.GetCP());
@@ -74,10 +92,10 @@ MTextBuffer::Load(YTextFile& f, SizeType n)
 	return l;
 }
 
-MTextBuffer::SizeType
-MTextBuffer::LoadN(YTextFile& f, SizeType n)
+MTextBuffer::IndexType
+MTextBuffer::LoadN(YTextFile& f, IndexType n)
 {
-	SizeType l(0);
+	IndexType l(0);
 
 	if(f.IsValid())
 	{
@@ -101,7 +119,7 @@ MTextBuffer::LoadN(YTextFile& f, SizeType n)
 }
 
 bool
-MTextBuffer::MTextBuffer::Output(uchar_t* d, SizeType p, SizeType n) const
+MTextBuffer::MTextBuffer::Output(uchar_t* d, IndexType p, IndexType n) const
 {
 	if(p + n > mlen)
 		return false;
@@ -119,20 +137,26 @@ MTextMap::clear()
 }
 
 
-MTextFileBuffer::TextIterator::TextIterator(MTextFileBuffer& b, SizeType n) ythrow()
-: pBuf(&b), nPos(n)
+MTextFileBuffer::TextIterator::TextIterator(MTextFileBuffer& buf, BlockIndexType b, IndexType i) ythrow()
+: pBuf(&buf), blk(b), idx(i)
 {
-//	assert(b.GetTextLength() >= 1);
-	if(nPos > b.GetTextLength())
-		nPos = 0;
+//	assert(buf.GetTextSize() >= 1);
 }
 
 MTextFileBuffer::TextIterator&
 MTextFileBuffer::TextIterator::operator++() ythrow()
 {
 //	assert(pBuf != NULL);
-	if(++nPos == pBuf->GetTextLength())
-		nPos = 0;
+	if(blk < pBuf->GetTextSize() / nBlockSize)
+	{
+		if(idx == GetBlockLength())
+		{
+			++blk;
+			idx = 0;
+		}
+		else
+			++idx;
+	}
 	return *this;
 }
 
@@ -140,8 +164,13 @@ MTextFileBuffer::TextIterator&
 MTextFileBuffer::TextIterator::operator--() ythrow()
 {
 //	assert(pBuf != NULL);
-	if(nPos-- == 0)
-		nPos = pBuf->GetTextLength() - 1;
+	if(blk != 0 || idx != 0)
+	{
+		if(idx == 0)
+			--blk;
+		else
+			--idx;
+	}
 	return *this;
 }
 
@@ -157,27 +186,33 @@ MTextFileBuffer::TextIterator
 MTextFileBuffer::TextIterator::operator+(std::ptrdiff_t o)
 {
 //	assert(pBuf != NULL);
-	return isInIntervalRegular(nPos + o, pBuf->GetTextLength()) ? TextIterator(*pBuf, nPos + o) : TextIterator(*this);
+	TextIterator i(*this);
+
+	return i += o;
 }
 
 MTextFileBuffer::TextIterator&
 MTextFileBuffer::TextIterator::operator+=(std::ptrdiff_t o)
 {
 //	assert(pBuf != NULL);
-	if(isInIntervalRegular(nPos + o, pBuf->GetTextLength()))
-		nPos += o;
+	if(o > 0)
+		while(o-- != 0)
+			++*this;
+	else
+		while(o++ != 0)
+			--*this;
 	return *this;
 }
 
 const uchar_t*
-MTextFileBuffer::TextIterator::GetTextPtr() ythrow()
+MTextFileBuffer::TextIterator::GetTextPtr() const ythrow()
 {
 	const uchar_t* p(NULL);
 
 //	assert(pBuf != NULL);
 	try
 	{
-		p = (*pBuf)[nPos / nBlockSize].GetPtr() + nPos % nBlockSize;
+		p = &(*pBuf)[blk].at(idx);
 	}
 	catch(...)
 	{
@@ -186,24 +221,31 @@ MTextFileBuffer::TextIterator::GetTextPtr() ythrow()
 	return p;
 }
 
+MTextFileBuffer::IndexType
+MTextFileBuffer::TextIterator::GetBlockLength(BlockIndexType i) const
+{
+	return (*pBuf)[i].GetLength();
+}
+
+
 MTextFileBuffer::MTextFileBuffer(YTextFile& file)
-: File(file), nLen(std::max<u32>(File.GetLength() - File.GetBOMLen(), 1))
+: File(file), nTextSize(std::max<u32>(File.GetTextSize(), 1)), nBlock(nTextSize / nBlockSize)
 {}
 
 MTextBlock&
-MTextFileBuffer::operator[](const IndexType& i)
+MTextFileBuffer::operator[](const BlockIndexType& i)
 {
 	try
 	{
-		if(i * nBlockSize > File.GetLength())
-			throw std::out_of_range("");
+		if(i * nBlockSize > File.GetSize())
+			throw std::out_of_range("YSLib::Text::MTextBlock");
 
 		MapType::const_iterator it(Map.find(i));
 		MTextBlock& block(*(it == Map.end() ? new MTextBlock(i, nBlockSize) : it->second));
 
 		if(it == Map.end())
 		{
-			File.fseek(i * nBlockSize + File.GetBOMLen(), SEEK_SET);
+			File.fseek(i * nBlockSize + File.GetBOMSize(), SEEK_SET);
 			block.LoadN(File, nBlockSize);
 			*this += block;
 		}

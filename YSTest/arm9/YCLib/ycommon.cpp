@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:42;
-// UTime = 2010-7-22 12:33;
-// Version = 0.1750;
+// UTime = 2010-8-2 13:57;
+// Version = 0.1755;
 
 
 #include "ycommon.h"
@@ -55,7 +55,7 @@ namespace stdex
 	}
 
 	char*
-	strcatdup(const char* s1, const char* s2, void*(*fun)(size_t))
+	strcatdup(const char* s1, const char* s2, void*(*fun)(std::size_t))
 	{
 		char* d(static_cast<char*>(fun((strlen(s1) + strlen(s2) + 1) * sizeof(char))));
 

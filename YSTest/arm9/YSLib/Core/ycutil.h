@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YCoreUtilities by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-23 6:10:59;
-// UTime = 2010-7-26 13:57;
-// Version = 0.1950;
+// UTime = 2010-8-2 13:57;
+// Version = 0.1958;
 
 
 #ifndef INCLUDED_YCUTIL_H_
@@ -219,7 +219,7 @@ restrictLessEqual(_type& a, _type& b)
 //清除指定的连续区域。
 template<typename _type>
 void
-ClearSequence(_type* dst, size_t n)
+ClearSequence(_type* dst, std::size_t n)
 {
 	if(dst && n)
 		memset(dst, 0, sizeof(_type) * n);

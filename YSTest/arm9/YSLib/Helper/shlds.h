@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8
 // CTime = 2010-3-13 14:17:14;
-// UTime = 2010-7-26 7:29;
-// Version = 0.1444;
+// UTime = 2010-8-2 15:44;
+// Version = 0.1452;
 
 
 #ifndef INCLUDED_SHLDS_H_
@@ -20,7 +20,7 @@ class ShlGUI : public YShellMain
 public:
 	ShlGUI();
 	virtual
-	~ShlGUI();
+	~ShlGUI() ythrow();
 
 	void
 	SendDrawingMessage();
@@ -43,7 +43,7 @@ protected:
 public:
 	ShlDS();
 	virtual
-	~ShlDS();
+	~ShlDS() ythrow();
 
 	DefGetter(HWND, UpWindowHandle, hWndUp)
 	DefGetter(HWND, DownWindowHandle, hWndDown)

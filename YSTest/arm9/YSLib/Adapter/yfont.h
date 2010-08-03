@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:02:40;
-// UTime = 2010-7-26 22:33;
-// Version = 0.6728;
+// UTime = 2010-8-2 15:42;
+// Version = 0.6741;
 
 
 #ifndef INCLUDED_YFONT_H_
@@ -55,7 +55,7 @@ public:
 	operator Styles&();
 
 	const char*
-	GetName() const; //取样式名称。
+	GetName() const ythrow(); //取样式名称。
 };
 
 inline
@@ -89,7 +89,7 @@ private:
 
 public:
 	MFontFamily(YFontCache&, const FT_String*);
-	~MFontFamily();
+	~MFontFamily() ythrow();
 
 	bool
 	operator==(const MFontFamily&) const;
@@ -138,7 +138,7 @@ private:
 
 public:
 	MTypeface(YFontCache&, const MFontFile&, u32 = 0/*, const bool bb = false, const bool bi = false, const bool bu = false*/);
-	~MTypeface();
+	~MTypeface() ythrow();
 
 	bool
 	operator==(const MTypeface&) const;
@@ -372,7 +372,7 @@ public:
 	void
 	LoadFontFileDirectory(CPATH, CPATH = "ttf"); //读取字体文件目录并载入目录下指定后缀名的字体文件。
 	void
-	LoadFontFile(CPATH); //按路径加入字体文件并载入字体信息。
+	LoadFontFile(CPATH) ythrow(); //按路径加入字体文件并载入字体信息。
 
 private:
 	void

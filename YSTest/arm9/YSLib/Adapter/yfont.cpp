@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13;
-// UTime = 2010-7-26 22:33;
-// Version = 0.6786;
+// UTime = 2010-8-2 15:42;
+// Version = 0.6802;
 
 
 #include "yfont.h"
@@ -23,7 +23,7 @@ using namespace Exceptions;
 YSL_BEGIN_NAMESPACE(Drawing)
 
 const char*
-EFontStyle::GetName() const
+EFontStyle::GetName() const ythrow()
 {
 	const char* ss(NULL);
 
@@ -100,7 +100,7 @@ MFontFamily::MFontFamily(YFontCache& cache, const FT_String* name)
 : Cache(cache), family_name(strdup_n(name)), sTypes()
 {
 }
-MFontFamily::~MFontFamily()
+MFontFamily::~MFontFamily() ythrow()
 {
 	free(family_name);
 }
@@ -150,7 +150,7 @@ MFontFamily::operator-=(const MTypeface& f)
 MTypeface::MTypeface(YFontCache& cache, const MFontFile& file, u32 i/*, const bool bb, const bool bi, const bool bu*/)
 : Cache(cache), File(file), pFontFamily(NULL), style_name(NULL), faceIndex(i), cmapIndex(-1)/*, bBold(bb), bOblique(bi), bUnderline(bu), matrix(bi ? MOblique : MNormal)*/
 {}
-MTypeface::~MTypeface()
+MTypeface::~MTypeface() ythrow()
 {
 	free(style_name);
 }
@@ -550,10 +550,11 @@ YFontCache::LoadFontFileDirectory(CPATH path, CPATH ext)
 		SetTypeface(pDefaultFace);
 }
 void
-YFontCache::LoadFontFile(CPATH path)
+YFontCache::LoadFontFile(CPATH path) ythrow()
 {
-	if(GetFileName(path) != NULL && fexists(path))
-		try
+	try
+	{
+		if(GetFileName(path) != NULL && fexists(path))
 		{
 			MFontFile* p(new MFontFile(path, library));
 
@@ -562,10 +563,11 @@ YFontCache::LoadFontFile(CPATH path)
 			if(pDefaultFace)
 				SetTypeface(pDefaultFace);
 		}
-		catch(...)
-		{}
-	else
-		LoadFontFileDirectory(path);
+		else
+			LoadFontFileDirectory(path);
+	}
+	catch(...)
+	{}
 }
 
 void

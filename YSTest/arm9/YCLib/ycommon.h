@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28;
-// UTime = 2010-7-22 12:32;
-// Version = 0.1870;
+// UTime = 2010-8-2 13:57;
+// Version = 0.1878;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -50,7 +50,7 @@ namespace stdex
 
 	//串接给定的两个字符串，结果复制至用指定分配函数（默认为 std::malloc）新分配的空间（对传入参数进行非空检查），返回目标参数。
 	char*
-	strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
+	strcatdup(const char*, const char*, void*(*)(std::size_t) = std::malloc);
 
 
 	//通过 C 标准函数库操作判断给定路径的文件是否存在。

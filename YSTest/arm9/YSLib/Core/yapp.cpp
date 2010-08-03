@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:36;
-// UTime = 2010-7-26 7:37;
-// Version = 0.1674;
+// UTime = 2010-8-2 14:58;
+// Version = 0.1678;
 
 
 #include "yapp.h"
@@ -99,7 +99,7 @@ YApplication::SetShellHandle(HSHL h)
 }
 
 void
-YApplication::ResetShellHandle()
+YApplication::ResetShellHandle() ythrow()
 {
 	if(!SetShellHandle(hShellMain))
 		Log.FatalError("YApplication::ResetShellHandle();");

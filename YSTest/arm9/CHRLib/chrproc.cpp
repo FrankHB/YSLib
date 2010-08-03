@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CharacterProcessing by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-17 17:53:21;
-// UTime = 2010-6-14 18:43;
-// Version = 0.1570;
+// UTime = 2010-8-2 13:58;
+// Version = 0.1582;
 
 
 #include "chrproc.h"
@@ -14,6 +14,7 @@
 
 CHRLIB_BEGIN
 
+using std::size_t;
 using std::tolower;
 using std::malloc;
 using std::strlen;

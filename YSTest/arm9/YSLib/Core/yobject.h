@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YObject by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-7-26 8:01;
-// Version = 0.2144;
+// UTime = 2010-8-2 15:39;
+// Version = 0.2149;
 
 
 #ifndef INCLUDED_YOBJECT_H_

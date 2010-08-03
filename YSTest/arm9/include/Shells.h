@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-7-26 7:40;
-// Version = 0.2618;
+// UTime = 2010-8-2 15:46;
+// Version = 0.2622;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -267,6 +267,9 @@ public:
 	bool bgDirty;
 
 	ShlReader();
+	virtual
+	~ShlReader() ythrow()
+	{}
 
 	virtual void
 	UpdateToScreen();

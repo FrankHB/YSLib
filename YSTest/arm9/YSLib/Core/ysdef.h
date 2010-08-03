@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-24 15:29:11;
-// UTime = 2010-7-29 17:54;
-// Version = 0.2164;
+// UTime = 2010-8-2 15:38;
+// Version = 0.2193;
 
 
 #ifndef INCLUDED_YSDEF_H_
@@ -16,6 +16,10 @@
 解决方案来源： https://www.securecoding.cert.org/confluence/display/cplusplus/PRE05-CPP.+Understand+macro+replacement+when+concatenating+tokens+or+performing+stringification 。
 */
 #define _yJOIN(x, y) x ## y
+
+
+//适配器模块。
+#include "../Adapter/yadapter.h"
 
 
 //异常规范宏。
@@ -105,32 +109,32 @@
 
 //简单通用成员函数定义。
 //prefix "Def" = Define;
-#define DefConverter(_type, _expr) operator _type() const { return _expr; }
-#define DefConverterBase(_type, _base) operator _type() const { return _base::operator _type(); }
-#define DefConverterMember(_type, _member) operator _type() const { return _member.operator _type(); }
+#define DefConverter(_type, _expr) operator _type() const ythrow() { return _expr; }
+#define DefConverterBase(_type, _base) operator _type() const ythrow() { return _base::operator _type(); }
+#define DefConverterMember(_type, _member) operator _type() const ythrow() { return _member.operator _type(); }
 
-#define DefGetter(_type, _name, _member) _type _yJOIN(Get, _name)() const { return _member; }
-#define DefGetterBase(_type, _name, _base) _type _yJOIN(Get, _name)() const { return _base::_yJOIN(Get, _name)(); }
-#define DefGetterMember(_type, _name, _member) _type _yJOIN(Get, _name)() const { return _member._yJOIN(Get, _name)(); }
+#define DefGetter(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return _member; }
+#define DefGetterBase(_type, _name, _base) _type _yJOIN(Get, _name)() const ythrow() { return _base::_yJOIN(Get, _name)(); }
+#define DefGetterMember(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return _member._yJOIN(Get, _name)(); }
 
-#define DefBoolGetter(_name, _member) bool _yJOIN(Is, _name)() const { return _member; }
-#define DefBoolGetterBase(_name, _base) bool _yJOIN(Is, _name)() const { return _base::_yJOIN(Is, _name)(); }
-#define DefBoolGetterMember(_name, _member) bool _yJOIN(Is, _name)() const { return _member._yJOIN(Is, _name)(); }
+#define DefBoolGetter(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return _member; }
+#define DefBoolGetterBase(_name, _base) bool _yJOIN(Is, _name)() const ythrow() { return _base::_yJOIN(Is, _name)(); }
+#define DefBoolGetterMember(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return _member._yJOIN(Is, _name)(); }
 
-#define DefStaticGetter(_type, _name, _member) static _type _yJOIN(Get, _name)() { return _member; }
-#define DefStaticGetterBase(_type, _name, _base) static _type _yJOIN(Get, _name)() { return _base::_yJOIN(Get, _name)(); }
+#define DefStaticGetter(_type, _name, _member) static _type _yJOIN(Get, _name)() ythrow() { return _member; }
+#define DefStaticGetterBase(_type, _name, _base) static _type _yJOIN(Get, _name)() ythrow() { return _base::_yJOIN(Get, _name)(); }
 
-#define DefStaticBoolGetter(_name, _member) static bool _yJOIN(Is, _name)() { return _member; }
-#define DefStaticBoolGetterBase(_name, _base) static bool _yJOIN(Is, _name)() { return _base::_yJOIN(Is, _name)(); }
+#define DefStaticBoolGetter(_name, _member) static bool _yJOIN(Is, _name)() ythrow() { return _member; }
+#define DefStaticBoolGetterBase(_name, _base) static bool _yJOIN(Is, _name)() ythrow() { return _base::_yJOIN(Is, _name)(); }
 
-#define DefSetter(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) { _member = _tempArgName; }
-#define DefSetterDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _tempArgName; }
-#define DefSetterBase(_type, _name, _base) void _yJOIN(Set, _name)(_type _tempArgName) { _base::_yJOIN(Set, _name)(_tempArgName); }
-#define DefSetterBaseDe(_type, _name, _base, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _base::_yJOIN(Set, _name)(_tempArgName); }
-#define DefSetterMember(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) { _member._yJOIN(Set, _name)(_tempArgName); }
-#define DefSetterMemberDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member._yJOIN(Set, _name)(_tempArgName); }
-#define DefSetterEx(_type, _name, _member, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName) { _member = _expr; }
-#define DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) { _member = _expr; }
+#define DefSetter(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _member = _tempArgName; }
+#define DefSetterDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _member = _tempArgName; }
+#define DefSetterBase(_type, _name, _base) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _base::_yJOIN(Set, _name)(_tempArgName); }
+#define DefSetterBaseDe(_type, _name, _base, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _base::_yJOIN(Set, _name)(_tempArgName); }
+#define DefSetterMember(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _member._yJOIN(Set, _name)(_tempArgName); }
+#define DefSetterMemberDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _member._yJOIN(Set, _name)(_tempArgName); }
+#define DefSetterEx(_type, _name, _member, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _member = _expr; }
+#define DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _member = _expr; }
 
 
 #define YSL_BEGIN	namespace YSLib {
@@ -173,9 +177,6 @@ bit1 ： PeekMessage 。
 注意： PeekMessage 包含 InsertMessage 。
 */
 #define YSLIB_DEBUG_MSG 0
-
-//适配器模块。
-#include "../Adapter/yadapter.h"
 
 //间接访问类模块。
 #include "../Adapter/yref.hpp"

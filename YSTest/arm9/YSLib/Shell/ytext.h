@@ -2,7 +2,7 @@
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
 // UTime = 2010-7-30 21:10;
-// Version = 0.6094;
+// Version = 0.6103;
 
 
 #ifndef INCLUDED_YTEXT_H_
@@ -166,14 +166,14 @@ public:
 
 	//输出字符串，直至行尾或字符串结束，并返回输出字符数。
 	template<class _constCharIteratorType>
-	u32
+	std::size_t
 	PutLine(_constCharIteratorType);
-	u32
+	std::size_t
 	PutLine(const MString& s);
 
 	//输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
 	template<typename _constCharIteratorType>
-	u32
+	std::size_t
 	PutString(_constCharIteratorType);
 };
 
@@ -185,34 +185,42 @@ MTextRegion::operator=(const MTextState& ts)
 }
 
 template<typename _constCharIteratorType>
-u32
+std::size_t
 MTextRegion::PutLine(_constCharIteratorType s)
 {
 	const SPOS fpy(penY);
 	_constCharIteratorType t(s);
+	std::size_t n(0);
 
 	while(*t != 0 && fpy == penY)
 		if(!PutChar(*t))
+		{
+			++n;
 			++t;
-	return t - s;
+		}
+	return n/*t - s*/;
 }
-inline u32
+inline std::size_t
 MTextRegion::PutLine(const MString& s)
 {
 	return PutLine(s.c_str());
 }
 
 template<typename _constCharIteratorType>
-u32
+std::size_t
 MTextRegion::PutString(_constCharIteratorType s)
 {
 	const SPOS mpy(GetLineLast());
 	_constCharIteratorType t(s);
+	std::size_t n(0);
 
 	while(*t != 0 && penY <= mpy)
 		if(!PutChar(*t))
+		{
+			++n;
 			++t;
-	return t - s;
+		}
+	return n/*t - s*/;
 }
 
 

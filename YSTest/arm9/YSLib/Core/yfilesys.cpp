@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:36:30;
-// UTime = 2010-7-26 5:54;
-// Version = 0.1509;
+// UTime = 2010-8-2 13:57;
+// Version = 0.1513;
 
 
 #include "yfilesys.h"
@@ -75,7 +75,7 @@ GetBaseName(const MString& name)
 bool
 IsBaseName(const char* str, const char* name)
 {
-	size_t t(strlen(str));
+	std::size_t t(strlen(str));
 
 	if(t > strlen(name))
 		return false;

@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> YShellHelper by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2009-3-14 14:07:22;
-// UTime = 2010-7-14 0:29;
-// Version = 0.1594;
+// UTime = 2010-8-2 13:56;
+// Version = 0.1602;
 
 
 #ifndef INCLUDED_YSHELPER_H_
@@ -170,14 +170,14 @@ NewScrImage(PPDRAW f, BitmapPtr gbuf = NULL);
 //使用 new 分配空间并复制无压缩位图。
 template<typename _pixelType>
 _pixelType*
-NewBitmapRaw(const _pixelType* s, u32 n)
+NewBitmapRaw(const _pixelType* s, std::size_t n)
 {
 	if(s && n)
 	{
-		size_t size = sizeof(_pixelType) * n;
-		_pixelType* d = new _pixelType[size];
+		std::size_t size(sizeof(_pixelType) * n);
+		_pixelType* d(new _pixelType[size]);
 
-		if(d)
+		if(d != NULL)
 			memcpy(d, s, size);
 		return d;
 	}
