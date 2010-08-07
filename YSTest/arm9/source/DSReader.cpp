@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:04:05;
-// UTime = 2010-8-3 13:43;
-// Version = 0.2701;
+// UTime = 2010-8-5 1:43;
+// Version = 0.2722;
 
 
 #include "DSReader.h"
@@ -21,10 +21,18 @@ u32 MDualScreenReader::TextFill()
 {
 //	MTextFileBuffer::TextIterator it(Blocks.begin());
 	MTextFileBuffer::TextIterator it(Blocks, 0, offUp);
+	MTextFileBuffer::TextIterator it2(it);
 	std::size_t n(0);
 
-	it += n = trUp.PutString(it);
-	it += trDn.PutString(it);
+	it = trUp.PutString(it);
+	it = trDn.PutString(it);
+	while(it2 != it)
+	{
+		++it2;
+		++n;
+	}
+//	it += n = trUp.PutString(it);
+//	it += trDn.PutString(it);
 	return n;
 }
 
@@ -42,9 +50,9 @@ offUp(0), offDn(0)
 	SetFontSize();
 	SetColor();
 	SetLineGap();
-	Reset();
 	if(!tf.IsValid())
 		trUp.PutString(L"文件打开失败！\n");
+	TextInit();
 }
 catch(MLoggedEvent&)
 {
@@ -141,13 +149,16 @@ MDualScreenReader::LineUp()
 	const u32 t = w * h, s = (trUp.GetHeight() - trUp.GetMarginResized() - h) * w, d = trDn.Margin.Top * w;
 
 	trDn.Move(hx, trDn.GetBufferHeightResized());
-	memcpy(&trDn.GetBufferPtr()[d], &trUp.GetBufferPtr()[s], t * sizeof(PixelType));
-	memcpy(&trDn.GetBufferAlphaPtr()[d], &trUp.GetBufferAlphaPtr()[s], t * sizeof(u8));
+	std::memcpy(&trDn.GetBufferPtr()[d], &trUp.GetBufferPtr()[s], t * sizeof(PixelType));
+	std::memcpy(&trDn.GetBufferAlphaPtr()[d], &trUp.GetBufferAlphaPtr()[s], t * sizeof(u8));
 	trUp.Move(hx, trUp.GetBufferHeightResized());
 	trUp.ClearLn(0);
 	trUp.SetLnNNow(0);
-	trUp.PutLine(&Blocks[0].GetPtr()[offUp = GetPrevLnOff(trUp, Blocks[0].GetPtr(), offUp)]);
-	offDn = GetPrevLnOff(trDn, Blocks[0].GetPtr(), offDn);
+//	offUp = GetPrevLnOff(trUp, Blocks[0].GetPtr(), offUp) - Blocks[0].GetPtr();
+	offUp = GetPreviousLinePtr(trUp, Blocks[0].GetPtr() + offUp, Blocks[0].GetPtr()) - Blocks[0].GetPtr();
+	trUp.PutLine(&Blocks[0].GetPtr()[offUp]);
+//	offDn = GetPrevLnOff(trDn, Blocks[0].GetPtr(), offDn) - Blocks[0].GetPtr();
+	offDn = GetPreviousLinePtr(trDn, Blocks[0].GetPtr() + offDn, Blocks[0].GetPtr()) - Blocks[0].GetPtr();
 	return true;
 }
 bool
@@ -161,13 +172,14 @@ MDualScreenReader::LineDown()
 	const u32 t = w * h, s = trUp.Margin.Top * w, d = (trUp.GetHeight() - trUp.GetMarginResized() - h) * w;
 
 	trUp.Move(-hx);
-	memcpy(&trUp.GetBufferPtr()[d], &trDn.GetBufferPtr()[s], t * sizeof(PixelType));
-	memcpy(&trUp.GetBufferAlphaPtr()[d], &trDn.GetBufferAlphaPtr()[s], t * sizeof(u8));
+	std::memcpy(&trUp.GetBufferPtr()[d], &trDn.GetBufferPtr()[s], t * sizeof(PixelType));
+	std::memcpy(&trUp.GetBufferAlphaPtr()[d], &trDn.GetBufferAlphaPtr()[s], t * sizeof(u8));
 	trDn.Move(-hx);
 	trDn.ClearLnLast();
 	trDn.SetLnLast();
-	offDn += trDn.PutLine(&Blocks[0].GetPtr()[offDn]);
-	offUp = GetNextLnOff(trUp, Blocks[0].GetPtr(), offUp);
+	offDn = trDn.PutLine(&Blocks[0].GetPtr()[offDn]) - Blocks[0].GetPtr();
+//	offUp = GetNextLnOff(trUp, Blocks[0].GetPtr(), offUp) - Blocks[0].GetPtr();
+	offUp = GetNextLinePtr(trUp, Blocks[0].GetPtr() + offUp, Blocks[0].GetPtr() + Blocks[0].GetLength()) - Blocks[0].GetPtr();
 	return true;
 }
 
@@ -176,7 +188,8 @@ MDualScreenReader::ScreenUp()
 {
 	if(IsTextTop())
 		return false;
-	offUp = GetPrevLnOff(trUp, Blocks[0].GetPtr(), offUp, trUp.GetLnN() + trDn.GetLnN());
+//	offUp = GetPrevLnOff(trUp, Blocks[0].GetPtr(), offUp, trUp.GetLnN() + trDn.GetLnN()) - Blocks[0].GetPtr();
+	offUp = GetPreviousLinePtr(trUp, Blocks[0].GetPtr() + offUp, Blocks[0].GetPtr(), trUp.GetLnN() + trDn.GetLnN()) - Blocks[0].GetPtr();
 	Update();
 	return true;
 }

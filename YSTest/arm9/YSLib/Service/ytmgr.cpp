@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 17:48:09;
-// UTime = 2010-8-3 13:22;
-// Version = 0.3869;
+// UTime = 2010-8-4 19:29;
+// Version = 0.3929;
 
 
 #include "ytmgr.h"
@@ -34,14 +34,14 @@ MTextBuffer::operator[](IndexType i) ythrow()
 	return text[i];
 }
 
-MTextBuffer::IndexType
+IndexType
 MTextBuffer::GetPrevChar(IndexType o, uchar_t c)
 {
 	while(o-- && text[o] != c)
 		;
 	return ++o;
 }
-MTextBuffer::IndexType
+IndexType
 MTextBuffer::GetNextChar(IndexType o, uchar_t c)
 {
 	while(o < mlen && text[o++] != c)
@@ -66,7 +66,7 @@ MTextBuffer::Load(const uchar_t* s, IndexType n)
 	len = n;
 	return true;
 }
-MTextBuffer::IndexType
+IndexType
 MTextBuffer::Load(YTextFile& f, IndexType n)
 {
 	IndexType l(0);
@@ -92,7 +92,7 @@ MTextBuffer::Load(YTextFile& f, IndexType n)
 	return l;
 }
 
-MTextBuffer::IndexType
+IndexType
 MTextBuffer::LoadN(YTextFile& f, IndexType n)
 {
 	IndexType l(0);
@@ -157,6 +157,8 @@ MTextFileBuffer::TextIterator::operator++() ythrow()
 		else
 			++idx;
 	}
+	else
+		*this = pBuf->end();
 	return *this;
 }
 
@@ -167,10 +169,12 @@ MTextFileBuffer::TextIterator::operator--() ythrow()
 	if(blk != 0 || idx != 0)
 	{
 		if(idx == 0)
-			--blk;
+			idx = GetBlockLength(--blk);
 		else
 			--idx;
 	}
+	else
+		*this = pBuf->end();
 	return *this;
 }
 
@@ -189,6 +193,26 @@ MTextFileBuffer::TextIterator::operator+(std::ptrdiff_t o)
 	TextIterator i(*this);
 
 	return i += o;
+}
+
+bool
+operator==(const MTextFileBuffer::TextIterator& lhs, const MTextFileBuffer::TextIterator& rhs) ythrow()
+{
+	return lhs.pBuf == rhs.pBuf && lhs.blk == rhs.blk && lhs.idx == rhs.idx;
+}
+
+bool
+operator<(const MTextFileBuffer::TextIterator& lhs, const MTextFileBuffer::TextIterator& rhs) ythrow()
+{
+	if(lhs.pBuf < rhs.pBuf)
+		return true;
+	if(lhs.pBuf != rhs.pBuf)
+		return false;
+	if(lhs.blk < rhs.blk)
+		return true;
+	if(lhs.blk != rhs.blk)
+		return false;
+	return lhs.idx < rhs.idx;
 }
 
 MTextFileBuffer::TextIterator&
@@ -221,10 +245,25 @@ MTextFileBuffer::TextIterator::GetTextPtr() const ythrow()
 	return p;
 }
 
-MTextFileBuffer::IndexType
-MTextFileBuffer::TextIterator::GetBlockLength(BlockIndexType i) const
+IndexType
+MTextFileBuffer::TextIterator::GetBlockLength(BlockIndexType i) const ythrow()
 {
-	return (*pBuf)[i].GetLength();
+	try
+	{
+		try
+		{
+			return (*pBuf)[i].GetLength();
+		}
+		catch(MLoggedEvent&)
+		{
+			// TODO: 日志记录。
+			throw;
+		}
+	}
+	catch(...)
+	{
+		return 0;
+	}
 }
 
 

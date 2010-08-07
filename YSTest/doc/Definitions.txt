@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-8-3 13:44;
-// Version = r6876;
+// UTime = 2010-8-8 7:22;
+// Version = r6898;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -957,8 +957,6 @@ header YRefrence "yref.hpp"
 
 		inline
 		operator RefToValue<GHHandle>();
-		inline
-		operator u32();
 
 		inline T*
 		operator->() const;
@@ -978,9 +976,13 @@ header YRefrence "yref.hpp"
 
 	#ifdef YSL_USE_SIMPLE_HANDLE
 
-	template<class _type>
+	template<typename _type>
 	inline _type*
-	GetPointer(_type* h);
+	GetPointer(_type*);
+	
+	template<typename _type, typename _refType>
+	inline _type
+	handle_cast(GHHandle<_refType>);	
 
 	#else
 
@@ -1605,6 +1607,8 @@ header YShellDefinition "ysdef.h"
 	YSL_END_NAMESPACE(Components)
 
 	YSL_BEGIN_NAMESPACE(Text)
+	typedef std::size_t SizeType; //字符大小类型。
+	typedef usize_t IndexType; //字符索引类型。
 	class MString;
 	YSL_END_NAMESPACE(Text)
 
@@ -1635,7 +1639,6 @@ header YShellDefinition "ysdef.h"
 	#define handle_cast reinterpret_cast
 	#else
 	#define DeclareHandle(type, handle) typedef GHHandle<type> handle
-	#define handle_cast static_cast
 	#endif
 
 
@@ -5100,35 +5103,38 @@ unit YText "ytext"
 		u8
 		PutChar(u32); //输出单个字符。
 
-		//输出字符串，直至行尾或字符串结束，并返回输出字符数。
-		template<typename _constCharIteratorType>
-		std::size_t
-		PutLine(_constCharIteratorType);
-		std::size_t
-		PutLine(const MString& s);
+		template<class _outIt>
+		_outIt
+		PutLine(_outIt); //输出字符串，直至行尾或字符串结束，并返回输出迭代器。
+		inline std::size_t
+		PutLine(const MString&); //输出字符串，直至行尾或字符串结束，并返回输出字符数。
 
-		//输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
-		template<typename _constCharIteratorType>
-		std::size_t
-		PutString(_constCharIteratorType);
+		template<typename _outIt>
+		_outIt
+		PutString(_outIt); //输出字符串，直至区域末尾或字符串结束，并返回输出迭代器。
+		inline std::size_t
+		PutString(const MString&); //输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
 	}; //class MTextRegion;
 
-
-	u32
-	GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n) const; //在 r 中取前一行首对应文本指针至当前文本指针 &s[n] 的字符数。
-	u32
-	GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n, u16 l) const; //在 r 中取前 l 行首对应文本指针至当前文本指针 &s[n] 的字符数。
-
-	u32
-	GetNextLnOff(const MTextRegion& r, const uchar_t* s, u32 n) const; //在 r 中取当前文本指针 &s[n] 至后一行首对应文本指针的字符数。
-//	u32
-//	GetNextLnOff(const MTextRegion& r, const uchar_t* s, u32 n, u16 l) const; //在 r 中取当前文本指针 &s[n] 至后 l 行首对应文本指针的字符数。
-
-
-	u32
-	ReadX(YTextFile& f, MTextRegion& txtbox, u32 n); //无文本缓冲方式从文本文件 f 中读取 n 字节（按默认编码转化为 UTF-16LE）到 txtbox 中。
-
 	YSL_END_NAMESPACE(Drawing)
+
+	YSL_BEGIN_NAMESPACE(Text)
+
+	const uchar_t*
+	GetPreviousLinePtr(const Drawing::MTextRegion& r, const uchar_t* p, const uchar_t* g); //在 r 中取当前文本指针 p 的前一行首对应文本指针（满足 p != --g ）。
+	const uchar_t*
+	GetPreviousLinePtr(const Drawing::MTextRegion& r,const uchar_t* p, const uchar_t* g, u16 l); //在 r 中取当前文本指针 p 的前 l 行首对应文本指针（满足 p != --g ）。
+
+	const uchar_t*
+	GetNextLinePtr(const Drawing::MTextRegion& r, const uchar_t* p, const uchar_t* g); //在 r 中取当前文本指针 p 至后一行首对应文本指针（满足 p != g ）。
+	//	const uchar_t*
+	//	GetNextLinePtr(const Drawing::MTextRegion& r, const uchar_t* p, const uchar_t* g, u16 l); //在 r 中取当前文本指针 p 至后 l 行首对应文本指针（满足 p != g ）。
+
+
+	u32
+	ReadX(YTextFile& f, Drawing::MTextRegion& txtbox, u32 n); //无文本缓冲方式从文本文件 f 中读取 n 字节（按默认编码转化为 UTF-16LE）到 txtbox 中。
+
+	YSL_END_NAMESPACE(Text)
 
 } //unit YText;
 
@@ -5185,7 +5191,7 @@ unit YShellInitialization "ysinit"
 
 unit YTextManager "ytmgr"
 {
-	import unit Core::YString, Core::YFile_(Text), header <map>
+	import unit Core::YString, YFile_(Text), header <map>
 		Core::YApplication;
 
 
@@ -5195,10 +5201,6 @@ unit YTextManager "ytmgr"
 	//文本缓冲区。
 	class MTextBuffer : private NonCopyable;
 	{
-	public:
-		typedef std::size_t SizeType; //字符大小类型。
-		typedef std::size_t IndexType; //字符索引类型。
-
 	private:
 		const IndexType mlen; //最大长度（字符数）。
 
@@ -5299,19 +5301,18 @@ unit YTextManager "ytmgr"
 	class MTextFileBuffer : public MTextMap
 	{
 	public:
-		typedef MTextBlock::SizeType SizeType; //字符大小类型。
-		typedef MTextBlock::IndexType IndexType; //字符索引类型。
 		typedef MTextMap::BlockIndexType BlockIndexType; //块索引类型。
 
 		static const SizeType nBlockSize = 0x2000; //文本块容量。
 
-		//只读文本迭代器类。
+		//只读文本循环迭代器类。
 		class TextIterator
 		{
 			friend class MTextFileBuffer;
 
 		public:
 			typedef MTextFileBuffer ContainerType;
+			typedef ContainerType::BlockIndexType BlockIndexType;
 
 		private:
 			MTextFileBuffer* pBuf;
@@ -5338,6 +5339,24 @@ unit YTextManager "ytmgr"
 			TextIterator
 			operator-(std::ptrdiff_t);
 
+			friend bool
+			operator==(const TextIterator&, const TextIterator&) ythrow();
+
+			inline friend bool
+			operator!=(const TextIterator&, const TextIterator&) ythrow();
+
+			friend bool
+			operator<(const TextIterator&, const TextIterator&) ythrow();
+
+			inline friend bool
+			operator>(const TextIterator&, const TextIterator&) ythrow();
+
+			inline friend bool
+			operator<=(const TextIterator&, const TextIterator&) ythrow();
+
+			inline friend bool
+			operator>=(const TextIterator&, const TextIterator&) ythrow();
+
 			TextIterator&
 			operator+=(std::ptrdiff_t);
 
@@ -5347,9 +5366,9 @@ unit YTextManager "ytmgr"
 			const uchar_t*
 			GetTextPtr() const ythrow();
 			IndexType
-			GetBlockLength() const;
+			GetBlockLength() const ythrow();
 			IndexType
-			GetBlockLength(BlockIndexType) const;
+			GetBlockLength(BlockIndexType) const ythrow();
 		}; //class TextIterator;
 
 		YTextFile& File; //文本文件。

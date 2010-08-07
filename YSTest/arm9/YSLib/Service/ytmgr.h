@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 17:48:09;
-// UTime = 2010-8-3 13:14;
-// Version = 0.3972;
+// UTime = 2010-8-4 18:55;
+// Version = 0.4037;
 
 
 #ifndef INCLUDED_YTMGR_H_
@@ -21,10 +21,6 @@ YSL_BEGIN_NAMESPACE(Text)
 //文本缓冲区。
 class MTextBuffer : private NonCopyable
 {
-public:
-	typedef std::size_t SizeType; //字符大小类型。
-	typedef std::size_t IndexType; //字符索引类型。
-
 private:
 	const IndexType mlen; //最大长度（字符数）。
 
@@ -83,13 +79,13 @@ MTextBuffer::~MTextBuffer()
 	delete[] text;
 }
 
-inline MTextBuffer::IndexType
-MTextBuffer::GetPrevNewline(SizeType o)
+inline IndexType
+MTextBuffer::GetPrevNewline(IndexType o)
 {
 	return GetPrevChar(o, '\n');
 }
-inline MTextBuffer::IndexType
-MTextBuffer::GetNextNewline(SizeType o)
+inline IndexType
+MTextBuffer::GetNextNewline(IndexType o)
 {
 	return GetNextChar(o, '\n');
 }
@@ -104,7 +100,7 @@ MTextBuffer::Load(const uchar_t* s)
 {
 	return Load(s, mlen);
 }
-inline MTextBuffer::IndexType
+inline IndexType
 MTextBuffer::Load(YTextFile& f)
 {
 	return Load(f, mlen);
@@ -186,21 +182,17 @@ MTextMap::operator-=(const BlockIndexType& i)
 class MTextFileBuffer : public MTextMap
 {
 public:
-	typedef MTextBlock::SizeType SizeType; //字符大小类型。
-	typedef MTextBlock::IndexType IndexType; //字符索引类型。
 	typedef MTextMap::BlockIndexType BlockIndexType; //块索引类型。
 
 	static const SizeType nBlockSize = 0x2000; //文本块容量。
 
-	//只读文本迭代器类。
+	//只读文本循环迭代器类。
 	class TextIterator
 	{
 		friend class MTextFileBuffer;
 
 	public:
 		typedef MTextFileBuffer ContainerType;
-		typedef ContainerType::SizeType SizeType;
-		typedef ContainerType::IndexType IndexType;
 		typedef ContainerType::BlockIndexType BlockIndexType;
 
 	private:
@@ -228,6 +220,24 @@ public:
 		TextIterator
 		operator-(std::ptrdiff_t);
 
+		friend bool
+		operator==(const TextIterator&, const TextIterator&) ythrow();
+
+		friend bool
+		operator!=(const TextIterator&, const TextIterator&) ythrow();
+
+		friend bool
+		operator<(const TextIterator&, const TextIterator&) ythrow();
+
+		friend bool
+		operator>(const TextIterator&, const TextIterator&) ythrow();
+
+		friend bool
+		operator<=(const TextIterator&, const TextIterator&) ythrow();
+
+		friend bool
+		operator>=(const TextIterator&, const TextIterator&) ythrow();
+
 		TextIterator&
 		operator+=(std::ptrdiff_t);
 
@@ -237,9 +247,9 @@ public:
 		const uchar_t*
 		GetTextPtr() const ythrow();
 		IndexType
-		GetBlockLength() const;
+		GetBlockLength() const ythrow();
 		IndexType
-		GetBlockLength(BlockIndexType) const;
+		GetBlockLength(BlockIndexType) const ythrow();
 	};
 
 	YTextFile& File; //文本文件。
@@ -264,6 +274,29 @@ public:
 	end() ythrow();
 };
 
+inline bool
+operator!=(const MTextFileBuffer::TextIterator& lhs, const MTextFileBuffer::TextIterator& rhs) ythrow()
+{
+	return !(lhs == rhs);
+}
+
+inline bool
+operator>(const MTextFileBuffer::TextIterator& lhs, const MTextFileBuffer::TextIterator& rhs) ythrow()
+{
+	return rhs < lhs;
+}
+inline bool
+operator<=(const MTextFileBuffer::TextIterator& lhs, const MTextFileBuffer::TextIterator& rhs) ythrow()
+{
+	return !(rhs < lhs);
+}
+
+inline bool
+operator>=(const MTextFileBuffer::TextIterator& lhs, const MTextFileBuffer::TextIterator& rhs) ythrow()
+{
+	return !(lhs < rhs);
+}
+
 inline MTextFileBuffer::TextIterator
 MTextFileBuffer::TextIterator::operator-(std::ptrdiff_t o)
 {
@@ -276,8 +309,8 @@ MTextFileBuffer::TextIterator::operator-=(std::ptrdiff_t o)
 	return *this += -o;
 }
 
-inline MTextFileBuffer::IndexType
-MTextFileBuffer::TextIterator::GetBlockLength() const
+inline IndexType
+MTextFileBuffer::TextIterator::GetBlockLength() const ythrow()
 {
 	return GetBlockLength(blk);
 }

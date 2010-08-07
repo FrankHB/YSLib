@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YRefrence by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-21 23:09:06;
-// UTime = 2010-7-26 13:58;
-// Version = 0.2127;
+// UTime = 2010-8-8 7:18;
+// Version = 0.2153;
 
 
 #ifndef INCLUDED_YREF_HPP_
@@ -189,10 +189,6 @@ public:
 	{
 		return RefToValue<GHHandle>(*this);
 	}
-	operator u32()
-	{
-		return reinterpret_cast<u32>(GHHandle<T>::GetPointer(*this));
-	}
 
 	T*
 	operator->() const
@@ -235,11 +231,18 @@ GetPointer(_Tp* h)
 
 #else
 
-template<class _Tp>
-inline _Tp*
-GetPointer(GHHandle<_Tp> h)
+template<typename _refType>
+inline _refType*
+GetPointer(GHHandle<_refType> h)
 {
 	return h.GetPtr();
+}
+
+template<typename _type, typename _refType>
+inline _type
+handle_cast(GHHandle<_refType> h)
+{
+	return reinterpret_cast<_type>(GHHandle<_refType>::GetPointer(h));
 }
 
 #endif

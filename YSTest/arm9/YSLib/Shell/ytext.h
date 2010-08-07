@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-7-30 21:10;
-// Version = 0.6103;
+// UTime = 2010-8-4 23:49;
+// Version = 0.6189;
 
 
 #ifndef INCLUDED_YTEXT_H_
@@ -164,17 +164,17 @@ public:
 	u8
 	PutChar(u32); //输出单个字符。
 
-	//输出字符串，直至行尾或字符串结束，并返回输出字符数。
-	template<class _constCharIteratorType>
+	template<class _outIt>
+	_outIt
+	PutLine(_outIt); //输出字符串，直至行尾或字符串结束，并返回输出迭代器。
 	std::size_t
-	PutLine(_constCharIteratorType);
-	std::size_t
-	PutLine(const MString& s);
+	PutLine(const MString&); //输出字符串，直至行尾或字符串结束，并返回输出字符数。
 
-	//输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
-	template<typename _constCharIteratorType>
+	template<typename _outIt>
+	_outIt
+	PutString(_outIt); //输出字符串，直至区域末尾或字符串结束，并返回输出迭代器。
 	std::size_t
-	PutString(_constCharIteratorType);
+	PutString(const MString&); //输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
 };
 
 inline MTextRegion&
@@ -184,61 +184,61 @@ MTextRegion::operator=(const MTextState& ts)
 	return *this;
 }
 
-template<typename _constCharIteratorType>
-std::size_t
-MTextRegion::PutLine(_constCharIteratorType s)
+template<typename _outIt>
+_outIt
+MTextRegion::PutLine(_outIt s)
 {
 	const SPOS fpy(penY);
-	_constCharIteratorType t(s);
-	std::size_t n(0);
+	_outIt t(s);
 
 	while(*t != 0 && fpy == penY)
 		if(!PutChar(*t))
-		{
-			++n;
 			++t;
-		}
-	return n/*t - s*/;
+	return t;
 }
 inline std::size_t
 MTextRegion::PutLine(const MString& s)
 {
-	return PutLine(s.c_str());
+	return PutLine(s.c_str()) - s.c_str();
 }
 
-template<typename _constCharIteratorType>
-std::size_t
-MTextRegion::PutString(_constCharIteratorType s)
+template<typename _outIt>
+_outIt
+MTextRegion::PutString(_outIt s)
 {
 	const SPOS mpy(GetLineLast());
-	_constCharIteratorType t(s);
-	std::size_t n(0);
+	_outIt t(s);
 
 	while(*t != 0 && penY <= mpy)
 		if(!PutChar(*t))
-		{
-			++n;
 			++t;
-		}
-	return n/*t - s*/;
+	return t;
+}
+inline std::size_t
+MTextRegion::PutString(const MString& s)
+{
+	return PutString(s.c_str()) - s.c_str();
 }
 
-
-u32
-GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n); //在 r 中取前一行首对应文本指针至当前文本指针 &s[n] 的字符数。
-u32
-GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n, u16 l); //在 r 中取前 l 行首对应文本指针至当前文本指针 &s[n] 的字符数。
-
-u32
-GetNextLnOff(const MTextRegion& r, const uchar_t* s, u32 n); //在 r 中取当前文本指针 &s[n] 至后一行首对应文本指针的字符数。
-//	u32
-//	GetNextLnOff(const MTextRegion& r, const uchar_t* s, u32 n, u16 l); //在 r 中取当前文本指针 &s[n] 至后 l 行首对应文本指针的字符数。
-
-
-u32
-ReadX(YTextFile& f, MTextRegion& txtbox, u32 n); //无文本缓冲方式从文本文件 f 中读取 n 字节（按默认编码转化为 UTF-16LE）到 txtbox 中。
-
 YSL_END_NAMESPACE(Drawing)
+
+YSL_BEGIN_NAMESPACE(Text)
+
+const uchar_t*
+GetPreviousLinePtr(const Drawing::MTextRegion& r, const uchar_t* p, const uchar_t* g); //在 r 中取当前文本指针 p 的前一行首对应文本指针（满足 p != --g ）。
+const uchar_t*
+GetPreviousLinePtr(const Drawing::MTextRegion& r,const uchar_t* p, const uchar_t* g, u16 l); //在 r 中取当前文本指针 p 的前 l 行首对应文本指针（满足 p != --g ）。
+
+const uchar_t*
+GetNextLinePtr(const Drawing::MTextRegion& r, const uchar_t* p, const uchar_t* g); //在 r 中取当前文本指针 p 至后一行首对应文本指针（满足 p != g ）。
+//	const uchar_t*
+//	GetNextLinePtr(const Drawing::MTextRegion& r, const uchar_t* p, const uchar_t* g, u16 l); //在 r 中取当前文本指针 p 至后 l 行首对应文本指针（满足 p != g ）。
+
+
+u32
+ReadX(YTextFile& f, Drawing::MTextRegion& txtbox, u32 n); //无文本缓冲方式从文本文件 f 中读取 n 字节（按默认编码转化为 UTF-16LE ）到 txtbox 中。
+
+YSL_END_NAMESPACE(Text)
 
 YSL_END
 

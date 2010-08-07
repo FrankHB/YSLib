@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-8-3;
-// Version = 0.2612; *Build 138 r23;
+// UTime = 2010-8-8;
+// Version = 0.2614; *Build 139 r35;
 
 
 #include "../YCLib/ydef.h"
@@ -44,6 +44,7 @@ Record prefix and abbrevations:
 \en ::= enums
 \eh ::= exception handling
 \err ::= errors
+\es ::= exception specifications
 \ev ::= events
 \evh ::= event handling
 \ex ::= extra
@@ -55,6 +56,7 @@ Record prefix and abbrevations:
 \i ::= inline
 \impl ::= implementations
 \init ::= initializations
+\inc ::= included
 \inh ::= inherited
 \inv ::= invoke
 \m ::= members
@@ -90,196 +92,127 @@ Record prefix and abbrevations:
 \val ::= values
 
 DONE:
-
 r1:
-/= DefGetter(u32, Pos, ftell() - bl) -> DefGetter(SizeType, Pos, ftell() - bl) @@ \cl YTextFile @@ \u YFile_(Text);
-/ YFile::fseek(s32, int) const -> YFile::fseek(long, int) const @@ \cl YFile @@ \u YFile;
-/ typedef u32 SizeType -> typedef size_t SizeType @@ \cl YFile @@ \u YFile;
-/ @@ \cl YTextFile @@ \u YFile_(Text):
-	/ \mf void Seek(s32, int) const -> void Seek(long, int) const;
-	/ \mf u32 Read(void*, u32) -> std::size_t Read(void*, std::size_t);
-	/ \mf u32 ReadS(uchar_t*, u32) const -> std::size_t ReadS(uchar_t*, std::size_t) const;
-	/= \impl @@ \mf u8 CheckBOM(CSID&);
-	/= \impl @@ \ctor;
+= test 0;
 
 r2:
-/ @@ \cl YFile @@ \u YFile:
-	/ \i \mf (int fread(void *p, int size, int count) -> \i \mf std::size_t fread(void* ptr, std::size_t size, std::size_t nmemb) const);
-	/= \i \mf (int fseek(long offset, int origin) const => int fseek(long offset, int whence) const);
-/ @@ \cl YTextFile @@ \u YFile_(Text):
-	/= \mf (void Seek(long, int origin) const => void Seek(long, int whence) const);
-	/ \mf (std::size_t Read(void* s, std::size_t n) -> std::size_t Read(void* s, std::size_t n) const); 
-
-r3:
-/ @@ \cl YFile @@ \u YFile:
-	+ typedef std::ptrdiff_t OffType;
-	/ \i \mf (int fseek(long offset, int whence) const -> int fseek(OffType, int) const);
-	/ \i \mf (long ftell() const -> OffType ftell() const);
-	/ \i \mf (std::size_t fread(void* ptr, std::size_t size, std::size_t nmemb) const -> SizeType fread(void* ptr, SizeType size, SizeType nmemb) const);
-/ @@ \cl YTextFile @@ \u YFile_(Text):
-	/ \i \mf (std::size_t Read(void* s, std::size_t n) const -> SizeType Read(void* s, SizeType n) const);
-	/ \i \mf (std::size_t ReadS(uchar_t* s, std::size_t n) const -> SizeType ReadS(uchar_t* s, SizeType n) const);
-
-r4:
-/ @@ \cl YFile @@ \u YFile:
-	/ DefGetter(SizeType, Length, fsize) => DefGetter(SizeType, Size, fsize);
-/ @@ \cl YTextFile @@ \u YFile_(Text):
-	/ private \m (u8 bl -> SizeType bl);
-	/ DefGetter(u8, BOMLen, bl) => DefGetter(u8, BOMSize, bl);
-
-r5-r6:
-/ @@ \u YTextManager:
-	/= @@ \cl MTextBuffer:
-		/= \a SizeType => IndexType;
-	/ @@ \cl MTextBlock:
-		/ \i \ctor MTextBlock(IndexType, SizeType) -> MTextBlock(IndexType, size_t);
-	- typedef MTextBuffer::SizeType SizeType @@ \cl MTextMap;
-	/ @@ \cl MTextFileBuffer;
-		- typedef ContainerType::SizeType SizeType @@ \cl TextIterator;
-		/ \scm SizeType nBlockSize = 0x2000 -> size_t nBlockSize = 0x2000;
-		/ \scm SizeType nBlockSize = 0x2000 -> size_t nBlockSize = MTextFileBuffer::nBlockSize @@ \cl TextIterator;
-		+ typedef MTextBlock::IndexType TextIndexTpye;
-		+ typedef MTextMap::IndexType BlockIndexType;
-		/ MTextBlock& operator[](const IndexType&) -> MTextBlock& operator[](const BlockIndexType&);
-
-r7:
-/= @@ \u YTextManager:
-	/= \a private \m nLen => nTextSize @@ \cl MTextFileBuffer;
-	/= \a \mf TextLength => TextSize;
-+ DefGetter(SizeType, TextSize, GetSize() - GetBOMSize()) @@ \cl YTextFile @@ \u YFile_(Text):
-/ \tr @@ \impl @@ \ctor @@ \cl MTextFileBuffer @@ \u YTextManager;
-
-r8:
-/ @@ \u YTextManager:
-	/ @@ \cl MTextBuffer:
-		/ typedef size_t SizeType -> typedef std::size_t SizeType;
-		+ typedef std::size_t SizeType;
-	/ @@ \cl MTextBlock:
-		/ typedef MTextBuffer::IndexType IndexType -> typedef MTextBuffer::IndexType TextIndexType;
-		+ typedef u16 BlockIndexType;
-		/ \ctor MTextBlock(IndexType, SizeType) -> MTextBlock(BlockIndexType, TextIndexType);;
-		/ \m IndexType Index -> BlockIndexType Index;
-	/ @@ \cl MTextMap:
-		/ typedef u16 IndexType -> typedef MTextBlock::BlockIndexType BlockIndexType;
-		/ typedef std::map<IndexType, MTextBlock*> MapType -> typedef std::map<BlockIndexType, MTextBlock*> MapType;
-		/ \mf (MTextBlock* operator[](const IndexType&) -> MTextBlock* operator[](const BlockIndexType&));
-		/ \mf (bool operator-=(const IndexType&) -> bool operator-=(const BlockIndexType&));
-	/ @@ \cl MTextFileBuffer:
-		/ typedef MTextMap::IndexType BlockIndexType -> typedef MTextMap::BlockIndexType BlockIndexType;
-		/ typedef MTextBlock::IndexType TextIndexTpye -> typedef MTextMap::IndexType BlockIndexType;;
-		+ typedef MTextBlock::SizeType SizeType;
-	/ ^ SizeType;
-
-r9:
-/= \u YTextManager:
-	/= \a TextIndexType => IndexType;
-	- typedef MTextBuffer::IndexType IndexType @@ \cl MTextBlock;
-	*= \a TextIndexTpye => IndexType;
-
-r10:
-/ \a ::size_t -> std::size_t;
-/= @@ \u YShellHelper:
-	/= \tr @@ \impl @@ \tf template<typename _pixelType> _pixelType* NewBitmapRaw(const _pixelType*, u32);
-	/= \tf template<typename _pixelType> _pixelType* NewBitmapRaw(const _pixelType*, u32)
-		=> template<typename _pixelType> _pixelType* NewBitmapRaw(const _pixelType*, std::size_t);
-
-r11:
-/ @@ \u YTextManager:
-	/ @@ \cl MTextFileBuffer:
-		+ private \m BlockIndexType nBlk;
-		+ private \m IndexType nIdx;
-		/ \tr @@ \impl @@ \mf operator[](const BlockIndexType&);
-	+ @@ \cl MTextBuffer:
-		+ uchar_t operator[](IndexType) ythrow(); 
-		+ uchar_t at(IndexType) ythrow(std::out_of_range);
-
-r12-r13:
-/ + ythrow():
-	/ @@ \dtor();
-	/ + ythrow() @@ getters, including \mf DefGetter & \mf DefSetter;
-/ + ythrow(...);
-
-r14:
-= test 1;
-
-r15:
-/ @@ \u YTextManager:
-	+ @@ \cl MTextBuffer:
-		+ \mf DefGetter(IndexType, MaxLength, mlen);
-		+ \mf DefGetter(IndexType, Length, len);
-	/ @@ \cl MTextFileBuffer::TextIterator:
-		- \scm SizeType nBlockSize = MTextFileBuffer::nBlockSize;
-
-r16:
-/ @@ \u YTextManager:
-	/ @@ \cl MTextBuffer:
-		+ \m const BlockIndexType nBlock;
-		/ @@ \cl TextIterator:
-			/ \tr @@ \impl @@ \ctor;
-			+ typedef ContainerType::SizeType SizeType;
-			+ typedef ContainerType::IndexType IndexType;
-			+ typedef ContainerType::BlockIndexType BlockIndexType;
-			+ \mf IndexType GetBlockLength(BlockIndexType);
-			+ \i \mf IndexType GetBlockLength();
-
-r17:
-/ @@ \cl MTextBuffer::TextIterator @@ \u YTextManager:
-	/= \m BlockIndexType nBlk => blk;
-	/= \m IndexType nIdx => idx;
-	/ \mf const uchar_t* GetTextPtr() ythrow() -> const uchar_t* GetTextPtr() const ythrow();
-	/ IndexType GetBlockLength() -> IndexType GetBlockLength() const;
-	/ IndexType GetBlockLength(BlockIndexType) -> IndexType GetBlockLength(BlockIndexType) const;
-
-r18:
-/ @@ \u YTextManager:
-	/ @@ \cl MTextBuffer::TextIterator:
-		/ \impl @@ \mf const uchar_t* GetTextPtr() const ythrow();
-		/ \impl @@ \ctor;
-		/ \impl @@ \mf TextIterator& operator++() ythrow();
-		/ \impl @@ \mf TextIterator& operator--() ythrow();
-		/ \impl @@ \mf TextIterator operator+() ythrow();
-		/ \impl @@ \mf TextIterator operator-() ythrow();
-		/ \impl @@ \mf TextIterator& operator+=() ythrow();
-		/ \impl @@ \mf TextIterator GetTextPtr() const ythrow();
-		* \impl @@ \mf TextIterator GetBlockLength() const ythrow();
-	/ @@ \cl MTextBuffer:
-		/ \mf uchar_t at(IndexType) ythrow(std::out_of_range) -> uchar_t& at(IndexType) ythrow(std::out_of_range);
-		/ \mf uchar_t operator[](IndexType) ythrow() -> uchar_t& operator[](IndexType) ythrow();
-
-r19:
-- @@ \cl MTextBuffer::TextIterator @@ \u YTextManager:
-	- \m SizeType nPos;
-	- \mf DefGetter(SizeType, Position, nPos);
-	- friend \f std::ptrdiff_t operator-(TextIterator, TextIterator);
 / @@ \cl MTextRegion @@ \u YText:
-	/ \t \mf template<typename _constCharIteratorType> u32 PutString(_constCharIteratorType)
-		-> template<typename _constCharIteratorType> std::size_t PutLine(_constCharIteratorType);
-	/ \t \mf template<typename _constCharIteratorType> u32 PutLine(_constCharIteratorType)
-		-> template<typename _constCharIteratorType> std::size_t PutLine(_constCharIteratorType);
-	/ \mf u32 PutLine(const MString&) -> std::size_t PutLine(const MString&);
+	/ \t \mf template<typename _constCharIteratorType> std::size_t PutString(_constCharIteratorType)
+		-> template<typename _outIt> _outIt PutLine(_outIt);
+	/ \t \mf template<typename _constCharIteratorType> std::size_t PutLine(_constCharIteratorType)
+		-> template<typename _outIt> _outIt PutLine(_outIt);
++ (\i friend \f \op (==, !=) @@ \ns Text) @@ \cl MTextFileBuffer::TextIterator @@ \u YTextManager;
 / \impl @@ \u DSReader;
 
-r20:
-/ \simp \impl @@ \mf MTextBuffer::TextIterator operator+() ythrow() @@ \u YTextManager;
-
-r21:
+r3:
++ \i \mf std::size_t PutString(const MString&) @@ \cl MTextRegion @@ \u YText;
 / @@ \u YTextManager:
-	/ @@ \cl MTextBuffer::TextIterator:
-		/ \ctor explicit TextIterator(MTextFileBuffer&, SizeType = 0) ythrow();
-			-> explicit TextIterator(MTextFileBuffer&, BlockIndexType = 0, IndexType = 0) ythrow();
-	+ @@ \cl MTextBuffer:
-		+ \mf MTextBuffer::TextIterator begin() ythrow();
-		+ \mf MTextBuffer::TextIterator end() ythrow();
-/ \tr \impl @@ \u DSReader;
+	/ \i friend \f bool operator==(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&)
+		-> bool operator==(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow();
+	/ \i friend \f bool operator!=(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&)
+		-> bool operator!=(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow();
 
-r22:
-/ @@ \cl MDualScreenReader @@ \u DSReader;
-	/ \mf u32 TextFill(u32) -> u32 TextFill();
-	/ \tr \impl @@ \mf void TextInit();
-	/ \tr \impl @@ \mf void Update();
+r4:
+/ @@ \u YTextManager:
+	+ friend \f bool operator<(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow();
+	+ \i friend \f bool operator>(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow();
+	+ \i friend \f bool operator<=(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow();
+	+ \i friend \f bool operator>=(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow();
+	/ \i friend \f bool operator<(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow() -> -\i;
 
-r23:
-* / \tr \impl @@ \mf void MDualScreenReader::TextFill() @@ \cl MDualScreenReader;
+r5:
+/ @@ \u YText:
+	/ \ret \ty @@ \f u32 GetPrevLnOff(const MTextRegion&, const uchar_t*, u32) -> const uchar_t;
+	/ \ret \ty @@ \f u32 GetPrevLnOff(const MTextRegion&, const uchar_t*, u32, u16) -> const uchar_t;
+	/ \ret \ty @@ \f u32 GetNextLnOff(const MTextRegion&, const uchar_t*, u32) -> const uchar_t;
+
+r6:
+/ @@ \u YText:
+	/ \f u32 GetNextLnOff(const MTextRegion&, const uchar_t*, u32)
+		-> u32 GetNextLnOff(const MTextRegion&, const uchar_t*);
+
+r7:
+/ @@ \u YText:
+	/= \ns Drawing::{
+		const uchar_t* GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n);
+		const uchar_t* GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n, u16 l);
+		const uchar_t* GetNextLnOff(const MTextRegion& r, const uchar_t* p);
+		u32 ReadX(YTextFile& f, MTextRegion& txtbox, u32 n);
+	}>> \ns Text;
+	+{
+		typedef std::size_t SizeType;
+		typedef std::size_t IndexType;
+	} @@ \ns Text;
+/ \u YTextManager:
+	/ @@ \cl MTextBuffer:
+		/ typedef std::size_t SizeType -> typedef Text::SizeType SizeType;
+		/ typedef std::size_t IndexType -> typedef Text::IndexType IndexType;
+	- \inc \u (YString, YFile_(Text));
+	+ \inc \u YText;
+
+r8:
+-= \simp \u YTextManager:
+	-= @@ \cl YTextBuffer:
+		-= typedef Text::SizeType SizeType;
+		-= typedef Text::IndexType IndexType;
+	-= @@ \cl YTextFileBuffer:
+		-= typedef MTextBlock::SizeType SizeType;
+		-= typedef MTextBlock::IndexType IndexType;
+		-= @@ \cl TextIterator:
+			-= typedef ContainerType::SizeType SizeType;
+			-= typedef ContainerType::IndexType IndexType;
+
+r9:
+/ \ns Text::{
+	typedef std::size_t SizeType;
+	typedef std::size_t IndexType;
+} >> \h "ysdef.h" ~ \u YText;
+/ \u YTextManager:
+	- \inc \u YText;
+	+ \inc \u (YString, YFile_(Text));
+* @@ \cl MTextBuffer @@ \u YTextManager:
+	* \impl @@ \i \mf IndexType GetPrevNewline(SizeType) -> inline IndexType GetPrevNewline(IndexType);
+	* \impl @@ \i \mf IndexType GetNextNewline(SizeType) -> inline IndexType GetNextNewline(IndexType);
+
+r10:
+/ @@ \cl MTextFileBuffer::TextIterator @@ \u YTextManager:
+	/ \impl @@ \mf TextIterator& operator++() ythrow();
+	/ \impl @@ \mf TextIterator& operator--() ythrow();
+	/ \mf IndexType GetBlockLength() const + \es ythrow();
+	/ \mf IndexType GetBlockLength(BlockIndexType) const + \es ythrow();
+
+r11:
+* \impl @@ IndexType MTextFileBuffer::TextIterator::GetBlockLength(BlockIndexType) const ythrow() @@ \u YTextManager;
+
+r12-r29:
+/ @@ \u YText:
+	/ \f uchar_t* GetPrevLnOff(const MTextRegion&, const uchar_t*, u32)
+		-> uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*)
+	/ \f uchar_t* GetPrevLnOff(const MTextRegion&, const uchar_t*, u32, u16)
+		-> uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*, u16);
+	/ \f uchar_t* GetNextLnOff(const MTextRegion&, const uchar_t*)
+		-> uchar_t* GetNextLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*);
+/ \impl @@ \u DSReader;
+
+r30:
+/ ^ libnds 201007;
+
+r31-r32:
+/ test 2:
+	/ \tr @@ \u Shell;
+
+r33:
+/ @@ \u YReference
+	- \mf operator u32() @@ \t \cl HHandle;
+	/= \t \para @@ \t \i \f GetPointer:
+		/= class _Tp -> typename _refType;
+	+ \t \i \f template<typename _type, typename _refType> handle_cast(GHHandle<_refType>);
+/ \tr @@ \h "ysdef.h";
+
+r34-r35:
+/ test 2:
+	/ \tr @@ \u Shell;
+
 
 DOING:
 

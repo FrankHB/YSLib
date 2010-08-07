@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-7-30 21:12;
-// Version = 0.5991;
+// UTime = 2010-8-8 6:59;
+// Version = 0.6027;
 
 
 #include "ytext.h"
@@ -10,6 +10,7 @@
 
 YSL_BEGIN
 
+using namespace Drawing;
 using namespace Text;
 
 YSL_BEGIN_NAMESPACE(Drawing)
@@ -303,27 +304,75 @@ MTextRegion::PutChar(u32 c)
 	return 0;
 }
 
+YSL_END_NAMESPACE(Drawing)
 
-u32
-GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n)
+YSL_BEGIN_NAMESPACE(Text)
+/*
+static const uchar_t*
+rfind(YFontCache& cache, SDST nw, const uchar_t* p, const uchar_t* g, uchar_t f)
 {
+	if(p == g)
+		return p;
+
+	SDST w(0);
+	uchar_t c(0);
+
+	while(--p != g && (c = *p, c != f && !(std::iswprint(c) && (w += cache.GetAdvance(c)) > nw)))
+		;
+	return p;
+}
+*/
+const uchar_t*
+GetPreviousLinePtr(const MTextRegion& r, const uchar_t* p, const uchar_t* g)
+{
+/*	p = rfind(r.GetCache(), r.GetBufWidthN() + r.Margin.Left - r.GetPenX(), p, g, '\n');
+	if(*p == '\n')
+	{
+		p = rfind(r.GetCache(), r.GetBufWidthN(), ++p, g, '\n');
+		if(*p == '\n')
+			++p;
+	}
+	return p;*/
+
+	const uchar_t* s(g);
+
 	SDST nw(r.GetBufWidthN());
-	const uchar_t* p(s + n);
 	SDST w(0);
 	uchar_t c(*--p);
 	YFontCache& cache(r.GetCache());
 
 	if(c == '\n')
 		--p;
-	while(p >= s && (c = *p) != '\n' && !(iswprint(c) && (w += cache.GetAdvance(c)) > nw))
+	while(p >= s && (c = *p) != '\n' && !(std::iswprint(c) && (w += cache.GetAdvance(c)) > nw))
 		--p;
-	return p + (w <= nw) - s;
+	return p + (w <= nw);
 }
-u32
-GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n, SDST l)
+const uchar_t*
+GetPreviousLinePtr(const MTextRegion& r, const uchar_t* p, const uchar_t* g, SDST l)
 {
+/*	if(l == 0)
+		return p;
+
+	YFontCache& cache(r.GetCache());
 	SDST nw(r.GetBufWidthN());
-	const uchar_t* p(s + n);
+	SDST w(nw + r.Margin.Left - r.GetPenX());
+
+	while(p != g && l-- != 0)
+	{
+		while(--p != g)
+		{
+			uchar_t c(*p);
+	
+			if(c == '\n' || std::iswprint(c) && (w += cache.GetAdvance(c)) > nw)
+				break;
+		}
+		w = r.Margin.Left;
+	}
+	return p;
+*/
+	const uchar_t* s(g);
+
+	SDST nw(r.GetBufWidthN());	
 	SDST w(0);
 	uchar_t c(*--p);
 	YFontCache& cache(r.GetCache());
@@ -332,28 +381,34 @@ GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n, SDST l)
 	{
 		if(c == '\n')
 			--p;
-		while(p >= s && (c = *p) != '\n' && !(iswprint(c) && (w += cache.GetAdvance(c)) > nw))
+		while(p >= s && (c = *p) != '\n' && !(std::iswprint(c) && (w += cache.GetAdvance(c)) > nw))
 			--p;
 	}
-	return p + (w <= nw) - s;
+	return p + (w <= nw);
 }
 
-u32
-GetNextLnOff(const MTextRegion& r, const uchar_t* s, u32 n)
+const uchar_t*
+GetNextLinePtr(const MTextRegion& r, const uchar_t* p, const uchar_t* g)
 {
-	SDST nw(r.GetBufWidthN());
-	const uchar_t* p(s + n);
-	SDST w(0);
-	uchar_t c;
-	YFontCache& cache(r.GetCache());
+	if(p == g)
+		return p;
 
-	while(c = *p++, c != '\n' && !(iswprint(c) && (w += cache.GetAdvance(c)) > nw))
-		;
-	return p - s;
+	YFontCache& cache(r.GetCache());
+	SDST nw(r.GetBufWidthN());
+	SDST w(r.GetPenX() - r.Margin.Left);
+
+	while(p != g)
+	{
+		uchar_t c(*p);
+		++p;
+		if(c == '\n' || (std::iswprint(c) && (w += cache.GetAdvance(c)) > nw))
+			break;
+	}
+	return p;
 }
 /*
 u32
-GetNextLnOff(const MTextRegion& r, const uchar_t* s, u32 n, u16 l)
+GetNextLnOff(const MTextRegion& r, const uchar_t* p, u16 l)
 {
 	return 0;
 }
@@ -382,7 +437,7 @@ ReadX(YTextFile& f, MTextRegion& tr, u32 n)
 	return l;
 }
 
-YSL_END_NAMESPACE(Drawing)
+YSL_END_NAMESPACE(Text)
 
 YSL_END
 

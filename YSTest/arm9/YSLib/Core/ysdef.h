@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-24 15:29:11;
-// UTime = 2010-8-2 15:38;
-// Version = 0.2193;
+// UTime = 2010-8-8 7:18;
+// Version = 0.2203;
 
 
 #ifndef INCLUDED_YSDEF_H_
@@ -261,6 +261,8 @@ YSL_END_NAMESPACE(Widgets)
 YSL_END_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Text)
+typedef std::size_t SizeType; //字符大小类型。
+typedef usize_t IndexType; //字符索引类型。
 class MString;
 YSL_END_NAMESPACE(Text)
 
@@ -292,7 +294,6 @@ using Text::MString;
 #define handle_cast reinterpret_cast
 #else
 #define DeclareHandle(type, handle) typedef GHHandle<type> handle
-#define handle_cast static_cast
 #endif
 
 
