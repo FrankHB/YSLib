@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CharacterMapping by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-17 17:52:35;
-// UTime = 2010-6-16 22:41;
-// Version = 0.1529;
+// UTime = 2010-8-15 9:19;
+// Version = 0.1633;
 
 
 #ifndef INCLUDED_CHRMAP_H_
@@ -108,66 +108,60 @@ getword_BE(const char* c)
 }
 
 
-//typedef uchar_t (*CMF)(ubyte_t&, const char*);
+//编码映射函数类型定义。
+typedef uchar_t CMF(ubyte_t&, const char*);
+typedef uchar_t CMF_File(ubyte_t&, FILE*);
 
-// Shift_JIS / 日文。
-uchar_t
-codemap_17(ubyte_t&, const char*);
-uchar_t
-codemap_17(ubyte_t&, std::FILE*);
 
-// UTF-8 / Unicode 。
-uchar_t
-codemap_106(ubyte_t&, const char*);
-uchar_t
-codemap_106(ubyte_t&, FILE*);
+//未实现的编码映射函数模板原型。
+template<CSID>
+CMF codemap;
+template<CSID>
+CMF_File codemap;
 
-// GBK / 简体中文。
-inline uchar_t
-codemap_113(ubyte_t& l, const char* c)
-{
-	return cp113[(ubyte_t)*c] ? (l = 1, *c) : cp113[getword_BE(c) + 0x0080];
-}
-inline uchar_t
-codemap_113(ubyte_t& l, FILE* fp)
-{
-	char c;
-	return cp113[(ubyte_t)(c = getc(fp))] ? (l = 1, c) : cp113[(c << 8 | getc(fp)) + 0x0080];
-}
+//编码映射函数模板特化版本。
 
-// UCS-2_UTF-16BE / Unicode 双字节字符 - 大端序。
-inline uchar_t
-codemap_1013(ubyte_t& l, const char* c)
-{
-	//l = 2;
-	return getword_BE(c);
-}
-inline uchar_t
-codemap_1013(ubyte_t& l, FILE* fp)
-{
-	//l = 2;
-	return getc(fp) << 8 | getc(fp);
-}
-
-// UCS-2_UTF-16LE / Unicode 双字节字符 - 小端序。
-inline uchar_t
-codemap_1014(ubyte_t& l, const char* c)
-{
-	//l = 2;
-	return getword_LE(c);
-}
-inline uchar_t
-codemap_1014(ubyte_t& l, FILE* fp)
-{
-	//l = 2;
-	return getc(fp) | getc(fp) << 8;
-}
-
-// Big5 / 繁体中文。
+template<>
 uchar_t
-codemap_2026(ubyte_t&, const char*);
+codemap<CharSet::SHIFT_JIS>(ubyte_t&, const char*);
+template<>
 uchar_t
-codemap_2026(ubyte_t&, FILE*);
+codemap<CharSet::SHIFT_JIS>(ubyte_t&, FILE*);
+
+template<>
+uchar_t
+codemap<CharSet::UTF_8>(ubyte_t&, const char*);
+template<>
+uchar_t
+codemap<CharSet::UTF_8>(ubyte_t&, FILE*);
+
+template<>
+uchar_t
+codemap<CharSet::GBK>(ubyte_t&, const char*);
+template<>
+uchar_t
+codemap<CharSet::GBK>(ubyte_t&, FILE*);
+
+template<>
+uchar_t
+codemap<CharSet::UTF_16BE>(ubyte_t&, const char*);
+template<>
+uchar_t
+codemap<CharSet::UTF_16BE>(ubyte_t&, FILE*);
+
+template<>
+uchar_t
+codemap<CharSet::UTF_16LE>(ubyte_t&, const char*);
+template<>
+uchar_t
+codemap<CharSet::UTF_16LE>(ubyte_t&, FILE*);
+
+template<>
+uchar_t
+codemap<CharSet::Big5>(ubyte_t&, const char*);
+template<>
+uchar_t
+codemap<CharSet::Big5>(ubyte_t&, FILE*);
 
 CHRLIB_END
 

@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-8-8;
-// Version = 0.2614; *Build 139 r35;
+// UTime = 2010-8-15;
+// Version = 0.2614; *Build 140 r24;
 
 
 #include "../YCLib/ydef.h"
@@ -95,124 +95,85 @@ DONE:
 r1:
 = test 0;
 
-r2:
-/ @@ \cl MTextRegion @@ \u YText:
-	/ \t \mf template<typename _constCharIteratorType> std::size_t PutString(_constCharIteratorType)
-		-> template<typename _outIt> _outIt PutLine(_outIt);
-	/ \t \mf template<typename _constCharIteratorType> std::size_t PutLine(_constCharIteratorType)
-		-> template<typename _outIt> _outIt PutLine(_outIt);
-+ (\i friend \f \op (==, !=) @@ \ns Text) @@ \cl MTextFileBuffer::TextIterator @@ \u YTextManager;
-/ \impl @@ \u DSReader;
-
-r3:
-+ \i \mf std::size_t PutString(const MString&) @@ \cl MTextRegion @@ \u YText;
-/ @@ \u YTextManager:
-	/ \i friend \f bool operator==(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&)
-		-> bool operator==(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow();
-	/ \i friend \f bool operator!=(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&)
-		-> bool operator!=(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow();
-
-r4:
-/ @@ \u YTextManager:
-	+ friend \f bool operator<(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow();
-	+ \i friend \f bool operator>(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow();
-	+ \i friend \f bool operator<=(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow();
-	+ \i friend \f bool operator>=(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow();
-	/ \i friend \f bool operator<(const MTextFileBuffer::TextIterator&, const MTextFileBuffer::TextIterator&) ythrow() -> -\i;
-
-r5:
+r2-r8:
 / @@ \u YText:
-	/ \ret \ty @@ \f u32 GetPrevLnOff(const MTextRegion&, const uchar_t*, u32) -> const uchar_t;
-	/ \ret \ty @@ \f u32 GetPrevLnOff(const MTextRegion&, const uchar_t*, u32, u16) -> const uchar_t;
-	/ \ret \ty @@ \f u32 GetNextLnOff(const MTextRegion&, const uchar_t*, u32) -> const uchar_t;
-
-r6:
-/ @@ \u YText:
-	/ \f u32 GetNextLnOff(const MTextRegion&, const uchar_t*, u32)
-		-> u32 GetNextLnOff(const MTextRegion&, const uchar_t*);
-
-r7:
-/ @@ \u YText:
-	/= \ns Drawing::{
-		const uchar_t* GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n);
-		const uchar_t* GetPrevLnOff(const MTextRegion& r, const uchar_t* s, u32 n, u16 l);
-		const uchar_t* GetNextLnOff(const MTextRegion& r, const uchar_t* p);
-		u32 ReadX(YTextFile& f, MTextRegion& txtbox, u32 n);
-	}>> \ns Text;
-	+{
-		typedef std::size_t SizeType;
-		typedef std::size_t IndexType;
-	} @@ \ns Text;
-/ \u YTextManager:
-	/ @@ \cl MTextBuffer:
-		/ typedef std::size_t SizeType -> typedef Text::SizeType SizeType;
-		/ typedef std::size_t IndexType -> typedef Text::IndexType IndexType;
-	- \inc \u (YString, YFile_(Text));
-	+ \inc \u YText;
-
-r8:
--= \simp \u YTextManager:
-	-= @@ \cl YTextBuffer:
-		-= typedef Text::SizeType SizeType;
-		-= typedef Text::IndexType IndexType;
-	-= @@ \cl YTextFileBuffer:
-		-= typedef MTextBlock::SizeType SizeType;
-		-= typedef MTextBlock::IndexType IndexType;
-		-= @@ \cl TextIterator:
-			-= typedef ContainerType::SizeType SizeType;
-			-= typedef ContainerType::IndexType IndexType;
+	+ \sf const uchar_t* rfind(YFontCache&, SDST , const uchar_t*, const uchar_t*, uchar_t);
+	/ \impl @@ \f uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*):
+		^ \sf rfind;
 
 r9:
-/ \ns Text::{
-	typedef std::size_t SizeType;
-	typedef std::size_t IndexType;
-} >> \h "ysdef.h" ~ \u YText;
-/ \u YTextManager:
-	- \inc \u YText;
-	+ \inc \u (YString, YFile_(Text));
-* @@ \cl MTextBuffer @@ \u YTextManager:
-	* \impl @@ \i \mf IndexType GetPrevNewline(SizeType) -> inline IndexType GetPrevNewline(IndexType);
-	* \impl @@ \i \mf IndexType GetNextNewline(SizeType) -> inline IndexType GetNextNewline(IndexType);
+/ @@ \u YText:
+	/ \impl @@ \f uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*, u16):
+		^ \sf rfind;
 
 r10:
-/ @@ \cl MTextFileBuffer::TextIterator @@ \u YTextManager:
-	/ \impl @@ \mf TextIterator& operator++() ythrow();
-	/ \impl @@ \mf TextIterator& operator--() ythrow();
-	/ \mf IndexType GetBlockLength() const + \es ythrow();
-	/ \mf IndexType GetBlockLength(BlockIndexType) const + \es ythrow();
+/ @@ \u YText:
+	/ merge uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*)
+		& uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*, u16)
+		-> uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*, u16 = 1);
+	/ (\sf -> \f) @@ const uchar_t* rfind(YFontCache& cache, SDST nw, const uchar_t* p, const uchar_t* g, uchar_t f);
 
 r11:
-* \impl @@ IndexType MTextFileBuffer::TextIterator::GetBlockLength(BlockIndexType) const ythrow() @@ \u YTextManager;
-
-r12-r29:
 / @@ \u YText:
-	/ \f uchar_t* GetPrevLnOff(const MTextRegion&, const uchar_t*, u32)
-		-> uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*)
-	/ \f uchar_t* GetPrevLnOff(const MTextRegion&, const uchar_t*, u32, u16)
-		-> uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*, u16);
-	/ \f uchar_t* GetNextLnOff(const MTextRegion&, const uchar_t*)
-		-> uchar_t* GetNextLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*);
-/ \impl @@ \u DSReader;
+	+= \f const uchar_t* rfind(YFontCache&, SDST, const uchar_t*, const uchar_t*, uchar_t);
+		-> \tf template<typename _outIt, typename _charT> _outIt rfind(YFontCache&, SDST, _outIt, _outIt, _charT);
+	+= \f const uchar_t* GetPreviousLinePtr(const Drawing::MTextRegion& r, const uchar_t*, const uchar_t*, u16 l = 1);
+		-> \tf template<typename _outIt> _outIt GetPreviousLinePtr(const Drawing::MTextRegion&, _outIt, _outIt, u16 l = 1);
+	+= \f const uchar_t* GetNextLinePtr(const Drawing::MTextRegion& r, const uchar_t*, const uchar_t*);
+		-> \tf template<typename _outIt> _outIt GetNextLinePtr(const Drawing::MTextRegion&, _outIt, _outIt);
 
-r30:
-/ ^ libnds 201007;
+r12:
+/ \tr @@ \impl @@ \tf GetPreviousLinePtr @@ \u Yext;
 
-r31-r32:
+r13:
+/ @@ \h "chrdef.h":
+	+ \inc \h <platform.h>;
+	/ typedef unsigned short uchar_t -> typedef u16 uchar_t;
+	/ typedef signed int uchardiff_t -> typedef s32 uchardiff_t;
+
+r14-r16:
+/ \impl @@ \cl MDualScreenReader @@ \u DSReader:
+	+ \m Text::MTextFileBuffer::TextIterator itUp, itDn;
+	- \m s32 offUp, offDn;
+	/ \mf u32 TextFill() -> void FillText();
+	/ \tr \impl;
+	/ \mf u32 TextInit() -> void InitText();
+
+r17:
+/ test 1;
+/ \tr \impl @@ \ctor ShlReader::ShlReader() @@ \u Shells;
+
+r18:
+/ \tr \impl @@ \mf InitText \cl MDualScreenReader @@ \u DSReader;
+
+r19:
+/ @@ \cl MTextRegion @@ \u YText:
+	+ \m \tf template<typename _outIt, tpename _charT> PutLine(_outIt, _outIt, _charT = '\0');
+	+ \m \tf template<typename _outIt, tpename _charT> PutString(_outIt, _outIt, _charT = '\0');
+	/ \ret \ty @@ \i \mf std::size_t PutLine(const MString&) -> MString::size_type;
+	/ \ret \ty @@ \i \mf std::size_t PutString(const MString&) -> MString::size_type;
+/ \tr \impl @@ \mf InitText \cl MDualScreenReader @@ \u DSReader;
+
+r20:
+/ @@ \u CHRMap:
+	+^ \tf @@ code mapping functions;
+	- !\t code mapping functions;
+/ @@ \u CHRProc:
+	/ \impl @@ \f ubyte_t ToUTF(const char*, uchar_t&, const CSID&) & \f ubyte_t ToUTF(FILE*, uchar_t&, const CSID&);
+	/= \a getc => std::getc;
+
+r21:
+/ @@ \u CHRMap:
+	+ typedef uchar_t CMF(ubyte_t&, const char*);
+	+ typedef uchar_t CMF_File(ubyte_t&, FILE*);
+/ @@ \u CHRProc:
+	+ \tf template<_codemapFuncType> _codemapFuncType* GetCodeMapFuncPtr(const CSID&) @@ unnamed \ns;
+	/ \impl @@ \f ubyte_t ToUTF(const char*, uchar_t&, const CSID&) & \f ubyte_t ToUTF(FILE*, uchar_t&, const CSID&);
+/= \a _charType => _charT;
+
+r22-r24:
 / test 2:
-	/ \tr @@ \u Shell;
-
-r33:
-/ @@ \u YReference
-	- \mf operator u32() @@ \t \cl HHandle;
-	/= \t \para @@ \t \i \f GetPointer:
-		/= class _Tp -> typename _refType;
-	+ \t \i \f template<typename _type, typename _refType> handle_cast(GHHandle<_refType>);
-/ \tr @@ \h "ysdef.h";
-
-r34-r35:
-/ test 2:
-	/ \tr @@ \u Shell;
-
+	* \impl @@ \tf template<_codemapFuncType> _codemapFuncType* GetCodeMapFuncPtr(const CSID&) @@ unnamed \ns @@ \u CHRProc;
 
 DOING:
 

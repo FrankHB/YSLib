@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YCoreUtilities by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-23 6:10:59;
-// UTime = 2010-8-2 13:57;
-// Version = 0.1958;
+// UTime = 2010-8-15 9:15;
+// Version = 0.1962;
 
 
 #ifndef INCLUDED_YCUTIL_H_
@@ -292,14 +292,14 @@ struct deref_comp : _cmpType<_type>
 
 //间接访问字符串（解引用）比较仿函数。
 template<
-	typename _charType,
-	int (*_lexi_cmp)(const _charType*, const _charType*) = std::strcmp,
+	typename _charT,
+	int (*_lexi_cmp)(const _charT*, const _charT*) = std::strcmp,
 	class _cmpType = std::less<int>
 >
 struct deref_str_comp : _cmpType
 {
 	bool
-	operator()(const _charType* _x, const _charType* _y) const
+	operator()(const _charT* _x, const _charT* _y) const
 	{
 		return _x && _y && _cmpType::operator()(_lexi_cmp(_x, _y), 0);
 	}

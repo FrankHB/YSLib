@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CharacterProcessing by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-17 17:52:35;
-// UTime = 2010-6-13 17:31;
-// Version = 0.1432;
+// UTime = 2010-8-15 9:15;
+// Version = 0.1436;
 
 
 #ifndef INCLUDED_CHRPROC_H_
@@ -28,9 +28,9 @@ ubyte_t*		ValueStr(usize_t v);
 */
 
 //判断是否为 ASCII 字符。
-template<typename _charType>
+template<typename _charT>
 inline bool
-IsASCII(_charType c)
+IsASCII(_charT c)
 {
 	return !(c & ~0x7F);
 }
@@ -48,9 +48,9 @@ uchardiff_t
 ucsicmp(const uchar_t*, const uchar_t*);
 
 //字符转换为 ASCII 字符（截取低字节）。
-template<typename _charType>
+template<typename _charT>
 inline char
-ToASCII(_charType c)
+ToASCII(_charT c)
 {
 	return c & 0x7F;
 }

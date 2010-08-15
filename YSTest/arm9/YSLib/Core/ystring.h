@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YString by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-5 22:06:05;
-// UTime = 2010-7-26 5:59;
-// Version = 0.2772;
+// UTime = 2010-8-15 9:15;
+// Version = 0.2774;
 
 
 #ifndef INCLUDED_YSTRING_H_
@@ -33,8 +33,8 @@ private:
 
 public:
 	MString();
-	template<class _charType>
-	MString(const _charType*);
+	template<class _charT>
+	MString(const _charT*);
 	MString(const stdex::ustring&);
 };
 
@@ -42,8 +42,8 @@ inline
 MString::MString()
 : stdex::ustring()
 {}
-template<class _charType>
-MString::MString(const _charType* s)
+template<class _charT>
+MString::MString(const _charT* s)
 : stdex::ustring(S_str = ucsdup(s))
 {
 	free(S_str);

@@ -1,16 +1,17 @@
 ﻿// CHRLib -> CharacterMapping by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-17 17:53:21;
-// UTime = 2010-6-14 18:48;
-// Version = 0.1398;
+// UTime = 2010-8-15 8:51;
+// Version = 0.1468;
 
 
 #include "chrmap.h"
 
 CHRLIB_BEGIN
 
+template<>
 uchar_t
-codemap_17(ubyte_t& l, const char* c)
+codemap<CharSet::SHIFT_JIS>(ubyte_t& l, const char* c)
 {
 	unsigned short row(0), col(0), ln(188); // (7E-40 + 1 + FC-80 + 1)
 
@@ -41,17 +42,17 @@ codemap_17(ubyte_t& l, const char* c)
 	else
 		return 0xFFFE;
 }
-
+template<>
 uchar_t
-codemap_17(ubyte_t& l, FILE* fp)
+codemap<CharSet::SHIFT_JIS>(ubyte_t& l, FILE* fp)
 {
 	unsigned short row(0), col(0), ln(188); // (7E-40 + 1 + FC-80 + 1)
-	char c(getc(fp));
+	char c(std::getc(fp));
 
 	//l = 2;
 	if((c >= 0xA1) && (c <= 0xC6))
 	{
-		char d(getc(fp));
+		char d(std::getc(fp));
 
 		row = c - 0xA1 ;
 		if(d >= 0x40 && d <= 0x7E)
@@ -62,7 +63,7 @@ codemap_17(ubyte_t& l, FILE* fp)
 	}
 	else if(c >= 0xC9 && c <= 0xF9)
 	{
-		char d(getc(fp));
+		char d(std::getc(fp));
 
 		row = c - 0xA3;
 		if(d >= 0x40 && d <= 0x7E)
@@ -80,8 +81,9 @@ codemap_17(ubyte_t& l, FILE* fp)
 		return 0xFFFE;
 }
 
+template<>
 uchar_t
-codemap_106(ubyte_t& l, const char* c)
+codemap<CharSet::UTF_8>(ubyte_t& l, const char* c)
 {
 	const char c0(*c);
 
@@ -133,11 +135,11 @@ codemap_106(ubyte_t& l, const char* c)
 	}
 	*/
 }
-
+template<>
 uchar_t
-codemap_106(ubyte_t& l, FILE* fp)
+codemap<CharSet::UTF_8>(ubyte_t& l, FILE* fp)
 {
-	char c(getc(fp));
+	char c(std::getc(fp));
 
 	if(c < 0x80)
 	{
@@ -146,12 +148,12 @@ codemap_106(ubyte_t& l, FILE* fp)
 	}
 	else
 	{
-		char d(getc(fp));
+		char d(std::getc(fp));
 
 		if(c & 0x20)
 		{
 			l = 3;
-			return (((c & 0x0F) << 4 | (d & 0x3C) >> 2) << 8) | ((d & 0x3) << 6) | (getc(fp) & 0x3F);
+			return (((c & 0x0F) << 4 | (d & 0x3C) >> 2) << 8) | ((d & 0x3) << 6) | (std::getc(fp) & 0x3F);
 		}
 		else
 		{
@@ -161,53 +163,55 @@ codemap_106(ubyte_t& l, FILE* fp)
 	}
 }
 
-/*
+template<>
 uchar_t
-codemap_113(ubyte_t& l, const char* c)
+codemap<CharSet::GBK>(ubyte_t& l, const char* c)
 {
-	return cp113[static_cast<uchar_t>(*c)] ? (l = 1 ,*c) : (static_cast<uchar_t*>cp113)[getword_BE(c) + 0x0080];
+	return cp113[static_cast<ubyte_t>(*c)] ? (l = 1, *c) : cp113[getword_BE(c) + 0x0080];
+}
+template<>
+uchar_t
+codemap<CharSet::GBK>(ubyte_t& l, FILE* fp)
+{
+	int c(std::getc(fp));
+	return cp113[static_cast<ubyte_t>(c)] ? (l = 1, c) : cp113[(c << 8 | std::getc(fp)) + 0x0080];
 }
 
+template<>
 uchar_t
-codemap_113(ubyte_t& l, FILE* fp)
-{
-	char c;
-	return cp113[static_cast<uchar_t>(c = getc(fp))] ? (l = 1, c) : (static_cast<uchar_t*>cp113)[(c << 8 | getc(fp)) + 0x0080];
-}
-
-uchar_t
-codemap_1013(ubyte_t& l, const char* c)
+codemap<CharSet::UTF_16BE>(ubyte_t& l, const char* c)
 {
 	//l = 2;
 	return getword_BE(c);
 }
-
+template<>
 uchar_t
-codemap_1013(ubyte_t& l, FILE* fp)
+codemap<CharSet::UTF_16BE>(ubyte_t& l, FILE* fp)
 {
 	//l = 2;
-	return getc() << 8 | getc();
+	return std::getc(fp) << 8 | std::getc(fp);
 }
 
+template<>
 uchar_t
-codemap_1014(ubyte_t& l, const char* c)
+codemap<CharSet::UTF_16LE>(ubyte_t& l, const char* c)
 {
 	//l = 2;
 	return getword_LE(c);
 }
-
+template<>
 uchar_t
-codemap_1014(ubyte_t& l, FILE* fp)
+codemap<CharSet::UTF_16LE>(ubyte_t& l, FILE* fp)
 {
 	//l = 2;
-	return getc() | getc() << 8;
+	return std::getc(fp) | std::getc(fp) << 8;
 }
-*/
 
+template<>
 uchar_t
-codemap_2026(ubyte_t& l, const char* c)
+codemap<CharSet::Big5>(ubyte_t& l, const char* c)
 {
-	unsigned short row(0), col(0), ln(157); // (7E-40 + FE-A1)
+	u16 row(0), col(0), ln(157); // (7E-40 + FE-A1)
 
 	//l = 2;
 	if(*c >= 0xA1 && *c <= 0xC6)
@@ -236,17 +240,17 @@ codemap_2026(ubyte_t& l, const char* c)
 	else
 		return 0xFFFE;
 }
-
+template<>
 uchar_t
-codemap_2026(ubyte_t& l, FILE* fp)
+codemap<CharSet::Big5>(ubyte_t& l, FILE* fp)
 {
-	unsigned short row(0), col(0), ln(157); // (7E-40 + FE-A1)
-	char c(getc(fp));
+	u16 row(0), col(0), ln(157); // (7E-40 + FE-A1)
+	char c(std::getc(fp));
 
 	//l = 2;
 	if(c >= 0xA1 && c <= 0xC6)
 	{
-		char d(getc(fp));
+		char d(std::getc(fp));
 
 		row = c - 0xA1;
 		if(d >= 0x40 && d <= 0x7E)
@@ -257,7 +261,7 @@ codemap_2026(ubyte_t& l, FILE* fp)
 	}
 	else if(c >= 0xC9 && c <= 0xF9)
 	{
-		char d(getc(fp));
+		char d(std::getc(fp));
 
 		row = c - 0xA3;
 		if(d >= 0x40 && d <= 0x7E)

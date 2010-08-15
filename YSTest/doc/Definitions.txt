@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-8-8 7:22;
-// Version = r6898;
+// UTime = 2010-8-15 9:19;
+// Version = r6946;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -57,7 +57,7 @@ import typedef unsigned short u16;
 
 header CHRDefinition "chrdef.h"
 {
-	!import;
+	import <platform.h>;
 
 
 	#define CHRLIB_BEGIN	namespace CHRLib {
@@ -74,8 +74,8 @@ header CHRDefinition "chrdef.h"
 	typedef unsigned long usize_t;
 
 	// UCS-2 字符类型定义。
-	typedef unsigned short uchar_t;
-	typedef signed int uchardiff_t;
+	typedef u16 uchar_t;
+	typedef s32 uchardiff_t;
 
 	typedef enum {Deg0 = 0, Deg90 = 1, Deg180 = 2, Deg270 = 3} CROT;
 
@@ -177,41 +177,60 @@ unit CHRMap "chrmap.h"
 	getword_BE(const char* c);
 
 
-	// Shift_JIS / 日文。
-	uchar_t
-	codemap_17(ubyte_t&, const char*);
-	uchar_t
-	codemap_17(ubyte_t&, FILE*);
+	//编码映射函数类型定义。
+	typedef uchar_t CMF(ubyte_t&, const char*);
+	typedef uchar_t CMF_File(ubyte_t&, FILE*);
 
-	// UTF-8 / Unicode 。
-	uchar_t
-	codemap_106(ubyte_t&, const char*);
-	uchar_t
-	codemap_106(ubyte_t&, FILE*);
 
-	// GBK / 简体中文。
-	inline uchar_t
-	codemap_113(ubyte_t& l, const char* c);
-	inline uchar_t
-	codemap_113(ubyte_t& l, FILE* fp);
+	//未实现的编码映射函数模板原型。
+	template<CSID>
+	CMF codemap;
+	template<CSID>
+	CMF_File codemap;
 
-	// UCS-2_UTF-16BE / Unicode 双字节字符 - 大端序。
-	inline uchar_t
-	codemap_1013(ubyte_t& l, const char* c);
-	inline uchar_t
-	codemap_1013(ubyte_t& l, FILE* fp);
+	//编码映射函数模板特化版本。
 
-	// UCS-2_UTF-16LE / Unicode 双字节字符 - 小端序。
-	inline uchar_t
-	codemap_1014(ubyte_t& l, const char* c).
-	inline uchar_t
-	codemap_1014(ubyte_t& l, FILE* fp);
-
-	// Big5 / 繁体中文。
+	template<>
 	uchar_t
-	codemap_2026(ubyte_t&, const char*);
+	codemap<CharSet::SHIFT_JIS>(ubyte_t&, const char*);
+	template<>
 	uchar_t
-	codemap_2026(ubyte_t&, FILE*);
+	codemap<CharSet::SHIFT_JIS>(ubyte_t&, FILE*);
+
+	template<>
+	uchar_t
+	codemap<CharSet::UTF_8>(ubyte_t&, const char*);
+	template<>
+	uchar_t
+	codemap<CharSet::UTF_8>(ubyte_t&, FILE*);
+
+	template<>
+	uchar_t
+	codemap<CharSet::GBK>(ubyte_t&, const char*);
+	template<>
+	uchar_t
+	codemap<CharSet::GBK>(ubyte_t&, FILE*);
+
+	template<>
+	uchar_t
+	codemap<CharSet::UTF_16BE>(ubyte_t&, const char*);
+	template<>
+	uchar_t
+	codemap<CharSet::UTF_16BE>(ubyte_t&, FILE*);
+
+	template<>
+	uchar_t
+	codemap<CharSet::UTF_16LE>(ubyte_t&, const char*);
+	template<>
+	uchar_t
+	codemap<CharSet::UTF_16LE>(ubyte_t&, FILE*);
+
+	template<>
+	uchar_t
+	codemap<CharSet::Big5>(ubyte_t&, const char*);
+	template<>
+	uchar_t
+	codemap<CharSet::Big5>(ubyte_t&, FILE*);
 
 	CHRLIB_END
 
@@ -226,9 +245,9 @@ unit CHRProcessing "chrproc"
 	CHRLIB_BEGIN
 
 	//判断是否为 ASCII 字符。
-	template<typename _charType>
+	template<typename _charT>
 	inline bool
-	IsASCII(_charType c);
+	IsASCII(_charT c);
 
 	//计算 UCS-2 字符串长度。
 	usize_t
@@ -243,9 +262,9 @@ unit CHRProcessing "chrproc"
 	ucsicmp(const uchar_t*, const uchar_t*);
 
 	//宽字符转换为 ASCII 字符（截取低字节）。
-	template<typename _charType>
+	template<typename _charT>
 	inline char
-	ToASCII(_charType c);
+	ToASCII(_charT c);
 
 	//按字符集转换字符串中字符为 UCS-2 字符，返回转换的字节数。
 	ubyte_t
@@ -1905,15 +1924,15 @@ unit YCoreUtilities "ycutil"
 
 	//间接访问字符串（解引用）比较仿函数。
 	template<
-		typename _charType,
-		int (*_lexi_cmp)(const _charType*, const _charType*) = std::strcmp,
+		typename _charT,
+		int (*_lexi_cmp)(const _charT*, const _charT*) = std::strcmp,
 		class _cmpType = std::less<int>
 	>
 	struct deref_str_comp : _cmpType
 	{
 		bool
 		operator()(_type* const&, _type* const&) const;
-	}; //template<typename _charType, ... > struct deref_str_comp;
+	}; //template<typename _charT, ... > struct deref_str_comp;
 
 
 	//删除指定标准容器中所有相同元素算法。
@@ -2753,8 +2772,8 @@ unit YString "ystring"
 
 		inline
 		MString();
-		template<class _charType>
-		MString(const _charType*);
+		template<class _charT>
+		MString(const _charT*);
 		inline
 		MString(const stdex::ustring&);
 	}; //class MString;
@@ -4686,8 +4705,8 @@ unit YControl "ycontrol"
 	*/
 
 		//用字符串在窗口中以给定字号初始化标签。
-		template<class _charType>
-		YLabel(HWND, const _charType*, const SRect& = SRect::FullScreen,
+		template<class _charT>
+		YLabel(HWND, const _charT*, const SRect& = SRect::FullScreen,
 			const Drawing::MFont& = Drawing::MFont::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::MTextRegion> = NULL);
 		virtual
 		~YLabel();
@@ -5103,16 +5122,22 @@ unit YText "ytext"
 		u8
 		PutChar(u32); //输出单个字符。
 
-		template<class _outIt>
+		template<typename _outIt>
 		_outIt
-		PutLine(_outIt); //输出字符串，直至行尾或字符串结束，并返回输出迭代器。
-		inline std::size_t
+		PutLine(_outIt s); //输出迭代器 s 指向字符串，直至行尾或字符串结束，并返回输出迭代器。
+		template<typename _outIt, typename _charT>
+		_outIt
+		PutLine(_outIt s, _outIt g, _charT f = '\0'); //输出迭代器 s 指向字符串，直至行尾、遇到指定迭代器 g 或遇到指定字符 f ，并返回输出迭代器。
+		inline MString::size_type
 		PutLine(const MString&); //输出字符串，直至行尾或字符串结束，并返回输出字符数。
 
 		template<typename _outIt>
 		_outIt
-		PutString(_outIt); //输出字符串，直至区域末尾或字符串结束，并返回输出迭代器。
-		inline std::size_t
+		PutString(_outIt s); //输出迭代器 s 指向字符串，直至区域末尾或字符串结束，并返回输出迭代器。
+		template<typename _outIt, typename _charT>
+		_outIt
+		PutString(_outIt s, _outIt g , _charT f = '\0'); //输出迭代器 s 指向字符串，直至区域末尾、遇到指定迭代器 g 或遇到指定字符 f ，并返回输出迭代器。
+		inline MString::size_type
 		PutString(const MString&); //输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
 	}; //class MTextRegion;
 
@@ -5120,15 +5145,20 @@ unit YText "ytext"
 
 	YSL_BEGIN_NAMESPACE(Text)
 
-	const uchar_t*
-	GetPreviousLinePtr(const Drawing::MTextRegion& r, const uchar_t* p, const uchar_t* g); //在 r 中取当前文本指针 p 的前一行首对应文本指针（满足 p != --g ）。
-	const uchar_t*
-	GetPreviousLinePtr(const Drawing::MTextRegion& r,const uchar_t* p, const uchar_t* g, u16 l); //在 r 中取当前文本指针 p 的前 l 行首对应文本指针（满足 p != --g ）。
+	//以 cache 为字体缓存，width 为宽度，从当前文本迭代器 p （不含）开始逆向查找字符 f （满足 p != --g ）。
+	template<typename _outIt, typename _charT>
+	_outIt
+	rfind(YFontCache& cache, SDST width, _outIt p, _outIt g, _charT f);
 
-	const uchar_t*
-	GetNextLinePtr(const Drawing::MTextRegion& r, const uchar_t* p, const uchar_t* g); //在 r 中取当前文本指针 p 至后一行首对应文本指针（满足 p != g ）。
-	//	const uchar_t*
-	//	GetNextLinePtr(const Drawing::MTextRegion& r, const uchar_t* p, const uchar_t* g, u16 l); //在 r 中取当前文本指针 p 至后 l 行首对应文本指针（满足 p != g ）。
+	//在 r 中取当前文本迭代器 p 的前 l 行首对应文本迭代器（满足 p != --g ）。
+	template<typename _outIt>
+	_outIt
+	GetPreviousLinePtr(const Drawing::MTextRegion& r, _outIt p, _outIt g, u16 l = 1)
+
+	//在 r 中取当前文本迭代器 p 至后一行首对应文本迭代器（满足 p != g ）。
+	template<typename _outIt>
+	_outIt
+	GetNextLinePtr(const Drawing::MTextRegion& r, _outIt p, _outIt g);
 
 
 	u32

@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CharacterProcessing by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-17 17:53:21;
-// UTime = 2010-8-2 13:58;
-// Version = 0.1582;
+// UTime = 2010-8-15 9:30;
+// Version = 0.1659;
 
 
 #include "chrproc.h"
@@ -75,70 +75,66 @@ ucsicmp(const uchar_t* s1, const uchar_t* s2)
 	return d;
 }
 
+namespace
+{
+	template<typename _codemapFuncType>
+	_codemapFuncType*
+	GetCodeMapFuncPtr(const CSID& cp)
+	{
+		using namespace CharSet;
+		_codemapFuncType* pfun(NULL);
+
+		switch(cp)
+		{
+		case SHIFT_JIS:
+			pfun = &codemap<SHIFT_JIS>;
+			break;
+		case UTF_8:
+			pfun = &codemap<UTF_8>;
+			break;
+		case GBK:
+			pfun = &codemap<GBK>;
+			break;
+		case UTF_16BE:
+			pfun = &codemap<UTF_16BE>;
+			break;
+		case UTF_16LE:
+			pfun = &codemap<UTF_16LE>;
+			break;
+		case Big5:
+			pfun = &codemap<Big5>;
+			break;
+		default:
+			break;
+		}
+		return pfun;
+	}
+}
+
 ubyte_t
 ToUTF(const char* chr, uchar_t& uchr, const CSID& cp)
 {
 	ubyte_t len(2);
+	CMF* pfun(GetCodeMapFuncPtr<CMF>(cp));
 
-	switch(cp)
-	{
-	case CharSet::SHIFT_JIS:
-		uchr = codemap_17(len, chr);
-		break;
-	case CharSet::UTF_8:
-		uchr = codemap_106(len, chr);
-		break;
-	case CharSet::GBK:
-		uchr = codemap_113(len, chr);
-		break;
-	case CharSet::UTF_16BE:
-		uchr = codemap_1013(len, chr);
-		break;
-	case CharSet::UTF_16LE:
-		uchr = codemap_1014(len, chr);
-		break;
-	case CharSet::Big5:
-		uchr = codemap_2026(len, chr);
-		break;
-	default:
-		break;
-	}
+	if(pfun != NULL)
+		uchr = pfun(len, chr);
 	return len;
 }
 ubyte_t
 ToUTF(FILE* fp, uchar_t& uchr, const CSID& cp)
 {
 	ubyte_t len(2);
+	CMF_File* pfun(GetCodeMapFuncPtr<CMF_File>(cp));
 
-	switch(cp)
-	{
-	case CharSet::SHIFT_JIS:
-		uchr = codemap_17(len, fp);
-		break;
-	case CharSet::UTF_8:
-		uchr = codemap_106(len, fp);
-		break;
-	case CharSet::GBK:
-		uchr = codemap_113(len, fp);
-		break;
-	case CharSet::UTF_16BE:
-		uchr = codemap_1013(len, fp);
-		break;
-	case CharSet::UTF_16LE:
-		uchr = codemap_1014(len, fp);
-		break;
-	case CharSet::Big5:
-		uchr = codemap_2026(len, fp);
-		break;
-	default:
-		break;
-	}
+	if(pfun != NULL)
+		uchr = pfun(len, fp);
 	return feof(fp) ? 0 : len;
 }
 
-template<typename _charType>
+template<typename _charT>
 static inline usize_t
-StrToANSI(char* d, const _charType* s, char c = ' ')
+StrToANSI(char* d, const _charT* s, char c = ' ')
 {
 	char* const p(d);
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-8-4 23:49;
-// Version = 0.6189;
+// UTime = 2010-8-14 2:09;
+// Version = 0.6274;
 
 
 #ifndef INCLUDED_YTEXT_H_
@@ -13,6 +13,7 @@
 #include "../Core/ystring.h"
 #include "../Core/yftext.h"
 #include "ygdi.h"
+#include <cwctype>
 
 YSL_BEGIN
 
@@ -164,16 +165,22 @@ public:
 	u8
 	PutChar(u32); //输出单个字符。
 
-	template<class _outIt>
+	template<typename _outIt>
 	_outIt
-	PutLine(_outIt); //输出字符串，直至行尾或字符串结束，并返回输出迭代器。
-	std::size_t
+	PutLine(_outIt s); //输出迭代器 s 指向字符串，直至行尾或字符串结束，并返回输出迭代器。
+	template<typename _outIt, typename _charT>
+	_outIt
+	PutLine(_outIt s, _outIt g, _charT f = '\0'); //输出迭代器 s 指向字符串，直至行尾、遇到指定迭代器 g 或遇到指定字符 f ，并返回输出迭代器。
+	MString::size_type
 	PutLine(const MString&); //输出字符串，直至行尾或字符串结束，并返回输出字符数。
 
 	template<typename _outIt>
 	_outIt
-	PutString(_outIt); //输出字符串，直至区域末尾或字符串结束，并返回输出迭代器。
-	std::size_t
+	PutString(_outIt s); //输出迭代器 s 指向字符串，直至区域末尾或字符串结束，并返回输出迭代器。
+	template<typename _outIt, typename _charT>
+	_outIt
+	PutString(_outIt s, _outIt g , _charT f = '\0'); //输出迭代器 s 指向字符串，直至区域末尾、遇到指定迭代器 g 或遇到指定字符 f ，并返回输出迭代器。
+	MString::size_type
 	PutString(const MString&); //输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
 };
 
@@ -196,7 +203,19 @@ MTextRegion::PutLine(_outIt s)
 			++t;
 	return t;
 }
-inline std::size_t
+template<typename _outIt, typename _charT>
+_outIt
+MTextRegion::PutLine(_outIt s, _outIt g, _charT f)
+{
+	const SPOS fpy(penY);
+
+	while(s != g && *s != f && fpy == penY)
+		if(!PutChar(*s))
+			++s;
+	return s;
+}
+
+inline MString::size_type
 MTextRegion::PutLine(const MString& s)
 {
 	return PutLine(s.c_str()) - s.c_str();
@@ -214,7 +233,18 @@ MTextRegion::PutString(_outIt s)
 			++t;
 	return t;
 }
-inline std::size_t
+template<typename _outIt, typename _charT>
+_outIt
+MTextRegion::PutString(_outIt s, _outIt g, _charT f)
+{
+	const SPOS mpy(GetLineLast());
+
+	while(s != g && *s != f && penY <= mpy)
+		if(!PutChar(*s))
+			++s;
+	return s;
+}
+inline MString::size_type
 MTextRegion::PutString(const MString& s)
 {
 	return PutString(s.c_str()) - s.c_str();
@@ -224,15 +254,61 @@ YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Text)
 
-const uchar_t*
-GetPreviousLinePtr(const Drawing::MTextRegion& r, const uchar_t* p, const uchar_t* g); //在 r 中取当前文本指针 p 的前一行首对应文本指针（满足 p != --g ）。
-const uchar_t*
-GetPreviousLinePtr(const Drawing::MTextRegion& r,const uchar_t* p, const uchar_t* g, u16 l); //在 r 中取当前文本指针 p 的前 l 行首对应文本指针（满足 p != --g ）。
+//以 cache 为字体缓存，width 为宽度，从当前文本迭代器 p （不含）开始逆向查找字符 f （满足 p != --g ）。
+template<typename _outIt, typename _charT>
+_outIt
+rfind(YFontCache& cache, SDST width, _outIt p, _outIt g, _charT f)
+{
+	if(p != g)
+	{
+		SDST w(0);
+		_charT c(0);
 
-const uchar_t*
-GetNextLinePtr(const Drawing::MTextRegion& r, const uchar_t* p, const uchar_t* g); //在 r 中取当前文本指针 p 至后一行首对应文本指针（满足 p != g ）。
-//	const uchar_t*
-//	GetNextLinePtr(const Drawing::MTextRegion& r, const uchar_t* p, const uchar_t* g, u16 l); //在 r 中取当前文本指针 p 至后 l 行首对应文本指针（满足 p != g ）。
+		while(--p != g && (c = *p, c != f && !(std::iswprint(c) && (w += cache.GetAdvance(c)) > width)))
+			;
+	}
+	return p;
+}
+
+//在 r 中取当前文本迭代器 p 的前 l 行首对应文本迭代器（满足 p != --g ）。
+template<typename _outIt>
+_outIt
+GetPreviousLinePtr(const Drawing::MTextRegion& r, _outIt p, _outIt g, u16 l = 1)
+{
+	while(l-- != 0 && p != g)
+	{
+		p = rfind<_outIt, uchar_t>(r.GetCache(), r.GetPenX() - r.Margin.Left, p, g, '\n');
+		if(p != g)
+		{
+			p = rfind<_outIt, uchar_t>(r.GetCache(), r.GetBufWidthN(), p, g, '\n');
+			if(p != g)
+				++p;
+		}
+	}
+	return p;
+}
+
+//在 r 中取当前文本迭代器 p 至后一行首对应文本迭代器（满足 p != g ）。
+template<typename _outIt>
+_outIt
+GetNextLinePtr(const Drawing::MTextRegion& r, _outIt p, _outIt g)
+{
+	if(p == g)
+		return p;
+
+	YFontCache& cache(r.GetCache());
+	SDST nw(r.GetBufWidthN());
+	SDST w(r.GetPenX() - r.Margin.Left);
+
+	while(p != g)
+	{
+		uchar_t c(*p);
+		++p;
+		if(c == '\n' || (std::iswprint(c) && (w += cache.GetAdvance(c)) > nw))
+			break;
+	}
+	return p;
+}
 
 
 u32

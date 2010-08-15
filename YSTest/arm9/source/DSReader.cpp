@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:04:05;
-// UTime = 2010-8-5 1:43;
-// Version = 0.2722;
+// UTime = 2010-8-14 2:15;
+// Version = 0.2769;
 
 
 #include "DSReader.h"
@@ -17,23 +17,9 @@ using namespace Text;
 
 YSL_BEGIN_NAMESPACE(Components)
 
-u32 MDualScreenReader::TextFill()
+void MDualScreenReader::FillText()
 {
-//	MTextFileBuffer::TextIterator it(Blocks.begin());
-	MTextFileBuffer::TextIterator it(Blocks, 0, offUp);
-	MTextFileBuffer::TextIterator it2(it);
-	std::size_t n(0);
-
-	it = trUp.PutString(it);
-	it = trDn.PutString(it);
-	while(it2 != it)
-	{
-		++it2;
-		++n;
-	}
-//	it += n = trUp.PutString(it);
-//	it += trDn.PutString(it);
-	return n;
+	itDn = trDn.PutString(trUp.PutString(itUp));
 }
 
 MDualScreenReader::MDualScreenReader(YTextFile& tf_,
@@ -43,7 +29,7 @@ try : tf(tf_), Blocks(tf), fc(fc_),
 left(l), top_up(t_up), top_down(t_down),
 pBgUp(pDesktopUp->GetBackgroundPtr()), pBgDn(pDesktopDown->GetBackgroundPtr()),
 trUp(*new MTextRegion(fc_)), trDn(*new MTextRegion(fc_)), rot(RDeg0),
-offUp(0), offDn(0)
+itUp(Blocks), itDn(Blocks)
 {
 	trUp.SetSize(w, h_up);
 	trDn.SetSize(w, h_down);
@@ -52,7 +38,7 @@ offUp(0), offDn(0)
 	SetLineGap();
 	if(!tf.IsValid())
 		trUp.PutString(L"文件打开失败！\n");
-	TextInit();
+	InitText();
 }
 catch(MLoggedEvent&)
 {
@@ -71,12 +57,12 @@ MDualScreenReader::~MDualScreenReader()
 bool
 MDualScreenReader::IsTextTop()
 {
-	return !offUp;
+	return itUp == Blocks.begin();
 }
 bool
 MDualScreenReader::IsTextBottom()
 {
-	return false; //Temp;
+	return itUp == Blocks.end();
 }
 
 void
@@ -115,7 +101,6 @@ void
 MDualScreenReader::PrintText()
 {
 //	trUp.BlitToBuffer(pBgUp, RDeg0, SCRW, SCRH, 0, 0, 0, 0, trUp.GetWidth(), trUp.GetBufferHeightResized());
-//	trUp.BlitToBuffer(pBgUp, RDeg0);
 	trUp.BlitToBuffer(pBgUp, rot);
 	trDn.BlitToBuffer(pBgDn, rot);
 }
@@ -125,17 +110,16 @@ MDualScreenReader::Refresh()
 	InsertMessage(NowShell(), SM_DSR_REFRESH, 0xD2, reinterpret_cast<WPARAM>(this));
 }
 void
-MDualScreenReader::TextInit()
+MDualScreenReader::InitText()
 {
-	Reset();
-	offUp = 0;
-	offDn = TextFill();
+	itUp = Blocks.begin();
+	Update();
 }
 void
 MDualScreenReader::Update()
 {
 	Reset();
-	offDn = offUp + TextFill();
+	FillText();
 }
 
 bool
@@ -154,11 +138,12 @@ MDualScreenReader::LineUp()
 	trUp.Move(hx, trUp.GetBufferHeightResized());
 	trUp.ClearLn(0);
 	trUp.SetLnNNow(0);
-//	offUp = GetPrevLnOff(trUp, Blocks[0].GetPtr(), offUp) - Blocks[0].GetPtr();
-	offUp = GetPreviousLinePtr(trUp, Blocks[0].GetPtr() + offUp, Blocks[0].GetPtr()) - Blocks[0].GetPtr();
-	trUp.PutLine(&Blocks[0].GetPtr()[offUp]);
-//	offDn = GetPrevLnOff(trDn, Blocks[0].GetPtr(), offDn) - Blocks[0].GetPtr();
-	offDn = GetPreviousLinePtr(trDn, Blocks[0].GetPtr() + offDn, Blocks[0].GetPtr()) - Blocks[0].GetPtr();
+
+	MTextFileBuffer::TextIterator itUpOld(itUp);
+
+	itUp = GetPreviousLinePtr(trUp, itUp, Blocks.begin());
+	trUp.PutLine<MTextFileBuffer::TextIterator, uchar_t>(itUp, itUpOld);
+	itDn = GetPreviousLinePtr(trDn, itDn, Blocks.begin());
 	return true;
 }
 bool
@@ -177,9 +162,8 @@ MDualScreenReader::LineDown()
 	trDn.Move(-hx);
 	trDn.ClearLnLast();
 	trDn.SetLnLast();
-	offDn = trDn.PutLine(&Blocks[0].GetPtr()[offDn]) - Blocks[0].GetPtr();
-//	offUp = GetNextLnOff(trUp, Blocks[0].GetPtr(), offUp) - Blocks[0].GetPtr();
-	offUp = GetNextLinePtr(trUp, Blocks[0].GetPtr() + offUp, Blocks[0].GetPtr() + Blocks[0].GetLength()) - Blocks[0].GetPtr();
+	itDn = trDn.PutLine(itDn);
+	itUp = GetNextLinePtr(trUp, itUp, Blocks.end());
 	return true;
 }
 
@@ -188,8 +172,7 @@ MDualScreenReader::ScreenUp()
 {
 	if(IsTextTop())
 		return false;
-//	offUp = GetPrevLnOff(trUp, Blocks[0].GetPtr(), offUp, trUp.GetLnN() + trDn.GetLnN()) - Blocks[0].GetPtr();
-	offUp = GetPreviousLinePtr(trUp, Blocks[0].GetPtr() + offUp, Blocks[0].GetPtr(), trUp.GetLnN() + trDn.GetLnN()) - Blocks[0].GetPtr();
+	itUp = GetPreviousLinePtr(trUp, itUp, Blocks.begin(), trUp.GetLnN() + trDn.GetLnN());
 	Update();
 	return true;
 }
@@ -198,7 +181,7 @@ MDualScreenReader::ScreenDown()
 {
 	if(IsTextBottom())
 		return false;
-	offUp = offDn;
+	itUp = itDn;
 	Update();
 	return true;
 }

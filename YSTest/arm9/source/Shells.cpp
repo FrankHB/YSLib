@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-8-8 7:24;
-// Version = 0.2958;
+// UTime = 2010-8-13 21:27;
+// Version = 0.2964;
 
 
 #include <Shells.h>
@@ -503,7 +503,6 @@ ShlReader::ShlReader()
 : ShlGUI(), //"/Data/test.txt";
 TextFile("/test.txt"), Reader(TextFile), hUp(NULL), hDn(NULL), bgDirty(true)
 {
-	Reader.TextInit();
 }
 
 void
