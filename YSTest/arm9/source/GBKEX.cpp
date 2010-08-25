@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-8-15;
-// Version = 0.2614; *Build 140 r24;
+// UTime = 2010-8-25;
+// Version = 0.2614; *Build 141 r39;
 
 
 #include "../YCLib/ydef.h"
@@ -95,85 +95,71 @@ DONE:
 r1:
 = test 0;
 
-r2-r8:
-/ @@ \u YText:
-	+ \sf const uchar_t* rfind(YFontCache&, SDST , const uchar_t*, const uchar_t*, uchar_t);
-	/ \impl @@ \f uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*):
-		^ \sf rfind;
+r2:
+/ @@ \u Shells:
+	+ \m std::string path @@ \cl ShlReader;
+	/ \impl @@ void switchShl2() @@ unnamed \ns;
 
-r9:
-/ @@ \u YText:
-	/ \impl @@ \f uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*, u16):
-		^ \sf rfind;
+r3:
+/ void switchShl2() -> void switchShl2(CPATH) @@ unnamed \ns @@ \u Shells;
 
-r10:
-/ @@ \u YText:
-	/ merge uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*)
-		& uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*, u16)
-		-> uchar_t* GetPreviousLinePtr(const MTextRegion&, const uchar_t*, const uchar_t*, u16 = 1);
-	/ (\sf -> \f) @@ const uchar_t* rfind(YFontCache& cache, SDST nw, const uchar_t* p, const uchar_t* g, uchar_t f);
+r4:
+/ \a YPath => MPath;
+/ @@ \u YFileSystem:
+	/ typedef MString YPath -> typedef std::string MPath;
+	/ \ret \ty @@ MString GetFileName(const MPath&) -> std::string;
+	/ \ret \ty @@ MString GetDirectoryName(const MPath&) -> std::string;
+	/ MPath::size_type SplitPath(const MPath&, MPath&, MString&) ->
+		MPath::size_type SplitPath(const MPath&, MPath&, std::string&);
+	/ MString GetBaseName(const MString&, const MString&) ->
+		std::string GetBaseName(const std::string&, const std::string&);
+	/ bool IsBaseName(const MString&, const MString&) ->
+		bool IsBaseName(const std::string&, const std::string&);
+	/ bool SameBaseNames(const char*, const char*) ->
+		bool HaveSameBaseNames(const char*, const char*);
+	/ bool SameBaseNames(const MString&, const MString&) ->
+		bool HaveSameBaseNames(const std::string&, const std::string&);
+	/ MString GetExtendName(const MString&) ->
+		std::string GetExtendName(const std::string&);
+	/ bool IsExtendName(const MString&, const MString&) ->
+		bool IsExtendName(const std::string&, const std::string&);
+	/ bool SameExtendNames(const char*, const char*) ->
+		bool HaveSameExtendNames(const char*, const char*);
+	/ bool SameExtendNames(const MString&, const MString&) ->
+		bool HaveSameExtendNames(const std::string&, const std::string&);
+	/ @@ \u MFileList:
+		/ \mf void GoToSubDirectory(const MString&) ->
+			\mf void GoToSubDirectory(const std::string&);
 
-r11:
-/ @@ \u YText:
-	+= \f const uchar_t* rfind(YFontCache&, SDST, const uchar_t*, const uchar_t*, uchar_t);
-		-> \tf template<typename _outIt, typename _charT> _outIt rfind(YFontCache&, SDST, _outIt, _outIt, _charT);
-	+= \f const uchar_t* GetPreviousLinePtr(const Drawing::MTextRegion& r, const uchar_t*, const uchar_t*, u16 l = 1);
-		-> \tf template<typename _outIt> _outIt GetPreviousLinePtr(const Drawing::MTextRegion&, _outIt, _outIt, u16 l = 1);
-	+= \f const uchar_t* GetNextLinePtr(const Drawing::MTextRegion& r, const uchar_t*, const uchar_t*);
-		-> \tf template<typename _outIt> _outIt GetNextLinePtr(const Drawing::MTextRegion&, _outIt, _outIt);
+r5-r27:
+/ test 1:
+	/ \tr \impl @@ \mf u32 MFileList::LoadSubItems() @@ \u YFileSystem;
+	/ \tr \impl @@ \f YInit @@ unnamed \ns @@ \u YGlobal;
 
-r12:
-/ \tr @@ \impl @@ \tf GetPreviousLinePtr @@ \u Yext;
+r28:
+* @@ \u CHRMap:
+	* \impl @@ \f template<> uchar_t codemap<CharSet::GBK>(ubyte_t&, const char*);
+	* \impl @@ \f template<> uchar_t codemap<CharSet::GBK>(ubyte_t&, FILE*);
 
-r13:
-/ @@ \h "chrdef.h":
-	+ \inc \h <platform.h>;
-	/ typedef unsigned short uchar_t -> typedef u16 uchar_t;
-	/ typedef signed int uchardiff_t -> typedef s32 uchardiff_t;
+r29:
+/ test 2;
 
-r14-r16:
-/ \impl @@ \cl MDualScreenReader @@ \u DSReader:
-	+ \m Text::MTextFileBuffer::TextIterator itUp, itDn;
-	- \m s32 offUp, offDn;
-	/ \mf u32 TextFill() -> void FillText();
-	/ \tr \impl;
-	/ \mf u32 TextInit() -> void InitText();
+r30:
+/ @@ \u YString:
+	/ \a private \m S_str => s_str @@ \cl MString;
+	+ \f MString MBCSToMString(const char*, const CSID& = CS_Local);
+	+ \i \f MString MBCSToMString(const std::string&, const CSID& = CS_Local);
+/ \tr \impl @@ u32 MFileList::LoadSubItems() @@ \u YFileSystem;
 
-r17:
-/ test 1;
-/ \tr \impl @@ \ctor ShlReader::ShlReader() @@ \u Shells;
+r31-36:
+/ test 3;
 
-r18:
-/ \tr \impl @@ \mf InitText \cl MDualScreenReader @@ \u DSReader;
+r37:
++ \i \ctor MString(uchar_t*) @@ \cl MString @@ \u YString;
 
-r19:
-/ @@ \cl MTextRegion @@ \u YText:
-	+ \m \tf template<typename _outIt, tpename _charT> PutLine(_outIt, _outIt, _charT = '\0');
-	+ \m \tf template<typename _outIt, tpename _charT> PutString(_outIt, _outIt, _charT = '\0');
-	/ \ret \ty @@ \i \mf std::size_t PutLine(const MString&) -> MString::size_type;
-	/ \ret \ty @@ \i \mf std::size_t PutString(const MString&) -> MString::size_type;
-/ \tr \impl @@ \mf InitText \cl MDualScreenReader @@ \u DSReader;
+r38-r39:
+/ test 4;
 
-r20:
-/ @@ \u CHRMap:
-	+^ \tf @@ code mapping functions;
-	- !\t code mapping functions;
-/ @@ \u CHRProc:
-	/ \impl @@ \f ubyte_t ToUTF(const char*, uchar_t&, const CSID&) & \f ubyte_t ToUTF(FILE*, uchar_t&, const CSID&);
-	/= \a getc => std::getc;
-
-r21:
-/ @@ \u CHRMap:
-	+ typedef uchar_t CMF(ubyte_t&, const char*);
-	+ typedef uchar_t CMF_File(ubyte_t&, FILE*);
-/ @@ \u CHRProc:
-	+ \tf template<_codemapFuncType> _codemapFuncType* GetCodeMapFuncPtr(const CSID&) @@ unnamed \ns;
-	/ \impl @@ \f ubyte_t ToUTF(const char*, uchar_t&, const CSID&) & \f ubyte_t ToUTF(FILE*, uchar_t&, const CSID&);
-/= \a _charType => _charT;
-
-r22-r24:
-/ test 2:
-	* \impl @@ \tf template<_codemapFuncType> _codemapFuncType* GetCodeMapFuncPtr(const CSID&) @@ unnamed \ns @@ \u CHRProc;
 
 DOING:
 

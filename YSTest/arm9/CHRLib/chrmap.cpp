@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CharacterMapping by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-17 17:53:21;
-// UTime = 2010-8-15 8:51;
-// Version = 0.1468;
+// UTime = 2010-8-25 14:38;
+// Version = 0.1490;
 
 
 #include "chrmap.h"
@@ -167,14 +167,15 @@ template<>
 uchar_t
 codemap<CharSet::GBK>(ubyte_t& l, const char* c)
 {
-	return cp113[static_cast<ubyte_t>(*c)] ? (l = 1, *c) : cp113[getword_BE(c) + 0x0080];
+	return cp113[static_cast<ubyte_t>(*c)] ? (l = 1, *c) : (l = 2, reinterpret_cast<const uchar_t*>(cp113 + 0x0100)[getword_BE(c)]);
 }
 template<>
 uchar_t
 codemap<CharSet::GBK>(ubyte_t& l, FILE* fp)
 {
 	int c(std::getc(fp));
-	return cp113[static_cast<ubyte_t>(c)] ? (l = 1, c) : cp113[(c << 8 | std::getc(fp)) + 0x0080];
+
+	return cp113[static_cast<ubyte_t>(c)] ? (l = 1, c) : (l = 2, reinterpret_cast<const uchar_t*>(cp113 + 0x0100)[(c << 8 | std::getc(fp))]);
 }
 
 template<>

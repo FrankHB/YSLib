@@ -168,8 +168,9 @@ namespace
 	}
 
 	void
-	switchShl2()
+	switchShl2(CPATH pth)
 	{
+		ShlReader::path = pth;
 		CallStored<ShlReader>();
 	}
 
@@ -303,7 +304,8 @@ void
 ShlS::TFrmFileListSelecter::btnOK_Click(const MTouchEventArgs&)
 {
 	if(fbMain.IsSelected())
-		switchShl2();
+		switchShl2("/test.txt");
+	//"/Data/test.txt";
 }
 
 LRES
@@ -499,9 +501,11 @@ ShlA::OnDeactivated(const MMSG& m)
 }
 
 
+std::string ShlReader::path;
+
 ShlReader::ShlReader()
-: ShlGUI(), //"/Data/test.txt";
-TextFile("/test.txt"), Reader(TextFile), hUp(NULL), hDn(NULL), bgDirty(true)
+: ShlGUI(),
+TextFile(path.c_str()), Reader(TextFile), hUp(NULL), hDn(NULL), bgDirty(true)
 {
 }
 

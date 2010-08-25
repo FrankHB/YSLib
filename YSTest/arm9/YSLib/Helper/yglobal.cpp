@@ -1,12 +1,13 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52;
-// UTime = 2010-8-2 15:50;
-// Version = 0.2318;
+// UTime = 2010-8-24 11:08;
+// Version = 0.2322;
 
 
 #include "yglobal.h"
 #include "../ysbuild.h"
+//#include <clocale>
 
 using namespace platform;
 
@@ -157,6 +158,16 @@ namespace
 		//启用 LibNDS 默认异常处理。
 		defaultExceptionHandler();
 
+		//初始化主控制台。
+		InitYSConsole();
+
+	/*	if(std::setlocale(LC_ALL, "zh_CN.GBK") == NULL)
+		{
+			EpicFail();
+			platform::yprintf("setlocale() with %s failed.\n", "zh_CN.GBK");
+			std::terminate();
+		}*/
+
 		//初始化文件系统。
 		//初始化 EFSLib 和 LibFAT 。
 		//当 .nds 文件大于32MB时， EFS 行为异常。
@@ -174,9 +185,6 @@ namespace
 	#ifdef USE_EFS
 		}
 	#endif
-
-		//初始化主控制台。
-		InitYSConsole();
 
 		//检查程序是否被正确安装。
 		CheckInstall();

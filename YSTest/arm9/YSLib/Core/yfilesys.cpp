@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:36:30;
-// UTime = 2010-8-2 13:57;
-// Version = 0.1513;
+// UTime = 2010-8-25 20:13;
+// Version = 0.1586;
 
 
 #include "yfilesys.h"
@@ -30,28 +30,28 @@ GetFileName(CPATH path)
 
 	return p ? (*++p ? p : NULL) : path;
 }
-MString
-GetFileName(const YPath& path)
+std::string
+GetFileName(const MPath& path)
 {
-	const MString::size_type p(path.rfind(DEF_PATH_DELIMITER));
+	const MPath::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
-	return p == MString::npos ? MString(path) : path.substr(p + 1);
+	return p == MPath::npos ? MPath(path) : path.substr(p + 1);
 }
 
-MString
-GetDirectoryName(const YPath& path)
+std::string
+GetDirectoryName(const MPath& path)
 {
-	const MString::size_type p(path.rfind(DEF_PATH_DELIMITER));
+	const MPath::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
-	return p == MString::npos ? MString() : path.substr(0, p + 1);
+	return p == MPath::npos ? MPath() : path.substr(0, p + 1);
 }
 
-YPath::size_type
-SplitPath(const YPath& path, YPath& directory, MString& file)
+MPath::size_type
+SplitPath(const MPath& path, MPath& directory, std::string& file)
 {
-	const MString::size_type p(path.rfind(DEF_PATH_DELIMITER));
+	const std::string::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
-	if(p == MString::npos)
+	if(p == std::string::npos)
 	{
 		directory = "";
 		file = path;
@@ -64,12 +64,12 @@ SplitPath(const YPath& path, YPath& directory, MString& file)
 	return p;
 }
 
-MString
-GetBaseName(const MString& name)
+std::string
+GetBaseName(const std::string& name)
 {
-	const MString::size_type p(name.rfind('.'));
+	const std::string::size_type p(name.rfind('.'));
 
-	return p == MString::npos ? MString(name) : name.substr(0, p);
+	return p == std::string::npos ? std::string(name) : name.substr(0, p);
 }
 
 bool
@@ -82,7 +82,7 @@ IsBaseName(const char* str, const char* name)
 	return !strncmp(str, name, strlen(str));
 }
 bool
-IsBaseName(const MString& str, const MString& name)
+IsBaseName(const std::string& str, const std::string& name)
 {
 	if(str.length() > name.length())
 		return false;
@@ -90,7 +90,7 @@ IsBaseName(const MString& str, const MString& name)
 }
 
 bool
-SameBaseNames(const char* a, const char* b)
+HaveSameBaseNames(const char* a, const char* b)
 {
 	const char *pea(GetExtendName(a)), *peb(GetExtendName(b));
 
@@ -106,7 +106,7 @@ SameBaseNames(const char* a, const char* b)
 	return true;
 }
 bool
-SameBaseNames(const MString& a, const MString& b)
+HaveSameBaseNames(const std::string& a, const std::string& b)
 {
 	return GetBaseName(a) == GetBaseName(b);
 }
@@ -121,12 +121,12 @@ GetExtendName(const char* name)
 
 	return p && *++p ? p : NULL;
 }
-MString
-GetExtendName(const MString& name)
+std::string
+GetExtendName(const std::string& name)
 {
-	const MString::size_type p(name.rfind('.'));
+	const std::string::size_type p(name.rfind('.'));
 
-	return p == MString::npos ? MString() : name.substr(p + 1);
+	return p == std::string::npos ? std::string() : name.substr(p + 1);
 }
 
 bool
@@ -139,7 +139,7 @@ IsExtendName(const char* str, const char* name)
 	return !stricmp(str, p);
 }
 bool
-IsExtendName(const MString& str, const MString& name)
+IsExtendName(const std::string& str, const std::string& name)
 {
 	if(str.length() > name.length())
 		return false;
@@ -147,7 +147,7 @@ IsExtendName(const MString& str, const MString& name)
 }
 
 bool
-SameExtendNames(const char* a, const char* b)
+HaveSameExtendNames(const char* a, const char* b)
 {
 	if(!(a && b))
 		return false;
@@ -156,18 +156,27 @@ SameExtendNames(const char* a, const char* b)
 
 	if(!(pa && pb))
 		return false;
-	return stricmp(pa, pb);
+	return stdex::stricmp_n(pa, pb) != 0;
 }
 bool
-SameExtendNames(const MString& a, const MString& b)
+HaveSameExtendNames(const std::string& a, const std::string& b)
 {
-	MString ea(GetExtendName(a)), eb(GetExtendName(b));
+	std::string ea(GetExtendName(a)), eb(GetExtendName(b));
 
-	return ucsicmp(ea.c_str(), eb.c_str());
+	return stdex::stricmp_n(ea.c_str(), eb.c_str()) != 0;
+//	return ucsicmp(ea.c_str(), eb.c_str());
 }
 
 int
-ChDir(const YPath& path)
+ChDir(const MPath& path)
+{
+	if(path.length() > MAX_PATH_LENGTH)
+		return -2;
+
+	return ChDir(path.c_str());
+}
+/*int //for MString;
+ChDir(const MPath& path)
 {
 	if(path.length() > MAX_PATH_LENGTH)
 		return -2;
@@ -176,14 +185,14 @@ ChDir(const YPath& path)
 
 	UTF16LEToMBCS(p, path.c_str());
 	return ChDir(p);
-}
+}*/
 
-YPath
+MPath
 GetNowDirectory()
 {
 	PATHSTR buf;
 
-	return getcwd(buf, MAX_PATH_LENGTH - 1) ? MString() : MString(buf);
+	return getcwd(buf, MAX_PATH_LENGTH - 1) != NULL ? std::string() : std::string(buf);
 }
 
 
@@ -213,7 +222,7 @@ MFileList::LoadSubItems()
 		dirreset(dir);
 		while(!dirnext(dir, name, &st))
 			if(strcmp(name, FS_Now))
-				List.push_back(st.st_mode & S_IFDIR ? MString(strlwr(name)) + MString(FS_Seperator) : MString(strlwr(name)));
+				List.push_back(st.st_mode & S_IFDIR ? MBCSToMString(name) + MString(FS_Seperator) : MBCSToMString(name));
 		dirclose(dir);
 	}
 	return n;
@@ -226,16 +235,15 @@ MFileList::ListItems()
 }
 
 void
-MFileList::GoToPath(const YPath& p)
+MFileList::GoToPath(const MPath& p)
 {
 	Directory = GetDirectoryName(p);
 	if(ChDir(Directory.c_str()))
 		Directory = GetNowDirectory();
 }
 void
-MFileList::GoToSubDirectory(const MString& d)
+MFileList::GoToSubDirectory(const std::string& d)
 {
-
 	if(ChDir(d.c_str()))
 		Directory = GetNowDirectory();
 	else

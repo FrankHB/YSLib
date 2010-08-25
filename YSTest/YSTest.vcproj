@@ -30,7 +30,7 @@
 				CleanCommandLine="make clean"
 				Output="$(ConfigurationName)\$(ProjectName).nds"
 				PreprocessorDefinitions="NDEBUG;__GNUC__"
-				IncludeSearchPath="&quot;$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.4.3\include&quot;;&quot;$(DKP_HOME)\devkitARM\arm-eabi\include&quot;;&quot;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.4.3&quot;;&quot;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.4.3\arm-eabi&quot;;&quot;$(DKP_HOME)\libnds\include&quot;;&quot;$(DKP_HOME)\PAlib\lib\include\nds&quot;;&quot;$(DKP_HOME)\PAlib\lib\include\nds\arm7&quot;;&quot;$(DKP_HOME)\PAlib\lib\include\nds\arm9&quot;;&quot;$(DKP_HOME)\PAlib\lib\include\nds\netinet&quot;;&quot;$(DKP_HOME)\PAlib\lib\include\nds\sys&quot;;&quot;$(ProjectDir)common\include&quot;;&quot;$(ProjectDir)arm7\include&quot;;&quot;$(ProjectDir)arm9\include&quot;"
+				IncludeSearchPath="&quot;$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.0\include&quot;;&quot;$(DKP_HOME)\devkitARM\arm-eabi\include&quot;;&quot;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.0&quot;;&quot;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.0\arm-eabi&quot;;&quot;$(DKP_HOME)\libnds\include&quot;;&quot;$(DKP_HOME)\PAlib\lib\include\nds&quot;;&quot;$(DKP_HOME)\PAlib\lib\include\nds\arm7&quot;;&quot;$(DKP_HOME)\PAlib\lib\include\nds\arm9&quot;;&quot;$(DKP_HOME)\PAlib\lib\include\nds\netinet&quot;;&quot;$(DKP_HOME)\PAlib\lib\include\nds\sys&quot;;&quot;$(ProjectDir)common\include&quot;;&quot;$(ProjectDir)arm7\include&quot;;&quot;$(ProjectDir)arm9\include&quot;"
 				ForcedIncludes=""
 				AssemblySearchPath=""
 				ForcedUsingAssemblies=""

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:36;
-// UTime = 2010-8-2 14:58;
-// Version = 0.1678;
+// UTime = 2010-8-23 20:54;
+// Version = 0.184;
 
 
 #include "yapp.h"
@@ -47,7 +47,7 @@ YLog::FatalError(const std::string& s)
 }
 
 
-const IO::YPath YApplication::CommonAppDataPath("/");
+const IO::MPath YApplication::CommonAppDataPath("/");
 const MString YApplication::CompanyName(G_COMP_NAME);
 const MString YApplication::ProductName(G_APP_NAME);
 const MString YApplication::ProductVersion(G_APP_VER);

@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-8-15 9:19;
-// Version = r6946;
+// UTime = 2010-8-25 20:15;
+// Version = r6966;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -2766,17 +2766,29 @@ unit YString "ystring"
 
 	YSL_BEGIN_NAMESPACE(Text)
 
-	class MString : public std::ustring
+	// YSLib 标准字符串（使用 UTF-16BE ）。
+	class MString : public stdex::ustring
 	{
-		typedef YObject ParentType;
+	private:
+		static uchar_t* s_str; //内码转换生成字符串临时指针。
 
+	public:
 		inline
 		MString();
+		inline
+		MString(const uchar_t*);
 		template<class _charT>
 		MString(const _charT*);
 		inline
 		MString(const stdex::ustring&);
 	}; //class MString;
+
+
+	//多字节字符串转化为 YSLib 标准字符串。
+	MString
+	MBCSToMString(const char*, const CSID& = CS_Local);
+	inline MString
+	MBCSToString(const std::string& s, const CSID& = CS_Local);
 
 	YSL_END_NAMESPACE(Text)
 
@@ -3325,7 +3337,7 @@ unit YApplication "yapp"
 		typedef std::set<HSHL> SHLs;
 
 		//全局常量。
-		static const IO::YPath CommonAppDataPath; //程序默认路径。
+		static const IO::MPath CommonAppDataPath; //程序默认路径。
 		static const MString CompanyName; //制作组织名称。
 		static const MString ProductName; //产品名称。
 		static const MString ProductVersion; //产品版本。
@@ -3394,66 +3406,66 @@ unit YFileSystem "yfilesys"
 	export const CPATH FS_Now;
 	export const CPATH FS_Parent;
 
-	typedef MString YPath; //文件路径类型。
+	typedef std::string MPath; //文件路径类型。
 
 	//截取路径末尾的文件名。
 	const char*
 	GetFileName(CPATH);
-	MString
-	GetFileName(const YPath&);
+	std::string
+	GetFileName(const MPath&);
 
 	//截取路径中的目录名并返回字符串。
-	MString
-	GetDirectoryName(const YPath&);
+	std::string
+	GetDirectoryName(const MPath&);
 
 	//截取路径中的目录名和文件名保存至字符串，并返回最后一个目录分隔符的位置。
-	YPath::const_iterator
-	SplitPath(const YPath&, YPath&, MString&);
+	MPath::const_iterator
+	SplitPath(const MPath&, MPath&, std::string&);
 
 
 	//截取文件名开头的主文件名（贪婪匹配）。
 	MString
-	GetBaseName(const MString&, const MString&);
+	GetBaseName(const MString&, const std::string&);
 
 	//对于两个字符串，判断前者是否是后者的主文件名。
 	bool
 	IsBaseName(const char*, const char*);
 	bool
-	IsBaseName(const MString&, const MString&);
+	IsBaseName(const std::string&, const std::string&);
 
 	//判断给定两个文件名的主文件名是否相同（忽略大小写；贪婪匹配）。
 	bool
-	SameBaseNames(const char*, const char*);
+	HaveSameBaseNames(const char*, const char*);
 	bool
-	SameBaseNames(const MString&, const MString&);
+	HaveSameBaseNames(const std::string&, const std::string&);
 
 	//截取文件名末尾的扩展名（非贪婪匹配）。
 	const char*
 	GetExtendName(const char*);
-	MString
-	GetExtendName(const MString&);
+	std::string
+	GetExtendName(const std::string&);
 
 	//对于两个字符串，判断前者是否是后者的扩展名。
 	bool
 	IsExtendName(const char*, const char*);
 	bool
-	IsExtendName(const MString&, const MString&);
+	IsExtendName(const std::string&, const std::string&);
 
 	//判断给定两个文件名的扩展名是否相同（忽略大小写；非贪婪匹配）。
 	bool
-	SameExtendNames(const char*, const char*);
+	HaveSameExtendNames(const char*, const char*);
 	bool
-	SameExtendNames(const MString&, const MString&);
+	HaveSameExtendNames(const std::string&, const std::string&);
 
 
 	//切换路径。
 	inline int
 	ChDir(CPATH);
 	int
-	ChDir(const YPath&);
+	ChDir(const MPath&);
 
 	//取当前工作目录。
-	YPath
+	MPath
 	GetNowDirectory();
 
 
@@ -3481,7 +3493,7 @@ unit YFileSystem "yfilesys"
 		typedef std::vector<ItemType> ListType; //项目列表类型。
 
 	protected:
-		YPath Directory; //目录的完整路径。
+		MPath Directory; //目录的完整路径。
 		ListType List; //目录中的项目列表。
 
 	public:
@@ -3489,7 +3501,7 @@ unit YFileSystem "yfilesys"
 		virtual
 		~MFileList();
 
-		const YPath&
+		const MPath&
 		GetDirectory() const; //取目录的完整路径。
 		u32
 		LoadSubItems(); //在目录中取子项目保存至参数。
@@ -3500,9 +3512,9 @@ unit YFileSystem "yfilesys"
 		ListItems(); //遍历目录中的项目，更新至列表。
 
 		void
-		GoToPath(const YPath&); //导航至指定路径对应目录。
+		GoToPath(const MPath&); //导航至指定路径对应目录。
 		void
-		GoToSubDirectory(const MString&); //导航至子目录。
+		GoToSubDirectory(const std::string&); //导航至子目录。
 		void
 		GoToRoot(); //返回根目录。
 		void

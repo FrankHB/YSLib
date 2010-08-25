@@ -258,7 +258,7 @@ class ShlReader : public ShlGUI
 public:
 	typedef ShlGUI ParentType;
 
-//	static MString path;
+	static std::string path;
 
 	YTextFile TextFile;
 	MDualScreenReader Reader;

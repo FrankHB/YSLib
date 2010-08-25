@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:27;
-// UTime = 2010-8-2 14:57;
-// Version = 0.1696;
+// UTime = 2010-8-23 20:53;
+// Version = 0.1701;
 
 
 #ifndef INCLUDED_YAPP_H_
@@ -52,7 +52,7 @@ public:
 	typedef std::set<HSHL> SHLs;
 
 	//全局常量。
-	static const IO::YPath CommonAppDataPath; //程序默认路径。
+	static const IO::MPath CommonAppDataPath; //程序默认路径。
 	static const MString CompanyName; //制作组织名称。
 	static const MString ProductName; //产品名称。
 	static const MString ProductVersion; //产品版本。

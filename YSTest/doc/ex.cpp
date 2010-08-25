@@ -583,7 +583,7 @@ pDefaultFontCache->GetFontFamilyPtr("Microsoft YaHei")
 /*
 #include "../YSLib/Core/ystring.h"
 
-class YPath
+class MPath
 {
 public:
 	typedef MString PathType;
@@ -595,7 +595,7 @@ protected:
 	PathType File;
 
 public:
-	YPath(CRefType);
+	MPath(CRefType);
 
 	CRefType GetDirectory() const;
 	CRefType GetFile() const;
@@ -603,21 +603,21 @@ public:
 	void SetPath(CRefType);
 };
 
-inline YPath::YPath(YPath::CRefType path)
+inline MPath::MPath(MPath::CRefType path)
 {
 	SetPath(path);
 }
 
-inline YPath::CRefType YPath::GetDirectory() const
+inline MPath::CRefType MPath::GetDirectory() const
 {
 	return Directory;
 }
-inline YPath::CRefType YPath::GetFile() const
+inline MPath::CRefType MPath::GetFile() const
 {
 	return File;
 }
 
-inline void YPath::SetPath(YPath::CRefType path)
+inline void MPath::SetPath(MPath::CRefType path)
 {
 	SplitPath(path, Directory, File);
 }
@@ -679,7 +679,7 @@ int YFileItem::ToNext()
 class YListControl : public YObject
 {
 protected:
-	YPath alloc;
+	MPath alloc;
 
 public:
 	YListControl();
