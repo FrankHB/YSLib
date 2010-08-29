@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28;
-// UTime = 2010-8-2 13:57;
-// Version = 0.1878;
+// UTime = 2010-8-29 12:09;
+// Version = 0.1942;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -65,7 +65,7 @@ namespace stdex
 
 //#define HEAP_SIZE (mallinfo().uordblks)
 
-namespace platform_type
+namespace platform
 {
 	typedef PIXEL* BitmapPtr;
 	typedef const PIXEL* ConstBitmapPtr;
@@ -130,7 +130,7 @@ namespace platform_type
 
 
 	//屏幕光标信息。
-	typedef struct CursorInfo : public touchPosition
+	typedef struct CursorInfo : public ::touchPosition
 	{
 		u16 GetX() const;
 		u16 GetY() const;
@@ -146,16 +146,106 @@ namespace platform_type
 	{
 		return py;
 	}
-}
 
-namespace platform
-{
+
 	//定长路径字符串类型。
 	typedef char PATHSTR[MAXPATHLEN];
+
+
+	//目录迭代器。
+	class DirIter
+	{
+	public:
+		typedef ::DIR_ITER* IteratorType;
+
+		static PATHSTR Name;
+		static struct ::stat Stat;
+		static int LastError;
+
+	private:
+		IteratorType dir;
+
+	public:
+		explicit
+		DirIter(CPATH = NULL);
+
+	private:
+		DirIter(IteratorType&);
+
+	public:
+		~DirIter();
+
+		DirIter&
+		operator++();
+		DirIter
+		operator++(int);
+
+		bool
+		IsValid() const;
+
+		void
+		Open(CPATH);
+
+		void
+		Close();
+
+		void
+		Reset();
+	};
+
+	inline
+	DirIter::DirIter(CPATH path)
+	: dir(NULL)
+	{
+		Open(path);
+	}
+	inline
+	DirIter::DirIter(DirIter::IteratorType& d)
+	: dir(d)
+	{}
+	inline
+	DirIter::~DirIter()
+	{
+		Close();
+	}
+
+	inline DirIter
+	DirIter::operator++(int)
+	{
+		return ++DirIter(*this);
+	}
+
+	inline bool
+	DirIter::IsValid() const
+	{
+		return dir != NULL;
+	}
+
+	inline void
+	DirIter::Open(CPATH path)
+	{
+		dir = path == NULL ? NULL : ::diropen(path);
+	}
+
+	inline void
+	DirIter::Close()
+	{
+		if(IsValid())
+			LastError = ::dirclose(dir);
+	}
+
+	inline void
+	DirIter::Reset()
+	{
+		LastError = ::dirreset(dir);
+	}
+
 
 	//判断指定目录是否存在。
 	bool
 	direxists(CPATH);
+
+	using ::mkdir;
 
 	//按路径新建一个或多个目录。
 	bool
@@ -268,7 +358,7 @@ namespace platform
 
 	//写入当前按键信息。
 	void
-	WriteKeysInfo(platform_type::KeysInfo&, platform_type::CursorInfo&);
+	WriteKeysInfo(KeysInfo&, CursorInfo&);
 
 
 	//寄存器 - 毫秒转换。

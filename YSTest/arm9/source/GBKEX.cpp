@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-8-25;
-// Version = 0.2614; *Build 141 r39;
+// UTime = 2010-8-29;
+// Version = 0.2614; *Build 142 r34;
 
 
 #include "../YCLib/ydef.h"
@@ -96,69 +96,61 @@ r1:
 = test 0;
 
 r2:
-/ @@ \u Shells:
-	+ \m std::string path @@ \cl ShlReader;
-	/ \impl @@ void switchShl2() @@ unnamed \ns;
+/= \ns platform_type >> \ns platform;
 
 r3:
-/ void switchShl2() -> void switchShl2(CPATH) @@ unnamed \ns @@ \u Shells;
++ \cl DirIter @@ \ns platform @@ \u YCommon;
+/ @@ \ns YSLib @@ \h YAdapter:
+	- using ::DIR_ITER;
+	- using ::diropen;
+	- using ::dirnext;
+	- using ::dirreset;
+	- using ::dirclose;
+	+ using platform::DirIter;
+/ @@ \impl @@ \u YFileSystem:
+	/ ^ DirIter;
++ using ::mkdir @@ \ns platform @@ \u YCommon;
 
-r4:
-/ \a YPath => MPath;
-/ @@ \u YFileSystem:
-	/ typedef MString YPath -> typedef std::string MPath;
-	/ \ret \ty @@ MString GetFileName(const MPath&) -> std::string;
-	/ \ret \ty @@ MString GetDirectoryName(const MPath&) -> std::string;
-	/ MPath::size_type SplitPath(const MPath&, MPath&, MString&) ->
-		MPath::size_type SplitPath(const MPath&, MPath&, std::string&);
-	/ MString GetBaseName(const MString&, const MString&) ->
-		std::string GetBaseName(const std::string&, const std::string&);
-	/ bool IsBaseName(const MString&, const MString&) ->
-		bool IsBaseName(const std::string&, const std::string&);
-	/ bool SameBaseNames(const char*, const char*) ->
-		bool HaveSameBaseNames(const char*, const char*);
-	/ bool SameBaseNames(const MString&, const MString&) ->
-		bool HaveSameBaseNames(const std::string&, const std::string&);
-	/ MString GetExtendName(const MString&) ->
-		std::string GetExtendName(const std::string&);
-	/ bool IsExtendName(const MString&, const MString&) ->
-		bool IsExtendName(const std::string&, const std::string&);
-	/ bool SameExtendNames(const char*, const char*) ->
-		bool HaveSameExtendNames(const char*, const char*);
-	/ bool SameExtendNames(const MString&, const MString&) ->
-		bool HaveSameExtendNames(const std::string&, const std::string&);
-	/ @@ \u MFileList:
-		/ \mf void GoToSubDirectory(const MString&) ->
-			\mf void GoToSubDirectory(const std::string&);
-
-r5-r27:
+r4-r19:
 / test 1:
-	/ \tr \impl @@ \mf u32 MFileList::LoadSubItems() @@ \u YFileSystem;
-	/ \tr \impl @@ \f YInit @@ unnamed \ns @@ \u YGlobal;
+	/ @@ \cl platform::DirIter @@ \u YCommon:
+		* \tr @@ \mf operator++();
+		- \i @@ \mf operator();
+/= \tr \impl @@ \f bool IsBaseName(const char*, const char*) @@ \u YFileSystem;
 
-r28:
-* @@ \u CHRMap:
-	* \impl @@ \f template<> uchar_t codemap<CharSet::GBK>(ubyte_t&, const char*);
-	* \impl @@ \f template<> uchar_t codemap<CharSet::GBK>(ubyte_t&, FILE*);
+r20:
+/ @@ \cl platform::DirIter @@ \u YCommon:
+	+ \mf void Open(CPATH);
+	/= \impl @@ \ctor;
 
-r29:
-/ test 2;
+r21:
+= test 2;
 
-r30:
-/ @@ \u YString:
-	/ \a private \m S_str => s_str @@ \cl MString;
-	+ \f MString MBCSToMString(const char*, const CSID& = CS_Local);
-	+ \i \f MString MBCSToMString(const std::string&, const CSID& = CS_Local);
-/ \tr \impl @@ u32 MFileList::LoadSubItems() @@ \u YFileSystem;
+r22:
+\a SetBgRedrawing => SetBgRedrawed;
+\a SetBgRedrawing => SetBgRedrawed;
+\a BgRedrawing => BgRedrawed;
 
-r31-36:
-/ test 3;
+r23:
+/ \m mutable bool bBgRedraw -> bBgRedrawed @@ \cl MVisual @@ \u YWidget;
 
-r37:
-+ \i \ctor MString(uchar_t*) @@ \cl MString @@ \u YString;
+r24:
+/ \impl @@ \mf DrawWidgets() @@ \cl YFrameWindow @@ \u YWindow;
 
-r38-r39:
-/ test 4;
+r25-r26:
+/ \impl @@ void Update() @@ \cl YDesktop @@ \u YDesktop;
+/ \impl @@ void Update() @@ \cl YShlGUI @@ \u ShlDS;
+
+r27-r31:
+= test 3;
+
+r32:
+/ \tr \impl @@ \mf OnActivated @@ \cl ShlLoad @@ \u Shells;
+
+r33-r34:
+= test 4:
+/ \tr \impl @@ \mf void Refresh() @@ \cl MWidget @@ \u YWidget;
+
 
 
 DOING:
@@ -167,8 +159,9 @@ DOING:
 / ...
 
 NEXT:
-+ \impl \cl ShlReader;
-+ fully \impl btnTest;
++ fully \impl YFileList;
+/ fully \impl \cl ShlReader;
+/ fully \impl btnTest;
 
 TODO:
 

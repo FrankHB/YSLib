@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40;
-// UTime = 2010-7-26 7:35;
-// Version = 0.3253;
+// UTime = 2010-8-29 12:29;
+// Version = 0.3254;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -118,7 +118,7 @@ public:
 
 	virtual DefBoolGetterBase(Visible, MVisual)
 	virtual DefBoolGetterBase(Transparent, MVisual)
-	virtual DefBoolGetterBase(BgRedrawing, MVisual)
+	virtual DefBoolGetterBase(BgRedrawed, MVisual)
 	virtual DefBoolGetterBase(Enabled, MVisualControl)
 	virtual DefBoolGetterBase(Focused, AFocusRequester)
 	virtual PDefHead(bool, IsFocusOfContainer, Runtime::GMFocusResponser<IVisualControl>& c) const
@@ -154,7 +154,7 @@ public:
 
 	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
-	virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
+	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
 	virtual DefSetterBase(const SPoint&, Location, MVisual)
 	virtual DefSetterDe(bool, Refresh, bRefresh, true)
 	virtual DefSetterDe(bool, Update, bUpdate, true)

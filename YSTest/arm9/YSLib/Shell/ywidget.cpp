@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-7-4 4:16;
-// Version = 0.3941;
+// UTime = 2010-8-29 20:35;
+// Version = 0.3948;
 
 
 #include "ywindow.h"
@@ -33,7 +33,7 @@ GetLocationOffset(IWidget* pCon, const SPoint& p, const HWND& hWnd)
 
 
 MVisual::MVisual(const SRect& r)
-: Visible(true), Transparent(false), bBgRedraw(true),
+: Visible(true), Transparent(false), bBgRedrawed(false),
 Location(r.GetPoint()), Size(r.Width, r.Height)
 {}
 
@@ -42,7 +42,7 @@ MVisual::SetSize(SDST w, SDST h)
 {
 	if(Size.Width != w || Size.Height != h)
 	{
-		bBgRedraw = true;
+		bBgRedrawed = false;
 		Size.Width = w;
 		Size.Height = h;
 	}
@@ -79,7 +79,6 @@ MWidget::GetLocationForParentWindow() const
 void
 MWidget::Refresh()
 {
-	SetBgRedrawing();
 	if(hWindow)
 	{
 		hWindow->Refresh();

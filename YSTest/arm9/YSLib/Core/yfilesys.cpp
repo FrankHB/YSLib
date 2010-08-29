@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:36:30;
-// UTime = 2010-8-25 20:13;
-// Version = 0.1586;
+// UTime = 2010-8-29 6:29;
+// Version = 0.1633;
 
 
 #include "yfilesys.h"
@@ -75,11 +75,13 @@ GetBaseName(const std::string& name)
 bool
 IsBaseName(const char* str, const char* name)
 {
-	std::size_t t(strlen(str));
+	using stdex::strlen_n;
 
-	if(t > strlen(name))
+	std::size_t t(strlen_n(str));
+
+	if(t > strlen_n(name))
 		return false;
-	return !strncmp(str, name, strlen(str));
+	return !strncmp(str, name, strlen_n(str));
 }
 bool
 IsBaseName(const std::string& str, const std::string& name)
@@ -205,25 +207,23 @@ MFileList::~MFileList()
 u32
 MFileList::LoadSubItems()
 {
-	DIR_ITER* dir(diropen(FS_Now));
+	DirIter dir(FS_Now);
 	u32 n(0);
 
-	if(dir)
+	if(dir.IsValid())
 	{
 		List.clear();
 
-		FILENAMESTR name;
-		struct stat st;
-
-		while(!dirnext(dir, name, &st))
-			if(strcmp(name, FS_Now))
+		while((++dir).LastError == 0)
+			if(std::strcmp(DirIter::Name, FS_Now) != 0)
 				++n;
 		List.reserve(n);
-		dirreset(dir);
-		while(!dirnext(dir, name, &st))
-			if(strcmp(name, FS_Now))
-				List.push_back(st.st_mode & S_IFDIR ? MBCSToMString(name) + MString(FS_Seperator) : MBCSToMString(name));
-		dirclose(dir);
+		dir.Reset();
+		while((++dir).LastError == 0)
+			if(std::strcmp(DirIter::Name, FS_Now) != 0)
+				List.push_back(DirIter::Stat.st_mode & S_IFDIR ?
+					MBCSToMString(DirIter::Name) + MString(FS_Seperator)
+					: MBCSToMString(DirIter::Name));
 	}
 	return n;
 }

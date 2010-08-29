@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:24;
-// UTime = 2010-8-15 9:15;
-// Version = 0.3386;
+// UTime = 2010-8-29 12:30;
+// Version = 0.3388;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -190,7 +190,7 @@ public:
 
 	virtual DefBoolGetterBase(Visible, MVisual)
 	virtual DefBoolGetterBase(Transparent, MVisual)
-	virtual DefBoolGetterBase(BgRedrawing, MVisual)
+	virtual DefBoolGetterBase(BgRedrawed, MVisual)
 	virtual DefBoolGetterBase(Enabled, MControl)
 	virtual DefBoolGetterBase(Focused, AFocusRequester)
 	virtual PDefHead(bool, IsFocusOfContainer, Runtime::GMFocusResponser<IVisualControl>& c) const
@@ -210,7 +210,7 @@ public:
 
 	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
-	virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
+	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
 	virtual DefSetterBase(const SPoint&, Location, MVisual)
 	virtual DefSetterBaseDe(bool, Enabled, MControl, true)
 

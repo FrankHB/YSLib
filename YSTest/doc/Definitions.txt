@@ -475,7 +475,7 @@ unit YCommon "ycommon"
 	//最大路径长度。
 	#define YC_MAX_PATH MAXPATHLEN;
 
-	namespace platform_type
+	namespace platform
 	{
 		typedef PIXEL* BitmapPtr;
 		typedef const PIXEL* ConstBitmapPtr;
@@ -530,22 +530,63 @@ unit YCommon "ycommon"
 
 
 		//屏幕光标信息。
-		typedef struct CursorInfo : public touchPosition
+		typedef struct CursorInfo : public ::touchPosition
 		{
 			u16 GetX() const;
 			u16 GetY() const;
 		} CursorInfo;
-	} //namespace platform_type;
 
-	namespace platform
-	{
+
 		//定长路径字符串类型。
 		typedef char PATHSTR[MAXPATHLEN];
+
+
+		//目录迭代器。
+		class DirIter
+		{
+		public:
+			typedef ::DIR_ITER* IteratorType;
+
+			static PATHSTR name;
+			static struct ::stat Stat;
+
+		private:
+			IteratorType dir;
+
+		public:
+			inline explicit
+			DirIter(CPATH = NULL);
+
+		private:
+			inline DirIter(IteratorType&);
+
+		public:
+			inline ~DirIter();
+
+			inline DirIter&
+			operator++();
+			inline DirIter
+			operator++(int);
+
+			inline bool
+			IsValid() const;
+
+			inline void
+			Open(CPATH);
+
+			inline void
+			Close();
+
+			inline void
+			Reset();
+		}; //class DirIter;
 
 
 		//判断指定目录是否存在。
 		bool
 		direxists(CPATH);
+
+		using ::mkdir;
 
 		//按路径新建一个或多个目录。
 		bool
@@ -608,7 +649,7 @@ unit YCommon "ycommon"
 
 		//写入当前按键信息。
 		void
-		WriteKeysInfo(platform_type::KeysInfo&, platform_type::CursorInfo&);
+		WriteKeysInfo(KeysInfo&, CursorInfo&);
 
 
 		//寄存器 - 毫秒转换。
@@ -759,15 +800,16 @@ header YAdapter "yadapter.h"
 	{
 		namespace Drawing
 		{
-			using platform_type::BitmapPtr;
-			using platform_type::ConstBitmapPtr;
+			using platform::BitmapPtr;
+			using platform::ConstBitmapPtr;
 		} //namespace Drawing;
 		namespace Runtime
 		{
-			using platform_type::Keys;
-			using platform_type::KeysInfo;
-			using platform_type::CursorInfo;
+			using platform::Keys;
+			using platform::KeysInfo;
+			using platform::CursorInfo;
 		} //namespace Runtime;
+		using platform::DirIter;
 		using platform::yassert;
 		namespace $platform
 		{
@@ -4204,7 +4246,7 @@ unit YWidget "ywidget"
 	DeclInterface(IWidget)
 		DeclIEntry(bool IsVisible() const) //判断是否可见。
 		DeclIEntry(bool IsTransparent() const) //判断是否透明。
-		DeclIEntry(bool IsBgRedrawing() const) //判断是否需要重绘。
+		DeclIEntry(bool IsBgRedrawed() const) //判断是否需要重绘。
 
 		DeclIEntry(bool Contains(const Drawing::SPoint&) const) //判断点是否在边界内或边界上。
 
@@ -4215,7 +4257,7 @@ unit YWidget "ywidget"
 
 		DeclIEntry(void SetVisible(bool = true)) //设置可见。
 		DeclIEntry(void SetTransparent(bool = true)) //设置透明。
-		DeclIEntry(void SetBgRedrawing(bool = true)) //设置重绘。
+		DeclIEntry(void SetBgRedrawed(bool = true)) //设置重绘状态。
 		DeclIEntry(void SetLocation(const SPoint&)) //设置左上角所在位置（相对于容器的偏移坐标）。
 
 		DeclIEntry(void DrawBackground()) //绘制背景。
@@ -4257,7 +4299,7 @@ unit YWidget "ywidget"
 		bool Transparent; //透明性。
 
 	private:
-		mutable bool bBgRedraw; //背景重绘属性。
+		mutable bool bBgRedrawed; //背景重绘属性。
 
 	protected:
 		SPoint Location; //左上角所在位置（相对于容器的偏移坐标）。
@@ -4269,7 +4311,7 @@ unit YWidget "ywidget"
 
 		DefBoolGetter(Visible, Visible)
 		DefBoolGetter(Transparent, Transparent)
-		DefBoolGetter(BgRedrawing, bBgRedraw)
+		DefBoolGetter(BgRedrawed, bBgRedrawed)
 
 		//判断包含关系。
 		PDefHead(bool, Contains, const SPoint& p) const
@@ -4287,7 +4329,7 @@ unit YWidget "ywidget"
 
 		DefSetterDe(bool, Visible, Visible, true)
 		DefSetterDe(bool, Transparent, Transparent, true)
-		DefSetterDe(bool, BgRedrawing, bBgRedraw, true)
+		DefSetterDe(bool, BgRedrawed, bBgRedrawed, true)
 		virtual DefSetter(const SPoint&, Location, Location)
 		virtual PDefHead(void, SetLocation, SPOS x, SPOS y)
 			ImplBodyBaseVoid(MVisual, SetLocation, SPoint(x, y))
@@ -4347,7 +4389,7 @@ unit YWidget "ywidget"
 
 		virtual DefBoolGetterBase(Visible, MVisual)
 		virtual DefBoolGetterBase(Transparent, MVisual)
-		virtual DefBoolGetterBase(BgRedrawing, MVisual)
+		virtual DefBoolGetterBase(BgRedrawed, MVisual)
 
 		//判断包含关系。
 		virtual PDefHead(bool, Contains, const SPoint& p) const
@@ -4360,7 +4402,7 @@ unit YWidget "ywidget"
 
 		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
-		virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
+		virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
 		virtual DefSetterBase(const SPoint&, Location, MVisual)
 
 		virtual void
@@ -4441,7 +4483,7 @@ unit YWidget "ywidget"
 
 		virtual DefBoolGetterBase(Visible, MVisual)
 		virtual DefBoolGetterBase(Transparent, MVisual)
-		virtual DefBoolGetterBase(BgRedrawing, MVisual)
+		virtual DefBoolGetterBase(BgRedrawed, MVisual)
 
 		//判断包含关系。
 		virtual PDefHead(bool, Contains, const SPoint& p) const
@@ -4462,7 +4504,7 @@ unit YWidget "ywidget"
 
 		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
-		virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
+		virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
 		virtual DefSetterBase(const SPoint&, Location, MVisual)
 
 		virtual PDefHead(void, ClearFocusingPtr)
@@ -4655,7 +4697,7 @@ unit YControl "ycontrol"
 
 		virtual DefBoolGetterBase(Visible, MVisual)
 		virtual DefBoolGetterBase(Transparent, MVisual)
-		virtual DefBoolGetterBase(BgRedrawing, MVisual)
+		virtual DefBoolGetterBase(BgRedrawed, MVisual)
 		virtual DefBoolGetterBase(Enabled, MControl)
 		virtual DefBoolGetterBase(Focused, AFocusRequester)
 		virtual PDefHead(bool, IsFocusOfContainer, Runtime::GMFocusResponser<IVisualControl>& c) const
@@ -4675,7 +4717,7 @@ unit YControl "ycontrol"
 
 		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
-		virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
+		virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
 		virtual DefSetterBase(const SPoint&, Location, MVisual)
 		virtual DefSetterBaseDe(bool, Enabled, MControl, true)
 
@@ -4827,7 +4869,7 @@ unit YWindow "ywindow"
 
 		virtual DefBoolGetterBase(Visible, MVisual)
 		virtual DefBoolGetterBase(Transparent, MVisual)
-		virtual DefBoolGetterBase(BgRedrawing, MVisual)
+		virtual DefBoolGetterBase(BgRedrawed, MVisual)
 		virtual DefBoolGetterBase(Enabled, MVisualControl)
 		virtual DefBoolGetterBase(Focused, AFocusRequester)
 		virtual PDefHead(bool, IsFocusOfContainer, Runtime::GMFocusResponser<IVisualControl>& c) const
@@ -4863,7 +4905,7 @@ unit YWindow "ywindow"
 
 		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
-		virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
+		virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
 		virtual DefSetterBase(const SPoint&, Location, MVisual)
 		virtual DefSetterDe(bool, Refresh, bRefresh, true)
 		virtual DefSetterDe(bool, Update, bUpdate, true)

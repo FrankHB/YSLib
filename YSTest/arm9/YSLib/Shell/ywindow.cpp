@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28;
-// UTime = 2010-7-26 7:31;
-// Version = 0.2918;
+// UTime = 2010-8-29 14:15;
+// Version = 0.2931;
 
 
 #include "ydesktop.h"
@@ -219,14 +219,14 @@ YFrameWindow::GetWindowLocationOffset(const SPoint& p) const
 bool
 YFrameWindow::DrawWidgets()
 {
-	bool bBgChanged(IsBgRedrawing());
+	bool bBgChanged(!IsBgRedrawed());
 	WidgetSet::iterator i;
 
 	for(i = sWgtSet.begin(); !bBgChanged && i != sWgtSet.end(); ++i)
 	{
 		IWidget& w(**i);
 
-		bBgChanged |= !w.IsTransparent() && w.IsVisible() && w.IsBgRedrawing();
+		bBgChanged |= !w.IsTransparent() && w.IsVisible() && !w.IsBgRedrawed();
 	}
 	if(bBgChanged)
 	{
@@ -235,10 +235,10 @@ YFrameWindow::DrawWidgets()
 		{
 			IWidget& w(**i);
 
-			if(w.IsVisible() && (IsBgRedrawing() || w.IsBgRedrawing()) && !w.IsTransparent())
+			if(w.IsVisible() && !(IsBgRedrawed() && w.IsBgRedrawed()) && !w.IsTransparent())
 			{
 				w.DrawBackground();
-				w.SetBgRedrawing(false);
+				w.SetBgRedrawed();
 			}
 		}
 		bBgChanged = true;
@@ -253,9 +253,9 @@ YFrameWindow::DrawWidgets()
 	}
 	DrawForeground();
 
-	bool result(bBgChanged || IsBgRedrawing());
+	bool result(bBgChanged || !IsBgRedrawed());
 
-	SetBgRedrawing(false);
+	SetBgRedrawed();
 	return result;
 }
 

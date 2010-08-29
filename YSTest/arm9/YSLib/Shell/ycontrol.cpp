@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-8-25 20:14;
-// Version = 0.2983;
+// UTime = 2010-8-29 14:10;
+// Version = 0.2986;
 
 
 #include "ycontrol.h"
@@ -289,7 +289,7 @@ void
 YVisualControl::DrawForeground()
 {
 	if(!Transparent)
-		SetBgRedrawing();
+		SetBgRedrawed(false);
 }
 
 void

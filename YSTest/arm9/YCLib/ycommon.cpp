@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:42;
-// UTime = 2010-8-2 13:57;
-// Version = 0.1755;
+// UTime = 2010-8-29 6:24;
+// Version = 0.1773;
 
 
 #include "ycommon.h"
@@ -77,18 +77,26 @@ namespace stdex
 }
 
 
-namespace platform_type
-{
-}
-
 namespace platform
 {
+	PATHSTR DirIter::Name;
+	struct ::stat DirIter::Stat;
+	int DirIter::LastError(0);
+
+	DirIter&
+	DirIter::operator++()
+	{
+		LastError = ::dirnext(dir, Name, &Stat);
+		return *this;
+	}
+
+
 	bool
 	direxists(CPATH path)
 	{
-		DIR_ITER* dirState = diropen(path);
-		dirclose(dirState);
+		DIR_ITER* dirState(::diropen(path));
 
+		::dirclose(dirState);
 		return dirState;
 	}
 
@@ -97,15 +105,15 @@ namespace platform
 	{
 		PATHSTR path;
 
-		strcpy(path, cpath);
+		std::strcpy(path, cpath);
 		for(char* slash = path; (slash = strchr(slash, '/')) != NULL; ++slash)
 		{
 			*slash = '\0';
-			mkdir(path, S_IRWXU|S_IRWXG|S_IRWXO);
+			::mkdir(path, S_IRWXU|S_IRWXG|S_IRWXO);
 			*slash = '/';
 		}
 		//新建目录成功或目标路径已存在时返回 true 。
-		return mkdir(path, S_IRWXU|S_IRWXG|S_IRWXO) == 0 || errno == EEXIST;
+		return ::mkdir(path, S_IRWXU|S_IRWXG|S_IRWXO) == 0 || errno == EEXIST;
 	}
 
 	/*#define LOWC(x) ((x)&31)
@@ -409,7 +417,7 @@ namespace platform
 
 
 	void
-	WriteKeysInfo(platform_type::KeysInfo& key, platform_type::CursorInfo& tp)
+	WriteKeysInfo(KeysInfo& key, CursorInfo& tp)
 	{
 		touchRead(&tp);
 		key.up = keysUp();

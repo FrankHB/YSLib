@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-8-13 21:27;
-// Version = 0.2964;
+// UTime = 2010-8-29 20:22;
+// Version = 0.2968;
 
 
 #include <Shells.h>
@@ -236,6 +236,10 @@ using namespace DS;
 LRES
 ShlLoad::OnActivated(const MMSG& m)
 {
+	//如果不添加此段且没有桌面没有被添加窗口等设置刷性状态的操作，那么任何绘制都不会进行。
+	pDesktopUp->SetRefresh();
+	pDesktopDown->SetRefresh();
+	//新建窗口。
 	hWndUp = NewWindow<TFrmLoadUp>(this);
 	hWndDown = NewWindow<TFrmLoadDown>(this);
 	DispatchWindows();

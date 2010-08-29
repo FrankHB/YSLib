@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-7-22 11:22;
-// Version = 0.4529;
+// UTime = 2010-8-29 14:08;
+// Version = 0.4538;
 
 
 #ifndef INCLUDED_YWIDGET_H_
@@ -36,7 +36,7 @@ YSL_BEGIN_NAMESPACE(Widgets)
 DeclInterface(IWidget)
 	DeclIEntry(bool IsVisible() const) //判断是否可见。
 	DeclIEntry(bool IsTransparent() const) //判断是否透明。
-	DeclIEntry(bool IsBgRedrawing() const) //判断是否需要重绘。
+	DeclIEntry(bool IsBgRedrawed() const) //判断是否需要重绘。
 
 	DeclIEntry(bool Contains(const Drawing::SPoint&) const) //判断点是否在边界内或边界上。
 
@@ -47,7 +47,7 @@ DeclInterface(IWidget)
 
 	DeclIEntry(void SetVisible(bool = true)) //设置可见。
 	DeclIEntry(void SetTransparent(bool = true)) //设置透明。
-	DeclIEntry(void SetBgRedrawing(bool = true)) //设置重绘。
+	DeclIEntry(void SetBgRedrawed(bool = true)) //设置重绘状态。
 	DeclIEntry(void SetLocation(const SPoint&)) //设置左上角所在位置（相对于容器的偏移坐标）。
 
 	DeclIEntry(void DrawBackground()) //绘制背景。
@@ -89,7 +89,7 @@ public:
 	bool Transparent; //透明性。
 
 private:
-	mutable bool bBgRedraw; //背景重绘属性。
+	mutable bool bBgRedrawed; //背景重绘状态。
 
 protected:
 	SPoint Location; //左上角所在位置（相对于容器的偏移坐标）。
@@ -101,7 +101,7 @@ public:
 
 	DefBoolGetter(Visible, Visible)
 	DefBoolGetter(Transparent, Transparent)
-	DefBoolGetter(BgRedrawing, bBgRedraw)
+	DefBoolGetter(BgRedrawed, bBgRedrawed)
 
 	//判断包含关系。
 	PDefHead(bool, Contains, const SPoint& p) const
@@ -119,7 +119,7 @@ public:
 
 	DefSetterDe(bool, Visible, Visible, true)
 	DefSetterDe(bool, Transparent, Transparent, true)
-	DefSetterDe(bool, BgRedrawing, bBgRedraw, true)
+	DefSetterDe(bool, BgRedrawed, bBgRedrawed, true)
 	virtual DefSetter(const SPoint&, Location, Location)
 	virtual PDefHead(void, SetLocation, SPOS x, SPOS y)
 		ImplBodyBaseVoid(MVisual, SetLocation, SPoint(x, y))
@@ -187,7 +187,7 @@ public:
 
 	virtual DefBoolGetterBase(Visible, MVisual)
 	virtual DefBoolGetterBase(Transparent, MVisual)
-	virtual DefBoolGetterBase(BgRedrawing, MVisual)
+	virtual DefBoolGetterBase(BgRedrawed, MVisual)
 
 	//判断包含关系。
 	virtual PDefHead(bool, Contains, const SPoint& p) const
@@ -200,7 +200,7 @@ public:
 
 	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
-	virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
+	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
 	virtual DefSetterBase(const SPoint&, Location, MVisual)
 
 	virtual void
@@ -282,7 +282,7 @@ public:
 
 	virtual DefBoolGetterBase(Visible, MVisual)
 	virtual DefBoolGetterBase(Transparent, MVisual)
-	virtual DefBoolGetterBase(BgRedrawing, MVisual)
+	virtual DefBoolGetterBase(BgRedrawed, MVisual)
 
 	//判断包含关系。
 	virtual PDefHead(bool, Contains, const SPoint& p) const
@@ -303,7 +303,7 @@ public:
 
 	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
-	virtual DefSetterBaseDe(bool, BgRedrawing, MVisual, true)
+	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
 	virtual DefSetterBase(const SPoint&, Location, MVisual)
 
 	virtual PDefHead(void, ClearFocusingPtr)

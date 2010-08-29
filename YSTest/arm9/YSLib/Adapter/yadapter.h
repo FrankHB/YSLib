@@ -1,8 +1,8 @@
 // YSLib::Adapter::YAdapter by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-22 20:16:21;
-// UTime = 2010-8-2 15:26;
-// Version = 0.1689;
+// UTime = 2010-8-29 4:53;
+// Version = 0.1717;
 
 
 #ifndef INCLUDED_YADAPTER_H_
@@ -40,13 +40,7 @@ namespace YSLib
 	using ::scanKeys;
 	using ::touchRead;
 
-	// LibFAT 数据类型和函数定义。
 	using ::stat;
-	using ::DIR_ITER;
-	using ::diropen;
-	using ::dirnext;
-	using ::dirreset;
-	using ::dirclose;
 	using ::mkdir;
 	using ::chdir;
 	using ::getcwd;
@@ -80,15 +74,16 @@ namespace YSLib
 {
 	namespace Drawing
 	{
-		using platform_type::BitmapPtr;
-		using platform_type::ConstBitmapPtr;
+		using platform::BitmapPtr;
+		using platform::ConstBitmapPtr;
 	}
 	namespace Runtime
 	{
-		using platform_type::Keys;
-		using platform_type::KeysInfo;
-		using platform_type::CursorInfo;
+		using platform::Keys;
+		using platform::KeysInfo;
+		using platform::CursorInfo;
 	}
+	using platform::DirIter;
 	using platform::yassert;
 	namespace DS
 	{

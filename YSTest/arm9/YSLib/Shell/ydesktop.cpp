@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-2 12:00:08;
-// UTime = 2010-7-14 0:35;
-// Version = 0.1963;
+// UTime = 2010-8-29 19:56;
+// Version = 0.1965;
 
 
 #include "ydesktop.h"
@@ -165,7 +165,6 @@ YDesktop::Refresh()
 void
 YDesktop::Update()
 {
-	Refresh();
 	if(bUpdate)
 	{
 		Screen.Update(GetBufferPtr());
