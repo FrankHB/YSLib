@@ -1,8 +1,8 @@
 ﻿// YSLib -> Designation by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-2 5:14:30;
-// UTime = 2010-8-29 19:56;
-// Version = 0.2944;
+// UTime = 2010-8-31 16:19;
+// Version = 0.2938;
 
 
 // Designation ：设计说明文档。
@@ -299,7 +299,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 经过有限次前置 operator++ 或前置 operator-- 操作，可以得到初始值的迭代器。
 理想情况下，通过迭代操作（至少包括前置 operator++ 和前置 operator--）获得的所有临时迭代器状态中，有且仅有一个无效状态。
 
-@1.6 概念约束：
+@1.6 约束概念：
 实现了容器模板接口 GIContainer 的类，称为容器 (Container) 类。
 
 @1.7 进程内通信：
@@ -349,9 +349,9 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 一旦向对象所有者添加了对象，就不应在从所有者移除该对象前通过所有者以外的途径访问该对象（作用于对象，从所有者移除该对象的操作除外）。
 由于所有权最终会导致对象被所有者释放，因此具有栈语义的自动对象不宜被添加所有权，否则容易被误释放超过一次。若自动对象被添加所有权，则应确保所有者释放该对象之前，手动从所有者移除该对象。
 以下所有权关系中，被托管对象类包括派生类：
- YApplication 拥有 Shells::YShell 所有权。
- Drawing::YFontCache 拥有 Drawing::MTypeface 、 Drawing::MFontFile 、 Drawing::MFontFamily 的所有权。
- Text::MTextMap 及其派生类 Text::MTextFileBuffer 拥有 Text::MTextBlock 的所有权。
+ YApplication 具有 Shells::YShell 所有权。
+ Drawing::YFontCache 具有 Drawing::MTypeface 、 Drawing::MFontFile 、 Drawing::MFontFamily 的所有权。
+ Text::MTextMap 及其派生类 Text::MTextFileBuffer 具有 Text::MTextBlock 的所有权。
 
 @2 实现概览：
 外部库参考 @3 。
@@ -508,7 +508,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 消息的处理的具体实现取决于用户。
 
 @2.4.5 消息队列的实现：
-消息队列为优先队列。第一优先级为 unsigned char 型变量。为了适应不支持 clock() 的平台，用消息的计数标识代替产生时间作为第二优先级。
+消息队列为优先队列。第一优先级为 unsigned char 型变量。为了适应不支持 std::clock() 的平台，用消息实例构造时的计数标识代替产生时间作为第二优先级。
 
 @2.5 图形系统：
 位于 "/Shell" 。
@@ -566,7 +566,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 部件实例存储背景重绘状态；带缓冲区的部件（包括窗口和桌面）实例存储刷新状态和更新状态。这些状态用 bool 类型变量表示。
 背景重绘状态值为 true 时表示背景重绘已经结束，无需再次重绘；刷新状态和更新状态值为 true 时表示准备就绪并需要进行对应操作。
  DrawBackground() 和 DrawForeground() 是部件的状态无关的绘制接口，分别用于绘制背景和前景。
- Draw() 作为一般的缓冲区图形绘制接口（可能调用子对象的 Update() ），完成绘制并设置刷新状态为 false 。
+ Draw() 作为一般的缓冲区图形绘制接口（可能调用子对象的 Update() ），完成绘制后，设置刷新状态为 false ，更新状态为 true（对于桌面等无上层缓冲区的对象无必要）。
  Refresh() 在保证本层缓冲区（若存在）绘制完毕后向最近的上层缓冲区（若存在）传递刷新状态。
 更新状态为 true 或上层容器（若存在）的刷新状态为 true 时， Update() 查询刷新状态，若需要刷新则使用 Draw() 绘图，之后若上层缓冲区存在，更新至上层缓冲区（对于桌面而言是屏幕），并设置对应容器的更新状态为 true 。
 在 Shell 处理函数中可以在输入分支后添加桌面对象的 Refresh() 和 Update() ，按需要更新最近经过重绘但未经过更新的 GUI 对象。

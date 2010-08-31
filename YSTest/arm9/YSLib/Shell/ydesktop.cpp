@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-2 12:00:08;
-// UTime = 2010-8-29 19:56;
-// Version = 0.1965;
+// UTime = 2010-8-31 21:04;
+// Version = 0.1973;
 
 
 #include "ydesktop.h"
@@ -142,7 +142,10 @@ YDesktop::DrawDesktopObjects()
 	{
 		try
 		{
-			dynamic_cast<IWindow&>(**i).Update();
+			IWindow& w(dynamic_cast<IWindow&>(**i));
+			w.Refresh();
+			w.SetUpdate();
+			w.Update();
 		}
 		catch(std::bad_cast&)
 		{}
@@ -151,9 +154,9 @@ YDesktop::DrawDesktopObjects()
 void
 YDesktop::Draw()
 {
+	bRefresh = false;
 	DrawBackground();
 	DrawDesktopObjects();
-	bRefresh = false;
 }
 
 void
@@ -167,8 +170,8 @@ YDesktop::Update()
 {
 	if(bUpdate)
 	{
-		Screen.Update(GetBufferPtr());
 		bUpdate = false;
+		Screen.Update(GetBufferPtr());
 	}
 }
 

@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-8-29 20:22;
-// Version = 0.2968;
+// UTime = 2010-8-31 21:07;
+// Version = 0.2969;
 
 
 #include <Shells.h>
@@ -317,7 +317,7 @@ ShlS::ShlProc(const MMSG& msg)
 {
 
 //	const WPARAM& wParam(msg.GetWParam());
-	YDebugSetStatus();
+//	YDebugSetStatus();
 /*	static YTimer Timer(1250);
 
 	if(Timer.Refresh())

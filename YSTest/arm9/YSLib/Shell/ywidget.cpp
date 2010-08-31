@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-8-29 20:35;
-// Version = 0.3948;
+// UTime = 2010-8-31 21:03;
+// Version = 0.3958;
 
 
 #include "ywindow.h"
@@ -79,23 +79,20 @@ MWidget::GetLocationForParentWindow() const
 void
 MWidget::Refresh()
 {
-	if(hWindow)
-	{
-		hWindow->Refresh();
+	if(hWindow != NULL)
 		hWindow->SetRefresh();
-	}
 }
 
 
 YWidget::YWidget(HWND hWnd, const SRect& r, IWidgetContainer* pCon)
 : YComponent(), MWidget(hWnd, r, pCon)
 {
-	if(pContainer)
+	if(pContainer != NULL)
 		*pContainer += *this;
 }
 YWidget::~YWidget()
 {
-	if(pContainer)
+	if(pContainer != NULL)
 		*pContainer -= *this;
 }
 
@@ -147,7 +144,7 @@ MWidgetContainer::GetTopVisualControlPtr(const SPoint& pt) const
 YWidgetContainer::YWidgetContainer(HWND hWnd, const SRect& r, IWidgetContainer* pCon)
 : YComponent(), MWidget(hWnd, r, pCon), MWidgetContainer()
 {
-	if(pContainer)
+	if(pContainer != NULL)
 	{
 		*pContainer += static_cast<IWidget&>(*this);
 		*pContainer += static_cast<GMFocusResponser<IVisualControl>&>(*this);
@@ -155,7 +152,7 @@ YWidgetContainer::YWidgetContainer(HWND hWnd, const SRect& r, IWidgetContainer* 
 }
 YWidgetContainer::~YWidgetContainer()
 {
-	if(pContainer)
+	if(pContainer != NULL)
 	{
 		*pContainer -= static_cast<GMFocusResponser<IVisualControl>&>(*this);
 		*pContainer -= static_cast<IWidget&>(*this);
@@ -176,13 +173,13 @@ YWidgetContainer::GetWindowLocationOffset(const SPoint& p) const
 void
 YWidgetContainer::DrawBackground()
 {
-	if(hWindow)
+	if(hWindow != NULL)
 		hWindow->SetRefresh();
 }
 void
 YWidgetContainer::DrawForeground()
 {
-	if(hWindow)
+	if(hWindow != NULL)
 		hWindow->SetRefresh();
 }
 

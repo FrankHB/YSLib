@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-8-29 14:10;
-// Version = 0.2986;
+// UTime = 2010-8-31 20:55;
+// Version = 0.3004;
 
 
 #include "ycontrol.h"
@@ -264,7 +264,7 @@ MVisualControl::OnTouchMove(IVisualControl& c, const MTouchEventArgs& e)
 YVisualControl::YVisualControl(HWND hWnd, const SRect& r, IWidgetContainer* pCon)
 : YComponent(), MWidget(hWnd, r, pCon), MVisualControl(ARGB16(1, 31, 31, 31), ARGB16(1, 0, 0, 0))
 {
-	if(pContainer)
+	if(pContainer != NULL)
 	{
 		*pContainer += static_cast<IWidget&>(*this);
 		*pContainer += static_cast<IVisualControl&>(*this);
@@ -272,7 +272,7 @@ YVisualControl::YVisualControl(HWND hWnd, const SRect& r, IWidgetContainer* pCon
 }
 YVisualControl::~YVisualControl()
 {
-	if(pContainer)
+	if(pContainer != NULL)
 	{
 		*pContainer -= static_cast<IVisualControl&>(*this);
 		*pContainer -= static_cast<IWidget&>(*this);
@@ -475,7 +475,6 @@ void
 YListBox::_m_OnClick(const MTouchEventArgs& pt)
 {
 	SetSelected(pt);
-
 	Refresh();
 	CallConfirmed();
 }

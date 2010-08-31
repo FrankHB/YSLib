@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28;
-// UTime = 2010-8-29 14:15;
-// Version = 0.2931;
+// UTime = 2010-8-31 21:03;
+// Version = 0.2954;
 
 
 #include "ydesktop.h"
@@ -90,30 +90,31 @@ AWindow::Draw()
 {
 	DrawBackground();
 	DrawWidgets();
-	bRefresh = false;
+	bUpdate = true;
 }
 
 void
 AWindow::Refresh()
 {
 	if(bRefresh)
+	{
+		bRefresh = false;
 		Draw();
+	}
 	MWidget::Refresh();
 }
 
 void
 AWindow::Update()
 {
-	if(bUpdate || (hWindow && hWindow->IsRefreshRequired()))
+	if(bUpdate)
 	{
-		if(bRefresh)
-			Draw();
-		if(hWindow)
+		bUpdate = false;
+		if(hWindow != NULL)
 		{
 			UpdateToWindow();
 			hWindow->SetUpdate();
 		}
-		bUpdate = false;
 	}
 }
 
@@ -194,7 +195,7 @@ YFrameWindow::YFrameWindow(const SRect& r, const GHResource<YImage> i, YDesktop*
 }
 YFrameWindow::~YFrameWindow()
 {
-	if(pContainer)
+	if(pContainer != NULL)
 	{
 		*pContainer -= static_cast<GMFocusResponser<IVisualControl>&>(*this);
 		*pContainer -= static_cast<IWidget&>(*this);
@@ -243,7 +244,6 @@ YFrameWindow::DrawWidgets()
 		}
 		bBgChanged = true;
 	}
-
 	for (i = sWgtSet.begin(); i != sWgtSet.end(); ++i)
 	{
 		IWidget& w(**i);

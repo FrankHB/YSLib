@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-8-29;
-// Version = 0.2614; *Build 142 r34;
+// UTime = 2010-8-31;
+// Version = 0.2614; *Build 143 r50;
 
 
 #include "../YCLib/ydef.h"
@@ -92,65 +92,70 @@ Record prefix and abbrevations:
 \val ::= values
 
 DONE:
-r1:
-= test 0;
+r1-r7:
+= test 1;
 
-r2:
-/= \ns platform_type >> \ns platform;
+r8:
+/ @@ \cl YDesktop @@ \u YDesktop:
+	/ \impl @@ \mf void DrawDesktopObjects();
+	/ \impl @@ \mf void Draw();
+	/ \impl @@ \mf void Refresh();
+/ @@ \cl AWindow @@ \u YWindow:
+	/ \impl @@ \mf void Draw();
+	/ \impl @@ \mf void Update();
+	/ \impl @@ \mf void Refresh();
+/ \impl @@ \mf void Refresh() @@ \cl MWidget @@ \u YWidget;
 
-r3:
-+ \cl DirIter @@ \ns platform @@ \u YCommon;
-/ @@ \ns YSLib @@ \h YAdapter:
-	- using ::DIR_ITER;
-	- using ::diropen;
-	- using ::dirnext;
-	- using ::dirreset;
-	- using ::dirclose;
-	+ using platform::DirIter;
-/ @@ \impl @@ \u YFileSystem:
-	/ ^ DirIter;
-+ using ::mkdir @@ \ns platform @@ \u YCommon;
+r9:
+* @@ \cl YDesktop @@ \u YDesktop:
+	/ \impl @@ \mf void DrawDesktopObjects();
+/= @@ \cl AWindow @@ \u YWindow:
+	/= \tr \impl @@ \mf void Update();
+	/= \tr \impl @@ \ctor & \dctor @@ \cl YFrameWindow;
+/= @@ \u YWidget:
+	/= @@ \cl YWidgetContainer:
+		/= \tr \impl @@ \mf void DrawBackground()
+		/= \tr \impl @@ \mf void DrawForeground()
+		/= \tr \impl @@ \ctor & \dctor @@
+	/= \tr \impl @@ \mf void Refresh() @@ \cl MWidget
+	/= \tr \impl @@ \ctor & \dctor @@ \cl YWidget
+/= \tr \impl @@ \ctor & \dctor @@ \cl YVisualContainer @@ \u YControl;
 
-r4-r19:
-/ test 1:
-	/ @@ \cl platform::DirIter @@ \u YCommon:
-		* \tr @@ \mf operator++();
-		- \i @@ \mf operator();
-/= \tr \impl @@ \f bool IsBaseName(const char*, const char*) @@ \u YFileSystem;
-
-r20:
-/ @@ \cl platform::DirIter @@ \u YCommon:
-	+ \mf void Open(CPATH);
-	/= \impl @@ \ctor;
-
-r21:
-= test 2;
-
-r22:
-\a SetBgRedrawing => SetBgRedrawed;
-\a SetBgRedrawing => SetBgRedrawed;
-\a BgRedrawing => BgRedrawed;
-
-r23:
-/ \m mutable bool bBgRedraw -> bBgRedrawed @@ \cl MVisual @@ \u YWidget;
-
-r24:
-/ \impl @@ \mf DrawWidgets() @@ \cl YFrameWindow @@ \u YWindow;
-
-r25-r26:
-/ \impl @@ void Update() @@ \cl YDesktop @@ \u YDesktop;
-/ \impl @@ void Update() @@ \cl YShlGUI @@ \u ShlDS;
-
-r27-r31:
-= test 3;
+r10-r31:
+* \impl @@ \mf OnGotFocus(IControl&, const MEventArgs&) @@ \cl MVisualControl @@ \u YControl;
+= test2;
+/ \impl @@ \mf void DrawDesktopObjects() @@ \cl YDesktop @@ \u YDesktop;
 
 r32:
-/ \tr \impl @@ \mf OnActivated @@ \cl ShlLoad @@ \u Shells;
+/ undo \u YWindow & \u YDesktop & \u YWidget;
+/= @@ \cl AWindow @@ \u YWindow:
+	/= \tr \impl @@ \mf void Update();
+	/= \tr \impl @@ \ctor & \dctor @@ \cl YFrameWindow;
+/= @@ \u YWidget:
+	/= @@ \cl YWidgetContainer:
+		/= \tr \impl @@ \mf void DrawBackground()
+		/= \tr \impl @@ \mf void DrawForeground()
+		/= \tr \impl @@ \ctor & \dctor @@
+	/= \tr \impl @@ \mf void Refresh() @@ \cl MWidget
+	/= \tr \impl @@ \ctor & \dctor @@ \cl YWidget
+/= \tr \impl @@ \ctor & \dctor @@ \cl YVisualContainer @@ \u YControl;
 
-r33-r34:
-= test 4:
-/ \tr \impl @@ \mf void Refresh() @@ \cl MWidget @@ \u YWidget;
+r33-r44:
+/ \cl AWindow @@ \u YWindow:
+	/ \impl @@ \mf void Update();
+	/ \impl @@ \mf void Draw();
+/ \cl YDesktop @@ \u YDesktop:
+	/ \impl @@ \mf void DrawDesktopObjects();
+	/ \impl @@ \mf void Update();
 
+r45-r48:
+= test3:
+	= \tr @@ \u YWindow;
+	= \tr @@ \u YControl;
+
+r49-r50:
+/ \impl @@ \mf void Refresh() @@ \cl MWidget @@ \u YWidget;
+/ \impl @@ \mf void Refresh() @@ \cl AWindow @@ \u YWindow;
 
 
 DOING:
@@ -159,6 +164,7 @@ DOING:
 / ...
 
 NEXT:
+* fatal error in refreshing while changing windows;
 + fully \impl YFileList;
 / fully \impl \cl ShlReader;
 / fully \impl btnTest;
