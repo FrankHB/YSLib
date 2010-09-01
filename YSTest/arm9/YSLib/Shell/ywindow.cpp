@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28;
-// UTime = 2010-8-31 21:03;
-// Version = 0.2954;
+// UTime = 2010-9-1 14:41;
+// Version = 0.2960;
 
 
 #include "ydesktop.h"
@@ -62,13 +62,13 @@ AWindow::RequestToTop()
 bool
 AWindow::DrawBackgroundImage()
 {
-	if(prBackImage && GetBufferPtr())
+	if(prBackImage != NULL && GetBufferPtr() != NULL)
 	{
 		ConstBitmapPtr imgBg(prBackImage->GetImagePtr());
 
-		if(imgBg)
+		if(imgBg != NULL)
 		{
-			memcpy(GetBufferPtr(), imgBg, Buffer.GetSizeOfBuffer());
+			std::memcpy(GetBufferPtr(), imgBg, Buffer.GetSizeOfBuffer());
 			return true;
 		}
 	}

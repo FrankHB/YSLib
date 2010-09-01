@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-2 12:00:08;
-// UTime = 2010-8-31 21:04;
-// Version = 0.1973;
+// UTime = 2010-9-1 14:42;
+// Version = 0.1979;
 
 
 #include "ydesktop.h"
@@ -122,13 +122,13 @@ YDesktop::GetTopDesktopObjectPtr(const SPoint& pt) const
 void
 YDesktop::DrawBackground()
 {
-	if(prBackImage && GetBufferPtr())
+	if(prBackImage != NULL && GetBufferPtr() != NULL)
 	{
 		const PixelType* imgBg(prBackImage->GetImagePtr());
 
-		if(imgBg)
+		if(imgBg != NULL)
 		{
-			memcpy(GetBufferPtr(), imgBg, Buffer.GetSizeOfBuffer());
+			std::memcpy(GetBufferPtr(), imgBg, Buffer.GetSizeOfBuffer());
 			return;
 		}
 	}

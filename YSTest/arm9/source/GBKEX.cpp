@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-8-31;
-// Version = 0.2614; *Build 143 r50;
+// UTime = 2010-9-1;
+// Version = 0.2614; *Build 144 r49;
 
 
 #include "../YCLib/ydef.h"
@@ -92,70 +92,28 @@ Record prefix and abbrevations:
 \val ::= values
 
 DONE:
-r1-r7:
+r1:
 = test 1;
 
-r8:
-/ @@ \cl YDesktop @@ \u YDesktop:
-	/ \impl @@ \mf void DrawDesktopObjects();
-	/ \impl @@ \mf void Draw();
-	/ \impl @@ \mf void Refresh();
-/ @@ \cl AWindow @@ \u YWindow:
-	/ \impl @@ \mf void Draw();
-	/ \impl @@ \mf void Update();
-	/ \impl @@ \mf void Refresh();
-/ \impl @@ \mf void Refresh() @@ \cl MWidget @@ \u YWidget;
+r2:
+/= \impl @@ \mf bool YDesktop::DrawBackground() @@ \u YDesktop;
+/= \impl @@ \mf bool AWindow::DrawBackgroundImage() @@ \u YWindow;
+/= \impl @@ \mf void YImage::SetImage(ConstBitmapPtr s, SDST w, SDST h) @@ \u YResource;
 
-r9:
-* @@ \cl YDesktop @@ \u YDesktop:
-	/ \impl @@ \mf void DrawDesktopObjects();
-/= @@ \cl AWindow @@ \u YWindow:
-	/= \tr \impl @@ \mf void Update();
-	/= \tr \impl @@ \ctor & \dctor @@ \cl YFrameWindow;
-/= @@ \u YWidget:
-	/= @@ \cl YWidgetContainer:
-		/= \tr \impl @@ \mf void DrawBackground()
-		/= \tr \impl @@ \mf void DrawForeground()
-		/= \tr \impl @@ \ctor & \dctor @@
-	/= \tr \impl @@ \mf void Refresh() @@ \cl MWidget
-	/= \tr \impl @@ \ctor & \dctor @@ \cl YWidget
-/= \tr \impl @@ \ctor & \dctor @@ \cl YVisualContainer @@ \u YControl;
+r3-r4:
+= test 2;
 
-r10-r31:
-* \impl @@ \mf OnGotFocus(IControl&, const MEventArgs&) @@ \cl MVisualControl @@ \u YControl;
-= test2;
-/ \impl @@ \mf void DrawDesktopObjects() @@ \cl YDesktop @@ \u YDesktop;
+r5:
+/ \tr \impl @@ \mf void ShlReader::UpdateToScreen() @@ \u Shells;
 
-r32:
-/ undo \u YWindow & \u YDesktop & \u YWidget;
-/= @@ \cl AWindow @@ \u YWindow:
-	/= \tr \impl @@ \mf void Update();
-	/= \tr \impl @@ \ctor & \dctor @@ \cl YFrameWindow;
-/= @@ \u YWidget:
-	/= @@ \cl YWidgetContainer:
-		/= \tr \impl @@ \mf void DrawBackground()
-		/= \tr \impl @@ \mf void DrawForeground()
-		/= \tr \impl @@ \ctor & \dctor @@
-	/= \tr \impl @@ \mf void Refresh() @@ \cl MWidget
-	/= \tr \impl @@ \ctor & \dctor @@ \cl YWidget
-/= \tr \impl @@ \ctor & \dctor @@ \cl YVisualContainer @@ \u YControl;
+r6-r48:
+/= test 3:
+	/ @@ \cl ShlReader @@ \u Shells:
+	/ \impl @@ \mf void UpdateToScreen()();
+	* \impl @@ \mf LRES OnActivated(const MMSG&);
 
-r33-r44:
-/ \cl AWindow @@ \u YWindow:
-	/ \impl @@ \mf void Update();
-	/ \impl @@ \mf void Draw();
-/ \cl YDesktop @@ \u YDesktop:
-	/ \impl @@ \mf void DrawDesktopObjects();
-	/ \impl @@ \mf void Update();
-
-r45-r48:
-= test3:
-	= \tr @@ \u YWindow;
-	= \tr @@ \u YControl;
-
-r49-r50:
-/ \impl @@ \mf void Refresh() @@ \cl MWidget @@ \u YWidget;
-/ \impl @@ \mf void Refresh() @@ \cl AWindow @@ \u YWindow;
+r49:
+- \mf Refresh() @@ \cl MDualScreenReader @@ \u DSReader;
 
 
 DOING:

@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-8-31 21:07;
-// Version = 0.2969;
+// UTime = 2010-9-1 21:21;
+// Version = 0.2975;
 
 
 #include <Shells.h>
@@ -516,11 +516,8 @@ TextFile(path.c_str()), Reader(TextFile), hUp(NULL), hDn(NULL), bgDirty(true)
 void
 ShlReader::UpdateToScreen()
 {
-//	Reader.Refresh();
 	if(bgDirty)
 	{
-		pDesktopUp->SetRefresh();
-		pDesktopDown->SetRefresh();
 		ParentType::UpdateToScreen();
 		Reader.PrintText();
 		bgDirty = false;
@@ -629,7 +626,7 @@ ShlReader::OnActivated(const MMSG& msg)
 	pDesktopDown->Click.Add(*this, &ShlReader::OnClick);
 	pDesktopDown->KeyPress.Add(*this, &ShlReader::OnKeyPress);
 	RequestFocusCascade(*pDesktopDown);
-	Reader.Refresh();
+//	InsertMessage(NULL, 0x10000, 0x1F);
 	UpdateToScreen();
 	return 0;
 }

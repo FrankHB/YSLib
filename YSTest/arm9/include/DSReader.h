@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:03:47;
-// UTime = 2010-8-13 19:29;
-// Version = 0.2060;
+// UTime = 2010-9-1 21:19;
+// Version = 0.2067;
 
 
 #ifndef _DSREADER_H_
@@ -106,10 +106,6 @@ public:
 	//绘制文本。
 	void
 	PrintText();
-
-	//刷新到屏幕。
-	void
-	Refresh();
 
 	//初始化载入文本。
 	void

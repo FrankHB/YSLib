@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:04:05;
-// UTime = 2010-8-14 2:15;
-// Version = 0.2769;
+// UTime = 2010-9-1 21:19;
+// Version = 0.2776;
 
 
 #include "DSReader.h"
@@ -103,11 +103,6 @@ MDualScreenReader::PrintText()
 //	trUp.BlitToBuffer(pBgUp, RDeg0, SCRW, SCRH, 0, 0, 0, 0, trUp.GetWidth(), trUp.GetBufferHeightResized());
 	trUp.BlitToBuffer(pBgUp, rot);
 	trDn.BlitToBuffer(pBgDn, rot);
-}
-void
-MDualScreenReader::Refresh()
-{
-	InsertMessage(NowShell(), SM_DSR_REFRESH, 0xD2, reinterpret_cast<WPARAM>(this));
 }
 void
 MDualScreenReader::InitText()
