@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YException by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-6-15 20:30:14;
-// UTime = 2010-7-26 6:10;
-// Version = 0.1124;
+// UTime = 2010-9-2 10:30;
+// Version = 0.1134;
 
 
 #include "yexcept.h"
@@ -11,33 +11,33 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Exceptions)
 
-MException::MException()
+Exception::Exception()
 : std::exception()
 {}
-MException::~MException() throw()
+Exception::~Exception() throw()
 {}
 
 
-MGeneralError::MGeneralError(const std::string& s)
+GeneralError::GeneralError(const std::string& s)
 : str(s)
 {}
-MGeneralError::~MGeneralError() throw()
+GeneralError::~GeneralError() throw()
 {}
 
 const char*
-MGeneralError::what() const throw()
+GeneralError::what() const throw()
 {
 	return str.c_str();
 }
 
 
-MLoggedEvent::MLoggedEvent(const std::string& s, u8 l)
-: MGeneralError(s), level(l)
+LoggedEvent::LoggedEvent(const std::string& s, u8 l)
+: GeneralError(s), level(l)
 {}
-MLoggedEvent::MLoggedEvent(const MGeneralError& e, u8 l)
-: MGeneralError(e), level(l)
+LoggedEvent::LoggedEvent(const GeneralError& e, u8 l)
+: GeneralError(e), level(l)
 {}
-MLoggedEvent::~MLoggedEvent() throw()
+LoggedEvent::~LoggedEvent() throw()
 {}
 
 YSL_END_NAMESPACE(Exceptions)

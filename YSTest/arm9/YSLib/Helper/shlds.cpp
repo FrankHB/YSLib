@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-13 14:17:14;
-// UTime = 2010-8-29 20:00;
-// Version = 0.1360;
+// UTime = 2010-9-2 10:22;
+// Version = 0.1364;
 
 
 #include "shlds.h"
@@ -41,7 +41,7 @@ ShlGUI::UpdateToScreen()
 }
 
 LRES
-ShlGUI::OnDeactivated(const MMSG&)
+ShlGUI::OnDeactivated(const Message&)
 {
 	ClearScreenWindows(*pDesktopUp);
 	ClearScreenWindows(*pDesktopDown);
@@ -58,7 +58,7 @@ ShlDS::~ShlDS() ythrow()
 {}
 
 LRES
-ShlDS::ShlProc(const MMSG& msg)
+ShlDS::ShlProc(const Message& msg)
 {
 	switch(msg.GetMsgID())
 	{
@@ -72,7 +72,7 @@ ShlDS::ShlProc(const MMSG& msg)
 }
 
 LRES
-ShlDS::OnDeactivated(const MMSG& m)
+ShlDS::OnDeactivated(const Message& m)
 {
 	ShlGUI::OnDeactivated(m);
 	YDelete(hWndUp);
@@ -82,7 +82,7 @@ ShlDS::OnDeactivated(const MMSG& m)
 
 
 void
-ResponseInput(const MMSG& msg)
+ResponseInput(const Message& msg)
 {
 	Runtime::KeysInfo* p(reinterpret_cast<Runtime::KeysInfo*>(msg.GetWParam()));
 

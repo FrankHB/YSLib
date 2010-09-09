@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8
 // CTime = 2010-3-13 14:17:14;
-// UTime = 2010-8-2 15:44;
-// Version = 0.1452;
+// UTime = 2010-9-2 10:22;
+// Version = 0.1456;
 
 
 #ifndef INCLUDED_SHLDS_H_
@@ -28,7 +28,7 @@ public:
 	UpdateToScreen();
 
 	virtual LRES
-	OnDeactivated(const MMSG&);
+	OnDeactivated(const Message&);
 };
 
 
@@ -49,10 +49,10 @@ public:
 	DefGetter(HWND, DownWindowHandle, hWndDown)
 
 	virtual LRES
-	ShlProc(const MMSG&);
+	ShlProc(const Message&);
 
 	virtual LRES
-	OnDeactivated(const MMSG&);
+	OnDeactivated(const Message&);
 };
 
 
@@ -95,7 +95,7 @@ OnKeyHeld(const Runtime::MKeyEventArgs::InputType& key)
 }
 
 void
-ResponseInput(const MMSG&);
+ResponseInput(const Message&);
 
 
 // Shell 快捷操作。

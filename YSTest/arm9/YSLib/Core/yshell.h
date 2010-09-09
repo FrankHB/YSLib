@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15;
-// UTime = 2010-8-2 15:42;
-// Version = 0.2404;
+// UTime = 2010-9-2 10:25;
+// Version = 0.2421;
 
 
 #ifndef INCLUDED_YSHELL_H_
@@ -65,23 +65,23 @@ public:
 	ClearScreenWindows(YDesktop&); //清除指定屏幕中属于窗口组的窗口对象。
 
 	static LRES
-	DefShlProc(const MMSG&); //默认 Shell 处理函数。
-	virtual PDefHead(LRES, ShlProc, const MMSG& m) // Shell 处理函数：响应线程的直接调用。
+	DefShlProc(const Message&); //默认 Shell 处理函数。
+	virtual PDefHead(LRES, ShlProc, const Message& m) // Shell 处理函数：响应线程的直接调用。
 		ImplRet(DefShlProc(m))
 	virtual LRES
-	OnActivated(const MMSG&); // Shell 处理函数：响应线程的激活。
+	OnActivated(const Message&); // Shell 处理函数：响应线程的激活。
 	virtual LRES
-	OnDeactivated(const MMSG&); // Shell 处理函数：响应线程的撤销。
+	OnDeactivated(const Message&); // Shell 处理函数：响应线程的撤销。
 };
 
 inline LRES
-YShell::OnActivated(const MMSG& m)
+YShell::OnActivated(const Message& m)
 {
 	InsertMessage(m);
 	return 0;
 }
 inline LRES
-YShell::OnDeactivated(const MMSG& m)
+YShell::OnDeactivated(const Message& m)
 {
 	InsertMessage(m);
 	return 0;
@@ -98,7 +98,7 @@ public:
 	~YShellMain() ythrow();
 
 	virtual LRES
-	ShlProc(const MMSG&);
+	ShlProc(const Message&);
 };
 
 inline
@@ -106,13 +106,13 @@ YShellMain::~YShellMain() ythrow()
 {}
 
 inline LRES
-Shells::YShellMain::ShlProc(const MMSG& msg)
+Shells::YShellMain::ShlProc(const Message& msg)
 {
 	return DefaultMainShlProc(msg);
 }
 
 
-typedef LRES FSHLPROC(const MMSG&);
+typedef LRES FSHLPROC(const Message&);
 typedef FSHLPROC* PFSHLPROC;
 
 
@@ -123,7 +123,7 @@ struct HShellProc : public GHBase<PFSHLPROC>
 	{}
 
 	LRES
-	operator()(const MMSG& msg) const
+	operator()(const Message& msg) const
 	{
 		if(_ptr)
 			return _ptr(msg);
@@ -138,7 +138,7 @@ PostQuitMessage(int);
 
 //默认 Shell 处理函数：调用默认 Shell 过程来为应用程序没有处理的任何 Shell 消息提供缺省的处理，以确保每一个消息得到处理。
 inline LRES
-DefShellProc(const MMSG& msg)
+DefShellProc(const Message& msg)
 {
 	return YShell::DefShlProc(msg);
 }
@@ -146,7 +146,7 @@ DefShellProc(const MMSG& msg)
 /*
 PeekMessage
 //从全局消息队列中取消息。
-lpMsg：接收消息信息的 MMSG 结构指针。
+lpMsg：接收消息信息的 Message 结构指针。
 hShl：消息关联（发送目标）的 Shell 的句柄，为 NULL 时无限制（为全局对象）。
 wMsgFilterMin：指定被检查的消息范围里的第一个消息。
 wMsgFilterMax：指定被检查的消息范围里的最后一个消息。
@@ -157,20 +157,20 @@ wRemoveMsg：确定消息如何被处理。此参数可取下列值之一：
 #define PM_NOREMOVE 0x0
 #define PM_REMOVE 0x1
 IRES
-PeekMessage(MMSG& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0, u32 wRemoveMsg = PM_NOREMOVE);
+PeekMessage(Message& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0, u32 wRemoveMsg = PM_NOREMOVE);
 
 IRES
-GetMessage(MMSG& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0);
+GetMessage(Message& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0);
 
 ERRNO
-TranslateMessage(const MMSG& msg);
+TranslateMessage(const Message& msg);
 
 LRES
-DispatchMessage(const MMSG& msg);
+DispatchMessage(const Message& msg);
 
 //备份队列消息。
 ERRNO
-BackupMessage(const MMSG& msg);
+BackupMessage(const Message& msg);
 
 //恢复消息队列。
 void

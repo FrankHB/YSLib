@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-8-31 20:55;
-// Version = 0.3004;
+// UTime = 2010-9-2 10:21;
+// Version = 0.3012;
 
 
 #include "ycontrol.h"
@@ -129,7 +129,7 @@ RectDrawFocusDefault(const SPoint& l, const SSize& s, HWND hWnd)
 	if(pWgt)
 		DrawWidgetBounds(*pWgt, ARGB16(1, 31, 1, 31));
 
-//	MGIC g(hWnd->GetBufferPtr(), hWnd->GetBounds());
+//	GraphicInterfaceContext g(hWnd->GetBufferPtr(), hWnd->GetBounds());
 }
 /*
 static void
@@ -187,9 +187,9 @@ MVisualControl::_m_OnTouchHeld(const Runtime::MTouchEventArgs& e)
 	try
 	{
 		IWidget& w(dynamic_cast<IWidget&>(*this));
-		if(!MTouchStatus::IsOnDragging())
-			MTouchStatus::SetDragOffset(w.GetLocation() - e);
-		else if(w.GetLocation() != e + MTouchStatus::GetDragOffset())
+		if(!STouchStatus::IsOnDragging())
+			STouchStatus::SetDragOffset(w.GetLocation() - e);
+		else if(w.GetLocation() != e + STouchStatus::GetDragOffset())
 			OnTouchMove(dynamic_cast<IVisualControl&>(*this), e);
 	}
 	catch(std::bad_cast&)
@@ -202,7 +202,7 @@ MVisualControl::_m_OnTouchMove(const Runtime::MTouchEventArgs& e)
 	{
 		IWidget& w(dynamic_cast<IWidget&>(*this));
 
-		w.SetLocation(e + MTouchStatus::GetDragOffset());
+		w.SetLocation(e + STouchStatus::GetDragOffset());
 		w.Refresh();
 	}
 	catch(std::bad_cast&)
@@ -339,17 +339,17 @@ YLabel::DrawForeground()
 }
 
 
-YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<MTextRegion> prTr_)
+YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_)
 : YVisualControl(hWnd, r, pCon),
-prTextRegion(pCon ? prTr_ : GetGlobalResource<MTextRegion>()), bDisposeList(true),
+prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()), bDisposeList(true),
 Font(), Margin(prTextRegion->Margin),
 List(*new ListType()), Viewer(List)
 {
 	Init_();
 }
-YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<MTextRegion> prTr_, YListBox::ListType& List_)
+YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_, YListBox::ListType& List_)
 : YVisualControl(hWnd, r, pCon),
-prTextRegion(pCon ? prTr_ : GetGlobalResource<MTextRegion>()), bDisposeList(false),
+prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()), bDisposeList(false),
 Font(), Margin(prTextRegion->Margin),
 List(List_), Viewer(List)
 {
@@ -569,7 +569,7 @@ YListBox::OnConfirmed(IVisualControl& c, const MIndexEventArgs& e)
 }
 
 
-YFileBox::YFileBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<MTextRegion> prTr_)
+YFileBox::YFileBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_)
 : YListBox(hWnd, r, pCon, prTr_, MFileList::List), MFileList(),
 List(ParentType::List)
 {}

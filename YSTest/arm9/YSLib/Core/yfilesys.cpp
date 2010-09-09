@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:36:30;
-// UTime = 2010-8-29 6:29;
-// Version = 0.1633;
+// UTime = 2010-9-3 23:02;
+// Version = 0.1722;
 
 
 #include "yfilesys.h"
@@ -20,6 +20,126 @@ const CPATH FS_Now(".");
 const CPATH FS_Parent("..");
 
 
+Path&
+Path::operator/=(const Path& path)
+{
+//	pathname += Slash;
+	pathname += path.pathname;
+	return *this;
+}
+
+bool
+Path::IsAbsolute() const
+{
+	return false;
+}
+bool
+Path::IsRelative() const
+{
+	return false;
+}
+bool
+Path::HasRootName() const
+{
+	return false;
+}
+bool
+Path::HasRootDirectory() const
+{
+	return false;
+}
+bool
+Path::HasRootPath() const
+{
+	return false;
+}
+bool
+Path::HasRelativePath() const
+{
+	return false;
+}
+bool
+Path::HasParentPath() const
+{
+	return false;
+}
+bool
+Path::HasFilename() const
+{
+	return false;
+}
+bool
+Path::HasStem() const
+{
+	return false;
+}
+bool
+Path::HasExtension() const
+{
+	return false;
+}
+
+//路径分解。
+Path
+Path::GetRootName() const
+{
+	return Path();
+}
+Path
+Path::GetRootDirectory() const
+{
+	return Path();
+}
+Path
+Path::GetRootPath() const
+{
+	return Path();
+}
+Path
+Path::GetRelativePath() const
+{
+	return Path();
+}
+Path
+Path::GetParentPath() const
+{
+	return Path();
+}
+Path
+Path::GetFilename() const
+{
+	return Path();
+}
+Path
+Path::GetStem() const
+{
+	return Path();
+}
+Path
+Path::GetExtension() const
+{
+	return Path();
+}
+
+Path&
+Path::MakeAbsolute(const Path& base)
+{
+	return *this;
+}
+Path&
+Path::RemoveFilename()
+{
+	return *this;
+}
+Path&
+Path::ReplaceExtension(const Path& new_extension)
+{
+//	RemoveExtension();
+	pathname += new_extension.pathname;
+	return *this;
+}
+
+
 const char*
 GetFileName(CPATH path)
 {
@@ -31,23 +151,23 @@ GetFileName(CPATH path)
 	return p ? (*++p ? p : NULL) : path;
 }
 std::string
-GetFileName(const MPath& path)
+GetFileName(const std::string& path)
 {
-	const MPath::size_type p(path.rfind(DEF_PATH_DELIMITER));
+	const std::string::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
-	return p == MPath::npos ? MPath(path) : path.substr(p + 1);
+	return p == std::string::npos ? std::string(path) : path.substr(p + 1);
 }
 
 std::string
-GetDirectoryName(const MPath& path)
+GetDirectoryName(const std::string& path)
 {
-	const MPath::size_type p(path.rfind(DEF_PATH_DELIMITER));
+	const std::string::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
-	return p == MPath::npos ? MPath() : path.substr(0, p + 1);
+	return p == std::string::npos ? std::string() : path.substr(0, p + 1);
 }
 
-MPath::size_type
-SplitPath(const MPath& path, MPath& directory, std::string& file)
+std::string::size_type
+SplitPath(const std::string& path, std::string& directory, std::string& file)
 {
 	const std::string::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
@@ -65,7 +185,7 @@ SplitPath(const MPath& path, MPath& directory, std::string& file)
 }
 
 std::string
-GetBaseName(const std::string& name)
+GetStem(const std::string& name)
 {
 	const std::string::size_type p(name.rfind('.'));
 
@@ -73,7 +193,7 @@ GetBaseName(const std::string& name)
 }
 
 bool
-IsBaseName(const char* str, const char* name)
+IsStem(const char* str, const char* name)
 {
 	using stdex::strlen_n;
 
@@ -84,7 +204,7 @@ IsBaseName(const char* str, const char* name)
 	return !strncmp(str, name, strlen_n(str));
 }
 bool
-IsBaseName(const std::string& str, const std::string& name)
+IsStem(const std::string& str, const std::string& name)
 {
 	if(str.length() > name.length())
 		return false;
@@ -92,7 +212,7 @@ IsBaseName(const std::string& str, const std::string& name)
 }
 
 bool
-HaveSameBaseNames(const char* a, const char* b)
+HaveSameStems(const char* a, const char* b)
 {
 	const char *pea(GetExtendName(a)), *peb(GetExtendName(b));
 
@@ -108,9 +228,9 @@ HaveSameBaseNames(const char* a, const char* b)
 	return true;
 }
 bool
-HaveSameBaseNames(const std::string& a, const std::string& b)
+HaveSameStems(const std::string& a, const std::string& b)
 {
-	return GetBaseName(a) == GetBaseName(b);
+	return GetStem(a) == GetStem(b);
 }
 
 const char*
@@ -170,15 +290,15 @@ HaveSameExtendNames(const std::string& a, const std::string& b)
 }
 
 int
-ChDir(const MPath& path)
+ChDir(const std::string& path)
 {
 	if(path.length() > MAX_PATH_LENGTH)
 		return -2;
 
 	return ChDir(path.c_str());
 }
-/*int //for MString;
-ChDir(const MPath& path)
+/*int //for String;
+ChDir(const Path& path)
 {
 	if(path.length() > MAX_PATH_LENGTH)
 		return -2;
@@ -189,7 +309,7 @@ ChDir(const MPath& path)
 	return ChDir(p);
 }*/
 
-MPath
+std::string
 GetNowDirectory()
 {
 	PATHSTR buf;
@@ -207,7 +327,7 @@ MFileList::~MFileList()
 u32
 MFileList::LoadSubItems()
 {
-	DirIter dir(FS_Now);
+	HDirectory dir(FS_Now);
 	u32 n(0);
 
 	if(dir.IsValid())
@@ -215,15 +335,15 @@ MFileList::LoadSubItems()
 		List.clear();
 
 		while((++dir).LastError == 0)
-			if(std::strcmp(DirIter::Name, FS_Now) != 0)
+			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
 				++n;
 		List.reserve(n);
 		dir.Reset();
 		while((++dir).LastError == 0)
-			if(std::strcmp(DirIter::Name, FS_Now) != 0)
-				List.push_back(DirIter::Stat.st_mode & S_IFDIR ?
-					MBCSToMString(DirIter::Name) + MString(FS_Seperator)
-					: MBCSToMString(DirIter::Name));
+			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
+				List.push_back(HDirectory::Stat.st_mode & S_IFDIR ?
+					MBCSToMString(HDirectory::Name) + String(FS_Seperator)
+					: MBCSToMString(HDirectory::Name));
 	}
 	return n;
 }
@@ -235,9 +355,9 @@ MFileList::ListItems()
 }
 
 void
-MFileList::GoToPath(const MPath& p)
+MFileList::GoToPath(const Path& p)
 {
-	Directory = GetDirectoryName(p);
+	Directory = GetDirectoryName(p.GetNativeString());
 	if(ChDir(Directory.c_str()))
 		Directory = GetNowDirectory();
 }
@@ -247,7 +367,7 @@ MFileList::GoToSubDirectory(const std::string& d)
 	if(ChDir(d.c_str()))
 		Directory = GetNowDirectory();
 	else
-		Directory += d;
+		Directory /= d;
 }
 void
 MFileList::GoToParent()

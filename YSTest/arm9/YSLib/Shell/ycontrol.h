@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:24;
-// UTime = 2010-8-29 12:30;
-// Version = 0.3388;
+// UTime = 2010-9-2 10:34;
+// Version = 0.3402;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -240,14 +240,14 @@ public:
 	typedef YVisualControl ParentType;
 
 protected:
-	GHResource<Drawing::MTextRegion> prTextRegion; //文本区域指针。
+	GHResource<Drawing::TextRegion> prTextRegion; //文本区域指针。
 
 public:
-	Drawing::MFont Font; //字体。
-	Drawing::MPadding Margin; //文本和容器的间距。
+	Drawing::Font Font; //字体。
+	Drawing::Padding Margin; //文本和容器的间距。
 	bool AutoSize; //启用根据字号自动调整大小。
 	bool AutoEllipsis; //启用对超出标签宽度的文本调整大小。
-	MString Text; //标签文本。
+	String Text; //标签文本。
 /*
 	YImage BackgroundImage; //背景图像。
 	YImage Image; //前景图像。
@@ -256,7 +256,7 @@ public:
 	//用字符串在窗口中以给定字号初始化标签。
 	template<class _charT>
 	YLabel(HWND, const _charT*, const SRect& = SRect::FullScreen,
-		const Drawing::MFont& = Drawing::MFont::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::MTextRegion> = NULL);
+		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 	virtual
 	~YLabel();
 
@@ -266,9 +266,9 @@ public:
 
 template<class _charT>
 YLabel::YLabel(HWND hWnd, const _charT* l, const SRect& r,
-			   const Drawing::MFont& f, IWidgetContainer* pCon, GHResource<Drawing::MTextRegion> prTr_)
+			   const Drawing::Font& f, IWidgetContainer* pCon, GHResource<Drawing::TextRegion> prTr_)
 : YVisualControl(hWnd, r, pCon),
-prTextRegion(pCon ? prTr_ : GetGlobalResource<Drawing::MTextRegion>()), Font(),
+prTextRegion(pCon ? prTr_ : GetGlobalResource<Drawing::TextRegion>()), Font(),
 Margin(prTextRegion->Margin), AutoSize(true), AutoEllipsis(false), Text(l)
 {}
 
@@ -279,18 +279,18 @@ class YListBox : public GMCounter<YListBox>, public YVisualControl
 {
 public:
 	typedef YVisualControl ParentType;
-	typedef MString ItemType; //项目类型：字符串。
+	typedef String ItemType; //项目类型：字符串。
 	typedef std::vector<ItemType> ListType; //列表类型。
 
 protected:
 	static const SDST defMarginH = 4, defMarginV = 2;
 
-	GHResource<Drawing::MTextRegion> prTextRegion; //文本区域指针。
+	GHResource<Drawing::TextRegion> prTextRegion; //文本区域指针。
 	const bool bDisposeList;
 
 public:
-	Drawing::MFont Font; //字体。
-	Drawing::MPadding Margin; //文本和容器的间距。
+	Drawing::Font Font; //字体。
+	Drawing::Padding Margin; //文本和容器的间距。
 	ListType& List; //列表。
 
 protected:
@@ -300,8 +300,8 @@ public:
 	DefEvent(YIndexEventHandler, Selected) //项目选择状态改变事件。
 	DefEvent(YIndexEventHandler, Confirmed) //项目选中确定事件。
 
-	YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::MTextRegion> = NULL);
-	YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::MTextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
+	YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+	YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
 	virtual
 	~YListBox();
 
@@ -386,7 +386,7 @@ public:
 
 	ListType& List;
 
-	YFileBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::MTextRegion> = NULL);
+	YFileBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 	virtual
 	~YFileBox();
 

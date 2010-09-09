@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-7-26 14:02;
-// Version = 0.2296;
+// UTime = 2010-9-2 10:21;
+// Version = 0.2303;
 
 
 #include "ygui.h"
@@ -63,7 +63,7 @@ ReleaseFocusCascade(IVisualControl& c)
 
 
 //记录输入保持状态。
-SVec MTouchStatus::v_DragOffset(SVec::FullScreen);
+SVec STouchStatus::v_DragOffset(SVec::FullScreen);
 
 namespace
 {
@@ -117,7 +117,7 @@ namespace
 		{
 			return false;
 		}
-		MTouchStatus::SetDragOffset();
+		STouchStatus::SetDragOffset();
 		return true;
 	}
 
@@ -126,7 +126,7 @@ namespace
 	{
 		if(p_TouchDown != &c)
 		{
-			MTouchStatus::SetDragOffset();
+			STouchStatus::SetDragOffset();
 			return false;
 		}
 		try
@@ -283,7 +283,7 @@ YSL_END_NAMESPACE(Runtime)
 YSL_BEGIN_NAMESPACE(Drawing)
 
 void
-DrawBounds(MGIC& g, const SPoint& location, const SSize& size, PixelType c)
+DrawBounds(GraphicInterfaceContext& g, const SPoint& location, const SSize& size, PixelType c)
 {
 	DrawRect(g, location, SPoint(location + size - SVec(1, 1)), c);
 }
@@ -291,7 +291,7 @@ DrawBounds(MGIC& g, const SPoint& location, const SSize& size, PixelType c)
 void
 DrawWindowBounds(HWND hWnd, PixelType c)
 {
-	MGIC g(GetGraphicInterfaceContext(hWnd));
+	GraphicInterfaceContext g(GetGraphicInterfaceContext(hWnd));
 
 	DrawBounds(g, SPoint::Zero, hWnd->GetSize(), c);
 }
@@ -301,7 +301,7 @@ DrawWidgetBounds(IWidget& w, PixelType c)
 {
 	if(w.GetWindowHandle())
 	{
-		MGIC g(GetGraphicInterfaceContext(w.GetWindowHandle()));
+		GraphicInterfaceContext g(GetGraphicInterfaceContext(w.GetWindowHandle()));
 
 		DrawBounds(g, w.GetLocation(), w.GetSize(), c);
 	}

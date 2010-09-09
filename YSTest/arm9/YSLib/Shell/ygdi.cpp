@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46;
-// UTime = 2010-7-26 6:31;
-// Version = 0.2270;
+// UTime = 2010-9-2 10:28;
+// Version = 0.2289;
 
 
 #include "ygdi.h"
@@ -470,11 +470,11 @@ blitAlphaU(BitmapPtr dst, const SSize& ds,
 
 
 bool
-DrawHLineSeg(MGIC& g, SPOS y, SPOS x1, SPOS x2, PixelType c)
+DrawHLineSeg(GraphicInterfaceContext& g, SPOS y, SPOS x1, SPOS x2, PixelType c)
 {
 	YAssert(g.IsValid(),
 		"In function \"void\n"
-		"DrawHLineSeg(MGIC& g, SPOS y, SPOS x1, SPOS x2, PixelType c)\": \n"
+		"DrawHLineSeg(GraphicInterfaceContext& g, SPOS y, SPOS x1, SPOS x2, PixelType c)\": \n"
 		"The graphic device context is invalid.");
 
 	if(isInIntervalRegular<int>(y, g.GetHeight())
@@ -490,11 +490,11 @@ DrawHLineSeg(MGIC& g, SPOS y, SPOS x1, SPOS x2, PixelType c)
 }
 
 bool
-DrawVLineSeg(MGIC& g, SPOS x, SPOS y1, SPOS y2, PixelType c)
+DrawVLineSeg(GraphicInterfaceContext& g, SPOS x, SPOS y1, SPOS y2, PixelType c)
 {
 	YAssert(g.IsValid(),
 		"In function \"void\n"
-		"DrawVLineSeg(MGIC& g, SPOS x, SPOS y1, SPOS y2, PixelType c)\": \n"
+		"DrawVLineSeg(GraphicInterfaceContext& g, SPOS x, SPOS y1, SPOS y2, PixelType c)\": \n"
 		"The graphic device context is invalid.");
 
 	if(isInIntervalRegular<int>(x, g.GetWidth())
@@ -513,15 +513,15 @@ namespace
 {
 	//倾斜直线光栅化函数。
 	bool
-	DrawObliqueLine(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
+	DrawObliqueLine(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
 	{
 		YAssert(y1 != y2,
 			"In function \"static void\n"
-			"DrawObliqueLine(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)\": \n"
+			"DrawObliqueLine(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)\": \n"
 			"Not drawing an oblique line: the line is horizontal.");
 		YAssert(x1 != x2,
 			"In function \"static void\n"
-			"DrawObliqueLine(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)\": \n"
+			"DrawObliqueLine(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)\": \n"
 			"Not drawing an oblique line: the line is vertical.");
 
 		if(SRect(g.GetSize()).IsInBoundsRegular(x1, y1) && SRect(g.GetSize()).IsInBoundsRegular(x2, y2))
@@ -565,7 +565,7 @@ namespace
 }
 
 bool
-DrawLineSeg(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
+DrawLineSeg(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
 {
 	if(y1 == y2)
 		return DrawHLineSeg(g, y1, x1, x2, c);
@@ -576,7 +576,7 @@ DrawLineSeg(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
 }
 
 bool
-DrawRect(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
+DrawRect(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
 {
 	bool b(DrawVLineSeg(g, x1, y1, y2, c));
 	b |= DrawHLineSeg(g, y2, x1, x2, c);
@@ -586,15 +586,15 @@ DrawRect(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c)
 }
 
 
-MPadding::MPadding(SDST l, SDST r, SDST t, SDST b)
+Padding::Padding(SDST l, SDST r, SDST t, SDST b)
 : Left(l), Right(r), Top(t), Bottom(b)
 {}
-MPadding::MPadding(u64 m)
+Padding::Padding(u64 m)
 : Left(m >> 48), Right((m >> 32) & 0xFFFF), Top((m >> 16) & 0xFFFF), Bottom(m & 0xFFFF)
 {}
 
 u64
-MPadding::GetAll() const
+Padding::GetAll() const
 {
 	u64 r = (Left << 16) | Right;
 
@@ -603,7 +603,7 @@ MPadding::GetAll() const
 }
 
 void
-MPadding::SetAll(SDST l, SDST r, SDST t, SDST b)
+Padding::SetAll(SDST l, SDST r, SDST t, SDST b)
 {
 	Left = l;
 	Right = r;
@@ -611,8 +611,8 @@ MPadding::SetAll(SDST l, SDST r, SDST t, SDST b)
 	Bottom = b;
 }
 
-MPadding&
-MPadding::operator+=(const MPadding& m)
+Padding&
+Padding::operator+=(const Padding& m)
 {
 	Left += m.Left;
 	Right += m.Right;
@@ -620,10 +620,10 @@ MPadding::operator+=(const MPadding& m)
 	Bottom += m.Bottom;
 	return *this;
 }
-MPadding
-operator+(const MPadding& a, const MPadding& b)
+Padding
+operator+(const Padding& a, const Padding& b)
 {
-	return MPadding(a.Left + b.Left, a.Right + b.Right, a.Top + b.Top, a.Bottom + b.Bottom);
+	return Padding(a.Left + b.Left, a.Right + b.Right, a.Top + b.Top, a.Bottom + b.Bottom);
 }
 
 
@@ -655,7 +655,7 @@ MBitmapBuffer::SetSize(SPOS w, SPOS h)
 			}
 			catch(std::bad_alloc&)
 			{
-				throw MLoggedEvent("Allocation failed @@ MBitmapBuffer::SetSize(SPOS, SPOS);", 1);
+				throw LoggedEvent("Allocation failed @@ MBitmapBuffer::SetSize(SPOS, SPOS);", 1);
 			}
 		}
 	}
@@ -740,7 +740,7 @@ MBitmapBufferEx::SetSize(SPOS w, SPOS h)
 			}
 			catch(std::bad_alloc&)
 			{
-				throw MLoggedEvent("Allocation failed @@ MBitmapBufferEx::SetSize(SPOS, SPOS);", 1);;
+				throw LoggedEvent("Allocation failed @@ MBitmapBufferEx::SetSize(SPOS, SPOS);", 1);;
 			}
 		}
 	}

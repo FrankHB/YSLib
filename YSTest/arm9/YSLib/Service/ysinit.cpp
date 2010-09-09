@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YShellInitialization by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-10-21 23:15:08;
-// UTime = 2010-7-21 13:57;
-// Version = 0.1612;
+// UTime = 2010-9-2 10:34;
+// Version = 0.1615;
 
 
 #include "ysinit.h"
@@ -117,9 +117,9 @@ InitializeSystemFontCache()
 	iprintf("%u font file(s) are loaded\nsuccessfully.\n", pDefaultFontCache->GetFilesN());
 	iputs("Setting default font face...");
 
-	const Drawing::MTypeface* const pf(pDefaultFontCache->GetDefaultTypefacePtr());
+	const Drawing::Typeface* const pf(pDefaultFontCache->GetDefaultTypefacePtr());
 
-	if(pf && Drawing::MFont::InitializeDefault())
+	if(pf && Drawing::Font::InitializeDefault())
 		iprintf("\"%s\":\"%s\",\nsuccessfully.\n", pf->GetFamilyName(), pf->GetStyleName());
 	else
 	{
@@ -132,7 +132,7 @@ void
 DestroySystemFontCache()
 {
 	Drawing::DestroyFontCache(pDefaultFontCache);
-	Drawing::MFont::ReleaseDefault();
+	Drawing::Font::ReleaseDefault();
 }
 
 void

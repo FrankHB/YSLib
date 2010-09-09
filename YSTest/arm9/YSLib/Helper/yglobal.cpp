@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52;
-// UTime = 2010-8-24 11:08;
-// Version = 0.2322;
+// UTime = 2010-9-2 10:29;
+// Version = 0.2329;
 
 
 #include "yglobal.h"
@@ -48,7 +48,7 @@ namespace
 	{
 		static KeysInfo Keys;
 		static CursorInfo TouchPos_Old, TouchPos;
-		static MMSG /*InputMessage_Old, */InputMessage;
+		static Message /*InputMessage_Old, */InputMessage;
 
 		if(Keys.held & Keys::Touch)
 			TouchPos_Old = TouchPos;
@@ -58,9 +58,9 @@ namespace
 		const SPoint pt(ToSPoint(Keys.held & Keys::Touch ? TouchPos : TouchPos_Old));
 
 		if(DefaultMQ.empty() || Keys != *reinterpret_cast<KeysInfo*>(InputMessage.GetWParam()) || pt != InputMessage.GetCursorLocation())
-			InsertMessage((InputMessage = MMSG(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Keys), 0, pt)));
+			InsertMessage((InputMessage = Message(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Keys), 0, pt)));
 	/*
-		InputMessage = MMSG(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Keys), 0, ToSPoint(tp));
+		InputMessage = Message(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Keys), 0, ToSPoint(tp));
 
 		if(InputMessage != InputMessage_Old)
 		{
@@ -133,7 +133,7 @@ Def::Destroy(YObject&, const MEventArgs&)
 }
 
 LRES
-Def::ShlProc(HSHL hShl, const MMSG& msg)
+Def::ShlProc(HSHL hShl, const Message& msg)
 {
 	return hShl->ShlProc(msg);
 }
@@ -196,11 +196,11 @@ namespace
 		if((pScreenUp = new YScreen(SCRW, SCRH)))
 			pDesktopUp = new YDesktop(*pScreenUp);
 		else //初始化上屏失败。
-			throw Exceptions::MLoggedEvent("Initialization of up screen failed.");
+			throw Exceptions::LoggedEvent("Initialization of up screen failed.");
 		if((pScreenDown = new YScreen(SCRW, SCRH)))
 			pDesktopDown = new YDesktop(*pScreenDown);
 		else //初始化下屏失败。
-			throw Exceptions::MLoggedEvent("Initialization of down screen failed.");
+			throw Exceptions::LoggedEvent("Initialization of down screen failed.");
 
 		//注册全局应用程序对象。
 		theApp.ResetShellHandle();
@@ -232,7 +232,7 @@ main(int argc, char* argv[])
 	{
 		YSL_ theApp.Log.FatalError("Unhandled std::bad_cast @@ int main(int, char*[]);");
 	}
-	catch(YSL_ Exceptions::MLoggedEvent& e)
+	catch(YSL_ Exceptions::LoggedEvent& e)
 	{
 		YSL_ theApp.Log.FatalError(e.what());
 	}

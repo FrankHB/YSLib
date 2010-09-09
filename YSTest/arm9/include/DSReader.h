@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:03:47;
-// UTime = 2010-9-1 21:19;
-// Version = 0.2067;
+// UTime = 2010-9-2 10:31;
+// Version = 0.2078;
 
 
 #ifndef _DSREADER_H_
@@ -24,13 +24,13 @@ class MDualScreenReader
 {
 private:
 	YTextFile& tf; //文本文件对象。
-	Text::MTextFileBuffer Blocks; //文本缓存映射。
+	Text::TextFileBuffer Blocks; //文本缓存映射。
 	YFontCache& fc; //字体缓存。
 	u16 left, top_up, top_down; // left ：上下字符区域距离屏幕左边距离； top_up ：上字符区域距离上屏顶端距离； top_down ：下字符区域距离下屏顶端距离。
 	PixelType *pBgUp, *pBgDn; //上下屏幕背景层显存地址。
-	MTextRegion &trUp, &trDn; //上下屏幕对应字符区域。
+	TextRegion &trUp, &trDn; //上下屏幕对应字符区域。
 	ROT rot; //屏幕指向。
-	Text::MTextFileBuffer::TextIterator itUp, itDn; //字符区域读取文本缓存迭代器。
+	Text::TextFileBuffer::HText itUp, itDn; //字符区域读取文本缓存迭代器。
 	u8 lnHeight; //行高。
 
 	DefGetter(u16, ColorUp, trUp.Color) //取上字符区域的字体颜色。
@@ -82,14 +82,14 @@ public:
 	bool IsTextBottom(); //判断输出位置是否到文本底端。
 
 	DefGetter(u8, FontSize, fc.GetFontSize()) //取字符区域的字体大小。
-	DefGetter(MTextRegion&, Up, trUp) //取上字符区域的引用。
-	DefGetter(MTextRegion&, Dn, trDn) //取下字符区域的引用。
+	DefGetter(TextRegion&, Up, trUp) //取上字符区域的引用。
+	DefGetter(TextRegion&, Dn, trDn) //取下字符区域的引用。
 	DefGetter(u16, Color, GetColorUp()) //取字符区域的字体颜色。
 	DefGetter(u8, LineGap, GetLnGapUp()) //取字符区域的行距。
 
 	DefSetterDe(SDST, Left, left, 0) //设置字符区域距离屏幕左边距离。
 	void
-	SetFontSize(MFont::SizeType = MFont::DefSize); //设置字符区域字体大小。
+	SetFontSize(Font::SizeType = Font::DefSize); //设置字符区域字体大小。
 	void
 	SetColor(PixelType = 0); //设置字符颜色。
 	void

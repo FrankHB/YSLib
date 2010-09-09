@@ -1,8 +1,8 @@
 // YSLib::Adapter::YAdapter by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-22 20:16:21;
-// UTime = 2010-8-29 4:53;
-// Version = 0.1717;
+// UTime = 2010-9-2 9:44;
+// Version = 0.1727;
 
 
 #ifndef INCLUDED_YADAPTER_H_
@@ -83,7 +83,7 @@ namespace YSLib
 		using platform::KeysInfo;
 		using platform::CursorInfo;
 	}
-	using platform::DirIter;
+	using platform::HDirectory;
 	using platform::yassert;
 	namespace DS
 	{

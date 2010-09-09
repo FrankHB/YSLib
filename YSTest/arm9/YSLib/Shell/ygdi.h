@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46;
-// UTime = 2010-8-2 13:56;
-// Version = 0.2684;
+// UTime = 2010-9-2 11:00;
+// Version = 0.2719;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -249,14 +249,14 @@ blitAlphaU(BitmapPtr dst, const SSize& ds,
 
 
 //图形接口上下文。
-class MGIC
+class GraphicInterfaceContext
 {
 private:
 	BitmapPtr pBuffer;
 	SSize Size;
 
 public:
-	MGIC(BitmapPtr, const SSize&);
+	GraphicInterfaceContext(BitmapPtr, const SSize&);
 
 	DefBoolGetter(Valid, pBuffer && Size.Width && Size.Height)
 
@@ -267,7 +267,7 @@ public:
 };
 
 inline
-MGIC::MGIC(BitmapPtr b, const SSize& s)
+GraphicInterfaceContext::GraphicInterfaceContext(BitmapPtr b, const SSize& s)
 : pBuffer(b), Size(s)
 {}
 
@@ -276,15 +276,15 @@ MGIC::MGIC(BitmapPtr b, const SSize& s)
 
 //绘制像素：(x, y) 。
 inline void
-PutPixel(MGIC& g, SPOS x, SPOS y, PixelType c)
+PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c)
 {
 	YAssert(g.IsValid(),
 		"In function \"inline void\n"
-		"PutPixel(MGIC& g, SPOS x, SPOS y, PixelType c)\": \n"
+		"PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c)\": \n"
 		"The graphic device context is invalid.");
 	YAssert(SRect(g.GetSize()).IsInBoundsRegular(x, y),
 		"In function \"inline void\n"
-		"PutPixel(MGIC& g, SPOS x, SPOS y, PixelType c)\": \n"
+		"PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c)\": \n"
 		"The pixel is not in the device context buffer.");
 
 	g.GetBufferPtr()[y * g.GetWidth() + x] = c;
@@ -292,7 +292,7 @@ PutPixel(MGIC& g, SPOS x, SPOS y, PixelType c)
 
 //绘制点：p(x, y) 。
 inline bool
-DrawPoint(MGIC& g, SPOS x, SPOS y, PixelType c)
+DrawPoint(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c)
 {
 	if(g.IsValid() && SRect(g.GetSize()).IsInBoundsRegular(x, y))
 	{
@@ -302,43 +302,43 @@ DrawPoint(MGIC& g, SPOS x, SPOS y, PixelType c)
 	return false;
 }
 inline bool
-DrawPoint(MGIC& g, const SPoint& p, PixelType c)
+DrawPoint(GraphicInterfaceContext& g, const SPoint& p, PixelType c)
 {
 	return DrawPoint(g, p.X, p.Y, c);
 }
 
 //绘制水平线段：指定水平坐标 x1 、 x2 ，竖直坐标 y 。
 bool
-DrawHLineSeg(MGIC& g, SPOS y, SPOS x1, SPOS x2, PixelType c);
+DrawHLineSeg(GraphicInterfaceContext& g, SPOS y, SPOS x1, SPOS x2, PixelType c);
 
 //绘制竖直线段：指定水平坐标 x ，竖直坐标 y1 、 y2 。
 bool
-DrawVLineSeg(MGIC& g, SPOS x, SPOS y1, SPOS y2, PixelType c);
+DrawVLineSeg(GraphicInterfaceContext& g, SPOS x, SPOS y1, SPOS y2, PixelType c);
 
 //绘制一般线段：顶点 p1(x1, y1), p2(x2, y2) 。
 bool
-DrawLineSeg(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
+DrawLineSeg(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
 inline bool
-DrawLineSeg(MGIC& g, const SPoint& p1, const SPoint& p2, PixelType c)
+DrawLineSeg(GraphicInterfaceContext& g, const SPoint& p1, const SPoint& p2, PixelType c)
 {
 	return DrawLineSeg(g, p1.X, p1.Y, p2.X, p2.Y, c);
 }
 
 //绘制空心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2) 。
 bool
-DrawRect(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
+DrawRect(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
 inline bool
-DrawRect(MGIC& g, const SPoint& p1, const SPoint& p2, PixelType c)
+DrawRect(GraphicInterfaceContext& g, const SPoint& p1, const SPoint& p2, PixelType c)
 {
 	return DrawRect(g, p1.X, p1.Y, p2.X, p2.Y, c);
 }
 inline bool
-DrawRect(MGIC& g, const SPoint& p, const SSize& s, PixelType c)
+DrawRect(GraphicInterfaceContext& g, const SPoint& p, const SSize& s, PixelType c)
 {
 	return DrawRect(g, p.X, p.Y, p.X + s.Width, p.Y + s.Height, c);
 }
 inline bool
-DrawRect(MGIC& g, const SRect& r, PixelType c)
+DrawRect(GraphicInterfaceContext& g, const SRect& r, PixelType c)
 {
 	return DrawRect(g, r.X, r.Y, r.X + r.Width, r.Y + r.Height, c);
 }
@@ -346,33 +346,33 @@ DrawRect(MGIC& g, const SRect& r, PixelType c)
 
 // GDI 逻辑对象。
 
-class MPenStyle //笔样式：字体和笔颜色。
+class PenStyle //笔样式：字体和笔颜色。
 {
 public:
-	MFont Font; //字体。
+	Drawing::Font Font; //字体。
 	PixelType Color; //笔颜色。
 
 	explicit
-	MPenStyle(const MFontFamily& = GetDefaultFontFamily(), MFont::SizeType = MFont::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
+	PenStyle(const FontFamily& = GetDefaultFontFamily(), Font::SizeType = Font::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
 
-	DefGetterMember(const MFontFamily&, FontFamily, Font)
+	DefGetterMember(const FontFamily&, FontFamily, Font)
 	DefGetterMember(YFontCache&, Cache, Font)
 };
 
 inline
-MPenStyle::MPenStyle(const MFontFamily& family, MFont::SizeType size, PixelType c)
+PenStyle::PenStyle(const FontFamily& family, Font::SizeType size, PixelType c)
 : Font(family, size), Color(c)
 {}
 
 
-struct MPadding //边距样式。
+struct Padding //边距样式。
 {
 	SDST Left, Right, Top, Bottom; //边距：左、右、上、下。
 
 	explicit
-	MPadding(SDST = 4, SDST = 4, SDST = 4, SDST = 4); //使用 4 个 16 位无符号整数形式初始化边距。
+	Padding(SDST = 4, SDST = 4, SDST = 4, SDST = 4); //使用 4 个 16 位无符号整数形式初始化边距。
 	explicit
-	MPadding(u64); //使用 64 位无符号整数形式初始化边距。
+	Padding(u64); //使用 64 位无符号整数形式初始化边距。
 
 	SDST
 	GetHorizontal() const; //取水平边距和。
@@ -388,30 +388,30 @@ struct MPadding //边距样式。
 	void
 	SetAll(SDST, SDST, SDST, SDST); //设置边距（4 个 16 位无符号整数形式）。
 
-	MPadding&
-	operator+=(const MPadding&);
-	friend MPadding
-	operator+(const MPadding& a, const MPadding& b);
+	Padding&
+	operator+=(const Padding&);
+	friend Padding
+	operator+(const Padding& a, const Padding& b);
 };
 
 inline SDST
-MPadding::GetHorizontal() const
+Padding::GetHorizontal() const
 {
 	return Left + Right;
 }
 inline SDST
-MPadding::GetVertical() const
+Padding::GetVertical() const
 {
 	return Top + Bottom;
 }
 
 inline void
-MPadding::SetAll(u64 m)
+Padding::SetAll(u64 m)
 {
 	SetAll(m >> 48, (m >> 32) & 0xFFFF, (m >> 16) & 0xFFFF, m & 0xFFFF);
 }
 inline void
-MPadding::SetAll(SDST h, SDST v)
+Padding::SetAll(SDST h, SDST v)
 {
 	SetAll(h, h, v, v);
 }
@@ -431,7 +431,7 @@ public:
 	friend bool
 	operator==(const MBitmapBuffer&, const MBitmapBuffer&);
 
-	DefConverter(MGIC, MGIC(img, *this)) //生成图形接口上下文。
+	DefConverter(GraphicInterfaceContext, GraphicInterfaceContext(img, *this)) //生成图形接口上下文。
 
 	DefGetter(SDST, Width, Width) //取缓冲区的宽。
 	DefGetter(SDST, Height, Height) //取缓冲区的高。

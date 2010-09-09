@@ -1,11 +1,14 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-8-25 20:15;
-// Version = r6966;
+// UTime = 2010-9-3 22:03;
+// Version = r7313;
 
 
 // Definitions ：方法和公共域定义与说明。
+
+
+#region synopsis(begin)
 
 //平台定义文件（platform.h）定义示例。
 
@@ -542,7 +545,7 @@ unit YCommon "ycommon"
 
 
 		//目录迭代器。
-		class DirIter
+		class HDirectory
 		{
 		public:
 			typedef ::DIR_ITER* IteratorType;
@@ -555,17 +558,17 @@ unit YCommon "ycommon"
 
 		public:
 			inline explicit
-			DirIter(CPATH = NULL);
+			HDirectory(CPATH = NULL);
 
 		private:
-			inline DirIter(IteratorType&);
+			inline HDirectory(IteratorType&);
 
 		public:
-			inline ~DirIter();
+			inline ~HDirectory();
 
-			inline DirIter&
+			inline HDirectory&
 			operator++();
-			inline DirIter
+			inline HDirectory
 			operator++(int);
 
 			inline bool
@@ -579,7 +582,7 @@ unit YCommon "ycommon"
 
 			inline void
 			Reset();
-		}; //class DirIter;
+		}; //class HDirectory;
 
 
 		//判断指定目录是否存在。
@@ -809,7 +812,7 @@ header YAdapter "yadapter.h"
 			using platform::KeysInfo;
 			using platform::CursorInfo;
 		} //namespace Runtime;
-		using platform::DirIter;
+		using platform::HDirectory;
 		using platform::yassert;
 		namespace $platform
 		{
@@ -1069,10 +1072,10 @@ unit YFont "yfont"
 	export const u8 DEFAULT_FONT_SIZE;
 
 	//前向声明。
-	class MFont;
-	class MFontFamily;
-	class MTypeface;
-	class MFontFile;
+	class Font;
+	class FontFamily;
+	class Typeface;
+	class FontFile;
 	class YFontCache;
 
 
@@ -1106,14 +1109,14 @@ unit YFont "yfont"
 
 
 	//字型家族 (Typeface Family) 标识。
-	class MFontFamily// : implements GIEquatable<MFontFamily>, implements GILess<MFontFamily>, implements GIContainer<MTypeface>
+	class FontFamily// : implements GIEquatable<FontFamily>, implements GILess<FontFamily>, implements GIContainer<Typeface>
 	{
-		friend class MTypeface;
+		friend class Typeface;
 		friend class YFontCache;
 
 	public:
-		typedef std::set<const MTypeface*> FTypes; //字型组类型。
-		typedef std::map<const FT_String*, const MTypeface*, deref_str_comp<FT_String> > FTypesIndex; //字型组索引类型。
+		typedef std::set<const Typeface*> FTypes; //字型组类型。
+		typedef std::map<const FT_String*, const Typeface*, deref_str_comp<FT_String> > FTypesIndex; //字型组索引类型。
 
 		YFontCache& Cache;
 
@@ -1123,30 +1126,30 @@ unit YFont "yfont"
 		FTypesIndex mTypesIndex; //字型组索引类型。
 
 	public:
-		MFontFamily(YFontCache&, const FT_String*);
-		~MFontFamily() ythrow();
+		FontFamily(YFontCache&, const FT_String*);
+		~FontFamily() ythrow();
 
 		bool
-		operator==(const MFontFamily&) const;
+		operator==(const FontFamily&) const;
 		bool
-		operator<(const MFontFamily&) const;
+		operator<(const FontFamily&) const;
 
 		DefGetter(const FT_String*, FamilyName, family_name)
-		const MTypeface*
+		const Typeface*
 		GetTypefacePtr(EFontStyle) const; //取指定样式的字型指针，若非 Regular 样式失败则尝试取 Regular 样式的字型指针。
-		const MTypeface*
+		const Typeface*
 		GetTypefacePtr(const FT_String*) const; //取指定样式名称的字型指针。
 
 	private:
 		void
-		operator+=(const MTypeface&); //向字型组和字型组索引添加字型对象。
+		operator+=(const Typeface&); //向字型组和字型组索引添加字型对象。
 		bool
-		operator-=(const MTypeface&); //从字型组和字型组索引中移除指定字型对象。
-	}; //class MFontFamily;
+		operator-=(const Typeface&); //从字型组和字型组索引中移除指定字型对象。
+	}; //class FontFamily;
 
 
 	//字型标识。
-	class MTypeface// : implements GIEquatable<MTypeface>, implements GILess<MTypeface>
+	class Typeface// : implements GIEquatable<Typeface>, implements GILess<Typeface>
 	{
 		friend class YFontCache;
 		friend FT_Error simpleFaceRequester(FTC_FaceID, FT_Library, FT_Pointer, FT_Face*);
@@ -1154,10 +1157,10 @@ unit YFont "yfont"
 	//	static const FT_Matrix MItalic = {0x10000, 0x5800, 0, 0x1000};
 	public:
 		YFontCache& Cache;
-		const MFontFile& File;
+		const FontFile& File;
 
 	private:
-		MFontFamily* pFontFamily;
+		FontFamily* pFontFamily;
 	//	FT_Face face;
 	//	bool bBold, bOblique, bUnderline;
 		FT_String* style_name;
@@ -1172,22 +1175,22 @@ unit YFont "yfont"
 		std::vector<u8> fixSizes;*/
 
 	public:
-		MTypeface(YFontCache&, const MFontFile&, u32 = 0);
-		~MTypeface() ythrow();
+		Typeface(YFontCache&, const FontFile&, u32 = 0);
+		~Typeface() ythrow();
 
 		bool
-		operator==(const MTypeface&) const;
+		operator==(const Typeface&) const;
 		bool
-		operator<(const MTypeface&) const;
+		operator<(const Typeface&) const;
 
-		DefGetter(const MFontFamily*, FontFamilyPtr, pFontFamily)
+		DefGetter(const FontFamily*, FontFamilyPtr, pFontFamily)
 		DefGetter(const FT_String*, FamilyName, pFontFamily ? pFontFamily->GetFamilyName() : NULL)
 		DefGetter(const FT_String*, StyleName, style_name)
-	}; //class MTypeface;
+	}; //class Typeface;
 
 
 	//字体文件。
-	class MFontFile// : implements GIEquatable<MFontFile>, implements GILess<MFontFile>
+	class FontFile// : implements GIEquatable<FontFile>, implements GILess<FontFile>
 	{
 	public:
 		static const u8 MaxFontPathLength = YC_MAX_PATH; //最大字体文件路径长度。
@@ -1198,29 +1201,29 @@ unit YFont "yfont"
 		FT_Long nFace;
 
 	public:
-		MFontFile(CPATH, FT_Library&);
-		MFontFile(CPATH, const char*, FT_Library&);
+		FontFile(CPATH, FT_Library&);
+		FontFile(CPATH, const char*, FT_Library&);
 
-		bool operator==(const MFontFile& rhs) const;
+		bool operator==(const FontFile& rhs) const;
 
 		DefGetter(const char*, Path, path)
 		DefGetter(s32, FaceN, nFace)
 
 		void ReloadFaces(); //读取字体文件，载入全部字体。
-	}; //class MFontFile;
+	}; //class FontFile;
 
 
 	//取默认字型。
-	const MTypeface* GetDefaultTypefacePtr();
+	const Typeface* GetDefaultTypefacePtr();
 
 	//取默认字型家族。
-	inline const MFontFamily*
+	inline const FontFamily*
 	GetDefaultFontFamilyPtr();
-	inline const MFontFamily&
+	inline const FontFamily&
 	GetDefaultFontFamily()
 
 	//字体：字模，包含字型和大小。
-	class MFont
+	class Font
 	{
 	public:
 		typedef u8 SizeType;
@@ -1231,23 +1234,23 @@ unit YFont "yfont"
 			MaxSize = 72; //DEF_SHELL_FONTSIZE_MAX;
 
 	private:
-		static MFont* pDefFont; //默认 Shell 字体。
+		static Font* pDefFont; //默认 Shell 字体。
 
-		const MFontFamily* pFontFamily;
+		const FontFamily* pFontFamily;
 		EFontStyle Style;
 		SizeType Size;
 
 	public:
 		explicit
-		MFont(const MFontFamily& = GetDefaultFontFamily(), SizeType = DefSize, EFontStyle = Regular);
+		Font(const FontFamily& = GetDefaultFontFamily(), SizeType = DefSize, EFontStyle = Regular);
 
 		DefBoolGetter(Bold, Style | Bold)
 		DefBoolGetter(Italic, Style | Italic)
 		DefBoolGetter(Underline, Style | Underline)
 		DefBoolGetter(Strikeout, Style | Strikeout)
 
-		DefStaticGetter(const MFont&, Default, *pDefFont)
-		DefGetter(const MFontFamily&, FontFamily, *pFontFamily)
+		DefStaticGetter(const Font&, Default, *pDefFont)
+		DefGetter(const FontFamily&, FontFamily, *pFontFamily)
 		DefGetter(EFontStyle, Style, Style)
 		DefGetter(SizeType, Size, Size)
 		DefGetter(YFontCache&, Cache, GetFontFamily().Cache)
@@ -1257,13 +1260,13 @@ unit YFont "yfont"
 		GetStyleName() const;
 		SizeType GetHeight() const;
 
-	/*	MFontFamily&
-		SetFontFamily(const MFontFamily&);*/
+	/*	FontFamily&
+		SetFontFamily(const FontFamily&);*/
 		DefSetter(EFontStyle, Style, Style)
 		void
 		SetSize(SizeType);
 		void
-		SetFont(const MFont&);
+		SetFont(const Font&);
 
 		bool
 		Update(); //更新字体缓存中当前处理的字体。
@@ -1274,14 +1277,14 @@ unit YFont "yfont"
 		InitializeDefault(); //初始化默认字体。
 		static void
 		ReleaseDefault(); //释放默认字体。
-	}; //class MFont;
+	}; //class Font;
 
 
 	//字体缓存。
 	class YFontCache : public YObject,
-		implements GIContainer<const MFontFile>, implements GIContainer<const MTypeface>, implements GIContainer<MFontFamily>
+		implements GIContainer<const FontFile>, implements GIContainer<const Typeface>, implements GIContainer<FontFamily>
 	{
-		friend class MTypeface;
+		friend class Typeface;
 
 	private:
 		FT_Library library; //库实例。
@@ -1292,10 +1295,10 @@ unit YFont "yfont"
 		FTC_SBit sbit;
 
 	public:
-		typedef std::set<const MFontFile*> FFiles; //字体文件组类型。
-		typedef std::set<const MTypeface*> FTypes; //字型组类型。
-		typedef std::set<const MTypeface*> FFaces; //字型家族组类型。
-		typedef std::map<const FT_String*, MFontFamily*, deref_str_comp<FT_String> > FFacesIndex; //字型家族组索引类型。
+		typedef std::set<const FontFile*> FFiles; //字体文件组类型。
+		typedef std::set<const Typeface*> FTypes; //字型组类型。
+		typedef std::set<const Typeface*> FFaces; //字型家族组类型。
+		typedef std::map<const FT_String*, FontFamily*, deref_str_comp<FT_String> > FFacesIndex; //字型家族组索引类型。
 
 	private:
 		FFiles sFiles; //字体文件组。
@@ -1303,9 +1306,9 @@ unit YFont "yfont"
 		FFaces sFaces; //字型家族组索引。
 		FFacesIndex mFacesIndex; //字型家族组索引。
 
-		const MTypeface* pDefaultFace; //默认字型指针。
-		const MTypeface* pFace; //当前处理的字型指针。
-		MFont::SizeType curSize; //当前处理的字体大小。
+		const Typeface* pDefaultFace; //默认字型指针。
+		const Typeface* pFace; //当前处理的字型指针。
+		Font::SizeType curSize; //当前处理的字体大小。
 
 	public:
 		explicit
@@ -1325,16 +1328,16 @@ unit YFont "yfont"
 		DefGetter(FFiles::size_type, FilesN, sFiles.size()) //取字体文件组储存的文件数。
 		DefGetter(FTypes::size_type, TypesN, sTypes.size()) //取字型组储存的字型数。
 		DefGetter(FFaces::size_type, FacesN, sFaces.size()) //取字型家族组储存的字型家族数。
-	//	MFont*
+	//	Font*
 	//	GetFontPtr() const;
-		const MFontFamily*
+		const FontFamily*
 		GetFontFamilyPtr(const FT_String*) const; //取指定名称字型家族指针。
-		const MTypeface*
+		const Typeface*
 		GetDefaultTypefacePtr() const; //取默认字型指针。
-		DefGetter(const MTypeface*, TypefacePtr, pFace) //取当前处理的字型指针。
-	//	MTypeface*
+		DefGetter(const Typeface*, TypefacePtr, pFace) //取当前处理的字型指针。
+	//	Typeface*
 	//	GetTypefacePtr(u16) const; //取字型组储存的指定索引的字型指针。
-		MTypeface*
+		Typeface*
 		GetTypefacePtr(const FT_String*, const FT_String*); //取指定名称字型指针。
 		DefGetter(u8, FontSize, curSize) //取当前处理的字体大小。
 		FTC_SBit
@@ -1349,33 +1352,33 @@ unit YFont "yfont"
 		GetDescender() const; //取降部。
 
 		bool
-		SetTypeface(const MTypeface*); //设置字型组中指定的字型为当前字型（忽略不属于字型组的字型）。
+		SetTypeface(const Typeface*); //设置字型组中指定的字型为当前字型（忽略不属于字型组的字型）。
 		void
-		SetFontSize(MFont::SizeType); //设置当前处理的字体大小（0 表示默认字体大小）。
+		SetFontSize(Font::SizeType); //设置当前处理的字体大小（0 表示默认字体大小）。
 
 	public:
 		//SetFont;
 
 	private:
 		void
-		operator+=(const MFontFile&); //向字体文件组添加字体文件对象。
+		operator+=(const FontFile&); //向字体文件组添加字体文件对象。
 		bool
-		operator-=(const MFontFile&); //从字体文件组中移除指定字体文件对象。
+		operator-=(const FontFile&); //从字体文件组中移除指定字体文件对象。
 
 		void
-		operator+=(const MTypeface&); //向字型组添加字型对象。
+		operator+=(const Typeface&); //向字型组添加字型对象。
 		bool
-		operator-=(const MTypeface&); //从字型组中移除指定字型对象。
+		operator-=(const Typeface&); //从字型组中移除指定字型对象。
 
 		void
-		operator+=(MFontFamily&); //向字型家族组添加字型对象。
+		operator+=(FontFamily&); //向字型家族组添加字型对象。
 		bool
-		operator-=(MFontFamily&); //从字型家族组中移除指定字型对象。
+		operator-=(FontFamily&); //从字型家族组中移除指定字型对象。
 
 		void
 		LoadTypefaces(); //从字体文件组中载入字体信息。
 		void
-		LoadTypefaces(const MFontFile&); //从指定字体文件中载入字体信息。
+		LoadTypefaces(const FontFile&); //从指定字体文件中载入字体信息。
 
 	public:
 		void
@@ -1670,7 +1673,7 @@ header YShellDefinition "ysdef.h"
 	YSL_BEGIN_NAMESPACE(Text)
 	typedef std::size_t SizeType; //字符大小类型。
 	typedef usize_t IndexType; //字符索引类型。
-	class MString;
+	class String;
 	YSL_END_NAMESPACE(Text)
 
 	class YApplication;
@@ -1693,7 +1696,7 @@ header YShellDefinition "ysdef.h"
 	using Shells::YShell;
 	using Shells::YShellMain;
 
-	using Text::MString;
+	using Text::String;
 
 	#ifdef YSL_USE_SIMPLE_HANDLE
 	#define DeclareHandle(type, handle) typedef type* handle
@@ -2749,43 +2752,43 @@ unit YException "yexcept"
 
 	YSL_BEGIN_NAMESPACE(Exceptions)
 
-	class MException : public std::exception
+	class Exception : public std::exception
 	{
 	public:
-		MException();
+		Exception();
 		virtual
-		~MException() throw();
-	}; //class MException;
+		~Exception() throw();
+	}; //class Exception;
 
 
-	class MGeneralError : public MException
+	class GeneralError : public Exception
 	{
 	private:
 		std::string what_;
 
 	public:
-		MGeneralError(const std::string& what);
+		GeneralError(const std::string& what);
 		virtual
-		~MGeneralError() throw();
+		~GeneralError() throw();
 
 		const char*
 		what() const throw();
-	}; //class MGeneralError;
+	}; //class GeneralError;
 
 
-	class MLoggedEvent : public MGeneralError
+	class LoggedEvent : public GeneralError
 	{
 	private:
 		u8 level;
 
 	public:
-		MLoggedEvent(const std::string&, u8 = 0);
-		MLoggedEvent(const MGeneralError&, u8 = 0);
+		LoggedEvent(const std::string&, u8 = 0);
+		LoggedEvent(const GeneralError&, u8 = 0);
 		virtual
-		~MLoggedEvent() throw();
+		~LoggedEvent() throw();
 
 		DefGetter(u8, Level, level);
-	}; //MLoggedEvent;
+	}; //LoggedEvent;
 
 	YSL_END_NAMESPACE(Exceptions)
 
@@ -2809,27 +2812,27 @@ unit YString "ystring"
 	YSL_BEGIN_NAMESPACE(Text)
 
 	// YSLib 标准字符串（使用 UTF-16BE ）。
-	class MString : public stdex::ustring
+	class String : public stdex::ustring
 	{
 	private:
 		static uchar_t* s_str; //内码转换生成字符串临时指针。
 
 	public:
 		inline
-		MString();
+		String();
 		inline
-		MString(const uchar_t*);
+		String(const uchar_t*);
 		template<class _charT>
-		MString(const _charT*);
+		String(const _charT*);
 		inline
-		MString(const stdex::ustring&);
-	}; //class MString;
+		String(const stdex::ustring&);
+	}; //class String;
 
 
 	//多字节字符串转化为 YSLib 标准字符串。
-	MString
+	String
 	MBCSToMString(const char*, const CSID& = CS_Local);
-	inline MString
+	inline String
 	MBCSToString(const std::string& s, const CSID& = CS_Local);
 
 	YSL_END_NAMESPACE(Text)
@@ -3022,7 +3025,7 @@ unit YShellMessage "ysmsg"
 
 	export const time_t DEF_TIMEOUT;
 
-	class MMSG //消息类定义。
+	class Message //消息类定义。
 	{
 		extern friend class YMessageQueue;
 
@@ -3046,16 +3049,16 @@ unit YShellMessage "ysmsg"
 
 	#ifdef YSLIB_NO_CURSOR
 
-		MMSG(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0);
+		Message(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0);
 
 	#else
 
-		MMSG(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0, const SPoint& pt_ = SPoint::Zero);
+		Message(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0, const SPoint& pt_ = SPoint::Zero);
 
 	#endif
 
-		bool operator==(const MMSG&) const;
-		inline bool operator!=(const MMSG&) const;
+		bool operator==(const Message&) const;
+		inline bool operator!=(const Message&) const;
 
 		DefBoolGetter(TimeOut, timestamp + timeout < std::clock()) //判断消息是否过期。
 		DefBoolGetter(Valid, msg) //判断消息是否有效。
@@ -3080,7 +3083,7 @@ unit YShellMessage "ysmsg"
 
 		void
 		UpdateTimestamp() //更新消息时间戳。
-	}; //class MMSG;
+	}; //class Message;
 
 
 	//消息队列类。
@@ -3091,15 +3094,15 @@ unit YShellMessage "ysmsg"
 		struct cmp
 		{
 			bool
-			operator ()(const MMSG&, const MMSG&);
+			operator ()(const Message&, const Message&);
 		}; //struct cmp;
 
 		//消息优先队列。
-		std::priority_queue<MMSG, std::vector<MMSG>, cmp> q;
+		std::priority_queue<Message, std::vector<Message>, cmp> q;
 
-		PDefHead(const MMSG&, top) const
+		PDefHead(const Message&, top) const
 			ImplBodyMember(q, top)
-		PDefHead(void, push, const MMSG& msg)
+		PDefHead(void, push, const Message& msg)
 			ImplBodyMemberVoid(q, push, msg)
 		PDefHead(void, pop)
 			ImplBodyMemberVoid(q, pop)
@@ -3117,37 +3120,36 @@ unit YShellMessage "ysmsg"
 			ImplBodyMember(q, size)
 
 		void
-		GetMessage(MMSG& m); //从消息队列中取优先级最高的消息存至 m 中（不在队列中保留消息）。
+		GetMessage(Message& m); //从消息队列中取优先级最高的消息存至 m 中（不在队列中保留消息）。
 		void
-		PeekMessage(MMSG& m) const; //从消息队列中取优先级最高的消息存至 m 中（在队列中保留消息）。
+		PeekMessage(Message& m) const; //从消息队列中取优先级最高的消息存至 m 中（在队列中保留消息）。
 
 		size_type
 		Clear(); //清除消息队列，并返回清除的消息数。
 		void
 		Update(); //更新消息队列。
 		bool
-		InsertMessage(const MMSG& m); //若消息 m 有效，插入 m 至消息队列中。返回 m 是否有效。
+		InsertMessage(const Message& m); //若消息 m 有效，插入 m 至消息队列中。返回 m 是否有效。
 
 	}; //class YMessageQueue;
 
 
 	//合并 src 所有消息至 dst 中。
 	void
-	Merge(YMessageQueue& dst, std::vector<MMSG>& src);
+	Merge(YMessageQueue& dst, std::vector<Message>& src);
 	void
 	Merge(YMessageQueue& dst, YMessageQueue& src);
 
 
 	//全局默认消息插入函数。
 	inline void
-	InsertMessage(const MMSG&);
+	InsertMessage(const Message&);
 	inline void
 	InsertMessage(const HSHL&, const MSGID&, const MSGPRIORITY&, const WPARAM& = 0, const LPARAM& = 0, const SPoint& = SPoint::Zero);
 
 	YSL_BEGIN_NAMESPACE(Shells)
 
-	using Shells::MMSG;
-	using Shells::MMSG;
+	using Shells::Message;
 	using Shells::InsertMessage;
 
 } //unit YShellMessage;
@@ -3161,7 +3163,7 @@ unit YShellProcessing "ysproc"
 
 	YSL_BEGIN_NAMESPACE(Shells)
 
-	typedef LRES FSHLPROC(const MMSG&);
+	typedef LRES FSHLPROC(const Message&);
 	typedef FSHLPROC* PFSHLPROC;
 
 
@@ -3171,7 +3173,7 @@ unit YShellProcessing "ysproc"
 		HShellProc(const PFSHLPROC = NULL);
 
 		inline LRES
-		operator()(const MMSG&) const;
+		operator()(const Message&) const;
 
 	}; //struct HShellProc;
 
@@ -3182,12 +3184,12 @@ unit YShellProcessing "ysproc"
 
 	//默认 Shell 处理函数：调用默认 Shell 过程来为应用程序没有处理的任何 Shell 消息提供缺省的处理，以确保每一个消息得到处理。
 	inline LRES
-	DefShellProc(const MMSG&);
+	DefShellProc(const Message&);
 
 	/*
 	PeekMessage
 	//从全局消息队列中取消息。
-	lpMsg：接收消息信息的 MMSG 结构指针。
+	lpMsg：接收消息信息的 Message 结构指针。
 	hShl：消息关联（发送目标）的 Shell 的句柄，为 NULL 时无限制（为全局对象）。
 	wMsgFilterMin：指定被检查的消息范围里的第一个消息。
 	wMsgFilterMax：指定被检查的消息范围里的最后一个消息。
@@ -3198,20 +3200,20 @@ unit YShellProcessing "ysproc"
 	#define PM_NOREMOVE 0x0
 	#define PM_REMOVE 0x1
 	IRES
-	PeekMessage(MMSG& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0, u32 wRemoveMsg = PM_NOREMOVE);
+	PeekMessage(Message& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0, u32 wRemoveMsg = PM_NOREMOVE);
 
 	IRES
-	GetMessage(MMSG& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0);
+	GetMessage(Message& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0);
 
 	ERRNO
-	TranslateMessage(const MMSG& msg);
+	TranslateMessage(const Message& msg);
 
 	LRES
-	DispatchMessage(const MMSG& msg);
+	DispatchMessage(const Message& msg);
 
 	//备份队列消息。
 	ERRNO
-	BackupMessage(const MMSG& msg);
+	BackupMessage(const Message& msg);
 
 	//恢复消息队列。
 	void
@@ -3224,41 +3226,6 @@ unit YShellProcessing "ysproc"
 	#endif
 
 } //unit YShellProcessing;
-
-
-unit YShellMessageMapping "ysmsgmap"
-{
-	import unit YShellProcessing;
-
-
-	YSL_BEGIN_NAMESPACE(Shells)
-
-	typedef HShellProc HResponse; //消息响应类型。
-
-	struct YSMsgMap //消息映射表。
-	{
-		typedef std::map<MSGID, HResponse> MapType; //表类型。
-		typedef MapType::value_type ItemType; //映射条目类型。
-
-		YSMsgMap* pBase; //基类映射表指针。
-		MapType map; //映射表。
-
-		explicit
-		YSMsgMap(YSMsgMap* = NULL, const MapType& = MapType());
-
-		HResponse
-		GetResponse(MSGID) const; //查找指定消息标识的消息响应。
-
-		void
-		Add(const ItemType);
-		void
-		Add(MSGID, HResponse);
-	}; //class YSMsgMap;
-
-	YSL_END_NAMESPACE(Shells)
-
-} //unit YShellMessageMapping;
-*/
 
 
 unit YShell "yshell"
@@ -3315,13 +3282,13 @@ unit YShell "yshell"
 		ClearScreenWindows(YDesktop&); //清除指定屏幕中属于窗口组的窗口对象。
 
 		static LRES
-		DefShlProc(const MMSG&); //默认 Shell 处理函数。
-		virtual PDefHead(LRES, ShlProc, const MMSG& m) // Shell 处理函数：响应线程的直接调用。
+		DefShlProc(const Message&); //默认 Shell 处理函数。
+		virtual PDefHead(LRES, ShlProc, const Message& m) // Shell 处理函数：响应线程的直接调用。
 			ImplRet(DefShlProc(m))
 		inline virtual LRES
-		OnActivated(const MMSG&); // Shell 处理函数：响应线程的激活。
+		OnActivated(const Message&); // Shell 处理函数：响应线程的激活。
 		inline virtual LRES
-		OnDeactivated(const MMSG&); // Shell 处理函数：响应线程的撤销。
+		OnDeactivated(const Message&); // Shell 处理函数：响应线程的撤销。
 	}; //class YShell;
 
 	class YShellMain : /*public GMCounter<YShellMain>, public YCountableObject,*/ public YShell
@@ -3332,7 +3299,7 @@ unit YShell "yshell"
 		~YShellMain() ythrow();
 
 		inline virtual LRES
-		ShlProc(const MMSG&);
+		ShlProc(const Message&);
 	}; //class YShellMain;
 
 	YSL_END_NAMESPACE(Shells)
@@ -3379,10 +3346,10 @@ unit YApplication "yapp"
 		typedef std::set<HSHL> SHLs;
 
 		//全局常量。
-		static const IO::MPath CommonAppDataPath; //程序默认路径。
-		static const MString CompanyName; //制作组织名称。
-		static const MString ProductName; //产品名称。
-		static const MString ProductVersion; //产品版本。
+		static const IO::Path CommonAppDataPath; //程序默认路径。
+		static const String CompanyName; //制作组织名称。
+		static const String ProductName; //产品名称。
+		static const String ProductVersion; //产品版本。
 
 		//标准程序实例事件。
 		DefEvent(YEventHandler, ApplicationExit) //资源释放函数。
@@ -3448,38 +3415,159 @@ unit YFileSystem "yfilesys"
 	export const CPATH FS_Now;
 	export const CPATH FS_Parent;
 
-	typedef std::string MPath; //文件路径类型。
+
+	typedef char NativePathCharType; //本地路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
+
+
+	//路径类。
+	class Path
+	{
+	public:
+		typedef NativePathCharType value_type;
+		typedef std::basic_string<value_type> StringType;
+	//	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
+
+	private:
+		StringType pathname;
+
+	public:
+		//编码转换。
+	//	static std::locale imbue(const std::locale&);
+	//	static const codecvt_type& codecvt();
+
+		//构造函数和析构函数。
+		inline
+		Path();
+		inline
+		Path(const Path&);
+		template<class _tString>
+		inline
+		Path(const StringType&);
+		inline
+		~Path();
+
+		//赋值。
+		Path&
+		operator=(const Path&);
+		template<class _tString>
+		inline Path&
+		operator=(const _tString&);
+
+		//追加路径。
+		Path&
+		operator/=(const Path&);
+
+		//查询。
+		DefBoolGetter(Empth, pathname.empty())
+		bool
+		IsAbsolute() const;
+		bool
+		IsRelative() const;
+		bool
+		HasRootName() const;
+		bool
+		HasRootDirectory() const;
+		bool
+		HasRootPath() const;
+		bool
+		HasRelativePath() const;
+		bool
+		HasParentPath() const;
+		bool
+		HasFilename() const;
+		bool
+		HasStem() const;
+		bool HasExtension() const;
+
+		//路径分解。
+		Path
+		GetRootName() const;
+		Path
+		GetRootDirectory() const;
+		Path
+		GetRootPath() const;
+		Path
+		GetRelativePath() const;
+		Path
+		GetParentPath() const;
+		Path
+		GetFilename() const;
+		Path
+		GetStem() const;
+		Path
+		GetExtension() const;
+		DefGetter(StringType, GeneralString, pathname) //取一般字符串。
+		DefGetter(const StringType&, NativeString, pathname) //取本地格式和编码的字符串。
+
+		PDefHead(const value_type*, c_str) //本地格式和编码的 C 风格字符串。
+			ImplBodyMember(GetNativeString(), c_str)
+
+		//修改函数。
+
+		PDefHead(void, clear)
+			ImplBodyMember(pathname, clear)
+		PDefHead(void, swap, Path& rhs) ythrow()
+			ImplBodyMember(pathname, swap, rhs.pathname)
+
+		Path&
+		MakeAbsolute(const Path&);
+		Path&
+		RemoveFilename();
+		Path&
+		ReplaceExtension(const Path& = Path());
+	}; //class Path;
+
+
+	inline bool
+	operator==(const Path&, const Path&);
+	inline bool
+	operator!=(const Path&, const Path&);
+	inline bool
+	operator<(const Path&, const Path&);
+	inline bool
+	operator<=(const Path&, const Path&);
+	inline bool
+	operator>(const Path&, const Path&);
+	inline bool
+	operator>=(const Path&, const Path&);
+
+	inline Path
+	operator/(const Path&, const Path&);
+
+	inline void
+	swap(Path&, Path&);
+
 
 	//截取路径末尾的文件名。
 	const char*
 	GetFileName(CPATH);
 	std::string
-	GetFileName(const MPath&);
+	GetFileName(const std::string&);
 
 	//截取路径中的目录名并返回字符串。
 	std::string
-	GetDirectoryName(const MPath&);
+	GetDirectoryName(const std::string&);
 
 	//截取路径中的目录名和文件名保存至字符串，并返回最后一个目录分隔符的位置。
-	MPath::const_iterator
-	SplitPath(const MPath&, MPath&, std::string&);
+	std::string::const_iterator
+	SplitPath(const std::string&, std::string&, std::string&);
 
 
 	//截取文件名开头的主文件名（贪婪匹配）。
-	MString
-	GetBaseName(const MString&, const std::string&);
+	String
+	GetStem(const String&, const std::string&);
 
 	//对于两个字符串，判断前者是否是后者的主文件名。
 	bool
-	IsBaseName(const char*, const char*);
+	IsStem(const char*, const char*);
 	bool
-	IsBaseName(const std::string&, const std::string&);
+	IsStem(const std::string&, const std::string&);
 
 	//判断给定两个文件名的主文件名是否相同（忽略大小写；贪婪匹配）。
 	bool
-	HaveSameBaseNames(const char*, const char*);
+	HaveSameStems(const char*, const char*);
 	bool
-	HaveSameBaseNames(const std::string&, const std::string&);
+	HaveSameStems(const std::string&, const std::string&);
 
 	//截取文件名末尾的扩展名（非贪婪匹配）。
 	const char*
@@ -3504,15 +3592,15 @@ unit YFileSystem "yfilesys"
 	inline int
 	ChDir(CPATH);
 	int
-	ChDir(const MPath&);
+	ChDir(const std::string&);
 
 	//取当前工作目录。
-	MPath
+	std::string
 	GetNowDirectory();
 
 
 	//文件名过滤器。
-	typedef bool FNFILTER(const MString&);
+	typedef bool FNFILTER(const String&);
 	typedef FNFILTER* PFNFILTER;
 
 	struct HFileNameFilter : public GHBase<PFNFILTER>
@@ -3523,7 +3611,7 @@ unit YFileSystem "yfilesys"
 		HFileNameFilter(const PFNFILTER = NULL);
 
 		inline bool
-		operator()(const MString&) const;
+		operator()(const String&) const;
 	}; //struct HFileNameFilter;
 
 
@@ -3531,11 +3619,11 @@ unit YFileSystem "yfilesys"
 	class MFileList
 	{
 	public:
-		typedef MString ItemType; //项目名称类型。
+		typedef String ItemType; //项目名称类型。
 		typedef std::vector<ItemType> ListType; //项目列表类型。
 
 	protected:
-		MPath Directory; //目录的完整路径。
+		Path Directory; //目录的完整路径。
 		ListType List; //目录中的项目列表。
 
 	public:
@@ -3543,7 +3631,7 @@ unit YFileSystem "yfilesys"
 		virtual
 		~MFileList();
 
-		const MPath&
+		const Path&
 		GetDirectory() const; //取目录的完整路径。
 		u32
 		LoadSubItems(); //在目录中取子项目保存至参数。
@@ -3554,7 +3642,7 @@ unit YFileSystem "yfilesys"
 		ListItems(); //遍历目录中的项目，更新至列表。
 
 		void
-		GoToPath(const MPath&); //导航至指定路径对应目录。
+		GoToPath(const Path&); //导航至指定路径对应目录。
 		void
 		GoToSubDirectory(const std::string&); //导航至子目录。
 		void
@@ -3661,7 +3749,7 @@ code YSLib::Shell {
 
 unit YGDI "ygdi"
 {
-	import unit Core::YObject, Adapter::MFont;
+	import unit Core::YObject, Adapter::Font;
 
 
 	// GDI 基本数据类型和宏定义。
@@ -3834,7 +3922,7 @@ unit YGDI "ygdi"
 
 
 	//图形接口上下文。
-	class MGIC
+	class GraphicInterfaceContext
 	{
 	private:
 		BitmapPtr pBuffer;
@@ -3842,7 +3930,7 @@ unit YGDI "ygdi"
 
 	public:
 		inline
-		MGIC(BitmapPtr, const SSize&);
+		GraphicInterfaceContext(BitmapPtr, const SSize&);
 
 		DefBoolGetter(Valid, pBuffer && Size.Width && Size.Height)
 
@@ -3850,71 +3938,71 @@ unit YGDI "ygdi"
 		DefGetter(const SSize&, Size, Size)
 		DefGetter(SDST, Width, Size.Width)
 		DefGetter(SDST, Height, Size.Height)
-	}; //class MGIC;
+	}; //class GraphicInterfaceContext;
 
 
 	//图形接口上下文操作：绘图。
 
 	//绘制像素：(x, y) 。
 	inline void
-	DrawPoint(MGIC& g, SPOS x, SPOS y, PixelType c);
+	DrawPoint(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c);
 
 	//绘制点：p(x, y) 。
 	inline bool
-	DrawPoint(MGIC& g, SPOS x, SPOS y, PixelType c);
+	DrawPoint(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c);
 	inline bool
-	DrawPoint(MGIC& g, const SPoint& p, PixelType c);
+	DrawPoint(GraphicInterfaceContext& g, const SPoint& p, PixelType c);
 
 	//绘制水平线段：指定水平坐标 x1 、 x2 ，竖直坐标 y 。
 	bool
-	DrawHLineSeg(MGIC* pGDC, SPOS y, SPOS x1, SPOS x2, PixelType c);
+	DrawHLineSeg(GraphicInterfaceContext* pGDC, SPOS y, SPOS x1, SPOS x2, PixelType c);
 
 	//绘制竖直线段：指定水平坐标 x ，竖直坐标 y1 、 y2 。
 	bool
-	DrawVLineSeg(MGIC* pGDC, SPOS x, SPOS y1, SPOS y2, PixelType c);
+	DrawVLineSeg(GraphicInterfaceContext* pGDC, SPOS x, SPOS y1, SPOS y2, PixelType c);
 
 	//绘制一般线段：顶点 p1(x1, y1), p2(x2, y2) 。
 	bool
-	DrawLineSeg(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
+	DrawLineSeg(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
 	inline bool
-	DrawLineSeg(MGIC& g, const SPoint& p1, const SPoint& p2, PixelType c);
+	DrawLineSeg(GraphicInterfaceContext& g, const SPoint& p1, const SPoint& p2, PixelType c);
 
 	//绘制空心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2) 。
 	bool
-	DrawRect(MGIC& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
+	DrawRect(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
 	inline bool
-	DrawRect(MGIC& g, const SPoint& p1, const SPoint& p2, PixelType c);
+	DrawRect(GraphicInterfaceContext& g, const SPoint& p1, const SPoint& p2, PixelType c);
 	inline bool
-	DrawRect(MGIC& g, const SPoint& p, const SSize& s, PixelType c);
+	DrawRect(GraphicInterfaceContext& g, const SPoint& p, const SSize& s, PixelType c);
 	inline bool
-	DrawRect(MGIC& g, const SRect& r, PixelType c);
+	DrawRect(GraphicInterfaceContext& g, const SRect& r, PixelType c);
 
 
 	// GDI 逻辑对象。
 
-	class MPenStyle //笔样式：字体和笔颜色。
+	class PenStyle //笔样式：字体和笔颜色。
 	{
 	public:
-		MFont Font; //字体。
+		Drawing::Font Font; //字体。
 		PixelType Color; //笔颜色。
 
 		inline explicit
-		MPenStyle(const MFontFamily& = GetDefaultFontFamily(), MFont::SizeType = MFont::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
+		PenStyle(const FontFamily& = GetDefaultFontFamily(), Font::SizeType = Font::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
 
-		DefGetterMember(const MFontFamily&, FontFamily, Font)
+		DefGetterMember(const FontFamily&, FontFamily, Font)
 		DefGetterMember(YFontCache&, Cache, Font)
-	}; //class MPenStyle;
+	}; //class PenStyle;
 
-	struct MPadding //边距样式。
+	struct Padding //边距样式。
 	{
 		typedef YObject ParentType;
 
 		SDST Left, Right, Top, Bottom; //边距：左、右、上、下。
 
 		explicit
-		MPadding(SDST = 4, SDST = 4, SDST = 4, SDST = 4); //使用 4 个 16 位无符号整数形式初始化边距。
+		Padding(SDST = 4, SDST = 4, SDST = 4, SDST = 4); //使用 4 个 16 位无符号整数形式初始化边距。
 		explicit
-		MPadding(u64); //使用 64 位无符号整数形式初始化边距。
+		Padding(u64); //使用 64 位无符号整数形式初始化边距。
 
 		inline SDST
 		GetHorizontal() const; //取水平边距和。
@@ -3930,11 +4018,11 @@ unit YGDI "ygdi"
 		void
 		SetAll(SDST, SDST, SDST, SDST); //设置边距（4 个 16 位无符号整数形式）。
 
-		MPadding&
-		operator+=(const MPadding&);
-		friend MPadding
-		operator+(const MPadding& a, const MPadding& b);
-	}; //struct MPadding;
+		Padding&
+		operator+=(const Padding&);
+		friend Padding
+		operator+(const Padding& a, const Padding& b);
+	}; //struct Padding;
 
 
 	class MBitmapBuffer : public SSize //矩形图像缓冲区。
@@ -3953,7 +4041,7 @@ unit YGDI "ygdi"
 		operator==(const MBitmapBuffer&, const MBitmapBuffer&);
 
 		inline
-		operator MGIC() const; //生成图形接口上下文。
+		operator GraphicInterfaceContext() const; //生成图形接口上下文。
 
 		DefGetter(SDST, Width, Width) //取缓冲区的宽。
 		DefGetter(SDST, Height, Height) //取缓冲区的高。
@@ -4073,7 +4161,7 @@ unit YGUI "ygui"
 
 
 	//记录输入保持状态。
-	class MTouchStatus
+	class STouchStatus
 	{
 	private:
 		static SVec v_DragOffset;
@@ -4084,7 +4172,7 @@ unit YGUI "ygui"
 		DefStaticGetter(const SVec&, DragOffset, v_DragOffset)
 
 		static DefSetterDe(const SVec&, DragOffset, v_DragOffset, SVec::FullScreen)
-	}; //class MTouchStatus;
+	}; //class STouchStatus;
 
 
 	//响应标准屏幕点击状态。
@@ -4108,13 +4196,13 @@ unit YGUI "ygui"
 	YSL_BEGIN_NAMESPACE(Drawing)
 
 	//取图形接口上下文。
-	inline MGIC
+	inline GraphicInterfaceContext
 	GetGraphicInterfaceContext(HWND);
 
 
 	//绘制界面元素边框。
 	void
-	DrawBounds(MGIC&, const SPoint&, const SSize&, PixelType);
+	DrawBounds(GraphicInterfaceContext&, const SPoint&, const SSize&, PixelType);
 
 	//绘制窗口边框。
 	void
@@ -4745,14 +4833,14 @@ unit YControl "ycontrol"
 		typedef YVisualControl ParentType;
 
 	protected:
-		GHResource<Drawing::MTextRegion> prTextRegion; //文本区域指针。
+		GHResource<Drawing::TextRegion> prTextRegion; //文本区域指针。
 
 	public:
-		Drawing::MFont& Font; //字体。
-		Drawing::MPadding& Margin; //文本和容器的间距。
+		Drawing::Font& Font; //字体。
+		Drawing::Padding& Margin; //文本和容器的间距。
 		bool AutoSize; //启用根据字号自动调整大小。
 		bool AutoEllipsis; //启用对超出标签宽度的文本调整大小。
-		MString Text; //标签文本。
+		String Text; //标签文本。
 	/*
 		YImage BackgroundImage; //背景图像。
 		YImage Image; //前景图像。
@@ -4761,7 +4849,7 @@ unit YControl "ycontrol"
 		//用字符串在窗口中以给定字号初始化标签。
 		template<class _charT>
 		YLabel(HWND, const _charT*, const SRect& = SRect::FullScreen,
-			const Drawing::MFont& = Drawing::MFont::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::MTextRegion> = NULL);
+			const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 		virtual
 		~YLabel();
 
@@ -4788,7 +4876,7 @@ unit YWindow "ywindow"
 
 	//窗口接口。
 	DeclBasedInterface(IWindow, IWidgetContainer, IVisualControl)
-		DeclIEntry(operator MGIC() const) //生成图形接口上下文。
+		DeclIEntry(operator GraphicInterfaceContext() const) //生成图形接口上下文。
 
 		DeclIEntry(bool IsRefreshRequired() const)
 		DeclIEntry(bool IsUpdateRequired() const)
@@ -4865,7 +4953,7 @@ unit YWindow "ywindow"
 		virtual PDefOpHead(EventMapType::Event&, [], const EventMapType::ID& id)
 			ImplBodyBase(MVisualControl, operator[], id)
 
-		virtual DefConverterMember(MGIC, Buffer)
+		virtual DefConverterMember(GraphicInterfaceContext, Buffer)
 
 		virtual DefBoolGetterBase(Visible, MVisual)
 		virtual DefBoolGetterBase(Transparent, MVisual)
@@ -5072,12 +5160,12 @@ unit YText "ytext"
 
 	export const u8 Alpha_Threshold;
 
-	class MTextState : public MPenStyle //文本状态：笔样式、边框样式、字体缓存和行距。
+	class TextState : public PenStyle //文本状态：笔样式、边框样式、字体缓存和行距。
 	{
 	public:
-		typedef MPenStyle ParentType;
+		typedef PenStyle ParentType;
 
-		MPadding Margin; //显示区域到边框的距离。
+		Padding Margin; //显示区域到边框的距离。
 
 	protected:
 		YFontCache* pCache; //字体缓存。
@@ -5085,16 +5173,16 @@ unit YText "ytext"
 		u8 lnGap; //行距。
 
 	public:
-		MTextState();
+		TextState();
 		explicit
-		MTextState(MFont&);
+		TextState(Drawing::Font&);
 		explicit
-		MTextState(YFontCache&);
+		TextState(YFontCache&);
 
-		inline MTextState&
-		operator=(const MPenStyle& ps); //从 ts 中恢复样式。
-		inline MTextState&
-		operator=(const MPadding& ms); //从 ms 中恢复样式。
+		inline TextState&
+		operator=(const PenStyle& ps); //从 ts 中恢复样式。
+		inline TextState&
+		operator=(const Padding& ms); //从 ms 中恢复样式。
 
 		DefGetter(SPOS, PenX, penX)
 		DefGetter(SPOS, PenY, penY)
@@ -5106,7 +5194,7 @@ unit YText "ytext"
 		u16
 		GetLnNNow() const; //取笔所在的当前行数。
 
-	//	MTypeface*
+	//	Typeface*
 	//	SetFont(CPATH); //设置字体。
 		inline void
 		SetPen(); //按字体大小在设置笔的默认位置（区域左上角）。
@@ -5121,27 +5209,27 @@ unit YText "ytext"
 		DefSetter(u8, LineGap, lnGap) //设置行距。
 		void
 		SetLnNNow(u16); //设置笔的行位置。
-	}; //class MTextState;
+	}; //class TextState;
 
 
-	class MTextRegion : public MTextState, public MBitmapBufferEx //文本区域。
+	class TextRegion : public TextState, public MBitmapBufferEx //文本区域。
 	{
 	public:
-		typedef MTextState ParentType;
+		typedef TextState ParentType;
 
 	private:
 		void PrintChar(u32); //打印单个字符。
 
 	public:
-		MTextRegion();
+		TextRegion();
 		explicit
-		MTextRegion(MFont&);
+		TextRegion(Drawing::Font&);
 		explicit
-		MTextRegion(YFontCache&);
-		~MTextRegion();
+		TextRegion(YFontCache&);
+		~TextRegion();
 
-		inline MTextRegion&
-		operator=(const MTextState& ts); //从 ts 中恢复状态。
+		inline TextRegion&
+		operator=(const TextState& ts); //从 ts 中恢复状态。
 
 		DefGetter(SDST, BufWidthN, Width - Margin.GetHorizontal()) //取缓冲区的文本显示区域的宽。
 		DefGetter(SDST, BufHeightN, Height - Margin.GetVertical()) //取缓冲区的文本显示区域的高。
@@ -5182,8 +5270,8 @@ unit YText "ytext"
 		template<typename _outIt, typename _charT>
 		_outIt
 		PutLine(_outIt s, _outIt g, _charT f = '\0'); //输出迭代器 s 指向字符串，直至行尾、遇到指定迭代器 g 或遇到指定字符 f ，并返回输出迭代器。
-		inline MString::size_type
-		PutLine(const MString&); //输出字符串，直至行尾或字符串结束，并返回输出字符数。
+		inline String::size_type
+		PutLine(const String&); //输出字符串，直至行尾或字符串结束，并返回输出字符数。
 
 		template<typename _outIt>
 		_outIt
@@ -5191,9 +5279,9 @@ unit YText "ytext"
 		template<typename _outIt, typename _charT>
 		_outIt
 		PutString(_outIt s, _outIt g , _charT f = '\0'); //输出迭代器 s 指向字符串，直至区域末尾、遇到指定迭代器 g 或遇到指定字符 f ，并返回输出迭代器。
-		inline MString::size_type
-		PutString(const MString&); //输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
-	}; //class MTextRegion;
+		inline String::size_type
+		PutString(const String&); //输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
+	}; //class TextRegion;
 
 	YSL_END_NAMESPACE(Drawing)
 
@@ -5207,16 +5295,16 @@ unit YText "ytext"
 	//在 r 中取当前文本迭代器 p 的前 l 行首对应文本迭代器（满足 p != --g ）。
 	template<typename _outIt>
 	_outIt
-	GetPreviousLinePtr(const Drawing::MTextRegion& r, _outIt p, _outIt g, u16 l = 1)
+	GetPreviousLinePtr(const Drawing::TextRegion& r, _outIt p, _outIt g, u16 l = 1)
 
 	//在 r 中取当前文本迭代器 p 至后一行首对应文本迭代器（满足 p != g ）。
 	template<typename _outIt>
 	_outIt
-	GetNextLinePtr(const Drawing::MTextRegion& r, _outIt p, _outIt g);
+	GetNextLinePtr(const Drawing::TextRegion& r, _outIt p, _outIt g);
 
 
 	u32
-	ReadX(YTextFile& f, Drawing::MTextRegion& txtbox, u32 n); //无文本缓冲方式从文本文件 f 中读取 n 字节（按默认编码转化为 UTF-16LE）到 txtbox 中。
+	ReadX(YTextFile& f, Drawing::TextRegion& txtbox, u32 n); //无文本缓冲方式从文本文件 f 中读取 n 字节（按默认编码转化为 UTF-16LE）到 txtbox 中。
 
 	YSL_END_NAMESPACE(Text)
 
@@ -5237,7 +5325,7 @@ unit YSystemUtilities "ysutil"
 
 unit YShellInitialization "ysinit"
 {
-	import unit Core::YShellDefinition, Adapter::MFont;
+	import unit Core::YShellDefinition, Adapter::Font;
 	import extern CPATH DEF_FONT_PATH, DEF_FONT_DIRECTORY;
 
 
@@ -5283,7 +5371,7 @@ unit YTextManager "ytmgr"
 
 
 	//文本缓冲区。
-	class MTextBuffer : private NonCopyable;
+	class TextBuffer : private NonCopyable;
 	{
 	private:
 		const IndexType mlen; //最大长度（字符数）。
@@ -5294,9 +5382,9 @@ unit YTextManager "ytmgr"
 		IndexType len;
 
 		explicit
-		MTextBuffer(IndexType tlen);
+		TextBuffer(IndexType tlen);
 		inline
-		~MTextBuffer();
+		~TextBuffer();
 
 	public:
 		uchar_t&
@@ -5336,43 +5424,43 @@ unit YTextManager "ytmgr"
 		bool
 		Output(uchar_t* d, IndexType p, IndexType n) const; //从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
 
-	}; //class MTextBuffer;
+	}; //class TextBuffer;
 
 
 	//文本缓冲块。
-	class MTextBlock : public MTextBuffer
+	class TextBlock : public TextBuffer
 	{
 	public:
 		typedef u16 BlockIndexType;
-		typedef MTextBuffer::IndexType IndexType;
+		typedef TextBuffer::IndexType IndexType;
 
 		IndexType Index;
 
 		inline
-		MTextBlock(BlockIndexType, IndexType);
+		TextBlock(BlockIndexType, IndexType);
 		inline virtual
-		~MTextBlock();
-	}; //class MTextBlock;
+		~TextBlock();
+	}; //class TextBlock;
 
 
 	//文本缓冲块映射。
-	class MTextMap
+	class TextMap
 	{
 	public:
-		typedef MTextBlock::BlockIndexType BlockIndexType;
-		typedef std::map<BlockIndexType, MTextBlock*> MapType;
+		typedef TextBlock::BlockIndexType BlockIndexType;
+		typedef std::map<BlockIndexType, TextBlock*> MapType;
 
 	protected:
 		MapType Map;
 
 	public:
 		inline virtual
-		~MTextMap();
+		~TextMap();
 
-		inline MTextBlock*
+		inline TextBlock*
 		operator[](const BlockIndexType&);
 		inline void
-		operator+=(const MTextBlock&);
+		operator+=(const TextBlock&);
 		inline void
 		operator-=(const BlockIndexType&);
 
@@ -5382,69 +5470,69 @@ unit YTextManager "ytmgr"
 
 
 	//文本文件块缓冲区。
-	class MTextFileBuffer : public MTextMap
+	class TextFileBuffer : public TextMap
 	{
 	public:
-		typedef MTextMap::BlockIndexType BlockIndexType; //块索引类型。
+		typedef TextMap::BlockIndexType BlockIndexType; //块索引类型。
 
 		static const SizeType nBlockSize = 0x2000; //文本块容量。
 
 		//只读文本循环迭代器类。
-		class TextIterator
+		class HText
 		{
-			friend class MTextFileBuffer;
+			friend class TextFileBuffer;
 
 		public:
-			typedef MTextFileBuffer ContainerType;
+			typedef TextFileBuffer ContainerType;
 			typedef ContainerType::BlockIndexType BlockIndexType;
 
 		private:
-			MTextFileBuffer* pBuf;
+			TextFileBuffer* pBuf;
 			//文本读取位置。
 			BlockIndexType blk;
 			IndexType idx;
 
 		public:
 			explicit
-			TextIterator(MTextFileBuffer&, BlockIndexType = 0, IndexType = 0) ythrow(); //指定文本读取位置初始化。
+			HText(TextFileBuffer&, BlockIndexType = 0, IndexType = 0) ythrow(); //指定文本读取位置初始化。
 
-			TextIterator&
+			HText&
 			operator++() ythrow();
 
-			TextIterator&
+			HText&
 			operator--() ythrow();
 
 			uchar_t
 			operator*() ythrow();
 
-			TextIterator
+			HText
 			operator+(std::ptrdiff_t);
 
-			TextIterator
+			HText
 			operator-(std::ptrdiff_t);
 
 			friend bool
-			operator==(const TextIterator&, const TextIterator&) ythrow();
+			operator==(const HText&, const HText&) ythrow();
 
 			inline friend bool
-			operator!=(const TextIterator&, const TextIterator&) ythrow();
+			operator!=(const HText&, const HText&) ythrow();
 
 			friend bool
-			operator<(const TextIterator&, const TextIterator&) ythrow();
+			operator<(const HText&, const HText&) ythrow();
 
 			inline friend bool
-			operator>(const TextIterator&, const TextIterator&) ythrow();
+			operator>(const HText&, const HText&) ythrow();
 
 			inline friend bool
-			operator<=(const TextIterator&, const TextIterator&) ythrow();
+			operator<=(const HText&, const HText&) ythrow();
 
 			inline friend bool
-			operator>=(const TextIterator&, const TextIterator&) ythrow();
+			operator>=(const HText&, const HText&) ythrow();
 
-			TextIterator&
+			HText&
 			operator+=(std::ptrdiff_t);
 
-			TextIterator&
+			HText&
 			operator-=(std::ptrdiff_t);
 
 			const uchar_t*
@@ -5453,29 +5541,29 @@ unit YTextManager "ytmgr"
 			GetBlockLength() const ythrow();
 			IndexType
 			GetBlockLength(BlockIndexType) const ythrow();
-		}; //class TextIterator;
+		}; //class HText;
 
 		YTextFile& File; //文本文件。
 
 	private:
 		SizeType nTextSize; //文本区段长度。
-		TextIterator it; //文本迭代器。
+		HText it; //文本迭代器。
 
 	public:
 		explicit
-		MTextFileBuffer(YTextFile&);
+		TextFileBuffer(YTextFile&);
 
-		MTextBlock&
+		TextBlock&
 		operator[](const BlockIndexType&);
 
 		DefGetter(SizeType, TextSize, nTextSize)
 
-		TextIterator
+		HText
 		begin() ythrow();
 
-		TextIterator
+		HText
 		end() ythrow();	
-	}; //class MTextFileBuffer;
+	}; //class TextFileBuffer;
 
 	YSL_END_NAMESPACE(Text)
 
@@ -5605,7 +5693,7 @@ unit YGlobal "yglobal"
 		Destroy(YObject&, const MEventArgs&); //资源释放函数。
 
 		static LRES
-		ShlProc(HSHL, const MMSG&); //公共消息处理函数。
+		ShlProc(HSHL, const Message&); //公共消息处理函数。
 	}; //struct Def;
 
 	//全局函数。
@@ -5613,14 +5701,14 @@ unit YGlobal "yglobal"
 	YSL_BEGIN_SHELL(YSL_SHLMAIN_NAME)
 
 	LRES
-	YSL_SHLMAIN_SHLPROC(const MMSG&);
+	YSL_SHLMAIN_SHLPROC(const Message&);
 
 	YSL_END_SHELL(YSL_SHLMAIN_NAME)
 
 
 	//默认 Shell 消息处理函数。
 	inline LRES
-	DefaultMainShlProc(const MMSG& msg);
+	DefaultMainShlProc(const Message& msg);
 
 	//异常终止函数。
 	void
@@ -5670,7 +5758,7 @@ namespace Device
 
 namespace Drawing
 {
-	unit Adapter::MFont;
+	unit Adapter::Font;
 	unit Core::YObject;
 	unit Core::YResourse;
 } //namespace Drawing;
@@ -5742,7 +5830,7 @@ header Core::YShellDefinition : Adapter
 	using Shells::YMessageQueue;
 	using Shells::YShell, Shells::YShellMain;
 	
-	using Text::MString;
+	using Text::String;
 } //header Core::YShellDefinition;
 
 header Core::YCoreUtilities : Core::YShellDefinition
@@ -5754,7 +5842,7 @@ header Core::YShellMessage : Core::YShellDefinition
 {
 	using Drawing::SPoint;
 
-	using Shells::MMSG, Shells MMSG, Shells InsertMessage;
+	using Shells::Message, Shells::InsertMessage;
 } //header Core::YCoreUtilities;
 
 //header Core::YResource : Shell::YGDI;
@@ -5777,4 +5865,6 @@ header Shell::YWidget : Shell::YComponent, Core::YResource
 } //code YSLib;
 
 ///
+
+#region synopsis(end)
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28;
-// UTime = 2010-9-1 14:41;
-// Version = 0.2960;
+// UTime = 2010-9-5 9:53;
+// Version = 0.2963;
 
 
 #include "ydesktop.h"
@@ -79,7 +79,6 @@ AWindow::DrawBackground()
 {
 	if(!DrawBackgroundImage())
 		Buffer.Fill(BackColor);
-	bUpdate = true;
 }
 void
 AWindow::DrawForeground()

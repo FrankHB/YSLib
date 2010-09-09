@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40;
-// UTime = 2010-8-29 12:29;
-// Version = 0.3254;
+// UTime = 2010-9-2 10:20;
+// Version = 0.3256;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -21,7 +21,7 @@ YSL_BEGIN_NAMESPACE(Forms)
 
 //窗口接口。
 DeclBasedInterface(IWindow, IWidgetContainer, IVisualControl)
-	DeclIEntry(operator MGIC() const) //生成图形接口上下文。
+	DeclIEntry(operator GraphicInterfaceContext() const) //生成图形接口上下文。
 
 	DeclIEntry(bool IsRefreshRequired() const)
 	DeclIEntry(bool IsUpdateRequired() const)
@@ -114,7 +114,7 @@ public:
 	virtual PDefOpHead(EventMapType::Event&, [], const EventMapType::ID& id)
 		ImplBodyBase(MVisualControl, operator[], id)
 
-	virtual DefConverterMember(MGIC, Buffer)
+	virtual DefConverterMember(GraphicInterfaceContext, Buffer)
 
 	virtual DefBoolGetterBase(Visible, MVisual)
 	virtual DefBoolGetterBase(Transparent, MVisual)

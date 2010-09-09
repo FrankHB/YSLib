@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:42;
-// UTime = 2010-8-29 6:24;
-// Version = 0.1773;
+// UTime = 2010-9-2 9:44;
+// Version = 0.1783;
 
 
 #include "ycommon.h"
@@ -79,12 +79,12 @@ namespace stdex
 
 namespace platform
 {
-	PATHSTR DirIter::Name;
-	struct ::stat DirIter::Stat;
-	int DirIter::LastError(0);
+	PATHSTR HDirectory::Name;
+	struct ::stat HDirectory::Stat;
+	int HDirectory::LastError(0);
 
-	DirIter&
-	DirIter::operator++()
+	HDirectory&
+	HDirectory::operator++()
 	{
 		LastError = ::dirnext(dir, Name, &Stat);
 		return *this;

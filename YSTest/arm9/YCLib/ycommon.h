@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28;
-// UTime = 2010-8-29 12:09;
-// Version = 0.1942;
+// UTime = 2010-9-2 9:44;
+// Version = 0.1952;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -153,7 +153,7 @@ namespace platform
 
 
 	//目录迭代器。
-	class DirIter
+	class HDirectory
 	{
 	public:
 		typedef ::DIR_ITER* IteratorType;
@@ -167,17 +167,17 @@ namespace platform
 
 	public:
 		explicit
-		DirIter(CPATH = NULL);
+		HDirectory(CPATH = NULL);
 
 	private:
-		DirIter(IteratorType&);
+		HDirectory(IteratorType&);
 
 	public:
-		~DirIter();
+		~HDirectory();
 
-		DirIter&
+		HDirectory&
 		operator++();
-		DirIter
+		HDirectory
 		operator++(int);
 
 		bool
@@ -194,48 +194,48 @@ namespace platform
 	};
 
 	inline
-	DirIter::DirIter(CPATH path)
+	HDirectory::HDirectory(CPATH path)
 	: dir(NULL)
 	{
 		Open(path);
 	}
 	inline
-	DirIter::DirIter(DirIter::IteratorType& d)
+	HDirectory::HDirectory(HDirectory::IteratorType& d)
 	: dir(d)
 	{}
 	inline
-	DirIter::~DirIter()
+	HDirectory::~HDirectory()
 	{
 		Close();
 	}
 
-	inline DirIter
-	DirIter::operator++(int)
+	inline HDirectory
+	HDirectory::operator++(int)
 	{
-		return ++DirIter(*this);
+		return ++HDirectory(*this);
 	}
 
 	inline bool
-	DirIter::IsValid() const
+	HDirectory::IsValid() const
 	{
 		return dir != NULL;
 	}
 
 	inline void
-	DirIter::Open(CPATH path)
+	HDirectory::Open(CPATH path)
 	{
 		dir = path == NULL ? NULL : ::diropen(path);
 	}
 
 	inline void
-	DirIter::Close()
+	HDirectory::Close()
 	{
 		if(IsValid())
 			LastError = ::dirclose(dir);
 	}
 
 	inline void
-	DirIter::Reset()
+	HDirectory::Reset()
 	{
 		LastError = ::dirreset(dir);
 	}

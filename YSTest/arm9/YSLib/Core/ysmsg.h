@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-6 2:44:31;
-// UTime = 2010-8-2 15:00;
-// Version = 0.1744;
+// UTime = 2010-9-2 10:23;
+// Version = 0.1770;
 
 
 #ifndef INCLUDED_YSMSG_H_
@@ -27,7 +27,7 @@ typedef u8 MSGPRIORITY;
 
 extern const time_t DEF_TIMEOUT;
 
-class MMSG : public GMCounter<MMSG> //消息类。
+class Message : public GMCounter<Message> //消息类。
 {
 	friend class YMessageQueue;
 
@@ -51,16 +51,16 @@ public:
 
 #ifdef YSLIB_NO_CURSOR
 
-	MMSG(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0);
+	Message(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0);
 
 #else
 
-	MMSG(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0, const SPoint& pt = SPoint::Zero);
+	Message(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0, const SPoint& pt = SPoint::Zero);
 
 #endif
 
-	bool operator==(const MMSG&) const;
-	bool operator!=(const MMSG&) const;
+	bool operator==(const Message&) const;
+	bool operator!=(const Message&) const;
 
 	DefBoolGetter(TimeOut, timestamp + timeout < std::clock()) //判断消息是否过期。
 	DefBoolGetter(Valid, msg) //判断消息是否有效。
@@ -87,20 +87,20 @@ public:
 	UpdateTimestamp(); //更新消息时间戳。
 };
 
-inline bool MMSG::operator!=(const MMSG& m) const
+inline bool Message::operator!=(const Message& m) const
 {
 	return !this->operator==(m);
 }
 
 inline void
-MMSG::SetParam(WPARAM wp, LPARAM lp)
+Message::SetParam(WPARAM wp, LPARAM lp)
 {
 	wParam = wp;
 	lParam = lp;
 }
 
 inline void
-MMSG::UpdateTimestamp()
+Message::UpdateTimestamp()
 {
 	SetTimestamp(std::clock());
 }
@@ -114,7 +114,7 @@ private:
 	struct cmp
 	{
 		bool
-		operator ()(const MMSG& i, const MMSG& j)
+		operator ()(const Message& i, const Message& j)
 		{
 			if(i.prior == j.prior)
 			//	return i.time > j.time;
@@ -124,11 +124,11 @@ private:
 	};
 
 	//消息优先队列。
-	std::priority_queue<MMSG, std::vector<MMSG>, cmp> q;
+	std::priority_queue<Message, std::vector<Message>, cmp> q;
 
-	PDefHead(const MMSG&, top) const
+	PDefHead(const Message&, top) const
 		ImplBodyMember(q, top)
-	PDefHead(void, push, const MMSG& msg)
+	PDefHead(void, push, const Message& msg)
 		ImplBodyMemberVoid(q, push, msg)
 	PDefHead(void, pop)
 		ImplBodyMemberVoid(q, pop)
@@ -146,35 +146,35 @@ public:
 		ImplBodyMember(q, size)
 
 	void
-	GetMessage(MMSG& m); //从消息队列中取优先级最高的消息存至 m 中（不在队列中保留消息）。
+	GetMessage(Message& m); //从消息队列中取优先级最高的消息存至 m 中（不在队列中保留消息）。
 	void
-	PeekMessage(MMSG& m) const; //从消息队列中取优先级最高的消息存至 m 中（在队列中保留消息）。
+	PeekMessage(Message& m) const; //从消息队列中取优先级最高的消息存至 m 中（在队列中保留消息）。
 
 	size_type
 	Clear(); //清除消息队列，并返回清除的消息数。
 	void
 	Update(); //更新消息队列。
 	bool
-	InsertMessage(const MMSG& m); //若消息 m 有效，插入 m 至消息队列中。返回 m 是否有效。
+	InsertMessage(const Message& m); //若消息 m 有效，插入 m 至消息队列中。返回 m 是否有效。
 };
 
 
 //合并 src 所有消息至 dst 中。
 void
-Merge(YMessageQueue& dst, std::vector<MMSG>& src);
+Merge(YMessageQueue& dst, std::vector<Message>& src);
 void
 Merge(YMessageQueue& dst, YMessageQueue& src);
 
 
 //全局默认消息插入函数。
 inline void
-InsertMessage(const MMSG& msg)
+InsertMessage(const Message& msg)
 {
 	DefaultMQ.InsertMessage(msg);
 
 #if YSLIB_DEBUG_MSG & 1
 
-	void YSDebug_MSG_Insert(MMSG&);
+	void YSDebug_MSG_Insert(Message&);
 	YSDebug_MSG_Insert(msg);
 
 #endif
@@ -186,15 +186,15 @@ InsertMessage(const HSHL& hShl, const MSGID& id, const MSGPRIORITY& prior, const
 
 #if YSLIB_DEBUG_MSG & 1
 
-	void YSDebug_MSG_Insert(MMSG&);
-	MMSG msg(hShl, id, prior, w, l);
+	void YSDebug_MSG_Insert(Message&);
+	Message msg(hShl, id, prior, w, l);
 
 	DefaultMQ.InsertMessage(msg);
 	YSDebug_MSG_Insert(msg);
 
 #else
 
-	DefaultMQ.InsertMessage(MMSG(hShl, id, prior, w, l, pt));
+	DefaultMQ.InsertMessage(Message(hShl, id, prior, w, l, pt));
 
 #endif
 
@@ -202,8 +202,7 @@ InsertMessage(const HSHL& hShl, const MSGID& id, const MSGPRIORITY& prior, const
 
 YSL_END_NAMESPACE(Shells)
 
-using Shells::MMSG;
-using Shells::MMSG;
+using Shells::Message;
 using Shells::InsertMessage;
 
 YSL_END

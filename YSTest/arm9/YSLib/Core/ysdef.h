@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-24 15:29:11;
-// UTime = 2010-8-8 7:18;
-// Version = 0.2203;
+// UTime = 2010-9-2 10:26;
+// Version = 0.2205;
 
 
 #ifndef INCLUDED_YSDEF_H_
@@ -263,7 +263,7 @@ YSL_END_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Text)
 typedef std::size_t SizeType; //字符大小类型。
 typedef usize_t IndexType; //字符索引类型。
-class MString;
+class String;
 YSL_END_NAMESPACE(Text)
 
 class YApplication;
@@ -286,7 +286,7 @@ using Shells::YMessageQueue;
 using Shells::YShell;
 using Shells::YShellMain;
 
-using Text::MString;
+using Text::String;
 
 
 #ifdef YSL_USE_SIMPLE_HANDLE

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-8-10 6:45;
-// Version = 0.6109;
+// UTime = 2010-9-2 1106;
+// Version = 0.6150;
 
 
 #include "ytext.h"
@@ -18,49 +18,49 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 static const u8 Alpha_Threshold = 16;
 
-MTextState::MTextState()
-:MPenStyle(GetDefaultFontFamily()), Margin(),
+TextState::TextState()
+:PenStyle(GetDefaultFontFamily()), Margin(),
 penX(0), penY(0), lnGap(0)
 {}
-MTextState::MTextState(MFont& font)
-:MPenStyle(font.GetFontFamily()), Margin(),
+TextState::TextState(Drawing::Font& font)
+:PenStyle(font.GetFontFamily()), Margin(),
 penX(0), penY(0), lnGap(0)
 {}
-MTextState::MTextState(YFontCache& fc)
-:MPenStyle(*fc.GetDefaultTypefacePtr()->GetFontFamilyPtr()), Margin(),
+TextState::TextState(YFontCache& fc)
+:PenStyle(*fc.GetDefaultTypefacePtr()->GetFontFamilyPtr()), Margin(),
 penX(0), penY(0), lnGap(0)
 {}
 
 SDST
-MTextState::GetLnHeight() const
+TextState::GetLnHeight() const
 {
 	return GetCache().GetHeight();
 }
 SDST
-MTextState::GetLnHeightEx() const
+TextState::GetLnHeightEx() const
 {
 	return GetCache().GetHeight() + lnGap;
 }
 u16
-MTextState::GetLnNNow() const
+TextState::GetLnNNow() const
 {
 	return (penY - Margin.Top) / GetLnHeightEx();
 }
 
-/*MTypeface*
-MTextState::SetFont(const char* name, CPATH filename)
+/*Typeface*
+TextState::SetFont(const char* name, CPATH filename)
 {
 	return pFont = GetCache().SetFont(name, filename);
 }*/
 void
-MTextState::SetLnNNow(u16 n)
+TextState::SetLnNNow(u16 n)
 {
 	penY = Margin.Top + GetCache().GetAscender() + GetLnHeightEx() * n;
 }
 
 
 void
-MTextRegion::PrintChar(u32 c)
+TextRegion::PrintChar(u32 c)
 {
 	if(img == NULL)
 		//无缓冲区时无法绘图。
@@ -146,63 +146,63 @@ MTextRegion::PrintChar(u32 c)
 	penX = tx;
 }
 
-MTextRegion::MTextRegion()
-: MTextState(), MBitmapBufferEx()
+TextRegion::TextRegion()
+: TextState(), MBitmapBufferEx()
 {
-	Font.SetSize(MFont::DefSize);
+	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
 	SetPen();
 }
-MTextRegion::MTextRegion(MFont& font)
-: MTextState(font), MBitmapBufferEx()
+TextRegion::TextRegion(Drawing::Font& font)
+: TextState(font), MBitmapBufferEx()
 {
-	Font.SetSize(MFont::DefSize);
+	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
 	SetPen();
 }
-MTextRegion::MTextRegion(YFontCache& fc)
-: MTextState(fc), MBitmapBufferEx()
+TextRegion::TextRegion(YFontCache& fc)
+: TextState(fc), MBitmapBufferEx()
 {
-	Font.SetSize(MFont::DefSize);
+	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
 	SetPen();
 }
-MTextRegion::~MTextRegion()
+TextRegion::~TextRegion()
 {
 }
 
 SDST
-MTextRegion::GetMarginResized() const
+TextRegion::GetMarginResized() const
 {
 	const u8 t(GetLnHeightEx());
 
 	return t ? Margin.Bottom + (Height + lnGap - Margin.Top - Margin.Bottom) % t : 0;
 }
 SDST
-MTextRegion::GetBufferHeightResized() const
+TextRegion::GetBufferHeightResized() const
 {
 	const u8 t(GetLnHeightEx());
 
 	return t ? Margin.Top + (Height + lnGap - Margin.Top - Margin.Bottom) / t * t : Height;
 }
 u16
-MTextRegion::GetLnN() const
+TextRegion::GetLnN() const
 {
 	return GetBufHeightN() / GetLnHeightEx();
 }
 u16
-MTextRegion::GetLnNEx() const
+TextRegion::GetLnNEx() const
 {
 	return (GetBufHeightN() + lnGap) / GetLnHeightEx();
 }
 SPOS
-MTextRegion::GetLineLast() const
+TextRegion::GetLineLast() const
 {
 	return Height - Margin.Bottom + GetCache().GetDescender();
 }
 
 void
-MTextRegion::SetLnLast()
+TextRegion::SetLnLast()
 {
 	const u16 n(GetLnN());
 
@@ -211,7 +211,7 @@ MTextRegion::SetLnLast()
 }
 
 void
-MTextRegion::ClearLine(u16 l, SDST n)
+TextRegion::ClearLine(u16 l, SDST n)
 {
 	if(l > Height)
 		return;
@@ -227,14 +227,14 @@ MTextRegion::ClearLine(u16 l, SDST n)
 	}
 }
 void
-MTextRegion::ClearLn(u16 l)
+TextRegion::ClearLn(u16 l)
 {
 	SDST h(GetLnHeightEx());
 
 	ClearLine(Margin.Top + h * l, h);
 }
 void
-MTextRegion::ClearLnLast()
+TextRegion::ClearLnLast()
 {
 	SDST h(GetLnHeightEx());
 
@@ -242,13 +242,13 @@ MTextRegion::ClearLnLast()
 }
 
 void
-MTextRegion::Move(s16 n)
+TextRegion::Move(s16 n)
 {
 	if(Height > Margin.Bottom)
 		Move(n, Height - Margin.Bottom);
 }
 void
-MTextRegion::Move(s16 n, SDST h)
+TextRegion::Move(s16 n, SDST h)
 {
 	if(img && imgAlpha)
 	{
@@ -271,14 +271,14 @@ MTextRegion::Move(s16 n, SDST h)
 }
 
 void
-MTextRegion::PutNewline()
+TextRegion::PutNewline()
 {
 	penX = Margin.Left;
 	penY += GetLnHeightEx();
 }
 
 u8
-MTextRegion::PutChar(u32 c)
+TextRegion::PutChar(u32 c)
 {
 	if(c == '\n')
 	{
@@ -308,7 +308,7 @@ YSL_END_NAMESPACE(Drawing)
 YSL_BEGIN_NAMESPACE(Text)
 
 u32
-ReadX(YTextFile& f, MTextRegion& tr, u32 n)
+ReadX(YTextFile& f, TextRegion& tr, u32 n)
 {
 	u32 l(0);
 

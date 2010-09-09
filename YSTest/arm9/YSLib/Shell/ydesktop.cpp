@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-2 12:00:08;
-// UTime = 2010-9-1 14:42;
-// Version = 0.1979;
+// UTime = 2010-9-5 9:53;
+// Version = 0.1983;
 
 
 #include "ydesktop.h"
@@ -133,7 +133,6 @@ YDesktop::DrawBackground()
 		}
 	}
 	Buffer.Fill(BackColor);
-	bUpdate = true;
 }
 void
 YDesktop::DrawDesktopObjects()
@@ -154,16 +153,19 @@ YDesktop::DrawDesktopObjects()
 void
 YDesktop::Draw()
 {
-	bRefresh = false;
 	DrawBackground();
 	DrawDesktopObjects();
+	bUpdate = true;
 }
 
 void
 YDesktop::Refresh()
 {
 	if(bRefresh)
+	{
+		bRefresh = false;
 		Draw();
+	}
 }
 void
 YDesktop::Update()

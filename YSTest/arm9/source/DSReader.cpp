@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:04:05;
-// UTime = 2010-9-1 21:19;
-// Version = 0.2776;
+// UTime = 2010-9-2 10:31;
+// Version = 0.2788;
 
 
 #include "DSReader.h"
@@ -28,7 +28,7 @@ MDualScreenReader::MDualScreenReader(YTextFile& tf_,
 try : tf(tf_), Blocks(tf), fc(fc_),
 left(l), top_up(t_up), top_down(t_down),
 pBgUp(pDesktopUp->GetBackgroundPtr()), pBgDn(pDesktopDown->GetBackgroundPtr()),
-trUp(*new MTextRegion(fc_)), trDn(*new MTextRegion(fc_)), rot(RDeg0),
+trUp(*new TextRegion(fc_)), trDn(*new TextRegion(fc_)), rot(RDeg0),
 itUp(Blocks), itDn(Blocks)
 {
 	trUp.SetSize(w, h_up);
@@ -40,13 +40,13 @@ itUp(Blocks), itDn(Blocks)
 		trUp.PutString(L"文件打开失败！\n");
 	InitText();
 }
-catch(MLoggedEvent&)
+catch(LoggedEvent&)
 {
 	throw;
 }
 catch(...)
 {
-	throw MLoggedEvent("Error occured @@ MDualScreenReader::MDualScreenReader();");
+	throw LoggedEvent("Error occured @@ MDualScreenReader::MDualScreenReader();");
 }
 MDualScreenReader::~MDualScreenReader()
 {
@@ -78,7 +78,7 @@ MDualScreenReader::SetLineGap(u8 g)
 	trDn.SetLineGap(g);
 }
 void
-MDualScreenReader::SetFontSize(MFont::SizeType fz)
+MDualScreenReader::SetFontSize(Font::SizeType fz)
 {
 	fc.SetFontSize(fz);	
 	lnHeight = fc.GetHeight();
@@ -134,10 +134,10 @@ MDualScreenReader::LineUp()
 	trUp.ClearLn(0);
 	trUp.SetLnNNow(0);
 
-	MTextFileBuffer::TextIterator itUpOld(itUp);
+	TextFileBuffer::HText itUpOld(itUp);
 
 	itUp = GetPreviousLinePtr(trUp, itUp, Blocks.begin());
-	trUp.PutLine<MTextFileBuffer::TextIterator, uchar_t>(itUp, itUpOld);
+	trUp.PutLine<TextFileBuffer::HText, uchar_t>(itUp, itUpOld);
 	itDn = GetPreviousLinePtr(trDn, itDn, Blocks.begin());
 	return true;
 }

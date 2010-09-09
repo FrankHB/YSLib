@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 17:48:09;
-// UTime = 2010-8-4 18:55;
-// Version = 0.4037;
+// UTime = 2010-9-2 10:20;
+// Version = 0.4077;
 
 
 #ifndef INCLUDED_YTMGR_H_
@@ -19,7 +19,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Text)
 
 //文本缓冲区。
-class MTextBuffer : private NonCopyable
+class TextBuffer : private NonCopyable
 {
 private:
 	const IndexType mlen; //最大长度（字符数）。
@@ -30,8 +30,8 @@ protected:
 	IndexType len;
 
 	explicit
-	MTextBuffer(IndexType);
-	~MTextBuffer();
+	TextBuffer(IndexType);
+	~TextBuffer();
 
 public:
 	uchar_t&
@@ -74,79 +74,79 @@ public:
 };
 
 inline
-MTextBuffer::~MTextBuffer()
+TextBuffer::~TextBuffer()
 {
 	delete[] text;
 }
 
 inline IndexType
-MTextBuffer::GetPrevNewline(IndexType o)
+TextBuffer::GetPrevNewline(IndexType o)
 {
 	return GetPrevChar(o, '\n');
 }
 inline IndexType
-MTextBuffer::GetNextNewline(IndexType o)
+TextBuffer::GetNextNewline(IndexType o)
 {
 	return GetNextChar(o, '\n');
 }
 
 inline void
-MTextBuffer::ClearText()
+TextBuffer::ClearText()
 {
 	memset(text, 0, GetSizeOfBuffer());
 }
 inline bool
-MTextBuffer::Load(const uchar_t* s)
+TextBuffer::Load(const uchar_t* s)
 {
 	return Load(s, mlen);
 }
 inline IndexType
-MTextBuffer::Load(YTextFile& f)
+TextBuffer::Load(YTextFile& f)
 {
 	return Load(f, mlen);
 }
 
 
 //文本缓冲块。
-class MTextBlock : public MTextBuffer
+class TextBlock : public TextBuffer
 {
 public:
 	typedef u16 BlockIndexType;
 
 	BlockIndexType Index;
 
-	MTextBlock(BlockIndexType, IndexType);
+	TextBlock(BlockIndexType, IndexType);
 	virtual
-	~MTextBlock();
+	~TextBlock();
 };
 
 inline
-MTextBlock::MTextBlock(BlockIndexType i, IndexType tlen)
-: MTextBuffer(tlen), Index(i)
+TextBlock::TextBlock(BlockIndexType i, IndexType tlen)
+: TextBuffer(tlen), Index(i)
 {}
 inline
-MTextBlock::~MTextBlock()
+TextBlock::~TextBlock()
 {}
 
 
 //文本缓冲块映射。
-class MTextMap
+class TextMap
 {
 public:
-	typedef MTextBlock::BlockIndexType BlockIndexType;
-	typedef std::map<BlockIndexType, MTextBlock*> MapType;
+	typedef TextBlock::BlockIndexType BlockIndexType;
+	typedef std::map<BlockIndexType, TextBlock*> MapType;
 
 protected:
 	MapType Map;
 
 public:
 	virtual
-	~MTextMap();
+	~TextMap();
 
-	MTextBlock*
+	TextBlock*
 	operator[](const BlockIndexType&);
 	void
-	operator+=(MTextBlock&);
+	operator+=(TextBlock&);
 	bool
 	operator-=(const BlockIndexType&);
 
@@ -155,93 +155,93 @@ public:
 };
 
 inline
-MTextMap::~MTextMap()
+TextMap::~TextMap()
 {
 	clear();
 }
 
-inline MTextBlock*
-MTextMap::operator[](const BlockIndexType& id)
+inline TextBlock*
+TextMap::operator[](const BlockIndexType& id)
 {
 	return Map[id];
 }
 
 inline void
-MTextMap::operator+=(MTextBlock& item)
+TextMap::operator+=(TextBlock& item)
 {
 	Map.insert(std::make_pair(item.Index, &item));
 }
 inline bool
-MTextMap::operator-=(const BlockIndexType& i)
+TextMap::operator-=(const BlockIndexType& i)
 {
 	return Map.erase(i) != 0;
 }
 
 
 //文本文件块缓冲区。
-class MTextFileBuffer : public MTextMap
+class TextFileBuffer : public TextMap
 {
 public:
-	typedef MTextMap::BlockIndexType BlockIndexType; //块索引类型。
+	typedef TextMap::BlockIndexType BlockIndexType; //块索引类型。
 
 	static const SizeType nBlockSize = 0x2000; //文本块容量。
 
 	//只读文本循环迭代器类。
-	class TextIterator
+	class HText
 	{
-		friend class MTextFileBuffer;
+		friend class TextFileBuffer;
 
 	public:
-		typedef MTextFileBuffer ContainerType;
+		typedef TextFileBuffer ContainerType;
 		typedef ContainerType::BlockIndexType BlockIndexType;
 
 	private:
-		MTextFileBuffer* pBuf;
+		TextFileBuffer* pBuf;
 		//文本读取位置。
 		BlockIndexType blk;
 		IndexType idx;
 
 	public:
 		explicit
-		TextIterator(MTextFileBuffer&, BlockIndexType = 0, IndexType = 0) ythrow(); //指定文本读取位置初始化。
+		HText(TextFileBuffer&, BlockIndexType = 0, IndexType = 0) ythrow(); //指定文本读取位置初始化。
 
-		TextIterator&
+		HText&
 		operator++() ythrow();
 
-		TextIterator&
+		HText&
 		operator--() ythrow();
 
 		uchar_t
 		operator*() ythrow();
 
-		TextIterator
+		HText
 		operator+(std::ptrdiff_t);
 
-		TextIterator
+		HText
 		operator-(std::ptrdiff_t);
 
 		friend bool
-		operator==(const TextIterator&, const TextIterator&) ythrow();
+		operator==(const HText&, const HText&) ythrow();
 
 		friend bool
-		operator!=(const TextIterator&, const TextIterator&) ythrow();
+		operator!=(const HText&, const HText&) ythrow();
 
 		friend bool
-		operator<(const TextIterator&, const TextIterator&) ythrow();
+		operator<(const HText&, const HText&) ythrow();
 
 		friend bool
-		operator>(const TextIterator&, const TextIterator&) ythrow();
+		operator>(const HText&, const HText&) ythrow();
 
 		friend bool
-		operator<=(const TextIterator&, const TextIterator&) ythrow();
+		operator<=(const HText&, const HText&) ythrow();
 
 		friend bool
-		operator>=(const TextIterator&, const TextIterator&) ythrow();
+		operator>=(const HText&, const HText&) ythrow();
 
-		TextIterator&
+		HText&
 		operator+=(std::ptrdiff_t);
 
-		TextIterator&
+		HText&
 		operator-=(std::ptrdiff_t);
 
 		const uchar_t*
@@ -260,71 +260,71 @@ private:
 
 public:
 	explicit
-	MTextFileBuffer(YTextFile&);
+	TextFileBuffer(YTextFile&);
 
-	MTextBlock&
+	TextBlock&
 	operator[](const BlockIndexType&);
 
 	DefGetter(SizeType, TextSize, nTextSize)
 
-	TextIterator
+	HText
 	begin() ythrow();
 
-	TextIterator
+	HText
 	end() ythrow();
 };
 
 inline bool
-operator!=(const MTextFileBuffer::TextIterator& lhs, const MTextFileBuffer::TextIterator& rhs) ythrow()
+operator!=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs) ythrow()
 {
 	return !(lhs == rhs);
 }
 
 inline bool
-operator>(const MTextFileBuffer::TextIterator& lhs, const MTextFileBuffer::TextIterator& rhs) ythrow()
+operator>(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs) ythrow()
 {
 	return rhs < lhs;
 }
 inline bool
-operator<=(const MTextFileBuffer::TextIterator& lhs, const MTextFileBuffer::TextIterator& rhs) ythrow()
+operator<=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs) ythrow()
 {
 	return !(rhs < lhs);
 }
 
 inline bool
-operator>=(const MTextFileBuffer::TextIterator& lhs, const MTextFileBuffer::TextIterator& rhs) ythrow()
+operator>=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs) ythrow()
 {
 	return !(lhs < rhs);
 }
 
-inline MTextFileBuffer::TextIterator
-MTextFileBuffer::TextIterator::operator-(std::ptrdiff_t o)
+inline TextFileBuffer::HText
+TextFileBuffer::HText::operator-(std::ptrdiff_t o)
 {
 	return *this + -o;
 }
 
-inline MTextFileBuffer::TextIterator&
-MTextFileBuffer::TextIterator::operator-=(std::ptrdiff_t o)
+inline TextFileBuffer::HText&
+TextFileBuffer::HText::operator-=(std::ptrdiff_t o)
 {
 	return *this += -o;
 }
 
 inline IndexType
-MTextFileBuffer::TextIterator::GetBlockLength() const ythrow()
+TextFileBuffer::HText::GetBlockLength() const ythrow()
 {
 	return GetBlockLength(blk);
 }
 
-inline MTextFileBuffer::TextIterator
-MTextFileBuffer::begin() ythrow()
+inline TextFileBuffer::HText
+TextFileBuffer::begin() ythrow()
 {
-	return MTextFileBuffer::TextIterator(*this);
+	return TextFileBuffer::HText(*this);
 }
 
-inline MTextFileBuffer::TextIterator
-MTextFileBuffer::end() ythrow()
+inline TextFileBuffer::HText
+TextFileBuffer::end() ythrow()
 {
-	return MTextFileBuffer::TextIterator(*this, nTextSize / nBlockSize);
+	return TextFileBuffer::HText(*this, nTextSize / nBlockSize);
 }
 
 YSL_END_NAMESPACE(Text)

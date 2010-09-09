@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:36;
-// UTime = 2010-8-23 20:54;
-// Version = 0.184;
+// UTime = 2010-9-3 23:02;
+// Version = 0.1869;
 
 
 #include "yapp.h"
@@ -47,10 +47,10 @@ YLog::FatalError(const std::string& s)
 }
 
 
-const IO::MPath YApplication::CommonAppDataPath("/");
-const MString YApplication::CompanyName(G_COMP_NAME);
-const MString YApplication::ProductName(G_APP_NAME);
-const MString YApplication::ProductVersion(G_APP_VER);
+const IO::Path YApplication::CommonAppDataPath("/");
+const String YApplication::CompanyName(G_COMP_NAME);
+const String YApplication::ProductName(G_APP_NAME);
+const String YApplication::ProductVersion(G_APP_VER);
 
 YApplication::YApplication()
 : YObject(), Log(DefaultLog), DefaultMQ(), DefaultMQ_Backup(), FontCache(NULL), sShls(), hShell(NULL)
@@ -91,9 +91,9 @@ YApplication::SetShellHandle(HSHL h)
 		if(hShell == h)
 			return false;
 		if(hShell)
-			hShell->OnDeactivated(MMSG(NULL, SM_DEACTIVATED, 0xF0, handle_cast<WPARAM>(hShell)));
+			hShell->OnDeactivated(Message(NULL, SM_DEACTIVATED, 0xF0, handle_cast<WPARAM>(hShell)));
 		hShell = h;
-		hShell->OnActivated(MMSG(NULL, SM_ACTIVATED, 0xF0, handle_cast<WPARAM>(h)));
+		hShell->OnActivated(Message(NULL, SM_ACTIVATED, 0xF0, handle_cast<WPARAM>(h)));
 	}
 	return h;
 }

@@ -507,14 +507,322 @@
           (MAKELCID(MAKELANGID(LANG_INVARIANT, SUBLANG_NEUTRAL), SORT_DEFAULT))
 
 */
+/*
+class Path;
 
+void swap(Path&, Path&);
+bool lexicographical_compare(Path::iterator, Path::iterator,
+							 Path::iterator, Path::iterator);
+
+bool operator==(const Path&, const Path&);
+bool operator!=(const Path&, const Path&);
+bool operator<(const Path&, const Path&);
+bool operator<=(const Path&, const Path&);
+bool operator>(const Path&, const Path&);
+bool operator>=(const Path&, const Path&);
+
+path operator/(const Path&, const Path&);
+
+std::ostream& operator<<(std::ostream&, const Path&);
+std::wostream& operator<<(std::wostream&, const Path&);
+std::istream& operator>>(std::istream&, Path&);
+std::wistream& operator>>(std::wistream&, Path&)
+
+class FileSystemError;
+class DirectoryEntry;
+
+class HDirectory;
+class HRecursiveDirectory;
+
+struct EFileType
+{
+	enum FileType
+	{
+		StatusError,
+		NotFound,
+		Regular,
+		Directory,
+	//	Symlink,
+	//	Block,
+		Character,
+		FIFO,
+	//	Socket,
+		UnknownType
+	};
+};
+
+struct FileStatus;
+
+typedef uintmax_t FileSizeType;
+
+struct SpaceInfo  //空间计算函数返回。
+{
+	FileSizeType Capacity;
+	FileSizeType Free; 
+	FileSizeType Available; //非特权进程可用空间。
+};
+
+struct ECopyOption
+{
+	enum //IfExists
+	{
+		Fail,
+		Overwrite
+	};
+};
+
+
+//操作。
+bool IsDirectory(FileStatus);
+bool IsDirectory(const Path&);
+bool IsEmpty(const Path&);
+bool IsKnownStatus(FileStatus);
+bool IsOther(FileStatus);
+bool IsOther(const Path&,);
+bool IsRegularFile(FileStatus); 
+bool IsRegularFile(const Path&);
+
+bool BeEquivalent(const Path&, const Path&);
+
+bool Exists(FileStatus);
+bool Exists(const Path&);
+
+Path			GetAbsolutePath(const Path&, const Path& = GetCurrentPath());
+std::time_t		GetLastWriteTime(const Path&);
+SpaceInfo		GetSpaceInfo(const Path&);
+FileStatus		GetStatus(const Path&);
+Path			GetCurrentPath();
+void			GetCurrentPath(Path&);
+FileSizeType	GetFileSize(const Path&);
+
+void SetLastWriteTime(const Path&, const std::time_t);
+
+bool CreateDirectory(const Path&);
+bool CreateDirectories(const Path&);
+
+void CopyFile(const Path&, const Path&);
+void CopyFile(const Path&, const Path&, ECopyOption);
+
+bool Remove(const Path&);
+
+FileSizeType	RemoveAll(const Path&);
+
+void			Rename(const Path&, const Path&);
+
+Path SystemComplete(const Path&);
+//Path		unique_path(const Path& model="%%%%-%%%%-%%%%-%%%%");
+*/
+
+typedef char NativePathCharType; //本地路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
+
+/*
+struct utf8_codecvt_facet :
+	public std::codecvt<wchar_t, char, std::mbstate_t>
+{
+public:
+	explicit utf8_codecvt_facet(std::size_t no_locale_manage = 0)
+		: std::codecvt<wchar_t, char, std::mbstate_t>(no_locale_manage)
+	{}
+
+protected:
+	virtual std::codecvt_base::result do_in(
+		std::mbstate_t& state, 
+		const char* from,
+		const char* from_end, 
+		const char*& from_next,
+		wchar_t* to, 
+		wchar_t* to_end, 
+		wchar_t*& to_next
+		) const;
+
+	virtual std::codecvt_base::result do_out(
+		std::mbstate_t& state, const wchar_t* from,
+		const wchar_t* from_end, const wchar_t*& from_next,
+		char* to, char* to_end, char *& to_next
+		) const;
+
+	bool invalid_continuing_octet(unsigned char octet_1) const
+	{
+		return octet_1 < 0x80 || 0xbf < octet_1;
+	}
+
+	bool invalid_leading_octet(unsigned char octet_1) const
+	{
+		return (0x7F < octet_1 && octet_1 < 0xC0) || (octet_1 > 0xFD);
+	}
+
+	// continuing octets = octets except for the leading octet
+	static unsigned int get_cont_octet_count(unsigned char lead_octet)
+	{
+		return get_octet_count(lead_octet) - 1;
+	}
+
+	static unsigned int get_octet_count(unsigned char lead_octet);
+
+	// How many "continuing octets" will be needed for this word
+	// ==   total octets - 1.
+	int get_cont_octet_out_count(wchar_t word) const;
+
+	virtual bool
+	do_always_noconv() const throw()
+	{
+		return false;
+	}
+
+	// UTF-8 isn't really stateful since we rewind on partial conversions
+	virtual std::codecvt_base::result do_unshift(
+		std::mbstate_t&,
+		char * from,
+		char * ,//to,
+		char * & next
+		) const 
+	{
+		next = from;
+		return ok;
+	}
+
+	virtual int do_encoding() const throw()
+	{
+		const int variable_byte_external_encoding=0;
+		return variable_byte_external_encoding;
+	}
+
+	// How many char objects can I process to get <= max_limit
+	// wchar_t objects?
+	virtual int do_length(
+		const std::mbstate_t&,
+		const char* from,
+		const char* from_end, 
+		std::size_t max_limit
+		) const;
+
+	// Largest possible value do_length(state,from,from_end,1) could return.
+	virtual int do_max_length() const throw ()
+	{
+		return 6; // largest UTF-8 encoding of a UCS-4 character
+	}
+};
+
+class Path
+{
+public:
+	typedef NativePathCharType value_type;
+	typedef std::basic_string<value_type> StringType;
+	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
+
+private:
+	StringType Pathname;
+
+public:
+	//编码转换。
+	static std::locale imbue(const std::locale&);
+	static const codecvt_type& codecvt();
+
+	// constructors and destructor
+	Path();
+	Path(const Path& p);
+//	template<class _tSource>
+//	Path(_tSource const&, const codecvt_type& = codecvt());
+//	template<class _tInIt>
+//	Path(_tInIt, _tInIt, const codecvt_type& = codecvt());
+	~Path();
+
+	//赋值。
+	Path&
+	operator=(const Path& p);
+//	template<class _tSource>
+//	Path&
+//	operator=(const _tSource& source);
+
+//	template<class _tSource>
+//	Path&
+//	assign(_tSource const& source, const codecvt_type&)
+//	template<class _tInIt>
+//	Path&
+//	assign(_tInIt, _tInIt, const codecvt_type& = codecvt());
+
+
+	//追加路径。
+	Path&
+	operator/=(const Path& p);
+//	template<class _tSource>
+//	Path&
+//	operator/=(const _tSource&);
+
+//	template<class _tSource>
+//	Path&
+//	append(const _tSource&, const codecvt_type&);
+//	template<class _tInIt>
+//	Path&
+//	append(_tInIt begin, _tInIt end, const codecvt_type& = codecvt());
+
+	//modifiers
+	void clear();
+	void swap(Path& rhs) ythrow();
+
+	Path& MakeAbsolute(const path& base);
+	Path& MakePreferred(); // POSIX: no effect. Windows: convert slashes to backslashes
+	Path& RemoveFilename();
+	Path& ReplaceExtension(const path& new_extension = path());
+
+	const string_type&
+	native() const; //本地格式和编码。
+	const value_type*
+	c_str() const; //本地格式和编码的 C 风格字符串。
+
+	template<class _tString>
+	_tString GetString(const codecvt_type& = codecvt()) const; //本地字符串格式。
+
+//	const string    string(const codecvt_type& = codecvt()) const; // native format
+//	const wstring   wstring(const codecvt_type& = codecvt()) const; // ditto
+//	const u16string u16string() const; // ditto
+//	const u32string u32string() const; // ditto
+
+	template<class _tString>
+	_tString GetGenericString() const;
+//	const string    GetGenericString(const codecvt_type& cvt=codecvt()) const;   // generic format
+//	const wstring   GetGenericString(const codecvt_type& cvt=codecvt()) const;  // ditto
+//	const u16string GetGenericString() const;                                 // ditto
+//	const u32string GetGenericString() const;                                 // ditto
+
+	//查询。
+	bool IsEmpty() const;
+	bool IsAbsolute() const;
+	bool IsRelative() const;
+	bool HasRootName() const;
+	bool HasRootDirectory() const;
+	bool HasRootPath() const;
+	bool HasRelativePath() const;
+	bool HasParentPath() const;
+	bool HasFilename() const;
+	bool HasStem() const;
+	bool HasExtension() const;
+
+	//路径分解。
+	Path GetRootName() const;
+	Path GetRootDirectory() const;
+	Path GetRootPath() const;
+	Path GetRelativePath() const;
+	Path GetParentPath() const;
+	Path GetFilename() const;
+	Path GetStem() const;
+	Path GetExtension() const;
+
+	//迭代器。
+	class iterator;
+	typedef iterator const_iterator;
+
+	iterator begin() const;
+	iterator end() const;
+};
+*/
 //	lblC.RequestFocus();
 //	lblC.ReleaseFocus();
 
 //	lblC.Text = L"测试= =";
 //	HWND h(lblC.GetWindowHandle());
 //	lblC.Text[0] ^= 1;
-//	MString::iterator i(lblC.Text.begin());
+//	String::iterator i(lblC.Text.begin());
 //	++*i;
 //	tf.SetPos(0);
 //	tf.Seek(-128, SEEK_END);
@@ -525,7 +833,7 @@ struct non_inheritable
 {
 };
 static void
-_testStr(const MString& s)
+_testStr(const String& s)
 {
 	char* str = sdup(str.c_str(), '?');
 	yprintf("%s\n",x,str);
@@ -547,7 +855,7 @@ RectDarken(BitmapPtr src, const SPoint& l, const SSize& s, HWND hWnd)
 	if(pWgt)
 		DrawWidgetBounds(*pWgt, ARGB16(1, 31, 1, 31));
 
-	MGIC g(hWnd->GetBufferPtr(), hWnd->GetBounds());
+	GraphicInterfaceContext g(hWnd->GetBufferPtr(), hWnd->GetBounds());
 //	DrawLineSeg(g, 2, 4, hWnd->GetWidth(), hWnd->GetHeight(), PixelType(ARGB16(1, 9, 4, 31)));
 //	DrawLineSeg(g, 2, 10, 12, 65, PixelType(ARGB16(1, 1, 31, 1)));
 
@@ -583,10 +891,10 @@ pDefaultFontCache->GetFontFamilyPtr("Microsoft YaHei")
 /*
 #include "../YSLib/Core/ystring.h"
 
-class MPath
+class Path
 {
 public:
-	typedef MString PathType;
+	typedef String PathType;
 	typedef PathType& RefType;
 	typedef const PathType& CRefType;
 
@@ -595,7 +903,7 @@ protected:
 	PathType File;
 
 public:
-	MPath(CRefType);
+	Path(CRefType);
 
 	CRefType GetDirectory() const;
 	CRefType GetFile() const;
@@ -603,21 +911,21 @@ public:
 	void SetPath(CRefType);
 };
 
-inline MPath::MPath(MPath::CRefType path)
+inline Path::Path(Path::CRefType path)
 {
 	SetPath(path);
 }
 
-inline MPath::CRefType MPath::GetDirectory() const
+inline Path::CRefType Path::GetDirectory() const
 {
 	return Directory;
 }
-inline MPath::CRefType MPath::GetFile() const
+inline Path::CRefType Path::GetFile() const
 {
 	return File;
 }
 
-inline void MPath::SetPath(MPath::CRefType path)
+inline void Path::SetPath(Path::CRefType path)
 {
 	SplitPath(path, Directory, File);
 }
@@ -679,7 +987,7 @@ int YFileItem::ToNext()
 class YListControl : public YObject
 {
 protected:
-	MPath alloc;
+	Path alloc;
 
 public:
 	YListControl();
@@ -704,7 +1012,7 @@ protected:
 
 public:
 	template<class _CharT>
-		YLabeledWidget(HWND hWnd, const _CharT*, YWidget*, const MFont::SizeType = MFont::DefSize);
+		YLabeledWidget(HWND hWnd, const _CharT*, YWidget*, const Font::SizeType = Font::DefSize);
 	virtual ~LabeledWidget();
 
 	virtual void SetBounds(s16 x, s16 y, u16 w, u16 h);
@@ -731,7 +1039,7 @@ protected:
 	YImage* image;
 
 public:
-	MString& Caption;
+	String& Caption;
 	u8& FontSize;
 
 	YCommandButton();
@@ -773,7 +1081,7 @@ public:
 	/*
 	sprintf(strttxt + strlen(strttxt), "%x,", shltxt.GetBufferPtr()[i]);
 	MDualScreenReader& dsr = *pdsr;
-	MTextRegion& shltxt = dsr.GetUp();
+	TextRegion& shltxt = dsr.GetUp();
 	sprintf(strtbuf + strlen(strtbuf), "buffer addr : 0x%x", (int)shltxt.GetBufferPtr());
 	sprintf(strtmargin, "%d, %d, %d, %d;", shltxt.Margin.GetLeft(), shltxt.Margin.GetRight(), shltxt.Margin.GetTop(), shltxt.Margin.GetBottom());
 	sprintf(strtf,"xxx:%u,%u;%u,%u\n",shltxt.Margin.GetBottom(),shltxt.ResizeMargin(),shltxt.GetPenX(),shltxt.GetPenY());

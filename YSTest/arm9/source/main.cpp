@@ -1,8 +1,8 @@
 ﻿// YShell DS 测试程序 -> ARM9 主程序 by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 21:26:30;
-// UTime = 2010-7-14 15:09;
-// Version = 0.1997;
+// UTime = 2010-9-2 10:21;
+// Version = 0.2002;
 
 
 //标识主源文件。
@@ -37,20 +37,20 @@ CSTR G_APP_NAME = "YShell Test";
 CSTR G_APP_VER = "0.2600";
 
 //调试函数。
-static void YSDebug_MSG_Print(const MMSG& msg)
+static void YSDebug_MSG_Print(const Message& msg)
 {
 	iprintf("time : %u ticks\n", GetTicks());
-	iprintf("MMSG : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
+	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
 	waitForInput();
 	StartTicks();
 }
-void YSDebug_MSG_Insert(const MMSG& msg)
+void YSDebug_MSG_Insert(const Message& msg)
 {
 	YDebugBegin();
 	iputs("-YSLIB_DEBUG : MSG_Insert");
 	YSDebug_MSG_Print(msg);
 }
-void YSDebug_MSG_Peek(const MMSG& msg)
+void YSDebug_MSG_Peek(const Message& msg)
 {
 	YDebugBegin();
 	iputs("-YSLIB_DEBUG : MSG_Peek");
@@ -63,7 +63,7 @@ using namespace YSLib;
 
 int YMain(int argc, char* argv[])
 {
-	MMSG msg;
+	Message msg;
 
 	//消息循环。
 	while(GetMessage(msg))

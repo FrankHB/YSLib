@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-8-2 15:46;
-// Version = 0.2622;
+// UTime = 2010-9-2 10:38;
+// Version = 0.2635;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -64,7 +64,7 @@ private:
 public:
 	//	InitializeComponents();
 	virtual LRES
-	OnActivated(const MMSG&);
+	OnActivated(const Message&);
 };
 
 
@@ -127,10 +127,10 @@ public:
 	fb_Confirmed(IVisualControl&, const MIndexEventArgs&);
 
 	virtual LRES
-	ShlProc(const MMSG&);
+	ShlProc(const Message&);
 
 	virtual LRES
-	OnActivated(const MMSG&);
+	OnActivated(const Message&);
 };
 
 
@@ -156,7 +156,7 @@ public:
 			lblA2.Transparent = true;
 		}
 
-		void ShowString(const MString& s)
+		void ShowString(const String& s)
 		{
 			lblA.Text = s;
 			lblA.DrawForeground();
@@ -219,13 +219,13 @@ public:
 		btnReturn_Click(const MTouchEventArgs&);
 	};
 
-	void ShowString(const MString& s)
+	void ShowString(const String& s)
 	{
 		GHHandle<TFormA>(hWndUp)->ShowString(s);
 	}
 	void ShowString(const char* s)
 	{
-		ShowString(MString(s));
+		ShowString(String(s));
 	}
 
 	static void
@@ -243,13 +243,13 @@ public:
 	}
 
 	virtual LRES
-	ShlProc(const MMSG&);
+	ShlProc(const Message&);
 
 	virtual LRES
-	OnActivated(const MMSG&);
+	OnActivated(const Message&);
 
 	virtual LRES
-	OnDeactivated(const MMSG&);
+	OnDeactivated(const Message&);
 };
 
 
@@ -281,13 +281,13 @@ public:
 	OnKeyPress(const MKeyEventArgs&);
 
 	virtual LRES
-	ShlProc(const MMSG&);
+	ShlProc(const Message&);
 
 	virtual LRES
-	OnActivated(const MMSG&);
+	OnActivated(const Message&);
 
 	virtual LRES
-	OnDeactivated(const MMSG&);
+	OnDeactivated(const Message&);
 };
 
 YSL_END;

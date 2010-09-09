@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15;
-// UTime = 2010-8-2 14:58;
-// Version = 0.2696;
+// UTime = 2010-9-2 10:25;
+// Version = 0.2708;
 
 
 #include "../Shell/ywindow.h"
@@ -121,7 +121,7 @@ YShell::ClearScreenWindows(YDesktop& d)
 }
 
 LRES
-YShell::DefShlProc(const MMSG& msg)
+YShell::DefShlProc(const Message& msg)
 {
 //	const HSHL& hShl(msg.GetShellHandle());
 	const WPARAM& wParam(msg.GetWParam());
@@ -194,18 +194,18 @@ YShellMain::YShellMain()
 void
 PostQuitMessage(int nExitCode)
 {
-	DefaultMQ.InsertMessage(MMSG(NULL, SM_QUIT, 0xFF));
+	DefaultMQ.InsertMessage(Message(NULL, SM_QUIT, 0xFF));
 }
 
 #if YSLIB_DEBUG_MSG & 2
 
 static IRES
-PeekMessage_(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg);
+PeekMessage_(Message& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg);
 
 IRES
-PeekMessage(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg)
+PeekMessage(Message& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg)
 {
-	void YSDebug_MSG_Peek(MMSG&);
+	void YSDebug_MSG_Peek(Message&);
 	IRES t(PeekMessage_(msg, hShl, wMsgFilterMin, wMsgFilterMax, wRemoveMsg));
 
 	YSDebug_MSG_Peek(msg);
@@ -222,13 +222,13 @@ PeekMessage
 
 #endif
 
-	(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, u32 wRemoveMsg)
+	(Message& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, u32 wRemoveMsg)
 {
 	if(!DefaultMQ.empty())
 	{
-		std::vector<MMSG> mqt;
-		MMSG m;
-	//	void (YMessageQueue::*fngmq)(MMSG&) = wRemoveMsg & PM_REMOVE ? &YMessageQueue::GetMessage : (void (YMessageQueue::*)(MMSG&))&YMessageQueue::PeekMessage;
+		std::vector<Message> mqt;
+		Message m;
+	//	void (YMessageQueue::*fngmq)(Message&) = wRemoveMsg & PM_REMOVE ? &YMessageQueue::GetMessage : (void (YMessageQueue::*)(Message&))&YMessageQueue::PeekMessage;
 	//	(DefaultMQ.*fngmq)(m);
 
 		while(!DefaultMQ.empty())
@@ -258,7 +258,7 @@ PeekMessage
 }
 
 IRES
-GetMessage(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax)
+GetMessage(Message& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax)
 {
 	if(DefaultMQ.empty())
 		Def::Idle();
@@ -266,19 +266,19 @@ GetMessage(MMSG& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax)
 }
 
 ERRNO
-TranslateMessage(const MMSG& msg)
+TranslateMessage(const Message& msg)
 {
 	return 0;
 }
 
 LRES
-DispatchMessage(const MMSG& msg)
+DispatchMessage(const Message& msg)
 {
 	return theApp.GetShellHandle()->ShlProc(msg);
 }
 
 ERRNO
-BackupMessage(const MMSG& msg)
+BackupMessage(const Message& msg)
 {
 	return -!DefaultMQ_Backup.InsertMessage(msg);
 }

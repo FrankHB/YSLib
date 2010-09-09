@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-7-26 14:02;
-// Version = 0.1829;
+// UTime = 2010-9-2 10:20;
+// Version = 0.1836;
 
 
 #ifndef INCLUDED_YGUI_H_
@@ -77,7 +77,7 @@ struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 
 
 //记录输入保持状态。
-class MTouchStatus
+class STouchStatus
 {
 private:
 	static SVec v_DragOffset;
@@ -112,20 +112,20 @@ YSL_END_NAMESPACE(Runtime)
 YSL_BEGIN_NAMESPACE(Drawing)
 
 //取图形接口上下文。
-inline MGIC
+inline GraphicInterfaceContext
 GetGraphicInterfaceContext(HWND hWnd)
 {
 	YAssert(hWnd != NULL,
-		"In function \"inline MGIC\nDrawing::GetGraphicInterfaceContext(HWND hWnd)\": \n"
+		"In function \"inline GraphicInterfaceContext\nDrawing::GetGraphicInterfaceContext(HWND hWnd)\": \n"
 		"The input handle is null.");
 
-	return static_cast<MGIC>(*hWnd);
+	return static_cast<GraphicInterfaceContext>(*hWnd);
 }
 
 
 //绘制界面元素边框。
 void
-DrawBounds(MGIC&, const SPoint&, const SSize&, PixelType);
+DrawBounds(GraphicInterfaceContext&, const SPoint&, const SSize&, PixelType);
 
 //绘制窗口边框。
 void

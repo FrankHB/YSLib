@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-9-1 21:21;
-// Version = 0.2975;
+// UTime = 2010-9-9 19:44;
+// Version = 0.3003;
 
 
 #include <Shells.h>
@@ -19,7 +19,7 @@ YSL_BEGIN
 YSL_BEGIN_SHELL(ShlMain)
 
 LRES
-ShlProc(const MMSG& msg)
+ShlProc(const Message& msg)
 {
 /*
 	const HSHL& hShl(msg.GetShellHandle());
@@ -36,7 +36,7 @@ ShlProc(const MMSG& msg)
 		}
 		catch(...)
 		{
-			throw MLoggedEvent("Run shell failed at end of ShlMain.");
+			throw LoggedEvent("Run shell failed at end of ShlMain.");
 			return -1;
 		}
 		return 0;
@@ -234,7 +234,7 @@ GetImage(int i)
 using namespace DS;
 
 LRES
-ShlLoad::OnActivated(const MMSG& m)
+ShlLoad::OnActivated(const Message& m)
 {
 	//如果不添加此段且没有桌面没有被添加窗口等设置刷性状态的操作，那么任何绘制都不会进行。
 	pDesktopUp->SetRefresh();
@@ -250,7 +250,7 @@ ShlLoad::OnActivated(const MMSG& m)
 	}
 	catch(...)
 	{
-		throw MLoggedEvent("Run shell failed at end of ShlLoad.");
+		throw LoggedEvent("Run shell failed at end of ShlLoad.");
 		return -1;
 	}
 	return 0;
@@ -313,7 +313,7 @@ ShlS::TFrmFileListSelecter::btnOK_Click(const MTouchEventArgs&)
 }
 
 LRES
-ShlS::ShlProc(const MMSG& msg)
+ShlS::ShlProc(const Message& msg)
 {
 
 //	const WPARAM& wParam(msg.GetWParam());
@@ -325,14 +325,14 @@ ShlS::ShlProc(const MMSG& msg)
 	//	InitYSConsole();
 	//	YDebugBegin();
 		iprintf("time : %u ticks\n", GetTicks());
-		iprintf("MMSG : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
+		iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
 		waitForInput();
 	//	StartTicks();
 	}*/
 /*
 	YDebugBegin();
 	iprintf("time : %u ticks\n", GetTicks());
-	iprintf("MMSG : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
+	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
 	waitForInput();*/
 
 	switch(msg.GetMsgID())
@@ -352,7 +352,7 @@ ShlS::ShlProc(const MMSG& msg)
 }
 
 LRES
-ShlS::OnActivated(const MMSG&)
+ShlS::OnActivated(const Message&)
 {
 	hWndUp = NewWindow<TFrmFileListMonitor>(this);
 	hWndDown = NewWindow<TFrmFileListSelecter>(this);
@@ -416,7 +416,8 @@ ShlA::TFormC::lblC_Click(const MTouchEventArgs& e)
 		++itype %= ftypen;
 		if(++it == pDefaultFontCache->GetTypes().end())
 			it = pDefaultFontCache->GetTypes().begin();
-		lblC.Font = MFont(*(*it)->GetFontFamilyPtr()/*GetDefaultFontFamily()*/, 18 - (itype << 1), EFontStyle::Regular);
+		lblC.Font = Font(*(*it)->GetFontFamilyPtr(), 18 - (itype << 1), EFontStyle::Regular);
+	//	lblC.Font = Font(*(*it)->GetFontFamilyPtr()/*GetDefaultFontFamily()*/, 18 - (itype << 1), EFontStyle::Regular);
 		sprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n", lblC.Font.GetSize(), ffilen, ftypen, ffacen);
 		lblC.Text = strtf;
 	}
@@ -460,7 +461,7 @@ ShlA::TFormC::btnReturn_Click(const MTouchEventArgs&)
 }
 
 LRES
-ShlA::ShlProc(const MMSG& msg)
+ShlA::ShlProc(const Message& msg)
 {
 	using namespace YSL_SHL(ShlA);
 //	ClearDefaultMessageQueue();
@@ -483,7 +484,7 @@ ShlA::ShlProc(const MMSG& msg)
 }
 
 LRES
-ShlA::OnActivated(const MMSG& msg)
+ShlA::OnActivated(const Message& msg)
 {
 	pDesktopDown->BackColor = ARGB16(1, 15, 15, 31);
 	pDesktopDown->SetBackground(GetImage(6));
@@ -497,7 +498,7 @@ ShlA::OnActivated(const MMSG& msg)
 	return 0;
 }
 LRES
-ShlA::OnDeactivated(const MMSG& m)
+ShlA::OnDeactivated(const Message& m)
 {
 	ParentType::OnDeactivated(m);
 	YDelete(hWndC);
@@ -518,6 +519,8 @@ ShlReader::UpdateToScreen()
 {
 	if(bgDirty)
 	{
+		pDesktopUp->SetRefresh();
+		pDesktopDown->SetRefresh();
 		ParentType::UpdateToScreen();
 		Reader.PrintText();
 		bgDirty = false;
@@ -598,7 +601,7 @@ ShlReader::OnKeyPress(const MKeyEventArgs& e)
 }
 
 LRES
-ShlReader::ShlProc(const MMSG& msg)
+ShlReader::ShlProc(const Message& msg)
 {
 	switch(msg.GetMsgID())
 	{
@@ -614,7 +617,7 @@ ShlReader::ShlProc(const MMSG& msg)
 }
 
 LRES
-ShlReader::OnActivated(const MMSG& msg)
+ShlReader::OnActivated(const Message& msg)
 {
 	bgDirty = true;
 	hUp = pDesktopUp->GetBackground();
@@ -632,7 +635,7 @@ ShlReader::OnActivated(const MMSG& msg)
 }
 
 LRES
-ShlReader::OnDeactivated(const MMSG& msg)
+ShlReader::OnDeactivated(const Message& msg)
 {
 	ShlClearBothScreen();
 	pDesktopDown->Click.Remove(*this, &ShlReader::OnClick);

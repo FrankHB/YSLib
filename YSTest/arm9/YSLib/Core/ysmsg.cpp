@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-6 2:44:31;
-// UTime = 2010-8-2 14:58;
-// Version = 0.1412;
+// UTime = 2010-9-2 10:24;
+// Version = 0.1422;
 
 
 #include "ysmsg.h"
@@ -16,21 +16,21 @@ const time_t DEF_TIMEOUT(0);
 
 #ifdef YSLIB_NO_CURSOR
 
-MMSG::MMSG(HSHL shl, MSGID m, MSGPRIORITY p, WPARAM w, const LPARAM l)
+Message::Message(HSHL shl, MSGID m, MSGPRIORITY p, WPARAM w, const LPARAM l)
 : hShl(shl), msg(m), prior(p), wParam(w), lParam(l), timestamp(std::clock()), timeout(DEF_TIMEOUT)
 {
 }
 
 #else
 
-MMSG::MMSG(HSHL shl, MSGID m, MSGPRIORITY p, WPARAM w, const LPARAM l, const SPoint& _pt)
+Message::Message(HSHL shl, MSGID m, MSGPRIORITY p, WPARAM w, const LPARAM l, const SPoint& _pt)
 : hShl(shl), msg(m), prior(p), wParam(w), lParam(l), pt(_pt), timestamp(std::clock()), timeout(DEF_TIMEOUT)
 {
 }
 
 #endif
 
-bool MMSG::operator==(const MMSG& m) const
+bool Message::operator==(const Message& m) const
 {
 
 #ifdef YSLIB_NO_CURSOR
@@ -53,7 +53,7 @@ YMessageQueue::~YMessageQueue() ythrow()
 {}
 
 void
-YMessageQueue::GetMessage(MMSG& m)
+YMessageQueue::GetMessage(Message& m)
 {
 	if(!q.empty())
 	{
@@ -63,7 +63,7 @@ YMessageQueue::GetMessage(MMSG& m)
 	}
 }
 void
-YMessageQueue::PeekMessage(MMSG& m) const
+YMessageQueue::PeekMessage(Message& m) const
 {
 	if(!q.empty())
 		if(q.top().IsValid())
@@ -92,7 +92,7 @@ YMessageQueue::Update()
 	}
 }
 bool
-YMessageQueue::InsertMessage(const MMSG& m)
+YMessageQueue::InsertMessage(const Message& m)
 {
 	if(m.IsValid())
 		q.push(m);
@@ -100,9 +100,9 @@ YMessageQueue::InsertMessage(const MMSG& m)
 }
 
 void
-Merge(YMessageQueue& dst, std::vector<MMSG>& src)
+Merge(YMessageQueue& dst, std::vector<Message>& src)
 {
-	MMSG m;
+	Message m;
 
 	while(!src.empty())
 	{
@@ -114,7 +114,7 @@ Merge(YMessageQueue& dst, std::vector<MMSG>& src)
 void
 Merge(YMessageQueue& dst, YMessageQueue& src)
 {
-	MMSG m;
+	Message m;
 
 	while(!src.empty())
 	{
