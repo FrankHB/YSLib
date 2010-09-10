@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-9-9 19:44;
-// Version = 0.3003;
+// UTime = 2010-9-10 22:47;
+// Version = 0.3004;
 
 
 #include <Shells.h>
