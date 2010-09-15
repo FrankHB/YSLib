@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8
 // CTime = 2010-3-13 14:17:14;
-// UTime = 2010-9-2 10:22;
-// Version = 0.1456;
+// UTime = 2010-9-12 15:22;
+// Version = 0.1494;
 
 
 #ifndef INCLUDED_SHLDS_H_
@@ -14,6 +14,43 @@
 
 YSL_BEGIN
 
+YSL_BEGIN_NAMESPACE(Shells)
+
+//标准命令行界面 Shell 。
+class ShlCLI : public YShellMain
+{
+public:
+	ShlCLI();
+	virtual
+	~ShlCLI() ythrow();
+
+	virtual LRES
+	OnActivated(const Message&);
+
+	virtual LRES
+	OnDeactivated(const Message&);
+
+	IRES
+	ExecuteCommand(const uchar_t*);
+	IRES
+	ExecuteCommand(const String&);
+};
+
+inline
+ShlCLI::ShlCLI()
+: YShellMain()
+{}
+inline
+ShlCLI::~ShlCLI() ythrow()
+{}
+
+inline int
+ShlCLI::ExecuteCommand(const String& s)
+{
+	return ExecuteCommand(s.c_str());
+}
+
+
 //标准图形用户界面窗口 Shell 。
 class ShlGUI : public YShellMain
 {
@@ -22,20 +59,31 @@ public:
 	virtual
 	~ShlGUI() ythrow();
 
-	void
-	SendDrawingMessage();
-	virtual void
-	UpdateToScreen();
-
 	virtual LRES
 	OnDeactivated(const Message&);
+
+	void
+	SendDrawingMessage();
+
+	virtual void
+	UpdateToScreen();
 };
+
+inline
+ShlGUI::ShlGUI()
+: YShellMain()
+{}
+inline
+ShlGUI::~ShlGUI() ythrow()
+{}
+
+YSL_END_NAMESPACE(Shells)
 
 
 YSL_BEGIN_NAMESPACE(DS)
 
 //双屏全屏窗口 Shell 。
-class ShlDS : public ShlGUI
+class ShlDS : public Shells::ShlGUI
 {
 protected:
 	HWND hWndUp, hWndDown;

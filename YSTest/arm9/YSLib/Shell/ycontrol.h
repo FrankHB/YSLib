@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:24;
-// UTime = 2010-9-2 10:34;
-// Version = 0.3402;
+// UTime = 2010-9-14 23:24;
+// Version = 0.3434;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -24,10 +24,12 @@ YSL_BEGIN_NAMESPACE(Controls)
 //控件事件参数类型。
 struct MIndexEventArgs : public MEventArgs
 {
-	IVisualControl& con;
-	int index;
+	typedef std::ptrdiff_t IndexType;
 
-	MIndexEventArgs(IVisualControl& c, const int& i)
+	IVisualControl& con;
+	IndexType index;
+
+	MIndexEventArgs(IVisualControl& c, IndexType i)
 	: MEventArgs(),
 	con(c), index(i)
 	{}
@@ -281,6 +283,7 @@ public:
 	typedef YVisualControl ParentType;
 	typedef String ItemType; //项目类型：字符串。
 	typedef std::vector<ItemType> ListType; //列表类型。
+	typedef GSequenceViewer<ListType> ViewerType; //视图类型。
 
 protected:
 	static const SDST defMarginH = 4, defMarginV = 2;
@@ -294,7 +297,7 @@ public:
 	ListType& List; //列表。
 
 protected:
-	GMSequenceViewer<ListType> Viewer; //列表视图。
+	GSequenceViewer<ListType> Viewer; //列表视图。
 
 public:
 	DefEvent(YIndexEventHandler, Selected) //项目选择状态改变事件。
@@ -313,16 +316,16 @@ public:
 	DefBoolGetterMember(Selected, Viewer)
 
 	DefGetter(ListType&, List, List)
-	DefGetterMember(ListType::size_type, Index, Viewer)
-	DefGetterMember(ListType::size_type, Selected, Viewer)
+	DefGetterMember(ViewerType::IndexType, Index, Viewer)
+	DefGetterMember(ViewerType::IndexType, Selected, Viewer)
 	ItemType*
-	GetItemPtr(ListType::size_type);
+	GetItemPtr(ViewerType::IndexType);
 	SDST
 	GetItemHeight() const;
 
 //	DefSetter(const ListType&, List, List)
 	void
-	SetSelected(ListType::size_type);
+	SetSelected(ViewerType::IndexType);
 	void
 	SetSelected(SPOS, SPOS);
 	void
@@ -335,7 +338,7 @@ public:
 	DrawForeground();
 
 protected:
-	ListType::size_type
+	ViewerType::IndexType
 	CheckPoint(SPOS, SPOS); //检查相对于所在缓冲区的控件坐标是否在选择范围内，返回选择的项目索引。
 
 public:

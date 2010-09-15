@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:04:05;
-// UTime = 2010-9-2 10:31;
-// Version = 0.2788;
+// UTime = 2010-9-15 23:04;
+// Version = 0.2792;
 
 
 #include "DSReader.h"
@@ -27,7 +27,7 @@ MDualScreenReader::MDualScreenReader(YTextFile& tf_,
 				   YFontCache& fc_)
 try : tf(tf_), Blocks(tf), fc(fc_),
 left(l), top_up(t_up), top_down(t_down),
-pBgUp(pDesktopUp->GetBackgroundPtr()), pBgDn(pDesktopDown->GetBackgroundPtr()),
+pBgUp(pDesktopUp->GetBufferPtr()), pBgDn(pDesktopDown->GetBufferPtr()),
 trUp(*new TextRegion(fc_)), trDn(*new TextRegion(fc_)), rot(RDeg0),
 itUp(Blocks), itDn(Blocks)
 {

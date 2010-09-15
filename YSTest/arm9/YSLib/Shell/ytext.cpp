@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-9-2 1106;
-// Version = 0.6150;
+// UTime = 2010-9-11 0:03;
+// Version = 0.6164;
 
 
 #include "ytext.h"
@@ -60,17 +60,17 @@ TextState::SetLnNNow(u16 n)
 
 
 void
-TextRegion::PrintChar(u32 c)
+TextRegion::PrintChar(fchar_t c)
 {
 	if(img == NULL)
 		//无缓冲区时无法绘图。
 		return;
 
 	YFontCache& cache(GetCache());
-	FTC_SBit sbit(cache.GetGlyph(c));
+	CharBitmap sbit(cache.GetGlyph(c));
 	const int tx(penX + cache.GetAdvance(c, sbit));
 
-	if(!INVISIBLE_CHAR(c) && sbit->buffer != NULL)
+	if(!INVISIBLE_CHAR(c) && sbit.GetBuffer() != NULL)
 	{
 		/*
 		u8* bitmap = sbit->buf;
@@ -107,19 +107,19 @@ TextRegion::PrintChar(u32 c)
 		*/
 
 		PixelType col(Color | BITALPHA);
-		const int dx(penX + sbit->left),
-			dy(penY - sbit->top),
+		const int dx(penX + sbit.GetLeft()),
+			dy(penY - sbit.GetTop()),
 			xmin(vmax<int>(0, Margin.Left - dx)),
 			ymin(vmax<int>(0, Margin.Top - dy)),
-			xmax(vmin<int>(Width - Margin.Right - dx, sbit->width)),
-			ymax(vmin<int>(Height - Margin.Bottom - dy, sbit->height));
+			xmax(vmin<int>(Width - Margin.Right - dx, sbit.GetWidth())),
+			ymax(vmin<int>(Height - Margin.Bottom - dy, sbit.GetHeight()));
 
 		if(xmax >= xmin && ymax >= ymin)
 		{
-			const int sJmp(sbit->width - xmax + xmin),
+			const int sJmp(sbit.GetWidth() - xmax + xmin),
 				dJmp(Width - xmax + xmin),
 				dOff(vmax<int>(Margin.Top, dy) * Width + vmax<int>(Margin.Left, dx));
-			u8* sa(sbit->buffer + ymin * sbit->width + xmin);
+			u8* sa(sbit.GetBuffer() + ymin * sbit.GetWidth() + xmin);
 			BitmapPtr dc(img + dOff);
 			u8* da(imgAlpha + dOff);
 
@@ -278,7 +278,7 @@ TextRegion::PutNewline()
 }
 
 u8
-TextRegion::PutChar(u32 c)
+TextRegion::PutChar(fchar_t c)
 {
 	if(c == '\n')
 	{

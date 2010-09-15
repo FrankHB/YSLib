@@ -1,18 +1,68 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-9-3 22:03;
-// Version = r7313;
+// UTime = 2010-9-15 20:56;
+// Version = r7464;
 
 
 // Definitions ：方法和公共域定义与说明。
 
+/*
+
+体例说明：
+
+（文档专用）外部语义位置标记符：
+@ //作用于可打印字符或空白符（见以下定义）的字符序列，表示逻辑位置。
+
+以下列表中的概念参考 ISO/IEC-14882:2003 - The C++ Programing Language （以下简称“语言标准”）：
+翻译单元(translation unit) ：(@2|1 [lex])；
+字符集(character set) ：(@2.2 [lex.charset])；
+预处理记号(preprocessing token) ：(@2.4 [lex.pptoken])；
+记号(token) ：(@2.6 [lex.token])；
+注释(comment) ：(@2.7 [lex.comment])；
+头文件名(header name) ：(@2.8 [lex.header])；
+标识符(identifier) ：(@2.10 [lex.name])；
+关键字(keyword) ：(@2.11 [lex.key])；
+操作符(operator) ：(@2.11 [lex.operators])；
+标点符(punctuator) ：(@2.11 [lex.operators])；
+字面量(literal) ：(@2.13 [lex.literals])；
+转义[字符]序列(escape sequence) ：(@2.13.2 [lex.ccon])；
+实体(entity) ：(@3|3 [basic])；
+名称(name) ：(@3|4 [basic])；
+作用域(scope) ：(@3.3|1 [basic.scope])；
+链接(linkage) ：(@3.5 [basic.link])；
+存储期(storage duration) ：(@3.7 [basic.stc])；
+类型(type) ：(@3.9 [basic.types])；
+对象类型(object type) ：(@3.9 [basic.types])；
+不完整类型(incomplete type) ：(@3.9.1 [basic.fundamental])；
+命名空间(namespace) ：(@7.3 [basic.namespace])。
+
+以下内容参考语言标准相关描述：
+续行/断行连接(line continuation) ：(@2.1|2 [lex.phases])，“splicing physical source lines to form logical source lines”。
+
+以下为附加语法和语义说明。
+
+类预处理器语法：
+#region $name_exp //表示字符序列 $name_exp 标记的位置，可用于标记段落。供文档规格化工具使用。
+其它预处理指令同语言标准。
+
+外部语义链接标记符：
+$ //作用于受限制的字符序列（语言规范中定义的标识符或关键字）前，表示该字符序列不由编译程序提供语义实现。
+$import //导入实体。
+$export //导出实体，显式使用表示强调无论实现如何，应该向外部提供形式上和之后说明一致的接口。
+
+全局域关键字：
+$code {} //表示（源）代码段。
+$unit $unit_name //单元：指称一个编译单元（一般应为语言规范中定义的翻译单元）。单元名称 $unit_name 为可变部分，是语言规范中定义的标识符或关键字。
+$header $header_name //头文件：指称一个头文件。头文件名标识字符序列 $header_name 是可变部分，同语言标准中 #include $header_name 的用法。
+
+*/
 
 #region synopsis(begin)
 
 //平台定义文件（platform.h）定义示例。
 
-code header "platform.h" {
+$code $header <platform.h> {
 
 
 #ifndef _ATTRIBUTE
@@ -23,18 +73,31 @@ code header "platform.h" {
 #	endif
 #endif
 
+
 //$example:
-import header <nds.h>, <fat.h>, <unistd.h>, <sys/dir.h>;
+//字符兼容性补充。
+
+#include <stdint.h>
+
+namespace std
+{
+	typedef ::uint16_t char16_t;
+	typedef ::uint32_t char32_t;
+}
+
+
+//$example:
+$import $header <nds.h>, <fat.h>, <unistd.h>, <sys/dir.h>;
 
 //像素类型。
-import type $pixeltype;
+$import type $pixeltype;
 
-import typedef signed char s8;
-import typedef unsigned char u8;
-import typedef signed short s16;
-import typedef unsigned short u16;
-import typedef signed long s32;
-import typedef unsigned long u32;
+$import typedef signed char s8;
+$import typedef unsigned char u8;
+$import typedef signed short s16;
+$import typedef unsigned short u16;
+$import typedef signed long s32;
+$import typedef unsigned long u32;
 
 //主屏幕的宽与高。
 extern const u16 $SCREEN_WIDTH, $SCREEN_HEIGHT;
@@ -49,18 +112,18 @@ typedef $pixeltype PixelType; //像素。
 typedef PixelType SCRBUF[SCREEN_WIDTH * SCREEN_HEIGHT]; //主显示屏缓冲区。
 #define BITALPHA BIT(15) // Alpha 位。
 
-} //code;
+} //$code;
 
 
 // CHRLib 定义。
 
-code CHRLib {
+$code CHRLib {
 
-import typedef unsigned short u16;
+$import typedef unsigned short u16;
 
-header CHRDefinition "chrdef.h"
+$header CHRDefinition "chrdef.h"
 {
-	import <platform.h>;
+	$import <platform.h>;
 
 
 	#define CHRLIB_BEGIN	namespace CHRLib {
@@ -76,20 +139,21 @@ header CHRDefinition "chrdef.h"
 	typedef unsigned char ubyte_t;
 	typedef unsigned long usize_t;
 
-	// UCS-2 字符类型定义。
-	typedef u16 uchar_t;
-	typedef s32 uchardiff_t;
+	//字符类型定义。
+	typedef std::char16_t uchar_t; // UCS-2 字符。
+	typedef std::char32_t fchar_t; // UCS-4 字符。
+	typedef s32 uint_t;
 
 	typedef enum {Deg0 = 0, Deg90 = 1, Deg180 = 2, Deg270 = 3} CROT;
 
 	CHRLIB_END
 
-} //header CHRDefinition;
+} //$header CHRDefinition;
 
 
-unit CHRMap "chrmap.h"
+$unit CHRMap "chrmap.h"
 {
-	import unit CHRDefinition, header <cstdio>;
+	$import $unit CHRDefinition, $header <cstdio>;
 
 
 	CHRLIB_BEGIN
@@ -237,12 +301,12 @@ unit CHRMap "chrmap.h"
 
 	CHRLIB_END
 
-} //unit CHRMap;
+} //$unit CHRMap;
 
 
-unit CHRProcessing "chrproc"
+$unit CHRProcessing "chrproc"
 {
-	import unit CHRDefinition, CHRMap, header <cctype>, <cstdlib>, <cstring>, <cwchar>;
+	$import $unit CHRDefinition, CHRMap, $header <cctype>, <cstdlib>, <cstring>, <cwchar>;
 
 
 	CHRLIB_BEGIN
@@ -321,18 +385,18 @@ unit CHRProcessing "chrproc"
 
 	CHRLIB_END
 
-} //unit CHRProcessing;
+} //$unit CHRProcessing;
 
-} //code CHRLib;
+} //$code CHRLib;
 
 
 // YCLib 定义。
 
-code YCLib {
+$code $export YCLib {
 
-import header <platform.h>;
+$import $header <platform.h>;
 
-header YDefinition "ydef.h"
+$header YDefinition "ydef.h"
 {
 	#ifdef __cplusplus
 	extern "C" {
@@ -419,19 +483,19 @@ header YDefinition "ydef.h"
 	}
 	#endif
 
-} //header YDefinition;
+} //$header YDefinition;
 
 
-unit YCommon "ycommon"
+$unit YCommon "ycommon"
 {
 	//最大路径长度。
-	export #define YC_MAX_PATH;
+	$export #define YC_MAX_PATH;
 
 	#ifndef UNICODE
 	#define UNICODE
 	#endif
 	
-	import header "ydef.h", <cstdio>,
+	$import $header "ydef.h", <cstdio>,
 		<cstdarg>, <cstring>, <cstdarg>;
 
 	//平台无关部分。
@@ -748,23 +812,23 @@ unit YCommon "ycommon"
 		#endif
 	} //namespace platform;
 
-} //unit YCommon;
+} //$unit YCommon;
 
-} //code YCLib;
+} //$code YCLib;
 
 
 // YSLib 定义。
 
-code YSLib {
+$code YSLib {
 
-export adapter YSLib::Adapter::YAdapter;
+$export adapter YSLib::Adapter::YAdapter;
 
 using namespace ::YSLib;
 
 
-code YSLib::Adapter {
+$code YSLib::Adapter {
 
-header YAdapter "yadapter.h"
+$header YAdapter "yadapter.h"
 {
 	//编译配置。
 	//#define NDEBUG //非调试模式。
@@ -778,11 +842,12 @@ header YAdapter "yadapter.h"
 
 	//包含 CHRLib 。
 
-	import Lib CHRLib;
+	$import Lib CHRLib;
 
 	namespace stdex
 	{
 		using CHRLib::uchar_t;
+		using CHRLib::uint_t;
 	} //namespace stdex;
 
 	namespace YSLib
@@ -791,13 +856,15 @@ header YAdapter "yadapter.h"
 		{
 			using namespace CHRLib;
 		} //namespace Text
+		using Text::fchar_t;
 		using Text::uchar_t;
+		using Text::uint_t;
 	} //namespace YSLib;
 
 
 	//包含 YCLib 。
 
-	import Lib YCLib;
+	$import Lib YCLib;
 
 	namespace YSLib
 	{
@@ -824,11 +891,11 @@ header YAdapter "yadapter.h"
 
 	//包含 FreeType2 。
 
-	import Lib FreeType2;
+	$import Lib FreeType2;
 
 
 	//包含 Anti-Grain Geometry 。
-	//import Lib AGG;
+	//$import Lib AGG;
 
 
 	//包含 Loki 。
@@ -888,12 +955,12 @@ header YAdapter "yadapter.h"
 	//多播事件。
 	#define YSL_EVENT_MULTICAST
 
-} //header YAdapter;
+} //$header YAdapter;
 
 
-header YRefrence "yref.hpp"
+$header YRefrence "yref.hpp"
 {
-	import header YAdapter;
+	$import $header YAdapter;
 
 
 	namespace YSLib
@@ -1058,18 +1125,18 @@ header YRefrence "yref.hpp"
 
 	} //namespace YSLib;
 
-} //unit YRefrence;
+} //$unit YRefrence;
 
 
-unit YFont "yfont"
+$unit YFont "yfont"
 {
-	import header Core::YFunc, unit YCoreUtilities, header <set>, <map>, unit Core::YFileSystem/*, Helper::YGlobal*/;
+	$import $header Core::YFunc, $unit YCoreUtilities, $header <set>, <map>, $unit Core::YFileSystem/*, Helper::YGlobal*/;
 
 
 	YSL_BEGIN_NAMESPACE(Drawing)
 
 	//默认字体大小（pt）。
-	export const u8 DEFAULT_FONT_SIZE;
+	$export const u8 DEFAULT_FONT_SIZE;
 
 	//前向声明。
 	class Font;
@@ -1109,7 +1176,7 @@ unit YFont "yfont"
 
 
 	//字型家族 (Typeface Family) 标识。
-	class FontFamily// : implements GIEquatable<FontFamily>, implements GILess<FontFamily>, implements GIContainer<Typeface>
+	$export class FontFamily// : implements GIEquatable<FontFamily>, implements GILess<FontFamily>, implements GIContainer<Typeface>
 	{
 		friend class Typeface;
 		friend class YFontCache;
@@ -1149,7 +1216,7 @@ unit YFont "yfont"
 
 
 	//字型标识。
-	class Typeface// : implements GIEquatable<Typeface>, implements GILess<Typeface>
+	$export class Typeface// : implements GIEquatable<Typeface>, implements GILess<Typeface>
 	{
 		friend class YFontCache;
 		friend FT_Error simpleFaceRequester(FTC_FaceID, FT_Library, FT_Pointer, FT_Face*);
@@ -1190,7 +1257,7 @@ unit YFont "yfont"
 
 
 	//字体文件。
-	class FontFile// : implements GIEquatable<FontFile>, implements GILess<FontFile>
+	$export class FontFile// : implements GIEquatable<FontFile>, implements GILess<FontFile>
 	{
 	public:
 		static const u8 MaxFontPathLength = YC_MAX_PATH; //最大字体文件路径长度。
@@ -1223,7 +1290,7 @@ unit YFont "yfont"
 	GetDefaultFontFamily()
 
 	//字体：字模，包含字型和大小。
-	class Font
+	$export class Font
 	{
 	public:
 		typedef u8 SizeType;
@@ -1280,8 +1347,36 @@ unit YFont "yfont"
 	}; //class Font;
 
 
+	//字符位图。
+	$export class CharBitmap
+	{
+	public:
+		typedef FTC_SBit NativeType;
+		typedef FT_Byte* BufferType;
+		typedef FT_Byte ScaleType;
+		typedef FT_Char SignedScaleType;
+
+	private:
+		FTC_SBit bitmap;
+
+	public:
+		inline
+		CharBitmap(const NativeType&);
+
+		DefConverter(NativeType, bitmap)
+
+		DefGetter(BufferType, Buffer, bitmap->buffer)
+		DefGetter(ScaleType, Width, bitmap->width)
+		DefGetter(ScaleType, Height, bitmap->height)
+		DefGetter(SignedScaleType, Left, bitmap->left)
+		DefGetter(SignedScaleType, Top, bitmap->top)
+		DefGetter(SignedScaleType, XAdvance, bitmap->xadvance)
+		DefGetter(SignedScaleType, YAdvance, bitmap->yadvance)
+	}; //class CharBitmap;
+
+
 	//字体缓存。
-	class YFontCache : public YObject,
+	$export class YFontCache : public YObject,
 		implements GIContainer<const FontFile>, implements GIContainer<const Typeface>, implements GIContainer<FontFamily>
 	{
 		friend class Typeface;
@@ -1340,10 +1435,10 @@ unit YFont "yfont"
 		Typeface*
 		GetTypefacePtr(const FT_String*, const FT_String*); //取指定名称字型指针。
 		DefGetter(u8, FontSize, curSize) //取当前处理的字体大小。
-		FTC_SBit
-		GetGlyph(u32); //取当前字型和大小渲染的指定字符的字形。
+		CharBitmap
+		GetGlyph(fchar_t); //取当前字型和大小渲染的指定字符的字形。
 		s8
-		GetAdvance(u32, FTC_SBit sbit = NULL); //取跨距。
+		GetAdvance(fchar_t, FTC_SBit sbit = NULL); //取跨距。
 		u8
 		GetHeight() const; //取行高。
 		s8
@@ -1412,17 +1507,17 @@ unit YFont "yfont"
 
 	YSL_END_NAMESPACE(Drawing)
 
-} //unit YFont;
+} //$unit YFont;
 
 
-}; //code YSLib::Adapter;
+}; //$code YSLib::Adapter;
 
 
-code YSLib::Core {
+$code YSLib::Core {
 
-header YShellDefinition "ysdef.h"
+$header YShellDefinition "ysdef.h"
 {
-	import header <platform.h>;
+	$import $header <platform.h>;
 
 
 	/*
@@ -1433,7 +1528,7 @@ header YShellDefinition "ysdef.h"
 	#define _yJOIN(x, y) x ## y
 
 
-	import unit YAdapter::YAdapter;
+	$import $unit YAdapter::YAdapter;
 
 
 	//异常规范宏。
@@ -1592,7 +1687,7 @@ header YShellDefinition "ysdef.h"
 	*/
 	#define YSLIB_DEBUG_MSG 0
 
-	import unit YAdapter::YAdapter, YAdapter::YRefrence;
+	$import $unit YAdapter::YAdapter, YAdapter::YRefrence;
 
 	YSL_BEGIN
 
@@ -1720,27 +1815,26 @@ header YShellDefinition "ysdef.h"
 	extern const SDST SCRW, SCRH;
 
 	//全局变量。
-	extern YFontCache*& pDefaultFontCache;
+	extern YLog DefaultLog; //全局日志。
 
 	//访问全局程序实例对象。
+	extern YScreen*& pDefaultScreen;
+	extern YDesktop*& pDefaultDesktop;
 	extern YApplication& theApp;
 	extern YMessageQueue& DefaultMQ; //全局消息队列。
 	extern YMessageQueue& DefaultMQ_Backup; //全局备份消息队列。
 	extern YFontCache*& pDefaultFontCache;
 	extern YApplication* const pApp;
-	extern YLog DefaultLog; //全局日志。
-	extern YScreen*& pDefaultScreen;
-	extern YDesktop*& pDefaultDesktop;
 	extern const HSHL hShellMain;
 	
 	YSL_END
 
-}; //header YShellDefinition;
+}; //$header YShellDefinition;
 
 
-header YCounter "ycounter.hpp"
+$header YCounter "ycounter.hpp"
 {
-	import header YShellDefinition;
+	$import $header YShellDefinition;
 
 
 	//模板类实例计数器。
@@ -1773,12 +1867,12 @@ header YCounter "ycounter.hpp"
 		inline void ResetID();
 	}; //class GMCounter;
 
-} //header GMCounter;
+} //$header GMCounter;
 
 
-header YFunc "yfunc.hpp"
+$header YFunc "yfunc.hpp"
 {
-	import header YShellDefinition;
+	$import $header YShellDefinition;
 
 
 	//函数对象基类。
@@ -1807,12 +1901,12 @@ header YFunc "yfunc.hpp"
 
 	}; //class GHBase;
 
-} //header YFunc;
+} //$header YFunc;
 
 
-unit YCoreUtilities "ycutil"
+$unit YCoreUtilities "ycutil"
 {
-	import header YShellDefinition, <cstring>, <functional>;
+	$import $header YShellDefinition, <cstring>, <functional>;
 
 
 	YSL_BEGIN_NAMESPACE(Design)
@@ -1991,12 +2085,12 @@ unit YCoreUtilities "ycutil"
 	typename _containerType::size_type
 	erase_all_if(_containerType& _container, const typename _containerType::value_type& _pred);
 
-} //unit YCoreUtilities;
+} //$unit YCoreUtilities;
 
 
-header YEvent "yevt.hpp"
+$header YEvent "yevt.hpp"
 {
-	import unit YObject, header YFunc, <list>, <set>, <map>;
+	$import $unit YObject, $header YFunc, <list>, <set>, <map>;
 
 
 	YSL_BEGIN_NAMESPACE(Runtime)
@@ -2293,12 +2387,12 @@ header YEvent "yevt.hpp"
 	//标准事件处理器委托。
 	DefDelegate(YEventHandler, YObject, MEventArgs)
 
-} //unit YEvent;
+} //$unit YEvent;
 
 
-unit YModule "ymodule"
+$unit YModule "ymodule"
 {
-	import header YEvent, unit YEventArgs;
+	$import $header YEvent, $unit YEventArgs;
 
 
 	YSL_BEGIN_NAMESPACE(Components)
@@ -2442,53 +2536,54 @@ unit YModule "ymodule"
 
 	//序列视图类模板。
 	template<class _containerType>
-	class GMSequenceViewer
+	class GSequenceViewer
 	{
 	public:
-		typedef typename _containerType::size_type size_type; //项目下标类型。
+		typedef typename _containerType::size_type SizeType; //项目下标类型。
+		typedef std::ptrdiff_t IndexType; //项目索引类型。
 
 	private:
 		_containerType& c; //序列容器引用。
-		size_type nIndex, //视图中首个项目下标。
-			nLength, //视图长度。
+		IndexType nIndex, //项目索引：视图中首个项目下标，若不存在则为 -1 。
 			nSelected; //选中项目下标，大于等于 GetTotal() 时无效。
+		SizeType nLength; //视图长度。
 		bool bSelected; //选中状态。
 
 	public:
 		explicit
-		GMSequenceViewer(_containerType& c_);
+		GSequenceViewer(_containerType& c_);
 
-		inline GMSequenceViewer&
+		inline GSequenceViewer&
 		operator++(); //选中项目下标自增。
-		inline GMSequenceViewer&
+		inline GSequenceViewer&
 		operator--(); //选中项目下标自减。
-		inline GMSequenceViewer&
+		inline GSequenceViewer&
 		operator++(int); //视图中首个项目下标自增。
-		inline GMSequenceViewer&
+		inline GSequenceViewer&
 		operator--(int); //视图中首个项目下标自减。
-		inline GMSequenceViewer&
-		operator>>(size_type d); //视图中首个项目下标增加 d 。
-		inline GMSequenceViewer&
-		operator<<(size_type d); //视图中首个项目下标减少 d 。
-		inline GMSequenceViewer&
-		operator+=(size_type d); //选中项目下标增加 d 。
-		inline GMSequenceViewer&
-		operator-=(size_type d); //选中项目下标减少 d 。
+		inline GSequenceViewer&
+		operator>>(IndexType d); //视图中首个项目下标增加 d 。
+		inline GSequenceViewer&
+		operator<<(IndexType d); //视图中首个项目下标减少 d 。
+		inline GSequenceViewer&
+		operator+=(IndexType d); //选中项目下标增加 d 。
+		inline GSequenceViewer&
+		operator-=(IndexType d); //选中项目下标减少 d 。
 
 		DefBoolGetter(Selected, bSelected) //判断是否为选中状态。
 
-		DefGetter(size_type, Total, c.size()) //取容器中元素个数。
-		DefGetter(size_type, Index, nIndex)
-		DefGetter(size_type, Length, nLength)
-		DefGetter(size_type, Selected, nSelected)
-		DefGetter(size_type, Valid, vmin(GetTotal() - GetIndex(), GetLength())) //取当前视图有效元素个数。
+		DefGetter(SizeType, Total, c.size()) //取容器中元素个数。
+		DefGetter(SizeType, Length, nLength)
+		DefGetter(IndexType, Index, nIndex)
+		DefGetter(IndexType, Selected, nSelected)
+		DefGetter(SizeType, Valid, vmin(GetTotal() - GetIndex(), GetLength())) //取当前视图有效元素个数。
 
 		bool
-		SetIndex(size_type);
+		SetIndex(IndexType);
 		bool
-		SetLength(size_type);
+		SetLength(SizeType);
 		bool
-		SetSelected(size_type);
+		SetSelected(IndexType);
 
 		bool
 		ClearSelected(); //取消选中状态。
@@ -2502,16 +2597,16 @@ unit YModule "ymodule"
 		MoveViewerToBegin(); //移动视图至序列起始。
 		bool
 		MoveViewerToEnd(); //移动视图至序列结尾。
-	}; //template<class _containerType> class GMSequenceViewer;
+	}; //template<class _containerType> class GSequenceViewer;
 
 	YSL_END_NAMESPACE(Components)
 
-} //unit YModule;
+} //$unit YModule;
 
 
-unit YObject "yobject"
+$unit YObject "yobject"
 {
-	import header GMCounter;
+	$import $header GMCounter;
 
 
 	//全局静态单例存储器。
@@ -2742,12 +2837,12 @@ unit YObject "yobject"
 		YCountableObject();
 	}; //class YCountableObject;
 
-} //unit YObject;
+} //$unit YObject;
 
 
-unit YException "yexcept"
+$unit YException "yexcept"
 {
-	import unit YObject, header <new>, <typeinfo>, <string>;
+	$import $unit YObject, $header <new>, <typeinfo>, <string>;
 
 
 	YSL_BEGIN_NAMESPACE(Exceptions)
@@ -2792,16 +2887,16 @@ unit YException "yexcept"
 
 	YSL_END_NAMESPACE(Exceptions)
 
-} //unit YException;
+} //$unit YException;
 
 
-unit YString "ystring"
+$unit YString "ystring"
 {
 	#ifndef UNICODE
 	#define UNICODE
 	#endif
 
-	import unit YObject, header <string>;
+	$import $unit YObject, $header <string>;
 
 	namespace ..::stdex
 	{
@@ -2837,12 +2932,12 @@ unit YString "ystring"
 
 	YSL_END_NAMESPACE(Text)
 
-} //unit YString;
+} //$unit YString;
 
 
-unit YResource "yres"
+$unit YResource "yres"
 {
-	import unit YObject, Shell::YGDI;
+	$import $unit YObject, Shell::YGDI;
 
 
 	//全局默认共享资源生成函数（线程空间内共享；全局资源初始化之后可调用）。
@@ -2871,12 +2966,12 @@ unit YResource "yres"
 
 	YSL_END_NAMESPACE(Drawing)
 
-} //unit YResource;
+} //$unit YResource;
 
 
-unit YEventArgs "yevtarg"
+$unit YEventArgs "yevtarg"
 {
-	import unit YObject;
+	$import $unit YObject;
 
 	YSL_BEGIN_NAMESPACE(Runtime)
 
@@ -2932,12 +3027,12 @@ unit YEventArgs "yevtarg"
 
 	YSL_END_NAMESPACE(Runtime)
 
-} //unit YEeventArgs;
+} //$unit YEeventArgs;
 
 
-unit YDevice "ydevice"
+$unit YDevice "ydevice"
 {
-	import unit Helper::YGlobal, unit Core::YShell, Shell::YGDI;
+	$import $unit Helper::YGlobal, $unit Core::YShell, Shell::YGDI;
 
 
 	YSL_BEGIN_NAMESPACE(Device)
@@ -3000,22 +3095,22 @@ unit YDevice "ydevice"
 
 	YSL_END_NAMESPACE(Device)
 
-} //unit YDevice;
+} //$unit YDevice;
 
 
-header YShellMessageDefinition "ysmsgdef.h"
+$header YShellMessageDefinition "ysmsgdef.h"
 {
-	!import;
+	!$import;
 
 
-	export list "Message.txt";
-} //header YShellMessageDefinition;
+	$export list "Message.txt";
+} //$header YShellMessageDefinition;
 
-unit YShellMessage "ysmsg"
+$unit YShellMessage "ysmsg"
 {
-	import header Core::YShellDefinition, YShellMessageDefinition, unit YObject, header <queue>, <ctime>, unit YWindow/* for HWND delete procedure; */;
+	$import $header Core::YShellDefinition, YShellMessageDefinition, $unit YObject, $header <queue>, <ctime>, $unit YWindow/* for HWND delete procedure; */;
 
-	import typedef unsigned char u8;
+	$import typedef unsigned char u8;
 	using Drawing::SPoint;
 
 	YSL_BEGIN_NAMESPACE(Shells)
@@ -3023,7 +3118,7 @@ unit YShellMessage "ysmsg"
 	typedef u32 MSGID;
 	typedef u8 MSGPRIORITY;
 
-	export const time_t DEF_TIMEOUT;
+	$export const time_t DEF_TIMEOUT;
 
 	class Message //消息类定义。
 	{
@@ -3152,13 +3247,13 @@ unit YShellMessage "ysmsg"
 	using Shells::Message;
 	using Shells::InsertMessage;
 
-} //unit YShellMessage;
+} //$unit YShellMessage;
 
 
 /* -deprecated -*
-unit YShellProcessing "ysproc"
+$unit YShellProcessing "ysproc"
 {
-	import header YFunc, unit YShell, YGUI;
+	$import $header YFunc, $unit YShell, YGUI;
 
 
 	YSL_BEGIN_NAMESPACE(Shells)
@@ -3225,13 +3320,13 @@ unit YShellProcessing "ysproc"
 
 	#endif
 
-} //unit YShellProcessing;
+} //$unit YShellProcessing;
 
 
-unit YShell "yshell"
+$unit YShell "yshell"
 {
-	import header Helper::YGlobal, header <set>, <list>, unit YApplication,
-		unit Shell::YWindow, Shell::YControl, Shell::YGUI;
+	$import $header Helper::YGlobal, $header <set>, <list>, $unit YApplication,
+		$unit Shell::YWindow, Shell::YControl, Shell::YGUI;
 
 
 	YSL_BEGIN_NAMESPACE(Shells)
@@ -3304,12 +3399,12 @@ unit YShell "yshell"
 
 	YSL_END_NAMESPACE(Shells)
 
-} //unit YShell;
+} //$unit YShell;
 
 
-unit YApplication "yapp"
+$unit YApplication "yapp"
 {
-	import unit YDevice, YShell, YFileSystem, header YEvent;
+	$import $unit YDevice, YShell, YFileSystem, $header YEvent;
 
 
 	//程序日志。
@@ -3399,21 +3494,21 @@ unit YApplication "yapp"
 
 	YSL_END_NAMESPACE(Shells)
 
-} //unit YApplication;
+} //$unit YApplication;
 
 
-unit YFileSystem "yfilesys"
+$unit YFileSystem "yfilesys"
 {
-	import unit Core::YString, Core::YFunc, Helper::YGlobal, Core::YShell/* for HSHL delete procedure; */, header <vector>, <list>, unit Shell::YWindow;
+	$import $unit Core::YString, Core::YFunc, Helper::YGlobal, Core::YShell/* for HSHL delete procedure; */, $header <vector>, <list>, $unit Shell::YWindow;
 
 
 	YSL_BEGIN_NAMESPACE(IO)
 
 	//文件系统常量：前缀 FS 表示文件系统 (File System) 。
-	export const CPATH FS_Root;
-	export const CPATH FS_Seperator;
-	export const CPATH FS_Now;
-	export const CPATH FS_Parent;
+	$export const CPATH FS_Root;
+	$export const CPATH FS_Seperator;
+	$export const CPATH FS_Now;
+	$export const CPATH FS_Parent;
 
 
 	typedef char NativePathCharType; //本地路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
@@ -3653,16 +3748,16 @@ unit YFileSystem "yfilesys"
 
 	YSL_END_NAMESPACE(IO)
 
-} //unit YFileSystem;
+} //$unit YFileSystem;
 
 
-unit YFile "yfile"
+$unit YFile "yfile"
 {
-	import unit YString;
+	$import $unit YString;
 
 
 	//文件基类。
-	export class YFile : public YObject
+	$export class YFile : public YObject
 	{
 	public:
 		typedef YObject ParentType;
@@ -3696,16 +3791,16 @@ unit YFile "yfile"
 		feof() const; //检测文件结束符。
 	}; //class YFile;
 
-} //unit YFile;
+} //$unit YFile;
 
 
-unit YFile_(Text) "yftext"
+$unit YFile_(Text) "yftext"
 {
-	import unit YFile;
+	$import $unit YFile;
 
 
 	//文本文件类。
-	export class YTextFile : public YFile
+	$export class YTextFile : public YFile
 	{
 	public:
 		typedef YFile ParentType;
@@ -3739,17 +3834,17 @@ unit YFile_(Text) "yftext"
 		ReadS(uchar_t* s, SizeType n) const; //从文件读 n 字节（按默认编码转化为 UTF-16LE）到 s 中。
 	} //class YTextFile;
 
-} //unit YFile_(Text);
+} //$unit YFile_(Text);
 
 
-} //code YSLib::Core;
+} //$code YSLib::Core;
 
 
-code YSLib::Shell {
+$code YSLib::Shell {
 
-unit YGDI "ygdi"
+$unit YGDI "ygdi"
 {
-	import unit Core::YObject, Adapter::Font;
+	$import $unit Core::YObject, Adapter::Font;
 
 
 	// GDI 基本数据类型和宏定义。
@@ -4103,12 +4198,12 @@ unit YGDI "ygdi"
 
 	YSL_END_NAMESPACE(Drawing)
 
-} //unit YGDI;
+} //$unit YGDI;
 
 
-unit YGUI "ygui"
+$unit YGUI "ygui"
 {
-	import unit Core::YShellProcessing, Shell::YDesktop, Shell::YForm;
+	$import $unit Core::YShellProcessing, Shell::YDesktop, Shell::YForm;
 
 	YSL_BEGIN_NAMESPACE(Runtime)
 
@@ -4214,12 +4309,12 @@ unit YGUI "ygui"
 
 	YSL_END_NAMESPACE(Drawing)
 
-} //unit YGUI;
+} //$unit YGUI;
 
 
-unit YComponent "ycomp"
+$unit YComponent "ycomp"
 {
-	import unit Core::YApplication;
+	$import $unit Core::YApplication;
 
 
 	YSL_BEGIN_NAMESPACE(Components)
@@ -4237,12 +4332,12 @@ unit YComponent "ycomp"
 
 	YSL_END_NAMESPACE(Components)
 
-} //unit YComponent;
+} //$unit YComponent;
 
 
-unit YDesktop "ydesktop"
+$unit YDesktop "ydesktop"
 {
-	import unit YWindow, header <list>;
+	$import $unit YWindow, $header <list>;
 
 
 	YSL_BEGIN_NAMESPACE(Device)
@@ -4307,12 +4402,12 @@ unit YDesktop "ydesktop"
 
 	YSL_END_NAMESPACE(Device)
 
-} //unit YDesktop;
+} //$unit YDesktop;
 
 
-unit YWidget "ywidget"
+$unit YWidget "ywidget"
 {
-	import unit YComponent, Core::YModule, Core::YResource, header <set>, unit YWindow, unit YControl;
+	$import $unit YComponent, Core::YModule, Core::YResource, $header <set>, $unit YWindow, $unit YControl;
 
 
 	YSL_BEGIN_NAMESPACE(Components)
@@ -4614,13 +4709,13 @@ unit YWidget "ywidget"
 
 	YSL_END_NAMESPACE(Components)
 
-} //unit YWidget;
+} //$unit YWidget;
 
 
-unit YControl "ycontrol"
+$unit YControl "ycontrol"
 {
-	import unit YWidget, YText,
-		unit YWindow, YGUI, Core::YException;
+	$import $unit YWidget, YText,
+		$unit YWindow, YGUI, Core::YException;
 
 
 	YSL_BEGIN_NAMESPACE(Components)
@@ -4630,11 +4725,13 @@ unit YControl "ycontrol"
 	//控件事件参数类型。
 	struct MIndexEventArgs : public MEventArgs
 	{
+		typedef std::ptrdiff_t IndexType;
+
 		IVisualControl& con;
-		int index;
+		IndexType index;
 
 		inline
-		MIndexEventArgs(IVisualControl& c, const int& i)'
+		MIndexEventArgs(IVisualControl& c, IndexType i)'
 	}; //struct MIndexEventArgs;
 
 
@@ -4861,13 +4958,13 @@ unit YControl "ycontrol"
 
 	YSL_END_NAMESPACE(Components)
 
-} //unit YVisualControl;
+} //$unit YVisualControl;
 
 
-unit YWindow "ywindow"
+$unit YWindow "ywindow"
 {
-	import unit YWidget, unit YControl,
-		unit YDesktop;
+	$import $unit YWidget, $unit YControl,
+		$unit YDesktop;
 
 
 	YSL_BEGIN_NAMESPACE(Components)
@@ -5102,12 +5199,12 @@ unit YWindow "ywindow"
 
 	YSL_END_NAMESPACE(Components)
 
-} //unit YWindow;
+} //$unit YWindow;
 
 
-unit YForm "yform"
+$unit YForm "yform"
 {
-	import unit YWindow, YControl;
+	$import $unit YWindow, YControl;
 
 
 	YSL_BEGIN_NAMESPACE(Components)
@@ -5148,17 +5245,17 @@ unit YForm "yform"
 
 	YSL_END_NAMESPACE(Components)
 
-} //unit YForm;
+} //$unit YForm;
 
 
-unit YText "ytext"
+$unit YText "ytext"
 {
-	import unit Core::YString, YFile_(Text), YGDI, header <cwctype>;
+	$import $unit Core::YString, YFile_(Text), YGDI, $header <cwctype>;
 
 
 	YSL_BEGIN_NAMESPACE(Drawing)
 
-	export const u8 Alpha_Threshold;
+	$export const u8 Alpha_Threshold;
 
 	class TextState : public PenStyle //文本状态：笔样式、边框样式、字体缓存和行距。
 	{
@@ -5218,7 +5315,7 @@ unit YText "ytext"
 		typedef TextState ParentType;
 
 	private:
-		void PrintChar(u32); //打印单个字符。
+		void PrintChar(fchar_t); //打印单个字符。
 
 	public:
 		TextRegion();
@@ -5262,7 +5359,7 @@ unit YText "ytext"
 		void
 		PutNewline(); //输出换行。
 		u8
-		PutChar(u32); //输出单个字符。
+		PutChar(fchar_t); //输出单个字符。
 
 		template<typename _outIt>
 		_outIt
@@ -5308,25 +5405,25 @@ unit YText "ytext"
 
 	YSL_END_NAMESPACE(Text)
 
-} //unit YText;
+} //$unit YText;
 
 } //Code YSLib::Shell;
 
 
-code YSLib::Service {
+$code YSLib::Service {
 
-unit YSystemUtilities "ysutil"
+$unit YSystemUtilities "ysutil"
 {
-	import unit Core::YShellDefinition;
+	$import $unit Core::YShellDefinition;
 
 
-} //unit YSystemUtilities;
+} //$unit YSystemUtilities;
 
 
-unit YShellInitialization "ysinit"
+$unit YShellInitialization "ysinit"
 {
-	import unit Core::YShellDefinition, Adapter::Font;
-	import extern CPATH DEF_FONT_PATH, DEF_FONT_DIRECTORY;
+	$import $unit Core::YShellDefinition, Adapter::Font;
+	$import extern CPATH DEF_FONT_PATH, DEF_FONT_DIRECTORY;
 
 
 	//初始化主控制台。
@@ -5358,12 +5455,12 @@ unit YShellInitialization "ysinit"
 	void
 	CheckSystemFontCache();
 
-} //unit YShellInitialization;
+} //$unit YShellInitialization;
 
 
-unit YTextManager "ytmgr"
+$unit YTextManager "ytmgr"
 {
-	import unit Core::YString, YFile_(Text), header <map>
+	$import $unit Core::YString, YFile_(Text), $header <map>
 		Core::YApplication;
 
 
@@ -5567,12 +5664,12 @@ unit YTextManager "ytmgr"
 
 	YSL_END_NAMESPACE(Text)
 
-} //unit YTextManager;
+} //$unit YTextManager;
 
 
-unit YTimer "ytimer"
+$unit YTimer "ytimer"
 {
-	import unit Core::YObject, header <map>;
+	$import $unit Core::YObject, $header <map>;
 
 
 	YSL_BEGIN_NAMESPACE(Timers)
@@ -5632,35 +5729,35 @@ unit YTimer "ytimer"
 
 	YSL_END_NAMESPACE(Timers)
 
-} //unit YTimer;
+} //$unit YTimer;
 
-} //code YSLib::Service;
+} //$code YSLib::Service;
 
 
-code Helper {
+$code Helper {
 
-unit YGlobal "yglobal"
+$export $unit YGlobal "yglobal"
 {
-	import header YSBuild, unit Core::YShellMessage, YException;
+	$import $header YSBuild, $unit Core::YShellMessage, YException;
 
 
 	//全局常量。
-	export #define MAX_FILENAME_LENGTH
-	export #define MAX_PATH_LENGTH
-	export #define DEF_SHELL_FONTSIZE;
-	export #define DEF_SHELL_FONTSIZE_MIN;
-	export #define DEF_SHELL_FONTSIZE_MAX;
+	$export #define MAX_FILENAME_LENGTH
+	$export #define MAX_PATH_LENGTH
+	$export #define DEF_SHELL_FONTSIZE;
+	$export #define DEF_SHELL_FONTSIZE_MIN;
+	$export #define DEF_SHELL_FONTSIZE_MAX;
 	const SDST SCRW(SCREEN_WIDTH), SCRH(SCREEN_HEIGHT);
 
-	export const char DEF_PATH_DELIMITER; //文件路径分隔符。
-	export const char* const DEF_PATH_SEPERATOR; //文件路径分隔字符串。
-	export #define DEF_PATH_ROOT DEF_PATH_SEPERATOR
+	$export const char DEF_PATH_DELIMITER; //文件路径分隔符。
+	$export const char* const DEF_PATH_SEPERATOR; //文件路径分隔字符串。
+	$export #define DEF_PATH_ROOT DEF_PATH_SEPERATOR
 
 	//全局变量。
-	export YScreen *pScreenUp, *pScreenDown;
-	export YDesktop *pDesktopUp, *pDesktopDown;
-	export YLog DefaultLog;
-	export YMessageQueue DefaultMQ, DefaultMQ_Backup;
+	$export YScreen *pScreenUp, *pScreenDown;
+	$export YDesktop *pDesktopUp, *pDesktopDown;
+	$export YLog DefaultLog;
+	$export YMessageQueue DefaultMQ, DefaultMQ_Backup;
 
 	//类型定义。
 	typedef char PATHSTR[MAX_PATH_LENGTH];
@@ -5714,110 +5811,119 @@ unit YGlobal "yglobal"
 	void
 	Terminate(int);
 
-} //unit YGlobal;
+} //$unit YGlobal;
 
-} //code YSLib::Helper;
+} //$code YSLib::Helper;
 
 
 // std 命名空间扩展。
 namespace std
 {
-	unit YString;
+	$unit YString;
 } //namespace std;
 
 //命名空间单元分布。
 
 namespace Components
 {
-	unit Shell::YComponents;
-	unit Shell::YDesktop;
+	$unit Shell::YComponents;
+	$unit Shell::YDesktop;
 	namespace Controls
 	{
-		unit Shell::Controls;
+		$unit Shell::Controls;
 	} //namespace Controls;
 	namespace Forms
 	{
-		unit Shell::YWindow;
-		unit Shell::YForm;
+		$unit Shell::YWindow;
+		$unit Shell::YForm;
 	} //namespace Forms;
 	namespace Widgets
 	{
-		unit Shell::YWidgets;
+		$unit Shell::YWidgets;
 	} //namespace Widgets;
 }
 
 namespace Design
 {
-	unit Core::YCoreUtilities;
+	$unit Core::YCoreUtilities;
 } //namespace Design;
 
 namespace Device
 {
-	unit Core::YGraphicDevice;
+	$unit Core::YGraphicDevice;
 } //namespace Device;
 
 namespace Drawing
 {
-	unit Adapter::Font;
-	unit Core::YObject;
-	unit Core::YResourse;
+	$unit Adapter::Font;
+	$unit Core::YObject;
+	$unit Core::YResourse;
 } //namespace Drawing;
 
 namespace IO
 {
-	unit Core::YFile;
+	$unit Core::YFile;
 } //namespace IO;
 
 namespace Runtime
 {
-	header Core::YEvent;
-	unit Core::YModule;
-	unit Shell::YGUI;
+	$header Core::YEvent;
+	$unit Core::YModule;
+	$unit Shell::YGUI;
 } //namespace Runtime;
 
 namespace Shells
 {
-	unit Core::YShell;
-	unit Core::YShellMessage;
-	unit Core::YShellMessageMapping;
-	unit Core::YShellProcessing;
+	$unit Core::YShell;
+	$unit Core::YShellMessage;
+	$unit Core::YShellMessageMapping;
+	$unit Core::YShellProcessing;
 } //namespace Shells;
 
 namespace Timers
 {
-	unit Service::YTimer;
+	$unit Service::YTimer;
 } //namespace Timers;
 
 namespace Text
 {
-	unit Core::YString;
-	unit Service::YTextManager;
+	$unit Core::YString;
+	$unit Service::YTextManager;
 } //namespace Text;
+
+//$ std 命名空间兼容性污染列表。
+
+$header <platform.h>
+{
+	typedef ::uint16_t char16_t;
+	typedef ::uint32_t char32_t;
+} //$header <platfrom.h>
 
 //既定 stdex 命名空间污染列表。
 
-header YAdapter
+$header YAdapter
 {
 	using CHRLib::uchar_t;
-} //header YAdapter;
+	using CHRLib::uint_t;
+} //$header YAdapter;
 
-unit Core::YString
+$unit Core::YString
 {
 	typedef basic_string<uchar_t> ustring;
-}
+} //$unit Core::YString;
 
 //既定内部命名空间污染列表。
 
-header Adapter
+$header Adapter
 {
-	using namespace CHRLib;
 	namespace Text
 	{
-		using CHRLib::uchar_t;
+		using namespace CHRLib;
 	} //namespace Text;
-} //header Adapter;
+	using Text::fchar_t, Text::uchar_t, Text::uint_t;	
+} //$header Adapter;
 
-header Core::YShellDefinition : Adapter
+$header Core::YShellDefinition : Adapter
 {
 	using Components::Controls::IControl, Components::Controls::IVisualControl;
 	using Components::Forms::YForm, Components::Forms::YFrameWindow;
@@ -5831,38 +5937,38 @@ header Core::YShellDefinition : Adapter
 	using Shells::YShell, Shells::YShellMain;
 	
 	using Text::String;
-} //header Core::YShellDefinition;
+} //$header Core::YShellDefinition;
 
-header Core::YCoreUtilities : Core::YShellDefinition
+$header Core::YCoreUtilities : Core::YShellDefinition
 {
 	using Design::NonCopyable;
 }
 
-header Core::YShellMessage : Core::YShellDefinition
+$header Core::YShellMessage : Core::YShellDefinition
 {
 	using Drawing::SPoint;
 
 	using Shells::Message, Shells::InsertMessage;
-} //header Core::YCoreUtilities;
+} //$header Core::YCoreUtilities;
 
-//header Core::YResource : Shell::YGDI;
+//$header Core::YResource : Shell::YGDI;
 
-header Shell::YGDI
+$header Shell::YGDI
 {
-} //header Shell::YGDI;
+} //$header Shell::YGDI;
 
-header Shell::YComponent : YShellMessage;
+$header Shell::YComponent : YShellMessage;
 
-header Shell::YWidget : Shell::YComponent, Core::YResource
+$header Shell::YWidget : Shell::YComponent, Core::YResource
 {
 	namespace Components
 	{
 		using Drawing::SPoint, SVec, Drawing::SSize, Drawing::SRect;
 		using Drawing::YImage;
 	} //namespace Components;
-} //header Shell::YWidget;
+} //$header Shell::YWidget;
 
-} //code YSLib;
+} //$code YSLib;
 
 ///
 

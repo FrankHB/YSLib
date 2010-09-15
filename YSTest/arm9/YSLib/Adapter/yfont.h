@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:02:40;
-// UTime = 2010-9-2 10:36;
-// Version = 0.6811;
+// UTime = 2010-9-11 0:03;
+// Version = 0.6844;
 
 
 #ifndef INCLUDED_YFONT_H_
@@ -268,6 +268,38 @@ Font::SetFont(const Font& f)
 }
 
 
+//字符位图。
+class CharBitmap
+{
+public:
+	typedef FTC_SBit NativeType;
+	typedef FT_Byte* BufferType;
+	typedef FT_Byte ScaleType;
+	typedef FT_Char SignedScaleType;
+
+private:
+	FTC_SBit bitmap;
+
+public:
+	CharBitmap(const NativeType&);
+
+	DefConverter(NativeType, bitmap)
+
+	DefGetter(BufferType, Buffer, bitmap->buffer)
+	DefGetter(ScaleType, Width, bitmap->width)
+	DefGetter(ScaleType, Height, bitmap->height)
+	DefGetter(SignedScaleType, Left, bitmap->left)
+	DefGetter(SignedScaleType, Top, bitmap->top)
+	DefGetter(SignedScaleType, XAdvance, bitmap->xadvance)
+	DefGetter(SignedScaleType, YAdvance, bitmap->yadvance)
+};
+
+inline
+CharBitmap::CharBitmap(const CharBitmap::NativeType& b)
+: bitmap(b)
+{}
+
+
 //字体缓存。
 class YFontCache : public YObject,
 	implements GIContainer<const FontFile>, implements GIContainer<const Typeface>, implements GIContainer<FontFamily>
@@ -328,10 +360,10 @@ public:
 	const Typeface*
 	GetTypefacePtr(const FT_String*, const FT_String*) const; //取指定名称字型指针。
 	DefGetter(u8, FontSize, curSize) //取当前处理的字体大小。
-	FTC_SBit
-	GetGlyph(u32); //取当前字型和大小渲染的指定字符的字形。
+	CharBitmap
+	GetGlyph(fchar_t); //取当前字型和大小渲染的指定字符的字形。
 	s8
-	GetAdvance(u32, FTC_SBit sbit = NULL); //取跨距。
+	GetAdvance(fchar_t, FTC_SBit sbit = NULL); //取跨距。
 	u8
 	GetHeight() const; //取行高。
 	s8

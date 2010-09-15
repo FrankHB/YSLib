@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-9-2 11:01;
-// Version = 0.6319;
+// UTime = 2010-9-11 0:03;
+// Version = 0.6321;
 
 
 #ifndef INCLUDED_YTEXT_H_
@@ -120,7 +120,7 @@ public:
 	typedef TextState ParentType;
 
 private:
-	void PrintChar(u32); //打印单个字符。
+	void PrintChar(fchar_t); //打印单个字符。
 
 public:
 	TextRegion();
@@ -163,7 +163,7 @@ public:
 	void
 	PutNewline(); //输出换行。
 	u8
-	PutChar(u32); //输出单个字符。
+	PutChar(fchar_t); //输出单个字符。
 
 	template<typename _outIt>
 	_outIt

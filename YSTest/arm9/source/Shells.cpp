@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-9-10 22:47;
-// Version = 0.3004;
+// UTime = 2010-9-15 23:11;
+// Version = 0.3032;
 
 
 #include <Shells.h>
@@ -461,6 +461,29 @@ ShlA::TFormC::btnReturn_Click(const MTouchEventArgs&)
 }
 
 LRES
+ShlA::OnActivated(const Message& msg)
+{
+	pDesktopDown->BackColor = ARGB16(1, 15, 15, 31);
+	pDesktopDown->SetBackground(GetImage(6));
+	hWndUp = NewWindow<TFormA>(this);
+	hWndDown = NewWindow<TFormB>(this);
+	hWndC = NewWindow<TFormC>(this);
+	hWndUp->Draw();
+	hWndDown->Draw();
+	hWndC->Draw();
+	UpdateToScreen();
+	return 0;
+}
+
+LRES
+ShlA::OnDeactivated(const Message& m)
+{
+	ParentType::OnDeactivated(m);
+	YDelete(hWndC);
+	return 0;
+}
+
+LRES
 ShlA::ShlProc(const Message& msg)
 {
 	using namespace YSL_SHL(ShlA);
@@ -483,28 +506,6 @@ ShlA::ShlProc(const Message& msg)
 	return DefShellProc(msg);
 }
 
-LRES
-ShlA::OnActivated(const Message& msg)
-{
-	pDesktopDown->BackColor = ARGB16(1, 15, 15, 31);
-	pDesktopDown->SetBackground(GetImage(6));
-	hWndUp = NewWindow<TFormA>(this);
-	hWndDown = NewWindow<TFormB>(this);
-	hWndC = NewWindow<TFormC>(this);
-	hWndUp->Draw();
-	hWndDown->Draw();
-	hWndC->Draw();
-	UpdateToScreen();
-	return 0;
-}
-LRES
-ShlA::OnDeactivated(const Message& m)
-{
-	ParentType::OnDeactivated(m);
-	YDelete(hWndC);
-	return 0;
-}
-
 
 std::string ShlReader::path;
 
@@ -514,16 +515,64 @@ TextFile(path.c_str()), Reader(TextFile), hUp(NULL), hDn(NULL), bgDirty(true)
 {
 }
 
+LRES
+ShlReader::OnActivated(const Message& msg)
+{
+	bgDirty = true;
+	hUp = pDesktopUp->GetBackground();
+	hDn = pDesktopDown->GetBackground();
+	pDesktopUp->SetBackground(NULL);
+	pDesktopDown->SetBackground(NULL);
+	pDesktopUp->BackColor = ARGB16(1, 30, 27, 24);
+	pDesktopDown->BackColor = ARGB16(1, 24, 27, 30);
+	pDesktopDown->Click.Add(*this, &ShlReader::OnClick);
+	pDesktopDown->KeyPress.Add(*this, &ShlReader::OnKeyPress);
+	RequestFocusCascade(*pDesktopDown);
+	UpdateToScreen();
+	return 0;
+}
+
+LRES
+ShlReader::OnDeactivated(const Message& msg)
+{
+	ShlClearBothScreen();
+	pDesktopDown->Click.Remove(*this, &ShlReader::OnClick);
+	pDesktopDown->KeyPress.Remove(*this, &ShlReader::OnKeyPress);
+	pDesktopUp->SetBackground(hUp);
+	pDesktopDown->SetBackground(hDn);
+	return 0;
+}
+
+LRES
+ShlReader::ShlProc(const Message& msg)
+{
+	switch(msg.GetMsgID())
+	{
+	case SM_INPUT:
+		ResponseInput(msg);
+		UpdateToScreen();
+		return 0;
+
+	default:
+		break;
+	}
+	return DefShellProc(msg);
+}
+
 void
 ShlReader::UpdateToScreen()
 {
 	if(bgDirty)
 	{
+		bgDirty = false;
+		//强制刷新背景。
 		pDesktopUp->SetRefresh();
 		pDesktopDown->SetRefresh();
-		ParentType::UpdateToScreen();
+		pDesktopUp->Refresh();
+		pDesktopDown->Refresh();
 		Reader.PrintText();
-		bgDirty = false;
+		pDesktopUp->Update();
+		pDesktopDown->Update();
 	}
 }
 
@@ -584,65 +633,26 @@ ShlReader::OnKeyPress(const MKeyEventArgs& e)
 
 	case Keys::Left:
 		//Reader.SetFontSize(Reader.GetFontSize()+1);
-		Reader.SetLineGap(Reader.GetLineGap() + 1);
-		Reader.Update();
+		if(Reader.GetLineGap() != 0)
+		{
+			Reader.SetLineGap(Reader.GetLineGap() - 1);
+			Reader.Update();
+		}
 		break;
 
 	case Keys::Right:
 		//PixelType cc(Reader.GetColor());
 		//Reader.SetColor(ARGB16(1,(cc&(15<<5))>>5,cc&29,(cc&(31<<10))>>10));
-		Reader.SetLineGap(Reader.GetLineGap() - 1);
-		Reader.Update();
+		if(Reader.GetLineGap() != 12)
+		{
+			Reader.SetLineGap(Reader.GetLineGap() + 1);
+			Reader.Update();
+		}
 		break;
 
 	default:
 		return;
 	}
-}
-
-LRES
-ShlReader::ShlProc(const Message& msg)
-{
-	switch(msg.GetMsgID())
-	{
-	case SM_INPUT:
-		ResponseInput(msg);
-		UpdateToScreen();
-		return 0;
-
-	default:
-		break;
-	}
-	return DefShellProc(msg);
-}
-
-LRES
-ShlReader::OnActivated(const Message& msg)
-{
-	bgDirty = true;
-	hUp = pDesktopUp->GetBackground();
-	hDn = pDesktopDown->GetBackground();
-	pDesktopUp->SetBackground(NULL);
-	pDesktopDown->SetBackground(NULL);
-	pDesktopUp->BackColor = ARGB16(1, 30, 27, 24);
-	pDesktopDown->BackColor = ARGB16(1, 24, 27, 30);
-	pDesktopDown->Click.Add(*this, &ShlReader::OnClick);
-	pDesktopDown->KeyPress.Add(*this, &ShlReader::OnKeyPress);
-	RequestFocusCascade(*pDesktopDown);
-//	InsertMessage(NULL, 0x10000, 0x1F);
-	UpdateToScreen();
-	return 0;
-}
-
-LRES
-ShlReader::OnDeactivated(const Message& msg)
-{
-	ShlClearBothScreen();
-	pDesktopDown->Click.Remove(*this, &ShlReader::OnClick);
-	pDesktopDown->KeyPress.Remove(*this, &ShlReader::OnKeyPress);
-	pDesktopUp->SetBackground(hUp);
-	pDesktopDown->SetBackground(hDn);
-	return 0;
 }
 
 YSL_END

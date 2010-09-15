@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13;
-// UTime = 2010-9-2 10:37;
-// Version = 0.6868;
+// UTime = 2010-9-11 0:04;
+// Version = 0.6872;
 
 
 #include "yfont.h"
@@ -344,8 +344,8 @@ YFontCache::GetTypefacePtr(const FT_String* family_name, const FT_String* style_
 		return NULL;
 	return f->GetTypefacePtr(style_name);
 }
-FTC_SBit
-YFontCache::GetGlyph(u32 c)
+CharBitmap
+YFontCache::GetGlyph(fchar_t c)
 {
 	if(!scaler.face_id)
 		return NULL;
@@ -357,7 +357,7 @@ YFontCache::GetGlyph(u32 c)
 	return sbit;
 }
 s8
-YFontCache::GetAdvance(u32 c, FTC_SBit sbit)
+YFontCache::GetAdvance(fchar_t c, FTC_SBit sbit)
 {
 	if(c == '\t')
 		return GetAdvance(' ') << 2;

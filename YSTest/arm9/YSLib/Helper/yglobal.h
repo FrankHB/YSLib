@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper::YGlobal by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:14:57;
-// UTime = 2010-9-2 10:22;
-// Version = 0.1584;
+// UTime = 2010-9-15 20:53;
+// Version = 0.1592;
 
 
 #ifndef INCLUDED_YGLOBAL_H_
@@ -15,7 +15,7 @@
 
 YSL_BEGIN
 
-//全局常量。
+//平台相关的全局常量。
 #define MAX_FILENAME_LENGTH MAXPATHLEN
 #define MAX_PATH_LENGTH MAX_FILENAME_LENGTH
 #define DEF_SHELL_FONTSIZE 16
@@ -26,7 +26,8 @@ const char DEF_PATH_DELIMITER = '/'; //文件路径分隔符。
 const char* const DEF_PATH_SEPERATOR = "/"; //文件路径分隔字符串。
 #define DEF_PATH_ROOT DEF_PATH_SEPERATOR
 
-//全局变量。
+//平台相关的全局变量。
+extern YScreen *pScreenUp, *pScreenDown;
 extern YDesktop *pDesktopUp, *pDesktopDown;
 
 //类型定义。

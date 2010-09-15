@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-9-2 10:38;
-// Version = 0.2635;
+// UTime = 2010-9-12 15:27;
+// Version = 0.2661;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -62,9 +62,9 @@ private:
 	};
 
 public:
-	//	InitializeComponents();
 	virtual LRES
 	OnActivated(const Message&);
+	//	InitializeComponents();
 };
 
 
@@ -108,29 +108,33 @@ private:
 			btnOK.SetTransparent(false);
 			Draw();
 		}
+
 		void
 		frm_KeyPress(const MKeyEventArgs&);
+
 		void
 		fb_Selected(const MIndexEventArgs&);
+
 		void
 		btnTest_Click(const MTouchEventArgs&);
+
 		void
 		btnOK_Click(const MTouchEventArgs&);
 	};
 	void LoadNextWindows();
 
 public:
+	virtual LRES
+	OnActivated(const Message&);
+
+	virtual LRES
+	ShlProc(const Message&);
+
 	static void
 	fb_KeyPress(IVisualControl&, const MKeyEventArgs&);
 
 	static void
 	fb_Confirmed(IVisualControl&, const MIndexEventArgs&);
-
-	virtual LRES
-	ShlProc(const Message&);
-
-	virtual LRES
-	OnActivated(const Message&);
 };
 
 
@@ -243,17 +247,17 @@ public:
 	}
 
 	virtual LRES
-	ShlProc(const Message&);
-
-	virtual LRES
 	OnActivated(const Message&);
 
 	virtual LRES
 	OnDeactivated(const Message&);
+
+	virtual LRES
+	ShlProc(const Message&);
 };
 
 
-class ShlReader : public ShlGUI
+class ShlReader : public Shells::ShlGUI
 {
 public:
 	typedef ShlGUI ParentType;
@@ -271,6 +275,15 @@ public:
 	~ShlReader() ythrow()
 	{}
 
+	virtual LRES
+	OnActivated(const Message&);
+
+	virtual LRES
+	OnDeactivated(const Message&);
+
+	virtual LRES
+	ShlProc(const Message&);
+
 	virtual void
 	UpdateToScreen();
 
@@ -279,15 +292,6 @@ public:
 
 	void
 	OnKeyPress(const MKeyEventArgs&);
-
-	virtual LRES
-	ShlProc(const Message&);
-
-	virtual LRES
-	OnActivated(const Message&);
-
-	virtual LRES
-	OnDeactivated(const Message&);
 };
 
 YSL_END;

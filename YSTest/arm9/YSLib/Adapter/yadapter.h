@@ -1,8 +1,8 @@
 // YSLib::Adapter::YAdapter by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-22 20:16:21;
-// UTime = 2010-9-2 9:44;
-// Version = 0.1727;
+// UTime = 2010-9-11 0:16;
+// Version = 0.1739;
 
 
 #ifndef INCLUDED_YADAPTER_H_
@@ -54,6 +54,7 @@ namespace YSLib
 namespace stdex
 {
 	using CHRLib::uchar_t;
+	using CHRLib::uint_t;
 }
 
 namespace YSLib
@@ -62,7 +63,9 @@ namespace YSLib
 	{
 		using namespace CHRLib;
 	}
+	using Text::fchar_t;
 	using Text::uchar_t;
+	using Text::uint_t;
 }
 
 

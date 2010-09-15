@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CHRDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-17 17:52:35;
-// UTime = 2010-8-10 7:29;
-// Version = 0.1478;
+// UTime = 2010-9-10 0:09;
+// Version = 0.1490;
 
 
 #ifndef INCLUDED_CHRDEF_H_
@@ -25,9 +25,10 @@ CHRLIB_BEGIN
 typedef unsigned char ubyte_t;
 typedef unsigned long usize_t;
 
-// UCS-2 字符类型定义。
-typedef u16 uchar_t;
-typedef s32 uchardiff_t;
+//字符类型定义。
+typedef std::char32_t fchar_t; // UCS-4 字符。
+typedef std::char16_t uchar_t; // UCS-2 字符。
+typedef s32 uint_t;
 
 /*
 typedef struct

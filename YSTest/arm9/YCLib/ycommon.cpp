@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:42;
-// UTime = 2010-9-2 9:44;
-// Version = 0.1783;
+// UTime = 2010-9-11 14:32;
+// Version = 0.1785;
 
 
 #include "ycommon.h"
@@ -377,9 +377,9 @@ namespace platform
 	void
 	YConsoleInit(u8 dspIndex, PIXEL fc, PIXEL bc)
 	{
-		PrintConsole* p = dspIndex ? consoleMainInit() : consoleDemoInit();
+	//	PrintConsole* p(dspIndex ? consoleMainInit() : consoleDemoInit());
 
-		if(p)
+		if((dspIndex ? consoleMainInit() : consoleDemoInit()) != NULL)
 		{
 			iprintf("\x1b[0;0H"); //使用 ANSI Escape 序列 CUrsor Position 指令设置光标位置为左上角。
 

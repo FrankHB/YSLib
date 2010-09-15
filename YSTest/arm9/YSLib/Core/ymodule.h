@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YModule -> YModule by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-1 13:52:56;
-// UTime = 2010-7-26 7:36;
-// Version = 0.1898;
+// UTime = 2010-9-14 23:58;
+// Version = 0.1926;
 
 
 #ifndef INCLUDED_YMODULE_H_
@@ -251,79 +251,80 @@ YSL_BEGIN_NAMESPACE(Components)
 
 //序列视图类模板。
 template<class _containerType>
-class GMSequenceViewer
+class GSequenceViewer
 {
 public:
-	typedef typename _containerType::size_type size_type; //项目下标类型。
+	typedef typename _containerType::size_type SizeType; //项目下标类型。
+	typedef std::ptrdiff_t IndexType; //项目索引类型。
 
 private:
 	_containerType& c; //序列容器引用。
-	size_type nIndex, //视图中首个项目下标。
-		nLength, //视图长度。
+	IndexType nIndex, //项目索引：视图中首个项目下标，若不存在则为 -1 。
 		nSelected; //选中项目下标，大于等于 GetTotal() 时无效。
+	SizeType nLength; //视图长度。
 	bool bSelected; //选中状态。
 
 public:
 	explicit
-	GMSequenceViewer(_containerType& c_)
-	: c(c_), nIndex(0), nLength(0), nSelected(0), bSelected(false)
+	GSequenceViewer(_containerType& c_)
+	: c(c_), nIndex(0), nSelected(0), nLength(0), bSelected(false)
 	{}
 
-	inline GMSequenceViewer&
+	inline GSequenceViewer&
 	operator++() //选中项目下标自增。
 	{
 		return *this += 1;
 	}
-	inline GMSequenceViewer&
+	inline GSequenceViewer&
 	operator--() //选中项目下标自减。
 	{
 		return *this += -1;
 	}
-	inline GMSequenceViewer&
+	inline GSequenceViewer&
 	operator++(int) //视图中首个项目下标自增。
 	{
 		return *this >> 1;
 	}
-	inline GMSequenceViewer&
+	inline GSequenceViewer&
 	operator--(int) //视图中首个项目下标自减。
 	{
 		return *this >> -1;
 	}
-	inline GMSequenceViewer&
-	operator>>(size_type d) //视图中首个项目下标增加 d 。
+	inline GSequenceViewer&
+	operator>>(IndexType d) //视图中首个项目下标增加 d 。
 	{
 		SetIndex(nIndex + d);
 		return *this;
 	}
-	inline GMSequenceViewer&
-	operator<<(size_type d) //视图中首个项目下标减少 d 。
+	inline GSequenceViewer&
+	operator<<(IndexType d) //视图中首个项目下标减少 d 。
 	{
 		return *this >> -d;
 	}
-	inline GMSequenceViewer&
-	operator+=(size_type d) //选中项目下标增加 d 。
+	inline GSequenceViewer&
+	operator+=(IndexType d) //选中项目下标增加 d 。
 	{
 		SetSelected(nSelected + d);
 		return *this;
 	}
-	inline GMSequenceViewer&
-	operator-=(size_type d) //选中项目下标减少 d 。
+	inline GSequenceViewer&
+	operator-=(IndexType d) //选中项目下标减少 d 。
 	{
 		return *this += -d;
 	}
 
 	DefBoolGetter(Selected, bSelected) //判断是否为选中状态。
 
-	DefGetter(size_type, Total, c.size()) //取容器中项目个数。
-	DefGetter(size_type, Index, nIndex)
-	DefGetter(size_type, Length, nLength)
-	DefGetter(size_type, Selected, nSelected)
-	DefGetter(size_type, Valid, vmin(GetTotal() - GetIndex(), GetLength())) //取当前视图中有效项目个数。
+	DefGetter(SizeType, Total, c.size()) //取容器中项目个数。
+	DefGetter(SizeType, Length, nLength)
+	DefGetter(IndexType, Index, nIndex)
+	DefGetter(IndexType, Selected, nSelected)
+	DefGetter(SizeType, Valid, vmin(GetTotal() - GetIndex(), GetLength())) //取当前视图中有效项目个数。
 
 	bool
-	SetIndex(size_type t)
+	SetIndex(IndexType t)
 	{
-		if(GetTotal() && isInIntervalRegular(t, GetTotal()) && t != nIndex)
+		if(GetTotal() && isInIntervalRegular<IndexType>(t, GetTotal()) && t != nIndex)
 		{
 			if(!t)
 				MoveViewerToBegin();
@@ -337,7 +338,7 @@ public:
 		return false;
 	}
 	bool
-	SetLength(size_type l)
+	SetLength(SizeType l)
 	{
 		if(l != nLength)
 		{
@@ -346,7 +347,7 @@ public:
 				nLength = 0;
 				nSelected = 0;
 			}
-			else if(l < nLength && nSelected >= l)
+			else if(l < nLength && nSelected >= static_cast<IndexType>(l))
 				nSelected = l - 1;
 			else
 				nLength = l;
@@ -356,9 +357,9 @@ public:
 		return false;
 	}
 	bool
-	SetSelected(size_type t)
+	SetSelected(IndexType t)
 	{
-		if(GetTotal() && isInIntervalRegular(t, GetTotal()) && !(t == nSelected && bSelected))
+		if(GetTotal() && isInIntervalRegular<IndexType>(t, GetTotal()) && !(t == nSelected && bSelected))
 		{
 			nSelected = t;
 			RestrictViewer();
@@ -382,9 +383,11 @@ public:
 	bool
 	RestrictSelected() //约束被选中的元素在视图内。
 	{
+		if(nIndex < 0)
+			return false;
 		if(nSelected < nIndex)
 			nSelected = nIndex;
-		else if(nSelected >= nIndex + nLength)
+		else if(nSelected >= nIndex + static_cast<IndexType>(nLength))
 			nSelected = nIndex + nLength - 1;
 		else
 			return false;
@@ -393,9 +396,11 @@ public:
 	bool
 	RestrictViewer() //约束视图包含被选中的元素。
 	{
+		if(nIndex < 0)
+			return false;
 		if(nSelected < nIndex)
 			nIndex = nSelected;
-		else if(nSelected >= nIndex + nLength)
+		else if(nSelected >= nIndex + static_cast<IndexType>(nLength))
 			nIndex = nSelected + 1 - nLength;
 		else
 			return false;

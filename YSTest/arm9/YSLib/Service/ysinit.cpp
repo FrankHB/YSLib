@@ -35,7 +35,7 @@ namespace
 	inline void
 	fatalError()
 	{
-		terminate();
+		std::terminate();
 	}
 
 	void
@@ -119,7 +119,7 @@ InitializeSystemFontCache()
 
 	const Drawing::Typeface* const pf(pDefaultFontCache->GetDefaultTypefacePtr());
 
-	if(pf && Drawing::Font::InitializeDefault())
+	if(pf != NULL && Drawing::Font::InitializeDefault())
 		iprintf("\"%s\":\"%s\",\nsuccessfully.\n", pf->GetFamilyName(), pf->GetStyleName());
 	else
 	{

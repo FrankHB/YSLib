@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-24 15:29:11;
-// UTime = 2010-9-2 10:26;
-// Version = 0.2205;
+// UTime = 2010-9-15 20:50;
+// Version = 0.2208;
 
 
 #ifndef INCLUDED_YSDEF_H_
@@ -311,17 +311,16 @@ extern CPATH DEF_DIRECTORY;
 extern const SDST SCRW, SCRH;
 
 //全局变量。
-extern YFontCache*& pDefaultFontCache;
+extern YLog DefaultLog; //全局日志。
 
 //访问全局程序实例对象。
+extern YScreen*& pDefaultScreen;
+extern YDesktop*& pDefaultDesktop;
 extern YApplication& theApp;
 extern YMessageQueue& DefaultMQ; //全局消息队列。
 extern YMessageQueue& DefaultMQ_Backup; //全局备份消息队列。
 extern YFontCache*& pDefaultFontCache;
 extern YApplication* const pApp;
-extern YLog DefaultLog; //全局日志。
-extern YScreen*& pDefaultScreen;
-extern YDesktop*& pDefaultDesktop;
 extern const HSHL hShellMain;
 
 YSL_END

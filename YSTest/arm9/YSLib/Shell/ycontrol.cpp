@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-9-2 10:21;
-// Version = 0.3012;
+// UTime = 2010-9-14 23:58;
+// Version = 0.3074;
 
 
 #include "ycontrol.h"
@@ -371,9 +371,9 @@ YListBox::Init_()
 }
 
 YListBox::ItemType*
-YListBox::GetItemPtr(ListType::size_type i)
+YListBox::GetItemPtr(ViewerType::IndexType i)
 {
-	return isInIntervalRegular<ListType::size_type>(i, List.size()) ? &List[i] : NULL;
+	return isInIntervalRegular<ViewerType::IndexType>(i, List.size()) ? &List[i] : NULL;
 }
 SDST
 YListBox::GetItemHeight() const
@@ -382,9 +382,9 @@ YListBox::GetItemHeight() const
 }
 
 void
-YListBox::SetSelected(YListBox::ListType::size_type i)
+YListBox::SetSelected(YListBox::ViewerType::IndexType i)
 {
-	if(isInIntervalRegular(i, Viewer.GetLength()))
+	if(isInIntervalRegular<ViewerType::IndexType>(i, Viewer.GetLength()))
 		Viewer.SetSelected(Viewer.GetIndex() + i);
 }
 void
@@ -416,27 +416,22 @@ YListBox::DrawForeground()
 		prTextRegion->SetMargins(defMarginH, defMarginV);
 		Viewer.SetLength((Size.Height + prTextRegion->GetLineGap()) / lnHeight);
 
-		const ListType::size_type last(Viewer.GetIndex() + Viewer.GetValid());
+		const ViewerType::IndexType last(Viewer.GetIndex() + Viewer.GetValid());
 		SPoint pt(GetLocationForWindow());
 
-		for(ListType::size_type i(Viewer.GetIndex()); i < last; ++i)
+		for(ViewerType::IndexType i(Viewer.GetIndex() >= 0 ? Viewer.GetIndex() : last); i < last; ++i)
 		{
-			bool isSelected(Viewer.IsSelected());
-
-			if(i < List.size())
+			if(Viewer.IsSelected() && i == Viewer.GetSelected())
 			{
-				if(isSelected && i == Viewer.GetSelected())
-				{
-					prTextRegion->Color = ~0;
-					FillRect(hWindow->GetBufferPtr(), hWindow->GetSize(),
-						SRect(pt.X + 1, pt.Y + 1, prTextRegion->GetWidth() - 2, prTextRegion->GetHeight() - 2),
-						PixelType(ARGB16(1, 6, 27, 31)));
-				}
-				else
-					prTextRegion->Color = ForeColor;
-				prTextRegion->PutLine(List[i]);
-				prTextRegion->SetPen();
+				prTextRegion->Color = ~0;
+				FillRect(hWindow->GetBufferPtr(), hWindow->GetSize(),
+					SRect(pt.X + 1, pt.Y + 1, prTextRegion->GetWidth() - 2, prTextRegion->GetHeight() - 2),
+					PixelType(ARGB16(1, 6, 27, 31)));
 			}
+			else
+				prTextRegion->Color = ForeColor;
+			prTextRegion->PutLine(List[i]);
+			prTextRegion->SetPen();
 			prTextRegion->BlitToBuffer(hWindow->GetBufferPtr(), RDeg0,
 				hWindow->GetSize(), SPoint::Zero, pt, *prTextRegion);
 			pt.Y += lnHeight;
@@ -446,11 +441,11 @@ YListBox::DrawForeground()
 	}
 }
 
-YListBox::ListType::size_type
+YListBox::ViewerType::IndexType
 YListBox::CheckPoint(SPOS x, SPOS y)
 {
 	YAssert(prTextRegion != NULL,
-		"In function \"Components::Controls::YListBox::ListType::size_type\n"
+		"In function \"Components::Controls::YListBox::ViewerType::IndexType\n"
 		"Components::Controls::YListBox::CheckClick(const SPoint& pt)\":\n"
 		"The text region pointer is null.");
 
@@ -499,7 +494,7 @@ YListBox::_m_OnKeyPress(const MKeyEventArgs& k)
 		case Keys::PgUp:
 		case Keys::PgDn:
 			{
-				const ListType::size_type i(Viewer.GetSelected());
+				const ViewerType::IndexType i(Viewer.GetSelected());
 
 				switch(k)
 				{

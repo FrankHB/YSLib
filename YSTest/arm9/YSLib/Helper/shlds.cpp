@@ -1,19 +1,42 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-13 14:17:14;
-// UTime = 2010-9-10 22:48;
-// Version = 0.1365;
+// UTime = 2010-9-12 15:22;
+// Version = 0.1395;
 
 
 #include "shlds.h"
 
 YSL_BEGIN
 
-ShlGUI::ShlGUI()
-: YShellMain()
-{}
-ShlGUI::~ShlGUI() ythrow()
-{}
+YSL_BEGIN_NAMESPACE(Shells)
+
+LRES
+ShlCLI::OnActivated(const Message&)
+{
+	return 0;
+}
+
+LRES
+ShlCLI::OnDeactivated(const Message&)
+{
+	return 0;
+}
+
+IRES
+ShlCLI::ExecuteCommand(const uchar_t* s)
+{
+	return 0;
+}
+
+
+LRES
+ShlGUI::OnDeactivated(const Message&)
+{
+	ClearScreenWindows(*pDesktopUp);
+	ClearScreenWindows(*pDesktopDown);
+	return 0;
+}
 
 void
 ShlGUI::SendDrawingMessage()
@@ -24,6 +47,7 @@ ShlGUI::SendDrawingMessage()
 	InsertMessage(NULL, SM_PAINT, 0xE0, reinterpret_cast<WPARAM>(this), reinterpret_cast<LPARAM>(pDesktopUp));
 	InsertMessage(NULL, SM_PAINT, 0xE0, reinterpret_cast<WPARAM>(this), reinterpret_cast<LPARAM>(pDesktopDown));
 }
+
 void
 ShlGUI::UpdateToScreen()
 {
@@ -41,13 +65,7 @@ ShlGUI::UpdateToScreen()
 	pDesktopDown->Update();
 }
 
-LRES
-ShlGUI::OnDeactivated(const Message&)
-{
-	ClearScreenWindows(*pDesktopUp);
-	ClearScreenWindows(*pDesktopDown);
-	return 0;
-}
+YSL_END_NAMESPACE(Shells)
 
 
 YSL_BEGIN_NAMESPACE(DS)

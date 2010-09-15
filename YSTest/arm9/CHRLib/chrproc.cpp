@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CharacterProcessing by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-17 17:53:21;
-// UTime = 2010-8-15 9:30;
-// Version = 0.1659;
+// UTime = 2010-9-10 23:55;
+// Version = 0.1669;
 
 
 #include "chrproc.h"
@@ -49,10 +49,10 @@ ucslen(const uchar_t* s)
 	return p - s;
 }
 
-uchardiff_t
+uint_t
 ucscmp(const uchar_t* s1, const uchar_t* s2)
 {
-	uchardiff_t d(0);
+	uint_t d(0);
 
 	while(!(d = *s1 - *s2))
 	{
@@ -62,10 +62,10 @@ ucscmp(const uchar_t* s1, const uchar_t* s2)
 	return d;
 }
 
-uchardiff_t
+uint_t
 ucsicmp(const uchar_t* s1, const uchar_t* s2)
 {
-	uchardiff_t d(0);
+	uint_t d(0);
 
 	while(!(d = tolower(*s1) - tolower(*s2)))
 	{
