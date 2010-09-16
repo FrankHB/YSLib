@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-9-15 23:11;
-// Version = 0.3032;
+// UTime = 2010-9-16 23:31;
+// Version = 0.3061;
 
 
 #include <Shells.h>
@@ -261,10 +261,10 @@ ShlS::TFrmFileListSelecter::frm_KeyPress(const MKeyEventArgs& e)
 {
 	switch(e)
 	{
-	case Keys::X:
+	case Key::X:
 		btnTest.Click(btnTest, MTouchEventArgs::FullScreen);
 		break;
-	case Keys::R:
+	case Key::R:
 		btnOK.Click(btnOK, MTouchEventArgs::FullScreen);
 		break;
 	default:
@@ -285,9 +285,9 @@ ShlS::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs& e)
 void
 ShlS::fb_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
 {
-	Keys x(e);
+	Key x(e);
 
-	if(x & Keys::L)
+	if(x & Key::L)
 		switchShl1();
 }
 
@@ -297,11 +297,24 @@ ShlS::fb_Confirmed(IVisualControl& sender, const MIndexEventArgs& e)
 	if(e.index == 2)
 		switchShl1();
 }
+
 void
 ShlS::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&)
 {
 	if(fbMain.IsSelected())
-		switchShl1();
+	{
+		YConsole con(*pScreenUp);
+		con.Activate();
+		std::fprintf(stderr, "err");
+		WaitForInput();
+	}
+	else
+	{
+		YConsole con(*pScreenDown);
+		con.Activate(RGB15(31, 31, 31), RGB15(0, 31, 31));
+		std::fprintf(stdout, "nnn");
+		WaitForInput();
+	}
 }
 
 void
@@ -326,14 +339,14 @@ ShlS::ShlProc(const Message& msg)
 	//	YDebugBegin();
 		iprintf("time : %u ticks\n", GetTicks());
 		iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
-		waitForInput();
+		WaitForInput();
 	//	StartTicks();
 	}*/
 /*
 	YDebugBegin();
 	iprintf("time : %u ticks\n", GetTicks());
 	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
-	waitForInput();*/
+	WaitForInput();*/
 
 	switch(msg.GetMsgID())
 	{
@@ -590,48 +603,48 @@ ShlReader::OnKeyPress(const MKeyEventArgs& e)
 	bgDirty = true;
 	switch(k)
 	{
-	case Keys::Enter:
+	case Key::Enter:
 		Reader.Update();
 		break;
 
-	case Keys::ESC:
+	case Key::ESC:
 		CallStored<ShlS>();
 		break;
 
-	case Keys::Up:
-	case Keys::Down:
-	case Keys::PgUp:
-	case Keys::PgDn:
+	case Key::Up:
+	case Key::Down:
+	case Key::PgUp:
+	case Key::PgDn:
 		{
 			switch(k)
 			{
-			case Keys::Up:
+			case Key::Up:
 				Reader.LineUp();
 				break;
-			case Keys::Down:
+			case Key::Down:
 				Reader.LineDown();
 				break;
-			case Keys::PgUp:
+			case Key::PgUp:
 				Reader.ScreenUp();
 				break;
-			case Keys::PgDn:
+			case Key::PgDn:
 				Reader.ScreenDown();
 				break;
 			}
 		}
 		break;
 
-	case Keys::X:
+	case Key::X:
 		Reader.SetLineGap(5);
 		Reader.Update();
 		break;
 
-	case Keys::Y:
+	case Key::Y:
 		Reader.SetLineGap(8);
 		Reader.Update();
 		break;
 
-	case Keys::Left:
+	case Key::Left:
 		//Reader.SetFontSize(Reader.GetFontSize()+1);
 		if(Reader.GetLineGap() != 0)
 		{
@@ -640,7 +653,7 @@ ShlReader::OnKeyPress(const MKeyEventArgs& e)
 		}
 		break;
 
-	case Keys::Right:
+	case Key::Right:
 		//PixelType cc(Reader.GetColor());
 		//Reader.SetColor(ARGB16(1,(cc&(15<<5))>>5,cc&29,(cc&(31<<10))>>10));
 		if(Reader.GetLineGap() != 12)

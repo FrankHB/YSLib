@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper::YGlobal by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:14:57;
-// UTime = 2010-9-15 20:53;
-// Version = 0.1592;
+// UTime = 2010-9-16 20:53;
+// Version = 0.1609;
 
 
 #ifndef INCLUDED_YGLOBAL_H_
@@ -48,6 +48,8 @@ struct Def
 	InitScrUp(); //默认上屏初始化函数。
 	static void
 	InitScrDown(); //默认下屏初始化函数。
+	static bool
+	InitConsole(YScreen&, Drawing::PixelType, Drawing::PixelType); //以指定前景色和背景色初始化指定屏幕的控制台。
 
 	static void
 	Destroy(YObject&, const MEventArgs&); //资源释放函数。
@@ -72,11 +74,6 @@ DefaultMainShlProc(const Message& msg)
 {
 	return YSL_MAIN_SHLPROC(msg);
 }
-
-
-//异常终止函数。
-void
-Terminate(int);
 
 YSL_END
 

@@ -1,12 +1,13 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52;
-// UTime = 2010-9-2 10:29;
-// Version = 0.2329;
+// UTime = 2010-9-16 23:28;
+// Version = 0.2365;
 
 
 #include "yglobal.h"
 #include "../ysbuild.h"
+#include <exception>
 //#include <clocale>
 
 using namespace platform;
@@ -46,21 +47,21 @@ namespace
 	void
 	WaitForGUIInput()
 	{
-		static KeysInfo Keys;
+		static KeysInfo Key;
 		static CursorInfo TouchPos_Old, TouchPos;
 		static Message /*InputMessage_Old, */InputMessage;
 
-		if(Keys.held & Keys::Touch)
+		if(Key.held & Key::Touch)
 			TouchPos_Old = TouchPos;
 		scanKeys();
-		WriteKeysInfo(Keys, TouchPos);
+		WriteKeysInfo(Key, TouchPos);
 
-		const SPoint pt(ToSPoint(Keys.held & Keys::Touch ? TouchPos : TouchPos_Old));
+		const SPoint pt(ToSPoint(Key.held & Key::Touch ? TouchPos : TouchPos_Old));
 
-		if(DefaultMQ.empty() || Keys != *reinterpret_cast<KeysInfo*>(InputMessage.GetWParam()) || pt != InputMessage.GetCursorLocation())
-			InsertMessage((InputMessage = Message(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Keys), 0, pt)));
+		if(DefaultMQ.empty() || Key != *reinterpret_cast<KeysInfo*>(InputMessage.GetWParam()) || pt != InputMessage.GetCursorLocation())
+			InsertMessage((InputMessage = Message(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Key), 0, pt)));
 	/*
-		InputMessage = Message(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Keys), 0, ToSPoint(tp));
+		InputMessage = Message(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Key), 0, ToSPoint(tp));
 
 		if(InputMessage != InputMessage_Old)
 		{
@@ -83,7 +84,7 @@ Def::Idle()
 bool
 Def::InitVideo()
 {
-	resetVideo();
+	ResetVideo();
 	//设置显示模式。
 	vramSetBankA(VRAM_A_MAIN_BG);
 	vramSetBankC(VRAM_C_SUB_BG);
@@ -119,6 +120,18 @@ Def::InitScrDown()
 	pScreenDown->SetPtr(static_cast<BitmapPtr>(bgGetGfxPtr(pScreenDown->bg)));
 }
 
+bool
+Def::InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
+{
+	if(&scr == pScreenUp)
+		YConsoleInit(true, fc, bc);
+	else if(&scr == pScreenDown)
+		YConsoleInit(false, fc, bc);
+	else
+		return false;
+	return true;
+}
+
 void
 Def::Destroy(YObject&, const MEventArgs&)
 {
@@ -152,6 +165,9 @@ namespace
 	void
 	YInit()
 	{
+		//设置默认终止函数。
+		std::set_terminate(terminate);
+
 		//启用设备。
 		powerOn(POWER_ALL);
 
@@ -165,7 +181,7 @@ namespace
 		{
 			EpicFail();
 			platform::yprintf("setlocale() with %s failed.\n", "zh_CN.GBK");
-			std::terminate();
+			terminate();
 		}*/
 
 		//初始化文件系统。
@@ -179,7 +195,7 @@ namespace
 			if(!fatInitDefault())
 			{
 				LibfatFail();
-				Terminate(1);
+				terminate();
 			}
 			IO::ChDir(DEF_DIRECTORY);
 	#ifdef USE_EFS

@@ -1,8 +1,8 @@
 // YSLib::Adapter::YAdapter by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-22 20:16:21;
-// UTime = 2010-9-11 0:16;
-// Version = 0.1739;
+// UTime = 2010-9-16 23:29;
+// Version = 0.1748;
 
 
 #ifndef INCLUDED_YADAPTER_H_
@@ -79,15 +79,17 @@ namespace YSLib
 	{
 		using platform::BitmapPtr;
 		using platform::ConstBitmapPtr;
+		using platform::Color;
 	}
 	namespace Runtime
 	{
-		using platform::Keys;
+		using platform::Key;
 		using platform::KeysInfo;
 		using platform::CursorInfo;
 	}
-	using platform::HDirectory;
+	using platform::terminate;
 	using platform::yassert;
+	using platform::HDirectory;
 	namespace DS
 	{
 		using namespace platform;

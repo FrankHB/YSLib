@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28;
-// UTime = 2010-9-2 9:44;
-// Version = 0.1952;
+// UTime = 2010-9-16 23:30;
+// Version = 0.2024;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -67,14 +67,131 @@ namespace stdex
 
 namespace platform
 {
+	//异常终止函数。
+	void
+	terminate();
+
+
+	//调试模式：设置状态。
+	void
+	YDebugSetStatus(bool = true);
+
+	//调试模式：取得状态。
+	bool
+	YDebugGetStatus();
+
+	//调试模式：显示控制台（fc 为前景色，bc 为背景色）。
+	void
+	YDebugBegin(PIXEL fc = RGB15(31, 31, 31), PIXEL bc = RGB15( 0, 0, 31));
+
+	//调试模式：按键继续。
+	void
+	YDebug();
+	//调试模式：显示控制台字符串，按键继续。
+	void
+	YDebug(const char*);
+
+	//调试模式：显示控制台字（int 型数据），按键继续。
+	void
+	YDebugW(int);
+
+	//调试模式 printf ：显示控制台格式化输出 ，按键继续。
+	int
+	yprintf(const char*, ...)
+		_ATTRIBUTE ((format (printf, 1, 2)));
+
+	//断言。
+	#ifdef YC_USE_YASSERT
+
+	#undef YAssert
+
+	inline void
+	yassert(bool exp, const char* expstr, const char* message, int line, const char* file)
+	{
+		if(!exp)
+		{
+			yprintf("Assertion failed: \n%s\nMessage: \n%s\nAt line %i in file \"%s\".\n", expstr, message, line, file);
+			abort();
+		}
+	}
+
+	#define YAssert(exp, message) yassert(exp, #exp, message, __LINE__, __FILE__);
+
+	#else
+
+	#	include <assert.h>
+	#	define YAssert(exp, message) assert(exp)
+
+	#endif
+
+
 	typedef PIXEL* BitmapPtr;
 	typedef const PIXEL* ConstBitmapPtr;
 
-	//按键集合。
-	class Keys
+
+	//系统默认颜色空间。
+	class Color
 	{
 	public:
-		typedef enum KeysSet
+		typedef enum ColorSet
+		{
+
+	//	#define DefColorA(r, g, b, name) name = ARGB16(1, r, g, b),
+		#define	HexAdd0x(hex) 0x##hex
+		#define DefColorH_(hex, name) name = RGB8(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF)) | BITALPHA
+		#define DefColorH(hex_, name) DefColorH_(HexAdd0x(hex_), name),
+	
+		//参考：http://www.w3schools.com/html/html_colornames.asp 。
+
+			DefColorH(00FFFF, Aqua)
+			DefColorH(000000, Black)
+			DefColorH(0000FF, Blue)
+			DefColorH(FF00FF, Fuchsia)
+			DefColorH(808080, Gray)
+			DefColorH(008000, Green)
+			DefColorH(00FF00, Lime)
+			DefColorH(800000, Maroon)
+			DefColorH(000080, Navy)
+			DefColorH(808000, Olive)
+			DefColorH(800080, Purple)
+			DefColorH(FF0000, Red)
+			DefColorH(C0C0C0, Silver)
+			DefColorH(008080, Teal)
+			DefColorH(FFFFFF, White)
+			DefColorH(FFFF00, Yellow)
+
+		#undef DefColorH
+		#undef DefColorH_
+		#undef HexAdd0x
+
+		} ColorSet;
+
+	private:
+		PIXEL _value;
+
+	public:
+		Color(PIXEL = 0);
+
+		operator PIXEL() const;
+	};
+
+	inline
+	Color::Color(PIXEL p)
+	: _value(p)
+	{}
+
+	inline
+	Color::operator PIXEL() const
+	{
+		return _value;
+	}
+
+
+	//按键集合。
+	class Key
+	{
+	public:
+		typedef enum KeySet
 		{
 			Empty	= 0,
 			A		= KEY_A,
@@ -91,7 +208,7 @@ namespace platform
 			Y		= KEY_Y,
 			Touch	= KEY_TOUCH,
 			Lid		= KEY_LID
-		} KeysSet;
+		} KeySet;
 		typedef u32 InputType;
 
 	private:
@@ -99,24 +216,24 @@ namespace platform
 
 	public:
 		//按键别名。
-		static const KeysSet
+		static const KeySet
 			Enter = A,
 			ESC = B,
 			PgUp = L,
 			PgDn = R;
 
-		Keys(InputType = 0);
+		Key(InputType = 0);
 
 		operator InputType() const;
 	};
 
 	inline
-	Keys::Keys(Keys::InputType i)
+	Key::Key(Key::InputType i)
 	: _value(i)
 	{}
 
 	inline
-	Keys::operator Keys::InputType() const
+	Key::operator Key::InputType() const
 	{
 		return _value;
 	}
@@ -125,7 +242,7 @@ namespace platform
 	//按键信息。
 	typedef struct KeysInfo
 	{
-		Keys up, down, held;
+		Key up, down, held;
 	} KeysInfo;
 
 
@@ -264,9 +381,6 @@ namespace platform
 	*/
 	//复制一块像素（忽略透明性）。
 
-	void
-	terminate(); //异常终止函数。
-
 	//快速刷新缓存映像到屏幕。
 	inline void
 	scrCopy(PIXEL* scr, const PIXEL* buf)
@@ -283,20 +397,12 @@ namespace platform
 
 	//复位屏幕显示模式。
 	void
-	resetVideo();
+	ResetVideo();
 
 
 	//启动控制台（fc 为前景色，bc为背景色）。
 	void
 	YConsoleInit(u8 dspIndex, PIXEL fc = RGB15(31, 31, 31), PIXEL bc = RGB15( 0, 0, 31));
-
-	//输出控制台字符串。
-	inline const char*
-	iputs(const char* s)
-	{
-		iprintf("%s\n", s);
-		return s;
-	}
 
 	//输出控制台字（int 型数据）。
 	inline void
@@ -308,45 +414,45 @@ namespace platform
 
 	//等待任意按键。
 	void
-	waitForInput();
+	WaitForInput();
 
 	//等待 mask 包含的按键。
 	void
-	waitForKey(u32 mask);
+	WaitForKey(u32 mask);
 
 	//等待任意按键（除触摸屏、翻盖外）。
 	inline void
-	waitForKeypad()
+	WaitForKeypad()
 	{
-		waitForKey(KEY_A | KEY_B | KEY_X | KEY_Y | KEY_L | KEY_R | KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN | KEY_START | KEY_SELECT);
+		WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y | KEY_L | KEY_R | KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN | KEY_START | KEY_SELECT);
 	}
 
 	//等待任意按键（除 L 、 R 和翻盖外）。
 	inline void
-	waitForFrontKey()
+	WaitForFrontKey()
 	{
-		waitForKey(KEY_TOUCH | KEY_A | KEY_B | KEY_X | KEY_Y | KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN | KEY_START | KEY_SELECT);
+		WaitForKey(KEY_TOUCH | KEY_A | KEY_B | KEY_X | KEY_Y | KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN | KEY_START | KEY_SELECT);
 	}
 
 	//等待任意按键（除 L 、 R 、触摸屏和翻盖外）。
 	inline void
-	waitForFrontKeypad()
+	WaitForFrontKeypad()
 	{
-		waitForKey(KEY_A | KEY_B | KEY_X | KEY_Y | KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN |KEY_START | KEY_SELECT);
+		WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y | KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN |KEY_START | KEY_SELECT);
 	}
 
 	//等待方向键。
 	inline void
-	waitForArrowKey()
+	WaitForArrowKey()
 	{
-		waitForKey(KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN);
+		WaitForKey(KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN);
 	}
 
 	//等待按键 A 、 B 、 X 、 Y 键。
 	inline void
-	waitForABXY()
+	WaitForABXY()
 	{
-		waitForKey(KEY_A | KEY_B | KEY_X | KEY_Y);
+		WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y);
 	}
 
 	/*
@@ -432,60 +538,6 @@ namespace platform
 	void waitForCapture();
 	char* basename(char*);
 	*/
-
-	//调试部分。
-
-	//调试模式：设置状态。
-	void
-	YDebugSetStatus(bool = true);
-
-	//调试模式：取得状态。
-	bool
-	YDebugGetStatus();
-
-	//调试模式：显示控制台（fc 为前景色，bc 为背景色）。
-	void
-	YDebugBegin(PIXEL fc = RGB15(31, 31, 31), PIXEL bc = RGB15( 0, 0, 31));
-
-	//调试模式：按键继续。
-	void
-	YDebug();
-	//调试模式：显示控制台字符串，按键继续。
-	void
-	YDebug(const char*);
-
-	//调试模式：显示控制台字（int 型数据），按键继续。
-	void
-	YDebugW(int);
-
-	//调试模式 printf ：显示控制台格式化输出 ，按键继续。
-	int
-	yprintf(const char*, ...)
-		_ATTRIBUTE ((format (printf, 1, 2)));
-
-	//断言。
-	#ifdef YC_USE_YASSERT
-
-	#undef YAssert
-
-	inline void
-	yassert(bool exp, const char* expstr, const char* message, int line, const char* file)
-	{
-		if(!exp)
-		{
-			yprintf("Assertion failed: \n%s\nMessage: \n%s\nAt line %i in file \"%s\".\n", expstr, message, line, file);
-			abort();
-		}
-	}
-
-	#define YAssert(exp, message) yassert(exp, #exp, message, __LINE__, __FILE__);
-
-	#else
-
-	#	include <assert.h>
-	#	define YAssert(exp, message) assert(exp)
-
-	#endif
 }
 
 #endif

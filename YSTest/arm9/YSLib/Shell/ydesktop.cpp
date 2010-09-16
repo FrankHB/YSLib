@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-2 12:00:08;
-// UTime = 2010-9-5 9:53;
-// Version = 0.1983;
+// UTime = 2010-9-16 20:59;
+// Version = 0.1986;
 
 
 #include "ydesktop.h"
@@ -12,9 +12,9 @@ YSL_BEGIN
 using namespace Drawing;
 using namespace Runtime;
 
-YSL_BEGIN_NAMESPACE(Device)
+YSL_BEGIN_NAMESPACE(Components)
 
-using namespace Components::Controls;
+using namespace Controls;
 
 YDesktop::YDesktop(YScreen& s, PixelType c, GHResource<YImage> i)
 : YFrameWindow(SRect::FullScreen, i, NULL, hShellMain),
@@ -177,7 +177,7 @@ YDesktop::Update()
 	}
 }
 
-YSL_END_NAMESPACE(Device)
+YSL_END_NAMESPACE(Components)
 
 YSL_END
 

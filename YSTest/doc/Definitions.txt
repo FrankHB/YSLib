@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-9-15 20:56;
-// Version = r7464;
+// UTime = 2010-9-16 23:32;
+// Version = r7546;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -544,15 +544,113 @@ $unit YCommon "ycommon"
 
 	namespace platform
 	{
+		//异常终止函数。
+		void
+		terminate();
+
+
+		//调试模式：设置状态。
+		void
+		YDebugSetStatus(bool = true);
+
+		//调试模式：取得状态。
+		bool
+		YDebugGetStatus();
+
+		//调试模式：显示（fc 为前景色，bc为背景色）。
+		void
+		YDebugBegin(PixelType fc = RGB15(31, 31, 31), PixelType bc = RGB15( 0, 0, 31));
+
+		//调试模式：按键继续。
+		void
+		YDebug();
+		//调试模式：显示控制台字符串，按键继续。
+		void
+		YDebug(const char*);
+
+		//调试模式：显示控制台字（int 型数据），按键继续。
+		void
+		YDebugW(int);
+
+		//调试模式：显示控制台 printf ，按键继续。
+		int
+		yprintf(const char*, ...)
+			_ATTRIBUTE ((format (printf, 1, 2)));
+
+		//断言。
+		#ifdef YC_USE_YASSERT
+
+		#undef YAssert
+
+		inline void
+		yassert(bool exp, const char* expstr, const char* message, int line, const char* file);
+
+		#define YAssert(exp, message) yassert(exp, #exp, message, __LINE__, __FILE__);
+
+		#else
+
+		#	include <assert.h>
+		#	define YAssert(exp, message) assert(exp)
+
+		#endif
+
+
 		typedef PIXEL* BitmapPtr;
 		typedef const PIXEL* ConstBitmapPtr;
 
 
-		//按键集合。
-		class Keys
+		//系统默认颜色空间。
+		class Color
 		{
 		public:
-			typedef enum KeysSet
+			typedef enum ColorSet
+			{
+
+		//	#define DefColorA(r, g, b, name) name = ARGB16(1, r, g, b),
+			#define	HexAdd0x(hex) 0x##hex
+			#define DefColorH_(hex, name) name = RGB8(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF)) | BITALPHA
+			#define DefColorH(hex_, name) DefColorH_(HexAdd0x(hex_), name),
+
+			//参考：http://www.w3schools.com/html/html_colornames.asp 。
+
+				DefColorH(00FFFF, Aqua)
+				DefColorH(000000, Black)
+				DefColorH(0000FF, Blue)
+				DefColorH(FF00FF, Fuchsia)
+				DefColorH(808080, Gray)
+				DefColorH(008000, Green)
+				DefColorH(00FF00, Lime)
+				DefColorH(800000, Maroon)
+				DefColorH(000080, Navy)
+				DefColorH(808000, Olive)
+				DefColorH(800080, Purple)
+				DefColorH(FF0000, Red)
+				DefColorH(C0C0C0, Silver)
+				DefColorH(008080, Teal)
+				DefColorH(FFFFFF, White)
+				DefColorH(FFFF00, Yellow)
+
+			#undef DefColorH
+			#undef DefColorH_
+			#undef HexAdd0x
+
+			} ColorSet;
+
+		private:
+			PIXEL _value;
+
+		public:
+			Color(PIXEL = 0);
+
+			operator PIXEL() const;
+		};
+
+
+		//按键集合。
+		class Key
+		{
+		public:
+			typedef enum KeySet
 			{
 				Empty	= 0,
 				A		= KEY_A,
@@ -569,7 +667,7 @@ $unit YCommon "ycommon"
 				Y		= KEY_Y,
 				Touch	= KEY_TOUCH,
 				Lid		= KEY_LID
-			} KeysSet;
+			} KeySet;
 			typedef u32 InputType;
 
 		private:
@@ -577,22 +675,22 @@ $unit YCommon "ycommon"
 
 		public:
 			//按键别名。
-			static const KeysSet
+			static const KeySet
 				Enter = A,
 				ESC = B,
 				PgUp = L,
 				PgDn = R;
 
-			Keys(InputType = 0);
+			Key(InputType = 0);
 
 			operator InputType() const;
-		}; //class Keys;
+		}; //class Key;
 
 
 		//按键信息。
 		typedef struct KeysInfo
 		{
-			Keys up, down, held;
+			Key up, down, held;
 		} KeysInfo;
 
 
@@ -660,25 +758,18 @@ $unit YCommon "ycommon"
 		mkdirs(CPATH);
 
 
-		void
-		terminate(); //异常终止函数。
-
 		//快速刷新缓存映像到屏幕。
 		inline void
 		scrCopy(PIXEL* scr, const PIXEL* buf);
 
 		//复位屏幕显示模式。
 		void
-		resetVideo();
+		ResetVideo();
 
 
 		//启动控制台（fc 为前景色，bc为背景色）。
 		void
 		YConsoleInit(u8 dspIndex, PixelType fc = RGB15(31, 31, 31), PixelType bc = RGB15( 0, 0, 31));
-
-		//输出控制台字符串。
-		inline const char*
-		iputs(const char* s);
 
 		//输出控制台字（int 型数据）。
 		inline void
@@ -687,31 +778,31 @@ $unit YCommon "ycommon"
 
 		//等待任意按键。
 		void
-		waitForInput();
+		WaitForInput();
 
 		//等待 mask 包含的按键。
 		void
-		waitForKey(u32 mask);
+		WaitForKey(u32 mask);
 
 		//等待任意按键（除触摸屏、翻盖外）。
 		inline void
-		waitForKeypad()
+		WaitForKeypad()
 
 		//等待任意按键（除 L 、 R 和翻盖外）。
 		inline void
-		waitForFrontKey()
+		WaitForFrontKey()
 
 		//等待任意按键（除 L 、 R 、触摸屏和翻盖外）。
 		inline void
-		waitForFrontKeypad()
+		WaitForFrontKeypad()
 
 		//等待方向键。
 		inline void
-		waitForArrowKey()
+		WaitForArrowKey()
 
 		//等待按键 A 、 B 、 X 、 Y 键。
 		inline void
-		waitForABXY()
+		WaitForABXY()
 
 
 		//写入当前按键信息。
@@ -762,54 +853,6 @@ $unit YCommon "ycommon"
 		//延时 ms 毫秒（ms 仅低 25 位有效）。
 		void
 		Delay(u32 ms);
-
-
-		//调试部分。
-
-		//调试模式：设置状态。
-		void
-		YDebugSetStatus(bool = true);
-
-		//调试模式：取得状态。
-		bool
-		YDebugGetStatus();
-
-		//调试模式：显示（fc 为前景色，bc为背景色）。
-		void
-		YDebugBegin(PixelType fc = RGB15(31, 31, 31), PixelType bc = RGB15( 0, 0, 31));
-
-		//调试模式：按键继续。
-		void
-		YDebug();
-		//调试模式：显示控制台字符串，按键继续。
-		void
-		YDebug(const char*);
-
-		//调试模式：显示控制台字（int 型数据），按键继续。
-		void
-		YDebugW(int);
-
-		//调试模式：显示控制台 printf ，按键继续。
-		int
-		yprintf(const char*, ...)
-			_ATTRIBUTE ((format (printf, 1, 2)));
-
-		//断言。
-		#ifdef YC_USE_YASSERT
-
-		#undef YAssert
-
-		inline void
-		yassert(bool exp, const char* expstr, const char* message, int line, const char* file);
-
-		#define YAssert(exp, message) yassert(exp, #exp, message, __LINE__, __FILE__);
-
-		#else
-
-		#	include <assert.h>
-		#	define YAssert(exp, message) assert(exp)
-
-		#endif
 	} //namespace platform;
 
 } //$unit YCommon;
@@ -872,15 +915,17 @@ $header YAdapter "yadapter.h"
 		{
 			using platform::BitmapPtr;
 			using platform::ConstBitmapPtr;
+			using platform::Color;
 		} //namespace Drawing;
 		namespace Runtime
 		{
-			using platform::Keys;
+			using platform::Key;
 			using platform::KeysInfo;
 			using platform::CursorInfo;
 		} //namespace Runtime;
-		using platform::HDirectory;
+		using platform::terminate;
 		using platform::yassert;
+		using platform::HDirectory;
 		namespace $platform
 		{
 			using namespace platform;
@@ -1732,7 +1777,6 @@ $header YShellDefinition "ysdef.h"
 
 	YSL_BEGIN_NAMESPACE(Device)
 	class YScreen;
-	class YDesktop;
 	YSL_END_NAMESPACE(Device)
 
 	YSL_BEGIN_NAMESPACE(Drawing)
@@ -1763,6 +1807,8 @@ $header YShellDefinition "ysdef.h"
 	PDeclInterface(IWidgetContainer)
 	YSL_END_NAMESPACE(Widgets)
 
+	class YDesktop;
+
 	YSL_END_NAMESPACE(Components)
 
 	YSL_BEGIN_NAMESPACE(Text)
@@ -1783,7 +1829,6 @@ $header YShellDefinition "ysdef.h"
 	using Components::Widgets::IWidgetContainer;
 
 	using Device::YScreen;
-	using Device::YDesktop;
 
 	using Drawing::YFontCache;
 
@@ -2991,12 +3036,12 @@ $unit YEventArgs "yevtarg"
 
 
 	//输入事件参数模块类。
-	struct MInputEventArgs : public Keys
+	struct MInputEventArgs : public Key
 	{
 		static const MInputEventArgs Empty = MInputEventArgs();
 
 		inline
-		MInputEventArgs(const Keys& = 0);
+		MInputEventArgs(const Key& = 0);
 	}; //struct MInputEventArgs;
 
 
@@ -4324,11 +4369,31 @@ $unit YComponent "ycomp"
 	EndDecl
 
 
-	class YComponent : public GMCounter<YComponent>, public YCountableObject //基本组件。
+	//基本组件。
+	class YComponent : public GMCounter<YComponent>, public YCountableObject
 	{
 	public:
 		typedef YCountableObject ParentType;
 	}; //class YComponent;
+
+
+	//控制台。
+	class YConsole : public YComponent
+	{
+	public:
+		YScreen& Screen;
+
+		explicit
+		YConsole(YScreen&);
+		virtual
+		~YConsole();
+
+		void
+		Activate(Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black);
+
+		void
+		Deactivate();
+	}; //class YConsole;
 
 	YSL_END_NAMESPACE(Components)
 
@@ -4340,7 +4405,7 @@ $unit YDesktop "ydesktop"
 	$import $unit YWindow, $header <list>;
 
 
-	YSL_BEGIN_NAMESPACE(Device)
+	YSL_BEGIN_NAMESPACE(Components)
 
 	//桌面。
 	class YDesktop : public YFrameWindow
@@ -4400,7 +4465,7 @@ $unit YDesktop "ydesktop"
 		Update(); //更新缓冲区内容至屏幕。
 	}; //class YDesktop;
 
-	YSL_END_NAMESPACE(Device)
+	YSL_END_NAMESPACE(Components)
 
 } //$unit YDesktop;
 
@@ -4843,7 +4908,7 @@ $unit YControl "ycontrol"
 
 	public:
 		explicit
-		MVisualControl(Drawing::PixelType = 0, Drawing::PixelType = ~0);
+		MVisualControl(Drawing::PixelType = Drawing::Color::Black, Drawing::PixelType = Drawing::Color::White);
 		inline virtual
 		~MVisualControl();
 
@@ -5738,7 +5803,8 @@ $code Helper {
 
 $export $unit YGlobal "yglobal"
 {
-	$import $header YSBuild, $unit Core::YShellMessage, YException;
+	$import $header YSBuild, <exception>,
+		$unit Core::YShellMessage, YException;
 
 
 	//全局常量。
@@ -5785,6 +5851,8 @@ $export $unit YGlobal "yglobal"
 		InitScrUp(); //默认上屏初始化函数。
 		static void
 		InitScrDown(); //默认下屏初始化函数。
+		static bool
+		InitConsole(YScreen&, Drawing::PixelType, Drawing::PixelType); //以指定前景色和背景色初始化指定屏幕的控制台。
 
 		static void
 		Destroy(YObject&, const MEventArgs&); //资源释放函数。
@@ -5806,10 +5874,6 @@ $export $unit YGlobal "yglobal"
 	//默认 Shell 消息处理函数。
 	inline LRES
 	DefaultMainShlProc(const Message& msg);
-
-	//异常终止函数。
-	void
-	Terminate(int);
 
 } //$unit YGlobal;
 
@@ -5921,6 +5985,22 @@ $header Adapter
 		using namespace CHRLib;
 	} //namespace Text;
 	using Text::fchar_t, Text::uchar_t, Text::uint_t;	
+
+	namespace Drawing
+	{
+		using platform::BitmapPtr;
+		using platform::ConstBitmapPtr;
+		using platform::Color;
+	} //namespace Drawing;
+	namespace Runtime
+	{
+		using platform::Key;
+		using platform::KeysInfo;
+		using platform::CursorInfo;
+	} //namespace Runtime;
+	using platform::terminate;
+	using platform::yassert;
+	using platform::HDirectory;
 } //$header Adapter;
 
 $header Core::YShellDefinition : Adapter
@@ -5928,8 +6008,9 @@ $header Core::YShellDefinition : Adapter
 	using Components::Controls::IControl, Components::Controls::IVisualControl;
 	using Components::Forms::YForm, Components::Forms::YFrameWindow;
 	using Components::Widgets::IWidget, Components::Widgets::IWidgetContainer;
+	using Components::YDesktop;
 
-	using Device::YScreen, Device::YDesktop;
+	using Device::YScreen;
 
 	using Drawing::YFontCache;
 

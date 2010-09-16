@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YEventArgs by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-6-8 13:21:10;
-// UTime = 2010-6-26 7:38;
-// Version = 0.1792;
+// UTime = 2010-9-16 23:29;
+// Version = 0.1796;
 
 
 #ifndef INCLUDED_YEVTARG_H_
@@ -37,12 +37,12 @@ struct MScreenPositionEventArgs : public MEventArgs, public Drawing::SPoint
 
 
 //输入事件参数模块类。
-struct MInputEventArgs : public Keys
+struct MInputEventArgs : public Key
 {
 	static const MInputEventArgs Empty;
 
-	MInputEventArgs(const Keys& k = 0)
-	: Keys(k)
+	MInputEventArgs(const Key& k = 0)
+	: Key(k)
 	{}
 };
 
@@ -63,7 +63,7 @@ struct MTouchEventArgs : public MScreenPositionEventArgs, public MInputEventArgs
 //键盘输入事件参数类。
 struct MKeyEventArgs : public MEventArgs, public MInputEventArgs
 {
-	typedef Keys InputType;
+	typedef Key InputType;
 
 	static const MKeyEventArgs Empty;
 

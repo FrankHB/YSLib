@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:24;
-// UTime = 2010-9-14 23:24;
-// Version = 0.3434;
+// UTime = 2010-9-16 23:30;
+// Version = 0.3439;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -139,7 +139,7 @@ public:
 	DefEvent(YKeyEventHandler, KeyPress)
 
 	explicit
-	MVisualControl(Drawing::PixelType = 0, Drawing::PixelType = ~0);
+	MVisualControl(Drawing::PixelType = Drawing::Color::Black, Drawing::PixelType = Drawing::Color::White);
 	virtual
 	~MVisualControl()
 	{}

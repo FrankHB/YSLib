@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-9-15;
-// Version = 0.2614; *Build 147 r25;
+// UTime = 2010-9-16;
+// Version = 0.2614; *Build 148 r20;
 
 
 #include "../YCLib/ydef.h"
@@ -93,96 +93,91 @@ Record prefix and abbrevations:
 
 DONE:
 r1:
-/ @@ \u YFont:
-	+ \cl CharBitmap;
-	/ FTC_SBit GetGlyph(u32) -> CharBitmap GetGlyph(u32);
-/= ^ \cl CharBitmap @@ \u YText;
+/ @@ \u Shells:
+	+ \cl YConsole;
+	/ \tr \impl @@ void ShlS::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&);
 
 r2:
-/ @@ \h CHRDef:
-	+ typedef std::char16_t uchar_t;
-	+ typedef std::char32_t fchar_t;
-/ + std::char16_t && char32_t @@ \h <platform.h>;
-/= \a uchardiff_t >> uint_t;
-/= ^ fchar_t;
-/@@ \h YAdapter:
-	/ @@ \ns YSLib:
-		+ using Text::fchar_t;
-		+ using Text::uint_t;
-	/ @@ \ns YSLib:
-		+ using Text::uint_t;
+/= @@ \u YCommon;
+	/= \tr order;
+/ @@ \h YAdapter:
+	+ using platform::terminate;
+/ @@ \tr \impl @@ \i \f void fatalError() @@ unnamed \ns @@ \u YInitialization;
+/ @@ \u YGlobal:
+	/ \impl @@ YSInit() @@ unnamed \ns;
+	- void Terminate(int);
+/ @@ \tr \impl @@ \mf void FatalError(const char*) @@ \cl YLog @@ \u YApplication;
+/ @@ \tr \impl @@ LRES DefShlProc(const Message&) @@ \cl YShell @@ \u YShell;
 
 r3:
-/= @@ \u YSInitialization:
-	/= \tr \impl @@ \i \f void fatalError() @@ unnamed \ns;
-	/= \tr \impl @@ \f void InitializeSystemFontCache();
-/= \tr \impl @@ \f void YConsoleInit(u8, PIXEL, PIXEL) @@ \u YCommon;
-
+/ \ctor YConsole()->YConsole(YScreen&) @@ \cl YConsole @@ \u Shells;
+- \f iputs(const char*) @@ \u YCommon;
+	/ \tr \impl @@ \u YInitialization:
+		/ \tr \impl @@ \f void InitializeSystemFontCache();
+		/ \tr \impl @@ \f void CheckInstall();
+	/ \impl @@ void YDebug(const char*);
+	/ \tr \impl @@ \u Main:
+		/ \tr \impl @@ \f void YSDebug_MSG_Insert(const Message&);
+		/ \tr \impl @@ \f void YSDebug_MSG_Peek(const Message&);
 r4:
-/ @@ \u SHlDS:
-	/ ShlGUI >> \ns Shells @@ \ns YSLib;
-	+ \cl ShlCLI @@ \ns YSLib::Shells;
-	/+ \i @@ \ctor && \dtor @@ \cl ShlGUI;
-/= \tr @@ \u (ShlDS & Shells);
++ \s \f bool InitConsole(YScreen&, Drawing::PixelType, Drawing::PixelType) @@ \cl Def @@ \u YGlobal;
+/ @@ \u Shells:
+	/ \impl \cl YConsole;
 
 r5:
-/ @@ \cl MIndexEventArgs @@ \ns Controls @@ \u YControl:
-	+ typedef std::ptrdiff_t IndexType;
-	/ \m int index -> IndexType index;
-	/ \ctor MIndexEventArgs(IVisualControl&, const int&)
-		-> MIndexEventArgs(IVisualControl&, IndexType);
-/ \a GMSequenceViewer => GSequenceViewer;
-* @@ \t \cl GSequenceViewer @@ \cl YModule:
-	/ size_type => SizeType;
-	+ typedef std::ptrdiff_t IndexType;
-	/ SizeType nIndex -> IndexType nIndex;
-	/ DefGetter(SizeType, Index, nIndex) -> DefGetter(IndexType, Index, nIndex);
-	* inline GSequenceViewer& operator>>(SizeType) -> inline GSequenceViewer& operator>>(IndexType);
-	* inline GSequenceViewer& operator<<(SizeType) -> inline GSequenceViewer& operator<<(IndexType);
-	* inline GSequenceViewer& operator+=(SizeType) -> inline GSequenceViewer& operator+=(IndexType);
-	* inline GSequenceViewer& operator-=(SizeType) -> inline GSequenceViewer& operator-=(IndexType);
+* \cl YDesktop @@ \ns Device >> \ns Components;
+	/ \tr \decl @@ \h YSDefinition;
 
 r6:
-* @@ \cl YListBox @@ \u YControl:
-	+ typedef GSequenceViewer<ListType> ViewerType;
-	/ DefGetterMember(ListType::size_type, Index, Viewer) -> DefGetterMember(ViewerType::IndexType, Index, Viewer);
-	/ DefGetterMember(ListType::size_type, Selected, Viewer) -> DefGetterMember(ViewerType::size_type, Selected, Viewer);
-	/ \mf void SetSelected(ListType::size_type) ->  void SetSelected(ViewerType::IndexType);
-	/ \ret \tp @@ protected \mf ListType::size_type CheckPoint(SPOS, SPOS) -> ViewerType::IndexType;
-	/ GetItemPtr(ListType::size_type) -> GetItemPtr(ViewerType::IndexType);
-	* \impl @@ \mf void _m_OnKeyPress(const MKeyEventArgs&);
-	* \impl @@ \mf ViewerType::IndexType::CheckPoint(SPOS, SPOS);
-	* \impl @@ \mf void SetSelected(YListBox::ViewerType::IndexType);
-	* \impl @@ \mf void DrawForeground();
-* @@ \t \cl GSequenceViewer @@ \u YModule:
-	* bool SetIndex(SizeType) -> bool SetIndex(IndexType);
-	* bool SetSelected(SizeType) -> bool SetSelected(IndexType);
-	* \impl @@ \mf bool SetLength(SizeType);
-	* \impl @@ \mf bool RestrictSelected();
-	* \impl @@ \mf bool RestrictViewer();
+/ \a waitForInput => WaitForInput;
+/ \a waitForKey => WaitForKey;
+/ \a resetVideo => ResetVideo;
+/ \a waitForKeypad => WaitForKeypad;
+/ \a waitForFrontKey => WaitForFrontKey;
+/ \a waitForFrontKeypad => WaitForFrontKeypad;
+/ \a waitForArrowKey => WaitForArrowKey;
+/ \a waitForABXY => WaitForABXY;
 
-r7:
-* @@ \cl YListBox @@ \u YControl:
-	* \impl @@ \mf void DrawForeground();
-* @@ \t \cl GSequenceViewer @@ \u YModule:
-	* \impl @@ \mf bool RestrictSelected();
-	* \impl @@ \mf bool RestrictViewer();
+r7-r8:
+/ test 1;
 
-r8:
-/= \tr @@ \h "ysdef.h";
-+ extern YScreen *pScreenUp, *pScreenDown @@ \h "yglobal.h";
+r9-r12:
+/ \cl @@ \u Shells >> \u YComponent;
+/ test 2:
+	* \tr \impl @@ \s \f bool InitConsole(YScreen& scr, Drawing::PixelType, Drawing::PixelType) @@ \cl @@ \YGlobal;
 
-r9-r14:
-/= test 1;
+r13:
+/ \tr \impl @@ \mf void ShlS::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&);
 
-r15-r21:
-/ \impl @@ \mf void ShlReader::UpdateToScreen() @@ \u Shells;
+r14:
+/ @@ \u YInitialization:
+	- \s bool bMainConsole;
+		/ \simp \tr \impl @@ \f void InitYSConsole();
++ struct Colors { typedef enum ColorSpace {...} ColorSpace}; }; @@ \ns platform @@ \u YCommon;
++ using platform::Colors @@ \ns YSLib::Drawing @@ \h Adapter;
 
-r22:
-/ \impl @@ \ctor @@ \cl MDualScreenReader @@ \u DSReader;
+r15-r17:
+/ test 3:
+	* DefColorH(000000, White) -> DefColorH(FFFFFF, White) @@ \u YCommon;
+	^ \ns Colors;
 
-r23-r25:
-/ \impl @@ \mf void ShlReader::OnKeyPress(const MKeyEventArgs&) @@ \u Shells;
+r18:
+/ @@ \u YCommon:
+	* #define DefColorH_(hex, name) name = RGB8(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF))
+		-> #define DefColorH_(hex, name) name = RGB8(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF)) | BITALPHA;
+	/= \a ColorSpace => ColorsSet;
+	/ struct Colors -> class Colors:
+		+ \i \ctor Colors(PIXEL);
+		+ \i \mf operator PIXEL() const;
+
+r19:
+/= \a Keys => Key;
+/= \a Colors => Color;
+/= \a KeysSet => KeySet;
+/= \a ColorsSet => ColorSet;
+
+r20:
+/ test 4;
 
 
 DOING:

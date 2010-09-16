@@ -1,8 +1,8 @@
 ﻿// YShell DS 测试程序 -> ARM9 主程序 by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 21:26:30;
-// UTime = 2010-9-2 10:21;
-// Version = 0.2002;
+// UTime = 2010-9-16 21:05;
+// Version = 0.2009;
 
 
 //标识主源文件。
@@ -29,6 +29,7 @@
 #include YS_YSBUILD_H
 
 using namespace platform;
+using std::puts;
 
 YSL_BEGIN
 
@@ -41,19 +42,19 @@ static void YSDebug_MSG_Print(const Message& msg)
 {
 	iprintf("time : %u ticks\n", GetTicks());
 	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
-	waitForInput();
+	WaitForInput();
 	StartTicks();
 }
 void YSDebug_MSG_Insert(const Message& msg)
 {
 	YDebugBegin();
-	iputs("-YSLIB_DEBUG : MSG_Insert");
+	puts("-YSLIB_DEBUG : MSG_Insert");
 	YSDebug_MSG_Print(msg);
 }
 void YSDebug_MSG_Peek(const Message& msg)
 {
 	YDebugBegin();
-	iputs("-YSLIB_DEBUG : MSG_Peek");
+	puts("-YSLIB_DEBUG : MSG_Peek");
 	YSDebug_MSG_Print(msg);
 }
 

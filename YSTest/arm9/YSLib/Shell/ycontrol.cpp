@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-9-14 23:58;
-// Version = 0.3074;
+// UTime = 2010-9-16 23:31;
+// Version = 0.3088;
 
 
 #include "ycontrol.h"
@@ -262,7 +262,7 @@ MVisualControl::OnTouchMove(IVisualControl& c, const MTouchEventArgs& e)
 
 
 YVisualControl::YVisualControl(HWND hWnd, const SRect& r, IWidgetContainer* pCon)
-: YComponent(), MWidget(hWnd, r, pCon), MVisualControl(ARGB16(1, 31, 31, 31), ARGB16(1, 0, 0, 0))
+: YComponent(), MWidget(hWnd, r, pCon), MVisualControl(Color::White, Color::Black)
 {
 	if(pContainer != NULL)
 	{
@@ -423,7 +423,7 @@ YListBox::DrawForeground()
 		{
 			if(Viewer.IsSelected() && i == Viewer.GetSelected())
 			{
-				prTextRegion->Color = ~0;
+				prTextRegion->Color = Color::White;
 				FillRect(hWindow->GetBufferPtr(), hWindow->GetSize(),
 					SRect(pt.X + 1, pt.Y + 1, prTextRegion->GetWidth() - 2, prTextRegion->GetHeight() - 2),
 					PixelType(ARGB16(1, 6, 27, 31)));
@@ -480,37 +480,37 @@ YListBox::_m_OnKeyPress(const MKeyEventArgs& k)
 	{
 		switch(k)
 		{
-		case Keys::Enter:
+		case Key::Enter:
 			CallConfirmed();
 			break;
 
-		case Keys::ESC:
+		case Key::ESC:
 			ClearSelected();
 			CallSelected();
 			break;
 
-		case Keys::Up:
-		case Keys::Down:
-		case Keys::PgUp:
-		case Keys::PgDn:
+		case Key::Up:
+		case Key::Down:
+		case Key::PgUp:
+		case Key::PgDn:
 			{
 				const ViewerType::IndexType i(Viewer.GetSelected());
 
 				switch(k)
 				{
-				case Keys::Up:
+				case Key::Up:
 					--Viewer;
 					break;
 
-				case Keys::Down:
+				case Key::Down:
 					++Viewer;
 					break;
 
-				case Keys::PgUp:
+				case Key::PgUp:
 					Viewer -= Viewer.GetLength();
 					break;
 
-				case Keys::PgDn:
+				case Key::PgDn:
 					Viewer += Viewer.GetLength();
 					break;
 				}

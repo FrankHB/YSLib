@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:36;
-// UTime = 2010-9-3 23:02;
-// Version = 0.1869;
+// UTime = 2010-9-16 16:54;
+// Version = 0.1873;
 
 
 #include "yapp.h"
@@ -38,7 +38,7 @@ YLog::Error(const std::string& s)
 void
 YLog::FatalError(const char*)
 {
-	platform::terminate();
+	terminate();
 }
 void
 YLog::FatalError(const std::string& s)

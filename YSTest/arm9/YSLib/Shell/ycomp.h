@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-19 20:05:08;
-// UTime = 2010-5-19 21:40;
-// Version = 0.2188;
+// UTime = 2010-9-16 23:30;
+// Version = 0.2272;
 
 
 #ifndef INCLUDED_YCOMPONENT_H_
@@ -28,6 +28,47 @@ class YComponent : public GMCounter<YComponent>, public YCountableObject,
 public:
 	typedef YCountableObject ParentType;
 };
+
+
+//控制台。
+class YConsole : public YComponent
+{
+public:
+	YScreen& Screen;
+
+	explicit
+	YConsole(YScreen&);
+	virtual
+	~YConsole();
+
+	void
+	Activate(Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black);
+
+	void
+	Deactivate();
+};
+
+inline
+YConsole::YConsole(YScreen& scr)
+: Screen(scr)
+{}
+inline
+YConsole::~YConsole()
+{
+	Deactivate();
+}
+
+inline void
+YConsole::Activate(Drawing::PixelType fc, Drawing::PixelType bc)
+{
+	Def::InitConsole(Screen, fc, bc);
+}
+
+inline void
+YConsole::Deactivate()
+{
+	Def::InitVideo();
+}
 
 YSL_END_NAMESPACE(Components)
 

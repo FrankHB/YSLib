@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:42;
-// UTime = 2010-9-11 14:32;
-// Version = 0.1785;
+// UTime = 2010-9-16 21:09;
+// Version = 0.1795;
 
 
 #include "ycommon.h"
@@ -312,7 +312,7 @@ namespace platform
 	}
 
 	void
-	resetVideo()
+	ResetVideo()
 	{
 		REG_BG0CNT = REG_BG1CNT = REG_BG2CNT = REG_BG3CNT = 0;
 		REG_BG0CNT_SUB = REG_BG1CNT_SUB = REG_BG2CNT_SUB = REG_BG3CNT_SUB = 0;
@@ -392,7 +392,7 @@ namespace platform
 
 
 	void
-	waitForInput()
+	WaitForInput()
 	{
 		while(true)
 		{
@@ -404,7 +404,7 @@ namespace platform
 	}
 
 	void
-	waitForKey(u32 mask)
+	WaitForKey(u32 mask)
 	{
 		while(true)
 		{
@@ -603,7 +603,7 @@ namespace platform
 		if(bDebugStatus)
 		{
 			YDebugBegin();
-			waitForInput();
+			WaitForInput();
 		}
 	}
 	void
@@ -612,8 +612,8 @@ namespace platform
 		if(bDebugStatus)
 		{
 			YDebugBegin();
-			iputs(s);
-			waitForInput();
+			std::puts(s);
+			WaitForInput();
 		}
 	}
 
@@ -624,7 +624,7 @@ namespace platform
 		{
 			YDebugBegin();
 			iputw(n);
-			waitForInput();
+			WaitForInput();
 		}
 	}
 
@@ -644,7 +644,7 @@ namespace platform
 			t = viprintf(str, list);
 
 			va_end(list);
-			waitForInput();
+			WaitForInput();
 		}
 		return t;
 	}

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15;
-// UTime = 2010-9-2 10:25;
-// Version = 0.2708;
+// UTime = 2010-9-16 17:31;
+// Version = 0.2709;
 
 
 #include "../Shell/ywindow.h"
@@ -175,7 +175,7 @@ YShell::DefShlProc(const Message& msg)
 		return 0;
 
 	case SM_QUIT:
-		Terminate(lParam);
+		std::exit(lParam);
 
 	default:
 		break;

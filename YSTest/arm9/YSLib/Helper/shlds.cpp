@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-13 14:17:14;
-// UTime = 2010-9-12 15:22;
-// Version = 0.1395;
+// UTime = 2010-9-16 23:29;
+// Version = 0.1398;
 
 
 #include "shlds.h"
@@ -107,15 +107,15 @@ ResponseInput(const Message& msg)
 
 	if(p)
 	{
-		if(p->up & Runtime::Keys::Touch)
+		if(p->up & Runtime::Key::Touch)
 			OnTouchUp(msg.GetCursorLocation());
 		else if(p->up)
 			OnKeyUp(p->up);
-		if(p->down & Runtime::Keys::Touch)
+		if(p->down & Runtime::Key::Touch)
 			OnTouchDown(msg.GetCursorLocation());
 		else if(p->down)
 			OnKeyDown(p->down);
-		if(p->held & Runtime::Keys::Touch)
+		if(p->held & Runtime::Key::Touch)
 			OnTouchHeld(msg.GetCursorLocation());
 		else if(p->held)
 			OnKeyHeld(p->held);

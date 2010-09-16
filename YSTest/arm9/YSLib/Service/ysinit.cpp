@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YShellInitialization by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-10-21 23:15:08;
-// UTime = 2010-9-2 10:34;
-// Version = 0.1615;
+// UTime = 2010-9-16 23:36;
+// Version = 0.1639;
 
 
 #include "ysinit.h"
@@ -10,16 +10,14 @@
 
 using namespace stdex;
 using namespace platform;
+using std::puts;
 
 YSL_BEGIN
-
-static bool bMainConsole(false);
 
 void
 InitYSConsole()
 {
-	if(!bMainConsole)
-		YConsoleInit(true, RGB15(31, 31, 31), RGB15(0, 31, 0));
+	YConsoleInit(true, Color::Lime, Color::Teal);
 }
 
 void
@@ -35,7 +33,7 @@ namespace
 	inline void
 	fatalError()
 	{
-		std::terminate();
+		terminate();
 	}
 
 	void
@@ -109,13 +107,13 @@ LibfatFail()
 void
 InitializeSystemFontCache()
 {
-	iputs("Loading font files...");
+	puts("Loading font files...");
 	CreateFontCache(pDefaultFontCache, DEF_FONT_PATH);
 	if(pDefaultFontCache != NULL && DEF_FONT_DIRECTORY != NULL)
 		pDefaultFontCache->LoadFontFileDirectory(DEF_FONT_DIRECTORY);
 	CheckSystemFontCache();
 	iprintf("%u font file(s) are loaded\nsuccessfully.\n", pDefaultFontCache->GetFilesN());
-	iputs("Setting default font face...");
+	puts("Setting default font face...");
 
 	const Drawing::Typeface* const pf(pDefaultFontCache->GetDefaultTypefacePtr());
 
@@ -123,7 +121,7 @@ InitializeSystemFontCache()
 		iprintf("\"%s\":\"%s\",\nsuccessfully.\n", pf->GetFamilyName(), pf->GetStyleName());
 	else
 	{
-		iputs("failed.");
+		puts("failed.");
 		defFontFail();
 	}
 }
@@ -138,10 +136,10 @@ DestroySystemFontCache()
 void
 CheckInstall()
 {
-	iputs("Checking installation...");
+	puts("Checking installation...");
 	if(!(fexists(DEF_FONT_PATH) || direxists(DEF_FONT_DIRECTORY)))
 		installFail();
-	iputs("OK!");
+	puts("OK!");
 }
 
 void

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-2 12:00:08;
-// UTime = 2010-7-13 1:53;
-// Version = 0.1975;
+// UTime = 2010-9-16 20:57;
+// Version = 0.1979;
 
 
 #ifndef INCLUDED_YDESKTOP_H_
@@ -15,7 +15,7 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Device)
+YSL_BEGIN_NAMESPACE(Components)
 
 //桌面。
 class YDesktop : public YFrameWindow
@@ -76,7 +76,7 @@ public:
 	Update(); //更新缓冲区内容至屏幕。
 };
 
-YSL_END_NAMESPACE(Device)
+YSL_END_NAMESPACE(Components)
 
 YSL_END
 
