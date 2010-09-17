@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YShellInitialization by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-10-21 23:15:08;
-// UTime = 2010-9-16 23:36;
-// Version = 0.1639;
+// UTime = 2010-9-18 0:52;
+// Version = 0.1664;
 
 
 #include "ysinit.h"
@@ -17,7 +17,7 @@ YSL_BEGIN
 void
 InitYSConsole()
 {
-	YConsoleInit(true, Color::Lime, Color::Teal);
+	YConsoleInit(true, Color::Lime);
 }
 
 void
@@ -61,7 +61,7 @@ namespace
 	}
 
 	void
-	installFail()
+	installFail(const char* str)
 	{
 		const char* title =
 			"      Invalid Installation      ";
@@ -70,6 +70,7 @@ namespace
 			" stored in correct directory.   ";
 
 		printFailInfo(title, warning);
+		iprintf(" %s not found!\n", str);
 		fatalError();
 	}
 }
@@ -137,8 +138,10 @@ void
 CheckInstall()
 {
 	puts("Checking installation...");
+	if(!direxists(DEF_FONT_DIRECTORY))
+		installFail("Default data directory");
 	if(!(fexists(DEF_FONT_PATH) || direxists(DEF_FONT_DIRECTORY)))
-		installFail();
+		installFail("Default font");
 	puts("OK!");
 }
 

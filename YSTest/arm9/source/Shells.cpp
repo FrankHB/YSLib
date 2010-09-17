@@ -277,8 +277,7 @@ ShlS::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs& e)
 {
 	YLabel& l(HandleCast<TFrmFileListMonitor>(HandleCast<ShlS>(hShell)->hWndUp)->lblPath);
 
-	l.Text = fbMain.List[e.index];
-	l.DrawForeground();
+	l.Text = Text::MBCSToString(IO::GetNowDirectory()) + fbMain.List[e.Index];
 	l.Refresh();
 }
 
@@ -294,7 +293,7 @@ ShlS::fb_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
 void
 ShlS::fb_Confirmed(IVisualControl& sender, const MIndexEventArgs& e)
 {
-	if(e.index == 2)
+	if(e.Index == 2)
 		switchShl1();
 }
 
@@ -304,15 +303,18 @@ ShlS::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&)
 	if(fbMain.IsSelected())
 	{
 		YConsole con(*pScreenUp);
-		con.Activate();
-		std::fprintf(stderr, "err");
+
+		con.Activate(Color::Silver);
+
+		iprintf("Current Working Directory:\n%s\n", IO::GetNowDirectory().c_str());
+	//	std::fprintf(stderr, "err");
 		WaitForInput();
 	}
 	else
 	{
 		YConsole con(*pScreenDown);
-		con.Activate(RGB15(31, 31, 31), RGB15(0, 31, 31));
-		std::fprintf(stdout, "nnn");
+		con.Activate(Color::Yellow, Color::Green);
+		puts("OK");
 		WaitForInput();
 	}
 }

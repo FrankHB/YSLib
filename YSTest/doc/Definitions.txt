@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-9-16 23:32;
-// Version = r7546;
+// UTime = 2010-9-17 18:12;
+// Version = r7556;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -769,7 +769,7 @@ $unit YCommon "ycommon"
 
 		//启动控制台（fc 为前景色，bc为背景色）。
 		void
-		YConsoleInit(u8 dspIndex, PixelType fc = RGB15(31, 31, 31), PixelType bc = RGB15( 0, 0, 31));
+		YConsoleInit(u8 dspIndex, PixelType fc = Color::White, PixelType bc = Color::Black);
 
 		//输出控制台字（int 型数据）。
 		inline void
@@ -2971,7 +2971,7 @@ $unit YString "ystring"
 
 	//多字节字符串转化为 YSLib 标准字符串。
 	String
-	MBCSToMString(const char*, const CSID& = CS_Local);
+	MBCSToString(const char*, const CSID& = CS_Local);
 	inline String
 	MBCSToString(const std::string& s, const CSID& = CS_Local);
 
@@ -3544,7 +3544,7 @@ $unit YApplication "yapp"
 
 $unit YFileSystem "yfilesys"
 {
-	$import $unit Core::YString, Core::YFunc, Helper::YGlobal, Core::YShell/* for HSHL delete procedure; */, $header <vector>, <list>, $unit Shell::YWindow;
+	$import $unit Core::YString, Core::YFunc, Helper::YGlobal, Core::YShell/* for HSHL delete procedure; */, $header <vector>, <list>;
 
 
 	YSL_BEGIN_NAMESPACE(IO)
@@ -3563,8 +3563,8 @@ $unit YFileSystem "yfilesys"
 	class Path
 	{
 	public:
-		typedef NativePathCharType value_type;
-		typedef std::basic_string<value_type> StringType;
+		typedef NativePathCharType ValueType;
+		typedef std::basic_string<ValueType> StringType;
 	//	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
 
 	private:
@@ -3639,7 +3639,7 @@ $unit YFileSystem "yfilesys"
 		DefGetter(StringType, GeneralString, pathname) //取一般字符串。
 		DefGetter(const StringType&, NativeString, pathname) //取本地格式和编码的字符串。
 
-		PDefHead(const value_type*, c_str) //本地格式和编码的 C 风格字符串。
+		PDefHead(const ValueType*, c_str) //本地格式和编码的 C 风格字符串。
 			ImplBodyMember(GetNativeString(), c_str)
 
 		//修改函数。
@@ -3773,20 +3773,24 @@ $unit YFileSystem "yfilesys"
 
 		const Path&
 		GetDirectory() const; //取目录的完整路径。
-		u32
-		LoadSubItems(); //在目录中取子项目保存至参数。
 		const ListType&
 		GetList() const; //取项目列表。
 
-		u32
+		ListType::size_type
+		LoadSubItems(); //在目录中取子项目。
+
+		ListType::size_type
 		ListItems(); //遍历目录中的项目，更新至列表。
 
 		void
 		GoToPath(const Path&); //导航至指定路径对应目录。
+
 		void
 		GoToSubDirectory(const std::string&); //导航至子目录。
+
 		void
 		GoToRoot(); //返回根目录。
+
 		void
 		GoToParent(); //返回上一级目录。
 	}; //class MFileList;
@@ -4792,8 +4796,8 @@ $unit YControl "ycontrol"
 	{
 		typedef std::ptrdiff_t IndexType;
 
-		IVisualControl& con;
-		IndexType index;
+		IVisualControl& Control;
+		IndexType Index;
 
 		inline
 		MIndexEventArgs(IVisualControl& c, IndexType i)'

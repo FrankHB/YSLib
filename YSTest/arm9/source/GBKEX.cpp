@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-9-16;
-// Version = 0.2614; *Build 148 r20;
+// UTime = 2010-9-18;
+// Version = 0.2615; *Build 149 r39;
 
 
 #include "../YCLib/ydef.h"
@@ -93,91 +93,70 @@ Record prefix and abbrevations:
 
 DONE:
 r1:
-/ @@ \u Shells:
-	+ \cl YConsole;
-	/ \tr \impl @@ void ShlS::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&);
+/ \simp \impl @@ \mf void ShlS::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs&) @@ \u Shells;
 
 r2:
-/= @@ \u YCommon;
-	/= \tr order;
-/ @@ \h YAdapter:
-	+ using platform::terminate;
-/ @@ \tr \impl @@ \i \f void fatalError() @@ unnamed \ns @@ \u YInitialization;
-/ @@ \u YGlobal:
-	/ \impl @@ YSInit() @@ unnamed \ns;
-	- void Terminate(int);
-/ @@ \tr \impl @@ \mf void FatalError(const char*) @@ \cl YLog @@ \u YApplication;
-/ @@ \tr \impl @@ LRES DefShlProc(const Message&) @@ \cl YShell @@ \u YShell;
+/= @@ \cl MIndexEventArgs @@ \u YControl:
+	/= \m index => Index;
+	/= \m con = > Control;
+		/= \tr \impl @@ \u Shells;
+/ @@ \cl YPath \u YFileSystem:
+	/= \m value_type => ValueType;
+	/= PDefHead(const value_type*, c_str) => PDefHead(const ValueType*, c_str);
 
 r3:
-/ \ctor YConsole()->YConsole(YScreen&) @@ \cl YConsole @@ \u Shells;
-- \f iputs(const char*) @@ \u YCommon;
-	/ \tr \impl @@ \u YInitialization:
-		/ \tr \impl @@ \f void InitializeSystemFontCache();
-		/ \tr \impl @@ \f void CheckInstall();
-	/ \impl @@ void YDebug(const char*);
-	/ \tr \impl @@ \u Main:
-		/ \tr \impl @@ \f void YSDebug_MSG_Insert(const Message&);
-		/ \tr \impl @@ \f void YSDebug_MSG_Peek(const Message&);
-r4:
-+ \s \f bool InitConsole(YScreen&, Drawing::PixelType, Drawing::PixelType) @@ \cl Def @@ \u YGlobal;
-/ @@ \u Shells:
-	/ \impl \cl YConsole;
+/ \a MBCSToMString => MBCSToString;
 
-r5:
-* \cl YDesktop @@ \ns Device >> \ns Components;
-	/ \tr \decl @@ \h YSDefinition;
+r4-r9:
+/ test 1:
+	* \impl @@ std::string GetNowDirectory() @@ \ns IO @@ \u YFileSystem;
 
-r6:
-/ \a waitForInput => WaitForInput;
-/ \a waitForKey => WaitForKey;
-/ \a resetVideo => ResetVideo;
-/ \a waitForKeypad => WaitForKeypad;
-/ \a waitForFrontKey => WaitForFrontKey;
-/ \a waitForFrontKeypad => WaitForFrontKeypad;
-/ \a waitForArrowKey => WaitForArrowKey;
-/ \a waitForABXY => WaitForABXY;
+r10-r11:
+/ @@ \u YFileSystem:
+	- \inc "../Shell/ywindow.h";
+	/= @@ \cl MFileList:
+		/= \ret \tp @@ \mf u32 LoadSubItems() -> ListType::size_type;
+		/= \ret \tp @@ \mf u32 ListItems() -> ListType::size_type;
 
-r7-r8:
-/ test 1;
+r12-r20:
+/= test 2;
 
-r9-r12:
-/ \cl @@ \u Shells >> \u YComponent;
-/ test 2:
-	* \tr \impl @@ \s \f bool InitConsole(YScreen& scr, Drawing::PixelType, Drawing::PixelType) @@ \cl @@ \YGlobal;
+r21:
+/ \impl @@ \mf void YFontCache::LoadFontFileDirectory(CPATH, CPATH) @@ \u YFont:
+	^ HDirectory;
+	/ \simp;
 
-r13:
-/ \tr \impl @@ \mf void ShlS::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&);
+r22:
+/ \tr @@ \u YShellInitialization:
+	* \impl @@ \f void CheckInstall();
+	/ \tr \impl @@ \f void InitYSConsole();
 
-r14:
-/ @@ \u YInitialization:
-	- \s bool bMainConsole;
-		/ \simp \tr \impl @@ \f void InitYSConsole();
-+ struct Colors { typedef enum ColorSpace {...} ColorSpace}; }; @@ \ns platform @@ \u YCommon;
-+ using platform::Colors @@ \ns YSLib::Drawing @@ \h Adapter;
+r23-r24:
+/= test 3;
+	/ \tr \impl @@ \f void InitYSConsole() @@ \u YShellInitialization;
 
-r15-r17:
-/ test 3:
-	* DefColorH(000000, White) -> DefColorH(FFFFFF, White) @@ \u YCommon;
-	^ \ns Colors;
+r25-r26:
+/ \tr @@ \u YShellInitialization:
+	/ \impl @@ \f void InitYSConsole();
+	/ \f void installFail() -> void installFail(const char*) @@ unnamed \ns;
+	/ \impl @@ \f void CheckInstall();
 
-r18:
-/ @@ \u YCommon:
-	* #define DefColorH_(hex, name) name = RGB8(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF))
-		-> #define DefColorH_(hex, name) name = RGB8(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF)) | BITALPHA;
-	/= \a ColorSpace => ColorsSet;
-	/ struct Colors -> class Colors:
-		+ \i \ctor Colors(PIXEL);
-		+ \i \mf operator PIXEL() const;
+r27-r35:
+/= test 4;
+	/ @@ \u YShellInitialization:
+		/ \tr \impl @@ \f void InitYSConsole();
+		* \impl @@ \f void CheckInstall();
 
-r19:
-/= \a Keys => Key;
-/= \a Colors => Color;
-/= \a KeysSet => KeySet;
-/= \a ColorsSet => ColorSet;
+r36:
+/ void YConsoleInit(u8 dspIndex, PIXEL = RGB15(31, 31, 31), PIXEL = RGB15( 0, 0, 31))
+	-> void YConsoleInit(u8 dspIndex, PIXEL = Color::White, PIXEL = Color::Black)
+	@@ \u YCommon;
 
-r20:
-/ test 4;
+r37-r38:
+	/ \tr \impl @@ \f void InitYSConsole() @@ \u YShellInitialization;	
+
+r39:
+/ edited \g makefile to make a copy without DLDI automatically while building;
 
 
 DOING:
@@ -185,6 +164,7 @@ DOING:
 / ...
 
 NEXT:
+* fatal error;
 + fully \impl \u YFileSystem;
 / fully \impl \cl ShlReader;
 / fully \impl btnTest;
@@ -195,7 +175,7 @@ Clarify the log levels.
 
 Make "UpdateFont()" more efficienct.
 
-More efficient  @YTextRegion output:
+More efficient @YTextRegion output:
 Use in-buffer background color rendering and function @CopyToScreen() to inplements @YTextRegion background;
 Use pre-refershing to make font changing.
 
@@ -203,7 +183,7 @@ Consider to simplify the general window class: @YForm.
 
 Rewrite system RTC.
 
-Build a more advanced console system.
+Build a more advanced console wrapper.
 
 Build a series set of robust gfx APIs.
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:24;
-// UTime = 2010-9-16 23:30;
-// Version = 0.3439;
+// UTime = 2010-9-17 16:57;
+// Version = 0.3444;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -26,12 +26,12 @@ struct MIndexEventArgs : public MEventArgs
 {
 	typedef std::ptrdiff_t IndexType;
 
-	IVisualControl& con;
-	IndexType index;
+	IVisualControl& Control;
+	IndexType Index;
 
 	MIndexEventArgs(IVisualControl& c, IndexType i)
 	: MEventArgs(),
-	con(c), index(i)
+	Control(c), Index(i)
 	{}
 };
 

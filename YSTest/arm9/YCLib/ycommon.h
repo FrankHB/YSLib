@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28;
-// UTime = 2010-9-16 23:30;
-// Version = 0.2024;
+// UTime = 2010-9-18 0:48;
+// Version = 0.2028;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -402,7 +402,7 @@ namespace platform
 
 	//启动控制台（fc 为前景色，bc为背景色）。
 	void
-	YConsoleInit(u8 dspIndex, PIXEL fc = RGB15(31, 31, 31), PIXEL bc = RGB15( 0, 0, 31));
+	YConsoleInit(u8 dspIndex, PIXEL fc = Color::White, PIXEL bc = Color::Black);
 
 	//输出控制台字（int 型数据）。
 	inline void

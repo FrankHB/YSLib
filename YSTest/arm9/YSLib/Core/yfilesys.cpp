@@ -1,12 +1,11 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:36:30;
-// UTime = 2010-9-3 23:02;
-// Version = 0.1722;
+// UTime = 2010-9-18 0:50;
+// Version = 0.1734;
 
 
 #include "yfilesys.h"
-#include "../Shell/ywindow.h" // for HWND delete procedure;
 
 YSL_BEGIN
 
@@ -314,7 +313,7 @@ GetNowDirectory()
 {
 	PATHSTR buf;
 
-	return getcwd(buf, MAX_PATH_LENGTH - 1) != NULL ? std::string() : std::string(buf);
+	return getcwd(buf, MAX_PATH_LENGTH - 1) == NULL ? std::string() : std::string(buf);
 }
 
 
@@ -324,7 +323,7 @@ MFileList::MFileList()
 MFileList::~MFileList()
 {}
 
-u32
+MFileList::ListType::size_type
 MFileList::LoadSubItems()
 {
 	HDirectory dir(FS_Now);
@@ -342,13 +341,13 @@ MFileList::LoadSubItems()
 		while((++dir).LastError == 0)
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
 				List.push_back(HDirectory::Stat.st_mode & S_IFDIR ?
-					MBCSToMString(HDirectory::Name) + String(FS_Seperator)
-					: MBCSToMString(HDirectory::Name));
+					MBCSToString(HDirectory::Name) + String(FS_Seperator)
+					: MBCSToString(HDirectory::Name));
 	}
 	return n;
 }
 
-u32
+MFileList::ListType::size_type
 MFileList::ListItems()
 {
 	return LoadSubItems();

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:09:28;
-// UTime = 2010-9-3 23:02;
-// Version = 0.1596;
+// UTime = 2010-9-17 18:12;
+// Version = 0.1612;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -35,8 +35,8 @@ typedef char NativePathCharType; //本地路径字符类型，POSIX 为 char ，
 class Path
 {
 public:
-	typedef NativePathCharType value_type;
-	typedef std::basic_string<value_type> StringType;
+	typedef NativePathCharType ValueType;
+	typedef std::basic_string<ValueType> StringType;
 //	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
 
 private:
@@ -107,7 +107,7 @@ public:
 	DefGetter(StringType, GeneralString, pathname) //取一般字符串。
 	DefGetter(const StringType&, NativeString, pathname) //取本地格式和编码的字符串。
 
-	PDefHead(const value_type*, c_str) //本地格式和编码的 C 风格字符串。
+	PDefHead(const ValueType*, c_str) //本地格式和编码的 C 风格字符串。
 		ImplBodyMember(GetNativeString(), c_str)
 
 	//修改函数。
@@ -320,18 +320,22 @@ public:
 	GetDirectory() const; //取目录的完整路径。
 	const ListType&
 	GetList() const; //取项目列表。
-	u32
+
+	ListType::size_type
 	LoadSubItems(); //在目录中取子项目。
 
-	u32
+	ListType::size_type
 	ListItems(); //遍历目录中的项目，更新至列表。
 
 	void
 	GoToPath(const Path&); //导航至指定路径对应目录。
+
 	void
 	GoToSubDirectory(const std::string&); //导航至子目录。
+
 	void
 	GoToRoot(); //返回根目录。
+
 	void
 	GoToParent(); //返回上一级目录。
 };

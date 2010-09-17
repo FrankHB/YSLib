@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YString by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-5 22:06:05;
-// UTime = 2010-9-2 10:25;
-// Version = 0.2823;
+// UTime = 2010-9-17 17:09;
+// Version = 0.2826;
 
 
 #ifndef INCLUDED_YSTRING_H_
@@ -62,11 +62,11 @@ String::String(const stdex::ustring& s)
 
 //多字节字符串转化为 YSLib 标准字符串。
 String
-MBCSToMString(const char*, const CSID& = CS_Local);
+MBCSToString(const char*, const CSID& = CS_Local);
 inline String
 MBCSToString(const std::string& s, const CSID& cp = CS_Local)
 {
-	return MBCSToMString(s.c_str(), cp);
+	return MBCSToString(s.c_str(), cp);
 }
 
 YSL_END_NAMESPACE(Text)

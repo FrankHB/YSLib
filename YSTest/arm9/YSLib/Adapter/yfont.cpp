@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13;
-// UTime = 2010-9-11 0:04;
-// Version = 0.6872;
+// UTime = 2010-9-18 0:04;
+// Version = 0.6886;
 
 
 #include "yfont.h"
@@ -518,32 +518,24 @@ YFontCache::LoadTypefaces(const FontFile& f)
 void
 YFontCache::LoadFontFileDirectory(CPATH path, CPATH ext)
 {
-	DIR_ITER* dir(diropen(path));
-	u32 n(0);
-
-	if(dir)
 	{
-		FILENAMESTR name;
-		struct stat st;
+		HDirectory dir(path);
 
-		while(!dirnext(dir, name, &st))
-			if(name[0] != '.' && !(st.st_mode & S_IFDIR) && IsExtendName(ext, name))
-				++n;
-		//	sFiles.reserve(n);
-		dirreset(dir);
-		while(!dirnext(dir, name, &st))
-			if(name[0] != '.' && !(st.st_mode & S_IFDIR) && IsExtendName(ext, name))
-			{
-				try
+		if(dir.IsValid())
+			while((++dir).LastError == 0)
+				if(std::strcmp(HDirectory::Name, FS_Now) != 0
+					&& !(HDirectory::Stat.st_mode & S_IFDIR)
+					&& IsExtendName(ext, HDirectory::Name))
 				{
-					*this += *new FontFile(path, name, library);
+					try
+					{
+						*this += *new FontFile(path, HDirectory::Name, library);
+					}
+					catch(std::bad_alloc&)
+					{
+						throw LoggedEvent("Allocation failed @@ YFontCache::LoadFontFileDirectory(CPATH, CPATH);", 2);
+					}
 				}
-				catch(std::bad_alloc&)
-				{
-					throw LoggedEvent("Allocation failed @@ YFontCache::LoadFontFileDirectory(CPATH, CPATH);", 2);
-				}
-			}
-		dirclose(dir);
 	}
 	LoadTypefaces();
 	if(pDefaultFace)

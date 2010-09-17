@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52;
-// UTime = 2010-9-16 23:28;
-// Version = 0.2365;
+// UTime = 2010-9-18 0:50;
+// Version = 0.2366;
 
 
 #include "yglobal.h"
