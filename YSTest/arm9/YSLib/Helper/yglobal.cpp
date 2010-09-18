@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52;
-// UTime = 2010-9-18 0:50;
-// Version = 0.2366;
+// UTime = 2010-9-18 10:29;
+// Version = 0.2379;
 
 
 #include "yglobal.h"
@@ -28,9 +28,7 @@ YLog DefaultLog;
 YScreen*& pDefaultScreen(pScreenUp);
 YDesktop*& pDefDesktop(pDesktopUp);
 YApplication& theApp(YApplication::GetApp());
-YMessageQueue& DefaultMQ(theApp.DefaultMQ);
-YMessageQueue& DefaultMQ_Backup(theApp.DefaultMQ_Backup);
-YFontCache*& pDefaultFontCache(theApp.FontCache);
+YFontCache*& pDefaultFontCache(theApp.pFontCache);
 YApplication* const pApp(&theApp);
 const HSHL hShellMain(new YShellMain); //取主 Shell 句柄。
 
@@ -58,7 +56,7 @@ namespace
 
 		const SPoint pt(ToSPoint(Key.held & Key::Touch ? TouchPos : TouchPos_Old));
 
-		if(DefaultMQ.empty() || Key != *reinterpret_cast<KeysInfo*>(InputMessage.GetWParam()) || pt != InputMessage.GetCursorLocation())
+		if(theApp.GetDefaultMessageQueue().empty() || Key != *reinterpret_cast<KeysInfo*>(InputMessage.GetWParam()) || pt != InputMessage.GetCursorLocation())
 			InsertMessage((InputMessage = Message(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Key), 0, pt)));
 	/*
 		InputMessage = Message(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Key), 0, ToSPoint(tp));

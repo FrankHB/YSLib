@@ -1,13 +1,15 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:36;
-// UTime = 2010-9-16 16:54;
-// Version = 0.1873;
+// UTime = 2010-9-18 10:31;
+// Version = 0.1908;
 
 
 #include "yapp.h"
 
 YSL_BEGIN
+
+using namespace Exceptions;
 
 YLog::YLog()
 {}
@@ -53,17 +55,19 @@ const String YApplication::ProductName(G_APP_NAME);
 const String YApplication::ProductVersion(G_APP_VER);
 
 YApplication::YApplication()
-: YObject(), Log(DefaultLog), DefaultMQ(), DefaultMQ_Backup(), FontCache(NULL), sShls(), hShell(NULL)
+: YObject(), Log(DefaultLog), pMessageQueue(new YMessageQueue), pMessageQueueBackup(new YMessageQueue), sShls(), hShell(NULL)
 {
 	ApplicationExit += Def::Destroy;
 }
-YApplication::~YApplication()
+YApplication::~YApplication() ythrow()
 {
 	for(SHLs::const_iterator i(sShls.begin()); i != sShls.end(); ++i)
 		YDelete(*i);
 	//释放主 Shell 。
 //	YDelete(hShellMain);
 	ApplicationExit(*this, GetZeroElement<MEventArgs>());
+	delete pMessageQueue;
+	delete pMessageQueueBackup;
 }
 
 void
@@ -81,6 +85,21 @@ bool
 YApplication::Contains(HSHL hShl) const
 {
 	return sShls.count(hShl);
+}
+
+YMessageQueue&
+YApplication::GetDefaultMessageQueue() ythrow(LoggedEvent)
+{
+	if(pMessageQueue == NULL)
+		throw LoggedEvent("Get default message queue failed @@ YApplication.");
+	return *pMessageQueue;
+}
+YMessageQueue&
+YApplication::GetBackupMessageQueue() ythrow(LoggedEvent)
+{
+	if(pMessageQueueBackup == NULL)
+		throw LoggedEvent("Get backup message queue failed @@ YApplication.");
+	return *pMessageQueueBackup;
 }
 
 bool

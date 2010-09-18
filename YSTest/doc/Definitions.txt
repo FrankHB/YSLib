@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-9-17 18:12;
-// Version = r7556;
+// UTime = 2010-9-18 10:31;
+// Version = r7596;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -1866,8 +1866,6 @@ $header YShellDefinition "ysdef.h"
 	extern YScreen*& pDefaultScreen;
 	extern YDesktop*& pDefaultDesktop;
 	extern YApplication& theApp;
-	extern YMessageQueue& DefaultMQ; //全局消息队列。
-	extern YMessageQueue& DefaultMQ_Backup; //全局备份消息队列。
 	extern YFontCache*& pDefaultFontCache;
 	extern YApplication* const pApp;
 	extern const HSHL hShellMain;
@@ -3280,28 +3278,91 @@ $unit YShellMessage "ysmsg"
 	void
 	Merge(YMessageQueue& dst, YMessageQueue& src);
 
-
-	//全局默认消息插入函数。
-	inline void
-	InsertMessage(const Message&);
-	inline void
-	InsertMessage(const HSHL&, const MSGID&, const MSGPRIORITY&, const WPARAM& = 0, const LPARAM& = 0, const SPoint& = SPoint::Zero);
-
 	YSL_BEGIN_NAMESPACE(Shells)
 
 	using Shells::Message;
-	using Shells::InsertMessage;
 
 } //$unit YShellMessage;
 
 
-/* -deprecated -*
-$unit YShellProcessing "ysproc"
+$unit YShell "yshell"
 {
-	$import $header YFunc, $unit YShell, YGUI;
+	$import $header Helper::YGlobal, $header <set>, <list>, $unit YApplication,
+		$unit Shell::YWindow, Shell::YControl, Shell::YGUI;
 
 
 	YSL_BEGIN_NAMESPACE(Shells)
+
+	//外壳程序：实现线程语义。
+	class YShell : public YObject,
+		implements GIContainer<IWindow>
+	{
+	public:
+		typedef std::list<HWND> WNDs;
+
+	private:
+		WNDs sWnds; //窗口组。
+
+	public:
+		bool insRefresh; //即时刷新：自动加入屏幕刷新消息。
+		u32 scrType; //即时刷新屏幕选取设置。
+
+		YShell();
+		virtual
+		~YShell() ythrow();
+
+		bool
+		IsActive() const; //判断 Shell 是否处于激活状态。
+
+		bool
+		Activate(); //激活 Shell 对象： shlProc 控制权转移给此对象以维持单线程运行。
+
+		void
+		operator+=(IWindow&); //向窗口组添加窗口对象。
+		bool
+		operator-=(IWindow&); //从窗口组中移除指定窗口对象。
+		WNDs::size_type
+		RemoveAll(IWindow&); //从窗口组中移除所有指定窗口对象，返回移除的对象数。
+		void RemoveWindow(); //移除窗口队列中首个窗口对象。
+		HWND
+		GetFirstWindowHandle() const; //取得窗口组中首个窗口对象的句柄。
+		HWND
+		GetTopWindowHandle() const; //取得窗口组中顶端窗口对象的句柄。
+		HWND
+		GetTopWindowHandle(YDesktop&, const SPoint&) const; //取得窗口组中指定屏幕的指定的点所处的最顶层窗口对象的句柄。
+
+		bool
+		SendWindow(IWindow&); //向屏幕发送指定窗口对象。
+
+		void
+		DispatchWindows(); //向屏幕发送窗口对象。
+
+		void
+		ClearScreenWindows(YDesktop&); //清除指定屏幕中属于窗口组的窗口对象。
+
+		static LRES
+		DefShlProc(const Message&); //默认 Shell 处理函数。
+
+		virtual PDefHead(LRES, ShlProc, const Message& m) // Shell 处理函数：响应线程的直接调用。
+			ImplRet(DefShlProc(m))
+
+		virtual LRES
+		OnActivated(const Message&); // Shell 处理函数：响应线程的激活。
+
+		virtual LRES
+		OnDeactivated(const Message&); // Shell 处理函数：响应线程的撤销。
+	}; //class YShell;
+
+	class YShellMain : /*public GMCounter<YShellMain>, public YCountableObject,*/ public YShell
+	{
+	public:
+		YShellMain(HSHL);
+		inline virtual
+		~YShellMain() ythrow();
+
+		inline virtual LRES
+		ShlProc(const Message&);
+	}; //class YShellMain;
 
 	typedef LRES FSHLPROC(const Message&);
 	typedef FSHLPROC* PFSHLPROC;
@@ -3359,89 +3420,6 @@ $unit YShellProcessing "ysproc"
 	void
 	RecoverMessageQueue();
 
-	//清除默认消息队列。
-	inline YMessageQueue::size_type
-	ClearDefaultMessageQueue();
-
-	#endif
-
-} //$unit YShellProcessing;
-
-
-$unit YShell "yshell"
-{
-	$import $header Helper::YGlobal, $header <set>, <list>, $unit YApplication,
-		$unit Shell::YWindow, Shell::YControl, Shell::YGUI;
-
-
-	YSL_BEGIN_NAMESPACE(Shells)
-
-	//外壳程序：实现线程语义。
-	class YShell : public YObject,
-		implements GIContainer<IWindow>
-	{
-	public:
-		typedef std::list<HWND> WNDs;
-
-	private:
-		WNDs sWnds; //窗口组。
-
-	public:
-		bool insRefresh; //即时刷新：自动加入屏幕刷新消息。
-		u32 scrType; //即时刷新屏幕选取设置。
-
-		YShell();
-		virtual
-		~YShell() ythrow();
-
-		bool
-		IsActive() const; //判断 Shell 是否处于激活状态。
-
-		bool
-		Activate(); //激活 Shell 对象： shlProc 控制权转移给此对象以维持单线程运行。
-
-		void
-		operator+=(IWindow&); //向窗口组添加窗口对象。
-		bool
-		operator-=(IWindow&); //从窗口组中移除指定窗口对象。
-		WNDs::size_type
-		RemoveAll(IWindow&); //从窗口组中移除所有指定窗口对象，返回移除的对象数。
-		void RemoveWindow(); //移除窗口队列中首个窗口对象。
-		HWND
-		GetFirstWindowHandle() const; //取得窗口组中首个窗口对象的句柄。
-		HWND
-		GetTopWindowHandle() const; //取得窗口组中顶端窗口对象的句柄。
-		HWND
-		GetTopWindowHandle(YDesktop&, const SPoint&) const; //取得窗口组中指定屏幕的指定的点所处的最顶层窗口对象的句柄。
-
-		bool
-		SendWindow(IWindow&); //向屏幕发送指定窗口对象。
-		void
-		DispatchWindows(); //向屏幕发送窗口对象。
-		void
-		ClearScreenWindows(YDesktop&); //清除指定屏幕中属于窗口组的窗口对象。
-
-		static LRES
-		DefShlProc(const Message&); //默认 Shell 处理函数。
-		virtual PDefHead(LRES, ShlProc, const Message& m) // Shell 处理函数：响应线程的直接调用。
-			ImplRet(DefShlProc(m))
-		inline virtual LRES
-		OnActivated(const Message&); // Shell 处理函数：响应线程的激活。
-		inline virtual LRES
-		OnDeactivated(const Message&); // Shell 处理函数：响应线程的撤销。
-	}; //class YShell;
-
-	class YShellMain : /*public GMCounter<YShellMain>, public YCountableObject,*/ public YShell
-	{
-	public:
-		YShellMain(HSHL);
-		inline virtual
-		~YShellMain() ythrow();
-
-		inline virtual LRES
-		ShlProc(const Message&);
-	}; //class YShellMain;
-
 	YSL_END_NAMESPACE(Shells)
 
 } //$unit YShell;
@@ -3497,9 +3475,13 @@ $unit YApplication "yapp"
 
 		//全局资源。
 		YLog& Log; //默认程序日志。
-		YMessageQueue DefaultMQ; //主消息队列：在程序实例中实现以保证单线程。
-		YMessageQueue DefaultMQ_Backup; //备份消息队列：在程序实例中实现以保证单线程。
-		YFontCache* FontCache; //默认字体缓存。
+
+	private:
+		YMessageQueue* pMessageQueue; //主消息队列：在程序实例中实现以保证单线程。
+		YMessageQueue* pMessageQueueBackup; //备份消息队列：在程序实例中实现以保证单线程。
+
+	public:
+		YFontCache* pFontCache; //默认字体缓存。
 
 	private:
 		SHLs sShls; // Shell 对象组：实现 Shell 存储。
@@ -3515,7 +3497,7 @@ $unit YApplication "yapp"
 
 	public:
 		virtual
-		~YApplication();
+		~YApplication() ythrow();
 
 		void
 		operator+=(YShell&); //添加 Shell 对象。
@@ -3529,6 +3511,10 @@ $unit YApplication "yapp"
 		DefStaticGetter(HINSTANCE, InstanceHandle, HINSTANCE(GetInstancePtr())) //取得自身实例句柄。
 		DefGetter(const SHLs, ShellSet, sShls) //取 Shell 对象组。
 		DefGetter(HSHL, ShellHandle, hShell) //取得线程空间中当前运行的 Shell 的句柄。
+		YMessageQueue&
+		GetDefaultMessageQueue() ythrow(Exceptions::LoggedEvent);
+		YMessageQueue&
+		GetBackupMessageQueue() ythrow(Exceptions::LoggedEvent);
 
 		bool
 		SetShellHandle(HSHL h); //设置线程空间中当前运行的 Shell 的句柄。
@@ -3536,6 +3522,13 @@ $unit YApplication "yapp"
 		void
 		ResetShellHandle() ythrow(); //复位线程：设置当前运行的线程为主线程。
 	}; //class YApplication;
+
+
+	//全局默认消息插入函数。
+	inline void
+	InsertMessage(const Message&);
+	inline void
+	InsertMessage(const HSHL&, const MSGID&, const MSGPRIORITY&, const WPARAM& = 0, const LPARAM& = 0, const SPoint& = SPoint::Zero);
 
 	YSL_END_NAMESPACE(Shells)
 
@@ -4388,7 +4381,7 @@ $unit YComponent "ycomp"
 		YScreen& Screen;
 
 		explicit
-		YConsole(YScreen&);
+		YConsole(YScreen& = *pDefaultScreen);
 		virtual
 		~YConsole();
 
@@ -5827,19 +5820,17 @@ $export $unit YGlobal "yglobal"
 	$export YScreen *pScreenUp, *pScreenDown;
 	$export YDesktop *pDesktopUp, *pDesktopDown;
 	$export YLog DefaultLog;
-	$export YMessageQueue DefaultMQ, DefaultMQ_Backup;
 
 	//类型定义。
 	typedef char PATHSTR[MAX_PATH_LENGTH];
 	typedef char FILENAMESTR[MAX_FILENAME_LENGTH];
 
 	//全局变量映射。
-	YDesktop*& pDefaultDesktop = pDesktopUp;
-	YApplication& theApp = YApplication::GetApp();
-	YFontCache*& pDefaultFontCache = theApp.fc;
-	YApplication* const pApp = &theApp;
-
-	const HSHL hShellMain = theApp.GetShellHandle(); //取主 Shell 句柄。
+	YDesktop*& pDefaultDesktop(pDesktopUp);
+	YApplication& theApp(YApplication::GetApp());
+	YFontCache*& pDefaultFontCache(theApp.pFontCache);
+	YApplication* const pApp(&theApp);
+	const HSHL hShellMain(new YShellMain); //取主 Shell 句柄。
 
 
 	struct Def

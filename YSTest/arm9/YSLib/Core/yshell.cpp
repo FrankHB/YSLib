@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15;
-// UTime = 2010-9-16 17:31;
-// Version = 0.2709;
+// UTime = 2010-9-18 10:31;
+// Version = 0.2739;
 
 
 #include "../Shell/ywindow.h"
@@ -102,6 +102,7 @@ YShell::SendWindow(IWindow& w)
 	}
 	return false;
 }
+
 void
 YShell::DispatchWindows()
 {
@@ -113,6 +114,7 @@ YShell::DispatchWindows()
 			*pDsk += *static_cast<IVisualControl*>(GetPointer(*i));
 	}
 }
+
 void
 YShell::ClearScreenWindows(YDesktop& d)
 {
@@ -183,6 +185,20 @@ YShell::DefShlProc(const Message& msg)
 	return 0;
 }
 
+LRES
+YShell::OnActivated(const Message& m)
+{
+	InsertMessage(m);
+	return 0;
+}
+
+LRES
+YShell::OnDeactivated(const Message& m)
+{
+	InsertMessage(m);
+	return 0;
+}
+
 
 YShellMain::YShellMain()
 : YShell()
@@ -194,7 +210,7 @@ YShellMain::YShellMain()
 void
 PostQuitMessage(int nExitCode)
 {
-	DefaultMQ.InsertMessage(Message(NULL, SM_QUIT, 0xFF));
+	InsertMessage(Message(NULL, SM_QUIT, 0xFF));
 }
 
 #if YSLIB_DEBUG_MSG & 2
@@ -224,16 +240,16 @@ PeekMessage
 
 	(Message& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, u32 wRemoveMsg)
 {
-	if(!DefaultMQ.empty())
+	if(!theApp.GetDefaultMessageQueue().empty())
 	{
 		std::vector<Message> mqt;
 		Message m;
 	//	void (YMessageQueue::*fngmq)(Message&) = wRemoveMsg & PM_REMOVE ? &YMessageQueue::GetMessage : (void (YMessageQueue::*)(Message&))&YMessageQueue::PeekMessage;
-	//	(DefaultMQ.*fngmq)(m);
+	//	(theApp.GetDefaultMessageQueue().*fngmq)(m);
 
-		while(!DefaultMQ.empty())
+		while(!theApp.GetDefaultMessageQueue().empty())
 		{
-			DefaultMQ.GetMessage(m);
+			theApp.GetDefaultMessageQueue().GetMessage(m);
 			if(!hShl || !m.GetShellHandle() || hShl == m.GetShellHandle())
 			{
 				MSGID msgID(m.GetMsgID());
@@ -243,8 +259,8 @@ PeekMessage
 					msg = m;
 
 					if(wRemoveMsg == PM_NOREMOVE)
-						DefaultMQ.InsertMessage(m);
-					Merge(DefaultMQ, mqt);
+						theApp.GetDefaultMessageQueue().InsertMessage(m);
+					Merge(theApp.GetDefaultMessageQueue(), mqt);
 					if(msgID == SM_QUIT)
 						return 0;
 					return msgID;
@@ -252,7 +268,7 @@ PeekMessage
 			}
 			mqt.push_back(m);
 		}
-		Merge(DefaultMQ, mqt);
+		Merge(theApp.GetDefaultMessageQueue(), mqt);
 	}
 	return -1;
 }
@@ -260,7 +276,7 @@ PeekMessage
 IRES
 GetMessage(Message& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax)
 {
-	if(DefaultMQ.empty())
+	if(theApp.GetDefaultMessageQueue().empty())
 		Def::Idle();
 	return PeekMessage(msg, hShl, wMsgFilterMin, wMsgFilterMax, PM_REMOVE);
 }
@@ -280,13 +296,13 @@ DispatchMessage(const Message& msg)
 ERRNO
 BackupMessage(const Message& msg)
 {
-	return -!DefaultMQ_Backup.InsertMessage(msg);
+	return -!theApp.GetBackupMessageQueue().InsertMessage(msg);
 }
 
 void
 RecoverMessageQueue()
 {
-	Merge(DefaultMQ, DefaultMQ_Backup);
+	Merge(theApp.GetDefaultMessageQueue(), theApp.GetBackupMessageQueue());
 }
 
 YSL_END_NAMESPACE(Shells)

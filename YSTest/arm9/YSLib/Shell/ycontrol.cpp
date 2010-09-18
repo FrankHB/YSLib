@@ -470,7 +470,6 @@ void
 YListBox::_m_OnClick(const MTouchEventArgs& pt)
 {
 	SetSelected(pt);
-	Refresh();
 	CallConfirmed();
 }
 void
@@ -523,7 +522,6 @@ YListBox::_m_OnKeyPress(const MKeyEventArgs& k)
 			return;
 		}
 	//	(*this)[es](*this, MIndexEventArgs(*this, Viewer.GetSelected()));
-		Refresh();
 	}
 }
 

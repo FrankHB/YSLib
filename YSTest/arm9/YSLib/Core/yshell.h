@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15;
-// UTime = 2010-9-2 10:25;
-// Version = 0.2421;
+// UTime = 2010-9-18 8:56;
+// Version = 0.2432;
 
 
 #ifndef INCLUDED_YSHELL_H_
@@ -59,33 +59,25 @@ public:
 
 	bool
 	SendWindow(IWindow&); //向屏幕发送指定窗口对象。
+
 	void
 	DispatchWindows(); //向屏幕发送窗口对象。
+
 	void
 	ClearScreenWindows(YDesktop&); //清除指定屏幕中属于窗口组的窗口对象。
 
 	static LRES
 	DefShlProc(const Message&); //默认 Shell 处理函数。
+
 	virtual PDefHead(LRES, ShlProc, const Message& m) // Shell 处理函数：响应线程的直接调用。
 		ImplRet(DefShlProc(m))
+
 	virtual LRES
 	OnActivated(const Message&); // Shell 处理函数：响应线程的激活。
+
 	virtual LRES
 	OnDeactivated(const Message&); // Shell 处理函数：响应线程的撤销。
 };
-
-inline LRES
-YShell::OnActivated(const Message& m)
-{
-	InsertMessage(m);
-	return 0;
-}
-inline LRES
-YShell::OnDeactivated(const Message& m)
-{
-	InsertMessage(m);
-	return 0;
-}
 
 
 class YShellMain : /*public GMCounter<YShellMain>*/ public YShell
@@ -175,13 +167,6 @@ BackupMessage(const Message& msg);
 //恢复消息队列。
 void
 RecoverMessageQueue();
-
-//清除默认消息队列。
-inline YMessageQueue::size_type
-ClearDefaultMessageQueue()
-{
-	return DefaultMQ.Clear();
-}
 
 YSL_END_NAMESPACE(Shells)
 

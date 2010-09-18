@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:27;
-// UTime = 2010-9-3 23:02;
-// Version = 0.1708;
+// UTime = 2010-9-18 10:30;
+// Version = 0.1796;
 
 
 #ifndef INCLUDED_YAPP_H_
@@ -63,9 +63,13 @@ public:
 
 	//全局资源。
 	YLog& Log; //默认程序日志。
-	YMessageQueue DefaultMQ; //主消息队列：在程序实例中实现以保证单线程。
-	YMessageQueue DefaultMQ_Backup; //备份消息队列：在程序实例中实现以保证单线程。
-	YFontCache* FontCache; //默认字体缓存。
+
+private:
+	YMessageQueue* pMessageQueue; //主消息队列：在程序实例中实现以保证单线程。
+	YMessageQueue* pMessageQueueBackup; //备份消息队列：在程序实例中实现以保证单线程。
+
+public:
+	YFontCache* pFontCache; //默认字体缓存。
 
 private:
 	SHLs sShls; // Shell 对象组：实现 Shell 存储。
@@ -77,7 +81,7 @@ private:
 
 public:
 	virtual
-	~YApplication();
+	~YApplication() ythrow();
 
 	void
 	operator+=(YShell&); //添加 Shell 对象。
@@ -91,6 +95,10 @@ public:
 	DefStaticGetter(HINSTANCE, InstanceHandle, HINSTANCE(GetInstancePtr())) //取得自身实例句柄。
 	DefGetter(const SHLs, ShellSet, sShls) //取 Shell 对象组。
 	DefGetter(HSHL, ShellHandle, hShell) //取得线程空间中当前运行的 Shell 的句柄。
+	YMessageQueue&
+	GetDefaultMessageQueue() ythrow(Exceptions::LoggedEvent);
+	YMessageQueue&
+	GetBackupMessageQueue() ythrow(Exceptions::LoggedEvent);
 
 	bool
 	SetShellHandle(HSHL h); //设置线程空间中当前运行的 Shell 的句柄。
@@ -107,6 +115,41 @@ YApplication::GetInstancePtr()
 	static YApplication instance; //静态单例对象。
 
 	return &instance;
+}
+
+
+//全局默认消息插入函数。
+inline void
+InsertMessage(const Message& msg)
+{
+	theApp.GetDefaultMessageQueue().InsertMessage(msg);
+
+#if YSLIB_DEBUG_MSG & 1
+
+	void YSDebug_MSG_Insert(Message&);
+	YSDebug_MSG_Insert(msg);
+
+#endif
+
+}
+inline void
+InsertMessage(const HSHL& hShl, const Shells::MSGID& id, const Shells::MSGPRIORITY& prior, const WPARAM& w = 0, const LPARAM& l = 0, const SPoint& pt = SPoint::Zero)
+{
+
+#if YSLIB_DEBUG_MSG & 1
+
+	void YSDebug_MSG_Insert(Message&);
+	Message msg(hShl, id, prior, w, l);
+
+	DefaultMQ.InsertMessage(msg);
+	YSDebug_MSG_Insert(msg);
+
+#else
+
+	theApp.GetDefaultMessageQueue().InsertMessage(Message(hShl, id, prior, w, l, pt));
+
+#endif
+
 }
 
 YSL_END

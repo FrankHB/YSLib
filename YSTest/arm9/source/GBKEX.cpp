@@ -2,7 +2,7 @@
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
 // UTime = 2010-9-18;
-// Version = 0.2615; *Build 149 r39;
+// Version = 0.2617; *Build 150 r22;
 
 
 #include "../YCLib/ydef.h"
@@ -29,6 +29,7 @@ Record prefix and abbrevations:
 @ ::= identifier
 @@ ::= in / belongs to
 \a ::= all
+\ac ::= access
 \bg ::= background
 \c ::= const
 \cb ::= catch blocks
@@ -48,6 +49,7 @@ Record prefix and abbrevations:
 \ev ::= events
 \evh ::= event handling
 \ex ::= extra
+\ext ::= extended
 \exp ::= explicit
 \f ::= functions
 \g ::= global
@@ -92,76 +94,109 @@ Record prefix and abbrevations:
 \val ::= values
 
 DONE:
-r1:
-/ \simp \impl @@ \mf void ShlS::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs&) @@ \u Shells;
+r1-r11:
+* fatal error:
+	/ make default message queue dynamic at runtime:
+		r1:
+		/ @@ \h YShellDefinition @@ \u YGlobal:
+			- YMessageQueue& DefaultMQ;
+			- YMessageQueue& DefaultMQ_Backup;
+		/ \i \f void InsertMessage(const Message&)
+			& \i \f void InsertMessage(const HSHL&, const MSGID&, const MSGPRIORITY&, const WPARAM& = 0, const LPARAM& = 0, const SPoint& = SPoint::Zero)
+			@@ \ns YSLib::Shells @@ \h YShellMessage ->
+			\i \f void InsertMessage(const Message&)
+			& \i \f void InsertMessage(const HSHL&, const Shells::MSGID&, const Shells::MSGPRIORITY&, const WPARAM& = 0, const LPARAM& = 0, const SPoint& = SPoint::Zero)
+			@@ \ns YSLib @@ \h YApplication;
+		- using Shells::InsertMessage @@ \h YShellMessage;
+		- \i \f inline YMessageQueue::size_type ClearDefaultMessageQueue();
+		/ @@ \cl YShell @@ \u YShell:
+			- \i @@ \f LRES OnActivated(const Message&);
+			- \i @@ \f LRES OnDeactivated(const Message&);
+			/ \impl @@ void PostQuitMessage(int);
+			/ \impl @@ IRES PeekMessage(Message&, HSHL, MSGID, MSGID, u32);
+			/ \impl @@ IRES GetMessage(Message&, HSHL, MSGID, MSGID);
+			/ \impl @@ ERRNO BackupMessage(const Message& msg);
+			/ \impl @@ ERRNO RecoverMessageQueue();
+		/ \impl @@ \f void WaitForGUIInput() @@ \ns @@ \u YGlobal;
+		r2-r3:
+		/ \u YApplication:
+			+ \m private YMessageQueue* pMessageQueue;
+			+ \m private YMessageQueue* pMessageQueueBackup;
+			- \m public YMessageQueue DefaultMQ;
+			- \m public YMessageQueue DefaultMQ_Backup;
+			+ public \mf Initialize();
+			+ public \mf Destroy() ythrow();
+			/ public YFontCache* FontCache => pFontCache;
+			+ public \mf YMessageQueue& GetDefaultMessageQueue() ythrow(Exceptions::LoggedEvent);
+			+ public \mf YMessageQueue& GetBackupMessageQueue() ythrow(Exceptions::LoggedEvent);
+		/ \impl @@ \f:
+			/ void Def::Destroy(YObject&, const MEventArgs&) @@ \u YGlobal;
+			/ void YInit() @@ unnamed \ns @@ \u YGlobal;
+			/ \i void InsertMessage(const Message&) @@ \h YApplication;
+			/ \i void InsertMessage(const HSHL&, const Shells::MSGID&, const Shells::MSGPRIORITY&, const WPARAM& = 0, const LPARAM& = 0, const SPoint& = SPoint::Zero) @@ \h YApplication;
+			/ @@ \u YShell:
+				/ IRES PeekMessage(Message&, HSHL, MSGID, MSGID, u32);
+				/ IRES GetMessage(Message&, HSHL, MSGID, MSGID);
+				/ ERRNO BackupMessage(const Message& msg);
+				/ ERRNO RecoverMessageQueue();
+			/ void WaitForGUIInput() @@ \ns @@ \u YGlobal;
+		/ @@ \u YApplication:
+			+ using namespace Exception @@ \impl;
+		/ YFontCache*& pDefaultFontCache(theApp.FontCache)
+			-> YFontCache*& pDefaultFontCache(theApp.pFontCache) @@ \u YGolbal;
+		r4-r7:
+		/= test 1;
+		r8:
+		/ \impl @@ \ctor @@ \cl YShell @@ \u YShell;
+		r9-r11:
+		/ test 2;
+			/ @@ \cl YApplication:
+				* \impl;
+				+ public \mf Initialize();
+				+ public \mf Destroy() ythrow();
+				/+ ythrow() @@ \dtor;
+			/ \impl @@ \f void YSInit() @@ unnamed \ns @@ \u YGolbal;
 
-r2:
-/= @@ \cl MIndexEventArgs @@ \u YControl:
-	/= \m index => Index;
-	/= \m con = > Control;
-		/= \tr \impl @@ \u Shells;
-/ @@ \cl YPath \u YFileSystem:
-	/= \m value_type => ValueType;
-	/= PDefHead(const value_type*, c_str) => PDefHead(const ValueType*, c_str);
-
-r3:
-/ \a MBCSToMString => MBCSToString;
-
-r4-r9:
-/ test 1:
-	* \impl @@ std::string GetNowDirectory() @@ \ns IO @@ \u YFileSystem;
-
-r10-r11:
-/ @@ \u YFileSystem:
-	- \inc "../Shell/ywindow.h";
-	/= @@ \cl MFileList:
-		/= \ret \tp @@ \mf u32 LoadSubItems() -> ListType::size_type;
-		/= \ret \tp @@ \mf u32 ListItems() -> ListType::size_type;
-
-r12-r20:
-/= test 2;
-
-r21:
-/ \impl @@ \mf void YFontCache::LoadFontFileDirectory(CPATH, CPATH) @@ \u YFont:
-	^ HDirectory;
-	/ \simp;
-
-r22:
-/ \tr @@ \u YShellInitialization:
-	* \impl @@ \f void CheckInstall();
-	/ \tr \impl @@ \f void InitYSConsole();
-
-r23-r24:
+r12-r16:
++ \de \para (YScreen& = *pDefaultScreen) @@ \exp \ctor @@ \cl YConsole(YScreen&);
 /= test 3;
-	/ \tr \impl @@ \f void InitYSConsole() @@ \u YShellInitialization;
 
-r25-r26:
-/ \tr @@ \u YShellInitialization:
-	/ \impl @@ \f void InitYSConsole();
-	/ \f void installFail() -> void installFail(const char*) @@ unnamed \ns;
-	/ \impl @@ \f void CheckInstall();
+r17:
+* @@ \cl YListBox @@ \u YControl:
+	/ \ret \tp @@ \mf \eh void _m_OnClick(const MTouchEventArgs&) -> bool;
+	/ \ret \tp @@ \mf \eh void _m_OnKeyPress(const MTouchEventArgs&) -> bool;
+	/ \impl @@ \mf \eh void OnClick(IVisualControl&, const MTouchEventArgs&);
+	/ \impl @@ \mf \eh void OnKeyPress(IVisualControl&, const MTouchEventArgs&);
 
-r27-r35:
+r18:
 /= test 4;
-	/ @@ \u YShellInitialization:
-		/ \tr \impl @@ \f void InitYSConsole();
-		* \impl @@ \f void CheckInstall();
 
-r36:
-/ void YConsoleInit(u8 dspIndex, PIXEL = RGB15(31, 31, 31), PIXEL = RGB15( 0, 0, 31))
-	-> void YConsoleInit(u8 dspIndex, PIXEL = Color::White, PIXEL = Color::Black)
-	@@ \u YCommon;
+r19:
+/ simp @@ \cl YListBox @@ \u YControl:
+	* undid r17;
+	/ \impl @@ \mf \eh void _m_OnClick(const MTouchEventArgs&) -> bool;
+	/ \impl @@ \mf \eh void _m_OnKeyPress(const MTouchEventArgs&) -> bool;
 
-r37-r38:
-	/ \tr \impl @@ \f void InitYSConsole() @@ \u YShellInitialization;	
-
-r39:
-/ edited \g makefile to make a copy without DLDI automatically while building;
+r20-r22:
+/= test 5;
 
 
 DOING:
 
 / ...
+
+Debug message:
+
+cmd = %DKP_HOME%\devkitARM\bin\arm-eabi-addr2line.exe -f -C -e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 2078824
+
+void std::__push_heap<__gnu_cxx::__normal_iterator<YSLib::Shells::Message*, std:
+:vector<YSLib::Shells::Message, std::allocator<YSLib::Shells::Message> > >, int,
+ YSLib::Shells::Message, YSLib::Shells::YMessageQueue::cmp>(__gnu_cxx::__normal_
+iterator<YSLib::Shells::Message*, std::vector<YSLib::Shells::Message, std::alloc
+ator<YSLib::Shells::Message> > >, int, int, YSLib::Shells::Message, YSLib::Shell
+s::YMessageQueue::cmp)
+crtstuff.c:0
+
 
 NEXT:
 * fatal error;

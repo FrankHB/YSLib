@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-19 20:05:08;
-// UTime = 2010-9-16 23:30;
-// Version = 0.2272;
+// UTime = 2010-9-18 10:41;
+// Version = 0.2276;
 
 
 #ifndef INCLUDED_YCOMPONENT_H_
@@ -37,7 +37,7 @@ public:
 	YScreen& Screen;
 
 	explicit
-	YConsole(YScreen&);
+	YConsole(YScreen& = *pDefaultScreen);
 	virtual
 	~YConsole();
 

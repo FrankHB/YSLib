@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28;
-// UTime = 2010-9-16 23:30;
-// Version = 0.2967;
+// UTime = 2010-9-18 15:08;
+// Version = 0.2968;
 
 
 #include "ydesktop.h"

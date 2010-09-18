@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-6 2:44:31;
-// UTime = 2010-9-2 10:23;
-// Version = 0.1770;
+// UTime = 2010-9-18 8:44;
+// Version = 0.1772;
 
 
 #ifndef INCLUDED_YSMSG_H_
@@ -165,45 +165,9 @@ Merge(YMessageQueue& dst, std::vector<Message>& src);
 void
 Merge(YMessageQueue& dst, YMessageQueue& src);
 
-
-//全局默认消息插入函数。
-inline void
-InsertMessage(const Message& msg)
-{
-	DefaultMQ.InsertMessage(msg);
-
-#if YSLIB_DEBUG_MSG & 1
-
-	void YSDebug_MSG_Insert(Message&);
-	YSDebug_MSG_Insert(msg);
-
-#endif
-
-}
-inline void
-InsertMessage(const HSHL& hShl, const MSGID& id, const MSGPRIORITY& prior, const WPARAM& w = 0, const LPARAM& l = 0, const SPoint& pt = SPoint::Zero)
-{
-
-#if YSLIB_DEBUG_MSG & 1
-
-	void YSDebug_MSG_Insert(Message&);
-	Message msg(hShl, id, prior, w, l);
-
-	DefaultMQ.InsertMessage(msg);
-	YSDebug_MSG_Insert(msg);
-
-#else
-
-	DefaultMQ.InsertMessage(Message(hShl, id, prior, w, l, pt));
-
-#endif
-
-}
-
 YSL_END_NAMESPACE(Shells)
 
 using Shells::Message;
-using Shells::InsertMessage;
 
 YSL_END
 
