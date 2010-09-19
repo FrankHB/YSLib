@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> YShellHelper by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-4-4 13:42:15;
-// UTime = 2010-6-22 3:06;
-// Version = 0.1173;
+// UTime = 2010-9-20 7:05;
+// Version = 0.1176;
 
 
 #include "yshelper.h"
@@ -17,7 +17,7 @@ NewScrImage(PPDRAW f, BitmapPtr gbuf)
 	bool s(!gbuf);
 
 	if(s)
-		gbuf = new SCRBUF;
+		gbuf = new ScreenBufferType;
 	ScrDraw(gbuf, f);
 
 	YImage* pi(NewScrImage(gbuf));

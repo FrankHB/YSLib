@@ -1,8 +1,8 @@
 // YSLib::Adapter::YAdapter by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-22 20:16:21;
-// UTime = 2010-9-16 23:29;
-// Version = 0.1748;
+// UTime = 2010-9-20 7:05;
+// Version = 0.1769;
 
 
 #ifndef INCLUDED_YADAPTER_H_
@@ -19,32 +19,6 @@
 
 //包含平台文件。
 #include <platform.h>
-
-namespace YSLib
-{
-	namespace Drawing
-	{
-		typedef ::PIXEL PixelType;
-	}
-
-	using ::iprintf;
-
-	using ::swiWaitForVBlank;
-
-	using ::lcdMainOnTop;
-	using ::lcdMainOnBottom;
-	using ::lcdSwap;
-	using ::videoSetMode;
-	using ::videoSetModeSub;
-
-	using ::scanKeys;
-	using ::touchRead;
-
-	using ::stat;
-	using ::mkdir;
-	using ::chdir;
-	using ::getcwd;
-}
 
 
 //包含 CHRLib 。
@@ -77,8 +51,10 @@ namespace YSLib
 {
 	namespace Drawing
 	{
+		using platform::PixelType;
 		using platform::BitmapPtr;
 		using platform::ConstBitmapPtr;
+		using platform::ScreenBufferType;
 		using platform::Color;
 	}
 	namespace Runtime
@@ -93,6 +69,17 @@ namespace YSLib
 	namespace DS
 	{
 		using namespace platform;
+
+		using ::swiWaitForVBlank;
+
+		using ::lcdMainOnTop;
+		using ::lcdMainOnBottom;
+		using ::lcdSwap;
+		using ::videoSetMode;
+		using ::videoSetModeSub;
+
+		using ::scanKeys;
+		using ::touchRead;
 	}
 }
 

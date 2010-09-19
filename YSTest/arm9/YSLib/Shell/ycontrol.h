@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:24;
-// UTime = 2010-9-18 14:54;
-// Version = 0.3445;
+// UTime = 2010-9-19 21:04;
+// Version = 0.3449;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -256,8 +256,8 @@ public:
 */
 
 	//用字符串在窗口中以给定字号初始化标签。
-	template<class _charT>
-	YLabel(HWND, const _charT*, const SRect& = SRect::FullScreen,
+	template<class _tChar>
+	YLabel(HWND, const _tChar*, const SRect& = SRect::FullScreen,
 		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 	virtual
 	~YLabel();
@@ -266,8 +266,8 @@ public:
 	DrawForeground();
 };
 
-template<class _charT>
-YLabel::YLabel(HWND hWnd, const _charT* l, const SRect& r,
+template<class _tChar>
+YLabel::YLabel(HWND hWnd, const _tChar* l, const SRect& r,
 			   const Drawing::Font& f, IWidgetContainer* pCon, GHResource<Drawing::TextRegion> prTr_)
 : YVisualControl(hWnd, r, pCon),
 prTextRegion(pCon ? prTr_ : GetGlobalResource<Drawing::TextRegion>()), Font(),

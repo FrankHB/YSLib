@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:42;
-// UTime = 2010-9-16 21:09;
-// Version = 0.1795;
+// UTime = 2010-9-20 7:09;
+// Version = 0.1826;
 
 
 #include "ycommon.h"
@@ -69,7 +69,7 @@ namespace stdex
 		FILE* file = fopen(path, "rb");
 		if(file)
 		{
-			fclose(file);
+			std::fclose(file);
 			return true;
 		}
 		return false;
@@ -79,17 +79,13 @@ namespace stdex
 
 namespace platform
 {
-	PATHSTR HDirectory::Name;
-	struct ::stat HDirectory::Stat;
-	int HDirectory::LastError(0);
-
-	HDirectory&
-	HDirectory::operator++()
+	char*
+	getcwd_n(char* buf, std::size_t t)
 	{
-		LastError = ::dirnext(dir, Name, &Stat);
-		return *this;
+		if(buf != NULL)
+			return ::getcwd(buf, t);
+		return NULL;
 	}
-
 
 	bool
 	direxists(CPATH path)
@@ -311,6 +307,93 @@ namespace platform
 	//	std::terminate();
 	}
 
+
+	static bool
+	bDebugStatus = false;
+
+	void
+	YDebugSetStatus(bool s)
+	{
+		bDebugStatus = s;
+	}
+
+	bool
+	YDebugGetStatus()
+	{
+		return bDebugStatus;
+	}
+
+	void
+	YDebugBegin(PixelType fc, PixelType bc)
+	{
+		if(bDebugStatus)
+			YConsoleInit(false, fc, bc);
+	}
+
+	void
+	YDebug()
+	{
+		if(bDebugStatus)
+		{
+			YDebugBegin();
+			WaitForInput();
+		}
+	}
+	void
+	YDebug(const char* s)
+	{
+		if(bDebugStatus)
+		{
+			YDebugBegin();
+			std::puts(s);
+			WaitForInput();
+		}
+	}
+
+	void
+	YDebugW(int n)
+	{
+		if(bDebugStatus)
+		{
+			YDebugBegin();
+			iputw(n);
+			WaitForInput();
+		}
+	}
+
+	int
+	yprintf(const char* str, ...)
+	{
+		int t = -1;
+
+		if(bDebugStatus)
+		{
+			YDebugBegin();
+
+			va_list list;
+
+			va_start(list, str);
+
+			t = viprintf(str, list);
+
+			va_end(list);
+			WaitForInput();
+		}
+		return t;
+	}
+
+
+	PATHSTR HDirectory::Name;
+	struct ::stat HDirectory::Stat;
+	int HDirectory::LastError(0);
+
+	HDirectory&
+	HDirectory::operator++()
+	{
+		LastError = ::dirnext(dir, Name, &Stat);
+		return *this;
+	}
+
 	void
 	ResetVideo()
 	{
@@ -375,7 +458,7 @@ namespace platform
 	}
 
 	void
-	YConsoleInit(u8 dspIndex, PIXEL fc, PIXEL bc)
+	YConsoleInit(u8 dspIndex, PixelType fc, PixelType bc)
 	{
 	//	PrintConsole* p(dspIndex ? consoleMainInit() : consoleDemoInit());
 
@@ -383,7 +466,7 @@ namespace platform
 		{
 			iprintf("\x1b[0;0H"); //使用 ANSI Escape 序列 CUrsor Position 指令设置光标位置为左上角。
 
-			PIXEL* bg_palette = dspIndex ? BG_PALETTE : BG_PALETTE_SUB;
+			PixelType* bg_palette = dspIndex ? BG_PALETTE : BG_PALETTE_SUB;
 
 			bg_palette[0]	= bc | BITALPHA;
 			bg_palette[255]	= fc | BITALPHA;
@@ -573,80 +656,5 @@ namespace platform
 		}
 		return path+sindex+1;
 	}*/
-
-
-	static bool
-	bDebugStatus = false;
-
-	void
-	YDebugSetStatus(bool s)
-	{
-		bDebugStatus = s;
-	}
-
-	bool
-	YDebugGetStatus()
-	{
-		return bDebugStatus;
-	}
-
-	void
-	YDebugBegin(PIXEL fc, PIXEL bc)
-	{
-		if(bDebugStatus)
-			YConsoleInit(false, fc, bc);
-	}
-
-	void
-	YDebug()
-	{
-		if(bDebugStatus)
-		{
-			YDebugBegin();
-			WaitForInput();
-		}
-	}
-	void
-	YDebug(const char* s)
-	{
-		if(bDebugStatus)
-		{
-			YDebugBegin();
-			std::puts(s);
-			WaitForInput();
-		}
-	}
-
-	void
-	YDebugW(int n)
-	{
-		if(bDebugStatus)
-		{
-			YDebugBegin();
-			iputw(n);
-			WaitForInput();
-		}
-	}
-
-	int
-	yprintf(const char* str, ...)
-	{
-		int t = -1;
-
-		if(bDebugStatus)
-		{
-			YDebugBegin();
-
-			va_list list;
-
-			va_start(list, str);
-
-			t = viprintf(str, list);
-
-			va_end(list);
-			WaitForInput();
-		}
-		return t;
-	}
 }
 

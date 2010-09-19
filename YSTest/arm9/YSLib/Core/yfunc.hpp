@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFunc by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-14 18:48:44;
-// UTime = 2010-6-21 22:04;
-// Version = 0.1602;
+// UTime = 2010-9-19 18:31;
+// Version = 0.1606;
 
 
 #ifndef INCLUDED_YFUNC_HPP_
@@ -15,18 +15,18 @@
 YSL_BEGIN
 
 //函数对象基类。
-template<typename _ptrType>
+template<typename _tPointer>
 class GHBase
 {
 protected:
-	mutable _ptrType _ptr; //对象指针。
+	mutable _tPointer _ptr; //对象指针。
 
 	inline explicit
-	GHBase(_ptrType pf = NULL) : _ptr(pf)
+	GHBase(_tPointer pf = NULL) : _ptr(pf)
 	{}
 	template<typename P>
 	inline explicit
-	GHBase(GHBase<P> pf) : _ptr(reinterpret_cast<_ptrType>(P(pf)))
+	GHBase(GHBase<P> pf) : _ptr(reinterpret_cast<_tPointer>(P(pf)))
 	{}
 	inline
 	~GHBase()
@@ -34,7 +34,7 @@ protected:
 
 public:
 	inline
-	operator _ptrType() const
+	operator _tPointer() const
 	{
 		return _ptr;
 	}
@@ -44,7 +44,7 @@ public:
 	{
 		return !_ptr;
 	}
-	inline _ptrType
+	inline _tPointer
 	GetPtr() const
 	{
 		return _ptr;

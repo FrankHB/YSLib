@@ -1091,7 +1091,7 @@ public:
 //AGG Drawing Test
 
 /*
-static u8* frameBuffer = new u8[sizeof(SCRBUF)];
+static u8* frameBuffer = new u8[sizeof(ScreenBufferType)];
 static agg::rendering_buffer& grbuf = *new agg::rendering_buffer(frameBuffer, SCRW, SCRH, SCRW * sizeof(PixelType));
 
 typedef agg::renderer_base<agg::pixfmt_argb16> rend_type;

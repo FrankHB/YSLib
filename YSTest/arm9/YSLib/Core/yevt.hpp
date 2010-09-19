@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YEvent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-4-23 23:08:23;
-// UTime = 2010-7-26 7:37;
-// Version = 0.3090;
+// UTime = 2010-9-19 21:04;
+// Version = 0.3098;
 
 
 #ifndef INCLUDED_YEVT_HPP_
@@ -406,12 +406,12 @@ typedef GEvent<false> YEvent;
 
 
 //事件映射表模板。
-template<class _EventSpace, class _Event = YEvent>
+template<class _tEventSpace, class _tEvent = YEvent>
 class GEventMap
 {
 public:
-	typedef typename _EventSpace::EventID ID;
-	typedef _Event Event;
+	typedef typename _tEventSpace::EventID ID;
+	typedef _tEvent Event;
 
 private:
 	std::map<ID, Event> Map;
@@ -436,14 +436,14 @@ public:
 
 
 //标准事件回调函数抽象类模板。
-template<class _responser, class _eventArgsType>
-struct GAHEventCallback : public _eventArgsType
+template<class _tResponser, class _tEventArgs>
+struct GAHEventCallback : public _tEventArgs
 {
 	inline explicit
-	GAHEventCallback(const _eventArgsType& e)
-	: _eventArgsType(e)
+	GAHEventCallback(const _tEventArgs& e)
+	: _tEventArgs(e)
 	{}
-	DeclIEntry(bool operator()(_responser&))
+	DeclIEntry(bool operator()(_tResponser&))
 };
 
 YSL_END_NAMESPACE(Runtime)

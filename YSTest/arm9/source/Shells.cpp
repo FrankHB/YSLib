@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-9-16 23:31;
-// Version = 0.3061;
+// UTime = 2010-9-20 7:06;
+// Version = 0.3064;
 
 
 #include <Shells.h>
@@ -109,15 +109,15 @@ namespace
 		{
 			try
 			{
-				gbuf = new SCRBUF;
+				gbuf = new ScreenBufferType;
 			}
 			catch(std::bad_alloc&)
 			{
 				return;
 			}
-		//	memset(gbuf, 0xEC, sizeof(SCRBUF));
+		//	memset(gbuf, 0xEC, sizeof(ScreenBufferType));
 			g_pi[1] = NewScrImage(dfa, gbuf);
-		//	memset(gbuf, 0xF2, sizeof(SCRBUF));
+		//	memset(gbuf, 0xF2, sizeof(ScreenBufferType));
 			g_pi[2] = NewScrImage(dfap, gbuf);
 			delete gbuf;
 		}
@@ -130,7 +130,7 @@ namespace
 		{
 			try
 			{
-				gbuf = new SCRBUF;
+				gbuf = new ScreenBufferType;
 			}
 			catch(std::bad_alloc&)
 			{
@@ -149,7 +149,7 @@ namespace
 		{
 			try
 			{
-				gbuf = new SCRBUF;
+				gbuf = new ScreenBufferType;
 			}
 			catch(std::bad_alloc&)
 			{

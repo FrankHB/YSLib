@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15;
-// UTime = 2010-9-18 8:56;
-// Version = 0.2432;
+// UTime = 2010-9-20 7:01;
+// Version = 0.2435;
 
 
 #ifndef INCLUDED_YSHELL_H_
@@ -30,9 +30,6 @@ private:
 	WNDs sWnds; //窗口组。
 
 public:
-	bool insRefresh; //即时刷新：自动加入屏幕刷新消息。
-	u32 scrType; //即时刷新屏幕选取设置。
-
 	YShell();
 	virtual
 	~YShell() ythrow();

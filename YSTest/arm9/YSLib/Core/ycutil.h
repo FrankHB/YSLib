@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YCoreUtilities by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-23 6:10:59;
-// UTime = 2010-8-15 9:15;
-// Version = 0.1962;
+// UTime = 2010-8-19 21:07;
+// Version = 0.1985;
 
 
 #ifndef INCLUDED_YCUTIL_H_
@@ -74,15 +74,15 @@ vmax(_type a, _type b)
 {
 	return a < b ? b : a;
 }
-template<typename _type, typename _cmpType>
+template<typename _type, typename _fCompare>
 inline _type
-vmin(_type a, _type b, _cmpType _comp)
+vmin(_type a, _type b, _fCompare _comp)
 {
 	return _comp(b < a) ? b : a;
 }
-template<typename _type, typename _cmpType>
+template<typename _type, typename _fCompare>
 inline _type
-vmax(_type a, _type b, _cmpType _comp)
+vmax(_type a, _type b, _fCompare _comp)
 {
 	return _comp(a < b) ? b : a;
 }
@@ -278,41 +278,41 @@ struct const_deref_op : std::unary_function<const _type, const _type*>
 //间接访问（解引用）比较仿函数。
 template<
 	typename _type,
-	template<typename _type> class _cmpType = std::less
+	template<typename _type> class _fCompare = std::less
 >
-struct deref_comp : _cmpType<_type>
+struct deref_comp : _fCompare<_type>
 {
 	bool
 	operator()(_type* const& _x, _type* const& _y) const
 	{
-		return _x && _y && _cmpType<_type>::operator()(*_x, *_y);
+		return _x && _y && _fCompare<_type>::operator()(*_x, *_y);
 	}
 };
 
 
 //间接访问字符串（解引用）比较仿函数。
 template<
-	typename _charT,
-	int (*_lexi_cmp)(const _charT*, const _charT*) = std::strcmp,
-	class _cmpType = std::less<int>
+	typename _tChar,
+	int (*_lexi_cmp)(const _tChar*, const _tChar*) = std::strcmp,
+	class _fCompare = std::less<int>
 >
-struct deref_str_comp : _cmpType
+struct deref_str_comp : _fCompare
 {
 	bool
-	operator()(const _charT* _x, const _charT* _y) const
+	operator()(const _tChar* _x, const _tChar* _y) const
 	{
-		return _x && _y && _cmpType::operator()(_lexi_cmp(_x, _y), 0);
+		return _x && _y && _fCompare::operator()(_lexi_cmp(_x, _y), 0);
 	}
 };
 
 
 //删除指定标准容器中所有相同元素算法。
-template<typename _containerType>
-typename _containerType::size_type
-erase_all(_containerType& _container, const typename _containerType::value_type& _value)
+template<typename _tContainer>
+typename _tContainer::size_type
+erase_all(_tContainer& _container, const typename _tContainer::value_type& _value)
 {
 	int n(0);
-	typename _containerType::iterator i;
+	typename _tContainer::iterator i;
 
 	while((i = std::find(_container.begin(), _container.end(), _value)) != _container.end())
 	{
@@ -323,18 +323,19 @@ erase_all(_containerType& _container, const typename _containerType::value_type&
 }
 
 //删除指定标准容器中所有满足条件元素算法。
-template<typename _containerType, typename _predicateType>
-typename _containerType::size_type
-erase_all_if(_containerType& _container, const typename _containerType::value_type& _pred)
+template<typename _tContainer, typename _fPredicate>
+typename _tContainer::size_type
+erase_all_if(_tContainer& _container, const typename _tContainer::value_type& _pred)
 {
 	int n(0);
-	typename _containerType::iterator i;
+	typename _tContainer::iterator i;
 
 	while((i = std::find(_container.begin(), _container.end(), _pred)) != _container.end())
-	{
-		_container.erase(i);
-		++n;
-	}
+		if(_pred(*i))
+		{
+			_container.erase(i);
+			++n;
+		}
 	return n;
 }
 

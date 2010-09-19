@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52;
-// UTime = 2010-9-18 10:29;
-// Version = 0.2379;
+// UTime = 2010-9-20 7:00;
+// Version = 0.2384;
 
 
 #include "yglobal.h"
@@ -74,8 +74,8 @@ namespace
 void
 Def::Idle()
 {
-	if(hShellMain->insRefresh)
-		InsertMessage(NULL, SM_SCRREFRESH, 0x80, hShellMain->scrType, 0);
+//	if(hShellMain->insRefresh)
+//		InsertMessage(NULL, SM_SCRREFRESH, 0x80, hShellMain->scrType, 0);
 	WaitForGUIInput();
 }
 
@@ -150,13 +150,6 @@ Def::ShlProc(HSHL hShl, const Message& msg)
 }
 
 
-void
-Terminate(int exitCode)
-{
-	exit(exitCode);
-}
-
-
 namespace
 {
 	//初始化函数。
@@ -191,10 +184,7 @@ namespace
 			//如果初始化 EFS 失败则初始化 FAT 。
 	#endif
 			if(!fatInitDefault())
-			{
 				LibfatFail();
-				terminate();
-			}
 			IO::ChDir(DEF_DIRECTORY);
 	#ifdef USE_EFS
 		}

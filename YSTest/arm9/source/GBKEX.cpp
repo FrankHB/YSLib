@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-9-18;
-// Version = 0.2617; *Build 150 r22;
+// UTime = 2010-9-20;
+// Version = 0.2617; *Build 151 r29;
 
 
 #include "../YCLib/ydef.h"
@@ -94,91 +94,85 @@ Record prefix and abbrevations:
 \val ::= values
 
 DONE:
-r1-r11:
-* fatal error:
-	/ make default message queue dynamic at runtime:
-		r1:
-		/ @@ \h YShellDefinition @@ \u YGlobal:
-			- YMessageQueue& DefaultMQ;
-			- YMessageQueue& DefaultMQ_Backup;
-		/ \i \f void InsertMessage(const Message&)
-			& \i \f void InsertMessage(const HSHL&, const MSGID&, const MSGPRIORITY&, const WPARAM& = 0, const LPARAM& = 0, const SPoint& = SPoint::Zero)
-			@@ \ns YSLib::Shells @@ \h YShellMessage ->
-			\i \f void InsertMessage(const Message&)
-			& \i \f void InsertMessage(const HSHL&, const Shells::MSGID&, const Shells::MSGPRIORITY&, const WPARAM& = 0, const LPARAM& = 0, const SPoint& = SPoint::Zero)
-			@@ \ns YSLib @@ \h YApplication;
-		- using Shells::InsertMessage @@ \h YShellMessage;
-		- \i \f inline YMessageQueue::size_type ClearDefaultMessageQueue();
-		/ @@ \cl YShell @@ \u YShell:
-			- \i @@ \f LRES OnActivated(const Message&);
-			- \i @@ \f LRES OnDeactivated(const Message&);
-			/ \impl @@ void PostQuitMessage(int);
-			/ \impl @@ IRES PeekMessage(Message&, HSHL, MSGID, MSGID, u32);
-			/ \impl @@ IRES GetMessage(Message&, HSHL, MSGID, MSGID);
-			/ \impl @@ ERRNO BackupMessage(const Message& msg);
-			/ \impl @@ ERRNO RecoverMessageQueue();
-		/ \impl @@ \f void WaitForGUIInput() @@ \ns @@ \u YGlobal;
-		r2-r3:
-		/ \u YApplication:
-			+ \m private YMessageQueue* pMessageQueue;
-			+ \m private YMessageQueue* pMessageQueueBackup;
-			- \m public YMessageQueue DefaultMQ;
-			- \m public YMessageQueue DefaultMQ_Backup;
-			+ public \mf Initialize();
-			+ public \mf Destroy() ythrow();
-			/ public YFontCache* FontCache => pFontCache;
-			+ public \mf YMessageQueue& GetDefaultMessageQueue() ythrow(Exceptions::LoggedEvent);
-			+ public \mf YMessageQueue& GetBackupMessageQueue() ythrow(Exceptions::LoggedEvent);
-		/ \impl @@ \f:
-			/ void Def::Destroy(YObject&, const MEventArgs&) @@ \u YGlobal;
-			/ void YInit() @@ unnamed \ns @@ \u YGlobal;
-			/ \i void InsertMessage(const Message&) @@ \h YApplication;
-			/ \i void InsertMessage(const HSHL&, const Shells::MSGID&, const Shells::MSGPRIORITY&, const WPARAM& = 0, const LPARAM& = 0, const SPoint& = SPoint::Zero) @@ \h YApplication;
-			/ @@ \u YShell:
-				/ IRES PeekMessage(Message&, HSHL, MSGID, MSGID, u32);
-				/ IRES GetMessage(Message&, HSHL, MSGID, MSGID);
-				/ ERRNO BackupMessage(const Message& msg);
-				/ ERRNO RecoverMessageQueue();
-			/ void WaitForGUIInput() @@ \ns @@ \u YGlobal;
-		/ @@ \u YApplication:
-			+ using namespace Exception @@ \impl;
-		/ YFontCache*& pDefaultFontCache(theApp.FontCache)
-			-> YFontCache*& pDefaultFontCache(theApp.pFontCache) @@ \u YGolbal;
-		r4-r7:
-		/= test 1;
-		r8:
-		/ \impl @@ \ctor @@ \cl YShell @@ \u YShell;
-		r9-r11:
-		/ test 2;
-			/ @@ \cl YApplication:
-				* \impl;
-				+ public \mf Initialize();
-				+ public \mf Destroy() ythrow();
-				/+ ythrow() @@ \dtor;
-			/ \impl @@ \f void YSInit() @@ unnamed \ns @@ \u YGolbal;
+r1:
+/ @@ \u YGlobal:
+	/ \tr \impl @@ \f YInit() @@ unnamed \ns;
+	*- \def @@ \f void Terminate(int);
 
-r12-r16:
-+ \de \para (YScreen& = *pDefaultScreen) @@ \exp \ctor @@ \cl YConsole(YScreen&);
-/= test 3;
+r2:
+* \impl @@ \f void CheckInstall() @@ \u YShellInitialization;
 
-r17:
-* @@ \cl YListBox @@ \u YControl:
-	/ \ret \tp @@ \mf \eh void _m_OnClick(const MTouchEventArgs&) -> bool;
-	/ \ret \tp @@ \mf \eh void _m_OnKeyPress(const MTouchEventArgs&) -> bool;
-	/ \impl @@ \mf \eh void OnClick(IVisualControl&, const MTouchEventArgs&);
-	/ \impl @@ \mf \eh void OnKeyPress(IVisualControl&, const MTouchEventArgs&);
+r3-r6:
+/ \tr \impl @@ \f void installFail(const char*) @@ \u YShellInitialization;
 
-r18:
-/= test 4;
+r7-r25:
+/= test 1;
 
-r19:
-/ simp @@ \cl YListBox @@ \u YControl:
-	* undid r17;
-	/ \impl @@ \mf \eh void _m_OnClick(const MTouchEventArgs&) -> bool;
-	/ \impl @@ \mf \eh void _m_OnKeyPress(const MTouchEventArgs&) -> bool;
+r26:
+/= \a _refType => _tReference;
+/= \a _cmpType => _fCompare;
+/= \a _predicateType => _fPredicate;
+/= \a _containerType => _tContainer;
+* \impl @@ \tf template<typename _tContainer, typename _fPredicate> typename _tContainer::size_type
+	erase_all_if(_tContainer&, const typename _tContainer::value_type&) @@ \u YCoreUtilities;
+/= \a _pixelType => _tPixel;
+/= \a _transpType => _fTransformPixel
+/= \a _translType => _fTransformLine
+/= \a _ptrType => _tPointer
 
-r20-r22:
-/= test 5;
+r27:
+/= \a _eventArgsType => _tEventArgs;
+/= \a _codemapFuncType => _fCodemapTransform;
+
+r28:
+/= \a _outIt => _tOut;
+/= \a _charT => _tChar;
+/= \a _EventSpace => _tEventSpace;
+/= \a _Event => _tEvent;
+/= \a _responser => _tResponser;
+/= \a \tp \para _container => _tContainer;
+
+r29:
+/ @@ \u YCommon:
+	+ \f char* getcwd_n(char*, std::size_t) @@ \ns platform;
+	/= \tr \impl @@ \f bool fexists(CPATH) @@ \ns stdex;
+	+ using ::chdir @@ \ns platform;
+/ \tr \impl @@ \i \fint ChDir(CPATH) @@ \u YFileSystem;
+/ @@ \ns YSLib @@ \h YAdapter:
+	- using ::stat;
+	- using ::mkdir;
+	- using ::chdir;
+	- using ::getcwd;
+/= \tr \impl @@ \f void CheckInstall() @@ \u YShellInitialization;
+/ using ::iprintf @@ \ns YSLib @@ \h YAdapter => \ns platform @@ \u YCommon;
+/ @@ \h YAdapter:
+	/ {
+		using ::swiWaitForVBlank;
+
+		using ::lcdMainOnTop;
+		using ::lcdMainOnBottom;
+		using ::lcdSwap;
+		using ::videoSetMode;
+		using ::videoSetModeSub;
+
+		using ::scanKeys;
+		using ::touchRead;
+	} @@ \ns YSLib => \ns YSLib::DS;
+	+ using platform::PixelType @@ \ns YSLib;
+	+ using platform::ScreenBufferType @@ \ns YSLib;
+	- typedef ::PIXEL PixelType @@ YSLib::Drawing;
+	- #define SCR_MAIN 0x1
+	- #define SCR_SUB 0x2
+	- #define SCR_BOTH 0x3
++ typedef u16 PixelType @@ \ns platform @@ \u YCommon;
+- typedef u16 PIXEL @@ \h <platform.h>;
+/ typedef PIXEL ScreenBufferType[SCREEN_WIDTH * SCREEN_HEIGHT] @@ \h <platform.h> => \ns platform @@ \u YCommon;
+/ #define BITALPHA BIT(15) => \u YCommon;
+/ \a PIXEL -> PixelType;
+- \m (insRefresh & scrType) @@ \cl YShell @@ \u YShell;
+/ \simp \impl @@ \f void Def::Idle() @@ \u YGlobal;
+/ \a SCRBUF => ScreenBufferType;
+/= \ inc <assert.h> @@ \h YCommon => \inc <cassert>;
 
 
 DOING:
@@ -186,21 +180,11 @@ DOING:
 / ...
 
 Debug message:
-
-cmd = %DKP_HOME%\devkitARM\bin\arm-eabi-addr2line.exe -f -C -e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 2078824
-
-void std::__push_heap<__gnu_cxx::__normal_iterator<YSLib::Shells::Message*, std:
-:vector<YSLib::Shells::Message, std::allocator<YSLib::Shells::Message> > >, int,
- YSLib::Shells::Message, YSLib::Shells::YMessageQueue::cmp>(__gnu_cxx::__normal_
-iterator<YSLib::Shells::Message*, std::vector<YSLib::Shells::Message, std::alloc
-ator<YSLib::Shells::Message> > >, int, int, YSLib::Shells::Message, YSLib::Shell
-s::YMessageQueue::cmp)
-crtstuff.c:0
-
+//
 
 NEXT:
-* fatal error;
-+ fully \impl \u YFileSystem;
+/ fully \impl \u YFileSystem;
+/ fully \impl \cl YListBox;
 / fully \impl \cl ShlReader;
 / fully \impl btnTest;
 

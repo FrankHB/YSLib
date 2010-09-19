@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46;
-// UTime = 2010-9-2 11:00;
-// Version = 0.2719;
+// UTime = 2010-9-19 18:31;
+// Version = 0.2724;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -22,18 +22,18 @@ YSL_BEGIN_NAMESPACE(Drawing)
 //基本函数对象。
 
 //像素填充器。
-template<typename _pixelType>
+template<typename _tPixel>
 struct FillPixel
 {
-	_pixelType Color;
+	_tPixel Color;
 
 	inline explicit
-	FillPixel(_pixelType c)
+	FillPixel(_tPixel c)
 	: Color(c)
 	{}
 
 	inline void
-	operator()(_pixelType* dst)
+	operator()(_tPixel* dst)
 	{
 		*dst = Color;
 	}
@@ -42,13 +42,13 @@ struct FillPixel
 //序列转换器。
 struct transSeq
 {
-	template<typename _pixelType, class _transpType>
+	template<typename _tPixel, class _fTransformPixel>
 	void
-	operator()(_pixelType* dst, std::size_t n, _transpType tp)
+	operator()(_tPixel* dst, std::size_t n, _fTransformPixel tp)
 	{
 		if(dst && n)
 		{
-			_pixelType* p = dst + n;
+			_tPixel* p = dst + n;
 
 			while(--p >= dst)
 				tp(p);
@@ -59,9 +59,9 @@ struct transSeq
 //竖直线转换器。
 struct transVLine
 {
-	template<typename _pixelType, class _transpType>
+	template<typename _tPixel, class _fTransformPixel>
 	void
-	operator()(_pixelType* dst, std::size_t n, SDST dw, _transpType tp)
+	operator()(_tPixel* dst, std::size_t n, SDST dw, _fTransformPixel tp)
 	{
 		if(dst && n)
 			while(n--)
@@ -82,10 +82,10 @@ blitScale(const SPoint& sp, const SPoint& dp, const SSize& ss, const SSize& ds, 
 //正则矩形转换器。
 struct transRect
 {
-	template<typename _pixelType, class _transpType, class _translType>
+	template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
 	void
-	operator()(_pixelType* dst, const SSize& ds,
-		const SPoint& dp, const SSize& ss, _transpType tp, _translType tl)
+	operator()(_tPixel* dst, const SSize& ds,
+		const SPoint& dp, const SSize& ss, _fTransformPixel tp, _fTransformLine tl)
 	{
 		int minX, minY, maxX, maxY;
 
@@ -102,11 +102,11 @@ struct transRect
 			dst += ds.Width;
 		}
 	}
-	template<typename _pixelType, class _transpType, class _translType>
+	template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
 	inline void
-	operator()(_pixelType* dst, const SSize& ds, const SRect& rSrc, _transpType tp, _translType tl)
+	operator()(_tPixel* dst, const SSize& ds, const SRect& rSrc, _fTransformPixel tp, _fTransformLine tl)
 	{
-		operator()<_pixelType, _transpType, _translType>(dst, ds, rSrc, rSrc, tp, tl);
+		operator()<_tPixel, _fTransformPixel, _fTransformLine>(dst, ds, rSrc, rSrc, tp, tl);
 	}
 };
 
@@ -114,41 +114,41 @@ struct transRect
 //显示缓存操作：清除/以纯色像素填充。
 
 //清除指定位置的 n 个连续像素。
-template<typename _pixelType>
+template<typename _tPixel>
 inline void
-ClearPixel(_pixelType* dst, std::size_t n)
+ClearPixel(_tPixel* dst, std::size_t n)
 {
 	ClearSequence(dst, n);
 }
 
 //使用 n 个指定像素连续填充指定位置。
-template<typename _pixelType>
+template<typename _tPixel>
 inline void
-FillSeq(_pixelType* dst, std::size_t n, _pixelType c)
+FillSeq(_tPixel* dst, std::size_t n, _tPixel c)
 {
-	transSeq()(dst, n, FillPixel<_pixelType>(c));
+	transSeq()(dst, n, FillPixel<_tPixel>(c));
 }
 
 //使用 n 个指定像素竖直填充指定位置。
-template<typename _pixelType>
+template<typename _tPixel>
 inline void
-FillVLine(_pixelType* dst, std::size_t n, SDST dw, _pixelType c)
+FillVLine(_tPixel* dst, std::size_t n, SDST dw, _tPixel c)
 {
-	transVLine()(dst, n, dw, FillPixel<_pixelType>(c));
+	transVLine()(dst, n, dw, FillPixel<_tPixel>(c));
 }
 
 //使用指定像素填充指定的正则矩形区域。
-template<typename _pixelType>
+template<typename _tPixel>
 inline void
-FillRect(_pixelType* dst, SDST dw, SDST dh, SPOS sx, SPOS sy, SDST sw, SDST sh, _pixelType c)
+FillRect(_tPixel* dst, SDST dw, SDST dh, SPOS sx, SPOS sy, SDST sw, SDST sh, _tPixel c)
 {
-	transRect()(dst, dw, dh, sx, sy, sw, sh, FillPixel<_pixelType>(c), transSeq());
+	transRect()(dst, dw, dh, sx, sy, sw, sh, FillPixel<_tPixel>(c), transSeq());
 }
-template<typename _pixelType>
+template<typename _tPixel>
 inline void
-FillRect(_pixelType* dst, const SSize& sDst, const SRect& rSrc, _pixelType c)
+FillRect(_tPixel* dst, const SSize& sDst, const SRect& rSrc, _tPixel c)
 {
-	transRect()(dst, sDst, rSrc, FillPixel<_pixelType>(c), transSeq());
+	transRect()(dst, sDst, rSrc, FillPixel<_tPixel>(c), transSeq());
 }
 
 

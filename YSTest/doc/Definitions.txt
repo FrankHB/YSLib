@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-9-18 10:31;
-// Version = r7596;
+// UTime = 2010-9-20 7:05;
+// Version = r7681;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -107,10 +107,6 @@ extern const u16 $SCREEN_WIDTH, $SCREEN_HEIGHT;
 #define UNICODE
 // Unicode 宽字符支持。
 #endif
-
-typedef $pixeltype PixelType; //像素。
-typedef PixelType SCRBUF[SCREEN_WIDTH * SCREEN_HEIGHT]; //主显示屏缓冲区。
-#define BITALPHA BIT(15) // Alpha 位。
 
 } //$code;
 
@@ -312,9 +308,9 @@ $unit CHRProcessing "chrproc"
 	CHRLIB_BEGIN
 
 	//判断是否为 ASCII 字符。
-	template<typename _charT>
+	template<typename _tChar>
 	inline bool
-	IsASCII(_charT c);
+	IsASCII(_tChar c);
 
 	//计算 UCS-2 字符串长度。
 	usize_t
@@ -329,9 +325,9 @@ $unit CHRProcessing "chrproc"
 	ucsicmp(const uchar_t*, const uchar_t*);
 
 	//宽字符转换为 ASCII 字符（截取低字节）。
-	template<typename _charT>
+	template<typename _tChar>
 	inline char
-	ToASCII(_charT c);
+	ToASCII(_tChar c);
 
 	//按字符集转换字符串中字符为 UCS-2 字符，返回转换的字节数。
 	ubyte_t
@@ -544,59 +540,34 @@ $unit YCommon "ycommon"
 
 	namespace platform
 	{
+		using ::iprintf;
+
+		//当 buf 非空时取当前工作目录复制至 buf 起始的长为 t 的缓冲区中，并返回 buf 。
+		char*
+		getcwd_n(char* buf, std::size_t);
+
+		//判断指定目录是否存在。
+		bool
+		direxists(CPATH);
+
+		using ::mkdir;
+		using ::chdir;
+
+		//按路径新建一个或多个目录。
+		bool
+		mkdirs(CPATH);
+
+
 		//异常终止函数。
 		void
 		terminate();
 
 
-		//调试模式：设置状态。
-		void
-		YDebugSetStatus(bool = true);
-
-		//调试模式：取得状态。
-		bool
-		YDebugGetStatus();
-
-		//调试模式：显示（fc 为前景色，bc为背景色）。
-		void
-		YDebugBegin(PixelType fc = RGB15(31, 31, 31), PixelType bc = RGB15( 0, 0, 31));
-
-		//调试模式：按键继续。
-		void
-		YDebug();
-		//调试模式：显示控制台字符串，按键继续。
-		void
-		YDebug(const char*);
-
-		//调试模式：显示控制台字（int 型数据），按键继续。
-		void
-		YDebugW(int);
-
-		//调试模式：显示控制台 printf ，按键继续。
-		int
-		yprintf(const char*, ...)
-			_ATTRIBUTE ((format (printf, 1, 2)));
-
-		//断言。
-		#ifdef YC_USE_YASSERT
-
-		#undef YAssert
-
-		inline void
-		yassert(bool exp, const char* expstr, const char* message, int line, const char* file);
-
-		#define YAssert(exp, message) yassert(exp, #exp, message, __LINE__, __FILE__);
-
-		#else
-
-		#	include <assert.h>
-		#	define YAssert(exp, message) assert(exp)
-
-		#endif
-
-
-		typedef PIXEL* BitmapPtr;
-		typedef const PIXEL* ConstBitmapPtr;
+		typedef u16 PixelType; //像素。
+		typedef PixelType* BitmapPtr;
+		typedef const PixelType* ConstBitmapPtr;
+		typedef PixelType ScreenBufferType[SCREEN_WIDTH * SCREEN_HEIGHT]; //主显示屏缓冲区。
+		#define BITALPHA BIT(15) // Alpha 位。
 
 
 		//系统默认颜色空间。
@@ -637,12 +608,12 @@ $unit YCommon "ycommon"
 			} ColorSet;
 
 		private:
-			PIXEL _value;
+			PixelType _value;
 
 		public:
-			Color(PIXEL = 0);
+			Color(PixelType = 0);
 
-			operator PIXEL() const;
+			operator PixelType() const;
 		};
 
 
@@ -702,6 +673,52 @@ $unit YCommon "ycommon"
 		} CursorInfo;
 
 
+		//调试模式：设置状态。
+		void
+		YDebugSetStatus(bool = true);
+
+		//调试模式：取得状态。
+		bool
+		YDebugGetStatus();
+
+		//调试模式：显示（fc 为前景色，bc为背景色）。
+		void
+		YDebugBegin(PixelType fc = RGB15(31, 31, 31), PixelType bc = RGB15( 0, 0, 31));
+
+		//调试模式：按键继续。
+		void
+		YDebug();
+		//调试模式：显示控制台字符串，按键继续。
+		void
+		YDebug(const char*);
+
+		//调试模式：显示控制台字（int 型数据），按键继续。
+		void
+		YDebugW(int);
+
+		//调试模式：显示控制台 printf ，按键继续。
+		int
+		yprintf(const char*, ...)
+			_ATTRIBUTE ((format (printf, 1, 2)));
+
+		//断言。
+		#ifdef YC_USE_YASSERT
+
+		#undef YAssert
+
+		inline void
+		yassert(bool exp, const char* expstr, const char* message, int line, const char* file);
+
+		#define YAssert(exp, message) yassert(exp, #exp, message, __LINE__, __FILE__);
+
+		#else
+
+		#	include <cassert>
+		#	define YAssert(exp, message) assert(exp)
+
+		#endif
+
+
 		//定长路径字符串类型。
 		typedef char PATHSTR[MAXPATHLEN];
 
@@ -747,20 +764,9 @@ $unit YCommon "ycommon"
 		}; //class HDirectory;
 
 
-		//判断指定目录是否存在。
-		bool
-		direxists(CPATH);
-
-		using ::mkdir;
-
-		//按路径新建一个或多个目录。
-		bool
-		mkdirs(CPATH);
-
-
-		//快速刷新缓存映像到屏幕。
+		//快速刷新缓存映像到主显示屏。
 		inline void
-		scrCopy(PIXEL* scr, const PIXEL* buf);
+		scrCopy(PixelType* scr, const PixelType* buf);
 
 		//复位屏幕显示模式。
 		void
@@ -913,6 +919,7 @@ $header YAdapter "yadapter.h"
 	{
 		namespace Drawing
 		{
+			using platform::PixelType;
 			using platform::BitmapPtr;
 			using platform::ConstBitmapPtr;
 			using platform::Color;
@@ -929,6 +936,8 @@ $header YAdapter "yadapter.h"
 		namespace $platform
 		{
 			using namespace platform;
+
+			$using ...;
 		} //namespace $platform;
 		$...;
 	} //namespace YSLib;
@@ -1156,9 +1165,9 @@ $header YRefrence "yref.hpp"
 	inline _type*
 	GetPointer(_type*);
 	
-	template<typename _type, typename _refType>
+	template<typename _type, typename _tReference>
 	inline _type
-	handle_cast(GHHandle<_refType>);	
+	handle_cast(GHHandle<_tReference>);	
 
 	#else
 
@@ -1919,14 +1928,14 @@ $header YFunc "yfunc.hpp"
 
 
 	//函数对象基类。
-	template<typename _ptrType>
+	template<typename _tPointer>
 	class GHBase
 	{
 	protected:
-		mutable _ptrType _ptr; //对象指针。
+		mutable _tPointer _ptr; //对象指针。
 
 		inline explicit
-		GHBase(_ptrType= NULL);
+		GHBase(_tPointer= NULL);
 		template<typename P>
 		inline explicit
 		GHBase(GHBase<P>);
@@ -1935,11 +1944,11 @@ $header YFunc "yfunc.hpp"
 
 	public:
 		inline
-		operator _ptrType() const;
+		operator _tPointer() const;
 
 		inline bool
 		empty() const;
-		inline _ptrType
+		inline _tPointer
 		GetPtr() const;
 
 	}; //class GHBase;
@@ -1992,12 +2001,12 @@ $unit YCoreUtilities "ycutil"
 	template<typename _type>
 	inline _type
 	vmax(_type, _type);
-	template<typename _type, typename _cmpType>
+	template<typename _type, typename _fCompare>
 	inline _type
-	vmin(_type, _type, _cmpType);
-	template<typename _type, typename _cmpType>
+	vmin(_type, _type, _fCompare);
+	template<typename _type, typename _fCompare>
 	inline _type
-	vmax(_type, _type, _cmpType);
+	vmax(_type, _type, _fCompare);
 
 
 	//符号函数，当 a < b 时返回 -1 ，否则当 a = b 时返回 0 ，否则返回 1 。
@@ -2095,9 +2104,9 @@ $unit YCoreUtilities "ycutil"
 	//间接访问（解引用）比较仿函数。
 	template<
 		typename _type,
-		template<typename _type> class _cmpType = std::less
+		template<typename _type> class _fCompare = std::less
 	>
-	struct deref_comp : _cmpType<_type>
+	struct deref_comp : _fCompare<_type>
 	{
 		bool
 		operator()(_type* const& _x, _type* const& _y) const;
@@ -2106,27 +2115,27 @@ $unit YCoreUtilities "ycutil"
 
 	//间接访问字符串（解引用）比较仿函数。
 	template<
-		typename _charT,
-		int (*_lexi_cmp)(const _charT*, const _charT*) = std::strcmp,
-		class _cmpType = std::less<int>
+		typename _tChar,
+		int (*_lexi_cmp)(const _tChar*, const _tChar*) = std::strcmp,
+		class _fCompare = std::less<int>
 	>
-	struct deref_str_comp : _cmpType
+	struct deref_str_comp : _fCompare
 	{
 		bool
 		operator()(_type* const&, _type* const&) const;
-	}; //template<typename _charT, ... > struct deref_str_comp;
+	}; //template<typename _tChar, ... > struct deref_str_comp;
 
 
 	//删除指定标准容器中所有相同元素算法。
-	template<typename _containerType>
-	typename _containerType::size_type
-	erase_all(_containerType& _container, const typename _containerType::value_type& _value);
+	template<typename _tContainer>
+	typename _tContainer::size_type
+	erase_all(_tContainer& _tContainer, const typename _tContainer::value_type& _value);
 
 
 	//删除指定标准容器中所有满足条件元素算法。
-	template<typename _containerType, typename _predicateType>
-	typename _containerType::size_type
-	erase_all_if(_containerType& _container, const typename _containerType::value_type& _pred);
+	template<typename _tContainer, typename _fPredicate>
+	typename _tContainer::size_type
+	erase_all_if(_tContainer& _tContainer, const typename _tContainer::value_type& _pred);
 
 } //$unit YCoreUtilities;
 
@@ -2395,12 +2404,12 @@ $header YEvent "yevt.hpp"
 
 
 	//事件映射表模板。
-	template<class _EventSpace, class _Event = YEvent>
+	template<class _tEventSpace, class _tEvent = YEvent>
 	class GEventMap
 	{
 	public:
-		typedef typename _EventSpace::EventID ID;
-		typedef _Event Event;
+		typedef typename _tEventSpace::EventID ID;
+		typedef _tEvent Event;
 
 	private:
 		std::map<ID, Event> Map;
@@ -2413,17 +2422,17 @@ $header YEvent "yevt.hpp"
 
 		inline void
 		clear();
-	}; //template<class _EventSpace> class GEventMap;
+	}; //template<class _tEventSpace> class GEventMap;
 
 
 	//标准事件回调函数抽象类模板。
-	template<class _responser, class _eventArgsType>
-	struct GAHEventCallback : public _eventArgsType
+	template<class _tResponser, class _tEventArgs>
+	struct GAHEventCallback : public _tEventArgs
 	{
 		inline explicit
-		GAHEventCallback(const _eventArgsType& e);
-		DeclIEntry(bool operator()(_responser&))
-	}; //template<class _responser, ...> struct GAHEventCallback;
+		GAHEventCallback(const _tEventArgs& e);
+		DeclIEntry(bool operator()(_tResponser&))
+	}; //template<class _tResponser, ...> struct GAHEventCallback;
 
 	YSL_END_NAMESPACE(Runtime)
 
@@ -2441,12 +2450,12 @@ $unit YModule "ymodule"
 	YSL_BEGIN_NAMESPACE(Components)
 
 	//通用对象组类模板。
-	template<class _type, class _container = std::set<_type*> >
-	class GMContainer : public _container,
+	template<class _type, class _tContainer = std::set<_type*> >
+	class GMContainer : public _tContainer,
 		implements GIContainer<_type>
 	{
 	public:
-		typedef _container ContainerType; //对象组类型。
+		typedef _tContainer ContainerType; //对象组类型。
 
 		inline GMContainer();
 
@@ -2578,15 +2587,15 @@ $unit YModule "ymodule"
 	YSL_BEGIN_NAMESPACE(Components)
 
 	//序列视图类模板。
-	template<class _containerType>
+	template<class _tContainer>
 	class GSequenceViewer
 	{
 	public:
-		typedef typename _containerType::size_type SizeType; //项目下标类型。
+		typedef typename _tContainer::size_type SizeType; //项目下标类型。
 		typedef std::ptrdiff_t IndexType; //项目索引类型。
 
 	private:
-		_containerType& c; //序列容器引用。
+		_tContainer& c; //序列容器引用。
 		IndexType nIndex, //项目索引：视图中首个项目下标，若不存在则为 -1 。
 			nSelected; //选中项目下标，大于等于 GetTotal() 时无效。
 		SizeType nLength; //视图长度。
@@ -2594,7 +2603,7 @@ $unit YModule "ymodule"
 
 	public:
 		explicit
-		GSequenceViewer(_containerType& c_);
+		GSequenceViewer(_tContainer& c_);
 
 		inline GSequenceViewer&
 		operator++(); //选中项目下标自增。
@@ -2640,7 +2649,7 @@ $unit YModule "ymodule"
 		MoveViewerToBegin(); //移动视图至序列起始。
 		bool
 		MoveViewerToEnd(); //移动视图至序列结尾。
-	}; //template<class _containerType> class GSequenceViewer;
+	}; //template<class _tContainer> class GSequenceViewer;
 
 	YSL_END_NAMESPACE(Components)
 
@@ -2960,8 +2969,8 @@ $unit YString "ystring"
 		String();
 		inline
 		String(const uchar_t*);
-		template<class _charT>
-		String(const _charT*);
+		template<class _tChar>
+		String(const _tChar*);
 		inline
 		String(const stdex::ustring&);
 	}; //class String;
@@ -3304,9 +3313,6 @@ $unit YShell "yshell"
 		WNDs sWnds; //窗口组。
 
 	public:
-		bool insRefresh; //即时刷新：自动加入屏幕刷新消息。
-		u32 scrType; //即时刷新屏幕选取设置。
-
 		YShell();
 		virtual
 		~YShell() ythrow();
@@ -3896,31 +3902,31 @@ $unit YGDI "ygdi"
 	//基本函数对象。
 
 	//像素填充器。
-	template<typename _pixelType>
+	template<typename _tPixel>
 	struct FillPixel
 	{
-		_pixelType Color;
+		_tPixel Color;
 
 		inline explicit
-		FillPixel(_pixelType);
+		FillPixel(_tPixel);
 		inline void
-		operator()(_pixelType*);
-	}; //template<typename _pixelType> struct FillPixel;
+		operator()(_tPixel*);
+	}; //template<typename _tPixel> struct FillPixel;
 
 	//序列转换器。
 	struct transSeq
 	{
-		template<typename _pixelType, class _transpType>
+		template<typename _tPixel, class _fTransformPixel>
 		void
-		operator()(_pixelType*, std::size_t, _transpType);
+		operator()(_tPixel*, std::size_t, _fTransformPixel);
 	}; //struct transSeq;
 
 	//竖直线转换器。
 	struct transVLine
 	{
-		template<typename _pixelType, class _transpType>
+		template<typename _tPixel, class _fTransformPixel>
 		void
-		operator()(_pixelType* dst, std::size_t n, SDST dw, _transpType tp);
+		operator()(_tPixel* dst, std::size_t n, SDST dw, _fTransformPixel tp);
 	}; //struct transVLine;
 
 
@@ -3933,40 +3939,40 @@ $unit YGDI "ygdi"
 	//正则矩形转换器。
 	struct transRect
 	{
-		template<typename _pixelType, class _transpType, class _translType>
+		template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
 		void
-		operator()(_pixelType* dst, const SSize& ds,
-			const SPoint& dp, const SSize& ss, _transpType, _translType);
-		template<typename _pixelType, class _transpType, class _translType>
+		operator()(_tPixel* dst, const SSize& ds,
+			const SPoint& dp, const SSize& ss, _fTransformPixel, _fTransformLine);
+		template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
 		inline void
-		operator()(_pixelType*, const SSize&, const SRect&, _transpType, _translType);
+		operator()(_tPixel*, const SSize&, const SRect&, _fTransformPixel, _fTransformLine);
 	}; //struct transRect;
 
 
 	//显示缓存操作：清除/以纯色像素填充。
 
 	//清除指定位置的 n 个连续像素。
-	template<typename _pixelType>
+	template<typename _tPixel>
 	inline void
-	ClearPixel(_pixelType* dst, std::size_t n);
+	ClearPixel(_tPixel* dst, std::size_t n);
 
 	//使用 n 个指定像素连续填充指定位置。
-	template<typename _pixelType>
+	template<typename _tPixel>
 	inline void
-	FillSeq(_pixelType* dst, std::size_t n, _pixelType c);
+	FillSeq(_tPixel* dst, std::size_t n, _tPixel c);
 
 	//使用 n 个指定像素竖直填充指定位置。
-	template<typename _pixelType>
+	template<typename _tPixel>
 	inline void
-	FillVLine(_pixelType* dst, std::size_t n, SDST dw, _pixelType c);
+	FillVLine(_tPixel* dst, std::size_t n, SDST dw, _tPixel c);
 
 	//使用指定像素填充指定的正则矩形区域。
-	template<typename _pixelType>
+	template<typename _tPixel>
 	inline void
-	FillRect(_pixelType*, SDST, SDST, SPOS, SPOS, SDST, SDST, _pixelType);
-	template<typename _pixelType>
+	FillRect(_tPixel*, SDST, SDST, SPOS, SPOS, SDST, SDST, _tPixel);
+	template<typename _tPixel>
 	inline void
-	FillRect(_pixelType*, const SRect&, const SSize&,  _pixelType);
+	FillRect(_tPixel*, const SRect&, const SSize&,  _tPixel);
 
 
 	//显示缓存操作：简单复制。
@@ -5006,8 +5012,8 @@ $unit YControl "ycontrol"
 	*/
 
 		//用字符串在窗口中以给定字号初始化标签。
-		template<class _charT>
-		YLabel(HWND, const _charT*, const SRect& = SRect::FullScreen,
+		template<class _tChar>
+		YLabel(HWND, const _tChar*, const SRect& = SRect::FullScreen,
 			const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 		virtual
 		~YLabel();
@@ -5423,21 +5429,21 @@ $unit YText "ytext"
 		u8
 		PutChar(fchar_t); //输出单个字符。
 
-		template<typename _outIt>
-		_outIt
-		PutLine(_outIt s); //输出迭代器 s 指向字符串，直至行尾或字符串结束，并返回输出迭代器。
-		template<typename _outIt, typename _charT>
-		_outIt
-		PutLine(_outIt s, _outIt g, _charT f = '\0'); //输出迭代器 s 指向字符串，直至行尾、遇到指定迭代器 g 或遇到指定字符 f ，并返回输出迭代器。
+		template<typename _tOut>
+		_tOut
+		PutLine(_tOut s); //输出迭代器 s 指向字符串，直至行尾或字符串结束，并返回输出迭代器。
+		template<typename _tOut, typename _tChar>
+		_tOut
+		PutLine(_tOut s, _tOut g, _tChar f = '\0'); //输出迭代器 s 指向字符串，直至行尾、遇到指定迭代器 g 或遇到指定字符 f ，并返回输出迭代器。
 		inline String::size_type
 		PutLine(const String&); //输出字符串，直至行尾或字符串结束，并返回输出字符数。
 
-		template<typename _outIt>
-		_outIt
-		PutString(_outIt s); //输出迭代器 s 指向字符串，直至区域末尾或字符串结束，并返回输出迭代器。
-		template<typename _outIt, typename _charT>
-		_outIt
-		PutString(_outIt s, _outIt g , _charT f = '\0'); //输出迭代器 s 指向字符串，直至区域末尾、遇到指定迭代器 g 或遇到指定字符 f ，并返回输出迭代器。
+		template<typename _tOut>
+		_tOut
+		PutString(_tOut s); //输出迭代器 s 指向字符串，直至区域末尾或字符串结束，并返回输出迭代器。
+		template<typename _tOut, typename _tChar>
+		_tOut
+		PutString(_tOut s, _tOut g , _tChar f = '\0'); //输出迭代器 s 指向字符串，直至区域末尾、遇到指定迭代器 g 或遇到指定字符 f ，并返回输出迭代器。
 		inline String::size_type
 		PutString(const String&); //输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
 	}; //class TextRegion;
@@ -5447,19 +5453,19 @@ $unit YText "ytext"
 	YSL_BEGIN_NAMESPACE(Text)
 
 	//以 cache 为字体缓存，width 为宽度，从当前文本迭代器 p （不含）开始逆向查找字符 f （满足 p != --g ）。
-	template<typename _outIt, typename _charT>
-	_outIt
-	rfind(YFontCache& cache, SDST width, _outIt p, _outIt g, _charT f);
+	template<typename _tOut, typename _tChar>
+	_tOut
+	rfind(YFontCache& cache, SDST width, _tOut p, _tOut g, _tChar f);
 
 	//在 r 中取当前文本迭代器 p 的前 l 行首对应文本迭代器（满足 p != --g ）。
-	template<typename _outIt>
-	_outIt
-	GetPreviousLinePtr(const Drawing::TextRegion& r, _outIt p, _outIt g, u16 l = 1)
+	template<typename _tOut>
+	_tOut
+	GetPreviousLinePtr(const Drawing::TextRegion& r, _tOut p, _tOut g, u16 l = 1)
 
 	//在 r 中取当前文本迭代器 p 至后一行首对应文本迭代器（满足 p != g ）。
-	template<typename _outIt>
-	_outIt
-	GetNextLinePtr(const Drawing::TextRegion& r, _outIt p, _outIt g);
+	template<typename _tOut>
+	_tOut
+	GetNextLinePtr(const Drawing::TextRegion& r, _tOut p, _tOut g);
 
 
 	u32

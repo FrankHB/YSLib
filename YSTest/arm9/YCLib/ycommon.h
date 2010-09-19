@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28;
-// UTime = 2010-9-18 0:48;
-// Version = 0.2028;
+// UTime = 2010-9-20 7:16;
+// Version = 0.2068;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -67,66 +67,34 @@ namespace stdex
 
 namespace platform
 {
+	using ::iprintf;
+
+	//当 buf 非空时取当前工作目录复制至 buf 起始的长为 t 的缓冲区中，并返回 buf 。
+	char*
+	getcwd_n(char* buf, std::size_t);
+
+	//判断指定目录是否存在。
+	bool
+	direxists(CPATH);
+
+	using ::mkdir;
+	using ::chdir;
+
+	//按路径新建一个或多个目录。
+	bool
+	mkdirs(CPATH);
+
+
 	//异常终止函数。
 	void
 	terminate();
 
 
-	//调试模式：设置状态。
-	void
-	YDebugSetStatus(bool = true);
-
-	//调试模式：取得状态。
-	bool
-	YDebugGetStatus();
-
-	//调试模式：显示控制台（fc 为前景色，bc 为背景色）。
-	void
-	YDebugBegin(PIXEL fc = RGB15(31, 31, 31), PIXEL bc = RGB15( 0, 0, 31));
-
-	//调试模式：按键继续。
-	void
-	YDebug();
-	//调试模式：显示控制台字符串，按键继续。
-	void
-	YDebug(const char*);
-
-	//调试模式：显示控制台字（int 型数据），按键继续。
-	void
-	YDebugW(int);
-
-	//调试模式 printf ：显示控制台格式化输出 ，按键继续。
-	int
-	yprintf(const char*, ...)
-		_ATTRIBUTE ((format (printf, 1, 2)));
-
-	//断言。
-	#ifdef YC_USE_YASSERT
-
-	#undef YAssert
-
-	inline void
-	yassert(bool exp, const char* expstr, const char* message, int line, const char* file)
-	{
-		if(!exp)
-		{
-			yprintf("Assertion failed: \n%s\nMessage: \n%s\nAt line %i in file \"%s\".\n", expstr, message, line, file);
-			abort();
-		}
-	}
-
-	#define YAssert(exp, message) yassert(exp, #exp, message, __LINE__, __FILE__);
-
-	#else
-
-	#	include <assert.h>
-	#	define YAssert(exp, message) assert(exp)
-
-	#endif
-
-
-	typedef PIXEL* BitmapPtr;
-	typedef const PIXEL* ConstBitmapPtr;
+	typedef u16 PixelType; //像素。
+	typedef PixelType* BitmapPtr;
+	typedef const PixelType* ConstBitmapPtr;
+	typedef PixelType ScreenBufferType[SCREEN_WIDTH * SCREEN_HEIGHT]; //主显示屏缓冲区。
+	#define BITALPHA BIT(15) // Alpha 位。
 
 
 	//系统默认颜色空间。
@@ -167,21 +135,21 @@ namespace platform
 		} ColorSet;
 
 	private:
-		PIXEL _value;
+		PixelType _value;
 
 	public:
-		Color(PIXEL = 0);
+		Color(PixelType = 0);
 
-		operator PIXEL() const;
+		operator PixelType() const;
 	};
 
 	inline
-	Color::Color(PIXEL p)
+	Color::Color(PixelType p)
 	: _value(p)
 	{}
 
 	inline
-	Color::operator PIXEL() const
+	Color::operator PixelType() const
 	{
 		return _value;
 	}
@@ -263,6 +231,59 @@ namespace platform
 	{
 		return py;
 	}
+
+
+	//调试模式：设置状态。
+	void
+	YDebugSetStatus(bool = true);
+
+	//调试模式：取得状态。
+	bool
+	YDebugGetStatus();
+
+	//调试模式：显示控制台（fc 为前景色，bc 为背景色）。
+	void
+	YDebugBegin(PixelType fc = RGB15(31, 31, 31), PixelType bc = RGB15( 0, 0, 31));
+
+	//调试模式：按键继续。
+	void
+	YDebug();
+	//调试模式：显示控制台字符串，按键继续。
+	void
+	YDebug(const char*);
+
+	//调试模式：显示控制台字（int 型数据），按键继续。
+	void
+	YDebugW(int);
+
+	//调试模式 printf ：显示控制台格式化输出 ，按键继续。
+	int
+	yprintf(const char*, ...)
+		_ATTRIBUTE ((format (printf, 1, 2)));
+
+	//断言。
+	#ifdef YC_USE_YASSERT
+
+	#undef YAssert
+
+	inline void
+	yassert(bool exp, const char* expstr, const char* message, int line, const char* file)
+	{
+		if(!exp)
+		{
+			yprintf("Assertion failed: \n%s\nMessage: \n%s\nAt line %i in file \"%s\".\n", expstr, message, line, file);
+			abort();
+		}
+	}
+
+	#define YAssert(exp, message) yassert(exp, #exp, message, __LINE__, __FILE__);
+
+	#else
+
+	#	include <cassert>
+	#	define YAssert(exp, message) assert(exp)
+
+	#endif
 
 
 	//定长路径字符串类型。
@@ -358,17 +379,6 @@ namespace platform
 	}
 
 
-	//判断指定目录是否存在。
-	bool
-	direxists(CPATH);
-
-	using ::mkdir;
-
-	//按路径新建一个或多个目录。
-	bool
-	mkdirs(CPATH);
-
-
 	//extern u8 backlight;
 	/*
 	void
@@ -379,14 +389,13 @@ namespace platform
 	u8
 	chartohex(char c);
 	*/
-	//复制一块像素（忽略透明性）。
 
-	//快速刷新缓存映像到屏幕。
+	//快速刷新缓存映像到主显示屏。
 	inline void
-	scrCopy(PIXEL* scr, const PIXEL* buf)
+	scrCopy(PixelType* scr, const PixelType* buf)
 	{
-		dmaCopy(buf, scr, sizeof(SCRBUF));
-	//	swiFastCopy(buf, scr, sizeof(SCRBUF) >> 2);
+		dmaCopy(buf, scr, sizeof(ScreenBufferType));
+	//	swiFastCopy(buf, scr, sizeof(ScreenBufferType) >> 2);
 	}
 
 	/*void fadeBlack(u16 frames);
@@ -402,7 +411,7 @@ namespace platform
 
 	//启动控制台（fc 为前景色，bc为背景色）。
 	void
-	YConsoleInit(u8 dspIndex, PIXEL fc = Color::White, PIXEL bc = Color::Black);
+	YConsoleInit(u8 dspIndex, PixelType fc = Color::White, PixelType bc = Color::Black);
 
 	//输出控制台字（int 型数据）。
 	inline void

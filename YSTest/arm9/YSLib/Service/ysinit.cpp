@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YShellInitialization by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-10-21 23:15:08;
-// UTime = 2010-9-18 0:52;
-// Version = 0.1664;
+// UTime = 2010-9-20 6:38;
+// Version = 0.1675;
 
 
 #include "ysinit.h"
@@ -24,7 +24,6 @@ void
 EpicFail()
 {
 	YDebugSetStatus();
-	//videoSetMode(MODE_0_2D);
 	YDebugBegin();
 }
 
@@ -70,7 +69,7 @@ namespace
 			" stored in correct directory.   ";
 
 		printFailInfo(title, warning);
-		iprintf(" %s not found!\n", str);
+		iprintf(" %s\n cannot be found!\n", str);
 		fatalError();
 	}
 }
@@ -138,9 +137,9 @@ void
 CheckInstall()
 {
 	puts("Checking installation...");
-	if(!direxists(DEF_FONT_DIRECTORY))
+	if(!platform::direxists(DEF_DIRECTORY))
 		installFail("Default data directory");
-	if(!(fexists(DEF_FONT_PATH) || direxists(DEF_FONT_DIRECTORY)))
+	if(!(stdex::fexists(DEF_FONT_PATH) || platform::direxists(DEF_FONT_DIRECTORY)))
 		installFail("Default font");
 	puts("OK!");
 }

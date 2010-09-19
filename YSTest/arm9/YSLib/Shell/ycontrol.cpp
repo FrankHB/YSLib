@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-9-16 23:31;
-// Version = 0.3088;
+// UTime = 2010-9-19 18:31;
+// Version = 0.3092;
 
 
 #include "ycontrol.h"
@@ -65,7 +65,7 @@ mpshrB(PixelType c, u8 n)
 }
 
 
-//template<typename _pixelType>
+//template<typename _tPixel>
 struct transPixelShiftLeft
 {
 	u8 nShift;

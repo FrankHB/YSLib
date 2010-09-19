@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YModule -> YModule by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-1 13:52:56;
-// UTime = 2010-9-14 23:58;
-// Version = 0.1926;
+// UTime = 2010-9-19 21:03;
+// Version = 0.1936;
 
 
 #ifndef INCLUDED_YMODULE_H_
@@ -18,12 +18,12 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 //通用对象组类模板。
-template<class _type, class _container = std::set<_type*> >
-class GMContainer : public _container,
+template<class _type, class _tContainer = std::set<_type*> >
+class GMContainer : public _tContainer,
 	implements GIContainer<_type>
 {
 public:
-	typedef _container ContainerType; //对象组类型。
+	typedef _tContainer ContainerType; //对象组类型。
 
 	GMContainer()
 	: ContainerType()
@@ -250,15 +250,15 @@ YSL_END_NAMESPACE(Runtime)
 YSL_BEGIN_NAMESPACE(Components)
 
 //序列视图类模板。
-template<class _containerType>
+template<class _tContainer>
 class GSequenceViewer
 {
 public:
-	typedef typename _containerType::size_type SizeType; //项目下标类型。
+	typedef typename _tContainer::size_type SizeType; //项目下标类型。
 	typedef std::ptrdiff_t IndexType; //项目索引类型。
 
 private:
-	_containerType& c; //序列容器引用。
+	_tContainer& c; //序列容器引用。
 	IndexType nIndex, //项目索引：视图中首个项目下标，若不存在则为 -1 。
 		nSelected; //选中项目下标，大于等于 GetTotal() 时无效。
 	SizeType nLength; //视图长度。
@@ -266,7 +266,7 @@ private:
 
 public:
 	explicit
-	GSequenceViewer(_containerType& c_)
+	GSequenceViewer(_tContainer& c_)
 	: c(c_), nIndex(0), nSelected(0), nLength(0), bSelected(false)
 	{}
 

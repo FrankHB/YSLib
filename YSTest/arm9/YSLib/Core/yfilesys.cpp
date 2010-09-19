@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:36:30;
-// UTime = 2010-9-18 0:50;
-// Version = 0.1734;
+// UTime = 2010-9-20 6:39;
+// Version = 0.1737;
 
 
 #include "yfilesys.h"
@@ -313,7 +313,7 @@ GetNowDirectory()
 {
 	PATHSTR buf;
 
-	return getcwd(buf, MAX_PATH_LENGTH - 1) == NULL ? std::string() : std::string(buf);
+	return platform::getcwd_n(buf, MAX_PATH_LENGTH - 1) == NULL ? std::string() : std::string(buf);
 }
 
 

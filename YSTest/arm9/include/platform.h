@@ -1,8 +1,8 @@
 ﻿// 通用平台描述文件 -> DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // UTime = 2009-11-24 0:05:08;
-// UTime = 2010-9-11 0:05;
-// Version = 0.1226;
+// UTime = 2010-9-20 6:56;
+// Version = 0.1237;
 
 
 #ifndef _PLATFORM_H_
@@ -50,14 +50,6 @@ namespace std
 #define UNICODE
 // Unicode 宽字符支持。
 #endif
-
-typedef u16 PIXEL; //像素。
-typedef PIXEL SCRBUF[SCREEN_WIDTH * SCREEN_HEIGHT]; //主显示屏缓冲区。
-#define BITALPHA BIT(15) // Alpha 位。
-
-#define SCR_MAIN 0x1
-#define SCR_SUB 0x2
-#define SCR_BOTH 0x3
 
 #endif
 

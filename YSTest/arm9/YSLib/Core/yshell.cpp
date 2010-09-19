@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15;
-// UTime = 2010-9-18 10:31;
-// Version = 0.2739;
+// UTime = 2010-9-20 7:01;
+// Version = 0.2742;
 
 
 #include "../Shell/ywindow.h"
@@ -18,7 +18,7 @@ using namespace Components;
 using namespace Components::Controls;
 
 YShell::YShell()
-: sWnds(), insRefresh(false), scrType(SCR_BOTH)
+: sWnds()
 {
 	InsertMessage(NULL, SM_CREATE, 0xF0, reinterpret_cast<WPARAM>(this));
 }
