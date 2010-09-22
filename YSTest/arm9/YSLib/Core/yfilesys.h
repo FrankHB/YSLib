@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:09:28;
-// UTime = 2010-9-20 6:39;
-// Version = 0.1614;
+// UTime = 2010-9-22 23:47;
+// Version = 0.1692;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -14,6 +14,7 @@
 #include "yfunc.hpp"
 #include "../Helper/yglobal.h"
 #include "../Core/yshell.h" // for HSHL delete procedure;
+#include <iterator>
 #include <vector>
 #include <list>
 
@@ -39,6 +40,9 @@ public:
 	typedef std::basic_string<ValueType> StringType;
 //	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
 
+	static const ValueType Slash;
+	static const Path Parent;
+
 private:
 	StringType pathname;
 
@@ -49,9 +53,10 @@ public:
 
 	//构造函数和析构函数。
 	Path();
-	Path(const Path&);
+	Path(const ValueType*);
 	template<class _tString>
 	Path(const _tString&);
+	Path(const Path&);
 	~Path();
 
 	//赋值。
@@ -66,11 +71,9 @@ public:
 	operator/=(const Path&);
 
 	//查询。
-	DefBoolGetter(Empth, pathname.empty())
-	bool
-	IsAbsolute() const;
-	bool
-	IsRelative() const;
+	DefBoolGetter(Empty, pathname.empty())
+	DefBoolGetter(Absolute, platform::IsAbsolute(GetNativeString().c_str()))
+	DefBoolGetter(Relative, !IsAbsolute())
 	bool
 	HasRootName() const;
 	bool
@@ -124,15 +127,47 @@ public:
 	Path&
 	ReplaceExtension(const Path& = Path());
 
+	//迭代器。
+	class iterator : public std::iterator<std::bidirectional_iterator_tag, Path>
+	{
+	private:
+		const value_type* ptr;
+		StringType::size_type n;
 
-//	//迭代器。
-//	class iterator
-//	{
-//	};
-//	typedef iterator const_iterator;
+		iterator();
 
-//	iterator begin() const;
-//	iterator end() const;
+	public:
+		iterator(const value_type&);
+		iterator(const iterator&);
+
+		iterator&
+		operator++();
+		iterator
+		operator++(int);
+
+		iterator&
+		operator--();
+		iterator
+		operator--(int);
+
+		bool
+		operator==(const iterator&) const;
+
+		bool
+		operator!=(const iterator&) const;
+
+		value_type
+		operator*() const;
+
+		DefGetter(const value_type*, Ptr, ptr)
+		DefGetter(StringType::size_type, Position, n)
+	};
+
+	typedef iterator const_iterator;
+
+	iterator begin() const;
+
+	iterator end() const;
 };
 
 inline
@@ -140,13 +175,17 @@ Path::Path()
 : pathname()
 {}
 inline
-Path::Path(const Path& path)
-: pathname(path.pathname)
+Path::Path(const Path::ValueType* pathstr)
+: pathname(pathstr)
 {}
 template<class _tString>
 inline
 Path::Path(const _tString& pathstr)
 : pathname(pathstr)
+{}
+inline
+Path::Path(const Path& path)
+: pathname(path.pathname)
 {}
 inline
 Path::~Path()
@@ -164,6 +203,95 @@ Path::operator=(const _tString& rhs)
 {
 	pathname = rhs;
 	return *this;
+}
+
+inline bool
+Path::HasRootName() const
+{
+	return !GetRootName().IsEmpty();
+}
+inline bool
+Path::HasRootDirectory() const
+{
+	return !GetRootDirectory().IsEmpty();
+}
+inline bool
+Path::HasRootPath() const
+{
+	return !GetRootPath().IsEmpty();
+}
+inline bool
+Path::HasRelativePath() const
+{
+	return !GetRelativePath().IsEmpty();
+}
+inline bool
+Path::HasParentPath() const
+{
+	return !GetParentPath().IsEmpty();
+}
+inline bool
+Path::HasFilename() const
+{
+	return !GetFilename().IsEmpty();
+}
+inline bool
+Path::HasStem() const
+{
+	return !GetStem().IsEmpty();
+}
+inline bool
+Path::HasExtension() const
+{
+	return !GetExtension().IsEmpty();
+}
+
+inline
+Path::iterator::iterator()
+{}
+inline
+Path::iterator::iterator(const value_type& p)
+: ptr(&p), n(StringType::npos)
+{}
+inline
+Path::iterator::iterator(const iterator& i)
+: ptr(i.ptr), n(i.n)
+{}
+
+inline Path::iterator
+Path::iterator::operator++(int)
+{
+	return ++iterator(*this);
+}
+
+inline Path::iterator
+Path::iterator::operator--(int)
+{
+	return --iterator(*this);
+}
+
+inline bool
+Path::iterator::operator==(const iterator& rhs) const
+{
+	return ptr == rhs.ptr && n == rhs.n;
+}
+
+inline bool
+Path::iterator::operator!=(const iterator& rhs) const
+{
+	return !(*this == rhs);
+}
+
+inline Path::iterator
+Path::begin() const
+{
+	return ++iterator(*this);
+}
+
+inline Path::iterator
+Path::end() const
+{
+	return iterator(*this);
 }
 
 
@@ -200,9 +328,7 @@ operator>=(const Path& lhs, const Path& rhs)
 inline Path
 operator/(const Path& lhs, const Path& rhs)
 {
-	Path temp(lhs);
-
-	return Path(temp /= rhs);
+	return Path(lhs) /= rhs;
 }
 
 inline void
@@ -277,6 +403,15 @@ ChDir(const std::string&);
 std::string
 GetNowDirectory();
 
+//验证绝对路径有效性。
+bool
+Validate(const std::string&);
+inline bool
+Validate(const Path& path)
+{
+	return Validate(path.GetNativeString());
+}
+
 
 //文件名过滤器。
 typedef bool FNFILTER(const String&);
@@ -312,49 +447,30 @@ protected:
 	ListType List; //目录中的项目列表。
 
 public:
-	MFileList();
+	MFileList(CPATH = NULL); //参数为空时为根目录。
 	virtual
 	~MFileList();
 
-	const Path&
-	GetDirectory() const; //取目录的完整路径。
-	const ListType&
-	GetList() const; //取项目列表。
+	//导航至相对路径。
+	bool
+	operator/=(const std::string&);
+	bool
+	operator/=(const String&);
+
+	DefGetter(const Path&, Directory, Directory) //取目录的完整路径。
+	DefGetter(const ListType&, List, List) //取项目列表。
 
 	ListType::size_type
 	LoadSubItems(); //在目录中取子项目。
 
 	ListType::size_type
 	ListItems(); //遍历目录中的项目，更新至列表。
-
-	void
-	GoToPath(const Path&); //导航至指定路径对应目录。
-
-	void
-	GoToSubDirectory(const std::string&); //导航至子目录。
-
-	void
-	GoToRoot(); //返回根目录。
-
-	void
-	GoToParent(); //返回上一级目录。
 };
 
-inline const Path&
-MFileList::GetDirectory() const
+inline bool
+MFileList::operator/=(const String& s)
 {
-	return Directory;
-}
-inline const MFileList::ListType&
-MFileList::GetList() const
-{
-	return List;
-}
-
-inline void
-MFileList::GoToRoot()
-{
-	GoToPath(FS_Root);
+	return *this /= StringToMBCS(s);
 }
 
 YSL_END_NAMESPACE(IO)

@@ -1,8 +1,8 @@
 ﻿// 通用平台描述文件 -> DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // UTime = 2009-11-24 0:05:08;
-// UTime = 2010-9-20 6:56;
-// Version = 0.1237;
+// UTime = 2010-9-22 3:51;
+// Version = 0.1246;
 
 
 #ifndef _PLATFORM_H_
@@ -47,8 +47,9 @@ namespace std
 
 //定义使用 Unicode 编码字符串。
 #ifndef UNICODE
-#define UNICODE
-// Unicode 宽字符支持。
+#	define UNICODE
+//宽字符支持。
+#	define CHRLIB_WCHAR_T_SIZE 4
 #endif
 
 #endif

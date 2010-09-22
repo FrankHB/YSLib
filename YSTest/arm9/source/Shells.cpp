@@ -277,7 +277,7 @@ ShlS::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs& e)
 {
 	YLabel& l(HandleCast<TFrmFileListMonitor>(HandleCast<ShlS>(hShell)->hWndUp)->lblPath);
 
-	l.Text = Text::MBCSToString(IO::GetNowDirectory()) + fbMain.List[e.Index];
+	l.Text = Text::MBCSToString(fbMain.GetDirectory().GetNativeString()) + fbMain.List[e.Index];
 	l.Refresh();
 }
 
@@ -293,8 +293,8 @@ ShlS::fb_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
 void
 ShlS::fb_Confirmed(IVisualControl& sender, const MIndexEventArgs& e)
 {
-	if(e.Index == 2)
-		switchShl1();
+//	if(e.Index == 2)
+//		switchShl1();
 }
 
 void

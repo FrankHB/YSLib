@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:36:30;
-// UTime = 2010-9-20 6:39;
-// Version = 0.1737;
+// UTime = 2010-9-22 23:48;
+// Version = 0.1829;
 
 
 #include "yfilesys.h"
@@ -19,95 +19,61 @@ const CPATH FS_Now(".");
 const CPATH FS_Parent("..");
 
 
+const Path::ValueType Path::Slash(DEF_PATH_DELIMITER);
+
 Path&
 Path::operator/=(const Path& path)
 {
-//	pathname += Slash;
-	pathname += path.pathname;
+	if(path.IsRelative() && path.GetNativeString() != FS_Now)
+	{
+		for(const_iterator i(path.begin()); i != path.end(); ++i)
+		{
+			if(*i == FS_Parent)
+			{
+				pathname.erase((--end()).GetPosition());
+				if(IsEmpty())
+					*this = GetRootPath();
+			}
+			else
+			{
+				pathname += (*i).GetNativeString();
+				pathname += Slash;
+			}
+		}
+	}
 	return *this;
-}
-
-bool
-Path::IsAbsolute() const
-{
-	return false;
-}
-bool
-Path::IsRelative() const
-{
-	return false;
-}
-bool
-Path::HasRootName() const
-{
-	return false;
-}
-bool
-Path::HasRootDirectory() const
-{
-	return false;
-}
-bool
-Path::HasRootPath() const
-{
-	return false;
-}
-bool
-Path::HasRelativePath() const
-{
-	return false;
-}
-bool
-Path::HasParentPath() const
-{
-	return false;
-}
-bool
-Path::HasFilename() const
-{
-	return false;
-}
-bool
-Path::HasStem() const
-{
-	return false;
-}
-bool
-Path::HasExtension() const
-{
-	return false;
 }
 
 //路径分解。
 Path
 Path::GetRootName() const
 {
-	return Path();
+	return Path(StringType(pathname.c_str(), platform::GetRootNameLength(pathname.c_str())));
 }
 Path
 Path::GetRootDirectory() const
 {
-	return Path();
+	return Path(FS_Seperator);
 }
 Path
 Path::GetRootPath() const
 {
-	return Path();
+	return GetRootName() / GetRootDirectory();
 }
 Path
 Path::GetRelativePath() const
 {
-	return Path();
+	return IsEmpty() ? Path() : *begin();
 }
 Path
 Path::GetParentPath() const
 {
-	return Path();
+	return pathname.substr(0, (--end()).GetPosition());
 }
 Path
 Path::GetFilename() const
 {
-	return Path();
+	return IsEmpty() ? Path() : *--end();
 }
 Path
 Path::GetStem() const
@@ -136,6 +102,32 @@ Path::ReplaceExtension(const Path& new_extension)
 //	RemoveExtension();
 	pathname += new_extension.pathname;
 	return *this;
+}
+
+
+Path::iterator&
+Path::iterator::operator++()
+{
+	n = n == StringType::npos ? 0 : ptr->pathname.find_first_not_of(Slash, ptr->pathname.find(Slash, n));
+	return *this;
+}
+
+Path::iterator&
+Path::iterator::operator--()
+{
+	n = n == 0 ? StringType::npos : ptr->pathname.rfind(Slash, ptr->pathname.find_last_not_of(Slash, n)) + 1;
+	return *this;
+}
+
+Path::iterator::value_type
+Path::iterator::operator*() const
+{
+	if(n == StringType::npos)
+		return Path(FS_Now);
+	
+	StringType::size_type p(ptr->pathname.find(Slash, n));
+
+	return ptr->pathname.substr(n, p == StringType::npos ? StringType::npos : p - n);
 }
 
 
@@ -316,17 +308,39 @@ GetNowDirectory()
 	return platform::getcwd_n(buf, MAX_PATH_LENGTH - 1) == NULL ? std::string() : std::string(buf);
 }
 
+bool
+Validate(const std::string& pathstr)
+{
+	HDirectory dir(pathstr.c_str());
 
-MFileList::MFileList()
-: Directory(GetNowDirectory()), List()
-{}
+	return dir.IsValid();
+}
+
+
+MFileList::MFileList(CPATH pathstr)
+: Directory(pathstr == NULL ? FS_Root : pathstr), List()
+{
+//	if(!Validate(Directory))
+//		throw;
+}
 MFileList::~MFileList()
 {}
+
+bool
+MFileList::operator/=(const std::string& d)
+{
+	if(Validate(Directory / d))
+	{
+		Directory /= d;
+		return true;
+	}
+	return false;
+}
 
 MFileList::ListType::size_type
 MFileList::LoadSubItems()
 {
-	HDirectory dir(FS_Now);
+	HDirectory dir(Directory.GetNativeString().c_str());
 	u32 n(0);
 
 	if(dir.IsValid())
@@ -351,28 +365,6 @@ MFileList::ListType::size_type
 MFileList::ListItems()
 {
 	return LoadSubItems();
-}
-
-void
-MFileList::GoToPath(const Path& p)
-{
-	Directory = GetDirectoryName(p.GetNativeString());
-	if(ChDir(Directory.c_str()))
-		Directory = GetNowDirectory();
-}
-void
-MFileList::GoToSubDirectory(const std::string& d)
-{
-	if(ChDir(d.c_str()))
-		Directory = GetNowDirectory();
-	else
-		Directory /= d;
-}
-void
-MFileList::GoToParent()
-{
-	ChDir(FS_Parent);
-	Directory = GetNowDirectory();
 }
 
 YSL_END_NAMESPACE(IO)

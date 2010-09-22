@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-9-12 15:27;
-// Version = 0.2661;
+// UTime = 2010-9-22 4:37;
+// Version = 0.2666;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -54,7 +54,7 @@ private:
 
 		TFrmLoadDown(HSHL hShl)
 			: YForm(SRect::FullScreen, GetImage(2), pDesktopDown, hShl),
-			lblStatus(HWND(this), L"初始化中，请稍后……", SRect(30, 20, 160, 22))
+			lblStatus(HWND(this), FS("初始化中，请稍后……"), SRect(30, 20, 160, 22))
 		{
 			lblStatus.Transparent = true;
 			Draw();
@@ -94,8 +94,8 @@ private:
 		TFrmFileListSelecter(HSHL hShl)
 			: YForm(SRect::FullScreen, GetImage(4), pDesktopDown, hShl),
 			fbMain(HWND(this), SRect(12, 10, 224, 150)),
-			btnTest(HWND(this), L" 测试(X)", SRect(60, 165, 70, 22)),
-			btnOK(HWND(this), L" 确定(R)", SRect(140, 165, 70, 22))
+			btnTest(HWND(this), FS(" 测试(X)"), SRect(60, 165, 70, 22)),
+			btnOK(HWND(this), FS(" 确定(R)"), SRect(140, 165, 70, 22))
 		{
 			KeyPress += &TFrmFileListSelecter::frm_KeyPress;
 		//	fbMain.TouchDown += YFileBox::OnClick;
@@ -172,8 +172,8 @@ public:
 		YLabel lblB, lblB2;
 
 		TFormB(HSHL hShl) : YForm(SRect(10, 40, 228, 70), /*GetImage(6)*/NULL, pDesktopDown, hShl),
-			lblB(HWND(this), L"测试程序", SRect(2, 5, 224, size)),
-			lblB2(HWND(this), L"测试程序2", SRect(45, 35, 124, size))
+			lblB(HWND(this), FS("测试程序"), SRect(2, 5, 224, size)),
+			lblB2(HWND(this), FS("测试程序2"), SRect(45, 35, 124, size))
 		{
 			BackColor = ARGB16(1, 31, 31, 15);
 			TouchDown += OnTouchDown;
@@ -191,8 +191,8 @@ public:
 		YLabel btnReturn;
 
 		TFormC(HSHL hShl) : YForm(SRect(5, 60, 180, 120), /*GetImage(7)*/NULL, pDesktopDown, hShl),
-			lblC(HWND(this), L"测试y", SRect(13, 45, 184, size)),
-			btnReturn(HWND(this), L"返回", SRect(13, 82, 60, size))
+			lblC(HWND(this), FS("测试y"), SRect(13, 45, 184, size)),
+			btnReturn(HWND(this), FS("返回"), SRect(13, 82, 60, size))
 		{
 			BackColor = ARGB16(1, 31, 15, 15);
 			TouchDown += TFormC_TouchDown;

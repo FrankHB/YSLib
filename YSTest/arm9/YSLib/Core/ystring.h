@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YString by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-5 22:06:05;
-// UTime = 2010-9-19 21:04;
-// Version = 0.2828;
+// UTime = 2010-9-22 4:28;
+// Version = 0.2842;
 
 
 #ifndef INCLUDED_YSTRING_H_
@@ -10,9 +10,7 @@
 
 // String ：基础字符串管理。
 
-#ifndef UNICODE
-#define UNICODE
-#endif
+
 
 #include "yobject.h"
 #include <string>
@@ -52,7 +50,7 @@ template<class _tChar>
 String::String(const _tChar* s)
 : stdex::ustring(s_str = ucsdup(s))
 {
-	free(s_str);
+	std::free(s_str);
 }
 inline
 String::String(const stdex::ustring& s)
@@ -68,6 +66,10 @@ MBCSToString(const std::string& s, const CSID& cp = CS_Local)
 {
 	return MBCSToString(s.c_str(), cp);
 }
+
+// YSLib 标准字符串转化为多字节字符串。
+std::string
+StringToMBCS(const String&, const CSID& = CS_Local);
 
 YSL_END_NAMESPACE(Text)
 

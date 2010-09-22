@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:42;
-// UTime = 2010-9-20 7:09;
-// Version = 0.1826;
+// UTime = 2010-9-22 21:29;
+// Version = 0.1846;
 
 
 #include "ycommon.h"
@@ -392,6 +392,21 @@ namespace platform
 	{
 		LastError = ::dirnext(dir, Name, &Stat);
 		return *this;
+	}
+
+
+	bool
+	IsAbsolute(CPATH path)
+	{
+		return std::strchr(path, '/') == path || std::strstr(path, "fat:/") == path;
+	}
+
+	std::size_t
+	GetRootNameLength(CPATH path)
+	{
+		const char* p(std::strchr(path, ':'));
+
+		return p == NULL ? 0 : p - path + 1;
 	}
 
 	void

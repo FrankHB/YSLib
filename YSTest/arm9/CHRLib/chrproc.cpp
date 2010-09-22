@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CharacterProcessing by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-17 17:53:21;
-// UTime = 2010-9-19 21:04;
-// Version = 0.1677;
+// UTime = 2010-9-22 4:42;
+// Version = 0.1694;
 
 
 #include "chrproc.h"
@@ -162,7 +162,7 @@ UCS2ToANSI(char* d, const uchar_t* s, char c)
 	return StrToANSI(d, s, c);
 }
 usize_t
-UCS4ToANSI(char* d, const wchar_t* s, char c)
+UCS4ToANSI(char* d, const fchar_t* s, char c)
 {
 	return StrToANSI(d, s, c);
 }
@@ -178,9 +178,9 @@ MBCSToUTF16LE(uchar_t* d, const char* s, const CSID& cp)
 	return d - p;
 }
 usize_t
-MBCSToUCS(wchar_t* d, const char* s, const CSID& cp)
+MBCSToUCS(fchar_t* d, const char* s, const CSID& cp)
 {
-	wchar_t* const p(d);
+	fchar_t* const p(d);
 	uchar_t t;
 
 	while(*s)
@@ -207,7 +207,7 @@ UTF16LEToMBCS(char* d, const uchar_t* s, const CSID& cp)
 	return d - p;
 }
 usize_t
-UCS4ToUCS2(uchar_t* d, const wchar_t* s)
+UCS4ToUCS2(uchar_t* d, const fchar_t* s)
 {
 	uchar_t* const p(d);
 
@@ -215,6 +215,15 @@ UCS4ToUCS2(uchar_t* d, const wchar_t* s)
 		*d++ = *s++;
 	*d = 0;
 	return d - p;
+}
+
+namespace
+{
+	std::size_t
+	wcslen(const fchar_t* s)
+	{
+		return std::wcslen(reinterpret_cast<const wchar_t*>(s));
+	}
 }
 
 char*
@@ -236,7 +245,7 @@ sdup(const uchar_t* s, char c)
 	return p;
 }
 char*
-sdup(const wchar_t* s, char c)
+sdup(const fchar_t* s, char c)
 {
 	char* p(static_cast<char*>(malloc(((wcslen(s) >> 2) + 1))));
 
@@ -265,7 +274,7 @@ ucsdup(const uchar_t* s)
 	return p;
 }
 uchar_t*
-ucsdup(const wchar_t* s)
+ucsdup(const fchar_t* s)
 {
 	uchar_t* p(static_cast<uchar_t*>(malloc((wcslen(s) + 1) << 1)));
 

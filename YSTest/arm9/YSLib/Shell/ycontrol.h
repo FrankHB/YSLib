@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:24;
-// UTime = 2010-9-19 21:04;
-// Version = 0.3449;
+// UTime = 2010-9-22 3:20;
+// Version = 0.3452;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -399,7 +399,7 @@ public:
 	DrawForeground();
 
 	static void
-	OnClick(IVisualControl&, const Runtime::MTouchEventArgs&);
+	OnConfirmed(IVisualControl&, const MIndexEventArgs&);
 };
 
 YSL_END_NAMESPACE(Controls)

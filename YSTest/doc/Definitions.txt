@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-9-20 7:05;
-// Version = r7681;
+// UTime = 2010-9-22 12:15;
+// Version = r7715;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -104,8 +104,9 @@ extern const u16 $SCREEN_WIDTH, $SCREEN_HEIGHT;
 
 //定义使用 Unicode 编码字符串。
 #ifndef UNICODE
-#define UNICODE
-// Unicode 宽字符支持。
+#	define UNICODE
+//宽字符支持。
+#	define CHRLIB_WCHAR_T_SIZE 4
 #endif
 
 } //$code;
@@ -136,9 +137,12 @@ $header CHRDefinition "chrdef.h"
 	typedef unsigned long usize_t;
 
 	//字符类型定义。
-	typedef std::char16_t uchar_t; // UCS-2 字符。
 	typedef std::char32_t fchar_t; // UCS-4 字符。
+	typedef std::char16_t uchar_t; // UCS-2 字符。
 	typedef s32 uint_t;
+
+	//宽字符串转换宏。
+	#define FS(str) static_cast<const CHRLib::fchar_t*>(L##str)
 
 	typedef enum {Deg0 = 0, Deg90 = 1, Deg180 = 2, Deg270 = 3} CROT;
 
@@ -344,20 +348,20 @@ $unit CHRProcessing "chrproc"
 	UCS2ToANSI(char*, const uchar_t*, char = ' ');
 	//转换 UCS4 字符串为 ANSI 字符串（非 UTF16BE 字符替换为第三参数），返回转换的串长。
 	usize_t
-	UCS4ToANSI(char*, const wchar_t*, char = ' ');
+	UCS4ToANSI(char*, const fchar_t*, char = ' ');
 
 	//按字符集转换 MBCS 字符串为 UTF-16LE 字符串，返回转换的串长。
 	usize_t
 	MBCSToUTF16LE(uchar_t*, const char*, const CSID& = CS_Default);
 	//按字符集转换 MBCS 字符串为 UCS-4 字符串，返回转换的串长。
 	usize_t
-	MBCSToUCS(wchar_t*, const char*, const CSID& = CS_Default);
+	MBCSToUCS(fchar_t*, const char*, const CSID& = CS_Default);
 	//按字符集转换 UTF-16LE 字符串为 MBCS 字符串，返回转换的串长。
 	usize_t
 	UTF16LEToMBCS(char*, const uchar_t*, const CSID& = CS_Default);
 	//转换 UCS-4 字符串为 UCS-2 字符串，返回转换的串长。
 	usize_t
-	UCS4ToUCS2(uchar_t*, const wchar_t*);
+	UCS4ToUCS2(uchar_t*, const fchar_t*);
 
 	//复制 MBCS 字符串为 ANSI 字符串（非 ANSI 字符替换为第二参数）。空间由 free() 释放。
 	char*
@@ -367,7 +371,7 @@ $unit CHRProcessing "chrproc"
 	sdup(const uchar_t*, char = ' ');
 	//复制 UCS-4 字符串为 ANSI 字符串（非 ANSI 字符替换为第二参数）。空间由 free() 释放。
 	char*
-	sdup(const wchar_t*, char = ' ');
+	sdup(const fchar_t*, char = ' ');
 
 	//复制 MBCS 字符串为 UCS-2/UTF-16LE 字符串。空间由 free() 释放。
 	uchar_t*
@@ -377,7 +381,7 @@ $unit CHRProcessing "chrproc"
 	ucsdup(const uchar_t*);
 	//复制 UCS-4 字符串为 UCS-2 字符串。空间由 free() 释放。
 	uchar_t*
-	ucsdup(const wchar_t*);
+	ucsdup(const fchar_t*);
 
 	CHRLIB_END
 
@@ -763,6 +767,14 @@ $unit YCommon "ycommon"
 			Reset();
 		}; //class HDirectory;
 
+
+		//判断是否为绝对路径。
+		bool
+		IsAbsolute(CPATH) throw();
+
+		//取给定路径的文件系统根节点名称的长度。
+		std::size_t
+		GetRootNameLength(CPATH);
 
 		//快速刷新缓存映像到主显示屏。
 		inline void
@@ -2944,10 +2956,6 @@ $unit YException "yexcept"
 
 $unit YString "ystring"
 {
-	#ifndef UNICODE
-	#define UNICODE
-	#endif
-
 	$import $unit YObject, $header <string>;
 
 	namespace ..::stdex
@@ -2981,6 +2989,10 @@ $unit YString "ystring"
 	MBCSToString(const char*, const CSID& = CS_Local);
 	inline String
 	MBCSToString(const std::string& s, const CSID& = CS_Local);
+
+	// YSLib 标准字符串转化为多字节字符串。
+	std::string
+	StringToMBCS(const String&, const CSID& = CS_Local);
 
 	YSL_END_NAMESPACE(Text)
 
@@ -3543,7 +3555,7 @@ $unit YApplication "yapp"
 
 $unit YFileSystem "yfilesys"
 {
-	$import $unit Core::YString, Core::YFunc, Helper::YGlobal, Core::YShell/* for HSHL delete procedure; */, $header <vector>, <list>;
+	$import $unit Core::YString, Core::YFunc, Helper::YGlobal, Core::YShell/* for HSHL delete procedure; */, $header <iterator>, <vector>, <list>;
 
 
 	YSL_BEGIN_NAMESPACE(IO)
@@ -3565,6 +3577,9 @@ $unit YFileSystem "yfilesys"
 		typedef NativePathCharType ValueType;
 		typedef std::basic_string<ValueType> StringType;
 	//	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
+
+		static const ValueType Slash;
+		static const Path Parent;
 
 	private:
 		StringType pathname;
@@ -3597,11 +3612,9 @@ $unit YFileSystem "yfilesys"
 		operator/=(const Path&);
 
 		//查询。
-		DefBoolGetter(Empth, pathname.empty())
-		bool
-		IsAbsolute() const;
-		bool
-		IsRelative() const;
+		DefBoolGetter(Empty, pathname.empty())
+		DefBoolGetter(Absolute, platform::IsAbsolute(GetNativeString().c_str()))
+		DefBoolGetter(Relative, !IsAbsolute())
 		bool
 		HasRootName() const;
 		bool
@@ -3654,6 +3667,51 @@ $unit YFileSystem "yfilesys"
 		RemoveFilename();
 		Path&
 		ReplaceExtension(const Path& = Path());
+
+		//迭代器。
+		class iterator : public std::iterator<std::bidirectional_iterator_tag, Path>
+		{
+		private:
+			const value_type* ptr;
+			StringType::size_type n;
+
+			inline
+			iterator();
+
+		public:
+			inline
+			iterator(const value_type&);
+			inline
+			iterator(const iterator&);			
+
+			iterator&
+			operator++();
+			inline iterator
+			operator++(int);
+
+			iterator&
+			operator--();
+			inline iterator
+			operator--(int);
+
+			bool
+			operator==(const iterator&) const;
+
+			bool
+			operator!=(const iterator&) const;
+
+			value_type
+			operator*() const;
+
+			DefGetter(const value_type*, Ptr, ptr)
+			DefGetter(StringType::size_type, Position, n)
+		};
+
+		typedef iterator const_iterator;
+
+		iterator begin() const;
+
+		iterator end() const;
 	}; //class Path;
 
 
@@ -3737,6 +3795,12 @@ $unit YFileSystem "yfilesys"
 	std::string
 	GetNowDirectory();
 
+	//验证绝对路径有效性。
+	bool
+	Validate(const std::string&);
+	inline bool
+	Validate(const Path&);
+
 
 	//文件名过滤器。
 	typedef bool FNFILTER(const String&);
@@ -3766,32 +3830,24 @@ $unit YFileSystem "yfilesys"
 		ListType List; //目录中的项目列表。
 
 	public:
-		MFileList();
+		MFileList(CPATH = NULL); //参数为空时为根目录。
 		virtual
 		~MFileList();
 
-		const Path&
-		GetDirectory() const; //取目录的完整路径。
-		const ListType&
-		GetList() const; //取项目列表。
+		//导航至相对路径。
+		bool
+		operator/=(const std::string&);
+		inline bool
+		operator/=(const String&);
+
+		DefGetter(const Path&, Directory, Directory) //取目录的完整路径。
+		DefGetter(const ListType&, List, List) //取项目列表。
 
 		ListType::size_type
 		LoadSubItems(); //在目录中取子项目。
 
 		ListType::size_type
 		ListItems(); //遍历目录中的项目，更新至列表。
-
-		void
-		GoToPath(const Path&); //导航至指定路径对应目录。
-
-		void
-		GoToSubDirectory(const std::string&); //导航至子目录。
-
-		void
-		GoToRoot(); //返回根目录。
-
-		void
-		GoToParent(); //返回上一级目录。
 	}; //class MFileList;
 
 	YSL_END_NAMESPACE(IO)

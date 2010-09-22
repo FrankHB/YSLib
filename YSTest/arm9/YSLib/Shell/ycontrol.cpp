@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-9-19 18:31;
-// Version = 0.3092;
+// UTime = 2010-9-22 4:22;
+// Version = 0.3107;
 
 
 #include "ycontrol.h"
@@ -565,7 +565,9 @@ YListBox::OnConfirmed(IVisualControl& c, const MIndexEventArgs& e)
 YFileBox::YFileBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_)
 : YListBox(hWnd, r, pCon, prTr_, MFileList::List), MFileList(),
 List(ParentType::List)
-{}
+{
+	Confirmed += OnConfirmed;
+}
 YFileBox::~YFileBox()
 {
 }
@@ -583,8 +585,17 @@ YFileBox::DrawForeground()
 }
 
 void
-YFileBox::OnClick(IVisualControl& c, const MTouchEventArgs& e)
+YFileBox::OnConfirmed(IVisualControl& c, const MIndexEventArgs& e)
 {
+	try
+	{
+		YFileBox& con(dynamic_cast<YFileBox&>(c));
+
+		con /= con.List[e.Index];
+		con.Refresh();
+	}
+	catch(std::bad_cast&)
+	{}
 }
 
 YSL_END_NAMESPACE(Controls)

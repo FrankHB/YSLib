@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-9-19 21:05;
-// Version = 0.6325;
+// UTime = 2010-9-22 4:16;
+// Version = 0.6326;
 
 
 #ifndef INCLUDED_YTEXT_H_

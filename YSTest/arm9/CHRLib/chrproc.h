@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CharacterProcessing by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-17 17:52:35;
-// UTime = 2010-9-19 21:04;
-// Version = 0.1450;
+// UTime = 2010-9-22 3:26;
+// Version = 0.1455;
 
 
 #ifndef INCLUDED_CHRPROC_H_
@@ -70,20 +70,20 @@ usize_t
 UCS2ToANSI(char*, const uchar_t*, char = ' ');
 //转换 UCS4 字符串为 ANSI 字符串（非 UTF16BE 字符替换为第三参数），返回转换的串长。
 usize_t
-UCS4ToANSI(char*, const wchar_t*, char = ' ');
+UCS4ToANSI(char*, const fchar_t*, char = ' ');
 
 //按字符集转换 MBCS 字符串为 UTF-16LE 字符串，返回转换的串长。
 usize_t
 MBCSToUTF16LE(uchar_t*, const char*, const CSID& = CS_Default);
 //按字符集转换 MBCS 字符串为 UCS-4 字符串，返回转换的串长。
 usize_t
-MBCSToUCS(wchar_t*, const char*, const CSID& = CS_Default);
+MBCSToUCS(fchar_t*, const char*, const CSID& = CS_Default);
 //按字符集转换 UTF-16LE 字符串为 MBCS 字符串，返回转换的串长。
 usize_t
 UTF16LEToMBCS(char*, const uchar_t*, const CSID& = CS_Default);
 //转换 UCS-4 字符串为 UCS-2 字符串，返回转换的串长。
 usize_t
-UCS4ToUCS2(uchar_t*, const wchar_t*);
+UCS4ToUCS2(uchar_t*, const fchar_t*);
 
 //复制 MBCS 字符串为 ANSI 字符串（非 ANSI 字符替换为第二参数）。空间由 free() 释放。
 char*
@@ -93,7 +93,7 @@ char*
 sdup(const uchar_t*, char = ' ');
 //复制 UCS-4 字符串为 ANSI 字符串（非 ANSI 字符替换为第二参数）。空间由 free() 释放。
 char*
-sdup(const wchar_t*, char = ' ');
+sdup(const fchar_t*, char = ' ');
 
 //复制 MBCS 字符串为 UCS-2/UTF-16LE 字符串。空间由 free() 释放。
 uchar_t*
@@ -103,7 +103,7 @@ uchar_t*
 ucsdup(const uchar_t*);
 //复制 UCS-4 字符串为 UCS-2 字符串。空间由 free() 释放。
 uchar_t*
-ucsdup(const wchar_t*);
+ucsdup(const fchar_t*);
 
 /*
 ubyte_t    IsFullChar(char*);

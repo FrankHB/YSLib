@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-9-20;
-// Version = 0.2617; *Build 151 r29;
+// UTime = 2010-9-23;
+// Version = 0.2617; *Build 152 r31;
 
 
 #include "../YCLib/ydef.h"
@@ -95,84 +95,90 @@ Record prefix and abbrevations:
 
 DONE:
 r1:
-/ @@ \u YGlobal:
-	/ \tr \impl @@ \f YInit() @@ unnamed \ns;
-	*- \def @@ \f void Terminate(int);
+/ \cl MFileList @@ \u YFileSystem:
+	/= \i \mf const Path& GetDirectory() const
+		-> DefGetter(const Path&, Directory, Directory);
+	/= \i \mf const ListType& GetList() const
+		-> DefGetter(const ListType&, List, List);
+	- \mf void GoToRoot();
+	- \mf v void GoToParent();
 
 r2:
-* \impl @@ \f void CheckInstall() @@ \u YShellInitialization;
+/ @@ \u YFileSystem:
+	/ @@ \cl Path:
+		+ \ctor Path(const ValueType*);
+	/ @@ \cl MFileList:
+		/ \ctor \cl MFileList() -> MFileList(CPATH = NULL);
+		/= \tr \impl @@ \mf ListType::size_type LoadSubItems();
+		/ \ret \tp @@ \mf void GoToSubDirectory(const std::string&) -> bool;
+	+ \f bool Validate(const std::string&);
+	+ \f bool Validate(const Path&);
 
-r3-r6:
-/ \tr \impl @@ \f void installFail(const char*) @@ \u YShellInitialization;
+r3:
+/ @@ \cl Path @@ \u YFileSystem:
+	- \mf void GoToPath(const Path&);
+	/ \mf GoToSubDirectory => operator/=;
+	+ \i \mf operator/=(const String&);
+/ @@ \cl YFileBox @@ \u YControl:
+	- \eh \s \mf void OnClick(IVisualControl&, const MTouchEventArgs&);
+	+ \eh \s \mf void OnCobfirmed(IVisualControl&, const MIndexEventArgs&);
+	/ \impl @@ \ctor;
+/ @@ \u YString:
+	/ @@ \cl String:
+		/= \tr \impl @@ \i \ctor template<class _tChar> String(const _tChar*);
+	/= \f String MBCSToString(const char*, const CSID& = CS_Local);
+	+ \f std::string StringToMBCS(const String&, const CSID& = CS_Local);
+/ @@ \u CHRProcessing:
+	/ \a wchar_t => fchar_t;
+	+ \f std::size_t wcslen(const fchar_t*) @@ unnamed \ns;
++ #define CHRLIB_WCHAR_T_SIZE 4 @@ \h <platform.h>;
++ #define FS(str) reinterpret_cast<const CHRLib::fchar_t*>(L##str) @@ \h CHRDefinition;
+/ ^ FS @@ \h <Shells.h>;
 
-r7-r25:
+r4-r8:
 /= test 1;
+/ \tr \impl @@ \u Shells;
 
-r26:
-/= \a _refType => _tReference;
-/= \a _cmpType => _fCompare;
-/= \a _predicateType => _fPredicate;
-/= \a _containerType => _tContainer;
-* \impl @@ \tf template<typename _tContainer, typename _fPredicate> typename _tContainer::size_type
-	erase_all_if(_tContainer&, const typename _tContainer::value_type&) @@ \u YCoreUtilities;
-/= \a _pixelType => _tPixel;
-/= \a _transpType => _fTransformPixel
-/= \a _translType => _fTransformLine
-/= \a _ptrType => _tPointer
+r9:
++ \f bool IsAbsolute(CPATH) throw() @@ \u YCommon;
+/ @@ \cl Path @@ \u YFileSystem:
+	* DefBoolGetter(Empth, pathname.empty()) -> DefBoolGetter(Empty, pathname.empty());
+	/ \impl \f bool IsRelative() -> DefBoolGetter(Relative, !IsAbsolute());
+	/ \impl \f bool IsAbsolute() -> DefBoolGetter(Absolute, platform::IsAbsolute(GetNativeString().c_str()));
 
-r27:
-/= \a _eventArgsType => _tEventArgs;
-/= \a _codemapFuncType => _fCodemapTransform;
+r10:
++ \f bool IsAbsolute(CPATH) throw() -> \f bool IsAbsolute(CPATH) @@ \u YCommon;
 
-r28:
-/= \a _outIt => _tOut;
-/= \a _charT => _tChar;
-/= \a _EventSpace => _tEventSpace;
-/= \a _Event => _tEvent;
-/= \a _responser => _tResponser;
-/= \a \tp \para _container => _tContainer;
+r11:
+/ @@ \cl Path @@ \u YFileSystem:
+	+ \cl iterator;
+	+ typedef iterator const_iterator;
+	+ \mf iterator begin() const;
+	+ \mf iterator end() const;
+	+ \s \m \c ValueType Slash(DEF_PATH_DELIMITER);
 
-r29:
-/ @@ \u YCommon:
-	+ \f char* getcwd_n(char*, std::size_t) @@ \ns platform;
-	/= \tr \impl @@ \f bool fexists(CPATH) @@ \ns stdex;
-	+ using ::chdir @@ \ns platform;
-/ \tr \impl @@ \i \fint ChDir(CPATH) @@ \u YFileSystem;
-/ @@ \ns YSLib @@ \h YAdapter:
-	- using ::stat;
-	- using ::mkdir;
-	- using ::chdir;
-	- using ::getcwd;
-/= \tr \impl @@ \f void CheckInstall() @@ \u YShellInitialization;
-/ using ::iprintf @@ \ns YSLib @@ \h YAdapter => \ns platform @@ \u YCommon;
-/ @@ \h YAdapter:
-	/ {
-		using ::swiWaitForVBlank;
+r12:
+/ @@ \u YFileSystem:
+	+ \inc \h <iterator>;
+	/ @@ \cl Path:
+		/ \cl iterator + \inh public std::iterator<std::bidirectional_iterator_tag, Path>;
+		/ \impl @@ \cl iterator;
+	/ \tr \impl @@ \f Path operator/(const Path& lhs, const Path& rhs);
 
-		using ::lcdMainOnTop;
-		using ::lcdMainOnBottom;
-		using ::lcdSwap;
-		using ::videoSetMode;
-		using ::videoSetModeSub;
+r13-r15:
+/ @@ \cl Path @@ \u YFileSystem:
+	/ \impl @@ \mf operator/=(const Path&);
+	/ \impl other \f;
++ \f std::size_t GetRootNameLength(CPATH) @@ \u YCommon;
 
-		using ::scanKeys;
-		using ::touchRead;
-	} @@ \ns YSLib => \ns YSLib::DS;
-	+ using platform::PixelType @@ \ns YSLib;
-	+ using platform::ScreenBufferType @@ \ns YSLib;
-	- typedef ::PIXEL PixelType @@ YSLib::Drawing;
-	- #define SCR_MAIN 0x1
-	- #define SCR_SUB 0x2
-	- #define SCR_BOTH 0x3
-+ typedef u16 PixelType @@ \ns platform @@ \u YCommon;
-- typedef u16 PIXEL @@ \h <platform.h>;
-/ typedef PIXEL ScreenBufferType[SCREEN_WIDTH * SCREEN_HEIGHT] @@ \h <platform.h> => \ns platform @@ \u YCommon;
-/ #define BITALPHA BIT(15) => \u YCommon;
-/ \a PIXEL -> PixelType;
-- \m (insRefresh & scrType) @@ \cl YShell @@ \u YShell;
-/ \simp \impl @@ \f void Def::Idle() @@ \u YGlobal;
-/ \a SCRBUF => ScreenBufferType;
-/= \ inc <assert.h> @@ \h YCommon => \inc <cassert>;
+r16:
+* \impl @@ \mf (iterator& operator++()) & (iterator& operator--()) & (value_type operator*()) @@ \cl iterator @@ \cl Path @@ \u YFileSystem;
+
+r17-r31:
+/ test 2;
+* @@ \cl Path @@ \u YFileSystem:
+	* \impl @@ \mf Path& operator/=(const Path&);
+	* \impl \mf (iterator& operator--()) & (value_type operator*()) @@ \cl iterator;
 
 
 DOING:
@@ -183,10 +189,8 @@ Debug message:
 //
 
 NEXT:
-/ fully \impl \u YFileSystem;
 / fully \impl \cl YListBox;
-/ fully \impl \cl ShlReader;
-/ fully \impl btnTest;
+/ fully \impl \u YFileSystem;
 
 TODO:
 

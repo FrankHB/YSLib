@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28;
-// UTime = 2010-9-20 7:16;
-// Version = 0.2068;
+// UTime = 2010-9-22 21:29;
+// Version = 0.2078;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -378,6 +378,14 @@ namespace platform
 		LastError = ::dirreset(dir);
 	}
 
+
+	//判断是否为绝对路径。
+	bool
+	IsAbsolute(CPATH);
+
+	//取给定路径的文件系统根节点名称的长度。
+	std::size_t
+	GetRootNameLength(CPATH);
 
 	//extern u8 backlight;
 	/*
