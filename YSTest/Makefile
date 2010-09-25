@@ -1,8 +1,8 @@
 # DS Makefile for YShell by Franksoft 2009 - 2010
 # CodePage = ANSI / GBK;
 # CTime = 2009-11-12 21:26:30;
-# UTime = 2010-9-18 7:31;
-# Version = 0.3054;
+# UTime = 2010-9-25 17:29;
+# Version = 0.3058;
 
 # This makefile is written based on devkitPro example template.
 
@@ -82,7 +82,7 @@ ifeq ($(strip $(USE_EFS)), YES)
 	$(TOPDIR)/efs.exe $(OUTPUT).nds
 else
 	ndstool -c $(OUTPUT).nds -7 $(GBUILD).arm7 -9 $(GBUILD).arm9 $(ICON) "$(TITLE);$(SUBTITLE1);$(SUBTITLE2)"
-	cp $(OUTPUT).nds $(OUTPUT)_.nds
+#	@cp $(OUTPUT).nds $(OUTPUT)_.nds
 	@echo Patching DLDI GBA Movie Player [Compact Flash] ...
 	@D:/Progra~2/DLDIrc/dlditool.exe "D:\Program Files (x86)\DLDIrc\drivers\mpcf.dldi" $(OUTPUT).nds
 endif

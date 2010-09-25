@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:09:28;
-// UTime = 2010-9-22 23:47;
-// Version = 0.1692;
+// UTime = 2010-9-25 14:53;
+// Version = 0.1708;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -29,7 +29,7 @@ extern const CPATH FS_Now;
 extern const CPATH FS_Parent;
 
 
-typedef char NativePathCharType; //本地路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
+typedef char NativePathCharType; //本机路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
 
 
 //路径类。
@@ -110,7 +110,7 @@ public:
 	DefGetter(StringType, GeneralString, pathname) //取一般字符串。
 	DefGetter(const StringType&, NativeString, pathname) //取本地格式和编码的字符串。
 
-	PDefHead(const ValueType*, c_str) //本地格式和编码的 C 风格字符串。
+	PDefHead(const ValueType*, c_str) const //本地格式和编码的 C 风格字符串。
 		ImplBodyMember(GetNativeString(), c_str)
 
 	//修改函数。

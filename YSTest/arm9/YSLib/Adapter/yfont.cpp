@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13;
-// UTime = 2010-9-18 0:04;
-// Version = 0.6886;
+// UTime = 2010-9-24 12:00;
+// Version = 0.6893;
 
 
 #include "yfont.h"
@@ -18,7 +18,6 @@ using namespace platform;
 YSL_BEGIN
 
 using namespace IO;
-using namespace Exceptions;
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
@@ -524,7 +523,7 @@ YFontCache::LoadFontFileDirectory(CPATH path, CPATH ext)
 		if(dir.IsValid())
 			while((++dir).LastError == 0)
 				if(std::strcmp(HDirectory::Name, FS_Now) != 0
-					&& !(HDirectory::Stat.st_mode & S_IFDIR)
+					&& !HDirectory::IsDirectory()
 					&& IsExtendName(ext, HDirectory::Name))
 				{
 					try

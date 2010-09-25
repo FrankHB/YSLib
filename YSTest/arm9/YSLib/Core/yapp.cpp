@@ -1,15 +1,13 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:36;
-// UTime = 2010-9-18 10:31;
-// Version = 0.1908;
+// UTime = 2010-9-23 15:32;
+// Version = 0.1912;
 
 
 #include "yapp.h"
 
 YSL_BEGIN
-
-using namespace Exceptions;
 
 YLog::YLog()
 {}

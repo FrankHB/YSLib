@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-9-22 4:37;
-// Version = 0.2666;
+// UTime = 2010-9-23 20:01;
+// Version = 0.2674;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -23,7 +23,6 @@ using namespace Components::Widgets;
 using namespace Components::Controls;
 using namespace Components::Forms;
 using namespace Runtime;
-using namespace Exceptions;
 
 using namespace DS;
 using namespace DS::Components;
@@ -176,10 +175,10 @@ public:
 			lblB2(HWND(this), FS("测试程序2"), SRect(45, 35, 124, size))
 		{
 			BackColor = ARGB16(1, 31, 31, 15);
-			TouchDown += OnTouchDown;
-			TouchHeld += YVisualControl::OnTouchHeld;
-			lblB.TouchHeld += YVisualControl::OnTouchHeld;
-			lblB2.TouchHeld += YVisualControl::OnTouchHeld;
+			TouchDown += &YVisualControl::OnTouchDown;
+			TouchHeld += &YVisualControl::OnTouchHeld;
+			lblB.TouchHeld += &YVisualControl::OnTouchHeld;
+			lblB2.TouchHeld += &YVisualControl::OnTouchHeld;
 		//	lblB2.TouchDown += lblC_Click;
 
 		//	lblB.Enabled = false;
@@ -196,10 +195,10 @@ public:
 		{
 			BackColor = ARGB16(1, 31, 15, 15);
 			TouchDown += TFormC_TouchDown;
-			TouchHeld += YVisualControl::OnTouchHeld;
+			TouchHeld += &YVisualControl::OnTouchHeld;
 			lblC.TouchUp.Add(*this, &TFormC::lblC_TouchUp);
 			lblC.TouchDown.Add(*this, &TFormC::lblC_TouchDown);
-			lblC.TouchHeld += YVisualControl::OnTouchHeld;
+			lblC.TouchHeld += &YVisualControl::OnTouchHeld;
 			lblC.Click.Add(*this, &TFormC::lblC_Click);
 			lblC.KeyPress += lblC_KeyPress;
 		//	lblC.Enabled = false;

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YException by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-6-15 20:30:14;
-// UTime = 2010-9-2 10:30;
-// Version = 0.1126;
+// UTime = 2010-9-23 15:38;
+// Version = 0.1140;
 
 
 #ifndef INCLUDED_YEXCEPT_H_
@@ -17,8 +17,7 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Exceptions)
-
+// YSLib 异常基类。
 class Exception : public std::exception
 {
 public:
@@ -28,37 +27,36 @@ public:
 };
 
 
-class GeneralError : public Exception
+//一般异常事件类。
+class GeneralEvent : public Exception
 {
 private:
 	std::string str;
 
 public:
-	GeneralError(const std::string&);
+	GeneralEvent(const std::string&);
 	virtual
-	~GeneralError() throw();
+	~GeneralEvent() throw();
 
 	const char*
 	what() const throw();
 };
 
 
-class LoggedEvent : public GeneralError
+//记录异常事件类。
+class LoggedEvent : public GeneralEvent
 {
 private:
 	u8 level;
 
 public:
 	LoggedEvent(const std::string&, u8 = 0);
-	LoggedEvent(const GeneralError&, u8 = 0);
+	LoggedEvent(const GeneralEvent&, u8 = 0);
 	virtual
 	~LoggedEvent() throw();
 
 	DefGetter(u8, Level, level);
 };
-
-
-YSL_END_NAMESPACE(Exceptions)
 
 YSL_END
 

@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-9-23;
-// Version = 0.2617; *Build 152 r31;
+// UTime = 2010-9-25;
+// Version = 0.2617; *Build 154 r34;
 
 
 #include "../YCLib/ydef.h"
@@ -95,90 +95,118 @@ Record prefix and abbrevations:
 
 DONE:
 r1:
-/ \cl MFileList @@ \u YFileSystem:
-	/= \i \mf const Path& GetDirectory() const
-		-> DefGetter(const Path&, Directory, Directory);
-	/= \i \mf const ListType& GetList() const
-		-> DefGetter(const ListType&, List, List);
-	- \mf void GoToRoot();
-	- \mf v void GoToParent();
+/ \a @@ \ns Exceptions => \n YSLib;
+- \ns Exceptions;
+/ \a GeneralError => GeneralEvent;
 
 r2:
-/ @@ \u YFileSystem:
-	/ @@ \cl Path:
-		+ \ctor Path(const ValueType*);
-	/ @@ \cl MFileList:
-		/ \ctor \cl MFileList() -> MFileList(CPATH = NULL);
-		/= \tr \impl @@ \mf ListType::size_type LoadSubItems();
-		/ \ret \tp @@ \mf void GoToSubDirectory(const std::string&) -> bool;
-	+ \f bool Validate(const std::string&);
-	+ \f bool Validate(const Path&);
+* @@ \cl YListBox @@ \u YControl:
+	+ private \mf void _m_TouchDown(const Runtime::MTouchEventArgs&);
+	+ \s \eh void OnTouchDown(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
+	/ \impl @@ private \mf void _m_OnClick(const Runtime::MTouchEventArgs&);
+	/ protected \mf (void Init_() -> void _m_init());
+		/ \tr \impl @@ 2 \ctor;
 
 r3:
-/ @@ \cl Path @@ \u YFileSystem:
-	- \mf void GoToPath(const Path&);
-	/ \mf GoToSubDirectory => operator/=;
-	+ \i \mf operator/=(const String&);
-/ @@ \cl YFileBox @@ \u YControl:
-	- \eh \s \mf void OnClick(IVisualControl&, const MTouchEventArgs&);
-	+ \eh \s \mf void OnCobfirmed(IVisualControl&, const MIndexEventArgs&);
-	/ \impl @@ \ctor;
-/ @@ \u YString:
-	/ @@ \cl String:
-		/= \tr \impl @@ \i \ctor template<class _tChar> String(const _tChar*);
-	/= \f String MBCSToString(const char*, const CSID& = CS_Local);
-	+ \f std::string StringToMBCS(const String&, const CSID& = CS_Local);
-/ @@ \u CHRProcessing:
-	/ \a wchar_t => fchar_t;
-	+ \f std::size_t wcslen(const fchar_t*) @@ unnamed \ns;
-+ #define CHRLIB_WCHAR_T_SIZE 4 @@ \h <platform.h>;
-+ #define FS(str) reinterpret_cast<const CHRLib::fchar_t*>(L##str) @@ \h CHRDefinition;
-/ ^ FS @@ \h <Shells.h>;
+/= \tr @@ \mf void _m_init() @@ \cl YListBox @@ \u YControl;
 
-r4-r8:
-/= test 1;
-/ \tr \impl @@ \u Shells;
+r4:
+/ \simp @@ \cl YListBox @@ \u YControl:
+	- \s \eh void OnTouchDown(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
+	- \s \eh void OnClick(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
+	- \s \eh void OnKeyPress(IVisualControl&, const Runtime::MKeyEventArgs& = Runtime::MKeyEventArgs::Empty);
+	/ private \mf void _m_OnTouchDown(const Runtime::MTouchEventArgs&) => public \eh OnTouchDown;
+	/ private \mf void _m_OnClick(const Runtime::MTouchEventArgs&) => public \eh OnClick;
+	/ private \mf void _m_OnKeyPress(const Runtime::MKeyEventArgs&) => public \eh OnKeyPress;
+	/ \tr \impl @@ \mf void _m_init();
 
-r9:
-+ \f bool IsAbsolute(CPATH) throw() @@ \u YCommon;
-/ @@ \cl Path @@ \u YFileSystem:
-	* DefBoolGetter(Empth, pathname.empty()) -> DefBoolGetter(Empty, pathname.empty());
-	/ \impl \f bool IsRelative() -> DefBoolGetter(Relative, !IsAbsolute());
-	/ \impl \f bool IsAbsolute() -> DefBoolGetter(Absolute, platform::IsAbsolute(GetNativeString().c_str()));
+r5:
+/ \simp @@ \cl MVisualControl @@ \u YControl:
+	- \s \eh void OnTouchHeld(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
+	- \s \eh void OnTouchMove(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
+	/ private \mf void _m_OnTouchHeld(const Runtime::MTouchEventArgs&) => public \eh OnTouchHeld;
+	/ private \mf void _m_OnTouchMove(const Runtime::MTouchEventArgs&) => public \eh OnTouchMove;
+	/ \tr \impl @@ \ctor;
+	/ \impl @@ \mf void OnTouchHeld(const Runtime::MTouchEventArgs&);
+/ @@ \cl ShlA @@ \u YShel:
+	/ \tr \impl @@ \ctor @@ \cl TFormB;
+	/ \tr \impl @@ \ctor @@ \cl TFormC;
+
+r6:
+/ @@ \u YControl:
+	/ \simp @@ \cl YListBox:
+		/ \s \eh void OnSelected(IVisualControl&, const MIndexEventArgs&)
+			-> !\s \eh void OnTouchHeld(const MIndexEventArgs&);
+		/ \s \eh void OnConfirmed(IVisualControl&, const MIndexEventArgs&)
+			-> !\s \eh void OnConfirmed(const MIndexEventArgs&);
+		/ \tr \impl @@ \mf void _m_init();
+	/ \simp @@ \cl MVisualControl:
+		/ \s \eh void OnTouchDown(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty)
+			-> !\s \eh void OnTouchDown(const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
+		/ \s \eh void OnGotFocus(IControl&, const MEventArgs& = GetZeroElement<MEventArgs>())
+			-> !\s \eh void OnTouchDown(const MEventArgs& = GetZeroElement<MEventArgs>());
+		/ \s \eh void OnLostFocus(IControl&, const MEventArgs& = GetZeroElement<MEventArgs>())
+			-> !\s \eh void OnTouchDown(const MEventArgs& = GetZeroElement<MEventArgs>());
+		/ \tr \impl @@ \ctor;
+	/ \simp @@ \cl MVisualControl:
+		/ \s \eh void OnConfirmed(IVisualControl&, const MIndexEventArgs&)
+			-> !\s \eh void OnConfirmed(const MIndexEventArgs&);
+		/ \tr \impl @@ \ctor;
+/ @@ \cl ShlA @@ \u YShel:
+	/ \tr \impl @@ \ctor @@ \cl TFormB;
+
+r7:
+/ \impl @@ \mf void OnConfirmed(const MIndexEventArgs&) @@ \cl YFileBox @@ \u YControl;
+/ \impl @@ \mf bool operator/=(const std::string&) @@ \cl MFileList @@ \u YFileSystem;
+
+r8-r9:
+* \impl @@ \mf void OnConfirmed(const MIndexEventArgs&) @@ \cl YFileBox @@ \u YControl;
 
 r10:
-+ \f bool IsAbsolute(CPATH) throw() -> \f bool IsAbsolute(CPATH) @@ \u YCommon;
++ \s \mf IsDirectory() @@ \cl HDirectory @@ \u YCommon;
+/ \impl @@ \mf ListType::size_type LoadSubItems() @@ \cl MFileList @@ \u YFileSystem:
+	/ ^ \s \mf HDirectory::IsDirectory();
+/ \impl @@ \mf void LoadFontFileDirectory(CPATH, CPATH) @@ \cl YFontCache @@ \u YFont:
+	/ ^ \s \mf HDirectory::IsDirectory();
 
-r11:
-/ @@ \cl Path @@ \u YFileSystem:
-	+ \cl iterator;
-	+ typedef iterator const_iterator;
-	+ \mf iterator begin() const;
-	+ \mf iterator end() const;
-	+ \s \m \c ValueType Slash(DEF_PATH_DELIMITER);
+r11-r13:
+/ @ \u YFileSystem:
+	/= \simp \impl @@ \f bool Validate(std::string&);
+	* \impl @@ \mf bool operator/=(const std::string&) @@ \cl MFileList;
 
-r12:
-/ @@ \u YFileSystem:
-	+ \inc \h <iterator>;
-	/ @@ \cl Path:
-		/ \cl iterator + \inh public std::iterator<std::bidirectional_iterator_tag, Path>;
-		/ \impl @@ \cl iterator;
-	/ \tr \impl @@ \f Path operator/(const Path& lhs, const Path& rhs);
+r14-r21:
+/= test 1;
 
-r13-r15:
-/ @@ \cl Path @@ \u YFileSystem:
-	/ \impl @@ \mf operator/=(const Path&);
-	/ \impl other \f;
-+ \f std::size_t GetRootNameLength(CPATH) @@ \u YCommon;
+r22:
+* \impl @@ \mf void OnConfirmed(const MIndexEventArgs&) @@ \cl YFileBox @@ \u YControl;
 
-r16:
-* \impl @@ \mf (iterator& operator++()) & (iterator& operator--()) & (value_type operator*()) @@ \cl iterator @@ \cl Path @@ \u YFileSystem;
+r23:
++ \mf IO::Path GetPath() const @@ \cl YFileBox @@ \u YControl;
+/ \impl @@ \mf void ShlS::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&) @@ \u Shells;
 
-r17-r31:
+r24-r25:
 / test 2;
-* @@ \cl Path @@ \u YFileSystem:
-	* \impl @@ \mf Path& operator/=(const Path&);
-	* \impl \mf (iterator& operator--()) & (value_type operator*()) @@ \cl iterator;
+
+r26:
+* impl @@ \mf IO::Path GetPath() const @@ \cl YFileBox @@ \u YControl;
+
+r27-r28:
+/ test 3;
+
+r29:
+* PDefHead(const ValueType*, c_str) + \c @@ \cl YPath @@ \u YFileSystem;
+
+r30-r31:
+/ test 4;
+
+r32:
+* impl @@ \mf IO::Path GetPath() const @@ \cl YFileBox @@ \u YControl;
+
+r33:
+/ impl @@ \mf Path& operator/=(const Path& path) @@ \cl Path @@ \ns IO @@ \u YFileSystem;
+
+r34
+/ \impl @@ \mf ListType::size_type LoadSubItems() @@ \cl MFileList @@ \u YFileSystem;
 
 
 DOING:

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-9-22 4:22;
-// Version = 0.3107;
+// UTime = 2010-9-25 16:46;
+// Version = 0.3204;
 
 
 #include "ycontrol.h"
@@ -169,10 +169,10 @@ MVisualControl::MVisualControl(Drawing::PixelType b, Drawing::PixelType f)
 : MControl(), AFocusRequester(),
 BackColor(b), ForeColor(f)
 {
-	EventMap[EControl::GotFocus] += OnGotFocus;
-	EventMap[EControl::LostFocus] += OnLostFocus;
-	TouchDown += OnTouchDown;
-	TouchMove += OnTouchMove;
+	EventMap[EControl::GotFocus] += &MVisualControl::OnGotFocus;
+	EventMap[EControl::LostFocus] += &MVisualControl::OnLostFocus;
+	TouchDown += &MVisualControl::OnTouchDown;
+	TouchMove += &MVisualControl::OnTouchMove;
 }
 
 GMFocusResponser<IVisualControl>*
@@ -182,39 +182,11 @@ MVisualControl::CheckFocusContainer(IWidgetContainer* pCon)
 }
 
 void
-MVisualControl::_m_OnTouchHeld(const Runtime::MTouchEventArgs& e)
+MVisualControl::OnGotFocus(const MEventArgs&)
 {
 	try
 	{
-		IWidget& w(dynamic_cast<IWidget&>(*this));
-		if(!STouchStatus::IsOnDragging())
-			STouchStatus::SetDragOffset(w.GetLocation() - e);
-		else if(w.GetLocation() != e + STouchStatus::GetDragOffset())
-			OnTouchMove(dynamic_cast<IVisualControl&>(*this), e);
-	}
-	catch(std::bad_cast&)
-	{}
-}
-void
-MVisualControl::_m_OnTouchMove(const Runtime::MTouchEventArgs& e)
-{
-	try
-	{
-		IWidget& w(dynamic_cast<IWidget&>(*this));
-
-		w.SetLocation(e + STouchStatus::GetDragOffset());
-		w.Refresh();
-	}
-	catch(std::bad_cast&)
-	{}
-}
-
-void
-MVisualControl::OnGotFocus(IControl& c, const MEventArgs& e)
-{
-	try
-	{
-		dynamic_cast<IWidget&>(c).Refresh();
+		dynamic_cast<IWidget&>(*this).Refresh();
 	}
 //	catch(std::bad_cast)
 //	{}
@@ -224,37 +196,44 @@ MVisualControl::OnGotFocus(IControl& c, const MEventArgs& e)
 	}
 }
 void
-MVisualControl::OnLostFocus(IControl& c, const MEventArgs& e)
+MVisualControl::OnLostFocus(const MEventArgs& e)
 {
-	OnGotFocus(c, e);
-/*	try
-	{
-		dynamic_cast<IWidget&>(c).Refresh();
-	}
-	catch(std::bad_cast&)
-	{}*/
+	OnGotFocus(e);
 }
 void
-MVisualControl::OnTouchDown(IVisualControl& c, const MTouchEventArgs& e)
-{
-	c.RequestFocus(e);
-}
-void
-MVisualControl::OnTouchHeld(IVisualControl& c, const MTouchEventArgs& e)
+MVisualControl::OnTouchDown(const MTouchEventArgs& e)
 {
 	try
 	{
-		dynamic_cast<MVisualControl&>(c)._m_OnTouchHeld(e);
+		dynamic_cast<IVisualControl&>(*this).RequestFocus(e);
 	}
 	catch(std::bad_cast&)
 	{}
 }
 void
-MVisualControl::OnTouchMove(IVisualControl& c, const MTouchEventArgs& e)
+MVisualControl::OnTouchHeld(const Runtime::MTouchEventArgs& e)
 {
 	try
 	{
-		dynamic_cast<MVisualControl&>(c)._m_OnTouchMove(e);
+		IWidget& w(dynamic_cast<IWidget&>(*this));
+
+		if(!STouchStatus::IsOnDragging())
+			STouchStatus::SetDragOffset(w.GetLocation() - e);
+		else if(w.GetLocation() != e + STouchStatus::GetDragOffset())
+			OnTouchMove(e);
+	}
+	catch(std::bad_cast&)
+	{}
+}
+void
+MVisualControl::OnTouchMove(const Runtime::MTouchEventArgs& e)
+{
+	try
+	{
+		IWidget& w(dynamic_cast<IWidget&>(*this));
+
+		w.SetLocation(e + STouchStatus::GetDragOffset());
+		w.Refresh();
 	}
 	catch(std::bad_cast&)
 	{}
@@ -345,7 +324,7 @@ prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()), bDisposeList(true)
 Font(), Margin(prTextRegion->Margin),
 List(*new ListType()), Viewer(List)
 {
-	Init_();
+	_m_init();
 }
 YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_, YListBox::ListType& List_)
 : YVisualControl(hWnd, r, pCon),
@@ -353,7 +332,7 @@ prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()), bDisposeList(false
 Font(), Margin(prTextRegion->Margin),
 List(List_), Viewer(List)
 {
-	Init_();
+	_m_init();
 }
 YListBox::~YListBox()
 {
@@ -362,12 +341,13 @@ YListBox::~YListBox()
 }
 
 void
-YListBox::Init_()
+YListBox::_m_init()
 {
-	Click += OnClick;
-	KeyPress += OnKeyPress;
-	Selected += OnSelected;
-	Confirmed += OnConfirmed;
+	TouchDown += &YListBox::OnTouchDown;
+	Click += &YListBox::OnClick;
+	KeyPress += &YListBox::OnKeyPress;
+	Selected += &YListBox::OnSelected;
+	Confirmed += &YListBox::OnConfirmed;
 }
 
 YListBox::ItemType*
@@ -467,13 +447,17 @@ YListBox::CallConfirmed()
 }
 
 void
-YListBox::_m_OnClick(const MTouchEventArgs& pt)
+YListBox::OnTouchDown(const MTouchEventArgs& pt)
 {
 	SetSelected(pt);
+}
+void
+YListBox::OnClick(const MTouchEventArgs&)
+{
 	CallConfirmed();
 }
 void
-YListBox::_m_OnKeyPress(const MKeyEventArgs& k)
+YListBox::OnKeyPress(const MKeyEventArgs& k)
 {
 	if(Viewer.IsSelected())
 	{
@@ -524,41 +508,15 @@ YListBox::_m_OnKeyPress(const MKeyEventArgs& k)
 	//	(*this)[es](*this, MIndexEventArgs(*this, Viewer.GetSelected()));
 	}
 }
-
 void
-YListBox::OnClick(IVisualControl& c, const MTouchEventArgs& e)
+YListBox::OnSelected(const MIndexEventArgs&)
 {
-	try
-	{
-		dynamic_cast<YListBox&>(c)._m_OnClick(e);
-	}
-	catch(std::bad_cast&)
-	{}
+	Refresh();
 }
 void
-YListBox::OnKeyPress(IVisualControl& c, const MKeyEventArgs& e)
+YListBox::OnConfirmed(const MIndexEventArgs& e)
 {
-	try
-	{
-		dynamic_cast<YListBox&>(c)._m_OnKeyPress(e);
-	}
-	catch(std::bad_cast&)
-	{}
-}
-void
-YListBox::OnSelected(IVisualControl& c, const MIndexEventArgs&)
-{
-	try
-	{
-		dynamic_cast<YListBox&>(c).Refresh();
-	}
-	catch(std::bad_cast&)
-	{}
-}
-void
-YListBox::OnConfirmed(IVisualControl& c, const MIndexEventArgs& e)
-{
-	OnSelected(c, e);
+	OnSelected(e);
 }
 
 
@@ -566,10 +524,18 @@ YFileBox::YFileBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource
 : YListBox(hWnd, r, pCon, prTr_, MFileList::List), MFileList(),
 List(ParentType::List)
 {
-	Confirmed += OnConfirmed;
+	Confirmed += &YFileBox::OnConfirmed;
 }
 YFileBox::~YFileBox()
 {
+}
+
+IO::Path
+YFileBox::GetPath() const
+{
+	if(Viewer.IsSelected() && Viewer.GetSelected() >= 0)
+		return Directory / Text::StringToMBCS(List[Viewer.GetSelected()]);
+	return Directory;
 }
 
 void
@@ -585,17 +551,14 @@ YFileBox::DrawForeground()
 }
 
 void
-YFileBox::OnConfirmed(IVisualControl& c, const MIndexEventArgs& e)
+YFileBox::OnConfirmed(const MIndexEventArgs& e)
 {
-	try
+	if(*this /= List[e.Index])
 	{
-		YFileBox& con(dynamic_cast<YFileBox&>(c));
-
-		con /= con.List[e.Index];
-		con.Refresh();
+		Viewer.MoveViewerToBegin();
+		Viewer.SetSelected(0);
+		Refresh();
 	}
-	catch(std::bad_cast&)
-	{}
 }
 
 YSL_END_NAMESPACE(Controls)

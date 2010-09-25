@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28;
-// UTime = 2010-9-22 21:29;
-// Version = 0.2078;
+// UTime = 2010-9-24 12:01;
+// Version = 0.2084;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -296,9 +296,9 @@ namespace platform
 	public:
 		typedef ::DIR_ITER* IteratorType;
 
-		static PATHSTR Name;
-		static struct ::stat Stat;
-		static int LastError;
+		static PATHSTR Name; //节点名称。
+		static struct ::stat Stat; //节点状态信息。
+		static int LastError; //上一次操作结果，0 为无错误。
 
 	private:
 		IteratorType dir;
@@ -319,7 +319,9 @@ namespace platform
 		operator++(int);
 
 		bool
-		IsValid() const;
+		IsValid() const; //判断文件系统节点是否有效。
+		static bool
+		IsDirectory(); //从节点状态信息判断是否为目录。
 
 		void
 		Open(CPATH);
@@ -357,6 +359,12 @@ namespace platform
 	HDirectory::IsValid() const
 	{
 		return dir != NULL;
+	}
+
+	inline bool
+	HDirectory::IsDirectory()
+	{
+		return Stat.st_mode & S_IFDIR;
 	}
 
 	inline void

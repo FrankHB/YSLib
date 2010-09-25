@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:27;
-// UTime = 2010-9-18 10:30;
-// Version = 0.1796;
+// UTime = 2010-9-23 15:32;
+// Version = 0.1800;
 
 
 #ifndef INCLUDED_YAPP_H_
@@ -96,9 +96,9 @@ public:
 	DefGetter(const SHLs, ShellSet, sShls) //取 Shell 对象组。
 	DefGetter(HSHL, ShellHandle, hShell) //取得线程空间中当前运行的 Shell 的句柄。
 	YMessageQueue&
-	GetDefaultMessageQueue() ythrow(Exceptions::LoggedEvent);
+	GetDefaultMessageQueue() ythrow(LoggedEvent);
 	YMessageQueue&
-	GetBackupMessageQueue() ythrow(Exceptions::LoggedEvent);
+	GetBackupMessageQueue() ythrow(LoggedEvent);
 
 	bool
 	SetShellHandle(HSHL h); //设置线程空间中当前运行的 Shell 的句柄。

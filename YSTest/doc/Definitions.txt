@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-26 19:34:51;
-// UTime = 2010-9-22 12:15;
-// Version = r7715;
+// UTime = 2010-9-25 17:44;
+// Version = r7732;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -733,8 +733,9 @@ $unit YCommon "ycommon"
 		public:
 			typedef ::DIR_ITER* IteratorType;
 
-			static PATHSTR name;
-			static struct ::stat Stat;
+			static PATHSTR name; //节点名称。
+			static struct ::stat Stat; //节点状态信息。
+			static int LastError; //上一次操作结果，0 为无错误。
 
 		private:
 			IteratorType dir;
@@ -755,7 +756,9 @@ $unit YCommon "ycommon"
 			operator++(int);
 
 			inline bool
-			IsValid() const;
+			IsValid() const; //判断文件系统节点是否有效。
+			static bool
+			IsDirectory(); //从节点状态信息判断是否为目录。
 
 			inline void
 			Open(CPATH);
@@ -2909,8 +2912,7 @@ $unit YException "yexcept"
 	$import $unit YObject, $header <new>, <typeinfo>, <string>;
 
 
-	YSL_BEGIN_NAMESPACE(Exceptions)
-
+	// YSLib 异常基类。
 	class Exception : public std::exception
 	{
 	public:
@@ -2920,36 +2922,36 @@ $unit YException "yexcept"
 	}; //class Exception;
 
 
-	class GeneralError : public Exception
+	//一般异常事件类。
+	class GeneralEvent : public Exception
 	{
 	private:
 		std::string what_;
 
 	public:
-		GeneralError(const std::string& what);
+		GeneralEvent(const std::string& what);
 		virtual
-		~GeneralError() throw();
+		~GeneralEvent() throw();
 
 		const char*
 		what() const throw();
-	}; //class GeneralError;
+	}; //class GeneralEvent;
 
 
-	class LoggedEvent : public GeneralError
+	//记录异常事件类。
+	class LoggedEvent : public GeneralEvent
 	{
 	private:
 		u8 level;
 
 	public:
 		LoggedEvent(const std::string&, u8 = 0);
-		LoggedEvent(const GeneralError&, u8 = 0);
+		LoggedEvent(const GeneralEvent&, u8 = 0);
 		virtual
 		~LoggedEvent() throw();
 
 		DefGetter(u8, Level, level);
 	}; //LoggedEvent;
-
-	YSL_END_NAMESPACE(Exceptions)
 
 } //$unit YException;
 
@@ -3530,9 +3532,9 @@ $unit YApplication "yapp"
 		DefGetter(const SHLs, ShellSet, sShls) //取 Shell 对象组。
 		DefGetter(HSHL, ShellHandle, hShell) //取得线程空间中当前运行的 Shell 的句柄。
 		YMessageQueue&
-		GetDefaultMessageQueue() ythrow(Exceptions::LoggedEvent);
+		GetDefaultMessageQueue() ythrow(LoggedEvent);
 		YMessageQueue&
-		GetBackupMessageQueue() ythrow(Exceptions::LoggedEvent);
+		GetBackupMessageQueue() ythrow(LoggedEvent);
 
 		bool
 		SetShellHandle(HSHL h); //设置线程空间中当前运行的 Shell 的句柄。
@@ -3567,7 +3569,7 @@ $unit YFileSystem "yfilesys"
 	$export const CPATH FS_Parent;
 
 
-	typedef char NativePathCharType; //本地路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
+	typedef char NativePathCharType; //本机路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
 
 
 	//路径类。
@@ -3651,7 +3653,7 @@ $unit YFileSystem "yfilesys"
 		DefGetter(StringType, GeneralString, pathname) //取一般字符串。
 		DefGetter(const StringType&, NativeString, pathname) //取本地格式和编码的字符串。
 
-		PDefHead(const ValueType*, c_str) //本地格式和编码的 C 风格字符串。
+		PDefHead(const ValueType*, c_str) const //本地格式和编码的 C 风格字符串。
 			ImplBodyMember(GetNativeString(), c_str)
 
 		//修改函数。
@@ -3836,7 +3838,7 @@ $unit YFileSystem "yfilesys"
 
 		//导航至相对路径。
 		bool
-		operator/=(const std::string&);
+		operator/=(const std::string&) ythrow();
 		inline bool
 		operator/=(const String&);
 
@@ -4959,12 +4961,6 @@ $unit YControl "ycontrol"
 		Runtime::GMFocusResponser<IVisualControl>*
 		CheckFocusContainer(IWidgetContainer*); //检查给定的容器指针是否有效且指向接受焦点的容器。
 
-	private:
-		void
-		_m_OnTouchHeld(const Runtime::MTouchEventArgs&);
-		void
-		_m_OnTouchMove(const Runtime::MTouchEventArgs&);
-
 	public:
 		explicit
 		MVisualControl(Drawing::PixelType = Drawing::Color::Black, Drawing::PixelType = Drawing::Color::White);
@@ -4977,10 +4973,10 @@ $unit YControl "ycontrol"
 		OnLostFocus(IControl&, const MEventArgs& = GetZeroElement<MEventArgs>());
 		static void
 		OnTouchDown(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::GetZeroElement<MEventArgs>());
-		static void
-		OnTouchHeld(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
-		static void
-		OnTouchMove(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
+		void
+		OnTouchHeld(const Runtime::MTouchEventArgs&);
+		void
+		OnTouchMove(const Runtime::MTouchEventArgs&);
 	}; //class MVisualControl;
 
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:24;
-// UTime = 2010-9-22 3:20;
-// Version = 0.3452;
+// UTime = 2010-9-25 7:06;
+// Version = 0.3496;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -148,23 +148,17 @@ protected:
 	Runtime::GMFocusResponser<IVisualControl>*
 	CheckFocusContainer(IWidgetContainer*); //检查给定的容器指针是否有效且指向接受焦点的容器。
 
-private:
-	void
-	_m_OnTouchHeld(const Runtime::MTouchEventArgs&);
-	void
-	_m_OnTouchMove(const Runtime::MTouchEventArgs&);
-
 public:
-	static void
-	OnGotFocus(IControl&, const MEventArgs& = GetZeroElement<MEventArgs>());
-	static void
-	OnLostFocus(IControl&, const MEventArgs& = GetZeroElement<MEventArgs>());
-	static void
-	OnTouchDown(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
-	static void
-	OnTouchHeld(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
-	static void
-	OnTouchMove(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
+	void
+	OnGotFocus(const MEventArgs& = GetZeroElement<MEventArgs>());
+	void
+	OnLostFocus(const MEventArgs& = GetZeroElement<MEventArgs>());
+	void
+	OnTouchDown(const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
+	void
+	OnTouchHeld(const Runtime::MTouchEventArgs&);
+	void
+	OnTouchMove(const Runtime::MTouchEventArgs&);
 };
 
 
@@ -275,7 +269,7 @@ Margin(prTextRegion->Margin), AutoSize(true), AutoEllipsis(false), Text(l)
 {}
 
 
-//V0.1544E;
+//V0.1585E;
 //文本列表框。
 class YListBox : public GMCounter<YListBox>, public YVisualControl
 {
@@ -310,7 +304,7 @@ public:
 
 protected:
 	void
-	Init_();
+	_m_init();
 
 public:
 	DefBoolGetterMember(Selected, Viewer)
@@ -350,20 +344,18 @@ private:
 	CallSelected();
 	void
 	CallConfirmed();
-	void
-	_m_OnClick(const Runtime::MTouchEventArgs&);
-	void
-	_m_OnKeyPress(const Runtime::MKeyEventArgs&);
 
 public:
-	static void
-	OnClick(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
-	static void
-	OnKeyPress(IVisualControl&, const Runtime::MKeyEventArgs& = Runtime::MKeyEventArgs::Empty);
-	static void
-	OnSelected(IVisualControl&, const MIndexEventArgs&);
-	static void
-	OnConfirmed(IVisualControl&, const MIndexEventArgs&);
+	void
+	OnTouchDown(const Runtime::MTouchEventArgs&);
+	void
+	OnClick(const Runtime::MTouchEventArgs&);
+	void
+	OnKeyPress(const Runtime::MKeyEventArgs&);
+	void
+	OnSelected(const MIndexEventArgs&);
+	void
+	OnConfirmed(const MIndexEventArgs&);
 };
 
 inline void
@@ -393,13 +385,16 @@ public:
 	virtual
 	~YFileBox();
 
+	IO::Path
+	GetPath() const;
+
 	virtual void
 	DrawBackground();
 	virtual void
 	DrawForeground();
 
-	static void
-	OnConfirmed(IVisualControl&, const MIndexEventArgs&);
+	void
+	OnConfirmed(const MIndexEventArgs&);
 };
 
 YSL_END_NAMESPACE(Controls)

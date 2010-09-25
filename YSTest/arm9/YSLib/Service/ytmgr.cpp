@@ -1,16 +1,14 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 17:48:09;
-// UTime = 2010-9-2 10:29;
-// Version = 0.3973;
+// UTime = 2010-9-23 15:31;
+// Version = 0.3977;
 
 
 #include "ytmgr.h"
 #include "../Core/yapp.h"
 
 YSL_BEGIN
-
-using namespace Exceptions;
 
 YSL_BEGIN_NAMESPACE(Text)
 

@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:04:05;
-// UTime = 2010-9-15 23:04;
-// Version = 0.2792;
+// UTime = 2010-9-23 15:31;
+// Version = 0.2796;
 
 
 #include "DSReader.h"
@@ -12,7 +12,6 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(DS)
 
 using namespace Drawing;
-using namespace Exceptions;
 using namespace Text;
 
 YSL_BEGIN_NAMESPACE(Components)

@@ -1,16 +1,14 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46;
-// UTime = 2010-9-2 10:28;
-// Version = 0.2289;
+// UTime = 2010-9-23 15:31;
+// Version = 0.2293;
 
 
 #include "ygdi.h"
 #include "../Core/yexcept.h"
 
 YSL_BEGIN
-
-using namespace Exceptions;
 
 YSL_BEGIN_NAMESPACE(Drawing)
 

@@ -307,6 +307,7 @@ ShlS::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&)
 		con.Activate(Color::Silver);
 
 		iprintf("Current Working Directory:\n%s\n", IO::GetNowDirectory().c_str());
+		iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
 	//	std::fprintf(stderr, "err");
 		WaitForInput();
 	}
@@ -314,6 +315,7 @@ ShlS::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&)
 	{
 		YConsole con(*pScreenDown);
 		con.Activate(Color::Yellow, Color::Green);
+		iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
 		puts("OK");
 		WaitForInput();
 	}
