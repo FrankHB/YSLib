@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-3-6 21:38:16;
-// UTime = 2010-9-26 12:46;
-// Version = 0.3094;
+// CTime = 2010-03-06 21:38:16 + 08:00;
+// UTime = 2010-09-26 22:37 + 08:00;
+// Version = 0.3098;
 
 
 #include <Shells.h>
@@ -329,7 +329,7 @@ ShlExplorer::TFrmFileListSelecter::btnOK_Click(const MTouchEventArgs&)
 	{
 		const std::string& s(fbMain.GetPath().GetNativeString());
 
-		if(!IO::Validate(s) && stdex::fexists(s.c_str()))
+		if(!IO::ValidateDirectory(s) && stdex::fexists(s.c_str()))
 			switchShl2(s.c_str());
 	}
 }

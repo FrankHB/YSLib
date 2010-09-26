@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-16 20:06:58;
-// UTime = 2010-9-2 10:21;
-// Version = 0.2303;
+// CTime = 2009-11-16 20:06:58 + 08:00;
+// UTime = 2010-09-26 20:11 + 08:00;
+// Version = 0.2375;
 
 
 #include "ygui.h"
@@ -63,7 +63,50 @@ ReleaseFocusCascade(IVisualControl& c)
 
 
 //记录输入保持状态。
-SVec STouchStatus::v_DragOffset(SVec::FullScreen);
+SVec SInputStatus::DragOffset(SVec::FullScreen);
+Timers::YTimer SInputStatus::KeyTimer(1000, false);
+SInputStatus::KeyHeldStateType SInputStatus::KeyHeldState(KeyFree);
+
+void
+SInputStatus::RepeatKeyHeld(MVisualControl& c, const MKeyEventArgs& e)
+{
+	//三状态自动机。
+	switch(KeyHeldState)
+	{
+	case KeyFree:
+		//必须立即转移状态，否则 KeyTimer.Activate() 会使 KeyTimer.Refresh() 始终为 false ，导致状态无法转移。
+		KeyHeldState = KeyPressed;
+		KeyTimer.SetInterval(640); //初始按键延迟。
+		KeyTimer.Activate();
+		break;
+
+	case KeyPressed:		
+	case KeyHeld:
+		if(KeyTimer.Refresh())
+		{
+			if(KeyHeldState == KeyPressed)
+			{
+				KeyHeldState = KeyHeld;
+				KeyTimer.SetInterval(320); //重复按键延迟。
+			}
+			try
+			{
+				c.KeyDown(dynamic_cast<IVisualControl&>(c), e);
+			}
+			catch(std::bad_cast&)
+			{}
+		}
+		break;
+	}
+}
+
+void
+SInputStatus::ResetKeyHeldState()
+{
+	KeyTimer.Deactivate();
+	KeyHeldState = KeyFree;
+}
+
 
 namespace
 {
@@ -117,7 +160,7 @@ namespace
 		{
 			return false;
 		}
-		STouchStatus::SetDragOffset();
+		SInputStatus::SetDragOffset();
 		return true;
 	}
 
@@ -126,7 +169,7 @@ namespace
 	{
 		if(p_TouchDown != &c)
 		{
-			STouchStatus::SetDragOffset();
+			SInputStatus::SetDragOffset();
 			return false;
 		}
 		try
@@ -143,6 +186,7 @@ namespace
 	bool
 	ResponseKeyUpBase(MVisualControl& c, const MKeyEventArgs& e)
 	{
+		SInputStatus::ResetKeyHeldState();
 		try
 		{
 			IVisualControl& con(dynamic_cast<IVisualControl&>(c));
@@ -150,7 +194,8 @@ namespace
 			c.KeyUp(con, e);
 			if(p_KeyDown == &c)
 			{
-				c.KeyPress(con, e);
+				if(SInputStatus::KeyHeldState == SInputStatus::KeyFree)
+					c.KeyPress(con, e);
 				p_KeyDown = NULL;
 			}
 		}
@@ -180,7 +225,10 @@ namespace
 	ResponseKeyHeldBase(MVisualControl& c, const MKeyEventArgs& e)
 	{
 		if(p_KeyDown != &c)
+		{
+			SInputStatus::ResetKeyHeldState();
 			return false;
+		}
 		try
 		{
 			c.KeyHeld(dynamic_cast<IVisualControl&>(c), e);

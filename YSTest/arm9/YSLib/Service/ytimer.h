@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTimer by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-6-5 10:28:58;
-// UTime = 2010-7-9 9:18;
-// Version = 0.1444;
+// CTime = 2010-06-05 10:28:58 + 08:00;
+// UTime = 2010-09-26 15:23 + 08:00;
+// Version = 0.1455;
 
 
 #ifndef INCLUDED_YTIMER_H_
@@ -28,7 +28,7 @@ private:
 	static TMRs Timers;
 
 	u32 nInterval;
-	u32 nStart;
+	u32 nBase;
 
 public:
 	explicit
@@ -36,7 +36,7 @@ public:
 
 	DefStaticGetter(u32, SystemTick, SystemTick)
 	DefGetter(u32, Interval, nInterval)
-	DefGetter(u32, StartTick, nStart)
+	DefGetter(u32, BaseTick, nBase)
 
 	void
 	SetInterval(u32);
@@ -87,7 +87,7 @@ YTimer::Synchronize()
 inline void
 YTimer::Reset()
 {
-	nStart = 0;
+	nBase = 0;
 }
 
 YSL_END_NAMESPACE(Timers)

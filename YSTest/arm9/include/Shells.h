@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-3-6 21:38:16;
-// UTime = 2010-9-26 12:35;
-// Version = 0.2686;
+// CTime = 2010-03-06 21:38:16 + 08:00;
+// UTime = 2010-09-26 22:43 + 08:00;
+// Version = 0.2690;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -77,8 +77,8 @@ private:
 
 		TFrmFileListMonitor(HSHL hShl)
 			: YForm(SRect::FullScreen, GetImage(3), pDesktopUp, hShl),
-			lblTitle(HWND(this), "文件列表：请选择一个文件。", SRect(30, 20, 220, 22)),
-			lblPath(HWND(this), "/[Path]", SRect(20, 80, 240, 22))
+			lblTitle(HWND(this), "文件列表：请选择一个文件。", SRect(16, 20, 220, 22)),
+			lblPath(HWND(this), "/", SRect(12, 80, 240, 22))
 		{
 		//	lblTitle.Transparent = true;
 		//	lblPath.Transparent = true;

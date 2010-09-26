@@ -508,6 +508,153 @@
 
 */
 /*
+		u8* bitmap = sbit->buf;
+		if(!bitmap)
+		{
+			penX = tx;
+			return;
+		}
+
+		int maxX = Width - Right;
+		int maxY = Height - Bottom;
+
+		PixelType col(color | BITALPHA);
+		int t(0);
+		for(int y(0); y < sbit->height; ++y)
+		{
+			for(int x(0); x < sbit->width; ++x)
+			{
+				if(bitmap[t] >= Alpha_Threshold)
+				{
+					int sy = penY + y - sbit->top;
+					int sx = penX + x + sbit->left;
+
+					if(sx >= Left && sy >= Top && sx < maxX && sy < maxY)
+					{
+						int s = sy * Width + sx;
+						imgAlpha[s] = bitmap[t];
+						img[s] = col;
+					}
+				}
+				++t;
+			}
+		}
+
+//static const u8 SingleColor_Threshold = 31;
+
+/*
+inline static PixelType
+mpshl(PixelType c, u8 n, PixelType mask)
+{
+	return ((c & mask) << n) & mask;
+}
+inline static PixelType
+mpshlR(PixelType c, u8 n)
+{
+	return mpshl(c, n, 0x7C00);
+}
+inline static PixelType
+mpshlG(PixelType c, u8 n)
+{
+	return mpshl(c, n, 0x03E0);
+}
+inline static PixelType
+mpshlB(PixelType c, u8 n)
+{
+	return mpshl(c, n, 0x001F);
+}
+inline static PixelType
+mpshr(PixelType c, u8 n, PixelType mask)
+{
+	return ((c & mask) >> n) & mask;
+}
+inline static PixelType
+mpshrR(PixelType c, u8 n)
+{
+	return mpshr(c, n, 0x7C00);
+}
+inline static PixelType
+mpshrG(PixelType c, u8 n)
+{
+	return mpshr(c, n, 0x03E0);
+}
+inline static PixelType
+mpshrB(PixelType c, u8 n)
+{
+	return mpshr(c, n, 0x001F);
+}
+
+
+//template<typename _tPixel>
+struct transPixelShiftLeft
+{
+	u8 nShift;
+
+	inline explicit
+	transPixelShiftLeft(u8 n)
+	: nShift(n)
+	{}
+
+	inline void
+	operator()(BitmapPtr dst)
+	{
+		PixelType c = *dst;
+
+		*dst = (c & BITALPHA)
+			| mpshlR(c, nShift)
+			| mpshlG(c, nShift)
+			| mpshlB(c, nShift);
+	}
+};
+
+struct transPixelShiftRight
+{
+	u8 nShift;
+
+	inline explicit
+	transPixelShiftRight(u8 n)
+	: nShift(n)
+	{}
+
+	inline void
+	operator()(BitmapPtr dst)
+	{
+		PixelType c = *dst;
+
+		*dst = (c & BITALPHA)
+			| mpshrR(c, nShift)
+			| mpshrG(c, nShift)
+			| mpshrB(c, nShift);
+	}
+};
+
+static void
+RectDrawFocusX(const SPoint& l, const SSize& s, HWND hWnd)
+{
+	YAssert(hWnd, "err: @hWnd is null.");
+
+	BitmapPtr const dst(hWnd->GetBufferPtr());
+	const SDST dw(hWnd->GetWidth()),
+		dh(hWnd->GetHeight());
+	SDST sw(s.Width),
+		sh(s.Height);
+	SPOS sx(l.X),
+		sy(l.Y);
+
+	FillRect(dst, dw, dh, sx, sy, sw, sh, PixelType(ARGB16(1, 6, 27, 31)));
+	if(sw < 5 || sh < 5)
+		return;
+	sw -= 4;
+	sh = (sh - 4) >> 1;
+	sx += 2;
+	sy += 2;
+	FillRect(dst, dw, dh, sx, sy, sw, sh, PixelType(ARGB16(1, 29, 30, 31)));
+	sy += sh;
+	FillRect(dst, dw, dh, sx, sy, sw, sh, PixelType(ARGB16(1, 24, 28, 31)));
+}
+*/
+*/
+/*
 class Path;
 
 void swap(Path&, Path&);

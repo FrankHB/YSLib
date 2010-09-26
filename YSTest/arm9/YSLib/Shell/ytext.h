@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-9-22 4:16;
-// Version = 0.6326;
+// UTime = 2010-9-26 20:45;
+// Version = 0.6347;
 
 
 #ifndef INCLUDED_YTEXT_H_
@@ -60,6 +60,8 @@ public:
 	SetMargins(SDST, SDST, SDST, SDST); //设置边距（4 个 16 位无符号整数形式）。
 	void
 	SetPen(); //按字体大小在设置笔的默认位置（区域左上角）。
+	DefSetter(SPOS, PenX, penX)
+	DefSetter(SPOS, PenY, penY)
 	void
 	SetPen(SPOS, SPOS); //设置笔位置。
 	DefSetter(u8, LineGap, lnGap) //设置行距。
@@ -114,15 +116,18 @@ TextState::SetPen(SPOS x, SPOS y)
 }
 
 
+//打印单个字符。
+void
+PrintChar(MBitmapBuffer&, TextState&, fchar_t); 
+void
+PrintCharEx(MBitmapBufferEx&, TextState&, fchar_t); 
+
+
 class TextRegion : public TextState, public MBitmapBufferEx //文本区域。
 {
 public:
 	typedef TextState ParentType;
 
-private:
-	void PrintChar(fchar_t); //打印单个字符。
-
-public:
 	TextRegion();
 	explicit
 	TextRegion(Drawing::Font&);

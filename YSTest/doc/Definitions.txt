@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-1-26 19:34:51;
-// UTime = 2010-9-26 4:09;
-// Version = r7815;
+// CTime = 2010-01-26 19:34:51 + 08:00;
+// UTime = 2010-09-26 22:37 + 08:00;
+// Version = r7840;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -3799,9 +3799,9 @@ $unit YFileSystem "yfilesys"
 
 	//验证绝对路径有效性。
 	bool
-	Validate(const std::string&);
+	ValidateDirectory(const std::string&);
 	inline bool
-	Validate(const Path&);
+	ValidateDirectory(const Path&);
 
 
 	//文件名过滤器。
@@ -4362,18 +4362,31 @@ $unit YGUI "ygui"
 
 
 	//记录输入保持状态。
-	class STouchStatus
+	class SInputStatus
 	{
 	private:
-		static SVec v_DragOffset;
+		static SVec DragOffset;
 
 	public:
-		DefStaticPredicate(OnDragging, v_DragOffset != SVec::FullScreen)
+		typedef enum
+		{
+			KeyFree = 0,
+			KeyPressed = 1,
+			KeyHeld = 2
+		} KeyHeldStateType;
 
-		DefStaticGetter(const SVec&, DragOffset, v_DragOffset)
+		static KeyHeldStateType KeyHeldState;
+		static Timers::YTimer KeyTimer;
 
-		static DefSetterDe(const SVec&, DragOffset, v_DragOffset, SVec::FullScreen)
-	}; //class STouchStatus;
+		DefStaticPredicate(OnDragging, DragOffset != SVec::FullScreen)
+
+		DefStaticGetter(const SVec&, DragOffset, DragOffset)
+
+		static DefSetterDe(const SVec&, DragOffset, DragOffset, SVec::FullScreen)
+
+		static void
+		ResetKeyHeldState();
+	}; //class SInputStatus;
 
 
 	//响应标准屏幕点击状态。
@@ -4977,6 +4990,8 @@ $unit YControl "ycontrol"
 		OnTouchHeld(const Runtime::MTouchEventArgs&);
 		virtual void
 		OnTouchMove(const Runtime::MTouchEventArgs&);
+		virtual void
+		OnKeyHeld(const Runtime::MKeyEventArgs&);
 	}; //class MVisualControl;
 
 
@@ -5415,6 +5430,8 @@ $unit YText "ytext"
 	//	SetFont(CPATH); //设置字体。
 		inline void
 		SetPen(); //按字体大小在设置笔的默认位置（区域左上角）。
+		DefSetter(SPOS, PenX, penX)
+		DefSetter(SPOS, PenY, penY)
 		inline void
 		SetPen(SPOS, SPOS); //设置笔位置。
 		inline void
@@ -5429,15 +5446,18 @@ $unit YText "ytext"
 	}; //class TextState;
 
 
+	//打印单个字符。
+	void
+	PrintChar(MBitmapBuffer&, TextState&, fchar_t); 
+	void
+	PrintCharEx(MBitmapBufferEx&, TextState&, fchar_t);
+
+
 	class TextRegion : public TextState, public MBitmapBufferEx //文本区域。
 	{
 	public:
 		typedef TextState ParentType;
 
-	private:
-		void PrintChar(fchar_t); //打印单个字符。
-
-	public:
 		TextRegion();
 		explicit
 		TextRegion(Drawing::Font&);
@@ -5804,7 +5824,7 @@ $unit YTimer "ytimer"
 		static TMRs Timers;
 
 		u32 nInterval;
-		u32 nStart;
+		u32 nBase;
 
 	public:
 		explicit
@@ -5812,7 +5832,7 @@ $unit YTimer "ytimer"
 
 		DefStaticGetter(u32, SystemTick, S_Timer)
 		DefGetter(u32, Interval, nInterval)
-		DefGetter(u32, StartTick, nStart)
+		DefGetter(u32, BaseTick, nBase)
 
 		inline void
 		SetInterval(u32);

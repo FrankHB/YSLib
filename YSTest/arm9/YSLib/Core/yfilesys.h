@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:09:28;
-// UTime = 2010-9-25 22:20;
-// Version = 0.1711;
+// UTime = 2010-9-26 22:37;
+// Version = 0.1716;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -405,11 +405,11 @@ GetNowDirectory();
 
 //验证绝对路径有效性。
 bool
-Validate(const std::string&);
+ValidateDirectory(const std::string&);
 inline bool
-Validate(const Path& path)
+ValidateDirectory(const Path& path)
 {
-	return Validate(path.GetNativeString());
+	return ValidateDirectory(path.GetNativeString());
 }
 
 

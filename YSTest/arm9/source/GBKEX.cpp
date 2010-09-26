@@ -1,15 +1,15 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-9-26;
-// Version = 0.2628; *Build 154 r24;
+// UTime = 2010-09-26 22:42 + 08:00;
+// Version = 0.2677; *Build 155 r43;
 
 
 #include "../YCLib/ydef.h"
 
 /*
 
-Record prefix and abbrevations:
+$Record prefix and abbrevations:
 <statement> ::= statement;
 ; ::= statement termination
 = ::= equivalent
@@ -66,6 +66,7 @@ Record prefix and abbrevations:
 \mac ::= macros
 \mem ::= memory
 \mf ::= member functions
+\mo ::= member objects
 \ns ::= namespaces
 \op ::= operators
 \para ::= parameters
@@ -95,141 +96,137 @@ Record prefix and abbrevations:
 \vt ::= virtual
 \val ::= values
 
-DONE:
+$using:
+\u YControl
+{
+	\cl MVisualControl;
+	\cl YListBox;
+	\cl YFileBox;
+}
+
+$DONE:
 r1:
-/= \a ShlA => ShlSetting;
-/= \a ShlS => ShlExplorer;
-/ @@ \cl MDualScreenReader @@ \u DSReader:
-	/ \m YTextFile& tf -> YTextFile* pTextFile;
-	/ \ctor MDualScreenReader(YTextFile&, u16 = 0, u16 = SCRW,
-		u16 = 0, u16 = SCRH, u16 = 0, u16 = SCRH, YFontCache& = *pDefaultFontCache) ->
-		MDualScreenReader(YTextFile*, u16 = 0, u16 = SCRW,
-		u16 = 0, u16 = SCRH, u16 = 0, u16 = SCRH, YFontCache& = *pDefaultFontCache);
-	/ \tr \impl @@ \cl ShlReader @@ \u Shells;
+/ @@ \cl MVisualControl:
+	/ \v \eh \mf void OnKeyHeld(const Runtime::MKeyEventArgs&);
+/ \a STouchStatus => SInputStatus;
+/ @@ \u YGUI:
+	/ @@ \cl SInputStatus:
+		+ public typedef enum { KeyFree = 0, KeyPressed = 1, KeyHeld = 2 } KeyHeldStateType;
+		+ public \s \mo Timers::YTimer KeyTimer;
+		+ public \s \mo KeyHeldStateType KeyHeldState;
+		/ \a v_DragOffset => DragOffset;
+		+ \s \mf ResetKeyHeldStatus();
+	/ \impl @@ \f ResponseKeyHeldBase(MVisualControl& c, const MKeyEventArgs&) @@ unnamed \ns;
+	+ \inc "../Service/ytimer.h";
 
 r2:
-/ \u DSReader:
-	+ \cl BlockedText @@ \ns DS::Components;
-/@@ \cl TextFileBuffer @@ \u YTextManager:
-	/ @@ \cl HText:
-		/ \m pBuf => pBuffer;
-		/ \ctor HText(TextFileBuffer&, BlockIndexType = 0, IndexType = 0) ythrow()
-			-> HText(TextFileBuffer* = NULL, BlockIndexType = 0, IndexType = 0) ythrow();
-		/ \impl @@ \mf HText& HText::operator++() ythrow();
-		/ \impl @@ \mf HText& HText::operator--() ythrow();
-		/ \impl @@ \mf HText operator+(std::ptrdiff_t);
-		/ \impl @@ \mf HText& operator+=(std::ptrdiff_t);
-		/ \impl @@ \mf const uchar_t* GetTextPtr() const ythrow();
-		/ \impl @@ \mf IndexType GetBlockLength(BlockIndexType i) const ythrow();
-	/ \mf \i HText begin() ythrow();
-	/ \mf \i HText end() ythrow();
-/ \tr \impl @@ \ctor @@ \cl MDualScreenReader @@ \u DSReader;
+/ \impl @@ \ctor @@ \cl YFileBox;
 
 r3:
-- \exp @@ \ctor @@ \cl TextFileBuffer::HText @@ \u YTextManager:
-/ @@ \cl MDualScreenReader @@ \u DSReader:
-	/ \impl @@ \ctor;
-	/ \mf void InitText() -> void LoadText();
-	+ \mf void UnloadText();
-	+ \m BlockedText* pText;
-	- \dtor;
+/ \tr \impl @@ \mf void MVisualControl::OnKeyHeld(const Runtime::MKeyEventArgs&);
 
 r4:
-* \impl @@ \cl MDualScreenReader @@ \u DSReader;
-	^ GHResource<TextRegion>;
-	/ \m TextRegion& ptUp -> GHResource<TextRegion> pTrUp;
-	/ \m TextRegion& ptDn -> GHResource<TextRegion> pTrDn;
-* \mac @@ \h "ysdef.h";
+* \impl bool ResponseKeyUpBase(MVisualControl& c, const MKeyEventArgs&) @@ unnamed \ns @@ \cl SInputStatus @@ \u YGUI;
 
-r5:
-/= \a $BoolGetter$ => $Predicate$;
-
-r6:
-/ @@ \cl MDualScreenReader @@ \u DSReader:
-	- \m Text::TextFileBuffer Blocks;
-	/ \impl ^ pTest->Blocks;
-
-r7:
-/ @@ \u DSReader:
-	/ @@ \cl MDualScreenReader:
-		- \m YTextFile* pTextFile;
-		/ void LoadText() -> void LoadText(YTextFile&);
-		/ \impl @@ \ctor;
-		/ \tr \impl;
-	- \cl YWndDSReader;
-/ @@ \cl ShlReader @@ \u Shells:
-	/ \m YTextFile TextFile -> YTextFile* pTextFile;
-	/ \impl @@ \ctor;
-	/ \impl @@ \mf OnActivated;
-	/ \impl @@ \mf OnDeactivated;
-
-r8:
-/ @@ \cl ShlExplorer::TFrmFileListSelecter @@ \u Shells:
-	/ \impl void fb_Selected(const MIndexEventArgs&);
-	/ \impl void btnOK_Click(const MTouchEventArgs&);
-
-r9:
-/ \impl @@ \mf void SetSelected(ViewerType::IndexType) @@ \cl YListBox @@ \u YControl;
-
-r10-r11:
+r5-r6:
 /= test 1;
 
-r12:
-* \mf HText& operator++() ythrow() @@ \cl TextFileBuffer::HText @@ \u YTextManager;
+r7:
+/ @@ \cl YTimer @@ \u YTimer:
+	/ \impl @@ \mf bool RefreshRaw();
+	/ \a nStart => nBase;
+	/ \mf DefGetter(u32, StartTick, nBase)
+		-> DefGetter(u32, BaseTick, nBase)
+r8:
+/ @@ \cl YTimer @@ \u YTimer:
+	* \impl @@ \mf void Activate();
 
-r13:
-* \mf \i HText& end() ythrow() @@ \cl TextFileBuffer @@ \u YTextManager;
+r9:
++ \s \mf void RepeatKeyHeld(Components::Controls::MVisualControl&, const MKeyEventArgs&) @@ \cl SInputStatus @@ \u YGUI;
+/ \impl @@ \mf void MVisualControl::OnKeyHeld(const Runtime::MKeyEventArgs&);
 
-r14:
-* @@ \cl MDualScreenReader @@ \u DSReader:
-	* \impl @@ \mf bool IsTextBottom();
-	/ \tr \impl @@ \mf void LoadText(YTextFile&);
+r10:
+* \impl @@ void SInputStatus::RepeatKeyHeld(MVisualControl&, const MKeyEventArgs&) @@ \u YGUI;
 
-r15-r16:
+r11-r14:
 /= test 2;
 
-r17:
-/ @@ \u YControl:
-	/ \a \eh \mf + \v;
-	/ \tr @@ \ctor @@ \cl YListBox;
-	/ \tr @@ \ctor @@ \cl YFileBox;
+r15:
+* \impl @@ void SInputStatus::RepeatKeyHeld(MVisualControl&, const MKeyEventArgs&) @@ \u YGUI;
 
-r18-r19:
+r16:
+/ @@ \u YGUI:
+	/ \mf ResetKeyHeldStatus => ResetKeyHeldState @@ \cl SInputStatus;
+	/ \impl @@ \mf bool ResponseKeyUpBase(MVisualControl&, const MKeyEventArgs&);
+
+r17:
+/ \tr \impl @@ void SInputStatus::RepeatKeyHeld(MVisualControl&, const MKeyEventArgs&) @@ \u YGUI;
+
+r18:
+/ @@ \cl YListBox:
+	/ \mf void OnKeyPress(const MKeyEventArgs&) -> void OnKeyDown(const MKeyEventArgs&);
+	/ \impl @@ \ctor;
+
+r19-r21:
 /= test 3;
 
-r20:
-/ @@ \cl FileBox @@ \u YControl:
-	+ \vt \mf void OnTouchHeld(const Runtime::MTouchEventArgs&);
-
-r21:
-/ \impl @@ void ShlExplorer::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&) @@ \u Shells;
-/ \impl @@ \ctor @@ \cl MVisualControl @@ \u YControl;
-/ \impl @@ \ctor @@ \cl ShlExplorer::TFormB @@ \u Shells;
-/ \a ShlExplorer <=> ShlSetting;
-
 r22:
-/ \impl @@ \ctor @@ \cl YFileBox @@ \u YContorl;
+/ \a KeyStatus => KeyHeldState;
 
 r23:
-/ \impl @@ \mf void ShlExplorer::TFrmFileListSelecter::btnOK_Click(const MTouchEventArgs&) @@ \u Shells;
+/ \a KeyStatusType => KeyHeldStateType;
 
-r24:
-/ \tr \impl @@ \i \ctor @@ \cl ShlExplorer::TFrmFileListMonitor;
+r24-r31:
+/= test 4;
+
+r32:
+/ \impl @@ \mf void SInputStatus::RepeatKeyHeld(MVisualControl&, const MKeyEventArgs&) @@ \u YGUI;
+
+r33-r35:
+/ test 5
+
+r36:
+/ @@ \u YText:
+	+ \f void PrintCharEx(MBitmapBufferEx& buf, TextState& ts, fchar_t c);
+	- \mf void TextRegion::PrintCharEx(fchar_t c);
+	/ \impl @@ \mf u8 TextRegion::PutChar(fchar_t c);
+	/ @@ \cl TextState:
+		+ DefSetter(SPOS, PenX, penX);
+		+ DefSetter(SPOS, PenY, penY);
+
+r37:
+/= \a PrintChar => PrintCharEx;
+
+r38-r41:
++ \f void PrintCharEx(MBitmapBufferEx& buf, TextState& ts, fchar_t c) @@ \u YText;
+/= test 6;
+
+r42:
+/ \a Validate => ValidateDirectory;
+/ \impl @@ ListType::size_type LoadSubItems() @@ \cl MFileList @@ \u YFileSystem;
+
+r43:
+/ \tr \impl @@ \u YShell;
 
 
-DOING:
+$DOING:
 
 / ...
 
-Debug message:
-//
+$Debug message:
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 20765ac
+_M_lower_bound
+stl_tree.h:1020
+??
+stl_tree.h:1532
 
-NEXT:
+$NEXT:
 * unknown fatal error;
-/ fully \impl \cl YListBox: keypad helding operations;
 / fully \impl \u DSReader;
++ \impl loading pictures;
 
-TODO:
+$TODO:
 
 Clarify the log levels.
 
@@ -257,6 +254,8 @@ Design by contract: DbC for C/C++, GNU nana.
 
 */
 
+// GBK coded definitions:
+
 namespace YSLib{
 	CPATH DEF_DIRECTORY = "/Data/";
 	//const char* DEF_FONT_NAME = "方正姚体";
@@ -270,5 +269,6 @@ using namespace Controls;
 
 */
 }
+
 char gstr[128] = "你妹喵\t的= =ijkAB DEǎ。i:みま╋㊣F2\t3Xsk\nw\vwwww";
 

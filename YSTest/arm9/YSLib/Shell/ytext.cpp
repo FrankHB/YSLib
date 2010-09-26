@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 0:06:05;
-// UTime = 2010-9-22 4:16;
-// Version = 0.6165;
+// UTime = 2010-9-26 22:/6;
+// Version = 0.6193;
 
 
 #include "ytext.h"
@@ -60,68 +60,81 @@ TextState::SetLnNNow(u16 n)
 
 
 void
-TextRegion::PrintChar(fchar_t c)
+PrintChar(MBitmapBuffer& buf, TextState& ts, fchar_t c)
 {
-	if(img == NULL)
+	if(buf.GetBufferPtr() == NULL)
 		//无缓冲区时无法绘图。
 		return;
 
-	YFontCache& cache(GetCache());
+	YFontCache& cache(ts.GetCache());
 	CharBitmap sbit(cache.GetGlyph(c));
-	const int tx(penX + cache.GetAdvance(c, sbit));
+	const int tx(ts.GetPenX() + cache.GetAdvance(c, sbit));
 
 	if(!INVISIBLE_CHAR(c) && sbit.GetBuffer() != NULL)
 	{
-		/*
-		u8* bitmap = sbit->buf;
-		if(!bitmap)
-		{
-			penX = tx;
-			return;
-		}
-
-		int maxX = Width - Right;
-		int maxY = Height - Bottom;
-
-		PixelType col(color | BITALPHA);
-		int t(0);
-		for(int y(0); y < sbit->height; ++y)
-		{
-			for(int x(0); x < sbit->width; ++x)
-			{
-				if(bitmap[t] >= Alpha_Threshold)
-				{
-					int sy = penY + y - sbit->top;
-					int sx = penX + x + sbit->left;
-
-					if(sx >= Left && sy >= Top && sx < maxX && sy < maxY)
-					{
-						int s = sy * Width + sx;
-						imgAlpha[s] = bitmap[t];
-						img[s] = col;
-					}
-				}
-				++t;
-			}
-		}
-		*/
-
-		PixelType col(Color | BITALPHA);
-		const int dx(penX + sbit.GetLeft()),
-			dy(penY - sbit.GetTop()),
-			xmin(vmax<int>(0, Margin.Left - dx)),
-			ymin(vmax<int>(0, Margin.Top - dy)),
-			xmax(vmin<int>(Width - Margin.Right - dx, sbit.GetWidth())),
-			ymax(vmin<int>(Height - Margin.Bottom - dy, sbit.GetHeight()));
+		PixelType col(ts.Color | BITALPHA);
+		const int dx(ts.GetPenX() + sbit.GetLeft()),
+			dy(ts.GetPenY() - sbit.GetTop()),
+			xmin(vmax<int>(0, ts.Margin.Left - dx)),
+			ymin(vmax<int>(0, ts.Margin.Top - dy)),
+			xmax(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx, sbit.GetWidth())),
+			ymax(vmin<int>(buf.GetHeight() - ts.Margin.Bottom - dy, sbit.GetHeight()));
 
 		if(xmax >= xmin && ymax >= ymin)
 		{
 			const int sJmp(sbit.GetWidth() - xmax + xmin),
-				dJmp(Width - xmax + xmin),
-				dOff(vmax<int>(Margin.Top, dy) * Width + vmax<int>(Margin.Left, dx));
+				dJmp(buf.GetWidth() - xmax + xmin),
+				dOff(vmax<int>(ts.Margin.Top, dy) * buf.GetWidth() + vmax<int>(ts.Margin.Left, dx));
 			u8* sa(sbit.GetBuffer() + ymin * sbit.GetWidth() + xmin);
-			BitmapPtr dc(img + dOff);
-			u8* da(imgAlpha + dOff);
+			BitmapPtr dc(buf.GetBufferPtr() + dOff);
+
+			for(int y(ymin); y < ymax; ++y)
+			{
+				for(int x(xmin); x < xmax; ++x)
+				{
+					if(*sa >= Alpha_Threshold)
+						*dc = col;
+					++sa;
+					++dc;
+				}
+				sa += sJmp;
+				dc += dJmp;
+			}
+		}
+	}
+	//移动笔。
+	ts.SetPenX(tx);
+}
+
+void
+PrintCharEx(MBitmapBufferEx& buf, TextState& ts, fchar_t c)
+{
+	if(buf.GetBufferPtr() == NULL)
+		//无缓冲区时无法绘图。
+		return;
+
+	YFontCache& cache(ts.GetCache());
+	CharBitmap sbit(cache.GetGlyph(c));
+	const int tx(ts.GetPenX() + cache.GetAdvance(c, sbit));
+
+	if(!INVISIBLE_CHAR(c) && sbit.GetBuffer() != NULL)
+	{
+		PixelType col(ts.Color | BITALPHA);
+		const int dx(ts.GetPenX() + sbit.GetLeft()),
+			dy(ts.GetPenY() - sbit.GetTop()),
+			xmin(vmax<int>(0, ts.Margin.Left - dx)),
+			ymin(vmax<int>(0, ts.Margin.Top - dy)),
+			xmax(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx, sbit.GetWidth())),
+			ymax(vmin<int>(buf.GetHeight() - ts.Margin.Bottom - dy, sbit.GetHeight()));
+
+		if(xmax >= xmin && ymax >= ymin)
+		{
+			const int sJmp(sbit.GetWidth() - xmax + xmin),
+				dJmp(buf.GetWidth() - xmax + xmin),
+				dOff(vmax<int>(ts.Margin.Top, dy) * buf.GetWidth() + vmax<int>(ts.Margin.Left, dx));
+			u8* sa(sbit.GetBuffer() + ymin * sbit.GetWidth() + xmin);
+			BitmapPtr dc(buf.GetBufferPtr() + dOff);
+			u8* da(buf.GetBufferAlphaPtr() + dOff);
 
 			for(int y(ymin); y < ymax; ++y)
 			{
@@ -143,8 +156,9 @@ TextRegion::PrintChar(fchar_t c)
 		}
 	}
 	//移动笔。
-	penX = tx;
+	ts.SetPenX(tx);
 }
+
 
 TextRegion::TextRegion()
 : TextState(), MBitmapBufferEx()
@@ -299,7 +313,7 @@ TextRegion::PutChar(fchar_t c)
 		PutNewline();
 		return 1;
 	}
-	PrintChar(c);
+	PrintCharEx(*this, *this, c);
 	return 0;
 }
 

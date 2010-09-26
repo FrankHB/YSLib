@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-16 20:06:58;
-// UTime = 2010-9-25 22:18;
-// Version = 0.1837;
+// CTime = 2009-11-16 20:06:58 + 08:00;
+// UTime = 2010-09-26 19:40 + 08:00;
+// Version = 0.1874;
 
 
 #ifndef INCLUDED_YGUI_H_
@@ -13,6 +13,7 @@
 #include "../Core/yshell.h"
 #include "ydesktop.h"
 #include "yform.h"
+#include "../Service/ytimer.h"
 
 YSL_BEGIN
 
@@ -77,17 +78,33 @@ struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 
 
 //记录输入保持状态。
-class STouchStatus
+class SInputStatus
 {
 private:
-	static SVec v_DragOffset;
+	static SVec DragOffset;
 
 public:
-	DefStaticPredicate(OnDragging, v_DragOffset != SVec::FullScreen)
+	typedef enum
+	{
+		KeyFree = 0,
+		KeyPressed = 1,
+		KeyHeld = 2
+	} KeyHeldStateType;
 
-	DefStaticGetter(const SVec&, DragOffset, v_DragOffset)
+	static KeyHeldStateType KeyHeldState;
+	static Timers::YTimer KeyTimer;
 
-	static DefSetterDe(const SVec&, DragOffset, v_DragOffset, SVec::FullScreen)
+	DefStaticPredicate(OnDragging, DragOffset != SVec::FullScreen)
+
+	DefStaticGetter(const SVec&, DragOffset, DragOffset)
+
+	static DefSetterDe(const SVec&, DragOffset, DragOffset, SVec::FullScreen)
+
+	static void
+	RepeatKeyHeld(Components::Controls::MVisualControl&, const MKeyEventArgs&);
+
+	static void
+	ResetKeyHeldState();
 };
 
 

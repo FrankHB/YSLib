@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTimer by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-6-5 10:28:58;
-// UTime = 2010-7-21 21:52;
-// Version = 0.1446;
+// CTime = 2010-06-05 10:28:58 + 08:00;
+// UTime = 2010-09-26 15:27 + 08:00;
+// Version = 0.1468;
 
 
 #include "ytimer.h"
@@ -16,7 +16,7 @@ vu32 YTimer::SystemTick(0);
 YTimer::TMRs YTimer::Timers;
 
 YTimer::YTimer(u32 i, bool a)
-: nInterval(i), nStart(0)
+: nInterval(i), nBase(0)
 {
 	InitializeSystemTimer();
 	if(a)
@@ -39,12 +39,10 @@ YTimer::ResetSystemTimer()
 bool
 YTimer::RefreshRaw()
 {
-	if(SystemTick > nStart + nInterval)
-	{
-		nStart = SystemTick - (SystemTick - nStart) % nInterval;
-		return true;
-	}
-	return false;
+	if(SystemTick < nBase + nInterval)
+		return false;
+	nBase = SystemTick - (SystemTick - nBase) % nInterval;
+	return true;
 }
 
 bool
@@ -70,8 +68,9 @@ YTimer::Activate()
 {
 	if(nInterval)
 	{
-		nStart = SystemTick;
 		Timers[GetID()] = this;
+		Synchronize();
+		nBase = SystemTick;
 	}
 }
 void

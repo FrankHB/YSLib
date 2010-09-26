@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-2-18 13:44:24;
-// UTime = 2010-9-26 4:24;
-// Version = 0.3534;
+// CTime = 2010-02-18 13:44:24 + 08:00;
+// UTime = 2010-09-26 19:06 + 08:00;
+// Version = 0.3536;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -159,6 +159,8 @@ public:
 	OnTouchHeld(const Runtime::MTouchEventArgs&);
 	virtual void
 	OnTouchMove(const Runtime::MTouchEventArgs&);
+	virtual void
+	OnKeyHeld(const Runtime::MKeyEventArgs&);
 };
 
 
@@ -269,7 +271,7 @@ Margin(prTextRegion->Margin), AutoSize(true), AutoEllipsis(false), Text(l)
 {}
 
 
-//V0.1595E;
+//V0.1605E;
 //文本列表框。
 class YListBox : public GMCounter<YListBox>, public YVisualControl
 {
@@ -351,7 +353,7 @@ public:
 	virtual void
 	OnClick(const Runtime::MTouchEventArgs&);
 	virtual void
-	OnKeyPress(const Runtime::MKeyEventArgs&);
+	OnKeyDown(const Runtime::MKeyEventArgs&);
 	virtual void
 	OnSelected(const MIndexEventArgs&);
 	virtual void

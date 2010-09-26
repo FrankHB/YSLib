@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:36:30;
-// UTime = 2010-9-25 17:26;
-// Version = 0.1858;
+// UTime = 2010-9-26 22:38;
+// Version = 0.1864;
 
 
 #include "yfilesys.h"
@@ -37,7 +37,7 @@ Path::operator/=(const Path& path)
 			else
 			{
 				pathname += (*i).GetNativeString();
-				if(Validate(pathname))
+				if(ValidateDirectory(pathname))
 					pathname += Slash;
 				else
 					break;
@@ -312,7 +312,7 @@ GetNowDirectory()
 }
 
 bool
-Validate(const std::string& pathstr)
+ValidateDirectory(const std::string& pathstr)
 {
 	return HDirectory(pathstr.c_str()).IsValid();
 }
@@ -321,7 +321,7 @@ Validate(const std::string& pathstr)
 MFileList::MFileList(CPATH pathstr)
 : Directory(pathstr == NULL ? FS_Root : pathstr), List()
 {
-//	if(!Validate(Directory))
+//	if(!ValidateDirectory(Directory))
 //		throw;
 }
 MFileList::~MFileList()
@@ -332,7 +332,7 @@ MFileList::operator/=(const std::string& d)
 {
 	Path t(Directory / d);
 
-	if(t == Directory || !Validate(t))
+	if(t == Directory || !ValidateDirectory(t))
 		return false;
 	Directory.swap(t);
 	return true;
@@ -356,7 +356,7 @@ MFileList::LoadSubItems()
 		while((++dir).LastError == 0)
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
 				List.push_back(std::strcmp(HDirectory::Name, FS_Parent) && HDirectory::IsDirectory() ?
-					MBCSToString(HDirectory::Name) + String(FS_Seperator)
+					MBCSToString(std::string(HDirectory::Name) + FS_Seperator)
 					: MBCSToString(HDirectory::Name));
 	}
 	return n;
