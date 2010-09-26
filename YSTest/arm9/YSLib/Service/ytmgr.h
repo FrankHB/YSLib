@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 17:48:09;
-// UTime = 2010-9-2 10:20;
-// Version = 0.4077;
+// UTime = 2010-9-25 20:29;
+// Version = 0.4082;
 
 
 #ifndef INCLUDED_YTMGR_H_
@@ -196,14 +196,13 @@ public:
 		typedef ContainerType::BlockIndexType BlockIndexType;
 
 	private:
-		TextFileBuffer* pBuf;
+		TextFileBuffer* pBuffer;
 		//文本读取位置。
 		BlockIndexType blk;
 		IndexType idx;
 
 	public:
-		explicit
-		HText(TextFileBuffer&, BlockIndexType = 0, IndexType = 0) ythrow(); //指定文本读取位置初始化。
+		HText(TextFileBuffer* = NULL, BlockIndexType = 0, IndexType = 0) ythrow(); //指定文本读取位置初始化。
 
 		HText&
 		operator++() ythrow();
@@ -318,13 +317,13 @@ TextFileBuffer::HText::GetBlockLength() const ythrow()
 inline TextFileBuffer::HText
 TextFileBuffer::begin() ythrow()
 {
-	return TextFileBuffer::HText(*this);
+	return TextFileBuffer::HText(this);
 }
 
 inline TextFileBuffer::HText
 TextFileBuffer::end() ythrow()
 {
-	return TextFileBuffer::HText(*this, nTextSize / nBlockSize);
+	return TextFileBuffer::HText(this, (nTextSize + nBlockSize - 1) / nBlockSize);
 }
 
 YSL_END_NAMESPACE(Text)

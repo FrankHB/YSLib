@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-8-29 14:08;
-// Version = 0.4538;
+// UTime = 2010-9-25 22:18;
+// Version = 0.4547;
 
 
 #ifndef INCLUDED_YWIDGET_H_
@@ -99,9 +99,9 @@ public:
 	explicit
 	MVisual(const SRect& = SRect::Empty);
 
-	DefBoolGetter(Visible, Visible)
-	DefBoolGetter(Transparent, Transparent)
-	DefBoolGetter(BgRedrawed, bBgRedrawed)
+	DefPredicate(Visible, Visible)
+	DefPredicate(Transparent, Transparent)
+	DefPredicate(BgRedrawed, bBgRedrawed)
 
 	//判断包含关系。
 	PDefHead(bool, Contains, const SPoint& p) const
@@ -185,9 +185,9 @@ public:
 	virtual
 	~YWidget();
 
-	virtual DefBoolGetterBase(Visible, MVisual)
-	virtual DefBoolGetterBase(Transparent, MVisual)
-	virtual DefBoolGetterBase(BgRedrawed, MVisual)
+	virtual DefPredicateBase(Visible, MVisual)
+	virtual DefPredicateBase(Transparent, MVisual)
+	virtual DefPredicateBase(BgRedrawed, MVisual)
 
 	//判断包含关系。
 	virtual PDefHead(bool, Contains, const SPoint& p) const
@@ -280,9 +280,9 @@ public:
 	virtual PDefOpHead(bool, -=, Runtime::GMFocusResponser<IVisualControl>& c)
 		ImplBodyBase(MWidgetContainer, operator-=, c)
 
-	virtual DefBoolGetterBase(Visible, MVisual)
-	virtual DefBoolGetterBase(Transparent, MVisual)
-	virtual DefBoolGetterBase(BgRedrawed, MVisual)
+	virtual DefPredicateBase(Visible, MVisual)
+	virtual DefPredicateBase(Transparent, MVisual)
+	virtual DefPredicateBase(BgRedrawed, MVisual)
 
 	//判断包含关系。
 	virtual PDefHead(bool, Contains, const SPoint& p) const

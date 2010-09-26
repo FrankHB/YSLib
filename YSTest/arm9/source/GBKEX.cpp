@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-9-25;
-// Version = 0.2617; *Build 154 r34;
+// UTime = 2010-9-26;
+// Version = 0.2628; *Build 154 r24;
 
 
 #include "../YCLib/ydef.h"
@@ -26,6 +26,7 @@ Record prefix and abbrevations:
 -> ::= changed to
 >> ::= moved to
 => ::= renamed to
+<=> ::= swaped names
 @ ::= identifier
 @@ ::= in / belongs to
 \a ::= all
@@ -91,122 +92,129 @@ Record prefix and abbrevations:
 \tp ::= types
 \u ::= units
 \v ::= volatile
+\vt ::= virtual
 \val ::= values
 
 DONE:
 r1:
-/ \a @@ \ns Exceptions => \n YSLib;
-- \ns Exceptions;
-/ \a GeneralError => GeneralEvent;
+/= \a ShlA => ShlSetting;
+/= \a ShlS => ShlExplorer;
+/ @@ \cl MDualScreenReader @@ \u DSReader:
+	/ \m YTextFile& tf -> YTextFile* pTextFile;
+	/ \ctor MDualScreenReader(YTextFile&, u16 = 0, u16 = SCRW,
+		u16 = 0, u16 = SCRH, u16 = 0, u16 = SCRH, YFontCache& = *pDefaultFontCache) ->
+		MDualScreenReader(YTextFile*, u16 = 0, u16 = SCRW,
+		u16 = 0, u16 = SCRH, u16 = 0, u16 = SCRH, YFontCache& = *pDefaultFontCache);
+	/ \tr \impl @@ \cl ShlReader @@ \u Shells;
 
 r2:
-* @@ \cl YListBox @@ \u YControl:
-	+ private \mf void _m_TouchDown(const Runtime::MTouchEventArgs&);
-	+ \s \eh void OnTouchDown(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
-	/ \impl @@ private \mf void _m_OnClick(const Runtime::MTouchEventArgs&);
-	/ protected \mf (void Init_() -> void _m_init());
-		/ \tr \impl @@ 2 \ctor;
+/ \u DSReader:
+	+ \cl BlockedText @@ \ns DS::Components;
+/@@ \cl TextFileBuffer @@ \u YTextManager:
+	/ @@ \cl HText:
+		/ \m pBuf => pBuffer;
+		/ \ctor HText(TextFileBuffer&, BlockIndexType = 0, IndexType = 0) ythrow()
+			-> HText(TextFileBuffer* = NULL, BlockIndexType = 0, IndexType = 0) ythrow();
+		/ \impl @@ \mf HText& HText::operator++() ythrow();
+		/ \impl @@ \mf HText& HText::operator--() ythrow();
+		/ \impl @@ \mf HText operator+(std::ptrdiff_t);
+		/ \impl @@ \mf HText& operator+=(std::ptrdiff_t);
+		/ \impl @@ \mf const uchar_t* GetTextPtr() const ythrow();
+		/ \impl @@ \mf IndexType GetBlockLength(BlockIndexType i) const ythrow();
+	/ \mf \i HText begin() ythrow();
+	/ \mf \i HText end() ythrow();
+/ \tr \impl @@ \ctor @@ \cl MDualScreenReader @@ \u DSReader;
 
 r3:
-/= \tr @@ \mf void _m_init() @@ \cl YListBox @@ \u YControl;
+- \exp @@ \ctor @@ \cl TextFileBuffer::HText @@ \u YTextManager:
+/ @@ \cl MDualScreenReader @@ \u DSReader:
+	/ \impl @@ \ctor;
+	/ \mf void InitText() -> void LoadText();
+	+ \mf void UnloadText();
+	+ \m BlockedText* pText;
+	- \dtor;
 
 r4:
-/ \simp @@ \cl YListBox @@ \u YControl:
-	- \s \eh void OnTouchDown(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
-	- \s \eh void OnClick(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
-	- \s \eh void OnKeyPress(IVisualControl&, const Runtime::MKeyEventArgs& = Runtime::MKeyEventArgs::Empty);
-	/ private \mf void _m_OnTouchDown(const Runtime::MTouchEventArgs&) => public \eh OnTouchDown;
-	/ private \mf void _m_OnClick(const Runtime::MTouchEventArgs&) => public \eh OnClick;
-	/ private \mf void _m_OnKeyPress(const Runtime::MKeyEventArgs&) => public \eh OnKeyPress;
-	/ \tr \impl @@ \mf void _m_init();
+* \impl @@ \cl MDualScreenReader @@ \u DSReader;
+	^ GHResource<TextRegion>;
+	/ \m TextRegion& ptUp -> GHResource<TextRegion> pTrUp;
+	/ \m TextRegion& ptDn -> GHResource<TextRegion> pTrDn;
+* \mac @@ \h "ysdef.h";
 
 r5:
-/ \simp @@ \cl MVisualControl @@ \u YControl:
-	- \s \eh void OnTouchHeld(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
-	- \s \eh void OnTouchMove(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
-	/ private \mf void _m_OnTouchHeld(const Runtime::MTouchEventArgs&) => public \eh OnTouchHeld;
-	/ private \mf void _m_OnTouchMove(const Runtime::MTouchEventArgs&) => public \eh OnTouchMove;
-	/ \tr \impl @@ \ctor;
-	/ \impl @@ \mf void OnTouchHeld(const Runtime::MTouchEventArgs&);
-/ @@ \cl ShlA @@ \u YShel:
-	/ \tr \impl @@ \ctor @@ \cl TFormB;
-	/ \tr \impl @@ \ctor @@ \cl TFormC;
+/= \a $BoolGetter$ => $Predicate$;
 
 r6:
-/ @@ \u YControl:
-	/ \simp @@ \cl YListBox:
-		/ \s \eh void OnSelected(IVisualControl&, const MIndexEventArgs&)
-			-> !\s \eh void OnTouchHeld(const MIndexEventArgs&);
-		/ \s \eh void OnConfirmed(IVisualControl&, const MIndexEventArgs&)
-			-> !\s \eh void OnConfirmed(const MIndexEventArgs&);
-		/ \tr \impl @@ \mf void _m_init();
-	/ \simp @@ \cl MVisualControl:
-		/ \s \eh void OnTouchDown(IVisualControl&, const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty)
-			-> !\s \eh void OnTouchDown(const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
-		/ \s \eh void OnGotFocus(IControl&, const MEventArgs& = GetZeroElement<MEventArgs>())
-			-> !\s \eh void OnTouchDown(const MEventArgs& = GetZeroElement<MEventArgs>());
-		/ \s \eh void OnLostFocus(IControl&, const MEventArgs& = GetZeroElement<MEventArgs>())
-			-> !\s \eh void OnTouchDown(const MEventArgs& = GetZeroElement<MEventArgs>());
-		/ \tr \impl @@ \ctor;
-	/ \simp @@ \cl MVisualControl:
-		/ \s \eh void OnConfirmed(IVisualControl&, const MIndexEventArgs&)
-			-> !\s \eh void OnConfirmed(const MIndexEventArgs&);
-		/ \tr \impl @@ \ctor;
-/ @@ \cl ShlA @@ \u YShel:
-	/ \tr \impl @@ \ctor @@ \cl TFormB;
+/ @@ \cl MDualScreenReader @@ \u DSReader:
+	- \m Text::TextFileBuffer Blocks;
+	/ \impl ^ pTest->Blocks;
 
 r7:
-/ \impl @@ \mf void OnConfirmed(const MIndexEventArgs&) @@ \cl YFileBox @@ \u YControl;
-/ \impl @@ \mf bool operator/=(const std::string&) @@ \cl MFileList @@ \u YFileSystem;
+/ @@ \u DSReader:
+	/ @@ \cl MDualScreenReader:
+		- \m YTextFile* pTextFile;
+		/ void LoadText() -> void LoadText(YTextFile&);
+		/ \impl @@ \ctor;
+		/ \tr \impl;
+	- \cl YWndDSReader;
+/ @@ \cl ShlReader @@ \u Shells:
+	/ \m YTextFile TextFile -> YTextFile* pTextFile;
+	/ \impl @@ \ctor;
+	/ \impl @@ \mf OnActivated;
+	/ \impl @@ \mf OnDeactivated;
 
-r8-r9:
-* \impl @@ \mf void OnConfirmed(const MIndexEventArgs&) @@ \cl YFileBox @@ \u YControl;
+r8:
+/ @@ \cl ShlExplorer::TFrmFileListSelecter @@ \u Shells:
+	/ \impl void fb_Selected(const MIndexEventArgs&);
+	/ \impl void btnOK_Click(const MTouchEventArgs&);
 
-r10:
-+ \s \mf IsDirectory() @@ \cl HDirectory @@ \u YCommon;
-/ \impl @@ \mf ListType::size_type LoadSubItems() @@ \cl MFileList @@ \u YFileSystem:
-	/ ^ \s \mf HDirectory::IsDirectory();
-/ \impl @@ \mf void LoadFontFileDirectory(CPATH, CPATH) @@ \cl YFontCache @@ \u YFont:
-	/ ^ \s \mf HDirectory::IsDirectory();
+r9:
+/ \impl @@ \mf void SetSelected(ViewerType::IndexType) @@ \cl YListBox @@ \u YControl;
 
-r11-r13:
-/ @ \u YFileSystem:
-	/= \simp \impl @@ \f bool Validate(std::string&);
-	* \impl @@ \mf bool operator/=(const std::string&) @@ \cl MFileList;
-
-r14-r21:
+r10-r11:
 /= test 1;
 
+r12:
+* \mf HText& operator++() ythrow() @@ \cl TextFileBuffer::HText @@ \u YTextManager;
+
+r13:
+* \mf \i HText& end() ythrow() @@ \cl TextFileBuffer @@ \u YTextManager;
+
+r14:
+* @@ \cl MDualScreenReader @@ \u DSReader:
+	* \impl @@ \mf bool IsTextBottom();
+	/ \tr \impl @@ \mf void LoadText(YTextFile&);
+
+r15-r16:
+/= test 2;
+
+r17:
+/ @@ \u YControl:
+	/ \a \eh \mf + \v;
+	/ \tr @@ \ctor @@ \cl YListBox;
+	/ \tr @@ \ctor @@ \cl YFileBox;
+
+r18-r19:
+/= test 3;
+
+r20:
+/ @@ \cl FileBox @@ \u YControl:
+	+ \vt \mf void OnTouchHeld(const Runtime::MTouchEventArgs&);
+
+r21:
+/ \impl @@ void ShlExplorer::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&) @@ \u Shells;
+/ \impl @@ \ctor @@ \cl MVisualControl @@ \u YControl;
+/ \impl @@ \ctor @@ \cl ShlExplorer::TFormB @@ \u Shells;
+/ \a ShlExplorer <=> ShlSetting;
+
 r22:
-* \impl @@ \mf void OnConfirmed(const MIndexEventArgs&) @@ \cl YFileBox @@ \u YControl;
+/ \impl @@ \ctor @@ \cl YFileBox @@ \u YContorl;
 
 r23:
-+ \mf IO::Path GetPath() const @@ \cl YFileBox @@ \u YControl;
-/ \impl @@ \mf void ShlS::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&) @@ \u Shells;
+/ \impl @@ \mf void ShlExplorer::TFrmFileListSelecter::btnOK_Click(const MTouchEventArgs&) @@ \u Shells;
 
-r24-r25:
-/ test 2;
-
-r26:
-* impl @@ \mf IO::Path GetPath() const @@ \cl YFileBox @@ \u YControl;
-
-r27-r28:
-/ test 3;
-
-r29:
-* PDefHead(const ValueType*, c_str) + \c @@ \cl YPath @@ \u YFileSystem;
-
-r30-r31:
-/ test 4;
-
-r32:
-* impl @@ \mf IO::Path GetPath() const @@ \cl YFileBox @@ \u YControl;
-
-r33:
-/ impl @@ \mf Path& operator/=(const Path& path) @@ \cl Path @@ \ns IO @@ \u YFileSystem;
-
-r34
-/ \impl @@ \mf ListType::size_type LoadSubItems() @@ \cl MFileList @@ \u YFileSystem;
+r24:
+/ \tr \impl @@ \i \ctor @@ \cl ShlExplorer::TFrmFileListMonitor;
 
 
 DOING:
@@ -217,8 +225,9 @@ Debug message:
 //
 
 NEXT:
-/ fully \impl \cl YListBox;
-/ fully \impl \u YFileSystem;
+* unknown fatal error;
+/ fully \impl \cl YListBox: keypad helding operations;
+/ fully \impl \u DSReader;
 
 TODO:
 

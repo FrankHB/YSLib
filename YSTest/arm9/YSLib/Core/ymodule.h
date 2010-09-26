@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YModule -> YModule by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-5-1 13:52:56;
-// UTime = 2010-9-19 21:03;
-// Version = 0.1936;
+// UTime = 2010-9-25 22:20;
+// Version = 0.1937;
 
 
 #ifndef INCLUDED_YMODULE_H_
@@ -313,7 +313,7 @@ public:
 		return *this += -d;
 	}
 
-	DefBoolGetter(Selected, bSelected) //判断是否为选中状态。
+	DefPredicate(Selected, bSelected) //判断是否为选中状态。
 
 	DefGetter(SizeType, Total, c.size()) //取容器中项目个数。
 	DefGetter(SizeType, Length, nLength)

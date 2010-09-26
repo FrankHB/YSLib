@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-24 15:29:11;
-// UTime = 2010-9-18 8:36;
-// Version = 0.2216;
+// UTime = 2010-9-25 22:19;
+// Version = 0.2242;
 
 
 #ifndef INCLUDED_YSDEF_H_
@@ -92,18 +92,18 @@
 #ifdef __GNUC__
 #	define ImplBodyBase(_base, _name, _arglist...) { return _base::_name(_arglist); }
 #	define ImplBodyBaseVoid(_base, _name, _arglist...) { _base::_name(_arglist); }
-#	define ImplBodyMember(_member, _name, _arglist...) { return _member._name(_arglist); }
-#	define ImplBodyMemberVoid(_member, _name, _arglist...) { _member._name(_arglist); }
+#	define ImplBodyMember(_member, _name, _arglist...) { return (_member)._name(_arglist); }
+#	define ImplBodyMemberVoid(_member, _name, _arglist...) { (_member)._name(_arglist); }
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #	define ImplBodyBase(_base, _name, _arglist, ...) { return _base::_name(_arglist, __VA_ARGS__); }
 #	define ImplBodyBaseVoid(_base, _name, _arglist, ...) { _base::_name(_arglist, __VA_ARGS__); }
-#	define ImplBodyMember(_member, _name, _arglist...) { return _member._name(_arglist); }
-#	define ImplBodyMemberVoid(_member, _name, _arglist...) { _member._name(_arglist); }
+#	define ImplBodyMember(_member, _name, _arglist...) { return (_member)._name(_arglist); }
+#	define ImplBodyMemberVoid(_member, _name, _arglist...) { (_member)._name(_arglist); }
 #else
 #	define ImplBodyBase(_base, _name, _arglist) { return _base::_name(_arglist); }
 #	define ImplBodyBaseVoid(_base, _name, _arglist) { _base::_name(_arglist); }
-#	define ImplBodyMember(_member, _name, _arglist) { return _member._name(_arglist); }
-#	define ImplBodyMemberVoid(_member, _name, _arglist) { _member._name(_arglist); }
+#	define ImplBodyMember(_member, _name, _arglist) { return (_member)._name(_arglist); }
+#	define ImplBodyMemberVoid(_member, _name, _arglist) { (_member)._name(_arglist); }
 #endif
 
 
@@ -111,30 +111,30 @@
 //prefix "Def" = Define;
 #define DefConverter(_type, _expr) operator _type() const ythrow() { return _expr; }
 #define DefConverterBase(_type, _base) operator _type() const ythrow() { return _base::operator _type(); }
-#define DefConverterMember(_type, _member) operator _type() const ythrow() { return _member.operator _type(); }
+#define DefConverterMember(_type, _member) operator _type() const ythrow() { return (_member).operator _type(); }
 
-#define DefGetter(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return _member; }
+#define DefGetter(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return (_member); }
 #define DefGetterBase(_type, _name, _base) _type _yJOIN(Get, _name)() const ythrow() { return _base::_yJOIN(Get, _name)(); }
-#define DefGetterMember(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return _member._yJOIN(Get, _name)(); }
+#define DefGetterMember(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return (_member)._yJOIN(Get, _name)(); }
 
-#define DefBoolGetter(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return _member; }
-#define DefBoolGetterBase(_name, _base) bool _yJOIN(Is, _name)() const ythrow() { return _base::_yJOIN(Is, _name)(); }
-#define DefBoolGetterMember(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return _member._yJOIN(Is, _name)(); }
+#define DefPredicate(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return (_member); }
+#define DefPredicateBase(_name, _base) bool _yJOIN(Is, _name)() const ythrow() { return _base::_yJOIN(Is, _name)(); }
+#define DefPredicateMember(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return (_member)._yJOIN(Is, _name)(); }
 
-#define DefStaticGetter(_type, _name, _member) static _type _yJOIN(Get, _name)() ythrow() { return _member; }
+#define DefStaticGetter(_type, _name, _member) static _type _yJOIN(Get, _name)() ythrow() { return (_member); }
 #define DefStaticGetterBase(_type, _name, _base) static _type _yJOIN(Get, _name)() ythrow() { return _base::_yJOIN(Get, _name)(); }
 
-#define DefStaticBoolGetter(_name, _member) static bool _yJOIN(Is, _name)() ythrow() { return _member; }
-#define DefStaticBoolGetterBase(_name, _base) static bool _yJOIN(Is, _name)() ythrow() { return _base::_yJOIN(Is, _name)(); }
+#define DefStaticPredicate(_name, _member) static bool _yJOIN(Is, _name)() ythrow() { return (_member); }
+#define DefStaticPredicateBase(_name, _base) static bool _yJOIN(Is, _name)() ythrow() { return _base::_yJOIN(Is, _name)(); }
 
-#define DefSetter(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _member = _tempArgName; }
-#define DefSetterDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _member = _tempArgName; }
+#define DefSetter(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { (_member) = _tempArgName; }
+#define DefSetterDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { (_member) = _tempArgName; }
 #define DefSetterBase(_type, _name, _base) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _base::_yJOIN(Set, _name)(_tempArgName); }
 #define DefSetterBaseDe(_type, _name, _base, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _base::_yJOIN(Set, _name)(_tempArgName); }
-#define DefSetterMember(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _member._yJOIN(Set, _name)(_tempArgName); }
-#define DefSetterMemberDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _member._yJOIN(Set, _name)(_tempArgName); }
-#define DefSetterEx(_type, _name, _member, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _member = _expr; }
-#define DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _member = _expr; }
+#define DefSetterMember(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { (_member)._yJOIN(Set, _name)(_tempArgName); }
+#define DefSetterMemberDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { (_member)._yJOIN(Set, _name)(_tempArgName); }
+#define DefSetterEx(_type, _name, _member, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { (_member) = (_expr); }
+#define DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { (_member) = (_expr); }
 
 
 #define YSL_BEGIN	namespace YSLib {

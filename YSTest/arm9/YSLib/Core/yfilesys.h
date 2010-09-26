@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 0:09:28;
-// UTime = 2010-9-25 14:53;
-// Version = 0.1708;
+// UTime = 2010-9-25 22:20;
+// Version = 0.1711;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -71,9 +71,9 @@ public:
 	operator/=(const Path&);
 
 	//查询。
-	DefBoolGetter(Empty, pathname.empty())
-	DefBoolGetter(Absolute, platform::IsAbsolute(GetNativeString().c_str()))
-	DefBoolGetter(Relative, !IsAbsolute())
+	DefPredicate(Empty, pathname.empty())
+	DefPredicate(Absolute, platform::IsAbsolute(GetNativeString().c_str()))
+	DefPredicate(Relative, !IsAbsolute())
 	bool
 	HasRootName() const;
 	bool

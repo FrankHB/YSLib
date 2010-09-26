@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-9-20 7:06;
-// Version = 0.3064;
+// UTime = 2010-9-26 12:46;
+// Version = 0.3094;
 
 
 #include <Shells.h>
@@ -164,7 +164,7 @@ namespace
 	void
 	switchShl1()
 	{
-		CallStored<ShlA>();
+		CallStored<ShlSetting>();
 	}
 
 	void
@@ -246,7 +246,7 @@ ShlLoad::OnActivated(const Message& m)
 	UpdateToScreen();
 	try
 	{
-		SetShellToStored<ShlS>();
+		SetShellToStored<ShlExplorer>();
 	}
 	catch(...)
 	{
@@ -257,7 +257,7 @@ ShlLoad::OnActivated(const Message& m)
 }
 
 void
-ShlS::TFrmFileListSelecter::frm_KeyPress(const MKeyEventArgs& e)
+ShlExplorer::TFrmFileListSelecter::frm_KeyPress(const MKeyEventArgs& e)
 {
 	switch(e)
 	{
@@ -273,16 +273,16 @@ ShlS::TFrmFileListSelecter::frm_KeyPress(const MKeyEventArgs& e)
 }
 
 void
-ShlS::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs& e)
+ShlExplorer::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs& e)
 {
-	YLabel& l(HandleCast<TFrmFileListMonitor>(HandleCast<ShlS>(hShell)->hWndUp)->lblPath);
+	YLabel& l(HandleCast<TFrmFileListMonitor>(HandleCast<ShlExplorer>(hShell)->hWndUp)->lblPath);
 
-	l.Text = Text::MBCSToString(fbMain.GetDirectory().GetNativeString()) + fbMain.List[e.Index];
+	l.Text = Text::MBCSToString(fbMain.GetPath().c_str());
 	l.Refresh();
 }
 
 void
-ShlS::fb_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
+ShlExplorer::fb_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
 {
 	Key x(e);
 
@@ -291,16 +291,17 @@ ShlS::fb_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
 }
 
 void
-ShlS::fb_Confirmed(IVisualControl& sender, const MIndexEventArgs& e)
+ShlExplorer::fb_Confirmed(IVisualControl& sender, const MIndexEventArgs& e)
 {
 //	if(e.Index == 2)
 //		switchShl1();
 }
 
 void
-ShlS::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&)
+ShlExplorer::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&)
 {
-	if(fbMain.IsSelected())
+	switchShl1();
+/*	if(fbMain.IsSelected())
 	{
 		YConsole con(*pScreenUp);
 
@@ -318,19 +319,23 @@ ShlS::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&)
 		iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
 		puts("OK");
 		WaitForInput();
-	}
+	}*/
 }
 
 void
-ShlS::TFrmFileListSelecter::btnOK_Click(const MTouchEventArgs&)
+ShlExplorer::TFrmFileListSelecter::btnOK_Click(const MTouchEventArgs&)
 {
 	if(fbMain.IsSelected())
-		switchShl2("/test.txt");
-	//"/Data/test.txt";
+	{
+		const std::string& s(fbMain.GetPath().GetNativeString());
+
+		if(!IO::Validate(s) && stdex::fexists(s.c_str()))
+			switchShl2(s.c_str());
+	}
 }
 
 LRES
-ShlS::ShlProc(const Message& msg)
+ShlExplorer::ShlProc(const Message& msg)
 {
 
 //	const WPARAM& wParam(msg.GetWParam());
@@ -369,7 +374,7 @@ ShlS::ShlProc(const Message& msg)
 }
 
 LRES
-ShlS::OnActivated(const Message&)
+ShlExplorer::OnActivated(const Message&)
 {
 	hWndUp = NewWindow<TFrmFileListMonitor>(this);
 	hWndDown = NewWindow<TFrmFileListSelecter>(this);
@@ -386,7 +391,7 @@ ShlS::OnActivated(const Message&)
 }
 
 
-YSL_BEGIN_SHELL(ShlA)
+YSL_BEGIN_SHELL(ShlSetting)
 
 //屏幕刷新消息生成函数。
 //输出设备刷新函数。
@@ -396,28 +401,28 @@ YSL_BEGIN_SHELL(ShlA)
 }
 */
 
-YSL_END_SHELL(ShlA)
+YSL_END_SHELL(ShlSetting)
 
-HWND ShlA::hWndC(NULL);
+HWND ShlSetting::hWndC(NULL);
 
 void
-ShlA::TFormC::lblC_TouchUp(const MTouchEventArgs& e)
+ShlSetting::TFormC::lblC_TouchUp(const MTouchEventArgs& e)
 {
 	InputCounter(e);
-	HandleCast<ShlA>(hShell)->ShowString(strCount);
+	HandleCast<ShlSetting>(hShell)->ShowString(strCount);
 	lblC.Refresh();
 }
 
 void
-ShlA::TFormC::lblC_TouchDown(const MTouchEventArgs& e)
+ShlSetting::TFormC::lblC_TouchDown(const MTouchEventArgs& e)
 {
 	InputCounterAnother(e);
-	HandleCast<ShlA>(hShell)->ShowString(strCount);
+	HandleCast<ShlSetting>(hShell)->ShowString(strCount);
 //	lblC.Refresh();
 }
 
 void
-ShlA::TFormC::lblC_Click(const MTouchEventArgs& e)
+ShlSetting::TFormC::lblC_Click(const MTouchEventArgs& e)
 {
 
 	static const int ffilen(pDefaultFontCache->GetFilesN());
@@ -448,13 +453,13 @@ ShlA::TFormC::lblC_Click(const MTouchEventArgs& e)
 }
 
 void
-ShlA::TFormC::lblC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
+ShlSetting::TFormC::lblC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
 {
 	//测试程序。
 
 	u32 k(e);
 
-	YLabel& lbl(static_cast<TFormA&>(*(static_cast<ShlA&>(*NowShell()).hWndUp)).lblA2);
+	YLabel& lbl(static_cast<TFormA&>(*(static_cast<ShlSetting&>(*NowShell()).hWndUp)).lblA2);
 	lbl.Transparent ^= 1;
 	++lbl.ForeColor;
 	--lbl.BackColor;
@@ -472,13 +477,13 @@ ShlA::TFormC::lblC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
 }
 
 void
-ShlA::TFormC::btnReturn_Click(const MTouchEventArgs&)
+ShlSetting::TFormC::btnReturn_Click(const MTouchEventArgs&)
 {
-	CallStored<ShlS>();
+	CallStored<ShlExplorer>();
 }
 
 LRES
-ShlA::OnActivated(const Message& msg)
+ShlSetting::OnActivated(const Message& msg)
 {
 	pDesktopDown->BackColor = ARGB16(1, 15, 15, 31);
 	pDesktopDown->SetBackground(GetImage(6));
@@ -493,7 +498,7 @@ ShlA::OnActivated(const Message& msg)
 }
 
 LRES
-ShlA::OnDeactivated(const Message& m)
+ShlSetting::OnDeactivated(const Message& m)
 {
 	ParentType::OnDeactivated(m);
 	YDelete(hWndC);
@@ -501,9 +506,9 @@ ShlA::OnDeactivated(const Message& m)
 }
 
 LRES
-ShlA::ShlProc(const Message& msg)
+ShlSetting::ShlProc(const Message& msg)
 {
-	using namespace YSL_SHL(ShlA);
+	using namespace YSL_SHL(ShlSetting);
 //	ClearDefaultMessageQueue();
 
 //	const WPARAM& wParam(msg.GetWParam());
@@ -528,13 +533,15 @@ std::string ShlReader::path;
 
 ShlReader::ShlReader()
 : ShlGUI(),
-TextFile(path.c_str()), Reader(TextFile), hUp(NULL), hDn(NULL), bgDirty(true)
+Reader(), pTextFile(NULL), hUp(NULL), hDn(NULL), bgDirty(false)
 {
 }
 
 LRES
 ShlReader::OnActivated(const Message& msg)
 {
+	pTextFile = new YTextFile(path.c_str());
+	Reader.LoadText(*pTextFile);
 	bgDirty = true;
 	hUp = pDesktopUp->GetBackground();
 	hDn = pDesktopDown->GetBackground();
@@ -557,6 +564,8 @@ ShlReader::OnDeactivated(const Message& msg)
 	pDesktopDown->KeyPress.Remove(*this, &ShlReader::OnKeyPress);
 	pDesktopUp->SetBackground(hUp);
 	pDesktopDown->SetBackground(hDn);
+	Reader.UnloadText();
+	safe_delete_obj()(pTextFile);
 	return 0;
 }
 
@@ -596,7 +605,7 @@ ShlReader::UpdateToScreen()
 void
 ShlReader::OnClick(const MTouchEventArgs& e)
 {
-	CallStored<ShlS>();
+	CallStored<ShlExplorer>();
 }
 
 void
@@ -612,7 +621,7 @@ ShlReader::OnKeyPress(const MKeyEventArgs& e)
 		break;
 
 	case Key::ESC:
-		CallStored<ShlS>();
+		CallStored<ShlExplorer>();
 		break;
 
 	case Key::Up:

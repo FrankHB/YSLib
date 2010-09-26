@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-6 21:38:16;
-// UTime = 2010-9-23 20:01;
-// Version = 0.2674;
+// UTime = 2010-9-26 12:35;
+// Version = 0.2686;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -67,7 +67,7 @@ public:
 };
 
 
-class ShlS : public ShlDS
+class ShlExplorer : public ShlDS
 {
 private:
 	struct TFrmFileListMonitor
@@ -77,7 +77,7 @@ private:
 
 		TFrmFileListMonitor(HSHL hShl)
 			: YForm(SRect::FullScreen, GetImage(3), pDesktopUp, hShl),
-			lblTitle(HWND(this), "FileList : Press \"A\" to continue...", SRect(30, 20, 220, 22)),
+			lblTitle(HWND(this), "文件列表：请选择一个文件。", SRect(30, 20, 220, 22)),
 			lblPath(HWND(this), "/[Path]", SRect(20, 80, 240, 22))
 		{
 		//	lblTitle.Transparent = true;
@@ -137,7 +137,7 @@ public:
 };
 
 
-class ShlA : public ShlDS
+class ShlSetting : public ShlDS
 {
 public:
 	typedef ShlDS ParentType;
@@ -177,8 +177,11 @@ public:
 			BackColor = ARGB16(1, 31, 31, 15);
 			TouchDown += &YVisualControl::OnTouchDown;
 			TouchHeld += &YVisualControl::OnTouchHeld;
+			TouchMove += &YVisualControl::OnTouchMove;
 			lblB.TouchHeld += &YVisualControl::OnTouchHeld;
+			lblB.TouchMove += &YVisualControl::OnTouchMove;
 			lblB2.TouchHeld += &YVisualControl::OnTouchHeld;
+			lblB.TouchMove += &YVisualControl::OnTouchMove;
 		//	lblB2.TouchDown += lblC_Click;
 
 		//	lblB.Enabled = false;
@@ -263,8 +266,8 @@ public:
 
 	static std::string path;
 
-	YTextFile TextFile;
 	MDualScreenReader Reader;
+	YTextFile* pTextFile;
 
 	GHResource<YImage> hUp, hDn;
 	bool bgDirty;

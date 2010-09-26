@@ -1,4 +1,4 @@
-// YSLib::Adapter::YAdapter by Franksoft 2010
+ï»¿// YSLib::Adapter::YAdapter by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-22 20:16:21;
 // UTime = 2010-9-20 7:05;
@@ -8,20 +8,20 @@
 #ifndef INCLUDED_YADAPTER_H_
 #define INCLUDED_YADAPTER_H_
 
-// YAdapter £ºÍâ²¿¿â¹ØÁª¡£
+// YAdapter ï¼šå¤–éƒ¨åº“å…³è”ã€‚
 
-//±àÒëÅäÖÃ¡£
-//#define NDEBUG //·Çµ÷ÊÔÄ£Ê½¡£
-#define YC_USE_YASSERT //Ê¹ÓÃ YCLib ¶ÏÑÔ¡£
-#define YSL_USE_EXCEPTION_SPECIFICATION //Ê¹ÓÃ YSLib Òì³£¹æ·¶¡£
+//ç¼–è¯‘é…ç½®ã€‚
+//#define NDEBUG //éè°ƒè¯•æ¨¡å¼ã€‚
+#define YC_USE_YASSERT //ä½¿ç”¨ YCLib æ–­è¨€ã€‚
+#define YSL_USE_EXCEPTION_SPECIFICATION //ä½¿ç”¨ YSLib å¼‚å¸¸è§„èŒƒã€‚
 
 #include <cstdio>
 
-//°üº¬Æ½Ì¨ÎÄ¼ş¡£
+//åŒ…å«å¹³å°æ–‡ä»¶ã€‚
 #include <platform.h>
 
 
-//°üº¬ CHRLib ¡£
+//åŒ…å« CHRLib ã€‚
 
 #include "../../CHRLib/chrlib.h"
 
@@ -43,7 +43,7 @@ namespace YSLib
 }
 
 
-//°üº¬ YCLib ¡£
+//åŒ…å« YCLib ã€‚
 
 #include "../../YCLib/ycommon.h"
 
@@ -84,7 +84,7 @@ namespace YSLib
 }
 
 
-//°üº¬ FreeType2 ¡£
+//åŒ…å« FreeType2 ã€‚
 
 #include <ft2build.h>
 
@@ -95,11 +95,11 @@ namespace YSLib
 //#include FT_OUTLINE_H
 
 
-//°üº¬ Anti-Grain Geometry ¡£
+//åŒ…å« Anti-Grain Geometry ã€‚
 //#include "yagg.h"
 
 
-//°üº¬ Loki ¡£
+//åŒ…å« Loki ã€‚
 #include <loki/Function.h>
 #include <loki/SmartPtr.h>
 #include <loki/StrongPtr.h>
@@ -108,7 +108,7 @@ namespace YSLib
 {
 	namespace Design
 	{
-		//ÀàĞÍ²Ù×÷ºÍÀàĞÍÌØÕ÷¡£
+		//ç±»å‹æ“ä½œå’Œç±»å‹ç‰¹å¾ã€‚
 		using Loki::Typelist;
 		namespace TL = Loki::TL;
 		using Loki::NullType;
@@ -121,16 +121,16 @@ namespace YSLib
 		using Loki::IsCustomFloat;
 		using Loki::TypeTraits;
 
-		// Function ºÍ Function ¡£
+		// Function å’Œ Function ã€‚
 		using Loki::Function;
 		using Loki::Functor;
 
-		//Éè¼ÆÄ£Ê½¡£
+		//è®¾è®¡æ¨¡å¼ã€‚
 		namespace Pattern
 		{
 		}
 	}
-	//Ê¹ÓÃ Loki ÖÇÄÜÖ¸Õë¡£
+	//ä½¿ç”¨ Loki æ™ºèƒ½æŒ‡é’ˆã€‚
 	using Loki::SmartPtr;
 	using Loki::RefCounted;
 	using Loki::AllowConversion;
@@ -142,18 +142,18 @@ namespace YSLib
 	using Loki::SmallObject;
 }
 
-//Ê¹ÓÃ Loki µÄ±àÒëÆÚ¾²Ì¬¼ì²é¡£
+//ä½¿ç”¨ Loki çš„ç¼–è¯‘æœŸé™æ€æ£€æŸ¥ã€‚
 #define YSL_STATIC_CHECK(expr, msg) LOKI_STATIC_CHECK(expr, msg)
 
-//Ê¹ÓÃ Loki µÄ Typelist ¡£
+//ä½¿ç”¨ Loki çš„ Typelist ã€‚
 #define YSL_TL(n, ...) LOKI_TYPELIST##n(...)
 
-//Ê¹ÓÃÖÇÄÜÖ¸ÕëÊµÏÖµÄ¾ä±ú¡£
+//ä½¿ç”¨æ™ºèƒ½æŒ‡é’ˆå®ç°çš„å¥æŸ„ã€‚
 //#define YSL_USE_SIMPLE_HANDLE
 #define YSL_HANDLEPOLICY_SIMPLE
 
 
-//¶à²¥ÊÂ¼ş¡£
+//å¤šæ’­äº‹ä»¶ã€‚
 #define YSL_EVENT_MULTICAST
 
 #endif

@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:03:47;
-// UTime = 2010-9-2 10:31;
-// Version = 0.2078;
+// UTime = 2010-9-26 2:24;
+// Version = 0.2130;
 
 
 #ifndef _DSREADER_H_
@@ -20,70 +20,74 @@ YSL_BEGIN_NAMESPACE(DS)
 
 YSL_BEGIN_NAMESPACE(Components)
 
+class BlockedText
+{
+public:
+	YTextFile& File; //文本文件对象。
+	Text::TextFileBuffer Blocks; //文本缓存映射。
+
+	explicit
+	BlockedText(YTextFile&);
+};
+
+
 class MDualScreenReader
 {
 private:
-	YTextFile& tf; //文本文件对象。
-	Text::TextFileBuffer Blocks; //文本缓存映射。
+	BlockedText* pText; //文本资源。
 	YFontCache& fc; //字体缓存。
 	u16 left, top_up, top_down; // left ：上下字符区域距离屏幕左边距离； top_up ：上字符区域距离上屏顶端距离； top_down ：下字符区域距离下屏顶端距离。
 	PixelType *pBgUp, *pBgDn; //上下屏幕背景层显存地址。
-	TextRegion &trUp, &trDn; //上下屏幕对应字符区域。
+	GHResource<TextRegion> pTrUp, pTrDn; //上下屏幕对应字符区域。
 	ROT rot; //屏幕指向。
 	Text::TextFileBuffer::HText itUp, itDn; //字符区域读取文本缓存迭代器。
 	u8 lnHeight; //行高。
 
-	DefGetter(u16, ColorUp, trUp.Color) //取上字符区域的字体颜色。
-	DefGetter(u16, ColorDn, trDn.Color) //取下字符区域的字体颜色。
-	DefGetter(u8, LnGapUp, trUp.GetLineGap()) //取上字符区域的行距。
-	DefGetter(u8, LnGapDn, trDn.GetLineGap()) //取下字符区域的行距。
+	DefGetter(u16, ColorUp, pTrUp->Color) //取上字符区域的字体颜色。
+	DefGetter(u16, ColorDn, pTrDn->Color) //取下字符区域的字体颜色。
+	DefGetter(u8, LnGapUp, pTrUp->GetLineGap()) //取上字符区域的行距。
+	DefGetter(u8, LnGapDn, pTrDn->GetLineGap()) //取下字符区域的行距。
 
-	DefSetterDe(PixelType, ColorUp, trUp.Color, 0) //设置上字符区域的字体颜色。
-	DefSetterDe(PixelType, ColorDn, trDn.Color, 0) //设置下字符区域的字体颜色。
+	DefSetterDe(PixelType, ColorUp, pTrUp->Color, 0) //设置上字符区域的字体颜色。
+	DefSetterDe(PixelType, ColorDn, pTrDn->Color, 0) //设置下字符区域的字体颜色。
 	PDefHead(void, SetLnGapUp, u16 g = 0) //设置上字符区域的行距。
-		ImplBodyMemberVoid(trUp, SetLineGap, g)
+		ImplBodyMemberVoid(*pTrUp, SetLineGap, g)
 	PDefHead(void, SetLnGapDn, u16 g = 0) //设置下字符区域的行距。
-		ImplBodyMemberVoid(trDn, SetLineGap, g)
+		ImplBodyMemberVoid(*pTrDn, SetLineGap, g)
 
 	//清除字符区域缓冲区。
 	void Clear()
 	{
-		trUp.ClearImage();
-		trDn.ClearImage();
+		pTrUp->ClearImage();
+		pTrDn->ClearImage();
 	}
 	//复位缓存区域写入位置。
 	void ResetPen()
 	{
-		trUp.SetPen();
-		trDn.SetPen();
+		pTrUp->SetPen();
+		pTrDn->SetPen();
 	}
-/*
-	void ReloadText(YTextFile& f)
-	{
-		YTextFile& f,
-	}
-*/
-	void FillText(); //文本填充：输出文本缓冲区字符串，并返回填充字符数。
+
+	//文本填充：输出文本缓冲区字符串，并返回填充字符数。
+	void FillText();
 
 public:
 	/*
 	//构造函数。
-	tf_ ：文本文件。
 	l ：距离屏幕左边距离； w ：字符区域宽。
 	t_up ：上字符区域距离上屏顶端距离； h_up：上字符区域高。
 	t_down ：下字符区域距离下屏顶端距离； h_down：下字符区域高。
 	fc_ ：字体缓存对象引用。
 	*/
-	MDualScreenReader(YTextFile& tf_, u16 l = 0, u16 w = SCRW,
-		u16 t_up = 0, u16 h_up = SCRH, u16 t_down = 0, u16 h_down = SCRH, YFontCache& fc_ = *pDefaultFontCache);
-	~MDualScreenReader(); //析构函数。
+	MDualScreenReader(u16 l = 0, u16 w = SCRW, u16 t_up = 0, u16 h_up = SCRH,
+		u16 t_down = 0, u16 h_down = SCRH, YFontCache& fc_ = *pDefaultFontCache);
 
 	bool IsTextTop(); //判断输出位置是否到文本顶端。	
 	bool IsTextBottom(); //判断输出位置是否到文本底端。
 
 	DefGetter(u8, FontSize, fc.GetFontSize()) //取字符区域的字体大小。
-	DefGetter(TextRegion&, Up, trUp) //取上字符区域的引用。
-	DefGetter(TextRegion&, Dn, trDn) //取下字符区域的引用。
+	DefGetter(TextRegion&, Up, *pTrUp) //取上字符区域的引用。
+	DefGetter(TextRegion&, Dn, *pTrDn) //取下字符区域的引用。
 	DefGetter(u16, Color, GetColorUp()) //取字符区域的字体颜色。
 	DefGetter(u8, LineGap, GetLnGapUp()) //取字符区域的行距。
 
@@ -103,13 +107,17 @@ public:
 	void
 	Reset();
 
+	//载入文本。
+	void
+	LoadText(YTextFile&);
+
+	//卸载文本。
+	void
+	UnloadText();
+
 	//绘制文本。
 	void
 	PrintText();
-
-	//初始化载入文本。
-	void
-	InitText();
 
 	//更新缓冲区文本。
 	void
@@ -134,14 +142,6 @@ public:
 	//自动滚屏。 pCheck ：输入检测函数指针。
 	void
 	Scroll(PFVOID pCheck);
-};
-
-
-class YWndDSReader : public YSLib::Components::YComponent, public YSLib::Components::Forms::AWindow
-{
-public:
-	virtual void
-	DrawForeground();
 };
 
 YSL_END_NAMESPACE(Components)

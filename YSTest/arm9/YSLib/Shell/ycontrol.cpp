@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:34;
-// UTime = 2010-9-25 16:46;
-// Version = 0.3204;
+// UTime = 2010-9-26 12:40;
+// Version = 0.3244;
 
 
 #include "ycontrol.h"
@@ -172,7 +172,6 @@ BackColor(b), ForeColor(f)
 	EventMap[EControl::GotFocus] += &MVisualControl::OnGotFocus;
 	EventMap[EControl::LostFocus] += &MVisualControl::OnLostFocus;
 	TouchDown += &MVisualControl::OnTouchDown;
-	TouchMove += &MVisualControl::OnTouchMove;
 }
 
 GMFocusResponser<IVisualControl>*
@@ -343,7 +342,6 @@ YListBox::~YListBox()
 void
 YListBox::_m_init()
 {
-	TouchDown += &YListBox::OnTouchDown;
 	Click += &YListBox::OnClick;
 	KeyPress += &YListBox::OnKeyPress;
 	Selected += &YListBox::OnSelected;
@@ -365,7 +363,13 @@ void
 YListBox::SetSelected(YListBox::ViewerType::IndexType i)
 {
 	if(isInIntervalRegular<ViewerType::IndexType>(i, Viewer.GetLength()))
+	{
+		const ViewerType::IndexType nOld(Viewer.GetSelected());
+
 		Viewer.SetSelected(Viewer.GetIndex() + i);
+		if(Viewer.GetSelected() != nOld)
+			CallSelected();
+	}
 }
 void
 YListBox::SetSelected(SPOS x, SPOS y)
@@ -447,9 +451,10 @@ YListBox::CallConfirmed()
 }
 
 void
-YListBox::OnTouchDown(const MTouchEventArgs& pt)
+YListBox::OnTouchDown(const MTouchEventArgs& e)
 {
-	SetSelected(pt);
+	ParentType::OnTouchDown(e);
+	SetSelected(e);
 }
 void
 YListBox::OnClick(const MTouchEventArgs&)
@@ -477,7 +482,7 @@ YListBox::OnKeyPress(const MKeyEventArgs& k)
 		case Key::PgUp:
 		case Key::PgDn:
 			{
-				const ViewerType::IndexType i(Viewer.GetSelected());
+				const ViewerType::IndexType nOld(Viewer.GetSelected());
 
 				switch(k)
 				{
@@ -497,7 +502,7 @@ YListBox::OnKeyPress(const MKeyEventArgs& k)
 					Viewer += Viewer.GetLength();
 					break;
 				}
-				if(Viewer.GetSelected() != i)
+				if(Viewer.GetSelected() != nOld)
 					CallSelected();
 			}
 			break;
@@ -524,7 +529,7 @@ YFileBox::YFileBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource
 : YListBox(hWnd, r, pCon, prTr_, MFileList::List), MFileList(),
 List(ParentType::List)
 {
-	Confirmed += &YFileBox::OnConfirmed;
+	TouchHeld += &MVisualControl::OnTouchHeld;
 }
 YFileBox::~YFileBox()
 {
@@ -551,8 +556,14 @@ YFileBox::DrawForeground()
 }
 
 void
+YFileBox::OnTouchMove(const Runtime::MTouchEventArgs& e)
+{
+	SetSelected(e);
+}
+void
 YFileBox::OnConfirmed(const MIndexEventArgs& e)
 {
+	ParentType::OnConfirmed(e);
 	if(*this /= List[e.Index])
 	{
 		Viewer.MoveViewerToBegin();

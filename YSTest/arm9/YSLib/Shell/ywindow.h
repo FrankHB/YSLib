@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40;
-// UTime = 2010-9-2 10:20;
-// Version = 0.3256;
+// UTime = 2010-9-25 22:17;
+// Version = 0.3265;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -90,8 +90,8 @@ protected:
 	MWindow(const GHResource<YImage> = new YImage(), YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle());
 
 public:
-	DefBoolGetter(RefreshRequired, bRefresh)
-	DefBoolGetter(UpdateRequired, bUpdate)
+	DefPredicate(RefreshRequired, bRefresh)
+	DefPredicate(UpdateRequired, bUpdate)
 
 	DefGetter(HSHL, ShellHandle, hShell)
 	DefGetter(GHResource<YImage>, Background, prBackImage)
@@ -116,15 +116,15 @@ public:
 
 	virtual DefConverterMember(GraphicInterfaceContext, Buffer)
 
-	virtual DefBoolGetterBase(Visible, MVisual)
-	virtual DefBoolGetterBase(Transparent, MVisual)
-	virtual DefBoolGetterBase(BgRedrawed, MVisual)
-	virtual DefBoolGetterBase(Enabled, MVisualControl)
-	virtual DefBoolGetterBase(Focused, AFocusRequester)
+	virtual DefPredicateBase(Visible, MVisual)
+	virtual DefPredicateBase(Transparent, MVisual)
+	virtual DefPredicateBase(BgRedrawed, MVisual)
+	virtual DefPredicateBase(Enabled, MVisualControl)
+	virtual DefPredicateBase(Focused, AFocusRequester)
 	virtual PDefHead(bool, IsFocusOfContainer, Runtime::GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
-	virtual DefBoolGetterBase(RefreshRequired, MWindow)
-	virtual DefBoolGetterBase(UpdateRequired, MWindow)
+	virtual DefPredicateBase(RefreshRequired, MWindow)
+	virtual DefPredicateBase(UpdateRequired, MWindow)
 
 	//判断从属关系。
 	PDefHead(bool, BelongsTo, HSHL h) const

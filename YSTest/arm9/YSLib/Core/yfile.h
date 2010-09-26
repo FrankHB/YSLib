@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFile by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-24 23:14:41;
-// UTime = 2010-7-31 21:38;
-// Version = 0.1529;
+// UTime = 2010-9-25 22:20;
+// Version = 0.1530;
 
 
 #ifndef INCLUDED_YFILE_H_
@@ -32,7 +32,7 @@ public:
 	virtual
 	~YFile();
 
-	DefBoolGetter(Valid, fp) //判断文件指针是否有效。
+	DefPredicate(Valid, fp) //判断文件指针是否有效。
 	DefGetter(FILE*, Ptr, fp) //取文件指针。
 	DefGetter(SizeType, Size, fsize) //取文件大小。
 

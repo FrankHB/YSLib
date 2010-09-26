@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-2-18 13:44:24;
-// UTime = 2010-9-25 7:06;
-// Version = 0.3496;
+// UTime = 2010-9-26 4:24;
+// Version = 0.3534;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -110,7 +110,7 @@ public:
 	virtual PDefOpHead(IControl::EventMapType::Event&, [], const IControl::EventMapType::ID& id)
 		ImplRet(EventMap[id])
 
-	virtual DefBoolGetter(Enabled, Enabled)
+	virtual DefPredicate(Enabled, Enabled)
 
 	virtual DefSetterDe(bool, Enabled, Enabled, true)
 };
@@ -149,15 +149,15 @@ protected:
 	CheckFocusContainer(IWidgetContainer*); //检查给定的容器指针是否有效且指向接受焦点的容器。
 
 public:
-	void
+	virtual void
 	OnGotFocus(const MEventArgs& = GetZeroElement<MEventArgs>());
-	void
+	virtual void
 	OnLostFocus(const MEventArgs& = GetZeroElement<MEventArgs>());
-	void
+	virtual void
 	OnTouchDown(const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
-	void
+	virtual void
 	OnTouchHeld(const Runtime::MTouchEventArgs&);
-	void
+	virtual void
 	OnTouchMove(const Runtime::MTouchEventArgs&);
 };
 
@@ -184,11 +184,11 @@ public:
 	virtual PDefHead(EventMapType::Event&, operator[], const EventMapType::ID& id)
 		ImplBodyBase(MVisualControl, operator[], id)
 
-	virtual DefBoolGetterBase(Visible, MVisual)
-	virtual DefBoolGetterBase(Transparent, MVisual)
-	virtual DefBoolGetterBase(BgRedrawed, MVisual)
-	virtual DefBoolGetterBase(Enabled, MControl)
-	virtual DefBoolGetterBase(Focused, AFocusRequester)
+	virtual DefPredicateBase(Visible, MVisual)
+	virtual DefPredicateBase(Transparent, MVisual)
+	virtual DefPredicateBase(BgRedrawed, MVisual)
+	virtual DefPredicateBase(Enabled, MControl)
+	virtual DefPredicateBase(Focused, AFocusRequester)
 	virtual PDefHead(bool, IsFocusOfContainer, Runtime::GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
 
@@ -269,7 +269,7 @@ Margin(prTextRegion->Margin), AutoSize(true), AutoEllipsis(false), Text(l)
 {}
 
 
-//V0.1585E;
+//V0.1595E;
 //文本列表框。
 class YListBox : public GMCounter<YListBox>, public YVisualControl
 {
@@ -307,7 +307,7 @@ protected:
 	_m_init();
 
 public:
-	DefBoolGetterMember(Selected, Viewer)
+	DefPredicateMember(Selected, Viewer)
 
 	DefGetter(ListType&, List, List)
 	DefGetterMember(ViewerType::IndexType, Index, Viewer)
@@ -346,15 +346,15 @@ private:
 	CallConfirmed();
 
 public:
-	void
+	virtual void
 	OnTouchDown(const Runtime::MTouchEventArgs&);
-	void
+	virtual void
 	OnClick(const Runtime::MTouchEventArgs&);
-	void
+	virtual void
 	OnKeyPress(const Runtime::MKeyEventArgs&);
-	void
+	virtual void
 	OnSelected(const MIndexEventArgs&);
-	void
+	virtual void
 	OnConfirmed(const MIndexEventArgs&);
 };
 
@@ -371,7 +371,7 @@ YListBox::ClearSelected()
 }
 
 
-//V0.0664E;
+//V0.0854E;
 //文件列表框。
 class YFileBox : public GMCounter<YFileBox>, public YListBox, public IO::MFileList
 {
@@ -393,7 +393,9 @@ public:
 	virtual void
 	DrawForeground();
 
-	void
+	virtual void
+	OnTouchMove(const Runtime::MTouchEventArgs&);
+	virtual void
 	OnConfirmed(const MIndexEventArgs&);
 };
 

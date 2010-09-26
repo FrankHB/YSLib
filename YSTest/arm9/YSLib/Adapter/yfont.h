@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:02:40;
-// UTime = 2010-9-11 0:03;
-// Version = 0.6844;
+// UTime = 2010-9-25 22:21;
+// Version = 0.6848;
 
 
 #ifndef INCLUDED_YFONT_H_
@@ -226,10 +226,10 @@ public:
 	explicit
 	Font(const FontFamily& = GetDefaultFontFamily(), SizeType = DefSize, EFontStyle = EFontStyle::Regular);
 
-	DefBoolGetter(Bold, Style | EFontStyle::Bold)
-	DefBoolGetter(Italic, Style | EFontStyle::Italic)
-	DefBoolGetter(Underline, Style | EFontStyle::Underline)
-	DefBoolGetter(Strikeout, Style | EFontStyle::Strikeout)
+	DefPredicate(Bold, Style | EFontStyle::Bold)
+	DefPredicate(Italic, Style | EFontStyle::Italic)
+	DefPredicate(Underline, Style | EFontStyle::Underline)
+	DefPredicate(Strikeout, Style | EFontStyle::Strikeout)
 
 	DefStaticGetter(const Font&, Default, *pDefFont)
 	DefGetter(const FontFamily&, FontFamily, *pFontFamily)

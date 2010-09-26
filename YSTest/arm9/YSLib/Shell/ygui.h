@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-9-2 10:20;
-// Version = 0.1836;
+// UTime = 2010-9-25 22:18;
+// Version = 0.1837;
 
 
 #ifndef INCLUDED_YGUI_H_
@@ -83,7 +83,7 @@ private:
 	static SVec v_DragOffset;
 
 public:
-	DefStaticBoolGetter(OnDragging, v_DragOffset != SVec::FullScreen)
+	DefStaticPredicate(OnDragging, v_DragOffset != SVec::FullScreen)
 
 	DefStaticGetter(const SVec&, DragOffset, v_DragOffset)
 

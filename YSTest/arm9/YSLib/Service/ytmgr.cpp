@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 17:48:09;
-// UTime = 2010-9-23 15:31;
-// Version = 0.3977;
+// UTime = 2010-9-26 3:22;
+// Version = 0.3988;
 
 
 #include "ytmgr.h"
@@ -135,8 +135,8 @@ TextMap::clear()
 }
 
 
-TextFileBuffer::HText::HText(TextFileBuffer& buf, BlockIndexType b, IndexType i) ythrow()
-: pBuf(&buf), blk(b), idx(i)
+TextFileBuffer::HText::HText(TextFileBuffer* pBuf, BlockIndexType b, IndexType i) ythrow()
+: pBuffer(pBuf), blk(b), idx(i)
 {
 //	assert(buf.GetTextSize() >= 1);
 }
@@ -144,35 +144,39 @@ TextFileBuffer::HText::HText(TextFileBuffer& buf, BlockIndexType b, IndexType i)
 TextFileBuffer::HText&
 TextFileBuffer::HText::operator++() ythrow()
 {
-//	assert(pBuf != NULL);
-	if(blk < pBuf->GetTextSize() / nBlockSize)
+	if(pBuffer != NULL)
 	{
-		if(idx == GetBlockLength())
+		if(blk <= (pBuffer->GetTextSize() - 1) / nBlockSize)
 		{
-			++blk;
-			idx = 0;
+			if(idx == GetBlockLength())
+			{
+				++blk;
+				idx = 0;
+			}
+			else
+				++idx;
 		}
 		else
-			++idx;
+			*this = pBuffer->end();
 	}
-	else
-		*this = pBuf->end();
 	return *this;
 }
 
 TextFileBuffer::HText&
 TextFileBuffer::HText::operator--() ythrow()
 {
-//	assert(pBuf != NULL);
-	if(blk != 0 || idx != 0)
+	if(pBuffer != NULL)
 	{
-		if(idx == 0)
-			idx = GetBlockLength(--blk);
+		if(blk != 0 || idx != 0)
+		{
+			if(idx == 0)
+				idx = GetBlockLength(--blk);
+			else
+				--idx;
+		}
 		else
-			--idx;
+			*this = pBuffer->end();
 	}
-	else
-		*this = pBuf->end();
 	return *this;
 }
 
@@ -187,7 +191,9 @@ TextFileBuffer::HText::operator*() ythrow()
 TextFileBuffer::HText
 TextFileBuffer::HText::operator+(std::ptrdiff_t o)
 {
-//	assert(pBuf != NULL);
+	if(pBuffer == NULL)
+		return HText();
+
 	HText i(*this);
 
 	return i += o;
@@ -196,15 +202,15 @@ TextFileBuffer::HText::operator+(std::ptrdiff_t o)
 bool
 operator==(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs) ythrow()
 {
-	return lhs.pBuf == rhs.pBuf && lhs.blk == rhs.blk && lhs.idx == rhs.idx;
+	return lhs.pBuffer == rhs.pBuffer && lhs.blk == rhs.blk && lhs.idx == rhs.idx;
 }
 
 bool
 operator<(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs) ythrow()
 {
-	if(lhs.pBuf < rhs.pBuf)
+	if(lhs.pBuffer < rhs.pBuffer)
 		return true;
-	if(lhs.pBuf != rhs.pBuf)
+	if(lhs.pBuffer != rhs.pBuffer)
 		return false;
 	if(lhs.blk < rhs.blk)
 		return true;
@@ -216,13 +222,15 @@ operator<(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs) yt
 TextFileBuffer::HText&
 TextFileBuffer::HText::operator+=(std::ptrdiff_t o)
 {
-//	assert(pBuf != NULL);
-	if(o > 0)
-		while(o-- != 0)
-			++*this;
-	else
-		while(o++ != 0)
-			--*this;
+	if(pBuffer != NULL)
+	{
+		if(o > 0)
+			while(o-- != 0)
+				++*this;
+		else
+			while(o++ != 0)
+				--*this;
+	}
 	return *this;
 }
 
@@ -231,14 +239,16 @@ TextFileBuffer::HText::GetTextPtr() const ythrow()
 {
 	const uchar_t* p(NULL);
 
-//	assert(pBuf != NULL);
-	try
+	if(pBuffer != NULL)
 	{
-		p = &(*pBuf)[blk].at(idx);
-	}
-	catch(...)
-	{
-		return NULL;
+		try
+		{
+			p = &(*pBuffer)[blk].at(idx);
+		}
+		catch(...)
+		{
+			return NULL;
+		}
 	}
 	return p;
 }
@@ -246,11 +256,13 @@ TextFileBuffer::HText::GetTextPtr() const ythrow()
 IndexType
 TextFileBuffer::HText::GetBlockLength(BlockIndexType i) const ythrow()
 {
+	if(pBuffer == NULL)
+		return 0;
 	try
 	{
 		try
 		{
-			return (*pBuf)[i].GetLength();
+			return (*pBuffer)[i].GetLength();
 		}
 		catch(LoggedEvent&)
 		{

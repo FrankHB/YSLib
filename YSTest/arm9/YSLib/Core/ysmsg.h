@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-6 2:44:31;
-// UTime = 2010-9-18 8:44;
-// Version = 0.1772;
+// UTime = 2010-9-25 22:19;
+// Version = 0.1774;
 
 
 #ifndef INCLUDED_YSMSG_H_
@@ -62,8 +62,8 @@ public:
 	bool operator==(const Message&) const;
 	bool operator!=(const Message&) const;
 
-	DefBoolGetter(TimeOut, timestamp + timeout < std::clock()) //判断消息是否过期。
-	DefBoolGetter(Valid, msg) //判断消息是否有效。
+	DefPredicate(TimeOut, timestamp + timeout < std::clock()) //判断消息是否过期。
+	DefPredicate(Valid, msg) //判断消息是否有效。
 
 	DefGetter(HSHL, ShellHandle, hShl) //取关联的 Shell 句柄。
 	DefGetter(MSGID, MsgID, msg) //取消息标识。

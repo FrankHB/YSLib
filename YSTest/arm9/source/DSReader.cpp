@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-1-5 14:04:05;
-// UTime = 2010-9-23 15:31;
-// Version = 0.2796;
+// UTime = 2010-9-26 3:41;
+// Version = 0.2880;
 
 
 #include "DSReader.h"
@@ -16,28 +16,30 @@ using namespace Text;
 
 YSL_BEGIN_NAMESPACE(Components)
 
+BlockedText::BlockedText(YTextFile& file)
+: File(file), Blocks(file)
+{}
+
+
 void MDualScreenReader::FillText()
 {
-	itDn = trDn.PutString(trUp.PutString(itUp));
+	itDn = pTrDn->PutString(pTrUp->PutString(itUp));
 }
 
-MDualScreenReader::MDualScreenReader(YTextFile& tf_,
-				   u16 l, u16 w, u16 t_up, u16 h_up, u16 t_down, u16 h_down,
-				   YFontCache& fc_)
-try : tf(tf_), Blocks(tf), fc(fc_),
+MDualScreenReader::MDualScreenReader(u16 l, u16 w, u16 t_up, u16 h_up,
+									 u16 t_down, u16 h_down, YFontCache& fc_)
+try : pText(NULL), fc(fc_),
 left(l), top_up(t_up), top_down(t_down),
 pBgUp(pDesktopUp->GetBufferPtr()), pBgDn(pDesktopDown->GetBufferPtr()),
-trUp(*new TextRegion(fc_)), trDn(*new TextRegion(fc_)), rot(RDeg0),
-itUp(Blocks), itDn(Blocks)
+pTrUp(new TextRegion(fc_)), pTrDn(new TextRegion(fc_)), rot(RDeg0),
+itUp(NULL), itDn(NULL)
 {
-	trUp.SetSize(w, h_up);
-	trDn.SetSize(w, h_down);
+	//初始化视图。
+	pTrUp->SetSize(w, h_up);
+	pTrDn->SetSize(w, h_down);
 	SetFontSize();
 	SetColor();
 	SetLineGap();
-	if(!tf.IsValid())
-		trUp.PutString(L"文件打开失败！\n");
-	InitText();
 }
 catch(LoggedEvent&)
 {
@@ -47,34 +49,29 @@ catch(...)
 {
 	throw LoggedEvent("Error occured @@ MDualScreenReader::MDualScreenReader();");
 }
-MDualScreenReader::~MDualScreenReader()
-{
-	delete &trUp;
-	delete &trDn;
-}
 
 bool
 MDualScreenReader::IsTextTop()
 {
-	return itUp == Blocks.begin();
+	return itUp == pText->Blocks.begin();
 }
 bool
 MDualScreenReader::IsTextBottom()
 {
-	return itUp == Blocks.end();
+	return itDn == pText->Blocks.end();
 }
 
 void
 MDualScreenReader::SetColor(PixelType c)
 {
-	trUp.Color = c;
-	trDn.Color = c;
+	pTrUp->Color = c;
+	pTrDn->Color = c;
 }
 void
 MDualScreenReader::SetLineGap(u8 g)
 {
-	trUp.SetLineGap(g);
-	trDn.SetLineGap(g);
+	pTrUp->SetLineGap(g);
+	pTrDn->SetLineGap(g);
 }
 void
 MDualScreenReader::SetFontSize(Font::SizeType fz)
@@ -86,7 +83,7 @@ MDualScreenReader::SetFontSize(Font::SizeType fz)
 void MDualScreenReader::SetLnNNow(u8 n)
 {
 	if(n >= 0)
-		trUp.SetLnNNow(n);
+		pTrUp->SetLnNNow(n);
 }
 */
 
@@ -96,19 +93,36 @@ MDualScreenReader::Reset()
 	Clear();
 	ResetPen();
 }
+
+void
+MDualScreenReader::LoadText(YTextFile& file)
+{
+//	assert(pText != NULL);
+	if(file.IsValid())
+	{
+		pText = new BlockedText(file);
+		itUp = pText->Blocks.begin();
+		itDn = pText->Blocks.end();
+		Update();
+	}
+	else
+		pTrUp->PutString(L"文件打开失败！\n");
+}
+
+void
+MDualScreenReader::UnloadText()
+{
+	safe_delete_obj()(pText);
+}
+
 void
 MDualScreenReader::PrintText()
 {
-//	trUp.BlitToBuffer(pBgUp, RDeg0, SCRW, SCRH, 0, 0, 0, 0, trUp.GetWidth(), trUp.GetBufferHeightResized());
-	trUp.BlitToBuffer(pBgUp, rot);
-	trDn.BlitToBuffer(pBgDn, rot);
+//	pTrUp->BlitToBuffer(pBgUp, RDeg0, SCRW, SCRH, 0, 0, 0, 0, pTrUp->GetWidth(), pTrUp->GetBufferHeightResized());
+	pTrUp->BlitToBuffer(pBgUp, rot);
+	pTrDn->BlitToBuffer(pBgDn, rot);
 }
-void
-MDualScreenReader::InitText()
-{
-	itUp = Blocks.begin();
-	Update();
-}
+
 void
 MDualScreenReader::Update()
 {
@@ -123,21 +137,21 @@ MDualScreenReader::LineUp()
 		return false;
 
 	const u8 h = lnHeight, hx = h + GetLnGapDn();
-	const u16 w = trUp.GetWidth();
-	const u32 t = w * h, s = (trUp.GetHeight() - trUp.GetMarginResized() - h) * w, d = trDn.Margin.Top * w;
+	const u16 w = pTrUp->GetWidth();
+	const u32 t = w * h, s = (pTrUp->GetHeight() - pTrUp->GetMarginResized() - h) * w, d = pTrDn->Margin.Top * w;
 
-	trDn.Move(hx, trDn.GetBufferHeightResized());
-	std::memcpy(&trDn.GetBufferPtr()[d], &trUp.GetBufferPtr()[s], t * sizeof(PixelType));
-	std::memcpy(&trDn.GetBufferAlphaPtr()[d], &trUp.GetBufferAlphaPtr()[s], t * sizeof(u8));
-	trUp.Move(hx, trUp.GetBufferHeightResized());
-	trUp.ClearLn(0);
-	trUp.SetLnNNow(0);
+	pTrDn->Move(hx, pTrDn->GetBufferHeightResized());
+	std::memcpy(&pTrDn->GetBufferPtr()[d], &pTrUp->GetBufferPtr()[s], t * sizeof(PixelType));
+	std::memcpy(&pTrDn->GetBufferAlphaPtr()[d], &pTrUp->GetBufferAlphaPtr()[s], t * sizeof(u8));
+	pTrUp->Move(hx, pTrUp->GetBufferHeightResized());
+	pTrUp->ClearLn(0);
+	pTrUp->SetLnNNow(0);
 
 	TextFileBuffer::HText itUpOld(itUp);
 
-	itUp = GetPreviousLinePtr(trUp, itUp, Blocks.begin());
-	trUp.PutLine<TextFileBuffer::HText, uchar_t>(itUp, itUpOld);
-	itDn = GetPreviousLinePtr(trDn, itDn, Blocks.begin());
+	itUp = GetPreviousLinePtr(*pTrUp, itUp, pText->Blocks.begin());
+	pTrUp->PutLine<TextFileBuffer::HText, uchar_t>(itUp, itUpOld);
+	itDn = GetPreviousLinePtr(*pTrUp, itDn, pText->Blocks.begin());
 	return true;
 }
 bool
@@ -147,17 +161,17 @@ MDualScreenReader::LineDown()
 		return false;
 
 	const u8 h = lnHeight, hx = h + GetLnGapUp();
-	const u16 w = trUp.GetWidth();
-	const u32 t = w * h, s = trUp.Margin.Top * w, d = (trUp.GetHeight() - trUp.GetMarginResized() - h) * w;
+	const u16 w = pTrUp->GetWidth();
+	const u32 t = w * h, s = pTrUp->Margin.Top * w, d = (pTrUp->GetHeight() - pTrUp->GetMarginResized() - h) * w;
 
-	trUp.Move(-hx);
-	std::memcpy(&trUp.GetBufferPtr()[d], &trDn.GetBufferPtr()[s], t * sizeof(PixelType));
-	std::memcpy(&trUp.GetBufferAlphaPtr()[d], &trDn.GetBufferAlphaPtr()[s], t * sizeof(u8));
-	trDn.Move(-hx);
-	trDn.ClearLnLast();
-	trDn.SetLnLast();
-	itDn = trDn.PutLine(itDn);
-	itUp = GetNextLinePtr(trUp, itUp, Blocks.end());
+	pTrUp->Move(-hx);
+	std::memcpy(&pTrUp->GetBufferPtr()[d], &pTrDn->GetBufferPtr()[s], t * sizeof(PixelType));
+	std::memcpy(&pTrUp->GetBufferAlphaPtr()[d], &pTrDn->GetBufferAlphaPtr()[s], t * sizeof(u8));
+	pTrDn->Move(-hx);
+	pTrDn->ClearLnLast();
+	pTrDn->SetLnLast();
+	itDn = pTrDn->PutLine(itDn);
+	itUp = GetNextLinePtr(*pTrUp, itUp, pText->Blocks.end());
 	return true;
 }
 
@@ -166,7 +180,7 @@ MDualScreenReader::ScreenUp()
 {
 	if(IsTextTop())
 		return false;
-	itUp = GetPreviousLinePtr(trUp, itUp, Blocks.begin(), trUp.GetLnN() + trDn.GetLnN());
+	itUp = GetPreviousLinePtr(*pTrUp, itUp, pText->Blocks.begin(), pTrUp->GetLnN() + pTrDn->GetLnN());
 	Update();
 	return true;
 }
@@ -184,12 +198,6 @@ void
 MDualScreenReader::Scroll(PFVOID pCheck)
 {
 
-}
-
-
-void
-YWndDSReader::DrawForeground()
-{
 }
 
 YSL_END_NAMESPACE(Components)

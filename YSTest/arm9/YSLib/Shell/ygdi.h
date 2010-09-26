@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46;
-// UTime = 2010-9-19 18:31;
-// Version = 0.2724;
+// UTime = 2010-9-25 22:18;
+// Version = 0.2725;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -258,7 +258,7 @@ private:
 public:
 	GraphicInterfaceContext(BitmapPtr, const SSize&);
 
-	DefBoolGetter(Valid, pBuffer && Size.Width && Size.Height)
+	DefPredicate(Valid, pBuffer && Size.Width && Size.Height)
 
 	DefGetter(BitmapPtr, BufferPtr, pBuffer)
 	DefGetter(const SSize&, Size, Size)
