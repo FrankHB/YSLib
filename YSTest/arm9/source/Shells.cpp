@@ -277,7 +277,7 @@ ShlExplorer::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs& e)
 {
 	YLabel& l(HandleCast<TFrmFileListMonitor>(HandleCast<ShlExplorer>(hShell)->hWndUp)->lblPath);
 
-	l.Text = Text::MBCSToString(fbMain.GetPath().c_str());
+	l.Text = fbMain.GetPath();
 	l.Refresh();
 }
 
@@ -328,7 +328,12 @@ ShlExplorer::TFrmFileListSelecter::btnOK_Click(const MTouchEventArgs&)
 	if(fbMain.IsSelected())
 	{
 		const std::string& s(fbMain.GetPath().GetNativeString());
-
+/*	YConsole con;
+	con.Activate();
+	iprintf("%s\n%s\n%s\n%d,%d\n",fbMain.GetDirectory().c_str(), StringToMBCS(fbMain.YListBox::GetList()[fbMain.GetSelected()]).c_str(),
+		s.c_str(),IO::ValidateDirectory(s), stdex::fexists(s.c_str()));
+	WaitForABXY();
+	con.Deactivate();*/
 		if(!IO::ValidateDirectory(s) && stdex::fexists(s.c_str()))
 			switchShl2(s.c_str());
 	}

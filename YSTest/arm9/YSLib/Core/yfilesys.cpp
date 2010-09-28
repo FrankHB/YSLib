@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2010-3-28 0:36:30;
-// UTime = 2010-9-26 22:38;
-// Version = 0.1864;
+// CTime = 2010-03-28 00:36:30 + 08:00;
+// UTime = 2010-09-27 17:19 + 08:00;
+// Version = 0.1920;
 
 
 #include "yfilesys.h"
@@ -19,26 +19,34 @@ const CPATH FS_Now(".");
 const CPATH FS_Parent("..");
 
 
+namespace
+{
+	const uchar_t FS_Now_X[] = {'.', 0};
+	const uchar_t FS_Parent_X[] = {'.', ',', 0};
+}
+
 const Path::ValueType Path::Slash(DEF_PATH_DELIMITER);
+const Path Path::Now(FS_Now_X);
+const Path Path::Parent(FS_Parent_X);
 
 Path&
 Path::operator/=(const Path& path)
 {
-	if(path.IsRelative() && path.GetNativeString() != FS_Now)
+	if(path.IsRelative() && path != Now)
 	{
 		for(const_iterator i(path.begin()); i != path.end(); ++i)
 		{
 			if(*i == FS_Parent)
 			{
-				pathname.erase((--end()).GetPosition());
-				if(IsEmpty())
+				erase((--end()).GetPosition());
+				if(empty())
 					*this = GetRootPath();
 			}
 			else
 			{
-				pathname += (*i).GetNativeString();
-				if(ValidateDirectory(pathname))
-					pathname += Slash;
+				*this += *i;
+				if(ValidateDirectory(*this))
+					*this += Slash;
 				else
 					break;
 			}
@@ -51,7 +59,7 @@ Path::operator/=(const Path& path)
 Path
 Path::GetRootName() const
 {
-	return Path(StringType(pathname.c_str(), platform::GetRootNameLength(pathname.c_str())));
+	return Path(StringType(c_str(), platform::GetRootNameLength(GetNativeString().c_str())));
 }
 Path
 Path::GetRootDirectory() const
@@ -66,17 +74,17 @@ Path::GetRootPath() const
 Path
 Path::GetRelativePath() const
 {
-	return IsEmpty() ? Path() : *begin();
+	return empty() ? Path() : *begin();
 }
 Path
 Path::GetParentPath() const
 {
-	return pathname.substr(0, (--end()).GetPosition());
+	return substr(0, (--end()).GetPosition());
 }
 Path
 Path::GetFilename() const
 {
-	return IsEmpty() ? Path() : *--end();
+	return empty() ? Path() : *--end();
 }
 Path
 Path::GetStem() const
@@ -103,7 +111,7 @@ Path&
 Path::ReplaceExtension(const Path& new_extension)
 {
 //	RemoveExtension();
-	pathname += new_extension.pathname;
+	*this += new_extension;
 	return *this;
 }
 
@@ -111,14 +119,14 @@ Path::ReplaceExtension(const Path& new_extension)
 Path::iterator&
 Path::iterator::operator++()
 {
-	n = n == StringType::npos ? 0 : ptr->pathname.find_first_not_of(Slash, ptr->pathname.find(Slash, n));
+	n = n == StringType::npos ? 0 : ptr->find_first_not_of(Slash, ptr->find(Slash, n));
 	return *this;
 }
 
 Path::iterator&
 Path::iterator::operator--()
 {
-	n = n == 0 ? StringType::npos : ptr->pathname.rfind(Slash, ptr->pathname.find_last_not_of(Slash, n)) + 1;
+	n = n == 0 ? StringType::npos : ptr->rfind(Slash, ptr->find_last_not_of(Slash, n)) + 1;
 	return *this;
 }
 
@@ -128,9 +136,9 @@ Path::iterator::operator*() const
 	if(n == StringType::npos)
 		return Path(FS_Now);
 	
-	StringType::size_type p(ptr->pathname.find(Slash, n));
+	StringType::size_type p(ptr->find(Slash, n));
 
-	return ptr->pathname.substr(n, p == StringType::npos ? StringType::npos : p - n);
+	return ptr->substr(n, p == StringType::npos ? StringType::npos : p - n);
 }
 
 

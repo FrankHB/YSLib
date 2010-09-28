@@ -933,7 +933,7 @@ public:
 //	const u32string GetGenericString() const;                                 // ditto
 
 	//≤È—Ø°£
-	bool IsEmpty() const;
+	bool empty() const;
 	bool IsAbsolute() const;
 	bool IsRelative() const;
 	bool HasRootName() const;

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YComponent by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-3-19 20:05:08;
-// UTime = 2010-9-18 10:41;
-// Version = 0.2276;
+// CTime = 2010-03-19 20:05:08 + 08:00;
+// UTime = 2010-09-28 01:08 + 08:00;
+// Version = 0.2286;
 
 
 #ifndef INCLUDED_YCOMPONENT_H_
@@ -37,7 +37,7 @@ public:
 	YScreen& Screen;
 
 	explicit
-	YConsole(YScreen& = *pDefaultScreen);
+	YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black);
 	virtual
 	~YConsole();
 
@@ -49,9 +49,12 @@ public:
 };
 
 inline
-YConsole::YConsole(YScreen& scr)
+YConsole::YConsole(YScreen& scr, bool a, Drawing::PixelType fc, Drawing::PixelType bc)
 : Screen(scr)
-{}
+{
+	if(a)
+		Activate(fc, bc);
+}
 inline
 YConsole::~YConsole()
 {

@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-09-26 22:37 + 08:00;
-// Version = r7840;
+// UTime = 2010-09-28 19:30 + 08:00;
+// Version = r7880;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -1837,7 +1837,7 @@ $header YShellDefinition "ysdef.h"
 
 	YSL_BEGIN_NAMESPACE(Text)
 	typedef std::size_t SizeType; //字符大小类型。
-	typedef usize_t IndexType; //字符索引类型。
+	typedef usize_t SizeType; //字符索引类型。
 	class String;
 	YSL_END_NAMESPACE(Text)
 
@@ -2607,7 +2607,7 @@ $unit YModule "ymodule"
 	{
 	public:
 		typedef typename _tContainer::size_type SizeType; //项目下标类型。
-		typedef std::ptrdiff_t IndexType; //项目索引类型。
+		typedef std::ptrdiff_t SizeType; //项目索引类型。
 
 	private:
 		_tContainer& c; //序列容器引用。
@@ -2960,15 +2960,16 @@ $unit YString "ystring"
 {
 	$import $unit YObject, $header <string>;
 
-	namespace ..::stdex
+	namespace stdex
 	{
+		//YSLib 基本字符串（使用 UTF-16LE ）。
 		typedef basic_string<uchar_t> ustring;
 	} //namespace ..::stdex;
 
 
 	YSL_BEGIN_NAMESPACE(Text)
 
-	// YSLib 标准字符串（使用 UTF-16BE ）。
+	// YSLib 标准字符串（使用 UTF-16LE ）。
 	class String : public stdex::ustring
 	{
 	private:
@@ -2992,7 +2993,7 @@ $unit YString "ystring"
 	inline String
 	MBCSToString(const std::string& s, const CSID& = CS_Local);
 
-	// YSLib 标准字符串转化为多字节字符串。
+	// YSLib 基本字符串转化为多字节字符串。
 	std::string
 	StringToMBCS(const String&, const CSID& = CS_Local);
 
@@ -3570,21 +3571,20 @@ $unit YFileSystem "yfilesys"
 
 
 	typedef char NativePathCharType; //本机路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
+	typedef std::basic_string<NativePathCharType> NativeStringType; //本地字符串类型。
 
 
 	//路径类。
 	class Path
 	{
 	public:
-		typedef NativePathCharType ValueType;
-		typedef std::basic_string<ValueType> StringType;
+		typedef uchar_t ValueType;
+		typedef std::basic_string<ValueType> StringType; //内部字符串类型。
 	//	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
 
 		static const ValueType Slash;
+		static const Path Now;
 		static const Path Parent;
-
-	private:
-		StringType pathname;
 
 	public:
 		//编码转换。
@@ -3595,26 +3595,22 @@ $unit YFileSystem "yfilesys"
 		inline
 		Path();
 		inline
-		Path(const Path&);
+		Path(const ValueType*);
+		inline
+		Path(const NativePathCharType*);
+		inline
+		Path(const NativeStringType&);
 		template<class _tString>
 		inline
-		Path(const StringType&);
+		Path(const _tString&)
 		inline
 		~Path();
-
-		//赋值。
-		Path&
-		operator=(const Path&);
-		template<class _tString>
-		inline Path&
-		operator=(const _tString&);
 
 		//追加路径。
 		Path&
 		operator/=(const Path&);
 
 		//查询。
-		DefPredicate(Empty, pathname.empty())
 		DefPredicate(Absolute, platform::IsAbsolute(GetNativeString().c_str()))
 		DefPredicate(Relative, !IsAbsolute())
 		bool
@@ -3650,18 +3646,8 @@ $unit YFileSystem "yfilesys"
 		GetStem() const;
 		Path
 		GetExtension() const;
-		DefGetter(StringType, GeneralString, pathname) //取一般字符串。
-		DefGetter(const StringType&, NativeString, pathname) //取本地格式和编码的字符串。
-
-		PDefHead(const ValueType*, c_str) const //本地格式和编码的 C 风格字符串。
-			ImplBodyMember(GetNativeString(), c_str)
 
 		//修改函数。
-
-		PDefHead(void, clear)
-			ImplBodyMember(pathname, clear)
-		PDefHead(void, swap, Path& rhs) ythrow()
-			ImplBodyMember(pathname, swap, rhs.pathname)
 
 		Path&
 		MakeAbsolute(const Path&);
@@ -4457,15 +4443,15 @@ $unit YComponent "ycomp"
 	public:
 		YScreen& Screen;
 
-		explicit
-		YConsole(YScreen& = *pDefaultScreen);
-		virtual
+		inline explicit
+		YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black);
+		inline virtual
 		~YConsole();
 
-		void
+		inline void
 		Activate(Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black);
 
-		void
+		inline void
 		Deactivate();
 	}; //class YConsole;
 
@@ -5611,55 +5597,55 @@ $unit YTextManager "ytmgr"
 	class TextBuffer : private NonCopyable;
 	{
 	private:
-		const IndexType mlen; //最大长度（字符数）。
+		const SizeType capacity; //最大长度（字符数）。
 
 	protected:
 		//文本缓冲区的首地址和长度。
 		uchar_t* const text;
-		IndexType len;
+		SizeType len;
 
 		explicit
-		TextBuffer(IndexType tlen);
+		TextBuffer(SizeType tlen);
 		inline
 		~TextBuffer();
 
 	public:
 		uchar_t&
-		operator[](IndexType) ythrow(); //按下标返回字符，无运行期范围检查。
+		operator[](SizeType) ythrow(); //按下标返回字符，无运行期范围检查。
 
-		DefGetter(IndexType, MaxLength, mlen) //取最大文本长度。
-		DefGetter(SizeType, SizeOfBuffer, sizeof(uchar_t) * mlen) //取文本缓冲区的大小。
+		DefGetter(SizeType, MaxLength, capacity) //取最大文本长度。
+		DefGetter(SizeType, SizeOfBuffer, sizeof(uchar_t) * capacity) //取文本缓冲区的大小。
 		DefGetter(uchar_t*, Ptr, text) //取文本缓冲区的指针。
-		DefGetter(IndexType, Length, len) //取文本缓冲区的长度。
-		IndexType
-		GetPrevChar(IndexType o, uchar_t c); //从文本缓冲区下标 o （不含）起逆序查找字符 c 。返回结果的直接后继下标；查找失败时返回 0 。
-		IndexType
-		GetNextChar(IndexType o, uchar_t c); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
-		inline IndexType
-		GetPrevNewline(IndexType o); //从文本缓冲区下标 o （不含）起逆序查找换行符。返回结果的直接后继下标；查找失败时返回 0 。
-		inline IndexType
-		GetNextNewline(IndexType o); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
+		DefGetter(SizeType, Length, len) //取文本缓冲区的长度。
+		SizeType
+		GetPrevChar(SizeType o, uchar_t c); //从文本缓冲区下标 o （不含）起逆序查找字符 c 。返回结果的直接后继下标；查找失败时返回 0 。
+		SizeType
+		GetNextChar(SizeType o, uchar_t c); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
+		inline SizeType
+		GetPrevNewline(SizeType o); //从文本缓冲区下标 o （不含）起逆序查找换行符。返回结果的直接后继下标；查找失败时返回 0 。
+		inline SizeType
+		GetNextNewline(SizeType o); //从文本缓冲区下标 o （含）起顺序查找字符 c 。返回结果的下标；查找失败时返回缓冲区长度（o 原值小于缓冲区长度）或 o 原值（大于等于缓冲区长度时）。
 
 		uchar_t&
-		at(IndexType) ythrow(std::out_of_range); //按下标返回字符，当越界时抛出 std::out_of_range 。
+		at(SizeType) ythrow(std::out_of_range); //按下标返回字符，当越界时抛出 std::out_of_range 。
 
 		inline void
 		ClearText(); //清空缓冲区。
 
 		inline bool
-		Load(const uchar_t* s); //从起始地址 s 中读取连续的 mlen 个 uchar_t 字符。
+		Load(const uchar_t* s); //从起始地址 s 中读取连续的 capacity 个 uchar_t 字符。
 		bool
-		Load(const uchar_t* s, IndexType n); //从起始地址 s 中读取连续的 n 个 uchar_t 字符。
+		Load(const uchar_t* s, SizeType n); //从起始地址 s 中读取连续的 n 个（超过最大长度则放弃读取）uchar_t 字符。
 		inline u32
-		Load(YTextFile& f); //从文本文件 f 中读取连续的 mlen 个字符（自动校验换行并转换为 Unix / Linux 格式），并返回成功读取的字符数。
-		IndexType
-		Load(YTextFile& f, IndexType n); //从文本文件 f 中读取连续的 n 个字符，并返回成功读取的字符数。
+		Load(YTextFile& f); //从文本文件 f 中读取连续的 capacity 个字符（自动校验换行并转换为 Unix / Linux 格式），并返回成功读取的字符数。
+		SizeType
+		Load(YTextFile& f, SizeType n); //从文本文件 f 中读取连续的 n 个（超过最大长度则放弃读取）uchar_t字符（自动校验换行并转换为 Unix / Linux 格式），并返回成功读取的字符数。
 
-		IndexType
-		LoadN(YTextFile& f, IndexType n); //从文本文件 f 中读取连续的 n 个字节，并返回成功读取的字符数。
+		SizeType
+		LoadN(YTextFile& f, SizeType n); //从文本文件 f 中读取连续的 n 个字节，并返回成功读取的字符数。
 
 		bool
-		Output(uchar_t* d, IndexType p, IndexType n) const; //从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
+		Output(uchar_t* d, SizeType p, SizeType n) const; //从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
 
 	}; //class TextBuffer;
 
@@ -5668,13 +5654,13 @@ $unit YTextManager "ytmgr"
 	class TextBlock : public TextBuffer
 	{
 	public:
-		typedef u16 BlockIndexType;
-		typedef TextBuffer::IndexType IndexType;
+		typedef u16 BlockSizeType;
+		typedef TextBuffer::SizeType SizeType;
 
-		IndexType Index;
+		SizeType Index;
 
 		inline
-		TextBlock(BlockIndexType, IndexType);
+		TextBlock(BlockSizeType, SizeType);
 		inline virtual
 		~TextBlock();
 	}; //class TextBlock;
@@ -5684,8 +5670,8 @@ $unit YTextManager "ytmgr"
 	class TextMap
 	{
 	public:
-		typedef TextBlock::BlockIndexType BlockIndexType;
-		typedef std::map<BlockIndexType, TextBlock*> MapType;
+		typedef TextBlock::BlockSizeType BlockSizeType;
+		typedef std::map<BlockSizeType, TextBlock*> MapType;
 
 	protected:
 		MapType Map;
@@ -5695,11 +5681,11 @@ $unit YTextManager "ytmgr"
 		~TextMap();
 
 		inline TextBlock*
-		operator[](const BlockIndexType&);
+		operator[](const BlockSizeType&);
 		inline void
 		operator+=(const TextBlock&);
 		inline void
-		operator-=(const BlockIndexType&);
+		operator-=(const BlockSizeType&);
 
 		void
 		clear();
@@ -5710,7 +5696,7 @@ $unit YTextManager "ytmgr"
 	class TextFileBuffer : public TextMap
 	{
 	public:
-		typedef TextMap::BlockIndexType BlockIndexType; //块索引类型。
+		typedef TextMap::BlockSizeType BlockSizeType; //块索引类型。
 
 		static const SizeType nBlockSize = 0x2000; //文本块容量。
 
@@ -5721,16 +5707,16 @@ $unit YTextManager "ytmgr"
 
 		public:
 			typedef TextFileBuffer ContainerType;
-			typedef ContainerType::BlockIndexType BlockIndexType;
+			typedef ContainerType::BlockSizeType BlockSizeType;
 
 		private:
 			TextFileBuffer* pBuffer;
 			//文本读取位置。
-			BlockIndexType blk;
-			IndexType idx;
+			BlockSizeType blk;
+			SizeType idx;
 
 		public:
-			HText(TextFileBuffer* = NULL, BlockIndexType = 0, IndexType = 0) ythrow(); //指定文本读取位置初始化。
+			HText(TextFileBuffer* = NULL, BlockSizeType = 0, SizeType = 0) ythrow(); //指定文本读取位置初始化。
 
 			HText&
 			operator++() ythrow();
@@ -5771,12 +5757,15 @@ $unit YTextManager "ytmgr"
 			HText&
 			operator-=(std::ptrdiff_t);
 
+			DefGetter(TextFileBuffer*, BufferPtr, pBuffer)
+			DefGetter(BlockSizeType, BlockN, blk)
+			DefGetter(SizeType, IndexN, idx)
 			const uchar_t*
 			GetTextPtr() const ythrow();
 			IndexType
 			GetBlockLength() const ythrow();
 			IndexType
-			GetBlockLength(BlockIndexType) const ythrow();
+			GetBlockLength(BlockSizeType) const ythrow();
 		}; //class HText;
 
 		YTextFile& File; //文本文件。
@@ -5790,7 +5779,7 @@ $unit YTextManager "ytmgr"
 		TextFileBuffer(YTextFile&);
 
 		TextBlock&
-		operator[](const BlockIndexType&);
+		operator[](const BlockSizeType&);
 
 		DefGetter(SizeType, TextSize, nTextSize)
 

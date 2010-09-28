@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-1-5 17:48:09;
-// UTime = 2010-9-26 3:22;
-// Version = 0.3988;
+// CTime = 2010-01-05 17:48:09 + 08:00;
+// UTime = 2010-09-28 01:34 + 08:00;
+// Version = 0.4023;
 
 
 #include "ytmgr.h"
@@ -12,8 +12,8 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Text)
 
-TextBuffer::TextBuffer(IndexType tlen)
-try : mlen(tlen), text(new uchar_t[mlen]), len(0)
+TextBuffer::TextBuffer(SizeType tlen)
+try : capacity(tlen), text(new uchar_t[capacity]), len(0)
 {
 	ClearText();
 }
@@ -23,55 +23,58 @@ catch(...)
 }
 
 uchar_t&
-TextBuffer::operator[](IndexType i) ythrow()
+TextBuffer::operator[](SizeType i) ythrow()
 {
-	YAssert(i < mlen,
+	YAssert(i < capacity,
 		"In function \"uchar_t\n"
 		"TextBuffer::operator[](SizeType i)\":\n"
 		"Subscript is not less than the length.")
 	return text[i];
 }
 
-IndexType
-TextBuffer::GetPrevChar(IndexType o, uchar_t c)
+SizeType
+TextBuffer::GetPrevChar(SizeType o, uchar_t c)
 {
 	while(o-- && text[o] != c)
 		;
 	return ++o;
 }
-IndexType
-TextBuffer::GetNextChar(IndexType o, uchar_t c)
+SizeType
+TextBuffer::GetNextChar(SizeType o, uchar_t c)
 {
-	while(o < mlen && text[o++] != c)
+	while(o < capacity && text[o++] != c)
 		;
 	return o;
 }
 
 uchar_t&
-TextBuffer::at(IndexType i) ythrow(std::out_of_range)
+TextBuffer::at(SizeType i) ythrow(std::out_of_range)
 {
-	if(i >= mlen)
+	if(i >= capacity)
 		throw std::out_of_range("YSLib::Text::TextBuffer");
 	return text[i];
 }
 
 bool
-TextBuffer::Load(const uchar_t* s, IndexType n)
+TextBuffer::Load(const uchar_t* s, SizeType n)
 {
-	if(n > mlen)
+	if(n > capacity)
 		return false;
-	memcpy(text, s, sizeof(uchar_t) * n);
+	std::memcpy(text, s, sizeof(uchar_t) * n);
 	len = n;
 	return true;
 }
-IndexType
-TextBuffer::Load(YTextFile& f, IndexType n)
+SizeType
+TextBuffer::Load(YTextFile& f, SizeType n)
 {
-	IndexType l(0);
+	if(n > capacity)
+		return 0;
+
+	SizeType l(0);
 
 	if(f.IsValid())
 	{
-		IndexType i(0), t;
+		SizeType i(0), t;
 		uchar_t cb(len == 0 ? 0 : text[len - 1]), c;
 		FILE* const fp(f.GetPtr());
 		const CSID cp(f.GetCP());
@@ -90,10 +93,10 @@ TextBuffer::Load(YTextFile& f, IndexType n)
 	return l;
 }
 
-IndexType
-TextBuffer::LoadN(YTextFile& f, IndexType n)
+SizeType
+TextBuffer::LoadN(YTextFile& f, SizeType n)
 {
-	IndexType l(0);
+	SizeType l(0);
 
 	if(f.IsValid())
 	{
@@ -117,11 +120,11 @@ TextBuffer::LoadN(YTextFile& f, IndexType n)
 }
 
 bool
-TextBuffer::TextBuffer::Output(uchar_t* d, IndexType p, IndexType n) const
+TextBuffer::TextBuffer::Output(uchar_t* d, SizeType p, SizeType n) const
 {
-	if(p + n > mlen)
+	if(p + n > capacity)
 		return false;
-	memcpy(d, &text[p], sizeof(uchar_t) * n);
+	std::memcpy(d, &text[p], sizeof(uchar_t) * n);
 	return true;
 }
 
@@ -135,7 +138,7 @@ TextMap::clear()
 }
 
 
-TextFileBuffer::HText::HText(TextFileBuffer* pBuf, BlockIndexType b, IndexType i) ythrow()
+TextFileBuffer::HText::HText(TextFileBuffer* pBuf, BlockSizeType b, SizeType i) ythrow()
 : pBuffer(pBuf), blk(b), idx(i)
 {
 //	assert(buf.GetTextSize() >= 1);
@@ -146,15 +149,14 @@ TextFileBuffer::HText::operator++() ythrow()
 {
 	if(pBuffer != NULL)
 	{
+	//	assert(GetBlockLength() >= 1);
 		if(blk <= (pBuffer->GetTextSize() - 1) / nBlockSize)
 		{
-			if(idx == GetBlockLength())
+			if(++idx == GetBlockLength())
 			{
 				++blk;
 				idx = 0;
 			}
-			else
-				++idx;
 		}
 		else
 			*this = pBuffer->end();
@@ -167,12 +169,11 @@ TextFileBuffer::HText::operator--() ythrow()
 {
 	if(pBuffer != NULL)
 	{
+	//	assert(GetBlockLength() >= 1);
 		if(blk != 0 || idx != 0)
 		{
-			if(idx == 0)
+			if(idx-- == 0)
 				idx = GetBlockLength(--blk);
-			else
-				--idx;
 		}
 		else
 			*this = pBuffer->end();
@@ -253,8 +254,8 @@ TextFileBuffer::HText::GetTextPtr() const ythrow()
 	return p;
 }
 
-IndexType
-TextFileBuffer::HText::GetBlockLength(BlockIndexType i) const ythrow()
+SizeType
+TextFileBuffer::HText::GetBlockLength(BlockSizeType i) const ythrow()
 {
 	if(pBuffer == NULL)
 		return 0;
@@ -278,11 +279,11 @@ TextFileBuffer::HText::GetBlockLength(BlockIndexType i) const ythrow()
 
 
 TextFileBuffer::TextFileBuffer(YTextFile& file)
-: File(file), nTextSize(std::max<u32>(File.GetTextSize(), 1)), nBlock(nTextSize / nBlockSize)
+: File(file), nTextSize(std::max<u32>(File.GetTextSize(), 1)), nBlock((nTextSize + nBlockSize - 1) / nBlockSize)
 {}
 
 TextBlock&
-TextFileBuffer::operator[](const BlockIndexType& i)
+TextFileBuffer::operator[](const BlockSizeType& i)
 {
 	try
 	{

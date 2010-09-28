@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-09-26 22:42 + 08:00;
-// Version = 0.2677; *Build 155 r43;
+// UTime = 2010-09-29 03:34 + 08:00;
+// Version = 0.2677; *Build 156 r40;
 
 
 #include "../YCLib/ydef.h"
@@ -106,123 +106,153 @@ $using:
 
 $DONE:
 r1:
-/ @@ \cl MVisualControl:
-	/ \v \eh \mf void OnKeyHeld(const Runtime::MKeyEventArgs&);
-/ \a STouchStatus => SInputStatus;
-/ @@ \u YGUI:
-	/ @@ \cl SInputStatus:
-		+ public typedef enum { KeyFree = 0, KeyPressed = 1, KeyHeld = 2 } KeyHeldStateType;
-		+ public \s \mo Timers::YTimer KeyTimer;
-		+ public \s \mo KeyHeldStateType KeyHeldState;
-		/ \a v_DragOffset => DragOffset;
-		+ \s \mf ResetKeyHeldStatus();
-	/ \impl @@ \f ResponseKeyHeldBase(MVisualControl& c, const MKeyEventArgs&) @@ unnamed \ns;
-	+ \inc "../Service/ytimer.h";
+/= test 0;
 
 r2:
-/ \impl @@ \ctor @@ \cl YFileBox;
+* \impl @@ \mf void MDualScreenReader::UnloadText() @@ \cl DSReader;
 
-r3:
-/ \tr \impl @@ \mf void MVisualControl::OnKeyHeld(const Runtime::MKeyEventArgs&);
-
-r4:
-* \impl bool ResponseKeyUpBase(MVisualControl& c, const MKeyEventArgs&) @@ unnamed \ns @@ \cl SInputStatus @@ \u YGUI;
-
-r5-r6:
+r3-r6:
 /= test 1;
 
 r7:
-/ @@ \cl YTimer @@ \u YTimer:
-	/ \impl @@ \mf bool RefreshRaw();
-	/ \a nStart => nBase;
-	/ \mf DefGetter(u32, StartTick, nBase)
-		-> DefGetter(u32, BaseTick, nBase)
-r8:
-/ @@ \cl YTimer @@ \u YTimer:
-	* \impl @@ \mf void Activate();
++ \i \ctor Path(const String&) @@ \cl Path @@ \u YFileSystem;
+/= \simp \impl @@ \mf IO::Path YFileBox::GetPath() const;
 
-r9:
-+ \s \mf void RepeatKeyHeld(Components::Controls::MVisualControl&, const MKeyEventArgs&) @@ \cl SInputStatus @@ \u YGUI;
-/ \impl @@ \mf void MVisualControl::OnKeyHeld(const Runtime::MKeyEventArgs&);
-
-r10:
-* \impl @@ void SInputStatus::RepeatKeyHeld(MVisualControl&, const MKeyEventArgs&) @@ \u YGUI;
-
-r11-r14:
+r8-r10:
 /= test 2;
 
-r15:
-* \impl @@ void SInputStatus::RepeatKeyHeld(MVisualControl&, const MKeyEventArgs&) @@ \u YGUI;
+r11:
+/ @@ \cl Path @@ \u YPath:
+	/ typedef NativePathCharType ValueType -> typedef uchar_t ValueType;
+	+ typedef std::basic_string<NativePathCharType> NativeStringType;
+	/ DefGetter(const StringType&, NativeString, pathname)
+		-> DefGetter(NativeStringType, NativeString, Text::MBCSToString(pathname));
+	+ DefGetter(const StringType&, String, pathname);
+	- DefGetter(StringType, GeneralString, pathname);
+	/ \impl @@ \mf const ValueType*, c_str() const;
+	/ \i \ctor Path(const String&) -> Path(const NativeStringType&);
+	+ \i \ctor Path(const NativePathCharType*);
+	/ \impl @@ \mf Path& operator/=(const Path&);
+	/ \impl @@ \mf Path GetRootName() const;
+	+ \s \m \c Path Now;
+/ std::string StringToMBCS(const String&, const CSID& = CS_Local)
+	-> std::string StringToMBCS(const stdex::ustring&, const CSID& = CS_Local) @@ \u YString;
+/ @@ \u Shells;
+	/ \impl @@ \mf void ShlExplorer::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs&);
 
-r16:
-/ @@ \u YGUI:
-	/ \mf ResetKeyHeldStatus => ResetKeyHeldState @@ \cl SInputStatus;
-	/ \impl @@ \mf bool ResponseKeyUpBase(MVisualControl&, const MKeyEventArgs&);
-
-r17:
-/ \tr \impl @@ void SInputStatus::RepeatKeyHeld(MVisualControl&, const MKeyEventArgs&) @@ \u YGUI;
-
-r18:
-/ @@ \cl YListBox:
-	/ \mf void OnKeyPress(const MKeyEventArgs&) -> void OnKeyDown(const MKeyEventArgs&);
-	/ \impl @@ \ctor;
-
-r19-r21:
+r12
 /= test 3;
 
-r22:
-/ \a KeyStatus => KeyHeldState;
+r13:
+/ @@ \cl Path @@ \ns IO @@ \u YFileSystem:
+	/ typedef std::basic_string<NativePathCharType> NativeStringType => ..;
+	/ + public \inh stdex::ustring;
+	- private \m StringType pathname;
+	- DefPredicate(Empty, pathname.empty());
+	- DefGetter(const StringType&, String, pathname);
+	/ DefGetter(NativeStringType, NativeString, Text::StringToMBCS(pathname))
+		-> DefGetter(NativeStringType, NativeString, Text::StringToMBCS(*this));
+	- \i \mf void clear();
+	- \i \mf void swap() ythrow();
+	- \i copy \ctor;
+	/ ^ stdex::ustring @@ \impl @@ \i \ctor;
+	- \i \mf Path& operator=(const Path&);
+	- \i \mf template<class _tString> Path& Path::operator=(const _tString&);
+	/ \impl @@ \mf Path& operator/=(const Path&);
+	/ \impl @@ \mf Path GetRootName() const;
+	/ \impl @@ \mf Path GetParentPath() const;
+	/ \impl @@ \mf Path GetFilename() const;
+	/ \impl @@ \mf Path& ReplaceExtension(const Path&);
+	/ \impl @@ \mf operator++() & operator--() & operator*() @@ \cl iterator;
+	/ \impl @@ \mf Path GetRelativePath() const;
+	/ \impl @@ \i \mf bool HasRootPath() const;
+	/ \impl @@ \i \mf bool HasRelativePath() const;
+	/ \impl @@ \i \mf bool HasParentPath() const;
+	/ \impl @@ \i \mf bool HasFilename() const;
+	/ \impl @@ \i \mf bool HasRootDirectory() const;
+	/ \impl @@ \i \mf bool HasRootName() const;
+	/ \impl @@ \i \mf bool HasStem() const;
+	/ \impl @@ \i \mf bool HasExtension() const;
+	- \mf const ValueType* c_str() const;
+/ @@ \u Shells:
+	/ \impl @@ void ShlExplorer::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs&);
 
-r23:
-/ \a KeyStatusType => KeyHeldStateType;
+r14:
+/ @@ \u YTextManager:
+	* \tr \impl @@ \ctor @@ \cl TextFileBuffer;
+	/ @@ \cl TextBuffer:
+		/ \m const SizeType mlen -> const SizeType capacity;
+		/ \m IndexType len -> SizeType len;
+		/ DefGetter(IndexType, MaxLength, mlen)
+			-> DefGetter(SizeType, Capacity, capacity);
+		/ DefGetter(IndexType, Length, len)
+			-> DefGetter(SizeType, Length, len);
+		/ \ret \ty @@ \mf IndexType GetPrevChar(IndexType, uchar_t) -> SizeType;
+		/ \ret \ty @@ \mf IndexType GetNextChar(IndexType, uchar_t) -> SizeType;
+		/ \mf IndexType GetPrevNewline(IndexType)
+			-> GetPrevNewline(SizeType);
+		/ \mf IndexType GetNextNewline(IndexType)
+			-> GetPrevNewline(SizeType);
+		/ \mf uchar_t& at(IndexType) ythrow(std::out_of_range)
+			-> uchar_t& at(SizeType) ythrow(std::out_of_range);
+		/ \ret \ty @@ \mf IndexType Load(YTextFile&) -> SizeType;
+		/ IndexType Load(YTextFile&, IndexType) -> SizeType Load(YTextFile&, SizeType);
+		/ IndexType LoadN(YTextFile&, IndexType) -> SizeType Load(YTextFile&, SizeType);
+		/ \mf bool Output(uchar_t*, IndexType, IndexType) const
+			-> bool Output(uchar_t*, SizeType, SizeType) const;
+		/= \tr \impl @@ \mf bool Output(uchar_t*, SizeType, SizeType) const;
+		/ \ex \ctor TextBuffer(IndexType)
+			-> TextBuffer(SizeType);
+		/ \mf uchar_t& operator[](IndexType) ythrow()
+			-> uchar_t& operator[](SizeType) ythrow();
+		/ DefGetter(SizeType, SizeOfBuffer, sizeof(uchar_t) * mlen)
+		-> DefGetter(SizeType, SizeOfBuffer, sizeof(uchar_t) * capacity);
+		/ \tr \impl @@ \i \mf bool Load(const uchar_t*);
+		/ \tr \impl @@ \i \mf SizeType Load(YTextFile&);
+	/ \a BlockIndexType -> BlockSizeType;
+	/ \a Index => SizeType'
 
-r24-r31:
+r15:
+/ @@ \cl TextBuffer @@ \u YTextManager:
+	/= \tr \impl @@ \mf bool Load(const uchar_t*, SizeType);
+	/ \impl @@ \mf SizeType Load(YTextFile&, SizeType);
+
+r16:
+/ \i \e \ctor YConsole(YScreen& = *pDefaultScreen) @@ \cl YConsole @@ \u YComponent
+	-> YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black);
+
+r17:
+/ @@ \cl TextFileBuffer::HText @@ \u YTextManager:
+	+ \mf DefGetter(TextFileBuffer*, BufferPtr, pBuffer);
+	+ \mf DefGetter(BlockSizeType, BlockN, blk);
+	+ \mf DefGetter(SizeType, IndexN, idx);
+
+r18-r19:
 /= test 4;
 
-r32:
-/ \impl @@ \mf void SInputStatus::RepeatKeyHeld(MVisualControl&, const MKeyEventArgs&) @@ \u YGUI;
+r20-r21:
+/ @@ \cl TextFileBuffer::HText @@ \u YTextManager:
+	* \impl \mf @@ HText& operator++() ythrow();
+	* \impl \mf @@ HText& operator--() ythrow();
 
-r33-r35:
-/ test 5
+r22-r25:
+/= test 5;
 
-r36:
-/ @@ \u YText:
-	+ \f void PrintCharEx(MBitmapBufferEx& buf, TextState& ts, fchar_t c);
-	- \mf void TextRegion::PrintCharEx(fchar_t c);
-	/ \impl @@ \mf u8 TextRegion::PutChar(fchar_t c);
-	/ @@ \cl TextState:
-		+ DefSetter(SPOS, PenX, penX);
-		+ DefSetter(SPOS, PenY, penY);
+r26-r29:
+* \impl @@ \mf bool MDualScreenReader::ScreenDown() @@ \u DSReader;
 
-r37:
-/= \a PrintChar => PrintCharEx;
-
-r38-r41:
-+ \f void PrintCharEx(MBitmapBufferEx& buf, TextState& ts, fchar_t c) @@ \u YText;
-/= test 6;
-
-r42:
-/ \a Validate => ValidateDirectory;
-/ \impl @@ ListType::size_type LoadSubItems() @@ \cl MFileList @@ \u YFileSystem;
-
-r43:
-/ \tr \impl @@ \u YShell;
-
+r30:
+/^ Microsoft Visual 2010;
 
 $DOING:
+r30
+
 
 / ...
 
-$Debug message:
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 20765ac
-_M_lower_bound
-stl_tree.h:1020
-??
-stl_tree.h:1532
+
 
 $NEXT:
-* unknown fatal error;
 / fully \impl \u DSReader;
 + \impl loading pictures;
 

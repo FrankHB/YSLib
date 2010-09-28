@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-3-28 0:09:28;
-// UTime = 2010-9-26 22:37;
-// Version = 0.1716;
+// CTime = 2010-3-28 00:09:28 + 08:00;
+// UTime = 2010-9-27 17:24 + 08:00;
+// Version = 0.1775;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -30,21 +30,19 @@ extern const CPATH FS_Parent;
 
 
 typedef char NativePathCharType; //本机路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
-
+typedef std::basic_string<NativePathCharType> NativeStringType; //本地字符串类型。
 
 //路径类。
-class Path
+class Path : public stdex::ustring
 {
 public:
-	typedef NativePathCharType ValueType;
-	typedef std::basic_string<ValueType> StringType;
+	typedef uchar_t ValueType;
+	typedef std::basic_string<ValueType> StringType; //内部字符串类型。
 //	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
 
 	static const ValueType Slash;
+	static const Path Now;
 	static const Path Parent;
-
-private:
-	StringType pathname;
 
 public:
 	//编码转换。
@@ -54,24 +52,17 @@ public:
 	//构造函数和析构函数。
 	Path();
 	Path(const ValueType*);
+	Path(const NativePathCharType*);
+	Path(const NativeStringType&);
 	template<class _tString>
 	Path(const _tString&);
-	Path(const Path&);
 	~Path();
-
-	//赋值。
-	Path&
-	operator=(const Path&);
-	template<class _tString>
-	Path&
-	operator=(const _tString&);
 
 	//追加路径。
 	Path&
 	operator/=(const Path&);
 
 	//查询。
-	DefPredicate(Empty, pathname.empty())
 	DefPredicate(Absolute, platform::IsAbsolute(GetNativeString().c_str()))
 	DefPredicate(Relative, !IsAbsolute())
 	bool
@@ -107,18 +98,9 @@ public:
 	GetStem() const;
 	Path
 	GetExtension() const;
-	DefGetter(StringType, GeneralString, pathname) //取一般字符串。
-	DefGetter(const StringType&, NativeString, pathname) //取本地格式和编码的字符串。
-
-	PDefHead(const ValueType*, c_str) const //本地格式和编码的 C 风格字符串。
-		ImplBodyMember(GetNativeString(), c_str)
+	DefGetter(NativeStringType, NativeString, Text::StringToMBCS(*this)) //取本地格式和编码的字符串。
 
 	//修改函数。
-
-	PDefHead(void, clear)
-		ImplBodyMember(pathname, clear)
-	PDefHead(void, swap, Path& rhs) ythrow()
-		ImplBodyMember(pathname, swap, rhs.pathname)
 
 	Path&
 	MakeAbsolute(const Path&);
@@ -172,78 +154,68 @@ public:
 
 inline
 Path::Path()
-: pathname()
+: stdex::ustring()
 {}
 inline
 Path::Path(const Path::ValueType* pathstr)
-: pathname(pathstr)
+: stdex::ustring(pathstr)
+{}
+inline
+Path::Path(const NativePathCharType* pathstr)
+: stdex::ustring(Text::MBCSToString(pathstr))
+{}
+inline
+Path::Path(const NativeStringType& pathstr)
+: stdex::ustring(Text::MBCSToString(pathstr))
 {}
 template<class _tString>
 inline
 Path::Path(const _tString& pathstr)
-: pathname(pathstr)
-{}
-inline
-Path::Path(const Path& path)
-: pathname(path.pathname)
+: stdex::ustring(pathstr)
 {}
 inline
 Path::~Path()
 {}
 
-inline Path&
-Path::operator=(const Path& rhs)
-{
-	pathname = rhs.pathname;
-	return *this;
-}
-template<class _tString>
-inline Path&
-Path::operator=(const _tString& rhs)
-{
-	pathname = rhs;
-	return *this;
-}
-
 inline bool
 Path::HasRootName() const
 {
-	return !GetRootName().IsEmpty();
+	return !GetRootName().empty();
 }
 inline bool
 Path::HasRootDirectory() const
 {
-	return !GetRootDirectory().IsEmpty();
+	return !GetRootDirectory().empty();
 }
 inline bool
 Path::HasRootPath() const
 {
-	return !GetRootPath().IsEmpty();
+	return !GetRootPath().empty();
 }
 inline bool
 Path::HasRelativePath() const
 {
-	return !GetRelativePath().IsEmpty();
+	return !GetRelativePath().empty();
 }
 inline bool
 Path::HasParentPath() const
 {
-	return !GetParentPath().IsEmpty();
+	return !GetParentPath().empty();
 }
 inline bool
 Path::HasFilename() const
 {
-	return !GetFilename().IsEmpty();
+	return !GetFilename().empty();
 }
 inline bool
 Path::HasStem() const
 {
-	return !GetStem().IsEmpty();
+	return !GetStem().empty();
 }
 inline bool
 Path::HasExtension() const
 {
-	return !GetExtension().IsEmpty();
+	return !GetExtension().empty();
 }
 
 inline

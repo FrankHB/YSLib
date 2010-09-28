@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:34 + 08:00;
-// UTime = 2010-09-26 20:08 + 08:00;
-// Version = 0.3274;
+// UTime = 2010-09-27 14:45 + 08:00;
+// Version = 0.3276;
 
 
 #include "ycontrol.h"
@@ -428,7 +428,7 @@ IO::Path
 YFileBox::GetPath() const
 {
 	if(Viewer.IsSelected() && Viewer.GetSelected() >= 0)
-		return Directory / Text::StringToMBCS(List[Viewer.GetSelected()]);
+		return Directory / (List[Viewer.GetSelected()]);
 	return Directory;
 }
 

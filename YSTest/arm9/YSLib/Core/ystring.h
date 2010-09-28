@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YString by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-3-5 22:06:05;
-// UTime = 2010-9-22 4:28;
-// Version = 0.2842;
+// CTime = 2010-03-05 22:06:05 + 08:00;
+// UTime = 2010-09-27 14:43 + 08:00;
+// Version = 0.2857;
 
 
 #ifndef INCLUDED_YSTRING_H_
@@ -17,6 +17,7 @@
 
 namespace stdex
 {
+	//YSLib 基本字符串（使用 UTF-16LE ）。
 	typedef std::basic_string<uchar_t> ustring;
 }
 
@@ -24,7 +25,7 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Text)
 
-// YSLib 标准字符串（使用 UTF-16BE ）。
+// YSLib 标准字符串（使用 UTF-16LE ）。
 class String : public stdex::ustring
 {
 private:
@@ -67,9 +68,9 @@ MBCSToString(const std::string& s, const CSID& cp = CS_Local)
 	return MBCSToString(s.c_str(), cp);
 }
 
-// YSLib 标准字符串转化为多字节字符串。
+// YSLib 基本字符串转化为多字节字符串。
 std::string
-StringToMBCS(const String&, const CSID& = CS_Local);
+StringToMBCS(const stdex::ustring&, const CSID& = CS_Local);
 
 YSL_END_NAMESPACE(Text)
 

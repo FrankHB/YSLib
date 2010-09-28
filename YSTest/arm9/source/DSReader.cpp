@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-1-5 14:04:05;
-// UTime = 2010-9-26 3:41;
-// Version = 0.2880;
+// CTime = 2010-01-05 14:04:05 + 08:00;
+// UTime = 2010-09-28 19:28 + 08:00;
+// Version = 0.2886;
 
 
 #include "DSReader.h"
@@ -112,6 +112,8 @@ MDualScreenReader::LoadText(YTextFile& file)
 void
 MDualScreenReader::UnloadText()
 {
+	itUp = NULL;
+	itDn = NULL;
 	safe_delete_obj()(pText);
 }
 
@@ -189,7 +191,15 @@ MDualScreenReader::ScreenDown()
 {
 	if(IsTextBottom())
 		return false;
-	itUp = itDn;
+
+	int t(pTrUp->GetLnN() + pTrDn->GetLnN());
+
+	while(t-- && itDn != pText->Blocks.end())
+	{
+		itUp = GetNextLinePtr(*pTrUp, itUp, pText->Blocks.end());
+		itDn = GetNextLinePtr(*pTrDn, itDn, pText->Blocks.end());
+	}
+//	itUp = itDn;
 	Update();
 	return true;
 }
