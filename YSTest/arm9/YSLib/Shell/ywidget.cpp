@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-16 20:06:58;
-// UTime = 2010-8-31 21:03;
-// Version = 0.3958;
+// CTime = 2009-11-16 20:06:58 + 08:00;
+// UTime = 2010-10-01 02:50 + 08:00;
+// Version = 0.4076;
 
 
 #include "ywindow.h"
@@ -32,9 +32,10 @@ GetLocationOffset(IWidget* pCon, const SPoint& p, const HWND& hWnd)
 }
 
 
-MVisual::MVisual(const SRect& r)
+MVisual::MVisual(const SRect& r, PixelType b, PixelType f)
 : Visible(true), Transparent(false), bBgRedrawed(false),
-Location(r.GetPoint()), Size(r.Width, r.Height)
+Location(r.GetPoint()), Size(r.Width, r.Height),
+BackColor(b), ForeColor(f)
 {}
 
 void
@@ -55,8 +56,8 @@ MVisual::SetBounds(const SRect& r)
 }
 
 
-MWidget::MWidget(HWND hWnd, const SRect& r, IWidgetContainer* pCon)
-: MVisual(r),
+MWidget::MWidget(HWND hWnd, const SRect& r, IWidgetContainer* pCon, PixelType b, PixelType f)
+: MVisual(r, b, f),
 hWindow(hWnd), pContainer(pCon ? pCon : GetPointer(hWnd))
 {}
 
@@ -109,9 +110,6 @@ YWidget::DrawForeground()
 MWidgetContainer::MWidgetContainer()
 : GMFocusResponser<IVisualControl>(),
 sWgtSet()
-{
-}
-MWidgetContainer::~MWidgetContainer()
 {
 }
 
@@ -181,6 +179,39 @@ YWidgetContainer::DrawForeground()
 {
 	if(hWindow != NULL)
 		hWindow->SetRefresh();
+}
+
+
+void
+MLabel::PaintText(MWidget& w)
+{
+	HWND hWnd(w.GetWindowHandle());
+
+	if(hWnd != NULL && prTextRegion != NULL)
+	{
+		prTextRegion->Font = Font;
+		prTextRegion->Font.Update();
+		prTextRegion->SetPen();
+		prTextRegion->Color = w.ForeColor;
+		prTextRegion->SetSize(w.GetWidth(), w.GetHeight());
+		prTextRegion->SetMargins(2, 2, 2, 2);
+		prTextRegion->PutLine(Text);
+
+		SPoint pt(w.GetLocationForWindow());
+
+		prTextRegion->BlitToBuffer(hWnd->GetBufferPtr(), RDeg0,
+			hWnd->GetSize(), SPoint::Zero, pt, w.GetSize());
+		prTextRegion->SetSize(0, 0);
+	}
+}
+
+void
+YLabel::DrawForeground()
+{
+	if(!Transparent)
+		FillRect(hWindow->GetBufferPtr(), hWindow->GetSize(), GetBounds(), BackColor);
+	ParentType::DrawForeground();
+	PaintText(*this);
 }
 
 YSL_END_NAMESPACE(Widgets)

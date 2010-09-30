@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YResource by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-28 16:46:40;
-// UTime = 2010-7-26 6:27;
-// Version = 0.1314;
+// CTime = 2009-12-28 16:46:40 + 08:00;
+// UTime = 2010-09-30 20:04 + 08:00;
+// Version = 0.1360;
 
 
 #ifndef INCLUDED_YRES_H_
@@ -20,10 +20,8 @@ template<class T>
 GHResource<T>&
 GetGlobalResource()
 {
-	static GHResource<T> p;
+	static GHResource<T> p(new T);
 
-	if(p == NULL)
-		p = new T;
 	return p;
 }
 
@@ -39,18 +37,11 @@ public:
 	explicit
 	YImage(ConstBitmapPtr = NULL, SDST = 0, SDST = 0);
 
-	BitmapPtr
-	GetImagePtr() const;
+	DefGetter(BitmapPtr, ImagePtr, GetBufferPtr())
 
 	void
 	SetImage(ConstBitmapPtr, SDST = SCRW, SDST = SCRH);
 };
-
-inline BitmapPtr
-YImage::GetImagePtr() const
-{
-	return GetBufferPtr();
-}
 
 YSL_END_NAMESPACE(Drawing)
 

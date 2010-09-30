@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-22 17:28:28;
-// UTime = 2010-9-18 15:08;
-// Version = 0.2968;
+// CTime = 2009-12-22 17:28:28 + 08:00;
+// UTime = 2010-10-01 00:00 + 08:00;
+// Version = 0.2972;
 
 
 #include "ydesktop.h"
@@ -20,7 +20,7 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Forms)
 
 MWindow::MWindow(const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl)
-: MDesktopObject(pDsk), MVisualControl(Color::White, Color::Black),
+: MDesktopObject(pDsk), MVisualControl(),
 Buffer(), hShell(hShl), prBackImage(i), bRefresh(false), bUpdate(false)
 {}
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-3-28 00:09:28 + 08:00;
-// UTime = 2010-9-27 17:24 + 08:00;
-// Version = 0.1775;
+// UTime = 2010-9-30 16:29 + 08:00;
+// Version = 0.1780;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -420,8 +420,7 @@ protected:
 
 public:
 	MFileList(CPATH = NULL); //参数为空时为根目录。
-	virtual
-	~MFileList();
+	virtual DefTrivialDtor(MFileList)
 
 	//导航至相对路径。
 	bool

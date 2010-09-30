@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58;
-// UTime = 2010-9-25 22:18;
-// Version = 0.4547;
+// UTime = 2010-10-01 02:54;
+// Version = 0.4629;
 
 
 #ifndef INCLUDED_YWIDGET_H_
@@ -14,12 +14,19 @@
 #include "../Core/ymodule.h"
 #include "../Core/yres.h"
 #include <set>
+#include "ytext.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
 //前向声明。
+
+using Drawing::PixelType;
+using Drawing::BitmapPtr;
+using Drawing::ConstBitmapPtr;
+using Drawing::ScreenBufferType;
+using Drawing::Color;
 
 using Drawing::SPoint;
 using Drawing::SVec;
@@ -38,7 +45,7 @@ DeclInterface(IWidget)
 	DeclIEntry(bool IsTransparent() const) //判断是否透明。
 	DeclIEntry(bool IsBgRedrawed() const) //判断是否需要重绘。
 
-	DeclIEntry(bool Contains(const Drawing::SPoint&) const) //判断点是否在边界内或边界上。
+	DeclIEntry(bool Contains(const SPoint&) const) //判断点是否在边界内或边界上。
 
 	DeclIEntry(const SPoint& GetLocation() const)
 	DeclIEntry(const SSize& GetSize() const)
@@ -96,8 +103,13 @@ protected:
 	SSize Size; //部件大小。
 
 public:
+	PixelType BackColor; //默认背景色。
+	PixelType ForeColor; //默认前景色。
+
 	explicit
-	MVisual(const SRect& = SRect::Empty);
+	MVisual(const SRect& = SRect::Empty,
+		PixelType = Color::White, PixelType = Color::Black);
+	virtual DefTrivialDtor(MVisual)
 
 	DefPredicate(Visible, Visible)
 	DefPredicate(Transparent, Transparent)
@@ -140,7 +152,8 @@ public:
 	IWidgetContainer* const pContainer; //从属的部件容器的指针。
 
 	explicit
-	MWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL);
+	MWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL,
+		PixelType = Color::White, PixelType = Color::Black);
 
 	//判断从属关系。
 	bool
@@ -232,8 +245,6 @@ protected:
 
 public:
 	MWidgetContainer();
-	virtual
-	~MWidgetContainer();
 
 protected:
 	PDefOpHead(void, +=, IVisualControl& r) //向焦点对象组添加焦点对象。
@@ -321,6 +332,63 @@ public:
 	RequestToTop()
 	{}
 };
+
+
+//标签模块。
+class MLabel
+{
+protected:
+	GHResource<Drawing::TextRegion> prTextRegion; //文本区域指针。
+
+public:
+	Drawing::Font Font; //字体。
+	Drawing::Padding Margin; //文本和容器的间距。
+	bool AutoSize; //启用根据字号自动调整大小。
+	bool AutoEllipsis; //启用对超出标签宽度的文本调整大小。
+	String Text; //标签文本。
+
+	template<class _tChar>
+	MLabel(const _tChar*, const Drawing::Font& = Drawing::Font::GetDefault(), GHResource<Drawing::TextRegion> = NULL);
+
+protected:
+	DefTrivialDtor(MLabel)
+
+	void
+	PaintText(MWidget&);
+};
+
+template<class _tChar>
+MLabel::MLabel(const _tChar* l, const Drawing::Font& f, GHResource<Drawing::TextRegion> prTr_)
+	: prTextRegion(prTr_ ? prTr_ : GetGlobalResource<Drawing::TextRegion>()), Font(f),
+	Margin(prTextRegion->Margin), AutoSize(true), AutoEllipsis(false), Text(l)
+{}
+
+
+//标签。
+class YLabel : public GMCounter<YLabel>, public YWidget, public Widgets::MLabel
+{
+public:
+	typedef YWidget ParentType;
+
+/*
+	YImage BackgroundImage; //背景图像。
+	YImage Image; //前景图像。
+*/
+
+	//用字符串在窗口中以给定字号初始化标签。
+	template<class _tChar>
+	YLabel(HWND, const _tChar*, const SRect& = SRect::FullScreen,
+		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+
+	virtual void
+	DrawForeground();
+};
+
+template<class _tChar>
+YLabel::YLabel(HWND hWnd, const _tChar* l, const SRect& r,
+	const Drawing::Font& f, IWidgetContainer* pCon, GHResource<Drawing::TextRegion> prTr_)
+	: YWidget(hWnd, r, pCon), MLabel(l, f, pCon ? prTr_ : GetGlobalResource<Drawing::TextRegion>())
+{}
 
 YSL_END_NAMESPACE(Widgets)
 

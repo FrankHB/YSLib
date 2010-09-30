@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-5-2 12:00:08;
-// UTime = 2010-9-16 20:57;
-// Version = 0.1979;
+// CTime = 2010-05-02 12:00:08 + 08:00;
+// UTime = 2010-10-01 00:37 + 08:00;
+// Version = 0.1995;
 
 
 #ifndef INCLUDED_YDESKTOP_H_
@@ -31,15 +31,13 @@ private:
 	DOs sDOs; //桌面对象组（末尾表示顶端）。
 
 public:
-	Drawing::PixelType BackColor; //背景色。
-
 	explicit
-	YDesktop(YScreen&, Drawing::PixelType = 0, GHResource<Drawing::YImage> = NULL);
+	YDesktop(YScreen&, PixelType = 0, GHResource<Drawing::YImage> = NULL);
 	virtual
 	~YDesktop();
 
 	DefGetter(const YScreen&, Screen, Screen) //取屏幕对象。
-	DefGetter(Drawing::BitmapPtr, BackgroundPtr, Screen.GetPtr()) //取背景指针。
+	DefGetter(BitmapPtr, BackgroundPtr, Screen.GetPtr()) //取背景指针。
 
 	virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const SPoint& p) const
 		ImplBodyBase(YDesktop, GetTopDesktopObjectPtr, p)

@@ -1154,7 +1154,7 @@ YFileListControl(CPATH path)
 class YLabeledWidget : public GMCounter<LabeledWidget>, public YWidget
 {
 protected:
-	YLabel& label;
+	YButton& label;
 	YWidget& widget;
 
 public:
@@ -1182,7 +1182,7 @@ class YCommandButton : public GMCounter<YCommandButton>, public YWidget //√¸¡Ó∞¥
 public:
 	typedef YWidget ParentType;
 protected:
-	YLabel* label;
+	YButton* label;
 	YImage* image;
 
 public:

@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-09-26 22:37 + 08:00;
-// Version = 0.3098;
+// UTime = 2010-10-01 00:44 + 08:00;
+// Version = 0.3116;
 
 
 #include <Shells.h>
@@ -411,23 +411,23 @@ YSL_END_SHELL(ShlSetting)
 HWND ShlSetting::hWndC(NULL);
 
 void
-ShlSetting::TFormC::lblC_TouchUp(const MTouchEventArgs& e)
+ShlSetting::TFormC::btnC_TouchUp(const MTouchEventArgs& e)
 {
 	InputCounter(e);
 	HandleCast<ShlSetting>(hShell)->ShowString(strCount);
-	lblC.Refresh();
+	btnC.Refresh();
 }
 
 void
-ShlSetting::TFormC::lblC_TouchDown(const MTouchEventArgs& e)
+ShlSetting::TFormC::btnC_TouchDown(const MTouchEventArgs& e)
 {
 	InputCounterAnother(e);
 	HandleCast<ShlSetting>(hShell)->ShowString(strCount);
-//	lblC.Refresh();
+//	btnC.Refresh();
 }
 
 void
-ShlSetting::TFormC::lblC_Click(const MTouchEventArgs& e)
+ShlSetting::TFormC::btnC_Click(const MTouchEventArgs& e)
 {
 
 	static const int ffilen(pDefaultFontCache->GetFilesN());
@@ -436,35 +436,35 @@ ShlSetting::TFormC::lblC_Click(const MTouchEventArgs& e)
 	static int itype;
 	static YFontCache::FTypes::const_iterator it(pDefaultFontCache->GetTypes().begin());
 
-	//	lblC.Transparent ^= 1;
+	//	btnC.Transparent ^= 1;
 	if(nCountInput & 1)
 	{
-		//	lblC.Visible ^= 1;
+		//	btnC.Visible ^= 1;
 		++itype %= ftypen;
 		if(++it == pDefaultFontCache->GetTypes().end())
 			it = pDefaultFontCache->GetTypes().begin();
-		lblC.Font = Font(*(*it)->GetFontFamilyPtr(), 18 - (itype << 1), EFontStyle::Regular);
-	//	lblC.Font = Font(*(*it)->GetFontFamilyPtr()/*GetDefaultFontFamily()*/, 18 - (itype << 1), EFontStyle::Regular);
-		sprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n", lblC.Font.GetSize(), ffilen, ftypen, ffacen);
-		lblC.Text = strtf;
+		btnC.Font = Font(*(*it)->GetFontFamilyPtr(), 18 - (itype << 1), EFontStyle::Regular);
+	//	btnC.Font = Font(*(*it)->GetFontFamilyPtr()/*GetDefaultFontFamily()*/, 18 - (itype << 1), EFontStyle::Regular);
+		sprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n", btnC.Font.GetSize(), ffilen, ftypen, ffacen);
+		btnC.Text = strtf;
 	}
 	else
 	{
 		sprintf(strtf, "%d/%d;%s:%s;\n", itype + 1, ftypen, (*it)->GetFamilyName(), (*it)->GetStyleName());
 		//	sprintf(strtf, "B%p\n", pDefaultFontCache->GetTypefacePtr("FZYaoti", "Regular"));
-		lblC.Text = strtf;
+		btnC.Text = strtf;
 	}
-	//	lblC.Refresh();
+	//	btnC.Refresh();
 }
 
 void
-ShlSetting::TFormC::lblC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
+ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
 {
 	//测试程序。
 
 	u32 k(e);
 
-	YLabel& lbl(static_cast<TFormA&>(*(static_cast<ShlSetting&>(*NowShell()).hWndUp)).lblA2);
+	YButton& lbl(static_cast<TFormA&>(*(static_cast<ShlSetting&>(*NowShell()).hWndUp)).lblA2);
 	lbl.Transparent ^= 1;
 	++lbl.ForeColor;
 	--lbl.BackColor;
@@ -472,7 +472,7 @@ ShlSetting::TFormC::lblC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e
 	lbl.Text = strttxt;
 	lbl.Refresh();
 /*
-	YLabel& lbl(static_cast<YLabel&>(sender));
+	YButton& lbl(static_cast<YButton&>(sender));
 
 	if(nCountInput & 1)
 	{

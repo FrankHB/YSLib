@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:24 + 08:00;
-// UTime = 2010-09-26 19:06 + 08:00;
-// Version = 0.3536;
+// UTime = 2010-10-01 02:45 + 08:00;
+// Version = 0.3639;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -11,7 +11,6 @@
 // YControl ：平台无关的控件实现。
 
 #include "ywidget.h"
-#include "ytext.h"
 
 YSL_BEGIN
 
@@ -103,9 +102,7 @@ public:
 	explicit
 	MControl(bool = true);
 
-	virtual
-	~MControl()
-	{}
+	virtual DefTrivialDtor(MControl)
 
 	virtual PDefOpHead(IControl::EventMapType::Event&, [], const IControl::EventMapType::ID& id)
 		ImplRet(EventMap[id])
@@ -125,9 +122,6 @@ MControl::MControl(bool e)
 class MVisualControl : public MControl, public Runtime::AFocusRequester
 {
 public:
-	Drawing::PixelType BackColor; //默认背景色。
-	Drawing::PixelType ForeColor; //默认前景色。
-
 	DefEvent(YTouchEventHandler, TouchUp)
 	DefEvent(YTouchEventHandler, TouchDown)
 	DefEvent(YTouchEventHandler, TouchHeld)
@@ -139,10 +133,7 @@ public:
 	DefEvent(YKeyEventHandler, KeyPress)
 
 	explicit
-	MVisualControl(Drawing::PixelType = Drawing::Color::Black, Drawing::PixelType = Drawing::Color::White);
-	virtual
-	~MVisualControl()
-	{}
+	MVisualControl();
 
 protected:
 	Runtime::GMFocusResponser<IVisualControl>*
@@ -230,22 +221,12 @@ public:
 };
 
 
-//V0.1600;
-//标签。
-class YLabel : public GMCounter<YLabel>, public YVisualControl
+//按钮：V0.2500。
+class YButton : public GMCounter<YButton>, public YVisualControl, public Widgets::MLabel
 {
 public:
 	typedef YVisualControl ParentType;
 
-protected:
-	GHResource<Drawing::TextRegion> prTextRegion; //文本区域指针。
-
-public:
-	Drawing::Font Font; //字体。
-	Drawing::Padding Margin; //文本和容器的间距。
-	bool AutoSize; //启用根据字号自动调整大小。
-	bool AutoEllipsis; //启用对超出标签宽度的文本调整大小。
-	String Text; //标签文本。
 /*
 	YImage BackgroundImage; //背景图像。
 	YImage Image; //前景图像。
@@ -253,26 +234,21 @@ public:
 
 	//用字符串在窗口中以给定字号初始化标签。
 	template<class _tChar>
-	YLabel(HWND, const _tChar*, const SRect& = SRect::FullScreen,
+	YButton(HWND, const _tChar*, const SRect& = SRect::FullScreen,
 		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
-	virtual
-	~YLabel();
 
 	virtual void
 	DrawForeground();
 };
 
 template<class _tChar>
-YLabel::YLabel(HWND hWnd, const _tChar* l, const SRect& r,
-			   const Drawing::Font& f, IWidgetContainer* pCon, GHResource<Drawing::TextRegion> prTr_)
-: YVisualControl(hWnd, r, pCon),
-prTextRegion(pCon ? prTr_ : GetGlobalResource<Drawing::TextRegion>()), Font(),
-Margin(prTextRegion->Margin), AutoSize(true), AutoEllipsis(false), Text(l)
+YButton::YButton(HWND hWnd, const _tChar* l, const SRect& r,
+	const Drawing::Font& f, IWidgetContainer* pCon, GHResource<Drawing::TextRegion> prTr_)
+: YVisualControl(hWnd, r, pCon), MLabel(l, f, prTr_)
 {}
 
 
-//V0.1605E;
-//文本列表框。
+//文本列表框：V0.1605E。
 class YListBox : public GMCounter<YListBox>, public YVisualControl
 {
 public:

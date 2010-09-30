@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:34 + 08:00;
-// UTime = 2010-09-27 14:45 + 08:00;
-// Version = 0.3276;
+// UTime = 2010-10-01 02:49 + 08:00;
+// Version = 0.3346;
 
 
 #include "ycontrol.h"
@@ -50,9 +50,8 @@ RectOnGotFocus(const SPoint& l, const SSize& s, HWND hWnd)
 }
 
 
-MVisualControl::MVisualControl(Drawing::PixelType b, Drawing::PixelType f)
-: MControl(), AFocusRequester(),
-BackColor(b), ForeColor(f)
+MVisualControl::MVisualControl()
+: MControl(), AFocusRequester()
 {
 	EventMap[EControl::GotFocus] += &MVisualControl::OnGotFocus;
 	EventMap[EControl::LostFocus] += &MVisualControl::OnLostFocus;
@@ -128,7 +127,7 @@ MVisualControl::OnKeyHeld(const Runtime::MKeyEventArgs& e)
 
 
 YVisualControl::YVisualControl(HWND hWnd, const SRect& r, IWidgetContainer* pCon)
-: YComponent(), MWidget(hWnd, r, pCon), MVisualControl(Color::White, Color::Black)
+: YComponent(), MWidget(hWnd, r, pCon), MVisualControl()
 {
 	if(pContainer != NULL)
 	{
@@ -176,32 +175,13 @@ YVisualControl::ReleaseFocus(const MEventArgs& e)
 }
 
 
-YLabel::~YLabel()
-{
-}
-
 void
-YLabel::DrawForeground()
+YButton::DrawForeground()
 {
-	YVisualControl::DrawForeground();
+	ParentType::DrawForeground();
 	if(bFocused)
 		RectOnGotFocus(Location, Size, hWindow);
-	if(prTextRegion)
-	{
-		prTextRegion->Font = Font;
-		prTextRegion->Font.Update();
-		prTextRegion->SetPen();
-		prTextRegion->Color = ForeColor;
-		prTextRegion->SetSize(GetWidth(), GetHeight());
-		prTextRegion->SetMargins(2, 2, 2, 2);
-		prTextRegion->PutLine(Text);
-
-		SPoint pt(GetLocationForWindow());
-
-		prTextRegion->BlitToBuffer(hWindow->GetBufferPtr(), RDeg0,
-			hWindow->GetSize(), SPoint::Zero, pt, GetSize());
-		prTextRegion->SetSize(0, 0);
-	}
+	PaintText(*this);
 }
 
 

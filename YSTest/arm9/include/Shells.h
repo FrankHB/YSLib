@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-09-26 22:43 + 08:00;
-// Version = 0.2690;
+// UTime = 2010-09-30 21:53 + 08:00;
+// Version = 0.2715;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -22,6 +22,7 @@ using namespace Components;
 using namespace Components::Widgets;
 using namespace Components::Controls;
 using namespace Components::Forms;
+using namespace Drawing;
 using namespace Runtime;
 
 using namespace DS;
@@ -34,12 +35,12 @@ class ShlLoad : public ShlDS
 {
 private:
 	struct TFrmLoadUp
-		: public YForm
+	: public YForm
 	{
 		YLabel lblTitle, lblStatus;
 
 		TFrmLoadUp(HSHL hShl)
-			: YForm(SRect::FullScreen, GetImage(1), pDesktopUp, hShl),
+		: YForm(SRect::FullScreen, GetImage(1), pDesktopUp, hShl),
 			lblTitle(HWND(this), G_APP_NAME, SRect(50, 20, 100, 22)),
 			lblStatus(HWND(this), "Loading...", SRect(60, 80, 80, 22))
 		{
@@ -52,7 +53,7 @@ private:
 		YLabel lblStatus;
 
 		TFrmLoadDown(HSHL hShl)
-			: YForm(SRect::FullScreen, GetImage(2), pDesktopDown, hShl),
+		: YForm(SRect::FullScreen, GetImage(2), pDesktopDown, hShl),
 			lblStatus(HWND(this), FS("初始化中，请稍后……"), SRect(30, 20, 160, 22))
 		{
 			lblStatus.Transparent = true;
@@ -76,7 +77,7 @@ private:
 		YLabel lblTitle, lblPath;
 
 		TFrmFileListMonitor(HSHL hShl)
-			: YForm(SRect::FullScreen, GetImage(3), pDesktopUp, hShl),
+		: YForm(SRect::FullScreen, GetImage(3), pDesktopUp, hShl),
 			lblTitle(HWND(this), "文件列表：请选择一个文件。", SRect(16, 20, 220, 22)),
 			lblPath(HWND(this), "/", SRect(12, 80, 240, 22))
 		{
@@ -88,10 +89,10 @@ private:
 	struct TFrmFileListSelecter : public YForm
 	{
 		YFileBox fbMain;
-		YLabel btnTest, btnOK;
+		YButton btnTest, btnOK;
 
 		TFrmFileListSelecter(HSHL hShl)
-			: YForm(SRect::FullScreen, GetImage(4), pDesktopDown, hShl),
+		: YForm(SRect::FullScreen, GetImage(4), pDesktopDown, hShl),
 			fbMain(HWND(this), SRect(12, 10, 224, 150)),
 			btnTest(HWND(this), FS(" 测试(X)"), SRect(60, 165, 70, 22)),
 			btnOK(HWND(this), FS(" 确定(R)"), SRect(140, 165, 70, 22))
@@ -149,8 +150,8 @@ public:
 
 	struct TFormA : public YForm
 	{
-		YLabel lblA;
-		YLabel lblA2;
+		YButton lblA;
+		YButton lblA2;
 
 		TFormA(HSHL hShl) : YForm(SRect::FullScreen, GetImage(5), pDesktopUp, hShl),
 			lblA(HWND(this), G_APP_NAME, SRect(left, 20, 200, size)),
@@ -168,58 +169,58 @@ public:
 	};
 	struct TFormB : public YForm
 	{
-		YLabel lblB, lblB2;
+		YButton btnB, btnB2;
 
 		TFormB(HSHL hShl) : YForm(SRect(10, 40, 228, 70), /*GetImage(6)*/NULL, pDesktopDown, hShl),
-			lblB(HWND(this), FS("测试程序"), SRect(2, 5, 224, size)),
-			lblB2(HWND(this), FS("测试程序2"), SRect(45, 35, 124, size))
+			btnB(HWND(this), FS("测试程序"), SRect(2, 5, 224, size)),
+			btnB2(HWND(this), FS("测试程序2"), SRect(45, 35, 124, size))
 		{
 			BackColor = ARGB16(1, 31, 31, 15);
 			TouchDown += &YVisualControl::OnTouchDown;
 			TouchHeld += &YVisualControl::OnTouchHeld;
 			TouchMove += &YVisualControl::OnTouchMove;
-			lblB.TouchHeld += &YVisualControl::OnTouchHeld;
-			lblB.TouchMove += &YVisualControl::OnTouchMove;
-			lblB2.TouchHeld += &YVisualControl::OnTouchHeld;
-			lblB.TouchMove += &YVisualControl::OnTouchMove;
-		//	lblB2.TouchDown += lblC_Click;
+			btnB.TouchHeld += &YVisualControl::OnTouchHeld;
+			btnB.TouchMove += &YVisualControl::OnTouchMove;
+			btnB2.TouchHeld += &YVisualControl::OnTouchHeld;
+			btnB.TouchMove += &YVisualControl::OnTouchMove;
+		//	btnB2.TouchDown += btnC_Click;
 
-		//	lblB.Enabled = false;
+		//	btnB.Enabled = false;
 		}
 	};
 	struct TFormC : public YForm
 	{
-		YLabel lblC;
-		YLabel btnReturn;
+		YButton btnC;
+		YButton btnReturn;
 
 		TFormC(HSHL hShl) : YForm(SRect(5, 60, 180, 120), /*GetImage(7)*/NULL, pDesktopDown, hShl),
-			lblC(HWND(this), FS("测试y"), SRect(13, 45, 184, size)),
+			btnC(HWND(this), FS("测试y"), SRect(13, 45, 184, size)),
 			btnReturn(HWND(this), FS("返回"), SRect(13, 82, 60, size))
 		{
 			BackColor = ARGB16(1, 31, 15, 15);
 			TouchDown += TFormC_TouchDown;
 			TouchHeld += &YVisualControl::OnTouchHeld;
-			lblC.TouchUp.Add(*this, &TFormC::lblC_TouchUp);
-			lblC.TouchDown.Add(*this, &TFormC::lblC_TouchDown);
-			lblC.TouchHeld += &YVisualControl::OnTouchHeld;
-			lblC.Click.Add(*this, &TFormC::lblC_Click);
-			lblC.KeyPress += lblC_KeyPress;
-		//	lblC.Enabled = false;
+			btnC.TouchUp.Add(*this, &TFormC::btnC_TouchUp);
+			btnC.TouchDown.Add(*this, &TFormC::btnC_TouchDown);
+			btnC.TouchHeld += &YVisualControl::OnTouchHeld;
+			btnC.Click.Add(*this, &TFormC::btnC_Click);
+			btnC.KeyPress += btnC_KeyPress;
+		//	btnC.Enabled = false;
 			btnReturn.BackColor = ARGB16(1, 22, 23, 24);
 			btnReturn.Click.Add(*this, &TFormC::btnReturn_Click);
 		}
 
 		void
-		lblC_TouchUp(const MTouchEventArgs&);
+		btnC_TouchUp(const MTouchEventArgs&);
 
 		void
-		lblC_TouchDown(const MTouchEventArgs&);
+		btnC_TouchDown(const MTouchEventArgs&);
 
 		void
-		lblC_Click(const MTouchEventArgs&);
+		btnC_Click(const MTouchEventArgs&);
 
 		static void
-		lblC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e);
+		btnC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e);
 
 		void
 		btnReturn_Click(const MTouchEventArgs&);

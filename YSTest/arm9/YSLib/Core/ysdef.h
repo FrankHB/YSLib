@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-24 15:29:11;
-// UTime = 2010-9-25 22:19;
-// Version = 0.2242;
+// UTime = 2010-9-30 16:21;
+// Version = 0.2250;
 
 
 #ifndef INCLUDED_YSDEF_H_
@@ -109,6 +109,8 @@
 
 //简单通用成员函数定义。
 //prefix "Def" = Define;
+#define DefTrivialDtor(_type) ~_type() {}
+
 #define DefConverter(_type, _expr) operator _type() const ythrow() { return _expr; }
 #define DefConverterBase(_type, _base) operator _type() const ythrow() { return _base::operator _type(); }
 #define DefConverterMember(_type, _member) operator _type() const ythrow() { return (_member).operator _type(); }

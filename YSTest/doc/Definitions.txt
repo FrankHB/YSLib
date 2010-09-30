@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-09-28 19:30 + 08:00;
-// Version = r7880;
+// UTime = 2010-10-01 02:55 + 08:00;
+// Version = r7984;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -1687,6 +1687,8 @@ $header YShellDefinition "ysdef.h"
 
 	//简单通用成员函数定义。
 	//prefix "Def" = Define;
+	#define DefTrivialDtor(_type) ~_type() {}
+
 	#define DefConverter(_type, _expr) operator _type() const ythrow() { return _expr; }
 	#define DefConverterBase(_type, _base) operator _type() const ythrow() { return _base::operator _type(); }
 	#define DefConverterMember(_type, _member) operator _type() const ythrow() { return (_member).operator _type(); }
@@ -3024,8 +3026,7 @@ $unit YResource "yres"
 		explicit
 		YImage(ConstBitmapPtr = NULL, SDST = 0, SDST = 0);
 
-		BitmapPtr
-		GetImagePtr() const;
+		DefGetter(ImagePtr, GetBufferPtr())
 
 		void
 		SetImage(ConstBitmapPtr, SDST = SCRW, SDST = SCRH);
@@ -4482,13 +4483,13 @@ $unit YDesktop "ydesktop"
 
 	public:
 		explicit
-		YDesktop(YScreen&, Drawing::PixelType = 0, GHResource<Drawing::YImage> = NULL);
+		YDesktop(YScreen&, PixelType = 0, GHResource<Drawing::YImage> = NULL);
 		virtual
 		~YDesktop();
 
 		DefGetter(const YScreen&, Screen, Screen) //取屏幕对象。
 		DefGetter(const Drawing::MBitmapBuffer&, Buffer, *this) //取显示缓冲区。
-		DefGetter(Drawing::BitmapPtr, BackgroundPtr, Screen.GetPtr()) //取背景指针。
+		DefGetter(BitmapPtr, BackgroundPtr, Screen.GetPtr()) //取背景指针。
 
 		virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const SPoint& p) const
 			ImplBodyBase(YDesktop, GetTopDesktopObjectPtr, p)
@@ -4532,12 +4533,18 @@ $unit YDesktop "ydesktop"
 
 $unit YWidget "ywidget"
 {
-	$import $unit YComponent, Core::YModule, Core::YResource, $header <set>, $unit YWindow, $unit YControl;
+	$import $unit YComponent, Core::YModule, Core::YResource, $header <set>, YText, $unit YWindow, $unit YControl;
 
 
 	YSL_BEGIN_NAMESPACE(Components)
 
 	//前向声明。
+
+	using Drawing::PixelType;
+	using Drawing::BitmapPtr;
+	using Drawing::ConstBitmapPtr;
+	using Drawing::ScreenBufferType;
+	using Drawing::Color;
 
 	using Drawing::SPoint;
 	using Drawing::SVec;
@@ -4556,7 +4563,7 @@ $unit YWidget "ywidget"
 		DeclIEntry(bool IsTransparent() const) //判断是否透明。
 		DeclIEntry(bool IsBgRedrawed() const) //判断是否需要重绘。
 
-		DeclIEntry(bool Contains(const Drawing::SPoint&) const) //判断点是否在边界内或边界上。
+		DeclIEntry(bool Contains(const SPoint&) const) //判断点是否在边界内或边界上。
 
 		DeclIEntry(const SPoint& GetLocation() const)
 		DeclIEntry(const SSize& GetSize() const)
@@ -4614,8 +4621,13 @@ $unit YWidget "ywidget"
 		SSize Size; //部件大小。
 
 	public:
+		PixelType BackColor; //默认背景色。
+		PixelType ForeColor; //默认前景色。
+
 		explicit
-		MVisual(const SRect& = SRect::Empty);
+		MVisual(const SRect& = SRect::Empty,
+			PixelType = Color::White, PixelType = Color::Black);
+		virtual DefTrivialDtor(MVisual)
 
 		DefPredicate(Visible, Visible)
 		DefPredicate(Transparent, Transparent)
@@ -4661,7 +4673,8 @@ $unit YWidget "ywidget"
 		IWidgetContainer* const pContainer; //从属的部件容器的指针。
 
 		explicit
-		MWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL);
+		MWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL,
+			PixelType = Color::White, PixelType = Color::Black);
 
 		//判断从属关系。
 		inline bool
@@ -4741,8 +4754,6 @@ $unit YWidget "ywidget"
 
 	public:
 		MWidgetContainer();
-		virtual
-		~MWidgetContainer();
 
 	protected:
 		PDefOpHead(void, +=, IVisualControl& r) //向焦点对象组添加焦点对象。
@@ -4830,6 +4841,51 @@ $unit YWidget "ywidget"
 		RequestToTop();
 	}; //class YWidgetContainer;
 
+
+	//标签模块。
+	class MLabel
+	{
+	protected:
+		GHResource<Drawing::TextRegion> prTextRegion; //文本区域指针。
+
+	public:
+		Drawing::Font Font; //字体。
+		Drawing::Padding Margin; //文本和容器的间距。
+		bool AutoSize; //启用根据字号自动调整大小。
+		bool AutoEllipsis; //启用对超出标签宽度的文本调整大小。
+		String Text; //标签文本。
+
+		template<class _tChar>
+		MLabel(const _tChar*, const Drawing::Font& = Drawing::Font::GetDefault(), GHResource<Drawing::TextRegion> = NULL);
+
+	protected:
+		DefTrivialDtor(MLabel)
+
+		void
+		PaintText(MWidget&);
+	}; //class MLabel;
+
+
+	//标签。
+	class YLabel : public GMCounter<YLabel>, public YWidget, public Widgets::MLabel
+	{
+	public:
+		typedef YWidget ParentType;
+
+	/*
+		YImage BackgroundImage; //背景图像。
+		YImage Image; //前景图像。
+	*/
+
+		//用字符串在窗口中以给定字号初始化标签。
+		template<class _tChar>
+		YLabel(HWND, const _tChar*, const SRect& = SRect::FullScreen,
+			const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+
+		virtual void
+		DrawForeground();
+	}; //class YLabel;
+
 	YSL_END_NAMESPACE(Widgets)
 
 	YSL_END_NAMESPACE(Components)
@@ -4839,7 +4895,7 @@ $unit YWidget "ywidget"
 
 $unit YControl "ycontrol"
 {
-	$import $unit YWidget, YText,
+	$import $unit YWidget,
 		$unit YWindow, YGUI, Core::YException;
 
 
@@ -4925,8 +4981,7 @@ $unit YControl "ycontrol"
 	public:
 		inline explicit
 		MControl(bool = true);
-		inline virtual
-		~MControl();
+		virtual DefTrivialDtor(MControl)
 
 		virtual PDefOpHead(IControl::EventMapType::Event&, [], const IControl::EventMapType::ID& id)
 			ImplRet(EventMap[id])
@@ -4943,9 +4998,7 @@ $unit YControl "ycontrol"
 	//可视控件模块类。
 	class MVisualControl : public MControl, public Runtime::AFocusRequester
 	{
-		Drawing::PixelType BackColor; //默认背景色。
-		Drawing::PixelType ForeColor; //默认前景色。
-
+	public:
 		DefEvent(YTouchEventHandler, TouchUp)
 		DefEvent(YTouchEventHandler, TouchDown)
 		DefEvent(YTouchEventHandler, TouchHeld)
@@ -4961,10 +5014,7 @@ $unit YControl "ycontrol"
 		CheckFocusContainer(IWidgetContainer*); //检查给定的容器指针是否有效且指向接受焦点的容器。
 
 	public:
-		explicit
-		MVisualControl(Drawing::PixelType = Drawing::Color::Black, Drawing::PixelType = Drawing::Color::White);
-		inline virtual
-		~MVisualControl();
+		MVisualControl();
 
 		virtual void
 		OnGotFocus(const MEventArgs& = GetZeroElement<MEventArgs>());
@@ -4982,14 +5032,14 @@ $unit YControl "ycontrol"
 
 
 	//控件基类。
-	class YControl : public YComponent, public MControl
+	class YControl : public GMCounter<YControl>, public YComponent, public MControl
 	{
 		typedef YComponent ParentType;
 	}; //class YControl;
 
 
 	//可视控件基类。
-	class YVisualControl : public YComponent, public Widgets::MWidget, public MVisualControl,
+	class YVisualControl : public GMCounter<YVisualControl>, public YComponent, public Widgets::MWidget, public MVisualControl,
 		implements IWidget, implements IVisualControl
 	{
 	public:
@@ -5027,10 +5077,10 @@ $unit YControl "ycontrol"
 		virtual DefSetterBase(const SPoint&, Location, MVisual)
 		virtual DefSetterBaseDe(bool, Enabled, MControl, true)
 
-		virtual void
-		DrawBackground();
-		virtual void
-		DrawForeground();
+		virtual PDefHead(void, DrawBackground)
+			ImplBodyBaseVoid(MWidget, DrawBackground)
+		virtual PDefHead(void, DrawForeground)
+			ImplBodyBaseVoid(MWidget, DrawForeground)
 
 		virtual PDefHead(void, Refresh)
 			ImplBodyBaseVoid(MWidget, Refresh)
@@ -5044,21 +5094,12 @@ $unit YControl "ycontrol"
 	}; //class YVisualControl;
 
 
-	//标签。
-	class YLabel : public GMCounter<YLabel>, public YVisualControl
+	//按钮。
+	class YButton : public GMCounter<YButton>, public YVisualControl, public Widgets::MLabel
 	{
 	public:
 		typedef YVisualControl ParentType;
 
-	protected:
-		GHResource<Drawing::TextRegion> prTextRegion; //文本区域指针。
-
-	public:
-		Drawing::Font& Font; //字体。
-		Drawing::Padding& Margin; //文本和容器的间距。
-		bool AutoSize; //启用根据字号自动调整大小。
-		bool AutoEllipsis; //启用对超出标签宽度的文本调整大小。
-		String Text; //标签文本。
 	/*
 		YImage BackgroundImage; //背景图像。
 		YImage Image; //前景图像。
@@ -5066,14 +5107,12 @@ $unit YControl "ycontrol"
 
 		//用字符串在窗口中以给定字号初始化标签。
 		template<class _tChar>
-		YLabel(HWND, const _tChar*, const SRect& = SRect::FullScreen,
-			const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
-		virtual
-		~YLabel();
+		YButton(HWND, const _tChar*, const SRect& = SRect::FullScreen,
+		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 
 		virtual void
 		DrawForeground();
-	}; //class YLabel;
+	}; //class YButton;
 
 	YSL_END_NAMESPACE(Controls)
 
@@ -5119,8 +5158,12 @@ $unit YWindow "ywindow"
 	protected:
 		YDesktop* pDesktop; //桌面指针。
 
+	public:
 		inline explicit
 		MDesktopObject(YDesktop*);
+
+	protected:
+		DefTrivialDtor(MDesktopObject);
 
 	public:
 		//判断从属关系。
@@ -5143,10 +5186,10 @@ $unit YWindow "ywindow"
 		bool bRefresh; //刷新属性：表示有新的绘制请求。
 		bool bUpdate; //更新属性：表示绘制结束，缓冲区准备完毕。
 
+	public:
 		explicit
 		MWindow(const GHResource<YImage> = new YImage(), YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle());
 
-	public:
 		DefPredicate(RefreshRequired, bRefresh)
 		DefPredicate(UpdateRequired, bUpdate)
 
@@ -6105,10 +6148,17 @@ $header Shell::YWidget : Shell::YComponent, Core::YResource
 {
 	namespace Components
 	{
-		using Drawing::SPoint, SVec, Drawing::SSize, Drawing::SRect;
+		using Drawing::PixelType, Drawing::BitmapPtr, Drawing::ConstBitmapPtr, Drawing::ScreenBufferType, Drawing::Color;
+
+		using Drawing::SPoint, Drawing::SVec, Drawing::SSize, Drawing::SRect;
 		using Drawing::YImage;
 	} //namespace Components;
 } //$header Shell::YWidget;
+
+$header Shell::YControl : Shell::YWidget
+{
+	using namespace Drawing;
+} //$header Shell::YControl;
 
 } //$code YSLib;
 

@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-09-29 03:34 + 08:00;
-// Version = 0.2677; *Build 156 r40;
+// UTime = 2010-10-01 02:59 + 08:00;
+// Version = 0.2677; *Build 157 r29;
 
 
 #include "../YCLib/ydef.h"
@@ -109,144 +109,147 @@ r1:
 /= test 0;
 
 r2:
-* \impl @@ \mf void MDualScreenReader::UnloadText() @@ \cl DSReader;
++ \mac DefTrivialDtor @@ \h YShellDefinition;
+/ \u YWidget:
+	* \tr \vt \dtor ^ \mac DefTrivialDtor @@ \cl MVisual @@;
+	-= !\i \vt \dtor @@ \cl MWidgetContainer;
+/ @@ \u YWindow:
+	* @@ \cl MDesktopObject:
+		/ protected \ctor -> public;
+		+ protected \tr \dtor ^ \mac DefTrivialDtor;
+	/ protected \ctor -> public @@ \cl MWindow;
+/= @@ \u YControl
+	/= \tr \vt \dtor ^ \mac DefTrivialDtor @@ \cl MControl;
+	-= \i \tr \vt \dtor @@ \cl MVisualControl;
+/ \vt \dtor + \tr ^ \mac DefTrivialDtor @@ \cl MFileList @@ \u YFileSystem;
 
-r3-r6:
-/= test 1;
+r3:
++ \cl MLabel @@ \ns Components::Widgets @@ \u YWidget;
+/ @@ \cl YLabel @@ \u YControl:
+	/ \m {
+	protected:
+		GHResource<Drawing::TextRegion> prTextRegion;
+
+	public:
+		Drawing::Font Font;
+		Drawing::Padding Margin;
+		bool AutoSize;
+		bool AutoEllipsis;
+		String Text;
+	} >> \cl Components::Widgets::MLabel @@ \u YWidget;
+	+ public \inh @@ \cl Widgets::MLabel;
+	-= empty !\i \vt \dtor;
+	/ \impl @@ \ctor;
+/ @@ \u YWidget:
+	+ \ctor template<class _tChar>
+		MLabel(const _tChar*, const Drawing::Font& = Drawing::Font::GetDefault(), GHResource<Drawing::TextRegion> = NULL)
+		@@ \cl MLabel;
+	+ \inc "ytext.h";
+- \inc "ytext.h" @@ \u YControl;
+
+r4:
+/ @@ \u YResource:
+	/= \simp \impl @@ \tf template<class T> GHResource<T>& GetGlobalResource();
+	/= \i \mf BitmapPtr GetImagePtr() const -> DefGetter(BitmapPtr, ImagePtr, GetBufferPtr()) @@ \cl YImage;
+
+r5:
+/= \a YLabel => YButton;
+/ @@ \ns Components::Widgets @@ \u YWidget:
+	+ protected \mf void PaintText(MWidget&, Drawing::PixelType) \cl MLabel;
+/ \impl @@ \mf void YButton::DrawForeground() @@ \u YControl;
+	^ \mf MLabel::PaintText(MWidget&, Drawing::PixelType);
+
+r6:
+/ @@ \ns Components::Widgets @@ \u YWidget:
+	+ \cl YLabel;
+/ @@ \u Shells:
+	/ @@ \cl ShlLoad:
+		/ @@ \st TFrmLoadUp:
+			/ \m YButton lblTitle, lblStatus -> YLabel lblTitle, lblStatus;;
+		/ @@ \st TFrmLoadDown:
+		/ \m YButton lblStatus-> YLabel lblStatus;
+	/ @@ \cl ShlExplorer:
+		/ @@ \st TFrmFileListMonitor:
+			/ \m YButton lblTitle, lblPath -> YLabel lblTitle, lblPath;
+	/ @@ \cl ShlSetting:
+		/ @@ \st TFormB:
+			/ \m YButton lblB, lblB2 => YButton btnB, btnB2;
+		/ @@ \st TFormC:
+		/ \m YButton lblC => YButton btnC;
+		/ \mf lblC_$ => btnC_$;
+		/ \impl @@ \mf void ShlExplorer::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs&);
 
 r7:
-+ \i \ctor Path(const String&) @@ \cl Path @@ \u YFileSystem;
-/= \simp \impl @@ \mf IO::Path YFileBox::GetPath() const;
++ \mf \vt void DrawBackground() @@ \cl YLabel @@ \u YWidget;
+/ @@ \u YControl:
++ \inh public GMCounter<YControl> @@ \cl YControl;
++ \inh public GMCounter<YVisualControl> @@ \cl YVisualControl;
 
-r8-r10:
-/= test 2;
+r8:
+/ @@ \u YControl:
+	/ @@ \cl MVisualControl:
+		/ \m
+			{
+				Drawing::PixelType BackColor; //默认背景色。
+				Drawing::PixelType ForeColor; //默认前景色。
+			} => \cl MVisual @@ \u YWidget;
+		/ \mf
+		{
+			virtual void
+			DrawBackground();
+			virtual void
+			DrawForeground();
+		} => \cl MWidget @@ \u YWidget;
+		/ \impl @@ \mf void YButton::DrawForeground();
+		/ \ctor \exp MVisualControl(Drawing::PixelType = Drawing::Color::Black, Drawing::PixelType = Drawing::Color::White)
+			-> MVisualControl();
+	/ @@ \cl YVisualControl:
+		/ \impl @@ \ctor;
+		/ \impl @@ \mf \vt void DrawBackground();
+		/ \impl @@ \mf \vt void DrawForeground();
+/ @@ \u YWidget:
+	/ @@ \cl MLabel:
+	/ \mf void PaintText(MWidget&, PixelType)
+		-> void PaintText(MWidget&);
+	- \mf \vt void DrawBackground() @@ \cl YLabel;
+	/ @@ \cl MVisual:
+		/ \exp \ctor MVisual(const SRect& = SRect::Empty)
+			-> MVisual(const SRect& = SRect::Empty,
+			Drawing::PixelType = Drawing::Color::Black, Drawing::PixelType = Drawing::Color::White);
+	/ @@ \cl MWidget:
+		/ \exp \ctor MWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL)
+			-> MWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL,
+			Drawing::PixelType = Drawing::Color::Black, Drawing::PixelType = Drawing::Color::White);
+	/ @@ \cl YWidget:
+		/ \impl @@ \mf \vt void DrawBackground();
+		/ \impl @@ \mf \vt void DrawForeground();
+		+ using Drawing::PixelType @@ \h;
+	/ \tr \impl @@ \ctor @@ \cl MWindow @@ \u YWindow;
 
-r11:
-/ @@ \cl Path @@ \u YPath:
-	/ typedef NativePathCharType ValueType -> typedef uchar_t ValueType;
-	+ typedef std::basic_string<NativePathCharType> NativeStringType;
-	/ DefGetter(const StringType&, NativeString, pathname)
-		-> DefGetter(NativeStringType, NativeString, Text::MBCSToString(pathname));
-	+ DefGetter(const StringType&, String, pathname);
-	- DefGetter(StringType, GeneralString, pathname);
-	/ \impl @@ \mf const ValueType*, c_str() const;
-	/ \i \ctor Path(const String&) -> Path(const NativeStringType&);
-	+ \i \ctor Path(const NativePathCharType*);
-	/ \impl @@ \mf Path& operator/=(const Path&);
-	/ \impl @@ \mf Path GetRootName() const;
-	+ \s \m \c Path Now;
-/ std::string StringToMBCS(const String&, const CSID& = CS_Local)
-	-> std::string StringToMBCS(const stdex::ustring&, const CSID& = CS_Local) @@ \u YString;
-/ @@ \u Shells;
-	/ \impl @@ \mf void ShlExplorer::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs&);
+r9:
+/ @@ \u YWidget;
+	/ \exp \ctor MVisual(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL,
+		PixelType = Drawing::Color::Black, PixelType = Color::White)
+		-> \exp \ctor MVisual(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL,
+		PixelType = Drawing::Color::White, PixelType = Color::Black);
+	/ \exp \ctor MWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL,
+		PixelType = Drawing::Color::Black, PixelType = Color::White)
+		-> \exp \ctor MWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL,
+		PixelType = Drawing::Color::White, PixelType = Color::Black);
 
-r12
-/= test 3;
+r10:
+/ @@ \h YWidget:
+	+ using Drawing::BitmapPtr, Drawing::ConstBitmapPtr, Drawing::ScreenBufferType, Drawing::Color;
+	/ \simp \decl;
+/ @@ \cl YDesktop @@ \h YDesktop:
+	/ \simp \decl;
+	- \m PixelColor BackColor;
 
-r13:
-/ @@ \cl Path @@ \ns IO @@ \u YFileSystem:
-	/ typedef std::basic_string<NativePathCharType> NativeStringType => ..;
-	/ + public \inh stdex::ustring;
-	- private \m StringType pathname;
-	- DefPredicate(Empty, pathname.empty());
-	- DefGetter(const StringType&, String, pathname);
-	/ DefGetter(NativeStringType, NativeString, Text::StringToMBCS(pathname))
-		-> DefGetter(NativeStringType, NativeString, Text::StringToMBCS(*this));
-	- \i \mf void clear();
-	- \i \mf void swap() ythrow();
-	- \i copy \ctor;
-	/ ^ stdex::ustring @@ \impl @@ \i \ctor;
-	- \i \mf Path& operator=(const Path&);
-	- \i \mf template<class _tString> Path& Path::operator=(const _tString&);
-	/ \impl @@ \mf Path& operator/=(const Path&);
-	/ \impl @@ \mf Path GetRootName() const;
-	/ \impl @@ \mf Path GetParentPath() const;
-	/ \impl @@ \mf Path GetFilename() const;
-	/ \impl @@ \mf Path& ReplaceExtension(const Path&);
-	/ \impl @@ \mf operator++() & operator--() & operator*() @@ \cl iterator;
-	/ \impl @@ \mf Path GetRelativePath() const;
-	/ \impl @@ \i \mf bool HasRootPath() const;
-	/ \impl @@ \i \mf bool HasRelativePath() const;
-	/ \impl @@ \i \mf bool HasParentPath() const;
-	/ \impl @@ \i \mf bool HasFilename() const;
-	/ \impl @@ \i \mf bool HasRootDirectory() const;
-	/ \impl @@ \i \mf bool HasRootName() const;
-	/ \impl @@ \i \mf bool HasStem() const;
-	/ \impl @@ \i \mf bool HasExtension() const;
-	- \mf const ValueType* c_str() const;
-/ @@ \u Shells:
-	/ \impl @@ void ShlExplorer::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs&);
+r11-r29:
+/= test 1;
 
-r14:
-/ @@ \u YTextManager:
-	* \tr \impl @@ \ctor @@ \cl TextFileBuffer;
-	/ @@ \cl TextBuffer:
-		/ \m const SizeType mlen -> const SizeType capacity;
-		/ \m IndexType len -> SizeType len;
-		/ DefGetter(IndexType, MaxLength, mlen)
-			-> DefGetter(SizeType, Capacity, capacity);
-		/ DefGetter(IndexType, Length, len)
-			-> DefGetter(SizeType, Length, len);
-		/ \ret \ty @@ \mf IndexType GetPrevChar(IndexType, uchar_t) -> SizeType;
-		/ \ret \ty @@ \mf IndexType GetNextChar(IndexType, uchar_t) -> SizeType;
-		/ \mf IndexType GetPrevNewline(IndexType)
-			-> GetPrevNewline(SizeType);
-		/ \mf IndexType GetNextNewline(IndexType)
-			-> GetPrevNewline(SizeType);
-		/ \mf uchar_t& at(IndexType) ythrow(std::out_of_range)
-			-> uchar_t& at(SizeType) ythrow(std::out_of_range);
-		/ \ret \ty @@ \mf IndexType Load(YTextFile&) -> SizeType;
-		/ IndexType Load(YTextFile&, IndexType) -> SizeType Load(YTextFile&, SizeType);
-		/ IndexType LoadN(YTextFile&, IndexType) -> SizeType Load(YTextFile&, SizeType);
-		/ \mf bool Output(uchar_t*, IndexType, IndexType) const
-			-> bool Output(uchar_t*, SizeType, SizeType) const;
-		/= \tr \impl @@ \mf bool Output(uchar_t*, SizeType, SizeType) const;
-		/ \ex \ctor TextBuffer(IndexType)
-			-> TextBuffer(SizeType);
-		/ \mf uchar_t& operator[](IndexType) ythrow()
-			-> uchar_t& operator[](SizeType) ythrow();
-		/ DefGetter(SizeType, SizeOfBuffer, sizeof(uchar_t) * mlen)
-		-> DefGetter(SizeType, SizeOfBuffer, sizeof(uchar_t) * capacity);
-		/ \tr \impl @@ \i \mf bool Load(const uchar_t*);
-		/ \tr \impl @@ \i \mf SizeType Load(YTextFile&);
-	/ \a BlockIndexType -> BlockSizeType;
-	/ \a Index => SizeType'
-
-r15:
-/ @@ \cl TextBuffer @@ \u YTextManager:
-	/= \tr \impl @@ \mf bool Load(const uchar_t*, SizeType);
-	/ \impl @@ \mf SizeType Load(YTextFile&, SizeType);
-
-r16:
-/ \i \e \ctor YConsole(YScreen& = *pDefaultScreen) @@ \cl YConsole @@ \u YComponent
-	-> YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black);
-
-r17:
-/ @@ \cl TextFileBuffer::HText @@ \u YTextManager:
-	+ \mf DefGetter(TextFileBuffer*, BufferPtr, pBuffer);
-	+ \mf DefGetter(BlockSizeType, BlockN, blk);
-	+ \mf DefGetter(SizeType, IndexN, idx);
-
-r18-r19:
-/= test 4;
-
-r20-r21:
-/ @@ \cl TextFileBuffer::HText @@ \u YTextManager:
-	* \impl \mf @@ HText& operator++() ythrow();
-	* \impl \mf @@ HText& operator--() ythrow();
-
-r22-r25:
-/= test 5;
-
-r26-r29:
-* \impl @@ \mf bool MDualScreenReader::ScreenDown() @@ \u DSReader;
-
-r30:
-/^ Microsoft Visual 2010;
 
 $DOING:
-r30
-
 
 / ...
 
@@ -254,6 +257,7 @@ r30
 
 $NEXT:
 / fully \impl \u DSReader;
+	* moving text after setting lnGap; 
 + \impl loading pictures;
 
 $TODO:

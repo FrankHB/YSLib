@@ -36,6 +36,7 @@
     <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
     <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.0\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.0;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.0\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>

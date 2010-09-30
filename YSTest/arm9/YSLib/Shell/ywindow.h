@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40;
-// UTime = 2010-9-25 22:17;
-// Version = 0.3265;
+// UTime = 2010-10-01 02:44;
+// Version = 0.3275;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -46,8 +46,12 @@ class MDesktopObject
 protected:
 	YDesktop* pDesktop; //桌面指针。
 
+public:
 	explicit
 	MDesktopObject(YDesktop*);
+
+protected:
+	DefTrivialDtor(MDesktopObject)
 
 public:
 	//判断从属关系。
@@ -86,10 +90,10 @@ protected:
 	bool bRefresh; //刷新属性：表示有新的绘制请求。
 	bool bUpdate; //更新属性：表示绘制结束，缓冲区准备完毕。
 
+public:
 	explicit
 	MWindow(const GHResource<YImage> = new YImage(), YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle());
 
-public:
 	DefPredicate(RefreshRequired, bRefresh)
 	DefPredicate(UpdateRequired, bUpdate)
 
