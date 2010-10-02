@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:34 + 08:00;
-// UTime = 2010-10-01 02:49 + 08:00;
-// Version = 0.3346;
+// UTime = 2010-10-02 03:40 + 08:00;
+// Version = 0.3404;
 
 
 #include "ycontrol.h"
@@ -56,6 +56,7 @@ MVisualControl::MVisualControl()
 	EventMap[EControl::GotFocus] += &MVisualControl::OnGotFocus;
 	EventMap[EControl::LostFocus] += &MVisualControl::OnLostFocus;
 	TouchDown += &MVisualControl::OnTouchDown;
+	TouchHeld += &MVisualControl::OnTouchHeld;
 }
 
 GMFocusResponser<IVisualControl>*
@@ -101,7 +102,7 @@ MVisualControl::OnTouchHeld(const Runtime::MTouchEventArgs& e)
 		if(!SInputStatus::IsOnDragging())
 			SInputStatus::SetDragOffset(w.GetLocation() - e);
 		else if(w.GetLocation() != e + SInputStatus::GetDragOffset())
-			OnTouchMove(e);
+			TouchMove(dynamic_cast<IVisualControl&>(*this), e);
 	}
 	catch(std::bad_cast&)
 	{}

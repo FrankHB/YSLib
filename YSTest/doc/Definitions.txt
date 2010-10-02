@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-10-01 02:55 + 08:00;
-// Version = r7984;
+// UTime = 2010-10-03 01:33 + 08:00;
+// Version = r8004;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -4296,7 +4296,8 @@ $unit YGDI "ygdi"
 
 $unit YGUI "ygui"
 {
-	$import $unit Core::YShellProcessing, Shell::YDesktop, Shell::YForm;
+	$import $unit Core::YShellProcessing, Shell::YDesktop, Shell::YForm,
+		header <stack>;
 
 	YSL_BEGIN_NAMESPACE(Runtime)
 
@@ -4351,9 +4352,6 @@ $unit YGUI "ygui"
 	//记录输入保持状态。
 	class SInputStatus
 	{
-	private:
-		static SVec DragOffset;
-
 	public:
 		typedef enum
 		{
@@ -4362,14 +4360,22 @@ $unit YGUI "ygui"
 			KeyHeld = 2
 		} KeyHeldStateType;
 
+	private:
+		static SVec DragOffset;
 		static KeyHeldStateType KeyHeldState;
 		static Timers::YTimer KeyTimer;
 
+	public:
 		DefStaticPredicate(OnDragging, DragOffset != SVec::FullScreen)
 
 		DefStaticGetter(const SVec&, DragOffset, DragOffset)
+		DefStaticGetter(TouchSwitchStateType, TouchSwitchState, TouchSwitchState)
+		DefStaticGetter(KeyHeldStateType, KeyHeldState, KeyHeldState)
 
 		static DefSetterDe(const SVec&, DragOffset, DragOffset, SVec::FullScreen)
+
+		static void
+		RepeatKeyHeld(Components::Controls::MVisualControl&, const MKeyEventArgs&);
 
 		static void
 		ResetKeyHeldState();
@@ -4921,6 +4927,7 @@ $unit YControl "ycontrol"
 
 
 	//事件处理器类型。
+	DefDelegate(YInputEventHandler, IVisualControl, Runtime::MInputEventArgs)
 	DefDelegate(YTouchEventHandler, IVisualControl, Runtime::MTouchEventArgs)
 	DefDelegate(YKeyEventHandler, IVisualControl, Runtime::MKeyEventArgs)
 	DefDelegate(YIndexEventHandler, IVisualControl, MIndexEventArgs)
@@ -4999,6 +5006,8 @@ $unit YControl "ycontrol"
 	class MVisualControl : public MControl, public Runtime::AFocusRequester
 	{
 	public:
+		DefEvent(YInputEventHandler, Enter)
+		DefEvent(YInputEventHandler, Leave)
 		DefEvent(YTouchEventHandler, TouchUp)
 		DefEvent(YTouchEventHandler, TouchDown)
 		DefEvent(YTouchEventHandler, TouchHeld)

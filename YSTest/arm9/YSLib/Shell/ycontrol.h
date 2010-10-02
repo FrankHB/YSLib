@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:24 + 08:00;
-// UTime = 2010-10-01 02:45 + 08:00;
-// Version = 0.3639;
+// UTime = 2010-10-02 03:40 + 08:00;
+// Version = 0.3648;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -40,6 +40,7 @@ typedef Runtime::GEvent<true, IControl, MEventArgs> YControlEvent;
 
 
 //事件处理器类型。
+DefDelegate(YInputEventHandler, IVisualControl, Runtime::MInputEventArgs)
 DefDelegate(YTouchEventHandler, IVisualControl, Runtime::MTouchEventArgs)
 DefDelegate(YKeyEventHandler, IVisualControl, Runtime::MKeyEventArgs)
 DefDelegate(YIndexEventHandler, IVisualControl, MIndexEventArgs)
@@ -122,6 +123,8 @@ MControl::MControl(bool e)
 class MVisualControl : public MControl, public Runtime::AFocusRequester
 {
 public:
+	DefEvent(YInputEventHandler, Enter)
+	DefEvent(YInputEventHandler, Leave)
 	DefEvent(YTouchEventHandler, TouchUp)
 	DefEvent(YTouchEventHandler, TouchDown)
 	DefEvent(YTouchEventHandler, TouchHeld)

@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-09-30 21:53 + 08:00;
-// Version = 0.2715;
+// UTime = 2010-10-03 01:35 + 08:00;
+// Version = 0.2735;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -176,18 +176,22 @@ public:
 			btnB2(HWND(this), FS("测试程序2"), SRect(45, 35, 124, size))
 		{
 			BackColor = ARGB16(1, 31, 31, 15);
-			TouchDown += &YVisualControl::OnTouchDown;
-			TouchHeld += &YVisualControl::OnTouchHeld;
 			TouchMove += &YVisualControl::OnTouchMove;
-			btnB.TouchHeld += &YVisualControl::OnTouchHeld;
 			btnB.TouchMove += &YVisualControl::OnTouchMove;
-			btnB2.TouchHeld += &YVisualControl::OnTouchHeld;
-			btnB.TouchMove += &YVisualControl::OnTouchMove;
+			btnB.Enter += btnB_Enter;
+			btnB.Leave += btnB_Leave;
+			btnB2.TouchMove += &YVisualControl::OnTouchMove;
 		//	btnB2.TouchDown += btnC_Click;
 
 		//	btnB.Enabled = false;
 		}
+
+		static void
+		btnB_Enter(IVisualControl& sender, const MInputEventArgs&);
+		static void
+		btnB_Leave(IVisualControl& sender, const MInputEventArgs&);
 	};
+
 	struct TFormC : public YForm
 	{
 		YButton btnC;
@@ -199,10 +203,10 @@ public:
 		{
 			BackColor = ARGB16(1, 31, 15, 15);
 			TouchDown += TFormC_TouchDown;
-			TouchHeld += &YVisualControl::OnTouchHeld;
+			TouchMove += &YVisualControl::OnTouchMove;
 			btnC.TouchUp.Add(*this, &TFormC::btnC_TouchUp);
 			btnC.TouchDown.Add(*this, &TFormC::btnC_TouchDown);
-			btnC.TouchHeld += &YVisualControl::OnTouchHeld;
+			btnC.TouchMove += &YVisualControl::OnTouchMove;
 			btnC.Click.Add(*this, &TFormC::btnC_Click);
 			btnC.KeyPress += btnC_KeyPress;
 		//	btnC.Enabled = false;
@@ -212,13 +216,10 @@ public:
 
 		void
 		btnC_TouchUp(const MTouchEventArgs&);
-
 		void
 		btnC_TouchDown(const MTouchEventArgs&);
-
 		void
 		btnC_Click(const MTouchEventArgs&);
-
 		static void
 		btnC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e);
 

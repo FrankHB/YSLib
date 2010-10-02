@@ -1,8 +1,8 @@
 ﻿// YSLib -> Designation by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-02 05:14:30 + 08:00;
-// UTime = 2010-09-30 06:03 + 08:00;
-// Version = 0.3112;
+// UTime = 2010-10-03 00:45 + 08:00;
+// Version = 0.3184;
 
 
 // Designation ：设计说明文档。
@@ -208,7 +208,7 @@
 @1.4.2.3 static ：
 
 @1.4.2.3.1
-使用编译单元内的无名命名空间代替 static 修饰对象。
+使用翻译单元内的无名命名空间代替 static 修饰对象。
 
 @1.4.2.3.2
 可以在类的定义中 static ，不必要在类的成员函数定义中重写。
@@ -219,7 +219,7 @@
 正确地使用 extern ，并检查语义的合理性。
 
 @1.4.2.4.2
-注意在多个编译单元中，extern 声明的类型应该保持一致。
+注意在多个翻译单元中，extern 声明的类型应该保持一致。
 
 @1.4.3 const 和 volatile 修饰符 ：
 
@@ -435,6 +435,30 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 @1.7.2.8 辅助模块类：
 默认提供基于观察者模式的基本事件回调模板类，以方便用户实现消息映射和其它间接传递消息的功能。
 此外，还提供对默认 GUI 输入事件的参数类。
+
+@1.7.2.9 默认 GUI 事件：
+默认 GUI 事件和 YGUI 单元、 YControl 单元和默认部件模块类相关。
+
+@1.7.2.9.1 焦点事件：
+在 YControl 单元的可视控件事件空间 EControl 中定义。
+包含 GotFocus 和 LostFocus 事件。
+触发条件参考 @1.7.2.9.2 。
+功能概述参考 @2.6.2 。
+
+@1.7.2.9.2 基本输入事件（由 YGUI 单元产生）：
+在 YControl 单元的可视控件模块类 MVisualControl 中定义。
+当用户按键时，触发 KeyDown 事件；持续时触发 KeyHeld 事件；结束时依次触发 KeyPress 和 KeyUp 事件。
+当用户使用指针设备（包括触摸屏）输入时，触发 TouchDown 事件；持续时触发 TouchHeld 事件；结束时依次触发 Click 和 TouchUp 事件。
+ MVisualControl 默认处理 KeyHeld 和 TouchDown 事件时调用 RequestFocus(...) 向容器请求焦点。若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
+指针设备作用于 MVisualControl 派生的控件，触发 TouchDown 事件之前判断输入焦点时触发若干个 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
+
+@1.7.2.9.3 扩展输入事件：
+ MVisualControl 定义了 TouchMove 。
+使用虚成员方法 OnTouchHeld 默认处理 TouchHeld 事件时若用户移动指针设备，则触发 TouchMove 事件。
+使用虚成员方法 OnTouchMove 默认为空，供派生类重写。
+
+@1.7.2.10 扩展事件处理程序：
+ MVisualControl 定义了成员方法 OnDrag ，可用于处理 TouchMove 事件，实现控件拖曳。
 
 @1.8 对象所有权：
 具有所有权的对象（所有者）负责被托管对象的释放。
@@ -665,7 +689,6 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 
 @2.6.2.2 焦点请求链：
 在排除 @2.6.2.1 中叙述的副作用的情况下，可以认为不同对象的 RequestFocus(...) 的调用是顺序无关的，可以任意调度。
-也因为如此，YSLib 默认实现中，不提供 Enter 和 Leave 事件（不是必要的）。
 用 Runtime::RequestFocusCascade(Components::Controls::IVisualControl&) 函数可以实现由 IVisualControl 对象自下向上的嵌套容器焦点申请。注意，会以相同的顺序引发 GotFocus 事件。
 
 @2.6.3 默认 GUI 刷新逻辑：

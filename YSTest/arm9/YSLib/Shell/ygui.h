@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-09-26 19:40 + 08:00;
-// Version = 0.1874;
+// UTime = 2010-10-02 13:47 + 08:00;
+// Version = 0.1918;
 
 
 #ifndef INCLUDED_YGUI_H_
@@ -80,9 +80,6 @@ struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 //记录输入保持状态。
 class SInputStatus
 {
-private:
-	static SVec DragOffset;
-
 public:
 	typedef enum
 	{
@@ -91,14 +88,22 @@ public:
 		KeyHeld = 2
 	} KeyHeldStateType;
 
+private:
+	static SVec DragOffset;
 	static KeyHeldStateType KeyHeldState;
 	static Timers::YTimer KeyTimer;
 
+public:
 	DefStaticPredicate(OnDragging, DragOffset != SVec::FullScreen)
 
 	DefStaticGetter(const SVec&, DragOffset, DragOffset)
+	
+	DefStaticGetter(KeyHeldStateType, KeyHeldState, KeyHeldState)
 
 	static DefSetterDe(const SVec&, DragOffset, DragOffset, SVec::FullScreen)
+
+	static void
+	CheckTouchedControlBounds(Components::Controls::MVisualControl&, const MTouchEventArgs&);
 
 	static void
 	RepeatKeyHeld(Components::Controls::MVisualControl&, const MKeyEventArgs&);

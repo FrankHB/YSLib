@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-01 00:44 + 08:00;
-// Version = 0.3116;
+// UTime = 2010-10-03 01:35 + 08:00;
+// Version = 0.3118;
 
 
 #include <Shells.h>
@@ -411,13 +411,35 @@ YSL_END_SHELL(ShlSetting)
 HWND ShlSetting::hWndC(NULL);
 
 void
+ShlSetting::TFormB::btnB_Enter(IVisualControl& sender, const MInputEventArgs& e)
+{
+	YButton& btn(dynamic_cast<YButton&>(sender));
+	const MTouchEventArgs& pt(static_cast<const MTouchEventArgs&>(e));
+	char str[20];
+
+	std::sprintf(str, "Enter:(%d,%d)", pt.GetX(), pt.GetY());
+	btn.Text = str;
+	btn.Refresh();
+}
+void
+ShlSetting::TFormB::btnB_Leave(IVisualControl& sender, const MInputEventArgs& e)
+{
+	YButton& btn(dynamic_cast<YButton&>(sender));
+	const MTouchEventArgs& pt(static_cast<const MTouchEventArgs&>(e));
+	char str[20];
+
+	std::sprintf(str, "Leave:(%d,%d)", pt.GetX(), pt.GetY());
+	btn.Text = str;
+	btn.Refresh();
+}
+
+void
 ShlSetting::TFormC::btnC_TouchUp(const MTouchEventArgs& e)
 {
 	InputCounter(e);
 	HandleCast<ShlSetting>(hShell)->ShowString(strCount);
 	btnC.Refresh();
 }
-
 void
 ShlSetting::TFormC::btnC_TouchDown(const MTouchEventArgs& e)
 {
@@ -425,7 +447,6 @@ ShlSetting::TFormC::btnC_TouchDown(const MTouchEventArgs& e)
 	HandleCast<ShlSetting>(hShell)->ShowString(strCount);
 //	btnC.Refresh();
 }
-
 void
 ShlSetting::TFormC::btnC_Click(const MTouchEventArgs& e)
 {
@@ -456,7 +477,6 @@ ShlSetting::TFormC::btnC_Click(const MTouchEventArgs& e)
 	}
 	//	btnC.Refresh();
 }
-
 void
 ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
 {
