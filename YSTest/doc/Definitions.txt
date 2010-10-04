@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-10-03 01:33 + 08:00;
-// Version = r8004;
+// UTime = 2010-10-04 22:14 + 08:00;
+// Version = r8062;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -118,7 +118,7 @@ $code CHRLib {
 
 $import typedef unsigned short u16;
 
-$header CHRDefinition "chrdef.h"
+$header CHRDefinition "chrdef.h" //类型定义。
 {
 	$import <platform.h>;
 
@@ -151,7 +151,7 @@ $header CHRDefinition "chrdef.h"
 } //$header CHRDefinition;
 
 
-$unit CHRMap "chrmap.h"
+$unit CharacterMapping "chrmap.h" //字符映射。
 {
 	$import $unit CHRDefinition, $header <cstdio>;
 
@@ -301,12 +301,12 @@ $unit CHRMap "chrmap.h"
 
 	CHRLIB_END
 
-} //$unit CHRMap;
+} //$unit CharacterMapping;
 
 
-$unit CHRProcessing "chrproc"
+$unit CharacterProcessing "chrproc" //字符编码处理。
 {
-	$import $unit CHRDefinition, CHRMap, $header <cctype>, <cstdlib>, <cstring>, <cwchar>;
+	$import $unit CHRDefinition, CharacterMapping, $header <cctype>, <cstdlib>, <cstring>, <cwchar>;
 
 
 	CHRLIB_BEGIN
@@ -385,7 +385,7 @@ $unit CHRProcessing "chrproc"
 
 	CHRLIB_END
 
-} //$unit CHRProcessing;
+} //$unit CharacterProcessing;
 
 } //$code CHRLib;
 
@@ -396,7 +396,7 @@ $code $export YCLib {
 
 $import $header <platform.h>;
 
-$header YDefinition "ydef.h"
+$header YDefinition "ydef.h" //系统环境和公用变量类型的基础定义。
 {
 	#ifdef __cplusplus
 	extern "C" {
@@ -486,7 +486,7 @@ $header YDefinition "ydef.h"
 } //$header YDefinition;
 
 
-$unit YCommon "ycommon"
+$unit YCommon "ycommon" //平台相关的公共组件无关函数与宏定义集合。
 {
 	//最大路径长度。
 	$export #define YC_MAX_PATH;
@@ -892,7 +892,7 @@ using namespace ::YSLib;
 
 $code YSLib::Adapter {
 
-$header YAdapter "yadapter.h"
+$header YAdapter "yadapter.h" //外部库关联。
 {
 	//编译配置。
 	//#define NDEBUG //非调试模式。
@@ -1027,7 +1027,7 @@ $header YAdapter "yadapter.h"
 } //$header YAdapter;
 
 
-$header YRefrence "yref.hpp"
+$header YRefrence "yref.hpp" //用于提供指针和引用访问的间接访问类模块。
 {
 	$import $header YAdapter;
 
@@ -1197,7 +1197,7 @@ $header YRefrence "yref.hpp"
 } //$unit YRefrence;
 
 
-$unit YFont "yfont"
+$unit YFont "yfont" //平台无关的字体缓存库。
 {
 	$import $header Core::YFunc, $unit YCoreUtilities, $header <set>, <map>, $unit Core::YFileSystem/*, Helper::YGlobal*/;
 
@@ -1584,7 +1584,7 @@ $unit YFont "yfont"
 
 $code YSLib::Core {
 
-$header YShellDefinition "ysdef.h"
+$header YShellDefinition "ysdef.h" //宏定义和类型描述模块。
 {
 	$import $header <platform.h>;
 
@@ -1901,7 +1901,7 @@ $header YShellDefinition "ysdef.h"
 }; //$header YShellDefinition;
 
 
-$header YCounter "ycounter.hpp"
+$header YCounter "ycounter.hpp" //对象计数器。
 {
 	$import $header YShellDefinition;
 
@@ -1939,7 +1939,7 @@ $header YCounter "ycounter.hpp"
 } //$header GMCounter;
 
 
-$header YFunc "yfunc.hpp"
+$header YFunc "yfunc.hpp" //函数对象封装模块。
 {
 	$import $header YShellDefinition;
 
@@ -1973,7 +1973,7 @@ $header YFunc "yfunc.hpp"
 } //$header YFunc;
 
 
-$unit YCoreUtilities "ycutil"
+$unit YCoreUtilities "ycutil" //核心实用模块。
 {
 	$import $header YShellDefinition, <cstring>, <functional>;
 
@@ -2157,7 +2157,7 @@ $unit YCoreUtilities "ycutil"
 } //$unit YCoreUtilities;
 
 
-$header YEvent "yevt.hpp"
+$header YEvent "yevt.hpp" //事件回调模块。
 {
 	$import $unit YObject, $header YFunc, <list>, <set>, <map>;
 
@@ -2459,7 +2459,7 @@ $header YEvent "yevt.hpp"
 } //$unit YEvent;
 
 
-$unit YModule "ymodule"
+$unit YModule "ymodule" //平台无关的核心公共模块类实现。
 {
 	$import $header YEvent, $unit YEventArgs;
 
@@ -2673,7 +2673,7 @@ $unit YModule "ymodule"
 } //$unit YModule;
 
 
-$unit YObject "yobject"
+$unit YObject "yobject" //平台无关的基础对象实现。
 {
 	$import $header GMCounter;
 
@@ -2909,7 +2909,7 @@ $unit YObject "yobject"
 } //$unit YObject;
 
 
-$unit YException "yexcept"
+$unit YException "yexcept" //异常处理模块。
 {
 	$import $unit YObject, $header <new>, <typeinfo>, <string>;
 
@@ -2958,7 +2958,7 @@ $unit YException "yexcept"
 } //$unit YException;
 
 
-$unit YString "ystring"
+$unit YString "ystring" //基础字符串管理。
 {
 	$import $unit YObject, $header <string>;
 
@@ -3004,7 +3004,7 @@ $unit YString "ystring"
 } //$unit YString;
 
 
-$unit YResource "yres"
+$unit YResource "yres" //资源管理模块。
 {
 	$import $unit YObject, Shell::YGDI;
 
@@ -3037,7 +3037,7 @@ $unit YResource "yres"
 } //$unit YResource;
 
 
-$unit YEventArgs "yevtarg"
+$unit YEventArgs "yevtarg" //事件参数模块。
 {
 	$import $unit YObject;
 
@@ -3098,7 +3098,7 @@ $unit YEventArgs "yevtarg"
 } //$unit YEeventArgs;
 
 
-$unit YDevice "ydevice"
+$unit YDevice "ydevice" //平台无关的设备抽象层。
 {
 	$import $unit Helper::YGlobal, $unit Core::YShell, Shell::YGDI;
 
@@ -3166,7 +3166,7 @@ $unit YDevice "ydevice"
 } //$unit YDevice;
 
 
-$header YShellMessageDefinition "ysmsgdef.h"
+$header YShellMessageDefinition "ysmsgdef.h" //标准 Shell 消息列表。
 {
 	!$import;
 
@@ -3174,7 +3174,7 @@ $header YShellMessageDefinition "ysmsgdef.h"
 	$export list "Message.txt";
 } //$header YShellMessageDefinition;
 
-$unit YShellMessage "ysmsg"
+$unit YShellMessage "ysmsg" //消息处理模块。
 {
 	$import $header Core::YShellDefinition, YShellMessageDefinition, $unit YObject, $header <queue>, <ctime>, $unit YWindow/* for HWND delete procedure; */;
 
@@ -3310,7 +3310,7 @@ $unit YShellMessage "ysmsg"
 } //$unit YShellMessage;
 
 
-$unit YShell "yshell"
+$unit YShell "yshell" // Shell 定义。
 {
 	$import $header Helper::YGlobal, $header <set>, <list>, $unit YApplication,
 		$unit Shell::YWindow, Shell::YControl, Shell::YGUI;
@@ -3447,7 +3447,7 @@ $unit YShell "yshell"
 } //$unit YShell;
 
 
-$unit YApplication "yapp"
+$unit YApplication "yapp" //应用程序实例类抽象。
 {
 	$import $unit YDevice, YShell, YFileSystem, $header YEvent;
 
@@ -3557,7 +3557,7 @@ $unit YApplication "yapp"
 } //$unit YApplication;
 
 
-$unit YFileSystem "yfilesys"
+$unit YFileSystem "yfilesys" //平台无关的文件处理系统。
 {
 	$import $unit Core::YString, Core::YFunc, Helper::YGlobal, Core::YShell/* for HSHL delete procedure; */, $header <iterator>, <vector>, <list>;
 
@@ -3844,7 +3844,7 @@ $unit YFileSystem "yfilesys"
 } //$unit YFileSystem;
 
 
-$unit YFile "yfile"
+$unit YFile "yfile" //平台无关的文件抽象。
 {
 	$import $unit YString;
 
@@ -3887,7 +3887,7 @@ $unit YFile "yfile"
 } //$unit YFile;
 
 
-$unit YFile_(Text) "yftext"
+$unit YFile_(Text) "yftext" //平台无关的文本文件抽象。
 {
 	$import $unit YFile;
 
@@ -3935,7 +3935,7 @@ $unit YFile_(Text) "yftext"
 
 $code YSLib::Shell {
 
-$unit YGDI "ygdi"
+$unit YGDI "ygdi" //平台无关的图形设备接口实现。
 {
 	$import $unit Core::YObject, Adapter::Font;
 
@@ -4294,7 +4294,7 @@ $unit YGDI "ygdi"
 } //$unit YGDI;
 
 
-$unit YGUI "ygui"
+$unit YGUI "ygui" //平台无关的图形用户界面基础实现。
 {
 	$import $unit Core::YShellProcessing, Shell::YDesktop, Shell::YForm,
 		header <stack>;
@@ -4424,7 +4424,7 @@ $unit YGUI "ygui"
 } //$unit YGUI;
 
 
-$unit YComponent "ycomp"
+$unit YComponent "ycomp" //平台无关的 Shell 组件实现。
 {
 	$import $unit Core::YApplication;
 
@@ -4467,7 +4467,7 @@ $unit YComponent "ycomp"
 } //$unit YComponent;
 
 
-$unit YDesktop "ydesktop"
+$unit YDesktop "ydesktop" //平台无关的桌面抽象层。
 {
 	$import $unit YWindow, $header <list>;
 
@@ -4537,7 +4537,7 @@ $unit YDesktop "ydesktop"
 } //$unit YDesktop;
 
 
-$unit YWidget "ywidget"
+$unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 {
 	$import $unit YComponent, Core::YModule, Core::YResource, $header <set>, YText, $unit YWindow, $unit YControl;
 
@@ -4696,6 +4696,11 @@ $unit YWidget "ywidget"
 		GetLocationForParentContainer() const; //取部件相对于容器的父容器的位置（若无容器则返回 FullScreen ）。
 		SPoint
 		GetLocationForParentWindow() const; //取部件相对于容器的父窗口的位置（若无容器则返回 FullScreen ）。
+
+		inline virtual void
+		Fill(); //以背景色填充显示缓冲区。
+		virtual void
+		Fill(PixelType); //以纯色填充显示缓冲区。
 
 		virtual void
 		Refresh();
@@ -4899,10 +4904,10 @@ $unit YWidget "ywidget"
 } //$unit YWidget;
 
 
-$unit YControl "ycontrol"
+$unit YControl "ycontrol" //平台无关的控件实现。
 {
 	$import $unit YWidget,
-		$unit YWindow, YGUI, Core::YException;
+		$unit YWindow, YGUI;
 
 
 	YSL_BEGIN_NAMESPACE(Components)
@@ -5127,10 +5132,168 @@ $unit YControl "ycontrol"
 
 	YSL_END_NAMESPACE(Components)
 
-} //$unit YVisualControl;
+} //$unit YControl;
 
 
-$unit YWindow "ywindow"
+$unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
+{
+	$import $unit YWidget,
+		$unit YWindow, YGUI;
+
+
+	YSL_BEGIN_NAMESPACE(Components)
+
+	YSL_BEGIN_NAMESPACE(Widgets)
+
+	YSL_BEGIN_NAMESPACE(Widgets)
+
+	YSL_BEGIN_NAMESPACE(Controls)
+
+	//按钮。
+	class YButton : public GMCounter<YButton>, public YVisualControl, public Widgets::MLabel
+	{
+	public:
+		typedef YVisualControl ParentType;
+
+	/*
+		YImage BackgroundImage; //背景图像。
+		YImage Image; //前景图像。
+	*/
+
+		//用字符串在窗口中以给定字号初始化标签。
+		template<class _tChar>
+		YButton(HWND, const _tChar*, const SRect& = SRect::FullScreen,
+		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+
+		virtual void
+		DrawForeground();
+	}; //class YButton;
+
+
+	//文本列表框。
+	class YListBox : public GMCounter<YListBox>, public YVisualControl
+	{
+	public:
+		typedef YVisualControl ParentType;
+		typedef String ItemType; //项目类型：字符串。
+		typedef std::vector<ItemType> ListType; //列表类型。
+		typedef GSequenceViewer<ListType> ViewerType; //视图类型。
+
+	protected:
+		static const SDST defMarginH = 4, defMarginV = 2;
+
+		GHResource<Drawing::TextRegion> prTextRegion; //文本区域指针。
+		const bool bDisposeList;
+
+	public:
+		Drawing::Font Font; //字体。
+		Drawing::Padding Margin; //文本和容器的间距。
+		ListType& List; //列表。
+
+	protected:
+		GSequenceViewer<ListType> Viewer; //列表视图。
+
+	public:
+		DefEvent(YIndexEventHandler, Selected) //项目选择状态改变事件。
+		DefEvent(YIndexEventHandler, Confirmed) //项目选中确定事件。
+
+		YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+		YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
+		virtual
+		~YListBox();
+
+	protected:
+		void
+		_m_init();
+
+	public:
+		DefPredicateMember(Selected, Viewer)
+
+		DefGetter(ListType&, List, List)
+		DefGetterMember(ViewerType::IndexType, Index, Viewer)
+		DefGetterMember(ViewerType::IndexType, Selected, Viewer)
+		ItemType*
+		GetItemPtr(ViewerType::IndexType);
+		SDST
+		GetItemHeight() const;
+
+	//	DefSetter(const ListType&, List, List)
+		void
+		SetSelected(ViewerType::IndexType);
+		void
+		SetSelected(SPOS, SPOS);
+		inline void
+		SetSelected(const SPoint&);
+
+	public:
+		virtual void
+		DrawBackground();
+		virtual void
+		DrawForeground();
+
+	protected:
+		ViewerType::IndexType
+		CheckPoint(SPOS, SPOS); //检查相对于所在缓冲区的控件坐标是否在选择范围内，返回选择的项目索引。
+
+	public:
+		inline void
+		ClearSelected();
+
+	private:
+		void
+		CallSelected();
+		void
+		CallConfirmed();
+
+	public:
+		virtual void
+		OnTouchDown(const Runtime::MTouchEventArgs&);
+		virtual void
+		OnClick(const Runtime::MTouchEventArgs&);
+		virtual void
+		OnKeyDown(const Runtime::MKeyEventArgs&);
+		virtual void
+		OnSelected(const MIndexEventArgs&);
+		virtual void
+		OnConfirmed(const MIndexEventArgs&);
+	}; //class YListBox;
+
+
+	//文件列表框。
+	class YFileBox : public GMCounter<YFileBox>, public YListBox, public IO::MFileList
+	{
+	public:
+		typedef YListBox ParentType;
+		typedef ParentType::ListType ListType;
+
+		ListType& List;
+
+		YFileBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+		virtual
+		~YFileBox();
+
+		IO::Path
+		GetPath() const;
+
+		virtual void
+		DrawBackground();
+		virtual void
+		DrawForeground();
+
+		virtual void
+		OnTouchMove(const Runtime::MTouchEventArgs&);
+		virtual void
+		OnConfirmed(const MIndexEventArgs&);
+	}; //class YFileBox;
+
+	YSL_END_NAMESPACE(Controls)
+
+	YSL_END_NAMESPACE(Components)
+
+} //$unit YGUIComponent;
+
+
+$unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 {
 	$import $unit YWidget, $unit YControl,
 		$unit YDesktop;
@@ -5277,11 +5440,11 @@ $unit YWindow "ywindow"
 		PDefHead(void, ClearBackground) const //清除背景。
 			ImplExpr(Buffer.ClearImage())
 
-	private:
+	public:
+		virtual void
+		Fill(PixelType); //以纯色填充显示缓冲区。
 		bool
 		DrawBackgroundImage();
-
-	public:
 		virtual void
 		DrawBackground();
 		virtual void
@@ -5375,7 +5538,7 @@ $unit YWindow "ywindow"
 } //$unit YWindow;
 
 
-$unit YForm "yform"
+$unit YForm "yform" //平台无关的图形用户界面窗体实现。
 {
 	$import $unit YWindow, YControl;
 
@@ -5421,7 +5584,7 @@ $unit YForm "yform"
 } //$unit YForm;
 
 
-$unit YText "ytext"
+$unit YText "ytext" //基础文本显示。
 {
 	$import $unit Core::YString, YFile_(Text), YGDI, $header <cwctype>;
 
@@ -5590,7 +5753,7 @@ $unit YText "ytext"
 
 $code YSLib::Service {
 
-$unit YSystemUtilities "ysutil"
+$unit YSystemUtilities "ysutil" //系统实用模块。
 {
 	$import $unit Core::YShellDefinition;
 
@@ -5598,7 +5761,7 @@ $unit YSystemUtilities "ysutil"
 } //$unit YSystemUtilities;
 
 
-$unit YShellInitialization "ysinit"
+$unit YShellInitialization "ysinit" //程序启动时的通用初始化代码段。
 {
 	$import $unit Core::YShellDefinition, Adapter::Font;
 	$import extern CPATH DEF_FONT_PATH, DEF_FONT_DIRECTORY;
@@ -5636,7 +5799,7 @@ $unit YShellInitialization "ysinit"
 } //$unit YShellInitialization;
 
 
-$unit YTextManager "ytmgr"
+$unit YTextManager "ytmgr" //平台无关的基础文本管理服务。
 {
 	$import $unit Core::YString, YFile_(Text), $header <map>
 		Core::YApplication;
@@ -5847,7 +6010,7 @@ $unit YTextManager "ytmgr"
 } //$unit YTextManager;
 
 
-$unit YTimer "ytimer"
+$unit YTimer "ytimer" //平台无关的计时器服务。
 {
 	$import $unit Core::YObject, $header <map>;
 
@@ -5916,7 +6079,7 @@ $unit YTimer "ytimer"
 
 $code Helper {
 
-$export $unit YGlobal "yglobal"
+$export $unit YGlobal "yglobal" //全局对象和函数定义。
 {
 	$import $header YSBuild, <exception>,
 		$unit Core::YShellMessage, YException;

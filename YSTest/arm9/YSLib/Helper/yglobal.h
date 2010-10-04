@@ -1,14 +1,14 @@
 ﻿// YSLib::Helper::YGlobal by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-22 15:14:57;
-// UTime = 2010-9-16 20:53;
-// Version = 0.1609;
+// CTime = 2009-12-22 15:14:57 + 08:00;
+// UTime = 2010-10-04 22:13 + 08:00;
+// Version = 0.1611;
 
 
 #ifndef INCLUDED_YGLOBAL_H_
 #define INCLUDED_YGLOBAL_H_
 
-// YGlobal ：全局函数定义。
+// YGlobal ：全局对象和函数定义。
 
 #include "../Core/ysmsg.h"
 #include "../Core/yexcept.h"

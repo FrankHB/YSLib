@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-03 00:37 + 08:00;
-// Version = 0.2531;
+// UTime = 2010-10-03 17:09 + 08:00;
+// Version = 0.2569;
 
 
 #include "ygui.h"
@@ -116,9 +116,17 @@ namespace
 	MVisualControl* p_KeyDown(NULL);
 	MVisualControl* p_TouchDown_locked(NULL); //持续按键离开控件时记录的原控件指针。
 
-	std::stack<std::pair<IVisualControl*, MTouchEventArgs> > LeaveStack;
-
-	int ExtraOperationSetting(0);
+	namespace ExOp
+	{
+		typedef enum
+		{
+			NoOp = 0,
+			TouchUp = 1,
+			TouchDown = 2,
+			TouchHeld = 3
+		} ExOpType;
+	};
+	ExOp::ExOpType ExtraOperation(ExOp::NoOp);
 
 	bool
 	TryEnter(IVisualControl& con, const MTouchEventArgs& e)
@@ -129,7 +137,7 @@ namespace
 
 			if(p_TouchDown_locked == &c)
 			{
-				c.Enter(con, static_cast<MTouchEventArgs>(e - dynamic_cast<IWidget&>(con).GetLocation()));
+				c.Enter(con, e);
 				p_TouchDown_locked = NULL;
 				return true;
 			}
@@ -147,7 +155,7 @@ namespace
 
 			if(p_TouchDown_locked == NULL)
 			{
-				c.Leave(con, static_cast<MTouchEventArgs>(e - dynamic_cast<IWidget&>(con).GetLocation()));
+				c.Leave(con, e);
 				p_TouchDown_locked = &c;
 				return true;
 			}
@@ -160,53 +168,53 @@ namespace
 	MVisualControl*
 	GetTouchedVisualControl(IWidgetContainer& con, SPoint& pt)
 	{
-	/*	if(p_TouchDown_locked != NULL && ExtraOperationSetting != 1)
+		using namespace ExOp;
+
+		if(p_TouchDown_locked != NULL && ExtraOperation != TouchUp && ExtraOperation != TouchHeld)
 		{
 			IWidget* pWgt(dynamic_cast<IWidget*>(p_TouchDown_locked));
 
 			pt = pWgt->GetLocation();
 			return p_TouchDown_locked;
-		}*/
+		}
 
 		IWidgetContainer* pCon(&con);
 		IVisualControl* p;
 
 		while((p = pCon->GetTopVisualControlPtr(pt)) != NULL)
 		{
-			MVisualControl* p_MVisualControl(dynamic_cast<MVisualControl*>(p));
-
-			switch(ExtraOperationSetting)
+			if((pCon = dynamic_cast<IWidgetContainer*>(p)) == NULL)
 			{
-			case 1:
-				p_TouchDown_locked = p_MVisualControl;
-			case 3:
-				if(p_TouchDown_locked != NULL && p_TouchDown_locked == p_MVisualControl)
-					TryEnter(*p, pt);
+				IWidget* pWgt(dynamic_cast<IWidget*>(p));
+				
+				if(pWgt != NULL)
+					pt -= pWgt->GetLocation();
 				break;
 			}
-			if((pCon = dynamic_cast<IWidgetContainer*>(p)) == NULL)
-				break;
 			pt -= pCon->GetLocation();
-			switch(ExtraOperationSetting)
+			if(ExtraOperation == TouchDown)
 			{
-			case 2:
 				pCon->RequestToTop();
 				pCon->ClearFocusingPtr();
-				break;
 			}
 		}
-		if(ExtraOperationSetting == 3 && p_TouchDown_locked == NULL && p == NULL)
+		switch(ExtraOperation)
 		{
-			if(dynamic_cast<IVisualControl*>(p_TouchDown) != NULL)
-				TryLeave(*dynamic_cast<IVisualControl*>(p_TouchDown), pt);
-			p_TouchDown_locked = p_TouchDown;
+		case TouchUp:
+			p_TouchDown_locked = NULL;
+			break;
+		case TouchHeld:
+			if(p_TouchDown_locked != NULL && p_TouchDown_locked == dynamic_cast<MVisualControl*>(p))
+				TryEnter(*p, pt);
+			if(p_TouchDown_locked == NULL && p == NULL)
+			{
+				if(dynamic_cast<IVisualControl*>(p_TouchDown) != NULL)
+					TryLeave(*dynamic_cast<IVisualControl*>(p_TouchDown), pt);
+				p_TouchDown_locked = p_TouchDown;
+			}
+		default:
+			break;
 		}
-
-	/*	while(!LeaveStack.empty())
-		{
-			TryLeave(LeaveStack.top())
-				LeaveStack.pop();
-		}*/
 		return p != NULL ? dynamic_cast<MVisualControl*>(p) : dynamic_cast<MVisualControl*>(pCon);
 	}
 
@@ -365,19 +373,19 @@ namespace
 bool
 ResponseTouchUp(IWidgetContainer& con, const MTouchEventArgs& e)
 {
-	ExtraOperationSetting = 1;
+	ExtraOperation = ExOp::TouchUp;
 	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchUpBase));
 }
 bool
 ResponseTouchDown(IWidgetContainer& con, const MTouchEventArgs& e)
 {
-	ExtraOperationSetting = 2;
+	ExtraOperation = ExOp::TouchDown;
 	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchDownBase));
 }
 bool
 ResponseTouchHeld(IWidgetContainer& con, const MTouchEventArgs& e)
 {
-	ExtraOperationSetting = 3;
+	ExtraOperation = ExOp::TouchHeld;
 	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchHeldBase));
 }
 

@@ -1,14 +1,14 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-02 13:47 + 08:00;
-// Version = 0.1918;
+// UTime = 2010-10-04 22:11 + 08:00;
+// Version = 0.1920;
 
 
 #ifndef INCLUDED_YGUI_H_
 #define INCLUDED_YGUI_H_
 
-// YGUI ：平台无关的图形用户界面基础实现。
+// YGUI ：平台无关的 Shell 组件实现。
 
 #include "../Core/yshell.h"
 #include "ydesktop.h"

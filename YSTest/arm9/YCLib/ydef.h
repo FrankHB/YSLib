@@ -1,14 +1,14 @@
 ﻿// YCommon 基础库 DS -> YDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// UTime = 2009-12-2 21:42:44;
-// UTime = 2010-7-13 21:37;
-// Version = 0.2272;
+// UTime = 2009-12-02 21:42:44 + 08:00;
+// UTime = 2010-10-04 22:01 + 08:00;
+// Version = 0.2274;
 
 
 #ifndef INCLUDED_YDEF_H_
 #define INCLUDED_YDEF_H_
 
-// YDefinition ： C 语言风格的系统环境和公用变量类型的基础定义。
+// YDefinition ：系统环境和公用变量类型的基础定义。
 
 #ifdef __cplusplus
 extern "C" {

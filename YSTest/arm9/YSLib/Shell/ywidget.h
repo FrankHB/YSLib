@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-16 20:06:58;
-// UTime = 2010-10-01 02:54;
-// Version = 0.4629;
+// CTime = 2009-11-16 20:06:58 + 08:00;
+// UTime = 2010-10-04 18:22 + 08:00;
+// Version = 0.4641;
 
 
 #ifndef INCLUDED_YWIDGET_H_
@@ -171,6 +171,11 @@ public:
 	GetLocationForParentWindow() const; //取部件相对于容器的父窗口的位置（若无容器则返回 FullScreen ）。
 
 	virtual void
+	Fill(); //以背景色填充显示缓冲区。
+	virtual void
+	Fill(PixelType); //以纯色填充显示缓冲区。
+
+	virtual void
 	Refresh();
 };
 
@@ -183,6 +188,12 @@ inline bool
 MWidget::BelongsTo(IWidgetContainer* pCon) const
 {
 	return pContainer == pCon;
+}
+
+inline void
+MWidget::Fill()
+{
+	Fill(BackColor);
 }
 
 

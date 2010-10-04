@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-10-03 00:38 + 08:00;
-// Version = 0.2682; *Build 158 r78;
+// UTime = 2010-10-04 22:16 + 08:00;
+// Version = 0.2687; *Build 159 r26;
 
 
 #include "../YCLib/ydef.h"
@@ -69,6 +69,7 @@ $Record prefix and abbrevations:
 \mo ::= member objects
 \ns ::= namespaces
 \op ::= operators
+\or ::= overridden
 \para ::= parameters
 \para.def ::= default parameters
 \ptr ::= pointers
@@ -98,232 +99,101 @@ $Record prefix and abbrevations:
 \val ::= values
 
 $using:
+\u YWidget
+{
+	\cl MWidget;
+	\cl YLabel;
+}
 \u YControl
 {
 	\cl MVisualControl;
 	\cl YListBox;
 	\cl YFileBox;
 }
+\u YWindow
+{
+	\cl MWindow;
+	\cl AWindow;
+	\cl YFrameWindow;
+}
 
 $DONE:
 r1:
-/= test 0;
-
-r2:
-/ @@ \un \ns @@ \u YGUI:
-	/ \impl @@ \f bool ResponseTouchUpBase(MVisualControl&, const MTouchEventArgs&);
-	/ \impl @@ \f bool ResponseKeyUpBase(MVisualControl&, const MKeyEventArgs&);
-
-r3:
-/ @@ \cl MVisualControl:
-	+ \eh \vt \mf void OnDrag(const Runtime::MTouchEventArgs&) ;
-	/ \impl @@ \ctor;
-	/ \impl @@ \eh \vt \mf void OnTouchHeld(const Runtime::MTouchEventArgs&);
-/ \tr \impl @@ \cl ShlSetting @@ \u Shells:
-	/ \simp \impl @@ \ctor @@ \st TFormB;
-	/ \simp \impl @@ \ctor @@ \st TFormC;
-
-r4:
-/ @@ \cl MVisualControl:
-	+ public \m \eh DefEvent(YTouchEventHandler, Enter);
-	+ public \m \eh DefEvent(YTouchEventHandler, Leave);
-	/ \impl @@ \eh \vt \mf void OnTouchMove(const Runtime::MTouchEventArgs&);
-/ @@ \u YGUI
-	/ @@ \cl SInputStatus:
-		+ \sf void CheckTouchInBounds(Components::Controls::MVisualControl&, const MTouchEventArgs&)
-		+ typedef {
-			StillNotInBounds = 0,
-			EnterBounds = 1,
-			LeaveBounds = 2,
-			StillInBounds = 3
-			} TouchSwitchStateType;
-		+ \sm TouchSwitchStateType TouchSwitchState;
-		/ \ac @@
+/ @@ \un \ns @@ \u YGUI;
+	- int ExtraOperationSetting;
+	+
+	{
+		namespace ExOp
 		{
-			static TouchSwitchStateType TouchSwitchState;
-			static KeyHeldStateType KeyHeldState;
-			static Timers::YTimer KeyTimer;
-		} ~ public -> private;
-		+ \mf DefStaticGetter(TouchSwitchStateType, TouchSwitchState, TouchSwitchState);
-		+ \mf DefStaticGetter(KeyHeldStateType, KeyHeldState, KeyHeldState);
-	/ @@ \un \ns:
-		/ MVisualControl* p_TouchDown -> \sm @@ \cl SInputState;
-		/ MVisualControl* p_KeyDown -> \sm @@ \cl SInputState;
-	/ \tr \impl;
+			typedef enum
+			{
+				NoOp = 0,
+				TouchUp = 1,
+				TouchDown = 2,
+				TouchHeld = 3
+			} ExOpType;
+		};
+		ExOp::ExOpType ExtraOperation(NoOp);
+	};
+	/ \impl @@ \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&);
 
-r5:
-/ \tr \impl @@ \cl ShlSetting @@ \u Shells;
+r2-r4:
+/ \tr \impl @@ \ctor @@ \st ShlSetting::TFormB @@ \u Shells;
+/ \impl @@ \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&) @@ \un \ns @@ \u YGUI;
 
-r6-r8:
+r5-r13:
 / test 1;
 
-r9-r10:
-/ \impl @@ \cl ShlSetting @@ \u Shells;
+r14-r16:
+* \impl @@ \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&) @@ \un \ns @@ \u YGUI;
 
-r11-r12:
-/= test 2;
+r17-r20:
+/ @@ \un \ns @@ \u YGUI:
+	/ \impl @@ \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&);
+	- std::stack<std::pair<IVisualControl*, MTouchEventArgs> > LeaveStack;
 
-r13-r17:
-* \smf void CheckTouchInBounds(MVisualControl&, const MTouchEventArgs&) @@ \cl SInputState
-	-> void CheckTouchedControlBounds(MVisualControl&, const MTouchEventArgs&);
-/= test 3;
-
-r18:
-/ \simp @@ \cl SInputState @@ \u YGUI:
-	- \smf void CheckTouchedControlBounds(MVisualControl&, const MTouchEventArgs&);
-	- typedef TouchSwitchStateType;
-	- \sm TouchSwitchStateType TouchSwitchState;
-	- \mf DefStaticGetter(TouchSwitchStateType, TouchSwitchState, TouchSwitchState);
-	/ @@ \un \ns:
-		/ \impl @@ \f bool ResponseKeyUpBase(MVisualControl&, const MKeyEventArgs&);
-		/ \impl @@ \f bool ResponseKeyDownBase(MVisualControl&, const MKeyEventArgs&);
-		/ \impl @@ \f bool ResponseTouchUpBase(MVisualControl&, const MKeyTouchArgs&);
-		/ \impl @@ \f bool ResponseTouchDownBase(MVisualControl&, const MKeyTouchArgs&);
-		/ \impl @@ \f bool ResponseTouchHeldBase(MVisualControl&, const MKeyTouchArgs&);
-	/@@ \u YControl
-		+ DefDelegate(YInputEventHandler, IVisualControl, Runtime::MInputEventArgs);
-		/ @@ \cl MVisualControl:
-			/ empty \impl @@ \mf void TouchMove(const Runtime::MTouchEventArgs&);
-			/ DefEvent(YTouchEventHandler, Enter) -> DefEvent(YInputEventHandler, Enter);
-			/ DefEvent(YTouchEventHandler, Leave) -> DefEvent(YInputEventHandler, Leave);
-	/ @@ \st ShlSetting::TFormB @@ \u Shells:
-		\smf void btnB_Enter(IVisualControl& sender, const MTouchEventArgs&)
-			-> void btnB_Enter(IVisualControl& sender, const MInputEventArgs&);
-		\smf void btnB_Leave(IVisualControl& sender, const MTouchEventArgs&)
-			-> void btnB_Leave(IVisualControl& sender, const MInputEventArgs&);
-
-r19:
-/ \simp @@ \cl MVisualControl:
-	- \impl @@ \eh \vt \mf void OnTouchMove(const Runtime::MTouchEventArgs&);
-	/ \impl @@ \eh \vt \mf void OnDrag(const Runtime::MTouchEventArgs&)
-		-> void OnTouchMove(const Runtime::MTouchEventArgs&);
-	/ \tr \impl @@ \ctor;
-/ \tr \impl @@ \cl ShlSetting @@ \u Shells:
-	/ \simp \impl @@ \ctor @@ \st TFormB;
-	/ \simp \impl @@ \ctor @@ \st TFormC;
-
-r20-r21:
-/ test 4:
-	/ \tr \impl @@ \cl ShlSetting @@ \u Shells:
-		/ \simp \impl @@ \ctor @@ \st TFormB;
-		/ \simp \impl @@ \ctor @@ \st TFormC;
+r21:
+/ \impl @@ \ctor @@ \cl YFileBox;
 
 r22:
-/ @@ \u YGUI:
-	/ \impl @@ \f bool ResponseTouchHeldBase(MVisualControl&, const MTouchEventArgs&)
-		@@ \un \ns;
-	/ @@ \cl SInputState:
-		/ \sm MVisualControl* p_TouchDown -> !\sm @@ \un \ns;
-		/ \sm MVisualControl* p_KeyDown -> !\sm @@ \un \ns;
+/ @@ \un \ns @@ \u YGUI:
+	/ \impl @@ \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&);
+	/ \simp \impl @@ \f bool TryEnter(IVisualControl&, const MTouchEventArgs&);
+	/ \simp \impl @@ \f bool TryLeave(IVisualControl&, const MTouchEventArgs&);
 
 r23:
-/ @@ \un \ns @@ \u YGUI:
-	/ \impl @@ \f bool ResponseTouchHeldBase(MVisualControl&, const MTouchEventArgs&):
-		/s MVisualControl* p_TouchDown_locked(NULL) -> \un \ns;
-	/ \impl @@ \f bool ResponseTouchHeld(IVisualControl&, const MTouchEventArgs&);
+/ \tr \impl @@ \ctor @@ \st ShlSetting::TFormB @@ \u Shells;
 
 r24:
-/ \impl @@ \f bool ResponseTouchHeld(IWidgetContainer&, const MTouchEventArgs&) @@ \u YGUI;
-
-r25:
-* \impl @@ \f bool ResponseTouchHeldBase(MVisualControl&, const MTouchEventArgs&)  @@ \un \ns @@ \u YGUI;
+/ @@ \cl MWidget:
+	+ \i \vt \mf void Fill();
+	+ \vt \mf void Fill(PixelType);
+/ @@ \cl YVisualControl:
+	/ \simp \impl @@ \mf void DrawBackground();
+/ @@ \cl YLabel:
+	/ \simp \impl @@ \mf void DrawForeground();
+/ @@ \cl AWindow:
+	+ \or \vt \mf void Fill(PixelType);
+	/ \ac @@ private \mf void bool DrawBackgroundImage();-> public;
+	/ \simp \impl @@ void DrawBackground();
 
 r26:
-/ @@ \u YGUI:
-	/ \@@ \un \ns:
-		/ +\v @@ MVisualControl* p_TouchDown;
-		/ +\v @@ MVisualControl* p_KeyDown;
-		/ +\v @@ MVisualControl* p_TouchDown_locked;
-		/ \impl @@ \f bool ResponseTouchUpBase(MVisualControl&, const MTouchEventArgs&):
-		/ \impl @@ \f bool ResponseTouchDownBase(MVisualControl&, const MTouchEventArgs&);
-	/ \impl @@ \f bool ResponseTouchUp(IWidgetContainer&, const MTouchEventArgs&);
-	/ \impl @@ \f bool ResponseTouchDown(IWidgetContainer&, const MTouchEventArgs&);
-	/ \impl @@ \f bool ResponseTouchHeld(IWidgetContainer&, const MTouchEventArgs&);
-	+ \f bool TryEnter(IVisualControl&, const MTouchEventArgs&);
-	+ \f bool TryLeave(IVisualControl&, const MTouchEventArgs&);
-	+ \inc \h <stack>;
-
-r27:
-/ \impl @@ \f bool ResponseTouchUp(IWidgetContainer&, const MTouchEventArgs&) @@ \u YGUI;
-
-r28:
-/= test 5;
-
-r29:
-/ \impl @@ \f bool ResponseTouchHeld(IWidgetContainer&, const MTouchEventArgs&) @@ \u YGUI;
-
-r30-r34:
-/= test 6;
-
-r35-r36:
-/ @@ \u YGUI:
-	* \impl @@ \f bool ResponseTouchHeld(IWidgetContainer&, const MTouchEventArgs&);
-	* \impl @@ \f bool ResponseTouchUp(IWidgetContainer&, const MTouchEventArgs&);
-
-r37-38:
-/= test 7;
-
-r39:
-/ @@ \un \ns @@ \u YGUI:
-	* \impl @@ \f bool TryEnter(IVisualControl&, const MTouchEventArgs&);
-	* \impl @@ \f bool TryLeave(IVisualControl&, const MTouchEventArgs&);
-
-r40:
-* \impl @@ \f bool ResponseTouchHeld(IWidgetContainer&, const MTouchEventArgs&) @@ \u YGUI;
-
-r41:
-* \impl @@ \f bool TryEnter(IVisualControl&, const MTouchEventArgs&) @@ \un \ns @@ \u YGUI;
-
-r42:
-* \impl @@ \f bool TryLeave(IVisualControl&, const MTouchEventArgs&) @@ \un \ns @@ \u YGUI;
-
-r43-r44:
-/= test 8;
-
-r45:
-/ \impl @@ \f bool ResponseTouchUp(IWidgetContainer&, const MTouchEventArgs&) @@ \u YGUI;
-
-r46-r48:
-/ \simp \u YGUI:
-	+ \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&) @@ \un \ns;
-	/ \simp \f of touching input;
-
-r49-r53:
-/ \impl \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&) @@ \un \ns @@ \u YGUI;
-
-r54-r58:
-/= test 9;
-
-r59-r60:
-/ \impl \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&) @@ \un \ns @@ \u YGUI;
-
-r61:
-/ @@ \u YGUI:
-	/ impl @@ \f bool ResponseTouchUpBase(MVisualControl&, const MTouchEventArgs&);
-	/ impl @@ \f bool ResponseTouchDownBase(MVisualControl&, const MTouchEventArgs&);
-
-r62-r65:
-/ \ns @@ \u YGUI:
-	/ @@ \un:
-		* \impl @@ \f bool TryEnter(IVisualControl&, const MTouchEventArgs&);
-		* \impl @@ \f bool TryLeave(IVisualControl&, const MTouchEventArgs&);
-	* impl @@ \f bool ResponseTouchDownBase(MVisualControl&, const MTouchEventArgs&);
-
-r66-r67:
-/ \impl \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&) @@ \un \ns @@ \u YGUI;
-
-r68-r73:
-/= test 10;
-
-r74:
-* \impl \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&) @@ \un \ns @@ \u YGUI;
-
-r75:
-/= test 11;
-	/ \tr @@ \u Shells;
-
-r76-r78:
-/ \tr \impl @@ \smf void SInputStatus::RepeatKeyHeld(MVisualControl&, const MKeyEventArgs&) @@ \u YGUI;
++ \u YGUIComponent "yguicomp";
+/ @@ \u YControl:
+	/ cl YButton >> \u YGUIComponent;
+	/ cl YListBox >> \u YGUIComponent;
+	/ cl YFileBox >> \u YGUIComponent;
+	-= \inc "../Core/yexcept.h";
+	/= @@ \ns Components::Controls @@ \impl:
+		-= using namespace Drawing;
+		-= using namespace Widgets;
+/ @@ \h YWindow:
+	/ \inc "ycomponent.h" -> "yguicomp.h";
+	/= @@ \ns Components::Controls @@ \impl:
+/ @@ \u YGUIComponent:
+	/= @@ \ns Components @@ \impl:
+		-= using namespace Drawing;
+		-= using namespace Widgets;
 
 
 $DOING
@@ -331,11 +201,14 @@ $DOING
 / ...
 
 $NEXT:
-* Widget bounds err;
+b159:
++ \impl YButton;
+b160-b190:
 / fully \impl \u DSReader;
 	* moving text after setting lnGap;
 * non-ASCII character filename error in FAT16;
 + \impl loading pictures;
++ \impl style on widgets;
 
 $TODO:
 
@@ -357,7 +230,6 @@ Build a series set of robust gfx APIs.
 
 GUI characteristics needed:
 Icons;
-Buttons;
 Other controls.
 
 Other stuff to be considered to append:

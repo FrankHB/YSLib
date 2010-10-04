@@ -84,6 +84,7 @@
     <ClCompile Include="arm9\YSLib\Shell\yform.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\ygdi.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\ygui.cpp" />
+    <ClCompile Include="arm9\YSLib\Shell\yguicomp.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\ytext.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\ywidget.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\ywindow.cpp" />
@@ -99,6 +100,7 @@
   <ItemGroup>
     <ClInclude Include="arm9\YCLib\ycommon.h" />
     <ClInclude Include="arm9\YCLib\ydef.h" />
+    <ClInclude Include="arm9\YSLib\Shell\yguicomp.h" />
     <ClInclude Include="arm9\YSLib\ysbuild.h" />
     <ClInclude Include="arm9\YSLib\Core\yapp.h" />
     <ClInclude Include="arm9\YSLib\Core\ycounter.hpp" />

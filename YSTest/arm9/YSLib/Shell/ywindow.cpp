@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28 + 08:00;
-// UTime = 2010-10-01 00:00 + 08:00;
-// Version = 0.2972;
+// UTime = 2010-10-04 18:40 + 08:00;
+// Version = 0.3001;
 
 
 #include "ydesktop.h"
@@ -59,6 +59,11 @@ AWindow::RequestToTop()
 		pDesktop->MoveToTop(*this);
 }
 
+void
+AWindow::Fill(PixelType c)
+{
+	Buffer.Fill(c);
+}
 bool
 AWindow::DrawBackgroundImage()
 {
@@ -78,7 +83,7 @@ void
 AWindow::DrawBackground()
 {
 	if(!DrawBackgroundImage())
-		Buffer.Fill(BackColor);
+		Fill(BackColor);
 }
 void
 AWindow::DrawForeground()

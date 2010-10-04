@@ -1,14 +1,14 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-14 18:29:46;
-// UTime = 2010-9-25 22:18;
-// Version = 0.2725;
+// CTime = 2009-12-14 18:29:46 + 08:00;
+// UTime = 2010-10-04 22:10 + 08:00;
+// Version = 0.2727;
 
 
 #ifndef INCLUDED_YGDI_H_
 #define INCLUDED_YGDI_H_
 
-// YGDI：平台无关的图形设备接口实现。
+// YGDI ：平台无关的图形设备接口实现。
 
 #include "../Core/yobject.h"
 #include "../Adapter/yfont.h"

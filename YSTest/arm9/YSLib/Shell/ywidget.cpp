@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-01 02:50 + 08:00;
-// Version = 0.4076;
+// UTime = 2010-10-04 18:20 + 08:00;
+// Version = 0.4088;
 
 
 #include "ywindow.h"
@@ -75,6 +75,12 @@ SPoint
 MWidget::GetLocationForParentWindow() const
 {
 	return pContainer ? pContainer->GetWindowLocationOffset(Location) : SPoint::FullScreen;
+}
+
+void
+MWidget::Fill(PixelType c)
+{
+	FillRect(hWindow->GetBufferPtr(), hWindow->GetSize(), GetBounds(), c);
 }
 
 void
@@ -209,7 +215,7 @@ void
 YLabel::DrawForeground()
 {
 	if(!Transparent)
-		FillRect(hWindow->GetBufferPtr(), hWindow->GetSize(), GetBounds(), BackColor);
+		Fill();
 	ParentType::DrawForeground();
 	PaintText(*this);
 }

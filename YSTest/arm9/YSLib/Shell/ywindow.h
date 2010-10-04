@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-28 16:46:40;
-// UTime = 2010-10-01 02:44;
-// Version = 0.3275;
+// CTime = 2009-12-28 16:46:40 + 08:00;
+// UTime = 2010-10-04 21:37 + 08:00;
+// Version = 0.3310;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -11,7 +11,7 @@
 // YWindow ：平台无关的图形用户界面窗口实现。
 
 #include "ywidget.h"
-#include "ycontrol.h"
+#include "yguicomp.h"
 
 YSL_BEGIN
 
@@ -172,11 +172,11 @@ public:
 	PDefHead(void, ClearBackground) const //清除背景。
 		ImplExpr(Buffer.ClearImage())
 
-private:
+public:
+	virtual void
+	Fill(PixelType); //以纯色填充显示缓冲区。
 	bool
 	DrawBackgroundImage();
-
-public:
 	virtual void
 	DrawBackground();
 	virtual void

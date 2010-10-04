@@ -1,14 +1,14 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-24 15:29:11;
-// UTime = 2010-9-30 16:21;
-// Version = 0.2250;
+// CTime = 2009-12-24 15:29:11 + 08:00;
+// UTime = 2010-10-04 16:21 + 08:00;
+// Version = 0.2252;
 
 
 #ifndef INCLUDED_YSDEF_H_
 #define INCLUDED_YSDEF_H_
 
-// YShellDefinition ：类型描述模块。
+// YShellDefinition ：宏定义和类型描述模块。
 
 /*
  ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。

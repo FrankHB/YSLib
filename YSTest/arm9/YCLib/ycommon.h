@@ -1,14 +1,14 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-12 22:14:28;
-// UTime = 2010-9-24 12:01;
-// Version = 0.2084;
+// CTime = 2009-11-12 22:14:28 + 08:00;
+// UTime = 2010-10-04 22:02 + 08:00;
+// Version = 0.2086;
 
 
 #ifndef INCLUDED_YCOMMON_H_
 #define INCLUDED_YCOMMON_H_
 
-//平台相关的公共组件无关函数与宏定义集合。
+// YCommon ：平台相关的公共组件无关函数与宏定义集合。
 
 #include <platform.h>
 

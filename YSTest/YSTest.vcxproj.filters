@@ -242,6 +242,9 @@
     <ClCompile Include="doc\ex.cpp">
       <Filter>文档</Filter>
     </ClCompile>
+    <ClCompile Include="arm9\YSLib\Shell\yguicomp.cpp">
+      <Filter>ARM9\YSLib\Shell</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arm9\YCLib\ycommon.h">
@@ -1218,6 +1221,9 @@
     </ClInclude>
     <ClInclude Include="arm9\include\loki\yasli\yasli_vector.h">
       <Filter>ARM9\头文件\Loki\yasli</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Shell\yguicomp.h">
+      <Filter>ARM9\YSLib\Shell</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

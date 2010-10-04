@@ -1,8 +1,8 @@
 ﻿// YSLib -> Designation by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-02 05:14:30 + 08:00;
-// UTime = 2010-10-03 00:45 + 08:00;
-// Version = 0.3184;
+// UTime = 2010-10-03 05:56 + 08:00;
+// Version = 0.3188;
 
 
 // Designation ：设计说明文档。
@@ -450,12 +450,12 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 当用户按键时，触发 KeyDown 事件；持续时触发 KeyHeld 事件；结束时依次触发 KeyPress 和 KeyUp 事件。
 当用户使用指针设备（包括触摸屏）输入时，触发 TouchDown 事件；持续时触发 TouchHeld 事件；结束时依次触发 Click 和 TouchUp 事件。
  MVisualControl 默认处理 KeyHeld 和 TouchDown 事件时调用 RequestFocus(...) 向容器请求焦点。若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
-指针设备作用于 MVisualControl 派生的控件，触发 TouchDown 事件之前判断输入焦点时触发若干个 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
+指针设备作用于 MVisualControl 派生的控件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
 
 @1.7.2.9.3 扩展输入事件：
  MVisualControl 定义了 TouchMove 。
-使用虚成员方法 OnTouchHeld 默认处理 TouchHeld 事件时若用户移动指针设备，则触发 TouchMove 事件。
-使用虚成员方法 OnTouchMove 默认为空，供派生类重写。
+虚成员方法 OnTouchHeld 默认处理 TouchHeld 事件时若用户移动指针设备，则触发 TouchMove 事件。
+虚成员方法 OnTouchMove 默认用于实现拖动控件（但默认并没有被添加至 TouchMove 事件处理器）。
 
 @1.7.2.10 扩展事件处理程序：
  MVisualControl 定义了成员方法 OnDrag ，可用于处理 TouchMove 事件，实现控件拖曳。

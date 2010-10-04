@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-03 01:35 + 08:00;
-// Version = 0.2735;
+// UTime = 2010-10-04 22:15 + 08:00;
+// Version = 0.2737;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -177,7 +177,7 @@ public:
 		{
 			BackColor = ARGB16(1, 31, 31, 15);
 			TouchMove += &YVisualControl::OnTouchMove;
-			btnB.TouchMove += &YVisualControl::OnTouchMove;
+		//	btnB.TouchMove += &YVisualControl::OnTouchMove;
 			btnB.Enter += btnB_Enter;
 			btnB.Leave += btnB_Leave;
 			btnB2.TouchMove += &YVisualControl::OnTouchMove;

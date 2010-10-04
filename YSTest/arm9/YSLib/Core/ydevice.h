@@ -1,14 +1,14 @@
 ﻿// YSLib::Core::YDevice by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-28 16:39:39;
-// UTime = 2010-8-2 15:42;
-// Version = 0.2688;
+// CTime = 2009-12-28 16:39:39 + 08:00;
+// UTime = 2010-10-04 22:07 + 08:00;
+// Version = 0.2690;
 
 
 #ifndef INCLUDED_YOUTPUT_H_
 #define INCLUDED_YOUTPUT_H_
 
-// YDevice：平台无关的设备抽象层。
+// YDevice ：平台无关的设备抽象层。
 
 #include "../Helper/yglobal.h"
 
