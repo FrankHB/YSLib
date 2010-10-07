@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-6 2:44:31;
-// UTime = 2010-9-25 22:19;
-// Version = 0.1774;
+// CTime = 2009-12-06 02:44:31 + 08:00;
+// UTime = 2010-10-05 18:01 + 08:00;
+// Version = 0.1778;
 
 
 #ifndef INCLUDED_YSMSG_H_
@@ -18,7 +18,7 @@
 
 YSL_BEGIN
 
-using Drawing::SPoint;
+using Drawing::Point;
 
 YSL_BEGIN_NAMESPACE(Shells)
 
@@ -40,7 +40,7 @@ private:
 
 #ifndef YSLIB_NO_CURSOR
 
-	SPoint pt; //光标位置。
+	Point pt; //光标位置。
 
 #endif
 
@@ -55,7 +55,7 @@ public:
 
 #else
 
-	Message(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0, const SPoint& pt = SPoint::Zero);
+	Message(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0, const Point& pt = Point::Zero);
 
 #endif
 
@@ -73,7 +73,7 @@ public:
 
 #ifndef YSLIB_NO_CURSOR
 
-	DefGetter(const SPoint&, CursorLocation, pt)
+	DefGetter(const Point&, CursorLocation, pt)
 
 #endif
 

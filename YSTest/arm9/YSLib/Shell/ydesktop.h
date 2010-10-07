@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-05-02 12:00:08 + 08:00;
-// UTime = 2010-10-01 00:37 + 08:00;
-// Version = 0.1995;
+// UTime = 2010-10-0 13:33 + 08:00;
+// Version = 0.2001;
 
 
 #ifndef INCLUDED_YDESKTOP_H_
@@ -32,14 +32,14 @@ private:
 
 public:
 	explicit
-	YDesktop(YScreen&, PixelType = 0, GHResource<Drawing::YImage> = NULL);
+	YDesktop(YScreen&, Color = 0, GHResource<Drawing::YImage> = NULL);
 	virtual
 	~YDesktop();
 
 	DefGetter(const YScreen&, Screen, Screen) //取屏幕对象。
 	DefGetter(BitmapPtr, BackgroundPtr, Screen.GetPtr()) //取背景指针。
 
-	virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const SPoint& p) const
+	virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
 		ImplBodyBase(YDesktop, GetTopDesktopObjectPtr, p)
 
 	virtual void
@@ -59,7 +59,7 @@ public:
 	IVisualControl*
 	GetTopDesktopObjectPtr() const; //取得桌面对象组中顶端桌面对象的句柄。
 	IVisualControl*
-	GetTopDesktopObjectPtr(const SPoint&) const; //取得桌面对象组中包含指定点的顶端桌面对象的句柄。
+	GetTopDesktopObjectPtr(const Point&) const; //取得桌面对象组中包含指定点的顶端桌面对象的句柄。
 
 	virtual void
 	DrawBackground();

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:24 + 08:00;
-// UTime = 2010-10-04 21:35 + 08:00;
-// Version = 0.3649;
+// UTime = 2010-10-05 18:35 + 08:00;
+// Version = 0.3694;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -115,7 +115,7 @@ public:
 
 inline
 MControl::MControl(bool e)
-: Enabled(e), EventMap()
+	: Enabled(e), EventMap()
 {}
 
 
@@ -174,7 +174,7 @@ public:
 	typedef YComponent ParentType;
 
 	explicit
-	YVisualControl(HWND = NULL, const SRect& = SRect::FullScreen, IWidgetContainer* = NULL);
+	YVisualControl(HWND = NULL, const Rect& = Rect::FullScreen, IWidgetContainer* = NULL);
 	~YVisualControl();
 
 	virtual PDefHead(EventMapType::Event&, operator[], const EventMapType::ID& id)
@@ -189,27 +189,27 @@ public:
 		ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
 
 	//判断包含关系。
-	virtual PDefHead(bool, Contains, const SPoint& p) const
+	virtual PDefHead(bool, Contains, const Point& p) const
 		ImplBodyBase(MVisual, Contains, p)
 
 	virtual PDefHead(bool, CheckRemoval, Runtime::GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(MVisualControl, CheckRemoval, c)
 
-	virtual DefGetterBase(const SPoint&, Location, MVisual)
-	virtual DefGetterBase(const SSize&, Size, MVisual)
+	virtual DefGetterBase(const Point&, Location, MVisual)
+	virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
 	virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 	virtual DefGetterBase(HWND, WindowHandle, MWidget)
 
 	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
 	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
-	virtual DefSetterBase(const SPoint&, Location, MVisual)
+	virtual DefSetterBase(const Point&, Location, MVisual)
 	virtual DefSetterBaseDe(bool, Enabled, MControl, true)
 
-	virtual void
-	DrawBackground();
-	virtual void
-	DrawForeground();
+	virtual PDefHead(void, DrawBackground)
+		ImplBodyBaseVoid(MWidget, DrawBackground)
+	virtual PDefHead(void, DrawForeground)
+		ImplBodyBaseVoid(MWidget, DrawForeground)
 
 	virtual PDefHead(void, Refresh)
 		ImplBodyBaseVoid(MWidget, Refresh)
@@ -222,6 +222,45 @@ public:
 	RequestToTop()
 	{}
 };
+
+
+//按钮模块。
+class MButton
+{
+protected:
+	bool bPressed;
+
+public:
+	explicit
+	MButton(bool = false);
+
+	DefPredicate(Pressed, bPressed)
+};
+
+inline
+MButton::MButton(bool b)
+	: bPressed(b)
+{}
+
+
+//抽象按钮模块基类。
+class AButton : public MButton, public Widgets::MLabel
+{
+public:
+	template<class _tChar>
+	AButton(const _tChar*, const Drawing::Font& = Drawing::Font::GetDefault(), GHResource<Drawing::TextRegion> = NULL);
+
+	DefEvent(YIndexEventHandler, Confirmed) //选中确定事件。
+
+	DeclIEntry(void OnEnter(const Runtime::MInputEventArgs&))
+	DeclIEntry(void OnLeave(const Runtime::MInputEventArgs&))
+	DeclIEntry(void OnClick(const Runtime::MTouchEventArgs&))
+};
+
+template<class _tChar>
+AButton::AButton(const _tChar* l, const Drawing::Font& f, GHResource<Drawing::TextRegion> prTr_)
+	: MButton(), MLabel(l, f, prTr_)
+{}
 
 YSL_END_NAMESPACE(Controls)
 

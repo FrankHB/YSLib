@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-28 00:36:30 + 08:00;
-// UTime = 2010-09-30 16:29 + 08:00;
-// Version = 0.1922;
+// UTime = 2010-10-05 15:20 + 08:00;
+// Version = 0.1928;
 
 
 #include "yfilesys.h"
@@ -327,7 +327,7 @@ ValidateDirectory(const std::string& pathstr)
 
 
 MFileList::MFileList(CPATH pathstr)
-: Directory(pathstr == NULL ? FS_Root : pathstr), List()
+	: Directory(pathstr == NULL ? FS_Root : pathstr), List()
 {
 //	if(!ValidateDirectory(Directory))
 //		throw;

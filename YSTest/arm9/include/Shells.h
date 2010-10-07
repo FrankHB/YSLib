@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-04 22:15 + 08:00;
-// Version = 0.2737;
+// UTime = 2010-10-05 18:06 + 08:00;
+// Version = 0.2755;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -40,9 +40,9 @@ private:
 		YLabel lblTitle, lblStatus;
 
 		TFrmLoadUp(HSHL hShl)
-		: YForm(SRect::FullScreen, GetImage(1), pDesktopUp, hShl),
-			lblTitle(HWND(this), G_APP_NAME, SRect(50, 20, 100, 22)),
-			lblStatus(HWND(this), "Loading...", SRect(60, 80, 80, 22))
+		: YForm(Rect::FullScreen, GetImage(1), pDesktopUp, hShl),
+			lblTitle(HWND(this), G_APP_NAME, Rect(50, 20, 100, 22)),
+			lblStatus(HWND(this), "Loading...", Rect(60, 80, 80, 22))
 		{
 		//	lblTitle.Transparent = true;
 			Draw();
@@ -53,8 +53,8 @@ private:
 		YLabel lblStatus;
 
 		TFrmLoadDown(HSHL hShl)
-		: YForm(SRect::FullScreen, GetImage(2), pDesktopDown, hShl),
-			lblStatus(HWND(this), FS("初始化中，请稍后……"), SRect(30, 20, 160, 22))
+		: YForm(Rect::FullScreen, GetImage(2), pDesktopDown, hShl),
+			lblStatus(HWND(this), FS("初始化中，请稍后……"), Rect(30, 20, 160, 22))
 		{
 			lblStatus.Transparent = true;
 			Draw();
@@ -77,9 +77,9 @@ private:
 		YLabel lblTitle, lblPath;
 
 		TFrmFileListMonitor(HSHL hShl)
-		: YForm(SRect::FullScreen, GetImage(3), pDesktopUp, hShl),
-			lblTitle(HWND(this), "文件列表：请选择一个文件。", SRect(16, 20, 220, 22)),
-			lblPath(HWND(this), "/", SRect(12, 80, 240, 22))
+		: YForm(Rect::FullScreen, GetImage(3), pDesktopUp, hShl),
+			lblTitle(HWND(this), "文件列表：请选择一个文件。", Rect(16, 20, 220, 22)),
+			lblPath(HWND(this), "/", Rect(12, 80, 240, 22))
 		{
 		//	lblTitle.Transparent = true;
 		//	lblPath.Transparent = true;
@@ -92,10 +92,10 @@ private:
 		YButton btnTest, btnOK;
 
 		TFrmFileListSelecter(HSHL hShl)
-		: YForm(SRect::FullScreen, GetImage(4), pDesktopDown, hShl),
-			fbMain(HWND(this), SRect(12, 10, 224, 150)),
-			btnTest(HWND(this), FS(" 测试(X)"), SRect(60, 165, 70, 22)),
-			btnOK(HWND(this), FS(" 确定(R)"), SRect(140, 165, 70, 22))
+		: YForm(Rect::FullScreen, GetImage(4), pDesktopDown, hShl),
+			fbMain(HWND(this), Rect(12, 10, 224, 150)),
+			btnTest(HWND(this), FS(" 测试(X)"), Rect(60, 165, 70, 22)),
+			btnOK(HWND(this), FS(" 确定(R)"), Rect(140, 165, 70, 22))
 		{
 			KeyPress += &TFrmFileListSelecter::frm_KeyPress;
 		//	fbMain.TouchDown += YFileBox::OnClick;
@@ -153,9 +153,9 @@ public:
 		YButton lblA;
 		YButton lblA2;
 
-		TFormA(HSHL hShl) : YForm(SRect::FullScreen, GetImage(5), pDesktopUp, hShl),
-			lblA(HWND(this), G_APP_NAME, SRect(left, 20, 200, size)),
-			lblA2(HWND(this), "程序测试", SRect(left, 80, 72, size))
+		TFormA(HSHL hShl) : YForm(Rect::FullScreen, GetImage(5), pDesktopUp, hShl),
+			lblA(HWND(this), G_APP_NAME, Rect(left, 20, 200, size)),
+			lblA2(HWND(this), "程序测试", Rect(left, 80, 72, size))
 		{
 			lblA2.Transparent = true;
 		}
@@ -171,9 +171,9 @@ public:
 	{
 		YButton btnB, btnB2;
 
-		TFormB(HSHL hShl) : YForm(SRect(10, 40, 228, 70), /*GetImage(6)*/NULL, pDesktopDown, hShl),
-			btnB(HWND(this), FS("测试程序"), SRect(2, 5, 224, size)),
-			btnB2(HWND(this), FS("测试程序2"), SRect(45, 35, 124, size))
+		TFormB(HSHL hShl) : YForm(Rect(10, 40, 228, 70), /*GetImage(6)*/NULL, pDesktopDown, hShl),
+			btnB(HWND(this), FS("测试程序"), Rect(2, 5, 224, size)),
+			btnB2(HWND(this), FS("测试程序2"), Rect(45, 35, 124, size))
 		{
 			BackColor = ARGB16(1, 31, 31, 15);
 			TouchMove += &YVisualControl::OnTouchMove;
@@ -197,9 +197,9 @@ public:
 		YButton btnC;
 		YButton btnReturn;
 
-		TFormC(HSHL hShl) : YForm(SRect(5, 60, 180, 120), /*GetImage(7)*/NULL, pDesktopDown, hShl),
-			btnC(HWND(this), FS("测试y"), SRect(13, 45, 184, size)),
-			btnReturn(HWND(this), FS("返回"), SRect(13, 82, 60, size))
+		TFormC(HSHL hShl) : YForm(Rect(5, 60, 180, 120), /*GetImage(7)*/NULL, pDesktopDown, hShl),
+			btnC(HWND(this), FS("测试y"), Rect(13, 45, 184, size)),
+			btnReturn(HWND(this), FS("返回"), Rect(13, 82, 60, size))
 		{
 			BackColor = ARGB16(1, 31, 15, 15);
 			TouchDown += TFormC_TouchDown;

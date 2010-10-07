@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-10-04 22:16 + 08:00;
-// Version = 0.2687; *Build 159 r26;
+// UTime = 2010-10-08 00:38 + 08:00;
+// Version = 0.2697; *Build 160 r19;
 
 
 #include "../YCLib/ydef.h"
@@ -35,6 +35,7 @@ $Record prefix and abbrevations:
 \c ::= const
 \cb ::= catch blocks
 \cl ::= classes
+\cp ::= copied
 \ctor ::= constructors;
 \cv ::= const & volatile
 \d ::= derived
@@ -67,6 +68,7 @@ $Record prefix and abbrevations:
 \mem ::= memory
 \mf ::= member functions
 \mo ::= member objects
+\n ::= names
 \ns ::= namespaces
 \op ::= operators
 \or ::= overridden
@@ -109,6 +111,13 @@ $using:
 	\cl MVisualControl;
 	\cl YListBox;
 	\cl YFileBox;
+	\cl AButton;
+}
+\u YGUIComponent
+{
+	\cl YButton;
+	\cl YListBox;
+	\cl YFileBox;
 }
 \u YWindow
 {
@@ -119,91 +128,138 @@ $using:
 
 $DONE:
 r1:
-/ @@ \un \ns @@ \u YGUI;
-	- int ExtraOperationSetting;
-	+
-	{
-		namespace ExOp
-		{
-			typedef enum
-			{
-				NoOp = 0,
-				TouchUp = 1,
-				TouchDown = 2,
-				TouchHeld = 3
-			} ExOpType;
-		};
-		ExOp::ExOpType ExtraOperation(NoOp);
-	};
-	/ \impl @@ \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&);
-
-r2-r4:
-/ \tr \impl @@ \ctor @@ \st ShlSetting::TFormB @@ \u Shells;
-/ \impl @@ \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&) @@ \un \ns @@ \u YGUI;
-
-r5-r13:
-/ test 1;
-
-r14-r16:
-* \impl @@ \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&) @@ \un \ns @@ \u YGUI;
-
-r17-r20:
-/ @@ \un \ns @@ \u YGUI:
-	/ \impl @@ \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&);
-	- std::stack<std::pair<IVisualControl*, MTouchEventArgs> > LeaveStack;
-
-r21:
-/ \impl @@ \ctor @@ \cl YFileBox;
-
-r22:
-/ @@ \un \ns @@ \u YGUI:
-	/ \impl @@ \f MVisualControl* GetTouchedVisualControl(IWidgetContainer&, SPoint&);
-	/ \simp \impl @@ \f bool TryEnter(IVisualControl&, const MTouchEventArgs&);
-	/ \simp \impl @@ \f bool TryLeave(IVisualControl&, const MTouchEventArgs&);
-
-r23:
-/ \tr \impl @@ \ctor @@ \st ShlSetting::TFormB @@ \u Shells;
-
-r24:
-/ @@ \cl MWidget:
-	+ \i \vt \mf void Fill();
-	+ \vt \mf void Fill(PixelType);
-/ @@ \cl YVisualControl:
-	/ \simp \impl @@ \mf void DrawBackground();
-/ @@ \cl YLabel:
-	/ \simp \impl @@ \mf void DrawForeground();
-/ @@ \cl AWindow:
-	+ \or \vt \mf void Fill(PixelType);
-	/ \ac @@ private \mf void bool DrawBackgroundImage();-> public;
-	/ \simp \impl @@ void DrawBackground();
-
-r26:
-+ \u YGUIComponent "yguicomp";
 / @@ \u YControl:
-	/ cl YButton >> \u YGUIComponent;
-	/ cl YListBox >> \u YGUIComponent;
-	/ cl YFileBox >> \u YGUIComponent;
-	-= \inc "../Core/yexcept.h";
-	/= @@ \ns Components::Controls @@ \impl:
-		-= using namespace Drawing;
-		-= using namespace Widgets;
-/ @@ \h YWindow:
-	/ \inc "ycomponent.h" -> "yguicomp.h";
-	/= @@ \ns Components::Controls @@ \impl:
+	+ \cl MButton;
+	+ \cl AButton;
 / @@ \u YGUIComponent:
-	/= @@ \ns Components @@ \impl:
-		-= using namespace Drawing;
-		-= using namespace Widgets;
+	/= \decl @@ \cl YButton:
+		+ \inh public AButton;
+		- \inh public Widgets::MLabel;
+/ \tr \decl @@ \cl MWindow;
 
+r2-r5:
+/ test 1;
+	/ @@ \u YWidget:
+		/ \mf void DrawBackground() @@ \cl YWidget >> \cl MWidget;
+		/ \mf void DrawForeground() @@ \cl YWidget >> \cl MWidget;
+		/ \decl @@ \mf void DrawBackground() @@ \cl YWidget ^ \cl MWidget;
+		/ \decl @@ \mf void DrawForeground() @@ \cl YWidget ^ \cl MWidget;
+	/ @@ \u YControl:
+		/ \decl @@ \mf void DrawBackground() @@ \cl YVisualControl ^ \cl MWidget;
+		/ \decl @@ \mf void DrawForeground() @@ \cl YVisualControl ^ \cl MWidget;
+
+r6:
+/ @@ \u YWidget:
+	/ \decl @@ \mf void DrawBackground() @@ \cl YWidgetContainer ^ \cl MWidget;
+	/ \decl @@ \mf void DrawForeground() @@ \cl YWidgetContainer ^ \cl MWidget;
+
+r7:
+/= @@ \u YGUIComponent:
+	+= \un \ns;
+	/= \s \f (\i transPixelEx) & RectDrawFocusDefault & (\i RectOnGotFocus) (>> \ns) & -\s;
+
+r8:
+/ \decl @@ \cl AButton;
+/ \decl & \impl \cl YButton;
++ DefPredicate(Pressed, bPressed) @@ \cl MButton;
+
+r9:
+/ \a SInputStatus => InputStatus;
+/ \a SOBG => BinaryGroup;
+/ \a SPoint => Point;
+/ \a SVec => Vec;
+/ \a SSize => Size;
+/ \a SRect => Rect;
+
+r10:
+/= \a EventHandlerSet => EventHandlerList;
+
+r11:
+/ \cl \t @@ GEvent<true> @@ \u YEvent:
+	+ \de \ctor;
+	+ typedef std::list<_tEventHandler> ListType;
+	/= \m std::list<_tEventHandler> EventHandlerList -> ListType EventHandlerList;
+	/ mf void operator()(_tSender&, const _tEventArgs&)
+		-> void operator()(_tSender&, const _tEventArgs&) const;
+
+r12:
+/ @@ \u YCommon:
+	+ \i \ctor Color(u8, u8, u8, bool = true) @@ \ns platform @@ \cl Color;
+	/ \f void YDebugBegin(PixelType fc = RGB15(31, 31, 31), PixelType bc = RGB15( 0, 0, 31));
+		-> void YDebugBegin(Color = Color::White, PixelType = Color::Blue);
+	/ \f YConsoleInit(u8 dspIndex, PixelType fc = Color::White, PixelType bc = Color::Black)
+		-> YConsoleInit(u8 dspIndex, Color fc = Color::White, Color bc = Color::Black);
+/ @@ \u YGUIComponent:
+	/ @@ \un \ns:
+		+ \f void RectDrawButtonSurface(const Point&, const Size&, HWND);
+		/ \impl @@ \f void RectDrawFocusDefault(const Point&, const Size&, HWND);
+			^ \n Color;
+		/ \impl @@ \i \f void transPixelEx(BitmapPtr);
+			^ \n Color;
+		/ \impl @@ \mf YListBox::DrawForeground();
+			^ \n Color;
+/ @@ \cl YConsole @@ \u YComponent:
+	/ \exp \ctor YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black);
+		-> YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::Color = Drawing::Color::White, Drawing::Color = Drawing::Color::Black);
+	/ \i \mf void Activate(Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black)
+		-> void Activate(Drawing::Color = Drawing::Color::White, Drawing::Color = Drawing::Color::Black);
+/ \exp \ctor YDesktop(YScreen&, PixelType = 0, GHResource<Drawing::YImage> = NULL)
+	-> YDesktop(YScreen&, Color = 0, GHResource<Drawing::YImage> = NULL) @@ \u YDesktop;
+/ @@ \u YWidget:
+	/ @@ \cl MVisual:
+		/ \m PixelType BackColor -> Color BackColor;
+		/ \m PixelType ForeColor -> Color BackColor;
+		/ \exp \ctor MVisual(const Rect& = Rect::Empty, PixelType = Color::White, PixelType = Color::Black)
+			-> MVisual(const Rect& = Rect::Empty, Color = Color::White, Color = Color::Black);
+	/ @@ \cl MWidget:
+		/ \exp \ctor MWidget(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL, PixelType = Color::White, PixelType = Color::Black);
+			-> MWidget(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL, Color = Color::White, Color = Color::Black);
+	/ \vt \mf void Fill(PixelType) -> void Fill(Color);
+/ \mf void Update(Drawing::PixelType = 0) -> void Update(Drawing::Color = 0) @@ \cl YScreen @@ \u YDevice;
+/ @@ \u YGDI:
+	^ \n Drawing::Color;
+	+ \i \tf template<typename _tPixel> void
+		FillRect(_tPixel*, const Size&, const Point&, const Size&, _tPixel);
+	+ \i \tmf template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
+		void operator()(_tPixel*, SDST, SDST, SPOS, SPOS, SDST, SDST, _fTransformPixel, _fTransformLine)
+		@@ \cl transRect;
+/ @@ \cl MDualScreenReader @@ \u DSReader:
+	/ \mf void SetColor(Color = 0) -> void SetColor(Color = Color::Black);
+/ \tr \impl @@ \u Shells;
+
+r13-r14:
+/= test 2;
+
+r15:
+/ @@ \u YGUIComponent:
+	/= \impl @@ \mf void YListBox::DrawBackground();
+	* \i \f void transPixelEx(BitmapPtr) @@ \un \ns;
+
+r16:
+/ \impl @@ \mf void YButton::DrawForeground();
+
+r17:
+/ @@ \u YGUIComponent:
+	/ @@ \un \ns:
+		+ \f void RectDrawPressed(const Point&, const Size&, HWND);
+		/ \impl @@ \f void RectDrawFocusDefault(const Point&, const Size&, HWND);
+		/ \f RectDrawFocusDefault => RectDrawFocus;
+		- \i \f void RectOnGotFocus(const Point&, const Size&, HWND);
+	/ \impl @@ \mf void DrawForeground() @@ \cl YButton;
+	/ \impl @@ \mf void DrawForeground() @@ \cl YListBox;
+
+r18:
+/ \tr \impl @@ \f void RectDrawFocus(const Point&, const Size&, HWND) @@ \un \ns @@ \u YGUIComponent;
+
+r19:
+/ \tr \impl @@ \mf void DrawForeground() @@ \cl YListBox;
 
 $DOING
 
 / ...
 
 $NEXT:
-b159:
-+ \impl YButton;
-b160-b190:
+b161-b190:
 / fully \impl \u DSReader;
 	* moving text after setting lnGap;
 * non-ASCII character filename error in FAT16;

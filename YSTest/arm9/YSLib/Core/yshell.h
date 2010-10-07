@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-13 21:09:15;
-// UTime = 2010-9-20 7:01;
-// Version = 0.2435;
+// CTime = 2009-11-13 21:09:15 + 08:00;
+// UTime = 2010-10-05 18:01 + 08:00;
+// Version = 0.2436;
 
 
 #ifndef INCLUDED_YSHELL_H_
@@ -52,7 +52,7 @@ public:
 	HWND
 	GetTopWindowHandle() const; //取得窗口组中顶端窗口对象的句柄。
 	HWND
-	GetTopWindowHandle(YDesktop&, const SPoint&) const; //取得窗口组中指定屏幕的指定的点所处的最顶层窗口对象的句柄。
+	GetTopWindowHandle(YDesktop&, const Point&) const; //取得窗口组中指定屏幕的指定的点所处的最顶层窗口对象的句柄。
 
 	bool
 	SendWindow(IWindow&); //向屏幕发送指定窗口对象。

@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTimer by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-06-05 10:28:58 + 08:00;
-// UTime = 2010-09-26 15:27 + 08:00;
-// Version = 0.1468;
+// UTime = 2010-10-05 15:28 + 08:00;
+// Version = 0.1470;
 
 
 #include "ytimer.h"
@@ -16,7 +16,8 @@ vu32 YTimer::SystemTick(0);
 YTimer::TMRs YTimer::Timers;
 
 YTimer::YTimer(u32 i, bool a)
-: nInterval(i), nBase(0)
+	: YCountableObject(),
+	nInterval(i), nBase(0)
 {
 	InitializeSystemTimer();
 	if(a)

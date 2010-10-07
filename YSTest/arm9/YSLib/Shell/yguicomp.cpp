@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-10-04 21:55 + 08:00;
-// Version = 0.1052;
+// UTime = 2010-10-08 00:37 + 08:00;
+// Version = 0.1148;
 
 
 #include "yguicomp.h"
@@ -23,47 +23,113 @@ YSL_END_NAMESPACE(Widgets)
 
 YSL_BEGIN_NAMESPACE(Controls)
 
-inline static void
-transPixelEx(BitmapPtr dst)
+namespace
 {
-	*dst ^= RGB15(7, 3, 4);
-}
+	inline void
+	transPixelEx(BitmapPtr dst)
+	{
+		*dst ^= Color(56, 24, 32) & ~BITALPHA;
+	}
 
-static void
-	RectDrawFocusDefault(const SPoint& l, const SSize& s, HWND hWnd)
-{
-	YAssert(hWnd, "err: @hWnd is null.");
+	void
+	RectDrawFocus(const Point& l, const Size& s, HWND hWnd)
+	{
+		YAssert(hWnd, "err: @hWnd is null.");
 
-	DrawWindowBounds(hWnd, ARGB16(1, 1, 1, 31));
+		DrawWindowBounds(hWnd, Color::Fuchsia);
 
-	transRect()(hWnd->GetBufferPtr(), hWnd->GetSize(), SRect(l, s), transPixelEx, transSeq());
+		IWidget* pWgt(dynamic_cast<IWidget*>(hWnd->GetFocusingPtr()));
 
-	IWidget* pWgt(dynamic_cast<IWidget*>(hWnd->GetFocusingPtr()));
-
-	if(pWgt)
-		DrawWidgetBounds(*pWgt, ARGB16(1, 31, 1, 31));
+		if(pWgt)
+			DrawWidgetBounds(*pWgt, Color::Aqua);
 
 	//	GraphicInterfaceContext g(hWnd->GetBufferPtr(), hWnd->GetBounds());
+	}
+
+	void
+	RectDrawPressed(const Point& l, const Size& s, HWND hWnd)
+	{
+		YAssert(hWnd, "err: @hWnd is null.");
+
+		transRect()(hWnd->GetBufferPtr(), hWnd->GetSize(), Rect(l, s), transPixelEx, transSeq());
+	}
+
+	void
+	RectDrawButtonSurface(const Point& l, const Size& s, HWND hWnd)
+	{
+		YAssert(hWnd, "err: @hWnd is null.");
+
+		BitmapPtr const dst(hWnd->GetBufferPtr());
+		const SDST dw(hWnd->GetSize().Width),
+			dh(hWnd->GetSize().Height);
+		SDST sw(s.Width),
+			sh(s.Height);
+		SPOS sx(l.X),
+			sy(l.Y);
+
+		FillRect<PixelType>(dst, dw, dh, sx, sy, sw, sh, Color(48, 216, 255));
+		if(sw < 5 || sh < 5)
+			return;
+		sw -= 4;
+		sh = (sh - 4) >> 1;
+		sx += 2;
+		sy += 2;
+		FillRect<PixelType>(dst, dw, dh, sx, sy, sw, sh, Color(232, 240, 255));
+		sy += sh;
+		FillRect<PixelType>(dst, dw, dh, sx, sy, sw, sh, Color(192, 224, 255));
+	}
 }
 
-inline static void
-	RectOnGotFocus(const SPoint& l, const SSize& s, HWND hWnd)
+
+void
+YButton::_m_init()
 {
-	//	RectDrawFocusX(l, s, hWnd);
-	RectDrawFocusDefault(l, s, hWnd);
+	Enter += &YButton::OnEnter;
+	Leave += &YButton::OnLeave;
+	Click += &YButton::OnClick;
+	KeyDown += &YButton::OnKeyDown;
+	Confirmed += &YListBox::OnConfirmed;
 }
 
 void
 YButton::DrawForeground()
 {
 	ParentType::DrawForeground();
+	RectDrawButtonSurface(GetLocation(), GetSize(), GetWindowHandle());
+	if(bPressed)
+		RectDrawPressed(Location, Size, hWindow);
 	if(bFocused)
-		RectOnGotFocus(Location, Size, hWindow);
+		RectDrawFocus(Location, Size, hWindow);
 	PaintText(*this);
 }
 
+void
+YButton::OnEnter(const Runtime::MInputEventArgs&)
+{
+	bPressed = true;
+	Refresh();
+}
+void
+YButton::OnLeave(const Runtime::MInputEventArgs&)
+{
+	bPressed = false;
+	Refresh();
+}
+void
+YButton::OnClick(const Runtime::MTouchEventArgs&)
+{
+}
+void
+YButton::OnKeyDown(const Runtime::MKeyEventArgs&)
+{
+}
+void
+YButton::OnConfirmed(const MIndexEventArgs&)
+{
+}
 
-YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_)
+
+YListBox::YListBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_)
 	: YVisualControl(hWnd, r, pCon),
 	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()), bDisposeList(true),
 	Font(), Margin(prTextRegion->Margin),
@@ -71,7 +137,7 @@ YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource
 {
 	_m_init();
 }
-YListBox::YListBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_, YListBox::ListType& List_)
+YListBox::YListBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_, YListBox::ListType& List_)
 	: YVisualControl(hWnd, r, pCon),
 	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()), bDisposeList(false),
 	Font(), Margin(prTextRegion->Margin),
@@ -86,7 +152,7 @@ YListBox::~YListBox()
 }
 
 void
-	YListBox::_m_init()
+YListBox::_m_init()
 {
 	Click += &YListBox::OnClick;
 	KeyDown += &YListBox::OnKeyDown;
@@ -95,12 +161,12 @@ void
 }
 
 YListBox::ItemType*
-	YListBox::GetItemPtr(ViewerType::IndexType i)
+YListBox::GetItemPtr(ViewerType::IndexType i)
 {
 	return isInIntervalRegular<ViewerType::IndexType>(i, List.size()) ? &List[i] : NULL;
 }
 SDST
-	YListBox::GetItemHeight() const
+YListBox::GetItemHeight() const
 {
 	return prTextRegion->GetLnHeightEx() + (defMarginV << 1);
 }
@@ -118,22 +184,22 @@ void
 	}
 }
 void
-	YListBox::SetSelected(SPOS x, SPOS y)
+YListBox::SetSelected(SPOS x, SPOS y)
 {
 	SetSelected(CheckPoint(x, y));
 }
 
 void
-	YListBox::DrawBackground()
+YListBox::DrawBackground()
 {
-	YVisualControl::DrawBackground();
+	ParentType::DrawBackground();
 }
 void
-	YListBox::DrawForeground()
+YListBox::DrawForeground()
 {
 	ParentType::DrawForeground();
 	if(bFocused)
-		RectOnGotFocus(Location, Size, hWindow);
+		RectDrawFocus(Location, Size, hWindow);
 	if(prTextRegion && prTextRegion->GetLnHeight() <= Size.Height)
 	{
 		const SDST lnWidth(GetWidth());
@@ -147,23 +213,23 @@ void
 		Viewer.SetLength((Size.Height + prTextRegion->GetLineGap()) / lnHeight);
 
 		const ViewerType::IndexType last(Viewer.GetIndex() + Viewer.GetValid());
-		SPoint pt(GetLocationForWindow());
+		Point pt(GetLocationForWindow());
 
 		for(ViewerType::IndexType i(Viewer.GetIndex() >= 0 ? Viewer.GetIndex() : last); i < last; ++i)
 		{
 			if(Viewer.IsSelected() && i == Viewer.GetSelected())
 			{
 				prTextRegion->Color = Color::White;
-				FillRect(hWindow->GetBufferPtr(), hWindow->GetSize(),
-					SRect(pt.X + 1, pt.Y + 1, prTextRegion->GetWidth() - 2, prTextRegion->GetHeight() - 2),
-					PixelType(ARGB16(1, 6, 27, 31)));
+				FillRect<PixelType>(hWindow->GetBufferPtr(), hWindow->GetSize(),
+					Rect(pt.X + 1, pt.Y + 1, prTextRegion->GetWidth() - 2, prTextRegion->GetHeight() - 2),
+					Color::Aqua);
 			}
 			else
 				prTextRegion->Color = ForeColor;
 			prTextRegion->PutLine(List[i]);
 			prTextRegion->SetPen();
 			prTextRegion->BlitToBuffer(hWindow->GetBufferPtr(), RDeg0,
-				hWindow->GetSize(), SPoint::Zero, pt, *prTextRegion);
+				hWindow->GetSize(), Point::Zero, pt, *prTextRegion);
 			pt.Y += lnHeight;
 			prTextRegion->ClearImage();
 		}
@@ -172,11 +238,11 @@ void
 }
 
 YListBox::ViewerType::IndexType
-	YListBox::CheckPoint(SPOS x, SPOS y)
+YListBox::CheckPoint(SPOS x, SPOS y)
 {
 	YAssert(prTextRegion != NULL,
 		"In function \"Components::Controls::YListBox::ViewerType::IndexType\n"
-		"Components::Controls::YListBox::CheckClick(const SPoint& pt)\":\n"
+		"Components::Controls::YListBox::CheckClick(const Point& pt)\":\n"
 		"The text region pointer is null.");
 
 	return GetBounds().IsInBoundsRegular(x, y)
@@ -185,30 +251,30 @@ YListBox::ViewerType::IndexType
 }
 
 void
-	YListBox::CallSelected()
+YListBox::CallSelected()
 {
 	Selected(*this, MIndexEventArgs(*this, Viewer.GetSelected()));
 }
 void
-	YListBox::CallConfirmed()
+YListBox::CallConfirmed()
 {
 	if(Viewer.IsSelected())
 		Confirmed(*this, MIndexEventArgs(*this, Viewer.GetSelected()));
 }
 
 void
-	YListBox::OnTouchDown(const MTouchEventArgs& e)
+YListBox::OnTouchDown(const MTouchEventArgs& e)
 {
 	ParentType::OnTouchDown(e);
 	SetSelected(e);
 }
 void
-	YListBox::OnClick(const MTouchEventArgs&)
+YListBox::OnClick(const MTouchEventArgs&)
 {
 	CallConfirmed();
 }
 void
-	YListBox::OnKeyDown(const MKeyEventArgs& k)
+YListBox::OnKeyDown(const MKeyEventArgs& k)
 {
 	if(Viewer.IsSelected())
 	{
@@ -260,18 +326,18 @@ void
 	}
 }
 void
-	YListBox::OnSelected(const MIndexEventArgs&)
+YListBox::OnSelected(const MIndexEventArgs&)
 {
 	Refresh();
 }
 void
-	YListBox::OnConfirmed(const MIndexEventArgs& e)
+YListBox::OnConfirmed(const MIndexEventArgs& e)
 {
 	OnSelected(e);
 }
 
 
-YFileBox::YFileBox(HWND hWnd, const SRect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_)
+YFileBox::YFileBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_)
 	: YListBox(hWnd, r, pCon, prTr_, MFileList::List), MFileList(),
 	List(ParentType::List)
 {
@@ -283,7 +349,7 @@ YFileBox::~YFileBox()
 }
 
 IO::Path
-	YFileBox::GetPath() const
+YFileBox::GetPath() const
 {
 	if(Viewer.IsSelected() && Viewer.GetSelected() >= 0)
 		return Directory / (List[Viewer.GetSelected()]);
@@ -291,24 +357,24 @@ IO::Path
 }
 
 void
-	YFileBox::DrawBackground()
+YFileBox::DrawBackground()
 {
 	YListBox::DrawBackground();
 }
 void
-	YFileBox::DrawForeground()
+YFileBox::DrawForeground()
 {
 	ListItems();
 	YListBox::DrawForeground();
 }
 
 void
-	YFileBox::OnTouchMove(const Runtime::MTouchEventArgs& e)
+YFileBox::OnTouchMove(const Runtime::MTouchEventArgs& e)
 {
 	SetSelected(e);
 }
 void
-	YFileBox::OnConfirmed(const MIndexEventArgs& e)
+YFileBox::OnConfirmed(const MIndexEventArgs& e)
 {
 	ParentType::OnConfirmed(e);
 	if(*this /= List[e.Index])

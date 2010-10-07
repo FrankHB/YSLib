@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8
-// CTime = 2010-3-13 14:17:14;
-// UTime = 2010-9-12 15:22;
-// Version = 0.1494;
+// CTime = 2010-03-13 14:17:14 + 08:00;
+// UTime = 2010-10-05 15:27 + 08:00;
+// Version = 0.1496;
 
 
 #ifndef INCLUDED_SHLDS_H_
@@ -38,7 +38,7 @@ public:
 
 inline
 ShlCLI::ShlCLI()
-: YShellMain()
+	: YShellMain()
 {}
 inline
 ShlCLI::~ShlCLI() ythrow()
@@ -71,7 +71,7 @@ public:
 
 inline
 ShlGUI::ShlGUI()
-: YShellMain()
+	: YShellMain()
 {}
 inline
 ShlGUI::~ShlGUI() ythrow()

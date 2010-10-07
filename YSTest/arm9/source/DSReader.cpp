@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-05 14:04:05 + 08:00;
-// UTime = 2010-09-28 19:28 + 08:00;
-// Version = 0.2886;
+// UTime = 2010-10-06 13:58 + 08:00;
+// Version = 0.2894;
 
 
 #include "DSReader.h"
@@ -17,7 +17,7 @@ using namespace Text;
 YSL_BEGIN_NAMESPACE(Components)
 
 BlockedText::BlockedText(YTextFile& file)
-: File(file), Blocks(file)
+	: File(file), Blocks(file)
 {}
 
 
@@ -28,11 +28,11 @@ void MDualScreenReader::FillText()
 
 MDualScreenReader::MDualScreenReader(u16 l, u16 w, u16 t_up, u16 h_up,
 									 u16 t_down, u16 h_down, YFontCache& fc_)
-try : pText(NULL), fc(fc_),
-left(l), top_up(t_up), top_down(t_down),
-pBgUp(pDesktopUp->GetBufferPtr()), pBgDn(pDesktopDown->GetBufferPtr()),
-pTrUp(new TextRegion(fc_)), pTrDn(new TextRegion(fc_)), rot(RDeg0),
-itUp(NULL), itDn(NULL)
+try	: pText(NULL), fc(fc_),
+	left(l), top_up(t_up), top_down(t_down),
+	pBgUp(pDesktopUp->GetBufferPtr()), pBgDn(pDesktopDown->GetBufferPtr()),
+	pTrUp(new TextRegion(fc_)), pTrDn(new TextRegion(fc_)), rot(RDeg0),
+	itUp(NULL), itDn(NULL)
 {
 	//初始化视图。
 	pTrUp->SetSize(w, h_up);
@@ -62,7 +62,7 @@ MDualScreenReader::IsTextBottom()
 }
 
 void
-MDualScreenReader::SetColor(PixelType c)
+MDualScreenReader::SetColor(Color c)
 {
 	pTrUp->Color = c;
 	pTrDn->Color = c;

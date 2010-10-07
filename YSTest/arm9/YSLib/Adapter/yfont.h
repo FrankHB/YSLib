@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-12 22:02:40;
-// UTime = 2010-9-25 22:21;
-// Version = 0.6848;
+// CTime = 2009-11-12 22:02:40 + 08:00;
+// UTime = 2010-10-05 15:14 + 08:00;
+// Version = 0.6852;
 
 
 #ifndef INCLUDED_YFONT_H_
@@ -60,7 +60,7 @@ public:
 
 inline
 EFontStyle::EFontStyle(Styles s)
-: style(s)
+	: style(s)
 {}
 
 inline
@@ -296,7 +296,7 @@ public:
 
 inline
 CharBitmap::CharBitmap(const CharBitmap::NativeType& b)
-: bitmap(b)
+	: bitmap(b)
 {}
 
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-12 22:06:13;
-// UTime = 2010-9-24 12:00;
-// Version = 0.6893;
+// CTime = 2009-11-12 22:06:13 + 08:00;
+// UTime = 2010-10-05 15:13 + 08:00;
+// Version = 0.6899;
 
 
 #include "yfont.h"
@@ -96,7 +96,7 @@ simpleFaceRequester(FTC_FaceID face_id, FT_Library library,
 
 
 FontFamily::FontFamily(YFontCache& cache, const FT_String* name)
-: Cache(cache), family_name(strdup_n(name)), sTypes()
+	: Cache(cache), family_name(strdup_n(name)), sTypes()
 {
 }
 FontFamily::~FontFamily() ythrow()
@@ -147,7 +147,7 @@ FontFamily::operator-=(const Typeface& f)
 	Typeface::MOblique = {0x10000, 0x5800, 0, 0x10000};*/
 
 Typeface::Typeface(YFontCache& cache, const FontFile& file, u32 i/*, const bool bb, const bool bi, const bool bu*/)
-: Cache(cache), File(file), pFontFamily(NULL), style_name(NULL), faceIndex(i), cmapIndex(-1)/*, bBold(bb), bOblique(bi), bUnderline(bu), matrix(bi ? MOblique : MNormal)*/
+	: Cache(cache), File(file), pFontFamily(NULL), style_name(NULL), faceIndex(i), cmapIndex(-1)/*, bBold(bb), bOblique(bi), bUnderline(bu), matrix(bi ? MOblique : MNormal)*/
 {}
 Typeface::~Typeface() ythrow()
 {
@@ -167,12 +167,12 @@ Typeface::operator<(const Typeface& rhs) const
 
 
 FontFile::FontFile(CPATH p, FT_Library& l)
-: path(strdup_n(p)), library(l), nFace(0)
+	: path(strdup_n(p)), library(l), nFace(0)
 {
 	ReloadFaces();
 }
 FontFile::FontFile(CPATH p, const char* n, FT_Library& l)
-: path(strcatdup(p, n)), library(l)
+	: path(strcatdup(p, n)), library(l)
 {
 	ReloadFaces();
 }
@@ -221,7 +221,7 @@ Font::MaxSize(72); //DEF_SHELL_FONTSIZE_MAX;
 Font* Font::pDefFont(NULL);
 
 Font::Font(const FontFamily& family, const SizeType size, EFontStyle style)
-: pFontFamily(&family), Style(style), Size(size)
+	: pFontFamily(&family), Style(style), Size(size)
 {
 }
 
@@ -287,7 +287,8 @@ Font::ReleaseDefault()
 
 
 YFontCache::YFontCache(CPATH defFontPath, u32 cacheSize)
-: pFace(NULL), curSize(0)
+	: YObject(),
+	pFace(NULL), curSize(0)
 {
 	FT_Error error(FT_Init_FreeType(&library));
 

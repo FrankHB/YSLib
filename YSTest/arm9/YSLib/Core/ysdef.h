@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-24 15:29:11 + 08:00;
-// UTime = 2010-10-04 16:21 + 08:00;
-// Version = 0.2252;
+// UTime = 2010-10-05 17:48 + 08:00;
+// Version = 0.2253;
 
 
 #ifndef INCLUDED_YSDEF_H_
@@ -167,7 +167,7 @@
 /*
 YSLib No_Cursor
 定义无指针设备。
-消息成员列表中不会包含 SPoint pt 。
+消息成员列表中不会包含 Point pt 。
 */
 //#define YSLIB_NO_CURSOR
 

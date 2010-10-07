@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-19 20:05:08 + 08:00;
-// UTime = 2010-09-28 01:08 + 08:00;
-// Version = 0.2286;
+// UTime = 2010-10-06 14:00 + 08:00;
+// Version = 0.2304;
 
 
 #ifndef INCLUDED_YCOMPONENT_H_
@@ -37,20 +37,21 @@ public:
 	YScreen& Screen;
 
 	explicit
-	YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black);
+	YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::Color = Drawing::Color::White, Drawing::Color = Drawing::Color::Black);
 	virtual
 	~YConsole();
 
 	void
-	Activate(Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black);
+	Activate(Drawing::Color = Drawing::Color::White, Drawing::Color = Drawing::Color::Black);
 
 	void
 	Deactivate();
 };
 
 inline
-YConsole::YConsole(YScreen& scr, bool a, Drawing::PixelType fc, Drawing::PixelType bc)
-: Screen(scr)
+YConsole::YConsole(YScreen& scr, bool a, Drawing::Color fc, Drawing::Color bc)
+	: YComponent(),
+	Screen(scr)
 {
 	if(a)
 		Activate(fc, bc);
@@ -62,7 +63,7 @@ YConsole::~YConsole()
 }
 
 inline void
-YConsole::Activate(Drawing::PixelType fc, Drawing::PixelType bc)
+YConsole::Activate(Drawing::Color fc, Drawing::Color bc)
 {
 	Def::InitConsole(Screen, fc, bc);
 }

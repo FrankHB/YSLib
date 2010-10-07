@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-10-04 21:34 + 08:00;
-// Version = 0.1034;
+// UTime = 2010-10-06 00:53 + 08:00;
+// Version = 0.1072;
 
 
 #ifndef INCLUDED_YGUICOMP_H_
@@ -25,8 +25,8 @@ YSL_END_NAMESPACE(Widgets)
 
 YSL_BEGIN_NAMESPACE(Controls)
 
-//按钮：V0.2500。
-class YButton : public GMCounter<YButton>, public YVisualControl, public Widgets::MLabel
+//按钮：V0.2680。
+class YButton : public GMCounter<YButton>, public YVisualControl, public AButton
 {
 public:
 	typedef YVisualControl ParentType;
@@ -38,18 +38,36 @@ public:
 
 	//用字符串在窗口中以给定字号初始化标签。
 	template<class _tChar>
-	YButton(HWND, const _tChar*, const SRect& = SRect::FullScreen,
+	YButton(HWND, const _tChar*, const Rect& = Rect::FullScreen,
 		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 
+protected:
+	void
+	_m_init();
+
+public:
 	virtual void
 	DrawForeground();
+
+	virtual void
+	OnEnter(const Runtime::MInputEventArgs&);
+	virtual void
+	OnLeave(const Runtime::MInputEventArgs&);
+	virtual void
+	OnClick(const Runtime::MTouchEventArgs&);
+	virtual void
+	OnKeyDown(const Runtime::MKeyEventArgs&);
+	virtual void
+	OnConfirmed(const MIndexEventArgs&);
 };
 
 template<class _tChar>
-YButton::YButton(HWND hWnd, const _tChar* l, const SRect& r,
+YButton::YButton(HWND hWnd, const _tChar* l, const Rect& r,
 	const Drawing::Font& f, IWidgetContainer* pCon, GHResource<Drawing::TextRegion> prTr_)
-: YVisualControl(hWnd, r, pCon), MLabel(l, f, prTr_)
-{}
+	: YVisualControl(hWnd, r, pCon), AButton(l, f, prTr_)
+{
+	_m_init();
+}
 
 
 //文本列表框：V0.1605E。
@@ -79,8 +97,8 @@ public:
 	DefEvent(YIndexEventHandler, Selected) //项目选择状态改变事件。
 	DefEvent(YIndexEventHandler, Confirmed) //项目选中确定事件。
 
-	YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
-	YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
+	YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+	YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
 	virtual
 	~YListBox();
 
@@ -105,7 +123,7 @@ public:
 	void
 	SetSelected(SPOS, SPOS);
 	void
-	SetSelected(const SPoint&);
+	SetSelected(const Point&);
 
 public:
 	virtual void
@@ -141,7 +159,7 @@ public:
 };
 
 inline void
-YListBox::SetSelected(const SPoint& pt)
+YListBox::SetSelected(const Point& pt)
 {
 	SetSelected(pt.X, pt.Y);
 }
@@ -162,7 +180,7 @@ public:
 
 	ListType& List;
 
-	YFileBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+	YFileBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 	virtual
 	~YFileBox();
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YDevice by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-28 16:39:51;
-// UTime = 2010-6-11 15:10;
-// Version = 0.2650;
+// CTime = 2009-12-28 16:39:51 + 08:00;
+// UTime = 2010-10-06 14:02 + 08:00;
+// Version = 0.2662;
 
 
 #include "ydevice.h"
@@ -18,7 +18,7 @@ YSL_BEGIN_NAMESPACE(Device)
 bool YScreen::S_InitScr(true);
 
 YScreen::YScreen(SDST w, SDST h, BitmapPtr p)
-: YGraphicDevice(w, h, p),
+	: YGraphicDevice(w, h, p),
 bg(-1)
 {}
 
@@ -41,9 +41,9 @@ YScreen::Update(BitmapPtr buf)
 	platform::scrCopy(GetPtr(), buf);
 }
 void
-YScreen::Update(PixelType c)
+YScreen::Update(Color c)
 {
-	FillSeq(GetPtr(), GetArea(), c);
+	FillSeq<PixelType>(GetPtr(), GetArea(), c);
 }
 
 YSL_END_NAMESPACE(Device)

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-27 17:12:36;
-// UTime = 2010-9-23 15:32;
-// Version = 0.1912;
+// CTime = 2009-12-27 17:12:36 + 08:00;
+// UTime = 2010-10-05 15:15 + 08:00;
+// Version = 0.1914;
 
 
 #include "yapp.h"
@@ -53,7 +53,8 @@ const String YApplication::ProductName(G_APP_NAME);
 const String YApplication::ProductVersion(G_APP_VER);
 
 YApplication::YApplication()
-: YObject(), Log(DefaultLog), pMessageQueue(new YMessageQueue), pMessageQueueBackup(new YMessageQueue), sShls(), hShell(NULL)
+	: YObject(),
+	Log(DefaultLog), pMessageQueue(new YMessageQueue), pMessageQueueBackup(new YMessageQueue), sShls(), hShell(NULL)
 {
 	ApplicationExit += Def::Destroy;
 }

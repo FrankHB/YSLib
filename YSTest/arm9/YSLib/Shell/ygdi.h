@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46 + 08:00;
-// UTime = 2010-10-04 22:10 + 08:00;
-// Version = 0.2727;
+// UTime = 2010-10-06 15:38 + 08:00;
+// Version = 0.2837;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -29,7 +29,7 @@ struct FillPixel
 
 	inline explicit
 	FillPixel(_tPixel c)
-	: Color(c)
+		: Color(c)
 	{}
 
 	inline void
@@ -75,7 +75,7 @@ struct transVLine
 
 //贴图位置计算器。
 void
-blitScale(const SPoint& sp, const SPoint& dp, const SSize& ss, const SSize& ds, const SSize& cs,
+blitScale(const Point& sp, const Point& dp, const Size& ss, const Size& ds, const Size& cs,
 		  int& minX, int& minY, int& maxX, int& maxY);
 
 
@@ -84,12 +84,12 @@ struct transRect
 {
 	template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
 	void
-	operator()(_tPixel* dst, const SSize& ds,
-		const SPoint& dp, const SSize& ss, _fTransformPixel tp, _fTransformLine tl)
+	operator()(_tPixel* dst, const Size& ds, const Point& dp, const Size& ss,
+		_fTransformPixel tp, _fTransformLine tl)
 	{
 		int minX, minY, maxX, maxY;
 
-		blitScale(SPoint::Zero, dp, ss, ds, ss,
+		blitScale(Point::Zero, dp, ss, ds, ss,
 			minX, minY, maxX, maxY);
 
 		const int deltaX(maxX - minX),
@@ -104,9 +104,17 @@ struct transRect
 	}
 	template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
 	inline void
-	operator()(_tPixel* dst, const SSize& ds, const SRect& rSrc, _fTransformPixel tp, _fTransformLine tl)
+	operator()(_tPixel* dst, const Size& ds, const Rect& rSrc,
+		_fTransformPixel tp, _fTransformLine tl)
 	{
 		operator()<_tPixel, _fTransformPixel, _fTransformLine>(dst, ds, rSrc, rSrc, tp, tl);
+	}
+	template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
+	inline void
+	operator()(_tPixel* dst, SDST dw, SDST dh, SPOS dx, SPOS dy, SDST sw, SDST sh,
+		_fTransformPixel tp, _fTransformLine tl)
+	{
+		operator()<_tPixel, _fTransformPixel, _fTransformLine>(dst, Size(dw, dh), Point(dx, dy), Size(sw, sh), tp, tl);
 	}
 };
 
@@ -140,15 +148,21 @@ FillVLine(_tPixel* dst, std::size_t n, SDST dw, _tPixel c)
 //使用指定像素填充指定的正则矩形区域。
 template<typename _tPixel>
 inline void
-FillRect(_tPixel* dst, SDST dw, SDST dh, SPOS sx, SPOS sy, SDST sw, SDST sh, _tPixel c)
+FillRect(_tPixel* dst, const Size& ds, const Point& sp, const Size& ss, _tPixel c)
 {
-	transRect()(dst, dw, dh, sx, sy, sw, sh, FillPixel<_tPixel>(c), transSeq());
+	transRect()(dst, ds, sp, ss, FillPixel<_tPixel>(c), transSeq());
 }
 template<typename _tPixel>
 inline void
-FillRect(_tPixel* dst, const SSize& sDst, const SRect& rSrc, _tPixel c)
+FillRect(_tPixel* dst, const Size& ds, const Rect& rSrc, _tPixel c)
 {
-	transRect()(dst, sDst, rSrc, FillPixel<_tPixel>(c), transSeq());
+	transRect()(dst, ds, rSrc, FillPixel<_tPixel>(c), transSeq());
+}
+template<typename _tPixel>
+inline void
+FillRect(_tPixel* dst, SDST dw, SDST dh, SPOS sx, SPOS sy, SDST sw, SDST sh, _tPixel c)
+{
+	transRect()(dst, dw, dh, sx, sy, sw, sh, FillPixel<_tPixel>(c), transSeq());
 }
 
 
@@ -158,94 +172,94 @@ FillRect(_tPixel* dst, const SSize& sDst, const SRect& rSrc, _tPixel c)
 
 //复制一块矩形区域的像素。
 void
-blit(BitmapPtr dst, const SSize& ds,
-	 ConstBitmapPtr src, const SSize& ss,
-	 const SPoint& sp, const SPoint& dp, const SSize& sc);
+blit(BitmapPtr dst, const Size& ds,
+	 ConstBitmapPtr src, const Size& ss,
+	 const Point& sp, const Point& dp, const Size& sc);
 //水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素。
 void
-blitH(BitmapPtr dst, const SSize& ds,
-	  ConstBitmapPtr src, const SSize& ss,
-	  const SPoint& sp, const SPoint& dp, const SSize& sc);
+blitH(BitmapPtr dst, const Size& ds,
+	  ConstBitmapPtr src, const Size& ss,
+	  const Point& sp, const Point& dp, const Size& sc);
 //竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素。
 void
-blitV(BitmapPtr dst, const SSize& ds,
-	  ConstBitmapPtr src, const SSize& ss,
-	  const SPoint& sp, const SPoint& dp, const SSize& sc);
+blitV(BitmapPtr dst, const Size& ds,
+	  ConstBitmapPtr src, const Size& ss,
+	  const Point& sp, const Point& dp, const Size& sc);
 //倒置复制一块矩形区域的像素。
 void
-blitU(BitmapPtr dst, const SSize& ds,
-	  ConstBitmapPtr src, const SSize& ss,
-	  const SPoint& sp, const SPoint& dp, const SSize& sc);
+blitU(BitmapPtr dst, const Size& ds,
+	  ConstBitmapPtr src, const Size& ss,
+	  const Point& sp, const Point& dp, const Size& sc);
 
 /*
 void
 blit(u8* dst, SDST dw, SDST dh,
 	 const u8* src, SDST sw, SDST sh,
-	 const SPoint& sp, const SPoint& dp, const SSize& sc);
+	 const Point& sp, const Point& dp, const Size& sc);
 */
 
 //复制一块矩形区域的像素（使用第 15 位表示透明性）。
 void
-blit2(BitmapPtr dst, const SSize& ds,
-	  ConstBitmapPtr src, const SSize& ss,
-	  const SPoint& sp, const SPoint& dp, const SSize& sc);
+blit2(BitmapPtr dst, const Size& ds,
+	  ConstBitmapPtr src, const Size& ss,
+	  const Point& sp, const Point& dp, const Size& sc);
 //水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素（使用第 15 位表示透明性）。
 void
-blit2H(BitmapPtr dst, const SSize& ds,
-	   ConstBitmapPtr src, const SSize& ss,
-	   const SPoint& sp, const SPoint& dp, const SSize& sc);
+blit2H(BitmapPtr dst, const Size& ds,
+	   ConstBitmapPtr src, const Size& ss,
+	   const Point& sp, const Point& dp, const Size& sc);
 //竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素（使用第 15 位表示透明性）。
 void
-blit2V(BitmapPtr dst, const SSize& ds,
-	   ConstBitmapPtr src, const SSize& ss,
-	   const SPoint& sp, const SPoint& dp, const SSize& sc);
+blit2V(BitmapPtr dst, const Size& ds,
+	   ConstBitmapPtr src, const Size& ss,
+	   const Point& sp, const Point& dp, const Size& sc);
 //倒置复制一块矩形区域的像素（使用第 15 位表示透明性）。
 void
-blit2U(BitmapPtr dst, const SSize& ds,
-	   ConstBitmapPtr src, const SSize& ss,
-	   const SPoint& sp, const SPoint& dp, const SSize& sc);
+blit2U(BitmapPtr dst, const Size& ds,
+	   ConstBitmapPtr src, const Size& ss,
+	   const Point& sp, const Point& dp, const Size& sc);
 
 //复制一块矩形区域的像素（使用 Alpha 通道表示透明性）。
 void
-blit2(BitmapPtr dst, const SSize& ds,
-	  ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-	  const SPoint& sp, const SPoint& dp, const SSize& sc);
+blit2(BitmapPtr dst, const Size& ds,
+	  ConstBitmapPtr src, const u8* srcA, const Size& ss,
+	  const Point& sp, const Point& dp, const Size& sc);
 //水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素（使用 Alpha 通道表示透明性）。
 void
-blit2H(BitmapPtr dst, const SSize& ds,
-	   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-	   const SPoint& sp, const SPoint& dp, const SSize& sc);
+blit2H(BitmapPtr dst, const Size& ds,
+	   ConstBitmapPtr src, const u8* srcA, const Size& ss,
+	   const Point& sp, const Point& dp, const Size& sc);
 //竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素（使用 Alpha 通道表示透明性）。
 void
-blit2V(BitmapPtr dst, const SSize& ds,
-	   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-	   const SPoint& sp, const SPoint& dp, const SSize& sc);
+blit2V(BitmapPtr dst, const Size& ds,
+	   ConstBitmapPtr src, const u8* srcA, const Size& ss,
+	   const Point& sp, const Point& dp, const Size& sc);
 //倒置复制一块矩形区域的像素（使用 Alpha 通道表示透明性）。
 void
-blit2U(BitmapPtr dst, const SSize& ds,
-	   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-	   const SPoint& sp, const SPoint& dp, const SSize& sc);
+blit2U(BitmapPtr dst, const Size& ds,
+	   ConstBitmapPtr src, const u8* srcA, const Size& ss,
+	   const Point& sp, const Point& dp, const Size& sc);
 
 //复制一块矩形区域的像素（使用 Alpha 通道表示 8 位透明度）。
 void
-blitAlpha(BitmapPtr dst, const SSize& ds,
-		  ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-		  const SPoint& sp, const SPoint& dp, const SSize& sc);
+blitAlpha(BitmapPtr dst, const Size& ds,
+		  ConstBitmapPtr src, const u8* srcA, const Size& ss,
+		  const Point& sp, const Point& dp, const Size& sc);
 //水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素（使用 Alpha 通道表示 8 位透明度）。
 void
-blitAlphaH(BitmapPtr dst, const SSize& ds,
-		   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+blitAlphaH(BitmapPtr dst, const Size& ds,
+		   ConstBitmapPtr src, const u8* srcA, const Size& ss,
+		   const Point& sp, const Point& dp, const Size& sc);
 //竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素（使用 Alpha 通道表示 8 位透明度）。
 void
-blitAlphaV(BitmapPtr dst, const SSize& ds,
-		   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+blitAlphaV(BitmapPtr dst, const Size& ds,
+		   ConstBitmapPtr src, const u8* srcA, const Size& ss,
+		   const Point& sp, const Point& dp, const Size& sc);
 //倒置复制一块矩形区域的像素（使用 Alpha 通道表示 8 位透明度）。
 void
-blitAlphaU(BitmapPtr dst, const SSize& ds,
-		   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+blitAlphaU(BitmapPtr dst, const Size& ds,
+		   ConstBitmapPtr src, const u8* srcA, const Size& ss,
+		   const Point& sp, const Point& dp, const Size& sc);
 
 
 //图形接口上下文。
@@ -253,22 +267,22 @@ class GraphicInterfaceContext
 {
 private:
 	BitmapPtr pBuffer;
-	SSize Size;
+	Drawing::Size Size;
 
 public:
-	GraphicInterfaceContext(BitmapPtr, const SSize&);
+	GraphicInterfaceContext(BitmapPtr, const Drawing::Size&);
 
 	DefPredicate(Valid, pBuffer && Size.Width && Size.Height)
 
 	DefGetter(BitmapPtr, BufferPtr, pBuffer)
-	DefGetter(const SSize&, Size, Size)
+	DefGetter(const Drawing::Size&, Size, Size)
 	DefGetter(SDST, Width, Size.Width)
 	DefGetter(SDST, Height, Size.Height)
 };
 
 inline
-GraphicInterfaceContext::GraphicInterfaceContext(BitmapPtr b, const SSize& s)
-: pBuffer(b), Size(s)
+GraphicInterfaceContext::GraphicInterfaceContext(BitmapPtr b, const Drawing::Size& s)
+	: pBuffer(b), Size(s)
 {}
 
 
@@ -276,15 +290,15 @@ GraphicInterfaceContext::GraphicInterfaceContext(BitmapPtr b, const SSize& s)
 
 //绘制像素：(x, y) 。
 inline void
-PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c)
+PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c)
 {
 	YAssert(g.IsValid(),
 		"In function \"inline void\n"
-		"PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c)\": \n"
+		"PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c)\": \n"
 		"The graphic device context is invalid.");
-	YAssert(SRect(g.GetSize()).IsInBoundsRegular(x, y),
+	YAssert(Rect(g.GetSize()).IsInBoundsRegular(x, y),
 		"In function \"inline void\n"
-		"PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c)\": \n"
+		"PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c)\": \n"
 		"The pixel is not in the device context buffer.");
 
 	g.GetBufferPtr()[y * g.GetWidth() + x] = c;
@@ -292,9 +306,9 @@ PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c)
 
 //绘制点：p(x, y) 。
 inline bool
-DrawPoint(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c)
+DrawPoint(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c)
 {
-	if(g.IsValid() && SRect(g.GetSize()).IsInBoundsRegular(x, y))
+	if(g.IsValid() && Rect(g.GetSize()).IsInBoundsRegular(x, y))
 	{
 		PutPixel(g, x, y, c);
 		return true;
@@ -302,43 +316,43 @@ DrawPoint(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c)
 	return false;
 }
 inline bool
-DrawPoint(GraphicInterfaceContext& g, const SPoint& p, PixelType c)
+DrawPoint(GraphicInterfaceContext& g, const Point& p, Color c)
 {
 	return DrawPoint(g, p.X, p.Y, c);
 }
 
 //绘制水平线段：指定水平坐标 x1 、 x2 ，竖直坐标 y 。
 bool
-DrawHLineSeg(GraphicInterfaceContext& g, SPOS y, SPOS x1, SPOS x2, PixelType c);
+DrawHLineSeg(GraphicInterfaceContext& g, SPOS y, SPOS x1, SPOS x2, Color c);
 
 //绘制竖直线段：指定水平坐标 x ，竖直坐标 y1 、 y2 。
 bool
-DrawVLineSeg(GraphicInterfaceContext& g, SPOS x, SPOS y1, SPOS y2, PixelType c);
+DrawVLineSeg(GraphicInterfaceContext& g, SPOS x, SPOS y1, SPOS y2, Color c);
 
 //绘制一般线段：顶点 p1(x1, y1), p2(x2, y2) 。
 bool
-DrawLineSeg(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
+DrawLineSeg(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c);
 inline bool
-DrawLineSeg(GraphicInterfaceContext& g, const SPoint& p1, const SPoint& p2, PixelType c)
+DrawLineSeg(GraphicInterfaceContext& g, const Point& p1, const Point& p2, Color c)
 {
 	return DrawLineSeg(g, p1.X, p1.Y, p2.X, p2.Y, c);
 }
 
 //绘制空心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2) 。
 bool
-DrawRect(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
+DrawRect(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c);
 inline bool
-DrawRect(GraphicInterfaceContext& g, const SPoint& p1, const SPoint& p2, PixelType c)
+DrawRect(GraphicInterfaceContext& g, const Point& p1, const Point& p2, Color c)
 {
 	return DrawRect(g, p1.X, p1.Y, p2.X, p2.Y, c);
 }
 inline bool
-DrawRect(GraphicInterfaceContext& g, const SPoint& p, const SSize& s, PixelType c)
+DrawRect(GraphicInterfaceContext& g, const Point& p, const Size& s, Color c)
 {
 	return DrawRect(g, p.X, p.Y, p.X + s.Width, p.Y + s.Height, c);
 }
 inline bool
-DrawRect(GraphicInterfaceContext& g, const SRect& r, PixelType c)
+DrawRect(GraphicInterfaceContext& g, const Rect& r, Color c)
 {
 	return DrawRect(g, r.X, r.Y, r.X + r.Width, r.Y + r.Height, c);
 }
@@ -350,18 +364,18 @@ class PenStyle //笔样式：字体和笔颜色。
 {
 public:
 	Drawing::Font Font; //字体。
-	PixelType Color; //笔颜色。
+	Drawing::Color Color; //笔颜色。
 
 	explicit
-	PenStyle(const FontFamily& = GetDefaultFontFamily(), Font::SizeType = Font::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
+	PenStyle(const FontFamily& = GetDefaultFontFamily(), Font::SizeType = Font::DefSize, Drawing::Color = Drawing::Color::White);
 
 	DefGetterMember(const FontFamily&, FontFamily, Font)
 	DefGetterMember(YFontCache&, Cache, Font)
 };
 
 inline
-PenStyle::PenStyle(const FontFamily& family, Font::SizeType size, PixelType c)
-: Font(family, size), Color(c)
+PenStyle::PenStyle(const FontFamily& family, Font::SizeType size, Drawing::Color c)
+	: Font(family, size), Color(c)
 {}
 
 
@@ -417,7 +431,7 @@ Padding::SetAll(SDST h, SDST v)
 }
 
 
-class MBitmapBuffer : public SSize //矩形图像缓冲区。
+class MBitmapBuffer : public Size //矩形图像缓冲区。
 {
 protected:
 	BitmapPtr img; //显示缓冲区指针。
@@ -447,15 +461,16 @@ public:
 	virtual void
 	ClearImage() const; //清除缓冲区。
 	virtual void
-	Fill(PixelType) const; //以纯色填充显示缓冲区。
+	Fill(Color) const; //以纯色填充显示缓冲区。
 
 	virtual void
-	CopyToBuffer(BitmapPtr, ROT = RDeg0, const SSize& ds = SSize::FullScreen,
-		const SPoint& sp = SPoint::Zero, const SPoint& dp = SPoint::Zero, const SSize& sc = SSize::FullScreen) const; //复制至屏幕指定区域。
+	CopyToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
+		const Point& sp = Point::Zero, const Point& dp = Point::Zero, const Size& sc = Size::FullScreen) const; //复制至屏幕指定区域。
 };
 
 inline MBitmapBuffer::MBitmapBuffer()
-: SSize(), img(NULL)
+	: Size(),
+	img(NULL)
 {}
 inline MBitmapBuffer::~MBitmapBuffer()
 {
@@ -496,11 +511,11 @@ public:
 	ClearImage() const; //清除缓冲区。
 
 	void
-	CopyToBuffer(BitmapPtr, ROT = RDeg0, const SSize& ds = SSize::FullScreen,
-		const SPoint& sp = SPoint::Zero, const SPoint& dp = SPoint::Zero, const SSize& sc = SSize::FullScreen) const; //复制至屏幕指定区域。
+	CopyToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
+		const Point& sp = Point::Zero, const Point& dp = Point::Zero, const Size& sc = Size::FullScreen) const; //复制至屏幕指定区域。
 	void
-	BlitToBuffer(BitmapPtr, ROT = RDeg0, const SSize& ds = SSize::FullScreen,
-		const SPoint& sp = SPoint::Zero, const SPoint& dp = SPoint::Zero, const SSize& sc = SSize::FullScreen) const; //贴图至屏幕指定区域。
+	BlitToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
+		const Point& sp = Point::Zero, const Point& dp = Point::Zero, const Size& sc = Size::FullScreen) const; //贴图至屏幕指定区域。
 };
 
 inline

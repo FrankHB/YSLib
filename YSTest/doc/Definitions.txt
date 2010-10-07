@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-10-04 22:14 + 08:00;
-// Version = r8062;
+// UTime = 2010-10-06 15:41 + 08:00;
+// Version = r8362;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -616,6 +616,7 @@ $unit YCommon "ycommon" //平台相关的公共组件无关函数与宏定义集
 
 		public:
 			Color(PixelType = 0);
+			Color(u8, u8, u8, bool = true);
 
 			operator PixelType() const;
 		};
@@ -687,7 +688,7 @@ $unit YCommon "ycommon" //平台相关的公共组件无关函数与宏定义集
 
 		//调试模式：显示（fc 为前景色，bc为背景色）。
 		void
-		YDebugBegin(PixelType fc = RGB15(31, 31, 31), PixelType bc = RGB15( 0, 0, 31));
+		YDebugBegin(Color fc = Color::White, Color bc = Color::Blue);
 
 		//调试模式：按键继续。
 		void
@@ -790,7 +791,7 @@ $unit YCommon "ycommon" //平台相关的公共组件无关函数与宏定义集
 
 		//启动控制台（fc 为前景色，bc为背景色）。
 		void
-		YConsoleInit(u8 dspIndex, PixelType fc = Color::White, PixelType bc = Color::Black);
+		YConsoleInit(u8 dspIndex, Color fc = Color::White, Color bc = Color::Black);
 
 		//输出控制台字（int 型数据）。
 		inline void
@@ -1745,7 +1746,7 @@ $header YShellDefinition "ysdef.h" //宏定义和类型描述模块。
 	/*
 	YSLib No_Cursor
 	定义无指针设备。
-	消息成员列表中不会包含 SPoint pt 。
+	消息成员列表中不会包含 Point pt 。
 	*/
 	//#define YSLIB_NO_CURSOR
 
@@ -2333,20 +2334,23 @@ $header YEvent "yevt.hpp" //事件回调模块。
 
 	//多播版本。
 	template<
-	bool _bMulticast = true,
-	class _tSender = YObject, class _tEventArgs = MEventArgs,
-	class _iEventHandler = _GIEventHandler<_tSender, _tEventArgs>,
-	class _tEventHandler = _GEventHandler<_tSender, _tEventArgs>
+		bool _bMulticast = true,
+		class _tSender = YObject, class _tEventArgs = MEventArgs,
+		class _iEventHandler = _GIEventHandler<_tSender, _tEventArgs>,
+		class _tEventHandler = _GEventHandler<_tSender, _tEventArgs>
 	>
 	class GEvent
 	{
 	public:
 		typedef void FuncType(_tSender&, const _tEventArgs&);
+		typedef std::list<_tEventHandler> ListType;
 
 	protected:
-		std::list<_tEventHandler> EventHandlerSet;
+		ListType EventHandlerSet;
 
 	public:
+		GEvent();
+
 		GEvent&
 		operator+=(const _tEventHandler&);
 		inline GEvent&
@@ -2354,8 +2358,11 @@ $header YEvent "yevt.hpp" //事件回调模块。
 		template<class _type>
 		inline GEvent&
 		//使显式实例化非必要。
-	//	operator+=(typename GHEventMember<_type, _tSender, _tEventArgs>::MemFunPtrType)
-		operator+=(void(_type::*)(const _tEventArgs&))
+	//	operator+=(typename GHEventMember<_type, _tSender, _tEventArgs>::MemFunPtrType);
+		operator+=(void(_type::*)(const _tEventArgs&));
+		template<class _type>
+		inline GEvent&
+		Add(_type& obj, void(_type::*)(const _tEventArgs&));
 		GEvent&
 		operator-=(const _tEventHandler&);
 		inline GEvent&
@@ -2363,6 +2370,12 @@ $header YEvent "yevt.hpp" //事件回调模块。
 		template<class _type>
 		inline GEvent&
 		operator-=(typename GHEventMember<_type, _tSender, _tEventArgs>::MemFunPtrType);
+		template<class _type>
+		inline GEvent&
+		Remove(_type& obj, void(_type::*)(const _tEventArgs&));
+
+		void
+		operator()(_tSender& sender, const _tEventArgs& e) const;
 	}; //template<bool _bMulticast = ...,  ... > class GEvent;
 
 	//单播版本。
@@ -2705,183 +2718,183 @@ $unit YObject "yobject" //平台无关的基础对象实现。
 
 	//前向声明。
 
-	class SOBG;
-	class SPoint;
-	class SVec;
-	class SSize;
-	class SRect;
+	class BinaryGroup;
+	class Point;
+	class Vec;
+	class Size;
+	class Rect;
 
 
-	class SOBG //屏幕二元组。
+	class BinaryGroup //屏幕二元组。
 	{
 	public:
 		SPOS x, y; //分量。
 
 		inline
-		SOBG()
+		BinaryGroup()
 		inline explicit
-		SOBG(const SSize&);
+		BinaryGroup(const Size&);
 		inline template<typename _type>
 		explicit
-		SOBG(const _type& v);
+		BinaryGroup(const _type& v);
 		inline template<typename _type>
-		SOBG(_type, _type);
+		BinaryGroup(_type, _type);
 
-		inline SOBG
+		inline BinaryGroup
 		operator-(); //负运算：返回相反元素。
 
 		DefGetter(SPOS, X, X)
 		DefGetter(SPOS, Y, Y)
-	}; //class SOBG;
+	}; //class BinaryGroup;
 
 	inline bool
-	operator==(const SOBG& a, const SOBG& b);
+	operator==(const BinaryGroup& a, const BinaryGroup& b);
 	inline bool
-	operator!=(const SOBG& a, const SOBG& b);
+	operator!=(const BinaryGroup& a, const BinaryGroup& b);
 
 
-	class SPoint : public SOBG //屏幕二维点坐标。
+	class Point : public BinaryGroup //屏幕二维点坐标。
 	{
 	public:
-		typedef SOBG ParentType;
+		typedef BinaryGroup ParentType;
 
-		static const SPoint Zero = SPoint(); //默认构造参数构造的原点对象。
-		static const SPoint FullScreen = SPoint(SCRW, SCRH); //默认构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
+		static const Point Zero = Point(); //默认构造参数构造的原点对象。
+		static const Point FullScreen = Point(SCRW, SCRH); //默认构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
 
 		inline
-		SPoint()
+		Point()
 		inline explicit
-		SPoint(const SSize&);
+		Point(const Size&);
 		inline template<typename _type>
 		explicit
-		SPoint(const _type& v);
+		Point(const _type& v);
 		inline template<typename _type>
-		SPoint(_type, _type);
+		Point(_type, _type);
 
 		inline
-		operator SVec() const;
+		operator Vec() const;
 
-		inline SPoint
+		inline Point
 		operator-(); //负运算：返回与原点对称的元素。
-		inline SPoint&
-		operator+=(const SVec&);
-		inline SPoint&
-		operator-=(const SVec&);
-	}; //class SPoint;
+		inline Point&
+		operator+=(const Vec&);
+		inline Point&
+		operator-=(const Vec&);
+	}; //class Point;
 
 
-	class SVec : public SOBG //屏幕二维向量。
+	class Vec : public BinaryGroup //屏幕二维向量。
 	{
 	public:
-		typedef SOBG ParentType;
+		typedef BinaryGroup ParentType;
 
-		static const SVec Zero = SVec(); //默认构造参数构造的零向量对象。
-		static const SVec FullScreen = SVec(SCRW, SCRH); //默认构造参数构造的由屏幕坐标系原点到屏幕右下角边界（不在屏幕坐标系中）对象。
+		static const Vec Zero = Vec(); //默认构造参数构造的零向量对象。
+		static const Vec FullScreen = Vec(SCRW, SCRH); //默认构造参数构造的由屏幕坐标系原点到屏幕右下角边界（不在屏幕坐标系中）对象。
 
 		inline
-		SVec()
+		Vec()
 		inline explicit
-		SVec(const SSize&);
+		Vec(const Size&);
 		inline template<typename _type>
 		explicit
-		SVec(const _type& v);
+		Vec(const _type& v);
 		inline template<typename _type>
-		SVec(_type, _type);
+		Vec(_type, _type);
 
 		inline
-		operator SPoint() const;
+		operator Point() const;
 
-		inline SVec
+		inline Vec
 		operator-(); //负运算：返回相反向量。
-		inline SVec&
-		operator+=(const SVec&);
-		inline SVec&
-		operator-=(const SVec&);
-	}; //class SVec;
+		inline Vec&
+		operator+=(const Vec&);
+		inline Vec&
+		operator-=(const Vec&);
+	}; //class Vec;
 
 
 	//屏幕二维向量二元运算。
 
-	inline SVec
-	operator-(const SPoint&, const SPoint&);
-	inline SVec
-	operator+(const SVec&, const SVec&);
-	inline SVec
-	operator-(const SVec&, const SVec&);
+	inline Vec
+	operator-(const Point&, const Point&);
+	inline Vec
+	operator+(const Vec&, const Vec&);
+	inline Vec
+	operator-(const Vec&, const Vec&);
 
 
-	struct SSize //屏幕区域大小。
+	struct Size //屏幕区域大小。
 	{
 		SDST Width, Height;
 
-		static const SSize Zero = SSize(); //默认构造参数构造的零元素对象。
-		static const SSize FullScreen = SSize(SCRW, SCRH); //默认构造参数构造的全屏幕对象。
+		static const Size Zero = Size(); //默认构造参数构造的零元素对象。
+		static const Size FullScreen = Size(SCRW, SCRH); //默认构造参数构造的全屏幕对象。
 
 		inline
-		SSize()
+		Size()
 		inline template<typename _type>
 		explicit
-		SSize(const _type& v);
+		Size(const _type& v);
 		inline template<typename _type>
-		SSize(_type, _type);
+		Size(_type, _type);
 
 		inline
-		operator SVec() const;
+		operator Vec() const;
 
 		DefGetter(SDST, Width, Width)
 		DefGetter(SDST, Height, Height)
 		DefGetter(u32, Area, Width * Height) //取面积。
-	}; //class SSize;
+	}; //class Size;
 
 	inline bool
-	operator==(const SSize& a, const SSize& b);
+	operator==(const Size& a, const Size& b);
 	inline bool
-	operator!=(const SSize& a, const SSize& b);
+	operator!=(const Size& a, const Size& b);
 
 
-	class SRect : public SPoint //屏幕坐标系的正则（边平行于水平直线的）矩形：使用左上点屏幕坐标、宽和高表示。
+	class Rect : public Point //屏幕坐标系的正则（边平行于水平直线的）矩形：使用左上点屏幕坐标、宽和高表示。
 	{
 	public:
 		SDST w, h; //宽和高。
 
-		static const SRect Empty = SRect(); //默认构造参数构造的空矩形对象。
-		static const SRect FullScreen = SRect(SPoint::Zero, SCRW, SCRH); //默认构造参数构造的全屏幕矩形对象。
+		static const Rect Empty = Rect(); //默认构造参数构造的空矩形对象。
+		static const Rect FullScreen = Rect(Point::Zero, SCRW, SCRH); //默认构造参数构造的全屏幕矩形对象。
 
 		inline
-		SRect();
+		Rect();
 		inline explicit
-		SRect(const SPoint&);
+		Rect(const Point&);
 		inline explicit
-		SRect(const SSize&);
+		Rect(const Size&);
 		inline
-		SRect(const SPoint&, const SSize&);
+		Rect(const Point&, const Size&);
 		inline
-		SRect(const SPoint&, SDST, SDST);
+		Rect(const Point&, SDST, SDST);
 		inline
-		SRect(SPOS, SPOS, const SSize&);
+		Rect(SPOS, SPOS, const Size&);
 		inline
-		SRect(SPOS, SPOS, SDST, SDST);
+		Rect(SPOS, SPOS, SDST, SDST);
 
 		inline bool
-		IsInBounds(const SPoint&) const; //判断点是否在矩形内或边上。
+		IsInBounds(const Point&) const; //判断点是否在矩形内或边上。
 		inline bool
 		IsInBounds(int px, int py) const; //判断点 (px, py) 是否在矩形内或边上。
 		inline bool
-		IsInBoundsRegular(const SPoint& p) const; //判断点是否在矩形内或左侧或上侧边上。
+		IsInBoundsRegular(const Point& p) const; //判断点是否在矩形内或左侧或上侧边上。
 		inline bool
 		IsInBoundsRegular(int px, int py) const; //判断点 (px, py) 是否在矩形内或左侧或上侧边上。
 		inline bool
-		IsInBoundsStrict(const SPoint& p) const; //判断点是否在矩形内。
+		IsInBoundsStrict(const Point& p) const; //判断点是否在矩形内。
 		inline bool
 		IsInBoundsStrict(int px, int py) const; //判断点 (px, py) 是否在矩形内。
-		SPoint
+		Point
 		GetPoint() const; //取左上角位置。
-	}; //class SRect;
+	}; //class Rect;
 
 	inline bool
-	operator==(const SRect& a, const SRect& b);
+	operator==(const Rect& a, const Rect& b);
 	inline bool
-	operator!=(const SRect& a, const SRect& b);
+	operator!=(const Rect& a, const Rect& b);
 
 	YSL_BEGIN_NAMESPACE(Drawing)
 
@@ -3044,17 +3057,17 @@ $unit YEventArgs "yevtarg" //事件参数模块。
 	YSL_BEGIN_NAMESPACE(Runtime)
 
 	//转换指针设备光标位置为屏幕点。
-	inline Drawing::SPoint
+	inline Drawing::Point
 	ToSPoint(const CursorInfo& c);
 
 
 	//屏幕事件参数类。
-	struct MScreenPositionEventArgs : public MEventArgs, public Drawing::SPoint
+	struct MScreenPositionEventArgs : public MEventArgs, public Drawing::Point
 	{
 		static const MEventArgs Empty = MScreenPositionEventArgs();
 
 		inline
-		MScreenPositionEventArgs(const Drawing::SPoint& = Drawing::SPoint::Zero);
+		MScreenPositionEventArgs(const Drawing::Point& = Drawing::Point::Zero);
 	}; //struct MScreenPositionEventArgs;
 
 
@@ -3071,7 +3084,7 @@ $unit YEventArgs "yevtarg" //事件参数模块。
 	//指针设备输入事件参数类。
 	struct MTouchEventArgs : public MScreenPositionEventArgs, public MInputEventArgs
 	{
-		typedef Drawing::SPoint InputType;
+		typedef Drawing::Point InputType;
 
 		static const MTouchEventArgs Empty = MTouchEventArgs();
 
@@ -3106,7 +3119,7 @@ $unit YDevice "ydevice" //平台无关的设备抽象层。
 	YSL_BEGIN_NAMESPACE(Device)
 
 	//图形设备。
-	class YGraphicDevice : public YObject, protected Drawing::SSize
+	class YGraphicDevice : public YObject, protected Drawing::Size
 	{
 	public:
 		typedef YObject ParentType;
@@ -3118,8 +3131,8 @@ $unit YDevice "ydevice" //平台无关的设备抽象层。
 		inline
 		YGraphicDevice(SDST w, SDST h, Drawing::BitmapPtr p = NULL);
 
-		DefGetter(const SSize&, Size, *this)
-		DefGetterBase(u32, Area, SSize)
+		DefGetter(const Size&, Size, *this)
+		DefGetterBase(u32, Area, Size)
 		virtual DefGetter(Drawing::BitmapPtr, Ptr, ptr)
 
 		virtual DefSetter(Drawing::BitmapPtr, Ptr, ptr)
@@ -3158,7 +3171,7 @@ $unit YDevice "ydevice" //平台无关的设备抽象层。
 		void
 		Update(Drawing::BitmapPtr);
 		void
-		Update(Drawing::PixelType = 0); //以纯色填充屏幕。
+		Update(Drawing::Color = 0); //以纯色填充屏幕。
 	}; //class YScreen;
 
 	YSL_END_NAMESPACE(Device)
@@ -3179,7 +3192,7 @@ $unit YShellMessage "ysmsg" //消息处理模块。
 	$import $header Core::YShellDefinition, YShellMessageDefinition, $unit YObject, $header <queue>, <ctime>, $unit YWindow/* for HWND delete procedure; */;
 
 	$import typedef unsigned char u8;
-	using Drawing::SPoint;
+	using Drawing::Point;
 
 	YSL_BEGIN_NAMESPACE(Shells)
 
@@ -3201,7 +3214,7 @@ $unit YShellMessage "ysmsg" //消息处理模块。
 
 	#ifndef YSLIB_NO_CURSOR
 
-		SPoint pt; //光标位置。
+		Point pt; //光标位置。
 
 	#endif
 
@@ -3216,7 +3229,7 @@ $unit YShellMessage "ysmsg" //消息处理模块。
 
 	#else
 
-		Message(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0, const SPoint& pt_ = SPoint::Zero);
+		Message(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0, WPARAM = 0, const LPARAM = 0, const Point& pt_ = Point::Zero);
 
 	#endif
 
@@ -3234,7 +3247,7 @@ $unit YShellMessage "ysmsg" //消息处理模块。
 
 	#ifndef YSLIB_NO_CURSOR
 
-		DefGetter(const SPoint&, CursorLocation, pt)
+		DefGetter(const Point&, CursorLocation, pt)
 
 	#endif
 
@@ -3351,7 +3364,7 @@ $unit YShell "yshell" // Shell 定义。
 		HWND
 		GetTopWindowHandle() const; //取得窗口组中顶端窗口对象的句柄。
 		HWND
-		GetTopWindowHandle(YDesktop&, const SPoint&) const; //取得窗口组中指定屏幕的指定的点所处的最顶层窗口对象的句柄。
+		GetTopWindowHandle(YDesktop&, const Point&) const; //取得窗口组中指定屏幕的指定的点所处的最顶层窗口对象的句柄。
 
 		bool
 		SendWindow(IWindow&); //向屏幕发送指定窗口对象。
@@ -3550,7 +3563,7 @@ $unit YApplication "yapp" //应用程序实例类抽象。
 	inline void
 	InsertMessage(const Message&);
 	inline void
-	InsertMessage(const HSHL&, const MSGID&, const MSGPRIORITY&, const WPARAM& = 0, const LPARAM& = 0, const SPoint& = SPoint::Zero);
+	InsertMessage(const HSHL&, const MSGID&, const MSGPRIORITY&, const WPARAM& = 0, const LPARAM& = 0, const Point& = Point::Zero);
 
 	YSL_END_NAMESPACE(Shells)
 
@@ -3977,7 +3990,7 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 
 	//贴图位置计算器。
 	void
-	blitScale(const SPoint& sp, const SPoint& dp, const SSize& ss, const SSize& ds, const SSize& cs,
+	blitScale(const Point& sp, const Point& dp, const Size& ss, const Size& ds, const Size& cs,
 			  int& minX, int& minY, int& maxX, int& maxY);
 
 
@@ -3986,11 +3999,15 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 	{
 		template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
 		void
-		operator()(_tPixel* dst, const SSize& ds,
-			const SPoint& dp, const SSize& ss, _fTransformPixel, _fTransformLine);
+		operator()(_tPixel* dst, const Size& ds, const Point& dp, const Size& ss,
+			_fTransformPixel tp, _fTransformLine tl);
 		template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
 		inline void
-		operator()(_tPixel*, const SSize&, const SRect&, _fTransformPixel, _fTransformLine);
+		operator()(_tPixel* dst, const Size& ds, const Rect& rSrc,
+			_fTransformPixel tp, _fTransformLine tl)
+		template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
+		inline void
+		operator()(_tPixel* dst, SDST dw, SDST dh, SPOS dx, SPOS dy, SDST sw, SDST sh,
 	}; //struct transRect;
 
 
@@ -4014,10 +4031,13 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 	//使用指定像素填充指定的正则矩形区域。
 	template<typename _tPixel>
 	inline void
-	FillRect(_tPixel*, SDST, SDST, SPOS, SPOS, SDST, SDST, _tPixel);
+	FillRect(_tPixel* dst, const Size& ds, const Point& sp, const Size& ss, _tPixel c);
 	template<typename _tPixel>
 	inline void
-	FillRect(_tPixel*, const SRect&, const SSize&,  _tPixel);
+	FillRect(_tPixel* dst, const Size& ds, const Rect& rSrc, _tPixel c);
+	template<typename _tPixel>
+	inline void
+	FillRect(_tPixel* dst, SDST dw, SDST dh, SPOS sx, SPOS sy, SDST sw, SDST sh, _tPixel c);
 
 
 	//显示缓存操作：简单复制。
@@ -4026,87 +4046,87 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 
 	//复制一块矩形区域的像素。
 	void
-	blit(BitmapPtr dst, const SSize& ds,
-		 ConstBitmapPtr src, const SSize& ss,
-		 const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blit(BitmapPtr dst, const Size& ds,
+		 ConstBitmapPtr src, const Size& ss,
+		 const Point& sp, const Point& dp, const Size& sc);
 	//水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素。
 	void
-	blitH(BitmapPtr dst, const SSize& ds,
-		  ConstBitmapPtr src, const SSize& ss,
-		  const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blitH(BitmapPtr dst, const Size& ds,
+		  ConstBitmapPtr src, const Size& ss,
+		  const Point& sp, const Point& dp, const Size& sc);
 	//竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素。
 	void
-	blitV(BitmapPtr dst, const SSize& ds,
-		  ConstBitmapPtr src, const SSize& ss,
-		  const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blitV(BitmapPtr dst, const Size& ds,
+		  ConstBitmapPtr src, const Size& ss,
+		  const Point& sp, const Point& dp, const Size& sc);
 	//倒置复制一块矩形区域的像素。
 	void
-	blitU(BitmapPtr dst, const SSize& ds,
-		  ConstBitmapPtr src, const SSize& ss,
-		  const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blitU(BitmapPtr dst, const Size& ds,
+		  ConstBitmapPtr src, const Size& ss,
+		  const Point& sp, const Point& dp, const Size& sc);
 
 	//复制一块矩形区域的像素（使用第 15 位表示透明性）。
 	void
-	blit2(BitmapPtr dst, const SSize& ds,
-		  ConstBitmapPtr src, const SSize& ss,
-		  const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blit2(BitmapPtr dst, const Size& ds,
+		  ConstBitmapPtr src, const Size& ss,
+		  const Point& sp, const Point& dp, const Size& sc);
 	//水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素（使用第 15 位表示透明性）。
 	void
-	blit2H(BitmapPtr dst, const SSize& ds,
-		   ConstBitmapPtr src, const SSize& ss,
-		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blit2H(BitmapPtr dst, const Size& ds,
+		   ConstBitmapPtr src, const Size& ss,
+		   const Point& sp, const Point& dp, const Size& sc);
 	//竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素（使用第 15 位表示透明性）。
 	void
-	blit2V(BitmapPtr dst, const SSize& ds,
-		   ConstBitmapPtr src, const SSize& ss,
-		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blit2V(BitmapPtr dst, const Size& ds,
+		   ConstBitmapPtr src, const Size& ss,
+		   const Point& sp, const Point& dp, const Size& sc);
 	//倒置复制一块矩形区域的像素（使用第 15 位表示透明性）。
 	void
-	blit2U(BitmapPtr dst, const SSize& ds,
-		   ConstBitmapPtr src, const SSize& ss,
-		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blit2U(BitmapPtr dst, const Size& ds,
+		   ConstBitmapPtr src, const Size& ss,
+		   const Point& sp, const Point& dp, const Size& sc);
 
 	//复制一块矩形区域的像素（使用 Alpha 通道表示透明性）。
 	void
-	blit2(BitmapPtr dst, const SSize& ds,
-		  ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-		  const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blit2(BitmapPtr dst, const Size& ds,
+		  ConstBitmapPtr src, const u8* srcA, const Size& ss,
+		  const Point& sp, const Point& dp, const Size& sc);
 	//水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素（使用 Alpha 通道表示透明性）。
 	void
-	blit2H(BitmapPtr dst, const SSize& ds,
-		   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blit2H(BitmapPtr dst, const Size& ds,
+		   ConstBitmapPtr src, const u8* srcA, const Size& ss,
+		   const Point& sp, const Point& dp, const Size& sc);
 	//竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素（使用 Alpha 通道表示透明性）。
 	void
-	blit2V(BitmapPtr dst, const SSize& ds,
-		   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blit2V(BitmapPtr dst, const Size& ds,
+		   ConstBitmapPtr src, const u8* srcA, const Size& ss,
+		   const Point& sp, const Point& dp, const Size& sc);
 	//倒置复制一块矩形区域的像素（使用 Alpha 通道表示透明性）。
 	void
-	blit2U(BitmapPtr dst, const SSize& ds,
-		   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-		   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blit2U(BitmapPtr dst, const Size& ds,
+		   ConstBitmapPtr src, const u8* srcA, const Size& ss,
+		   const Point& sp, const Point& dp, const Size& sc);
 
 	//复制一块矩形区域的像素（使用 Alpha 通道表示 8 位透明度）。
 	void
-	blitAlpha(BitmapPtr dst, const SSize& ds,
-			  ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-			  const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blitAlpha(BitmapPtr dst, const Size& ds,
+			  ConstBitmapPtr src, const u8* srcA, const Size& ss,
+			  const Point& sp, const Point& dp, const Size& sc);
 	//水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素（使用 Alpha 通道表示 8 位透明度）。
 	void
-	blitAlphaH(BitmapPtr dst, const SSize& ds,
-			   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-			   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blitAlphaH(BitmapPtr dst, const Size& ds,
+			   ConstBitmapPtr src, const u8* srcA, const Size& ss,
+			   const Point& sp, const Point& dp, const Size& sc);
 	//竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素（使用 Alpha 通道表示 8 位透明度）。
 	void
-	blitAlphaV(BitmapPtr dst, const SSize& ds,
-			   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-			   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blitAlphaV(BitmapPtr dst, const Size& ds,
+			   ConstBitmapPtr src, const u8* srcA, const Size& ss,
+			   const Point& sp, const Point& dp, const Size& sc);
 	//倒置复制一块矩形区域的像素（使用 Alpha 通道表示 8 位透明度）。
 	void
-	blitAlphaU(BitmapPtr dst, const SSize& ds,
-			   ConstBitmapPtr src, const u8* srcA, const SSize& ss,
-			   const SPoint& sp, const SPoint& dp, const SSize& sc);
+	blitAlphaU(BitmapPtr dst, const Size& ds,
+			   ConstBitmapPtr src, const u8* srcA, const Size& ss,
+			   const Point& sp, const Point& dp, const Size& sc);
 
 
 	//图形接口上下文。
@@ -4114,16 +4134,16 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 	{
 	private:
 		BitmapPtr pBuffer;
-		SSize Size;
+		Drawing::Size Size;
 
 	public:
 		inline
-		GraphicInterfaceContext(BitmapPtr, const SSize&);
+		GraphicInterfaceContext(BitmapPtr, const Drawing::Size&);
 
 		DefPredicate(Valid, pBuffer && Size.Width && Size.Height)
 
 		DefGetter(BitmapPtr, BufferPtr, pBuffer)
-		DefGetter(const SSize&, Size, Size)
+		DefGetter(const Drawing::Size&, Size, Size)
 		DefGetter(SDST, Width, Size.Width)
 		DefGetter(SDST, Height, Size.Height)
 	}; //class GraphicInterfaceContext;
@@ -4133,37 +4153,37 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 
 	//绘制像素：(x, y) 。
 	inline void
-	DrawPoint(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c);
+	PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c);
 
 	//绘制点：p(x, y) 。
 	inline bool
-	DrawPoint(GraphicInterfaceContext& g, SPOS x, SPOS y, PixelType c);
+	DrawPoint(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c);
 	inline bool
-	DrawPoint(GraphicInterfaceContext& g, const SPoint& p, PixelType c);
+	DrawPoint(GraphicInterfaceContext& g, const Point& p, Color c);
 
 	//绘制水平线段：指定水平坐标 x1 、 x2 ，竖直坐标 y 。
 	bool
-	DrawHLineSeg(GraphicInterfaceContext* pGDC, SPOS y, SPOS x1, SPOS x2, PixelType c);
+	DrawHLineSeg(GraphicInterfaceContext* pGDC, SPOS y, SPOS x1, SPOS x2, Color c);
 
 	//绘制竖直线段：指定水平坐标 x ，竖直坐标 y1 、 y2 。
 	bool
-	DrawVLineSeg(GraphicInterfaceContext* pGDC, SPOS x, SPOS y1, SPOS y2, PixelType c);
+	DrawVLineSeg(GraphicInterfaceContext* pGDC, SPOS x, SPOS y1, SPOS y2, Color c);
 
 	//绘制一般线段：顶点 p1(x1, y1), p2(x2, y2) 。
 	bool
-	DrawLineSeg(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
+	DrawLineSeg(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c);
 	inline bool
-	DrawLineSeg(GraphicInterfaceContext& g, const SPoint& p1, const SPoint& p2, PixelType c);
+	DrawLineSeg(GraphicInterfaceContext& g, const Point& p1, const Point& p2, Color c);
 
 	//绘制空心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2) 。
 	bool
-	DrawRect(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, PixelType c);
+	DrawRect(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c);
 	inline bool
-	DrawRect(GraphicInterfaceContext& g, const SPoint& p1, const SPoint& p2, PixelType c);
+	DrawRect(GraphicInterfaceContext& g, const Point& p1, const Point& p2, Color c);
 	inline bool
-	DrawRect(GraphicInterfaceContext& g, const SPoint& p, const SSize& s, PixelType c);
+	DrawRect(GraphicInterfaceContext& g, const Point& p, const Size& s, Color c);
 	inline bool
-	DrawRect(GraphicInterfaceContext& g, const SRect& r, PixelType c);
+	DrawRect(GraphicInterfaceContext& g, const Rect& r, Color c);
 
 
 	// GDI 逻辑对象。
@@ -4172,10 +4192,10 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 	{
 	public:
 		Drawing::Font Font; //字体。
-		PixelType Color; //笔颜色。
+		Drawing::Color Color; //笔颜色。
 
 		inline explicit
-		PenStyle(const FontFamily& = GetDefaultFontFamily(), Font::SizeType = Font::DefSize, PixelType = RGB15(31, 31, 31) | BITALPHA);
+		PenStyle(const FontFamily& = GetDefaultFontFamily(), Font::SizeType = Font::DefSize, Drawing::Color = Drawing::Color::White);
 
 		DefGetterMember(const FontFamily&, FontFamily, Font)
 		DefGetterMember(YFontCache&, Cache, Font)
@@ -4213,7 +4233,7 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 	}; //struct Padding;
 
 
-	class MBitmapBuffer : public SSize //矩形图像缓冲区。
+	class MBitmapBuffer : public Size //矩形图像缓冲区。
 	{
 	protected:
 		BitmapPtr img; //显示缓冲区指针。
@@ -4245,11 +4265,11 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 		virtual void
 		ClearImage() const; //清除缓冲区。
 		virtual void
-		Fill(PixelType) const; //以纯色填充显示缓冲区。
+		Fill(Color) const; //以纯色填充显示缓冲区。
 
 		virtual void
-		CopyToBuffer(BitmapPtr, ROT = RDeg0, const SSize& ds = SSize::FullScreen,
-			const SPoint& sp = SPoint::Zero, const SPoint& dp = SPoint::Zero, const SSize& sc = SSize::FullScreen) const; //复制至屏幕指定区域。
+		CopyToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
+			const Point& sp = Point::Zero, const Point& dp = Point::Zero, const Size& sc = Size::FullScreen) const; //复制至屏幕指定区域。
 	}; //class MBitmapBuffer;
 
 
@@ -4282,11 +4302,11 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 		ClearImage() const; //清除缓冲区。
 
 		void
-		CopyToBuffer(BitmapPtr, ROT = RDeg0, const SSize& ds = SSize::FullScreen,
-			const SPoint& sp = SPoint::Zero, const SPoint& dp = SPoint::Zero, const SSize& sc = SSize::FullScreen) const; //复制至屏幕指定区域。
+		CopyToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
+			const Point& sp = Point::Zero, const Point& dp = Point::Zero, const Size& sc = Size::FullScreen) const; //复制至屏幕指定区域。
 		void
-		BlitToBuffer(BitmapPtr, ROT = RDeg0, const SSize& ds = SSize::FullScreen,
-			const SPoint& sp = SPoint::Zero, const SPoint& dp = SPoint::Zero, const SSize& sc = SSize::FullScreen) const; //贴图至屏幕指定区域。
+		BlitToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
+			const Point& sp = Point::Zero, const Point& dp = Point::Zero, const Size& sc = Size::FullScreen) const; //贴图至屏幕指定区域。
 	}; //class MBitmapBufferEx;
 
 	YSL_END_NAMESPACE(Drawing)
@@ -4303,7 +4323,7 @@ $unit YGUI "ygui" //平台无关的图形用户界面基础实现。
 
 	//从指定 Shell 传递指定屏幕的指针设备光标至 GUI 界面，返回部件指针。
 	IWidget*
-	GetCursorWidgetPtr(HSHL, YDesktop&, const SPoint&);
+	GetCursorWidgetPtr(HSHL, YDesktop&, const Point&);
 
 	//取指定屏幕中的当前焦点对象。
 	IVisualControl*
@@ -4350,7 +4370,7 @@ $unit YGUI "ygui" //平台无关的图形用户界面基础实现。
 
 
 	//记录输入保持状态。
-	class SInputStatus
+	class InputStatus
 	{
 	public:
 		typedef enum
@@ -4361,25 +4381,25 @@ $unit YGUI "ygui" //平台无关的图形用户界面基础实现。
 		} KeyHeldStateType;
 
 	private:
-		static SVec DragOffset;
+		static Vec DragOffset;
 		static KeyHeldStateType KeyHeldState;
 		static Timers::YTimer KeyTimer;
 
 	public:
-		DefStaticPredicate(OnDragging, DragOffset != SVec::FullScreen)
+		DefStaticPredicate(OnDragging, DragOffset != Vec::FullScreen)
 
-		DefStaticGetter(const SVec&, DragOffset, DragOffset)
+		DefStaticGetter(const Vec&, DragOffset, DragOffset)
 		DefStaticGetter(TouchSwitchStateType, TouchSwitchState, TouchSwitchState)
 		DefStaticGetter(KeyHeldStateType, KeyHeldState, KeyHeldState)
 
-		static DefSetterDe(const SVec&, DragOffset, DragOffset, SVec::FullScreen)
+		static DefSetterDe(const Vec&, DragOffset, DragOffset, Vec::FullScreen)
 
 		static void
 		RepeatKeyHeld(Components::Controls::MVisualControl&, const MKeyEventArgs&);
 
 		static void
 		ResetKeyHeldState();
-	}; //class SInputStatus;
+	}; //class InputStatus;
 
 
 	//响应标准屏幕点击状态。
@@ -4409,7 +4429,7 @@ $unit YGUI "ygui" //平台无关的图形用户界面基础实现。
 
 	//绘制界面元素边框。
 	void
-	DrawBounds(GraphicInterfaceContext&, const SPoint&, const SSize&, PixelType);
+	DrawBounds(GraphicInterfaceContext&, const Point&, const Size&, PixelType);
 
 	//绘制窗口边框。
 	void
@@ -4451,12 +4471,12 @@ $unit YComponent "ycomp" //平台无关的 Shell 组件实现。
 		YScreen& Screen;
 
 		inline explicit
-		YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black);
+		YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::Color = Drawing::Color::White, Drawing::Color = Drawing::Color::Black);
 		inline virtual
 		~YConsole();
 
 		inline void
-		Activate(Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black);
+		Activate(Drawing::Color = Drawing::Color::White, Drawing::Color = Drawing::Color::Black);
 
 		inline void
 		Deactivate();
@@ -4489,7 +4509,7 @@ $unit YDesktop "ydesktop" //平台无关的桌面抽象层。
 
 	public:
 		explicit
-		YDesktop(YScreen&, PixelType = 0, GHResource<Drawing::YImage> = NULL);
+		YDesktop(YScreen&, Color = 0, GHResource<Drawing::YImage> = NULL);
 		virtual
 		~YDesktop();
 
@@ -4497,7 +4517,7 @@ $unit YDesktop "ydesktop" //平台无关的桌面抽象层。
 		DefGetter(const Drawing::MBitmapBuffer&, Buffer, *this) //取显示缓冲区。
 		DefGetter(BitmapPtr, BackgroundPtr, Screen.GetPtr()) //取背景指针。
 
-		virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const SPoint& p) const
+		virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
 			ImplBodyBase(YDesktop, GetTopDesktopObjectPtr, p)
 
 		void
@@ -4517,7 +4537,7 @@ $unit YDesktop "ydesktop" //平台无关的桌面抽象层。
 		IVisualControl*
 		GetTopDesktopObjectPtr() const; //取得桌面对象组中顶端桌面对象的句柄。
 		IVisualControl*
-		GetTopDesktopObjectPtr(const SPoint&) const; //取得桌面对象组中包含指定点的顶端桌面对象的句柄。
+		GetTopDesktopObjectPtr(const Point&) const; //取得桌面对象组中包含指定点的顶端桌面对象的句柄。
 
 		virtual void
 		DrawBackground();
@@ -4552,10 +4572,10 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 	using Drawing::ScreenBufferType;
 	using Drawing::Color;
 
-	using Drawing::SPoint;
-	using Drawing::SVec;
-	using Drawing::SSize;
-	using Drawing::SRect;
+	using Drawing::Point;
+	using Drawing::Vec;
+	using Drawing::Size;
+	using Drawing::Rect;
 
 	using Drawing::YImage;
 
@@ -4569,17 +4589,17 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		DeclIEntry(bool IsTransparent() const) //判断是否透明。
 		DeclIEntry(bool IsBgRedrawed() const) //判断是否需要重绘。
 
-		DeclIEntry(bool Contains(const SPoint&) const) //判断点是否在边界内或边界上。
+		DeclIEntry(bool Contains(const Point&) const) //判断点是否在边界内或边界上。
 
-		DeclIEntry(const SPoint& GetLocation() const)
-		DeclIEntry(const SSize& GetSize() const)
+		DeclIEntry(const Point& GetLocation() const)
+		DeclIEntry(const Size& GetSize() const)
 		DeclIEntry(IWidgetContainer* GetContainerPtr() const)
 		DeclIEntry(HWND GetWindowHandle() const)
 
 		DeclIEntry(void SetVisible(bool = true)) //设置可见。
 		DeclIEntry(void SetTransparent(bool = true)) //设置透明。
 		DeclIEntry(void SetBgRedrawed(bool = true)) //设置重绘状态。
-		DeclIEntry(void SetLocation(const SPoint&)) //设置左上角所在位置（相对于容器的偏移坐标）。
+		DeclIEntry(void SetLocation(const Point&)) //设置左上角所在位置（相对于容器的偏移坐标）。
 
 		DeclIEntry(void DrawBackground()) //绘制背景。
 		DeclIEntry(void DrawForeground()) //绘制前景。
@@ -4599,17 +4619,17 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		DeclIEntry(void operator+=(Runtime::GMFocusResponser<IVisualControl>&)) //向焦点对象组添加子焦点对象容器。
 		DeclIEntry(bool operator-=(Runtime::GMFocusResponser<IVisualControl>&)) //从焦点对象组移除子焦点对象容器。
 
-		DeclIEntry(IWidget* GetTopWidgetPtr(const SPoint&) const) //取指定的点（屏幕坐标）所处的部件的指针。
-		DeclIEntry(IVisualControl* GetTopVisualControlPtr(const SPoint&) const) //取指定的点（屏幕坐标）所处的焦点对象的指针。
-		DeclIEntry(SPoint GetContainerLocationOffset(const SPoint& = SPoint::Zero) const) //取指定的点（相对此容器的坐标）相对于此容器的父容器的偏移坐标。
-		DeclIEntry(SPoint GetWindowLocationOffset(const SPoint& = SPoint::Zero) const) //取指定的点（相对此容器的坐标）相对于此容器的父窗口的偏移坐标。
+		DeclIEntry(IWidget* GetTopWidgetPtr(const Point&) const) //取指定的点（屏幕坐标）所处的部件的指针。
+		DeclIEntry(IVisualControl* GetTopVisualControlPtr(const Point&) const) //取指定的点（屏幕坐标）所处的焦点对象的指针。
+		DeclIEntry(Point GetContainerLocationOffset(const Point& = Point::Zero) const) //取指定的点（相对此容器的坐标）相对于此容器的父容器的偏移坐标。
+		DeclIEntry(Point GetWindowLocationOffset(const Point& = Point::Zero) const) //取指定的点（相对此容器的坐标）相对于此容器的父窗口的偏移坐标。
 
 		DeclIEntry(void ClearFocusingPtr()) //清除焦点指针。
 	EndDecl
 
 
-	SPoint
-	GetLocationOffset(IWidget*, const SPoint&, const HWND&);
+	Point
+	GetLocationOffset(IWidget*, const Point&, const HWND&);
 
 
 	//可视样式模块。
@@ -4623,15 +4643,15 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		mutable bool bBgRedrawed; //背景重绘属性。
 
 	protected:
-		SPoint Location; //左上角所在位置（相对于容器的偏移坐标）。
-		SSize Size; //部件大小。
+		Point Location; //左上角所在位置（相对于容器的偏移坐标）。
+		Drawing::Size Size; //部件大小。
 
 	public:
-		PixelType BackColor; //默认背景色。
-		PixelType ForeColor; //默认前景色。
+		Color BackColor; //默认背景色。
+		Color ForeColor; //默认前景色。
 
 		explicit
-		MVisual(const SRect& = SRect::Empty,
+		MVisual(const Rect& = Rect::Empty,
 			PixelType = Color::White, PixelType = Color::Black);
 		virtual DefTrivialDtor(MVisual)
 
@@ -4640,7 +4660,7 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		DefPredicate(BgRedrawed, bBgRedrawed)
 
 		//判断包含关系。
-		PDefHead(bool, Contains, const SPoint& p) const
+		PDefHead(bool, Contains, const Point& p) const
 			ImplBodyMember(GetBounds(), IsInBoundsRegular, p)
 		PDefHead(bool, Contains, const int& x, const int& y) const //判断点(x, y)是否在边界内或边界上。
 			ImplBodyMember(GetBounds(), IsInBoundsRegular, x, y)
@@ -4649,24 +4669,21 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		DefGetter(SPOS, Y, Location.Y)
 		DefGetter(SDST, Width, Size.Width)
 		DefGetter(SDST, Height, Size.Height)
-		virtual DefGetter(const SPoint&, Location, Location)
-		virtual DefGetter(const SSize&, Size, Size)
-		virtual DefGetter(SRect, Bounds, SRect(Location, Size.Width, Size.Height))
+		virtual DefGetter(const Point&, Location, Location)
+		virtual DefGetter(const Drawing::Size&, Size, Size)
+		virtual DefGetter(Rect, Bounds, Rect(Location, Size.Width, Size.Height))
 
 		DefSetterDe(bool, Visible, Visible, true)
 		DefSetterDe(bool, Transparent, Transparent, true)
 		DefSetterDe(bool, BgRedrawed, bBgRedrawed, true)
-		virtual DefSetter(const SPoint&, Location, Location)
+		virtual DefSetter(const Point&, Location, Location)
 		virtual PDefHead(void, SetLocation, SPOS x, SPOS y)
-			ImplBodyBaseVoid(MVisual, SetLocation, SPoint(x, y))
+			ImplBodyBaseVoid(MVisual, SetLocation, Point(x, y))
 		virtual void
 		SetSize(SDST, SDST);
 		virtual void
-		SetBounds(const SRect& r);
+		SetBounds(const Rect& r);
 	}; //class MVisual;
-
-
-	typedef GIContainer<IVisualControl> IWidgetContainer;
 
 
 	//部件模块。
@@ -4679,8 +4696,8 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		IWidgetContainer* const pContainer; //从属的部件容器的指针。
 
 		explicit
-		MWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL,
-			PixelType = Color::White, PixelType = Color::Black);
+		MWidget(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+			Color = Color::White, Color = Color::Black);
 
 		//判断从属关系。
 		inline bool
@@ -4690,17 +4707,21 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 
 		virtual DefGetter(IWidgetContainer*, ContainerPtr, pContainer)
 		virtual DefGetter(HWND, WindowHandle, hWindow)
-		SPoint
+		Point
 		GetLocationForWindow() const; //取部件相对于最直接的窗口的位置（若无窗口则返回 FullScreen ）。
-		SPoint
+		Point
 		GetLocationForParentContainer() const; //取部件相对于容器的父容器的位置（若无容器则返回 FullScreen ）。
-		SPoint
+		Point
 		GetLocationForParentWindow() const; //取部件相对于容器的父窗口的位置（若无容器则返回 FullScreen ）。
 
 		inline virtual void
 		Fill(); //以背景色填充显示缓冲区。
 		virtual void
-		Fill(PixelType); //以纯色填充显示缓冲区。
+		Fill(Color); //以纯色填充显示缓冲区。
+		virtual void
+		DrawBackground();
+		virtual void
+		DrawForeground();
 
 		virtual void
 		Refresh();
@@ -4715,7 +4736,7 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		typedef YComponent ParentType;
 
 		explicit
-		YWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL);
+		YWidget(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL);
 		virtual
 		~YWidget();
 
@@ -4724,23 +4745,23 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		virtual DefPredicateBase(BgRedrawed, MVisual)
 
 		//判断包含关系。
-		virtual PDefHead(bool, Contains, const SPoint& p) const
+		virtual PDefHead(bool, Contains, const Point& p) const
 			ImplBodyBase(MVisual, Contains, p)
 
-		virtual DefGetterBase(const SPoint&, Location, MVisual)
-		virtual DefGetterBase(const SSize&, Size, MVisual)
+		virtual DefGetterBase(const Point&, Location, MVisual)
+		virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
 		virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 		virtual DefGetterBase(HWND, WindowHandle, MWidget)
 
 		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
 		virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
-		virtual DefSetterBase(const SPoint&, Location, MVisual)
+		virtual DefSetterBase(const Point&, Location, MVisual)
 
-		virtual void
-		DrawBackground();
-		virtual void
-		DrawForeground();
+		virtual PDefHead(void, DrawBackground)
+			ImplBodyBaseVoid(MWidget, DrawBackground)
+		virtual PDefHead(void, DrawForeground)
+			ImplBodyBaseVoid(MWidget, DrawForeground)
 
 		virtual PDefHead(void, Refresh)
 			ImplBodyBaseVoid(MWidget, Refresh)
@@ -4780,9 +4801,9 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		virtual Controls::IComponent*
 		GetFocusingPtr() const;
 		virtual IWidget*
-		GetTopWidgetPtr(const SPoint&);
+		GetTopWidgetPtr(const Point&);
 		virtual IVisualControl*
-		GetTopVisualControlPtr(const SPoint&);
+		GetTopVisualControlPtr(const Point&);
 	}; //class MWidgetContainer;
 
 
@@ -4794,7 +4815,7 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		typedef YComponent ParentType;
 
 		explicit
-		YWidgetContainer(HWND, const SRect& = SRect::Zero, IWidgetContainer* = NULL);
+		YWidgetContainer(HWND, const Rect& = Rect::Zero, IWidgetContainer* = NULL);
 		virtual
 		~YWidgetContainer();
 
@@ -4816,34 +4837,34 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		virtual DefPredicateBase(BgRedrawed, MVisual)
 
 		//判断包含关系。
-		virtual PDefHead(bool, Contains, const SPoint& p) const
+		virtual PDefHead(bool, Contains, const Point& p) const
 			ImplBodyBase(MVisual, Contains, p)
 
-		virtual DefGetterBase(const SPoint&, Location, MVisual)
-		virtual DefGetterBase(const SSize&, Size, MVisual)
+		virtual DefGetterBase(const Point&, Location, MVisual)
+		virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
 		virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 		virtual DefGetterBase(HWND, WindowHandle, MWidget)
-		virtual PDefHead(IWidget*, GetTopWidgetPtr, const SPoint& p) const
+		virtual PDefHead(IWidget*, GetTopWidgetPtr, const Point& p) const
 			ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
-		virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const SPoint& p) const
+		virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
 			ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
-		virtual SPoint
-		GetContainerLocationOffset(const SPoint& = SPoint::Zero) const;
-		virtual SPoint
-		GetWindowLocationOffset(const SPoint& = SPoint::Zero) const;
+		virtual Point
+		GetContainerLocationOffset(const Point& = Point::Zero) const;
+		virtual Point
+		GetWindowLocationOffset(const Point& = Point::Zero) const;
 
 		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
 		virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
-		virtual DefSetterBase(const SPoint&, Location, MVisual)
+		virtual DefSetterBase(const Point&, Location, MVisual)
 
 		virtual PDefHead(void, ClearFocusingPtr)
 			ImplBodyBaseVoid(MWidgetContainer, ClearFocusingPtr)
 
-		virtual void
-		DrawBackground();
-		virtual void
-		DrawForeground();
+		virtual PDefHead(void, DrawBackground)
+			ImplBodyBaseVoid(MWidget, DrawBackground)
+		virtual PDefHead(void, DrawForeground)
+			ImplBodyBaseVoid(MWidget, DrawForeground)
 
 		virtual PDefHead(void, Refresh)
 			ImplBodyBaseVoid(MWidget, Refresh)
@@ -4890,7 +4911,7 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 
 		//用字符串在窗口中以给定字号初始化标签。
 		template<class _tChar>
-		YLabel(HWND, const _tChar*, const SRect& = SRect::FullScreen,
+		YLabel(HWND, const _tChar*, const Rect& = Rect::FullScreen,
 			const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 
 		virtual void
@@ -5060,7 +5081,7 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 		typedef YComponent ParentType;
 
 		explicit
-		YVisualControl(HWND = NULL, const SRect& = SRect::FullScreen, IWidgetContainer* = NULL);
+		YVisualControl(HWND = NULL, const Rect& = Rect::FullScreen, IWidgetContainer* = NULL);
 
 		virtual PDefHead(EventMapType::Event&, operator[], const EventMapType::ID& id)
 			ImplBodyBase(MVisualControl, operator[], id)
@@ -5074,21 +5095,21 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 			ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
 
 		//判断包含关系。
-		virtual PDefHead(bool, Contains, const SPoint& p) const
+		virtual PDefHead(bool, Contains, const Point& p) const
 			ImplBodyBase(MVisual, Contains, p)
 
 		virtual PDefHead(bool, CheckRemoval, Runtime::GMFocusResponser<IVisualControl>& c) const
 			ImplBodyBase(MVisualControl, CheckRemoval, c)
 
-		virtual DefGetterBase(const SPoint&, Location, MVisual)
-		virtual DefGetterBase(const SSize&, Size, MVisual)
+		virtual DefGetterBase(const Point&, Location, MVisual)
+		virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
 		virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 		virtual DefGetterBase(HWND, WindowHandle, MWidget)
 
 		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
 		virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
-		virtual DefSetterBase(const SPoint&, Location, MVisual)
+		virtual DefSetterBase(const Point&, Location, MVisual)
 		virtual DefSetterBaseDe(bool, Enabled, MControl, true)
 
 		virtual PDefHead(void, DrawBackground)
@@ -5108,25 +5129,28 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 	}; //class YVisualControl;
 
 
-	//按钮。
-	class YButton : public GMCounter<YButton>, public YVisualControl, public Widgets::MLabel
+	//按钮模块。
+	class MButton
+	{
+	protected:
+		bool bPressed;
+
+	public:
+		inline explicit
+		MButton(bool = false);
+	};
+
+
+	//抽象按钮模块基类。
+	class AButton : public MButton, public Widgets::MLabel
 	{
 	public:
-		typedef YVisualControl ParentType;
-
-	/*
-		YImage BackgroundImage; //背景图像。
-		YImage Image; //前景图像。
-	*/
-
-		//用字符串在窗口中以给定字号初始化标签。
 		template<class _tChar>
-		YButton(HWND, const _tChar*, const SRect& = SRect::FullScreen,
-		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+		AButton(const _tChar*, const Drawing::Font& = Drawing::Font::GetDefault(), GHResource<Drawing::TextRegion> = NULL);
 
-		virtual void
-		DrawForeground();
-	}; //class YButton;
+		DeclIEntry(void Press())
+		DeclIEntry(void Release())
+	};
 
 	YSL_END_NAMESPACE(Controls)
 
@@ -5162,11 +5186,16 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 
 		//用字符串在窗口中以给定字号初始化标签。
 		template<class _tChar>
-		YButton(HWND, const _tChar*, const SRect& = SRect::FullScreen,
+		YButton(HWND, const _tChar*, const Rect& = Rect::FullScreen,
 		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 
 		virtual void
 		DrawForeground();
+
+		virtual void
+		Press();
+		virtual void
+		Release();
 	}; //class YButton;
 
 
@@ -5197,8 +5226,8 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 		DefEvent(YIndexEventHandler, Selected) //项目选择状态改变事件。
 		DefEvent(YIndexEventHandler, Confirmed) //项目选中确定事件。
 
-		YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
-		YListBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
+		YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+		YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
 		virtual
 		~YListBox();
 
@@ -5223,7 +5252,7 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 		void
 		SetSelected(SPOS, SPOS);
 		inline void
-		SetSelected(const SPoint&);
+		SetSelected(const Point&);
 
 	public:
 		virtual void
@@ -5268,7 +5297,7 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 
 		ListType& List;
 
-		YFileBox(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+		YFileBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 		virtual
 		~YFileBox();
 
@@ -5348,7 +5377,7 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 
 
 	//窗口模块。
-	class MWindow : public MDesktopObject, public Controls::MVisualControl
+	class MWindow : public Controls::MVisualControl, public MDesktopObject
 	{
 	protected:
 		Drawing::MBitmapBuffer Buffer; //显示缓冲区。
@@ -5378,7 +5407,7 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 	{
 	public:
 		explicit
-		AWindow(const SRect& = SRect::Empty, const GHResource<YImage> = new YImage(),
+		AWindow(const Rect& = Rect::Empty, const GHResource<YImage> = new YImage(),
 			YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
 		virtual
 		~AWindow();
@@ -5405,14 +5434,14 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 			ImplBodyBase(MDesktopObject, BelongsTo, pDsk)
 
 		//判断包含关系。
-		virtual PDefHead(bool, Contains, const SPoint& p) const
+		virtual PDefHead(bool, Contains, const Point& p) const
 			ImplBodyBase(MVisual, Contains, p)
 
 		virtual PDefHead(bool, CheckRemoval, Runtime::GMFocusResponser<IVisualControl>& c) const
 			ImplBodyBase(MVisualControl, CheckRemoval, c)
 
-		virtual DefGetterBase(const SPoint&, Location, MVisual)
-		virtual DefGetterBase(const SSize&, Size, MVisual)
+		virtual DefGetterBase(const Point&, Location, MVisual)
+		virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
 		virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 		virtual DefGetterBase(HWND, WindowHandle, MWidget)
 		virtual DefGetterBase(YDesktop*, DesktopPtr, MDesktopObject)
@@ -5427,13 +5456,13 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
 		virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
-		virtual DefSetterBase(const SPoint&, Location, MVisual)
+		virtual DefSetterBase(const Point&, Location, MVisual)
 		virtual DefSetterDe(bool, Refresh, bRefresh, true)
 		virtual DefSetterDe(bool, Update, bUpdate, true)
 		virtual void
 		SetSize(SDST, SDST);
 		virtual void
-		SetBounds(const SRect&);
+		SetBounds(const Rect&);
 		virtual DefSetterBaseDe(bool, Enabled, MVisualControl, true)
 		virtual DefSetterBaseDe(GHResource<YImage>, Background, MWindow, NULL)
 
@@ -5449,8 +5478,7 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		DrawBackground();
 		virtual void
 		DrawForeground();
-		virtual bool
-		DrawWidgets() = 0;
+		DeclIEntry(bool DrawWidgets())
 		virtual void
 		Draw();
 
@@ -5496,7 +5524,7 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		typedef YComponent ParentType;
 
 		explicit
-		YFrameWindow(const SRect& = SRect::Empty, const GHResource<YImage> = new YImage(),
+		YFrameWindow(const Rect& = Rect::Empty, const GHResource<YImage> = new YImage(),
 			YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
 		virtual
 		~YFrameWindow();
@@ -5514,14 +5542,14 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		virtual PDefOpHead(bool, -=, Runtime::GMFocusResponser<IVisualControl>& c)
 			ImplBodyBase(MWidgetContainer, operator-=, c)
 
-		virtual PDefHead(IWidget*, GetTopWidgetPtr, const SPoint& p) const
+		virtual PDefHead(IWidget*, GetTopWidgetPtr, const Point& p) const
 			ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
-		virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const SPoint& p) const
+		virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
 			ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
-		virtual SPoint
-		GetContainerLocationOffset(const SPoint& = SPoint::Zero) const;
-		virtual SPoint
-		GetWindowLocationOffset(const SPoint& = SPoint::Zero) const;
+		virtual Point
+		GetContainerLocationOffset(const Point& = Point::Zero) const;
+		virtual Point
+		GetWindowLocationOffset(const Point& = Point::Zero) const;
 		virtual DefGetterBase(IVisualControl*, FocusingPtr, Runtime::GMFocusResponser<IVisualControl>)
 
 		virtual PDefHead(void, ClearFocusingPtr)
@@ -5557,7 +5585,7 @@ $unit YForm "yform" //平台无关的图形用户界面窗体实现。
 
 	public:
 		explicit
-			YForm(const SRect& = SRect::Zero, const GHResource<YImage> = new YImage(),
+			YForm(const Rect& = Rect::Zero, const GHResource<YImage> = new YImage(),
 			YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
 		virtual
 		~YForm();
@@ -5567,7 +5595,7 @@ $unit YForm "yform" //平台无关的图形用户界面窗体实现。
 		virtual void
 		SetSize(SDST, SDST);
 		virtual void
-		SetBounds(const SRect&);
+		SetBounds(const Rect&);
 
 		virtual void
 		DrawBackground();
@@ -6303,7 +6331,7 @@ $header Core::YCoreUtilities : Core::YShellDefinition
 
 $header Core::YShellMessage : Core::YShellDefinition
 {
-	using Drawing::SPoint;
+	using Drawing::Point;
 
 	using Shells::Message, Shells::InsertMessage;
 } //$header Core::YCoreUtilities;
@@ -6322,7 +6350,7 @@ $header Shell::YWidget : Shell::YComponent, Core::YResource
 	{
 		using Drawing::PixelType, Drawing::BitmapPtr, Drawing::ConstBitmapPtr, Drawing::ScreenBufferType, Drawing::Color;
 
-		using Drawing::SPoint, Drawing::SVec, Drawing::SSize, Drawing::SRect;
+		using Drawing::Point, Drawing::Vec, Drawing::Size, Drawing::Rect;
 		using Drawing::YImage;
 	} //namespace Components;
 } //$header Shell::YWidget;

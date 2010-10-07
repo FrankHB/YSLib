@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-05 17:48:09 + 08:00;
-// UTime = 2010-09-28 01:16 + 08:00;
-// Version = 0.4115;
+// UTime = 2010-10-05 15:29 + 08:00;
+// Version = 0.4117;
 
 
 #ifndef INCLUDED_YTMGR_H_
@@ -121,7 +121,8 @@ public:
 
 inline
 TextBlock::TextBlock(BlockSizeType i, SizeType tlen)
-: TextBuffer(tlen), Index(i)
+	: TextBuffer(tlen),
+	Index(i)
 {}
 inline
 TextBlock::~TextBlock()

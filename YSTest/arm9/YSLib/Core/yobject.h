@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YObject by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-16 20:06:58;
-// UTime = 2010-8-2 15:39;
-// Version = 0.2149;
+// CTime = 2009-11-16 20:06:58 + 08:00;
+// UTime = 2010-10-05 17:50 + 08:00;
+// Version = 0.2279;
 
 
 #ifndef INCLUDED_YOBJECT_H_
@@ -62,37 +62,37 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 //前向声明。
 
-class SOBG;
-class SPoint;
-class SVec;
-class SSize;
-class SRect;
+class BinaryGroup;
+class Point;
+class Vec;
+class Size;
+class Rect;
 
 
-class SOBG //屏幕二元组。
+class BinaryGroup //屏幕二元组。
 {
 public:
 	SPOS X, Y; //分量。
 
-	SOBG()
+	BinaryGroup()
 	: X(0), Y(0)
 	{}
 	explicit
-	SOBG(const SSize&);
+	BinaryGroup(const Size&);
 	template<typename _type>
 	explicit
-	SOBG(const _type& v)
+	BinaryGroup(const _type& v)
 	: X(v.GetX()), Y(v.GetY())
 	{}
 	template<typename _type>
-	SOBG(_type x, _type y)
+	BinaryGroup(_type x, _type y)
 	: X(x), Y(y)
 	{}
 
-	SOBG
+	BinaryGroup
 	operator-() //负运算：返回相反元素。
 	{
-		return SOBG(-X, -Y);
+		return BinaryGroup(-X, -Y);
 	}
 
 	DefGetter(SPOS, X, X)
@@ -100,95 +100,95 @@ public:
 };
 
 inline bool
-operator==(const SOBG& a, const SOBG& b)
+operator==(const BinaryGroup& a, const BinaryGroup& b)
 {
 	return a.X == b.X && a.Y == b.Y;
 }
 inline bool
-operator!=(const SOBG& a, const SOBG& b)
+operator!=(const BinaryGroup& a, const BinaryGroup& b)
 {
 	return !(a == b);
 }
 
 
-class SPoint : public SOBG //屏幕二维点坐标。
+class Point : public BinaryGroup //屏幕二维点坐标。
 {
 public:
-	typedef SOBG ParentType;
+	typedef BinaryGroup ParentType;
 
-	static const SPoint Zero; //默认构造参数构造的原点对象。
-	static const SPoint FullScreen; //默认构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
+	static const Point Zero; //默认构造参数构造的原点对象。
+	static const Point FullScreen; //默认构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
 
-	SPoint()
-	: SOBG()
+	Point()
+	: BinaryGroup()
 	{}
 	explicit
-	SPoint(const SSize&);
+	Point(const Size&);
 	template<typename _type>
 	explicit
-	SPoint(const _type& v)
-	: SOBG(v.GetX(), v.GetY())
+	Point(const _type& v)
+	: BinaryGroup(v.GetX(), v.GetY())
 	{}
 	template<typename _type>
-	SPoint(_type x, _type y)
-	: SOBG(x, y)
+	Point(_type x, _type y)
+	: BinaryGroup(x, y)
 	{}
 
-	operator SVec() const;
+	operator Vec() const;
 
-	SPoint
+	Point
 	operator-() //负运算：返回与原点对称的元素。
 	{
-		return SPoint(-X, -Y);
+		return Point(-X, -Y);
 	}
-	SPoint&
-	operator+=(const SVec&);
-	SPoint&
-	operator-=(const SVec&);
+	Point&
+	operator+=(const Vec&);
+	Point&
+	operator-=(const Vec&);
 };
 
 
-class SVec : public SOBG //屏幕二维向量。
+class Vec : public BinaryGroup //屏幕二维向量。
 {
 public:
-	typedef SOBG ParentType;
+	typedef BinaryGroup ParentType;
 
-	static const SVec Zero; //默认构造参数构造的零向量对象。
-	static const SVec FullScreen; //默认构造参数构造的由屏幕坐标系原点到屏幕右下角边界（不在屏幕坐标系中）对象。
+	static const Vec Zero; //默认构造参数构造的零向量对象。
+	static const Vec FullScreen; //默认构造参数构造的由屏幕坐标系原点到屏幕右下角边界（不在屏幕坐标系中）对象。
 
-	SVec()
-	: SOBG() {};
+	Vec()
+	: BinaryGroup() {};
 	explicit
-	SVec(const SSize&);
+	Vec(const Size&);
 	template<typename _type>
 	explicit
-	SVec(const _type& v)
-	: SOBG(v.GetX(), v.GetY())
+	Vec(const _type& v)
+	: BinaryGroup(v.GetX(), v.GetY())
 	{}
 	template<typename _type>
-	SVec(_type x, _type y)
-	: SOBG(x, y)
+	Vec(_type x, _type y)
+	: BinaryGroup(x, y)
 	{}
 
-	operator SPoint() const
+	operator Point() const
 	{
-		return SPoint(X, Y);
+		return Point(X, Y);
 	}
 
-	SVec
+	Vec
 	operator-() //负运算：返回相反向量。
 	{
-		return SVec(-X, -Y);
+		return Vec(-X, -Y);
 	}
-	SVec&
-	operator+=(const SVec& v)
+	Vec&
+	operator+=(const Vec& v)
 	{
 		X += v.X;
 		Y += v.Y;
 		return *this;
 	}
-	SVec&
-	operator-=(const SVec& v)
+	Vec&
+	operator-=(const Vec& v)
 	{
 		X -= v.X;
 		Y -= v.Y;
@@ -198,20 +198,20 @@ public:
 
 
 inline
-SPoint::operator SVec() const
+Point::operator Vec() const
 {
-	return SVec(X, Y);
+	return Vec(X, Y);
 }
 
-inline SPoint&
-SPoint::operator+=(const SVec& v)
+inline Point&
+Point::operator+=(const Vec& v)
 {
 	X += v.X;
 	Y += v.Y;
 	return *this;
 }
-inline SPoint&
-SPoint::operator-=(const SVec& v)
+inline Point&
+Point::operator-=(const Vec& v)
 {
 	X -= v.X;
 	Y -= v.Y;
@@ -221,45 +221,45 @@ SPoint::operator-=(const SVec& v)
 
 //屏幕二维向量二元运算。
 
-inline SVec
-operator-(const SPoint& a, const SPoint& b)
+inline Vec
+operator-(const Point& a, const Point& b)
 {
-	return SVec(a.X - b.X, a.Y - b.Y);
+	return Vec(a.X - b.X, a.Y - b.Y);
 }
-inline SVec
-operator+(const SVec& a, const SVec& b)
+inline Vec
+operator+(const Vec& a, const Vec& b)
 {
-	return SVec(a.X + b.X, a.Y + b.Y);
+	return Vec(a.X + b.X, a.Y + b.Y);
 }
-inline SVec
-operator-(const SVec& a, const SVec& b)
+inline Vec
+operator-(const Vec& a, const Vec& b)
 {
-	return SVec(a.X - b.X, a.Y - b.Y);
+	return Vec(a.X - b.X, a.Y - b.Y);
 }
 
 
-struct SSize //屏幕区域大小。
+struct Size //屏幕区域大小。
 {
 	SDST Width, Height; //宽和高。
 
-	static const SSize Zero; //默认构造参数构造的零元素对象。
-	static const SSize FullScreen; //默认构造参数构造的全屏幕对象。
+	static const Size Zero; //默认构造参数构造的零元素对象。
+	static const Size FullScreen; //默认构造参数构造的全屏幕对象。
 
-	SSize()
+	Size()
 	{}
 	template<typename _type>
 	explicit
-	SSize(const _type& v)
+	Size(const _type& v)
 	: Width(v.GetX()), Height(v.GetY())
 	{}
 	template<typename _type>
-	SSize(_type w, _type h)
+	Size(_type w, _type h)
 	: Width(w), Height(h)
 	{}
 
-	operator SVec() const
+	operator Vec() const
 	{
-		return SVec(Width, Height);
+		return Vec(Width, Height);
 	}
 
 	DefGetter(SDST, Width, Width)
@@ -268,139 +268,139 @@ struct SSize //屏幕区域大小。
 };
 
 inline bool
-operator==(const SSize& a, const SSize& b)
+operator==(const Size& a, const Size& b)
 {
 	return a.Width == b.Width && a.Height == b.Height;
 }
 inline bool
-operator!=(const SSize& a, const SSize& b)
+operator!=(const Size& a, const Size& b)
 {
 	return !(a == b);
 }
 
 
 inline
-SOBG::SOBG(const SSize& s)
-: X(s.Width), Y(s.Height)
+BinaryGroup::BinaryGroup(const Size& s)
+	: X(s.Width), Y(s.Height)
 {}
 
 inline
-SPoint::SPoint(const SSize& s)
-: SOBG(s.GetWidth(), s.GetHeight())
+Point::Point(const Size& s)
+	: BinaryGroup(s.GetWidth(), s.GetHeight())
 {}
 
 inline
-SVec::SVec(const SSize& s)
-: SOBG(s.GetWidth(), s.GetHeight())
+Vec::Vec(const Size& s)
+	: BinaryGroup(s.GetWidth(), s.GetHeight())
 {}
 
 
-class SRect : public SPoint, public SSize //屏幕坐标系的正则（边平行于水平直线的）矩形：使用左上点屏幕坐标、宽和高表示。
+class Rect : public Point, public Size //屏幕坐标系的正则（边平行于水平直线的）矩形：使用左上点屏幕坐标、宽和高表示。
 {
 public:
-	static const SRect Empty; //默认构造参数构造的空矩形对象。
-	static const SRect FullScreen; //默认构造参数构造的全屏幕矩形对象。
+	static const Rect Empty; //默认构造参数构造的空矩形对象。
+	static const Rect FullScreen; //默认构造参数构造的全屏幕矩形对象。
 
-	SRect();
+	Rect();
 	explicit
-	SRect(const SPoint&);
+	Rect(const Point&);
 	explicit
-	SRect(const SSize&);
-	SRect(const SPoint&, const SSize&);
-	SRect(const SPoint&, SDST, SDST);
-	SRect(SPOS, SPOS, const SSize&);
-	SRect(SPOS, SPOS, SDST, SDST);
+	Rect(const Size&);
+	Rect(const Point&, const Size&);
+	Rect(const Point&, SDST, SDST);
+	Rect(SPOS, SPOS, const Size&);
+	Rect(SPOS, SPOS, SDST, SDST);
 
 	bool
-	IsInBounds(const SPoint&) const; //判断点是否在矩形内或边上。
+	IsInBounds(const Point&) const; //判断点是否在矩形内或边上。
 	bool
 	IsInBounds(int px, int py) const; //判断点 (px, py) 是否在矩形内或边上。
 	bool
-	IsInBoundsRegular(const SPoint& p) const; //判断点是否在矩形内或左侧或上侧边上。
+	IsInBoundsRegular(const Point& p) const; //判断点是否在矩形内或左侧或上侧边上。
 	bool
 	IsInBoundsRegular(int px, int py) const; //判断点 (px, py) 是否在矩形内或左侧或上侧边上。
 	bool
-	IsInBoundsStrict(const SPoint& p) const; //判断点是否在矩形内。
+	IsInBoundsStrict(const Point& p) const; //判断点是否在矩形内。
 	bool
 	IsInBoundsStrict(int px, int py) const; //判断点 (px, py) 是否在矩形内。
-	SPoint
+	Point
 	GetPoint() const; //取左上角位置。
 };
 
 inline
-SRect::SRect()
-: SPoint(), SSize()
+Rect::Rect()
+	: Point(), Size()
 {}
 inline
-SRect::SRect(const SPoint& p)
-: SPoint(p), SSize()
+Rect::Rect(const Point& p)
+	: Point(p), Size()
 {}
 inline
-SRect::SRect(const SSize& s)
-: SPoint(), SSize(s)
+Rect::Rect(const Size& s)
+	: Point(), Size(s)
 {}
 inline
-SRect::SRect(const SPoint& p, const SSize& s)
-: SPoint(p), SSize(s)
+Rect::Rect(const Point& p, const Size& s)
+	: Point(p), Size(s)
 {}
 inline
-SRect::SRect(const SPoint& p, SDST w, SDST h)
-: SPoint(p.GetX(), p.GetY()), SSize(w, h)
+Rect::Rect(const Point& p, SDST w, SDST h)
+	: Point(p.GetX(), p.GetY()), Size(w, h)
 {}
 inline
-SRect::SRect(SPOS x, SPOS y, const SSize& s)
-: SPoint(x, y), SSize(s.GetWidth(), s.GetHeight())
+Rect::Rect(SPOS x, SPOS y, const Size& s)
+	: Point(x, y), Size(s.GetWidth(), s.GetHeight())
 {}
 inline
-SRect::SRect(SPOS x, SPOS y, SDST w, SDST h)
-: SPoint(x, y), SSize(w, h)
+Rect::Rect(SPOS x, SPOS y, SDST w, SDST h)
+	: Point(x, y), Size(w, h)
 {}
 
 inline bool
-operator==(const SRect& a, const SRect& b)
+operator==(const Rect& a, const Rect& b)
 {
-	return static_cast<SPoint>(a) == static_cast<SPoint>(b) && static_cast<SSize>(a) == static_cast<SSize>(b);
+	return static_cast<Point>(a) == static_cast<Point>(b) && static_cast<Size>(a) == static_cast<Size>(b);
 }
 inline bool
-operator!=(const SRect& a, const SRect& b)
+operator!=(const Rect& a, const Rect& b)
 {
 	return !(a == b);
 }
 
 inline bool
-SRect::IsInBounds(const SPoint& p) const
+Rect::IsInBounds(const Point& p) const
 {
 	return sgnInterval<SPOS>(p.X, X, (X + Width)) >= 0 && sgnInterval<SPOS>(p.Y, Y, (Y + Height)) >= 0;
 }
 inline bool
-SRect::IsInBounds(int px, int py) const
+Rect::IsInBounds(int px, int py) const
 {
 	return sgnInterval<SPOS>(px, X, (X + Width)) >= 0 && sgnInterval<SPOS>(py, Y, (Y + Height)) >= 0;
 }
 inline bool
-SRect::IsInBoundsRegular(const SPoint& p) const
+Rect::IsInBoundsRegular(const Point& p) const
 {
 	return isInIntervalRegular<int>(p.X - X, Width) && isInIntervalRegular<int>(p.Y - Y, Height);
 }
 inline bool
-SRect::IsInBoundsRegular(int px, int py) const
+Rect::IsInBoundsRegular(int px, int py) const
 {
 	return isInIntervalRegular<int>(px - X, Width) && isInIntervalRegular<int>(py - Y, Height);
 }
 inline bool
-SRect::IsInBoundsStrict(const SPoint& p) const
+Rect::IsInBoundsStrict(const Point& p) const
 {
 	return isInIntervalRegular<int>(p.X - X, Width) && isInIntervalRegular<int>(p.Y - Y, Height);
 }
 inline bool
-SRect::IsInBoundsStrict(int px, int py) const
+Rect::IsInBoundsStrict(int px, int py) const
 {
 	return isInIntervalStrict<int>(px - X, Width) && isInIntervalStrict<int>(py - Y, Height);
 }
-inline SPoint
-SRect::GetPoint() const
+inline Point
+Rect::GetPoint() const
 {
-	return SPoint(X, Y);
+	return Point(X, Y);
 }
 
 YSL_END_NAMESPACE(Drawing)

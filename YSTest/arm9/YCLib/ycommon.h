@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28 + 08:00;
-// UTime = 2010-10-04 22:02 + 08:00;
-// Version = 0.2086;
+// UTime = 2010-10-06 13:24 + 08:00;
+// Version = 0.2105;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -139,13 +139,18 @@ namespace platform
 
 	public:
 		Color(PixelType = 0);
+		Color(u8, u8, u8, bool = true);
 
 		operator PixelType() const;
 	};
 
 	inline
 	Color::Color(PixelType p)
-	: _value(p)
+		: _value(p)
+	{}
+	inline
+	Color::Color(u8 r, u8 g, u8 b, bool a)
+		: _value(ARGB16(int(a), r >> 3, g >> 3, b >> 3))
 	{}
 
 	inline
@@ -243,7 +248,7 @@ namespace platform
 
 	//调试模式：显示控制台（fc 为前景色，bc 为背景色）。
 	void
-	YDebugBegin(PixelType fc = RGB15(31, 31, 31), PixelType bc = RGB15( 0, 0, 31));
+	YDebugBegin(Color fc = Color::White, Color bc = Color::Blue);
 
 	//调试模式：按键继续。
 	void
@@ -427,7 +432,7 @@ namespace platform
 
 	//启动控制台（fc 为前景色，bc为背景色）。
 	void
-	YConsoleInit(u8 dspIndex, PixelType fc = Color::White, PixelType bc = Color::Black);
+	YConsoleInit(u8 dspIndex, Color fc = Color::White, Color bc = Color::Black);
 
 	//输出控制台字（int 型数据）。
 	inline void

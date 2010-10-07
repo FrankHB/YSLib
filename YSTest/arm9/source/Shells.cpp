@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-03 01:35 + 08:00;
-// Version = 0.3118;
+// UTime = 2010-10-05 18:06 + 08:00;
+// Version = 0.3121;
 
 
 #include <Shells.h>
@@ -25,7 +25,7 @@ ShlProc(const Message& msg)
 	const HSHL& hShl(msg.GetShellHandle());
 	const WPARAM& wParam(msg.GetWParam());
 	const LPARAM& lParam(msg.GetLParam());
-	const SPoint& pt(msg.GetCursorLocation());
+	const Point& pt(msg.GetCursorLocation());
 */
 	switch(msg.GetMsgID())
 	{
@@ -175,13 +175,13 @@ namespace
 	}
 
 	static void
-	InputCounter(const SPoint& pt)
+	InputCounter(const Point& pt)
 	{
 		sprintf(strCount, "%d,%d,%d;Count = %d, Pos = (%d, %d);", sizeof(AWindow), sizeof(YFrameWindow), sizeof(YForm), nCountInput++, pt.X, pt.Y);
 	}
 
 	static void
-	InputCounterAnother(const SPoint& pt)
+	InputCounterAnother(const Point& pt)
 	{
 	//	nCountInput++;
 		//	sprintf(strCount, "%d,%d,%d,%d,",sizeof(YForm),sizeof(YShell),sizeof(YApplication),sizeof(YFrameWindow));
@@ -486,8 +486,8 @@ ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e
 
 	YButton& lbl(static_cast<TFormA&>(*(static_cast<ShlSetting&>(*NowShell()).hWndUp)).lblA2);
 	lbl.Transparent ^= 1;
-	++lbl.ForeColor;
-	--lbl.BackColor;
+//	++lbl.ForeColor;
+//	--lbl.BackColor;
 	sprintf(strttxt, "%d;\n", k);
 	lbl.Text = strttxt;
 	lbl.Refresh();
@@ -557,8 +557,8 @@ ShlSetting::ShlProc(const Message& msg)
 std::string ShlReader::path;
 
 ShlReader::ShlReader()
-: ShlGUI(),
-Reader(), pTextFile(NULL), hUp(NULL), hDn(NULL), bgDirty(false)
+	: ShlGUI(),
+	Reader(), pTextFile(NULL), hUp(NULL), hDn(NULL), bgDirty(false)
 {
 }
 

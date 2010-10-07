@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YString by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-05 22:06:05 + 08:00;
-// UTime = 2010-09-27 14:43 + 08:00;
-// Version = 0.2857;
+// UTime = 2010-10-05 15:25 + 08:00;
+// Version = 0.2861;
 
 
 #ifndef INCLUDED_YSTRING_H_
@@ -41,21 +41,21 @@ public:
 
 inline
 String::String()
-: stdex::ustring()
+	: stdex::ustring()
 {}
 inline
 String::String(const uchar_t* s)
-: stdex::ustring(s)
+	: stdex::ustring(s)
 {}
 template<class _tChar>
 String::String(const _tChar* s)
-: stdex::ustring(s_str = ucsdup(s))
+	: stdex::ustring(s_str = ucsdup(s))
 {
 	std::free(s_str);
 }
 inline
 String::String(const stdex::ustring& s)
-: stdex::ustring(s)
+	: stdex::ustring(s)
 {}
 
 

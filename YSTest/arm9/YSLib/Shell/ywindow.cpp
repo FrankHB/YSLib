@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28 + 08:00;
-// UTime = 2010-10-04 18:40 + 08:00;
-// Version = 0.3001;
+// UTime = 2010-10-05 17:52 + 08:00;
+// Version = 0.3014;
 
 
 #include "ydesktop.h"
@@ -20,13 +20,13 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Forms)
 
 MWindow::MWindow(const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl)
-: MDesktopObject(pDsk), MVisualControl(),
-Buffer(), hShell(hShl), prBackImage(i), bRefresh(false), bUpdate(false)
+	: MVisualControl(), MDesktopObject(pDsk),
+	Buffer(), hShell(hShl), prBackImage(i), bRefresh(false), bUpdate(false)
 {}
 
 
-AWindow::AWindow(const SRect& r, const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
-: MWidget(hWnd ? hWnd : HWND(pDsk), r), MWindow(i, pDsk, hShl)
+AWindow::AWindow(const Rect& r, const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
+	: MWidget(hWnd ? hWnd : HWND(pDsk), r), MWindow(i, pDsk, hShl)
 {
 }
 AWindow::~AWindow()
@@ -46,7 +46,7 @@ AWindow::SetSize(SDST w, SDST h)
 	MWidget::SetSize(w, h);
 }
 void
-AWindow::SetBounds(const SRect& r)
+AWindow::SetBounds(const Rect& r)
 {
 	Location = r.GetPoint();
 	SetSize(r.Width, r.Height);
@@ -143,13 +143,13 @@ void
 AWindow::UpdateToScreen(YDesktop& d) const
 {
 	if(Visible)
-		Buffer.CopyToBuffer(d.GetBackgroundPtr(), RDeg0, d.GetSize(), SPoint::Zero, Location, Buffer);
+		Buffer.CopyToBuffer(d.GetBackgroundPtr(), RDeg0, d.GetSize(), Point::Zero, Location, Buffer);
 }
 void
 AWindow::UpdateToWindow(IWindow& w) const
 {
 	if(Visible)
-		Buffer.CopyToBuffer(w.GetBufferPtr(), RDeg0, w.GetSize(), SPoint::Zero, Location, Buffer);
+		Buffer.CopyToBuffer(w.GetBufferPtr(), RDeg0, w.GetSize(), Point::Zero, Location, Buffer);
 }
 void
 AWindow::Show()
@@ -182,8 +182,8 @@ AWindow::OnLostFocus(IControl& c, const MEventArgs& e)
 }
 
 
-YFrameWindow::YFrameWindow(const SRect& r, const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
-: YComponent(), AWindow(r, i, pDsk, hShl, hWnd), MWidgetContainer()
+YFrameWindow::YFrameWindow(const Rect& r, const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
+	: YComponent(), AWindow(r, i, pDsk, hShl, hWnd), MWidgetContainer()
 {
 	if(pContainer)
 	{
@@ -210,13 +210,13 @@ YFrameWindow::~YFrameWindow()
 	InsertMessage(hShell, SM_WNDDESTROY, 0xF0, handle_cast<WPARAM>(hWindow), reinterpret_cast<LPARAM>(this));
 }
 
-SPoint
-YFrameWindow::GetContainerLocationOffset(const SPoint& p) const
+Point
+YFrameWindow::GetContainerLocationOffset(const Point& p) const
 {
 	return p + Location;
 }
-SPoint
-YFrameWindow::GetWindowLocationOffset(const SPoint& p) const
+Point
+YFrameWindow::GetWindowLocationOffset(const Point& p) const
 {
 	return Widgets::GetLocationOffset(const_cast<YFrameWindow*>(this), p, hWindow);
 }

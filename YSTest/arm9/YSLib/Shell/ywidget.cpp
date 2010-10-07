@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-04 18:20 + 08:00;
-// Version = 0.4088;
+// UTime = 2010-10-06 15:37 + 08:00;
+// Version = 0.4135;
 
 
 #include "ywindow.h"
@@ -18,10 +18,10 @@ using namespace Runtime;
 using Controls::YVisualControl;
 
 
-SPoint
-GetLocationOffset(IWidget* pCon, const SPoint& p, const HWND& hWnd)
+Point
+GetLocationOffset(IWidget* pCon, const Point& p, const HWND& hWnd)
 {
-	SPoint pt(p);
+	Point pt(p);
 
 	while(pCon && dynamic_cast<IWindow*>(pCon) != hWnd)
 	{
@@ -32,10 +32,10 @@ GetLocationOffset(IWidget* pCon, const SPoint& p, const HWND& hWnd)
 }
 
 
-MVisual::MVisual(const SRect& r, PixelType b, PixelType f)
-: Visible(true), Transparent(false), bBgRedrawed(false),
-Location(r.GetPoint()), Size(r.Width, r.Height),
-BackColor(b), ForeColor(f)
+MVisual::MVisual(const Rect& r, Color b, Color f)
+	: Visible(true), Transparent(false), bBgRedrawed(false),
+	Location(r.GetPoint()), Size(r.Width, r.Height),
+	BackColor(b), ForeColor(f)
 {}
 
 void
@@ -49,38 +49,50 @@ MVisual::SetSize(SDST w, SDST h)
 	}
 }
 void
-MVisual::SetBounds(const SRect& r)
+MVisual::SetBounds(const Rect& r)
 {
 	Location = r.GetPoint();
 	SetSize(r.Width, r.Height);
 }
 
 
-MWidget::MWidget(HWND hWnd, const SRect& r, IWidgetContainer* pCon, PixelType b, PixelType f)
-: MVisual(r, b, f),
-hWindow(hWnd), pContainer(pCon ? pCon : GetPointer(hWnd))
+MWidget::MWidget(HWND hWnd, const Rect& r, IWidgetContainer* pCon, Color b, Color f)
+	: MVisual(r, b, f),
+	hWindow(hWnd), pContainer(pCon ? pCon : GetPointer(hWnd))
 {}
 
-SPoint
+Point
 MWidget::GetLocationForWindow() const
 {
-	return pContainer ? Widgets::GetLocationOffset(dynamic_cast<IWidget*>(pContainer), Location, hWindow) : SPoint::FullScreen;
+	return pContainer ? Widgets::GetLocationOffset(dynamic_cast<IWidget*>(pContainer), Location, hWindow) : Point::FullScreen;
 }
-SPoint
+Point
 MWidget::GetLocationForParentContainer() const
 {
-	return pContainer ? pContainer->GetContainerLocationOffset(Location) : SPoint::FullScreen;
+	return pContainer ? pContainer->GetContainerLocationOffset(Location) : Point::FullScreen;
 }
-SPoint
+Point
 MWidget::GetLocationForParentWindow() const
 {
-	return pContainer ? pContainer->GetWindowLocationOffset(Location) : SPoint::FullScreen;
+	return pContainer ? pContainer->GetWindowLocationOffset(Location) : Point::FullScreen;
 }
 
 void
-MWidget::Fill(PixelType c)
+MWidget::Fill(Color c)
 {
-	FillRect(hWindow->GetBufferPtr(), hWindow->GetSize(), GetBounds(), c);
+	FillRect<PixelType>(hWindow->GetBufferPtr(), hWindow->GetSize(), GetBounds(), c);
+}
+void
+MWidget::DrawBackground()
+{
+	if(!Transparent)
+		Fill();
+}
+void
+MWidget::DrawForeground()
+{
+	if(!Transparent)
+		SetBgRedrawed(false);
 }
 
 void
@@ -91,8 +103,8 @@ MWidget::Refresh()
 }
 
 
-YWidget::YWidget(HWND hWnd, const SRect& r, IWidgetContainer* pCon)
-: YComponent(), MWidget(hWnd, r, pCon)
+YWidget::YWidget(HWND hWnd, const Rect& r, IWidgetContainer* pCon)
+	: YComponent(), MWidget(hWnd, r, pCon)
 {
 	if(pContainer != NULL)
 		*pContainer += *this;
@@ -103,19 +115,10 @@ YWidget::~YWidget()
 		*pContainer -= *this;
 }
 
-void
-YWidget::DrawBackground()
-{
-}
-void
-YWidget::DrawForeground()
-{
-}
-
 
 MWidgetContainer::MWidgetContainer()
-: GMFocusResponser<IVisualControl>(),
-sWgtSet()
+	: GMFocusResponser<IVisualControl>(),
+	sWgtSet()
 {
 }
 
@@ -125,7 +128,7 @@ MWidgetContainer::GetFocusingPtr() const
 	return Runtime::GMFocusResponser<IVisualControl>::GetFocusingPtr();
 }
 IWidget*
-MWidgetContainer::GetTopWidgetPtr(const SPoint& pt) const
+MWidgetContainer::GetTopWidgetPtr(const Point& pt) const
 {
 	for(WidgetSet::const_iterator i(sWgtSet.begin()); i != sWgtSet.end(); ++i)
 		if((*i)->Contains(pt))
@@ -133,7 +136,7 @@ MWidgetContainer::GetTopWidgetPtr(const SPoint& pt) const
 	return NULL;
 }
 IVisualControl*
-MWidgetContainer::GetTopVisualControlPtr(const SPoint& pt) const
+MWidgetContainer::GetTopVisualControlPtr(const Point& pt) const
 {
 	for(FOs::const_iterator i(sFOs.begin()); i != sFOs.end(); ++i)
 	{
@@ -145,8 +148,8 @@ MWidgetContainer::GetTopVisualControlPtr(const SPoint& pt) const
 	return NULL;
 }
 
-YWidgetContainer::YWidgetContainer(HWND hWnd, const SRect& r, IWidgetContainer* pCon)
-: YComponent(), MWidget(hWnd, r, pCon), MWidgetContainer()
+YWidgetContainer::YWidgetContainer(HWND hWnd, const Rect& r, IWidgetContainer* pCon)
+	: YComponent(), MWidget(hWnd, r, pCon), MWidgetContainer()
 {
 	if(pContainer != NULL)
 	{
@@ -163,28 +166,15 @@ YWidgetContainer::~YWidgetContainer()
 	}
 }
 
-SPoint
-YWidgetContainer::GetContainerLocationOffset(const SPoint& p) const
+Point
+YWidgetContainer::GetContainerLocationOffset(const Point& p) const
 {
 	return p + Location;
 }
-SPoint
-YWidgetContainer::GetWindowLocationOffset(const SPoint& p) const
+Point
+YWidgetContainer::GetWindowLocationOffset(const Point& p) const
 {
 	return Widgets::GetLocationOffset(const_cast<YWidgetContainer*>(this), p, hWindow);
-}
-
-void
-YWidgetContainer::DrawBackground()
-{
-	if(hWindow != NULL)
-		hWindow->SetRefresh();
-}
-void
-YWidgetContainer::DrawForeground()
-{
-	if(hWindow != NULL)
-		hWindow->SetRefresh();
 }
 
 
@@ -203,10 +193,10 @@ MLabel::PaintText(MWidget& w)
 		prTextRegion->SetMargins(2, 2, 2, 2);
 		prTextRegion->PutLine(Text);
 
-		SPoint pt(w.GetLocationForWindow());
+		Point pt(w.GetLocationForWindow());
 
 		prTextRegion->BlitToBuffer(hWnd->GetBufferPtr(), RDeg0,
-			hWnd->GetSize(), SPoint::Zero, pt, w.GetSize());
+			hWnd->GetSize(), Point::Zero, pt, w.GetSize());
 		prTextRegion->SetSize(0, 0);
 	}
 }
@@ -214,8 +204,8 @@ MLabel::PaintText(MWidget& w)
 void
 YLabel::DrawForeground()
 {
-	if(!Transparent)
-		Fill();
+//	if(!Transparent)
+	//	Fill();
 	ParentType::DrawForeground();
 	PaintText(*this);
 }

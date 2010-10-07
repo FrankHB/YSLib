@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-3-13 14:17:14;
-// UTime = 2010-9-16 23:29;
-// Version = 0.1398;
+// CTime = 2010-03-13 14:17:14 + 08:00;
+// UTime = 2010-10-05 15:26 + 08:00;
+// Version = 0.1399;
 
 
 #include "shlds.h"
@@ -71,7 +71,7 @@ YSL_END_NAMESPACE(Shells)
 YSL_BEGIN_NAMESPACE(DS)
 
 ShlDS::ShlDS()
-: ShlGUI()
+	: ShlGUI()
 {}
 ShlDS::~ShlDS() ythrow()
 {}

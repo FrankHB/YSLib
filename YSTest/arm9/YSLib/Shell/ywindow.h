@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40 + 08:00;
-// UTime = 2010-10-04 21:37 + 08:00;
-// Version = 0.3310;
+// UTime = 2010-10-05 18:35 + 08:00;
+// Version = 0.3335;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -63,7 +63,7 @@ public:
 
 inline
 MDesktopObject::MDesktopObject(YDesktop* pDsk)
-: pDesktop(pDsk)
+	: pDesktop(pDsk)
 {}
 
 inline bool
@@ -80,7 +80,7 @@ MDesktopObject::GetDesktopPtr() const
 
 
 //窗口模块。
-class MWindow : public MDesktopObject, public Controls::MVisualControl
+class MWindow : public Controls::MVisualControl, public MDesktopObject
 {
 protected:
 	Drawing::MBitmapBuffer Buffer; //显示缓冲区。
@@ -110,7 +110,7 @@ class AWindow : public Widgets::MWidget, public MWindow,
 {
 public:
 	explicit
-	AWindow(const SRect& = SRect::Empty, const GHResource<YImage> = new YImage(),
+	AWindow(const Rect& = Rect::Empty, const GHResource<YImage> = new YImage(),
 		YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
 	virtual
 	~AWindow();
@@ -137,14 +137,14 @@ public:
 		ImplBodyBase(MDesktopObject, BelongsTo, pDsk)
 
 	//判断包含关系。
-	virtual PDefHead(bool, Contains, const SPoint& p) const
+	virtual PDefHead(bool, Contains, const Point& p) const
 		ImplBodyBase(MVisual, Contains, p)
 
 	virtual PDefHead(bool, CheckRemoval, Runtime::GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(MVisualControl, CheckRemoval, c)
 
-	virtual DefGetterBase(const SPoint&, Location, MVisual)
-	virtual DefGetterBase(const SSize&, Size, MVisual)
+	virtual DefGetterBase(const Point&, Location, MVisual)
+	virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
 	virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 	virtual DefGetterBase(HWND, WindowHandle, MWidget)
 	virtual DefGetterBase(YDesktop*, DesktopPtr, MDesktopObject)
@@ -159,13 +159,13 @@ public:
 	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
 	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
-	virtual DefSetterBase(const SPoint&, Location, MVisual)
+	virtual DefSetterBase(const Point&, Location, MVisual)
 	virtual DefSetterDe(bool, Refresh, bRefresh, true)
 	virtual DefSetterDe(bool, Update, bUpdate, true)
 	virtual void
 	SetSize(SDST, SDST);
 	virtual void
-	SetBounds(const SRect&);
+	SetBounds(const Rect&);
 	virtual DefSetterBaseDe(bool, Enabled, MVisualControl, true)
 	virtual DefSetterBaseDe(GHResource<YImage>, Background, MWindow, NULL)
 
@@ -181,8 +181,7 @@ public:
 	DrawBackground();
 	virtual void
 	DrawForeground();
-	virtual bool
-	DrawWidgets() = 0;
+	DeclIEntry(bool DrawWidgets())
 	virtual void
 	Draw();
 
@@ -241,7 +240,7 @@ public:
 	typedef YComponent ParentType;
 
 	explicit
-	YFrameWindow(const SRect& = SRect::Empty, const GHResource<YImage> = new YImage(),
+	YFrameWindow(const Rect& = Rect::Empty, const GHResource<YImage> = new YImage(),
 		YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
 	virtual
 	~YFrameWindow();
@@ -259,14 +258,14 @@ public:
 	virtual PDefOpHead(bool, -=, Runtime::GMFocusResponser<IVisualControl>& c)
 		ImplBodyBase(MWidgetContainer, operator-=, c)
 
-	virtual PDefHead(IWidget*, GetTopWidgetPtr, const SPoint& p) const
+	virtual PDefHead(IWidget*, GetTopWidgetPtr, const Point& p) const
 		ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
-	virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const SPoint& p) const
+	virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
 		ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
-	virtual SPoint
-	GetContainerLocationOffset(const SPoint& = SPoint::Zero) const;
-	virtual SPoint
-	GetWindowLocationOffset(const SPoint& = SPoint::Zero) const;
+	virtual Point
+	GetContainerLocationOffset(const Point& = Point::Zero) const;
+	virtual Point
+	GetWindowLocationOffset(const Point& = Point::Zero) const;
 	virtual DefGetterBase(IVisualControl*, FocusingPtr, Runtime::GMFocusResponser<IVisualControl>)
 
 	virtual PDefHead(void, ClearFocusingPtr)

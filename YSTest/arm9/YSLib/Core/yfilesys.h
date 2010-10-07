@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-3-28 00:09:28 + 08:00;
-// UTime = 2010-9-30 16:29 + 08:00;
-// Version = 0.1780;
+// CTime = 2010-03-28 00:09:28 + 08:00;
+// UTime = 2010-10-05 15:20 + 08:00;
+// Version = 0.1784;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -154,24 +154,24 @@ public:
 
 inline
 Path::Path()
-: stdex::ustring()
+	: stdex::ustring()
 {}
 inline
 Path::Path(const Path::ValueType* pathstr)
-: stdex::ustring(pathstr)
+	: stdex::ustring(pathstr)
 {}
 inline
 Path::Path(const NativePathCharType* pathstr)
-: stdex::ustring(Text::MBCSToString(pathstr))
+	: stdex::ustring(Text::MBCSToString(pathstr))
 {}
 inline
 Path::Path(const NativeStringType& pathstr)
-: stdex::ustring(Text::MBCSToString(pathstr))
+	: stdex::ustring(Text::MBCSToString(pathstr))
 {}
 template<class _tString>
 inline
 Path::Path(const _tString& pathstr)
-: stdex::ustring(pathstr)
+	: stdex::ustring(pathstr)
 {}
 inline
 Path::~Path()
@@ -223,11 +223,11 @@ Path::iterator::iterator()
 {}
 inline
 Path::iterator::iterator(const value_type& p)
-: ptr(&p), n(StringType::npos)
+	: ptr(&p), n(StringType::npos)
 {}
 inline
 Path::iterator::iterator(const iterator& i)
-: ptr(i.ptr), n(i.n)
+	: ptr(i.ptr), n(i.n)
 {}
 
 inline Path::iterator

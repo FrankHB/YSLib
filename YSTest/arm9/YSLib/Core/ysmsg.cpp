@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-6 2:44:31;
-// UTime = 2010-9-2 10:24;
-// Version = 0.1422;
+// CTime = 2009-12-06 2:44:31 + 08:00;
+// UTime = 2010-10-05 18:01 + 08:00;
+// Version = 0.1427;
 
 
 #include "ysmsg.h"
@@ -17,14 +17,14 @@ const time_t DEF_TIMEOUT(0);
 #ifdef YSLIB_NO_CURSOR
 
 Message::Message(HSHL shl, MSGID m, MSGPRIORITY p, WPARAM w, const LPARAM l)
-: hShl(shl), msg(m), prior(p), wParam(w), lParam(l), timestamp(std::clock()), timeout(DEF_TIMEOUT)
+	: hShl(shl), msg(m), prior(p), wParam(w), lParam(l), timestamp(std::clock()), timeout(DEF_TIMEOUT)
 {
 }
 
 #else
 
-Message::Message(HSHL shl, MSGID m, MSGPRIORITY p, WPARAM w, const LPARAM l, const SPoint& _pt)
-: hShl(shl), msg(m), prior(p), wParam(w), lParam(l), pt(_pt), timestamp(std::clock()), timeout(DEF_TIMEOUT)
+Message::Message(HSHL shl, MSGID m, MSGPRIORITY p, WPARAM w, const LPARAM l, const Point& _pt)
+	: hShl(shl), msg(m), prior(p), wParam(w), lParam(l), pt(_pt), timestamp(std::clock()), timeout(DEF_TIMEOUT)
 {
 }
 
@@ -47,7 +47,7 @@ bool Message::operator==(const Message& m) const
 
 
 YMessageQueue::YMessageQueue()
-: q()
+	: q()
 {}
 YMessageQueue::~YMessageQueue() ythrow()
 {}

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFile_(Text) by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-24 23:14:51;
-// UTime = 2010-8-2 14:00;
-// Version = 0.1761;
+// CTime = 2009-11-24 23:14:51 + 08:00;
+// UTime = 2010-10-05 15:21 + 08:00;
+// Version = 0.1763;
 
 
 #include "yftext.h"
@@ -12,7 +12,8 @@ YSL_BEGIN
 using namespace Text;
 
 YTextFile::YTextFile(CPATH p)
-: YFile(p), bl(0), cp(CharSet::Null)
+	: YFile(p),
+	bl(0), cp(CharSet::Null)
 {
 	if(IsValid())
 	{

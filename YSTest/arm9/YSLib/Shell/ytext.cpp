@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-13 0:06:05;
-// UTime = 2010-9-26 22:/6;
-// Version = 0.6193;
+// CTime = 2009-11-13 00:06:05 + 08:00;
+// UTime = 2010-10-05 15:36 + 08:00;
+// Version = 0.6196;
 
 
 #include "ytext.h"
@@ -19,16 +19,16 @@ YSL_BEGIN_NAMESPACE(Drawing)
 static const u8 Alpha_Threshold = 16;
 
 TextState::TextState()
-:PenStyle(GetDefaultFontFamily()), Margin(),
-penX(0), penY(0), lnGap(0)
+	: PenStyle(GetDefaultFontFamily()), Margin(),
+	penX(0), penY(0), lnGap(0)
 {}
 TextState::TextState(Drawing::Font& font)
-:PenStyle(font.GetFontFamily()), Margin(),
-penX(0), penY(0), lnGap(0)
+	: PenStyle(font.GetFontFamily()), Margin(),
+	penX(0), penY(0), lnGap(0)
 {}
 TextState::TextState(YFontCache& fc)
-:PenStyle(*fc.GetDefaultTypefacePtr()->GetFontFamilyPtr()), Margin(),
-penX(0), penY(0), lnGap(0)
+	: PenStyle(*fc.GetDefaultTypefacePtr()->GetFontFamilyPtr()), Margin(),
+	penX(0), penY(0), lnGap(0)
 {}
 
 SDST
@@ -161,29 +161,28 @@ PrintCharEx(MBitmapBufferEx& buf, TextState& ts, fchar_t c)
 
 
 TextRegion::TextRegion()
-: TextState(), MBitmapBufferEx()
+	: TextState(), MBitmapBufferEx()
 {
 	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
 	SetPen();
 }
 TextRegion::TextRegion(Drawing::Font& font)
-: TextState(font), MBitmapBufferEx()
+	: TextState(font), MBitmapBufferEx()
 {
 	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
 	SetPen();
 }
 TextRegion::TextRegion(YFontCache& fc)
-: TextState(fc), MBitmapBufferEx()
+	: TextState(fc), MBitmapBufferEx()
 {
 	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
 	SetPen();
 }
 TextRegion::~TextRegion()
-{
-}
+{}
 
 SDST
 TextRegion::GetMarginResized() const

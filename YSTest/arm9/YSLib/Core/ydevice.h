@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YDevice by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:39:39 + 08:00;
-// UTime = 2010-10-04 22:07 + 08:00;
-// Version = 0.2690;
+// UTime = 2010-10-06 13:43 + 08:00;
+// Version = 0.2701;
 
 
 #ifndef INCLUDED_YOUTPUT_H_
@@ -17,7 +17,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Device)
 
 //图形设备。
-class YGraphicDevice : public YObject, protected Drawing::SSize
+class YGraphicDevice : public YObject, protected Drawing::Size
 {
 public:
 	typedef YObject ParentType;
@@ -28,8 +28,8 @@ private:
 public:
 	YGraphicDevice(SDST, SDST, Drawing::BitmapPtr = NULL);
 
-	DefGetter(const SSize&, Size, *this)
-	DefGetterBase(u32, Area, SSize)
+	DefGetter(const Size&, Size, *this)
+	DefGetterBase(u32, Area, Size)
 	virtual DefGetter(Drawing::BitmapPtr, Ptr, ptr)
 
 	virtual DefSetter(Drawing::BitmapPtr, Ptr, ptr)
@@ -37,7 +37,8 @@ public:
 
 inline
 YGraphicDevice::YGraphicDevice(SDST w, SDST h, Drawing::BitmapPtr p)
-: SSize(w, h), ptr(p)
+	: YObject(), Size(w, h),
+	ptr(p)
 {}
 
 
@@ -73,7 +74,7 @@ public:
 	void
 	Update(Drawing::BitmapPtr);
 	void
-	Update(Drawing::PixelType = 0); //以纯色填充屏幕。
+	Update(Drawing::Color = 0); //以纯色填充屏幕。
 };
 
 inline void

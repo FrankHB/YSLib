@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-5-2 12:00:08;
-// UTime = 2010-9-16 20:59;
-// Version = 0.1986;
+// CTime = 2010-05-02 12:00:08 + 08:00;
+// UTime = 2010-10-06 13:33 + 08:00;
+// Version = 0.1995;
 
 
 #include "ydesktop.h"
@@ -16,9 +16,9 @@ YSL_BEGIN_NAMESPACE(Components)
 
 using namespace Controls;
 
-YDesktop::YDesktop(YScreen& s, PixelType c, GHResource<YImage> i)
-: YFrameWindow(SRect::FullScreen, i, NULL, hShellMain),
-Screen(s), sDOs()
+YDesktop::YDesktop(YScreen& s, Color c, GHResource<YImage> i)
+	: YFrameWindow(Rect::FullScreen, i, NULL, hShellMain),
+	Screen(s), sDOs()
 {
 	BackColor = c;
 }
@@ -104,7 +104,7 @@ YDesktop::GetTopDesktopObjectPtr() const
 	return sDOs.empty() ? NULL : sDOs.back();
 }
 IVisualControl*
-YDesktop::GetTopDesktopObjectPtr(const SPoint& pt) const
+YDesktop::GetTopDesktopObjectPtr(const Point& pt) const
 {
 	for(DOs::const_reverse_iterator i(sDOs.rbegin()); i != sDOs.rend(); ++i)
 	{

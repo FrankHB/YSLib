@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:34 + 08:00;
-// UTime = 2010-10-04 21:50 + 08:00;
-// Version = 0.3426;
+// UTime = 2010-10-05 18:04 + 08:00;
+// Version = 0.3445;
 
 
 #include "ycontrol.h"
@@ -18,7 +18,7 @@ YSL_BEGIN_NAMESPACE(Controls)
 using namespace Runtime;
 
 MVisualControl::MVisualControl()
-: MControl(), AFocusRequester()
+	: MControl(), AFocusRequester()
 {
 	EventMap[EControl::GotFocus] += &MVisualControl::OnGotFocus;
 	EventMap[EControl::LostFocus] += &MVisualControl::OnLostFocus;
@@ -66,9 +66,9 @@ MVisualControl::OnTouchHeld(const Runtime::MTouchEventArgs& e)
 	{
 		IWidget& w(dynamic_cast<IWidget&>(*this));
 
-		if(!SInputStatus::IsOnDragging())
-			SInputStatus::SetDragOffset(w.GetLocation() - e);
-		else if(w.GetLocation() != e + SInputStatus::GetDragOffset())
+		if(!InputStatus::IsOnDragging())
+			InputStatus::SetDragOffset(w.GetLocation() - e);
+		else if(w.GetLocation() != e + InputStatus::GetDragOffset())
 			TouchMove(dynamic_cast<IVisualControl&>(*this), e);
 	}
 	catch(std::bad_cast&)
@@ -81,7 +81,7 @@ MVisualControl::OnTouchMove(const Runtime::MTouchEventArgs& e)
 	{
 		IWidget& w(dynamic_cast<IWidget&>(*this));
 
-		w.SetLocation(e + SInputStatus::GetDragOffset());
+		w.SetLocation(e + InputStatus::GetDragOffset());
 		w.Refresh();
 	}
 	catch(std::bad_cast&)
@@ -90,12 +90,12 @@ MVisualControl::OnTouchMove(const Runtime::MTouchEventArgs& e)
 void
 MVisualControl::OnKeyHeld(const Runtime::MKeyEventArgs& e)
 {
-	SInputStatus::RepeatKeyHeld(*this, e);
+	InputStatus::RepeatKeyHeld(*this, e);
 }
 
 
-YVisualControl::YVisualControl(HWND hWnd, const SRect& r, IWidgetContainer* pCon)
-: YComponent(), MWidget(hWnd, r, pCon), MVisualControl()
+YVisualControl::YVisualControl(HWND hWnd, const Rect& r, IWidgetContainer* pCon)
+	: YComponent(), MWidget(hWnd, r, pCon), MVisualControl()
 {
 	if(pContainer != NULL)
 	{
@@ -110,19 +110,6 @@ YVisualControl::~YVisualControl()
 		*pContainer -= static_cast<IVisualControl&>(*this);
 		*pContainer -= static_cast<IWidget&>(*this);
 	}
-}
-
-void
-YVisualControl::DrawBackground()
-{
-	if(!Transparent)
-		Fill();
-}
-void
-YVisualControl::DrawForeground()
-{
-	if(!Transparent)
-		SetBgRedrawed(false);
 }
 
 void

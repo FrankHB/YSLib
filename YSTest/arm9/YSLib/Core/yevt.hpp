@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YEvent by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-4-23 23:08:23;
-// UTime = 2010-9-19 21:04;
-// Version = 0.3098;
+// CTime = 2010-04-23 23:08:23 + 08:00;
+// UTime = 2010-10-06 01:41 + 08:00;
+// Version = 0.3112;
 
 
 #ifndef INCLUDED_YEVT_HPP_
@@ -265,16 +265,20 @@ class GEvent
 {
 public:
 	typedef void FuncType(_tSender&, const _tEventArgs&);
+	typedef std::list<_tEventHandler> ListType;
 
 protected:
-	std::list<_tEventHandler> EventHandlerSet;
+	std::list<_tEventHandler> EventHandlerList;
 
 public:
+	GEvent()
+	{}
+
 	GEvent&
 	operator+=(const _tEventHandler& h)
 	{
 		operator-=(h);
-		EventHandlerSet.push_back(h);
+		EventHandlerList.push_back(h);
 		return *this;
 	}
 	inline GEvent&
@@ -301,7 +305,7 @@ public:
 	GEvent&
 	operator-=(const _tEventHandler& h)
 	{
-		erase_all(EventHandlerSet, h);
+		erase_all(EventHandlerList, h);
 		return *this;
 	}
 	inline GEvent&
@@ -321,10 +325,11 @@ public:
 	{
 		return operator-=(_tEventHandler(obj, pm));
 	}
+
 	void
-	operator()(_tSender& sender, const _tEventArgs& e)
+	operator()(_tSender& sender, const _tEventArgs& e) const
 	{
-		for(typename std::list<_tEventHandler>::const_iterator i(EventHandlerSet.begin()); i != EventHandlerSet.end(); ++i)
+		for(typename std::list<_tEventHandler>::const_iterator i(EventHandlerList.begin()); i != EventHandlerList.end(); ++i)
 			(*i)(sender, e);
 	}
 };

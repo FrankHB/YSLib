@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YForm by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-4-30 0:51:36;
-// UTime = 2010-7-13 1:53;
-// Version = 0.1419;
+// CTime = 2010-04-30 00:51:36 + 08:00;
+// UTime = 2010-10-05 17:51 + 08:00;
+// Version = 0.1426;
 
 
 #include "yform.h"
@@ -15,9 +15,9 @@ YSL_BEGIN_NAMESPACE(Forms)
 
 using namespace Controls;
 
-YForm::YForm(const SRect& r, const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
-: YFrameWindow(r, i, pDsk, hShl, hWnd)//,
-//Client(this, SRect::Empty/*r*/)
+YForm::YForm(const Rect& r, const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
+	: YFrameWindow(r, i, pDsk, hShl, hWnd)//,
+//	Client(this, Rect::Empty/*r*/)
 {
 //	SetSize(Size.Width, Size.Height);
 //	DrawBackground();
@@ -33,7 +33,7 @@ YForm::SetSize(SDST w, SDST h)
 //	YWidget::SetSize(w, h);
 }
 void
-YForm::SetBounds(const SRect& r)
+YForm::SetBounds(const Rect& r)
 {
 	YFrameWindow::SetBounds(r);
 //	Location = r.GetPoint();

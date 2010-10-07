@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-27 17:12:27;
-// UTime = 2010-9-23 15:32;
-// Version = 0.1800;
+// CTime = 2009-12-27 17:12:27 + 08:00;
+// UTime = 2010-10-05 18:03 + 08:00;
+// Version = 0.1801;
 
 
 #ifndef INCLUDED_YAPP_H_
@@ -133,7 +133,7 @@ InsertMessage(const Message& msg)
 
 }
 inline void
-InsertMessage(const HSHL& hShl, const Shells::MSGID& id, const Shells::MSGPRIORITY& prior, const WPARAM& w = 0, const LPARAM& l = 0, const SPoint& pt = SPoint::Zero)
+InsertMessage(const HSHL& hShl, const Shells::MSGID& id, const Shells::MSGPRIORITY& prior, const WPARAM& w = 0, const LPARAM& l = 0, const Point& pt = Point::Zero)
 {
 
 #if YSLIB_DEBUG_MSG & 1

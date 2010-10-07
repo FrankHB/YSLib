@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-12 22:14:42;
-// UTime = 2010-9-22 21:29;
-// Version = 0.1846;
+// CTime = 2009-11-12 22:14:42 + 08:00;
+// UTime = 2010-10-06 15:46 + 08:00;
+// Version = 0.1850;
 
 
 #include "ycommon.h"
@@ -324,7 +324,7 @@ namespace platform
 	}
 
 	void
-	YDebugBegin(PixelType fc, PixelType bc)
+	YDebugBegin(Color fc, Color bc)
 	{
 		if(bDebugStatus)
 			YConsoleInit(false, fc, bc);
@@ -473,7 +473,7 @@ namespace platform
 	}
 
 	void
-	YConsoleInit(u8 dspIndex, PixelType fc, PixelType bc)
+	YConsoleInit(u8 dspIndex, Color fc, Color bc)
 	{
 	//	PrintConsole* p(dspIndex ? consoleMainInit() : consoleDemoInit());
 

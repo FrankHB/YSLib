@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-04 22:11 + 08:00;
-// Version = 0.1920;
+// UTime = 2010-10-05 18:03 + 08:00;
+// Version = 0.1927;
 
 
 #ifndef INCLUDED_YGUI_H_
@@ -21,7 +21,7 @@ YSL_BEGIN_NAMESPACE(Runtime)
 
 //从指定 Shell 传递指定屏幕的指针设备光标至 GUI 界面，返回部件指针。
 IWidget*
-GetCursorWidgetPtr(HSHL, YDesktop&, const SPoint&);
+GetCursorWidgetPtr(HSHL, YDesktop&, const Point&);
 
 //取指定屏幕中的当前焦点对象。
 IVisualControl*
@@ -78,7 +78,7 @@ struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 
 
 //记录输入保持状态。
-class SInputStatus
+class InputStatus
 {
 public:
 	typedef enum
@@ -89,18 +89,18 @@ public:
 	} KeyHeldStateType;
 
 private:
-	static SVec DragOffset;
+	static Vec DragOffset;
 	static KeyHeldStateType KeyHeldState;
 	static Timers::YTimer KeyTimer;
 
 public:
-	DefStaticPredicate(OnDragging, DragOffset != SVec::FullScreen)
+	DefStaticPredicate(OnDragging, DragOffset != Vec::FullScreen)
 
-	DefStaticGetter(const SVec&, DragOffset, DragOffset)
+	DefStaticGetter(const Vec&, DragOffset, DragOffset)
 	
 	DefStaticGetter(KeyHeldStateType, KeyHeldState, KeyHeldState)
 
-	static DefSetterDe(const SVec&, DragOffset, DragOffset, SVec::FullScreen)
+	static DefSetterDe(const Vec&, DragOffset, DragOffset, Vec::FullScreen)
 
 	static void
 	CheckTouchedControlBounds(Components::Controls::MVisualControl&, const MTouchEventArgs&);
@@ -147,7 +147,7 @@ GetGraphicInterfaceContext(HWND hWnd)
 
 //绘制界面元素边框。
 void
-DrawBounds(GraphicInterfaceContext&, const SPoint&, const SSize&, PixelType);
+DrawBounds(GraphicInterfaceContext&, const Point&, const Size&, PixelType);
 
 //绘制窗口边框。
 void

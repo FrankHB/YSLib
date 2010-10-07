@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFile by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-24 23:14:51;
-// UTime = 2010-7-25 10:37;
-// Version = 0.1326;
+// CTime = 2009-11-24 23:14:51 + 08:00;
+// UTime = 2010-10-05 15:18 + 08:00;
+// Version = 0.1328;
 
 
 #include "yfile.h"
@@ -10,7 +10,8 @@
 YSL_BEGIN
 
 YFile::YFile(CPATH p)
-: fp(NULL), fsize(0)
+	: YObject(),
+	fp(NULL), fsize(0)
 {
 	if(Open(p))
 	{

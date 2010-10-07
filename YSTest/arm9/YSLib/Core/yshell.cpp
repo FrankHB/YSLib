@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-13 21:09:15;
-// UTime = 2010-9-20 7:01;
-// Version = 0.2742;
+// CTime = 2009-11-13 21:09:15 + 08:00;
+// UTime = 2010-10-05 18:02 + 08:00;
+// Version = 0.2747;
 
 
 #include "../Shell/ywindow.h"
@@ -18,7 +18,8 @@ using namespace Components;
 using namespace Components::Controls;
 
 YShell::YShell()
-: sWnds()
+	: YObject(),
+	sWnds()
 {
 	InsertMessage(NULL, SM_CREATE, 0xF0, reinterpret_cast<WPARAM>(this));
 }
@@ -77,7 +78,7 @@ YShell::GetTopWindowHandle() const
 	return HWND(sWnds.empty() ? NULL : sWnds.back());
 }
 HWND
-YShell::GetTopWindowHandle(YDesktop& d, const SPoint& p) const
+YShell::GetTopWindowHandle(YDesktop& d, const Point& p) const
 {
 	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
 	{
@@ -201,7 +202,7 @@ YShell::OnDeactivated(const Message& m)
 
 
 YShellMain::YShellMain()
-: YShell()
+	: YShell()
 {
 	theApp += *this;
 }

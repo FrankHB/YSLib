@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YEventArgs by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-6-8 13:21:10;
-// UTime = 2010-9-16 23:29;
-// Version = 0.1796;
+// CTime = 2010-06-08 13:21:10 + 08:00;
+// UTime = 2010-09-16 18:02 + 08:00;
+// Version = 0.1802;
 
 
 #ifndef INCLUDED_YEVTARG_H_
@@ -17,21 +17,21 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Runtime)
 
 //转换指针设备光标位置为屏幕点。
-inline Drawing::SPoint
+inline Drawing::Point
 ToSPoint(const CursorInfo& c)
 {
-	return Drawing::SPoint(c.GetX(), c.GetY());
+	return Drawing::Point(c.GetX(), c.GetY());
 }
 
 
 //屏幕事件参数类。
-struct MScreenPositionEventArgs : public MEventArgs, public Drawing::SPoint
+struct MScreenPositionEventArgs : public MEventArgs, public Drawing::Point
 {
 	static const MScreenPositionEventArgs Empty;
 
 	explicit
-	MScreenPositionEventArgs(const Drawing::SPoint& pt = Drawing::SPoint::Zero)
-	: MEventArgs(), SPoint(pt)
+	MScreenPositionEventArgs(const Drawing::Point& pt = Drawing::Point::Zero)
+	: MEventArgs(), Point(pt)
 	{}
 };
 
@@ -50,7 +50,7 @@ struct MInputEventArgs : public Key
 //指针设备输入事件参数类。
 struct MTouchEventArgs : public MScreenPositionEventArgs, public MInputEventArgs
 {
-	typedef Drawing::SPoint InputType;
+	typedef Drawing::Point InputType;
 
 	static const MTouchEventArgs Empty;
 

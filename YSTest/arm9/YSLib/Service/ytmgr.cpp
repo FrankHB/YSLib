@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-05 17:48:09 + 08:00;
-// UTime = 2010-09-28 01:34 + 08:00;
-// Version = 0.4023;
+// UTime = 2010-10-05 15:44 + 08:00;
+// Version = 0.4026;
 
 
 #include "ytmgr.h"
@@ -139,7 +139,7 @@ TextMap::clear()
 
 
 TextFileBuffer::HText::HText(TextFileBuffer* pBuf, BlockSizeType b, SizeType i) ythrow()
-: pBuffer(pBuf), blk(b), idx(i)
+	: pBuffer(pBuf), blk(b), idx(i)
 {
 //	assert(buf.GetTextSize() >= 1);
 }
@@ -279,7 +279,8 @@ TextFileBuffer::HText::GetBlockLength(BlockSizeType i) const ythrow()
 
 
 TextFileBuffer::TextFileBuffer(YTextFile& file)
-: File(file), nTextSize(std::max<u32>(File.GetTextSize(), 1)), nBlock((nTextSize + nBlockSize - 1) / nBlockSize)
+	: TextMap(),
+	File(file), nTextSize(std::max<u32>(File.GetTextSize(), 1)), nBlock((nTextSize + nBlockSize - 1) / nBlockSize)
 {}
 
 TextBlock&

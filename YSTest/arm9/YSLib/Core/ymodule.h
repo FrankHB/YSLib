@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YModule -> YModule by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-5-1 13:52:56;
-// UTime = 2010-9-25 22:20;
-// Version = 0.1937;
+// CTime = 2010-05-01 13:52:56 + 08:00;
+// UTime = 2010-10-05 15:22 + 08:00;
+// Version = 0.1939;
 
 
 #ifndef INCLUDED_YMODULE_H_
@@ -198,7 +198,7 @@ public:
 
 inline
 AFocusRequester::AFocusRequester()
-: bFocused(false)
+	: bFocused(false)
 {}
 
 inline bool

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-04 18:22 + 08:00;
-// Version = 0.4641;
+// UTime = 2010-10-06 13:42 + 08:00;
+// Version = 0.4731;
 
 
 #ifndef INCLUDED_YWIDGET_H_
@@ -28,10 +28,10 @@ using Drawing::ConstBitmapPtr;
 using Drawing::ScreenBufferType;
 using Drawing::Color;
 
-using Drawing::SPoint;
-using Drawing::SVec;
-using Drawing::SSize;
-using Drawing::SRect;
+using Drawing::Point;
+using Drawing::Vec;
+using Drawing::Size;
+using Drawing::Rect;
 
 using Drawing::YImage;
 
@@ -45,17 +45,17 @@ DeclInterface(IWidget)
 	DeclIEntry(bool IsTransparent() const) //判断是否透明。
 	DeclIEntry(bool IsBgRedrawed() const) //判断是否需要重绘。
 
-	DeclIEntry(bool Contains(const SPoint&) const) //判断点是否在边界内或边界上。
+	DeclIEntry(bool Contains(const Point&) const) //判断点是否在边界内或边界上。
 
-	DeclIEntry(const SPoint& GetLocation() const)
-	DeclIEntry(const SSize& GetSize() const)
+	DeclIEntry(const Point& GetLocation() const)
+	DeclIEntry(const Size& GetSize() const)
 	DeclIEntry(IWidgetContainer* GetContainerPtr() const)
 	DeclIEntry(HWND GetWindowHandle() const)
 
 	DeclIEntry(void SetVisible(bool = true)) //设置可见。
 	DeclIEntry(void SetTransparent(bool = true)) //设置透明。
 	DeclIEntry(void SetBgRedrawed(bool = true)) //设置重绘状态。
-	DeclIEntry(void SetLocation(const SPoint&)) //设置左上角所在位置（相对于容器的偏移坐标）。
+	DeclIEntry(void SetLocation(const Point&)) //设置左上角所在位置（相对于容器的偏移坐标）。
 
 	DeclIEntry(void DrawBackground()) //绘制背景。
 	DeclIEntry(void DrawForeground()) //绘制前景。
@@ -75,17 +75,17 @@ DeclBasedInterface(IWidgetContainer, IWidget)
 	DeclIEntry(void operator+=(Runtime::GMFocusResponser<IVisualControl>&)) //向焦点对象组添加子焦点对象容器。
 	DeclIEntry(bool operator-=(Runtime::GMFocusResponser<IVisualControl>&)) //从焦点对象组移除子焦点对象容器。
 
-	DeclIEntry(IWidget* GetTopWidgetPtr(const SPoint&) const) //取指定的点（屏幕坐标）所处的部件的指针。
-	DeclIEntry(IVisualControl* GetTopVisualControlPtr(const SPoint&) const) //取指定的点（屏幕坐标）所处的焦点对象的指针。
-	DeclIEntry(SPoint GetContainerLocationOffset(const SPoint& = SPoint::Zero) const) //取指定的点（相对此容器的坐标）相对于此容器的父容器的偏移坐标。
-	DeclIEntry(SPoint GetWindowLocationOffset(const SPoint& = SPoint::Zero) const) //取指定的点（相对此容器的坐标）相对于此容器的父窗口的偏移坐标。
+	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&) const) //取指定的点（屏幕坐标）所处的部件的指针。
+	DeclIEntry(IVisualControl* GetTopVisualControlPtr(const Point&) const) //取指定的点（屏幕坐标）所处的焦点对象的指针。
+	DeclIEntry(Point GetContainerLocationOffset(const Point& = Point::Zero) const) //取指定的点（相对此容器的坐标）相对于此容器的父容器的偏移坐标。
+	DeclIEntry(Point GetWindowLocationOffset(const Point& = Point::Zero) const) //取指定的点（相对此容器的坐标）相对于此容器的父窗口的偏移坐标。
 
 	DeclIEntry(void ClearFocusingPtr()) //清除焦点指针。
 EndDecl
 
 
-SPoint
-GetLocationOffset(IWidget*, const SPoint&, const HWND&);
+Point
+GetLocationOffset(IWidget*, const Point&, const HWND&);
 
 
 //可视样式模块。
@@ -99,16 +99,16 @@ private:
 	mutable bool bBgRedrawed; //背景重绘状态。
 
 protected:
-	SPoint Location; //左上角所在位置（相对于容器的偏移坐标）。
-	SSize Size; //部件大小。
+	Point Location; //左上角所在位置（相对于容器的偏移坐标）。
+	Drawing::Size Size; //部件大小。
 
 public:
-	PixelType BackColor; //默认背景色。
-	PixelType ForeColor; //默认前景色。
+	Color BackColor; //默认背景色。
+	Color ForeColor; //默认前景色。
 
 	explicit
-	MVisual(const SRect& = SRect::Empty,
-		PixelType = Color::White, PixelType = Color::Black);
+	MVisual(const Rect& = Rect::Empty,
+		Color = Color::White, Color = Color::Black);
 	virtual DefTrivialDtor(MVisual)
 
 	DefPredicate(Visible, Visible)
@@ -116,7 +116,7 @@ public:
 	DefPredicate(BgRedrawed, bBgRedrawed)
 
 	//判断包含关系。
-	PDefHead(bool, Contains, const SPoint& p) const
+	PDefHead(bool, Contains, const Point& p) const
 		ImplBodyMember(GetBounds(), IsInBoundsRegular, p)
 	PDefHead(bool, Contains, const int& x, const int& y) const //判断点(x, y)是否在边界内或边界上。
 		ImplBodyMember(GetBounds(), IsInBoundsRegular, x, y)
@@ -125,20 +125,20 @@ public:
 	DefGetter(SPOS, Y, Location.Y)
 	DefGetter(SDST, Width, Size.Width)
 	DefGetter(SDST, Height, Size.Height)
-	virtual DefGetter(const SPoint&, Location, Location)
-	virtual DefGetter(const SSize&, Size, Size)
-	virtual DefGetter(SRect, Bounds, SRect(Location, Size.Width, Size.Height))
+	virtual DefGetter(const Point&, Location, Location)
+	virtual DefGetter(const Drawing::Size&, Size, Size)
+	virtual DefGetter(Rect, Bounds, Rect(Location, Size.Width, Size.Height))
 
 	DefSetterDe(bool, Visible, Visible, true)
 	DefSetterDe(bool, Transparent, Transparent, true)
 	DefSetterDe(bool, BgRedrawed, bBgRedrawed, true)
-	virtual DefSetter(const SPoint&, Location, Location)
+	virtual DefSetter(const Point&, Location, Location)
 	virtual PDefHead(void, SetLocation, SPOS x, SPOS y)
-		ImplBodyBaseVoid(MVisual, SetLocation, SPoint(x, y))
+		ImplBodyBaseVoid(MVisual, SetLocation, Point(x, y))
 	virtual void
 	SetSize(SDST, SDST);
 	virtual void
-	SetBounds(const SRect& r);
+	SetBounds(const Rect& r);
 };
 
 
@@ -152,8 +152,8 @@ public:
 	IWidgetContainer* const pContainer; //从属的部件容器的指针。
 
 	explicit
-	MWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL,
-		PixelType = Color::White, PixelType = Color::Black);
+	MWidget(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+		Color = Color::White, Color = Color::Black);
 
 	//判断从属关系。
 	bool
@@ -163,17 +163,21 @@ public:
 
 	virtual DefGetter(IWidgetContainer*, ContainerPtr, pContainer)
 	virtual DefGetter(HWND, WindowHandle, hWindow)
-	SPoint
+	Point
 	GetLocationForWindow() const; //取部件相对于最直接的窗口的位置（若无窗口则返回 FullScreen ）。
-	SPoint
+	Point
 	GetLocationForParentContainer() const; //取部件相对于容器的父容器的位置（若无容器则返回 FullScreen ）。
-	SPoint
+	Point
 	GetLocationForParentWindow() const; //取部件相对于容器的父窗口的位置（若无容器则返回 FullScreen ）。
 
 	virtual void
 	Fill(); //以背景色填充显示缓冲区。
 	virtual void
-	Fill(PixelType); //以纯色填充显示缓冲区。
+	Fill(Color); //以纯色填充显示缓冲区。
+	virtual void
+	DrawBackground();
+	virtual void
+	DrawForeground();
 
 	virtual void
 	Refresh();
@@ -205,7 +209,7 @@ public:
 	typedef YComponent ParentType;
 
 	explicit
-	YWidget(HWND = NULL, const SRect& = SRect::Empty, IWidgetContainer* = NULL);
+	YWidget(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL);
 	virtual
 	~YWidget();
 
@@ -214,23 +218,23 @@ public:
 	virtual DefPredicateBase(BgRedrawed, MVisual)
 
 	//判断包含关系。
-	virtual PDefHead(bool, Contains, const SPoint& p) const
+	virtual PDefHead(bool, Contains, const Point& p) const
 		ImplBodyBase(MVisual, Contains, p)
 
-	virtual DefGetterBase(const SPoint&, Location, MVisual)
-	virtual DefGetterBase(const SSize&, Size, MVisual)
+	virtual DefGetterBase(const Point&, Location, MVisual)
+	virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
 	virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 	virtual DefGetterBase(HWND, WindowHandle, MWidget)
 
 	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
 	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
-	virtual DefSetterBase(const SPoint&, Location, MVisual)
+	virtual DefSetterBase(const Point&, Location, MVisual)
 
-	virtual void
-	DrawBackground();
-	virtual void
-	DrawForeground();
+	virtual PDefHead(void, DrawBackground)
+		ImplBodyBaseVoid(MWidget, DrawBackground)
+	virtual PDefHead(void, DrawForeground)
+		ImplBodyBaseVoid(MWidget, DrawForeground)
 
 	virtual PDefHead(void, Refresh)
 		ImplBodyBaseVoid(MWidget, Refresh)
@@ -271,9 +275,9 @@ public:
 	virtual IVisualControl*
 	GetFocusingPtr() const;
 	virtual IWidget*
-	GetTopWidgetPtr(const SPoint&) const;
+	GetTopWidgetPtr(const Point&) const;
 	virtual IVisualControl*
-	GetTopVisualControlPtr(const SPoint&) const;
+	GetTopVisualControlPtr(const Point&) const;
 };
 
 
@@ -285,7 +289,7 @@ public:
 	typedef YComponent ParentType;
 
 	explicit
-	YWidgetContainer(HWND, const SRect& = SRect::Empty, IWidgetContainer* = NULL);
+	YWidgetContainer(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL);
 	virtual
 	~YWidgetContainer();
 
@@ -307,34 +311,34 @@ public:
 	virtual DefPredicateBase(BgRedrawed, MVisual)
 
 	//判断包含关系。
-	virtual PDefHead(bool, Contains, const SPoint& p) const
+	virtual PDefHead(bool, Contains, const Point& p) const
 		ImplBodyBase(MVisual, Contains, p)
 
-	virtual DefGetterBase(const SPoint&, Location, MVisual)
-	virtual DefGetterBase(const SSize&, Size, MVisual)
+	virtual DefGetterBase(const Point&, Location, MVisual)
+	virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
 	virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 	virtual DefGetterBase(HWND, WindowHandle, MWidget)
-	virtual PDefHead(IWidget*, GetTopWidgetPtr, const SPoint& p) const
+	virtual PDefHead(IWidget*, GetTopWidgetPtr, const Point& p) const
 		ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
-	virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const SPoint& p) const
+	virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
 		ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
-	virtual SPoint
-	GetContainerLocationOffset(const SPoint& = SPoint::Zero) const;
-	virtual SPoint
-	GetWindowLocationOffset(const SPoint& = SPoint::Zero) const;
+	virtual Point
+	GetContainerLocationOffset(const Point& = Point::Zero) const;
+	virtual Point
+	GetWindowLocationOffset(const Point& = Point::Zero) const;
 
 	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
 	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
-	virtual DefSetterBase(const SPoint&, Location, MVisual)
+	virtual DefSetterBase(const Point&, Location, MVisual)
 
 	virtual PDefHead(void, ClearFocusingPtr)
 		ImplBodyBaseVoid(MWidgetContainer, ClearFocusingPtr)
 
-	virtual void
-	DrawBackground();
-	virtual void
-	DrawForeground();
+	virtual PDefHead(void, DrawBackground)
+		ImplBodyBaseVoid(MWidget, DrawBackground)
+	virtual PDefHead(void, DrawForeground)
+		ImplBodyBaseVoid(MWidget, DrawForeground)
 
 	virtual PDefHead(void, Refresh)
 		ImplBodyBaseVoid(MWidget, Refresh)
@@ -388,7 +392,7 @@ public:
 
 	//用字符串在窗口中以给定字号初始化标签。
 	template<class _tChar>
-	YLabel(HWND, const _tChar*, const SRect& = SRect::FullScreen,
+	YLabel(HWND, const _tChar*, const Rect& = Rect::FullScreen,
 		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 
 	virtual void
@@ -396,7 +400,7 @@ public:
 };
 
 template<class _tChar>
-YLabel::YLabel(HWND hWnd, const _tChar* l, const SRect& r,
+YLabel::YLabel(HWND hWnd, const _tChar* l, const Rect& r,
 	const Drawing::Font& f, IWidgetContainer* pCon, GHResource<Drawing::TextRegion> prTr_)
 	: YWidget(hWnd, r, pCon), MLabel(l, f, pCon ? prTr_ : GetGlobalResource<Drawing::TextRegion>())
 {}

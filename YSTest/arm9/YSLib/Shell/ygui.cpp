@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-03 17:09 + 08:00;
-// Version = 0.2569;
+// UTime = 2010-10-05 18:04 + 08:00;
+// Version = 0.2585;
 
 
 #include "ygui.h"
@@ -18,7 +18,7 @@ using namespace Components::Widgets;
 YSL_BEGIN_NAMESPACE(Runtime)
 
 IWidget*
-GetCursorWidgetPtr(HSHL hShl, YDesktop& d, const SPoint& pt)
+GetCursorWidgetPtr(HSHL hShl, YDesktop& d, const Point& pt)
 {
 	HWND hWnd(hShl->GetTopWindowHandle(d, pt));
 
@@ -64,12 +64,12 @@ ReleaseFocusCascade(IVisualControl& c)
 
 
 //记录输入保持状态。
-SVec SInputStatus::DragOffset(SVec::FullScreen);
-SInputStatus::KeyHeldStateType SInputStatus::KeyHeldState(KeyFree);
-Timers::YTimer SInputStatus::KeyTimer(1000, false);
+Vec InputStatus::DragOffset(Vec::FullScreen);
+InputStatus::KeyHeldStateType InputStatus::KeyHeldState(KeyFree);
+Timers::YTimer InputStatus::KeyTimer(1000, false);
 
 void
-SInputStatus::RepeatKeyHeld(MVisualControl& c, const MKeyEventArgs& e)
+InputStatus::RepeatKeyHeld(MVisualControl& c, const MKeyEventArgs& e)
 {
 	//三状态自动机。
 	switch(KeyHeldState)
@@ -102,7 +102,7 @@ SInputStatus::RepeatKeyHeld(MVisualControl& c, const MKeyEventArgs& e)
 }
 
 void
-SInputStatus::ResetKeyHeldState()
+InputStatus::ResetKeyHeldState()
 {
 	KeyTimer.Deactivate();
 	KeyHeldState = KeyFree;
@@ -166,7 +166,7 @@ namespace
 	}
 
 	MVisualControl*
-	GetTouchedVisualControl(IWidgetContainer& con, SPoint& pt)
+	GetTouchedVisualControl(IWidgetContainer& con, Point& pt)
 	{
 		using namespace ExOp;
 
@@ -270,7 +270,7 @@ namespace
 		{
 			return false;
 		}
-		SInputStatus::SetDragOffset();
+		InputStatus::SetDragOffset();
 		return true;
 	}
 	bool
@@ -282,7 +282,7 @@ namespace
 
 			if(p_TouchDown != &c)
 			{
-				SInputStatus::SetDragOffset();
+				InputStatus::SetDragOffset();
 				return false;
 			}
 			c.TouchHeld(con, e);
@@ -297,14 +297,14 @@ namespace
 	bool
 	ResponseKeyUpBase(MVisualControl& c, const MKeyEventArgs& e)
 	{
-		SInputStatus::ResetKeyHeldState();
+		InputStatus::ResetKeyHeldState();
 		try
 		{
 			IVisualControl& con(dynamic_cast<IVisualControl&>(c));
 
 			if(p_KeyDown == &c)
 			{
-				if(SInputStatus::GetKeyHeldState() == SInputStatus::KeyFree)
+				if(InputStatus::GetKeyHeldState() == InputStatus::KeyFree)
 					c.KeyPress(con, e);
 				p_KeyDown = NULL;
 			}
@@ -339,7 +339,7 @@ namespace
 	{
 		if(p_KeyDown != &c)
 		{
-			SInputStatus::ResetKeyHeldState();
+			InputStatus::ResetKeyHeldState();
 			return false;
 		}
 		try
@@ -356,7 +356,7 @@ namespace
 	bool
 	ResponseTouchBase(IWidgetContainer& con, HTouchCallback f)
 	{
-		SPoint pt(f);
+		Point pt(f);
 		MVisualControl* pVC(GetTouchedVisualControl(con, pt));
 
 		return pVC != NULL ? f(*pVC, f) : false;
@@ -410,9 +410,9 @@ YSL_END_NAMESPACE(Runtime)
 YSL_BEGIN_NAMESPACE(Drawing)
 
 void
-DrawBounds(GraphicInterfaceContext& g, const SPoint& location, const SSize& size, PixelType c)
+DrawBounds(GraphicInterfaceContext& g, const Point& location, const Size& size, PixelType c)
 {
-	DrawRect(g, location, SPoint(location + size - SVec(1, 1)), c);
+	DrawRect(g, location, Point(location + size - Vec(1, 1)), c);
 }
 
 void
@@ -420,7 +420,7 @@ DrawWindowBounds(HWND hWnd, PixelType c)
 {
 	GraphicInterfaceContext g(GetGraphicInterfaceContext(hWnd));
 
-	DrawBounds(g, SPoint::Zero, hWnd->GetSize(), c);
+	DrawBounds(g, Point::Zero, hWnd->GetSize(), c);
 }
 
 void
