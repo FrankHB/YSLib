@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YString by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-05 22:44:04 + 08:00;
-// UTime = 2010-09-22 14:44 + 08:00;
-// Version = 0.2638;
+// UTime = 2010-10-09 17:40 + 08:00;
+// Version = 0.2662;
 
 
 #include "ystring.h"
@@ -24,15 +24,15 @@ MBCSToString(const char* s, const CSID& cp)
 	return str;
 }
 
-std::string
-StringToMBCS(const stdex::ustring& s, const CSID& cp)
+string
+StringToMBCS(const ustring& s, const CSID& cp)
 {
 	char* t(static_cast<char*>(std::malloc((s.length() + 1) << 2)));
 
 	if(t != NULL)
 		UTF16LEToMBCS(t, s.c_str(), cp);
 
-	std::string str(t);
+	string str(t);
 
 	std::free(t);
 	return str;

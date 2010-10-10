@@ -1,24 +1,23 @@
-﻿// YSLib::Adapter::YAdapter by Franksoft 2010
+﻿// YSLib::Adaptor::YAdaptor by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-2-22 20:16:21;
-// UTime = 2010-9-20 7:05;
-// Version = 0.1769;
+// CTime = 2010-02-22 20:16:21 + 08:00;
+// UTime = 2010-10-09 10:12 + 08:00;
+// Version = 0.1868;
 
 
-#ifndef INCLUDED_YADAPTER_H_
-#define INCLUDED_YADAPTER_H_
+#ifndef INCLUDED_YADAPTOR_H_
+#define INCLUDED_YADAPTOR_H_
 
-// YAdapter ：外部库关联。
+// YAdaptor ：外部库关联。
 
 //编译配置。
-//#define NDEBUG //非调试模式。
-#define YC_USE_YASSERT //使用 YCLib 断言。
-#define YSL_USE_EXCEPTION_SPECIFICATION //使用 YSLib 异常规范。
-
-#include <cstdio>
+#include "config.h"
 
 //包含平台文件。
 #include <platform.h>
+
+//引入 YSLib 命名空间宏。
+#include "base.h"
 
 
 //包含 CHRLib 。
@@ -31,41 +30,48 @@ namespace stdex
 	using CHRLib::uint_t;
 }
 
-namespace YSLib
-{
-	namespace Text
-	{
-		using namespace CHRLib;
-	}
+YSL_BEGIN
+
+YSL_BEGIN_NAMESPACE(Text)
+
+	using namespace CHRLib;
+
+YSL_END_NAMESPACE(Text)
+
 	using Text::fchar_t;
 	using Text::uchar_t;
 	using Text::uint_t;
-}
 
+YSL_END
 
 //包含 YCLib 。
 
 #include "../../YCLib/ycommon.h"
 
-namespace YSLib
-{
-	namespace Drawing
-	{
-		using platform::PixelType;
-		using platform::BitmapPtr;
-		using platform::ConstBitmapPtr;
-		using platform::ScreenBufferType;
-		using platform::Color;
-	}
-	namespace Runtime
-	{
-		using platform::Key;
-		using platform::KeysInfo;
-		using platform::CursorInfo;
-	}
+YSL_BEGIN
+
+YSL_BEGIN_NAMESPACE(Drawing)
+
+	using platform::PixelType;
+	using platform::BitmapPtr;
+	using platform::ConstBitmapPtr;
+	using platform::ScreenBufferType;
+	using platform::Color;
+
+YSL_END_NAMESPACE(Drawing)
+
+YSL_BEGIN_NAMESPACE(Runtime)
+
+	using platform::Key;
+	using platform::KeysInfo;
+	using platform::CursorInfo;
+
+YSL_END_NAMESPACE(Runtime)
+
 	using platform::terminate;
 	using platform::yassert;
 	using platform::HDirectory;
+
 	namespace DS
 	{
 		using namespace platform;
@@ -81,7 +87,8 @@ namespace YSLib
 		using ::scanKeys;
 		using ::touchRead;
 	}
-}
+
+YSL_END
 
 
 //包含 FreeType2 。
@@ -104,32 +111,33 @@ namespace YSLib
 #include <loki/SmartPtr.h>
 #include <loki/StrongPtr.h>
 
-namespace YSLib
-{
-	namespace Design
-	{
-		//类型操作和类型特征。
-		using Loki::Typelist;
-		namespace TL = Loki::TL;
-		using Loki::NullType;
-		using Loki::EmptyType;
-		using Loki::Int2Type;
-		using Loki::Type2Type;
-		using Loki::Select;
-		using Loki::IsCustomUnsignedInt;
-		using Loki::IsCustomSignedInt;
-		using Loki::IsCustomFloat;
-		using Loki::TypeTraits;
+YSL_BEGIN
 
-		// Function 和 Function 。
-		using Loki::Function;
-		using Loki::Functor;
+YSL_BEGIN_NAMESPACE(Design)
 
-		//设计模式。
-		namespace Pattern
-		{
-		}
-	}
+	//类型操作和类型特征。
+	using Loki::Typelist;
+	namespace TL = Loki::TL;
+	using Loki::NullType;
+	using Loki::EmptyType;
+	using Loki::Int2Type;
+	using Loki::Type2Type;
+	using Loki::Select;
+	using Loki::IsCustomUnsignedInt;
+	using Loki::IsCustomSignedInt;
+	using Loki::IsCustomFloat;
+	using Loki::TypeTraits;
+
+	// Function 和 Function 。
+	using Loki::Function;
+	using Loki::Functor;
+
+//设计模式。
+YSL_BEGIN_NAMESPACE(Pattern)
+YSL_END_NAMESPACE(Pattern)
+
+YSL_END_NAMESPACE(Design)
+
 	//使用 Loki 智能指针。
 	using Loki::SmartPtr;
 	using Loki::RefCounted;
@@ -140,7 +148,8 @@ namespace YSLib
 	using Loki::HeapStorage;
 	using Loki::RefToValue;
 	using Loki::SmallObject;
-}
+
+YSL_END
 
 //使用 Loki 的编译期静态检查。
 #define YSL_STATIC_CHECK(expr, msg) LOKI_STATIC_CHECK(expr, msg)
@@ -148,13 +157,6 @@ namespace YSLib
 //使用 Loki 的 Typelist 。
 #define YSL_TL(n, ...) LOKI_TYPELIST##n(...)
 
-//使用智能指针实现的句柄。
-//#define YSL_USE_SIMPLE_HANDLE
-#define YSL_HANDLEPOLICY_SIMPLE
-
-
-//多播事件。
-#define YSL_EVENT_MULTICAST
 
 #endif
 

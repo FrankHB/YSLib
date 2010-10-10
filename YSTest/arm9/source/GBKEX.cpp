@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-10-08 00:38 + 08:00;
-// Version = 0.2697; *Build 160 r19;
+// UTime = 2010-10-10 19:10 + 08:00;
+// Version = 0.2718; *Build 161 r24;
 
 
 #include "../YCLib/ydef.h"
@@ -36,13 +36,14 @@ $Record prefix and abbrevations:
 \cb ::= catch blocks
 \cl ::= classes
 \cp ::= copied
-\ctor ::= constructors;
+\ctor ::= constructors
 \cv ::= const & volatile
 \d ::= derived
 \de ::= default
 \def ::= definitions
 \decl ::= declations
-\dtor ::= destructors;
+\dir ::= directories
+\dtor ::= destructors
 \e ::= exceptions
 \en ::= enums
 \eh ::= exception handling
@@ -63,6 +64,7 @@ $Record prefix and abbrevations:
 \inc ::= included
 \inh ::= inherited
 \inv ::= invoke
+\lib ::= library
 \m ::= members
 \mac ::= macros
 \mem ::= memory
@@ -128,133 +130,93 @@ $using:
 
 $DONE:
 r1:
-/ @@ \u YControl:
-	+ \cl MButton;
-	+ \cl AButton;
-/ @@ \u YGUIComponent:
-	/= \decl @@ \cl YButton:
-		+ \inh public AButton;
-		- \inh public Widgets::MLabel;
-/ \tr \decl @@ \cl MWindow;
++ \h "Adapter/config.h";
++ \h "Adapter/base.h";
+/ \impl \h "Adapter/adapter.h":
+	-= \inc <cstdio>;
+	^ "config.h" & "base.h";
+/ \impl \h "Core/ysdef.h"
+/ \a YAdapter => YAdaptor;
+/ \a Adapter => Adaptor;
+/ \dir "Adapter" => "Adaptor";
+/ \h "Adaptor/adapter.h" => "Adaptor/adaptor.h";
+/ \mac INCLUDED_YADAPTER_H_ => INCLUDED_YADAPTOR_H_;
 
-r2-r5:
-/ test 1;
-	/ @@ \u YWidget:
-		/ \mf void DrawBackground() @@ \cl YWidget >> \cl MWidget;
-		/ \mf void DrawForeground() @@ \cl YWidget >> \cl MWidget;
-		/ \decl @@ \mf void DrawBackground() @@ \cl YWidget ^ \cl MWidget;
-		/ \decl @@ \mf void DrawForeground() @@ \cl YWidget ^ \cl MWidget;
-	/ @@ \u YControl:
-		/ \decl @@ \mf void DrawBackground() @@ \cl YVisualControl ^ \cl MWidget;
-		/ \decl @@ \mf void DrawForeground() @@ \cl YVisualControl ^ \cl MWidget;
+r2:
++ \h "Adaptor/cont.h" ^ yasli::vector @@ \lib Loki;
+/ \impl;
+/ \a std::vector -> vector;
+/ \a std::list => list;
+/ \a std::map => map;
+/ \a std::stack => stack;
+/ \a std::queue => queue;
+/ \a std::basic_string => basic_string;
+/ \a std::string => string;
+/ \a std::set => set;
+/ \a std::priority_queue => priority_queue;
 
-r6:
-/ @@ \u YWidget:
-	/ \decl @@ \mf void DrawBackground() @@ \cl YWidgetContainer ^ \cl MWidget;
-	/ \decl @@ \mf void DrawForeground() @@ \cl YWidgetContainer ^ \cl MWidget;
+r3:
+/ \cl std::ustring @@ \u YString >> YSLib::ustring @@ \u Adaptor::Container;
+
+r4:
+/ @@ \h Adaptor::Container:
+	* \inc Adaptor::Base -> Adaptor::YAdaptor;
+	+ \inc <loki/flex/flex_string.h>;
+	/ using std::string -> typedef flex_string<char> string;
+	/ typedef std::basic_string<uchar_t> ustring -> typedef flex_string<uchar_t> ustring;
+	+ \t \cl string_template<typename _tChar>;
+/ @@ \u YFileSystem:
+	/ typedef basic_string<NativePathCharType> NativeStringType
+		-> typedef string_template<NativePathCharType>::basic_string NativeStringType;
+	/ @@ \cl YPath:
+		/ typedef basic_string<ValueType> StringType
+			-> typedef string_template<ValueType>::basic_string StringType;
+
+r5-r6:
+/ \a string_template => SStringTemplate;
++ \mac YSL_USE_YASLI_VECTOR & YSL_USE_FLEX_STRING @@ \h Adaptor::Config;
+^ \mac YSL_USE_YASLI_VECTOR & YSL_USE_FLEX_STRING @@ \h Adaptor::Container;
+/ typedef flex_string<uchar_t> ustring -> typedef SStringTemplate<char>::basic_string string;
+/ typedef flex_string<uchar_t> ustring -> typedef SStringTemplate<uchar_t>::basic_string ustring;
 
 r7:
-/= @@ \u YGUIComponent:
-	+= \un \ns;
-	/= \s \f (\i transPixelEx) & RectDrawFocusDefault & (\i RectOnGotFocus) (>> \ns) & -\s;
+/ @@ \h Adaptor::YReference:
+	/ \n YSP_OP_Simple -> Design::Policies::Operations::SmartPtr_Simple;
+	/ \n YSP_OP_RefCounted -> Design::Policies::Operations::SmartPtr_RefCounted;
+	/ \mac #define YHandleOP SmartPtr_Simple -> #define YHandleOP Design::Policies::Operations::SmartPtr_Simple;
 
-r8:
-/ \decl @@ \cl AButton;
-/ \decl & \impl \cl YButton;
-+ DefPredicate(Pressed, bPressed) @@ \cl MButton;
+r8-r11:
+/ \impl @@ \h Adaptor::YReference;
+/ \impl @@ \h Adaptor::Base;
+/ \impl @@ \h Core::YSDefinition;
+/ \impl @@ \h Adaptor::Reference;
 
-r9:
-/ \a SInputStatus => InputStatus;
-/ \a SOBG => BinaryGroup;
-/ \a SPoint => Point;
-/ \a SVec => Vec;
-/ \a SSize => Size;
-/ \a SRect => Rect;
+r12-r13:
+/ \impl @@ \h Adaptor::Container:
+	^ policy \n CowStringOpt;
+* \impl @@ \h YAdaptor::YASLIVectorStoragePolicy;
 
-r10:
-/= \a EventHandlerSet => EventHandlerList;
+r14:
+/= \impl @@ \h Adaptor::Config:
+	+ \mac YSL_COPY_ON_WRITE;
+	+ \rem \mac YSL_MULTITHREAD;
 
-r11:
-/ \cl \t @@ GEvent<true> @@ \u YEvent:
-	+ \de \ctor;
-	+ typedef std::list<_tEventHandler> ListType;
-	/= \m std::list<_tEventHandler> EventHandlerList -> ListType EventHandlerList;
-	/ mf void operator()(_tSender&, const _tEventArgs&)
-		-> void operator()(_tSender&, const _tEventArgs&) const;
+r15-r22:
+/= test 1;
 
-r12:
-/ @@ \u YCommon:
-	+ \i \ctor Color(u8, u8, u8, bool = true) @@ \ns platform @@ \cl Color;
-	/ \f void YDebugBegin(PixelType fc = RGB15(31, 31, 31), PixelType bc = RGB15( 0, 0, 31));
-		-> void YDebugBegin(Color = Color::White, PixelType = Color::Blue);
-	/ \f YConsoleInit(u8 dspIndex, PixelType fc = Color::White, PixelType bc = Color::Black)
-		-> YConsoleInit(u8 dspIndex, Color fc = Color::White, Color bc = Color::Black);
-/ @@ \u YGUIComponent:
-	/ @@ \un \ns:
-		+ \f void RectDrawButtonSurface(const Point&, const Size&, HWND);
-		/ \impl @@ \f void RectDrawFocusDefault(const Point&, const Size&, HWND);
-			^ \n Color;
-		/ \impl @@ \i \f void transPixelEx(BitmapPtr);
-			^ \n Color;
-		/ \impl @@ \mf YListBox::DrawForeground();
-			^ \n Color;
-/ @@ \cl YConsole @@ \u YComponent:
-	/ \exp \ctor YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black);
-		-> YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::Color = Drawing::Color::White, Drawing::Color = Drawing::Color::Black);
-	/ \i \mf void Activate(Drawing::PixelType = Drawing::Color::White, Drawing::PixelType = Drawing::Color::Black)
-		-> void Activate(Drawing::Color = Drawing::Color::White, Drawing::Color = Drawing::Color::Black);
-/ \exp \ctor YDesktop(YScreen&, PixelType = 0, GHResource<Drawing::YImage> = NULL)
-	-> YDesktop(YScreen&, Color = 0, GHResource<Drawing::YImage> = NULL) @@ \u YDesktop;
-/ @@ \u YWidget:
-	/ @@ \cl MVisual:
-		/ \m PixelType BackColor -> Color BackColor;
-		/ \m PixelType ForeColor -> Color BackColor;
-		/ \exp \ctor MVisual(const Rect& = Rect::Empty, PixelType = Color::White, PixelType = Color::Black)
-			-> MVisual(const Rect& = Rect::Empty, Color = Color::White, Color = Color::Black);
-	/ @@ \cl MWidget:
-		/ \exp \ctor MWidget(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL, PixelType = Color::White, PixelType = Color::Black);
-			-> MWidget(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL, Color = Color::White, Color = Color::Black);
-	/ \vt \mf void Fill(PixelType) -> void Fill(Color);
-/ \mf void Update(Drawing::PixelType = 0) -> void Update(Drawing::Color = 0) @@ \cl YScreen @@ \u YDevice;
-/ @@ \u YGDI:
-	^ \n Drawing::Color;
-	+ \i \tf template<typename _tPixel> void
-		FillRect(_tPixel*, const Size&, const Point&, const Size&, _tPixel);
-	+ \i \tmf template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
-		void operator()(_tPixel*, SDST, SDST, SPOS, SPOS, SDST, SDST, _fTransformPixel, _fTransformLine)
-		@@ \cl transRect;
-/ @@ \cl MDualScreenReader @@ \u DSReader:
-	/ \mf void SetColor(Color = 0) -> void SetColor(Color = Color::Black);
-/ \tr \impl @@ \u Shells;
+r23:
++ \mac YSL_OPT_SMALL_STRING_LENGTH @@ \h Adaptor::Config;
+/ \impl @@ \h Adaptor::Container:
+	^ \mac YSL_OPT_SMALL_STRING_LENGTH;
+	^ VectorStringStorage -> AllocatorStringStorage;
 
-r13-r14:
-/= test 2;
+r24:
+/ \impl @@ Adaptor::Config:
+	^ yasli::vector -> std::vector;
+	^ flex_string -> std::basic_string;
 
-r15:
-/ @@ \u YGUIComponent:
-	/= \impl @@ \mf void YListBox::DrawBackground();
-	* \i \f void transPixelEx(BitmapPtr) @@ \un \ns;
 
-r16:
-/ \impl @@ \mf void YButton::DrawForeground();
-
-r17:
-/ @@ \u YGUIComponent:
-	/ @@ \un \ns:
-		+ \f void RectDrawPressed(const Point&, const Size&, HWND);
-		/ \impl @@ \f void RectDrawFocusDefault(const Point&, const Size&, HWND);
-		/ \f RectDrawFocusDefault => RectDrawFocus;
-		- \i \f void RectOnGotFocus(const Point&, const Size&, HWND);
-	/ \impl @@ \mf void DrawForeground() @@ \cl YButton;
-	/ \impl @@ \mf void DrawForeground() @@ \cl YListBox;
-
-r18:
-/ \tr \impl @@ \f void RectDrawFocus(const Point&, const Size&, HWND) @@ \un \ns @@ \u YGUIComponent;
-
-r19:
-/ \tr \impl @@ \mf void DrawForeground() @@ \cl YListBox;
-
-$DOING
+$DOING:
 
 / ...
 

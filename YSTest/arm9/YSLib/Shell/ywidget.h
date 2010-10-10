@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-06 13:42 + 08:00;
-// Version = 0.4731;
+// UTime = 2010-10-09 10:56 + 08:00;
+// Version = 0.4734;
 
 
 #ifndef INCLUDED_YWIDGET_H_
@@ -13,7 +13,7 @@
 #include "ycomp.h"
 #include "../Core/ymodule.h"
 #include "../Core/yres.h"
-#include <set>
+//#include <set>
 #include "ytext.h"
 
 YSL_BEGIN

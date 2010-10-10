@@ -2,6 +2,7 @@
 #define YASLI_PROTOCOLS_H_
 
 // $Id: yasli_protocols.h 754 2006-10-17 19:59:11Z syntheticpp $
+//+$Id: yasli_protocols.h 754 2010-10-09 11:38 + 08:00 $
 
 
 #include <complex>
@@ -88,7 +89,7 @@ namespace yasli_protocols
             T* end, 
             T* dest)
         {
-            yasli_nstd::destroy_range(begin, end);
+        //    yasli_nstd::destroy_range(begin, end);
             memmove(dest, begin, (end - begin) * sizeof(T));
             return static_cast<T*>(dest) + (end - begin);
         }

@@ -1,8 +1,8 @@
-﻿// YSLib::Adapter::YRefrence by Franksoft 2010
+﻿// YSLib::Adaptor::YRefrence by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-3-21 23:09:06;
-// UTime = 2010-9-19 18:26;
-// Version = 0.2159;
+// CTime = 2010-03-21 23:09:06 + 08:00;
+// UTime = 2010-10-09 23:12 + 08:00;
+// Version = 0.2204;
 
 
 #ifndef INCLUDED_YREF_HPP_
@@ -10,24 +10,29 @@
 
 // YRefrence ：用于提供指针和引用访问的间接访问类模块。
 
-#include "yadapter.h"
+#include "yadaptor.h"
 
-namespace YSLib
-{
+YSL_BEGIN
+
+YSL_BEGIN_NAMESPACE(Design)
+
+YSL_BEGIN_NAMESPACE(Policies)
+
+YSL_BEGIN_NAMESPACE(Operations)
 
 template<class P>
-struct YSP_OP_Simple
+struct SmartPtr_Simple
 {
 	enum
 	{
 		destructiveCopy = false
 	};
 
-	YSP_OP_Simple()
+	SmartPtr_Simple()
 	{}
 
 	template<class P1>
-	YSP_OP_Simple(const YSP_OP_Simple<P1>& rhs)
+	SmartPtr_Simple(const SmartPtr_Simple<P1>& rhs)
 	{}
 
 	static P
@@ -43,12 +48,12 @@ struct YSP_OP_Simple
 	}
 
 	static void
-	Swap(YSP_OP_Simple&)
+	Swap(SmartPtr_Simple&)
 	{}
 };
 
 template<class P>
-class YSP_OP_RefCounted
+class SmartPtr_RefCounted
 {
 private:
 	uintptr_t* pCount_;
@@ -63,20 +68,20 @@ protected:
 public:
 	enum { destructiveCopy = false };
 
-	YSP_OP_RefCounted()
+	SmartPtr_RefCounted()
 	: pCount_(static_cast<uintptr_t*>(SmallObject<>::operator new(sizeof(uintptr_t))))
 	{
 	//	assert(pCount_!=0);
 		*pCount_ = 1;
 	}
 
-	YSP_OP_RefCounted(const YSP_OP_RefCounted& rhs)
+	SmartPtr_RefCounted(const SmartPtr_RefCounted& rhs)
 		: pCount_(rhs.pCount_)
 	{}
 
 	template<typename P1>
-	YSP_OP_RefCounted(const YSP_OP_RefCounted<P1>& rhs)
-		: pCount_(reinterpret_cast<const YSP_OP_RefCounted&>(rhs).pCount_)
+	SmartPtr_RefCounted(const SmartPtr_RefCounted<P1>& rhs)
+		: pCount_(reinterpret_cast<const SmartPtr_RefCounted&>(rhs).pCount_)
 	{}
 
 	P
@@ -99,15 +104,21 @@ public:
 	}
 
 	void
-	Swap(YSP_OP_RefCounted& rhs)
+	Swap(SmartPtr_RefCounted& rhs)
 	{
 		std::swap(pCount_, rhs.pCount_);
 	}
 };
 
+YSL_END_NAMESPACE(Operations)
+
+YSL_END_NAMESPACE(Policies)
+
+YSL_END_NAMESPACE(Design)
+
 
 template<typename T,
-	template<class> class OP = YSP_OP_RefCounted,
+	template<class> class OP = Design::Policies::Operations::SmartPtr_RefCounted,
 	class CP = AllowConversion,
 	template<class> class KP = RejectNull,
 	template<class> class SP = DefaultSPStorage,
@@ -143,6 +154,7 @@ public:
 	{
 		return operator->();
 	}
+
 	void
 	Swap(GHResource& rhs)
 	{
@@ -159,14 +171,9 @@ GetPointer(GHResource<_Tp> h)
 }
 
 
-//#ifdef YSL_HANDLEPOLICY_SIMPLE
-#	define YHandleOP YSP_OP_Simple
+#define YHandleOP Design::Policies::Operations::SmartPtr_Simple
 //句柄不会被自动回收，需要手动释放。
-#	define YDelete(h) delete h
-/*#else
-#	define YHandleOP YSP_OP_RefCounted
-#	define YDelete(h)
-#endif*/
+#define YDelete(h) delete h
 
 
 template<typename T,
@@ -209,6 +216,7 @@ public:
 	{
 		return operator->();
 	}
+
 	void
 	Swap(GHHandle& rhs)
 	{
@@ -247,7 +255,7 @@ handle_cast(GHHandle<_tReference> h)
 
 #endif
 
-}
+YSL_END
 
 #endif
 

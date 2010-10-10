@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-05-02 12:00:08 + 08:00;
-// UTime = 2010-10-0 13:33 + 08:00;
-// Version = 0.2001;
+// UTime = 2010-10-09 10:59 + 08:00;
+// Version = 0.2013;
 
 
 #ifndef INCLUDED_YDESKTOP_H_
@@ -11,7 +11,7 @@
 // YDesktop：平台无关的桌面抽象层。
 
 #include "ywindow.h"
-#include <list>
+//#include <list>
 
 YSL_BEGIN
 
@@ -24,7 +24,7 @@ class YDesktop : public YFrameWindow
 
 public:
 	typedef YComponent ParentType;
-	typedef std::list<IVisualControl*> DOs; //桌面对象组类型。
+	typedef list<IVisualControl*> DOs; //桌面对象组类型。
 
 private:
 	YScreen& Screen; //屏幕对象。

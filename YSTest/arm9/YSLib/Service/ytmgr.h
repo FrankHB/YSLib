@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-05 17:48:09 + 08:00;
-// UTime = 2010-10-05 15:29 + 08:00;
-// Version = 0.4117;
+// UTime = 2010-10-09 10:57 + 08:00;
+// Version = 0.4128;
 
 
 #ifndef INCLUDED_YTMGR_H_
@@ -12,7 +12,7 @@
 
 #include "../Core/ystring.h"
 #include "../Core/yftext.h"
-#include <map>
+//#include <map>
 
 YSL_BEGIN
 
@@ -134,7 +134,7 @@ class TextMap
 {
 public:
 	typedef TextBlock::BlockSizeType BlockSizeType;
-	typedef std::map<BlockSizeType, TextBlock*> MapType;
+	typedef map<BlockSizeType, TextBlock*> MapType;
 
 protected:
 	MapType Map;

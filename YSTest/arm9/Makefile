@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM9 by Franksoft 2009 - 2010
 # CodePage = ANSI / GBK;
-# CTime = 2009-12-18 12:27:40;
-# UTime = 2010-6-15 2:36;
-# Version = 0.3112;
+# CTime = 2009-12-18 12:27:40 + 08:00;
+# UTime = 2010-10-09 10:00 + 08:00;
+# Version = 0.3121;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -24,7 +24,7 @@ include $(DEVKITARM)/ds_rules
 # GRAPHICS is a list of directories containing image files to be converted with grit
 #---------------------------------------------------------------------------------
 
-YSLibX := YSLib YSLib/Adapter YSLib/Core YSLib/Shell YSLib/Service YSLib/Helper
+YSLibX := YSLib YSLib/Adaptor YSLib/Core YSLib/Shell YSLib/Service YSLib/Helper
 
 #TARGET		:= $(shell basename $(CURDIR))
 BUILD		:= build

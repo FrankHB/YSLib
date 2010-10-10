@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTimer by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-06-05 10:28:58 + 08:00;
-// UTime = 2010-09-26 15:23 + 08:00;
-// Version = 0.1455;
+// UTime = 2010-10-09 10:57 + 08:00;
+// Version = 0.1466;
 
 
 #ifndef INCLUDED_YTIMER_H_
@@ -11,7 +11,8 @@
 // YTimer ：平台无关的计时器服务。
 
 #include "../Core/yobject.h"
-#include <map>
+#include "../Adaptor/cont.h"
+//#include <map>
 
 YSL_BEGIN
 
@@ -21,7 +22,7 @@ YSL_BEGIN_NAMESPACE(Timers)
 class YTimer : public YCountableObject
 {
 private:
-	typedef std::map<u32, YTimer*> TMRs; //计时器组。
+	typedef map<u32, YTimer*> TMRs; //计时器组。
 
 	static bool NotInitialized;
 	static vu32 SystemTick;

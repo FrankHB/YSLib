@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YException by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-06-15 20:30:14 + 08:00;
-// UTime = 2010-10-05 15:17 + 08:00;
-// Version = 0.1148;
+// UTime = 2010-10-09 10:38 + 08:00;
+// Version = 0.1158;
 
 
 #include "yexcept.h"
@@ -16,7 +16,7 @@ Exception::~Exception() throw()
 {}
 
 
-GeneralEvent::GeneralEvent(const std::string& s)
+GeneralEvent::GeneralEvent(const string& s)
 	: Exception(),
 	str(s)
 {}
@@ -30,7 +30,7 @@ GeneralEvent::what() const throw()
 }
 
 
-LoggedEvent::LoggedEvent(const std::string& s, u8 l)
+LoggedEvent::LoggedEvent(const string& s, u8 l)
 	: GeneralEvent(s),
 	level(l)
 {}

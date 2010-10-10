@@ -2,13 +2,14 @@
 #define YASLI_MEMORY_H_
 
 // $Id: yasli_memory.h 754 2006-10-17 19:59:11Z syntheticpp $
+//+$Id: yasli_memory.h 754 2010-10-09 11:20 + 08:00 $
 
 
 #include "yasli_traits.h"
 #include "yasli_protocols.h"//!
 #include <cassert>
 #include <cstddef>
-#include <misc/mojo.h>//NOT A SAFE WAY TO INCLUDE IT
+//#include <misc/mojo.h>//NOT A SAFE WAY TO INCLUDE IT
 
 namespace yasli {
           
@@ -202,11 +203,11 @@ namespace yasli_nstd
     //---------------
 
 
-    template <class It1, class It2>
+ /*   template <class It1, class It2>
     It2 uninitialized_move(It1 b, It1 e, It2 d)
     {
         return mojo::uninitialized_move(b, e, d);
-    }
+    }*/
     
     template <class A>
     struct generic_allocator_traits
@@ -367,14 +368,14 @@ namespace yasli
     template <class InputItr, class FwdItr>
     FwdItr uninitialized_copy(InputItr first, InputItr last, FwdItr result)
     {
-           std::cout<<"neither\n";
+    //       std::cout<<"neither\n";
         return _impl::uninitialized_safe_copier<InputItr, FwdItr>::execute(first, last, result);
     }
     
     template <class T>
     T* uninitialized_copy(const T* first, const T* last, T* result)
     {
-       std::cout<<"const\n";
+    //   std::cout<<"const\n";
        return yasli_nstd::type_selector<yasli_nstd::is_memcopyable<T>::value != 0,
                                          _impl::uninitialized_memcopier<T>,
                                          _impl::uninitialized_safe_copier<const T*, T*>
@@ -384,7 +385,7 @@ namespace yasli
     template <class T>
     T* uninitialized_copy(T* first, T* last, T* result)
     {
-       std::cout<<"non-const\n";
+    //   std::cout<<"non-const\n";
        return uninitialized_copy(static_cast<const T*>(first), 
                                  static_cast<const T*>(last), result);
     }  

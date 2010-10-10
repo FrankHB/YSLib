@@ -1,12 +1,12 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-05 18:04 + 08:00;
-// Version = 0.2585;
+// UTime = 2010-10-09 11:00 + 08:00;
+// Version = 0.2586;
 
 
 #include "ygui.h"
-#include <stack>
+//#include <stack>
 
 YSL_BEGIN
 

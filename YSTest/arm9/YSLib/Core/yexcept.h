@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YException by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-6-15 20:30:14;
-// UTime = 2010-9-23 15:38;
-// Version = 0.1140;
+// CTime = 2010-06-15 20:30:14 + 08:00;
+// UTime = 2010-10-09 10:53 + 08:00;
+// Version = 0.1152;
 
 
 #ifndef INCLUDED_YEXCEPT_H_
@@ -13,7 +13,8 @@
 #include "yobject.h"
 #include <new>
 #include <typeinfo>
-#include <string>
+#include "../Adaptor/cont.h"
+//#include <string>
 
 YSL_BEGIN
 
@@ -31,10 +32,10 @@ public:
 class GeneralEvent : public Exception
 {
 private:
-	std::string str;
+	string str;
 
 public:
-	GeneralEvent(const std::string&);
+	GeneralEvent(const string&);
 	virtual
 	~GeneralEvent() throw();
 
@@ -50,7 +51,7 @@ private:
 	u8 level;
 
 public:
-	LoggedEvent(const std::string&, u8 = 0);
+	LoggedEvent(const string&, u8 = 0);
 	LoggedEvent(const GeneralEvent&, u8 = 0);
 	virtual
 	~LoggedEvent() throw();

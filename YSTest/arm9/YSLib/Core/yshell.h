@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15 + 08:00;
-// UTime = 2010-10-05 18:01 + 08:00;
-// Version = 0.2436;
+// UTime = 2010-10-09 10:55 + 08:00;
+// Version = 0.2448;
 
 
 #ifndef INCLUDED_YSHELL_H_
@@ -12,8 +12,8 @@
 
 #include "../Helper/yglobal.h"
 #include "yfunc.hpp"
-#include <set>
-#include <list>
+//#include <set>
+//#include <list>
 
 YSL_BEGIN
 
@@ -24,7 +24,7 @@ class YShell : public YObject,
 	implements GIContainer<IWindow>
 {
 public:
-	typedef std::list<HWND> WNDs;
+	typedef list<HWND> WNDs;
 
 private:
 	WNDs sWnds; //窗口组。

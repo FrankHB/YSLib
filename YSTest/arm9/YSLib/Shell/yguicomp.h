@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-10-06 00:53 + 08:00;
-// Version = 0.1072;
+// UTime = 2010-10-09 10:39 + 08:00;
+// Version = 0.1082;
 
 
 #ifndef INCLUDED_YGUICOMP_H_
@@ -76,7 +76,7 @@ class YListBox : public GMCounter<YListBox>, public YVisualControl
 public:
 	typedef YVisualControl ParentType;
 	typedef String ItemType; //项目类型：字符串。
-	typedef std::vector<ItemType> ListType; //列表类型。
+	typedef vector<ItemType> ListType; //列表类型。
 	typedef GSequenceViewer<ListType> ViewerType; //视图类型。
 
 protected:

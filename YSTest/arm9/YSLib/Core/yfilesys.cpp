@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-28 00:36:30 + 08:00;
-// UTime = 2010-10-05 15:20 + 08:00;
-// Version = 0.1928;
+// UTime = 2010-10-09 10:37 + 08:00;
+// Version = 0.1938;
 
 
 #include "yfilesys.h"
@@ -152,28 +152,28 @@ GetFileName(CPATH path)
 
 	return p ? (*++p ? p : NULL) : path;
 }
-std::string
-GetFileName(const std::string& path)
+string
+GetFileName(const string& path)
 {
-	const std::string::size_type p(path.rfind(DEF_PATH_DELIMITER));
+	const string::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
-	return p == std::string::npos ? std::string(path) : path.substr(p + 1);
+	return p == string::npos ? string(path) : path.substr(p + 1);
 }
 
-std::string
-GetDirectoryName(const std::string& path)
+string
+GetDirectoryName(const string& path)
 {
-	const std::string::size_type p(path.rfind(DEF_PATH_DELIMITER));
+	const string::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
-	return p == std::string::npos ? std::string() : path.substr(0, p + 1);
+	return p == string::npos ? string() : path.substr(0, p + 1);
 }
 
-std::string::size_type
-SplitPath(const std::string& path, std::string& directory, std::string& file)
+string::size_type
+SplitPath(const string& path, string& directory, string& file)
 {
-	const std::string::size_type p(path.rfind(DEF_PATH_DELIMITER));
+	const string::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
-	if(p == std::string::npos)
+	if(p == string::npos)
 	{
 		directory = "";
 		file = path;
@@ -186,12 +186,12 @@ SplitPath(const std::string& path, std::string& directory, std::string& file)
 	return p;
 }
 
-std::string
-GetStem(const std::string& name)
+string
+GetStem(const string& name)
 {
-	const std::string::size_type p(name.rfind('.'));
+	const string::size_type p(name.rfind('.'));
 
-	return p == std::string::npos ? std::string(name) : name.substr(0, p);
+	return p == string::npos ? string(name) : name.substr(0, p);
 }
 
 bool
@@ -206,7 +206,7 @@ IsStem(const char* str, const char* name)
 	return !strncmp(str, name, strlen_n(str));
 }
 bool
-IsStem(const std::string& str, const std::string& name)
+IsStem(const string& str, const string& name)
 {
 	if(str.length() > name.length())
 		return false;
@@ -230,7 +230,7 @@ HaveSameStems(const char* a, const char* b)
 	return true;
 }
 bool
-HaveSameStems(const std::string& a, const std::string& b)
+HaveSameStems(const string& a, const string& b)
 {
 	return GetStem(a) == GetStem(b);
 }
@@ -245,12 +245,12 @@ GetExtendName(const char* name)
 
 	return p && *++p ? p : NULL;
 }
-std::string
-GetExtendName(const std::string& name)
+string
+GetExtendName(const string& name)
 {
-	const std::string::size_type p(name.rfind('.'));
+	const string::size_type p(name.rfind('.'));
 
-	return p == std::string::npos ? std::string() : name.substr(p + 1);
+	return p == string::npos ? string() : name.substr(p + 1);
 }
 
 bool
@@ -263,7 +263,7 @@ IsExtendName(const char* str, const char* name)
 	return !stricmp(str, p);
 }
 bool
-IsExtendName(const std::string& str, const std::string& name)
+IsExtendName(const string& str, const string& name)
 {
 	if(str.length() > name.length())
 		return false;
@@ -283,16 +283,16 @@ HaveSameExtendNames(const char* a, const char* b)
 	return stdex::stricmp_n(pa, pb) != 0;
 }
 bool
-HaveSameExtendNames(const std::string& a, const std::string& b)
+HaveSameExtendNames(const string& a, const string& b)
 {
-	std::string ea(GetExtendName(a)), eb(GetExtendName(b));
+	string ea(GetExtendName(a)), eb(GetExtendName(b));
 
 	return stdex::stricmp_n(ea.c_str(), eb.c_str()) != 0;
 //	return ucsicmp(ea.c_str(), eb.c_str());
 }
 
 int
-ChDir(const std::string& path)
+ChDir(const string& path)
 {
 	if(path.length() > MAX_PATH_LENGTH)
 		return -2;
@@ -311,16 +311,16 @@ ChDir(const Path& path)
 	return ChDir(p);
 }*/
 
-std::string
+string
 GetNowDirectory()
 {
 	PATHSTR buf;
 
-	return platform::getcwd_n(buf, MAX_PATH_LENGTH - 1) == NULL ? std::string() : std::string(buf);
+	return platform::getcwd_n(buf, MAX_PATH_LENGTH - 1) == NULL ? string() : string(buf);
 }
 
 bool
-ValidateDirectory(const std::string& pathstr)
+ValidateDirectory(const string& pathstr)
 {
 	return HDirectory(pathstr.c_str()).IsValid();
 }
@@ -334,7 +334,7 @@ MFileList::MFileList(CPATH pathstr)
 }
 
 bool
-MFileList::operator/=(const std::string& d)
+MFileList::operator/=(const string& d)
 {
 	Path t(Directory / d);
 
@@ -362,7 +362,7 @@ MFileList::LoadSubItems()
 		while((++dir).LastError == 0)
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
 				List.push_back(std::strcmp(HDirectory::Name, FS_Parent) && HDirectory::IsDirectory() ?
-					MBCSToString(std::string(HDirectory::Name) + FS_Seperator)
+					MBCSToString(string(HDirectory::Name) + FS_Seperator)
 					: MBCSToString(HDirectory::Name));
 	}
 	return n;

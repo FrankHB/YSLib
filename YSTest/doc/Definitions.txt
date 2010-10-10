@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-10-06 15:41 + 08:00;
-// Version = r8362;
+// UTime = 2010-10-10 19:09 + 08:00;
+// Version = r8538;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -886,28 +886,222 @@ $unit YCommon "ycommon" //平台相关的公共组件无关函数与宏定义集
 
 $code YSLib {
 
-$export adapter YSLib::Adapter::YAdapter;
+$export adaptor YSLib::Adaptor::YAdaptor;
 
 using namespace ::YSLib;
 
 
-$code YSLib::Adapter {
+$code YSLib::Adaptor {
 
-$header YAdapter "yadapter.h" //外部库关联。
+$header Base "base.h" //通用基础设施。
+{
+	!$import;
+
+
+	/*
+	 ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
+	 GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，该宏不会被展开。详见： http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
+	解决方案来源： https://www.securecoding.cert.org/confluence/display/cplusplus/PRE05-CPP.+Understand+macro+replacement+when+concatenating+tokens+or+performing+stringification 。
+	*/
+	#define _yJOIN(x, y) x ## y
+
+
+	// YSLib 命名空间宏。
+
+	#define YSL_BEGIN	namespace YSLib {
+	#define YSL_END		}
+	#define YSL_			::YSLib::
+	#define YSL			::YSLib
+
+	#define YSL_BEGIN_NAMESPACE(s)	namespace s {
+	#define YSL_END_NAMESPACE(s)		}
+
+	#define YSL_BEGIN_SHELL(s)	namespace _yJOIN(_YSHL_, s) {
+	#define YSL_END_SHELL(s)	}
+	#define YSL_SHL_(s)		YSL_ _yJOIN(_YSHL_, s)::
+	#define YSL_SHL(s)		YSL_ _yJOIN(_YSHL_, s)
+
+
+	//异常规范宏。
+
+	// ythrow = "yielded throwing";
+	#ifdef YSL_USE_EXCEPTION_SPECIFICATION
+	#	define ythrow throw
+	#else
+	#	define ythrow(...)
+	#endif
+
+
+	//接口类型宏。
+
+	#define __interface struct
+	#define _yInterface __interface
+
+	#define implements public
+
+	#define _yInterfaceHead(_name) { \
+		virtual ~_name() {}
+
+	//prefix "PDecl" = Pre-declare;
+	#define PDeclInterface(_name) _yInterface _name;
+
+	#define DeclInterface(_name) _yInterface _name _yInterfaceHead(_name)
+
+	#ifdef __GNUC__
+	//对于基接口需要显示指定访问权限和继承方式。由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
+	#	define DeclBasedInterface(_name, _base...) \
+		_yInterface _name : _base _yInterfaceHead(_name)
+	#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+	#	define DeclBasedInterface(_name, _base, ...) \
+		_yInterface _name : _base, __VA_ARGS__ _yInterfaceHead(_name)
+	#else
+	//注意 ISO/IEC C++ 不支持宏的可变参数列表，因此无法实现接口多继承。
+	#	define DeclBasedInterface(_name, _base) \
+		_yInterface _name : _base _yInterfaceHead(_name)
+	#endif
+
+	//"DeclIEntry" = Declare Interface Entry;
+	#define DeclIEntry(_signature) virtual _signature = 0;
+
+	#define EndDecl };
+
+
+	//函数宏。
+
+	//通用函数头定义。
+	//prefix "PDef" = Partially Define;
+	#ifdef __GNUC__
+	#	define PDefHead(_type, _name, _paralist...) _type _name(_paralist)
+	#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist)
+	#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+	#	define PDefHead(_type, _name, _paralist, ...) _type _name(_paralist, __VA_ARGS__)
+	#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist, __VA_ARGS__)
+	#else
+	#	define PDefHead(_type, _name, _paralist) _type _name(_paralist)
+	#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist)
+	#endif
+
+
+	//简单通用函数实现。
+	//prefix "Impl" = Implement;
+	#define ImplExpr(_expr) { _expr; }
+	#define ImplRet(_expr) { return _expr; }
+
+	//基类同名函数映射和成员同名函数映射实现。
+	//prefix "Impl" = Implement;
+	#ifdef __GNUC__
+	#	define ImplBodyBase(_base, _name, _arglist...) { return _base::_name(_arglist); }
+	#	define ImplBodyBaseVoid(_base, _name, _arglist...) { _base::_name(_arglist); }
+	#	define ImplBodyMember(_member, _name, _arglist...) { return (_member)._name(_arglist); }
+	#	define ImplBodyMemberVoid(_member, _name, _arglist...) { (_member)._name(_arglist); }
+	#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+	#	define ImplBodyBase(_base, _name, _arglist, ...) { return _base::_name(_arglist, __VA_ARGS__); }
+	#	define ImplBodyBaseVoid(_base, _name, _arglist, ...) { _base::_name(_arglist, __VA_ARGS__); }
+	#	define ImplBodyMember(_member, _name, _arglist...) { return (_member)._name(_arglist); }
+	#	define ImplBodyMemberVoid(_member, _name, _arglist...) { (_member)._name(_arglist); }
+	#else
+	#	define ImplBodyBase(_base, _name, _arglist) { return _base::_name(_arglist); }
+	#	define ImplBodyBaseVoid(_base, _name, _arglist) { _base::_name(_arglist); }
+	#	define ImplBodyMember(_member, _name, _arglist) { return (_member)._name(_arglist); }
+	#	define ImplBodyMemberVoid(_member, _name, _arglist) { (_member)._name(_arglist); }
+	#endif
+
+
+	//简单通用成员函数定义。
+	//prefix "Def" = Define;
+	#define DefTrivialDtor(_type) ~_type() {}
+
+	#define DefConverter(_type, _expr) operator _type() const ythrow() { return _expr; }
+	#define DefConverterBase(_type, _base) operator _type() const ythrow() { return _base::operator _type(); }
+	#define DefConverterMember(_type, _member) operator _type() const ythrow() { return (_member).operator _type(); }
+
+	#define DefGetter(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return (_member); }
+	#define DefGetterBase(_type, _name, _base) _type _yJOIN(Get, _name)() const ythrow() { return _base::_yJOIN(Get, _name)(); }
+	#define DefGetterMember(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return (_member)._yJOIN(Get, _name)(); }
+
+	#define DefPredicate(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return (_member); }
+	#define DefPredicateBase(_name, _base) bool _yJOIN(Is, _name)() const ythrow() { return _base::_yJOIN(Is, _name)(); }
+	#define DefPredicateMember(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return (_member)._yJOIN(Is, _name)(); }
+
+	#define DefStaticGetter(_type, _name, _member) static _type _yJOIN(Get, _name)() ythrow() { return (_member); }
+	#define DefStaticGetterBase(_type, _name, _base) static _type _yJOIN(Get, _name)() ythrow() { return _base::_yJOIN(Get, _name)(); }
+
+	#define DefStaticPredicate(_name, _member) static bool _yJOIN(Is, _name)() ythrow() { return (_member); }
+	#define DefStaticPredicateBase(_name, _base) static bool _yJOIN(Is, _name)() ythrow() { return _base::_yJOIN(Is, _name)(); }
+
+	#define DefSetter(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { (_member) = _tempArgName; }
+	#define DefSetterDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { (_member) = _tempArgName; }
+	#define DefSetterBase(_type, _name, _base) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _base::_yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterBaseDe(_type, _name, _base, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _base::_yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterMember(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { (_member)._yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterMemberDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { (_member)._yJOIN(Set, _name)(_tempArgName); }
+	#define DefSetterEx(_type, _name, _member, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { (_member) = (_expr); }
+	#define DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { (_member) = (_expr); }
+
+} //$header Base;
+
+$header Config "config.h" //库编译配置。
+{
+	!$import;
+
+
+	//#define NDEBUG //非调试模式。
+
+	#define YC_USE_YASSERT //使用 YCLib 断言。
+
+	// YSLib 选项。
+
+	#define YSL_USE_EXCEPTION_SPECIFICATION //使用 YSLib 异常规范。
+
+	//#define YSL_MULTITHREAD //多线程。
+
+	#define YSL_USE_COPY_ON_WRITE //写时复制。
+
+	#ifdef YSL_MULTITHREAD
+	#	undef YSL_USE_COPY_ON_WRITE
+	#endif
+
+	//#define YSL_USE_YASLI_VECTOR //使用 yasli::vector 。
+	//#define YSL_USE_FLEX_STRING //使用 flex_string 。
+	#define YSL_OPT_SMALL_STRING_LENGTH 16 //使用小字符串优化。
+
+	/*
+	YSLib No_Cursor
+	定义无指针设备。
+	消息成员列表中不会包含 Point pt 。
+	*/
+	//#define YSLIB_NO_CURSOR
+
+	// YSLib Debug 选项。
+	/*
+	YSLib MSG Debug
+	bit0 ： InsertMessage ；
+	bit1 ： PeekMessage 。
+	注意： PeekMessage 包含 InsertMessage 。
+	*/
+	#define YSLIB_DEBUG_MSG 0
+
+	//多播事件。
+	#define YSL_EVENT_MULTICAST
+
+} //$header Config;
+
+
+$header YAdaptor "yadaptor.h" //外部库关联。
 {
 	//编译配置。
-	//#define NDEBUG //非调试模式。
-	#define YC_USE_YASSERT //使用 YCLib 断言。
-	#define YSL_USE_EXCEPTION_SPECIFICATION //使用 YSLib 异常规范宏。
-
-	#include <cstdio>
+	#include "config.h"
 
 	//包含平台文件。
 	#include <platform.h>
 
+	//引入 YSLib 命名空间宏。
+	#include "base.h"
+
+
 	//包含 CHRLib 。
 
-	$import Lib CHRLib;
+	#include "../../CHRLib/chrlib.h"
 
 	namespace stdex
 	{
@@ -915,57 +1109,80 @@ $header YAdapter "yadapter.h" //外部库关联。
 		using CHRLib::uint_t;
 	} //namespace stdex;
 
-	namespace YSLib
-	{
-		namespace Text
-		{
-			using namespace CHRLib;
-		} //namespace Text
+	YSL_BEGIN
+
+	YSL_BEGIN_NAMESPACE(Text)
+
+		using namespace CHRLib;
+
+	YSL_END_NAMESPACE(Text)
+
 		using Text::fchar_t;
 		using Text::uchar_t;
 		using Text::uint_t;
-	} //namespace YSLib;
 
+	YSL_END
 
 	//包含 YCLib 。
 
-	$import Lib YCLib;
+	#include "../../YCLib/ycommon.h"
 
-	namespace YSLib
-	{
-		namespace Drawing
-		{
-			using platform::PixelType;
-			using platform::BitmapPtr;
-			using platform::ConstBitmapPtr;
-			using platform::Color;
-		} //namespace Drawing;
-		namespace Runtime
-		{
-			using platform::Key;
-			using platform::KeysInfo;
-			using platform::CursorInfo;
-		} //namespace Runtime;
+	YSL_BEGIN
+
+	YSL_BEGIN_NAMESPACE(Drawing)
+
+		using platform::PixelType;
+		using platform::BitmapPtr;
+		using platform::ConstBitmapPtr;
+		using platform::ScreenBufferType;
+		using platform::Color;
+
+	YSL_END_NAMESPACE(Drawing)
+
+	YSL_BEGIN_NAMESPACE(Runtime)
+
+		using platform::Key;
+		using platform::KeysInfo;
+		using platform::CursorInfo;
+
+	YSL_END_NAMESPACE(Runtime)
+
 		using platform::terminate;
 		using platform::yassert;
 		using platform::HDirectory;
-		namespace $platform
+
+		namespace DS
 		{
 			using namespace platform;
 
-			$using ...;
-		} //namespace $platform;
-		$...;
-	} //namespace YSLib;
+			using ::swiWaitForVBlank;
+
+			using ::lcdMainOnTop;
+			using ::lcdMainOnBottom;
+			using ::lcdSwap;
+			using ::videoSetMode;
+			using ::videoSetModeSub;
+
+			using ::scanKeys;
+			using ::touchRead;
+		}
+
+	YSL_END
 
 
 	//包含 FreeType2 。
 
-	$import Lib FreeType2;
+	#include <ft2build.h>
+
+	#include FT_FREETYPE_H
+	#include FT_CACHE_H
+	#include FT_BITMAP_H
+	#include FT_GLYPH_H
+	//#include FT_OUTLINE_H
 
 
 	//包含 Anti-Grain Geometry 。
-	//$import Lib AGG;
+	//#include "yagg.h"
 
 
 	//包含 Loki 。
@@ -973,32 +1190,33 @@ $header YAdapter "yadapter.h" //外部库关联。
 	#include <loki/SmartPtr.h>
 	#include <loki/StrongPtr.h>
 
-	namespace YSLib
-	{
-		namespace Design
-		{
-			//类型操作和类型特征。
-			using Loki::Typelist;
-			namespace TL = Loki::TL;
-			using Loki::NullType;
-			using Loki::EmptyType;
-			using Loki::Int2Type;
-			using Loki::Type2Type;
-			using Loki::Select;
-			using Loki::IsCustomUnsignedInt;
-			using Loki::IsCustomSignedInt;
-			using Loki::IsCustomFloat;
-			using Loki::TypeTraits;
+	YSL_BEGIN
 
-			// Function 和 Function 。
-			using Loki::Function;
-			using Loki::Functor;
+	YSL_BEGIN_NAMESPACE(Design)
 
-			//设计模式。
-			namespace Pattern
-			{
-			} //namespace Pattern;
-		} //namespace Design;
+		//类型操作和类型特征。
+		using Loki::Typelist;
+		namespace TL = Loki::TL;
+		using Loki::NullType;
+		using Loki::EmptyType;
+		using Loki::Int2Type;
+		using Loki::Type2Type;
+		using Loki::Select;
+		using Loki::IsCustomUnsignedInt;
+		using Loki::IsCustomSignedInt;
+		using Loki::IsCustomFloat;
+		using Loki::TypeTraits;
+
+		// Function 和 Function 。
+		using Loki::Function;
+		using Loki::Functor;
+
+	//设计模式。
+	YSL_BEGIN_NAMESPACE(Pattern)
+	YSL_END_NAMESPACE(Pattern)
+
+	YSL_END_NAMESPACE(Design)
+
 		//使用 Loki 智能指针。
 		using Loki::SmartPtr;
 		using Loki::RefCounted;
@@ -1009,7 +1227,8 @@ $header YAdapter "yadapter.h" //外部库关联。
 		using Loki::HeapStorage;
 		using Loki::RefToValue;
 		using Loki::SmallObject;
-	} //namespace YSLib;
+
+	YSL_END
 
 	//使用 Loki 的编译期静态检查。
 	#define YSL_STATIC_CHECK(expr, msg) LOKI_STATIC_CHECK(expr, msg)
@@ -1017,27 +1236,222 @@ $header YAdapter "yadapter.h" //外部库关联。
 	//使用 Loki 的 Typelist 。
 	#define YSL_TL(n, ...) LOKI_TYPELIST##n(...)
 
-	//使用智能指针实现的句柄。
-	//#define YSL_USE_SIMPLE_HANDLE
-	#define YSL_HANDLEPOLICY_SIMPLE
+} //$header YAdaptor;
 
 
-	//多播事件。
-	#define YSL_EVENT_MULTICAST
+$header YASLIVectorStoragePolicy "yaslivsp.hpp" // yasli::vector 存储策略。
+{
+	import Adaptor::Base;
 
-} //$header YAdapter;
+
+	#include <loki/yasli/yasli_vector.h>
+	/*
+	#include <memory>
+	#include <algorithm>
+	#include <limits>
+	*/
+
+	//字符串存储策略类：使用 yasli::vector 和 空基类优化。
+	template <typename _tChar, class _tAlloc = std::allocator<_tChar> >
+	class VectorStringStorage : protected yasli::vector<_tChar, _tAlloc>
+	{
+		typedef yasli::vector<_tChar, _tAlloc> base;
+
+	public: // protected:
+		typedef _tChar value_type;
+		typedef typename base::iterator iterator;
+		typedef typename base::const_iterator const_iterator;
+		typedef _tAlloc allocator_type;
+		typedef typename _tAlloc::size_type size_type;
+		typedef typename _tAlloc::reference reference;
+
+		VectorStringStorage(const VectorStringStorage&);
+		VectorStringStorage(const _tAlloc&);
+		VectorStringStorage(const value_type*, size_type, const _tAlloc&);
+		VectorStringStorage(size_type, _tChar, const _tAlloc&);
+
+		VectorStringStorage&
+		operator=(const VectorStringStorage& rhs);
+
+		PDefHead(iterator, begin)
+			ImplBodyBase(base, begin)
+
+		PDefHead(const_iterator, begin) const
+			ImplBodyBase(base, begin)
+
+		PDefHead(iterator, end)
+			ImplRet(base::end() - 1)
+
+		PDefHead(const_iterator, end) const
+			ImplRet(base::end() - 1)
+
+		PDefHead(size_type, size) const
+			ImplRet(base::size() - 1)
+
+		PDefHead(size_type, max_size) const
+			ImplRet(base::max_size() - 1)
+
+		PDefHead(size_type, capacity) const
+			ImplRet(base::capacity() - 1)
+
+		void
+		reserve(size_type);
+
+		template<class _tForIt>
+		void
+		append(_tForIt, _tForIt);
+
+		void
+		resize(size_type, _tChar);
+
+		PDefHead(void, swap, VectorStringStorage& rhs)
+			ImplBodyBaseVoid(base, swap, rhs)
+
+		PDefHead(const _tChar*, c_str) const
+			ImplRet(&*begin())
+
+		PDefHead(const _tChar*, data) const
+			ImplRet(&*begin())
+
+		PDefHead(_tAlloc, get_allocator) const
+			ImplBodyBase(base, get_allocator)
+	};
+
+} //$header YASLIVectorStoragePolicy;
+
+
+$header Container "cont.h" //容器管理。
+{
+	$import $header Adaptor::YAdaptor;
+
+
+	//包含 YASLI 。
+	#ifdef YSL_USE_YASLI_VECTOR
+	#	include <loki/yasli/yasli_vector.h>
+	#else
+	#	include <vector>
+	#endif
+
+	//包含 flex_string 。
+	#ifdef YSL_USE_FLEX_STRING
+	#	include <loki/flex/flex_string_shell.h>
+
+	YSL_BEGIN
+
+	YSL_BEGIN_NAMESPACE(Design)
+
+	YSL_BEGIN_NAMESPACE(Policies)
+
+	YSL_BEGIN_NAMESPACE(Storage)
+
+	/*
+	#	ifdef YSL_USE_YASLI_VECTOR
+	#		include "yaslivsp.hpp"
+	#	else
+	#		include <loki/flex/vectorstringstorage.h>
+	#	endif
+	*/
+	#	include <loki/flex/allocatorstringstorage.h>
+	#	include <loki/flex/smallstringopt.h>
+	#	ifdef YSL_USE_COPY_ON_WRITE
+	#		include <loki/flex/cowstringopt.h>
+	#	endif
+
+	YSL_END_NAMESPACE(Storage)
+
+	YSL_END_NAMESPACE(Policies)
+
+	YSL_END_NAMESPACE(Design)
+
+	YSL_END
+
+	#else
+	#	include <string>
+	#endif
+
+	//包含标准库容器和容器适配器。
+	#include <list>
+	#include <set>
+	#include <map>
+	#include <stack>
+	#include <queue>
+
+	YSL_BEGIN
+
+	#ifdef YSL_USE_YASLI_VECTOR
+		using yasli::vector;
+	#else
+		using std::vector;
+	#endif
+
+	using std::list;
+	using std::map;
+	using std::set;
+	using std::stack;
+	using std::queue;
+	using std::priority_queue;
+
+	#ifdef YSL_USE_FLEX_STRING
+
+	template<typename _tChar,
+		class _tCharTrait = std::char_traits<_tChar>,
+		class _tAlloc = std::allocator<_tChar>,
+		class _tStorage = 
+	#	if defined(YSL_OPT_SMALL_STRING_LENGTH) && YSL_OPT_SMALL_STRING_LENGTH > 0
+			Design::Policies::Storage::SmallStringOpt<
+	#	endif
+	#	ifdef YSL_USE_COPY_ON_WRITE
+			Design::Policies::Storage::CowStringOpt<
+	#	endif
+				Design::Policies::Storage::AllocatorStringStorage<_tChar, _tAlloc>
+	#	ifdef YSL_USE_COPY_ON_WRITE
+			>
+	#	endif
+	#	if defined(YSL_OPT_SMALL_STRING_LENGTH) && YSL_OPT_SMALL_STRING_LENGTH > 0
+			, YSL_OPT_SMALL_STRING_LENGTH
+		>
+	#endif
+	>
+	struct SStringTemplate
+	{
+		typedef flex_string<_tChar, _tCharTrait, _tAlloc, _tStorage> basic_string;
+	};
+
+	#else
+
+	template<typename _tChar>
+	struct SStringTemplate
+	{
+		typedef std::basic_string<_tChar> basic_string;
+	};
+
+	#endif
+
+	typedef SStringTemplate<char>::basic_string string;
+
+	//YSLib 基本字符串（使用 UTF-16LE ）。
+	typedef SStringTemplate<uchar_t>::basic_string ustring;
+
+	YSL_END
+
+} //$header Container;
 
 
 $header YRefrence "yref.hpp" //用于提供指针和引用访问的间接访问类模块。
 {
-	$import $header YAdapter;
+	$import $header Adaptor::YAdaptor;
 
 
-	namespace YSLib
-	{
+	YSL_BEGIN
+
+	YSL_BEGIN_NAMESPACE(Design)
+
+	YSL_BEGIN_NAMESPACE(Policies)
+
+	YSL_BEGIN_NAMESPACE(Operations)
 
 	template<class P>
-	struct YSP_OP_Simple
+	struct SmartPtr_Simple
 	{
 		enum
 		{
@@ -1045,11 +1459,11 @@ $header YRefrence "yref.hpp" //用于提供指针和引用访问的间接访问�
 		};
 
 		inline
-		YSP_OP_Simple();
+		SmartPtr_Simple();
 
 		template<class P1>
 		inline
-		YSP_OP_Simple(const YSP_OP_Simple<P1>& rhs);
+		SmartPtr_Simple(const SmartPtr_Simple<P1>& rhs);
 
 		inline static P
 		Clone(const P& val)
@@ -1058,11 +1472,11 @@ $header YRefrence "yref.hpp" //用于提供指针和引用访问的间接访问�
 		Release(const P&);
 
 		static void
-		Swap(YSP_OP_Simple&);
-	}; //template<class P> class YSP_OP_Simple;
+		Swap(SmartPtr_Simple&);
+	}; //template<class P> class SmartPtr_Simple;
 
 	template<class P>
-	class YSP_OP_RefCounted
+	class SmartPtr_RefCounted
 	{
 	private:
 		uintptr_t* pCount_;
@@ -1075,14 +1489,14 @@ $header YRefrence "yref.hpp" //用于提供指针和引用访问的间接访问�
 		enum { destructiveCopy = false };
 
 		inline
-		YSP_OP_RefCounted();
+		SmartPtr_RefCounted();
 
 		inline
-		YSP_OP_RefCounted(const YSP_OP_RefCounted& rhs);
+		SmartPtr_RefCounted(const SmartPtr_RefCounted& rhs);
 
 		template<typename P1>
 		inline
-		YSP_OP_RefCounted(const YSP_OP_RefCounted<P1>& rhs);
+		SmartPtr_RefCounted(const SmartPtr_RefCounted<P1>& rhs);
 
 		inline P
 		Clone(const P& val);
@@ -1091,12 +1505,18 @@ $header YRefrence "yref.hpp" //用于提供指针和引用访问的间接访问�
 		Release(const P&);
 
 		inline void
-		Swap(YSP_OP_RefCounted& rhs);
-	}; //template<class P> class YSP_OP_RefCounted;
+		Swap(SmartPtr_RefCounted& rhs);
+	}; //template<class P> class SmartPtr_RefCounted;
+
+	YSL_END_NAMESPACE(Operations)
+
+	YSL_END_NAMESPACE(Policies)
+
+	YSL_END_NAMESPACE(Design)
 
 
 	template<typename T,
-		template<class> class OP = YSP_OP_RefCounted,
+		template<class> class OP = Design::Policies::Operations::SmartPtr_RefCounted,
 		class CP = AllowConversion,
 		template<class> class KP = RejectNull,
 		template<class> class SP = DefaultSPStorage,
@@ -1122,19 +1542,15 @@ $header YRefrence "yref.hpp" //用于提供指针和引用访问的间接访问�
 
 		inline T*
 		GetPtr() const;
+
 		inline void
 		Swap(GHResource& rhs);
 	}; //template class GHResource;
 
 
-	//#ifdef YSL_HANDLEPOLICY_SIMPLE
-	#	define YHandleOP YSP_OP_Simple
+	#define YHandleOP Design::Policies::Operations::SmartPtr_Simple
 	//句柄不会被自动回收，需要手动释放。
-	#	define YDelete(h) delete h
-	/*#else
-	#	define YHandleOP YSP_OP_RefCounted
-	#	define YDelete(h)
-	#endif*/
+	#define YDelete(h) delete h
 
 
 	template<typename T,
@@ -1167,6 +1583,7 @@ $header YRefrence "yref.hpp" //用于提供指针和引用访问的间接访问�
 
 		inline T*
 		GetPtr() const;
+
 		inline void
 		Swap(GHHandle& rhs);
 	}; //template<typename T, ... > class GHHandle;
@@ -1200,7 +1617,7 @@ $header YRefrence "yref.hpp" //用于提供指针和引用访问的间接访问�
 
 $unit YFont "yfont" //平台无关的字体缓存库。
 {
-	$import $header Core::YFunc, $unit YCoreUtilities, $header <set>, <map>, $unit Core::YFileSystem/*, Helper::YGlobal*/;
+	$import $header Core::YFunc, $unit Core::YCoreUtilities, $header Core::String, $unit Core::YFileSystem/*, Helper::YGlobal*/;
 
 
 	YSL_BEGIN_NAMESPACE(Drawing)
@@ -1252,8 +1669,8 @@ $unit YFont "yfont" //平台无关的字体缓存库。
 		friend class YFontCache;
 
 	public:
-		typedef std::set<const Typeface*> FTypes; //字型组类型。
-		typedef std::map<const FT_String*, const Typeface*, deref_str_comp<FT_String> > FTypesIndex; //字型组索引类型。
+		typedef set<const Typeface*> FTypes; //字型组类型。
+		typedef map<const FT_String*, const Typeface*, deref_str_comp<FT_String> > FTypesIndex; //字型组索引类型。
 
 		YFontCache& Cache;
 
@@ -1309,7 +1726,7 @@ $unit YFont "yfont" //平台无关的字体缓存库。
 		FT_Int nCharmaps;
 		FT_Long lUnderlinePos;
 		FT_Matrix matrix;
-		std::vector<u8> fixSizes;*/
+		vector<u8> fixSizes;*/
 
 	public:
 		Typeface(YFontCache&, const FontFile&, u32 = 0);
@@ -1460,10 +1877,10 @@ $unit YFont "yfont" //平台无关的字体缓存库。
 		FTC_SBit sbit;
 
 	public:
-		typedef std::set<const FontFile*> FFiles; //字体文件组类型。
-		typedef std::set<const Typeface*> FTypes; //字型组类型。
-		typedef std::set<const Typeface*> FFaces; //字型家族组类型。
-		typedef std::map<const FT_String*, FontFamily*, deref_str_comp<FT_String> > FFacesIndex; //字型家族组索引类型。
+		typedef set<const FontFile*> FFiles; //字体文件组类型。
+		typedef set<const Typeface*> FTypes; //字型组类型。
+		typedef set<const Typeface*> FFaces; //字型家族组类型。
+		typedef map<const FT_String*, FontFamily*, deref_str_comp<FT_String> > FFacesIndex; //字型家族组索引类型。
 
 	private:
 		FFiles sFiles; //字体文件组。
@@ -1580,156 +1997,14 @@ $unit YFont "yfont" //平台无关的字体缓存库。
 } //$unit YFont;
 
 
-}; //$code YSLib::Adapter;
+}; //$code YSLib::Adaptor;
 
 
 $code YSLib::Core {
 
 $header YShellDefinition "ysdef.h" //宏定义和类型描述模块。
 {
-	$import $header <platform.h>;
-
-
-	/*
-	 ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
-	 GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，该宏不会被展开。详见： http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
-	解决方案来源： https://www.securecoding.cert.org/confluence/display/cplusplus/PRE05-CPP.+Understand+macro+replacement+when+concatenating+tokens+or+performing+stringification 。
-	*/
-	#define _yJOIN(x, y) x ## y
-
-
-	$import $unit YAdapter::YAdapter;
-
-
-	//异常规范宏。
-
-	// ythrow = "yielded throwing";
-	#ifdef YSL_USE_EXCEPTION_SPECIFICATION
-	#	define ythrow throw
-	#else
-	#	define ythrow(...)
-	#endif
-
-
-	//接口类型宏。
-
-	#define __interface struct
-	#define _yInterface __interface
-
-	#define implements public
-
-	#define _yInterfaceHead(_name) { \
-		virtual ~_name() {}
-
-	//prefix "PDecl" = Pre-declare;
-	#define PDeclInterface(_name) _yInterface _name;
-
-	#define DeclInterface(_name) _yInterface _name _yInterfaceHead(_name)
-
-	#ifdef __GNUC__
-	//对于基接口需要显示指定访问权限和继承方式。由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
-	#	define DeclBasedInterface(_name, _base...) \
-		_yInterface _name : _base _yInterfaceHead(_name)
-	#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-	#	define DeclBasedInterface(_name, _base, ...) \
-		_yInterface _name : _base, __VA_ARGS__ _yInterfaceHead(_name)
-	#else
-	//注意 ISO/IEC C++ 不支持宏的可变参数列表，因此无法实现接口多继承。
-	#	define DeclBasedInterface(_name, _base) \
-		_yInterface _name : _base _yInterfaceHead(_name)
-	#endif
-
-	//"DeclIEntry" = Declare Interface Entry;
-	#define DeclIEntry(_signature) virtual _signature = 0;
-
-	#define EndDecl };
-
-
-	//函数宏。
-
-	//通用函数头定义。
-	//prefix "PDef" = Partially Define;
-	#ifdef __GNUC__
-	#	define PDefHead(_type, _name, _paralist...) _type _name(_paralist)
-	#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist)
-	#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-	#	define PDefHead(_type, _name, _paralist, ...) _type _name(_paralist, __VA_ARGS__)
-	#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist, __VA_ARGS__)
-	#else
-	#	define PDefHead(_type, _name, _paralist) _type _name(_paralist)
-	#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist)
-	#endif
-
-
-	//简单通用函数实现。
-	//prefix "Impl" = Implement;
-	#define ImplExpr(_expr) { _expr; }
-	#define ImplRet(_expr) { return _expr; }
-
-	//基类同名函数映射和成员同名函数映射实现。
-	//prefix "Impl" = Implement;
-	#ifdef __GNUC__
-	#	define ImplBodyBase(_base, _name, _arglist...) { return _base::_name(_arglist); }
-	#	define ImplBodyBaseVoid(_base, _name, _arglist...) { _base::_name(_arglist); }
-	#	define ImplBodyMember(_member, _name, _arglist...) { return (_member)._name(_arglist); }
-	#	define ImplBodyMemberVoid(_member, _name, _arglist...) { (_member)._name(_arglist); }
-	#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-	#	define ImplBodyBase(_base, _name, _arglist, ...) { return _base::_name(_arglist, __VA_ARGS__); }
-	#	define ImplBodyBaseVoid(_base, _name, _arglist, ...) { _base::_name(_arglist, __VA_ARGS__); }
-	#	define ImplBodyMember(_member, _name, _arglist...) { return (_member)._name(_arglist); }
-	#	define ImplBodyMemberVoid(_member, _name, _arglist...) { (_member)._name(_arglist); }
-	#else
-	#	define ImplBodyBase(_base, _name, _arglist) { return _base::_name(_arglist); }
-	#	define ImplBodyBaseVoid(_base, _name, _arglist) { _base::_name(_arglist); }
-	#	define ImplBodyMember(_member, _name, _arglist) { return (_member)._name(_arglist); }
-	#	define ImplBodyMemberVoid(_member, _name, _arglist) { (_member)._name(_arglist); }
-	#endif
-
-
-	//简单通用成员函数定义。
-	//prefix "Def" = Define;
-	#define DefTrivialDtor(_type) ~_type() {}
-
-	#define DefConverter(_type, _expr) operator _type() const ythrow() { return _expr; }
-	#define DefConverterBase(_type, _base) operator _type() const ythrow() { return _base::operator _type(); }
-	#define DefConverterMember(_type, _member) operator _type() const ythrow() { return (_member).operator _type(); }
-
-	#define DefGetter(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return (_member); }
-	#define DefGetterBase(_type, _name, _base) _type _yJOIN(Get, _name)() const ythrow() { return _base::_yJOIN(Get, _name)(); }
-	#define DefGetterMember(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return (_member)._yJOIN(Get, _name)(); }
-
-	#define DefPredicate(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return (_member); }
-	#define DefPredicateBase(_name, _base) bool _yJOIN(Is, _name)() const ythrow() { return _base::_yJOIN(Is, _name)(); }
-	#define DefPredicateMember(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return (_member)._yJOIN(Is, _name)(); }
-
-	#define DefStaticGetter(_type, _name, _member) static _type _yJOIN(Get, _name)() ythrow() { return (_member); }
-	#define DefStaticGetterBase(_type, _name, _base) static _type _yJOIN(Get, _name)() ythrow() { return _base::_yJOIN(Get, _name)(); }
-
-	#define DefStaticPredicate(_name, _member) static bool _yJOIN(Is, _name)() ythrow() { return (_member); }
-	#define DefStaticPredicateBase(_name, _base) static bool _yJOIN(Is, _name)() ythrow() { return _base::_yJOIN(Is, _name)(); }
-
-	#define DefSetter(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { (_member) = _tempArgName; }
-	#define DefSetterDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { (_member) = _tempArgName; }
-	#define DefSetterBase(_type, _name, _base) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _base::_yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterBaseDe(_type, _name, _base, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _base::_yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterMember(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { (_member)._yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterMemberDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { (_member)._yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterEx(_type, _name, _member, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { (_member) = (_expr); }
-	#define DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { (_member) = (_expr); }
-
-
-	#define YSL_BEGIN	namespace YSLib {
-	#define YSL_END		}
-	#define YSL_			::YSLib::
-	#define YSL			::YSLib
-
-	#define YSL_BEGIN_NAMESPACE(s)	namespace s {
-	#define YSL_END_NAMESPACE(s)		}
-
-	#define YSL_BEGIN_SHELL(s)	namespace _yJOIN(_YSHL_, s) {
-	#define YSL_END_SHELL(s)	}
-	#define YSL_SHL_(s)		YSL_ _yJOIN(_YSHL_, s)::
-	#define YSL_SHL(s)		YSL_ _yJOIN(_YSHL_, s)
+	$import $unit YAdaptor::YAdaptor;
 
 
 	#ifndef YSL_SHLMAIN_NAME
@@ -1740,26 +2015,10 @@ $header YShellDefinition "ysdef.h" //宏定义和类型描述模块。
 	#	define YSL_SHLMAIN_SHLPROC ShlProc
 	#endif
 
-	#define YSL_MAIN_SHLPROC YSL_ YSL_SHLMAIN_SHLPROC
+	#define YSL_MAIN_SHLPROC YSL_SHL_(YSL_SHLMAIN_NAME) YSL_SHLMAIN_SHLPROC
 
-	// YSLib 选项。
-	/*
-	YSLib No_Cursor
-	定义无指针设备。
-	消息成员列表中不会包含 Point pt 。
-	*/
-	//#define YSLIB_NO_CURSOR
 
-	// YSLib Debug 选项。
-	/*
-	YSLib MSG Debug
-	bit0 ： InsertMessage ；
-	bit1 ： PeekMessage 。
-	注意： PeekMessage 包含 InsertMessage 。
-	*/
-	#define YSLIB_DEBUG_MSG 0
-
-	$import $unit YAdapter::YAdapter, YAdapter::YRefrence;
+	$import $unit YAdaptor::YRefrence;
 
 	YSL_BEGIN
 
@@ -2160,7 +2419,7 @@ $unit YCoreUtilities "ycutil" //核心实用模块。
 
 $header YEvent "yevt.hpp" //事件回调模块。
 {
-	$import $unit YObject, $header YFunc, <list>, <set>, <map>;
+	$import $unit YObject, $header YFunc, Adaptor::Container;
 
 
 	YSL_BEGIN_NAMESPACE(Runtime)
@@ -2343,7 +2602,7 @@ $header YEvent "yevt.hpp" //事件回调模块。
 	{
 	public:
 		typedef void FuncType(_tSender&, const _tEventArgs&);
-		typedef std::list<_tEventHandler> ListType;
+		typedef list<_tEventHandler> ListType;
 
 	protected:
 		ListType EventHandlerSet;
@@ -2442,7 +2701,7 @@ $header YEvent "yevt.hpp" //事件回调模块。
 		typedef _tEvent Event;
 
 	private:
-		std::map<ID, Event> Map;
+		map<ID, Event> Map;
 
 	public:
 		inline
@@ -2480,7 +2739,7 @@ $unit YModule "ymodule" //平台无关的核心公共模块类实现。
 	YSL_BEGIN_NAMESPACE(Components)
 
 	//通用对象组类模板。
-	template<class _type, class _tContainer = std::set<_type*> >
+	template<class _type, class _tContainer = set<_type*> >
 	class GMContainer : public _tContainer,
 		implements GIContainer<_type>
 	{
@@ -2498,7 +2757,7 @@ $unit YModule "ymodule" //平台无关的核心公共模块类实现。
 		operator+=(_type& w); //向对象组添加对象。
 		inline bool
 		operator-=(_type& w); //从对象组移除对象。
-	}; //template<class _type, class = std::set<_type*> > GMContainer;
+	}; //template<class _type, class = set<_type*> > GMContainer;
 
 	YSL_END_NAMESPACE(Components)
 
@@ -2924,7 +3183,7 @@ $unit YObject "yobject" //平台无关的基础对象实现。
 
 $unit YException "yexcept" //异常处理模块。
 {
-	$import $unit YObject, $header <new>, <typeinfo>, <string>;
+	$import $unit YObject, $header <new>, <typeinfo>, Adaptor::Container;
 
 
 	// YSLib 异常基类。
@@ -2941,10 +3200,10 @@ $unit YException "yexcept" //异常处理模块。
 	class GeneralEvent : public Exception
 	{
 	private:
-		std::string what_;
+		string what_;
 
 	public:
-		GeneralEvent(const std::string& what);
+		GeneralEvent(const string& what);
 		virtual
 		~GeneralEvent() throw();
 
@@ -2960,7 +3219,7 @@ $unit YException "yexcept" //异常处理模块。
 		u8 level;
 
 	public:
-		LoggedEvent(const std::string&, u8 = 0);
+		LoggedEvent(const string&, u8 = 0);
 		LoggedEvent(const GeneralEvent&, u8 = 0);
 		virtual
 		~LoggedEvent() throw();
@@ -2973,19 +3232,13 @@ $unit YException "yexcept" //异常处理模块。
 
 $unit YString "ystring" //基础字符串管理。
 {
-	$import $unit YObject, $header <string>;
-
-	namespace stdex
-	{
-		//YSLib 基本字符串（使用 UTF-16LE ）。
-		typedef basic_string<uchar_t> ustring;
-	} //namespace ..::stdex;
+	$import $unit YObject, $header Adaptor::Container;
 
 
 	YSL_BEGIN_NAMESPACE(Text)
 
 	// YSLib 标准字符串（使用 UTF-16LE ）。
-	class String : public stdex::ustring
+	class String : public ustring
 	{
 	private:
 		static uchar_t* s_str; //内码转换生成字符串临时指针。
@@ -2998,7 +3251,7 @@ $unit YString "ystring" //基础字符串管理。
 		template<class _tChar>
 		String(const _tChar*);
 		inline
-		String(const stdex::ustring&);
+		String(const ustring&);
 	}; //class String;
 
 
@@ -3006,10 +3259,10 @@ $unit YString "ystring" //基础字符串管理。
 	String
 	MBCSToString(const char*, const CSID& = CS_Local);
 	inline String
-	MBCSToString(const std::string& s, const CSID& = CS_Local);
+	MBCSToString(const string& s, const CSID& = CS_Local);
 
 	// YSLib 基本字符串转化为多字节字符串。
-	std::string
+	string
 	StringToMBCS(const String&, const CSID& = CS_Local);
 
 	YSL_END_NAMESPACE(Text)
@@ -3189,7 +3442,7 @@ $header YShellMessageDefinition "ysmsgdef.h" //标准 Shell 消息列表。
 
 $unit YShellMessage "ysmsg" //消息处理模块。
 {
-	$import $header Core::YShellDefinition, YShellMessageDefinition, $unit YObject, $header <queue>, <ctime>, $unit YWindow/* for HWND delete procedure; */;
+	$import $header Core::YShellDefinition, YShellMessageDefinition, $unit YObject, $header Adaptor::Container, <ctime>, $unit YWindow/* for HWND delete procedure; */;
 
 	$import typedef unsigned char u8;
 	using Drawing::Point;
@@ -3274,7 +3527,7 @@ $unit YShellMessage "ysmsg" //消息处理模块。
 		}; //struct cmp;
 
 		//消息优先队列。
-		std::priority_queue<Message, std::vector<Message>, cmp> q;
+		priority_queue<Message, vector<Message>, cmp> q;
 
 		PDefHead(const Message&, top) const
 			ImplBodyMember(q, top)
@@ -3284,7 +3537,7 @@ $unit YShellMessage "ysmsg" //消息处理模块。
 			ImplBodyMemberVoid(q, pop)
 	public:
 
-		typedef std::priority_queue<int, std::vector<int>, cmp>::size_type size_type;
+		typedef priority_queue<int, vector<int>, cmp>::size_type size_type;
 
 		YMessageQueue(); //默认构造函数：非内联。
 		virtual
@@ -3312,7 +3565,7 @@ $unit YShellMessage "ysmsg" //消息处理模块。
 
 	//合并 src 所有消息至 dst 中。
 	void
-	Merge(YMessageQueue& dst, std::vector<Message>& src);
+	Merge(YMessageQueue& dst, vector<Message>& src);
 	void
 	Merge(YMessageQueue& dst, YMessageQueue& src);
 
@@ -3325,7 +3578,7 @@ $unit YShellMessage "ysmsg" //消息处理模块。
 
 $unit YShell "yshell" // Shell 定义。
 {
-	$import $header Helper::YGlobal, $header <set>, <list>, $unit YApplication,
+	$import $header Helper::YGlobal, $unit YApplication,
 		$unit Shell::YWindow, Shell::YControl, Shell::YGUI;
 
 
@@ -3336,7 +3589,7 @@ $unit YShell "yshell" // Shell 定义。
 		implements GIContainer<IWindow>
 	{
 	public:
-		typedef std::list<HWND> WNDs;
+		typedef list<HWND> WNDs;
 
 	private:
 		WNDs sWnds; //窗口组。
@@ -3477,16 +3730,16 @@ $unit YApplication "yapp" //应用程序实例类抽象。
 		YLog&
 		operator<<(const char*);
 		YLog&
-		operator<<(const std::string&);
+		operator<<(const string&);
 
 		void
 		Error(const char*);
 		void
-		Error(std::string&);
+		Error(string&);
 		void
 		FatalError(const char*);
 		void
-		FatalError(std::string&);
+		FatalError(string&);
 	}; //class YLog;
 
 
@@ -3496,7 +3749,7 @@ $unit YApplication "yapp" //应用程序实例类抽象。
 	{
 	public:
 		typedef YObject ParentType;
-		typedef std::set<HSHL> SHLs;
+		typedef set<HSHL> SHLs;
 
 		//全局常量。
 		static const IO::Path CommonAppDataPath; //程序默认路径。
@@ -3572,7 +3825,7 @@ $unit YApplication "yapp" //应用程序实例类抽象。
 
 $unit YFileSystem "yfilesys" //平台无关的文件处理系统。
 {
-	$import $unit Core::YString, Core::YFunc, Helper::YGlobal, Core::YShell/* for HSHL delete procedure; */, $header <iterator>, <vector>, <list>;
+	$import $unit Core::YString, Core::YFunc, Helper::YGlobal, Core::YShell/* for HSHL delete procedure; */, $header <iterator>;
 
 
 	YSL_BEGIN_NAMESPACE(IO)
@@ -3585,7 +3838,7 @@ $unit YFileSystem "yfilesys" //平台无关的文件处理系统。
 
 
 	typedef char NativePathCharType; //本机路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
-	typedef std::basic_string<NativePathCharType> NativeStringType; //本地字符串类型。
+	typedef SStringTemplate<NativePathCharType>::basic_string NativeStringType; //本地字符串类型。
 
 
 	//路径类。
@@ -3593,7 +3846,7 @@ $unit YFileSystem "yfilesys" //平台无关的文件处理系统。
 	{
 	public:
 		typedef uchar_t ValueType;
-		typedef std::basic_string<ValueType> StringType; //内部字符串类型。
+		typedef SStringTemplate<ValueType>::basic_string StringType; //内部字符串类型。
 	//	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
 
 		static const ValueType Slash;
@@ -3740,66 +3993,66 @@ $unit YFileSystem "yfilesys" //平台无关的文件处理系统。
 	//截取路径末尾的文件名。
 	const char*
 	GetFileName(CPATH);
-	std::string
-	GetFileName(const std::string&);
+	string
+	GetFileName(const string&);
 
 	//截取路径中的目录名并返回字符串。
-	std::string
-	GetDirectoryName(const std::string&);
+	string
+	GetDirectoryName(const string&);
 
 	//截取路径中的目录名和文件名保存至字符串，并返回最后一个目录分隔符的位置。
-	std::string::const_iterator
-	SplitPath(const std::string&, std::string&, std::string&);
+	string::const_iterator
+	SplitPath(const string&, string&, string&);
 
 
 	//截取文件名开头的主文件名（贪婪匹配）。
 	String
-	GetStem(const String&, const std::string&);
+	GetStem(const String&, const string&);
 
 	//对于两个字符串，判断前者是否是后者的主文件名。
 	bool
 	IsStem(const char*, const char*);
 	bool
-	IsStem(const std::string&, const std::string&);
+	IsStem(const string&, const string&);
 
 	//判断给定两个文件名的主文件名是否相同（忽略大小写；贪婪匹配）。
 	bool
 	HaveSameStems(const char*, const char*);
 	bool
-	HaveSameStems(const std::string&, const std::string&);
+	HaveSameStems(const string&, const string&);
 
 	//截取文件名末尾的扩展名（非贪婪匹配）。
 	const char*
 	GetExtendName(const char*);
-	std::string
-	GetExtendName(const std::string&);
+	string
+	GetExtendName(const string&);
 
 	//对于两个字符串，判断前者是否是后者的扩展名。
 	bool
 	IsExtendName(const char*, const char*);
 	bool
-	IsExtendName(const std::string&, const std::string&);
+	IsExtendName(const string&, const string&);
 
 	//判断给定两个文件名的扩展名是否相同（忽略大小写；非贪婪匹配）。
 	bool
 	HaveSameExtendNames(const char*, const char*);
 	bool
-	HaveSameExtendNames(const std::string&, const std::string&);
+	HaveSameExtendNames(const string&, const string&);
 
 
 	//切换路径。
 	inline int
 	ChDir(CPATH);
 	int
-	ChDir(const std::string&);
+	ChDir(const string&);
 
 	//取当前工作目录。
-	std::string
+	string
 	GetNowDirectory();
 
 	//验证绝对路径有效性。
 	bool
-	ValidateDirectory(const std::string&);
+	ValidateDirectory(const string&);
 	inline bool
 	ValidateDirectory(const Path&);
 
@@ -3825,7 +4078,7 @@ $unit YFileSystem "yfilesys" //平台无关的文件处理系统。
 	{
 	public:
 		typedef String ItemType; //项目名称类型。
-		typedef std::vector<ItemType> ListType; //项目列表类型。
+		typedef vector<ItemType> ListType; //项目列表类型。
 
 	protected:
 		Path Directory; //目录的完整路径。
@@ -3838,7 +4091,7 @@ $unit YFileSystem "yfilesys" //平台无关的文件处理系统。
 
 		//导航至相对路径。
 		bool
-		operator/=(const std::string&) ythrow();
+		operator/=(const string&) ythrow();
 		inline bool
 		operator/=(const String&);
 
@@ -3950,7 +4203,7 @@ $code YSLib::Shell {
 
 $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 {
-	$import $unit Core::YObject, Adapter::Font;
+	$import $unit Core::YObject, Adaptor::Font;
 
 
 	// GDI 基本数据类型和宏定义。
@@ -4316,8 +4569,7 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 
 $unit YGUI "ygui" //平台无关的图形用户界面基础实现。
 {
-	$import $unit Core::YShellProcessing, Shell::YDesktop, Shell::YForm,
-		header <stack>;
+	$import $unit Core::YShellProcessing, Shell::YDesktop, Shell::YForm, Service::YTimer;
 
 	YSL_BEGIN_NAMESPACE(Runtime)
 
@@ -4489,7 +4741,7 @@ $unit YComponent "ycomp" //平台无关的 Shell 组件实现。
 
 $unit YDesktop "ydesktop" //平台无关的桌面抽象层。
 {
-	$import $unit YWindow, $header <list>;
+	$import $unit YWindow;
 
 
 	YSL_BEGIN_NAMESPACE(Components)
@@ -4501,7 +4753,7 @@ $unit YDesktop "ydesktop" //平台无关的桌面抽象层。
 
 	public:
 		typedef YComponent ParentType;
-		typedef std::list<IVisualControl*> DOs; //桌面对象组类型。
+		typedef list<IVisualControl*> DOs; //桌面对象组类型。
 
 	private:
 		YScreen& Screen; //屏幕对象。
@@ -4559,7 +4811,8 @@ $unit YDesktop "ydesktop" //平台无关的桌面抽象层。
 
 $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 {
-	$import $unit YComponent, Core::YModule, Core::YResource, $header <set>, YText, $unit YWindow, $unit YControl;
+	$import $unit YComponent, Core::YModule, Core::YResource, YText,
+		YWindow, YControl;
 
 
 	YSL_BEGIN_NAMESPACE(Components)
@@ -5205,7 +5458,7 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 	public:
 		typedef YVisualControl ParentType;
 		typedef String ItemType; //项目类型：字符串。
-		typedef std::vector<ItemType> ListType; //列表类型。
+		typedef vector<ItemType> ListType; //列表类型。
 		typedef GSequenceViewer<ListType> ViewerType; //视图类型。
 
 	protected:
@@ -5791,7 +6044,7 @@ $unit YSystemUtilities "ysutil" //系统实用模块。
 
 $unit YShellInitialization "ysinit" //程序启动时的通用初始化代码段。
 {
-	$import $unit Core::YShellDefinition, Adapter::Font;
+	$import $unit Core::YShellDefinition, Adaptor::Font;
 	$import extern CPATH DEF_FONT_PATH, DEF_FONT_DIRECTORY;
 
 
@@ -5829,7 +6082,7 @@ $unit YShellInitialization "ysinit" //程序启动时的通用初始化代码段
 
 $unit YTextManager "ytmgr" //平台无关的基础文本管理服务。
 {
-	$import $unit Core::YString, YFile_(Text), $header <map>
+	$import $unit Core::YString, YFile_(Text),
 		Core::YApplication;
 
 
@@ -5914,7 +6167,7 @@ $unit YTextManager "ytmgr" //平台无关的基础文本管理服务。
 	{
 	public:
 		typedef TextBlock::BlockSizeType BlockSizeType;
-		typedef std::map<BlockSizeType, TextBlock*> MapType;
+		typedef map<BlockSizeType, TextBlock*> MapType;
 
 	protected:
 		MapType Map;
@@ -6040,7 +6293,7 @@ $unit YTextManager "ytmgr" //平台无关的基础文本管理服务。
 
 $unit YTimer "ytimer" //平台无关的计时器服务。
 {
-	$import $unit Core::YObject, $header <map>;
+	$import $unit Core::YObject, $header Adaptor::Container;
 
 
 	YSL_BEGIN_NAMESPACE(Timers)
@@ -6049,7 +6302,7 @@ $unit YTimer "ytimer" //平台无关的计时器服务。
 	class YTimer : public YCountableObject
 	{
 	private:
-		typedef std::map<u32, YTimer*> TMRs; //计时器组。
+		typedef map<u32, YTimer*> TMRs; //计时器组。
 
 		static bool NotInitialized;
 		static vu32 SystemTick;
@@ -6214,6 +6467,13 @@ namespace Components
 namespace Design
 {
 	$unit Core::YCoreUtilities;
+	namespace Policies
+	{
+		namespace Operations
+		{
+			$header Adaptor::Reference;
+		} //namespace Operations;
+	} //namespace Policies;
 } //namespace Design;
 
 namespace Device
@@ -6223,7 +6483,7 @@ namespace Device
 
 namespace Drawing
 {
-	$unit Adapter::Font;
+	$unit Adaptor::Font;
 	$unit Core::YObject;
 	$unit Core::YResourse;
 } //namespace Drawing;
@@ -6259,7 +6519,7 @@ namespace Text
 	$unit Service::YTextManager;
 } //namespace Text;
 
-//$ std 命名空间兼容性污染列表。
+// std 命名空间兼容性污染列表。
 
 $header <platform.h>
 {
@@ -6269,20 +6529,15 @@ $header <platform.h>
 
 //既定 stdex 命名空间污染列表。
 
-$header YAdapter
+$header YAdaptor
 {
 	using CHRLib::uchar_t;
 	using CHRLib::uint_t;
-} //$header YAdapter;
-
-$unit Core::YString
-{
-	typedef basic_string<uchar_t> ustring;
-} //$unit Core::YString;
+} //$header YAdaptor;
 
 //既定内部命名空间污染列表。
 
-$header Adapter
+$header Adaptor::YAdaptor
 {
 	namespace Text
 	{
@@ -6305,9 +6560,15 @@ $header Adapter
 	using platform::terminate;
 	using platform::yassert;
 	using platform::HDirectory;
-} //$header Adapter;
+} //$header Adaptor::YAdaptor;
 
-$header Core::YShellDefinition : Adapter
+$Adaptor::Container : Adaptor::YAdaptor
+{
+	using yasli::vector;
+	using std::list, std::map, std::set, std::stack, std::queue, std::priority_queue, std::basic_string, std::string;
+} //$header Adaptor::Container;
+
+$header Core::YShellDefinition : Adaptor::YAdaptor
 {
 	using Components::Controls::IControl, Components::Controls::IVisualControl;
 	using Components::Forms::YForm, Components::Forms::YFrameWindow;

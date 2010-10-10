@@ -1,8 +1,8 @@
-﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
+﻿// YSLib::Adaptor::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13 + 08:00;
-// UTime = 2010-10-05 15:13 + 08:00;
-// Version = 0.6899;
+// UTime = 2010-10-09 10:03 + 08:00;
+// Version = 0.6904;
 
 
 #include "yfont.h"

@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-05 18:06 + 08:00;
-// Version = 0.2755;
+// UTime = 2010-10-09 10:41 + 08:00;
+// Version = 0.2765;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -266,7 +266,7 @@ class ShlReader : public Shells::ShlGUI
 public:
 	typedef ShlGUI ParentType;
 
-	static std::string path;
+	static string path;
 
 	MDualScreenReader Reader;
 	YTextFile* pTextFile;

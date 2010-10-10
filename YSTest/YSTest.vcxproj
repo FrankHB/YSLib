@@ -56,6 +56,7 @@
   <ItemGroup>
     <ClCompile Include="arm7\source\main.cpp" />
     <ClCompile Include="arm9\YCLib\ycommon.cpp" />
+    <ClCompile Include="arm9\YSLib\Adaptor\yfont.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yapp.cpp" />
     <ClCompile Include="arm9\YSLib\Core\ycutil.cpp" />
     <ClCompile Include="arm9\YSLib\Core\ydevice.cpp" />
@@ -70,7 +71,6 @@
     <ClCompile Include="arm9\YSLib\Core\yshell.cpp" />
     <ClCompile Include="arm9\YSLib\Core\ysmsg.cpp" />
     <ClCompile Include="arm9\YSLib\Core\ystring.cpp" />
-    <ClCompile Include="arm9\YSLib\Adapter\yfont.cpp" />
     <ClCompile Include="arm9\YSLib\Helper\shlds.cpp" />
     <ClCompile Include="arm9\YSLib\Helper\yglobal.cpp" />
     <ClCompile Include="arm9\YSLib\Helper\yshelper.cpp" />
@@ -100,6 +100,14 @@
   <ItemGroup>
     <ClInclude Include="arm9\YCLib\ycommon.h" />
     <ClInclude Include="arm9\YCLib\ydef.h" />
+    <ClInclude Include="arm9\YSLib\Adaptor\base.h" />
+    <ClInclude Include="arm9\YSLib\Adaptor\config.h" />
+    <ClInclude Include="arm9\YSLib\Adaptor\cont.h" />
+    <ClInclude Include="arm9\YSLib\Adaptor\yadaptor.h" />
+    <ClInclude Include="arm9\YSLib\Adaptor\yagg.h" />
+    <ClInclude Include="arm9\YSLib\Adaptor\yaslivsp.hpp" />
+    <ClInclude Include="arm9\YSLib\Adaptor\yfont.h" />
+    <ClInclude Include="arm9\YSLib\Adaptor\yref.hpp" />
     <ClInclude Include="arm9\YSLib\Shell\yguicomp.h" />
     <ClInclude Include="arm9\YSLib\ysbuild.h" />
     <ClInclude Include="arm9\YSLib\Core\yapp.h" />
@@ -121,10 +129,6 @@
     <ClInclude Include="arm9\YSLib\Core\ysmsg.h" />
     <ClInclude Include="arm9\YSLib\Core\ysmsgdef.h" />
     <ClInclude Include="arm9\YSLib\Core\ystring.h" />
-    <ClInclude Include="arm9\YSLib\Adapter\yadapter.h" />
-    <ClInclude Include="arm9\YSLib\Adapter\yagg.h" />
-    <ClInclude Include="arm9\YSLib\Adapter\yfont.h" />
-    <ClInclude Include="arm9\YSLib\Adapter\yref.hpp" />
     <ClInclude Include="arm9\YSLib\Helper\shlds.h" />
     <ClInclude Include="arm9\YSLib\Helper\yglobal.h" />
     <ClInclude Include="arm9\YSLib\Helper\yshelper.h" />

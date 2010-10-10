@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:27 + 08:00;
-// UTime = 2010-10-05 18:03 + 08:00;
-// Version = 0.1801;
+// UTime = 2010-10-09 10:42 + 08:00;
+// Version = 0.1811;
 
 
 #ifndef INCLUDED_YAPP_H_
@@ -30,16 +30,16 @@ public:
 	YLog&
 	operator<<(const char*);
 	YLog&
-	operator<<(const std::string&);
+	operator<<(const string&);
 
 	void
 	Error(const char*);
 	void
-	Error(const std::string&);
+	Error(const string&);
 	void
 	FatalError(const char*);
 	void
-	FatalError(const std::string&);
+	FatalError(const string&);
 };
 
 
@@ -49,7 +49,7 @@ class YApplication : public YObject,
 {
 public:
 	typedef YObject ParentType;
-	typedef std::set<HSHL> SHLs;
+	typedef set<HSHL> SHLs;
 
 	//全局常量。
 	static const IO::Path CommonAppDataPath; //程序默认路径。

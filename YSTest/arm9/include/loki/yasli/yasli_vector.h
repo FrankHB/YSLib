@@ -2,6 +2,7 @@
 #define YASLI_VECTOR_H_
 
 // $Id: yasli_vector.h 754 2006-10-17 19:59:11Z syntheticpp $
+//+$Id: yasli_vector.h 754 2010-10-09 11:47 + 08:00 $
 
 
 #include "platform.h"
@@ -457,12 +458,14 @@ namespace yasli {
            
            const typename std::iterator_traits<FwdIterator>::difference_type 
                           count = std::distance(first, last);
-               
-           if (eos_ - end_ > count || reserve_inplace_nstd(size() + count)) // there's enough room
+
+		   using std::copy;          
+
+		   if (eos_ - end_ > count || reserve_inplace_nstd(size() + count)) // there's enough room
            {
                if (count > end_ - &*position)
                {
-                   // Step 1: fill the hole between end_ and position+count
+				   // Step 1: fill the hole between end_ and position+count
                    FwdIterator i1 = first; 
                    std::advance(i1, end_ - &*position);
                    FwdIterator i2 = i1;

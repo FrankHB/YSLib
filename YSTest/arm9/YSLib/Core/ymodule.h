@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YModule -> YModule by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-05-01 13:52:56 + 08:00;
-// UTime = 2010-10-05 15:22 + 08:00;
-// Version = 0.1939;
+// UTime = 2010-10-09 10:41 + 08:00;
+// Version = 0.1949;
 
 
 #ifndef INCLUDED_YMODULE_H_
@@ -18,7 +18,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 //通用对象组类模板。
-template<class _type, class _tContainer = std::set<_type*> >
+template<class _type, class _tContainer = set<_type*> >
 class GMContainer : public _tContainer,
 	implements GIContainer<_type>
 {

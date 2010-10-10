@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-28 00:09:28 + 08:00;
-// UTime = 2010-10-05 15:20 + 08:00;
-// Version = 0.1784;
+// UTime = 2010-10-09 18:13 + 08:00;
+// Version = 0.1822;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -15,8 +15,8 @@
 #include "../Helper/yglobal.h"
 #include "../Core/yshell.h" // for HSHL delete procedure;
 #include <iterator>
-#include <vector>
-#include <list>
+//#include <vector>
+//#include <list>
 
 YSL_BEGIN
 
@@ -30,14 +30,14 @@ extern const CPATH FS_Parent;
 
 
 typedef char NativePathCharType; //本机路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
-typedef std::basic_string<NativePathCharType> NativeStringType; //本地字符串类型。
+typedef SStringTemplate<NativePathCharType>::basic_string NativeStringType; //本地字符串类型。
 
 //路径类。
-class Path : public stdex::ustring
+class Path : public ustring
 {
 public:
 	typedef uchar_t ValueType;
-	typedef std::basic_string<ValueType> StringType; //内部字符串类型。
+	typedef SStringTemplate<ValueType>::basic_string StringType; //内部字符串类型。
 //	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
 
 	static const ValueType Slash;
@@ -154,24 +154,24 @@ public:
 
 inline
 Path::Path()
-	: stdex::ustring()
+	: ustring()
 {}
 inline
 Path::Path(const Path::ValueType* pathstr)
-	: stdex::ustring(pathstr)
+	: ustring(pathstr)
 {}
 inline
 Path::Path(const NativePathCharType* pathstr)
-	: stdex::ustring(Text::MBCSToString(pathstr))
+	: ustring(Text::MBCSToString(pathstr))
 {}
 inline
 Path::Path(const NativeStringType& pathstr)
-	: stdex::ustring(Text::MBCSToString(pathstr))
+	: ustring(Text::MBCSToString(pathstr))
 {}
 template<class _tString>
 inline
 Path::Path(const _tString& pathstr)
-	: stdex::ustring(pathstr)
+	: ustring(pathstr)
 {}
 inline
 Path::~Path()
@@ -315,51 +315,51 @@ swap(Path& lhs, Path& rhs)
 //截取路径末尾的文件名。
 const char*
 GetFileName(CPATH);
-std::string
-GetFileName(const std::string&);
+string
+GetFileName(const string&);
 
 //截取路径中的目录名并返回字符串。
-std::string
-GetDirectoryName(const std::string&);
+string
+GetDirectoryName(const string&);
 
 //截取路径中的目录名和文件名保存至字符串，并返回最后一个目录分隔符的位置。
-std::string::size_type
-SplitPath(const std::string&, std::string&, std::string&);
+string::size_type
+SplitPath(const string&, string&, string&);
 
 
 //截取文件名开头的主文件名（贪婪匹配）。
-std::string
-GetStem(const std::string&, const std::string&);
+string
+GetStem(const string&, const string&);
 
 //对于两个字符串，判断前者是否是后者的主文件名。
 bool
 IsStem(const char*, const char*);
 bool
-IsStem(const std::string&, const std::string&);
+IsStem(const string&, const string&);
 
 //判断给定两个文件名的主文件名是否相同（忽略大小写；贪婪匹配）。
 bool
 HaveSameStems(const char*, const char*);
 bool
-HaveSameStems(const std::string&, const std::string&);
+HaveSameStems(const string&, const string&);
 
 //截取文件名末尾的扩展名（非贪婪匹配）。
 const char*
 GetExtendName(const char*);
-std::string
-GetExtendName(const std::string&);
+string
+GetExtendName(const string&);
 
 //对于两个字符串，判断前者是否是后者的扩展名。
 bool
 IsExtendName(const char*, const char*);
 bool
-IsExtendName(const std::string&, const std::string&);
+IsExtendName(const string&, const string&);
 
 //判断给定两个文件名的扩展名是否相同（忽略大小写；非贪婪匹配）。
 bool
 HaveSameExtendNames(const char*, const char*);
 bool
-HaveSameExtendNames(const std::string&, const std::string&);
+HaveSameExtendNames(const string&, const string&);
 
 
 //切换路径。
@@ -369,15 +369,15 @@ ChDir(CPATH path)
 	return platform::chdir(path);
 }
 int
-ChDir(const std::string&);
+ChDir(const string&);
 
 //取当前工作目录。
-std::string
+string
 GetNowDirectory();
 
 //验证绝对路径有效性。
 bool
-ValidateDirectory(const std::string&);
+ValidateDirectory(const string&);
 inline bool
 ValidateDirectory(const Path& path)
 {
@@ -412,7 +412,7 @@ class MFileList
 {
 public:
 	typedef String ItemType; //项目名称类型。
-	typedef std::vector<ItemType> ListType; //项目列表类型。
+	typedef vector<ItemType> ListType; //项目列表类型。
 
 protected:
 	Path Directory; //目录的完整路径。
@@ -424,7 +424,7 @@ public:
 
 	//导航至相对路径。
 	bool
-	operator/=(const std::string&);
+	operator/=(const string&);
 	bool
 	operator/=(const String&);
 

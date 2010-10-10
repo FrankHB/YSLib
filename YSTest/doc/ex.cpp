@@ -322,7 +322,7 @@ class Path
 {
 public:
 	typedef NativePathCharType value_type;
-	typedef std::basic_string<value_type> StringType;
+	typedef basic_string<value_type> StringType;
 	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
 
 private:
@@ -727,7 +727,7 @@ ad_rect(const Rect& r, const agg::rgba8* c)
 	if(c)
 		rast.render(rend, *c);
 }
-typedef std::vector<Point> poly; //多边形。
+typedef vector<Point> poly; //多边形。
 static void
 ad_v(const poly& p, const agg::rgba8* c)
 {

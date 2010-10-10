@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-05 18:06 + 08:00;
-// Version = 0.3121;
+// UTime = 2010-10-09 10:40 + 08:00;
+// Version = 0.3131;
 
 
 #include <Shells.h>
@@ -327,7 +327,7 @@ ShlExplorer::TFrmFileListSelecter::btnOK_Click(const MTouchEventArgs&)
 {
 	if(fbMain.IsSelected())
 	{
-		const std::string& s(fbMain.GetPath().GetNativeString());
+		const string& s(fbMain.GetPath().GetNativeString());
 /*	YConsole con;
 	con.Activate();
 	iprintf("%s\n%s\n%s\n%d,%d\n",fbMain.GetDirectory().c_str(), StringToMBCS(fbMain.YListBox::GetList()[fbMain.GetSelected()]).c_str(),
@@ -554,7 +554,7 @@ ShlSetting::ShlProc(const Message& msg)
 }
 
 
-std::string ShlReader::path;
+string ShlReader::path;
 
 ShlReader::ShlReader()
 	: ShlGUI(),

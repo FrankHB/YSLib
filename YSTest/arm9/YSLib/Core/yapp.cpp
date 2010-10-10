@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:36 + 08:00;
-// UTime = 2010-10-05 15:15 + 08:00;
-// Version = 0.1914;
+// UTime = 2010-10-09 10:38 + 08:00;
+// Version = 0.1924;
 
 
 #include "yapp.h"
@@ -22,7 +22,7 @@ YLog& YLog::operator<<(const char*)
 {
 	return *this;
 }
-YLog& YLog::operator<<(const std::string& s)
+YLog& YLog::operator<<(const string& s)
 {
 	return operator<<(s);
 }
@@ -31,7 +31,7 @@ void
 YLog::Error(const char*)
 {}
 void
-YLog::Error(const std::string& s)
+YLog::Error(const string& s)
 {
 	Error(s.c_str());
 }
@@ -41,7 +41,7 @@ YLog::FatalError(const char*)
 	terminate();
 }
 void
-YLog::FatalError(const std::string& s)
+YLog::FatalError(const string& s)
 {
 	FatalError(s.c_str());
 }

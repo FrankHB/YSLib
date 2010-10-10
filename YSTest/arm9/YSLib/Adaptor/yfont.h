@@ -1,8 +1,8 @@
-﻿// YSLib::Adapter::YFontCache by Franksoft 2009 - 2010
+﻿// YSLib::Adaptor::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:02:40 + 08:00;
-// UTime = 2010-10-05 15:14 + 08:00;
-// Version = 0.6852;
+// UTime = 2010-10-09 11:40 + 08:00;
+// Version = 0.6878;
 
 
 #ifndef INCLUDED_YFONT_H_
@@ -12,8 +12,6 @@
 
 #include "../Core/yfunc.hpp"
 #include "../Core/ystring.h"
-#include <set>
-#include <map>
 
 #define GLYPH_CACHE_SIZE	(32 * 1024)
 
@@ -77,8 +75,8 @@ class FontFamily// : implements GIEquatable<FontFamily>, implements GILess<FontF
 	friend class YFontCache;
 
 public:
-	typedef std::set<const Typeface*> FTypes; //字型组类型。
-	typedef std::map<const FT_String*, const Typeface*, deref_str_comp<FT_String> > FTypesIndex; //字型组索引类型。
+	typedef set<const Typeface*> FTypes; //字型组类型。
+	typedef map<const FT_String*, const Typeface*, deref_str_comp<FT_String> > FTypesIndex; //字型组索引类型。
 
 	YFontCache& Cache;
 
@@ -134,7 +132,7 @@ private:
 	FT_Int nCharmaps;
 	FT_Long lUnderlinePos;
 	FT_Matrix matrix;
-	std::vector<u8> fixSizes;*/
+	vector<u8> fixSizes;*/
 
 public:
 	Typeface(YFontCache&, const FontFile&, u32 = 0/*, const bool bb = false, const bool bi = false, const bool bu = false*/);
@@ -315,10 +313,10 @@ private:
 	FTC_SBit sbit;
 
 public:
-	typedef std::set<const FontFile*, deref_comp<const FontFile> > FFiles; //字体文件组类型。
-	typedef std::set<const Typeface*, deref_comp<const Typeface> > FTypes; //字型组类型。
-	typedef std::set<FontFamily*, deref_comp<FontFamily> > FFaces; //字型家族组类型。
-	typedef std::map<const FT_String*, FontFamily*, deref_str_comp<FT_String> > FFacesIndex; //字型家族组索引类型。
+	typedef set<const FontFile*, deref_comp<const FontFile> > FFiles; //字体文件组类型。
+	typedef set<const Typeface*, deref_comp<const Typeface> > FTypes; //字型组类型。
+	typedef set<FontFamily*, deref_comp<FontFamily> > FFaces; //字型家族组类型。
+	typedef map<const FT_String*, FontFamily*, deref_str_comp<FT_String> > FFacesIndex; //字型家族组索引类型。
 
 private:
 	FFiles sFiles; //字体文件组。

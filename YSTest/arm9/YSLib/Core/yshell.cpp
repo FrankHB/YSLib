@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15 + 08:00;
-// UTime = 2010-10-05 18:02 + 08:00;
-// Version = 0.2747;
+// UTime = 2010-10-09 10:40 + 08:00;
+// Version = 0.2757;
 
 
 #include "../Shell/ywindow.h"
@@ -243,7 +243,7 @@ PeekMessage
 {
 	if(!theApp.GetDefaultMessageQueue().empty())
 	{
-		std::vector<Message> mqt;
+		vector<Message> mqt;
 		Message m;
 	//	void (YMessageQueue::*fngmq)(Message&) = wRemoveMsg & PM_REMOVE ? &YMessageQueue::GetMessage : (void (YMessageQueue::*)(Message&))&YMessageQueue::PeekMessage;
 	//	(theApp.GetDefaultMessageQueue().*fngmq)(m);

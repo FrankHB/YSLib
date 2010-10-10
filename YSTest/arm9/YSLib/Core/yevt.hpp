@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YEvent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-04-23 23:08:23 + 08:00;
-// UTime = 2010-10-06 01:41 + 08:00;
-// Version = 0.3112;
+// UTime = 2010-10-09 10:50 + 08:00;
+// Version = 0.3124;
 
 
 #ifndef INCLUDED_YEVT_HPP_
@@ -12,9 +12,10 @@
 
 #include "yobject.h"
 #include "yfunc.hpp"
-#include <list>
-#include <set>
-#include <map>
+//#include <list>
+//#include <set>
+//#include <map>
+#include "../Adaptor/cont.h"
 
 YSL_BEGIN
 
@@ -265,10 +266,10 @@ class GEvent
 {
 public:
 	typedef void FuncType(_tSender&, const _tEventArgs&);
-	typedef std::list<_tEventHandler> ListType;
+	typedef list<_tEventHandler> ListType;
 
 protected:
-	std::list<_tEventHandler> EventHandlerList;
+	list<_tEventHandler> EventHandlerList;
 
 public:
 	GEvent()
@@ -329,7 +330,7 @@ public:
 	void
 	operator()(_tSender& sender, const _tEventArgs& e) const
 	{
-		for(typename std::list<_tEventHandler>::const_iterator i(EventHandlerList.begin()); i != EventHandlerList.end(); ++i)
+		for(typename list<_tEventHandler>::const_iterator i(EventHandlerList.begin()); i != EventHandlerList.end(); ++i)
 			(*i)(sender, e);
 	}
 };
@@ -419,7 +420,7 @@ public:
 	typedef _tEvent Event;
 
 private:
-	std::map<ID, Event> Map;
+	map<ID, Event> Map;
 
 public:
 	GEventMap()

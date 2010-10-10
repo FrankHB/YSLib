@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-06 02:44:31 + 08:00;
-// UTime = 2010-10-05 18:01 + 08:00;
-// Version = 0.1778;
+// UTime = 2010-10-09 11:10 + 08:00;
+// Version = 0.1802;
 
 
 #ifndef INCLUDED_YSMSG_H_
@@ -13,7 +13,8 @@
 #include "ysdef.h"
 #include "ysmsgdef.h"
 #include "yobject.h"
-#include <queue>
+#include "../Adaptor/cont.h"
+//#include <queue>
 #include <ctime>
 
 YSL_BEGIN
@@ -124,7 +125,7 @@ private:
 	};
 
 	//消息优先队列。
-	std::priority_queue<Message, std::vector<Message>, cmp> q;
+	priority_queue<Message, vector<Message>, cmp> q;
 
 	PDefHead(const Message&, top) const
 		ImplBodyMember(q, top)
@@ -134,7 +135,7 @@ private:
 		ImplBodyMemberVoid(q, pop)
 
 public:
-	typedef std::priority_queue<int, std::vector<int>, cmp>::size_type size_type;
+	typedef priority_queue<int, vector<int>, cmp>::size_type size_type;
 
 	YMessageQueue(); //默认构造函数：非内联。
 	virtual
@@ -161,7 +162,7 @@ public:
 
 //合并 src 所有消息至 dst 中。
 void
-Merge(YMessageQueue& dst, std::vector<Message>& src);
+Merge(YMessageQueue& dst, vector<Message>& src);
 void
 Merge(YMessageQueue& dst, YMessageQueue& src);
 

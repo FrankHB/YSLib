@@ -1,5 +1,5 @@
-﻿ Franksoft YSLib PreAlpha 1
-2010-5-9
+﻿>Franksoft YSLib PreAlpha 1
+2010-05-09
 意义不明的框架库和附属品，半成品，对于开发人员以外完全没有价值。包含了框架库的测试程序，不过似乎完全无法体现设计目标= =...
 嗯，基本上就是能用 TTF 字体，然后一些显示简单界面焦点响应什么的一个玩意……理论上来说做好了能完秒 MoonShell ，不过实际又是另外一回事了……
 
@@ -33,11 +33,14 @@ $(NDSEmulator) $(TargetPath) --cflash-path=H:\NDS\efsroot
 使用了一些外部的库，虽然都可以不用GNU GPL的，不过保留在注释的一部分 VNDS 代码没删干净，不得不用GPL发布。
 
 感想：伟大的雷叔在程序群里曾经教导过说，在 DS 上面写界面库是愚蠢的行为。果然如此。所以我决定把愚蠢贯彻到底（虽然有点微妙的变化= =），这样好歹对自己随口挖的坑有个交待……
-----
+====
 2010-09-29
 迁移至 Visual Studio 2010 。
 自动转换解决方案和工程文件（保留了旧版本）。
 环境变量 NDSEmulator 去除引号，例如 F:\devkitPro\PALib\emulators\DeSmuME\DeSmuME.exe 。
 现在的调试命令行是类似这样的：$(NDSEmulator) $(ProjectDir)$(NMakeOutput) --cflash-path=H:\NDS\efsroot。
 之后就可以正常编译了。
+====
+2010-10-09
+补Loki的MIT License，orz...
 

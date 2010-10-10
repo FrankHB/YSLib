@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-06 2:44:31 + 08:00;
-// UTime = 2010-10-05 18:01 + 08:00;
-// Version = 0.1427;
+// UTime = 2010-10-09 10:39 + 08:00;
+// Version = 0.1437;
 
 
 #include "ysmsg.h"
@@ -100,7 +100,7 @@ YMessageQueue::InsertMessage(const Message& m)
 }
 
 void
-Merge(YMessageQueue& dst, std::vector<Message>& src)
+Merge(YMessageQueue& dst, vector<Message>& src)
 {
 	Message m;
 

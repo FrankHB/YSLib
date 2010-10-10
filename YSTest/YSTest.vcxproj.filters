@@ -19,9 +19,6 @@
     <Filter Include="ARM9\YSLib\Core">
       <UniqueIdentifier>{87880e54-e940-4400-8fd1-ab080884beac}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ARM9\YSLib\Adapter">
-      <UniqueIdentifier>{ed42ef77-90b9-4424-ad3f-f820155b4a1d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ARM9\YSLib\Helper">
       <UniqueIdentifier>{fedbdc16-047f-4315-a03d-de661e320bd5}</UniqueIdentifier>
     </Filter>
@@ -85,6 +82,9 @@
     <Filter Include="common\资源文件">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="ARM9\YSLib\Adaptor">
+      <UniqueIdentifier>{528ca737-2440-465a-be55-2d1a745a2539}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -167,9 +167,6 @@
     <ClCompile Include="arm9\YSLib\Core\ystring.cpp">
       <Filter>ARM9\YSLib\Core</Filter>
     </ClCompile>
-    <ClCompile Include="arm9\YSLib\Adapter\yfont.cpp">
-      <Filter>ARM9\YSLib\Adapter</Filter>
-    </ClCompile>
     <ClCompile Include="arm9\YSLib\Helper\shlds.cpp">
       <Filter>ARM9\YSLib\Helper</Filter>
     </ClCompile>
@@ -245,6 +242,9 @@
     <ClCompile Include="arm9\YSLib\Shell\yguicomp.cpp">
       <Filter>ARM9\YSLib\Shell</Filter>
     </ClCompile>
+    <ClCompile Include="arm9\YSLib\Adaptor\yfont.cpp">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arm9\YCLib\ycommon.h">
@@ -312,18 +312,6 @@
     </ClInclude>
     <ClInclude Include="arm9\YSLib\Core\ystring.h">
       <Filter>ARM9\YSLib\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adapter\yadapter.h">
-      <Filter>ARM9\YSLib\Adapter</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adapter\yagg.h">
-      <Filter>ARM9\YSLib\Adapter</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adapter\yfont.h">
-      <Filter>ARM9\YSLib\Adapter</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adapter\yref.hpp">
-      <Filter>ARM9\YSLib\Adapter</Filter>
     </ClInclude>
     <ClInclude Include="arm9\YSLib\Helper\shlds.h">
       <Filter>ARM9\YSLib\Helper</Filter>
@@ -1224,6 +1212,30 @@
     </ClInclude>
     <ClInclude Include="arm9\YSLib\Shell\yguicomp.h">
       <Filter>ARM9\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Adaptor\yadaptor.h">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Adaptor\base.h">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Adaptor\config.h">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Adaptor\yagg.h">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Adaptor\yfont.h">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Adaptor\yref.hpp">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Adaptor\cont.h">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Adaptor\yaslivsp.hpp">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

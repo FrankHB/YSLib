@@ -1,7 +1,7 @@
-﻿// YSLib::Adapter::YAGG by Franksoft 2010
+﻿// YSLib::Adaptor::YAGG by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-2-21 15:46:00;
-// UTime = 2010-5-1 14:11;
+// CTime = 2010-02-21 15:46:00 + 08:00;
+// UTime = 2010-10-09 10:03 + 08:00;
 // Version = 0.1661;
 
 
