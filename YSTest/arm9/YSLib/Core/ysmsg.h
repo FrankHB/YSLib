@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-06 02:44:31 + 08:00;
-// UTime = 2010-10-09 11:10 + 08:00;
-// Version = 0.1802;
+// UTime = 2010-10-13 16:46 + 08:00;
+// Version = 0.1812;
 
 
 #ifndef INCLUDED_YSMSG_H_
@@ -127,11 +127,11 @@ private:
 	//消息优先队列。
 	priority_queue<Message, vector<Message>, cmp> q;
 
-	PDefHead(const Message&, top) const
+	PDefH(const Message&, top) const
 		ImplBodyMember(q, top)
-	PDefHead(void, push, const Message& msg)
+	PDefH(void, push, const Message& msg)
 		ImplBodyMemberVoid(q, push, msg)
-	PDefHead(void, pop)
+	PDefH(void, pop)
 		ImplBodyMemberVoid(q, pop)
 
 public:
@@ -141,9 +141,9 @@ public:
 	virtual
 	~YMessageQueue() ythrow(); //默认析构函数：非内联。
 
-	PDefHead(bool, empty) const //判断消息队列是否为空。
+	PDefH(bool, empty) const //判断消息队列是否为空。
 		ImplBodyMember(q, empty)
-	PDefHead(size_type, size) const //取队列中消息容量。
+	PDefH(size_type, size) const //取队列中消息容量。
 		ImplBodyMember(q, size)
 
 	void

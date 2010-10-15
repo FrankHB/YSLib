@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-06 15:37 + 08:00;
-// Version = 0.4135;
+// UTime = 2010-10-14 08:38 + 08:00;
+// Version = 0.4148;
 
 
 #include "ywindow.h"
@@ -14,7 +14,6 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Widgets)
 
-using namespace Runtime;
 using Controls::YVisualControl;
 
 
@@ -119,13 +118,12 @@ YWidget::~YWidget()
 MWidgetContainer::MWidgetContainer()
 	: GMFocusResponser<IVisualControl>(),
 	sWgtSet()
-{
-}
+{}
 
 IVisualControl*
 MWidgetContainer::GetFocusingPtr() const
 {
-	return Runtime::GMFocusResponser<IVisualControl>::GetFocusingPtr();
+	return GMFocusResponser<IVisualControl>::GetFocusingPtr();
 }
 IWidget*
 MWidgetContainer::GetTopWidgetPtr(const Point& pt) const

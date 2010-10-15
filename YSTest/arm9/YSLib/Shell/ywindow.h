@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40 + 08:00;
-// UTime = 2010-10-05 18:35 + 08:00;
-// Version = 0.3335;
+// UTime = 2010-10-15 16:54 + 08:00;
+// Version = 0.3402;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -51,32 +51,20 @@ public:
 	MDesktopObject(YDesktop*);
 
 protected:
-	DefTrivialDtor(MDesktopObject)
+	DefEmptyDtor(MDesktopObject)
 
 public:
 	//判断从属关系。
-	bool
-	BelongsTo(YDesktop*) const;
+	PDefH(bool, BelongsTo, YDesktop* pDsk) const
+		ImplRet(pDesktop == pDsk)
 
-	YDesktop* GetDesktopPtr() const;
+	DefGetter(YDesktop*, DesktopPtr, pDesktop)
 };
 
 inline
 MDesktopObject::MDesktopObject(YDesktop* pDsk)
 	: pDesktop(pDsk)
 {}
-
-inline bool
-MDesktopObject::BelongsTo(YDesktop* pDsk) const
-{
-	return pDesktop == pDsk;
-}
-
-inline YDesktop*
-MDesktopObject::GetDesktopPtr() const
-{
-	return pDesktop;
-}
 
 
 //窗口模块。
@@ -104,7 +92,7 @@ public:
 };
 
 
-//抽象窗口模块基类。
+//抽象窗口。
 class AWindow : public Widgets::MWidget, public MWindow,
 	implements IWindow
 {
@@ -112,10 +100,9 @@ public:
 	explicit
 	AWindow(const Rect& = Rect::Empty, const GHResource<YImage> = new YImage(),
 		YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
-	virtual
-	~AWindow();
+	virtual DefEmptyDtor(AWindow)
 
-	virtual PDefOpHead(EventMapType::Event&, [], const EventMapType::ID& id)
+	virtual PDefHOperator(EventMapType::Event&, [], const EventMapType::ID& id)
 		ImplBodyBase(MVisualControl, operator[], id)
 
 	virtual DefConverterMember(GraphicInterfaceContext, Buffer)
@@ -125,22 +112,22 @@ public:
 	virtual DefPredicateBase(BgRedrawed, MVisual)
 	virtual DefPredicateBase(Enabled, MVisualControl)
 	virtual DefPredicateBase(Focused, AFocusRequester)
-	virtual PDefHead(bool, IsFocusOfContainer, Runtime::GMFocusResponser<IVisualControl>& c) const
+	virtual PDefH(bool, IsFocusOfContainer, GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
 	virtual DefPredicateBase(RefreshRequired, MWindow)
 	virtual DefPredicateBase(UpdateRequired, MWindow)
 
 	//判断从属关系。
-	PDefHead(bool, BelongsTo, HSHL h) const
+	PDefH(bool, BelongsTo, HSHL h) const
 		ImplRet(hShell == h)
-	PDefHead(bool, BelongsTo, YDesktop* pDsk) const
+	PDefH(bool, BelongsTo, YDesktop* pDsk) const
 		ImplBodyBase(MDesktopObject, BelongsTo, pDsk)
 
 	//判断包含关系。
-	virtual PDefHead(bool, Contains, const Point& p) const
+	virtual PDefH(bool, Contains, const Point& p) const
 		ImplBodyBase(MVisual, Contains, p)
 
-	virtual PDefHead(bool, CheckRemoval, Runtime::GMFocusResponser<IVisualControl>& c) const
+	virtual PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(MVisualControl, CheckRemoval, c)
 
 	virtual DefGetterBase(const Point&, Location, MVisual)
@@ -156,6 +143,18 @@ public:
 	BitmapPtr
 	GetBackgroundPtr() const;
 
+	virtual DefEventGetter(Controls::InputEventHandler, Enter)
+	virtual DefEventGetter(Controls::InputEventHandler, Leave)
+	virtual DefEventGetter(Controls::KeyEventHandler, KeyUp)
+	virtual DefEventGetter(Controls::KeyEventHandler, KeyDown)
+	virtual DefEventGetter(Controls::KeyEventHandler, KeyHeld)
+	virtual DefEventGetter(Controls::KeyEventHandler, KeyPress)
+	virtual DefEventGetter(Controls::TouchEventHandler, TouchUp)
+	virtual DefEventGetter(Controls::TouchEventHandler, TouchDown)
+	virtual DefEventGetter(Controls::TouchEventHandler, TouchHeld)
+	virtual DefEventGetter(Controls::TouchEventHandler, TouchMove)
+	virtual DefEventGetter(Controls::TouchEventHandler, Click)
+
 	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
 	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
@@ -169,7 +168,7 @@ public:
 	virtual DefSetterBaseDe(bool, Enabled, MVisualControl, true)
 	virtual DefSetterBaseDe(GHResource<YImage>, Background, MWindow, NULL)
 
-	PDefHead(void, ClearBackground) const //清除背景。
+	PDefH(void, ClearBackground) const //清除背景。
 		ImplExpr(Buffer.ClearImage())
 
 public:
@@ -191,7 +190,7 @@ public:
 	Update();
 
 private:
-	virtual PDefHead(bool, ReleaseFocus, Runtime::GMFocusResponser<IVisualControl>& c)
+	virtual PDefH(bool, ReleaseFocus, GMFocusResponser<IVisualControl>& c)
 		ImplBodyBase(MVisualControl, ReleaseFocus, c)
 
 public:
@@ -245,30 +244,30 @@ public:
 	virtual
 	~YFrameWindow();
 
-	virtual PDefOpHead(void, +=, IWidget& w)
+	virtual PDefHOperator(void, +=, IWidget& w)
 		ImplExpr(sWgtSet += w)
-	virtual PDefOpHead(bool, -=, IWidget& w)
+	virtual PDefHOperator(bool, -=, IWidget& w)
 		ImplRet(sWgtSet -= w)
-	virtual PDefOpHead(void, +=, IVisualControl& c)
+	virtual PDefHOperator(void, +=, IVisualControl& c)
 		ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
-	virtual PDefOpHead(bool, -=, IVisualControl& c)
+	virtual PDefHOperator(bool, -=, IVisualControl& c)
 		ImplBodyBase(MWidgetContainer, operator-=, c)
-	virtual PDefOpHead(void, +=, Runtime::GMFocusResponser<IVisualControl>& c)
+	virtual PDefHOperator(void, +=, GMFocusResponser<IVisualControl>& c)
 		ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
-	virtual PDefOpHead(bool, -=, Runtime::GMFocusResponser<IVisualControl>& c)
+	virtual PDefHOperator(bool, -=, GMFocusResponser<IVisualControl>& c)
 		ImplBodyBase(MWidgetContainer, operator-=, c)
 
-	virtual PDefHead(IWidget*, GetTopWidgetPtr, const Point& p) const
+	virtual PDefH(IWidget*, GetTopWidgetPtr, const Point& p) const
 		ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
-	virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
+	virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
 		ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
 	virtual Point
 	GetContainerLocationOffset(const Point& = Point::Zero) const;
 	virtual Point
 	GetWindowLocationOffset(const Point& = Point::Zero) const;
-	virtual DefGetterBase(IVisualControl*, FocusingPtr, Runtime::GMFocusResponser<IVisualControl>)
+	virtual DefGetterBase(IVisualControl*, FocusingPtr, GMFocusResponser<IVisualControl>)
 
-	virtual PDefHead(void, ClearFocusingPtr)
+	virtual PDefH(void, ClearFocusingPtr)
 		ImplBodyBaseVoid(MWidgetContainer, ClearFocusingPtr)
 
 	virtual bool

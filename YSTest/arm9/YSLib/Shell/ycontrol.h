@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:24 + 08:00;
-// UTime = 2010-10-05 18:35 + 08:00;
-// Version = 0.3694;
+// UTime = 2010-10-15 16:56 + 08:00;
+// Version = 0.3882;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -14,9 +14,9 @@
 
 YSL_BEGIN
 
-using namespace Drawing;
-
 YSL_BEGIN_NAMESPACE(Components)
+
+using namespace Drawing;
 
 YSL_BEGIN_NAMESPACE(Controls)
 
@@ -40,10 +40,10 @@ typedef Runtime::GEvent<true, IControl, MEventArgs> YControlEvent;
 
 
 //事件处理器类型。
-DefDelegate(YInputEventHandler, IVisualControl, Runtime::MInputEventArgs)
-DefDelegate(YTouchEventHandler, IVisualControl, Runtime::MTouchEventArgs)
-DefDelegate(YKeyEventHandler, IVisualControl, Runtime::MKeyEventArgs)
-DefDelegate(YIndexEventHandler, IVisualControl, MIndexEventArgs)
+DefDelegate(InputEventHandler, IVisualControl, Runtime::MInputEventArgs)
+DefDelegate(KeyEventHandler, IVisualControl, Runtime::MKeyEventArgs)
+DefDelegate(TouchEventHandler, IVisualControl, Runtime::MTouchEventArgs)
+DefDelegate(IndexEventHandler, IVisualControl, MIndexEventArgs)
 
 
 //可视控件事件空间。
@@ -86,9 +86,21 @@ EndDecl
 
 
 //可视控件接口。
-DeclBasedInterface(IVisualControl, IControl, Runtime::GIFocusRequester<IVisualControl>)
+DeclBasedInterface(IVisualControl, IControl, GIFocusRequester<IVisualControl>)
 	DeclIEntry(void RequestFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
 	DeclIEntry(void ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
+
+	DeclIEventEntry(InputEventHandler, Enter)
+	DeclIEventEntry(InputEventHandler, Leave)
+	DeclIEventEntry(KeyEventHandler, KeyUp)
+	DeclIEventEntry(KeyEventHandler, KeyDown)
+	DeclIEventEntry(KeyEventHandler, KeyHeld)
+	DeclIEventEntry(KeyEventHandler, KeyPress)
+	DeclIEventEntry(TouchEventHandler, TouchUp)
+	DeclIEventEntry(TouchEventHandler, TouchDown)
+	DeclIEventEntry(TouchEventHandler, TouchHeld)
+	DeclIEventEntry(TouchEventHandler, TouchMove)
+	DeclIEventEntry(TouchEventHandler, Click)
 EndDecl
 
 
@@ -103,9 +115,9 @@ public:
 	explicit
 	MControl(bool = true);
 
-	virtual DefTrivialDtor(MControl)
+	virtual DefEmptyDtor(MControl)
 
-	virtual PDefOpHead(IControl::EventMapType::Event&, [], const IControl::EventMapType::ID& id)
+	virtual PDefHOperator(IControl::EventMapType::Event&, [], const IControl::EventMapType::ID& id)
 		ImplRet(EventMap[id])
 
 	virtual DefPredicate(Enabled, Enabled)
@@ -120,26 +132,26 @@ MControl::MControl(bool e)
 
 
 //可视控件模块类。
-class MVisualControl : public MControl, public Runtime::AFocusRequester
+class MVisualControl : public MControl, public AFocusRequester
 {
 public:
-	DefEvent(YInputEventHandler, Enter)
-	DefEvent(YInputEventHandler, Leave)
-	DefEvent(YTouchEventHandler, TouchUp)
-	DefEvent(YTouchEventHandler, TouchDown)
-	DefEvent(YTouchEventHandler, TouchHeld)
-	DefEvent(YTouchEventHandler, TouchMove)
-	DefEvent(YTouchEventHandler, Click)
-	DefEvent(YKeyEventHandler, KeyUp)
-	DefEvent(YKeyEventHandler, KeyDown)
-	DefEvent(YKeyEventHandler, KeyHeld)
-	DefEvent(YKeyEventHandler, KeyPress)
+	DefEvent(InputEventHandler, Enter)
+	DefEvent(InputEventHandler, Leave)
+	DefEvent(KeyEventHandler, KeyUp)
+	DefEvent(KeyEventHandler, KeyDown)
+	DefEvent(KeyEventHandler, KeyHeld)
+	DefEvent(KeyEventHandler, KeyPress)
+	DefEvent(TouchEventHandler, TouchUp)
+	DefEvent(TouchEventHandler, TouchDown)
+	DefEvent(TouchEventHandler, TouchHeld)
+	DefEvent(TouchEventHandler, TouchMove)
+	DefEvent(TouchEventHandler, Click)
 
 	explicit
 	MVisualControl();
 
 protected:
-	Runtime::GMFocusResponser<IVisualControl>*
+	GMFocusResponser<IVisualControl>*
 	CheckFocusContainer(IWidgetContainer*); //检查给定的容器指针是否有效且指向接受焦点的容器。
 
 public:
@@ -148,13 +160,13 @@ public:
 	virtual void
 	OnLostFocus(const MEventArgs& = GetZeroElement<MEventArgs>());
 	virtual void
+	OnKeyHeld(const Runtime::MKeyEventArgs&);
+	virtual void
 	OnTouchDown(const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
 	virtual void
 	OnTouchHeld(const Runtime::MTouchEventArgs&);
 	virtual void
 	OnTouchMove(const Runtime::MTouchEventArgs&);
-	virtual void
-	OnKeyHeld(const Runtime::MKeyEventArgs&);
 };
 
 
@@ -166,9 +178,73 @@ public:
 };
 
 
-//可视控件基类。
-class YVisualControl : public YComponent, public Widgets::MWidget, public MVisualControl,
+//可视控件抽象基类。
+class AVisualControl : public Widgets::MWidget, public MVisualControl,
 	implements IWidget, implements IVisualControl
+{
+public:
+	explicit
+	AVisualControl(HWND = NULL, const Rect& = Rect::FullScreen, IWidgetContainer* = NULL);
+	~AVisualControl();
+
+	virtual PDefH(EventMapType::Event&, operator[], const EventMapType::ID& id)
+		ImplBodyBase(MVisualControl, operator[], id)
+
+	virtual DefPredicateBase(Visible, MVisual)
+	virtual DefPredicateBase(Transparent, MVisual)
+	virtual DefPredicateBase(BgRedrawed, MVisual)
+	virtual DefPredicateBase(Enabled, MControl)
+	virtual DefPredicateBase(Focused, AFocusRequester)
+	virtual PDefH(bool, IsFocusOfContainer, GMFocusResponser<IVisualControl>& c) const
+		ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
+
+	//判断包含关系。
+	virtual PDefH(bool, Contains, const Point& p) const
+		ImplBodyBase(MVisual, Contains, p)
+
+	virtual PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
+		ImplBodyBase(MVisualControl, CheckRemoval, c)
+
+	virtual DefGetterBase(const Point&, Location, MVisual)
+	virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
+	virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
+	virtual DefGetterBase(HWND, WindowHandle, MWidget)
+
+	virtual DefEventGetter(InputEventHandler, Enter)
+	virtual DefEventGetter(InputEventHandler, Leave)
+	virtual DefEventGetter(KeyEventHandler, KeyUp)
+	virtual DefEventGetter(KeyEventHandler, KeyDown)
+	virtual DefEventGetter(KeyEventHandler, KeyHeld)
+	virtual DefEventGetter(KeyEventHandler, KeyPress)
+	virtual DefEventGetter(TouchEventHandler, TouchUp)
+	virtual DefEventGetter(TouchEventHandler, TouchDown)
+	virtual DefEventGetter(TouchEventHandler, TouchHeld)
+	virtual DefEventGetter(TouchEventHandler, TouchMove)
+	virtual DefEventGetter(TouchEventHandler, Click)
+
+	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
+	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
+	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
+	virtual DefSetterBase(const Point&, Location, MVisual)
+	virtual DefSetterBaseDe(bool, Enabled, MControl, true)
+
+	virtual PDefH(void, DrawBackground)
+		ImplBodyBaseVoid(MWidget, DrawBackground)
+	virtual PDefH(void, DrawForeground)
+		ImplBodyBaseVoid(MWidget, DrawForeground)
+
+	virtual PDefH(void, Refresh)
+		ImplBodyBaseVoid(MWidget, Refresh)
+
+	virtual void
+	RequestFocus(const MEventArgs& = GetZeroElement<MEventArgs>()); //向部件容器申请获得焦点，若成功则引发 GotFocus 事件。
+	virtual void
+	ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()); //释放焦点，并引发 LostFocus 事件。
+};
+
+
+//可视控件基类。
+class YVisualControl : public YComponent, public AVisualControl
 {
 public:
 	typedef YComponent ParentType;
@@ -177,47 +253,6 @@ public:
 	YVisualControl(HWND = NULL, const Rect& = Rect::FullScreen, IWidgetContainer* = NULL);
 	~YVisualControl();
 
-	virtual PDefHead(EventMapType::Event&, operator[], const EventMapType::ID& id)
-		ImplBodyBase(MVisualControl, operator[], id)
-
-	virtual DefPredicateBase(Visible, MVisual)
-	virtual DefPredicateBase(Transparent, MVisual)
-	virtual DefPredicateBase(BgRedrawed, MVisual)
-	virtual DefPredicateBase(Enabled, MControl)
-	virtual DefPredicateBase(Focused, AFocusRequester)
-	virtual PDefHead(bool, IsFocusOfContainer, Runtime::GMFocusResponser<IVisualControl>& c) const
-		ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
-
-	//判断包含关系。
-	virtual PDefHead(bool, Contains, const Point& p) const
-		ImplBodyBase(MVisual, Contains, p)
-
-	virtual PDefHead(bool, CheckRemoval, Runtime::GMFocusResponser<IVisualControl>& c) const
-		ImplBodyBase(MVisualControl, CheckRemoval, c)
-
-	virtual DefGetterBase(const Point&, Location, MVisual)
-	virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
-	virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
-	virtual DefGetterBase(HWND, WindowHandle, MWidget)
-
-	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
-	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
-	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
-	virtual DefSetterBase(const Point&, Location, MVisual)
-	virtual DefSetterBaseDe(bool, Enabled, MControl, true)
-
-	virtual PDefHead(void, DrawBackground)
-		ImplBodyBaseVoid(MWidget, DrawBackground)
-	virtual PDefHead(void, DrawForeground)
-		ImplBodyBaseVoid(MWidget, DrawForeground)
-
-	virtual PDefHead(void, Refresh)
-		ImplBodyBaseVoid(MWidget, Refresh)
-
-	virtual void
-	RequestFocus(const MEventArgs& = GetZeroElement<MEventArgs>()); //向部件容器申请获得焦点，若成功则引发 GotFocus 事件。
-	virtual void
-	ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()); //释放焦点，并引发 LostFocus 事件。
 	virtual void
 	RequestToTop()
 	{}
@@ -230,10 +265,10 @@ class MButton
 protected:
 	bool bPressed;
 
-public:
 	explicit
 	MButton(bool = false);
 
+public:
 	DefPredicate(Pressed, bPressed)
 };
 
@@ -243,24 +278,43 @@ MButton::MButton(bool b)
 {}
 
 
-//抽象按钮模块基类。
-class AButton : public MButton, public Widgets::MLabel
+//滚动条模块。
+class MScrollBar
 {
+protected:
+	SDST MaxThumbSize, PrevButtonSize, NextButtonSize;
+	bool bPrevButtonPressed, bNextButtonPressed;
+
+	explicit
+	MScrollBar(SDST = 8, SDST = 10, SDST = 10);
+
 public:
-	template<class _tChar>
-	AButton(const _tChar*, const Drawing::Font& = Drawing::Font::GetDefault(), GHResource<Drawing::TextRegion> = NULL);
-
-	DefEvent(YIndexEventHandler, Confirmed) //选中确定事件。
-
-	DeclIEntry(void OnEnter(const Runtime::MInputEventArgs&))
-	DeclIEntry(void OnLeave(const Runtime::MInputEventArgs&))
-	DeclIEntry(void OnClick(const Runtime::MTouchEventArgs&))
+	DefGetter(SDST, MaxThumbSize, MaxThumbSize)
+	DefGetter(SDST, PrevButtonSize, PrevButtonSize)
+	DefGetter(SDST, NextButtonSize, NextButtonSize)
 };
 
-template<class _tChar>
-AButton::AButton(const _tChar* l, const Drawing::Font& f, GHResource<Drawing::TextRegion> prTr_)
-	: MButton(), MLabel(l, f, prTr_)
-{}
+
+//滚动条。
+class AScrollBar : public AVisualControl, public MScrollBar
+{
+public:
+	explicit
+	AScrollBar(SDST = 10, SDST = 10, SDST = 10);
+
+	DefGetter(SDST, ScrollAreaSize, GetWidth() - GetPrevButtonSize() - GetNextButtonSize())
+	DefGetter(SDST, ScrollAreaFixedSize, GetScrollAreaSize() - GetMaxThumbSize())
+
+	virtual void
+	RequestToTop()
+	{}
+
+	DeclIEntry(void DrawPrevButton())
+	DeclIEntry(void DrawNextButton())
+	DeclIEntry(void DrawScrollArea())
+	virtual void
+	DrawForeground();
+};
 
 YSL_END_NAMESPACE(Controls)
 

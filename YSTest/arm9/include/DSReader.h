@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-05 14:03:47 + 08:00;
-// UTime = 2010-10-06 13:57 + 08:00;
-// Version = 0.2140;
+// UTime = 2010-10-13 16:45 + 08:00;
+// Version = 0.2150;
 
 
 #ifndef _DSREADER_H_
@@ -50,9 +50,9 @@ private:
 
 	DefSetterDe(PixelType, ColorUp, pTrUp->Color, 0) //设置上字符区域的字体颜色。
 	DefSetterDe(PixelType, ColorDn, pTrDn->Color, 0) //设置下字符区域的字体颜色。
-	PDefHead(void, SetLnGapUp, u16 g = 0) //设置上字符区域的行距。
+	PDefH(void, SetLnGapUp, u16 g = 0) //设置上字符区域的行距。
 		ImplBodyMemberVoid(*pTrUp, SetLineGap, g)
-	PDefHead(void, SetLnGapDn, u16 g = 0) //设置下字符区域的行距。
+	PDefH(void, SetLnGapDn, u16 g = 0) //设置下字符区域的行距。
 		ImplBodyMemberVoid(*pTrDn, SetLineGap, g)
 
 	//清除字符区域缓冲区。

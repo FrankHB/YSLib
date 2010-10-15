@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:27 + 08:00;
-// UTime = 2010-10-09 10:42 + 08:00;
-// Version = 0.1811;
+// UTime = 2010-10-14 13:31 + 08:00;
+// Version = 0.1821;
 
 
 #ifndef INCLUDED_YAPP_H_
@@ -58,8 +58,8 @@ public:
 	static const String ProductVersion; //产品版本。
 
 	//标准程序实例事件。
-	DefEvent(YEventHandler, ApplicationExit) //资源释放函数。
-	DefEvent(YEventHandler, Idle)
+	DefEvent(EventHandler, ApplicationExit) //资源释放函数。
+	DefEvent(EventHandler, Idle)
 
 	//全局资源。
 	YLog& Log; //默认程序日志。

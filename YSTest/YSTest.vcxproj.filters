@@ -149,9 +149,6 @@
     <ClCompile Include="arm9\YSLib\Core\yftext.cpp">
       <Filter>ARM9\YSLib\Core</Filter>
     </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\ymodule.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
     <ClCompile Include="arm9\YSLib\Core\yobject.cpp">
       <Filter>ARM9\YSLib\Core</Filter>
     </ClCompile>
@@ -287,9 +284,6 @@
       <Filter>ARM9\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="arm9\YSLib\Core\yfunc.hpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\ymodule.h">
       <Filter>ARM9\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="arm9\YSLib\Core\yobject.h">

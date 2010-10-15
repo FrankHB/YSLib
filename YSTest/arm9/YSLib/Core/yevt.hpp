@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YEvent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-04-23 23:08:23 + 08:00;
-// UTime = 2010-10-09 10:50 + 08:00;
-// Version = 0.3124;
+// UTime = 2010-10-14 13:44 + 08:00;
+// Version = 0.3234;
 
 
 #ifndef INCLUDED_YEVT_HPP_
@@ -26,7 +26,7 @@ template<
 	class _tSender = YObject, class _tEventArgs = MEventArgs,
 	typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 >
-DeclBasedInterface(GIHEventHandler, GIClonable<GIHEventHandler<_tSender, _tEventArgs, _fEventHandler, _pfEventHandler> >)
+DeclBasedInterface(GIEventHandler, GIClonable<GIEventHandler<_tSender, _tEventArgs, _fEventHandler, _pfEventHandler> >)
 	typedef _tSender SenderType;
 	typedef _tEventArgs EventArgsType;
 
@@ -36,7 +36,7 @@ DeclBasedInterface(GIHEventHandler, GIClonable<GIHEventHandler<_tSender, _tEvent
 EndDecl
 
 //标准事件处理器接口。
-typedef GIHEventHandler<> IHEventHandler;
+typedef GIEventHandler<> IEventHandler;
 
 
 //非成员函数事件处理器类模板。
@@ -45,10 +45,10 @@ template<
 	typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 >
 class GHEventNormal : private GHBase<_pfEventHandler>,
-	implements GIHEventHandler<_tSender, _tEventArgs>
+	implements GIEventHandler<_tSender, _tEventArgs>
 {
 public:
-	typedef GIHEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
+	typedef GIEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
 
 	inline
 	GHEventNormal()
@@ -89,10 +89,10 @@ template<
 	class _tSender = YObject, class _tEventArgs = MEventArgs,
 	typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 >
-class GHEventMember : implements GIHEventHandler<_tSender, _tEventArgs>
+class GHEventMember : implements GIEventHandler<_tSender, _tEventArgs>
 {
 public:
-	typedef GIHEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
+	typedef GIEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
 	typedef void(_type::*MemFunPtrType)(const _tEventArgs&);
 
 private:
@@ -134,10 +134,10 @@ template<
 	class _tSender = YObject, class _tEventArgs = MEventArgs,
 	typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 >
-class GHEventMemberBinder : implements GIHEventHandler<_tSender, _tEventArgs>
+class GHEventMemberBinder : implements GIEventHandler<_tSender, _tEventArgs>
 {
 public:
-	typedef GIHEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
+	typedef GIEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
 	typedef void(_type::*MemFunPtrType)(const _tEventArgs&);
 
 private:
@@ -171,7 +171,7 @@ public:
 
 template<class _tSender, class _tEventArgs>
 bool
-operator==(GIHEventHandler<_tSender, _tEventArgs>& l, GIHEventHandler<_tSender, _tEventArgs>& r)
+operator==(GIEventHandler<_tSender, _tEventArgs>& l, GIEventHandler<_tSender, _tEventArgs>& r)
 {
 	if(l.GetSizeOf() != r.GetSizeOf())
 		return false;
@@ -184,48 +184,48 @@ template<
 	class _tSender = YObject, class _tEventArgs = MEventArgs,
 	typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 >
-class GHEvent : implements GIHEventHandler<_tSender, _tEventArgs>
+class GEventHandler : implements GIEventHandler<_tSender, _tEventArgs>
 {
 public:
-	typedef GIHEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
+	typedef GIEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
 
 protected:
 	IHEventHandlerType* _h_ptr;
 
 public:
 	inline
-	GHEvent()
+	GEventHandler()
 	: _h_ptr(NULL)
 	{}
 	inline explicit
-	GHEvent(const _fEventHandler& f)
+	GEventHandler(const _fEventHandler& f)
 	: _h_ptr(new GHEventNormal<_tSender, _tEventArgs>(f))
 	{}
 	// GCC 4.5.0 之前版本对构造函数模板解析有误，无法显式实例化此实例。
 	template<class _type>
 	inline
-//	GHEvent(typename GHEventMember<_type, _tSender, _tEventArgs>::MemFunPtrType pm)
-	GHEvent(void(_type::*pm)(const _tEventArgs&))
+//	GEventHandler(typename GHEventMember<_type, _tSender, _tEventArgs>::MemFunPtrType pm)
+	GEventHandler(void(_type::*pm)(const _tEventArgs&))
 	: _h_ptr(new GHEventMember<_type, _tSender, _tEventArgs>(pm))
 	{}
 	template<class _type>
 	inline
-//	GHEvent(_type& obj, typename GHEventMember<_type, _tSender, _tEventArgs>::MemFunPtrType pm)
-	GHEvent(_type& obj, void(_type::*pm)(const _tEventArgs&))
+//	GEventHandler(_type& obj, typename GHEventMember<_type, _tSender, _tEventArgs>::MemFunPtrType pm)
+	GEventHandler(_type& obj, void(_type::*pm)(const _tEventArgs&))
 	: _h_ptr(new GHEventMemberBinder<_type, _tSender, _tEventArgs>(obj, pm))
 	{}
 	inline explicit
-	GHEvent(const GHEvent& h)
+	GEventHandler(const GEventHandler& h)
 	: _h_ptr(h._h_ptr->Clone())
 	{}
 	inline virtual
-	~GHEvent()
+	~GEventHandler()
 	{
 		delete _h_ptr;
 	}
 
 	bool
-	operator==(const GHEvent& h)
+	operator==(const GEventHandler& h)
 	{
 		IHEventHandlerType* const pl(_h_ptr);
 		IHEventHandlerType* const pr(h._h_ptr);
@@ -244,13 +244,13 @@ public:
 	virtual IHEventHandlerType*
 	Clone() const
 	{
-		return new GHEvent(*this);
+		return new GEventHandler(*this);
 	}
 };
 
 
 //标准事件处理器类。
-typedef GHEvent<> HEvent;
+typedef GEventHandler<> EventHandler;
 
 
 //事件类模板。
@@ -259,8 +259,8 @@ typedef GHEvent<> HEvent;
 template<
 	bool _bMulticast = true,
 	class _tSender = YObject, class _tEventArgs = MEventArgs,
-	class _iEventHandler = GIHEventHandler<_tSender, _tEventArgs>,
-	class _tEventHandler = GHEvent<_tSender, _tEventArgs>
+	class _iEventHandler = GIEventHandler<_tSender, _tEventArgs>,
+	class _tEventHandler = GEventHandler<_tSender, _tEventArgs>
 >
 class GEvent
 {
@@ -387,32 +387,57 @@ struct GEvent<false, _tSender, _tEventArgs, _iEventHandler, _tEventHandler> : pu
 
 //定义事件处理器委托。
 #define DefDelegate(_name, _tSender, _tEventArgs)\
-	typedef Runtime::GHEvent<_tSender, _tEventArgs> _name;
+	typedef Runtime::GEventHandler<_tSender, _tEventArgs> _name;
 
 
 #ifdef YSL_EVENT_MULTICAST
 
 //标准多播事件类。
-typedef GEvent<> YEvent;
+typedef GEvent<> Event;
 
-//定义多播事件。
-#	define DefEvent(_tEventHandler, _name)\
-		Runtime::GEvent<true, _tEventHandler::SenderType, _tEventHandler::EventArgsType> _name;
+//多播事件类型。
+template<class _tEventHandler>
+struct GSEventTemplate
+{
+	typedef Runtime::GEvent<true,
+		typename _tEventHandler::SenderType,
+		typename _tEventHandler::EventArgsType
+	> EventType;
+};
 
 #else
 
 //标准单播事件类。
-typedef GEvent<false> YEvent;
+typedef GEvent<false> Event;
 
-//定义单播事件。
-#	define DefEvent(_tEventHandler, _name)\
-		Runtime::GEvent<false, _tEventHandler::SenderType, _tEventHandler::EventArgsType> _name;
+//单播事件类型。
+template<class _tEventHandler>
+struct GSEventTemplate
+{
+	typedef Runtime::GEvent<false,
+		typename _tEventHandler::SenderType,
+		typename _tEventHandler::EventArgsType
+	> EventType;
+};
 
 #endif
 
 
+//定义事件。
+#	define DefEvent(_tEventHandler, _name)\
+		Runtime::GSEventTemplate<_tEventHandler>::EventType _name;
+
+//定义事件接口。
+#	define DeclIEventEntry(_tEventHandler, _name)\
+		DeclIEntry(const Runtime::GSEventTemplate<_tEventHandler>::EventType& _yJOIN(Get, _name)() const)
+
+//定义事件访问器。
+#	define DefEventGetter(_tEventHandler, _name)\
+		DefGetter(const Runtime::GSEventTemplate<_tEventHandler>::EventType&, _name, _name)
+
+
 //事件映射表模板。
-template<class _tEventSpace, class _tEvent = YEvent>
+template<class _tEventSpace, class _tEvent = Event>
 class GEventMap
 {
 public:
@@ -455,7 +480,7 @@ struct GAHEventCallback : public _tEventArgs
 YSL_END_NAMESPACE(Runtime)
 
 //标准事件处理器委托。
-DefDelegate(YEventHandler, YObject, MEventArgs)
+DefDelegate(EventHandler, YObject, MEventArgs)
 
 YSL_END
 

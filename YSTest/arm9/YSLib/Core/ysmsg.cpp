@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-06 2:44:31 + 08:00;
-// UTime = 2010-10-09 10:39 + 08:00;
-// Version = 0.1437;
+// CTime = 2009-12-06 02:44:31 + 08:00;
+// UTime = 2010-10-13 15:33 + 08:00;
+// Version = 0.1439;
 
 
 #include "ysmsg.h"
@@ -18,15 +18,13 @@ const time_t DEF_TIMEOUT(0);
 
 Message::Message(HSHL shl, MSGID m, MSGPRIORITY p, WPARAM w, const LPARAM l)
 	: hShl(shl), msg(m), prior(p), wParam(w), lParam(l), timestamp(std::clock()), timeout(DEF_TIMEOUT)
-{
-}
+{}
 
 #else
 
 Message::Message(HSHL shl, MSGID m, MSGPRIORITY p, WPARAM w, const LPARAM l, const Point& _pt)
 	: hShl(shl), msg(m), prior(p), wParam(w), lParam(l), pt(_pt), timestamp(std::clock()), timeout(DEF_TIMEOUT)
-{
-}
+{}
 
 #endif
 

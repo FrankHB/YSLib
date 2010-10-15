@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFile_(Text) by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-24 23:14:41;
-// UTime = 2010-8-1 18:25;
-// Version = 0.1518;
+// CTime = 2009-11-24 23:14:41 + 08:00;
+// UTime = 2010-10-13 15:50 + 08:00;
+// Version = 0.1523;
 
 
 #ifndef INCLUDED_YFTEXT_H_
@@ -27,8 +27,7 @@ private:
 public:
 	explicit
 	YTextFile(CPATH); //按指定文件路径初始化对象。
-	virtual
-	~YTextFile();
+	virtual DefEmptyDtor(YTextFile)
 
 	DefGetter(u8, BOMSize, bl) //取 BOM 大小。
 	DefGetter(Text::CSID, CP, cp) //取编码。

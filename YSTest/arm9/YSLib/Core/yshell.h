@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15 + 08:00;
-// UTime = 2010-10-09 10:55 + 08:00;
-// Version = 0.2448;
+// UTime = 2010-10-13 16:46 + 08:00;
+// Version = 0.2458;
 
 
 #ifndef INCLUDED_YSHELL_H_
@@ -66,7 +66,7 @@ public:
 	static LRES
 	DefShlProc(const Message&); //默认 Shell 处理函数。
 
-	virtual PDefHead(LRES, ShlProc, const Message& m) // Shell 处理函数：响应线程的直接调用。
+	virtual PDefH(LRES, ShlProc, const Message& m) // Shell 处理函数：响应线程的直接调用。
 		ImplRet(DefShlProc(m))
 
 	virtual LRES

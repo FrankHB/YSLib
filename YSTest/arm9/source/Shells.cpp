@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-09 10:40 + 08:00;
-// Version = 0.3131;
+// UTime = 2010-10-13 15:40 + 08:00;
+// Version = 0.3132;
 
 
 #include <Shells.h>
@@ -559,8 +559,7 @@ string ShlReader::path;
 ShlReader::ShlReader()
 	: ShlGUI(),
 	Reader(), pTextFile(NULL), hUp(NULL), hDn(NULL), bgDirty(false)
-{
-}
+{}
 
 LRES
 ShlReader::OnActivated(const Message& msg)

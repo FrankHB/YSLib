@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTimer by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-06-05 10:28:58 + 08:00;
-// UTime = 2010-10-09 10:57 + 08:00;
-// Version = 0.1466;
+// UTime = 2010-10-15 13:00 + 08:00;
+// Version = 0.1478;
 
 
 #ifndef INCLUDED_YTIMER_H_
@@ -18,6 +18,8 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Timers)
 
+typedef u32 TimeSpan;
+
 //计时器。
 class YTimer : public YCountableObject
 {
@@ -28,19 +30,19 @@ private:
 	static vu32 SystemTick;
 	static TMRs Timers;
 
-	u32 nInterval;
-	u32 nBase;
+	TimeSpan nInterval;
+	TimeSpan nBase;
 
 public:
 	explicit
-	YTimer(u32 = 1000, bool = true);
+	YTimer(TimeSpan = 1000, bool = true);
 
-	DefStaticGetter(u32, SystemTick, SystemTick)
-	DefGetter(u32, Interval, nInterval)
-	DefGetter(u32, BaseTick, nBase)
+	DefStaticGetter(TimeSpan, SystemTick, SystemTick)
+	DefGetter(TimeSpan, Interval, nInterval)
+	DefGetter(TimeSpan, BaseTick, nBase)
 
 	void
-	SetInterval(u32);
+	SetInterval(TimeSpan);
 
 private:
 	static void
@@ -72,7 +74,7 @@ public:
 };
 
 inline void
-YTimer::SetInterval(u32 i)
+YTimer::SetInterval(TimeSpan i)
 {
 	nInterval = i;
 	if(!nInterval)

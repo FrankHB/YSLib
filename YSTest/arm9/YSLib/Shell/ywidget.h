@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-09 10:56 + 08:00;
-// Version = 0.4734;
+// UTime = 2010-10-14 08:38 + 08:00;
+// Version = 0.4764;
 
 
 #ifndef INCLUDED_YWIDGET_H_
@@ -11,7 +11,6 @@
 // YWidget ：平台无关的图形用户界面部件实现。
 
 #include "ycomp.h"
-#include "../Core/ymodule.h"
 #include "../Core/yres.h"
 //#include <set>
 #include "ytext.h"
@@ -72,8 +71,8 @@ DeclBasedInterface(IWidgetContainer, IWidget)
 	DeclIEntry(bool operator-=(IWidget&)) //从部件组移除部件。
 	DeclIEntry(void operator+=(IVisualControl&)) //向焦点对象组添加可视控件。
 	DeclIEntry(bool operator-=(IVisualControl&)) //从焦点对象组移除可视控件。
-	DeclIEntry(void operator+=(Runtime::GMFocusResponser<IVisualControl>&)) //向焦点对象组添加子焦点对象容器。
-	DeclIEntry(bool operator-=(Runtime::GMFocusResponser<IVisualControl>&)) //从焦点对象组移除子焦点对象容器。
+	DeclIEntry(void operator+=(GMFocusResponser<IVisualControl>&)) //向焦点对象组添加子焦点对象容器。
+	DeclIEntry(bool operator-=(GMFocusResponser<IVisualControl>&)) //从焦点对象组移除子焦点对象容器。
 
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&) const) //取指定的点（屏幕坐标）所处的部件的指针。
 	DeclIEntry(IVisualControl* GetTopVisualControlPtr(const Point&) const) //取指定的点（屏幕坐标）所处的焦点对象的指针。
@@ -109,16 +108,16 @@ public:
 	explicit
 	MVisual(const Rect& = Rect::Empty,
 		Color = Color::White, Color = Color::Black);
-	virtual DefTrivialDtor(MVisual)
+	virtual DefEmptyDtor(MVisual)
 
 	DefPredicate(Visible, Visible)
 	DefPredicate(Transparent, Transparent)
 	DefPredicate(BgRedrawed, bBgRedrawed)
 
 	//判断包含关系。
-	PDefHead(bool, Contains, const Point& p) const
+	PDefH(bool, Contains, const Point& p) const
 		ImplBodyMember(GetBounds(), IsInBoundsRegular, p)
-	PDefHead(bool, Contains, const int& x, const int& y) const //判断点(x, y)是否在边界内或边界上。
+	PDefH(bool, Contains, const int& x, const int& y) const //判断点(x, y)是否在边界内或边界上。
 		ImplBodyMember(GetBounds(), IsInBoundsRegular, x, y)
 
 	DefGetter(SPOS, X, Location.X)
@@ -133,7 +132,7 @@ public:
 	DefSetterDe(bool, Transparent, Transparent, true)
 	DefSetterDe(bool, BgRedrawed, bBgRedrawed, true)
 	virtual DefSetter(const Point&, Location, Location)
-	virtual PDefHead(void, SetLocation, SPOS x, SPOS y)
+	virtual PDefH(void, SetLocation, SPOS x, SPOS y)
 		ImplBodyBaseVoid(MVisual, SetLocation, Point(x, y))
 	virtual void
 	SetSize(SDST, SDST);
@@ -218,7 +217,7 @@ public:
 	virtual DefPredicateBase(BgRedrawed, MVisual)
 
 	//判断包含关系。
-	virtual PDefHead(bool, Contains, const Point& p) const
+	virtual PDefH(bool, Contains, const Point& p) const
 		ImplBodyBase(MVisual, Contains, p)
 
 	virtual DefGetterBase(const Point&, Location, MVisual)
@@ -231,12 +230,12 @@ public:
 	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
 	virtual DefSetterBase(const Point&, Location, MVisual)
 
-	virtual PDefHead(void, DrawBackground)
+	virtual PDefH(void, DrawBackground)
 		ImplBodyBaseVoid(MWidget, DrawBackground)
-	virtual PDefHead(void, DrawForeground)
+	virtual PDefH(void, DrawForeground)
 		ImplBodyBaseVoid(MWidget, DrawForeground)
 
-	virtual PDefHead(void, Refresh)
+	virtual PDefH(void, Refresh)
 		ImplBodyBaseVoid(MWidget, Refresh)
 
 	virtual void
@@ -246,13 +245,13 @@ public:
 
 
 //部件容器模块。
-class MWidgetContainer : public Runtime::GMFocusResponser<IVisualControl>,
+class MWidgetContainer : public GMFocusResponser<IVisualControl>,
 	implements GIContainer<IVisualControl>
 {
 public:
 	typedef Components::GMContainer<IWidget> WidgetSet;
 	typedef WidgetSet::ContainerType WGTs; //部件组类型。
-	typedef Components::GMContainer<Runtime::GMFocusResponser<IVisualControl> > FOCs; //子焦点对象容器组类型。
+	typedef Components::GMContainer<GMFocusResponser<IVisualControl> > FOCs; //子焦点对象容器组类型。
 
 protected:
 	WidgetSet sWgtSet; //部件对象组模块。
@@ -260,15 +259,16 @@ protected:
 
 public:
 	MWidgetContainer();
+	virtual DefEmptyDtor(MWidgetContainer);
 
 protected:
-	PDefOpHead(void, +=, IVisualControl& r) //向焦点对象组添加焦点对象。
-		ImplBodyBaseVoid(Runtime::GMFocusResponser<IVisualControl>, operator+=, r)
-	PDefOpHead(bool, -=, IVisualControl& r) //从焦点对象组移除焦点对象。
-		ImplBodyBase(Runtime::GMFocusResponser<IVisualControl>, operator-=, r)
-	PDefOpHead(void, +=, Runtime::GMFocusResponser<IVisualControl>& c) //向子焦点对象容器组添加子焦点对象容器。
+	PDefHOperator(void, +=, IVisualControl& r) //向焦点对象组添加焦点对象。
+		ImplBodyBaseVoid(GMFocusResponser<IVisualControl>, operator+=, r)
+	PDefHOperator(bool, -=, IVisualControl& r) //从焦点对象组移除焦点对象。
+		ImplBodyBase(GMFocusResponser<IVisualControl>, operator-=, r)
+	PDefHOperator(void, +=, GMFocusResponser<IVisualControl>& c) //向子焦点对象容器组添加子焦点对象容器。
 		ImplBodyMemberVoid(sFOCSet, insert, &c)
-	PDefOpHead(bool, -=, Runtime::GMFocusResponser<IVisualControl>& c) //从子焦点对象容器组移除子焦点对象容器。
+	PDefHOperator(bool, -=, GMFocusResponser<IVisualControl>& c) //从子焦点对象容器组移除子焦点对象容器。
 		ImplBodyMember(sFOCSet, erase, &c)
 
 public:
@@ -293,17 +293,17 @@ public:
 	virtual
 	~YWidgetContainer();
 
-	virtual PDefOpHead(void, +=, IWidget& w)
+	virtual PDefHOperator(void, +=, IWidget& w)
 		ImplExpr(sWgtSet += w)
-	virtual PDefOpHead(bool, -=, IWidget& w)
+	virtual PDefHOperator(bool, -=, IWidget& w)
 		ImplRet(sWgtSet -= w)
-	virtual PDefOpHead(void, +=, IVisualControl& c)
+	virtual PDefHOperator(void, +=, IVisualControl& c)
 		ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
-	virtual PDefOpHead(bool, -=, IVisualControl& c)
+	virtual PDefHOperator(bool, -=, IVisualControl& c)
 		ImplBodyBase(MWidgetContainer, operator-=, c)
-	virtual PDefOpHead(void, +=, Runtime::GMFocusResponser<IVisualControl>& c)
+	virtual PDefHOperator(void, +=, GMFocusResponser<IVisualControl>& c)
 		ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
-	virtual PDefOpHead(bool, -=, Runtime::GMFocusResponser<IVisualControl>& c)
+	virtual PDefHOperator(bool, -=, GMFocusResponser<IVisualControl>& c)
 		ImplBodyBase(MWidgetContainer, operator-=, c)
 
 	virtual DefPredicateBase(Visible, MVisual)
@@ -311,16 +311,16 @@ public:
 	virtual DefPredicateBase(BgRedrawed, MVisual)
 
 	//判断包含关系。
-	virtual PDefHead(bool, Contains, const Point& p) const
+	virtual PDefH(bool, Contains, const Point& p) const
 		ImplBodyBase(MVisual, Contains, p)
 
 	virtual DefGetterBase(const Point&, Location, MVisual)
 	virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
 	virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 	virtual DefGetterBase(HWND, WindowHandle, MWidget)
-	virtual PDefHead(IWidget*, GetTopWidgetPtr, const Point& p) const
+	virtual PDefH(IWidget*, GetTopWidgetPtr, const Point& p) const
 		ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
-	virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
+	virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
 		ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
 	virtual Point
 	GetContainerLocationOffset(const Point& = Point::Zero) const;
@@ -332,15 +332,15 @@ public:
 	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
 	virtual DefSetterBase(const Point&, Location, MVisual)
 
-	virtual PDefHead(void, ClearFocusingPtr)
+	virtual PDefH(void, ClearFocusingPtr)
 		ImplBodyBaseVoid(MWidgetContainer, ClearFocusingPtr)
 
-	virtual PDefHead(void, DrawBackground)
+	virtual PDefH(void, DrawBackground)
 		ImplBodyBaseVoid(MWidget, DrawBackground)
-	virtual PDefHead(void, DrawForeground)
+	virtual PDefH(void, DrawForeground)
 		ImplBodyBaseVoid(MWidget, DrawForeground)
 
-	virtual PDefHead(void, Refresh)
+	virtual PDefH(void, Refresh)
 		ImplBodyBaseVoid(MWidget, Refresh)
 
 	virtual void
@@ -366,7 +366,7 @@ public:
 	MLabel(const _tChar*, const Drawing::Font& = Drawing::Font::GetDefault(), GHResource<Drawing::TextRegion> = NULL);
 
 protected:
-	DefTrivialDtor(MLabel)
+	DefEmptyDtor(MLabel)
 
 	void
 	PaintText(MWidget&);

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-05 18:03 + 08:00;
-// Version = 0.1927;
+// UTime = 2010-10-15 16:56 + 08:00;
+// Version = 0.2019;
 
 
 #ifndef INCLUDED_YGUI_H_
@@ -37,30 +37,17 @@ ReleaseFocusCascade(IVisualControl&);
 
 
 //标准 GUI 事件回调函数抽象类。
-typedef GAHEventCallback<Components::Controls::MVisualControl, MEventArgs> AHEventCallback;
-typedef GAHEventCallback<Components::Controls::MVisualControl, Runtime::MTouchEventArgs> AHTouchCallback;
-typedef GAHEventCallback<Components::Controls::MVisualControl, Runtime::MKeyEventArgs> AHKeyCallback;
+typedef GAHEventCallback<Components::Controls::IVisualControl, MEventArgs> AHEventCallback;
+typedef GAHEventCallback<Components::Controls::IVisualControl, Runtime::MKeyEventArgs> AHKeyCallback;
+typedef GAHEventCallback<Components::Controls::IVisualControl, Runtime::MTouchEventArgs> AHTouchCallback;
 
 //标准 GUI 事件回调函数类型。
-typedef bool FTouchCallback(Components::Controls::MVisualControl&, const Runtime::MTouchEventArgs&);
-typedef bool FKeyCallback(Components::Controls::MVisualControl&, const Runtime::MKeyEventArgs&);
-typedef FTouchCallback* PFTouchCallback;
+typedef bool FKeyCallback(Components::Controls::IVisualControl&, const Runtime::MKeyEventArgs&);
+typedef bool FTouchCallback(Components::Controls::IVisualControl&, const Runtime::MTouchEventArgs&);
 typedef FKeyCallback* PFKeyCallback;
+typedef FTouchCallback* PFTouchCallback;
 
 //标准 GUI 事件回调函数对象类。
-struct HTouchCallback : public GHBase<PFTouchCallback>, public AHTouchCallback
-{
-	inline explicit
-	HTouchCallback(Runtime::MTouchEventArgs e, PFTouchCallback p)
-	: GHBase<PFTouchCallback>(p), AHTouchCallback(e)
-	{}
-
-	inline bool
-	operator()(Components::Controls::MVisualControl& c)
-	{
-		return GetPtr()(c, *this);
-	}
-};
 
 struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 {
@@ -70,7 +57,21 @@ struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 	{}
 
 	inline bool
-	operator()(Components::Controls::MVisualControl& c)
+	operator()(Components::Controls::IVisualControl& c)
+	{
+		return GetPtr()(c, *this);
+	}
+};
+
+struct HTouchCallback : public GHBase<PFTouchCallback>, public AHTouchCallback
+{
+	inline explicit
+		HTouchCallback(Runtime::MTouchEventArgs e, PFTouchCallback p)
+		: GHBase<PFTouchCallback>(p), AHTouchCallback(e)
+	{}
+
+	inline bool
+	operator()(Components::Controls::IVisualControl& c)
 	{
 		return GetPtr()(c, *this);
 	}
@@ -78,48 +79,38 @@ struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 
 
 //记录输入保持状态。
-class InputStatus
+
+YSL_BEGIN_NAMESPACE(InputStatus)
+
+typedef enum
 {
-public:
-	typedef enum
-	{
-		KeyFree = 0,
-		KeyPressed = 1,
-		KeyHeld = 2
-	} KeyHeldStateType;
+	Free = 0,
+	Pressed = 1,
+	Held = 2
+} HeldStateType;
 
-private:
-	static Vec DragOffset;
-	static KeyHeldStateType KeyHeldState;
-	static Timers::YTimer KeyTimer;
+extern HeldStateType KeyHeldState, TouchHeldState;
 
-public:
-	DefStaticPredicate(OnDragging, DragOffset != Vec::FullScreen)
-
-	DefStaticGetter(const Vec&, DragOffset, DragOffset)
-	
-	DefStaticGetter(KeyHeldStateType, KeyHeldState, KeyHeldState)
-
-	static DefSetterDe(const Vec&, DragOffset, DragOffset, Vec::FullScreen)
-
-	static void
-	CheckTouchedControlBounds(Components::Controls::MVisualControl&, const MTouchEventArgs&);
-
-	static void
-	RepeatKeyHeld(Components::Controls::MVisualControl&, const MKeyEventArgs&);
-
-	static void
-	ResetKeyHeldState();
-};
-
-
-//响应标准屏幕点击状态。
 bool
-ResponseTouchUp(IWidgetContainer&, const Runtime::MTouchEventArgs&);
+IsOnDragging();
+
+const Vec&
+GetDragOffset();
+
+void
+SetDragOffset(const Vec& = Vec::FullScreen);
+
+void
+CheckTouchedControlBounds(Components::Controls::IVisualControl&, const MTouchEventArgs&);
+
 bool
-ResponseTouchDown(IWidgetContainer&, const Runtime::MTouchEventArgs&);
-bool
-ResponseTouchHeld(IWidgetContainer&, const Runtime::MTouchEventArgs&);
+RepeatHeld(HeldStateType&, const MKeyEventArgs&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
+
+void
+ResetHeldState(HeldStateType&);
+
+YSL_END_NAMESPACE(InputStatus)
+
 
 //响应标准按键状态。
 bool
@@ -128,6 +119,14 @@ bool
 ResponseKeyDown(YDesktop&, const Runtime::MKeyEventArgs&);
 bool
 ResponseKeyHeld(YDesktop&, const Runtime::MKeyEventArgs&);
+
+//响应标准屏幕点击状态。
+bool
+ResponseTouchUp(IWidgetContainer&, const Runtime::MTouchEventArgs&);
+bool
+ResponseTouchDown(IWidgetContainer&, const Runtime::MTouchEventArgs&);
+bool
+ResponseTouchHeld(IWidgetContainer&, const Runtime::MTouchEventArgs&);
 
 YSL_END_NAMESPACE(Runtime)
 

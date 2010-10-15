@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-09 11:00 + 08:00;
-// Version = 0.2586;
+// UTime = 2010-10-15 16:55 + 08:00;
+// Version = 0.2739;
 
 
 #include "ygui.h"
@@ -64,57 +64,78 @@ ReleaseFocusCascade(IVisualControl& c)
 
 
 //记录输入保持状态。
-Vec InputStatus::DragOffset(Vec::FullScreen);
-InputStatus::KeyHeldStateType InputStatus::KeyHeldState(KeyFree);
-Timers::YTimer InputStatus::KeyTimer(1000, false);
+
+YSL_BEGIN_NAMESPACE(InputStatus)
+
+HeldStateType KeyHeldState(Free);
+HeldStateType TouchHeldState(Free);
+Vec DragOffset(Vec::FullScreen);
+Timers::YTimer HeldTimer(1000, false);
+
+bool
+IsOnDragging()
+{
+	return DragOffset != Vec::FullScreen;
+}
+
+const Vec&
+GetDragOffset()
+{
+	return DragOffset;
+}
 
 void
-InputStatus::RepeatKeyHeld(MVisualControl& c, const MKeyEventArgs& e)
+SetDragOffset(const Vec& v)
+{
+	DragOffset = v;
+}
+
+bool
+RepeatHeld(HeldStateType& s, const MKeyEventArgs& e, Timers::TimeSpan InitialDelay, Timers::TimeSpan RepeatedDelay)
 {
 	//三状态自动机。
-	switch(KeyHeldState)
+	switch(s)
 	{
-	case KeyFree:
-		//必须立即转移状态，否则 KeyTimer.Activate() 会使 KeyTimer.Refresh() 始终为 false ，导致状态无法转移。
-		KeyHeldState = KeyPressed;
-		KeyTimer.SetInterval(240); //初始按键延迟。
-		KeyTimer.Activate();
+	case Free:
+		//必须立即转移状态，否则 HeldTimer.Activate() 会使 HeldTimer.Refresh() 始终为 false ，导致状态无法转移。
+		s = Pressed;
+		HeldTimer.SetInterval(InitialDelay); //初始按键延迟。
+		HeldTimer.Activate();
 		break;
 
-	case KeyPressed:		
-	case KeyHeld:
-		if(KeyTimer.Refresh())
+	case Pressed:		
+	case Held:
+		if(HeldTimer.Refresh())
 		{
-			if(KeyHeldState == KeyPressed)
+			if(s == Pressed)
 			{
-				KeyHeldState = KeyHeld;
-				KeyTimer.SetInterval(120); //重复按键延迟。
+				s = Held;
+				HeldTimer.SetInterval(RepeatedDelay); //重复按键延迟。
 			}
-			try
-			{
-				c.KeyDown(dynamic_cast<IVisualControl&>(c), e);
-			}
-			catch(std::bad_cast&)
-			{}
+			return true;
 		}
 		break;
 	}
+	return false;
 }
 
 void
-InputStatus::ResetKeyHeldState()
+ResetHeldState(HeldStateType& s)
 {
-	KeyTimer.Deactivate();
-	KeyHeldState = KeyFree;
+	HeldTimer.Deactivate();
+	s = Free;
 }
 
+YSL_END_NAMESPACE(InputStatus)
 
 namespace
 {
+	using namespace InputStatus;
+
 	//即时输入（按下）状态所在控件指针。
-	MVisualControl* p_TouchDown(NULL);
-	MVisualControl* p_KeyDown(NULL);
-	MVisualControl* p_TouchDown_locked(NULL); //持续按键离开控件时记录的原控件指针。
+	IVisualControl* p_TouchDown(NULL);
+	IVisualControl* p_KeyDown(NULL);
+	IVisualControl* p_TouchDown_locked(NULL); //持续按键离开控件时记录的原控件指针。
 
 	namespace ExOp
 	{
@@ -129,43 +150,29 @@ namespace
 	ExOp::ExOpType ExtraOperation(ExOp::NoOp);
 
 	bool
-	TryEnter(IVisualControl& con, const MTouchEventArgs& e)
+	TryEnter(IVisualControl& c, const MTouchEventArgs& e)
 	{
-		try
+		if(p_TouchDown_locked == &c)
 		{
-			MVisualControl& c(dynamic_cast<MVisualControl&>(con));
-
-			if(p_TouchDown_locked == &c)
-			{
-				c.Enter(con, e);
-				p_TouchDown_locked = NULL;
-				return true;
-			}
+			c.GetEnter()(c, e);
+			p_TouchDown_locked = NULL;
+			return true;
 		}
-		catch (std::bad_cast&)
-		{}
 		return false;
 	}
 	bool
-	TryLeave(IVisualControl& con, const MTouchEventArgs& e)
+	TryLeave(IVisualControl& c, const MTouchEventArgs& e)
 	{
-		try
+		if(p_TouchDown_locked == NULL)
 		{
-			MVisualControl& c(dynamic_cast<MVisualControl&>(con));
-
-			if(p_TouchDown_locked == NULL)
-			{
-				c.Leave(con, e);
-				p_TouchDown_locked = &c;
-				return true;
-			}
+			c.GetLeave()(c, e);
+			p_TouchDown_locked = &c;
+			return true;
 		}
-		catch (std::bad_cast&)
-		{}
 		return false;
 	}
 
-	MVisualControl*
+	IVisualControl*
 	GetTouchedVisualControl(IWidgetContainer& con, Point& pt)
 	{
 		using namespace ExOp;
@@ -204,7 +211,7 @@ namespace
 			p_TouchDown_locked = NULL;
 			break;
 		case TouchHeld:
-			if(p_TouchDown_locked != NULL && p_TouchDown_locked == dynamic_cast<MVisualControl*>(p))
+			if(p_TouchDown_locked != NULL && p_TouchDown_locked == dynamic_cast<IVisualControl*>(p))
 				TryEnter(*p, pt);
 			if(p_TouchDown_locked == NULL && p == NULL)
 			{
@@ -215,159 +222,124 @@ namespace
 		default:
 			break;
 		}
-		return p != NULL ? dynamic_cast<MVisualControl*>(p) : dynamic_cast<MVisualControl*>(pCon);
+		return p != NULL ? p : dynamic_cast<IVisualControl*>(pCon);
 	}
 
-	MVisualControl*
-	GetFocusedEnabledVisualControlPtr(IVisualControl* pFocused)
+	IVisualControl*
+	GetFocusedEnabledVisualControlPtr(IVisualControl* p)
 	{
-		MVisualControl* p(dynamic_cast<MVisualControl*>(pFocused));
-
-		return p && p->IsEnabled() ? p : NULL;
+		return p != NULL && p->IsEnabled() ? p : NULL;
 	}
 
-	inline MVisualControl*
+	inline IVisualControl*
 	GetFocusedEnabledVisualControlPtr(YDesktop& d)
 	{
 		return GetFocusedEnabledVisualControlPtr(GetFocusedObject(d));
 	}
 
 	bool
-	ResponseTouchUpBase(MVisualControl& c, const MTouchEventArgs& e)
+	ResponseKeyUpBase(IVisualControl& c, const MKeyEventArgs& e)
 	{
-		try
+		ResetHeldState(KeyHeldState);
+		if(p_KeyDown == &c)
 		{
-			IVisualControl& con(dynamic_cast<IVisualControl&>(c));
-
-			if(p_TouchDown == &c)
-			{
-				c.Click(con, e);
-				p_TouchDown = NULL;
-			}
-			c.TouchUp(con, e);
-			TryLeave(con, e);
-			p_TouchDown_locked = NULL;
+			if(KeyHeldState == Free)
+				c.GetKeyPress()(c, e);
+			p_KeyDown = NULL;
 		}
-		catch(std::bad_cast&)
-		{
-			return false;
-		}
+		c.GetKeyUp()(c, e);
+		c.GetLeave()(c, e);
 		return true;
 	}
 	bool
-	ResponseTouchDownBase(MVisualControl& c, const MTouchEventArgs& e)
-	{
-		p_TouchDown = &c;
-		try
-		{
-			IVisualControl& con(dynamic_cast<IVisualControl&>(c));
-
-			p_TouchDown_locked = &c;
-			TryEnter(con, e);
-			c.TouchDown(con, e);
-		}
-		catch(std::bad_cast&)
-		{
-			return false;
-		}
-		InputStatus::SetDragOffset();
-		return true;
-	}
-	bool
-	ResponseTouchHeldBase(MVisualControl& c, const MTouchEventArgs& e)
-	{
-		try
-		{
-			IVisualControl& con(dynamic_cast<IVisualControl&>(c));
-
-			if(p_TouchDown != &c)
-			{
-				InputStatus::SetDragOffset();
-				return false;
-			}
-			c.TouchHeld(con, e);
-		}
-		catch(std::bad_cast&)
-		{
-			return false;
-		}
-		return true;
-	}
-
-	bool
-	ResponseKeyUpBase(MVisualControl& c, const MKeyEventArgs& e)
-	{
-		InputStatus::ResetKeyHeldState();
-		try
-		{
-			IVisualControl& con(dynamic_cast<IVisualControl&>(c));
-
-			if(p_KeyDown == &c)
-			{
-				if(InputStatus::GetKeyHeldState() == InputStatus::KeyFree)
-					c.KeyPress(con, e);
-				p_KeyDown = NULL;
-			}
-			c.KeyUp(con, e);
-			c.Leave(con, e);
-		}
-		catch(std::bad_cast&)
-		{
-			return false;
-		}
-		return true;
-	}
-	bool
-	ResponseKeyDownBase(MVisualControl& c, const MKeyEventArgs& e)
+	ResponseKeyDownBase(IVisualControl& c, const MKeyEventArgs& e)
 	{
 		p_KeyDown = &c;
-		try
-		{
-			IVisualControl& con(dynamic_cast<IVisualControl&>(c));
-
-			c.Enter(con, e);
-			c.KeyDown(con, e);
-		}
-		catch(std::bad_cast&)
-		{
-			return false;
-		}
+		c.GetEnter()(c, e);
+		c.GetKeyDown()(c, e);
 		return true;
 	}
 	bool
-	ResponseKeyHeldBase(MVisualControl& c, const MKeyEventArgs& e)
+	ResponseKeyHeldBase(IVisualControl& c, const MKeyEventArgs& e)
 	{
 		if(p_KeyDown != &c)
 		{
-			InputStatus::ResetKeyHeldState();
+			ResetHeldState(KeyHeldState);
 			return false;
 		}
-		try
-		{
-			c.KeyHeld(dynamic_cast<IVisualControl&>(c), e);
-		}
-		catch(std::bad_cast&)
-		{
-			return false;
-		}
+		c.GetKeyHeld()(c, e);
 		return true;
+	}
+
+	bool
+	ResponseTouchUpBase(IVisualControl& c, const MTouchEventArgs& e)
+	{
+		ResetHeldState(TouchHeldState);
+		SetDragOffset();
+		if(p_TouchDown == &c)
+		{
+			c.GetClick()(c, e);
+			p_TouchDown = NULL;
+		}
+		c.GetTouchUp()(c, e);
+		TryLeave(c, e);
+		p_TouchDown_locked = NULL;
+		return true;
+	}
+	bool
+	ResponseTouchDownBase(IVisualControl& c, const MTouchEventArgs& e)
+	{
+		p_TouchDown = &c;
+		p_TouchDown_locked = &c;
+		TryEnter(c, e);
+		c.GetTouchDown()(c, e);
+		return true;
+	}
+	bool
+	ResponseTouchHeldBase(IVisualControl& c, const MTouchEventArgs& e)
+	{
+		if(p_TouchDown != &c)
+		{
+			ResetHeldState(TouchHeldState);
+			SetDragOffset();
+			return false;
+		}
+		c.GetTouchHeld()(c, e);
+		return true;
+	}
+
+	bool
+	ResponseKeyBase(YDesktop& d, HKeyCallback f)
+	{
+		IVisualControl* const p(GetFocusedEnabledVisualControlPtr(d));
+
+		return f(p != NULL ? *p : d);
 	}
 
 	bool
 	ResponseTouchBase(IWidgetContainer& con, HTouchCallback f)
 	{
 		Point pt(f);
-		MVisualControl* pVC(GetTouchedVisualControl(con, pt));
+		IVisualControl* pVC(GetTouchedVisualControl(con, pt));
 
 		return pVC != NULL ? f(*pVC, f) : false;
 	}
-	bool
-	ResponseKeyBase(YDesktop& d, HKeyCallback f)
-	{
-		MVisualControl* const p(GetFocusedEnabledVisualControlPtr(d));
+}
 
-		return f(p != NULL ? *p : d);
-	}
+bool
+ResponseKeyUp(YDesktop& d, const MKeyEventArgs& e)
+{
+	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyUpBase));
+}
+bool
+ResponseKeyDown(YDesktop& d, const MKeyEventArgs& e)
+{
+	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyDownBase));
+}
+bool
+ResponseKeyHeld(YDesktop& d, const MKeyEventArgs& e)
+{
+	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyHeldBase));
 }
 
 bool
@@ -387,22 +359,6 @@ ResponseTouchHeld(IWidgetContainer& con, const MTouchEventArgs& e)
 {
 	ExtraOperation = ExOp::TouchHeld;
 	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchHeldBase));
-}
-
-bool
-ResponseKeyUp(YDesktop& d, const MKeyEventArgs& e)
-{
-	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyUpBase));
-}
-bool
-ResponseKeyDown(YDesktop& d, const MKeyEventArgs& e)
-{
-	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyDownBase));
-}
-bool
-ResponseKeyHeld(YDesktop& d, const MKeyEventArgs& e)
-{
-	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyHeldBase));
 }
 
 YSL_END_NAMESPACE(Runtime)

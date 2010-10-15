@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-10-09 10:39 + 08:00;
-// Version = 0.1082;
+// UTime = 2010-10-15 16:55 + 08:00;
+// Version = 0.1131;
 
 
 #ifndef INCLUDED_YGUICOMP_H_
@@ -25,8 +25,8 @@ YSL_END_NAMESPACE(Widgets)
 
 YSL_BEGIN_NAMESPACE(Controls)
 
-//按钮：V0.2680。
-class YButton : public GMCounter<YButton>, public YVisualControl, public AButton
+//按钮：V0.2740。
+class YButton : public GMCounter<YButton>, public YVisualControl, public MButton, public Widgets::MLabel
 {
 public:
 	typedef YVisualControl ParentType;
@@ -54,20 +54,40 @@ public:
 	virtual void
 	OnLeave(const Runtime::MInputEventArgs&);
 	virtual void
-	OnClick(const Runtime::MTouchEventArgs&);
-	virtual void
 	OnKeyDown(const Runtime::MKeyEventArgs&);
 	virtual void
-	OnConfirmed(const MIndexEventArgs&);
+	OnClick(const Runtime::MTouchEventArgs&);
 };
 
 template<class _tChar>
 YButton::YButton(HWND hWnd, const _tChar* l, const Rect& r,
 	const Drawing::Font& f, IWidgetContainer* pCon, GHResource<Drawing::TextRegion> prTr_)
-	: YVisualControl(hWnd, r, pCon), AButton(l, f, prTr_)
+	: YVisualControl(hWnd, r, pCon), MButton(), MLabel(l, f, prTr_)
 {
 	_m_init();
 }
+
+
+//水平滚动条。
+class YHorizontalScrollBar : public AScrollBar
+{
+	explicit
+	YHorizontalScrollBar(SDST = 8, SDST = 10, SDST = 10);
+
+	void
+	DrawPrevButton();
+	void
+	DrawNextButton();
+	void
+	DrawScrollArea();
+};
+
+
+//垂直滚动条。
+class YVerticalScrollBar
+{
+
+};
 
 
 //文本列表框：V0.1605E。
@@ -94,8 +114,8 @@ protected:
 	GSequenceViewer<ListType> Viewer; //列表视图。
 
 public:
-	DefEvent(YIndexEventHandler, Selected) //项目选择状态改变事件。
-	DefEvent(YIndexEventHandler, Confirmed) //项目选中确定事件。
+	DefEvent(IndexEventHandler, Selected) //项目选择状态改变事件。
+	DefEvent(IndexEventHandler, Confirmed) //项目选中确定事件。
 
 	YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 	YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
@@ -136,8 +156,8 @@ protected:
 	CheckPoint(SPOS, SPOS); //检查相对于所在缓冲区的控件坐标是否在选择范围内，返回选择的项目索引。
 
 public:
-	void
-	ClearSelected();
+	PDefH(void, ClearSelected)
+		ImplBodyMemberVoid(Viewer, ClearSelected)
 
 private:
 	void
@@ -147,11 +167,11 @@ private:
 
 public:
 	virtual void
+	OnKeyDown(const Runtime::MKeyEventArgs&);
+	virtual void
 	OnTouchDown(const Runtime::MTouchEventArgs&);
 	virtual void
 	OnClick(const Runtime::MTouchEventArgs&);
-	virtual void
-	OnKeyDown(const Runtime::MKeyEventArgs&);
 	virtual void
 	OnSelected(const MIndexEventArgs&);
 	virtual void
@@ -162,12 +182,6 @@ inline void
 YListBox::SetSelected(const Point& pt)
 {
 	SetSelected(pt.X, pt.Y);
-}
-
-inline void
-YListBox::ClearSelected()
-{
-	Viewer.ClearSelected();
 }
 
 

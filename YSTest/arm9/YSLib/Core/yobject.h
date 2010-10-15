@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YObject by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-05 17:50 + 08:00;
-// Version = 0.2279;
+// UTime = 2010-10-12 12:54 + 08:00;
+// Version = 0.2287;
 
 
 #ifndef INCLUDED_YOBJECT_H_
@@ -293,6 +293,15 @@ inline
 Vec::Vec(const Size& s)
 	: BinaryGroup(s.GetWidth(), s.GetHeight())
 {}
+
+
+//二元对象转置。
+template<class _tBinary>
+inline _tBinary
+Transpose(_tBinary& o)
+{
+	return _tBinary(o.Y, o.X);
+}
 
 
 class Rect : public Point, public Size //屏幕坐标系的正则（边平行于水平直线的）矩形：使用左上点屏幕坐标、宽和高表示。

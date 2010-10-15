@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-05 14:04:05 + 08:00;
-// UTime = 2010-10-06 13:58 + 08:00;
-// Version = 0.2894;
+// UTime = 2010-10-13 15:49 + 08:00;
+// Version = 0.2895;
 
 
 #include "DSReader.h"
@@ -207,7 +207,6 @@ MDualScreenReader::ScreenDown()
 void
 MDualScreenReader::Scroll(PFVOID pCheck)
 {
-
 }
 
 YSL_END_NAMESPACE(Components)

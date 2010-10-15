@@ -609,8 +609,7 @@ public:
 };
 
 YFileListControl(CPATH path)
-{
-}
+{}
 
 */
 

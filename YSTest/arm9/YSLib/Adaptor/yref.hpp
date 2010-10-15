@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YRefrence by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-21 23:09:06 + 08:00;
-// UTime = 2010-10-09 23:12 + 08:00;
-// Version = 0.2204;
+// UTime = 2010-10-14 08:36 + 08:00;
+// Version = 0.2214;
 
 
 #ifndef INCLUDED_YREF_HPP_
@@ -163,9 +163,9 @@ public:
 };
 
 
-template<class _Tp>
-inline _Tp*
-GetPointer(GHResource<_Tp> h)
+template<class _type>
+inline _type*
+GetPointer(GHResource<_type> h)
 {
 	return h.GetPtr();
 }
@@ -230,9 +230,9 @@ public:
 
 #ifdef YSL_USE_SIMPLE_HANDLE
 
-template<class _Tp>
-inline _Tp*
-GetPointer(_Tp* h)
+template<class _type>
+inline _type*
+GetPointer(_type* h)
 {
 	return h;
 }

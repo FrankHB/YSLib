@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28 + 08:00;
-// UTime = 2010-10-05 17:52 + 08:00;
-// Version = 0.3014;
+// UTime = 2010-10-13 15:31 + 08:00;
+// Version = 0.3015;
 
 
 #include "ydesktop.h"
@@ -27,11 +27,7 @@ MWindow::MWindow(const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl)
 
 AWindow::AWindow(const Rect& r, const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
 	: MWidget(hWnd ? hWnd : HWND(pDsk), r), MWindow(i, pDsk, hShl)
-{
-}
-AWindow::~AWindow()
-{
-}
+{}
 
 BitmapPtr
 AWindow::GetBackgroundPtr() const
@@ -87,8 +83,7 @@ AWindow::DrawBackground()
 }
 void
 AWindow::DrawForeground()
-{
-}
+{}
 void
 AWindow::Draw()
 {

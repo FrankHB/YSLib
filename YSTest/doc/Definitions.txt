@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-10-10 19:09 + 08:00;
-// Version = r8538;
+// UTime = 2010-10-15 12:58 + 08:00;
+// Version = r8691;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -969,74 +969,208 @@ $header Base "base.h" //通用基础设施。
 	//函数宏。
 
 	//通用函数头定义。
-	//prefix "PDef" = Partially Define;
+	//prefix "PDefH" = Partially Define Head;
 	#ifdef __GNUC__
-	#	define PDefHead(_type, _name, _paralist...) _type _name(_paralist)
-	#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist)
+	#	define PDefH(_type, _name, _paralist...) \
+		_type _name(_paralist)
+	#	define PDefHOperator(_type, _op, _paralist...) \
+		_type operator _op(_paralist)
 	#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-	#	define PDefHead(_type, _name, _paralist, ...) _type _name(_paralist, __VA_ARGS__)
-	#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist, __VA_ARGS__)
+	#	define PDefH(_type, _name, _paralist, ...) \
+		_type _name(_paralist, __VA_ARGS__)
+	#	define PDefHOperator(_type, _op, _paralist, ...) \
+		_type operator _op(_paralist, __VA_ARGS__)
 	#else
-	#	define PDefHead(_type, _name, _paralist) _type _name(_paralist)
-	#	define PDefOpHead(_type, _op, _paralist...) _type operator _op(_paralist)
+	#	define PDefH(_type, _name, _paralist) \
+		_type _name(_paralist)
+	#	define PDefHOperator(_type, _op, _paralist) \
+		_type operator _op(_paralist)
 	#endif
 
 
 	//简单通用函数实现。
 	//prefix "Impl" = Implement;
-	#define ImplExpr(_expr) { _expr; }
-	#define ImplRet(_expr) { return _expr; }
+	#define ImplExpr(_expr) \
+		{ \
+			_expr; \
+		}
+	#define ImplRet(_expr) \
+		{ \
+			return _expr; \
+		}
 
 	//基类同名函数映射和成员同名函数映射实现。
 	//prefix "Impl" = Implement;
 	#ifdef __GNUC__
-	#	define ImplBodyBase(_base, _name, _arglist...) { return _base::_name(_arglist); }
-	#	define ImplBodyBaseVoid(_base, _name, _arglist...) { _base::_name(_arglist); }
-	#	define ImplBodyMember(_member, _name, _arglist...) { return (_member)._name(_arglist); }
-	#	define ImplBodyMemberVoid(_member, _name, _arglist...) { (_member)._name(_arglist); }
+	#	define ImplBodyBase(_base, _name, _arglist...) \
+		{ \
+			return _base::_name(_arglist); \
+		}
+	#	define ImplBodyBaseVoid(_base, _name, _arglist...) \
+		{ \
+			_base::_name(_arglist); \
+		}
+	#	define ImplBodyMember(_member, _name, _arglist...) \
+		{ \
+			return (_member)._name(_arglist); \
+		}
+	#	define ImplBodyMemberVoid(_member, _name, _arglist...) \
+		{ \
+			(_member)._name(_arglist); \
+		}
 	#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-	#	define ImplBodyBase(_base, _name, _arglist, ...) { return _base::_name(_arglist, __VA_ARGS__); }
-	#	define ImplBodyBaseVoid(_base, _name, _arglist, ...) { _base::_name(_arglist, __VA_ARGS__); }
-	#	define ImplBodyMember(_member, _name, _arglist...) { return (_member)._name(_arglist); }
-	#	define ImplBodyMemberVoid(_member, _name, _arglist...) { (_member)._name(_arglist); }
+	#	define ImplBodyBase(_base, _name, _arglist, ...) \
+		{ \
+			return _base::_name(_arglist, __VA_ARGS__); \
+		}
+	#	define ImplBodyBaseVoid(_base, _name, _arglist, ...) \
+		{ \
+			_base::_name(_arglist, __VA_ARGS__); \
+		}
+	#	define ImplBodyMember(_member, _name, _arglist...) \
+		{ \
+			return (_member)._name(_arglist); \
+		}
+	#	define ImplBodyMemberVoid(_member, _name, _arglist...) \
+		{ \
+			(_member)._name(_arglist); \
+		}
 	#else
-	#	define ImplBodyBase(_base, _name, _arglist) { return _base::_name(_arglist); }
-	#	define ImplBodyBaseVoid(_base, _name, _arglist) { _base::_name(_arglist); }
-	#	define ImplBodyMember(_member, _name, _arglist) { return (_member)._name(_arglist); }
-	#	define ImplBodyMemberVoid(_member, _name, _arglist) { (_member)._name(_arglist); }
+	#	define ImplBodyBase(_base, _name, _arglist) \
+		{ \
+			return _base::_name(_arglist); \
+		}
+	#	define ImplBodyBaseVoid(_base, _name, _arglist) \
+		{ \
+			_base::_name(_arglist); \
+		}
+	#	define ImplBodyMember(_member, _name, _arglist) \
+		{ \
+			return (_member)._name(_arglist); \
+		}
+	#	define ImplBodyMemberVoid(_member, _name, _arglist) \
+		{ \
+			(_member)._name(_arglist); \
+		}
 	#endif
 
 
 	//简单通用成员函数定义。
 	//prefix "Def" = Define;
-	#define DefTrivialDtor(_type) ~_type() {}
+	#define DefEmptyDtor(_type) \
+		~_type() \
+		{}
 
-	#define DefConverter(_type, _expr) operator _type() const ythrow() { return _expr; }
-	#define DefConverterBase(_type, _base) operator _type() const ythrow() { return _base::operator _type(); }
-	#define DefConverterMember(_type, _member) operator _type() const ythrow() { return (_member).operator _type(); }
+	#define DefConverter(_type, _expr) \
+		operator _type() const ythrow() \
+		{ \
+			return _expr; \
+		}
+	#define DefConverterBase(_type, _base) \
+		operator _type() const ythrow() \
+		{ \
+			return _base::operator _type(); \
+		}
+	#define DefConverterMember(_type, _member) \
+		operator _type() const ythrow() \
+		{ \
+			return (_member).operator _type(); \
+		}
 
-	#define DefGetter(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return (_member); }
-	#define DefGetterBase(_type, _name, _base) _type _yJOIN(Get, _name)() const ythrow() { return _base::_yJOIN(Get, _name)(); }
-	#define DefGetterMember(_type, _name, _member) _type _yJOIN(Get, _name)() const ythrow() { return (_member)._yJOIN(Get, _name)(); }
+	#define DefGetter(_type, _name, _member) \
+		_type _yJOIN(Get, _name)() const ythrow() \
+		{ \
+			return (_member); \
+		}
+	#define DefGetterBase(_type, _name, _base) \
+		_type _yJOIN(Get, _name)() const ythrow() \
+		{ \
+			return _base::_yJOIN(Get, _name)(); \
+		}
+	#define DefGetterMember(_type, _name, _member) \
+		_type _yJOIN(Get, _name)() const ythrow() \
+		{ \
+			return (_member)._yJOIN(Get, _name)(); \
+		}
 
-	#define DefPredicate(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return (_member); }
-	#define DefPredicateBase(_name, _base) bool _yJOIN(Is, _name)() const ythrow() { return _base::_yJOIN(Is, _name)(); }
-	#define DefPredicateMember(_name, _member) bool _yJOIN(Is, _name)() const ythrow() { return (_member)._yJOIN(Is, _name)(); }
+	#define DefPredicate(_name, _member) \
+		bool _yJOIN(Is, _name)() const ythrow() \
+		{ \
+			return (_member); \
+		}
+	#define DefPredicateBase(_name, _base) \
+		bool _yJOIN(Is, _name)() const ythrow() \
+		{ \
+			return _base::_yJOIN(Is, _name)(); \
+		}
+	#define DefPredicateMember(_name, _member) \
+		bool _yJOIN(Is, _name)() const ythrow() \
+		{ \
+			return (_member)._yJOIN(Is, _name)(); \
+		}
 
-	#define DefStaticGetter(_type, _name, _member) static _type _yJOIN(Get, _name)() ythrow() { return (_member); }
-	#define DefStaticGetterBase(_type, _name, _base) static _type _yJOIN(Get, _name)() ythrow() { return _base::_yJOIN(Get, _name)(); }
+	#define DefStaticGetter(_type, _name, _member) \
+		static _type _yJOIN(Get, _name)() ythrow() \
+		{ \
+			return (_member); \
+		}
+	#define DefStaticGetterBase(_type, _name, _base) \
+		static _type _yJOIN(Get, _name)() ythrow() \
+		{ \
+			return _base::_yJOIN(Get, _name)(); \
+		}
 
-	#define DefStaticPredicate(_name, _member) static bool _yJOIN(Is, _name)() ythrow() { return (_member); }
-	#define DefStaticPredicateBase(_name, _base) static bool _yJOIN(Is, _name)() ythrow() { return _base::_yJOIN(Is, _name)(); }
+	#define DefStaticPredicate(_name, _member) \
+		static bool _yJOIN(Is, _name)() ythrow() \
+		{ \
+			return (_member); \
+		}
+	#define DefStaticPredicateBase(_name, _base) \
+		static bool _yJOIN(Is, _name)() ythrow() \
+		{ \
+			return _base::_yJOIN(Is, _name)(); \
+		}
 
-	#define DefSetter(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { (_member) = _tempArgName; }
-	#define DefSetterDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { (_member) = _tempArgName; }
-	#define DefSetterBase(_type, _name, _base) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { _base::_yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterBaseDe(_type, _name, _base, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { _base::_yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterMember(_type, _name, _member) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { (_member)._yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterMemberDe(_type, _name, _member, _defv) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { (_member)._yJOIN(Set, _name)(_tempArgName); }
-	#define DefSetterEx(_type, _name, _member, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName) ythrow() { (_member) = (_expr); }
-	#define DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr) void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() { (_member) = (_expr); }
+	#define DefSetter(_type, _name, _member) \
+		void _yJOIN(Set, _name)(_type _tempArgName) ythrow() \
+		{ \
+			(_member) = _tempArgName; \
+		}
+	#define DefSetterDe(_type, _name, _member, _defv) \
+		void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() \
+		{ \
+			(_member) = _tempArgName; \
+		}
+	#define DefSetterBase(_type, _name, _base) \
+		void _yJOIN(Set, _name)(_type _tempArgName) ythrow() \
+		{ \
+			_base::_yJOIN(Set, _name)(_tempArgName); \
+		}
+	#define DefSetterBaseDe(_type, _name, _base, _defv) \
+		void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() \
+		{ \
+			_base::_yJOIN(Set, _name)(_tempArgName); \
+		}
+	#define DefSetterMember(_type, _name, _member) \
+		void _yJOIN(Set, _name)(_type _tempArgName) ythrow() \
+		{ \
+			(_member)._yJOIN(Set, _name)(_tempArgName); \
+		}
+	#define DefSetterMemberDe(_type, _name, _member, _defv) \
+		void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() \
+		{ \
+			(_member)._yJOIN(Set, _name)(_tempArgName); \
+		}
+	#define DefSetterEx(_type, _name, _member, _tempArgName, _expr) \
+		void _yJOIN(Set, _name)(_type _tempArgName) ythrow() \
+		{ \
+			(_member) = (_expr); \
+		}
+	#define DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr) \
+		void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() \
+		{ \
+			(_member) = (_expr); \
+		}
 
 } //$header Base;
 
@@ -1273,25 +1407,25 @@ $header YASLIVectorStoragePolicy "yaslivsp.hpp" // yasli::vector 存储策略。
 		VectorStringStorage&
 		operator=(const VectorStringStorage& rhs);
 
-		PDefHead(iterator, begin)
+		PDefH(iterator, begin)
 			ImplBodyBase(base, begin)
 
-		PDefHead(const_iterator, begin) const
+		PDefH(const_iterator, begin) const
 			ImplBodyBase(base, begin)
 
-		PDefHead(iterator, end)
+		PDefH(iterator, end)
 			ImplRet(base::end() - 1)
 
-		PDefHead(const_iterator, end) const
+		PDefH(const_iterator, end) const
 			ImplRet(base::end() - 1)
 
-		PDefHead(size_type, size) const
+		PDefH(size_type, size) const
 			ImplRet(base::size() - 1)
 
-		PDefHead(size_type, max_size) const
+		PDefH(size_type, max_size) const
 			ImplRet(base::max_size() - 1)
 
-		PDefHead(size_type, capacity) const
+		PDefH(size_type, capacity) const
 			ImplRet(base::capacity() - 1)
 
 		void
@@ -1304,16 +1438,16 @@ $header YASLIVectorStoragePolicy "yaslivsp.hpp" // yasli::vector 存储策略。
 		void
 		resize(size_type, _tChar);
 
-		PDefHead(void, swap, VectorStringStorage& rhs)
+		PDefH(void, swap, VectorStringStorage& rhs)
 			ImplBodyBaseVoid(base, swap, rhs)
 
-		PDefHead(const _tChar*, c_str) const
+		PDefH(const _tChar*, c_str) const
 			ImplRet(&*begin())
 
-		PDefHead(const _tChar*, data) const
+		PDefH(const _tChar*, data) const
 			ImplRet(&*begin())
 
-		PDefHead(_tAlloc, get_allocator) const
+		PDefH(_tAlloc, get_allocator) const
 			ImplBodyBase(base, get_allocator)
 	};
 
@@ -1412,7 +1546,7 @@ $header Container "cont.h" //容器管理。
 		>
 	#endif
 	>
-	struct SStringTemplate
+	struct GSStringTemplate
 	{
 		typedef flex_string<_tChar, _tCharTrait, _tAlloc, _tStorage> basic_string;
 	};
@@ -1420,17 +1554,17 @@ $header Container "cont.h" //容器管理。
 	#else
 
 	template<typename _tChar>
-	struct SStringTemplate
+	struct GSStringTemplate
 	{
 		typedef std::basic_string<_tChar> basic_string;
 	};
 
 	#endif
 
-	typedef SStringTemplate<char>::basic_string string;
+	typedef GSStringTemplate<char>::basic_string string;
 
 	//YSLib 基本字符串（使用 UTF-16LE ）。
-	typedef SStringTemplate<uchar_t>::basic_string ustring;
+	typedef GSStringTemplate<uchar_t>::basic_string ustring;
 
 	YSL_END
 
@@ -2429,7 +2563,7 @@ $header YEvent "yevt.hpp" //事件回调模块。
 		class _tSender = YObject, class _tEventArgs = MEventArgs,
 		typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 	>
-	DeclBasedInterface(GIHEventHandler, GIClonable<GIHEventHandler<_tSender, _tEventArgs, _fEventHandler, _pfEventHandler> >)
+	DeclBasedInterface(GIEventHandler, GIClonable<GIEventHandler<_tSender, _tEventArgs, _fEventHandler, _pfEventHandler> >)
 		typedef _tSender SenderType;
 		typedef _tEventArgs EventArgsType;
 
@@ -2439,7 +2573,7 @@ $header YEvent "yevt.hpp" //事件回调模块。
 	EndDecl
 
 	//标准事件处理器接口。
-	typedef GIHEventHandler<> IHEventHandler;
+	typedef GIEventHandler<> IEventHandler;
 
 
 	//非成员函数事件处理器类模板。
@@ -2448,10 +2582,10 @@ $header YEvent "yevt.hpp" //事件回调模块。
 		typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 	>
 	class GHEventNormal : private GHBase<_pfEventHandler>,
-		implements GIHEventHandler<_tSender, _tEventArgs>
+		implements GIEventHandler<_tSender, _tEventArgs>
 	{
 	public:
-		typedef GIHEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
+		typedef GIEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
 
 		inline
 		GHEventNormal();
@@ -2478,10 +2612,10 @@ $header YEvent "yevt.hpp" //事件回调模块。
 		class _tSender = YObject, class _tEventArgs = MEventArgs,
 		typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 	>
-	class GHEventMember : implements GIHEventHandler<_tSender, _tEventArgs>
+	class GHEventMember : implements GIEventHandler<_tSender, _tEventArgs>
 	{
 	public:
-		typedef GIHEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
+		typedef GIEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
 		typedef void(_type::*MemFunPtrType)(const _tEventArgs&);
 
 	private:
@@ -2508,10 +2642,10 @@ $header YEvent "yevt.hpp" //事件回调模块。
 		class _tSender = YObject, class _tEventArgs = MEventArgs,
 		typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 	>
-	class GHEventMemberBinder : implements GIHEventHandler<_tSender, _tEventArgs>
+	class GHEventMemberBinder : implements GIEventHandler<_tSender, _tEventArgs>
 	{
 	public:
-		typedef GIHEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
+		typedef GIEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
 		typedef void(_type::*MemFunPtrType)(const _tEventArgs&);
 
 	private:
@@ -2535,7 +2669,7 @@ $header YEvent "yevt.hpp" //事件回调模块。
 
 	template<class _tSender, class _tEventArgs>
 	bool
-	operator==(GIHEventHandler<_tSender, _tEventArgs>&, GIHEventHandler<_tSender, _tEventArgs>&);
+	operator==(GIEventHandler<_tSender, _tEventArgs>&, GIEventHandler<_tSender, _tEventArgs>&);
 
 
 	//事件处理器类模板。
@@ -2543,34 +2677,34 @@ $header YEvent "yevt.hpp" //事件回调模块。
 		class _tSender = YObject, class _tEventArgs = MEventArgs,
 		typename _fEventHandler = void(_tSender&, const _tEventArgs&), typename _pfEventHandler = _fEventHandler*
 	>
-	class GHEvent : implements GIHEventHandler<_tSender, _tEventArgs>
+	class GEventHandler : implements GIEventHandler<_tSender, _tEventArgs>
 	{
 	public:
-		typedef GIHEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
+		typedef GIEventHandler<_tSender, _tEventArgs> IHEventHandlerType;
 
 	protected:
 		IHEventHandlerType* _h_ptr;
 
 	public:
 		inline
-		GHEvent();
+		GEventHandler();
 		inline explicit
-		GHEvent(const _fEventHandler&);
+		GEventHandler(const _fEventHandler&);
 		// GCC 4.5.0 之前版本对构造函数模板解析有误，无法显式实例化此实例。
 		template<class _type>
 		inline
-		GHEvent(typename GHEventMember<_type, _tSender, _tEventArgs>::MemFunPtrType);
+		GEventHandler(typename GHEventMember<_type, _tSender, _tEventArgs>::MemFunPtrType);
 		//解决方案：调用 NewMemberHandler ，返回值作为参数再调用构造函数。
 		inline explicit
-		GHEvent(IHEventHandlerType*);
+		GEventHandler(IHEventHandlerType*);
 
 		inline explicit
-		GHEvent(const GHEvent&);
+		GEventHandler(const GEventHandler&);
 		inline virtual
-		~GHEvent();
+		~GEventHandler();
 
 		bool
-		operator==(const GHEvent&);
+		operator==(const GEventHandler&);
 		virtual void
 		operator()(_tSender&, const _tEventArgs&) const;
 
@@ -2578,7 +2712,7 @@ $header YEvent "yevt.hpp" //事件回调模块。
 
 		virtual IHEventHandlerType*
 		Clone() const;
-	}; //template<class _tSender = ..., ... > class GHEvent;
+	}; //template<class _tSender = ..., ... > class GEventHandler;
 
 	template<class _type, class _tSender, class _tEventArgs>
 	inline GHEventMember<_type, _tSender, _tEventArgs>*
@@ -2586,7 +2720,7 @@ $header YEvent "yevt.hpp" //事件回调模块。
 
 
 	//标准事件处理器类。
-	typedef GHEvent<> HEvent;
+	typedef GEventHandler<> EventHandler;
 
 
 	//事件类模板。
@@ -2668,32 +2802,57 @@ $header YEvent "yevt.hpp" //事件回调模块。
 
 	//定义事件处理器委托。
 	#define DefDelegate(_name, _tSender, _tEventArgs)\
-		typedef Runtime::GHEvent<_tSender, _tEventArgs> _name;
+		typedef Runtime::GEventHandler<_tSender, _tEventArgs> _name;
 
 
 	#ifdef YSL_EVENT_MULTICAST
 
 	//标准多播事件类。
-	typedef GEvent<> YEvent;
+	typedef GEvent<> Event;
 
-	//定义多播事件。
-	#	define DefEvent(_tEventHandler, _name)\
-			Runtime::GEvent<true, _tEventHandler::SenderType, _tEventHandler::EventArgsType> _name;
+	//多播事件类型。
+	template<class _tEventHandler>
+	struct GSEventTemplate
+	{
+		typedef Runtime::GEvent<true,
+			typename _tEventHandler::SenderType,
+			typename _tEventHandler::EventArgsType
+		> EventType;
+	};
 
 	#else
 
 	//标准单播事件类。
-	typedef GEvent<false> YEvent;
+	typedef GEvent<false> Event;
 
-	//定义单播事件。
-	#	define DefEvent(_tEventHandler, _name)\
-			Runtime::GEvent<false, _tEventHandler::SenderType, _tEventHandler::EventArgsType> _name;
+	//单播事件类型。
+	template<class _tEventHandler>
+	struct GSEventTemplate
+	{
+		typedef Runtime::GEvent<false,
+			typename _tEventHandler::SenderType,
+			typename _tEventHandler::EventArgsType
+		> EventType;
+	};
 
 	#endif
 
 
+	//定义事件。
+	#	define DefEvent(_tEventHandler, _name)\
+			Runtime::GSEventTemplate<_tEventHandler>::EventType _name;
+
+	//定义事件接口。
+	#	define DeclIEventEntry(_tEventHandler, _name)\
+			DeclIEntry(const Runtime::GSEventTemplate<_tEventHandler>::EventType& _yJOIN(Get, _name)() const)
+
+	//定义事件访问器。
+	#	define DefEventGetter(_tEventHandler, _name)\
+			DefGetter(const Runtime::GSEventTemplate<_tEventHandler>::EventType&, _name, _name)
+
+
 	//事件映射表模板。
-	template<class _tEventSpace, class _tEvent = YEvent>
+	template<class _tEventSpace, class _tEvent = Event>
 	class GEventMap
 	{
 	public:
@@ -2726,223 +2885,9 @@ $header YEvent "yevt.hpp" //事件回调模块。
 	YSL_END_NAMESPACE(Runtime)
 
 	//标准事件处理器委托。
-	DefDelegate(YEventHandler, YObject, MEventArgs)
+	DefDelegate(EventHandler, YObject, MEventArgs)
 
 } //$unit YEvent;
-
-
-$unit YModule "ymodule" //平台无关的核心公共模块类实现。
-{
-	$import $header YEvent, $unit YEventArgs;
-
-
-	YSL_BEGIN_NAMESPACE(Components)
-
-	//通用对象组类模板。
-	template<class _type, class _tContainer = set<_type*> >
-	class GMContainer : public _tContainer,
-		implements GIContainer<_type>
-	{
-	public:
-		typedef _tContainer ContainerType; //对象组类型。
-
-		inline GMContainer();
-
-		inline ContainerType&
-		GetContainer();
-		inline const ContainerType&
-		GetContainer() const;
-
-		inline void
-		operator+=(_type& w); //向对象组添加对象。
-		inline bool
-		operator-=(_type& w); //从对象组移除对象。
-	}; //template<class _type, class = set<_type*> > GMContainer;
-
-	YSL_END_NAMESPACE(Components)
-
-	YSL_BEGIN_NAMESPACE(Runtime)
-
-	class AFocusRequester;
-
-
-	//焦点响应器模板。
-	template<class _type>
-	class GMFocusResponser// : implements GIContainer<_type>
-	{
-		friend class AFocusRequester;
-
-	protected:
-		_Tp* pFocusing; //焦点对象指针。
-		Components::GMContainer<_Tp> sFOs; //焦点对象组。
-
-		typedef typename Components::GMContainer<_Tp>::ContainerType FOs; //焦点对象组类型。
-
-		inline
-		GMFocusResponser();
-		inline
-		~GMFocusResponser();
-
-	public:
-		//判断给定指针是否和焦点对象指针相等。
-		inline bool
-		IsFocusing(_type* p) const;
-
-		//取焦点对象指针。
-		inline _type*
-		GetFocusingPtr() const;
-		//取焦点对象组（只读）。
-		inline const FOs&
-		GetFocusingSet() const;
-
-	protected:
-		//设置焦点对象指针。
-		bool
-		SetFocusingPtr(_Tp*);
-
-		//向焦点对象组添加焦点对象。
-		inline void
-		operator+=(_Tp&);
-		//从焦点对象组移除焦点对象。
-		inline bool
-		operator-=(_Tp&);
-
-	public:
-		//清空焦点指针。
-		inline bool
-		ClearFocusingPtr();
-	}; //template<class _type> class GMFocusReponser;
-
-
-	//焦点申请器接口模板。
-	template<class _type = AFocusRequester>
-	DeclInterface(GIFocusRequester)
-		DeclIEntry(bool IsFocused() const)
-		DeclIEntry(bool IsFocusOfContainer(GMFocusResponser<_type>&) const)
-
-		DeclIEntry(bool CheckRemoval(GMFocusResponser<_type>&) const)
-
-		DeclIEntry(void ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
-	EndDecl
-
-
-	//焦点申请器。
-	class AFocusRequester: implements GIFocusRequester<AFocusRequester>
-	{
-	protected:
-		bool bFocused; //是否为所在容器的焦点。
-
-	public:
-		inline
-		AFocusRequester();
-		inline virtual
-		~AFocusRequester();
-
-		//判断是否为获得焦点状态。
-		inline bool
-		IsFocused() const;
-		//判断是否已在指定响应器中获得焦点。
-		inline bool
-		IsFocusOfContainer(GMFocusResponser<AFocusRequester>&) const;
-		template<class _type>
-		inline bool
-		IsFocusOfContainer(GMFocusResponser<_type>&) const;
-
-		//判断是否已在指定响应器中获得焦点，若是则释放焦点。
-		bool
-		CheckRemoval(GMFocusResponser<AFocusRequester>&) const;
-		template<class _type>
-		bool
-		CheckRemoval(GMFocusResponser<_type>&) const;
-
-		//向指定响应器对应的容器申请获得焦点。
-		bool
-		RequestFocus(GMFocusResponser<AFocusRequester>&);
-		template<class _type>
-		bool
-		RequestFocus(GMFocusResponser<_type>&);
-		//释放焦点。
-		bool
-		ReleaseFocus(GMFocusResponser<AFocusRequester>&);
-		template<class _type>
-		bool
-		ReleaseFocus(GMFocusResponser<_type>&);
-
-		DeclIEntry(void ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
-	}; //class AFocusRequester;
-
-	YSL_END_NAMESPACE(Runtime)
-
-	YSL_BEGIN_NAMESPACE(Components)
-
-	//序列视图类模板。
-	template<class _tContainer>
-	class GSequenceViewer
-	{
-	public:
-		typedef typename _tContainer::size_type SizeType; //项目下标类型。
-		typedef std::ptrdiff_t SizeType; //项目索引类型。
-
-	private:
-		_tContainer& c; //序列容器引用。
-		IndexType nIndex, //项目索引：视图中首个项目下标，若不存在则为 -1 。
-			nSelected; //选中项目下标，大于等于 GetTotal() 时无效。
-		SizeType nLength; //视图长度。
-		bool bSelected; //选中状态。
-
-	public:
-		explicit
-		GSequenceViewer(_tContainer& c_);
-
-		inline GSequenceViewer&
-		operator++(); //选中项目下标自增。
-		inline GSequenceViewer&
-		operator--(); //选中项目下标自减。
-		inline GSequenceViewer&
-		operator++(int); //视图中首个项目下标自增。
-		inline GSequenceViewer&
-		operator--(int); //视图中首个项目下标自减。
-		inline GSequenceViewer&
-		operator>>(IndexType d); //视图中首个项目下标增加 d 。
-		inline GSequenceViewer&
-		operator<<(IndexType d); //视图中首个项目下标减少 d 。
-		inline GSequenceViewer&
-		operator+=(IndexType d); //选中项目下标增加 d 。
-		inline GSequenceViewer&
-		operator-=(IndexType d); //选中项目下标减少 d 。
-
-		DefPredicate(Selected, bSelected) //判断是否为选中状态。
-
-		DefGetter(SizeType, Total, c.size()) //取容器中元素个数。
-		DefGetter(SizeType, Length, nLength)
-		DefGetter(IndexType, Index, nIndex)
-		DefGetter(IndexType, Selected, nSelected)
-		DefGetter(SizeType, Valid, vmin(GetTotal() - GetIndex(), GetLength())) //取当前视图有效元素个数。
-
-		bool
-		SetIndex(IndexType);
-		bool
-		SetLength(SizeType);
-		bool
-		SetSelected(IndexType);
-
-		bool
-		ClearSelected(); //取消选中状态。
-
-		bool
-		RestrictSelected(); //约束被选中的元素在视图内。
-		bool
-		RestrictViewer(); //约束视图包含被选中的元素。
-
-		bool
-		MoveViewerToBegin(); //移动视图至序列起始。
-		bool
-		MoveViewerToEnd(); //移动视图至序列结尾。
-	}; //template<class _tContainer> class GSequenceViewer;
-
-	YSL_END_NAMESPACE(Components)
-
-} //$unit YModule;
 
 
 $unit YObject "yobject" //平台无关的基础对象实现。
@@ -3109,6 +3054,12 @@ $unit YObject "yobject" //平台无关的基础对象实现。
 	operator==(const Size& a, const Size& b);
 	inline bool
 	operator!=(const Size& a, const Size& b);
+
+
+	//二元对象转置。
+	template<class _tBinary>
+	inline _tBinary
+	Transpose(_tBinary& o);
 
 
 	class Rect : public Point //屏幕坐标系的正则（边平行于水平直线的）矩形：使用左上点屏幕坐标、宽和高表示。
@@ -3529,11 +3480,11 @@ $unit YShellMessage "ysmsg" //消息处理模块。
 		//消息优先队列。
 		priority_queue<Message, vector<Message>, cmp> q;
 
-		PDefHead(const Message&, top) const
+		PDefH(const Message&, top) const
 			ImplBodyMember(q, top)
-		PDefHead(void, push, const Message& msg)
+		PDefH(void, push, const Message& msg)
 			ImplBodyMemberVoid(q, push, msg)
-		PDefHead(void, pop)
+		PDefH(void, pop)
 			ImplBodyMemberVoid(q, pop)
 	public:
 
@@ -3543,9 +3494,9 @@ $unit YShellMessage "ysmsg" //消息处理模块。
 		virtual
 		~YMessageQueue() ythrow(); //默认析构函数：非内联。
 
-		PDefHead(bool, empty) const //判断消息队列是否为空。
+		PDefH(bool, empty) const //判断消息队列是否为空。
 			ImplBodyMember(q, empty)
-		PDefHead(size_type, size) const //取队列中消息容量。
+		PDefH(size_type, size) const //取队列中消息容量。
 			ImplBodyMember(q, size)
 
 		void
@@ -3631,7 +3582,7 @@ $unit YShell "yshell" // Shell 定义。
 		static LRES
 		DefShlProc(const Message&); //默认 Shell 处理函数。
 
-		virtual PDefHead(LRES, ShlProc, const Message& m) // Shell 处理函数：响应线程的直接调用。
+		virtual PDefH(LRES, ShlProc, const Message& m) // Shell 处理函数：响应线程的直接调用。
 			ImplRet(DefShlProc(m))
 
 		virtual LRES
@@ -3758,8 +3709,8 @@ $unit YApplication "yapp" //应用程序实例类抽象。
 		static const String ProductVersion; //产品版本。
 
 		//标准程序实例事件。
-		DefEvent(YEventHandler, ApplicationExit) //资源释放函数。
-		DefEvent(YEventHandler, Idle)
+		DefEvent(EventHandler, ApplicationExit) //资源释放函数。
+		DefEvent(EventHandler, Idle)
 
 		//全局资源。
 		YLog& Log; //默认程序日志。
@@ -3838,7 +3789,7 @@ $unit YFileSystem "yfilesys" //平台无关的文件处理系统。
 
 
 	typedef char NativePathCharType; //本机路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
-	typedef SStringTemplate<NativePathCharType>::basic_string NativeStringType; //本地字符串类型。
+	typedef GSStringTemplate<NativePathCharType>::basic_string NativeStringType; //本地字符串类型。
 
 
 	//路径类。
@@ -3846,7 +3797,7 @@ $unit YFileSystem "yfilesys" //平台无关的文件处理系统。
 	{
 	public:
 		typedef uchar_t ValueType;
-		typedef SStringTemplate<ValueType>::basic_string StringType; //内部字符串类型。
+		typedef GSStringTemplate<ValueType>::basic_string StringType; //内部字符串类型。
 	//	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
 
 		static const ValueType Slash;
@@ -4171,8 +4122,7 @@ $unit YFile_(Text) "yftext" //平台无关的文本文件抽象。
 	public:
 		explicit
 		YTextFile(CPATH); //按指定文件路径初始化对象。
-		virtual
-		~YTextFile();
+		virtual DefEmptyDtor(YTextFile)
 
 		DefGetter(u8, BOMSize, bl) //取 BOM 大小。
 		DefGetter(Text::CSID, CP, cp) //取编码。
@@ -4591,25 +4541,17 @@ $unit YGUI "ygui" //平台无关的图形用户界面基础实现。
 
 
 	//标准 GUI 事件回调函数抽象类。
-	typedef GAHEventCallback<Components::Controls::MVisualControl, YEvent> AHEventCallback;
-	typedef GAHEventCallback<Components::Controls::MVisualControl, Runtime::MTouchEventArgs> AHTouchCallback;
-	typedef GAHEventCallback<Components::Controls::MVisualControl, Runtime::MKeyEventArgs> AHKeyCallback;
+	typedef GAHEventCallback<Components::Controls::IVisualControl, Event> AHEventCallback;
+	typedef GAHEventCallback<Components::Controls::IVisualControl, Runtime::MKeyEventArgs> AHKeyCallback;
+	typedef GAHEventCallback<Components::Controls::IVisualControl, Runtime::MTouchEventArgs> AHTouchCallback;
 
 	//标准 GUI 事件回调函数类型。
-	typedef bool FTouchCallback(Components::Controls::MVisualControl&, const Runtime::MTouchEventArgs&);
-	typedef bool FKeyCallback(Components::Controls::MVisualControl&, const Runtime::MKeyEventArgs&);
-	typedef FTouchCallback* PFTouchCallback;
+	typedef bool FKeyCallback(Components::Controls::IVisualControl&, const Runtime::MKeyEventArgs&);
+	typedef bool FTouchCallback(Components::Controls::IVisualControl&, const Runtime::MTouchEventArgs&);
 	typedef FKeyCallback* PFKeyCallback;
+	typedef FTouchCallback* PFTouchCallback;
 
 	//标准 GUI 事件回调函数对象类。
-	struct HTouchCallback : public GHBase<PFTouchCallback>, public AHTouchCallback
-	{
-		inline explicit
-		HTouchCallback(Runtime::MTouchEventArgs, PFTouchCallback);
-
-		inline bool
-		operator()(Components::Controls::MVisualControl&);
-	}; //struct HTouchCallback;
 
 	struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 	{
@@ -4617,50 +4559,52 @@ $unit YGUI "ygui" //平台无关的图形用户界面基础实现。
 		HKeyCallback(Runtime::MKeyEventArgs, PFKeyCallback);
 
 		inline bool
-		operator()(Components::Controls::MVisualControl&);
+		operator()(Components::Controls::IVisualControl&);
 	}; //struct HKeyCallback;
+
+	struct HTouchCallback : public GHBase<PFTouchCallback>, public AHTouchCallback
+	{
+		inline explicit
+		HTouchCallback(Runtime::MTouchEventArgs, PFTouchCallback);
+
+		inline bool
+		operator()(Components::Controls::IVisualControl&);
+	}; //struct HTouchCallback;
 
 
 	//记录输入保持状态。
-	class InputStatus
+
+	YSL_BEGIN_NAMESPACE(InputStatus)
+
+	typedef enum
 	{
-	public:
-		typedef enum
-		{
-			KeyFree = 0,
-			KeyPressed = 1,
-			KeyHeld = 2
-		} KeyHeldStateType;
+		Free = 0,
+		Pressed = 1,
+		Held = 2
+	} HeldStateType;
 
-	private:
-		static Vec DragOffset;
-		static KeyHeldStateType KeyHeldState;
-		static Timers::YTimer KeyTimer;
+	extern HeldStateType KeyHeldState, TouchHeldState;
 
-	public:
-		DefStaticPredicate(OnDragging, DragOffset != Vec::FullScreen)
-
-		DefStaticGetter(const Vec&, DragOffset, DragOffset)
-		DefStaticGetter(TouchSwitchStateType, TouchSwitchState, TouchSwitchState)
-		DefStaticGetter(KeyHeldStateType, KeyHeldState, KeyHeldState)
-
-		static DefSetterDe(const Vec&, DragOffset, DragOffset, Vec::FullScreen)
-
-		static void
-		RepeatKeyHeld(Components::Controls::MVisualControl&, const MKeyEventArgs&);
-
-		static void
-		ResetKeyHeldState();
-	}; //class InputStatus;
-
-
-	//响应标准屏幕点击状态。
 	bool
-	ResponseTouchUp(IWidgetContainer&, const Runtime::MTouchEventArgs&);
+	IsOnDragging();
+
+	const Vec&
+	GetDragOffset();
+
+	void
+	SetDragOffset(const Vec& = Vec::FullScreen);
+
+	void
+	CheckTouchedControlBounds(Components::Controls::IVisualControl&, const MTouchEventArgs&);
+
 	bool
-	ResponseTouchDown(IWidgetContainer&, const Runtime::MTouchEventArgs&);
-	bool
-	ResponseTouchHeld(IWidgetContainer&, const Runtime::MTouchEventArgs&);
+	RepeatHeld(HeldStateType&, const MKeyEventArgs&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
+
+	void
+	ResetHeldState(HeldStateType&);
+
+	YSL_END_NAMESPACE(InputStatus)
+
 
 	//响应标准按键状态。
 	bool
@@ -4669,6 +4613,14 @@ $unit YGUI "ygui" //平台无关的图形用户界面基础实现。
 	ResponseKeyDown(YDesktop&, const Runtime::MKeyEventArgs&);
 	bool
 	ResponseKeyHeld(YDesktop&, const Runtime::MKeyEventArgs&);
+
+	//响应标准屏幕点击状态。
+	bool
+	ResponseTouchUp(IWidgetContainer&, const Runtime::MTouchEventArgs&);
+	bool
+	ResponseTouchDown(IWidgetContainer&, const Runtime::MTouchEventArgs&);
+	bool
+	ResponseTouchHeld(IWidgetContainer&, const Runtime::MTouchEventArgs&);
 
 	YSL_END_NAMESPACE(Runtime)
 
@@ -4698,7 +4650,7 @@ $unit YGUI "ygui" //平台无关的图形用户界面基础实现。
 
 $unit YComponent "ycomp" //平台无关的 Shell 组件实现。
 {
-	$import $unit Core::YApplication;
+	$import $unit Core::YApplication, $header YEvent, $unit YEventArgs;
 
 
 	YSL_BEGIN_NAMESPACE(Components)
@@ -4714,6 +4666,205 @@ $unit YComponent "ycomp" //平台无关的 Shell 组件实现。
 	public:
 		typedef YCountableObject ParentType;
 	}; //class YComponent;
+
+
+	//通用对象组类模板。
+	template<class _type, class _tContainer = set<_type*> >
+	class GMContainer : public _tContainer,
+		implements GIContainer<_type>
+	{
+	public:
+		typedef _tContainer ContainerType; //对象组类型。
+
+		inline
+		GMContainer();
+		virtual DefEmptyDtor(GMContainer)
+
+		inline ContainerType&
+		GetContainer();
+		inline const ContainerType&
+		GetContainer() const;
+
+		inline void
+		operator+=(_type& w); //向对象组添加对象。
+		inline bool
+		operator-=(_type& w); //从对象组移除对象。
+	}; //template<class _type, class = set<_type*> > GMContainer;
+
+
+	class AFocusRequester;
+
+
+	//焦点响应器模板。
+	template<class _type>
+	class GMFocusResponser// : implements GIContainer<_type>
+	{
+		friend class AFocusRequester;
+
+	protected:
+		_type* pFocusing; //焦点对象指针。
+		Components::GMContainer<_type> sFOs; //焦点对象组。
+
+		typedef typename Components::GMContainer<_type>::ContainerType FOs; //焦点对象组类型。
+
+		inline
+		GMFocusResponser();
+		inline
+		~GMFocusResponser();
+
+	public:
+		//判断给定指针是否和焦点对象指针相等。
+		inline bool
+		IsFocusing(_type* p) const;
+
+		//取焦点对象指针。
+		inline _type*
+		GetFocusingPtr() const;
+		//取焦点对象组（只读）。
+		inline const FOs&
+		GetFocusingSet() const;
+
+	protected:
+		//设置焦点对象指针。
+		bool
+		SetFocusingPtr(_type*);
+
+		//向焦点对象组添加焦点对象。
+		inline void
+		operator+=(_type&);
+		//从焦点对象组移除焦点对象。
+		inline bool
+		operator-=(_type&);
+
+	public:
+		//清空焦点指针。
+		inline bool
+		ClearFocusingPtr();
+	}; //template<class _type> class GMFocusReponser;
+
+
+	//焦点申请器接口模板。
+	template<class _type = AFocusRequester>
+	DeclInterface(GIFocusRequester)
+		DeclIEntry(bool IsFocused() const)
+		DeclIEntry(bool IsFocusOfContainer(GMFocusResponser<_type>&) const)
+
+		DeclIEntry(bool CheckRemoval(GMFocusResponser<_type>&) const)
+
+		DeclIEntry(void ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
+	EndDecl
+
+
+	//焦点申请器。
+	class AFocusRequester: implements GIFocusRequester<AFocusRequester>
+	{
+	protected:
+		bool bFocused; //是否为所在容器的焦点。
+
+	public:
+		inline
+		AFocusRequester();
+		inline virtual
+		~AFocusRequester();
+
+		//判断是否为获得焦点状态。
+		inline bool
+		IsFocused() const;
+		//判断是否已在指定响应器中获得焦点。
+		inline bool
+		IsFocusOfContainer(GMFocusResponser<AFocusRequester>&) const;
+		template<class _type>
+		inline bool
+		IsFocusOfContainer(GMFocusResponser<_type>&) const;
+
+		//判断是否已在指定响应器中获得焦点，若是则释放焦点。
+		bool
+		CheckRemoval(GMFocusResponser<AFocusRequester>&) const;
+		template<class _type>
+		bool
+		CheckRemoval(GMFocusResponser<_type>&) const;
+
+		//向指定响应器对应的容器申请获得焦点。
+		bool
+		RequestFocus(GMFocusResponser<AFocusRequester>&);
+		template<class _type>
+		bool
+		RequestFocus(GMFocusResponser<_type>&);
+		//释放焦点。
+		bool
+		ReleaseFocus(GMFocusResponser<AFocusRequester>&);
+		template<class _type>
+		bool
+		ReleaseFocus(GMFocusResponser<_type>&);
+
+		DeclIEntry(void ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
+	}; //class AFocusRequester;
+
+
+	//序列视图类模板。
+	template<class _tContainer>
+	class GSequenceViewer
+	{
+	public:
+		typedef typename _tContainer::size_type SizeType; //项目下标类型。
+		typedef std::ptrdiff_t SizeType; //项目索引类型。
+
+	private:
+		_tContainer& c; //序列容器引用。
+		IndexType nIndex, //项目索引：视图中首个项目下标，若不存在则为 -1 。
+			nSelected; //选中项目下标，大于等于 GetTotal() 时无效。
+		SizeType nLength; //视图长度。
+		bool bSelected; //选中状态。
+
+	public:
+		explicit
+		GSequenceViewer(_tContainer& c_);
+
+		inline GSequenceViewer&
+		operator++(); //选中项目下标自增。
+		inline GSequenceViewer&
+		operator--(); //选中项目下标自减。
+		inline GSequenceViewer&
+		operator++(int); //视图中首个项目下标自增。
+		inline GSequenceViewer&
+		operator--(int); //视图中首个项目下标自减。
+		inline GSequenceViewer&
+		operator>>(IndexType d); //视图中首个项目下标增加 d 。
+		inline GSequenceViewer&
+		operator<<(IndexType d); //视图中首个项目下标减少 d 。
+		inline GSequenceViewer&
+		operator+=(IndexType d); //选中项目下标增加 d 。
+		inline GSequenceViewer&
+		operator-=(IndexType d); //选中项目下标减少 d 。
+
+		DefPredicate(Selected, bSelected) //判断是否为选中状态。
+
+		DefGetter(SizeType, Total, c.size()) //取容器中元素个数。
+		DefGetter(SizeType, Length, nLength)
+		DefGetter(IndexType, Index, nIndex)
+		DefGetter(IndexType, Selected, nSelected)
+		DefGetter(SizeType, Valid, vmin(GetTotal() - GetIndex(), GetLength())) //取当前视图有效元素个数。
+
+		bool
+		SetIndex(IndexType);
+		bool
+		SetLength(SizeType);
+		bool
+		SetSelected(IndexType);
+
+		bool
+		ClearSelected(); //取消选中状态。
+
+		bool
+		RestrictSelected(); //约束被选中的元素在视图内。
+		bool
+		RestrictViewer(); //约束视图包含被选中的元素。
+
+		bool
+		MoveViewerToBegin(); //移动视图至序列起始。
+		bool
+		MoveViewerToEnd(); //移动视图至序列结尾。
+	}; //template<class _tContainer> class GSequenceViewer;
 
 
 	//控制台。
@@ -4762,14 +4913,13 @@ $unit YDesktop "ydesktop" //平台无关的桌面抽象层。
 	public:
 		explicit
 		YDesktop(YScreen&, Color = 0, GHResource<Drawing::YImage> = NULL);
-		virtual
-		~YDesktop();
+		virtual DefEmptyDtor(YDesktop)
 
 		DefGetter(const YScreen&, Screen, Screen) //取屏幕对象。
 		DefGetter(const Drawing::MBitmapBuffer&, Buffer, *this) //取显示缓冲区。
 		DefGetter(BitmapPtr, BackgroundPtr, Screen.GetPtr()) //取背景指针。
 
-		virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
+		virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
 			ImplBodyBase(YDesktop, GetTopDesktopObjectPtr, p)
 
 		void
@@ -4811,7 +4961,7 @@ $unit YDesktop "ydesktop" //平台无关的桌面抽象层。
 
 $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 {
-	$import $unit YComponent, Core::YModule, Core::YResource, YText,
+	$import $unit YComponent, Core::YResource, YText,
 		YWindow, YControl;
 
 
@@ -4869,8 +5019,8 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		DeclIEntry(bool operator-=(IWidget&)) //从部件组移除部件。
 		DeclIEntry(void operator+=(IVisualControl&)) //向焦点对象组添加可视控件。
 		DeclIEntry(bool operator-=(IVisualControl&)) //从焦点对象组移除可视控件。
-		DeclIEntry(void operator+=(Runtime::GMFocusResponser<IVisualControl>&)) //向焦点对象组添加子焦点对象容器。
-		DeclIEntry(bool operator-=(Runtime::GMFocusResponser<IVisualControl>&)) //从焦点对象组移除子焦点对象容器。
+		DeclIEntry(void operator+=(GMFocusResponser<IVisualControl>&)) //向焦点对象组添加子焦点对象容器。
+		DeclIEntry(bool operator-=(GMFocusResponser<IVisualControl>&)) //从焦点对象组移除子焦点对象容器。
 
 		DeclIEntry(IWidget* GetTopWidgetPtr(const Point&) const) //取指定的点（屏幕坐标）所处的部件的指针。
 		DeclIEntry(IVisualControl* GetTopVisualControlPtr(const Point&) const) //取指定的点（屏幕坐标）所处的焦点对象的指针。
@@ -4906,16 +5056,16 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		explicit
 		MVisual(const Rect& = Rect::Empty,
 			PixelType = Color::White, PixelType = Color::Black);
-		virtual DefTrivialDtor(MVisual)
+		virtual DefEmptyDtor(MVisual)
 
 		DefPredicate(Visible, Visible)
 		DefPredicate(Transparent, Transparent)
 		DefPredicate(BgRedrawed, bBgRedrawed)
 
 		//判断包含关系。
-		PDefHead(bool, Contains, const Point& p) const
+		PDefH(bool, Contains, const Point& p) const
 			ImplBodyMember(GetBounds(), IsInBoundsRegular, p)
-		PDefHead(bool, Contains, const int& x, const int& y) const //判断点(x, y)是否在边界内或边界上。
+		PDefH(bool, Contains, const int& x, const int& y) const //判断点(x, y)是否在边界内或边界上。
 			ImplBodyMember(GetBounds(), IsInBoundsRegular, x, y)
 
 		DefGetter(SPOS, X, Location.X)
@@ -4930,7 +5080,7 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		DefSetterDe(bool, Transparent, Transparent, true)
 		DefSetterDe(bool, BgRedrawed, bBgRedrawed, true)
 		virtual DefSetter(const Point&, Location, Location)
-		virtual PDefHead(void, SetLocation, SPOS x, SPOS y)
+		virtual PDefH(void, SetLocation, SPOS x, SPOS y)
 			ImplBodyBaseVoid(MVisual, SetLocation, Point(x, y))
 		virtual void
 		SetSize(SDST, SDST);
@@ -4998,7 +5148,7 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		virtual DefPredicateBase(BgRedrawed, MVisual)
 
 		//判断包含关系。
-		virtual PDefHead(bool, Contains, const Point& p) const
+		virtual PDefH(bool, Contains, const Point& p) const
 			ImplBodyBase(MVisual, Contains, p)
 
 		virtual DefGetterBase(const Point&, Location, MVisual)
@@ -5011,12 +5161,12 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
 		virtual DefSetterBase(const Point&, Location, MVisual)
 
-		virtual PDefHead(void, DrawBackground)
+		virtual PDefH(void, DrawBackground)
 			ImplBodyBaseVoid(MWidget, DrawBackground)
-		virtual PDefHead(void, DrawForeground)
+		virtual PDefH(void, DrawForeground)
 			ImplBodyBaseVoid(MWidget, DrawForeground)
 
-		virtual PDefHead(void, Refresh)
+		virtual PDefH(void, Refresh)
 			ImplBodyBaseVoid(MWidget, Refresh)
 
 		inline virtual void
@@ -5025,13 +5175,13 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 
 
 	//部件容器模块。
-	class MWidgetContainer : public Runtime::GMFocusResponser<IVisualControl>,
+	class MWidgetContainer : public GMFocusResponser<IVisualControl>,
 		implements GIContainer<IVisualControl>
 	{
 	public:
 		typedef Components::GMContainer<IWidget> WidgetSet;
 		typedef WidgetSet::ContainerType WGTs; //部件组类型。
-		typedef Components::GMContainer<Runtime::GMFocusResponser<IVisualControl> > FOCs; //子焦点对象容器组类型。
+		typedef Components::GMContainer<GMFocusResponser<IVisualControl> > FOCs; //子焦点对象容器组类型。
 
 	protected:
 		WidgetSet sWgtSet; //部件对象组模块。
@@ -5039,15 +5189,16 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 
 	public:
 		MWidgetContainer();
+		virtual DefEmptyDtor(MWidgetContainer);
 
 	protected:
-		PDefOpHead(void, +=, IVisualControl& r) //向焦点对象组添加焦点对象。
-			ImplBodyBaseVoid(Runtime::GMFocusResponser<IVisualControl>, operator+=, r)
-		PDefOpHead(bool, -=, IVisualControl& r) //从焦点对象组移除焦点对象。
-			ImplBodyBase(Runtime::GMFocusResponser<IVisualControl>, operator-=, r)
-		PDefOpHead(void, +=, Runtime::GMFocusResponser<IVisualControl>& c) //向子焦点对象容器组添加子焦点对象容器。
+		PDefHOperator(void, +=, IVisualControl& r) //向焦点对象组添加焦点对象。
+			ImplBodyBaseVoid(GMFocusResponser<IVisualControl>, operator+=, r)
+		PDefHOperator(bool, -=, IVisualControl& r) //从焦点对象组移除焦点对象。
+			ImplBodyBase(GMFocusResponser<IVisualControl>, operator-=, r)
+		PDefHOperator(void, +=, GMFocusResponser<IVisualControl>& c) //向子焦点对象容器组添加子焦点对象容器。
 			ImplBodyMemberVoid(sFOCSet, insert, &c)
-		PDefOpHead(bool, -=, Runtime::GMFocusResponser<IVisualControl>& c) //从子焦点对象容器组移除子焦点对象容器。
+		PDefHOperator(bool, -=, GMFocusResponser<IVisualControl>& c) //从子焦点对象容器组移除子焦点对象容器。
 			ImplBodyMember(sFOCSet, erase, &c)
 
 	public:
@@ -5081,25 +5232,25 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		inline bool
 		operator-=(IVisualControl&);
 		inline virtual void
-		operator+=(Runtime::GMFocusResponser<IVisualControl>&);
+		operator+=(GMFocusResponser<IVisualControl>&);
 		inline virtual bool
-		operator-=(Runtime::GMFocusResponser<IVisualControl>&);
+		operator-=(GMFocusResponser<IVisualControl>&);
 
 		virtual DefPredicateBase(Visible, MVisual)
 		virtual DefPredicateBase(Transparent, MVisual)
 		virtual DefPredicateBase(BgRedrawed, MVisual)
 
 		//判断包含关系。
-		virtual PDefHead(bool, Contains, const Point& p) const
+		virtual PDefH(bool, Contains, const Point& p) const
 			ImplBodyBase(MVisual, Contains, p)
 
 		virtual DefGetterBase(const Point&, Location, MVisual)
 		virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
 		virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 		virtual DefGetterBase(HWND, WindowHandle, MWidget)
-		virtual PDefHead(IWidget*, GetTopWidgetPtr, const Point& p) const
+		virtual PDefH(IWidget*, GetTopWidgetPtr, const Point& p) const
 			ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
-		virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
+		virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
 			ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
 		virtual Point
 		GetContainerLocationOffset(const Point& = Point::Zero) const;
@@ -5111,15 +5262,15 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
 		virtual DefSetterBase(const Point&, Location, MVisual)
 
-		virtual PDefHead(void, ClearFocusingPtr)
+		virtual PDefH(void, ClearFocusingPtr)
 			ImplBodyBaseVoid(MWidgetContainer, ClearFocusingPtr)
 
-		virtual PDefHead(void, DrawBackground)
+		virtual PDefH(void, DrawBackground)
 			ImplBodyBaseVoid(MWidget, DrawBackground)
-		virtual PDefHead(void, DrawForeground)
+		virtual PDefH(void, DrawForeground)
 			ImplBodyBaseVoid(MWidget, DrawForeground)
 
-		virtual PDefHead(void, Refresh)
+		virtual PDefH(void, Refresh)
 			ImplBodyBaseVoid(MWidget, Refresh)
 
 		inline virtual void
@@ -5144,7 +5295,7 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		MLabel(const _tChar*, const Drawing::Font& = Drawing::Font::GetDefault(), GHResource<Drawing::TextRegion> = NULL);
 
 	protected:
-		DefTrivialDtor(MLabel)
+		DefEmptyDtor(MLabel)
 
 		void
 		PaintText(MWidget&);
@@ -5206,10 +5357,10 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 
 
 	//事件处理器类型。
-	DefDelegate(YInputEventHandler, IVisualControl, Runtime::MInputEventArgs)
-	DefDelegate(YTouchEventHandler, IVisualControl, Runtime::MTouchEventArgs)
-	DefDelegate(YKeyEventHandler, IVisualControl, Runtime::MKeyEventArgs)
-	DefDelegate(YIndexEventHandler, IVisualControl, MIndexEventArgs)
+	DefDelegate(InputEventHandler, IVisualControl, Runtime::MInputEventArgs)
+	DefDelegate(KeyEventHandler, IVisualControl, Runtime::MKeyEventArgs)
+	DefDelegate(TouchEventHandler, IVisualControl, Runtime::MTouchEventArgs)
+	DefDelegate(IndexEventHandler, IVisualControl, MIndexEventArgs)
 
 
 	//可视控件事件空间。
@@ -5251,9 +5402,21 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 
 
 	//可视控件接口。
-	DeclBasedInterface(IVisualControl, IControl, Runtime::GIFocusRequester<IVisualControl>)
+	DeclBasedInterface(IVisualControl, IControl, GIFocusRequester<IVisualControl>)
 		DeclIEntry(void RequestFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
 		DeclIEntry(void ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
+
+		DeclIEventEntry(InputEventHandler, Enter)
+		DeclIEventEntry(InputEventHandler, Leave)
+		DeclIEventEntry(KeyEventHandler, KeyUp)
+		DeclIEventEntry(KeyEventHandler, KeyDown)
+		DeclIEventEntry(KeyEventHandler, KeyHeld)
+		DeclIEventEntry(KeyEventHandler, KeyPress)
+		DeclIEventEntry(TouchEventHandler, TouchUp)
+		DeclIEventEntry(TouchEventHandler, TouchDown)
+		DeclIEventEntry(TouchEventHandler, TouchHeld)
+		DeclIEventEntry(TouchEventHandler, TouchMove)
+		DeclIEventEntry(TouchEventHandler, Click)
 	EndDecl
 
 
@@ -5267,9 +5430,9 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 	public:
 		inline explicit
 		MControl(bool = true);
-		virtual DefTrivialDtor(MControl)
+		virtual DefEmptyDtor(MControl)
 
-		virtual PDefOpHead(IControl::EventMapType::Event&, [], const IControl::EventMapType::ID& id)
+		virtual PDefHOperator(IControl::EventMapType::Event&, [], const IControl::EventMapType::ID& id)
 			ImplRet(EventMap[id])
 
 		inline IControl::EventMapType::Event&
@@ -5282,23 +5445,23 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 
 
 	//可视控件模块类。
-	class MVisualControl : public MControl, public Runtime::AFocusRequester
+	class MVisualControl : public MControl, public AFocusRequester
 	{
 	public:
-		DefEvent(YInputEventHandler, Enter)
-		DefEvent(YInputEventHandler, Leave)
-		DefEvent(YTouchEventHandler, TouchUp)
-		DefEvent(YTouchEventHandler, TouchDown)
-		DefEvent(YTouchEventHandler, TouchHeld)
-		DefEvent(YTouchEventHandler, TouchMove)
-		DefEvent(YTouchEventHandler, Click)
-		DefEvent(YKeyEventHandler, KeyUp)
-		DefEvent(YKeyEventHandler, KeyDown)
-		DefEvent(YKeyEventHandler, KeyHeld)
-		DefEvent(YKeyEventHandler, KeyPress)
+		DefEvent(InputEventHandler, Enter)
+		DefEvent(InputEventHandler, Leave)
+		DefEvent(KeyEventHandler, KeyUp)
+		DefEvent(KeyEventHandler, KeyDown)
+		DefEvent(KeyEventHandler, KeyHeld)
+		DefEvent(KeyEventHandler, KeyPress)
+		DefEvent(TouchEventHandler, TouchUp)
+		DefEvent(TouchEventHandler, TouchDown)
+		DefEvent(TouchEventHandler, TouchHeld)
+		DefEvent(TouchEventHandler, TouchMove)
+		DefEvent(TouchEventHandler, Click)
 
 	protected:
-		Runtime::GMFocusResponser<IVisualControl>*
+		GMFocusResponser<IVisualControl>*
 		CheckFocusContainer(IWidgetContainer*); //检查给定的容器指针是否有效且指向接受焦点的容器。
 
 	public:
@@ -5309,13 +5472,13 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 		virtual void
 		OnLostFocus(const MEventArgs& = GetZeroElement<MEventArgs>());
 		virtual void
+		OnKeyHeld(const Runtime::MKeyEventArgs&);
+		virtual void
 		OnTouchDown(const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
 		virtual void
 		OnTouchHeld(const Runtime::MTouchEventArgs&);
 		virtual void
 		OnTouchMove(const Runtime::MTouchEventArgs&);
-		virtual void
-		OnKeyHeld(const Runtime::MKeyEventArgs&);
 	}; //class MVisualControl;
 
 
@@ -5326,17 +5489,16 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 	}; //class YControl;
 
 
-	//可视控件基类。
-	class YVisualControl : public GMCounter<YVisualControl>, public YComponent, public Widgets::MWidget, public MVisualControl,
+	//可视控件抽象基类。
+	class AVisualControl : public Widgets::MWidget, public MVisualControl,
 		implements IWidget, implements IVisualControl
 	{
 	public:
-		typedef YComponent ParentType;
-
 		explicit
-		YVisualControl(HWND = NULL, const Rect& = Rect::FullScreen, IWidgetContainer* = NULL);
+		AVisualControl(HWND = NULL, const Rect& = Rect::FullScreen, IWidgetContainer* = NULL);
+		~AVisualControl();
 
-		virtual PDefHead(EventMapType::Event&, operator[], const EventMapType::ID& id)
+		virtual PDefH(EventMapType::Event&, operator[], const EventMapType::ID& id)
 			ImplBodyBase(MVisualControl, operator[], id)
 
 		virtual DefPredicateBase(Visible, MVisual)
@@ -5344,14 +5506,14 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 		virtual DefPredicateBase(BgRedrawed, MVisual)
 		virtual DefPredicateBase(Enabled, MControl)
 		virtual DefPredicateBase(Focused, AFocusRequester)
-		virtual PDefHead(bool, IsFocusOfContainer, Runtime::GMFocusResponser<IVisualControl>& c) const
+		virtual PDefH(bool, IsFocusOfContainer, GMFocusResponser<IVisualControl>& c) const
 			ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
 
 		//判断包含关系。
-		virtual PDefHead(bool, Contains, const Point& p) const
+		virtual PDefH(bool, Contains, const Point& p) const
 			ImplBodyBase(MVisual, Contains, p)
 
-		virtual PDefHead(bool, CheckRemoval, Runtime::GMFocusResponser<IVisualControl>& c) const
+		virtual PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
 			ImplBodyBase(MVisualControl, CheckRemoval, c)
 
 		virtual DefGetterBase(const Point&, Location, MVisual)
@@ -5359,26 +5521,52 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 		virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
 		virtual DefGetterBase(HWND, WindowHandle, MWidget)
 
+		virtual DefEventGetter(InputEventHandler, Enter)
+		virtual DefEventGetter(InputEventHandler, Leave)
+		virtual DefEventGetter(KeyEventHandler, KeyUp)
+		virtual DefEventGetter(KeyEventHandler, KeyDown)
+		virtual DefEventGetter(KeyEventHandler, KeyHeld)
+		virtual DefEventGetter(KeyEventHandler, KeyPress)
+		virtual DefEventGetter(TouchEventHandler, TouchUp)
+		virtual DefEventGetter(TouchEventHandler, TouchDown)
+		virtual DefEventGetter(TouchEventHandler, TouchHeld)
+		virtual DefEventGetter(TouchEventHandler, TouchMove)
+		virtual DefEventGetter(TouchEventHandler, Click)
+
 		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
 		virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
 		virtual DefSetterBase(const Point&, Location, MVisual)
 		virtual DefSetterBaseDe(bool, Enabled, MControl, true)
 
-		virtual PDefHead(void, DrawBackground)
+		virtual PDefH(void, DrawBackground)
 			ImplBodyBaseVoid(MWidget, DrawBackground)
-		virtual PDefHead(void, DrawForeground)
+		virtual PDefH(void, DrawForeground)
 			ImplBodyBaseVoid(MWidget, DrawForeground)
 
-		virtual PDefHead(void, Refresh)
+		virtual PDefH(void, Refresh)
 			ImplBodyBaseVoid(MWidget, Refresh)
 
 		virtual void
 		RequestFocus(const MEventArgs& = GetZeroElement<MEventArgs>()); //向部件容器申请获得焦点，若成功则引发 GotFocus 事件。
 		virtual void
 		ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()); //释放焦点，并引发 LostFocus 事件。
-		inline virtual void
-		RequestToTop();
+	}; //class AVisualControl;
+
+
+	//可视控件基类。
+	class YVisualControl : public YComponent, public AVisualControl
+	{
+	public:
+		typedef YComponent ParentType;
+
+		explicit
+		YVisualControl(HWND = NULL, const Rect& = Rect::FullScreen, IWidgetContainer* = NULL);
+		~YVisualControl();
+
+		virtual void
+		RequestToTop()
+		{}
 	}; //class YVisualControl;
 
 
@@ -5388,22 +5576,43 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 	protected:
 		bool bPressed;
 
-	public:
-		inline explicit
+		explicit
 		MButton(bool = false);
-	};
 
-
-	//抽象按钮模块基类。
-	class AButton : public MButton, public Widgets::MLabel
-	{
 	public:
-		template<class _tChar>
-		AButton(const _tChar*, const Drawing::Font& = Drawing::Font::GetDefault(), GHResource<Drawing::TextRegion> = NULL);
+		DefPredicate(Pressed, bPressed)
+	}; //class MButton;
 
-		DeclIEntry(void Press())
-		DeclIEntry(void Release())
-	};
+
+	//滚动条模块。
+	class MScrollBar
+	{
+	protected:
+		SDST MaxThumbSize, PrevButtonSize, NextButtonSize;
+		bool bPrevButtonPressed, bNextButtonPressed;
+
+		explicit
+		MScrollBar(SDST = 10, SDST = 10, SDST = 10);
+
+	public:
+		DefGetter(SDST, MaxThumbSize, MaxThumbSize)
+		DefGetter(SDST, PrevButtonSize, PrevButtonSize)
+		DefGetter(SDST, NextButtonSize, NextButtonSize)
+	}; //class MScrollBar;
+
+
+	//滚动条。
+	class AScrollBar : public AVisualControl, public MScrollBar
+	{
+		DefGetter(SDST, ScrollAreaLength, GetWidth() - PrevButtonLength - NextButtonLength)
+		DefGetter(SDST, ScrollAreaFixedLength, GetScrollAreaLength() - MaxScrollBlockLength)
+
+		DeclIEntry(void DrawPrevButton())
+		DeclIEntry(void DrawNextButton())
+		DeclIEntry(void DrawScrollArea())
+		virtual void
+		DrawForeground();
+	}; //class AScrollBar;
 
 	YSL_END_NAMESPACE(Controls)
 
@@ -5427,7 +5636,7 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 	YSL_BEGIN_NAMESPACE(Controls)
 
 	//按钮。
-	class YButton : public GMCounter<YButton>, public YVisualControl, public Widgets::MLabel
+	class YButton : public GMCounter<YButton>, public YVisualControl, public MButton, public Widgets::MLabel
 	{
 	public:
 		typedef YVisualControl ParentType;
@@ -5442,14 +5651,45 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 		YButton(HWND, const _tChar*, const Rect& = Rect::FullScreen,
 		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 
+	protected:
+		void
+		_m_init();
+
+	public:
 		virtual void
 		DrawForeground();
 
 		virtual void
-		Press();
+		OnEnter(const Runtime::MInputEventArgs&);
 		virtual void
-		Release();
+		OnLeave(const Runtime::MInputEventArgs&);
+		virtual void
+		OnKeyDown(const Runtime::MKeyEventArgs&);
+		virtual void
+		OnClick(const Runtime::MTouchEventArgs&);
 	}; //class YButton;
+
+
+	//水平滚动条。
+	class YHorizontalScrollBar : public AScrollBar
+	{
+		explicit
+		YHorizontalScrollBar(SDST = 8, SDST = 10, SDST = 10);
+
+		void
+		DrawPrevButton();
+		void
+		DrawNextButton();
+		void
+		DrawScrollArea();
+	}; //class YHorizontalScrollBar;
+
+
+	//垂直滚动条。
+	class YVerticalScrollBar
+	{
+
+	}; //class YVerticalScrollBar;
 
 
 	//文本列表框。
@@ -5476,8 +5716,8 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 		GSequenceViewer<ListType> Viewer; //列表视图。
 
 	public:
-		DefEvent(YIndexEventHandler, Selected) //项目选择状态改变事件。
-		DefEvent(YIndexEventHandler, Confirmed) //项目选中确定事件。
+		DefEvent(IndexEventHandler, Selected) //项目选择状态改变事件。
+		DefEvent(IndexEventHandler, Confirmed) //项目选中确定事件。
 
 		YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
 		YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
@@ -5518,8 +5758,8 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 		CheckPoint(SPOS, SPOS); //检查相对于所在缓冲区的控件坐标是否在选择范围内，返回选择的项目索引。
 
 	public:
-		inline void
-		ClearSelected();
+		PDefH(void, ClearSelected)
+			ImplBodyMemberVoid(Viewer, ClearSelected)
 
 	private:
 		void
@@ -5529,11 +5769,11 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 
 	public:
 		virtual void
+		OnKeyDown(const Runtime::MKeyEventArgs&);
+		virtual void
 		OnTouchDown(const Runtime::MTouchEventArgs&);
 		virtual void
 		OnClick(const Runtime::MTouchEventArgs&);
-		virtual void
-		OnKeyDown(const Runtime::MKeyEventArgs&);
 		virtual void
 		OnSelected(const MIndexEventArgs&);
 		virtual void
@@ -5617,15 +5857,14 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		MDesktopObject(YDesktop*);
 
 	protected:
-		DefTrivialDtor(MDesktopObject);
+		DefEmptyDtor(MDesktopObject);
 
 	public:
 		//判断从属关系。
-		inline bool
-		BelongsTo(YDesktop*) const;
+		PDefH(bool, BelongsTo, YDesktop* pDsk) const
+			ImplRet(pDesktop == pDsk)
 
-		inline YDesktop*
-		GetDesktopPtr() const;
+		DefGetter(YDesktop*, DesktopPtr, pDesktop)
 	}; //class MDesktopObject;
 
 
@@ -5654,7 +5893,7 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 	}; //class MWindow;
 
 
-	//抽象窗口模块基类。
+	//抽象窗口。
 	class AWindow : public Widgets::MWidget, public MWindow,
 		implements IWindow
 	{
@@ -5662,10 +5901,9 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		explicit
 		AWindow(const Rect& = Rect::Empty, const GHResource<YImage> = new YImage(),
 			YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
-		virtual
-		~AWindow();
+		virtual DefEmptyDtor(AWindow)
 
-		virtual PDefOpHead(EventMapType::Event&, [], const EventMapType::ID& id)
+		virtual PDefHOperator(EventMapType::Event&, [], const EventMapType::ID& id)
 			ImplBodyBase(MVisualControl, operator[], id)
 
 		virtual DefConverterMember(GraphicInterfaceContext, Buffer)
@@ -5675,22 +5913,22 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		virtual DefPredicateBase(BgRedrawed, MVisual)
 		virtual DefPredicateBase(Enabled, MVisualControl)
 		virtual DefPredicateBase(Focused, AFocusRequester)
-		virtual PDefHead(bool, IsFocusOfContainer, Runtime::GMFocusResponser<IVisualControl>& c) const
+		virtual PDefH(bool, IsFocusOfContainer, GMFocusResponser<IVisualControl>& c) const
 			ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
 		virtual DefPredicateBase(RefreshRequired, MWindow)
 		virtual DefPredicateBase(UpdateRequired, MWindow)
 
 		//判断从属关系。
-		PDefHead(bool, BelongsTo, HSHL h) const
+		PDefH(bool, BelongsTo, HSHL h) const
 			ImplRet(hShell == h)
-		PDefHead(bool, BelongsTo, YDesktop* pDsk) const
+		PDefH(bool, BelongsTo, YDesktop* pDsk) const
 			ImplBodyBase(MDesktopObject, BelongsTo, pDsk)
 
 		//判断包含关系。
-		virtual PDefHead(bool, Contains, const Point& p) const
+		virtual PDefH(bool, Contains, const Point& p) const
 			ImplBodyBase(MVisual, Contains, p)
 
-		virtual PDefHead(bool, CheckRemoval, Runtime::GMFocusResponser<IVisualControl>& c) const
+		virtual PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
 			ImplBodyBase(MVisualControl, CheckRemoval, c)
 
 		virtual DefGetterBase(const Point&, Location, MVisual)
@@ -5706,6 +5944,18 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		BitmapPtr
 		GetBackgroundPtr() const;
 
+		virtual DefEventGetter(Controls::InputEventHandler, Enter)
+		virtual DefEventGetter(Controls::InputEventHandler, Leave)
+		virtual DefEventGetter(Controls::KeyEventHandler, KeyUp)
+		virtual DefEventGetter(Controls::KeyEventHandler, KeyDown)
+		virtual DefEventGetter(Controls::KeyEventHandler, KeyHeld)
+		virtual DefEventGetter(Controls::KeyEventHandler, KeyPress)
+		virtual DefEventGetter(Controls::TouchEventHandler, TouchUp)
+		virtual DefEventGetter(Controls::TouchEventHandler, TouchDown)
+		virtual DefEventGetter(Controls::TouchEventHandler, TouchHeld)
+		virtual DefEventGetter(Controls::TouchEventHandler, TouchMove)
+		virtual DefEventGetter(Controls::TouchEventHandler, Click)
+
 		virtual DefSetterBaseDe(bool, Visible, MVisual, true)
 		virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
 		virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
@@ -5719,7 +5969,7 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		virtual DefSetterBaseDe(bool, Enabled, MVisualControl, true)
 		virtual DefSetterBaseDe(GHResource<YImage>, Background, MWindow, NULL)
 
-		PDefHead(void, ClearBackground) const //清除背景。
+		PDefH(void, ClearBackground) const //清除背景。
 			ImplExpr(Buffer.ClearImage())
 
 	public:
@@ -5741,7 +5991,7 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		Update();
 
 	private:
-		virtual PDefHead(bool, ReleaseFocus, Runtime::GMFocusResponser<IVisualControl>& c)
+		virtual PDefH(bool, ReleaseFocus, GMFocusResponser<IVisualControl>& c)
 			ImplBodyBase(MVisualControl, ReleaseFocus, c)
 
 	public:
@@ -5782,30 +6032,30 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		virtual
 		~YFrameWindow();
 
-		virtual PDefOpHead(void, +=, IWidget& w)
+		virtual PDefHOperator(void, +=, IWidget& w)
 			ImplExpr(sWgtSet += w)
-		virtual PDefOpHead(bool, -=, IWidget& w)
+		virtual PDefHOperator(bool, -=, IWidget& w)
 			ImplRet(sWgtSet -= w)
-		virtual PDefOpHead(void, +=, IVisualControl& c)
+		virtual PDefHOperator(void, +=, IVisualControl& c)
 			ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
-		virtual PDefOpHead(bool, -=, IVisualControl& c)
+		virtual PDefHOperator(bool, -=, IVisualControl& c)
 			ImplBodyBase(MWidgetContainer, operator-=, c)
-		virtual PDefOpHead(void, +=, Runtime::GMFocusResponser<IVisualControl>& c)
+		virtual PDefHOperator(void, +=, GMFocusResponser<IVisualControl>& c)
 			ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
-		virtual PDefOpHead(bool, -=, Runtime::GMFocusResponser<IVisualControl>& c)
+		virtual PDefHOperator(bool, -=, GMFocusResponser<IVisualControl>& c)
 			ImplBodyBase(MWidgetContainer, operator-=, c)
 
-		virtual PDefHead(IWidget*, GetTopWidgetPtr, const Point& p) const
+		virtual PDefH(IWidget*, GetTopWidgetPtr, const Point& p) const
 			ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
-		virtual PDefHead(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
+		virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
 			ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
 		virtual Point
 		GetContainerLocationOffset(const Point& = Point::Zero) const;
 		virtual Point
 		GetWindowLocationOffset(const Point& = Point::Zero) const;
-		virtual DefGetterBase(IVisualControl*, FocusingPtr, Runtime::GMFocusResponser<IVisualControl>)
+		virtual DefGetterBase(IVisualControl*, FocusingPtr, GMFocusResponser<IVisualControl>)
 
-		virtual PDefHead(void, ClearFocusingPtr)
+		virtual PDefH(void, ClearFocusingPtr)
 			ImplBodyBaseVoid(MWidgetContainer, ClearFocusingPtr)
 
 		virtual bool
@@ -6298,6 +6548,8 @@ $unit YTimer "ytimer" //平台无关的计时器服务。
 
 	YSL_BEGIN_NAMESPACE(Timers)
 
+	typedef u32 TimeSpan;
+
 	//计时器。
 	class YTimer : public YCountableObject
 	{
@@ -6308,19 +6560,19 @@ $unit YTimer "ytimer" //平台无关的计时器服务。
 		static vu32 SystemTick;
 		static TMRs Timers;
 
-		u32 nInterval;
-		u32 nBase;
+		TimeSpan nInterval;
+		TimeSpan nBase;
 
 	public:
 		explicit
-		YTimer(u32 = 1000, bool = true);
+		YTimer(TimeSpan = 1000, bool = true);
 
-		DefStaticGetter(u32, SystemTick, S_Timer)
-		DefGetter(u32, Interval, nInterval)
-		DefGetter(u32, BaseTick, nBase)
+		DefStaticGetter(TimeSpan, SystemTick, S_Timer)
+		DefGetter(TimeSpan, Interval, nInterval)
+		DefGetter(TimeSpan, BaseTick, nBase)
 
 		inline void
-		SetInterval(u32);
+		SetInterval(TimeSpan);
 
 	private:
 		static void
@@ -6496,7 +6748,7 @@ namespace IO
 namespace Runtime
 {
 	$header Core::YEvent;
-	$unit Core::YModule;
+	$unit Shell::Control;
 	$unit Shell::YGUI;
 } //namespace Runtime;
 
@@ -6618,7 +6870,10 @@ $header Shell::YWidget : Shell::YComponent, Core::YResource
 
 $header Shell::YControl : Shell::YWidget
 {
-	using namespace Drawing;
+	namespace Components
+	{
+		using namespace Drawing;
+	} //namespace Components;
 } //$header Shell::YControl;
 
 } //$code YSLib;

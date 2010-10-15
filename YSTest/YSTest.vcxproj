@@ -65,7 +65,6 @@
     <ClCompile Include="arm9\YSLib\Core\yfile.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yfilesys.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yftext.cpp" />
-    <ClCompile Include="arm9\YSLib\Core\ymodule.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yobject.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yres.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yshell.cpp" />
@@ -121,7 +120,6 @@
     <ClInclude Include="arm9\YSLib\Core\yfilesys.h" />
     <ClInclude Include="arm9\YSLib\Core\yftext.h" />
     <ClInclude Include="arm9\YSLib\Core\yfunc.hpp" />
-    <ClInclude Include="arm9\YSLib\Core\ymodule.h" />
     <ClInclude Include="arm9\YSLib\Core\yobject.h" />
     <ClInclude Include="arm9\YSLib\Core\yres.h" />
     <ClInclude Include="arm9\YSLib\Core\ysdef.h" />

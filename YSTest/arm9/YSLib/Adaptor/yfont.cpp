@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13 + 08:00;
-// UTime = 2010-10-09 10:03 + 08:00;
-// Version = 0.6904;
+// UTime = 2010-10-13 15:38 + 08:00;
+// Version = 0.6906;
 
 
 #include "yfont.h"
@@ -97,11 +97,10 @@ simpleFaceRequester(FTC_FaceID face_id, FT_Library library,
 
 FontFamily::FontFamily(YFontCache& cache, const FT_String* name)
 	: Cache(cache), family_name(strdup_n(name)), sTypes()
-{
-}
+{}
 FontFamily::~FontFamily() ythrow()
 {
-	free(family_name);
+	std::free(family_name);
 }
 
 bool
@@ -222,8 +221,7 @@ Font* Font::pDefFont(NULL);
 
 Font::Font(const FontFamily& family, const SizeType size, EFontStyle style)
 	: pFontFamily(&family), Style(style), Size(size)
-{
-}
+{}
 
 Font::SizeType Font::GetHeight() const
 {

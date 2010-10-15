@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YASLIVectorStoragePolicy by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-09 22:38:03 + 08:00;
-// UTime = 2010-10-10 03:14 + 08:00;
-// Version = 0.2265;
+// UTime = 2010-10-13 16:46 + 08:00;
+// Version = 0.2275;
 
 
 #ifndef INCLUDED_YASLIVSP_H_
@@ -60,25 +60,25 @@ public: // protected:
 		return *this;
 	}
 
-	PDefHead(iterator, begin)
+	PDefH(iterator, begin)
 		ImplBodyBase(base, begin)
 
-	PDefHead(const_iterator, begin) const
+	PDefH(const_iterator, begin) const
 		ImplBodyBase(base, begin)
 
-	PDefHead(iterator, end)
+	PDefH(iterator, end)
 		ImplRet(base::end() - 1)
 
-	PDefHead(const_iterator, end) const
+	PDefH(const_iterator, end) const
 		ImplRet(base::end() - 1)
 
-	PDefHead(size_type, size) const
+	PDefH(size_type, size) const
 		ImplRet(base::size() - 1)
 
-	PDefHead(size_type, max_size) const
+	PDefH(size_type, max_size) const
 		ImplRet(base::max_size() - 1)
 
-	PDefHead(size_type, capacity) const
+	PDefH(size_type, capacity) const
 		ImplRet(base::capacity() - 1)
 
 	void
@@ -130,16 +130,16 @@ public: // protected:
 		base::back() = _tChar();
 	}
 
-	PDefHead(void, swap, VectorStringStorage& rhs)
+	PDefH(void, swap, VectorStringStorage& rhs)
 		ImplBodyBaseVoid(base, swap, rhs)
 
-	PDefHead(const _tChar*, c_str) const
+	PDefH(const _tChar*, c_str) const
 		ImplRet(&*begin())
 
-	PDefHead(const _tChar*, data) const
+	PDefH(const _tChar*, data) const
 		ImplRet(&*begin())
 
-	PDefHead(_tAlloc, get_allocator) const
+	PDefH(_tAlloc, get_allocator) const
 		ImplBodyBase(base, get_allocator)
 };
 

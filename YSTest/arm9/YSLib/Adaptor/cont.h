@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::Contaner by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-09 09:25:26 + 08:00;
-// UTime = 2010-10-10 04:03 + 08:00;
-// Version = 0.1502;
+// UTime = 2010-10-12 20:43 + 08:00;
+// Version = 0.1512;
 
 
 #ifndef INCLUDED_CONT_H_
@@ -99,7 +99,7 @@ template<typename _tChar,
 	>
 #endif
 >
-struct SStringTemplate
+struct GSStringTemplate
 {
 	typedef flex_string<_tChar, _tCharTrait, _tAlloc, _tStorage> basic_string;
 };
@@ -107,17 +107,17 @@ struct SStringTemplate
 #else
 
 template<typename _tChar>
-struct SStringTemplate
+struct GSStringTemplate
 {
 	typedef std::basic_string<_tChar> basic_string;
 };
 
 #endif
 
-typedef SStringTemplate<char>::basic_string string;
+typedef GSStringTemplate<char>::basic_string string;
 
 //YSLib 基本字符串（使用 UTF-16LE ）。
-typedef SStringTemplate<uchar_t>::basic_string ustring;
+typedef GSStringTemplate<uchar_t>::basic_string ustring;
 
 YSL_END
 

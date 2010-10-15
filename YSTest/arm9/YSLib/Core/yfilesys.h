@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-28 00:09:28 + 08:00;
-// UTime = 2010-10-09 18:13 + 08:00;
-// Version = 0.1822;
+// UTime = 2010-10-12 20:43 + 08:00;
+// Version = 0.1831;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -30,14 +30,14 @@ extern const CPATH FS_Parent;
 
 
 typedef char NativePathCharType; //本机路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
-typedef SStringTemplate<NativePathCharType>::basic_string NativeStringType; //本地字符串类型。
+typedef GSStringTemplate<NativePathCharType>::basic_string NativeStringType; //本地字符串类型。
 
 //路径类。
 class Path : public ustring
 {
 public:
 	typedef uchar_t ValueType;
-	typedef SStringTemplate<ValueType>::basic_string StringType; //内部字符串类型。
+	typedef GSStringTemplate<ValueType>::basic_string StringType; //内部字符串类型。
 //	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
 
 	static const ValueType Slash;
@@ -420,7 +420,7 @@ protected:
 
 public:
 	MFileList(CPATH = NULL); //参数为空时为根目录。
-	virtual DefTrivialDtor(MFileList)
+	virtual DefEmptyDtor(MFileList)
 
 	//导航至相对路径。
 	bool

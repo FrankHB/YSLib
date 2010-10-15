@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-05-02 12:00:08 + 08:00;
-// UTime = 2010-10-06 13:33 + 08:00;
-// Version = 0.1995;
+// UTime = 2010-10-13 15:32 + 08:00;
+// Version = 0.1997;
 
 
 #include "ydesktop.h"
@@ -21,9 +21,6 @@ YDesktop::YDesktop(YScreen& s, Color c, GHResource<YImage> i)
 	Screen(s), sDOs()
 {
 	BackColor = c;
-}
-YDesktop::~YDesktop()
-{
 }
 
 void

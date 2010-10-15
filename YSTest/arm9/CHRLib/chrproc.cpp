@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CharacterProcessing by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-17 17:53:21;
-// UTime = 2010-9-22 4:42;
-// Version = 0.1694;
+// CTime = 2009-11-17 17:53:21 + 08:00;
+// UTime = 2010-10-13 15:38 + 08:00;
+// Version = 0.1695;
 
 
 #include "chrproc.h"
@@ -436,8 +436,7 @@ ustrlen(char* s)
 ubyte_t
 IsFullChar(char* s)
 ////
-{
-}
+{}
 */
 
 CHRLIB_END

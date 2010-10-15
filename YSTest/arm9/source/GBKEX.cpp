@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-10-10 19:10 + 08:00;
-// Version = 0.2718; *Build 161 r24;
+// UTime = 2010-10-15 17:02 + 08:00;
+// Version = 0.2738; *Build 162 r24;
 
 
 #include "../YCLib/ydef.h"
@@ -45,6 +45,7 @@ $Record prefix and abbrevations:
 \dir ::= directories
 \dtor ::= destructors
 \e ::= exceptions
+\em ::= empty
 \en ::= enums
 \eh ::= exception handling
 \err ::= errors
@@ -60,6 +61,7 @@ $Record prefix and abbrevations:
 \h ::= headers
 \i ::= inline
 \impl ::= implementations
+\in ::= interfaces
 \init ::= initializations
 \inc ::= included
 \inh ::= inherited
@@ -72,6 +74,7 @@ $Record prefix and abbrevations:
 \mo ::= member objects
 \n ::= names
 \ns ::= namespaces
+\o ::= objects
 \op ::= operators
 \or ::= overridden
 \para ::= parameters
@@ -94,6 +97,7 @@ $Record prefix and abbrevations:
 \tb ::= try blocks
 \tc ::= class templates
 \tf ::= function templates
+\tg ::= targets
 \tr ::= trivial
 \tp ::= types
 \u ::= units
@@ -111,8 +115,7 @@ $using:
 \u YControl
 {
 	\cl MVisualControl;
-	\cl YListBox;
-	\cl YFileBox;
+	\cl YVisualControl;
 	\cl AButton;
 }
 \u YGUIComponent
@@ -130,103 +133,213 @@ $using:
 
 $DONE:
 r1:
-+ \h "Adapter/config.h";
-+ \h "Adapter/base.h";
-/ \impl \h "Adapter/adapter.h":
-	-= \inc <cstdio>;
-	^ "config.h" & "base.h";
-/ \impl \h "Core/ysdef.h"
-/ \a YAdapter => YAdaptor;
-/ \a Adapter => Adaptor;
-/ \dir "Adapter" => "Adaptor";
-/ \h "Adaptor/adapter.h" => "Adaptor/adaptor.h";
-/ \mac INCLUDED_YADAPTER_H_ => INCLUDED_YADAPTOR_H_;
+/ \simp @@ \cl YButton @@ \u YGUIComponent:
+	- \inh \cl AButton;
+	+ \int \cl MButton;
+	+ \inh \cl Widgets::MLabel;
+	- \mf \vt void OnConfirmed(const MIndexEventArgs&);
+	/ \impl @@ \ctor;
+- \cl AButton @@ \u YControl;
 
 r2:
-+ \h "Adaptor/cont.h" ^ yasli::vector @@ \lib Loki;
-/ \impl;
-/ \a std::vector -> vector;
-/ \a std::list => list;
-/ \a std::map => map;
-/ \a std::stack => stack;
-/ \a std::queue => queue;
-/ \a std::basic_string => basic_string;
-/ \a std::string => string;
-/ \a std::set => set;
-/ \a std::priority_queue => priority_queue;
+/ @@ \cl YControl:
+	+ \cl MScrollBar;
+	+ \cl AScrollBar;
+	/ \impl @@ \cl MButton:
+		/ \ac \exp \ctor ~ public -> protected; 
+/ @@ \cl YGUIComponent:
+	+ \cl YHorizontalScrollBar;
+	+ \cl YVerticalScrollBar;
++ \f \t template<class _tBinary> _tBinary Transpose(_tBinary&) @@ \u YObject;
 
 r3:
-/ \cl std::ustring @@ \u YString >> YSLib::ustring @@ \u Adaptor::Container;
+/ \a DefEmptyDtor => DefEmptyDtor;
++ \vt DefEmptyDtor(GMContainer) @@ \cl \t GMContainer @@ \u YModule;
++ \vt DefEmptyDtor(MWidgetContainer) @@ \cl MWidgetContainer @@ \u YWidget;
 
 r4:
-/ @@ \h Adaptor::Container:
-	* \inc Adaptor::Base -> Adaptor::YAdaptor;
-	+ \inc <loki/flex/flex_string.h>;
-	/ using std::string -> typedef flex_string<char> string;
-	/ typedef std::basic_string<uchar_t> ustring -> typedef flex_string<uchar_t> ustring;
-	+ \t \cl string_template<typename _tChar>;
-/ @@ \u YFileSystem:
-	/ typedef basic_string<NativePathCharType> NativeStringType
-		-> typedef string_template<NativePathCharType>::basic_string NativeStringType;
-	/ @@ \cl YPath:
-		/ typedef basic_string<ValueType> StringType
-			-> typedef string_template<ValueType>::basic_string StringType;
+/ @@ \h YEvent:
+	+ \cl \t template<class _tEventHandler> struct GSEventTemplate;
+	+ \mac DeclIEventEntry(_tEventHandler, _name);
+	+ \mac DefEventGetter(_tEventHandler, _name);
+\a SStringTemplate => GSStringTemplate;
 
-r5-r6:
-/ \a string_template => SStringTemplate;
-+ \mac YSL_USE_YASLI_VECTOR & YSL_USE_FLEX_STRING @@ \h Adaptor::Config;
-^ \mac YSL_USE_YASLI_VECTOR & YSL_USE_FLEX_STRING @@ \h Adaptor::Container;
-/ typedef flex_string<uchar_t> ustring -> typedef SStringTemplate<char>::basic_string string;
-/ typedef flex_string<uchar_t> ustring -> typedef SStringTemplate<uchar_t>::basic_string ustring;
+r5:
+/ @@ \u YControl:
+	/ \decl @@ \in IVisualControl;
+	/ \decl @@ \cl YVisualControl;
+/ @@ \h YEvent:
+	* \mac DeclIEventEntry(_tEventHandler, _name);
+	* \mac DefEventGetter(_tEventHandler, _name);
+/ @@ \u YWindow:
+	/ \decl @@ \cl AWindow;
+
+r6:
+/ @@ \u YGUI:
+	/ \a MVisualControl -> IVisualControl;
+	/ \a event -> EventGetter @@ \impl;
+/ @@ \u YControl:
+	/ + \tb @@ \impl @@ \mf void MVisualControl::OnKeyHeld(const Runtime::MKeyEventArgs&);
 
 r7:
-/ @@ \h Adaptor::YReference:
-	/ \n YSP_OP_Simple -> Design::Policies::Operations::SmartPtr_Simple;
-	/ \n YSP_OP_RefCounted -> Design::Policies::Operations::SmartPtr_RefCounted;
-	/ \mac #define YHandleOP SmartPtr_Simple -> #define YHandleOP Design::Policies::Operations::SmartPtr_Simple;
+/= ^ DefEmptyDtor @@
+	{
+		\cl AWindow;
+		\cl YDesktop @@ \u YDesktop;
+		\cl YTextFile @@ \u YFile_(Text);
+	}
+/= \impl @@ \dtor @@ \cl YFontFamily @@ \u YFont;
+/= \simp @@ \cl MDesktopObject:
+	/= \mf bool BelongsTo(YDesktop*) const ^ \mac PDefHead;
+	/= \mf YDesktop* GetDesktopPtr() const ^ \mac DefGetter;
+/= \i \mf void YListBox::ClearSelected() ^ \mac PDefHead;
+/ \a:
+	{
+		PDefHead => PDefH;
+		PDefOpHead => PDefHOperator;
+	};
 
-r8-r11:
-/ \impl @@ \h Adaptor::YReference;
-/ \impl @@ \h Adaptor::Base;
-/ \impl @@ \h Core::YSDefinition;
-/ \impl @@ \h Adaptor::Reference;
+r8:
+/ @@ \u YControl:
+	+ \cl AVisualControl;
+	/ \impl @@ \cl YVisualControl;
+	/ \impl @@ \cl AScrollBar;
+		+ \inh AVisualControl;
 
-r12-r13:
-/ \impl @@ \h Adaptor::Container:
-	^ policy \n CowStringOpt;
-* \impl @@ \h YAdaptor::YASLIVectorStoragePolicy;
+r9:
+/ @@ \u YModule:
+	/ \cl \t GMContainer >> \u YComponent;
+	/ \cl \t GMFocusResponser @@ \ns Runtime >> \ns Component @@ \u YComponent;
+	/ \in \t GIFocusRequester @@ \ns Runtime >> \ns Component @@ \u YComponent;
+	/ \cl AFocusRequester @@ \ns Runtime >> \ns Component @@ \u YComponent;
+	/ \cl \t GSequenceViewer >> \u YComponent;
+- \u YModule;
+/ @@ \u YComponent:
+	+ \inc "../Core/yevt.hpp";
+	+ \inc "../Core/yevtarg.h";
+/ @@ \u YWidget:
+	- \inc \u YModule;
+/= \a _Tp => _type;
+* \tg rebuild @@ makefile;
 
-r14:
-/= \impl @@ \h Adaptor::Config:
-	+ \mac YSL_COPY_ON_WRITE;
-	+ \rem \mac YSL_MULTITHREAD;
+r10:
+/ @@ \u YControl:
+	+ \cl MThumb;
+	+ \cl MTrack;
+	+ \cl MDraggableObject;
+	+ \in IDraggable;
+	/ \impl @@ \cl MScrollButton;
+/ \a:
+	{
+		GHEvent => GEventHandler;
+		YInputEventHandler => InputEventHandler;
+		YTouchEventHandler => TouchEventHandler;
+		YKeyEventHandler => KeyEventHandler;
+		YIndexEventHandler => IndexEventHandler;
+		EventHandler => EventHandler;
+		EventHandler => EventHandler;
+		\cl YEvent => Event;
+		GIHEventHandler => GIEventHandler;
+		IHEventHandler => IEventHandler;
+	};
 
-r15-r22:
+r11-r12:
+/ \impl @@ \cl MThumb & \cl MTrack & \cl MScrollBar & \cl AScrollBar & \cl YHorizontalScrollBar;
+/ @@ \u YControl:
+	- \cl MThumb;
+	- \cl MTrack;
+	- \cl MDraggableObject;
+	- \in IDraggable;
+	/ \impl @@ \cl MScrollButton;
+
+r13-r14:
+/ @@ \cl InputState @@ \u YGUI:
+	typedef enum
+	{
+		KeyFree = 0,
+		KeyPressed = 1,
+		KeyHeld = 2
+	} KeyHeldStateType;
+	->
+	typedef enum
+	{
+		Free = 0,
+		Pressed = 1,
+		Held = 2
+	} HeldStateType @@ \ns InputStatus;
+	/ \sm Timers::YTimer HeldTimer -> Timers::YTimer HeldTimer;
+	/ \smf void RepeatKeyHeld(Components::Controls::IVisualControl&, const MKeyEventArgs&)
+		-> void RepeatHeld(HeldStateType&, Components::Controls::IVisualControl&, const MKeyEventArgs&);
+	/ \sm 
+	{
+		Vec DragOffset;
+		HeldStateType KeyHeldState;
+		Timers::YTimer HeldTimer;
+	} >> \un \ns;
+	/ \cl InputStatus -> \ns InputStatus;
+	- \f HeldStateType GetKeyHeldState();
+	/ \f void ResetKeyHeldState()
+		-> void ResetHeldState(HeldStateType&);
+	+ \o HeldStateType TouchHeldState;
+/ @@ \ns Timers @@ \u YTimer:
+	/ typedef u32 TimeSpan;
+	/ \impl @@ \cl YTimer ^ TimeSpan;
+	/ \f void RepeatHeld(HeldStateType&, Components::Controls::IVisualControl&, const MKeyEventArgs&);
+		-> void RepeatHeld(HeldStateType&, Components::Controls::IVisualControl&, const MKeyEventArgs&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
+/ @@ \cl MVisualControl:
+	/ \tr \impl @@ \mf void OnTouchHeld(const Runtime::MKeyEventArgs&);
+	/ \tr \impl @@ \mf void OnKeyHeld(const Runtime::MKeyEventArgs&);
+/ @@ \un \ns @@ \u YGUI:
+	+ using namespace InputStatus;
+	/ \tr \impl @@ \f bool ResponseKeyUpBase(IVisualControl&, const MKeyEventArgs&);
+	/ \tr \impl @@ \f bool ResponseKeyHeldBase(IVisualControl&, const MKeyEventArgs&);	
+
+r15:
+/ @@ \u YGUI:
+	/ \f void RepeatHeld(HeldStateType&, Components::Controls::IVisualControl&, const MKeyEventArgs&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
+		-> bool RepeatHeld(HeldStateType&, const MKeyEventArgs&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
+/ @@ \cl MVisualControl:
+		/ \tr \impl @@ \mf void OnKeyHeld(const Runtime::MKeyEventArgs&);
+
+r16-r19:
+/ \impl @@ \mf void MVisualControl::OnTouchHeld(const Runtime::MTouchEventArgs&);
+* @@ \u YGUI:
+	+ \def HeldStateType TouchHeldState(Free);
+
+r20:
+/ @@ \un \ns @@ \u YGUI:
+	/ \impl @@ \f bool ResponseTouchUpBase(IVisualControl&, const MTouchEventArgs&);
+	/ \impl @@ \f bool ResponseTouchHeldBase(IVisualControl&, const MTouchEventArgs&);
+
+r21:
 /= test 1;
 
-r23:
-+ \mac YSL_OPT_SMALL_STRING_LENGTH @@ \h Adaptor::Config;
-/ \impl @@ \h Adaptor::Container:
-	^ \mac YSL_OPT_SMALL_STRING_LENGTH;
-	^ VectorStringStorage -> AllocatorStringStorage;
+r22:
+* @@ \un \ns @@ \u YGUI:
+	/ \impl @@ \fbool ResponseTouchUpBase(IVisualControl&, const MTouchEventArgs&);
+	/ \impl @@ \fbool ResponseTouchDownBase(IVisualControl&, const MTouchEventArgs&);
+	/ \impl @@ \fbool ResponseTouchHeldBase(IVisualControl&, const MTouchEventArgs&);
+* @@ \cl MVisualControl:
+	/ \impl @@ \mf OnTouchHeld(const Runtime::MTouchEventArgs&);
 
-r24:
-/ \impl @@ Adaptor::Config:
-	^ yasli::vector -> std::vector;
-	^ flex_string -> std::basic_string;
-
+r23-r24:
+/ test 2;
+/ @@ \cl MVisualControl:
+	/ \impl @@ \mf OnTouchHeld(const Runtime::MTouchEventArgs&);
 
 $DOING:
 
 / ...
 
+
 $NEXT:
-b161-b190:
+b170-b190:
 / fully \impl \u DSReader;
 	* moving text after setting lnGap;
 * non-ASCII character filename error in FAT16;
 + \impl loading pictures;
 + \impl style on widgets;
+
 
 $TODO:
 

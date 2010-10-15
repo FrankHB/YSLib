@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-10-08 00:37 + 08:00;
-// Version = 0.1148;
+// UTime = 2010-10-15 16:55 + 08:00;
+// Version = 0.1172;
 
 
 #include "yguicomp.h"
@@ -88,7 +88,6 @@ YButton::_m_init()
 	Leave += &YButton::OnLeave;
 	Click += &YButton::OnClick;
 	KeyDown += &YButton::OnKeyDown;
-	Confirmed += &YListBox::OnConfirmed;
 }
 
 void
@@ -116,16 +115,33 @@ YButton::OnLeave(const Runtime::MInputEventArgs&)
 	Refresh();
 }
 void
-YButton::OnClick(const Runtime::MTouchEventArgs&)
-{
-}
-void
 YButton::OnKeyDown(const Runtime::MKeyEventArgs&)
+{}
+void
+YButton::OnClick(const Runtime::MTouchEventArgs&)
+{}
+
+
+YHorizontalScrollBar::YHorizontalScrollBar(SDST blMaxThumbSize, SDST blPrev, SDST blNext)
+	: AScrollBar(blMaxThumbSize, blPrev, blNext)
 {
+
+}
+
+void
+YHorizontalScrollBar::DrawPrevButton()
+{
+
 }
 void
-YButton::OnConfirmed(const MIndexEventArgs&)
+YHorizontalScrollBar::DrawNextButton()
 {
+
+}
+void
+YHorizontalScrollBar::DrawScrollArea()
+{
+
 }
 
 
@@ -263,17 +279,6 @@ YListBox::CallConfirmed()
 }
 
 void
-YListBox::OnTouchDown(const MTouchEventArgs& e)
-{
-	ParentType::OnTouchDown(e);
-	SetSelected(e);
-}
-void
-YListBox::OnClick(const MTouchEventArgs&)
-{
-	CallConfirmed();
-}
-void
 YListBox::OnKeyDown(const MKeyEventArgs& k)
 {
 	if(Viewer.IsSelected())
@@ -326,6 +331,17 @@ YListBox::OnKeyDown(const MKeyEventArgs& k)
 	}
 }
 void
+YListBox::OnTouchDown(const MTouchEventArgs& e)
+{
+	ParentType::OnTouchDown(e);
+	SetSelected(e);
+}
+void
+YListBox::OnClick(const MTouchEventArgs&)
+{
+	CallConfirmed();
+}
+void
 YListBox::OnSelected(const MIndexEventArgs&)
 {
 	Refresh();
@@ -345,8 +361,7 @@ YFileBox::YFileBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon, GHResource<
 	KeyHeld += &MVisualControl::OnKeyHeld;
 }
 YFileBox::~YFileBox()
-{
-}
+{}
 
 IO::Path
 YFileBox::GetPath() const

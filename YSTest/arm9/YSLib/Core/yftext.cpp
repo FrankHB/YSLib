@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFile_(Text) by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-24 23:14:51 + 08:00;
-// UTime = 2010-10-05 15:21 + 08:00;
-// Version = 0.1763;
+// UTime = 2010-10-13 15:33 + 08:00;
+// Version = 0.1765;
 
 
 #include "yftext.h"
@@ -25,9 +25,6 @@ YTextFile::YTextFile(CPATH p)
 	{
 		cp = CS_Local;
 	}
-}
-YTextFile::~YTextFile()
-{
 }
 
 u8
