@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:24 + 08:00;
-// UTime = 2010-10-15 16:56 + 08:00;
-// Version = 0.3882;
+// UTime = 2010-10-17 22:45 + 08:00;
+// Version = 0.3939;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -86,10 +86,7 @@ EndDecl
 
 
 //可视控件接口。
-DeclBasedInterface(IVisualControl, IControl, GIFocusRequester<IVisualControl>)
-	DeclIEntry(void RequestFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
-	DeclIEntry(void ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
-
+DeclBasedInterface(IVisualControl, virtual IControl, virtual GIFocusRequester<IVisualControl>)
 	DeclIEventEntry(InputEventHandler, Enter)
 	DeclIEventEntry(InputEventHandler, Leave)
 	DeclIEventEntry(KeyEventHandler, KeyUp)
@@ -101,6 +98,9 @@ DeclBasedInterface(IVisualControl, IControl, GIFocusRequester<IVisualControl>)
 	DeclIEventEntry(TouchEventHandler, TouchHeld)
 	DeclIEventEntry(TouchEventHandler, TouchMove)
 	DeclIEventEntry(TouchEventHandler, Click)
+
+	DeclIEntry(void RequestFocus(const MEventArgs&))
+	DeclIEntry(void ReleaseFocus(const MEventArgs&))
 EndDecl
 
 
@@ -122,7 +122,7 @@ public:
 
 	virtual DefPredicate(Enabled, Enabled)
 
-	virtual DefSetterDe(bool, Enabled, Enabled, true)
+	virtual DefSetter(bool, Enabled, Enabled)
 };
 
 inline
@@ -156,9 +156,9 @@ protected:
 
 public:
 	virtual void
-	OnGotFocus(const MEventArgs& = GetZeroElement<MEventArgs>());
+	OnGotFocus(const MEventArgs&);
 	virtual void
-	OnLostFocus(const MEventArgs& = GetZeroElement<MEventArgs>());
+	OnLostFocus(const MEventArgs&);
 	virtual void
 	OnKeyHeld(const Runtime::MKeyEventArgs&);
 	virtual void
@@ -180,66 +180,66 @@ public:
 
 //可视控件抽象基类。
 class AVisualControl : public Widgets::MWidget, public MVisualControl,
-	implements IWidget, implements IVisualControl
+	virtual implements IWidget, virtual implements IVisualControl
 {
 public:
 	explicit
 	AVisualControl(HWND = NULL, const Rect& = Rect::FullScreen, IWidgetContainer* = NULL);
 	~AVisualControl();
 
-	virtual PDefH(EventMapType::Event&, operator[], const EventMapType::ID& id)
+	ImplI(IVisualControl) PDefH(EventMapType::Event&, operator[], const EventMapType::ID& id)
 		ImplBodyBase(MVisualControl, operator[], id)
 
-	virtual DefPredicateBase(Visible, MVisual)
-	virtual DefPredicateBase(Transparent, MVisual)
-	virtual DefPredicateBase(BgRedrawed, MVisual)
-	virtual DefPredicateBase(Enabled, MControl)
-	virtual DefPredicateBase(Focused, AFocusRequester)
-	virtual PDefH(bool, IsFocusOfContainer, GMFocusResponser<IVisualControl>& c) const
+	ImplI(IWidget) DefPredicateBase(Visible, MVisual)
+	ImplI(IWidget) DefPredicateBase(Transparent, MVisual)
+	ImplI(IWidget) DefPredicateBase(BgRedrawed, MVisual)
+	ImplI(IVisualControl) DefPredicateBase(Enabled, MControl)
+	ImplI(IVisualControl) DefPredicateBase(Focused, AFocusRequester)
+	ImplI(IVisualControl) PDefH(bool, IsFocusOfContainer, GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
 
 	//判断包含关系。
-	virtual PDefH(bool, Contains, const Point& p) const
+	ImplI(IWidget) PDefH(bool, Contains, const Point& p) const
 		ImplBodyBase(MVisual, Contains, p)
 
-	virtual PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
+	ImplI(IVisualControl) PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(MVisualControl, CheckRemoval, c)
 
-	virtual DefGetterBase(const Point&, Location, MVisual)
-	virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
-	virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
-	virtual DefGetterBase(HWND, WindowHandle, MWidget)
+	ImplI(IWidget) DefGetterBase(const Point&, Location, MVisual)
+	ImplI(IWidget) DefGetterBase(const Drawing::Size&, Size, MVisual)
+	ImplI(IWidget) DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
+	ImplI(IWidget) DefGetterBase(HWND, WindowHandle, MWidget)
 
-	virtual DefEventGetter(InputEventHandler, Enter)
-	virtual DefEventGetter(InputEventHandler, Leave)
-	virtual DefEventGetter(KeyEventHandler, KeyUp)
-	virtual DefEventGetter(KeyEventHandler, KeyDown)
-	virtual DefEventGetter(KeyEventHandler, KeyHeld)
-	virtual DefEventGetter(KeyEventHandler, KeyPress)
-	virtual DefEventGetter(TouchEventHandler, TouchUp)
-	virtual DefEventGetter(TouchEventHandler, TouchDown)
-	virtual DefEventGetter(TouchEventHandler, TouchHeld)
-	virtual DefEventGetter(TouchEventHandler, TouchMove)
-	virtual DefEventGetter(TouchEventHandler, Click)
+	ImplI(IVisualControl) DefEventGetter(InputEventHandler, Enter)
+	ImplI(IVisualControl) DefEventGetter(InputEventHandler, Leave)
+	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyUp)
+	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyDown)
+	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyHeld)
+	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyPress)
+	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchUp)
+	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchDown)
+	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchHeld)
+	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchMove)
+	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, Click)
 
-	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
-	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
-	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
-	virtual DefSetterBase(const Point&, Location, MVisual)
-	virtual DefSetterBaseDe(bool, Enabled, MControl, true)
+	ImplI(IWidget) DefSetterBase(bool, Visible, MVisual)
+	ImplI(IWidget) DefSetterBase(bool, Transparent, MVisual)
+	ImplI(IWidget) DefSetterBase(bool, BgRedrawed, MVisual)
+	ImplI(IWidget) DefSetterBase(const Point&, Location, MVisual)
+	ImplI(IVisualControl) DefSetterBase(bool, Enabled, MControl)
 
-	virtual PDefH(void, DrawBackground)
+	ImplI(IWidget) PDefH(void, DrawBackground)
 		ImplBodyBaseVoid(MWidget, DrawBackground)
-	virtual PDefH(void, DrawForeground)
+	ImplI(IWidget) PDefH(void, DrawForeground)
 		ImplBodyBaseVoid(MWidget, DrawForeground)
 
-	virtual PDefH(void, Refresh)
+	ImplI(IWidget) PDefH(void, Refresh)
 		ImplBodyBaseVoid(MWidget, Refresh)
 
-	virtual void
-	RequestFocus(const MEventArgs& = GetZeroElement<MEventArgs>()); //向部件容器申请获得焦点，若成功则引发 GotFocus 事件。
-	virtual void
-	ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()); //释放焦点，并引发 LostFocus 事件。
+	ImplI(IVisualControl) void
+	RequestFocus(const MEventArgs&); //向部件容器申请获得焦点，若成功则引发 GotFocus 事件。
+	ImplI(IVisualControl) void
+	ReleaseFocus(const MEventArgs&); //释放焦点，并引发 LostFocus 事件。
 };
 
 

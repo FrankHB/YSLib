@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFunc by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-2-14 18:48:44;
-// UTime = 2010-9-19 18:31;
-// Version = 0.1606;
+// CTime = 2010-02-14 18:48:44 + 08:00;
+// UTime = 2010-10-16 14:00 + 08:00;
+// Version = 0.1640;
 
 
 #ifndef INCLUDED_YFUNC_HPP_
@@ -18,9 +18,10 @@ YSL_BEGIN
 template<typename _tPointer>
 class GHBase
 {
-protected:
-	mutable _tPointer _ptr; //对象指针。
+private:
+	mutable _tPointer _ptr; //指针。
 
+protected:
 	inline explicit
 	GHBase(_tPointer pf = NULL) : _ptr(pf)
 	{}
@@ -49,51 +50,7 @@ public:
 	{
 		return _ptr;
 	}
-
-//	bool contains(const Functor&) const;
-//	const std::type_info& target_type() const;
-
 };
-
-/*
-template<typename Functor>
-class YFunc
-{
-
-};
-*/
-
-/*
-//通用句柄。
-struct HGerneral : protected GHBase<void*>
-{
-public:
-	typedef void(YObject::*VoidMemType)(); //默认成员函数类型。
-
-private:
-	mutable VoidMemType _ptrMem; //成员函数指针。
-
-public:
-	inline explicit
-	HGerneral(void* p = NULL, VoidMemType pm = NULL)
-	: GHBase<void*>(p), _ptrMem(pm)
-	{}
-	inline explicit
-	HGerneral(VoidMemType pm)
-	: GHBase<void*>(), _ptrMem(pm)
-	{}
-	inline
-	~HGerneral()
-	{}
-
-	DefGetter(void*, Pointer, _ptr)
-	DefGetter(VoidMemType, Pointer, _ptrMem)
-
-protected:
-	DefSetter(void*, Pointer, _ptr)
-	DefSetter(VoidMemType, Pointer, _ptrMem)
-};
-*/
 
 YSL_END
 

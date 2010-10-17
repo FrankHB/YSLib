@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-14 08:38 + 08:00;
-// Version = 0.4148;
+// UTime = 2010-10-17 22:31 + 08:00;
+// Version = 0.4167;
 
 
 #include "ywindow.h"
@@ -18,14 +18,14 @@ using Controls::YVisualControl;
 
 
 Point
-GetLocationOffset(IWidget* pCon, const Point& p, const HWND& hWnd)
+GetLocationOffset(const IWidget* pCon, const Point& p, const HWND& hWnd)
 {
 	Point pt(p);
 
-	while(pCon && dynamic_cast<IWindow*>(pCon) != hWnd)
+	while(pCon && dynamic_cast<const IWindow*>(pCon) != hWnd)
 	{
 		pt += pCon->GetLocation();
-		pCon = dynamic_cast<IWidget*>(pCon->GetContainerPtr());
+		pCon = dynamic_cast<const IWidget*>(pCon->GetContainerPtr());
 	}
 	return pt;
 }
@@ -38,7 +38,7 @@ MVisual::MVisual(const Rect& r, Color b, Color f)
 {}
 
 void
-MVisual::SetSize(SDST w, SDST h)
+MVisual::_m_SetSize(SDST w, SDST h)
 {
 	if(Size.Width != w || Size.Height != h)
 	{
@@ -68,12 +68,12 @@ MWidget::GetLocationForWindow() const
 Point
 MWidget::GetLocationForParentContainer() const
 {
-	return pContainer ? pContainer->GetContainerLocationOffset(Location) : Point::FullScreen;
+	return pContainer ? Widgets::GetContainerLocationOffset(*pContainer, Location) : Point::FullScreen;
 }
 Point
 MWidget::GetLocationForParentWindow() const
 {
-	return pContainer ? pContainer->GetWindowLocationOffset(Location) : Point::FullScreen;
+	return pContainer ? Widgets::GetWindowLocationOffset(*pContainer, Location) : Point::FullScreen;
 }
 
 void
@@ -98,7 +98,7 @@ void
 MWidget::Refresh()
 {
 	if(hWindow != NULL)
-		hWindow->SetRefresh();
+		hWindow->SetRefresh(true);
 }
 
 
@@ -162,17 +162,6 @@ YWidgetContainer::~YWidgetContainer()
 		*pContainer -= static_cast<GMFocusResponser<IVisualControl>&>(*this);
 		*pContainer -= static_cast<IWidget&>(*this);
 	}
-}
-
-Point
-YWidgetContainer::GetContainerLocationOffset(const Point& p) const
-{
-	return p + Location;
-}
-Point
-YWidgetContainer::GetWindowLocationOffset(const Point& p) const
-{
-	return Widgets::GetLocationOffset(const_cast<YWidgetContainer*>(this), p, hWindow);
 }
 
 

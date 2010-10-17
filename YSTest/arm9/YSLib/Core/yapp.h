@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:27 + 08:00;
-// UTime = 2010-10-14 13:31 + 08:00;
-// Version = 0.1821;
+// UTime = 2010-10-17 00:47 + 08:00;
+// Version = 0.1851;
 
 
 #ifndef INCLUDED_YAPP_H_
@@ -83,9 +83,9 @@ public:
 	virtual
 	~YApplication() ythrow();
 
-	void
+	ImplI(GIContainer<YShell>) void
 	operator+=(YShell&); //添加 Shell 对象。
-	bool
+	ImplI(GIContainer<YShell>) bool
 	operator-=(YShell&); //移除指定 Shell 对象。
 
 	bool

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15 + 08:00;
-// UTime = 2010-10-13 16:46 + 08:00;
-// Version = 0.2458;
+// UTime = 2010-10-17 00:31 + 08:00;
+// Version = 0.2472;
 
 
 #ifndef INCLUDED_YSHELL_H_
@@ -40,9 +40,9 @@ public:
 	bool
 	Activate(); //激活 Shell 对象： shlProc 控制权转移给此对象以维持单线程运行。
 
-	void
+	ImplI(GIContainer<IWindow>) void
 	operator+=(IWindow&); //向窗口组添加窗口对象。
-	bool
+	ImplI(GIContainer<IWindow>) bool
 	operator-=(IWindow&); //从窗口组中移除指定窗口对象。
 	WNDs::size_type
 	RemoveAll(IWindow&); //从窗口组中移除所有指定窗口对象，返回移除的对象数。
@@ -114,8 +114,8 @@ struct HShellProc : public GHBase<PFSHLPROC>
 	LRES
 	operator()(const Message& msg) const
 	{
-		if(_ptr)
-			return _ptr(msg);
+		if(GetPtr())
+			return GetPtr()(msg);
 		return -1;
 	}
 };

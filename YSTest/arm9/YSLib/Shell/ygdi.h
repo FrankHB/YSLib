@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46 + 08:00;
-// UTime = 2010-10-09 10:01 + 08:00;
-// Version = 0.2854;
+// UTime = 2010-10-17 14:59 + 08:00;
+// Version = 0.2858;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -295,7 +295,7 @@ PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c)
 	YAssert(g.IsValid(),
 		"In function \"inline void\n"
 		"PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c)\": \n"
-		"The graphic device context is invalid.");
+		"The graphics device context is invalid.");
 	YAssert(Rect(g.GetSize()).IsInBoundsRegular(x, y),
 		"In function \"inline void\n"
 		"PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c)\": \n"

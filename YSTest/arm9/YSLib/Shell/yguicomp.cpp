@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-10-15 16:55 + 08:00;
-// Version = 0.1172;
+// UTime = 2010-10-16 23:18 + 08:00;
+// Version = 0.1182;
 
 
 #include "yguicomp.h"
@@ -96,9 +96,9 @@ YButton::DrawForeground()
 	ParentType::DrawForeground();
 	RectDrawButtonSurface(GetLocation(), GetSize(), GetWindowHandle());
 	if(bPressed)
-		RectDrawPressed(Location, Size, hWindow);
+		RectDrawPressed(Location, GetSize(), hWindow);
 	if(bFocused)
-		RectDrawFocus(Location, Size, hWindow);
+		RectDrawFocus(Location, GetSize(), hWindow);
 	PaintText(*this);
 }
 
@@ -215,8 +215,8 @@ YListBox::DrawForeground()
 {
 	ParentType::DrawForeground();
 	if(bFocused)
-		RectDrawFocus(Location, Size, hWindow);
-	if(prTextRegion && prTextRegion->GetLnHeight() <= Size.Height)
+		RectDrawFocus(Location, GetSize(), hWindow);
+	if(prTextRegion && prTextRegion->GetLnHeight() <= GetHeight())
 	{
 		const SDST lnWidth(GetWidth());
 		const SDST lnHeight(GetItemHeight());
@@ -226,7 +226,7 @@ YListBox::DrawForeground()
 		prTextRegion->SetPen();
 		prTextRegion->SetSize(lnWidth, lnHeight);
 		prTextRegion->SetMargins(defMarginH, defMarginV);
-		Viewer.SetLength((Size.Height + prTextRegion->GetLineGap()) / lnHeight);
+		Viewer.SetLength((GetHeight() + prTextRegion->GetLineGap()) / lnHeight);
 
 		const ViewerType::IndexType last(Viewer.GetIndex() + Viewer.GetValid());
 		Point pt(GetLocationForWindow());

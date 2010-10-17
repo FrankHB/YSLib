@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-19 20:05:08 + 08:00;
-// UTime = 2010-10-14 08:36 + 08:00;
-// Version = 0.2549;
+// UTime = 2010-10-17 11:03 + 08:00;
+// Version = 0.2663;
 
 
 #ifndef INCLUDED_YCOMPONENT_H_
@@ -40,9 +40,6 @@ class GMContainer : public _tContainer,
 public:
 	typedef _tContainer ContainerType; //对象组类型。
 
-	GMContainer()
-	: ContainerType()
-	{}
 	virtual DefEmptyDtor(GMContainer)
 
 	ContainerType&
@@ -50,18 +47,14 @@ public:
 	{
 		return *this;
 	}
-	const ContainerType&
-	GetContainer() const
-	{
-		return *this;
-	}
+	inline DefGetter(const ContainerType&, Container, *this)
 
-	void
+	ImplI(GIContainer<_type>) void
 	operator+=(_type& w) //向对象组添加对象。
 	{
 		insert(&w);
 	}
-	bool
+	ImplI(GIContainer<_type>) bool
 	operator-=(_type& w) //从对象组移除对象。
 	{
 		return erase(&w);
@@ -88,30 +81,16 @@ protected:
 	GMFocusResponser()
 	: pFocusing(NULL), sFOs()
 	{}
-	inline
-	~GMFocusResponser()
-	{}
 
 public:
 	//判断给定指针是否和焦点对象指针相等。
-	inline bool
-	IsFocusing(_type* p) const
-	{
-		return pFocusing == p;
-	}
+	inline PDefH(bool, IsFocusing, _type* p) const
+		ImplRet(pFocusing == p)
 
 	//取焦点对象指针。
-	inline _type*
-	GetFocusingPtr() const
-	{
-		return pFocusing;
-	}
+	inline DefGetter(_type*, FocusingPtr, pFocusing)
 	//取焦点对象组（只读）。
-	inline const FOs&
-	GetFocusingSet() const
-	{
-		return sFOs;
-	}
+	inline DefGetter(const FOs&, FocusingSet, sFOs)
 
 protected:
 	//设置焦点对象指针。
@@ -123,32 +102,23 @@ protected:
 		if(pFocusing != p)
 		{
 			if(pFocusing && pFocusing->IsFocused())
-				pFocusing->ReleaseFocus();
+				pFocusing->ReleaseFocus(GetZeroElement<MEventArgs>());
 			pFocusing = p;
 		}
 		return pFocusing;
 	}
 
 	//向焦点对象组添加焦点对象。
-	inline void
-	operator+=(_type& c)
-	{
-		sFOs += c;
-	}
+	inline PDefHOperator(void, +=, _type& c)
+		ImplExpr(sFOs += c)
 	//从焦点对象组移除焦点对象。
-	inline bool
-	operator-=(_type& c)
-	{
-		return sFOs -= c;
-	}
+	inline PDefHOperator(bool, -=, _type& c)
+		ImplRet(sFOs -= c)
 
 public:
 	//清空焦点指针。
-	inline bool
-	ClearFocusingPtr()
-	{
-		return SetFocusingPtr(NULL);
-	}
+	inline PDefH(bool, ClearFocusingPtr)
+		ImplRet(SetFocusingPtr(NULL))
 };
 
 
@@ -160,7 +130,7 @@ DeclInterface(GIFocusRequester)
 
 	DeclIEntry(bool CheckRemoval(GMFocusResponser<_type>&) const)
 
-	DeclIEntry(void ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
+	DeclIEntry(void ReleaseFocus(const MEventArgs&))
 EndDecl
 
 
@@ -172,22 +142,20 @@ protected:
 
 public:
 	AFocusRequester();
-	virtual
-	~AFocusRequester()
-	{}
+	virtual DefEmptyDtor(AFocusRequester)
 
 	//判断是否为获得焦点状态。
-	bool
+	ImplI(GIFocusRequester<AFocusRequester>) bool
 	IsFocused() const;
 	//判断是否已在指定响应器中获得焦点。
-	bool
+	ImplI(GIFocusRequester<AFocusRequester>) bool
 	IsFocusOfContainer(GMFocusResponser<AFocusRequester>&) const;
 	template<class _type>
 	bool
 	IsFocusOfContainer(GMFocusResponser<_type>&) const;
 
 	//判断是否已在指定响应器中获得焦点，若是则释放焦点。
-	bool
+	ImplI(GIFocusRequester<AFocusRequester>) bool
 	CheckRemoval(GMFocusResponser<AFocusRequester>&) const;
 	template<class _type>
 	bool
@@ -200,13 +168,14 @@ public:
 	bool
 	RequestFocus(GMFocusResponser<_type>&);
 	//释放焦点。
-	bool
+	ImplI(GIFocusRequester<AFocusRequester>) bool
 	ReleaseFocus(GMFocusResponser<AFocusRequester>&);
 	template<class _type>
 	bool
 	ReleaseFocus(GMFocusResponser<_type>&);
 
-	DeclIEntry(void ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()))
+	//ImplI(GIFocusRequester<AFocusRequester>)
+	DeclIEntry(void ReleaseFocus(const MEventArgs&))
 };
 
 inline
@@ -280,48 +249,30 @@ public:
 	: c(c_), nIndex(0), nSelected(0), nLength(0), bSelected(false)
 	{}
 
-	inline GSequenceViewer&
-	operator++() //选中项目下标自增。
-	{
-		return *this += 1;
-	}
-	inline GSequenceViewer&
-	operator--() //选中项目下标自减。
-	{
-		return *this += -1;
-	}
-	inline GSequenceViewer&
-	operator++(int) //视图中首个项目下标自增。
-	{
-		return *this >> 1;
-	}
-	inline GSequenceViewer&
-	operator--(int) //视图中首个项目下标自减。
-	{
-		return *this >> -1;
-	}
+	inline PDefHOperator(GSequenceViewer&, ++) //选中项目下标自增。
+		ImplRet(*this += 1)
+	inline PDefHOperator(GSequenceViewer&, --) //选中项目下标自减。
+		ImplRet(*this -= 1)
+	inline PDefHOperator(GSequenceViewer&, ++, int) //视图中首个项目下标自增。
+		ImplRet(*this >> 1)
+	inline PDefHOperator(GSequenceViewer&, --, int) //视图中首个项目下标自减。
+		ImplRet(*this >> -1)
 	inline GSequenceViewer&
 	operator>>(IndexType d) //视图中首个项目下标增加 d 。
 	{
 		SetIndex(nIndex + d);
 		return *this;
 	}
-	inline GSequenceViewer&
-	operator<<(IndexType d) //视图中首个项目下标减少 d 。
-	{
-		return *this >> -d;
-	}
+	inline PDefHOperator(GSequenceViewer&, <<, IndexType d) //视图中首个项目下标减少 d 。
+		ImplRet(*this >> -d)
 	inline GSequenceViewer&
 	operator+=(IndexType d) //选中项目下标增加 d 。
 	{
 		SetSelected(nSelected + d);
 		return *this;
 	}
-	inline GSequenceViewer&
-	operator-=(IndexType d) //选中项目下标减少 d 。
-	{
-		return *this += -d;
-	}
+	inline PDefHOperator(GSequenceViewer&, -=, IndexType d) //选中项目下标减少 d 。
+		ImplRet(*this += -d)
 
 	DefPredicate(Selected, bSelected) //判断是否为选中状态。
 

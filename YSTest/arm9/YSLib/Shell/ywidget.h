@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-14 08:38 + 08:00;
-// Version = 0.4764;
+// UTime = 2010-10-17 22:44 + 08:00;
+// Version = 0.4878;
 
 
 #ifndef INCLUDED_YWIDGET_H_
@@ -51,9 +51,9 @@ DeclInterface(IWidget)
 	DeclIEntry(IWidgetContainer* GetContainerPtr() const)
 	DeclIEntry(HWND GetWindowHandle() const)
 
-	DeclIEntry(void SetVisible(bool = true)) //设置可见。
-	DeclIEntry(void SetTransparent(bool = true)) //设置透明。
-	DeclIEntry(void SetBgRedrawed(bool = true)) //设置重绘状态。
+	DeclIEntry(void SetVisible(bool)) //设置可见。
+	DeclIEntry(void SetTransparent(bool)) //设置透明。
+	DeclIEntry(void SetBgRedrawed(bool)) //设置重绘状态。
 	DeclIEntry(void SetLocation(const Point&)) //设置左上角所在位置（相对于容器的偏移坐标）。
 
 	DeclIEntry(void DrawBackground()) //绘制背景。
@@ -66,7 +66,7 @@ EndDecl
 
 
 //部件容器接口。
-DeclBasedInterface(IWidgetContainer, IWidget)
+DeclBasedInterface(IWidgetContainer, virtual IWidget)
 	DeclIEntry(void operator+=(IWidget&)) //向部件组添加部件。
 	DeclIEntry(bool operator-=(IWidget&)) //从部件组移除部件。
 	DeclIEntry(void operator+=(IVisualControl&)) //向焦点对象组添加可视控件。
@@ -76,21 +76,34 @@ DeclBasedInterface(IWidgetContainer, IWidget)
 
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&) const) //取指定的点（屏幕坐标）所处的部件的指针。
 	DeclIEntry(IVisualControl* GetTopVisualControlPtr(const Point&) const) //取指定的点（屏幕坐标）所处的焦点对象的指针。
-	DeclIEntry(Point GetContainerLocationOffset(const Point& = Point::Zero) const) //取指定的点（相对此容器的坐标）相对于此容器的父容器的偏移坐标。
-	DeclIEntry(Point GetWindowLocationOffset(const Point& = Point::Zero) const) //取指定的点（相对此容器的坐标）相对于此容器的父窗口的偏移坐标。
 
 	DeclIEntry(void ClearFocusingPtr()) //清除焦点指针。
 EndDecl
 
 
+//取指定的点（相对此部件的坐标）相对于指定父窗口的偏移坐标。
 Point
-GetLocationOffset(IWidget*, const Point&, const HWND&);
+GetLocationOffset(const IWidget*, const Point&, const HWND&);
+
+//取指定的点（相对此部件的坐标）相对于此部件的父容器的偏移坐标。
+inline Point
+GetContainerLocationOffset(const IWidget& w, const Point& p)
+{
+	return p + w.GetLocation();
+}
+
+//取指定的点（相对此部件的坐标）相对于此部件的父窗口的偏移坐标。
+inline Point
+GetWindowLocationOffset(const IWidget& w, const Point& p)
+{
+	return Widgets::GetLocationOffset(&w, p, w.GetWindowHandle());
+}
 
 
 //可视样式模块。
 class MVisual
 {
-public:
+protected:
 	bool Visible; //可见性。
 	bool Transparent; //透明性。
 
@@ -99,6 +112,8 @@ private:
 
 protected:
 	Point Location; //左上角所在位置（相对于容器的偏移坐标）。
+
+private:
 	Drawing::Size Size; //部件大小。
 
 public:
@@ -110,32 +125,39 @@ public:
 		Color = Color::White, Color = Color::Black);
 	virtual DefEmptyDtor(MVisual)
 
+private:
+	void
+	_m_SetSize(SDST, SDST);
+
+public:
 	DefPredicate(Visible, Visible)
 	DefPredicate(Transparent, Transparent)
 	DefPredicate(BgRedrawed, bBgRedrawed)
 
 	//判断包含关系。
-	PDefH(bool, Contains, const Point& p) const
-		ImplBodyMember(GetBounds(), IsInBoundsRegular, p)
-	PDefH(bool, Contains, const int& x, const int& y) const //判断点(x, y)是否在边界内或边界上。
-		ImplBodyMember(GetBounds(), IsInBoundsRegular, x, y)
+	virtual PDefH(bool, Contains, const Point& p) const //判断点 P 是否在边界内或边界上。
+		ImplBodyMember(GetBounds(), IsInBoundsRegular, p.X, p.Y)
+	PDefH(bool, Contains, SPOS x, SPOS y) const //判断点 (x, y) 是否在边界内或边界上。
+		ImplBodyBase(MVisual, Contains, Point(x, y))
 
-	DefGetter(SPOS, X, Location.X)
-	DefGetter(SPOS, Y, Location.Y)
-	DefGetter(SDST, Width, Size.Width)
-	DefGetter(SDST, Height, Size.Height)
-	virtual DefGetter(const Point&, Location, Location)
-	virtual DefGetter(const Drawing::Size&, Size, Size)
-	virtual DefGetter(Rect, Bounds, Rect(Location, Size.Width, Size.Height))
+	DefGetter(SPOS, X, GetLocation().X)
+	DefGetter(SPOS, Y, GetLocation().Y)
+	DefGetter(SDST, Width, GetSize().Width)
+	DefGetter(SDST, Height, GetSize().Height)
+	DefGetter(const Point&, Location, Location)
+	DefGetter(const Drawing::Size&, Size, Size)
+	DefGetter(Rect, Bounds, Rect(GetLocation(), GetSize()))
 
-	DefSetterDe(bool, Visible, Visible, true)
-	DefSetterDe(bool, Transparent, Transparent, true)
-	DefSetterDe(bool, BgRedrawed, bBgRedrawed, true)
+	DefSetter(bool, Visible, Visible)
+	DefSetter(bool, Transparent, Transparent)
+	DefSetter(bool, BgRedrawed, bBgRedrawed)
 	virtual DefSetter(const Point&, Location, Location)
-	virtual PDefH(void, SetLocation, SPOS x, SPOS y)
+	PDefH(void, SetLocation, SPOS x, SPOS y)
 		ImplBodyBaseVoid(MVisual, SetLocation, Point(x, y))
-	virtual void
-	SetSize(SDST, SDST);
+	virtual PDefH(void, SetSize, const Drawing::Size& s)
+		ImplExpr(_m_SetSize(s.Width, s.Height))
+	PDefH(void, SetSize, SDST w, SDST h)
+		ImplExpr(_m_SetSize(w, h))
 	virtual void
 	SetBounds(const Rect& r);
 };
@@ -160,8 +182,8 @@ public:
 	bool
 	BelongsTo(IWidgetContainer*) const;
 
-	virtual DefGetter(IWidgetContainer*, ContainerPtr, pContainer)
-	virtual DefGetter(HWND, WindowHandle, hWindow)
+	DefGetter(IWidgetContainer*, ContainerPtr, pContainer)
+	DefGetter(HWND, WindowHandle, hWindow)
 	Point
 	GetLocationForWindow() const; //取部件相对于最直接的窗口的位置（若无窗口则返回 FullScreen ）。
 	Point
@@ -212,33 +234,33 @@ public:
 	virtual
 	~YWidget();
 
-	virtual DefPredicateBase(Visible, MVisual)
-	virtual DefPredicateBase(Transparent, MVisual)
-	virtual DefPredicateBase(BgRedrawed, MVisual)
+	ImplI(IWidget) DefPredicateBase(Visible, MVisual)
+	ImplI(IWidget) DefPredicateBase(Transparent, MVisual)
+	ImplI(IWidget) DefPredicateBase(BgRedrawed, MVisual)
 
 	//判断包含关系。
-	virtual PDefH(bool, Contains, const Point& p) const
+	ImplI(IWidget) PDefH(bool, Contains, const Point& p) const
 		ImplBodyBase(MVisual, Contains, p)
 
-	virtual DefGetterBase(const Point&, Location, MVisual)
-	virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
-	virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
-	virtual DefGetterBase(HWND, WindowHandle, MWidget)
+	ImplI(IWidget) DefGetterBase(const Point&, Location, MVisual)
+	ImplI(IWidget) DefGetterBase(const Drawing::Size&, Size, MVisual)
+	ImplI(IWidget) DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
+	ImplI(IWidget) DefGetterBase(HWND, WindowHandle, MWidget)
 
-	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
-	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
-	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
-	virtual DefSetterBase(const Point&, Location, MVisual)
+	ImplI(IWidget) DefSetterBase(bool, Visible, MVisual)
+	ImplI(IWidget) DefSetterBase(bool, Transparent, MVisual)
+	ImplI(IWidget) DefSetterBase(bool, BgRedrawed, MVisual)
+	ImplI(IWidget) DefSetterBase(const Point&, Location, MVisual)
 
-	virtual PDefH(void, DrawBackground)
+	ImplI(IWidget) PDefH(void, DrawBackground)
 		ImplBodyBaseVoid(MWidget, DrawBackground)
-	virtual PDefH(void, DrawForeground)
+	ImplI(IWidget) PDefH(void, DrawForeground)
 		ImplBodyBaseVoid(MWidget, DrawForeground)
 
-	virtual PDefH(void, Refresh)
+	ImplI(IWidget) PDefH(void, Refresh)
 		ImplBodyBaseVoid(MWidget, Refresh)
 
-	virtual void
+	ImplI(IWidget) void
 	RequestToTop()
 	{}
 };
@@ -262,9 +284,9 @@ public:
 	virtual DefEmptyDtor(MWidgetContainer);
 
 protected:
-	PDefHOperator(void, +=, IVisualControl& r) //向焦点对象组添加焦点对象。
+	ImplI(GIContainer<IVisualControl>) PDefHOperator(void, +=, IVisualControl& r) //向焦点对象组添加焦点对象。
 		ImplBodyBaseVoid(GMFocusResponser<IVisualControl>, operator+=, r)
-	PDefHOperator(bool, -=, IVisualControl& r) //从焦点对象组移除焦点对象。
+	ImplI(GIContainer<IVisualControl>) PDefHOperator(bool, -=, IVisualControl& r) //从焦点对象组移除焦点对象。
 		ImplBodyBase(GMFocusResponser<IVisualControl>, operator-=, r)
 	PDefHOperator(void, +=, GMFocusResponser<IVisualControl>& c) //向子焦点对象容器组添加子焦点对象容器。
 		ImplBodyMemberVoid(sFOCSet, insert, &c)
@@ -272,11 +294,11 @@ protected:
 		ImplBodyMember(sFOCSet, erase, &c)
 
 public:
-	virtual IVisualControl*
+	IVisualControl*
 	GetFocusingPtr() const;
-	virtual IWidget*
+	IWidget*
 	GetTopWidgetPtr(const Point&) const;
-	virtual IVisualControl*
+	IVisualControl*
 	GetTopVisualControlPtr(const Point&) const;
 };
 
@@ -293,57 +315,53 @@ public:
 	virtual
 	~YWidgetContainer();
 
-	virtual PDefHOperator(void, +=, IWidget& w)
+	ImplI(IWidgetContainer) PDefHOperator(void, +=, IWidget& w)
 		ImplExpr(sWgtSet += w)
-	virtual PDefHOperator(bool, -=, IWidget& w)
+	ImplI(IWidgetContainer) PDefHOperator(bool, -=, IWidget& w)
 		ImplRet(sWgtSet -= w)
-	virtual PDefHOperator(void, +=, IVisualControl& c)
+	ImplI(IWidgetContainer) PDefHOperator(void, +=, IVisualControl& c)
 		ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
-	virtual PDefHOperator(bool, -=, IVisualControl& c)
+	ImplI(IWidgetContainer) PDefHOperator(bool, -=, IVisualControl& c)
 		ImplBodyBase(MWidgetContainer, operator-=, c)
-	virtual PDefHOperator(void, +=, GMFocusResponser<IVisualControl>& c)
+	ImplI(IWidgetContainer) PDefHOperator(void, +=, GMFocusResponser<IVisualControl>& c)
 		ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
-	virtual PDefHOperator(bool, -=, GMFocusResponser<IVisualControl>& c)
+	ImplI(IWidgetContainer) PDefHOperator(bool, -=, GMFocusResponser<IVisualControl>& c)
 		ImplBodyBase(MWidgetContainer, operator-=, c)
 
-	virtual DefPredicateBase(Visible, MVisual)
-	virtual DefPredicateBase(Transparent, MVisual)
-	virtual DefPredicateBase(BgRedrawed, MVisual)
+	ImplI(IWidgetContainer) DefPredicateBase(Visible, MVisual)
+	ImplI(IWidgetContainer) DefPredicateBase(Transparent, MVisual)
+	ImplI(IWidgetContainer) DefPredicateBase(BgRedrawed, MVisual)
 
 	//判断包含关系。
-	virtual PDefH(bool, Contains, const Point& p) const
+	ImplI(IWidgetContainer) PDefH(bool, Contains, const Point& p) const
 		ImplBodyBase(MVisual, Contains, p)
 
-	virtual DefGetterBase(const Point&, Location, MVisual)
-	virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
-	virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
-	virtual DefGetterBase(HWND, WindowHandle, MWidget)
-	virtual PDefH(IWidget*, GetTopWidgetPtr, const Point& p) const
+	ImplI(IWidgetContainer) DefGetterBase(const Point&, Location, MVisual)
+	ImplI(IWidgetContainer) DefGetterBase(const Drawing::Size&, Size, MVisual)
+	ImplI(IWidgetContainer) DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
+	ImplI(IWidgetContainer) DefGetterBase(HWND, WindowHandle, MWidget)
+	ImplI(IWidgetContainer) PDefH(IWidget*, GetTopWidgetPtr, const Point& p) const
 		ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
-	virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
+	ImplI(IWidgetContainer) PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
 		ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
-	virtual Point
-	GetContainerLocationOffset(const Point& = Point::Zero) const;
-	virtual Point
-	GetWindowLocationOffset(const Point& = Point::Zero) const;
 
-	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
-	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
-	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
-	virtual DefSetterBase(const Point&, Location, MVisual)
+	ImplI(IWidgetContainer) DefSetterBase(bool, Visible, MVisual)
+	ImplI(IWidgetContainer) DefSetterBase(bool, Transparent, MVisual)
+	ImplI(IWidgetContainer) DefSetterBase(bool, BgRedrawed, MVisual)
+	ImplI(IWidgetContainer) DefSetterBase(const Point&, Location, MVisual)
 
-	virtual PDefH(void, ClearFocusingPtr)
+	ImplI(IWidgetContainer) PDefH(void, ClearFocusingPtr)
 		ImplBodyBaseVoid(MWidgetContainer, ClearFocusingPtr)
 
-	virtual PDefH(void, DrawBackground)
+	ImplI(IWidgetContainer) PDefH(void, DrawBackground)
 		ImplBodyBaseVoid(MWidget, DrawBackground)
-	virtual PDefH(void, DrawForeground)
+	ImplI(IWidgetContainer) PDefH(void, DrawForeground)
 		ImplBodyBaseVoid(MWidget, DrawForeground)
 
-	virtual PDefH(void, Refresh)
+	ImplI(IWidgetContainer) PDefH(void, Refresh)
 		ImplBodyBaseVoid(MWidget, Refresh)
 
-	virtual void
+	ImplI(IWidgetContainer) void
 	RequestToTop()
 	{}
 };

@@ -115,7 +115,6 @@
     <None Include="data\logo_wifi.bmp">
       <Filter>common\资源文件</Filter>
     </None>
-    <None Include="DefClassDiagram.cd" />
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>

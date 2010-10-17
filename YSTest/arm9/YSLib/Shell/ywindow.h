@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40 + 08:00;
-// UTime = 2010-10-15 16:54 + 08:00;
-// Version = 0.3402;
+// UTime = 2010-10-17 22:44 + 08:00;
+// Version = 0.3488;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -20,7 +20,7 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Forms)
 
 //窗口接口。
-DeclBasedInterface(IWindow, IWidgetContainer, IVisualControl)
+DeclBasedInterface(IWindow, virtual IWidgetContainer, virtual IVisualControl)
 	DeclIEntry(operator GraphicInterfaceContext() const) //生成图形接口上下文。
 
 	DeclIEntry(bool IsRefreshRequired() const)
@@ -31,8 +31,8 @@ DeclBasedInterface(IWindow, IWidgetContainer, IVisualControl)
 	DeclIEntry(const Drawing::MBitmapBuffer& GetBuffer() const) //取显示缓冲区。
 	DeclIEntry(BitmapPtr GetBufferPtr() const) //取缓冲区指针。
 
-	DeclIEntry(void SetRefresh(bool = true))
-	DeclIEntry(void SetUpdate(bool = true))
+	DeclIEntry(void SetRefresh(bool))
+	DeclIEntry(void SetUpdate(bool))
 
 	DeclIEntry(void Draw())
 
@@ -94,7 +94,7 @@ public:
 
 //抽象窗口。
 class AWindow : public Widgets::MWidget, public MWindow,
-	implements IWindow
+	virtual implements IWindow
 {
 public:
 	explicit
@@ -102,20 +102,20 @@ public:
 		YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
 	virtual DefEmptyDtor(AWindow)
 
-	virtual PDefHOperator(EventMapType::Event&, [], const EventMapType::ID& id)
+	ImplI(IWindow) PDefHOperator(EventMapType::Event&, [], const EventMapType::ID& id)
 		ImplBodyBase(MVisualControl, operator[], id)
 
-	virtual DefConverterMember(GraphicInterfaceContext, Buffer)
+	ImplI(IWindow) DefConverterMember(GraphicInterfaceContext, Buffer)
 
-	virtual DefPredicateBase(Visible, MVisual)
-	virtual DefPredicateBase(Transparent, MVisual)
-	virtual DefPredicateBase(BgRedrawed, MVisual)
-	virtual DefPredicateBase(Enabled, MVisualControl)
-	virtual DefPredicateBase(Focused, AFocusRequester)
-	virtual PDefH(bool, IsFocusOfContainer, GMFocusResponser<IVisualControl>& c) const
+	ImplI(IWindow) DefPredicateBase(Visible, MVisual)
+	ImplI(IWindow) DefPredicateBase(Transparent, MVisual)
+	ImplI(IWindow) DefPredicateBase(BgRedrawed, MVisual)
+	ImplI(IWindow) DefPredicateBase(Enabled, MVisualControl)
+	ImplI(IWindow) DefPredicateBase(Focused, AFocusRequester)
+	ImplI(IWindow) PDefH(bool, IsFocusOfContainer, GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
-	virtual DefPredicateBase(RefreshRequired, MWindow)
-	virtual DefPredicateBase(UpdateRequired, MWindow)
+	ImplI(IWindow) DefPredicateBase(RefreshRequired, MWindow)
+	ImplI(IWindow) DefPredicateBase(UpdateRequired, MWindow)
 
 	//判断从属关系。
 	PDefH(bool, BelongsTo, HSHL h) const
@@ -124,69 +124,68 @@ public:
 		ImplBodyBase(MDesktopObject, BelongsTo, pDsk)
 
 	//判断包含关系。
-	virtual PDefH(bool, Contains, const Point& p) const
+	ImplI(IWindow) PDefH(bool, Contains, const Point& p) const
 		ImplBodyBase(MVisual, Contains, p)
 
-	virtual PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
+	ImplI(IWindow) PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(MVisualControl, CheckRemoval, c)
 
-	virtual DefGetterBase(const Point&, Location, MVisual)
-	virtual DefGetterBase(const Drawing::Size&, Size, MVisual)
-	virtual DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
-	virtual DefGetterBase(HWND, WindowHandle, MWidget)
-	virtual DefGetterBase(YDesktop*, DesktopPtr, MDesktopObject)
-	virtual DefGetter(const Drawing::MBitmapBuffer&, Buffer, Buffer)
-	virtual DefGetterMember(BitmapPtr, BufferPtr, Buffer)
+	ImplI(IWindow) DefGetterBase(const Point&, Location, MVisual)
+	ImplI(IWindow) DefGetterBase(const Drawing::Size&, Size, MVisual)
+	ImplI(IWindow) DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
+	ImplI(IWindow) DefGetterBase(HWND, WindowHandle, MWidget)
+	ImplI(IWindow) DefGetterBase(YDesktop*, DesktopPtr, MDesktopObject)
+	ImplI(IWindow) DefGetter(const Drawing::MBitmapBuffer&, Buffer, Buffer)
+	ImplI(IWindow) DefGetterMember(BitmapPtr, BufferPtr, Buffer)
 	DefGetter(HWND, Handle, HWND(const_cast<AWindow*>(this)))
 	DefGetterBase(HSHL, ShellHandle, MWindow)
 	DefGetterBase(GHResource<YImage>, Background, MWindow)
 	BitmapPtr
 	GetBackgroundPtr() const;
 
-	virtual DefEventGetter(Controls::InputEventHandler, Enter)
-	virtual DefEventGetter(Controls::InputEventHandler, Leave)
-	virtual DefEventGetter(Controls::KeyEventHandler, KeyUp)
-	virtual DefEventGetter(Controls::KeyEventHandler, KeyDown)
-	virtual DefEventGetter(Controls::KeyEventHandler, KeyHeld)
-	virtual DefEventGetter(Controls::KeyEventHandler, KeyPress)
-	virtual DefEventGetter(Controls::TouchEventHandler, TouchUp)
-	virtual DefEventGetter(Controls::TouchEventHandler, TouchDown)
-	virtual DefEventGetter(Controls::TouchEventHandler, TouchHeld)
-	virtual DefEventGetter(Controls::TouchEventHandler, TouchMove)
-	virtual DefEventGetter(Controls::TouchEventHandler, Click)
+	ImplI(IWindow) DefEventGetter(Controls::InputEventHandler, Enter)
+	ImplI(IWindow) DefEventGetter(Controls::InputEventHandler, Leave)
+	ImplI(IWindow) DefEventGetter(Controls::KeyEventHandler, KeyUp)
+	ImplI(IWindow) DefEventGetter(Controls::KeyEventHandler, KeyDown)
+	ImplI(IWindow) DefEventGetter(Controls::KeyEventHandler, KeyHeld)
+	ImplI(IWindow) DefEventGetter(Controls::KeyEventHandler, KeyPress)
+	ImplI(IWindow) DefEventGetter(Controls::TouchEventHandler, TouchUp)
+	ImplI(IWindow) DefEventGetter(Controls::TouchEventHandler, TouchDown)
+	ImplI(IWindow) DefEventGetter(Controls::TouchEventHandler, TouchHeld)
+	ImplI(IWindow) DefEventGetter(Controls::TouchEventHandler, TouchMove)
+	ImplI(IWindow) DefEventGetter(Controls::TouchEventHandler, Click)
 
-	virtual DefSetterBaseDe(bool, Visible, MVisual, true)
-	virtual DefSetterBaseDe(bool, Transparent, MVisual, true)
-	virtual DefSetterBaseDe(bool, BgRedrawed, MVisual, true)
-	virtual DefSetterBase(const Point&, Location, MVisual)
-	virtual DefSetterDe(bool, Refresh, bRefresh, true)
-	virtual DefSetterDe(bool, Update, bUpdate, true)
+	ImplI(IWindow) DefSetterBase(bool, Visible, MVisual)
+	ImplI(IWindow) DefSetterBase(bool, Transparent, MVisual)
+	ImplI(IWindow) DefSetterBase(bool, BgRedrawed, MVisual)
+	ImplI(IWindow) DefSetterBase(const Point&, Location, MVisual)
+	ImplI(IWindow) DefSetter(bool, Refresh, bRefresh)
+	ImplI(IWindow) DefSetter(bool, Update, bUpdate)
 	virtual void
-	SetSize(SDST, SDST);
-	virtual void
-	SetBounds(const Rect&);
-	virtual DefSetterBaseDe(bool, Enabled, MVisualControl, true)
-	virtual DefSetterBaseDe(GHResource<YImage>, Background, MWindow, NULL)
+	SetSize(const Drawing::Size&);
+	ImplI(IWindow) DefSetterBaseDe(bool, Enabled, MVisualControl, true)
+	ImplI(IWindow) DefSetterBaseDe(GHResource<YImage>, Background, MWindow, NULL)
 
 	PDefH(void, ClearBackground) const //清除背景。
 		ImplExpr(Buffer.ClearImage())
 
 public:
-	virtual void
-	Fill(PixelType); //以纯色填充显示缓冲区。
+	PDefH(void, Fill, PixelType c)
+		ImplBodyMemberVoid(Buffer, Fill, c) //以纯色填充显示缓冲区。
 	bool
 	DrawBackgroundImage();
-	virtual void
+	ImplI(IWindow) void
 	DrawBackground();
-	virtual void
+	ImplI(IWindow) void
 	DrawForeground();
+	//ImplI(IWindow)
 	DeclIEntry(bool DrawWidgets())
-	virtual void
+	ImplI(IWindow) void
 	Draw();
 
-	virtual void
+	ImplI(IWindow) void
 	Refresh();
-	virtual void
+	ImplI(IWindow) void
 	Update();
 
 private:
@@ -194,11 +193,11 @@ private:
 		ImplBodyBase(MVisualControl, ReleaseFocus, c)
 
 public:
-	virtual void
-	RequestFocus(const MEventArgs& = GetZeroElement<MEventArgs>()); //向部件容器申请获得焦点。
-	virtual void
-	ReleaseFocus(const MEventArgs& = GetZeroElement<MEventArgs>()); //释放焦点。
-	virtual void
+	ImplI(IWindow) void
+	RequestFocus(const MEventArgs&); //向部件容器申请获得焦点。
+	ImplI(IWindow) void
+	ReleaseFocus(const MEventArgs&); //释放焦点。
+	ImplI(IWindow) void
 	RequestToTop();
 
 	virtual void
@@ -213,9 +212,9 @@ public:
 	Show();
 
 	static void
-	OnGotFocus(IControl&, const MEventArgs& = GetZeroElement<MEventArgs>());
+	OnGotFocus(IControl&, const MEventArgs&);
 	static void
-	OnLostFocus(IControl&, const MEventArgs& = GetZeroElement<MEventArgs>());
+	OnLostFocus(IControl&, const MEventArgs&);
 };
 
 inline void
@@ -261,10 +260,6 @@ public:
 		ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
 	virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
 		ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
-	virtual Point
-	GetContainerLocationOffset(const Point& = Point::Zero) const;
-	virtual Point
-	GetWindowLocationOffset(const Point& = Point::Zero) const;
 	virtual DefGetterBase(IVisualControl*, FocusingPtr, GMFocusResponser<IVisualControl>)
 
 	virtual PDefH(void, ClearFocusingPtr)

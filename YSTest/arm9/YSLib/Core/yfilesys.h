@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-28 00:09:28 + 08:00;
-// UTime = 2010-10-12 20:43 + 08:00;
-// Version = 0.1831;
+// UTime = 2010-10-16 13:58 + 08:00;
+// Version = 0.1836;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -400,8 +400,8 @@ struct HFileNameFilter : public GHBase<PFNFILTER>
 	bool
 	operator()(const String& name) const
 	{
-		if(_ptr)
-			return _ptr(name);
+		if(GetPtr())
+			return GetPtr()(name);
 		return -1;
 	}
 };

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46 + 08:00;
-// UTime = 2010-10-06 14:03 + 08:00;
-// Version = 0.2364;
+// UTime = 2010-10-17 14:59 + 08:00;
+// Version = 0.2368;
 
 
 #include "ygdi.h"
@@ -473,7 +473,7 @@ DrawHLineSeg(GraphicInterfaceContext& g, SPOS y, SPOS x1, SPOS x2, Color c)
 	YAssert(g.IsValid(),
 		"In function \"void\n"
 		"DrawHLineSeg(GraphicInterfaceContext& g, SPOS y, SPOS x1, SPOS x2, Color c)\": \n"
-		"The graphic device context is invalid.");
+		"The graphics device context is invalid.");
 
 	if(isInIntervalRegular<int>(y, g.GetHeight())
 		&& !((x1 < 0 && x2 < 0) || (x1 >= g.GetWidth() && x2 >= g.GetWidth())))
@@ -493,7 +493,7 @@ DrawVLineSeg(GraphicInterfaceContext& g, SPOS x, SPOS y1, SPOS y2, Color c)
 	YAssert(g.IsValid(),
 		"In function \"void\n"
 		"DrawVLineSeg(GraphicInterfaceContext& g, SPOS x, SPOS y1, SPOS y2, Color c)\": \n"
-		"The graphic device context is invalid.");
+		"The graphics device context is invalid.");
 
 	if(isInIntervalRegular<int>(x, g.GetWidth())
 		&& !((y1 < 0 && y2 < 0) || (y1 >= g.GetHeight() && y2 >= g.GetHeight())))

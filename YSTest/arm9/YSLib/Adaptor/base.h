@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::Base by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-09 09:25:27 + 08:00;
-// UTime = 2010-10-13 16:49 + 08:00;
-// Version = 0.1880;
+// UTime = 2010-10-17 00:15 + 08:00;
+// Version = 0.1925;
 
 
 #ifndef INCLUDED_BASE_H_
@@ -59,17 +59,21 @@
 
 #define DeclInterface(_name) _yInterface _name _yInterfaceHead(_name)
 
-#ifdef __GNUC__
 //对于基接口需要显示指定访问权限和继承方式。由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
+// ImplI = implements interface;
+#ifdef __GNUC__
 #	define DeclBasedInterface(_name, _base...) \
 	_yInterface _name : _base _yInterfaceHead(_name)
+#	define ImplI(_interface, ...) virtual
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #	define DeclBasedInterface(_name, _base, ...) \
 	_yInterface _name : _base, __VA_ARGS__ _yInterfaceHead(_name)
+#	define ImplI(_interface, ...) virtual
 #else
 //注意 ISO/IEC C++ 不支持宏的可变参数列表，因此无法实现接口多继承。
 #	define DeclBasedInterface(_name, _base) \
 	_yInterface _name : _base _yInterfaceHead(_name)
+#	define ImplI(_interface) virtual
 #endif
 
 //"DeclIEntry" = Declare Interface Entry;

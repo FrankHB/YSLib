@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-09 10:41 + 08:00;
-// Version = 0.2765;
+// UTime = 2010-10-17 22:48 + 08:00;
+// Version = 0.2772;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -56,7 +56,7 @@ private:
 		: YForm(Rect::FullScreen, GetImage(2), pDesktopDown, hShl),
 			lblStatus(HWND(this), FS("初始化中，请稍后……"), Rect(30, 20, 160, 22))
 		{
-			lblStatus.Transparent = true;
+			lblStatus.SetTransparent(true);
 			Draw();
 		}
 	};
@@ -157,7 +157,7 @@ public:
 			lblA(HWND(this), G_APP_NAME, Rect(left, 20, 200, size)),
 			lblA2(HWND(this), "程序测试", Rect(left, 80, 72, size))
 		{
-			lblA2.Transparent = true;
+			lblA2.SetTransparent(true);
 		}
 
 		void ShowString(const String& s)
@@ -229,7 +229,7 @@ public:
 
 	void ShowString(const String& s)
 	{
-		GHHandle<TFormA>(hWndUp)->ShowString(s);
+		GHHandle<TFormA>(dynamic_cast<TFormA*>(GetPointer(hWndUp)))->ShowString(s);
 	}
 	void ShowString(const char* s)
 	{

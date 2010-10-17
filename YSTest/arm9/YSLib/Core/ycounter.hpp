@@ -1,7 +1,7 @@
 ﻿// YSLib::Core::YCounter by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-2-9 20:43:52;
-// UTime = 2010-6-15 20:44;
+// CTime = 2010-02-09 20:43:52 + 08:00;
+// UTime = 2010-10-16 14:04 + 08:00;
 // Version = 0.1616;
 
 
@@ -41,21 +41,9 @@ protected:
 	}
 
 public:
-	static count_t
-	GetCount()
-	{
-		return nCount;
-	}
-	static count_t
-	GetTotal()
-	{
-		return nTotal;
-	}
-	count_t
-	GetID() const
-	{
-		return nID;
-	}
+	DefStaticGetter(count_t, Count, nCount)
+	DefStaticGetter(count_t, Total, nTotal)
+	DefGetter(count_t, ID, nID)
 
 protected:
 	static void
@@ -63,12 +51,15 @@ protected:
 	{
 		nCount = 0;
 	}
+
 	static void
 	ResetTotal()
 	{
 		nTotal = 0;
 	}
-	void ResetID()
+
+	void
+	ResetID()
 	{
 		nID = 0;
 	}

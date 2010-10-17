@@ -431,8 +431,8 @@ public:
 	iterator end() const;
 };
 */
-//	lblC.RequestFocus();
-//	lblC.ReleaseFocus();
+//	lblC.RequestFocus(GetZeroElement<MEventArgs>());
+//	lblC.ReleaseFocus(GetZeroElement<MEventArgs>());
 
 //	lblC.Text = L"≤‚ ‘= =";
 //	HWND h(lblC.GetWindowHandle());

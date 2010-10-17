@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:02:40 + 08:00;
-// UTime = 2010-10-09 11:40 + 08:00;
-// Version = 0.6878;
+// UTime = 2010-10-17 00:34 + 08:00;
+// Version = 0.6884;
 
 
 #ifndef INCLUDED_YFONT_H_
@@ -378,19 +378,19 @@ public:
 	//SetFont;
 
 private:
-	void
+	ImplI(GIContainer<const FontFile>) void
 	operator+=(const FontFile&); //向字体文件组添加字体文件对象。
-	bool
+	ImplI(GIContainer<const FontFile>) bool
 	operator-=(const FontFile&); //从字体文件组中移除指定字体文件对象。
 
-	void
+	ImplI(GIContainer<const Typeface>) void
 	operator+=(const Typeface&); //向字型组添加字型对象。
-	bool
+	ImplI(GIContainer<const Typeface>) bool
 	operator-=(const Typeface&); //从字型组中移除指定字型对象。
 
-	void
+	ImplI(GIContainer<const FontFamily>) void
 	operator+=(FontFamily&); //向字型家族组添加字型对象。
-	bool
+	ImplI(GIContainer<const FontFamily>) bool
 	operator-=(FontFamily&); //从字型家族组中移除指定字型对象。
 
 	void

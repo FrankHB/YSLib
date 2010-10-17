@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28 + 08:00;
-// UTime = 2010-10-13 15:31 + 08:00;
-// Version = 0.3015;
+// UTime = 2010-10-17 22:27 + 08:00;
+// Version = 0.3058;
 
 
 #include "ydesktop.h"
@@ -36,16 +36,10 @@ AWindow::GetBackgroundPtr() const
 }
 
 void
-AWindow::SetSize(SDST w, SDST h)
+AWindow::SetSize(const Drawing::Size& s)
 {
-	Buffer.SetSize(w, h);
-	MWidget::SetSize(w, h);
-}
-void
-AWindow::SetBounds(const Rect& r)
-{
-	Location = r.GetPoint();
-	SetSize(r.Width, r.Height);
+	Buffer.SetSize(s.Width, s.Height);
+	MWidget::SetSize(s);
 }
 
 void
@@ -55,11 +49,6 @@ AWindow::RequestToTop()
 		pDesktop->MoveToTop(*this);
 }
 
-void
-AWindow::Fill(PixelType c)
-{
-	Buffer.Fill(c);
-}
 bool
 AWindow::DrawBackgroundImage()
 {
@@ -112,7 +101,7 @@ AWindow::Update()
 		if(hWindow != NULL)
 		{
 			UpdateToWindow();
-			hWindow->SetUpdate();
+			hWindow->SetUpdate(true);
 		}
 	}
 }
@@ -185,7 +174,7 @@ YFrameWindow::YFrameWindow(const Rect& r, const GHResource<YImage> i, YDesktop* 
 		*pContainer += static_cast<IWidget&>(*this);
 		*pContainer += static_cast<GMFocusResponser<IVisualControl>&>(*this);
 	}
-	SetSize(Size.Width, Size.Height);
+	SetSize(GetSize());
 	DrawBackground();
 	InsertMessage(hShell, SM_WNDCREATE, 0xF0, handle_cast<WPARAM>(hWindow), reinterpret_cast<LPARAM>(this));
 	*hShl += *this;
@@ -203,17 +192,6 @@ YFrameWindow::~YFrameWindow()
 	if(pDesktop)
 		pDesktop->RemoveAll(*this);
 	InsertMessage(hShell, SM_WNDDESTROY, 0xF0, handle_cast<WPARAM>(hWindow), reinterpret_cast<LPARAM>(this));
-}
-
-Point
-YFrameWindow::GetContainerLocationOffset(const Point& p) const
-{
-	return p + Location;
-}
-Point
-YFrameWindow::GetWindowLocationOffset(const Point& p) const
-{
-	return Widgets::GetLocationOffset(const_cast<YFrameWindow*>(this), p, hWindow);
 }
 
 bool
@@ -238,7 +216,7 @@ YFrameWindow::DrawWidgets()
 			if(w.IsVisible() && !(IsBgRedrawed() && w.IsBgRedrawed()) && !w.IsTransparent())
 			{
 				w.DrawBackground();
-				w.SetBgRedrawed();
+				w.SetBgRedrawed(true);
 			}
 		}
 		bBgChanged = true;
@@ -254,7 +232,7 @@ YFrameWindow::DrawWidgets()
 
 	bool result(bBgChanged || !IsBgRedrawed());
 
-	SetBgRedrawed();
+	SetBgRedrawed(true);
 	return result;
 }
 

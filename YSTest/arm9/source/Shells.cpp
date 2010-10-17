@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-13 15:40 + 08:00;
-// Version = 0.3132;
+// UTime = 2010-10-17 22:49 + 08:00;
+// Version = 0.3142;
 
 
 #include <Shells.h>
@@ -237,8 +237,8 @@ LRES
 ShlLoad::OnActivated(const Message& m)
 {
 	//如果不添加此段且没有桌面没有被添加窗口等设置刷性状态的操作，那么任何绘制都不会进行。
-	pDesktopUp->SetRefresh();
-	pDesktopDown->SetRefresh();
+	pDesktopUp->SetRefresh(true);
+	pDesktopDown->SetRefresh(true);
 	//新建窗口。
 	hWndUp = NewWindow<TFrmLoadUp>(this);
 	hWndDown = NewWindow<TFrmLoadDown>(this);
@@ -387,8 +387,8 @@ ShlExplorer::OnActivated(const Message&)
 	ReplaceHandle<HWND>(hWndUp, new TFrmFileListMonitor(HSHL(this)));
 	ReplaceHandle<HWND>(hWndDown, new TFrmFileListSelecter(HSHL(this)));
 */
-	//	HandleCast<TFrmFileListSelecter>(hWndDown)->fbMain.RequestFocus();
-	//	hWndDown->RequestFocus();
+	//	HandleCast<TFrmFileListSelecter>(hWndDown)->fbMain.RequestFocus(GetZeroElement<MEventArgs>());
+	//	hWndDown->RequestFocus(GetZeroElement<MEventArgs>());
 	RequestFocusCascade(HandleCast<TFrmFileListSelecter>(hWndDown)->fbMain);
 	DispatchWindows();
 	UpdateToScreen();
@@ -484,8 +484,8 @@ ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e
 
 	u32 k(e);
 
-	YButton& lbl(static_cast<TFormA&>(*(static_cast<ShlSetting&>(*NowShell()).hWndUp)).lblA2);
-	lbl.Transparent ^= 1;
+	YButton& lbl(dynamic_cast<TFormA&>(*(dynamic_cast<ShlSetting&>(*NowShell()).hWndUp)).lblA2);
+	lbl.SetTransparent(!lbl.IsTransparent());
 //	++lbl.ForeColor;
 //	--lbl.BackColor;
 	sprintf(strttxt, "%d;\n", k);
@@ -616,8 +616,8 @@ ShlReader::UpdateToScreen()
 	{
 		bgDirty = false;
 		//强制刷新背景。
-		pDesktopUp->SetRefresh();
-		pDesktopDown->SetRefresh();
+		pDesktopUp->SetRefresh(true);
+		pDesktopDown->SetRefresh(true);
 		pDesktopUp->Refresh();
 		pDesktopDown->Refresh();
 		Reader.PrintText();

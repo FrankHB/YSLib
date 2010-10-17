@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-15 16:55 + 08:00;
-// Version = 0.2739;
+// UTime = 2010-10-16 14:40 + 08:00;
+// Version = 0.2745;
 
 
 #include "ygui.h"
@@ -44,7 +44,7 @@ RequestFocusCascade(IVisualControl& c)
 
 	do
 	{
-		p->RequestFocus();
+		p->RequestFocus(GetZeroElement<MEventArgs>());
 		q = dynamic_cast<IWidget*>(p);
 	}while(q && (p = dynamic_cast<IVisualControl*>(q->GetContainerPtr())));
 }
@@ -57,7 +57,7 @@ ReleaseFocusCascade(IVisualControl& c)
 
 	do
 	{
-		p->ReleaseFocus();
+		p->ReleaseFocus(GetZeroElement<MEventArgs>());
 		q = dynamic_cast<IWidget*>(p);
 	}while(q && (p = dynamic_cast<IVisualControl*>(q->GetContainerPtr())));
 }

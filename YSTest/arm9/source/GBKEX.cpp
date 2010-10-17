@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-10-15 17:02 + 08:00;
-// Version = 0.2738; *Build 162 r24;
+// UTime = 2010-10-17 22:51 + 08:00;
+// Version = 0.2743; *Build 163 r19;
 
 
 #include "../YCLib/ydef.h"
@@ -30,6 +30,7 @@ $Record prefix and abbrevations:
 @ ::= identifier
 @@ ::= in / belongs to
 \a ::= all
+\ab ::= abstract
 \ac ::= access
 \bg ::= background
 \c ::= const
@@ -133,199 +134,114 @@ $using:
 
 $DONE:
 r1:
-/ \simp @@ \cl YButton @@ \u YGUIComponent:
-	- \inh \cl AButton;
-	+ \int \cl MButton;
-	+ \inh \cl Widgets::MLabel;
-	- \mf \vt void OnConfirmed(const MIndexEventArgs&);
-	/ \impl @@ \ctor;
-- \cl AButton @@ \u YControl;
+/= @@ \cl AWindow @@ \u AWindow:
+	-= \mf void SetBounds(const Rect&);
+	/= \mf void Fill(PixelType) ^ \mac PDefH;
 
-r2:
-/ @@ \cl YControl:
-	+ \cl MScrollBar;
-	+ \cl AScrollBar;
-	/ \impl @@ \cl MButton:
-		/ \ac \exp \ctor ~ public -> protected; 
-/ @@ \cl YGUIComponent:
-	+ \cl YHorizontalScrollBar;
-	+ \cl YVerticalScrollBar;
-+ \f \t template<class _tBinary> _tBinary Transpose(_tBinary&) @@ \u YObject;
-
-r3:
-/ \a DefEmptyDtor => DefEmptyDtor;
-+ \vt DefEmptyDtor(GMContainer) @@ \cl \t GMContainer @@ \u YModule;
-+ \vt DefEmptyDtor(MWidgetContainer) @@ \cl MWidgetContainer @@ \u YWidget;
-
-r4:
-/ @@ \h YEvent:
-	+ \cl \t template<class _tEventHandler> struct GSEventTemplate;
-	+ \mac DeclIEventEntry(_tEventHandler, _name);
-	+ \mac DefEventGetter(_tEventHandler, _name);
-\a SStringTemplate => GSStringTemplate;
-
-r5:
-/ @@ \u YControl:
-	/ \decl @@ \in IVisualControl;
-	/ \decl @@ \cl YVisualControl;
-/ @@ \h YEvent:
-	* \mac DeclIEventEntry(_tEventHandler, _name);
-	* \mac DefEventGetter(_tEventHandler, _name);
-/ @@ \u YWindow:
-	/ \decl @@ \cl AWindow;
-
-r6:
-/ @@ \u YGUI:
-	/ \a MVisualControl -> IVisualControl;
-	/ \a event -> EventGetter @@ \impl;
-/ @@ \u YControl:
-	/ + \tb @@ \impl @@ \mf void MVisualControl::OnKeyHeld(const Runtime::MKeyEventArgs&);
-
-r7:
-/= ^ DefEmptyDtor @@
-	{
-		\cl AWindow;
-		\cl YDesktop @@ \u YDesktop;
-		\cl YTextFile @@ \u YFile_(Text);
-	}
-/= \impl @@ \dtor @@ \cl YFontFamily @@ \u YFont;
-/= \simp @@ \cl MDesktopObject:
-	/= \mf bool BelongsTo(YDesktop*) const ^ \mac PDefHead;
-	/= \mf YDesktop* GetDesktopPtr() const ^ \mac DefGetter;
-/= \i \mf void YListBox::ClearSelected() ^ \mac PDefHead;
-/ \a:
-	{
-		PDefHead => PDefH;
-		PDefOpHead => PDefHOperator;
-	};
-
-r8:
-/ @@ \u YControl:
-	+ \cl AVisualControl;
-	/ \impl @@ \cl YVisualControl;
-	/ \impl @@ \cl AScrollBar;
-		+ \inh AVisualControl;
-
-r9:
-/ @@ \u YModule:
-	/ \cl \t GMContainer >> \u YComponent;
-	/ \cl \t GMFocusResponser @@ \ns Runtime >> \ns Component @@ \u YComponent;
-	/ \in \t GIFocusRequester @@ \ns Runtime >> \ns Component @@ \u YComponent;
-	/ \cl AFocusRequester @@ \ns Runtime >> \ns Component @@ \u YComponent;
-	/ \cl \t GSequenceViewer >> \u YComponent;
-- \u YModule;
-/ @@ \u YComponent:
-	+ \inc "../Core/yevt.hpp";
-	+ \inc "../Core/yevtarg.h";
-/ @@ \u YWidget:
-	- \inc \u YModule;
-/= \a _Tp => _type;
-* \tg rebuild @@ makefile;
-
-r10:
-/ @@ \u YControl:
-	+ \cl MThumb;
-	+ \cl MTrack;
-	+ \cl MDraggableObject;
-	+ \in IDraggable;
-	/ \impl @@ \cl MScrollButton;
-/ \a:
-	{
-		GHEvent => GEventHandler;
-		YInputEventHandler => InputEventHandler;
-		YTouchEventHandler => TouchEventHandler;
-		YKeyEventHandler => KeyEventHandler;
-		YIndexEventHandler => IndexEventHandler;
-		EventHandler => EventHandler;
-		EventHandler => EventHandler;
-		\cl YEvent => Event;
-		GIHEventHandler => GIEventHandler;
-		IHEventHandler => IEventHandler;
-	};
-
-r11-r12:
-/ \impl @@ \cl MThumb & \cl MTrack & \cl MScrollBar & \cl AScrollBar & \cl YHorizontalScrollBar;
-/ @@ \u YControl:
-	- \cl MThumb;
-	- \cl MTrack;
-	- \cl MDraggableObject;
-	- \in IDraggable;
-	/ \impl @@ \cl MScrollButton;
-
-r13-r14:
-/ @@ \cl InputState @@ \u YGUI:
-	typedef enum
-	{
-		KeyFree = 0,
-		KeyPressed = 1,
-		KeyHeld = 2
-	} KeyHeldStateType;
-	->
-	typedef enum
-	{
-		Free = 0,
-		Pressed = 1,
-		Held = 2
-	} HeldStateType @@ \ns InputStatus;
-	/ \sm Timers::YTimer HeldTimer -> Timers::YTimer HeldTimer;
-	/ \smf void RepeatKeyHeld(Components::Controls::IVisualControl&, const MKeyEventArgs&)
-		-> void RepeatHeld(HeldStateType&, Components::Controls::IVisualControl&, const MKeyEventArgs&);
-	/ \sm 
-	{
-		Vec DragOffset;
-		HeldStateType KeyHeldState;
-		Timers::YTimer HeldTimer;
-	} >> \un \ns;
-	/ \cl InputStatus -> \ns InputStatus;
-	- \f HeldStateType GetKeyHeldState();
-	/ \f void ResetKeyHeldState()
-		-> void ResetHeldState(HeldStateType&);
-	+ \o HeldStateType TouchHeldState;
-/ @@ \ns Timers @@ \u YTimer:
-	/ typedef u32 TimeSpan;
-	/ \impl @@ \cl YTimer ^ TimeSpan;
-	/ \f void RepeatHeld(HeldStateType&, Components::Controls::IVisualControl&, const MKeyEventArgs&);
-		-> void RepeatHeld(HeldStateType&, Components::Controls::IVisualControl&, const MKeyEventArgs&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
-/ @@ \cl MVisualControl:
-	/ \tr \impl @@ \mf void OnTouchHeld(const Runtime::MKeyEventArgs&);
-	/ \tr \impl @@ \mf void OnKeyHeld(const Runtime::MKeyEventArgs&);
-/ @@ \un \ns @@ \u YGUI:
-	+ using namespace InputStatus;
-	/ \tr \impl @@ \f bool ResponseKeyUpBase(IVisualControl&, const MKeyEventArgs&);
-	/ \tr \impl @@ \f bool ResponseKeyHeldBase(IVisualControl&, const MKeyEventArgs&);	
-
-r15:
-/ @@ \u YGUI:
-	/ \f void RepeatHeld(HeldStateType&, Components::Controls::IVisualControl&, const MKeyEventArgs&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
-		-> bool RepeatHeld(HeldStateType&, const MKeyEventArgs&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
-/ @@ \cl MVisualControl:
-		/ \tr \impl @@ \mf void OnKeyHeld(const Runtime::MKeyEventArgs&);
-
-r16-r19:
-/ \impl @@ \mf void MVisualControl::OnTouchHeld(const Runtime::MTouchEventArgs&);
-* @@ \u YGUI:
-	+ \def HeldStateType TouchHeldState(Free);
-
-r20:
-/ @@ \un \ns @@ \u YGUI:
-	/ \impl @@ \f bool ResponseTouchUpBase(IVisualControl&, const MTouchEventArgs&);
-	/ \impl @@ \f bool ResponseTouchHeldBase(IVisualControl&, const MTouchEventArgs&);
-
-r21:
+r2-r7:
 /= test 1;
 
-r22:
-* @@ \un \ns @@ \u YGUI:
-	/ \impl @@ \fbool ResponseTouchUpBase(IVisualControl&, const MTouchEventArgs&);
-	/ \impl @@ \fbool ResponseTouchDownBase(IVisualControl&, const MTouchEventArgs&);
-	/ \impl @@ \fbool ResponseTouchHeldBase(IVisualControl&, const MTouchEventArgs&);
-* @@ \cl MVisualControl:
-	/ \impl @@ \mf OnTouchHeld(const Runtime::MTouchEventArgs&);
+r8:
+/ \ns Widgets @@ \u YWidget:
+	/ \f Point GetLocationOffset(IWidget*, const Point&, const HWND&)
+	-> Point GetLocationOffset(const IWidget*, const Point&, const HWND&);
+	/ \simp \impl @@ \mf Point GetWindowLocationOffset(const Point&) const @@ \cl YWidgetContainer;
+/ \simp \impl @@ \mf Point GetWindowLocationOffset(const Point&) const @@ \cl YFrameWindow @@ \u YWindow;
 
-r23-r24:
-/ test 2;
-/ @@ \cl MVisualControl:
-	/ \impl @@ \mf OnTouchHeld(const Runtime::MTouchEventArgs&);
+r9-r10:
+/= test 2;
+
+r11:
+/ unnecessary \ac protected -> private @@ \h YFunc;
+
+r12:
+/= \tr \decl @@ \h YCounter ^ \mac DefGetter & DefStaticGetter;
+
+r13:
+- \def \para:
+	/ \a \mf ReleaseFocus(const MEventArg& = GetZeroElement<MEventArgs>());
+	/ \a \mf RequestFocus(const MEventArg& = GetZeroElement<MEventArgs>());
+	/ \a \mf SetVisible(bool = true);
+	/ \a \mf SetTransparent(bool = true);
+	/ \a \mf SetBgRedrawed(bool = true);
+	/ \a \mf SetRefresh(bool = true);
+	/ \a \mf SetUpdate(bool = true);
+	/ \a \mf SetEnabled(bool = true);
+	/ \a \mf Point GetContainerLocationOffset(const Point& = Point::Zero) const;
+	/ \a \mf Point GetWindowLocationOffset(const Point& = Point::Zero) const;
+
+r14:
+/ @@ \u YWidget:
+	/ @@ \cl MVisual:
+		/ unnecessary \ac public -> protected;
+		/ unnecessary \ac protected -> private;
+		- \vt @@ \mf void SetLocation(SPOS, SPOS);
+		- \vt @@ \mf void SetSize(SPOS, SPOS);
+		+ \vt \mf void SetSize(Size&);
+		/ virtual DefGetter(Rect, Bounds, Rect(Location, Size.Width, Size.Height))
+			-> DefGetter(Rect, Bounds, Rect(GetLocation(), GetSize()));
+		+= \vt @@ \mf void Contains(Point&);
+		/ \impl @@ \mf void Contains(Point&);
+		/ \mf void Contains(const int&, const int&) -> void Contains(SPOS, SPOS);
+		/= \mf DefGetter(SPOS, X, Location().X) -> DefGetter(SPOS, X, GetLocation().X);
+		/= \mf DefGetter(SPOS, Y, Location().Y) -> DefGetter(SPOS, Y, GetLocation().Y);
+		/= \mf DefGetter(SDST, Width, Size.Width) -> DefGetter(SDST, Width, Size.Width);
+		/= \mf DefGetter(SDST, Height, Size.Height) -> DefGetter(SDST, Height, Size.Height)
+		- \a \vt @@ getters @@ \mf;
+		/ \mf public void SetSize(SPOS, SPOS) -> private void _m_SetSize(SPOS, SPOS);
+		+ \mf public void SetSize(SPOS, SPOS);
+		/ \impl @@ \mf \vt void SetSize(Drawing::Size&);
+	/ @@ \cl MVisual:
+		- \a \vt @@ !\dtor @@ \mf;
+/= \tr \impl @@ \u Shells:
+	\ctor @@ \cl ShlLoad::TFrmLoadDown;
+	\ctor @@ \cl ShlSetting::TFormA;
+	\mf ShlSetting::TFormC::btnC_KeyPress;
+/= \tr \impl @@ \u YGUIComponent:
+	/ \mf YButton::DrawForeground();
+	/ \mf YListBox::DrawForeground();
+/= \tr \impl @@ \ctor @@ \cl YFrameWindow @@ \u YWindow;
++ \mac ImplI @@ \h Adaptor::Base;
+/ ^ \mac ImplI @@ \a \cl \impl \in;
+/= \tr \impl @@ \u YComponent:
+	/ ^ \mac DefGetter @@ \cl \t GMContainer;
+	/ ^ \mac PDefH & DefGetter & PDefHOperator @@ \cl \t GMFocusResponser;
+	/ ^ \mac PDefHOperator @@ \cl \t GSequenceViewer;
+/ @@ \cl AWindow @@ \u YWindow:
+	/ \mf \vt void SetSize(SDST, SDST) -> void SetSize(const Drawing::Size&);
+
+r15:
+/ \tr \impl @@ \u YGDI;
+
+r16:
+/ @@ \u YWindow:
+	/ @@ \u YFrameWindow:
+		\vt \mf Point GetContainerLocationOffset(const Point&) const >> \cl Awindow;
+		\vt \mf Point GetWindowLocationOffset(const Point&) const >> \cl Awindow;
+
+r17:
+/ \simp @@ \u YWidget:
+	/ @@ \ns Widgets:
+		+ \i \f Point GetContainerLocationOffset(const IWidget&, const Point&);
+		+ \i \f Point GetWindowLocationOffset(const IWidget&, const Point&);
+	/ @@ \cl YWidgetContainer:
+		- \mf Point GetContainerLocationOffset(const Point&) const;
+		- \mf Point GetWindowLocationOffset(const Point&) const;
+	/ @@ \in IWidgetContainer:
+		- \mf Point GetContainerLocationOffset(const Point&) const;
+		- \mf Point GetWindowLocationOffset(const Point&) const;
+	/ @@ \cl MWidget:
+		/ \impl @@ \mf Point GetLocationForParentContainer() const;
+		/ \impl @@ \mf Point GetLocationForParentWindow() const;
+/ @@ \u YWindow:
+	/ @@ \cl AWindow:
+		- \mf Point GetContainerLocationOffset(const Point&) const;
+		- \mf Point GetWindowLocationOffset(const Point&) const;
+
+r18-r19:
+/ \vt \inh \impl @@ (\in & \ab \cl)\dir Shell;
+/ \tr \impl @@ \u Shells;
+
 
 $DOING:
 
@@ -333,6 +249,12 @@ $DOING:
 
 
 $NEXT:
+{
+
+/ \impl @@ \cl \t GHHandle @@ \h YReference:
+	/ static_cast -> dynamic_cast @@ \ctor;
+};
+
 b170-b190:
 / fully \impl \u DSReader;
 	* moving text after setting lnGap;

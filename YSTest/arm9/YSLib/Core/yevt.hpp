@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YEvent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-04-23 23:08:23 + 08:00;
-// UTime = 2010-10-14 13:44 + 08:00;
-// Version = 0.3234;
+// UTime = 2010-10-17 00:46 + 08:00;
+// Version = 0.3250;
 
 
 #ifndef INCLUDED_YEVT_HPP_
@@ -63,20 +63,18 @@ public:
 	GHEventNormal(const _giEventHandler& h)
 	: GHBase<_pfEventHandler>(h.GetPtr())
 	{}
-	inline virtual
-	~GHEventNormal()
-	{}
+	virtual DefEmptyDtor(GHEventNormal)
 
-	void
+	ImplI(GIEventHandler<_tSender, _tEventArgs>) void
 	operator()(_tSender& sender, const _tEventArgs& e) const
 	{
 		if(GHBase<_pfEventHandler>::GetPtr())
 			GHBase<_pfEventHandler>::GetPtr()(sender, e);
 	}
 
-	virtual DefGetter(std::size_t, SizeOf, sizeof(*this))
+	ImplI(GIEventHandler<_tSender, _tEventArgs>) DefGetter(std::size_t, SizeOf, sizeof(*this))
 
-	virtual IHEventHandlerType*
+	ImplI(GIEventHandler<_tSender, _tEventArgs>) IHEventHandlerType*
 	Clone() const
 	{
 		return new GHEventNormal(*this);
@@ -103,11 +101,9 @@ public:
 	GHEventMember(MemFunPtrType pm = NULL)
 	:_ptrMemFun(pm)
 	{}
-	inline virtual
-	~GHEventMember()
-	{}
+	virtual DefEmptyDtor(GHEventMember)
 
-	virtual void
+	ImplI(GIEventHandler<_tSender, _tEventArgs>) void
 	operator()(_tSender& sender, const _tEventArgs& e) const
 	{
 		try
@@ -119,9 +115,9 @@ public:
 		{}
 	}
 
-	virtual DefGetter(std::size_t, SizeOf, sizeof(*this))
+	ImplI(GIEventHandler<_tSender, _tEventArgs>) DefGetter(std::size_t, SizeOf, sizeof(*this))
 
-	virtual IHEventHandlerType*
+	ImplI(GIEventHandler<_tSender, _tEventArgs>) IHEventHandlerType*
 	Clone() const
 	{
 		return new GHEventMember(*this);
@@ -149,20 +145,18 @@ public:
 	GHEventMemberBinder(_type& obj, MemFunPtrType pm = NULL)
 	:_obj(obj), _ptrMemFun(pm)
 	{}
-	inline virtual
-	~GHEventMemberBinder()
-	{}
+	virtual DefEmptyDtor(GHEventMemberBinder)
 
-	virtual void
+	ImplI(GIEventHandler<_tSender, _tEventArgs>) void
 	operator()(_tSender& sender, const _tEventArgs& e) const
 	{
 		if(_ptrMemFun)
 			(_obj.*_ptrMemFun)(e);
 	}
 
-	virtual DefGetter(std::size_t, SizeOf, sizeof(*this))
+	ImplI(GIEventHandler<_tSender, _tEventArgs>) DefGetter(std::size_t, SizeOf, sizeof(*this))
 
-	virtual IHEventHandlerType*
+	ImplI(GIEventHandler<_tSender, _tEventArgs>) IHEventHandlerType*
 	Clone() const
 	{
 		return new GHEventMemberBinder(*this);
@@ -232,16 +226,16 @@ public:
 
 		return pl == pr || ((pl && pr) && *pl == *pr);
 	}
-	virtual void
+	ImplI(GIEventHandler<_tSender, _tEventArgs>) void
 	operator()(_tSender& sender, const _tEventArgs& e) const
 	{
 		if(_h_ptr)
 			(*_h_ptr)(sender, e);
 	}
 
-	virtual DefGetter(std::size_t, SizeOf, _h_ptr->GetSizeOf())
+	ImplI(GIEventHandler<_tSender, _tEventArgs>) DefGetter(std::size_t, SizeOf, _h_ptr->GetSizeOf())
 
-	virtual IHEventHandlerType*
+	ImplI(GIEventHandler<_tSender, _tEventArgs>) IHEventHandlerType*
 	Clone() const
 	{
 		return new GEventHandler(*this);
