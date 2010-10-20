@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-17 22:31 + 08:00;
-// Version = 0.4167;
+// UTime = 2010-10-19 15:38 + 08:00;
+// Version = 0.4188;
 
 
 #include "ywindow.h"
@@ -63,23 +63,34 @@ MWidget::MWidget(HWND hWnd, const Rect& r, IWidgetContainer* pCon, Color b, Colo
 Point
 MWidget::GetLocationForWindow() const
 {
-	return pContainer ? Widgets::GetLocationOffset(dynamic_cast<IWidget*>(pContainer), Location, hWindow) : Point::FullScreen;
+	return pContainer != NULL
+		? Widgets::GetLocationOffset(dynamic_cast<IWidget*>(pContainer), Location, hWindow)
+		: Point::FullScreen;
 }
 Point
 MWidget::GetLocationForParentContainer() const
 {
-	return pContainer ? Widgets::GetContainerLocationOffset(*pContainer, Location) : Point::FullScreen;
+	return pContainer != NULL
+		? Widgets::GetContainerLocationOffset(*pContainer, Location)
+		: Point::FullScreen;
 }
 Point
 MWidget::GetLocationForParentWindow() const
 {
-	return pContainer ? Widgets::GetWindowLocationOffset(*pContainer, Location) : Point::FullScreen;
+	return pContainer != NULL
+		? Widgets::GetWindowLocationOffset(*pContainer, Location)
+		: Point::FullScreen;
 }
 
 void
 MWidget::Fill(Color c)
 {
-	FillRect<PixelType>(hWindow->GetBufferPtr(), hWindow->GetSize(), GetBounds(), c);
+	if(hWindow != NULL)
+	{
+		Graphics g(*hWindow);
+
+		FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(), GetBounds(), c);
+	}
 }
 void
 MWidget::DrawBackground()
@@ -138,9 +149,7 @@ MWidgetContainer::GetTopVisualControlPtr(const Point& pt) const
 {
 	for(FOs::const_iterator i(sFOs.begin()); i != sFOs.end(); ++i)
 	{
-		IWidget* const p(dynamic_cast<IWidget*>(*i));
-
-		if(p && p->Contains(pt))
+		if(*i != NULL && (*i)->Contains(pt))
 			return *i;
 	}
 	return NULL;
@@ -181,9 +190,10 @@ MLabel::PaintText(MWidget& w)
 		prTextRegion->PutLine(Text);
 
 		Point pt(w.GetLocationForWindow());
+		Graphics g(*hWnd);
 
-		prTextRegion->BlitToBuffer(hWnd->GetBufferPtr(), RDeg0,
-			hWnd->GetSize(), Point::Zero, pt, w.GetSize());
+		prTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
+			g.GetSize(), Point::Zero, pt, w.GetSize());
 		prTextRegion->SetSize(0, 0);
 	}
 }

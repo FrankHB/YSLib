@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-15 16:56 + 08:00;
-// Version = 0.2019;
+// UTime = 2010-10-19 22:26 + 08:00;
+// Version = 0.2040;
 
 
 #ifndef INCLUDED_YGUI_H_
@@ -133,28 +133,28 @@ YSL_END_NAMESPACE(Runtime)
 YSL_BEGIN_NAMESPACE(Drawing)
 
 //取图形接口上下文。
-inline GraphicInterfaceContext
+inline Graphics
 GetGraphicInterfaceContext(HWND hWnd)
 {
 	YAssert(hWnd != NULL,
-		"In function \"inline GraphicInterfaceContext\nDrawing::GetGraphicInterfaceContext(HWND hWnd)\": \n"
+		"In function \"inline Graphics\nDrawing::GetGraphicInterfaceContext(HWND hWnd)\": \n"
 		"The input handle is null.");
 
-	return static_cast<GraphicInterfaceContext>(*hWnd);
+	return static_cast<Graphics>(*hWnd);
 }
 
 
 //绘制界面元素边框。
 void
-DrawBounds(GraphicInterfaceContext&, const Point&, const Size&, PixelType);
+DrawBounds(const Graphics&, const Point&, const Size&, Color);
 
 //绘制窗口边框。
 void
-DrawWindowBounds(HWND, PixelType);
+DrawWindowBounds(HWND, Color);
 
 //绘制部件边框。
 void
-DrawWidgetBounds(IWidget&, PixelType);
+DrawWidgetBounds(IWidget&, Color);
 
 YSL_END_NAMESPACE(Drawing)
 

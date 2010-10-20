@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-17 22:44 + 08:00;
-// Version = 0.4878;
+// UTime = 2010-10-19 15:46 + 08:00;
+// Version = 0.4882;
 
 
 #ifndef INCLUDED_YWIDGET_H_
@@ -166,7 +166,7 @@ public:
 //部件模块。
 class MWidget : public MVisual
 {
-protected:
+private:
 	HWND hWindow; //从属的窗口的句柄。
 
 public:

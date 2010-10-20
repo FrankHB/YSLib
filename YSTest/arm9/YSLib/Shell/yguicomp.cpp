@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-10-16 23:18 + 08:00;
-// Version = 0.1182;
+// UTime = 2010-10-19 22:37 + 08:00;
+// Version = 0.1342;
 
 
 #include "yguicomp.h"
@@ -32,51 +32,38 @@ namespace
 	}
 
 	void
-	RectDrawFocus(const Point& l, const Size& s, HWND hWnd)
+	RectDrawFocus(HWND hWnd, const Point& l, const Size& s)
 	{
 		YAssert(hWnd, "err: @hWnd is null.");
 
 		DrawWindowBounds(hWnd, Color::Fuchsia);
 
-		IWidget* pWgt(dynamic_cast<IWidget*>(hWnd->GetFocusingPtr()));
+		IWidget* pWgt(hWnd->GetFocusingPtr());
 
-		if(pWgt)
+		if(pWgt != NULL)
 			DrawWidgetBounds(*pWgt, Color::Aqua);
 
-	//	GraphicInterfaceContext g(hWnd->GetBufferPtr(), hWnd->GetBounds());
+	//	const Graphics g(*hWnd);
 	}
 
 	void
-	RectDrawPressed(const Point& l, const Size& s, HWND hWnd)
+	RectDrawPressed(const Graphics& g, const Point& l, const Size& s)
 	{
-		YAssert(hWnd, "err: @hWnd is null.");
-
-		transRect()(hWnd->GetBufferPtr(), hWnd->GetSize(), Rect(l, s), transPixelEx, transSeq());
+		transRect()(g.GetBufferPtr(), g.GetSize(), Rect(l, s), transPixelEx, transSeq());
 	}
 
 	void
-	RectDrawButtonSurface(const Point& l, const Size& s, HWND hWnd)
+	RectDrawButtonSurface(const Graphics& g, const Point& l, const Size& s)
 	{
-		YAssert(hWnd, "err: @hWnd is null.");
+		FillRect(g, l, s, Color(48, 216, 255));
+		if(s.GetWidth() > 4 && s.GetHeight() > 4)
+		{
+			Size sz(s.GetWidth() - 4, (s.GetHeight() - 4) >> 1);
+			Point sp(l.GetX() + 2, l.GetY() + 2);
 
-		BitmapPtr const dst(hWnd->GetBufferPtr());
-		const SDST dw(hWnd->GetSize().Width),
-			dh(hWnd->GetSize().Height);
-		SDST sw(s.Width),
-			sh(s.Height);
-		SPOS sx(l.X),
-			sy(l.Y);
-
-		FillRect<PixelType>(dst, dw, dh, sx, sy, sw, sh, Color(48, 216, 255));
-		if(sw < 5 || sh < 5)
-			return;
-		sw -= 4;
-		sh = (sh - 4) >> 1;
-		sx += 2;
-		sy += 2;
-		FillRect<PixelType>(dst, dw, dh, sx, sy, sw, sh, Color(232, 240, 255));
-		sy += sh;
-		FillRect<PixelType>(dst, dw, dh, sx, sy, sw, sh, Color(192, 224, 255));
+			FillRect(g, sp, sz, Color(232, 240, 255));
+			FillRect(g, Point(sp.GetX(), static_cast<SPOS>(sp.GetY() + sz.GetHeight())), sz, Color(192, 224, 255));
+		}
 	}
 }
 
@@ -94,12 +81,20 @@ void
 YButton::DrawForeground()
 {
 	ParentType::DrawForeground();
-	RectDrawButtonSurface(GetLocation(), GetSize(), GetWindowHandle());
-	if(bPressed)
-		RectDrawPressed(Location, GetSize(), hWindow);
-	if(bFocused)
-		RectDrawFocus(Location, GetSize(), hWindow);
-	PaintText(*this);
+
+	HWND hWnd(GetWindowHandle());
+
+	if(hWnd != NULL)
+	{
+		const Graphics g(*hWnd);
+
+		RectDrawButtonSurface(g, GetLocationForWindow(), GetSize());
+		if(bPressed)
+			RectDrawPressed(g, GetLocation(), GetSize());
+		if(bFocused)
+			RectDrawFocus(hWnd, GetLocation(), GetSize());
+		PaintText(*this);
+	}
 }
 
 void
@@ -122,8 +117,9 @@ YButton::OnClick(const Runtime::MTouchEventArgs&)
 {}
 
 
-YHorizontalScrollBar::YHorizontalScrollBar(SDST blMaxThumbSize, SDST blPrev, SDST blNext)
-	: AScrollBar(blMaxThumbSize, blPrev, blNext)
+YHorizontalScrollBar::YHorizontalScrollBar(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
+	SDST blMaxThumbSize, SDST blPrev, SDST blNext)
+	: AScrollBar(hWnd, r, pCon, blMaxThumbSize, blPrev, blNext)
 {
 
 }
@@ -131,21 +127,31 @@ YHorizontalScrollBar::YHorizontalScrollBar(SDST blMaxThumbSize, SDST blPrev, SDS
 void
 YHorizontalScrollBar::DrawPrevButton()
 {
+	Color c(Color::Red);
+//	Rect r(GetLocation(), GetPrevButtonSize(), GetHeight());
 
+//	DrawRect(const Graphics(*GetWindowHandle()), r, c);
 }
 void
 YHorizontalScrollBar::DrawNextButton()
 {
+	Color c(Color::Green);
+//	Rect r(GetLocation() + Vec(GetWidth() - GetNextButtonSize(), 0), GetNextButtonSize(), GetHeight());
 
+//	DrawRect(const Graphics(*GetWindowHandle()), r, c);
 }
 void
 YHorizontalScrollBar::DrawScrollArea()
 {
+	Color c(Color::Blue);
+//	Rect r(GetLocation() + Vec(GetPrevButtonSize(), 0), GetScrollAreaSize(), GetHeight());
 
+//	DrawRect(const Graphics(*GetWindowHandle()), r, c);
 }
 
 
-YListBox::YListBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_)
+YListBox::YListBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
+	GHResource<TextRegion> prTr_)
 	: YVisualControl(hWnd, r, pCon),
 	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()), bDisposeList(true),
 	Font(), Margin(prTextRegion->Margin),
@@ -153,7 +159,8 @@ YListBox::YListBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon, GHResource<
 {
 	_m_init();
 }
-YListBox::YListBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_, YListBox::ListType& List_)
+YListBox::YListBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
+	GHResource<TextRegion> prTr_, YListBox::ListType& List_)
 	: YVisualControl(hWnd, r, pCon),
 	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()), bDisposeList(false),
 	Font(), Margin(prTextRegion->Margin),
@@ -188,7 +195,7 @@ YListBox::GetItemHeight() const
 }
 
 void
-	YListBox::SetSelected(YListBox::ViewerType::IndexType i)
+YListBox::SetSelected(YListBox::ViewerType::IndexType i)
 {
 	if(isInIntervalRegular<ViewerType::IndexType>(i, Viewer.GetLength()))
 	{
@@ -214,42 +221,49 @@ void
 YListBox::DrawForeground()
 {
 	ParentType::DrawForeground();
-	if(bFocused)
-		RectDrawFocus(Location, GetSize(), hWindow);
-	if(prTextRegion && prTextRegion->GetLnHeight() <= GetHeight())
+
+	HWND hWnd(GetWindowHandle());
+
+	if(hWnd != NULL)
 	{
-		const SDST lnWidth(GetWidth());
-		const SDST lnHeight(GetItemHeight());
-
-		prTextRegion->Font = Font;
-		prTextRegion->Font.Update();
-		prTextRegion->SetPen();
-		prTextRegion->SetSize(lnWidth, lnHeight);
-		prTextRegion->SetMargins(defMarginH, defMarginV);
-		Viewer.SetLength((GetHeight() + prTextRegion->GetLineGap()) / lnHeight);
-
-		const ViewerType::IndexType last(Viewer.GetIndex() + Viewer.GetValid());
-		Point pt(GetLocationForWindow());
-
-		for(ViewerType::IndexType i(Viewer.GetIndex() >= 0 ? Viewer.GetIndex() : last); i < last; ++i)
+		if(bFocused)
+			RectDrawFocus(hWnd, Location, GetSize());
+		if(prTextRegion != NULL && prTextRegion->GetLnHeight() <= GetHeight())
 		{
-			if(Viewer.IsSelected() && i == Viewer.GetSelected())
-			{
-				prTextRegion->Color = Color::White;
-				FillRect<PixelType>(hWindow->GetBufferPtr(), hWindow->GetSize(),
-					Rect(pt.X + 1, pt.Y + 1, prTextRegion->GetWidth() - 2, prTextRegion->GetHeight() - 2),
-					Color::Aqua);
-			}
-			else
-				prTextRegion->Color = ForeColor;
-			prTextRegion->PutLine(List[i]);
+			const SDST lnWidth(GetWidth());
+			const SDST lnHeight(GetItemHeight());
+
+			prTextRegion->Font = Font;
+			prTextRegion->Font.Update();
 			prTextRegion->SetPen();
-			prTextRegion->BlitToBuffer(hWindow->GetBufferPtr(), RDeg0,
-				hWindow->GetSize(), Point::Zero, pt, *prTextRegion);
-			pt.Y += lnHeight;
-			prTextRegion->ClearImage();
+			prTextRegion->SetSize(lnWidth, lnHeight);
+			prTextRegion->SetMargins(defMarginH, defMarginV);
+			Viewer.SetLength((GetHeight() + prTextRegion->GetLineGap()) / lnHeight);
+
+			const ViewerType::IndexType last(Viewer.GetIndex() + Viewer.GetValid());
+			Point pt(GetLocationForWindow());
+			const Graphics g(*GetWindowHandle());
+
+			for(ViewerType::IndexType i(Viewer.GetIndex() >= 0 ? Viewer.GetIndex() : last); i < last; ++i)
+			{
+				if(Viewer.IsSelected() && i == Viewer.GetSelected())
+				{
+					prTextRegion->Color = Color::White;
+					FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
+						Rect(pt.X + 1, pt.Y + 1, prTextRegion->GetWidth() - 2, prTextRegion->GetHeight() - 2),
+						Color::Aqua);
+				}
+				else
+					prTextRegion->Color = ForeColor;
+				prTextRegion->PutLine(List[i]);
+				prTextRegion->SetPen();
+				prTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0, g.GetSize(),
+					Point::Zero, pt, *prTextRegion);
+				pt.Y += lnHeight;
+				prTextRegion->ClearImage();
+			}
+			prTextRegion->SetSize(0, 0);
 		}
-		prTextRegion->SetSize(0, 0);
 	}
 }
 
@@ -353,12 +367,13 @@ YListBox::OnConfirmed(const MIndexEventArgs& e)
 }
 
 
-YFileBox::YFileBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon, GHResource<TextRegion> prTr_)
+YFileBox::YFileBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
+	GHResource<TextRegion> prTr_)
 	: YListBox(hWnd, r, pCon, prTr_, MFileList::List), MFileList(),
 	List(ParentType::List)
 {
 	TouchMove += &YFileBox::OnTouchMove;
-	KeyHeld += &MVisualControl::OnKeyHeld;
+	KeyHeld += &AVisualControl::OnKeyHeld;
 }
 YFileBox::~YFileBox()
 {}

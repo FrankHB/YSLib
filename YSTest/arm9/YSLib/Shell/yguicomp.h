@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-10-15 16:55 + 08:00;
-// Version = 0.1131;
+// UTime = 2010-10-19 15:40 + 08:00;
+// Version = 0.1145;
 
 
 #ifndef INCLUDED_YGUICOMP_H_
@@ -39,7 +39,8 @@ public:
 	//用字符串在窗口中以给定字号初始化标签。
 	template<class _tChar>
 	YButton(HWND, const _tChar*, const Rect& = Rect::FullScreen,
-		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL,
+		GHResource<Drawing::TextRegion> = NULL);
 
 protected:
 	void
@@ -61,7 +62,8 @@ public:
 
 template<class _tChar>
 YButton::YButton(HWND hWnd, const _tChar* l, const Rect& r,
-	const Drawing::Font& f, IWidgetContainer* pCon, GHResource<Drawing::TextRegion> prTr_)
+	const Drawing::Font& f, IWidgetContainer* pCon,
+	GHResource<Drawing::TextRegion> prTr_)
 	: YVisualControl(hWnd, r, pCon), MButton(), MLabel(l, f, prTr_)
 {
 	_m_init();
@@ -71,8 +73,10 @@ YButton::YButton(HWND hWnd, const _tChar* l, const Rect& r,
 //水平滚动条。
 class YHorizontalScrollBar : public AScrollBar
 {
+public:
 	explicit
-	YHorizontalScrollBar(SDST = 8, SDST = 10, SDST = 10);
+	YHorizontalScrollBar(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+		SDST = 8, SDST = 10, SDST = 10);
 
 	void
 	DrawPrevButton();
@@ -117,8 +121,10 @@ public:
 	DefEvent(IndexEventHandler, Selected) //项目选择状态改变事件。
 	DefEvent(IndexEventHandler, Confirmed) //项目选中确定事件。
 
-	YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
-	YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
+	YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+		GHResource<Drawing::TextRegion> = NULL);
+	YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+		GHResource<Drawing::TextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
 	virtual
 	~YListBox();
 

@@ -1,14 +1,14 @@
-﻿// YSLib::Adaptor::YRefrence by Franksoft 2010
+﻿// YSLib::Adaptor::YReference by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-21 23:09:06 + 08:00;
-// UTime = 2010-10-14 08:36 + 08:00;
-// Version = 0.2214;
+// UTime = 2010-10-18 10:49 + 08:00;
+// Version = 0.2219;
 
 
 #ifndef INCLUDED_YREF_HPP_
 #define INCLUDED_YREF_HPP_
 
-// YRefrence ：用于提供指针和引用访问的间接访问类模块。
+// YReference ：用于提供指针和引用访问的间接访问类模块。
 
 #include "yadaptor.h"
 
@@ -228,16 +228,14 @@ public:
 #undef YHandleOP
 
 
-#ifdef YSL_USE_SIMPLE_HANDLE
-
-template<class _type>
+template<typename _type>
 inline _type*
 GetPointer(_type* h)
 {
 	return h;
 }
 
-#else
+#ifndef YSL_USE_SIMPLE_HANDLE
 
 template<typename _tReference>
 inline _tReference*

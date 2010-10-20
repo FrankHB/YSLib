@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> YShellHelper by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2009-3-14 14:07:22;
-// UTime = 2010-9-19 18:31;
-// Version = 0.1606;
+// CTime = 2009-3-14 14:07:22 + 08:00;
+// UTime = 2010-10-18 11:44 + 08:00;
+// Version = 0.1626;
 
 
 #ifndef INCLUDED_YSHELPER_H_
@@ -13,6 +13,9 @@
 #include "../ysbuild.h"
 
 YSL_BEGIN
+
+//定义并使用 dynamic_cast 初始化引用。
+#define DefDynInitRef(_type, _name, _expr) _type& _name(dynamic_cast<_type&>(_expr));
 
 //句柄语法糖。
 
@@ -33,7 +36,7 @@ HandleCast(_handle h)
 
 template<class _type, class _handle>
 inline _type&
-HandleToReference(_handle h) throw(std::bad_cast)
+HandleToReference(_handle h) ythrow(std::bad_cast)
 {
 	_type* _tmp(dynamic_cast<_type*>(GetPointer(h)));
 
@@ -178,7 +181,7 @@ NewBitmapRaw(const _tPixel* s, std::size_t n)
 		_tPixel* d(new _tPixel[size]);
 
 		if(d != NULL)
-			memcpy(d, s, size);
+			std::memcpy(d, s, size);
 		return d;
 	}
 	return NULL;

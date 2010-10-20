@@ -470,7 +470,7 @@ RectDarken(BitmapPtr src, const Point& l, const Size& s, HWND hWnd)
 	if(pWgt)
 		DrawWidgetBounds(*pWgt, Color(255, 1, 255));
 
-	GraphicInterfaceContext g(hWnd->GetBufferPtr(), hWnd->GetBounds());
+	Graphics g(hWnd->GetBufferPtr(), hWnd->GetBounds());
 //	DrawLineSeg(g, 2, 4, hWnd->GetWidth(), hWnd->GetHeight(), Color(72, 32, 255));
 //	DrawLineSeg(g, 2, 10, 12, 65, Color(8, 255, 8));
 

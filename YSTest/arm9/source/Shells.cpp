@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-17 22:49 + 08:00;
-// Version = 0.3142;
+// UTime = 2010-10-18 11:36 + 08:00;
+// Version = 0.3148;
 
 
 #include <Shells.h>
@@ -413,7 +413,7 @@ HWND ShlSetting::hWndC(NULL);
 void
 ShlSetting::TFormB::btnB_Enter(IVisualControl& sender, const MInputEventArgs& e)
 {
-	YButton& btn(dynamic_cast<YButton&>(sender));
+	DefDynInitRef(YButton, btn, sender)
 	const MTouchEventArgs& pt(static_cast<const MTouchEventArgs&>(e));
 	char str[20];
 
@@ -424,7 +424,7 @@ ShlSetting::TFormB::btnB_Enter(IVisualControl& sender, const MInputEventArgs& e)
 void
 ShlSetting::TFormB::btnB_Leave(IVisualControl& sender, const MInputEventArgs& e)
 {
-	YButton& btn(dynamic_cast<YButton&>(sender));
+	DefDynInitRef(YButton, btn, sender)
 	const MTouchEventArgs& pt(static_cast<const MTouchEventArgs&>(e));
 	char str[20];
 
@@ -484,7 +484,8 @@ ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e
 
 	u32 k(e);
 
-	YButton& lbl(dynamic_cast<TFormA&>(*(dynamic_cast<ShlSetting&>(*NowShell()).hWndUp)).lblA2);
+	DefDynInitRef(YButton, lbl, sender);
+//	YButton& lbl(dynamic_cast<TFormA&>(*(dynamic_cast<ShlSetting&>(*NowShell()).hWndUp)).lblA2);
 	lbl.SetTransparent(!lbl.IsTransparent());
 //	++lbl.ForeColor;
 //	--lbl.BackColor;

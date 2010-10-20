@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-05-02 12:00:08 + 08:00;
-// UTime = 2010-10-16 14:37 + 08:00;
-// Version = 0.2002;
+// UTime = 2010-10-18 07:37 + 08:00;
+// Version = 0.2004;
 
 
 #include "ydesktop.h"
@@ -107,7 +107,7 @@ YDesktop::GetTopDesktopObjectPtr(const Point& pt) const
 	{
 		try
 		{
-			if(dynamic_cast<IWidget&>(**i).Contains(pt))
+			if((**i).Contains(pt))
 				return *i;
 		}
 		catch(std::bad_cast&)

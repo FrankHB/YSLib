@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-16 14:40 + 08:00;
-// Version = 0.2745;
+// UTime = 2010-10-20 09:21 + 08:00;
+// Version = 0.2842;
 
 
 #include "ygui.h"
@@ -40,26 +40,22 @@ void
 RequestFocusCascade(IVisualControl& c)
 {
 	IVisualControl* p(&c);
-	IWidget* q;
 
 	do
 	{
 		p->RequestFocus(GetZeroElement<MEventArgs>());
-		q = dynamic_cast<IWidget*>(p);
-	}while(q && (p = dynamic_cast<IVisualControl*>(q->GetContainerPtr())));
+	}while((p = dynamic_cast<IVisualControl*>(p->GetContainerPtr())));
 }
 
 void
 ReleaseFocusCascade(IVisualControl& c)
 {
 	IVisualControl* p(&c);
-	IWidget* q;
 
 	do
 	{
 		p->ReleaseFocus(GetZeroElement<MEventArgs>());
-		q = dynamic_cast<IWidget*>(p);
-	}while(q && (p = dynamic_cast<IVisualControl*>(q->GetContainerPtr())));
+	}while((p = dynamic_cast<IVisualControl*>(p->GetContainerPtr())));
 }
 
 
@@ -135,7 +131,8 @@ namespace
 	//即时输入（按下）状态所在控件指针。
 	IVisualControl* p_TouchDown(NULL);
 	IVisualControl* p_KeyDown(NULL);
-	IVisualControl* p_TouchDown_locked(NULL); //持续按键离开控件时记录的原控件指针。
+
+	bool bEntered(false); //记录指针是否在控件内部。
 
 	namespace ExOp
 	{
@@ -149,27 +146,23 @@ namespace
 	};
 	ExOp::ExOpType ExtraOperation(ExOp::NoOp);
 
-	bool
+	void
 	TryEnter(IVisualControl& c, const MTouchEventArgs& e)
 	{
-		if(p_TouchDown_locked == &c)
+		if(!bEntered && p_TouchDown == &c)
 		{
 			c.GetEnter()(c, e);
-			p_TouchDown_locked = NULL;
-			return true;
+			bEntered = true;
 		}
-		return false;
 	}
-	bool
+	void
 	TryLeave(IVisualControl& c, const MTouchEventArgs& e)
 	{
-		if(p_TouchDown_locked == NULL)
+		if(bEntered && p_TouchDown == &c)
 		{
 			c.GetLeave()(c, e);
-			p_TouchDown_locked = &c;
-			return true;
+			bEntered = false;
 		}
-		return false;
 	}
 
 	IVisualControl*
@@ -177,13 +170,11 @@ namespace
 	{
 		using namespace ExOp;
 
-		if(p_TouchDown_locked != NULL && ExtraOperation != TouchUp && ExtraOperation != TouchHeld)
+	/*	if(bEntered && p_TouchDown != NULL && ExtraOperation != TouchUp && ExtraOperation != TouchHeld)
 		{
-			IWidget* pWgt(dynamic_cast<IWidget*>(p_TouchDown_locked));
-
-			pt = pWgt->GetLocation();
-			return p_TouchDown_locked;
-		}
+			pt = p_TouchDown->GetLocation();
+			return p_TouchDown;
+		}*/
 
 		IWidgetContainer* pCon(&con);
 		IVisualControl* p;
@@ -192,10 +183,7 @@ namespace
 		{
 			if((pCon = dynamic_cast<IWidgetContainer*>(p)) == NULL)
 			{
-				IWidget* pWgt(dynamic_cast<IWidget*>(p));
-				
-				if(pWgt != NULL)
-					pt -= pWgt->GetLocation();
+				pt -= p->GetLocation();
 				break;
 			}
 			pt -= pCon->GetLocation();
@@ -205,22 +193,17 @@ namespace
 				pCon->ClearFocusingPtr();
 			}
 		}
-		switch(ExtraOperation)
+		if(ExtraOperation == TouchHeld)
 		{
-		case TouchUp:
-			p_TouchDown_locked = NULL;
-			break;
-		case TouchHeld:
-			if(p_TouchDown_locked != NULL && p_TouchDown_locked == dynamic_cast<IVisualControl*>(p))
-				TryEnter(*p, pt);
-			if(p_TouchDown_locked == NULL && p == NULL)
+			if(p_TouchDown != p)
 			{
-				if(dynamic_cast<IVisualControl*>(p_TouchDown) != NULL)
-					TryLeave(*dynamic_cast<IVisualControl*>(p_TouchDown), pt);
-				p_TouchDown_locked = p_TouchDown;
+				if(bEntered)
+					TryLeave(*p_TouchDown, pt);
+				return NULL;
 			}
-		default:
-			break;
+			else if(!bEntered)
+				TryEnter(*p, pt);
+			return p_TouchDown;
 		}
 		return p != NULL ? p : dynamic_cast<IVisualControl*>(pCon);
 	}
@@ -241,14 +224,11 @@ namespace
 	ResponseKeyUpBase(IVisualControl& c, const MKeyEventArgs& e)
 	{
 		ResetHeldState(KeyHeldState);
-		if(p_KeyDown == &c)
-		{
-			if(KeyHeldState == Free)
-				c.GetKeyPress()(c, e);
-			p_KeyDown = NULL;
-		}
+		if(p_KeyDown == &c && KeyHeldState == Free)
+			c.GetKeyPress()(c, e);
 		c.GetKeyUp()(c, e);
 		c.GetLeave()(c, e);
+		p_KeyDown = NULL;
 		return true;
 	}
 	bool
@@ -276,21 +256,16 @@ namespace
 	{
 		ResetHeldState(TouchHeldState);
 		SetDragOffset();
-		if(p_TouchDown == &c)
-		{
+		if(p_TouchDown == &c && TouchHeldState == Free)
 			c.GetClick()(c, e);
-			p_TouchDown = NULL;
-		}
 		c.GetTouchUp()(c, e);
 		TryLeave(c, e);
-		p_TouchDown_locked = NULL;
 		return true;
 	}
 	bool
 	ResponseTouchDownBase(IVisualControl& c, const MTouchEventArgs& e)
 	{
 		p_TouchDown = &c;
-		p_TouchDown_locked = &c;
 		TryEnter(c, e);
 		c.GetTouchDown()(c, e);
 		return true;
@@ -366,25 +341,26 @@ YSL_END_NAMESPACE(Runtime)
 YSL_BEGIN_NAMESPACE(Drawing)
 
 void
-DrawBounds(GraphicInterfaceContext& g, const Point& location, const Size& size, PixelType c)
+DrawBounds(const Graphics& g, const Point& location, const Size& size, Color c)
 {
-	DrawRect(g, location, Point(location + size - Vec(1, 1)), c);
+	if(size.GetWidth() > 1 && size.GetHeight() > 1)
+		DrawRect(g, location, Size(size - Vec(1, 1)), c);
 }
 
 void
-DrawWindowBounds(HWND hWnd, PixelType c)
+DrawWindowBounds(HWND hWnd, Color c)
 {
-	GraphicInterfaceContext g(GetGraphicInterfaceContext(hWnd));
+	Graphics g(GetGraphicInterfaceContext(hWnd));
 
 	DrawBounds(g, Point::Zero, hWnd->GetSize(), c);
 }
 
 void
-DrawWidgetBounds(IWidget& w, PixelType c)
+DrawWidgetBounds(IWidget& w, Color c)
 {
 	if(w.GetWindowHandle())
 	{
-		GraphicInterfaceContext g(GetGraphicInterfaceContext(w.GetWindowHandle()));
+		Graphics g(GetGraphicInterfaceContext(w.GetWindowHandle()));
 
 		DrawBounds(g, w.GetLocation(), w.GetSize(), c);
 	}

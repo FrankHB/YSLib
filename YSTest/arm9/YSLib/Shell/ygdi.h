@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46 + 08:00;
-// UTime = 2010-10-17 14:59 + 08:00;
-// Version = 0.2858;
+// UTime = 2010-10-19 22:09 + 08:00;
+// Version = 0.2928;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -263,16 +263,16 @@ blitAlphaU(BitmapPtr dst, const Size& ds,
 
 
 //图形接口上下文。
-class GraphicInterfaceContext
+class Graphics
 {
 private:
 	BitmapPtr pBuffer;
 	Drawing::Size Size;
 
 public:
-	GraphicInterfaceContext(BitmapPtr, const Drawing::Size&);
+	Graphics(BitmapPtr, const Drawing::Size&);
 
-	DefPredicate(Valid, pBuffer && Size.Width && Size.Height)
+	DefPredicate(Valid, pBuffer != NULL && Size.Width != 0 && Size.Height != 0)
 
 	DefGetter(BitmapPtr, BufferPtr, pBuffer)
 	DefGetter(const Drawing::Size&, Size, Size)
@@ -281,7 +281,7 @@ public:
 };
 
 inline
-GraphicInterfaceContext::GraphicInterfaceContext(BitmapPtr b, const Drawing::Size& s)
+Graphics::Graphics(BitmapPtr b, const Drawing::Size& s)
 	: pBuffer(b), Size(s)
 {}
 
@@ -290,15 +290,15 @@ GraphicInterfaceContext::GraphicInterfaceContext(BitmapPtr b, const Drawing::Siz
 
 //绘制像素：(x, y) 。
 inline void
-PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c)
+PutPixel(const Graphics& g, SPOS x, SPOS y, Color c)
 {
 	YAssert(g.IsValid(),
 		"In function \"inline void\n"
-		"PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c)\": \n"
+		"PutPixel(const Graphics& g, SPOS x, SPOS y, Color c)\": \n"
 		"The graphics device context is invalid.");
 	YAssert(Rect(g.GetSize()).IsInBoundsRegular(x, y),
 		"In function \"inline void\n"
-		"PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c)\": \n"
+		"PutPixel(const Graphics& g, SPOS x, SPOS y, Color c)\": \n"
 		"The pixel is not in the device context buffer.");
 
 	g.GetBufferPtr()[y * g.GetWidth() + x] = c;
@@ -306,7 +306,7 @@ PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c)
 
 //绘制点：p(x, y) 。
 inline bool
-DrawPoint(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c)
+DrawPoint(const Graphics& g, SPOS x, SPOS y, Color c)
 {
 	if(g.IsValid() && Rect(g.GetSize()).IsInBoundsRegular(x, y))
 	{
@@ -316,47 +316,45 @@ DrawPoint(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c)
 	return false;
 }
 inline bool
-DrawPoint(GraphicInterfaceContext& g, const Point& p, Color c)
+DrawPoint(const Graphics& g, const Point& p, Color c)
 {
 	return DrawPoint(g, p.X, p.Y, c);
 }
 
 //绘制水平线段：指定水平坐标 x1 、 x2 ，竖直坐标 y 。
 bool
-DrawHLineSeg(GraphicInterfaceContext& g, SPOS y, SPOS x1, SPOS x2, Color c);
+DrawHLineSeg(const Graphics& g, SPOS y, SPOS x1, SPOS x2, Color c);
 
 //绘制竖直线段：指定水平坐标 x ，竖直坐标 y1 、 y2 。
 bool
-DrawVLineSeg(GraphicInterfaceContext& g, SPOS x, SPOS y1, SPOS y2, Color c);
+DrawVLineSeg(const Graphics& g, SPOS x, SPOS y1, SPOS y2, Color c);
 
 //绘制一般线段：顶点 p1(x1, y1), p2(x2, y2) 。
 bool
-DrawLineSeg(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c);
+DrawLineSeg(const Graphics& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c);
 inline bool
-DrawLineSeg(GraphicInterfaceContext& g, const Point& p1, const Point& p2, Color c)
+DrawLineSeg(const Graphics& g, const Point& p1, const Point& p2, Color c)
 {
 	return DrawLineSeg(g, p1.X, p1.Y, p2.X, p2.Y, c);
 }
 
 //绘制空心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2) 。
 bool
-DrawRect(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c);
+DrawRect(const Graphics& g, const Point& p, const Size& s, Color c);
 inline bool
-DrawRect(GraphicInterfaceContext& g, const Point& p1, const Point& p2, Color c)
+DrawRect(const Graphics& g, const Rect& r, Color c)
 {
-	return DrawRect(g, p1.X, p1.Y, p2.X, p2.Y, c);
-}
-inline bool
-DrawRect(GraphicInterfaceContext& g, const Point& p, const Size& s, Color c)
-{
-	return DrawRect(g, p.X, p.Y, p.X + s.Width, p.Y + s.Height, c);
-}
-inline bool
-DrawRect(GraphicInterfaceContext& g, const Rect& r, Color c)
-{
-	return DrawRect(g, r.X, r.Y, r.X + r.Width, r.Y + r.Height, c);
+	return DrawRect(g, r, r, c);
 }
 
+//绘制实心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2) 。
+bool
+FillRect(const Graphics& g, const Point& p, const Size& s, Color c);
+inline bool
+FillRect(const Graphics& g, const Rect& r, Color c)
+{
+	return FillRect(g, r, r, c);
+}
 
 // GDI 逻辑对象。
 
@@ -445,7 +443,7 @@ public:
 	friend bool
 	operator==(const MBitmapBuffer&, const MBitmapBuffer&);
 
-	DefConverter(GraphicInterfaceContext, GraphicInterfaceContext(img, *this)) //生成图形接口上下文。
+	DefConverter(Graphics, Graphics(img, *this)) //生成图形接口上下文。
 
 	DefGetter(SDST, Width, Width) //取缓冲区的宽。
 	DefGetter(SDST, Height, Height) //取缓冲区的高。

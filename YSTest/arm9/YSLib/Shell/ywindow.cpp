@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28 + 08:00;
-// UTime = 2010-10-17 22:27 + 08:00;
-// Version = 0.3058;
+// UTime = 2010-10-19 15:50 + 08:00;
+// Version = 0.3090;
 
 
 #include "ydesktop.h"
@@ -20,13 +20,13 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Forms)
 
 MWindow::MWindow(const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl)
-	: MVisualControl(), MDesktopObject(pDsk),
+	: MDesktopObject(pDsk),
 	Buffer(), hShell(hShl), prBackImage(i), bRefresh(false), bUpdate(false)
 {}
 
 
 AWindow::AWindow(const Rect& r, const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
-	: MWidget(hWnd ? hWnd : HWND(pDsk), r), MWindow(i, pDsk, hShl)
+	: AVisualControl(hWnd ? hWnd : HWND(pDsk), r), MWindow(i, pDsk, hShl)
 {}
 
 BitmapPtr
@@ -71,9 +71,6 @@ AWindow::DrawBackground()
 		Fill(BackColor);
 }
 void
-AWindow::DrawForeground()
-{}
-void
 AWindow::Draw()
 {
 	DrawBackground();
@@ -98,29 +95,15 @@ AWindow::Update()
 	if(bUpdate)
 	{
 		bUpdate = false;
-		if(hWindow != NULL)
+
+		HWND hWnd(GetWindowHandle());
+
+		if(hWnd != NULL)
 		{
 			UpdateToWindow();
-			hWindow->SetUpdate(true);
+			hWnd->SetUpdate(true);
 		}
 	}
-}
-
-void
-AWindow::RequestFocus(const MEventArgs& e)
-{
-	GMFocusResponser<IVisualControl>* const p(CheckFocusContainer(pContainer));
-
-	if(p && AFocusRequester::RequestFocus(*p))
-		EventMap[EControl::GotFocus](*this, e);
-}
-void
-AWindow::ReleaseFocus(const MEventArgs& e)
-{
-	GMFocusResponser<IVisualControl>* const p(CheckFocusContainer(pContainer));
-
-	if(p && AFocusRequester::ReleaseFocus(*p))
-		EventMap[EControl::LostFocus](*this, e);
 }
 
 void
@@ -133,7 +116,11 @@ void
 AWindow::UpdateToWindow(IWindow& w) const
 {
 	if(Visible)
-		Buffer.CopyToBuffer(w.GetBufferPtr(), RDeg0, w.GetSize(), Point::Zero, Location, Buffer);
+	{
+		const Graphics g(w);
+
+		Buffer.CopyToBuffer(g.GetBufferPtr(), RDeg0, g.GetSize(), Point::Zero, Location, Buffer);
+	}
 }
 void
 AWindow::Show()
@@ -141,28 +128,6 @@ AWindow::Show()
 	Visible = true;
 	Draw();
 	UpdateToScreen();
-}
-
-void
-AWindow::OnGotFocus(IControl& c, const MEventArgs& e)
-{
-	try
-	{
-		dynamic_cast<AWindow&>(c).Refresh();
-	}
-	catch(std::bad_cast&)
-	{}
-}
-void
-AWindow::OnLostFocus(IControl& c, const MEventArgs& e)
-{
-	OnGotFocus(c, e);
-/*	try
-	{
-		dynamic_cast<AWindow&>(c).Refresh();
-	}
-	catch(std::bad_cast&)
-	{}*/
 }
 
 
@@ -176,7 +141,7 @@ YFrameWindow::YFrameWindow(const Rect& r, const GHResource<YImage> i, YDesktop* 
 	}
 	SetSize(GetSize());
 	DrawBackground();
-	InsertMessage(hShell, SM_WNDCREATE, 0xF0, handle_cast<WPARAM>(hWindow), reinterpret_cast<LPARAM>(this));
+	InsertMessage(hShell, SM_WNDCREATE, 0xF0, handle_cast<WPARAM>(GetWindowHandle()), reinterpret_cast<LPARAM>(this));
 	*hShl += *this;
 	if(pDesktop)
 		*pDesktop += static_cast<IVisualControl&>(*this);
@@ -191,7 +156,7 @@ YFrameWindow::~YFrameWindow()
 	hShell->RemoveAll(*this);
 	if(pDesktop)
 		pDesktop->RemoveAll(*this);
-	InsertMessage(hShell, SM_WNDDESTROY, 0xF0, handle_cast<WPARAM>(hWindow), reinterpret_cast<LPARAM>(this));
+	InsertMessage(hShell, SM_WNDDESTROY, 0xF0, handle_cast<WPARAM>(GetWindowHandle()), reinterpret_cast<LPARAM>(this));
 }
 
 bool

@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM9 by Franksoft 2009 - 2010
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 + 08:00;
-# UTime = 2010-10-09 10:00 + 08:00;
-# Version = 0.3121;
+# UTime = 2010-10-18 22:14 + 08:00;
+# Version = 0.3143;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -57,7 +57,7 @@ CFLAGS	:=	-g -Wall -O2\
 CFLAGS	+=	$(INCLUDE) -DARM9
 #CFLAGS	+=	$(INCLUDE) -DARM9 -I$(PAPATH)/include/nds
 #CXXFLAGS	:=	$(CFLAGS) -frepo -fno-threadsafe-statics -fno-rtti -fno-exceptions
-CXXFLAGS	:=	$(CFLAGS) -frepo -fno-threadsafe-statics
+CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics
 
 #ASFLAGS:=	-g $(ARCH) -march=armv5te -mtune=arm946e-s
 ASFLAGS	:=	-g $(ARCH)
@@ -220,8 +220,8 @@ $(ARM9ELF)	:	$(OFILES)
 #---------------------------------------------------------------------------------
 %.o : %.cpp
 	@echo $(notdir $<)
-	@$(CXX) -MM $(CFLAGS) -o $*.d $<
-	@$(CXX) $(CFLAGS) -c $< -o$@
+	@$(CXX) -MM $(CXXFLAGS) -o $*.d $<
+	@$(CXX) $(CXXFLAGS) -c $< -o$@
 
 #---------------------------------------------------------------------------------
 %.o : %.c

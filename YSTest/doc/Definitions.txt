@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-10-17 22:46 + 08:00;
-// Version = r8822;
+// UTime = 2010-10-19 22:27 + 08:00;
+// Version = r8942;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -1575,7 +1575,7 @@ $header Container "cont.h" //容器管理。
 } //$header Container;
 
 
-$header YRefrence "yref.hpp" //用于提供指针和引用访问的间接访问类模块。
+$header YReference "yref.hpp" //用于提供指针和引用访问的间接访问类模块。
 {
 	$import $header Adaptor::YAdaptor;
 
@@ -1730,17 +1730,15 @@ $header YRefrence "yref.hpp" //用于提供指针和引用访问的间接访问�
 	#undef YHandleOP
 
 
-	#ifdef YSL_USE_SIMPLE_HANDLE
-
 	template<typename _type>
 	inline _type*
 	GetPointer(_type*);
 	
+	#ifndef YSL_USE_SIMPLE_HANDLE
+
 	template<typename _type, typename _tReference>
 	inline _type
 	handle_cast(GHHandle<_tReference>);	
-
-	#else
 
 	template<class _type>
 	inline _type*
@@ -1750,7 +1748,7 @@ $header YRefrence "yref.hpp" //用于提供指针和引用访问的间接访问�
 
 	} //namespace YSLib;
 
-} //$unit YRefrence;
+} //$unit YReference;
 
 
 $unit YFont "yfont" //平台无关的字体缓存库。
@@ -2156,7 +2154,7 @@ $header YShellDefinition "ysdef.h" //宏定义和类型描述模块。
 	#define YSL_MAIN_SHLPROC YSL_SHL_(YSL_SHLMAIN_NAME) YSL_SHLMAIN_SHLPROC
 
 
-	$import $unit YAdaptor::YRefrence;
+	$import $unit YAdaptor::YReference;
 
 	YSL_BEGIN
 
@@ -4335,7 +4333,7 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 
 
 	//图形接口上下文。
-	class GraphicInterfaceContext
+	class Graphics
 	{
 	private:
 		BitmapPtr pBuffer;
@@ -4343,53 +4341,54 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 
 	public:
 		inline
-		GraphicInterfaceContext(BitmapPtr, const Drawing::Size&);
+		Graphics(BitmapPtr, const Drawing::Size&);
 
-		DefPredicate(Valid, pBuffer && Size.Width && Size.Height)
+		DefPredicate(Valid, pBuffer != NULL && Size.Width != 0 && Size.Height != 0)
 
 		DefGetter(BitmapPtr, BufferPtr, pBuffer)
 		DefGetter(const Drawing::Size&, Size, Size)
 		DefGetter(SDST, Width, Size.Width)
 		DefGetter(SDST, Height, Size.Height)
-	}; //class GraphicInterfaceContext;
+	}; //class Graphics;
 
 
 	//图形接口上下文操作：绘图。
 
 	//绘制像素：(x, y) 。
 	inline void
-	PutPixel(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c);
+	PutPixel(const Graphics& g, SPOS x, SPOS y, Color c);
 
 	//绘制点：p(x, y) 。
 	inline bool
-	DrawPoint(GraphicInterfaceContext& g, SPOS x, SPOS y, Color c);
+	DrawPoint(const Graphics& g, SPOS x, SPOS y, Color c);
 	inline bool
-	DrawPoint(GraphicInterfaceContext& g, const Point& p, Color c);
+	DrawPoint(const Graphics& g, const Point& p, Color c);
 
 	//绘制水平线段：指定水平坐标 x1 、 x2 ，竖直坐标 y 。
 	bool
-	DrawHLineSeg(GraphicInterfaceContext* pGDC, SPOS y, SPOS x1, SPOS x2, Color c);
+	DrawHLineSeg(Graphics* pGDC, SPOS y, SPOS x1, SPOS x2, Color c);
 
 	//绘制竖直线段：指定水平坐标 x ，竖直坐标 y1 、 y2 。
 	bool
-	DrawVLineSeg(GraphicInterfaceContext* pGDC, SPOS x, SPOS y1, SPOS y2, Color c);
+	DrawVLineSeg(Graphics* pGDC, SPOS x, SPOS y1, SPOS y2, Color c);
 
 	//绘制一般线段：顶点 p1(x1, y1), p2(x2, y2) 。
 	bool
-	DrawLineSeg(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c);
+	DrawLineSeg(const Graphics& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c);
 	inline bool
-	DrawLineSeg(GraphicInterfaceContext& g, const Point& p1, const Point& p2, Color c);
+	DrawLineSeg(const Graphics& g, const Point& p1, const Point& p2, Color c);
 
 	//绘制空心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2) 。
 	bool
-	DrawRect(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c);
+	DrawRect(const Graphics& g, const Point& p, const Size& s, Color c);
 	inline bool
-	DrawRect(GraphicInterfaceContext& g, const Point& p1, const Point& p2, Color c);
-	inline bool
-	DrawRect(GraphicInterfaceContext& g, const Point& p, const Size& s, Color c);
-	inline bool
-	DrawRect(GraphicInterfaceContext& g, const Rect& r, Color c);
+	DrawRect(const Graphics& g, const Rect& r, Color c);
 
+	//绘制实心正则矩形：对角线顶点 p1(x1, y1), p2(x2, y2) 。
+	bool
+	FillRect(const Graphics& g, const Point& p, const Size& s, Color c);
+	inline bool
+	FillRect(const Graphics& g, const Rect& r, Color c);
 
 	// GDI 逻辑对象。
 
@@ -4454,7 +4453,7 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 		operator==(const MBitmapBuffer&, const MBitmapBuffer&);
 
 		inline
-		operator GraphicInterfaceContext() const; //生成图形接口上下文。
+		operator Graphics() const; //生成图形接口上下文。
 
 		DefGetter(SDST, Width, Width) //取缓冲区的宽。
 		DefGetter(SDST, Height, Height) //取缓冲区的高。
@@ -4629,21 +4628,21 @@ $unit YGUI "ygui" //平台无关的图形用户界面基础实现。
 	YSL_BEGIN_NAMESPACE(Drawing)
 
 	//取图形接口上下文。
-	inline GraphicInterfaceContext
+	inline Graphics
 	GetGraphicInterfaceContext(HWND);
 
 
 	//绘制界面元素边框。
 	void
-	DrawBounds(GraphicInterfaceContext&, const Point&, const Size&, PixelType);
+	DrawBounds(const Graphics&, const Point&, const Size&, Color);
 
 	//绘制窗口边框。
 	void
-	DrawWindowBounds(HWND, PixelType);
+	DrawWindowBounds(HWND, Color);
 
 	//绘制部件边框。
 	void
-	DrawWidgetBounds(IWidget&, PixelType);
+	DrawWidgetBounds(IWidget&, Color);
 
 	YSL_END_NAMESPACE(Drawing)
 
@@ -5101,7 +5100,7 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 	//部件模块。
 	class MWidget : public MVisual
 	{
-	protected:
+	private:
 		HWND hWindow; //从属的窗口的句柄。
 
 	public:
@@ -5407,7 +5406,7 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 
 
 	//可视控件接口。
-	DeclBasedInterface(IVisualControl, virtual IControl, virtual GIFocusRequester<IVisualControl>)
+	DeclBasedInterface(IVisualControl, virtual IWidget, virtual IControl, virtual GIFocusRequester<IVisualControl>)
 		DeclIEventEntry(InputEventHandler, Enter)
 		DeclIEventEntry(InputEventHandler, Leave)
 		DeclIEventEntry(KeyEventHandler, KeyUp)
@@ -5465,25 +5464,12 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 		DefEvent(TouchEventHandler, TouchMove)
 		DefEvent(TouchEventHandler, Click)
 
+		explicit
+		MVisualControl();
+
 	protected:
 		GMFocusResponser<IVisualControl>*
 		CheckFocusContainer(IWidgetContainer*); //检查给定的容器指针是否有效且指向接受焦点的容器。
-
-	public:
-		MVisualControl();
-
-		virtual void
-		OnGotFocus(const MEventArgs&);
-		virtual void
-		OnLostFocus(const MEventArgs&);
-		virtual void
-		OnKeyHeld(const Runtime::MKeyEventArgs&);
-		virtual void
-		OnTouchDown(const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
-		virtual void
-		OnTouchHeld(const Runtime::MTouchEventArgs&);
-		virtual void
-		OnTouchMove(const Runtime::MTouchEventArgs&);
 	}; //class MVisualControl;
 
 
@@ -5496,7 +5482,7 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 
 	//可视控件抽象基类。
 	class AVisualControl : public Widgets::MWidget, public MVisualControl,
-		visual implements IWidget, visual implements IVisualControl
+		visual implements IVisualControl
 	{
 	public:
 		explicit
@@ -5506,25 +5492,25 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 		ImplI(IVisualControl) PDefH(EventMapType::Event&, operator[], const EventMapType::ID& id)
 			ImplBodyBase(MVisualControl, operator[], id)
 
-		ImplI(IWidget) DefPredicateBase(Visible, MVisual)
-		ImplI(IWidget) DefPredicateBase(Transparent, MVisual)
-		ImplI(IWidget) DefPredicateBase(BgRedrawed, MVisual)
+		ImplI(IVisualControl) DefPredicateBase(Visible, MVisual)
+		ImplI(IVisualControl) DefPredicateBase(Transparent, MVisual)
+		ImplI(IVisualControl) DefPredicateBase(BgRedrawed, MVisual)
 		ImplI(IVisualControl) DefPredicateBase(Enabled, MControl)
 		ImplI(IVisualControl) DefPredicateBase(Focused, AFocusRequester)
 		ImplI(IVisualControl) PDefH(bool, IsFocusOfContainer, GMFocusResponser<IVisualControl>& c) const
 			ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
 
 		//判断包含关系。
-		ImplI(IWidget) PDefH(bool, Contains, const Point& p) const
+		ImplI(IVisualControl) PDefH(bool, Contains, const Point& p) const
 			ImplBodyBase(MVisual, Contains, p)
 
 		ImplI(IVisualControl) PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
 			ImplBodyBase(MVisualControl, CheckRemoval, c)
 
-		ImplI(IWidget) DefGetterBase(const Point&, Location, MVisual)
-		ImplI(IWidget) DefGetterBase(const Drawing::Size&, Size, MVisual)
-		ImplI(IWidget) DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
-		ImplI(IWidget) DefGetterBase(HWND, WindowHandle, MWidget)
+		ImplI(IVisualControl) DefGetterBase(const Point&, Location, MVisual)
+		ImplI(IVisualControl) DefGetterBase(const Drawing::Size&, Size, MVisual)
+		ImplI(IVisualControl) DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
+		ImplI(IVisualControl) DefGetterBase(HWND, WindowHandle, MWidget)
 
 		ImplI(IVisualControl) DefEventGetter(InputEventHandler, Enter)
 		ImplI(IVisualControl) DefEventGetter(InputEventHandler, Leave)
@@ -5538,24 +5524,37 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 		ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchMove)
 		ImplI(IVisualControl) DefEventGetter(TouchEventHandler, Click)
 
-		ImplI(IWidget) DefSetterBase(bool, Visible, MVisual)
-		ImplI(IWidget) DefSetterBase(bool, Transparent, MVisual)
-		ImplI(IWidget) DefSetterBase(bool, BgRedrawed, MVisual)
-		ImplI(IWidget) DefSetterBase(const Point&, Location, MVisual)
+		ImplI(IVisualControl) DefSetterBase(bool, Visible, MVisual)
+		ImplI(IVisualControl) DefSetterBase(bool, Transparent, MVisual)
+		ImplI(IVisualControl) DefSetterBase(bool, BgRedrawed, MVisual)
+		ImplI(IVisualControl) DefSetterBase(const Point&, Location, MVisual)
 		ImplI(IVisualControl) DefSetterBase(bool, Enabled, MControl)
 
-		ImplI(IWidget) PDefH(void, DrawBackground)
+		ImplI(IVisualControl) PDefH(void, DrawBackground)
 			ImplBodyBaseVoid(MWidget, DrawBackground)
-		ImplI(IWidget) PDefH(void, DrawForeground)
+		ImplI(IVisualControl) PDefH(void, DrawForeground)
 			ImplBodyBaseVoid(MWidget, DrawForeground)
 
-		ImplI(IWidget) PDefH(void, Refresh)
+		ImplI(IVisualControl) PDefH(void, Refresh)
 			ImplBodyBaseVoid(MWidget, Refresh)
 
 		ImplI(IVisualControl) void
 		RequestFocus(const MEventArgs&); //向部件容器申请获得焦点，若成功则引发 GotFocus 事件。
 		ImplI(IVisualControl) void
 		ReleaseFocus(const MEventArgs&); //释放焦点，并引发 LostFocus 事件。
+
+		virtual void
+		OnGotFocus(const MEventArgs&);
+		virtual void
+		OnLostFocus(const MEventArgs&);
+		virtual void
+		OnKeyHeld(const Runtime::MKeyEventArgs&);
+		virtual void
+		OnTouchDown(const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
+		virtual void
+		OnTouchHeld(const Runtime::MTouchEventArgs&);
+		virtual void
+		OnTouchMove(const Runtime::MTouchEventArgs&);
 	}; //class AVisualControl;
 
 
@@ -5569,7 +5568,7 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 		YVisualControl(HWND = NULL, const Rect& = Rect::FullScreen, IWidgetContainer* = NULL);
 		~YVisualControl();
 
-		virtual void
+		ImplI(IVisualControl) void
 		RequestToTop()
 		{}
 	}; //class YVisualControl;
@@ -5593,14 +5592,14 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 	class MScrollBar
 	{
 	protected:
-		SDST MaxThumbSize, PrevButtonSize, NextButtonSize;
+		SDST MinThumbSize, PrevButtonSize, NextButtonSize;
 		bool bPrevButtonPressed, bNextButtonPressed;
 
 		explicit
 		MScrollBar(SDST = 10, SDST = 10, SDST = 10);
 
 	public:
-		DefGetter(SDST, MaxThumbSize, MaxThumbSize)
+		DefGetter(SDST, MinThumbSize, MinThumbSize)
 		DefGetter(SDST, PrevButtonSize, PrevButtonSize)
 		DefGetter(SDST, NextButtonSize, NextButtonSize)
 	}; //class MScrollBar;
@@ -5609,8 +5608,17 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 	//滚动条。
 	class AScrollBar : public AVisualControl, public MScrollBar
 	{
+	public:
+		explicit
+		AScrollBar(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+			SDST = 10, SDST = 10, SDST = 10);
+
 		DefGetter(SDST, ScrollAreaLength, GetWidth() - PrevButtonLength - NextButtonLength)
 		DefGetter(SDST, ScrollAreaFixedLength, GetScrollAreaLength() - MaxScrollBlockLength)
+
+		ImplI(IVisualControl) void
+		RequestToTop()
+		{}
 
 		DeclIEntry(void DrawPrevButton())
 		DeclIEntry(void DrawNextButton())
@@ -5654,7 +5662,8 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 		//用字符串在窗口中以给定字号初始化标签。
 		template<class _tChar>
 		YButton(HWND, const _tChar*, const Rect& = Rect::FullScreen,
-		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+			const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL,
+			GHResource<Drawing::TextRegion> = NULL);
 
 	protected:
 		void
@@ -5678,8 +5687,10 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 	//水平滚动条。
 	class YHorizontalScrollBar : public AScrollBar
 	{
+	public:
 		explicit
-		YHorizontalScrollBar(SDST = 8, SDST = 10, SDST = 10);
+		YHorizontalScrollBar(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+			SDST = 8, SDST = 10, SDST = 10);
 
 		void
 		DrawPrevButton();
@@ -5724,8 +5735,10 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 		DefEvent(IndexEventHandler, Selected) //项目选择状态改变事件。
 		DefEvent(IndexEventHandler, Confirmed) //项目选中确定事件。
 
-		YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
-		YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
+		YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+			GHResource<Drawing::TextRegion> = NULL);
+		YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+			GHResource<Drawing::TextRegion> = NULL, ListType& List_ = *GetGlobalResource<ListType>()); //外源列表。
 		virtual
 		~YListBox();
 
@@ -5795,7 +5808,8 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 
 		ListType& List;
 
-		YFileBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+		YFileBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+			GHResource<Drawing::TextRegion> = NULL);
 		virtual
 		~YFileBox();
 
@@ -5832,7 +5846,7 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 
 	//窗口接口。
 	DeclBasedInterface(IWindow, virtual IWidgetContainer, virtual IVisualControl)
-		DeclIEntry(operator GraphicInterfaceContext() const) //生成图形接口上下文。
+		DeclIEntry(operator Graphics() const) //生成图形接口上下文。
 
 		DeclIEntry(bool IsRefreshRequired() const)
 		DeclIEntry(bool IsUpdateRequired() const)
@@ -5874,7 +5888,7 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 
 
 	//窗口模块。
-	class MWindow : public Controls::MVisualControl, public MDesktopObject
+	class MWindow : public MDesktopObject
 	{
 	protected:
 		Drawing::MBitmapBuffer Buffer; //显示缓冲区。
@@ -5899,7 +5913,7 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 
 
 	//抽象窗口。
-	class AWindow : public Widgets::MWidget, public MWindow,
+	class AWindow : public Widgets::MWidget, public Controls::MVisualControl, public MWindow,
 		virtual implements IWindow
 	{
 	public:
@@ -5908,18 +5922,8 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 			YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
 		virtual DefEmptyDtor(AWindow)
 
-		ImplI(IWindow) PDefHOperator(EventMapType::Event&, [], const EventMapType::ID& id)
-			ImplBodyBase(MVisualControl, operator[], id)
+		ImplI(IWindow) DefConverterMember(Graphics, Buffer)
 
-		ImplI(IWindow) DefConverterMember(GraphicInterfaceContext, Buffer)
-
-		ImplI(IWindow) DefPredicateBase(Visible, MVisual)
-		ImplI(IWindow) DefPredicateBase(Transparent, MVisual)
-		ImplI(IWindow) DefPredicateBase(BgRedrawed, MVisual)
-		ImplI(IWindow) DefPredicateBase(Enabled, MVisualControl)
-		ImplI(IWindow) DefPredicateBase(Focused, AFocusRequester)
-		ImplI(IWindow) PDefH(bool, IsFocusOfContainer, GMFocusResponser<IVisualControl>& c) const
-			ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
 		ImplI(IWindow) DefPredicateBase(RefreshRequired, MWindow)
 		ImplI(IWindow) DefPredicateBase(UpdateRequired, MWindow)
 
@@ -5929,61 +5933,30 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		PDefH(bool, BelongsTo, YDesktop* pDsk) const
 			ImplBodyBase(MDesktopObject, BelongsTo, pDsk)
 
-		//判断包含关系。
-		ImplI(IWindow) PDefH(bool, Contains, const Point& p) const
-			ImplBodyBase(MVisual, Contains, p)
-
-		ImplI(IWindow) PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
-			ImplBodyBase(MVisualControl, CheckRemoval, c)
-
-		ImplI(IWindow) DefGetterBase(const Point&, Location, MVisual)
-		ImplI(IWindow) DefGetterBase(const Drawing::Size&, Size, MVisual)
-		ImplI(IWindow) DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
-		ImplI(IWindow) DefGetterBase(HWND, WindowHandle, MWidget)
 		ImplI(IWindow) DefGetterBase(YDesktop*, DesktopPtr, MDesktopObject)
-		ImplI(IWindow) DefGetter(const Drawing::MBitmapBuffer&, Buffer, Buffer)
-		ImplI(IWindow) DefGetterMember(BitmapPtr, BufferPtr, Buffer)
+		ImplI(IWindow) DefGetter(const Drawing::MBitmapBuffer&, Buffer, Buffer) //取显示缓冲区。
+		ImplI(IWindow) DefGetterMember(BitmapPtr, BufferPtr, Buffer) //取缓冲区指针。
 		DefGetter(HWND, Handle, HWND(const_cast<AWindow*>(this)))
 		DefGetterBase(HSHL, ShellHandle, MWindow)
 		DefGetterBase(GHResource<YImage>, Background, MWindow)
 		BitmapPtr
 		GetBackgroundPtr() const;
 
-		ImplI(IWindow) DefEventGetter(Controls::InputEventHandler, Enter)
-		ImplI(IWindow) DefEventGetter(Controls::InputEventHandler, Leave)
-		ImplI(IWindow) DefEventGetter(Controls::KeyEventHandler, KeyUp)
-		ImplI(IWindow) DefEventGetter(Controls::KeyEventHandler, KeyDown)
-		ImplI(IWindow) DefEventGetter(Controls::KeyEventHandler, KeyHeld)
-		ImplI(IWindow) DefEventGetter(Controls::KeyEventHandler, KeyPress)
-		ImplI(IWindow) DefEventGetter(Controls::TouchEventHandler, TouchUp)
-		ImplI(IWindow) DefEventGetter(Controls::TouchEventHandler, TouchDown)
-		ImplI(IWindow) DefEventGetter(Controls::TouchEventHandler, TouchHeld)
-		ImplI(IWindow) DefEventGetter(Controls::TouchEventHandler, TouchMove)
-		ImplI(IWindow) DefEventGetter(Controls::TouchEventHandler, Click)
-
-		ImplI(IWindow) DefSetterBase(bool, Visible, MVisual)
-		ImplI(IWindow) DefSetterBase(bool, Transparent, MVisual)
-		ImplI(IWindow) DefSetterBase(bool, BgRedrawed, MVisual)
-		ImplI(IWindow) DefSetterBase(const Point&, Location, MVisual)
 		ImplI(IWindow) DefSetter(bool, Refresh, bRefresh)
 		ImplI(IWindow) DefSetter(bool, Update, bUpdate)
 		virtual void
 		SetSize(const Drawing::Size&);
-		ImplI(IWindow) DefSetterBaseDe(bool, Enabled, MVisualControl, true)
 		ImplI(IWindow) DefSetterBaseDe(GHResource<YImage>, Background, MWindow, NULL)
 
 		PDefH(void, ClearBackground) const //清除背景。
 			ImplExpr(Buffer.ClearImage())
 
-	public:
 		PDefH(void, Fill, PixelType c)
 			ImplBodyMemberVoid(Buffer, Fill, c) //以纯色填充显示缓冲区。
 		bool
 		DrawBackgroundImage();
 		ImplI(IWindow) void
 		DrawBackground();
-		ImplI(IWindow) void
-		DrawForeground();
 		//ImplI(IWindow)
 		DeclIEntry(bool DrawWidgets())
 		ImplI(IWindow) void
@@ -5994,21 +5967,12 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		ImplI(IWindow) void
 		Update();
 
-	private:
-		virtual PDefH(bool, ReleaseFocus, GMFocusResponser<IVisualControl>& c)
-			ImplBodyBase(MVisualControl, ReleaseFocus, c)
-
-	public:
-		ImplI(IWindow) void
-		RequestFocus(const MEventArgs&); //向部件容器申请获得焦点。
-		ImplI(IWindow) void
-		ReleaseFocus(const MEventArgs&); //释放焦点。
 		ImplI(IWindow) void
 		RequestToTop();
 
-		inline virtual void
+		virtual void
 		UpdateToScreen() const; //更新至屏幕。
-		inline virtual void
+		virtual void
 		UpdateToWindow() const; //更新至上层窗口缓冲区。
 		void
 		UpdateToScreen(YDesktop&) const; //更新至指定桌面所在的屏幕。
@@ -6016,11 +5980,6 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 		UpdateToWindow(IWindow&) const; //更新至指定窗口缓冲区。
 		void
 		Show();
-
-		static void
-		OnGotFocus(IControl&, const MEventArgs&);
-		static void
-		OnLostFocus(IControl&, const MEventArgs&);
 	}; //class AWindow;
 
 

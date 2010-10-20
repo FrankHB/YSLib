@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-10-17 22:51 + 08:00;
-// Version = 0.2743; *Build 163 r19;
+// UTime = 2010-10-20 09:24 + 08:00;
+// Version = 0.2755; *Build 164 r22;
 
 
 #include "../YCLib/ydef.h"
@@ -42,6 +42,7 @@ $Record prefix and abbrevations:
 \d ::= derived
 \de ::= default
 \def ::= definitions
+\dep ::= dependencies
 \decl ::= declations
 \dir ::= directories
 \dtor ::= destructors
@@ -51,7 +52,7 @@ $Record prefix and abbrevations:
 \eh ::= exception handling
 \err ::= errors
 \es ::= exception specifications
-\ev ::= events
+\evt ::= events
 \evh ::= event handling
 \ex ::= extra
 \ext ::= extended
@@ -80,6 +81,7 @@ $Record prefix and abbrevations:
 \or ::= overridden
 \para ::= parameters
 \para.def ::= default parameters
+\pt ::= points
 \ptr ::= pointers
 \rem ::= remarked
 \ref ::= references
@@ -118,10 +120,14 @@ $using:
 	\cl MVisualControl;
 	\cl YVisualControl;
 	\cl AButton;
+	\cl MScrollBar;
+	\cl AScrollBar;
 }
 \u YGUIComponent
 {
 	\cl YButton;
+	\cl YHorizontalScrollBar;
+	\cl YVirtualScrollBar;
 	\cl YListBox;
 	\cl YFileBox;
 }
@@ -134,114 +140,129 @@ $using:
 
 $DONE:
 r1:
-/= @@ \cl AWindow @@ \u AWindow:
-	-= \mf void SetBounds(const Rect&);
-	/= \mf void Fill(PixelType) ^ \mac PDefH;
+/ @@ \u YWindow:
+	/ \inh \cl Controls::MVisualControl @@ \cl MDesktopObject >> \cl AWindow;
 
-r2-r7:
-/= test 1;
+r2:
+/ \cl AWindow @@ \u YWindow:
+	/ \inh Widgets::MWidget & Controls::MVisualControl -> Controls::AVisualControl;
+	- \mf RequestFocus;
+	- \mf ReleaseFocus;
+
+r3-r5:
+/ \simp \cl AWindow @@ \u YWindow;
+
+r6:
+/ \u YControl:
+	/ \mf
+	{
+		virtual void
+		OnGotFocus(const MEventArgs&);
+		virtual void
+		OnLostFocus(const MEventArgs&);
+		virtual void
+		OnKeyHeld(const Runtime::MKeyEventArgs&);
+		virtual void
+		OnTouchDown(const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
+		virtual void
+		OnTouchHeld(const Runtime::MTouchEventArgs&);
+		virtual void
+		OnTouchMove(const Runtime::MTouchEventArgs&);
+	} @@ \cl MVisualControl >> \cl AVisualControl & \simp;
+	/ \impl @@ \ctor @@ \cl MVisualControl;
+	/ \impl @@ \ctor @@ \cl AVisualControl;
+/ \impl @@ \ctor @@ \cl YFileBox @@ \u YGUIComponent;
+
+r7:
+/ @@ \in IVisualControl + \vt \inh IWidget @@ \u YVisualControl;
+/ \impl @@ \u YDesktop;
+/ \impl @@ \u YGUI;
+/ \impl @@ \u YGUIComponent;
+/ \impl @@ \u YWidget;
 
 r8:
-/ \ns Widgets @@ \u YWidget:
-	/ \f Point GetLocationOffset(IWidget*, const Point&, const HWND&)
-	-> Point GetLocationOffset(const IWidget*, const Point&, const HWND&);
-	/ \simp \impl @@ \mf Point GetWindowLocationOffset(const Point&) const @@ \cl YWidgetContainer;
-/ \simp \impl @@ \mf Point GetWindowLocationOffset(const Point&) const @@ \cl YFrameWindow @@ \u YWindow;
+/ \simp @@ \cl AVisualControl @@ \u YVisualControl:
+	- \vt \inh \impl IWidget;
 
-r9-r10:
-/= test 2;
+r9:
+/ \tr \impl @@ \h Adaptor::YReference;
+
+r10:
+/ @@ \h YShellHelper:
+	/ \tr \impl;
+	+ \mac DefDynInitRef;
+/ @@ \u Shells;
+	^ \mac DefDynInitRef;
 
 r11:
-/ unnecessary \ac protected -> private @@ \h YFunc;
+/= \tr \decl @@ \cl YVisualControl @@ \u YControl:
+	^ \mac ImplI;
+/ \tr @@ \ctor @@ \cl YHorizontalScrollBar;
+/ \tr @@ \ctor @@ \cl AScrollBar;
 
 r12:
-/= \tr \decl @@ \h YCounter ^ \mac DefGetter & DefStaticGetter;
+* \a *MaxThumbSize* => *MinThumbSize*;
+/ \tr \impl \mf @@ \cl YHorizontalScrollBar;
+* \a GraphicInterfaceContext => GraphicsInterfaceContext;
+* \impl @@ \mf YButton::DrawForeground();
 
 r13:
-- \def \para:
-	/ \a \mf ReleaseFocus(const MEventArg& = GetZeroElement<MEventArgs>());
-	/ \a \mf RequestFocus(const MEventArg& = GetZeroElement<MEventArgs>());
-	/ \a \mf SetVisible(bool = true);
-	/ \a \mf SetTransparent(bool = true);
-	/ \a \mf SetBgRedrawed(bool = true);
-	/ \a \mf SetRefresh(bool = true);
-	/ \a \mf SetUpdate(bool = true);
-	/ \a \mf SetEnabled(bool = true);
-	/ \a \mf Point GetContainerLocationOffset(const Point& = Point::Zero) const;
-	/ \a \mf Point GetWindowLocationOffset(const Point& = Point::Zero) const;
+* \tr \impl @@ %.cpp \dep @@ \makefile arm9;
 
 r14:
-/ @@ \u YWidget:
-	/ @@ \cl MVisual:
-		/ unnecessary \ac public -> protected;
-		/ unnecessary \ac protected -> private;
-		- \vt @@ \mf void SetLocation(SPOS, SPOS);
-		- \vt @@ \mf void SetSize(SPOS, SPOS);
-		+ \vt \mf void SetSize(Size&);
-		/ virtual DefGetter(Rect, Bounds, Rect(Location, Size.Width, Size.Height))
-			-> DefGetter(Rect, Bounds, Rect(GetLocation(), GetSize()));
-		+= \vt @@ \mf void Contains(Point&);
-		/ \impl @@ \mf void Contains(Point&);
-		/ \mf void Contains(const int&, const int&) -> void Contains(SPOS, SPOS);
-		/= \mf DefGetter(SPOS, X, Location().X) -> DefGetter(SPOS, X, GetLocation().X);
-		/= \mf DefGetter(SPOS, Y, Location().Y) -> DefGetter(SPOS, Y, GetLocation().Y);
-		/= \mf DefGetter(SDST, Width, Size.Width) -> DefGetter(SDST, Width, Size.Width);
-		/= \mf DefGetter(SDST, Height, Size.Height) -> DefGetter(SDST, Height, Size.Height)
-		- \a \vt @@ getters @@ \mf;
-		/ \mf public void SetSize(SPOS, SPOS) -> private void _m_SetSize(SPOS, SPOS);
-		+ \mf public void SetSize(SPOS, SPOS);
-		/ \impl @@ \mf \vt void SetSize(Drawing::Size&);
-	/ @@ \cl MVisual:
-		- \a \vt @@ !\dtor @@ \mf;
-/= \tr \impl @@ \u Shells:
-	\ctor @@ \cl ShlLoad::TFrmLoadDown;
-	\ctor @@ \cl ShlSetting::TFormA;
-	\mf ShlSetting::TFormC::btnC_KeyPress;
-/= \tr \impl @@ \u YGUIComponent:
-	/ \mf YButton::DrawForeground();
-	/ \mf YListBox::DrawForeground();
-/= \tr \impl @@ \ctor @@ \cl YFrameWindow @@ \u YWindow;
-+ \mac ImplI @@ \h Adaptor::Base;
-/ ^ \mac ImplI @@ \a \cl \impl \in;
-/= \tr \impl @@ \u YComponent:
-	/ ^ \mac DefGetter @@ \cl \t GMContainer;
-	/ ^ \mac PDefH & DefGetter & PDefHOperator @@ \cl \t GMFocusResponser;
-	/ ^ \mac PDefHOperator @@ \cl \t GSequenceViewer;
-/ @@ \cl AWindow @@ \u YWindow:
-	/ \mf \vt void SetSize(SDST, SDST) -> void SetSize(const Drawing::Size&);
+* \impl @@ \mf void MWidget::Fill(Color);
+/ \tr \impl @@ \mf void MLabel::PaintText(MWidget&);
+* \impl @@ \mf YListBox::DrawForeground();
 
 r15:
-/ \tr \impl @@ \u YGDI;
+/ \decl @@ \in IWindow:
+	- \mf DeclIEntry(const Drawing::MBitmapBuffer& GetBuffer() const);
+	- \mf DeclIEntry(BitmapPtr GetBufferPtr() const);
+/ \tr @@ \u YGUIComponent:
+	/ \decl & \impl @@ \f @@ \un \ns;
+	/ \impl @@ \mf void YButton::DrawForeground();
+/ \impl @@ \mf UpdateToWindow @@ \cl AWindow;
+/ \simp \a GraphicsInterfaceContext => Graphics;
+/ \ac @@ \m hWindow @@ \cl MWidget -> private ~ public;
 
 r16:
-/ @@ \u YWindow:
-	/ @@ \u YFrameWindow:
-		\vt \mf Point GetContainerLocationOffset(const Point&) const >> \cl Awindow;
-		\vt \mf Point GetWindowLocationOffset(const Point&) const >> \cl Awindow;
+/ @@ \u YGDI:
+	+ \f
+	{
+		!\i bool FillRect(const Graphics&, const Point&, const Size&, Color);
+		\i bool FillRect(const Graphics&, const Rect&, Color);
+	}
+	- \f
+	{
+		bool DrawRect(const Graphics&, SPOS, SPOS, SPOS, SPOS, Color);
+		\i bool DrawRect(const Graphics&, const Point&, const Point&, Color);
+	}
+	/ -\i @@ \f bool DrawRect(const Graphics&, const Point&, const Size&, Color);
+	/ \impl @@ \i \f bool DrawRect(const Graphics&, const Rect&, Color);
+	/= DefPredicate(Valid, pBuffer && Size.Width && Size.Height) @@ \u Graphics
+		-> DefPredicate(Valid, pBuffer != NULL && Size.Width != 0 && Size.Height != 0);
+/ \impl \f void RectDrawButtonSurface(const Graphics&, const Point&, const Size&) @@ \un \ns @@ \u YGUIComponent;
+/ @@ \u YGUI:
+/ \f void DrawBounds(const Graphics&, const Point&, const Size&, PixelType)
+	-> void DrawBounds(const Graphics&, const Point&, const Size&, Color);
+/ \f void DrawWindowBounds(HWND, PixelType)
+	-> void DrawBounds(HWND, Color);
+/ \f void DrawWidgetBounds(IWidget&, PixelType)
+	-> void DrawWidgetBounds(IWidget&, Color);
 
 r17:
-/ \simp @@ \u YWidget:
-	/ @@ \ns Widgets:
-		+ \i \f Point GetContainerLocationOffset(const IWidget&, const Point&);
-		+ \i \f Point GetWindowLocationOffset(const IWidget&, const Point&);
-	/ @@ \cl YWidgetContainer:
-		- \mf Point GetContainerLocationOffset(const Point&) const;
-		- \mf Point GetWindowLocationOffset(const Point&) const;
-	/ @@ \in IWidgetContainer:
-		- \mf Point GetContainerLocationOffset(const Point&) const;
-		- \mf Point GetWindowLocationOffset(const Point&) const;
-	/ @@ \cl MWidget:
-		/ \impl @@ \mf Point GetLocationForParentContainer() const;
-		/ \impl @@ \mf Point GetLocationForParentWindow() const;
-/ @@ \u YWindow:
-	/ @@ \cl AWindow:
-		- \mf Point GetContainerLocationOffset(const Point&) const;
-		- \mf Point GetWindowLocationOffset(const Point&) const;
+/ \impl @@ \f IVisualControl* GetTouchedVisualControl(IWidgetContainer&, Point&) @@ \un \ns @@ \u YGUI;
 
-r18-r19:
-/ \vt \inh \impl @@ (\in & \ab \cl)\dir Shell;
-/ \tr \impl @@ \u Shells;
+r18:
+/ \simp \impl @@ \u YGUI;
 
+r19-r21:
+/= test 1;
+
+r22:
+/ \impl @@ \u YGUI;
+	* quickly leave controls to another without \evt OnLeave;
+	* \pt \err @@ \evt OnEnter;
 
 $DOING:
 
@@ -249,11 +270,9 @@ $DOING:
 
 
 $NEXT:
-{
-
-/ \impl @@ \cl \t GHHandle @@ \h YReference:
-	/ static_cast -> dynamic_cast @@ \ctor;
-};
+* blank-clicked \evt OnClick @@ ListBox;
+* fatal \err;
+/ \impl @@ \cl YHorizontalScrollBar;
 
 b170-b190:
 / fully \impl \u DSReader;

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46 + 08:00;
-// UTime = 2010-10-17 14:59 + 08:00;
-// Version = 0.2368;
+// UTime = 2010-10-19 22:40 + 08:00;
+// Version = 0.2409;
 
 
 #include "ygdi.h"
@@ -468,11 +468,11 @@ blitAlphaU(BitmapPtr dst, const Size& ds,
 
 
 bool
-DrawHLineSeg(GraphicInterfaceContext& g, SPOS y, SPOS x1, SPOS x2, Color c)
+DrawHLineSeg(const Graphics& g, SPOS y, SPOS x1, SPOS x2, Color c)
 {
 	YAssert(g.IsValid(),
 		"In function \"void\n"
-		"DrawHLineSeg(GraphicInterfaceContext& g, SPOS y, SPOS x1, SPOS x2, Color c)\": \n"
+		"DrawHLineSeg(const Graphics& g, SPOS y, SPOS x1, SPOS x2, Color c)\": \n"
 		"The graphics device context is invalid.");
 
 	if(isInIntervalRegular<int>(y, g.GetHeight())
@@ -488,11 +488,11 @@ DrawHLineSeg(GraphicInterfaceContext& g, SPOS y, SPOS x1, SPOS x2, Color c)
 }
 
 bool
-DrawVLineSeg(GraphicInterfaceContext& g, SPOS x, SPOS y1, SPOS y2, Color c)
+DrawVLineSeg(const Graphics& g, SPOS x, SPOS y1, SPOS y2, Color c)
 {
 	YAssert(g.IsValid(),
 		"In function \"void\n"
-		"DrawVLineSeg(GraphicInterfaceContext& g, SPOS x, SPOS y1, SPOS y2, Color c)\": \n"
+		"DrawVLineSeg(const Graphics& g, SPOS x, SPOS y1, SPOS y2, Color c)\": \n"
 		"The graphics device context is invalid.");
 
 	if(isInIntervalRegular<int>(x, g.GetWidth())
@@ -511,15 +511,15 @@ namespace
 {
 	//倾斜直线光栅化函数。
 	bool
-	DrawObliqueLine(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c)
+	DrawObliqueLine(const Graphics& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c)
 	{
 		YAssert(y1 != y2,
 			"In function \"static void\n"
-			"DrawObliqueLine(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c)\": \n"
+			"DrawObliqueLine(const Graphics& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c)\": \n"
 			"Not drawing an oblique line: the line is horizontal.");
 		YAssert(x1 != x2,
 			"In function \"static void\n"
-			"DrawObliqueLine(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c)\": \n"
+			"DrawObliqueLine(const Graphics& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c)\": \n"
 			"Not drawing an oblique line: the line is vertical.");
 
 		if(Rect(g.GetSize()).IsInBoundsRegular(x1, y1) && Rect(g.GetSize()).IsInBoundsRegular(x2, y2))
@@ -563,7 +563,7 @@ namespace
 }
 
 bool
-DrawLineSeg(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c)
+DrawLineSeg(const Graphics& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c)
 {
 	if(y1 == y2)
 		return DrawHLineSeg(g, y1, x1, x2, c);
@@ -574,13 +574,28 @@ DrawLineSeg(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Colo
 }
 
 bool
-DrawRect(GraphicInterfaceContext& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c)
+DrawRect(const Graphics& g, const Point& p, const Size& s, Color c)
 {
+	SPOS x1(p.GetX()), y1(p.GetY()),
+		x2(x1 + s.GetWidth()), y2(y1 + s.GetHeight());
 	bool b(DrawVLineSeg(g, x1, y1, y2, c));
 	b |= DrawHLineSeg(g, y2, x1, x2, c);
 	b |= DrawVLineSeg(g, x2, y2, y1, c);
 	b |= DrawHLineSeg(g, y1, x2, x1, c);
+
 	return b;
+}
+
+bool
+FillRect(const Graphics& g, const Point& p, const Size& s, Color c)
+{
+	if(g.IsValid())
+	{
+		// TODO : 矩形跨立实验。
+		FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(), p, s, c);
+		return true;
+	}
+	return false;
 }
 
 

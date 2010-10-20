@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:24 + 08:00;
-// UTime = 2010-10-17 22:45 + 08:00;
-// Version = 0.3939;
+// UTime = 2010-10-18 20:58 + 08:00;
+// Version = 0.3975;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -86,7 +86,7 @@ EndDecl
 
 
 //可视控件接口。
-DeclBasedInterface(IVisualControl, virtual IControl, virtual GIFocusRequester<IVisualControl>)
+DeclBasedInterface(IVisualControl, virtual IWidget, virtual IControl, virtual GIFocusRequester<IVisualControl>)
 	DeclIEventEntry(InputEventHandler, Enter)
 	DeclIEventEntry(InputEventHandler, Leave)
 	DeclIEventEntry(KeyEventHandler, KeyUp)
@@ -153,8 +153,80 @@ public:
 protected:
 	GMFocusResponser<IVisualControl>*
 	CheckFocusContainer(IWidgetContainer*); //检查给定的容器指针是否有效且指向接受焦点的容器。
+};
 
+
+//控件基类。
+class YControl : public YComponent, public MControl
+{
 public:
+	typedef YComponent ParentType;
+};
+
+
+//可视控件抽象基类。
+class AVisualControl : public Widgets::MWidget, public MVisualControl,
+	virtual implements IVisualControl
+{
+public:
+	explicit
+	AVisualControl(HWND = NULL, const Rect& = Rect::FullScreen, IWidgetContainer* = NULL);
+	~AVisualControl();
+
+	ImplI(IVisualControl) PDefH(EventMapType::Event&, operator[], const EventMapType::ID& id)
+		ImplBodyBase(MVisualControl, operator[], id)
+
+	ImplI(IVisualControl) DefPredicateBase(Visible, MVisual)
+	ImplI(IVisualControl) DefPredicateBase(Transparent, MVisual)
+	ImplI(IVisualControl) DefPredicateBase(BgRedrawed, MVisual)
+	ImplI(IVisualControl) DefPredicateBase(Enabled, MControl)
+	ImplI(IVisualControl) DefPredicateBase(Focused, AFocusRequester)
+	ImplI(IVisualControl) PDefH(bool, IsFocusOfContainer, GMFocusResponser<IVisualControl>& c) const
+		ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
+
+	//判断包含关系。
+	ImplI(IVisualControl) PDefH(bool, Contains, const Point& p) const
+		ImplBodyBase(MVisual, Contains, p)
+
+	ImplI(IVisualControl) PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
+		ImplBodyBase(MVisualControl, CheckRemoval, c)
+
+	ImplI(IVisualControl) DefGetterBase(const Point&, Location, MVisual)
+	ImplI(IVisualControl) DefGetterBase(const Drawing::Size&, Size, MVisual)
+	ImplI(IVisualControl) DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
+	ImplI(IVisualControl) DefGetterBase(HWND, WindowHandle, MWidget)
+
+	ImplI(IVisualControl) DefEventGetter(InputEventHandler, Enter)
+	ImplI(IVisualControl) DefEventGetter(InputEventHandler, Leave)
+	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyUp)
+	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyDown)
+	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyHeld)
+	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyPress)
+	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchUp)
+	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchDown)
+	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchHeld)
+	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchMove)
+	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, Click)
+
+	ImplI(IVisualControl) DefSetterBase(bool, Visible, MVisual)
+	ImplI(IVisualControl) DefSetterBase(bool, Transparent, MVisual)
+	ImplI(IVisualControl) DefSetterBase(bool, BgRedrawed, MVisual)
+	ImplI(IVisualControl) DefSetterBase(const Point&, Location, MVisual)
+	ImplI(IVisualControl) DefSetterBase(bool, Enabled, MControl)
+
+	ImplI(IVisualControl) PDefH(void, DrawBackground)
+		ImplBodyBaseVoid(MWidget, DrawBackground)
+	ImplI(IVisualControl) PDefH(void, DrawForeground)
+		ImplBodyBaseVoid(MWidget, DrawForeground)
+
+	ImplI(IVisualControl) PDefH(void, Refresh)
+		ImplBodyBaseVoid(MWidget, Refresh)
+
+	ImplI(IVisualControl) void
+	RequestFocus(const MEventArgs&); //向部件容器申请获得焦点，若成功则引发 GotFocus 事件。
+	ImplI(IVisualControl) void
+	ReleaseFocus(const MEventArgs&); //释放焦点，并引发 LostFocus 事件。
+
 	virtual void
 	OnGotFocus(const MEventArgs&);
 	virtual void
@@ -170,79 +242,6 @@ public:
 };
 
 
-//控件基类。
-class YControl : public YComponent, public MControl
-{
-public:
-	typedef YComponent ParentType;
-};
-
-
-//可视控件抽象基类。
-class AVisualControl : public Widgets::MWidget, public MVisualControl,
-	virtual implements IWidget, virtual implements IVisualControl
-{
-public:
-	explicit
-	AVisualControl(HWND = NULL, const Rect& = Rect::FullScreen, IWidgetContainer* = NULL);
-	~AVisualControl();
-
-	ImplI(IVisualControl) PDefH(EventMapType::Event&, operator[], const EventMapType::ID& id)
-		ImplBodyBase(MVisualControl, operator[], id)
-
-	ImplI(IWidget) DefPredicateBase(Visible, MVisual)
-	ImplI(IWidget) DefPredicateBase(Transparent, MVisual)
-	ImplI(IWidget) DefPredicateBase(BgRedrawed, MVisual)
-	ImplI(IVisualControl) DefPredicateBase(Enabled, MControl)
-	ImplI(IVisualControl) DefPredicateBase(Focused, AFocusRequester)
-	ImplI(IVisualControl) PDefH(bool, IsFocusOfContainer, GMFocusResponser<IVisualControl>& c) const
-		ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
-
-	//判断包含关系。
-	ImplI(IWidget) PDefH(bool, Contains, const Point& p) const
-		ImplBodyBase(MVisual, Contains, p)
-
-	ImplI(IVisualControl) PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
-		ImplBodyBase(MVisualControl, CheckRemoval, c)
-
-	ImplI(IWidget) DefGetterBase(const Point&, Location, MVisual)
-	ImplI(IWidget) DefGetterBase(const Drawing::Size&, Size, MVisual)
-	ImplI(IWidget) DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
-	ImplI(IWidget) DefGetterBase(HWND, WindowHandle, MWidget)
-
-	ImplI(IVisualControl) DefEventGetter(InputEventHandler, Enter)
-	ImplI(IVisualControl) DefEventGetter(InputEventHandler, Leave)
-	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyUp)
-	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyDown)
-	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyHeld)
-	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyPress)
-	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchUp)
-	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchDown)
-	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchHeld)
-	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchMove)
-	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, Click)
-
-	ImplI(IWidget) DefSetterBase(bool, Visible, MVisual)
-	ImplI(IWidget) DefSetterBase(bool, Transparent, MVisual)
-	ImplI(IWidget) DefSetterBase(bool, BgRedrawed, MVisual)
-	ImplI(IWidget) DefSetterBase(const Point&, Location, MVisual)
-	ImplI(IVisualControl) DefSetterBase(bool, Enabled, MControl)
-
-	ImplI(IWidget) PDefH(void, DrawBackground)
-		ImplBodyBaseVoid(MWidget, DrawBackground)
-	ImplI(IWidget) PDefH(void, DrawForeground)
-		ImplBodyBaseVoid(MWidget, DrawForeground)
-
-	ImplI(IWidget) PDefH(void, Refresh)
-		ImplBodyBaseVoid(MWidget, Refresh)
-
-	ImplI(IVisualControl) void
-	RequestFocus(const MEventArgs&); //向部件容器申请获得焦点，若成功则引发 GotFocus 事件。
-	ImplI(IVisualControl) void
-	ReleaseFocus(const MEventArgs&); //释放焦点，并引发 LostFocus 事件。
-};
-
-
 //可视控件基类。
 class YVisualControl : public YComponent, public AVisualControl
 {
@@ -253,7 +252,7 @@ public:
 	YVisualControl(HWND = NULL, const Rect& = Rect::FullScreen, IWidgetContainer* = NULL);
 	~YVisualControl();
 
-	virtual void
+	ImplI(IVisualControl) void
 	RequestToTop()
 	{}
 };
@@ -282,14 +281,14 @@ MButton::MButton(bool b)
 class MScrollBar
 {
 protected:
-	SDST MaxThumbSize, PrevButtonSize, NextButtonSize;
+	SDST MinThumbSize, PrevButtonSize, NextButtonSize;
 	bool bPrevButtonPressed, bNextButtonPressed;
 
 	explicit
 	MScrollBar(SDST = 8, SDST = 10, SDST = 10);
 
 public:
-	DefGetter(SDST, MaxThumbSize, MaxThumbSize)
+	DefGetter(SDST, MinThumbSize, MinThumbSize)
 	DefGetter(SDST, PrevButtonSize, PrevButtonSize)
 	DefGetter(SDST, NextButtonSize, NextButtonSize)
 };
@@ -300,10 +299,11 @@ class AScrollBar : public AVisualControl, public MScrollBar
 {
 public:
 	explicit
-	AScrollBar(SDST = 10, SDST = 10, SDST = 10);
+	AScrollBar(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+		SDST = 10, SDST = 10, SDST = 10);
 
 	DefGetter(SDST, ScrollAreaSize, GetWidth() - GetPrevButtonSize() - GetNextButtonSize())
-	DefGetter(SDST, ScrollAreaFixedSize, GetScrollAreaSize() - GetMaxThumbSize())
+	DefGetter(SDST, ScrollAreaFixedSize, GetScrollAreaSize() - GetMinThumbSize())
 
 	virtual void
 	RequestToTop()

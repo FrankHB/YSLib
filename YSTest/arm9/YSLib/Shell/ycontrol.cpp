@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:34 + 08:00;
-// UTime = 2010-10-15 17:01 + 08:00;
-// Version = 0.3588;
+// UTime = 2010-10-18 20:54 + 08:00;
+// Version = 0.3616;
 
 
 #include "ycontrol.h"
@@ -19,12 +19,7 @@ using namespace Runtime;
 
 MVisualControl::MVisualControl()
 	: MControl(), AFocusRequester()
-{
-	EventMap[EControl::GotFocus] += &MVisualControl::OnGotFocus;
-	EventMap[EControl::LostFocus] += &MVisualControl::OnLostFocus;
-	TouchDown += &MVisualControl::OnTouchDown;
-	TouchHeld += &MVisualControl::OnTouchHeld;
-}
+{}
 
 GMFocusResponser<IVisualControl>*
 MVisualControl::CheckFocusContainer(IWidgetContainer* pCon)
@@ -32,83 +27,14 @@ MVisualControl::CheckFocusContainer(IWidgetContainer* pCon)
 	return pCon ? dynamic_cast<GMFocusResponser<IVisualControl>*>(pCon) : NULL;
 }
 
-void
-MVisualControl::OnGotFocus(const MEventArgs&)
-{
-	try
-	{
-		dynamic_cast<IWidget&>(*this).Refresh();
-	}
-	catch(std::bad_cast&)
-	{
-	//	throw;
-	}
-}
-void
-MVisualControl::OnLostFocus(const MEventArgs& e)
-{
-	OnGotFocus(e);
-}
-void
-MVisualControl::OnKeyHeld(const Runtime::MKeyEventArgs& e)
-{
-	using namespace InputStatus;
-
-	if(RepeatHeld(KeyHeldState, e, 240, 120))
-	{
-		try
-		{
-			KeyDown(dynamic_cast<IVisualControl&>(*this), e);
-		}
-		catch(std::bad_cast&)
-		{}
-	}
-}
-void
-MVisualControl::OnTouchDown(const MTouchEventArgs& e)
-{
-	try
-	{
-		dynamic_cast<IVisualControl&>(*this).RequestFocus(e);
-	}
-	catch(std::bad_cast&)
-	{}
-}
-void
-MVisualControl::OnTouchHeld(const Runtime::MTouchEventArgs& e)
-{
-	try
-	{
-		using namespace InputStatus;
-		IWidget& w(dynamic_cast<IWidget&>(*this));
-		bool b(RepeatHeld(TouchHeldState, e, 0, 0));
-
-		if(!IsOnDragging())
-			SetDragOffset(w.GetLocation() - e);
-		else if(b && w.GetLocation() != e + GetDragOffset())
-			TouchMove(dynamic_cast<IVisualControl&>(*this), e);
-	}
-	catch(std::bad_cast&)
-	{}
-}
-void
-MVisualControl::OnTouchMove(const Runtime::MTouchEventArgs& e)
-{
-	try
-	{
-		IWidget& w(dynamic_cast<IWidget&>(*this));
-
-		w.SetLocation(e + InputStatus::GetDragOffset());
-		w.Refresh();
-	}
-	catch(std::bad_cast&)
-	{}
-}
-
 
 AVisualControl::AVisualControl(HWND hWnd, const Rect& r, IWidgetContainer* pCon)
 	: MWidget(hWnd, r, pCon), MVisualControl()
 {
+	EventMap[EControl::GotFocus] += &AVisualControl::OnGotFocus;
+	EventMap[EControl::LostFocus] += &AVisualControl::OnLostFocus;
+	TouchDown += &AVisualControl::OnTouchDown;
+	TouchHeld += &AVisualControl::OnTouchHeld;
 	if(pContainer != NULL)
 	{
 		*pContainer += static_cast<IWidget&>(*this);
@@ -141,6 +67,47 @@ AVisualControl::ReleaseFocus(const MEventArgs& e)
 		EventMap[EControl::LostFocus](*this, e);
 }
 
+void
+AVisualControl::OnGotFocus(const MEventArgs&)
+{
+	Refresh();
+}
+void
+AVisualControl::OnLostFocus(const MEventArgs& e)
+{
+	Refresh();
+}
+void
+AVisualControl::OnKeyHeld(const Runtime::MKeyEventArgs& e)
+{
+	using namespace InputStatus;
+
+	if(RepeatHeld(KeyHeldState, e, 240, 120))
+		KeyDown(*this, e);
+}
+void
+AVisualControl::OnTouchDown(const MTouchEventArgs& e)
+{
+	RequestFocus(e);
+}
+void
+AVisualControl::OnTouchHeld(const Runtime::MTouchEventArgs& e)
+{
+	using namespace InputStatus;
+	bool b(RepeatHeld(TouchHeldState, e, 0, 0));
+
+	if(!IsOnDragging())
+		SetDragOffset(GetLocation() - e);
+	else if(b && GetLocation() != e + GetDragOffset())
+		TouchMove(*this, e);
+}
+void
+AVisualControl::OnTouchMove(const Runtime::MTouchEventArgs& e)
+{
+	SetLocation(e + InputStatus::GetDragOffset());
+	Refresh();
+}
+
 
 YVisualControl::YVisualControl(HWND hWnd, const Rect& r, IWidgetContainer* pCon)
 	: YComponent(), AVisualControl(hWnd, r, pCon)
@@ -150,13 +117,14 @@ YVisualControl::~YVisualControl()
 
 
 MScrollBar::MScrollBar(SDST blMaxThumbSize, SDST blPrev, SDST blNext)
-	: MaxThumbSize(blMaxThumbSize), PrevButtonSize(blPrev), NextButtonSize(blNext),
+	: MinThumbSize(blMaxThumbSize), PrevButtonSize(blPrev), NextButtonSize(blNext),
 	bPrevButtonPressed(false), bNextButtonPressed(false)
 {}
 
 
-AScrollBar::AScrollBar(SDST blMaxThumbSize, SDST blPrev, SDST blNext)
-	: MScrollBar(blMaxThumbSize, blPrev, blNext)
+AScrollBar::AScrollBar(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
+	SDST blMaxThumbSize, SDST blPrev, SDST blNext)
+	: AVisualControl(hWnd, r, pCon), MScrollBar(blMaxThumbSize, blPrev, blNext)
 {}
 
 void
