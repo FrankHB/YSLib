@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-19 22:26 + 08:00;
-// Version = 0.2040;
+// UTime = 2010-10-21 20:34 + 08:00;
+// Version = 0.2054;
 
 
 #ifndef INCLUDED_YGUI_H_
@@ -143,10 +143,6 @@ GetGraphicInterfaceContext(HWND hWnd)
 	return static_cast<Graphics>(*hWnd);
 }
 
-
-//绘制界面元素边框。
-void
-DrawBounds(const Graphics&, const Point&, const Size&, Color);
 
 //绘制窗口边框。
 void

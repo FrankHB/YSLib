@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 00:06:05 + 08:00;
-// UTime = 2010-10-05 15:36 + 08:00;
-// Version = 0.6196;
+// UTime = 2010-10-22 13:45 + 08:00;
+// Version = 0.6198;
 
 
 #include "ytext.h"
@@ -239,6 +239,7 @@ TextRegion::ClearLine(u16 l, SDST n)
 		memset(&imgAlpha[s], 0, t * sizeof(u8));
 	}
 }
+
 void
 TextRegion::ClearLn(u16 l)
 {
@@ -246,6 +247,7 @@ TextRegion::ClearLn(u16 l)
 
 	ClearLine(Margin.Top + h * l, h);
 }
+
 void
 TextRegion::ClearLnLast()
 {

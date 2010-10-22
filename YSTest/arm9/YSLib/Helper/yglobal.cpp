@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52 + 08:00;
-// UTime = 2010-10-09 11:49 + 08:00;
-// Version = 0.2401;
+// UTime = 2010-10-21 12:59 + 08:00;
+// Version = 0.2403;
 
 
 #include "yglobal.h"
@@ -49,12 +49,12 @@ namespace
 		static CursorInfo TouchPos_Old, TouchPos;
 		static Message /*InputMessage_Old, */InputMessage;
 
-		if(Key.held & Key::Touch)
+		if(Key.held & KeySpace::Touch)
 			TouchPos_Old = TouchPos;
 		scanKeys();
 		WriteKeysInfo(Key, TouchPos);
 
-		const Point pt(ToSPoint(Key.held & Key::Touch ? TouchPos : TouchPos_Old));
+		const Point pt(ToSPoint(Key.held & KeySpace::Touch ? TouchPos : TouchPos_Old));
 
 		if(theApp.GetDefaultMessageQueue().empty() || Key != *reinterpret_cast<KeysInfo*>(InputMessage.GetWParam()) || pt != InputMessage.GetCursorLocation())
 			InsertMessage((InputMessage = Message(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Key), 0, pt)));

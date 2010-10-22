@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-13 0:06:05;
-// UTime = 2010-9-26 20:45;
-// Version = 0.6347;
+// CTime = 2009-11-13 00:06:05 + 08:00;
+// UTime = 2010-10-22 13:48 + 08:00;
+// Version = 0.6357;
 
 
 #ifndef INCLUDED_YTEXT_H_
@@ -117,8 +117,10 @@ TextState::SetPen(SPOS x, SPOS y)
 
 
 //打印单个字符。
+
 void
 PrintChar(MBitmapBuffer&, TextState&, fchar_t); 
+
 void
 PrintCharEx(MBitmapBufferEx&, TextState&, fchar_t); 
 
@@ -153,22 +155,30 @@ public:
 	void
 	SetLnLast(); //设置笔的行位置为最底行。
 
+	//清除缓冲区第 l 行起始的 n 行像素（n 为 0 时清除之后的所有行）。
 	void
-	ClearLine(u16 l, SDST n); //清除缓冲区第 l 行起始的 n 行像素（n 为 0 时清除之后的所有行）。
+	ClearLine(u16 l, SDST n);
+
+	//清除缓冲区第 l 个文本行。
 	void
-	ClearLn(u16 l); //清除缓冲区第 l 个文本行。
+	ClearLn(u16 l);
+
+	//清除缓冲区最后一个文本行。
 	void
-	ClearLnLast(); //清除缓冲区最后一个文本行。
+	ClearLnLast();
 
 	void
 	Move(s16 n); //缓冲区（除上下边界区域）特效：整体移动 n 像素（n > 0 时下移， n < 0 时上移）。
 	void
 	Move(s16 n, SDST h); //缓冲区（从缓冲区顶端起高 h 的区域内，除上下边界区域）特效：整体移动 n 像素（n > 0 时下移， n < 0 时上移）。
 
+	//输出换行。
 	void
-	PutNewline(); //输出换行。
+	PutNewline();
+
+	//输出单个字符。
 	u8
-	PutChar(fchar_t); //输出单个字符。
+	PutChar(fchar_t);
 
 	template<typename _tOut>
 	_tOut

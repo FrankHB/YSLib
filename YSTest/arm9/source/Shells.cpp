@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-18 11:36 + 08:00;
-// Version = 0.3148;
+// UTime = 2010-10-21 09:48 + 08:00;
+// Version = 0.3153;
 
 
 #include <Shells.h>
@@ -259,12 +259,12 @@ ShlLoad::OnActivated(const Message& m)
 void
 ShlExplorer::TFrmFileListSelecter::frm_KeyPress(const MKeyEventArgs& e)
 {
-	switch(e)
+	switch(e.GetKey())
 	{
-	case Key::X:
+	case KeySpace::X:
 		btnTest.Click(btnTest, MTouchEventArgs::FullScreen);
 		break;
-	case Key::R:
+	case KeySpace::R:
 		btnOK.Click(btnOK, MTouchEventArgs::FullScreen);
 		break;
 	default:
@@ -286,7 +286,7 @@ ShlExplorer::fb_KeyPress(IVisualControl& sender, const MKeyEventArgs& e)
 {
 	Key x(e);
 
-	if(x & Key::L)
+	if(x & KeySpace::L)
 		switchShl1();
 }
 
@@ -315,7 +315,7 @@ ShlExplorer::TFrmFileListSelecter::btnTest_Click(const MTouchEventArgs&)
 	else
 	{
 		YConsole con(*pScreenDown);
-		con.Activate(Color::Yellow, Color::Green);
+		con.Activate(Color::Yellow, ColorSpace::Green);
 		iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
 		puts("OK");
 		WaitForInput();
@@ -417,7 +417,7 @@ ShlSetting::TFormB::btnB_Enter(IVisualControl& sender, const MInputEventArgs& e)
 	const MTouchEventArgs& pt(static_cast<const MTouchEventArgs&>(e));
 	char str[20];
 
-	std::sprintf(str, "Enter:(%d,%d)", pt.GetX(), pt.GetY());
+	std::sprintf(str, "Enter:(%d,%d)", pt.Point::X, pt.Point::Y);
 	btn.Text = str;
 	btn.Refresh();
 }
@@ -428,7 +428,7 @@ ShlSetting::TFormB::btnB_Leave(IVisualControl& sender, const MInputEventArgs& e)
 	const MTouchEventArgs& pt(static_cast<const MTouchEventArgs&>(e));
 	char str[20];
 
-	std::sprintf(str, "Leave:(%d,%d)", pt.GetX(), pt.GetY());
+	std::sprintf(str, "Leave:(%d,%d)", pt.Point::X, pt.Point::Y);
 	btn.Text = str;
 	btn.Refresh();
 }
@@ -482,7 +482,7 @@ ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e
 {
 	//测试程序。
 
-	u32 k(e);
+	u32 k(static_cast<MKeyEventArgs::Key>(e));
 
 	DefDynInitRef(YButton, lbl, sender);
 //	YButton& lbl(dynamic_cast<TFormA&>(*(dynamic_cast<ShlSetting&>(*NowShell()).hWndUp)).lblA2);
@@ -636,53 +636,53 @@ ShlReader::OnClick(const MTouchEventArgs& e)
 void
 ShlReader::OnKeyPress(const MKeyEventArgs& e)
 {
-	u32 k(e);
+	u32 k(static_cast<MKeyEventArgs::Key>(e));
 
 	bgDirty = true;
 	switch(k)
 	{
-	case Key::Enter:
+	case KeySpace::Enter:
 		Reader.Update();
 		break;
 
-	case Key::ESC:
+	case KeySpace::ESC:
 		CallStored<ShlExplorer>();
 		break;
 
-	case Key::Up:
-	case Key::Down:
-	case Key::PgUp:
-	case Key::PgDn:
+	case KeySpace::Up:
+	case KeySpace::Down:
+	case KeySpace::PgUp:
+	case KeySpace::PgDn:
 		{
 			switch(k)
 			{
-			case Key::Up:
+			case KeySpace::Up:
 				Reader.LineUp();
 				break;
-			case Key::Down:
+			case KeySpace::Down:
 				Reader.LineDown();
 				break;
-			case Key::PgUp:
+			case KeySpace::PgUp:
 				Reader.ScreenUp();
 				break;
-			case Key::PgDn:
+			case KeySpace::PgDn:
 				Reader.ScreenDown();
 				break;
 			}
 		}
 		break;
 
-	case Key::X:
+	case KeySpace::X:
 		Reader.SetLineGap(5);
 		Reader.Update();
 		break;
 
-	case Key::Y:
+	case KeySpace::Y:
 		Reader.SetLineGap(8);
 		Reader.Update();
 		break;
 
-	case Key::Left:
+	case KeySpace::Left:
 		//Reader.SetFontSize(Reader.GetFontSize()+1);
 		if(Reader.GetLineGap() != 0)
 		{
@@ -691,7 +691,7 @@ ShlReader::OnKeyPress(const MKeyEventArgs& e)
 		}
 		break;
 
-	case Key::Right:
+	case KeySpace::Right:
 		//PixelType cc(Reader.GetColor());
 		//Reader.SetColor(ARGB16(1,(cc&(15<<5))>>5,cc&29,(cc&(31<<10))>>10));
 		if(Reader.GetLineGap() != 12)

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-19 15:38 + 08:00;
-// Version = 0.4188;
+// UTime = 2010-10-22 13:49 + 08:00;
+// Version = 0.4190;
 
 
 #include "ywindow.h"
@@ -92,12 +92,14 @@ MWidget::Fill(Color c)
 		FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(), GetBounds(), c);
 	}
 }
+
 void
 MWidget::DrawBackground()
 {
 	if(!Transparent)
 		Fill();
 }
+
 void
 MWidget::DrawForeground()
 {

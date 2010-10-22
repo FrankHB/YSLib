@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YForm by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-04-30 00:51:36 + 08:00;
-// UTime = 2010-10-05 17:51 + 08:00;
-// Version = 0.1366;
+// UTime = 2010-10-22 13:37 + 08:00;
+// Version = 0.1368;
 
 
 #ifndef INCLUDED_YFORM_H_
@@ -42,8 +42,10 @@ public:
 
 	virtual void
 	DrawBackground();
+
 	virtual void
 	DrawForeground();
+
 	virtual void
 	Draw();
 */

@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-10-20 09:24 + 08:00;
-// Version = 0.2755; *Build 164 r22;
+// UTime = 2010-10-22 13:56 + 08:00;
+// Version = 0.2760; *Build 165 r26;
 
 
 #include "../YCLib/ydef.h"
@@ -68,6 +68,7 @@ $Record prefix and abbrevations:
 \inc ::= included
 \inh ::= inherited
 \inv ::= invoke
+\k ::= keywords
 \lib ::= library
 \m ::= members
 \mac ::= macros
@@ -140,129 +141,131 @@ $using:
 
 $DONE:
 r1:
-/ @@ \u YWindow:
-	/ \inh \cl Controls::MVisualControl @@ \cl MDesktopObject >> \cl AWindow;
+/= \tr \impl @@ \u Shells;
 
 r2:
-/ \cl AWindow @@ \u YWindow:
-	/ \inh Widgets::MWidget & Controls::MVisualControl -> Controls::AVisualControl;
-	- \mf RequestFocus;
-	- \mf ReleaseFocus;
-
-r3-r5:
-/ \simp \cl AWindow @@ \u YWindow;
-
-r6:
-/ \u YControl:
-	/ \mf
-	{
-		virtual void
-		OnGotFocus(const MEventArgs&);
-		virtual void
-		OnLostFocus(const MEventArgs&);
-		virtual void
-		OnKeyHeld(const Runtime::MKeyEventArgs&);
-		virtual void
-		OnTouchDown(const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
-		virtual void
-		OnTouchHeld(const Runtime::MTouchEventArgs&);
-		virtual void
-		OnTouchMove(const Runtime::MTouchEventArgs&);
-	} @@ \cl MVisualControl >> \cl AVisualControl & \simp;
-	/ \impl @@ \ctor @@ \cl MVisualControl;
-	/ \impl @@ \ctor @@ \cl AVisualControl;
-/ \impl @@ \ctor @@ \cl YFileBox @@ \u YGUIComponent;
-
-r7:
-/ @@ \in IVisualControl + \vt \inh IWidget @@ \u YVisualControl;
-/ \impl @@ \u YDesktop;
-/ \impl @@ \u YGUI;
-/ \impl @@ \u YGUIComponent;
-/ \impl @@ \u YWidget;
-
-r8:
-/ \simp @@ \cl AVisualControl @@ \u YVisualControl:
-	- \vt \inh \impl IWidget;
-
-r9:
-/ \tr \impl @@ \h Adaptor::YReference;
-
-r10:
-/ @@ \h YShellHelper:
-	/ \tr \impl;
-	+ \mac DefDynInitRef;
-/ @@ \u Shells;
-	^ \mac DefDynInitRef;
-
-r11:
-/= \tr \decl @@ \cl YVisualControl @@ \u YControl:
-	^ \mac ImplI;
-/ \tr @@ \ctor @@ \cl YHorizontalScrollBar;
-/ \tr @@ \ctor @@ \cl AScrollBar;
-
-r12:
-* \a *MaxThumbSize* => *MinThumbSize*;
-/ \tr \impl \mf @@ \cl YHorizontalScrollBar;
-* \a GraphicInterfaceContext => GraphicsInterfaceContext;
-* \impl @@ \mf YButton::DrawForeground();
-
-r13:
-* \tr \impl @@ %.cpp \dep @@ \makefile arm9;
-
-r14:
-* \impl @@ \mf void MWidget::Fill(Color);
-/ \tr \impl @@ \mf void MLabel::PaintText(MWidget&);
-* \impl @@ \mf YListBox::DrawForeground();
-
-r15:
-/ \decl @@ \in IWindow:
-	- \mf DeclIEntry(const Drawing::MBitmapBuffer& GetBuffer() const);
-	- \mf DeclIEntry(BitmapPtr GetBufferPtr() const);
-/ \tr @@ \u YGUIComponent:
-	/ \decl & \impl @@ \f @@ \un \ns;
-	/ \impl @@ \mf void YButton::DrawForeground();
-/ \impl @@ \mf UpdateToWindow @@ \cl AWindow;
-/ \simp \a GraphicsInterfaceContext => Graphics;
-/ \ac @@ \m hWindow @@ \cl MWidget -> private ~ public;
-
-r16:
-/ @@ \u YGDI:
-	+ \f
-	{
-		!\i bool FillRect(const Graphics&, const Point&, const Size&, Color);
-		\i bool FillRect(const Graphics&, const Rect&, Color);
-	}
-	- \f
-	{
-		bool DrawRect(const Graphics&, SPOS, SPOS, SPOS, SPOS, Color);
-		\i bool DrawRect(const Graphics&, const Point&, const Point&, Color);
-	}
-	/ -\i @@ \f bool DrawRect(const Graphics&, const Point&, const Size&, Color);
-	/ \impl @@ \i \f bool DrawRect(const Graphics&, const Rect&, Color);
-	/= DefPredicate(Valid, pBuffer && Size.Width && Size.Height) @@ \u Graphics
-		-> DefPredicate(Valid, pBuffer != NULL && Size.Width != 0 && Size.Height != 0);
-/ \impl \f void RectDrawButtonSurface(const Graphics&, const Point&, const Size&) @@ \un \ns @@ \u YGUIComponent;
-/ @@ \u YGUI:
-/ \f void DrawBounds(const Graphics&, const Point&, const Size&, PixelType)
-	-> void DrawBounds(const Graphics&, const Point&, const Size&, Color);
-/ \f void DrawWindowBounds(HWND, PixelType)
-	-> void DrawBounds(HWND, Color);
-/ \f void DrawWidgetBounds(IWidget&, PixelType)
-	-> void DrawWidgetBounds(IWidget&, Color);
-
-r17:
 / \impl @@ \f IVisualControl* GetTouchedVisualControl(IWidgetContainer&, Point&) @@ \un \ns @@ \u YGUI;
+	* moving ignored by shell windows;
 
-r18:
-/ \simp \impl @@ \u YGUI;
-
-r19-r21:
+r3-r4:
 /= test 1;
 
+r5:
+/ \impl @@ \f IVisualControl* GetTouchedVisualControl(IWidgetContainer&, Point&) @@ \un \ns @@ \u YGUI;
+	* focus lost when moving controls quickly;
+
+r6:
+/ \tr \impl @@ \mf DrawPrevButton & \mf DrawNextButton & \mf DrawScrollArea @@ \cl YHorizontalScrollBar;
+
+r7:
+/ \impl @@ \u YObject;
+	/ \decl & \impl \ctor \t @@ \cl BinaryGroup \cl Point & \cl Vec & \cl Size;
+
+r8:
+/ @@ \u YGUI:
+	/ @@ \un \ns:
+		+ \f void RectDrawArrow(const Graphics&, const Point&, SDST, ROT = RDeg0, Color = ColorSpace::Black);
+		/ \f void RectDrawPressed(const Graphics&, const Point&, const Size&) & \f void RectDrawButtonSurface(const Graphics&, const Point&, const Size&):
+			+ assertion ^ \mac YAssert;
+		/ \a RectDrawFocus => WndDrawFocus;
+		+ \f void WndDrawArrow(HWND, const Rect&, SDST, ROT = RDeg0, Color = ColorSpace::Black);
+		/ \f void WndDrawFocus(HWND, const Point&, const Size&) -> void WndDrawFocus(HWND, const Size&);
+/ \simp accessors of \cl Point & \cl Size;
+- using platform::Key @@ \h Adaptor::YAdaptor;
++ copy \ctor @@ \cl (BinaryGroup & Point & Vec & Size & Rect) @@ \cl YObject;
+/ @@ \decl @@ \cl MInputEventArgs @@ \u YEventArgs
+	* ambiguous \m X & \m Y ^ \inh platform::Key -> \m Key k, with typedef platform::Key Key;
+	+ DefConverter(Key, k);
+	+ DefGetter(Key, Key, k);
+/= \tr impl @@ \u Shells & \u YControl & \u YGUIComponent & \u ShlDS;
+
+r9:
+/ @@ \ns platform @@ \u YCommon:
+	+ \ns ColorSpace;
+	/ \en ColorSet @@ \cl Color >> \ns ColorSpace;
+^ \ns ColorSpace;
+/ \tr \ns \decl ^ \k using @@ \h YAdaptor & \h YWidget;
+
+r10:
+/ @@ \ns platform @@ \u YCommon:
+	+ \ns KeySpace;
+	/ \en KeySet @@ \cl Key >> \ns KeySpace;
+^ \ns KeySpace;
+/ \tr \ns \decl ^ \k using @@ \h YAdaptor;
+/= \tr impl @@ \u Shells & \u ShlDS & \u YGlobal & \u YGUIComponent;
+
+r11:
+/ \tr \impl @@ \cl ShlSetting @@ \u Shells;
+
+r12-r13:
+/ \tr @@ \u Shells;
+/ \tr @@ \u YGUI;
+	/ \impl drawing @@ \cl YHorizontalScrollBar;
+
+r14:
+/ \tr \decl @@ \cl AScrollBar @@ \u YControl;
+
+r15:
+/ \tr \decl @@ \cl YHorizontalScrollBar;
+* \impl @@ \f bool DrawRect(const Graphics&, const Point&, const Size&, Color) @@ \u YGDI;
+
+r16:
+/ tr @@ \u Shells;
+
+r17:
+* \impl @@ \f bool DrawRect(const Graphics&, const Point&, const Size&, Color) @@ \u YGDI;
+- \f void DrawBounds(const Graphics&, const Point&, const Size&, Color) @@ \u YGUI;
+* \impl @@ \f void RectDrawArrow(const Graphics&, const Point&, SDST, ROT, Color) @@ \un \ns @@ \u YGUIComponent;
+
+r18:
+/ @@ \un \ns @@ \u YGUIComponent:
+	/ \impl @@ \f void WndDrawArrow(HWND, const Rect&, SDST, ROT, Color);
+	* \impl @@ \f void RectDrawArrow(const Graphics&, const Point&, SDST, ROT, Color);
+
+r19:
+/ @@ \cl AScrollBar:
+	+ typedef AVisualControl ParentType;
+	/ \impl @@ \mf void DrawForeground();
++= typedef ParentType Controls::AVisualControl @@ \cl AWindow;
+
+r20:
+/ \tr @@ \u YGUI;
+	/ \impl drawing @@ \cl YHorizontalScrollBar;
+
+r21:
+/ \impl @@ \u YGUIComponent:
+	/ @@ \un \ns:
+		/ @@ \f void WndDrawArrow(HWND, const Rect&, SDST, ROT, Color);
+	/ @@ \cl YHorizontalScrollBar:
+		/ @@ \mf DrawPrevButton;
+		/ @@ \mf DrawNextButton;
+
 r22:
-/ \impl @@ \u YGUI;
-	* quickly leave controls to another without \evt OnLeave;
-	* \pt \err @@ \evt OnEnter;
+/ @@ \cl YHorizontalScrollBar @@ \u YGUIComponent:
+	/ \simp \impl @@ \mf DrawPrevButton;
+	/ \simp \impl @@ \mf DrawNextButton;
+
+r23:
+/ cl AScrollBar @@ \u YControl >> \u YGUIComponent;
+
+r24:
+/= \tr \decl @@ \cl AVisualControl;
+	+ \in entry void RequestToTop() \inh IVisualControl \inh IWidget;
+
+r25:
++ \mac ImplA @@ \h Adaptor::Base;
+^ \mac ImplA;
+/ @@ \cl YGUIComponent:
+	/ \impl @@ \cl AScrollBar;
+	/ \impl @@ \cl YHorizontalScrollBar;
+		+ \inh YComponent;
+		+ \mf void DrawForeground();
+
+r26:
+/= \tr:
+	/= code empty lines arranged @@ \cl;
+/= \tr \impl @@ \ctor @@ \cl YHorizontalScrollBar;
+
 
 $DOING:
 
@@ -270,9 +273,11 @@ $DOING:
 
 
 $NEXT:
+
+
 * blank-clicked \evt OnClick @@ ListBox;
-* fatal \err;
-/ \impl @@ \cl YHorizontalScrollBar;
+
+
 
 b170-b190:
 / fully \impl \u DSReader;

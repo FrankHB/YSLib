@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YObject by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-12 12:54 + 08:00;
-// Version = 0.2287;
+// UTime = 2010-10-21 10:12 + 08:00;
+// Version = 0.2370;
 
 
 #ifndef INCLUDED_YOBJECT_H_
@@ -74,18 +74,18 @@ class BinaryGroup //屏幕二元组。
 public:
 	SPOS X, Y; //分量。
 
-	BinaryGroup()
-	: X(0), Y(0)
-	{}
+	BinaryGroup();
+	BinaryGroup(const BinaryGroup&);
 	explicit
 	BinaryGroup(const Size&);
-	template<typename _type>
-	explicit
-	BinaryGroup(const _type& v)
-	: X(v.GetX()), Y(v.GetY())
+	template<typename _tVec>
+	inline explicit
+	BinaryGroup(const _tVec& v)
+	: X(v.X), Y(v.Y)
 	{}
-	template<typename _type>
-	BinaryGroup(_type x, _type y)
+	template<typename _tScalar1, typename _tScalar2>
+	inline
+	BinaryGroup(_tScalar1 x, _tScalar2 y)
 	: X(x), Y(y)
 	{}
 
@@ -98,6 +98,15 @@ public:
 	DefGetter(SPOS, X, X)
 	DefGetter(SPOS, Y, Y)
 };
+
+inline
+BinaryGroup::BinaryGroup()
+	: X(0), Y(0)
+{}
+inline
+BinaryGroup::BinaryGroup(const BinaryGroup& b)
+	: X(b.X), Y(b.Y)
+{}
 
 inline bool
 operator==(const BinaryGroup& a, const BinaryGroup& b)
@@ -119,19 +128,19 @@ public:
 	static const Point Zero; //默认构造参数构造的原点对象。
 	static const Point FullScreen; //默认构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
 
-	Point()
-	: BinaryGroup()
-	{}
+	Point();
+	Point(const Point&);
 	explicit
 	Point(const Size&);
-	template<typename _type>
-	explicit
-	Point(const _type& v)
-	: BinaryGroup(v.GetX(), v.GetY())
+	template<typename _tVec>
+	inline explicit
+	Point(const _tVec& v)
+		: BinaryGroup(v.X, v.Y)
 	{}
-	template<typename _type>
-	Point(_type x, _type y)
-	: BinaryGroup(x, y)
+	template<typename _tScalar1, typename tScalar2>
+	inline
+	Point(_tScalar1 x, tScalar2 y)
+		: BinaryGroup(x, y)
 	{}
 
 	operator Vec() const;
@@ -147,6 +156,15 @@ public:
 	operator-=(const Vec&);
 };
 
+inline
+Point::Point()
+	: BinaryGroup()
+{}
+inline
+Point::Point(const Point& p)
+	: BinaryGroup(p)
+{}
+
 
 class Vec : public BinaryGroup //屏幕二维向量。
 {
@@ -156,18 +174,19 @@ public:
 	static const Vec Zero; //默认构造参数构造的零向量对象。
 	static const Vec FullScreen; //默认构造参数构造的由屏幕坐标系原点到屏幕右下角边界（不在屏幕坐标系中）对象。
 
-	Vec()
-	: BinaryGroup() {};
+	Vec();
+	Vec(const Vec&);
 	explicit
 	Vec(const Size&);
-	template<typename _type>
-	explicit
-	Vec(const _type& v)
-	: BinaryGroup(v.GetX(), v.GetY())
+	template<typename _tVec>
+	inline explicit
+	Vec(const _tVec& v)
+		: BinaryGroup(v.X, v.Y)
 	{}
-	template<typename _type>
-	Vec(_type x, _type y)
-	: BinaryGroup(x, y)
+	template<typename _tScalar1, typename _tScalar2>
+	inline
+	Vec(_tScalar1 x, _tScalar2 y)
+		: BinaryGroup(x, y)
 	{}
 
 	operator Point() const
@@ -195,6 +214,16 @@ public:
 		return *this;
 	}
 };
+
+inline
+Vec::Vec()
+	: BinaryGroup()
+{}
+
+inline
+Vec::Vec(const Vec& v)
+	: BinaryGroup(v)
+{}
 
 
 inline
@@ -245,16 +274,17 @@ struct Size //屏幕区域大小。
 	static const Size Zero; //默认构造参数构造的零元素对象。
 	static const Size FullScreen; //默认构造参数构造的全屏幕对象。
 
-	Size()
+	Size();
+	Size(const Size&);
+	template<typename _tVec>
+	inline explicit
+	Size(const _tVec& v)
+		: Width(v.X), Height(v.Y)
 	{}
-	template<typename _type>
-	explicit
-	Size(const _type& v)
-	: Width(v.GetX()), Height(v.GetY())
-	{}
-	template<typename _type>
-	Size(_type w, _type h)
-	: Width(w), Height(h)
+	template<typename _tScalar1, typename _tScalar2>
+	inline
+	Size(_tScalar1 w, _tScalar2 h)
+		: Width(w), Height(h)
 	{}
 
 	operator Vec() const
@@ -266,6 +296,15 @@ struct Size //屏幕区域大小。
 	DefGetter(SDST, Height, Height)
 	DefGetter(u32, Area, Width * Height) //取面积。
 };
+
+inline
+Size::Size()
+	: Width(0), Height(0)
+{}
+inline
+Size::Size(const Size& s)
+	: Width(s.Width), Height(s.Height)
+{}
 
 inline bool
 operator==(const Size& a, const Size& b)
@@ -286,12 +325,12 @@ BinaryGroup::BinaryGroup(const Size& s)
 
 inline
 Point::Point(const Size& s)
-	: BinaryGroup(s.GetWidth(), s.GetHeight())
+	: BinaryGroup(s.Width, s.Height)
 {}
 
 inline
 Vec::Vec(const Size& s)
-	: BinaryGroup(s.GetWidth(), s.GetHeight())
+	: BinaryGroup(s.Width, s.Height)
 {}
 
 
@@ -311,6 +350,7 @@ public:
 	static const Rect FullScreen; //默认构造参数构造的全屏幕矩形对象。
 
 	Rect();
+	Rect(const Rect&);
 	explicit
 	Rect(const Point&);
 	explicit
@@ -341,6 +381,10 @@ Rect::Rect()
 	: Point(), Size()
 {}
 inline
+Rect::Rect(const Rect& r)
+	: Point(r), Size(r)
+{}
+inline
 Rect::Rect(const Point& p)
 	: Point(p), Size()
 {}
@@ -354,11 +398,11 @@ Rect::Rect(const Point& p, const Size& s)
 {}
 inline
 Rect::Rect(const Point& p, SDST w, SDST h)
-	: Point(p.GetX(), p.GetY()), Size(w, h)
+	: Point(p.X, p.Y), Size(w, h)
 {}
 inline
 Rect::Rect(SPOS x, SPOS y, const Size& s)
-	: Point(x, y), Size(s.GetWidth(), s.GetHeight())
+	: Point(x, y), Size(s.Width, s.Height)
 {}
 inline
 Rect::Rect(SPOS x, SPOS y, SDST w, SDST h)

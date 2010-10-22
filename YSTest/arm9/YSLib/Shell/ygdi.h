@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46 + 08:00;
-// UTime = 2010-10-19 22:09 + 08:00;
-// Version = 0.2928;
+// UTime = 2010-10-22 13:39 + 08:00;
+// Version = 0.2939;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -365,7 +365,7 @@ public:
 	Drawing::Color Color; //笔颜色。
 
 	explicit
-	PenStyle(const FontFamily& = GetDefaultFontFamily(), Font::SizeType = Font::DefSize, Drawing::Color = Drawing::Color::White);
+	PenStyle(const FontFamily& = GetDefaultFontFamily(), Font::SizeType = Font::DefSize, Drawing::Color = Drawing::ColorSpace::White);
 
 	DefGetterMember(const FontFamily&, FontFamily, Font)
 	DefGetterMember(YFontCache&, Cache, Font)
@@ -429,7 +429,8 @@ Padding::SetAll(SDST h, SDST v)
 }
 
 
-class MBitmapBuffer : public Size //矩形图像缓冲区。
+//矩形图像缓冲区。
+class MBitmapBuffer : public Size
 {
 protected:
 	BitmapPtr img; //显示缓冲区指针。
@@ -456,10 +457,13 @@ public:
 	virtual void
 	SetSizeSwap(); //交换宽和高；同时交换边距。
 
+	//清除缓冲区。
 	virtual void
-	ClearImage() const; //清除缓冲区。
+	ClearImage() const;
+
+	//以纯色填充显示缓冲区。
 	virtual void
-	Fill(Color) const; //以纯色填充显示缓冲区。
+	Fill(Color) const;
 
 	virtual void
 	CopyToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
@@ -482,7 +486,8 @@ operator==(const MBitmapBuffer& a, const MBitmapBuffer& b)
 }
 
 
-class MBitmapBufferEx : public MBitmapBuffer //矩形增强图像缓冲区。
+//矩形增强图像缓冲区。
+class MBitmapBufferEx : public MBitmapBuffer
 {
 protected:
 	u8* imgAlpha; // Alpha 缓冲区指针。
@@ -505,12 +510,14 @@ public:
 	virtual void
 	SetSizeSwap(); //交换宽和高；同时交换边距。
 
+	//清除缓冲区。
 	virtual void
-	ClearImage() const; //清除缓冲区。
+	ClearImage() const;
 
 	void
 	CopyToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
 		const Point& sp = Point::Zero, const Point& dp = Point::Zero, const Size& sc = Size::FullScreen) const; //复制至屏幕指定区域。
+
 	void
 	BlitToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
 		const Point& sp = Point::Zero, const Point& dp = Point::Zero, const Size& sc = Size::FullScreen) const; //贴图至屏幕指定区域。

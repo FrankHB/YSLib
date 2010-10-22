@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-10-19 22:27 + 08:00;
-// Version = r8942;
+// UTime = 2010-10-22 13:55 + 08:00;
+// Version = r9189;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -575,19 +575,17 @@ $unit YCommon "ycommon" //平台相关的公共组件无关函数与宏定义集
 
 
 		//系统默认颜色空间。
-		class Color
+		namespace ColorSpace
 		{
-		public:
-			typedef enum ColorSet
-			{
-
 		//	#define DefColorA(r, g, b, name) name = ARGB16(1, r, g, b),
 			#define	HexAdd0x(hex) 0x##hex
 			#define DefColorH_(hex, name) name = RGB8(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF)) | BITALPHA
 			#define DefColorH(hex_, name) DefColorH_(HexAdd0x(hex_), name),
-
+	
 			//参考：http://www.w3schools.com/html/html_colornames.asp 。
 
+			typedef enum ColorSet
+			{
 				DefColorH(00FFFF, Aqua)
 				DefColorH(000000, Black)
 				DefColorH(0000FF, Blue)
@@ -604,12 +602,17 @@ $unit YCommon "ycommon" //平台相关的公共组件无关函数与宏定义集
 				DefColorH(008080, Teal)
 				DefColorH(FFFFFF, White)
 				DefColorH(FFFF00, Yellow)
+			} ColorSet;
 
 			#undef DefColorH
 			#undef DefColorH_
 			#undef HexAdd0x
+		} //namespace ColorSpace;
 
-			} ColorSet;
+		class Color
+		{
+		public:
+			typedef ColorSpace::ColorSet ColorSet;
 
 		private:
 			PixelType _value;
@@ -622,10 +625,9 @@ $unit YCommon "ycommon" //平台相关的公共组件无关函数与宏定义集
 		};
 
 
-		//按键集合。
-		class Key
+		namespace KeySpace
 		{
-		public:
+			//按键集合。
 			typedef enum KeySet
 			{
 				Empty	= 0,
@@ -643,20 +645,26 @@ $unit YCommon "ycommon" //平台相关的公共组件无关函数与宏定义集
 				Y		= KEY_Y,
 				Touch	= KEY_TOUCH,
 				Lid		= KEY_LID
-			} KeySet;
+			} KeySet; //enum KeySet;
+
+			//按键别名。
+			const KeySet
+				Enter = A,
+				ESC = B,
+				PgUp = L,
+				PgDn = R;
+		} //namespace KeySpace;
+
+
+		class Key
+		{
+		public:
 			typedef u32 InputType;
 
 		private:
 			InputType _value;
 
 		public:
-			//按键别名。
-			static const KeySet
-				Enter = A,
-				ESC = B,
-				PgUp = L,
-				PgDn = R;
-
 			Key(InputType = 0);
 
 			operator InputType() const;
@@ -688,7 +696,7 @@ $unit YCommon "ycommon" //平台相关的公共组件无关函数与宏定义集
 
 		//调试模式：显示（fc 为前景色，bc为背景色）。
 		void
-		YDebugBegin(Color fc = Color::White, Color bc = Color::Blue);
+		YDebugBegin(Color fc = ColorSpace::White, Color bc = ColorSpace::Blue);
 
 		//调试模式：按键继续。
 		void
@@ -791,7 +799,7 @@ $unit YCommon "ycommon" //平台相关的公共组件无关函数与宏定义集
 
 		//启动控制台（fc 为前景色，bc为背景色）。
 		void
-		YConsoleInit(u8 dspIndex, Color fc = Color::White, Color bc = Color::Black);
+		YConsoleInit(u8 dspIndex, Color fc = ColorSpace::White, Color bc = ColorSpace::Black);
 
 		//输出控制台字（int 型数据）。
 		inline void
@@ -947,21 +955,26 @@ $header Base "base.h" //通用基础设施。
 
 	#define DeclInterface(_name) _yInterface _name _yInterfaceHead(_name)
 
-	//对于基接口需要显示指定访问权限和继承方式。由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
-	// ImplI = implements interface;
+	//对于基接口需要显式指定访问权限和继承方式。由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
+	// ImplI = Implements Interface;
+	//抽象实现：保留接口供派生类实现（可以提供接口函数的默认实现）。
+	// ImplA = Implements Abstractly;
 	#ifdef __GNUC__
 	#	define DeclBasedInterface(_name, _base...) \
 		_yInterface _name : _base _yInterfaceHead(_name)
 	#	define ImplI(_interface, ...) virtual
+	#	define ImplA(_interface, ...)
 	#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 	#	define DeclBasedInterface(_name, _base, ...) \
 		_yInterface _name : _base, __VA_ARGS__ _yInterfaceHead(_name)
 	#	define ImplI(_interface, ...) virtual
+	#	define ImplA(_interface, ...)
 	#else
 	//注意 ISO/IEC C++ 不支持宏的可变参数列表，因此无法实现接口多继承。
 	#	define DeclBasedInterface(_name, _base) \
 		_yInterface _name : _base _yInterfaceHead(_name)
 	#	define ImplI(_interface) virtual
+	#	define ImplA(_interface)
 	#endif
 
 	//"DeclIEntry" = Declare Interface Entry;
@@ -1274,12 +1287,13 @@ $header YAdaptor "yadaptor.h" //外部库关联。
 		using platform::ConstBitmapPtr;
 		using platform::ScreenBufferType;
 		using platform::Color;
+		namespace ColorSpace = platform::ColorSpace;
 
 	YSL_END_NAMESPACE(Drawing)
 
 	YSL_BEGIN_NAMESPACE(Runtime)
 
-		using platform::Key;
+		namespace KeySpace = platform::KeySpace;
 		using platform::KeysInfo;
 		using platform::CursorInfo;
 
@@ -1899,7 +1913,8 @@ $unit YFont "yfont" //平台无关的字体缓存库。
 		DefGetter(const char*, Path, path)
 		DefGetter(s32, FaceN, nFace)
 
-		void ReloadFaces(); //读取字体文件，载入全部字体。
+		//读取字体文件，载入全部字体。
+		void ReloadFaces();
 	}; //class FontFile;
 
 
@@ -1958,15 +1973,21 @@ $unit YFont "yfont" //平台无关的字体缓存库。
 		void
 		SetFont(const Font&);
 
+		//更新字体缓存中当前处理的字体。
 		bool
-		Update(); //更新字体缓存中当前处理的字体。
-		void
-		UpdateSize(); //更新字体缓存中当前处理的字体大小。
+		Update();
 
+		//更新字体缓存中当前处理的字体大小。
+		void
+		UpdateSize();
+
+		//初始化默认字体。
 		static bool
-		InitializeDefault(); //初始化默认字体。
+		InitializeDefault();
+
+		//释放默认字体。
 		static void
-		ReleaseDefault(); //释放默认字体。
+		ReleaseDefault();
 	}; //class Font;
 
 
@@ -2093,28 +2114,38 @@ $unit YFont "yfont" //平台无关的字体缓存库。
 		ImplI(GIContainer<const FontFamily>) bool
 		operator-=(FontFamily&); //从字型家族组中移除指定字型对象。
 
+		//从字体文件组中载入字体信息。
 		void
-		LoadTypefaces(); //从字体文件组中载入字体信息。
+		LoadTypefaces();
+
+		//从指定字体文件中载入字体信息。
 		void
-		LoadTypefaces(const FontFile&); //从指定字体文件中载入字体信息。
+		LoadTypefaces(const FontFile&);
 
 	public:
+		//读取字体文件目录并载入目录下指定后缀名的字体文件。
 		void
-		LoadFontFileDirectory(CPATH, CPATH = "ttf"); //读取字体文件目录并载入目录下指定后缀名的字体文件。
+		LoadFontFileDirectory(CPATH, CPATH = "ttf");
+
+		//按路径加入字体文件并载入字体信息。
 		void
-		LoadFontFile(CPATH) ythrow(); //按路径加入字体文件并载入字体信息。
+		LoadFontFile(CPATH) ythrow();
 
 	private:
 		void
 		ClearFontFiles();
+
 		void
 		ClearTypefaces();
+
 		void
 		ClearFontFamilies();
+
 		void
 		ClearContainers();
 
 	public:
+		//清除缓存。
 		void
 		ClearCache();
 	}; //class YFontCache;
@@ -2387,6 +2418,7 @@ $unit YCoreUtilities "ycutil" //核心实用模块。
 
 	private: 
 		NonCopyable(const NonCopyable&);
+
 		NonCopyable& operator=(const NonCopyable&);
 	}; //class NonCopyable;
 
@@ -2463,6 +2495,8 @@ $unit YCoreUtilities "ycutil" //核心实用模块。
 	template<typename _type>
 	void
 	restrictUnsigned(_type&, unsigned);
+
+	//约束无符号整数在左闭右开区间中。
 	template<typename _type>
 	void
 	restrictUnsignedRegular(_type&, unsigned);
@@ -2932,17 +2966,20 @@ $unit YObject "yobject" //平台无关的基础对象实现。
 	class BinaryGroup //屏幕二元组。
 	{
 	public:
-		SPOS x, y; //分量。
+		SPOS X, Y; //分量。
 
 		inline
 		BinaryGroup()
+		inline
+		BinaryGroup(const BinaryGroup&);
 		inline explicit
 		BinaryGroup(const Size&);
-		inline template<typename _type>
-		explicit
-		BinaryGroup(const _type& v);
-		inline template<typename _type>
-		BinaryGroup(_type, _type);
+		template<typename _tVec>
+		inline explicit
+		BinaryGroup(const _tVec& v);
+		template<typename _tScalar1, typename _tScalar2>
+		inline
+		BinaryGroup(_tScalar1, _tScalar2);
 
 		inline BinaryGroup
 		operator-(); //负运算：返回相反元素。
@@ -2967,13 +3004,16 @@ $unit YObject "yobject" //平台无关的基础对象实现。
 
 		inline
 		Point()
+		inline
+		Point(const Point&);
 		inline explicit
 		Point(const Size&);
-		inline template<typename _type>
-		explicit
-		Point(const _type& v);
-		inline template<typename _type>
-		Point(_type, _type);
+		template<typename _tVec>
+		inline explicit
+		Point(const _tVec& v);
+		template<typename _tScalar1, typename _tScalar2>
+		inline
+		Point(_tScalar1, _tScalar2);
 
 		inline
 		operator Vec() const;
@@ -2997,13 +3037,16 @@ $unit YObject "yobject" //平台无关的基础对象实现。
 
 		inline
 		Vec()
+		inline
+		Vec(const Vec&);
 		inline explicit
 		Vec(const Size&);
-		inline template<typename _type>
-		explicit
-		Vec(const _type& v);
-		inline template<typename _type>
-		Vec(_type, _type);
+		template<typename _tVec>
+		inline explicit
+		Vec(const _tVec& v);
+		template<typename _tScalar1, typename _tScalar2>
+		inline
+		Vec(_tScalar1, _tScalar2);
 
 		inline
 		operator Point() const;
@@ -3036,11 +3079,14 @@ $unit YObject "yobject" //平台无关的基础对象实现。
 
 		inline
 		Size()
-		inline template<typename _type>
-		explicit
-		Size(const _type& v);
-		inline template<typename _type>
-		Size(_type, _type);
+		inline
+		Size(const Size&);
+		template<typename _tVec>
+		inline explicit
+		Size(const _tVec& v);
+		template<typename _tScalar1, typename _tScalar2>
+		inline
+		Size(_tScalar1, _tScalar2);
 
 		inline
 		operator Vec() const;
@@ -3072,6 +3118,8 @@ $unit YObject "yobject" //平台无关的基础对象实现。
 
 		inline
 		Rect();
+		inline
+		Rect(const Rect&);
 		inline explicit
 		Rect(const Point&);
 		inline explicit
@@ -3276,12 +3324,20 @@ $unit YEventArgs "yevtarg" //事件参数模块。
 
 
 	//输入事件参数模块类。
-	struct MInputEventArgs : public Key
+	struct MInputEventArgs
 	{
-		static const MInputEventArgs Empty = MInputEventArgs();
+	public:
+		static const MInputEventArgs Empty;
 
-		inline
+		typedef platform::Key Key;
+
+		Key k;
+
 		MInputEventArgs(const Key& = 0);
+
+		DefConverter(Key, k)
+
+		DefGetter(Key, Key, k)
 	}; //struct MInputEventArgs;
 
 
@@ -3293,7 +3349,7 @@ $unit YEventArgs "yevtarg" //事件参数模块。
 		static const MTouchEventArgs Empty = MTouchEventArgs();
 
 		inline
-		MTouchEventArgs(const InputType& = InputType::Empty);
+		MTouchEventArgs(const InputType& = 0);
 	}; //struct MTouchEventArgs;
 
 
@@ -3305,7 +3361,7 @@ $unit YEventArgs "yevtarg" //事件参数模块。
 		static const MKeyEventArgs Empty = MKeyEventArgs();
 
 		inline
-		MKeyEventArgs(const InputType& = InputType::Empty);
+		MKeyEventArgs(const InputType& = 0);
 		inline
 		MKeyEventArgs(const BaseInputType&);
 	}; //struct MKeyEventArgs;
@@ -3461,8 +3517,9 @@ $unit YShellMessage "ysmsg" //消息处理模块。
 		SetParam(WPARAM, LPARAM); //设置消息参数。
 		DefSetter(std::clock_t, Timestamp, timestamp) //设置消息时间戳。
 
+		//更新消息时间戳。
 		void
-		UpdateTimestamp() //更新消息时间戳。
+		UpdateTimestamp()
 	}; //class Message;
 
 
@@ -3499,17 +3556,25 @@ $unit YShellMessage "ysmsg" //消息处理模块。
 		PDefH(size_type, size) const //取队列中消息容量。
 			ImplBodyMember(q, size)
 
+		//从消息队列中取优先级最高的消息存至 m 中（不在队列中保留消息）。
 		void
-		GetMessage(Message& m); //从消息队列中取优先级最高的消息存至 m 中（不在队列中保留消息）。
-		void
-		PeekMessage(Message& m) const; //从消息队列中取优先级最高的消息存至 m 中（在队列中保留消息）。
+		GetMessage(Message& m);
 
-		size_type
-		Clear(); //清除消息队列，并返回清除的消息数。
+		//从消息队列中取优先级最高的消息存至 m 中（在队列中保留消息）。
 		void
-		Update(); //更新消息队列。
+		PeekMessage(Message& m) const;
+
+		//清除消息队列，并返回清除的消息数。
+		size_type
+		Clear();
+
+		//更新消息队列。
+		void
+		Update();
+
+		//若消息 m 有效，插入 m 至消息队列中。返回 m 是否有效。
 		bool
-		InsertMessage(const Message& m); //若消息 m 有效，插入 m 至消息队列中。返回 m 是否有效。
+		InsertMessage(const Message& m);
 
 	}; //class YMessageQueue;
 
@@ -3553,8 +3618,9 @@ $unit YShell "yshell" // Shell 定义。
 		bool
 		IsActive() const; //判断 Shell 是否处于激活状态。
 
+		//激活 Shell 对象： shlProc 控制权转移给此对象以维持单线程运行。
 		bool
-		Activate(); //激活 Shell 对象： shlProc 控制权转移给此对象以维持单线程运行。
+		Activate();
 
 		ImplI(GIContainer<IWindow>) void
 		operator+=(IWindow&); //向窗口组添加窗口对象。
@@ -3563,6 +3629,7 @@ $unit YShell "yshell" // Shell 定义。
 		WNDs::size_type
 		RemoveAll(IWindow&); //从窗口组中移除所有指定窗口对象，返回移除的对象数。
 		void RemoveWindow(); //移除窗口队列中首个窗口对象。
+
 		HWND
 		GetFirstWindowHandle() const; //取得窗口组中首个窗口对象的句柄。
 		HWND
@@ -3570,27 +3637,35 @@ $unit YShell "yshell" // Shell 定义。
 		HWND
 		GetTopWindowHandle(YDesktop&, const Point&) const; //取得窗口组中指定屏幕的指定的点所处的最顶层窗口对象的句柄。
 
+		//向屏幕发送指定窗口对象。
 		bool
-		SendWindow(IWindow&); //向屏幕发送指定窗口对象。
+		SendWindow(IWindow&);
 
+		//向屏幕发送窗口对象。
 		void
-		DispatchWindows(); //向屏幕发送窗口对象。
+		DispatchWindows();
 
+		//清除指定屏幕中属于窗口组的窗口对象。
 		void
-		ClearScreenWindows(YDesktop&); //清除指定屏幕中属于窗口组的窗口对象。
+		ClearScreenWindows(YDesktop&);
 
+		//默认 Shell 处理函数。
 		static LRES
-		DefShlProc(const Message&); //默认 Shell 处理函数。
+		DefShlProc(const Message&);
 
-		virtual PDefH(LRES, ShlProc, const Message& m) // Shell 处理函数：响应线程的直接调用。
+		// Shell 处理函数：响应线程的直接调用。
+		virtual PDefH(LRES, ShlProc, const Message& m)
 			ImplRet(DefShlProc(m))
 
+		// Shell 处理函数：响应线程的激活。
 		virtual LRES
-		OnActivated(const Message&); // Shell 处理函数：响应线程的激活。
+		OnActivated(const Message&);
 
+		// Shell 处理函数：响应线程的撤销。
 		virtual LRES
-		OnDeactivated(const Message&); // Shell 处理函数：响应线程的撤销。
+		OnDeactivated(const Message&);
 	}; //class YShell;
+
 
 	class YShellMain : /*public GMCounter<YShellMain>, public YCountableObject,*/ public YShell
 	{
@@ -3755,11 +3830,17 @@ $unit YApplication "yapp" //应用程序实例类抽象。
 		YMessageQueue&
 		GetBackupMessageQueue() ythrow(LoggedEvent);
 
+		//设置线程空间中当前运行的 Shell 的句柄。
 		bool
-		SetShellHandle(HSHL h); //设置线程空间中当前运行的 Shell 的句柄。
+		SetShellHandle(HSHL h);
 
+		//复位线程：设置当前运行的线程为主线程。
 		void
-		ResetShellHandle() ythrow(); //复位线程：设置当前运行的线程为主线程。
+		ResetShellHandle() ythrow();
+
+		//启动线程消息循环。
+	//	void
+	//	Run(HSHL);
 	}; //class YApplication;
 
 
@@ -4049,11 +4130,13 @@ $unit YFileSystem "yfilesys" //平台无关的文件处理系统。
 		DefGetter(const Path&, Directory, Directory) //取目录的完整路径。
 		DefGetter(const ListType&, List, List) //取项目列表。
 
+		//在目录中取子项目。
 		ListType::size_type
-		LoadSubItems(); //在目录中取子项目。
+		LoadSubItems();
 
+		//遍历目录中的项目，更新至列表。
 		ListType::size_type
-		ListItems(); //遍历目录中的项目，更新至列表。
+		ListItems();
 	}; //class MFileList;
 
 	YSL_END_NAMESPACE(IO)
@@ -4087,18 +4170,33 @@ $unit YFile "yfile" //平台无关的文件抽象。
 		DefGetter(FILE*, Ptr, fp) //取文件指针。
 		DefGetter(SizeType, Size, fsize) //取文件长度。
 
+		//清除文件指针。
+		void
+		Release();
+
+		//打开指定路径的文件。
 		inline bool
-		Open(CPATH); //打开指定路径的文件。
+		Open(CPATH);
+
+		//取文件指针的位置，返回值语义同 std::ftell 。
 		long
-		ftell() const; //取文件指针的位置，返回值语义同 std::ftell 。
+		ftell() const;
+
+		//文件指针返回到文件头，同 std:: rewind 。
 		inline void
-		rewind() const; //文件指针返回到文件头，同 std:: rewind 。
+		rewind() const;
+
+		//设置文件指针位置，参数和返回值语义同 std::fseek 函数。
 		inline int
-		fseek(long offset, int whence) const; //设置文件指针位置，参数和返回值语义同 std::fseek 函数。
+		fseek(long offset, int whence) const;
+
+		//连续读 nmemb 个大小为 size 文件块到 ptr 中，返回成功读取的文件块数。
 		inline SizeType
-		fread(void* ptr, SizeType size, SizeType nmemb); //连续读 nmemb 个大小为 size 文件块到 ptr 中，返回成功读取的文件块数。
+		fread(void* ptr, SizeType size, SizeType nmemb);
+
+		//检测文件结束符。
 		inline int
-		feof() const; //检测文件结束符。
+		feof() const;
 	}; //class YFile;
 
 } //$unit YFile;
@@ -4129,18 +4227,29 @@ $unit YFile_(Text) "yftext" //平台无关的文本文件抽象。
 		DefGetter(SizeType, TextSize, GetSize() - GetBOMSize()) //取文本区段大小。
 		DefGetter(u32, Pos, ftell() - bl) //取文件指针关于文本区段的位置。
 
+		//检查文件头是否有 BOM (Byte Order Mark) ，若有则据此判断编码，返回 BOM 长度。
 		u8
-		CheckBOM(Text::CSID&); //检查文件头是否有 BOM (Byte Order Mark) ，若有则据此判断编码，返回 BOM 长度。
+		CheckBOM(Text::CSID&);
+
+		//文件读位置返回到文本区段头。
 		void
-		Rewind() const; //文件读位置返回到文本区段头。
+		Rewind() const;
+
+		//设置文件读位置。
 		void
-		SetPos(u32) const; //设置文件读位置。
+		SetPos(u32) const;
+
+		//设置文件读位置， origin 语义同 fseek 函数（SEEK_SET 起始为文本区段头）。
 		void
-		Seek(long, int origin) const; //设置文件读位置， origin 语义同 fseek 函数（SEEK_SET 起始为文本区段头）。
+		Seek(long, int origin) const;
+
+		//从文件读 n 字节到 s 中。
 		SizeType
-		Read(void* s, SizeType n) const; //从文件读 n 字节到 s 中。
+		Read(void* s, SizeType n) const;
+
+		//从文件读 n 字节（按默认编码转化为 UTF-16LE）到 s 中。
 		SizeType
-		ReadS(uchar_t* s, SizeType n) const; //从文件读 n 字节（按默认编码转化为 UTF-16LE）到 s 中。
+		ReadS(uchar_t* s, SizeType n) const;
 	} //class YTextFile;
 
 } //$unit YFile_(Text);
@@ -4399,7 +4508,7 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 		Drawing::Color Color; //笔颜色。
 
 		inline explicit
-		PenStyle(const FontFamily& = GetDefaultFontFamily(), Font::SizeType = Font::DefSize, Drawing::Color = Drawing::Color::White);
+		PenStyle(const FontFamily& = GetDefaultFontFamily(), Font::SizeType = Font::DefSize, Drawing::Color = Drawing::ColorSpace::White);
 
 		DefGetterMember(const FontFamily&, FontFamily, Font)
 		DefGetterMember(YFontCache&, Cache, Font)
@@ -4437,7 +4546,8 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 	}; //struct Padding;
 
 
-	class MBitmapBuffer : public Size //矩形图像缓冲区。
+	//矩形图像缓冲区。
+	class MBitmapBuffer : public Size
 	{
 	protected:
 		BitmapPtr img; //显示缓冲区指针。
@@ -4466,10 +4576,13 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 		virtual void
 		SetSizeSwap(); //交换宽和高；同时交换边距。
 
+		//清除缓冲区。
 		virtual void
-		ClearImage() const; //清除缓冲区。
+		ClearImage() const;
+
+		//以纯色填充显示缓冲区。
 		virtual void
-		Fill(Color) const; //以纯色填充显示缓冲区。
+		Fill(Color) const;
 
 		virtual void
 		CopyToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
@@ -4477,7 +4590,8 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 	}; //class MBitmapBuffer;
 
 
-	class MBitmapBufferEx : public MBitmapBuffer //矩形增强图像缓冲区。
+	//矩形增强图像缓冲区。
+	class MBitmapBufferEx : public MBitmapBuffer
 	{
 	protected:
 		u8* imgAlpha; // Alpha 缓冲区指针。
@@ -4502,12 +4616,14 @@ $unit YGDI "ygdi" //平台无关的图形设备接口实现。
 		virtual void
 		SetSizeSwap(); //交换宽和高；同时交换边距。
 
+		//清除缓冲区。
 		virtual void
-		ClearImage() const; //清除缓冲区。
+		ClearImage() const;
 
 		void
 		CopyToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
 			const Point& sp = Point::Zero, const Point& dp = Point::Zero, const Size& sc = Size::FullScreen) const; //复制至屏幕指定区域。
+
 		void
 		BlitToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
 			const Point& sp = Point::Zero, const Point& dp = Point::Zero, const Size& sc = Size::FullScreen) const; //贴图至屏幕指定区域。
@@ -4631,10 +4747,6 @@ $unit YGUI "ygui" //平台无关的图形用户界面基础实现。
 	inline Graphics
 	GetGraphicInterfaceContext(HWND);
 
-
-	//绘制界面元素边框。
-	void
-	DrawBounds(const Graphics&, const Point&, const Size&, Color);
 
 	//绘制窗口边框。
 	void
@@ -4783,6 +4895,7 @@ $unit YComponent "ycomp" //平台无关的 Shell 组件实现。
 		template<class _type>
 		bool
 		RequestFocus(GMFocusResponser<_type>&);
+
 		//释放焦点。
 		ImplI(GIFocusRequester<AFocusRequester>) bool
 		ReleaseFocus(GMFocusResponser<AFocusRequester>&);
@@ -4790,7 +4903,7 @@ $unit YComponent "ycomp" //平台无关的 Shell 组件实现。
 		bool
 		ReleaseFocus(GMFocusResponser<_type>&);
 
-		//ImplI(GIFocusRequester<AFocusRequester>)
+		ImplA(GIFocusRequester<AFocusRequester>)
 		DeclIEntry(void ReleaseFocus(const MEventArgs&))
 	}; //class AFocusRequester;
 
@@ -4846,18 +4959,25 @@ $unit YComponent "ycomp" //平台无关的 Shell 组件实现。
 		bool
 		SetSelected(IndexType);
 
+		//取消选中状态。
 		bool
-		ClearSelected(); //取消选中状态。
+		ClearSelected();
 
+		//约束被选中的元素在视图内。
 		bool
-		RestrictSelected(); //约束被选中的元素在视图内。
-		bool
-		RestrictViewer(); //约束视图包含被选中的元素。
+		RestrictSelected();
 
+		//约束视图包含被选中的元素。
 		bool
-		MoveViewerToBegin(); //移动视图至序列起始。
+		RestrictViewer();
+
+		//移动视图至序列起始。
 		bool
-		MoveViewerToEnd(); //移动视图至序列结尾。
+		MoveViewerToBegin();
+
+		//移动视图至序列结尾。
+		bool
+		MoveViewerToEnd();
 	}; //template<class _tContainer> class GSequenceViewer;
 
 
@@ -4868,12 +4988,12 @@ $unit YComponent "ycomp" //平台无关的 Shell 组件实现。
 		YScreen& Screen;
 
 		inline explicit
-		YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::Color = Drawing::Color::White, Drawing::Color = Drawing::Color::Black);
+		YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::Color = Drawing::ColorSpace::White, Drawing::Color = Drawing::ColorSpace::Black);
 		inline virtual
 		~YConsole();
 
 		inline void
-		Activate(Drawing::Color = Drawing::Color::White, Drawing::Color = Drawing::Color::Black);
+		Activate(Drawing::Color = Drawing::ColorSpace::White, Drawing::Color = Drawing::ColorSpace::Black);
 
 		inline void
 		Deactivate();
@@ -4922,12 +5042,19 @@ $unit YDesktop "ydesktop" //平台无关的桌面抽象层。
 		operator-=(IVisualControl&); //从桌面对象组中移除指定桌面对象。
 		DOs::size_type
 		RemoveAll(IVisualControl&); //从桌面对象组中移除所有指定桌面对象，返回移除的对象数。
+
+		//从桌面对象组中查找指定桌面对象对象并重新插入至顶端。
 		bool
-		MoveToTop(IVisualControl&); //从桌面对象组中查找指定桌面对象对象并重新插入至顶端。
+		MoveToTop(IVisualControl&);
+
+		//移除桌面对象组中首个桌面对象。
 		void
-		RemoveTopDesktopObject(); //移除桌面对象组中首个桌面对象。
+		RemoveTopDesktopObject();
+
+		//清除桌面对象组。
 		void
-		ClearDesktopObjects(); //清除桌面对象组。
+		ClearDesktopObjects();
+
 		IVisualControl*
 		GetFirstDesktopObjectPtr() const; //取得桌面对象组中首个桌面对象的句柄。
 		IVisualControl*
@@ -4937,15 +5064,20 @@ $unit YDesktop "ydesktop" //平台无关的桌面抽象层。
 
 		virtual void
 		DrawBackground();
+
+		//依次绘制窗口组对象。
 		void
-		DrawDesktopObjects(); //依次绘制窗口组对象。
+		DrawDesktopObjects();
+
 		virtual void
 		Draw();
 
 		virtual void
 		Refresh();
+
+		//更新缓冲区内容至屏幕。
 		virtual void
-		Update(); //更新缓冲区内容至屏幕。
+		Update();
 	}; //class YDesktop;
 
 	YSL_END_NAMESPACE(Components)
@@ -4968,6 +5100,7 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 	using Drawing::ConstBitmapPtr;
 	using Drawing::ScreenBufferType;
 	using Drawing::Color;
+	namespace ColorSpace = Drawing::ColorSpace;
 
 	using Drawing::Point;
 	using Drawing::Vec;
@@ -4998,12 +5131,17 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		DeclIEntry(void SetBgRedrawed(bool)) //设置重绘状态。
 		DeclIEntry(void SetLocation(const Point&)) //设置左上角所在位置（相对于容器的偏移坐标）。
 
-		DeclIEntry(void DrawBackground()) //绘制背景。
-		DeclIEntry(void DrawForeground()) //绘制前景。
+		//绘制背景。
+		DeclIEntry(void DrawBackground())
 
-		DeclIEntry(void Refresh()) //刷新至窗口缓冲区。
+		//绘制前景。
+		DeclIEntry(void DrawForeground())
 
-		DeclIEntry(void RequestToTop()) //请求提升至容器顶端。
+		//刷新至窗口缓冲区。
+		DeclIEntry(void Refresh())
+
+		//请求提升至容器顶端。
+		DeclIEntry(void RequestToTop())
 	EndDecl
 
 
@@ -5019,7 +5157,8 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		DeclIEntry(IWidget* GetTopWidgetPtr(const Point&) const) //取指定的点（屏幕坐标）所处的部件的指针。
 		DeclIEntry(IVisualControl* GetTopVisualControlPtr(const Point&) const) //取指定的点（屏幕坐标）所处的焦点对象的指针。
 
-		DeclIEntry(void ClearFocusingPtr()) //清除焦点指针。
+		//清除焦点指针。
+		DeclIEntry(void ClearFocusingPtr())
 	EndDecl
 
 
@@ -5056,7 +5195,7 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 
 		explicit
 		MVisual(const Rect& = Rect::Empty,
-			PixelType = Color::White, PixelType = Color::Black);
+			PixelType = ColorSpace::White, PixelType = ColorSpace::Black);
 		virtual DefEmptyDtor(MVisual)
 
 	private:
@@ -5108,7 +5247,7 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 
 		explicit
 		MWidget(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
-			Color = Color::White, Color = Color::Black);
+			Color = ColorSpace::White, Color = ColorSpace::Black);
 
 		//判断从属关系。
 		inline bool
@@ -5129,8 +5268,10 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 		Fill(); //以背景色填充显示缓冲区。
 		virtual void
 		Fill(Color); //以纯色填充显示缓冲区。
+
 		virtual void
 		DrawBackground();
+
 		virtual void
 		DrawForeground();
 
@@ -5171,6 +5312,7 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 
 		ImplI(IWidget) PDefH(void, DrawBackground)
 			ImplBodyBaseVoid(MWidget, DrawBackground)
+
 		ImplI(IWidget) PDefH(void, DrawForeground)
 			ImplBodyBaseVoid(MWidget, DrawForeground)
 
@@ -5271,6 +5413,7 @@ $unit YWidget "ywidget" //平台无关的图形用户界面部件实现。
 
 		ImplI(IWidgetContainer) PDefH(void, DrawBackground)
 			ImplBodyBaseVoid(MWidget, DrawBackground)
+
 		ImplI(IWidgetContainer) PDefH(void, DrawForeground)
 			ImplBodyBaseVoid(MWidget, DrawForeground)
 
@@ -5419,7 +5562,10 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 		DeclIEventEntry(TouchEventHandler, TouchMove)
 		DeclIEventEntry(TouchEventHandler, Click)
 
+		//向部件容器请求获得焦点。
 		DeclIEntry(void RequestFocus(const MEventArgs&))
+
+		//释放焦点。
 		DeclIEntry(void ReleaseFocus(const MEventArgs&))
 	EndDecl
 
@@ -5538,21 +5684,32 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 		ImplI(IVisualControl) PDefH(void, Refresh)
 			ImplBodyBaseVoid(MWidget, Refresh)
 
+		ImplA(IVisualControl)
+		DeclIEntry(void RequestToTop())
+
+		//向部件容器请求获得焦点，若成功则引发 GotFocus 事件。
 		ImplI(IVisualControl) void
-		RequestFocus(const MEventArgs&); //向部件容器申请获得焦点，若成功则引发 GotFocus 事件。
+		RequestFocus(const MEventArgs&);
+
+		//释放焦点，并引发 LostFocus 事件。
 		ImplI(IVisualControl) void
-		ReleaseFocus(const MEventArgs&); //释放焦点，并引发 LostFocus 事件。
+		ReleaseFocus(const MEventArgs&);
 
 		virtual void
 		OnGotFocus(const MEventArgs&);
+
 		virtual void
 		OnLostFocus(const MEventArgs&);
+
 		virtual void
 		OnKeyHeld(const Runtime::MKeyEventArgs&);
+
 		virtual void
 		OnTouchDown(const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
+
 		virtual void
 		OnTouchHeld(const Runtime::MTouchEventArgs&);
+
 		virtual void
 		OnTouchMove(const Runtime::MTouchEventArgs&);
 	}; //class AVisualControl;
@@ -5568,7 +5725,7 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 		YVisualControl(HWND = NULL, const Rect& = Rect::FullScreen, IWidgetContainer* = NULL);
 		~YVisualControl();
 
-		ImplI(IVisualControl) void
+		inline ImplI(IVisualControl) void
 		RequestToTop()
 		{}
 	}; //class YVisualControl;
@@ -5596,36 +5753,13 @@ $unit YControl "ycontrol" //平台无关的控件实现。
 		bool bPrevButtonPressed, bNextButtonPressed;
 
 		explicit
-		MScrollBar(SDST = 10, SDST = 10, SDST = 10);
+		MScrollBar(SDST = 8, SDST = 16, SDST = 16);
 
 	public:
 		DefGetter(SDST, MinThumbSize, MinThumbSize)
 		DefGetter(SDST, PrevButtonSize, PrevButtonSize)
 		DefGetter(SDST, NextButtonSize, NextButtonSize)
 	}; //class MScrollBar;
-
-
-	//滚动条。
-	class AScrollBar : public AVisualControl, public MScrollBar
-	{
-	public:
-		explicit
-		AScrollBar(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
-			SDST = 10, SDST = 10, SDST = 10);
-
-		DefGetter(SDST, ScrollAreaLength, GetWidth() - PrevButtonLength - NextButtonLength)
-		DefGetter(SDST, ScrollAreaFixedLength, GetScrollAreaLength() - MaxScrollBlockLength)
-
-		ImplI(IVisualControl) void
-		RequestToTop()
-		{}
-
-		DeclIEntry(void DrawPrevButton())
-		DeclIEntry(void DrawNextButton())
-		DeclIEntry(void DrawScrollArea())
-		virtual void
-		DrawForeground();
-	}; //class AScrollBar;
 
 	YSL_END_NAMESPACE(Controls)
 
@@ -5675,27 +5809,54 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 
 		virtual void
 		OnEnter(const Runtime::MInputEventArgs&);
+
 		virtual void
 		OnLeave(const Runtime::MInputEventArgs&);
+
 		virtual void
 		OnKeyDown(const Runtime::MKeyEventArgs&);
+
 		virtual void
 		OnClick(const Runtime::MTouchEventArgs&);
 	}; //class YButton;
 
 
+	//滚动条。
+	class AScrollBar : public AVisualControl, public MScrollBar
+	{
+	public:
+		typedef AVisualControl ParentType;
+
+		explicit
+		AScrollBar(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+			SDST = 8, SDST = 16, SDST = 16);
+
+		DefGetter(SDST, ScrollAreaLength, GetWidth() - PrevButtonLength - NextButtonLength)
+		DefGetter(SDST, ScrollAreaFixedLength, GetScrollAreaLength() - MaxScrollBlockLength)
+
+		ImplA(IVisualControl) // with an inline default implementation;
+		DeclIEntry(void DrawForeground())
+
+		inline ImplI(IVisualControl) void
+		RequestToTop()
+		{}
+	}; //class AScrollBar;
+
+	
 	//水平滚动条。
 	class YHorizontalScrollBar : public AScrollBar
 	{
 	public:
 		explicit
 		YHorizontalScrollBar(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
-			SDST = 8, SDST = 10, SDST = 10);
+			SDST = 8, SDST = 16, SDST = 16);
 
 		void
 		DrawPrevButton();
+
 		void
 		DrawNextButton();
+
 		void
 		DrawScrollArea();
 	}; //class YHorizontalScrollBar;
@@ -5768,6 +5929,7 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 	public:
 		virtual void
 		DrawBackground();
+
 		virtual void
 		DrawForeground();
 
@@ -5782,18 +5944,23 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 	private:
 		void
 		CallSelected();
+
 		void
 		CallConfirmed();
 
 	public:
 		virtual void
 		OnKeyDown(const Runtime::MKeyEventArgs&);
+
 		virtual void
 		OnTouchDown(const Runtime::MTouchEventArgs&);
+
 		virtual void
 		OnClick(const Runtime::MTouchEventArgs&);
+
 		virtual void
 		OnSelected(const MIndexEventArgs&);
+
 		virtual void
 		OnConfirmed(const MIndexEventArgs&);
 	}; //class YListBox;
@@ -5818,11 +5985,13 @@ $unit YGUIComponent "yguicomp" //样式相关图形用户界面组件实现。
 
 		virtual void
 		DrawBackground();
+
 		virtual void
 		DrawForeground();
 
 		virtual void
 		OnTouchMove(const Runtime::MTouchEventArgs&);
+
 		virtual void
 		OnConfirmed(const MIndexEventArgs&);
 	}; //class YFileBox;
@@ -5913,10 +6082,12 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 
 
 	//抽象窗口。
-	class AWindow : public Widgets::MWidget, public Controls::MVisualControl, public MWindow,
+	class AWindow : public Controls::AVisualControl, public MWindow,
 		virtual implements IWindow
 	{
 	public:
+		typedef Controls::AVisualControl ParentType;
+
 		explicit
 		AWindow(const Rect& = Rect::Empty, const GHResource<YImage> = new YImage(),
 			YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
@@ -5953,17 +6124,22 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 
 		PDefH(void, Fill, PixelType c)
 			ImplBodyMemberVoid(Buffer, Fill, c) //以纯色填充显示缓冲区。
+
 		bool
 		DrawBackgroundImage();
+
 		ImplI(IWindow) void
 		DrawBackground();
-		//ImplI(IWindow)
+
+		ImplA(IWindow)
 		DeclIEntry(bool DrawWidgets())
+
 		ImplI(IWindow) void
 		Draw();
 
 		ImplI(IWindow) void
 		Refresh();
+
 		ImplI(IWindow) void
 		Update();
 
@@ -5972,12 +6148,16 @@ $unit YWindow "ywindow" //平台无关的图形用户界面窗口实现。
 
 		virtual void
 		UpdateToScreen() const; //更新至屏幕。
+
 		virtual void
 		UpdateToWindow() const; //更新至上层窗口缓冲区。
+
 		void
 		UpdateToScreen(YDesktop&) const; //更新至指定桌面所在的屏幕。
+
 		void
 		UpdateToWindow(IWindow&) const; //更新至指定窗口缓冲区。
+
 		void
 		Show();
 	}; //class AWindow;
@@ -6061,8 +6241,10 @@ $unit YForm "yform" //平台无关的图形用户界面窗体实现。
 
 		virtual void
 		DrawBackground();
+
 		virtual void
 		DrawForeground();
+
 		virtual void
 		Draw();*/
 	}; //class YForm;
@@ -6138,8 +6320,10 @@ $unit YText "ytext" //基础文本显示。
 
 
 	//打印单个字符。
+
 	void
 	PrintChar(MBitmapBuffer&, TextState&, fchar_t); 
+
 	void
 	PrintCharEx(MBitmapBufferEx&, TextState&, fchar_t);
 
@@ -6175,22 +6359,30 @@ $unit YText "ytext" //基础文本显示。
 		void
 		SetLnLast(); //设置笔的行位置为最底行。
 
+		//清除缓冲区第 l 行起始的 n 行像素（n 为 0 时清除之后的所有行）。
 		void
-		ClearLine(u16 l, SDST n); //清除缓冲区第 l 行起始的 n 行像素（n 为 0 时清除之后的所有行）。
+		ClearLine(u16 l, SDST n);
+
+		//清除缓冲区第 l 个文本行。
 		void
-		ClearLn(u16 l); //清除缓冲区第 l 个文本行。
+		ClearLn(u16 l);
+
+		//清除缓冲区最后一个文本行。
 		void
-		ClearLnLast(); //清除缓冲区最后一个文本行。
+		ClearLnLast();
 
 		void
 		Move(s16 n); //缓冲区（除上下边界区域）特效：整体移动 n 像素（n > 0 时下移， n < 0 时上移）。
 		void
 		Move(s16 n, SDST h); //缓冲区（从缓冲区顶端起高 h 的区域内，除上下边界区域）特效：整体移动 n 像素（n > 0 时下移， n < 0 时上移）。
 
+		//输出换行。
 		void
-		PutNewline(); //输出换行。
+		PutNewline();
+
+		//输出单个字符。
 		u8
-		PutChar(fchar_t); //输出单个字符。
+		PutChar(fchar_t);
 
 		template<typename _tOut>
 		_tOut
@@ -6536,8 +6728,10 @@ $unit YTimer "ytimer" //平台无关的计时器服务。
 	private:
 		static void
 		InitializeSystemTimer();
+
 		static void
 		ResetSystemTimer();
+
 		static void
 		Synchronize();
 
@@ -6547,17 +6741,22 @@ $unit YTimer "ytimer" //平台无关的计时器服务。
 	public:
 		bool
 		Refresh();
+
 		static bool
 		RefreshAll();
 
 		void
 		Activate();
+
 		void
 		Deactivate();
+
 		inline void
 		Reset();
+
 		static void
 		ResetAll();
+
 		static void
 		ResetYTimer();
 	}; //class YTimer;
@@ -6608,25 +6807,37 @@ $export $unit YGlobal "yglobal" //全局对象和函数定义。
 
 	struct Def
 	{
+		//默认消息发生函数。
 		static void
-		Idle(); //默认消息发生函数。
+		Idle();
 
+		//初始化屏幕。
 		static void
-		InitVideo(); //初始化屏幕。
+		InitVideo();
+
+		//默认屏幕初始化函数。
 		static void
-		InitScreenAll(); //默认屏幕初始化函数。
+		InitScreenAll();
+
+		//默认上屏初始化函数。
 		static void
-		InitScrUp(); //默认上屏初始化函数。
+		InitScrUp();
+
+		//默认下屏初始化函数。
 		static void
-		InitScrDown(); //默认下屏初始化函数。
+		InitScrDown();
+
+		//以指定前景色和背景色初始化指定屏幕的控制台。
 		static bool
-		InitConsole(YScreen&, Drawing::PixelType, Drawing::PixelType); //以指定前景色和背景色初始化指定屏幕的控制台。
+		InitConsole(YScreen&, Drawing::PixelType, Drawing::PixelType);
 
+		//资源释放函数。
 		static void
-		Destroy(YObject&, const MEventArgs&); //资源释放函数。
+		Destroy(YObject&, const MEventArgs&);
 
+		//公共消息处理函数。
 		static LRES
-		ShlProc(HSHL, const Message&); //公共消息处理函数。
+		ShlProc(HSHL, const Message&);
 	}; //struct Def;
 
 	//全局函数。
@@ -6758,13 +6969,13 @@ $header Adaptor::YAdaptor
 
 	namespace Drawing
 	{
-		using platform::BitmapPtr;
-		using platform::ConstBitmapPtr;
+		using platform::BitmapPtr, ConstBitmapPtr;
 		using platform::Color;
+		namespace ColorSpace = platform::ColorSpace;
 	} //namespace Drawing;
 	namespace Runtime
 	{
-		using platform::Key;
+		namespace KeySpace = platform::KeySpace;
 		using platform::KeysInfo;
 		using platform::CursorInfo;
 	} //namespace Runtime;
@@ -6821,6 +7032,7 @@ $header Shell::YWidget : Shell::YComponent, Core::YResource
 	namespace Components
 	{
 		using Drawing::PixelType, Drawing::BitmapPtr, Drawing::ConstBitmapPtr, Drawing::ScreenBufferType, Drawing::Color;
+		namespace ColorSpace = Drawing::ColorSpace;
 
 		using Drawing::Point, Drawing::Vec, Drawing::Size, Drawing::Rect;
 		using Drawing::YImage;

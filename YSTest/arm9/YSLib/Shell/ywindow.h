@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40 + 08:00;
-// UTime = 2010-10-19 15:38 + 08:00;
-// Version = 0.3528;
+// UTime = 2010-10-22 13:54 + 08:00;
+// Version = 0.3542;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -95,6 +95,8 @@ class AWindow : public Controls::AVisualControl, public MWindow,
 	virtual implements IWindow
 {
 public:
+	typedef Controls::AVisualControl ParentType;
+
 	explicit
 	AWindow(const Rect& = Rect::Empty, const GHResource<YImage> = new YImage(),
 		YDesktop* = ::YSLib::pDefaultDesktop, HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
@@ -131,17 +133,22 @@ public:
 
 	PDefH(void, Fill, PixelType c)
 		ImplBodyMemberVoid(Buffer, Fill, c) //以纯色填充显示缓冲区。
+
 	bool
 	DrawBackgroundImage();
+
 	ImplI(IWindow) void
 	DrawBackground();
-	//ImplI(IWindow)
+
+	ImplA(IWindow)
 	DeclIEntry(bool DrawWidgets())
+
 	ImplI(IWindow) void
 	Draw();
 
 	ImplI(IWindow) void
 	Refresh();
+
 	ImplI(IWindow) void
 	Update();
 
@@ -150,12 +157,16 @@ public:
 
 	virtual void
 	UpdateToScreen() const; //更新至屏幕。
+
 	virtual void
 	UpdateToWindow() const; //更新至上层窗口缓冲区。
+
 	void
 	UpdateToScreen(YDesktop&) const; //更新至指定桌面所在的屏幕。
+
 	void
 	UpdateToWindow(IWindow&) const; //更新至指定窗口缓冲区。
+
 	void
 	Show();
 };

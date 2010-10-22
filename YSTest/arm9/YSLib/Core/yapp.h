@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:27 + 08:00;
-// UTime = 2010-10-17 00:47 + 08:00;
-// Version = 0.1851;
+// UTime = 2010-10-22 13:07 + 08:00;
+// Version = 0.1854;
 
 
 #ifndef INCLUDED_YAPP_H_
@@ -103,10 +103,13 @@ public:
 	bool
 	SetShellHandle(HSHL h); //设置线程空间中当前运行的 Shell 的句柄。
 
+	//复位线程：设置当前运行的线程为主线程。
 	void
-	ResetShellHandle() ythrow(); //复位线程：设置当前运行的线程为主线程。
+	ResetShellHandle() ythrow();
+
+	//启动线程消息循环。
 //	void
-//	Run(HSHL); //启动线程消息循环。
+//	Run(HSHL);
 };
 
 inline YApplication*

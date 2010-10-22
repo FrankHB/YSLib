@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YForm by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-04-30 00:51:36 + 08:00;
-// UTime = 2010-10-05 17:51 + 08:00;
-// Version = 0.1426;
+// UTime = 2010-10-22 13:37 + 08:00;
+// Version = 0.1428;
 
 
 #include "yform.h"
@@ -47,11 +47,13 @@ YForm::DrawBackground()
 
 //	Client.DrawBackground();
 }
+
 void
 YForm::DrawForeground()
 {
 	YFrameWindow::DrawForeground();
 //	Client.DrawForeground();
+
 }
 void
 YForm::Draw()

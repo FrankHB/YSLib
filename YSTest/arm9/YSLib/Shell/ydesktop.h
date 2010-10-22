@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-05-02 12:00:08 + 08:00;
-// UTime = 2010-10-13 16:46 + 08:00;
-// Version = 0.2026;
+// UTime = 2010-10-22 13:36 + 08:00;
+// Version = 0.2038;
 
 
 #ifndef INCLUDED_YDESKTOP_H_
@@ -47,12 +47,19 @@ public:
 	operator-=(IVisualControl&); //从桌面对象组中移除指定桌面对象。
 	DOs::size_type
 	RemoveAll(IVisualControl&); //从桌面对象组中移除所有指定桌面对象，返回移除的对象数。
+
+	//从桌面对象组中查找指定桌面对象对象并重新插入至顶端。
 	bool
-	MoveToTop(IVisualControl&); //从桌面对象组中查找指定桌面对象对象并重新插入至顶端。
+	MoveToTop(IVisualControl&);
+
+	//移除桌面对象组中首个桌面对象。
 	void
-	RemoveTopDesktopObject(); //移除桌面对象组中首个桌面对象。
+	RemoveTopDesktopObject();
+
+	//清除桌面对象组。
 	void
-	ClearDesktopObjects(); //清除桌面对象组。
+	ClearDesktopObjects();
+
 	IVisualControl*
 	GetFirstDesktopObjectPtr() const; //取得桌面对象组中首个桌面对象的句柄。
 	IVisualControl*
@@ -62,15 +69,20 @@ public:
 
 	virtual void
 	DrawBackground();
+
+	//依次绘制桌面对象组对象。
 	void
-	DrawDesktopObjects(); //依次绘制桌面对象组对象。
+	DrawDesktopObjects();
+
 	virtual void
 	Draw();
 
 	virtual void
 	Refresh();
+
+	//更新缓冲区内容至屏幕。
 	virtual void
-	Update(); //更新缓冲区内容至屏幕。
+	Update();
 };
 
 YSL_END_NAMESPACE(Components)

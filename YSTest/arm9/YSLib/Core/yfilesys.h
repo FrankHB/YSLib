@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-28 00:09:28 + 08:00;
-// UTime = 2010-10-16 13:58 + 08:00;
-// Version = 0.1836;
+// UTime = 2010-10-22 13:09 + 08:00;
+// Version = 0.1838;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -431,11 +431,13 @@ public:
 	DefGetter(const Path&, Directory, Directory) //取目录的完整路径。
 	DefGetter(const ListType&, List, List) //取项目列表。
 
+	//在目录中取子项目。
 	ListType::size_type
-	LoadSubItems(); //在目录中取子项目。
+	LoadSubItems();
 
+	//遍历目录中的项目，更新至列表。
 	ListType::size_type
-	ListItems(); //遍历目录中的项目，更新至列表。
+	ListItems();
 };
 
 inline bool

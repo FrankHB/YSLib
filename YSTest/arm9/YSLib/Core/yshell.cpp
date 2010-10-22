@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15 + 08:00;
-// UTime = 2010-10-09 10:40 + 08:00;
-// Version = 0.2757;
+// UTime = 2010-10-22 13:14 + 08:00;
+// Version = 0.2758;
 
 
 #include "../Shell/ywindow.h"
@@ -67,6 +67,7 @@ YShell::RemoveWindow()
 {
 	sWnds.pop_back();
 }
+
 HWND
 YShell::GetFirstWindowHandle() const
 {

@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::Base by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-09 09:25:27 + 08:00;
-// UTime = 2010-10-17 00:15 + 08:00;
-// Version = 0.1925;
+// UTime = 2010-10-22 12:22 + 08:00;
+// Version = 0.1985;
 
 
 #ifndef INCLUDED_BASE_H_
@@ -59,21 +59,26 @@
 
 #define DeclInterface(_name) _yInterface _name _yInterfaceHead(_name)
 
-//对于基接口需要显示指定访问权限和继承方式。由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
-// ImplI = implements interface;
+//对于基接口需要显式指定访问权限和继承方式。由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
+// ImplI = Implements Interface;
+//抽象实现：保留接口供派生类实现（可以提供接口函数的默认实现）。
+// ImplA = Implements Abstractly;
 #ifdef __GNUC__
 #	define DeclBasedInterface(_name, _base...) \
 	_yInterface _name : _base _yInterfaceHead(_name)
 #	define ImplI(_interface, ...) virtual
+#	define ImplA(_interface, ...)
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #	define DeclBasedInterface(_name, _base, ...) \
 	_yInterface _name : _base, __VA_ARGS__ _yInterfaceHead(_name)
 #	define ImplI(_interface, ...) virtual
+#	define ImplA(_interface, ...)
 #else
 //注意 ISO/IEC C++ 不支持宏的可变参数列表，因此无法实现接口多继承。
 #	define DeclBasedInterface(_name, _base) \
 	_yInterface _name : _base _yInterfaceHead(_name)
 #	define ImplI(_interface) virtual
+#	define ImplA(_interface)
 #endif
 
 //"DeclIEntry" = Declare Interface Entry;

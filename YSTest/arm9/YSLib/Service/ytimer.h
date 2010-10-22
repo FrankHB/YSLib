@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTimer by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-06-05 10:28:58 + 08:00;
-// UTime = 2010-10-15 13:00 + 08:00;
-// Version = 0.1478;
+// UTime = 2010-10-22 13:25 + 08:00;
+// Version = 0.1485;
 
 
 #ifndef INCLUDED_YTIMER_H_
@@ -47,8 +47,10 @@ public:
 private:
 	static void
 	InitializeSystemTimer();
+
 	static void
 	ResetSystemTimer();
+
 	static void
 	Synchronize();
 
@@ -58,17 +60,22 @@ private:
 public:
 	bool
 	Refresh();
+
 	static bool
 	RefreshAll();
 
 	void
 	Activate();
+
 	void
 	Deactivate();
+
 	void
 	Reset();
+
 	static void
 	ResetAll();
+
 	static void
 	ResetYTimer();
 };

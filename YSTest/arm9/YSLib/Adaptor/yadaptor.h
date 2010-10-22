@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YAdaptor by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-22 20:16:21 + 08:00;
-// UTime = 2010-10-09 10:12 + 08:00;
-// Version = 0.1868;
+// UTime = 2010-10-21 12:51 + 08:00;
+// Version = 0.1874;
 
 
 #ifndef INCLUDED_YADAPTOR_H_
@@ -57,12 +57,13 @@ YSL_BEGIN_NAMESPACE(Drawing)
 	using platform::ConstBitmapPtr;
 	using platform::ScreenBufferType;
 	using platform::Color;
+	namespace ColorSpace = platform::ColorSpace;
 
 YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Runtime)
 
-	using platform::Key;
+	namespace KeySpace = platform::KeySpace;
 	using platform::KeysInfo;
 	using platform::CursorInfo;
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:34 + 08:00;
-// UTime = 2010-10-18 20:54 + 08:00;
-// Version = 0.3616;
+// UTime = 2010-10-22 13:31 + 08:00;
+// Version = 0.3631;
 
 
 #include "ycontrol.h"
@@ -58,6 +58,7 @@ AVisualControl::RequestFocus(const MEventArgs& e)
 	if(p && AFocusRequester::RequestFocus(*p))
 		EventMap[EControl::GotFocus](*this, e);
 }
+
 void
 AVisualControl::ReleaseFocus(const MEventArgs& e)
 {
@@ -72,11 +73,13 @@ AVisualControl::OnGotFocus(const MEventArgs&)
 {
 	Refresh();
 }
+
 void
 AVisualControl::OnLostFocus(const MEventArgs& e)
 {
 	Refresh();
 }
+
 void
 AVisualControl::OnKeyHeld(const Runtime::MKeyEventArgs& e)
 {
@@ -85,22 +88,25 @@ AVisualControl::OnKeyHeld(const Runtime::MKeyEventArgs& e)
 	if(RepeatHeld(KeyHeldState, e, 240, 120))
 		KeyDown(*this, e);
 }
+
 void
 AVisualControl::OnTouchDown(const MTouchEventArgs& e)
 {
 	RequestFocus(e);
 }
+
 void
 AVisualControl::OnTouchHeld(const Runtime::MTouchEventArgs& e)
 {
 	using namespace InputStatus;
-	bool b(RepeatHeld(TouchHeldState, e, 0, 0));
+	bool b(RepeatHeld(TouchHeldState, e.GetKey(), 0, 0));
 
 	if(!IsOnDragging())
 		SetDragOffset(GetLocation() - e);
 	else if(b && GetLocation() != e + GetDragOffset())
 		TouchMove(*this, e);
 }
+
 void
 AVisualControl::OnTouchMove(const Runtime::MTouchEventArgs& e)
 {
@@ -120,20 +126,6 @@ MScrollBar::MScrollBar(SDST blMaxThumbSize, SDST blPrev, SDST blNext)
 	: MinThumbSize(blMaxThumbSize), PrevButtonSize(blPrev), NextButtonSize(blNext),
 	bPrevButtonPressed(false), bNextButtonPressed(false)
 {}
-
-
-AScrollBar::AScrollBar(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
-	SDST blMaxThumbSize, SDST blPrev, SDST blNext)
-	: AVisualControl(hWnd, r, pCon), MScrollBar(blMaxThumbSize, blPrev, blNext)
-{}
-
-void
-AScrollBar::DrawForeground()
-{
-	DrawPrevButton();
-	DrawNextButton();
-	DrawScrollArea();
-}
 
 YSL_END_NAMESPACE(Controls)
 

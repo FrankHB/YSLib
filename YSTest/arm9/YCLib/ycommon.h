@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28 + 08:00;
-// UTime = 2010-10-06 13:24 + 08:00;
-// Version = 0.2105;
+// UTime = 2010-10-21 12:54 + 08:00;
+// Version = 0.2167;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -98,12 +98,8 @@ namespace platform
 
 
 	//系统默认颜色空间。
-	class Color
+	namespace ColorSpace
 	{
-	public:
-		typedef enum ColorSet
-		{
-
 	//	#define DefColorA(r, g, b, name) name = ARGB16(1, r, g, b),
 		#define	HexAdd0x(hex) 0x##hex
 		#define DefColorH_(hex, name) name = RGB8(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF)) | BITALPHA
@@ -111,6 +107,8 @@ namespace platform
 	
 		//参考：http://www.w3schools.com/html/html_colornames.asp 。
 
+		typedef enum ColorSet
+		{
 			DefColorH(00FFFF, Aqua)
 			DefColorH(000000, Black)
 			DefColorH(0000FF, Blue)
@@ -127,12 +125,17 @@ namespace platform
 			DefColorH(008080, Teal)
 			DefColorH(FFFFFF, White)
 			DefColorH(FFFF00, Yellow)
+		} ColorSet;
 
 		#undef DefColorH
 		#undef DefColorH_
 		#undef HexAdd0x
+	}
 
-		} ColorSet;
+	class Color
+	{
+	public:
+		typedef ColorSpace::ColorSet ColorSet;
 
 	private:
 		PixelType _value;
@@ -160,10 +163,9 @@ namespace platform
 	}
 
 
-	//按键集合。
-	class Key
+	namespace KeySpace
 	{
-	public:
+		//按键集合。
 		typedef enum KeySet
 		{
 			Empty	= 0,
@@ -182,19 +184,25 @@ namespace platform
 			Touch	= KEY_TOUCH,
 			Lid		= KEY_LID
 		} KeySet;
+
+		//按键别名。
+		const KeySet
+			Enter = A,
+			ESC = B,
+			PgUp = L,
+			PgDn = R;
+	}
+
+
+	class Key
+	{
+	public:
 		typedef u32 InputType;
 
 	private:
 		InputType _value;
 
 	public:
-		//按键别名。
-		static const KeySet
-			Enter = A,
-			ESC = B,
-			PgUp = L,
-			PgDn = R;
-
 		Key(InputType = 0);
 
 		operator InputType() const;
@@ -248,7 +256,7 @@ namespace platform
 
 	//调试模式：显示控制台（fc 为前景色，bc 为背景色）。
 	void
-	YDebugBegin(Color fc = Color::White, Color bc = Color::Blue);
+	YDebugBegin(Color fc = ColorSpace::White, Color bc = ColorSpace::Blue);
 
 	//调试模式：按键继续。
 	void
@@ -432,7 +440,7 @@ namespace platform
 
 	//启动控制台（fc 为前景色，bc为背景色）。
 	void
-	YConsoleInit(u8 dspIndex, Color fc = Color::White, Color bc = Color::Black);
+	YConsoleInit(u8 dspIndex, Color fc = ColorSpace::White, Color bc = ColorSpace::Black);
 
 	//输出控制台字（int 型数据）。
 	inline void

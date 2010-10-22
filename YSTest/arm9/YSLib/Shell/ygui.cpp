@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-20 09:21 + 08:00;
-// Version = 0.2842;
+// UTime = 2010-10-21 20:35 + 08:00;
+// Version = 0.2872;
 
 
 #include "ygui.h"
@@ -170,12 +170,6 @@ namespace
 	{
 		using namespace ExOp;
 
-	/*	if(bEntered && p_TouchDown != NULL && ExtraOperation != TouchUp && ExtraOperation != TouchHeld)
-		{
-			pt = p_TouchDown->GetLocation();
-			return p_TouchDown;
-		}*/
-
 		IWidgetContainer* pCon(&con);
 		IVisualControl* p;
 
@@ -193,19 +187,19 @@ namespace
 				pCon->ClearFocusingPtr();
 			}
 		}
+		p = p != NULL ? p : dynamic_cast<IVisualControl*>(pCon);
 		if(ExtraOperation == TouchHeld)
 		{
 			if(p_TouchDown != p)
 			{
 				if(bEntered)
 					TryLeave(*p_TouchDown, pt);
-				return NULL;
 			}
 			else if(!bEntered)
 				TryEnter(*p, pt);
 			return p_TouchDown;
 		}
-		return p != NULL ? p : dynamic_cast<IVisualControl*>(pCon);
+		return p;
 	}
 
 	IVisualControl*
@@ -341,18 +335,11 @@ YSL_END_NAMESPACE(Runtime)
 YSL_BEGIN_NAMESPACE(Drawing)
 
 void
-DrawBounds(const Graphics& g, const Point& location, const Size& size, Color c)
-{
-	if(size.GetWidth() > 1 && size.GetHeight() > 1)
-		DrawRect(g, location, Size(size - Vec(1, 1)), c);
-}
-
-void
 DrawWindowBounds(HWND hWnd, Color c)
 {
 	Graphics g(GetGraphicInterfaceContext(hWnd));
 
-	DrawBounds(g, Point::Zero, hWnd->GetSize(), c);
+	DrawRect(g, Point::Zero, hWnd->GetSize(), c);
 }
 
 void
@@ -362,7 +349,7 @@ DrawWidgetBounds(IWidget& w, Color c)
 	{
 		Graphics g(GetGraphicInterfaceContext(w.GetWindowHandle()));
 
-		DrawBounds(g, w.GetLocation(), w.GetSize(), c);
+		DrawRect(g, w.GetLocation(), w.GetSize(), c);
 	}
 }
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-10-19 15:40 + 08:00;
-// Version = 0.1145;
+// UTime = 2010-10-23 13:44 + 08:00;
+// Version = 0.1171;
 
 
 #ifndef INCLUDED_YGUICOMP_H_
@@ -25,7 +25,7 @@ YSL_END_NAMESPACE(Widgets)
 
 YSL_BEGIN_NAMESPACE(Controls)
 
-//按钮：V0.2740。
+//按钮： V0.2740 。
 class YButton : public GMCounter<YButton>, public YVisualControl, public MButton, public Widgets::MLabel
 {
 public:
@@ -52,10 +52,13 @@ public:
 
 	virtual void
 	OnEnter(const Runtime::MInputEventArgs&);
+
 	virtual void
 	OnLeave(const Runtime::MInputEventArgs&);
+
 	virtual void
 	OnKeyDown(const Runtime::MKeyEventArgs&);
+
 	virtual void
 	OnClick(const Runtime::MTouchEventArgs&);
 };
@@ -70,20 +73,64 @@ YButton::YButton(HWND hWnd, const _tChar* l, const Rect& r,
 }
 
 
-//水平滚动条。
-class YHorizontalScrollBar : public AScrollBar
+//滚动条： V0.2125 。
+class AScrollBar : public AVisualControl, public MScrollBar
 {
 public:
+	typedef AVisualControl ParentType;
+
+	explicit
+	AScrollBar(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+		SDST = 8, SDST = 16, SDST = 16);
+
+	DefGetter(SDST, ScrollAreaSize, GetWidth() - GetPrevButtonSize() - GetNextButtonSize())
+	DefGetter(SDST, ScrollAreaFixedSize, GetScrollAreaSize() - GetMinThumbSize())
+
+	ImplA(IVisualControl) // with an inline default implementation;
+	DeclIEntry(void DrawForeground())
+
+	ImplI(IVisualControl) void
+	RequestToTop()
+	{}
+/*
+	DeclIEntry(void DrawPrevButton())
+
+	DeclIEntry(void DrawNextButton())
+
+	DeclIEntry(void DrawScrollArea())
+*/
+};
+
+inline void
+AScrollBar::DrawForeground()
+{
+	AVisualControl::DrawForeground();
+}
+
+
+//水平滚动条。
+class YHorizontalScrollBar : public YComponent, public AScrollBar
+{
+public:
+	typedef YComponent ParentType;
+
 	explicit
 	YHorizontalScrollBar(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
-		SDST = 8, SDST = 10, SDST = 10);
+		SDST = 8, SDST = 16, SDST = 16);
 
+protected:
 	void
 	DrawPrevButton();
+
 	void
 	DrawNextButton();
+
 	void
 	DrawScrollArea();
+
+public:
+	void
+	DrawForeground();
 };
 
 
@@ -94,7 +141,7 @@ class YVerticalScrollBar
 };
 
 
-//文本列表框：V0.1605E。
+//文本列表框： V0.1605 。
 class YListBox : public GMCounter<YListBox>, public YVisualControl
 {
 public:
@@ -154,12 +201,14 @@ public:
 public:
 	virtual void
 	DrawBackground();
+
 	virtual void
 	DrawForeground();
 
 protected:
+	//检查相对于所在缓冲区的控件坐标是否在选择范围内，返回选择的项目索引。
 	ViewerType::IndexType
-	CheckPoint(SPOS, SPOS); //检查相对于所在缓冲区的控件坐标是否在选择范围内，返回选择的项目索引。
+	CheckPoint(SPOS, SPOS);
 
 public:
 	PDefH(void, ClearSelected)
@@ -168,18 +217,23 @@ public:
 private:
 	void
 	CallSelected();
+
 	void
 	CallConfirmed();
 
 public:
 	virtual void
 	OnKeyDown(const Runtime::MKeyEventArgs&);
+
 	virtual void
 	OnTouchDown(const Runtime::MTouchEventArgs&);
+
 	virtual void
 	OnClick(const Runtime::MTouchEventArgs&);
+
 	virtual void
 	OnSelected(const MIndexEventArgs&);
+
 	virtual void
 	OnConfirmed(const MIndexEventArgs&);
 };
@@ -191,7 +245,7 @@ YListBox::SetSelected(const Point& pt)
 }
 
 
-//文件列表框：V0.0854E。
+//文件列表框： V0.0854 。
 class YFileBox : public GMCounter<YFileBox>, public YListBox, public IO::MFileList
 {
 public:
@@ -209,11 +263,13 @@ public:
 
 	virtual void
 	DrawBackground();
+
 	virtual void
 	DrawForeground();
 
 	virtual void
 	OnTouchMove(const Runtime::MTouchEventArgs&);
+
 	virtual void
 	OnConfirmed(const MIndexEventArgs&);
 };

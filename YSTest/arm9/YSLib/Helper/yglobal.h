@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper::YGlobal by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:14:57 + 08:00;
-// UTime = 2010-10-04 22:13 + 08:00;
-// Version = 0.1611;
+// UTime = 2010-10-22 13:21 + 08:00;
+// Version = 0.1626;
 
 
 #ifndef INCLUDED_YGLOBAL_H_
@@ -37,25 +37,37 @@ typedef char FILENAMESTR[MAX_FILENAME_LENGTH];
 
 struct Def
 {
+	//默认消息发生函数。
 	static void
-	Idle(); //默认消息发生函数。
+	Idle();
 
+	//初始化屏幕。
 	static bool
-	InitVideo(); //初始化屏幕。
+	InitVideo();
+
+	//默认屏幕初始化函数。
 	static void
-	InitScreenAll(); //默认屏幕初始化函数。
+	InitScreenAll();
+
+	//默认上屏初始化函数。
 	static void
-	InitScrUp(); //默认上屏初始化函数。
+	InitScrUp();
+
+	//默认下屏初始化函数。
 	static void
-	InitScrDown(); //默认下屏初始化函数。
+	InitScrDown();
+
+	//以指定前景色和背景色初始化指定屏幕的控制台。
 	static bool
-	InitConsole(YScreen&, Drawing::PixelType, Drawing::PixelType); //以指定前景色和背景色初始化指定屏幕的控制台。
+	InitConsole(YScreen&, Drawing::PixelType, Drawing::PixelType);
 
+	//资源释放函数。
 	static void
-	Destroy(YObject&, const MEventArgs&); //资源释放函数。
+	Destroy(YObject&, const MEventArgs&);
 
+	//公共消息处理函数。
 	static LRES
-	ShlProc(HSHL, const Message&); //公共消息处理函数。
+	ShlProc(HSHL, const Message&);
 };
 
 //全局函数。

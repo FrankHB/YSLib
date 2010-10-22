@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46 + 08:00;
-// UTime = 2010-10-19 22:40 + 08:00;
-// Version = 0.2409;
+// UTime = 2010-10-22 13:41 + 08:00;
+// Version = 0.2419;
 
 
 #include "ygdi.h"
@@ -576,8 +576,8 @@ DrawLineSeg(const Graphics& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c)
 bool
 DrawRect(const Graphics& g, const Point& p, const Size& s, Color c)
 {
-	SPOS x1(p.GetX()), y1(p.GetY()),
-		x2(x1 + s.GetWidth()), y2(y1 + s.GetHeight());
+	SPOS x1(p.X), y1(p.Y),
+		x2(x1 + vmax<SPOS>(s.Width - 1, 0)), y2(y1 + vmax<SPOS>(s.Height - 1, 0));
 	bool b(DrawVLineSeg(g, x1, y1, y2, c));
 	b |= DrawHLineSeg(g, y2, x1, x2, c);
 	b |= DrawVLineSeg(g, x2, y2, y1, c);
@@ -692,6 +692,7 @@ MBitmapBuffer::ClearImage() const
 {
 	ClearPixel(img, GetArea());
 }
+
 void
 MBitmapBuffer::Fill(Color c) const
 {
@@ -800,6 +801,7 @@ MBitmapBufferEx::CopyToBuffer(BitmapPtr dst, ROT rot, const Size& ds,
 			sp, dp, sc);
 	}
 }
+
 void
 MBitmapBufferEx::BlitToBuffer(BitmapPtr dst, ROT rot, const Size& ds,
 							  const Point& sp, const Point& dp, const Size& sc) const

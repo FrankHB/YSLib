@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28 + 08:00;
-// UTime = 2010-10-19 15:50 + 08:00;
-// Version = 0.3090;
+// UTime = 2010-10-22 13:53 + 08:00;
+// Version = 0.3094;
 
 
 #include "ydesktop.h"
@@ -64,12 +64,14 @@ AWindow::DrawBackgroundImage()
 	}
 	return false;
 }
+
 void
 AWindow::DrawBackground()
 {
 	if(!DrawBackgroundImage())
 		Fill(BackColor);
 }
+
 void
 AWindow::Draw()
 {
@@ -112,6 +114,7 @@ AWindow::UpdateToScreen(YDesktop& d) const
 	if(Visible)
 		Buffer.CopyToBuffer(d.GetBackgroundPtr(), RDeg0, d.GetSize(), Point::Zero, Location, Buffer);
 }
+
 void
 AWindow::UpdateToWindow(IWindow& w) const
 {
@@ -122,6 +125,7 @@ AWindow::UpdateToWindow(IWindow& w) const
 		Buffer.CopyToBuffer(g.GetBufferPtr(), RDeg0, g.GetSize(), Point::Zero, Location, Buffer);
 	}
 }
+
 void
 AWindow::Show()
 {

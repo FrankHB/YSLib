@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:02:40 + 08:00;
-// UTime = 2010-10-17 00:34 + 08:00;
-// Version = 0.6884;
+// UTime = 2010-10-22 13:06 + 08:00;
+// Version = 0.6901;
 
 
 #ifndef INCLUDED_YFONT_H_
@@ -172,8 +172,9 @@ public:
 	DefGetter(const char*, Path, path)
 	DefGetter(s32, FaceN, nFace)
 
+	//读取字体文件，载入全部字体。
 	void
-	ReloadFaces(); //读取字体文件，载入全部字体。
+	ReloadFaces();
 };
 
 
@@ -247,15 +248,21 @@ public:
 	void
 	SetFont(const Font&);
 
+	//更新字体缓存中当前处理的字体。
 	bool
-	Update(); //更新字体缓存中当前处理的字体。
-	void
-	UpdateSize(); //更新字体缓存中当前处理的字体大小。
+	Update();
 
+	//更新字体缓存中当前处理的字体大小。
+	void
+	UpdateSize();
+
+	//初始化默认字体。
 	static bool
-	InitializeDefault(); //初始化默认字体。
+	InitializeDefault();
+
+	//释放默认字体。
 	static void
-	ReleaseDefault(); //释放默认字体。
+	ReleaseDefault();
 };
 
 inline void
@@ -393,30 +400,40 @@ private:
 	ImplI(GIContainer<const FontFamily>) bool
 	operator-=(FontFamily&); //从字型家族组中移除指定字型对象。
 
+	//从字体文件组中载入字体信息。
 	void
-	LoadTypefaces(); //从字体文件组中载入字体信息。
+	LoadTypefaces();
+
+	//从指定字体文件中载入字体信息。
 	void
-	LoadTypefaces(const FontFile&); //从指定字体文件中载入字体信息。
+	LoadTypefaces(const FontFile&);
 
 public:
+	//读取字体文件目录并载入目录下指定后缀名的字体文件。
 	void
-	LoadFontFileDirectory(CPATH, CPATH = "ttf"); //读取字体文件目录并载入目录下指定后缀名的字体文件。
+	LoadFontFileDirectory(CPATH, CPATH = "ttf");
+
+	//按路径加入字体文件并载入字体信息。
 	void
-	LoadFontFile(CPATH) ythrow(); //按路径加入字体文件并载入字体信息。
+	LoadFontFile(CPATH) ythrow();
 
 private:
 	void
 	ClearFontFiles();
+
 	void
 	ClearTypefaces();
+
 	void
 	ClearFontFamilies();
+
 	void
 	ClearContainers();
 
 public:
+	//清除缓存。
 	void
-	ClearCache(); //清除缓存。
+	ClearCache();
 };
 
 

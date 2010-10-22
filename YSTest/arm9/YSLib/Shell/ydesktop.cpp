@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-05-02 12:00:08 + 08:00;
-// UTime = 2010-10-18 07:37 + 08:00;
-// Version = 0.2004;
+// UTime = 2010-10-22 13:34 + 08:00;
+// Version = 0.2011;
 
 
 #include "ydesktop.h"
@@ -60,6 +60,7 @@ YDesktop::RemoveAll(IVisualControl& w)
 	bRefresh = true;
 	return n;
 }
+
 bool
 YDesktop::MoveToTop(IVisualControl& w)
 {
@@ -73,6 +74,7 @@ YDesktop::MoveToTop(IVisualControl& w)
 	}
 	return false;
 }
+
 void
 YDesktop::RemoveTopDesktopObject()
 {
@@ -83,6 +85,7 @@ YDesktop::RemoveTopDesktopObject()
 		bRefresh = true;
 	}
 }
+
 void
 YDesktop::ClearDesktopObjects()
 {
@@ -90,6 +93,7 @@ YDesktop::ClearDesktopObjects()
 	sDOs.clear();
 	bRefresh = true;
 }
+
 IVisualControl*
 YDesktop::GetFirstDesktopObjectPtr() const
 {
@@ -131,6 +135,7 @@ YDesktop::DrawBackground()
 	}
 	Buffer.Fill(BackColor);
 }
+
 void
 YDesktop::DrawDesktopObjects()
 {
@@ -147,6 +152,7 @@ YDesktop::DrawDesktopObjects()
 		{}
 	}
 }
+
 void
 YDesktop::Draw()
 {
@@ -164,6 +170,7 @@ YDesktop::Refresh()
 		Draw();
 	}
 }
+
 void
 YDesktop::Update()
 {

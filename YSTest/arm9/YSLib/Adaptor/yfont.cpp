@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13 + 08:00;
-// UTime = 2010-10-13 15:38 + 08:00;
-// Version = 0.6906;
+// UTime = 2010-10-22 12:48 + 08:00;
+// Version = 0.6913;
 
 
 #include "yfont.h"
@@ -255,6 +255,7 @@ Font::Update()
 		return false;
 	return true;
 }
+
 void
 Font::UpdateSize()
 {
@@ -275,6 +276,7 @@ Font::InitializeDefault()
 	}
 	return pDefFont != NULL;
 }
+
 void
 Font::ReleaseDefault()
 {
@@ -452,6 +454,7 @@ YFontCache::LoadTypefaces()
 	for(FFiles::iterator i(sFiles.begin()); i != sFiles.end(); ++i)
 		LoadTypefaces(**i);
 }
+
 void
 YFontCache::LoadTypefaces(const FontFile& f)
 {
@@ -539,6 +542,7 @@ YFontCache::LoadFontFileDirectory(CPATH path, CPATH ext)
 	if(pDefaultFace)
 		SetTypeface(pDefaultFace);
 }
+
 void
 YFontCache::LoadFontFile(CPATH path) ythrow()
 {
@@ -566,12 +570,14 @@ YFontCache::ClearFontFiles()
 	for_each(sFiles.begin(), sFiles.end(), delete_obj());
 	sFiles.clear();
 }
+
 void
 YFontCache::ClearTypefaces()
 {
 	for_each(sTypes.begin(), sTypes.end(), delete_obj());
 	sTypes.clear();
 }
+
 void
 YFontCache::ClearFontFamilies()
 {
@@ -579,6 +585,7 @@ YFontCache::ClearFontFamilies()
 		delete i->second;
 	mFacesIndex.clear();
 }
+
 void
 YFontCache::ClearContainers()
 {

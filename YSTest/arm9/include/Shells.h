@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-17 22:48 + 08:00;
-// Version = 0.2772;
+// UTime = 2010-10-21 16:49 + 08:00;
+// Version = 0.2784;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -90,12 +90,14 @@ private:
 	{
 		YFileBox fbMain;
 		YButton btnTest, btnOK;
+		YHorizontalScrollBar sbTest;
 
 		TFrmFileListSelecter(HSHL hShl)
 		: YForm(Rect::FullScreen, GetImage(4), pDesktopDown, hShl),
 			fbMain(HWND(this), Rect(12, 10, 224, 150)),
-			btnTest(HWND(this), FS(" 测试(X)"), Rect(60, 165, 70, 22)),
-			btnOK(HWND(this), FS(" 确定(R)"), Rect(140, 165, 70, 22))
+			btnTest(HWND(this), FS(" 测试(X)"), Rect(115, 165, 65, 22)),
+			btnOK(HWND(this), FS(" 确定(R)"), Rect(185, 165, 65, 22)),
+			sbTest(HWND(this), Rect(10, 165, 95, 18))
 		{
 			KeyPress += &TFrmFileListSelecter::frm_KeyPress;
 		//	fbMain.TouchDown += YFileBox::OnClick;
@@ -150,8 +152,8 @@ public:
 
 	struct TFormA : public YForm
 	{
-		YButton lblA;
-		YButton lblA2;
+		YLabel lblA;
+		YLabel lblA2;
 
 		TFormA(HSHL hShl) : YForm(Rect::FullScreen, GetImage(5), pDesktopUp, hShl),
 			lblA(HWND(this), G_APP_NAME, Rect(left, 20, 200, size)),
@@ -176,11 +178,11 @@ public:
 			btnB2(HWND(this), FS("测试程序2"), Rect(45, 35, 124, size))
 		{
 			BackColor = ARGB16(1, 31, 31, 15);
-			TouchMove += &YVisualControl::OnTouchMove;
-		//	btnB.TouchMove += &YVisualControl::OnTouchMove;
+			TouchMove += &AVisualControl::OnTouchMove;
+		//	btnB.TouchMove += &AVisualControl::OnTouchMove;
 			btnB.Enter += btnB_Enter;
 			btnB.Leave += btnB_Leave;
-			btnB2.TouchMove += &YVisualControl::OnTouchMove;
+			btnB2.TouchMove += &AVisualControl::OnTouchMove;
 		//	btnB2.TouchDown += btnC_Click;
 
 		//	btnB.Enabled = false;
@@ -203,10 +205,10 @@ public:
 		{
 			BackColor = ARGB16(1, 31, 15, 15);
 			TouchDown += TFormC_TouchDown;
-			TouchMove += &YVisualControl::OnTouchMove;
+			TouchMove += &AVisualControl::OnTouchMove;
 			btnC.TouchUp.Add(*this, &TFormC::btnC_TouchUp);
 			btnC.TouchDown.Add(*this, &TFormC::btnC_TouchDown);
-			btnC.TouchMove += &YVisualControl::OnTouchMove;
+			btnC.TouchMove += &AVisualControl::OnTouchMove;
 			btnC.Click.Add(*this, &TFormC::btnC_Click);
 			btnC.KeyPress += btnC_KeyPress;
 		//	btnC.Enabled = false;

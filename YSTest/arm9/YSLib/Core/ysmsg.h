@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-06 02:44:31 + 08:00;
-// UTime = 2010-10-13 16:46 + 08:00;
-// Version = 0.1812;
+// UTime = 2010-10-22 13:18 + 08:00;
+// Version = 0.1819;
 
 
 #ifndef INCLUDED_YSMSG_H_
@@ -84,8 +84,9 @@ public:
 	SetParam(WPARAM, LPARAM); //设置消息参数。
 	DefSetter(std::clock_t, Timestamp, timestamp) //设置消息时间戳。
 
+	//更新消息时间戳。
 	void
-	UpdateTimestamp(); //更新消息时间戳。
+	UpdateTimestamp();
 };
 
 inline bool Message::operator!=(const Message& m) const
@@ -146,17 +147,25 @@ public:
 	PDefH(size_type, size) const //取队列中消息容量。
 		ImplBodyMember(q, size)
 
+	//从消息队列中取优先级最高的消息存至 m 中（不在队列中保留消息）。
 	void
-	GetMessage(Message& m); //从消息队列中取优先级最高的消息存至 m 中（不在队列中保留消息）。
-	void
-	PeekMessage(Message& m) const; //从消息队列中取优先级最高的消息存至 m 中（在队列中保留消息）。
+	GetMessage(Message& m);
 
-	size_type
-	Clear(); //清除消息队列，并返回清除的消息数。
+	//从消息队列中取优先级最高的消息存至 m 中（在队列中保留消息）。
 	void
-	Update(); //更新消息队列。
+	PeekMessage(Message& m) const;
+
+	//清除消息队列，并返回清除的消息数。
+	size_type
+	Clear();
+
+	//更新消息队列。
+	void
+	Update();
+
+	//若消息 m 有效，插入 m 至消息队列中。返回 m 是否有效。
 	bool
-	InsertMessage(const Message& m); //若消息 m 有效，插入 m 至消息队列中。返回 m 是否有效。
+	InsertMessage(const Message& m);
 };
 
 

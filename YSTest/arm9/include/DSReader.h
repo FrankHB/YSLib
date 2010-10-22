@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-05 14:03:47 + 08:00;
-// UTime = 2010-10-13 16:45 + 08:00;
-// Version = 0.2150;
+// UTime = 2010-10-22 13:27 + 08:00;
+// Version = 0.2153;
 
 
 #ifndef _DSREADER_H_
@@ -61,6 +61,7 @@ private:
 		pTrUp->ClearImage();
 		pTrDn->ClearImage();
 	}
+
 	//复位缓存区域写入位置。
 	void ResetPen()
 	{
@@ -95,7 +96,7 @@ public:
 	void
 	SetFontSize(Font::SizeType = Font::DefSize); //设置字符区域字体大小。
 	void
-	SetColor(Color = Color::Black); //设置字符颜色。
+	SetColor(Color = ColorSpace::Black); //设置字符颜色。
 	void
 	SetLineGap(u8 = 0); //设置行距。
 

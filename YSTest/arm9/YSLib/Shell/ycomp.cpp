@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-19 20:05:18 + 08:00;
-// UTime = 2010-10-14 08:35 + 08:00;
-// Version = 0.1827;
+// UTime = 2010-10-22 13:27 + 08:00;
+// Version = 0.1828;
 
 
 #include "ycomp.h"
@@ -27,6 +27,7 @@ AFocusRequester::RequestFocus(GMFocusResponser<AFocusRequester>& c)
 {
 	return !(bFocused && IsFocusOfContainer(c)) && (bFocused = c.SetFocusingPtr(this));
 }
+
 bool
 AFocusRequester::ReleaseFocus(GMFocusResponser<AFocusRequester>& c)
 {

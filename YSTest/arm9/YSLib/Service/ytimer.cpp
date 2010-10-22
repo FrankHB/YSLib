@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTimer by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-06-05 10:28:58 + 08:00;
-// UTime = 2010-10-15 12:57 + 08:00;
-// Version = 0.1480;
+// UTime = 2010-10-22 13:24 + 08:00;
+// Version = 0.1484;
 
 
 #include "ytimer.h"
@@ -30,6 +30,7 @@ YTimer::InitializeSystemTimer()
 	if(NotInitialized)
 		platform::ResetRTC();
 }
+
 void
 YTimer::ResetSystemTimer()
 {
@@ -74,11 +75,13 @@ YTimer::Activate()
 		nBase = SystemTick;
 	}
 }
+
 void
 YTimer::Deactivate()
 {
 	Timers[GetID()] = NULL;
 }
+
 void
 YTimer::ResetAll()
 {
@@ -86,6 +89,7 @@ YTimer::ResetAll()
 		if(i->second != NULL)
 			i->second->Reset();
 }
+
 void
 YTimer::ResetYTimer()
 {

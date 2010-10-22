@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YShellInitialization by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-10-21 23:15:08 + 08:00;
-// UTime = 2010-10-09 10:02 + 08:00;
-// Version = 0.1695;
+// UTime = 2010-10-21 12:11 + 08:00;
+// Version = 0.1696;
 
 
 #include "ysinit.h"
@@ -17,7 +17,7 @@ YSL_BEGIN
 void
 InitYSConsole()
 {
-	YConsoleInit(true, Color::Lime);
+	YConsoleInit(true, ColorSpace::Lime);
 }
 
 void

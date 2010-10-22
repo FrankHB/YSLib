@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-19 15:46 + 08:00;
-// Version = 0.4882;
+// UTime = 2010-10-22 13:52 + 08:00;
+// Version = 0.4900;
 
 
 #ifndef INCLUDED_YWIDGET_H_
@@ -26,6 +26,7 @@ using Drawing::BitmapPtr;
 using Drawing::ConstBitmapPtr;
 using Drawing::ScreenBufferType;
 using Drawing::Color;
+namespace ColorSpace = Drawing::ColorSpace;
 
 using Drawing::Point;
 using Drawing::Vec;
@@ -56,12 +57,17 @@ DeclInterface(IWidget)
 	DeclIEntry(void SetBgRedrawed(bool)) //设置重绘状态。
 	DeclIEntry(void SetLocation(const Point&)) //设置左上角所在位置（相对于容器的偏移坐标）。
 
-	DeclIEntry(void DrawBackground()) //绘制背景。
-	DeclIEntry(void DrawForeground()) //绘制前景。
+	//绘制背景。
+	DeclIEntry(void DrawBackground())
 
-	DeclIEntry(void Refresh()) //刷新至窗口缓冲区。
+	//绘制前景。
+	DeclIEntry(void DrawForeground())
 
-	DeclIEntry(void RequestToTop()) //请求提升至容器顶端。
+	//刷新至窗口缓冲区。
+	DeclIEntry(void Refresh())
+
+	//请求提升至容器顶端。
+	DeclIEntry(void RequestToTop())
 EndDecl
 
 
@@ -77,7 +83,8 @@ DeclBasedInterface(IWidgetContainer, virtual IWidget)
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&) const) //取指定的点（屏幕坐标）所处的部件的指针。
 	DeclIEntry(IVisualControl* GetTopVisualControlPtr(const Point&) const) //取指定的点（屏幕坐标）所处的焦点对象的指针。
 
-	DeclIEntry(void ClearFocusingPtr()) //清除焦点指针。
+	//清除焦点指针。
+	DeclIEntry(void ClearFocusingPtr())
 EndDecl
 
 
@@ -122,7 +129,7 @@ public:
 
 	explicit
 	MVisual(const Rect& = Rect::Empty,
-		Color = Color::White, Color = Color::Black);
+		Color = ColorSpace::White, Color = ColorSpace::Black);
 	virtual DefEmptyDtor(MVisual)
 
 private:
@@ -174,7 +181,7 @@ public:
 
 	explicit
 	MWidget(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
-		Color = Color::White, Color = Color::Black);
+		Color = ColorSpace::White, Color = ColorSpace::Black);
 
 	//判断从属关系。
 	bool
@@ -195,8 +202,10 @@ public:
 	Fill(); //以背景色填充显示缓冲区。
 	virtual void
 	Fill(Color); //以纯色填充显示缓冲区。
+
 	virtual void
 	DrawBackground();
+
 	virtual void
 	DrawForeground();
 
@@ -254,7 +263,8 @@ public:
 
 	ImplI(IWidget) PDefH(void, DrawBackground)
 		ImplBodyBaseVoid(MWidget, DrawBackground)
-	ImplI(IWidget) PDefH(void, DrawForeground)
+
+		ImplI(IWidget) PDefH(void, DrawForeground)
 		ImplBodyBaseVoid(MWidget, DrawForeground)
 
 	ImplI(IWidget) PDefH(void, Refresh)
@@ -355,6 +365,7 @@ public:
 
 	ImplI(IWidgetContainer) PDefH(void, DrawBackground)
 		ImplBodyBaseVoid(MWidget, DrawBackground)
+
 	ImplI(IWidgetContainer) PDefH(void, DrawForeground)
 		ImplBodyBaseVoid(MWidget, DrawForeground)
 

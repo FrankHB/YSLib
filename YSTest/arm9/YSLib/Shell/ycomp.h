@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-19 20:05:08 + 08:00;
-// UTime = 2010-10-17 11:03 + 08:00;
-// Version = 0.2663;
+// UTime = 2010-10-22 13:30 + 08:00;
+// Version = 0.2679;
 
 
 #ifndef INCLUDED_YCOMPONENT_H_
@@ -167,6 +167,7 @@ public:
 	template<class _type>
 	bool
 	RequestFocus(GMFocusResponser<_type>&);
+
 	//释放焦点。
 	ImplI(GIFocusRequester<AFocusRequester>) bool
 	ReleaseFocus(GMFocusResponser<AFocusRequester>&);
@@ -174,7 +175,7 @@ public:
 	bool
 	ReleaseFocus(GMFocusResponser<_type>&);
 
-	//ImplI(GIFocusRequester<AFocusRequester>)
+	ImplA(GIFocusRequester<AFocusRequester>)
 	DeclIEntry(void ReleaseFocus(const MEventArgs&))
 };
 
@@ -330,8 +331,9 @@ public:
 		return false;
 	}
 
+	//取消选中状态。
 	bool
-	ClearSelected() //取消选中状态。
+	ClearSelected()
 	{
 		if(IsSelected())
 		{
@@ -341,8 +343,9 @@ public:
 		return false;
 	}
 
+	//约束被选中的元素在视图内。
 	bool
-	RestrictSelected() //约束被选中的元素在视图内。
+	RestrictSelected()
 	{
 		if(nIndex < 0)
 			return false;
@@ -354,8 +357,10 @@ public:
 			return false;
 		return true;
 	}
+
+	//约束视图包含被选中的元素。
 	bool
-	RestrictViewer() //约束视图包含被选中的元素。
+	RestrictViewer()
 	{
 		if(nIndex < 0)
 			return false;
@@ -368,8 +373,9 @@ public:
 		return true;
 	}
 
+	//移动视图至序列起始。
 	bool
-	MoveViewerToBegin() //移动视图至序列起始。
+	MoveViewerToBegin()
 	{
 		if(nIndex)
 		{
@@ -378,8 +384,10 @@ public:
 		}
 		return false;
 	}
+
+	//移动视图至序列结尾。
 	bool
-	MoveViewerToEnd() //移动视图至序列结尾。
+	MoveViewerToEnd()
 	{
 		if(GetTotal() >= nLength)
 		{
@@ -398,12 +406,12 @@ public:
 	YScreen& Screen;
 
 	explicit
-	YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::Color = Drawing::Color::White, Drawing::Color = Drawing::Color::Black);
+	YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::Color = Drawing::ColorSpace::White, Drawing::Color = Drawing::ColorSpace::Black);
 	virtual
 	~YConsole();
 
 	void
-	Activate(Drawing::Color = Drawing::Color::White, Drawing::Color = Drawing::Color::Black);
+	Activate(Drawing::Color = Drawing::ColorSpace::White, Drawing::Color = Drawing::ColorSpace::Black);
 
 	void
 	Deactivate();

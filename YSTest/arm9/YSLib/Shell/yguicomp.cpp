@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-10-19 22:37 + 08:00;
-// Version = 0.1342;
+// UTime = 2010-10-22 13:43 + 08:00;
+// Version = 0.1474;
 
 
 #include "yguicomp.h"
@@ -32,37 +32,108 @@ namespace
 	}
 
 	void
-	RectDrawFocus(HWND hWnd, const Point& l, const Size& s)
+	WndDrawFocus(HWND hWnd, const Size& s)
 	{
 		YAssert(hWnd, "err: @hWnd is null.");
 
-		DrawWindowBounds(hWnd, Color::Fuchsia);
+		DrawWindowBounds(hWnd, ColorSpace::Fuchsia);
 
 		IWidget* pWgt(hWnd->GetFocusingPtr());
 
 		if(pWgt != NULL)
-			DrawWidgetBounds(*pWgt, Color::Aqua);
-
-	//	const Graphics g(*hWnd);
+			DrawWidgetBounds(*pWgt, ColorSpace::Aqua);
 	}
 
 	void
-	RectDrawPressed(const Graphics& g, const Point& l, const Size& s)
+	RectDrawArrow(const Graphics& g, const Point& p, SDST halfSize, ROT rot = RDeg0, Color c = ColorSpace::Black)
 	{
-		transRect()(g.GetBufferPtr(), g.GetSize(), Rect(l, s), transPixelEx, transSeq());
-	}
+		YAssert(g.IsValid(), "err: @g is not valid.");
 
-	void
-	RectDrawButtonSurface(const Graphics& g, const Point& l, const Size& s)
-	{
-		FillRect(g, l, s, Color(48, 216, 255));
-		if(s.GetWidth() > 4 && s.GetHeight() > 4)
+		SDST x(p.X), y(p.Y);
+
+		switch(rot)
 		{
-			Size sz(s.GetWidth() - 4, (s.GetHeight() - 4) >> 1);
-			Point sp(l.GetX() + 2, l.GetY() + 2);
+		case RDeg0:
+			{
+				SDST t(p.Y);
+
+				for(SDST i(0); i < halfSize; ++i)
+					DrawVLineSeg(g, x--, y--, t++, c);
+			}
+			break;
+		case RDeg90:
+			{
+				SDST t(p.X);
+
+				for(SDST i(0); i < halfSize; ++i)
+					DrawHLineSeg(g, y++, x--, t++, c);
+			}
+			break;
+		case RDeg180:
+			{
+				SDST t(p.Y);
+
+				for(SDST i(0); i < halfSize; ++i)
+					DrawVLineSeg(g, x++, y--, t++, c);
+			}
+			break;
+		case RDeg270:
+			{
+				SDST t(p.X);
+
+				for(SDST i(0); i < halfSize; ++i)
+					DrawHLineSeg(g, y--, x--, t++, c);
+			}
+			break;
+		}
+	}
+
+	void
+	WndDrawArrow(HWND hWnd, const Rect& r, SDST halfSize, ROT rot = RDeg0, Color c = ColorSpace::Black)
+	{
+		YAssert(hWnd, "err: @hWnd is null.");
+
+		SPOS x(r.X), y(r.Y);
+
+		switch(rot)
+		{
+		case RDeg0:
+			x += r.Width - 11;
+		case RDeg180:
+			x += 5;
+			y += (r.Height >> 1) + 1;
+			break;
+		case RDeg90:
+			y += r.Height - 11;
+		case RDeg270:
+			y += 5;
+			x += (r.Width >> 1) + 1;
+			break;
+		}
+		RectDrawArrow(Graphics(*hWnd), Point(x, y), halfSize, rot, c);
+	}
+
+	void
+	RectDrawPressed(const Graphics& g, const Point& p, const Size& s)
+	{
+		YAssert(g.IsValid(), "err: @g is not valid.");
+
+		transRect()(g.GetBufferPtr(), g.GetSize(), Rect(p, s), transPixelEx, transSeq());
+	}
+
+	void
+	RectDrawButtonSurface(const Graphics& g, const Point& p, const Size& s)
+	{
+		YAssert(g.IsValid(), "err: @g is not valid.");
+
+		FillRect(g, p, s, Color(48, 216, 255));
+		if(s.Width > 4 && s.Height > 4)
+		{
+			Size sz(s.Width - 4, (s.Height - 4) >> 1);
+			Point sp(p.X + 2, p.Y + 2);
 
 			FillRect(g, sp, sz, Color(232, 240, 255));
-			FillRect(g, Point(sp.GetX(), static_cast<SPOS>(sp.GetY() + sz.GetHeight())), sz, Color(192, 224, 255));
+			FillRect(g, Point(sp.X, sp.Y + sz.Height), sz, Color(192, 224, 255));
 		}
 	}
 }
@@ -92,7 +163,7 @@ YButton::DrawForeground()
 		if(bPressed)
 			RectDrawPressed(g, GetLocation(), GetSize());
 		if(bFocused)
-			RectDrawFocus(hWnd, GetLocation(), GetSize());
+			WndDrawFocus(hWnd, GetSize());
 		PaintText(*this);
 	}
 }
@@ -103,50 +174,64 @@ YButton::OnEnter(const Runtime::MInputEventArgs&)
 	bPressed = true;
 	Refresh();
 }
+
 void
 YButton::OnLeave(const Runtime::MInputEventArgs&)
 {
 	bPressed = false;
 	Refresh();
 }
+
 void
 YButton::OnKeyDown(const Runtime::MKeyEventArgs&)
 {}
+
 void
 YButton::OnClick(const Runtime::MTouchEventArgs&)
 {}
 
 
+AScrollBar::AScrollBar(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
+	SDST blMaxThumbSize, SDST blPrev, SDST blNext)
+	: AVisualControl(hWnd, r, pCon), MScrollBar(blMaxThumbSize, blPrev, blNext)
+{}
+
+
 YHorizontalScrollBar::YHorizontalScrollBar(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
 	SDST blMaxThumbSize, SDST blPrev, SDST blNext)
-	: AScrollBar(hWnd, r, pCon, blMaxThumbSize, blPrev, blNext)
-{
-
-}
+	: YComponent(),
+	AScrollBar(hWnd, r, pCon, blMaxThumbSize, blPrev, blNext)
+{}
 
 void
 YHorizontalScrollBar::DrawPrevButton()
 {
-	Color c(Color::Red);
-//	Rect r(GetLocation(), GetPrevButtonSize(), GetHeight());
-
-//	DrawRect(const Graphics(*GetWindowHandle()), r, c);
+	RectDrawButtonSurface(Graphics(*GetWindowHandle()), GetLocation(), Drawing::Size(GetPrevButtonSize(), GetHeight()));
+	WndDrawArrow(GetWindowHandle(), GetBounds(), 5, RDeg180, ForeColor);
 }
+
 void
 YHorizontalScrollBar::DrawNextButton()
 {
-	Color c(Color::Green);
-//	Rect r(GetLocation() + Vec(GetWidth() - GetNextButtonSize(), 0), GetNextButtonSize(), GetHeight());
-
-//	DrawRect(const Graphics(*GetWindowHandle()), r, c);
+	RectDrawButtonSurface(Graphics(*GetWindowHandle()), GetLocation() + Vec(GetWidth() - GetNextButtonSize(), 0), Drawing::Size(GetNextButtonSize(), GetHeight()));
+	WndDrawArrow(GetWindowHandle(), GetBounds(), 5, RDeg0, ForeColor);
 }
+
 void
 YHorizontalScrollBar::DrawScrollArea()
 {
-	Color c(Color::Blue);
-//	Rect r(GetLocation() + Vec(GetPrevButtonSize(), 0), GetScrollAreaSize(), GetHeight());
+	DrawRect(Graphics(*GetWindowHandle()),
+		Rect(GetLocation() + Vec(GetPrevButtonSize(), 0), GetScrollAreaSize(), GetHeight()),
+		ColorSpace::Blue);
+}
 
-//	DrawRect(const Graphics(*GetWindowHandle()), r, c);
+void
+YHorizontalScrollBar::DrawForeground()
+{
+	AScrollBar::DrawForeground();
+	DrawPrevButton();
+	DrawNextButton();
+	DrawScrollArea();
 }
 
 
@@ -217,6 +302,7 @@ YListBox::DrawBackground()
 {
 	ParentType::DrawBackground();
 }
+
 void
 YListBox::DrawForeground()
 {
@@ -227,7 +313,7 @@ YListBox::DrawForeground()
 	if(hWnd != NULL)
 	{
 		if(bFocused)
-			RectDrawFocus(hWnd, Location, GetSize());
+			WndDrawFocus(hWnd, GetSize());
 		if(prTextRegion != NULL && prTextRegion->GetLnHeight() <= GetHeight())
 		{
 			const SDST lnWidth(GetWidth());
@@ -248,10 +334,10 @@ YListBox::DrawForeground()
 			{
 				if(Viewer.IsSelected() && i == Viewer.GetSelected())
 				{
-					prTextRegion->Color = Color::White;
+					prTextRegion->Color = ColorSpace::White;
 					FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
 						Rect(pt.X + 1, pt.Y + 1, prTextRegion->GetWidth() - 2, prTextRegion->GetHeight() - 2),
-						Color::Aqua);
+						ColorSpace::Aqua);
 				}
 				else
 					prTextRegion->Color = ForeColor;
@@ -285,6 +371,7 @@ YListBox::CallSelected()
 {
 	Selected(*this, MIndexEventArgs(*this, Viewer.GetSelected()));
 }
+
 void
 YListBox::CallConfirmed()
 {
@@ -297,39 +384,39 @@ YListBox::OnKeyDown(const MKeyEventArgs& k)
 {
 	if(Viewer.IsSelected())
 	{
-		switch(k)
+		switch(k.GetKey())
 		{
-		case Key::Enter:
+		case KeySpace::Enter:
 			CallConfirmed();
 			break;
 
-		case Key::ESC:
+		case KeySpace::ESC:
 			ClearSelected();
 			CallSelected();
 			break;
 
-		case Key::Up:
-		case Key::Down:
-		case Key::PgUp:
-		case Key::PgDn:
+		case KeySpace::Up:
+		case KeySpace::Down:
+		case KeySpace::PgUp:
+		case KeySpace::PgDn:
 			{
 				const ViewerType::IndexType nOld(Viewer.GetSelected());
 
-				switch(k)
+				switch(k.GetKey())
 				{
-				case Key::Up:
+				case KeySpace::Up:
 					--Viewer;
 					break;
 
-				case Key::Down:
+				case KeySpace::Down:
 					++Viewer;
 					break;
 
-				case Key::PgUp:
+				case KeySpace::PgUp:
 					Viewer -= Viewer.GetLength();
 					break;
 
-				case Key::PgDn:
+				case KeySpace::PgDn:
 					Viewer += Viewer.GetLength();
 					break;
 				}
@@ -344,22 +431,26 @@ YListBox::OnKeyDown(const MKeyEventArgs& k)
 		//	(*this)[es](*this, MIndexEventArgs(*this, Viewer.GetSelected()));
 	}
 }
+
 void
 YListBox::OnTouchDown(const MTouchEventArgs& e)
 {
 	ParentType::OnTouchDown(e);
 	SetSelected(e);
 }
+
 void
 YListBox::OnClick(const MTouchEventArgs&)
 {
 	CallConfirmed();
 }
+
 void
 YListBox::OnSelected(const MIndexEventArgs&)
 {
 	Refresh();
 }
+
 void
 YListBox::OnConfirmed(const MIndexEventArgs& e)
 {
@@ -391,6 +482,7 @@ YFileBox::DrawBackground()
 {
 	YListBox::DrawBackground();
 }
+
 void
 YFileBox::DrawForeground()
 {
@@ -403,6 +495,7 @@ YFileBox::OnTouchMove(const Runtime::MTouchEventArgs& e)
 {
 	SetSelected(e);
 }
+
 void
 YFileBox::OnConfirmed(const MIndexEventArgs& e)
 {

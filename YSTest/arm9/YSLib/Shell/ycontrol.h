@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:24 + 08:00;
-// UTime = 2010-10-18 20:58 + 08:00;
-// Version = 0.3975;
+// UTime = 2010-10-22 13:33 + 08:00;
+// Version = 0.4008;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -99,7 +99,10 @@ DeclBasedInterface(IVisualControl, virtual IWidget, virtual IControl, virtual GI
 	DeclIEventEntry(TouchEventHandler, TouchMove)
 	DeclIEventEntry(TouchEventHandler, Click)
 
+	//向部件容器请求获得焦点，
 	DeclIEntry(void RequestFocus(const MEventArgs&))
+
+	//释放焦点。
 	DeclIEntry(void ReleaseFocus(const MEventArgs&))
 EndDecl
 
@@ -222,21 +225,32 @@ public:
 	ImplI(IVisualControl) PDefH(void, Refresh)
 		ImplBodyBaseVoid(MWidget, Refresh)
 
+	ImplA(IVisualControl)
+	DeclIEntry(void RequestToTop())
+
+	//向部件容器请求获得焦点，若成功则引发 GotFocus 事件。
 	ImplI(IVisualControl) void
-	RequestFocus(const MEventArgs&); //向部件容器申请获得焦点，若成功则引发 GotFocus 事件。
+	RequestFocus(const MEventArgs&);
+
+	//释放焦点，并引发 LostFocus 事件。
 	ImplI(IVisualControl) void
-	ReleaseFocus(const MEventArgs&); //释放焦点，并引发 LostFocus 事件。
+	ReleaseFocus(const MEventArgs&);
 
 	virtual void
 	OnGotFocus(const MEventArgs&);
+
 	virtual void
 	OnLostFocus(const MEventArgs&);
+
 	virtual void
 	OnKeyHeld(const Runtime::MKeyEventArgs&);
+
 	virtual void
 	OnTouchDown(const Runtime::MTouchEventArgs& = Runtime::MTouchEventArgs::Empty);
+
 	virtual void
 	OnTouchHeld(const Runtime::MTouchEventArgs&);
+
 	virtual void
 	OnTouchMove(const Runtime::MTouchEventArgs&);
 };
@@ -285,35 +299,12 @@ protected:
 	bool bPrevButtonPressed, bNextButtonPressed;
 
 	explicit
-	MScrollBar(SDST = 8, SDST = 10, SDST = 10);
+	MScrollBar(SDST = 8, SDST = 16, SDST = 16);
 
 public:
 	DefGetter(SDST, MinThumbSize, MinThumbSize)
 	DefGetter(SDST, PrevButtonSize, PrevButtonSize)
 	DefGetter(SDST, NextButtonSize, NextButtonSize)
-};
-
-
-//滚动条。
-class AScrollBar : public AVisualControl, public MScrollBar
-{
-public:
-	explicit
-	AScrollBar(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
-		SDST = 10, SDST = 10, SDST = 10);
-
-	DefGetter(SDST, ScrollAreaSize, GetWidth() - GetPrevButtonSize() - GetNextButtonSize())
-	DefGetter(SDST, ScrollAreaFixedSize, GetScrollAreaSize() - GetMinThumbSize())
-
-	virtual void
-	RequestToTop()
-	{}
-
-	DeclIEntry(void DrawPrevButton())
-	DeclIEntry(void DrawNextButton())
-	DeclIEntry(void DrawScrollArea())
-	virtual void
-	DrawForeground();
 };
 
 YSL_END_NAMESPACE(Controls)

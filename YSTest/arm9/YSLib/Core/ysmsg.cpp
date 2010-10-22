@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-06 02:44:31 + 08:00;
-// UTime = 2010-10-13 15:33 + 08:00;
-// Version = 0.1439;
+// UTime = 2010-10-22 13:17 + 08:00;
+// Version = 0.1441;
 
 
 #include "ysmsg.h"
@@ -60,6 +60,7 @@ YMessageQueue::GetMessage(Message& m)
 		q.pop();
 	}
 }
+
 void
 YMessageQueue::PeekMessage(Message& m) const
 {
@@ -89,6 +90,7 @@ YMessageQueue::Update()
 			q.pop();
 	}
 }
+
 bool
 YMessageQueue::InsertMessage(const Message& m)
 {

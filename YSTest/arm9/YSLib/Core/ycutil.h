@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YCoreUtilities by Franksoft 2010
 // CodePage = UTF-8;
-// CTime = 2010-5-23 6:10:59;
-// UTime = 2010-8-19 21:07;
-// Version = 0.1985;
+// CTime = 2010-05-23 06:10:59 + 08:00;
+// UTime = 2010-10-22 12:56 + 08:00;
+// Version = 0.1990;
 
 
 #ifndef INCLUDED_YCUTIL_H_
@@ -30,6 +30,7 @@ protected:
 
 private: 
 	NonCopyable(const NonCopyable&);
+
 	NonCopyable& operator=(const NonCopyable&);
 };
 
@@ -192,6 +193,8 @@ restrictUnsigned(_type& u, unsigned b)
 	if(b < u)
 		u = b;
 }
+
+//约束无符号整数在左闭右开区间中。
 template<typename _type>
 void
 restrictUnsignedRegular(_type& u, unsigned b)

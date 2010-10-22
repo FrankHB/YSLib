@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15 + 08:00;
-// UTime = 2010-10-17 00:31 + 08:00;
-// Version = 0.2472;
+// UTime = 2010-10-22 13:15 + 08:00;
+// Version = 0.2481;
 
 
 #ifndef INCLUDED_YSHELL_H_
@@ -37,8 +37,9 @@ public:
 	bool
 	IsActive() const; //判断 Shell 是否处于激活状态。
 
+	//激活 Shell 对象： shlProc 控制权转移给此对象以维持单线程运行。
 	bool
-	Activate(); //激活 Shell 对象： shlProc 控制权转移给此对象以维持单线程运行。
+	Activate();
 
 	ImplI(GIContainer<IWindow>) void
 	operator+=(IWindow&); //向窗口组添加窗口对象。
@@ -47,6 +48,7 @@ public:
 	WNDs::size_type
 	RemoveAll(IWindow&); //从窗口组中移除所有指定窗口对象，返回移除的对象数。
 	void RemoveWindow(); //移除窗口队列中首个窗口对象。
+
 	HWND
 	GetFirstWindowHandle() const; //取得窗口组中首个窗口对象的句柄。
 	HWND
@@ -54,26 +56,33 @@ public:
 	HWND
 	GetTopWindowHandle(YDesktop&, const Point&) const; //取得窗口组中指定屏幕的指定的点所处的最顶层窗口对象的句柄。
 
+	//向屏幕发送指定窗口对象。
 	bool
-	SendWindow(IWindow&); //向屏幕发送指定窗口对象。
+	SendWindow(IWindow&);
 
+	//向屏幕发送窗口对象。
 	void
-	DispatchWindows(); //向屏幕发送窗口对象。
+	DispatchWindows();
 
+	//清除指定屏幕中属于窗口组的窗口对象。
 	void
-	ClearScreenWindows(YDesktop&); //清除指定屏幕中属于窗口组的窗口对象。
+	ClearScreenWindows(YDesktop&);
 
+	//默认 Shell 处理函数。
 	static LRES
-	DefShlProc(const Message&); //默认 Shell 处理函数。
+	DefShlProc(const Message&);
 
-	virtual PDefH(LRES, ShlProc, const Message& m) // Shell 处理函数：响应线程的直接调用。
+	// Shell 处理函数：响应线程的直接调用。
+	virtual PDefH(LRES, ShlProc, const Message& m)
 		ImplRet(DefShlProc(m))
 
+	// Shell 处理函数：响应线程的激活。
 	virtual LRES
-	OnActivated(const Message&); // Shell 处理函数：响应线程的激活。
+	OnActivated(const Message&);
 
+	// Shell 处理函数：响应线程的撤销。
 	virtual LRES
-	OnDeactivated(const Message&); // Shell 处理函数：响应线程的撤销。
+	OnDeactivated(const Message&);
 };
 
 
