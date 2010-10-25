@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-19 20:05:08 + 08:00;
-// UTime = 2010-10-22 13:30 + 08:00;
-// Version = 0.2679;
+// UTime = 2010-10-24 19:57 + 08:00;
+// Version = 0.2766;
 
 
 #ifndef INCLUDED_YCOMPONENT_H_
@@ -42,6 +42,16 @@ public:
 
 	virtual DefEmptyDtor(GMContainer)
 
+	//********************************
+	//名称:		GetContainer
+	//全名:		YSLib::Components::GMContainer<_type, _tContainer>
+	//				::GetContainer
+	//可访问性:	public 
+	//返回类型:	ContainerType&
+	//修饰符:	
+	//功能概要:	取容器引用。
+	//备注:		
+	//********************************
 	ContainerType&
 	GetContainer()
 	{
@@ -49,13 +59,33 @@ public:
 	}
 	inline DefGetter(const ContainerType&, Container, *this)
 
+	//********************************
+	//名称:		operator+=
+	//全名:		YSLib::Components::GMContainer<_type, _tContainer>::operator+=
+	//可访问性:	ImplI(GIContainer<_type>) public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	_type & w
+	//功能概要:	向对象组添加对象。
+	//备注:		
+	//********************************
 	ImplI(GIContainer<_type>) void
-	operator+=(_type& w) //向对象组添加对象。
+	operator+=(_type& w) 
 	{
 		insert(&w);
 	}
+	//********************************
+	//名称:		operator-=
+	//全名:		YSLib::Components::GMContainer<_type, _tContainer>::operator-=
+	//可访问性:	ImplI(GIContainer<_type>) public 
+	//返回类型:	bool
+	//修饰符:	
+	//形式参数:	_type & w
+	//功能概要:	从对象组移除对象。
+	//备注:		
+	//********************************
 	ImplI(GIContainer<_type>) bool
-	operator-=(_type& w) //从对象组移除对象。
+	operator-=(_type& w)
 	{
 		return erase(&w);
 	}
@@ -75,15 +105,25 @@ protected:
 	_type* pFocusing; //焦点对象指针。
 	Components::GMContainer<_type> sFOs; //焦点对象组。
 
-	typedef typename Components::GMContainer<_type>::ContainerType FOs; //焦点对象组类型。
+	typedef typename Components::GMContainer<_type>::ContainerType FOs; \
+		//焦点对象组类型。
 
+	//********************************
+	//名称:		GMFocusResponser
+	//全名:		YSLib::Components::GMFocusResponser<_type>::GMFocusResponser
+	//可访问性:	protected 
+	//返回类型:	
+	//修饰符:	
+	//功能概要:	默认构造。
+	//备注:		
+	//********************************
 	inline
 	GMFocusResponser()
 	: pFocusing(NULL), sFOs()
 	{}
 
 public:
-	//判断给定指针是否和焦点对象指针相等。
+	//判断指定指针是否和焦点对象指针相等。
 	inline PDefH(bool, IsFocusing, _type* p) const
 		ImplRet(pFocusing == p)
 
@@ -93,7 +133,16 @@ public:
 	inline DefGetter(const FOs&, FocusingSet, sFOs)
 
 protected:
-	//设置焦点对象指针。
+	//********************************
+	//名称:		SetFocusingPtr
+	//全名:		YSLib::Components::GMFocusResponser<_type>::SetFocusingPtr
+	//可访问性:	protected 
+	//返回类型:	bool
+	//修饰符:	
+	//形式参数:	_type * p
+	//功能概要:	设置焦点对象指针。
+	//备注:		
+	//********************************
 	bool
 	SetFocusingPtr(_type* p)
 	{
@@ -141,36 +190,129 @@ protected:
 	bool bFocused; //是否为所在容器的焦点。
 
 public:
+	//********************************
+	//名称:		AFocusRequester
+	//全名:		YSLib::Components::AFocusRequester::AFocusRequester
+	//可访问性:	public 
+	//返回类型:	
+	//修饰符:	
+	//功能概要:	默认构造。
+	//备注:		
+	//********************************
 	AFocusRequester();
 	virtual DefEmptyDtor(AFocusRequester)
 
-	//判断是否为获得焦点状态。
+	//********************************
+	//名称:		IsFocused
+	//全名:		YSLib::Components::AFocusRequester::IsFocused
+	//可访问性:	ImplI(GIFocusRequester<AFocusRequester>) public 
+	//返回类型:	bool
+	//修饰符:	const
+	//功能概要:	判断是否为获得焦点状态。
+	//备注:		
+	//********************************
 	ImplI(GIFocusRequester<AFocusRequester>) bool
 	IsFocused() const;
-	//判断是否已在指定响应器中获得焦点。
+	//********************************
+	//名称:		IsFocusOfContainer
+	//全名:		YSLib::Components::AFocusRequester::IsFocusOfContainer
+	//可访问性:	ImplI(GIFocusRequester<AFocusRequester>) public 
+	//返回类型:	bool
+	//修饰符:	const
+	//形式参数:	GMFocusResponser<AFocusRequester> &
+	//功能概要:	判断是否已在指定响应器中获得焦点。
+	//备注:		
+	//********************************
 	ImplI(GIFocusRequester<AFocusRequester>) bool
 	IsFocusOfContainer(GMFocusResponser<AFocusRequester>&) const;
+	//********************************
+	//名称:		IsFocusOfContainer
+	//全名:		YSLib::Components::AFocusRequester::IsFocusOfContainer<_type>
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	const
+	//形式参数:	GMFocusResponser<_type> &
+	//功能概要:	判断是否已在指定响应器中获得焦点。
+	//备注:		
+	//********************************
 	template<class _type>
 	bool
 	IsFocusOfContainer(GMFocusResponser<_type>&) const;
 
-	//判断是否已在指定响应器中获得焦点，若是则释放焦点。
+	//********************************
+	//名称:		CheckRemoval
+	//全名:		YSLib::Components::AFocusRequester::CheckRemoval
+	//可访问性:	ImplI(GIFocusRequester<AFocusRequester>) public 
+	//返回类型:	bool
+	//修饰符:	const
+	//形式参数:	GMFocusResponser<AFocusRequester> &
+	//功能概要:	判断是否已在指定响应器中获得焦点，若是则释放焦点。
+	//备注:		
+	//********************************
 	ImplI(GIFocusRequester<AFocusRequester>) bool
 	CheckRemoval(GMFocusResponser<AFocusRequester>&) const;
+	//********************************
+	//名称:		CheckRemoval
+	//全名:		YSLib::Components::AFocusRequester::CheckRemoval<_type>
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	const
+	//形式参数:	GMFocusResponser<_type> &
+	//功能概要:	判断是否已在指定响应器中获得焦点，若是则释放焦点。
+	//备注:		
+	//********************************
 	template<class _type>
 	bool
 	CheckRemoval(GMFocusResponser<_type>&) const;
 
-	//向指定响应器对应的容器申请获得焦点。
+	//********************************
+	//名称:		RequestFocus
+	//全名:		YSLib::Components::AFocusRequester::RequestFocus
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	
+	//形式参数:	GMFocusResponser<AFocusRequester> &
+	//功能概要:	向指定响应器对应的容器申请获得焦点。
+	//备注:		
+	//********************************
 	bool
 	RequestFocus(GMFocusResponser<AFocusRequester>&);
+	//********************************
+	//名称:		RequestFocus
+	//全名:		YSLib::Components::AFocusRequester::RequestFocus<_type>
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	
+	//形式参数:	GMFocusResponser<_type> &
+	//功能概要:	向指定响应器对应的容器申请获得焦点。
+	//备注:		
+	//********************************
 	template<class _type>
 	bool
 	RequestFocus(GMFocusResponser<_type>&);
 
-	//释放焦点。
+	//********************************
+	//名称:		ReleaseFocus
+	//全名:		YSLib::Components::AFocusRequester::ReleaseFocus
+	//可访问性:	ImplI(GIFocusRequester<AFocusRequester>) public 
+	//返回类型:	bool
+	//修饰符:	
+	//形式参数:	GMFocusResponser<AFocusRequester> &
+	//功能概要:	释放焦点。
+	//备注:		
+	//********************************
 	ImplI(GIFocusRequester<AFocusRequester>) bool
 	ReleaseFocus(GMFocusResponser<AFocusRequester>&);
+	//********************************
+	//名称:		ReleaseFocus
+	//全名:		YSLib::Components::AFocusRequester::ReleaseFocus<_type>
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	
+	//形式参数:	GMFocusResponser<_type> &
+	//功能概要:	释放焦点。
+	//备注:		
+	//********************************
 	template<class _type>
 	bool
 	ReleaseFocus(GMFocusResponser<_type>&);
@@ -245,6 +387,17 @@ private:
 	bool bSelected; //选中状态。
 
 public:
+	//********************************
+	//名称:		GSequenceViewer
+	//全名:		YSLib::Components::GSequenceViewer<_tContainer>
+	//				::GSequenceViewer
+	//可访问性:	public 
+	//返回类型:	
+	//修饰符:	
+	//形式参数:	_tContainer & c_
+	//功能概要:	构造：使用指定容器。
+	//备注:		
+	//********************************
 	explicit
 	GSequenceViewer(_tContainer& c_)
 	: c(c_), nIndex(0), nSelected(0), nLength(0), bSelected(false)
@@ -258,16 +411,36 @@ public:
 		ImplRet(*this >> 1)
 	inline PDefHOperator(GSequenceViewer&, --, int) //视图中首个项目下标自减。
 		ImplRet(*this >> -1)
+	//********************************
+	//名称:		operator>>
+	//全名:		YSLib::Components::GSequenceViewer<_tContainer>::operator>>
+	//可访问性:	public 
+	//返回类型:	GSequenceViewer&
+	//修饰符:	
+	//形式参数:	IndexType d
+	//功能概要:	视图中首个项目下标增加 d 。
+	//备注:		
+	//********************************
 	inline GSequenceViewer&
-	operator>>(IndexType d) //视图中首个项目下标增加 d 。
+	operator>>(IndexType d)
 	{
 		SetIndex(nIndex + d);
 		return *this;
 	}
 	inline PDefHOperator(GSequenceViewer&, <<, IndexType d) //视图中首个项目下标减少 d 。
 		ImplRet(*this >> -d)
+	//********************************
+	//名称:		operator+=
+	//全名:		YSLib::Components::GSequenceViewer<_tContainer>::operator+=
+	//可访问性:	public 
+	//返回类型:	GSequenceViewer&
+	//修饰符:	
+	//形式参数:	IndexType d
+	//功能概要:	选中项目下标增加 d 。
+	//备注:		
+	//********************************
 	inline GSequenceViewer&
-	operator+=(IndexType d) //选中项目下标增加 d 。
+	operator+=(IndexType d)
 	{
 		SetSelected(nSelected + d);
 		return *this;
@@ -283,6 +456,16 @@ public:
 	DefGetter(IndexType, Selected, nSelected)
 	DefGetter(SizeType, Valid, vmin(GetTotal() - GetIndex(), GetLength())) //取当前视图中有效项目个数。
 
+	//********************************
+	//名称:		SetIndex
+	//全名:		YSLib::Components::GSequenceViewer<_tContainer>::SetIndex
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	
+	//形式参数:	IndexType t
+	//功能概要:	设置项目索引。
+	//备注:		
+	//********************************
 	bool
 	SetIndex(IndexType t)
 	{
@@ -299,6 +482,16 @@ public:
 		}
 		return false;
 	}
+	//********************************
+	//名称:		SetLength
+	//全名:		YSLib::Components::GSequenceViewer<_tContainer>::SetLength
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	
+	//形式参数:	SizeType l
+	//功能概要:	设置长度。
+	//备注:		
+	//********************************
 	bool
 	SetLength(SizeType l)
 	{
@@ -318,6 +511,16 @@ public:
 		}
 		return false;
 	}
+	//********************************
+	//名称:		SetSelected
+	//全名:		YSLib::Components::GSequenceViewer<_tContainer>::SetSelected
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	
+	//形式参数:	IndexType t
+	//功能概要:	设置选中项目下标。
+	//备注:		
+	//********************************
 	bool
 	SetSelected(IndexType t)
 	{
@@ -331,7 +534,15 @@ public:
 		return false;
 	}
 
-	//取消选中状态。
+	//********************************
+	//名称:		ClearSelected
+	//全名:		YSLib::Components::GSequenceViewer<_tContainer>::ClearSelected
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	
+	//功能概要:	取消选中状态。
+	//备注:		
+	//********************************
 	bool
 	ClearSelected()
 	{
@@ -343,7 +554,15 @@ public:
 		return false;
 	}
 
-	//约束被选中的元素在视图内。
+	//********************************
+	//名称:		RestrictSelected
+	//全名:		YSLib::Components::GSequenceViewer<_tContainer>::RestrictSelected
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	
+	//功能概要:	约束被选中的元素在视图内。
+	//备注:		
+	//********************************
 	bool
 	RestrictSelected()
 	{
@@ -358,7 +577,15 @@ public:
 		return true;
 	}
 
-	//约束视图包含被选中的元素。
+	//********************************
+	//名称:		RestrictViewer
+	//全名:		YSLib::Components::GSequenceViewer<_tContainer>::RestrictViewer
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	
+	//功能概要:	约束视图包含被选中的元素。
+	//备注:		
+	//********************************
 	bool
 	RestrictViewer()
 	{
@@ -373,7 +600,15 @@ public:
 		return true;
 	}
 
-	//移动视图至序列起始。
+	//********************************
+	//名称:		MoveViewerToBegin
+	//全名:		YSLib::Components::GSequenceViewer<_tContainer>::MoveViewerToBegin
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	
+	//功能概要:	移动视图至序列起始。
+	//备注:		
+	//********************************
 	bool
 	MoveViewerToBegin()
 	{
@@ -385,7 +620,15 @@ public:
 		return false;
 	}
 
-	//移动视图至序列结尾。
+	//********************************
+	//名称:		MoveViewerToEnd
+	//全名:		YSLib::Components::GSequenceViewer<_tContainer>::MoveViewerToEnd
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	
+	//功能概要:	移图至序列结动视尾。
+	//备注:		
+	//********************************
 	bool
 	MoveViewerToEnd()
 	{
@@ -405,16 +648,61 @@ class YConsole : public YComponent
 public:
 	YScreen& Screen;
 
+	//********************************
+	//名称:		YConsole
+	//全名:		YSLib::Components::YConsole::YConsole
+	//可访问性:	public 
+	//返回类型:	
+	//修饰符:	
+	//形式参数:	YScreen &
+	//形式参数:	bool
+	//形式参数:	Drawing::Color
+	//形式参数:	Drawing::Color
+	//功能概要:	构造：使用指定屏幕、有效性、前景色和背景色。
+	//备注:		
+	//********************************
 	explicit
 	YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::Color = Drawing::ColorSpace::White, Drawing::Color = Drawing::ColorSpace::Black);
+	//********************************
+	//名称:		~YConsole
+	//全名:		YSLib::Components::YConsole::~YConsole
+	//可访问性:	virtual public 
+	//返回类型:	
+	//修饰符:	
+	//功能概要:	析构。
+	//备注:		自动停用。
+	//********************************
 	virtual
 	~YConsole();
 
+	//********************************
+	//名称:		Activate
+	//全名:		YSLib::Components::YConsole::Activate
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	Drawing::Color
+	//形式参数:	Drawing::Color
+	//功能概要:	激活：使用指定屏幕、有效性、前景色和背景色。
+	//备注:		
+	//********************************
 	void
 	Activate(Drawing::Color = Drawing::ColorSpace::White, Drawing::Color = Drawing::ColorSpace::Black);
 
+	//********************************
+	//名称:		Deactivate
+	//全名:		YSLib::Components::YConsole::Deactivate
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//功能概要:	停用。
+	//备注:		
+	//********************************
 	void
 	Deactivate();
+
+	void
+	Pause();
 };
 
 inline
@@ -441,6 +729,12 @@ inline void
 YConsole::Deactivate()
 {
 	Def::InitVideo();
+}
+
+inline void
+YConsole::Pause()
+{
+	Def::WaitForInput();
 }
 
 YSL_END_NAMESPACE(Components)

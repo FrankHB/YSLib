@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CharacterMapping by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-17 17:53:21;
-// UTime = 2010-8-25 14:38;
-// Version = 0.1490;
+// CTime = 2009-11-17 17:53:21 + 08:00;
+// UTime = 2010-10-23 23:00 + 08:00;
+// Version = 0.1496;
 
 
 #include "chrmap.h"
@@ -95,7 +95,10 @@ codemap<CharSet::UTF_8>(ubyte_t& l, const char* c)
 	else if(c0 & 0x20)
 	{
 		l = 3;
-		return (((c0 & 0xF) << 4 | (c[1] & 0x3C) >> 2) << 8) | ((c[1] & 0x3) << 6) | (c[2] & 0x3F);
+		return (((c0 & 0xF) << 4
+			| (c[1] & 0x3C) >> 2) << 8)
+			| ((c[1] & 0x3) << 6)
+			| (c[2] & 0x3F);
 	}
 	else
 	{
@@ -131,7 +134,10 @@ codemap<CharSet::UTF_8>(ubyte_t& l, const char* c)
 			return 0;
 		}
 		l = 4;
-		return ((c0 - 240) << 18) | ((c[1] - 128) << 12) | ((c[2] - 128) << 6) | (c[3] - 128);
+		return ((c0 - 240) << 18)
+			| ((c[1] - 128) << 12)
+			| ((c[2] - 128) << 6)
+			| (c[3] - 128);
 	}
 	*/
 }
@@ -153,7 +159,10 @@ codemap<CharSet::UTF_8>(ubyte_t& l, FILE* fp)
 		if(c & 0x20)
 		{
 			l = 3;
-			return (((c & 0x0F) << 4 | (d & 0x3C) >> 2) << 8) | ((d & 0x3) << 6) | (std::getc(fp) & 0x3F);
+			return (((c & 0x0F) << 4
+				| (d & 0x3C) >> 2) << 8)
+				| ((d & 0x3) << 6)
+				| (std::getc(fp) & 0x3F);
 		}
 		else
 		{
@@ -167,7 +176,9 @@ template<>
 uchar_t
 codemap<CharSet::GBK>(ubyte_t& l, const char* c)
 {
-	return cp113[static_cast<ubyte_t>(*c)] ? (l = 1, *c) : (l = 2, reinterpret_cast<const uchar_t*>(cp113 + 0x0100)[getword_BE(c)]);
+	return cp113[static_cast<ubyte_t>(*c)] ? (l = 1, *c) : (l = 2,
+		reinterpret_cast<const uchar_t*>(cp113 + 0x0100)
+		[getword_BE(c)]);
 }
 template<>
 uchar_t
@@ -175,7 +186,9 @@ codemap<CharSet::GBK>(ubyte_t& l, FILE* fp)
 {
 	int c(std::getc(fp));
 
-	return cp113[static_cast<ubyte_t>(c)] ? (l = 1, c) : (l = 2, reinterpret_cast<const uchar_t*>(cp113 + 0x0100)[(c << 8 | std::getc(fp))]);
+	return cp113[static_cast<ubyte_t>(c)] ? (l = 1, c) : (l = 2,
+		reinterpret_cast<const uchar_t*>(cp113 + 0x0100)
+		[(c << 8 | std::getc(fp))]);
 }
 
 template<>

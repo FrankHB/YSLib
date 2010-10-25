@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13 + 08:00;
-// UTime = 2010-10-22 12:48 + 08:00;
-// Version = 0.6913;
+// UTime = 2010-10-25 12:48 + 08:00;
+// Version = 0.6926;
 
 
 #include "yfont.h"
@@ -53,26 +53,30 @@ EFontStyle::GetName() const ythrow()
 }
 
 
-//供 FreeType 使用的客户端字体查询函数，从由 face_id 提供的参数对应的字体文件中读取字体，写入 aface 。
+//供 FreeType 使用的客户端字体查询函数，
+//从由 face_id 提供的参数对应的字体文件中读取字体，写入 aface 。
 FT_Error
 simpleFaceRequester(FTC_FaceID face_id, FT_Library library,
 					FT_Pointer request_data, FT_Face* aface)
 {
 	Typeface* fontFace(static_cast<Typeface*>(face_id));
 	FT_Face& face(*aface);
-	FT_Error error(FT_New_Face(library, fontFace->File.GetPath(), fontFace->faceIndex, aface));
+	FT_Error error(FT_New_Face(library, fontFace->File.GetPath(),
+		fontFace->faceIndex, aface));
 
 	if(!error)
 	{
 		error = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
 		if(!error && face)
 		{
-			fontFace->cmapIndex = face->charmap ? FT_Get_Charmap_Index(face->charmap) : 0;
+			fontFace->cmapIndex = face->charmap
+				? FT_Get_Charmap_Index(face->charmap) : 0;
 		/*	fontFace->nGlyphs = face->num_glyphs;
 			fontFace->uUnitPerEM = face->units_per_EM;
 			fontFace->nCharmaps = face->num_charmaps;*/
 		//	if(FT_IS_SCALABLE(face))
-		//		fontFace->lUnderlinePos = FT_MulFix(face->underline_position, face->size->metrics.y_scale) >> 6;
+		//		fontFace->lUnderlinePos = FT_MulFix(face->underline_position,
+		//			face->size->metrics.y_scale) >> 6;
 		/*	fontFace->fixSizes.clear();
 			if(face->available_sizes)
 			{
@@ -80,7 +84,8 @@ simpleFaceRequester(FTC_FaceID face_id, FT_Library library,
 
 				fontFace->fixSizes.reserve(t);
 				for(FT_Int i = 0; i < t; ++i)
-					fontFace->fixSizes.push_back(face->available_sizes[i].size >> 6);
+					fontFace->fixSizes.push_back(
+						face->available_sizes[i].size >> 6);
 			}
 		*/
 		}
@@ -106,12 +111,18 @@ FontFamily::~FontFamily() ythrow()
 bool
 FontFamily::operator==(const FontFamily& rhs) const
 {
-	return &Cache == &rhs.Cache && (family_name == rhs.family_name || (family_name && rhs.family_name && !strcmp(family_name, rhs.family_name)));
+	return &Cache == &rhs.Cache
+		&& (family_name == rhs.family_name
+		|| (family_name && rhs.family_name
+		&& !strcmp(family_name, rhs.family_name)));
 }
 bool
 FontFamily::operator<(const FontFamily& rhs) const
 {
-	return &Cache < &rhs.Cache || (ReferenceEquals(Cache, rhs.Cache) && family_name && rhs.family_name && strcmp(family_name, rhs.family_name) < 0);
+	return &Cache < &rhs.Cache
+		|| (ReferenceEquals(Cache, rhs.Cache)
+		&& family_name && rhs.family_name
+		&& strcmp(family_name, rhs.family_name) < 0);
 }
 
 const Typeface*
@@ -119,7 +130,8 @@ FontFamily::GetTypefacePtr(EFontStyle s) const
 {
 	const Typeface* p(GetTypefacePtr(s.GetName()));
 
-	return p ? p : (s == EFontStyle::Regular ? NULL : GetTypefacePtr("Regular"));
+	return p ? p
+		: (s == EFontStyle::Regular ? NULL : GetTypefacePtr("Regular"));
 }
 const Typeface*
 FontFamily::GetTypefacePtr(const FT_String* style_name) const
@@ -145,8 +157,12 @@ FontFamily::operator-=(const Typeface& f)
 /*const FT_Matrix Typeface::MNormal = {0x10000, 0, 0, 0x10000},
 	Typeface::MOblique = {0x10000, 0x5800, 0, 0x10000};*/
 
-Typeface::Typeface(YFontCache& cache, const FontFile& file, u32 i/*, const bool bb, const bool bi, const bool bu*/)
-	: Cache(cache), File(file), pFontFamily(NULL), style_name(NULL), faceIndex(i), cmapIndex(-1)/*, bBold(bb), bOblique(bi), bUnderline(bu), matrix(bi ? MOblique : MNormal)*/
+Typeface::Typeface(YFontCache& cache, const FontFile& file, u32 i
+	/*, const bool bb, const bool bi, const bool bu*/)
+	: Cache(cache), File(file), pFontFamily(NULL),
+	style_name(NULL), faceIndex(i), cmapIndex(-1)
+/*	, bBold(bb), bOblique(bi), bUnderline(bu),
+	, matrix(bi ? MOblique : MNormal)*/
 {}
 Typeface::~Typeface() ythrow()
 {
@@ -161,7 +177,8 @@ Typeface::operator==(const Typeface& rhs) const
 bool
 Typeface::operator<(const Typeface& rhs) const
 {
-	return &File < &rhs.File || (&File == &rhs.File && faceIndex < rhs.faceIndex);
+	return &File < &rhs.File
+		|| (&File == &rhs.File && faceIndex < rhs.faceIndex);
 }
 
 
@@ -179,12 +196,16 @@ FontFile::FontFile(CPATH p, const char* n, FT_Library& l)
 bool
 FontFile::operator==(const FontFile& rhs) const
 {
-	return &library == &rhs.library && (!(path && rhs.path) || !strncmp(path, rhs.path, MaxFontPathLength));
+	return &library == &rhs.library
+		&& (!(path && rhs.path) || !strncmp(path, rhs.path, MaxFontPathLength));
 }
 bool
 FontFile::operator<(const FontFile& rhs) const
 {
-	return &library < &rhs.library || (&library == &rhs.library && path && rhs.path && strncmp(path, rhs.path, MaxFontPathLength) < 0);
+	return &library < &rhs.library
+		|| (&library == &rhs.library
+		&& path != NULL && rhs.path != NULL
+		&& strncmp(path, rhs.path, MaxFontPathLength) < 0);
 }
 
 void
@@ -294,7 +315,8 @@ YFontCache::YFontCache(CPATH defFontPath, u32 cacheSize)
 
 	if(error)
 		goto err;
-	error = FTC_Manager_New(library, 0, 0, cacheSize, &simpleFaceRequester, NULL, &manager);
+	error = FTC_Manager_New(library, 0, 0, cacheSize,
+		&simpleFaceRequester, NULL, &manager);
 	if(error)
 		goto err;
 	error = FTC_SBitCache_New(manager, &sbitCache);
@@ -333,10 +355,12 @@ const Typeface*
 YFontCache::GetDefaultTypefacePtr() const
 {
 	//默认字体缓存的默认字型指针由初始化保证为非空指针。
-	return pDefaultFace ? pDefaultFace : pDefaultFontCache->GetDefaultTypefacePtr();
+	return pDefaultFace ? pDefaultFace
+		: pDefaultFontCache->GetDefaultTypefacePtr();
 }
 const Typeface*
-YFontCache::GetTypefacePtr(const FT_String* family_name, const FT_String* style_name) const
+YFontCache::GetTypefacePtr(const FT_String* family_name,
+	const FT_String* style_name) const
 {
 	const FontFamily* f(GetFontFamilyPtr(family_name));
 
@@ -351,7 +375,8 @@ YFontCache::GetGlyph(fchar_t c)
 		return NULL;
 
 	const u32 flags(FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL);
-	const u32 index(FTC_CMapCache_Lookup(cmapCache, scaler.face_id, pFace->cmapIndex, c));
+	const u32 index(FTC_CMapCache_Lookup(cmapCache, scaler.face_id,
+		pFace->cmapIndex, c));
 
 	FTC_SBitCache_LookupScaler(sbitCache, &scaler, flags, index, &sbit, NULL);
 	return sbit;
@@ -471,7 +496,8 @@ YFontCache::LoadTypefaces(const FontFile& f)
 			{
 				try
 				{
-					if(sTypes.find(q = new Typeface(*this, f, i)) == sTypes.end())
+					if(sTypes.find(q = new Typeface(*this, f, i))
+						== sTypes.end())
 					{
 						scaler.face_id = static_cast<FTC_FaceID>(q);
 
@@ -481,9 +507,12 @@ YFontCache::LoadTypefaces(const FontFile& f)
 						if(face == NULL || face->family_name == NULL)
 							throw LoggedEvent("Face loading failed.", 2);
 
-						FFacesIndex::iterator i(mFacesIndex.find(face->family_name));
+						FFacesIndex::iterator i(mFacesIndex.find(
+							face->family_name));
 
-						q->pFontFamily = r = i == mFacesIndex.end() ? new FontFamily(*this, face->family_name) : i->second;
+						q->pFontFamily = r = i == mFacesIndex.end()
+							? new FontFamily(*this, face->family_name)
+							: i->second;
 						*r += *q;
 						if(i == mFacesIndex.end())
 							*this += *r;
@@ -495,7 +524,8 @@ YFontCache::LoadTypefaces(const FontFile& f)
 				}
 				catch(std::bad_alloc&)
 				{
-					throw LoggedEvent("Allocation failed @@ YFontCache::LoadTypefaces(const FontFile&);", 2);
+					throw LoggedEvent("Allocation failed"
+						" @@ YFontCache::LoadTypefaces(const FontFile&);", 2);
 				}
 			}
 			catch(...)
@@ -534,7 +564,9 @@ YFontCache::LoadFontFileDirectory(CPATH path, CPATH ext)
 					}
 					catch(std::bad_alloc&)
 					{
-						throw LoggedEvent("Allocation failed @@ YFontCache::LoadFontFileDirectory(CPATH, CPATH);", 2);
+						throw LoggedEvent("Allocation failed"
+							" @@ YFontCache::"
+							"LoadFontFileDirectory(CPATH, CPATH);", 2);
 					}
 				}
 	}
@@ -581,7 +613,8 @@ YFontCache::ClearTypefaces()
 void
 YFontCache::ClearFontFamilies()
 {
-	for(FFacesIndex::const_iterator i(mFacesIndex.begin()); i != mFacesIndex.end(); ++i)
+	for(FFacesIndex::const_iterator i(mFacesIndex.begin());
+			i != mFacesIndex.end(); ++i)
 		delete i->second;
 	mFacesIndex.clear();
 }

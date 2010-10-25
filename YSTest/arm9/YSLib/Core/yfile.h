@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFile by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-24 23:14:41 + 08:00;
-// UTime = 2010-10-22 13:01 + 08:00;
-// Version = 0.1545;
+// UTime = 2010-10-24 19:56 + 08:00;
+// Version = 0.1677;
 
 
 #ifndef INCLUDED_YFILE_H_
@@ -27,8 +27,27 @@ protected:
 	SizeType fsize; //文件大小。
 
 public:
+	//********************************
+	//名称:		YFile
+	//全名:		YSLib::YFile::YFile
+	//可访问性:	public 
+	//返回类型:	
+	//修饰符:	
+	//形式参数:	CPATH
+	//功能概要:	构造：使用指定文件路径初始化对象。
+	//备注:		
+	//********************************
 	explicit
-	YFile(CPATH); //按指定文件路径初始化对象。
+	YFile(CPATH);
+	//********************************
+	//名称:		~YFile
+	//全名:		YSLib::YFile::~YFile
+	//可访问性:	virtual public 
+	//返回类型:	
+	//修饰符:	
+	//功能概要:	析构。
+	//备注:		自动关闭文件。
+	//********************************
 	virtual
 	~YFile();
 
@@ -36,31 +55,94 @@ public:
 	DefGetter(FILE*, Ptr, fp) //取文件指针。
 	DefGetter(SizeType, Size, fsize) //取文件大小。
 
-	//清除文件指针。
+	//********************************
+	//名称:		Release
+	//全名:		YSLib::YFile::Release
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//功能概要:	清除文件指针。
+	//备注:		关闭文件。
+	//********************************
 	void
 	Release();
 
-	//打开指定路径的文件。
+	//********************************
+	//名称:		Open
+	//全名:		YSLib::YFile::Open
+	//可访问性:	public 
+	//返回类型:	bool
+	//修饰符:	
+	//形式参数:	CPATH
+	//功能概要:	打开指定路径的文件。
+	//备注:		
+	//********************************
 	bool
 	Open(CPATH);
 
-	//取文件指针的位置，返回值语义同 std::ftell 。
+	//********************************
+	//名称:		ftell
+	//全名:		YSLib::YFile::ftell
+	//可访问性:	public 
+	//返回类型:	YSLib::YFile::OffType
+	//修饰符:	const
+	//功能概要:	取文件指针的位置，返回值语义同 std::ftell 。
+	//备注:		
+	//********************************
 	OffType
 	ftell() const;
 
-	//文件指针返回到文件头，同 std:: rewind 。
+	//********************************
+	//名称:		rewind
+	//全名:		YSLib::YFile::rewind
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	const
+	//功能概要:	文件指针返回到文件头，同 std:: rewind 。
+	//备注:		
+	//********************************
 	void
 	rewind() const;
 
-	//设置文件指针位置，参数和返回值语义同 std::fseek 。
+	//********************************
+	//名称:		fseek
+	//全名:		YSLib::YFile::fseek
+	//可访问性:	public 
+	//返回类型:	int
+	//修饰符:	const
+	//形式参数:	OffType
+	//形式参数:	int
+	//功能概要:	设置文件指针位置。
+	//备注:		参数和返回值语义同 std::fseek 。
+	//********************************
 	int
 	fseek(OffType, int) const;
 
-	//连续读 nmemb 个大小为 size 文件块到 ptr 中，返回成功读取的文件块数。
+	//********************************
+	//名称:		fread
+	//全名:		YSLib::YFile::fread
+	//可访问性:	public 
+	//返回类型:	YSLib::YFile::SizeType
+	//修饰符:	const
+	//形式参数:	void * ptr
+	//形式参数:	SizeType size
+	//形式参数:	SizeType nmemb
+	//功能概要:	连续读 nmemb 个大小为 size 文件块到 ptr 中，
+	//			返回成功读取的文件块数。
+	//备注:		
+	//********************************
 	SizeType
 	fread(void* ptr, SizeType size, SizeType nmemb) const;
 
-	//检测文件结束符。
+	//********************************
+	//名称:		feof
+	//全名:		YSLib::YFile::feof
+	//可访问性:	public 
+	//返回类型:	int
+	//修饰符:	const
+	//功能概要:	检测文件结束符。
+	//备注:		参数和返回值语义同 std::feof() 。
+	//********************************
 	int
 	feof() const;
 };

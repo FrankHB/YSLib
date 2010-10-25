@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-21 16:49 + 08:00;
-// Version = 0.2784;
+// UTime = 2010-10-23 14:00 + 08:00;
+// Version = 0.2786;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -165,7 +165,6 @@ public:
 		void ShowString(const String& s)
 		{
 			lblA.Text = s;
-			lblA.DrawForeground();
 			lblA.Refresh();
 		}
 	};

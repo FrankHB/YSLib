@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper::YGlobal by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:14:57 + 08:00;
-// UTime = 2010-10-22 13:21 + 08:00;
-// Version = 0.1626;
+// UTime = 2010-10-24 17:50 + 08:00;
+// Version = 0.1714;
 
 
 #ifndef INCLUDED_YGLOBAL_H_
@@ -37,35 +37,118 @@ typedef char FILENAMESTR[MAX_FILENAME_LENGTH];
 
 struct Def
 {
-	//默认消息发生函数。
+	//********************************
+	//名称:		Idle
+	//全名:		YSLib::Def::Idle
+	//可访问性:	public static 
+	//返回类型:	void
+	//修饰符:	
+	//功能概要:	默认消息发生函数。
+	//备注:		
+	//********************************
 	static void
 	Idle();
 
-	//初始化屏幕。
+	//********************************
+	//名称:		InitVideo
+	//全名:		YSLib::Def::InitVideo
+	//可访问性:	public static 
+	//返回类型:	bool
+	//修饰符:	
+	//功能概要:	初始化视频输出。
+	//备注:		
+	//********************************
 	static bool
 	InitVideo();
 
-	//默认屏幕初始化函数。
+	//********************************
+	//名称:		InitScreenAll
+	//全名:		YSLib::Def::InitScreenAll
+	//可访问性:	public static 
+	//返回类型:	void
+	//修饰符:	
+	//功能概要:	默认屏幕初始化函数。
+	//备注:		
+	//********************************
 	static void
 	InitScreenAll();
 
-	//默认上屏初始化函数。
+	//********************************
+	//名称:		InitScrUp
+	//全名:		YSLib::Def::InitScrUp
+	//可访问性:	public static 
+	//返回类型:	void
+	//修饰符:	
+	//功能概要:	默认上屏初始化函数。
+	//备注:		
+	//********************************
 	static void
 	InitScrUp();
 
-	//默认下屏初始化函数。
+	//********************************
+	//名称:		InitScrDown
+	//全名:		YSLib::Def::InitScrDown
+	//可访问性:	public static 
+	//返回类型:	void
+	//修饰符:	
+	//功能概要:	默认下屏初始化函数。
+	//备注:		
+	//********************************
 	static void
 	InitScrDown();
 
-	//以指定前景色和背景色初始化指定屏幕的控制台。
+	//********************************
+	//名称:		InitConsole
+	//全名:		YSLib::Def::InitConsole
+	//可访问性:	public static 
+	//返回类型:	bool
+	//修饰符:	
+	//形式参数:	YScreen &
+	//形式参数:	Drawing::PixelType
+	//形式参数:	Drawing::PixelType
+	//功能概要:	以指定前景色和背景色初始化指定屏幕的控制台。
+	//备注:		
+	//********************************
 	static bool
 	InitConsole(YScreen&, Drawing::PixelType, Drawing::PixelType);
 
-	//资源释放函数。
+	//********************************
+	//名称:		WaitForInput
+	//全名:		YSLib::Def::WaitForInput
+	//可访问性:	public static 
+	//返回类型:	void
+	//修饰符:	
+	//功能概要:	默认输入等待函数。
+	//备注:		
+	//********************************
+	static void
+	WaitForInput();
+
+	//********************************
+	//名称:		Destroy
+	//全名:		YSLib::Def::Destroy
+	//可访问性:	public static 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	YObject &
+	//形式参数:	const MEventArgs &
+	//功能概要:	全局资源释放函数。
+	//备注:		
+	//********************************
 	static void
 	Destroy(YObject&, const MEventArgs&);
 
-	//公共消息处理函数。
+	//********************************
+	//名称:		ShlProc
+	//全名:		YSLib::Def::ShlProc
+	//可访问性:	public static 
+	//返回类型:	LRES
+	//修饰符:	
+	//形式参数:	HSHL
+	//形式参数:	const Message &
+	//功能概要:	公共消息处理函数。
+	//备注:		
+	//********************************
 	static LRES
 	ShlProc(HSHL, const Message&);
 };
@@ -80,7 +163,16 @@ YSL_SHLMAIN_SHLPROC(const Message&);
 YSL_END_SHELL(YSL_SHLMAIN_NAME)
 
 
-//默认 Shell 消息处理函数。
+//********************************
+//名称:		DefaultMainShlProc
+//全名:		YSLib::DefaultMainShlProc
+//可访问性:	public 
+//返回类型:	LRES
+//修饰符:	
+//形式参数:	const Message & msg
+//功能概要:	全局默认 Shell 消息处理函数。
+//备注:		
+//********************************
 inline LRES
 DefaultMainShlProc(const Message& msg)
 {

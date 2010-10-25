@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:42 + 08:00;
-// UTime = 2010-10-06 15:46 + 08:00;
-// Version = 0.1850;
+// UTime = 2010-10-23 23:05 + 08:00;
+// Version = 0.1855;
 
 
 #include "ycommon.h"
@@ -57,7 +57,8 @@ namespace stdex
 	char*
 	strcatdup(const char* s1, const char* s2, void*(*fun)(std::size_t))
 	{
-		char* d(static_cast<char*>(fun((strlen(s1) + strlen(s2) + 1) * sizeof(char))));
+		char* d(static_cast<char*>(
+			fun((strlen(s1) + strlen(s2) + 1) * sizeof(char))));
 
 		return strcpycat(d, s1, s2);
 	}
@@ -124,7 +125,9 @@ namespace platform
 
 	void toggleBacklight()
 	{
-		fifoSendValue32(TCOMMON_FIFO_CHANNEL_ARM7, MSG_TOGGLE_BACKLIGHT); //--in libnds 1.3.1 you HAVE to check the return value or the command won't be sent (GCC is probably to blame)
+		fifoSendValue32(TCOMMON_FIFO_CHANNEL_ARM7, MSG_TOGGLE_BACKLIGHT);
+		//--in libnds 1.3.1 you HAVE to check the return value or the command
+		// won't be sent (GCC is probably to blame)
 		if(!fifoSendValue32(TCOMMON_FIFO_CHANNEL_ARM7, MSG_TOGGLE_BACKLIGHT))
 			iprintf("Error sending backlight message to ARM7\n");
 		fifoSendValue32(FIFO_AUDIO, backlight);
@@ -149,7 +152,8 @@ namespace platform
 		videoSetMode(oldMode & (~DISPLAY_SPR_ACTIVE));
 		videoSetModeSub(oldModeSub & (~DISPLAY_SPR_ACTIVE));
 
-		REG_BLDCNT = BLEND_FADE_BLACK | BLEND_SRC_BG0 | BLEND_SRC_BG2 | BLEND_SRC_BG3;
+		REG_BLDCNT = BLEND_FADE_BLACK
+			| BLEND_SRC_BG0 | BLEND_SRC_BG2 | BLEND_SRC_BG3;
 		REG_BLDCNT_SUB = BLEND_FADE_BLACK | BLEND_SRC_BG2 | BLEND_SRC_BG3;
 
 		for(u16 n = 0; n <= frames; ++n)
@@ -180,7 +184,8 @@ namespace platform
 		videoSetModeSub(oldModeSub);
 	}
 
-	bool loadImage(const char* file, u16* out, u8* outA, u16 w, u16 h, int format)
+	bool loadImage(const char* file, u16* out,
+		u8* outA, u16 w, u16 h, int format)
 	{
 		if(format == 0)
 		{
@@ -292,7 +297,8 @@ namespace platform
 			t += x;
 			for(int u = x; u < x + w; ++u)
 			{
-				screen[t] = RGB15(((screen[t] & 31) >> factor), (((screen[t] >> 5) & 31) >> factor),
+				screen[t] = RGB15(((screen[t] & 31) >> factor),
+					(((screen[t] >> 5) & 31) >> factor),
 					(((screen[t] >> 10) & 31) >> factor)) | BITALPHA;
 				++t;
 			}
@@ -398,7 +404,8 @@ namespace platform
 	bool
 	IsAbsolute(CPATH path)
 	{
-		return std::strchr(path, '/') == path || std::strstr(path, "fat:/") == path;
+		return std::strchr(path, '/') == path
+			|| std::strstr(path, "fat:/") == path;
 	}
 
 	std::size_t
@@ -434,7 +441,8 @@ namespace platform
 	{
 		//Font:
 		{
-			reinterpret_cast<u16*>(const_cast<u8*>(default_font_bin)), //font gfx
+			reinterpret_cast<u16*>(
+				const_cast<u8*>(default_font_bin)), //font gfx
 			0, //font palette
 			0, //font color count
 			4, //bpp
@@ -469,7 +477,9 @@ namespace platform
 	{
 		videoSetMode(MODE_0_2D);
 		vramSetBankA(VRAM_A_MAIN_BG);
-		return consoleInit(NULL, mainConsole.bgLayer, BgType_Text4bpp, BgSize_T_256x256, mainConsole.mapBase, mainConsole.gfxBase, true, true);
+		return consoleInit(NULL, mainConsole.bgLayer,
+			BgType_Text4bpp, BgSize_T_256x256,
+			mainConsole.mapBase, mainConsole.gfxBase, true, true);
 	}
 
 	void
@@ -479,7 +489,8 @@ namespace platform
 
 		if((dspIndex ? consoleMainInit() : consoleDemoInit()) != NULL)
 		{
-			iprintf("\x1b[0;0H"); //使用 ANSI Escape 序列 CUrsor Position 指令设置光标位置为左上角。
+			//使用 ANSI Escape 序列 CUrsor Position 指令设置光标位置为左上角。
+			iprintf("\x1b[0;0H");
 
 			PixelType* bg_palette = dspIndex ? BG_PALETTE : BG_PALETTE_SUB;
 
@@ -594,8 +605,10 @@ namespace platform
 		}
 		return version;
 	}
-	void versionIntToString(char* out, u32 version) {
-		sprintf(out, "%d.%d.%d", (int)(version/10000), (int)((version/100)%100), (int)(version%100));
+	void versionIntToString(char* out, u32 version)
+	{
+		sprintf(out, "%d.%d.%d", (int)(version/10000),
+			(int)((version/100)%100), (int)(version%100));
 	}*/
 
 
@@ -650,8 +663,9 @@ namespace platform
 
 	/*void
 	setupCapture(int bank) {
-		REG_DISPCAPCNT = DCAP_ENABLE | DCAP_MODE(0) | DCAP_DST(0) | DCAP_SRC(0) | DCAP_SIZE(3) |
-			DCAP_OFFSET(0) | DCAP_BANK(bank) | DCAP_B(15) | DCAP_A(0);
+		REG_DISPCAPCNT = DCAP_ENABLE | DCAP_MODE(0)
+			| DCAP_DST(0) | DCAP_SRC(0) | DCAP_SIZE(3)
+			| DCAP_OFFSET(0) | DCAP_BANK(bank) | DCAP_B(15) | DCAP_A(0);
 	}
 	void
 	waitForCapture() {

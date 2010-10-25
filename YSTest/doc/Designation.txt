@@ -1,8 +1,8 @@
 ﻿// YSLib -> Designation by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-02 05:14:30 + 08:00;
-// UTime = 2010-10-16 14:48 + 08:00;
-// Version = 0.3365;
+// UTime = 2010-10-24 17:10 + 08:00;
+// Version = 0.3369;
 
 
 // Designation ：设计说明文档。
@@ -1009,8 +1009,8 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 @5 一般实现导引：
 自定义应用程序 Shell 类，继承 YShell 类并产生实例。
 完成自定义 Shell 类的消息处理过程。一般把多个处理过程的响应封装为单一函数。
-对于支持实现对应 Shell 的窗口封装为窗体（Form）类（一般继承自 YWindow 类），在该自定义类中加入所需的 GUI 部件的定义，并实现界面效果。
-在响应 SM_CREATE 或 SM_ACTIVATED 的处理过程中加入需要初始化的资源或子 Shell ，在 SM_DEACTIVATED 的处理过程中加入退出程序或转移线程控制权的指令。
+对于支持实现对应 Shell 的窗口封装为窗体（Form）类（一般继承自 YWindow 类），在该自定义类中添加所需的 GUI 部件的定义，并实现界面效果。
+在响应 SM_CREATE 或 SM_ACTIVATED 的处理过程中添加需要初始化的资源或子 Shell ，在 SM_DEACTIVATED 的处理过程中添加退出程序或转移线程控制权的指令。
 在响应输入等事件消息的处理过程中添加对应的代码。
 
 */

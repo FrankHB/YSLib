@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-05 17:48:09 + 08:00;
-// UTime = 2010-10-05 15:44 + 08:00;
-// Version = 0.4026;
+// UTime = 2010-10-24 16:50 + 08:00;
+// Version = 0.4032;
 
 
 #include "ytmgr.h"
@@ -28,7 +28,7 @@ TextBuffer::operator[](SizeType i) ythrow()
 	YAssert(i < capacity,
 		"In function \"uchar_t\n"
 		"TextBuffer::operator[](SizeType i)\":\n"
-		"Subscript is not less than the length.")
+		"Subscript is not less than the length.");
 	return text[i];
 }
 
@@ -130,7 +130,7 @@ TextBuffer::TextBuffer::Output(uchar_t* d, SizeType p, SizeType n) const
 
 
 void
-TextMap::clear()
+TextMap::Clear()
 {
 	for(MapType::const_iterator i(Map.begin()); i != Map.end(); ++i)
 		delete i->second;
@@ -138,7 +138,8 @@ TextMap::clear()
 }
 
 
-TextFileBuffer::HText::HText(TextFileBuffer* pBuf, BlockSizeType b, SizeType i) ythrow()
+TextFileBuffer::HText::HText(TextFileBuffer* pBuf, BlockSizeType b, SizeType i)
+	ythrow()
 	: pBuffer(pBuf), blk(b), idx(i)
 {
 //	assert(buf.GetTextSize() >= 1);
@@ -201,13 +202,16 @@ TextFileBuffer::HText::operator+(std::ptrdiff_t o)
 }
 
 bool
-operator==(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs) ythrow()
+operator==(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
+	ythrow()
 {
-	return lhs.pBuffer == rhs.pBuffer && lhs.blk == rhs.blk && lhs.idx == rhs.idx;
+	return lhs.pBuffer == rhs.pBuffer
+		&& lhs.blk == rhs.blk && lhs.idx == rhs.idx;
 }
 
 bool
-operator<(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs) ythrow()
+operator<(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
+	ythrow()
 {
 	if(lhs.pBuffer < rhs.pBuffer)
 		return true;
@@ -280,7 +284,8 @@ TextFileBuffer::HText::GetBlockLength(BlockSizeType i) const ythrow()
 
 TextFileBuffer::TextFileBuffer(YTextFile& file)
 	: TextMap(),
-	File(file), nTextSize(std::max<u32>(File.GetTextSize(), 1)), nBlock((nTextSize + nBlockSize - 1) / nBlockSize)
+	File(file), nTextSize(std::max<u32>(File.GetTextSize(), 1)),
+	nBlock((nTextSize + nBlockSize - 1) / nBlockSize)
 {}
 
 TextBlock&
@@ -292,7 +297,8 @@ TextFileBuffer::operator[](const BlockSizeType& i)
 			throw std::out_of_range("YSLib::Text::TextBlock");
 
 		MapType::const_iterator it(Map.find(i));
-		TextBlock& block(*(it == Map.end() ? new TextBlock(i, nBlockSize) : it->second));
+		TextBlock& block(*(it == Map.end()
+			? new TextBlock(i, nBlockSize) : it->second));
 
 		if(it == Map.end())
 		{
@@ -304,11 +310,13 @@ TextFileBuffer::operator[](const BlockSizeType& i)
 	}
 	catch(std::out_of_range&)
 	{
-		throw LoggedEvent("Wrong range of file @@ TextFileBuffer::operator[];", 3);
+		throw LoggedEvent("Wrong range of file"
+			" @@ TextFileBuffer::operator[];", 3);
 	}
 	catch(std::bad_alloc&)
 	{
-		throw LoggedEvent("Allocation failed @@ TextFileBuffer::operator[];", 2);
+		throw LoggedEvent("Allocation failed"
+			" @@ TextFileBuffer::operator[];", 2);
 	}
 }
 

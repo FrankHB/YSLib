@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CHRDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-17 17:52:35;
-// UTime = 2010-9-22 4:36;
-// Version = 0.1536;
+// CTime = 2009-11-17 17:52:35 + 08:00;
+// UTime = 2010-10-23 22:53 + 08:00;
+// Version = 0.1544;
 
 
 #ifndef INCLUDED_CHRDEF_H_
@@ -32,47 +32,6 @@ typedef s32 uint_t;
 
 //宽字符串转换宏。
 #define FS(str) reinterpret_cast<const CHRLib::fchar_t*>(L##str)
-
-/*
-typedef struct
-{
-	u8   length;
-	u16* word;
-} string;
-*/
-
-/*typedef struct
-{
-	s32 x;
-	s32 y;
-} POINT;
-
-typedef struct
-{
-	POINT base;
-	POINT end;
-} BLOCK;*/
-
-/*
-bool  IsInArea(const BLOCK&, const POINT&);
-BLOCK CheckBlock(const BLOCK&, const BLOCK&);
-*/
-
-//typedef enum {NONE = 0, HOLLOW = 1, SHADOW = 2, BACK_GROUND = 3} FNTS; //FONT Style;
-typedef enum {Deg0 = 0, Deg90 = 1, Deg180 = 2, Deg270 = 3} CROT; //Character Rotation;
-
-/*typedef struct
-{
-	PIXEL Color;
-	PIXEL BgColor;
-	u8    Align;
-	CROT  Rot;
-	FNTS  Fx;
-	bool  Cut;  //Cut
-	u8    WSpc; //Width Space
-	u8    HSpc; //Height Space
-	FONT* Font;
-} CHRSTAT;*/
 
 CHRLIB_END
 

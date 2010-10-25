@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 00:06:05 + 08:00;
-// UTime = 2010-10-22 13:48 + 08:00;
-// Version = 0.6357;
+// UTime = 2010-10-25 12:55 + 08:00;
+// Version = 0.6545;
 
 
 #ifndef INCLUDED_YTEXT_H_
@@ -19,7 +19,8 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-class TextState : public PenStyle //文本状态：笔样式、边框样式、字体缓存和行距。
+//文本状态：笔样式、边框样式、字体缓存和行距。
+class TextState : public PenStyle
 {
 public:
 	typedef PenStyle ParentType;
@@ -31,42 +32,185 @@ protected:
 	u8 lnGap; //行距。
 
 public:
+	//********************************
+	//名称:		TextState
+	//全名:		YSLib::Drawing::TextState::TextState
+	//可访问性:	public 
+	//返回类型:	
+	//修饰符:	
+	//功能概要:	默认构造。
+	//备注:		
+	//********************************
 	TextState();
+	//********************************
+	//名称:		TextState
+	//全名:		YSLib::Drawing::TextState::TextState
+	//可访问性:	public 
+	//返回类型:	
+	//修饰符:	
+	//形式参数:	Drawing::Font &
+	//功能概要:	构造：使用指定字体。
+	//备注:		
+	//********************************
 	explicit
 	TextState(Drawing::Font&);
+	//********************************
+	//名称:		TextState
+	//全名:		YSLib::Drawing::TextState::TextState
+	//可访问性:	public 
+	//返回类型:	
+	//修饰符:	
+	//形式参数:	YFontCache &
+	//功能概要:	构造：使用指定字体缓存。
+	//备注:		
+	//********************************
 	explicit
 	TextState(YFontCache&);
 
+	//********************************
+	//名称:		operator=
+	//全名:		YSLib::Drawing::TextState::operator=
+	//可访问性:	public 
+	//返回类型:	TextState&
+	//修饰符:	
+	//形式参数:	const PenStyle & ps
+	//功能概要:	从笔样式中恢复样式。
+	//备注:		
+	//********************************
 	TextState&
-	operator=(const PenStyle& ps); //从 ts 中恢复样式。
+	operator=(const PenStyle& ps);
+	//********************************
+	//名称:		operator=
+	//全名:		YSLib::Drawing::TextState::operator=
+	//可访问性:	public 
+	//返回类型:	TextState&
+	//修饰符:	
+	//形式参数:	const Padding & ms
+	//功能概要:	从边距样式中恢复样式。
+	//备注:		
+	//********************************
 	TextState&
-	operator=(const Padding& ms); //从 ms 中恢复样式。
+	operator=(const Padding& ms);
 
 	DefGetter(SPOS, PenX, penX)
 	DefGetter(SPOS, PenY, penY)
 	DefGetter(u8, LineGap, lnGap) //取当前字体设置对应的行距。
+	//********************************
+	//名称:		GetLnHeight
+	//全名:		YSLib::Drawing::TextState::GetLnHeight
+	//可访问性:	public 
+	//返回类型:	
+	//修饰符:	const
+	//形式参数:	u8
+	//形式参数:	LineGap
+	//形式参数:	lnGap
+	//功能概要:	取当前字体设置对应的行高。
+	//备注:		
+	//********************************
 	SDST
-	GetLnHeight() const; //取当前字体设置对应的行高。
+	GetLnHeight() const;
+	//********************************
+	//名称:		GetLnHeightEx
+	//全名:		YSLib::Drawing::TextState::GetLnHeightEx
+	//可访问性:	public 
+	//返回类型:	YSLib::SDST
+	//修饰符:	const
+	//功能概要:	取当前字体设置对应的行高与行距之和。
+	//备注:		
+	//********************************
 	SDST
-	GetLnHeightEx() const; //取当前字体设置对应的行高与行距之和。
+	GetLnHeightEx() const;
+	//********************************
+	//名称:		GetLnNNow
+	//全名:		YSLib::Drawing::TextState::GetLnNNow
+	//可访问性:	public 
+	//返回类型:	u16
+	//修饰符:	const
+	//功能概要:	取笔所在的当前行数。
+	//备注:		
+	//********************************
 	u16
-	GetLnNNow() const; //取笔所在的当前行数。
+	GetLnNNow() const;
 
+	//********************************
+	//名称:		SetMargins
+	//全名:		YSLib::Drawing::TextState::SetMargins
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	u64
+	//功能概要:	设置边距。
+	//备注:		64 位无符号整数形式。
+	//********************************
 	void
-	SetMargins(u64); //设置边距（64 位无符号整数形式）。
+	SetMargins(u64);
+	//********************************
+	//名称:		SetMargins
+	//全名:		YSLib::Drawing::TextState::SetMargins
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	SDST
+	//形式参数:	SDST
+	//功能概要:	设置边距。
+	//备注:		2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
+	//********************************
 	void
-	SetMargins(SDST, SDST); //设置边距（2 个 16 位无符号整数形式，分别表示水平边距和竖直边距）。
+	SetMargins(SDST, SDST);
+	//********************************
+	//名称:		SetMargins
+	//全名:		YSLib::Drawing::TextState::SetMargins
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	SDST
+	//形式参数:	SDST
+	//形式参数:	SDST
+	//形式参数:	SDST
+	//功能概要:	设置边距。
+	//备注:		4 个 16 位无符号整数形式。
+	//********************************
 	void
-	SetMargins(SDST, SDST, SDST, SDST); //设置边距（4 个 16 位无符号整数形式）。
+	SetMargins(SDST, SDST, SDST, SDST);
+	//********************************
+	//名称:		SetPen
+	//全名:		YSLib::Drawing::TextState::SetPen
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//功能概要:	按字体大小在设置笔的默认位置（区域左上角）。
+	//备注:		
+	//********************************
 	void
-	SetPen(); //按字体大小在设置笔的默认位置（区域左上角）。
+	SetPen();
 	DefSetter(SPOS, PenX, penX)
 	DefSetter(SPOS, PenY, penY)
+	//********************************
+	//名称:		SetPen
+	//全名:		YSLib::Drawing::TextState::SetPen
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	SPOS
+	//形式参数:	SPOS
+	//功能概要:	
+	//备注:		
+	//********************************
 	void
 	SetPen(SPOS, SPOS); //设置笔位置。
 	DefSetter(u8, LineGap, lnGap) //设置行距。
+	//********************************
+	//名称:		SetLnNNow
+	//全名:		YSLib::Drawing::TextState::SetLnNNow
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	u16 n
+	//功能概要:	设置笔的行位置。
+	//备注:		
+	//********************************
 	void
-	SetLnNNow(u16 n); //设置笔的行位置。
+	SetLnNNow(u16 n);
 };
 
 inline TextState&
@@ -116,87 +260,351 @@ TextState::SetPen(SPOS x, SPOS y)
 }
 
 
-//打印单个字符。
-
+//********************************
+//名称:		PrintChar
+//全名:		YSLib::Drawing::PrintChar
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	MBitmapBuffer &
+//形式参数:	TextState &
+//形式参数:	fchar_t
+//功能概要:	打印单个字符。
+//备注:		
+//********************************
 void
 PrintChar(MBitmapBuffer&, TextState&, fchar_t); 
 
+//********************************
+//名称:		PrintCharEx
+//全名:		YSLib::Drawing::PrintCharEx
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	MBitmapBufferEx &
+//形式参数:	TextState &
+//形式参数:	fchar_t
+//功能概要:	打印单个字符。
+//备注:		
+//********************************
 void
 PrintCharEx(MBitmapBufferEx&, TextState&, fchar_t); 
 
 
-class TextRegion : public TextState, public MBitmapBufferEx //文本区域。
+//文本区域。
+class TextRegion : public TextState, public MBitmapBufferEx
 {
 public:
 	typedef TextState ParentType;
 
+	//********************************
+	//名称:		TextRegion
+	//全名:		YSLib::Drawing::TextRegion::TextRegion
+	//可访问性:	public 
+	//返回类型:	
+	//修饰符:	
+	//功能概要:	默认构造。
+	//备注:		
+	//********************************
 	TextRegion();
+	//********************************
+	//名称:		TextRegion
+	//全名:		YSLib::Drawing::TextRegion::TextRegion
+	//可访问性:	public 
+	//返回类型:	
+	//修饰符:	
+	//形式参数:	Drawing::Font &
+	//功能概要:	构造：使用指定字体。
+	//备注:		
+	//********************************
 	explicit
 	TextRegion(Drawing::Font&);
+	//********************************
+	//名称:		TextRegion
+	//全名:		YSLib::Drawing::TextRegion::TextRegion
+	//可访问性:	public 
+	//返回类型:	
+	//修饰符:	
+	//形式参数:	YFontCache &
+	//功能概要:	构造：使用指定字体缓存。
+	//备注:		
+	//********************************
 	explicit
 	TextRegion(YFontCache&);
+	//********************************
+	//名称:		~TextRegion
+	//全名:		YSLib::Drawing::TextRegion::~TextRegion
+	//可访问性:	virtual public 
+	//返回类型:	
+	//修饰符:	
+	//功能概要:	析构。
+	//备注:		
+	//********************************
+	virtual
 	~TextRegion();
 
-	TextRegion& operator=(const TextState& ts); //从 ts 中恢复状态。
+	//********************************
+	//名称:		operator=
+	//全名:		YSLib::Drawing::TextRegion::operator=
+	//可访问性:	public 
+	//返回类型:	TextRegion&
+	//修饰符:	
+	//形式参数:	const TextState & ts
+	//功能概要:	从文本状态中恢复状态。
+	//备注:		
+	//********************************
+	TextRegion& operator=(const TextState& ts);
 
 	DefGetter(SDST, BufWidthN, Width - Margin.GetHorizontal()) //取缓冲区的文本显示区域的宽。
 	DefGetter(SDST, BufHeightN, Height - Margin.GetVertical()) //取缓冲区的文本显示区域的高。
+	//********************************
+	//名称:		GetMarginResized
+	//全名:		YSLib::Drawing::TextRegion::GetMarginResized
+	//可访问性:	public 
+	//返回类型:	YSLib::SDST
+	//修饰符:	const
+	//功能概要:	根据字体大小、行距和缓冲区的高调整边距，返回调整后的底边距值。
+	//备注:		
+	//********************************
 	SDST
-	GetMarginResized() const; //根据字体大小、行距和缓冲区的高调整边距，返回调整后的底边距值。
+	GetMarginResized() const;
+	//********************************
+	//名称:		GetBufferHeightResized
+	//全名:		YSLib::Drawing::TextRegion::GetBufferHeightResized
+	//可访问性:	public 
+	//返回类型:	YSLib::SDST
+	//修饰符:	const
+	//功能概要:	取根据字体大小和行距调整后的缓冲区的高。
+	//备注:		不含底边距。
+	//********************************
 	SDST
-	GetBufferHeightResized() const; //取根据字体大小和行距调整后的缓冲区的高（不含底边距）。
+	GetBufferHeightResized() const;
+	//********************************
+	//名称:		GetLnN
+	//全名:		YSLib::Drawing::TextRegion::GetLnN
+	//可访问性:	public 
+	//返回类型:	u16
+	//修饰符:	const
+	//功能概要:	取按当前行高和行距所能显示的最大行数。
+	//备注:		
+	//********************************
 	u16
-	GetLnN() const; //取按当前行高和行距所能显示的最大行数。
+	GetLnN() const;
+	//********************************
+	//名称:		GetLnNEx
+	//全名:		YSLib::Drawing::TextRegion::GetLnNEx
+	//可访问性:	public 
+	//返回类型:	u16
+	//修饰符:	const
+	//功能概要:	取按当前行高和行距（行间距数小于行数 1）所能显示的最大行数。
+	//备注:		
+	//********************************
 	u16
-	GetLnNEx() const; //取按当前行高和行距（行间距数小于行数 1）所能显示的最大行数。
+	GetLnNEx() const;
+	//********************************
+	//名称:		GetLineLast
+	//全名:		YSLib::Drawing::TextRegion::GetLineLast
+	//可访问性:	public 
+	//返回类型:	YSLib::SPOS
+	//修饰符:	const
+	//功能概要:	取最底行的基线位置。
+	//备注:		
+	//********************************
 	SPOS
-	GetLineLast() const; //取最底行的基线位置。
+	GetLineLast() const;
 
+	//********************************
+	//名称:		SetLnLast
+	//全名:		YSLib::Drawing::TextRegion::SetLnLast
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//功能概要:	设置笔的行位置为最底行。
+	//备注:		
+	//********************************
 	void
-	SetLnLast(); //设置笔的行位置为最底行。
+	SetLnLast();
 
-	//清除缓冲区第 l 行起始的 n 行像素（n 为 0 时清除之后的所有行）。
+	//********************************
+	//名称:		ClearLine
+	//全名:		YSLib::Drawing::TextRegion::ClearLine
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	u16 l
+	//形式参数:	SDST n
+	//功能概要:	清除缓冲区第 l 行起始的 n 行像素。
+	//备注:		n 为 0 时清除之后的所有行。
+	//********************************
 	void
 	ClearLine(u16 l, SDST n);
 
 	//清除缓冲区第 l 个文本行。
+	//********************************
+	//名称:		ClearLn
+	//全名:		YSLib::Drawing::TextRegion::ClearLn
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	u16 l
+	//功能概要:	清除缓冲区中的第 l 个文本行。
+	//备注:		l 为 0 表示首行。
+	//********************************
 	void
 	ClearLn(u16 l);
 
-	//清除缓冲区最后一个文本行。
+	//
+	//********************************
+	//名称:		ClearLnLast
+	//全名:		YSLib::Drawing::TextRegion::ClearLnLast
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//功能概要:	清除缓冲区中的最后一个文本行。
+	//备注:		
+	//********************************
 	void
 	ClearLnLast();
 
+	//********************************
+	//名称:		Move
+	//全名:		YSLib::Drawing::TextRegion::Move
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	s16 n
+	//功能概要:	缓冲区特效：整体移动 n 像素。
+	//备注:		除上下边界区域；n > 0 时下移， n < 0 时上移。
+	//********************************
 	void
-	Move(s16 n); //缓冲区（除上下边界区域）特效：整体移动 n 像素（n > 0 时下移， n < 0 时上移）。
+	Move(s16 n);
+	//********************************
+	//名称:		Move
+	//全名:		YSLib::Drawing::TextRegion::Move
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	s16 n
+	//形式参数:	SDST h
+	//功能概要:	缓冲区特效：整体移动 n 像素。
+	//备注:		从缓冲区顶端起高 h 的区域内，除上下边界区域；
+	//			n > 0 时下移， n < 0 时上移。
+	//********************************
 	void
-	Move(s16 n, SDST h); //缓冲区（从缓冲区顶端起高 h 的区域内，除上下边界区域）特效：整体移动 n 像素（n > 0 时下移， n < 0 时上移）。
+	Move(s16 n, SDST h);
 
-	//输出换行。
+	//********************************
+	//名称:		PutNewline
+	//全名:		YSLib::Drawing::TextRegion::PutNewline
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//功能概要:	输出换行。
+	//备注:		
+	//********************************
 	void
 	PutNewline();
 
-	//输出单个字符。
+	//********************************
+	//名称:		PutChar
+	//全名:		YSLib::Drawing::TextRegion::PutChar
+	//可访问性:	public 
+	//返回类型:	u8
+	//修饰符:	
+	//形式参数:	fchar_t
+	//功能概要:	输出单个字符。
+	//备注:		
+	//********************************
 	u8
 	PutChar(fchar_t);
 
+	//********************************
+	//名称:		PutLine
+	//全名:		YSLib::Drawing::TextRegion::PutLine<_tOut>
+	//可访问性:	public 
+	//返回类型:	_tOut
+	//修饰符:	
+	//形式参数:	_tOut s
+	//功能概要:	输出迭代器 s 指向字符串，直至行尾或字符串结束，
+	//			并返回输出迭代器。
+	//备注:		
+	//********************************
 	template<typename _tOut>
 	_tOut
-	PutLine(_tOut s); //输出迭代器 s 指向字符串，直至行尾或字符串结束，并返回输出迭代器。
+	PutLine(_tOut s);
+	//********************************
+	//名称:		PutLine
+	//全名:		YSLib::Drawing::TextRegion::PutLine<_tOut, _tChar>
+	//可访问性:	public 
+	//返回类型:	_tOut
+	//修饰符:	
+	//形式参数:	_tOut s
+	//形式参数:	_tOut g
+	//形式参数:	_tChar f
+	//功能概要:	输出迭代器 s 指向字符串，
+	//			直至行尾、遇到指定迭代器 g 或遇到指定字符 f ，
+	//			并返回输出迭代器。
+	//备注:		
+	//********************************
 	template<typename _tOut, typename _tChar>
 	_tOut
-	PutLine(_tOut s, _tOut g, _tChar f = '\0'); //输出迭代器 s 指向字符串，直至行尾、遇到指定迭代器 g 或遇到指定字符 f ，并返回输出迭代器。
+	PutLine(_tOut s, _tOut g, _tChar f = '\0');
+	//********************************
+	//名称:		PutLine
+	//全名:		YSLib::Drawing::TextRegion::PutLine
+	//可访问性:	public 
+	//返回类型:	String::size_type
+	//修饰符:	
+	//形式参数:	const String &
+	//功能概要:	输出字符串，直至行尾或字符串结束，并返回输出字符数。
+	//备注:		
+	//********************************
 	String::size_type
-	PutLine(const String&); //输出字符串，直至行尾或字符串结束，并返回输出字符数。
+	PutLine(const String&);
 
+	//********************************
+	//名称:		PutString
+	//全名:		YSLib::Drawing::TextRegion::PutString<_tOut>
+	//可访问性:	public 
+	//返回类型:	_tOut
+	//修饰符:	
+	//形式参数:	_tOut s
+	//功能概要:	输出迭代器 s 指向字符串，直至区域末尾或字符串结束，
+	//			并返回输出迭代器。
+	//备注:		
+	//********************************
 	template<typename _tOut>
 	_tOut
-	PutString(_tOut s); //输出迭代器 s 指向字符串，直至区域末尾或字符串结束，并返回输出迭代器。
+	PutString(_tOut s);
+	//********************************
+	//名称:		PutString
+	//全名:		YSLib::Drawing::TextRegion::PutString<_tOut, _tChar>
+	//可访问性:	public 
+	//返回类型:	_tOut
+	//修饰符:	
+	//形式参数:	_tOut s
+	//形式参数:	_tOut g
+	//形式参数:	_tChar f
+	//功能概要:	输出迭代器 s 指向字符串，
+	//			直至区域末尾、遇到指定迭代器 g 或遇到指定字符 f ，
+	//			并返回输出迭代器。
+	//备注:		
+	//********************************
 	template<typename _tOut, typename _tChar>
 	_tOut
-	PutString(_tOut s, _tOut g , _tChar f = '\0'); //输出迭代器 s 指向字符串，直至区域末尾、遇到指定迭代器 g 或遇到指定字符 f ，并返回输出迭代器。
+	PutString(_tOut s, _tOut g , _tChar f = '\0');
+	//********************************
+	//名称:		PutString
+	//全名:		YSLib::Drawing::TextRegion::PutString
+	//可访问性:	public 
+	//返回类型:	String::size_type
+	//修饰符:	
+	//形式参数:	const String &
+	//功能概要:	输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
+	//备注:		
+	//********************************
 	String::size_type
-	PutString(const String&); //输出字符串，直至区域末尾或字符串结束，并返回输出字符数。
+	PutString(const String&);
 };
 
 inline TextRegion&
@@ -269,7 +677,21 @@ YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Text)
 
-//以 cache 为字体缓存，width 为宽度，从当前文本迭代器 p （不含）开始逆向查找字符 f （满足 p != --g ）。
+//********************************
+//名称:		rfind
+//全名:		YSLib::Text::rfind<_tOut, _tChar>
+//可访问性:	public 
+//返回类型:	_tOut
+//修饰符:	
+//形式参数:	YFontCache & cache
+//形式参数:	SDST width
+//形式参数:	_tOut p
+//形式参数:	_tOut g
+//形式参数:	_tChar f
+//功能概要:	以 cache 为字体缓存，width 为宽度，
+//			从当前文本迭代器 p 开始逆向查找字符 f 。
+//备注:		不含 p ；满足 p != --g 。
+//********************************
 template<typename _tOut, typename _tChar>
 _tOut
 rfind(YFontCache& cache, SDST width, _tOut p, _tOut g, _tChar f)
@@ -285,7 +707,19 @@ rfind(YFontCache& cache, SDST width, _tOut p, _tOut g, _tChar f)
 	return p;
 }
 
-//在 r 中取当前文本迭代器 p 的前 l 行首对应文本迭代器（满足 p != --g ）。
+//********************************
+//名称:		GetPreviousLinePtr
+//全名:		YSLib::Text::GetPreviousLinePtr<_tOut>
+//可访问性:	public 
+//返回类型:	_tOut
+//修饰符:	
+//形式参数:	const Drawing::TextRegion & r
+//形式参数:	_tOut p
+//形式参数:	_tOut g
+//形式参数:	u16 l
+//功能概要:	在 r 中取当前文本迭代器 p 的前 l 行首对应文本迭代器。
+//备注:		满足 p != --g 。
+//********************************
 template<typename _tOut>
 _tOut
 GetPreviousLinePtr(const Drawing::TextRegion& r, _tOut p, _tOut g, u16 l = 1)
@@ -303,7 +737,18 @@ GetPreviousLinePtr(const Drawing::TextRegion& r, _tOut p, _tOut g, u16 l = 1)
 	return p;
 }
 
-//在 r 中取当前文本迭代器 p 至后一行首对应文本迭代器（满足 p != g ）。
+//********************************
+//名称:		GetNextLinePtr
+//全名:		YSLib::Text::GetNextLinePtr<_tOut>
+//可访问性:	public 
+//返回类型:	_tOut
+//修饰符:	
+//形式参数:	const Drawing::TextRegion & r
+//形式参数:	_tOut p
+//形式参数:	_tOut g
+//功能概要:	在 r 中取当前文本迭代器 p 至后一行首对应文本迭代器。
+//备注:		满足 p != g 。
+//********************************
 template<typename _tOut>
 _tOut
 GetNextLinePtr(const Drawing::TextRegion& r, _tOut p, _tOut g)
@@ -326,8 +771,20 @@ GetNextLinePtr(const Drawing::TextRegion& r, _tOut p, _tOut g)
 }
 
 
+//********************************
+//名称:		ReadX
+//全名:		YSLib::Text::ReadX
+//可访问性:	public 
+//返回类型:	u32
+//修饰符:	
+//形式参数:	YTextFile & f
+//形式参数:	Drawing::TextRegion & txtbox
+//形式参数:	u32 n
+//功能概要:	从文本文件 f 中读取 n 字节到 txtbox 中。
+//备注:		无文本缓冲方式；按默认编码转换为 UTF-16LE 。
+//********************************
 u32
-ReadX(YTextFile& f, Drawing::TextRegion& txtbox, u32 n); //无文本缓冲方式从文本文件 f 中读取 n 字节（按默认编码转化为 UTF-16LE ）到 txtbox 中。
+ReadX(YTextFile& f, Drawing::TextRegion& txtbox, u32 n);
 
 YSL_END_NAMESPACE(Text)
 

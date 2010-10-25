@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-28 00:36:30 + 08:00;
-// UTime = 2010-10-09 10:37 + 08:00;
-// Version = 0.1938;
+// UTime = 2010-10-24 14:52 + 08:00;
+// Version = 0.1944;
 
 
 #include "yfilesys.h"
@@ -59,7 +59,8 @@ Path::operator/=(const Path& path)
 Path
 Path::GetRootName() const
 {
-	return Path(StringType(c_str(), platform::GetRootNameLength(GetNativeString().c_str())));
+	return Path(StringType(c_str(),
+		platform::GetRootNameLength(GetNativeString().c_str())));
 }
 Path
 Path::GetRootDirectory() const
@@ -119,14 +120,16 @@ Path::ReplaceExtension(const Path& new_extension)
 Path::iterator&
 Path::iterator::operator++()
 {
-	n = n == StringType::npos ? 0 : ptr->find_first_not_of(Slash, ptr->find(Slash, n));
+	n = n == StringType::npos ? 0
+		: ptr->find_first_not_of(Slash, ptr->find(Slash, n));
 	return *this;
 }
 
 Path::iterator&
 Path::iterator::operator--()
 {
-	n = n == 0 ? StringType::npos : ptr->rfind(Slash, ptr->find_last_not_of(Slash, n)) + 1;
+	n = n == 0 ? StringType::npos
+		: ptr->rfind(Slash, ptr->find_last_not_of(Slash, n)) + 1;
 	return *this;
 }
 
@@ -316,7 +319,8 @@ GetNowDirectory()
 {
 	PATHSTR buf;
 
-	return platform::getcwd_n(buf, MAX_PATH_LENGTH - 1) == NULL ? string() : string(buf);
+	return platform::getcwd_n(buf, MAX_PATH_LENGTH - 1) == NULL
+		? string() : string(buf);
 }
 
 bool
@@ -361,8 +365,9 @@ MFileList::LoadSubItems()
 		dir.Reset();
 		while((++dir).LastError == 0)
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
-				List.push_back(std::strcmp(HDirectory::Name, FS_Parent) && HDirectory::IsDirectory() ?
-					MBCSToString(string(HDirectory::Name) + FS_Seperator)
+				List.push_back(std::strcmp(HDirectory::Name, FS_Parent)
+					&& HDirectory::IsDirectory()
+					? MBCSToString(string(HDirectory::Name) + FS_Seperator)
 					: MBCSToString(HDirectory::Name));
 	}
 	return n;

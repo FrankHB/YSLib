@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-05-02 12:00:08 + 08:00;
-// UTime = 2010-10-22 13:34 + 08:00;
-// Version = 0.2011;
+// UTime = 2010-10-23 15:28 + 08:00;
+// Version = 0.2017;
 
 
 #include "ydesktop.h"
@@ -123,6 +123,8 @@ YDesktop::GetTopDesktopObjectPtr(const Point& pt) const
 void
 YDesktop::DrawBackground()
 {
+	YWindowAssert(this, YDesktop, DrawBackground);
+
 	if(prBackImage != NULL && GetBufferPtr() != NULL)
 	{
 		const PixelType* imgBg(prBackImage->GetImagePtr());
@@ -139,6 +141,8 @@ YDesktop::DrawBackground()
 void
 YDesktop::DrawDesktopObjects()
 {
+	YWindowAssert(this, YDesktop, DrawDesktopObjects);
+
 	for(DOs::iterator i(sDOs.begin()); i != sDOs.end(); ++i)
 	{
 		try

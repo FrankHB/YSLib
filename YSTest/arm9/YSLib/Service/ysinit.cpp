@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YShellInitialization by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-10-21 23:15:08 + 08:00;
-// UTime = 2010-10-21 12:11 + 08:00;
-// Version = 0.1696;
+// UTime = 2010-10-24 16:48 + 08:00;
+// Version = 0.1697;
 
 
 #include "ysinit.h"
@@ -139,7 +139,8 @@ CheckInstall()
 	puts("Checking installation...");
 	if(!platform::direxists(DEF_DIRECTORY))
 		installFail("Default data directory");
-	if(!(stdex::fexists(DEF_FONT_PATH) || platform::direxists(DEF_FONT_DIRECTORY)))
+	if(!(stdex::fexists(DEF_FONT_PATH)
+		|| platform::direxists(DEF_FONT_DIRECTORY)))
 		installFail("Default font");
 	puts("OK!");
 }

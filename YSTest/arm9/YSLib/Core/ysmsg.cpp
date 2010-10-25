@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-06 02:44:31 + 08:00;
-// UTime = 2010-10-22 13:17 + 08:00;
-// Version = 0.1441;
+// UTime = 2010-10-24 16:30 + 08:00;
+// Version = 0.1445;
 
 
 #include "ysmsg.h"
@@ -17,13 +17,15 @@ const time_t DEF_TIMEOUT(0);
 #ifdef YSLIB_NO_CURSOR
 
 Message::Message(HSHL shl, MSGID m, MSGPRIORITY p, WPARAM w, const LPARAM l)
-	: hShl(shl), msg(m), prior(p), wParam(w), lParam(l), timestamp(std::clock()), timeout(DEF_TIMEOUT)
+	: hShl(shl), msg(m), prior(p), wParam(w), lParam(l),
+	timestamp(std::clock()), timeout(DEF_TIMEOUT)
 {}
 
 #else
 
 Message::Message(HSHL shl, MSGID m, MSGPRIORITY p, WPARAM w, const LPARAM l, const Point& _pt)
-	: hShl(shl), msg(m), prior(p), wParam(w), lParam(l), pt(_pt), timestamp(std::clock()), timeout(DEF_TIMEOUT)
+	: hShl(shl), msg(m), prior(p), wParam(w), lParam(l), pt(_pt),
+	timestamp(std::clock()), timeout(DEF_TIMEOUT)
 {}
 
 #endif
@@ -33,11 +35,13 @@ bool Message::operator==(const Message& m) const
 
 #ifdef YSLIB_NO_CURSOR
 
-	return hShl == m.hShl && msg == m.msg && prior == m.prior && wParam == m.wParam && lParam == m.lParam;
+	return hShl == m.hShl && msg == m.msg && prior == m.prior
+		&& wParam == m.wParam && lParam == m.lParam;
 
 #else
 
-	return hShl == m.hShl && msg == m.msg && prior == m.prior && wParam == m.wParam && lParam == m.lParam && pt == m.pt;
+	return hShl == m.hShl && msg == m.msg && prior == m.prior
+		&& wParam == m.wParam && lParam == m.lParam && pt == m.pt;
 
 #endif
 

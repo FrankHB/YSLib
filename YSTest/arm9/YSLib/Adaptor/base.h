@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::Base by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-09 09:25:27 + 08:00;
-// UTime = 2010-10-22 12:22 + 08:00;
-// Version = 0.1985;
+// UTime = 2010-10-24 17:39 + 08:00;
+// Version = 0.1994;
 
 
 #ifndef INCLUDED_BASE_H_
@@ -12,8 +12,12 @@
 
 /*
  ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
- GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，该宏不会被展开。详见： http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
-解决方案来源： https://www.securecoding.cert.org/confluence/display/cplusplus/PRE05-CPP.+Understand+macro+replacement+when+concatenating+tokens+or+performing+stringification 。
+ GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，该宏不会被展开。
+详见： http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
+解决方案来源：
+ https://www.securecoding.cert.org/confluence/display/cplusplus/\
+ PRE05-CPP.+Understand+macro+replacement+when+concatenating\
+ +tokens+or+performing+stringification 。
 */
 #define _yJOIN(x, y) x ## y
 
@@ -59,7 +63,8 @@
 
 #define DeclInterface(_name) _yInterface _name _yInterfaceHead(_name)
 
-//对于基接口需要显式指定访问权限和继承方式。由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
+//对于基接口需要显式指定访问权限和继承方式。
+//由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
 // ImplI = Implements Interface;
 //抽象实现：保留接口供派生类实现（可以提供接口函数的默认实现）。
 // ImplA = Implements Abstractly;
@@ -179,7 +184,7 @@
 //简单通用成员函数定义。
 //prefix "Def" = Define;
 #define DefEmptyDtor(_type) \
-	~_type() \
+	~_type() ythrow() \
 	{}
 
 #define DefConverter(_type, _expr) \

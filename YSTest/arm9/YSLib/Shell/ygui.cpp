@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-21 20:35 + 08:00;
-// Version = 0.2872;
+// UTime = 2010-10-24 22:17 + 08:00;
+// Version = 0.2874;
 
 
 #include "ygui.h"
@@ -31,7 +31,8 @@ GetFocusedObject(YDesktop& d)
 	IVisualControl* p(d.GetFocusingPtr());
 	GMFocusResponser<IVisualControl>* q;
 
-	while(p && (q = dynamic_cast<GMFocusResponser<IVisualControl>*>(p)) && q->GetFocusingPtr())
+	while(p && (q = dynamic_cast<GMFocusResponser<IVisualControl>*>(p))
+		&& q->GetFocusingPtr())
 		p = q->GetFocusingPtr();
 	return p;
 }
@@ -87,13 +88,17 @@ SetDragOffset(const Vec& v)
 }
 
 bool
-RepeatHeld(HeldStateType& s, const MKeyEventArgs& e, Timers::TimeSpan InitialDelay, Timers::TimeSpan RepeatedDelay)
+RepeatHeld(HeldStateType& s, const MKeyEventArgs& e,
+	Timers::TimeSpan InitialDelay, Timers::TimeSpan RepeatedDelay)
 {
 	//三状态自动机。
 	switch(s)
 	{
 	case Free:
-		//必须立即转移状态，否则 HeldTimer.Activate() 会使 HeldTimer.Refresh() 始终为 false ，导致状态无法转移。
+		/*
+		必须立即转移状态，否则 HeldTimer.Activate() 会使 HeldTimer.Refresh()
+		始终为 false ，导致状态无法转移。
+		*/
 		s = Pressed;
 		HeldTimer.SetInterval(InitialDelay); //初始按键延迟。
 		HeldTimer.Activate();

@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::Contaner by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-09 09:25:26 + 08:00;
-// UTime = 2010-10-12 20:43 + 08:00;
-// Version = 0.1512;
+// UTime = 2010-10-24 16:38 + 08:00;
+// Version = 0.1513;
 
 
 #ifndef INCLUDED_CONT_H_
@@ -116,7 +116,7 @@ struct GSStringTemplate
 
 typedef GSStringTemplate<char>::basic_string string;
 
-//YSLib 基本字符串（使用 UTF-16LE ）。
+// YSLib 基本字符串（使用 UTF-16LE ）。
 typedef GSStringTemplate<uchar_t>::basic_string ustring;
 
 YSL_END

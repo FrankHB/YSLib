@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15 + 08:00;
-// UTime = 2010-10-22 13:14 + 08:00;
-// Version = 0.2758;
+// UTime = 2010-10-24 16:05 + 08:00;
+// Version = 0.2762;
 
 
 #include "../Shell/ywindow.h"
@@ -218,10 +218,12 @@ PostQuitMessage(int nExitCode)
 #if YSLIB_DEBUG_MSG & 2
 
 static IRES
-PeekMessage_(Message& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg);
+PeekMessage_(Message& msg, HSHL hShl,
+	MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg);
 
 IRES
-PeekMessage(Message& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg)
+PeekMessage(Message& msg, HSHL hShl,
+	MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg)
 {
 	void YSDebug_MSG_Peek(Message&);
 	IRES t(PeekMessage_(msg, hShl, wMsgFilterMin, wMsgFilterMax, wRemoveMsg));
@@ -240,7 +242,8 @@ PeekMessage
 
 #endif
 
-	(Message& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax, u32 wRemoveMsg)
+	(Message& msg, HSHL hShl,
+		MSGID wMsgFilterMin, MSGID wMsgFilterMax, u32 wRemoveMsg)
 {
 	if(!theApp.GetDefaultMessageQueue().empty())
 	{
@@ -256,7 +259,8 @@ PeekMessage
 			{
 				MSGID msgID(m.GetMsgID());
 
-				if(!(wMsgFilterMin || wMsgFilterMax) || (wMsgFilterMin <= msgID && msgID <= wMsgFilterMax))
+				if(!(wMsgFilterMin || wMsgFilterMax)
+					|| (wMsgFilterMin <= msgID && msgID <= wMsgFilterMax))
 				{
 					msg = m;
 

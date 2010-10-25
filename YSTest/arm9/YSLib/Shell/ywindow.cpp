@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28 + 08:00;
-// UTime = 2010-10-22 13:53 + 08:00;
-// Version = 0.3094;
+// UTime = 2010-10-24 22:22 + 08:00;
+// Version = 0.3111;
 
 
 #include "ydesktop.h"
@@ -25,7 +25,8 @@ MWindow::MWindow(const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl)
 {}
 
 
-AWindow::AWindow(const Rect& r, const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
+AWindow::AWindow(const Rect& r, const GHResource<YImage> i, YDesktop* pDsk,
+	HSHL hShl, HWND hWnd)
 	: AVisualControl(hWnd ? hWnd : HWND(pDsk), r), MWindow(i, pDsk, hShl)
 {}
 
@@ -52,6 +53,8 @@ AWindow::RequestToTop()
 bool
 AWindow::DrawBackgroundImage()
 {
+	YWindowAssert(this, Forms::AWindow, DrawBackgroundImage);
+
 	if(prBackImage != NULL && GetBufferPtr() != NULL)
 	{
 		ConstBitmapPtr imgBg(prBackImage->GetImagePtr());
@@ -68,6 +71,8 @@ AWindow::DrawBackgroundImage()
 void
 AWindow::DrawBackground()
 {
+	YWindowAssert(this, Forms::AWindow, DrawBackground);
+
 	if(!DrawBackgroundImage())
 		Fill(BackColor);
 }
@@ -112,7 +117,8 @@ void
 AWindow::UpdateToScreen(YDesktop& d) const
 {
 	if(Visible)
-		Buffer.CopyToBuffer(d.GetBackgroundPtr(), RDeg0, d.GetSize(), Point::Zero, Location, Buffer);
+		Buffer.CopyToBuffer(d.GetBackgroundPtr(), RDeg0, d.GetSize(),
+		Point::Zero, Location, Buffer);
 }
 
 void
@@ -122,7 +128,8 @@ AWindow::UpdateToWindow(IWindow& w) const
 	{
 		const Graphics g(w);
 
-		Buffer.CopyToBuffer(g.GetBufferPtr(), RDeg0, g.GetSize(), Point::Zero, Location, Buffer);
+		Buffer.CopyToBuffer(g.GetBufferPtr(), RDeg0, g.GetSize(),
+			Point::Zero, Location, Buffer);
 	}
 }
 
@@ -135,7 +142,8 @@ AWindow::Show()
 }
 
 
-YFrameWindow::YFrameWindow(const Rect& r, const GHResource<YImage> i, YDesktop* pDsk, HSHL hShl, HWND hWnd)
+YFrameWindow::YFrameWindow(const Rect& r, const GHResource<YImage> i,
+	YDesktop* pDsk, HSHL hShl, HWND hWnd)
 	: YComponent(), AWindow(r, i, pDsk, hShl, hWnd), MWidgetContainer()
 {
 	if(pContainer)
@@ -145,12 +153,13 @@ YFrameWindow::YFrameWindow(const Rect& r, const GHResource<YImage> i, YDesktop* 
 	}
 	SetSize(GetSize());
 	DrawBackground();
-	InsertMessage(hShell, SM_WNDCREATE, 0xF0, handle_cast<WPARAM>(GetWindowHandle()), reinterpret_cast<LPARAM>(this));
+	InsertMessage(hShell, SM_WNDCREATE, 0xF0,
+		handle_cast<WPARAM>(GetWindowHandle()), reinterpret_cast<LPARAM>(this));
 	*hShl += *this;
 	if(pDesktop)
 		*pDesktop += static_cast<IVisualControl&>(*this);
 }
-YFrameWindow::~YFrameWindow()
+YFrameWindow::~YFrameWindow() ythrow()
 {
 	if(pContainer != NULL)
 	{
@@ -160,12 +169,15 @@ YFrameWindow::~YFrameWindow()
 	hShell->RemoveAll(*this);
 	if(pDesktop)
 		pDesktop->RemoveAll(*this);
-	InsertMessage(hShell, SM_WNDDESTROY, 0xF0, handle_cast<WPARAM>(GetWindowHandle()), reinterpret_cast<LPARAM>(this));
+	InsertMessage(hShell, SM_WNDDESTROY, 0xF0,
+		handle_cast<WPARAM>(GetWindowHandle()), reinterpret_cast<LPARAM>(this));
 }
 
 bool
 YFrameWindow::DrawWidgets()
 {
+	YWindowAssert(this, Forms::YFrameWindow, DrawWidgets);
+
 	bool bBgChanged(!IsBgRedrawed());
 	WidgetSet::iterator i;
 
@@ -182,7 +194,8 @@ YFrameWindow::DrawWidgets()
 		{
 			IWidget& w(**i);
 
-			if(w.IsVisible() && !(IsBgRedrawed() && w.IsBgRedrawed()) && !w.IsTransparent())
+			if(w.IsVisible() && !(IsBgRedrawed()
+				&& w.IsBgRedrawed()) && !w.IsTransparent())
 			{
 				w.DrawBackground();
 				w.SetBgRedrawed(true);

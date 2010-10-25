@@ -229,9 +229,6 @@
     <ClCompile Include="arm9\source\main.cpp">
       <Filter>ARM9\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="arm9\source\Shells.cpp">
-      <Filter>ARM9\源文件</Filter>
-    </ClCompile>
     <ClCompile Include="doc\ex.cpp">
       <Filter>文档</Filter>
     </ClCompile>
@@ -240,6 +237,9 @@
     </ClCompile>
     <ClCompile Include="arm9\YSLib\Adaptor\yfont.cpp">
       <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClCompile>
+    <ClCompile Include="arm9\source\Shells.cpp">
+      <Filter>ARM9\资源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::Config by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-09 09:25:26 + 08:00;
-// UTime = 2010-10-10 04:11;
-// Version = 0.1484;
+// UTime = 2010-10-23 16:35;
+// Version = 0.1486;
 
 
 #ifndef INCLUDED_CONFIG_H_
@@ -12,7 +12,9 @@
 
 //#define NDEBUG //非调试模式。
 
-#define YC_USE_YASSERT //使用 YCLib 断言。
+#ifndef NDEBUG
+#	define YC_USE_YASSERT //使用 YCLib 断言。
+#endif
 
 // YSLib 选项。
 

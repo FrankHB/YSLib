@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:36 + 08:00;
-// UTime = 2010-10-22 12:53 + 08:00;
-// Version = 0.1925;
+// UTime = 2010-10-24 13:35 + 08:00;
+// Version = 0.1934;
 
 
 #include "yapp.h"
@@ -55,7 +55,8 @@ const String YApplication::ProductVersion(G_APP_VER);
 
 YApplication::YApplication()
 	: YObject(),
-	Log(DefaultLog), pMessageQueue(new YMessageQueue), pMessageQueueBackup(new YMessageQueue), sShls(), hShell(NULL)
+	Log(DefaultLog), pMessageQueue(new YMessageQueue),
+		pMessageQueueBackup(new YMessageQueue), sShls(), hShell(NULL)
 {
 	ApplicationExit += Def::Destroy;
 }
@@ -110,9 +111,11 @@ YApplication::SetShellHandle(HSHL h)
 		if(hShell == h)
 			return false;
 		if(hShell)
-			hShell->OnDeactivated(Message(NULL, SM_DEACTIVATED, 0xF0, handle_cast<WPARAM>(hShell)));
+			hShell->OnDeactivated(Message(
+				NULL, SM_DEACTIVATED, 0xF0, handle_cast<WPARAM>(hShell)));
 		hShell = h;
-		hShell->OnActivated(Message(NULL, SM_ACTIVATED, 0xF0, handle_cast<WPARAM>(h)));
+		hShell->OnActivated(Message(
+				NULL, SM_ACTIVATED, 0xF0, handle_cast<WPARAM>(h)));
 	}
 	return h;
 }

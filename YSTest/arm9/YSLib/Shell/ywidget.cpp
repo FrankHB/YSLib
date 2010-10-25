@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-22 13:49 + 08:00;
-// Version = 0.4190;
+// UTime = 2010-10-24 22:21 + 08:00;
+// Version = 0.4239;
 
 
 #include "ywindow.h"
@@ -55,7 +55,8 @@ MVisual::SetBounds(const Rect& r)
 }
 
 
-MWidget::MWidget(HWND hWnd, const Rect& r, IWidgetContainer* pCon, Color b, Color f)
+MWidget::MWidget(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
+	Color b, Color f)
 	: MVisual(r, b, f),
 	hWindow(hWnd), pContainer(pCon ? pCon : GetPointer(hWnd))
 {}
@@ -64,7 +65,8 @@ Point
 MWidget::GetLocationForWindow() const
 {
 	return pContainer != NULL
-		? Widgets::GetLocationOffset(dynamic_cast<IWidget*>(pContainer), Location, hWindow)
+		? Widgets::GetLocationOffset(dynamic_cast<IWidget*>(pContainer),
+		Location, hWindow)
 		: Point::FullScreen;
 }
 Point
@@ -96,6 +98,8 @@ MWidget::Fill(Color c)
 void
 MWidget::DrawBackground()
 {
+	YWidgetAssert(this, Widgets::MWidget, DrawBackground);
+
 	if(!Transparent)
 		Fill();
 }
@@ -103,6 +107,8 @@ MWidget::DrawBackground()
 void
 MWidget::DrawForeground()
 {
+	YWidgetAssert(this, Widgets::MWidget, DrawForeground);
+
 	if(!Transparent)
 		SetBgRedrawed(false);
 }
@@ -121,7 +127,7 @@ YWidget::YWidget(HWND hWnd, const Rect& r, IWidgetContainer* pCon)
 	if(pContainer != NULL)
 		*pContainer += *this;
 }
-YWidget::~YWidget()
+YWidget::~YWidget() ythrow()
 {
 	if(pContainer != NULL)
 		*pContainer -= *this;
@@ -157,7 +163,8 @@ MWidgetContainer::GetTopVisualControlPtr(const Point& pt) const
 	return NULL;
 }
 
-YWidgetContainer::YWidgetContainer(HWND hWnd, const Rect& r, IWidgetContainer* pCon)
+YWidgetContainer::YWidgetContainer(HWND hWnd, const Rect& r,
+	IWidgetContainer* pCon)
 	: YComponent(), MWidget(hWnd, r, pCon), MWidgetContainer()
 {
 	if(pContainer != NULL)
@@ -166,7 +173,7 @@ YWidgetContainer::YWidgetContainer(HWND hWnd, const Rect& r, IWidgetContainer* p
 		*pContainer += static_cast<GMFocusResponser<IVisualControl>&>(*this);
 	}
 }
-YWidgetContainer::~YWidgetContainer()
+YWidgetContainer::~YWidgetContainer() ythrow()
 {
 	if(pContainer != NULL)
 	{
@@ -203,6 +210,8 @@ MLabel::PaintText(MWidget& w)
 void
 YLabel::DrawForeground()
 {
+	YWidgetAssert(this, Widgets::YLabel, DrawForeground);
+
 //	if(!Transparent)
 	//	Fill();
 	ParentType::DrawForeground();

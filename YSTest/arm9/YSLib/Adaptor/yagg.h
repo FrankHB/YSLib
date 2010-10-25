@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YAGG by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-21 15:46:00 + 08:00;
-// UTime = 2010-10-09 10:03 + 08:00;
-// Version = 0.1661;
+// UTime = 2010-10-24 11:19 + 08:00;
+// Version = 0.1666;
 
 
 #ifndef AGG_INCLUDED
@@ -75,7 +75,7 @@
 #include "span_rgb555.h"
 #include "span_rgb5551.h"
 #include "span_abgr1555.h"
-#include "span_mono8.h"*/
+#include "span_mono8.h"
 
 inline agg::rgba8 rgb8(const u8 r, const u8 g, const u8 b)
 {
@@ -88,7 +88,7 @@ inline agg::rgba8 rgb5(const u8 r, const u8 g, const u8 b)
 inline agg::rgba8 argb16(const bool a, const u8 r, const u8 g, const u8 b)
 {
 	return agg::rgba8((b & 31) << 3, (g & 31) << 3, (r & 31) << 3, -a);
-}
+}*/
 
 #endif
 

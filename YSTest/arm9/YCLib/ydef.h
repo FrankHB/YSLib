@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS -> YDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // UTime = 2009-12-02 21:42:44 + 08:00;
-// UTime = 2010-10-04 22:01 + 08:00;
-// Version = 0.2274;
+// UTime = 2010-10-23 23:53 + 08:00;
+// Version = 0.2277;
 
 
 #ifndef INCLUDED_YDEF_H_
@@ -14,7 +14,8 @@
 extern "C" {
 #endif
 
-#if defined __GNUC__ || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L)
+#if defined __GNUC__ \
+	|| (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L)
 
 #	include <stddef.h>
 #	include <stdint.h>
@@ -81,8 +82,10 @@ typedef IRES			ERRNO;
 #define HIBYTE(w)       ((BYTE)((((DWORD_PTR)(w)) >> 8) & 0xff))
 #define LOWORD(l)       ((WORD)(((DWORD_PTR)(l)) & 0xffff))
 #define HIWORD(l)       ((WORD)((((DWORD_PTR)(l)) >> 16) & 0xffff))
-#define MAKEWORD(a, b)  ((WORD)(((BYTE)(((DWORD_PTR)(a)) & 0xff)) | ((WORD)((BYTE)(((DWORD_PTR)(b)) & 0xff))) << 8))
-#define MAKELONG(a, b)  ((LONG)(((WORD)(((DWORD_PTR)(a)) & 0xffff)) | ((DWORD)((WORD)(((DWORD_PTR)(b)) & 0xffff))) << 16))
+#define MAKEWORD(a, b)  ((WORD)(((BYTE)(((DWORD_PTR)(a)) & 0xff)) \
+	| ((WORD)((BYTE)(((DWORD_PTR)(b)) & 0xff))) << 8))
+#define MAKELONG(a, b)  ((LONG)(((WORD)(((DWORD_PTR)(a)) & 0xffff)) \
+	| ((DWORD)((WORD)(((DWORD_PTR)(b)) & 0xffff))) << 16))
 
 
 typedef char* STR;

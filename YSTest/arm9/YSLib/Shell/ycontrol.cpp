@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:34 + 08:00;
-// UTime = 2010-10-22 13:31 + 08:00;
-// Version = 0.3631;
+// UTime = 2010-10-24 19:59 + 08:00;
+// Version = 0.3632;
 
 
 #include "ycontrol.h"
@@ -41,7 +41,7 @@ AVisualControl::AVisualControl(HWND hWnd, const Rect& r, IWidgetContainer* pCon)
 		*pContainer += static_cast<IVisualControl&>(*this);
 	}
 }
-AVisualControl::~AVisualControl()
+AVisualControl::~AVisualControl() ythrow()
 {
 	if(pContainer != NULL)
 	{
@@ -118,12 +118,13 @@ AVisualControl::OnTouchMove(const Runtime::MTouchEventArgs& e)
 YVisualControl::YVisualControl(HWND hWnd, const Rect& r, IWidgetContainer* pCon)
 	: YComponent(), AVisualControl(hWnd, r, pCon)
 {}
-YVisualControl::~YVisualControl()
+YVisualControl::~YVisualControl() ythrow()
 {}
 
 
 MScrollBar::MScrollBar(SDST blMaxThumbSize, SDST blPrev, SDST blNext)
-	: MinThumbSize(blMaxThumbSize), PrevButtonSize(blPrev), NextButtonSize(blNext),
+	: MinThumbSize(blMaxThumbSize),
+	PrevButtonSize(blPrev), NextButtonSize(blNext),
 	bPrevButtonPressed(false), bNextButtonPressed(false)
 {}
 

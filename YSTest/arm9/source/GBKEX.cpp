@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-10-22 13:56 + 08:00;
-// Version = 0.2760; *Build 165 r26;
+// UTime = 2010-10-25 13:12 + 08:00;
+// Version = 0.2768; *Build 166 r22;
 
 
 #include "../YCLib/ydef.h"
@@ -70,6 +70,7 @@ $Record prefix and abbrevations:
 \inv ::= invoke
 \k ::= keywords
 \lib ::= library
+\ln ::= lines
 \m ::= members
 \mac ::= macros
 \mem ::= memory
@@ -81,7 +82,7 @@ $Record prefix and abbrevations:
 \op ::= operators
 \or ::= overridden
 \para ::= parameters
-\para.def ::= default parameters
+\para.de ::= default parameters
 \pt ::= points
 \ptr ::= pointers
 \rem ::= remarked
@@ -119,16 +120,18 @@ $using:
 \u YControl
 {
 	\cl MVisualControl;
+	\cl YControl;
+	\cl AVisualControl;
 	\cl YVisualControl;
-	\cl AButton;
-	\cl MScrollBar;
-	\cl AScrollBar;
 }
 \u YGUIComponent
 {
+	\cl AButton;
+	\cl MScrollBar;
+	\cl AScrollBar;
 	\cl YButton;
 	\cl YHorizontalScrollBar;
-	\cl YVirtualScrollBar;
+	\cl YVerticalScrollBar;
 	\cl YListBox;
 	\cl YFileBox;
 }
@@ -141,139 +144,158 @@ $using:
 
 $DONE:
 r1:
-/= \tr \impl @@ \u Shells;
+/ @@ \i \f void transPixelEx(BitmapPtr) @@ \un \ns @@ \u YGUIComponent
+	-> \f \t template<u8 r, u8 g, u8 b> inline void transPixelEx(BitmapPtr);
 
 r2:
-/ \impl @@ \f IVisualControl* GetTouchedVisualControl(IWidgetContainer&, Point&) @@ \un \ns @@ \u YGUI;
-	* moving ignored by shell windows;
+/ \tr \impl @@ \mf @@ \cl YHorizontalScrollBar:
+	/ void DrawPrevButton();
+	/ void DrawNextButton();
 
-r3-r4:
-/= test 1;
+r3:
+/ \tr \impl @@ \f void WndDrawArrow(HWND, const Rect&, SDST, ROT, Color) @@ \un \ns @@ \u YGUIComponent;
+
+r4:
+/ @@ \u YGUI:
+	+ \i \f \t template<class _fTransformPixel> bool TransformRect(const Graphics&, const Point&, const Size&, _fTransformPixel);
+	+ \i \f \t template<class _fTransformPixel> inline bool TransformRect(const Graphics&, const Rect&, _fTransformPixel);
+/ \simp \impl @@ \YGUIComponent;
+/ \tr \impl @@ \mf void YHorizontalScrollBar::DrawScrollArea();
 
 r5:
-/ \impl @@ \f IVisualControl* GetTouchedVisualControl(IWidgetContainer&, Point&) @@ \un \ns @@ \u YGUI;
-	* focus lost when moving controls quickly;
+/ \impl @@ \mf void YHorizontalScrollBar::DrawScrollArea();
 
 r6:
-/ \tr \impl @@ \mf DrawPrevButton & \mf DrawNextButton & \mf DrawScrollArea @@ \cl YHorizontalScrollBar;
+/ @@ \cl YHorizontalScrollBar @@ \u YGUIComponent:
+	/ \impl @@ \mf void DrawScrollArea();
+	+ \mf void DrawBackground();
 
 r7:
-/ \impl @@ \u YObject;
-	/ \decl & \impl \ctor \t @@ \cl BinaryGroup \cl Point & \cl Vec & \cl Size;
+/= \a \ac @@ \mf void DrawBackground() & \mf void DrawForeground()
+	& \mf void DrawBackgroundImage() & \mf void DrawWidgets()
+	& \mf void DrawDesktopObjects() (@@ \cl & !@@ \in) -> protected ~ public;
+/ \tr @@ \mf void ShowString(const String&) @@ \cl ShlSetting::TFormA @@ \cl Shells;
 
 r8:
-/ @@ \u YGUI:
-	/ @@ \un \ns:
-		+ \f void RectDrawArrow(const Graphics&, const Point&, SDST, ROT = RDeg0, Color = ColorSpace::Black);
-		/ \f void RectDrawPressed(const Graphics&, const Point&, const Size&) & \f void RectDrawButtonSurface(const Graphics&, const Point&, const Size&):
-			+ assertion ^ \mac YAssert;
-		/ \a RectDrawFocus => WndDrawFocus;
-		+ \f void WndDrawArrow(HWND, const Rect&, SDST, ROT = RDeg0, Color = ColorSpace::Black);
-		/ \f void WndDrawFocus(HWND, const Point&, const Size&) -> void WndDrawFocus(HWND, const Size&);
-/ \simp accessors of \cl Point & \cl Size;
-- using platform::Key @@ \h Adaptor::YAdaptor;
-+ copy \ctor @@ \cl (BinaryGroup & Point & Vec & Size & Rect) @@ \cl YObject;
-/ @@ \decl @@ \cl MInputEventArgs @@ \u YEventArgs
-	* ambiguous \m X & \m Y ^ \inh platform::Key -> \m Key k, with typedef platform::Key Key;
-	+ DefConverter(Key, k);
-	+ DefGetter(Key, Key, k);
-/= \tr impl @@ \u Shells & \u YControl & \u YGUIComponent & \u ShlDS;
++ \s \f void WaitForInput @@ \st Def @@ \u YGlobal;
++ \i \mf void Pause() @@ \cl YConsole @@ \u YComponent;
++
+{
+	#ifdef YC_USE_YASSERT
+
+	#	undef YWidgetAssert
+
+	void yassert_Widget(const IWidget*, int, const char*, const char*, const char*);
+
+	#	define YWidgetAssert(widget_ptr, comp_name, func_name) \
+	Components::Widgets::yassert_Widget(widget_ptr, __LINE__, __FILE__, #comp_name, #func_name)
+
+	#else
+
+	#	define YWidgetAssert(widget_ptr, comp_name, func_name) \
+	assert((widget_ptr)->GetWindowHandle() != NULL)
+
+	#endif
+} @@ \u YWidget;
+/ "#define YAssert(exp, message) yassert(exp, #exp, message, __LINE__, __FILE__);"
+	-> "#define YAssert(exp, message) yassert(exp, #exp, message, __LINE__, __FILE__)"
+	@@ \u YCommon;
+/ \tr \impl @@ \u YTextManager;
+^ \mac YWidgetAssert @@ \cl YGUIComponent;
 
 r9:
-/ @@ \ns platform @@ \u YCommon:
-	+ \ns ColorSpace;
-	/ \en ColorSet @@ \cl Color >> \ns ColorSpace;
-^ \ns ColorSpace;
-/ \tr \ns \decl ^ \k using @@ \h YAdaptor & \h YWidget;
+^ \mac YWidgetAssert @@ \impl @@ \u YWidget;
+^ \mac YWidgetAssert @@ \impl @@ \u YWindow;
+^ \mac YWidgetAssert @@ \impl @@ \u YDesktop;
+/ @@ \u YWidget:
+	\i \f void yassert_Widget(const IWidget*, int, const char*, const char*, const char*)
+		-> \f \t template<class _tWidget> void yassert_Widget(const _tWidget*, int, const char*, const char*, const char*);
 
 r10:
-/ @@ \ns platform @@ \u YCommon:
-	+ \ns KeySpace;
-	/ \en KeySet @@ \cl Key >> \ns KeySpace;
-^ \ns KeySpace;
-/ \tr \ns \decl ^ \k using @@ \h YAdaptor;
-/= \tr impl @@ \u Shells & \u ShlDS & \u YGlobal & \u YGUIComponent;
+/ \impl @@ \u YWidget;
+	/ \f \t template<class _tWidget> void yassert_Widget(const _tWidget*, int, const char*, const char*, const char*)
+		-> \i \f void yassert(bool, const char* int, const char*, const char*, const char*);
+	+ \mac YWindowAssert;
+/ \a \mac YWidgetAssert -> \mac YWindowAssert @@ \impl @@ (\u YWindow & \u YDesktop);
 
 r11:
-/ \tr \impl @@ \cl ShlSetting @@ \u Shells;
+- using platform::yassert @@ \h Adaptor::YAdaptor;
+/ #define YAssert(exp, message) yassert(exp, #exp, message, __LINE__, __FILE__) @@ \u YCommon
+	-> #define YAssert(exp, message) platform::yassert(exp, #exp, message, __LINE__, __FILE__);
 
-r12-r13:
-/ \tr @@ \u Shells;
-/ \tr @@ \u YGUI;
-	/ \impl drawing @@ \cl YHorizontalScrollBar;
-
-r14:
-/ \tr \decl @@ \cl AScrollBar @@ \u YControl;
-
-r15:
-/ \tr \decl @@ \cl YHorizontalScrollBar;
-* \impl @@ \f bool DrawRect(const Graphics&, const Point&, const Size&, Color) @@ \u YGDI;
-
-r16:
-/ tr @@ \u Shells;
-
-r17:
-* \impl @@ \f bool DrawRect(const Graphics&, const Point&, const Size&, Color) @@ \u YGDI;
-- \f void DrawBounds(const Graphics&, const Point&, const Size&, Color) @@ \u YGUI;
-* \impl @@ \f void RectDrawArrow(const Graphics&, const Point&, SDST, ROT, Color) @@ \un \ns @@ \u YGUIComponent;
+r12-r17:
+/ test 1;
+	/ \tr @@ \h Adaptor::Config;
 
 r18:
-/ @@ \un \ns @@ \u YGUIComponent:
-	/ \impl @@ \f void WndDrawArrow(HWND, const Rect&, SDST, ROT, Color);
-	* \impl @@ \f void RectDrawArrow(const Graphics&, const Point&, SDST, ROT, Color);
+/ @@ \cl YHorizontalScrollBar:
+	/ \tr 
+	- \mf
+	{
+		void DrawPrevButton();
+		void DrawNextButton();
+		void DrawScrollArea();
+	};
+- \en CROT @@ \h CHRDefinition;
+/= limited \a \ln maximum width to 80 characters @@ \lib CHRLib & \lib YCommon;
+/= documented \a \f @@ \h ^ VA Snippets @@ \lib CHRLib;
 
 r19:
-/ @@ \cl AScrollBar:
-	+ typedef AVisualControl ParentType;
-	/ \impl @@ \mf void DrawForeground();
-+= typedef ParentType Controls::AVisualControl @@ \cl AWindow;
+/= documented \a \f @@ \h ^ VA Snippets @@ \lib YCommon;
+/= limited \a \ln maximum width to 80 characters @@ \lib CHRLib & \lib YShell::Adaptor;
+/= documented \a \f @@ \h ^ VA Snippets @@ \lib YShell::Adaptor;
 
 r20:
-/ \tr @@ \u YGUI;
-	/ \impl drawing @@ \cl YHorizontalScrollBar;
+/= limited \a \ln maximum width to 80 characters @@ \lib YShell::Core;
+/= documented \a \f @@ \h ^ VA Snippets @@ YShell::Core;
+* \impl
+	{
+		template<typename _type, typename _fCompare>
+		inline _type
+		vmin(_type a, _type b, _fCompare _comp);
+		template<typename _type, typename _fCompare>
+		inline _type
+		vmax(_type a, _type b, _fCompare _comp);
+	} @@ \u YCoreUtilities;
+/ \mf clear => Clear @@ \cl \t GEventMap @@ \YEvent;
+-= \i !\vt \dtor @@ \cl \t GHBase @@ \h YFunc;
+/ \simp @@ \cl Rect @@ \u YObject:
+	/ \i \mf Point GetPoint() const -> DefGetter(Point, Point, Point(X, Y));
 
 r21:
-/ \impl @@ \u YGUIComponent:
-	/ @@ \un \ns:
-		/ @@ \f void WndDrawArrow(HWND, const Rect&, SDST, ROT, Color);
-	/ @@ \cl YHorizontalScrollBar:
-		/ @@ \mf DrawPrevButton;
-		/ @@ \mf DrawNextButton;
+/= limited \a \ln maximum width to 80 characters @@ \lib YShell::Service;
+/= documented \a \f @@ \h ^ VA Snippets @@ YShell::Service;
+/ \mf void clear() => void Clear @@ \cl TextMap @@ \u YTextManager;
+/= limited \a \ln maximum width to 80 characters @@ \lib YShell::Helper;
+/= documented \a \f @@ \h ^ VA Snippets @@ YShell::Helper;
++ ythrow() @@ \def @@ \mac DefEmptyDtor;
+/= \dtor @@ \cl ShlGUI @@ \u ShlDS -> DefEmptyDtor(ShlDS);
+/ \dtor @@ \cl YFrameWindow + \es ythrow();
+/ \dtor @@ \cl YForm @@ \u YForm + \es ythrow();
+/ \vt DefEmptyDtor(YControl) @@ \cl YControl;
+/ \dtor @@ \cl AVisualControl + \es ythrow();
+/ \dtor @@ \cl YWidgetContainer + \es ythrow();
+/ \vt DefEmptyDtor(MWidget) @@ \cl MWidget;
+/ \vt DefEmptyDtor(YHorizontalScrollBar) @@ \cl YHorizontalScrollBar;
+/ \dtor @@ \cl YWidget + \es ythrow();
+/ \dtor @@ \cl YVisualControl + \es ythrow();
+/ \vt DefEmptyDtor(YButton) @@ \cl YButton;
+/ \dtor @@ \cl YListBox + \es ythrow();
+/ \vt DefEmptyDtor(YLabel) @@ \cl YLabel;
 
 r22:
-/ @@ \cl YHorizontalScrollBar @@ \u YGUIComponent:
-	/ \simp \impl @@ \mf DrawPrevButton;
-	/ \simp \impl @@ \mf DrawNextButton;
-
-r23:
-/ cl AScrollBar @@ \u YControl >> \u YGUIComponent;
-
-r24:
-/= \tr \decl @@ \cl AVisualControl;
-	+ \in entry void RequestToTop() \inh IVisualControl \inh IWidget;
-
-r25:
-+ \mac ImplA @@ \h Adaptor::Base;
-^ \mac ImplA;
-/ @@ \cl YGUIComponent:
-	/ \impl @@ \cl AScrollBar;
-	/ \impl @@ \cl YHorizontalScrollBar;
-		+ \inh YComponent;
-		+ \mf void DrawForeground();
-
-r26:
-/= \tr:
-	/= code empty lines arranged @@ \cl;
-/= \tr \impl @@ \ctor @@ \cl YHorizontalScrollBar;
+/= limited \a \ln maximum width to 80 characters @@ \lib YShell::Shell;
+/= documented \a \f @@ \h ^ VA Snippets @@ YShell::Shell;
+/= \simp @@ \cl YM @@ \u YControl:
+/= ImplI(IVisualControl) PDefH(EventMapType::Event&, operator[], const EventMapType::ID& id)
+	-> ImplI(IVisualControl) PDefHOperator(EventMapType::Event&, [], const EventMapType::ID& id);
 
 
 $DOING:
 
 / ...
 
-
 $NEXT:
-
 
 * blank-clicked \evt OnClick @@ ListBox;
 

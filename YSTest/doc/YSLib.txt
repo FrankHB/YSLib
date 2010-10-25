@@ -1,8 +1,8 @@
 ﻿// YSLib -> YSLib by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-2 5:14:30;
-// UTime = 2010-6-29 4:17;
-// Version = 0.1818;
+// CTime = 2009-12-02 05:14:30 + 08:00;
+// UTime = 2010-10-24 19:52 + 08:00;
+// Version = 0.1822;
 
 
 // YSLib ： YSLib说明。
@@ -42,8 +42,8 @@ SM_DROP					0x0004
 // wParam 是被激活的 Shell 句柄。
 SM_ACTIVATED			0x0005
 
-// Shell 被撤销消息： Shell 被撤销激活状态后自动产生。参考优先级 0xF0 。
-// wParam 是被撤销的 Shell 句柄。
+// Shell 被停用消息： Shell 被停用激活状态后自动产生。参考优先级 0xF0 。
+// wParam 是被停用的 Shell 句柄。
 //转移线程控制权时，总在 SM_ACTIVATED 之前产生。应保持和 SM_ACTIVATED 具有相同的优先级，以保证该消息总在对应的 SM_ACTIVATED 之前被处理。
 SM_DEACTIVATED			0x0006
 

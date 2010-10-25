@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52 + 08:00;
-// UTime = 2010-10-21 12:59 + 08:00;
-// Version = 0.2403;
+// UTime = 2010-10-24 17:47 + 08:00;
+// Version = 0.2423;
 
 
 #include "yglobal.h"
@@ -54,12 +54,17 @@ namespace
 		scanKeys();
 		WriteKeysInfo(Key, TouchPos);
 
-		const Point pt(ToSPoint(Key.held & KeySpace::Touch ? TouchPos : TouchPos_Old));
+		const Point pt(ToSPoint(Key.held & KeySpace::Touch
+			? TouchPos : TouchPos_Old));
 
-		if(theApp.GetDefaultMessageQueue().empty() || Key != *reinterpret_cast<KeysInfo*>(InputMessage.GetWParam()) || pt != InputMessage.GetCursorLocation())
-			InsertMessage((InputMessage = Message(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Key), 0, pt)));
+		if(theApp.GetDefaultMessageQueue().empty()
+			|| Key != *reinterpret_cast<KeysInfo*>(InputMessage.GetWParam())
+			|| pt != InputMessage.GetCursorLocation())
+			InsertMessage((InputMessage = Message(
+				NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Key), 0, pt)));
 	/*
-		InputMessage = Message(NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Key), 0, ToSPoint(tp));
+		InputMessage = Message(NULL, SM_INPUT, 0x40,
+			reinterpret_cast<WPARAM>(&Key), 0, ToSPoint(tp));
 
 		if(InputMessage != InputMessage_Old)
 		{
@@ -128,6 +133,12 @@ Def::InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 	else
 		return false;
 	return true;
+}
+
+void
+Def::WaitForInput()
+{
+	platform::WaitForInput();
 }
 
 void
@@ -230,11 +241,13 @@ main(int argc, char* argv[])
 	}
 	catch(std::bad_alloc&)
 	{
-		YSL_ theApp.Log.FatalError("Unhandled std::bad_alloc @@ int main(int, char*[]);");
+		YSL_ theApp.Log.FatalError("Unhandled std::bad_alloc"
+			" @@ int main(int, char*[]);");
 	}
 	catch(std::bad_cast&)
 	{
-		YSL_ theApp.Log.FatalError("Unhandled std::bad_cast @@ int main(int, char*[]);");
+		YSL_ theApp.Log.FatalError("Unhandled std::bad_cast"
+			" @@ int main(int, char*[]);");
 	}
 	catch(YSL_ LoggedEvent& e)
 	{
@@ -242,7 +255,8 @@ main(int argc, char* argv[])
 	}
 	catch(...)
 	{
-		YSL_ theApp.Log.FatalError("Unhandled exception @@ int main(int, char*[]);");
+		YSL_ theApp.Log.FatalError("Unhandled exception"
+			" @@ int main(int, char*[]);");
 	}
 }
 

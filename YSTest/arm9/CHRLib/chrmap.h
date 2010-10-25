@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CharacterMapping by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-11-17 17:52:35;
-// UTime = 2010-8-15 9:19;
-// Version = 0.1633;
+// CTime = 2009-11-17 17:52:35 + 08:00;
+// UTime = 2010-10-24 00:03 + 08:00;
+// Version = 0.1645;
 
 
 #ifndef INCLUDED_CHRMAP_H_
@@ -17,7 +17,11 @@ CHRLIB_BEGIN
 
 CHRLIB_BEGIN_NAMESPACE(CharSet)
 
-//编码字符集：使用 IANA 官方字符集名称和 MIBenum ，详见 http://www.iana.org/assignments/character-sets 。
+/*
+编码字符集：使用 IANA 官方字符集名称和 MIBenum ，
+详见 http://www.iana.org/assignments/character-sets 。
+*/
+
 typedef enum
 {
 	//保留。
@@ -58,9 +62,12 @@ typedef enum
 
 //别名。
 const CSID
-	iso_ir_6(US_ASCII), ISO646_US(US_ASCII), ASCII(US_ASCII), us(US_ASCII), IBM367(US_ASCII), cp367(US_ASCII), csASCII(US_ASCII),
+	iso_ir_6(US_ASCII), ISO646_US(US_ASCII), ASCII(US_ASCII), us(US_ASCII),
+		IBM367(US_ASCII), cp367(US_ASCII), csASCII(US_ASCII),
 	MS_Kanji(SHIFT_JIS), csShiftJIS(SHIFT_JIS), windows_932_(SHIFT_JIS),
-	iso_ir_149(KS_C_5601_1987), KS_C_5601_1989(KS_C_5601_1987), KSC_5601(KS_C_5601_1987), korean(KS_C_5601_1987), csKSC56011987(KS_C_5601_1987), windows_949_(KS_C_5601_1987),
+	iso_ir_149(KS_C_5601_1987), KS_C_5601_1989(KS_C_5601_1987),
+		KSC_5601(KS_C_5601_1987), korean(KS_C_5601_1987),
+		csKSC56011987(KS_C_5601_1987), windows_949_(KS_C_5601_1987),
 	windows_65001_(UTF_8),
 	CP936(GBK), MS936(GBK), windows_936(GBK),
 	windows_54936_(GB18030),
@@ -94,13 +101,32 @@ extern "C"
 const ubyte_t cp2026[] = {0};
 
 
-//取小端序双字节字符。
+//********************************
+//名称:		getword_LE
+//全名:		CHRLib::getword_LE
+//可访问性:	public 
+//返回类型:	CHRLib::uchar_t
+//修饰符:	
+//形式参数:	const char * c
+//功能概要:	取小端序双字节字符。
+//注释:		
+//********************************
 inline uchar_t
 getword_LE(const char* c)
 {
 	return (c[1] << 8) | *c;
 }
-//取大端序双字节字符。
+
+//********************************
+//名称:		getword_BE
+//全名:		CHRLib::getword_BE
+//可访问性:	public 
+//返回类型:	CHRLib::uchar_t
+//修饰符:	
+//形式参数:	const char * c
+//功能概要:	取大端序双字节字符。
+//注释:		
+//********************************
 inline uchar_t
 getword_BE(const char* c)
 {

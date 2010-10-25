@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-13 14:17:14 + 08:00;
-// UTime = 2010-10-21 12:58 + 08:00;
-// Version = 0.1407;
+// UTime = 2010-10-24 17:39 + 08:00;
+// Version = 0.1414;
 
 
 #include "shlds.h"
@@ -44,8 +44,10 @@ ShlGUI::SendDrawingMessage()
 //	pDesktopUp->ClearDesktopObjects();
 //	pDesktopDown->ClearDesktopObjects();
 	DispatchWindows();
-	InsertMessage(NULL, SM_PAINT, 0xE0, reinterpret_cast<WPARAM>(this), reinterpret_cast<LPARAM>(pDesktopUp));
-	InsertMessage(NULL, SM_PAINT, 0xE0, reinterpret_cast<WPARAM>(this), reinterpret_cast<LPARAM>(pDesktopDown));
+	InsertMessage(NULL, SM_PAINT, 0xE0,
+		reinterpret_cast<WPARAM>(this), reinterpret_cast<LPARAM>(pDesktopUp));
+	InsertMessage(NULL, SM_PAINT, 0xE0,
+		reinterpret_cast<WPARAM>(this), reinterpret_cast<LPARAM>(pDesktopDown));
 }
 
 void
@@ -72,8 +74,6 @@ YSL_BEGIN_NAMESPACE(DS)
 
 ShlDS::ShlDS()
 	: ShlGUI()
-{}
-ShlDS::~ShlDS() ythrow()
 {}
 
 LRES

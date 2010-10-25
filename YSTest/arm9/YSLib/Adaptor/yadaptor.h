@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YAdaptor by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-22 20:16:21 + 08:00;
-// UTime = 2010-10-21 12:51 + 08:00;
-// Version = 0.1874;
+// UTime = 2010-10-23 15:38 + 08:00;
+// Version = 0.1878;
 
 
 #ifndef INCLUDED_YADAPTOR_H_
@@ -70,7 +70,6 @@ YSL_BEGIN_NAMESPACE(Runtime)
 YSL_END_NAMESPACE(Runtime)
 
 	using platform::terminate;
-	using platform::yassert;
 	using platform::HDirectory;
 
 	namespace DS

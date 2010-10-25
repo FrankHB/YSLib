@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-10-22 13:43 + 08:00;
-// Version = 0.1474;
+// UTime = 2010-10-24 22:19 + 08:00;
+// Version = 0.1538;
 
 
 #include "yguicomp.h"
@@ -25,10 +25,11 @@ YSL_BEGIN_NAMESPACE(Controls)
 
 namespace
 {
+	template<u8 r, u8 g, u8 b>
 	inline void
 	transPixelEx(BitmapPtr dst)
 	{
-		*dst ^= Color(56, 24, 32) & ~BITALPHA;
+		*dst ^= Color(r, g, b) & ~BITALPHA;
 	}
 
 	void
@@ -45,7 +46,8 @@ namespace
 	}
 
 	void
-	RectDrawArrow(const Graphics& g, const Point& p, SDST halfSize, ROT rot = RDeg0, Color c = ColorSpace::Black)
+	RectDrawArrow(const Graphics& g, const Point& p, SDST halfSize,
+		ROT rot = RDeg0, Color c = ColorSpace::Black)
 	{
 		YAssert(g.IsValid(), "err: @g is not valid.");
 
@@ -89,7 +91,8 @@ namespace
 	}
 
 	void
-	WndDrawArrow(HWND hWnd, const Rect& r, SDST halfSize, ROT rot = RDeg0, Color c = ColorSpace::Black)
+	WndDrawArrow(HWND hWnd, const Rect& r, SDST halfSize,
+		ROT rot = RDeg0, Color c = ColorSpace::Black)
 	{
 		YAssert(hWnd, "err: @hWnd is null.");
 
@@ -101,13 +104,13 @@ namespace
 			x += r.Width - 11;
 		case RDeg180:
 			x += 5;
-			y += (r.Height >> 1) + 1;
+			y += (r.Height + 1) >> 1;
 			break;
 		case RDeg90:
 			y += r.Height - 11;
 		case RDeg270:
 			y += 5;
-			x += (r.Width >> 1) + 1;
+			x += (r.Width + 1) >> 1;
 			break;
 		}
 		RectDrawArrow(Graphics(*hWnd), Point(x, y), halfSize, rot, c);
@@ -118,7 +121,7 @@ namespace
 	{
 		YAssert(g.IsValid(), "err: @g is not valid.");
 
-		transRect()(g.GetBufferPtr(), g.GetSize(), Rect(p, s), transPixelEx, transSeq());
+		TransformRect(g, p, s, transPixelEx<56, 24, 32>);
 	}
 
 	void
@@ -133,7 +136,8 @@ namespace
 			Point sp(p.X + 2, p.Y + 2);
 
 			FillRect(g, sp, sz, Color(232, 240, 255));
-			FillRect(g, Point(sp.X, sp.Y + sz.Height), sz, Color(192, 224, 255));
+			FillRect(g, Point(sp.X, sp.Y + sz.Height), sz,
+				Color(192, 224, 255));
 		}
 	}
 }
@@ -151,6 +155,8 @@ YButton::_m_init()
 void
 YButton::DrawForeground()
 {
+	YWidgetAssert(this, Controls::YButton, DrawForeground);
+
 	ParentType::DrawForeground();
 
 	HWND hWnd(GetWindowHandle());
@@ -197,48 +203,53 @@ AScrollBar::AScrollBar(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
 {}
 
 
-YHorizontalScrollBar::YHorizontalScrollBar(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
+YHorizontalScrollBar::YHorizontalScrollBar(HWND hWnd, const Rect& r,
+	IWidgetContainer* pCon,
 	SDST blMaxThumbSize, SDST blPrev, SDST blNext)
 	: YComponent(),
 	AScrollBar(hWnd, r, pCon, blMaxThumbSize, blPrev, blNext)
 {}
 
 void
-YHorizontalScrollBar::DrawPrevButton()
+YHorizontalScrollBar::DrawBackground()
 {
-	RectDrawButtonSurface(Graphics(*GetWindowHandle()), GetLocation(), Drawing::Size(GetPrevButtonSize(), GetHeight()));
-	WndDrawArrow(GetWindowHandle(), GetBounds(), 5, RDeg180, ForeColor);
-}
+	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawBackground);
 
-void
-YHorizontalScrollBar::DrawNextButton()
-{
-	RectDrawButtonSurface(Graphics(*GetWindowHandle()), GetLocation() + Vec(GetWidth() - GetNextButtonSize(), 0), Drawing::Size(GetNextButtonSize(), GetHeight()));
-	WndDrawArrow(GetWindowHandle(), GetBounds(), 5, RDeg0, ForeColor);
-}
+	if(GetWindowHandle())
+	{
+		const Graphics g(*GetWindowHandle());
 
-void
-YHorizontalScrollBar::DrawScrollArea()
-{
-	DrawRect(Graphics(*GetWindowHandle()),
-		Rect(GetLocation() + Vec(GetPrevButtonSize(), 0), GetScrollAreaSize(), GetHeight()),
-		ColorSpace::Blue);
+		FillRect(g, GetBounds(), Color(237, 237, 237));
+
+		SPOS xr(GetX() + GetWidth() - 1);
+
+		DrawHLineSeg(g, GetY(), GetX(), xr, Color(227, 227, 227));
+		DrawHLineSeg(g, GetY() + GetHeight() - 1, GetX(), xr,
+			Color(227, 227, 227));
+	}
 }
 
 void
 YHorizontalScrollBar::DrawForeground()
 {
+	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawForeground);
+
 	AScrollBar::DrawForeground();
-	DrawPrevButton();
-	DrawNextButton();
-	DrawScrollArea();
+	RectDrawButtonSurface(Graphics(*GetWindowHandle()), GetLocation(),
+		Drawing::Size(GetPrevButtonSize(), GetHeight()));
+	WndDrawArrow(GetWindowHandle(), GetBounds(), 4, RDeg180, ForeColor);
+	RectDrawButtonSurface(Graphics(*GetWindowHandle()), GetLocation()
+		+ Vec(GetWidth() - GetNextButtonSize(), 0),
+		Drawing::Size(GetNextButtonSize(), GetHeight()));
+	WndDrawArrow(GetWindowHandle(), GetBounds(), 4, RDeg0, ForeColor);
 }
 
 
 YListBox::YListBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
 	GHResource<TextRegion> prTr_)
 	: YVisualControl(hWnd, r, pCon),
-	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()), bDisposeList(true),
+	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()),
+	bDisposeList(true),
 	Font(), Margin(prTextRegion->Margin),
 	List(*new ListType()), Viewer(List)
 {
@@ -247,13 +258,14 @@ YListBox::YListBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
 YListBox::YListBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
 	GHResource<TextRegion> prTr_, YListBox::ListType& List_)
 	: YVisualControl(hWnd, r, pCon),
-	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()), bDisposeList(false),
+	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()),
+	bDisposeList(false),
 	Font(), Margin(prTextRegion->Margin),
 	List(List_), Viewer(List)
 {
 	_m_init();
 }
-YListBox::~YListBox()
+YListBox::~YListBox() ythrow()
 {
 	if(bDisposeList)
 		delete &List;
@@ -271,7 +283,8 @@ YListBox::_m_init()
 YListBox::ItemType*
 YListBox::GetItemPtr(ViewerType::IndexType i)
 {
-	return isInIntervalRegular<ViewerType::IndexType>(i, List.size()) ? &List[i] : NULL;
+	return isInIntervalRegular<ViewerType::IndexType>(i, List.size())
+		? &List[i] : NULL;
 }
 SDST
 YListBox::GetItemHeight() const
@@ -300,12 +313,16 @@ YListBox::SetSelected(SPOS x, SPOS y)
 void
 YListBox::DrawBackground()
 {
+	YWidgetAssert(this, Controls::YListBox, DrawBackground);
+
 	ParentType::DrawBackground();
 }
 
 void
 YListBox::DrawForeground()
 {
+	YWidgetAssert(this, Controls::YListBox, DrawForeground);
+
 	ParentType::DrawForeground();
 
 	HWND hWnd(GetWindowHandle());
@@ -324,19 +341,23 @@ YListBox::DrawForeground()
 			prTextRegion->SetPen();
 			prTextRegion->SetSize(lnWidth, lnHeight);
 			prTextRegion->SetMargins(defMarginH, defMarginV);
-			Viewer.SetLength((GetHeight() + prTextRegion->GetLineGap()) / lnHeight);
+			Viewer.SetLength((GetHeight() + prTextRegion->GetLineGap())
+				/ lnHeight);
 
-			const ViewerType::IndexType last(Viewer.GetIndex() + Viewer.GetValid());
+			const ViewerType::IndexType last(Viewer.GetIndex()
+				+ Viewer.GetValid());
 			Point pt(GetLocationForWindow());
 			const Graphics g(*GetWindowHandle());
 
-			for(ViewerType::IndexType i(Viewer.GetIndex() >= 0 ? Viewer.GetIndex() : last); i < last; ++i)
+			for(ViewerType::IndexType i(Viewer.GetIndex() >= 0
+				? Viewer.GetIndex() : last); i < last; ++i)
 			{
 				if(Viewer.IsSelected() && i == Viewer.GetSelected())
 				{
 					prTextRegion->Color = ColorSpace::White;
 					FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
-						Rect(pt.X + 1, pt.Y + 1, prTextRegion->GetWidth() - 2, prTextRegion->GetHeight() - 2),
+						Rect(pt.X + 1, pt.Y + 1, prTextRegion->GetWidth() - 2,
+							prTextRegion->GetHeight() - 2),
 						ColorSpace::Aqua);
 				}
 				else
@@ -466,7 +487,7 @@ YFileBox::YFileBox(HWND hWnd, const Rect& r, IWidgetContainer* pCon,
 	TouchMove += &YFileBox::OnTouchMove;
 	KeyHeld += &AVisualControl::OnKeyHeld;
 }
-YFileBox::~YFileBox()
+YFileBox::~YFileBox() ythrow()
 {}
 
 IO::Path
@@ -480,12 +501,16 @@ YFileBox::GetPath() const
 void
 YFileBox::DrawBackground()
 {
+	YWidgetAssert(this, Controls::YFileBox, DrawBackground);
+
 	YListBox::DrawBackground();
 }
 
 void
 YFileBox::DrawForeground()
 {
+	YWidgetAssert(this, Controls::YFileBox, DrawForeground);
+
 	ListItems();
 	YListBox::DrawForeground();
 }

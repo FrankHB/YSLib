@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 00:06:05 + 08:00;
-// UTime = 2010-10-22 13:45 + 08:00;
-// Version = 0.6198;
+// UTime = 2010-10-24 22:21 + 08:00;
+// Version = 0.6202;
 
 
 #include "ytext.h"
@@ -77,14 +77,17 @@ PrintChar(MBitmapBuffer& buf, TextState& ts, fchar_t c)
 			dy(ts.GetPenY() - sbit.GetTop()),
 			xmin(vmax<int>(0, ts.Margin.Left - dx)),
 			ymin(vmax<int>(0, ts.Margin.Top - dy)),
-			xmax(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx, sbit.GetWidth())),
-			ymax(vmin<int>(buf.GetHeight() - ts.Margin.Bottom - dy, sbit.GetHeight()));
+			xmax(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx,
+				sbit.GetWidth())),
+			ymax(vmin<int>(buf.GetHeight() - ts.Margin.Bottom - dy,
+				sbit.GetHeight()));
 
 		if(xmax >= xmin && ymax >= ymin)
 		{
 			const int sJmp(sbit.GetWidth() - xmax + xmin),
 				dJmp(buf.GetWidth() - xmax + xmin),
-				dOff(vmax<int>(ts.Margin.Top, dy) * buf.GetWidth() + vmax<int>(ts.Margin.Left, dx));
+				dOff(vmax<int>(ts.Margin.Top, dy) * buf.GetWidth()
+					+ vmax<int>(ts.Margin.Left, dx));
 			u8* sa(sbit.GetBuffer() + ymin * sbit.GetWidth() + xmin);
 			BitmapPtr dc(buf.GetBufferPtr() + dOff);
 
@@ -124,14 +127,17 @@ PrintCharEx(MBitmapBufferEx& buf, TextState& ts, fchar_t c)
 			dy(ts.GetPenY() - sbit.GetTop()),
 			xmin(vmax<int>(0, ts.Margin.Left - dx)),
 			ymin(vmax<int>(0, ts.Margin.Top - dy)),
-			xmax(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx, sbit.GetWidth())),
-			ymax(vmin<int>(buf.GetHeight() - ts.Margin.Bottom - dy, sbit.GetHeight()));
+			xmax(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx,
+				sbit.GetWidth())),
+			ymax(vmin<int>(buf.GetHeight() - ts.Margin.Bottom - dy,
+				sbit.GetHeight()));
 
 		if(xmax >= xmin && ymax >= ymin)
 		{
 			const int sJmp(sbit.GetWidth() - xmax + xmin),
 				dJmp(buf.GetWidth() - xmax + xmin),
-				dOff(vmax<int>(ts.Margin.Top, dy) * buf.GetWidth() + vmax<int>(ts.Margin.Left, dx));
+				dOff(vmax<int>(ts.Margin.Top, dy) * buf.GetWidth()
+					+ vmax<int>(ts.Margin.Left, dx));
 			u8* sa(sbit.GetBuffer() + ymin * sbit.GetWidth() + xmin);
 			BitmapPtr dc(buf.GetBufferPtr() + dOff);
 			u8* da(buf.GetBufferAlphaPtr() + dOff);
@@ -189,14 +195,16 @@ TextRegion::GetMarginResized() const
 {
 	const u8 t(GetLnHeightEx());
 
-	return t ? Margin.Bottom + (Height + lnGap - Margin.Top - Margin.Bottom) % t : 0;
+	return t ? Margin.Bottom
+		+ (Height + lnGap - Margin.Top - Margin.Bottom) % t : 0;
 }
 SDST
 TextRegion::GetBufferHeightResized() const
 {
 	const u8 t(GetLnHeightEx());
 
-	return t ? Margin.Top + (Height + lnGap - Margin.Top - Margin.Bottom) / t * t : Height;
+	return t ? Margin.Top + (Height + lnGap - Margin.Top - Margin.Bottom)
+		/ t * t : Height;
 }
 u16
 TextRegion::GetLnN() const
@@ -267,7 +275,8 @@ TextRegion::Move(s16 n, SDST h)
 {
 	if(img && imgAlpha)
 	{
-		const s32 t(((h + Margin.Bottom > Height ? Height - Margin.Bottom : h) - Margin.Top - abs(n)) * Width);
+		const s32 t(((h + Margin.Bottom > Height ? Height - Margin.Bottom : h)
+			- Margin.Top - abs(n)) * Width);
 
 		if(n && t > 0)
 		{
