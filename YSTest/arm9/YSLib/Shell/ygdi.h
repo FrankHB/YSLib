@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46 + 08:00;
-// UTime = 2010-10-25 12:12 + 08:00;
-// Version = 0.3138;
+// UTime = 2010-10-31 12:20 + 08:00;
+// Version = 0.3194;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -32,7 +32,7 @@ struct FillPixel
 	//全名:		YSLib::Drawing::FillPixel<_tPixel>::FillPixel
 	//可访问性:	public 
 	//返回类型:	
-	//修饰符:	: Color(c)
+	//修饰符:	
 	//形式参数:	_tPixel c
 	//功能概要:	构造：使用指定颜色。
 	//备注:		
@@ -719,7 +719,7 @@ public:
 	//********************************
 	Graphics(BitmapPtr, const Drawing::Size&);
 
-	DefPredicate(Valid, pBuffer != NULL && Size.Width != 0 && Size.Height != 0)
+	DefPredicate(Valid, pBuffer && Size.Width != 0 && Size.Height != 0)
 
 	DefGetter(BitmapPtr, BufferPtr, pBuffer)
 	DefGetter(const Drawing::Size&, Size, Size)
@@ -816,7 +816,7 @@ DrawPoint(const Graphics& g, const Point& p, Color c)
 //形式参数:	SPOS x1
 //形式参数:	SPOS x2
 //形式参数:	Color c
-//功能概要:	绘制水平线段：指定水平坐标 x1 、 x2 ，竖直坐标 y 。
+//功能概要:	绘制水平线段：指定端点水平坐标 x1 、 x2 - 1，竖直坐标 y 。
 //备注:		
 //********************************
 bool
@@ -833,7 +833,7 @@ DrawHLineSeg(const Graphics& g, SPOS y, SPOS x1, SPOS x2, Color c);
 //形式参数:	SPOS y1
 //形式参数:	SPOS y2
 //形式参数:	Color c
-//功能概要:	绘制竖直线段：指定水平坐标 x ，竖直坐标 y1 、 y2 。
+//功能概要:	绘制竖直线段：指定竖直水平坐标 x ，竖直坐标 y1 - 1 、 y2 。
 //备注:		
 //********************************
 bool
@@ -1041,93 +1041,6 @@ struct Padding //边距样式。
 	//********************************
 	explicit
 	Padding(SDST = 4, SDST = 4, SDST = 4, SDST = 4);
-	//********************************
-	//名称:		Padding
-	//全名:		YSLib::Drawing::Padding::Padding
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	u64
-	//功能概要:	构造：使用 1 个 64 位无符号整数形式的边距。
-	//备注:		
-	//********************************
-	explicit
-	Padding(u64);
-
-	//********************************
-	//名称:		GetHorizontal
-	//全名:		YSLib::Drawing::Padding::GetHorizontal
-	//可访问性:	public 
-	//返回类型:	YSLib::SDST
-	//修饰符:	const
-	//功能概要:	取水平边距和。
-	//备注:		
-	//********************************
-	SDST
-	GetHorizontal() const;
-	//********************************
-	//名称:		GetVertical
-	//全名:		YSLib::Drawing::Padding::GetVertical
-	//可访问性:	public 
-	//返回类型:	YSLib::SDST
-	//修饰符:	const
-	//功能概要:	取竖直边距和。
-	//备注:		
-	//********************************
-	SDST
-	GetVertical() const;
-	//********************************
-	//名称:		GetAll
-	//全名:		YSLib::Drawing::Padding::GetAll
-	//可访问性:	public 
-	//返回类型:	u64
-	//修饰符:	const
-	//功能概要:	取边距。
-	//备注:		64 位无符号整数形式。
-	//********************************
-	u64
-	GetAll() const;
-
-	//********************************
-	//名称:		SetAll
-	//全名:		YSLib::Drawing::Padding::SetAll
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	u64
-	//功能概要:	设置边距。
-	//备注:		64 位无符号整数形式。
-	//********************************
-	void
-	SetAll(u64);
-	//********************************
-	//名称:		SetAll
-	//全名:		YSLib::Drawing::Padding::SetAll
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//功能概要:	设置边距。
-	//备注:		2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
-	//********************************
-	void
-	SetAll(SDST, SDST);
-	//********************************
-	//名称:		SetAll
-	//全名:		YSLib::Drawing::Padding::SetAll
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//功能概要:	设置边距。
-	//备注:		4 个 16 位无符号整数形式。
-	//********************************
-	void
-	SetAll(SDST, SDST, SDST, SDST);
 
 	//********************************
 	//名称:		operator+=
@@ -1141,64 +1054,141 @@ struct Padding //边距样式。
 	//********************************
 	Padding&
 	operator+=(const Padding&);
-	//********************************
-	//名称:		operator+
-	//全名:		YSLib::Drawing::operator+
-	//可访问性:	public 
-	//返回类型:	friend Padding
-	//修饰符:	
-	//形式参数:	const Padding & a
-	//形式参数:	const Padding & b
-	//功能概要:	加法：对应分量调用 operator+ 。
-	//备注:		
-	//********************************
-	friend Padding
-	operator+(const Padding& a, const Padding& b);
+
 };
 
+
+//********************************
+//名称:		operator+
+//全名:		YSLib::Drawing::operator+
+//可访问性:	public 
+//返回类型:	friend Padding
+//修饰符:	
+//形式参数:	const Padding & a
+//形式参数:	const Padding & b
+//功能概要:	加法：对应分量调用 operator+ 。
+//备注:		
+//********************************
+Padding
+operator+(const Padding& a, const Padding& b);
+
+
+//********************************
+//名称:		GetHorizontal
+//全名:		YSLib::Drawing::GetHorizontal
+//可访问性:	public 
+//返回类型:	YSLib::SDST
+//修饰符:	
+//形式参数:	const Padding & p
+//功能概要:	取水平边距和。
+//备注:		
+//********************************
 inline SDST
-Padding::GetHorizontal() const
+GetHorizontal(const Padding& p)
 {
-	return Left + Right;
-}
-inline SDST
-Padding::GetVertical() const
-{
-	return Top + Bottom;
+	return p.Left + p.Right;
 }
 
-inline void
-Padding::SetAll(u64 m)
+//********************************
+//名称:		GetVertical
+//全名:		YSLib::Drawing::GetVertical
+//可访问性:	public 
+//返回类型:	YSLib::SDST
+//修饰符:	
+//形式参数:	const Padding & p
+//功能概要:	取竖直边距和。
+//备注:		
+//********************************
+inline SDST
+GetVertical(const Padding& p)
 {
-	SetAll(m >> 48, (m >> 32) & 0xFFFF, (m >> 16) & 0xFFFF, m & 0xFFFF);
+	return p.Top + p.Bottom;
 }
+
+//********************************
+//名称:		GetAll
+//全名:		YSLib::Drawing::GetAll
+//可访问性:	public 
+//返回类型:	u64
+//修饰符:	
+//形式参数:	const Padding &
+//功能概要:	取边距。
+//备注:		64 位无符号整数形式。
+//********************************
+u64
+GetAll(const Padding&);
+
+//********************************
+//名称:		SetAll
+//全名:		YSLib::Drawing::SetAll
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	Padding &
+//形式参数:	SDST
+//形式参数:	SDST
+//形式参数:	SDST
+//形式参数:	SDST
+//功能概要:	设置边距。
+//备注:		4 个 16 位无符号整数形式。
+//********************************
+void
+SetAll(Padding&, SDST, SDST, SDST, SDST);
+//********************************
+//名称:		SetAll
+//全名:		YSLib::Drawing::SetAll
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	Padding & p
+//形式参数:	u64 m
+//功能概要:	设置边距。
+//备注:		64 位无符号整数形式。
+//********************************
 inline void
-Padding::SetAll(SDST h, SDST v)
+SetAll(Padding& p, u64 m)
 {
-	SetAll(h, h, v, v);
+	SetAll(p, m >> 48, (m >> 32) & 0xFFFF, (m >> 16) & 0xFFFF, m & 0xFFFF);
+}
+//********************************
+//名称:		SetAll
+//全名:		YSLib::Drawing::SetAll
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	Padding & p
+//形式参数:	SDST h
+//形式参数:	SDST v
+//功能概要:	设置边距。
+//备注:		2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
+//********************************
+inline void
+SetAll(Padding& p, SDST h, SDST v)
+{
+	SetAll(p, h, h, v, v);
 }
 
 
 //矩形图像缓冲区。
-class MBitmapBuffer : public Size
+class BitmapBuffer : public Size
 {
 protected:
 	BitmapPtr img; //显示缓冲区指针。
 
 public:
 	//********************************
-	//名称:		MBitmapBuffer
-	//全名:		YSLib::Drawing::MBitmapBuffer::MBitmapBuffer
+	//名称:		BitmapBuffer
+	//全名:		YSLib::Drawing::BitmapBuffer::BitmapBuffer
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		零初始化。
 	//********************************
-	MBitmapBuffer();
+	BitmapBuffer();
 	//********************************
-	//名称:		MBitmapBuffer
-	//全名:		YSLib::Drawing::MBitmapBuffer::MBitmapBuffer
+	//名称:		BitmapBuffer
+	//全名:		YSLib::Drawing::BitmapBuffer::BitmapBuffer
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
@@ -1208,10 +1198,10 @@ public:
 	//功能概要:	构造：使用指定位图指针和大小。
 	//备注:		
 	//********************************
-	MBitmapBuffer(ConstBitmapPtr, SDST, SDST);
+	BitmapBuffer(ConstBitmapPtr, SDST, SDST);
 	//********************************
-	//名称:		~MBitmapBuffer
-	//全名:		YSLib::Drawing::MBitmapBuffer::~MBitmapBuffer
+	//名称:		~BitmapBuffer
+	//全名:		YSLib::Drawing::BitmapBuffer::~BitmapBuffer
 	//可访问性:	virtual public 
 	//返回类型:	
 	//修饰符:	
@@ -1219,7 +1209,7 @@ public:
 	//备注:		
 	//********************************
 	virtual
-	~MBitmapBuffer();
+	~BitmapBuffer();
 
 	//********************************
 	//名称:		operator==
@@ -1227,25 +1217,23 @@ public:
 	//可访问性:	public 
 	//返回类型:	friend bool
 	//修饰符:	
-	//形式参数:	const MBitmapBuffer &
-	//形式参数:	const MBitmapBuffer &
+	//形式参数:	const BitmapBuffer &
+	//形式参数:	const BitmapBuffer &
 	//功能概要:	比较：相等关系。
 	//备注:		
 	//********************************
 	friend bool
-	operator==(const MBitmapBuffer&, const MBitmapBuffer&);
+	operator==(const BitmapBuffer&, const BitmapBuffer&);
 
 	DefConverter(Graphics, Graphics(img, *this)) //生成图形接口上下文。
 
-	DefGetter(SDST, Width, Width) //取缓冲区的宽。
-	DefGetter(SDST, Height, Height) //取缓冲区的高。
 	DefGetter(BitmapPtr, BufferPtr, img) //取缓冲区指针。
-	DefGetter(std::size_t, SizeOfBuffer, sizeof(PixelType) * GetArea()) \
+	DefGetter(std::size_t, SizeOfBuffer, sizeof(PixelType) * GetArea(*this)) \
 		//取缓冲区占用空间。
 
 	//********************************
 	//名称:		SetSize
-	//全名:		YSLib::Drawing::MBitmapBuffer::SetSize
+	//全名:		YSLib::Drawing::BitmapBuffer::SetSize
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
@@ -1259,7 +1247,7 @@ public:
 
 	//********************************
 	//名称:		SetSizeSwap
-	//全名:		YSLib::Drawing::MBitmapBuffer::SetSizeSwap
+	//全名:		YSLib::Drawing::BitmapBuffer::SetSizeSwap
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
@@ -1271,7 +1259,7 @@ public:
 
 	//********************************
 	//名称:		ClearImage
-	//全名:		YSLib::Drawing::MBitmapBuffer::ClearImage
+	//全名:		YSLib::Drawing::BitmapBuffer::ClearImage
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	const
@@ -1283,7 +1271,7 @@ public:
 
 	//********************************
 	//名称:		Fill
-	//全名:		YSLib::Drawing::MBitmapBuffer::Fill
+	//全名:		YSLib::Drawing::BitmapBuffer::Fill
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	const
@@ -1296,7 +1284,7 @@ public:
 
 	//********************************
 	//名称:		CopyToBuffer
-	//全名:		YSLib::Drawing::MBitmapBuffer::CopyToBuffer
+	//全名:		YSLib::Drawing::BitmapBuffer::CopyToBuffer
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	const
@@ -1315,42 +1303,42 @@ public:
 		const Size& sc = Size::FullScreen) const;
 };
 
-inline MBitmapBuffer::MBitmapBuffer()
+inline BitmapBuffer::BitmapBuffer()
 	: Size(),
 	img(NULL)
 {}
-inline MBitmapBuffer::~MBitmapBuffer()
+inline BitmapBuffer::~BitmapBuffer()
 {
 	delete[] img;
 }
 
 inline bool
-operator==(const MBitmapBuffer& a, const MBitmapBuffer& b)
+operator==(const BitmapBuffer& a, const BitmapBuffer& b)
 {
 	return a.img == b.img && a.Width == b.Width && a.Height == b.Height;
 }
 
 
 //矩形增强图像缓冲区。
-class MBitmapBufferEx : public MBitmapBuffer
+class BitmapBufferEx : public BitmapBuffer
 {
 protected:
 	u8* imgAlpha; // Alpha 缓冲区指针。
 
 public:
 	//********************************
-	//名称:		MBitmapBufferEx
-	//全名:		YSLib::Drawing::MBitmapBufferEx::MBitmapBufferEx
+	//名称:		BitmapBufferEx
+	//全名:		YSLib::Drawing::BitmapBufferEx::BitmapBufferEx
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		零初始化。
 	//********************************
-	MBitmapBufferEx();
+	BitmapBufferEx();
 	//********************************
-	//名称:		MBitmapBufferEx
-	//全名:		YSLib::Drawing::MBitmapBufferEx::MBitmapBufferEx
+	//名称:		BitmapBufferEx
+	//全名:		YSLib::Drawing::BitmapBufferEx::BitmapBufferEx
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
@@ -1360,10 +1348,10 @@ public:
 	//功能概要:	构造：使用指定位图指针和大小。
 	//备注:		
 	//********************************
-	MBitmapBufferEx(ConstBitmapPtr, SDST, SDST);
+	BitmapBufferEx(ConstBitmapPtr, SDST, SDST);
 	//********************************
-	//名称:		~MBitmapBufferEx
-	//全名:		YSLib::Drawing::MBitmapBufferEx::~MBitmapBufferEx
+	//名称:		~BitmapBufferEx
+	//全名:		YSLib::Drawing::BitmapBufferEx::~BitmapBufferEx
 	//可访问性:	virtual public 
 	//返回类型:	
 	//修饰符:	
@@ -1371,7 +1359,7 @@ public:
 	//备注:		
 	//********************************
 	virtual
-	~MBitmapBufferEx();
+	~BitmapBufferEx();
 
 	//********************************
 	//名称:		operator==
@@ -1379,21 +1367,21 @@ public:
 	//可访问性:	public 
 	//返回类型:	friend bool
 	//修饰符:	
-	//形式参数:	const MBitmapBufferEx &
-	//形式参数:	const MBitmapBufferEx &
+	//形式参数:	const BitmapBufferEx &
+	//形式参数:	const BitmapBufferEx &
 	//功能概要:	比较：相等关系。
 	//备注:		
 	//********************************
 	friend bool
-	operator==(const MBitmapBufferEx&, const MBitmapBufferEx&);
+	operator==(const BitmapBufferEx&, const BitmapBufferEx&);
 
 	DefGetter(u8*, BufferAlphaPtr, imgAlpha) //取 Alpha 缓冲区的指针。
-	DefGetter(std::size_t, SizeOfBufferAlpha, sizeof(u8) * GetArea()) \
+	DefGetter(std::size_t, SizeOfBufferAlpha, sizeof(u8) * GetArea(*this)) \
 		//取 Alpha 缓冲区占用空间。
 
 	//********************************
 	//名称:		SetSize
-	//全名:		YSLib::Drawing::MBitmapBufferEx::SetSize
+	//全名:		YSLib::Drawing::BitmapBufferEx::SetSize
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
@@ -1406,7 +1394,7 @@ public:
 	SetSize(SPOS, SPOS);
 	//********************************
 	//名称:		SetSizeSwap
-	//全名:		YSLib::Drawing::MBitmapBufferEx::SetSizeSwap
+	//全名:		YSLib::Drawing::BitmapBufferEx::SetSizeSwap
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
@@ -1418,7 +1406,7 @@ public:
 
 	//********************************
 	//名称:		ClearImage
-	//全名:		YSLib::Drawing::MBitmapBufferEx::ClearImage
+	//全名:		YSLib::Drawing::BitmapBufferEx::ClearImage
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	const
@@ -1430,7 +1418,7 @@ public:
 
 	//********************************
 	//名称:		CopyToBuffer
-	//全名:		YSLib::Drawing::MBitmapBufferEx::CopyToBuffer
+	//全名:		YSLib::Drawing::BitmapBufferEx::CopyToBuffer
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	const
@@ -1450,7 +1438,7 @@ public:
 
 	//********************************
 	//名称:		BlitToBuffer
-	//全名:		YSLib::Drawing::MBitmapBufferEx::BlitToBuffer
+	//全名:		YSLib::Drawing::BitmapBufferEx::BlitToBuffer
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	const
@@ -1470,18 +1458,18 @@ public:
 };
 
 inline
-MBitmapBufferEx::MBitmapBufferEx() : MBitmapBuffer(), imgAlpha(NULL)
+BitmapBufferEx::BitmapBufferEx() : BitmapBuffer(), imgAlpha(NULL)
 {}
 inline
-MBitmapBufferEx::~MBitmapBufferEx()
+BitmapBufferEx::~BitmapBufferEx()
 {
 	delete[] imgAlpha;
 }
 
 inline bool
-operator==(const MBitmapBufferEx& a, const MBitmapBufferEx& b)
+operator==(const BitmapBufferEx& a, const BitmapBufferEx& b)
 {
-	return static_cast<MBitmapBuffer>(a) == static_cast<MBitmapBuffer>(b);
+	return static_cast<BitmapBuffer>(a) == static_cast<BitmapBuffer>(b);
 }
 
 YSL_END_NAMESPACE(Drawing)

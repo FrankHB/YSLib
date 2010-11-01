@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:28 + 08:00;
-// UTime = 2010-10-24 19:57 + 08:00;
-// Version = 0.2426;
+// UTime = 2010-10-29 10:18 + 08:00;
+// Version = 0.2451;
 
 
 #ifndef INCLUDED_YCOMMON_H_
@@ -264,6 +264,8 @@ namespace platform
 	{
 	public:
 		typedef ColorSpace::ColorSet ColorSet;
+		typedef u8 MonoType;
+		typedef bool AlphaType;
 
 	private:
 		PixelType _value;
@@ -286,14 +288,14 @@ namespace platform
 		//可访问性:	public 
 		//返回类型:	
 		//修饰符:	
-		//形式参数:	u8
-		//形式参数:	u8
-		//形式参数:	u8
-		//形式参数:	bool
+		//形式参数:	MonoType
+		//形式参数:	MonoType
+		//形式参数:	MonoType
+		//形式参数:	AlphaType
 		//功能概要:	使用 RGB 值和 alpha 位构造 Color 对象。
 		//备注:		
 		//********************************
-		Color(u8, u8, u8, bool = true);
+		Color(MonoType, MonoType, MonoType, AlphaType = true);
 
 		//********************************
 		//名称:		operator PixelType
@@ -305,6 +307,51 @@ namespace platform
 		//备注:		
 		//********************************
 		operator PixelType() const;
+
+		//********************************
+		//名称:		GetR
+		//全名:		platform::Color::GetR
+		//可访问性:	public 
+		//返回类型:	MonoType
+		//修饰符:	const
+		//功能概要:	取红色分量。
+		//备注:		
+		//********************************
+		MonoType
+		GetR() const;
+		//********************************
+		//名称:		GetG
+		//全名:		platform::Color::GetG
+		//可访问性:	public 
+		//返回类型:	MonoType
+		//修饰符:	const
+		//功能概要:	取绿色分量。
+		//备注:		
+		//********************************
+		MonoType
+		GetG() const;
+		//********************************
+		//名称:		GetB
+		//全名:		platform::Color::GetB
+		//可访问性:	public 
+		//返回类型:	MonoType
+		//修饰符:	const
+		//功能概要:	取蓝色分量。
+		//备注:		
+		//********************************
+		MonoType
+		GetB() const;
+		//********************************
+		//名称:		GetA
+		//全名:		platform::Color::GetA
+		//可访问性:	public 
+		//返回类型:	AlphaType
+		//修饰符:	const
+		//功能概要:	取 alpha 分量。
+		//备注:		
+		//********************************
+		AlphaType
+		GetA() const;
 	};
 
 	inline
@@ -312,7 +359,7 @@ namespace platform
 		: _value(p)
 	{}
 	inline
-	Color::Color(u8 r, u8 g, u8 b, bool a)
+	Color::Color(MonoType r, MonoType g, MonoType b, AlphaType a)
 		: _value(ARGB16(int(a), r >> 3, g >> 3, b >> 3))
 	{}
 
@@ -320,6 +367,27 @@ namespace platform
 	Color::operator PixelType() const
 	{
 		return _value;
+	}
+
+	inline Color::MonoType
+	Color::GetR() const
+	{
+		return _value >> 7 & 248;
+	}
+	inline Color::MonoType
+	Color::GetG() const
+	{
+		return _value >> 2 & 248;
+	}
+	inline Color::MonoType
+	Color::GetB() const
+	{
+		return _value << 3 & 248;
+	}
+	inline Color::AlphaType
+	Color::GetA() const
+	{
+		return _value & BITALPHA;
 	}
 
 
@@ -744,7 +812,7 @@ namespace platform
 	inline bool
 	HDirectory::IsValid() const
 	{
-		return dir != NULL;
+		return dir;
 	}
 
 	inline bool
@@ -756,7 +824,7 @@ namespace platform
 	inline void
 	HDirectory::Open(CPATH path)
 	{
-		dir = path == NULL ? NULL : ::diropen(path);
+		dir = path ? ::diropen(path) : NULL;
 	}
 
 	inline void
@@ -799,20 +867,9 @@ namespace platform
 	std::size_t
 	GetRootNameLength(CPATH);
 
-	//extern u8 backlight;
-	/*
-	void
-	FIFOBacklight(u32 value, void* userdata);
-	void
-	toggleBacklight();
-
-	u8
-	chartohex(char c);
-	*/
-
 	//********************************
-	//名称:		scrCopy
-	//全名:		platform::scrCopy
+	//名称:		ScreenSychronize
+	//全名:		platform::ScreenSychronize
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
@@ -822,18 +879,11 @@ namespace platform
 	//备注:		
 	//********************************
 	inline void
-	scrCopy(PixelType* scr, const PixelType* buf)
+	ScreenSychronize(PixelType* scr, const PixelType* buf)
 	{
 		dmaCopy(buf, scr, sizeof(ScreenBufferType));
 	//	swiFastCopy(buf, scr, sizeof(ScreenBufferType) >> 2);
 	}
-
-	/*void fadeBlack(u16 frames);
-	void unfadeBlack(u16 frames);
-	void unfadeBlack2(u16 frames);
-	bool loadImage(const char* file, u16* out,
-		u8* outA, u16 w, u16 h, int format=0);
-	void darken(u16* screen, u8 factor, s16 x, s16 y, s16 w, s16 h);*/
 
 	//********************************
 	//名称:		ResetVideo
@@ -846,7 +896,6 @@ namespace platform
 	//********************************
 	void
 	ResetVideo();
-
 
 	//********************************
 	//名称:		YConsoleInit

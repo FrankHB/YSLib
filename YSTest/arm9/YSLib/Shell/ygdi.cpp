@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46 + 08:00;
-// UTime = 2010-10-24 22:16 + 08:00;
-// Version = 0.2469;
+// UTime = 2010-11-01 10:37 + 08:00;
+// Version = 0.2509;
 
 
 #include "ygdi.h"
@@ -508,14 +508,14 @@ DrawHLineSeg(const Graphics& g, SPOS y, SPOS x1, SPOS x2, Color c)
 		"\": \n"
 		"The graphics device context is invalid.");
 
-	if(isInIntervalRegular<int>(y, g.GetHeight())
+	if(IsInIntervalRegular<int>(y, g.GetHeight())
 		&& !((x1 < 0 && x2 < 0) || (x1 >= g.GetWidth() && x2 >= g.GetWidth())))
 	{
-		restrictInIntervalRegular(x1, 0, g.GetWidth());
-		restrictInIntervalRegular(x2, 0, g.GetWidth());
-		restrictLessEqual(x1, x2);
+		RestrictInIntervalRegular(x1, 0, g.GetWidth());
+		RestrictInIntervalRegular(x2, 0, g.GetWidth());
+		RestrictLessEqual(x1, x2);
 		FillSeq<PixelType>(&g.GetBufferPtr()[y * g.GetWidth() + x1],
-			x2 - x1 + 1, c);
+			x2 - x1, c);
 		return true;
 	}
 	return false;
@@ -530,15 +530,15 @@ DrawVLineSeg(const Graphics& g, SPOS x, SPOS y1, SPOS y2, Color c)
 		"\": \n"
 		"The graphics device context is invalid.");
 
-	if(isInIntervalRegular<int>(x, g.GetWidth())
+	if(IsInIntervalRegular<int>(x, g.GetWidth())
 		&& !((y1 < 0 && y2 < 0)
 		|| (y1 >= g.GetHeight() && y2 >= g.GetHeight())))
 	{
-		restrictInIntervalRegular(y1, 0, g.GetHeight());
-		restrictInIntervalRegular(y2, 0, g.GetHeight());
-		restrictLessEqual(y1, y2);
+		RestrictInIntervalRegular(y1, 0, g.GetHeight());
+		RestrictInIntervalRegular(y2, 0, g.GetHeight());
+		RestrictLessEqual(y1, y2);
 		FillVLine<PixelType>(&g.GetBufferPtr()[y1 * g.GetWidth() + x],
-			y2 - y1 + 1, g.GetWidth(), c);
+			y2 - y1, g.GetWidth(), c);
 		return true;
 	}
 	return false;
@@ -610,9 +610,9 @@ bool
 DrawLineSeg(const Graphics& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c)
 {
 	if(y1 == y2)
-		return DrawHLineSeg(g, y1, x1, x2, c);
+		return DrawHLineSeg(g, y1, x1, x2 + 1, c);
 	else if(x1 == x2)
-		return DrawVLineSeg(g, x1, y1, y2, c);
+		return DrawVLineSeg(g, x1, y1, y2 + 1, c);
 	else
 		return DrawObliqueLine(g, x1, y1, x2, y2, c);
 }
@@ -621,8 +621,8 @@ bool
 DrawRect(const Graphics& g, const Point& p, const Size& s, Color c)
 {
 	SPOS x1(p.X), y1(p.Y),
-		x2(x1 + vmax<SPOS>(s.Width - 1, 0)),
-		y2(y1 + vmax<SPOS>(s.Height - 1, 0));
+		x2(x1 + vmax<SPOS>(s.Width, 0)),
+		y2(y1 + vmax<SPOS>(s.Height, 0));
 	bool b(DrawVLineSeg(g, x1, y1, y2, c));
 	b |= DrawHLineSeg(g, y2, x1, x2, c);
 	b |= DrawVLineSeg(g, x2, y2, y1, c);
@@ -647,28 +647,10 @@ FillRect(const Graphics& g, const Point& p, const Size& s, Color c)
 Padding::Padding(SDST l, SDST r, SDST t, SDST b)
 	: Left(l), Right(r), Top(t), Bottom(b)
 {}
-Padding::Padding(u64 m)
+/*Padding::Padding(u64 m)
 	: Left(m >> 48), Right((m >> 32) & 0xFFFF),
 	Top((m >> 16) & 0xFFFF), Bottom(m & 0xFFFF)
-{}
-
-u64
-Padding::GetAll() const
-{
-	u64 r = (Left << 16) | Right;
-
-	r = (r << 32) | (Top << 16) | Bottom;
-	return r;
-}
-
-void
-Padding::SetAll(SDST l, SDST r, SDST t, SDST b)
-{
-	Left = l;
-	Right = r;
-	Top = t;
-	Bottom = b;
-}
+{}*/
 
 Padding&
 Padding::operator+=(const Padding& m)
@@ -679,6 +661,8 @@ Padding::operator+=(const Padding& m)
 	Bottom += m.Bottom;
 	return *this;
 }
+
+
 Padding
 operator+(const Padding& a, const Padding& b)
 {
@@ -687,17 +671,36 @@ operator+(const Padding& a, const Padding& b)
 }
 
 
-MBitmapBuffer::MBitmapBuffer(ConstBitmapPtr i, SDST w, SDST h)
+u64
+GetAll(Padding& p)
+{
+	u64 r = (p.Left << 16) | p.Right;
+
+	r = (r << 32) | (p.Top << 16) | p.Bottom;
+	return r;
+}
+
+void
+SetAll(Padding& p, SDST l, SDST r, SDST t, SDST b)
+{
+	p.Left = l;
+	p.Right = r;
+	p.Top = t;
+	p.Bottom = b;
+}
+
+
+BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDST w, SDST h)
 	: Size(w, h),
 	img(NULL)
 {
 	SetSize(w, h);
 	if(i)
-		memcpy(img, i, sizeof(PixelType) * GetArea());
+		memcpy(img, i, sizeof(PixelType) * GetArea(*this));
 }
 
 void
-MBitmapBuffer::SetSize(SPOS w, SPOS h)
+BitmapBuffer::SetSize(SPOS w, SPOS h)
 {
 	if(w <= 0 || h <= 0)
 	{
@@ -717,7 +720,7 @@ MBitmapBuffer::SetSize(SPOS w, SPOS h)
 			catch(std::bad_alloc&)
 			{
 				throw LoggedEvent("Allocation failed"
-					" @@ MBitmapBuffer::SetSize(SPOS, SPOS);", 1);
+					" @@ BitmapBuffer::SetSize(SPOS, SPOS);", 1);
 			}
 		}
 	}
@@ -726,7 +729,7 @@ MBitmapBuffer::SetSize(SPOS w, SPOS h)
 	ClearImage();
 }
 void
-MBitmapBuffer::SetSizeSwap()
+BitmapBuffer::SetSizeSwap()
 {
 	SDST t = Width;
 
@@ -736,19 +739,19 @@ MBitmapBuffer::SetSizeSwap()
 }
 
 void
-MBitmapBuffer::ClearImage() const
+BitmapBuffer::ClearImage() const
 {
-	ClearPixel(img, GetArea());
+	ClearPixel(img, GetArea(*this));
 }
 
 void
-MBitmapBuffer::Fill(Color c) const
+BitmapBuffer::Fill(Color c) const
 {
-	FillSeq<PixelType>(img, GetArea(), c);
+	FillSeq<PixelType>(img, GetArea(*this), c);
 }
 
 void
-MBitmapBuffer::CopyToBuffer(BitmapPtr dst, const ROT rot, const Size& ds,
+BitmapBuffer::CopyToBuffer(BitmapPtr dst, const ROT rot, const Size& ds,
 	const Point& sp, const Point& dp, const Size& sc) const
 {
 	if(~rot & 1 && dst && img)
@@ -765,16 +768,16 @@ MBitmapBuffer::CopyToBuffer(BitmapPtr dst, const ROT rot, const Size& ds,
 }
 
 
-MBitmapBufferEx::MBitmapBufferEx(ConstBitmapPtr i, SDST w, SDST h)
-	: MBitmapBuffer(i, w, h), imgAlpha(NULL)
+BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDST w, SDST h)
+	: BitmapBuffer(i, w, h), imgAlpha(NULL)
 {
 	SetSize(w, h);
 	if(i)
-		memcpy(img, i, sizeof(PixelType) * GetArea());
+		memcpy(img, i, sizeof(PixelType) * GetArea(*this));
 }
 
 void
-MBitmapBufferEx::SetSize(SPOS w, SPOS h)
+BitmapBufferEx::SetSize(SPOS w, SPOS h)
 {
 	if(w <= 0 || h <= 0)
 	{
@@ -805,7 +808,7 @@ MBitmapBufferEx::SetSize(SPOS w, SPOS h)
 			catch(std::bad_alloc&)
 			{
 				throw LoggedEvent("Allocation failed"
-					" @@ MBitmapBufferEx::SetSize(SPOS, SPOS);", 1);
+					" @@ BitmapBufferEx::SetSize(SPOS, SPOS);", 1);
 			}
 		}
 	}
@@ -816,7 +819,7 @@ MBitmapBufferEx::SetSize(SPOS w, SPOS h)
 	ClearImage();
 }
 void
-MBitmapBufferEx::SetSizeSwap()
+BitmapBufferEx::SetSizeSwap()
 {
 	SDST t = Width;
 
@@ -826,16 +829,16 @@ MBitmapBufferEx::SetSizeSwap()
 }
 
 void
-MBitmapBufferEx::ClearImage() const
+BitmapBufferEx::ClearImage() const
 {
-	const u32 t = GetArea();
+	const u32 t = GetArea(*this);
 
 	ClearPixel(img, t);
 	ClearPixel(imgAlpha, t);
 }
 
 void
-MBitmapBufferEx::CopyToBuffer(BitmapPtr dst, ROT rot, const Size& ds,
+BitmapBufferEx::CopyToBuffer(BitmapPtr dst, ROT rot, const Size& ds,
 	const Point& sp, const Point& dp, const Size& sc) const
 {
 	if(~rot & 1 && dst && img)
@@ -852,7 +855,7 @@ MBitmapBufferEx::CopyToBuffer(BitmapPtr dst, ROT rot, const Size& ds,
 }
 
 void
-MBitmapBufferEx::BlitToBuffer(BitmapPtr dst, ROT rot, const Size& ds,
+BitmapBufferEx::BlitToBuffer(BitmapPtr dst, ROT rot, const Size& ds,
 	const Point& sp, const Point& dp, const Size& sc) const
 {
 	if(~rot & 1 && dst && img)

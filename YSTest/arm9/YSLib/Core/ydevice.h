@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YDevice by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:39:39 + 08:00;
-// UTime = 2010-10-24 17:12 + 08:00;
-// Version = 0.2734;
+// UTime = 2010-10-24 13:45 + 08:00;
+// Version = 0.2742;
 
 
 #ifndef INCLUDED_YOUTPUT_H_
@@ -41,7 +41,6 @@ public:
 	YGraphicDevice(SDST, SDST, Drawing::BitmapPtr = NULL);
 
 	DefGetter(const Size&, Size, *this)
-	DefGetterBase(u32, Area, Size)
 	virtual DefGetter(Drawing::BitmapPtr, Ptr, ptr)
 
 	virtual DefSetter(Drawing::BitmapPtr, Ptr, ptr)

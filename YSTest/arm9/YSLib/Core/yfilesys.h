@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-28 00:09:28 + 08:00;
-// UTime = 2010-10-24 19:56 + 08:00;
-// Version = 0.1970;
+// UTime = 2010-10-31 12:21 + 08:00;
+// Version = 0.1972;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -300,7 +300,7 @@ public:
 		//可访问性:	public 
 		//返回类型:	
 		//修饰符:	
-		//功能概要:	默认构造。
+		//功能概要:	无参数构造。
 		//备注:		空迭代器。仅为兼容标准迭代器需求。
 		//********************************
 		iterator();

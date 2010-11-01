@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-10-25 13:10 + 08:00;
-// Version = 0.1394;
+// UTime = 2010-11-01 13:57 + 08:00;
+// Version = 0.1565;
 
 
 #ifndef INCLUDED_YGUICOMP_H_
@@ -25,11 +25,73 @@ YSL_END_NAMESPACE(Widgets)
 
 YSL_BEGIN_NAMESPACE(Controls)
 
-//按钮： V0.2740 。
-class YButton : public GMCounter<YButton>, public YVisualControl, public MButton, public Widgets::MLabel
+//基本按钮/滑块。
+class YThumb : public GMCounter<YThumb>, public YVisualControl, protected MButton
 {
 public:
 	typedef YVisualControl ParentType;
+
+	//********************************
+	//名称:		YThumb
+	//全名:		YSLib::Components::Controls::YThumb::YThumb
+	//可访问性:	public 
+	//返回类型:	
+	//修饰符:	
+	//形式参数:	HWND
+	//形式参数:	const Rect &
+	//形式参数:	IUIBox *
+	//功能概要:	构造：使用指定窗口句柄、边界和部件容器指针。
+	//备注:		
+	//********************************
+	explicit
+	YThumb(HWND = NULL, const Rect& = Rect::FullScreen, IUIBox* = NULL);
+	virtual DefEmptyDtor(YThumb)
+
+	//********************************
+	//名称:		DrawForeground
+	//全名:		YSLib::Components::Controls::YThumb::DrawForeground
+	//可访问性:	virtual public 
+	//返回类型:	void
+	//修饰符:	
+	//功能概要:	绘制前景。
+	//备注:		
+	//********************************
+	virtual void
+	DrawForeground();
+
+	//********************************
+	//名称:		OnEnter
+	//全名:		YSLib::Components::Controls::YThumb::OnEnter
+	//可访问性:	virtual public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	const Runtime::InputEventArgs &
+	//功能概要:	响应进入控件事件。
+	//备注:		
+	//********************************
+	virtual void
+	OnEnter(const Runtime::InputEventArgs&);
+
+	//********************************
+	//名称:		OnLeave
+	//全名:		YSLib::Components::Controls::YThumb::OnLeave
+	//可访问性:	virtual public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	const Runtime::InputEventArgs &
+	//功能概要:	响应离开控件事件。
+	//备注:		
+	//********************************
+	virtual void
+	OnLeave(const Runtime::InputEventArgs&);
+};
+
+
+//按钮。
+class YButton : public GMCounter<YButton>, public YThumb, public Widgets::MLabel
+{
+public:
+	typedef YThumb ParentType;
 
 /*
 	YImage BackgroundImage; //背景图像。
@@ -46,16 +108,15 @@ public:
 	//形式参数:	const _tChar *
 	//形式参数:	const Rect &
 	//形式参数:	const Drawing::Font &
-	//形式参数:	IWidgetContainer *
+	//形式参数:	IUIBox *
 	//形式参数:	GHResource<Drawing::TextRegion>
 	//功能概要:	构造：使用指定窗口句柄、字符串、边界、字体和部件容器指针。
 	//备注:		
 	//********************************
 	template<class _tChar>
 	YButton(HWND, const _tChar*, const Rect& = Rect::FullScreen,
-		const Drawing::Font& = Drawing::Font::GetDefault(), IWidgetContainer* = NULL,
+		const Drawing::Font& = Drawing::Font::GetDefault(), IUIBox* = NULL,
 		GHResource<Drawing::TextRegion> = NULL);
-
 	virtual DefEmptyDtor(YButton)
 
 protected:
@@ -71,10 +132,11 @@ protected:
 	void
 	_m_init();
 
+public:
 	//********************************
 	//名称:		DrawForeground
 	//全名:		YSLib::Components::Controls::YButton::DrawForeground
-	//可访问性:	virtual protected 
+	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
 	//功能概要:	绘制前景。
@@ -83,45 +145,18 @@ protected:
 	virtual void
 	DrawForeground();
 
-public:
-	//********************************
-	//名称:		OnEnter
-	//全名:		YSLib::Components::Controls::YButton::OnEnter
-	//可访问性:	virtual public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	const Runtime::MInputEventArgs &
-	//功能概要:	响应进入控件事件。
-	//备注:		
-	//********************************
-	virtual void
-	OnEnter(const Runtime::MInputEventArgs&);
-
-	//********************************
-	//名称:		OnLeave
-	//全名:		YSLib::Components::Controls::YButton::OnLeave
-	//可访问性:	virtual public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	const Runtime::MInputEventArgs &
-	//功能概要:	响应离开控件事件。
-	//备注:		
-	//********************************
-	virtual void
-	OnLeave(const Runtime::MInputEventArgs&);
-
 	//********************************
 	//名称:		OnKeyDown
 	//全名:		YSLib::Components::Controls::YButton::OnKeyDown
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::MKeyEventArgs &
+	//形式参数:	const Runtime::KeyEventArgs &
 	//功能概要:	响应按键接触开始事件。
 	//备注:		
 	//********************************
 	virtual void
-	OnKeyDown(const Runtime::MKeyEventArgs&);
+	OnKeyDown(const Runtime::KeyEventArgs&);
 
 	//********************************
 	//名称:		OnClick
@@ -129,42 +164,191 @@ public:
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::MTouchEventArgs &
+	//形式参数:	const Runtime::TouchEventArgs &
 	//功能概要:	响应屏幕点击事件。
 	//备注:		
 	//********************************
 	virtual void
-	OnClick(const Runtime::MTouchEventArgs&);
+	OnClick(const Runtime::TouchEventArgs&);
 };
 
 template<class _tChar>
 YButton::YButton(HWND hWnd, const _tChar* l, const Rect& r,
-	const Drawing::Font& f, IWidgetContainer* pCon,
+	const Drawing::Font& f, IUIBox* pCon,
 	GHResource<Drawing::TextRegion> prTr_)
-	: YVisualControl(hWnd, r, pCon), MButton(), MLabel(l, f, prTr_)
+	: YThumb(hWnd, r, pCon),
+	MLabel(l, f, prTr_)
 {
 	_m_init();
 }
 
 
-//滚动条： V0.2125 。
-class AScrollBar : public AVisualControl, public MScrollBar
+//轨道。
+class ATrack : public AVisualControl,
+	implements IUIBox
 {
 public:
 	typedef AVisualControl ParentType;
 
-	explicit
-	AScrollBar(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
-		SDST = 8, SDST = 16, SDST = 16);
+protected:
+	SDST MinThumbLength;
+	YThumb Thumb; //滑块。
 
-	DefGetter(SDST, ScrollAreaSize, GetWidth() - GetPrevButtonSize() - GetNextButtonSize())
-	DefGetter(SDST, ScrollAreaFixedSize, GetScrollAreaSize() - GetMinThumbSize())
+public:
+	explicit
+	ATrack(HWND = NULL, const Rect& = Rect::FullScreen, IUIBox* = NULL,
+		SDST = 8);
+	virtual DefEmptyDtor(ATrack);
+	
+	ImplI(IUIBox) IWidget*
+	GetTopWidgetPtr(const Point&);
+	ImplI(IUIBox) IVisualControl*
+	GetTopVisualControlPtr(const Point&);
+	DefGetter(SDST, MinThumbLength, MinThumbLength)
+
+	DeclIEntry(void SetThumbLength(SDST)) //设置滑块长度。
+	DeclIEntry(void SetThumbPosition(SDST)) //设置滑块位置。
+
+	void
+	ClearFocusingPtr();
+
+	//********************************
+	//名称:		DrawForeground
+	//全名:		YSLib::Components::Controls::ATrack::DrawForeground
+	//可访问性:	virtual public 
+	//返回类型:	void
+	//修饰符:	
+	//功能概要:	绘制前景。
+	//备注:		
+	//********************************
+	virtual void
+	DrawForeground();
+
+	ImplI(IVisualControl) void
+	RequestToTop()
+	{}
+};
+
+
+//水平轨道。
+class YHorizontalTrack : public GMCounter<YHorizontalTrack>, public YComponent,
+	public ATrack
+{
+public:
+	explicit
+	YHorizontalTrack(HWND = NULL, const Rect& = Rect::FullScreen,
+		IUIBox* = NULL);
+	virtual DefEmptyDtor(YHorizontalTrack);
+
+	ImplI(ATrack) void
+	SetThumbLength(SDST);
+	ImplI(ATrack) void
+	SetThumbPosition(SDST);
+
+	void
+	OnTouchMove_Thumb(const Runtime::TouchEventArgs&);
+};
+
+
+//垂直轨道。
+class YVerticalTrack : public GMCounter<YVerticalTrack>, public YComponent,
+	public ATrack
+{
+public:
+	explicit
+	YVerticalTrack(HWND = NULL, const Rect& = Rect::FullScreen,
+		IUIBox* = NULL);
+	virtual DefEmptyDtor(YVerticalTrack);
+
+	ImplI(ATrack) void
+	SetThumbLength(SDST);
+	ImplI(ATrack) void
+	SetThumbPosition(SDST);
+
+	void
+	OnTouchMove_Thumb(const Runtime::TouchEventArgs&);
+};
+
+
+//滚动条模块。
+class MScrollBar
+{
+public:
+	typedef enum
+	{
+		None = 0,
+		PrevButton = 1,
+		NextButton = 2,
+		PrevTrack = 3,
+		NextTrack = 4,
+		Thumb = 5
+	} CompIndex;
 
 protected:
+	YThumb Prev, Next;
+	CompIndex Pressed; //按键状态：是否处于按下状态。
+
+	//********************************
+	//名称:		MScrollBar
+	//全名:		YSLib::Components::Controls::MScrollBar::MScrollBar
+	//可访问性:	protected 
+	//返回类型:	
+	//修饰符:	
+	//形式参数:	SDST
+	//形式参数:	const Rect &
+	//形式参数:	const Rect &
+	//功能概要:	构造：使用指定滑块长度、前按钮边界和后按钮边界。
+	//备注:		
+	//********************************
+	MScrollBar(HWND, IUIBox*, const Rect&, const Rect&);
+
+public:
+	DefGetter(CompIndex, PressedState, Pressed)
+};
+
+
+//滚动条。
+class AScrollBar : public ATrack, protected MScrollBar
+{
+public:
+	typedef ATrack ParentType;
+
+public:
+	explicit
+	AScrollBar(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL,
+		SDST = 8, const Rect& = Rect::Empty, const Rect& = Rect::Empty);
+	DefEmptyDtor(AScrollBar)
+
+	DeclIEntry(SDST& GetWidgetLengthRef()) \
+		//取滚动条方向的长度引用。
+	DeclIEntry(SDST& GetThumbLengthRef()) //取滑块长度引用。
+	DeclIEntry(SDST GetWidgetLength() const)
+	DeclIEntry(SDST GetPrevButtonLength() const)
+	DeclIEntry(SDST GetNextButtonLength() const)
+	DefGetter(SDST, ScrollAreaLength,
+		GetWidgetLength() - GetPrevButtonLength() - GetNextButtonLength())
+	DefGetter(SDST, ScrollAreaFixedLength,
+		GetScrollAreaLength() - GetMinThumbLength())
+
 	ImplA(IVisualControl) // with an inline default implementation;
 	DeclIEntry(void DrawForeground())
 
-public:
+	ImplA(ATrack)
+	DeclIEntry(void SetThumbPosition())
+
+	//********************************
+	//名称:		SetThumbSize
+	//全名:		YSLib::Components::Controls::MScrollBar::SetThumbLength
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	SDST
+	//功能概要:	设置滑块在滚动条方向的长度。
+	//备注:		
+	//********************************
+	void
+	SetThumbLength(SDST);
+
 	//********************************
 	//名称:		RequestToTop
 	//全名:		YSLib::Components::Controls::AScrollBar::RequestToTop
@@ -177,13 +361,6 @@ public:
 	ImplI(IVisualControl) void
 	RequestToTop()
 	{}
-/*
-	DeclIEntry(void DrawPrevButton())
-
-	DeclIEntry(void DrawNextButton())
-
-	DeclIEntry(void DrawScrollArea())
-*/
 };
 
 inline void
@@ -198,36 +375,41 @@ class YHorizontalScrollBar : public YComponent, public AScrollBar
 {
 public:
 	typedef YComponent ParentType;
+	typedef u16 ValueType;
 
 	explicit
-	YHorizontalScrollBar(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+	YHorizontalScrollBar(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL,
 		SDST = 8, SDST = 16, SDST = 16);
 
 	virtual DefEmptyDtor(YHorizontalScrollBar)
 
-protected:
+public:
+	ImplI(AScrollBar) DefGetter(SDST, WidgetLength, GetSize().Width);
+
 	//********************************
 	//名称:		DrawBackground
-	//全名:		YSLib::Components::Controls::YHorizontalScrollBar::DrawBackground
-	//可访问性:	protected 
+	//全名:		YSLib::Components::Controls::YHorizontalScrollBar
+	//				::DrawBackground
+	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
 	//功能概要:	绘制背景。
 	//备注:		
 	//********************************
-	void
+	virtual void
 	DrawBackground();
 
 	//********************************
 	//名称:		DrawForeground
-	//全名:		YSLib::Components::Controls::YHorizontalScrollBar::DrawForeground
-	//可访问性:	protected 
+	//全名:		YSLib::Components::Controls::YHorizontalScrollBar
+	//				::DrawForeground
+	//可访问性:	ImplI(AScrollBar) public 
 	//返回类型:	void
 	//修饰符:	
 	//功能概要:	绘制前景。
 	//备注:		
 	//********************************
-	void
+	ImplI(AScrollBar) void
 	DrawForeground();
 };
 
@@ -239,7 +421,7 @@ class YVerticalScrollBar
 };
 
 
-//文本列表框： V0.1605 。
+//文本列表框。
 class YListBox : public GMCounter<YListBox>, public YVisualControl
 {
 public:
@@ -274,12 +456,13 @@ public:
 	//修饰符:	
 	//形式参数:	HWND
 	//形式参数:	const Rect &
-	//形式参数:	IWidgetContainer *
+	//形式参数:	IUIBox *
 	//形式参数:	GHResource<Drawing::TextRegion>
 	//功能概要:	构造：使用指定窗口句柄、边界、部件容器指针和文本区域。
 	//备注:		
 	//********************************
-	YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+	explicit
+	YListBox(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL,
 		GHResource<Drawing::TextRegion> = NULL);
 	//********************************
 	//名称:		YListBox
@@ -289,13 +472,14 @@ public:
 	//修饰符:	
 	//形式参数:	HWND
 	//形式参数:	const Rect &
-	//形式参数:	IWidgetContainer *
+	//形式参数:	IUIBox *
 	//形式参数:	GHResource<Drawing::TextRegion>
 	//形式参数:	ListType & List_
 	//功能概要:	构造：使用指定窗口句柄、边界、部件容器指针、文本区域和文本列表。
 	//备注:		使用外源列表。
 	//********************************
-	YListBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+	explicit
+	YListBox(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL,
 		GHResource<Drawing::TextRegion> = NULL,
 		ListType& List_ = *GetGlobalResource<ListType>()); 
 	//********************************
@@ -392,11 +576,10 @@ public:
 	void
 	SetSelected(const Point&);
 
-protected:
 	//********************************
 	//名称:		DrawBackground
 	//全名:		YSLib::Components::Controls::YListBox::DrawBackground
-	//可访问性:	virtual protected 
+	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
 	//功能概要:	绘制背景。
@@ -408,7 +591,7 @@ protected:
 	//********************************
 	//名称:		DrawForeground
 	//全名:		YSLib::Components::Controls::YListBox::DrawForeground
-	//可访问性:	virtual protected 
+	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
 	//功能概要:	绘制前景。
@@ -417,6 +600,7 @@ protected:
 	virtual void
 	DrawForeground();
 
+protected:
 	//********************************
 	//名称:		CheckPoint
 	//全名:		YSLib::Components::Controls::YListBox::CheckPoint
@@ -468,12 +652,12 @@ public:
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::MKeyEventArgs &
+	//形式参数:	const Runtime::KeyEventArgs &
 	//功能概要:	响应按键接触开始事件。
 	//备注:		
 	//********************************
 	virtual void
-	OnKeyDown(const Runtime::MKeyEventArgs&);
+	OnKeyDown(const Runtime::KeyEventArgs&);
 
 	//********************************
 	//名称:		OnTouchDown
@@ -481,12 +665,12 @@ public:
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::MTouchEventArgs &
+	//形式参数:	const Runtime::TouchEventArgs &
 	//功能概要:	响应屏幕接触开始事件。
 	//备注:		
 	//********************************
 	virtual void
-	OnTouchDown(const Runtime::MTouchEventArgs&);
+	OnTouchDown(const Runtime::TouchEventArgs&);
 
 	//********************************
 	//名称:		OnClick
@@ -494,12 +678,12 @@ public:
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::MTouchEventArgs &
+	//形式参数:	const Runtime::TouchEventArgs &
 	//功能概要:	响应屏幕点击事件。
 	//备注:		
 	//********************************
 	virtual void
-	OnClick(const Runtime::MTouchEventArgs&);
+	OnClick(const Runtime::TouchEventArgs&);
 
 	//********************************
 	//名称:		OnSelected
@@ -535,8 +719,9 @@ YListBox::SetSelected(const Point& pt)
 }
 
 
-//文件列表框： V0.0854 。
-class YFileBox : public GMCounter<YFileBox>, public YListBox, public IO::MFileList
+//文件列表框。
+class YFileBox : public GMCounter<YFileBox>, public YListBox,
+	public IO::MFileList
 {
 public:
 	typedef YListBox ParentType;
@@ -544,7 +729,9 @@ public:
 
 	ListType& List;
 
-	YFileBox(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+	explicit
+	YFileBox(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL,
+		GHResource<Drawing::TextRegion> = NULL);
 	virtual
 	~YFileBox() ythrow();
 
@@ -560,11 +747,10 @@ public:
 	IO::Path
 	GetPath() const;
 
-protected:
 	//********************************
 	//名称:		DrawBackground
 	//全名:		YSLib::Components::Controls::YFileBox::DrawBackground
-	//可访问性:	virtual protected 
+	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
 	//功能概要:	绘制背景。
@@ -576,7 +762,7 @@ protected:
 	//********************************
 	//名称:		DrawForeground
 	//全名:		YSLib::Components::Controls::YFileBox::DrawForeground
-	//可访问性:	virtual protected 
+	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
 	//功能概要:	绘制前景。
@@ -585,19 +771,18 @@ protected:
 	virtual void
 	DrawForeground();
 
-public:
 	//********************************
 	//名称:		OnTouchMove
 	//全名:		YSLib::Components::Controls::YFileBox::OnTouchMove
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::MTouchEventArgs &
+	//形式参数:	const Runtime::TouchEventArgs &
 	//功能概要:	响应屏幕接触移动事件。
 	//备注:		
 	//********************************
 	virtual void
-	OnTouchMove(const Runtime::MTouchEventArgs&);
+	OnTouchMove(const Runtime::TouchEventArgs&);
 
 	//********************************
 	//名称:		OnConfirmed

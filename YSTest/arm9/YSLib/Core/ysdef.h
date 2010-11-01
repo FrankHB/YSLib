@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-24 15:29:11 + 08:00;
-// UTime = 2010-10-24 16:04 + 08:00;
-// Version = 0.2303;
+// UTime = 2010-11-01 13:56 + 08:00;
+// Version = 0.2318;
 
 
 #ifndef INCLUDED_YSDEF_H_
@@ -68,7 +68,7 @@ struct EmptyType
 {};
 
 class YObject;
-typedef EmptyType MEventArgs; //事件参数基类。
+typedef EmptyType EventArgs; //事件参数基类。
 
 YSL_BEGIN_NAMESPACE(Device)
 class YScreen;
@@ -99,7 +99,8 @@ YSL_END_NAMESPACE(Forms)
 
 YSL_BEGIN_NAMESPACE(Widgets)
 PDeclInterface(IWidget)
-PDeclInterface(IWidgetContainer)
+PDeclInterface(IUIBox)
+PDeclInterface(IUIContainer)
 YSL_END_NAMESPACE(Widgets)
 
 class YDesktop;
@@ -121,7 +122,8 @@ using Components::Forms::IWindow;
 using Components::Forms::YForm;
 using Components::Forms::YFrameWindow;
 using Components::Widgets::IWidget;
-using Components::Widgets::IWidgetContainer;
+using Components::Widgets::IUIBox;
+using Components::Widgets::IUIContainer;
 using Components::YDesktop;
 
 using Device::YScreen;

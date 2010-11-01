@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YForm by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-04-30 00:51:36 + 08:00;
-// UTime = 2010-10-24 22:23 + 08:00;
-// Version = 0.1393;
+// UTime = 2010-10-29 14:21 + 08:00;
+// Version = 0.1397;
 
 
 #ifndef INCLUDED_YFORM_H_
@@ -24,7 +24,7 @@ class YForm : public GMCounter<YForm>, public YFrameWindow
 public:
 	typedef YFrameWindow ParentType;
 
-//	Widgets::YWidgetContainer Client;
+//	Widgets::YUIContainer Client;
 
 protected:
 

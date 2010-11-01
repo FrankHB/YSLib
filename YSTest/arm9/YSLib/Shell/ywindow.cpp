@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28 + 08:00;
-// UTime = 2010-10-24 22:22 + 08:00;
-// Version = 0.3111;
+// UTime = 2010-10-29 21:30 + 08:00;
+// Version = 0.3161;
 
 
 #include "ydesktop.h"
@@ -55,11 +55,11 @@ AWindow::DrawBackgroundImage()
 {
 	YWindowAssert(this, Forms::AWindow, DrawBackgroundImage);
 
-	if(prBackImage != NULL && GetBufferPtr() != NULL)
+	if(prBackImage && GetBufferPtr())
 	{
 		ConstBitmapPtr imgBg(prBackImage->GetImagePtr());
 
-		if(imgBg != NULL)
+		if(imgBg)
 		{
 			std::memcpy(GetBufferPtr(), imgBg, Buffer.GetSizeOfBuffer());
 			return true;
@@ -105,7 +105,7 @@ AWindow::Update()
 
 		HWND hWnd(GetWindowHandle());
 
-		if(hWnd != NULL)
+		if(hWnd)
 		{
 			UpdateToWindow();
 			hWnd->SetUpdate(true);
@@ -144,13 +144,13 @@ AWindow::Show()
 
 YFrameWindow::YFrameWindow(const Rect& r, const GHResource<YImage> i,
 	YDesktop* pDsk, HSHL hShl, HWND hWnd)
-	: YComponent(), AWindow(r, i, pDsk, hShl, hWnd), MWidgetContainer()
+	: YComponent(),
+	AWindow(r, i, pDsk, hShl, hWnd), MUIContainer()
 {
-	if(pContainer)
-	{
-		*pContainer += static_cast<IWidget&>(*this);
-		*pContainer += static_cast<GMFocusResponser<IVisualControl>&>(*this);
-	}
+	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
+
+	if(p)
+		*p += static_cast<GMFocusResponser<IVisualControl>&>(*this);
 	SetSize(GetSize());
 	DrawBackground();
 	InsertMessage(hShell, SM_WNDCREATE, 0xF0,
@@ -161,11 +161,10 @@ YFrameWindow::YFrameWindow(const Rect& r, const GHResource<YImage> i,
 }
 YFrameWindow::~YFrameWindow() ythrow()
 {
-	if(pContainer != NULL)
-	{
-		*pContainer -= static_cast<GMFocusResponser<IVisualControl>&>(*this);
-		*pContainer -= static_cast<IWidget&>(*this);
-	}
+	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
+
+	if(p)
+		*p -= static_cast<GMFocusResponser<IVisualControl>&>(*this);
 	hShell->RemoveAll(*this);
 	if(pDesktop)
 		pDesktop->RemoveAll(*this);

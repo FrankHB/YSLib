@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:42 + 08:00;
-// UTime = 2010-10-23 23:05 + 08:00;
-// Version = 0.1855;
+// UTime = 2010-10-29 10:14 + 08:00;
+// Version = 0.1862;
 
 
 #include "ycommon.h"
@@ -15,41 +15,41 @@ namespace stdex
 	std::size_t
 	strlen_n(const char* s)
 	{
-		return s != NULL ? std::strlen(s) : 0;
+		return s ? std::strlen(s) : 0;
 	}
 
 	char*
 	strcpy_n(char* d, const char* s)
 	{
-		return d != NULL && s != NULL ? std::strcpy(d, s) : NULL;
+		return d && s ? std::strcpy(d, s) : NULL;
 	}
 
 	char*
 	stpcpy_n(char* d, const char* s)
 	{
-		return d != NULL && s != NULL ? stpcpy(d, s) : NULL;
+		return d && s ? stpcpy(d, s) : NULL;
 	}
 
 	int
 	stricmp_n(const char* s1, const char* s2)
 	{
-		return s1 != NULL && s2 != NULL ? stricmp(s1, s2) : EOF;
+		return s1 && s2 ? stricmp(s1, s2) : EOF;
 	}
 
 	char*
 	strdup_n(const char* s)
 	{
-		return s != NULL ? strdup(s) : NULL;
+		return s ? strdup(s) : NULL;
 	}
 
 	char*
 	strcpycat(char* d, const char* s1, const char* s2)
 	{
-		if(d == NULL)
+		if(!d)
 			return NULL;
-		if(s1 != NULL)
+		if(s1)
 			std::strcpy(d, s1);
-		if(s2 != NULL)
+		if(s2)
 			std::strcat(d, s2);
 		return d;
 	}
@@ -83,7 +83,7 @@ namespace platform
 	char*
 	getcwd_n(char* buf, std::size_t t)
 	{
-		if(buf != NULL)
+		if(buf)
 			return ::getcwd(buf, t);
 		return NULL;
 	}
@@ -103,7 +103,7 @@ namespace platform
 		PATHSTR path;
 
 		std::strcpy(path, cpath);
-		for(char* slash = path; (slash = strchr(slash, '/')) != NULL; ++slash)
+		for(char* slash = path; (slash = strchr(slash, '/')); ++slash)
 		{
 			*slash = '\0';
 			::mkdir(path, S_IRWXU|S_IRWXG|S_IRWXO);
@@ -413,7 +413,7 @@ namespace platform
 	{
 		const char* p(std::strchr(path, ':'));
 
-		return p == NULL ? 0 : p - path + 1;
+		return !p ? 0 : p - path + 1;
 	}
 
 	void
@@ -487,7 +487,7 @@ namespace platform
 	{
 	//	PrintConsole* p(dspIndex ? consoleMainInit() : consoleDemoInit());
 
-		if((dspIndex ? consoleMainInit() : consoleDemoInit()) != NULL)
+		if((dspIndex ? consoleMainInit() : consoleDemoInit()))
 		{
 			//使用 ANSI Escape 序列 CUrsor Position 指令设置光标位置为左上角。
 			iprintf("\x1b[0;0H");

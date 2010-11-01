@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:02:40 + 08:00;
-// UTime = 2010-10-24 17:12 + 08:00;
-// Version = 0.7008;
+// UTime = 2010-10-27 12:33 + 08:00;
+// Version = 0.7012;
 
 
 #ifndef INCLUDED_YFONT_H_
@@ -377,7 +377,7 @@ GetDefaultFontFamilyPtr()
 {
 	const Typeface* p(GetDefaultTypefacePtr());
 
-	YAssert(p != NULL,
+	YAssert(p,
 		"In function \"inline const FontFamily*\n"
 		"GetDefaultFontFamilyPtr()\": \n"
 		"The default font face pointer is null.");
@@ -397,7 +397,7 @@ GetDefaultFontFamily()
 {
 	const FontFamily* p(GetDefaultFontFamilyPtr());
 
-	YAssert(p != NULL,
+	YAssert(p,
 		"In function \"inline const FontFamily&\n"
 		"GetDefaultFontFamily()\": \n"
 		"The default font family pointer is null.");

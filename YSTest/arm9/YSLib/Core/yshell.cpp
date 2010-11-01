@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShell by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 21:09:15 + 08:00;
-// UTime = 2010-10-24 16:05 + 08:00;
-// Version = 0.2762;
+// UTime = 2010-10-29 14:48 + 08:00;
+// Version = 0.2766;
 
 
 #include "../Shell/ywindow.h"
@@ -83,7 +83,7 @@ YShell::GetTopWindowHandle(YDesktop& d, const Point& p) const
 {
 	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
 	{
-		if((*i)->GetDesktopPtr() == &d && (*i)->Contains(p))
+		if((*i)->GetDesktopPtr() == &d && Contains(**i, p))
 			return HWND(*i);
 	}
 	return NULL;

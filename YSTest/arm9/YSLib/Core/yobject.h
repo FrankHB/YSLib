@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YObject by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-24 19:55 + 08:00;
-// Version = 0.2486;
+// UTime = 2010-10-31 12:21 + 08:00;
+// Version = 0.2500;
 
 
 #ifndef INCLUDED_YOBJECT_H_
@@ -36,7 +36,7 @@ private:
 	static void
 	Check()
 	{
-		if(_ptr == NULL)
+		if(!_ptr)
 			_ptr = new _type();
 	}
 
@@ -117,7 +117,7 @@ public:
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		零初始化。
 	//********************************
 	BinaryGroup();
@@ -244,9 +244,9 @@ class Point : public BinaryGroup
 public:
 	typedef BinaryGroup ParentType;
 
-	static const Point Zero; //默认构造参数构造的原点对象。
+	static const Point Zero; //无参数构造参数构造的原点对象。
 	static const Point FullScreen; \
-		//默认构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
+		//无参数构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
 
 	//********************************
 	//名称:		Point
@@ -254,7 +254,7 @@ public:
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		零初始化。
 	//********************************
 	Point();
@@ -380,9 +380,9 @@ class Vec : public BinaryGroup
 public:
 	typedef BinaryGroup ParentType;
 
-	static const Vec Zero; //默认构造参数构造的零向量对象。
+	static const Vec Zero; //无参数构造参数构造的零向量对象。
 	static const Vec FullScreen;
-		//默认构造参数构造的由屏幕坐标系原点
+		//无参数构造参数构造的由屏幕坐标系原点
 		//到屏幕右下角边界（不在屏幕坐标系中）对象。
 
 	//********************************
@@ -391,7 +391,7 @@ public:
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		零初始化。
 	//********************************
 	Vec();
@@ -603,8 +603,8 @@ struct Size //屏幕区域大小。
 {
 	SDST Width, Height; //宽和高。
 
-	static const Size Zero; //默认构造参数构造的零元素对象。
-	static const Size FullScreen; //默认构造参数构造的全屏幕对象。
+	static const Size Zero; //无参数构造参数构造的零元素对象。
+	static const Size FullScreen; //无参数构造参数构造的全屏幕对象。
 
 	//********************************
 	//名称:		Size
@@ -612,7 +612,7 @@ struct Size //屏幕区域大小。
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		零初始化。
 	//********************************
 	Size();
@@ -672,10 +672,6 @@ struct Size //屏幕区域大小。
 	{
 		return Vec(Width, Height);
 	}
-
-	DefGetter(SDST, Width, Width)
-	DefGetter(SDST, Height, Height)
-	DefGetter(u32, Area, Width * Height) //取面积。
 };
 
 inline
@@ -717,7 +713,7 @@ Vec::Vec(const Size& s)
 
 //********************************
 //名称:		Transpose
-//全名:		YSLib::Drawing<_tBinary>::Transpose
+//全名:		YSLib::Drawing::Transpose<_tBinary>
 //可访问性:	public 
 //返回类型:	_tBinary
 //修饰符:	
@@ -732,12 +728,29 @@ Transpose(_tBinary& o)
 	return _tBinary(o.Y, o.X);
 }
 
+//********************************
+//名称:		GetArea
+//全名:		YSLib::Drawing::GetArea
+//可访问性:	public 
+//返回类型:	u32
+//修饰符:	
+//形式参数:	const Size& s
+//功能概要:	取面积。
+//备注:		
+//********************************
+inline u32
+GetArea(const Size& s)
+{
+	return s.Width * s.Height;
+}
+
+
 //屏幕坐标系的正则（边平行于水平直线的）矩形：使用左上点屏幕坐标、宽和高表示。
 class Rect : public Point, public Size
 {
 public:
-	static const Rect Empty; //默认构造参数构造的空矩形对象。
-	static const Rect FullScreen; //默认构造参数构造的全屏幕矩形对象。
+	static const Rect Empty; //无参数构造参数构造的空矩形对象。
+	static const Rect FullScreen; //无参数构造参数构造的全屏幕矩形对象。
 
 	//********************************
 	//名称:		Rect
@@ -745,7 +758,7 @@ public:
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		零初始化。
 	//********************************
 	Rect();
@@ -985,26 +998,26 @@ Rect::IsInBounds(int px, int py) const
 inline bool
 Rect::IsInBoundsRegular(const Point& p) const
 {
-	return isInIntervalRegular<int>(p.X - X, Width)
-		&& isInIntervalRegular<int>(p.Y - Y, Height);
+	return IsInIntervalRegular<int>(p.X - X, Width)
+		&& IsInIntervalRegular<int>(p.Y - Y, Height);
 }
 inline bool
 Rect::IsInBoundsRegular(int px, int py) const
 {
-	return isInIntervalRegular<int>(px - X, Width)
-		&& isInIntervalRegular<int>(py - Y, Height);
+	return IsInIntervalRegular<int>(px - X, Width)
+		&& IsInIntervalRegular<int>(py - Y, Height);
 }
 inline bool
 Rect::IsInBoundsStrict(const Point& p) const
 {
-	return isInIntervalRegular<int>(p.X - X, Width)
-		&& isInIntervalRegular<int>(p.Y - Y, Height);
+	return IsInIntervalRegular<int>(p.X - X, Width)
+		&& IsInIntervalRegular<int>(p.Y - Y, Height);
 }
 inline bool
 Rect::IsInBoundsStrict(int px, int py) const
 {
-	return isInIntervalStrict<int>(px - X, Width)
-		&& isInIntervalStrict<int>(py - Y, Height);
+	return IsInIntervalStrict<int>(px - X, Width)
+		&& IsInIntervalStrict<int>(py - Y, Height);
 }
 
 YSL_END_NAMESPACE(Drawing)
@@ -1043,7 +1056,7 @@ protected:
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		保护实现。
 	//********************************
 	YCountableObject();

@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-05 14:04:05 + 08:00;
-// UTime = 2010-10-13 15:49 + 08:00;
-// Version = 0.2895;
+// UTime = 2010-10-28 13:43 + 08:00;
+// Version = 0.2952;
 
 
 #include "DSReader.h"
@@ -47,7 +47,8 @@ catch(LoggedEvent&)
 }
 catch(...)
 {
-	throw LoggedEvent("Error occured @@ MDualScreenReader::MDualScreenReader();");
+	throw LoggedEvent("Error occured"
+		" @@ MDualScreenReader::MDualScreenReader();");
 }
 
 bool
@@ -70,8 +71,8 @@ MDualScreenReader::SetColor(Color c)
 void
 MDualScreenReader::SetLineGap(u8 g)
 {
-	pTrUp->SetLineGap(g);
-	pTrDn->SetLineGap(g);
+	pTrUp->LineGap = g;
+	pTrDn->LineGap = g;
 }
 void
 MDualScreenReader::SetFontSize(Font::SizeType fz)
@@ -97,7 +98,7 @@ MDualScreenReader::Reset()
 void
 MDualScreenReader::LoadText(YTextFile& file)
 {
-//	assert(pText != NULL);
+//	assert(pText);
 	if(file.IsValid())
 	{
 		pText = new BlockedText(file);
@@ -120,7 +121,8 @@ MDualScreenReader::UnloadText()
 void
 MDualScreenReader::PrintText()
 {
-//	pTrUp->BlitToBuffer(pBgUp, RDeg0, SCRW, SCRH, 0, 0, 0, 0, pTrUp->GetWidth(), pTrUp->GetBufferHeightResized());
+//	pTrUp->BlitToBuffer(pBgUp, RDeg0, SCRW, SCRH, 0, 0, 0, 0,
+//		pTrUp->Width, pTrUp->GetBufferHeightResized());
 	pTrUp->BlitToBuffer(pBgUp, rot);
 	pTrDn->BlitToBuffer(pBgDn, rot);
 }
@@ -139,15 +141,19 @@ MDualScreenReader::LineUp()
 		return false;
 
 	const u8 h = lnHeight, hx = h + GetLnGapDn();
-	const u16 w = pTrUp->GetWidth();
-	const u32 t = w * h, s = (pTrUp->GetHeight() - pTrUp->GetMarginResized() - h) * w, d = pTrDn->Margin.Top * w;
+	const u16 w = pTrUp->Width;
+	const u32 t = w * h,
+		s = (pTrUp->Height - pTrUp->GetMarginResized() - h) * w,
+		d = pTrDn->Margin.Top * w;
 
 	pTrDn->Move(hx, pTrDn->GetBufferHeightResized());
-	std::memcpy(&pTrDn->GetBufferPtr()[d], &pTrUp->GetBufferPtr()[s], t * sizeof(PixelType));
-	std::memcpy(&pTrDn->GetBufferAlphaPtr()[d], &pTrUp->GetBufferAlphaPtr()[s], t * sizeof(u8));
+	std::memcpy(&pTrDn->GetBufferPtr()[d], &pTrUp->GetBufferPtr()[s],
+		t * sizeof(PixelType));
+	std::memcpy(&pTrDn->GetBufferAlphaPtr()[d], &pTrUp->GetBufferAlphaPtr()[s],
+		t * sizeof(u8));
 	pTrUp->Move(hx, pTrUp->GetBufferHeightResized());
 	pTrUp->ClearLn(0);
-	pTrUp->SetLnNNow(0);
+	SetLnNNow(*pTrUp, 0);
 
 	TextFileBuffer::HText itUpOld(itUp);
 
@@ -163,12 +169,16 @@ MDualScreenReader::LineDown()
 		return false;
 
 	const u8 h = lnHeight, hx = h + GetLnGapUp();
-	const u16 w = pTrUp->GetWidth();
-	const u32 t = w * h, s = pTrUp->Margin.Top * w, d = (pTrUp->GetHeight() - pTrUp->GetMarginResized() - h) * w;
+	const u16 w = pTrUp->Width;
+	const u32 t = w * h,
+		s = pTrUp->Margin.Top * w,
+		d = (pTrUp->Height - pTrUp->GetMarginResized() - h) * w;
 
 	pTrUp->Move(-hx);
-	std::memcpy(&pTrUp->GetBufferPtr()[d], &pTrDn->GetBufferPtr()[s], t * sizeof(PixelType));
-	std::memcpy(&pTrUp->GetBufferAlphaPtr()[d], &pTrDn->GetBufferAlphaPtr()[s], t * sizeof(u8));
+	std::memcpy(&pTrUp->GetBufferPtr()[d], &pTrDn->GetBufferPtr()[s],
+		t * sizeof(PixelType));
+	std::memcpy(&pTrUp->GetBufferAlphaPtr()[d], &pTrDn->GetBufferAlphaPtr()[s],
+		t * sizeof(u8));
 	pTrDn->Move(-hx);
 	pTrDn->ClearLnLast();
 	pTrDn->SetLnLast();
@@ -182,7 +192,8 @@ MDualScreenReader::ScreenUp()
 {
 	if(IsTextTop())
 		return false;
-	itUp = GetPreviousLinePtr(*pTrUp, itUp, pText->Blocks.begin(), pTrUp->GetLnN() + pTrDn->GetLnN());
+	itUp = GetPreviousLinePtr(*pTrUp, itUp, pText->Blocks.begin(),
+		pTrUp->GetLnN() + pTrDn->GetLnN());
 	Update();
 	return true;
 }

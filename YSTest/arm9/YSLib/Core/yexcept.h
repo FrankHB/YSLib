@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YException by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-06-15 20:30:14 + 08:00;
-// UTime = 2010-10-24 19:56 + 08:00;
-// Version = 0.1196;
+// UTime = 2010-10-31 12:21 + 08:00;
+// Version = 0.1198;
 
 
 #ifndef INCLUDED_YEXCEPT_H_
@@ -28,7 +28,7 @@ public:
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		
 	//********************************
 	Exception();

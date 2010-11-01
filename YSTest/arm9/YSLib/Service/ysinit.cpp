@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YShellInitialization by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-10-21 23:15:08 + 08:00;
-// UTime = 2010-10-24 16:48 + 08:00;
-// Version = 0.1697;
+// UTime = 2010-10-27 12:32 + 08:00;
+// Version = 0.1701;
 
 
 #include "ysinit.h"
@@ -109,7 +109,7 @@ InitializeSystemFontCache()
 {
 	puts("Loading font files...");
 	CreateFontCache(pDefaultFontCache, DEF_FONT_PATH);
-	if(pDefaultFontCache != NULL && DEF_FONT_DIRECTORY != NULL)
+	if(pDefaultFontCache && DEF_FONT_DIRECTORY)
 		pDefaultFontCache->LoadFontFileDirectory(DEF_FONT_DIRECTORY);
 	CheckSystemFontCache();
 	iprintf("%u font file(s) are loaded\nsuccessfully.\n", pDefaultFontCache->GetFilesN());
@@ -117,7 +117,7 @@ InitializeSystemFontCache()
 
 	const Drawing::Typeface* const pf(pDefaultFontCache->GetDefaultTypefacePtr());
 
-	if(pf != NULL && Drawing::Font::InitializeDefault())
+	if(pf && Drawing::Font::InitializeDefault())
 		iprintf("\"%s\":\"%s\",\nsuccessfully.\n", pf->GetFamilyName(), pf->GetStyleName());
 	else
 	{
@@ -148,7 +148,7 @@ CheckInstall()
 void
 CheckSystemFontCache()
 {
-	if(!(pDefaultFontCache != NULL && pDefaultFontCache->GetTypesN() > 0))
+	if(!(pDefaultFontCache && pDefaultFontCache->GetTypesN() > 0))
 		defFontFail();
 }
 

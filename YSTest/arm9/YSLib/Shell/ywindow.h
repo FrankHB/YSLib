@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40 + 08:00;
-// UTime = 2010-10-25 11:57 + 08:00;
-// Version = 0.3684;
+// UTime = 2010-11-01 13:45 + 08:00;
+// Version = 0.3704;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -20,7 +20,7 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Forms)
 
 //窗口接口。
-DeclBasedInterface(IWindow, virtual IWidgetContainer, virtual IVisualControl)
+DeclBasedInterface(IWindow, virtual IUIContainer, virtual IVisualControl)
 	DeclIEntry(operator Graphics() const) //生成图形接口上下文。
 
 	DeclIEntry(bool IsRefreshRequired() const)
@@ -76,10 +76,10 @@ MDesktopObject::MDesktopObject(YDesktop* pDsk)
 
 
 //窗口模块。
-class MWindow : public MDesktopObject
+class MWindow : protected MDesktopObject
 {
 protected:
-	Drawing::MBitmapBuffer Buffer; //显示缓冲区。
+	Drawing::BitmapBuffer Buffer; //显示缓冲区。
 	//基类中的 hWindow 为父窗口对象句柄，若为空则说明无父窗口。
 	HSHL hShell;
 	GHResource<YImage> prBackImage; //背景图像指针。
@@ -115,7 +115,7 @@ public:
 
 
 //抽象窗口。
-class AWindow : public Controls::AVisualControl, public MWindow,
+class AWindow : public Controls::AVisualControl, protected MWindow,
 	virtual implements IWindow
 {
 public:
@@ -153,7 +153,7 @@ public:
 		ImplBodyBase(MDesktopObject, BelongsTo, pDsk)
 
 	ImplI(IWindow) DefGetterBase(YDesktop*, DesktopPtr, MDesktopObject)
-	ImplI(IWindow) DefGetter(const Drawing::MBitmapBuffer&, Buffer, Buffer) \
+	ImplI(IWindow) DefGetter(const Drawing::BitmapBuffer&, Buffer, Buffer) \
 		//取显示缓冲区。
 	ImplI(IWindow) DefGetterMember(BitmapPtr, BufferPtr, Buffer) \
 		//取缓冲区指针。
@@ -208,10 +208,11 @@ protected:
 	bool
 	DrawBackgroundImage();
 
+public:
 	//********************************
 	//名称:		DrawBackground
 	//全名:		YSLib::Components::Forms::AWindow::DrawBackground
-	//可访问性:	protected 
+	//可访问性:	public 
 	//返回类型:	ImplI(IWindow) void
 	//修饰符:	
 	//功能概要:	绘制背景。
@@ -220,6 +221,7 @@ protected:
 	ImplI(IWindow) void
 	DrawBackground();
 
+protected:
 	ImplA(IWindow)
 	DeclIEntry(bool DrawWidgets())
 
@@ -351,7 +353,7 @@ AWindow::UpdateToWindow() const
 
 //框架窗口。
 class YFrameWindow : public GMCounter<YFrameWindow>, public YComponent,
-	public AWindow, public Widgets::MWidgetContainer
+	public AWindow, protected Widgets::MUIContainer
 {
 public:
 	typedef YComponent ParentType;
@@ -392,23 +394,23 @@ public:
 	virtual PDefHOperator(bool, -=, IWidget& w)
 		ImplRet(sWgtSet -= w)
 	virtual PDefHOperator(void, +=, IVisualControl& c)
-		ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
+		ImplBodyBaseVoid(MUIContainer, operator+=, c)
 	virtual PDefHOperator(bool, -=, IVisualControl& c)
-		ImplBodyBase(MWidgetContainer, operator-=, c)
+		ImplBodyBase(MUIContainer, operator-=, c)
 	virtual PDefHOperator(void, +=, GMFocusResponser<IVisualControl>& c)
-		ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
+		ImplBodyBaseVoid(MUIContainer, operator+=, c)
 	virtual PDefHOperator(bool, -=, GMFocusResponser<IVisualControl>& c)
-		ImplBodyBase(MWidgetContainer, operator-=, c)
+		ImplBodyBase(MUIContainer, operator-=, c)
 
-	virtual PDefH(IWidget*, GetTopWidgetPtr, const Point& p) const
-		ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
-	virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
-		ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
+	virtual PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
+		ImplBodyBase(MUIContainer, GetTopWidgetPtr, p)
+	virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p)
+		ImplBodyBase(MUIContainer, GetTopVisualControlPtr, p)
 	virtual DefGetterBase(IVisualControl*, FocusingPtr,
 		GMFocusResponser<IVisualControl>)
 
 	virtual PDefH(void, ClearFocusingPtr)
-		ImplBodyBaseVoid(MWidgetContainer, ClearFocusingPtr)
+		ImplBodyBaseVoid(MUIContainer, ClearFocusingPtr)
 
 protected:
 	//********************************

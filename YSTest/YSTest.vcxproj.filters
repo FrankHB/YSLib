@@ -239,7 +239,7 @@
       <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClCompile>
     <ClCompile Include="arm9\source\Shells.cpp">
-      <Filter>ARM9\资源文件</Filter>
+      <Filter>ARM9\源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

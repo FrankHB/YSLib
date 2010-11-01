@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52 + 08:00;
-// UTime = 2010-10-24 17:47 + 08:00;
-// Version = 0.2423;
+// UTime = 2010-11-01 13:56 + 08:00;
+// Version = 0.2429;
 
 
 #include "yglobal.h"
@@ -142,7 +142,7 @@ Def::WaitForInput()
 }
 
 void
-Def::Destroy(YObject&, const MEventArgs&)
+Def::Destroy(YObject&, const EventArgs&)
 {
 	//释放默认字体资源。
 	DestroySystemFontCache();
@@ -179,7 +179,7 @@ namespace
 		//初始化主控制台。
 		InitYSConsole();
 
-	/*	if(setlocale(LC_ALL, "zh_CN.GBK") == NULL)
+	/*	if(!setlocale(LC_ALL, "zh_CN.GBK"))
 		{
 			EpicFail();
 			platform::yprintf("setlocale() with %s failed.\n", "zh_CN.GBK");

@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YAdaptor by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-22 20:16:21 + 08:00;
-// UTime = 2010-10-23 15:38 + 08:00;
-// Version = 0.1878;
+// UTime = 2010-10-31 15:19 + 08:00;
+// Version = 0.1895;
 
 
 #ifndef INCLUDED_YADAPTOR_H_
@@ -107,6 +107,8 @@ YSL_END
 
 
 //包含 Loki 。
+//#define LOKI_FUNCTOR_IS_NOT_A_SMALLOBJECT
+#define LOKI_FUNCTORS_ARE_COMPARABLE //实现事件机制需要能被比较的仿函数。
 #include <loki/Function.h>
 #include <loki/SmartPtr.h>
 #include <loki/StrongPtr.h>

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 00:06:05 + 08:00;
-// UTime = 2010-10-25 12:55 + 08:00;
-// Version = 0.6545;
+// UTime = 2010-10-31 12:19 + 08:00;
+// Version = 0.6608;
 
 
 #ifndef INCLUDED_YTEXT_H_
@@ -20,16 +20,14 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Drawing)
 
 //文本状态：笔样式、边框样式、字体缓存和行距。
-class TextState : public PenStyle
+struct TextState : public PenStyle
 {
 public:
 	typedef PenStyle ParentType;
 
 	Padding Margin; //显示区域到边框的距离。
-
-protected:
-	SPOS penX, penY; //笔坐标。
-	u8 lnGap; //行距。
+	SPOS PenX, PenY; //笔坐标。
+	u8 LineGap; //行距。
 
 public:
 	//********************************
@@ -38,7 +36,7 @@ public:
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		
 	//********************************
 	TextState();
@@ -91,126 +89,6 @@ public:
 	//********************************
 	TextState&
 	operator=(const Padding& ms);
-
-	DefGetter(SPOS, PenX, penX)
-	DefGetter(SPOS, PenY, penY)
-	DefGetter(u8, LineGap, lnGap) //取当前字体设置对应的行距。
-	//********************************
-	//名称:		GetLnHeight
-	//全名:		YSLib::Drawing::TextState::GetLnHeight
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	const
-	//形式参数:	u8
-	//形式参数:	LineGap
-	//形式参数:	lnGap
-	//功能概要:	取当前字体设置对应的行高。
-	//备注:		
-	//********************************
-	SDST
-	GetLnHeight() const;
-	//********************************
-	//名称:		GetLnHeightEx
-	//全名:		YSLib::Drawing::TextState::GetLnHeightEx
-	//可访问性:	public 
-	//返回类型:	YSLib::SDST
-	//修饰符:	const
-	//功能概要:	取当前字体设置对应的行高与行距之和。
-	//备注:		
-	//********************************
-	SDST
-	GetLnHeightEx() const;
-	//********************************
-	//名称:		GetLnNNow
-	//全名:		YSLib::Drawing::TextState::GetLnNNow
-	//可访问性:	public 
-	//返回类型:	u16
-	//修饰符:	const
-	//功能概要:	取笔所在的当前行数。
-	//备注:		
-	//********************************
-	u16
-	GetLnNNow() const;
-
-	//********************************
-	//名称:		SetMargins
-	//全名:		YSLib::Drawing::TextState::SetMargins
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	u64
-	//功能概要:	设置边距。
-	//备注:		64 位无符号整数形式。
-	//********************************
-	void
-	SetMargins(u64);
-	//********************************
-	//名称:		SetMargins
-	//全名:		YSLib::Drawing::TextState::SetMargins
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//功能概要:	设置边距。
-	//备注:		2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
-	//********************************
-	void
-	SetMargins(SDST, SDST);
-	//********************************
-	//名称:		SetMargins
-	//全名:		YSLib::Drawing::TextState::SetMargins
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//功能概要:	设置边距。
-	//备注:		4 个 16 位无符号整数形式。
-	//********************************
-	void
-	SetMargins(SDST, SDST, SDST, SDST);
-	//********************************
-	//名称:		SetPen
-	//全名:		YSLib::Drawing::TextState::SetPen
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	按字体大小在设置笔的默认位置（区域左上角）。
-	//备注:		
-	//********************************
-	void
-	SetPen();
-	DefSetter(SPOS, PenX, penX)
-	DefSetter(SPOS, PenY, penY)
-	//********************************
-	//名称:		SetPen
-	//全名:		YSLib::Drawing::TextState::SetPen
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	SPOS
-	//形式参数:	SPOS
-	//功能概要:	
-	//备注:		
-	//********************************
-	void
-	SetPen(SPOS, SPOS); //设置笔位置。
-	DefSetter(u8, LineGap, lnGap) //设置行距。
-	//********************************
-	//名称:		SetLnNNow
-	//全名:		YSLib::Drawing::TextState::SetLnNNow
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	u16 n
-	//功能概要:	设置笔的行位置。
-	//备注:		
-	//********************************
-	void
-	SetLnNNow(u16 n);
 };
 
 inline TextState&
@@ -226,38 +104,155 @@ TextState::operator=(const Padding& ms)
 	return *this;
 }
 
-inline void
-TextState::SetMargins(u64 m)
+
+//********************************
+//名称:		GetLnHeight
+//全名:		YSLib::Drawing::GetLnHeight
+//可访问性:	public 
+//返回类型:	YSLib::SDST
+//修饰符:	
+//形式参数:	const TextState & s
+//功能概要:	在指定文本状态中取当前字体设置对应的行高。
+//备注:		
+//********************************
+inline SDST
+GetLnHeight(const TextState& s)
 {
-	Margin.SetAll(m);
-	SetPen();
+	return s.GetCache().GetHeight();
 }
-inline void
-TextState::SetMargins(SDST h, SDST v)
+
+//********************************
+//名称:		GetLnHeightEx
+//全名:		YSLib::Drawing::GetLnHeightEx
+//可访问性:	public 
+//返回类型:	YSLib::SDST
+//修饰符:	
+//形式参数:	const TextState & s
+//功能概要:	在指定文本状态中取当前字体设置对应的行高与行距之和。
+//备注:		
+//********************************
+inline SDST
+GetLnHeightEx(const TextState& s)
 {
-	Margin.SetAll(h, v);
-	SetPen();
+	return s.GetCache().GetHeight() + s.LineGap;
 }
-inline void
-TextState::SetMargins(SDST l, SDST r, SDST t, SDST b)
+
+//********************************
+//名称:		GetLnNNow
+//全名:		YSLib::Drawing::GetLnNNow
+//可访问性:	public 
+//返回类型:	u16
+//修饰符:	
+//形式参数:	const TextState & s
+//功能概要:	取笔所在的当前行数。
+//备注:		
+//********************************
+inline u16
+GetLnNNow(const TextState& s)
 {
-	Margin.SetAll(l, r, t, b);
-	SetPen();
+	return (s.PenY - s.Margin.Top) / GetLnHeightEx(s);
 }
+
+//********************************
+//名称:		SetPen
+//全名:		YSLib::Drawing::SetPen
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	TextState &
+//功能概要:	按字体大小在设置笔的默认位置（区域左上角）。
+//备注:		
+//********************************
+void
+SetPens(TextState&);
+//********************************
+//名称:		SetPen
+//全名:		YSLib::Drawing::SetPen
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	TextState & s
+//形式参数:	SPOS x
+//形式参数:	SPOS y
+//功能概要:	设置笔位置。
+//备注:		
+//********************************
 inline void
-TextState::SetPen()
+SetPens(TextState& s, SPOS x, SPOS y)
 {
-	penX = Margin.Left;
-	//	penY = Top + GetLnHeightEx();
-	//	penY = Top + pCache->GetAscender();
-	SetLnNNow(0);
+	s.PenX = x;
+	s.PenY = y;
 }
+
+//********************************
+//名称:		SetMargins
+//全名:		YSLib::Drawing::SetMargins
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	TextState & s
+//形式参数:	SDST l
+//形式参数:	SDST r
+//形式参数:	SDST t
+//形式参数:	SDST b
+//功能概要:	设置边距。
+//备注:		4 个 16 位无符号整数形式。
+//********************************
 inline void
-TextState::SetPen(SPOS x, SPOS y)
+SetMargins(TextState& s, SDST l, SDST r, SDST t, SDST b)
 {
-	penX = x;
-	penY = y;
+	SetAll(s.Margin, l, r, t, b);
+	SetPens(s);
 }
+//********************************
+//名称:		SetMargins
+//全名:		YSLib::Drawing::SetMargins
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	TextState & s
+//形式参数:	u64 m
+//功能概要:	设置边距。
+//备注:		64 位无符号整数形式。
+//********************************
+inline void
+SetMargins(TextState& s, u64 m)
+{
+	SetAll(s.Margin, m);
+	SetPens(s);
+}
+//********************************
+//名称:		SetMargins
+//全名:		YSLib::Drawing::SetMargins
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	TextState & s
+//形式参数:	SDST h
+//形式参数:	SDST v
+//功能概要:	设置边距。
+//备注:		2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
+//********************************
+inline void
+SetMargins(TextState& s, SDST h, SDST v)
+{
+	SetAll(s.Margin, h, v);
+	SetPens(s);
+}
+
+//********************************
+//名称:		SetLnNNow
+//全名:		YSLib::Drawing::SetLnNNow
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	TextState &
+//形式参数:	u16
+//功能概要:	设置笔的行位置。
+//备注:		
+//********************************
+void
+SetLnNNow(TextState&, u16);
 
 
 //********************************
@@ -266,14 +261,14 @@ TextState::SetPen(SPOS x, SPOS y)
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
-//形式参数:	MBitmapBuffer &
+//形式参数:	BitmapBuffer &
 //形式参数:	TextState &
 //形式参数:	fchar_t
 //功能概要:	打印单个字符。
 //备注:		
 //********************************
 void
-PrintChar(MBitmapBuffer&, TextState&, fchar_t); 
+PrintChar(BitmapBuffer&, TextState&, fchar_t); 
 
 //********************************
 //名称:		PrintCharEx
@@ -281,18 +276,18 @@ PrintChar(MBitmapBuffer&, TextState&, fchar_t);
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
-//形式参数:	MBitmapBufferEx &
+//形式参数:	BitmapBufferEx &
 //形式参数:	TextState &
 //形式参数:	fchar_t
 //功能概要:	打印单个字符。
 //备注:		
 //********************************
 void
-PrintCharEx(MBitmapBufferEx&, TextState&, fchar_t); 
+PrintCharEx(BitmapBufferEx&, TextState&, fchar_t); 
 
 
 //文本区域。
-class TextRegion : public TextState, public MBitmapBufferEx
+class TextRegion : public TextState, public BitmapBufferEx
 {
 public:
 	typedef TextState ParentType;
@@ -303,7 +298,7 @@ public:
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		
 	//********************************
 	TextRegion();
@@ -355,8 +350,10 @@ public:
 	//********************************
 	TextRegion& operator=(const TextState& ts);
 
-	DefGetter(SDST, BufWidthN, Width - Margin.GetHorizontal()) //取缓冲区的文本显示区域的宽。
-	DefGetter(SDST, BufHeightN, Height - Margin.GetVertical()) //取缓冲区的文本显示区域的高。
+	DefGetter(SDST, BufWidthN, Width - GetHorizontal(Margin)) \
+		//取缓冲区的文本显示区域的宽。
+	DefGetter(SDST, BufHeightN, Height - GetVertical(Margin)) \
+		//取缓冲区的文本显示区域的高。
 	//********************************
 	//名称:		GetMarginResized
 	//全名:		YSLib::Drawing::TextRegion::GetMarginResized
@@ -618,10 +615,10 @@ template<typename _tOut>
 _tOut
 TextRegion::PutLine(_tOut s)
 {
-	const SPOS fpy(penY);
+	const SPOS fpy(PenY);
 	_tOut t(s);
 
-	while(*t != 0 && fpy == penY)
+	while(*t != 0 && fpy == PenY)
 		if(!PutChar(*t))
 			++t;
 	return t;
@@ -630,9 +627,9 @@ template<typename _tOut, typename _tChar>
 _tOut
 TextRegion::PutLine(_tOut s, _tOut g, _tChar f)
 {
-	const SPOS fpy(penY);
+	const SPOS fpy(PenY);
 
-	while(s != g && *s != f && fpy == penY)
+	while(s != g && *s != f && fpy == PenY)
 		if(!PutChar(*s))
 			++s;
 	return s;
@@ -651,7 +648,7 @@ TextRegion::PutString(_tOut s)
 	const SPOS mpy(GetLineLast());
 	_tOut t(s);
 
-	while(*t != 0 && penY <= mpy)
+	while(*t != 0 && PenY <= mpy)
 		if(!PutChar(*t))
 			++t;
 	return t;
@@ -662,7 +659,7 @@ TextRegion::PutString(_tOut s, _tOut g, _tChar f)
 {
 	const SPOS mpy(GetLineLast());
 
-	while(s != g && *s != f && penY <= mpy)
+	while(s != g && *s != f && PenY <= mpy)
 		if(!PutChar(*s))
 			++s;
 	return s;
@@ -726,7 +723,7 @@ GetPreviousLinePtr(const Drawing::TextRegion& r, _tOut p, _tOut g, u16 l = 1)
 {
 	while(l-- != 0 && p != g)
 	{
-		p = rfind<_tOut, uchar_t>(r.GetCache(), r.GetPenX() - r.Margin.Left, p, g, '\n');
+		p = rfind<_tOut, uchar_t>(r.GetCache(), r.PenX - r.Margin.Left, p, g, '\n');
 		if(p != g)
 		{
 			p = rfind<_tOut, uchar_t>(r.GetCache(), r.GetBufWidthN(), p, g, '\n');
@@ -758,7 +755,7 @@ GetNextLinePtr(const Drawing::TextRegion& r, _tOut p, _tOut g)
 
 	YFontCache& cache(r.GetCache());
 	SDST nw(r.GetBufWidthN());
-	SDST w(r.GetPenX() - r.Margin.Left);
+	SDST w(r.PenX - r.Margin.Left);
 
 	while(p != g)
 	{

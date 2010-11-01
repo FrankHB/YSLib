@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-05-02 12:00:08 + 08:00;
-// UTime = 2010-10-25 07:29 + 08:00;
-// Version = 0.2154;
+// UTime = 2010-10-29 23:14 + 08:00;
+// Version = 0.2160;
 
 
 #ifndef INCLUDED_YDESKTOP_H_
@@ -50,7 +50,7 @@ public:
 	DefGetter(const YScreen&, Screen, Screen) //取屏幕对象。
 	DefGetter(BitmapPtr, BackgroundPtr, Screen.GetPtr()) //取背景指针。
 
-	virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p) const
+	virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p)
 		ImplBodyBase(YDesktop, GetTopDesktopObjectPtr, p)
 
 	//********************************
@@ -164,11 +164,10 @@ public:
 	IVisualControl*
 	GetTopDesktopObjectPtr(const Point&) const;
 
-protected:
 	//********************************
 	//名称:		DrawBackground
 	//全名:		YSLib::Components::YDesktop::DrawBackground
-	//可访问性:	virtual protected 
+	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
 	//功能概要:	绘制背景。
@@ -177,6 +176,7 @@ protected:
 	virtual void
 	DrawBackground();
 
+protected:
 	//依次绘制桌面对象组对象。
 	//********************************
 	//名称:		DrawDesktopObjects

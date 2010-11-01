@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-05 14:03:47 + 08:00;
-// UTime = 2010-10-22 13:27 + 08:00;
-// Version = 0.2153;
+// UTime = 2010-10-28 12:57 + 08:00;
+// Version = 0.2202;
 
 
 #ifndef _DSREADER_H_
@@ -36,7 +36,12 @@ class MDualScreenReader
 private:
 	BlockedText* pText; //文本资源。
 	YFontCache& fc; //字体缓存。
-	u16 left, top_up, top_down; // left ：上下字符区域距离屏幕左边距离； top_up ：上字符区域距离上屏顶端距离； top_down ：下字符区域距离下屏顶端距离。
+	u16 left, top_up, top_down; \
+		/*
+		left ：上下字符区域距离屏幕左边距离；
+		top_up ：上字符区域距离上屏顶端距离；
+		top_down ：下字符区域距离下屏顶端距离。
+		*/
 	PixelType *pBgUp, *pBgDn; //上下屏幕背景层显存地址。
 	GHResource<TextRegion> pTrUp, pTrDn; //上下屏幕对应字符区域。
 	ROT rot; //屏幕指向。
@@ -45,15 +50,15 @@ private:
 
 	DefGetter(u16, ColorUp, pTrUp->Color) //取上字符区域的字体颜色。
 	DefGetter(u16, ColorDn, pTrDn->Color) //取下字符区域的字体颜色。
-	DefGetter(u8, LnGapUp, pTrUp->GetLineGap()) //取上字符区域的行距。
-	DefGetter(u8, LnGapDn, pTrDn->GetLineGap()) //取下字符区域的行距。
+	DefGetter(u8, LnGapUp, pTrUp->LineGap) //取上字符区域的行距。
+	DefGetter(u8, LnGapDn, pTrDn->LineGap) //取下字符区域的行距。
 
-	DefSetterDe(PixelType, ColorUp, pTrUp->Color, 0) //设置上字符区域的字体颜色。
-	DefSetterDe(PixelType, ColorDn, pTrDn->Color, 0) //设置下字符区域的字体颜色。
-	PDefH(void, SetLnGapUp, u16 g = 0) //设置上字符区域的行距。
-		ImplBodyMemberVoid(*pTrUp, SetLineGap, g)
-	PDefH(void, SetLnGapDn, u16 g = 0) //设置下字符区域的行距。
-		ImplBodyMemberVoid(*pTrDn, SetLineGap, g)
+	DefSetterDe(PixelType, ColorUp, pTrUp->Color, 0) \
+		//设置上字符区域的字体颜色。
+	DefSetterDe(PixelType, ColorDn, pTrDn->Color, 0) \
+		//设置下字符区域的字体颜色。
+	DefSetterDe(u8, LnGapUp, pTrUp->LineGap, 0) //设置上字符区域的行距。
+	DefSetterDe(u8, LnGapDn, pTrDn->LineGap, 0) //设置下字符区域的行距。
 
 	//清除字符区域缓冲区。
 	void Clear()
@@ -65,8 +70,8 @@ private:
 	//复位缓存区域写入位置。
 	void ResetPen()
 	{
-		pTrUp->SetPen();
-		pTrDn->SetPen();
+		SetPens(*pTrUp);
+		SetPens(*pTrDn);
 	}
 
 	//文本填充：输出文本缓冲区字符串，并返回填充字符数。

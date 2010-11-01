@@ -3,7 +3,7 @@
 		u8* bitmap = sbit->buf;
 		if(!bitmap)
 		{
-			penX = tx;
+			PenX = tx;
 			return;
 		}
 
@@ -18,8 +18,8 @@
 			{
 				if(bitmap[t] >= Alpha_Threshold)
 				{
-					int sy = penY + y - sbit->top;
-					int sx = penX + x + sbit->left;
+					int sy = PenY + y - sbit->top;
+					int sx = PenX + x + sbit->left;
 
 					if(sx >= Left && sy >= Top && sx < maxX && sy < maxY)
 					{
@@ -120,6 +120,29 @@ struct transPixelShiftRight
 	}
 };
 
+*/
+/*
+	extern u8 backlight;
+
+	void
+	FIFOBacklight(u32 value, void* userdata);
+	void
+	toggleBacklight();
+
+	u8
+	chartohex(char c);
+
+	void
+	fadeBlack(u16 frames);
+	void
+	unfadeBlack(u16 frames);
+	void
+	unfadeBlack2(u16 frames);
+	bool
+	loadImage(const char* file, u16* out,
+		u8* outA, u16 w, u16 h, int format=0);
+	void
+	darken(u16* screen, u8 factor, s16 x, s16 y, s16 w, s16 h);
 */
 /*
 
@@ -431,8 +454,8 @@ public:
 	iterator end() const;
 };
 */
-//	lblC.RequestFocus(GetZeroElement<MEventArgs>());
-//	lblC.ReleaseFocus(GetZeroElement<MEventArgs>());
+//	lblC.RequestFocus(GetZeroElement<EventArgs>());
+//	lblC.ReleaseFocus(GetZeroElement<EventArgs>());
 
 //	lblC.Text = L"≤‚ ‘= =";
 //	HWND h(lblC.GetWindowHandle());
@@ -456,6 +479,47 @@ _testStr(const String& s)
 }
 */
 /*
+
+typedef struct
+{
+	u8   length;
+	u16* word;
+} string;
+*/
+
+/*typedef struct
+{
+	s32 x;
+	s32 y;
+} POINT;
+
+typedef struct
+{
+	POINT base;
+	POINT end;
+} BLOCK;*/
+
+/*
+bool  IsInArea(const BLOCK&, const POINT&);
+BLOCK CheckBlock(const BLOCK&, const BLOCK&);
+*/
+
+//FONT Style;
+//typedef enum {NONE = 0, HOLLOW = 1, SHADOW = 2, BACK_GROUND = 3} FNTS;
+
+/*typedef struct
+{
+	PIXEL Color;
+	PIXEL BgColor;
+	u8    Align;
+	CROT  Rot;
+	FNTS  Fx;
+	bool  Cut;  //Cut
+	u8    WSpc; //Width Space
+	u8    HSpc; //Height Space
+	FONT* Font;
+} CHRSTAT;
+
 static void
 RectDarken(BitmapPtr src, const Point& l, const Size& s, HWND hWnd)
 {
@@ -576,7 +640,7 @@ inline bool YFileItem::IsDirectory() const
 }
 inline bool YFileItem::IsValid() const
 {
-	return dir != NULL;
+	return dir;
 }
 
 void YFileItem::Open(CPATH path)
@@ -698,8 +762,8 @@ public:
 	TextRegion& shltxt = dsr.GetUp();
 	sprintf(strtbuf + strlen(strtbuf), "buffer addr : 0x%x", (int)shltxt.GetBufferPtr());
 	sprintf(strtmargin, "%d, %d, %d, %d;", shltxt.Margin.GetLeft(), shltxt.Margin.GetRight(), shltxt.Margin.GetTop(), shltxt.Margin.GetBottom());
-	sprintf(strtf,"xxx:%u,%u;%u,%u\n",shltxt.Margin.GetBottom(),shltxt.ResizeMargin(),shltxt.GetPenX(),shltxt.GetPenY());
-	sprintf(strtpen, "penX = %d, penY = %d;", shltxt.GetPenX(), shltxt.GetPenY());
+	sprintf(strtf,"xxx:%u,%u;%u,%u\n",shltxt.Margin.GetBottom(),shltxt.ResizeMargin(),shltxt.PenX,shltxt.PenY);
+	sprintf(strtpen, "PenX = %d, PenY = %d;", shltxt.PenX, shltxt.PenY);
 	*/
 
 //AGG Drawing Test
@@ -816,7 +880,7 @@ static void on_draw()
 /*
 static inline void aggcopy(BitmapPtr dst, agg::rendering_buffer& src)
 {
-	scrCopy(dst, (ConstBitmapPtr)src.buf());
+	ScreenSychronize(dst, (ConstBitmapPtr)src.buf());
 }
 static void aggtest()
 {

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-19 20:05:08 + 08:00;
-// UTime = 2010-10-24 19:57 + 08:00;
-// Version = 0.2766;
+// UTime = 2010-11-01 13:55 + 08:00;
+// Version = 0.2780;
 
 
 #ifndef INCLUDED_YCOMPONENT_H_
@@ -33,7 +33,7 @@ public:
 
 
 //通用对象组类模板。
-template<class _type, class _tContainer = set<_type*> >
+template<class _type, class _tContainer = std::set<_type*> >
 class GMContainer : public _tContainer,
 	implements GIContainer<_type>
 {
@@ -103,9 +103,9 @@ class GMFocusResponser// : implements GIContainer<_type>
 
 protected:
 	_type* pFocusing; //焦点对象指针。
-	Components::GMContainer<_type> sFOs; //焦点对象组。
+	GMContainer<_type> sFOs; //焦点对象组。
 
-	typedef typename Components::GMContainer<_type>::ContainerType FOs; \
+	typedef typename GMContainer<_type>::ContainerType FOs; \
 		//焦点对象组类型。
 
 	//********************************
@@ -114,7 +114,7 @@ protected:
 	//可访问性:	protected 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		
 	//********************************
 	inline
@@ -151,7 +151,7 @@ protected:
 		if(pFocusing != p)
 		{
 			if(pFocusing && pFocusing->IsFocused())
-				pFocusing->ReleaseFocus(GetZeroElement<MEventArgs>());
+				pFocusing->ReleaseFocus(GetZeroElement<EventArgs>());
 			pFocusing = p;
 		}
 		return pFocusing;
@@ -179,7 +179,7 @@ DeclInterface(GIFocusRequester)
 
 	DeclIEntry(bool CheckRemoval(GMFocusResponser<_type>&) const)
 
-	DeclIEntry(void ReleaseFocus(const MEventArgs&))
+	DeclIEntry(void ReleaseFocus(const EventArgs&))
 EndDecl
 
 
@@ -196,7 +196,7 @@ public:
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		
 	//********************************
 	AFocusRequester();
@@ -318,7 +318,7 @@ public:
 	ReleaseFocus(GMFocusResponser<_type>&);
 
 	ImplA(GIFocusRequester<AFocusRequester>)
-	DeclIEntry(void ReleaseFocus(const MEventArgs&))
+	DeclIEntry(void ReleaseFocus(const EventArgs&))
 };
 
 inline
@@ -469,7 +469,7 @@ public:
 	bool
 	SetIndex(IndexType t)
 	{
-		if(GetTotal() && isInIntervalRegular<IndexType>(t, GetTotal()) && t != nIndex)
+		if(GetTotal() && IsInIntervalRegular<IndexType>(t, GetTotal()) && t != nIndex)
 		{
 			if(!t)
 				MoveViewerToBegin();
@@ -524,7 +524,7 @@ public:
 	bool
 	SetSelected(IndexType t)
 	{
-		if(GetTotal() && isInIntervalRegular<IndexType>(t, GetTotal()) && !(t == nSelected && bSelected))
+		if(GetTotal() && IsInIntervalRegular<IndexType>(t, GetTotal()) && !(t == nSelected && bSelected))
 		{
 			nSelected = t;
 			RestrictViewer();

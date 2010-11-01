@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YForm by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-04-30 00:51:36 + 08:00;
-// UTime = 2010-10-24 22:06 + 08:00;
-// Version = 0.1429;
+// UTime = 2010-10-28 13:58 + 08:00;
+// Version = 0.1431;
 
 
 #include "yform.h"
@@ -30,7 +30,7 @@ void
 YForm::SetSize(SDST w, SDST h)
 {
 	YFrameWindow::SetSize(w, h);
-//	MBitmapBuffer::SetSize(w, h);
+//	BitmapBuffer::SetSize(w, h);
 //	YWidget::SetSize(w, h);
 }
 void

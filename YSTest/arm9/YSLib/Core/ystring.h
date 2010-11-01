@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YString by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-05 22:06:05 + 08:00;
-// UTime = 2010-10-24 19:55 + 08:00;
-// Version = 0.2948;
+// UTime = 2010-10-31 12:20 + 08:00;
+// Version = 0.2950;
 
 
 #ifndef INCLUDED_YSTRING_H_
@@ -33,7 +33,7 @@ public:
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		
 	//********************************
 	String();

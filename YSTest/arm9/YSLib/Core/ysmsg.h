@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellMessage by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-06 02:44:31 + 08:00;
-// UTime = 2010-10-24 19:55 + 08:00;
-// Version = 0.1887;
+// UTime = 2010-10-31 12:20 + 08:00;
+// Version = 0.1889;
 
 
 #ifndef INCLUDED_YSMSG_H_
@@ -227,7 +227,7 @@ public:
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		非内联。
 	//********************************
 	YMessageQueue();

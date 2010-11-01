@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 00:06:05 + 08:00;
-// UTime = 2010-10-24 22:21 + 08:00;
-// Version = 0.6202;
+// UTime = 2010-10-29 10:15 + 08:00;
+// Version = 0.6238;
 
 
 #include "ytext.h"
@@ -20,73 +20,67 @@ static const u8 Alpha_Threshold = 16;
 
 TextState::TextState()
 	: PenStyle(GetDefaultFontFamily()), Margin(),
-	penX(0), penY(0), lnGap(0)
+	PenX(0), PenY(0), LineGap(0)
 {}
 TextState::TextState(Drawing::Font& font)
 	: PenStyle(font.GetFontFamily()), Margin(),
-	penX(0), penY(0), lnGap(0)
+	PenX(0), PenY(0), LineGap(0)
 {}
 TextState::TextState(YFontCache& fc)
 	: PenStyle(*fc.GetDefaultTypefacePtr()->GetFontFamilyPtr()), Margin(),
-	penX(0), penY(0), lnGap(0)
+	PenX(0), PenY(0), LineGap(0)
 {}
-
-SDST
-TextState::GetLnHeight() const
-{
-	return GetCache().GetHeight();
-}
-SDST
-TextState::GetLnHeightEx() const
-{
-	return GetCache().GetHeight() + lnGap;
-}
-u16
-TextState::GetLnNNow() const
-{
-	return (penY - Margin.Top) / GetLnHeightEx();
-}
 
 /*Typeface*
 TextState::SetFont(const char* name, CPATH filename)
 {
 	return pFont = GetCache().SetFont(name, filename);
 }*/
+
 void
-TextState::SetLnNNow(u16 n)
+SetPens(TextState& s)
 {
-	penY = Margin.Top + GetCache().GetAscender() + GetLnHeightEx() * n;
+	s.PenX = s.Margin.Left;
+	//	s.PenY = s.Margin.Top + GetLnHeightEx();
+	//	s.PenY = s.Margin.Top + pCache->GetAscender();
+	SetLnNNow(s, 0);
+}
+
+void
+SetLnNNow(TextState& s, u16 n)
+{
+	s.PenY = s.Margin.Top + s.GetCache().GetAscender() + GetLnHeightEx(s) * n;
 }
 
 
 void
-PrintChar(MBitmapBuffer& buf, TextState& ts, fchar_t c)
+PrintChar(BitmapBuffer& buf, TextState& ts, fchar_t c)
 {
-	if(buf.GetBufferPtr() == NULL)
+	if(!buf.GetBufferPtr())
 		//无缓冲区时无法绘图。
 		return;
 
 	YFontCache& cache(ts.GetCache());
 	CharBitmap sbit(cache.GetGlyph(c));
-	const int tx(ts.GetPenX() + cache.GetAdvance(c, sbit));
+	const int tx(ts.PenX + cache.GetAdvance(c, sbit));
 
-	if(!INVISIBLE_CHAR(c) && sbit.GetBuffer() != NULL)
+	if(!INVISIBLE_CHAR(c) && sbit.GetBuffer())
 	{
 		PixelType col(ts.Color | BITALPHA);
-		const int dx(ts.GetPenX() + sbit.GetLeft()),
-			dy(ts.GetPenY() - sbit.GetTop()),
+		const int dx(ts.PenX + sbit.GetLeft()),
+			dy(ts.PenY - sbit.GetTop()),
 			xmin(vmax<int>(0, ts.Margin.Left - dx)),
 			ymin(vmax<int>(0, ts.Margin.Top - dy)),
-			xmax(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx,
+			xmax(vmin<int>(buf.Width - ts.Margin.Right - dx,
 				sbit.GetWidth())),
-			ymax(vmin<int>(buf.GetHeight() - ts.Margin.Bottom - dy,
+			ymax(vmin<int>(buf.Height - ts.Margin.Bottom - dy,
 				sbit.GetHeight()));
 
 		if(xmax >= xmin && ymax >= ymin)
 		{
 			const int sJmp(sbit.GetWidth() - xmax + xmin),
-				dJmp(buf.GetWidth() - xmax + xmin),
-				dOff(vmax<int>(ts.Margin.Top, dy) * buf.GetWidth()
+				dJmp(buf.Width - xmax + xmin),
+				dOff(vmax<int>(ts.Margin.Top, dy) * buf.Width
 					+ vmax<int>(ts.Margin.Left, dx));
 			u8* sa(sbit.GetBuffer() + ymin * sbit.GetWidth() + xmin);
 			BitmapPtr dc(buf.GetBufferPtr() + dOff);
@@ -106,37 +100,37 @@ PrintChar(MBitmapBuffer& buf, TextState& ts, fchar_t c)
 		}
 	}
 	//移动笔。
-	ts.SetPenX(tx);
+	ts.PenX = tx;
 }
 
 void
-PrintCharEx(MBitmapBufferEx& buf, TextState& ts, fchar_t c)
+PrintCharEx(BitmapBufferEx& buf, TextState& ts, fchar_t c)
 {
-	if(buf.GetBufferPtr() == NULL)
+	if(!buf.GetBufferPtr())
 		//无缓冲区时无法绘图。
 		return;
 
 	YFontCache& cache(ts.GetCache());
 	CharBitmap sbit(cache.GetGlyph(c));
-	const int tx(ts.GetPenX() + cache.GetAdvance(c, sbit));
+	const int tx(ts.PenX + cache.GetAdvance(c, sbit));
 
-	if(!INVISIBLE_CHAR(c) && sbit.GetBuffer() != NULL)
+	if(!INVISIBLE_CHAR(c) && sbit.GetBuffer())
 	{
 		PixelType col(ts.Color | BITALPHA);
-		const int dx(ts.GetPenX() + sbit.GetLeft()),
-			dy(ts.GetPenY() - sbit.GetTop()),
+		const int dx(ts.PenX + sbit.GetLeft()),
+			dy(ts.PenY - sbit.GetTop()),
 			xmin(vmax<int>(0, ts.Margin.Left - dx)),
 			ymin(vmax<int>(0, ts.Margin.Top - dy)),
-			xmax(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx,
+			xmax(vmin<int>(buf.Width - ts.Margin.Right - dx,
 				sbit.GetWidth())),
-			ymax(vmin<int>(buf.GetHeight() - ts.Margin.Bottom - dy,
+			ymax(vmin<int>(buf.Height - ts.Margin.Bottom - dy,
 				sbit.GetHeight()));
 
 		if(xmax >= xmin && ymax >= ymin)
 		{
 			const int sJmp(sbit.GetWidth() - xmax + xmin),
-				dJmp(buf.GetWidth() - xmax + xmin),
-				dOff(vmax<int>(ts.Margin.Top, dy) * buf.GetWidth()
+				dJmp(buf.Width - xmax + xmin),
+				dOff(vmax<int>(ts.Margin.Top, dy) * buf.Width
 					+ vmax<int>(ts.Margin.Left, dx));
 			u8* sa(sbit.GetBuffer() + ymin * sbit.GetWidth() + xmin);
 			BitmapPtr dc(buf.GetBufferPtr() + dOff);
@@ -162,30 +156,30 @@ PrintCharEx(MBitmapBufferEx& buf, TextState& ts, fchar_t c)
 		}
 	}
 	//移动笔。
-	ts.SetPenX(tx);
+	ts.PenX = tx;
 }
 
 
 TextRegion::TextRegion()
-	: TextState(), MBitmapBufferEx()
+	: TextState(), BitmapBufferEx()
 {
 	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
-	SetPen();
+	SetPens(*this);
 }
 TextRegion::TextRegion(Drawing::Font& font)
-	: TextState(font), MBitmapBufferEx()
+	: TextState(font), BitmapBufferEx()
 {
 	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
-	SetPen();
+	SetPens(*this);
 }
 TextRegion::TextRegion(YFontCache& fc)
-	: TextState(fc), MBitmapBufferEx()
+	: TextState(fc), BitmapBufferEx()
 {
 	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
-	SetPen();
+	SetPens(*this);
 }
 TextRegion::~TextRegion()
 {}
@@ -193,28 +187,28 @@ TextRegion::~TextRegion()
 SDST
 TextRegion::GetMarginResized() const
 {
-	const u8 t(GetLnHeightEx());
+	const u8 t(GetLnHeightEx(*this));
 
 	return t ? Margin.Bottom
-		+ (Height + lnGap - Margin.Top - Margin.Bottom) % t : 0;
+		+ (Height + LineGap - Margin.Top - Margin.Bottom) % t : 0;
 }
 SDST
 TextRegion::GetBufferHeightResized() const
 {
-	const u8 t(GetLnHeightEx());
+	const u8 t(GetLnHeightEx(*this));
 
-	return t ? Margin.Top + (Height + lnGap - Margin.Top - Margin.Bottom)
+	return t ? Margin.Top + (Height + LineGap - Margin.Top - Margin.Bottom)
 		/ t * t : Height;
 }
 u16
 TextRegion::GetLnN() const
 {
-	return GetBufHeightN() / GetLnHeightEx();
+	return GetBufHeightN() / GetLnHeightEx(*this);
 }
 u16
 TextRegion::GetLnNEx() const
 {
-	return (GetBufHeightN() + lnGap) / GetLnHeightEx();
+	return (GetBufHeightN() + LineGap) / GetLnHeightEx(*this);
 }
 SPOS
 TextRegion::GetLineLast() const
@@ -228,7 +222,7 @@ TextRegion::SetLnLast()
 	const u16 n(GetLnN());
 
 	if(n)
-		SetLnNNow(n - 1);
+		SetLnNNow(*this, n - 1);
 }
 
 void
@@ -251,7 +245,7 @@ TextRegion::ClearLine(u16 l, SDST n)
 void
 TextRegion::ClearLn(u16 l)
 {
-	SDST h(GetLnHeightEx());
+	SDST h(GetLnHeightEx(*this));
 
 	ClearLine(Margin.Top + h * l, h);
 }
@@ -259,7 +253,7 @@ TextRegion::ClearLn(u16 l)
 void
 TextRegion::ClearLnLast()
 {
-	SDST h(GetLnHeightEx());
+	SDST h(GetLnHeightEx(*this));
 
 	ClearLine(Height - Margin.Bottom - h, h);
 }
@@ -297,8 +291,8 @@ TextRegion::Move(s16 n, SDST h)
 void
 TextRegion::PutNewline()
 {
-	penX = Margin.Left;
-	penY += GetLnHeightEx();
+	PenX = Margin.Left;
+	PenY += GetLnHeightEx(*this);
 }
 
 u8
@@ -318,7 +312,7 @@ TextRegion::PutChar(fchar_t c)
 	if(maxW < spaceW)
 		return lineBreaksL = 1;
 */
-	if(penX + GetCache().GetAdvance(c) >= Width - Margin.Right)
+	if(PenX + GetCache().GetAdvance(c) >= Width - Margin.Right)
 	{
 		PutNewline();
 		return 1;

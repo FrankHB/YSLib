@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-10-24 12:33 + 08:00;
-// Version = r10240;
+// UTime = 2010-10-29 14:25 + 08:00;
+// Version = r10244;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -245,7 +245,7 @@ $header Core::YShellDefinition : Adaptor::YAdaptor
 {
 	using Components::Controls::IControl, Components::Controls::IVisualControl;
 	using Components::Forms::YForm, Components::Forms::YFrameWindow;
-	using Components::Widgets::IWidget, Components::Widgets::IWidgetContainer;
+	using Components::Widgets::IWidget, Components::Widgets::IUIBox, Components::Widgets::IUIContainer;
 	using Components::YDesktop;
 
 	using Device::YScreen;

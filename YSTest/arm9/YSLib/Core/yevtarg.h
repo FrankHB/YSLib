@@ -1,14 +1,14 @@
 ﻿// YSLib::Core::YEventArgs by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-06-08 13:21:10 + 08:00;
-// UTime = 2010-10-24 19:56 + 08:00;
-// Version = 0.1929;
+// UTime = 2010-11-01 13:54 + 08:00;
+// Version = 0.1945;
 
 
 #ifndef INCLUDED_YEVTARG_H_
 #define INCLUDED_YEVTARG_H_
 
-// MEventArgs ：事件参数模块。
+// EventArgs ：事件参数模块。
 
 #include "yobject.h"
 
@@ -34,14 +34,14 @@ ToSPoint(const CursorInfo& c)
 
 
 //屏幕事件参数类。
-struct MScreenPositionEventArgs : public MEventArgs, public Drawing::Point
+struct ScreenPositionEventArgs : public EventArgs, public Drawing::Point
 {
-	static const MScreenPositionEventArgs Empty;
+	static const ScreenPositionEventArgs Empty;
 
 	//********************************
-	//名称:		MScreenPositionEventArgs
-	//全名:		YSLib::Runtime::MScreenPositionEventArgs
-	//				::MScreenPositionEventArgs
+	//名称:		ScreenPositionEventArgs
+	//全名:		YSLib::Runtime::ScreenPositionEventArgs
+	//				::ScreenPositionEventArgs
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
@@ -50,28 +50,28 @@ struct MScreenPositionEventArgs : public MEventArgs, public Drawing::Point
 	//备注:		
 	//********************************
 	explicit
-	MScreenPositionEventArgs(const Drawing::Point& = Drawing::Point::Zero);
+	ScreenPositionEventArgs(const Drawing::Point& = Drawing::Point::Zero);
 };
 
 inline
-MScreenPositionEventArgs::MScreenPositionEventArgs(const Drawing::Point& pt)
-	: MEventArgs(), Point(pt)
+ScreenPositionEventArgs::ScreenPositionEventArgs(const Drawing::Point& pt)
+	: EventArgs(), Point(pt)
 {}
 
 
 //输入事件参数类。
-struct MInputEventArgs
+struct InputEventArgs
 {
 public:
-	static const MInputEventArgs Empty;
+	static const InputEventArgs Empty;
 
 	typedef platform::Key Key;
 
 	Key k;
 
 	//********************************
-	//名称:		MInputEventArgs
-	//全名:		YSLib::Runtime::MInputEventArgs::MInputEventArgs
+	//名称:		InputEventArgs
+	//全名:		YSLib::Runtime::InputEventArgs::InputEventArgs
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
@@ -79,7 +79,7 @@ public:
 	//功能概要:	构造：使用本机按键对象。
 	//备注:		
 	//********************************
-	MInputEventArgs(const Key& = 0);
+	InputEventArgs(const Key& = 0);
 
 	DefConverter(Key, k)
 
@@ -87,22 +87,22 @@ public:
 };
 
 inline
-MInputEventArgs::MInputEventArgs(const Key& k)
+InputEventArgs::InputEventArgs(const Key& k)
 	: k(k)
 {}
 
 
 //指针设备输入事件参数类。
-struct MTouchEventArgs : public MScreenPositionEventArgs,
-	public MInputEventArgs
+struct TouchEventArgs : public ScreenPositionEventArgs,
+	public InputEventArgs
 {
 	typedef Drawing::Point InputType; //输入类型。
 
-	static const MTouchEventArgs Empty;
+	static const TouchEventArgs Empty;
 
 	//********************************
-	//名称:		MTouchEventArgs
-	//全名:		YSLib::Runtime::MTouchEventArgs::MTouchEventArgs
+	//名称:		TouchEventArgs
+	//全名:		YSLib::Runtime::TouchEventArgs::TouchEventArgs
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
@@ -110,25 +110,25 @@ struct MTouchEventArgs : public MScreenPositionEventArgs,
 	//功能概要:	构造：使用输入类型对象。
 	//备注:		
 	//********************************
-	MTouchEventArgs(const InputType& = InputType::Zero);
+	TouchEventArgs(const InputType& = InputType::Zero);
 };
 
 inline
-MTouchEventArgs::MTouchEventArgs(const InputType& pt)
-	: MScreenPositionEventArgs(pt), MInputEventArgs()
+TouchEventArgs::TouchEventArgs(const InputType& pt)
+	: ScreenPositionEventArgs(pt), InputEventArgs()
 {}
 
 
 //键盘输入事件参数类。
-struct MKeyEventArgs : public MEventArgs, public MInputEventArgs
+struct KeyEventArgs : public EventArgs, public InputEventArgs
 {
 	typedef Key InputType; //输入类型。
 
-	static const MKeyEventArgs Empty;
+	static const KeyEventArgs Empty;
 
 	//********************************
-	//名称:		MKeyEventArgs
-	//全名:		YSLib::Runtime::MKeyEventArgs::MKeyEventArgs
+	//名称:		KeyEventArgs
+	//全名:		YSLib::Runtime::KeyEventArgs::KeyEventArgs
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
@@ -136,12 +136,12 @@ struct MKeyEventArgs : public MEventArgs, public MInputEventArgs
 	//功能概要:	构造：使用输入类型对象。
 	//备注:		
 	//********************************
-	MKeyEventArgs(const InputType& = 0);
+	KeyEventArgs(const InputType& = 0);
 };
 
 inline
-MKeyEventArgs::MKeyEventArgs(const InputType& k)
-	: MInputEventArgs(k)
+KeyEventArgs::KeyEventArgs(const InputType& k)
+	: InputEventArgs(k)
 {}
 
 YSL_END_NAMESPACE(Runtime)

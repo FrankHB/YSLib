@@ -43,4 +43,7 @@ $(NDSEmulator) $(TargetPath) --cflash-path=H:\NDS\efsroot
 ====
 2010-10-09
 补Loki的MIT License，orz...
+====
+2010-10-27
+改了一下配置，不过因为我不会改内置宏，也不会写makefile，项目配置基本成了摆设。于是Debug/Release也就是装潢门面，.nds得到Release目录找，Release连个NDEBUG都没有，还要手动定义……
 

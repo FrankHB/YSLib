@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13 + 08:00;
-// UTime = 2010-10-25 12:48 + 08:00;
-// Version = 0.6926;
+// UTime = 2010-10-29 10:17 + 08:00;
+// Version = 0.6932;
 
 
 #include "yfont.h"
@@ -45,7 +45,7 @@ EFontStyle::GetName() const ythrow()
 		ss = "Regular";
 		break;
 	}
-	YAssert(ss != NULL,
+	YAssert(ss,
 		"In function \"const char*\n"
 		"EFontStyle::GetName() const\":\n"
 		"Font style name string is null.");
@@ -204,7 +204,7 @@ FontFile::operator<(const FontFile& rhs) const
 {
 	return &library < &rhs.library
 		|| (&library == &rhs.library
-		&& path != NULL && rhs.path != NULL
+		&& path && rhs.path
 		&& strncmp(path, rhs.path, MaxFontPathLength) < 0);
 }
 
@@ -226,7 +226,7 @@ FontFile::ReloadFaces()
 const Typeface*
 GetDefaultTypefacePtr()
 {
-	YAssert(pDefaultFontCache != NULL,
+	YAssert(pDefaultFontCache,
 		"In function \"const Typeface*\n"
 		"GetDefaultTypefacePtr()\": \n"
 		"The default font cache pointer is null.");
@@ -261,7 +261,7 @@ Font::Update()
 {
 	const Typeface* t(pFontFamily->GetTypefacePtr(Style));
 
-	if(t == NULL)
+	if(!t)
 		return false;
 	if(t != GetCache().GetTypefacePtr())
 	{
@@ -288,14 +288,14 @@ Font::InitializeDefault()
 {
 	try
 	{
-		if(pDefFont == NULL)
+		if(!pDefFont)
 			pDefFont = new Font();
 	}
 	catch(...)
 	{
 		return false;
 	}
-	return pDefFont != NULL;
+	return pDefFont;
 }
 
 void
@@ -417,7 +417,7 @@ YFontCache::GetDescender() const
 bool
 YFontCache::SetTypeface(const Typeface* p)
 {
-	if(p == NULL || sTypes.find(p) == sTypes.end())
+	if(!p || sTypes.find(p) == sTypes.end())
 		return false;
 	pFace = p;
 	scaler.face_id = reinterpret_cast<FTC_FaceID>(const_cast<Typeface*>(p));
@@ -504,7 +504,7 @@ YFontCache::LoadTypefaces(const FontFile& f)
 						//读取字型名称并构造名称映射。
 						FT_Face face(GetInternalFaceInfo());
 
-						if(face == NULL || face->family_name == NULL)
+						if(!(face && face->family_name))
 							throw LoggedEvent("Face loading failed.", 2);
 
 						FFacesIndex::iterator i(mFacesIndex.find(
@@ -542,7 +542,7 @@ YFontCache::LoadTypefaces(const FontFile& f)
 				throw;
 		}
 	}
-	if(pDefaultFace == NULL && !sTypes.empty())
+	if(!(pDefaultFace || sTypes.empty()))
 		pDefaultFace = *sTypes.begin();
 }
 
@@ -580,7 +580,7 @@ YFontCache::LoadFontFile(CPATH path) ythrow()
 {
 	try
 	{
-		if(GetFileName(path) != NULL && fexists(path))
+		if(GetFileName(path) && fexists(path))
 		{
 			FontFile* p(new FontFile(path, library));
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:27 + 08:00;
-// UTime = 2010-10-24 17:12 + 08:00;
-// Version = 0.1884;
+// UTime = 2010-10-31 12:21 + 08:00;
+// Version = 0.1886;
 
 
 #ifndef INCLUDED_YAPP_H_
@@ -172,7 +172,7 @@ private:
 	//可访问性:	private 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	禁止默认构造。
+	//功能概要:	禁止无参数构造。
 	//备注:		无实现。
 	//********************************
 	YApplication();

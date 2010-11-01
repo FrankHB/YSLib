@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-10-23 14:00 + 08:00;
-// Version = 0.2786;
+// UTime = 2010-11-01 18:11 + 08:00;
+// Version = 0.2804;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -90,14 +90,18 @@ private:
 	{
 		YFileBox fbMain;
 		YButton btnTest, btnOK;
-		YHorizontalScrollBar sbTest;
+	//	YHorizontalScrollBar sbTest;
+		YHorizontalTrack tkTestH;
+		YVerticalTrack tkTestV;
 
 		TFrmFileListSelecter(HSHL hShl)
 		: YForm(Rect::FullScreen, GetImage(4), pDesktopDown, hShl),
-			fbMain(HWND(this), Rect(12, 10, 224, 150)),
+			fbMain(HWND(this), Rect(6, 10, 210, 150)),
 			btnTest(HWND(this), FS(" 测试(X)"), Rect(115, 165, 65, 22)),
 			btnOK(HWND(this), FS(" 确定(R)"), Rect(185, 165, 65, 22)),
-			sbTest(HWND(this), Rect(10, 165, 95, 18))
+		//	sbTest(HWND(this), Rect(10, 165, 95, 16))
+			tkTestH(HWND(this), Rect(10, 165, 95, 16)),
+			tkTestV(HWND(this), Rect(230, 10, 16, 95))
 		{
 			KeyPress += &TFrmFileListSelecter::frm_KeyPress;
 		//	fbMain.TouchDown += YFileBox::OnClick;
@@ -112,16 +116,16 @@ private:
 		}
 
 		void
-		frm_KeyPress(const MKeyEventArgs&);
+		frm_KeyPress(const KeyEventArgs&);
 
 		void
 		fb_Selected(const MIndexEventArgs&);
 
 		void
-		btnTest_Click(const MTouchEventArgs&);
+		btnTest_Click(const TouchEventArgs&);
 
 		void
-		btnOK_Click(const MTouchEventArgs&);
+		btnOK_Click(const TouchEventArgs&);
 	};
 	void LoadNextWindows();
 
@@ -133,7 +137,7 @@ public:
 	ShlProc(const Message&);
 
 	static void
-	fb_KeyPress(IVisualControl&, const MKeyEventArgs&);
+	fb_KeyPress(IVisualControl&, const KeyEventArgs&);
 
 	static void
 	fb_Confirmed(IVisualControl&, const MIndexEventArgs&);
@@ -177,20 +181,20 @@ public:
 			btnB2(HWND(this), FS("测试程序2"), Rect(45, 35, 124, size))
 		{
 			BackColor = ARGB16(1, 31, 31, 15);
-			TouchMove += &AVisualControl::OnTouchMove;
+			TouchMove += OnTouchMove;
 		//	btnB.TouchMove += &AVisualControl::OnTouchMove;
 			btnB.Enter += btnB_Enter;
 			btnB.Leave += btnB_Leave;
-			btnB2.TouchMove += &AVisualControl::OnTouchMove;
+			btnB2.TouchMove += OnTouchMove;
 		//	btnB2.TouchDown += btnC_Click;
 
 		//	btnB.Enabled = false;
 		}
 
 		static void
-		btnB_Enter(IVisualControl& sender, const MInputEventArgs&);
+		btnB_Enter(IVisualControl& sender, const InputEventArgs&);
 		static void
-		btnB_Leave(IVisualControl& sender, const MInputEventArgs&);
+		btnB_Leave(IVisualControl& sender, const InputEventArgs&);
 	};
 
 	struct TFormC : public YForm
@@ -204,10 +208,10 @@ public:
 		{
 			BackColor = ARGB16(1, 31, 15, 15);
 			TouchDown += TFormC_TouchDown;
-			TouchMove += &AVisualControl::OnTouchMove;
+			TouchMove += OnTouchMove;
 			btnC.TouchUp.Add(*this, &TFormC::btnC_TouchUp);
 			btnC.TouchDown.Add(*this, &TFormC::btnC_TouchDown);
-			btnC.TouchMove += &AVisualControl::OnTouchMove;
+			btnC.TouchMove += OnTouchMove;
 			btnC.Click.Add(*this, &TFormC::btnC_Click);
 			btnC.KeyPress += btnC_KeyPress;
 		//	btnC.Enabled = false;
@@ -216,16 +220,16 @@ public:
 		}
 
 		void
-		btnC_TouchUp(const MTouchEventArgs&);
+		btnC_TouchUp(const TouchEventArgs&);
 		void
-		btnC_TouchDown(const MTouchEventArgs&);
+		btnC_TouchDown(const TouchEventArgs&);
 		void
-		btnC_Click(const MTouchEventArgs&);
+		btnC_Click(const TouchEventArgs&);
 		static void
-		btnC_KeyPress(IVisualControl& sender, const MKeyEventArgs& e);
+		btnC_KeyPress(IVisualControl& sender, const KeyEventArgs& e);
 
 		void
-		btnReturn_Click(const MTouchEventArgs&);
+		btnReturn_Click(const TouchEventArgs&);
 	};
 
 	void ShowString(const String& s)
@@ -238,7 +242,7 @@ public:
 	}
 
 	static void
-	TFormC_TouchDown(IVisualControl& sender, const MTouchEventArgs& e)
+	TFormC_TouchDown(IVisualControl& sender, const TouchEventArgs& e)
 	{
 		try
 		{
@@ -293,10 +297,10 @@ public:
 	UpdateToScreen();
 
 	void
-	OnClick(const MTouchEventArgs&);
+	OnClick(const TouchEventArgs&);
 
 	void
-	OnKeyPress(const MKeyEventArgs&);
+	OnKeyPress(const KeyEventArgs&);
 };
 
 YSL_END;

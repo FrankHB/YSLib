@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-13 14:17:14 + 08:00;
-// UTime = 2010-10-24 17:39 + 08:00;
-// Version = 0.1414;
+// UTime = 2010-10-27 12:32 + 08:00;
+// Version = 0.1418;
 
 
 #include "shlds.h"
@@ -54,10 +54,10 @@ void
 ShlGUI::UpdateToScreen()
 {
 /*
-	YAssert(pDesktopUp != NULL,
+	YAssert(pDesktopUp,
 		"In function \"void\nDS::ShlGUI::UpdateToScreen()\":\n"
 		"The desktop pointer is null.");
-	YAssert(pDesktopDown != NULL,
+	YAssert(pDesktopDown,
 		"In function \"void\nDS::ShlGUI::UpdateToScreen()\":\n"
 		"The desktop pointer is null.");
 */

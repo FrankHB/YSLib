@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-25 12:12 + 08:00;
-// Version = 0.5060;
+// UTime = 2010-11-01 15:32 + 08:00;
+// Version = 0.5189;
 
 
 #ifndef INCLUDED_YWIDGET_H_
@@ -45,11 +45,9 @@ DeclInterface(IWidget)
 	DeclIEntry(bool IsTransparent() const) //判断是否透明。
 	DeclIEntry(bool IsBgRedrawed() const) //判断是否需要重绘。
 
-	DeclIEntry(bool Contains(const Point&) const) //判断点是否在边界内或边界上。
-
 	DeclIEntry(const Point& GetLocation() const)
 	DeclIEntry(const Size& GetSize() const)
-	DeclIEntry(IWidgetContainer* GetContainerPtr() const)
+	DeclIEntry(IUIBox* GetContainerPtr() const)
 	DeclIEntry(HWND GetWindowHandle() const)
 
 	DeclIEntry(void SetVisible(bool)) //设置可见。
@@ -77,8 +75,20 @@ DeclInterface(IWidget)
 EndDecl
 
 
+//固定部件容器接口
+DeclBasedInterface(IUIBox, virtual IWidget)
+	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&)) \
+		//取指定的点（屏幕坐标）所处的部件的指针。
+	DeclIEntry(IVisualControl* GetTopVisualControlPtr(const Point&)) \
+		//取指定的点（屏幕坐标）所处的焦点对象的指针。
+
+	//清除焦点指针。
+	DeclIEntry(void ClearFocusingPtr())
+EndDecl
+
+
 //部件容器接口。
-DeclBasedInterface(IWidgetContainer, virtual IWidget)
+DeclBasedInterface(IUIContainer, virtual IUIBox)
 	DeclIEntry(void operator+=(IWidget&)) //向部件组添加部件。
 	DeclIEntry(bool operator-=(IWidget&)) //从部件组移除部件。
 	DeclIEntry(void operator+=(IVisualControl&)) //向焦点对象组添加可视控件。
@@ -87,14 +97,6 @@ DeclBasedInterface(IWidgetContainer, virtual IWidget)
 		//向焦点对象组添加子焦点对象容器。
 	DeclIEntry(bool operator-=(GMFocusResponser<IVisualControl>&)) \
 		//从焦点对象组移除子焦点对象容器。
-
-	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&) const) \
-		//取指定的点（屏幕坐标）所处的部件的指针。
-	DeclIEntry(IVisualControl* GetTopVisualControlPtr(const Point&) const) \
-		//取指定的点（屏幕坐标）所处的焦点对象的指针。
-
-	//清除焦点指针。
-	DeclIEntry(void ClearFocusingPtr())
 EndDecl
 
 
@@ -137,7 +139,7 @@ yassert(bool exp, const char* msg, int line, const char* file,
 }
 
 #	define YWidgetAssert(ptr, comp, func) \
-	Components::Widgets::yassert(ptr->GetWindowHandle() != NULL, \
+	Components::Widgets::yassert(ptr->GetWindowHandle(), \
 		"The window handle is null.", __LINE__, __FILE__, #comp, #func)
 
 #	define YWindowAssert(ptr, comp, func) \
@@ -148,7 +150,7 @@ yassert(bool exp, const char* msg, int line, const char* file,
 #else
 
 #	define YWidgetAssert(ptr, comp, func) \
-	assert((ptr)->GetWindowHandle() != NULL)
+	assert((ptr)->GetWindowHandle())
 
 #	define YWindowAssert(ptr, comp, func) \
 	assert(static_cast<Drawing::Graphics>(*ptr).IsValid())
@@ -157,53 +159,124 @@ yassert(bool exp, const char* msg, int line, const char* file,
 
 
 //********************************
-//名称:		GetLocationOffset
-//全名:		YSLib::Components::Widgets::GetLocationOffset
+//名称:		Contains
+//全名:		YSLib::Components::Widgets::Contains
+//可访问性:	public 
+//返回类型:	bool
+//修饰符:	
+//形式参数:	const IWidget & w
+//形式参数:	SPOS
+//形式参数:	SPOS
+//功能概要:	判断点是否在可视区域内。
+//备注:		
+//********************************
+bool
+Contains(const IWidget& w, SPOS x, SPOS y);
+//********************************
+//名称:		Contains
+//全名:		YSLib::Components::Widgets::Contains
+//可访问性:	public 
+//返回类型:	bool
+//修饰符:	
+//形式参数:	const IWidget & w
+//形式参数:	const Point & p
+//功能概要:	判断点是否在可视区域内。
+//备注:		
+//********************************
+inline bool
+Contains(const IWidget& w, const Point& p)
+{
+	return Contains(w, p.X, p.Y);
+}
+
+
+//********************************
+//名称:		LocateOffset
+//全名:		YSLib::Components::Widgets::LocateOffset
 //可访问性:	public 
 //返回类型:	YSLib::Components::Point
 //修饰符:	
 //形式参数:	const IWidget *
-//形式参数:	const Point &
+//形式参数:	Point
 //形式参数:	const HWND &
 //功能概要:	取指定的点（相对此部件的坐标）相对于指定父窗口的偏移坐标。
 //备注:		
 //********************************
 Point
-GetLocationOffset(const IWidget*, const Point&, const HWND&);
+LocateOffset(const IWidget*, Point, const HWND&);
 
 //********************************
-//名称:		GetContainerLocationOffset
-//全名:		YSLib::Components::Widgets::GetContainerLocationOffset
+//名称:		LocateContainerOffset
+//全名:		YSLib::Components::Widgets::LocateContainerOffset
 //可访问性:	public 
 //返回类型:	YSLib::Components::Point
 //修饰符:	
 //形式参数:	const IWidget & w
 //形式参数:	const Point & p
-//功能概要:	取指定的点（相对此部件的坐标）相对于此部件的父容器的偏移坐标。
+//功能概要:	取指定的点（相对此部件的坐标）相对于此部件的容器的偏移坐标。
 //备注:		
 //********************************
 inline Point
-GetContainerLocationOffset(const IWidget& w, const Point& p)
+LocateContainerOffset(const IWidget& w, const Point& p)
 {
 	return p + w.GetLocation();
 }
 
 //********************************
-//名称:		GetWindowLocationOffset
-//全名:		YSLib::Components::Widgets::GetWindowLocationOffset
+//名称:		LocateWindowOffset
+//全名:		YSLib::Components::Widgets::LocateWindowOffset
 //可访问性:	public 
 //返回类型:	YSLib::Components::Point
 //修饰符:	
 //形式参数:	const IWidget & w
 //形式参数:	const Point & p
-//功能概要:	取指定的点（相对此部件的坐标）相对于此部件的父窗口的偏移坐标。
+//功能概要:	取指定的点（相对此部件的坐标）相对于此部件的窗口的偏移坐标。
 //备注:		
 //********************************
 inline Point
-GetWindowLocationOffset(const IWidget& w, const Point& p)
+LocateWindowOffset(const IWidget& w, const Point& p)
 {
-	return Widgets::GetLocationOffset(&w, p, w.GetWindowHandle());
+	return Widgets::LocateOffset(&w, p, w.GetWindowHandle());
 }
+
+//********************************
+//名称:		LocateForWindow
+//全名:		YSLib::Components::Widgets::LocateForWindow
+//可访问性:	public 
+//返回类型:	YSLib::Components::Point
+//修饰符:	
+//形式参数:	IWidget &
+//功能概要:	取指定部件相对于最直接的窗口的偏移坐标。
+//备注:		若无窗口则返回 FullScreen 。
+//********************************
+Point
+LocateForWindow(IWidget&);
+
+//********************************
+//名称:		LocateForParentContainer
+//全名:		YSLib::Components::Widgets::LocateForParentContainer
+//可访问性:	public 
+//返回类型:	YSLib::Components::Point
+//修饰符:	
+//形式参数:	IWidget &
+//功能概要:	取指定部件相对于容器的父容器的偏移坐标。
+//备注:		若无容器则返回 FullScreen 。
+//********************************
+Point
+LocateForParentContainer(IWidget&);
+
+//********************************
+//名称:		LocateForParentWindow
+//全名:		YSLib::Components::Widgets::LocateForParentWindow
+//可访问性:	public 
+//返回类型:	YSLib::Components::Point
+//修饰符:	
+//形式参数:	IWidget &
+//功能概要:	取指定部件相对于容器的父窗口的偏移坐标。
+//备注:		若无容器则返回 FullScreen 。
+//********************************
+Point
+LocateForParentWindow(IWidget&);
 
 
 //可视样式模块。
@@ -263,14 +336,6 @@ public:
 	DefPredicate(Transparent, Transparent)
 	DefPredicate(BgRedrawed, bBgRedrawed)
 
-	//判断包含关系。
-	virtual PDefH(bool, Contains, const Point& p) const \
-		//判断点 P 是否在边界内或边界上。
-		ImplBodyMember(GetBounds(), IsInBoundsRegular, p.X, p.Y)
-	PDefH(bool, Contains, SPOS x, SPOS y) const \
-		//判断点 (x, y) 是否在边界内或边界上。
-		ImplBodyBase(MVisual, Contains, Point(x, y))
-
 	DefGetter(SPOS, X, GetLocation().X)
 	DefGetter(SPOS, Y, GetLocation().Y)
 	DefGetter(SDST, Width, GetSize().Width)
@@ -309,12 +374,11 @@ class MWidget : public MVisual
 {
 private:
 	HWND hWindow; //从属的窗口的句柄。
+	IUIBox* pContainer; //从属的部件容器的指针。
 
 public:
-	IWidgetContainer* const pContainer; //从属的部件容器的指针。
-
 	explicit
-	MWidget(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL,
+	MWidget(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL,
 		Color = ColorSpace::White, Color = ColorSpace::Black);
 	virtual DefEmptyDtor(MWidget)
 
@@ -337,50 +401,15 @@ public:
 	//可访问性:	public 
 	//返回类型:	bool
 	//修饰符:	const
-	//形式参数:	IWidgetContainer *
+	//形式参数:	IUIBox *
 	//功能概要:	判断是否属于指定部件容器指针指定的部件容器。
 	//备注:		
 	//********************************
 	bool
-	BelongsTo(IWidgetContainer*) const;
+	BelongsTo(IUIBox*) const;
 
-	DefGetter(IWidgetContainer*, ContainerPtr, pContainer)
+	DefGetter(IUIBox*, ContainerPtr, pContainer)
 	DefGetter(HWND, WindowHandle, hWindow)
-	//********************************
-	//名称:		GetLocationForWindow
-	//全名:		YSLib::Components::Widgets::MWidget::GetLocationForWindow
-	//可访问性:	public 
-	//返回类型:	YSLib::Components::Point
-	//修饰符:	const
-	//功能概要:	取部件相对于最直接的窗口的位置。
-	//备注:		若无窗口则返回 FullScreen 。
-	//********************************
-	Point
-	GetLocationForWindow() const;
-	// 。
-	//********************************
-	//名称:		GetLocationForParentContainer
-	//全名:		YSLib::Components::Widgets::MWidget
-	//				::GetLocationForParentContainer
-	//可访问性:	public 
-	//返回类型:	YSLib::Components::Point
-	//修饰符:	const
-	//功能概要:	取部件相对于容器的父容器的位置。
-	//备注:		若无容器则返回 FullScreen 。
-	//********************************
-	Point
-	GetLocationForParentContainer() const;
-	//********************************
-	//名称:		GetLocationForParentWindow
-	//全名:		YSLib::Components::Widgets::MWidget::GetLocationForParentWindow
-	//可访问性:	public 
-	//返回类型:	YSLib::Components::Point
-	//修饰符:	const
-	//功能概要:	取部件相对于容器的父窗口的位置。
-	//备注:		若无容器则返回 FullScreen 。
-	//********************************
-	Point
-	GetLocationForParentWindow() const;
 
 	//********************************
 	//名称:		Fill
@@ -406,11 +435,10 @@ public:
 	virtual void
 	Fill(Color);
 
-protected:
 	//********************************
 	//名称:		DrawBackground
 	//全名:		YSLib::Components::Widgets::MWidget::DrawBackground
-	//可访问性:	virtual protected 
+	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
 	//功能概要:	绘制背景。
@@ -422,7 +450,7 @@ protected:
 	//********************************
 	//名称:		DrawForeground
 	//全名:		YSLib::Components::Widgets::MWidget::DrawForeground
-	//可访问性:	virtual protected 
+	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
 	//功能概要:	绘制前景。
@@ -431,7 +459,6 @@ protected:
 	virtual void
 	DrawForeground();
 
-public:
 	//********************************
 	//名称:		Refresh
 	//全名:		YSLib::Components::Widgets::MWidget::Refresh
@@ -451,7 +478,7 @@ MWidget::BelongsTo(HWND hWnd) const
 	return hWindow == hWnd;
 }
 inline bool
-MWidget::BelongsTo(IWidgetContainer* pCon) const
+MWidget::BelongsTo(IUIBox* pCon) const
 {
 	return pContainer == pCon;
 }
@@ -464,7 +491,7 @@ MWidget::Fill()
 
 
 //部件。
-class YWidget : public GMCounter<YWidget>, public YComponent, public MWidget,
+class YWidget : public GMCounter<YWidget>, public YComponent, protected MWidget,
 	implements IWidget
 {
 public:
@@ -478,12 +505,12 @@ public:
 	//修饰符:	
 	//形式参数:	HWND
 	//形式参数:	const Rect &
-	//形式参数:	IWidgetContainer *
+	//形式参数:	IUIBox *
 	//功能概要:	构造：使用指定窗口句柄、边界和部件容器指针。
 	//备注:		
 	//********************************
 	explicit
-	YWidget(HWND = NULL, const Rect& = Rect::Empty, IWidgetContainer* = NULL);
+	YWidget(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL);
 	//********************************
 	//名称:		~YWidget
 	//全名:		YSLib::Components::Widgets::YWidget::~YWidget
@@ -500,13 +527,9 @@ public:
 	ImplI(IWidget) DefPredicateBase(Transparent, MVisual)
 	ImplI(IWidget) DefPredicateBase(BgRedrawed, MVisual)
 
-	//判断包含关系。
-	ImplI(IWidget) PDefH(bool, Contains, const Point& p) const
-		ImplBodyBase(MVisual, Contains, p)
-
 	ImplI(IWidget) DefGetterBase(const Point&, Location, MVisual)
 	ImplI(IWidget) DefGetterBase(const Drawing::Size&, Size, MVisual)
-	ImplI(IWidget) DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
+	ImplI(IWidget) DefGetterBase(IUIBox*, ContainerPtr, MWidget)
 	ImplI(IWidget) DefGetterBase(HWND, WindowHandle, MWidget)
 
 	ImplI(IWidget) DefSetterBase(bool, Visible, MVisual)
@@ -514,14 +537,12 @@ public:
 	ImplI(IWidget) DefSetterBase(bool, BgRedrawed, MVisual)
 	ImplI(IWidget) DefSetterBase(const Point&, Location, MVisual)
 
-protected:
 	ImplI(IWidget) PDefH(void, DrawBackground)
 		ImplBodyBaseVoid(MWidget, DrawBackground)
 
 	ImplI(IWidget) PDefH(void, DrawForeground)
 		ImplBodyBaseVoid(MWidget, DrawForeground)
 
-public:
 	ImplI(IWidget) PDefH(void, Refresh)
 		ImplBodyBaseVoid(MWidget, Refresh)
 
@@ -541,7 +562,7 @@ public:
 
 
 //部件容器模块。
-class MWidgetContainer : public GMFocusResponser<IVisualControl>,
+class MUIContainer : public GMFocusResponser<IVisualControl>,
 	implements GIContainer<IVisualControl>
 {
 public:
@@ -556,16 +577,16 @@ protected:
 
 public:
 	//********************************
-	//名称:		MWidgetContainer
-	//全名:		YSLib::Components::Widgets::MWidgetContainer::MWidgetContainer
+	//名称:		MUIContainer
+	//全名:		YSLib::Components::Widgets::MUIContainer::MUIContainer
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//功能概要:	默认构造。
+	//功能概要:	无参数构造。
 	//备注:		
 	//********************************
-	MWidgetContainer();
-	virtual DefEmptyDtor(MWidgetContainer);
+	MUIContainer();
+	virtual DefEmptyDtor(MUIContainer);
 
 protected:
 	ImplI(GIContainer<IVisualControl>) PDefHOperator(void, +=,
@@ -595,57 +616,57 @@ public:
 	GetFocusingPtr() const;
 	//********************************
 	//名称:		GetTopWidgetPtr
-	//全名:		YSLib::Components::Widgets::MWidgetContainer::GetTopWidgetPtr
+	//全名:		YSLib::Components::Widgets::MUIContainer::GetTopWidgetPtr
 	//可访问性:	public 
 	//返回类型:	IWidget*
-	//修饰符:	const
+	//修饰符:	
 	//形式参数:	const Point &
 	//功能概要:	取顶端部件指针。
 	//备注:		
 	//********************************
 	IWidget*
-	GetTopWidgetPtr(const Point&) const;
+	GetTopWidgetPtr(const Point&);
 	//********************************
 	//名称:		GetTopVisualControlPtr
-	//全名:		YSLib::Components::Widgets::MWidgetContainer
+	//全名:		YSLib::Components::Widgets::MUIContainer
 	//				::GetTopVisualControlPtr
 	//可访问性:	public 
 	//返回类型:	IVisualControl*
-	//修饰符:	const
+	//修饰符:	
 	//形式参数:	const Point &
 	//功能概要:	取顶端可视部件指针。
 	//备注:		
 	//********************************
 	IVisualControl*
-	GetTopVisualControlPtr(const Point&) const;
+	GetTopVisualControlPtr(const Point&);
 };
 
 
 //部件容器。
-class YWidgetContainer : public GMCounter<YWidgetContainer>, public YComponent,
-	public MWidget, public MWidgetContainer,
-	implements IWidgetContainer
+class YUIContainer : public GMCounter<YUIContainer>, public YComponent,
+	protected MWidget, protected MUIContainer,
+	implements IUIContainer
 {
 public:
 	typedef YComponent ParentType;
 
 	//********************************
-	//名称:		YWidgetContainer
-	//全名:		YSLib::Components::Widgets::YWidgetContainer::YWidgetContainer
+	//名称:		YUIContainer
+	//全名:		YSLib::Components::Widgets::YUIContainer::YUIContainer
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
 	//形式参数:	HWND
 	//形式参数:	const Rect &
-	//形式参数:	IWidgetContainer *
+	//形式参数:	IUIBox *
 	//功能概要:	构造：使用指定窗口句柄、边界和部件容器指针。
 	//备注:		
 	//********************************
 	explicit
-	YWidgetContainer(HWND, const Rect& = Rect::Empty, IWidgetContainer* = NULL);
+	YUIContainer(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL);
 	//********************************
-	//名称:		~YWidgetContainer
-	//全名:		YSLib::Components::Widgets::YWidgetContainer::~YWidgetContainer
+	//名称:		~YUIContainer
+	//全名:		YSLib::Components::Widgets::YUIContainer::~YUIContainer
 	//可访问性:	virtual public 
 	//返回类型:	
 	//修饰符:	ythrow()
@@ -653,72 +674,66 @@ public:
 	//备注:		无异常抛出。
 	//********************************
 	virtual
-	~YWidgetContainer() ythrow();
+	~YUIContainer() ythrow();
 
-	ImplI(IWidgetContainer) PDefHOperator(void, +=, IWidget& w)
+	ImplI(IUIContainer) PDefHOperator(void, +=, IWidget& w)
 		ImplExpr(sWgtSet += w)
-	ImplI(IWidgetContainer) PDefHOperator(bool, -=, IWidget& w)
+	ImplI(IUIContainer) PDefHOperator(bool, -=, IWidget& w)
 		ImplRet(sWgtSet -= w)
-	ImplI(IWidgetContainer) PDefHOperator(void, +=, IVisualControl& c)
-		ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
-	ImplI(IWidgetContainer) PDefHOperator(bool, -=, IVisualControl& c)
-		ImplBodyBase(MWidgetContainer, operator-=, c)
-	ImplI(IWidgetContainer) PDefHOperator(void, +=,
+	ImplI(IUIContainer) PDefHOperator(void, +=, IVisualControl& c)
+		ImplBodyBaseVoid(MUIContainer, operator+=, c)
+	ImplI(IUIContainer) PDefHOperator(bool, -=, IVisualControl& c)
+		ImplBodyBase(MUIContainer, operator-=, c)
+	ImplI(IUIContainer) PDefHOperator(void, +=,
 		GMFocusResponser<IVisualControl>& c)
-		ImplBodyBaseVoid(MWidgetContainer, operator+=, c)
-	ImplI(IWidgetContainer) PDefHOperator(bool, -=,
+		ImplBodyBaseVoid(MUIContainer, operator+=, c)
+	ImplI(IUIContainer) PDefHOperator(bool, -=,
 		GMFocusResponser<IVisualControl>& c)
-		ImplBodyBase(MWidgetContainer, operator-=, c)
+		ImplBodyBase(MUIContainer, operator-=, c)
 
-	ImplI(IWidgetContainer) DefPredicateBase(Visible, MVisual)
-	ImplI(IWidgetContainer) DefPredicateBase(Transparent, MVisual)
-	ImplI(IWidgetContainer) DefPredicateBase(BgRedrawed, MVisual)
+	ImplI(IUIContainer) DefPredicateBase(Visible, MVisual)
+	ImplI(IUIContainer) DefPredicateBase(Transparent, MVisual)
+	ImplI(IUIContainer) DefPredicateBase(BgRedrawed, MVisual)
 
-	//判断包含关系。
-	ImplI(IWidgetContainer) PDefH(bool, Contains, const Point& p) const
-		ImplBodyBase(MVisual, Contains, p)
-
-	ImplI(IWidgetContainer) DefGetterBase(const Point&, Location, MVisual)
-	ImplI(IWidgetContainer) DefGetterBase(const Drawing::Size&, Size, MVisual)
-	ImplI(IWidgetContainer) DefGetterBase(IWidgetContainer*, ContainerPtr,
+	ImplI(IUIContainer) DefGetterBase(const Point&, Location, MVisual)
+	ImplI(IUIContainer) DefGetterBase(const Drawing::Size&, Size, MVisual)
+	ImplI(IUIContainer) DefGetterBase(IUIBox*, ContainerPtr,
 		MWidget)
-	ImplI(IWidgetContainer) DefGetterBase(HWND, WindowHandle, MWidget)
-	ImplI(IWidgetContainer) PDefH(IWidget*, GetTopWidgetPtr,
-		const Point& p) const
-		ImplBodyBase(MWidgetContainer, GetTopWidgetPtr, p)
-	ImplI(IWidgetContainer) PDefH(IVisualControl*, GetTopVisualControlPtr,
-		const Point& p) const
-		ImplBodyBase(MWidgetContainer, GetTopVisualControlPtr, p)
+	ImplI(IUIContainer) DefGetterBase(HWND, WindowHandle, MWidget)
+	ImplI(IUIContainer) PDefH(IWidget*, GetTopWidgetPtr,
+		const Point& p)
+		ImplBodyBase(MUIContainer, GetTopWidgetPtr, p)
+	ImplI(IUIContainer) PDefH(IVisualControl*, GetTopVisualControlPtr,
+		const Point& p)
+		ImplBodyBase(MUIContainer, GetTopVisualControlPtr, p)
 
-	ImplI(IWidgetContainer) DefSetterBase(bool, Visible, MVisual)
-	ImplI(IWidgetContainer) DefSetterBase(bool, Transparent, MVisual)
-	ImplI(IWidgetContainer) DefSetterBase(bool, BgRedrawed, MVisual)
-	ImplI(IWidgetContainer) DefSetterBase(const Point&, Location, MVisual)
+	ImplI(IUIContainer) DefSetterBase(bool, Visible, MVisual)
+	ImplI(IUIContainer) DefSetterBase(bool, Transparent, MVisual)
+	ImplI(IUIContainer) DefSetterBase(bool, BgRedrawed, MVisual)
+	ImplI(IUIContainer) DefSetterBase(const Point&, Location, MVisual)
 
-	ImplI(IWidgetContainer) PDefH(void, ClearFocusingPtr)
-		ImplBodyBaseVoid(MWidgetContainer, ClearFocusingPtr)
+	ImplI(IUIContainer) PDefH(void, ClearFocusingPtr)
+		ImplBodyBaseVoid(MUIContainer, ClearFocusingPtr)
 
-protected:
-	ImplI(IWidgetContainer) PDefH(void, DrawBackground)
+	ImplI(IUIContainer) PDefH(void, DrawBackground)
 		ImplBodyBaseVoid(MWidget, DrawBackground)
 
-	ImplI(IWidgetContainer) PDefH(void, DrawForeground)
+	ImplI(IUIContainer) PDefH(void, DrawForeground)
 		ImplBodyBaseVoid(MWidget, DrawForeground)
 
-public:
-	ImplI(IWidgetContainer) PDefH(void, Refresh)
+	ImplI(IUIContainer) PDefH(void, Refresh)
 		ImplBodyBaseVoid(MWidget, Refresh)
 
 	//********************************
 	//名称:		RequestToTop
-	//全名:		YSLib::Components::Widgets::YWidgetContainer::RequestToTop
-	//可访问性:	ImplI(IWidgetContainer) public 
+	//全名:		YSLib::Components::Widgets::YUIContainer::RequestToTop
+	//可访问性:	ImplI(IUIContainer) public 
 	//返回类型:	void
 	//修饰符:	
 	//功能概要:	请求提升至容器顶端。
 	//备注:		空实现。
 	//********************************
-	ImplI(IWidgetContainer) void
+	ImplI(IUIContainer) void
 	RequestToTop()
 	{}
 };
@@ -763,11 +778,12 @@ protected:
 	//返回类型:	void
 	//修饰符:	
 	//形式参数:	MWidget &
+	//形式参数:	const Point &
 	//功能概要:	绘制文本。
 	//备注:		
 	//********************************
 	void
-	PaintText(MWidget&);
+	PaintText(MWidget&, const Point&);
 };
 
 template<class _tChar>
@@ -801,7 +817,7 @@ public:
 	//形式参数:	const _tChar *
 	//形式参数:	const Rect &
 	//形式参数:	const Drawing::Font &
-	//形式参数:	IWidgetContainer *
+	//形式参数:	IUIBox *
 	//形式参数:	GHResource<Drawing::TextRegion>
 	//功能概要:	构造：
 	//			使用指定窗口句柄、字符串、边界、字体、部件容器指针和文本区域。
@@ -810,15 +826,14 @@ public:
 	template<class _tChar>
 	YLabel(HWND, const _tChar*, const Rect& = Rect::FullScreen,
 		const Drawing::Font& = Drawing::Font::GetDefault(),
-		IWidgetContainer* = NULL, GHResource<Drawing::TextRegion> = NULL);
+		IUIBox* = NULL, GHResource<Drawing::TextRegion> = NULL);
 
 	virtual DefEmptyDtor(YLabel)
 
-protected:
 	//********************************
 	//名称:		DrawForeground
 	//全名:		YSLib::Components::Widgets::YLabel::DrawForeground
-	//可访问性:	virtual protected 
+	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
 	//功能概要:	绘制前景。
@@ -830,7 +845,7 @@ protected:
 
 template<class _tChar>
 YLabel::YLabel(HWND hWnd, const _tChar* l, const Rect& r,
-	const Drawing::Font& f, IWidgetContainer* pCon,
+	const Drawing::Font& f, IUIBox* pCon,
 	GHResource<Drawing::TextRegion> prTr_)
 	: YWidget(hWnd, r, pCon), MLabel(l, f, pCon
 	? prTr_ : GetGlobalResource<Drawing::TextRegion>())

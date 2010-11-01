@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:36 + 08:00;
-// UTime = 2010-10-24 13:35 + 08:00;
-// Version = 0.1934;
+// UTime = 2010-11-01 13:56 + 08:00;
+// Version = 0.1940;
 
 
 #include "yapp.h"
@@ -66,7 +66,7 @@ YApplication::~YApplication() ythrow()
 		YDelete(*i);
 	//释放主 Shell 。
 //	YDelete(hShellMain);
-	ApplicationExit(*this, GetZeroElement<MEventArgs>());
+	ApplicationExit(*this, GetZeroElement<EventArgs>());
 	delete pMessageQueue;
 	delete pMessageQueueBackup;
 }
@@ -91,14 +91,14 @@ YApplication::Contains(HSHL hShl) const
 YMessageQueue&
 YApplication::GetDefaultMessageQueue() ythrow(LoggedEvent)
 {
-	if(pMessageQueue == NULL)
+	if(!pMessageQueue)
 		throw LoggedEvent("Get default message queue failed @@ YApplication.");
 	return *pMessageQueue;
 }
 YMessageQueue&
 YApplication::GetBackupMessageQueue() ythrow(LoggedEvent)
 {
-	if(pMessageQueueBackup == NULL)
+	if(!pMessageQueueBackup)
 		throw LoggedEvent("Get backup message queue failed @@ YApplication.");
 	return *pMessageQueueBackup;
 }

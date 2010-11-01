@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-24 22:17 + 08:00;
-// Version = 0.2874;
+// UTime = 2010-11-01 13:55 + 08:00;
+// Version = 0.2909;
 
 
 #include "ygui.h"
@@ -44,7 +44,7 @@ RequestFocusCascade(IVisualControl& c)
 
 	do
 	{
-		p->RequestFocus(GetZeroElement<MEventArgs>());
+		p->RequestFocus(GetZeroElement<EventArgs>());
 	}while((p = dynamic_cast<IVisualControl*>(p->GetContainerPtr())));
 }
 
@@ -55,7 +55,7 @@ ReleaseFocusCascade(IVisualControl& c)
 
 	do
 	{
-		p->ReleaseFocus(GetZeroElement<MEventArgs>());
+		p->ReleaseFocus(GetZeroElement<EventArgs>());
 	}while((p = dynamic_cast<IVisualControl*>(p->GetContainerPtr())));
 }
 
@@ -88,7 +88,7 @@ SetDragOffset(const Vec& v)
 }
 
 bool
-RepeatHeld(HeldStateType& s, const MKeyEventArgs& e,
+RepeatHeld(HeldStateType& s, const KeyEventArgs& e,
 	Timers::TimeSpan InitialDelay, Timers::TimeSpan RepeatedDelay)
 {
 	//三状态自动机。
@@ -152,7 +152,7 @@ namespace
 	ExOp::ExOpType ExtraOperation(ExOp::NoOp);
 
 	void
-	TryEnter(IVisualControl& c, const MTouchEventArgs& e)
+	TryEnter(IVisualControl& c, const TouchEventArgs& e)
 	{
 		if(!bEntered && p_TouchDown == &c)
 		{
@@ -161,7 +161,7 @@ namespace
 		}
 	}
 	void
-	TryLeave(IVisualControl& c, const MTouchEventArgs& e)
+	TryLeave(IVisualControl& c, const TouchEventArgs& e)
 	{
 		if(bEntered && p_TouchDown == &c)
 		{
@@ -171,16 +171,16 @@ namespace
 	}
 
 	IVisualControl*
-	GetTouchedVisualControl(IWidgetContainer& con, Point& pt)
+	GetTouchedVisualControl(IUIBox& con, Point& pt)
 	{
 		using namespace ExOp;
 
-		IWidgetContainer* pCon(&con);
+		IUIBox* pCon(&con);
 		IVisualControl* p;
 
-		while((p = pCon->GetTopVisualControlPtr(pt)) != NULL)
+		while((p = pCon->GetTopVisualControlPtr(pt)))
 		{
-			if((pCon = dynamic_cast<IWidgetContainer*>(p)) == NULL)
+			if(!(pCon = dynamic_cast<IUIBox*>(p)))
 			{
 				pt -= p->GetLocation();
 				break;
@@ -192,7 +192,8 @@ namespace
 				pCon->ClearFocusingPtr();
 			}
 		}
-		p = p != NULL ? p : dynamic_cast<IVisualControl*>(pCon);
+		if(!p)
+			p = dynamic_cast<IVisualControl*>(pCon);
 		if(ExtraOperation == TouchHeld)
 		{
 			if(p_TouchDown != p)
@@ -210,7 +211,7 @@ namespace
 	IVisualControl*
 	GetFocusedEnabledVisualControlPtr(IVisualControl* p)
 	{
-		return p != NULL && p->IsEnabled() ? p : NULL;
+		return p && p->IsEnabled() ? p : NULL;
 	}
 
 	inline IVisualControl*
@@ -220,7 +221,7 @@ namespace
 	}
 
 	bool
-	ResponseKeyUpBase(IVisualControl& c, const MKeyEventArgs& e)
+	ResponseKeyUpBase(IVisualControl& c, const KeyEventArgs& e)
 	{
 		ResetHeldState(KeyHeldState);
 		if(p_KeyDown == &c && KeyHeldState == Free)
@@ -231,7 +232,7 @@ namespace
 		return true;
 	}
 	bool
-	ResponseKeyDownBase(IVisualControl& c, const MKeyEventArgs& e)
+	ResponseKeyDownBase(IVisualControl& c, const KeyEventArgs& e)
 	{
 		p_KeyDown = &c;
 		c.GetEnter()(c, e);
@@ -239,7 +240,7 @@ namespace
 		return true;
 	}
 	bool
-	ResponseKeyHeldBase(IVisualControl& c, const MKeyEventArgs& e)
+	ResponseKeyHeldBase(IVisualControl& c, const KeyEventArgs& e)
 	{
 		if(p_KeyDown != &c)
 		{
@@ -251,7 +252,7 @@ namespace
 	}
 
 	bool
-	ResponseTouchUpBase(IVisualControl& c, const MTouchEventArgs& e)
+	ResponseTouchUpBase(IVisualControl& c, const TouchEventArgs& e)
 	{
 		ResetHeldState(TouchHeldState);
 		SetDragOffset();
@@ -262,7 +263,7 @@ namespace
 		return true;
 	}
 	bool
-	ResponseTouchDownBase(IVisualControl& c, const MTouchEventArgs& e)
+	ResponseTouchDownBase(IVisualControl& c, const TouchEventArgs& e)
 	{
 		p_TouchDown = &c;
 		TryEnter(c, e);
@@ -270,7 +271,7 @@ namespace
 		return true;
 	}
 	bool
-	ResponseTouchHeldBase(IVisualControl& c, const MTouchEventArgs& e)
+	ResponseTouchHeldBase(IVisualControl& c, const TouchEventArgs& e)
 	{
 		if(p_TouchDown != &c)
 		{
@@ -287,49 +288,49 @@ namespace
 	{
 		IVisualControl* const p(GetFocusedEnabledVisualControlPtr(d));
 
-		return f(p != NULL ? *p : d);
+		return f(p ? *p : d);
 	}
 
 	bool
-	ResponseTouchBase(IWidgetContainer& con, HTouchCallback f)
+	ResponseTouchBase(IUIBox& con, HTouchCallback f)
 	{
 		Point pt(f);
 		IVisualControl* pVC(GetTouchedVisualControl(con, pt));
 
-		return pVC != NULL ? f(*pVC, f) : false;
+		return pVC ? f(*pVC, f) : false;
 	}
 }
 
 bool
-ResponseKeyUp(YDesktop& d, const MKeyEventArgs& e)
+ResponseKeyUp(YDesktop& d, const KeyEventArgs& e)
 {
 	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyUpBase));
 }
 bool
-ResponseKeyDown(YDesktop& d, const MKeyEventArgs& e)
+ResponseKeyDown(YDesktop& d, const KeyEventArgs& e)
 {
 	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyDownBase));
 }
 bool
-ResponseKeyHeld(YDesktop& d, const MKeyEventArgs& e)
+ResponseKeyHeld(YDesktop& d, const KeyEventArgs& e)
 {
 	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyHeldBase));
 }
 
 bool
-ResponseTouchUp(IWidgetContainer& con, const MTouchEventArgs& e)
+ResponseTouchUp(IUIBox& con, const TouchEventArgs& e)
 {
 	ExtraOperation = ExOp::TouchUp;
 	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchUpBase));
 }
 bool
-ResponseTouchDown(IWidgetContainer& con, const MTouchEventArgs& e)
+ResponseTouchDown(IUIBox& con, const TouchEventArgs& e)
 {
 	ExtraOperation = ExOp::TouchDown;
 	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchDownBase));
 }
 bool
-ResponseTouchHeld(IWidgetContainer& con, const MTouchEventArgs& e)
+ResponseTouchHeld(IUIBox& con, const TouchEventArgs& e)
 {
 	ExtraOperation = ExOp::TouchHeld;
 	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchHeldBase));
@@ -344,7 +345,7 @@ DrawWindowBounds(HWND hWnd, Color c)
 {
 	Graphics g(GetGraphicInterfaceContext(hWnd));
 
-	DrawRect(g, Point::Zero, hWnd->GetSize(), c);
+	DrawRect(g, Point::Zero, Size(hWnd->GetSize() - Vec(1, 1)), c);
 }
 
 void
@@ -354,7 +355,7 @@ DrawWidgetBounds(IWidget& w, Color c)
 	{
 		Graphics g(GetGraphicInterfaceContext(w.GetWindowHandle()));
 
-		DrawRect(g, w.GetLocation(), w.GetSize(), c);
+		DrawRect(g, LocateForWindow(w), Size(w.GetSize() - Vec(1, 1)), c);
 	}
 }
 

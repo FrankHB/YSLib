@@ -1,8 +1,8 @@
 ﻿// YSLib::Service::YTextManager by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-05 17:48:09 + 08:00;
-// UTime = 2010-10-24 16:50 + 08:00;
-// Version = 0.4032;
+// UTime = 2010-10-28 10:15 + 08:00;
+// Version = 0.4037;
 
 
 #include "ytmgr.h"
@@ -148,7 +148,7 @@ TextFileBuffer::HText::HText(TextFileBuffer* pBuf, BlockSizeType b, SizeType i)
 TextFileBuffer::HText&
 TextFileBuffer::HText::operator++() ythrow()
 {
-	if(pBuffer != NULL)
+	if(pBuffer)
 	{
 	//	assert(GetBlockLength() >= 1);
 		if(blk <= (pBuffer->GetTextSize() - 1) / nBlockSize)
@@ -168,7 +168,7 @@ TextFileBuffer::HText::operator++() ythrow()
 TextFileBuffer::HText&
 TextFileBuffer::HText::operator--() ythrow()
 {
-	if(pBuffer != NULL)
+	if(pBuffer)
 	{
 	//	assert(GetBlockLength() >= 1);
 		if(blk != 0 || idx != 0)
@@ -187,13 +187,13 @@ TextFileBuffer::HText::operator*() ythrow()
 {
 	const uchar_t* p(GetTextPtr());
 
-	return p == NULL ? 0 : *p;
+	return p ? *p : 0;
 }
 
 TextFileBuffer::HText
 TextFileBuffer::HText::operator+(std::ptrdiff_t o)
 {
-	if(pBuffer == NULL)
+	if(!pBuffer)
 		return HText();
 
 	HText i(*this);
@@ -227,7 +227,7 @@ operator<(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
 TextFileBuffer::HText&
 TextFileBuffer::HText::operator+=(std::ptrdiff_t o)
 {
-	if(pBuffer != NULL)
+	if(pBuffer)
 	{
 		if(o > 0)
 			while(o-- != 0)
@@ -244,7 +244,7 @@ TextFileBuffer::HText::GetTextPtr() const ythrow()
 {
 	const uchar_t* p(NULL);
 
-	if(pBuffer != NULL)
+	if(pBuffer)
 	{
 		try
 		{
@@ -261,7 +261,7 @@ TextFileBuffer::HText::GetTextPtr() const ythrow()
 SizeType
 TextFileBuffer::HText::GetBlockLength(BlockSizeType i) const ythrow()
 {
-	if(pBuffer == NULL)
+	if(!pBuffer)
 		return 0;
 	try
 	{

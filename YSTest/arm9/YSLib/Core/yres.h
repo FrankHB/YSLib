@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YResource by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40 + 08:00;
-// UTime = 2010-10-24 19:55 + 08:00;
-// Version = 0.1390;
+// UTime = 2010-10-28 13:58 + 08:00;
+// Version = 0.1394;
 
 
 #ifndef INCLUDED_YRES_H_
@@ -39,7 +39,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 //图像资源。
 class YImage
-	: public GMCounter<YImage>, public YCountableObject, public MBitmapBuffer
+	: public GMCounter<YImage>, public YCountableObject, public BitmapBuffer
 {
 public:
 	typedef YCountableObject ParentType;

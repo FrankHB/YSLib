@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:24 + 08:00;
-// UTime = 2010-10-25 13:11 + 08:00;
-// Version = 0.4131;
+// UTime = 2010-11-01 14:08 + 08:00;
+// Version = 0.4220;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -21,7 +21,7 @@ using namespace Drawing;
 YSL_BEGIN_NAMESPACE(Controls)
 
 //控件事件参数类型。
-struct MIndexEventArgs : public MEventArgs
+struct MIndexEventArgs : protected EventArgs
 {
 	typedef std::ptrdiff_t IndexType;
 
@@ -33,27 +33,27 @@ struct MIndexEventArgs : public MEventArgs
 	//全名:		YSLib::Components::Controls::MIndexEventArgs::MIndexEventArgs
 	//可访问性:	public 
 	//返回类型:	
-	//修饰符:	: MEventArgs(), Control(c), Index(i)
+	//修饰符:	
 	//形式参数:	IVisualControl & c
 	//形式参数:	IndexType i
 	//功能概要:	构造：使用可视控件引用和索引值。
 	//备注:		
 	//********************************
 	MIndexEventArgs(IVisualControl& c, IndexType i)
-	: MEventArgs(),
+	: EventArgs(),
 	Control(c), Index(i)
 	{}
 };
 
 
 //控件事件类型。
-typedef Runtime::GEvent<true, IControl, MEventArgs> YControlEvent;
+typedef Runtime::GEvent<true, IControl, EventArgs> YControlEvent;
 
 
 //事件处理器类型。
-DefDelegate(InputEventHandler, IVisualControl, Runtime::MInputEventArgs)
-DefDelegate(KeyEventHandler, IVisualControl, Runtime::MKeyEventArgs)
-DefDelegate(TouchEventHandler, IVisualControl, Runtime::MTouchEventArgs)
+DefDelegate(InputEventHandler, IVisualControl, Runtime::InputEventArgs)
+DefDelegate(KeyEventHandler, IVisualControl, Runtime::KeyEventArgs)
+DefDelegate(TouchEventHandler, IVisualControl, Runtime::TouchEventArgs)
 DefDelegate(IndexEventHandler, IVisualControl, MIndexEventArgs)
 
 
@@ -112,11 +112,54 @@ DeclBasedInterface(IVisualControl, virtual IWidget, virtual IControl,
 	DeclIEventEntry(TouchEventHandler, Click) //屏幕点击。
 
 	//向部件容器请求获得焦点，
-	DeclIEntry(void RequestFocus(const MEventArgs&))
+	DeclIEntry(void RequestFocus(const EventArgs&))
 
 	//释放焦点。
-	DeclIEntry(void ReleaseFocus(const MEventArgs&))
+	DeclIEntry(void ReleaseFocus(const EventArgs&))
 EndDecl
+
+
+//********************************
+//名称:		OnKeyHeld
+//全名:		YSLib::Components::Controls::OnKeyHeld
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	IVisualControl &
+//形式参数:	const Runtime::KeyEventArgs &
+//功能概要:	处理按键接触保持事件。
+//备注:		
+//********************************
+void
+OnKeyHeld(IVisualControl&, const Runtime::KeyEventArgs&);
+
+//********************************
+//名称:		OnTouchHeld
+//全名:		YSLib::Components::Controls::OnTouchHeld
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	IVisualControl &
+//形式参数:	const Runtime::TouchEventArgs &
+//功能概要:	处理屏幕接触保持事件。
+//备注:		
+//********************************
+void
+OnTouchHeld(IVisualControl&, const Runtime::TouchEventArgs&);
+
+//********************************
+//名称:		OnTouchMove
+//全名:		YSLib::Components::Controls::OnTouchMove
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	IVisualControl &
+//形式参数:	const Runtime::TouchEventArgs &
+//功能概要:	处理屏幕接触移动事件。
+//备注:		
+//********************************
+void
+OnTouchMove(IVisualControl&, const Runtime::TouchEventArgs&);
 
 
 //控件模块类。
@@ -158,7 +201,7 @@ MControl::MControl(bool e)
 
 
 //可视控件模块类。
-class MVisualControl : public MControl, public AFocusRequester
+class MVisualControl : protected MControl, public AFocusRequester
 {
 public:
 	DefEvent(InputEventHandler, Enter)
@@ -178,13 +221,13 @@ public:
 
 protected:
 	GMFocusResponser<IVisualControl>*
-	CheckFocusContainer(IWidgetContainer*); \
+	CheckFocusContainer(IUIBox*); \
 		//检查指定的容器指针是否有效且指向接受焦点的容器。
 };
 
 
 //控件基类。
-class YControl : public YComponent, public MControl
+class YControl : public YComponent, protected MControl
 {
 public:
 	typedef YComponent ParentType;
@@ -206,13 +249,13 @@ public:
 	//修饰符:	
 	//形式参数:	HWND
 	//形式参数:	const Rect &
-	//形式参数:	IWidgetContainer *
+	//形式参数:	IUIBox *
 	//功能概要:	构造：使用指定窗口句柄、边界和部件容器指针。
 	//备注:		
 	//********************************
 	explicit
 	AVisualControl(HWND = NULL, const Rect& = Rect::FullScreen,
-		IWidgetContainer* = NULL);
+		IUIBox* = NULL);
 	//********************************
 	//名称:		~AVisualControl
 	//全名:		YSLib::Components::Controls::AVisualControl::~AVisualControl
@@ -238,10 +281,6 @@ public:
 		GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
 
-	//判断包含关系。
-	ImplI(IVisualControl) PDefH(bool, Contains, const Point& p) const
-		ImplBodyBase(MVisual, Contains, p)
-
 	ImplI(IVisualControl)
 		PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(MVisualControl, CheckRemoval, c)
@@ -249,7 +288,7 @@ public:
 	ImplI(IVisualControl) DefGetterBase(const Point&, Location, MVisual)
 	ImplI(IVisualControl) DefGetterBase(const Drawing::Size&, Size, MVisual)
 	ImplI(IVisualControl)
-		DefGetterBase(IWidgetContainer*, ContainerPtr, MWidget)
+		DefGetterBase(IUIBox*, ContainerPtr, MWidget)
 	ImplI(IVisualControl) DefGetterBase(HWND, WindowHandle, MWidget)
 
 	ImplI(IVisualControl) DefEventGetter(InputEventHandler, Enter)
@@ -270,14 +309,12 @@ public:
 	ImplI(IVisualControl) DefSetterBase(const Point&, Location, MVisual)
 	ImplI(IVisualControl) DefSetterBase(bool, Enabled, MControl)
 
-protected:
 	ImplI(IVisualControl) PDefH(void, DrawBackground)
 		ImplBodyBaseVoid(MWidget, DrawBackground)
 
 	ImplI(IVisualControl) PDefH(void, DrawForeground)
 		ImplBodyBaseVoid(MWidget, DrawForeground)
 
-public:
 	ImplI(IVisualControl) PDefH(void, Refresh)
 		ImplBodyBaseVoid(MWidget, Refresh)
 
@@ -290,12 +327,12 @@ public:
 	//可访问性:	ImplI(IVisualControl) public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const MEventArgs &
+	//形式参数:	const EventArgs &
 	//功能概要:	向部件容器请求获得焦点，若成功则引发 GotFocus 事件。
 	//备注:		
 	//********************************
 	ImplI(IVisualControl) void
-	RequestFocus(const MEventArgs&);
+	RequestFocus(const EventArgs&);
 
 	//********************************
 	//名称:		ReleaseFocus
@@ -303,51 +340,38 @@ public:
 	//可访问性:	ImplI(IVisualControl) public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const MEventArgs &
+	//形式参数:	const EventArgs &
 	//功能概要:	释放焦点，并引发失去焦点事件。
 	//备注:		
 	//********************************
 	ImplI(IVisualControl) void
-	ReleaseFocus(const MEventArgs&);
+	ReleaseFocus(const EventArgs&);
 
 	//********************************
 	//名称:		OnGotFocus
 	//全名:		YSLib::Components::Controls::AVisualControl::OnGotFocus
-	//可访问性:	virtual public 
+	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const MEventArgs &
+	//形式参数:	const EventArgs &
 	//功能概要:	处理获得焦点事件。
 	//备注:		
 	//********************************
-	virtual void
-	OnGotFocus(const MEventArgs&);
+	void
+	OnGotFocus(const EventArgs&);
 
 	//********************************
 	//名称:		OnLostFocus
 	//全名:		YSLib::Components::Controls::AVisualControl::OnLostFocus
-	//可访问性:	virtual public 
+	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const MEventArgs &
+	//形式参数:	const EventArgs &
 	//功能概要:	处理失去焦点事件。
 	//备注:		
 	//********************************
-	virtual void
-	OnLostFocus(const MEventArgs&);
-
-	//********************************
-	//名称:		OnKeyHeld
-	//全名:		YSLib::Components::Controls::AVisualControl::OnKeyHeld
-	//可访问性:	virtual public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	const Runtime::MKeyEventArgs &
-	//功能概要:	处理按键接触保持事件。
-	//备注:		
-	//********************************
-	virtual void
-	OnKeyHeld(const Runtime::MKeyEventArgs&);
+	void
+	OnLostFocus(const EventArgs&);
 
 	//********************************
 	//名称:		OnTouchDown
@@ -355,40 +379,19 @@ public:
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::MTouchEventArgs &
+	//形式参数:	const Runtime::TouchEventArgs &
 	//功能概要:	处理屏幕接触开始事件。
 	//备注:		
 	//********************************
 	virtual void
-	OnTouchDown(const Runtime::MTouchEventArgs&
-		= Runtime::MTouchEventArgs::Empty);
-
-	//********************************
-	//名称:		OnTouchHeld
-	//全名:		YSLib::Components::Controls::AVisualControl::OnTouchHeld
-	//可访问性:	virtual public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	const Runtime::MTouchEventArgs &
-	//功能概要:	处理屏幕接触保持事件。
-	//备注:		
-	//********************************
-	virtual void
-	OnTouchHeld(const Runtime::MTouchEventArgs&);
-
-	//********************************
-	//名称:		OnTouchMove
-	//全名:		YSLib::Components::Controls::AVisualControl::OnTouchMove
-	//可访问性:	virtual public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	const Runtime::MTouchEventArgs &
-	//功能概要:	处理屏幕接触移动事件。
-	//备注:		
-	//********************************
-	virtual void
-	OnTouchMove(const Runtime::MTouchEventArgs&);
+	OnTouchDown(const Runtime::TouchEventArgs&);
 };
+
+inline void
+AVisualControl::OnLostFocus(const EventArgs& e)
+{
+	OnGotFocus(e);
+}
 
 
 //可视控件基类。
@@ -405,13 +408,13 @@ public:
 	//修饰符:	
 	//形式参数:	HWND
 	//形式参数:	const Rect &
-	//形式参数:	IWidgetContainer *
+	//形式参数:	IUIBox *
 	//功能概要:	构造：使用指定窗口句柄、边界和部件容器指针。
 	//备注:		
 	//********************************
 	explicit
 	YVisualControl(HWND = NULL, const Rect& = Rect::FullScreen,
-		IWidgetContainer* = NULL);
+		IUIBox* = NULL);
 	//********************************
 	//名称:		~YVisualControl
 	//全名:		YSLib::Components::Controls::YVisualControl::~YVisualControl
@@ -465,35 +468,6 @@ inline
 MButton::MButton(bool b)
 	: bPressed(b)
 {}
-
-
-//滚动条模块。
-class MScrollBar
-{
-protected:
-	SDST MinThumbSize, PrevButtonSize, NextButtonSize;
-	bool bPrevButtonPressed, bNextButtonPressed;
-
-	//********************************
-	//名称:		MScrollBar
-	//全名:		YSLib::Components::Controls::MScrollBar::MScrollBar
-	//可访问性:	protected 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//功能概要:	构造：使用指定滑块长度、前按钮长度和后按钮长度。
-	//备注:		
-	//********************************
-	explicit
-	MScrollBar(SDST = 8, SDST = 16, SDST = 16);
-
-public:
-	DefGetter(SDST, MinThumbSize, MinThumbSize)
-	DefGetter(SDST, PrevButtonSize, PrevButtonSize)
-	DefGetter(SDST, NextButtonSize, NextButtonSize)
-};
 
 YSL_END_NAMESPACE(Controls)
 

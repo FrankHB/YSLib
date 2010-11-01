@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> YShellHelper by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2009-03-14 14:07:22 + 08:00;
-// UTime = 2010-10-24 17:59 + 08:00;
-// Version = 0.1844;
+// UTime = 2010-10-27 12:32 + 08:00;
+// Version = 0.1848;
 
 
 #ifndef INCLUDED_YSHELPER_H_
@@ -366,7 +366,7 @@ NewBitmapRaw(const _tPixel* s, std::size_t n)
 		std::size_t size(sizeof(_tPixel) * n);
 		_tPixel* d(new _tPixel[size]);
 
-		if(d != NULL)
+		if(d)
 			std::memcpy(d, s, size);
 		return d;
 	}

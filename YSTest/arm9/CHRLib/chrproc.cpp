@@ -1,8 +1,8 @@
 ﻿// CHRLib -> CharacterProcessing by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-17 17:53:21 + 08:00;
-// UTime = 2010-10-13 15:38 + 08:00;
-// Version = 0.1695;
+// UTime = 2010-10-27 12:33 + 08:00;
+// Version = 0.1699;
 
 
 #include "chrproc.h"
@@ -117,7 +117,7 @@ ToUTF(const char* chr, uchar_t& uchr, const CSID& cp)
 	ubyte_t len(2);
 	CMF* pfun(GetCodeMapFuncPtr<CMF>(cp));
 
-	if(pfun != NULL)
+	if(pfun)
 		uchr = pfun(len, chr);
 	return len;
 }
@@ -127,7 +127,7 @@ ToUTF(FILE* fp, uchar_t& uchr, const CSID& cp)
 	ubyte_t len(2);
 	CMF_File* pfun(GetCodeMapFuncPtr<CMF_File>(cp));
 
-	if(pfun != NULL)
+	if(pfun)
 		uchr = pfun(len, fp);
 	return feof(fp) ? 0 : len;
 }

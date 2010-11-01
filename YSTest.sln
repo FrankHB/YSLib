@@ -14,14 +14,14 @@ Global
 		Description = YSLib Test
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2843D63B-952F-4EB3-9620-D1B97301898F}.Debug|Any CPU.ActiveCfg = Release|Win32
-		{2843D63B-952F-4EB3-9620-D1B97301898F}.Debug|DS.ActiveCfg = Release|Win32
-		{2843D63B-952F-4EB3-9620-D1B97301898F}.Debug|Mixed Platforms.ActiveCfg = Release|Win32
-		{2843D63B-952F-4EB3-9620-D1B97301898F}.Debug|Mixed Platforms.Build.0 = Release|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Debug|DS.ActiveCfg = Debug|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Debug|DS.Build.0 = Debug|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{2843D63B-952F-4EB3-9620-D1B97301898F}.Debug|Mixed Platforms.Build.0 = Debug|Win32
 		{2843D63B-952F-4EB3-9620-D1B97301898F}.Release|Any CPU.ActiveCfg = Release|Win32
 		{2843D63B-952F-4EB3-9620-D1B97301898F}.Release|DS.ActiveCfg = Release|Win32
 		{2843D63B-952F-4EB3-9620-D1B97301898F}.Release|DS.Build.0 = Release|Win32
-		{2843D63B-952F-4EB3-9620-D1B97301898F}.Release|DS.Deploy.0 = Release|Win32
 		{2843D63B-952F-4EB3-9620-D1B97301898F}.Release|Mixed Platforms.ActiveCfg = Release|Win32
 		{2843D63B-952F-4EB3-9620-D1B97301898F}.Release|Mixed Platforms.Build.0 = Release|Win32
 	EndGlobalSection
