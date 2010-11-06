@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YCoreUtilities by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-05-23 06:10:59 + 08:00;
-// UTime = 2010-10-28 11:29 + 08:00;
-// Version = 0.2174;
+// UTime = 2010-11-05 09:51 + 08:00;
+// Version = 0.2210;
 
 
 #ifndef INCLUDED_YCUTIL_H_
@@ -278,8 +278,8 @@ sgnInterval(const _type& d, const _type& a, const _type& b)
 }
 
 //********************************
-//名称:		IsInIntervalRegular
-//全名:		YSLib<_type>::IsInIntervalRegular
+//名称:		IsInInterval
+//全名:		YSLib<_type>::IsInInterval
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
@@ -291,19 +291,19 @@ sgnInterval(const _type& d, const _type& a, const _type& b)
 //********************************
 template<typename _type>
 inline bool
-IsInIntervalRegular(_type i, _type b)
+IsInInterval(_type i, _type b)
 {
 	YAssert(GetZeroElement<_type>() < b,
 		"In function \"template<typename _type>\n"
 		"inline bool\n"
-		"IsInIntervalRegular(_type i, _type b)\":\n"
+		"IsInInterval(_type i, _type b)\":\n"
 		"Zero element as lower bound is not less than upper bound.");
 
 	return !(i < GetZeroElement<_type>()) && i < b;
 }
 //********************************
-//名称:		IsInIntervalRegular
-//全名:		YSLib<_type>::IsInIntervalRegular
+//名称:		IsInInterval
+//全名:		YSLib<_type>::IsInInterval
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
@@ -316,20 +316,20 @@ IsInIntervalRegular(_type i, _type b)
 //********************************
 template<typename _type>
 inline bool
-IsInIntervalRegular(_type i, _type a, _type b)
+IsInInterval(_type i, _type a, _type b)
 {
 	YAssert(a < b,
 		"In function \"template<typename _type>\n"
 		"inline bool\n"
-		"IsInIntervalRegular(_type i, _type a, _type b)\":\n"
+		"IsInInterval(_type i, _type a, _type b)\":\n"
 		"Lower bound is not less than upper bound.");
 
 	return !(i < a) && i < b;
 }
 
 //********************************
-//名称:		IsInIntervalStrict
-//全名:		YSLib<_type>::IsInIntervalStrict
+//名称:		IsInOpenInterval
+//全名:		YSLib<_type>::IsInOpenInterval
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
@@ -341,19 +341,19 @@ IsInIntervalRegular(_type i, _type a, _type b)
 //********************************
 template<typename _type>
 inline bool
-IsInIntervalStrict(_type i, _type b)
+IsInOpenInterval(_type i, _type b)
 {
 	YAssert(GetZeroElement<_type>() < b,
 		"In function \"template<typename _type>\n"
 		"inline bool\n"
-		"IsInIntervalStrict(_type i, _type b)\":\n"
+		"IsInOpenInterval(_type i, _type b)\":\n"
 		"Zero element as lower bound is not less than upper bound.");
 
 	return i > GetZeroElement<_type>() && i < b;
 }
 //********************************
-//名称:		IsInIntervalStrict
-//全名:		YSLib<_type>::IsInIntervalStrict
+//名称:		IsInOpenInterval
+//全名:		YSLib<_type>::IsInOpenInterval
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
@@ -366,15 +366,132 @@ IsInIntervalStrict(_type i, _type b)
 //********************************
 template<typename _type>
 inline bool
-IsInIntervalStrict(_type i, _type a, _type b)
+IsInOpenInterval(_type i, _type a, _type b)
 {
 	YAssert(a < b,
 		"In function \"template<typename _type>\n"
 		"inline bool\n"
-		"IsInIntervalStrict(_type i, _type a, _type b)\":\n"
+		"IsInOpenInterval(_type i, _type a, _type b)\":\n"
 		"Lower bound is not less than upper bound.");
 
 	return i > a && i < b;
+}
+
+//********************************
+//名称:		IsInOpenInterval
+//全名:		YSLib::SwitchInterval<_type>
+//可访问性:	public 
+//返回类型:	std::size_t
+//修饰符:	
+//形式参数:	_type i
+//形式参数:	_type[] a
+//形式参数:	std::size_t n
+//功能概要:	计算满足指定的值 v 在区间 [a[i], a[i + 1]) 内的最小的 i 。
+//前置条件:	断言：a 。
+//前置条件:	断言：n != 0 。
+//前置条件:	断言：!(v < *a) 。
+
+//备注:		
+//********************************
+template<typename _type>
+std::size_t
+SwitchInterval(_type v, const _type* a, std::size_t n)
+{
+	YAssert(a,
+		"In function \"template<typename _type>\n"
+		"std::size_t\n"
+		"SwitchInterval(_type v, const _type* a, std::size_t n)\":\n"
+		"The array pointer is null.");
+	YAssert(n != 0,
+		"In function \"template<typename _type>\n"
+		"std::size_t\n"
+		"SwitchInterval(_type v, const _type* a, std::size_t n)\":\n"
+		"The length of array is zero.");
+	YAssert(!(v < *a),
+		"In function \"template<typename _type>\n"
+		"std::size_t\n"
+		"SwitchInterval(_type v, const _type* a, std::size_t n)\":\n"
+		"The value is less than lower bound.");
+
+	std::size_t i(0);
+
+	while(!(++i == n || v < a[i]))
+		;
+	return i - 1;
+}
+
+//********************************
+//名称:		IsInOpenInterval
+//全名:		YSLib<_type>::IsInOpenInterval
+//可访问性:	public 
+//返回类型:	bool
+//修饰符:	
+//形式参数:	_type i
+//形式参数:	_type a
+//形式参数:	_type b
+//功能概要:	计算满足指定的值 v 在区间 [b[i], b[i + 1]) 内的最小的 i ；
+//			其中 b[i] 是 a[i] 前 i 项的和。
+//前置条件:	断言：a 。
+//前置条件:	断言：n != 0 。
+//前置条件:	断言：!(v < *a) 。
+//备注:		
+//********************************
+template<typename _type>
+std::size_t
+SwitchAddedInterval(_type v, const _type* a, std::size_t n)
+{
+	YAssert(a,
+		"In function \"template<typename _type>\n"
+		"std::size_t\n"
+		"SwitchAddedInterval(_type v, const _type* a, std::size_t n)\":\n"
+		"The array pointer is null.");
+	YAssert(n != 0,
+		"In function \"template<typename _type>\n"
+		"std::size_t\n"
+		"SwitchAddedInterval(_type v, const _type* a, std::size_t n)\":\n"
+		"Length of array is zero.");
+	YAssert(!(v < *a),
+		"In function \"template<typename _type>\n"
+		"std::size_t\n"
+		"SwitchAddedInterval(_type v, const _type* a, std::size_t n)\":\n"
+		"Value is less than lower bound.");
+
+	_type s(*a);
+	std::size_t i(0);
+
+	while(!(++i == n || v < (s += a[i])))
+		;
+	return i - 1;
+}
+
+//********************************
+//名称:		RestrictInClosedInterval
+//全名:		YSLib<_type>::RestrictInClosedInterval
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	_type & i
+//形式参数:	int a
+//形式参数:	int b
+//功能概要:	约束整数 i 在闭区间 [a, b] 中。
+//前置条件:	断言：a < b 。
+//后置条件:	!(i < a || b < i) 。
+//备注:		
+//********************************
+template<typename _type>
+void
+RestrictInClosedInterval(_type& i, int a, int b)
+{
+	YAssert(a < b,
+		"In function \"template<typename _type>\n"
+		"void\n"
+		"RestrictInClosedInterval(_type& i, int a, int b)\":\n"
+		"Lower bound is not less than upper bound.");
+
+	if(i < a)
+		i = a;
+	else if(b < i)
+		i = b;
 }
 
 //********************************
@@ -386,9 +503,9 @@ IsInIntervalStrict(_type i, _type a, _type b)
 //形式参数:	_type & i
 //形式参数:	int a
 //形式参数:	int b
-//功能概要:	约束整数 i 在闭区间 [a, b] 中。
+//功能概要:	约束整数 i 在左闭右开区间 [a, b) 中。
 //前置条件:	断言：a < b 。
-//后置条件:	!(i < a || b < i) 。
+//后置条件:	!(i < a) && i < b 。
 //备注:		
 //********************************
 template<typename _type>
@@ -403,43 +520,13 @@ RestrictInInterval(_type& i, int a, int b)
 
 	if(i < a)
 		i = a;
-	else if(b < i)
-		i = b;
-}
-
-//********************************
-//名称:		RestrictInIntervalRegular
-//全名:		YSLib<_type>::RestrictInIntervalRegular
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//形式参数:	_type & i
-//形式参数:	int a
-//形式参数:	int b
-//功能概要:	约束整数 i 在左闭右开区间 [a, b) 中。
-//前置条件:	断言：a < b 。
-//后置条件:	!(i < a) && i < b 。
-//备注:		
-//********************************
-template<typename _type>
-void
-RestrictInIntervalRegular(_type& i, int a, int b)
-{
-	YAssert(a < b,
-		"In function \"template<typename _type>\n"
-		"void\n"
-		"RestrictInIntervalRegular(_type& i, int a, int b)\":\n"
-		"Lower bound is not less than upper bound.");
-
-	if(i < a)
-		i = a;
 	else if(!(i < b))
 		i = b - 1;
 }
 
 //********************************
-//名称:		RestrictUnsigned
-//全名:		YSLib<_type>::RestrictUnsigned
+//名称:		RestrictUnsignedStrict
+//全名:		YSLib<_type>::RestrictUnsignedStrict
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
@@ -451,15 +538,15 @@ RestrictInIntervalRegular(_type& i, int a, int b)
 //********************************
 template<typename _type>
 void
-RestrictUnsigned(_type& u, unsigned b)
+RestrictUnsignedStrict(_type& u, unsigned b)
 {
 	if(b < u)
 		u = b;
 }
 
 //********************************
-//名称:		RestrictUnsignedRegular
-//全名:		YSLib<_type>::RestrictUnsignedRegular
+//名称:		RestrictUnsigned
+//全名:		YSLib<_type>::RestrictUnsigned
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
@@ -472,12 +559,12 @@ RestrictUnsigned(_type& u, unsigned b)
 //********************************
 template<typename _type>
 void
-RestrictUnsignedRegular(_type& u, unsigned b)
+RestrictUnsigned(_type& u, unsigned b)
 {
 	YAssert(b != GetZeroElement<_type>(),
 		"In function \"template<typename _type>\n"
 		"void\n"
-		"RestrictUnsignedRegular(_type& u, unsigned b)\":\n"
+		"RestrictUnsigned(_type& u, unsigned b)\":\n"
 		"Upper bound is zero.");
 
 	if(!(u < b))

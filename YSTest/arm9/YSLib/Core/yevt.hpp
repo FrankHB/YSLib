@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YEvent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-04-23 23:08:23 + 08:00;
-// UTime = 2010-11-01 13:56 + 08:00;
-// Version = 0.3675;
+// UTime = 2010-11-04 11:34 + 08:00;
+// Version = 0.3678;
 
 
 #ifndef INCLUDED_YEVT_HPP_
@@ -12,10 +12,6 @@
 
 #include "yobject.h"
 #include "yfunc.hpp"
-//#include <list>
-//#include <set>
-//#include <map>
-#include "../Adaptor/cont.h"
 
 YSL_BEGIN
 

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-14 18:29:46 + 08:00;
-// UTime = 2010-11-01 10:37 + 08:00;
-// Version = 0.2509;
+// UTime = 2010-11-06 12:35 + 08:00;
+// Version = 0.2529;
 
 
 #include "ygdi.h"
@@ -508,11 +508,11 @@ DrawHLineSeg(const Graphics& g, SPOS y, SPOS x1, SPOS x2, Color c)
 		"\": \n"
 		"The graphics device context is invalid.");
 
-	if(IsInIntervalRegular<int>(y, g.GetHeight())
+	if(IsInInterval<int>(y, g.GetHeight())
 		&& !((x1 < 0 && x2 < 0) || (x1 >= g.GetWidth() && x2 >= g.GetWidth())))
 	{
-		RestrictInIntervalRegular(x1, 0, g.GetWidth());
-		RestrictInIntervalRegular(x2, 0, g.GetWidth());
+		RestrictInInterval(x1, 0, g.GetWidth());
+		RestrictInInterval(x2, 0, g.GetWidth());
 		RestrictLessEqual(x1, x2);
 		FillSeq<PixelType>(&g.GetBufferPtr()[y * g.GetWidth() + x1],
 			x2 - x1, c);
@@ -530,12 +530,12 @@ DrawVLineSeg(const Graphics& g, SPOS x, SPOS y1, SPOS y2, Color c)
 		"\": \n"
 		"The graphics device context is invalid.");
 
-	if(IsInIntervalRegular<int>(x, g.GetWidth())
+	if(IsInInterval<int>(x, g.GetWidth())
 		&& !((y1 < 0 && y2 < 0)
 		|| (y1 >= g.GetHeight() && y2 >= g.GetHeight())))
 	{
-		RestrictInIntervalRegular(y1, 0, g.GetHeight());
-		RestrictInIntervalRegular(y2, 0, g.GetHeight());
+		RestrictInInterval(y1, 0, g.GetHeight());
+		RestrictInInterval(y2, 0, g.GetHeight());
 		RestrictLessEqual(y1, y2);
 		FillVLine<PixelType>(&g.GetBufferPtr()[y1 * g.GetWidth() + x],
 			y2 - y1, g.GetWidth(), c);
@@ -562,8 +562,8 @@ namespace
 			" SPOS x2, SPOS y2, Color c)\": \n"
 			"Not drawing an oblique line: the line is vertical.");
 
-		if(Rect(g.GetSize()).IsInBoundsRegular(x1, y1)
-			&& Rect(g.GetSize()).IsInBoundsRegular(x2, y2))
+		if(Rect(g.GetSize()).Contains(x1, y1)
+			&& Rect(g.GetSize()).Contains(x2, y2))
 		{
 			/*
 			一般 Bresenham 算法：实现自
@@ -672,7 +672,7 @@ operator+(const Padding& a, const Padding& b)
 
 
 u64
-GetAll(Padding& p)
+GetAllFrom(Padding& p)
 {
 	u64 r = (p.Left << 16) | p.Right;
 
@@ -681,7 +681,7 @@ GetAll(Padding& p)
 }
 
 void
-SetAll(Padding& p, SDST l, SDST r, SDST t, SDST b)
+SetAllTo(Padding& p, SDST l, SDST r, SDST t, SDST b)
 {
 	p.Left = l;
 	p.Right = r;
@@ -696,7 +696,7 @@ BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDST w, SDST h)
 {
 	SetSize(w, h);
 	if(i)
-		memcpy(img, i, sizeof(PixelType) * GetArea(*this));
+		memcpy(img, i, sizeof(PixelType) * GetAreaFrom(*this));
 }
 
 void
@@ -741,13 +741,13 @@ BitmapBuffer::SetSizeSwap()
 void
 BitmapBuffer::ClearImage() const
 {
-	ClearPixel(img, GetArea(*this));
+	ClearPixel(img, GetAreaFrom(*this));
 }
 
 void
-BitmapBuffer::Fill(Color c) const
+BitmapBuffer::BeFilledWith(Color c) const
 {
-	FillSeq<PixelType>(img, GetArea(*this), c);
+	FillSeq<PixelType>(img, GetAreaFrom(*this), c);
 }
 
 void
@@ -773,7 +773,7 @@ BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDST w, SDST h)
 {
 	SetSize(w, h);
 	if(i)
-		memcpy(img, i, sizeof(PixelType) * GetArea(*this));
+		memcpy(img, i, sizeof(PixelType) * GetAreaFrom(*this));
 }
 
 void
@@ -831,7 +831,7 @@ BitmapBufferEx::SetSizeSwap()
 void
 BitmapBufferEx::ClearImage() const
 {
-	const u32 t = GetArea(*this);
+	const u32 t = GetAreaFrom(*this);
 
 	ClearPixel(img, t);
 	ClearPixel(imgAlpha, t);

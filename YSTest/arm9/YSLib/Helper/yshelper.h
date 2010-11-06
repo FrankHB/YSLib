@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> YShellHelper by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2009-03-14 14:07:22 + 08:00;
-// UTime = 2010-10-27 12:32 + 08:00;
-// Version = 0.1848;
+// UTime = 2010-11-03 19:50 + 08:00;
+// Version = 0.1852;
 
 
 #ifndef INCLUDED_YSHELPER_H_

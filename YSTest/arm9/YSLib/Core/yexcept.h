@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YException by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-06-15 20:30:14 + 08:00;
-// UTime = 2010-10-31 12:21 + 08:00;
-// Version = 0.1198;
+// UTime = 2010-11-04 11:33 + 08:00;
+// Version = 0.1201;
 
 
 #ifndef INCLUDED_YEXCEPT_H_
@@ -13,7 +13,7 @@
 #include "yobject.h"
 #include <new>
 #include <typeinfo>
-#include "../Adaptor/cont.h"
+
 //#include <string>
 
 YSL_BEGIN

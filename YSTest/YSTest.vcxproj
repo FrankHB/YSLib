@@ -83,7 +83,6 @@
     <ClCompile Include="arm9\YSLib\Core\yapp.cpp" />
     <ClCompile Include="arm9\YSLib\Core\ycutil.cpp" />
     <ClCompile Include="arm9\YSLib\Core\ydevice.cpp" />
-    <ClCompile Include="arm9\YSLib\Core\yevtarg.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yexcept.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yfile.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yfilesys.cpp" />
@@ -103,6 +102,7 @@
     <ClCompile Include="arm9\YSLib\Shell\ycomp.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\ycontrol.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\ydesktop.cpp" />
+    <ClCompile Include="arm9\YSLib\Shell\yfocus.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\yform.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\ygdi.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\ygui.cpp" />
@@ -126,18 +126,18 @@
     <ClInclude Include="arm9\YSLib\Adaptor\config.h" />
     <ClInclude Include="arm9\YSLib\Adaptor\cont.h" />
     <ClInclude Include="arm9\YSLib\Adaptor\yadaptor.h" />
-    <ClInclude Include="arm9\YSLib\Adaptor\yagg.h" />
+    <ClInclude Include="arm9\YSLib\Adaptor\agg.h" />
     <ClInclude Include="arm9\YSLib\Adaptor\yaslivsp.hpp" />
     <ClInclude Include="arm9\YSLib\Adaptor\yfont.h" />
     <ClInclude Include="arm9\YSLib\Adaptor\yref.hpp" />
+    <ClInclude Include="arm9\YSLib\Core\yevt.hpp" />
+    <ClInclude Include="arm9\YSLib\Shell\yfocus.h" />
     <ClInclude Include="arm9\YSLib\Shell\yguicomp.h" />
     <ClInclude Include="arm9\YSLib\ysbuild.h" />
     <ClInclude Include="arm9\YSLib\Core\yapp.h" />
     <ClInclude Include="arm9\YSLib\Core\ycounter.hpp" />
     <ClInclude Include="arm9\YSLib\Core\ycutil.h" />
     <ClInclude Include="arm9\YSLib\Core\ydevice.h" />
-    <ClInclude Include="arm9\YSLib\Core\yevt.hpp" />
-    <ClInclude Include="arm9\YSLib\Core\yevtarg.h" />
     <ClInclude Include="arm9\YSLib\Core\yexcept.h" />
     <ClInclude Include="arm9\YSLib\Core\yfile.h" />
     <ClInclude Include="arm9\YSLib\Core\yfilesys.h" />

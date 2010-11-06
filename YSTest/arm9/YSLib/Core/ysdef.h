@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YShellDefinition by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-24 15:29:11 + 08:00;
-// UTime = 2010-11-01 13:56 + 08:00;
-// Version = 0.2318;
+// UTime = 2010-11-04 11:29 + 08:00;
+// Version = 0.2328;
 
 
 #ifndef INCLUDED_YSDEF_H_
@@ -27,39 +27,6 @@
 #include "../Adaptor/yref.hpp"
 
 YSL_BEGIN
-
-//抽象描述接口。
-
-//值类型相等关系。
-template<typename T>
-DeclInterface(GIEquatable)
-	DeclIEntry(bool operator==(const T&) const)
-	virtual bool
-	operator!=(const T& rhs) const
-	{
-		return !this->operator==(rhs);
-	}
-EndDecl
-
-//值类型小于关系。
-template<typename T>
-DeclInterface(GILess)
-	DeclIEntry(bool operator<(const T&) const)
-EndDecl
-
-//容器。
-template<typename T>
-DeclInterface(GIContainer)
-	DeclIEntry(void operator+=(T&))
-	DeclIEntry(bool operator-=(T&))
-EndDecl
-
-//对象复制构造性。
-template<typename T>
-DeclInterface(GIClonable)
-	DeclIEntry(T* Clone() const)
-EndDecl
-
 
 //前向声明和类型定义。
 

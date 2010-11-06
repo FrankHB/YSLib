@@ -443,7 +443,7 @@ public:
 	Path GetRelativePath() const;
 	Path GetParentPath() const;
 	Path GetFilename() const;
-	Path GetStem() const;
+	Path GetStemFrom() const;
 	Path GetExtension() const;
 
 	//µü´úÆ÷¡£

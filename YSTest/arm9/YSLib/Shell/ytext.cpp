@@ -1,7 +1,7 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 00:06:05 + 08:00;
-// UTime = 2010-10-29 10:15 + 08:00;
+// UTime = 2010-11-03 19:55 + 08:00;
 // Version = 0.6238;
 
 
@@ -38,18 +38,18 @@ TextState::SetFont(const char* name, CPATH filename)
 }*/
 
 void
-SetPens(TextState& s)
+SetPensTo(TextState& s)
 {
 	s.PenX = s.Margin.Left;
-	//	s.PenY = s.Margin.Top + GetLnHeightEx();
+	//	s.PenY = s.Margin.Top + GetLnHeightExFrom();
 	//	s.PenY = s.Margin.Top + pCache->GetAscender();
-	SetLnNNow(s, 0);
+	SetLnNNowTo(s, 0);
 }
 
 void
-SetLnNNow(TextState& s, u16 n)
+SetLnNNowTo(TextState& s, u16 n)
 {
-	s.PenY = s.Margin.Top + s.GetCache().GetAscender() + GetLnHeightEx(s) * n;
+	s.PenY = s.Margin.Top + s.GetCache().GetAscender() + GetLnHeightExFrom(s) * n;
 }
 
 
@@ -165,21 +165,21 @@ TextRegion::TextRegion()
 {
 	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
-	SetPens(*this);
+	SetPensTo(*this);
 }
 TextRegion::TextRegion(Drawing::Font& font)
 	: TextState(font), BitmapBufferEx()
 {
 	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
-	SetPens(*this);
+	SetPensTo(*this);
 }
 TextRegion::TextRegion(YFontCache& fc)
 	: TextState(fc), BitmapBufferEx()
 {
 	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
-	SetPens(*this);
+	SetPensTo(*this);
 }
 TextRegion::~TextRegion()
 {}
@@ -187,7 +187,7 @@ TextRegion::~TextRegion()
 SDST
 TextRegion::GetMarginResized() const
 {
-	const u8 t(GetLnHeightEx(*this));
+	const u8 t(GetLnHeightExFrom(*this));
 
 	return t ? Margin.Bottom
 		+ (Height + LineGap - Margin.Top - Margin.Bottom) % t : 0;
@@ -195,7 +195,7 @@ TextRegion::GetMarginResized() const
 SDST
 TextRegion::GetBufferHeightResized() const
 {
-	const u8 t(GetLnHeightEx(*this));
+	const u8 t(GetLnHeightExFrom(*this));
 
 	return t ? Margin.Top + (Height + LineGap - Margin.Top - Margin.Bottom)
 		/ t * t : Height;
@@ -203,12 +203,12 @@ TextRegion::GetBufferHeightResized() const
 u16
 TextRegion::GetLnN() const
 {
-	return GetBufHeightN() / GetLnHeightEx(*this);
+	return GetBufHeightN() / GetLnHeightExFrom(*this);
 }
 u16
 TextRegion::GetLnNEx() const
 {
-	return (GetBufHeightN() + LineGap) / GetLnHeightEx(*this);
+	return (GetBufHeightN() + LineGap) / GetLnHeightExFrom(*this);
 }
 SPOS
 TextRegion::GetLineLast() const
@@ -222,7 +222,7 @@ TextRegion::SetLnLast()
 	const u16 n(GetLnN());
 
 	if(n)
-		SetLnNNow(*this, n - 1);
+		SetLnNNowTo(*this, n - 1);
 }
 
 void
@@ -245,7 +245,7 @@ TextRegion::ClearLine(u16 l, SDST n)
 void
 TextRegion::ClearLn(u16 l)
 {
-	SDST h(GetLnHeightEx(*this));
+	SDST h(GetLnHeightExFrom(*this));
 
 	ClearLine(Margin.Top + h * l, h);
 }
@@ -253,7 +253,7 @@ TextRegion::ClearLn(u16 l)
 void
 TextRegion::ClearLnLast()
 {
-	SDST h(GetLnHeightEx(*this));
+	SDST h(GetLnHeightExFrom(*this));
 
 	ClearLine(Height - Margin.Bottom - h, h);
 }
@@ -292,7 +292,7 @@ void
 TextRegion::PutNewline()
 {
 	PenX = Margin.Left;
-	PenY += GetLnHeightEx(*this);
+	PenY += GetLnHeightExFrom(*this);
 }
 
 u8

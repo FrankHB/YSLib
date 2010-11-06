@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-05 14:04:05 + 08:00;
-// UTime = 2010-10-28 13:43 + 08:00;
-// Version = 0.2952;
+// UTime = 2010-11-03 19:54 + 08:00;
+// Version = 0.2956;
 
 
 #include "DSReader.h"
@@ -81,10 +81,10 @@ MDualScreenReader::SetFontSize(Font::SizeType fz)
 	lnHeight = fc.GetHeight();
 }
 /*
-void MDualScreenReader::SetLnNNow(u8 n)
+void MDualScreenReader::SetLnNNowTo(u8 n)
 {
 	if(n >= 0)
-		pTrUp->SetLnNNow(n);
+		pTrUp->SetLnNNowTo(n);
 }
 */
 
@@ -153,7 +153,7 @@ MDualScreenReader::LineUp()
 		t * sizeof(u8));
 	pTrUp->Move(hx, pTrUp->GetBufferHeightResized());
 	pTrUp->ClearLn(0);
-	SetLnNNow(*pTrUp, 0);
+	SetLnNNowTo(*pTrUp, 0);
 
 	TextFileBuffer::HText itUpOld(itUp);
 

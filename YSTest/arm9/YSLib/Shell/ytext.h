@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-13 00:06:05 + 08:00;
-// UTime = 2010-10-31 12:19 + 08:00;
-// Version = 0.6608;
+// UTime = 2010-11-03 19:50 + 08:00;
+// Version = 0.6612;
 
 
 #ifndef INCLUDED_YTEXT_H_
@@ -106,8 +106,8 @@ TextState::operator=(const Padding& ms)
 
 
 //********************************
-//名称:		GetLnHeight
-//全名:		YSLib::Drawing::GetLnHeight
+//名称:		GetLnHeightFrom
+//全名:		YSLib::Drawing::GetLnHeightFrom
 //可访问性:	public 
 //返回类型:	YSLib::SDST
 //修饰符:	
@@ -116,14 +116,14 @@ TextState::operator=(const Padding& ms)
 //备注:		
 //********************************
 inline SDST
-GetLnHeight(const TextState& s)
+GetLnHeightFrom(const TextState& s)
 {
 	return s.GetCache().GetHeight();
 }
 
 //********************************
-//名称:		GetLnHeightEx
-//全名:		YSLib::Drawing::GetLnHeightEx
+//名称:		GetLnHeightExFrom
+//全名:		YSLib::Drawing::GetLnHeightExFrom
 //可访问性:	public 
 //返回类型:	YSLib::SDST
 //修饰符:	
@@ -132,14 +132,14 @@ GetLnHeight(const TextState& s)
 //备注:		
 //********************************
 inline SDST
-GetLnHeightEx(const TextState& s)
+GetLnHeightExFrom(const TextState& s)
 {
 	return s.GetCache().GetHeight() + s.LineGap;
 }
 
 //********************************
-//名称:		GetLnNNow
-//全名:		YSLib::Drawing::GetLnNNow
+//名称:		GetLnNNowFrom
+//全名:		YSLib::Drawing::GetLnNNowFrom
 //可访问性:	public 
 //返回类型:	u16
 //修饰符:	
@@ -148,9 +148,9 @@ GetLnHeightEx(const TextState& s)
 //备注:		
 //********************************
 inline u16
-GetLnNNow(const TextState& s)
+GetLnNNowFrom(const TextState& s)
 {
-	return (s.PenY - s.Margin.Top) / GetLnHeightEx(s);
+	return (s.PenY - s.Margin.Top) / GetLnHeightExFrom(s);
 }
 
 //********************************
@@ -164,7 +164,7 @@ GetLnNNow(const TextState& s)
 //备注:		
 //********************************
 void
-SetPens(TextState&);
+SetPensTo(TextState&);
 //********************************
 //名称:		SetPen
 //全名:		YSLib::Drawing::SetPen
@@ -178,15 +178,15 @@ SetPens(TextState&);
 //备注:		
 //********************************
 inline void
-SetPens(TextState& s, SPOS x, SPOS y)
+SetPensTo(TextState& s, SPOS x, SPOS y)
 {
 	s.PenX = x;
 	s.PenY = y;
 }
 
 //********************************
-//名称:		SetMargins
-//全名:		YSLib::Drawing::SetMargins
+//名称:		SetMarginsTo
+//全名:		YSLib::Drawing::SetMarginsTo
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
@@ -199,14 +199,14 @@ SetPens(TextState& s, SPOS x, SPOS y)
 //备注:		4 个 16 位无符号整数形式。
 //********************************
 inline void
-SetMargins(TextState& s, SDST l, SDST r, SDST t, SDST b)
+SetMarginsTo(TextState& s, SDST l, SDST r, SDST t, SDST b)
 {
-	SetAll(s.Margin, l, r, t, b);
-	SetPens(s);
+	SetAllTo(s.Margin, l, r, t, b);
+	SetPensTo(s);
 }
 //********************************
-//名称:		SetMargins
-//全名:		YSLib::Drawing::SetMargins
+//名称:		SetMarginsTo
+//全名:		YSLib::Drawing::SetMarginsTo
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
@@ -216,14 +216,14 @@ SetMargins(TextState& s, SDST l, SDST r, SDST t, SDST b)
 //备注:		64 位无符号整数形式。
 //********************************
 inline void
-SetMargins(TextState& s, u64 m)
+SetMarginsTo(TextState& s, u64 m)
 {
-	SetAll(s.Margin, m);
-	SetPens(s);
+	SetAllTo(s.Margin, m);
+	SetPensTo(s);
 }
 //********************************
-//名称:		SetMargins
-//全名:		YSLib::Drawing::SetMargins
+//名称:		SetMarginsTo
+//全名:		YSLib::Drawing::SetMarginsTo
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
@@ -234,15 +234,15 @@ SetMargins(TextState& s, u64 m)
 //备注:		2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
 //********************************
 inline void
-SetMargins(TextState& s, SDST h, SDST v)
+SetMarginsTo(TextState& s, SDST h, SDST v)
 {
-	SetAll(s.Margin, h, v);
-	SetPens(s);
+	SetAllTo(s.Margin, h, v);
+	SetPensTo(s);
 }
 
 //********************************
-//名称:		SetLnNNow
-//全名:		YSLib::Drawing::SetLnNNow
+//名称:		SetLnNNowTo
+//全名:		YSLib::Drawing::SetLnNNowTo
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
@@ -252,7 +252,7 @@ SetMargins(TextState& s, SDST h, SDST v)
 //备注:		
 //********************************
 void
-SetLnNNow(TextState&, u16);
+SetLnNNowTo(TextState&, u16);
 
 
 //********************************
@@ -350,9 +350,9 @@ public:
 	//********************************
 	TextRegion& operator=(const TextState& ts);
 
-	DefGetter(SDST, BufWidthN, Width - GetHorizontal(Margin)) \
+	DefGetter(SDST, BufWidthN, Width - GetHorizontalFrom(Margin)) \
 		//取缓冲区的文本显示区域的宽。
-	DefGetter(SDST, BufHeightN, Height - GetVertical(Margin)) \
+	DefGetter(SDST, BufHeightN, Height - GetVerticalFrom(Margin)) \
 		//取缓冲区的文本显示区域的高。
 	//********************************
 	//名称:		GetMarginResized

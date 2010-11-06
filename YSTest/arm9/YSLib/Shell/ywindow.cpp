@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 17:28:28 + 08:00;
-// UTime = 2010-10-29 21:30 + 08:00;
-// Version = 0.3161;
+// UTime = 2010-11-04 19:56 + 08:00;
+// Version = 0.3171;
 
 
 #include "ydesktop.h"
@@ -40,7 +40,7 @@ void
 AWindow::SetSize(const Drawing::Size& s)
 {
 	Buffer.SetSize(s.Width, s.Height);
-	MWidget::SetSize(s);
+	Widget::SetSize(s);
 }
 
 void
@@ -74,7 +74,7 @@ AWindow::DrawBackground()
 	YWindowAssert(this, Forms::AWindow, DrawBackground);
 
 	if(!DrawBackgroundImage())
-		Fill(BackColor);
+		BeFilledWith(BackColor);
 }
 
 void
@@ -93,7 +93,7 @@ AWindow::Refresh()
 		bRefresh = false;
 		Draw();
 	}
-	MWidget::Refresh();
+	Widget::Refresh();
 }
 
 void

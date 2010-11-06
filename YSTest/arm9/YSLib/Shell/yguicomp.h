@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-11-01 13:57 + 08:00;
-// Version = 0.1565;
+// UTime = 2010-11-06 14:50 + 08:00;
+// Version = 0.1720;
 
 
 #ifndef INCLUDED_YGUICOMP_H_
@@ -26,7 +26,8 @@ YSL_END_NAMESPACE(Widgets)
 YSL_BEGIN_NAMESPACE(Controls)
 
 //基本按钮/滑块。
-class YThumb : public GMCounter<YThumb>, public YVisualControl, protected MButton
+class YThumb : public GMCounter<YThumb>, public YVisualControl,
+	protected MButton
 {
 public:
 	typedef YVisualControl ParentType;
@@ -62,28 +63,28 @@ public:
 	//********************************
 	//名称:		OnEnter
 	//全名:		YSLib::Components::Controls::YThumb::OnEnter
-	//可访问性:	virtual public 
+	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::InputEventArgs &
+	//形式参数:	const InputEventArgs &
 	//功能概要:	响应进入控件事件。
 	//备注:		
 	//********************************
-	virtual void
-	OnEnter(const Runtime::InputEventArgs&);
+	void
+	OnEnter(const InputEventArgs&);
 
 	//********************************
 	//名称:		OnLeave
 	//全名:		YSLib::Components::Controls::YThumb::OnLeave
-	//可访问性:	virtual public 
+	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::InputEventArgs &
+	//形式参数:	const InputEventArgs &
 	//功能概要:	响应离开控件事件。
 	//备注:		
 	//********************************
-	virtual void
-	OnLeave(const Runtime::InputEventArgs&);
+	void
+	OnLeave(const InputEventArgs&);
 };
 
 
@@ -148,28 +149,28 @@ public:
 	//********************************
 	//名称:		OnKeyDown
 	//全名:		YSLib::Components::Controls::YButton::OnKeyDown
-	//可访问性:	virtual public 
+	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::KeyEventArgs &
+	//形式参数:	const KeyEventArgs &
 	//功能概要:	响应按键接触开始事件。
 	//备注:		
 	//********************************
-	virtual void
-	OnKeyDown(const Runtime::KeyEventArgs&);
+	void
+	OnKeyDown(const KeyEventArgs&);
 
 	//********************************
 	//名称:		OnClick
 	//全名:		YSLib::Components::Controls::YButton::OnClick
-	//可访问性:	virtual public 
+	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::TouchEventArgs &
+	//形式参数:	const TouchEventArgs &
 	//功能概要:	响应屏幕点击事件。
 	//备注:		
 	//********************************
-	virtual void
-	OnClick(const Runtime::TouchEventArgs&);
+	void
+	OnClick(const TouchEventArgs&);
 };
 
 template<class _tChar>
@@ -184,33 +185,69 @@ YButton::YButton(HWND hWnd, const _tChar* l, const Rect& r,
 
 
 //轨道。
-class ATrack : public AVisualControl,
+class ATrack : public AVisualControl, public GMFocusResponser<IVisualControl>,
 	implements IUIBox
 {
 public:
 	typedef AVisualControl ParentType;
 
+	struct EArea
+	{
+	public:
+		typedef enum
+		{
+			None = 0,
+			OnThumb = 1,
+			OnPrev = 2,
+			OnNext = 3
+		} Area;
+
+	private:
+		Area value;
+
+	public:
+		template<typename _type>
+		inline
+		EArea(_type v)
+			: value(v)
+		{}
+
+		DefConverter(int, static_cast<int>(value))
+	};
+
 protected:
 	SDST MinThumbLength;
 	YThumb Thumb; //滑块。
+	IVisualControl* pFocusing;
 
 public:
 	explicit
 	ATrack(HWND = NULL, const Rect& = Rect::FullScreen, IUIBox* = NULL,
 		SDST = 8);
-	virtual DefEmptyDtor(ATrack);
-	
+	virtual DefEmptyDtor(ATrack)
+
+	ImplI(IUIBox) PDefH(IVisualControl*, GetFocusingPtr)
+		ImplRet(pFocusing)
 	ImplI(IUIBox) IWidget*
 	GetTopWidgetPtr(const Point&);
 	ImplI(IUIBox) IVisualControl*
 	GetTopVisualControlPtr(const Point&);
 	DefGetter(SDST, MinThumbLength, MinThumbLength)
 
+	DeclIEntry(SDST GetThumbLength() const) //取滑块长度。
+	DeclIEntry(SDST GetThumbPosition() const) //取滑块位置。
+
 	DeclIEntry(void SetThumbLength(SDST)) //设置滑块长度。
 	DeclIEntry(void SetThumbPosition(SDST)) //设置滑块位置。
 
-	void
+	ImplI(IUIBox) void
 	ClearFocusingPtr();
+
+	ImplI(IUIBox) bool
+	ResponseFocusRequest(AFocusRequester&);
+
+	ImplI(IUIBox) bool
+	ResponseFocusRelease(AFocusRequester&);
 
 	//********************************
 	//名称:		DrawForeground
@@ -227,6 +264,13 @@ public:
 	ImplI(IVisualControl) void
 	RequestToTop()
 	{}
+
+protected:
+	EArea
+	CheckArea(SDST) const;
+
+	void
+	ResponseTouchDown(SDST);
 };
 
 
@@ -238,7 +282,10 @@ public:
 	explicit
 	YHorizontalTrack(HWND = NULL, const Rect& = Rect::FullScreen,
 		IUIBox* = NULL);
-	virtual DefEmptyDtor(YHorizontalTrack);
+	virtual DefEmptyDtor(YHorizontalTrack)
+
+	ImplI(ATrack) DefGetter(SDST, ThumbLength, Thumb.GetWidth())
+	ImplI(ATrack) DefGetter(SDST, ThumbPosition, Thumb.GetLocation().X)
 
 	ImplI(ATrack) void
 	SetThumbLength(SDST);
@@ -246,7 +293,10 @@ public:
 	SetThumbPosition(SDST);
 
 	void
-	OnTouchMove_Thumb(const Runtime::TouchEventArgs&);
+	OnTouchDown(const TouchEventArgs&);
+
+	void
+	OnTouchMove_Thumb(const TouchEventArgs&);
 };
 
 
@@ -258,7 +308,10 @@ public:
 	explicit
 	YVerticalTrack(HWND = NULL, const Rect& = Rect::FullScreen,
 		IUIBox* = NULL);
-	virtual DefEmptyDtor(YVerticalTrack);
+	virtual DefEmptyDtor(YVerticalTrack)
+
+	ImplI(ATrack) DefGetter(SDST, ThumbLength, Thumb.GetHeight())
+	ImplI(ATrack) DefGetter(SDST, ThumbPosition, Thumb.GetLocation().Y)
 
 	ImplI(ATrack) void
 	SetThumbLength(SDST);
@@ -266,7 +319,10 @@ public:
 	SetThumbPosition(SDST);
 
 	void
-	OnTouchMove_Thumb(const Runtime::TouchEventArgs&);
+	OnTouchDown(const TouchEventArgs&);
+
+	void
+	OnTouchMove_Thumb(const TouchEventArgs&);
 };
 
 
@@ -649,15 +705,15 @@ public:
 	//********************************
 	//名称:		OnKeyDown
 	//全名:		YSLib::Components::Controls::YListBox::OnKeyDown
-	//可访问性:	virtual public 
+	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::KeyEventArgs &
+	//形式参数:	const KeyEventArgs &
 	//功能概要:	响应按键接触开始事件。
 	//备注:		
 	//********************************
-	virtual void
-	OnKeyDown(const Runtime::KeyEventArgs&);
+	void
+	OnKeyDown(const KeyEventArgs&);
 
 	//********************************
 	//名称:		OnTouchDown
@@ -665,51 +721,64 @@ public:
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::TouchEventArgs &
+	//形式参数:	const TouchEventArgs &
 	//功能概要:	响应屏幕接触开始事件。
 	//备注:		
 	//********************************
-	virtual void
-	OnTouchDown(const Runtime::TouchEventArgs&);
+	void
+	OnTouchDown(const TouchEventArgs&);
+
+	//********************************
+	//名称:		OnTouchMove
+	//全名:		YSLib::Components::Controls::YListBox::OnTouchMove
+	//可访问性:	public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	const TouchEventArgs &
+	//功能概要:	响应屏幕接触移动事件。
+	//备注:		
+	//********************************
+	void
+	OnTouchMove(const TouchEventArgs&);
 
 	//********************************
 	//名称:		OnClick
 	//全名:		YSLib::Components::Controls::YListBox::OnClick
-	//可访问性:	virtual public 
+	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const Runtime::TouchEventArgs &
+	//形式参数:	const TouchEventArgs &
 	//功能概要:	响应屏幕点击事件。
 	//备注:		
 	//********************************
-	virtual void
-	OnClick(const Runtime::TouchEventArgs&);
+	void
+	OnClick(const TouchEventArgs&);
 
 	//********************************
 	//名称:		OnSelected
 	//全名:		YSLib::Components::Controls::YListBox::OnSelected
-	//可访问性:	virtual public 
+	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const MIndexEventArgs &
+	//形式参数:	const IndexEventArgs &
 	//功能概要:	响应选中事件。
 	//备注:		
 	//********************************
-	virtual void
-	OnSelected(const MIndexEventArgs&);
+	void
+	OnSelected(const IndexEventArgs&);
 
 	//********************************
 	//名称:		OnConfirmed
 	//全名:		YSLib::Components::Controls::YListBox::OnConfirmed
-	//可访问性:	virtual public 
+	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const MIndexEventArgs &
+	//形式参数:	const IndexEventArgs &
 	//功能概要:	响应确认事件。
 	//备注:		
 	//********************************
-	virtual void
-	OnConfirmed(const MIndexEventArgs&);
+	void
+	OnConfirmed(const IndexEventArgs&);
 };
 
 inline void
@@ -772,30 +841,17 @@ public:
 	DrawForeground();
 
 	//********************************
-	//名称:		OnTouchMove
-	//全名:		YSLib::Components::Controls::YFileBox::OnTouchMove
-	//可访问性:	virtual public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	const Runtime::TouchEventArgs &
-	//功能概要:	响应屏幕接触移动事件。
-	//备注:		
-	//********************************
-	virtual void
-	OnTouchMove(const Runtime::TouchEventArgs&);
-
-	//********************************
 	//名称:		OnConfirmed
 	//全名:		YSLib::Components::Controls::YFileBox::OnConfirmed
-	//可访问性:	virtual public 
+	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const MIndexEventArgs &
+	//形式参数:	const IndexEventArgs &
 	//功能概要:	响应确认事件。
 	//备注:		
 	//********************************
-	virtual void
-	OnConfirmed(const MIndexEventArgs&);
+	void
+	OnConfirmed(const IndexEventArgs&);
 };
 
 YSL_END_NAMESPACE(Controls)

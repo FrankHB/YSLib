@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-11-01 13:55 + 08:00;
-// Version = 0.2909;
+// UTime = 2010-11-06 13:24 + 08:00;
+// Version = 0.3012;
 
 
 #include "ygui.h"
@@ -15,7 +15,9 @@ using namespace Components;
 using namespace Components::Controls;
 using namespace Components::Widgets;
 
-YSL_BEGIN_NAMESPACE(Runtime)
+YSL_BEGIN_NAMESPACE(Components)
+
+YSL_BEGIN_NAMESPACE(Controls)
 
 IWidget*
 GetCursorWidgetPtr(HSHL hShl, YDesktop& d, const Point& pt)
@@ -26,14 +28,14 @@ GetCursorWidgetPtr(HSHL hShl, YDesktop& d, const Point& pt)
 }
 
 IVisualControl*
-GetFocusedObject(YDesktop& d)
+GetFocusedObjectPtr(YDesktop& d)
 {
-	IVisualControl* p(d.GetFocusingPtr());
-	GMFocusResponser<IVisualControl>* q;
+	IVisualControl* p(d.GetFocusingPtr()), *q(NULL);
+	IUIBox* pCon;
 
-	while(p && (q = dynamic_cast<GMFocusResponser<IVisualControl>*>(p))
-		&& q->GetFocusingPtr())
-		p = q->GetFocusingPtr();
+	while(p && (pCon = dynamic_cast<IUIBox*>(p))
+		&& (q = pCon->GetFocusingPtr()))
+		p = q;
 	return p;
 }
 
@@ -66,29 +68,12 @@ YSL_BEGIN_NAMESPACE(InputStatus)
 
 HeldStateType KeyHeldState(Free);
 HeldStateType TouchHeldState(Free);
-Vec DragOffset(Vec::FullScreen);
+Vec DraggingOffset(Vec::FullScreen);
 Timers::YTimer HeldTimer(1000, false);
+Point VisualControlLocationOffset(Point::Zero);
 
 bool
-IsOnDragging()
-{
-	return DragOffset != Vec::FullScreen;
-}
-
-const Vec&
-GetDragOffset()
-{
-	return DragOffset;
-}
-
-void
-SetDragOffset(const Vec& v)
-{
-	DragOffset = v;
-}
-
-bool
-RepeatHeld(HeldStateType& s, const KeyEventArgs& e,
+RepeatHeld(HeldStateType& s,
 	Timers::TimeSpan InitialDelay, Timers::TimeSpan RepeatedDelay)
 {
 	//三状态自动机。
@@ -133,7 +118,7 @@ namespace
 {
 	using namespace InputStatus;
 
-	//即时输入（按下）状态所在控件指针。
+	//独立焦点指针：即时输入（按下）状态所在控件指针。
 	IVisualControl* p_TouchDown(NULL);
 	IVisualControl* p_KeyDown(NULL);
 
@@ -170,8 +155,14 @@ namespace
 		}
 	}
 
+	void ResetTouchHeldState()
+	{
+		ResetHeldState(TouchHeldState);
+		DraggingOffset = Vec::FullScreen;
+	}
+
 	IVisualControl*
-	GetTouchedVisualControl(IUIBox& con, Point& pt)
+	GetTouchedVisualControlPtr(IUIBox& con, Point& pt)
 	{
 		using namespace ExOp;
 
@@ -180,12 +171,9 @@ namespace
 
 		while((p = pCon->GetTopVisualControlPtr(pt)))
 		{
+			pt -= p->GetLocation();
 			if(!(pCon = dynamic_cast<IUIBox*>(p)))
-			{
-				pt -= p->GetLocation();
 				break;
-			}
-			pt -= pCon->GetLocation();
 			if(ExtraOperation == TouchDown)
 			{
 				pCon->RequestToTop();
@@ -217,7 +205,7 @@ namespace
 	inline IVisualControl*
 	GetFocusedEnabledVisualControlPtr(YDesktop& d)
 	{
-		return GetFocusedEnabledVisualControlPtr(GetFocusedObject(d));
+		return GetFocusedEnabledVisualControlPtr(GetFocusedObjectPtr(d));
 	}
 
 	bool
@@ -254,12 +242,12 @@ namespace
 	bool
 	ResponseTouchUpBase(IVisualControl& c, const TouchEventArgs& e)
 	{
-		ResetHeldState(TouchHeldState);
-		SetDragOffset();
+		ResetTouchHeldState();
 		if(p_TouchDown == &c && TouchHeldState == Free)
 			c.GetClick()(c, e);
 		c.GetTouchUp()(c, e);
 		TryLeave(c, e);
+		p_TouchDown = NULL;
 		return true;
 	}
 	bool
@@ -275,8 +263,7 @@ namespace
 	{
 		if(p_TouchDown != &c)
 		{
-			ResetHeldState(TouchHeldState);
-			SetDragOffset();
+			ResetTouchHeldState();
 			return false;
 		}
 		c.GetTouchHeld()(c, e);
@@ -294,8 +281,8 @@ namespace
 	bool
 	ResponseTouchBase(IUIBox& con, HTouchCallback f)
 	{
-		Point pt(f);
-		IVisualControl* pVC(GetTouchedVisualControl(con, pt));
+		VisualControlLocationOffset = f;
+		IVisualControl* const pVC(GetTouchedVisualControlPtr(con, f));
 
 		return pVC ? f(*pVC, f) : false;
 	}
@@ -336,14 +323,16 @@ ResponseTouchHeld(IUIBox& con, const TouchEventArgs& e)
 	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchHeldBase));
 }
 
-YSL_END_NAMESPACE(Runtime)
+YSL_END_NAMESPACE(Controls)
+
+YSL_END_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
 void
 DrawWindowBounds(HWND hWnd, Color c)
 {
-	Graphics g(GetGraphicInterfaceContext(hWnd));
+	Graphics g(*hWnd);
 
 	DrawRect(g, Point::Zero, Size(hWnd->GetSize() - Vec(1, 1)), c);
 }
@@ -353,7 +342,7 @@ DrawWidgetBounds(IWidget& w, Color c)
 {
 	if(w.GetWindowHandle())
 	{
-		Graphics g(GetGraphicInterfaceContext(w.GetWindowHandle()));
+		Graphics g(*w.GetWindowHandle());
 
 		DrawRect(g, LocateForWindow(w), Size(w.GetSize() - Vec(1, 1)), c);
 	}

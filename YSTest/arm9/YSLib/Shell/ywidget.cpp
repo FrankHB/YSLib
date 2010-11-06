@@ -1,11 +1,11 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-29 22:17 + 08:00;
-// Version = 0.4380;
+// UTime = 2010-11-06 12:36 + 08:00;
+// Version = 0.4448;
 
 
-#include "ywindow.h"
+#include "ydesktop.h"
 #include "ycontrol.h"
 
 YSL_BEGIN
@@ -19,14 +19,14 @@ using Controls::YVisualControl;
 bool
 Contains(const IWidget& w, SPOS x, SPOS y)
 {
-	return Rect(w.GetLocation(), w.GetSize()).IsInBoundsRegular(x, y);
+	return Rect(w.GetLocation(), w.GetSize()).Contains(x, y);
 }
 
 
 Point
-LocateOffset(const IWidget* pCon, Point pt, const HWND& hWnd)
+LocateOffset(const IWidget* pCon, Point pt, IWindow* pWnd)
 {
-	while(pCon && dynamic_cast<const IWindow*>(pCon) != hWnd)
+	while(pCon && dynamic_cast<const IWindow*>(pCon) != pWnd)
 	{
 		pt += pCon->GetLocation();
 		pCon = dynamic_cast<const IWidget*>(pCon->GetContainerPtr());
@@ -35,38 +35,53 @@ LocateOffset(const IWidget* pCon, Point pt, const HWND& hWnd)
 }
 
 Point
-LocateForWindow(IWidget& w)
+LocateForWindow(const IWidget& w)
 {
 	return w.GetContainerPtr()
-		? Widgets::LocateOffset(w.GetContainerPtr(),
+		? LocateOffset(w.GetContainerPtr(),
 		w.GetLocation(), w.GetWindowHandle()) : Point::FullScreen;
 }
 
 Point
-LocateForParentContainer(IWidget& w)
+LocateForDesktop(const IWidget& w)
+{
+	HWND hWnd(w.GetWindowHandle());
+
+	if(hWnd)
+	{
+		YDesktop* pDsk(hWnd->GetDesktopPtr());
+
+		if(pDsk)
+			return LocateOffset(&w, Point::Zero, pDsk);
+	}
+	return Point::FullScreen;
+}
+
+Point
+LocateForParentContainer(const IWidget& w)
 {
 	return w.GetContainerPtr()
-		? Widgets::LocateContainerOffset(*w.GetContainerPtr(),
+		? LocateContainerOffset(*w.GetContainerPtr(),
 		w.GetLocation()) : Point::FullScreen;
 }
 
 Point
-LocateForParentWindow(IWidget& w)
+LocateForParentWindow(const IWidget& w)
 {
-	return w.GetContainerPtr()
-		? Widgets::LocateWindowOffset(*w.GetContainerPtr(),
+	return w.GetWindowHandle()
+		? LocateWindowOffset(*w.GetWindowHandle(),
 		w.GetLocation()) : Point::FullScreen;
 }
 
 
-MVisual::MVisual(const Rect& r, Color b, Color f)
+Visual::Visual(const Rect& r, Color b, Color f)
 	: Visible(true), Transparent(false), bBgRedrawed(false),
 	Location(r.GetPoint()), Size(r.Width, r.Height),
 	BackColor(b), ForeColor(f)
 {}
 
 void
-MVisual::_m_SetSize(SDST w, SDST h)
+Visual::_m_SetSize(SDST w, SDST h)
 {
 	if(Size.Width != w || Size.Height != h)
 	{
@@ -76,21 +91,21 @@ MVisual::_m_SetSize(SDST w, SDST h)
 	}
 }
 void
-MVisual::SetBounds(const Rect& r)
+Visual::SetBounds(const Rect& r)
 {
 	Location = r.GetPoint();
 	SetSize(r.Width, r.Height);
 }
 
 
-MWidget::MWidget(HWND hWnd, const Rect& r, IUIBox* pCon,
+Widget::Widget(HWND hWnd, const Rect& r, IUIBox* pCon,
 	Color b, Color f)
-	: MVisual(r, b, f),
+	: Visual(r, b, f),
 	hWindow(hWnd), pContainer(pCon ? pCon : GetPointer(hWnd))
 {}
 
 void
-MWidget::Fill(Color c)
+Widget::BeFilledWith(Color c)
 {
 	if(hWindow)
 	{
@@ -101,25 +116,25 @@ MWidget::Fill(Color c)
 }
 
 void
-MWidget::DrawBackground()
+Widget::DrawBackground()
 {
-	YWidgetAssert(this, Widgets::MWidget, DrawBackground);
+	YWidgetAssert(this, Widgets::Widget, DrawBackground);
 
 	if(!Transparent)
-		Fill();
+		BeFilledWith();
 }
 
 void
-MWidget::DrawForeground()
+Widget::DrawForeground()
 {
-	YWidgetAssert(this, Widgets::MWidget, DrawForeground);
+	YWidgetAssert(this, Widgets::Widget, DrawForeground);
 
 	if(!Transparent)
 		SetBgRedrawed(false);
 }
 
 void
-MWidget::Refresh()
+Widget::Refresh()
 {
 	if(hWindow)
 		hWindow->SetRefresh(true);
@@ -128,7 +143,7 @@ MWidget::Refresh()
 
 YWidget::YWidget(HWND hWnd, const Rect& r, IUIBox* pCon)
 	: YComponent(),
-	MWidget(hWnd, r, pCon)
+	Widget(hWnd, r, pCon)
 {
 	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
 
@@ -173,10 +188,23 @@ MUIContainer::GetTopVisualControlPtr(const Point& pt)
 	return NULL;
 }
 
+bool
+MUIContainer::ResponseFocusRequest(AFocusRequester& w)
+{
+	return w.RequestFocus<GMFocusResponser, IVisualControl>(*this);
+}
+
+bool
+MUIContainer::ResponseFocusRelease(AFocusRequester& w)
+{
+	return w.ReleaseFocus<GMFocusResponser, IVisualControl>(*this);
+}
+
+
 YUIContainer::YUIContainer(HWND hWnd, const Rect& r,
 	IUIBox* pCon)
 	: YComponent(),
-	MWidget(hWnd, r, pCon), MUIContainer()
+	Widget(hWnd, r, pCon), MUIContainer()
 {
 	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
 
@@ -199,7 +227,7 @@ YUIContainer::~YUIContainer() ythrow()
 
 
 void
-MLabel::PaintText(MWidget& w, const Point& pt)
+MLabel::PaintText(Widget& w, const Point& pt)
 {
 	HWND hWnd(w.GetWindowHandle());
 
@@ -207,10 +235,10 @@ MLabel::PaintText(MWidget& w, const Point& pt)
 	{
 		prTextRegion->Font = Font;
 		prTextRegion->Font.Update();
-		SetPens(*prTextRegion);
+		SetPensTo(*prTextRegion);
 		prTextRegion->Color = w.ForeColor;
 		prTextRegion->SetSize(w.GetWidth(), w.GetHeight());
-		SetMargins(*prTextRegion, 2, 2, 2, 2);
+		SetMarginsTo(*prTextRegion, 2, 2, 2, 2);
 		prTextRegion->PutLine(Text);
 
 		Graphics g(*hWnd);
@@ -227,7 +255,7 @@ YLabel::DrawForeground()
 	YWidgetAssert(this, Widgets::YLabel, DrawForeground);
 
 //	if(!Transparent)
-	//	Fill();
+	//	BeFilledWith();
 	ParentType::DrawForeground();
 	PaintText(*this, LocateForWindow(*this));
 }

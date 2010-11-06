@@ -1,8 +1,8 @@
 ﻿// YReader -> DSReader by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-01-05 14:03:47 + 08:00;
-// UTime = 2010-10-28 12:57 + 08:00;
-// Version = 0.2202;
+// UTime = 2010-10-28 19:54 + 08:00;
+// Version = 0.2205;
 
 
 #ifndef _DSREADER_H_
@@ -70,8 +70,8 @@ private:
 	//复位缓存区域写入位置。
 	void ResetPen()
 	{
-		SetPens(*pTrUp);
-		SetPens(*pTrDn);
+		SetPensTo(*pTrUp);
+		SetPensTo(*pTrDn);
 	}
 
 	//文本填充：输出文本缓冲区字符串，并返回填充字符数。
@@ -107,7 +107,7 @@ public:
 
 	//设置笔的行位置。
 	//void
-	//SetLnNNow(u8);
+	//SetLnNNowTo(u8);
 
 	//复位输出状态。
 	void

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-11-01 13:55 + 08:00;
-// Version = 0.2162;
+// UTime = 2010-11-05 18:49 + 08:00;
+// Version = 0.2223;
 
 
 #ifndef INCLUDED_YGUI_H_
@@ -17,7 +17,9 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Runtime)
+YSL_BEGIN_NAMESPACE(Components)
+
+YSL_BEGIN_NAMESPACE(Controls)
 
 //********************************
 //名称:		GetCursorWidgetPtr
@@ -35,17 +37,17 @@ IWidget*
 GetCursorWidgetPtr(HSHL, YDesktop&, const Point&);
 
 //********************************
-//名称:		GetFocusedObject
-//全名:		YSLib::Runtime::GetFocusedObject
+//名称:		GetFocusedObjectPtr
+//全名:		YSLib::Runtime::GetFocusedObjectPtr
 //可访问性:	public 
 //返回类型:	IVisualControl*
 //修饰符:	
 //形式参数:	YDesktop &
-//功能概要:	取指定屏幕中的当前焦点对象。
+//功能概要:	取指定屏幕中的当前焦点对象指针。
 //备注:		
 //********************************
 IVisualControl*
-GetFocusedObject(YDesktop&);
+GetFocusedObjectPtr(YDesktop&);
 
 //********************************
 //名称:		RequestFocusCascade
@@ -75,18 +77,18 @@ ReleaseFocusCascade(IVisualControl&);
 
 
 //标准 GUI 事件回调函数抽象类。
-typedef GAHEventCallback<Components::Controls::IVisualControl,
+typedef Runtime::GAHEventCallback<Components::Controls::IVisualControl,
 	EventArgs> AHEventCallback;
-typedef GAHEventCallback<Components::Controls::IVisualControl,
-	Runtime::KeyEventArgs> AHKeyCallback;
-typedef GAHEventCallback<Components::Controls::IVisualControl,
-	Runtime::TouchEventArgs> AHTouchCallback;
+typedef Runtime::GAHEventCallback<Components::Controls::IVisualControl,
+	KeyEventArgs> AHKeyCallback;
+typedef Runtime::GAHEventCallback<Components::Controls::IVisualControl,
+	TouchEventArgs> AHTouchCallback;
 
 //标准 GUI 事件回调函数类型。
 typedef bool FKeyCallback(Components::Controls::IVisualControl&,
-	const Runtime::KeyEventArgs&);
+	const KeyEventArgs&);
 typedef bool FTouchCallback(Components::Controls::IVisualControl&,
-	const Runtime::TouchEventArgs&);
+	const TouchEventArgs&);
 typedef FKeyCallback* PFKeyCallback;
 typedef FTouchCallback* PFTouchCallback;
 
@@ -100,13 +102,13 @@ struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//形式参数:	Runtime::KeyEventArgs e
+	//形式参数:	KeyEventArgs e
 	//形式参数:	PFKeyCallback p
 	//功能概要:	构造：从参数和回调函数指针。
 	//备注:		
 	//********************************
 	inline explicit
-	HKeyCallback(Runtime::KeyEventArgs e, PFKeyCallback p)
+	HKeyCallback(KeyEventArgs e, PFKeyCallback p)
 	: GHBase<PFKeyCallback>(p), AHKeyCallback(e)
 	{}
 
@@ -125,13 +127,13 @@ struct HTouchCallback : public GHBase<PFTouchCallback>, public AHTouchCallback
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//形式参数:	Runtime::TouchEventArgs e
+	//形式参数:	TouchEventArgs e
 	//形式参数:	PFTouchCallback p
 	//功能概要:	构造：从参数和回调函数指针。
 	//备注:		
 	//********************************
 	inline explicit
-	HTouchCallback(Runtime::TouchEventArgs e, PFTouchCallback p)
+	HTouchCallback(TouchEventArgs e, PFTouchCallback p)
 		: GHBase<PFTouchCallback>(p), AHTouchCallback(e)
 	{}
 
@@ -153,7 +155,7 @@ struct HTouchCallback : public GHBase<PFTouchCallback>, public AHTouchCallback
 };
 
 
-//记录输入保持状态。
+//记录输入状态。
 
 YSL_BEGIN_NAMESPACE(InputStatus)
 
@@ -164,59 +166,11 @@ typedef enum
 	Held = 2
 } HeldStateType;
 
-extern HeldStateType KeyHeldState, TouchHeldState;
-
-//********************************
-//名称:		IsOnDragging
-//全名:		YSLib::Runtime::InputStatus::IsOnDragging
-//可访问性:	public 
-//返回类型:	bool
-//修饰符:	
-//功能概要:	判断是否处于拖放状态。
-//备注:		
-//********************************
-bool
-IsOnDragging();
-
-//********************************
-//名称:		GetDragOffset
-//全名:		YSLib::Runtime::InputStatus::GetDragOffset
-//可访问性:	public 
-//返回类型:	const Vec&
-//修饰符:	
-//功能概要:	取拖放偏移量。
-//备注:		
-//********************************
-const Vec&
-GetDragOffset();
-
-//********************************
-//名称:		SetDragOffset
-//全名:		YSLib::Runtime::InputStatus::SetDragOffset
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//形式参数:	const Vec &
-//功能概要:	设置拖放偏移量。
-//备注:		
-//********************************
-void
-SetDragOffset(const Vec& = Vec::FullScreen);
-
-//********************************
-//名称:		CheckTouchedControlBounds
-//全名:		YSLib::Runtime::InputStatus::CheckTouchedControlBounds
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//形式参数:	Components::Controls::IVisualControl &
-//形式参数:	const TouchEventArgs &
-//功能概要:	检查屏幕接触的控件的容器。
-//备注:		
-//********************************
-void
-CheckTouchedControlBounds(Components::Controls::IVisualControl&,
-	const TouchEventArgs&);
+extern HeldStateType KeyHeldState, TouchHeldState; //输入接触状态。
+extern Vec DraggingOffset; //拖放偏移量。
+extern Timers::YTimer HeldTimer; //输入接触保持计时器。
+extern Point VisualControlLocationOffset; \
+	//最近的指针设备操作时的控件相对偏移量。
 
 //********************************
 //名称:		RepeatHeld
@@ -225,15 +179,13 @@ CheckTouchedControlBounds(Components::Controls::IVisualControl&,
 //返回类型:	bool
 //修饰符:	
 //形式参数:	HeldStateType &
-//形式参数:	const KeyEventArgs &
 //形式参数:	Timers::TimeSpan
 //形式参数:	Timers::TimeSpan
-//功能概要:	重复检测接触保持事件。
+//功能概要:	重复检测输入接触保持事件。
 //备注:		
 //********************************
 bool
-RepeatHeld(HeldStateType&, const KeyEventArgs&, Timers::TimeSpan = 240,
-	Timers::TimeSpan = 120);
+RepeatHeld(HeldStateType&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
 
 //********************************
 //名称:		ResetHeldState
@@ -254,111 +206,90 @@ YSL_END_NAMESPACE(InputStatus)
 //响应标准按键状态。
 //********************************
 //名称:		ResponseKeyUp
-//全名:		YSLib::Runtime::ResponseKeyUp
+//全名:		YSLib::ResponseKeyUp
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
 //形式参数:	YDesktop &
-//形式参数:	const Runtime::KeyEventArgs &
+//形式参数:	const KeyEventArgs &
 //功能概要:	响应按键接触结束。
 //备注:		
 //********************************
 bool
-ResponseKeyUp(YDesktop&, const Runtime::KeyEventArgs&);
+ResponseKeyUp(YDesktop&, const KeyEventArgs&);
 //********************************
 //名称:		ResponseKeyDown
-//全名:		YSLib::Runtime::ResponseKeyDown
+//全名:		YSLib::ResponseKeyDown
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
 //形式参数:	YDesktop &
-//形式参数:	const Runtime::KeyEventArgs &
+//形式参数:	const KeyEventArgs &
 //功能概要:	响应按键接触开始。
 //备注:		
 //********************************
 bool
-ResponseKeyDown(YDesktop&, const Runtime::KeyEventArgs&);
+ResponseKeyDown(YDesktop&, const KeyEventArgs&);
 //********************************
 //名称:		ResponseKeyHeld
-//全名:		YSLib::Runtime::ResponseKeyHeld
+//全名:		YSLib::ResponseKeyHeld
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
 //形式参数:	YDesktop &
-//形式参数:	const Runtime::KeyEventArgs &
+//形式参数:	const KeyEventArgs &
 //功能概要:	响应按键接触保持。
 //备注:		
 //********************************
 bool
-ResponseKeyHeld(YDesktop&, const Runtime::KeyEventArgs&);
+ResponseKeyHeld(YDesktop&, const KeyEventArgs&);
 
 //响应屏幕接触状态。
 //********************************
 //名称:		ResponseTouchUp
-//全名:		YSLib::Runtime::ResponseTouchUp
+//全名:		YSLib::ResponseTouchUp
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
 //形式参数:	IUIBox &
-//形式参数:	const Runtime::TouchEventArgs &
+//形式参数:	const TouchEventArgs &
 //功能概要:	响应屏幕接触结束。
 //备注:		
 //********************************
 bool
-ResponseTouchUp(IUIBox&, const Runtime::TouchEventArgs&);
+ResponseTouchUp(IUIBox&, const TouchEventArgs&);
 //********************************
 //名称:		ResponseTouchDown
-//全名:		YSLib::Runtime::ResponseTouchDown
+//全名:		YSLib::ResponseTouchDown
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
 //形式参数:	IUIBox &
-//形式参数:	const Runtime::TouchEventArgs &
+//形式参数:	const TouchEventArgs &
 //功能概要:	响应屏幕接触开始。
 //备注:		
 //********************************
 bool
-ResponseTouchDown(IUIBox&, const Runtime::TouchEventArgs&);
+ResponseTouchDown(IUIBox&, const TouchEventArgs&);
 //********************************
 //名称:		ResponseTouchHeld
-//全名:		YSLib::Runtime::ResponseTouchHeld
+//全名:		YSLib::ResponseTouchHeld
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
 //形式参数:	IUIBox &
-//形式参数:	const Runtime::TouchEventArgs &
+//形式参数:	const TouchEventArgs &
 //功能概要:	响应屏幕接触保持。
 //备注:		
 //********************************
 bool
-ResponseTouchHeld(IUIBox&, const Runtime::TouchEventArgs&);
+ResponseTouchHeld(IUIBox&, const TouchEventArgs&);
 
-YSL_END_NAMESPACE(Runtime)
+YSL_END_NAMESPACE(Controls)
+
+YSL_END_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Drawing)
-
-//********************************
-//名称:		GetGraphicInterfaceContext
-//全名:		YSLib::Drawing::GetGraphicInterfaceContext
-//可访问性:	public 
-//返回类型:	YSLib::Drawing::Graphics
-//修饰符:	
-//形式参数:	HWND hWnd
-//功能概要:	取图形接口上下文。
-//前置条件: 断言： hWnd 。
-//备注:		
-//********************************
-inline Graphics
-GetGraphicInterfaceContext(HWND hWnd)
-{
-	YAssert(hWnd,
-		"In function \"inline Graphics\nDrawing"
-		"::GetGraphicInterfaceContext(HWND hWnd)\": \n"
-		"The input handle is null.");
-
-	return static_cast<Graphics>(*hWnd);
-}
-
 
 //********************************
 //名称:		DrawWindowBounds

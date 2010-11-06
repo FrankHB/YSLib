@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8
 // CTime = 2010-03-13 14:17:14 + 08:00;
-// UTime = 2010-11-01 13:53 + 08:00;
-// Version = 0.1658;
+// UTime = 2010-11-04 14:22 + 08:00;
+// Version = 0.1684;
 
 
 #ifndef INCLUDED_SHLDS_H_
@@ -226,14 +226,14 @@ public:
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
-//形式参数:	const Runtime::TouchEventArgs::InputType & pt
+//形式参数:	const Components::Controls::TouchEventArgs::InputType & pt
 //功能概要:	处理屏幕接触结束事件。
 //备注:		
 //********************************
 inline void
-OnTouchUp(const Runtime::TouchEventArgs::InputType& pt)
+OnTouchUp(const Components::Controls::TouchEventArgs::InputType& pt)
 {
-	Runtime::ResponseTouchUp(*pDesktopDown, Runtime::TouchEventArgs(pt));
+	ResponseTouchUp(*pDesktopDown, Components::Controls::TouchEventArgs(pt));
 }
 
 //********************************
@@ -242,14 +242,14 @@ OnTouchUp(const Runtime::TouchEventArgs::InputType& pt)
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
-//形式参数:	const Runtime::TouchEventArgs::InputType & pt
+//形式参数:	const Components::Controls::TouchEventArgs::InputType & pt
 //功能概要:	处理屏幕接触开始事件。
 //备注:		
 //********************************
 inline void
-OnTouchDown(const Runtime::TouchEventArgs::InputType& pt)
+OnTouchDown(const Components::Controls::TouchEventArgs::InputType& pt)
 {
-	Runtime::ResponseTouchDown(*pDesktopDown, Runtime::TouchEventArgs(pt));
+	ResponseTouchDown(*pDesktopDown, Components::Controls::TouchEventArgs(pt));
 }
 
 //********************************
@@ -258,14 +258,14 @@ OnTouchDown(const Runtime::TouchEventArgs::InputType& pt)
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
-//形式参数:	const Runtime::TouchEventArgs::InputType & pt
+//形式参数:	const Components::Controls::TouchEventArgs::InputType & pt
 //功能概要:	处理屏幕接触保持事件。
 //备注:		
 //********************************
 inline void
-OnTouchHeld(const Runtime::TouchEventArgs::InputType& pt)
+OnTouchHeld(const Components::Controls::TouchEventArgs::InputType& pt)
 {
-	Runtime::ResponseTouchHeld(*pDesktopDown, Runtime::TouchEventArgs(pt));
+	ResponseTouchHeld(*pDesktopDown, Components::Controls::TouchEventArgs(pt));
 }
 
 //********************************
@@ -274,14 +274,14 @@ OnTouchHeld(const Runtime::TouchEventArgs::InputType& pt)
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
-//形式参数:	const Runtime::KeyEventArgs::InputType & key
+//形式参数:	const Components::Controls::KeyEventArgs::InputType & key
 //功能概要:	处理按键接触结束事件。
 //备注:		
 //********************************
 inline void
-OnKeyUp(const Runtime::KeyEventArgs::InputType& key)
+OnKeyUp(const Components::Controls::KeyEventArgs::InputType& key)
 {
-	Runtime::ResponseKeyUp(*pDesktopDown, Runtime::KeyEventArgs(key));
+	ResponseKeyUp(*pDesktopDown, Components::Controls::KeyEventArgs(key));
 }
 
 //********************************
@@ -290,14 +290,14 @@ OnKeyUp(const Runtime::KeyEventArgs::InputType& key)
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
-//形式参数:	const Runtime::KeyEventArgs::InputType & key
+//形式参数:	const Components::Controls::KeyEventArgs::InputType & key
 //功能概要:	处理按键接触开始事件。
 //备注:		
 //********************************
 inline void
-OnKeyDown(const Runtime::KeyEventArgs::InputType& key)
+OnKeyDown(const Components::Controls::KeyEventArgs::InputType& key)
 {
-	Runtime::ResponseKeyDown(*pDesktopDown, Runtime::KeyEventArgs(key));
+	ResponseKeyDown(*pDesktopDown, Components::Controls::KeyEventArgs(key));
 }
 
 //********************************
@@ -306,14 +306,14 @@ OnKeyDown(const Runtime::KeyEventArgs::InputType& key)
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
-//形式参数:	const Runtime::KeyEventArgs::InputType & key
+//形式参数:	const Components::Controls::KeyEventArgs::InputType & key
 //功能概要:	处理按键接触保持事件。
 //备注:		
 //********************************
 inline void
-OnKeyHeld(const Runtime::KeyEventArgs::InputType& key)
+OnKeyHeld(const Components::Controls::KeyEventArgs::InputType& key)
 {
-	Runtime::ResponseKeyHeld(*pDesktopDown, Runtime::KeyEventArgs(key));
+	ResponseKeyHeld(*pDesktopDown, Components::Controls::KeyEventArgs(key));
 }
 
 //********************************

@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-28 00:36:30 + 08:00;
-// UTime = 2010-10-29 10:16 + 08:00;
-// Version = 0.1945;
+// UTime = 2010-11-03 19:51 + 08:00;
+// Version = 0.1949;
 
 
 #include "yfilesys.h"
@@ -88,7 +88,7 @@ Path::GetFilename() const
 	return empty() ? Path() : *--end();
 }
 Path
-Path::GetStem() const
+Path::GetStemFrom() const
 {
 	return Path();
 }
@@ -146,7 +146,7 @@ Path::iterator::operator*() const
 
 
 const char*
-GetFileName(CPATH path)
+GetFileNameFrom(CPATH path)
 {
 	if(!path)
 		return NULL;
@@ -156,7 +156,7 @@ GetFileName(CPATH path)
 	return p ? (*++p ? p : NULL) : path;
 }
 string
-GetFileName(const string& path)
+GetFileNameFrom(const string& path)
 {
 	const string::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
@@ -164,7 +164,7 @@ GetFileName(const string& path)
 }
 
 string
-GetDirectoryName(const string& path)
+GetDirectoryNameFrom(const string& path)
 {
 	const string::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
@@ -190,7 +190,7 @@ SplitPath(const string& path, string& directory, string& file)
 }
 
 string
-GetStem(const string& name)
+GetStemFrom(const string& name)
 {
 	const string::size_type p(name.rfind('.'));
 
@@ -198,7 +198,7 @@ GetStem(const string& name)
 }
 
 bool
-IsStem(const char* str, const char* name)
+IsStemOf(const char* str, const char* name)
 {
 	using stdex::strlen_n;
 
@@ -209,7 +209,7 @@ IsStem(const char* str, const char* name)
 	return !strncmp(str, name, strlen_n(str));
 }
 bool
-IsStem(const string& str, const string& name)
+IsStemOf(const string& str, const string& name)
 {
 	if(str.length() > name.length())
 		return false;
@@ -219,7 +219,7 @@ IsStem(const string& str, const string& name)
 bool
 HaveSameStems(const char* a, const char* b)
 {
-	const char *pea(GetExtendName(a)), *peb(GetExtendName(b));
+	const char *pea(GetExtendNameFrom(a)), *peb(GetExtendNameFrom(b));
 
 	if(pea - a != peb - b)
 		return false;
@@ -235,11 +235,11 @@ HaveSameStems(const char* a, const char* b)
 bool
 HaveSameStems(const string& a, const string& b)
 {
-	return GetStem(a) == GetStem(b);
+	return GetStemFrom(a) == GetStemFrom(b);
 }
 
 const char*
-GetExtendName(const char* name)
+GetExtendNameFrom(const char* name)
 {
 	if(!name)
 		return NULL;
@@ -249,7 +249,7 @@ GetExtendName(const char* name)
 	return p && *++p ? p : NULL;
 }
 string
-GetExtendName(const string& name)
+GetExtendNameFrom(const string& name)
 {
 	const string::size_type p(name.rfind('.'));
 
@@ -257,20 +257,20 @@ GetExtendName(const string& name)
 }
 
 bool
-IsExtendName(const char* str, const char* name)
+IsExtendNameOf(const char* str, const char* name)
 {
-	const char* p(GetExtendName(name));
+	const char* p(GetExtendNameFrom(name));
 
 	if(!p)
 		return false;
 	return !stricmp(str, p);
 }
 bool
-IsExtendName(const string& str, const string& name)
+IsExtendNameOf(const string& str, const string& name)
 {
 	if(str.length() > name.length())
 		return false;
-	return GetExtendName(name) == str;
+	return GetExtendNameFrom(name) == str;
 }
 
 bool
@@ -279,7 +279,7 @@ HaveSameExtendNames(const char* a, const char* b)
 	if(!(a && b))
 		return false;
 
-	const char *pa(GetExtendName(a)), *pb(GetExtendName(b));
+	const char *pa(GetExtendNameFrom(a)), *pb(GetExtendNameFrom(b));
 
 	if(!(pa && pb))
 		return false;
@@ -288,7 +288,7 @@ HaveSameExtendNames(const char* a, const char* b)
 bool
 HaveSameExtendNames(const string& a, const string& b)
 {
-	string ea(GetExtendName(a)), eb(GetExtendName(b));
+	string ea(GetExtendNameFrom(a)), eb(GetExtendNameFrom(b));
 
 	return stdex::stricmp_n(ea.c_str(), eb.c_str()) != 0;
 //	return ucsicmp(ea.c_str(), eb.c_str());

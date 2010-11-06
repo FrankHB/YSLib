@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YAdaptor by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-22 20:16:21 + 08:00;
-// UTime = 2010-10-31 15:19 + 08:00;
-// Version = 0.1895;
+// UTime = 2010-11-04 11:36 + 08:00;
+// Version = 0.1896;
 
 
 #ifndef INCLUDED_YADAPTOR_H_
@@ -103,7 +103,7 @@ YSL_END
 
 
 //包含 Anti-Grain Geometry 。
-//#include "yagg.h"
+//#include "agg.h"
 
 
 //包含 Loki 。

@@ -133,9 +133,6 @@
     <ClCompile Include="arm9\YSLib\Core\ydevice.cpp">
       <Filter>ARM9\YSLib\Core</Filter>
     </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\yevtarg.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
     <ClCompile Include="arm9\YSLib\Core\yexcept.cpp">
       <Filter>ARM9\YSLib\Core</Filter>
     </ClCompile>
@@ -241,6 +238,9 @@
     <ClCompile Include="arm9\source\Shells.cpp">
       <Filter>ARM9\源文件</Filter>
     </ClCompile>
+    <ClCompile Include="arm9\YSLib\Shell\yfocus.cpp">
+      <Filter>ARM9\YSLib\Shell</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arm9\YCLib\ycommon.h">
@@ -262,12 +262,6 @@
       <Filter>ARM9\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="arm9\YSLib\Core\ydevice.h">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\yevt.hpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\yevtarg.h">
       <Filter>ARM9\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="arm9\YSLib\Core\yexcept.h">
@@ -1215,9 +1209,6 @@
     <ClInclude Include="arm9\YSLib\Adaptor\config.h">
       <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adaptor\yagg.h">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
     <ClInclude Include="arm9\YSLib\Adaptor\yfont.h">
       <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClInclude>
@@ -1229,6 +1220,15 @@
     </ClInclude>
     <ClInclude Include="arm9\YSLib\Adaptor\yaslivsp.hpp">
       <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Shell\yfocus.h">
+      <Filter>ARM9\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Adaptor\agg.h">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Core\yevt.hpp">
+      <Filter>ARM9\YSLib\Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

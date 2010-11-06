@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWindow by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:46:40 + 08:00;
-// UTime = 2010-11-01 13:45 + 08:00;
-// Version = 0.3704;
+// UTime = 2010-11-03 19:56 + 08:00;
+// Version = 0.3732;
 
 
 #ifndef INCLUDED_YWINDOW_H_
@@ -27,7 +27,6 @@ DeclBasedInterface(IWindow, virtual IUIContainer, virtual IVisualControl)
 	DeclIEntry(bool IsUpdateRequired() const)
 
 	DeclIEntry(YDesktop* GetDesktopPtr() const)
-	DeclIEntry(IVisualControl* GetFocusingPtr() const)
 
 	DeclIEntry(void SetRefresh(bool))
 	DeclIEntry(void SetUpdate(bool))
@@ -192,8 +191,8 @@ public:
 	PDefH(void, ClearBackground) const //清除背景。
 		ImplExpr(Buffer.ClearImage())
 
-	PDefH(void, Fill, PixelType c)
-		ImplBodyMemberVoid(Buffer, Fill, c) //以纯色填充显示缓冲区。
+	PDefH(void, BeFilledWith, PixelType c)
+		ImplBodyMemberVoid(Buffer, BeFilledWith, c) //以纯色填充显示缓冲区。
 
 protected:
 	//********************************
@@ -402,15 +401,21 @@ public:
 	virtual PDefHOperator(bool, -=, GMFocusResponser<IVisualControl>& c)
 		ImplBodyBase(MUIContainer, operator-=, c)
 
-	virtual PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
+	ImplI(IWindow) PDefH(IVisualControl*, GetFocusingPtr)
+		ImplBodyBase(GMFocusResponser<IVisualControl>, GetFocusingPtr)
+	ImplI(IWindow) PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
 		ImplBodyBase(MUIContainer, GetTopWidgetPtr, p)
-	virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p)
+	ImplI(IWindow) PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p)
 		ImplBodyBase(MUIContainer, GetTopVisualControlPtr, p)
-	virtual DefGetterBase(IVisualControl*, FocusingPtr,
-		GMFocusResponser<IVisualControl>)
 
-	virtual PDefH(void, ClearFocusingPtr)
+	ImplI(IWindow) PDefH(void, ClearFocusingPtr)
 		ImplBodyBaseVoid(MUIContainer, ClearFocusingPtr)
+
+	ImplI(IWindow) PDefH(bool, ResponseFocusRequest, AFocusRequester& w)
+		ImplBodyBase(MUIContainer, ResponseFocusRequest, w)
+
+	ImplI(IWindow) PDefH(bool, ResponseFocusRelease, AFocusRequester& w)
+		ImplBodyBase(MUIContainer, ResponseFocusRelease, w)
 
 protected:
 	//********************************

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
-// CTime = 2009-12-14 18:29:46 + 08:00;
-// UTime = 2010-10-31 12:20 + 08:00;
-// Version = 0.3194;
+// CTime = 2009-12-14 19:55 + 08:00;
+// UTime = 2010-11-06 12:35 + 08:00;
+// Version = 0.3206;
 
 
 #ifndef INCLUDED_YGDI_H_
@@ -746,7 +746,7 @@ Graphics::Graphics(BitmapPtr b, const Drawing::Size& s)
 //形式参数:	SPOS y
 //形式参数:	Color c
 //功能概要:	绘制像素：(x, y) 。
-//前置条件: 断言 g.IsValid && Rect(g.GetSize()).IsInBoundsRegular(x, y) 。
+//前置条件: 断言 g.IsValid && Rect(g.GetSize()).Contains(x, y) 。
 //备注:		
 //********************************
 inline void
@@ -756,7 +756,7 @@ PutPixel(const Graphics& g, SPOS x, SPOS y, Color c)
 		"In function \"inline void\n"
 		"PutPixel(const Graphics& g, SPOS x, SPOS y, Color c)\": \n"
 		"The graphics device context is invalid.");
-	YAssert(Rect(g.GetSize()).IsInBoundsRegular(x, y),
+	YAssert(Rect(g.GetSize()).Contains(x, y),
 		"In function \"inline void\n"
 		"PutPixel(const Graphics& g, SPOS x, SPOS y, Color c)\": \n"
 		"The pixel is not in the device context buffer.");
@@ -780,7 +780,7 @@ PutPixel(const Graphics& g, SPOS x, SPOS y, Color c)
 inline bool
 DrawPoint(const Graphics& g, SPOS x, SPOS y, Color c)
 {
-	if(g.IsValid() && Rect(g.GetSize()).IsInBoundsRegular(x, y))
+	if(g.IsValid() && Rect(g.GetSize()).Contains(x, y))
 	{
 		PutPixel(g, x, y, c);
 		return true;
@@ -1074,8 +1074,8 @@ operator+(const Padding& a, const Padding& b);
 
 
 //********************************
-//名称:		GetHorizontal
-//全名:		YSLib::Drawing::GetHorizontal
+//名称:		GetHorizontalFrom
+//全名:		YSLib::Drawing::GetHorizontalFrom
 //可访问性:	public 
 //返回类型:	YSLib::SDST
 //修饰符:	
@@ -1084,14 +1084,14 @@ operator+(const Padding& a, const Padding& b);
 //备注:		
 //********************************
 inline SDST
-GetHorizontal(const Padding& p)
+GetHorizontalFrom(const Padding& p)
 {
 	return p.Left + p.Right;
 }
 
 //********************************
-//名称:		GetVertical
-//全名:		YSLib::Drawing::GetVertical
+//名称:		GetVerticalFrom
+//全名:		YSLib::Drawing::GetVerticalFrom
 //可访问性:	public 
 //返回类型:	YSLib::SDST
 //修饰符:	
@@ -1100,14 +1100,14 @@ GetHorizontal(const Padding& p)
 //备注:		
 //********************************
 inline SDST
-GetVertical(const Padding& p)
+GetVerticalFrom(const Padding& p)
 {
 	return p.Top + p.Bottom;
 }
 
 //********************************
-//名称:		GetAll
-//全名:		YSLib::Drawing::GetAll
+//名称:		GetAllFrom
+//全名:		YSLib::Drawing::GetAllFrom
 //可访问性:	public 
 //返回类型:	u64
 //修饰符:	
@@ -1116,11 +1116,11 @@ GetVertical(const Padding& p)
 //备注:		64 位无符号整数形式。
 //********************************
 u64
-GetAll(const Padding&);
+GetAllFrom(const Padding&);
 
 //********************************
-//名称:		SetAll
-//全名:		YSLib::Drawing::SetAll
+//名称:		SetAllTo
+//全名:		YSLib::Drawing::SetAllTo
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
@@ -1133,10 +1133,10 @@ GetAll(const Padding&);
 //备注:		4 个 16 位无符号整数形式。
 //********************************
 void
-SetAll(Padding&, SDST, SDST, SDST, SDST);
+SetAllTo(Padding&, SDST, SDST, SDST, SDST);
 //********************************
-//名称:		SetAll
-//全名:		YSLib::Drawing::SetAll
+//名称:		SetAllTo
+//全名:		YSLib::Drawing::SetAllTo
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
@@ -1146,13 +1146,13 @@ SetAll(Padding&, SDST, SDST, SDST, SDST);
 //备注:		64 位无符号整数形式。
 //********************************
 inline void
-SetAll(Padding& p, u64 m)
+SetAllTo(Padding& p, u64 m)
 {
-	SetAll(p, m >> 48, (m >> 32) & 0xFFFF, (m >> 16) & 0xFFFF, m & 0xFFFF);
+	SetAllTo(p, m >> 48, (m >> 32) & 0xFFFF, (m >> 16) & 0xFFFF, m & 0xFFFF);
 }
 //********************************
-//名称:		SetAll
-//全名:		YSLib::Drawing::SetAll
+//名称:		SetAllTo
+//全名:		YSLib::Drawing::SetAllTo
 //可访问性:	public 
 //返回类型:	void
 //修饰符:	
@@ -1163,9 +1163,9 @@ SetAll(Padding& p, u64 m)
 //备注:		2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
 //********************************
 inline void
-SetAll(Padding& p, SDST h, SDST v)
+SetAllTo(Padding& p, SDST h, SDST v)
 {
-	SetAll(p, h, h, v, v);
+	SetAllTo(p, h, h, v, v);
 }
 
 
@@ -1228,7 +1228,7 @@ public:
 	DefConverter(Graphics, Graphics(img, *this)) //生成图形接口上下文。
 
 	DefGetter(BitmapPtr, BufferPtr, img) //取缓冲区指针。
-	DefGetter(std::size_t, SizeOfBuffer, sizeof(PixelType) * GetArea(*this)) \
+	DefGetter(std::size_t, SizeOfBuffer, sizeof(PixelType) * GetAreaFrom(*this)) \
 		//取缓冲区占用空间。
 
 	//********************************
@@ -1270,8 +1270,8 @@ public:
 	ClearImage() const;
 
 	//********************************
-	//名称:		Fill
-	//全名:		YSLib::Drawing::BitmapBuffer::Fill
+	//名称:		BeFilledWith
+	//全名:		YSLib::Drawing::BitmapBuffer::BeFilledWith
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	const
@@ -1280,7 +1280,7 @@ public:
 	//备注:		
 	//********************************
 	virtual void
-	Fill(Color) const;
+	BeFilledWith(Color) const;
 
 	//********************************
 	//名称:		CopyToBuffer
@@ -1376,7 +1376,7 @@ public:
 	operator==(const BitmapBufferEx&, const BitmapBufferEx&);
 
 	DefGetter(u8*, BufferAlphaPtr, imgAlpha) //取 Alpha 缓冲区的指针。
-	DefGetter(std::size_t, SizeOfBufferAlpha, sizeof(u8) * GetArea(*this)) \
+	DefGetter(std::size_t, SizeOfBufferAlpha, sizeof(u8) * GetAreaFrom(*this)) \
 		//取 Alpha 缓冲区占用空间。
 
 	//********************************

@@ -1,8 +1,8 @@
-﻿// YSLib::Adaptor::Contaner by Franksoft 2010
+﻿// YSLib::Adaptor::Container by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-09 09:25:26 + 08:00;
-// UTime = 2010-10-24 16:38 + 08:00;
-// Version = 0.1513;
+// UTime = 2010-11-04 11:33 + 08:00;
+// Version = 0.1514;
 
 
 #ifndef INCLUDED_CONT_H_

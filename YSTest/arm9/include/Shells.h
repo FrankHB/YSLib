@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-11-01 18:11 + 08:00;
-// Version = 0.2804;
+// UTime = 2010-11-06 15:28 + 08:00;
+// Version = 0.2807;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -119,7 +119,7 @@ private:
 		frm_KeyPress(const KeyEventArgs&);
 
 		void
-		fb_Selected(const MIndexEventArgs&);
+		fb_Selected(const IndexEventArgs&);
 
 		void
 		btnTest_Click(const TouchEventArgs&);
@@ -140,7 +140,7 @@ public:
 	fb_KeyPress(IVisualControl&, const KeyEventArgs&);
 
 	static void
-	fb_Confirmed(IVisualControl&, const MIndexEventArgs&);
+	fb_Confirmed(IVisualControl&, const IndexEventArgs&);
 };
 
 

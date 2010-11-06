@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YObject by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-10-31 12:21 + 08:00;
-// Version = 0.2500;
+// UTime = 2010-11-06 12:37 + 08:00;
+// Version = 0.2591;
 
 
 #ifndef INCLUDED_YOBJECT_H_
@@ -12,8 +12,42 @@
 
 #include "ycounter.hpp"
 #include "ycutil.h"
+#include "../Adaptor/cont.h"
 
 YSL_BEGIN
+
+//抽象描述接口。
+
+//值类型相等关系。
+template<typename _type>
+DeclInterface(GIEquatable)
+	DeclIEntry(bool operator==(const _type&) const)
+	virtual bool
+	operator!=(const _type& rhs) const
+	{
+		return !this->operator==(rhs);
+	}
+EndDecl
+
+//值类型小于关系。
+template<typename _type>
+DeclInterface(GILess)
+	DeclIEntry(bool operator<(const _type&) const)
+EndDecl
+
+//容器。
+template<typename _type>
+DeclInterface(GIContainer)
+	DeclIEntry(void operator+=(_type&))
+	DeclIEntry(bool operator-=(_type&))
+EndDecl
+
+//对象复制构造性。
+template<typename _type>
+DeclInterface(GIClonable)
+	DeclIEntry(_type* Clone() const)
+EndDecl
+
 
 //全局静态单例存储器。
 template<typename _type>
@@ -92,6 +126,66 @@ public:
 
 template<typename _type>
 _type* GStaticCache<_type>::_ptr(NULL);
+
+
+//通用对象组类模板。
+template<class _type, class _tContainer = std::set<_type*> >
+class GContainer : public _tContainer,
+	implements GIContainer<_type>
+{
+public:
+	typedef _tContainer ContainerType; //对象组类型。
+
+	virtual DefEmptyDtor(GContainer)
+
+	//********************************
+	//名称:		GetContainer
+	//全名:		YSLib::GContainer<_type, _tContainer>
+	//				::GetContainer
+	//可访问性:	public 
+	//返回类型:	ContainerType&
+	//修饰符:	
+	//功能概要:	取容器引用。
+	//备注:		
+	//********************************
+	ContainerType&
+	GetContainer()
+	{
+		return *this;
+	}
+	inline DefGetter(const ContainerType&, Container, *this)
+
+	//********************************
+	//名称:		operator+=
+	//全名:		YSLib::GContainer<_type, _tContainer>::operator+=
+	//可访问性:	ImplI(GIContainer<_type>) public 
+	//返回类型:	void
+	//修饰符:	
+	//形式参数:	_type & w
+	//功能概要:	向对象组添加对象。
+	//备注:		
+	//********************************
+	ImplI(GIContainer<_type>) void
+	operator+=(_type& w) 
+	{
+		insert(&w);
+	}
+	//********************************
+	//名称:		operator-=
+	//全名:		YSLib::GContainer<_type, _tContainer>::operator-=
+	//可访问性:	ImplI(GIContainer<_type>) public 
+	//返回类型:	bool
+	//修饰符:	
+	//形式参数:	_type & w
+	//功能概要:	从对象组移除对象。
+	//备注:		
+	//********************************
+	ImplI(GIContainer<_type>) bool
+	operator-=(_type& w)
+	{
+		return erase(&w);
+	}
+};
 
 
 YSL_BEGIN_NAMESPACE(Drawing)
@@ -547,7 +641,7 @@ Point::operator-=(const Vec& v)
 }
 
 
-//屏幕二维向量二元运算。
+//屏幕点和二维向量二元运算。
 
 //********************************
 //名称:		operator-
@@ -565,6 +659,41 @@ operator-(const Point& a, const Point& b)
 {
 	return Vec(a.X - b.X, a.Y - b.Y);
 }
+
+//********************************
+//名称:		operator+
+//全名:		YSLib::Drawing::operator+
+//可访问性:	public 
+//返回类型:	YSLib::Drawing::Point
+//修饰符:	
+//形式参数:	const Point & p
+//形式参数:	const Vec & d
+//功能概要: 构造屏幕点：使用点 p 和偏移向量 d 。
+//备注:		
+//********************************
+inline Point
+operator+(const Point& p, const Vec& d)
+{
+	return Point(p.X + d.X, p.Y + d.Y);
+}
+
+//********************************
+//名称:		operator-
+//全名:		YSLib::Drawing::operator-
+//可访问性:	public 
+//返回类型:	YSLib::Drawing::Point
+//修饰符:	
+//形式参数:	const Point & p
+//形式参数:	const Vec & d
+//功能概要: 构造屏幕点：使用点 p 和偏移向量的加法逆元 d 。
+//备注:		
+//********************************
+inline Point
+operator-(const Point& p, const Vec& d)
+{
+	return Point(p.X - d.X, p.Y - d.Y);
+}
+
 //********************************
 //名称:		operator+
 //全名:		YSLib::Drawing::operator+
@@ -581,6 +710,7 @@ operator+(const Vec& a, const Vec& b)
 {
 	return Vec(a.X + b.X, a.Y + b.Y);
 }
+
 //********************************
 //名称:		operator-
 //全名:		YSLib::Drawing::operator-
@@ -729,8 +859,8 @@ Transpose(_tBinary& o)
 }
 
 //********************************
-//名称:		GetArea
-//全名:		YSLib::Drawing::GetArea
+//名称:		GetAreaFrom
+//全名:		YSLib::Drawing::GetAreaFrom
 //可访问性:	public 
 //返回类型:	u32
 //修饰符:	
@@ -739,7 +869,7 @@ Transpose(_tBinary& o)
 //备注:		
 //********************************
 inline u32
-GetArea(const Size& s)
+GetAreaFrom(const Size& s)
 {
 	return s.Width * s.Height;
 }
@@ -851,8 +981,8 @@ public:
 	Rect(SPOS, SPOS, SDST, SDST);
 
 	//********************************
-	//名称:		IsInBounds
-	//全名:		YSLib::Drawing::Rect::IsInBounds
+	//名称:		Contains
+	//全名:		YSLib::Drawing::Rect::Contains
 	//可访问性:	public 
 	//返回类型:	bool
 	//修饰符:	const
@@ -861,10 +991,10 @@ public:
 	//备注:		
 	//********************************
 	bool
-	IsInBounds(const Point&) const;
+	Contains(const Point&) const;
 	//********************************
-	//名称:		IsInBounds
-	//全名:		YSLib::Drawing::Rect::IsInBounds
+	//名称:		Contains
+	//全名:		YSLib::Drawing::Rect::Contains
 	//可访问性:	public 
 	//返回类型:	bool
 	//修饰符:	const
@@ -874,35 +1004,10 @@ public:
 	//备注:		
 	//********************************
 	bool
-	IsInBounds(int px, int py) const;
+	Contains(int px, int py) const;
 	//********************************
-	//名称:		IsInBoundsRegular
-	//全名:		YSLib::Drawing::Rect::IsInBoundsRegular
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	const
-	//形式参数:	const Point & p
-	//功能概要:	判断点是否在矩形内或左侧或上侧边上。
-	//备注:		
-	//********************************
-	bool
-	IsInBoundsRegular(const Point& p) const;
-	//********************************
-	//名称:		IsInBoundsRegular
-	//全名:		YSLib::Drawing::Rect::IsInBoundsRegular
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	const
-	//形式参数:	int px
-	//形式参数:	int py
-	//功能概要:	判断点 (px, py) 是否在矩形内或左侧或上侧边上。
-	//备注:		
-	//********************************
-	bool
-	IsInBoundsRegular(int px, int py) const;
-	//********************************
-	//名称:		IsInBoundsStrict
-	//全名:		YSLib::Drawing::Rect::IsInBoundsStrict
+	//名称:		ContainsStrict
+	//全名:		YSLib::Drawing::Rect::ContainsStrict
 	//可访问性:	public 
 	//返回类型:	bool
 	//修饰符:	const
@@ -911,10 +1016,10 @@ public:
 	//备注:		
 	//********************************
 	bool
-	IsInBoundsStrict(const Point& p) const;
+	ContainsStrict(const Point& p) const;
 	//********************************
-	//名称:		IsInBoundsStrict
-	//全名:		YSLib::Drawing::Rect::IsInBoundsStrict
+	//名称:		ContainsStrict
+	//全名:		YSLib::Drawing::Rect::ContainsStrict
 	//可访问性:	public 
 	//返回类型:	bool
 	//修饰符:	const
@@ -924,7 +1029,7 @@ public:
 	//备注:		
 	//********************************
 	bool
-	IsInBoundsStrict(int px, int py) const;
+	ContainsStrict(int px, int py) const;
 	//********************************
 	//名称:		GetPoint
 	//全名:		YSLib::Drawing::Rect::GetPoint
@@ -984,40 +1089,28 @@ operator!=(const Rect& a, const Rect& b)
 }
 
 inline bool
-Rect::IsInBounds(const Point& p) const
+Rect::Contains(const Point& p) const
 {
-	return sgnInterval<SPOS>(p.X, X, (X + Width)) >= 0
-		&& sgnInterval<SPOS>(p.Y, Y, (Y + Height)) >= 0;
+	return IsInInterval<int>(p.X - X, Width)
+		&& IsInInterval<int>(p.Y - Y, Height);
 }
 inline bool
-Rect::IsInBounds(int px, int py) const
+Rect::Contains(int px, int py) const
 {
-	return sgnInterval<SPOS>(px, X, (X + Width)) >= 0
-		&& sgnInterval<SPOS>(py, Y, (Y + Height)) >= 0;
+	return IsInInterval<int>(px - X, Width)
+		&& IsInInterval<int>(py - Y, Height);
 }
 inline bool
-Rect::IsInBoundsRegular(const Point& p) const
+Rect::ContainsStrict(const Point& p) const
 {
-	return IsInIntervalRegular<int>(p.X - X, Width)
-		&& IsInIntervalRegular<int>(p.Y - Y, Height);
+	return Width > 1 && Height > 1 && IsInOpenInterval<int>(p.X - X, Width - 1)
+		&& IsInOpenInterval<int>(p.Y - Y, Height - 1);
 }
 inline bool
-Rect::IsInBoundsRegular(int px, int py) const
+Rect::ContainsStrict(int px, int py) const
 {
-	return IsInIntervalRegular<int>(px - X, Width)
-		&& IsInIntervalRegular<int>(py - Y, Height);
-}
-inline bool
-Rect::IsInBoundsStrict(const Point& p) const
-{
-	return IsInIntervalRegular<int>(p.X - X, Width)
-		&& IsInIntervalRegular<int>(p.Y - Y, Height);
-}
-inline bool
-Rect::IsInBoundsStrict(int px, int py) const
-{
-	return IsInIntervalStrict<int>(px - X, Width)
-		&& IsInIntervalStrict<int>(py - Y, Height);
+	return Width > 1 && Height > 1 && IsInOpenInterval<int>(px - X, Width - 1)
+		&& IsInOpenInterval<int>(py - Y, Height - 1);
 }
 
 YSL_END_NAMESPACE(Drawing)

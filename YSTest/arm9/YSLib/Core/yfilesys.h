@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFileSystem by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-28 00:09:28 + 08:00;
-// UTime = 2010-10-31 12:21 + 08:00;
-// Version = 0.1972;
+// UTime = 2010-11-03 19:53 + 08:00;
+// Version = 0.1976;
 
 
 #ifndef INCLUDED_YFILESYS_H_
@@ -225,8 +225,8 @@ public:
 	Path
 	GetFilename() const;
 	//********************************
-	//名称:		GetStem
-	//全名:		YSLib::IO::Path::GetStem
+	//名称:		GetStemFrom
+	//全名:		YSLib::IO::Path::GetStemFrom
 	//可访问性:	public 
 	//返回类型:	YSLib::IO::Path
 	//修饰符:	const
@@ -234,7 +234,7 @@ public:
 	//备注:		
 	//********************************
 	Path
-	GetStem() const;
+	GetStemFrom() const;
 	//********************************
 	//名称:		GetExtension
 	//全名:		YSLib::IO::Path::GetExtension
@@ -504,7 +504,7 @@ Path::HasFilename() const
 inline bool
 Path::HasStem() const
 {
-	return !GetStem().empty();
+	return !GetStemFrom().empty();
 }
 inline bool
 Path::HasExtension() const
@@ -618,8 +618,8 @@ swap(Path& lhs, Path& rhs)
 
 
 //********************************
-//名称:		GetFileName
-//全名:		YSLib::IO::GetFileName
+//名称:		GetFileNameFrom
+//全名:		YSLib::IO::GetFileNameFrom
 //可访问性:	public 
 //返回类型:	const char*
 //修饰符:	
@@ -628,10 +628,10 @@ swap(Path& lhs, Path& rhs)
 //备注:		
 //********************************
 const char*
-GetFileName(CPATH);
+GetFileNameFrom(CPATH);
 //********************************
-//名称:		GetFileName
-//全名:		YSLib::IO::GetFileName
+//名称:		GetFileNameFrom
+//全名:		YSLib::IO::GetFileNameFrom
 //可访问性:	public 
 //返回类型:	YSLib::string
 //修饰符:	
@@ -640,11 +640,11 @@ GetFileName(CPATH);
 //备注:		
 //********************************
 string
-GetFileName(const string&);
+GetFileNameFrom(const string&);
 
 //********************************
-//名称:		GetDirectoryName
-//全名:		YSLib::IO::GetDirectoryName
+//名称:		GetDirectoryNameFrom
+//全名:		YSLib::IO::GetDirectoryNameFrom
 //可访问性:	public 
 //返回类型:	YSLib::string
 //修饰符:	
@@ -653,7 +653,7 @@ GetFileName(const string&);
 //备注:		
 //********************************
 string
-GetDirectoryName(const string&);
+GetDirectoryNameFrom(const string&);
 
 //********************************
 //名称:		SplitPath
@@ -672,8 +672,8 @@ SplitPath(const string&, string&, string&);
 
 
 //********************************
-//名称:		GetStem
-//全名:		YSLib::IO::GetStem
+//名称:		GetStemFrom
+//全名:		YSLib::IO::GetStemFrom
 //可访问性:	public 
 //返回类型:	YSLib::string
 //修饰符:	
@@ -683,11 +683,11 @@ SplitPath(const string&, string&, string&);
 //备注:		贪婪匹配。
 //********************************
 string
-GetStem(const string&, const string&);
+GetStemFrom(const string&, const string&);
 
 //********************************
-//名称:		IsStem
-//全名:		YSLib::IO::IsStem
+//名称:		IsStemOf
+//全名:		YSLib::IO::IsStemOf
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
@@ -697,10 +697,10 @@ GetStem(const string&, const string&);
 //备注:		
 //********************************
 bool
-IsStem(const char*, const char*);
+IsStemOf(const char*, const char*);
 //********************************
-//名称:		IsStem
-//全名:		YSLib::IO::IsStem
+//名称:		IsStemOf
+//全名:		YSLib::IO::IsStemOf
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
@@ -710,7 +710,7 @@ IsStem(const char*, const char*);
 //备注:		
 //********************************
 bool
-IsStem(const string&, const string&);
+IsStemOf(const string&, const string&);
 
 //********************************
 //名称:		HaveSameStems
@@ -740,8 +740,8 @@ bool
 HaveSameStems(const string&, const string&);
 
 //********************************
-//名称:		GetExtendName
-//全名:		YSLib::IO::GetExtendName
+//名称:		GetExtendNameFrom
+//全名:		YSLib::IO::GetExtendNameFrom
 //可访问性:	public 
 //返回类型:	const char*
 //修饰符:	
@@ -750,10 +750,10 @@ HaveSameStems(const string&, const string&);
 //备注:		非贪婪匹配。
 //********************************
 const char*
-GetExtendName(const char*);
+GetExtendNameFrom(const char*);
 //********************************
-//名称:		GetExtendName
-//全名:		YSLib::IO::GetExtendName
+//名称:		GetExtendNameFrom
+//全名:		YSLib::IO::GetExtendNameFrom
 //可访问性:	public 
 //返回类型:	YSLib::string
 //修饰符:	
@@ -762,11 +762,11 @@ GetExtendName(const char*);
 //备注:		非贪婪匹配。
 //********************************
 string
-GetExtendName(const string&);
+GetExtendNameFrom(const string&);
 
 //********************************
-//名称:		IsExtendName
-//全名:		YSLib::IO::IsExtendName
+//名称:		IsExtendNameOf
+//全名:		YSLib::IO::IsExtendNameOf
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
@@ -776,10 +776,10 @@ GetExtendName(const string&);
 //备注:		
 //********************************
 bool
-IsExtendName(const char*, const char*);
+IsExtendNameOf(const char*, const char*);
 //********************************
-//名称:		IsExtendName
-//全名:		YSLib::IO::IsExtendName
+//名称:		IsExtendNameOf
+//全名:		YSLib::IO::IsExtendNameOf
 //可访问性:	public 
 //返回类型:	bool
 //修饰符:	
@@ -789,7 +789,7 @@ IsExtendName(const char*, const char*);
 //备注:		
 //********************************
 bool
-IsExtendName(const string&, const string&);
+IsExtendNameOf(const string&, const string&);
 
 //********************************
 //名称:		HaveSameExtendNames

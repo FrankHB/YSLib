@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52 + 08:00;
-// UTime = 2010-11-01 13:56 + 08:00;
-// Version = 0.2429;
+// UTime = 2010-11-06 13:18 + 08:00;
+// Version = 0.2434;
 
 
 #include "yglobal.h"
@@ -41,6 +41,22 @@ namespace
 		return a.up != b.up || a.down != b.down || a.held != b.held;
 	}
 
+	//********************************
+	//名称:		ToSPoint
+	//全名:		YSLib::Runtime::ToSPoint
+	//可访问性:	public 
+	//返回类型:	Drawing::Point
+	//修饰符:	
+	//形式参数:	const Runtime::CursorInfo & c
+	//功能概要:	转换指针设备光标位置为屏幕点。
+	//备注:		
+	//********************************
+	inline Drawing::Point
+	ToSPoint(const Runtime::CursorInfo& c)
+	{
+		return Drawing::Point(c.GetX(), c.GetY());
+	}
+
 	//图形用户界面输入等待函数。
 	void
 	WaitForGUIInput()
@@ -57,9 +73,10 @@ namespace
 		const Point pt(ToSPoint(Key.held & KeySpace::Touch
 			? TouchPos : TouchPos_Old));
 
-		if(theApp.GetDefaultMessageQueue().empty()
+		if((theApp.GetDefaultMessageQueue().empty()
 			|| Key != *reinterpret_cast<KeysInfo*>(InputMessage.GetWParam())
 			|| pt != InputMessage.GetCursorLocation())
+			&& pt != Point::FullScreen)
 			InsertMessage((InputMessage = Message(
 				NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Key), 0, pt)));
 	/*

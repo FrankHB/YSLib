@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YDevice by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-28 16:39:39 + 08:00;
-// UTime = 2010-10-24 13:45 + 08:00;
-// Version = 0.2742;
+// UTime = 2010-11-03 19:51 + 08:00;
+// Version = 0.2747;
 
 
 #ifndef INCLUDED_YOUTPUT_H_
@@ -76,15 +76,15 @@ private:
 	//********************************
 	static void InitScreen();
 	//********************************
-	//名称:		CheckInit
-	//全名:		YSLib::Device::YScreen::CheckInit
+	//名称:		CheckInitialization
+	//全名:		YSLib::Device::YScreen::CheckInitialization
 	//可访问性:	private static 
 	//返回类型:	void
 	//修饰符:	
 	//功能概要:	状态检查。
 	//备注:		
 	//********************************
-	static void CheckInit();
+	static void CheckInitialization();
 
 	BGType bg;
 
@@ -166,7 +166,7 @@ YScreen::InitScreen()
 inline Drawing::BitmapPtr
 YScreen::GetPtr() const ythrow()
 {
-	CheckInit();
+	CheckInitialization();
 	return ParentType::GetPtr();
 }
 

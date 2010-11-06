@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YFunc by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-14 18:48:44 + 08:00;
-// UTime = 2010-11-01 10:06 + 08:00;
-// Version = 0.2408;
+// UTime = 2010-11-03 19:53 + 08:00;
+// Version = 0.2412;
 
 
 #ifndef INCLUDED_YFUNC_HPP_
@@ -216,8 +216,8 @@ public:
 
 
 //********************************
-//名称:		GetDynamicFunction
-//全名:		YSLib::GetDynamicFunction<_type, _tArg, _tRet>
+//名称:		ConstructDynamicFunctionWith
+//全名:		YSLib::ConstructDynamicFunctionWith<_type, _tArg, _tRet>
 //可访问性:	public 
 //返回类型:	GHDynamicFunction<_type, _tArg, _tRet>
 //修饰符:	
@@ -228,13 +228,13 @@ public:
 //********************************
 template<typename _type, typename _tArg, typename _tRet>
 inline GHDynamicFunction<_type, _tArg, _tRet>
-GetDynamicFunction(_tRet (&_f)(_type&, _tArg))
+ConstructDynamicFunctionWith(_tRet (&_f)(_type&, _tArg))
 {
 	return GHDynamicFunction<_type, _tArg, _tRet>(_f);
 }
 //********************************
-//名称:		GetDynamicFunction
-//全名:		YSLib::GetDynamicFunction<_tRet, _type, _tArg>
+//名称:		ConstructDynamicFunctionWith
+//全名:		YSLib::ConstructDynamicFunctionWith<_tRet, _type, _tArg>
 //可访问性:	public 
 //返回类型:	
 //修饰符:	
@@ -248,7 +248,7 @@ GetDynamicFunction(_tRet (&_f)(_type&, _tArg))
 //********************************
 template<typename _tRet, typename _type, typename _tArg>
 inline GHDynamicFunction<_tRet, _type, _tArg>
-GetDynamicFunction(_tRet (_type::*_f)(_tArg) const)
+ConstructDynamicFunctionWith(_tRet (_type::*_f)(_tArg) const)
 {
 	return GHDynamicFunction<_tRet, _type, _tArg>(_f);
 }

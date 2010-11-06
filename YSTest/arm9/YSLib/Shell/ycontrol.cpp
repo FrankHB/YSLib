@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:34 + 08:00;
-// UTime = 2010-11-01 14:08 + 08:00;
-// Version = 0.3729;
+// UTime = 2010-11-06 13:24 + 08:00;
+// Version = 0.3871;
 
 
 #include "ycontrol.h"
@@ -15,50 +15,56 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
 
-using namespace Runtime;
+const ScreenPositionEventArgs
+	ScreenPositionEventArgs::Empty = ScreenPositionEventArgs();
+
+
+const InputEventArgs InputEventArgs::Empty = InputEventArgs();
+
+
+const TouchEventArgs TouchEventArgs::Empty = TouchEventArgs();
+
+
+const KeyEventArgs KeyEventArgs::Empty = KeyEventArgs();
+
 
 void
-OnKeyHeld(IVisualControl& c, const Runtime::KeyEventArgs& e)
+OnKeyHeld(IVisualControl& c, const KeyEventArgs& e)
 {
 	using namespace InputStatus;
 
-	if(RepeatHeld(KeyHeldState, e, 240, 120))
+	if(RepeatHeld(KeyHeldState, 240, 120))
 		c.GetKeyDown()(c, e);
 }
 
 void
-OnTouchHeld(IVisualControl& c, const Runtime::TouchEventArgs& e)
+OnTouchHeld(IVisualControl& c, const TouchEventArgs& e)
 {
 	using namespace InputStatus;
-	bool b(RepeatHeld(TouchHeldState, e.GetKey(), 0, 0));
+	bool b(RepeatHeld(TouchHeldState, 0, 0));
 
-	if(!IsOnDragging())
-		SetDragOffset(c.GetLocation() - e);
-	else if(b && c.GetLocation() != e + GetDragOffset())
-		c.GetTouchMove()(c, e);
+	if(DraggingOffset == Vec::FullScreen)
+		DraggingOffset = c.GetLocation() - VisualControlLocationOffset;
+	else if(b && c.GetLocation()
+		!= VisualControlLocationOffset + DraggingOffset)
+		c.GetTouchMove()(c, VisualControlLocationOffset);
 }
 
 void
-OnTouchMove(IVisualControl& c, const Runtime::TouchEventArgs& e)
+OnTouchMove(IVisualControl& c, const TouchEventArgs& e)
 {
-	c.SetLocation(e + InputStatus::GetDragOffset());
+	c.SetLocation(e + InputStatus::DraggingOffset);
 	c.Refresh();
 }
 
 
 MVisualControl::MVisualControl()
-	: MControl(), AFocusRequester()
+	: Control(), AFocusRequester()
 {}
-
-GMFocusResponser<IVisualControl>*
-MVisualControl::CheckFocusContainer(IUIBox* pCon)
-{
-	return pCon ? dynamic_cast<GMFocusResponser<IVisualControl>*>(pCon) : NULL;
-}
 
 
 AVisualControl::AVisualControl(HWND hWnd, const Rect& r, IUIBox* pCon)
-	: MWidget(hWnd, r, pCon), MVisualControl()
+	: Widget(hWnd, r, pCon), MVisualControl()
 {
 	EventMap[EControl::GotFocus] += &AVisualControl::OnGotFocus;
 	EventMap[EControl::LostFocus] += &AVisualControl::OnLostFocus;
@@ -87,20 +93,18 @@ AVisualControl::~AVisualControl() ythrow()
 void
 AVisualControl::RequestFocus(const EventArgs& e)
 {
-	GMFocusResponser<IVisualControl>* const p(CheckFocusContainer(
-		GetContainerPtr()));
+	IUIBox* p(GetContainerPtr());
 
-	if(p && AFocusRequester::RequestFocus(*p))
+	if(p && p->ResponseFocusRequest(*this))
 		EventMap[EControl::GotFocus](*this, e);
 }
 
 void
 AVisualControl::ReleaseFocus(const EventArgs& e)
 {
-	GMFocusResponser<IVisualControl>* const p(CheckFocusContainer(
-		GetContainerPtr()));
+	IUIBox* p(GetContainerPtr());
 
-	if(p && AFocusRequester::ReleaseFocus(*p))
+	if(p && p->ResponseFocusRelease(*this))
 		EventMap[EControl::LostFocus](*this, e);
 }
 

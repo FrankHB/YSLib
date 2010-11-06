@@ -1,8 +1,8 @@
 ﻿// YCommon 基础库 DS by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:14:42 + 08:00;
-// UTime = 2010-10-29 10:14 + 08:00;
-// Version = 0.1862;
+// UTime = 2010-11-06 13:18 + 08:00;
+// Version = 0.1872;
 
 
 #include "ycommon.h"
@@ -529,6 +529,18 @@ namespace platform
 	WriteKeysInfo(KeysInfo& key, CursorInfo& tp)
 	{
 		touchRead(&tp);
+		//修正触摸位置。
+		if(tp.px != 0 && tp.py != 0)
+		{
+			--tp.px;
+			--tp.py;
+		}
+		else
+		{
+			tp.px = SCREEN_WIDTH;
+			tp.py = SCREEN_HEIGHT;
+		}
+		//记录按键状态。
 		key.up = keysUp();
 		key.down = keysDown();
 		key.held = keysHeld();

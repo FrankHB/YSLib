@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YDesktop by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-05-02 12:00:08 + 08:00;
-// UTime = 2010-10-29 14:51 + 08:00;
-// Version = 0.2024;
+// UTime = 2010-11-03 19:59 + 08:00;
+// Version = 0.2028;
 
 
 #include "ydesktop.h"
@@ -135,7 +135,7 @@ YDesktop::DrawBackground()
 			return;
 		}
 	}
-	Buffer.Fill(BackColor);
+	Buffer.BeFilledWith(BackColor);
 }
 
 void

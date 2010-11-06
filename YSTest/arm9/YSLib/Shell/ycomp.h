@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-19 20:05:08 + 08:00;
-// UTime = 2010-11-01 13:55 + 08:00;
-// Version = 0.2780;
+// UTime = 2010-11-04 18:06 + 08:00;
+// Version = 0.2817;
 
 
 #ifndef INCLUDED_YCOMPONENT_H_
@@ -12,7 +12,6 @@
 
 #include "../Core/yapp.h"
 #include "../Core/yevt.hpp"
-#include "../Core/yevtarg.h"
 
 YSL_BEGIN
 
@@ -30,345 +29,6 @@ class YComponent : public GMCounter<YComponent>, public YCountableObject,
 public:
 	typedef YCountableObject ParentType;
 };
-
-
-//通用对象组类模板。
-template<class _type, class _tContainer = std::set<_type*> >
-class GMContainer : public _tContainer,
-	implements GIContainer<_type>
-{
-public:
-	typedef _tContainer ContainerType; //对象组类型。
-
-	virtual DefEmptyDtor(GMContainer)
-
-	//********************************
-	//名称:		GetContainer
-	//全名:		YSLib::Components::GMContainer<_type, _tContainer>
-	//				::GetContainer
-	//可访问性:	public 
-	//返回类型:	ContainerType&
-	//修饰符:	
-	//功能概要:	取容器引用。
-	//备注:		
-	//********************************
-	ContainerType&
-	GetContainer()
-	{
-		return *this;
-	}
-	inline DefGetter(const ContainerType&, Container, *this)
-
-	//********************************
-	//名称:		operator+=
-	//全名:		YSLib::Components::GMContainer<_type, _tContainer>::operator+=
-	//可访问性:	ImplI(GIContainer<_type>) public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	_type & w
-	//功能概要:	向对象组添加对象。
-	//备注:		
-	//********************************
-	ImplI(GIContainer<_type>) void
-	operator+=(_type& w) 
-	{
-		insert(&w);
-	}
-	//********************************
-	//名称:		operator-=
-	//全名:		YSLib::Components::GMContainer<_type, _tContainer>::operator-=
-	//可访问性:	ImplI(GIContainer<_type>) public 
-	//返回类型:	bool
-	//修饰符:	
-	//形式参数:	_type & w
-	//功能概要:	从对象组移除对象。
-	//备注:		
-	//********************************
-	ImplI(GIContainer<_type>) bool
-	operator-=(_type& w)
-	{
-		return erase(&w);
-	}
-};
-
-
-class AFocusRequester;
-
-
-//焦点响应器模板。
-template<class _type = AFocusRequester>
-class GMFocusResponser// : implements GIContainer<_type>
-{
-	friend class AFocusRequester;
-
-protected:
-	_type* pFocusing; //焦点对象指针。
-	GMContainer<_type> sFOs; //焦点对象组。
-
-	typedef typename GMContainer<_type>::ContainerType FOs; \
-		//焦点对象组类型。
-
-	//********************************
-	//名称:		GMFocusResponser
-	//全名:		YSLib::Components::GMFocusResponser<_type>::GMFocusResponser
-	//可访问性:	protected 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	无参数构造。
-	//备注:		
-	//********************************
-	inline
-	GMFocusResponser()
-	: pFocusing(NULL), sFOs()
-	{}
-
-public:
-	//判断指定指针是否和焦点对象指针相等。
-	inline PDefH(bool, IsFocusing, _type* p) const
-		ImplRet(pFocusing == p)
-
-	//取焦点对象指针。
-	inline DefGetter(_type*, FocusingPtr, pFocusing)
-	//取焦点对象组（只读）。
-	inline DefGetter(const FOs&, FocusingSet, sFOs)
-
-protected:
-	//********************************
-	//名称:		SetFocusingPtr
-	//全名:		YSLib::Components::GMFocusResponser<_type>::SetFocusingPtr
-	//可访问性:	protected 
-	//返回类型:	bool
-	//修饰符:	
-	//形式参数:	_type * p
-	//功能概要:	设置焦点对象指针。
-	//备注:		
-	//********************************
-	bool
-	SetFocusingPtr(_type* p)
-	{
-		if(p && sFOs.find(p) == sFOs.end())
-			return false;
-		if(pFocusing != p)
-		{
-			if(pFocusing && pFocusing->IsFocused())
-				pFocusing->ReleaseFocus(GetZeroElement<EventArgs>());
-			pFocusing = p;
-		}
-		return pFocusing;
-	}
-
-	//向焦点对象组添加焦点对象。
-	inline PDefHOperator(void, +=, _type& c)
-		ImplExpr(sFOs += c)
-	//从焦点对象组移除焦点对象。
-	inline PDefHOperator(bool, -=, _type& c)
-		ImplRet(sFOs -= c)
-
-public:
-	//清空焦点指针。
-	inline PDefH(bool, ClearFocusingPtr)
-		ImplRet(SetFocusingPtr(NULL))
-};
-
-
-//焦点申请器接口模板。
-template<class _type = AFocusRequester>
-DeclInterface(GIFocusRequester)
-	DeclIEntry(bool IsFocused() const)
-	DeclIEntry(bool IsFocusOfContainer(GMFocusResponser<_type>&) const)
-
-	DeclIEntry(bool CheckRemoval(GMFocusResponser<_type>&) const)
-
-	DeclIEntry(void ReleaseFocus(const EventArgs&))
-EndDecl
-
-
-//焦点申请器。
-class AFocusRequester : implements GIFocusRequester<AFocusRequester>
-{
-protected:
-	bool bFocused; //是否为所在容器的焦点。
-
-public:
-	//********************************
-	//名称:		AFocusRequester
-	//全名:		YSLib::Components::AFocusRequester::AFocusRequester
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	无参数构造。
-	//备注:		
-	//********************************
-	AFocusRequester();
-	virtual DefEmptyDtor(AFocusRequester)
-
-	//********************************
-	//名称:		IsFocused
-	//全名:		YSLib::Components::AFocusRequester::IsFocused
-	//可访问性:	ImplI(GIFocusRequester<AFocusRequester>) public 
-	//返回类型:	bool
-	//修饰符:	const
-	//功能概要:	判断是否为获得焦点状态。
-	//备注:		
-	//********************************
-	ImplI(GIFocusRequester<AFocusRequester>) bool
-	IsFocused() const;
-	//********************************
-	//名称:		IsFocusOfContainer
-	//全名:		YSLib::Components::AFocusRequester::IsFocusOfContainer
-	//可访问性:	ImplI(GIFocusRequester<AFocusRequester>) public 
-	//返回类型:	bool
-	//修饰符:	const
-	//形式参数:	GMFocusResponser<AFocusRequester> &
-	//功能概要:	判断是否已在指定响应器中获得焦点。
-	//备注:		
-	//********************************
-	ImplI(GIFocusRequester<AFocusRequester>) bool
-	IsFocusOfContainer(GMFocusResponser<AFocusRequester>&) const;
-	//********************************
-	//名称:		IsFocusOfContainer
-	//全名:		YSLib::Components::AFocusRequester::IsFocusOfContainer<_type>
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	const
-	//形式参数:	GMFocusResponser<_type> &
-	//功能概要:	判断是否已在指定响应器中获得焦点。
-	//备注:		
-	//********************************
-	template<class _type>
-	bool
-	IsFocusOfContainer(GMFocusResponser<_type>&) const;
-
-	//********************************
-	//名称:		CheckRemoval
-	//全名:		YSLib::Components::AFocusRequester::CheckRemoval
-	//可访问性:	ImplI(GIFocusRequester<AFocusRequester>) public 
-	//返回类型:	bool
-	//修饰符:	const
-	//形式参数:	GMFocusResponser<AFocusRequester> &
-	//功能概要:	判断是否已在指定响应器中获得焦点，若是则释放焦点。
-	//备注:		
-	//********************************
-	ImplI(GIFocusRequester<AFocusRequester>) bool
-	CheckRemoval(GMFocusResponser<AFocusRequester>&) const;
-	//********************************
-	//名称:		CheckRemoval
-	//全名:		YSLib::Components::AFocusRequester::CheckRemoval<_type>
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	const
-	//形式参数:	GMFocusResponser<_type> &
-	//功能概要:	判断是否已在指定响应器中获得焦点，若是则释放焦点。
-	//备注:		
-	//********************************
-	template<class _type>
-	bool
-	CheckRemoval(GMFocusResponser<_type>&) const;
-
-	//********************************
-	//名称:		RequestFocus
-	//全名:		YSLib::Components::AFocusRequester::RequestFocus
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	
-	//形式参数:	GMFocusResponser<AFocusRequester> &
-	//功能概要:	向指定响应器对应的容器申请获得焦点。
-	//备注:		
-	//********************************
-	bool
-	RequestFocus(GMFocusResponser<AFocusRequester>&);
-	//********************************
-	//名称:		RequestFocus
-	//全名:		YSLib::Components::AFocusRequester::RequestFocus<_type>
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	
-	//形式参数:	GMFocusResponser<_type> &
-	//功能概要:	向指定响应器对应的容器申请获得焦点。
-	//备注:		
-	//********************************
-	template<class _type>
-	bool
-	RequestFocus(GMFocusResponser<_type>&);
-
-	//********************************
-	//名称:		ReleaseFocus
-	//全名:		YSLib::Components::AFocusRequester::ReleaseFocus
-	//可访问性:	ImplI(GIFocusRequester<AFocusRequester>) public 
-	//返回类型:	bool
-	//修饰符:	
-	//形式参数:	GMFocusResponser<AFocusRequester> &
-	//功能概要:	释放焦点。
-	//备注:		
-	//********************************
-	ImplI(GIFocusRequester<AFocusRequester>) bool
-	ReleaseFocus(GMFocusResponser<AFocusRequester>&);
-	//********************************
-	//名称:		ReleaseFocus
-	//全名:		YSLib::Components::AFocusRequester::ReleaseFocus<_type>
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	
-	//形式参数:	GMFocusResponser<_type> &
-	//功能概要:	释放焦点。
-	//备注:		
-	//********************************
-	template<class _type>
-	bool
-	ReleaseFocus(GMFocusResponser<_type>&);
-
-	ImplA(GIFocusRequester<AFocusRequester>)
-	DeclIEntry(void ReleaseFocus(const EventArgs&))
-};
-
-inline
-AFocusRequester::AFocusRequester()
-	: bFocused(false)
-{}
-
-inline bool
-AFocusRequester::IsFocused() const
-{
-	return bFocused;
-}
-
-inline bool
-AFocusRequester::IsFocusOfContainer(GMFocusResponser<AFocusRequester>& c) const
-{
-	return c.GetFocusingPtr() == this;
-}
-template<class _type>
-inline bool
-AFocusRequester::IsFocusOfContainer(GMFocusResponser<_type>& c) const
-{
-	return c.GetFocusingPtr() == dynamic_cast<const _type*>(this);
-}
-
-template<class _type>
-bool
-AFocusRequester::CheckRemoval(GMFocusResponser<_type>& c) const
-{
-	if(IsFocusOfContainer(c))
-	{
-		c.ClearFocusingPtr();
-		return true;
-	}
-	return false;
-}
-
-template<class _type>
-bool
-AFocusRequester::RequestFocus(GMFocusResponser<_type>& c)
-{
-	return !(bFocused && IsFocusOfContainer(c)) && (bFocused = c.SetFocusingPtr(dynamic_cast<_type*>(this)));
-}
-
-template<class _type>
-bool
-AFocusRequester::ReleaseFocus(GMFocusResponser<_type>& c)
-{
-	return bFocused && IsFocusOfContainer(c) && (bFocused = NULL, !(c.ClearFocusingPtr()));
-}
 
 
 //序列视图类模板。
@@ -427,7 +87,8 @@ public:
 		SetIndex(nIndex + d);
 		return *this;
 	}
-	inline PDefHOperator(GSequenceViewer&, <<, IndexType d) //视图中首个项目下标减少 d 。
+	inline PDefHOperator(GSequenceViewer&, <<, IndexType d) \
+		//视图中首个项目下标减少 d 。
 		ImplRet(*this >> -d)
 	//********************************
 	//名称:		operator+=
@@ -445,7 +106,8 @@ public:
 		SetSelected(nSelected + d);
 		return *this;
 	}
-	inline PDefHOperator(GSequenceViewer&, -=, IndexType d) //选中项目下标减少 d 。
+	inline PDefHOperator(GSequenceViewer&, -=, IndexType d) \
+		//选中项目下标减少 d 。
 		ImplRet(*this += -d)
 
 	DefPredicate(Selected, bSelected) //判断是否为选中状态。
@@ -454,7 +116,8 @@ public:
 	DefGetter(SizeType, Length, nLength)
 	DefGetter(IndexType, Index, nIndex)
 	DefGetter(IndexType, Selected, nSelected)
-	DefGetter(SizeType, Valid, vmin(GetTotal() - GetIndex(), GetLength())) //取当前视图中有效项目个数。
+	DefGetter(SizeType, Valid, vmin(GetTotal() - GetIndex(), GetLength())) \
+		//取当前视图中有效项目个数。
 
 	//********************************
 	//名称:		SetIndex
@@ -469,7 +132,8 @@ public:
 	bool
 	SetIndex(IndexType t)
 	{
-		if(GetTotal() && IsInIntervalRegular<IndexType>(t, GetTotal()) && t != nIndex)
+		if(GetTotal() && IsInInterval<IndexType>(t, GetTotal())
+			&& t != nIndex)
 		{
 			if(!t)
 				MoveViewerToBegin();
@@ -524,7 +188,8 @@ public:
 	bool
 	SetSelected(IndexType t)
 	{
-		if(GetTotal() && IsInIntervalRegular<IndexType>(t, GetTotal()) && !(t == nSelected && bSelected))
+		if(GetTotal() && IsInInterval<IndexType>(t, GetTotal())
+			&& !(t == nSelected && bSelected))
 		{
 			nSelected = t;
 			RestrictViewer();
@@ -556,7 +221,8 @@ public:
 
 	//********************************
 	//名称:		RestrictSelected
-	//全名:		YSLib::Components::GSequenceViewer<_tContainer>::RestrictSelected
+	//全名:		YSLib::Components::GSequenceViewer<_tContainer>
+	//				::RestrictSelected
 	//可访问性:	public 
 	//返回类型:	bool
 	//修饰符:	
@@ -602,7 +268,8 @@ public:
 
 	//********************************
 	//名称:		MoveViewerToBegin
-	//全名:		YSLib::Components::GSequenceViewer<_tContainer>::MoveViewerToBegin
+	//全名:		YSLib::Components::GSequenceViewer<_tContainer>
+	//				::MoveViewerToBegin
 	//可访问性:	public 
 	//返回类型:	bool
 	//修饰符:	
@@ -662,7 +329,9 @@ public:
 	//备注:		
 	//********************************
 	explicit
-	YConsole(YScreen& = *pDefaultScreen, bool = true, Drawing::Color = Drawing::ColorSpace::White, Drawing::Color = Drawing::ColorSpace::Black);
+	YConsole(YScreen& = *pDefaultScreen, bool = true,
+		Drawing::Color = Drawing::ColorSpace::White,
+		Drawing::Color = Drawing::ColorSpace::Black);
 	//********************************
 	//名称:		~YConsole
 	//全名:		YSLib::Components::YConsole::~YConsole
@@ -687,7 +356,8 @@ public:
 	//备注:		
 	//********************************
 	void
-	Activate(Drawing::Color = Drawing::ColorSpace::White, Drawing::Color = Drawing::ColorSpace::Black);
+	Activate(Drawing::Color = Drawing::ColorSpace::White,
+		Drawing::Color = Drawing::ColorSpace::Black);
 
 	//********************************
 	//名称:		Deactivate

@@ -1,8 +1,8 @@
 ﻿// YSLib::Adaptor::YFontCache by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-12 22:06:13 + 08:00;
-// UTime = 2010-10-29 10:17 + 08:00;
-// Version = 0.6932;
+// UTime = 2010-11-03 19:53 + 08:00;
+// Version = 0.6936;
 
 
 #include "yfont.h"
@@ -556,7 +556,7 @@ YFontCache::LoadFontFileDirectory(CPATH path, CPATH ext)
 			while((++dir).LastError == 0)
 				if(std::strcmp(HDirectory::Name, FS_Now) != 0
 					&& !HDirectory::IsDirectory()
-					&& IsExtendName(ext, HDirectory::Name))
+					&& IsExtendNameOf(ext, HDirectory::Name))
 				{
 					try
 					{
@@ -580,7 +580,7 @@ YFontCache::LoadFontFile(CPATH path) ythrow()
 {
 	try
 	{
-		if(GetFileName(path) && fexists(path))
+		if(GetFileNameFrom(path) && fexists(path))
 		{
 			FontFile* p(new FontFile(path, library));
 

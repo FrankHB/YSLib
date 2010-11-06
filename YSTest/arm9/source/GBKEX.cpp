@@ -1,8 +1,8 @@
 // YSTest by Franksoft 2009 - 2010
 // CodePage = ANSI / GBK;
 // CTime = 2009-11;
-// UTime = 2010-11-01 18:11 + 08:00;
-// Version = 0.2812; *Build 167 r78;
+// UTime = 2010-11-06 15:29 + 08:00;
+// Version = 0.2822; *Build 168 r139;
 
 
 #include "../YCLib/ydef.h"
@@ -90,6 +90,7 @@ $Record prefix and abbrevations:
 \ptr ::= pointers
 \q ::= qualifiers
 \rem ::= remarked
+\ren ::= renamed
 \ref ::= references
 \refact ::= refactorings
 \res ::= resources
@@ -120,11 +121,16 @@ $Record prefix and abbrevations:
 $using:
 \u YWidget
 {
-	\cl MWidget;
+	\in IWidget;
+	\in IUIBox;
+	\cl Widget;
+	\cl YUIContainer;
 	\cl YLabel;
 }
 \u YControl
 {
+	\in IControl;
+	\in IVisualControl;
 	\cl MVisualControl;
 	\cl YControl;
 	\cl AVisualControl;
@@ -145,562 +151,414 @@ $using:
 }
 \u YWindow
 {
+	\in IWindow;
 	\cl MWindow;
 	\cl AWindow;
 	\cl YFrameWindow;
 }
 
 $DONE:
-r1:
-*= \tr \rem @@ \h (YGUI & YGDI & YControl);
-
-r2:
-/ @@ \u YGUIComponent:
-	+ \f RectDrawButton @@ \un ns;
-	/ \impl @@ \mf DrawForeground ^ \f DrawButton @@ \cl YButton;
-	/ \impl @@ \mf DrawForeground ^ \f DrawButton @@ \cl YHorizontalScrollBar;
-
-r3:
-/ @@ \u YGUIComponent:
-	/ \simp  @@ \un \ns:
-		/ \impl @@ \f RectDrawButton;
-		- \f RectDrawButtonSurface;
-		- \f RectDrawPressed;
-	* \impl @@ \mf YButton::DrawForeground();
-/= \simp @@ \mf Point MWidget::LocateForWindow() const;
-
-r4:
-* \impl @@ \f void DrawWidgetBounds(IWidget&, Color) @@ \u YGUI;
-/= \simp:
-	-= \a code " != NULL" in poninter & handle comparison context;
-/ \impl @@ \mf @@ \cl MWidget @@ \u YWidget:
-	{
-		Point LocateForParentContainer() const
-			-> !\m Point LocateForParentContainer(const IWidget&);
-		Point LocateForParentWindow() const;
-			-> !\m Point LocateForParentWindow(const IWidget&);
-		Point LocateForWindow() const;
-			-> !\m Point LocateForWindow(const IWidget&);
-	}
-/ @@ \u YWidget:
-	/ \mf void PaintText(MWidget&) @@ \cl MLabel
-		-> void PaintText(MWidget&, const Point&);
-	/ \impl @@ \mf void YLabel::DrawForeground();
-	/ \f Point LocateOffset(const IWidget*, const Point&, const HWND&)
-		-> Point LocateOffset(const IWidget*, Point, const HWND&);
-/ @@ \u YGUIComponent:
-	/ \impl @@ \mf void YButton::DrawForeground();
-	/ \tr \impl @@ \fvoid RectDrawButton(const Graphics&, const Point&,
-		const Size&, bool = false) @@ \un \ns;
-
-r5:
-/= \test 1;
-	/ \tr @@ makefile;
+r1-r5:
+/= test 1;
 
 r6:
-/ @@ \u YGUIComponent:
-	/ @@ \cl AScrollBar:
-		+ public typedef u16 ValueType;
-		+ private \m SDST ThumbPosition;
-		+ public \mf void SetThumbPosition(ValueType);
-		+ private \m SDST ThumbSize;
-		+ public \mf void SetThumbSize(SDST);
-		+ public \mf DefGetter(SDST, ThumbSize, ThumbSize);
-		+ public \mf DefGetter(SDST, ThumbPosition, ThumbPosition);
-		+ public \amf DeclIEntry(SDST GetWidgetLength() const);
-	/ @@ \u YHorizontalScrollBar:
-		+ \mf ImplI(AScrollBar) DefGetter(SDST, WidgetLength(), Size.Width);
-		/ + ImplI(AScrollBar) @@ \mf void DrawForeground();
-	+ \as @@ \mf SDST YListBox::GetItemHeight() const;
-* \a restrictInIntervalRegular => restrictInInterval;
-+ \f \t template<typename _type>
-	void restrictInIntervalRegular(_type&, int, int) @@ \u YCoreUtilities;
-/ \a restrictInIntervalRegular => RestrictInIntervalRegular;
-/ \a restrictInInterval => RestrictInInterval;
-/ \a isInIntervalRegular => IsInIntervalRegular;
-/ \a isInIntervalStrict => IsInIntervalStrict;
-/ \a restrictUnsigned => RestrictUnsigned;
-/ \a restrictUnsignedRegular => RestrictUnsignedRegular;
-/ \a restrictLessEqual => RestrictLessEqual;
-/ @@ \u YGDI:
-	* \impl @@ \f
-		bool DrawHLineSeg(const Graphics&, SPOS, SPOS, SPOS, Color);
-	* \impl @@ \f
-		bool DrawVLineSeg(const Graphics&, SPOS, SPOS, SPOS, Color);
-	/ \impl @@ \f
-		bool DrawLineSeg(const Graphics&, SPOS, SPOS, SPOS, SPOS, Color);
-	/ @@ \cl Padding:
-		- \exp \ctor Padding(u64);
-		/ 3 \mf SetAll -> !\m \f Drawing::SetAll with 1st \parm Padding&;
-		/ \mf u64 GetAll() const -> !\m \f Drawing::GetAll(const Padding&);
-		/ \mf SDST GetHorizontal() const
-			-> !\m \f SDST Drawing::GetHorizontal();
-		/ \mf SDST GetVertical() const
-			-> !\m \f SDST Drawing::GetVertical();
-		/ \decl friend Padding operator+(const Padding& a, const Padding& b)
-			-> !\m !friend;
-/ @@ \u YText:
-	/ @@ \cl YTextRegion:
-		/ \mf DefGetter(SDST, BufWidthN, Width - Margin.GetHorizontal())
-			-> DefGetter(SDST, BufWidthN, Width - GetHorizontal(Margin));
-		/ \mf DefGetter(SDST, BufHeightN, Height - Margin.GetVertical())
-			-> DefGetter(SDST, BufHeightN, Height - GetVertical(Margin));
-	/ @@ \cl YTextState:
-		/ !\i \mf SDST GetLnHeight() const
-			-> \i !\m \f Drawing::GetLnHeight(const TextState&);
-		/ !\i \mf SDST GetLnHeightEx() const
-			-> \i !\m \f Drawing::GetLnHeightEx(const TextState&);
-		/ !\i \mf SDST GetLnHeightEx() const
-			-> \i !\m \f Drawing::GetLnNNow(const TextState&);
-		/ 3 \mf SetMargins
-			-> !\m \f Drawing::SetMargins with 1st \parm TextState&;
-		/ 2 \mf SetPen
-			-> !\m \f Drawing::SetPens with 1st \parm TextState&;
-		/ \mf void SetLnNNow(u16)
-			-> !\m \f void Text::SetLnNNow(TextState&, u16);
-		- \mf
-		{
-			DefGetter(SPOS, PenX, penX);
-			DefGetter(SPOS, PenY, penY);
-			DefSetter(SPOS, PenX, penX);
-			DefSetter(SPOS, PenY, penY);
-			DefGetter(u8, LineGap, lnGap);
-			DefSetter(u8, LineGap, lnGap);
-		}
-		/ \ac @@ \m penX & penY & lnGap -> public ~ protected;
-	/= \cl TextState -> \st TextState;
-/ \impl @@ \u DSReader;
-/ a penX => PenX;
-/ a penY => PenY;
-/ a lnGap => LineGap;
-/ \tr \impl @@ \u YWidget;
+/ @@ \cl ATrack:
+	+ \inh public GMFocusResponser<IVisualControl>;
+	/ \impl @@ \mf ClearFocusingPtr;
 
-r7:
-* \impl @@ \mf void YListBox::DrawForeground();
-
-r8:
-* \impl @@ \f bool
-	DrawRect(const Graphics&, const Point&, const Size&, Color) @@ \u YGDI;
-
-r9:
-/ \simp @@ \cl BitmapBuffer @@ \u YGDI:
-	- \mf
-	{
-		DefGetter(SDST, Width, Width);
-		DefGetter(SDST, Height, Height);
-	};
-/ @@ \u YCoreUtilities:
-	/ @@ \cl Size 
-		- \mf
-		{
-			DefGetter(SDST, Width, Width);
-			DefGetter(SDST, Height, Height);
-			DefGetter(u32, Area, Width * Height)¡£
-		};
-	+ \f u32 GetArea(const Size&);
-	- \mf DefGetterBase(u32, Area, Size) @@ \cl YGraphicDevice;
-/ \a MBitmapBuffer => BitmapBuffer;
-/ \a MBitmapBufferEx => BitmapBufferEx;
-/ \impl @@ \mf DrawForeground & \mf SetThumbPosition @@ \cl AScrollBar;
-
-r10:
-* \impl @@ \ctor @@ \mf AScrollBar;
-
-r11:
-	/ \f void RectDrawButton(const Graphics&, const Point&, const Size&,
-		bool = false) -> void RectDrawButton(const Graphics&, const Point&,
-		const Size&, Color = Color(232. 240, 255), bool = false);
-
-r12:
-/ @@ \ns platform @@ \u YCommon:
-	/ @@ \cl Color;
-/ \a scrCopy => ScreenSychronize;
-/ \impl @@ \ns \u YGUIComponent:
-	/ \f void RectDrawButton(const Graphics&, const Point&, const Size&,
-		Color = Color(232. 240, 255), bool = false) -> void
-		RectDrawButton(const Graphics&, const Point&, const Size&,
-		bool = false, Color = Color(232. 240, 255));
-	/ \tr \impl @@ \mf YHorizontalScrollBar::DrawForeground();
-
-r13:
-/ \impl @@ \ns \u YGUIComponent:
-	/ \f void RectDrawButton(const Graphics&, const Point&, const Size&,
-		bool = false, Color = Color(232. 240, 255)) -> void
-		RectDrawButton(const Graphics&, const Point&, const Size&,
-		bool = false, Color = Color(48, 216, 255));
-
-r14:
-/ @@ \cl MScrollBar @@ \u YControl:
-	- \m
-	{
-		bool bPrevButtonPressed;
-		bool bNextButtonPressed;
-	}
-	+ \m
-	{
-	public:
-		typedef enum
-		{
-			None = 0,
-			PrevButton = 1,
-			NextButton = 2,
-			PrevTrack = 3,
-			NextTrack = 4,
-			Thumb = 5
-		} CompIndex;
-
-	protected:
-		CompIndex Pressed;
-
-	public:
-		DefGetter(CompIndex, PressedState, Pressed)
-	}
-/ \tr \impl @@ \mf void YHorizontalScrollBar::DrawForeground()
-	@@ \u YGUIComponent;
-/ \a GetLocationForWindow => LocateForWindow;
-/ \a GetLocationOffset => LocateOffset;
-/ \a GetContainerLocationOffset => LocateContainerOffset;
-/ \a GetWindowLocationOffset => LocateWindowOffset;
-/ \a GetLocationForParentContainer => LocateForParentContainer;
-/ \a GetLocationForParentWindow => LocateForParentWindow;
-
-r15:
-/ \simp @@ \u YGUI;
-/ \simp:
-	/ code "* == NULL" -> "!(*)";
-
-r16:
-/ @@ \u YWidget:
-	+ \in IUIBox \vt \inh \in IWidget;
-	/ \inh @@ \in IUIContainer -> \vt IUIBox ~ \vt IWidget;
-	/ \decl @@ \in IWidget:
-		/ DeclIEntry(IUIContainer* GetContainerPtr() const)
-			-> DeclIEntry(IUIBox* GetContainerPtr() const);
-	/ @@ \cl MVisual:
-		/ public \m IUIContainer* const pContainer
-			-> private \m IUIBox* pContainer;
-/ \tr impl @@ \ctor & \mf GetContainer & \mf BelongsTo @@ \dir Shell;
-/ @@ \u YGUI:
-	/ \a IUIContainer -> IUIBox;
-/ @@ \h YShellDefinition:
-	+ PDeclInterface(IUIBox) @@ \ns Components::Widgets;
-	+ using Components::Widgets::IUIBox;
-
-r17-r18:
-* \tr \impl @@ \mf YListBox::DrawForeground();
-
-r19:
-/ \simp @@ \ctor @@ \u (YWidget & YControl & YWindow);
-/= \tr @@ \u YComponent;
-
-r20:
-/ \a IWidgetContainer => IUIContainer;
-/ \a IWidgetBox => IUIBox;
-/ \a YWidgetContainer => YUIContainer;
-/ \a MWidgetContainer => MUIContainer;
-/ @@ \u YWidget:
-	+ \f bool Contains(const IWidget&, const Point&);
-	+ \i \f bool Contains(const IWidget&, SPOS, SPOS);
-	- \amf DeclIEntry(bool Contains(const Point&) const) @@ \in IWidget;
-	/ \tr \impl @@ \mf IWidget*
-		MUIContainer::GetTopWidgetPtr(const Point& pt) const;
-	/ \tr \impl @@ \mf IVisualControl*
-		MUIContainer::GetTopVisualControlPtr(const Point& pt) const;
-- \a @@ \mf (bool Contains(const Point&) const & bool
-	Contains(SPOS, SPOS) const) @@ \u (YWidget & YControl & YWindow & YDesktop);
-/ \tr \impl @@ \mf HWND
-	YShell::GetTopWindowHandle(YDesktop& d, const Point& p) const @@ \u YShell;
-
-r21-r23:
-/ @@ \u YGUIComponent:
-	/ @@ \cl AScrollBar:
-		+ \inh \in IUIBox;
-	/ \rem \cl AScrollBar;
-	/ \rem \cl YHorizontalScrollBar;
-	/ \rem \cl YVerticalScrollBar;
-	+ \cl ATrack;
-	+ \cl YHorizontalTrack;
-	+ \cl YThumb;
-	/ \cl YButton;
-		/ ^ \inh YThumb;
-/ \tr @@ \u Shells;
-/ \ac @@ \a \mf DrawForeground & \mf DrawBackground => public ~ protected;
-- \c \q @@ \a \mf GetTopWidgetPtr & \mf GetTopVisualControlPtr
-	@@ \u YControl & \u YWindow;
-
-r24:
-/ \tr \impl @@ \ctor @@ \cl ATrack @@ \u YGUIControl;
-
-r25-r29:
+r7-r12:
 /= test 2;
 
-r30:
-* - \c \q @@ \a \mf GetTopWidgetPtr & \mf GetTopVisualControlPtr @@ \u YDesktop;
+r13:
+* \ac @@ \inh @@ protected MUIContainer -> public @@ \cl YUIContainer;
 
-r31:
-/ \tr @@ \u YGUIComponent;
+r14:
+* \ac @@ \inh @@ protected MUIContainer -> public @@ \cl YFrameWindow;
 
-r32-r33:
+r15:
+/ @@ \cl AFocusRequester @@ \u YComponent:
+	/ a \mf \t <class _type>(GMFocusResponser<_type>&) ->
+		<template<class> class _tResponser, class _type>(_tResponser<_type>&);
+
+r16:
++ DeclIEntry(bool ResponseFocusRequest(AFocusRequester&)) @@ \in IUIBox;
++ \mf bool ResponseFocusRequest(AFocusRequester&) @@ \cl MUIContainer
+	& \cl YUIContainer & \cl YFrameWindow & \cl ATrack;
++ DeclIEntry(bool ResponseFocusRelease(AFocusRequester&)) @@ \in IUIBox;
++ \mf bool ResponseFocusRelease(AFocusRequester&) @@ \cl MUIContainer
+	& \cl YUIContainer & \cl YFrameWindow & \cl ATrack;
+/ @@ \u YControl:
+	/ @@ \cl AVisualControl:
+		/ \impl @@ \mf void RequestFocus(const EventArgs&);
+		/ \impl @@ \mf void ReleaseFocus(const EventArgs&);
+	/ @@ \cl MVisualControl:
+		- \mf GMFocusResponser<IVisualControl>* CheckFocusContainer(IUIBox*)
+		+ \vt DefEmptyDtor(MVisualControl);
+
+r17:
+/ \ac @@ \inh @@ public MUIContainer -> protected @@ \cl YUIContainer
+	& \cl YFrameWindow;
+
+r18:
+/ \a MIndexEventArgs => IndexEventArgs;
+* \ac @@ \inh @@ protected EventArgs -> public @@ \st IndexEventArgs;
+/ \a MVisual => Visual;
+/ \a MControl => Control;
+/ \a MWidget => Widget;
+/ \ac @@ \inh @@ protected Control -> public @@ \st MVisualControl;
+/ \ac @@ \inh @@ protected Control -> public @@ \st YControl;
+/ \ac @@ \inh @@ protected Widget -> public @@ \st YWidget;
+/ \ac @@ \inh @@ protected Widget -> public @@ \st YUIContainer;
+
+r19:
+/ @@ \u YGUIComponent:
+	/ @@ \cl YFileBox:
+		/ \mf void OnTouchMove(const TouchEventArgs&) >> \cl YListBox;
+		/ \impl @@ \ctor;
+	/ \impl @@ \mf void _m_init() @@ \cl YListBox;
+
+r20-r23:
 /= test 3;
 
+r24:
++ DeclIEntry(IVisualControl* GetFocusingPtr() const) @@ \in IUIBox;
++ \mf IVisualControl* GetFocusingPtr() const @@ \cl MUIContainer
+	& \cl YUIContainer & \cl YFrameWindow & \cl ATrack;
+* \impl @@ \f IVisualControl* GetFocusedObject(YDesktop&) @@ \cl YGUI;
+
+r25:
+/= \tr \impl @@ \f bool ResponseTouchBase(IUIBox&, HTouchCallback) @@ \u YGUI;
+
+r26-r31:
+/= test 4;
+
+r32:
+/ @@ \f IVisualControl* GetFocusedObject(YDesktop&) @@ \u YGUI:
+	* \impl;
+	/ >> GetFocusedObjectPtr;
+/ - \c @@ DeclIEntry(IVisualControl* GetFocusingPtr() const) @@ \in IUIBox;
+	/ \impl @@ \cl (MUIContainer & YUIContainer & YFrameWindow & ATrack);
+- \amf DeclIEntry(IVisualControl* GetFocusingPtr() const) @@ \in IWindow;
+
+r33:
+/ @@ \u YGUI:
+	- \i \f GetGraphicInterfaceContext;
+	/ \tr \impl @@ \f DrawWindowBounds & \f DrawWidgetBounds;
+/ \a !m \f \n match 'Get*' & !'GetImege' & !'*DragOffset' & !'GetMessage'
+	& !'GetZeroElements' => 'Get*From';
+/ \a !m \f \n match 'Set*' & !'*DragOffset' => 'Set*To';
+/ \a !m \f \n IsStem => IsStemOF;
+/ \a !m \f \n IsExtendName => IsExtendNameOF;
+/ \a \mf BeFilledWith => BeFilledWith;
+/ \a GetDynamicFunctionFrom => ConstructDynamicFunctionWith;
+/ \a CheckInit => CheckInitialization;
+
 r34:
-/ \cl ATrack & \cl YHorizontalTrack @@ \u YGUIComponent;
-/ @@ \cl AVisualControl @@ \u YControl:
-	/ + \i @@ !\i \mf void OnLostFocus(const Runtime::EventArgs&);
-	/ \mf void OnKeyHeld(const Runtime::MKeyEventArgs&)
-		-> !\m \f
-			Controls::OnKeyHeld(IVisualControl&, const Runtime::MKeyEventArgs&);
-	/ \mf void OnTouchHeld(const Runtime::MTouchEventArgs&)
-		-> !\m \f Controls::OnTouchHeld(IVisualControl&,
-			const Runtime::MTouchEventArgs&);
-	/ \mf void OnTouchMove(const Runtime::MTouchEventArgs&)
-		-> !\m \f Controls::OnTouchMove(IVisualControl&,
-			const Runtime::MTouchEventArgs&);
-	/ \tr \impl @@ \ctor;
-/ \tr \impl @@ \u Shells;
-/ @@ \h YEvent:
-	+ \mf void Clear() @@ \cl \t GEvent<true> & \t GEvent<false>;
-	+ \rem @@ \mf @@ \cl \t GEvent<false>;
-	+ 3 operator= @@ \cl \t GEvent<true>;
-/ tr \impl @@ \ctor @@ \u YGUIComponent;
+/ @@ \u YGUIComoponent:
+	/ @@ \cl ATrack:
+		+ \m IVisualControl* pFocusing;
+		/ \impl \ctor & \mf (ClearFocusingPtr & ResponseFocusRequest
+			& ResponseFocusRelease);
++ \u YFocus @@ \dir Shell;
+/ \u YComponent:
+	*= \tr \impl @@ \mf \t template<template<class> class _tResponser,
+		class _type> bool ReleaseFocus(_tResponser<_type>& c
+		@@ \cl AFocusRequester;
+	/ \in \t GIFocusRequester & \cl \t & GMFocusResponser & \cl AFocusRequester
+		>> \u YFocus;
+	/ \cl \t GContainer >> \u YObject @@ \dir Core;
++ \inc YFocus @@ \u YWidget;
+/ \a GMContainer => GContainer;
+/ \ac @@ \inh _tContainer @@ \cl \t GContainer -> private ~ public
+	@@ \u YObject;
+/ \in \t (GIEquatable & GILess & GIClonable & GIContainer) @@ YShellDefinition
+	>> \u YObject;
++ \inc YObject @@ \u YFocus;
++ \inc \h Adaptor::Container @@ \u YObject;
+- \inc \h Adaptor::Container @@ \u YException;
+- \inc \h Adaptor::Container @@ \u YEvent;
+/= \ren file "Adaptor/yagg.h" => "Adaptor/agg.h"
+/ @@ \u YFocus:
+	/ \in \t template<class _type = AFocusRequester> class GIFocusRequester
+	-> template<template<class> class _tResponser = GMFocusResponser,
+	class _type = AFocusRequester> class GIFocusRequester;
 
-r35-r38:
-/ \cl ATrack & \cl YHorizontalTrack @@ \u YGUIComponent;
-	/ \impl @@ \mf;
-	/ \ac @@ ATrack::Thumb -> protected ~ private;
+r35:
+/ \a @@ \ns Runtime @@ \u YEventArgs >> \ns Components::Controls @@ \u YControl;
+- \inc \h Core::YEventArgs @@ \u YComponent;
+/ \a @@ \ns Runtime @@ \u YGUI >> \ns Comopnents::Controls;
+/ \i \f ToSPoint @@ \ns Components::Controls @@ \u YControl >> \un \ns
+	@@ \u YGlobal;
 
-r39:
-/ @@ \h YEvent:
-	/ @@ \cl \t GHEventNormal:
-		- \inh GHBase<_pfEventHandler>;
-		/ ^ (std::pointer_to_binary_function & std::ptr_fun);
-		- void \parm \ctor;
+r36:
+/ @@ \u YGUIComponent:
+	/ @@ \cl ATrack:
+		+ \mf OnTouchDown(const TouchEventArgs&);
+		+ \cl EArea;
+		+ \in
+		{
+			DeclIEntry(EArea CheckArea(const Point&) const);
+			DeclIEntry(SDST GetThumbLength(SDST) const);
+			DeclIEntry(SDST GetThumbPosition(SDST) const);
+		}
+		+ protected \mf EArea CheckArea(SPOS) const;
+	/ \cl YHorizontalTrack:
+		+ \impl \in ATrack::CheckArea;
+		+
+		{
+			ImplI(ATrack) DefGetter(SDST, ThumbLength, Thumb.Width);
+			ImplI(ATrack) DefGetter(SPOS, ThumbPosition, Thumb.X);
+		}
+	/ \cl YverticalTrack:
+		+ \impl \in ATrack::CheckArea;
+		+
+		{
+			ImplI(ATrack) DefGetter(SDST, ThumbLength, Thumb.Height);
+			ImplI(ATrack) DefGetter(SPOS, ThumbPosition, Thumb.Y);
+		}
+/ \a IsInIntervalRegular => IsInInterval;
+/ \a IsInOpenInterval => IsInOpenInterval;
+/ \a RestrictInInterval => RestrictInClosedInterval;
+/ \a RestrictInIntervalRegular => RestrictInInterval;
+/ \a RestrictUnsigned => RestrictUnsignedStrict;
+/ \a RestrictUnsignedRegular => RestrictUnsigned;
+/ @@ \u YCoreUtilities:
+	+ \f \t template<typename _type> std::size_t
+		SwitchInterval(_type v, _type[] a, std::size_t n);
+	+ \f \t template<typename _type> std::size_t
+		SwitchAddedInterval(_type v, _type[] a, std::size_t n);
 
-r40:
-/ @@ \h YFunc:
-	- \mf empty @@ \cl \t GHBase;
-	+ \inh <functional>
-	+ \cl \t GHDynamicFunction;
-	+ 2 helper \f \t GetDynamicFunction;
-	+ \inh <typeinfo>
-/ @@ \h YEvent:
-	/ @@ \cl \t GHEventNormal:
-		/ ^ (GHDynamicFunction & GetDynamicFunction)
-			~(std::pointer_to_binary_function & std::ptr_fun);
-		- void \parm \ctor;
+r37:
+/ @@ \u YGUIComponent:
+	/ @@ \cl ATrack:
+		/ public \mf void OnTouchDown(const TouchEventArgs&) -> protected
+			\mf void ResponseTouchDown(SPOS);
+	/ @@ \cl YHorizontalTrack & \cl YVerticalTrack:
+		+ \mf void OnTouchDown(const TouchEventArgs&);
+		/ \tr @@ \ctor;
+		/ \impl @@ \mf SetThumbPosition;
+
+r38:
+/ @@ \u YGUIComponent:
+	/ @@ \cl ATrack:
+		* \mf EArea CheckArea(SPOS) const -> EArea CheckArea(SDST) const;
+
+r39-r40:
+/ test 5;
+	/ \tr \impl @@ \mf EArea CheckArea(SDST) const @@ \cl ATrack
+		@@ \u YGUIComponent;
 
 r41:
-/ @@ \h YEvent:
-	/ @@ \cl \t GHEventNormal:
-		/ ^ (std::pointer_to_binary_function & std::ptr_fun)
-			~(GHDynamicFunction & GetDynamicFunction);
+* \impl @@ \f \t (SwitchInterval & SwitchAddedInterval) @@ \u YCoreUtilities;
 
-r42:
-/ @@ \h YEvent:
-	/ @@ \cl \t GEventHandler:
-		+ typedef typename GHEventNormal<_tSender, _tEventArgs,
-			_fEventHandler, _pfEventHandler>::FunctorType FunctorType;
-		* \tr \ctor;
-	/ @@ \cl \t GEvent:
-		+ typedef typename _tEventHandler::FunctorType FunctorType;
-		+ \i \mf GEvent& operator=(const FunctorType&);
-		+ \i \mf GEvent& operator+=(const FunctorType&);
-		+ \i \mf GEvent& operator-=(const FunctorType&);
+r42-r45:
+/= test 6;
 
-r43:
-/ @@ \h YEvent:
-	+ template<_tSender = YObject, class _tEventArgs = EventArgs>
-		struct SEventType;
-	/ simp \cl \t ^ SEventType;
+r46-r47:
+/ \simp \tr \impl @@ \f IVisualControl*
+	GetTouchedVisualControl(IUIBox&, Point&) @@ \un \ns @@ \u YGUI;
 
-r44-r49:
-/ h YEvent:
-	+ \st \t ExpandMemberFirst;
-	+ \st \t ExpandMemberFirstBinder;
-	/ \cl \t GEventHandler:
-		+ protected \m Design::Function<FuncType> func;
-		- protected \m IEventHandlerType* _h_ptr;
-		- \mf Clone;
-		- \mf GetSizeOf;
-		- \inh GIEventHandler;
-		+ typedef _tSender SenderType;
-		+ typedef _tEventArgs EventArgsType;
-		/ @@ operator=:
-			/ \impl;
-			+ \i;			
-	- \cl \t GHEventNormal;
-	- \cl \t GHEventMember;
-	- \cl \t GHEventMemberBinder;
-	- \f \t template<class _tSender, class _tEventArgs> bool operator==(
-		GIEventHandler<_tSender, _tEventArgs>& l,
-		GIEventHandler<_tSender, _tEventArgs>& r);
-	/ @@ \t GEvent<true>
-		/= \tr typedef;
-		/ \i \mf GEvent& AddRaw(const EventHandlerType&);
-		/ \impl @@ \mf operator= ^ \mf AddRaw @@ \mf operator=;
-	- \in \t GIEventHandler;
-	- \in IEventHandler;
-	+ \mac LOKI_FUNCTORS_ARE_COMPARABLE @@ \h YAdaptor;
+r48-r49:
+/= test 7;
 
-r50-r51:
-/ @@ \h YEvent:
-	/ \cl \t GEventHandler:
-		/ protected \m Design::Function<FuncType> func
-			-> public \inh Design::Function<protected Design::Function<
-			typename SEventTypeSpace<_tSender, _tEventArgs>::FuncType>;
-		/ \impl @@ operator()(const _tSender, const _tEventArgs&);
-		- copy \ctor;
-		/ @@ operator=:
-			+ \vt;
-			/ \impl;
+r50:
+* \f bool ResponseTouchBase(IUIBox&, HTouchCallback) @@ \un \ns @@ \u YGUI;
 
-r52:
-* \h YAdaptor;
-/ @@ \h YEvent:
-	+ \mf operator== @@ \cl \t (ExpandMemberFirst & ExpandMemberFirstBinder);
+r51:
+/ @@ \u YGUI:
+	/ \f bool RepeatHeld(HeldStateType&, const KeyEventArgs&,
+		Timers::TimeSpan = 240, Timers::TimeSpan = 120) -> bool RepeatHeld(
+		HeldStateType&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
+	*= - \decl @@ \f void CheckTouchedControlBounds(
+		Components::Controls::IVisualControl&, const TouchEventArgs&);
 
-r53-r63:
-/ test 4;
+r52-r54:
+/ @@ \cl YObject:
+	+ \i \f Point operator+(const Point&, const Vec&);
+	+ \i \f Point operator-(const Point&, const Vec&);
+* @@ \u YControl:
+	/ \impl @@ \f void OnTouchHeld(IVisualControl&, const TouchEventArgs&);
 
-r64:
-/ @@ \h YEvent:
-	+ \rem;
-	+ \mf typename ListType::size_type GetSize() const @@ \cl \t GEvent<true>;
-	/ \a EventHandlerList => List;
+r55-r66:
+/= test 8;
 
-r65:
-/= test 5;
-
-r66:
-/ @@ \u YGUIComponent:
-	/ @@ \cl YHorizontalTrack:
-		- \mf OnThumbTouchMove(IVisualControl&, const MTouchEventArgs&);
-		+ \cl OnTouchMove_Thumb;
-		/ \impl @@ \ctor;
-/ @@ \h YEvent:
-	* - typedef GEventHandler<> EventHandler for \amb;
-		template<class _tFunc>
-	/ @@ \cl \t GEventHandler:
-		+ \i \ctor GEventHandler(_tFunc f);
-		- \exp @@ \a \ctor;
-
-r67:
-/ @@ \u YGUIComponent:
-	/ @@ \cl YHorizontalTrack:
-		* operator() @@ \cl OnTouchMove_Thumb;
-	+ \st \t template<class _tFunc, typename _tPara>
-		struct InversedCurrying;
-/ \a _tPara => _tParm;
-/ \st \t (ExpandMemberFirst & ExpandMemberFirstBinder & InversedCurrying)
-	>> \h YFunc;
-
-r68-r69:
-* \impl @@ \mf void YHorizontalTrack::OnTouchMove_Thumb::operator()(
-	IVisualControl&, const MTouchEventArgs&) const;
-
-r70:
-* \f @@ \u YGDI:
-{
-	bool DrawHLineSeg(const Graphics&, SPOS, SPOS, SPOS, Color);
-	bool DrawVLineSeg(const Graphics&, SPOS, SPOS, SPOS, Color);
-	bool DrawRect(const Graphics&, const Point&, const Size&, Color);
-}
+r67-r70:
+/ @@ \u YGUI:
+	/ @@ \un \ns :
+		/ \impl @@ \f IVisualControl* GetTouchedVisualControl(IUIBox&, Point&);
+		/ \impl @@ \f bool ResponseTouchUpBase(IVisualControl&,
+			const TouchEventArgs&);
+	/ @@ \ns InputStatus:
+		+ bool InDragging;
+		- \f
+		{
+			bool IsValidDraggingOffset();
+			const Vec& GetDragOffset();
+			void SetDragOffset(const Vec& = Vec::FullScreen);
+		}
+		+ \decl @@ YTimer::HeldTimer;
+		- !\decl Vec DragOffset;
+		+ Vec DraggingOffset;
+/= test 9;
 
 r71:
-* \tr \impl @@ \mf void YHorizontalTrack::OnTouchMove_Thumb::operator()(
-	IVisualControl&, const MTouchEventArgs&) const;
+/ @@ \un ns @@ \u YGUI:
+	+ \f void ResetTouchHeldState();
 
 r72:
-* \f @@ \u YGUI:
-{
-	void DrawWindowBounds(HWND, Color);
-	void DrawWidgetBounds(IWidget&, Color);
-}
+/ \tr \impl @@ \f OnTouchHeld & \f OnTouchHeld @@ \u YControl;
+/ \tr \impl @@ \u YGUIComponent;
 
 r73:
-* \impl @@ \mf IVisualControl* ATrack::GetTopVisualControlPtr(const Point&);
+/ GetTouchedVisualControl => GetTouchedVisualControlPtr @@ \u YGUI;
 
-r74:
-/ simp @@ \cl YHorizontalTrack @@ \u YGUIComponent:
-	/ \f \o \st OnTouchMove_Thumb
-		-> \mf OnTouchMove_Thumb(const Runtime::MTouchEventArgs&);
-	- \smf void OnThumbTouchHeld(IVisualControl&,
-		const Runtime::MTouchEventArgs&);
-	/ \tr \impl @@ \ctor;
+r74-r80:
+/ test 10;
+	/ \impl @@ \f OnTouchHeld & \f OnTouchHeld @@ \u YControl;
 
-r75:
-/ @@ \u YGUIComponent:
-	/ !\rem \cl AScrollBar;
-	/ !\rem \cl YHorizontalScrollBar;
-	/ !\rem \cl YVerticalScrollBar;
+r81:
+/ @@ \u YGUI;
+	/ @@ \un \ns:
+		/ \impl @@ \f IVisualControl* GetTouchedVisualControlPtr(
+			IUIBox&, Point&);
+		/ \impl @@ \f bool ResponseTouchBase(IUIBox&, HTouchCallback);
+		/ \impl @@ \f void ResetTouchHeldState();
+	- bool InDragging;
+	+ Point VisualControlLocationOffset;
 
-r76:
-/ \ac @@ \a \inh @@ modules ~ (MVisual & Widgets::MWidget & Widgets::MLabel)
-	-> protected ~ public;
-/ \a MEventArgs => EventArgs;
-/ \a MScreenPositionEventArgs => ScreenPositionEventArgs;
-/ \a MInputEventArgs => InputEventArgs;
-/ \a MTouchEventArgs => TouchEventArgs;
-/ \a MKeyEventArgs => KeyEventArgs;
-/ \a MEventArgs => EventArgs;
+r82:
+/= test 11;
 
-r77:
-/ @@ \cl MScrollBar => \u YGUIComponent ~ \u Control;
-/ @@ \u YGUIComponent:
-	/ @@ \cl MScrollBar:
-		+ protected \m YThumb Prev;
-		+ protected \m YThumb Next;
-		- protected \m (PrevButtonSize & NextButtonSize);
-		- public \mf (GetPrevButtonSize & GetNextButtonSize);
-		/ protected \m MinThumbSize => MinThumbLength;
-		/ DefGetter(SDST, MinThumbSize, MinThumbSize)
-			-> DefGetter(SDST, MinThumbLength, MinThumbLength);
-		/ \ctor MScrollBar(SDST = 8, SDST = 16, SDST = 16)
-			-> MScrollBar(HWND, IUIBox*, SDST, const Rect&, const Rect&);
-	/ @@ \cl AScrollBar:
-		- \cl ScrollBarButton;
-		/ \inc AVisualControl -> \inc ATrack;
-		- \inc \in IUIBox;
-		/ typedef AVisualControl ParentType -> typedef ATrack ParentType;
-		- \m SDST ThumbPosition & SDST ThumbSize;
-		/ \impl @@ \ctor;
-		- \mf DefGetter(SDST, ThumbSize, ThumbSize)
-			& DefGetter(SDST, ThumbPosition, ThumbPosition);
-		/ \mf void SetThumbPosition(SDST) -> \amf;
-	/ @@ \cl ATrack:
-		/ \tr \impl @@ \ctor;
-		+ \i \amf void SetThumbLength(SDST);
-	+ \exp @@ \ctor;
-	+ 1st \de \parm "HWND = NULL" @@ \ctor @@ \cl (YHorizontalScrollBar
-		& YListBox & YFileBox & YThumb & ATrack & YHorizontalTrack);
-	+ \exp @@ \ctor @@ \cl (YListBox & YFileBox & YThumb & ATrack
-		& YHorizontalTrack);
-	+ \cl YVerticalTrack;
-	/ \cl YHorizontalScrollBar;
-	+ \mf ImplI(ATrack) void SetThumbLength(SDST) @@ \cl YHorizontalTrack;
-	/ \m MinThumbLength @@ \cl MScrollBar >> \cl ATrack;
-	/ \mf DefGetter(SDST, MinThumbLength, MinThumbLength) @@ \cl MScrollBar
-		>> \cl ATrack;
-	/ \ctor @@ \cl MScrollBar & \cl ATrack;
-/ \tr \impl @@ \u Shells;
+r83:
+* \impl @@ \f IVisualControl* GetTouchedVisualControlPtr(IUIBox&, Point&)
+	@@ \un \ns @@ \u YGUI;
+
+r84:
+* \impl @@ \f OnTouchHeld & \f OnTouchHeld @@ \u YControl;
+
+r85:
 / @@ \u YWidget:
-	+ 1st \de \parm "HWND = NULL" @@ \ctor @@ \cl YUIContainer;
+	/ @@ \ns Widgets:
+		+ \f Point LocateForDesktop(IWidget&);
+		/ \f Point LocateForParentWindow(IWidget&);
+		/ \f Point LocateOffset(const IWidget*, Point, const HWND&)
+			-> Point LocateOffset(const IWidget*, Point, IWindow*);
+	/ \inc "ywindow.h" -> "ydesktop.h";
+/ @@ \cl ShlExplorer @@ \u Shells;
 
-r78:
-* \tr \impl @@ \u Shells;
+r86-r91:
+/= test 12;
+
+r92:
+/ @@ \ns Widgets @@ \u YWidget:
+	/ \f Point LocateForWindow(IWidget&)
+		-> Point LocateForWindow(const IWidget&);
+	/ \f Point LocateForDesktop(IWidget&)
+		-> Point LocateForDesktop(const IWidget&);
+	/ \f Point LocateForParentContainer(IWidget&)
+		-> Point LocateForParentContainer(const IWidget&);
+	/ \f Point LocateForParentWindow(IWidget&)
+		-> Point LocateForParentWindow(const IWidget&);
+
+r93:
+/ @@ \u YGUIComponent:
+	/ \impl @@ \mf EArea CheckArea(const Point&) const
+		@@ \cl YHorizontalTrack & \cl YVerticalTrack;
+
+r94-r95:
+/= test 13;
+
+r96:
+/ @@ \u YGUIComponent:
+	* @@ \cl YHorizontalTrack & \cl YVerticalTrack:
+		- \mf EArea CheckArea(const Point&) const;
+		* \mf void OnTouchDown(const TouchEventArgs&);
+	- \amf DeclIEntry(EArea CheckArea(const Point&) const) @@ \cl ATrack;
+
+r97-r105:
+/= test 14;
+
+r106:
+* \f Point Widgets::LocateForDesktop(const IWidget&) @@ \u YWidget;
+/= \simp \impl @@ \mf void YButton::DrawForeground() @@ \u YGUIComponent;
+
+r107-r111:
+/= test 15;
+
+r112-r113:
+* \impl @@ \mf void ATrack::ResponseTouchDown(SDST) @@ \u YGUICompoonent:
+
+r114:
+/ \a IsInBounds => Contains;
+/ \a IsInBoundsRegular => ContainsRegular;
+/ \a IsInBoundsStrict => ContainsStrict;
+
+r115:
+/ @@ \cl Rect @@ \u YObject:
+	- \mf Contains;
+	* 2 \mf ContainsStrict;
+/ \a ContainsRegular => Contains;
+
+r116-r118:
+/= test 16;
+
+r119:
+* @@ \cl WriteKeysInfo @@ \u YCommon;
+
+r120:
+/= test 17;
+
+r121:
+* @@ \f WriteKeysInfo @@ \u YCommon;
+/ @@ \f WaitForGUIInput @@ \un \ns @@ \u YGlobal;
+
+r122:
+* incorresponding coordinates between \evh @@ \evt Enter & Leave:
+	/ \impl @@ \f bool ResponseTouchBase(IUIBox&, HTouchCallback) @@ \u YGUI;
+	/ \impl @@ \f OnTouchHeld @@ \u YControl;
+	/ \simp \impl @@ \mf (YHorizontalTrack::OnTouchDown & YVerticalTrack::OnTouchDown)
+		@@ \u YGUIComponent;
+
+r123-132:
+/= test 18;
+
+r133:
+/ \tr \simp \impl @@ \ctor @@ \cl ATrack @@ \u YGUIComponent;
+
+r134:
+* \ctor @@ \u YHorizontalTrack @@ \u YGUIComponent;
+
+r135:
+* \ctor @@ \u YVerticalTrack @@ \u YGUIComponent;
+
+r136:
+/ - \vt @@ \a \evh \mf with \n 'On*';
+/ @@ \u YGUIComponent:
+	/ \impl @@ \ctor @@ \cl (YHorizontalTrack & YVerticalTrack & YFileBox);
+	/ \impl @@ \mf void YFileBox::OnConfirmed(const IndexEventArgs&);
+
+r137:
+/ @@ \u YGUIComponent:
+	* @@ \cl YListBox:
+		/ \impl @@ \mf void _m_init();
+		* \impl @@ \mf void OnTouchDown(const TouchEventArgs&);
+	* \impl @@ \ctor @@ \cl (YHorizontalTrack & YVerticalTrack);
+
+r138:
+* \impl @@ \ctor @@ \cl (YHorizontalTrack & YVerticalTrack) @@ \u YGUIComponent;
+
+r139:
+/ undo r85 @@ \cl ShlExplorer @@ \u Shells;
 
 
 $DOING:
 
-
 / ...
+
 
 $NEXT:
 
-* fatal \err;
 * blank-clicked \evt OnClick @@ ListBox;
-
-
 
 b170-b190:
 / fully \impl \u DSReader;

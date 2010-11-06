@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-11-01 13:56 + 08:00;
-// Version = 0.3160;
+// UTime = 2010-11-02 12:33 + 08:00;
+// Version = 0.3161;
 
 
 #include <Shells.h>
@@ -273,7 +273,7 @@ ShlExplorer::TFrmFileListSelecter::frm_KeyPress(const KeyEventArgs& e)
 }
 
 void
-ShlExplorer::TFrmFileListSelecter::fb_Selected(const MIndexEventArgs& e)
+ShlExplorer::TFrmFileListSelecter::fb_Selected(const IndexEventArgs& e)
 {
 	YLabel& l(HandleCast<TFrmFileListMonitor>(HandleCast<ShlExplorer>(hShell)->hWndUp)->lblPath);
 
@@ -291,7 +291,7 @@ ShlExplorer::fb_KeyPress(IVisualControl& sender, const KeyEventArgs& e)
 }
 
 void
-ShlExplorer::fb_Confirmed(IVisualControl& sender, const MIndexEventArgs& e)
+ShlExplorer::fb_Confirmed(IVisualControl& sender, const IndexEventArgs& e)
 {
 //	if(e.Index == 2)
 //		switchShl1();
