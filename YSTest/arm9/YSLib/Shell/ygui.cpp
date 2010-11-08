@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-11-06 13:24 + 08:00;
-// Version = 0.3012;
+// UTime = 2010-11-09 06:42 + 08:00;
+// Version = 0.3078;
 
 
 #include "ygui.h"
@@ -43,10 +43,11 @@ void
 RequestFocusCascade(IVisualControl& c)
 {
 	IVisualControl* p(&c);
+	EventArgs e;
 
 	do
 	{
-		p->RequestFocus(GetZeroElement<EventArgs>());
+		p->RequestFocus(e);
 	}while((p = dynamic_cast<IVisualControl*>(p->GetContainerPtr())));
 }
 
@@ -54,10 +55,11 @@ void
 ReleaseFocusCascade(IVisualControl& c)
 {
 	IVisualControl* p(&c);
+	EventArgs e;
 
 	do
 	{
-		p->ReleaseFocus(GetZeroElement<EventArgs>());
+		p->ReleaseFocus(e);
 	}while((p = dynamic_cast<IVisualControl*>(p->GetContainerPtr())));
 }
 
@@ -70,7 +72,9 @@ HeldStateType KeyHeldState(Free);
 HeldStateType TouchHeldState(Free);
 Vec DraggingOffset(Vec::FullScreen);
 Timers::YTimer HeldTimer(1000, false);
-Point VisualControlLocationOffset(Point::Zero);
+Point VisualControlLocation(Point::FullScreen);
+Point LastVisualControlLocation(Point::FullScreen);
+
 
 bool
 RepeatHeld(HeldStateType& s,
@@ -137,7 +141,7 @@ namespace
 	ExOp::ExOpType ExtraOperation(ExOp::NoOp);
 
 	void
-	TryEnter(IVisualControl& c, const TouchEventArgs& e)
+	TryEnter(IVisualControl& c, TouchEventArgs& e)
 	{
 		if(!bEntered && p_TouchDown == &c)
 		{
@@ -146,7 +150,7 @@ namespace
 		}
 	}
 	void
-	TryLeave(IVisualControl& c, const TouchEventArgs& e)
+	TryLeave(IVisualControl& c, TouchEventArgs& e)
 	{
 		if(bEntered && p_TouchDown == &c)
 		{
@@ -186,12 +190,25 @@ namespace
 		{
 			if(p_TouchDown != p)
 			{
-				if(bEntered)
-					TryLeave(*p_TouchDown, pt);
+				if(p_TouchDown)
+				{
+					if(p)
+						pt += LocateForWidget(*p, *p_TouchDown);
+					if(bEntered)
+					{
+						TouchEventArgs e(pt);
+
+						TryLeave(*p_TouchDown, e);
+					}
+				}
+				return p_TouchDown;
 			}
 			else if(!bEntered)
-				TryEnter(*p, pt);
-			return p_TouchDown;
+			{
+				TouchEventArgs e(pt);
+
+				TryEnter(*p, e);
+			}
 		}
 		return p;
 	}
@@ -209,7 +226,7 @@ namespace
 	}
 
 	bool
-	ResponseKeyUpBase(IVisualControl& c, const KeyEventArgs& e)
+	ResponseKeyUpBase(IVisualControl& c, KeyEventArgs& e)
 	{
 		ResetHeldState(KeyHeldState);
 		if(p_KeyDown == &c && KeyHeldState == Free)
@@ -220,7 +237,7 @@ namespace
 		return true;
 	}
 	bool
-	ResponseKeyDownBase(IVisualControl& c, const KeyEventArgs& e)
+	ResponseKeyDownBase(IVisualControl& c, KeyEventArgs& e)
 	{
 		p_KeyDown = &c;
 		c.GetEnter()(c, e);
@@ -228,7 +245,7 @@ namespace
 		return true;
 	}
 	bool
-	ResponseKeyHeldBase(IVisualControl& c, const KeyEventArgs& e)
+	ResponseKeyHeldBase(IVisualControl& c, KeyEventArgs& e)
 	{
 		if(p_KeyDown != &c)
 		{
@@ -240,7 +257,7 @@ namespace
 	}
 
 	bool
-	ResponseTouchUpBase(IVisualControl& c, const TouchEventArgs& e)
+	ResponseTouchUpBase(IVisualControl& c, TouchEventArgs& e)
 	{
 		ResetTouchHeldState();
 		if(p_TouchDown == &c && TouchHeldState == Free)
@@ -251,7 +268,7 @@ namespace
 		return true;
 	}
 	bool
-	ResponseTouchDownBase(IVisualControl& c, const TouchEventArgs& e)
+	ResponseTouchDownBase(IVisualControl& c, TouchEventArgs& e)
 	{
 		p_TouchDown = &c;
 		TryEnter(c, e);
@@ -259,15 +276,19 @@ namespace
 		return true;
 	}
 	bool
-	ResponseTouchHeldBase(IVisualControl& c, const TouchEventArgs& e)
+	ResponseTouchHeldBase(IVisualControl& c, TouchEventArgs& e)
 	{
-		if(p_TouchDown != &c)
+	/*	if(p_TouchDown != &c)
 		{
 			ResetTouchHeldState();
 			return false;
+		}*/
+		if(p_TouchDown == &c)
+		{
+			c.GetTouchHeld()(c, e);
+			return true;
 		}
-		c.GetTouchHeld()(c, e);
-		return true;
+		return false;
 	}
 
 	bool
@@ -281,7 +302,7 @@ namespace
 	bool
 	ResponseTouchBase(IUIBox& con, HTouchCallback f)
 	{
-		VisualControlLocationOffset = f;
+		VisualControlLocation = f;
 		IVisualControl* const pVC(GetTouchedVisualControlPtr(con, f));
 
 		return pVC ? f(*pVC, f) : false;
@@ -289,35 +310,35 @@ namespace
 }
 
 bool
-ResponseKeyUp(YDesktop& d, const KeyEventArgs& e)
+ResponseKeyUp(YDesktop& d, KeyEventArgs& e)
 {
 	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyUpBase));
 }
 bool
-ResponseKeyDown(YDesktop& d, const KeyEventArgs& e)
+ResponseKeyDown(YDesktop& d, KeyEventArgs& e)
 {
 	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyDownBase));
 }
 bool
-ResponseKeyHeld(YDesktop& d, const KeyEventArgs& e)
+ResponseKeyHeld(YDesktop& d, KeyEventArgs& e)
 {
 	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyHeldBase));
 }
 
 bool
-ResponseTouchUp(IUIBox& con, const TouchEventArgs& e)
+ResponseTouchUp(IUIBox& con, TouchEventArgs& e)
 {
 	ExtraOperation = ExOp::TouchUp;
 	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchUpBase));
 }
 bool
-ResponseTouchDown(IUIBox& con, const TouchEventArgs& e)
+ResponseTouchDown(IUIBox& con, TouchEventArgs& e)
 {
 	ExtraOperation = ExOp::TouchDown;
 	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchDownBase));
 }
 bool
-ResponseTouchHeld(IUIBox& con, const TouchEventArgs& e)
+ResponseTouchHeld(IUIBox& con, TouchEventArgs& e)
 {
 	ExtraOperation = ExOp::TouchHeld;
 	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchHeldBase));

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-11-06 15:25 + 08:00;
-// Version = 0.1962;
+// UTime = 2010-11-09 06:42 + 08:00;
+// Version = 0.2027;
 
 
 #include "yguicomp.h"
@@ -162,14 +162,14 @@ YThumb::DrawForeground()
 }
 
 void
-YThumb::OnEnter(const InputEventArgs&)
+YThumb::OnEnter(InputEventArgs&)
 {
 	bPressed = true;
 	Refresh();
 }
 
 void
-YThumb::OnLeave(const InputEventArgs&)
+YThumb::OnLeave(InputEventArgs&)
 {
 	bPressed = false;
 	Refresh();
@@ -193,11 +193,11 @@ YButton::DrawForeground()
 }
 
 void
-YButton::OnKeyDown(const KeyEventArgs&)
+YButton::OnKeyDown(KeyEventArgs&)
 {}
 
 void
-YButton::OnClick(const TouchEventArgs&)
+YButton::OnClick(TouchEventArgs&)
 {}
 
 
@@ -205,7 +205,9 @@ ATrack::ATrack(HWND hWnd, const Rect& r, IUIBox* pCon, SDST uMinThumbLength)
 	: AVisualControl(hWnd, Rect(r.GetPoint(),
 		vmax<SDST>(16, r.Width), vmax<SDST>(16, r.Height)), pCon),
 	Thumb(hWnd, Rect(0, 0, 16, 16), this), pFocusing(NULL)
-{}
+{
+	TouchMove += OnTouchMove;
+}
 
 IWidget*
 ATrack::GetTopWidgetPtr(const Point& p)
@@ -296,7 +298,7 @@ YHorizontalTrack::YHorizontalTrack(HWND hWnd, const Rect& r, IUIBox* pCon)
 	ATrack(hWnd, r, pCon)
 {
 	TouchDown += &YHorizontalTrack::OnTouchDown;
-	Thumb.TouchMove.Add(*this, &YHorizontalTrack::OnTouchMove_Thumb);
+	Thumb.TouchMove.Add(*this, &YHorizontalTrack::OnDrag_Thumb);
 }
 
 void
@@ -316,15 +318,18 @@ YHorizontalTrack::SetThumbPosition(SDST l)
 }
 
 void
-YHorizontalTrack::OnTouchDown(const TouchEventArgs& e)
+YHorizontalTrack::OnTouchDown(TouchEventArgs& e)
 {
-	ResponseTouchDown(e.X);
+	if(Rect(Point::Zero, GetSize()).Contains(e))
+		ResponseTouchDown(e.X);
 }
 
 void
-YHorizontalTrack::OnTouchMove_Thumb(const TouchEventArgs& e)
+YHorizontalTrack::OnDrag_Thumb(TouchEventArgs& e)
 {
-	SPOS x((e + InputStatus::DraggingOffset).X);
+	using namespace InputStatus;
+
+	SPOS x(LastVisualControlLocation.X + DraggingOffset.X);
 
 	RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
 	Thumb.SetLocation(Point(x, Thumb.GetLocation().Y));
@@ -337,7 +342,7 @@ YVerticalTrack::YVerticalTrack(HWND hWnd, const Rect& r, IUIBox* pCon)
 	ATrack(hWnd, r, pCon)
 {
 	TouchDown += &YVerticalTrack::OnTouchDown;
-	Thumb.TouchMove.Add(*this, &YVerticalTrack::OnTouchMove_Thumb);
+	Thumb.TouchMove.Add(*this, &YVerticalTrack::OnDrag_Thumb);
 }
 
 void
@@ -357,15 +362,18 @@ YVerticalTrack::SetThumbPosition(SDST l)
 }
 
 void
-YVerticalTrack::OnTouchDown(const TouchEventArgs& e)
+YVerticalTrack::OnTouchDown(TouchEventArgs& e)
 {
-	ResponseTouchDown(e.Y);
+	if(Rect(Point::Zero, GetSize()).Contains(e))
+		ResponseTouchDown(e.Y);
 }
 
 void
-YVerticalTrack::OnTouchMove_Thumb(const TouchEventArgs& e)
+YVerticalTrack::OnDrag_Thumb(TouchEventArgs& e)
 {
-	SPOS y((e + InputStatus::DraggingOffset).Y);
+	using namespace InputStatus;
+
+	SPOS y(LastVisualControlLocation.Y + DraggingOffset.Y);
 
 	RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
 	Thumb.SetLocation(Point(Thumb.GetLocation().X, y));
@@ -603,18 +611,24 @@ YListBox::CheckPoint(SPOS x, SPOS y)
 void
 YListBox::CallSelected()
 {
-	Selected(*this, IndexEventArgs(*this, Viewer.GetSelected()));
+	IndexEventArgs e(*this, Viewer.GetSelected());
+
+	Selected(*this, e);
 }
 
 void
 YListBox::CallConfirmed()
 {
 	if(Viewer.IsSelected())
-		Confirmed(*this, IndexEventArgs(*this, Viewer.GetSelected()));
+	{
+		IndexEventArgs e(*this, Viewer.GetSelected());
+
+		Confirmed(*this, e);
+	}
 }
 
 void
-YListBox::OnKeyDown(const KeyEventArgs& k)
+YListBox::OnKeyDown(KeyEventArgs& k)
 {
 	if(Viewer.IsSelected())
 	{
@@ -667,31 +681,31 @@ YListBox::OnKeyDown(const KeyEventArgs& k)
 }
 
 void
-YListBox::OnTouchDown(const TouchEventArgs& e)
+YListBox::OnTouchDown(TouchEventArgs& e)
 {
 	SetSelected(e);
 }
 
 void
-YListBox::OnTouchMove(const TouchEventArgs& e)
+YListBox::OnTouchMove(TouchEventArgs& e)
 {
 	SetSelected(e);
 }
 
 void
-YListBox::OnClick(const TouchEventArgs&)
+YListBox::OnClick(TouchEventArgs&)
 {
 	CallConfirmed();
 }
 
 void
-YListBox::OnSelected(const IndexEventArgs&)
+YListBox::OnSelected(IndexEventArgs&)
 {
 	Refresh();
 }
 
 void
-YListBox::OnConfirmed(const IndexEventArgs& e)
+YListBox::OnConfirmed(IndexEventArgs& e)
 {
 	OnSelected(e);
 }
@@ -733,7 +747,7 @@ YFileBox::DrawForeground()
 }
 
 void
-YFileBox::OnConfirmed(const IndexEventArgs& e)
+YFileBox::OnConfirmed(IndexEventArgs& e)
 {
 	if(*this /= List[e.Index])
 	{

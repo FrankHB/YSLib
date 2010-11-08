@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-11-05 21:38 + 08:00;
-// Version = 0.5282;
+// UTime = 2010-11-07 18:49 + 08:00;
+// Version = 0.5301;
 
 
 #ifndef INCLUDED_YWIDGET_H_
@@ -247,6 +247,20 @@ LocateWindowOffset(const IWidget& w, const Point& p)
 {
 	return LocateOffset(&w, p, w.GetWindowHandle());
 }
+
+//********************************
+//名称:		LocateForWidget
+//全名:		YSLib::Components::Widgets::LocateForWidget
+//可访问性:	public 
+//返回类型:	YSLib::Components::Point
+//修饰符:	
+//形式参数:	const IWidget & a
+//形式参数:	const IWidget & b
+//功能概要:	取指定部件 a 相对于部件 b 的偏移坐标。
+//备注:		
+//********************************
+Point
+LocateForWidget(IWidget& a, IWidget& b);
 
 //********************************
 //名称:		LocateForWindow

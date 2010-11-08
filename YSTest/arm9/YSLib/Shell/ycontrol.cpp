@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:34 + 08:00;
-// UTime = 2010-11-06 13:24 + 08:00;
-// Version = 0.3871;
+// UTime = 2010-11-08 20:55 + 08:00;
+// Version = 0.3246;
 
 
 #include "ycontrol.h"
@@ -19,17 +19,17 @@ const ScreenPositionEventArgs
 	ScreenPositionEventArgs::Empty = ScreenPositionEventArgs();
 
 
-const InputEventArgs InputEventArgs::Empty = InputEventArgs();
+InputEventArgs InputEventArgs::Empty = InputEventArgs();
 
 
-const TouchEventArgs TouchEventArgs::Empty = TouchEventArgs();
+TouchEventArgs TouchEventArgs::Empty = TouchEventArgs();
 
 
-const KeyEventArgs KeyEventArgs::Empty = KeyEventArgs();
+KeyEventArgs KeyEventArgs::Empty = KeyEventArgs();
 
 
 void
-OnKeyHeld(IVisualControl& c, const KeyEventArgs& e)
+OnKeyHeld(IVisualControl& c, KeyEventArgs& e)
 {
 	using namespace InputStatus;
 
@@ -38,23 +38,36 @@ OnKeyHeld(IVisualControl& c, const KeyEventArgs& e)
 }
 
 void
-OnTouchHeld(IVisualControl& c, const TouchEventArgs& e)
+OnTouchHeld(IVisualControl& c, TouchEventArgs& e)
 {
 	using namespace InputStatus;
-	bool b(RepeatHeld(TouchHeldState, 0, 0));
 
 	if(DraggingOffset == Vec::FullScreen)
-		DraggingOffset = c.GetLocation() - VisualControlLocationOffset;
-	else if(b && c.GetLocation()
-		!= VisualControlLocationOffset + DraggingOffset)
-		c.GetTouchMove()(c, VisualControlLocationOffset);
+		DraggingOffset = c.GetLocation() - VisualControlLocation;
+	else
+		c.GetTouchMove()(c, e);
+	LastVisualControlLocation = VisualControlLocation;
 }
 
 void
-OnTouchMove(IVisualControl& c, const TouchEventArgs& e)
+OnTouchMove(IVisualControl& c, TouchEventArgs& e)
 {
-	c.SetLocation(e + InputStatus::DraggingOffset);
-	c.Refresh();
+	using namespace InputStatus;
+
+	if(RepeatHeld(TouchHeldState, 240, 60))
+		c.GetTouchDown()(c, e);
+}
+
+void
+OnDrag(IVisualControl& c, TouchEventArgs& e)
+{
+	using namespace InputStatus;
+
+	if(LastVisualControlLocation != VisualControlLocation)
+	{
+		c.SetLocation(LastVisualControlLocation + DraggingOffset);
+		c.Refresh();
+	}
 }
 
 
@@ -91,7 +104,7 @@ AVisualControl::~AVisualControl() ythrow()
 }
 
 void
-AVisualControl::RequestFocus(const EventArgs& e)
+AVisualControl::RequestFocus(EventArgs& e)
 {
 	IUIBox* p(GetContainerPtr());
 
@@ -100,7 +113,7 @@ AVisualControl::RequestFocus(const EventArgs& e)
 }
 
 void
-AVisualControl::ReleaseFocus(const EventArgs& e)
+AVisualControl::ReleaseFocus(EventArgs& e)
 {
 	IUIBox* p(GetContainerPtr());
 
@@ -109,13 +122,13 @@ AVisualControl::ReleaseFocus(const EventArgs& e)
 }
 
 void
-AVisualControl::OnGotFocus(const EventArgs&)
+AVisualControl::OnGotFocus(EventArgs&)
 {
 	Refresh();
 }
 
 void
-AVisualControl::OnTouchDown(const TouchEventArgs& e)
+AVisualControl::OnTouchDown(TouchEventArgs& e)
 {
 	RequestFocus(e);
 }

@@ -1,8 +1,8 @@
 ﻿// YReader -> ShlMain by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-11-02 12:33 + 08:00;
-// Version = 0.3161;
+// UTime = 2010-11-08 18:12 + 08:00;
+// Version = 0.3174;
 
 
 #include <Shells.h>
@@ -257,15 +257,17 @@ ShlLoad::OnActivated(const Message& m)
 }
 
 void
-ShlExplorer::TFrmFileListSelecter::frm_KeyPress(const KeyEventArgs& e)
+ShlExplorer::TFrmFileListSelecter::frm_KeyPress(KeyEventArgs& e)
 {
+	TouchEventArgs et(TouchEventArgs::FullScreen);
+
 	switch(e.GetKey())
 	{
 	case KeySpace::X:
-		btnTest.Click(btnTest, TouchEventArgs::FullScreen);
+		btnTest.Click(btnTest, et);
 		break;
 	case KeySpace::R:
-		btnOK.Click(btnOK, TouchEventArgs::FullScreen);
+		btnOK.Click(btnOK, et);
 		break;
 	default:
 		break;
@@ -273,7 +275,7 @@ ShlExplorer::TFrmFileListSelecter::frm_KeyPress(const KeyEventArgs& e)
 }
 
 void
-ShlExplorer::TFrmFileListSelecter::fb_Selected(const IndexEventArgs& e)
+ShlExplorer::TFrmFileListSelecter::fb_Selected(IndexEventArgs& e)
 {
 	YLabel& l(HandleCast<TFrmFileListMonitor>(HandleCast<ShlExplorer>(hShell)->hWndUp)->lblPath);
 
@@ -282,7 +284,7 @@ ShlExplorer::TFrmFileListSelecter::fb_Selected(const IndexEventArgs& e)
 }
 
 void
-ShlExplorer::fb_KeyPress(IVisualControl& sender, const KeyEventArgs& e)
+ShlExplorer::fb_KeyPress(IVisualControl& sender, KeyEventArgs& e)
 {
 	Key x(e);
 
@@ -291,14 +293,14 @@ ShlExplorer::fb_KeyPress(IVisualControl& sender, const KeyEventArgs& e)
 }
 
 void
-ShlExplorer::fb_Confirmed(IVisualControl& sender, const IndexEventArgs& e)
+ShlExplorer::fb_Confirmed(IVisualControl& sender, IndexEventArgs& e)
 {
 //	if(e.Index == 2)
 //		switchShl1();
 }
 
 void
-ShlExplorer::TFrmFileListSelecter::btnTest_Click(const TouchEventArgs&)
+ShlExplorer::TFrmFileListSelecter::btnTest_Click(TouchEventArgs&)
 {
 	switchShl1();
 /*	if(fbMain.IsSelected())
@@ -323,7 +325,7 @@ ShlExplorer::TFrmFileListSelecter::btnTest_Click(const TouchEventArgs&)
 }
 
 void
-ShlExplorer::TFrmFileListSelecter::btnOK_Click(const TouchEventArgs&)
+ShlExplorer::TFrmFileListSelecter::btnOK_Click(TouchEventArgs&)
 {
 	if(fbMain.IsSelected())
 	{
@@ -411,10 +413,10 @@ YSL_END_SHELL(ShlSetting)
 HWND ShlSetting::hWndC(NULL);
 
 void
-ShlSetting::TFormB::btnB_Enter(IVisualControl& sender, const InputEventArgs& e)
+ShlSetting::TFormB::btnB_Enter(IVisualControl& sender, InputEventArgs& e)
 {
 	DefDynInitRef(YButton, btn, sender)
-	const TouchEventArgs& pt(static_cast<const TouchEventArgs&>(e));
+	TouchEventArgs& pt(static_cast<TouchEventArgs&>(e));
 	char str[20];
 
 	std::sprintf(str, "Enter:(%d,%d)", pt.Point::X, pt.Point::Y);
@@ -422,10 +424,10 @@ ShlSetting::TFormB::btnB_Enter(IVisualControl& sender, const InputEventArgs& e)
 	btn.Refresh();
 }
 void
-ShlSetting::TFormB::btnB_Leave(IVisualControl& sender, const InputEventArgs& e)
+ShlSetting::TFormB::btnB_Leave(IVisualControl& sender, InputEventArgs& e)
 {
 	DefDynInitRef(YButton, btn, sender)
-	const TouchEventArgs& pt(static_cast<const TouchEventArgs&>(e));
+	TouchEventArgs& pt(static_cast<TouchEventArgs&>(e));
 	char str[20];
 
 	std::sprintf(str, "Leave:(%d,%d)", pt.Point::X, pt.Point::Y);
@@ -434,21 +436,21 @@ ShlSetting::TFormB::btnB_Leave(IVisualControl& sender, const InputEventArgs& e)
 }
 
 void
-ShlSetting::TFormC::btnC_TouchUp(const TouchEventArgs& e)
+ShlSetting::TFormC::btnC_TouchUp(TouchEventArgs& e)
 {
 	InputCounter(e);
 	HandleCast<ShlSetting>(hShell)->ShowString(strCount);
 	btnC.Refresh();
 }
 void
-ShlSetting::TFormC::btnC_TouchDown(const TouchEventArgs& e)
+ShlSetting::TFormC::btnC_TouchDown(TouchEventArgs& e)
 {
 	InputCounterAnother(e);
 	HandleCast<ShlSetting>(hShell)->ShowString(strCount);
 //	btnC.Refresh();
 }
 void
-ShlSetting::TFormC::btnC_Click(const TouchEventArgs& e)
+ShlSetting::TFormC::btnC_Click(TouchEventArgs& e)
 {
 
 	static const int ffilen(pDefaultFontCache->GetFilesN());
@@ -478,7 +480,7 @@ ShlSetting::TFormC::btnC_Click(const TouchEventArgs& e)
 	//	btnC.Refresh();
 }
 void
-ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, const KeyEventArgs& e)
+ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, KeyEventArgs& e)
 {
 	//测试程序。
 
@@ -503,7 +505,7 @@ ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, const KeyEventArgs& e)
 }
 
 void
-ShlSetting::TFormC::btnReturn_Click(const TouchEventArgs&)
+ShlSetting::TFormC::btnReturn_Click(TouchEventArgs&)
 {
 	CallStored<ShlExplorer>();
 }
@@ -628,13 +630,13 @@ ShlReader::UpdateToScreen()
 }
 
 void
-ShlReader::OnClick(const TouchEventArgs& e)
+ShlReader::OnClick(TouchEventArgs& e)
 {
 	CallStored<ShlExplorer>();
 }
 
 void
-ShlReader::OnKeyPress(const KeyEventArgs& e)
+ShlReader::OnKeyPress(KeyEventArgs& e)
 {
 	u32 k(static_cast<KeyEventArgs::Key>(e));
 

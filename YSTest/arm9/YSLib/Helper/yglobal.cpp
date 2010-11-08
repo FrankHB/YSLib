@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:28:52 + 08:00;
-// UTime = 2010-11-06 13:18 + 08:00;
-// Version = 0.2434;
+// UTime = 2010-11-08 17:53 + 08:00;
+// Version = 0.2444;
 
 
 #include "yglobal.h"
@@ -159,7 +159,7 @@ Def::WaitForInput()
 }
 
 void
-Def::Destroy(YObject&, const EventArgs&)
+Def::Destroy(YObject&, EventArgs&)
 {
 	//释放默认字体资源。
 	DestroySystemFontCache();

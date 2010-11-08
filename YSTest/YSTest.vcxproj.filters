@@ -1224,11 +1224,11 @@
     <ClInclude Include="arm9\YSLib\Shell\yfocus.h">
       <Filter>ARM9\YSLib\Shell</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adaptor\agg.h">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
     <ClInclude Include="arm9\YSLib\Core\yevt.hpp">
       <Filter>ARM9\YSLib\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Adaptor\agg.h">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

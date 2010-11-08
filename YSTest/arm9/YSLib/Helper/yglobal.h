@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper::YGlobal by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-22 15:14:57 + 08:00;
-// UTime = 2010-11-01 13:55 + 08:00;
-// Version = 0.1718;
+// UTime = 2010-11-08 17:53 + 08:00;
+// Version = 0.1728;
 
 
 #ifndef INCLUDED_YGLOBAL_H_
@@ -131,12 +131,12 @@ struct Def
 	//返回类型:	void
 	//修饰符:	
 	//形式参数:	YObject &
-	//形式参数:	const EventArgs &
+	//形式参数:	EventArgs &
 	//功能概要:	全局资源释放函数。
 	//备注:		
 	//********************************
 	static void
-	Destroy(YObject&, const EventArgs&);
+	Destroy(YObject&, EventArgs&);
 
 	//********************************
 	//名称:		ShlProc

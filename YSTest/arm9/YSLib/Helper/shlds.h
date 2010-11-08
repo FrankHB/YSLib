@@ -1,8 +1,8 @@
 ﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
 // CodePage = UTF-8
 // CTime = 2010-03-13 14:17:14 + 08:00;
-// UTime = 2010-11-04 14:22 + 08:00;
-// Version = 0.1684;
+// UTime = 2010-11-08 18:10 + 08:00;
+// Version = 0.1690;
 
 
 #ifndef INCLUDED_SHLDS_H_
@@ -233,7 +233,9 @@ public:
 inline void
 OnTouchUp(const Components::Controls::TouchEventArgs::InputType& pt)
 {
-	ResponseTouchUp(*pDesktopDown, Components::Controls::TouchEventArgs(pt));
+	Components::Controls::TouchEventArgs e(pt);
+
+	ResponseTouchUp(*pDesktopDown, e);
 }
 
 //********************************
@@ -249,7 +251,9 @@ OnTouchUp(const Components::Controls::TouchEventArgs::InputType& pt)
 inline void
 OnTouchDown(const Components::Controls::TouchEventArgs::InputType& pt)
 {
-	ResponseTouchDown(*pDesktopDown, Components::Controls::TouchEventArgs(pt));
+	Components::Controls::TouchEventArgs e(pt);
+
+	ResponseTouchDown(*pDesktopDown, e);
 }
 
 //********************************
@@ -265,7 +269,9 @@ OnTouchDown(const Components::Controls::TouchEventArgs::InputType& pt)
 inline void
 OnTouchHeld(const Components::Controls::TouchEventArgs::InputType& pt)
 {
-	ResponseTouchHeld(*pDesktopDown, Components::Controls::TouchEventArgs(pt));
+	Components::Controls::TouchEventArgs e(pt);
+
+	ResponseTouchHeld(*pDesktopDown, e);
 }
 
 //********************************
@@ -281,7 +287,9 @@ OnTouchHeld(const Components::Controls::TouchEventArgs::InputType& pt)
 inline void
 OnKeyUp(const Components::Controls::KeyEventArgs::InputType& key)
 {
-	ResponseKeyUp(*pDesktopDown, Components::Controls::KeyEventArgs(key));
+	Components::Controls::KeyEventArgs e(key);
+
+	ResponseKeyUp(*pDesktopDown, e);
 }
 
 //********************************
@@ -297,7 +305,9 @@ OnKeyUp(const Components::Controls::KeyEventArgs::InputType& key)
 inline void
 OnKeyDown(const Components::Controls::KeyEventArgs::InputType& key)
 {
-	ResponseKeyDown(*pDesktopDown, Components::Controls::KeyEventArgs(key));
+	Components::Controls::KeyEventArgs e(key);
+
+	ResponseKeyDown(*pDesktopDown, e);
 }
 
 //********************************
@@ -313,7 +323,9 @@ OnKeyDown(const Components::Controls::KeyEventArgs::InputType& key)
 inline void
 OnKeyHeld(const Components::Controls::KeyEventArgs::InputType& key)
 {
-	ResponseKeyHeld(*pDesktopDown, Components::Controls::KeyEventArgs(key));
+	Components::Controls::KeyEventArgs e(key);
+
+	ResponseKeyHeld(*pDesktopDown, e);
 }
 
 //********************************

@@ -1,8 +1,8 @@
 ﻿// YSLib -> Designation by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-02 05:14:30 + 08:00;
-// UTime = 2010-11-06 15:21 + 08:00;
-// Version = 0.3572;
+// UTime = 2010-11-08 20:10 + 08:00;
+// Version = 0.3580;
 
 
 // Designation ：设计说明文档。
@@ -504,7 +504,9 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 当用户使用指针设备（包括触摸屏）输入时，触发 TouchDown 事件；持续时触发 TouchHeld 事件；结束时依次触发 Click 和 TouchUp 事件。
  MVisualControl 默认处理 KeyHeld 和 TouchDown 事件时调用 RequestFocus(...) 向容器请求焦点。若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
 指针设备作用于 MVisualControl 派生的控件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
-指针设备相关事件中，参数包含了相对于控件的坐标。最近操作的全局（相对于屏幕的）坐标保存于全局变量 VisualControlLocationOffset 中。
+指针设备相关事件中，参数包含了相对于控件的坐标。
+最近操作的全局（相对于屏幕的）坐标保存于全局变量 VisualControlLocation 中。
+拖放操作依赖的最近全局坐标保存于全局变量 LastVisualControlLocation 中。
 
 @1.7.2.9.3 扩展输入事件：
  MVisualControl 定义了 TouchMove 。

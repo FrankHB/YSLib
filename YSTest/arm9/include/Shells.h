@@ -1,8 +1,8 @@
 ﻿// YReader -> Shells by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-11-06 15:28 + 08:00;
-// Version = 0.2807;
+// UTime = 2010-11-08 19:57 + 08:00;
+// Version = 0.2821;
 
 
 #ifndef INCLUDED_SHELLS_H_
@@ -116,16 +116,16 @@ private:
 		}
 
 		void
-		frm_KeyPress(const KeyEventArgs&);
+		frm_KeyPress(KeyEventArgs&);
 
 		void
-		fb_Selected(const IndexEventArgs&);
+		fb_Selected(IndexEventArgs&);
 
 		void
-		btnTest_Click(const TouchEventArgs&);
+		btnTest_Click(TouchEventArgs&);
 
 		void
-		btnOK_Click(const TouchEventArgs&);
+		btnOK_Click(TouchEventArgs&);
 	};
 	void LoadNextWindows();
 
@@ -137,10 +137,10 @@ public:
 	ShlProc(const Message&);
 
 	static void
-	fb_KeyPress(IVisualControl&, const KeyEventArgs&);
+	fb_KeyPress(IVisualControl&, KeyEventArgs&);
 
 	static void
-	fb_Confirmed(IVisualControl&, const IndexEventArgs&);
+	fb_Confirmed(IVisualControl&, IndexEventArgs&);
 };
 
 
@@ -181,20 +181,20 @@ public:
 			btnB2(HWND(this), FS("测试程序2"), Rect(45, 35, 124, size))
 		{
 			BackColor = ARGB16(1, 31, 31, 15);
-			TouchMove += OnTouchMove;
+			TouchMove += OnDrag;
 		//	btnB.TouchMove += &AVisualControl::OnTouchMove;
 			btnB.Enter += btnB_Enter;
 			btnB.Leave += btnB_Leave;
-			btnB2.TouchMove += OnTouchMove;
+			btnB2.TouchMove += OnDrag;
 		//	btnB2.TouchDown += btnC_Click;
 
 		//	btnB.Enabled = false;
 		}
 
 		static void
-		btnB_Enter(IVisualControl& sender, const InputEventArgs&);
+		btnB_Enter(IVisualControl& sender, InputEventArgs&);
 		static void
-		btnB_Leave(IVisualControl& sender, const InputEventArgs&);
+		btnB_Leave(IVisualControl& sender, InputEventArgs&);
 	};
 
 	struct TFormC : public YForm
@@ -208,10 +208,10 @@ public:
 		{
 			BackColor = ARGB16(1, 31, 15, 15);
 			TouchDown += TFormC_TouchDown;
-			TouchMove += OnTouchMove;
+			TouchMove += OnDrag;
 			btnC.TouchUp.Add(*this, &TFormC::btnC_TouchUp);
 			btnC.TouchDown.Add(*this, &TFormC::btnC_TouchDown);
-			btnC.TouchMove += OnTouchMove;
+			btnC.TouchMove += OnDrag;
 			btnC.Click.Add(*this, &TFormC::btnC_Click);
 			btnC.KeyPress += btnC_KeyPress;
 		//	btnC.Enabled = false;
@@ -220,16 +220,16 @@ public:
 		}
 
 		void
-		btnC_TouchUp(const TouchEventArgs&);
+		btnC_TouchUp(TouchEventArgs&);
 		void
-		btnC_TouchDown(const TouchEventArgs&);
+		btnC_TouchDown(TouchEventArgs&);
 		void
-		btnC_Click(const TouchEventArgs&);
+		btnC_Click(TouchEventArgs&);
 		static void
-		btnC_KeyPress(IVisualControl& sender, const KeyEventArgs& e);
+		btnC_KeyPress(IVisualControl& sender, KeyEventArgs& e);
 
 		void
-		btnReturn_Click(const TouchEventArgs&);
+		btnReturn_Click(TouchEventArgs&);
 	};
 
 	void ShowString(const String& s)
@@ -242,7 +242,7 @@ public:
 	}
 
 	static void
-	TFormC_TouchDown(IVisualControl& sender, const TouchEventArgs& e)
+	TFormC_TouchDown(IVisualControl& sender, TouchEventArgs& e)
 	{
 		try
 		{
@@ -297,10 +297,10 @@ public:
 	UpdateToScreen();
 
 	void
-	OnClick(const TouchEventArgs&);
+	OnClick(TouchEventArgs&);
 
 	void
-	OnKeyPress(const KeyEventArgs&);
+	OnKeyPress(KeyEventArgs&);
 };
 
 YSL_END;

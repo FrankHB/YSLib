@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-11-06 12:36 + 08:00;
-// Version = 0.4448;
+// UTime = 2010-11-08 21:05 + 08:00;
+// Version = 0.4486;
 
 
 #include "ydesktop.h"
@@ -23,6 +23,28 @@ Contains(const IWidget& w, SPOS x, SPOS y)
 }
 
 
+namespace
+{
+	void
+	GetContainersListFrom(IWidget& w, std::map<IUIBox*, Point>& m)
+	{
+		Point pt;
+		IUIBox* pCon(dynamic_cast<IUIBox*>(&w));
+
+		if(!pCon)
+		{
+			pCon = w.GetContainerPtr();
+			pt = w.GetLocation();
+		}
+		while(pCon != NULL)
+		{
+			m.insert(std::make_pair(pCon, pt));
+			pt += pCon->GetLocation();
+			pCon = pCon->GetContainerPtr();
+		}
+	}
+}
+
 Point
 LocateOffset(const IWidget* pCon, Point pt, IWindow* pWnd)
 {
@@ -32,6 +54,34 @@ LocateOffset(const IWidget* pCon, Point pt, IWindow* pWnd)
 		pCon = dynamic_cast<const IWidget*>(pCon->GetContainerPtr());
 	}
 	return pt;
+}
+
+Point
+LocateForWidget(IWidget& a, IWidget& b)
+{
+	std::map<IUIBox*, Point> m;
+
+	GetContainersListFrom(b, m);
+
+	Point pt;
+	IUIBox* pCon(dynamic_cast<IUIBox*>(&a));
+
+	if(!pCon)
+	{
+		pCon = a.GetContainerPtr();
+		pt = a.GetLocation();
+	}
+
+	while(pCon != NULL)
+	{
+		std::map<IUIBox*, Point>::const_iterator i(m.find(pCon));
+
+		if(i != m.end())
+			return pt - i->second;
+		pt += pCon->GetLocation();
+		pCon = pCon->GetContainerPtr();
+	}
+	return Point::FullScreen;
 }
 
 Point

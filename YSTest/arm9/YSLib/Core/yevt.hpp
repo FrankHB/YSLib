@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YEvent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-04-23 23:08:23 + 08:00;
-// UTime = 2010-11-04 11:34 + 08:00;
-// Version = 0.3678;
+// UTime = 2010-11-08 17:54 + 08:00;
+// Version = 0.3698;
 
 
 #ifndef INCLUDED_YEVT_HPP_
@@ -21,10 +21,10 @@ YSL_BEGIN_NAMESPACE(Runtime)
 template<class _tSender = YObject, class _tEventArgs = EventArgs>
 struct SEventTypeSpace
 {
-	typedef void FuncType(_tSender&, const _tEventArgs&);
+	typedef void FuncType(_tSender&, _tEventArgs&);
 	typedef FuncType* FuncPtrType;
 	typedef typename std::pointer_to_binary_function<_tSender&,
-		const _tEventArgs&, void> FunctorType;
+		_tEventArgs&, void> FunctorType;
 };
 
 
@@ -156,14 +156,14 @@ public:
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//形式参数:	void(_tSender::*pm)(const _tEventArgs&)
+	//形式参数:	void(_tSender::*pm)(_tEventArgs&)
 	//功能概要:	构造：使用 _tSender 的成员函数指针。
 	//备注:		
 	//********************************
 	inline
-	GEventHandler(void(_tSender::*pm)(const _tEventArgs&))
+	GEventHandler(void(_tSender::*pm)(_tEventArgs&))
 		: Design::Function<FuncType>(ExpandMemberFirst<
-			_tSender, void, const _tEventArgs&>(pm))
+			_tSender, void, _tEventArgs&>(pm))
 	{}
 	//********************************
 	//名称:		GEventHandler
@@ -172,15 +172,15 @@ public:
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//形式参数:	void(_type::*pm)(const _tEventArgs&)
+	//形式参数:	void(_type::*pm)(_tEventArgs&)
 	//功能概要:	构造：使用成员函数指针。
 	//备注:		
 	//********************************
 	template<class _type>
 	inline
-	GEventHandler(void(_type::*pm)(const _tEventArgs&))
+	GEventHandler(void(_type::*pm)(_tEventArgs&))
 		: Design::Function<FuncType>(ExpandMemberFirst<
-			_type, void, const _tEventArgs&, _tSender>(pm))
+			_type, void, _tEventArgs&, _tSender>(pm))
 	{}
 	//********************************
 	//名称:		GEventHandler
@@ -190,14 +190,14 @@ public:
 	//返回类型:	
 	//修饰符:	
 	//形式参数:	_type& obj
-	//形式参数:	void(_type::*pm)(const _tEventArgs&)
+	//形式参数:	void(_type::*pm)(_tEventArgs&)
 	//功能概要:	构造：使用 _tSender 类型对象引用和成员函数指针。
 	//备注:		
 	//********************************
 	inline
-	GEventHandler(_tSender& obj, void(_tSender::*pm)(const _tEventArgs&))
+	GEventHandler(_tSender& obj, void(_tSender::*pm)(_tEventArgs&))
 		: Design::Function<FuncType>(ExpandMemberFirstBinder<
-			_tSender, void, const _tEventArgs&>(obj, pm))
+			_tSender, void, _tEventArgs&>(obj, pm))
 	{}
 	//********************************
 	//名称:		GEventHandler
@@ -207,15 +207,15 @@ public:
 	//返回类型:	
 	//修饰符:	
 	//形式参数:	_type & obj
-	//形式参数:	void(_type::*pm)(const _tEventArgs&)
+	//形式参数:	void(_type::*pm)(_tEventArgs&)
 	//功能概要:	构造：使用对象引用和成员函数指针。
 	//备注:		
 	//********************************
 	template<class _type>
 	inline
-	GEventHandler(_type& obj, void(_type::*pm)(const _tEventArgs&))
+	GEventHandler(_type& obj, void(_type::*pm)(_tEventArgs&))
 		: Design::Function<FuncType>(ExpandMemberFirstBinder<
-			_type, void, const _tEventArgs&, _tSender>(obj, pm))
+			_type, void, _tEventArgs&, _tSender>(obj, pm))
 	{}
 
 	//********************************
@@ -226,12 +226,12 @@ public:
 	//返回类型:	void
 	//修饰符:	const
 	//形式参数:	_tSender & sender
-	//形式参数:	const _tEventArgs & e
+	//形式参数:	_tEventArgs & e
 	//功能概要:	调用：二元函数。
 	//备注:		
 	//********************************
 	inline void
-	operator()(_tSender& sender, const _tEventArgs& e) const
+	operator()(_tSender& sender, _tEventArgs& e) const
 	{
 		Design::Function<FuncType>::operator()(sender, e);
 	}
@@ -346,13 +346,13 @@ public:
 	//修饰符:	
 	//形式参数:	void
 	//形式参数:	_type:: * pm
-	//形式参数:	const _tEventArgs & 
+	//形式参数:	_tEventArgs & 
 	//功能概要:	赋值：覆盖事件响应：使用成员函数指针。
 	//备注:		
 	//********************************
 	template<class _type>
 	inline GEvent&
-	operator=(void(_type::*pm)(const _tEventArgs&))
+	operator=(void(_type::*pm)(_tEventArgs&))
 	{
 		Clear();
 		return *this = EventHandlerType(pm);
@@ -410,13 +410,13 @@ public:
 	//可访问性:	public 
 	//返回类型:	GEvent&
 	//修饰符:	
-	//形式参数:	void(_type::*pm)(const _tEventArgs&)
+	//形式参数:	void(_type::*pm)(_tEventArgs&)
 	//功能概要:	添加事件响应：使用成员函数指针。
 	//备注:		
 	//********************************
 	template<class _type>
 	inline GEvent&
-	operator+=(void(_type::*pm)(const _tEventArgs&))
+	operator+=(void(_type::*pm)(_tEventArgs&))
 	{
 		return operator+=(EventHandlerType(pm));
 	}
@@ -427,13 +427,13 @@ public:
 	//返回类型:	GEvent&
 	//修饰符:	
 	//形式参数:	_type& obj
-	//形式参数:	void(_type::*pm)(const _tEventArgs&)
+	//形式参数:	void(_type::*pm)(_tEventArgs&)
 	//功能概要:	添加事件响应：使用对象引用和成员函数指针。
 	//备注:		
 	//********************************
 	template<class _type>
 	inline GEvent&
-	Add(_type& obj, void(_type::*pm)(const _tEventArgs&))
+	Add(_type& obj, void(_type::*pm)(_tEventArgs&))
 	{
 		return operator+=(EventHandlerType(obj, pm));
 	}
@@ -496,7 +496,7 @@ public:
 	//********************************
 	template<class _type>
 	inline GEvent&
-	operator-=(void(_type::*pm)(const _tEventArgs&))
+	operator-=(void(_type::*pm)(_tEventArgs&))
 	{
 		return operator-=(EventHandlerType(pm));
 	}
@@ -508,13 +508,13 @@ public:
 	//返回类型:	GEvent&
 	//修饰符:	
 	//形式参数:	_type & obj
-	//形式参数:	void(_type::*pm)(const _tEventArgs&)
+	//形式参数:	void(_type::*pm)(_tEventArgs&)
 	//功能概要:	移除事件响应：目标为指定对象引用和成员函数指针。
 	//备注:		
 	//********************************
 	template<class _type>
 	inline GEvent&
-	Remove(_type& obj, void(_type::*pm)(const _tEventArgs&))
+	Remove(_type& obj, void(_type::*pm)(_tEventArgs&))
 	{
 		return operator-=(EventHandlerType(obj, pm));
 	}
@@ -526,12 +526,12 @@ public:
 	//返回类型:	void
 	//修饰符:	const
 	//形式参数:	_tSender & sender
-	//形式参数:	const _tEventArgs & e
+	//形式参数:	_tEventArgs & e
 	//功能概要:	调用函数。
 	//备注:		
 	//********************************
 	void
-	operator()(_tSender& sender, const _tEventArgs& e) const
+	operator()(_tSender& sender, _tEventArgs& e) const
 	{
 		for(typename list<EventHandlerType>
 				::const_iterator i(List.begin());
@@ -858,12 +858,12 @@ struct GAHEventCallback : public _tEventArgs
 	//可访问性:	public 
 	//返回类型:	
 	//修饰符:	
-	//形式参数:	const _tEventArgs & e
+	//形式参数:	_tEventArgs & e
 	//功能概要:	构造：使用事件参数。
 	//备注:		
 	//********************************
 	inline explicit
-	GAHEventCallback(const _tEventArgs& e)
+	GAHEventCallback(_tEventArgs& e)
 	: _tEventArgs(e)
 	{}
 	DeclIEntry(bool operator()(_tResponser&))

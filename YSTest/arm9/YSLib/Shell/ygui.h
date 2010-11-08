@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-11-05 18:49 + 08:00;
-// Version = 0.2223;
+// UTime = 2010-11-08 20:06 + 08:00;
+// Version = 0.2250;
 
 
 #ifndef INCLUDED_YGUI_H_
@@ -86,9 +86,9 @@ typedef Runtime::GAHEventCallback<Components::Controls::IVisualControl,
 
 //标准 GUI 事件回调函数类型。
 typedef bool FKeyCallback(Components::Controls::IVisualControl&,
-	const KeyEventArgs&);
+	KeyEventArgs&);
 typedef bool FTouchCallback(Components::Controls::IVisualControl&,
-	const TouchEventArgs&);
+	TouchEventArgs&);
 typedef FKeyCallback* PFKeyCallback;
 typedef FTouchCallback* PFTouchCallback;
 
@@ -169,8 +169,8 @@ typedef enum
 extern HeldStateType KeyHeldState, TouchHeldState; //输入接触状态。
 extern Vec DraggingOffset; //拖放偏移量。
 extern Timers::YTimer HeldTimer; //输入接触保持计时器。
-extern Point VisualControlLocationOffset; \
-	//最近的指针设备操作时的控件相对偏移量。
+extern Point VisualControlLocation, LastVisualControlLocation; \
+	//最近两次的指针设备操作时的控件全局位置（屏幕坐标）。
 
 //********************************
 //名称:		RepeatHeld
@@ -211,12 +211,12 @@ YSL_END_NAMESPACE(InputStatus)
 //返回类型:	bool
 //修饰符:	
 //形式参数:	YDesktop &
-//形式参数:	const KeyEventArgs &
+//形式参数:	KeyEventArgs &
 //功能概要:	响应按键接触结束。
 //备注:		
 //********************************
 bool
-ResponseKeyUp(YDesktop&, const KeyEventArgs&);
+ResponseKeyUp(YDesktop&, KeyEventArgs&);
 //********************************
 //名称:		ResponseKeyDown
 //全名:		YSLib::ResponseKeyDown
@@ -224,12 +224,12 @@ ResponseKeyUp(YDesktop&, const KeyEventArgs&);
 //返回类型:	bool
 //修饰符:	
 //形式参数:	YDesktop &
-//形式参数:	const KeyEventArgs &
+//形式参数:	KeyEventArgs &
 //功能概要:	响应按键接触开始。
 //备注:		
 //********************************
 bool
-ResponseKeyDown(YDesktop&, const KeyEventArgs&);
+ResponseKeyDown(YDesktop&, KeyEventArgs&);
 //********************************
 //名称:		ResponseKeyHeld
 //全名:		YSLib::ResponseKeyHeld
@@ -237,12 +237,12 @@ ResponseKeyDown(YDesktop&, const KeyEventArgs&);
 //返回类型:	bool
 //修饰符:	
 //形式参数:	YDesktop &
-//形式参数:	const KeyEventArgs &
+//形式参数:	KeyEventArgs &
 //功能概要:	响应按键接触保持。
 //备注:		
 //********************************
 bool
-ResponseKeyHeld(YDesktop&, const KeyEventArgs&);
+ResponseKeyHeld(YDesktop&, KeyEventArgs&);
 
 //响应屏幕接触状态。
 //********************************
@@ -252,12 +252,12 @@ ResponseKeyHeld(YDesktop&, const KeyEventArgs&);
 //返回类型:	bool
 //修饰符:	
 //形式参数:	IUIBox &
-//形式参数:	const TouchEventArgs &
+//形式参数:	TouchEventArgs &
 //功能概要:	响应屏幕接触结束。
 //备注:		
 //********************************
 bool
-ResponseTouchUp(IUIBox&, const TouchEventArgs&);
+ResponseTouchUp(IUIBox&, TouchEventArgs&);
 //********************************
 //名称:		ResponseTouchDown
 //全名:		YSLib::ResponseTouchDown
@@ -265,12 +265,12 @@ ResponseTouchUp(IUIBox&, const TouchEventArgs&);
 //返回类型:	bool
 //修饰符:	
 //形式参数:	IUIBox &
-//形式参数:	const TouchEventArgs &
+//形式参数:	TouchEventArgs &
 //功能概要:	响应屏幕接触开始。
 //备注:		
 //********************************
 bool
-ResponseTouchDown(IUIBox&, const TouchEventArgs&);
+ResponseTouchDown(IUIBox&, TouchEventArgs&);
 //********************************
 //名称:		ResponseTouchHeld
 //全名:		YSLib::ResponseTouchHeld
@@ -278,12 +278,12 @@ ResponseTouchDown(IUIBox&, const TouchEventArgs&);
 //返回类型:	bool
 //修饰符:	
 //形式参数:	IUIBox &
-//形式参数:	const TouchEventArgs &
+//形式参数:	TouchEventArgs &
 //功能概要:	响应屏幕接触保持。
 //备注:		
 //********************************
 bool
-ResponseTouchHeld(IUIBox&, const TouchEventArgs&);
+ResponseTouchHeld(IUIBox&, TouchEventArgs&);
 
 YSL_END_NAMESPACE(Controls)
 

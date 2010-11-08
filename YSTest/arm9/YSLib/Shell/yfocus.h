@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YFocus by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-05-01 13:52:56 + 08:00;
-// UTime = 2010-11-04 11:55 + 08:00;
-// Version = 0.2020;
+// UTime = 2010-11-08 18:07 + 08:00;
+// Version = 0.2034;
 
 
 #ifndef INCLUDED_YMODULE_H_
@@ -74,8 +74,10 @@ protected:
 			return false;
 		if(pFocusing != p)
 		{
+			EventArgs e;
+
 			if(pFocusing && pFocusing->IsFocused())
-				pFocusing->ReleaseFocus(GetZeroElement<EventArgs>());
+				pFocusing->ReleaseFocus(e);
 			pFocusing = p;
 		}
 		return pFocusing;
@@ -104,7 +106,7 @@ DeclInterface(GIFocusRequester)
 
 	DeclIEntry(bool CheckRemoval(_tResponser<_type>&) const)
 
-	DeclIEntry(void ReleaseFocus(const EventArgs&))
+	DeclIEntry(void ReleaseFocus(EventArgs&))
 EndDecl
 
 
@@ -251,7 +253,7 @@ public:
 	ReleaseFocus(_tResponser<_type>&);
 
 	ImplA(GIFocusRequester<GMFocusResponser, AFocusRequester>)
-	DeclIEntry(void ReleaseFocus(const EventArgs&))
+	DeclIEntry(void ReleaseFocus(EventArgs&))
 };
 
 inline

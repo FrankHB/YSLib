@@ -1,8 +1,8 @@
 ﻿// YSLib::Core::YApplication by Franksoft 2009 - 2010
 // CodePage = UTF-8;
 // CTime = 2009-12-27 17:12:36 + 08:00;
-// UTime = 2010-11-01 13:56 + 08:00;
-// Version = 0.1940;
+// UTime = 2010-11-08 18:14 + 08:00;
+// Version = 0.1946;
 
 
 #include "yapp.h"
@@ -66,7 +66,9 @@ YApplication::~YApplication() ythrow()
 		YDelete(*i);
 	//释放主 Shell 。
 //	YDelete(hShellMain);
-	ApplicationExit(*this, GetZeroElement<EventArgs>());
+	EventArgs e;
+
+	ApplicationExit(*this, e);
 	delete pMessageQueue;
 	delete pMessageQueueBackup;
 }

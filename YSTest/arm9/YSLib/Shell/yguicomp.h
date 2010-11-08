@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-11-06 14:50 + 08:00;
-// Version = 0.1720;
+// UTime = 2010-11-08 20:15 + 08:00;
+// Version = 0.1748;
 
 
 #ifndef INCLUDED_YGUICOMP_H_
@@ -66,12 +66,12 @@ public:
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const InputEventArgs &
+	//形式参数:	InputEventArgs &
 	//功能概要:	响应进入控件事件。
 	//备注:		
 	//********************************
 	void
-	OnEnter(const InputEventArgs&);
+	OnEnter(InputEventArgs&);
 
 	//********************************
 	//名称:		OnLeave
@@ -79,12 +79,12 @@ public:
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const InputEventArgs &
+	//形式参数:	InputEventArgs &
 	//功能概要:	响应离开控件事件。
 	//备注:		
 	//********************************
 	void
-	OnLeave(const InputEventArgs&);
+	OnLeave(InputEventArgs&);
 };
 
 
@@ -152,12 +152,12 @@ public:
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const KeyEventArgs &
+	//形式参数:	KeyEventArgs &
 	//功能概要:	响应按键接触开始事件。
 	//备注:		
 	//********************************
 	void
-	OnKeyDown(const KeyEventArgs&);
+	OnKeyDown(KeyEventArgs&);
 
 	//********************************
 	//名称:		OnClick
@@ -165,12 +165,12 @@ public:
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const TouchEventArgs &
+	//形式参数:	TouchEventArgs &
 	//功能概要:	响应屏幕点击事件。
 	//备注:		
 	//********************************
 	void
-	OnClick(const TouchEventArgs&);
+	OnClick(TouchEventArgs&);
 };
 
 template<class _tChar>
@@ -293,10 +293,10 @@ public:
 	SetThumbPosition(SDST);
 
 	void
-	OnTouchDown(const TouchEventArgs&);
+	OnTouchDown(TouchEventArgs&);
 
 	void
-	OnTouchMove_Thumb(const TouchEventArgs&);
+	OnDrag_Thumb(TouchEventArgs&);
 };
 
 
@@ -319,10 +319,10 @@ public:
 	SetThumbPosition(SDST);
 
 	void
-	OnTouchDown(const TouchEventArgs&);
+	OnTouchDown(TouchEventArgs&);
 
 	void
-	OnTouchMove_Thumb(const TouchEventArgs&);
+	OnDrag_Thumb(TouchEventArgs&);
 };
 
 
@@ -708,12 +708,12 @@ public:
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const KeyEventArgs &
+	//形式参数:	KeyEventArgs &
 	//功能概要:	响应按键接触开始事件。
 	//备注:		
 	//********************************
 	void
-	OnKeyDown(const KeyEventArgs&);
+	OnKeyDown(KeyEventArgs&);
 
 	//********************************
 	//名称:		OnTouchDown
@@ -721,12 +721,12 @@ public:
 	//可访问性:	virtual public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const TouchEventArgs &
+	//形式参数:	TouchEventArgs &
 	//功能概要:	响应屏幕接触开始事件。
 	//备注:		
 	//********************************
 	void
-	OnTouchDown(const TouchEventArgs&);
+	OnTouchDown(TouchEventArgs&);
 
 	//********************************
 	//名称:		OnTouchMove
@@ -734,12 +734,12 @@ public:
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const TouchEventArgs &
+	//形式参数:	TouchEventArgs &
 	//功能概要:	响应屏幕接触移动事件。
 	//备注:		
 	//********************************
 	void
-	OnTouchMove(const TouchEventArgs&);
+	OnTouchMove(TouchEventArgs&);
 
 	//********************************
 	//名称:		OnClick
@@ -747,12 +747,12 @@ public:
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const TouchEventArgs &
+	//形式参数:	TouchEventArgs &
 	//功能概要:	响应屏幕点击事件。
 	//备注:		
 	//********************************
 	void
-	OnClick(const TouchEventArgs&);
+	OnClick(TouchEventArgs&);
 
 	//********************************
 	//名称:		OnSelected
@@ -760,12 +760,12 @@ public:
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const IndexEventArgs &
+	//形式参数:	IndexEventArgs &
 	//功能概要:	响应选中事件。
 	//备注:		
 	//********************************
 	void
-	OnSelected(const IndexEventArgs&);
+	OnSelected(IndexEventArgs&);
 
 	//********************************
 	//名称:		OnConfirmed
@@ -773,12 +773,12 @@ public:
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const IndexEventArgs &
+	//形式参数:	IndexEventArgs &
 	//功能概要:	响应确认事件。
 	//备注:		
 	//********************************
 	void
-	OnConfirmed(const IndexEventArgs&);
+	OnConfirmed(IndexEventArgs&);
 };
 
 inline void
@@ -846,12 +846,12 @@ public:
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const IndexEventArgs &
+	//形式参数:	IndexEventArgs &
 	//功能概要:	响应确认事件。
 	//备注:		
 	//********************************
 	void
-	OnConfirmed(const IndexEventArgs&);
+	OnConfirmed(IndexEventArgs&);
 };
 
 YSL_END_NAMESPACE(Controls)

@@ -1,8 +1,8 @@
 ﻿// YSLib::Shell::YControl by Franksoft 2010
 // CodePage = UTF-8;
 // CTime = 2010-02-18 13:44:24 + 08:00;
-// UTime = 2010-11-06 14:50 + 08:00;
-// Version = 0.4278;
+// UTime = 2010-11-08 19:45 + 08:00;
+// Version = 0.4308;
 
 
 #ifndef INCLUDED_YCONTROL_H_
@@ -50,7 +50,7 @@ ScreenPositionEventArgs::ScreenPositionEventArgs(const Drawing::Point& pt)
 struct InputEventArgs
 {
 public:
-	static const InputEventArgs Empty;
+	static InputEventArgs Empty;
 
 	typedef platform::Key Key;
 
@@ -85,7 +85,7 @@ struct TouchEventArgs : public ScreenPositionEventArgs,
 {
 	typedef Drawing::Point InputType; //输入类型。
 
-	static const TouchEventArgs Empty;
+	static TouchEventArgs Empty;
 
 	//********************************
 	//名称:		TouchEventArgs
@@ -111,7 +111,7 @@ struct KeyEventArgs : public EventArgs, public InputEventArgs
 {
 	typedef Key InputType; //输入类型。
 
-	static const KeyEventArgs Empty;
+	static KeyEventArgs Empty;
 
 	//********************************
 	//名称:		KeyEventArgs
@@ -223,10 +223,10 @@ DeclBasedInterface(IVisualControl, virtual IWidget, virtual IControl,
 	DeclIEventEntry(TouchEventHandler, Click) //屏幕点击。
 
 	//向部件容器请求获得焦点，
-	DeclIEntry(void RequestFocus(const EventArgs&))
+	DeclIEntry(void RequestFocus(EventArgs&))
 
 	//释放焦点。
-	DeclIEntry(void ReleaseFocus(const EventArgs&))
+	DeclIEntry(void ReleaseFocus(EventArgs&))
 EndDecl
 
 
@@ -237,12 +237,12 @@ EndDecl
 //返回类型:	void
 //修饰符:	
 //形式参数:	IVisualControl &
-//形式参数:	const KeyEventArgs &
+//形式参数:	KeyEventArgs &
 //功能概要:	处理按键接触保持事件。
 //备注:		
 //********************************
 void
-OnKeyHeld(IVisualControl&, const KeyEventArgs&);
+OnKeyHeld(IVisualControl&, KeyEventArgs&);
 
 //********************************
 //名称:		OnTouchHeld
@@ -251,12 +251,12 @@ OnKeyHeld(IVisualControl&, const KeyEventArgs&);
 //返回类型:	void
 //修饰符:	
 //形式参数:	IVisualControl &
-//形式参数:	const TouchEventArgs &
+//形式参数:	TouchEventArgs &
 //功能概要:	处理屏幕接触保持事件。
 //备注:		
 //********************************
 void
-OnTouchHeld(IVisualControl&, const TouchEventArgs&);
+OnTouchHeld(IVisualControl&, TouchEventArgs&);
 
 //********************************
 //名称:		OnTouchMove
@@ -265,12 +265,26 @@ OnTouchHeld(IVisualControl&, const TouchEventArgs&);
 //返回类型:	void
 //修饰符:	
 //形式参数:	IVisualControl &
-//形式参数:	const TouchEventArgs &
+//形式参数:	TouchEventArgs &
 //功能概要:	处理屏幕接触移动事件。
 //备注:		
 //********************************
 void
-OnTouchMove(IVisualControl&, const TouchEventArgs&);
+OnTouchMove(IVisualControl&, TouchEventArgs&);
+
+//********************************
+//名称:		OnTouchMove
+//全名:		YSLib::Components::Controls::OnDrag
+//可访问性:	public 
+//返回类型:	void
+//修饰符:	
+//形式参数:	IVisualControl &
+//形式参数:	TouchEventArgs &
+//功能概要:	处理屏幕接触移动事件：使用拖放。
+//备注:		
+//********************************
+void
+OnDrag(IVisualControl&, TouchEventArgs&);
 
 
 //控件模块类。
@@ -434,12 +448,12 @@ public:
 	//可访问性:	ImplI(IVisualControl) public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const EventArgs &
+	//形式参数:	EventArgs &
 	//功能概要:	向部件容器请求获得焦点，若成功则引发 GotFocus 事件。
 	//备注:		
 	//********************************
 	ImplI(IVisualControl) void
-	RequestFocus(const EventArgs&);
+	RequestFocus(EventArgs&);
 
 	//********************************
 	//名称:		ReleaseFocus
@@ -447,12 +461,12 @@ public:
 	//可访问性:	ImplI(IVisualControl) public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const EventArgs &
+	//形式参数:	EventArgs &
 	//功能概要:	释放焦点，并引发失去焦点事件。
 	//备注:		
 	//********************************
 	ImplI(IVisualControl) void
-	ReleaseFocus(const EventArgs&);
+	ReleaseFocus(EventArgs&);
 
 	//********************************
 	//名称:		OnGotFocus
@@ -460,12 +474,12 @@ public:
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const EventArgs &
+	//形式参数:	EventArgs &
 	//功能概要:	处理获得焦点事件。
 	//备注:		
 	//********************************
 	void
-	OnGotFocus(const EventArgs&);
+	OnGotFocus(EventArgs&);
 
 	//********************************
 	//名称:		OnLostFocus
@@ -473,12 +487,12 @@ public:
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const EventArgs &
+	//形式参数:	EventArgs &
 	//功能概要:	处理失去焦点事件。
 	//备注:		
 	//********************************
 	void
-	OnLostFocus(const EventArgs&);
+	OnLostFocus(EventArgs&);
 
 	//********************************
 	//名称:		OnTouchDown
@@ -486,16 +500,16 @@ public:
 	//可访问性:	public 
 	//返回类型:	void
 	//修饰符:	
-	//形式参数:	const TouchEventArgs &
+	//形式参数:	TouchEventArgs &
 	//功能概要:	处理屏幕接触开始事件。
 	//备注:		
 	//********************************
 	void
-	OnTouchDown(const TouchEventArgs&);
+	OnTouchDown(TouchEventArgs&);
 };
 
 inline void
-AVisualControl::OnLostFocus(const EventArgs& e)
+AVisualControl::OnLostFocus(EventArgs& e)
 {
 	OnGotFocus(e);
 }
