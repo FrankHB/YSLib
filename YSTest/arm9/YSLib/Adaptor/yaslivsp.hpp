@@ -1,14 +1,31 @@
-﻿// YSLib::Adaptor::YASLIVectorStoragePolicy by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-10-09 22:38:03 + 08:00;
-// UTime = 2010-10-24 11:40 + 08:00;
-// Version = 0.2283;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file yaslivsp.hpp
+\ingroup Adaptor
+\brief yasli::vector 存储策略。
+\version 0.2296;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-10-09 22:38:03 + 08:00;
+\par 修改时间:
+	2010-11-12 18:35 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Adaptor::YASLIVectorStoragePolicy;
+*/
 
 
 #ifndef INCLUDED_YASLIVSP_H_
 #define INCLUDED_YASLIVSP_H_
-
-// YASLIVectorStoragePolicy ： yasli::vector 存储策略。
 
 #include "base.h"
 #include <loki/yasli/yasli_vector.h>
@@ -18,13 +35,13 @@
 #include <limits>
 */
 
-//字符串存储策略类模板：使用 yasli::vector 和 空基类优化。
+//! \brief 字符串存储策略类模板：使用 yasli::vector 和 空基类优化。
 template <typename _tChar, class _tAlloc = std::allocator<_tChar> >
 class VectorStringStorage : protected yasli::vector<_tChar, _tAlloc>
 {
 	typedef yasli::vector<_tChar, _tAlloc> base;
 
-public: // protected:
+public: //!<  protected:
 	typedef _tChar value_type;
 	typedef typename base::iterator iterator;
 	typedef typename base::const_iterator const_iterator;
@@ -32,63 +49,32 @@ public: // protected:
 	typedef typename _tAlloc::size_type size_type;
 	typedef typename _tAlloc::reference reference;
 
-	//********************************
-	//名称:		VectorStringStorage
-	//全名:		VectorStringStorage<_tChar, _tAlloc>::VectorStringStorage
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const VectorStringStorage & s
-	//功能概要:	复制构造存储策略。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复制构造存储策略。
+	*/
 	VectorStringStorage(const VectorStringStorage& s)
 		: base(s)
 	{}
-	//********************************
-	//名称:		VectorStringStorage
-	//全名:		VectorStringStorage<_tChar, _tAlloc>::VectorStringStorage
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const _tAlloc & a
-	//功能概要:	使用分配器构造存储策略。
-	//备注:		
-	//********************************
+	/*!
+	\brief 使用分配器构造存储策略。
+	*/
 	VectorStringStorage(const _tAlloc& a)
 		: base(1, value_type(), a)
 	{}
-	//********************************
-	//名称:		VectorStringStorage
-	//全名:		VectorStringStorage<_tChar, _tAlloc>::VectorStringStorage
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const value_type * s
-	//形式参数:	size_type len
-	//形式参数:	const _tAlloc & a
-	//功能概要:	使用指向字符串的指针、长度和分配器构造存储策略。
-	//备注:		
-	//********************************
+	/*!
+	\brief 使用指向字符串的指针、长度和分配器构造存储策略。
+	*/
 	VectorStringStorage(const value_type* s, size_type len, const _tAlloc& a)
 		: base(a)
 	{
 		base::reserve(len + 1);
 		base::insert(base::end(), s, s + len);
-		base::push_back(value_type()); //终结符。
+		base::push_back(value_type()); //!< 终结符。
 	}
-	//********************************
-	//名称:		VectorStringStorage
-	//全名:		VectorStringStorage<_tChar, _tAlloc>::VectorStringStorage
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	size_type len
-	//形式参数:	_tChar c
-	//形式参数:	const _tAlloc & a
-	//功能概要:	使用长度、字符和分配器构造存储策略。
-	//备注:		以 len 个字符 c 进行填充。
-	//********************************
+	/*!
+	\brief 使用长度、字符和分配器构造存储策略。
+	\note 以 len 个字符 c 进行填充。
+	*/
 	VectorStringStorage(size_type len, _tChar c, const _tAlloc& a)
 		: base(len + 1, c, a)
 	{
@@ -96,16 +82,9 @@ public: // protected:
 		base::back() = value_type();
 	}
 
-	//********************************
-	//名称:		operator=
-	//全名:		VectorStringStorage<_tChar, _tAlloc>::operator=
-	//可访问性:	public 
-	//返回类型:	VectorStringStorage&
-	//修饰符:	
-	//形式参数:	const VectorStringStorage & rhs
-	//功能概要:	复制赋值存储策略。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复制赋值存储策略。
+	*/
 	VectorStringStorage&
 	operator=(const VectorStringStorage& rhs)
 	{
@@ -134,16 +113,10 @@ public: // protected:
 	PDefH(size_type, capacity) const
 		ImplRet(base::capacity() - 1)
 
-	//********************************
-	//名称:		reserve
-	//全名:		VectorStringStorage<_tChar, _tAlloc>::reserve
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	size_type res_arg
-	//功能概要:	保留 res_arg 个字符的空间。
-	//备注:		实际保留 res_arg + 1 长度空间。
-	//********************************
+	/*!
+	\brief 保留 res_arg 个字符的空间。
+	\note 实际保留 res_arg + 1 长度空间。
+	*/
 	void
 	reserve(size_type res_arg)
 	{ 
@@ -151,17 +124,10 @@ public: // protected:
 		base::reserve(res_arg + 1); 
 	}
 
-	//********************************
-	//名称:		append
-	//全名:		VectorStringStorage<_tChar, _tAlloc>::append<_tForIt>
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	_tForIt b
-	//形式参数:	_tForIt e
-	//功能概要:	追加存储字符。
-	//备注:		串接。
-	//********************************
+	/*!
+	\brief 追加存储字符。
+	\note 串接。
+	*/
 	template<class _tForIt>
 	void
 	append(_tForIt b, _tForIt e)
@@ -195,17 +161,9 @@ public: // protected:
 		base::insert(base::end(), ++b, e);
 	}
 
-	//********************************
-	//名称:		resize
-	//全名:		VectorStringStorage<_tChar, _tAlloc>::resize
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	size_type n
-	//形式参数:	_tChar c
-	//功能概要:	重新分配大小 n ，以字符 c 填充。
-	//备注:		
-	//********************************
+	/*!
+	\brief 重新分配大小 n ，以字符 c 填充。
+	*/
 	void
 	resize(size_type n, _tChar c)
 	{

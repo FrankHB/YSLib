@@ -1,8 +1,28 @@
-﻿// YSLib::Helper -> Shell_DS by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-03-13 14:17:14 + 08:00;
-// UTime = 2010-10-27 12:32 + 08:00;
-// Version = 0.1418;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file shlds.cpp
+\ingroup Helper
+\ingroup DS
+\brief Shell 类库 DS 版本。
+\version 0.1423;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-03-13 14:17:14 + 08:00;
+\par 修改时间:
+	2010-11-12 18:43 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Helper::Shell_DS;
+*/
 
 
 #include "shlds.h"

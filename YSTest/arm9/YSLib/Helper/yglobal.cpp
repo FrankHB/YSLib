@@ -1,8 +1,27 @@
-﻿// YSLib::Helper -> Global by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-12-22 15:28:52 + 08:00;
-// UTime = 2010-11-08 17:53 + 08:00;
-// Version = 0.2444;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file yglobal.cpp
+\ingroup Helper
+\brief 平台相关的全局对象和函数定义。
+\version 0.2457;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-12-22 15:28:52 + 08:00;
+\par 修改时间:
+	2010-11-12 18:32 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Helper::YGlobal;
+*/
 
 
 #include "yglobal.h"
@@ -41,16 +60,9 @@ namespace
 		return a.up != b.up || a.down != b.down || a.held != b.held;
 	}
 
-	//********************************
-	//名称:		ToSPoint
-	//全名:		YSLib::Runtime::ToSPoint
-	//可访问性:	public 
-	//返回类型:	Drawing::Point
-	//修饰符:	
-	//形式参数:	const Runtime::CursorInfo & c
-	//功能概要:	转换指针设备光标位置为屏幕点。
-	//备注:		
-	//********************************
+	/*!
+	\note 转换指针设备光标位置为屏幕点。
+	*/
 	inline Drawing::Point
 	ToSPoint(const Runtime::CursorInfo& c)
 	{
@@ -180,7 +192,7 @@ Def::ShlProc(HSHL hShl, const Message& msg)
 
 namespace
 {
-	//初始化函数。
+	//! \brief 初始化函数。
 	void
 	YInit()
 	{

@@ -127,9 +127,6 @@
     <ClCompile Include="arm9\YSLib\Core\yapp.cpp">
       <Filter>ARM9\YSLib\Core</Filter>
     </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\ycutil.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
     <ClCompile Include="arm9\YSLib\Core\ydevice.cpp">
       <Filter>ARM9\YSLib\Core</Filter>
     </ClCompile>
@@ -172,9 +169,6 @@
     <ClCompile Include="arm9\YSLib\Service\ysinit.cpp">
       <Filter>ARM9\YSLib\Service</Filter>
     </ClCompile>
-    <ClCompile Include="arm9\YSLib\Service\ysutil.cpp">
-      <Filter>ARM9\YSLib\Service</Filter>
-    </ClCompile>
     <ClCompile Include="arm9\YSLib\Service\ytimer.cpp">
       <Filter>ARM9\YSLib\Service</Filter>
     </ClCompile>
@@ -207,9 +201,6 @@
     </ClCompile>
     <ClCompile Include="arm9\YSLib\Shell\ywindow.cpp">
       <Filter>ARM9\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\CHRLib\chrlib.cpp">
-      <Filter>ARM9\CHRLib</Filter>
     </ClCompile>
     <ClCompile Include="arm9\CHRLib\chrmap.cpp">
       <Filter>ARM9\CHRLib</Filter>
@@ -312,9 +303,6 @@
     <ClInclude Include="arm9\YSLib\Service\ysinit.h">
       <Filter>ARM9\YSLib\Service</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Service\ysutil.h">
-      <Filter>ARM9\YSLib\Service</Filter>
-    </ClInclude>
     <ClInclude Include="arm9\YSLib\Service\ytimer.h">
       <Filter>ARM9\YSLib\Service</Filter>
     </ClInclude>
@@ -361,9 +349,6 @@
       <Filter>ARM9\CHRLib</Filter>
     </ClInclude>
     <ClInclude Include="arm9\include\DSReader.h">
-      <Filter>ARM9\头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\DSRMsg.h">
       <Filter>ARM9\头文件</Filter>
     </ClInclude>
     <ClInclude Include="arm9\include\ft2build.h">

@@ -1,8 +1,27 @@
-﻿// YSLib::Shell::YText by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-11-13 00:06:05 + 08:00;
-// UTime = 2010-11-03 19:55 + 08:00;
-// Version = 0.6238;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ytext.cpp
+\ingroup Shell
+\brief 基础文本显示。
+\version 0.6242;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-11-13 00:06:05 + 08:00;
+\par 修改时间:
+	2010-11-12 15:21 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Shell::YText;
+*/
 
 
 #include "ytext.h"

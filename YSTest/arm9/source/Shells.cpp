@@ -1,8 +1,27 @@
-﻿// YReader -> ShlMain by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-11-08 18:12 + 08:00;
-// Version = 0.3174;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file Shells.cpp
+\ingroup YReader
+\brief Shell 实现。
+\version 0.3183;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-03-06 21:38:16 + 08:00;
+\par 修改时间:
+	2010-11-12 18:37 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YReader::Shells;
+*/
 
 
 #include <Shells.h>
@@ -307,7 +326,7 @@ ShlExplorer::TFrmFileListSelecter::btnTest_Click(TouchEventArgs&)
 	{
 		YConsole con(*pScreenUp);
 
-		con.Activate(Color::Silver);
+		Activate(con, Color::Silver);
 
 		iprintf("Current Working Directory:\n%s\n", IO::GetNowDirectory().c_str());
 		iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
@@ -317,7 +336,7 @@ ShlExplorer::TFrmFileListSelecter::btnTest_Click(TouchEventArgs&)
 	else
 	{
 		YConsole con(*pScreenDown);
-		con.Activate(Color::Yellow, ColorSpace::Green);
+		Activate(con, Color::Yellow, ColorSpace::Green);
 		iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
 		puts("OK");
 		WaitForInput();
@@ -331,11 +350,11 @@ ShlExplorer::TFrmFileListSelecter::btnOK_Click(TouchEventArgs&)
 	{
 		const string& s(fbMain.GetPath().GetNativeString());
 /*	YConsole con;
-	con.Activate();
+	Activate(con);
 	iprintf("%s\n%s\n%s\n%d,%d\n",fbMain.GetDirectory().c_str(), StringToMBCS(fbMain.YListBox::GetList()[fbMain.GetSelected()]).c_str(),
 		s.c_str(),IO::ValidateDirectory(s), stdex::fexists(s.c_str()));
 	WaitForABXY();
-	con.Deactivate();*/
+	Deactivate(con);*/
 		if(!IO::ValidateDirectory(s) && stdex::fexists(s.c_str()))
 			switchShl2(s.c_str());
 	}

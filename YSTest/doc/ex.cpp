@@ -193,16 +193,16 @@ struct FileStatus;
 
 typedef uintmax_t FileSizeType;
 
-struct SpaceInfo  //空间计算函数返回。
+struct SpaceInfo  //!< 空间计算函数返回。
 {
 	FileSizeType Capacity;
 	FileSizeType Free; 
-	FileSizeType Available; //非特权进程可用空间。
+	FileSizeType Available; //!< 非特权进程可用空间。
 };
 
 struct ECopyOption
 {
-	enum //IfExists
+	enum //!< IfExists
 	{
 		Fail,
 		Overwrite
@@ -251,7 +251,7 @@ Path SystemComplete(const Path&);
 //Path		unique_path(const Path& model="%%%%-%%%%-%%%%-%%%%");
 
 
-typedef char NativePathCharType; //本地路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
+typedef char NativePathCharType; //!< 本地路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
 */
 /*
 struct utf8_codecvt_facet :
@@ -337,7 +337,7 @@ protected:
 	// Largest possible value do_length(state,from,from_end,1) could return.
 	virtual int do_max_length() const throw ()
 	{
-		return 6; // largest UTF-8 encoding of a UCS-4 character
+		return 6; //!<  largest UTF-8 encoding of a UCS-4 character
 	}
 };
 
@@ -399,29 +399,29 @@ public:
 	void swap(Path& rhs) ythrow();
 
 	Path& MakeAbsolute(const path& base);
-	Path& MakePreferred(); // POSIX: no effect. Windows: convert slashes to backslashes
+	Path& MakePreferred(); //!<  POSIX: no effect. Windows: convert slashes to backslashes
 	Path& RemoveFilename();
 	Path& ReplaceExtension(const path& new_extension = path());
 
 	const string_type&
-	native() const; //本地格式和编码。
+	native() const; //!< 本地格式和编码。
 	const value_type*
-	c_str() const; //本地格式和编码的 C 风格字符串。
+	c_str() const; //!< 本地格式和编码的 C 风格字符串。
 
 	template<class _tString>
-	_tString GetString(const codecvt_type& = codecvt()) const; //本地字符串格式。
+	_tString GetString(const codecvt_type& = codecvt()) const; //!< 本地字符串格式。
 
-//	const string    string(const codecvt_type& = codecvt()) const; // native format
-//	const wstring   wstring(const codecvt_type& = codecvt()) const; // ditto
-//	const u16string u16string() const; // ditto
-//	const u32string u32string() const; // ditto
+//	const string    string(const codecvt_type& = codecvt()) const; //!<  native format
+//	const wstring   wstring(const codecvt_type& = codecvt()) const; //!<  ditto
+//	const u16string u16string() const; //!<  ditto
+//	const u32string u32string() const; //!<  ditto
 
 	template<class _tString>
 	_tString GetGenericString() const;
-//	const string    GetGenericString(const codecvt_type& cvt=codecvt()) const;   // generic format
-//	const wstring   GetGenericString(const codecvt_type& cvt=codecvt()) const;  // ditto
-//	const u16string GetGenericString() const;                                 // ditto
-//	const u32string GetGenericString() const;                                 // ditto
+//	const string    GetGenericString(const codecvt_type& cvt=codecvt()) const;   //!<  generic format
+//	const wstring   GetGenericString(const codecvt_type& cvt=codecvt()) const;  //!<  ditto
+//	const u16string GetGenericString() const;                                 //!<  ditto
+//	const u32string GetGenericString() const;                                 //!<  ditto
 
 	//查询。
 	bool empty() const;
@@ -514,9 +514,9 @@ BLOCK CheckBlock(const BLOCK&, const BLOCK&);
 	u8    Align;
 	CROT  Rot;
 	FNTS  Fx;
-	bool  Cut;  //Cut
-	u8    WSpc; //Width Space
-	u8    HSpc; //Height Space
+	bool  Cut;  //!< Cut
+	u8    WSpc; //!< Width Space
+	u8    HSpc; //!< Height Space
 	FONT* Font;
 } CHRSTAT;
 
@@ -708,7 +708,7 @@ void YLabeledWidget::SetBounds(Rect& r)
 
 /*
 //	(prTextRegion->*SelectRenderer(Transparent))
-class YCommandButton : public GMCounter<YCommandButton>, public YWidget //命令按钮。
+class YCommandButton : public GMCounter<YCommandButton>, public YWidget //!< 命令按钮。
 {
 public:
 	typedef YWidget ParentType;
@@ -790,7 +790,7 @@ ad_rect(const Rect& r, const agg::rgba8* c)
 	if(c)
 		rast.render(rend, *c);
 }
-typedef vector<Point> poly; //多边形。
+typedef vector<Point> poly; //!< 多边形。
 static void
 ad_v(const poly& p, const agg::rgba8* c)
 {
@@ -816,29 +816,29 @@ static void on_draw()
 	renderer_scanline_type rensl(renb);
 
 	// Vertex Source
-	agg::ellipse ell(100,100,50,50); //圆心在中间
+	agg::ellipse ell(100,100,50,50); //!< 圆心在中间
 	// Coordinate conversion pipeline
 
 	agg::trans_affine mtx;
-	mtx.scale(0.5,1); // x轴缩小到原来的一半
-	mtx.rotate(agg::deg2rad(30)); // 旋转30度
-	mtx.translate(100,100); // 平移100,100
+	mtx.scale(0.5,1); //!<  x轴缩小到原来的一半
+	mtx.rotate(agg::deg2rad(30)); //!<  旋转30度
+	mtx.translate(100,100); //!<  平移100,100
 	typedef agg::conv_transform<agg::ellipse> ell_ct_type;
-	ell_ct_type ctell(ell, mtx); // 矩阵变换
+	ell_ct_type ctell(ell, mtx); //!<  矩阵变换
 	typedef agg::conv_contour<ell_ct_type> ell_cc_type;
-	ell_cc_type ccell(ctell); // 轮廓变换
+	ell_cc_type ccell(ctell); //!<  轮廓变换
 
 	typedef agg::conv_contour<agg::ellipse> ell_cc_type;
 	ell_cc_type ccell(ell);
 	typedef agg::conv_stroke<ell_cc_type> ell_cc_cs_type;
-	ell_cc_cs_type csccell(ccell); // 转换成多义线
+	ell_cc_cs_type csccell(ccell); //!<  转换成多义线
 
 	agg::rasterizer_scanline_aa<> ras;
 	agg::scanline_u8 sl;
 
 	renb.clear(rgb8(255, 255, 255));
 
-//	renb.clip_box(30, 30, 160, 160); // 设置可写区域
+//	renb.clip_box(30, 30, 160, 160); //!<  设置可写区域
 
 
 	for(int i = 0; i < 5; ++i)
@@ -871,8 +871,8 @@ static void on_draw()
 		pixf.blend_vline(50 + i*2, 20, 100, rgb5(i, 0, 0), 128);
 
 
-	agg::int8u* p = rbuf.row_ptr(20); //得到第20行指针
-	memset(p, 0, rbuf.stride_abs()); //整行以0 填充
+	agg::int8u* p = rbuf.row_ptr(20); //!< 得到第20行指针
+	memset(p, 0, rbuf.stride_abs()); //!< 整行以0 填充
 
 
 }

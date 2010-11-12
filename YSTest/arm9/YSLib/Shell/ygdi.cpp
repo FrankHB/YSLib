@@ -1,8 +1,27 @@
-﻿// YSLib::Shell::YGDI by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-12-14 18:29:46 + 08:00;
-// UTime = 2010-11-06 12:35 + 08:00;
-// Version = 0.2529;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ygdi.cpp
+\ingroup Shell
+\brief 平台无关的图形设备接口实现。
+\version 0.2535;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-12-14 18:29:46 + 08:00;
+\par 修改时间:
+	2010-11-12 15:14 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Shell::YGDI;
+*/
 
 
 #include "ygdi.h"
@@ -624,8 +643,8 @@ DrawRect(const Graphics& g, const Point& p, const Size& s, Color c)
 		x2(x1 + vmax<SPOS>(s.Width, 0)),
 		y2(y1 + vmax<SPOS>(s.Height, 0));
 	bool b(DrawVLineSeg(g, x1, y1, y2, c));
-	b |= DrawHLineSeg(g, y2, x1, x2, c);
-	b |= DrawVLineSeg(g, x2, y2, y1, c);
+	b |= DrawHLineSeg(g, y2, x1, x2 + 1, c);
+	b |= DrawVLineSeg(g, x2, y2 + 1, y1, c);
 	b |= DrawHLineSeg(g, y1, x2, x1, c);
 
 	return b;

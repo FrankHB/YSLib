@@ -1,14 +1,31 @@
-﻿// YSLib::Service::YTimer by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-06-05 10:28:58 + 08:00;
-// UTime = 2010-10-24 19:55 + 08:00;
-// Version = 0.1604;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ytimer.h
+\ingroup Service
+\brief 计时器服务。
+\version 0.1635;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-06-05 10:28:58 + 08:00;
+\par 修改时间:
+	2010-11-12 18:32 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Service::YTimer;
+*/
 
 
 #ifndef INCLUDED_YTIMER_H_
 #define INCLUDED_YTIMER_H_
-
-// YTimer ：平台无关的计时器服务。
 
 #include "../Core/yobject.h"
 #include "../Adaptor/cont.h"
@@ -20,11 +37,11 @@ YSL_BEGIN_NAMESPACE(Timers)
 
 typedef u32 TimeSpan;
 
-//计时器。
+//! \brief 计时器。
 class YTimer : public YCountableObject
 {
 private:
-	typedef map<u32, YTimer*> TMRs; //计时器组。
+	typedef map<u32, YTimer*> TMRs; //!< 计时器组。
 
 	static bool NotInitialized;
 	static vu32 SystemTick;
@@ -34,17 +51,9 @@ private:
 	TimeSpan nBase;
 
 public:
-	//********************************
-	//名称:		YTimer
-	//全名:		YSLib::Timers::YTimer::YTimer
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	TimeSpan
-	//形式参数:	bool
-	//功能概要:	构造：使用时间间隔和有效性。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用时间间隔和有效性。
+	*/
 	explicit
 	YTimer(TimeSpan = 1000, bool = true);
 
@@ -52,152 +61,81 @@ public:
 	DefGetter(TimeSpan, Interval, nInterval)
 	DefGetter(TimeSpan, BaseTick, nBase)
 
-	//********************************
-	//名称:		SetInterval
-	//全名:		YSLib::Timers::YTimer::SetInterval
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	TimeSpan
-	//功能概要:	设置时间间隔。
-	//备注:		
-	//********************************
+	/*!
+	\brief 设置时间间隔。
+	*/
 	void
 	SetInterval(TimeSpan);
 
 private:
-	//********************************
-	//名称:		InitializeSystemTimer
-	//全名:		YSLib::Timers::YTimer::InitializeSystemTimer
-	//可访问性:	private static 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	初始化系统计时器。
-	//备注:		
-	//********************************
+	/*!
+	\brief 初始化系统计时器。
+	*/
 	static void
 	InitializeSystemTimer();
 
-	//********************************
-	//名称:		ResetSystemTimer
-	//全名:		YSLib::Timers::YTimer::ResetSystemTimer
-	//可访问性:	private static 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	复位系统计时器。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复位系统计时器。
+	*/
 	static void
 	ResetSystemTimer();
 
-	//********************************
-	//名称:		Synchronize
-	//全名:		YSLib::Timers::YTimer::Synchronize
-	//可访问性:	private static 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	与系统计时器同步。
-	//备注:		
-	//********************************
+	/*!
+	\brief 与系统计时器同步。
+	*/
 	static void
 	Synchronize();
 
-	//********************************
-	//名称:		RefreshRaw
-	//全名:		YSLib::Timers::YTimer::RefreshRaw
-	//可访问性:	private 
-	//返回类型:	bool
-	//修饰符:	
-	//功能概要:	直接刷新。
-	//备注:		不经过同步。
-	//********************************
+	/*!
+	\brief 直接刷新。
+	\note 不经过同步。
+	*/
 	bool
 	RefreshRaw();
 
 public:
-	//********************************
-	//名称:		Refresh
-	//全名:		YSLib::Timers::YTimer::Refresh
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	
-	//功能概要:	刷新。
-	//备注:		刷新前同步。
-	//********************************
+	/*!
+	\brief 刷新。
+	\note 刷新前同步。
+	*/
 	bool
 	Refresh();
 
-	//********************************
-	//名称:		RefreshAll
-	//全名:		YSLib::Timers::YTimer::RefreshAll
-	//可访问性:	public static 
-	//返回类型:	bool
-	//修饰符:	
-	//功能概要:	刷新计时器组中的所有计时器。
-	//备注:		
-	//********************************
+	/*!
+	\brief 刷新计时器组中的所有计时器。
+	*/
 	static bool
 	RefreshAll();
 
-	//********************************
-	//名称:		Activate
-	//全名:		YSLib::Timers::YTimer::Activate
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	激活。
-	//备注:		
-	//********************************
-	void
-	Activate();
-
-	//********************************
-	//名称:		Deactivate
-	//全名:		YSLib::Timers::YTimer::Deactivate
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	停用。
-	//备注:		
-	//********************************
-	void
-	Deactivate();
-
-	//********************************
-	//名称:		Reset
-	//全名:		YSLib::Timers::YTimer::Reset
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	复位。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复位。
+	*/
 	void
 	Reset();
 
-	//********************************
-	//名称:		ResetAll
-	//全名:		YSLib::Timers::YTimer::ResetAll
-	//可访问性:	public static 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	复位计时器组中的所有计时器。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复位计时器组中的所有计时器。
+	*/
 	static void
 	ResetAll();
 
-	//********************************
-	//名称:		ResetYTimer
-	//全名:		YSLib::Timers::YTimer::ResetYTimer
-	//可访问性:	public static 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	复位计时器类所有状态。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复位计时器类所有状态。
+	*/
 	static void
 	ResetYTimer();
+
+	/*!
+	\brief 激活。
+	*/
+	friend void
+	Activate(YTimer&);
+
+	/*!
+	\brief 停用。
+	*/
+	friend void
+	Deactivate(YTimer&);
 };
 
 inline void
@@ -205,7 +143,7 @@ YTimer::SetInterval(TimeSpan i)
 {
 	nInterval = i;
 	if(!nInterval)
-		Deactivate();
+		Deactivate(*this);
 }
 
 inline void

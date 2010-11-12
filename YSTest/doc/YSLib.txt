@@ -1,5 +1,5 @@
 ﻿// YSLib -> YSLib by Franksoft 2009 - 2010
-// CodePage = UTF-8;
+// CharSet = UTF-8;
 // CTime = 2009-12-02 05:14:30 + 08:00;
 // UTime = 2010-10-24 19:52 + 08:00;
 // Version = 0.1822;

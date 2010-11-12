@@ -1,8 +1,27 @@
-﻿// YSLib::Shell::YDesktop by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-05-02 12:00:08 + 08:00;
-// UTime = 2010-11-03 19:59 + 08:00;
-// Version = 0.2028;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ydesktop.cpp
+\ingroup Shell
+\brief 平台无关的桌面抽象层。
+\version 0.2032;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-05-02 12:00:08 + 08:00;
+\par 修改时间:
+	2010-11-12 15:10 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Shell::YDesktop;
+*/
 
 
 #include "ydesktop.h"

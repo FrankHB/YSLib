@@ -1,14 +1,31 @@
-﻿// YSLib::Core::YDevice by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-12-28 16:39:39 + 08:00;
-// UTime = 2010-11-03 19:51 + 08:00;
-// Version = 0.2747;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ydevice.h
+\ingroup Core
+\brief 平台无关的设备抽象层。
+\version 0.2756;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-12-28 16:39:39 + 08:00;
+\par 修改时间:
+	2010-11-12 19:08 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Core::YDevice;
+*/
 
 
 #ifndef INCLUDED_YOUTPUT_H_
 #define INCLUDED_YOUTPUT_H_
-
-// YDevice ：平台无关的设备抽象层。
 
 #include "../Helper/yglobal.h"
 
@@ -26,18 +43,9 @@ private:
 	Drawing::BitmapPtr ptr;
 
 public:
-	//********************************
-	//名称:		YGraphicDevice
-	//全名:		YSLib::Device::YGraphicDevice::YGraphicDevice
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//形式参数:	Drawing::BitmapPtr
-	//功能概要:	构造：指定宽度和高度，从指定缓冲区指针。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：指定宽度和高度，从指定缓冲区指针。
+	*/
 	YGraphicDevice(SDST, SDST, Drawing::BitmapPtr = NULL);
 
 	DefGetter(const Size&, Size, *this)
@@ -65,94 +73,51 @@ public:
 private:
 	static bool S_InitScr;
 
-	//********************************
-	//名称:		InitScreen
-	//全名:		YSLib::Device::YScreen::InitScreen
-	//可访问性:	private static 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	静态初始化。
-	//备注:		
-	//********************************
+	/*!
+			\brief 静态初始化。
+	*/
 	static void InitScreen();
-	//********************************
-	//名称:		CheckInitialization
-	//全名:		YSLib::Device::YScreen::CheckInitialization
-	//可访问性:	private static 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	状态检查。
-	//备注:		
-	//********************************
+	/*!
+			\brief 状态检查。
+	*/
 	static void CheckInitialization();
 
 	BGType bg;
 
 public:
-	//********************************
-	//名称:		YScreen
-	//全名:		YSLib::Device::YScreen::YScreen
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//形式参数:	Drawing::BitmapPtr
-	//功能概要:	构造：指定宽度和高度，从指定缓冲区指针。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：指定宽度和高度，从指定缓冲区指针。
+	*/
 	YScreen(SDST, SDST, Drawing::BitmapPtr = NULL);
 
-	//********************************
-	//名称:		Reset
-	//全名:		YSLib::Device::YScreen::Reset
-	//可访问性:	public static 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	复位。
-	//备注:		无条件初始化。
-	//********************************
+	/*!
+			\brief 复位。
+	\note 无条件初始化。
+	*/
 	static void
 	Reset();
 
-	//********************************
-	//名称:		GetPtr
-	//全名:		YSLib::Device::YScreen::GetPtr
-	//可访问性:	virtual public 
-	//返回类型:	Drawing::BitmapPtr
-	//修饰符:	const ythrow()
-	//功能概要:	取指针。
-	//备注:		无异常抛出。
+	/*!
+	\brief 取指针。
+	\note 无异常抛出。
 	//			进行状态检查。
-	//********************************
+	*/
 	virtual Drawing::BitmapPtr
 	GetPtr() const ythrow();
 	DefGetter(const BGType&, BgID, bg)
 
 	DefSetter(const BGType&, BgID, bg)
 
-	//********************************
-	//名称:		Update
-	//全名:		YSLib::Device::YScreen::Update
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	Drawing::BitmapPtr
-	//功能概要:	更新。
-	//备注:		复制到屏幕。
-	//********************************
+	/*!
+			\brief 更新。
+	\note 复制到屏幕。
+	*/
 	void
 	Update(Drawing::BitmapPtr);
-	//********************************
-	//名称:		Update
-	//全名:		YSLib::Device::YScreen::Update
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	Drawing::Color
-	//功能概要:	更新。
-	//备注:		以纯色填充屏幕。
-	//********************************
+	/*!
+			\brief 更新。
+	\note 以纯色填充屏幕。
+	*/
 	void
 	Update(Drawing::Color = 0);
 };

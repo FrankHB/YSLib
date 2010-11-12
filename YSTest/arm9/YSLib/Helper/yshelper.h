@@ -1,14 +1,31 @@
-﻿// YSLib::Helper -> YShellHelper by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2009-03-14 14:07:22 + 08:00;
-// UTime = 2010-11-03 19:50 + 08:00;
-// Version = 0.1852;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file yshelper.h
+\ingroup Helper
+\brief Shell 助手模块。
+\version 0.1864;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-03-14 14:07:22 + 08:00;
+\par 修改时间:
+	2010-11-12 18:42 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Helper::YShellHelper;
+*/
 
 
 #ifndef INCLUDED_YSHELPER_H_
 #define INCLUDED_YSHELPER_H_
-
-// YShellHelper ：全局帮助模块。
 
 #include "../ysbuild.h"
 
@@ -20,17 +37,9 @@ YSL_BEGIN
 
 //句柄语法糖。
 
-//********************************
-//名称:		ReplaceHandle
-//全名:		YSLib<_handle>::ReplaceHandle
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//形式参数:	_handle & h
-//形式参数:	_handle hWnd
-//功能概要:	句柄赋值。
-//备注:		
-//********************************
+/*!
+\brief 句柄赋值。
+*/
 template<class _handle>
 inline void
 ReplaceHandle(_handle& h, _handle hWnd)
@@ -39,16 +48,9 @@ ReplaceHandle(_handle& h, _handle hWnd)
 	h = hWnd;
 }
 
-//********************************
-//名称:		HandleCast
-//全名:		YSLib<_type, _handle>::HandleCast
-//可访问性:	public 
-//返回类型:	_type*
-//修饰符:	
-//形式参数:	_handle h
-//功能概要:	句柄转换：内建指针。
-//备注:		
-//********************************
+/*!
+\brief 句柄转换：内建指针。
+*/
 template<class _type, class _handle>
 inline _type*
 HandleCast(_handle h)
@@ -56,16 +58,10 @@ HandleCast(_handle h)
 	return dynamic_cast<_type*>(GetPointer(h));
 }
 
-//********************************
-//名称:		HandleToReference
-//全名:		YSLib<_type, _handle>::HandleToReference
-//可访问性:	public 
-//返回类型:	_type&
-//修饰符:	ythrow(std::bad_cast)
-//形式参数:	_handle h
-//功能概要:	句柄转换：对象引用。
-//备注:		
-//********************************
+/*!
+ythrow(std::bad_cast)
+\brief 句柄转换：对象引用。
+*/
 template<class _type, class _handle>
 inline _type&
 HandleToReference(_handle h) ythrow(std::bad_cast)
@@ -77,16 +73,9 @@ HandleToReference(_handle h) ythrow(std::bad_cast)
 	return *_tmp;
 }
 
-//********************************
-//名称:		NewWindow
-//全名:		YSLib<_type>::NewWindow
-//可访问性:	public 
-//返回类型:	YSLib::HWND
-//修饰符:	
-//形式参数:	HSHL hShl
-//功能概要:	从指定 Shell 新建窗体。
-//备注:		
-//********************************
+/*!
+\brief 从指定 Shell 新建窗体。
+*/
 template<class _type>
 HWND NewWindow(HSHL hShl)
 {
@@ -96,47 +85,27 @@ HWND NewWindow(HSHL hShl)
 
 //全局函数。
 
-//********************************
-//名称:		NowShell
-//全名:		YSLib::NowShell
-//可访问性:	public 
-//返回类型:	YSLib::HSHL
-//修饰符:	
-//功能概要:	取当前线程空间中运行的 Shell 句柄。
-//备注:		
-//********************************
+/*!
+\brief 取当前线程空间中运行的 Shell 句柄。
+*/
 inline HSHL
 NowShell()
 {
 	return theApp.GetShellHandle();
 }
 
-//********************************
-//名称:		IsNowShell
-//全名:		YSLib::IsNowShell
-//可访问性:	public 
-//返回类型:	bool
-//修饰符:	
-//形式参数:	HSHL hShl
-//功能概要:	判断 Shell 句柄是否为当前线程空间中运行的 Shell 句柄。
-//备注:		
-//********************************
+/*!
+\brief 判断 Shell 句柄是否为当前线程空间中运行的 Shell 句柄。
+*/
 inline bool
 IsNowShell(HSHL hShl)
 {
 	return theApp.GetShellHandle() == hShl;
 }
 
-//********************************
-//名称:		NowShellAdd
-//全名:		YSLib::NowShellAdd
-//可访问性:	public 
-//返回类型:	YSLib::HSHL
-//修饰符:	
-//形式参数:	HSHL hShl
-//功能概要:	添加 Shell 对象。
-//备注:		
-//********************************
+/*!
+\brief 添加 Shell 对象。
+*/
 inline HSHL
 NowShellAdd(HSHL hShl)
 {
@@ -144,16 +113,9 @@ NowShellAdd(HSHL hShl)
 		theApp += *hShl;
 	return hShl;
 }
-//********************************
-//名称:		NowShellAdd
-//全名:		YSLib::NowShellAdd
-//可访问性:	public 
-//返回类型:	YSLib::HSHL
-//修饰符:	
-//形式参数:	YShell & shl
-//功能概要:	添加 Shell 对象。
-//备注:		
-//********************************
+/*!
+\brief 添加 Shell 对象。
+*/
 inline HSHL
 NowShellAdd(YShell& shl)
 {
@@ -161,31 +123,18 @@ NowShellAdd(YShell& shl)
 	return HSHL(&shl);
 }
 
-//********************************
-//名称:		NowShellTo
-//全名:		YSLib::NowShellTo
-//可访问性:	public 
-//返回类型:	ERRNO
-//修饰符:	
-//形式参数:	HSHL hShl
-//功能概要:	向指定 Shell 对象转移线程控制权。
-//备注:		
-//********************************
+/*!
+\brief 向指定 Shell 对象转移线程控制权。
+*/
 inline ERRNO
 NowShellTo(HSHL hShl)
 {
 	return -!hShl->Activate();
 }
 
-//********************************
-//名称:		NowShellToNew
-//全名:		YSLib<_tShl>::NowShellToNew
-//可访问性:	public 
-//返回类型:	ERRNO
-//修饰符:	
-//功能概要:	向新建 Shell 对象转移控制权。
-//备注:		
-//********************************
+/*!
+\brief 向新建 Shell 对象转移控制权。
+*/
 template<class _tShl>
 inline ERRNO
 NowShellToNew()
@@ -193,15 +142,9 @@ NowShellToNew()
 	return NowShellTo(new _tShl());
 }
 
-//********************************
-//名称:		NowShellToStored
-//全名:		YSLib<_tShl>::NowShellToStored
-//可访问性:	public 
-//返回类型:	ERRNO
-//修饰符:	
-//功能概要:	向全局 Shell 管理器的对象转移控制权。
-//备注:		
-//********************************
+/*!
+\brief 向全局 Shell 管理器的对象转移控制权。
+*/
 template<class _tShl>
 inline ERRNO
 NowShellToStored()
@@ -209,32 +152,18 @@ NowShellToStored()
 	return NowShellTo(GStaticCache<_tShl>::GetPointer());
 }
 
-//********************************
-//名称:		SetShellTo
-//全名:		YSLib::SetShellTo
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//形式参数:	HSHL hShl
-//形式参数:	Shells::MSGPRIORITY p
-//功能概要:	通过主消息队列向指定 Shell 对象转移控制权。
-//备注:		
-//********************************
+/*!
+\brief 通过主消息队列向指定 Shell 对象转移控制权。
+*/
 inline void
 SetShellTo(HSHL hShl, Shells::MSGPRIORITY p = 0x80)
 {
 	InsertMessage(NULL, SM_SET, p, handle_cast<WPARAM>(hShl));
 }
 
-//********************************
-//名称:		SetShellToNew
-//全名:		YSLib<_tShl>::SetShellToNew
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//功能概要:	通过主消息队列向新建 Shell 对象转移控制权。
-//备注:		
-//********************************
+/*!
+\brief 通过主消息队列向新建 Shell 对象转移控制权。
+*/
 template<class _tShl>
 inline void
 SetShellToNew()
@@ -242,15 +171,9 @@ SetShellToNew()
 	SetShellTo(new _tShl());
 }
 
-//********************************
-//名称:		SetShellToStored
-//全名:		YSLib<_tShl>::SetShellToStored
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//功能概要:	通过主消息队列向全局 Shell 管理器内的对象转移控制权。
-//备注:		
-//********************************
+/*!
+\brief 通过主消息队列向全局 Shell 管理器内的对象转移控制权。
+*/
 template<class _tShl>
 inline void
 SetShellToStored()
@@ -258,15 +181,9 @@ SetShellToStored()
 	SetShellTo(GStaticCache<_tShl>::GetPointer());
 }
 
-//********************************
-//名称:		CallStoredAtOnce
-//全名:		YSLib<_tShl>::CallStoredAtOnce
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//功能概要:	封装向全局 Shell 管理器内的对象转移控制权。
-//备注:		
-//********************************
+/*!
+\brief 封装向全局 Shell 管理器内的对象转移控制权。
+*/
 template<class _tShl>
 inline void
 CallStoredAtOnce()
@@ -274,15 +191,9 @@ CallStoredAtOnce()
 	NowShellToStored<_tShl>();
 }
 
-//********************************
-//名称:		CallStored
-//全名:		YSLib<_tShl>::CallStored
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//功能概要:	封装通过消息队列向全局 Shell 管理器内的对象转移控制权。
-//备注:		
-//********************************
+/*!
+\brief 封装通过消息队列向全局 Shell 管理器内的对象转移控制权。
+*/
 template<class _tShl>
 inline void
 CallStored()
@@ -295,19 +206,12 @@ CallStored()
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-typedef void (*PPDRAW)(BitmapPtr, SDST, SDST); //简单屏幕绘图函数指针类型。
+typedef void (*PPDRAW)(BitmapPtr, SDST, SDST); //!< 简单屏幕绘图函数指针类型。
 
-//********************************
-//名称:		ScrDraw
-//全名:		YSLib::Drawing::ScrDraw
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//形式参数:	BitmapPtr buf
-//形式参数:	PPDRAW f
-//功能概要:	全屏幕描点。
-//备注:		颜色由坐标决定。
-//********************************
+/*!
+\brief 全屏幕描点。
+\note 颜色由坐标决定。
+*/
 inline void
 ScrDraw(BitmapPtr buf, PPDRAW f)
 {
@@ -316,47 +220,24 @@ ScrDraw(BitmapPtr buf, PPDRAW f)
 			f(buf, x, y);
 }
 
-//********************************
-//名称:		NewScrImage
-//全名:		YSLib::Drawing::NewScrImage
-//可访问性:	public 
-//返回类型:	YImage*
-//修饰符:	
-//形式参数:	ConstBitmapPtr p
-//功能概要:	新建屏幕图像。
-//备注:		
-//********************************
+/*!
+\brief 新建屏幕图像。
+*/
 inline YImage*
 NewScrImage(ConstBitmapPtr p)
 {
 	return new YImage(p, SCRW, SCRH);
 }
 
-//********************************
-//名称:		NewScrImage
-//全名:		YSLib::Drawing::NewScrImage
-//可访问性:	public 
-//返回类型:	YImage*
-//修饰符:	
-//形式参数:	PPDRAW f
-//形式参数:	BitmapPtr gbuf
-//功能概要:	新建屏幕图像并指定绘图函数填充。
-//备注:		
-//********************************
+/*!
+\brief 新建屏幕图像并指定绘图函数填充。
+*/
 YImage*
 NewScrImage(PPDRAW f, BitmapPtr gbuf = NULL);
 
-//********************************
-//名称:		NewBitmapRaw
-//全名:		YSLib::Drawing<_tPixel>::NewBitmapRaw
-//可访问性:	public 
-//返回类型:	_tPixel*
-//修饰符:	
-//形式参数:	const _tPixel * s
-//形式参数:	std::size_t n
-//功能概要:	使用 new 分配空间并复制无压缩位图。
-//备注:		
-//********************************
+/*!
+\brief 使用 new 分配空间并复制无压缩位图。
+*/
 template<typename _tPixel>
 _tPixel*
 NewBitmapRaw(const _tPixel* s, std::size_t n)

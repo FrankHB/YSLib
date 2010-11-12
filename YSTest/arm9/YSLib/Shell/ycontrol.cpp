@@ -1,8 +1,27 @@
-﻿// YSLib::Shell::YControl by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-02-18 13:44:34 + 08:00;
-// UTime = 2010-11-08 20:55 + 08:00;
-// Version = 0.3246;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ycontrol.cpp
+\ingroup Shell
+\brief 平台无关的控件实现。
+\version 0.3250;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-02-18 13:44:34 + 08:00;
+\par 修改时间:
+	2010-11-12 15:09 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Shell::YControl;
+*/
 
 
 #include "ycontrol.h"

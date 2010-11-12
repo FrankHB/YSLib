@@ -1,14 +1,31 @@
-﻿// YSLib::Core::YShellMessageDefinition by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-12-8 12:05:26;
-// UTime = 2010-6-23 14:38;
-// Version = 0.2160;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ysmsgdef.h
+\ingroup Core
+\brief 标准 Shell 消息列表。
+\version 0.2165;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-12-08 12:05:26 + 08:00;
+\par 修改时间:
+	2010-11-12 15:52 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Core::YShellMessageDefinition;
+*/
 
 
 #ifndef INCLUDED_YSMSGDEF_H_
 #define INCLUDED_YSMSGDEF_H_
-
-// YShellMessageDefinition ：标准 Shell 消息列表。
 
 #define SM_NULL					0x0000
 #define SM_CREATE				0x0001

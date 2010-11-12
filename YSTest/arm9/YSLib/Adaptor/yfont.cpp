@@ -1,8 +1,27 @@
-﻿// YSLib::Adaptor::YFontCache by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-11-12 22:06:13 + 08:00;
-// UTime = 2010-11-03 19:53 + 08:00;
-// Version = 0.6936;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file yfont.cpp
+\ingroup Adaptor
+\brief 平台无关的字体缓存库。
+\version 0.6946;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-11-12 22:06:13 + 08:00;
+\par 修改时间:
+	2010-11-12 17:43 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Adaptor::YFontCache;
+*/
 
 
 #include "yfont.h"
@@ -53,8 +72,10 @@ EFontStyle::GetName() const ythrow()
 }
 
 
-//供 FreeType 使用的客户端字体查询函数，
-//从由 face_id 提供的参数对应的字体文件中读取字体，写入 aface 。
+/*!
+\brief 供 FreeType 使用的客户端字体查询函数。
+从由 face_id 提供的参数对应的字体文件中读取字体，写入 aface 。
+*/
 FT_Error
 simpleFaceRequester(FTC_FaceID face_id, FT_Library library,
 					FT_Pointer request_data, FT_Face* aface)
@@ -235,9 +256,9 @@ GetDefaultTypefacePtr()
 
 
 const Font::SizeType
-Font::DefSize(16), //DEF_SHELL_FONTSIZE,
-Font::MinSize(4), //DEF_SHELL_FONTSIZE_MIN,
-Font::MaxSize(72); //DEF_SHELL_FONTSIZE_MAX;
+Font::DefSize(16), // DEF_SHELL_FONTSIZE,
+Font::MinSize(4), // DEF_SHELL_FONTSIZE_MIN,
+Font::MaxSize(72); // DEF_SHELL_FONTSIZE_MAX;
 Font* Font::pDefFont(NULL);
 
 Font::Font(const FontFamily& family, const SizeType size, EFontStyle style)

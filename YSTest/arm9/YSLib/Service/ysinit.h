@@ -1,28 +1,39 @@
-﻿// YSLib::Service::YShellInitialization by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-10-21 23:15:08 + 08:00;
-// UTime = 2010-10-24 16:52 + 08:00;
-// Version = 0.1516;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ysinit.h
+\ingroup Service
+\brief 程序启动时的通用初始化。
+\version 0.1531;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-10-21 23:15:08 + 08:00;
+\par 修改时间:
+	2010-11-12 19:08 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Service::YShellInitialization;
+*/
 
 
 #ifndef INCLUDED_YSINIT_H_
 #define INCLUDED_YSINIT_H_
 
-// YShellInitialization ：程序启动时的通用初始化代码段。
-
 #include "../Core/ysdef.h"
 
 YSL_BEGIN
 
-//********************************
-//名称:		InitYSConsole
-//全名:		YSLib::InitYSConsole
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//功能概要:	初始化主控制台。
-//备注:		
-//********************************
+/*!
+\brief 初始化主控制台。
+*/
 void
 InitYSConsole();
 
@@ -31,76 +42,40 @@ InitYSConsole();
 extern CPATH DEF_FONT_PATH;
 extern CPATH DEF_FONT_DIRECTORY;
 
-//********************************
-//名称:		InitializeSystemFontCache
-//全名:		YSLib::InitializeSystemFontCache
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//功能概要:	初始化系统字体缓存：
+/*!
+\brief 初始化系统字体缓存：
 //			以默认字型路径创建默认字体缓存并加载默认字型目录中的字体文件。
-//备注:		
-//********************************
+*/
 void
 InitializeSystemFontCache();
 
-//********************************
-//名称:		DestroySystemFontCache
-//全名:		YSLib::DestroySystemFontCache
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//功能概要:	注销系统字体缓存。
-//备注:		
-//********************************
+/*!
+\brief 注销系统字体缓存。
+*/
 void
 DestroySystemFontCache();
 
-//********************************
-//名称:		EpicFail
-//全名:		YSLib::EpicFail
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//功能概要:	初始化失败公用程序。
-//备注:		
-//********************************
+/*!
+\brief 初始化失败公用程序。
+*/
 void
 EpicFail();
 
-//********************************
-//名称:		LibfatFail
-//全名:		YSLib::LibfatFail
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//功能概要:	LibFAT 失败。
-//备注:		
-//********************************
+/*!
+\brief LibFAT 失败。
+*/
 void
 LibfatFail();
 
-//********************************
-//名称:		CheckInstall
-//全名:		YSLib::CheckInstall
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//功能概要:	检查安装完整性。
-//备注:		
-//********************************
+/*!
+\brief 检查安装完整性。
+*/
 void
 CheckInstall();
 
-//********************************
-//名称:		CheckSystemFontCache
-//全名:		YSLib::CheckSystemFontCache
-//可访问性:	public 
-//返回类型:	void
-//修饰符:	
-//功能概要:	检查系统字体缓存。
-//备注:		
-//********************************
+/*!
+\brief 检查系统字体缓存。
+*/
 void
 CheckSystemFontCache();
 

@@ -1,8 +1,27 @@
-﻿// YSLib::Core::YResource by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-12-22 17:28:28 + 08:00;
-// UTime = 2010-10-28 13:58 + 08:00;
-// Version = 0.1194;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file yres.cpp
+\ingroup Core
+\brief 资源管理模块。
+\version 0.1198;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-12-22 17:28:28 + 08:00;
+\par 修改时间:
+	2010-11-12 15:47 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Core::YResource;
+*/
 
 
 #include "yres.h"

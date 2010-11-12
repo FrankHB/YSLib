@@ -1,8 +1,27 @@
-﻿// YSLib::Service::YShellInitialization by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-10-21 23:15:08 + 08:00;
-// UTime = 2010-10-27 12:32 + 08:00;
-// Version = 0.1701;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ysinit.cpp
+\ingroup Service
+\brief 程序启动时的通用初始化。
+\version 0.1705;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-10-21 23:15:08 + 08:00;
+\par 修改时间:
+	2010-11-12 15:04 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Service::YShellInitialization;
+*/
 
 
 #include "ysinit.h"

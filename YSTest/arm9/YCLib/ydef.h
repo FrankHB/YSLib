@@ -1,8 +1,31 @@
-﻿// YCommon 基础库 DS -> YDefinition by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// UTime = 2009-12-02 21:42:44 + 08:00;
-// UTime = 2010-10-23 23:53 + 08:00;
-// Version = 0.2277;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\defgroup YCLib YCommonLib
+\brief YSLib 基础库。
+*/
+
+/*!	\file ydef.h
+\ingroup YCLib
+\brief 平台相关的公共组件无关函数与宏定义集合。
+\version 0.2282;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-12-02 21:42:44 + 08:00;
+\par 修改时间:
+	2010-11-11 21:34 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YCLib::YDefinition;
+*/
 
 
 #ifndef INCLUDED_YDEF_H_

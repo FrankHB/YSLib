@@ -81,7 +81,6 @@
     <ClCompile Include="arm9\YCLib\ycommon.cpp" />
     <ClCompile Include="arm9\YSLib\Adaptor\yfont.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yapp.cpp" />
-    <ClCompile Include="arm9\YSLib\Core\ycutil.cpp" />
     <ClCompile Include="arm9\YSLib\Core\ydevice.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yexcept.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yfile.cpp" />
@@ -96,7 +95,6 @@
     <ClCompile Include="arm9\YSLib\Helper\yglobal.cpp" />
     <ClCompile Include="arm9\YSLib\Helper\yshelper.cpp" />
     <ClCompile Include="arm9\YSLib\Service\ysinit.cpp" />
-    <ClCompile Include="arm9\YSLib\Service\ysutil.cpp" />
     <ClCompile Include="arm9\YSLib\Service\ytimer.cpp" />
     <ClCompile Include="arm9\YSLib\Service\ytmgr.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\ycomp.cpp" />
@@ -110,7 +108,6 @@
     <ClCompile Include="arm9\YSLib\Shell\ytext.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\ywidget.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\ywindow.cpp" />
-    <ClCompile Include="arm9\CHRLib\chrlib.cpp" />
     <ClCompile Include="arm9\CHRLib\chrmap.cpp" />
     <ClCompile Include="arm9\CHRLib\chrproc.cpp" />
     <ClCompile Include="arm9\source\DSReader.cpp" />
@@ -154,7 +151,6 @@
     <ClInclude Include="arm9\YSLib\Helper\yglobal.h" />
     <ClInclude Include="arm9\YSLib\Helper\yshelper.h" />
     <ClInclude Include="arm9\YSLib\Service\ysinit.h" />
-    <ClInclude Include="arm9\YSLib\Service\ysutil.h" />
     <ClInclude Include="arm9\YSLib\Service\ytimer.h" />
     <ClInclude Include="arm9\YSLib\Service\ytmgr.h" />
     <ClInclude Include="arm9\YSLib\Shell\ycomp.h" />
@@ -171,7 +167,6 @@
     <ClInclude Include="arm9\CHRLib\chrmap.h" />
     <ClInclude Include="arm9\CHRLib\chrproc.h" />
     <ClInclude Include="arm9\include\DSReader.h" />
-    <ClInclude Include="arm9\include\DSRMsg.h" />
     <ClInclude Include="arm9\include\ft2build.h" />
     <ClInclude Include="arm9\include\platform.h" />
     <ClInclude Include="arm9\include\Shells.h" />

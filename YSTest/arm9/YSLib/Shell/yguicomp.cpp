@@ -1,8 +1,27 @@
-﻿// YSLib::Shell::YGUIComponent by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-10-04 21:23:32 + 08:00;
-// UTime = 2010-11-09 06:42 + 08:00;
-// Version = 0.2027;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file yguicomp.cpp
+\ingroup Shell
+\brief 样式相关图形用户界面组件实现。
+\version 0.2206;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-10-04 21:23:32 + 08:00;
+\par 修改时间:
+	2010-11-12 15:19 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Shell::YGUIComponent;
+*/
 
 
 #include "yguicomp.h"
@@ -176,6 +195,14 @@ YThumb::OnLeave(InputEventArgs&)
 }
 
 
+YButton::YButton(HWND hWnd, const Rect& r, const Drawing::Font& f, IUIBox* pCon,
+	GHResource<Drawing::TextRegion> prTr_)
+	: YThumb(hWnd, r, pCon),
+	MLabel(f, prTr_)
+{
+	_m_init();
+}
+
 void
 YButton::_m_init()
 {
@@ -206,6 +233,9 @@ ATrack::ATrack(HWND hWnd, const Rect& r, IUIBox* pCon, SDST uMinThumbLength)
 		vmax<SDST>(16, r.Width), vmax<SDST>(16, r.Height)), pCon),
 	Thumb(hWnd, Rect(0, 0, 16, 16), this), pFocusing(NULL)
 {
+	// TODO: 添加断言。
+	// Make sure the long side is greater than two times of the short side;
+
 	TouchMove += OnTouchMove;
 }
 
@@ -218,6 +248,33 @@ IVisualControl*
 ATrack::GetTopVisualControlPtr(const Point& p)
 {
 	return Contains(Thumb, p) ? &Thumb : NULL;
+}
+
+void
+ATrack::SetThumbLength(SDST l)
+{
+	RestrictInClosedInterval(l, MinThumbLength, GetTrackLength());
+
+	Drawing::Size s(Thumb.GetSize());
+
+	UpdateTo(s, l, IsHorizontal());
+	Thumb.SetSize(s);
+	Refresh();
+}
+void
+ATrack::SetThumbPosition(SDST l)
+{
+	const SDST tl(GetThumbLength());
+	const SDST wl(GetTrackLength());
+
+	if(l + tl > wl)
+		l = wl - tl;
+
+	Point p(Thumb.GetLocation());
+
+	UpdateTo(p, l, IsHorizontal());
+	Thumb.SetLocation(p);
+	Refresh();
 }
 
 void
@@ -253,16 +310,16 @@ ATrack::DrawForeground()
 	Thumb.DrawForeground();
 }
 
-ATrack::EArea
+ATrack::Area
 ATrack::CheckArea(SDST q) const
 {
-	const EArea lst[] = {EArea::OnPrev, EArea::OnThumb, EArea::OnNext};
+	const Area lst[] = {OnPrev, OnThumb, OnNext};
 	const SDST a[] = {0, GetThumbPosition(),
 		GetThumbPosition() + GetThumbLength()}; 
 	std::size_t n(SwitchInterval(q, a, 3));
 
 	YAssert(n < 3,
-		"In function \"ATrack::EArea\n"
+		"In function \"ATrack::Area\n"
 		"ATrack::CheckArea(SPOS q) const\": \n"
 		"Array index is out of bound.");
 
@@ -276,15 +333,18 @@ ATrack::ResponseTouchDown(SDST v)
 
 	switch(CheckArea(v))
 	{
-	case EArea::OnThumb:
+	case OnThumb:
 		return;
 
-	case EArea::OnPrev:
+	case OnPrev:
 		l -= GetThumbLength();
 		break;
 
-	case EArea::OnNext:
+	case OnNext:
 		l += GetThumbLength();
+		break;
+
+	default:
 		break;
 	}
 	if(l < 0)
@@ -292,40 +352,8 @@ ATrack::ResponseTouchDown(SDST v)
 	SetThumbPosition(l);
 }
 
-
-YHorizontalTrack::YHorizontalTrack(HWND hWnd, const Rect& r, IUIBox* pCon)
-	: YComponent(),
-	ATrack(hWnd, r, pCon)
-{
-	TouchDown += &YHorizontalTrack::OnTouchDown;
-	Thumb.TouchMove.Add(*this, &YHorizontalTrack::OnDrag_Thumb);
-}
-
 void
-YHorizontalTrack::SetThumbLength(SDST l)
-{
-	RestrictInClosedInterval(l, MinThumbLength, GetWidth());
-	Thumb.SetSize(l, Thumb.GetSize().Height);
-	Refresh();
-}
-void
-YHorizontalTrack::SetThumbPosition(SDST l)
-{
-	if(l + Thumb.GetWidth() > GetWidth())
-		l = GetWidth() - Thumb.GetWidth();
-	Thumb.SetLocation(Point(l, Thumb.GetLocation().Y));
-	Refresh();
-}
-
-void
-YHorizontalTrack::OnTouchDown(TouchEventArgs& e)
-{
-	if(Rect(Point::Zero, GetSize()).Contains(e))
-		ResponseTouchDown(e.X);
-}
-
-void
-YHorizontalTrack::OnDrag_Thumb(TouchEventArgs& e)
+ATrack::OnDrag_Thumb_Horizontal(TouchEventArgs& e)
 {
 	using namespace InputStatus;
 
@@ -336,40 +364,8 @@ YHorizontalTrack::OnDrag_Thumb(TouchEventArgs& e)
 	Refresh();
 }
 
-
-YVerticalTrack::YVerticalTrack(HWND hWnd, const Rect& r, IUIBox* pCon)
-	: YComponent(),
-	ATrack(hWnd, r, pCon)
-{
-	TouchDown += &YVerticalTrack::OnTouchDown;
-	Thumb.TouchMove.Add(*this, &YVerticalTrack::OnDrag_Thumb);
-}
-
 void
-YVerticalTrack::SetThumbLength(SDST l)
-{
-	RestrictInClosedInterval(l, MinThumbLength, GetHeight());
-	Thumb.SetSize(Thumb.GetSize().Width, l);
-	Refresh();
-}
-void
-YVerticalTrack::SetThumbPosition(SDST l)
-{
-	if(l + Thumb.GetHeight() > GetHeight())
-		l = GetHeight() - Thumb.GetHeight();
-	Thumb.SetLocation(Point(Thumb.GetLocation().X, l));
-	Refresh();
-}
-
-void
-YVerticalTrack::OnTouchDown(TouchEventArgs& e)
-{
-	if(Rect(Point::Zero, GetSize()).Contains(e))
-		ResponseTouchDown(e.Y);
-}
-
-void
-YVerticalTrack::OnDrag_Thumb(TouchEventArgs& e)
+ATrack::OnDrag_Thumb_Vertical(TouchEventArgs& e)
 {
 	using namespace InputStatus;
 
@@ -380,24 +376,132 @@ YVerticalTrack::OnDrag_Thumb(TouchEventArgs& e)
 	Refresh();
 }
 
+void
+ATrack::OnTouchDown_Horizontal(TouchEventArgs& e)
+{
+	if(Rect(Point::Zero, GetSize()).Contains(e))
+		ResponseTouchDown(e.X);
+}
 
-MScrollBar::MScrollBar(HWND hWnd, IUIBox* pCon,
-	const Rect& rPrev, const Rect& rNext)
-	: Prev(hWnd, rPrev, pCon), Next(hWnd, rNext, pCon), Pressed(None)
-{}
+void
+ATrack::OnTouchDown_Vertical(TouchEventArgs& e)
+{
+	if(Rect(Point::Zero, GetSize()).Contains(e))
+		ResponseTouchDown(e.Y);
+}
+
+
+YHorizontalTrack::YHorizontalTrack(HWND hWnd, const Rect& r, IUIBox* pCon)
+	: YComponent(),
+	ATrack(hWnd, r, pCon)
+{
+	TouchDown += &ATrack::OnTouchDown_Horizontal;
+	Thumb.TouchMove.Add(static_cast<ATrack&>(*this),
+		&ATrack::OnDrag_Thumb_Horizontal);
+}
+
+
+YVerticalTrack::YVerticalTrack(HWND hWnd, const Rect& r, IUIBox* pCon)
+	: YComponent(),
+	ATrack(hWnd, r, pCon)
+{
+	TouchDown += &ATrack::OnTouchDown_Vertical;
+	Thumb.TouchMove.Add(static_cast<ATrack&>(*this),
+		&ATrack::OnDrag_Thumb_Vertical);
+}
 
 
 AScrollBar::AScrollBar(HWND hWnd, const Rect& r, IUIBox* pCon,
-	SDST uMaxThumbSize, const Rect& rPrev, const Rect& rNext)
-	: ATrack(hWnd, r, pCon, uMaxThumbSize), MScrollBar(hWnd, pCon, rPrev, rNext)
-{}
+	SDST uMinThumbSize, Widgets::Orientation o)
+	: ATrack(hWnd, r, pCon, uMinThumbSize),
+	PrevButton(hWnd, Rect(), pCon), NextButton(hWnd, Rect(), pCon)
+{
+//	PrevButton.SetLocation(Point::Zero);
+
+	Drawing::Size s(GetSize());
+
+	const bool isHorizontal(o == Widgets::Horizontal);
+	const SDST l(SelectFrom(s, !isHorizontal));
+
+	UpdateTo(s, isHorizontal, l);
+	PrevButton.SetSize(s);
+	NextButton.SetSize(s);
+
+	Point p(GetLocation());
+
+	UpdateTo(p, SelectFrom(GetSize(), isHorizontal) - l, isHorizontal);
+	NextButton.SetLocation(p);
+}
+
+IVisualControl*
+AScrollBar::GetTopVisualControlPtr(const Point& p)
+{
+	if(Contains(PrevButton, p))
+		return &PrevButton;
+	if(Contains(NextButton, p))
+		return &NextButton;
+
+	Point pt(p);
+
+	if(IsHorizontal())
+		pt.X -= PrevButton.GetWidth();
+	else
+		pt.Y -= PrevButton.GetHeight();
+	return ParentType::GetTopVisualControlPtr(pt);
+}
+SDST
+AScrollBar::GetTrackLength() const ythrow()
+{
+	return ParentType::GetTrackLength()
+		- SelectFrom(PrevButton.GetSize(), IsHorizontal())
+		- SelectFrom(NextButton.GetSize(), IsHorizontal());
+}
 
 void
-AScrollBar::SetThumbLength(SDST l)
+AScrollBar::SetThumbPosition(SDST l)
 {
-	RestrictInClosedInterval(l, MinThumbLength, 
-		GetWidgetLength() - GetPrevButtonLength() - GetNextButtonLength());
-	GetThumbLengthRef() = l;
+	return ParentType::SetThumbPosition(l
+		- SelectFrom(PrevButton.GetSize(), IsHorizontal()));
+}
+
+void
+AScrollBar::DrawBackground()
+{
+	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawBackground);
+
+	if(GetWindowHandle())
+	{
+		const Graphics g(*GetWindowHandle());
+
+		FillRect(g, GetBounds(), Color(237, 237, 237));
+
+		SPOS xr(GetX() + GetWidth() - 1);
+
+		DrawHLineSeg(g, GetY(), GetX(), xr, Color(227, 227, 227));
+		DrawHLineSeg(g, GetY() + GetHeight() - 1, GetX(), xr,
+			Color(227, 227, 227));
+	}
+}
+
+void
+AScrollBar::DrawForeground()
+{
+	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawForeground);
+	const Graphics g(*GetWindowHandle());
+	const Point b(LocateForWindow(*this));
+
+	ParentType::DrawForeground();
+	PrevButton.DrawForeground();
+	NextButton.DrawForeground();
+/*	RectDrawButton(g, b,
+		Drawing::Size(PrevButtonSize, GetHeight()),	Pressed == PrevButton);
+	WndDrawArrow(GetWindowHandle(), GetBounds(), 4, RDeg180, ForeColor);
+	RectDrawButton(g, Point(b.X + GetWidth() - NextButtonSize, b.Y),
+		Drawing::Size(NextButtonSize, GetHeight()), Pressed == NextButton);
+	WndDrawArrow(GetWindowHandle(), GetBounds(), 4, RDeg0, ForeColor);
+	RectDrawButton(g, Point(b.X + PrevButtonSize + GetThumbPosition(), b.Y),
+		Drawing::Size(GetThumbSize(), GetHeight()), Pressed == Thumb,
+		ColorSpace::Gray);*/
 }
 
 /*SDST
@@ -413,51 +517,10 @@ AScrollBar::GetButtonLength(ValueType i, ValueType n) const
 
 
 YHorizontalScrollBar::YHorizontalScrollBar(HWND hWnd, const Rect& r,
-	IUIBox* pCon,
-	SDST uMaxThumbLength, SDST uPrevLength, SDST uNextLength)
+	IUIBox* pCon, SDST uMinThumbLength)
 	: YComponent(),
-	AScrollBar(hWnd, r, pCon, uMaxThumbLength,
-		Rect(Point::Zero, uPrevLength, r.Height),
-		Rect(r.Width - uNextLength, 0, uNextLength, r.Height))
+	AScrollBar(hWnd, r, pCon, uMinThumbLength, Widgets::Horizontal)
 {}
-
-void
-YHorizontalScrollBar::DrawBackground()
-{
-/*	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawBackground);
-
-	if(GetWindowHandle())
-	{
-		const Graphics g(*GetWindowHandle());
-
-		FillRect(g, GetBounds(), Color(237, 237, 237));
-
-		SPOS xr(GetX() + GetWidth() - 1);
-
-		DrawHLineSeg(g, GetY(), GetX(), xr, Color(227, 227, 227));
-		DrawHLineSeg(g, GetY() + GetHeight() - 1, GetX(), xr,
-			Color(227, 227, 227));
-	}*/
-}
-
-void
-YHorizontalScrollBar::DrawForeground()
-{
-/*	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawForeground);
-	const Graphics g(*GetWindowHandle());
-	const Point b(LocateForWindow(*this));
-
-	AScrollBar::DrawForeground();
-	RectDrawButton(g, b,
-		Drawing::Size(PrevButtonSize, GetHeight()),	Pressed == PrevButton);
-	WndDrawArrow(GetWindowHandle(), GetBounds(), 4, RDeg180, ForeColor);
-	RectDrawButton(g, Point(b.X + GetWidth() - NextButtonSize, b.Y),
-		Drawing::Size(NextButtonSize, GetHeight()), Pressed == NextButton);
-	WndDrawArrow(GetWindowHandle(), GetBounds(), 4, RDeg0, ForeColor);
-	RectDrawButton(g, Point(b.X + PrevButtonSize + GetThumbPosition(), b.Y),
-		Drawing::Size(GetThumbSize(), GetHeight()), Pressed == Thumb,
-		ColorSpace::Gray);*/
-}
 
 
 YListBox::YListBox(HWND hWnd, const Rect& r, IUIBox* pCon,

@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM9 by Franksoft 2009 - 2010
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 + 08:00;
-# UTime = 2010-10-18 16:20 + 08:00;
-# Version = 0.3147;
+# UTime = 2010-11-11 22:59 + 08:00;
+# Version = 0.3148;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -241,7 +241,7 @@ define bin2o
 	cp $(<) $(*)
 	bin2s $(*) | $(AS) $(ARCH) -o $(@)
 	rm $(*)
-	
+
 	echo "extern const u8" $(*)"[];" > $(*).h
 	echo "extern const u32" $(*)_size";" >> $(*).h
 endef
@@ -269,7 +269,7 @@ endef
 #--------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)
-	
+
 #--------------------------------------------------------------------------------
 %.o	:	%.raw
 #--------------------------------------------------------------------------------

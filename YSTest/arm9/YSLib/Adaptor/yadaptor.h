@@ -1,16 +1,38 @@
-﻿// YSLib::Adaptor::YAdaptor by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-02-22 20:16:21 + 08:00;
-// UTime = 2010-11-04 11:36 + 08:00;
-// Version = 0.1896;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\defgroup Adaptor Adaptor
+\ingroup YSLib
+\brief YSLib 适配器模块。
+*/
+
+/*!	\file yadaptor.h
+\ingroup Adaptor
+\brief 外部库关联。
+\version 0.1916;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-02-22 20:16:21 + 08:00;
+\par 修改时间:
+	2010-11-12 18:44 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Adaptor::YAdaptor;
+*/
 
 
 #ifndef INCLUDED_YADAPTOR_H_
 #define INCLUDED_YADAPTOR_H_
 
-// YAdaptor ：外部库关联。
-
-//编译配置。
+//包含编译配置。
 #include "config.h"
 
 //包含平台文件。
@@ -48,8 +70,10 @@ YSL_END
 
 #include "../../YCLib/ycommon.h"
 
+// !\brief YSLib 命名空间。
 YSL_BEGIN
 
+// !\brief 图形处理。
 YSL_BEGIN_NAMESPACE(Drawing)
 
 	using platform::PixelType;
@@ -61,6 +85,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 YSL_END_NAMESPACE(Drawing)
 
+//! \brief 运行时对象。 
 YSL_BEGIN_NAMESPACE(Runtime)
 
 	namespace KeySpace = platform::KeySpace;
@@ -72,6 +97,7 @@ YSL_END_NAMESPACE(Runtime)
 	using platform::terminate;
 	using platform::HDirectory;
 
+	//! \brief 运行时平台。 
 	namespace DS
 	{
 		using namespace platform;
@@ -115,6 +141,7 @@ YSL_END
 
 YSL_BEGIN
 
+//! \brief 基础语言设施。
 YSL_BEGIN_NAMESPACE(Design)
 
 	//类型操作和类型特征。
@@ -134,7 +161,7 @@ YSL_BEGIN_NAMESPACE(Design)
 	using Loki::Function;
 	using Loki::Functor;
 
-//设计模式。
+//! \brief 设计模式。
 YSL_BEGIN_NAMESPACE(Pattern)
 YSL_END_NAMESPACE(Pattern)
 
@@ -153,10 +180,10 @@ YSL_END_NAMESPACE(Design)
 
 YSL_END
 
-//使用 Loki 的编译期静态检查。
+//! \brief 使用 Loki 的编译期静态检查。
 #define YSL_STATIC_CHECK(expr, msg) LOKI_STATIC_CHECK(expr, msg)
 
-//使用 Loki 的 Typelist 。
+//! \brief 使用 Loki 的 Typelist 。
 #define YSL_TL(n, ...) LOKI_TYPELIST##n(...)
 
 

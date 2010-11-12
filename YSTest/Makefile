@@ -1,8 +1,8 @@
 # DS Makefile for YShell by Franksoft 2009 - 2010
 # CodePage = ANSI / GBK;
 # CTime = 2009-11-12 21:26:30 + 08:00;
-# UTime = 2010-10-27 16:44 + 08:00;
-# Version = 0.3080;
+# UTime = 2010-11-11 22:58 + 08:00;
+# Version = 0.3081;
 
 # This makefile is written based on devkitPro example template.
 
@@ -95,7 +95,7 @@ $(GBUILD).arm9	: arm9/$(TARGET).elf
 #--------------------------------------------------------------------------------
 arm7/$(TARGET).elf:
 	$(MAKE) -C arm7
-	
+
 #--------------------------------------------------------------------------------
 arm9/$(TARGET).elf:
 	$(MAKE) -C arm9

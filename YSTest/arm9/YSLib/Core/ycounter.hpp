@@ -1,52 +1,58 @@
-﻿// YSLib::Core::YCounter by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-02-09 20:43:52 + 08:00;
-// UTime = 2010-10-24 13:37 + 08:00;
-// Version = 0.1636;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ycounter.hpp
+\ingroup Core
+\brief 对象计数器。
+\version 0.1649;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-02-09 20:43:52 + 08:00;
+\par 修改时间:
+	2010-11-12 18:35 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Core::YCounter;
+*/
 
 
 #ifndef INCLUDED_YCOUNTER_H_
 #define INCLUDED_YCOUNTER_H_
 
-// YCounter ：对象计数器。
-
 #include "ysdef.h"
 
 YSL_BEGIN
 
-//模板类实例计数器。
+//! \brief 模板类实例计数器。
 template<class T, typename count_t = u32>
 class GMCounter
 {
 private:
-	static count_t nCount, nTotal; //实例生成计数和实例计数。
-	count_t nID; //实例标识序列号。
+	static count_t nCount, nTotal; //!< 实例生成计数和实例计数。
+	count_t nID; //!< 实例标识序列号。
 
 public:
-	//********************************
-	//名称:		GMCounter
-	//全名:		YSLib::GMCounter::GMCounter
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	构造。
-	//备注:		实例生成计数和实例计数自增。
-	//********************************
+	/*!
+	\brief 构造。
+	\note 实例生成计数和实例计数自增。
+	*/
 	GMCounter()
 	: nID(nCount++)
 	{
 		++nTotal;
 	}
-	//********************************
-	//名称:		GMCounter
-	//全名:		YSLib::GMCounter::GMCounter
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const GMCounter &
-	//功能概要:	复制构造。
-	//备注:		实例生成计数和实例计数自增。
-	//********************************
+	/*!
+	\brief 复制构造。
+	\note 实例生成计数和实例计数自增。
+	*/
 	GMCounter(const GMCounter&)
 	: nID(nCount++)
 	{
@@ -54,15 +60,10 @@ public:
 	}
 
 protected:
-	//********************************
-	//名称:		~GMCounter
-	//全名:		YSLib::GMCounter::~GMCounter
-	//可访问性:	protected 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	析构。
-	//备注:		实例计数自减。
-	//********************************
+	/*!
+	\brief 析构。
+	\note 实例计数自减。
+	*/
 	~GMCounter()
 	{
 		--nTotal;
@@ -74,45 +75,27 @@ public:
 	DefGetter(count_t, ID, nID)
 
 protected:
-	//********************************
-	//名称:		ResetCount
-	//全名:		YSLib::GMCounter::ResetCount
-	//可访问性:	protected static 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	复位实例生成计数。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复位实例生成计数。
+	*/
 	static void
 	ResetCount()
 	{
 		nCount = 0;
 	}
 
-	//********************************
-	//名称:		ResetTotal
-	//全名:		YSLib::GMCounter::ResetTotal
-	//可访问性:	protected static 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	复位实例计数。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复位实例计数。
+	*/
 	static void
 	ResetTotal()
 	{
 		nTotal = 0;
 	}
 
-	//********************************
-	//名称:		ResetID
-	//全名:		YSLib::GMCounter::ResetID
-	//可访问性:	protected 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	复位实例标识序列号。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复位实例标识序列号。
+	*/
 	void
 	ResetID()
 	{

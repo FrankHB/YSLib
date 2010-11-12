@@ -1,8 +1,28 @@
-// YSTest by Franksoft 2009 - 2010
-// CodePage = ANSI / GBK;
-// CTime = 2009-11;
-// UTime = 2010-11-09 06:45 + 08:00;
-// Version = 0.2822; *Build 169 r46;
+/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file GBKEX.cpp
+\ingroup YReader
+\brief 测试文件。
+\version 0.2845; *Build 170 r11;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-11;
+\par 修改时间:
+	2010-11-12 22:56 + 08:00;
+\par 字符集:
+	ANSI / GBK;
+\par 模块名称:
+	YReader::GBKEX;
+\deprecated 临时测试用途。
+*/
 
 
 #include "../YCLib/ydef.h"
@@ -28,7 +48,7 @@ $Record prefix and abbrevations:
 => ::= renamed to
 <=> ::= swaped names
 @ ::= identifier
-@@ ::= in / belongs to
+@@ ::= in / belonged to
 \a ::= all
 \ab ::= abstract
 \ac ::= access
@@ -60,7 +80,7 @@ $Record prefix and abbrevations:
 \ex ::= extra
 \ext ::= extended
 \exp ::= explicit
-\f ::= functions
+\f ::= \fn = functions
 \g ::= global
 \gs ::= global scpoe
 \h ::= headers
@@ -84,8 +104,8 @@ $Record prefix and abbrevations:
 \o ::= objects
 \op ::= operators
 \or ::= overridden
-\parm ::= parameters
-\parm.de ::= default parameters
+\param ::= parameters
+\param.de ::= default parameters
 \pt ::= points
 \ptr ::= pointers
 \q ::= qualifiers
@@ -142,6 +162,8 @@ $using:
 	\cl YThumb;
 	\cl YButton;
 	\cl ATrack;
+	\cl YHorizontalTrack;
+	\cl YVerticalTrack;
 	\cl MScrollBar;
 	\cl AScrollBar;
 	\cl YHorizontalScrollBar;
@@ -159,121 +181,139 @@ $using:
 
 $DONE:
 r1:
-= test 1;
+/ @@ \u YGUIComponent:
+	/ \mf YHorizontalTrack::OnDrag_Thumb -> \mf ATrack::OnDrag_Thumb_Horizontal;
+	/ \mf YVerticalTrack::OnDrag_Thumb -> \mf ATrack::OnDrag_Thumb_Vertical;
+	/ \impl @@ \ctor @@ \cl YHorizontalTrack & \cl YVerticalTrack;
 
-r2-r6:
-/ \impl @@ \f void OnTouchHeld(IVisualControl&, const TouchEventArgs&)
-	@@ \u YControl;
+r2:
+/ @@ \cl YLabel @@ \u YWidget:
+	/ \ctor template<class _tChar>
+		YLabel(HWND, const _tChar*, const Rect& = Rect::FullScreen,
+		const Drawing::Font& = Drawing::Font::GetDefault(),
+		IUIBox* = NULL, GHResource<Drawing::TextRegion> = NULL)
+		-> \exp YLabel(HWND = NULL, const Rect& = Rect::FullScreen,
+		const Drawing::Font& = Drawing::Font::GetDefault(),
+		IUIBox* = NULL, GHResource<Drawing::TextRegion> = NULL);
+/ @@ \cl MLabel @@ \u YWidget:
+	/ \ctor template<class _tChar>
+		MLabel(const _tChar*,
+		const Drawing::Font& = Drawing::Font::GetDefault(),
+		GHResource<Drawing::TextRegion> = NULL)
+		-> \exp	MLabel(const Drawing::Font& = Drawing::Font::GetDefault(),
+		GHResource<Drawing::TextRegion> = NULL);
+/ @@ \cl YButton @@ \u YGUIComponent:
+	/ \ctor template<class _tChar>
+		YButton(HWND, const _tChar*, const Rect& = Rect::FullScreen,
+		const Drawing::Font& = Drawing::Font::GetDefault(), IUIBox* = NULL,
+		GHResource<Drawing::TextRegion> = NULL)
+		-> \exp YButton(HWND = NULL, const Rect& = Rect::FullScreen,
+		const Drawing::Font& = Drawing::Font::GetDefault(), IUIBox* = NULL,
+		GHResource<Drawing::TextRegion> = NULL);
+/ \impl @@ \u Shells;
+
+r3:
+/ \mf {'Activate', 'Deactive'} >> !\m friend \fn;
+
+r4:
+/ @@ \u YWidget:
+	+ typedef enum
+		{
+			Horizontal = 0,
+			Vertical = 1
+		} Orientation @@ \ns Widgets;
+	+ \cl MOriented;
+/ @@ \u YGUIComponent:
+	/ @@ \cl ATrack:
+		+ \amf Widgets::Orientation GetOrientation() const;
+		+ DefPredicate(Horizontal, GetOrientation() == Widgets::Horizontal);
+		+ DefPredicate(Vertical, GetOrientation() == Widgets::Vertical);
+		+ DefGetter(SDST, WidgetLength,
+			IsHorizontal() ? GetWidth() : GetHeight());
+		+ DefGetter(SDST, ThumbLength, IsHorizontal()
+			? Thumb.GetWidth() : Thumb.GetHeight());
+		+ DefGetter(SDST, ThumbPosition, IsHorizontal()
+			? Thumb.GetLocation().X : Thumb.GetLocation().Y);
+		- DeclIEntry(SDST GetThumbLength() const);
+		- DeclIEntry(SDST GetThumbPosition() const);
+		+ DeclIEntry(void SetThumbLength(SDST)) -> void SetThumbLength(SDST);
+		+ DeclIEntry(void SetThumbPosition(SDST))
+			-> void SetThumbPosition(SDST);
+		+ \mf SetThumbLength;
+	/ @@ \cl YHorizontalTrack & \cl YVerticalTrack:
+		- \i \mf GetThumbLength;
+		- \i \mf GetThumbPosition;
+		- \mf SetThumbLength;
+		- \i \mf SetThumbPosition;
+		/ \impl @@ \ctor;
+		+ \mf GetOrientation;
+	/ \mf YHorizontalTrack::OnTouchDown >> ATrack::OnTouchDown_Horizontal;
+	/ \mf YVerticalTrack::OnTouchDown >> ATrack::OnTouchDown_Vertical;
+
+r5:
+* \tr @@ \ctor @@ \cl YHorizontalTrack & \cl YVerticalTrack;
+
+r6:
+/ \st EArea -> \en Area @@ \cl ATrack;
 
 r7:
-/ \impl @@ \f bool ResponseTouchHeldBase(IVisualControl&, const TouchEventArgs&)
-	@@ \un \ns @@ \u YGUI;
+/ @@ \cl YGUIComopnent:
+	- \cl MScrollBar;
+	/ \cl AScrollBar;
+	/ @@ \cl ATrack:
+		+ \vt @@ \mf SetThumbLength;
+		+ \vt @@ \mf SetThumbPosition;
+	/ \cl YHorizontalScrollBar;
+/ @@ \u Shells;
+/ @@ \u YObject:
+	+ \fn
+	{
+		SPOS SelectFrom(const BinaryGroup&, bool = true);
+		SDST SelectFrom(const Size&, bool = true);
+		SPOS& SelectRefFrom(BinaryGroup&, bool = true);
+		SDST& SelectRefFrom(Size&, bool = true);
+		void UpdateTo(BinaryGroup&, SPOS, bool = true);
+		void UpdateTo(Size&, SDST, bool = true);
+	}
+/= \mf \vt bool DrawWidgets -> ImplI(IWindow) bool DrawWidgets
+	@@ \cl YFrameWindow @@ \u YWindow;
 
-r8-r17:
-/= test 2;
+r8:
+/ @@ \u YGUIComponent:
+	/ @@ \cl AScrollBar:
+		+ \mf \vt IVisualControl* GetTopVisualControlPtr(const Point&);
+		+ \mf \vt SDST GetTrackLength() ythrow();
+		- \mf SDST GetScrollAreaLength() const ythrow();
+		- \mf SDST GetScrollAreaFixedLength() const ythrow();
+		- \mf SetThumbLength;
+		/ \mf SetThumbPosition;
+		/ \impl @@ \mf DrawForeground;
+	/ @@ \cl ATrack:
+		/ \mf GetWidgetLength => GetTrackLength;
+		/ + \vt @@ \mf SDST GetTrackLength() ythrow();
+		/ \tr \impl @@ \mf SetThumbLength;
+		/ \tr \impl @@ \mf SetThumbPosition;
 
-r18:
-/ \impl @@ \f void OnTouchHeld(IVisualControl&, const TouchEventArgs&)
-	@@ \u YControl;
+r9:
+* \impl @@ \fn bool DrawRect(const Graphics&, const Point&, const Size&, Color)
+	@@ \u YGDI;
 
-r19:
-/ \a VisualControlLocationOffset => VisualControlLocation;
+r10:
+/ DoxyGen \rem applied to header @@ \a \f @@ \lib CHRLib & \lib YCLib
+	& \dir "include/" & \dir "/source" & Adaptor::YAdaptor;
+- \f "CHRLib/chrlib.cpp";
+/ \tr @@ \u DSReader;
+- \f "include/DSRMsg.h";
+- \em \f "Service/ysutil.cpp";
 
-r20:
-* \impl @@ \f void OnTouchHeld(IVisualControl&, const TouchEventArgs&)
-	@@ \u YControl;
-
-r21-r24:
-/= test 3;
-
-r25:
-/ @@ \u YWidget:
-	+ \f Point LocateForWidget(IWidget&, IWidget&) @@ \ns Widgets;
-	+ \f void GetContainersListFrom(IWidget&, std::map<IUIBox*, Point>&)
-		@@ \un \ns;
-* \impl @@ \f bool ResponseTouchHeldBase(IVisualControl&, const TouchEventArgs&)
-	@@ \un \ns @@ \u YGUI;
-
-r26-r27:
-/= test 4;
-
-r28:
-/ @@ \u YWidget:
-	* \impl @@ \f Point LocateForWidget(IWidget&, IWidget&) @@ \ns Widgets;
-	* \impl @@ \f void GetContainersListFrom(IWidget&, std::map<IUIBox*, Point>&)
-
-r29:
-* \impl @@ \f IVisualControl* GetTouchedVisualControlPtr(IUIBox&, Point&)
-	@@ \un \ns @@ \u YGUI;
-
-r30:
-/ \impl @@ \f void OnDrag(IVisualControl&, const TouchEventArgs&)
-	@@ \u YControl;
-
-r31:
-/ - \c @@ \a \parm '*Args*';
-/ \impl @@ \mf bool SetFocusingPtr(_type*) @@ \cl \t GMFocusResponser
-	@@ \u YFocus;
-/ \impl \i \f @@ \u ShlDS;
-/ \tr \impl @@ \u Shells;
-/ \impl @@ \ctor @@ \cl YApplication @@ \u YApplication;
-/ \impl @@ \f OnTouchHeld @@ \u YControl;
-/ \impl @@ \f @@ \un \ns @@ \u YGUI;
-/ \impl @@ \mf (CallSelected & CallConfirmed) \cl YListBox @@ \u YGUIComponent;
-
-r32:
-/ @@ \u YControl:
-	+ \o TouchEventArgs LastVisualControlLoication @@ \un \ns;
-	/ \f OnTouchMove -> OnDrag;
-	/ \impl @@ \f OnTouchHeld;
-	+ \f OnTouchMove;
-
-r33:
-* \tr @@ \u Shells;
-
-r34:
-/ \o TouchEventArgs LastVisualControlLoication @@ \un \ns @@ \u YControl
-	-> Point LastVisualControlLoication @@ \ns InputStatus @@ \u YGUI;
-* \mf OnTouchMove_Thumb -> \mf OnDrag_Thumb
-	@@ \cl (YHorizontalTrack & YVerticalTrack) @@ \u YGUIComponent;
-
-r35:
-* \impl @@ \f OnDrag @@ \u YControl;
-
-r36:
-* \impl @@ \f GetTouchedVisualControlPtr @@ \un \ns @@ \u YGUI;
-
-r37:
-/ \impl @@ \ctor @@ \cl ATrack @@ \u YGUIComponent;
-
-r38:
-/ \impl @@ \mf OnTouchDown @@ \cl (YHorizontalTrack & YVerticalTrack)
-	@@ \u YGUIComponent;
-
-r39:
-/= test 5;
-
-r40:
-* \impl @@ \mf OnTouchDown @@ \cl (YHorizontalTrack & YVerticalTrack)
-	@@ \u YGUIComponent;
-
-r41:
-* \impl @@ \f OnDrag & \f OnTouchHeld @@ \u YControl;
-/ \simp @@ \impl @@ \mf OnTouchDown @@ \cl (YHorizontalTrack & YVerticalTrack)
-	@@ \u YGUIComponent;
-
-r42-r43:
-/= test 6;
-
-r44:
-* \impl @@ \mf OnTouchDown @@ \cl (YHorizontalTrack & YVerticalTrack)
-	@@ \u YGUIComponent;
-
-r45:
-/= test 7;
-
-r46:
-* \impl @@ \f GetTouchedVisualControlPtr @@ \un \ns @@ \u YGUI;
+r11:
+/ DoxyGen \rem applied \a (\fn & \cl) @@ \a header & source \f;
+- \h Service::YSystemUtilities;
+- \f "Core/ycutil.cpp";
+/ @@ \h CHRDefinition:
+	/ \mac _CHRLIB => CHRLIB;
+	/ \mac _CHRLIB_ => CHRLIB_;
+* \mf \i int ShlCLI::ExecuteCommand(const String&) @@ \u ShlDS;
 
 
 $DOING:
@@ -282,10 +322,6 @@ $DOING:
 
 
 $NEXT:
-* \evt Leave \parm err;
-	/ should offset to original, not destination visual control;
-* behavior when touching out of widget bounds;
-* behavior of ATrack when touch point hoding in bounds and around the thumb;
 * blank-clicked \evt OnClick @@ ListBox;
 
 b170-b190:

@@ -1,14 +1,31 @@
-﻿// YSLib::Adaptor::YReference by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-03-21 23:09:06 + 08:00;
-// UTime = 2010-10-24 19:56 + 08:00;
-// Version = 0.2347;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file yref.hpp
+\ingroup Adaptor
+\brief 用于提供指针和引用访问的间接访问类模块。
+\version 0.2370;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-03-21 23:09:06 + 08:00;
+\par 修改时间:
+	2010-11-12 18:56 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Adaptor::YReference;
+*/
 
 
 #ifndef INCLUDED_YREF_HPP_
 #define INCLUDED_YREF_HPP_
-
-// YReference ：用于提供指针和引用访问的间接访问类模块。
 
 #include "yadaptor.h"
 
@@ -20,7 +37,7 @@ YSL_BEGIN_NAMESPACE(Policies)
 
 YSL_BEGIN_NAMESPACE(Operations)
 
-//智能指针简单操作策略。
+//! \brief 智能指针简单操作策略。
 template<class P>
 struct SmartPtr_Simple
 {
@@ -29,85 +46,46 @@ struct SmartPtr_Simple
 		destructiveCopy = false
 	};
 
-	//********************************
-	//名称:		SmartPtr_Simple
-	//全名:		YSLib::Design::Policies::Operations
-	//			::SmartPtr_Simple<P>::SmartPtr_Simple
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	构造。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造。
+	*/
 	SmartPtr_Simple()
 	{}
 
-	//********************************
-	//名称:		SmartPtr_Simple
-	//全名:		YSLib::Design::Policies::Operations
-	//			::SmartPtr_Simple<P1>::SmartPtr_Simple
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const SmartPtr_Simple<P1> & rhs
-	//功能概要:	复制构造。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复制构造。
+	*/
 	template<class P1>
 	SmartPtr_Simple(const SmartPtr_Simple<P1>& rhs)
 	{}
 
-	//********************************
-	//名称:		Clone
-	//全名:		YSLib::Design::Policies::Operations
-	//			::SmartPtr_Simple<P>::Clone
-	//可访问性:	public static 
-	//返回类型:	P
-	//修饰符:	
-	//形式参数:	const P & val
-	//功能概要:	复制。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复制。
+	*/
 	static P
 	Clone(const P& val)
 	{
 		return val;
 	}
 
-	//********************************
-	//名称:		Release
-	//全名:		YSLib::Design::Policies::Operations
-	//			::SmartPtr_Simple<P>::Release
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	
-	//形式参数:	const P &
-	//功能概要:	释放。
-	//备注:		
-	//********************************
+	/*!
+	\brief 释放。
+	*/
 	bool
 	Release(const P&)
 	{
 		return false;
 	}
 
-	//********************************
-	//名称:		Swap
-	//全名:		YSLib::Design::Policies::Operations
-	//			::SmartPtr_Simple<P>::Swap
-	//可访问性:	public static 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	SmartPtr_Simple &
-	//功能概要:	交换。
-	//备注:		
-	//********************************
+	/*!
+	\brief 交换。
+	*/
 	static void
 	Swap(SmartPtr_Simple&)
 	{}
 };
 
-//智能指针引用计数操作策略。
+//! \brief 智能指针引用计数操作策略。
 template<class P>
 class SmartPtr_RefCounted
 {
@@ -115,16 +93,9 @@ private:
 	uintptr_t* pCount_;
 
 protected:
-	//********************************
-	//名称:		AddRef
-	//全名:		YSLib::Design::Policies::Operations
-	//			::SmartPtr_RefCounted<P>::AddRef
-	//可访问性:	protected 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	增加引用计数。
-	//备注:		
-	//********************************
+	/*!
+	\brief 增加引用计数。
+	*/
 	void
 	AddRef()
 	{
@@ -134,16 +105,9 @@ protected:
 public:
 	enum { destructiveCopy = false };
 
-	//********************************
-	//名称:		SmartPtr_RefCounted
-	//全名:		YSLib::Design::Policies::Operations
-	//			::SmartPtr_RefCounted<P>::SmartPtr_RefCounted
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	构造。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造。
+	*/
 	SmartPtr_RefCounted()
 		: pCount_(static_cast<uintptr_t*>(
 		SmallObject<>::operator new(sizeof(uintptr_t))))
@@ -152,48 +116,24 @@ public:
 		*pCount_ = 1;
 	}
 
-	//********************************
-	//名称:		SmartPtr_RefCounted
-	//全名:		YSLib::Design::Policies::Operations
-	//			::SmartPtr_RefCounted<P>::SmartPtr_RefCounted
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const SmartPtr_RefCounted & rhs
-	//功能概要:	复制构造。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复制构造。
+	*/
 	SmartPtr_RefCounted(const SmartPtr_RefCounted& rhs)
 		: pCount_(rhs.pCount_)
 	{}
 
-	//********************************
-	//名称:		SmartPtr_RefCounted
-	//全名:		YSLib::Design::Policies::Operations
-	//			::SmartPtr_RefCounted<P1>::SmartPtr_RefCounted
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const SmartPtr_RefCounted<P1> & rhs
-	//功能概要:	复制构造。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复制构造。
+	*/
 	template<typename P1>
 	SmartPtr_RefCounted(const SmartPtr_RefCounted<P1>& rhs)
 		: pCount_(reinterpret_cast<const SmartPtr_RefCounted&>(rhs).pCount_)
 	{}
 
-	//********************************
-	//名称:		Clone
-	//全名:		YSLib::Design::Policies::Operations
-	//			::SmartPtr_RefCounted<P>::Clone
-	//可访问性:	public 
-	//返回类型:	P
-	//修饰符:	
-	//形式参数:	const P & val
-	//功能概要:	复制。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复制。
+	*/
 	P
 	Clone(const P& val)
 	{
@@ -201,17 +141,9 @@ public:
 		return val;
 	}
 
-	//********************************
-	//名称:		Release
-	//全名:		YSLib::Design::Policies::Operations
-	//			::SmartPtr_RefCounted<P>::Release
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	
-	//形式参数:	const P &
-	//功能概要:	释放引用计数。
-	//备注:		
-	//********************************
+	/*!
+	\brief 释放引用计数。
+	*/
 	bool
 	Release(const P&)
 	{
@@ -224,17 +156,9 @@ public:
 		return false;
 	}
 
-	//********************************
-	//名称:		Swap
-	//全名:		YSLib::Design::Policies::Operations
-	//			::SmartPtr_RefCounted<P>::Swap
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	SmartPtr_RefCounted & rhs
-	//功能概要:	交换。
-	//备注:		
-	//********************************
+	/*!
+	\brief 交换。
+	*/
 	void
 	Swap(SmartPtr_RefCounted& rhs)
 	{
@@ -249,89 +173,49 @@ YSL_END_NAMESPACE(Policies)
 YSL_END_NAMESPACE(Design)
 
 
+//! \brief 资源指针。
 template<typename T,
 	template<class> class OP = Design::Policies::Operations::SmartPtr_RefCounted,
 	class CP = AllowConversion,
 	template<class> class KP = RejectNull,
 	template<class> class SP = DefaultSPStorage,
 	typename SPType = SmartPtr<T, OP, CP, KP, SP> >
-class GHResource : public SPType //资源指针类。
+class GHResource : public SPType
 {
 public:
-	//********************************
-	//名称:		GHResource
-	//全名:		YSLib::GHResource<T, OP, CP, KP, SP, SPType>::GHResource
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	T * p
-	//功能概要:	构造：使用内建指针。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用内建指针。
+	*/
 	GHResource(T* p = NULL) : SPType(p) {};
-	//********************************
-	//名称:		GHResource
-	//全名:		YSLib::GHResource<T, OP, CP, KP, SP, SPType>::GHResource
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	T & rhs
-	//功能概要:	构造：使用对象引用。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用对象引用。
+	*/
 	GHResource(T& rhs) : SPType(rhs) {}
-	//********************************
-	//名称:		GHResource
-	//全名:		YSLib::GHResource<T, OP, CP, KP, SP, SPType>::GHResource
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	RefToValue<GHResource> rhs
-	//功能概要:	构造：使用智能指针引用。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用智能指针引用。
+	*/
 	GHResource(RefToValue<GHResource> rhs) : SPType(rhs) {}
 
-	//********************************
-	//名称:		operator RefToValue<GHResource>
-	//全名:		YSLib::GHResource<T, OP, CP, KP, SP, SPType>
-	//			::operator RefToValue<GHResource>
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	转换：智能指针引用。
-	//备注:		
-	//********************************
+	/*!
+	\brief 转换：智能指针引用。
+	*/
 	operator RefToValue<GHResource>()
 	{
 		return RefToValue<GHResource>(*this);
 	}
 
-	//********************************
-	//名称:		operator->
-	//全名:		YSLib::GHResource<T, OP, CP, KP, SP, SPType>::operator->
-	//可访问性:	public 
-	//返回类型:	T*
-	//修饰符:	const
-	//功能概要:	取内建指针。
-	//备注:		
-	//********************************
+	/*!
+	\brief 取内建指针。
+	*/
 	T*
 	operator->() const
 	{
 		return GHResource<T>::GetPointer(*this);
 	}
 
-	//********************************
-	//名称:		operator=
-	//全名:		YSLib::GHResource<T, OP, CP, KP, SP, SPType>::operator=
-	//可访问性:	public 
-	//返回类型:	GHResource&
-	//修饰符:	
-	//形式参数:	T & rhs
-	//功能概要:	赋值复制。
-	//备注:		
-	//********************************
+	/*!
+	\brief 赋值复制。
+	*/
 	GHResource&
 	operator=(T& rhs)
 	{
@@ -340,31 +224,18 @@ public:
 		return *this;
 	}
 
-	//********************************
-	//名称:		GetPtr
-	//全名:		YSLib::GHResource<T, OP, CP, KP, SP, SPType>::GetPtr
-	//可访问性:	public 
-	//返回类型:	T*
-	//修饰符:	const
-	//功能概要:	取内建指针。
-	//备注:		
-	//********************************
+	/*!
+	\brief 取内建指针。
+	*/
 	T*
 	GetPtr() const
 	{
 		return operator->();
 	}
 
-	//********************************
-	//名称:		Swap
-	//全名:		YSLib::GHResource<T, OP, CP, KP, SP, SPType>::Swap
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	GHResource & rhs
-	//功能概要:	交换。
-	//备注:		
-	//********************************
+	/*!
+	\brief 交换。
+	*/
 	void
 	Swap(GHResource& rhs)
 	{
@@ -373,16 +244,9 @@ public:
 };
 
 
-//********************************
-//名称:		GetPointer
-//全名:		YSLib<_type>::GetPointer
-//可访问性:	public 
-//返回类型:	_type*
-//修饰符:	
-//形式参数:	GHResource<_type> h
-//功能概要:	取内建指针。
-//备注:		
-//********************************
+/*!
+\brief 取内建指针。
+*/
 template<class _type>
 inline _type*
 GetPointer(GHResource<_type> h)
@@ -392,106 +256,59 @@ GetPointer(GHResource<_type> h)
 
 
 #define YHandleOP Design::Policies::Operations::SmartPtr_Simple
-//句柄不会被自动回收，需要手动释放。
+//! \warning 句柄不会被自动回收，需要手动释放。
 #define YDelete(h) delete h
 
 
+//! \brief 句柄类。
 template<typename T,
 	template<class> class OP = YHandleOP,
 	class CP = AllowConversion,
 	template<class> class KP = RejectNull,
 	template<class> class SP = DefaultSPStorage,
 	typename SPType = SmartPtr<T, OP, CP, KP, SP> >
-class GHHandle : public SPType //句柄类。
+class GHHandle : public SPType
 {
 public:
-	//********************************
-	//名称:		GHHandle
-	//全名:		YSLib::GHHandle<T, OP, CP, KP, SP, SPType>::GHHandle
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	T * p
-	//功能概要:	构造：使用内建指针。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用内建指针。
+	*/
 	GHHandle(T* p = NULL) : SPType(p) {}
-	//********************************
-	//名称:		GHHandle
-	//全名:		YSLib::GHHandle<T, OP, CP, KP, SP, SPType>::GHHandle
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	T & rhs
-	//功能概要:	构造：使用对象引用。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用对象引用。
+	*/
 	GHHandle(T& rhs) : SPType(rhs) {}
-	//********************************
-	//名称:		GHHandle
-	//全名:		YSLib::GHHandle<T, OP, CP, KP, SP, SPType>::GHHandle
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	RefToValue<GHHandle> rhs
-	//功能概要:	构造：使用句柄引用。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用句柄引用。
+	*/
 	GHHandle(RefToValue<GHHandle> rhs) : SPType(rhs) {}
-	//********************************
-	//名称:		GHHandle
-	//全名:		YSLib::GHHandle<C>::GHHandle
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	GHHandle<C> & h
-	//功能概要:	构造：使用其它类型句柄引用。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用其它类型句柄引用。
+	*/
 	template<class C>
 	explicit
 	GHHandle(GHHandle<C>& h) : SPType(static_cast<T*>(GHHandle<C>::GetPointer(h))) {}
 
-	//********************************
-	//名称:		operator RefToValue<GHHandle>
-	//全名:		YSLib::GHHandle<T, OP, CP, KP, SP, SPType>
-	//			::operator RefToValue<GHHandle>
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	转换：句柄引用。
-	//备注:		
-	//********************************
+	/*!
+	\brief 转换：句柄引用。
+	*/
 	operator RefToValue<GHHandle>()
 	{
 		return RefToValue<GHHandle>(*this);
 	}
 
-	//********************************
-	//名称:		operator->
-	//全名:		YSLib::GHHandle<T, OP, CP, KP, SP, SPType>::operator->
-	//可访问性:	public 
-	//返回类型:	T*
-	//修饰符:	const
-	//功能概要:	取内建指针。
-	//备注:		
-	//********************************
+	/*!
+	\brief 取内建指针。
+	*/
 	T*
 	operator->() const
 	{
 		return GHHandle<T>::GetPointer(*this);
 	}
 
-	//********************************
-	//名称:		operator=
-	//全名:		YSLib::GHHandle<T, OP, CP, KP, SP, SPType>::operator=
-	//可访问性:	public 
-	//返回类型:	GHHandle&
-	//修饰符:	
-	//形式参数:	T & rhs
-	//功能概要:	赋值复制。
-	//备注:		
-	//********************************
+	/*!
+	\brief 赋值复制。
+	*/
 	GHHandle&
 	operator=(T& rhs)
 	{
@@ -500,31 +317,18 @@ public:
 		return *this;
 	}
 
-	//********************************
-	//名称:		GetPtr
-	//全名:		YSLib::GHHandle<T, OP, CP, KP, SP, SPType>::GetPtr
-	//可访问性:	public 
-	//返回类型:	T*
-	//修饰符:	const
-	//功能概要:	取内建指针。
-	//备注:		
-	//********************************
+	/*!
+	\brief 取内建指针。
+	*/
 	T*
 	GetPtr() const
 	{
 		return operator->();
 	}
 
-	//********************************
-	//名称:		Swap
-	//全名:		YSLib::GHHandle<T, OP, CP, KP, SP, SPType>::Swap
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	GHHandle & rhs
-	//功能概要:	交换。
-	//备注:		
-	//********************************
+	/*!
+	\brief 交换。
+	*/
 	void
 	Swap(GHHandle& rhs)
 	{
@@ -536,16 +340,9 @@ public:
 #undef YHandleOP
 
 
-//********************************
-//名称:		GetPointer
-//全名:		YSLib<_type>::GetPointer
-//可访问性:	public 
-//返回类型:	_type*
-//修饰符:	
-//形式参数:	_type * h
-//功能概要:	取内建指针。
-//备注:		
-//********************************
+/*!
+\brief 取内建指针。
+*/
 template<typename _type>
 inline _type*
 GetPointer(_type* h)
@@ -555,16 +352,9 @@ GetPointer(_type* h)
 
 #ifndef YSL_USE_SIMPLE_HANDLE
 
-//********************************
-//名称:		GetPointer
-//全名:		YSLib<_tReference>::GetPointer
-//可访问性:	public 
-//返回类型:	_tReference*
-//修饰符:	
-//形式参数:	GHHandle<_tReference> h
-//功能概要:	取内建指针。
-//备注:		
-//********************************
+/*!
+\brief 取内建指针。
+*/
 template<typename _tReference>
 inline _tReference*
 GetPointer(GHHandle<_tReference> h)
@@ -572,16 +362,9 @@ GetPointer(GHHandle<_tReference> h)
 	return h.GetPtr();
 }
 
-//********************************
-//名称:		handle_cast
-//全名:		YSLib<_type, _tReference>::handle_cast
-//可访问性:	public 
-//返回类型:	_type
-//修饰符:	
-//形式参数:	GHHandle<_tReference> h
-//功能概要:	转换：指定类型句柄。
-//备注:		
-//********************************
+/*!
+\brief 转换：指定类型句柄。
+*/
 template<typename _type, typename _tReference>
 inline _type
 handle_cast(GHHandle<_tReference> h)

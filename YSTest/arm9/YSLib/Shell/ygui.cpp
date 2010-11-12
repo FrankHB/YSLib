@@ -1,8 +1,27 @@
-﻿// YSLib::Shell::YGUI by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-11-09 06:42 + 08:00;
-// Version = 0.3078;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ygui.cpp
+\ingroup Shell
+\brief 平台无关的图形用户界面实现。
+\version 0.3086;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-11-16 20:06:58 + 08:00;
+\par 修改时间:
+	2010-11-12 15:18 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Shell::YGUI;
+*/
 
 
 #include "ygui.h"
@@ -90,7 +109,7 @@ RepeatHeld(HeldStateType& s,
 		*/
 		s = Pressed;
 		HeldTimer.SetInterval(InitialDelay); //初始按键延迟。
-		HeldTimer.Activate();
+		Activate(HeldTimer);
 		break;
 
 	case Pressed:		
@@ -112,7 +131,7 @@ RepeatHeld(HeldStateType& s,
 void
 ResetHeldState(HeldStateType& s)
 {
-	HeldTimer.Deactivate();
+	Deactivate(HeldTimer);
 	s = Free;
 }
 

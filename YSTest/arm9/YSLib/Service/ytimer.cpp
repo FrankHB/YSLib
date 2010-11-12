@@ -1,8 +1,27 @@
-﻿// YSLib::Service::YTimer by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-06-05 10:28:58 + 08:00;
-// UTime = 2010-10-27 12:32 + 08:00;
-// Version = 0.1488;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ytimer.cpp
+\ingroup Service
+\brief 计时器服务。
+\version 0.1516;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-06-05 10:28:58 + 08:00;
+\par 修改时间:
+	2010-11-12 15:02 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Service::YTimer;
+*/
 
 
 #include "ytimer.h"
@@ -21,7 +40,7 @@ YTimer::YTimer(TimeSpan i, bool a)
 {
 	InitializeSystemTimer();
 	if(a)
-		Activate();
+		Activate(*this);
 }
 
 void
@@ -66,23 +85,6 @@ YTimer::RefreshAll()
 }
 
 void
-YTimer::Activate()
-{
-	if(nInterval)
-	{
-		Timers[GetID()] = this;
-		Synchronize();
-		nBase = SystemTick;
-	}
-}
-
-void
-YTimer::Deactivate()
-{
-	Timers[GetID()] = NULL;
-}
-
-void
 YTimer::ResetAll()
 {
 	for(TMRs::iterator i(Timers.begin()); i != Timers.end(); ++i)
@@ -104,6 +106,23 @@ YTimer::ResetYTimer()
 	}
 	Timers.clear();
 	ResetSystemTimer();
+}
+
+void
+Activate(YTimer& t)
+{
+	if(t.nInterval != 0)
+	{
+		YTimer::Timers[t.GetID()] = &t;
+		t.Synchronize();
+		t.nBase = YTimer::SystemTick;
+	}
+}
+
+void
+Deactivate(YTimer& t)
+{
+	YTimer::Timers[t.GetID()] = NULL;
 }
 
 YSL_END_NAMESPACE(Timers)

@@ -1,14 +1,31 @@
-﻿// YSLib::Core::YObject by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-11-06 12:37 + 08:00;
-// Version = 0.2591;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file yobject.h
+\ingroup Core
+\brief 平台无关的基础对象实现。
+\version 0.2659;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-11-16 20:06:58 + 08:00;
+\par 修改时间:
+	2010-11-12 19:08 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Core::YObject;
+*/
 
 
 #ifndef INCLUDED_YOBJECT_H_
 #define INCLUDED_YOBJECT_H_
-
-// YObject ：平台无关的基础对象实现。
 
 #include "ycounter.hpp"
 #include "ycutil.h"
@@ -18,7 +35,7 @@ YSL_BEGIN
 
 //抽象描述接口。
 
-//值类型相等关系。
+//! \brief 值类型相等关系。
 template<typename _type>
 DeclInterface(GIEquatable)
 	DeclIEntry(bool operator==(const _type&) const)
@@ -29,27 +46,27 @@ DeclInterface(GIEquatable)
 	}
 EndDecl
 
-//值类型小于关系。
+//! \brief 值类型小于关系。
 template<typename _type>
 DeclInterface(GILess)
 	DeclIEntry(bool operator<(const _type&) const)
 EndDecl
 
-//容器。
+//! \brief 容器。
 template<typename _type>
 DeclInterface(GIContainer)
 	DeclIEntry(void operator+=(_type&))
 	DeclIEntry(bool operator-=(_type&))
 EndDecl
 
-//对象复制构造性。
+//! \brief 对象复制构造性。
 template<typename _type>
 DeclInterface(GIClonable)
 	DeclIEntry(_type* Clone() const)
 EndDecl
 
 
-//全局静态单例存储器。
+//! \brief 全局静态单例存储器。
 template<typename _type>
 class GStaticCache
 {
@@ -58,15 +75,9 @@ private:
 
 	GStaticCache();
 
-	//********************************
-	//名称:		Check
-	//全名:		YSLib::GStaticCache::Check
-	//可访问性:	private static 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	检查是否已经初始化，否则构造新对象。
-	//备注:		
-	//********************************
+	/*!
+	\brief 检查是否已经初始化，否则构造新对象。
+	*/
 	static void
 	Check()
 	{
@@ -76,30 +87,18 @@ private:
 
 public:
 	DefStaticGetter(_type*, PointerRaw, _ptr)
-	//********************************
-	//名称:		GetPointer
-	//全名:		YSLib::GStaticCache::GetPointer
-	//可访问性:	public static 
-	//返回类型:	_type*
-	//修饰符:	
-	//功能概要:	取指针。
-	//备注:		
-	//********************************
+	/*!
+	\brief 取指针。
+	*/
 	static _type*
 	GetPointer()
 	{
 		Check();
 		return GetPointerRaw();
 	}
-	//********************************
-	//名称:		GetInstance
-	//全名:		YSLib::GStaticCache::GetInstance
-	//可访问性:	public static 
-	//返回类型:	_type&
-	//修饰符:	
-	//功能概要:	取实例引用。
-	//备注:		
-	//********************************
+	/*!
+	\brief 取实例引用。
+	*/
 	static _type&
 	GetInstance()
 	{
@@ -107,15 +106,9 @@ public:
 		return *GetPointer();
 	}
 
-	//********************************
-	//名称:		Release
-	//全名:		YSLib::GStaticCache::Release
-	//可访问性:	public 
-	//返回类型:	void
-	//修饰符:	
-	//功能概要:	删除对象并置指针为空值。
-	//备注:		
-	//********************************
+	/*!
+	\brief 删除对象并置指针为空值。
+	*/
 	inline void
 	Release()
 	{
@@ -128,26 +121,19 @@ template<typename _type>
 _type* GStaticCache<_type>::_ptr(NULL);
 
 
-//通用对象组类模板。
+//! \brief 通用对象组类模板。
 template<class _type, class _tContainer = std::set<_type*> >
 class GContainer : public _tContainer,
 	implements GIContainer<_type>
 {
 public:
-	typedef _tContainer ContainerType; //对象组类型。
+	typedef _tContainer ContainerType; //!< 对象组类型。
 
 	virtual DefEmptyDtor(GContainer)
 
-	//********************************
-	//名称:		GetContainer
-	//全名:		YSLib::GContainer<_type, _tContainer>
-	//				::GetContainer
-	//可访问性:	public 
-	//返回类型:	ContainerType&
-	//修饰符:	
-	//功能概要:	取容器引用。
-	//备注:		
-	//********************************
+	/*!
+	\brief 取容器引用。
+	*/
 	ContainerType&
 	GetContainer()
 	{
@@ -155,31 +141,17 @@ public:
 	}
 	inline DefGetter(const ContainerType&, Container, *this)
 
-	//********************************
-	//名称:		operator+=
-	//全名:		YSLib::GContainer<_type, _tContainer>::operator+=
-	//可访问性:	ImplI(GIContainer<_type>) public 
-	//返回类型:	void
-	//修饰符:	
-	//形式参数:	_type & w
-	//功能概要:	向对象组添加对象。
-	//备注:		
-	//********************************
+	/*!
+	\brief 向对象组添加对象。
+	*/
 	ImplI(GIContainer<_type>) void
 	operator+=(_type& w) 
 	{
 		insert(&w);
 	}
-	//********************************
-	//名称:		operator-=
-	//全名:		YSLib::GContainer<_type, _tContainer>::operator-=
-	//可访问性:	ImplI(GIContainer<_type>) public 
-	//返回类型:	bool
-	//修饰符:	
-	//形式参数:	_type & w
-	//功能概要:	从对象组移除对象。
-	//备注:		
-	//********************************
+	/*!
+	\brief 从对象组移除对象。
+	*/
 	ImplI(GIContainer<_type>) bool
 	operator-=(_type& w)
 	{
@@ -199,86 +171,46 @@ class Size;
 class Rect;
 
 
-//屏幕二元组。
+//! \brief 屏幕二元组。
 class BinaryGroup
 {
 public:
-	SPOS X, Y; //分量。
+	SPOS X, Y; //!< 分量。
 
-	//********************************
-	//名称:		BinaryGroup
-	//全名:		YSLib::Drawing::BinaryGroup::BinaryGroup
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	无参数构造。
-	//备注:		零初始化。
-	//********************************
+	/*!
+	\brief 无参数构造。
+	\note 零初始化。
+	*/
 	BinaryGroup();
-	//********************************
-	//名称:		BinaryGroup
-	//全名:		YSLib::Drawing::BinaryGroup::BinaryGroup
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const BinaryGroup &
-	//功能概要:	复制构造。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复制构造。
+	*/
 	BinaryGroup(const BinaryGroup&);
-	//********************************
-	//名称:		BinaryGroup
-	//全名:		YSLib::Drawing::BinaryGroup::BinaryGroup
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const Size &
-	//功能概要:	构造：使用 Size 对象。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用 Size 对象。
+	*/
 	explicit
 	BinaryGroup(const Size&);
-	//********************************
-	//名称:		BinaryGroup
-	//全名:		YSLib::Drawing::BinaryGroup::BinaryGroup<_tVec>
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const _tVec & v
-	//功能概要:	构造：使用二维向量。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用二维向量。
+	*/
 	template<typename _tVec>
 	inline explicit
 	BinaryGroup(const _tVec& v)
 	: X(v.X), Y(v.Y)
 	{}
-	//********************************
-	//名称:		BinaryGroup
-	//全名:		YSLib::Drawing::BinaryGroup::BinaryGroup<_tScalar1, _tScalar2>
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	_tScalar1 x
-	//形式参数:	_tScalar2 y
-	//功能概要:	构造：使用两个标量。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用两个标量。
+	*/
 	template<typename _tScalar1, typename _tScalar2>
 	inline
 	BinaryGroup(_tScalar1 x, _tScalar2 y)
 	: X(x), Y(y)
 	{}
 
-	//********************************
-	//名称:		operator-
-	//全名:		YSLib::Drawing::BinaryGroup::operator-
-	//可访问性:	public 
-	//返回类型:	YSLib::Drawing::BinaryGroup
-	//修饰符:	
-	//功能概要:	负运算：取加法逆元。
-	//备注:		
-	//********************************
+	/*!
+	\brief 负运算：取加法逆元。
+	*/
 	BinaryGroup
 	operator-()
 	{
@@ -298,33 +230,17 @@ BinaryGroup::BinaryGroup(const BinaryGroup& b)
 	: X(b.X), Y(b.Y)
 {}
 
-//********************************
-//名称:		operator==
-//全名:		YSLib::Drawing::operator==
-//可访问性:	public 
-//返回类型:	bool
-//修饰符:	
-//形式参数:	const BinaryGroup & a
-//形式参数:	const BinaryGroup & b
-//功能概要:	比较：相等关系。
-//备注:		
-//********************************
+/*!
+\brief 比较：相等关系。
+*/
 inline bool
 operator==(const BinaryGroup& a, const BinaryGroup& b)
 {
 	return a.X == b.X && a.Y == b.Y;
 }
-//********************************
-//名称:		operator!=
-//全名:		YSLib::Drawing::operator!=
-//可访问性:	public 
-//返回类型:	bool
-//修饰符:	
-//形式参数:	const BinaryGroup & a
-//形式参数:	const BinaryGroup & b
-//功能概要:	比较：不等关系。
-//备注:		
-//********************************
+/*!
+\brief 比较：不等关系。
+*/
 inline bool
 operator!=(const BinaryGroup& a, const BinaryGroup& b)
 {
@@ -332,128 +248,69 @@ operator!=(const BinaryGroup& a, const BinaryGroup& b)
 }
 
 
-//屏幕二维点（直角坐标表示）。
+//! \brief 屏幕二维点（直角坐标表示）。
 class Point : public BinaryGroup
 {
 public:
 	typedef BinaryGroup ParentType;
 
-	static const Point Zero; //无参数构造参数构造的原点对象。
+	static const Point Zero; //!< 无参数构造参数构造的原点对象。
 	static const Point FullScreen; \
-		//无参数构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
+		//!< 无参数构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
 
-	//********************************
-	//名称:		Point
-	//全名:		YSLib::Drawing::Point::Point
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	无参数构造。
-	//备注:		零初始化。
-	//********************************
+	/*!
+	\brief 无参数构造。
+	\note 零初始化。
+	*/
 	Point();
-	//********************************
-	//名称:		Point
-	//全名:		YSLib::Drawing::Point::Point
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const Point &
-	//功能概要:	复制构造。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复制构造。
+	*/
 	Point(const Point&);
-	//********************************
-	//名称:		Point
-	//全名:		YSLib::Drawing::Point::Point
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const Size &
-	//功能概要:	构造：使用 Size 对象。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用 Size 对象。
+	*/
 	explicit
 	Point(const Size&);
-	//********************************
-	//名称:		Point
-	//全名:		YSLib::Drawing::Point::Point<_tVec>
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const _tVec & v
-	//功能概要:	构造：使用二维向量。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用二维向量。
+	*/
 	template<typename _tVec>
 	inline explicit
 	Point(const _tVec& v)
 		: BinaryGroup(v.X, v.Y)
 	{}
-	//********************************
-	//名称:		Point
-	//全名:		YSLib::Drawing::Point::Point<_tScalar1, tScalar2>
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	_tScalar1 x
-	//形式参数:	tScalar2 y
-	//功能概要:	构造：使用两个标量。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用两个标量。
+	*/
 	template<typename _tScalar1, typename tScalar2>
 	inline
 	Point(_tScalar1 x, tScalar2 y)
 		: BinaryGroup(x, y)
 	{}
 
-	//********************************
-	//名称:		operator Vec
-	//全名:		YSLib::Drawing::Point::operator Vec
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	const
-	//功能概要:	转换：屏幕二维向量。
-	//备注:		结果以原点为起点，该点为终点。
-	//********************************
+	/*!
+	\brief 转换：屏幕二维向量。
+	\note 结果以原点为起点，该点为终点。
+	*/
 	operator Vec() const;
 
-	//********************************
-	//名称:		operator-
-	//全名:		YSLib::Drawing::Point::operator-
-	//可访问性:	public 
-	//返回类型:	YSLib::Drawing::Point
-	//修饰符:	
-	//功能概要:	负运算：取与原点对称的元素。
-	//备注:		
-	//********************************
+	/*!
+	\brief 负运算：取与原点对称的元素。
+	*/
 	Point
 	operator-() 
 	{
 		return Point(-X, -Y);
 	}
-	//********************************
-	//名称:		operator+=
-	//全名:		YSLib::Drawing::Point::operator+=
-	//可访问性:	public 
-	//返回类型:	Point&
-	//修饰符:	
-	//形式参数:	const Vec &
-	//功能概要:	加法赋值：按屏幕二维向量平移。
-	//备注:		
-	//********************************
+	/*!
+	\brief 加法赋值：按屏幕二维向量平移。
+	*/
 	Point&
 	operator+=(const Vec&);
-	//********************************
-	//名称:		operator-=
-	//全名:		YSLib::Drawing::Point::operator-=
-	//可访问性:	public 
-	//返回类型:	Point&
-	//修饰符:	
-	//形式参数:	const Vec &
-	//功能概要:	减法赋值：按屏幕二维向量的加法逆元平移。
-	//备注:		
-	//********************************
+	/*!
+	\brief 减法赋值：按屏幕二维向量的加法逆元平移。
+	*/
 	Point&
 	operator-=(const Vec&);
 };
@@ -468,120 +325,67 @@ Point::Point(const Point& p)
 {}
 
 
-//屏幕二维向量（直角坐标表示）。
+//! \brief 屏幕二维向量（直角坐标表示）。
 class Vec : public BinaryGroup
 {
 public:
 	typedef BinaryGroup ParentType;
 
-	static const Vec Zero; //无参数构造参数构造的零向量对象。
+	static const Vec Zero; //!< 无参数构造参数构造的零向量对象。
 	static const Vec FullScreen;
 		//无参数构造参数构造的由屏幕坐标系原点
 		//到屏幕右下角边界（不在屏幕坐标系中）对象。
 
-	//********************************
-	//名称:		Vec
-	//全名:		YSLib::Drawing::Vec::Vec
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	无参数构造。
-	//备注:		零初始化。
-	//********************************
+	/*!
+	\brief 无参数构造。
+	\note 零初始化。
+	*/
 	Vec();
-	//********************************
-	//名称:		Vec
-	//全名:		YSLib::Drawing::Vec::Vec
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const Vec &
-	//功能概要:	复制构造。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复制构造。
+	*/
 	Vec(const Vec&);
-	//********************************
-	//名称:		Vec
-	//全名:		YSLib::Drawing::Vec::Vec
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const Size &
-	//功能概要:	构造：使用 Size 对象。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用 Size 对象。
+	*/
 	explicit
 	Vec(const Size&);
-	//********************************
-	//名称:		Vec
-	//全名:		YSLib::Drawing::Vec::Vec<_tVec>
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const _tVec & v
-	//功能概要:	构造：使用二维向量。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用二维向量。
+	*/
 	template<typename _tVec>
 	inline explicit
 	Vec(const _tVec& v)
 		: BinaryGroup(v.X, v.Y)
 	{}
-	//********************************
-	//名称:		Vec
-	//全名:		YSLib::Drawing::Vec::Vec<_tScalar1, _tScalar2>
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	_tScalar1 x
-	//形式参数:	_tScalar2 y
-	//功能概要:	构造：使用两个标量。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用两个标量。
+	*/
 	template<typename _tScalar1, typename _tScalar2>
 	inline
 	Vec(_tScalar1 x, _tScalar2 y)
 		: BinaryGroup(x, y)
 	{}
 
-	//********************************
-	//名称:		operator Point
-	//全名:		YSLib::Drawing::Vec::operator Point
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	const
-	//功能概要:	转换：屏幕二维点。
-	//备注:		
-	//********************************
+	/*!
+	\brief 转换：屏幕二维点。
+	*/
 	operator Point() const
 	{
 		return Point(X, Y);
 	}
 
-	//********************************
-	//名称:		operator-
-	//全名:		YSLib::Drawing::Vec::operator-
-	//可访问性:	public 
-	//返回类型:	YSLib::Drawing::Vec
-	//修饰符:	
-	//功能概要:	负运算：返回加法逆元。
-	//备注:		
-	//********************************
+	/*!
+	\brief 负运算：返回加法逆元。
+	*/
 	Vec
 	operator-()
 	{
 		return Vec(-X, -Y);
 	}
-	//********************************
-	//名称:		operator+=
-	//全名:		YSLib::Drawing::Vec::operator+=
-	//可访问性:	public 
-	//返回类型:	Vec&
-	//修饰符:	
-	//形式参数:	const Vec & v
-	//功能概要:	加法赋值。
-	//备注:		
-	//********************************
+	/*!
+	\brief 加法赋值。
+	*/
 	Vec&
 	operator+=(const Vec& v)
 	{
@@ -589,16 +393,9 @@ public:
 		Y += v.Y;
 		return *this;
 	}
-	//********************************
-	//名称:		operator-=
-	//全名:		YSLib::Drawing::Vec::operator-=
-	//可访问性:	public 
-	//返回类型:	Vec&
-	//修饰符:	
-	//形式参数:	const Vec & v
-	//功能概要:	减法赋值。
-	//备注:		
-	//********************************
+	/*!
+	\brief 减法赋值。
+	*/
 	Vec&
 	operator-=(const Vec& v)
 	{
@@ -643,85 +440,45 @@ Point::operator-=(const Vec& v)
 
 //屏幕点和二维向量二元运算。
 
-//********************************
-//名称:		operator-
-//全名:		YSLib::Drawing::operator-
-//可访问性:	public 
-//返回类型:	YSLib::Drawing::Vec
-//修饰符:	
-//形式参数:	const Point & a
-//形式参数:	const Point & b
-//功能概要: 构造屏幕二维向量：使用起点 a 和终点 b 。
-//备注:		
-//********************************
+/*!
+\brief  构造屏幕二维向量：使用起点 a 和终点 b 。
+*/
 inline Vec
 operator-(const Point& a, const Point& b)
 {
 	return Vec(a.X - b.X, a.Y - b.Y);
 }
 
-//********************************
-//名称:		operator+
-//全名:		YSLib::Drawing::operator+
-//可访问性:	public 
-//返回类型:	YSLib::Drawing::Point
-//修饰符:	
-//形式参数:	const Point & p
-//形式参数:	const Vec & d
-//功能概要: 构造屏幕点：使用点 p 和偏移向量 d 。
-//备注:		
-//********************************
+/*!
+\brief  构造屏幕点：使用点 p 和偏移向量 d 。
+*/
 inline Point
 operator+(const Point& p, const Vec& d)
 {
 	return Point(p.X + d.X, p.Y + d.Y);
 }
 
-//********************************
-//名称:		operator-
-//全名:		YSLib::Drawing::operator-
-//可访问性:	public 
-//返回类型:	YSLib::Drawing::Point
-//修饰符:	
-//形式参数:	const Point & p
-//形式参数:	const Vec & d
-//功能概要: 构造屏幕点：使用点 p 和偏移向量的加法逆元 d 。
-//备注:		
-//********************************
+/*!
+\brief  构造屏幕点：使用点 p 和偏移向量的加法逆元 d 。
+*/
 inline Point
 operator-(const Point& p, const Vec& d)
 {
 	return Point(p.X - d.X, p.Y - d.Y);
 }
 
-//********************************
-//名称:		operator+
-//全名:		YSLib::Drawing::operator+
-//可访问性:	public 
-//返回类型:	YSLib::Drawing::Vec
-//修饰符:	
-//形式参数:	const Vec & a
-//形式参数:	const Vec & b
-//功能概要:	屏幕二维向量加法。
-//备注:		
-//********************************
+/*!
+\brief 屏幕二维向量加法。
+*/
 inline Vec
 operator+(const Vec& a, const Vec& b)
 {
 	return Vec(a.X + b.X, a.Y + b.Y);
 }
 
-//********************************
-//名称:		operator-
-//全名:		YSLib::Drawing::operator-
-//可访问性:	public 
-//返回类型:	YSLib::Drawing::Vec
-//修饰符:	
-//形式参数:	const Vec & a
-//形式参数:	const Vec & b
-//功能概要:	屏幕二维向量减法。
-//备注:		
-//********************************
+/*!
+\brief 屏幕二维向量减法。
+*/
 inline Vec
 operator-(const Vec& a, const Vec& b)
 {
@@ -729,75 +486,43 @@ operator-(const Vec& a, const Vec& b)
 }
 
 
-struct Size //屏幕区域大小。
+struct Size //!< 屏幕区域大小。
 {
-	SDST Width, Height; //宽和高。
+	SDST Width, Height; //!< 宽和高。
 
-	static const Size Zero; //无参数构造参数构造的零元素对象。
-	static const Size FullScreen; //无参数构造参数构造的全屏幕对象。
+	static const Size Zero; //!< 无参数构造参数构造的零元素对象。
+	static const Size FullScreen; //!< 无参数构造参数构造的全屏幕对象。
 
-	//********************************
-	//名称:		Size
-	//全名:		YSLib::Drawing::Size::Size
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	无参数构造。
-	//备注:		零初始化。
-	//********************************
+	/*!
+	\brief 无参数构造。
+	\note 零初始化。
+	*/
 	Size();
-	//********************************
-	//名称:		Size
-	//全名:		YSLib::Drawing::Size::Size
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const Size &
-	//功能概要:	复制构造。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复制构造。
+	*/
 	Size(const Size&);
-	//********************************
-	//名称:		Size
-	//全名:		YSLib::Drawing::Size::Size<_tVec>
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const _tVec & v
-	//功能概要:	构造：使用二维向量。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用二维向量。
+	*/
 	template<typename _tVec>
 	inline explicit
 	Size(const _tVec& v)
 		: Width(v.X), Height(v.Y)
 	{}
-	//********************************
-	//名称:		Size
-	//全名:		YSLib::Drawing::Size::Size<_tScalar1, _tScalar2>
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	_tScalar1 w
-	//形式参数:	_tScalar2 h
-	//功能概要:	构造：使用两个标量。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用两个标量。
+	*/
 	template<typename _tScalar1, typename _tScalar2>
 	inline
 	Size(_tScalar1 w, _tScalar2 h)
 		: Width(w), Height(h)
 	{}
 
-	//********************************
-	//名称:		operator Vec
-	//全名:		YSLib::Drawing::Size::operator Vec
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	const
-	//功能概要:	转换：屏幕二维向量。
-	//备注:		以Width 和 Height 分量作为结果的 X 和 Y分量。
-	//********************************
+	/*!
+	\brief 转换：屏幕二维向量。
+	\note 以Width 和 Height 分量作为结果的 X 和 Y分量。
+	*/
 	operator Vec() const
 	{
 		return Vec(Width, Height);
@@ -840,17 +565,48 @@ Vec::Vec(const Size& s)
 	: BinaryGroup(s.Width, s.Height)
 {}
 
+/*!
+\brief 选择分量。
+\note 第二参数为 true 时选择第一分量，否则选择第二分量。
+*/
+SPOS
+SelectFrom(const BinaryGroup&, bool = true);
+/*!
+\brief 选择分量。
+\note 第二参数为 true 时选择第一分量，否则选择第二分量。
+*/
+SDST
+SelectFrom(const Size&, bool = true);
 
-//********************************
-//名称:		Transpose
-//全名:		YSLib::Drawing::Transpose<_tBinary>
-//可访问性:	public 
-//返回类型:	_tBinary
-//修饰符:	
-//形式参数:	_tBinary & o
-//功能概要:	二元对象转置。
-//备注:		
-//********************************
+/*!
+\brief 选择分量引用。
+\note 第二参数为 true 时选择第一分量，否则选择第二分量。
+*/
+SPOS&
+SelectRefFrom(BinaryGroup&, bool = true);
+/*!
+\brief 选择分量引用。
+\note 第二参数为 true 时选择第一分量，否则选择第二分量。
+*/
+SDST&
+SelectRefFrom(Size&, bool = true);
+
+/*!
+\brief 更新：其中的一个分量。
+\note 第三参数为 true 时更新第一分量，否则更新第二分量。
+*/
+void
+UpdateTo(BinaryGroup&, SPOS, bool = true);
+/*!
+\brief 更新：其中的一个分量。
+\note 第三参数为 true 时更新第一分量，否则更新第二分量。
+*/
+void
+UpdateTo(Size&, SDST, bool = true);
+
+/*!
+\brief 二元对象转置。
+*/
 template<class _tBinary>
 inline _tBinary
 Transpose(_tBinary& o)
@@ -858,16 +614,9 @@ Transpose(_tBinary& o)
 	return _tBinary(o.Y, o.X);
 }
 
-//********************************
-//名称:		GetAreaFrom
-//全名:		YSLib::Drawing::GetAreaFrom
-//可访问性:	public 
-//返回类型:	u32
-//修饰符:	
-//形式参数:	const Size& s
-//功能概要:	取面积。
-//备注:		
-//********************************
+/*!
+\brief 取面积。
+*/
 inline u32
 GetAreaFrom(const Size& s)
 {
@@ -875,172 +624,74 @@ GetAreaFrom(const Size& s)
 }
 
 
-//屏幕坐标系的正则（边平行于水平直线的）矩形：使用左上点屏幕坐标、宽和高表示。
+//! \brief 屏幕坐标系的正则（边平行于水平直线的）矩形：使用左上点屏幕坐标、宽和高表示。
 class Rect : public Point, public Size
 {
 public:
-	static const Rect Empty; //无参数构造参数构造的空矩形对象。
-	static const Rect FullScreen; //无参数构造参数构造的全屏幕矩形对象。
+	static const Rect Empty; //!< 无参数构造参数构造的空矩形对象。
+	static const Rect FullScreen; //!< 无参数构造参数构造的全屏幕矩形对象。
 
-	//********************************
-	//名称:		Rect
-	//全名:		YSLib::Drawing::Rect::Rect
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	无参数构造。
-	//备注:		零初始化。
-	//********************************
+	/*!
+	\brief 无参数构造。
+	\note 零初始化。
+	*/
 	Rect();
-	//********************************
-	//名称:		Rect
-	//全名:		YSLib::Drawing::Rect::Rect
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const Rect &
-	//功能概要:	复制构造。
-	//备注:		
-	//********************************
+	/*!
+	\brief 复制构造。
+	*/
 	Rect(const Rect&);
-	//********************************
-	//名称:		Rect
-	//全名:		YSLib::Drawing::Rect::Rect
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const Point &
-	//功能概要:	构造：使用屏幕二维点。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用屏幕二维点。
+	*/
 	explicit
 	Rect(const Point&);
-	//********************************
-	//名称:		Rect
-	//全名:		YSLib::Drawing::Rect::Rect
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const Size &
-	//功能概要:	构造：使用 Size 对象。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用 Size 对象。
+	*/
 	explicit
 	Rect(const Size&);
-	//********************************
-	//名称:		Rect
-	//全名:		YSLib::Drawing::Rect::Rect
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const Point &
-	//形式参数:	const Size &
-	//功能概要:	构造：使用屏幕二维点和 Size 对象。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用屏幕二维点和 Size 对象。
+	*/
 	Rect(const Point&, const Size&);
-	//********************************
-	//名称:		Rect
-	//全名:		YSLib::Drawing::Rect::Rect
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const Point &
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//功能概要:	构造：使用屏幕二维点和表示长宽的两个 SDST 值。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用屏幕二维点和表示长宽的两个 SDST 值。
+	*/
 	Rect(const Point&, SDST, SDST);
-	//********************************
-	//名称:		Rect
-	//全名:		YSLib::Drawing::Rect::Rect
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	SPOS
-	//形式参数:	SPOS
-	//形式参数:	const Size &
-	//功能概要:	构造：使用表示位置的两个 SPOS 值和 Size 对象。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用表示位置的两个 SPOS 值和 Size 对象。
+	*/
 	Rect(SPOS, SPOS, const Size&);
-	//********************************
-	//名称:		Rect
-	//全名:		YSLib::Drawing::Rect::Rect
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	SPOS
-	//形式参数:	SPOS
-	//形式参数:	SDST
-	//形式参数:	SDST
-	//功能概要:	构造：使用表示位置的两个 SPOS 值和表示大小的两个 SDST 值。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用表示位置的两个 SPOS 值和表示大小的两个 SDST 值。
+	*/
 	Rect(SPOS, SPOS, SDST, SDST);
 
-	//********************************
-	//名称:		Contains
-	//全名:		YSLib::Drawing::Rect::Contains
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	const
-	//形式参数:	const Point &
-	//功能概要:	判断点是否在矩形内或边上。
-	//备注:		
-	//********************************
+	/*!
+	\brief 判断点是否在矩形内或边上。
+	*/
 	bool
 	Contains(const Point&) const;
-	//********************************
-	//名称:		Contains
-	//全名:		YSLib::Drawing::Rect::Contains
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	const
-	//形式参数:	int px
-	//形式参数:	int py
-	//功能概要:	判断点 (px, py) 是否在矩形内或边上。
-	//备注:		
-	//********************************
+	/*!
+	\brief 判断点 (px, py) 是否在矩形内或边上。
+	*/
 	bool
 	Contains(int px, int py) const;
-	//********************************
-	//名称:		ContainsStrict
-	//全名:		YSLib::Drawing::Rect::ContainsStrict
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	const
-	//形式参数:	const Point & p
-	//功能概要:	判断点是否在矩形内。
-	//备注:		
-	//********************************
+	/*!
+	\brief 判断点是否在矩形内。
+	*/
 	bool
 	ContainsStrict(const Point& p) const;
-	//********************************
-	//名称:		ContainsStrict
-	//全名:		YSLib::Drawing::Rect::ContainsStrict
-	//可访问性:	public 
-	//返回类型:	bool
-	//修饰符:	const
-	//形式参数:	int px
-	//形式参数:	int py
-	//功能概要:	判断点 (px, py) 是否在矩形内。
-	//备注:		
-	//********************************
+	/*!
+	\brief 判断点 (px, py) 是否在矩形内。
+	*/
 	bool
 	ContainsStrict(int px, int py) const;
-	//********************************
-	//名称:		GetPoint
-	//全名:		YSLib::Drawing::Rect::GetPoint
-	//可访问性:	public 
-	//返回类型:	YSLib::Drawing::Point
-	//修饰符:	const
-	//功能概要:	
-	//备注:		
-	//********************************
+	/*!
+	\brief 
+	*/
 
-	DefGetter(Point, Point, Point(X, Y)) //取左上角位置。
+	DefGetter(Point, Point, Point(X, Y)) //!< 取左上角位置。
 };
 
 inline
@@ -1117,41 +768,31 @@ YSL_END_NAMESPACE(Drawing)
 
 //基本对象定义。
 
-//基本对象类：所有类名以 Y 作前缀的类的公共基类。
+//! \brief 基本对象类：所有类名以 Y 作前缀的类的公共基类。
 class YObject : private NonCopyable
 {
 public:
-	//********************************
-	//名称:		~YObject
-	//全名:		YSLib::YObject::~YObject
-	//可访问性:	virtual public 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	析构。
-	//备注:		空实现。必要的虚函数以构造多态基类。
-	//********************************
+	/*!
+	\brief 析构。
+	\note 空实现。必要的虚函数以构造多态基类。
+	*/
 	virtual
 	~YObject()
 	{}
 };
 
 
-//基本可数对象类：所有可数的基本对象类的公共基类。
+//! \brief 基本可数对象类：所有可数的基本对象类的公共基类。
 class YCountableObject : public GMCounter<YCountableObject>, public YObject
 {
 public:
 	typedef YObject ParentType;
 
 protected:
-	//********************************
-	//名称:		YCountableObject
-	//全名:		YSLib::YCountableObject::YCountableObject
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//功能概要:	无参数构造。
-	//备注:		保护实现。
-	//********************************
+	/*!
+	\brief 无参数构造。
+	\note 保护实现。
+	*/
 	YCountableObject();
 };
 

@@ -1,14 +1,31 @@
-﻿// YSLib::Shell::YForm by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-04-30 00:51:36 + 08:00;
-// UTime = 2010-10-29 14:21 + 08:00;
-// Version = 0.1397;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file yform.h
+\ingroup Shell
+\brief 平台无关的 GUI 窗体实现。
+\version 0.1410;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-04-30 00:51:36 + 08:00;
+\par 修改时间:
+	2010-11-12 18:31 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Shell::YForm;
+*/
 
 
 #ifndef INCLUDED_YFORM_H_
 #define INCLUDED_YFORM_H_
-
-// YForm ：平台无关的图形用户界面窗体实现。
 
 #include "ywindow.h"
 
@@ -29,33 +46,17 @@ public:
 protected:
 
 public:
-	//********************************
-	//名称:		YForm
-	//全名:		YSLib::Components::Forms::YForm::YForm
-	//可访问性:	public 
-	//返回类型:	
-	//修饰符:	
-	//形式参数:	const Rect &
-	//形式参数:	const GHResource<YImage>
-	//形式参数:	YDesktop *
-	//形式参数:	HSHL
-	//形式参数:	HWND
-	//功能概要:	构造：使用指定边界、背景、桌面、 Shell 和父窗口。
-	//备注:		
-	//********************************
+	/*!
+	\brief 构造：使用指定边界、背景、桌面、 Shell 和父窗口。
+	*/
 	explicit
 	YForm(const Rect& = Rect::Empty, const GHResource<YImage> = new YImage(),
 		YDesktop* = ::YSLib::pDefaultDesktop,
 		HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
-	//********************************
-	//名称:		~YForm
-	//全名:		YSLib::Components::Forms::YForm::~YForm
-	//可访问性:	virtual public 
-	//返回类型:	
-	//修饰符:	ythrow()
-	//功能概要:	析构。
-	//备注:		无异常抛出。
-	//********************************
+	/*!
+	\brief 析构。
+	\note 无异常抛出。
+	*/
 	virtual
 	~YForm() ythrow();
 

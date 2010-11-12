@@ -1,8 +1,27 @@
-﻿// CHRLib -> CharacterMapping by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-11-17 17:53:21 + 08:00;
-// UTime = 2010-10-23 23:00 + 08:00;
-// Version = 0.1496;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file chrmap.cpp
+\ingroup CHRLib
+\brief 字符映射。
+\version 0.1501;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-11-17 17:53:21 + 08:00; 
+\par 修改时间:
+	2010-11-11 21:18 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	CHRLib::CharacterMapping;
+*/
 
 
 #include "chrmap.h"

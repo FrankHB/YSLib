@@ -1,8 +1,27 @@
-﻿// CHRLib -> CharacterMapping by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-11-17 17:52:35 + 08:00;
-// UTime = 2010-10-24 00:03 + 08:00;
-// Version = 0.1645;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file chrmap.h
+\ingroup CHRLib
+\brief 字符映射。
+\version 0.1662;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-11-17 17:52:35 + 08:00; 
+\par 修改时间:
+	2010-11-12 16:59 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	CHRLib::CharacterMapping;
+*/
 
 
 #ifndef INCLUDED_CHRMAP_H_
@@ -10,8 +29,6 @@
 
 #include "chrdef.h"
 #include <cstdio>
-
-// CharacterMapping ：字符映射。
 
 CHRLIB_BEGIN
 
@@ -25,7 +42,7 @@ CHRLIB_BEGIN_NAMESPACE(CharSet)
 typedef enum
 {
 	//保留。
-	Null = 0, //空字符集。
+	Null = 0, //!< 空字符集。
 	Reserved_1 = 1,
 	Reserved_2 = 2,
 
@@ -50,15 +67,15 @@ typedef enum
 	UTF_32BE = 1018,
 	UTF_32LE = 1019,
 
-	GB2312 = 2025, //仅 EUC-CN ，GB2312 最常用实现。
+	GB2312 = 2025, //!< 仅 EUC-CN ，GB2312 最常用实现。
 	Big5 = 2026,
 
 	//其它。
 	/*
-	HZ_GB_2312 = 52396, // Chinese Simplified (HZ)，GB2312 的另一种实现。
-	MIK, // Supports Bulgarian and Russian as well
+	HZ_GB_2312 = 52396, //!<  Chinese Simplified (HZ)，GB2312 的另一种实现。
+	MIK, //!<  Supports Bulgarian and Russian as well
 	*/
-} CSID; //字符集标识。
+} CSID; //!< 字符集标识。
 
 //别名。
 const CSID
@@ -101,32 +118,18 @@ extern "C"
 const ubyte_t cp2026[] = {0};
 
 
-//********************************
-//名称:		getword_LE
-//全名:		CHRLib::getword_LE
-//可访问性:	public 
-//返回类型:	CHRLib::uchar_t
-//修饰符:	
-//形式参数:	const char * c
-//功能概要:	取小端序双字节字符。
-//注释:		
-//********************************
+/*!
+\brief 取小端序双字节字符。
+*/
 inline uchar_t
 getword_LE(const char* c)
 {
 	return (c[1] << 8) | *c;
 }
 
-//********************************
-//名称:		getword_BE
-//全名:		CHRLib::getword_BE
-//可访问性:	public 
-//返回类型:	CHRLib::uchar_t
-//修饰符:	
-//形式参数:	const char * c
-//功能概要:	取大端序双字节字符。
-//注释:		
-//********************************
+/*!
+\brief 取大端序双字节字符。
+*/
 inline uchar_t
 getword_BE(const char* c)
 {

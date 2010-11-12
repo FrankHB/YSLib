@@ -1,14 +1,35 @@
-﻿// YReader -> Shells by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-03-06 21:38:16 + 08:00;
-// UTime = 2010-11-08 19:57 + 08:00;
-// Version = 0.2821;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\defgroup YReader YReader
+\brief YReader 阅读器。
+*/
+
+/*!	\file Shells.h
+\ingroup YReader
+\brief Shell 声明。
+\version 0.2861;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-03-06 21:38:16 + 08:00;
+\par 修改时间:
+	2010-11-12 18:37 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YReader::Shells;
+*/
 
 
 #ifndef INCLUDED_SHELLS_H_
 #define INCLUDED_SHELLS_H_
-
-// Shells ： Shell 声明。
 
 //#include "../YSLib/Helper/shlds.h"
 #include "DSReader.h"
@@ -41,9 +62,11 @@ private:
 
 		TFrmLoadUp(HSHL hShl)
 		: YForm(Rect::FullScreen, GetImage(1), pDesktopUp, hShl),
-			lblTitle(HWND(this), G_APP_NAME, Rect(50, 20, 100, 22)),
-			lblStatus(HWND(this), "Loading...", Rect(60, 80, 80, 22))
+			lblTitle(HWND(this), Rect(50, 20, 100, 22)),
+			lblStatus(HWND(this), Rect(60, 80, 80, 22))
 		{
+			lblTitle.Text = G_APP_NAME;
+			lblStatus.Text = "Loading...";
 		//	lblTitle.Transparent = true;
 			Draw();
 		}
@@ -54,8 +77,9 @@ private:
 
 		TFrmLoadDown(HSHL hShl)
 		: YForm(Rect::FullScreen, GetImage(2), pDesktopDown, hShl),
-			lblStatus(HWND(this), FS("初始化中，请稍后……"), Rect(30, 20, 160, 22))
+			lblStatus(HWND(this), Rect(30, 20, 160, 22))
 		{
+			lblStatus.Text = FS("初始化中，请稍后……");
 			lblStatus.SetTransparent(true);
 			Draw();
 		}
@@ -78,9 +102,11 @@ private:
 
 		TFrmFileListMonitor(HSHL hShl)
 		: YForm(Rect::FullScreen, GetImage(3), pDesktopUp, hShl),
-			lblTitle(HWND(this), "文件列表：请选择一个文件。", Rect(16, 20, 220, 22)),
-			lblPath(HWND(this), "/", Rect(12, 80, 240, 22))
+			lblTitle(HWND(this), Rect(16, 20, 220, 22)),
+			lblPath(HWND(this), Rect(12, 80, 240, 22))
 		{
+			lblTitle.Text = "文件列表：请选择一个文件。";
+			lblPath.Text = "/";
 		//	lblTitle.Transparent = true;
 		//	lblPath.Transparent = true;
 			Draw();
@@ -90,19 +116,21 @@ private:
 	{
 		YFileBox fbMain;
 		YButton btnTest, btnOK;
-	//	YHorizontalScrollBar sbTest;
-		YHorizontalTrack tkTestH;
+		YHorizontalScrollBar sbTestH;
+	//	YHorizontalTrack tkTestH;
 		YVerticalTrack tkTestV;
 
 		TFrmFileListSelecter(HSHL hShl)
 		: YForm(Rect::FullScreen, GetImage(4), pDesktopDown, hShl),
 			fbMain(HWND(this), Rect(6, 10, 210, 150)),
-			btnTest(HWND(this), FS(" 测试(X)"), Rect(115, 165, 65, 22)),
-			btnOK(HWND(this), FS(" 确定(R)"), Rect(185, 165, 65, 22)),
-		//	sbTest(HWND(this), Rect(10, 165, 95, 16))
-			tkTestH(HWND(this), Rect(10, 165, 95, 16)),
+			btnTest(HWND(this), Rect(115, 165, 65, 22)),
+			btnOK(HWND(this), Rect(185, 165, 65, 22)),
+			sbTestH(HWND(this), Rect(10, 165, 95, 16)),
+		//	tkTestH(HWND(this), Rect(10, 165, 95, 16)),
 			tkTestV(HWND(this), Rect(230, 10, 16, 95))
 		{
+			btnTest.Text = FS(" 测试(X)");
+			btnOK.Text = FS(" 确定(R)");
 			KeyPress += &TFrmFileListSelecter::frm_KeyPress;
 		//	fbMain.TouchDown += YFileBox::OnClick;
 		//	fbMain.Click += &YListBox::_m_OnClick;
@@ -160,9 +188,11 @@ public:
 		YLabel lblA2;
 
 		TFormA(HSHL hShl) : YForm(Rect::FullScreen, GetImage(5), pDesktopUp, hShl),
-			lblA(HWND(this), G_APP_NAME, Rect(left, 20, 200, size)),
-			lblA2(HWND(this), "程序测试", Rect(left, 80, 72, size))
+			lblA(HWND(this), Rect(left, 20, 200, size)),
+			lblA2(HWND(this), Rect(left, 80, 72, size))
 		{
+			lblA.Text = G_APP_NAME;
+			lblA2.Text = "程序测试";
 			lblA2.SetTransparent(true);
 		}
 
@@ -177,9 +207,11 @@ public:
 		YButton btnB, btnB2;
 
 		TFormB(HSHL hShl) : YForm(Rect(10, 40, 228, 70), /*GetImage(6)*/NULL, pDesktopDown, hShl),
-			btnB(HWND(this), FS("测试程序"), Rect(2, 5, 224, size)),
-			btnB2(HWND(this), FS("测试程序2"), Rect(45, 35, 124, size))
+			btnB(HWND(this), Rect(2, 5, 224, size)),
+			btnB2(HWND(this), Rect(45, 35, 124, size))
 		{
+			btnB.Text = FS("测试程序");
+			btnB2.Text = FS("测试程序2");
 			BackColor = ARGB16(1, 31, 31, 15);
 			TouchMove += OnDrag;
 		//	btnB.TouchMove += &AVisualControl::OnTouchMove;
@@ -203,9 +235,11 @@ public:
 		YButton btnReturn;
 
 		TFormC(HSHL hShl) : YForm(Rect(5, 60, 180, 120), /*GetImage(7)*/NULL, pDesktopDown, hShl),
-			btnC(HWND(this), FS("测试y"), Rect(13, 45, 184, size)),
-			btnReturn(HWND(this), FS("返回"), Rect(13, 82, 60, size))
+			btnC(HWND(this), Rect(13, 45, 184, size)),
+			btnReturn(HWND(this), Rect(13, 82, 60, size))
 		{
+			btnC.Text = FS("测试y");
+			btnReturn.Text = FS("返回");
 			BackColor = ARGB16(1, 31, 15, 15);
 			TouchDown += TFormC_TouchDown;
 			TouchMove += OnDrag;

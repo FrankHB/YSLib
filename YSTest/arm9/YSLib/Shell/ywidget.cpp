@@ -1,8 +1,27 @@
-﻿// YSLib::Shell::YWidget by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// CTime = 2009-11-16 20:06:58 + 08:00;
-// UTime = 2010-11-08 21:05 + 08:00;
-// Version = 0.4486;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ywidget.cpp
+\ingroup Shell
+\brief 平台无关的图形用户界面部件实现。
+\version 0.4530;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-11-16 20:06:58 + 08:00;
+\par 修改时间:
+	2010-11-12 15:23 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Shell::YWidget;
+*/
 
 
 #include "ydesktop.h"
@@ -276,6 +295,12 @@ YUIContainer::~YUIContainer() ythrow()
 }
 
 
+MLabel::MLabel(const Drawing::Font& f, GHResource<Drawing::TextRegion> prTr_)
+	: prTextRegion(prTr_ ? prTr_ : GetGlobalResource<Drawing::TextRegion>()),
+	Font(f),
+	Margin(prTextRegion->Margin), AutoSize(true), AutoEllipsis(false), Text()
+{}
+
 void
 MLabel::PaintText(Widget& w, const Point& pt)
 {
@@ -298,6 +323,13 @@ MLabel::PaintText(Widget& w, const Point& pt)
 		prTextRegion->SetSize(0, 0);
 	}
 }
+
+
+YLabel::YLabel(HWND hWnd, const Rect& r, const Drawing::Font& f, IUIBox* pCon,
+	GHResource<Drawing::TextRegion> prTr_)
+	: YWidget(hWnd, r, pCon), MLabel(f, pCon
+	? prTr_ : GetGlobalResource<Drawing::TextRegion>())
+{}
 
 void
 YLabel::DrawForeground()

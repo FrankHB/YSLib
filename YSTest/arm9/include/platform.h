@@ -1,8 +1,35 @@
-﻿// 通用平台描述文件 -> DS by Franksoft 2009 - 2010
-// CodePage = UTF-8;
-// UTime = 2009-11-24 0:05:08;
-// UTime = 2010-9-22 3:51;
-// Version = 0.1246;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\defgroup Platform Platform
+\brief YSLib 库平台。
+*/
+/*!	\defgroup DS DS
+\ingroup Platform
+\brief DS 平台。
+*/
+
+/*!	\file platform.h
+\ingroup DS
+\brief 通用平台描述文件。
+\version 0.1258;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-11-24 00:05:08 + 08:00;
+\par 修改时间:
+	2010-11-12 18:37 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	Platform::DS;
+*/
 
 
 #ifndef _PLATFORM_H_

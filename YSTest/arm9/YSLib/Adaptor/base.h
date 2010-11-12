@@ -1,14 +1,31 @@
-﻿// YSLib::Adaptor::Base by Franksoft 2010
-// CodePage = UTF-8;
-// CTime = 2010-10-09 09:25:27 + 08:00;
-// UTime = 2010-10-24 17:39 + 08:00;
-// Version = 0.1994;
+﻿/*
+	Copyright (C) by Franksoft 2010.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file base.h
+\ingroup Adaptor
+\brief 通用基础设施。
+\version 0.2001;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-10-09 09:25:27 + 08:00;
+\par 修改时间:
+	2010-11-11 22:28 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Adaptor::Base;
+*/
 
 
 #ifndef INCLUDED_BASE_H_
 #define INCLUDED_BASE_H_
-
-// Base ：通用基础设施。
 
 /*
  ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
