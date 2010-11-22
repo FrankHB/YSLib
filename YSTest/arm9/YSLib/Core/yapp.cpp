@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 应用程序实例类抽象。
-\version 0.1950;
+\version 0.1962;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 + 08:00;
 \par 修改时间:
-	2010-11-12 15:29 + 08:00;
+	2010-11-15 19:22 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,6 +25,7 @@
 
 
 #include "yapp.h"
+#include "../Helper/yglobal.h"
 
 YSL_BEGIN
 
@@ -77,7 +78,7 @@ YApplication::YApplication()
 	Log(DefaultLog), pMessageQueue(new YMessageQueue),
 		pMessageQueueBackup(new YMessageQueue), sShls(), hShell(NULL)
 {
-	ApplicationExit += Def::Destroy;
+	ApplicationExit += Destroy;
 }
 YApplication::~YApplication() ythrow()
 {

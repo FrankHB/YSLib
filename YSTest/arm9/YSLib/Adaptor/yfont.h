@@ -16,7 +16,7 @@
 \par 创建时间:
 	2009-11-12 22:02:40 + 08:00;
 \par 修改时间:
-	2010-11-12 19:05 + 08:00;
+	2010-11-15 10:40 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -222,7 +222,8 @@ class FontFile// : implements GIEquatable<FontFile>,
 	// implements GILess<FontFile>
 {
 public:
-	static const u16 MaxFontPathLength = YC_MAX_PATH; //!< 最大字体文件路径长度。
+	static const u16 MaxFontPathLength = MAX_FILENAME_LENGTH; \
+		//!< 最大字体文件路径长度。
 
 private:
 	CPATH path;

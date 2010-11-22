@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.1953;
+\version 0.1961;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 + 08:00;
 \par 修改时间:
-	2010-11-12 15:43 + 08:00;
+	2010-11-15 11:59 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -79,7 +79,7 @@ Path
 Path::GetRootName() const
 {
 	return Path(StringType(c_str(),
-		platform::GetRootNameLength(GetNativeString().c_str())));
+		GetRootNameLength(GetNativeString().c_str())));
 }
 Path
 Path::GetRootDirectory() const
@@ -314,15 +314,15 @@ HaveSameExtendNames(const string& a, const string& b)
 }
 
 int
-ChDir(const string& path)
+ChangeDirectory(const string& path)
 {
 	if(path.length() > MAX_PATH_LENGTH)
 		return -2;
 
-	return ChDir(path.c_str());
+	return ChangeDirectory(path.c_str());
 }
 /*int //for String;
-ChDir(const Path& path)
+ChangeDirectory(const Path& path)
 {
 	if(path.length() > MAX_PATH_LENGTH)
 		return -2;
@@ -330,7 +330,7 @@ ChDir(const Path& path)
 	PATHSTR p;
 
 	UTF16LEToMBCS(p, path.c_str());
-	return ChDir(p);
+	return ChangeDirectory(p);
 }*/
 
 string
@@ -338,7 +338,7 @@ GetNowDirectory()
 {
 	PATHSTR buf;
 
-	return platform::getcwd_n(buf, MAX_PATH_LENGTH - 1)
+	return getcwd_n(buf, MAX_PATH_LENGTH - 1)
 		? string(buf) : string();
 }
 

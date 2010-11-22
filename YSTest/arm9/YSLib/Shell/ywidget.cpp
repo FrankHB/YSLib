@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4530;
+\version 0.4633;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-12 15:23 + 08:00;
+	2010-11-22 21:11 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,6 @@
 
 
 #include "ydesktop.h"
-#include "ycontrol.h"
 
 YSL_BEGIN
 
@@ -42,10 +41,19 @@ Contains(const IWidget& w, SPOS x, SPOS y)
 }
 
 
+HWND
+GetWindowHandleFrom(const IWidget& w)
+{
+	IUIBox* const pCon(w.GetContainerPtr());
+
+	return pCon ? pCon->GetWindowHandle() : NULL;
+}
+
+
 namespace
 {
 	void
-	GetContainersListFrom(IWidget& w, std::map<IUIBox*, Point>& m)
+	GetContainersListFrom(IWidget& w, map<IUIBox*, Point>& m)
 	{
 		Point pt;
 		IUIBox* pCon(dynamic_cast<IUIBox*>(&w));
@@ -65,20 +73,20 @@ namespace
 }
 
 Point
-LocateOffset(const IWidget* pCon, Point pt, IWindow* pWnd)
+LocateOffset(const IWidget* pCon, Point p, const IWindow* pWnd)
 {
 	while(pCon && dynamic_cast<const IWindow*>(pCon) != pWnd)
 	{
-		pt += pCon->GetLocation();
+		p += pCon->GetLocation();
 		pCon = dynamic_cast<const IWidget*>(pCon->GetContainerPtr());
 	}
-	return pt;
+	return p;
 }
 
 Point
 LocateForWidget(IWidget& a, IWidget& b)
 {
-	std::map<IUIBox*, Point> m;
+	map<IUIBox*, Point> m;
 
 	GetContainersListFrom(b, m);
 
@@ -93,7 +101,7 @@ LocateForWidget(IWidget& a, IWidget& b)
 
 	while(pCon != NULL)
 	{
-		std::map<IUIBox*, Point>::const_iterator i(m.find(pCon));
+		map<IUIBox*, Point>::const_iterator i(m.find(pCon));
 
 		if(i != m.end())
 			return pt - i->second;
@@ -106,15 +114,19 @@ LocateForWidget(IWidget& a, IWidget& b)
 Point
 LocateForWindow(const IWidget& w)
 {
-	return w.GetContainerPtr()
-		? LocateOffset(w.GetContainerPtr(),
-		w.GetLocation(), w.GetWindowHandle()) : Point::FullScreen;
+	const HWND hWnd(GetDirectWindowHandleFrom(w));
+
+	return hWnd ? LocateOffset(&w, Point::Zero, hWnd)
+		: Point::FullScreen;
 }
 
 Point
 LocateForDesktop(const IWidget& w)
 {
-	HWND hWnd(w.GetWindowHandle());
+	if(dynamic_cast<const YDesktop*>(&w))
+		return Point::Zero;
+
+	HWND hWnd(GetDirectWindowHandleFrom(w));
 
 	if(hWnd)
 	{
@@ -137,32 +149,106 @@ LocateForParentContainer(const IWidget& w)
 Point
 LocateForParentWindow(const IWidget& w)
 {
-	return w.GetWindowHandle()
-		? LocateWindowOffset(*w.GetWindowHandle(),
-		w.GetLocation()) : Point::FullScreen;
+	const HWND hWnd(GetWindowHandleFrom(w));
+
+	return hWnd ? LocateWindowOffset(*hWnd, w.GetLocation())
+		: Point::FullScreen;
+}
+
+
+void
+MoveToLeft(IWidget& w)
+{
+	YAssert(w.GetContainerPtr(),
+		"In function \"void\n"
+		"ATrack::MoveToLeft(IWidget& w)\": \n"
+		"Container pointer of the widget is null.");
+
+	w.SetLocation(Point(0, w.GetLocation().Y));
+}
+
+void MoveToRight(IWidget& w)
+{
+	YAssert(w.GetContainerPtr(),
+		"In function \"void\n"
+		"ATrack::MoveToLeft(IWidget& w)\": \n"
+		"Container pointer of the widget is null.");
+
+	w.SetLocation(Point(w.GetContainerPtr()->GetSize().Width
+		- w.GetSize().Width, w.GetLocation().Y));
+}
+
+void MoveToTop(IWidget& w)
+{
+	YAssert(w.GetContainerPtr(),
+		"In function \"void\n"
+		"ATrack::MoveToLeft(IWidget& w)\": \n"
+		"Container pointer of the widget is null.");
+
+	w.SetLocation(Point(w.GetLocation().X, 0));
+}
+
+void MoveToBottom(IWidget& w)
+{
+	YAssert(w.GetContainerPtr(),
+		"In function \"void\n"
+		"ATrack::MoveToLeft(IWidget& w)\": \n"
+		"Container pointer of the widget is null.");
+
+	w.SetLocation(Point(w.GetLocation().X,
+		w.GetContainerPtr()->GetSize().Height - w.GetSize().Height));
+}
+
+
+namespace
+{
+	template<class _tWidget>
+	void
+	Fill(_tWidget& w, Color c)
+	{
+		HWND hWnd(GetDirectWindowHandleFrom(w));
+
+		if(hWnd)
+		{
+			Graphics g(*hWnd);
+
+			FillRect(g, LocateOffset(&w, Point::Zero, hWnd), w.GetSize(), c);
+		}
+	}
+}
+
+void
+Fill(IWidget& w, Color c)
+{
+	return Fill<IWidget>(w, c);
+}
+void
+Fill(Widget& w, Color c)
+{
+	return Fill<Widget>(w, c);
 }
 
 
 Visual::Visual(const Rect& r, Color b, Color f)
-	: Visible(true), Transparent(false), bBgRedrawed(false),
-	Location(r.GetPoint()), Size(r.Width, r.Height),
+	: visible(true), transparent(false), background_redrawed(false),
+	location(r.GetPoint()), size(r.Width, r.Height),
 	BackColor(b), ForeColor(f)
 {}
 
 void
-Visual::_m_SetSize(SDST w, SDST h)
+Visual::SetSize(SDST w, SDST h)
 {
-	if(Size.Width != w || Size.Height != h)
+	if(size.Width != w || size.Height != h)
 	{
-		bBgRedrawed = false;
-		Size.Width = w;
-		Size.Height = h;
+		background_redrawed = false;
+		size.Width = w;
+		size.Height = h;
 	}
 }
 void
 Visual::SetBounds(const Rect& r)
 {
-	Location = r.GetPoint();
+	location = r.GetPoint();
 	SetSize(r.Width, r.Height);
 }
 
@@ -174,23 +260,12 @@ Widget::Widget(HWND hWnd, const Rect& r, IUIBox* pCon,
 {}
 
 void
-Widget::BeFilledWith(Color c)
-{
-	if(hWindow)
-	{
-		Graphics g(*hWindow);
-
-		FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(), GetBounds(), c);
-	}
-}
-
-void
 Widget::DrawBackground()
 {
 	YWidgetAssert(this, Widgets::Widget, DrawBackground);
 
-	if(!Transparent)
-		BeFilledWith();
+	if(!IsTransparent())
+		Fill(*this, BackColor);
 }
 
 void
@@ -198,7 +273,7 @@ Widget::DrawForeground()
 {
 	YWidgetAssert(this, Widgets::Widget, DrawForeground);
 
-	if(!Transparent)
+	if(!IsTransparent())
 		SetBgRedrawed(false);
 }
 
@@ -304,13 +379,13 @@ MLabel::MLabel(const Drawing::Font& f, GHResource<Drawing::TextRegion> prTr_)
 void
 MLabel::PaintText(Widget& w, const Point& pt)
 {
-	HWND hWnd(w.GetWindowHandle());
+	HWND hWnd(GetDirectWindowHandleFrom(w));
 
 	if(hWnd && prTextRegion)
 	{
 		prTextRegion->Font = Font;
 		prTextRegion->Font.Update();
-		SetPensTo(*prTextRegion);
+		prTextRegion->ResetPen();
 		prTextRegion->Color = w.ForeColor;
 		prTextRegion->SetSize(w.GetWidth(), w.GetHeight());
 		SetMarginsTo(*prTextRegion, 2, 2, 2, 2);
@@ -336,7 +411,7 @@ YLabel::DrawForeground()
 {
 	YWidgetAssert(this, Widgets::YLabel, DrawForeground);
 
-//	if(!Transparent)
+//	if(!transparent)
 	//	BeFilledWith();
 	ParentType::DrawForeground();
 	PaintText(*this, LocateForWindow(*this));

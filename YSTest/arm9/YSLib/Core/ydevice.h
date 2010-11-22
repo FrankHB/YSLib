@@ -11,12 +11,12 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version 0.2756;
+\version 0.2787;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:39:39 + 08:00;
 \par 修改时间:
-	2010-11-12 19:08 + 08:00;
+	2010-11-17 18:20 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,9 +27,15 @@
 #ifndef INCLUDED_YOUTPUT_H_
 #define INCLUDED_YOUTPUT_H_
 
-#include "../Helper/yglobal.h"
+#include "yexcept.h"
 
 YSL_BEGIN
+
+/*!
+\brief 默认屏幕初始化函数。
+*/
+extern bool
+InitAllScreens();
 
 YSL_BEGIN_NAMESPACE(Device)
 
@@ -39,7 +45,7 @@ class YGraphicDevice : public YObject, protected Drawing::Size
 public:
 	typedef YObject ParentType;
 
-private:
+protected:
 	Drawing::BitmapPtr ptr;
 
 public:
@@ -64,7 +70,8 @@ YGraphicDevice::YGraphicDevice(SDST w, SDST h, Drawing::BitmapPtr p)
 //屏幕。
 class YScreen : public YGraphicDevice
 {
-	friend class YSLib::Def;
+	friend bool
+	YSLib::InitAllScreens();
 
 public:
 	typedef YGraphicDevice ParentType;
@@ -74,11 +81,11 @@ private:
 	static bool S_InitScr;
 
 	/*!
-			\brief 静态初始化。
+	\brief 静态初始化。
 	*/
 	static void InitScreen();
 	/*!
-			\brief 状态检查。
+	\brief 状态检查。
 	*/
 	static void CheckInitialization();
 
@@ -91,7 +98,7 @@ public:
 	YScreen(SDST, SDST, Drawing::BitmapPtr = NULL);
 
 	/*!
-			\brief 复位。
+	\brief 复位。
 	\note 无条件初始化。
 	*/
 	static void
@@ -100,7 +107,7 @@ public:
 	/*!
 	\brief 取指针。
 	\note 无异常抛出。
-	//			进行状态检查。
+		进行状态检查。
 	*/
 	virtual Drawing::BitmapPtr
 	GetPtr() const ythrow();
@@ -109,13 +116,13 @@ public:
 	DefSetter(const BGType&, BgID, bg)
 
 	/*!
-			\brief 更新。
+	\brief 更新。
 	\note 复制到屏幕。
 	*/
 	void
 	Update(Drawing::BitmapPtr);
 	/*!
-			\brief 更新。
+	\brief 更新。
 	\note 以纯色填充屏幕。
 	*/
 	void
@@ -125,7 +132,7 @@ public:
 inline void
 YScreen::InitScreen()
 {
-	S_InitScr = !Def::InitVideo();
+	S_InitScr = !InitAllScreens();
 }
 
 inline Drawing::BitmapPtr

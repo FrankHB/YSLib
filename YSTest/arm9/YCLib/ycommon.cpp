@@ -15,12 +15,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.1877;
+\version 0.1937;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 + 08:00;
 \par 修改时间:
-	2010-11-11 21:34 + 08:00;
+	2010-11-15 16:04 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -720,5 +720,41 @@ namespace platform
 		}
 		return path+sindex+1;
 	}*/
+
+	bool
+	InitVideo()
+	{
+		ResetVideo();
+		//设置显示模式。
+		vramSetBankA(VRAM_A_MAIN_BG);
+		vramSetBankC(VRAM_C_SUB_BG);
+		//设置主显示引擎渲染上屏。
+		lcdMainOnTop();
+	//	lcdMainOnBottom();
+	//	lcdSwap();
+		return true;
+	}
+}
+
+namespace platform_ex
+{
+	platform::BitmapPtr
+	InitScrUp(int& id)
+	{
+		//初始化背景，并得到屏幕背景ID 。
+		id = bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
+
+		//获得屏幕背景所用的显存地址。
+		return bgGetGfxPtr(id);
+	}
+	platform::BitmapPtr
+	InitScrDown(int& id)
+	{
+		//初始化背景，并得到屏幕背景ID 。
+		id = bgInitSub(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
+
+		//获得屏幕背景所用的显存地址。
+		return bgGetGfxPtr(id);
+	}
 }
 

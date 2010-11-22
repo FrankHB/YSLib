@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.2268;
+\version 0.2279;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-12 18:31 + 08:00;
+	2010-11-19 22:49 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -152,17 +152,17 @@ YSL_END_NAMESPACE(InputStatus)
 
 //响应标准按键状态。
 /*!
-\brief 响应按键接触结束。
+\brief 响应键接触结束。
 */
 bool
 ResponseKeyUp(YDesktop&, KeyEventArgs&);
 /*!
-\brief 响应按键接触开始。
+\brief 响应键接触开始。
 */
 bool
 ResponseKeyDown(YDesktop&, KeyEventArgs&);
 /*!
-\brief 响应按键接触保持。
+\brief 响应键接触保持。
 */
 bool
 ResponseKeyHeld(YDesktop&, KeyEventArgs&);
@@ -202,6 +202,14 @@ DrawWindowBounds(HWND, Color);
 */
 void
 DrawWidgetBounds(IWidget&, Color);
+
+/*!
+\brief 绘制部件边框。
+\note 和 DrawWidgetBounds 类似，但对于有缓冲区的部件，
+	在此部件所在窗口的图形上下文绘制。
+*/
+void
+DrawWidgetOutline(IWidget&, Color);
 
 YSL_END_NAMESPACE(Drawing)
 

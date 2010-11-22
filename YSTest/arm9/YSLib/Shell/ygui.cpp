@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3086;
+\version 0.3138;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-12 15:18 + 08:00;
+	2010-11-22 23:07 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -108,7 +108,7 @@ RepeatHeld(HeldStateType& s,
 		始终为 false ，导致状态无法转移。
 		*/
 		s = Pressed;
-		HeldTimer.SetInterval(InitialDelay); //初始按键延迟。
+		HeldTimer.SetInterval(InitialDelay); //初始键按下延迟。
 		Activate(HeldTimer);
 		break;
 
@@ -119,7 +119,7 @@ RepeatHeld(HeldStateType& s,
 			if(s == Pressed)
 			{
 				s = Held;
-				HeldTimer.SetInterval(RepeatedDelay); //重复按键延迟。
+				HeldTimer.SetInterval(RepeatedDelay); //重复键按下延迟。
 			}
 			return true;
 		}
@@ -369,23 +369,43 @@ YSL_END_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
+namespace
+{
+	void DrawWidgetBounds(HWND hWnd, const Point& p, const Size& s, Color c)
+	{
+		if(hWnd)
+		{
+			Graphics g(*hWnd);
+
+			DrawRect(g, p, Size(s - Vec(1, 1)), c);
+		}
+	}
+}
+
 void
 DrawWindowBounds(HWND hWnd, Color c)
 {
-	Graphics g(*hWnd);
-
-	DrawRect(g, Point::Zero, Size(hWnd->GetSize() - Vec(1, 1)), c);
+	DrawWidgetBounds(hWnd, Point::Zero, hWnd->GetSize(), c);
 }
 
 void
 DrawWidgetBounds(IWidget& w, Color c)
 {
-	if(w.GetWindowHandle())
-	{
-		Graphics g(*w.GetWindowHandle());
+	HWND hWnd(GetDirectWindowHandleFrom(w));
 
-		DrawRect(g, LocateForWindow(w), Size(w.GetSize() - Vec(1, 1)), c);
-	}
+	if(hWnd)
+		DrawWidgetBounds(hWnd, LocateOffset(&w, Point::Zero, hWnd),
+			w.GetSize(), c);
+}
+
+void
+DrawWidgetOutline(IWidget& w, Color c)
+{
+	HWND hWnd(GetWindowHandleFrom(w));
+
+	if(hWnd)
+		DrawWidgetBounds(hWnd, LocateOffset(&w, Point::Zero, hWnd),
+			w.GetSize(), c);
 }
 
 YSL_END_NAMESPACE(Drawing)

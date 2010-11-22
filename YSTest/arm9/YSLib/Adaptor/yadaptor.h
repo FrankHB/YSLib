@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.1916;
+\version 0.1965;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 + 08:00;
 \par 修改时间:
-	2010-11-12 18:44 + 08:00;
+	2010-11-15 15:59 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,6 +73,31 @@ YSL_END
 // !\brief YSLib 命名空间。
 YSL_BEGIN
 
+	//文件系统常量。
+	using platform::DEF_PATH_DELIMITER;
+	using platform::DEF_PATH_SEPERATOR;
+	using platform::PATHSTR;
+	using platform::FILENAMESTR;
+
+	using platform::direxists;
+	using platform::chdir;
+	using platform::getcwd_n;
+
+	using platform::terminate;
+
+	using platform::HDirectory;
+	using platform::IsAbsolute;
+	using platform::GetRootNameLength;
+
+	using platform::ScreenSychronize;
+
+	using platform::WaitForInput;
+
+	using platform::GetRTC;
+	using platform::ResetRTC;
+
+	using platform::InitVideo;
+
 // !\brief 图形处理。
 YSL_BEGIN_NAMESPACE(Drawing)
 
@@ -89,29 +114,17 @@ YSL_END_NAMESPACE(Drawing)
 YSL_BEGIN_NAMESPACE(Runtime)
 
 	namespace KeySpace = platform::KeySpace;
+	using platform::Key;
 	using platform::KeysInfo;
 	using platform::CursorInfo;
 
 YSL_END_NAMESPACE(Runtime)
 
-	using platform::terminate;
-	using platform::HDirectory;
-
-	//! \brief 运行时平台。 
+	//! \brief 运行时平台。
 	namespace DS
 	{
 		using namespace platform;
-
-		using ::swiWaitForVBlank;
-
-		using ::lcdMainOnTop;
-		using ::lcdMainOnBottom;
-		using ::lcdSwap;
-		using ::videoSetMode;
-		using ::videoSetModeSub;
-
-		using ::scanKeys;
-		using ::touchRead;
+		using namespace platform_ex;
 	}
 
 YSL_END

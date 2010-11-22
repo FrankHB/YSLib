@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3175;
+\version 0.3190;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 + 08:00;
 \par 修改时间:
-	2010-11-12 15:24 + 08:00;
+	2010-11-22 13:38 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,7 +56,7 @@ AWindow::GetBackgroundPtr() const
 }
 
 void
-AWindow::SetSize(const Drawing::Size& s)
+AWindow::SetSize(const Size& s)
 {
 	Buffer.SetSize(s.Width, s.Height);
 	Widget::SetSize(s);
@@ -135,27 +135,27 @@ AWindow::Update()
 void
 AWindow::UpdateToScreen(YDesktop& d) const
 {
-	if(Visible)
+	if(IsVisible())
 		Buffer.CopyToBuffer(d.GetBackgroundPtr(), RDeg0, d.GetSize(),
-		Point::Zero, Location, Buffer);
+		Point::Zero, GetLocation(), Buffer);
 }
 
 void
 AWindow::UpdateToWindow(IWindow& w) const
 {
-	if(Visible)
+	if(IsVisible())
 	{
 		const Graphics g(w);
 
 		Buffer.CopyToBuffer(g.GetBufferPtr(), RDeg0, g.GetSize(),
-			Point::Zero, Location, Buffer);
+			Point::Zero, GetLocation(), Buffer);
 	}
 }
 
 void
 AWindow::Show()
 {
-	Visible = true;
+	SetVisible(true);
 	Draw();
 	UpdateToScreen();
 }
@@ -219,7 +219,6 @@ YFrameWindow::DrawWidgets()
 				w.SetBgRedrawed(true);
 			}
 		}
-		bBgChanged = true;
 	}
 	for (i = sWgtSet.begin(); i != sWgtSet.end(); ++i)
 	{

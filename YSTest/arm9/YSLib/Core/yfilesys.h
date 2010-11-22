@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.1999;
+\version 0.2009;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 + 08:00;
 \par 修改时间:
-	2010-11-12 18:33 + 08:00;
+	2010-11-15 12:27 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,6 @@
 
 #include "ystring.h"
 #include "yfunc.hpp"
-#include "../Helper/yglobal.h"
 #include "../Core/yshell.h" // for HSHL delete procedure;
 #include <iterator>
 //#include <vector>
@@ -83,7 +82,7 @@ public:
 	operator/=(const Path&);
 
 	//查询。
-	DefPredicate(Absolute, platform::IsAbsolute(GetNativeString().c_str()))
+	DefPredicate(Absolute, YSLib::IsAbsolute(GetNativeString().c_str()))
 	DefPredicate(Relative, !IsAbsolute())
 	/*!
 	\brief 判断是否有根名称。
@@ -534,15 +533,15 @@ HaveSameExtendNames(const string&, const string&);
 \brief 切换路径。
 */
 inline int
-ChDir(CPATH path)
+ChangeDirectory(CPATH path)
 {
-	return platform::chdir(path);
+	return chdir(path);
 }
 /*!
 \brief 切换路径。
 */
 int
-ChDir(const string&);
+ChangeDirectory(const string&);
 
 /*!
 \brief 取当前工作目录。

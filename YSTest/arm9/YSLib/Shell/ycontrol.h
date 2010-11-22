@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4326;
+\version 0.4370;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 + 08:00;
 \par 修改时间:
-	2010-11-12 18:31 + 08:00;
+	2010-11-22 17:36 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,7 +45,6 @@ struct ScreenPositionEventArgs : public EventArgs, public Drawing::Point
 	/*!
 	\brief 构造：使用指定点。
 	*/
-	explicit
 	ScreenPositionEventArgs(const Drawing::Point& = Drawing::Point::Zero);
 };
 
@@ -61,23 +60,23 @@ struct InputEventArgs
 public:
 	static InputEventArgs Empty;
 
-	typedef platform::Key Key;
+	typedef Runtime::Key Key;
 
-	Key k;
+	Key key;
 
 	/*!
-	\brief 构造：使用本机按键对象。
+	\brief 构造：使用本机键按下对象。
 	*/
 	InputEventArgs(const Key& = 0);
 
-	DefConverter(Key, k)
+	DefConverter(Key, key)
 
-	DefGetter(Key, Key, k)
+	DefGetter(Key, Key, key)
 };
 
 inline
 InputEventArgs::InputEventArgs(const Key& k)
-	: k(k)
+	: key(k)
 {}
 
 
@@ -132,9 +131,11 @@ struct IndexEventArgs : public EventArgs
 	\brief 构造：使用可视控件引用和索引值。
 	*/
 	IndexEventArgs(IVisualControl& c, IndexType i)
-	: EventArgs(),
-	Control(c), Index(i)
+		: EventArgs(),
+		Control(c), Index(i)
 	{}
+
+	DefConverter(IndexType, Index)
 };
 
 
@@ -147,6 +148,8 @@ DefDelegate(InputEventHandler, IVisualControl, InputEventArgs)
 DefDelegate(KeyEventHandler, IVisualControl, KeyEventArgs)
 DefDelegate(TouchEventHandler, IVisualControl, TouchEventArgs)
 DefDelegate(IndexEventHandler, IVisualControl, IndexEventArgs)
+DefDelegate(PointEventHandler, IVisualControl, Drawing::Point)
+DefDelegate(SizeEventHandler, IVisualControl, Size)
 
 
 //! \brief 可视控件事件空间。
@@ -162,8 +165,6 @@ struct EControl
 	//	VisibleChanged,
 
 	//	EnabledChanged,
-	//	Resize,
-	//	Move,
 
 		GotFocus,
 		LostFocus,
@@ -191,12 +192,12 @@ EndDecl
 //! \brief 可视控件接口。
 DeclBasedInterface(IVisualControl, virtual IWidget, virtual IControl,
 	virtual GIFocusRequester<GMFocusResponser, IVisualControl>)
-	DeclIEventEntry(InputEventHandler, Enter) //!< 进入控件。
-	DeclIEventEntry(InputEventHandler, Leave) //!< 离开控件。
-	DeclIEventEntry(KeyEventHandler, KeyUp) //!< 按键接触结束。
-	DeclIEventEntry(KeyEventHandler, KeyDown) //!< 按键接触开始。
-	DeclIEventEntry(KeyEventHandler, KeyHeld) //!< 按键接触保持。
-	DeclIEventEntry(KeyEventHandler, KeyPress) //!< 按键。
+	DeclIEventEntry(InputEventHandler, Enter) //!< 控件进入。
+	DeclIEventEntry(InputEventHandler, Leave) //!< 控件离开。
+	DeclIEventEntry(KeyEventHandler, KeyUp) //!< 键接触结束。
+	DeclIEventEntry(KeyEventHandler, KeyDown) //!< 键接触开始。
+	DeclIEventEntry(KeyEventHandler, KeyHeld) //!< 键接触保持。
+	DeclIEventEntry(KeyEventHandler, KeyPress) //!< 键按下。
 	DeclIEventEntry(TouchEventHandler, TouchUp) //!< 屏幕接触结束。
 	DeclIEventEntry(TouchEventHandler, TouchDown) //!< 屏幕接触开始。
 	DeclIEventEntry(TouchEventHandler, TouchHeld) //!< 屏幕接触保持。
@@ -212,7 +213,7 @@ EndDecl
 
 
 /*!
-\brief 处理按键接触保持事件。
+\brief 处理键接触保持事件。
 */
 void
 OnKeyHeld(IVisualControl&, KeyEventArgs&);
@@ -239,8 +240,10 @@ OnDrag(IVisualControl&, TouchEventArgs&);
 //! \brief 控件模块类。
 class Control// : implements IControl
 {
+private:
+	bool enabled; //!< 控件有效性。
+
 protected:
-	bool Enabled; //!< 控件有效性。
 	IControl::EventMapType EventMap; //!< 事件映射表。
 
 public:
@@ -256,14 +259,14 @@ public:
 		const IControl::EventMapType::ID& id)
 		ImplRet(EventMap[id])
 
-	virtual DefPredicate(Enabled, Enabled)
+	virtual DefPredicate(Enabled, enabled)
 
-	virtual DefSetter(bool, Enabled, Enabled)
+	virtual DefSetter(bool, Enabled, enabled)
 };
 
 inline
 Control::Control(bool e)
-	: Enabled(e), EventMap()
+	: enabled(e), EventMap()
 {}
 
 
@@ -271,6 +274,7 @@ Control::Control(bool e)
 class MVisualControl : public Control, public AFocusRequester
 {
 public:
+	//可视控件标准事件。
 	DefEvent(InputEventHandler, Enter)
 	DefEvent(InputEventHandler, Leave)
 	DefEvent(KeyEventHandler, KeyUp)
@@ -282,6 +286,9 @@ public:
 	DefEvent(TouchEventHandler, TouchHeld)
 	DefEvent(TouchEventHandler, TouchMove)
 	DefEvent(TouchEventHandler, Click)
+	//可视控件扩展事件。
+	DefEvent(PointEventHandler, Move) //!< 可视控件移动。
+	DefEvent(SizeEventHandler, Resize) //!< 可视控件大小调整。
 
 	explicit
 	MVisualControl();
@@ -335,7 +342,7 @@ public:
 		ImplBodyBase(MVisualControl, CheckRemoval, c)
 
 	ImplI(IVisualControl) DefGetterBase(const Point&, Location, Visual)
-	ImplI(IVisualControl) DefGetterBase(const Drawing::Size&, Size, Visual)
+	ImplI(IVisualControl) DefGetterBase(const Size&, Size, Visual)
 	ImplI(IVisualControl)
 		DefGetterBase(IUIBox*, ContainerPtr, Widget)
 	ImplI(IVisualControl) DefGetterBase(HWND, WindowHandle, Widget)
@@ -382,6 +389,7 @@ public:
 	ImplI(IVisualControl) void
 	ReleaseFocus(EventArgs&);
 
+private:
 	/*!
 	\brief 处理获得焦点事件。
 	*/
@@ -440,10 +448,10 @@ public:
 class MButton
 {
 protected:
-	bool bPressed; //!< 按键状态：是否处于按下状态。
+	bool bPressed; //!< 键按下状态：是否处于按下状态。
 
 	/*!
-	\brief 构造：使用按键状态。
+	\brief 构造：使用键按下状态。
 	*/
 	explicit
 	MButton(bool = false);

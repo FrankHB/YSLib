@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2487;
+\version 0.2536;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 + 08:00; 
 \par 修改时间:
-	2010-11-12 19:02 + 08:00;
+	2010-11-15 15:55 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,49 +56,55 @@ namespace stdex
 
 	/*!
 	\brief 带空指针检查的字符串复制。
-	\details 当目标字符串和源字符串都非空时用 std::strcpy 复制字符串。
 	\return 成功时为复制的字符串，失败时为空指针。
+
+	当目标字符串和源字符串都非空时用 std::strcpy 复制字符串。
 	*/
 	char*
 	strcpy_n(char*, const char*);
 
 	/*!
 	\brief 带空指针检查的字符串复制。
-	\details 当目标字符串和源字符串都非空时用 stpcpy 复制字符串。
 	\return 成功时为复制的字符串的结尾指针，失败时为空指针。
+
+	当目标字符串和源字符串都非空时用 stpcpy 复制字符串。
 	*/
 	char*
 	stpcpy_n(char*, const char*);
 
 	/*!
 	\brief 带空指针检查的字符串忽略大小写比较。
-	\details 当两个字符串都非空时 stricmp 比较的字符串结果。
 	\return 成功时为比较结果，否则为 EOF 。
+
+	当两个字符串都非空时 stricmp 比较的字符串结果。
 	*/
 	int
 	stricmp_n(const char*, const char*);
 
 	/*!
 	\brief 带空指针检查的字符串复制。
-	\details 当字符指针非空时用 strdup 复制字符串。
 	\return 成功时为复制的字符串的结尾指针，失败时为空指针。
+
+	当字符指针非空时用 strdup 复制字符串。
 	*/
 	char*
 	strdup_n(const char*);
 
 	/*!
 	\brief 带空指针检查的字符串连接。
-	\details 对传入参数进行非空检查后串接指定的两个字符串，结果复制至指定位置。
 	\return 返回目标参数。
+
+	对传入参数进行非空检查后串接指定的两个字符串，结果复制至指定位置。
 	*/
 	char*
 	strcpycat(char*, const char*, const char*);
 
 	/*!
 	\brief 带空指针检查的字符串连接复制。
-	\details 对传入参数进行非空检查后串接指定的两个字符串，
-		结果复制至用指定分配函数（默认为 std::malloc）新分配的空间。
 	\return 目标参数。
+
+	对传入参数进行非空检查后串接指定的两个字符串，
+	结果复制至用指定分配函数（默认为 std::malloc）新分配的空间。
 	*/
 	char*
 	strcatdup(const char*, const char*, void*(*)(std::size_t) = std::malloc);
@@ -113,14 +119,40 @@ namespace stdex
 
 //平台相关部分。
 
-//最大路径长度。
-#define YC_MAX_PATH MAXPATHLEN;
-
 //#define HEAP_SIZE (mallinfo().uordblks)
 
 //! \brief 默认平台命名空间。
 namespace platform
 {
+	//外部平台库名称引用。
+	using ::swiWaitForVBlank;
+
+	using ::lcdMainOnTop;
+	using ::lcdMainOnBottom;
+	using ::lcdSwap;
+	using ::videoSetMode;
+	using ::videoSetModeSub;
+
+	using ::scanKeys;
+	using ::touchRead;
+
+	//平台相关的全局常量。
+
+	#define MAX_FILENAME_LENGTH MAXPATHLEN //!< 最大路径长度。
+	#define MAX_PATH_LENGTH MAX_FILENAME_LENGTH
+	#define DEF_SHELL_FONTSIZE 16
+	#define DEF_SHELL_FONTSIZE_MIN 4
+	#define DEF_SHELL_FONTSIZE_MAX 72
+
+	const char DEF_PATH_DELIMITER = '/'; //!< 文件路径分隔符。
+	const char* const DEF_PATH_SEPERATOR = "/"; //!< 文件路径分隔字符串。
+	#define DEF_PATH_ROOT DEF_PATH_SEPERATOR
+
+	//类型定义。
+	typedef char PATHSTR[MAX_PATH_LENGTH];
+	//typedef char PATHSTR[MAXPATHLEN];
+	typedef char FILENAMESTR[MAX_FILENAME_LENGTH];
+
 	using ::iprintf;
 
 	/*!
@@ -198,7 +230,7 @@ namespace platform
 		#undef HexAdd0x
 	}
 
-	//! \brief 本机颜色。
+	//! \brief 颜色。
 	class Color
 	{
 	public:
@@ -816,6 +848,27 @@ namespace platform
 	void waitForCapture();
 	char* basename(char*);
 	*/
+
+	/*!
+	\brief 初始化视频输出。
+	*/
+	bool
+	InitVideo();
+}
+
+namespace platform_ex
+{
+	/*!
+	\brief 默认上屏初始化函数。
+	*/
+	platform::BitmapPtr
+	InitScrUp(int&);
+
+	/*!
+	\brief 默认下屏初始化函数。
+	*/
+	platform::BitmapPtr
+	InitScrDown(int&);
 }
 
 #endif

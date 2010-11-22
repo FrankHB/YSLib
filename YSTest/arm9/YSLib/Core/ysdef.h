@@ -16,12 +16,12 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version 0.2336;
+\version 0.2342;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-24 15:29:11 + 08:00;
 \par 修改时间:
-	2010-11-12 18:44 + 08:00;
+	2010-11-15 17:56 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,16 +34,6 @@
 
 //适配器模块。
 #include "../Adaptor/yadaptor.h"
-
-#ifndef YSL_SHLMAIN_NAME
-#	define YSL_SHLMAIN_NAME ShlMain
-#endif
-
-#ifndef YSL_SHLMAIN_SHLPROC
-#	define YSL_SHLMAIN_SHLPROC ShlProc
-#endif
-
-#define YSL_MAIN_SHLPROC YSL_SHL_(YSL_SHLMAIN_NAME) YSL_SHLMAIN_SHLPROC
 
 //间接访问类模块。
 #include "../Adaptor/yref.hpp"

@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5336;
+\version 0.5416;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-12 18:30 + 08:00;
+	2010-11-22 21:11 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,8 +37,7 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//前向声明。
-
+//名称引用。
 using Drawing::PixelType;
 using Drawing::BitmapPtr;
 using Drawing::ConstBitmapPtr;
@@ -55,6 +54,9 @@ using Drawing::YImage;
 
 
 YSL_BEGIN_NAMESPACE(Widgets)
+
+//前向声明。
+class Widget;
 
 // GUI 断言。
 
@@ -85,21 +87,21 @@ yassert(bool exp, const char* msg, int line, const char* file,
 }
 
 #	define YWidgetAssert(ptr, comp, func) \
-	Components::Widgets::yassert(ptr->GetWindowHandle(), \
-		"The window handle is null.", __LINE__, __FILE__, #comp, #func)
+	Components::Widgets::yassert((ptr) && GetDirectWindowHandleFrom(*(ptr)), \
+		"The direct window handle is null.", __LINE__, __FILE__, #comp, #func)
 
 #	define YWindowAssert(ptr, comp, func) \
 	Components::Widgets::yassert( \
-	static_cast<Drawing::Graphics>(*ptr).IsValid(), \
+	(ptr) && static_cast<Drawing::Graphics>(*(ptr)).IsValid(), \
 	"The graphics context is invalid.", __LINE__, __FILE__, #comp, #func)
 
 #else
 
 #	define YWidgetAssert(ptr, comp, func) \
-	assert((ptr)->GetWindowHandle())
+	assert((ptr) && GetDirectWindowHandleFrom(*(ptr)))
 
 #	define YWindowAssert(ptr, comp, func) \
-	assert(static_cast<Drawing::Graphics>(*ptr).IsValid())
+	assert((ptr) && static_cast<Drawing::Graphics>(*ptr).IsValid())
 
 #endif
 
@@ -133,13 +135,13 @@ DeclInterface(IWidget)
 	DeclIEntry(void SetLocation(const Point&)) \
 		//!< 设置左上角所在位置（相对于容器的偏移坐标）。
 
-	/*
+	/*!
 	\breif 绘制背景。
 	\warning 可能不检查缓冲区指针是否为空。
 	*/
 	DeclIEntry(void DrawBackground())
 
-	/*
+	/*!
 	\breif 绘制前景。
 	\warning 可能不检查缓冲区指针是否为空。
 	*/
@@ -153,7 +155,7 @@ DeclInterface(IWidget)
 EndDecl
 
 
-//固定部件容器接口
+//固定部件容器接口。
 DeclBasedInterface(IUIBox, virtual IWidget)
 	DeclIEntry(IVisualControl* GetFocusingPtr()) //!< 取焦点对象指针。
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&)) \
@@ -187,13 +189,11 @@ EndDecl
 
 /*!
 \brief 判断点是否在可视区域内。
-\note 
 */
 bool
 Contains(const IWidget& w, SPOS x, SPOS y);
 /*!
 \brief 判断点是否在可视区域内。
-\note 
 */
 inline bool
 Contains(const IWidget& w, const Point& p)
@@ -203,15 +203,79 @@ Contains(const IWidget& w, const Point& p)
 
 
 /*!
+\brief 取指定部件的窗口句柄。
+*/
+HWND
+GetWindowHandleFrom(const IWidget&);
+
+/*!
+\brief 取指定部件的直接容器指针。
+*/
+template<class _tWidget>
+IUIBox*
+GetDirectContainerPtrFrom(_tWidget& w)
+{
+	IUIBox* const pCon(const_cast<IUIBox*>(dynamic_cast<const IUIBox*>(&w)));
+
+	return pCon ? pCon : w.GetContainerPtr();
+}
+/*!
+\brief 取指定部件的直接容器指针。
+*/
+inline IUIBox*
+GetDirectContainerPtrFrom(IWidget& w)
+{
+	return GetDirectContainerPtrFrom<IWidget>(w);
+}
+
+/*!
+\brief 取指定部件的直接窗口句柄。
+*/
+template<class _tWidget>
+HWND
+GetDirectWindowHandleFrom(_tWidget& w)
+{
+	IUIBox* const pCon(GetDirectContainerPtrFrom(w));
+
+	if(pCon)
+	{
+		IWindow* const pWnd(dynamic_cast<IWindow*>(pCon));
+
+		if(pWnd)
+			return HWND(pWnd);
+		return pCon->GetWindowHandle();
+	}
+	return NULL;
+}
+/*!
+\brief 取指定部件的直接窗口句柄。
+*/
+inline HWND
+GetDirectWindowHandleFrom(IWidget& w)
+{
+	return GetDirectWindowHandleFrom<IWidget>(w);
+}
+
+
+/*!
 \brief 取指定的点（相对此部件的坐标）相对于指定指针指向的父窗口的偏移坐标。
-\note 
 */
 Point
-LocateOffset(const IWidget*, Point, IWindow*);
+LocateOffset(const IWidget*, Point, const IWindow*);
+/*!
+\brief 取指定的点（相对此部件的坐标）相对于指定指针指向的父窗口的偏移坐标。
+*/
+template<class _tWidget>
+Point
+LocateOffset(const _tWidget* pCon, const Point& p, const IWindow* pWnd)
+{
+	const IWidget* pConI(dynamic_cast<const IWidget*>(pCon));
+
+	return pConI ? LocateOffset(pConI, p, pWnd) : p;
+}
 
 /*!
 \brief 取指定的点 p （相对部件 w 的坐标）相对于 w 的容器的偏移坐标。
-\note 
 */
 inline Point
 LocateContainerOffset(const IWidget& w, const Point& p)
@@ -221,31 +285,29 @@ LocateContainerOffset(const IWidget& w, const Point& p)
 
 /*!
 \brief 取指定的点 p （相对部件 w 的坐标）相对于 w 的窗口的偏移坐标。
-\note 
 */
 inline Point
 LocateWindowOffset(const IWidget& w, const Point& p)
 {
-	return LocateOffset(&w, p, w.GetWindowHandle());
+	return LocateOffset(&w, p, GetWindowHandleFrom(w));
 }
 
 /*!
 \brief 取指定部件 a 相对于部件 b 的偏移坐标。
-\note 
 */
 Point
 LocateForWidget(IWidget& a, IWidget& b);
 
 /*!
-\brief 取指定部件相对于最直接的窗口的偏移坐标。
-\note 若无窗口则返回 FullScreen 。
+\brief 取指定部件相对于直接窗口的偏移坐标。
+\note 若自身是窗口则返回 Zero ；若无容器或窗口则返回 FullScreen 。
 */
 Point
 LocateForWindow(const IWidget&);
 
 /*!
 \brief 取指定部件相对于桌面的偏移坐标。
-\note 若无窗口或窗口不在桌面上则返回 FullScreen 。
+\note 若自身是桌面则返回 Zero ；若无窗口或窗口不在桌面上则返回 FullScreen 。
 */
 Point
 LocateForDesktop(const IWidget&);
@@ -263,6 +325,43 @@ LocateForParentContainer(const IWidget&);
 */
 Point
 LocateForParentWindow(const IWidget&);
+
+
+/*!
+\brief 移动部件至容器左端。
+*/
+void
+MoveToLeft(IWidget&);
+
+/*!
+\brief 移动部件至容器右端。
+*/
+void
+MoveToRight(IWidget&);
+
+/*!
+\brief 移动部件至容器上端。
+*/
+void
+MoveToTop(IWidget&);
+
+/*!
+\brief 移动部件至容器下端。
+*/
+void
+MoveToBottom(IWidget&);
+
+
+/*!
+\brief 以纯色填充部件所在窗口的对应显示缓冲区。
+*/
+void
+Fill(IWidget&, Color);
+/*!
+\brief 以纯色填充部件所在窗口的对应显示缓冲区。
+*/
+void
+Fill(Widget&, Color);
 
 
 //方向模块。
@@ -286,25 +385,18 @@ MOriented::MOriented(Widgets::Orientation o)
 //可视样式模块。
 class Visual
 {
-protected:
-	bool Visible; //!< 可见性。
-	bool Transparent; //!< 透明性。
-
 private:
-	mutable bool bBgRedrawed; //!< 背景重绘状态。
-
-protected:
-	Point Location; //!< 左上角所在位置（相对于容器的偏移坐标）。
-
-private:
-	Drawing::Size Size; //!< 部件大小。
+	bool visible; //!< 可见性。
+	bool transparent; //!< 透明性。
+	mutable bool background_redrawed; //!< 背景重绘状态。
+	Point location; //!< 左上角所在位置（相对于容器的偏移坐标）。
+	Size size; //!< 部件大小。
 
 public:
 	Color BackColor; //!< 默认背景色。
 	Color ForeColor; //!< 默认前景色。
 
 	/*!
-		Visual
 	\brief 构造：使用指定边界、前景色和背景色。
 	*/
 	explicit
@@ -312,37 +404,44 @@ public:
 		Color = ColorSpace::White, Color = ColorSpace::Black);
 	virtual DefEmptyDtor(Visual)
 
-private:
-	/*!
-	\brief 设置大小。
-	\note 非虚私有实现。
-	*/
-	void
-	_m_SetSize(SDST, SDST);
-
-public:
-	DefPredicate(Visible, Visible)
-	DefPredicate(Transparent, Transparent)
-	DefPredicate(BgRedrawed, bBgRedrawed)
+	DefPredicate(Visible, visible)
+	DefPredicate(Transparent, transparent)
+	DefPredicate(BgRedrawed, background_redrawed)
 
 	DefGetter(SPOS, X, GetLocation().X)
 	DefGetter(SPOS, Y, GetLocation().Y)
 	DefGetter(SDST, Width, GetSize().Width)
 	DefGetter(SDST, Height, GetSize().Height)
-	DefGetter(const Point&, Location, Location)
-	DefGetter(const Drawing::Size&, Size, Size)
+	DefGetter(const Point&, Location, location)
+	DefGetter(const Size&, Size, size)
 	DefGetter(Rect, Bounds, Rect(GetLocation(), GetSize()))
 
-	DefSetter(bool, Visible, Visible)
-	DefSetter(bool, Transparent, Transparent)
-	DefSetter(bool, BgRedrawed, bBgRedrawed)
-	virtual DefSetter(const Point&, Location, Location)
+	DefSetter(bool, Visible, visible)
+	DefSetter(bool, Transparent, transparent)
+	DefSetter(bool, BgRedrawed, background_redrawed)
+	/*!
+	\brief 设置位置。
+	\note 虚公有实现。
+	*/
+	virtual DefSetter(const Point&, Location, location)
+	/*!
+	\brief 设置位置。
+	\note 非虚公有实现。
+	*/
 	PDefH(void, SetLocation, SPOS x, SPOS y)
 		ImplBodyBaseVoid(Visual, SetLocation, Point(x, y))
-	virtual PDefH(void, SetSize, const Drawing::Size& s)
-		ImplExpr(_m_SetSize(s.Width, s.Height))
-	PDefH(void, SetSize, SDST w, SDST h)
-		ImplExpr(_m_SetSize(w, h))
+	/*!
+	\brief 设置大小。
+	\note 虚公有实现。
+	*/
+	virtual PDefH(void, SetSize, const Size& s)
+		ImplExpr(SetSize(s.Width, s.Height))
+	/*!
+	\brief 设置大小。
+	\note 非虚公有实现。
+	*/
+	void
+	SetSize(SDST, SDST);
 	/*!
 	\brief 设置边界。
 	\note 虚公有实现。
@@ -381,17 +480,6 @@ public:
 	DefGetter(HWND, WindowHandle, hWindow)
 
 	/*!
-	\brief 以背景色填充显示缓冲区。
-	*/
-	virtual void
-	BeFilledWith();
-	/*!
-	\brief 以纯色填充显示缓冲区。
-	*/
-	virtual void
-	BeFilledWith(Color);
-
-	/*!
 	\brief 绘制背景。
 	*/
 	virtual void
@@ -421,12 +509,6 @@ Widget::BelongsTo(IUIBox* pCon) const
 	return pContainer == pCon;
 }
 
-inline void
-Widget::BeFilledWith()
-{
-	BeFilledWith(BackColor);
-}
-
 
 //! \brief 部件。
 class YWidget : public GMCounter<YWidget>, public YComponent, public Widget,
@@ -452,7 +534,7 @@ public:
 	ImplI(IWidget) DefPredicateBase(BgRedrawed, Visual)
 
 	ImplI(IWidget) DefGetterBase(const Point&, Location, Visual)
-	ImplI(IWidget) DefGetterBase(const Drawing::Size&, Size, Visual)
+	ImplI(IWidget) DefGetterBase(const Size&, Size, Visual)
 	ImplI(IWidget) DefGetterBase(IUIBox*, ContainerPtr, Widget)
 	ImplI(IWidget) DefGetterBase(HWND, WindowHandle, Widget)
 
@@ -586,7 +668,7 @@ public:
 	ImplI(IUIContainer) DefPredicateBase(BgRedrawed, Visual)
 
 	ImplI(IUIContainer) DefGetterBase(const Point&, Location, Visual)
-	ImplI(IUIContainer) DefGetterBase(const Drawing::Size&, Size, Visual)
+	ImplI(IUIContainer) DefGetterBase(const Size&, Size, Visual)
 	ImplI(IUIContainer) DefGetterBase(IUIBox*, ContainerPtr,
 		Widget)
 	ImplI(IUIContainer) DefGetterBase(HWND, WindowHandle, Widget)

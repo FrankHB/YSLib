@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-11-11 22:59 + 08:00;
-// Version = r10245;
+// UTime = 2010-11-17 18:22 + 08:00;
+// Version = r10295;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -110,6 +110,29 @@ extern const u16 $SCREEN_WIDTH, $SCREEN_HEIGHT;
 #endif
 
 } //$code;
+
+
+//非本体函数列表。
+$header Core::YShell
+{
+	extern LRES
+	MainShlProc(const Message&);
+} //$header Core::YShell;
+
+$header Core::YDevice
+{
+	extern bool
+	InitAllScreens();
+} //$header Core::YDevice;
+
+
+//友元列表。
+class YScreen @@ $header Core::YDevice
+{
+	friend bool
+	InitAllScreens();
+} //class YScreen;
+
 
 // std 命名空间扩展。
 namespace std
@@ -219,6 +242,17 @@ $header Adaptor::YAdaptor
 	} //namespace Text;
 	using Text::fchar_t, Text::uchar_t, Text::uint_t;	
 
+	using platform::DEF_PATH_DELIMITER, platform::DEF_PATH_SEPERATOR,
+		platform::PATHSTR, platform::FILENAMESTR;
+	using platform::direxists,
+	platform::chdir, platform::getcwd_n;
+	using platform::terminate;
+	using platform::HDirectory,
+		platform::IsAbsolute, platform::GetRootNameLength;
+	using platform::ScreenSychronize;
+	using platform::WaitForInput;
+	using platform::GetRTC, platform::ResetRTC;
+	using platform::InitVideo;
 	namespace Drawing
 	{
 		using platform::BitmapPtr, ConstBitmapPtr;
@@ -228,11 +262,9 @@ $header Adaptor::YAdaptor
 	namespace Runtime
 	{
 		namespace KeySpace = platform::KeySpace;
-		using platform::KeysInfo;
-		using platform::CursorInfo;
+		using platform::Key, platform::KeysInfo, CursorInfo;
 	} //namespace Runtime;
-	using platform::terminate;
-	using platform::HDirectory;
+	using namespace platform, platform_ex;
 } //$header Adaptor::YAdaptor;
 
 $Adaptor::Container : Adaptor::YAdaptor

@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 应用程序实例类抽象。
-\version 0.1904;
+\version 0.1905;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 + 08:00;
 \par 修改时间:
-	2010-11-12 19:06 + 08:00;
+	2010-11-17 19:09 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -161,7 +161,8 @@ public:
 	bool
 	Contains(HSHL) const;
 
-	DefStaticGetter(YApplication&, App, *GetInstancePtr()) //!< 取得自身实例引用。
+	DefStaticGetter(YApplication&, App, *GetInstancePtr()) \
+		//!< 取得自身实例引用。
 	DefStaticGetter(HINSTANCE, InstanceHandle, HINSTANCE(GetInstancePtr())) \
 		//!< 取得自身实例句柄。
 	DefGetter(const SHLs, ShellSet, sShls) //!< 取 Shell 对象组。

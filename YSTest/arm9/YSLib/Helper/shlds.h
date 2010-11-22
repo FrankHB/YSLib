@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1710;
+\version 0.1711;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 + 08:00;
 \par 修改时间:
-	2010-11-12 18:43 + 08:00;
+	2010-11-19 11:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -198,7 +198,7 @@ OnTouchHeld(const Components::Controls::TouchEventArgs::InputType& pt)
 }
 
 /*!
-\brief 处理按键接触结束事件。
+\brief 处理键接触结束事件。
 */
 inline void
 OnKeyUp(const Components::Controls::KeyEventArgs::InputType& key)
@@ -209,7 +209,7 @@ OnKeyUp(const Components::Controls::KeyEventArgs::InputType& key)
 }
 
 /*!
-\brief 处理按键接触开始事件。
+\brief 处理键接触开始事件。
 */
 inline void
 OnKeyDown(const Components::Controls::KeyEventArgs::InputType& key)
@@ -220,7 +220,7 @@ OnKeyDown(const Components::Controls::KeyEventArgs::InputType& key)
 }
 
 /*!
-\brief 处理按键接触保持事件。
+\brief 处理键接触保持事件。
 */
 inline void
 OnKeyHeld(const Components::Controls::KeyEventArgs::InputType& key)

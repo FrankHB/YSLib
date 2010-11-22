@@ -16,7 +16,7 @@
 \par 创建时间:
 	2010-05-02 12:00:08 + 08:00;
 \par 修改时间:
-	2010-11-12 17:25 + 08:00;
+	2010-11-15 13:22 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,8 +37,6 @@ YSL_BEGIN_NAMESPACE(Components)
 //! \brief 桌面。
 class YDesktop : public YFrameWindow
 {
-	friend class YSLib::Def;
-
 public:
 	typedef YComponent ParentType;
 	typedef list<IVisualControl*> DOs; //!< 桌面对象组类型。

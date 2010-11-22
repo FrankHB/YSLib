@@ -11,12 +11,12 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数对象封装。
-\version 0.1666;
+\version 0.1672;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-14 18:48:44 + 08:00;
 \par 修改时间:
-	2010-11-12 18:55 + 08:00;
+	2010-11-19 10:29 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -231,6 +231,53 @@ public:
 			{}
 	}
 };
+
+
+//! \brief 函数对象类：替换非静态成员二元函数的第一个参数并绑定到指定对象。
+template<class _type, typename _tRet, typename _tPara, class _tNew = _type>
+struct ExpandMemberFirstBinder
+{
+private:
+	_type* _po;
+	_tRet(_type::*_pm)(_tPara);
+
+public:
+	/*!
+	\brief 构造：使用对象引用和成员函数指针。
+	*/
+	ExpandMemberFirstBinder(_type& obj, _tRet(_type::*p)(_tPara))
+		: _po(&obj), _pm(p)
+	{}
+	/*!
+	\brief 构造：使用非 _type 类型对象引用和成员函数指针。
+	\note 使用 dynamic_cast 测试类型。
+	*/
+	ExpandMemberFirstBinder(_tNew& obj, _tRet(_type::*p)(_tPara))
+		: _po(dynamic_cast<_type*>(&obj)), _pm(p)
+	{}
+
+	/*!
+	\brief 比较：相等关系。
+	*/
+	bool
+	operator==(const ExpandMemberFirstBinder& rhs) const
+	{
+		return _po == rhs._po && _pm == rhs._pm;
+	}
+
+	/*!
+	\brief 调用：使用替换对象引用和参数。
+	\note 检测空指针。
+	*/
+	template<class _tN>
+	_tRet
+	operator()(_tN& o, _tPara arg)
+	{
+		if(_po && _pm)
+			return (_po->*_pm)(arg);
+	}
+};
+
 
 //! \brief 逆向柯里化：在参数列表起始添加一个形式参数。
 template<class _tFunc, typename _tParm>

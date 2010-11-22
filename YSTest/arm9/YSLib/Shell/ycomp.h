@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件实现。
-\version 0.2848;
+\version 0.2869;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 + 08:00;
 \par 修改时间:
-	2010-11-12 18:42 + 08:00;
+	2010-11-17 19:16 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -110,7 +110,19 @@ public:
 		//!< 选中项目下标减少 d 。
 		ImplRet(*this += -d)
 
-	DefPredicate(Selected, bSelected) //!< 判断是否为选中状态。
+	/*!
+	\brief 判断是否为选中状态。
+	*/
+	DefPredicate(Selected, bSelected)
+
+	/*!
+	\brief 判断是否在有效范围内包含指定项目索引。
+	*/
+	bool
+	Contains(IndexType i)
+	{
+		return IsInInterval<IndexType>(i, GetLength());
+	}
 
 	DefGetter(SizeType, Total, c.size()) //!< 取容器中项目个数。
 	DefGetter(SizeType, Length, nLength)
@@ -308,21 +320,9 @@ YConsole::~YConsole()
 }
 
 inline void
-Activate(YConsole& c, Drawing::Color fc, Drawing::Color bc)
-{
-	Def::InitConsole(c.Screen, fc, bc);
-}
-
-inline void
-Deactivate(YConsole&)
-{
-	Def::InitVideo();
-}
-
-inline void
 YConsole::Pause()
 {
-	Def::WaitForInput();
+	WaitForInput();
 }
 
 YSL_END_NAMESPACE(Components)

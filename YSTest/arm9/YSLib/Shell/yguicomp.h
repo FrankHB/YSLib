@@ -11,12 +11,12 @@
 /*!	\file yguicomp.h
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2042;
+\version 0.2132;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-11-12 18:54 + 08:00;
+	2010-11-20 17:37 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,14 +62,15 @@ public:
 	virtual void
 	DrawForeground();
 
+private:
 	/*!
-	\brief 响应进入控件事件。
+	\brief 响应控件进入事件。
 	*/
 	void
 	OnEnter(InputEventArgs&);
 
 	/*!
-	\brief 响应离开控件事件。
+	\brief 响应控件离开事件。
 	*/
 	void
 	OnLeave(InputEventArgs&);
@@ -96,37 +97,51 @@ public:
 		GHResource<Drawing::TextRegion> = NULL);
 	virtual DefEmptyDtor(YButton)
 
-protected:
-	/*!
-	\brief 逻辑初始化：添加事件响应器。
-	\note 保护实现。
-	*/
-	void
-	_m_init();
-
 public:
 	/*!
 	\brief 绘制前景。
 	*/
 	virtual void
 	DrawForeground();
-
-	/*!
-	\brief 响应按键接触开始事件。
-	*/
-	void
-	OnKeyDown(KeyEventArgs&);
-
-	/*!
-	\brief 响应屏幕点击事件。
-	*/
-	void
-	OnClick(TouchEventArgs&);
 };
 
 
+//! \brief 简单焦点响应器。
+class MSimpleFocusResponser
+{
+protected:
+	IVisualControl* pFocusing; //!< 焦点指针。
+
+	MSimpleFocusResponser()
+		: pFocusing(NULL)
+	{}
+
+public:
+	/*!
+	\brief 取焦点指针。
+	*/
+	DefGetter(IVisualControl*, FocusingPtr, pFocusing)
+	/*!
+	\brief 清除焦点指针。
+	*/
+	void
+	ClearFocusingPtr();
+
+	/*!
+	\brief 响应焦点请求。
+	*/
+	bool
+	ResponseFocusRequest(AFocusRequester&);
+
+	/*!
+	\brief 响应焦点释放。
+	*/
+	bool
+	ResponseFocusRelease(AFocusRequester&);
+};
+
 //! \brief 轨道。
-class ATrack : public AVisualControl, public GMFocusResponser<IVisualControl>,
+class ATrack : public AVisualControl, public MSimpleFocusResponser,
 	implements IUIBox
 {
 public:
@@ -134,7 +149,7 @@ public:
 
 	//! \brief 轨道区域。
 	typedef enum
-		{
+	{
 		None = 0,
 		OnThumb = 1,
 		OnPrev = 2,
@@ -142,9 +157,10 @@ public:
 	} Area;
 
 protected:
-	SDST MinThumbLength;
 	YThumb Thumb; //!< 滑块。
-	IVisualControl* pFocusing;
+
+private:
+	SDST MinThumbLength; //!< 最小滑块长度。
 
 public:
 	/*!
@@ -158,8 +174,11 @@ public:
 	DefPredicate(Horizontal, GetOrientation() == Widgets::Horizontal)
 	DefPredicate(Vertical, GetOrientation() == Widgets::Vertical)
 
+	/*!
+	\brief 取焦点指针。
+	*/
 	ImplI(IUIBox) PDefH(IVisualControl*, GetFocusingPtr)
-		ImplRet(pFocusing)
+		ImplBodyBase(MSimpleFocusResponser, GetFocusingPtr)
 	/*!
 	\brief 取顶端部件指针。
 	\note 由顶端可视部件指针转换。
@@ -195,20 +214,26 @@ public:
 	/*!
 	\brief 清除焦点指针。
 	*/
-	ImplI(IUIBox) void
-	ClearFocusingPtr();
+	ImplI(IUIBox) PDefH(void, ClearFocusingPtr)
+		ImplBodyBaseVoid(MSimpleFocusResponser, ClearFocusingPtr)
 
 	/*!
 	\brief 响应焦点请求。
 	*/
-	ImplI(IUIBox) bool
-	ResponseFocusRequest(AFocusRequester&);
+	ImplI(IUIBox) PDefH(bool, ResponseFocusRequest, AFocusRequester& w)
+		ImplBodyBase(MSimpleFocusResponser, ResponseFocusRequest, w)
 
 	/*!
 	\brief 响应焦点释放。
 	*/
-	ImplI(IUIBox) bool
-	ResponseFocusRelease(AFocusRequester&);
+	ImplI(IUIBox) PDefH(bool, ResponseFocusRelease, AFocusRequester& w)
+		ImplBodyBase(MSimpleFocusResponser, ResponseFocusRelease, w)
+
+	/*!
+	\brief 绘制背景。
+	*/
+	virtual void
+	DrawBackground();
 
 	/*!
 	\brief 绘制前景。
@@ -237,30 +262,12 @@ protected:
 	void
 	ResponseTouchDown(SDST);
 
-public:
+private:
 	/*!
-	\brief 处理水平滑块移动事件。
+	\brief 处理区域点击事件。
 	*/
 	void
-	OnDrag_Thumb_Horizontal(TouchEventArgs&);
-
-	/*!
-	\brief 处理垂直滑块移动事件。
-	*/
-	void
-	OnDrag_Thumb_Vertical(TouchEventArgs&);
-
-	/*!
-	\brief 处理水平区域点击事件。
-	*/
-	void
-	OnTouchDown_Horizontal(TouchEventArgs&);
-
-	/*!
-	\brief 处理垂直区域点击事件。
-	*/
-	void
-	OnTouchDown_Vertical(TouchEventArgs&);
+	OnTouchDown(TouchEventArgs&);
 };
 
 
@@ -274,11 +281,18 @@ public:
 	*/
 	explicit
 	YHorizontalTrack(HWND = NULL, const Rect& = Rect::FullScreen,
-		IUIBox* = NULL);
+		IUIBox* = NULL, SDST = 8);
 	virtual DefEmptyDtor(YHorizontalTrack)
 
 	ImplI(ATrack)
 		DefGetter(Widgets::Orientation, Orientation, Widgets::Horizontal)
+
+private:
+	/*!
+	\brief 处理水平滑块移动事件。
+	*/
+	void
+	OnDrag_Thumb_Horizontal(TouchEventArgs&);
 };
 
 
@@ -292,30 +306,30 @@ public:
 	*/
 	explicit
 	YVerticalTrack(HWND = NULL, const Rect& = Rect::FullScreen,
-		IUIBox* = NULL);
+		IUIBox* = NULL, SDST = 8);
 	virtual DefEmptyDtor(YVerticalTrack)
 
 	ImplI(ATrack)
 		DefGetter(Widgets::Orientation, Orientation, Widgets::Vertical)
+
+private:
+	/*!
+	\brief 处理垂直滑块移动事件。
+	*/
+	void
+	OnDrag_Thumb_Vertical(TouchEventArgs&);
 };
 
 
 //! \brief 滚动条。
-class AScrollBar : public ATrack
+class AScrollBar : public AVisualControl, public MSimpleFocusResponser,
+	implements IUIBox
 {
 public:
-	typedef ATrack ParentType;
+	typedef AVisualControl ParentType;
 
-	//滚动条区域。覆盖了基类同名类型。
-	typedef enum
-	{
-		None = 0,
-		OnThumb = 1,
-		OnPrevTrack = 2,
-		OnNextTrack = 3,
-		OnPrevButton = 4,
-		OnNextButton = 5
-	} Area;
+private:
+	std::auto_ptr<ATrack> pTrack; //轨道。
 
 protected:
 	YThumb PrevButton, NextButton; //!< 滚动条按钮。
@@ -330,16 +344,41 @@ public:
 	virtual DefEmptyDtor(AScrollBar)
 
 	/*!
+	\brief 取焦点指针。
+	*/
+	ImplI(IUIBox) PDefH(IVisualControl*, GetFocusingPtr)
+		ImplBodyBase(MSimpleFocusResponser, GetFocusingPtr)
+	/*!
+	\brief 取顶端部件指针。
+	\note 由顶端可视部件指针转换。
+	*/
+	ImplI(IUIBox) IWidget*
+	GetTopWidgetPtr(const Point&);
+	/*!
 	\brief 取顶端可视部件指针。
 	\note 仅滑块和滚动条按钮。
 	*/
-	virtual IVisualControl*
+	ImplI(IUIBox) IVisualControl*
 	GetTopVisualControlPtr(const Point&);
-	virtual SDST
-	GetTrackLength() const ythrow();
+	DefGetter(ATrack&, Track, *pTrack)
 
-	virtual void
-	SetThumbPosition(SDST);
+	/*!
+	\brief 清除焦点指针。
+	*/
+	ImplI(IUIBox) PDefH(void, ClearFocusingPtr)
+		ImplBodyBaseVoid(MSimpleFocusResponser, ClearFocusingPtr)
+
+	/*!
+	\brief 响应焦点请求。
+	*/
+	ImplI(IUIBox) PDefH(bool, ResponseFocusRequest, AFocusRequester& w)
+		ImplBodyBase(MSimpleFocusResponser, ResponseFocusRequest, w)
+
+	/*!
+	\brief 响应焦点释放。
+	*/
+	ImplI(IUIBox) PDefH(bool, ResponseFocusRelease, AFocusRequester& w)
+		ImplBodyBase(MSimpleFocusResponser, ResponseFocusRelease, w)
 
 	/*!
 	\brief 绘制背景。
@@ -352,6 +391,14 @@ public:
 	*/
 	virtual void
 	DrawForeground();
+
+	/*!
+	\brief 请求提升至容器顶端。
+	\note 空实现。
+	*/
+	ImplI(IVisualControl) void
+	RequestToTop()
+	{}
 };
 
 
@@ -484,11 +531,18 @@ public:
 
 protected:
 	/*!
-	\brief 检查相对于所在缓冲区的控件坐标是否在选择范围内，
-	//			返回选择的项目索引。
+	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
+	\return 选择的项目索引。
 	*/
 	ViewerType::IndexType
 	CheckPoint(SPOS, SPOS);
+
+	/*!
+	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
+	\return 选择的项目索引。
+	*/
+	ViewerType::IndexType
+	CheckPoint(const Point&);
 
 public:
 	PDefH(void, ClearSelected)
@@ -505,11 +559,10 @@ private:
 	\brief 调用确认事件响应器。
 	*/
 	void
-	CallConfirmed();
+	CallConfirmed(ViewerType::IndexType);
 
-public:
 	/*!
-	\brief 响应按键接触开始事件。
+	\brief 响应键接触开始事件。
 	*/
 	void
 	OnKeyDown(KeyEventArgs&);
@@ -551,6 +604,12 @@ YListBox::SetSelected(const Point& pt)
 	SetSelected(pt.X, pt.Y);
 }
 
+inline YListBox::ViewerType::IndexType
+YListBox::CheckPoint(const Point& p)
+{
+	return CheckPoint(p.X, p.Y);
+}
+
 
 //! \brief 文件列表框。
 class YFileBox : public GMCounter<YFileBox>, public YListBox,
@@ -586,6 +645,7 @@ public:
 	virtual void
 	DrawForeground();
 
+private:
 	/*!
 	\brief 响应确认事件。
 	*/

@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6630;
+\version 0.6640;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 + 08:00;
 \par 修改时间:
-	2010-11-12 18:30 + 08:00;
+	2010-11-17 19:59 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -72,6 +72,12 @@ public:
 	*/
 	TextState&
 	operator=(const Padding& ms);
+
+	/*!
+	\brief 复位笔：按字体大小设置笔位置为默认位置（区域左上角）。
+	*/
+	void
+	ResetPen();
 };
 
 inline TextState&
@@ -116,15 +122,10 @@ GetLnNNowFrom(const TextState& s)
 }
 
 /*!
-\brief 按字体大小在设置笔的默认位置（区域左上角）。
-*/
-void
-SetPensTo(TextState&);
-/*!
 \brief 设置笔位置。
 */
 inline void
-SetPensTo(TextState& s, SPOS x, SPOS y)
+SetPenTo(TextState& s, SPOS x, SPOS y)
 {
 	s.PenX = x;
 	s.PenY = y;
@@ -138,7 +139,7 @@ inline void
 SetMarginsTo(TextState& s, SDST l, SDST r, SDST t, SDST b)
 {
 	SetAllTo(s.Margin, l, r, t, b);
-	SetPensTo(s);
+	s.ResetPen();
 }
 /*!
 \brief 设置边距。
@@ -148,7 +149,7 @@ inline void
 SetMarginsTo(TextState& s, u64 m)
 {
 	SetAllTo(s.Margin, m);
-	SetPensTo(s);
+	s.ResetPen();
 }
 /*!
 \brief 设置边距。
@@ -158,7 +159,7 @@ inline void
 SetMarginsTo(TextState& s, SDST h, SDST v)
 {
 	SetAllTo(s.Margin, h, v);
-	SetPensTo(s);
+	s.ResetPen();
 }
 
 /*!

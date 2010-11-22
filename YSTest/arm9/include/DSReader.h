@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器实现。
-\version 0.2231;
+\version 0.2233;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 + 08:00; 
 \par 修改时间:
-	2010-11-12 18:23 + 08:00;
+	2010-11-17 19:57 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -90,8 +90,8 @@ private:
 	//! \brief 复位缓存区域写入位置。
 	void ResetPen()
 	{
-		SetPensTo(*pTrUp);
-		SetPensTo(*pTrDn);
+		pTrUp->ResetPen();
+		pTrDn->ResetPen();
 	}
 
 	//! \brief 文本填充：输出文本缓冲区字符串，并返回填充字符数。

@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.2771;
+\version 0.2783;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 + 08:00;
 \par 修改时间:
-	2010-11-12 18:55 + 08:00;
+	2010-11-15 19:24 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,10 +24,11 @@
 */
 
 
+#include "yapp.h"
 #include "../Shell/ywindow.h"
 #include "../Shell/ycontrol.h"
 #include "../Shell/ygui.h"
-#include "yapp.h"
+#include "../Helper/yglobal.h"
 
 YSL_BEGIN
 
@@ -305,7 +306,7 @@ IRES
 GetMessage(Message& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax)
 {
 	if(theApp.GetDefaultMessageQueue().empty())
-		Def::Idle();
+		Idle();
 	return PeekMessage(msg, hShl, wMsgFilterMin, wMsgFilterMax, PM_REMOVE);
 }
 

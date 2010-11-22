@@ -1,4 +1,570 @@
+//v 0.2875; *Build 171 r91;
+/*
+$Record prefix and abbrevations:
+<statement> ::= statement;
+; ::= statement termination
+= ::= equivalent
++ ::= added
+- ::= removed
+* ::= fixed
+/ ::= modified
+% ::= reformed
+~ ::= from
+! ::= not
+& ::= and
+| ::= or
+^ ::= used
+-> ::= changed to
+>> ::= moved to
+=> ::= renamed to
+<=> ::= swaped names
+@ ::= identifier
+@@ ::= in / belonged to
+\a ::= all
+\ab ::= abstract
+\ac ::= access
+\amb ::= ambiguities
+\amf ::= abstract/pure virtual member function
+\as ::= assertions
+\bg ::= background
+\c ::= const
+\cb ::= catch blocks
+\cl ::= classes
+\cp ::= copied
+\ctor ::= constructors
+\cv ::= const & volatile
+\d ::= derived
+\de ::= default
+\def ::= definitions
+\dep ::= dependencies
+\decl ::= declations
+\dir ::= directories
+\dtor ::= destructors
+\e ::= exceptions
+\em ::= empty
+\en ::= enums
+\eh ::= exception handling
+\err ::= errors
+\es ::= exception specifications
+\evt ::= events
+\evh ::= event handling
+\ex ::= extra
+\exc ::= excluded
+\ext ::= extended
+\exp ::= explicit
+\f ::= functions
+\fn ::= \f
+\fw ::= forward
+\g ::= global
+\gs ::= global scpoe
+\h ::= headers
+\i ::= inline
+\impl ::= implementations
+\in ::= interfaces
+\init ::= initializations
+\inc ::= included
+\inh ::= inherited
+\inv ::= invoke
+\k ::= keywords
+\lib ::= library
+\ln ::= lines
+\m ::= members
+\mac ::= macros
+\mem ::= memory
+\mf ::= member functions
+\mo ::= member objects
+\n ::= names
+\ns ::= namespaces
+\o ::= objects
+\op ::= operators
+\or ::= overridden
+\param ::= parameters
+\param.de ::= default parameters
+\pre ::= prepared
+\pt ::= points
+\ptr ::= pointers
+\q ::= qualifiers
+\rem ::= remarked
+\ren ::= renamed
+\ref ::= references
+\refact ::= refactorings
+\res ::= resources
+\ret ::= return
+\s ::= static
+\sf ::= non-member static functions
+\sif ::= non-member inline static functions
+\simp ::= simplified
+\smf ::= static member functions
+\sm ::= static member
+\scm ::= static const member
+\snm ::= static non-member
+\st ::= structs
+\str ::= strings
+\t ::= templates
+\tb ::= try blocks
+\tc ::= class templates
+\tf ::= function templates
+\tg ::= targets
+\tr ::= trivial
+\tp ::= types
+\u ::= units
+\un ::= unnamed
+\v ::= volatile
+\vt ::= virtual
+\val ::= values
 
+$using:
+\u YWidget
+{
+	\in IWidget;
+	\in IUIBox;
+	\cl Widget;
+	\cl YUIContainer;
+	\cl YLabel;
+}
+\u YControl
+{
+	\in IControl;
+	\in IVisualControl;
+	\cl MVisualControl;
+	\cl YControl;
+	\cl AVisualControl;
+	\cl YVisualControl;
+}
+\u YGUIComponent
+{
+	\cl AButton;
+	\cl YThumb;
+	\cl YButton;
+	\cl ATrack;
+	\cl YHorizontalTrack;
+	\cl YVerticalTrack;
+	\cl MScrollBar;
+	\cl AScrollBar;
+	\cl YHorizontalScrollBar;
+	\cl YVerticalScrollBar;
+	\cl YListBox;
+	\cl YFileBox;
+}
+\u YWindow
+{
+	\in IWindow;
+	\cl MWindow;
+	\cl AWindow;
+	\cl YFrameWindow;
+}
+
+$DONE:
+r1-r2:
+/= \tr \rem @@ \YCommon;
+
+r3:
+- \mac YC_MAX_PATH @@ \u YCommon;
+/ \def @@ (\c & \tp) @@ \u YGlobal >> \u YCommon;
+/ @@ \h YAdaptor;
+- \inc \h YGlobal @@ \u YFileSystem;
+/ \tr @@ \cl YFontFile @@ \u YFont;
+
+r4:
+/ @@ \h YAdaptor;
+/ \f ChDir @@ \u YFileSystem -> \f ChangeDirectory;
+- \smf Def::WaitForInput @@ \u YGlobal;
+/ \tr @@ \cl InputEventArgs @@ \u YControl;
+
+r5-r9:
+/ @@ \h YCommon & \h YAdaptor;
+/ @@ \u YGlobal:
+	/ \a \smf @@ \st Def \exc \smf (Idle & ShlProc & Destroy & InitConsole)
+		>> \u YCommon;
+	/ \smf (Idle & ShlProc & Destroy & InitConsole) >> \ns YSLib;
+	- \st Def;
+	/ \impl @@ \f YInit @@ \un \ns;
+/ \ns platform @@ \u YCommon:
+	/ \f void InitScrUp() -> BitmapPtr InitScrUp(int&);
+	/ \f void InitScrDown() -> BitmapPtr InitScrUp(int&);
+	- \f void InitScreenAll();
+/ @@ \u YDevice;
+	/ \inc @@ \u YDevice -> \h YObject ~ \u YGlobal;
+	/ @@ \u YScreen:
+		/ \tr \impl;
+		- \smf void Reset();
+		/ \ac @@ \m id -> public ~ private;
+	/ @@ \u YGraphicDevice:
+		/ \ac @@ \m ptr -> public ~ private;
+/ \tr @@ \cl YDesktop;
++ \f InitAllScreens @@ \h YDevice & \u YGlobal;
+
+r10:
+/ \f (InitScrUp & InitScrDown) >> \ns platform_ex;
+/ \h YAdaptor;
+/ \tr \impl @@ \f InitAllScreens @@ \u YGlobal;
+
+r11:
+/ \tr @@ \u YWidget & \u YObject;
+/ \simp @@ \h YAdaptor:
+	- \mac YSL_SHLMAIN_NAME;
+	- \mac YSL_SHLMAIN_SHLPROC;
+	- \mac YSL_MAIN_SHLPROC;
+/ \impl @@ \mf Shells::YShellMain::ShlProc(const Message&) @@ \u YShell;
+/ @@ \u Shells;
+/ @@ \u YGlobal;
++ \inc YException @@ \u YFont;
+/ @@ \u Shells;
+
+r12:
+/ \inc "../Helper/yglobal.h" @@ \h YDevice -> "yexcept.h";
+/ - \i @@ \mf (Activate & Deactivate) @@ \cl YConsole @@ \u YComponent;
++ \inh "../Helper/yglobal.h" @@ \u (YComponent & YApplication & YShell);
+/ \inh "Service/ytimer.h" -> "Helper/yglobal.h" @@ \h YSLib::Build;
+
+r13:
+/ @@ \u YGUIComponent:
+	/ @@ \cl YListBox:
+		+ protected \mf bool CheckIndex(ViewerType::IndexType);
+		/ \simp \impl @@ \mf SetSelected ^ \mf CheckIndex;
+		/ \impl @@ \mf OnSelected;
+	/ @@ \cl YFileBox:
+		/ \impl @@ \mf OnSelected & \mf OnConfirmed;
++ DefConverter(IndexType, Index) @@ \cl IndexEventArgs @@ \u YControl;
+
+r14:
+/ @@ \cl YListBox @@ \u YGUIComponent;
+	/ \mf void CallConfirmed() -> void CallConfirmed(ViewerType::IndexType)
+		* blank-clicked \evt OnClick;
+	+ \i \mf ViewerType::IndexType CheckPoint(const Point&);
+- \exp @@ \ctor @@ \cl ScreenPositionEventArgs @@ \u YControl;
+
+r15:
+/ @@ \u YDevice:
+	/ @@ \cl YScreen:
+		+ friend \f bool InitAllScreens();
+		/ \ac @@ \m BgType bg -> private ~ public;
+	/ @@ \cl YScreen:
+		/ \ac @@ \m ptr -> protected ~ public;
+
+r16:
++ public \mf bool Contains(IndexType) @@ \cl \t GSequenceViewer @@ \u YComponent;
+- proteced \mf CheckIndex @@ \cl YListBox @@ \u YGUIComponent;
+	/ \tr \impl @@ \mf @@ \cl (YListBox & YFileBox);
+
+r17:
+/ @@ \cl YListBox @@ \u YGUIComponent:
+	/ \simp \impl @@ \mf voidSetSelected(ViewerType::IndexType);
+/ !\m \f void SetPensTo(TextState&) -> \mf void TextState&::ResetPen()
+	@@ \u YText;
+/ \a SetPensTo => SetPenTo;
+
+r18:
+* \mf CallConfirmed @@ \cl YListBox @@ \u YGUIComponent;
+
+r19:
+* \mf OnSelected @@ \cl YListBox @@ \u YGUIComponent;
+
+r20-r27:
+/= test 1;
+
+r28-r30:
+* \impl @@ \mf ListType::SizeType CheckPoint(SPOS, SPOS) @@ \cl YListBox
+	@@ \u YGUIComponent;
+
+r31:
+/ \simp \impl @@ \mf \vt void DrawForeground() @@ \cl YListBox
+	@@ \u YGUIComponent;
+
+r32:
+^ updated devkitPro, devkitARM r32, libnds 1.4.8;
+
+r33:
+/ \cl \t ExpandMemberFirstBinder >> \h YFunc ~ \h YEvent;
+/= text >> \f "doc\ex.cpp" ~ "source\GBKEX.cpp";
+
+r34:
+/ @@ \u YControl:
+	+ DefDelegate(PointEventHandler, IVisualControl, Drawing::Point);
+	+ DefDelegate(SizeEventHandler, IVisualControl, Drawing::Size);
+	/ @@ \cl MVisualControl:
+		+ DefEvent(PointEventHandler, Move);
+		+ DefEvent(SizeEventHandler, Resize);
+	/ @@ \cl InputEventArgs:
+		/ \m k >> key;
+
+r35:
+/= \tr \impl @@ \u Shells;
+
+r36-r40:
+/= test 2;
+
+r41:
+/ \tr \impl @@ \u Shells;
+
+r42:
++ \f
+{
+	void MoveToLeft(IWidget&);
+	void MoveToRight(IWidget&);
+	void MoveToTop(IWidget&);
+	void MoveToBottom(IWidget&);
+} @@ \u YWidget;
+/ \impl @@ \ctor @@ \cl AScrollBar @@ \u YGUIComopnent;
+
+r43:
+* \impl @@ \ctor @@ \cl AScrollBar @@ \u YGUIComponent;
+
+r45-r50:
+/= test 3;
+
+r51:
+* \tr \impl @@ \ctor @@ \cl AScrollBar @@ \u YGUIComponent;
+
+r52-r58:
+/= test 4;
+
+r59:
+* \impl @@ \ctor @@ \cl AScrollBar @@ \u YGUIComponent;
+
+r60:
+/ @@ \u YGUIComponent:
+	/= \tr \impl @@ \ctor @@ \cl AScrollBar;
+	/ \tr \impl @@ \as;
+/ @@ \u YWidget:
+	/ \impl @@ \f 'MoveTo*' ^ \as;
+/= \tr \impl @@ \f const char* EFontStyle::GetName() const ythrow()
+	@@ \u YFont;
+
+r61:
+/ \impl @@ \ctor @@ \cl YHorizontalScrollBar @@ \u YGUIComponent;
+
+r62:
+/ \ac @@ \mf \evh 'On*' @@ \cl AVisualControl @@ \u YControl
+	-> private ~ public;
+/ @@ \u YGUIComponent:
+	/ \ac @@ \mf \evh 'On*' @@ \cl (YThumb & YButton & YListBox & YFileBox)
+		-> private ~ public;
+	/ \mf \evh 'On*' @@ \cl ATrack >> private ~ public;
+	/ \mf \evh 'On*Horizontal' @@ \cl ATrack >> \cl YHorizontalTrack;
+	/ \mf \evh 'On*Vertical' @@ \cl ATrack >> \cl YVerticalTrack;
+	/ \impl @@ \ctor @@ \cl YHorizontalTrack;
+	/ \impl @@ \ctor @@ \cl YVerticalTrack;
+	/ \impl @@ \ctor @@ \cl YHorizontalScrollBar;
+/ @@ \u YWidget:
+	/ @@ \cl Visual:
+		/  \ac @@ \m (Visible, Transparent, bBgRedrawed, Location, Size)
+			-> private ~ protected;
+		- public \mf void SetSize(SDST, SDST);
+		/ private \mf _m_SetSize(SDST, SDST)
+			-> public \mf void SetSize(SDST, SDST);
+		/ \m Location >> location;
+		/ \m Size >> size;
+		/ \m bBgRedrawed >> background_redrawed;
+		/ \m Visible >> visible;
+		/ \m Transparent >> transparent;
+	/ @@ \cl YWidget:
+		- \mf \vt void BeFilledWith();
+/ @@ \u YWidget:
+	/ @@ \cl Control:
+		/ \ac @@ \m Enabled -> private ~ protected;
+		/ \m Enabled >> enabled;
+/ @@ \u Shells:
+	/ @@ \cl ShlSetting:
+		/ \s \m left >> s_left;
+		/ \s \m size >> s_size;
+
+r63:
+/ merge \mf m_init -> \ctor @@ \cl YButton @@ \u YGUIComponent;
+
+r64:
+/ @@ \u YGUIComponent:
+	/ \simp @@ \cl YButton:
+		- \mf OnKeyDown & \mf OnClick;
+	/ \mf void YHorizontalTrack::OnTouchDown_Horizontal(TouchEventArgs&)
+		-> \mf void ATrack::OnTouchDown(TouchEventArgs&);
+	- \mf YVerticalTrack::OnTouchDown_Horizontal(TouchEventArgs&);
+	/ \impl @@ \ctor @@ \cl (YButton
+		& ATrack & YHorizontalTrack & YVerticalTrack);
+
+r65:
+/ @@ \u YGUIComponent:
+	+ \cl MSimpleFocusResponser;
+	/ @@ \cl ATrack:
+		/ \ac @@ \m (MinThumbLength, pFocusing) -> private ~ protected;
+		* \impl @@ \ctor;
+		/ \inh \cl GMFocusResponser<IVisualControl>
+			-> \cl MSimpleFocusResponser;
+		/ \m IVisualControl* pFocusing >> \cl MSimpleFocusResponser;
+	/ @@ \cl AScrollBar:
+		+ private \m std::auto_ptr<ATrack> pTrack;
+		/ \impl @@ \ctor;
+		/ \impl @@ \mf IVisualControl* GetTopVisualControlPtr(const Point&);
+		- \mf \vt SDST GetTrackLength() const ythrow();
+		+ \i \mf DefGetter(ATrack&, Track, *pTrack);
+		- \mf \vt void SetTrackPosition(SDST);
+		/ \impl @@ \mf void DrawBackground();
+		/ \inh public ATrack -> public AVisualControl,
+			public MSimpleFocusResponser, implements IUIBox;
+		+ \mf void RequestToTop();
+		+ \mf void ClearFocusingPtr();
+		+ \mf bool ResponseFocusRequest(AFocusRequester&);
+		+ \mf bool ResponseFocusRelease(AFocusRequester&);
+		/ typedef ATrack ParentType -> typedef AVisualControl ParentType;
+	/ \impl @@ \ctor @@ \cl (YHorizontalTrack & YVerticalTrack);
+
+r66-r67:
+/= test 5;
+
+r68:
+/ @@ \u YGUIComponent:
+	/ \impl @@ \ctor @@ \cl AScrollBar;
+	/= \a \exp '<< 1' -> \exp '* 2';
+	/= \a \exp '>> 1' -> \exp '/ 2';
+
+r69:
+/ @@ \u YGUIComponent:
+	@@ \cl AScrollBar:
+		/ \impl @@ \mf void DrawBackground();
+		- typedef Area;
+	+ \mf void DrawBackground() @@ \cl ATrack;
+
+r70:
+/ @@ \u YGUIComponent:
+	/ \impl @@ \mf void DrawBackground() @@ \cl ATrack;
+	/ \simp @@ \impl @@ \mf void DrawForeground() @@ \cl YThumb;
+
+r71-r74:
+/= test 6;
+
+r75:
+* \impl @@ \mf void ATrack::DrawBackground() @@ \u YGUIComponent;
+
+r76-r80:
+/= test 7;
+
+r81:
+/ \tr \impl @@ \f Point LocateForWindow(const IWidget&) @@ \u YWidget;
+* \impl @@ \mf void ATrack::DrawBackground() @@ \u YGUIComponent;
+
+r82:
+/ @@ \u YGUIComponent:
+	/ + \as @@ \impl @@ \mf void ATrack::DrawForeground();
+	/ \impl @@ \mf void AScrollBar::DrawForeground();
+		* bBgRedraw setting by calling of ParentType::DrawForeground();
+		+ arraw drawing;
+	/= \tr \impl @@ \cl YFileBox::DrawForeground();
+	/ \f void WndDrawArrow(const HWND, const Rect&, SDST, ROT = RDeg0,
+		Color = ColorSpace::Black) -> void WndDrawArrow(const Graphics&,
+		const Rect&, SDST, ROT = RDeg0, Color = ColorSpace::Black) \un \ns;
+/ \tr \simp @@ \impl @@ \mf void YFrameWindow::DrawWidgets() @@ \u YWindow;
+
+r83:
+-= \inh \h YControl @@ \u YWidget @@ \u YWidget;
+
+r84:
+/ @@ \ns Widgets @@ \u YWidget:
+	+ \f \t template<class _tWidget>
+		IUIBox* GetDirectContainerPtrFrom(_tWidget&);
+	+ \f \t template<class _tWidget>
+		HWND GetDirectWindowHandleFrom(_tWidget&);
+	+ \i \f IUIBox* GetDirectContainerPtrFrom(IWidget&);
+	+ \i \f HWND GetDirectWindowHandleFrom(IWidget&);
+	+ \f HWND GetWindowHandleFrom(const IWidget&);
+	/ \impl @@ \i \f Point LocateWindowOffset(const IWidget&, const Point&);
+	/ \impl @@ \mac YWidgetAssert;
+	/ \impl @@ \mac YWindowAssert;
+	/ \impl @@ \f Point LocateForWindow(const IWidget&);
+	/ \impl @@ \f Point LocateForDesktop(const IWidget&);
+	/ \impl @@ \f Point LocateForParentWindow(const IWidget&);
+	/ \f LocateOffset(const IWidget*, Point, IWindow*)
+		-> LocateOffset(const IWidget*, Point, const IWindow*);
+	
+r85:
+/ @@ \ns Widgets @@ \u YWidget:
+	/ \impl \mf void PaintText(MWidget&, const Point&) @@ \cl MLabel;
+	/ \mf \vt void BeFilledWith(Color) @@ \cl MWidget
+		-> !\m \f void Fill(IWidget&, Color);
+	+ \f void Fill(Widget&, Color);
+	+ \f \t template<class _tWidget> void Fill(_tWidget&, Color) @@ \un \ns;
+	+ \fw \decl @@ \cl Widget;
+	+ \f \t template<class _tWidget> Point
+		LocateOffset(const _tWidget*, const Point&, const IWindow*);
+
+r86:
+/ @@ \u YGUI:
+	/ \impl @@ \f void DrawWidgetBounds(IWidget&, Color);
+
+r87:
+/= test 8;
+
+r88:
+/ @@ \u YGUI:
+	/ \f void DrawWidgetBounds(IWidget&, Color) >> DrawWidgetOutBounds;
+	+ \f void DrawWidgetOutline(IWidget&, Color);
+	+ \f void DrawWidgetBounds(HWND, const Point&, Color) \un \ns
+		@@ \ns Drawing;
+	/ \simp \impl @@ \f (void DrawWidgetBounds(IWidget&, Color)
+		& DrawWindowBounds & DrawWidgetOutline)
+		^ \f void DrawWidgetBounds(HWND, const Point&, Color);
+
+r89:
+/= test 9;
+
+r90:
+* @@ \u YGUI:
+	/ \impl @@ \f void DrawWidgetBounds(HWND, const Point&, Color) \un \ns
+		@@ \ns Drawing;
+	/ \impl @@ \f (void DrawWidgetBounds(IWidget&, Color)
+		& DrawWindowBounds & DrawWidgetOutline)
+		^ \f void DrawWidgetBounds(HWND, const Point&, Color);
+
+r91:
+/= test 10;
+
+
+$DOING:
+
+/ ...
+
+
+$NEXT:
+
+b172-b190:
+/ fully \impl \u DSReader;
+	* moving text after setting lnGap;
+* non-ASCII character filename error in FAT16;
++ \impl loading pictures;
++ \impl style on widgets;
+* fatal \err:
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+	-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02055838
+	ftc_snode_weight
+	ftcsbits.c:271
+
+$TODO:
+
+Clarify the log levels.
+
+Make "UpdateFont()" more efficienct.
+
+More efficient @YTextRegion output:
+Use in-buffer background color rendering and function @CopyToScreen()
+	to inplements @YTextRegion background;
+Use pre-refershing to make font changing.
+
+Consider to simplify the general window class: @YForm.
+
+Rewrite system RTC.
+
+Build a more advanced console wrapper.
+
+Build a series set of robust gfx APIs.
+
+GUI characteristics needed:
+Icons;
+Other controls.
+
+Other stuff to be considered to append:
+Design by contract: DbC for C/C++, GNU nana.
+
+*/
+//---- temp code;
 /*
 		u8* bitmap = sbit->buf;
 		if(!bitmap)

@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3183;
+\version 0.3189;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-11-12 18:37 + 08:00;
+	2010-11-19 12:10 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,10 +35,8 @@ char strtbuf[0x400],
 
 YSL_BEGIN
 
-YSL_BEGIN_SHELL(ShlMain)
-
 LRES
-ShlProc(const Message& msg)
+MainShlProc(const Message& msg)
 {
 /*
 	const HSHL& hShl(msg.GetShellHandle());
@@ -68,8 +66,6 @@ ShlProc(const Message& msg)
 	}
 }
 
-YSL_END_SHELL(ShlMain)
-
 namespace
 {
 	//测试函数。
@@ -79,37 +75,43 @@ namespace
 	dfa(BitmapPtr buf, SDST x, SDST y)
 	{
 		//raz2
-		buf[y * SCRW + x] = ARGB16(1, ((x >> 2) + 15) & 31, ((y >> 2) + 15) & 31, ((~(x * y) >> 2) + 15) & 31);
+		buf[y * SCRW + x] = ARGB16(1, ((x >> 2) + 15) & 31,
+			((y >> 2) + 15) & 31, ((~(x * y) >> 2) + 15) & 31);
 	}
 	static void
 	dfap(BitmapPtr buf, SDST x, SDST y)
 	{
 		//bza1
-		buf[y * SCRW + x] = ARGB16(1, ((x | y << 1) % (y + 2)) & 31, ((~y | x << 1) % 27 + 3) & 31, ((x << 4) / (y | 1)) & 31);
+		buf[y * SCRW + x] = ARGB16(1, ((x | y << 1) % (y + 2)) & 31,
+			((~y | x << 1) % 27 + 3) & 31, ((x << 4) / (y | 1)) & 31);
 	}
 	static void
 	dfac1(BitmapPtr buf, SDST x, SDST y)
 	{
 		//fl1
-		buf[y * SCRW + x] = ARGB16(1, (x + y * y) & 31, (x * x + y) & 31, ((x & y) ^ (x | y)) & 31);
+		buf[y * SCRW + x] = ARGB16(1, (x + y * y) & 31, (x * x + y) & 31,
+			((x & y) ^ (x | y)) & 31);
 	}
 	static void
 	dfac1p(BitmapPtr buf, SDST x, SDST y)
 	{
 		//rz3
-		buf[y * SCRW + x] = ARGB16(1, ((x * y) | y) & 31, ((x * y) | x) & 31, ((x ^ y) * (x ^ y)) & 31);
+		buf[y * SCRW + x] = ARGB16(1, ((x * y) | y) & 31, ((x * y) | x) & 31,
+			((x ^ y) * (x ^ y)) & 31);
 	}
 	static void
 	dfac2(BitmapPtr buf, SDST x, SDST y)
 	{
 		//v1
-		buf[y * SCRW + x] = ARGB16(1, ((x + y) % ((y - 2) & 1) + (x << 2)) & 31, (~x % 101 + y) & 31, ((x << 4) / (y & 1)) & 31);
+		buf[y * SCRW + x] = ARGB16(1, ((x + y) % ((y - 2) & 1) + (x << 2)) & 31,
+			(~x % 101 + y) & 31, ((x << 4) / (y & 1)) & 31);
 	}
 	static void
 	dfac2p(BitmapPtr buf, SDST x, SDST y)
 	{
 		//arz1
-		buf[y * SCRW + x] = ARGB16(1, ((x | y) % (y + 2)) & 31, ((~y | x) % 27 + 3) & 31, ((x << 6) / (y | 1)) & 31);
+		buf[y * SCRW + x] = ARGB16(1, ((x | y) % (y + 2)) & 31,
+			((~y | x) % 27 + 3) & 31, ((x << 6) / (y | 1)) & 31);
 	}
 
 	////
@@ -193,32 +195,43 @@ namespace
 		CallStored<ShlReader>();
 	}
 
-	static void
+	void
 	InputCounter(const Point& pt)
 	{
-		sprintf(strCount, "%d,%d,%d;Count = %d, Pos = (%d, %d);", sizeof(AWindow), sizeof(YFrameWindow), sizeof(YForm), nCountInput++, pt.X, pt.Y);
+		sprintf(strCount, "%d,%d,%d;Count = %d, Pos = (%d, %d);",
+			sizeof(AWindow), sizeof(YFrameWindow), sizeof(YForm),
+			nCountInput++, pt.X, pt.Y);
 	}
 
-	static void
+	void
 	InputCounterAnother(const Point& pt)
 	{
 	//	nCountInput++;
-		//	sprintf(strCount, "%d,%d,%d,%d,",sizeof(YForm),sizeof(YShell),sizeof(YApplication),sizeof(YFrameWindow));
+	//	std::sprintf(strCount, "%d,%d,%d,%d,",sizeof(YForm),sizeof(YShell),
+	//		sizeof(YApplication),sizeof(YFrameWindow));
 		struct mallinfo t(mallinfo());
-		/*	sprintf(strCount, "%d,%d,%d,%d,%d;",
-		t.arena,    // total space allocated from system 2742496
-		t.ordblks,  // number of non-inuse chunks 37
-		t.smblks,   // unused -- always zero 0
-		t.hblks,    // number of mmapped regions 0
-		t.hblkhd   // total space in mmapped regions 0
+
+	/*	std::sprintf(strCount, "%d,%d,%d,%d,%d;",
+			t.arena,    // total space allocated from system 2742496
+			t.ordblks,  // number of non-inuse chunks 37
+			t.smblks,   // unused -- always zero 0
+			t.hblks,    // number of mmapped regions 0
+			t.hblkhd   // total space in mmapped regions 0
 		);*/
-		sprintf(strCount, "%d,%d,%d,%d,%d;",
+	/*	std::sprintf(strCount, "%d,%d,%d,%d,%d;",
 			t.usmblks,  // unused -- always zero 0
 			t.fsmblks,  // unused -- always zero 0
-			t.uordblks, // total allocated space 2413256
-			t.fordblks, // total non-inuse space 329240
-			t.keepcost // top-most, releasable (via malloc_trim) space 46496
-			);
+			t.uordblks, // total allocated space 2413256, 1223768
+			t.fordblks, // total non-inuse space 329240, 57760
+			t.keepcost // top-most, releasable (via malloc_trim) space
+			//46496,23464
+			);*/
+		std::sprintf(strCount, "%d,%d,%d,%d,%d;",
+			t.arena,
+			t.ordblks,
+			t.uordblks,
+			t.fordblks,
+			t.keepcost);
 	}
 }
 
@@ -255,7 +268,8 @@ using namespace DS;
 LRES
 ShlLoad::OnActivated(const Message& m)
 {
-	//如果不添加此段且没有桌面没有被添加窗口等设置刷性状态的操作，那么任何绘制都不会进行。
+	//如果不添加此段且没有桌面没有被添加窗口等设置刷性状态的操作，
+	//那么任何绘制都不会进行。
 	pDesktopUp->SetRefresh(true);
 	pDesktopDown->SetRefresh(true);
 	//新建窗口。
@@ -296,7 +310,8 @@ ShlExplorer::TFrmFileListSelecter::frm_KeyPress(KeyEventArgs& e)
 void
 ShlExplorer::TFrmFileListSelecter::fb_Selected(IndexEventArgs& e)
 {
-	YLabel& l(HandleCast<TFrmFileListMonitor>(HandleCast<ShlExplorer>(hShell)->hWndUp)->lblPath);
+	YLabel& l(HandleCast<TFrmFileListMonitor>(
+		HandleCast<ShlExplorer>(hShell)->hWndUp)->lblPath);
 
 	l.Text = fbMain.GetPath();
 	l.Refresh();
@@ -328,7 +343,8 @@ ShlExplorer::TFrmFileListSelecter::btnTest_Click(TouchEventArgs&)
 
 		Activate(con, Color::Silver);
 
-		iprintf("Current Working Directory:\n%s\n", IO::GetNowDirectory().c_str());
+		iprintf("Current Working Directory:\n%s\n",
+			IO::GetNowDirectory().c_str());
 		iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
 	//	std::fprintf(stderr, "err");
 		WaitForInput();
@@ -351,7 +367,8 @@ ShlExplorer::TFrmFileListSelecter::btnOK_Click(TouchEventArgs&)
 		const string& s(fbMain.GetPath().GetNativeString());
 /*	YConsole con;
 	Activate(con);
-	iprintf("%s\n%s\n%s\n%d,%d\n",fbMain.GetDirectory().c_str(), StringToMBCS(fbMain.YListBox::GetList()[fbMain.GetSelected()]).c_str(),
+	iprintf("%s\n%s\n%s\n%d,%d\n",fbMain.GetDirectory().c_str(),
+		StringToMBCS(fbMain.YListBox::GetList()[fbMain.GetSelected()]).c_str(),
 		s.c_str(),IO::ValidateDirectory(s), stdex::fexists(s.c_str()));
 	WaitForABXY();
 	Deactivate(con);*/
@@ -373,14 +390,18 @@ ShlExplorer::ShlProc(const Message& msg)
 	//	InitYSConsole();
 	//	YDebugBegin();
 		iprintf("time : %u ticks\n", GetTicks());
-		iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
+		iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
+			"W : %u;\nL : %lx;\n", msg.GetMsgID(),
+			msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
 		WaitForInput();
 	//	StartTicks();
 	}*/
 /*
 	YDebugBegin();
 	iprintf("time : %u ticks\n", GetTicks());
-	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
+	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
+		"W : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(),
+		msg.GetID(), msg.GetWParam(), msg.GetLParam());
 	WaitForInput();*/
 
 	switch(msg.GetMsgID())
@@ -388,7 +409,8 @@ ShlExplorer::ShlProc(const Message& msg)
 	case SM_INPUT:
 /*
 		InitYSConsole();
-		iprintf("%d,(%d,%d)\n",msg.GetWParam(), msg.GetCursorLocation().X, msg.GetCursorLocation().Y);
+		iprintf("%d,(%d,%d)\n",msg.GetWParam(),
+			msg.GetCursorLocation().X, msg.GetCursorLocation().Y);
 */
 		ResponseInput(msg);
 		UpdateToScreen();
@@ -408,7 +430,8 @@ ShlExplorer::OnActivated(const Message&)
 	ReplaceHandle<HWND>(hWndUp, new TFrmFileListMonitor(HSHL(this)));
 	ReplaceHandle<HWND>(hWndDown, new TFrmFileListSelecter(HSHL(this)));
 */
-	//	HandleCast<TFrmFileListSelecter>(hWndDown)->fbMain.RequestFocus(GetZeroElement<EventArgs>());
+	//	HandleCast<TFrmFileListSelecter>(
+	//		hWndDown)->fbMain.RequestFocus(GetZeroElement<EventArgs>());
 	//	hWndDown->RequestFocus(GetZeroElement<EventArgs>());
 	RequestFocusCascade(HandleCast<TFrmFileListSelecter>(hWndDown)->fbMain);
 	DispatchWindows();
@@ -476,7 +499,8 @@ ShlSetting::TFormC::btnC_Click(TouchEventArgs& e)
 	static const int ftypen(pDefaultFontCache->GetTypesN());
 	static const int ffacen(pDefaultFontCache->GetFacesN());
 	static int itype;
-	static YFontCache::FTypes::const_iterator it(pDefaultFontCache->GetTypes().begin());
+	static YFontCache::FTypes::const_iterator it(
+		pDefaultFontCache->GetTypes().begin());
 
 	//	btnC.Transparent ^= 1;
 	if(nCountInput & 1)
@@ -485,15 +509,20 @@ ShlSetting::TFormC::btnC_Click(TouchEventArgs& e)
 		++itype %= ftypen;
 		if(++it == pDefaultFontCache->GetTypes().end())
 			it = pDefaultFontCache->GetTypes().begin();
-		btnC.Font = Font(*(*it)->GetFontFamilyPtr(), 18 - (itype << 1), EFontStyle::Regular);
-	//	btnC.Font = Font(*(*it)->GetFontFamilyPtr()/*GetDefaultFontFamily()*/, 18 - (itype << 1), EFontStyle::Regular);
-		sprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n", btnC.Font.GetSize(), ffilen, ftypen, ffacen);
+		btnC.Font = Font(*(*it)->GetFontFamilyPtr(), 18 - (itype << 1),
+			EFontStyle::Regular);
+	//	btnC.Font = Font(*(*it)->GetFontFamilyPtr()/*GetDefaultFontFamily()*/,
+	//		18 - (itype << 1), EFontStyle::Regular);
+		sprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n",
+			btnC.Font.GetSize(), ffilen, ftypen, ffacen);
 		btnC.Text = strtf;
 	}
 	else
 	{
-		sprintf(strtf, "%d/%d;%s:%s;\n", itype + 1, ftypen, (*it)->GetFamilyName(), (*it)->GetStyleName());
-		//	sprintf(strtf, "B%p\n", pDefaultFontCache->GetTypefacePtr("FZYaoti", "Regular"));
+		sprintf(strtf, "%d/%d;%s:%s;\n", itype + 1, ftypen,
+			(*it)->GetFamilyName(), (*it)->GetStyleName());
+		//	sprintf(strtf, "B%p\n",
+		//		pDefaultFontCache->GetTypefacePtr("FZYaoti", "Regular"));
 		btnC.Text = strtf;
 	}
 	//	btnC.Refresh();
@@ -506,7 +535,8 @@ ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, KeyEventArgs& e)
 	u32 k(static_cast<KeyEventArgs::Key>(e));
 
 	DefDynInitRef(YButton, lbl, sender);
-//	YButton& lbl(dynamic_cast<TFormA&>(*(dynamic_cast<ShlSetting&>(*NowShell()).hWndUp)).lblA2);
+//	YButton& lbl(dynamic_cast<TFormA&>(
+//		*(dynamic_cast<ShlSetting&>(*NowShell()).hWndUp)).lblA2);
 	lbl.SetTransparent(!lbl.IsTransparent());
 //	++lbl.ForeColor;
 //	--lbl.BackColor;

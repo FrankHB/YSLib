@@ -11,12 +11,12 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version 0.1635;
+\version 0.1638;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 + 08:00;
 \par 修改时间:
-	2010-11-12 18:32 + 08:00;
+	2010-11-15 11:59 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -149,7 +149,7 @@ YTimer::SetInterval(TimeSpan i)
 inline void
 YTimer::Synchronize()
 {
-	SystemTick = platform::GetRTC();
+	SystemTick = GetRTC();
 }
 
 inline void

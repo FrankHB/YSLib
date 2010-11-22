@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3754;
+\version 0.3757;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 + 08:00;
 \par 修改时间:
-	2010-11-12 18:30 + 08:00;
+	2010-11-22 17:36 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -162,7 +162,7 @@ public:
 	\note 虚公共实现。
 	*/
 	virtual void
-	SetSize(const Drawing::Size&);
+	SetSize(const Size&);
 	ImplI(IWindow) DefSetterBaseDe(GHResource<YImage>, Background, MWindow,
 		NULL)
 

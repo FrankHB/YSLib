@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2457;
+\version 0.2463;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 + 08:00;
 \par 修改时间:
-	2010-11-12 18:32 + 08:00;
+	2010-11-12 19:03 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -106,7 +106,7 @@ namespace
 
 
 void
-Def::Idle()
+Idle()
 {
 //	if(hShellMain->insRefresh)
 //		InsertMessage(NULL, SM_SCRREFRESH, 0x80, hShellMain->scrType, 0);
@@ -114,46 +114,7 @@ Def::Idle()
 }
 
 bool
-Def::InitVideo()
-{
-	ResetVideo();
-	//设置显示模式。
-	vramSetBankA(VRAM_A_MAIN_BG);
-	vramSetBankC(VRAM_C_SUB_BG);
-	Def::InitScreenAll();
-	return true;
-}
-void
-Def::InitScreenAll()
-{
-	//设置主显示引擎渲染上屏。
-	lcdMainOnTop();
-//	lcdMainOnBottom();
-//	lcdSwap();
-	InitScrUp();
-	InitScrDown();
-}
-void
-Def::InitScrUp()
-{
-	//初始化背景，并得到屏幕背景ID 。
-	pScreenUp->bg = bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
-
-	//获得屏幕背景所用的显存地址。
-	pScreenUp->SetPtr(static_cast<BitmapPtr>(bgGetGfxPtr(pScreenUp->bg)));
-}
-void
-Def::InitScrDown()
-{
-	//初始化背景，并得到屏幕背景ID 。
-	pScreenDown->bg = bgInitSub(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
-
-	//获得屏幕背景所用的显存地址。
-	pScreenDown->SetPtr(static_cast<BitmapPtr>(bgGetGfxPtr(pScreenDown->bg)));
-}
-
-bool
-Def::InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
+InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 {
 	if(&scr == pScreenUp)
 		YConsoleInit(true, fc, bc);
@@ -165,13 +126,7 @@ Def::InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 }
 
 void
-Def::WaitForInput()
-{
-	platform::WaitForInput();
-}
-
-void
-Def::Destroy(YObject&, EventArgs&)
+Destroy(YObject&, EventArgs&)
 {
 	//释放默认字体资源。
 	DestroySystemFontCache();
@@ -184,9 +139,22 @@ Def::Destroy(YObject&, EventArgs&)
 }
 
 LRES
-Def::ShlProc(HSHL hShl, const Message& msg)
+ShlProc(HSHL hShl, const Message& msg)
 {
 	return hShl->ShlProc(msg);
+}
+
+//非 yglobal.h 声明的平台相关函数。
+
+bool
+InitAllScreens()
+{
+	using namespace Runtime;
+
+	InitVideo();
+	pScreenUp->SetPtr(DS::InitScrUp(pScreenUp->bg));
+	pScreenDown->SetPtr(DS::InitScrDown(pScreenDown->bg));
+	return true;
 }
 
 
@@ -225,7 +193,7 @@ namespace
 	#endif
 			if(!fatInitDefault())
 				LibfatFail();
-			IO::ChDir(DEF_DIRECTORY);
+			IO::ChangeDirectory(DEF_DIRECTORY);
 	#ifdef USE_EFS
 		}
 	#endif
@@ -237,15 +205,24 @@ namespace
 		InitializeSystemFontCache();
 
 		//初始化显示设备。
-		if((pScreenUp = new YScreen(SCRW, SCRH)))
+		try
+		{
+			pScreenUp = new YScreen(SCRW, SCRH);
+			pScreenDown = new YScreen(SCRW, SCRH);
+		}
+		catch(...)
+		{
+			throw LoggedEvent("Screen initialization failed.");
+		}
+		try
+		{
 			pDesktopUp = new YDesktop(*pScreenUp);
-		else //初始化上屏失败。
-			throw LoggedEvent("Initialization of up screen failed.");
-		if((pScreenDown = new YScreen(SCRW, SCRH)))
 			pDesktopDown = new YDesktop(*pScreenDown);
-		else //初始化下屏失败。
-			throw LoggedEvent("Initialization of down screen failed.");
-
+		}
+		catch(...)
+		{
+			throw LoggedEvent("Desktop initialization failed.");
+		}
 		//注册全局应用程序对象。
 		theApp.ResetShellHandle();
 		//theApp.SetOutputPtr(pDesktopUp);

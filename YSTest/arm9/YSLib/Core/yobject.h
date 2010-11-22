@@ -11,12 +11,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.2659;
+\version 0.2660;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-12 19:08 + 08:00;
+	2010-11-15 17:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -122,7 +122,7 @@ _type* GStaticCache<_type>::_ptr(NULL);
 
 
 //! \brief 通用对象组类模板。
-template<class _type, class _tContainer = std::set<_type*> >
+template<class _type, class _tContainer = set<_type*> >
 class GContainer : public _tContainer,
 	implements GIContainer<_type>
 {

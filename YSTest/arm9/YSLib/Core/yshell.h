@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 定义。
-\version 0.2626;
+\version 0.2638;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 + 08:00;
 \par 修改时间:
-	2010-11-12 19:08 + 08:00;
+	2010-11-15 19:11 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,12 +27,18 @@
 #ifndef INCLUDED_YSHELL_H_
 #define INCLUDED_YSHELL_H_
 
-#include "../Helper/yglobal.h"
+#include "ysmsg.h"
 #include "yfunc.hpp"
 //#include <set>
 //#include <list>
 
 YSL_BEGIN
+
+/*!
+\brief 主 Shell 处理函数。
+*/
+extern LRES
+MainShlProc(const Message&);
 
 YSL_BEGIN_NAMESPACE(Shells)
 
@@ -55,7 +61,7 @@ public:
 	/*!
 	\brief 析构。
 	\note 无异常抛出。
-			发送 SM_DESTROY 消息。
+		发送 SM_DESTROY 消息。
 	*/
 	virtual
 	~YShell() ythrow();
@@ -183,7 +189,7 @@ YShellMain::~YShellMain() ythrow()
 inline LRES
 Shells::YShellMain::ShlProc(const Message& msg)
 {
-	return DefaultMainShlProc(msg);
+	return MainShlProc(msg);
 }
 
 

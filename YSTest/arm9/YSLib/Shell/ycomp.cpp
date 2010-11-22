@@ -11,12 +11,12 @@
 /*!	\file ycomp.cpp
 \ingroup Shell
 \brief 平台无关的组件和图形用户界面组件实现。
-\version 0.1838;
+\version 0.1859;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:18 + 08:00;
 \par 修改时间:
-	2010-11-12 18:42 + 08:00;
+	2010-11-15 19:17 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,10 +25,23 @@
 
 
 #include "ycomp.h"
+#include "../Helper/yglobal.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
+
+void
+Activate(YConsole& c, Drawing::Color fc, Drawing::Color bc)
+{
+	InitConsole(c.Screen, fc, bc);
+}
+
+void
+Deactivate(YConsole&)
+{
+	InitVideo();
+}
 
 YSL_BEGIN_NAMESPACE(Widgets)
 

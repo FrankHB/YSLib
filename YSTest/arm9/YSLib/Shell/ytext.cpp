@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6242;
+\version 0.6250;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 + 08:00;
 \par 修改时间:
-	2010-11-12 15:21 + 08:00;
+	2010-11-17 20:13 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,18 +57,20 @@ TextState::SetFont(const char* name, CPATH filename)
 }*/
 
 void
-SetPensTo(TextState& s)
+TextState::ResetPen()
 {
-	s.PenX = s.Margin.Left;
-	//	s.PenY = s.Margin.Top + GetLnHeightExFrom();
-	//	s.PenY = s.Margin.Top + pCache->GetAscender();
-	SetLnNNowTo(s, 0);
+	PenX = Margin.Left;
+	//	PenY = Margin.Top + GetLnHeightExFrom(*this);
+	//	PenY = Margin.Top + pCache->GetAscender();
+	SetLnNNowTo(*this, 0);
 }
+
 
 void
 SetLnNNowTo(TextState& s, u16 n)
 {
-	s.PenY = s.Margin.Top + s.GetCache().GetAscender() + GetLnHeightExFrom(s) * n;
+	s.PenY = s.Margin.Top + s.GetCache().GetAscender()
+		+ GetLnHeightExFrom(s) * n;
 }
 
 
@@ -184,21 +186,21 @@ TextRegion::TextRegion()
 {
 	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
-	SetPensTo(*this);
+	this->ResetPen();
 }
 TextRegion::TextRegion(Drawing::Font& font)
 	: TextState(font), BitmapBufferEx()
 {
 	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
-	SetPensTo(*this);
+	this->ResetPen();
 }
 TextRegion::TextRegion(YFontCache& fc)
 	: TextState(fc), BitmapBufferEx()
 {
 	Font.SetSize(Font::DefSize);
 	Font.UpdateSize();
-	SetPensTo(*this);
+	this->ResetPen();
 }
 TextRegion::~TextRegion()
 {}

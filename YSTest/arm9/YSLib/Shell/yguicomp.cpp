@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2206;
+\version 0.2394;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-11-12 15:19 + 08:00;
+	2010-11-22 23:07 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,7 +68,7 @@ namespace
 	RectDrawArrow(const Graphics& g, const Point& p, SDST halfSize,
 		ROT rot = RDeg0, Color c = ColorSpace::Black)
 	{
-		YAssert(g.IsValid(), "err: @g is not valid.");
+		YAssert(g.IsValid(), "err: @g is invalid.");
 
 		SDST x(p.X), y(p.Y);
 
@@ -110,11 +110,9 @@ namespace
 	}
 
 	void
-	WndDrawArrow(HWND hWnd, const Rect& r, SDST halfSize,
+	WndDrawArrow(const Graphics& g, const Rect& r, SDST halfSize,
 		ROT rot = RDeg0, Color c = ColorSpace::Black)
 	{
-		YAssert(hWnd, "err: @hWnd is null.");
-
 		SPOS x(r.X), y(r.Y);
 
 		switch(rot)
@@ -123,28 +121,28 @@ namespace
 			x += r.Width - 11;
 		case RDeg180:
 			x += 5;
-			y += (r.Height + 1) >> 1;
+			y += (r.Height + 1) / 2;
 			break;
 		case RDeg90:
 			y += r.Height - 11;
 		case RDeg270:
 			y += 5;
-			x += (r.Width + 1) >> 1;
+			x += (r.Width + 1) / 2;
 			break;
 		}
-		RectDrawArrow(Graphics(*hWnd), Point(x, y), halfSize, rot, c);
+		RectDrawArrow(g, Point(x, y), halfSize, rot, c);
 	}
 
 	void
 	RectDrawButton(const Graphics& g, const Point& p, const Size& s,
 		bool bPressed = false, Color c = Color(48, 216, 255))
 	{
-		YAssert(g.IsValid(), "err: @g is not valid.");
+		YAssert(g.IsValid(), "err: @g is invalid.");
 
 		FillRect(g, p, s, c);
 		if(s.Width > 4 && s.Height > 4)
 		{
-			const Size sz(s.Width - 4, (s.Height - 4) >> 1);
+			const Size sz(s.Width - 4, (s.Height - 4) / 2);
 			Point sp(p.X + 2, p.Y + 2);
 
 			FillRect(g, sp, sz, Color(232, 240, 255));
@@ -173,9 +171,9 @@ YThumb::DrawForeground()
 	ParentType::DrawForeground();
 
 	HWND hWnd(GetWindowHandle());
-	const Point pt(LocateForWindow(*this));
 
-	RectDrawButton(Graphics(*hWnd), pt, GetSize(), bPressed);
+	RectDrawButton(Graphics(*hWnd), LocateForWindow(*this),
+		 GetSize(), bPressed);
 	if(bFocused)
 		WndDrawFocus(hWnd, GetSize());
 }
@@ -199,16 +197,7 @@ YButton::YButton(HWND hWnd, const Rect& r, const Drawing::Font& f, IUIBox* pCon,
 	GHResource<Drawing::TextRegion> prTr_)
 	: YThumb(hWnd, r, pCon),
 	MLabel(f, prTr_)
-{
-	_m_init();
-}
-
-void
-YButton::_m_init()
-{
-	Click += &YButton::OnClick;
-	KeyDown += &YButton::OnKeyDown;
-}
+{}
 
 void
 YButton::DrawForeground()
@@ -219,24 +208,42 @@ YButton::DrawForeground()
 	PaintText(*this, LocateForWindow(*this));
 }
 
-void
-YButton::OnKeyDown(KeyEventArgs&)
-{}
 
 void
-YButton::OnClick(TouchEventArgs&)
-{}
+MSimpleFocusResponser::ClearFocusingPtr()
+{
+	pFocusing = NULL;
+}
+
+bool
+MSimpleFocusResponser::ResponseFocusRequest(AFocusRequester& w)
+{
+//	if(&w == &Thumb)
+	pFocusing = dynamic_cast<IVisualControl*>(&w);
+	return pFocusing;
+}
+
+bool
+MSimpleFocusResponser::ResponseFocusRelease(AFocusRequester& w)
+{
+	if(pFocusing == dynamic_cast<IVisualControl*>(&w))
+	{
+		pFocusing = NULL;
+	//	w.ReleaseFocusRaw();
+		return true;
+	}
+	return false;
+}
 
 
 ATrack::ATrack(HWND hWnd, const Rect& r, IUIBox* pCon, SDST uMinThumbLength)
 	: AVisualControl(hWnd, Rect(r.GetPoint(),
 		vmax<SDST>(16, r.Width), vmax<SDST>(16, r.Height)), pCon),
-	Thumb(hWnd, Rect(0, 0, 16, 16), this), pFocusing(NULL)
+	Thumb(hWnd, Rect(0, 0, 16, 16), this),
+	MinThumbLength(uMinThumbLength)
 {
-	// TODO: 添加断言。
-	// Make sure the long side is greater than two times of the short side;
-
 	TouchMove += OnTouchMove;
+	TouchDown += &ATrack::OnTouchDown;
 }
 
 IWidget*
@@ -255,7 +262,7 @@ ATrack::SetThumbLength(SDST l)
 {
 	RestrictInClosedInterval(l, MinThumbLength, GetTrackLength());
 
-	Drawing::Size s(Thumb.GetSize());
+	Size s(Thumb.GetSize());
 
 	UpdateTo(s, l, IsHorizontal());
 	Thumb.SetSize(s);
@@ -278,34 +285,36 @@ ATrack::SetThumbPosition(SDST l)
 }
 
 void
-ATrack::ClearFocusingPtr()
+ATrack::DrawBackground()
 {
-	pFocusing = NULL;
-}
+	YWidgetAssert(this, Controls::ATrack, DrawBackground);
 
-bool
-ATrack::ResponseFocusRequest(AFocusRequester& w)
-{
-//	if(&w == &Thumb)
-	pFocusing = dynamic_cast<IVisualControl*>(&w);
-	return pFocusing;
-}
+	const Graphics g(*GetWindowHandle());
+	const Point loc(LocateForWindow(*this));
 
-bool
-ATrack::ResponseFocusRelease(AFocusRequester& w)
-{
-	if(pFocusing == dynamic_cast<IVisualControl*>(&w))
+	FillRect(g, loc, GetSize(), Color(237, 237, 237));
+
+	const SPOS xr(loc.X + GetWidth() - 1);
+	const SPOS yr(loc.Y + GetHeight() - 1);
+	const Color c(227, 227, 227);
+
+	if(IsHorizontal())
 	{
-		pFocusing = NULL;
-	//	w.ReleaseFocusRaw();
-		return true;
+		DrawHLineSeg(g, loc.Y, loc.X, xr, c);
+		DrawHLineSeg(g, yr, loc.X, xr, c);
 	}
-	return false;
+	else
+	{
+		DrawVLineSeg(g, loc.X, loc.Y, yr, c);
+		DrawVLineSeg(g, xr, loc.Y, yr, c);
+	}
 }
 
 void
 ATrack::DrawForeground()
 {
+	YWidgetAssert(this, Controls::ATrack, DrawForeground);
+
 	ParentType::DrawForeground();
 	Thumb.DrawForeground();
 }
@@ -319,8 +328,8 @@ ATrack::CheckArea(SDST q) const
 	std::size_t n(SwitchInterval(q, a, 3));
 
 	YAssert(n < 3,
-		"In function \"ATrack::Area\n"
-		"ATrack::CheckArea(SPOS q) const\": \n"
+		"In function \"Components::Controls::ATrack::Area\n"
+		"Components::Controls::ATrack::CheckArea(SPOS q) const\": \n"
 		"Array index is out of bound.");
 
 	return lst[n];
@@ -353,7 +362,29 @@ ATrack::ResponseTouchDown(SDST v)
 }
 
 void
-ATrack::OnDrag_Thumb_Horizontal(TouchEventArgs& e)
+ATrack::OnTouchDown(TouchEventArgs& e)
+{
+	if(Rect(Point::Zero, GetSize()).Contains(e))
+		ResponseTouchDown(SelectFrom(e, IsHorizontal()));
+}
+
+
+YHorizontalTrack::YHorizontalTrack(HWND hWnd, const Rect& r, IUIBox* pCon,
+	SDST uMinThumbLength)
+	: YComponent(),
+	ATrack(hWnd, r, pCon, uMinThumbLength)
+{
+	YAssert(GetWidth() > GetHeight() * 2,
+		"In constructor Components::Controls::\n"
+			"YHorizontalTrack::YHorizontalTrack"
+		"(HWND hWnd, const Rect& r, IUIBox* pCon) const\": \n"
+		"Width is not greater than two times of height.");
+
+	Thumb.TouchMove.Add(*this, &YHorizontalTrack::OnDrag_Thumb_Horizontal);
+}
+
+void
+YHorizontalTrack::OnDrag_Thumb_Horizontal(TouchEventArgs& e)
 {
 	using namespace InputStatus;
 
@@ -364,8 +395,23 @@ ATrack::OnDrag_Thumb_Horizontal(TouchEventArgs& e)
 	Refresh();
 }
 
+
+YVerticalTrack::YVerticalTrack(HWND hWnd, const Rect& r, IUIBox* pCon,
+	SDST uMinThumbLength)
+	: YComponent(),
+	ATrack(hWnd, r, pCon, uMinThumbLength)
+{
+	YAssert(GetHeight() > GetWidth() * 2,
+		"In constructor Components::Controls::\n"
+			"YHorizontalTrack::YHorizontalTrack"
+		"(HWND hWnd, const Rect& r, IUIBox* pCon) const\": \n"
+		"height is not greater than two times of width.");
+
+	Thumb.TouchMove.Add(*this, &YVerticalTrack::OnDrag_Thumb_Vertical);
+}
+
 void
-ATrack::OnDrag_Thumb_Vertical(TouchEventArgs& e)
+YVerticalTrack::OnDrag_Thumb_Vertical(TouchEventArgs& e)
 {
 	using namespace InputStatus;
 
@@ -376,63 +422,40 @@ ATrack::OnDrag_Thumb_Vertical(TouchEventArgs& e)
 	Refresh();
 }
 
-void
-ATrack::OnTouchDown_Horizontal(TouchEventArgs& e)
-{
-	if(Rect(Point::Zero, GetSize()).Contains(e))
-		ResponseTouchDown(e.X);
-}
-
-void
-ATrack::OnTouchDown_Vertical(TouchEventArgs& e)
-{
-	if(Rect(Point::Zero, GetSize()).Contains(e))
-		ResponseTouchDown(e.Y);
-}
-
-
-YHorizontalTrack::YHorizontalTrack(HWND hWnd, const Rect& r, IUIBox* pCon)
-	: YComponent(),
-	ATrack(hWnd, r, pCon)
-{
-	TouchDown += &ATrack::OnTouchDown_Horizontal;
-	Thumb.TouchMove.Add(static_cast<ATrack&>(*this),
-		&ATrack::OnDrag_Thumb_Horizontal);
-}
-
-
-YVerticalTrack::YVerticalTrack(HWND hWnd, const Rect& r, IUIBox* pCon)
-	: YComponent(),
-	ATrack(hWnd, r, pCon)
-{
-	TouchDown += &ATrack::OnTouchDown_Vertical;
-	Thumb.TouchMove.Add(static_cast<ATrack&>(*this),
-		&ATrack::OnDrag_Thumb_Vertical);
-}
-
 
 AScrollBar::AScrollBar(HWND hWnd, const Rect& r, IUIBox* pCon,
 	SDST uMinThumbSize, Widgets::Orientation o)
-	: ATrack(hWnd, r, pCon, uMinThumbSize),
-	PrevButton(hWnd, Rect(), pCon), NextButton(hWnd, Rect(), pCon)
+try	: AVisualControl(hWnd, r, pCon),
+	pTrack(o == Widgets::Horizontal
+		? static_cast<ATrack*>(new YHorizontalTrack(hWnd,
+			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), this,
+			uMinThumbSize))
+		: static_cast<ATrack*>(new YVerticalTrack(hWnd,
+			Rect(0, r.Width, r.Height - r.Width * 2, r.Width), this,
+			uMinThumbSize))),
+	PrevButton(hWnd, Rect(), this), NextButton(hWnd, Rect(), this)
 {
-//	PrevButton.SetLocation(Point::Zero);
+	Size s(GetSize());
+	const bool bHorizontal(o == Widgets::Horizontal);
+	const SDST l(SelectFrom(s, !bHorizontal));
 
-	Drawing::Size s(GetSize());
-
-	const bool isHorizontal(o == Widgets::Horizontal);
-	const SDST l(SelectFrom(s, !isHorizontal));
-
-	UpdateTo(s, isHorizontal, l);
+	UpdateTo(s, l, bHorizontal);
 	PrevButton.SetSize(s);
 	NextButton.SetSize(s);
-
-	Point p(GetLocation());
-
-	UpdateTo(p, SelectFrom(GetSize(), isHorizontal) - l, isHorizontal);
-	NextButton.SetLocation(p);
+//	PrevButton.SetLocation(Point::Zero);
+	Widgets::MoveToBottom(NextButton);
+	Widgets::MoveToRight(NextButton);
+}
+catch(...)
+{
+	throw LoggedEvent("Error occured @@ AScrollBar::AScrollBar();");
 }
 
+IWidget*
+AScrollBar::GetTopWidgetPtr(const Point& p)
+{
+	return GetTopVisualControlPtr(p);
+}
 IVisualControl*
 AScrollBar::GetTopVisualControlPtr(const Point& p)
 {
@@ -440,28 +463,7 @@ AScrollBar::GetTopVisualControlPtr(const Point& p)
 		return &PrevButton;
 	if(Contains(NextButton, p))
 		return &NextButton;
-
-	Point pt(p);
-
-	if(IsHorizontal())
-		pt.X -= PrevButton.GetWidth();
-	else
-		pt.Y -= PrevButton.GetHeight();
-	return ParentType::GetTopVisualControlPtr(pt);
-}
-SDST
-AScrollBar::GetTrackLength() const ythrow()
-{
-	return ParentType::GetTrackLength()
-		- SelectFrom(PrevButton.GetSize(), IsHorizontal())
-		- SelectFrom(NextButton.GetSize(), IsHorizontal());
-}
-
-void
-AScrollBar::SetThumbPosition(SDST l)
-{
-	return ParentType::SetThumbPosition(l
-		- SelectFrom(PrevButton.GetSize(), IsHorizontal()));
+	return pTrack.get();
 }
 
 void
@@ -469,39 +471,24 @@ AScrollBar::DrawBackground()
 {
 	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawBackground);
 
-	if(GetWindowHandle())
-	{
-		const Graphics g(*GetWindowHandle());
-
-		FillRect(g, GetBounds(), Color(237, 237, 237));
-
-		SPOS xr(GetX() + GetWidth() - 1);
-
-		DrawHLineSeg(g, GetY(), GetX(), xr, Color(227, 227, 227));
-		DrawHLineSeg(g, GetY() + GetHeight() - 1, GetX(), xr,
-			Color(227, 227, 227));
-	}
+	pTrack->DrawBackground();
 }
 
 void
 AScrollBar::DrawForeground()
 {
 	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawForeground);
+
+	ParentType::DrawForeground();
+
 	const Graphics g(*GetWindowHandle());
 	const Point b(LocateForWindow(*this));
 
-	ParentType::DrawForeground();
+	pTrack->DrawForeground();
 	PrevButton.DrawForeground();
 	NextButton.DrawForeground();
-/*	RectDrawButton(g, b,
-		Drawing::Size(PrevButtonSize, GetHeight()),	Pressed == PrevButton);
-	WndDrawArrow(GetWindowHandle(), GetBounds(), 4, RDeg180, ForeColor);
-	RectDrawButton(g, Point(b.X + GetWidth() - NextButtonSize, b.Y),
-		Drawing::Size(NextButtonSize, GetHeight()), Pressed == NextButton);
-	WndDrawArrow(GetWindowHandle(), GetBounds(), 4, RDeg0, ForeColor);
-	RectDrawButton(g, Point(b.X + PrevButtonSize + GetThumbPosition(), b.Y),
-		Drawing::Size(GetThumbSize(), GetHeight()), Pressed == Thumb,
-		ColorSpace::Gray);*/
+	WndDrawArrow(g, PrevButton.GetBounds(), 4, RDeg180, ForeColor);
+	WndDrawArrow(g, NextButton.GetBounds(), 4, RDeg0, ForeColor);
 }
 
 /*SDST
@@ -571,22 +558,17 @@ SDST
 YListBox::GetItemHeight() const
 {
 	YAssert(prTextRegion,
-		"In function \"SDST\nYListBox::GetItemHeight()\": \n"
+		"In function \"SDST\n"
+		"Components::Controls::YListBox::GetItemHeight()\": \n"
 		"The text region pointer is null.");
-	return GetLnHeightExFrom(*prTextRegion) + (defMarginV << 1);
+	return GetLnHeightExFrom(*prTextRegion) + defMarginV * 2;
 }
 
 void
 YListBox::SetSelected(YListBox::ViewerType::IndexType i)
 {
-	if(IsInInterval<ViewerType::IndexType>(i, Viewer.GetLength()))
-	{
-		const ViewerType::IndexType nOld(Viewer.GetSelected());
-
-		Viewer.SetSelected(Viewer.GetIndex() + i);
-		if(Viewer.GetSelected() != nOld)
-			CallSelected();
-	}
+	if(Viewer.Contains(i) && Viewer.SetSelected(Viewer.GetIndex() + i))
+		CallSelected();
 }
 void
 YListBox::SetSelected(SPOS x, SPOS y)
@@ -622,7 +604,7 @@ YListBox::DrawForeground()
 
 			prTextRegion->Font = Font;
 			prTextRegion->Font.Update();
-			SetPensTo(*prTextRegion);
+			prTextRegion->ResetPen();
 			prTextRegion->SetSize(lnWidth, lnHeight);
 			SetMarginsTo(*prTextRegion, defMarginH, defMarginV);
 			Viewer.SetLength((GetHeight() + prTextRegion->LineGap)
@@ -633,26 +615,26 @@ YListBox::DrawForeground()
 			Point pt(LocateForWindow(*this));
 			const Graphics g(*GetWindowHandle());
 
-			for(ViewerType::IndexType i(Viewer.GetIndex() >= 0
-				? Viewer.GetIndex() : last); i < last; ++i)
-			{
-				if(Viewer.IsSelected() && i == Viewer.GetSelected())
+			if(Viewer.GetIndex() >= 0)
+				for(ViewerType::IndexType i(Viewer.GetIndex()); i < last; ++i)
 				{
-					prTextRegion->Color = ColorSpace::White;
-					FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
-						Rect(pt.X + 1, pt.Y + 1, prTextRegion->Width - 2,
-						prTextRegion->Height - 1),
-						ColorSpace::Aqua);
+					if(Viewer.IsSelected() && i == Viewer.GetSelected())
+					{
+						prTextRegion->Color = ColorSpace::White;
+						FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
+							Rect(pt.X + 1, pt.Y + 1, prTextRegion->Width - 2,
+							prTextRegion->Height - 1),
+							ColorSpace::Aqua);
+					}
+					else
+						prTextRegion->Color = ForeColor;
+					prTextRegion->PutLine(List[i]);
+					prTextRegion->ResetPen();
+					prTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
+						g.GetSize(), Point::Zero, pt, *prTextRegion);
+					pt.Y += lnHeight;
+					prTextRegion->ClearImage();
 				}
-				else
-					prTextRegion->Color = ForeColor;
-				prTextRegion->PutLine(List[i]);
-				SetPensTo(*prTextRegion);
-				prTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0, g.GetSize(),
-					Point::Zero, pt, *prTextRegion);
-				pt.Y += lnHeight;
-				prTextRegion->ClearImage();
-			}
 			prTextRegion->SetSize(0, 0);
 		}
 	}
@@ -666,9 +648,8 @@ YListBox::CheckPoint(SPOS x, SPOS y)
 		"Components::Controls::YListBox::CheckClick(const Point& pt)\":\n"
 		"The text region pointer is null.");
 
-	return GetBounds().Contains(x, y)
-		? (y - GetY()) / (GetLnHeightExFrom(*prTextRegion) + (defMarginV << 1))
-		: -1;
+	return Rect(Point::Zero, GetSize()).Contains(x, y)
+		? y / GetItemHeight() : -1;
 }
 
 void
@@ -680,11 +661,11 @@ YListBox::CallSelected()
 }
 
 void
-YListBox::CallConfirmed()
+YListBox::CallConfirmed(YListBox::ViewerType::IndexType i)
 {
-	if(Viewer.IsSelected())
+	if(Viewer.IsSelected() && Viewer.GetSelected() + Viewer.GetIndex() == i)
 	{
-		IndexEventArgs e(*this, Viewer.GetSelected());
+		IndexEventArgs e(*this, i);
 
 		Confirmed(*this, e);
 	}
@@ -698,7 +679,7 @@ YListBox::OnKeyDown(KeyEventArgs& k)
 		switch(k.GetKey())
 		{
 		case KeySpace::Enter:
-			CallConfirmed();
+			CallConfirmed(Viewer.GetSelected());
 			break;
 
 		case KeySpace::ESC:
@@ -756,13 +737,13 @@ YListBox::OnTouchMove(TouchEventArgs& e)
 }
 
 void
-YListBox::OnClick(TouchEventArgs&)
+YListBox::OnClick(TouchEventArgs& e)
 {
-	CallConfirmed();
+	CallConfirmed(CheckPoint(e));
 }
 
 void
-YListBox::OnSelected(IndexEventArgs&)
+YListBox::OnSelected(IndexEventArgs& e)
 {
 	Refresh();
 }
@@ -806,13 +787,13 @@ YFileBox::DrawForeground()
 	YWidgetAssert(this, Controls::YFileBox, DrawForeground);
 
 	ListItems();
-	YListBox::DrawForeground();
+	ParentType::DrawForeground();
 }
 
 void
 YFileBox::OnConfirmed(IndexEventArgs& e)
 {
-	if(*this /= List[e.Index])
+	if(Viewer.Contains(e) && static_cast<bool>(*this /= List[e.Index]))
 	{
 		Viewer.MoveViewerToBegin();
 		Viewer.SetSelected(0);

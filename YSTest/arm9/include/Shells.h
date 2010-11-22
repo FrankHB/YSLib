@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.2861;
+\version 0.2870;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-11-12 18:37 + 08:00;
+	2010-11-22 17:37 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,7 +56,7 @@ class ShlLoad : public ShlDS
 {
 private:
 	struct TFrmLoadUp
-	: public YForm
+		: public YForm
 	{
 		YLabel lblTitle, lblStatus;
 
@@ -71,7 +71,8 @@ private:
 			Draw();
 		}
 	};
-	struct TFrmLoadDown : public YForm
+	struct TFrmLoadDown
+		: public YForm
 	{
 		YLabel lblStatus;
 
@@ -177,8 +178,8 @@ class ShlSetting : public ShlDS
 public:
 	typedef ShlDS ParentType;
 
-	static const SPOS left = 5;
-	static const SDST size = 22;
+	static const SPOS s_left = 5;
+	static const SDST s_size = 22;
 
 	static HWND hWndC;
 
@@ -187,9 +188,10 @@ public:
 		YLabel lblA;
 		YLabel lblA2;
 
-		TFormA(HSHL hShl) : YForm(Rect::FullScreen, GetImage(5), pDesktopUp, hShl),
-			lblA(HWND(this), Rect(left, 20, 200, size)),
-			lblA2(HWND(this), Rect(left, 80, 72, size))
+		TFormA(HSHL hShl)
+			: YForm(Rect::FullScreen, GetImage(5), pDesktopUp, hShl),
+			lblA(HWND(this), Rect(s_left, 20, 200, s_size)),
+			lblA2(HWND(this), Rect(s_left, 80, 72, s_size))
 		{
 			lblA.Text = G_APP_NAME;
 			lblA2.Text = "程序测试";
@@ -207,8 +209,8 @@ public:
 		YButton btnB, btnB2;
 
 		TFormB(HSHL hShl) : YForm(Rect(10, 40, 228, 70), /*GetImage(6)*/NULL, pDesktopDown, hShl),
-			btnB(HWND(this), Rect(2, 5, 224, size)),
-			btnB2(HWND(this), Rect(45, 35, 124, size))
+			btnB(HWND(this), Rect(2, 5, 224, s_size)),
+			btnB2(HWND(this), Rect(45, 35, 124, s_size))
 		{
 			btnB.Text = FS("测试程序");
 			btnB2.Text = FS("测试程序2");
@@ -235,8 +237,8 @@ public:
 		YButton btnReturn;
 
 		TFormC(HSHL hShl) : YForm(Rect(5, 60, 180, 120), /*GetImage(7)*/NULL, pDesktopDown, hShl),
-			btnC(HWND(this), Rect(13, 45, 184, size)),
-			btnReturn(HWND(this), Rect(13, 82, 60, size))
+			btnC(HWND(this), Rect(13, 45, 184, s_size)),
+			btnReturn(HWND(this), Rect(13, 82, 60, s_size))
 		{
 			btnC.Text = FS("测试y");
 			btnReturn.Text = FS("返回");
@@ -268,7 +270,8 @@ public:
 
 	void ShowString(const String& s)
 	{
-		GHHandle<TFormA>(dynamic_cast<TFormA*>(GetPointer(hWndUp)))->ShowString(s);
+		GHHandle<TFormA>(dynamic_cast<TFormA*>(GetPointer(hWndUp)))
+			->ShowString(s);
 	}
 	void ShowString(const char* s)
 	{
@@ -282,7 +285,7 @@ public:
 		{
 			TFormC& frm(dynamic_cast<TFormC&>(sender));
 
-			frm.BackColor = ARGB16(1, rand(), rand(), rand());
+			frm.BackColor = ARGB16(1, std::rand(), std::rand(), std::rand());
 			frm.Refresh();
 		}
 		catch(std::bad_cast&)
