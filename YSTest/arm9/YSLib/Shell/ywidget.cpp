@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4633;
+\version 0.4693;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-22 21:11 + 08:00;
+	2010-11-25 13:41 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,12 +41,14 @@ Contains(const IWidget& w, SPOS x, SPOS y)
 }
 
 
-HWND
-GetWindowHandleFrom(const IWidget& w)
+YDesktop*
+FetchWidgetDirectDesktopPtr(const IWidget* pWgt)
 {
-	IUIBox* const pCon(w.GetContainerPtr());
+	const YDesktop* pDsk(NULL);
 
-	return pCon ? pCon->GetWindowHandle() : NULL;
+	while(pWgt && !(pDsk = dynamic_cast<const YDesktop*>(pWgt)))
+		pWgt = pWgt->GetContainerPtr();
+	return const_cast<YDesktop*>(pDsk);
 }
 
 
@@ -112,30 +114,25 @@ LocateForWidget(IWidget& a, IWidget& b)
 }
 
 Point
-LocateForWindow(const IWidget& w)
+LocateForWindow(IWidget& w)
 {
-	const HWND hWnd(GetDirectWindowHandleFrom(w));
+	if(dynamic_cast<IWindow*>(&w))
+		return Point::Zero;
 
-	return hWnd ? LocateOffset(&w, Point::Zero, hWnd)
-		: Point::FullScreen;
+	const HWND hWnd(FetchDirectWindowHandle(w));
+
+	return hWnd ? LocateOffset(&w, Point::Zero, hWnd) : Point::FullScreen;
 }
 
 Point
-LocateForDesktop(const IWidget& w)
+LocateForDesktop(IWidget& w)
 {
-	if(dynamic_cast<const YDesktop*>(&w))
+	if(dynamic_cast<YDesktop*>(&w))
 		return Point::Zero;
 
-	HWND hWnd(GetDirectWindowHandleFrom(w));
+	YDesktop* pDsk(FetchDirectDesktopPtr(w));
 
-	if(hWnd)
-	{
-		YDesktop* pDsk(hWnd->GetDesktopPtr());
-
-		if(pDsk)
-			return LocateOffset(&w, Point::Zero, pDsk);
-	}
-	return Point::FullScreen;
+	return pDsk ? LocateOffset(&w, Point::Zero, pDsk) : Point::FullScreen;
 }
 
 Point
@@ -149,7 +146,7 @@ LocateForParentContainer(const IWidget& w)
 Point
 LocateForParentWindow(const IWidget& w)
 {
-	const HWND hWnd(GetWindowHandleFrom(w));
+	const HWND hWnd(FetchWindowHandle(w));
 
 	return hWnd ? LocateWindowOffset(*hWnd, w.GetLocation())
 		: Point::FullScreen;
@@ -206,7 +203,7 @@ namespace
 	void
 	Fill(_tWidget& w, Color c)
 	{
-		HWND hWnd(GetDirectWindowHandleFrom(w));
+		HWND hWnd(FetchDirectWindowHandle(w));
 
 		if(hWnd)
 		{
@@ -253,10 +250,10 @@ Visual::SetBounds(const Rect& r)
 }
 
 
-Widget::Widget(HWND hWnd, const Rect& r, IUIBox* pCon,
+Widget::Widget(const Rect& r, IUIBox* pCon,
 	Color b, Color f)
 	: Visual(r, b, f),
-	hWindow(hWnd), pContainer(pCon ? pCon : GetPointer(hWnd))
+	pContainer(pCon)
 {}
 
 void
@@ -280,23 +277,25 @@ Widget::DrawForeground()
 void
 Widget::Refresh()
 {
-	if(hWindow)
-		hWindow->SetRefresh(true);
+	const HWND hWnd(FetchWindowHandle(*this));
+
+	if(hWnd)
+		hWnd->SetRefresh(true);
 }
 
 
-YWidget::YWidget(HWND hWnd, const Rect& r, IUIBox* pCon)
+YWidget::YWidget(const Rect& r, IUIBox* pCon)
 	: YComponent(),
-	Widget(hWnd, r, pCon)
+	Widget(r, pCon)
 {
-	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
+	IUIContainer* const p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
 
 	if(p)
 		*p += static_cast<IWidget&>(*this);
 }
 YWidget::~YWidget() ythrow()
 {
-	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
+	IUIContainer* const p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
 
 	if(p)
 		*p -= static_cast<IWidget&>(*this);
@@ -304,8 +303,7 @@ YWidget::~YWidget() ythrow()
 
 
 MUIContainer::MUIContainer()
-	: GMFocusResponser<IVisualControl>(),
-	sWgtSet()
+	: GMFocusResponser<IVisualControl>(), sWgtSet()
 {}
 
 IVisualControl*
@@ -345,10 +343,9 @@ MUIContainer::ResponseFocusRelease(AFocusRequester& w)
 }
 
 
-YUIContainer::YUIContainer(HWND hWnd, const Rect& r,
-	IUIBox* pCon)
+YUIContainer::YUIContainer(const Rect& r, IUIBox* pCon)
 	: YComponent(),
-	Widget(hWnd, r, pCon), MUIContainer()
+	Widget(r, pCon), MUIContainer()
 {
 	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
 
@@ -379,7 +376,7 @@ MLabel::MLabel(const Drawing::Font& f, GHResource<Drawing::TextRegion> prTr_)
 void
 MLabel::PaintText(Widget& w, const Point& pt)
 {
-	HWND hWnd(GetDirectWindowHandleFrom(w));
+	HWND hWnd(FetchDirectWindowHandle(w));
 
 	if(hWnd && prTextRegion)
 	{
@@ -400,9 +397,9 @@ MLabel::PaintText(Widget& w, const Point& pt)
 }
 
 
-YLabel::YLabel(HWND hWnd, const Rect& r, const Drawing::Font& f, IUIBox* pCon,
+YLabel::YLabel(const Rect& r, IUIBox* pCon, const Drawing::Font& f,
 	GHResource<Drawing::TextRegion> prTr_)
-	: YWidget(hWnd, r, pCon), MLabel(f, pCon
+	: YWidget(r, pCon), MLabel(f, pCon
 	? prTr_ : GetGlobalResource<Drawing::TextRegion>())
 {}
 

@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5416;
+\version 0.5602;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-22 21:11 + 08:00;
+	2010-11-25 13:43 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -87,7 +87,7 @@ yassert(bool exp, const char* msg, int line, const char* file,
 }
 
 #	define YWidgetAssert(ptr, comp, func) \
-	Components::Widgets::yassert((ptr) && GetDirectWindowHandleFrom(*(ptr)), \
+	Components::Widgets::yassert((ptr) && FetchDirectWindowHandle(*(ptr)), \
 		"The direct window handle is null.", __LINE__, __FILE__, #comp, #func)
 
 #	define YWindowAssert(ptr, comp, func) \
@@ -98,7 +98,7 @@ yassert(bool exp, const char* msg, int line, const char* file,
 #else
 
 #	define YWidgetAssert(ptr, comp, func) \
-	assert((ptr) && GetDirectWindowHandleFrom(*(ptr)))
+	assert((ptr) && FetchDirectWindowHandle(*(ptr)))
 
 #	define YWindowAssert(ptr, comp, func) \
 	assert((ptr) && static_cast<Drawing::Graphics>(*ptr).IsValid())
@@ -118,7 +118,7 @@ typedef enum
 
 // GUI 接口和部件定义。
 
-//部件接口。
+//! \brief 部件接口。
 DeclInterface(IWidget)
 	DeclIEntry(bool IsVisible() const) //!< 判断是否可见。
 	DeclIEntry(bool IsTransparent() const) //!< 判断是否透明。
@@ -127,7 +127,6 @@ DeclInterface(IWidget)
 	DeclIEntry(const Point& GetLocation() const)
 	DeclIEntry(const Size& GetSize() const)
 	DeclIEntry(IUIBox* GetContainerPtr() const)
-	DeclIEntry(HWND GetWindowHandle() const)
 
 	DeclIEntry(void SetVisible(bool)) //!< 设置可见。
 	DeclIEntry(void SetTransparent(bool)) //!< 设置透明。
@@ -155,7 +154,7 @@ DeclInterface(IWidget)
 EndDecl
 
 
-//固定部件容器接口。
+//! \brief 固定部件容器接口。
 DeclBasedInterface(IUIBox, virtual IWidget)
 	DeclIEntry(IVisualControl* GetFocusingPtr()) //!< 取焦点对象指针。
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&)) \
@@ -203,17 +202,49 @@ Contains(const IWidget& w, const Point& p)
 
 
 /*!
+\brief 取指针指定的部件的直接窗口句柄。
+*/
+template<class _tWidget>
+HWND
+FetchWidgetDirectWindowHandle(const _tWidget* pWgt)
+{
+	const IWindow* pWnd(NULL);
+
+	while(pWgt && !(pWnd = dynamic_cast<const IWindow*>(pWgt)))
+		pWgt = pWgt->GetContainerPtr();
+	return HWND(const_cast<IWindow*>(pWnd));
+}
+
+/*!
+\brief 取指针指定的部件的直接桌面指针。
+*/
+YDesktop*
+FetchWidgetDirectDesktopPtr(const IWidget*);
+
+/*!
 \brief 取指定部件的窗口句柄。
 */
+template<class _tWidget>
 HWND
-GetWindowHandleFrom(const IWidget&);
+FetchWindowHandle(const _tWidget& w)
+{
+	return FetchWidgetDirectWindowHandle(w.GetContainerPtr());
+}
+/*!
+\brief 取指定部件的窗口句柄。
+*/
+inline HWND
+FetchWindowHandle(const IWidget& w)
+{
+	return FetchWindowHandle<IWidget>(w);
+}
 
 /*!
 \brief 取指定部件的直接容器指针。
 */
 template<class _tWidget>
 IUIBox*
-GetDirectContainerPtrFrom(_tWidget& w)
+FetchDirectContainerPtr(const _tWidget& w)
 {
 	IUIBox* const pCon(const_cast<IUIBox*>(dynamic_cast<const IUIBox*>(&w)));
 
@@ -223,37 +254,39 @@ GetDirectContainerPtrFrom(_tWidget& w)
 \brief 取指定部件的直接容器指针。
 */
 inline IUIBox*
-GetDirectContainerPtrFrom(IWidget& w)
+FetchDirectContainerPtr(const IWidget& w)
 {
-	return GetDirectContainerPtrFrom<IWidget>(w);
+	return FetchDirectContainerPtr<IWidget>(w);
 }
 
 /*!
 \brief 取指定部件的直接窗口句柄。
+\note 加入容器指针判断。
 */
 template<class _tWidget>
 HWND
-GetDirectWindowHandleFrom(_tWidget& w)
+FetchDirectWindowHandle(const _tWidget& w)
 {
-	IUIBox* const pCon(GetDirectContainerPtrFrom(w));
-
-	if(pCon)
-	{
-		IWindow* const pWnd(dynamic_cast<IWindow*>(pCon));
-
-		if(pWnd)
-			return HWND(pWnd);
-		return pCon->GetWindowHandle();
-	}
-	return NULL;
+	return FetchWidgetDirectWindowHandle(FetchDirectContainerPtr(w));
 }
 /*!
 \brief 取指定部件的直接窗口句柄。
+\note 加入容器指针判断。
 */
 inline HWND
-GetDirectWindowHandleFrom(IWidget& w)
+FetchDirectWindowHandle(const IWidget& w)
 {
-	return GetDirectWindowHandleFrom<IWidget>(w);
+	return FetchDirectWindowHandle<IWidget>(w);
+}
+
+/*!
+\brief 取指定部件的直接桌面指针。
+\note 加入容器指针判断。
+*/
+inline YDesktop*
+FetchDirectDesktopPtr(const IWidget& w)
+{
+	return FetchWidgetDirectDesktopPtr(FetchDirectContainerPtr(w));
 }
 
 
@@ -289,7 +322,7 @@ LocateContainerOffset(const IWidget& w, const Point& p)
 inline Point
 LocateWindowOffset(const IWidget& w, const Point& p)
 {
-	return LocateOffset(&w, p, GetWindowHandleFrom(w));
+	return LocateOffset(&w, p, FetchWindowHandle(w));
 }
 
 /*!
@@ -303,14 +336,14 @@ LocateForWidget(IWidget& a, IWidget& b);
 \note 若自身是窗口则返回 Zero ；若无容器或窗口则返回 FullScreen 。
 */
 Point
-LocateForWindow(const IWidget&);
+LocateForWindow(IWidget&);
 
 /*!
 \brief 取指定部件相对于桌面的偏移坐标。
 \note 若自身是桌面则返回 Zero ；若无窗口或窗口不在桌面上则返回 FullScreen 。
 */
 Point
-LocateForDesktop(const IWidget&);
+LocateForDesktop(IWidget&);
 
 /*!
 \brief 取指定部件相对于容器的父容器的偏移坐标。
@@ -364,7 +397,7 @@ void
 Fill(Widget&, Color);
 
 
-//方向模块。
+//! \brief 方向模块。
 class MOriented
 {
 protected:
@@ -382,7 +415,38 @@ MOriented::MOriented(Widgets::Orientation o)
 {}
 
 
-//可视样式模块。
+//! \brief 窗口对象模块。
+class MWindowObject
+{
+private:
+	HWND hWindow; //!< 从属的窗口的句柄。
+
+protected:
+	MWindowObject(HWND);
+
+public:
+	/*!
+	\brief 判断是否属于窗口句柄指定的窗口。
+	*/
+	bool
+	BelongsTo(HWND) const;
+
+	DefGetter(HWND, WindowHandle, hWindow)
+};
+
+inline
+MWindowObject::MWindowObject(HWND hWnd)
+	: hWindow(hWnd)
+{}
+
+inline bool
+MWindowObject::BelongsTo(HWND hWnd) const
+{
+	return hWindow == hWnd;
+}
+
+
+//! \brief 可视样式模块。
 class Visual
 {
 private:
@@ -451,25 +515,18 @@ public:
 };
 
 
-//部件模块。
+//! \brief 部件模块。
 class Widget : public Visual
 {
 private:
-	HWND hWindow; //!< 从属的窗口的句柄。
 	IUIBox* pContainer; //!< 从属的部件容器的指针。
 
 public:
 	explicit
-	Widget(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL,
+	Widget(const Rect& = Rect::Empty, IUIBox* = NULL,
 		Color = ColorSpace::White, Color = ColorSpace::Black);
 	virtual DefEmptyDtor(Widget)
 
-	//判断从属关系。
-	/*!
-	\brief 判断是否属于窗口句柄指定的窗口。
-	*/
-	bool
-	BelongsTo(HWND) const;
 	/*!
 	\brief 判断是否属于指定部件容器指针指定的部件容器。
 	*/
@@ -477,7 +534,6 @@ public:
 	BelongsTo(IUIBox*) const;
 
 	DefGetter(IUIBox*, ContainerPtr, pContainer)
-	DefGetter(HWND, WindowHandle, hWindow)
 
 	/*!
 	\brief 绘制背景。
@@ -499,11 +555,6 @@ public:
 };
 
 inline bool
-Widget::BelongsTo(HWND hWnd) const
-{
-	return hWindow == hWnd;
-}
-inline bool
 Widget::BelongsTo(IUIBox* pCon) const
 {
 	return pContainer == pCon;
@@ -518,10 +569,10 @@ public:
 	typedef YComponent ParentType;
 
 	/*!
-	\brief 构造：使用指定窗口句柄、边界和部件容器指针。
+	\brief 构造：使用指定边界和部件容器指针。
 	*/
 	explicit
-	YWidget(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL);
+	YWidget(const Rect& = Rect::Empty, IUIBox* = NULL);
 	/*!
 	\brief 析构。
 	\note 无异常抛出。
@@ -536,7 +587,6 @@ public:
 	ImplI(IWidget) DefGetterBase(const Point&, Location, Visual)
 	ImplI(IWidget) DefGetterBase(const Size&, Size, Visual)
 	ImplI(IWidget) DefGetterBase(IUIBox*, ContainerPtr, Widget)
-	ImplI(IWidget) DefGetterBase(HWND, WindowHandle, Widget)
 
 	ImplI(IWidget) DefSetterBase(bool, Visible, Visual)
 	ImplI(IWidget) DefSetterBase(bool, Transparent, Visual)
@@ -562,8 +612,8 @@ public:
 };
 
 
-//部件容器模块。
-class MUIContainer : public GMFocusResponser<IVisualControl>,
+//! \brief 部件容器模块。
+class MUIContainer : protected GMFocusResponser<IVisualControl>,
 	implements GIContainer<IVisualControl>
 {
 public:
@@ -577,9 +627,6 @@ protected:
 	FOCs sFOCSet; //!< 子焦点对象容器组。
 
 public:
-	/*!
-	\brief 无参数构造。
-	*/
 	MUIContainer();
 	virtual DefEmptyDtor(MUIContainer)
 
@@ -637,10 +684,10 @@ public:
 	typedef YComponent ParentType;
 
 	/*!
-	\brief 构造：使用指定窗口句柄、边界和部件容器指针。
+	\brief 构造：使用指定边界和部件容器指针。
 	*/
 	explicit
-	YUIContainer(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL);
+	YUIContainer(const Rect& = Rect::Empty, IUIBox* = NULL);
 	/*!
 	\brief 析构。
 	\note 无异常抛出。
@@ -671,7 +718,6 @@ public:
 	ImplI(IUIContainer) DefGetterBase(const Size&, Size, Visual)
 	ImplI(IUIContainer) DefGetterBase(IUIBox*, ContainerPtr,
 		Widget)
-	ImplI(IUIContainer) DefGetterBase(HWND, WindowHandle, Widget)
 	ImplI(IUIContainer) PDefH(IVisualControl*, GetFocusingPtr)
 		ImplBodyBase(GMFocusResponser<IVisualControl>, GetFocusingPtr)
 	ImplI(IUIContainer) PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
@@ -757,12 +803,12 @@ public:
 
 	//用字符串在窗口中以指定字号初始化标签。
 	/*!
-	\brief 构造：使用指定窗口句柄、边界、字体、部件容器指针和文本区域。
+	\brief 构造：使用指定边界、部件容器指针、字体和文本区域。
 	*/
 	explicit
-	YLabel(HWND = NULL, const Rect& = Rect::FullScreen,
+	YLabel(const Rect& = Rect::FullScreen, IUIBox* = NULL,
 		const Drawing::Font& = Drawing::Font::GetDefault(),
-		IUIBox* = NULL, GHResource<Drawing::TextRegion> = NULL);
+		GHResource<Drawing::TextRegion> = NULL);
 
 	virtual DefEmptyDtor(YLabel)
 

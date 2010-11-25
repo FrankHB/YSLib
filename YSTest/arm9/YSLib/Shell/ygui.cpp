@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3138;
+\version 0.3144;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-22 23:07 + 08:00;
+	2010-11-24 09:57 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -391,7 +391,7 @@ DrawWindowBounds(HWND hWnd, Color c)
 void
 DrawWidgetBounds(IWidget& w, Color c)
 {
-	HWND hWnd(GetDirectWindowHandleFrom(w));
+	HWND hWnd(FetchDirectWindowHandle(w));
 
 	if(hWnd)
 		DrawWidgetBounds(hWnd, LocateOffset(&w, Point::Zero, hWnd),
@@ -401,7 +401,7 @@ DrawWidgetBounds(IWidget& w, Color c)
 void
 DrawWidgetOutline(IWidget& w, Color c)
 {
-	HWND hWnd(GetWindowHandleFrom(w));
+	HWND hWnd(FetchWindowHandle(w));
 
 	if(hWnd)
 		DrawWidgetBounds(hWnd, LocateOffset(&w, Point::Zero, hWnd),

@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup Shell
 \brief GUI 焦点特性实现。
-\version 0.2051;
+\version 0.2113;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 + 08:00;
 \par 修改时间:
-	2010-11-12 18:55 + 08:00;
+	2010-11-23 07:44 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,6 +34,43 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 class AFocusRequester;
+
+
+//! \brief 简单焦点响应器。
+class MSimpleFocusResponser
+{
+protected:
+	IVisualControl* pFocusing; //!< 焦点指针。
+
+	MSimpleFocusResponser();
+
+public:
+	/*!
+	\brief 取焦点指针。
+	*/
+	DefGetter(IVisualControl*, FocusingPtr, pFocusing)
+	/*!
+	\brief 清除焦点指针。
+	*/
+	void
+	ClearFocusingPtr();
+
+	/*!
+	\brief 响应焦点请求。
+	*/
+	bool
+	ResponseFocusRequest(AFocusRequester&);
+
+	/*!
+	\brief 响应焦点释放。
+	*/
+	bool
+	ResponseFocusRelease(AFocusRequester&);
+};
+
+inline MSimpleFocusResponser::MSimpleFocusResponser()
+	: pFocusing(NULL)
+{}
 
 
 //! \brief 焦点响应器模板。

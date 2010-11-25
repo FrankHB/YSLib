@@ -11,12 +11,12 @@
 /*!	\file yguicomp.h
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2132;
+\version 0.2280;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-11-20 17:37 + 08:00;
+	2010-11-24 11:09 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,10 +50,10 @@ public:
 	typedef YVisualControl ParentType;
 
 	/*!
-	\brief 构造：使用指定窗口句柄、边界和部件容器指针。
+	\brief 构造：使用指定边界和部件容器指针。
 	*/
 	explicit
-	YThumb(HWND = NULL, const Rect& = Rect::FullScreen, IUIBox* = NULL);
+	YThumb(const Rect& = Rect::FullScreen, IUIBox* = NULL);
 	virtual DefEmptyDtor(YThumb)
 
 	/*!
@@ -89,11 +89,11 @@ public:
 */
 
 	/*!
-	\brief 构造：使用指定窗口句柄、边界、字体和部件容器指针。
+	\brief 构造：使用指定边界、部件容器指针和字体。
 	*/
 	explicit
-	YButton(HWND = NULL, const Rect& = Rect::FullScreen,
-		const Drawing::Font& = Drawing::Font::GetDefault(), IUIBox* = NULL,
+	YButton(const Rect& = Rect::FullScreen, IUIBox* = NULL,
+		const Drawing::Font& = Drawing::Font::GetDefault(),
 		GHResource<Drawing::TextRegion> = NULL);
 	virtual DefEmptyDtor(YButton)
 
@@ -105,40 +105,6 @@ public:
 	DrawForeground();
 };
 
-
-//! \brief 简单焦点响应器。
-class MSimpleFocusResponser
-{
-protected:
-	IVisualControl* pFocusing; //!< 焦点指针。
-
-	MSimpleFocusResponser()
-		: pFocusing(NULL)
-	{}
-
-public:
-	/*!
-	\brief 取焦点指针。
-	*/
-	DefGetter(IVisualControl*, FocusingPtr, pFocusing)
-	/*!
-	\brief 清除焦点指针。
-	*/
-	void
-	ClearFocusingPtr();
-
-	/*!
-	\brief 响应焦点请求。
-	*/
-	bool
-	ResponseFocusRequest(AFocusRequester&);
-
-	/*!
-	\brief 响应焦点释放。
-	*/
-	bool
-	ResponseFocusRelease(AFocusRequester&);
-};
 
 //! \brief 轨道。
 class ATrack : public AVisualControl, public MSimpleFocusResponser,
@@ -164,11 +130,10 @@ private:
 
 public:
 	/*!
-	\brief 构造：使用指定窗口句柄、边界、部件容器指针和大小。
+	\brief 构造：使用指定边界、部件容器指针和大小。
 	*/
 	explicit
-	ATrack(HWND = NULL, const Rect& = Rect::FullScreen, IUIBox* = NULL,
-		SDST = 8);
+	ATrack(const Rect& = Rect::FullScreen, IUIBox* = NULL, SDST = 8);
 	virtual DefEmptyDtor(ATrack)
 
 	DefPredicate(Horizontal, GetOrientation() == Widgets::Horizontal)
@@ -277,11 +242,10 @@ class YHorizontalTrack : public GMCounter<YHorizontalTrack>, public YComponent,
 {
 public:
 	/*!
-	\brief 构造：使用指定窗口句柄、边界和部件容器指针。
+	\brief 构造：使用指定边界和部件容器指针和最小滑块长。
 	*/
 	explicit
-	YHorizontalTrack(HWND = NULL, const Rect& = Rect::FullScreen,
-		IUIBox* = NULL, SDST = 8);
+	YHorizontalTrack(const Rect& = Rect::FullScreen, IUIBox* = NULL, SDST = 8);
 	virtual DefEmptyDtor(YHorizontalTrack)
 
 	ImplI(ATrack)
@@ -302,11 +266,10 @@ class YVerticalTrack : public GMCounter<YVerticalTrack>, public YComponent,
 {
 public:
 	/*!
-	\brief 构造：使用指定窗口句柄、边界和部件容器指针。
+	\brief 构造：使用指定边界、部件容器指针和最小滑块长。
 	*/
 	explicit
-	YVerticalTrack(HWND = NULL, const Rect& = Rect::FullScreen,
-		IUIBox* = NULL, SDST = 8);
+	YVerticalTrack(const Rect& = Rect::FullScreen, IUIBox* = NULL, SDST = 8);
 	virtual DefEmptyDtor(YVerticalTrack)
 
 	ImplI(ATrack)
@@ -336,11 +299,11 @@ protected:
 
 public:
 	/*!
-	\brief 构造：使用指定窗口句柄、边界、部件容器指针、大小和方向。
+	\brief 构造：使用指定边界、部件容器指针、大小和方向。
 	*/
 	explicit
-	AScrollBar(HWND = NULL, const Rect& = Rect::FullScreen, IUIBox* = NULL,
-		SDST = 8, Widgets::Orientation = Widgets::Horizontal);
+	AScrollBar(const Rect& = Rect::FullScreen, IUIBox* = NULL, SDST = 8,
+		Widgets::Orientation = Widgets::Horizontal);
 	virtual DefEmptyDtor(AScrollBar)
 
 	/*!
@@ -409,8 +372,8 @@ public:
 	typedef YComponent ParentType;
 
 	explicit
-	YHorizontalScrollBar(HWND = NULL, const Rect& = Rect::FullScreen,
-		IUIBox* = NULL, SDST = 8);
+	YHorizontalScrollBar(const Rect& = Rect::FullScreen, IUIBox* = NULL,
+		SDST = 8);
 
 	virtual DefEmptyDtor(YHorizontalScrollBar)
 
@@ -455,17 +418,17 @@ public:
 	DefEvent(IndexEventHandler, Confirmed) //!< 项目选中确定事件。
 
 	/*!
-	\brief 构造：使用指定窗口句柄、边界、部件容器指针和文本区域。
+	\brief 构造：使用指定边界、部件容器指针和文本区域。
 	*/
 	explicit
-	YListBox(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL,
+	YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
 		GHResource<Drawing::TextRegion> = NULL);
 	/*!
-	\brief 构造：使用指定窗口句柄、边界、部件容器指针、文本区域和文本列表。
+	\brief 构造：使用指定边界、部件容器指针、文本区域和文本列表。
 	\note 使用外源列表。
 	*/
 	explicit
-	YListBox(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL,
+	YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
 		GHResource<Drawing::TextRegion> = NULL,
 		ListType& List_ = *GetGlobalResource<ListType>()); 
 	/*!
@@ -622,7 +585,7 @@ public:
 	ListType& List;
 
 	explicit
-	YFileBox(HWND = NULL, const Rect& = Rect::Empty, IUIBox* = NULL,
+	YFileBox(const Rect& = Rect::Empty, IUIBox* = NULL,
 		GHResource<Drawing::TextRegion> = NULL);
 	virtual
 	~YFileBox() ythrow();

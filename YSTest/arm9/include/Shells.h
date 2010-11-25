@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.2870;
+\version 0.2880;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-11-22 17:37 + 08:00;
+	2010-11-24 23:20 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,8 +62,8 @@ private:
 
 		TFrmLoadUp(HSHL hShl)
 		: YForm(Rect::FullScreen, GetImage(1), pDesktopUp, hShl),
-			lblTitle(HWND(this), Rect(50, 20, 100, 22)),
-			lblStatus(HWND(this), Rect(60, 80, 80, 22))
+			lblTitle(Rect(50, 20, 100, 22), this),
+			lblStatus(Rect(60, 80, 80, 22), this)
 		{
 			lblTitle.Text = G_APP_NAME;
 			lblStatus.Text = "Loading...";
@@ -78,7 +78,7 @@ private:
 
 		TFrmLoadDown(HSHL hShl)
 		: YForm(Rect::FullScreen, GetImage(2), pDesktopDown, hShl),
-			lblStatus(HWND(this), Rect(30, 20, 160, 22))
+			lblStatus(Rect(30, 20, 160, 22), this)
 		{
 			lblStatus.Text = FS("初始化中，请稍后……");
 			lblStatus.SetTransparent(true);
@@ -103,8 +103,8 @@ private:
 
 		TFrmFileListMonitor(HSHL hShl)
 		: YForm(Rect::FullScreen, GetImage(3), pDesktopUp, hShl),
-			lblTitle(HWND(this), Rect(16, 20, 220, 22)),
-			lblPath(HWND(this), Rect(12, 80, 240, 22))
+			lblTitle(Rect(16, 20, 220, 22), this),
+			lblPath(Rect(12, 80, 240, 22), this)
 		{
 			lblTitle.Text = "文件列表：请选择一个文件。";
 			lblPath.Text = "/";
@@ -123,12 +123,12 @@ private:
 
 		TFrmFileListSelecter(HSHL hShl)
 		: YForm(Rect::FullScreen, GetImage(4), pDesktopDown, hShl),
-			fbMain(HWND(this), Rect(6, 10, 210, 150)),
-			btnTest(HWND(this), Rect(115, 165, 65, 22)),
-			btnOK(HWND(this), Rect(185, 165, 65, 22)),
-			sbTestH(HWND(this), Rect(10, 165, 95, 16)),
-		//	tkTestH(HWND(this), Rect(10, 165, 95, 16)),
-			tkTestV(HWND(this), Rect(230, 10, 16, 95))
+			fbMain(Rect(6, 10, 210, 150), this),
+			btnTest(Rect(115, 165, 65, 22), this),
+			btnOK(Rect(185, 165, 65, 22), this),
+			sbTestH(Rect(10, 165, 95, 16), this),
+		//	tkTestH(Rect(10, 165, 95, 16), this),
+			tkTestV(Rect(230, 10, 16, 95), this)
 		{
 			btnTest.Text = FS(" 测试(X)");
 			btnOK.Text = FS(" 确定(R)");
@@ -190,8 +190,8 @@ public:
 
 		TFormA(HSHL hShl)
 			: YForm(Rect::FullScreen, GetImage(5), pDesktopUp, hShl),
-			lblA(HWND(this), Rect(s_left, 20, 200, s_size)),
-			lblA2(HWND(this), Rect(s_left, 80, 72, s_size))
+			lblA(Rect(s_left, 20, 200, s_size), this),
+			lblA2(Rect(s_left, 80, 72, s_size), this)
 		{
 			lblA.Text = G_APP_NAME;
 			lblA2.Text = "程序测试";
@@ -209,8 +209,8 @@ public:
 		YButton btnB, btnB2;
 
 		TFormB(HSHL hShl) : YForm(Rect(10, 40, 228, 70), /*GetImage(6)*/NULL, pDesktopDown, hShl),
-			btnB(HWND(this), Rect(2, 5, 224, s_size)),
-			btnB2(HWND(this), Rect(45, 35, 124, s_size))
+			btnB(Rect(2, 5, 224, s_size), this),
+			btnB2(Rect(45, 35, 124, s_size), this)
 		{
 			btnB.Text = FS("测试程序");
 			btnB2.Text = FS("测试程序2");
@@ -237,8 +237,8 @@ public:
 		YButton btnReturn;
 
 		TFormC(HSHL hShl) : YForm(Rect(5, 60, 180, 120), /*GetImage(7)*/NULL, pDesktopDown, hShl),
-			btnC(HWND(this), Rect(13, 45, 184, s_size)),
-			btnReturn(HWND(this), Rect(13, 82, 60, s_size))
+			btnC(Rect(13, 45, 184, s_size), this),
+			btnReturn(Rect(13, 82, 60, s_size), this)
 		{
 			btnC.Text = FS("测试y");
 			btnReturn.Text = FS("返回");

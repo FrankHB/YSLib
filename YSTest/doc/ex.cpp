@@ -1,4 +1,4 @@
-//v 0.2875; *Build 171 r91;
+//v 0.2880; *Build 172 r44;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -155,382 +155,281 @@ $using:
 }
 
 $DONE:
-r1-r2:
-/= \tr \rem @@ \YCommon;
+r1:
+/ @@ \u YGUIComponent:
+	* \impl @@ \mf AScrollBar::DrawForeground();
+
+r2:
+/ @@ \ns Widgets @@ \u YWidget:
+	+ \cl MWindowObject;
+	+ \cl MUIBox;
+/ @@ \u YGUIComponent:
+	/ \cl MSimpleFocusResponser >> @@ \u YFocus;
+	+ \inh MSimpleFocusResponser -> Widgets::MUIBox
+		@@ \cl (ATrack & AScrollBar);
+	/ \impl @@ \ctor @@ \cl (ATrack & AScrollBar);
+	/ \impl @@ \mf ATrack::DrawBackground;
+	/ \impl @@ \mf AScrollBar::DrawForeground;
++ \inc \h YFocus -> \h YWindow @@ \u YFocus;
 
 r3:
-- \mac YC_MAX_PATH @@ \u YCommon;
-/ \def @@ (\c & \tp) @@ \u YGlobal >> \u YCommon;
-/ @@ \h YAdaptor;
-- \inc \h YGlobal @@ \u YFileSystem;
-/ \tr @@ \cl YFontFile @@ \u YFont;
+/ @@ \u YGUIComponent:
+	/ \impl @@ \mf DrawForeground @@ \cl (YThumb & YListBox);
+/ @@ \ac @@ \inh @@ \cl GMFocusResponser<IVisualControl> @@ MUIContainer
+	@@ \u YWidget -> protected ~ public;
 
 r4:
-/ @@ \h YAdaptor;
-/ \f ChDir @@ \u YFileSystem -> \f ChangeDirectory;
-- \smf Def::WaitForInput @@ \u YGlobal;
-/ \tr @@ \cl InputEventArgs @@ \u YControl;
-
-r5-r9:
-/ @@ \h YCommon & \h YAdaptor;
-/ @@ \u YGlobal:
-	/ \a \smf @@ \st Def \exc \smf (Idle & ShlProc & Destroy & InitConsole)
-		>> \u YCommon;
-	/ \smf (Idle & ShlProc & Destroy & InitConsole) >> \ns YSLib;
-	- \st Def;
-	/ \impl @@ \f YInit @@ \un \ns;
-/ \ns platform @@ \u YCommon:
-	/ \f void InitScrUp() -> BitmapPtr InitScrUp(int&);
-	/ \f void InitScrDown() -> BitmapPtr InitScrUp(int&);
-	- \f void InitScreenAll();
-/ @@ \u YDevice;
-	/ \inc @@ \u YDevice -> \h YObject ~ \u YGlobal;
-	/ @@ \u YScreen:
-		/ \tr \impl;
-		- \smf void Reset();
-		/ \ac @@ \m id -> public ~ private;
-	/ @@ \u YGraphicDevice:
-		/ \ac @@ \m ptr -> public ~ private;
-/ \tr @@ \cl YDesktop;
-+ \f InitAllScreens @@ \h YDevice & \u YGlobal;
-
-r10:
-/ \f (InitScrUp & InitScrDown) >> \ns platform_ex;
-/ \h YAdaptor;
-/ \tr \impl @@ \f InitAllScreens @@ \u YGlobal;
-
-r11:
-/ \tr @@ \u YWidget & \u YObject;
-/ \simp @@ \h YAdaptor:
-	- \mac YSL_SHLMAIN_NAME;
-	- \mac YSL_SHLMAIN_SHLPROC;
-	- \mac YSL_MAIN_SHLPROC;
-/ \impl @@ \mf Shells::YShellMain::ShlProc(const Message&) @@ \u YShell;
-/ @@ \u Shells;
-/ @@ \u YGlobal;
-+ \inc YException @@ \u YFont;
-/ @@ \u Shells;
-
-r12:
-/ \inc "../Helper/yglobal.h" @@ \h YDevice -> "yexcept.h";
-/ - \i @@ \mf (Activate & Deactivate) @@ \cl YConsole @@ \u YComponent;
-+ \inh "../Helper/yglobal.h" @@ \u (YComponent & YApplication & YShell);
-/ \inh "Service/ytimer.h" -> "Helper/yglobal.h" @@ \h YSLib::Build;
-
-r13:
 / @@ \u YGUIComponent:
-	/ @@ \cl YListBox:
-		+ protected \mf bool CheckIndex(ViewerType::IndexType);
-		/ \simp \impl @@ \mf SetSelected ^ \mf CheckIndex;
-		/ \impl @@ \mf OnSelected;
-	/ @@ \cl YFileBox:
-		/ \impl @@ \mf OnSelected & \mf OnConfirmed;
-+ DefConverter(IndexType, Index) @@ \cl IndexEventArgs @@ \u YControl;
+	* \impl @@ \mf DrawForeground @@ \cl (YThumb & YListBox);
 
-r14:
-/ @@ \cl YListBox @@ \u YGUIComponent;
-	/ \mf void CallConfirmed() -> void CallConfirmed(ViewerType::IndexType)
-		* blank-clicked \evt OnClick;
-	+ \i \mf ViewerType::IndexType CheckPoint(const Point&);
-- \exp @@ \ctor @@ \cl ScreenPositionEventArgs @@ \u YControl;
+r5:
+/ @@ \u YWidget:
+	/ @@ \cl Widget:
+		/ \i \mf bool BelongsTo(HWnd) const >> \cl MUIContainer;
+	/ @@ \cl MUIContainer:
+		+ \inh public MWindowObject;
+		/ \ctor MUIContainer() -> MUIContainer(HWND);
+		+ typedef MWindowObject ParentType;
+	/ @@ \cl MWindowObject:
+		/ \m HWND hWnd >> HWND hWindow;
+	/ \tr \impl @@ \ctor @@ \cl YUIContainer;
+/ \tr \impl @@ \ctor & \dtor @@ \cl YFrameWindow @@ \u YWindow;
 
-r15:
-/ @@ \u YDevice:
-	/ @@ \cl YScreen:
-		+ friend \f bool InitAllScreens();
-		/ \ac @@ \m BgType bg -> private ~ public;
-	/ @@ \cl YScreen:
-		/ \ac @@ \m ptr -> protected ~ public;
-
-r16:
-+ public \mf bool Contains(IndexType) @@ \cl \t GSequenceViewer @@ \u YComponent;
-- proteced \mf CheckIndex @@ \cl YListBox @@ \u YGUIComponent;
-	/ \tr \impl @@ \mf @@ \cl (YListBox & YFileBox);
-
-r17:
-/ @@ \cl YListBox @@ \u YGUIComponent:
-	/ \simp \impl @@ \mf voidSetSelected(ViewerType::IndexType);
-/ !\m \f void SetPensTo(TextState&) -> \mf void TextState&::ResetPen()
-	@@ \u YText;
-/ \a SetPensTo => SetPenTo;
-
-r18:
-* \mf CallConfirmed @@ \cl YListBox @@ \u YGUIComponent;
-
-r19:
-* \mf OnSelected @@ \cl YListBox @@ \u YGUIComponent;
-
-r20-r27:
+r6-r7:
 /= test 1;
 
-r28-r30:
-* \impl @@ \mf ListType::SizeType CheckPoint(SPOS, SPOS) @@ \cl YListBox
-	@@ \u YGUIComponent;
+r8:
++ \mf DefGetterBase(HWND, WindowHandle, Widgets::MWindowObject)
+	@@ \cl (AScrollBar & ATrack) @@ \u YGUIComponent;
 
-r31:
-/ \simp \impl @@ \mf \vt void DrawForeground() @@ \cl YListBox
-	@@ \u YGUIComponent;
-
-r32:
-^ updated devkitPro, devkitARM r32, libnds 1.4.8;
-
-r33:
-/ \cl \t ExpandMemberFirstBinder >> \h YFunc ~ \h YEvent;
-/= text >> \f "doc\ex.cpp" ~ "source\GBKEX.cpp";
-
-r34:
-/ @@ \u YControl:
-	+ DefDelegate(PointEventHandler, IVisualControl, Drawing::Point);
-	+ DefDelegate(SizeEventHandler, IVisualControl, Drawing::Size);
-	/ @@ \cl MVisualControl:
-		+ DefEvent(PointEventHandler, Move);
-		+ DefEvent(SizeEventHandler, Resize);
-	/ @@ \cl InputEventArgs:
-		/ \m k >> key;
-
-r35:
-/= \tr \impl @@ \u Shells;
-
-r36-r40:
+r9-r10:
 /= test 2;
 
-r41:
-/ \tr \impl @@ \u Shells;
+r11:
+/ @@ \u YWindow:
+	/ @@ \cl AWindow:
+		/ - !\i & \impl @@ \mf void UpToScreen() const;
+		/ - !\i & \impl @@ \mf void UpdateToWindow() const;
+	/ @@ \cl YFrameWindow:
+		+ using Widgets::MWindowObject::GetWindowHandle;
+		/ \tr \impl @@ \ctor & \dtor;
 
-r42:
-+ \f
-{
-	void MoveToLeft(IWidget&);
-	void MoveToRight(IWidget&);
-	void MoveToTop(IWidget&);
-	void MoveToBottom(IWidget&);
-} @@ \u YWidget;
-/ \impl @@ \ctor @@ \cl AScrollBar @@ \u YGUIComopnent;
-
-r43:
-* \impl @@ \ctor @@ \cl AScrollBar @@ \u YGUIComponent;
-
-r45-r50:
+r12-r25:
 /= test 3;
+r24:
+	/= \tr \impl @@ \ctor & \ctor @@ \cl YWidget;
 
-r51:
-* \tr \impl @@ \ctor @@ \cl AScrollBar @@ \u YGUIComponent;
+r26:
+/ @@ \u YWidget;
+	/ \impl @@ \mf void Widget::Refresh();
+	+ \f \t HWND template<class _tUIBox>
+		GetDirectWindowHandleFromContainer(_tUIBox* pCon);
+	/ !\i \f HWND GetWindowHandleFrom(const IWidget&)
+		-> \f \t template<class _tWidget>
+		HWND GetWindowHandleFrom(const _tWidget&)
+		^ \f \t GetDirectWindowHandleFromContainer;
+	+ \i \f HWND GetWindowHandleFrom(const IWidget&);
+	* \impl @@ \mf void Refresh() @@ \cl Widget;
+	/ \simp \impl @@ \f \t GetDirectWindowHandleFrom
+		^ \f \t GetDirectWindowHandleFromContainer;
 
-r52-r58:
+r27-r28:
 /= test 4;
 
-r59:
-* \impl @@ \ctor @@ \cl AScrollBar @@ \u YGUIComponent;
-
-r60:
-/ @@ \u YGUIComponent:
-	/= \tr \impl @@ \ctor @@ \cl AScrollBar;
-	/ \tr \impl @@ \as;
+r29:
 / @@ \u YWidget:
-	/ \impl @@ \f 'MoveTo*' ^ \as;
-/= \tr \impl @@ \f const char* EFontStyle::GetName() const ythrow()
-	@@ \u YFont;
-
-r61:
-/ \impl @@ \ctor @@ \cl YHorizontalScrollBar @@ \u YGUIComponent;
-
-r62:
-/ \ac @@ \mf \evh 'On*' @@ \cl AVisualControl @@ \u YControl
-	-> private ~ public;
-/ @@ \u YGUIComponent:
-	/ \ac @@ \mf \evh 'On*' @@ \cl (YThumb & YButton & YListBox & YFileBox)
-		-> private ~ public;
-	/ \mf \evh 'On*' @@ \cl ATrack >> private ~ public;
-	/ \mf \evh 'On*Horizontal' @@ \cl ATrack >> \cl YHorizontalTrack;
-	/ \mf \evh 'On*Vertical' @@ \cl ATrack >> \cl YVerticalTrack;
-	/ \impl @@ \ctor @@ \cl YHorizontalTrack;
-	/ \impl @@ \ctor @@ \cl YVerticalTrack;
-	/ \impl @@ \ctor @@ \cl YHorizontalScrollBar;
-/ @@ \u YWidget:
-	/ @@ \cl Visual:
-		/  \ac @@ \m (Visible, Transparent, bBgRedrawed, Location, Size)
-			-> private ~ protected;
-		- public \mf void SetSize(SDST, SDST);
-		/ private \mf _m_SetSize(SDST, SDST)
-			-> public \mf void SetSize(SDST, SDST);
-		/ \m Location >> location;
-		/ \m Size >> size;
-		/ \m bBgRedrawed >> background_redrawed;
-		/ \m Visible >> visible;
-		/ \m Transparent >> transparent;
+	/ DeclIEntry(HWND GetWindowHandle() const) @@ \in IWidget >> \in IUIBox;
 	/ @@ \cl YWidget:
-		- \mf \vt void BeFilledWith();
+		- ImplI(IWidget) DefGetterBase(HWND, WindowHandle, Widget);
+		/ \tr \impl @@ \ctor;
+	- DefGetter(HWND, WindowHandle, hWindow) @@ \cl Widget;
+	/ ImplI(IUIContainer) DefGetterBase(HWND, WindowHandle, Widget)
+		@@ \cl YUIContainer -> ImplI(IUIContainer)
+		DefGetterBase(HWND, WindowHandle, MWindowObject);
+/ @@ \cl YFrameWindow @@ \u YWindow:
+	- using Widgets::MWindowObject::GetWindowHandle;
+	+ ImplI(IWindow) DefGetterBase(HWND, WindowHandle, MUIContainer);
+	* \init list @@ \impl @@ \ctor;
+- ImplI(IVisualControl) DefGetterBase(HWND, WindowHandle, Widget)
+	@@ \cl AVisualControl @@ \u YControl;
+
+r30:
 / @@ \u YWidget:
-	/ @@ \cl Control:
-		/ \ac @@ \m Enabled -> private ~ protected;
-		/ \m Enabled >> enabled;
-/ @@ \u Shells:
-	/ @@ \cl ShlSetting:
-		/ \s \m left >> s_left;
-		/ \s \m size >> s_size;
-
-r63:
-/ merge \mf m_init -> \ctor @@ \cl YButton @@ \u YGUIComponent;
-
-r64:
-/ @@ \u YGUIComponent:
-	/ \simp @@ \cl YButton:
-		- \mf OnKeyDown & \mf OnClick;
-	/ \mf void YHorizontalTrack::OnTouchDown_Horizontal(TouchEventArgs&)
-		-> \mf void ATrack::OnTouchDown(TouchEventArgs&);
-	- \mf YVerticalTrack::OnTouchDown_Horizontal(TouchEventArgs&);
-	/ \impl @@ \ctor @@ \cl (YButton
-		& ATrack & YHorizontalTrack & YVerticalTrack);
-
-r65:
-/ @@ \u YGUIComponent:
-	+ \cl MSimpleFocusResponser;
-	/ @@ \cl ATrack:
-		/ \ac @@ \m (MinThumbLength, pFocusing) -> private ~ protected;
-		* \impl @@ \ctor;
-		/ \inh \cl GMFocusResponser<IVisualControl>
-			-> \cl MSimpleFocusResponser;
-		/ \m IVisualControl* pFocusing >> \cl MSimpleFocusResponser;
-	/ @@ \cl AScrollBar:
-		+ private \m std::auto_ptr<ATrack> pTrack;
+	/ @@ \cl Widget:
+		- \m HWND hWindow;
 		/ \impl @@ \ctor;
-		/ \impl @@ \mf IVisualControl* GetTopVisualControlPtr(const Point&);
-		- \mf \vt SDST GetTrackLength() const ythrow();
-		+ \i \mf DefGetter(ATrack&, Track, *pTrack);
-		- \mf \vt void SetTrackPosition(SDST);
-		/ \impl @@ \mf void DrawBackground();
-		/ \inh public ATrack -> public AVisualControl,
-			public MSimpleFocusResponser, implements IUIBox;
-		+ \mf void RequestToTop();
-		+ \mf void ClearFocusingPtr();
-		+ \mf bool ResponseFocusRequest(AFocusRequester&);
-		+ \mf bool ResponseFocusRelease(AFocusRequester&);
-		/ typedef ATrack ParentType -> typedef AVisualControl ParentType;
-	/ \impl @@ \ctor @@ \cl (YHorizontalTrack & YVerticalTrack);
 
-r66-r67:
+r31-r32:
 /= test 5;
 
-r68:
+r33:
+/ @@ \u YWidget:
+	- \parm HWND = NULL @@ \ctor @@ \cl (Widget & YWidget & YUIContainer
+		& YLabel);
+	/ swap 2nd & 3rd \parm @@ \ctor @@ \cl YLabel;
+/ @@ \u YControl:
+	- \parm HWND = NULL @@ \ctor @@ \cl (AVisualControl & VisualControl);
 / @@ \u YGUIComponent:
-	/ \impl @@ \ctor @@ \cl AScrollBar;
-	/= \a \exp '<< 1' -> \exp '* 2';
-	/= \a \exp '>> 1' -> \exp '/ 2';
+	- \a 1st \parm HWND = NULL @@ \ctor @@ \cl (YThumb & ATrack & AScrollBar
+		& YListBox& YFileBox & YHorizontalTrack & YVerticalTrack & YButton
+		& YHorizontalScrollBar);
+	/ swap 2nd & 3rd \parm @@ \ctor @@ \cl YButton;
+	+ private \m HWND hWindow & public \mf ImplI(IUIBox)
+		DefGetter(HWND, WindowHandle, hWindow) @@ \cl ATrack & \cl AScrollBar;
+	/ \ctor @@ \cl (ATrack & AScrollBar);
+	/ \impl @@ \mf void DrawForeground() @@ \cl (YThumb & YListBox);
+	* \init list @@ \ctor @@ \cl YListBox;
+/ \impl @@ \ctor @@ \cl AWindow @@ \u YWindow;
+/ \tr @@ \u Shells;
 
-r69:
+r34:
+/ \a GetDirectWindowHandleFrom => FetchDirectWindowHandle;
+/ \a GetWindowHandleFrom => FetchWindowHandle;
+/ \a GetDirectContainerPtrFrom => FetchDirectContainerPtr;
+/ \a GetDirectWindowHandleFromContainer => FetchContainerDirectWindowHandle;
+
+r35:
+/ \impl @@ \f \t FetchContainerDirectWindowHandle @@ \u YWidget;
+
+r36:
+/ \f \t template<class _tUIBox> HWND
+	FetchContainerDirectWindowHandle(_tUIBox* pCon) =>
+	template<class _tWidget> HWND
+	FetchWidgetDirectWindowHandle(_tWidget* pWgt) @@ \u YWidget;
+
+r37:
+/ @@ \u YWidget:
+	/ DeclIEntry(HWND GetWindowHandle() const) @@ \in IUIBox >> \in IWindow
+		@@ \u YWindow;
+	- ImplI(IUIContainer) DefGetterBase(HWND, WindowHandle, MWindowObject)
+		@@ \cl YUIContainer;
+
+r38:
 / @@ \u YGUIComponent:
-	@@ \cl AScrollBar:
-		/ \impl @@ \mf void DrawBackground();
-		- typedef Area;
-	+ \mf void DrawBackground() @@ \cl ATrack;
+	/ @@ \cl ATrack & AScrollBar:
+		- ImplI(IUIBox) DefGetterBase(HWND, WindowHandle,
+			Widgets::MWindowObject);
+		/ \inh Widgets::MUIBox -> MSimpleFocusResponser;
+		/ \init list @@ \impl @@ \ctor;
+- \cl MUIBox @@ \u YWidget;
 
-r70:
-/ @@ \u YGUIComponent:
-	/ \impl @@ \mf void DrawBackground() @@ \cl ATrack;
-	/ \simp @@ \impl @@ \mf void DrawForeground() @@ \cl YThumb;
+r39:
+/ @@ \u YWidget:
+	/ @@ \cl MUIContainer:
+		- \inh MWindowObject;
+		- typedef MWindowObject ParentType;
+		/ \ctor MUIContainer(HWND) -> MUIContainer();
+	/ \impl @@ \ctor @@ \u YUIContainer;
+/ @@ \u YWindow:
+	/ @@ \cl MWindow:
+		+ \inh protected Widgets::MWindowObject;
+		/ \impl @@ \ctor;
+	/ @@ \cl YFrameWindow:
+		- ImplI(IWindow) DefGetterBase(HWND, WindowHandle, MUIContainer);
+		/ \impl @@ \ctor;
+	/ @@ \cl AWindow:
+		+ ImplI(IWindow) DefGetterBase(HWND, WindowHandle, MWindowObject);
 
-r71-r74:
-/= test 6;
+r40:
+/ @@ \u YWidget:
+	+ \f YDesktop* FetchWidgetDirectDesktopPtr(IWidget*);
+	+ \f YDesktop* FetchDirectDesktopPtr(IWidget&);
+	* \impl @@ \f Point LocateForWindow(const IWidget&);
+	/ \f Point LocateForWindow(const IWidget&)
+		-> \f Point LocateForWindow(IWidget&);
+	/ \simp \impl @@ \f Point LocateForDesktop(IWidget&);
 
-r75:
-* \impl @@ \mf void ATrack::DrawBackground() @@ \u YGUIComponent;
+r41:
+/ \impl @@ \mf void AWindow::UpdateToScreen() const @@ \u YWindow;
+/ @@ \u YWidget:
+	/ \f \t template<class _tWidget> HWND
+		FetchWidgetDirectWindowHandle(_tWidget* pWgt)
+		-> template<class _tWidget> HWND
+		FetchWidgetDirectWindowHandle(const _tWidget* pWgt);
+	/ \f YDesktop* FetchWidgetDirectDesktopPtr(IWidget*);
+		-> YDesktop* FetchWidgetDirectDesktopPtr(const IWidget*);
+	/ \f \t template<class _tWidget> IUIBox* FetchDirectContainerPtr(_tWidget&)
+		-> template<class _tWidget> IUIBox*
+		FetchDirectContainerPtr(const _tWidget&);
+	/ \i \f IUIBox* FetchDirectContainerPtr(IWidget&)
+		-> inline IUIBox* FetchDirectContainerPtr(const IWidget&);
+	/ \f \t template<class _tWidget> HWND FetchDirectWindowHandle(_tWidget&)
+		-> template<class _tWidget> HWND
+		FetchDirectWindowHandle(const _tWidget&);
+	/ \i \t HWND FetchDirectWindowHandle(IWidget&)
+		->HWND FetchDirectWindowHandle(const IWidget&);
+	/ \i \f YDesktop* FetchDirectDesktopPtr(IWidget&)
+		-> YDesktop* FetchDirectDesktopPtr(const IWidget&);
 
-r76-r80:
-/= test 7;
-
-r81:
-/ \tr \impl @@ \f Point LocateForWindow(const IWidget&) @@ \u YWidget;
-* \impl @@ \mf void ATrack::DrawBackground() @@ \u YGUIComponent;
-
-r82:
-/ @@ \u YGUIComponent:
-	/ + \as @@ \impl @@ \mf void ATrack::DrawForeground();
-	/ \impl @@ \mf void AScrollBar::DrawForeground();
-		* bBgRedraw setting by calling of ParentType::DrawForeground();
-		+ arraw drawing;
-	/= \tr \impl @@ \cl YFileBox::DrawForeground();
-	/ \f void WndDrawArrow(const HWND, const Rect&, SDST, ROT = RDeg0,
-		Color = ColorSpace::Black) -> void WndDrawArrow(const Graphics&,
-		const Rect&, SDST, ROT = RDeg0, Color = ColorSpace::Black) \un \ns;
-/ \tr \simp @@ \impl @@ \mf void YFrameWindow::DrawWidgets() @@ \u YWindow;
-
-r83:
--= \inh \h YControl @@ \u YWidget @@ \u YWidget;
-
-r84:
-/ @@ \ns Widgets @@ \u YWidget:
-	+ \f \t template<class _tWidget>
-		IUIBox* GetDirectContainerPtrFrom(_tWidget&);
-	+ \f \t template<class _tWidget>
-		HWND GetDirectWindowHandleFrom(_tWidget&);
-	+ \i \f IUIBox* GetDirectContainerPtrFrom(IWidget&);
-	+ \i \f HWND GetDirectWindowHandleFrom(IWidget&);
-	+ \f HWND GetWindowHandleFrom(const IWidget&);
-	/ \impl @@ \i \f Point LocateWindowOffset(const IWidget&, const Point&);
-	/ \impl @@ \mac YWidgetAssert;
-	/ \impl @@ \mac YWindowAssert;
-	/ \impl @@ \f Point LocateForWindow(const IWidget&);
-	/ \impl @@ \f Point LocateForDesktop(const IWidget&);
-	/ \impl @@ \f Point LocateForParentWindow(const IWidget&);
-	/ \f LocateOffset(const IWidget*, Point, IWindow*)
-		-> LocateOffset(const IWidget*, Point, const IWindow*);
+r42:
+/ \a \impl ^ \f FetchDirectDesktopPtr ~ \mf GetDesktopPtr
+	@@ \cl YShell @@ \u YShell;
 	
-r85:
-/ @@ \ns Widgets @@ \u YWidget:
-	/ \impl \mf void PaintText(MWidget&, const Point&) @@ \cl MLabel;
-	/ \mf \vt void BeFilledWith(Color) @@ \cl MWidget
-		-> !\m \f void Fill(IWidget&, Color);
-	+ \f void Fill(Widget&, Color);
-	+ \f \t template<class _tWidget> void Fill(_tWidget&, Color) @@ \un \ns;
-	+ \fw \decl @@ \cl Widget;
-	+ \f \t template<class _tWidget> Point
-		LocateOffset(const _tWidget*, const Point&, const IWindow*);
+r43:
+/ @@ \u YWindow:
+	/ @@ \cl MWindow:
+		- \inh MDesktopObject;
+		/ \ctor	\exp MWindow(const GHResource<YImage> = new YImage(),
+			YDesktop* = ::YSLib::pDefaultDesktop,
+			HSHL = ::YSLib::theApp.GetShellHandle())
+			-> \exp MWindow(const GHResource<YImage> = new YImage(),
+			HWND = NULL,
+			HSHL = ::YSLib::theApp.GetShellHandle());
+	/ @@ \cl AWindow:
+		/ \ctor \exp AWindow(const Rect& = Rect::Empty,
+			const GHResource<YImage> = new YImage(),
+			YDesktop* = ::YSLib::pDefaultDesktop,
+			HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL)
+			-> \exp AWindow(const Rect& = Rect::Empty,
+			const GHResource<YImage> = new YImage(),
+			HWND = NULL,
+			HSHL = ::YSLib::theApp.GetShellHandle());
+		- ImplI(IWindow) DefGetterBase(YDesktop*, DesktopPtr, MDesktopObject);
+		/ \impl @@ \mf void RequestToTop();
+	/ @@ \cl YFrameWindow:
+		/ \ctor \exp YFrameWindow(const Rect& = Rect::Empty,
+			const GHResource<YImage> = new YImage(),
+			YDesktop* = ::YSLib::pDefaultDesktop,
+			HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL)
+			-> \exp YFrameWindow(const Rect& = Rect::Empty,
+			const GHResource<YImage> = new YImage(),
+			HWND = NULL,
+			HSHL = ::YSLib::theApp.GetShellHandle());
+		- PDefH(bool, BelongsTo, YDesktop* pDsk) const
+			ImplBodyBase(MDesktopObject, BelongsTo, pDsk);
+	- / DeclIEntry(YDesktop* GetDesktopPtr() const) @@ \in IWindow;
+/ @@ \u YForm:
+	/ @@ \cl YForm:
+		/ \ctor \exp YForm(const Rect& = Rect::Empty,
+			const GHResource<YImage> = new YImage(),
+			YDesktop* = ::YSLib::pDefaultDesktop,
+			HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL)
+			-> \exp YForm(const Rect& = Rect::Empty,
+			const GHResource<YImage> = new YImage(),
+			HWND = NULL,
+			HSHL = ::YSLib::theApp.GetShellHandle());
 
-r86:
-/ @@ \u YGUI:
-	/ \impl @@ \f void DrawWidgetBounds(IWidget&, Color);
-
-r87:
-/= test 8;
-
-r88:
-/ @@ \u YGUI:
-	/ \f void DrawWidgetBounds(IWidget&, Color) >> DrawWidgetOutBounds;
-	+ \f void DrawWidgetOutline(IWidget&, Color);
-	+ \f void DrawWidgetBounds(HWND, const Point&, Color) \un \ns
-		@@ \ns Drawing;
-	/ \simp \impl @@ \f (void DrawWidgetBounds(IWidget&, Color)
-		& DrawWindowBounds & DrawWidgetOutline)
-		^ \f void DrawWidgetBounds(HWND, const Point&, Color);
-
-r89:
-/= test 9;
-
-r90:
-* @@ \u YGUI:
-	/ \impl @@ \f void DrawWidgetBounds(HWND, const Point&, Color) \un \ns
-		@@ \ns Drawing;
-	/ \impl @@ \f (void DrawWidgetBounds(IWidget&, Color)
-		& DrawWindowBounds & DrawWidgetOutline)
-		^ \f void DrawWidgetBounds(HWND, const Point&, Color);
-
-r91:
-/= test 10;
+r44:
+/= test 6;
 
 
 $DOING:
 
+relative process:
+2010-11-25:
+-28.1d;
 / ...
 
 
 $NEXT:
 
-b172-b190:
+b173-b190:
 / fully \impl \u DSReader;
 	* moving text after setting lnGap;
 * non-ASCII character filename error in FAT16;
 + \impl loading pictures;
 + \impl style on widgets;
+/ - const_cast;
 * fatal \err:
 F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 	-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02055838
@@ -1024,7 +923,7 @@ public:
 //	lblC.ReleaseFocus(GetZeroElement<EventArgs>());
 
 //	lblC.Text = L"≤‚ ‘= =";
-//	HWND h(lblC.GetWindowHandle());
+//	HWND h(FetchWindowHandle(lblC));
 //	lblC.Text[0] ^= 1;
 //	String::iterator i(lblC.Text.begin());
 //	++*i;

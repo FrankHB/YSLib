@@ -11,12 +11,12 @@
 /*!	\file yfocus.cpp
 \ingroup Shell
 \brief GUI 焦点特性实现。
-\version 0.1240;
+\version 0.1300;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 + 08:00;
 \par 修改时间:
-	2010-11-12 15:11 + 08:00;
+	2010-11-23 07:48 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,11 +24,38 @@
 */
 
 
-#include "yfocus.h"
+#include "ywindow.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
+
+void
+MSimpleFocusResponser::ClearFocusingPtr()
+{
+	pFocusing = NULL;
+}
+
+bool
+MSimpleFocusResponser::ResponseFocusRequest(AFocusRequester& w)
+{
+//	if(&w == &Thumb)
+	pFocusing = dynamic_cast<IVisualControl*>(&w);
+	return pFocusing;
+}
+
+bool
+MSimpleFocusResponser::ResponseFocusRelease(AFocusRequester& w)
+{
+	if(pFocusing == dynamic_cast<IVisualControl*>(&w))
+	{
+		pFocusing = NULL;
+	//	w.ReleaseFocusRaw();
+		return true;
+	}
+	return false;
+}
+
 
 bool
 AFocusRequester::CheckRemoval(GMFocusResponser<AFocusRequester>& c) const

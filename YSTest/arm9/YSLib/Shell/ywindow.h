@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3757;
+\version 0.3816;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 + 08:00;
 \par 修改时间:
-	2010-11-22 17:36 + 08:00;
+	2010-11-25 14:06 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,14 +36,14 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Forms)
 
-//窗口接口。
+//! \brief 窗口接口。
 DeclBasedInterface(IWindow, virtual IUIContainer, virtual IVisualControl)
 	DeclIEntry(operator Graphics() const) //!< 生成图形接口上下文。
 
 	DeclIEntry(bool IsRefreshRequired() const)
 	DeclIEntry(bool IsUpdateRequired() const)
 
-	DeclIEntry(YDesktop* GetDesktopPtr() const)
+	DeclIEntry(HWND GetWindowHandle() const)
 
 	DeclIEntry(void SetRefresh(bool))
 	DeclIEntry(void SetUpdate(bool))
@@ -54,7 +54,7 @@ DeclBasedInterface(IWindow, virtual IUIContainer, virtual IVisualControl)
 EndDecl
 
 
-//桌面对象模块。
+//! \brief 桌面对象模块。
 class MDesktopObject
 {
 protected:
@@ -84,8 +84,8 @@ MDesktopObject::MDesktopObject(YDesktop* pDsk)
 {}
 
 
-//窗口模块。
-class MWindow : protected MDesktopObject
+//! \brief 窗口模块。
+class MWindow : protected Widgets::MWindowObject
 {
 protected:
 	Drawing::BitmapBuffer Buffer; //!< 显示缓冲区。
@@ -97,11 +97,10 @@ protected:
 
 public:
 	/*!
-	\brief 构造：使用指定背景图像、桌面指针和 Shell 。
+	\brief 构造：使用指定背景图像、窗口句柄和 Shell 。
 	*/
 	explicit
-	MWindow(const GHResource<YImage> = new YImage(),
-		YDesktop* = ::YSLib::pDefaultDesktop,
+	MWindow(const GHResource<YImage> = new YImage(), HWND = NULL,
 		HSHL = ::YSLib::theApp.GetShellHandle());
 
 	DefPredicate(RefreshRequired, bRefresh)
@@ -114,7 +113,7 @@ public:
 };
 
 
-//抽象窗口。
+//! \brief 抽象窗口。
 class AWindow : public Controls::AVisualControl, protected MWindow,
 	virtual implements IWindow
 {
@@ -122,12 +121,11 @@ public:
 	typedef Controls::AVisualControl ParentType;
 
 	/*!
-	\brief 构造：使用指定边界、背景图像、桌面指针、 Shell 和 父窗口句柄。
+	\brief 构造：使用指定边界、背景图像、窗口句柄和 Shell 句柄。
 	*/
 	explicit
 	AWindow(const Rect& = Rect::Empty, const GHResource<YImage> = new YImage(),
-		YDesktop* = ::YSLib::pDefaultDesktop,
-		HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
+		HWND = NULL, HSHL = ::YSLib::theApp.GetShellHandle());
 	virtual DefEmptyDtor(AWindow)
 
 	ImplI(IWindow) DefConverterMember(Graphics, Buffer)
@@ -138,10 +136,8 @@ public:
 	//判断从属关系。
 	PDefH(bool, BelongsTo, HSHL h) const
 		ImplRet(hShell == h)
-	PDefH(bool, BelongsTo, YDesktop* pDsk) const
-		ImplBodyBase(MDesktopObject, BelongsTo, pDsk)
 
-	ImplI(IWindow) DefGetterBase(YDesktop*, DesktopPtr, MDesktopObject)
+	ImplI(IWindow) DefGetterBase(HWND, WindowHandle, MWindowObject)
 	ImplI(IWindow) DefGetter(const Drawing::BitmapBuffer&, Buffer, Buffer) \
 		//!< 取显示缓冲区。
 	ImplI(IWindow) DefGetterMember(BitmapPtr, BufferPtr, Buffer) \
@@ -248,21 +244,8 @@ public:
 	Show();
 };
 
-inline void
-AWindow::UpdateToScreen() const
-{
-	if(GetDesktopPtr())
-		UpdateToScreen(*GetDesktopPtr());
-}
-inline void
-AWindow::UpdateToWindow() const
-{
-	if(GetWindowHandle())
-		UpdateToWindow(*GetWindowHandle());
-}
 
-
-//框架窗口。
+//! \brief 框架窗口。
 class YFrameWindow : public GMCounter<YFrameWindow>, public YComponent,
 	public AWindow, protected Widgets::MUIContainer
 {
@@ -270,13 +253,12 @@ public:
 	typedef YComponent ParentType;
 
 	/*!
-	\brief 构造：使用指定边界、背景图像、桌面指针、 Shell 句柄和窗口句柄。
+	\brief 构造：使用指定边界、背景图像、窗口句柄和 Shell 句柄。
 	*/
 	explicit
 	YFrameWindow(const Rect& = Rect::Empty,
-		const GHResource<YImage> = new YImage(),
-		YDesktop* = ::YSLib::pDefaultDesktop,
-		HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
+		const GHResource<YImage> = new YImage(), HWND = NULL,
+		HSHL = ::YSLib::theApp.GetShellHandle());
 	/*!
 	\brief 无异常抛出。
 	\note 空实现。
@@ -301,7 +283,8 @@ public:
 		ImplBodyBase(GMFocusResponser<IVisualControl>, GetFocusingPtr)
 	ImplI(IWindow) PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
 		ImplBodyBase(MUIContainer, GetTopWidgetPtr, p)
-	ImplI(IWindow) PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p)
+	ImplI(IWindow) PDefH(IVisualControl*, GetTopVisualControlPtr,
+		const Point& p)
 		ImplBodyBase(MUIContainer, GetTopVisualControlPtr, p)
 
 	ImplI(IWindow) PDefH(void, ClearFocusingPtr)

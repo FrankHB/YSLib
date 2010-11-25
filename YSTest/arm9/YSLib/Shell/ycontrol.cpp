@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.3250;
+\version 0.3292;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 + 08:00;
 \par 修改时间:
-	2010-11-12 15:09 + 08:00;
+	2010-11-24 09:49 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -95,8 +95,8 @@ MVisualControl::MVisualControl()
 {}
 
 
-AVisualControl::AVisualControl(HWND hWnd, const Rect& r, IUIBox* pCon)
-	: Widget(hWnd, r, pCon), MVisualControl()
+AVisualControl::AVisualControl(const Rect& r, IUIBox* pCon)
+	: Widget(r, pCon), MVisualControl()
 {
 	EventMap[EControl::GotFocus] += &AVisualControl::OnGotFocus;
 	EventMap[EControl::LostFocus] += &AVisualControl::OnLostFocus;
@@ -153,9 +153,9 @@ AVisualControl::OnTouchDown(TouchEventArgs& e)
 }
 
 
-YVisualControl::YVisualControl(HWND hWnd, const Rect& r, IUIBox* pCon)
+YVisualControl::YVisualControl(const Rect& r, IUIBox* pCon)
 	: YComponent(),
-	AVisualControl(hWnd, r, pCon)
+	AVisualControl(r, pCon)
 {}
 YVisualControl::~YVisualControl() ythrow()
 {}

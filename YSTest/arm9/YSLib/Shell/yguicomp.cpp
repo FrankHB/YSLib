@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2394;
+\version 0.2620;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-11-22 23:07 + 08:00;
+	2010-11-24 11:14 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -155,8 +155,8 @@ namespace
 }
 
 
-YThumb::YThumb(HWND hWnd, const Rect& r, IUIBox* pCon)
-	: YVisualControl(hWnd, r, pCon),
+YThumb::YThumb(const Rect& r, IUIBox* pCon)
+	: YVisualControl(r, pCon),
 	MButton()
 {
 	Enter += &YThumb::OnEnter;
@@ -170,7 +170,7 @@ YThumb::DrawForeground()
 
 	ParentType::DrawForeground();
 
-	HWND hWnd(GetWindowHandle());
+	HWND hWnd(FetchDirectWindowHandle(*this));
 
 	RectDrawButton(Graphics(*hWnd), LocateForWindow(*this),
 		 GetSize(), bPressed);
@@ -193,9 +193,9 @@ YThumb::OnLeave(InputEventArgs&)
 }
 
 
-YButton::YButton(HWND hWnd, const Rect& r, const Drawing::Font& f, IUIBox* pCon,
+YButton::YButton(const Rect& r, IUIBox* pCon, const Drawing::Font& f,
 	GHResource<Drawing::TextRegion> prTr_)
-	: YThumb(hWnd, r, pCon),
+	: YThumb(r, pCon),
 	MLabel(f, prTr_)
 {}
 
@@ -209,37 +209,11 @@ YButton::DrawForeground()
 }
 
 
-void
-MSimpleFocusResponser::ClearFocusingPtr()
-{
-	pFocusing = NULL;
-}
-
-bool
-MSimpleFocusResponser::ResponseFocusRequest(AFocusRequester& w)
-{
-//	if(&w == &Thumb)
-	pFocusing = dynamic_cast<IVisualControl*>(&w);
-	return pFocusing;
-}
-
-bool
-MSimpleFocusResponser::ResponseFocusRelease(AFocusRequester& w)
-{
-	if(pFocusing == dynamic_cast<IVisualControl*>(&w))
-	{
-		pFocusing = NULL;
-	//	w.ReleaseFocusRaw();
-		return true;
-	}
-	return false;
-}
-
-
-ATrack::ATrack(HWND hWnd, const Rect& r, IUIBox* pCon, SDST uMinThumbLength)
-	: AVisualControl(hWnd, Rect(r.GetPoint(),
+ATrack::ATrack(const Rect& r, IUIBox* pCon, SDST uMinThumbLength)
+	: AVisualControl(Rect(r.GetPoint(),
 		vmax<SDST>(16, r.Width), vmax<SDST>(16, r.Height)), pCon),
-	Thumb(hWnd, Rect(0, 0, 16, 16), this),
+	MSimpleFocusResponser(),
+	Thumb(Rect(0, 0, 16, 16), this),
 	MinThumbLength(uMinThumbLength)
 {
 	TouchMove += OnTouchMove;
@@ -289,7 +263,7 @@ ATrack::DrawBackground()
 {
 	YWidgetAssert(this, Controls::ATrack, DrawBackground);
 
-	const Graphics g(*GetWindowHandle());
+	const Graphics g(*FetchDirectWindowHandle(*this));
 	const Point loc(LocateForWindow(*this));
 
 	FillRect(g, loc, GetSize(), Color(237, 237, 237));
@@ -369,10 +343,10 @@ ATrack::OnTouchDown(TouchEventArgs& e)
 }
 
 
-YHorizontalTrack::YHorizontalTrack(HWND hWnd, const Rect& r, IUIBox* pCon,
+YHorizontalTrack::YHorizontalTrack(const Rect& r, IUIBox* pCon,
 	SDST uMinThumbLength)
 	: YComponent(),
-	ATrack(hWnd, r, pCon, uMinThumbLength)
+	ATrack(r, pCon, uMinThumbLength)
 {
 	YAssert(GetWidth() > GetHeight() * 2,
 		"In constructor Components::Controls::\n"
@@ -396,10 +370,10 @@ YHorizontalTrack::OnDrag_Thumb_Horizontal(TouchEventArgs& e)
 }
 
 
-YVerticalTrack::YVerticalTrack(HWND hWnd, const Rect& r, IUIBox* pCon,
+YVerticalTrack::YVerticalTrack(const Rect& r, IUIBox* pCon,
 	SDST uMinThumbLength)
 	: YComponent(),
-	ATrack(hWnd, r, pCon, uMinThumbLength)
+	ATrack(r, pCon, uMinThumbLength)
 {
 	YAssert(GetHeight() > GetWidth() * 2,
 		"In constructor Components::Controls::\n"
@@ -423,17 +397,18 @@ YVerticalTrack::OnDrag_Thumb_Vertical(TouchEventArgs& e)
 }
 
 
-AScrollBar::AScrollBar(HWND hWnd, const Rect& r, IUIBox* pCon,
-	SDST uMinThumbSize, Widgets::Orientation o)
-try	: AVisualControl(hWnd, r, pCon),
+AScrollBar::AScrollBar(const Rect& r, IUIBox* pCon, SDST uMinThumbSize,
+	Widgets::Orientation o)
+try	: AVisualControl(r, pCon),
+	MSimpleFocusResponser(),
 	pTrack(o == Widgets::Horizontal
-		? static_cast<ATrack*>(new YHorizontalTrack(hWnd,
+		? static_cast<ATrack*>(new YHorizontalTrack(
 			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), this,
 			uMinThumbSize))
-		: static_cast<ATrack*>(new YVerticalTrack(hWnd,
+		: static_cast<ATrack*>(new YVerticalTrack(
 			Rect(0, r.Width, r.Height - r.Width * 2, r.Width), this,
 			uMinThumbSize))),
-	PrevButton(hWnd, Rect(), this), NextButton(hWnd, Rect(), this)
+	PrevButton(Rect(), this), NextButton(Rect(), this)
 {
 	Size s(GetSize());
 	const bool bHorizontal(o == Widgets::Horizontal);
@@ -481,14 +456,16 @@ AScrollBar::DrawForeground()
 
 	ParentType::DrawForeground();
 
-	const Graphics g(*GetWindowHandle());
+	const Graphics g(*FetchDirectWindowHandle(*this));
 	const Point b(LocateForWindow(*this));
 
 	pTrack->DrawForeground();
 	PrevButton.DrawForeground();
 	NextButton.DrawForeground();
-	WndDrawArrow(g, PrevButton.GetBounds(), 4, RDeg180, ForeColor);
-	WndDrawArrow(g, NextButton.GetBounds(), 4, RDeg0, ForeColor);
+	WndDrawArrow(g, Rect(PrevButton.GetLocation() + GetLocation(),
+		PrevButton.GetSize()), 4, RDeg180, ForeColor);
+	WndDrawArrow(g, Rect(NextButton.GetLocation() + GetLocation(),
+		NextButton.GetSize()), 4, RDeg0, ForeColor);
 }
 
 /*SDST
@@ -503,27 +480,29 @@ AScrollBar::GetButtonLength(ValueType i, ValueType n) const
 }*/
 
 
-YHorizontalScrollBar::YHorizontalScrollBar(HWND hWnd, const Rect& r,
-	IUIBox* pCon, SDST uMinThumbLength)
+YHorizontalScrollBar::YHorizontalScrollBar(const Rect& r, IUIBox* pCon,
+	SDST uMinThumbLength)
 	: YComponent(),
-	AScrollBar(hWnd, r, pCon, uMinThumbLength, Widgets::Horizontal)
+	AScrollBar(r, pCon, uMinThumbLength, Widgets::Horizontal)
 {}
 
 
-YListBox::YListBox(HWND hWnd, const Rect& r, IUIBox* pCon,
+YListBox::YListBox(const Rect& r, IUIBox* pCon,
 	GHResource<TextRegion> prTr_)
-	: YVisualControl(hWnd, r, pCon),
-	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()),
+	: YVisualControl(r, pCon),
+//	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()),
+	prTextRegion(GetGlobalResource<TextRegion>()),
 	bDisposeList(true),
 	Font(), Margin(prTextRegion->Margin),
 	List(*new ListType()), Viewer(List)
 {
 	_m_init();
 }
-YListBox::YListBox(HWND hWnd, const Rect& r, IUIBox* pCon,
+YListBox::YListBox(const Rect& r, IUIBox* pCon,
 	GHResource<TextRegion> prTr_, YListBox::ListType& List_)
-	: YVisualControl(hWnd, r, pCon),
-	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()),
+	: YVisualControl(r, pCon),
+//	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()),
+	prTextRegion(GetGlobalResource<TextRegion>()),
 	bDisposeList(false),
 	Font(), Margin(prTextRegion->Margin),
 	List(List_), Viewer(List)
@@ -591,7 +570,7 @@ YListBox::DrawForeground()
 
 	ParentType::DrawForeground();
 
-	HWND hWnd(GetWindowHandle());
+	HWND hWnd(FetchDirectWindowHandle(*this));
 
 	if(hWnd)
 	{
@@ -613,7 +592,7 @@ YListBox::DrawForeground()
 			const ViewerType::IndexType last(Viewer.GetIndex()
 				+ Viewer.GetValid());
 			Point pt(LocateForWindow(*this));
-			const Graphics g(*GetWindowHandle());
+			const Graphics g(*hWnd);
 
 			if(Viewer.GetIndex() >= 0)
 				for(ViewerType::IndexType i(Viewer.GetIndex()); i < last; ++i)
@@ -755,9 +734,9 @@ YListBox::OnConfirmed(IndexEventArgs& e)
 }
 
 
-YFileBox::YFileBox(HWND hWnd, const Rect& r, IUIBox* pCon,
+YFileBox::YFileBox(const Rect& r, IUIBox* pCon,
 	GHResource<TextRegion> prTr_)
-	: YListBox(hWnd, r, pCon, prTr_, MFileList::List), MFileList(),
+	: YListBox(r, pCon, prTr_, MFileList::List), MFileList(),
 	List(ParentType::List)
 {
 	Confirmed += &YFileBox::OnConfirmed;

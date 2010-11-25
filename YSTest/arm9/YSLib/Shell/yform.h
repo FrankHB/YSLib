@@ -11,12 +11,12 @@
 /*!	\file yform.h
 \ingroup Shell
 \brief 平台无关的 GUI 窗体实现。
-\version 0.1410;
+\version 0.1434;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 + 08:00;
 \par 修改时间:
-	2010-11-12 18:31 + 08:00;
+	2010-11-25 14:07 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -47,12 +47,11 @@ protected:
 
 public:
 	/*!
-	\brief 构造：使用指定边界、背景、桌面、 Shell 和父窗口。
+	\brief 构造：使用指定边界、背景图像、窗口句柄和 Shell 句柄。
 	*/
 	explicit
 	YForm(const Rect& = Rect::Empty, const GHResource<YImage> = new YImage(),
-		YDesktop* = ::YSLib::pDefaultDesktop,
-		HSHL = ::YSLib::theApp.GetShellHandle(), HWND = NULL);
+		HWND = NULL, HSHL = ::YSLib::theApp.GetShellHandle());
 	/*!
 	\brief 析构。
 	\note 无异常抛出。

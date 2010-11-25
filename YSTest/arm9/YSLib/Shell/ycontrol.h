@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4370;
+\version 0.4421;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 + 08:00;
 \par 修改时间:
-	2010-11-22 17:36 + 08:00;
+	2010-11-24 09:50 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -312,11 +312,10 @@ class AVisualControl : public Widgets::Widget, public MVisualControl,
 {
 public:
 	/*!
-	\brief 构造：使用指定窗口句柄、边界和部件容器指针。
+	\brief 构造：使用指定边界和部件容器指针。
 	*/
 	explicit
-	AVisualControl(HWND = NULL, const Rect& = Rect::FullScreen,
-		IUIBox* = NULL);
+	AVisualControl(const Rect& = Rect::FullScreen, IUIBox* = NULL);
 	/*!
 	\brief 析构。
 	\note 无异常抛出。
@@ -345,7 +344,6 @@ public:
 	ImplI(IVisualControl) DefGetterBase(const Size&, Size, Visual)
 	ImplI(IVisualControl)
 		DefGetterBase(IUIBox*, ContainerPtr, Widget)
-	ImplI(IVisualControl) DefGetterBase(HWND, WindowHandle, Widget)
 
 	ImplI(IVisualControl) DefEventGetter(InputEventHandler, Enter)
 	ImplI(IVisualControl) DefEventGetter(InputEventHandler, Leave)
@@ -423,11 +421,10 @@ public:
 	typedef YComponent ParentType;
 
 	/*!
-	\brief 构造：使用指定窗口句柄、边界和部件容器指针。
+	\brief 构造：使用指定边界和部件容器指针。
 	*/
 	explicit
-	YVisualControl(HWND = NULL, const Rect& = Rect::FullScreen,
-		IUIBox* = NULL);
+	YVisualControl(const Rect& = Rect::FullScreen, IUIBox* = NULL);
 	/*!
 	\brief 析构。
 	\note 无异常抛出。

@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.2783;
+\version 0.2792;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 + 08:00;
 \par 修改时间:
-	2010-11-15 19:24 + 08:00;
+	2010-11-25 13:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -103,7 +103,9 @@ YShell::GetTopWindowHandle(YDesktop& d, const Point& p) const
 {
 	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
 	{
-		if((*i)->GetDesktopPtr() == &d && Contains(**i, p))
+		// TODO: assert(*i);
+
+		if(FetchDirectDesktopPtr(**i) == &d && Contains(**i, p))
 			return HWND(*i);
 	}
 	return NULL;
@@ -114,7 +116,7 @@ YShell::SendWindow(IWindow& w)
 {
 	if(std::find(sWnds.begin(), sWnds.end(), &w) != sWnds.end())
 	{
-		YDesktop* const pDsk(w.GetDesktopPtr());
+		YDesktop* const pDsk(FetchDirectDesktopPtr(w));
 
 		if(pDsk)
 		{
@@ -130,7 +132,9 @@ YShell::DispatchWindows()
 {
 	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
 	{
-		YDesktop* const pDsk((*i)->GetDesktopPtr());
+		// TODO: assert(*i);
+
+		YDesktop* const pDsk(FetchDirectDesktopPtr(**i));
 
 		if(pDsk)
 			*pDsk += *static_cast<IVisualControl*>(GetPointer(*i));
