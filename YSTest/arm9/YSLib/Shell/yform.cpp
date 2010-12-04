@@ -11,12 +11,12 @@
 /*!	\file yform.cpp
 \ingroup Shell
 \brief 平台无关的 GUI 窗体实现。
-\version 0.1455;
+\version 0.1459;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 + 08:00;
 \par 修改时间:
-	2010-11-25 14:07 + 08:00;
+	2010-11-27 23:38 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,7 @@ YSL_BEGIN_NAMESPACE(Forms)
 
 using namespace Controls;
 
-YForm::YForm(const Rect& r, const GHResource<YImage> i, HWND hWnd, HSHL hShl)
+YForm::YForm(const Rect& r, const GHStrong<YImage> i, HWND hWnd, HSHL hShl)
 	: YFrameWindow(r, i, hWnd, hShl)//,
 //	Client(this, Rect::Empty/*r*/)
 {

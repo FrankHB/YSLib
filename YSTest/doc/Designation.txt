@@ -1,8 +1,8 @@
 ﻿// YSLib -> Designation by Franksoft 2009 - 2010
 // CharSet = UTF-8;
 // CTime = 2009-12-02 05:14:30 + 08:00;
-// UTime = 2010-11-24 15:52 + 08:00;
-// Version = 0.3824;
+// UTime = 2010-12-02 19:46 + 08:00;
+// Version = 0.3848;
 
 
 // Designation ：设计说明文档。
@@ -64,7 +64,7 @@
 ……
 
 @1.2.6 实现模式/代码模式/惯用法(Idioms)：
-语言相关。举例： pimpl 、 copy & swap 。
+语言相关。举例：pimpl 、 copy & swap 。
 
 @1.2.7 其它要点：
 
@@ -192,7 +192,7 @@
 @1.3.5.2.5
 除非有必要，不使用嵌套 try 块。
 
-@1.3.5.3 日志： //E;
+@1.3.5.3 日志：//E;
 输出可选的、可组织的日志文档。
 
 @1.4 语言相关但具体设计内容无关的源代码特性使用和编码风格（一般性建议）：
@@ -356,7 +356,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 合理减少 switch 块中的 break 个数。
 
 @1.4.8.4
-关于异常处理相关的部分，参考： @1.3.5.2 。
+关于异常处理相关的部分，参考：@1.3.5.2 。
 
 @1.4.9 类型操作：
 
@@ -555,7 +555,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
  YSLib::Drawing ：图形处理。
  YSLib::IO ：输入/输出管理。
  YSLib::Runtime ：运行时对象。
- YSLib::Shells ： Shell 抽象层。
+ YSLib::Shells ：Shell 抽象层。
  YSLib::Text ：文本服务。
  YSLib::Timers ：计时器服务。
 
@@ -633,8 +633,8 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 标准库异常类以外， YSLib 仅使用派生自 YSLib::Exceptions::Exception 异常类。
 以下是 YSLib 命名空间中一般的异常类列表：
 模块 YException 中：
- Exception ： YSLib 异常基类。
- GeneralEvent ： 一般异常事件类。
+ Exception ：YSLib 异常基类。
+ GeneralEvent ：一般异常事件类。
  LoggedEvent ：记录异常事件类。
 
 @2.4 核心构件系统：
@@ -677,8 +677,8 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
  KeyEventArgs ，键盘输入事件参数类；
 为了实现和派生上的便利性，包括 EventArgs 以上类实际为结构体类型。
 用模板定义用于事件处理机制的接口和实现类：
-事件处理器接口模板 GIEventHandler ，标准版 IEventHandler ；
-事件处理器模板 GEventHandler ，标准版 EventHandler ；
+事件处理器接口模板 GIHEvent ；
+事件处理器模板 GHEvent ，标准版 HEvent ；
 事件模板 GEvent ，默认第一参数为 true 时为多播版本，否则为单播版本，标准版 Event 为多播版本；
 事件映射表模板 GEventMap 。
 
@@ -816,7 +816,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 
 @2.6.4.2 焦点请求链：
 在排除 @2.6.4.1 中叙述的副作用的情况下，可以认为不同对象的 RequestFocus(...) 的调用是顺序无关的，可以任意调度。
-用 RequestFocusCascade(Components::Controls::IVisualControl&) 函数可以实现由 IVisualControl 对象自下向上的嵌套容器焦点申请。注意，会以相同的顺序引发 GotFocus 事件。
+用 RequestFocusCascade(Components::Controls::IVisualControl&) 函数可以实现由 IVisualControl 对象自下向上的嵌套容器焦点申请。注意，会以相同的顺序触发 GotFocus 事件。
 
 @2.6.4.3 默认实现相关的定义：
 具有焦点响应能力（即储存了关于集中焦点于特定的子对象的状态）的类称为焦点响应类。
@@ -858,12 +858,12 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 @2.7 适配器 (Adaptor) 系统：
 位于 "/Adaptor" 。
 负责衔接和封装外部库，便于移植。
-除了 C++ 标准库以外，其它外部库的函数需要在此声明，以便辨别。
-直接使用除 C++ 标准库、 POSIX / GNU C 兼容函数库、 YCLib 库和 CHRLib 库之外的外部库的代码段所在文件都从属于 Adaptor 。
+除了 C++ 标准库以外，其它外部库的名称需要在此声明。
+直接使用除 C++ 标准库、 POSIX / GNU C 兼容函数库、 YCLib 库和 CHRLib 库之外的外部库原代码片段所在文件都从属于 Adaptor 。
 
 @2.8 服务系统：
 位于 "/Service" 。
-对以上组件提供内部和外部的常用类型和函数的封装。
+对以上组成部分提供内部和外部的常用功能的实现与封装。
 提供了附属的类型和函数供用户程序使用。
 
 @2.8.1 初始化逻辑的实现
@@ -908,7 +908,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 字体输出使用 FreeType2 实现矢量字体光栅化支持。
 
 @3.1.3.2.1
-头文件版本： 2.3.12 ；
+头文件版本：2.3.12 ；
 库文件版本：在 VNDS 源代码中提取的 2.3.6 。
 
 @3.1.3.3
@@ -917,16 +917,19 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 @3.2 库文件基础结构：
 平台设置在 <platform.h> 中。
 任何 YSLib 头文件，除了 "/Adaptor/" 路径下的文件以及仅包含宏定义的文件外，都直接或间接地包含 "/Core/ysdef.h" 文件。
-所有外部链接库为静态库。除了 CHRLib （未找到替代品）和 YCLib 外，对外部库未经过封装的使用仅在 /Adaptor 组件中。这样有利于库的移植。
+所有外部链接库为静态库。除了 CHRLib （未找到替代品）和 YCLib 外，对外部库未经过封装的使用仅在 Adaptor 组件中。这样有利于库的移植。
 
-@4 标识符命名规约：
+@4 标识符命名规约(naming convention)：
 以下是 YSLib 风格标识符的命名规则和约定。
 
 @4.1
 通用指引：
 
-@4.1.1
-尽可能保持上下文一致性。
+@4.1.1 原则：
+接口一致性：相同接口的命名风格应该保持一致。
+上下文一致性：尽可能保持上下文命名风格的类似性。
+推论：在完善的设计中，若在一个代码片段中存在不同风格的代码，则这些代码不属于同一套接口。
+注意：需要存在多套接口的情况下，可能会隐藏潜在的接口设计的不完善性。
 
 @4.1.2 基本例外：
 类的 private 成员、函数作用域（注意不包括属于函数声明作用域的参数列表）和无名命名空间中的名称可以不受本规约限制。

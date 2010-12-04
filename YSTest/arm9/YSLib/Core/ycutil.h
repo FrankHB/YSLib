@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2230;
+\version 0.2288;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 + 08:00;
 \par 修改时间:
-	2010-11-12 19:19 + 08:00;
+	2010-12-04 06:54 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -397,7 +397,7 @@ RestrictUnsigned(_type& u, unsigned b)
 }
 
 /*!
-\brief 约束关系： a ≤ b 。
+\brief 约束关系：a ≤ b 。
 \post a <= b 。
 */
 template<typename _type>
@@ -425,13 +425,13 @@ ClearSequence(_type* dst, std::size_t n)
 struct delete_obj
 {
 	/*!
-			\brief 删除指针指向的对象。
+	\brief 删除指针指向的对象。
 	*/
 	template<typename _type>
 	inline void
 	operator()(_type* _ptr)
 	{
-		delete _ptr;
+		ydelete(_ptr);
 	}
 };
 
@@ -440,13 +440,13 @@ struct delete_obj
 struct safe_delete_obj
 {
 	/*!
-			\brief 删除指针指向的对象，并置指针为空值。
+	\brief 删除指针指向的对象，并置指针为空值。
 	*/
 	template<typename _type>
 	inline void
 	operator()(_type*& _ptr)
 	{
-		delete _ptr;
+		ydelete(_ptr);
 		_ptr = NULL;
 	}
 };
@@ -521,17 +521,24 @@ struct deref_str_comp : _fCompare
 };
 
 
+/*!	\defgroup Algorithm Gerneral Algorithm
+\brief 算法。
+*/
+
 /*!
-\brief 泛型算法：删除指定标准容器中所有相同元素。
+\ingroup Algorithm
+\brief 删除指定标准容器中所有相同元素。
 */
 template<typename _tContainer>
 typename _tContainer::size_type
-erase_all(_tContainer& _container, const typename _tContainer::value_type& _value)
+erase_all(_tContainer& _container,
+	const typename _tContainer::value_type& _value)
 {
 	int n(0);
 	typename _tContainer::iterator i;
 
-	while((i = std::find(_container.begin(), _container.end(), _value)) != _container.end())
+	while((i = std::find(_container.begin(), _container.end(), _value))
+		!= _container.end())
 	{
 		_container.erase(i);
 		++n;
@@ -540,22 +547,40 @@ erase_all(_tContainer& _container, const typename _tContainer::value_type& _valu
 }
 
 /*!
-\brief 泛型算法：删除指定标准容器中所有满足条件元素。
+\ingroup Algorithm
+\brief 删除指定标准容器中所有满足条件元素。
 */
 template<typename _tContainer, typename _fPredicate>
 typename _tContainer::size_type
-erase_all_if(_tContainer& _container, const typename _tContainer::value_type& _pred)
+erase_all_if(_tContainer& _container,
+	const typename _tContainer::value_type& _pred)
 {
 	int n(0);
 	typename _tContainer::iterator i;
 
-	while((i = std::find(_container.begin(), _container.end(), _pred)) != _container.end())
+	while((i = std::find(_container.begin(), _container.end(), _pred))
+		!= _container.end())
 		if(_pred(*i))
 		{
 			_container.erase(i);
 			++n;
 		}
 	return n;
+}
+
+/*!
+\ingroup Algorithm
+\brief 按指定键值搜索指定映射。
+\return 一个用于表示结果的 std::pair 对象，其 first 成员为迭代器， second 成员
+	表示是否需要插入（行为同 std::map::operator[] ）。
+*/
+template<class _tMap>
+std::pair<typename _tMap::iterator, bool>
+search_map(_tMap& m, const typename _tMap::key_type& k)
+{
+	typename _tMap::iterator i(m.lower_bound(k));
+
+	return std::make_pair(i, (i == m.end() || m.key_comp()(k, i->first)));
 }
 
 YSL_END

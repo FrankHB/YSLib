@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3189;
+\version 0.3253;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-11-19 12:10 + 08:00;
+	2010-12-04 23:43 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -120,7 +120,7 @@ namespace
 	static BitmapPtr gbuf;
 	static int nCountInput;
 	static char strCount[40];
-	GHResource<YImage> g_pi[10];
+	GHStrong<YImage> g_pi[10];
 
 	void
 	LoadL()
@@ -235,7 +235,7 @@ namespace
 	}
 }
 
-GHResource<YImage>&
+GHStrong<YImage>&
 GetImage(int i)
 {
 	switch(i)
@@ -297,10 +297,10 @@ ShlExplorer::TFrmFileListSelecter::frm_KeyPress(KeyEventArgs& e)
 	switch(e.GetKey())
 	{
 	case KeySpace::X:
-		btnTest.Click(btnTest, et);
+		FetchEvent<EControl::Click>(btnTest)(btnTest, et);
 		break;
 	case KeySpace::R:
-		btnOK.Click(btnOK, et);
+		FetchEvent<EControl::Click>(btnOK)(btnOK, et);
 		break;
 	default:
 		break;
@@ -446,7 +446,7 @@ YSL_BEGIN_SHELL(ShlSetting)
 //输出设备刷新函数。
 /*static void ScrRefresh()
 {
-	InsertMessage(NULL, SM_SCRREFRESH, 0x80, hShellMain->scrType, 0);
+	InsertMessage(NULL, SM_SCRREFRESH, 0x80, DefaultShellHandle->scrType, 0);
 }
 */
 
@@ -495,20 +495,20 @@ void
 ShlSetting::TFormC::btnC_Click(TouchEventArgs& e)
 {
 
-	static const int ffilen(pDefaultFontCache->GetFilesN());
-	static const int ftypen(pDefaultFontCache->GetTypesN());
-	static const int ffacen(pDefaultFontCache->GetFacesN());
+	static const int ffilen(theApp.pFontCache->GetFilesN());
+	static const int ftypen(theApp.pFontCache->GetTypesN());
+	static const int ffacen(theApp.pFontCache->GetFacesN());
 	static int itype;
 	static YFontCache::FTypes::const_iterator it(
-		pDefaultFontCache->GetTypes().begin());
+		theApp.pFontCache->GetTypes().begin());
 
 	//	btnC.Transparent ^= 1;
 	if(nCountInput & 1)
 	{
 		//	btnC.Visible ^= 1;
 		++itype %= ftypen;
-		if(++it == pDefaultFontCache->GetTypes().end())
-			it = pDefaultFontCache->GetTypes().begin();
+		if(++it == theApp.pFontCache->GetTypes().end())
+			it = theApp.pFontCache->GetTypes().begin();
 		btnC.Font = Font(*(*it)->GetFontFamilyPtr(), 18 - (itype << 1),
 			EFontStyle::Regular);
 	//	btnC.Font = Font(*(*it)->GetFontFamilyPtr()/*GetDefaultFontFamily()*/,
@@ -522,7 +522,7 @@ ShlSetting::TFormC::btnC_Click(TouchEventArgs& e)
 		sprintf(strtf, "%d/%d;%s:%s;\n", itype + 1, ftypen,
 			(*it)->GetFamilyName(), (*it)->GetStyleName());
 		//	sprintf(strtf, "B%p\n",
-		//		pDefaultFontCache->GetTypefacePtr("FZYaoti", "Regular"));
+		//		theApp.pFontCache->GetTypefacePtr("FZYaoti", "Regular"));
 		btnC.Text = strtf;
 	}
 	//	btnC.Refresh();
@@ -557,6 +557,7 @@ void
 ShlSetting::TFormC::btnReturn_Click(TouchEventArgs&)
 {
 	CallStored<ShlExplorer>();
+//	Shells::PostQuitMessage(0);
 }
 
 LRES
@@ -625,8 +626,10 @@ ShlReader::OnActivated(const Message& msg)
 	pDesktopDown->SetBackground(NULL);
 	pDesktopUp->BackColor = ARGB16(1, 30, 27, 24);
 	pDesktopDown->BackColor = ARGB16(1, 24, 27, 30);
-	pDesktopDown->Click.Add(*this, &ShlReader::OnClick);
-	pDesktopDown->KeyPress.Add(*this, &ShlReader::OnKeyPress);
+	FetchEvent<EControl::Click>(*pDesktopDown).Add(*this,
+		&ShlReader::OnClick);
+	FetchEvent<EControl::KeyPress>(*pDesktopDown).Add(*this,
+		&ShlReader::OnKeyPress);
 	RequestFocusCascade(*pDesktopDown);
 	UpdateToScreen();
 	return 0;
@@ -636,8 +639,10 @@ LRES
 ShlReader::OnDeactivated(const Message& msg)
 {
 	ShlClearBothScreen();
-	pDesktopDown->Click.Remove(*this, &ShlReader::OnClick);
-	pDesktopDown->KeyPress.Remove(*this, &ShlReader::OnKeyPress);
+	FetchEvent<EControl::Click>(*pDesktopDown).Remove(*this,
+		&ShlReader::OnClick);
+	FetchEvent<EControl::KeyPress>(*pDesktopDown).Remove(*this,
+		&ShlReader::OnKeyPress);
 	pDesktopUp->SetBackground(hUp);
 	pDesktopDown->SetBackground(hDn);
 	Reader.UnloadText();

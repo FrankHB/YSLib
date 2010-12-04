@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 应用程序实例类抽象。
-\version 0.1905;
+\version 0.1941;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 + 08:00;
 \par 修改时间:
-	2010-11-17 19:09 + 08:00;
+	2010-11-30 20:02 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -104,36 +104,38 @@ public:
 	static const String ProductVersion; //!< 产品版本。
 
 	//标准程序实例事件。
-	DefEvent(EventHandler, ApplicationExit) //!< 资源释放函数。
-	DefEvent(EventHandler, Idle)
+	DefEvent(HEvent, ApplicationExit) //!< 资源释放函数。
+	DefEvent(HEvent, Idle)
 
 	//全局资源。
 	YLog& Log; //!< 默认程序日志。
+	YScreen*& pDefaultScreen;
+	YDesktop*& pDefaultDesktop;
+	static const HSHL DefaultShellHandle; //!< 主 Shell 句柄。
 
 private:
 	YMessageQueue* pMessageQueue; //!< 主消息队列：在程序实例中实现以保证单线程。
 	YMessageQueue* pMessageQueueBackup; \
 		//!< 备份消息队列：在程序实例中实现以保证单线程。
 
-public:
-	YFontCache* pFontCache; //!< 默认字体缓存。
-
-private:
 	SHLs sShls; //!<  Shell 对象组：实现 Shell 存储。
 	HSHL hShell;
 		//当前 Shell 句柄：指示当前线程空间中运行的 Shell ；
 		//应初始化为主 Shell ：全局单线程，生存期与进程相同。
 
+public:
+	YFontCache* pFontCache; //!< 默认字体缓存。
+
+private:
 	/*!
-	\brief 禁止无参数构造。
-	\note 无实现。
+	\brief 构造：使用指定默认屏幕指针、默认桌面指针和默认 Shell 句柄。
 	*/
-	YApplication();
+	YApplication(YScreen*&, YDesktop*&);
 	/*!
 	\brief 静态单例构造：取得自身实例指针。
 	*/
 	static YApplication*
-	GetInstancePtr();
+	GetInstancePtr(YScreen*&, YDesktop*&);
 
 public:
 	/*!
@@ -161,10 +163,8 @@ public:
 	bool
 	Contains(HSHL) const;
 
-	DefStaticGetter(YApplication&, App, *GetInstancePtr()) \
-		//!< 取得自身实例引用。
-	DefStaticGetter(HINSTANCE, InstanceHandle, HINSTANCE(GetInstancePtr())) \
-		//!< 取得自身实例句柄。
+	static PDefH(YApplication&, GetApp, YScreen*& pScr, YDesktop*& pDsk)
+		ImplRet(*GetInstancePtr(pScr, pDsk)) //!< 取得自身实例引用。
 	DefGetter(const SHLs, ShellSet, sShls) //!< 取 Shell 对象组。
 	DefGetter(HSHL, ShellHandle, hShell) \
 		//!< 取得线程空间中当前运行的 Shell 的句柄。
@@ -199,9 +199,9 @@ public:
 };
 
 inline YApplication*
-YApplication::GetInstancePtr()
+YApplication::GetInstancePtr(YScreen*& pScr, YDesktop*& pDsk)
 {
-	static YApplication instance; //!< 静态单例对象。
+	static YApplication instance(pScr, pDsk); //!< 静态单例对象。
 
 	return &instance;
 }

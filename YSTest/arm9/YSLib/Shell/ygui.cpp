@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3144;
+\version 0.3235;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-24 09:57 + 08:00;
+	2010-12-01 17:41 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -164,7 +164,7 @@ namespace
 	{
 		if(!bEntered && p_TouchDown == &c)
 		{
-			c.GetEnter()(c, e);
+			FetchEvent<EControl::Enter>(c)(c, e);
 			bEntered = true;
 		}
 	}
@@ -173,7 +173,7 @@ namespace
 	{
 		if(bEntered && p_TouchDown == &c)
 		{
-			c.GetLeave()(c, e);
+			FetchEvent<EControl::Leave>(c)(c, e);
 			bEntered = false;
 		}
 	}
@@ -249,9 +249,9 @@ namespace
 	{
 		ResetHeldState(KeyHeldState);
 		if(p_KeyDown == &c && KeyHeldState == Free)
-			c.GetKeyPress()(c, e);
-		c.GetKeyUp()(c, e);
-		c.GetLeave()(c, e);
+			FetchEvent<EControl::KeyPress>(c)(c, e);
+		FetchEvent<EControl::KeyUp>(c)(c, e);
+		FetchEvent<EControl::Leave>(c)(c, e);
 		p_KeyDown = NULL;
 		return true;
 	}
@@ -259,8 +259,8 @@ namespace
 	ResponseKeyDownBase(IVisualControl& c, KeyEventArgs& e)
 	{
 		p_KeyDown = &c;
-		c.GetEnter()(c, e);
-		c.GetKeyDown()(c, e);
+		FetchEvent<EControl::Enter>(c)(c, e);
+		FetchEvent<EControl::KeyDown>(c)(c, e);
 		return true;
 	}
 	bool
@@ -271,7 +271,7 @@ namespace
 			ResetHeldState(KeyHeldState);
 			return false;
 		}
-		c.GetKeyHeld()(c, e);
+		FetchEvent<EControl::KeyHeld>(c)(c, e);
 		return true;
 	}
 
@@ -280,8 +280,8 @@ namespace
 	{
 		ResetTouchHeldState();
 		if(p_TouchDown == &c && TouchHeldState == Free)
-			c.GetClick()(c, e);
-		c.GetTouchUp()(c, e);
+			FetchEvent<EControl::Click>(c)(c, e);
+		FetchEvent<EControl::TouchUp>(c)(c, e);
 		TryLeave(c, e);
 		p_TouchDown = NULL;
 		return true;
@@ -291,7 +291,7 @@ namespace
 	{
 		p_TouchDown = &c;
 		TryEnter(c, e);
-		c.GetTouchDown()(c, e);
+		FetchEvent<EControl::TouchDown>(c)(c, e);
 		return true;
 	}
 	bool
@@ -304,7 +304,7 @@ namespace
 		}*/
 		if(p_TouchDown == &c)
 		{
-			c.GetTouchHeld()(c, e);
+			FetchEvent<EControl::TouchHeld>(c)(c, e);
 			return true;
 		}
 		return false;
@@ -394,7 +394,7 @@ DrawWidgetBounds(IWidget& w, Color c)
 	HWND hWnd(FetchDirectWindowHandle(w));
 
 	if(hWnd)
-		DrawWidgetBounds(hWnd, LocateOffset(&w, Point::Zero, hWnd),
+		DrawWidgetBounds(hWnd, LocateOffset(&w, Point::Zero, GetPointer(hWnd)),
 			w.GetSize(), c);
 }
 
@@ -404,7 +404,7 @@ DrawWidgetOutline(IWidget& w, Color c)
 	HWND hWnd(FetchWindowHandle(w));
 
 	if(hWnd)
-		DrawWidgetBounds(hWnd, LocateOffset(&w, Point::Zero, hWnd),
+		DrawWidgetBounds(hWnd, LocateOffset(&w, Point::Zero, GetPointer(hWnd)),
 			w.GetSize(), c);
 }
 

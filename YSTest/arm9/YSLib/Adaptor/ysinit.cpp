@@ -11,21 +11,22 @@
 /*!	\file ysinit.cpp
 \ingroup Service
 \brief 程序启动时的通用初始化。
-\version 0.1710;
+\version 0.1725;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-10-21 23:15:08 + 08:00;
 \par 修改时间:
-	2010-11-15 12:13 + 08:00;
+	2010-12-03 23:14 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Service::YShellInitialization;
+	YSLib::Adaptor::YShellInitialization;
 */
 
 
 #include "ysinit.h"
-#include "../Adaptor/yfont.h"
+#include "yfont.h"
+#include "../Core/yapp.h"
 
 using namespace stdex;
 using namespace platform;
@@ -127,17 +128,20 @@ void
 InitializeSystemFontCache()
 {
 	puts("Loading font files...");
-	CreateFontCache(pDefaultFontCache, DEF_FONT_PATH);
-	if(pDefaultFontCache && DEF_FONT_DIRECTORY)
-		pDefaultFontCache->LoadFontFileDirectory(DEF_FONT_DIRECTORY);
+	CreateFontCache(theApp.pFontCache, DEF_FONT_PATH);
+	if(theApp.pFontCache && DEF_FONT_DIRECTORY)
+		theApp.pFontCache->LoadFontFileDirectory(DEF_FONT_DIRECTORY);
 	CheckSystemFontCache();
-	iprintf("%u font file(s) are loaded\nsuccessfully.\n", pDefaultFontCache->GetFilesN());
+	iprintf("%u font file(s) are loaded\nsuccessfully.\n",
+		theApp.pFontCache->GetFilesN());
 	puts("Setting default font face...");
 
-	const Drawing::Typeface* const pf(pDefaultFontCache->GetDefaultTypefacePtr());
+	const Drawing::Typeface* const
+		pf(theApp.pFontCache->GetDefaultTypefacePtr());
 
 	if(pf && Drawing::Font::InitializeDefault())
-		iprintf("\"%s\":\"%s\",\nsuccessfully.\n", pf->GetFamilyName(), pf->GetStyleName());
+		iprintf("\"%s\":\"%s\",\nsuccessfully.\n", pf->GetFamilyName(),
+			pf->GetStyleName());
 	else
 	{
 		puts("failed.");
@@ -148,7 +152,7 @@ InitializeSystemFontCache()
 void
 DestroySystemFontCache()
 {
-	Drawing::DestroyFontCache(pDefaultFontCache);
+	Drawing::DestroyFontCache(theApp.pFontCache);
 	Drawing::Font::ReleaseDefault();
 }
 
@@ -156,7 +160,7 @@ void
 CheckInstall()
 {
 	puts("Checking installation...");
-	if(!direxists(DEF_DIRECTORY))
+	if(!direxists(Text::StringToMBCS(YApplication::CommonAppDataPath).c_str()))
 		installFail("Default data directory");
 	if(!(stdex::fexists(DEF_FONT_PATH)
 		|| direxists(DEF_FONT_DIRECTORY)))
@@ -167,7 +171,7 @@ CheckInstall()
 void
 CheckSystemFontCache()
 {
-	if(!(pDefaultFontCache && pDefaultFontCache->GetTypesN() > 0))
+	if(!(theApp.pFontCache && theApp.pFontCache->GetTypesN() > 0))
 		defFontFail();
 }
 

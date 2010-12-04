@@ -16,12 +16,12 @@
 /*!	\file ytmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4314;
+\version 0.4319;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 + 08:00;
 \par 修改时间:
-	2010-11-12 18:42 + 08:00;
+	2010-11-27 08:58 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,6 +66,7 @@ protected:
 public:
 	/*!
 	\brief 返回指定下标的字符。
+	\note 断言检查。
 	\note 无运行期范围检查。
 	*/
 	uchar_t&
@@ -83,9 +84,9 @@ public:
 	GetPrevChar(SizeType o, uchar_t c);
 	/*!
 	\brief 从文本缓冲区下标 o （含）起顺序查找字符 c 。
-	\note 返回结果的下标；
-			查找失败时返回缓冲区长度（o 原值小于缓冲区长度）
-			或 o 原值（大于等于缓冲区长度时）。
+	\note 返回结果的下标：
+	\li 查找失败时返回缓冲区长度（o 原值小于缓冲区长度）；
+	\li 或 o 原值（大于等于缓冲区长度时）。
 	*/
 	SizeType
 	GetNextChar(SizeType o, uchar_t c);
@@ -98,8 +99,8 @@ public:
 	/*!
 	\brief 从文本缓冲区下标 o （含）起顺序查找字符 c 。
 	\note 返回结果的下标；
-			查找失败时返回缓冲区长度（o 原值小于缓冲区长度）
-			或 o 原值（大于等于缓冲区长度时）。
+	\li 查找失败时返回缓冲区长度（o 原值小于缓冲区长度）；
+	\li 或 o 原值（大于等于缓冲区长度时）。
 	*/
 	SizeType
 	GetNextNewline(SizeType o);
@@ -131,16 +132,16 @@ ythrow(std::out_of_range)
 	Load(const uchar_t* s, SizeType n);
 	/*!
 	\brief 从文本文件 f 中读取连续的 capacity 个字符，
-			并返回成功读取的字符数。
+		并返回成功读取的字符数。
 	\note 自动校验换行并转换为 Unix / Linux 格式。
 	*/
 	SizeType
 	Load(YTextFile& f);
 	/*!
 	\brief 从文本文件 f 中读取连续的 n 个（）uchar_t 字符，
-			并返回成功读取的字符数。
-	\note 超过最大长度则放弃读取；
-			自动校验换行并转换为 Unix / Linux 格式。
+		并返回成功读取的字符数。
+	\note 超过最大长度则放弃读取。
+	\note 自动校验换行并转换为 Unix / Linux 格式。
 	*/
 	SizeType
 	Load(YTextFile& f, SizeType n);

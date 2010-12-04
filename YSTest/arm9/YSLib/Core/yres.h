@@ -11,12 +11,12 @@
 /*!	\file yres.h
 \ingroup Core
 \brief 资源管理模块。
-\version 0.1407;
+\version 0.1411;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 + 08:00;
 \par 修改时间:
-	2010-11-12 19:08 + 08:00;
+	2010-11-27 23:39 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,10 +37,10 @@ YSL_BEGIN
 \note 线程空间内共享；全局资源初始化之后可调用。
 */
 template<class T>
-GHResource<T>&
+GHStrong<T>&
 GetGlobalResource()
 {
-	static GHResource<T> p(new T);
+	static GHStrong<T> p(new T);
 
 	return p;
 }

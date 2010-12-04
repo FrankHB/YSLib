@@ -16,12 +16,12 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version 0.2342;
+\version 0.2420;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-24 15:29:11 + 08:00;
 \par 修改时间:
-	2010-11-15 17:56 + 08:00;
+	2010-12-02 23:16 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@
 #include "../Adaptor/yadaptor.h"
 
 //间接访问类模块。
-#include "../Adaptor/yref.hpp"
+#include "yref.hpp"
 
 YSL_BEGIN
 
@@ -133,22 +133,38 @@ DeclareHandle(YApplication, HINSTANCE);
 typedef enum {RDeg0 = 0, RDeg90 = 1, RDeg180 = 2, RDeg270 = 3} ROT; \
 	//逆时针旋转角度指示输出朝向。
 
-//全局常量。
-extern CSTR G_COMP_NAME, G_APP_NAME, G_APP_VER; \
-	//制作机构名称，程序名称和版本号。
-extern CPATH DEF_DIRECTORY;
+/*!	\defgroup GlobalObjects Global Objects
+\brief 全局对象。
+*/
+
+/*!	\defgroup DefaultGlobalConstants Default Global Constants
+\ingroup GlobalObjects
+\brief 默认全局常量。
+*/
+/*! @{ */
+//! \brief 屏幕大小。
 extern const SDST SCRW, SCRH;
+/*! @} */
 
-//全局变量。
-extern YLog DefaultLog; //!< 全局日志。
+/*!	\defgroup DefaultGlobalVariables Default Global Variables
+\ingroup GlobalObjects
+\brief 默认全局变量。
+*/
+/*! @{ */
+//! \brief 全局日志。
+extern YLog DefaultLog;
+/*! @} */
 
-//访问全局程序实例对象。
-extern YScreen*& pDefaultScreen;
-extern YDesktop*& pDefaultDesktop;
+/*!	\defgroup DefaultGlobalObjectMapping Default Global Object Mapping
+\ingroup GlobalObjects
+\brief 默认全局变量映射。
+
+访问全局程序实例对象。
+*/
+/*! @{ */
+//! \brief 全局应用程序对象。
 extern YApplication& theApp;
-extern YFontCache*& pDefaultFontCache;
-extern YApplication* const pApp;
-extern const HSHL hShellMain;
+/*! @} */
 
 YSL_END
 

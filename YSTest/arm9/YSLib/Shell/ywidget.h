@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5602;
+\version 0.5619;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-25 13:43 + 08:00;
+	2010-12-01 21:11 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -187,17 +187,31 @@ EndDecl
 
 
 /*!
-\brief 判断点是否在可视区域内。
+\brief 判断点是否在部件的可视区域内。
 */
 bool
 Contains(const IWidget& w, SPOS x, SPOS y);
 /*!
-\brief 判断点是否在可视区域内。
+\brief 判断点是否在部件的可视区域内。
 */
 inline bool
 Contains(const IWidget& w, const Point& p)
 {
 	return Contains(w, p.X, p.Y);
+}
+
+/*!
+\brief 判断点是否在可见部件的可视区域内。
+*/
+bool
+ContainsVisible(const IWidget& w, SPOS x, SPOS y);
+/*!
+\brief 判断点是否在可见部件的可视区域内。
+*/
+inline bool
+ContainsVisible(const IWidget& w, const Point& p)
+{
+	return ContainsVisible(w, p.X, p.Y);
 }
 
 
@@ -322,7 +336,7 @@ LocateContainerOffset(const IWidget& w, const Point& p)
 inline Point
 LocateWindowOffset(const IWidget& w, const Point& p)
 {
-	return LocateOffset(&w, p, FetchWindowHandle(w));
+	return LocateOffset(&w, p, GetPointer(FetchWindowHandle(w)));
 }
 
 /*!
@@ -362,24 +376,28 @@ LocateForParentWindow(const IWidget&);
 
 /*!
 \brief 移动部件至容器左端。
+\pre 断言：w.GetContainerPtr()。
 */
 void
 MoveToLeft(IWidget&);
 
 /*!
 \brief 移动部件至容器右端。
+\pre 断言：w.GetContainerPtr()。
 */
 void
 MoveToRight(IWidget&);
 
 /*!
 \brief 移动部件至容器上端。
+\pre 断言：w.GetContainerPtr()。
 */
 void
 MoveToTop(IWidget&);
 
 /*!
 \brief 移动部件至容器下端。
+\pre 断言：w.GetContainerPtr()。
 */
 void
 MoveToBottom(IWidget&);
@@ -562,7 +580,8 @@ Widget::BelongsTo(IUIBox* pCon) const
 
 
 //! \brief 部件。
-class YWidget : public GMCounter<YWidget>, public YComponent, public Widget,
+class YWidget : public GMCounter<YWidget>, public YComponent,
+	public Widget,
 	implements IWidget
 {
 public:
@@ -763,7 +782,7 @@ public:
 class MLabel
 {
 protected:
-	GHResource<Drawing::TextRegion> prTextRegion; //!< 文本区域指针。
+	GHStrong<Drawing::TextRegion> prTextRegion; //!< 文本区域指针。
 
 public:
 	Drawing::Font Font; //!< 字体。
@@ -777,7 +796,7 @@ public:
 	*/
 	explicit
 	MLabel(const Drawing::Font& = Drawing::Font::GetDefault(),
-		GHResource<Drawing::TextRegion> = NULL);
+		GHStrong<Drawing::TextRegion> = NULL);
 
 protected:
 	DefEmptyDtor(MLabel)
@@ -791,7 +810,8 @@ protected:
 
 
 //标签。
-class YLabel : public GMCounter<YLabel>, public YWidget, public Widgets::MLabel
+class YLabel : public GMCounter<YLabel>, public YWidget,
+	public Widgets::MLabel
 {
 public:
 	typedef YWidget ParentType;
@@ -808,7 +828,7 @@ public:
 	explicit
 	YLabel(const Rect& = Rect::FullScreen, IUIBox* = NULL,
 		const Drawing::Font& = Drawing::Font::GetDefault(),
-		GHResource<Drawing::TextRegion> = NULL);
+		GHStrong<Drawing::TextRegion> = NULL);
 
 	virtual DefEmptyDtor(YLabel)
 

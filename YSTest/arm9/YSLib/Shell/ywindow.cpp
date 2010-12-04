@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3266;
+\version 0.3274;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 + 08:00;
 \par 修改时间:
-	2010-11-25 14:03 + 08:00;
+	2010-11-27 23:38 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,15 +38,15 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Forms)
 
-MWindow::MWindow(const GHResource<YImage> i, HWND hWnd, HSHL hShl)
+MWindow::MWindow(const GHStrong<YImage> i, HWND hWnd, HSHL hShl)
 	: MWindowObject(hWnd),
 	Buffer(), hShell(hShl), prBackImage(i), bRefresh(false), bUpdate(false)
 {}
 
 
-AWindow::AWindow(const Rect& r, const GHResource<YImage> i, HWND hWnd,
+AWindow::AWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd,
 	HSHL hShl)
-	: AVisualControl(r, hWnd), MWindow(i, hWnd, hShl)
+	: AVisualControl(r, GetPointer(hWnd)), MWindow(i, hWnd, hShl)
 {}
 
 BitmapPtr
@@ -181,7 +181,7 @@ AWindow::Show()
 }
 
 
-YFrameWindow::YFrameWindow(const Rect& r, const GHResource<YImage> i,
+YFrameWindow::YFrameWindow(const Rect& r, const GHStrong<YImage> i,
 	HWND hWnd, HSHL hShl)
 	: YComponent(),
 	AWindow(r, i, hWnd, hShl), MUIContainer()

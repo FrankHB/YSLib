@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调模块。
-\version 0.3729;
+\version 0.3865;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 + 08:00;
 \par 修改时间:
-	2010-11-19 10:30 + 08:00;
+	2010-12-02 10:57 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@ YSL_BEGIN_NAMESPACE(Runtime)
 
 //! \brief 公用事件模板命名空间。
 template<class _tSender = YObject, class _tEventArgs = EventArgs>
-struct SEventTypeSpace
+struct GSEventTypeSpace
 {
 	typedef void FuncType(_tSender&, _tEventArgs&);
 	typedef FuncType* FuncPtrType;
@@ -47,14 +47,14 @@ struct SEventTypeSpace
 
 //! \brief 标准事件处理器类模板。
 template<class _tSender = YObject, class _tEventArgs = EventArgs>
-class GEventHandler
-	: public Design::Function<typename SEventTypeSpace<
+class GHEvent
+	: public Design::Function<typename GSEventTypeSpace<
 		_tSender, _tEventArgs>::FuncType>
 {
 public:
 	typedef _tSender SenderType;
 	typedef _tEventArgs EventArgsType;
-	typedef SEventTypeSpace<_tSender, _tEventArgs> SEventType;
+	typedef GSEventTypeSpace<_tSender, _tEventArgs> SEventType;
 	typedef typename SEventType::FuncType FuncType;
 
 public:
@@ -62,7 +62,7 @@ public:
 	\brief 构造：使用函数引用。
 	*/
 	inline
-	GEventHandler(FuncType& f)
+	GHEvent(FuncType& f)
 		: Design::Function<FuncType>(f)
 	{}
 	/*!
@@ -71,14 +71,14 @@ public:
 	*/
 	template<class _tFunc>
 	inline
-	GEventHandler(_tFunc f)
+	GHEvent(_tFunc f)
 		: Design::Function<FuncType>(f)
 	{}
 	/*!
 	\brief 构造：使用 _tSender 的成员函数指针。
 	*/
 	inline
-	GEventHandler(void(_tSender::*pm)(_tEventArgs&))
+	GHEvent(void(_tSender::*pm)(_tEventArgs&))
 		: Design::Function<FuncType>(ExpandMemberFirst<
 			_tSender, void, _tEventArgs&>(pm))
 	{}
@@ -87,7 +87,7 @@ public:
 	*/
 	template<class _type>
 	inline
-	GEventHandler(void(_type::*pm)(_tEventArgs&))
+	GHEvent(void(_type::*pm)(_tEventArgs&))
 		: Design::Function<FuncType>(ExpandMemberFirst<
 			_type, void, _tEventArgs&, _tSender>(pm))
 	{}
@@ -95,7 +95,7 @@ public:
 	\brief 构造：使用 _tSender 类型对象引用和成员函数指针。
 	*/
 	inline
-	GEventHandler(_tSender& obj, void(_tSender::*pm)(_tEventArgs&))
+	GHEvent(_tSender& obj, void(_tSender::*pm)(_tEventArgs&))
 		: Design::Function<FuncType>(ExpandMemberFirstBinder<
 			_tSender, void, _tEventArgs&>(obj, pm))
 	{}
@@ -104,7 +104,7 @@ public:
 	*/
 	template<class _type>
 	inline
-	GEventHandler(_type& obj, void(_type::*pm)(_tEventArgs&))
+	GHEvent(_type& obj, void(_type::*pm)(_tEventArgs&))
 		: Design::Function<FuncType>(ExpandMemberFirstBinder<
 			_type, void, _tEventArgs&, _tSender>(obj, pm))
 	{}
@@ -130,11 +130,13 @@ template<
 class GEvent
 {
 public:
-	typedef SEventTypeSpace<_tSender, _tEventArgs> SEventType;
+	typedef _tSender SenderType;
+	typedef _tEventArgs EventArgsType;
+	typedef GSEventTypeSpace<_tSender, _tEventArgs> SEventType;
 	typedef typename SEventType::FuncType FuncType;
 	typedef typename SEventType::FunctorType FunctorType;
-	typedef GEventHandler<_tSender, _tEventArgs> EventHandlerType;
-	typedef list<EventHandlerType> ListType;
+	typedef GHEvent<_tSender, _tEventArgs> _tEventHandler;
+	typedef list<_tEventHandler> ListType;
 
 protected:
 	ListType List; //!< 响应列表。
@@ -153,7 +155,7 @@ protected:
 	\note 不检查是否已经在列表中。
 	*/
 	inline GEvent&
-	AddRaw(const EventHandlerType& h)
+	AddRaw(const _tEventHandler& h)
 	{
 		List.push_back(h);
 		return *this;
@@ -164,7 +166,7 @@ public:
 	\brief 赋值：覆盖事件响应：使用事件处理器。
 	*/
 	inline GEvent&
-	operator=(const EventHandlerType& h)
+	operator=(const _tEventHandler& h)
 	{
 		Clear();
 		return AddRaw(h);
@@ -175,7 +177,7 @@ public:
 	inline GEvent&
 	operator=(FuncType& f)
 	{
-		return *this = EventHandlerType(f);
+		return *this = _tEventHandler(f);
 	}
 	/*!
 	\brief 赋值：覆盖事件响应：使用函数对象。
@@ -184,7 +186,7 @@ public:
 	operator=(FunctorType f)
 	{
 		Clear();
-		return *this = EventHandlerType(f);
+		return *this = _tEventHandler(f);
 	}
 	/*!
 	\brief 赋值：覆盖事件响应：使用成员函数指针。
@@ -194,13 +196,13 @@ public:
 	operator=(void(_type::*pm)(_tEventArgs&))
 	{
 		Clear();
-		return *this = EventHandlerType(pm);
+		return *this = _tEventHandler(pm);
 	}
 	/*!
 	\brief 添加事件响应：使用事件处理器。
 	*/
 	GEvent&
-	operator+=(const EventHandlerType& h)
+	operator+=(const _tEventHandler& h)
 	{
 		operator-=(h);
 		return AddRaw(h);
@@ -211,7 +213,7 @@ public:
 	inline GEvent&
 	operator+=(FuncType& f)
 	{
-		return operator+=(EventHandlerType(f));
+		return operator+=(_tEventHandler(f));
 	}
 	/*!
 	\brief 添加事件响应：使用函数对象。
@@ -219,7 +221,7 @@ public:
 	inline GEvent&
 	operator+=(FunctorType f)
 	{
-		return operator+=(EventHandlerType(f));
+		return operator+=(_tEventHandler(f));
 	}
 	/*!
 	\brief 添加事件响应：使用成员函数指针。
@@ -228,7 +230,7 @@ public:
 	inline GEvent&
 	operator+=(void(_type::*pm)(_tEventArgs&))
 	{
-		return operator+=(EventHandlerType(pm));
+		return operator+=(_tEventHandler(pm));
 	}
 	/*!
 	\brief 添加事件响应：使用对象引用和成员函数指针。
@@ -237,13 +239,13 @@ public:
 	inline GEvent&
 	Add(_type& obj, void(_type::*pm)(_tEventArgs&))
 	{
-		return operator+=(EventHandlerType(obj, pm));
+		return operator+=(_tEventHandler(obj, pm));
 	}
 	/*!
 	\brief 移除事件响应：目标为指定事件处理器。
 	*/
 	GEvent&
-	operator-=(const EventHandlerType& h)
+	operator-=(const _tEventHandler& h)
 	{
 		erase_all(List, h);
 		return *this;
@@ -254,7 +256,7 @@ public:
 	inline GEvent&
 	operator-=(FuncType& f)
 	{
-		return operator-=(EventHandlerType(f));
+		return operator-=(_tEventHandler(f));
 	}
 	/*!
 	\brief 
@@ -262,7 +264,7 @@ public:
 	inline GEvent&
 	operator-=(FunctorType f)
 	{
-		return operator-=(EventHandlerType(f));
+		return operator-=(_tEventHandler(f));
 	}
 	/*!
 	\brief 移除事件响应：目标为指定成员函数指针。
@@ -271,7 +273,7 @@ public:
 	inline GEvent&
 	operator-=(void(_type::*pm)(_tEventArgs&))
 	{
-		return operator-=(EventHandlerType(pm));
+		return operator-=(_tEventHandler(pm));
 	}
 	/*!
 	\brief 移除事件响应：目标为指定对象引用和成员函数指针。
@@ -280,7 +282,7 @@ public:
 	inline GEvent&
 	Remove(_type& obj, void(_type::*pm)(_tEventArgs&))
 	{
-		return operator-=(EventHandlerType(obj, pm));
+		return operator-=(_tEventHandler(obj, pm));
 	}
 
 	/*!
@@ -289,7 +291,7 @@ public:
 	void
 	operator()(_tSender& sender, _tEventArgs& e) const
 	{
-		for(typename list<EventHandlerType>
+		for(typename list<_tEventHandler>
 				::const_iterator i(List.begin());
 				i != List.end(); ++i)
 			(*i)(sender, e);
@@ -317,35 +319,37 @@ public:
 //! \brief 单播事件类模板。
 template<class _tSender, class _tEventArgs>
 struct GEvent<false, _tSender, _tEventArgs>
-	: public GEventHandler<_tSender, _tEventArgs>
+	: public GHEvent<_tSender, _tEventArgs>
 {
-	typedef SEventTypeSpace<_tSender, _tEventArgs> SEventType;
+	typedef _tSender SenderType;
+	typedef _tEventArgs EventArgs;
+	typedef GSEventTypeSpace<_tSender, _tEventArgs> SEventType;
 	typedef typename SEventType::FuncType FuncType;
 	typedef typename SEventType::FunctorType FunctorType;
-	typedef typename SEventType::EventHandlerType EventHandlerType;
+	typedef typename SEventType::_tEventHandler _tEventHandler;
 
 	/*!
 	\brief 无参数构造。
 	*/
 	inline
 	GEvent()
-		: EventHandlerType()
+		: _tEventHandler()
 	{}
 
 	/*!
 	\brief 
 	*/
 	inline GEvent&
-	operator=(const EventHandlerType* p)
+	operator=(const _tEventHandler* p)
 	{
-		EventHandlerType::_ptr = p;
+		_tEventHandler::_ptr = p;
 		return *this;
 	}
 	/*!
 	\brief 添加事件响应：使用事件处理器。
 	*/
 	inline GEvent&
-	operator+=(const EventHandlerType& h)
+	operator+=(const _tEventHandler& h)
 	{
 		return *this = h;
 	}
@@ -355,7 +359,7 @@ struct GEvent<false, _tSender, _tEventArgs>
 	inline GEvent&
 	operator+=(FuncType& f)
 	{
-		return operator+=(EventHandlerType(f));
+		return operator+=(_tEventHandler(f));
 	}
 	/*!
 	\brief 添加事件响应：使用函数对象。
@@ -363,16 +367,16 @@ struct GEvent<false, _tSender, _tEventArgs>
 	inline GEvent&
 	operator+=(FunctorType f)
 	{
-		return operator+=(EventHandlerType(f));
+		return operator+=(_tEventHandler(f));
 	}
 	/*!
 	\brief 移除事件响应：目标为指定事件处理器。
 	*/
 	GEvent&
-	operator-=(const EventHandlerType& h)
+	operator-=(const _tEventHandler& h)
 	{
-		if(EventHandlerType::_ptr == h)
-			EventHandlerType::_ptr = NULL;
+		if(_tEventHandler::_ptr == h)
+			_tEventHandler::_ptr = NULL;
 		return *this;
 	}
 	/*!
@@ -381,7 +385,7 @@ struct GEvent<false, _tSender, _tEventArgs>
 	inline GEvent&
 	operator-=(FuncType& f)
 	{
-		return operator-=(EventHandlerType(f));
+		return operator-=(_tEventHandler(f));
 	}
 	/*!
 	\brief 移除事件响应：目标为指定函数对象。
@@ -389,16 +393,16 @@ struct GEvent<false, _tSender, _tEventArgs>
 	inline GEvent&
 	operator-=(FunctorType f)
 	{
-		return operator-=(EventHandlerType(f));
+		return operator-=(_tEventHandler(f));
 	}
 
 	/*!
 	\brief 取事件处理器指针。
 	*/
-	inline EventHandlerType*
+	inline _tEventHandler*
 	GetHandlerPtr()
 	{
-		return EventHandlerType::_ptr;
+		return _tEventHandler::_ptr;
 	}
 
 	/*!
@@ -407,14 +411,14 @@ struct GEvent<false, _tSender, _tEventArgs>
 	inline void
 	Clear()
 	{
-		EventHandlerType::_ptr = NULL;
+		_tEventHandler::_ptr = NULL;
 	}
 };
 
 
-//! \brief 定义事件处理器委托。
+//! \brief 定义事件处理器委托类型。
 #define DefDelegate(_name, _tSender, _tEventArgs)\
-	typedef Runtime::GEventHandler<_tSender, _tEventArgs> _name;
+	typedef Runtime::GHEvent<_tSender, _tEventArgs> _name;
 
 
 #ifdef YSL_EVENT_MULTICAST
@@ -423,12 +427,12 @@ struct GEvent<false, _tSender, _tEventArgs>
 typedef GEvent<> Event;
 
 //! \brief 多播事件类型。
-template<class EventHandlerType>
+template<class _tEventHandler>
 struct GSEventTemplate
 {
 	typedef Runtime::GEvent<true,
-		typename EventHandlerType::SenderType,
-		typename EventHandlerType::EventArgsType
+		typename _tEventHandler::SenderType,
+		typename _tEventHandler::EventArgsType
 	> EventType;
 };
 
@@ -438,12 +442,12 @@ struct GSEventTemplate
 typedef GEvent<false> Event;
 
 //! \brief 单播事件类型。
-template<class EventHandlerType>
+template<class _tEventHandler>
 struct GSEventTemplate
 {
 	typedef Runtime::GEvent<false,
-		typename EventHandlerType::SenderType,
-		typename EventHandlerType::EventArgsType
+		typename _tEventHandler::SenderType,
+		typename _tEventHandler::EventArgsType
 	> EventType;
 };
 
@@ -451,18 +455,53 @@ struct GSEventTemplate
 
 
 //! \brief 定义事件。
-#	define DefEvent(EventHandlerType, _name) \
-		Runtime::GSEventTemplate<EventHandlerType>::EventType _name;
+#	define DefEvent(_tEventHandler, _name) \
+		Runtime::GSEventTemplate<_tEventHandler>::EventType _name;
 
 //! \brief 定义事件接口。
-#	define DeclIEventEntry(EventHandlerType, _name) \
-		DeclIEntry(const Runtime::GSEventTemplate<EventHandlerType> \
+#	define DeclIEventEntry(_tEventHandler, _name) \
+		DeclIEntry(const Runtime::GSEventTemplate<_tEventHandler> \
 			::EventType& _yJOIN(Get, _name)() const)
 
 //! \brief 定义事件访问器。
-#	define DefEventGetter(EventHandlerType, _name) \
-		DefGetter(const Runtime::GSEventTemplate<EventHandlerType> \
+#	define DefEventGetter(_tEventHandler, _name) \
+		DefGetter(const Runtime::GSEventTemplate<_tEventHandler> \
 			::EventType&, _name, _name)
+#	define DefEventGetterBase(_tEventHandler, _name, _base) \
+		DefGetterBase(const Runtime::GSEventTemplate<_tEventHandler> \
+			::EventType&, _name, _base)
+#	define DefEventGetterMember(_tEventHandler, _name, _member) \
+		DefGetterMember(const Runtime::GSEventTemplate<_tEventHandler> \
+			::EventType&, _name, _member)
+
+
+//! \brief 事件处理器接口模板。
+template<class _tSender = YObject, class _tEventArgs = EventArgs>
+DeclInterface(GIHEvent)
+	DeclIEntry(void operator()(_tSender&, _tEventArgs&) const)
+EndDecl
+
+
+//! \brief 事件处理器包装类模板。
+template<class _tEvent = Event>
+class GEventWrapper : public _tEvent,
+	implements GIHEvent<YObject, EventArgs>
+{
+public:
+	typedef _tEvent EventType;
+	typedef typename EventType::SenderType SenderType;
+	typedef typename EventType::EventArgsType EventArgsType;
+
+	void
+	operator()(YObject& sender, EventArgs& e) const
+	{
+		SenderType* p(dynamic_cast<SenderType*>(&sender));
+
+		//需要确保 EventArgs 对象能够转换至 _tEventArgs 对象。
+		if(p)
+			_tEvent::operator()(*p, reinterpret_cast<EventArgsType&>(e));
+	}
+};
 
 
 //! \brief 事件映射表模板。
@@ -471,10 +510,13 @@ class GEventMap
 {
 public:
 	typedef typename _tEventSpace::EventID ID;
-	typedef _tEvent Event;
+	typedef _tEvent EventType;
+	typedef typename EventType::SenderType SenderType;
+	typedef typename EventType::EventArgsType EventArgsType;
+	typedef GIHEvent<YObject, EventArgs> ItemType;
 
 private:
-	map<ID, Event> Map; //!< 映射表。
+	mutable map<ID, SmartPtr<ItemType> > m_map; //!< 映射表。
 
 public:
 	/*!
@@ -482,16 +524,27 @@ public:
 	\note 得到空实例。
 	*/
 	GEventMap()
-	: Map()
+		: m_map()
 	{}
 
 	/*!
-	\brief 取指定 id 对应的事件。
+	\brief 取指定 id 对应的 _tEventHandler 类型事件。
 	*/
-	inline Event&
-	operator[](const ID& id)
+	template<class _tEventHandler>
+	typename Runtime::GSEventTemplate<_tEventHandler>::EventType&
+	GetEvent(const ID& id) const
 	{
-		return Map[id];
+		typedef typename Runtime::GSEventTemplate<_tEventHandler>::EventType
+			EventType;
+
+		std::pair<typename map<ID, SmartPtr<ItemType> >::iterator, bool>
+			pr(search_map(m_map, id));
+
+		if(pr.second)
+			pr.first = m_map.insert(pr.first,
+				std::pair<ID, SmartPtr<ItemType> >(id,
+				new GEventWrapper<EventType>()));
+		return dynamic_cast<EventType&>(*pr.first->second);
 	}
 
 	/*!
@@ -500,7 +553,7 @@ public:
 	inline void
 	Clear()
 	{
-		Map.clear();
+		m_map.clear();
 	}
 };
 
@@ -514,7 +567,7 @@ struct GAHEventCallback : public _tEventArgs
 	*/
 	inline explicit
 	GAHEventCallback(_tEventArgs& e)
-	: _tEventArgs(e)
+		: _tEventArgs(e)
 	{}
 	DeclIEntry(bool operator()(_tResponser&))
 };
@@ -522,7 +575,7 @@ struct GAHEventCallback : public _tEventArgs
 YSL_END_NAMESPACE(Runtime)
 
 //! \brief 标准事件处理器委托。
-DefDelegate(EventHandler, YObject, EventArgs)
+DefDelegate(HEvent, YObject, EventArgs)
 
 YSL_END
 

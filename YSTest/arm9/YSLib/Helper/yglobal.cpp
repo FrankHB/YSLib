@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2463;
+\version 0.2602;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 + 08:00;
 \par 修改时间:
-	2010-11-12 19:03 + 08:00;
+	2010-12-04 07:22 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,20 +36,34 @@ YSL_BEGIN
 using namespace Runtime;
 
 //全局常量。
+extern CSTR DEF_DIRECTORY; //<! 默认目录。
+extern CSTR G_COMP_NAME; //<! 制作组织名称。
+extern CSTR G_APP_NAME; //!< 产品名称。
+extern CSTR G_APP_VER; //!< 产品版本。
 const SDST SCRW(SCREEN_WIDTH), SCRH(SCREEN_HEIGHT);
+const IO::Path YApplication::CommonAppDataPath(DEF_DIRECTORY);
+const String YApplication::CompanyName(G_COMP_NAME);
+const String YApplication::ProductName(G_APP_NAME);
+const String YApplication::ProductVersion(G_APP_VER);
 
 //全局变量。
 YScreen *pScreenUp, *pScreenDown;
 YDesktop *pDesktopUp, *pDesktopDown;
+#ifdef YSL_USE_MEMORY_DEBUG
+MemoryList DebugMemory(NULL);
+#endif
 YLog DefaultLog;
 
-//全局变量映射。
-YScreen*& pDefaultScreen(pScreenUp);
-YDesktop*& pDefDesktop(pDesktopUp);
-YApplication& theApp(YApplication::GetApp());
-YFontCache*& pDefaultFontCache(theApp.pFontCache);
-YApplication* const pApp(&theApp);
-const HSHL hShellMain(new YShellMain); //取主 Shell 句柄。
+/*!
+\ingroup PublicObject
+\brief 全局变量映射。
+\note 需要保证 YApplication::DefaultShellHandle 在 theApp 初始化之后初始化，
+	因为 YShellMain 的基类 YShell 的构造函数调用了 theApp 的非静态成员函数。
+*/
+/*! @{ */
+YApplication& theApp(YApplication::GetApp(pScreenUp, pDesktopUp));
+const HSHL YApplication::DefaultShellHandle(new YShellMain());
+/*! @} */
 
 
 namespace
@@ -108,8 +122,9 @@ namespace
 void
 Idle()
 {
-//	if(hShellMain->insRefresh)
-//		InsertMessage(NULL, SM_SCRREFRESH, 0x80, hShellMain->scrType, 0);
+//	if(DefaultShellHandle->insRefresh)
+//		InsertMessage(NULL, SM_SCRREFRESH, 0x80,
+//			DefaultShellHandle->scrType, 0);
 	WaitForGUIInput();
 }
 
@@ -126,11 +141,8 @@ InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 }
 
 void
-Destroy(YObject&, EventArgs&)
+Destroy_Static(YObject&, EventArgs&)
 {
-	//释放默认字体资源。
-	DestroySystemFontCache();
-
 	//释放显示设备。
 	delete pDesktopUp;
 	delete pScreenUp;
@@ -160,11 +172,19 @@ InitAllScreens()
 
 namespace
 {
+	//! \brief 全局非静态资源释放函数。
+	void
+	YDestroy()
+	{
+		//释放默认字体资源。
+		DestroySystemFontCache();
+	}
+
 	//! \brief 初始化函数。
 	void
 	YInit()
 	{
-		//设置默认终止函数。
+		//设置默认异常终止函数。
 		std::set_terminate(terminate);
 
 		//启用设备。
@@ -172,6 +192,12 @@ namespace
 
 		//启用 LibNDS 默认异常处理。
 		defaultExceptionHandler();
+
+		//注册退出函数。
+	#ifdef YSL_USE_MEMORY_DEBUG
+		atexit(OnExit_DebugMemory);
+	#endif
+		atexit(YDestroy);
 
 		//初始化主控制台。
 		InitYSConsole();
@@ -193,7 +219,8 @@ namespace
 	#endif
 			if(!fatInitDefault())
 				LibfatFail();
-			IO::ChangeDirectory(DEF_DIRECTORY);
+			IO::ChangeDirectory(Text::StringToMBCS(
+				YApplication::CommonAppDataPath));
 	#ifdef USE_EFS
 		}
 	#endif
@@ -226,13 +253,41 @@ namespace
 		//注册全局应用程序对象。
 		theApp.ResetShellHandle();
 		//theApp.SetOutputPtr(pDesktopUp);
-		//hShellMain->SetShlProc(ShlProc);
+		//DefaultShellHandle->SetShlProc(ShlProc);
 	}
 }
 
+#ifdef YSL_USE_MEMORY_DEBUG
+
+void
+OnExit_DebugMemory()
+{
+	YDebugSetStatus();
+	YDebugBegin();
+	std::puts("Normal exit;");
+
+//	std::FILE* fp(std::fopen("memdbg.log", "w"));
+	MemoryList::MapType::size_type s(DebugMemory.GetSize());
+
+	if(s != 0)
+	{
+		iprintf("%i memory leak(s) detected:\n", s);
+		DebugMemory.PrintAll(stdout);
+	//	DebugMemory.PrintAll(fp);
+	}
+//	std::fclose(fp);
+	std::puts("Press key to terminate...");
+	WaitForInput();
+}
+
+#endif
+
 YSL_END
 
-int
+/*!
+\brief 程序默认入口函数。
+*/
+extern int
 YMain(int argc, char* argv[]);
 
 int

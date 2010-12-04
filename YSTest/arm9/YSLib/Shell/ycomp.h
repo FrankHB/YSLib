@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件实现。
-\version 0.2869;
+\version 0.2874;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 + 08:00;
 \par 修改时间:
-	2010-11-17 19:16 + 08:00;
+	2010-11-29 23:28 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -272,13 +272,15 @@ public:
 class YConsole : public YComponent
 {
 public:
+	typedef YComponent ParentType;
+
 	YScreen& Screen;
 
 	/*!
 	\brief 构造：使用指定屏幕、有效性、前景色和背景色。
 	*/
 	explicit
-	YConsole(YScreen& = *pDefaultScreen, bool = true,
+	YConsole(YScreen& = *theApp.pDefaultScreen, bool = true,
 		Drawing::Color = Drawing::ColorSpace::White,
 		Drawing::Color = Drawing::ColorSpace::Black);
 	/*!

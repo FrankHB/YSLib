@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4693;
+\version 0.4708;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-25 13:41 + 08:00;
+	2010-12-01 21:08 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,6 +38,12 @@ bool
 Contains(const IWidget& w, SPOS x, SPOS y)
 {
 	return Rect(w.GetLocation(), w.GetSize()).Contains(x, y);
+}
+
+bool
+ContainsVisible(const IWidget& w, SPOS x, SPOS y)
+{
+	return w.IsVisible() && Contains(w, x, y);
 }
 
 
@@ -121,7 +127,8 @@ LocateForWindow(IWidget& w)
 
 	const HWND hWnd(FetchDirectWindowHandle(w));
 
-	return hWnd ? LocateOffset(&w, Point::Zero, hWnd) : Point::FullScreen;
+	return hWnd ? LocateOffset(&w, Point::Zero, GetPointer(hWnd))
+		: Point::FullScreen;
 }
 
 Point
@@ -209,7 +216,8 @@ namespace
 		{
 			Graphics g(*hWnd);
 
-			FillRect(g, LocateOffset(&w, Point::Zero, hWnd), w.GetSize(), c);
+			FillRect(g, LocateOffset(&w, Point::Zero, GetPointer(hWnd)),
+				w.GetSize(), c);
 		}
 	}
 }
@@ -250,8 +258,7 @@ Visual::SetBounds(const Rect& r)
 }
 
 
-Widget::Widget(const Rect& r, IUIBox* pCon,
-	Color b, Color f)
+Widget::Widget(const Rect& r, IUIBox* pCon, Color b, Color f)
 	: Visual(r, b, f),
 	pContainer(pCon)
 {}
@@ -303,7 +310,8 @@ YWidget::~YWidget() ythrow()
 
 
 MUIContainer::MUIContainer()
-	: GMFocusResponser<IVisualControl>(), sWgtSet()
+	: GMFocusResponser<IVisualControl>(),
+	sWgtSet(), sFOCSet()
 {}
 
 IVisualControl*
@@ -367,10 +375,10 @@ YUIContainer::~YUIContainer() ythrow()
 }
 
 
-MLabel::MLabel(const Drawing::Font& f, GHResource<Drawing::TextRegion> prTr_)
+MLabel::MLabel(const Drawing::Font& f, GHStrong<Drawing::TextRegion> prTr_)
 	: prTextRegion(prTr_ ? prTr_ : GetGlobalResource<Drawing::TextRegion>()),
-	Font(f),
-	Margin(prTextRegion->Margin), AutoSize(true), AutoEllipsis(false), Text()
+	Font(f), Margin(prTextRegion->Margin), AutoSize(true), AutoEllipsis(false),
+	Text()
 {}
 
 void
@@ -398,7 +406,7 @@ MLabel::PaintText(Widget& w, const Point& pt)
 
 
 YLabel::YLabel(const Rect& r, IUIBox* pCon, const Drawing::Font& f,
-	GHResource<Drawing::TextRegion> prTr_)
+	GHStrong<Drawing::TextRegion> prTr_)
 	: YWidget(r, pCon), MLabel(f, pCon
 	? prTr_ : GetGlobalResource<Drawing::TextRegion>())
 {}
@@ -408,8 +416,6 @@ YLabel::DrawForeground()
 {
 	YWidgetAssert(this, Widgets::YLabel, DrawForeground);
 
-//	if(!transparent)
-	//	BeFilledWith();
 	ParentType::DrawForeground();
 	PaintText(*this, LocateForWindow(*this));
 }

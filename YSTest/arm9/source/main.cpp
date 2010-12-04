@@ -11,12 +11,12 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version 0.2015;
+\version 0.2019;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 21:26:30;
 \par 修改时间:
-	2010-11-11 22:24 + 08:00;
+	2010-11-30 21:09 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,13 +26,15 @@
 
 //标识主源文件。
 #ifdef _ARM9_MAIN_CPP_
-#	error The main source file has already compiled. Try to make the macro _ARM9_MAIN_CPP_ be defined iff. once in the project.
+#	error The main source file has already compiled. Try to make the macro \
+		_ARM9_MAIN_CPP_ be defined iff. once in the project.
 #endif
 
 #define _ARM9_MAIN_CPP_ _MAIN_CPP_
 
 #ifdef _MAIN_CPP_
-#	error The main source file has already compiled. Try to make the macro _MAIN_CPP_ be defined iff. once in the project.
+#	error The main source file has already compiled. Try to make the macro \
+		_MAIN_CPP_ be defined iff. once in the project.
 #endif
 #define _MAIN_CPP_
 
@@ -60,7 +62,9 @@ CSTR G_APP_VER = "0.2600";
 static void YSDebug_MSG_Print(const Message& msg)
 {
 	iprintf("time : %u ticks\n", GetTicks());
-	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
+	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\nW : %u;\nL : %lx;\n",
+		msg.GetMsgID(), msg.GetPriority(), msg.GetID(),
+		msg.GetWParam(), msg.GetLParam());
 	WaitForInput();
 	StartTicks();
 }

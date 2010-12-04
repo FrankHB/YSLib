@@ -11,12 +11,12 @@
 /*!	\file yguicomp.h
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2280;
+\version 0.2444;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-11-24 11:09 + 08:00;
+	2010-12-03 14:24 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -78,7 +78,8 @@ private:
 
 
 //! \brief 按钮。
-class YButton : public GMCounter<YButton>, public YThumb, public Widgets::MLabel
+class YButton : public GMCounter<YButton>, public YThumb,
+	public Widgets::MLabel
 {
 public:
 	typedef YThumb ParentType;
@@ -94,7 +95,7 @@ public:
 	explicit
 	YButton(const Rect& = Rect::FullScreen, IUIBox* = NULL,
 		const Drawing::Font& = Drawing::Font::GetDefault(),
-		GHResource<Drawing::TextRegion> = NULL);
+		GHStrong<Drawing::TextRegion> = NULL);
 	virtual DefEmptyDtor(YButton)
 
 public:
@@ -148,8 +149,8 @@ public:
 	\brief 取顶端部件指针。
 	\note 由顶端可视部件指针转换。
 	*/
-	ImplI(IUIBox) IWidget*
-	GetTopWidgetPtr(const Point&);
+	ImplI(IUIBox) PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
+		ImplRet(GetTopVisualControlPtr(p))
 	/*!
 	\brief 取顶端可视部件指针。
 	\note 仅滑块。
@@ -217,6 +218,7 @@ public:
 protected:
 	/*!
 	\brief 检查轨道方向指定位置所在的区域。
+	\note 断言检查。
 	*/
 	Area
 	CheckArea(SDST) const;
@@ -243,6 +245,7 @@ class YHorizontalTrack : public GMCounter<YHorizontalTrack>, public YComponent,
 public:
 	/*!
 	\brief 构造：使用指定边界和部件容器指针和最小滑块长。
+	\note 断言检查：宽大于长的 2 倍。
 	*/
 	explicit
 	YHorizontalTrack(const Rect& = Rect::FullScreen, IUIBox* = NULL, SDST = 8);
@@ -267,6 +270,7 @@ class YVerticalTrack : public GMCounter<YVerticalTrack>, public YComponent,
 public:
 	/*!
 	\brief 构造：使用指定边界、部件容器指针和最小滑块长。
+	\note 断言检查：长大于宽的 2 倍。
 	*/
 	explicit
 	YVerticalTrack(const Rect& = Rect::FullScreen, IUIBox* = NULL, SDST = 8);
@@ -315,8 +319,8 @@ public:
 	\brief 取顶端部件指针。
 	\note 由顶端可视部件指针转换。
 	*/
-	ImplI(IUIBox) IWidget*
-	GetTopWidgetPtr(const Point&);
+	ImplI(IUIBox) PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
+		ImplRet(GetTopVisualControlPtr(p))
 	/*!
 	\brief 取顶端可视部件指针。
 	\note 仅滑块和滚动条按钮。
@@ -366,7 +370,9 @@ public:
 
 
 //! \brief 水平滚动条。
-class YHorizontalScrollBar : public YComponent, public AScrollBar
+class YHorizontalScrollBar : public GMCounter<YHorizontalScrollBar>,
+	public YComponent,
+	public AScrollBar
 {
 public:
 	typedef YComponent ParentType;
@@ -391,7 +397,8 @@ class YVerticalScrollBar
 
 
 //! \brief 文本列表框。
-class YListBox : public GMCounter<YListBox>, public YVisualControl
+class YSimpleTextListBox : public GMCounter<YSimpleTextListBox>,
+	public YVisualControl
 {
 public:
 	typedef YVisualControl ParentType;
@@ -400,56 +407,53 @@ public:
 	typedef GSequenceViewer<ListType> ViewerType; //!< 视图类型。
 
 protected:
-	static const SDST defMarginH = 4, defMarginV = 2;
+	static const SDST defMarginH = 4; //!< 默认水平边距。
+	static const SDST defMarginV = 2; //!< 默认垂直边距。
 
-	GHResource<Drawing::TextRegion> prTextRegion; //!< 文本区域指针。
-	const bool bDisposeList;
+	GHStrong<Drawing::TextRegion> spTextRegion; //!< 文本区域指针。
 
 public:
 	Drawing::Font Font; //!< 字体。
 	Drawing::Padding Margin; //!< 文本和容器的间距。
-	ListType& List; //!< 文本列表。
 
 protected:
-	GSequenceViewer<ListType> Viewer; //!< 列表视图。
+	GHWeak<ListType> wpList; //!< 文本列表指针。
+	ViewerType Viewer; //!< 列表视图。
 
 public:
-	DefEvent(IndexEventHandler, Selected) //!< 项目选择状态改变事件。
-	DefEvent(IndexEventHandler, Confirmed) //!< 项目选中确定事件。
+	DefEvent(HIndexEvent, Selected) //!< 项目选择状态改变事件。
+	DefEvent(HIndexEvent, Confirmed) //!< 项目选中确定事件。
 
 	/*!
-	\brief 构造：使用指定边界、部件容器指针和文本区域。
-	*/
-	explicit
-	YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHResource<Drawing::TextRegion> = NULL);
-	/*!
 	\brief 构造：使用指定边界、部件容器指针、文本区域和文本列表。
-	\note 使用外源列表。
 	*/
 	explicit
-	YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHResource<Drawing::TextRegion> = NULL,
-		ListType& List_ = *GetGlobalResource<ListType>()); 
+	YSimpleTextListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
+		GHStrong<Drawing::TextRegion> = NULL, GHWeak<ListType> = NULL); 
 	/*!
 	\brief 析构。
 	\note 无异常抛出。
 	*/
-	virtual
-	~YListBox() ythrow();
-
-protected:
-	/*!
-	\brief 逻辑初始化：添加事件响应器。
-	\note 保护实现。
-	*/
-	void
-	_m_init();
+	virtual DefEmptyDtor(YSimpleTextListBox)
 
 public:
 	DefPredicateMember(Selected, Viewer)
 
-	DefGetter(ListType&, List, List)
+protected:
+	/*!
+	\brief 取文本区域。
+	\note 断言检查：wpList 。
+	*/
+	Drawing::TextRegion&
+	GetTextRegion() const ythrow();
+
+public:
+	/*!
+	\brief 取文本列表。
+	\note 断言检查：wpList 。
+	*/
+	ListType&
+	GetList() const ythrow();
 	DefGetterMember(ViewerType::IndexType, Index, Viewer)
 	DefGetterMember(ViewerType::IndexType, Selected, Viewer)
 	/*!
@@ -479,12 +483,6 @@ public:
 	*/
 	void
 	SetSelected(const Point&);
-
-	/*!
-	\brief 绘制背景。
-	*/
-	virtual void
-	DrawBackground();
 
 	/*!
 	\brief 绘制前景。
@@ -562,31 +560,91 @@ private:
 };
 
 inline void
-YListBox::SetSelected(const Point& pt)
+YSimpleTextListBox::SetSelected(const Point& pt)
 {
 	SetSelected(pt.X, pt.Y);
 }
 
-inline YListBox::ViewerType::IndexType
-YListBox::CheckPoint(const Point& p)
+inline YSimpleTextListBox::ViewerType::IndexType
+YSimpleTextListBox::CheckPoint(const Point& p)
 {
 	return CheckPoint(p.X, p.Y);
 }
 
 
-//! \brief 文件列表框。
-class YFileBox : public GMCounter<YFileBox>, public YListBox,
-	public IO::MFileList
+//! \brief 列表框。
+class YListBox : public GMCounter<YListBox>, public YVisualControl,
+	public MSimpleFocusResponser,
+	implements IUIBox 
 {
 public:
-	typedef YListBox ParentType;
-	typedef ParentType::ListType ListType;
+	typedef YVisualControl ParentType;
+	typedef typename YSimpleTextListBox::ListType ListType;
 
-	ListType& List;
+private:
+	YSimpleTextListBox TextListBox;
+	YHorizontalScrollBar HorizontalScrollBar;
+
+public:
+	explicit
+	YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
+		GHStrong<Drawing::TextRegion> = NULL, ListType* = NULL);
+	DefEmptyDtor(YListBox)
+
+	/*!
+	\brief 取焦点指针。
+	*/
+	ImplI(IUIBox) PDefH(IVisualControl*, GetFocusingPtr)
+		ImplBodyBase(MSimpleFocusResponser, GetFocusingPtr)
+	/*!
+	\brief 取顶端部件指针。
+	\note 由顶端可视部件指针转换。
+	*/
+	ImplI(IUIBox) PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
+		ImplRet(GetTopVisualControlPtr(p))
+	/*!
+	\brief 取顶端可视部件指针。
+	\note 仅滑块。
+	*/
+	ImplI(IUIBox) IVisualControl*
+	GetTopVisualControlPtr(const Point&);
+
+	/*!
+	\brief 清除焦点指针。
+	*/
+	ImplI(IUIBox) PDefH(void, ClearFocusingPtr)
+		ImplBodyBaseVoid(MSimpleFocusResponser, ClearFocusingPtr)
+
+	/*!
+	\brief 响应焦点请求。
+	*/
+	ImplI(IUIBox) PDefH(bool, ResponseFocusRequest, AFocusRequester& w)
+		ImplBodyBase(MSimpleFocusResponser, ResponseFocusRequest, w)
+
+	/*!
+	\brief 响应焦点释放。
+	*/
+	ImplI(IUIBox) PDefH(bool, ResponseFocusRelease, AFocusRequester& w)
+		ImplBodyBase(MSimpleFocusResponser, ResponseFocusRelease, w)
+
+	/*!
+	\brief 绘制前景。
+	*/
+	virtual void
+	DrawForeground();
+};
+
+
+//! \brief 文件列表框。
+class YFileBox : public GMCounter<YFileBox>, public IO::FileList,
+	public YSimpleTextListBox
+{
+public:
+	typedef YSimpleTextListBox ParentType;
 
 	explicit
 	YFileBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHResource<Drawing::TextRegion> = NULL);
+		GHStrong<Drawing::TextRegion> = NULL);
 	virtual
 	~YFileBox() ythrow();
 

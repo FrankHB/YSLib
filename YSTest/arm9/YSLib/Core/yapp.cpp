@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 应用程序实例类抽象。
-\version 0.1962;
+\version 0.1990;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 + 08:00;
 \par 修改时间:
-	2010-11-15 19:22 + 08:00;
+	2010-12-03 15:26 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,24 +68,21 @@ YLog::FatalError(const string& s)
 }
 
 
-const IO::Path YApplication::CommonAppDataPath("/");
-const String YApplication::CompanyName(G_COMP_NAME);
-const String YApplication::ProductName(G_APP_NAME);
-const String YApplication::ProductVersion(G_APP_VER);
-
-YApplication::YApplication()
+YApplication::YApplication(YScreen*& pScr, YDesktop*& pDsk)
 	: YObject(),
-	Log(DefaultLog), pMessageQueue(new YMessageQueue),
-		pMessageQueueBackup(new YMessageQueue), sShls(), hShell(NULL)
+	Log(DefaultLog), pDefaultScreen(pScr), pDefaultDesktop(pDsk),
+	pMessageQueue(new YMessageQueue()),
+	pMessageQueueBackup(new YMessageQueue()),
+	sShls(), hShell(NULL), pFontCache(NULL)
 {
-	ApplicationExit += Destroy;
+	ApplicationExit += Destroy_Static;
 }
 YApplication::~YApplication() ythrow()
 {
 	for(SHLs::const_iterator i(sShls.begin()); i != sShls.end(); ++i)
 		YDelete(*i);
 	//释放主 Shell 。
-//	YDelete(hShellMain);
+//	YDelete(DefaultShellHandle);
 	EventArgs e;
 
 	ApplicationExit(*this, e);
@@ -145,7 +142,7 @@ YApplication::SetShellHandle(HSHL h)
 void
 YApplication::ResetShellHandle() ythrow()
 {
-	if(!SetShellHandle(hShellMain))
+	if(!SetShellHandle(DefaultShellHandle))
 		Log.FatalError("YApplication::ResetShellHandle();");
 }
 

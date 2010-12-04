@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器实现。
-\version 0.2233;
+\version 0.2241;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 + 08:00; 
 \par 修改时间:
-	2010-11-17 19:57 + 08:00;
+	2010-11-28 13:21 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -61,8 +61,8 @@ private:
 	u16 top_down; //!< 下字符区域距离下屏顶端距离。
 	PixelType* pBgUp; //!< 上屏幕背景层显存地址。
 	PixelType* pBgDn; //!< 下屏幕背景层显存地址。
-	GHResource<TextRegion> pTrUp; //!< 上屏幕对应字符区域。
-	GHResource<TextRegion> pTrDn; //!< 下屏幕对应字符区域。
+	GHStrong<TextRegion> pTrUp; //!< 上屏幕对应字符区域。
+	GHStrong<TextRegion> pTrDn; //!< 下屏幕对应字符区域。
 	ROT rot; //!< 屏幕指向。
 	Text::TextFileBuffer::HText itUp; //!< 字符区域读取文本缓存迭代器。
 	Text::TextFileBuffer::HText itDn; //!< 字符区域读取文本缓存迭代器。
@@ -109,7 +109,8 @@ public:
 	\param fc_ 字体缓存对象引用。
 	*/
 	MDualScreenReader(u16 l = 0, u16 w = SCRW, u16 t_up = 0, u16 h_up = SCRH,
-		u16 t_down = 0, u16 h_down = SCRH, YFontCache& fc_ = *pDefaultFontCache);
+		u16 t_down = 0, u16 h_down = SCRH,
+		YFontCache& fc_ = *theApp.pFontCache);
 
 	bool IsTextTop(); //!< 判断输出位置是否到文本顶端。	
 	bool IsTextBottom(); //!< 判断输出位置是否到文本底端。

@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.2880;
+\version 0.2936;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-11-24 23:20 + 08:00;
+	2010-12-01 19:41 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,7 @@ using namespace Runtime;
 using namespace DS;
 using namespace DS::Components;
 
-GHResource<YImage>&
+GHStrong<YImage>&
 GetImage(int);
 
 class ShlLoad : public ShlDS
@@ -65,7 +65,7 @@ private:
 			lblTitle(Rect(50, 20, 100, 22), this),
 			lblStatus(Rect(60, 80, 80, 22), this)
 		{
-			lblTitle.Text = G_APP_NAME;
+			lblTitle.Text = YApplication::ProductName;
 			lblStatus.Text = "Loading...";
 		//	lblTitle.Transparent = true;
 			Draw();
@@ -97,7 +97,7 @@ class ShlExplorer : public ShlDS
 {
 private:
 	struct TFrmFileListMonitor
-	: public YForm
+		: public YForm
 	{
 		YLabel lblTitle, lblPath;
 
@@ -113,7 +113,8 @@ private:
 			Draw();
 		}
 	};
-	struct TFrmFileListSelecter : public YForm
+	struct TFrmFileListSelecter
+		: public YForm
 	{
 		YFileBox fbMain;
 		YButton btnTest, btnOK;
@@ -132,14 +133,17 @@ private:
 		{
 			btnTest.Text = FS(" 测试(X)");
 			btnOK.Text = FS(" 确定(R)");
-			KeyPress += &TFrmFileListSelecter::frm_KeyPress;
+			FetchEvent<EControl::KeyPress>(*this)
+				+= &TFrmFileListSelecter::frm_KeyPress;
 		//	fbMain.TouchDown += YFileBox::OnClick;
 		//	fbMain.Click += &YListBox::_m_OnClick;
-			fbMain.KeyPress += fb_KeyPress;
+			FetchEvent<EControl::KeyPress>(fbMain) += fb_KeyPress;
 			fbMain.Selected.Add(*this, &TFrmFileListSelecter::fb_Selected);
 			fbMain.Confirmed += fb_Confirmed;
-			btnTest.Click.Add(*this, &TFrmFileListSelecter::btnTest_Click);
-			btnOK.Click.Add(*this, &TFrmFileListSelecter::btnOK_Click);
+			FetchEvent<EControl::Click>(btnTest).Add(*this,
+				&TFrmFileListSelecter::btnTest_Click);
+			FetchEvent<EControl::Click>(btnOK).Add(*this,
+				&TFrmFileListSelecter::btnOK_Click);
 			btnOK.SetTransparent(false);
 			Draw();
 		}
@@ -183,7 +187,8 @@ public:
 
 	static HWND hWndC;
 
-	struct TFormA : public YForm
+	struct TFormA
+		: public YForm
 	{
 		YLabel lblA;
 		YLabel lblA2;
@@ -193,7 +198,7 @@ public:
 			lblA(Rect(s_left, 20, 200, s_size), this),
 			lblA2(Rect(s_left, 80, 72, s_size), this)
 		{
-			lblA.Text = G_APP_NAME;
+			lblA.Text = YApplication::ProductName;
 			lblA2.Text = "程序测试";
 			lblA2.SetTransparent(true);
 		}
@@ -204,7 +209,8 @@ public:
 			lblA.Refresh();
 		}
 	};
-	struct TFormB : public YForm
+	struct TFormB
+		: public YForm
 	{
 		YButton btnB, btnB2;
 
@@ -215,13 +221,12 @@ public:
 			btnB.Text = FS("测试程序");
 			btnB2.Text = FS("测试程序2");
 			BackColor = ARGB16(1, 31, 31, 15);
-			TouchMove += OnDrag;
+			FetchEvent<EControl::TouchMove>(*this) += OnDrag;
 		//	btnB.TouchMove += &AVisualControl::OnTouchMove;
-			btnB.Enter += btnB_Enter;
-			btnB.Leave += btnB_Leave;
-			btnB2.TouchMove += OnDrag;
+			FetchEvent<EControl::Enter>(btnB) += btnB_Enter;
+			FetchEvent<EControl::Leave>(btnB) += btnB_Leave;
+			FetchEvent<EControl::TouchMove>(btnB2) += OnDrag;
 		//	btnB2.TouchDown += btnC_Click;
-
 		//	btnB.Enabled = false;
 		}
 
@@ -243,16 +248,19 @@ public:
 			btnC.Text = FS("测试y");
 			btnReturn.Text = FS("返回");
 			BackColor = ARGB16(1, 31, 15, 15);
-			TouchDown += TFormC_TouchDown;
-			TouchMove += OnDrag;
-			btnC.TouchUp.Add(*this, &TFormC::btnC_TouchUp);
-			btnC.TouchDown.Add(*this, &TFormC::btnC_TouchDown);
-			btnC.TouchMove += OnDrag;
-			btnC.Click.Add(*this, &TFormC::btnC_Click);
-			btnC.KeyPress += btnC_KeyPress;
+			FetchEvent<EControl::TouchDown>(*this) += TFormC_TouchDown;
+			FetchEvent<EControl::TouchMove>(*this) += OnDrag;
+			FetchEvent<EControl::TouchUp>(btnC).Add(*this,
+				&TFormC::btnC_TouchUp);
+			FetchEvent<EControl::TouchDown>(btnC).Add(*this,
+				&TFormC::btnC_TouchDown);
+			FetchEvent<EControl::TouchMove>(btnC) += OnDrag;
+			FetchEvent<EControl::Click>(btnC).Add(*this, &TFormC::btnC_Click);
+			FetchEvent<EControl::KeyPress>(btnC) += btnC_KeyPress;
 		//	btnC.Enabled = false;
 			btnReturn.BackColor = ARGB16(1, 22, 23, 24);
-			btnReturn.Click.Add(*this, &TFormC::btnReturn_Click);
+			FetchEvent<EControl::Click>(btnReturn).Add(*this,
+				&TFormC::btnReturn_Click);
 		}
 
 		void
@@ -313,7 +321,7 @@ public:
 	MDualScreenReader Reader;
 	YTextFile* pTextFile;
 
-	GHResource<YImage> hUp, hDn;
+	GHStrong<YImage> hUp, hDn;
 	bool bgDirty;
 
 	ShlReader();

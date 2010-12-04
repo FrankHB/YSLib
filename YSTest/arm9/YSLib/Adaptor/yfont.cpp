@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.6950;
+\version 0.7002;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 + 08:00;
 \par 修改时间:
-	2010-11-20 16:39 + 08:00;
+	2010-12-04 23:37 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 #include "yfont.h"
 
-#include "../Core/yfilesys.h"
+#include "../Core/yapp.h"
 #include "../Core/yexcept.h"
 //#include FT_OUTLINE_H
 //#include FT_SYNTHESIS_H
@@ -247,13 +247,14 @@ FontFile::ReloadFaces()
 
 
 const Typeface*
-GetDefaultTypefacePtr()
+GetDefaultTypefacePtr() ythrow()
 {
-	YAssert(pDefaultFontCache,
+	YAssert(theApp.pFontCache,
 		"In function \"const Typeface*\n"
 		"GetDefaultTypefacePtr()\": \n"
 		"The default font cache pointer is null.");
-	return pDefaultFontCache->GetDefaultTypefacePtr();
+
+	return theApp.pFontCache->GetDefaultTypefacePtr();
 }
 
 
@@ -312,20 +313,20 @@ Font::InitializeDefault()
 	try
 	{
 		if(!pDefFont)
-			pDefFont = new Font();
+			pDefFont = ynew Font();
 	}
 	catch(...)
 	{
 		return false;
 	}
-	return pDefFont;
+	return true;
 }
 
 void
 Font::ReleaseDefault()
 {
-	if(!pDefaultFontCache)
-		delete pDefFont;
+	if(!theApp.pFontCache)
+		ydelete(pDefFont);
 	pDefFont = NULL;
 }
 
@@ -379,7 +380,7 @@ YFontCache::GetDefaultTypefacePtr() const
 {
 	//默认字体缓存的默认字型指针由初始化保证为非空指针。
 	return pDefaultFace ? pDefaultFace
-		: pDefaultFontCache->GetDefaultTypefacePtr();
+		: theApp.pFontCache->GetDefaultTypefacePtr();
 }
 const Typeface*
 YFontCache::GetTypefacePtr(const FT_String* family_name,
@@ -519,7 +520,7 @@ YFontCache::LoadTypefaces(const FontFile& f)
 			{
 				try
 				{
-					if(sTypes.find(q = new Typeface(*this, f, i))
+					if(sTypes.find(q = ynew Typeface(*this, f, i))
 						== sTypes.end())
 					{
 						scaler.face_id = static_cast<FTC_FaceID>(q);
@@ -534,7 +535,7 @@ YFontCache::LoadTypefaces(const FontFile& f)
 							face->family_name));
 
 						q->pFontFamily = r = i == mFacesIndex.end()
-							? new FontFamily(*this, face->family_name)
+							? ynew FontFamily(*this, face->family_name)
 							: i->second;
 						*r += *q;
 						if(i == mFacesIndex.end())
@@ -554,8 +555,8 @@ YFontCache::LoadTypefaces(const FontFile& f)
 			catch(...)
 			{
 				scaler.face_id = NULL;
-				delete r;
-				delete q;
+				ydelete(r);
+				ydelete(q);
 				throw;
 			}
 		}
@@ -583,7 +584,8 @@ YFontCache::LoadFontFileDirectory(CPATH path, CPATH ext)
 				{
 					try
 					{
-						*this += *new FontFile(path, HDirectory::Name, library);
+						*this += *ynew FontFile(path,
+							HDirectory::Name, library);
 					}
 					catch(std::bad_alloc&)
 					{
@@ -605,7 +607,7 @@ YFontCache::LoadFontFile(CPATH path) ythrow()
 	{
 		if(GetFileNameFrom(path) && fexists(path))
 		{
-			FontFile* p(new FontFile(path, library));
+			FontFile* p(ynew FontFile(path, library));
 
 			*this += *p;
 			LoadTypefaces(*p);
@@ -638,7 +640,7 @@ YFontCache::ClearFontFamilies()
 {
 	for(FFacesIndex::const_iterator i(mFacesIndex.begin());
 			i != mFacesIndex.end(); ++i)
-		delete i->second;
+		ydelete(i->second);
 	mFacesIndex.clear();
 }
 

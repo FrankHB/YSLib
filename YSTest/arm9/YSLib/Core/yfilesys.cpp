@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.1961;
+\version 0.2128;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 + 08:00;
 \par 修改时间:
-	2010-11-15 11:59 + 08:00;
+	2010-11-30 07:32 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -349,15 +349,19 @@ ValidateDirectory(const string& pathstr)
 }
 
 
-MFileList::MFileList(CPATH pathstr)
-	: Directory(pathstr ? pathstr : FS_Root), List()
-{
-//	if(!ValidateDirectory(Directory))
-//		throw;
-}
+FileList::FileList(CPATH path)
+	: Directory((path && *path) ? path : FS_Root), spList(new ListType())
+{}
+FileList::FileList(const string& path)
+	: Directory(path.empty() ? FS_Root : path.c_str()), spList(new ListType())
+{}
+FileList::FileList(const FileList::ItemType& path)
+	: Directory(path.empty() ? FS_Root : StringToMBCS(path).c_str()),
+	spList(new ListType())
+{}
 
 bool
-MFileList::operator/=(const string& d)
+FileList::operator/=(const string& d)
 {
 	Path t(Directory / d);
 
@@ -367,24 +371,26 @@ MFileList::operator/=(const string& d)
 	return true;
 }
 
-MFileList::ListType::size_type
-MFileList::LoadSubItems()
+FileList::ListType::size_type
+FileList::LoadSubItems()
 {
 	HDirectory dir(Directory.GetNativeString().c_str());
 	u32 n(0);
 
 	if(dir.IsValid())
 	{
-		List.clear();
+		YAssert(spList, "Invalid strong pointer @@ FileList::LoadSubItems;");
+
+		spList->clear();
 
 		while((++dir).LastError == 0)
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
 				++n;
-		List.reserve(n);
+		spList->reserve(n);
 		dir.Reset();
 		while((++dir).LastError == 0)
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
-				List.push_back(std::strcmp(HDirectory::Name, FS_Parent)
+				spList->push_back(std::strcmp(HDirectory::Name, FS_Parent)
 					&& HDirectory::IsDirectory()
 					? MBCSToString(string(HDirectory::Name) + FS_Seperator)
 					: MBCSToString(HDirectory::Name));
@@ -392,8 +398,8 @@ MFileList::LoadSubItems()
 	return n;
 }
 
-MFileList::ListType::size_type
-MFileList::ListItems()
+FileList::ListType::size_type
+FileList::ListItems()
 {
 	return LoadSubItems();
 }

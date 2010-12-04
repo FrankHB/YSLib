@@ -16,20 +16,29 @@
     <Filter Include="ARM9\YSLib">
       <UniqueIdentifier>{53656387-c62c-46a9-89f9-530e52281d34}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ARM9\YSLib\Core">
-      <UniqueIdentifier>{87880e54-e940-4400-8fd1-ab080884beac}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\YSLib\Helper">
-      <UniqueIdentifier>{fedbdc16-047f-4315-a03d-de661e320bd5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\YSLib\Service">
-      <UniqueIdentifier>{2056444f-c557-4246-b7dc-6b5037083526}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\YSLib\Shell">
-      <UniqueIdentifier>{5f1312e8-ea53-4ae4-88d6-12070c37afe5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ARM9\CHRLib">
       <UniqueIdentifier>{14f7cc89-c4ce-4357-a495-cccc6701bb1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ARM9\源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ARM9\资源文件">
+      <UniqueIdentifier>{63ecc30e-fbaf-4c19-ac99-2a42a6ec8f16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="文档">
+      <UniqueIdentifier>{6ac5d7c6-b453-47ba-a130-e23acade5f8a}</UniqueIdentifier>
+      <Extensions>txt;doc</Extensions>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{22ce99d7-1d4a-4424-a50e-bd6206ff516d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common\资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="ARM9\YSLib\Adaptor">
+      <UniqueIdentifier>{528ca737-2440-465a-be55-2d1a745a2539}</UniqueIdentifier>
     </Filter>
     <Filter Include="ARM9\头文件">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
@@ -65,26 +74,17 @@
     <Filter Include="ARM9\头文件\Loki\yasli">
       <UniqueIdentifier>{3ed49585-ce75-4fbe-9589-3d5f025987b5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ARM9\源文件">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="ARM9\YSLib\Core">
+      <UniqueIdentifier>{87880e54-e940-4400-8fd1-ab080884beac}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ARM9\资源文件">
-      <UniqueIdentifier>{63ecc30e-fbaf-4c19-ac99-2a42a6ec8f16}</UniqueIdentifier>
+    <Filter Include="ARM9\YSLib\Shell">
+      <UniqueIdentifier>{5f1312e8-ea53-4ae4-88d6-12070c37afe5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="文档">
-      <UniqueIdentifier>{6ac5d7c6-b453-47ba-a130-e23acade5f8a}</UniqueIdentifier>
-      <Extensions>txt;doc</Extensions>
+    <Filter Include="ARM9\YSLib\Helper">
+      <UniqueIdentifier>{fedbdc16-047f-4315-a03d-de661e320bd5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="common">
-      <UniqueIdentifier>{22ce99d7-1d4a-4424-a50e-bd6206ff516d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="common\资源文件">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
-    </Filter>
-    <Filter Include="ARM9\YSLib\Adaptor">
-      <UniqueIdentifier>{528ca737-2440-465a-be55-2d1a745a2539}</UniqueIdentifier>
+    <Filter Include="ARM9\YSLib\Service">
+      <UniqueIdentifier>{2056444f-c557-4246-b7dc-6b5037083526}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -166,9 +166,6 @@
     <ClCompile Include="arm9\YSLib\Helper\yshelper.cpp">
       <Filter>ARM9\YSLib\Helper</Filter>
     </ClCompile>
-    <ClCompile Include="arm9\YSLib\Service\ysinit.cpp">
-      <Filter>ARM9\YSLib\Service</Filter>
-    </ClCompile>
     <ClCompile Include="arm9\YSLib\Service\ytimer.cpp">
       <Filter>ARM9\YSLib\Service</Filter>
     </ClCompile>
@@ -232,6 +229,12 @@
     <ClCompile Include="arm9\YSLib\Shell\yfocus.cpp">
       <Filter>ARM9\YSLib\Shell</Filter>
     </ClCompile>
+    <ClCompile Include="arm9\YSLib\Adaptor\ysinit.cpp">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClCompile>
+    <ClCompile Include="arm9\YSLib\Adaptor\ynew.cpp">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arm9\YCLib\ycommon.h">
@@ -239,9 +242,6 @@
     </ClInclude>
     <ClInclude Include="arm9\YCLib\ydef.h">
       <Filter>ARM9\YCLib</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\ysbuild.h">
-      <Filter>ARM9\YSLib</Filter>
     </ClInclude>
     <ClInclude Include="arm9\YSLib\Core\yapp.h">
       <Filter>ARM9\YSLib\Core</Filter>
@@ -300,9 +300,6 @@
     <ClInclude Include="arm9\YSLib\Helper\yshelper.h">
       <Filter>ARM9\YSLib\Helper</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Service\ysinit.h">
-      <Filter>ARM9\YSLib\Service</Filter>
-    </ClInclude>
     <ClInclude Include="arm9\YSLib\Service\ytimer.h">
       <Filter>ARM9\YSLib\Service</Filter>
     </ClInclude>
@@ -352,9 +349,6 @@
       <Filter>ARM9\头文件</Filter>
     </ClInclude>
     <ClInclude Include="arm9\include\ft2build.h">
-      <Filter>ARM9\头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\platform.h">
       <Filter>ARM9\头文件</Filter>
     </ClInclude>
     <ClInclude Include="arm9\include\Shells.h">
@@ -1197,9 +1191,6 @@
     <ClInclude Include="arm9\YSLib\Adaptor\yfont.h">
       <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adaptor\yref.hpp">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
     <ClInclude Include="arm9\YSLib\Adaptor\cont.h">
       <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClInclude>
@@ -1213,6 +1204,21 @@
       <Filter>ARM9\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="arm9\YSLib\Adaptor\agg.h">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Core\yref.hpp">
+      <Filter>ARM9\YSLib\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\include\platform.h">
+      <Filter>ARM9\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Adaptor\ysinit.h">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\ysbuild.h">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Adaptor\ynew.h">
       <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClInclude>
   </ItemGroup>

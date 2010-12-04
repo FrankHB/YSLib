@@ -11,12 +11,12 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version 0.2960;
+\version 0.2964;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-05 22:06:05 + 08:00;
 \par 修改时间:
-	2010-11-12 17:27 + 08:00;
+	2010-11-28 22:17 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,12 +82,12 @@ String::String(const ustring& s)
 
 
 /*!
-\brief 多字节字符串转化为 YSLib 标准字符串。
+\brief 多字节字符串转换为 YSLib 标准字符串。
 */
 String
 MBCSToString(const char*, const CSID& = CS_Local);
 /*!
-\brief 多字节字符串转化为 YSLib 标准字符串。
+\brief 多字节字符串转换为 YSLib 标准字符串。
 */
 inline String
 MBCSToString(const string& s, const CSID& cp = CS_Local)

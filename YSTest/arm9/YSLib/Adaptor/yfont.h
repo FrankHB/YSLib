@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7034;
+\version 0.7045;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 + 08:00;
 \par 修改时间:
-	2010-11-15 10:40 + 08:00;
+	2010-12-04 07:18 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,6 +71,7 @@ public:
 
 	/*!
 	\brief 取样式名称。
+	\note 断言检查。
 	\note 无异常抛出。
 	*/
 	const char*
@@ -265,8 +266,11 @@ public:
 
 /*!
 \brief 取默认字型。
+\note 断言检查。
+\note 无异常抛出。
 */
-const Typeface* GetDefaultTypefacePtr();
+const Typeface*
+GetDefaultTypefacePtr() ythrow();
 
 /*!
 \brief 取默认字型家族指针。
@@ -650,8 +654,8 @@ public:
 inline void
 CreateFontCache(YFontCache*& p, CPATH path)
 {
-	delete p;
-	p = new YFontCache(path);
+	ydelete(p);
+	p = ynew YFontCache(path);
 }
 
 /*!
@@ -660,7 +664,7 @@ CreateFontCache(YFontCache*& p, CPATH path)
 inline void
 DestroyFontCache(YFontCache*& p)
 {
-	delete p;
+	ydelete(p);
 	p = NULL;
 }
 

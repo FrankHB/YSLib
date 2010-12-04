@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2620;
+\version 0.2794;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-11-24 11:14 + 08:00;
+	2010-12-03 14:24 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -159,8 +159,8 @@ YThumb::YThumb(const Rect& r, IUIBox* pCon)
 	: YVisualControl(r, pCon),
 	MButton()
 {
-	Enter += &YThumb::OnEnter;
-	Leave += &YThumb::OnLeave;
+	FetchEvent<EControl::Enter>(*this) += &YThumb::OnEnter;
+	FetchEvent<EControl::Leave>(*this) += &YThumb::OnLeave;
 }
 
 void
@@ -194,7 +194,7 @@ YThumb::OnLeave(InputEventArgs&)
 
 
 YButton::YButton(const Rect& r, IUIBox* pCon, const Drawing::Font& f,
-	GHResource<Drawing::TextRegion> prTr_)
+	GHStrong<Drawing::TextRegion> prTr_)
 	: YThumb(r, pCon),
 	MLabel(f, prTr_)
 {}
@@ -213,18 +213,12 @@ ATrack::ATrack(const Rect& r, IUIBox* pCon, SDST uMinThumbLength)
 	: AVisualControl(Rect(r.GetPoint(),
 		vmax<SDST>(16, r.Width), vmax<SDST>(16, r.Height)), pCon),
 	MSimpleFocusResponser(),
-	Thumb(Rect(0, 0, 16, 16), this),
-	MinThumbLength(uMinThumbLength)
+	Thumb(Rect(0, 0, 16, 16), this), MinThumbLength(uMinThumbLength)
 {
-	TouchMove += OnTouchMove;
-	TouchDown += &ATrack::OnTouchDown;
+	FetchEvent<EControl::TouchMove>(*this) += OnTouchMove;
+	FetchEvent<EControl::TouchDown>(*this) += &ATrack::OnTouchDown;
 }
 
-IWidget*
-ATrack::GetTopWidgetPtr(const Point& p)
-{
-	return GetTopVisualControlPtr(p);
-}
 IVisualControl*
 ATrack::GetTopVisualControlPtr(const Point& p)
 {
@@ -354,7 +348,8 @@ YHorizontalTrack::YHorizontalTrack(const Rect& r, IUIBox* pCon,
 		"(HWND hWnd, const Rect& r, IUIBox* pCon) const\": \n"
 		"Width is not greater than two times of height.");
 
-	Thumb.TouchMove.Add(*this, &YHorizontalTrack::OnDrag_Thumb_Horizontal);
+	FetchEvent<EControl::TouchMove>(Thumb).Add(*this,
+		&YHorizontalTrack::OnDrag_Thumb_Horizontal);
 }
 
 void
@@ -381,7 +376,8 @@ YVerticalTrack::YVerticalTrack(const Rect& r, IUIBox* pCon,
 		"(HWND hWnd, const Rect& r, IUIBox* pCon) const\": \n"
 		"height is not greater than two times of width.");
 
-	Thumb.TouchMove.Add(*this, &YVerticalTrack::OnDrag_Thumb_Vertical);
+	FetchEvent<EControl::TouchMove>(Thumb).Add(*this,
+		&YVerticalTrack::OnDrag_Thumb_Vertical);
 }
 
 void
@@ -426,11 +422,6 @@ catch(...)
 	throw LoggedEvent("Error occured @@ AScrollBar::AScrollBar();");
 }
 
-IWidget*
-AScrollBar::GetTopWidgetPtr(const Point& p)
-{
-	return GetTopVisualControlPtr(p);
-}
 IVisualControl*
 AScrollBar::GetTopVisualControlPtr(const Point& p)
 {
@@ -438,6 +429,10 @@ AScrollBar::GetTopVisualControlPtr(const Point& p)
 		return &PrevButton;
 	if(Contains(NextButton, p))
 		return &NextButton;
+
+	YAssert(pTrack.get(),
+		"Invalid widget found @@ AScrollBar::GetTopVisualControlPtr;");
+
 	return pTrack.get();
 }
 
@@ -445,6 +440,8 @@ void
 AScrollBar::DrawBackground()
 {
 	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawBackground);
+	YAssert(pTrack.get(),
+		"Invalid widget found @@ AScrollBar::DrawBackground;");
 
 	pTrack->DrawBackground();
 }
@@ -458,6 +455,9 @@ AScrollBar::DrawForeground()
 
 	const Graphics g(*FetchDirectWindowHandle(*this));
 	const Point b(LocateForWindow(*this));
+
+	YAssert(pTrack.get(),
+		"Invalid widget found @@ AScrollBar::DrawForeground;");
 
 	pTrack->DrawForeground();
 	PrevButton.DrawForeground();
@@ -487,86 +487,71 @@ YHorizontalScrollBar::YHorizontalScrollBar(const Rect& r, IUIBox* pCon,
 {}
 
 
-YListBox::YListBox(const Rect& r, IUIBox* pCon,
-	GHResource<TextRegion> prTr_)
+YSimpleTextListBox::YSimpleTextListBox(const Rect& r, IUIBox* pCon,
+	GHStrong<TextRegion> prTr_, GHWeak<ListType> wpList_)
 	: YVisualControl(r, pCon),
-//	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()),
-	prTextRegion(GetGlobalResource<TextRegion>()),
-	bDisposeList(true),
-	Font(), Margin(prTextRegion->Margin),
-	List(*new ListType()), Viewer(List)
+	spTextRegion(prTr_ ? prTr_ : GetGlobalResource<TextRegion>()), Font(),
+	Margin(spTextRegion->Margin), wpList(wpList_), Viewer(GetList())
 {
-	_m_init();
-}
-YListBox::YListBox(const Rect& r, IUIBox* pCon,
-	GHResource<TextRegion> prTr_, YListBox::ListType& List_)
-	: YVisualControl(r, pCon),
-//	prTextRegion(pCon ? prTr_ : GetGlobalResource<TextRegion>()),
-	prTextRegion(GetGlobalResource<TextRegion>()),
-	bDisposeList(false),
-	Font(), Margin(prTextRegion->Margin),
-	List(List_), Viewer(List)
-{
-	_m_init();
-}
-YListBox::~YListBox() ythrow()
-{
-	if(bDisposeList)
-		delete &List;
+	FetchEvent<EControl::KeyDown>(*this) += &YSimpleTextListBox::OnKeyDown;
+	FetchEvent<EControl::KeyHeld>(*this) += OnKeyHeld;
+	FetchEvent<EControl::TouchDown>(*this) += &YSimpleTextListBox::OnTouchDown;
+	FetchEvent<EControl::TouchMove>(*this) += &YSimpleTextListBox::OnTouchMove;
+	FetchEvent<EControl::Click>(*this) += &YSimpleTextListBox::OnClick;
+	Selected += &YSimpleTextListBox::OnSelected;
+	Confirmed += &YSimpleTextListBox::OnConfirmed;
 }
 
-void
-YListBox::_m_init()
+Drawing::TextRegion&
+YSimpleTextListBox::GetTextRegion() const ythrow()
 {
-	KeyDown += &YListBox::OnKeyDown;
-	KeyHeld += OnKeyHeld;
-	TouchDown += &YListBox::OnTouchDown;
-	TouchMove += &YListBox::OnTouchMove;
-	Click += &YListBox::OnClick;
-	Selected += &YListBox::OnSelected;
-	Confirmed += &YListBox::OnConfirmed;
-}
+	YAssert(spTextRegion,
+		"In function \"SDST\n"
+		"Components::Controls::YSimpleTextListBox::GetItemHeight()\": \n"
+		"The text region pointer is null.");
 
-YListBox::ItemType*
-YListBox::GetItemPtr(ViewerType::IndexType i)
+	return *spTextRegion;
+}
+YSimpleTextListBox::ListType&
+YSimpleTextListBox::GetList() const ythrow()
 {
-	return IsInInterval<ViewerType::IndexType>(i, List.size())
-		? &List[i] : NULL;
+	YAssert(wpList,
+		"In function \"Components::Controls::YSimpleTextListBox::ListType\n"
+		"Components::Controls::YSimpleTextListBox::GetList()\":\n"
+		"The list pointer is null.");
+
+	return *wpList;
+}
+YSimpleTextListBox::ItemType*
+YSimpleTextListBox::GetItemPtr(ViewerType::IndexType i)
+{
+	ListType& list(GetList());
+
+	return IsInInterval<ViewerType::IndexType>(i, list.size())
+		? &list[i] : NULL;
 }
 SDST
-YListBox::GetItemHeight() const
+YSimpleTextListBox::GetItemHeight() const
 {
-	YAssert(prTextRegion,
-		"In function \"SDST\n"
-		"Components::Controls::YListBox::GetItemHeight()\": \n"
-		"The text region pointer is null.");
-	return GetLnHeightExFrom(*prTextRegion) + defMarginV * 2;
+	return GetLnHeightExFrom(GetTextRegion()) + defMarginV * 2;
 }
 
 void
-YListBox::SetSelected(YListBox::ViewerType::IndexType i)
+YSimpleTextListBox::SetSelected(YSimpleTextListBox::ViewerType::IndexType i)
 {
 	if(Viewer.Contains(i) && Viewer.SetSelected(Viewer.GetIndex() + i))
 		CallSelected();
 }
 void
-YListBox::SetSelected(SPOS x, SPOS y)
+YSimpleTextListBox::SetSelected(SPOS x, SPOS y)
 {
 	SetSelected(CheckPoint(x, y));
 }
 
 void
-YListBox::DrawBackground()
+YSimpleTextListBox::DrawForeground()
 {
-	YWidgetAssert(this, Controls::YListBox, DrawBackground);
-
-	ParentType::DrawBackground();
-}
-
-void
-YListBox::DrawForeground()
-{
-	YWidgetAssert(this, Controls::YListBox, DrawForeground);
+	YWidgetAssert(this, Controls::YSimpleTextListBox, DrawForeground);
 
 	ParentType::DrawForeground();
 
@@ -576,17 +561,17 @@ YListBox::DrawForeground()
 	{
 		if(bFocused)
 			WndDrawFocus(hWnd, GetSize());
-		if(prTextRegion && GetLnHeightFrom(*prTextRegion) <= GetHeight())
+		if(spTextRegion && GetLnHeightFrom(*spTextRegion) <= GetHeight())
 		{
 			const SDST lnWidth(GetWidth());
 			const SDST lnHeight(GetItemHeight());
 
-			prTextRegion->Font = Font;
-			prTextRegion->Font.Update();
-			prTextRegion->ResetPen();
-			prTextRegion->SetSize(lnWidth, lnHeight);
-			SetMarginsTo(*prTextRegion, defMarginH, defMarginV);
-			Viewer.SetLength((GetHeight() + prTextRegion->LineGap)
+			spTextRegion->Font = Font;
+			spTextRegion->Font.Update();
+			spTextRegion->ResetPen();
+			spTextRegion->SetSize(lnWidth, lnHeight);
+			SetMarginsTo(*spTextRegion, defMarginH, defMarginV);
+			Viewer.SetLength((GetHeight() + spTextRegion->LineGap)
 				/ lnHeight);
 
 			const ViewerType::IndexType last(Viewer.GetIndex()
@@ -595,44 +580,43 @@ YListBox::DrawForeground()
 			const Graphics g(*hWnd);
 
 			if(Viewer.GetIndex() >= 0)
+			{
+				ListType& list(GetList());
+
 				for(ViewerType::IndexType i(Viewer.GetIndex()); i < last; ++i)
 				{
 					if(Viewer.IsSelected() && i == Viewer.GetSelected())
 					{
-						prTextRegion->Color = ColorSpace::White;
+						spTextRegion->Color = ColorSpace::White;
 						FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
-							Rect(pt.X + 1, pt.Y + 1, prTextRegion->Width - 2,
-							prTextRegion->Height - 1),
+							Rect(pt.X + 1, pt.Y + 1, spTextRegion->Width - 2,
+							spTextRegion->Height - 1),
 							ColorSpace::Aqua);
 					}
 					else
-						prTextRegion->Color = ForeColor;
-					prTextRegion->PutLine(List[i]);
-					prTextRegion->ResetPen();
-					prTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
-						g.GetSize(), Point::Zero, pt, *prTextRegion);
+						spTextRegion->Color = ForeColor;
+					spTextRegion->PutLine(list[i]);
+					spTextRegion->ResetPen();
+					spTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
+						g.GetSize(), Point::Zero, pt, *spTextRegion);
 					pt.Y += lnHeight;
-					prTextRegion->ClearImage();
+					spTextRegion->ClearImage();
 				}
-			prTextRegion->SetSize(0, 0);
+			}
+			spTextRegion->SetSize(0, 0);
 		}
 	}
 }
 
-YListBox::ViewerType::IndexType
-YListBox::CheckPoint(SPOS x, SPOS y)
+YSimpleTextListBox::ViewerType::IndexType
+YSimpleTextListBox::CheckPoint(SPOS x, SPOS y)
 {
-	YAssert(prTextRegion,
-		"In function \"Components::Controls::YListBox::ViewerType::IndexType\n"
-		"Components::Controls::YListBox::CheckClick(const Point& pt)\":\n"
-		"The text region pointer is null.");
-
 	return Rect(Point::Zero, GetSize()).Contains(x, y)
 		? y / GetItemHeight() : -1;
 }
 
 void
-YListBox::CallSelected()
+YSimpleTextListBox::CallSelected()
 {
 	IndexEventArgs e(*this, Viewer.GetSelected());
 
@@ -640,7 +624,7 @@ YListBox::CallSelected()
 }
 
 void
-YListBox::CallConfirmed(YListBox::ViewerType::IndexType i)
+YSimpleTextListBox::CallConfirmed(YSimpleTextListBox::ViewerType::IndexType i)
 {
 	if(Viewer.IsSelected() && Viewer.GetSelected() + Viewer.GetIndex() == i)
 	{
@@ -651,7 +635,7 @@ YListBox::CallConfirmed(YListBox::ViewerType::IndexType i)
 }
 
 void
-YListBox::OnKeyDown(KeyEventArgs& k)
+YSimpleTextListBox::OnKeyDown(KeyEventArgs& k)
 {
 	if(Viewer.IsSelected())
 	{
@@ -704,40 +688,68 @@ YListBox::OnKeyDown(KeyEventArgs& k)
 }
 
 void
-YListBox::OnTouchDown(TouchEventArgs& e)
+YSimpleTextListBox::OnTouchDown(TouchEventArgs& e)
 {
 	SetSelected(e);
 }
 
 void
-YListBox::OnTouchMove(TouchEventArgs& e)
+YSimpleTextListBox::OnTouchMove(TouchEventArgs& e)
 {
 	SetSelected(e);
 }
 
 void
-YListBox::OnClick(TouchEventArgs& e)
+YSimpleTextListBox::OnClick(TouchEventArgs& e)
 {
 	CallConfirmed(CheckPoint(e));
 }
 
 void
-YListBox::OnSelected(IndexEventArgs& e)
+YSimpleTextListBox::OnSelected(IndexEventArgs& e)
 {
 	Refresh();
 }
 
 void
-YListBox::OnConfirmed(IndexEventArgs& e)
+YSimpleTextListBox::OnConfirmed(IndexEventArgs& e)
 {
 	OnSelected(e);
 }
 
 
+YListBox::YListBox(const Rect& r, IUIBox* pCon,
+	GHStrong<TextRegion> prTr_, ListType* wpList_)
+	: YVisualControl(r, pCon),
+	MSimpleFocusResponser(),
+	TextListBox(r, this, prTr_, wpList_), HorizontalScrollBar(r, this)
+{
+	HorizontalScrollBar.SetVisible(false);
+}
+
+IVisualControl*
+YListBox::GetTopVisualControlPtr(const Point& p)
+{
+	if(ContainsVisible(HorizontalScrollBar, p))
+		return &HorizontalScrollBar;
+	return &TextListBox;
+}
+
+void
+YListBox::DrawForeground()
+{
+	YWidgetAssert(this, Controls::YSimpleTextListBox, DrawForeground);
+
+	ParentType::DrawForeground();
+	HorizontalScrollBar.DrawForeground();
+	if(HorizontalScrollBar.IsVisible())
+		HorizontalScrollBar.DrawForeground();
+}
+
+
 YFileBox::YFileBox(const Rect& r, IUIBox* pCon,
-	GHResource<TextRegion> prTr_)
-	: YListBox(r, pCon, prTr_, MFileList::List), MFileList(),
-	List(ParentType::List)
+	GHStrong<TextRegion> prTr_)
+	: FileList(), YSimpleTextListBox(r, pCon, prTr_, GetListWeakPtr())
 {
 	Confirmed += &YFileBox::OnConfirmed;
 }
@@ -748,7 +760,7 @@ IO::Path
 YFileBox::GetPath() const
 {
 	if(Viewer.IsSelected() && Viewer.GetSelected() >= 0)
-		return Directory / (List[Viewer.GetSelected()]);
+		return Directory / (GetList()[Viewer.GetSelected()]);
 	return Directory;
 }
 
@@ -757,7 +769,7 @@ YFileBox::DrawBackground()
 {
 	YWidgetAssert(this, Controls::YFileBox, DrawBackground);
 
-	YListBox::DrawBackground();
+	ParentType::DrawBackground();
 }
 
 void
@@ -772,7 +784,7 @@ YFileBox::DrawForeground()
 void
 YFileBox::OnConfirmed(IndexEventArgs& e)
 {
-	if(Viewer.Contains(e) && static_cast<bool>(*this /= List[e.Index]))
+	if(Viewer.Contains(e) && static_cast<bool>(*this /= GetList()[e.Index]))
 	{
 		Viewer.MoveViewerToBegin();
 		Viewer.SetSelected(0);

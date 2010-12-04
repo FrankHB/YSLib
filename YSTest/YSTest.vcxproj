@@ -51,8 +51,6 @@
     <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\$(ProjectName).nds</NMakeOutput>
     <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NDEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.0\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.0;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.0\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
-    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.0\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.0;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.0\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
@@ -61,6 +59,8 @@
     <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.0\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.0;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.0\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</IncludePath>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>
@@ -80,6 +80,8 @@
     <ClCompile Include="arm7\source\main.cpp" />
     <ClCompile Include="arm9\YCLib\ycommon.cpp" />
     <ClCompile Include="arm9\YSLib\Adaptor\yfont.cpp" />
+    <ClCompile Include="arm9\YSLib\Adaptor\ynew.cpp" />
+    <ClCompile Include="arm9\YSLib\Adaptor\ysinit.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yapp.cpp" />
     <ClCompile Include="arm9\YSLib\Core\ydevice.cpp" />
     <ClCompile Include="arm9\YSLib\Core\yexcept.cpp" />
@@ -94,7 +96,6 @@
     <ClCompile Include="arm9\YSLib\Helper\shlds.cpp" />
     <ClCompile Include="arm9\YSLib\Helper\yglobal.cpp" />
     <ClCompile Include="arm9\YSLib\Helper\yshelper.cpp" />
-    <ClCompile Include="arm9\YSLib\Service\ysinit.cpp" />
     <ClCompile Include="arm9\YSLib\Service\ytimer.cpp" />
     <ClCompile Include="arm9\YSLib\Service\ytmgr.cpp" />
     <ClCompile Include="arm9\YSLib\Shell\ycomp.cpp" />
@@ -117,6 +118,7 @@
     <ClCompile Include="doc\ex.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="arm9\include\platform.h" />
     <ClInclude Include="arm9\YCLib\ycommon.h" />
     <ClInclude Include="arm9\YCLib\ydef.h" />
     <ClInclude Include="arm9\YSLib\Adaptor\base.h" />
@@ -126,8 +128,10 @@
     <ClInclude Include="arm9\YSLib\Adaptor\agg.h" />
     <ClInclude Include="arm9\YSLib\Adaptor\yaslivsp.hpp" />
     <ClInclude Include="arm9\YSLib\Adaptor\yfont.h" />
-    <ClInclude Include="arm9\YSLib\Adaptor\yref.hpp" />
+    <ClInclude Include="arm9\YSLib\Adaptor\ynew.h" />
+    <ClInclude Include="arm9\YSLib\Adaptor\ysinit.h" />
     <ClInclude Include="arm9\YSLib\Core\yevt.hpp" />
+    <ClInclude Include="arm9\YSLib\Core\yref.hpp" />
     <ClInclude Include="arm9\YSLib\Shell\yfocus.h" />
     <ClInclude Include="arm9\YSLib\Shell\yguicomp.h" />
     <ClInclude Include="arm9\YSLib\ysbuild.h" />
@@ -150,7 +154,6 @@
     <ClInclude Include="arm9\YSLib\Helper\shlds.h" />
     <ClInclude Include="arm9\YSLib\Helper\yglobal.h" />
     <ClInclude Include="arm9\YSLib\Helper\yshelper.h" />
-    <ClInclude Include="arm9\YSLib\Service\ysinit.h" />
     <ClInclude Include="arm9\YSLib\Service\ytimer.h" />
     <ClInclude Include="arm9\YSLib\Service\ytmgr.h" />
     <ClInclude Include="arm9\YSLib\Shell\ycomp.h" />
@@ -168,7 +171,6 @@
     <ClInclude Include="arm9\CHRLib\chrproc.h" />
     <ClInclude Include="arm9\include\DSReader.h" />
     <ClInclude Include="arm9\include\ft2build.h" />
-    <ClInclude Include="arm9\include\platform.h" />
     <ClInclude Include="arm9\include\Shells.h" />
     <ClInclude Include="arm9\include\freetype\freetype.h" />
     <ClInclude Include="arm9\include\freetype\ftadvanc.h" />

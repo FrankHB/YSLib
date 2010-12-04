@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4421;
+\version 0.4604;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 + 08:00;
 \par 修改时间:
-	2010-11-24 09:50 + 08:00;
+	2010-12-02 09:59 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -81,8 +81,7 @@ InputEventArgs::InputEventArgs(const Key& k)
 
 
 //! \brief 指针设备输入事件参数类。
-struct TouchEventArgs : public ScreenPositionEventArgs,
-	public InputEventArgs
+struct TouchEventArgs : public ScreenPositionEventArgs, public InputEventArgs
 {
 	typedef Drawing::Point InputType; //!< 输入类型。
 
@@ -139,17 +138,22 @@ struct IndexEventArgs : public EventArgs
 };
 
 
-//! \brief 控件事件类型。
-typedef Runtime::GEvent<true, IControl, EventArgs> YControlEvent;
-
-
 //事件处理器类型。
-DefDelegate(InputEventHandler, IVisualControl, InputEventArgs)
-DefDelegate(KeyEventHandler, IVisualControl, KeyEventArgs)
-DefDelegate(TouchEventHandler, IVisualControl, TouchEventArgs)
-DefDelegate(IndexEventHandler, IVisualControl, IndexEventArgs)
-DefDelegate(PointEventHandler, IVisualControl, Drawing::Point)
-DefDelegate(SizeEventHandler, IVisualControl, Size)
+DefDelegate(HFocusEvent, IControl, EventArgs)
+DefDelegate(HInputEvent, IVisualControl, InputEventArgs)
+DefDelegate(HKeyEvent, IVisualControl, KeyEventArgs)
+DefDelegate(HTouchEvent, IVisualControl, TouchEventArgs)
+DefDelegate(HIndexEvent, IVisualControl, IndexEventArgs)
+DefDelegate(HPointEvent, IVisualControl, Drawing::Point)
+DefDelegate(HSizeEvent, IVisualControl, Size)
+
+
+#define DefEventTypeMapping(_name, _tEventHandler) \
+	template<> \
+	struct EventTypeMapping<_name> \
+	{ \
+		typedef _tEventHandler HandlerType; \
+	};
 
 
 //! \brief 可视控件事件空间。
@@ -166,8 +170,22 @@ struct EControl
 
 	//	EnabledChanged,
 
-		GotFocus,
-		LostFocus,
+		GotFocus, //!< 焦点获得。
+		LostFocus, //!< 焦点失去。
+
+		Enter, //!< 控件进入。
+		Leave, //!< 控件离开。
+
+		KeyUp, //!< 键接触结束。
+		KeyDown, //!< 键接触开始。
+		KeyHeld, //!< 键接触保持。
+		KeyPress, //!< 键按下。
+
+		TouchUp, //!< 屏幕接触结束。
+		TouchDown, //!< 屏幕接触开始。
+		TouchHeld, //!< 屏幕接触保持。
+		TouchMove, //!< 屏幕接触移动。
+		Click, //!< 屏幕点击。
 
 	//	TextChanged,
 	//	FontChanged,
@@ -177,34 +195,61 @@ struct EControl
 };
 
 
+template<EControl::EventID>
+struct EventTypeMapping
+{
+	//定义 HandlerType 的默认值可能会导致运行期 dynamic_cast 失败。
+//	typedef HEvent HandlerType;
+};
+
+DefEventTypeMapping(EControl::GotFocus, HFocusEvent)
+DefEventTypeMapping(EControl::LostFocus, HFocusEvent)
+
+DefEventTypeMapping(EControl::Enter, HInputEvent)
+DefEventTypeMapping(EControl::Leave, HInputEvent)
+
+DefEventTypeMapping(EControl::KeyUp, HKeyEvent)
+DefEventTypeMapping(EControl::KeyDown, HKeyEvent)
+DefEventTypeMapping(EControl::KeyHeld, HKeyEvent)
+DefEventTypeMapping(EControl::KeyPress, HKeyEvent)
+
+DefEventTypeMapping(EControl::TouchUp, HTouchEvent)
+DefEventTypeMapping(EControl::TouchDown, HTouchEvent)
+DefEventTypeMapping(EControl::TouchHeld, HTouchEvent)
+DefEventTypeMapping(EControl::TouchMove, HTouchEvent)
+DefEventTypeMapping(EControl::Click, HTouchEvent)
+
+
 //! \brief 控件接口。
 DeclInterface(IControl)
-	typedef Runtime::GEventMap<EControl, YControlEvent> EventMapType;
-
-	DeclIEntry(EventMapType::Event& operator[](const EventMapType::ID&))
-
 	DeclIEntry(bool IsEnabled() const) //!< 判断是否有效。
+
+	DeclIEntry(Runtime::GEventMap<EControl>& GetEventMap() const) \
+		//!< 取事件映射表。
 
 	DeclIEntry(void SetEnabled(bool)) //!< 设置有效性。
 EndDecl
 
 
+/*!
+\brief 取控件事件。
+\note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
+*/
+template<EControl::EventID id>
+inline typename Runtime::GSEventTemplate<typename EventTypeMapping<id>
+	::HandlerType>::EventType&
+FetchEvent(IControl& c)
+{
+	return c.GetEventMap().GetEvent<typename EventTypeMapping<id>
+		::HandlerType>(id);
+}
+
+
 //! \brief 可视控件接口。
 DeclBasedInterface(IVisualControl, virtual IWidget, virtual IControl,
 	virtual GIFocusRequester<GMFocusResponser, IVisualControl>)
-	DeclIEventEntry(InputEventHandler, Enter) //!< 控件进入。
-	DeclIEventEntry(InputEventHandler, Leave) //!< 控件离开。
-	DeclIEventEntry(KeyEventHandler, KeyUp) //!< 键接触结束。
-	DeclIEventEntry(KeyEventHandler, KeyDown) //!< 键接触开始。
-	DeclIEventEntry(KeyEventHandler, KeyHeld) //!< 键接触保持。
-	DeclIEventEntry(KeyEventHandler, KeyPress) //!< 键按下。
-	DeclIEventEntry(TouchEventHandler, TouchUp) //!< 屏幕接触结束。
-	DeclIEventEntry(TouchEventHandler, TouchDown) //!< 屏幕接触开始。
-	DeclIEventEntry(TouchEventHandler, TouchHeld) //!< 屏幕接触保持。
-	DeclIEventEntry(TouchEventHandler, TouchMove) //!< 屏幕接触移动。
-	DeclIEventEntry(TouchEventHandler, Click) //!< 屏幕点击。
 
-	//! \brief 向部件容器请求获得焦点，
+	//! \brief 向部件容器请求获得焦点。
 	DeclIEntry(void RequestFocus(EventArgs&))
 
 	//! \brief 释放焦点。
@@ -244,7 +289,7 @@ private:
 	bool enabled; //!< 控件有效性。
 
 protected:
-	IControl::EventMapType EventMap; //!< 事件映射表。
+	mutable Runtime::GEventMap<EControl> EventMap; //!< 事件映射表。
 
 public:
 	/*!
@@ -255,11 +300,9 @@ public:
 
 	virtual DefEmptyDtor(Control)
 
-	virtual PDefHOperator(IControl::EventMapType::Event&, [],
-		const IControl::EventMapType::ID& id)
-		ImplRet(EventMap[id])
-
 	virtual DefPredicate(Enabled, enabled)
+
+	DefGetter(Runtime::GEventMap<EControl>&, EventMap, EventMap)
 
 	virtual DefSetter(bool, Enabled, enabled)
 };
@@ -274,21 +317,11 @@ Control::Control(bool e)
 class MVisualControl : public Control, public AFocusRequester
 {
 public:
-	//可视控件标准事件。
-	DefEvent(InputEventHandler, Enter)
-	DefEvent(InputEventHandler, Leave)
-	DefEvent(KeyEventHandler, KeyUp)
-	DefEvent(KeyEventHandler, KeyDown)
-	DefEvent(KeyEventHandler, KeyHeld)
-	DefEvent(KeyEventHandler, KeyPress)
-	DefEvent(TouchEventHandler, TouchUp)
-	DefEvent(TouchEventHandler, TouchDown)
-	DefEvent(TouchEventHandler, TouchHeld)
-	DefEvent(TouchEventHandler, TouchMove)
-	DefEvent(TouchEventHandler, Click)
+	//可视控件标准事件见 EControl 。
+
 	//可视控件扩展事件。
-	DefEvent(PointEventHandler, Move) //!< 可视控件移动。
-	DefEvent(SizeEventHandler, Resize) //!< 可视控件大小调整。
+	DefEvent(HPointEvent, Move) //!< 可视控件移动。
+	DefEvent(HSizeEvent, Resize) //!< 可视控件大小调整。
 
 	explicit
 	MVisualControl();
@@ -297,7 +330,8 @@ public:
 
 
 //! \brief 控件基类。
-class YControl : public YComponent, public Control
+class YControl : public YComponent,
+	public Control
 {
 public:
 	typedef YComponent ParentType;
@@ -322,40 +356,25 @@ public:
 	*/
 	~AVisualControl() ythrow();
 
-	ImplI(IVisualControl)
-		PDefHOperator(EventMapType::Event&, [], const EventMapType::ID& id)
-		ImplBodyBase(MVisualControl, operator[], id)
-
 	ImplI(IVisualControl) DefPredicateBase(Visible, Visual)
 	ImplI(IVisualControl) DefPredicateBase(Transparent, Visual)
 	ImplI(IVisualControl) DefPredicateBase(BgRedrawed, Visual)
 	ImplI(IVisualControl) DefPredicateBase(Enabled, Control)
 	ImplI(IVisualControl) DefPredicateBase(Focused, AFocusRequester)
+
 	ImplI(IVisualControl)
 		PDefH(bool, IsFocusOfContainer,
 		GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
-
 	ImplI(IVisualControl)
 		PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
 		ImplBodyBase(MVisualControl, CheckRemoval, c)
 
 	ImplI(IVisualControl) DefGetterBase(const Point&, Location, Visual)
 	ImplI(IVisualControl) DefGetterBase(const Size&, Size, Visual)
-	ImplI(IVisualControl)
-		DefGetterBase(IUIBox*, ContainerPtr, Widget)
-
-	ImplI(IVisualControl) DefEventGetter(InputEventHandler, Enter)
-	ImplI(IVisualControl) DefEventGetter(InputEventHandler, Leave)
-	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyUp)
-	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyDown)
-	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyHeld)
-	ImplI(IVisualControl) DefEventGetter(KeyEventHandler, KeyPress)
-	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchUp)
-	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchDown)
-	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchHeld)
-	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, TouchMove)
-	ImplI(IVisualControl) DefEventGetter(TouchEventHandler, Click)
+	ImplI(IVisualControl) DefGetterBase(IUIBox*, ContainerPtr, Widget)
+	ImplI(IVisualControl) DefGetterBase(Runtime::GEventMap<EControl>&, EventMap,
+		Control)
 
 	ImplI(IVisualControl) DefSetterBase(bool, Visible, Visual)
 	ImplI(IVisualControl) DefSetterBase(bool, Transparent, Visual)
@@ -376,13 +395,15 @@ public:
 	DeclIEntry(void RequestToTop())
 
 	/*!
-	\brief 向部件容器请求获得焦点，若成功则引发 GotFocus 事件。
+	\brief 向部件容器请求获得焦点。
+	\note 若成功则触发 GotFocus 事件。
 	*/
 	ImplI(IVisualControl) void
 	RequestFocus(EventArgs&);
 
 	/*!
-	\brief 释放焦点，并引发失去焦点事件。
+	\brief 释放焦点。
+	\note 触发 LostFocus 事件。
 	*/
 	ImplI(IVisualControl) void
 	ReleaseFocus(EventArgs&);
@@ -415,7 +436,8 @@ AVisualControl::OnLostFocus(EventArgs& e)
 
 
 //! \brief 可视控件基类。
-class YVisualControl : public YComponent, public AVisualControl
+class YVisualControl : public YComponent,
+	public AVisualControl
 {
 public:
 	typedef YComponent ParentType;

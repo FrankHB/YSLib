@@ -11,12 +11,12 @@
 /*!	\file base.h
 \ingroup Adaptor
 \brief 通用基础设施。
-\version 0.2001;
+\version 0.2002;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 + 08:00;
 \par 修改时间:
-	2010-11-11 22:28 + 08:00;
+	2010-11-27 09:05 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,7 @@
 /*
  ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
  GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，该宏不会被展开。
-详见： http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
+详见：http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
 解决方案来源：
  https://www.securecoding.cert.org/confluence/display/cplusplus/\
  PRE05-CPP.+Understand+macro+replacement+when+concatenating\

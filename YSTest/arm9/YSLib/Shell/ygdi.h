@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3226;
+\version 0.3228;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2010-11-12 18:55 + 08:00;
+	2010-11-27 09:07 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -447,12 +447,14 @@ DrawPoint(const Graphics& g, const Point& p, Color c)
 
 /*!
 \brief 绘制水平线段：指定端点水平坐标 x1 、 x2 - 1，竖直坐标 y 。
+\pre 断言：g.IsValid() 。
 */
 bool
 DrawHLineSeg(const Graphics& g, SPOS y, SPOS x1, SPOS x2, Color c);
 
 /*!
 \brief 绘制竖直线段：指定竖直水平坐标 x ，竖直坐标 y1 - 1 、 y2 。
+\pre 断言：g.IsValid() 。
 */
 bool
 DrawVLineSeg(const Graphics& g, SPOS x, SPOS y1, SPOS y2, Color c);

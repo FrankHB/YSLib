@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.2792;
+\version 0.2814;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 + 08:00;
 \par 修改时间:
-	2010-11-25 13:52 + 08:00;
+	2010-12-03 11:53 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -171,7 +171,7 @@ YShell::DefShlProc(const Message& msg)
 		return 0;
 
 	case SM_DESTROY:
-		if(reinterpret_cast<YShell*>(lParam) == hShellMain)
+		if(reinterpret_cast<YShell*>(lParam) == YApplication::DefaultShellHandle)
 			PostQuitMessage(lParam);
 		return 0;
 
@@ -181,10 +181,10 @@ YShell::DefShlProc(const Message& msg)
 	case SM_DROP:
 		{
 			HSHL hShl(reinterpret_cast<YShell*>(wParam));
-			if(hShl == hShellMain)
+			if(hShl == YApplication::DefaultShellHandle)
 				return 1;
 			else if(hShl->IsActive())
-				theApp.SetShellHandle(hShellMain);
+				theApp.SetShellHandle(YApplication::DefaultShellHandle);
 			if(hShl->IsActive())
 				return -1;
 			YDelete(hShl);
@@ -203,7 +203,7 @@ YShell::DefShlProc(const Message& msg)
 		return 0;
 
 	case SM_QUIT:
-		std::exit(lParam);
+		exit(lParam);
 
 	default:
 		break;
@@ -236,7 +236,7 @@ YShellMain::YShellMain()
 void
 PostQuitMessage(int nExitCode)
 {
-	InsertMessage(Message(NULL, SM_QUIT, 0xFF));
+	InsertMessage(Message(NULL, SM_QUIT, 0xFF, 0, nExitCode));
 }
 
 #if YSLIB_DEBUG_MSG & 2
@@ -294,8 +294,6 @@ PeekMessage
 					if(wRemoveMsg == PM_NOREMOVE)
 						theApp.GetDefaultMessageQueue().InsertMessage(m);
 					Merge(theApp.GetDefaultMessageQueue(), mqt);
-					if(msgID == SM_QUIT)
-						return 0;
 					return msgID;
 				}
 			}

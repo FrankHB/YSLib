@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-11-17 18:22 + 08:00;
-// Version = r10295;
+// UTime = 2010-12-04 07:22 + 08:00;
+// Version = r10318;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -111,6 +111,19 @@ extern const u16 $SCREEN_WIDTH, $SCREEN_HEIGHT;
 
 } //$code;
 
+
+//非本体或 YGlobal 声明的对象列表。
+$header Core::YShell
+{
+	extern LRES
+	MainShlProc(const Message&);
+} //$header Adaptor::YNew;
+$unit Helper::YGlobal
+{
+	@namespace ::;
+	extern int
+	YMain(int, char*[]);
+} //$header Adaptor::YNew;
 
 //非本体函数列表。
 $header Core::YShell

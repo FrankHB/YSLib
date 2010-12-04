@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.2535;
+\version 0.2537;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2010-11-12 15:14 + 08:00;
+	2010-11-27 09:07 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -565,7 +565,11 @@ DrawVLineSeg(const Graphics& g, SPOS x, SPOS y1, SPOS y2, Color c)
 
 namespace
 {
-	//倾斜直线光栅化函数。
+	/*!
+	\brief 倾斜直线光栅化函数。
+	\pre 断言：y1 != y2 。
+	\pre 断言：x1 != x2 。
+	*/
 	bool
 	DrawObliqueLine(const Graphics& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2,
 		Color c)

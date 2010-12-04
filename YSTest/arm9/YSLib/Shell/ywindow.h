@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3816;
+\version 0.3820;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 + 08:00;
 \par 修改时间:
-	2010-11-25 14:06 + 08:00;
+	2010-11-27 23:38 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,7 +91,7 @@ protected:
 	Drawing::BitmapBuffer Buffer; //!< 显示缓冲区。
 	//基类中的 hWindow 为父窗口对象句柄，若为空则说明无父窗口。
 	HSHL hShell;
-	GHResource<YImage> prBackImage; //!< 背景图像指针。
+	GHStrong<YImage> prBackImage; //!< 背景图像指针。
 	bool bRefresh; //!< 刷新属性：表示有新的绘制请求。
 	bool bUpdate; //!< 更新属性：表示绘制结束，缓冲区准备完毕。
 
@@ -100,16 +100,16 @@ public:
 	\brief 构造：使用指定背景图像、窗口句柄和 Shell 。
 	*/
 	explicit
-	MWindow(const GHResource<YImage> = new YImage(), HWND = NULL,
+	MWindow(const GHStrong<YImage> = new YImage(), HWND = NULL,
 		HSHL = ::YSLib::theApp.GetShellHandle());
 
 	DefPredicate(RefreshRequired, bRefresh)
 	DefPredicate(UpdateRequired, bUpdate)
 
 	DefGetter(HSHL, ShellHandle, hShell)
-	DefGetter(GHResource<YImage>, Background, prBackImage)
+	DefGetter(GHStrong<YImage>, Background, prBackImage)
 
-	DefSetterDe(GHResource<YImage>, Background, prBackImage, NULL)
+	DefSetterDe(GHStrong<YImage>, Background, prBackImage, NULL)
 };
 
 
@@ -124,7 +124,7 @@ public:
 	\brief 构造：使用指定边界、背景图像、窗口句柄和 Shell 句柄。
 	*/
 	explicit
-	AWindow(const Rect& = Rect::Empty, const GHResource<YImage> = new YImage(),
+	AWindow(const Rect& = Rect::Empty, const GHStrong<YImage> = new YImage(),
 		HWND = NULL, HSHL = ::YSLib::theApp.GetShellHandle());
 	virtual DefEmptyDtor(AWindow)
 
@@ -144,7 +144,7 @@ public:
 		//!< 取缓冲区指针。
 	DefGetter(HWND, Handle, HWND(const_cast<AWindow*>(this)))
 	DefGetterBase(HSHL, ShellHandle, MWindow)
-	DefGetterBase(GHResource<YImage>, Background, MWindow)
+	DefGetterBase(GHStrong<YImage>, Background, MWindow)
 	/*!
 	\brief 取位图背景指针。
 	*/
@@ -159,7 +159,7 @@ public:
 	*/
 	virtual void
 	SetSize(const Size&);
-	ImplI(IWindow) DefSetterBaseDe(GHResource<YImage>, Background, MWindow,
+	ImplI(IWindow) DefSetterBaseDe(GHStrong<YImage>, Background, MWindow,
 		NULL)
 
 	PDefH(void, ClearBackground) const //!< 清除背景。
@@ -257,7 +257,7 @@ public:
 	*/
 	explicit
 	YFrameWindow(const Rect& = Rect::Empty,
-		const GHResource<YImage> = new YImage(), HWND = NULL,
+		const GHStrong<YImage> = new YImage(), HWND = NULL,
 		HSHL = ::YSLib::theApp.GetShellHandle());
 	/*!
 	\brief 无异常抛出。

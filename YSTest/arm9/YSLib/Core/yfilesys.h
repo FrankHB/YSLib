@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2009;
+\version 0.2062;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 + 08:00;
 \par 修改时间:
-	2010-11-15 12:27 + 08:00;
+	2010-11-29 23:50 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -593,7 +593,7 @@ struct HFileNameFilter : public GHBase<PFNFILTER>
 
 
 //! \brief 文件列表模块。
-class MFileList
+class FileList
 {
 public:
 	typedef String ItemType; //!< 项目名称类型。
@@ -601,15 +601,25 @@ public:
 
 protected:
 	Path Directory; //!< 目录的完整路径。
-	ListType List; //!< 目录中的项目列表。
+	GHStrong<ListType> spList; //!< 目录中的项目列表。
 
 public:
 	/*!
 	\brief 构造：使用指定路径。
-	\note 参数为空时为根目录。
+	\note 参数为空或空字符串时为根目录。
 	*/
-	MFileList(CPATH = NULL);
-	virtual DefEmptyDtor(MFileList)
+	FileList(CPATH = NULL);
+	/*!
+	\brief 构造：使用窄字符串。
+	\note 参数为空字符串时为根目录。
+	*/
+	FileList(const string&);
+	/*!
+	\brief 构造：使用指定项目。
+	\note 参数为空字符串时为根目录。
+	*/
+	FileList(const ItemType&);
+	virtual DefEmptyDtor(FileList)
 
 	/*!
 	\brief 导航至相对路径。
@@ -623,7 +633,8 @@ public:
 	operator/=(const String&);
 
 	DefGetter(const Path&, Directory, Directory) //!< 取目录的完整路径。
-	DefGetter(const ListType&, List, List) //!< 取项目列表。
+	DefGetter(GHWeak<ListType>, ListWeakPtr, spList); //!< 取项目列表的弱引用。
+//	DefGetter(const ListType&, List, List) //!< 取项目列表。
 
 	/*!
 	\brief 在目录中取子项目。
@@ -639,7 +650,7 @@ public:
 };
 
 inline bool
-MFileList::operator/=(const String& s)
+FileList::operator/=(const String& s)
 {
 	return *this /= StringToMBCS(s);
 }

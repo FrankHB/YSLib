@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.1965;
+\version 0.2002;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 + 08:00;
 \par 修改时间:
-	2010-11-15 15:59 + 08:00;
+	2010-12-03 11:19 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,14 +32,8 @@
 #ifndef INCLUDED_YADAPTOR_H_
 #define INCLUDED_YADAPTOR_H_
 
-//包含编译配置。
-#include "config.h"
-
-//包含平台文件。
-#include <platform.h>
-
-//引入 YSLib 命名空间宏。
-#include "base.h"
+//引入平台设置和存储调试设施。
+#include "ynew.h"
 
 
 //包含 CHRLib 。
@@ -83,6 +77,8 @@ YSL_BEGIN
 	using platform::chdir;
 	using platform::getcwd_n;
 
+	using platform::atexit;
+	using platform::exit;
 	using platform::terminate;
 
 	using platform::HDirectory;
@@ -149,7 +145,6 @@ YSL_END
 //#define LOKI_FUNCTOR_IS_NOT_A_SMALLOBJECT
 #define LOKI_FUNCTORS_ARE_COMPARABLE //实现事件机制需要能被比较的仿函数。
 #include <loki/Function.h>
-#include <loki/SmartPtr.h>
 #include <loki/StrongPtr.h>
 
 YSL_BEGIN
@@ -180,16 +175,27 @@ YSL_END_NAMESPACE(Pattern)
 
 YSL_END_NAMESPACE(Design)
 
-	//使用 Loki 智能指针。
-	using Loki::SmartPtr;
+	//使用 Loki 小对象。
+	using Loki::SmallObject;
+
+	//使用 Loki 策略、智能指针、强指针。
+	using Loki::RefToValue;
+YSL_BEGIN_NAMESPACE(Policies)
+	using Loki::PropagateConst;
+	using Loki::DontPropagateConst;
 	using Loki::RefCounted;
 	using Loki::AllowConversion;
 	using Loki::DisallowConversion;
 	using Loki::RejectNull;
+	using Loki::AssertCheck;
 	using Loki::DefaultSPStorage;
 	using Loki::HeapStorage;
-	using Loki::RefToValue;
-	using Loki::SmallObject;
+	using Loki::TwoRefCounts;
+	using Loki::CantResetWithStrong;
+	using Loki::DeleteSingle;
+YSL_END_NAMESPACE(Policies)
+	using Loki::SmartPtr;
+	using Loki::StrongPtr;
 
 YSL_END
 

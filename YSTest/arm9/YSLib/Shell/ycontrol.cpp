@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.3292;
+\version 0.3960;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 + 08:00;
 \par 修改时间:
-	2010-11-24 09:49 + 08:00;
+	2010-12-02 10:04 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,7 +53,7 @@ OnKeyHeld(IVisualControl& c, KeyEventArgs& e)
 	using namespace InputStatus;
 
 	if(RepeatHeld(KeyHeldState, 240, 120))
-		c.GetKeyDown()(c, e);
+		FetchEvent<EControl::KeyDown>(c)(c, e);
 }
 
 void
@@ -64,7 +64,7 @@ OnTouchHeld(IVisualControl& c, TouchEventArgs& e)
 	if(DraggingOffset == Vec::FullScreen)
 		DraggingOffset = c.GetLocation() - VisualControlLocation;
 	else
-		c.GetTouchMove()(c, e);
+		FetchEvent<EControl::TouchMove>(c)(c, e);
 	LastVisualControlLocation = VisualControlLocation;
 }
 
@@ -74,7 +74,7 @@ OnTouchMove(IVisualControl& c, TouchEventArgs& e)
 	using namespace InputStatus;
 
 	if(RepeatHeld(TouchHeldState, 240, 60))
-		c.GetTouchDown()(c, e);
+		FetchEvent<EControl::TouchDown>(c)(c, e);
 }
 
 void
@@ -98,10 +98,10 @@ MVisualControl::MVisualControl()
 AVisualControl::AVisualControl(const Rect& r, IUIBox* pCon)
 	: Widget(r, pCon), MVisualControl()
 {
-	EventMap[EControl::GotFocus] += &AVisualControl::OnGotFocus;
-	EventMap[EControl::LostFocus] += &AVisualControl::OnLostFocus;
-	TouchDown += &AVisualControl::OnTouchDown;
-	TouchHeld += OnTouchHeld;
+	FetchEvent<EControl::GotFocus>(*this) += &AVisualControl::OnGotFocus;
+	FetchEvent<EControl::LostFocus>(*this) += &AVisualControl::OnLostFocus;
+	FetchEvent<EControl::TouchDown>(*this) += &AVisualControl::OnTouchDown;
+	FetchEvent<EControl::TouchHeld>(*this) += OnTouchHeld;
 
 	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
 
@@ -128,7 +128,7 @@ AVisualControl::RequestFocus(EventArgs& e)
 	IUIBox* p(GetContainerPtr());
 
 	if(p && p->ResponseFocusRequest(*this))
-		EventMap[EControl::GotFocus](*this, e);
+		EventMap.GetEvent<HFocusEvent>(EControl::GotFocus)(*this, e);
 }
 
 void
@@ -137,7 +137,7 @@ AVisualControl::ReleaseFocus(EventArgs& e)
 	IUIBox* p(GetContainerPtr());
 
 	if(p && p->ResponseFocusRelease(*this))
-		EventMap[EControl::LostFocus](*this, e);
+		EventMap.GetEvent<HFocusEvent>(EControl::LostFocus)(*this, e);
 }
 
 void
