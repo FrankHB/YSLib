@@ -1,4 +1,4 @@
-//v 0.2885; *Build 173 r192;
+//v 0.2885; *Build 174 r101;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -156,681 +156,369 @@ $using:
 }
 
 $DONE:
-r1-r2:
-/ @@ \u YGUIComponent:
-	/ @@ \cl YListBox
-		/= \m GSequenceViewer<ListType> Viewer -> ViewerType Viewer;
-		/ public \m ListType& List -> protect \mf ListType* pList;
-		- \m const bool bDisposeList;
-		- \exp \ctor YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-			GHResource<Drawing::TextRegion> = NULL);
-		/ \exp \ctor YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-			GHResource<Drawing::TextRegion> = NULL,
-			ListType& List_ = *GetGlobalResource<ListType>())
-			-> YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-			GHResource<Drawing::TextRegion> = NULL,
-			ListType* = NULL);
-		- \mf _m_init();
-		/ \simp \dtor ^ \mac DefEmptyDtor;
-		/ DefGetter(ListType&, List, List)
-			-> \mf ListType& GetList() const ythrow() ^ \as;
-		/ \tr \impl @@ \mf void DrawForeground() & \mf ItemType*
-			GetItemPtr(ViewerType::IndexType i) ^ \mf GetList;
-	/ @@ \cl YFileBox:
-		- \m ListType& List;
-		/ \tr @@ \ctor;
-		- typedef ParentType::ListType ListType;
-		/ \tr \impl @@ \ctor;
-/ \ac @@ \m ListType List @@ \cl IO::MFileList @@ \u YFileSystem
-	-> public ~ protected;
-/ \a MFileList => FileList;
+r1:
+/ @@ \cl ShlSetting::TFormC \u Shells:
+	+ \m YButton btnExit;
+	+ \mf void btnExit_Click(TouchEventArgs&);
+	/ \impl @@ \ctor;
+
+r2:
+/ \tr \impl @@ \ctor @@ \cl ShlSetting::TFormC \u Shells;
+/ \impl @@ \f YMain @@ \u Main;
+/ \impl @@ \f main & \f (YInit @@ \un \ns) @@ \u YGlobal;
 
 r3:
-/ @@ \u YFont:
-	/ + \es ythrow() @@ \f const Typeface* GetDefaultTypefacePtr();
-/ \a \rem @@ \f with \as;
-/ @@ \cl YListBox @@ \u YGUIComponent:
-	+ \mf Drawing::TextRegion& GetTextRegion() const ythrow();
-	/ impl @@ \mf GetItemHeight() const:
-		/ \as >> \mf GetTextRegion;
-		^ \mf GetTextRegion;
-	- \as @@ impl @@ \mf ViewerType::IndexType CheckPoint(SPOS, SPOS);
+/ @@ \h YAdaptor:
+	- using platform::atexit;
+	- using platform::exit;
+* \tr \impl @@ \ctor @@ \cl ShlSetting::TFormC \u Shells;
+/ \tr \impl @@ \u YShell;
+/ @@ \u YCommon:
+	- \f (atexit & exit);
+	- \o exit_handler_stack @@ \un \ns;
 
 r4:
-/ @@ \h YAdaptor:
-	/ @@ \ns Design:
-		+ {
-			using Loki::PropagateConst;
-			using Loki::DontPropagateConst;
-			using Loki::StrongPtr;
-			using Loki::TwoRefCounts;
-			using Loki::DisallowConversion;
-			using Loki::AssertCheck;
-			using Loki::CantResetWithStrong;
-			using Loki::DeleteSingle;
-		};
-		-= \inc <loki/SmartPtr.h>;
-/ @@ \h YReference:
-	/ \a RejectNull -> AssertCheck;
+/ !\rem define YSL_USE_MEMORY_DEBUG @@ Config;
 
 r5:
-/ @@ \h YAdaptor:
-	/ {
-		using Loki::PropagateConst;
-		using Loki::DontPropagateConst;
-		using Loki::RefCounted;
-		using Loki::AllowConversion;
-		using Loki::DisallowConversion;
-		using Loki::RejectNull;
-		using Loki::AssertCheck;
-		using Loki::DefaultSPStorage;
-		using Loki::HeapStorage;
-		using Loki::TwoRefCounts;
-		using Loki::CantResetWithStrong;
-		using Loki::DeleteSingle;
-	} >> \ns Design::Policies;
-/ @@ \ns Design @@ \h YReference:
-	/ \a >> \ns Policies ~ \ns Policies::Operations;
-	- \ns Policies::Operations;
-	- \cl \t SmartPtr_RefCounted @@ \ns Policies;
-	/ \a SmartPtr_RefCounted -> RefCounted;
+/ \a new (\exc for smart pointers) -> ynew @@ \f YInit @@ \un \ns @@ \u YGlobal;
 
 r6:
-/ @@ \ns Design @@ \h YReference:
-	/ \a AllowConversion -> DisallowConversion;
-	/ \mac YDelete(h) delete h -> YDelete(h) delete GetPointer(h);
-/ @@ \u YWidget:
-	/ \tr \impl @@ \i \f Point LocateWindowOffset(const IWidget&, const Point&);
-	/ \tr \impl @@ \f Point LocateForWindow(IWidget&);
-	/ \tr \impl @@ \f \t
-		template<class _tWidget> void Fill(_tWidget&, Color) @@ \un \ns;
-/ \tr \impl @@ \f DrawWidgetBounds & \f DrawWidgetOutline @@ \u YGUI;
-/ \tr \impl @@ \ctor @@ \cl AWindow @@ \u YWindow;
+/ @@ \u YGlobal:
+	/ \impl @@ \f Destroy_Static & \f YDestroy @@ \un \ns;
+	/ \a delete -> ydelete;
 
-r7:
-/ @@ \ns Design @@ \h YReference:
-	/ \cl \t template<typename T,
-		template<class> class OP = Policies::RefCounted,
-		class CP = Policies::DisallowConversion,
-		template<class> class KP = Policies::AssertCheck,
-		template<class> class SP = Policies::DefaultSPStorage,
-		typename SPType = SmartPtr<T, OP, CP, KP, SP> >
-		class GHResource
-		-> template<typename T,
-		class OP = Policies::TwoRefCounts,
-		class CP = Policies::DisallowConversion,
-		template<class> class KP = Policies::AssertCheck,
-		template<class> class RP = Policies::CantResetWithStrong,
-		template<class> class DP = Policies::DeleteSingle,
-		typename SPType = StrongPtr<T, true, OP, CP, KP, RP, DP> >
-		class GHResource;
-	/ @@ \cl \t GHResource:
-		/ \impl @@ \mf T* GetPointer();
-
-r8:
-/ @@ \ns Design @@ \h YReference:
-	/ simp @@ \cl \t GHResource & \cl \t GHHandle:
-		- \mf Swap;
-		- \op RefToValue<GHResource>;
-		- \op=;
-		- \mf GetPtr;
-	/ \impl @@ \i \t \f template<typename _tReference>
-		_tReference* GetPointer(GHHandle<_tReference>);
-	+ \cl \t GHReference;
-	+ \i \f \t template<class _type> _type* GetPointer(GHReference<_type>);
-/a GHResource => GHStrong;
-/a GHReference => GHWeak;
-
-r9:
-/ \h YReference >> \dir Core ~ \dir Adaptor; 
-/ \u YShellInitialization >> \dir Adaptor ~ \dir Service;
-/ \tr \inc @@ \h YShellDefinition;
-/ \tr \inc @@ \h YSLib::Build;
-
-r10-r12:
-/ @@ \h YShellDefinition & \u YGlobal:
-	- \g \o pApp @@ \ns YSLib;
-
-r13:
-/ @@ \cl YApplication @@ \u YApplication:
-	- \smf GetInstanceHandle;
-	/ \smf YApplication* GetInstance()
-		-> YApplication* GetInstance(YScreen*&, YDesktop*&);
-	/ \smf YApplication* GetInstancePtr()
-		-> YApplication* GetInstancePtr(YScreen*&, YDesktop*&);
-	/ ctor YApplication() -> YApplication(YScreen*&, YDesktop*&);
-/ @@ \h YShellDefinition & \u YGlobal:
-	/ \g \o (pDefaultScreen & pDefaultDesktop) @@ \ns YSLib
-		>> \s \m @@ \cl YApplication @@ \u YApplication;
-/ \a pDefaultScreen -> theApp.pDefaultScreen;
-
-r14:
-/ @@ \h YShellDefinition & \u YGlobal:
-	- \g \o pDefaultFontCache @@ \ns YSLib;
-/ \a pDefaultFontCache -> theApp.pFontCache;
-/ @@ \u YFont:
-	/ \inc YFileSystem -> YApplication;
-/ @@ \u YInitialization:
-	+ \inc YApplication;
-
-r15-r18:
+r7-r12:
 /= test 1;
 
-r19:
-/ \cl YApplication @@ \u YApplication:
-	/ \m order;
-	/ \tr \impl @@ \ctor;
+r13-r14:
+* - \as @@ \mf MemoryList::Unregister @@ \u YNew;
 
-r20:
-/ \impl @@ \ctor @@ \cl YShellMain @@ \u YShell;
-/ @@ \h YShellDefinition & \u YGlobal:
-	/ \g \o hShellMain @@ \ns YSLib
-		>> \s \m @@ \cl YApplication @@ \u YApplication;
-/ \a hShellMain -> theApp.hShellMain;
-
-r21:
-/ \cl YApplication @@ \u YApplication:
-	/ \m order;
-	/ \tr \impl @@ \ctor;
-
-r22-r42:
+r15-r16:
 /= test 2;
 
-r43:
-/= \a theApp.hShellMain -> YApplication::hShellMain;
-/ \a hShellMain => DefaultShellHandle;
+r17:
++ typedef YObject ParentType @@ \cl YFontCache @@ \u YFont;
 
-r44:
-/ @@ \h YShellDefinition:
-	/ \decl @@ \g \o {
-		extern CSTR DEF_DIRECTORY;
-		extern CSTR G_COMP_NAME;
-		extern CSTR G_APP_NAME;
-		extern CSTR G_APP_VER;
-	} \u YGlobal;
-/ @@ \u YApplication:
-	/ \def @@ \g \o{
-		const IO::Path YApplication::CommonAppDataPath("/");
-		const String YApplication::CompanyName(G_COMP_NAME);
-		const String YApplication::ProductName(G_APP_NAME);
-		const String YApplication::ProductVersion(G_APP_VER);
-	} >> \u YGlobal;
-/ @@ \u YGlobal:
-	/ const IO::Path YApplication::CommonAppDataPath("/");
-		-> const IO::Path YApplication::CommonAppDataPath(DEF_DIRECTORY);
-	/ \impl @@ void YInit() @@ \un \ns;
-/ \impl @@ \f CheckInstall @@ \u YShellInitialization;
-/ @@ \u Shells:
-	/ \impl @@ \ctor @@ \cl ShlSetting::TFormA;
-	/ \impl @@ \ctor @@ \cl ShlLoad::TFrmLoadUp; 
-
-r45-r48:
+r18:
 /= test 3;
 
-r49:
-/ @@ \u YGUIComponent:
-	\cl YListBox => YSimpleTextListBox;
-	+ \cl YListBox;
-	- \mf DrawBackgroun @@ \cl YSimpleTextListBox;
-	/ \a \mf GetTopWidgetPtr -> \i \mf ^ \mac (PDefH & ImplBodyBase);
-	+ \as @@ \mf (GetTopVisualControlPtr & DrawBackground & DrawForeground)
-		@@ \cl YAScrollBar;
-+ typedef YComponent ParentType @@ \cl YConsole @@ \u YComponent;
-/= \ctor @@ \cl MUIContainer @@ \u YWidget;
+r19:
+/ template<typename _type
+	template<typename _type> class _fCompare = std::less
+	> -> template<typename _type, typename _tPointer = _type*,
+	template<typename _type> class _fCompare = std::less>
+	@@ \st \t deref_comp @@ \h YCoreUtilities;
 
-r50-r55:
-/ test 4;
-	/ \decl @@ \m order @@ \cl YApplication @@ \u YApplication;
+r20:
+/ @@ \u YFont:
+	/ @@ \cl YFontCache:
+		/ \mf bool SetTypeface(const Typeface*) -> bool SetTypeface(Typeface*);
+		/ typedef set<const Typeface*, deref_comp<const Typeface> > FTypes
+			-> typedef set<Typeface*, deref_comp<const Typeface> > FTypes;
+		/ \mf void operator+=(const Typeface&) void operator+=(Typeface&);
+		/ \mf void operator-=(const Typeface&) void operator-=(Typeface&);
+		/ \inh GIContainer<const Typeface> -> GIContainer<Typeface>;
+		/ \m const Typeface* pDefaultFace -> Typeface* pDefaultFace;
+		/ \m const Typeface* pFace -> Typeface* pFace;
+	/ @@ \cl Font:
+		/ \impl @@ \mf bool Update();
+	/ @@ \cl FontFamily:
+		/ \mf const Typeface* GetTypefacePtr(const FT_String*) const
+			-> Typeface* GetTypefacePtr(const FT_String*) const;
+		/ \mf const Typeface* GetTypefacePtr(EFontStyle) const
+			-> Typeface* GetTypefacePtr(EFontStyle) const;
+		/ typedef set<const Typeface*> FTypes -> typedef set<Typeface*> FTypes;
+		/ typedef map<const FT_String*, const Typeface*,
+			deref_str_comp<FT_String> > FTypesIndex -> typedef map<
+			const FT_String*, Typeface*, deref_str_comp<FT_String> >;
+		/ \mf void operator+=(const Typeface&) void operator+=(Typeface&);
+		/ \mf void operator-=(const Typeface&) void operator-=(Typeface&);
+	/ \mac \def GLYPH_CACHE_SIZE (32 * 1024) -> GLYPH_CACHE_SIZE (512 << 10);
 
-r56-r57:
-/ @@ \u YFileSystem:
-	/ @@ \cl FileList:
-		/ public \m ListType List -> protected \m GHStrong<ListType> spList;
-		/ \impl @@ \ctor FileList(CPATH);
-		+ \ctor FilePath(const string&);
-		+ \ctor FilePath(const FileList::Itemtype&);
-		+ DefGetter(GHWeak<ListType>, ListWeakPtr, spList);
-		/ \impl @@ \mf LoadSubItems;
-		- \mf GetList;
-/ @@ \u YGUIComponent:
-	/ @@ \cl YFileBox:
-		/ \impl @@ \ctor;
-		/ \impl @@ \mf (GetPath & OnConfirmed);
-		/ \inh order;
-	/ @@ \cl YSimpleTextListBox:
-		/ \m ListType* pList -> GHWeak<ListType> wpList;
-		/ \m GHStrong<TextRegion> prTextRegion => spTextRegion;
-		/ \ctor;
+r21:
+/ ^ \cl \t SmartPtr @@ \cl YFontCache @@ \u YFont:
+	/ typedef set<const FontFile*, deref_comp<const FontFile> >
+		FFiles -> typedef set<SmartPtr<const FontFile>,
+		deref_comp<const FontFile, SmartPtr<const FontFile> > > FFiles;
+	/ \impl @@ \mf void operator+=(const FontFile&);
+	/ \impl @@ \mf bool operator-=(const FontFile&);
+	/ \impl @@ \mf void LoadFontFile(CPATH) ythrow();
+		* memory leak;
+	/ \simp \impl @@ \mf ClearFontFiles();
 
-r58-r61:
+r22-r31:
+/= test 4;
+
+r32:
+/ \impl @@ \f void DestroySystemFontCache() @@ \u YInitialization;
+/ \simp \impl @@ \mf void Font::ReleaseDefault() @@ \u YFont;
+
+r33:
+* \tr \impl @@ \mf void Font::ReleaseDefault() @@ \u YFont;
+
+/ @@ \u YFont:
+	/ \i \f const FontFamily* GetDefaultFontFamilyPtr() merged to
+		\i \f const FontFamily& GetDefaultFontFamily();
+	/ \i \f const FontFamily& GetDefaultFontFamily() ->
+		!\i \f const FontFamily& GetDefaultFontFamily() ythrow();
+
+r33-r38:
 /= test 5;
 
-r62:
-* \ctor FileList(CPATH) @@ \cl FileList @@ \u YFileSystem;
+r39:
+* \mf void YFontCache::LoadFontFile(CPATH path) ythrow() ^ std::auto_ptr
+	@@ \u YFont;
 
-r63:
-+ \mac (DefEventGetterBase & DefEventGetterMember) @@ \h YEvent;
-/ \or \a \m \evt getter @@ \cl YListBox @@ \u YGUIComponent;
+r40:
+* \mf void YFontCache::LoadFontFileDirectory(CPATH path, CPATH ext)
+	^ std::auto_ptr @@ \u YFont;
 
-r64:
-/ @@ \h YEvent:
-	+ \in \t GIHEvent;
-	+ \cl \t GEventWarapper;
-	/ @@ \cl \t GEventMap:
-		/ \m \tp Event => EventType;
-		+ typedef typename EventType::SenderType SenderType;
-		+ typedef typename EventType::EventArgsType EventArgsType;
-	+  {
-		typedef _tSender SenderType;
-		typedef _tEventArgs EventArgsType;
-	} @@ \cl \t GEvent;
-/ \a GEventHandler => GHEvent;
-/ \a SEventTypeSpace => GSEventTypeSpace;
-/ \a EventHandler => HEvent;
-/ \a InputEventHandler => HInputEvent;
-/ \a KeyEventHandler => HKeyEvent;
-/ \a TouchEventHandler => HTouchEvent;
-/ \a PointEventHandler => HPointEvent;
-/ \a SizeEventHandler => HSizeEvent;
-/ \a IndexEventHandler => HIndexEvent;
+r41-r43:
+/= test 6;
 
-r65:
-/ @@ \h YEvent:
-	* \a GEventWarapper => GEventWrapper;
-	/ @@ \cl \t GEventWrapper:
-		* \inh GIHEvent<_tSernder, _tEventArgs>
-			-> \inh GIHEvent<YObject, EventArgs>;
-	/ \cl \t template<class _tSender = YObject, class _tEventArgs = EventArgs,
-		class _tEvent = GEvent<true, _tSender, _tEventArgs> > \cl GEventWrapper
-		-> template<class _tEvent = Event > \cl GEventWrapper;
-	/ @@ \cl \t GEventWrapper:
-		+ {
-			typedef typename EventType::SenderType SenderType;
-			typedef typename EventType::EventArgsType EventArgsType;
-		};
-		/ \a _tSender => SenderType;
-		/ \a _tEventArgs => EventArgsType;
-	+ 	typedef GIHEvent<YObject, EventArgs> ItemType @@ \cl \t GEventMap;
+r44:
+/ \simp @@ \u Font:
+	 / \a \tp SmartPtr<const FontFile> -> const FontFile*;
+	 / @@ \cl YFontCache:
+		/ \ typedef set<const FontFile*, deref_comp<const FontFile,
+			const FontFile*> > -> typedef set<const FontFile*,
+			deref_comp<const FontFile> > FFiles;
+		/ \tr \impl @@ \mf LoadFontFiles & \mf LoadFontFileDirectory ^ \mac ynew;
+		/ \impl @@ \mf void operator+=(const FontFile&) & \mf bool
+			operator+=(const FontFile&);
 
-r66:
-/ \tr \impl @@ \u Main @@ \u YGlobal;
-/ @@ \cl \t GEventMap @@ \h YEvent:
-	+ \m map<ID, SmartPtr<ItemType> > m_map;
-	+ \mf \t template<class _tWrapper> typename _tWrapper::EventType&
-		at(const ID&);
+r45:
+* \impl @@ \mf ClearFontFiles @@ \cl YFontCache @@ \u YFont;
 
-r67:
-/ @@ \h YEvent:
-	/ @@ \cl \t GEventMap:
-		+ \mf \t template<class _tWrapper> typename _tWrapper::EventType&
-			at(const ID&) -> template<class _tEventN> _tEventN&
-			GetEvent(const ID&);
-		/ \mf EventType& operator[](const ID&);
-	/ @@ \cl \t GEventWrapper:
-		* \mf void operator()(YObject&, EventArgs&) const;
-
-r68-r72:
-/ test 6:
-	/ \cl \t (GEventWrapper & GEventMap) @@ \ns Runtime @@ \h YEvent
-		>> \ns Runtime @@ \u YControl;
-
-r73:
-/ @@ \h YEvent:
-	/ \a EventHandlerType => _tEventHandler;
-/ @@ \u YControl:
-	/ + \val (Enter & Leave) @@ \en EventSpace @@ \st EControl;
-	/ @@ \cl \t GEventMap:
-		/ \mf \t template<class _tEventN> _tEventN& GetEvent(const ID&)
-		-> template<class _tEventHandler> typename
-		Runtime::GSEventTemplate<_tEventHandler>::EventType&
-		GetEvent(const ID&);
-r74:
-/ \impl @@ \ctor @@ \cl YThumb @@ \u YGUIComponent;
-/ @@ \u YControl:
-	/ @@ \cl AVisualControl:
-		/ ImplI(IVisualControl) DefEventGetter(HInputEvent, Enter)
-			-> ImplI(IVisualControl) DefGetter(const Runtime
-			::GSEventTemplate<HInputEvent>::EventType&, Enter,
-			EventMap.GetEvent<HInputEvent>(EControl::Enter))
-		/ ImplI(IVisualControl) DefEventGetter(HInputEvent, Leave)
-			-> ImplI(IVisualControl) DefGetter(const Runtime
-			::GSEventTemplate<HInputEvent>::EventType&, Leave,
-			EventMap.GetEvent<HInputEvent>(EControl::Leave));
-	/ \impl @@ \mf GEventWrapper::operator();
-	/ @@ \cl \t GEventMap:
-		+ mutable @@ \m m_map;
-		/ \impl @@ \mf \t GetEvent;
-
-r75:
-/ \cl \t (GEventWrapper & GEventMap) @@ \ns Runtime @@ \h YControl
-	>> \ns Runtime @@ \u YEvent;
-/ @@ \cl \t GEventMap @@ \h YEvent:
-	- \m Map;
-	/ \impl @@ \i \f Clear;
-	- \mf operator[];
-/ @@ \u YControl:
-	/ @@ \cl AVisualYCommon:
-		+ \mac DefEventGetterX;
-		/ \impl @@ \mf \evh getter ^ \mac (DefEventGetterX ~ DefEventGetter);
-		- \mf operator[];
-		/ \impl @@ \mf (RequestFocus & ReleaseFocus);
-	/ @@ \cl Control:
-		- \mf operator[];
-	/ + \val {
-		KeyUp,
-		KeyDown,
-		KeyHeld,
-		KeyPress,
-		TouchUp,
-		TouchDown,
-		TouchHeld,
-		TouchMove,
-		Click
-	} @@ \en EventSpace @@ \st EControl;
-	/ @@ \in IControl:
-		- \amf operator[];
-	+ DefDelegate(HFocusEvent, IControl, EventArgs);
-/ @@ \u YGUIComponent:
-	- \a \mf ^ DefEventGetterMember @@ \cl YListBox;
-	/ \impl @@ \ctor & \cl (ATrack & AVisualControl);
-
-r76:
-/ @@ \cl Ycontrol:
-	- \m {
-		DefEvent(HInputEvent, Enter)
-		DefEvent(HInputEvent, Leave)
-		DefEvent(HKeyEvent, KeyUp)
-		DefEvent(HKeyEvent, KeyDown)
-		DefEvent(HKeyEvent, KeyHeld)
-		DefEvent(HKeyEvent, KeyPress)
-		DefEvent(HTouchEvent, TouchUp)
-		DefEvent(HTouchEvent, TouchDown)
-		DefEvent(HTouchEvent, TouchHeld)
-		DefEvent(HTouchEvent, TouchMove)
-		DefEvent(HTouchEvent, Click)
-	} @@ \cl MVisualControl;
-	/ \ac @@ \m EventMap @@ \cl Control -> public ~ protected;
-	/ \impl @@ \ctor @@ AVisualControl;
-/ impl @@ \u Shells;
-/ impl @@ \u YGUIComponent;
-
-r77:
-/ @@ \cl Ycontrol:
-	- \m {
-		DeclIEventEntry(HInputEvent, Leave)
-		DeclIEventEntry(HKeyEvent, KeyUp)
-		DeclIEventEntry(HKeyEvent, KeyDown) 
-		DeclIEventEntry(HKeyEvent, KeyHeld)
-		DeclIEventEntry(HKeyEvent, KeyPress)
-		DeclIEventEntry(HTouchEvent, TouchUp) 
-		DeclIEventEntry(HTouchEvent, TouchDown)
-		DeclIEventEntry(HTouchEvent, TouchHeld)
-		DeclIEventEntry(HTouchEvent, TouchMove)
-		DeclIEventEntry(HTouchEvent, Click)
-	} @@ \in IVisualControl;
-	/ @@ \cl Control:
-		+ DefGetter(Runtime::GEventMap<EControl>&, EventMap, EventMap);
-		/= \m IControl::EventMapType EventMap
-			-> mutable Runtime::GEventMap<EControl>& EventMap;
-	/ @@ \in IControl:
-		+ \amf Runtime::GEventMap<EControl>& GetEventMap() const
-		- typedef Runtime::GEventMap<EControl, YControlEvent> EventMapType;
-	- typedef Runtime::GEvent<true, IControl, EventArgs> YControlEvent;
-	/ @@ \cl AVisualControl:
-		- \a (\mf ^ \mac DefEventGetterX);
-		- \mac DefEventGetterX;
-		+ ImplI(IVisualControl) DefGetterBase(Runtime::GEventMap<EControl>&,
-			EventMap, Control);
-	/ \impl @@ 3 !\m \evh;
-/ \impl @@ \u YGUI;
-
-r78:
-/ @@ \u YControl:
-	+ \mac DefEventTypeMapping;
-	+ {
-		template<EControl::EventID>
-		struct EventTypeMapping 
-		{
-			typedef HEvent HandlerType;
-		};
-
-		DefEventTypeMapping(EControl::Enter, HFocusEvent)
-		DefEventTypeMapping(EControl::Leave, HFocusEvent)
-
-		DefEventTypeMapping(EControl::KeyUp, HKeyEvent)
-		DefEventTypeMapping(EControl::KeyDown, HKeyEvent)
-		DefEventTypeMapping(EControl::KeyHeld, HKeyEvent)
-		DefEventTypeMapping(EControl::KeyPress, HKeyEvent)
-
-		DefEventTypeMapping(EControl::TouchUp, HTouchEvent)
-		DefEventTypeMapping(EControl::TouchDown, HTouchEvent)
-		DefEventTypeMapping(EControl::TouchHeld, HTouchEvent)
-		DefEventTypeMapping(EControl::TouchMove, HTouchEvent)
-		DefEventTypeMapping(EControl::Click, HTouchEvent)
-	};
-	+ \f \t template<EControl::EventID> typename Runtime::GSEventTemplate<
-		typename EventTypeMapping<id>::HandlerType>::EventType&
-		FetchEvent(IControl&);
-
-r79:
-/ \impl @@ \u YGUI ^ FetchEvent;
-
-r80:
-/ @@ \u Control:
-	+ \i @@ \f \t FetchEvent;
-	/ \ac @@ \m EventMap @@ \cl Control -> public ~ protected;
-	* {
-		DefEventTypeMapping(EControl::Enter, HFocusEvent)
-		DefEventTypeMapping(EControl::Leave, HFocusEvent)
-	} -> {
-		DefEventTypeMapping(EControl::Enter, HInputEvent)
-		DefEventTypeMapping(EControl::Leave, HInputEvent)
-	};
-/ \impl @@ \u (YControl & YGUIComponent & Shells) ^ FetchEvent;
-
-r81-r92:
+r46:
 /= test 7;
 
-r93:
-+ \eh @@ \impl @@ \mf RequestFocus(EventArgs&) & \mf ReleaseFocus(EventArgs&)
-	@@ \cl AVisualControl;
+r47:
+* memory leaks @@ \tr \impl @@ \mf LoadFontFile & \mf LoadFontFileDirectory
+	@@ \cl YFontCache @@ \u YFont;
 
-r94:
-/ @@ \u YWidget:
-	+ \f bool ContainsVisible(const IWidget&, SPOS, SPOS);
-	+ \i \f bool ContainsVisible(const IWidget, const Point&);
-/ \impl @@ \mf YListBox::GetTopVisualControlPtr(const Point&)
-	@@ \u YGUIComponent ^ \f ContainsVisible;
+r48:
+/ \m spList @@ \cl FileList >> pList @@ \u YFileSystem;
++ \mac ydelete_array @@ \u YNew;
+/ @@ \u (YTextManager & YShellHelper & YGDI & Shells):
+	/ \a new (\exc for smart pointers) -> ynew;
+	/ \a delete -> ydelete;
 
-r95-r102:
+r49:
+/ @@ \h YCoreUtilities:
+	/= \tr \impl @@ \f \t template<typename _type> void ClearSequence(_type*,
+		std::size_t);
+/ @@ \u YGDI:
+	/ @@ \cl BitmapBuffer:
+		/= \impl @@ \ctor;
+		/ \mf \vt void SetSize(SPOS, SPOS) -> void SetSize(SDST, SDST);
+		- \vt @@ \mf void SetSizeSwap();
+	/ @@ \cl BitmapBufferEx:
+		/= \impl @@ \ctor;
+		/ \mf \vt void SetSize(SPOS, SPOS) -> void SetSize(SDST, SDST);
+		- \mf void SetSizeSwap();
+
+r50:
++ \decl \f void ReleaseShells() @@ \u YGlobal;
+/ \impl \f void ReleaseShells() @@ \u Shells;
+/ \impl @@ \g \ns \f main @@ \u YGlobal;
+* + \s @@ \i \mf void GStaticCache<_type>::Release() @@ \u YObject;
+
+r51-r58:
 /= test 8;
 
-r103:
-* @@ \u YControl:
-	/ @@ \st \t template<EControl::EventID> struct EventTypeMapping;
-	+ DefEventTypeMapping(EControl::GotFocus, HFocusEvent)
-	+ DefEventTypeMapping(EControl::LostFocus, HFocusEvent)
+r59:
+/ \ac @@ \m m_map @@ \u MemoryList @@ \u YNew -> public ~ private;
+/ \impl @@ \f OnExit_DebugMemory @@ \u YGlobal;
 
-r104:
-/ -\eh @@ \impl @@ \mf RequestFocus(EventArgs&) & \mf ReleaseFocus(EventArgs&)
-	@@ \cl AVisualControl;
-
-r105:
-+ \f \t template<class _tMap> std::pair<typename _tMap::iterator, bool>
-	search_map(_tMap&, const typename _tMap::key_type&)
-	@@ \u YCoreUtilities;
-/ \impl @@ \mf GetEvent ^ \f \t search_map @@ \cl \t GEventMap @@ \ns Runtime
-	@@ \u YEvent;
-
-r106:
-- \m Map @@ \cl \t GEventMap @@ \u YEvent;
-
-r107:
-+ \u YNew["ynew.h", "ynew.cpp"] @@ \dir Adaptor;
-/ \inc ("config.h" & <platform.h> & "base.h") @@ \h YAdaptor >> \h YNew;
-+ \mac \def YSL_USE_MEMORY_DEBUG @@ #ifdef NDEBUG @@ \h Config;
-+ {
-	#ifdef YSL_USE_MEMORY_DEBUG
-	MemoryList DebugMemory;
-	#endif
-} @@ \u YGlobal;
-
-r108:
-/ @@ \cl YNew @@ \u YNew:
-	/ \i \ctor YNew() -> \exp !\i YNew(void(*)());
-	+ \mf void Print(MapType::const_iterator, std::FILE*);
-	/ \impl @@ \mf PrintAll;
-/ @@ \u YGlobal:
-	+ \f void OnExit_DebugMemory() @@ #ifdef YSL_USE_MEMORY_DEBUG;
-	/ \init @@ \g \o DebugMemory;
-/ \impl @@ \mf void ShlSetting::TFormC::btnReturn_Click(TouchEventArgs&)
-	@@ \u Shells;
-
-r109:
+r60-r63:
 /= test 9;
 
-r110:
-/ @@ \u YGlobal:
-	/ \init @@ \g \o DebugMemory;
-	/ \impl @@ \f YInit() @@ \un \ns;
-/ @@ \u YCommon:
-	/ @@ \ns platform:
-		+ std::stack<void(*)()> exit_handler_stack @@ \un \ns;
-		+ \f int atexit(void(*)());
-		+ \f void exit();
-	+ \inc <stack>;
-/ @@ \h YAdaptor:
-	+ using platform::atexit;
-	+ using platform::exit;
-/ @@ \mf LRES YShell::DefShlProc(const Message&) @@ \u YShell;
+r64-r65:
+/ \tr \impl @@ \f OnExit_DebugMemory @@ \u YGlobal;
 
-r111-r124:
-/ test 10:
-	/ @@ \u YShell:
-		* \impl @@ \f PeekMessage;
-		* \impl @@ \f PostOnMessage;
-	* \impl @@ \f void exit() & int atexit(void(*)()) @@ \u YCommon();
-	* \impl @@ \f OnExit_DebugMemory @@ \u YGlobal;
+r66:
+/ \tr \impl @@ \f inline YImage* NewScrImage(ConstBitmapPtr) @@ \u YShellHelper;
+	/ \impl @@ \f void ReleaseShells() @@ \Shells;
++ using Loki::Release & Loki::ReleaseAll @@ \h YAdaptor;
++ \mf T* Release() @@ \cl \t (GHStrong & GHWeak) @@ \h YReference;
+* \lib Loki:
+	/ \rem #define LOKI_ENABLE_FRIEND_TEMPLATE_TEMPLATE_PARAMETER_WORKAROUND
+		@@ \h Smartptr.h;
+	/ \tr @@ \param list @@ \f \t (ReleaseAll & ResetAll) @@ \h StrongPtr.h;
 
-r125:
-/ \a new -> ynew @@ \u YFont;
-* \impl @@ \mac ydelete @@ \h YNew;
-/ \a delete -> ydelete @@ \u YFont;
-* \impl @@ \f OnExit_DebugMemory @@ \u YGlobal;
+r67:
++ -fuse-cxa-atexit @@ \mac CXXFLAGS @@ makefile arm9:
 
-r126-r133:
-/= test 11:
+r68:
+/ \tr \impl @@ \f inline YImage* NewScrImage(ConstBitmapPtr) @@ \u YShellHelper:
+	* undo r66;
 
-r134:
-* \impl @@ 2 \f operator new & 2 \f operator new[] @@ \u YNew;
+r69:
+/ @@ \h YReference:
+	- \mf Release @@ \cl \t GHWeak;
+	/ @@ \cl \t GHStrong;
+		/ \impl \mf Release;
+		+ \mf bool Reset(T*);
+/ \tr \impl @@ \f void ReleaseShells() @@ \u Shells;
 
-r135:
-* @@ \u YNew:
-	* \mac ydelete delete -> ydelete(p) ::operator delete(p, __FILE__, __LINE__)
-		@@ ifdef \mac YSL_USE_MEMORY_DEBUG;
-	* \impl @@ \mf (Allocate & Deallocate) @@ \cl MemoryList;
-* ydelete ^ \mac \param form @@ \u YFont;
+r70:
+/ @@ \u YResource:
+	+ \em \in IResource;
+	+ \cl GlobalResource;
+/ @@ \u YGUIComponent & \u YWidget:
+	/ \a spTextRegion >> pTextRegion;
+	/ \a prTextRegion >> pTextRegion;
+	/ \a GHStrong -> GHWeak;
+	/ \a prTr_ >> pTr_;
 
-r136-r144:
-/= test 12:
+r71:
+- \cl GlobalResource @@ \u YResource;
+/ @@ \u YObject:
+	/ template<typename _type>
+		class GStaticCache
+		-> template<typename _type, typename _tPointer = _type*>
+		class GStaticCache;
+		+ typedef _tPointer PointerType;
+		/ \sm _type* _ptr -> PointerType _ptr;
+		/ DefStaticGetter(_type*, PointerRaw, _ptr)
+			-> DefStaticGetter(PointerType, PointerRaw, _ptr);
+		+ \smf _type* GetPointer() -> PointerType GetPointer();
+		/ \impl @@ \i \smf void Release();
+		/ \impl @@ \op() @@ \cl safe_delete_obj;
+		/ \impl @@ \op() @@  \cl delete_obj;
+		+ \cl safe_delete_obj_debug;
+		+ \cl delete_obj_debug;
+		+ \mac safe_delete_obj_ndebug;
+		+ \mac delete_obj_ndebug;
+/ @@ \h YReference:
+	- \mac YDelete;
+	+ 4 \f \t YDelete;
+	+ \f \t YDelete_Debug;
+/ \tr \impl @@ \mf void MDualScreenReader::UnloadText() @@ \u DSReader;
+/ \tr \impl @@ \mf LRES ShlReader::OnDeactivated(const Message& msg)
+	@@ \u Shells;
 
-r145:
-* \impl @@ \exp \ctor MemoryList(void(*p)()) @@ \cl MemoryList @@ \u YNew;
-
-r146-r169:
-/ test 13:
-	* \impl @@ \u YGlobal;
-
-r170:
-/ @@ \u YGlobal:
-	/ \f Destroy => Destroy_Static;
-	/ \impl \f Destroy_Static;
-	/ @@ \un \ns:
-		+ \f void YDestroy();
-		/ \impl \f YInit;
-
-r171:
-/ @@ \u YFont:
-	/ \tr \impl @@ \smf bool Font::InitializeDefault() @@ \u YFont;
-
-r172:
-/= test 14:
-
-r173:
-* \impl @@ \f void YInit() @@ \un \ns @@ \u YGlobal;
-
-r174:
+r72:
 / @@ \h YCoreUtilities:
-	/ \a delete -> ydelete @@ \u YFont;
-* \impl @@ \st \t (delete_obj & safe_delete_obj);
+	/ \impl \cl delete_obj;
+	* \mac & \cl order;
+/ test 10:
+	/ ^ \mac NDEBUG;
 
-r175:
-/ @@ \u YNew:
-	* \mac ydelete(p) ::operator delete(p, __FILE__, __LINE__)
-		-> ydelete(p) (DebugMemory.Deallocate(p, __FILE__, __LINE__), delete p)
-		@@ ifdef \mac YSL_USE_MEMORY_DEBUG;
-	/ extern YSLib::MemoryList DebugMemory -> \h ~ \u
-	* @@ \cl MemoryList:
-		/ typedef std::map<void*, BlockInfo> MapType
-			-> typedef std::map<const void*, BlockInfo> MapType;
-		/ \mf void Allocate(void*, std::size_t, const char*, int)
-			-> \mf void Register(const void*, std::size_t, const char*, int);
-		/ \mf void Deallocate(void*, std::size_t, const char*, int)
-			-> \mf void Unregister(const void*, std::size_t, const char*, int);
-* \impl @@ \st \t (delete_obj & safe_delete_obj) @@ \h YCoreUtilities;
+r73:
+/ test 10:
+	/ !^ \mac NDEBUG;
 
-r176:
-* 1 suspicious memory leak @@ \impl
-	@@ \mf void YFontCache::LoadFontFileDirectory(CPATH, CPATH) @@ \u YFont;
-/ \impl @@ \f void OnExit_DebugMemory() @@ \u YGlobal;
-/ \impl @@ \mf void MemoryList::Print(MapType::const_iterator, std::FILE*)
-	@@ \u YNew;
+r74:
+/ @@ \u YResource:
+	/ \f \t<class T> GHStrong<T>& GetGlobalResource()
+		-> \f \t<class _type> \i GHWeak<_type> GetGlobalResource();
 
-r177:
-/ \or \g \f (void* operator new(std::size_t) throw(std::bad_alloc&)
-	& void operator delete(void*) throw()) @@ \u YNew;
+r75:
+/ @@ \u YResource:
+	+ \f \t<class _type> \i void ReleaseGlobalResource() ythrow();
+/ @@ \h YCoreUtilites:
+	+ 4 ythrow() @@ \f \t;
+	- \mac delete_obj_ndebug;
+	- \mac safe_delete_obj_ndebug;
+	+ {
+		typedef delete_obj delete_obj_ndebug;
+		typedef safe_delete_obj safe_delete_obj_ndebug;
+	}
++ 5 ythrow() @@ \f \t (4 YDelete & YDelete_Debug) @@ \h YReference;
++ \rem @@ \h @@ \dir Helper;
+/ \tr \impl @@ \f ReleaseShells() @@ \u Shells;
 
-r178-r190:
-* @@ \u YNew:
-	+ \inc <ext/malloc_allocator.h>;
-	/ typedef std::map<const void*, BlockInfo>
-		-> typedef std::map<const void*, BlockInfo, std::less<const void*>,
-		__gnu_cxx::malloc_allocator<std::pair<const void* const, BlockInfo> > >
-		MapType @@ \cl MemoryList;
-	/ undid r177;
-* undid r176: @@ \mf void YFontCache::LoadFontFileDirectory(CPATH, CPATH)
-	@@ \u YFont;
+r76-r80:
+/= test 11;
+
+r81:
+/ @@ \h YReference:
+	/ \mf (Release & Reset) @@ \cl \t GHStrong >> \cl \t GHWeak;
+	/ \impl @@ \f \t<typename _type> \i bool YDelete(GHWeak<_type> h) ythrow();
+	/ \impl @@ \f \t<typename _type> \i
+		bool YDelete(GHStrong<_type> h) ythrow();
+/ \tr \impl @@ \f ReleaseShells() @@ \u Shells;
+
+r82-r84:
+/= test 12;
+
+r85:
++
+{
+	using Loki::AllowReset;
+	using Loki::NeverReset;
+	using Loki::DeleteNothing;
+	using Loki::DeleteArray;
+} @@ \ns Design::Policies @@ \h YAdaptor;
+/ @@ \h YReference:
+	/ \inh CantResetWithStrong -> AllowReset @@ \cl \t (GHStrong & GHWeak);
+	+ \mf (Release & Reset) @@ \cl \t GHStrong;
+	/ \impl @@ \f \t<typename _type> \i
+		bool YDelete(GHStrong<_type> h) ythrow();
+
+r86:
+/= test 13;
+
+r87:
+* 6 of 9 memory leaks:
+/ \impl @@ \f ReleaseShells() @@ \u Shells:
+	/ undo r81;
+	/= ^ YDelete;
+
+r88-r90:
+/= test 13;
+
+r91:
+/ \f void PostQuitMessage(int) @@ \ns Shells @@ \u YShell
+	-> void PostQuitMessage(int, Shells::MSGPRIORITY = 0xF0);
+/ \tr \impl @@ \mf void ShlSetting::TFormC::btnExit_Click(TouchEventArgs&)
+	@@ \u Shells;
+
+r92-r96
+/= test 14;
+* \tr \impl @@ \mf void ShlSetting::TFormC::btnExit_Click(TouchEventArgs&)
+	@@ \u Shells;
+
+r97:
+* 3 memory leaks:
+	* \impl @@ \mf void ShlSetting::TFormC::btnExit_Click(TouchEventArgs&)
+		@@ \u Shells;
+
+r98:
 /= test 15;
 
-r191:
-/ \rem define YSL_USE_MEMORY_DEBUG;
+r99:
+/ \impl @@ void PostQuitMessage(int, Shells::MSGPRIORITY = 0xF0) @@ \u YShell;
+/ \simp \impl @@ \mf void ShlSetting::TFormC::btnExit_Click(TouchEventArgs&)
+	@@ \u Shells
 
-r192:
-/ \impl @@ \mf void ShlSetting::TFormC::btnReturn_Click(TouchEventArgs&);
+r100-r101:
+/= test 16;
 
 
 $DOING:
 
 
 relative process:
-2010-12-04:
--24.3d;
+2010-12-12:
+-25.9d;
 
 / ...
 
 
 $NEXT:
-/ \a new (\exc for smart pointers) -> ynew;
-/ \a delete -> ydelete;
 
-b174-b190:
+b175-b190:
 / fully \impl \u DSReader;
 	* moving text after setting lnGap;
-* non-ASCII character filename error in FAT16;
+* non-ASCII character path error in FAT16;
 + \impl loading pictures;
 + \impl style on widgets;
 / - const_cast;
-* fatal \err:
+* fatal \err @@ b16x:
 F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 	-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02055838
 	ftc_snode_weight
@@ -1602,7 +1290,7 @@ public:
 	*/
 
 	//¶ÔÏó²âÊÔ¶Î¡£
-	//YImage* pyi = new YImage;
+	//YImage* pyi = ynew YImage;
 	//sprintf(strtbuf + strlen(strtbuf), "a.addr>%p,pyi>size%d,addr:0x%x;\n",&theApp,&a,sizeof(*pyi),pyi);
 
 	/*

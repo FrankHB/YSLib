@@ -11,12 +11,12 @@
 /*!	\file yshelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.1181;
+\version 0.1186;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-04 13:42:15 + 08:00;
 \par 修改时间:
-	2010-11-12 18:43 + 08:00;
+	2010-12-08 20:58 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,7 @@ NewScrImage(PPDRAW f, BitmapPtr gbuf)
 
 	if(s)
 	{
-		delete gbuf;
+		ydelete_array(gbuf);
 		gbuf = NULL;
 	}
 	return pi;

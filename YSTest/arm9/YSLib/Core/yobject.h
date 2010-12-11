@@ -11,12 +11,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.2660;
+\version 0.2715;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-15 17:52 + 08:00;
+	2010-12-11 13:02 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -67,11 +67,14 @@ EndDecl
 
 
 //! \brief 全局静态单例存储器。
-template<typename _type>
+template<typename _type, typename _tPointer = _type*>
 class GStaticCache
 {
+public:
+	typedef _tPointer PointerType;
+
 private:
-	static _type* _ptr;
+	static PointerType _ptr;
 
 	GStaticCache();
 
@@ -86,11 +89,11 @@ private:
 	}
 
 public:
-	DefStaticGetter(_type*, PointerRaw, _ptr)
+	DefStaticGetter(PointerType, PointerRaw, _ptr)
 	/*!
 	\brief 取指针。
 	*/
-	static _type*
+	static PointerType
 	GetPointer()
 	{
 		Check();
@@ -109,16 +112,16 @@ public:
 	/*!
 	\brief 删除对象并置指针为空值。
 	*/
-	inline void
+	inline static void
 	Release()
 	{
-		delete _ptr;
-		_ptr = NULL;
+		safe_delete_obj_ndebug()(_ptr);
 	}
 };
 
-template<typename _type>
-_type* GStaticCache<_type>::_ptr(NULL);
+template<typename _type, typename _tPointer>
+typename GStaticCache<_type, _tPointer>::PointerType
+	GStaticCache<_type, _tPointer>::_ptr(NULL);
 
 
 //! \brief 通用对象组类模板。

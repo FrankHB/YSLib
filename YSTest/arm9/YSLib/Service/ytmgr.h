@@ -21,7 +21,7 @@
 \par 创建时间:
 	2010-01-05 17:48:09 + 08:00;
 \par 修改时间:
-	2010-11-27 08:58 + 08:00;
+	2010-12-08 20:29 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -162,7 +162,7 @@ ythrow(std::out_of_range)
 inline
 TextBuffer::~TextBuffer()
 {
-	delete[] text;
+	ydelete_array(text);
 }
 
 inline SizeType

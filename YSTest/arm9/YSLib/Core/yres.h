@@ -11,12 +11,12 @@
 /*!	\file yres.h
 \ingroup Core
 \brief 资源管理模块。
-\version 0.1411;
+\version 0.1448;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 + 08:00;
 \par 修改时间:
-	2010-11-27 23:39 + 08:00;
+	2010-12-11 15:18 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,17 +32,32 @@
 
 YSL_BEGIN
 
+//! \brief 资源接口。
+DeclInterface(IResource)
+EndDecl
+
+
 /*!
+\ingroup HelperFunction
 \brief 全局默认共享资源生成函数。
 \note 线程空间内共享；全局资源初始化之后可调用。
 */
-template<class T>
-GHStrong<T>&
+template<class _type>
+inline GHWeak<_type>
 GetGlobalResource()
 {
-	static GHStrong<T> p(new T);
+	return GStaticCache<_type, GHStrong<_type> >::GetPointer();
+}
 
-	return p;
+/*!
+\ingroup HelperFunction
+\brief 全局默认共享资源释放函数。
+*/
+template<class _type>
+inline void
+ReleaseGlobalResource() ythrow()
+{
+	return GStaticCache<_type, GHStrong<_type> >::Release();
 }
 
 //资源定义。
@@ -50,8 +65,9 @@ GetGlobalResource()
 YSL_BEGIN_NAMESPACE(Drawing)
 
 //图像资源。
-class YImage
-	: public GMCounter<YImage>, public YCountableObject, public BitmapBuffer
+class YImage : public GMCounter<YImage>, public YCountableObject,
+	public BitmapBuffer,
+	implements IResource
 {
 public:
 	typedef YCountableObject ParentType;

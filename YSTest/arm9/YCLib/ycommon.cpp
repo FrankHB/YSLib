@@ -15,12 +15,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2043;
+\version 0.2049;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 + 08:00;
 \par 修改时间:
-	2010-12-03 12:01 + 08:00;
+	2010-12-05 06:25 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -329,52 +329,6 @@ namespace platform
 			t += 256 - (x+w);
 		}
 	}*/
-
-	namespace
-	{
-		std::stack<void(*)()> exit_handler_stack;
-	}
-
-	int
-	atexit(void(*p)())
-	{
-		if(p)
-		{
-			try
-			{
-				exit_handler_stack.push(p);
-			}
-			catch(...)
-			{
-				return -1;
-			}
-		}
-		return 0;
-	}
-
-	void
-	exit(int exit_code)
-	{
-		while(!exit_handler_stack.empty())
-		{
-			void(*p)()(exit_handler_stack.top());
-
-			assert(p);
-
-			p();
-			try
-			{
-				exit_handler_stack.pop();
-			}
-			catch(...)
-			{
-				std::abort();
-			}
-		}
-		std::fflush(stdout);
-		std::fflush(stderr);
-		std::exit(exit_code);
-	}
 
 	void
 	terminate()

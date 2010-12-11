@@ -16,6 +16,7 @@
 #define LOKI_SMARTPTR_INC_
 
 // $Id: SmartPtr.h 903 2008-11-10 05:55:12Z rich_sposato $
+// $Id: SmartPtr.h 904 2010-12-10 22:03 + 08:00 FrankHB $
 
 
 ///  \defgroup  SmartPointerGroup Smart pointers
@@ -49,7 +50,7 @@
 #  endif
 #endif
 
-#if defined(_MSC_VER) || defined(__GNUC__)
+#if defined(_MSC_VER)// || defined(__GNUC__)
 // GCC>=4.1 must use -ffriend-injection due to a bug in GCC
 #define LOKI_ENABLE_FRIEND_TEMPLATE_TEMPLATE_PARAMETER_WORKAROUND
 #endif

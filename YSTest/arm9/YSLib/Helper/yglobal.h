@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.1882;
+\version 0.1892;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 + 08:00;
 \par 修改时间:
-	2010-12-03 15:26 + 08:00;
+	2010-12-11 14:02 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,20 +41,19 @@ YSL_BEGIN
 \ingroup GlobalObjects
 \brief 平台相关的全局常量。
 */
-/*! @{ */
-
-/*! @} */
+//@{
+//@}
 
 /*!	\defgroup CustomGlobalVariables Custom Global Variables
 \ingroup GlobalObjects
 \brief 平台相关的全局变量。
 */
-/*! @{ */
+//@{
 extern YScreen* pScreenUp; //<! DS 上屏幕指针。
 extern YScreen* pScreenDown; //<! DS 上屏幕指针。
 extern YDesktop* pDesktopUp; //<! DS 下屏幕默认桌面指针。
 extern YDesktop* pDesktopDown; //<! DS 下屏幕默认桌面指针。
-/*! @} */
+//@}
 
 
 /*!
@@ -99,6 +98,10 @@ OnExit_DebugMemory();
 */
 LRES
 MainShlProc(const Message& msg);
+
+/*!	\defgroup HelperFunction Helper Function
+\brief 助手函数。
+*/
 
 YSL_END
 

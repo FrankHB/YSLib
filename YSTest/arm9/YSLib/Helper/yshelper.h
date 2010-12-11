@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.1864;
+\version 0.1878;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 + 08:00;
 \par 修改时间:
-	2010-11-12 18:42 + 08:00;
+	2010-12-11 14:04 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,12 @@
 #include "../ysbuild.h"
 
 YSL_BEGIN
+
+/*!
+\ingroup HelperFunction
+*/
+
+//@{
 
 //定义并使用 dynamic_cast 初始化引用。
 #define DefDynInitRef(_type, _name, _expr) \
@@ -59,7 +65,6 @@ HandleCast(_handle h)
 }
 
 /*!
-ythrow(std::bad_cast)
 \brief 句柄转换：对象引用。
 */
 template<class _type, class _handle>
@@ -255,6 +260,8 @@ NewBitmapRaw(const _tPixel* s, std::size_t n)
 }
 
 YSL_END_NAMESPACE(Drawing)
+
+//@}
 
 YSL_END;
 

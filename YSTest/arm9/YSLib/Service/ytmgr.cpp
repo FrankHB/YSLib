@@ -11,12 +11,12 @@
 /*!	\file ytmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4042;
+\version 0.4046;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 + 08:00;
 \par 修改时间:
-	2010-11-27 08:58 + 08:00;
+	2010-12-08 20:28 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,7 +32,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Text)
 
 TextBuffer::TextBuffer(SizeType tlen)
-try : capacity(tlen), text(new uchar_t[capacity]), len(0)
+try : capacity(tlen), text(ynew uchar_t[capacity]), len(0)
 {
 	ClearText();
 }
@@ -153,7 +153,7 @@ void
 TextMap::Clear()
 {
 	for(MapType::const_iterator i(Map.begin()); i != Map.end(); ++i)
-		delete i->second;
+		ydelete(i->second);
 	Map.clear();
 }
 
@@ -318,7 +318,7 @@ TextFileBuffer::operator[](const BlockSizeType& i)
 
 		MapType::const_iterator it(Map.find(i));
 		TextBlock& block(*(it == Map.end()
-			? new TextBlock(i, nBlockSize) : it->second));
+			? ynew TextBlock(i, nBlockSize) : it->second));
 
 		if(it == Map.end())
 		{

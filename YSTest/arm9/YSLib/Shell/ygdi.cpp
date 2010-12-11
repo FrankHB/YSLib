@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.2537;
+\version 0.2601;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2010-11-27 09:07 + 08:00;
+	2010-12-08 22:34 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -719,34 +719,30 @@ BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDST w, SDST h)
 {
 	SetSize(w, h);
 	if(i)
-		memcpy(img, i, sizeof(PixelType) * GetAreaFrom(*this));
+		std::memcpy(img, i, sizeof(PixelType) * GetAreaFrom(*this));
 }
 
 void
-BitmapBuffer::SetSize(SPOS w, SPOS h)
+BitmapBuffer::SetSize(SDST w, SDST h)
 {
-	if(w <= 0 || h <= 0)
+	u32 s(w * h);
+
+	if(s == 0)
 	{
-		delete[] img;
+		ydelete_array(img);
 		img = NULL;
 	}
-	else if(!img || Width != w || Height != h)
-	{
-		if(!img || w > Width || h > Height)
+	else if(GetAreaFrom(*this) < s)
+		ydelete_array(img);
+		try
 		{
-			if(img)
-				delete[] img;
-			try
-			{
-				img = new PixelType[w * h];
-			}
-			catch(std::bad_alloc&)
-			{
-				throw LoggedEvent("Allocation failed"
-					" @@ BitmapBuffer::SetSize(SPOS, SPOS);", 1);
-			}
+			img = ynew PixelType[s];
 		}
-	}
+		catch(std::bad_alloc&)
+		{
+			throw LoggedEvent("Allocation failed"
+				" @@ BitmapBuffer::SetSize(SDST, SDST);", 1);
+		}
 	Width = w;
 	Height = h;
 	ClearImage();
@@ -754,10 +750,7 @@ BitmapBuffer::SetSize(SPOS w, SPOS h)
 void
 BitmapBuffer::SetSizeSwap()
 {
-	SDST t = Width;
-
-	Width = Height;
-	Height = t;
+	std::swap(Width, Height);
 	ClearImage();
 }
 
@@ -796,58 +789,36 @@ BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDST w, SDST h)
 {
 	SetSize(w, h);
 	if(i)
-		memcpy(img, i, sizeof(PixelType) * GetAreaFrom(*this));
+		std::memcpy(img, i, sizeof(PixelType) * GetAreaFrom(*this));
 }
 
 void
-BitmapBufferEx::SetSize(SPOS w, SPOS h)
+BitmapBufferEx::SetSize(SDST w, SDST h)
 {
-	if(w <= 0 || h <= 0)
-	{
-		if(img)
-		{
-			delete[] img;
-			img = NULL;
-		}
-		if(imgAlpha)
-		{
-			delete[] imgAlpha;
-			imgAlpha = NULL;
-		}
-	}
-	else if(!img || Width != w || Height != h)
-	{
-		if(!img || w > Width || h > Height)
-		{
-			try
-			{
-				if(img)
-					delete[] img;
-				img = new PixelType[w * h];
-				if(imgAlpha)
-					delete[] imgAlpha;
-				imgAlpha = new u8[w * h];
-			}
-			catch(std::bad_alloc&)
-			{
-				throw LoggedEvent("Allocation failed"
-					" @@ BitmapBufferEx::SetSize(SPOS, SPOS);", 1);
-			}
-		}
-	}
+	u32 s(w * h);
 
+	if(s == 0)
+	{
+		ydelete_array(img);
+		img = NULL;
+		ydelete_array(imgAlpha);
+		imgAlpha = NULL;
+	}
+	else if(GetAreaFrom(*this) < s)
+		try
+		{
+			ydelete_array(img);
+			img = ynew PixelType[s];
+			ydelete_array(imgAlpha);
+			imgAlpha = ynew u8[s];
+		}
+		catch(std::bad_alloc&)
+		{
+			throw LoggedEvent("Allocation failed"
+				" @@ BitmapBufferEx::SetSize(SDST, SDST);", 1);
+		}
 	Width = w;
 	Height = h;
-
-	ClearImage();
-}
-void
-BitmapBufferEx::SetSizeSwap()
-{
-	SDST t = Width;
-
-	Width = Height;
-	Height = t;
 	ClearImage();
 }
 

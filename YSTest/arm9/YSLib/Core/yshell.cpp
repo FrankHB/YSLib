@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.2814;
+\version 0.2834;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 + 08:00;
 \par 修改时间:
-	2010-12-03 11:53 + 08:00;
+	2010-12-12 06:21 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -171,7 +171,8 @@ YShell::DefShlProc(const Message& msg)
 		return 0;
 
 	case SM_DESTROY:
-		if(reinterpret_cast<YShell*>(lParam) == YApplication::DefaultShellHandle)
+		if(reinterpret_cast<YShell*>(lParam)
+			== YApplication::DefaultShellHandle)
 			PostQuitMessage(lParam);
 		return 0;
 
@@ -203,7 +204,7 @@ YShell::DefShlProc(const Message& msg)
 		return 0;
 
 	case SM_QUIT:
-		exit(lParam);
+		std::exit(lParam);
 
 	default:
 		break;
@@ -234,9 +235,11 @@ YShellMain::YShellMain()
 
 
 void
-PostQuitMessage(int nExitCode)
+PostQuitMessage(int nExitCode, Shells::MSGPRIORITY p)
 {
-	InsertMessage(Message(NULL, SM_QUIT, 0xFF, 0, nExitCode));
+	InsertMessage(NULL, SM_SET, p,
+		handle_cast<WPARAM>(theApp.DefaultShellHandle));
+	InsertMessage(Message(NULL, SM_QUIT, p, 0, nExitCode));
 }
 
 #if YSLIB_DEBUG_MSG & 2

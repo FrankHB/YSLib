@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2002;
+\version 0.2021;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 + 08:00;
 \par 修改时间:
-	2010-12-03 11:19 + 08:00;
+	2010-12-11 15:40 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -77,8 +77,6 @@ YSL_BEGIN
 	using platform::chdir;
 	using platform::getcwd_n;
 
-	using platform::atexit;
-	using platform::exit;
 	using platform::terminate;
 
 	using platform::HDirectory;
@@ -192,10 +190,16 @@ YSL_BEGIN_NAMESPACE(Policies)
 	using Loki::HeapStorage;
 	using Loki::TwoRefCounts;
 	using Loki::CantResetWithStrong;
+	using Loki::AllowReset;
+	using Loki::NeverReset;
 	using Loki::DeleteSingle;
+	using Loki::DeleteNothing;
+	using Loki::DeleteArray;
 YSL_END_NAMESPACE(Policies)
 	using Loki::SmartPtr;
 	using Loki::StrongPtr;
+	using Loki::Release;
+	using Loki::ReleaseAll;
 
 YSL_END
 

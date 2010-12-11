@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-12-04 07:22 + 08:00;
-// Version = r10318;
+// UTime = 2010-12-11 15:41 + 08:00;
+// Version = r10386;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -113,30 +113,27 @@ extern const u16 $SCREEN_WIDTH, $SCREEN_HEIGHT;
 
 
 //非本体或 YGlobal 声明的对象列表。
-$header Core::YShell
-{
-	extern LRES
-	MainShlProc(const Message&);
-} //$header Adaptor::YNew;
-$unit Helper::YGlobal
-{
-	@namespace ::;
-	extern int
-	YMain(int, char*[]);
-} //$header Adaptor::YNew;
+
 
 //非本体函数列表。
 $header Core::YShell
 {
 	extern LRES
 	MainShlProc(const Message&);
-} //$header Core::YShell;
-
+} //$header Adaptor::YNew;
 $header Core::YDevice
 {
 	extern bool
 	InitAllScreens();
 } //$header Core::YDevice;
+
+$unit Helper::YGlobal
+{
+	extern void
+	ReleaseShell();
+	extern int
+	::YMain(int, char*[]);
+} //$header Adaptor::YNew;
 
 
 //友元列表。
@@ -278,6 +275,63 @@ $header Adaptor::YAdaptor
 		using platform::Key, platform::KeysInfo, CursorInfo;
 	} //namespace Runtime;
 	using namespace platform, platform_ex;
+
+	//库适配器。
+
+//! \brief 基础语言设施。
+YSL_BEGIN_NAMESPACE(Design)
+
+	//类型操作和类型特征。
+	using Loki::Typelist;
+	namespace TL = Loki::TL;
+	using Loki::NullType;
+	using Loki::EmptyType;
+	using Loki::Int2Type;
+	using Loki::Type2Type;
+	using Loki::Select;
+	using Loki::IsCustomUnsignedInt;
+	using Loki::IsCustomSignedInt;
+	using Loki::IsCustomFloat;
+	using Loki::TypeTraits;
+
+	// Function 和 Function 。
+	using Loki::Function;
+	using Loki::Functor;
+
+//! \brief 设计模式。
+YSL_BEGIN_NAMESPACE(Pattern)
+YSL_END_NAMESPACE(Pattern)
+
+YSL_END_NAMESPACE(Design)
+
+	//使用 Loki 小对象。
+	using Loki::SmallObject;
+
+	//使用 Loki 策略、智能指针、强指针。
+	using Loki::RefToValue;
+YSL_BEGIN_NAMESPACE(Policies)
+	using Loki::PropagateConst;
+	using Loki::DontPropagateConst;
+	using Loki::RefCounted;
+	using Loki::AllowConversion;
+	using Loki::DisallowConversion;
+	using Loki::RejectNull;
+	using Loki::AssertCheck;
+	using Loki::DefaultSPStorage;
+	using Loki::HeapStorage;
+	using Loki::TwoRefCounts;
+	using Loki::CantResetWithStrong;
+	using Loki::AllowReset;
+	using Loki::NeverReset;
+	using Loki::DeleteNothing;
+	using Loki::DeleteArray;
+	using Loki::DeleteSingle;
+YSL_END_NAMESPACE(Policies)
+	using Loki::SmartPtr;
+	using Loki::StrongPtr;
+	using Loki::Release;
+	using Loki::ReleaseAll;
+
 } //$header Adaptor::YAdaptor;
 
 $Adaptor::Container : Adaptor::YAdaptor

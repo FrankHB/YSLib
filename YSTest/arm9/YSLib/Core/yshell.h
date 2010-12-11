@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 定义。
-\version 0.2639;
+\version 0.2649;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 + 08:00;
 \par 修改时间:
-	2010-11-27 09:02 + 08:00;
+	2010-12-11 17:03 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -221,10 +221,10 @@ struct HShellProc : public GHBase<PFSHLPROC>
 
 
 /*!
-\brief 发起 Shell 终止请求。
+\brief 以优先级 p 发起 Shell 终止请求，返回 nExitCode。
 */
 void
-PostQuitMessage(int);
+PostQuitMessage(int nExitCode, Shells::MSGPRIORITY p = 0xF0);
 
 /*!
 \brief 默认 Shell 处理函数。

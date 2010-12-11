@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2794;
+\version 0.2796;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-12-03 14:24 + 08:00;
+	2010-12-11 13:11 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -194,9 +194,9 @@ YThumb::OnLeave(InputEventArgs&)
 
 
 YButton::YButton(const Rect& r, IUIBox* pCon, const Drawing::Font& f,
-	GHStrong<Drawing::TextRegion> prTr_)
+	GHWeak<Drawing::TextRegion> pTr_)
 	: YThumb(r, pCon),
-	MLabel(f, prTr_)
+	MLabel(f, pTr_)
 {}
 
 void
@@ -488,10 +488,10 @@ YHorizontalScrollBar::YHorizontalScrollBar(const Rect& r, IUIBox* pCon,
 
 
 YSimpleTextListBox::YSimpleTextListBox(const Rect& r, IUIBox* pCon,
-	GHStrong<TextRegion> prTr_, GHWeak<ListType> wpList_)
+	GHWeak<TextRegion> pTr_, GHWeak<ListType> wpList_)
 	: YVisualControl(r, pCon),
-	spTextRegion(prTr_ ? prTr_ : GetGlobalResource<TextRegion>()), Font(),
-	Margin(spTextRegion->Margin), wpList(wpList_), Viewer(GetList())
+	pTextRegion(pTr_ ? pTr_ : GetGlobalResource<TextRegion>()), Font(),
+	Margin(pTextRegion->Margin), wpList(wpList_), Viewer(GetList())
 {
 	FetchEvent<EControl::KeyDown>(*this) += &YSimpleTextListBox::OnKeyDown;
 	FetchEvent<EControl::KeyHeld>(*this) += OnKeyHeld;
@@ -505,12 +505,12 @@ YSimpleTextListBox::YSimpleTextListBox(const Rect& r, IUIBox* pCon,
 Drawing::TextRegion&
 YSimpleTextListBox::GetTextRegion() const ythrow()
 {
-	YAssert(spTextRegion,
+	YAssert(pTextRegion,
 		"In function \"SDST\n"
 		"Components::Controls::YSimpleTextListBox::GetItemHeight()\": \n"
 		"The text region pointer is null.");
 
-	return *spTextRegion;
+	return *pTextRegion;
 }
 YSimpleTextListBox::ListType&
 YSimpleTextListBox::GetList() const ythrow()
@@ -561,17 +561,17 @@ YSimpleTextListBox::DrawForeground()
 	{
 		if(bFocused)
 			WndDrawFocus(hWnd, GetSize());
-		if(spTextRegion && GetLnHeightFrom(*spTextRegion) <= GetHeight())
+		if(pTextRegion && GetLnHeightFrom(*pTextRegion) <= GetHeight())
 		{
 			const SDST lnWidth(GetWidth());
 			const SDST lnHeight(GetItemHeight());
 
-			spTextRegion->Font = Font;
-			spTextRegion->Font.Update();
-			spTextRegion->ResetPen();
-			spTextRegion->SetSize(lnWidth, lnHeight);
-			SetMarginsTo(*spTextRegion, defMarginH, defMarginV);
-			Viewer.SetLength((GetHeight() + spTextRegion->LineGap)
+			pTextRegion->Font = Font;
+			pTextRegion->Font.Update();
+			pTextRegion->ResetPen();
+			pTextRegion->SetSize(lnWidth, lnHeight);
+			SetMarginsTo(*pTextRegion, defMarginH, defMarginV);
+			Viewer.SetLength((GetHeight() + pTextRegion->LineGap)
 				/ lnHeight);
 
 			const ViewerType::IndexType last(Viewer.GetIndex()
@@ -587,23 +587,23 @@ YSimpleTextListBox::DrawForeground()
 				{
 					if(Viewer.IsSelected() && i == Viewer.GetSelected())
 					{
-						spTextRegion->Color = ColorSpace::White;
+						pTextRegion->Color = ColorSpace::White;
 						FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
-							Rect(pt.X + 1, pt.Y + 1, spTextRegion->Width - 2,
-							spTextRegion->Height - 1),
+							Rect(pt.X + 1, pt.Y + 1, pTextRegion->Width - 2,
+							pTextRegion->Height - 1),
 							ColorSpace::Aqua);
 					}
 					else
-						spTextRegion->Color = ForeColor;
-					spTextRegion->PutLine(list[i]);
-					spTextRegion->ResetPen();
-					spTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
-						g.GetSize(), Point::Zero, pt, *spTextRegion);
+						pTextRegion->Color = ForeColor;
+					pTextRegion->PutLine(list[i]);
+					pTextRegion->ResetPen();
+					pTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
+						g.GetSize(), Point::Zero, pt, *pTextRegion);
 					pt.Y += lnHeight;
-					spTextRegion->ClearImage();
+					pTextRegion->ClearImage();
 				}
 			}
-			spTextRegion->SetSize(0, 0);
+			pTextRegion->SetSize(0, 0);
 		}
 	}
 }
@@ -719,10 +719,10 @@ YSimpleTextListBox::OnConfirmed(IndexEventArgs& e)
 
 
 YListBox::YListBox(const Rect& r, IUIBox* pCon,
-	GHStrong<TextRegion> prTr_, ListType* wpList_)
+	GHWeak<TextRegion> pTr_, ListType* wpList_)
 	: YVisualControl(r, pCon),
 	MSimpleFocusResponser(),
-	TextListBox(r, this, prTr_, wpList_), HorizontalScrollBar(r, this)
+	TextListBox(r, this, pTr_, wpList_), HorizontalScrollBar(r, this)
 {
 	HorizontalScrollBar.SetVisible(false);
 }
@@ -748,8 +748,8 @@ YListBox::DrawForeground()
 
 
 YFileBox::YFileBox(const Rect& r, IUIBox* pCon,
-	GHStrong<TextRegion> prTr_)
-	: FileList(), YSimpleTextListBox(r, pCon, prTr_, GetListWeakPtr())
+	GHWeak<TextRegion> pTr_)
+	: FileList(), YSimpleTextListBox(r, pCon, pTr_, GetListWeakPtr())
 {
 	Confirmed += &YFileBox::OnConfirmed;
 }

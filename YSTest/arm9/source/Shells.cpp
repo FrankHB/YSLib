@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3253;
+\version 0.3326;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-12-04 23:43 + 08:00;
+	2010-12-12 06:22 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,6 +65,7 @@ MainShlProc(const Message& msg)
 		return DefShellProc(msg);
 	}
 }
+
 
 namespace
 {
@@ -130,7 +131,7 @@ namespace
 		{
 			try
 			{
-				gbuf = new ScreenBufferType;
+				gbuf = ynew ScreenBufferType;
 			}
 			catch(std::bad_alloc&)
 			{
@@ -140,7 +141,7 @@ namespace
 			g_pi[1] = NewScrImage(dfa, gbuf);
 		//	memset(gbuf, 0xF2, sizeof(ScreenBufferType));
 			g_pi[2] = NewScrImage(dfap, gbuf);
-			delete gbuf;
+			ydelete_array(gbuf);
 		}
 	}
 
@@ -151,7 +152,7 @@ namespace
 		{
 			try
 			{
-				gbuf = new ScreenBufferType;
+				gbuf = ynew ScreenBufferType;
 			}
 			catch(std::bad_alloc&)
 			{
@@ -159,7 +160,7 @@ namespace
 			}
 			g_pi[3] = NewScrImage(dfac1, gbuf);
 			g_pi[4] = NewScrImage(dfac1p, gbuf);
-			delete gbuf;
+			ydelete_array(gbuf);
 		}
 	}
 
@@ -170,7 +171,7 @@ namespace
 		{
 			try
 			{
-				gbuf = new ScreenBufferType;
+				gbuf = ynew ScreenBufferType;
 			}
 			catch(std::bad_alloc&)
 			{
@@ -178,7 +179,7 @@ namespace
 			}
 			g_pi[5] = NewScrImage(dfac2, gbuf);
 			g_pi[6] = NewScrImage(dfac2p, gbuf);
-			delete gbuf;
+			ydelete_array(gbuf);
 		}
 	}
 
@@ -261,6 +262,18 @@ GetImage(int i)
 		i = 0;
 	}
 	return g_pi[i];
+}
+
+void
+ReleaseShells()
+{
+	for(std::size_t i(0); i != 10; ++i)
+		YDelete(g_pi[i]);
+	GStaticCache<ShlReader>::Release();
+	GStaticCache<ShlSetting>::Release();
+	GStaticCache<ShlExplorer>::Release();
+	GStaticCache<ShlLoad>::Release();
+	ReleaseGlobalResource<TextRegion>();
 }
 
 using namespace DS;
@@ -557,7 +570,12 @@ void
 ShlSetting::TFormC::btnReturn_Click(TouchEventArgs&)
 {
 	CallStored<ShlExplorer>();
-//	Shells::PostQuitMessage(0);
+}
+
+void
+ShlSetting::TFormC::btnExit_Click(TouchEventArgs&)
+{
+	Shells::PostQuitMessage(0);
 }
 
 LRES
@@ -617,7 +635,7 @@ ShlReader::ShlReader()
 LRES
 ShlReader::OnActivated(const Message& msg)
 {
-	pTextFile = new YTextFile(path.c_str());
+	pTextFile = ynew YTextFile(path.c_str());
 	Reader.LoadText(*pTextFile);
 	bgDirty = true;
 	hUp = pDesktopUp->GetBackground();

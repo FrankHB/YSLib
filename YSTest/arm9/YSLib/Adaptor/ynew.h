@@ -11,12 +11,12 @@
 /*!	\file ynew.h
 \ingroup Service
 \brief 存储调试设施。
-\version 0.1840;
+\version 0.1849;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-02 19:49:40 + 08:00;
 \par 修改时间:
-	2010-12-04 23:28 + 08:00;
+	2010-12-09 20:09 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -89,10 +89,8 @@ public:
 		__gnu_cxx::malloc_allocator<std::pair<const void* const, BlockInfo> > >
 		MapType;
 
-private:
 	MapType m_map;
 
-public:
 	explicit
 	MemoryList(void(*)());
 
@@ -125,12 +123,15 @@ YSL_END
 #	define ynew new(__FILE__, __LINE__)
 #	define ynew_nothrow new(std::nothrow, __FILE__, __LINE__)
 #	define ydelete(p) (DebugMemory.Unregister(p, __FILE__, __LINE__), delete p)
+#	define ydelete_array(p) (DebugMemory.Unregister(p, __FILE__, __LINE__), \
+	delete[] p)
 
 #else
 
 #	define ynew new
 #	define ynew_nothrow new(std::nothrow)
 #	define ydelete delete
+#	define ydelete_array(p) (delete[] p)
 
 #endif
 

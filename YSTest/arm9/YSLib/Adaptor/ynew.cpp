@@ -11,12 +11,12 @@
 /*!	\file ynew.cpp
 \ingroup Service
 \brief 存储调试设施。
-\version 0.1683;
+\version 0.1686;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-02 19:49:41 + 08:00;
 \par 修改时间:
-	2010-12-04 23:28 + 08:00;
+	2010-12-05 06:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -116,9 +116,11 @@ MemoryList::Unregister(const void* p, const char*, int)
 {
 	if(p)
 	{
-		std::size_t n(m_map.erase(p));
+		m_map.erase(p);
 
-		assert(n == 1);
+	//	std::size_t n(m_map.erase(p));
+
+	//	assert(n == 1);
 	}
 }
 

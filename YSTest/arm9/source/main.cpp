@@ -11,12 +11,12 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version 0.2019;
+\version 0.2049;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 21:26:30;
 \par 修改时间:
-	2010-11-30 21:09 + 08:00;
+	2010-12-05 06:17 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -90,12 +90,12 @@ int YMain(int argc, char* argv[])
 	Message msg;
 
 	//消息循环。
-	while(GetMessage(msg))
+	while(GetMessage(msg) != SM_QUIT)
 	{
 		TranslateMessage(msg);
 		DispatchMessage(msg);
 	}
 
-	return static_cast<int>(msg.GetWParam());
+	return static_cast<int>(msg.GetLParam());
 }
 

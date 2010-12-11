@@ -11,12 +11,12 @@
 /*!	\file yguicomp.h
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2444;
+\version 0.2447;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-12-03 14:24 + 08:00;
+	2010-12-11 13:11 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -95,7 +95,7 @@ public:
 	explicit
 	YButton(const Rect& = Rect::FullScreen, IUIBox* = NULL,
 		const Drawing::Font& = Drawing::Font::GetDefault(),
-		GHStrong<Drawing::TextRegion> = NULL);
+		GHWeak<Drawing::TextRegion> = NULL);
 	virtual DefEmptyDtor(YButton)
 
 public:
@@ -410,7 +410,7 @@ protected:
 	static const SDST defMarginH = 4; //!< 默认水平边距。
 	static const SDST defMarginV = 2; //!< 默认垂直边距。
 
-	GHStrong<Drawing::TextRegion> spTextRegion; //!< 文本区域指针。
+	GHWeak<Drawing::TextRegion> pTextRegion; //!< 文本区域指针。
 
 public:
 	Drawing::Font Font; //!< 字体。
@@ -429,7 +429,7 @@ public:
 	*/
 	explicit
 	YSimpleTextListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHStrong<Drawing::TextRegion> = NULL, GHWeak<ListType> = NULL); 
+		GHWeak<Drawing::TextRegion> = NULL, GHWeak<ListType> = NULL); 
 	/*!
 	\brief 析构。
 	\note 无异常抛出。
@@ -588,7 +588,7 @@ private:
 public:
 	explicit
 	YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHStrong<Drawing::TextRegion> = NULL, ListType* = NULL);
+		GHWeak<Drawing::TextRegion> = NULL, ListType* = NULL);
 	DefEmptyDtor(YListBox)
 
 	/*!
@@ -644,7 +644,7 @@ public:
 
 	explicit
 	YFileBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHStrong<Drawing::TextRegion> = NULL);
+		GHWeak<Drawing::TextRegion> = NULL);
 	virtual
 	~YFileBox() ythrow();
 

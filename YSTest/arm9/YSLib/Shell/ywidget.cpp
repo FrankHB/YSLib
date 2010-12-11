@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4708;
+\version 0.4710;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-01 21:08 + 08:00;
+	2010-12-11 13:10 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -375,9 +375,9 @@ YUIContainer::~YUIContainer() ythrow()
 }
 
 
-MLabel::MLabel(const Drawing::Font& f, GHStrong<Drawing::TextRegion> prTr_)
-	: prTextRegion(prTr_ ? prTr_ : GetGlobalResource<Drawing::TextRegion>()),
-	Font(f), Margin(prTextRegion->Margin), AutoSize(true), AutoEllipsis(false),
+MLabel::MLabel(const Drawing::Font& f, GHWeak<Drawing::TextRegion> pTr_)
+	: pTextRegion(pTr_ ? pTr_ : GetGlobalResource<Drawing::TextRegion>()),
+	Font(f), Margin(pTextRegion->Margin), AutoSize(true), AutoEllipsis(false),
 	Text()
 {}
 
@@ -386,29 +386,29 @@ MLabel::PaintText(Widget& w, const Point& pt)
 {
 	HWND hWnd(FetchDirectWindowHandle(w));
 
-	if(hWnd && prTextRegion)
+	if(hWnd && pTextRegion)
 	{
-		prTextRegion->Font = Font;
-		prTextRegion->Font.Update();
-		prTextRegion->ResetPen();
-		prTextRegion->Color = w.ForeColor;
-		prTextRegion->SetSize(w.GetWidth(), w.GetHeight());
-		SetMarginsTo(*prTextRegion, 2, 2, 2, 2);
-		prTextRegion->PutLine(Text);
+		pTextRegion->Font = Font;
+		pTextRegion->Font.Update();
+		pTextRegion->ResetPen();
+		pTextRegion->Color = w.ForeColor;
+		pTextRegion->SetSize(w.GetWidth(), w.GetHeight());
+		SetMarginsTo(*pTextRegion, 2, 2, 2, 2);
+		pTextRegion->PutLine(Text);
 
 		Graphics g(*hWnd);
 
-		prTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
+		pTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
 			g.GetSize(), Point::Zero, pt, w.GetSize());
-		prTextRegion->SetSize(0, 0);
+		pTextRegion->SetSize(0, 0);
 	}
 }
 
 
 YLabel::YLabel(const Rect& r, IUIBox* pCon, const Drawing::Font& f,
-	GHStrong<Drawing::TextRegion> prTr_)
+	GHWeak<Drawing::TextRegion> pTr_)
 	: YWidget(r, pCon), MLabel(f, pCon
-	? prTr_ : GetGlobalResource<Drawing::TextRegion>())
+	? pTr_ : GetGlobalResource<Drawing::TextRegion>())
 {}
 
 void

@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5619;
+\version 0.5621;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-01 21:11 + 08:00;
+	2010-12-11 13:09 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -782,7 +782,7 @@ public:
 class MLabel
 {
 protected:
-	GHStrong<Drawing::TextRegion> prTextRegion; //!< 文本区域指针。
+	GHWeak<Drawing::TextRegion> pTextRegion; //!< 文本区域指针。
 
 public:
 	Drawing::Font Font; //!< 字体。
@@ -796,7 +796,7 @@ public:
 	*/
 	explicit
 	MLabel(const Drawing::Font& = Drawing::Font::GetDefault(),
-		GHStrong<Drawing::TextRegion> = NULL);
+		GHWeak<Drawing::TextRegion> = NULL);
 
 protected:
 	DefEmptyDtor(MLabel)
@@ -828,7 +828,7 @@ public:
 	explicit
 	YLabel(const Rect& = Rect::FullScreen, IUIBox* = NULL,
 		const Drawing::Font& = Drawing::Font::GetDefault(),
-		GHStrong<Drawing::TextRegion> = NULL);
+		GHWeak<Drawing::TextRegion> = NULL);
 
 	virtual DefEmptyDtor(YLabel)
 

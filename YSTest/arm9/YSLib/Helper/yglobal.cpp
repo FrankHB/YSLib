@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2602;
+\version 0.2671;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 + 08:00;
 \par 修改时间:
-	2010-12-04 07:22 + 08:00;
+	2010-12-09 23:43 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -143,11 +143,6 @@ InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 void
 Destroy_Static(YObject&, EventArgs&)
 {
-	//释放显示设备。
-	delete pDesktopUp;
-	delete pScreenUp;
-	delete pDesktopDown;
-	delete pScreenDown;
 }
 
 LRES
@@ -176,6 +171,12 @@ namespace
 	void
 	YDestroy()
 	{
+		//释放显示设备。
+		ydelete(pDesktopUp);
+		ydelete(pScreenUp);
+		ydelete(pDesktopDown);
+		ydelete(pScreenDown);
+
 		//释放默认字体资源。
 		DestroySystemFontCache();
 	}
@@ -192,12 +193,6 @@ namespace
 
 		//启用 LibNDS 默认异常处理。
 		defaultExceptionHandler();
-
-		//注册退出函数。
-	#ifdef YSL_USE_MEMORY_DEBUG
-		atexit(OnExit_DebugMemory);
-	#endif
-		atexit(YDestroy);
 
 		//初始化主控制台。
 		InitYSConsole();
@@ -234,8 +229,8 @@ namespace
 		//初始化显示设备。
 		try
 		{
-			pScreenUp = new YScreen(SCRW, SCRH);
-			pScreenDown = new YScreen(SCRW, SCRH);
+			pScreenUp = ynew YScreen(SCRW, SCRH);
+			pScreenDown = ynew YScreen(SCRW, SCRH);
 		}
 		catch(...)
 		{
@@ -243,8 +238,8 @@ namespace
 		}
 		try
 		{
-			pDesktopUp = new YDesktop(*pScreenUp);
-			pDesktopDown = new YDesktop(*pScreenDown);
+			pDesktopUp = ynew YDesktop(*pScreenUp);
+			pDesktopDown = ynew YDesktop(*pScreenDown);
 		}
 		catch(...)
 		{
@@ -257,6 +252,14 @@ namespace
 	}
 }
 
+
+/*!
+\brief Shell 对象释放函数。
+*/
+extern void
+ReleaseShells();
+
+
 #ifdef YSL_USE_MEMORY_DEBUG
 
 void
@@ -266,17 +269,34 @@ OnExit_DebugMemory()
 	YDebugBegin();
 	std::puts("Normal exit;");
 
-//	std::FILE* fp(std::fopen("memdbg.log", "w"));
-	MemoryList::MapType::size_type s(DebugMemory.GetSize());
+//	std::FILE* fp(std::freopen("memdbg.log", "w", stderr));
+	const typename MemoryList::MapType& Map(DebugMemory.m_map);
+//	MemoryList::MapType::size_type s(DebugMemory.GetSize());
 
-	if(s != 0)
+	if(!Map.empty())
 	{
-		iprintf("%i memory leak(s) detected:\n", s);
-		DebugMemory.PrintAll(stdout);
+		std::fprintf(stderr, "%i memory leak(s) detected:\n", Map.size());
+
+		MemoryList::MapType::size_type n(0);
+
+		for(typename MemoryList::MapType::const_iterator i(Map.begin());
+			i != Map.end(); ++i)
+		{
+			if(n++ < 6)
+				DebugMemory.Print(i, stderr);
+			else
+			{
+				n = 0;
+				std::fflush(stderr);
+				std::puts("Input to continue...");
+				WaitForInput();
+			}
+		}
+	//	DebugMemory.PrintAll(stderr);
 	//	DebugMemory.PrintAll(fp);
 	}
 //	std::fclose(fp);
-	std::puts("Press key to terminate...");
+	std::puts("Input to terminate...");
 	WaitForInput();
 }
 
@@ -298,7 +318,14 @@ main(int argc, char* argv[])
 		//全局初始化。
 		YSL_ YInit();
 
-		return YMain(argc, argv);
+		int r(YMain(argc, argv));
+
+		YSL_ ReleaseShells();
+		YSL_ YDestroy();
+	#ifdef YSL_USE_MEMORY_DEBUG
+		YSL_ OnExit_DebugMemory();
+	#endif
+		return r;
 	}
 	catch(std::bad_alloc&)
 	{

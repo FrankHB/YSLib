@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7045;
+\version 0.7070;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 + 08:00;
 \par 修改时间:
-	2010-12-04 07:18 + 08:00;
+	2010-12-08 19:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,7 @@
 #include "../Core/yfunc.hpp"
 #include "../Core/ystring.h"
 
-#define GLYPH_CACHE_SIZE	(32 * 1024)
+#define GLYPH_CACHE_SIZE	(512 << 10)
 
 YSL_BEGIN
 
@@ -98,9 +98,9 @@ class FontFamily// : implements GIEquatable<FontFamily>,
 	friend class YFontCache;
 
 public:
-	typedef set<const Typeface*> FTypes; //!< 字型组类型。
-	typedef map<const FT_String*, const Typeface*,
-		deref_str_comp<FT_String> > FTypesIndex; //!< 字型组索引类型。
+	typedef set<Typeface*> FTypes; //!< 字型组类型。
+	typedef map<const FT_String*, Typeface*, deref_str_comp<FT_String> >
+		FTypesIndex; //!< 字型组索引类型。
 
 	YFontCache& Cache;
 
@@ -137,12 +137,12 @@ public:
 	\brief 取指定样式的字型指针。
 	\note 若非 Regular 样式失败则尝试取 Regular 样式的字型指针。
 	*/
-	const Typeface*
+	Typeface*
 	GetTypefacePtr(EFontStyle) const;
 	/*!
 	\brief 取指定样式名称的字型指针。
 	*/
-	const Typeface*
+	Typeface*
 	GetTypefacePtr(const FT_String*) const;
 
 private:
@@ -150,12 +150,12 @@ private:
 	\brief 向字型组和字型组索引添加字型对象。
 	*/
 	void
-	operator+=(const Typeface&);
+	operator+=(Typeface&);
 	/*!
 	\brief 从字型组和字型组索引中移除指定字型对象。
 	*/
 	bool
-	operator-=(const Typeface&);
+	operator-=(Typeface&);
 };
 
 
@@ -273,33 +273,10 @@ const Typeface*
 GetDefaultTypefacePtr() ythrow();
 
 /*!
-\brief 取默认字型家族指针。
-*/
-inline const FontFamily*
-GetDefaultFontFamilyPtr()
-{
-	const Typeface* p(GetDefaultTypefacePtr());
-
-	YAssert(p,
-		"In function \"inline const FontFamily*\n"
-		"GetDefaultFontFamilyPtr()\": \n"
-		"The default font face pointer is null.");
-	return p->GetFontFamilyPtr();
-}
-/*!
 \brief 取默认字型家族引用。
 */
-inline const FontFamily&
-GetDefaultFontFamily()
-{
-	const FontFamily* p(GetDefaultFontFamilyPtr());
-
-	YAssert(p,
-		"In function \"inline const FontFamily&\n"
-		"GetDefaultFontFamily()\": \n"
-		"The default font family pointer is null.");
-	return *p;
-}
+const FontFamily&
+GetDefaultFontFamily() ythrow();
 
 
 //! \brief 字体：字模，包含字型和大小。
@@ -427,9 +404,13 @@ CharBitmap::CharBitmap(const CharBitmap::NativeType& b)
 
 //! \brief 字体缓存。
 class YFontCache : public YObject,
-	implements GIContainer<const FontFile>, implements GIContainer<const Typeface>, implements GIContainer<FontFamily>
+	implements GIContainer<const FontFile>,
+	implements GIContainer<Typeface>, implements GIContainer<FontFamily>
 {
 	friend class Typeface;
+
+public:
+	typedef YObject ParentType;
 
 private:
 	FT_Library library; //!< 库实例。
@@ -440,14 +421,14 @@ private:
 	FTC_SBit sbit;
 
 public:
-	typedef set<const FontFile*,
-		deref_comp<const FontFile> > FFiles; //!< 字体文件组类型。
-	typedef set<const Typeface*,
-		deref_comp<const Typeface> > FTypes; //!< 字型组类型。
-	typedef set<FontFamily*,
-		deref_comp<FontFamily> > FFaces; //!< 字型家族组类型。
-	typedef map<const FT_String*, FontFamily*,
-		deref_str_comp<FT_String> > FFacesIndex; //!< 字型家族组索引类型。
+	typedef set<const FontFile*, deref_comp<const FontFile> >
+		FFiles; //!< 字体文件组类型。
+	typedef set<Typeface*, deref_comp<const Typeface> >
+		FTypes; //!< 字型组类型。
+	typedef set<FontFamily*, deref_comp<FontFamily> >
+		FFaces; //!< 字型家族组类型。
+	typedef map<const FT_String*, FontFamily*, deref_str_comp<FT_String> >
+		FFacesIndex; //!< 字型家族组索引类型。
 
 private:
 	FFiles sFiles; //!< 字体文件组。
@@ -455,8 +436,8 @@ private:
 	FFaces sFaces; //!< 字型家族组索引。
 	FFacesIndex mFacesIndex; //!< 字型家族组索引。
 
-	const Typeface* pDefaultFace; //!< 默认字型指针。
-	const Typeface* pFace; //!< 当前处理的字型指针。
+	Typeface* pDefaultFace; //!< 默认字型指针。
+	Typeface* pFace; //!< 当前处理的字型指针。
 	Font::SizeType curSize; //!< 当前处理的字体大小。
 
 public:
@@ -542,7 +523,7 @@ public:
 	\note 忽略不属于字型组的字型。
 	*/
 	bool
-	SetTypeface(const Typeface*);
+	SetTypeface(Typeface*);
 	/*!
 	\brief 设置当前处理的字体大小。
 	\note 0 表示默认字体大小。
@@ -568,13 +549,13 @@ private:
 	/*!
 	\brief 向字型组添加字型对象。
 	*/
-	ImplI(GIContainer<const Typeface>) void
-	operator+=(const Typeface&);
+	ImplI(GIContainer<Typeface>) void
+	operator+=(Typeface&);
 	/*!
 	\brief 从字型组中移除指定字型对象。
 	*/
-	ImplI(GIContainer<const Typeface>) bool
-	operator-=(const Typeface&);
+	ImplI(GIContainer<Typeface>) bool
+	operator-=(Typeface&);
 
 	/*!
 	\brief 向字型家族组添加字型对象。

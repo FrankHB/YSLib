@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.2936;
+\version 0.2970;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-12-01 19:41 + 08:00;
+	2010-12-12 06:34 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -187,8 +187,7 @@ public:
 
 	static HWND hWndC;
 
-	struct TFormA
-		: public YForm
+	struct TFormA : public YForm
 	{
 		YLabel lblA;
 		YLabel lblA2;
@@ -209,12 +208,13 @@ public:
 			lblA.Refresh();
 		}
 	};
-	struct TFormB
-		: public YForm
+	struct TFormB : public YForm
 	{
 		YButton btnB, btnB2;
 
-		TFormB(HSHL hShl) : YForm(Rect(10, 40, 228, 70), /*GetImage(6)*/NULL, pDesktopDown, hShl),
+		TFormB(HSHL hShl)
+			: YForm(Rect(10, 40, 228, 70), /*GetImage(6)*/NULL,
+			pDesktopDown, hShl),
 			btnB(Rect(2, 5, 224, s_size), this),
 			btnB2(Rect(45, 35, 124, s_size), this)
 		{
@@ -240,13 +240,18 @@ public:
 	{
 		YButton btnC;
 		YButton btnReturn;
+		YButton btnExit;
 
-		TFormC(HSHL hShl) : YForm(Rect(5, 60, 180, 120), /*GetImage(7)*/NULL, pDesktopDown, hShl),
+		TFormC(HSHL hShl)
+			: YForm(Rect(5, 60, 180, 120), /*GetImage(7)*/NULL,
+			pDesktopDown, hShl),
 			btnC(Rect(13, 45, 184, s_size), this),
-			btnReturn(Rect(13, 82, 60, s_size), this)
+			btnReturn(Rect(13, 82, 60, s_size), this),
+			btnExit(Rect(83, 82, 60, s_size), this)
 		{
 			btnC.Text = FS("测试y");
 			btnReturn.Text = FS("返回");
+			btnExit.Text = FS("退出");
 			BackColor = ARGB16(1, 31, 15, 15);
 			FetchEvent<EControl::TouchDown>(*this) += TFormC_TouchDown;
 			FetchEvent<EControl::TouchMove>(*this) += OnDrag;
@@ -261,19 +266,27 @@ public:
 			btnReturn.BackColor = ARGB16(1, 22, 23, 24);
 			FetchEvent<EControl::Click>(btnReturn).Add(*this,
 				&TFormC::btnReturn_Click);
+			FetchEvent<EControl::Click>(btnExit).Add(*this,
+				&TFormC::btnExit_Click);
 		}
 
 		void
 		btnC_TouchUp(TouchEventArgs&);
+
 		void
 		btnC_TouchDown(TouchEventArgs&);
+
 		void
 		btnC_Click(TouchEventArgs&);
+
 		static void
 		btnC_KeyPress(IVisualControl& sender, KeyEventArgs& e);
 
 		void
 		btnReturn_Click(TouchEventArgs&);
+
+		void
+		btnExit_Click(TouchEventArgs&);
 	};
 
 	void ShowString(const String& s)

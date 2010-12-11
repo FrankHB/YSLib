@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3228;
+\version 0.3266;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2010-11-27 09:07 + 08:00;
+	2010-12-08 22:07 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -669,14 +669,16 @@ public:
 
 	/*!
 	\brief 重新设置缓冲区大小。
+	\note 若有一边为零则删除缓冲区；若大于缓冲区空间则重新分配；
+		设置后清除缓冲区。
 	*/
 	virtual void
-	SetSize(SPOS, SPOS);
+	SetSize(SDST, SDST);
 
 	/*!
-	\brief 交换宽和高；同时交换边距。
+	\brief 交换宽和高；同时清除缓冲区。
 	*/
-	virtual void
+	void
 	SetSizeSwap();
 
 	/*!
@@ -706,7 +708,7 @@ inline BitmapBuffer::BitmapBuffer()
 {}
 inline BitmapBuffer::~BitmapBuffer()
 {
-	delete[] img;
+	ydelete_array(img);
 }
 
 inline bool
@@ -750,14 +752,11 @@ public:
 
 	/*!
 	\brief 重新设置缓冲区大小。
+	\note 若有一边为零则删除缓冲区；若大于缓冲区空间则重新分配；
+		设置后清除缓冲区。
 	*/
 	virtual void
-	SetSize(SPOS, SPOS);
-	/*!
-	\brief 交换宽和高；同时交换边距。
-	*/
-	virtual void
-	SetSizeSwap();
+	SetSize(SDST, SDST);
 
 	/*!
 	\brief 清除缓冲区。
@@ -788,7 +787,7 @@ BitmapBufferEx::BitmapBufferEx() : BitmapBuffer(), imgAlpha(NULL)
 inline
 BitmapBufferEx::~BitmapBufferEx()
 {
-	delete[] imgAlpha;
+	ydelete_array(imgAlpha);
 }
 
 inline bool

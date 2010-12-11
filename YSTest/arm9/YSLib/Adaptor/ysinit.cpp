@@ -11,12 +11,12 @@
 /*!	\file ysinit.cpp
 \ingroup Service
 \brief 程序启动时的通用初始化。
-\version 0.1725;
+\version 0.1727;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-10-21 23:15:08 + 08:00;
 \par 修改时间:
-	2010-12-03 23:14 + 08:00;
+	2010-12-07 23:32 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -152,8 +152,8 @@ InitializeSystemFontCache()
 void
 DestroySystemFontCache()
 {
-	Drawing::DestroyFontCache(theApp.pFontCache);
 	Drawing::Font::ReleaseDefault();
+	Drawing::DestroyFontCache(theApp.pFontCache);
 }
 
 void

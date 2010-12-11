@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2554;
+\version 0.2558;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 + 08:00; 
 \par 修改时间:
-	2010-12-03 11:36 + 08:00;
+	2010-12-05 06:24 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -177,18 +177,6 @@ namespace platform
 	bool
 	mkdirs(CPATH);
 
-
-	/*!
-	\brief 退出函数注册函数。
-	*/
-	int
-	atexit(void(*)());
-
-	/*!
-	\brief 正常终止函数。
-	*/
-	void
-	exit(int);
 
 	/*!
 	\brief 异常终止函数。

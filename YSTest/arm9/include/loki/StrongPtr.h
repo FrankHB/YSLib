@@ -15,6 +15,7 @@
 #define LOKI_STRONG_PTR_INC_
 
 // $Id: StrongPtr.h 914 2008-12-19 00:39:29Z rich_sposato $
+// $Id: StrongPtr.h 915 2010-12-10 22:03 + 08:00 FrankHB $
 
 
 #include <loki/SmartPtr.h>
@@ -1364,7 +1365,7 @@ public:
 
 template
 <
-    typename U,
+//    typename U,
     typename T,
     bool S,
     class OP,
@@ -1388,7 +1389,7 @@ bool ReleaseAll( StrongPtr< T, S, OP, CP, KP, RP, DP, CNP > & sp,
 
 template
 <
-    typename U,
+//    typename U,
     typename T,
     bool S,
     class OP,

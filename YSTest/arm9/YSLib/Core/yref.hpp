@@ -11,12 +11,12 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version 0.2468;
+\version 0.2592;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-21 23:09:06 + 08:00;
 \par 修改时间:
-	2010-11-29 15:42 + 08:00;
+	2010-12-11 15:40 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -93,7 +93,7 @@ template<typename T,
 	class OP = Policies::TwoRefCounts,
 	class CP = Policies::DisallowConversion,
 	template<class> class KP = Policies::AssertCheck,
-	template<class> class RP = Policies::CantResetWithStrong,
+	template<class> class RP = Policies::AllowReset,
 	template<class> class DP = Policies::DeleteSingle,
 	typename SPType = StrongPtr<T, true, OP, CP, KP, RP, DP> >
 class GHStrong : public SPType
@@ -126,6 +126,31 @@ public:
 	{
 		return GHStrong<T>::GetPointer();
 	}
+
+	/*!
+	\brief 释放指针。
+	\note Policies::AllowReset 策略决定可以释放强指针；
+		会影响所有指向同一对象的 GHStrong 和 GHWeak 的对象实例。
+	*/
+	T*
+	Release()
+	{
+		T* p(NULL);
+
+		ReleaseAll(static_cast<SPType&>(*this), p);
+		return p;
+	}
+
+	/*!
+	\brief 复位指针。
+	\note Policies::AllowReset 策略决定可以复位强指针；
+		会影响所有指向同一对象的 GHStrong 和 GHWeak 的对象实例。
+	*/
+	bool
+	Reset(T* p = NULL)
+	{
+		return ResetAll(static_cast<SPType&>(*this), p);
+	}
 };
 
 
@@ -134,7 +159,7 @@ template<typename T,
 	class OP = Policies::TwoRefCounts,
 	class CP = Policies::DisallowConversion,
 	template<class> class KP = Policies::AssertCheck,
-	template<class> class RP = Policies::CantResetWithStrong,
+	template<class> class RP = Policies::AllowReset,
 	template<class> class DP = Policies::DeleteSingle,
 	typename SPType = StrongPtr<T, false, OP, CP, KP, RP, DP> >
 class GHWeak : public SPType
@@ -179,29 +204,35 @@ public:
 	{
 		return GHWeak<T>::GetPointer();
 	}
+
+	/*!
+	\brief 释放指针。
+	\note Policies::AllowReset 策略决定可以释放弱指针；
+		会影响所有指向同一对象的 GHStrong 和 GHWeak 的对象实例。
+	*/
+	T*
+	Release()
+	{
+		T* p(NULL);
+
+		ReleaseAll(static_cast<SPType&>(*this), p);
+		return p;
+	}
+
+	/*!
+	\brief 复位指针。
+	\note Policies::AllowReset 策略决定可以复位弱指针；
+		会影响所有指向同一对象的 GHStrong 和 GHWeak 的对象实例。
+	*/
+	bool
+	Reset(T* p = NULL)
+	{
+		return ResetAll(static_cast<SPType&>(*this), p);
+	}
 };
 
 
-/*!
-\brief 取内建指针。
-*/
-template<class _type>
-inline _type*
-GetPointer(GHStrong<_type> h)
-{
-	return h.operator->();
-}
-template<class _type>
-inline _type*
-GetPointer(GHWeak<_type> h)
-{
-	return h.operator->();
-}
-
-
 #define YHandleOP Design::Policies::SmartPtr_Simple
-//! \warning 句柄不会被自动回收，需要手动释放。
-#define YDelete(h) delete GetPointer(h)
 
 
 //! \brief 句柄类。
@@ -263,24 +294,38 @@ public:
 #undef YHandleOP
 
 
-/*!
+/*!	\defgroup GetPointer GetPointer
 \brief 取内建指针。
 */
+//@{
 template<typename _type>
 inline _type*
 GetPointer(_type* h)
 {
 	return h;
 }
+template<class _type>
+inline _type*
+GetPointer(GHStrong<_type> h)
+{
+	return h.operator->();
+}
+template<class _type>
+inline _type*
+GetPointer(GHWeak<_type> h)
+{
+	return h.operator->();
+}
+//@}
 
 #ifndef YSL_USE_SIMPLE_HANDLE
 
 /*!
 \brief 取内建指针。
 */
-template<typename _tReference>
-inline _tReference*
-GetPointer(GHHandle<_tReference> h)
+template<typename _type>
+inline _type*
+GetPointer(GHHandle<_type> h)
 {
 	return h.operator->();
 }
@@ -296,6 +341,64 @@ handle_cast(GHHandle<_tReference> h)
 }
 
 #endif
+
+
+/*!	\defGroup YDelete YDelete
+\brief 安全删除句柄指向的对象。
+*/
+//@{
+template<typename _type>
+inline bool
+YDelete(_type* h) ythrow()
+{
+	bool b(h);
+
+	delete h;
+	h = NULL;
+	return b;
+}
+//! \warning 句柄不会被自动回收，需要手动释放。
+template<typename _type>
+inline bool
+YDelete(GHHandle<_type> h) ythrow()
+{
+	bool b(h);
+
+	delete GetPointer(h);
+	h = NULL;
+	return b;
+}
+template<typename _type>
+inline bool
+YDelete(GHStrong<_type> h) ythrow()
+{
+	return h.Reset();
+}
+template<typename _type>
+inline bool
+YDelete(GHWeak<_type> h) ythrow()
+{
+	return h.Reset();
+}
+
+#ifdef YSL_USE_MEMORY_DEBUG
+
+template<typename _type>
+inline bool
+YDelete_Debug(_type* h) ythrow()
+{
+	bool b(h);
+
+	ydelete(h);
+	h = NULL;
+	return b;
+}
+
+#else
+#	define YDelete_Debug YDelete
+#endif
+
+//@}
 
 YSL_END
 

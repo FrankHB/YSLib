@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7002;
+\version 0.7047;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 + 08:00;
 \par 修改时间:
-	2010-12-04 23:37 + 08:00;
+	2010-12-08 20:19 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -148,15 +148,15 @@ FontFamily::operator<(const FontFamily& rhs) const
 		&& strcmp(family_name, rhs.family_name) < 0);
 }
 
-const Typeface*
+Typeface*
 FontFamily::GetTypefacePtr(EFontStyle s) const
 {
-	const Typeface* p(GetTypefacePtr(s.GetName()));
+	Typeface* const p(GetTypefacePtr(s.GetName()));
 
 	return p ? p
 		: (s == EFontStyle::Regular ? NULL : GetTypefacePtr("Regular"));
 }
-const Typeface*
+Typeface*
 FontFamily::GetTypefacePtr(const FT_String* style_name) const
 {
 	const FTypesIndex::const_iterator i(mTypesIndex.find(style_name));
@@ -165,13 +165,13 @@ FontFamily::GetTypefacePtr(const FT_String* style_name) const
 }
 
 void
-FontFamily::operator+=(const Typeface& f)
+FontFamily::operator+=(Typeface& f)
 {
 	sTypes.insert(&f);
 	mTypesIndex.insert(std::make_pair(f.GetStyleName(), &f));
 }
 bool
-FontFamily::operator-=(const Typeface& f)
+FontFamily::operator-=(Typeface& f)
 {
 	return mTypesIndex.erase(f.GetStyleName()) != 0 && sTypes.erase(&f) != 0;
 }
@@ -257,6 +257,25 @@ GetDefaultTypefacePtr() ythrow()
 	return theApp.pFontCache->GetDefaultTypefacePtr();
 }
 
+const FontFamily&
+GetDefaultFontFamily() ythrow()
+{
+	const Typeface* pDefaultTypeface(GetDefaultTypefacePtr());
+
+	YAssert(pDefaultTypeface,
+		"In function \"inline const FontFamily&\n"
+		"GetDefaultFontFamily()\": \n"
+		"The default font face pointer is null.");
+
+	const FontFamily* pFontFamily(pDefaultTypeface->GetFontFamilyPtr());
+
+	YAssert(pFontFamily,
+		"In function \"inline const FontFamily&\n"
+		"GetDefaultFontFamily()\": \n"
+		"The default font family pointer is null.");
+	return *pFontFamily;
+}
+
 
 const Font::SizeType
 Font::DefSize(16), // DEF_SHELL_FONTSIZE,
@@ -283,7 +302,7 @@ Font::SetSize(Font::SizeType s)
 bool
 Font::Update()
 {
-	const Typeface* t(pFontFamily->GetTypefacePtr(Style));
+	Typeface* t(pFontFamily->GetTypefacePtr(Style));
 
 	if(!t)
 		return false;
@@ -325,9 +344,7 @@ Font::InitializeDefault()
 void
 Font::ReleaseDefault()
 {
-	if(!theApp.pFontCache)
-		ydelete(pDefFont);
-	pDefFont = NULL;
+	safe_delete_obj()(pDefFont);
 }
 
 
@@ -439,12 +456,12 @@ YFontCache::GetDescender() const
 }
 
 bool
-YFontCache::SetTypeface(const Typeface* p)
+YFontCache::SetTypeface(Typeface* p)
 {
 	if(!p || sTypes.find(p) == sTypes.end())
 		return false;
 	pFace = p;
-	scaler.face_id = reinterpret_cast<FTC_FaceID>(const_cast<Typeface*>(p));
+	scaler.face_id = reinterpret_cast<FTC_FaceID>(p);
 	return true;
 }
 void
@@ -475,12 +492,12 @@ YFontCache::operator-=(const FontFile& f)
 }
 
 void
-YFontCache::operator+=(const Typeface& f)
+YFontCache::operator+=(Typeface& f)
 {
 	sTypes.insert(&f);
 }
 bool
-YFontCache::operator-=(const Typeface& f)
+YFontCache::operator-=(Typeface& f)
 {
 	return sTypes.erase(&f);
 }
@@ -584,8 +601,15 @@ YFontCache::LoadFontFileDirectory(CPATH path, CPATH ext)
 				{
 					try
 					{
-						*this += *ynew FontFile(path,
-							HDirectory::Name, library);
+						std::auto_ptr<const FontFile> p(ynew FontFile(path,
+							HDirectory::Name, library));
+						if(sFiles.find(p.get()) != sFiles.end())
+							ydelete(p.release());
+						else
+						{
+							*this += *p;
+							p.release();
+						}
 					}
 					catch(std::bad_alloc&)
 					{
@@ -607,12 +631,18 @@ YFontCache::LoadFontFile(CPATH path) ythrow()
 	{
 		if(GetFileNameFrom(path) && fexists(path))
 		{
-			FontFile* p(ynew FontFile(path, library));
+			std::auto_ptr<const FontFile> p(ynew FontFile(path, library));
 
-			*this += *p;
-			LoadTypefaces(*p);
-			if(pDefaultFace)
-				SetTypeface(pDefaultFace);
+			if(sFiles.find(p.get()) != sFiles.end())
+				ydelete(p.release());
+			else
+			{
+				LoadTypefaces(*p);
+				*this += *p;
+				p.release();
+				if(pDefaultFace)
+					SetTypeface(pDefaultFace);
+			}
 		}
 		else
 			LoadFontFileDirectory(path);

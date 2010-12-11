@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2288;
+\version 0.2374;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 + 08:00;
 \par 修改时间:
-	2010-12-04 06:54 + 08:00;
+	2010-12-11 14:23 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -417,7 +417,7 @@ void
 ClearSequence(_type* dst, std::size_t n)
 {
 	if(dst && n)
-		memset(dst, 0, sizeof(_type) * n);
+		std::memset(dst, 0, sizeof(_type) * n);
 }
 
 
@@ -429,9 +429,9 @@ struct delete_obj
 	*/
 	template<typename _type>
 	inline void
-	operator()(_type* _ptr)
+	operator()(_type* _ptr) ythrow()
 	{
-		ydelete(_ptr);
+		delete _ptr;
 	}
 };
 
@@ -442,14 +442,54 @@ struct safe_delete_obj
 	/*!
 	\brief 删除指针指向的对象，并置指针为空值。
 	*/
-	template<typename _type>
+	template<typename _tPointer>
 	inline void
-	operator()(_type*& _ptr)
+	operator()(_tPointer& _ptr) ythrow()
 	{
-		ydelete(_ptr);
-		_ptr = NULL;
+		YDelete(_ptr);
 	}
 };
+
+
+typedef delete_obj delete_obj_ndebug;
+typedef safe_delete_obj safe_delete_obj_ndebug;
+
+
+#ifdef YSL_USE_MEMORY_DEBUG
+
+//! \brief delete 仿函数（调试版本）。
+struct delete_obj_debug
+{
+	/*!
+	\brief 删除指针指向的对象。
+	*/
+	template<typename _type>
+	inline void
+	operator()(_type* _ptr) ythrow()
+	{
+		ydelete(_ptr);
+	}
+};
+
+
+//! \brief 带置空指针操作的 delete 仿函数（调试版本）。
+struct safe_delete_obj_debug
+{
+	/*!
+	\brief 删除指针指向的对象，并置指针为空值。
+	*/
+	template<typename _tPointer>
+	inline void
+	operator()(_tPointer& _ptr) ythrow()
+	{
+		YDelete_Debug(_ptr);
+	}
+};
+
+#	define delete_obj delete_obj_debug
+#	define safe_delete_obj safe_delete_obj_debug
+
+#endif
 
 
 //! \brief 引用仿函数。
@@ -484,7 +524,7 @@ struct const_deref_op : std::unary_function<const _type, const _type*>
 
 //! \brief 间接访问比较仿函数。
 template<
-	typename _type,
+	typename _type, typename _tPointer = _type*,
 	template<typename _type> class _fCompare = std::less
 >
 struct deref_comp : _fCompare<_type>
@@ -494,7 +534,7 @@ struct deref_comp : _fCompare<_type>
 	\note 如有空指针则不进行判断，直接返回 false 。
 	*/
 	bool
-	operator()(_type* const& _x, _type* const& _y) const
+	operator()(const _tPointer& _x, const _tPointer& _y) const
 	{
 		return _x && _y && _fCompare<_type>::operator()(*_x, *_y);
 	}
