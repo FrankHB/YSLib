@@ -11,12 +11,12 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version 0.1649;
+\version 0.1669;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-09 20:43:52 + 08:00;
 \par 修改时间:
-	2010-11-12 18:35 + 08:00;
+	2010-12-19 13:41 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -72,7 +72,7 @@ protected:
 public:
 	DefStaticGetter(count_t, Count, nCount)
 	DefStaticGetter(count_t, Total, nTotal)
-	DefGetter(count_t, ID, nID)
+	DefGetter(count_t, ObjectID, nID)
 
 protected:
 	/*!

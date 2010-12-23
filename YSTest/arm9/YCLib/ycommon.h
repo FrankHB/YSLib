@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2558;
+\version 0.2612;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 + 08:00; 
 \par 修改时间:
-	2010-12-05 06:24 + 08:00;
+	2010-12-23 11:43 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,8 +31,6 @@
 #ifndef INCLUDED_YCOMMON_H_
 #define INCLUDED_YCOMMON_H_
 
-// YCommon ：平台相关的公共组件无关函数与宏定义集合。
-
 #include <platform.h>
 
 #ifndef UNICODE
@@ -41,81 +39,7 @@
 
 #include "ydef.h"
 #include <cstdio>
-#include <cstdlib>
-
-//平台无关部分。
-
-namespace stdex
-{
-	/*!
-	\brief 带空指针检查的字符串长度计算。
-	\return 当字符指针非空时为 std::strlen 计算的串长，否则为 0 。
-	*/
-	std::size_t
-	strlen_n(const char*);
-
-	/*!
-	\brief 带空指针检查的字符串复制。
-	\return 成功时为复制的字符串，失败时为空指针。
-
-	当目标字符串和源字符串都非空时用 std::strcpy 复制字符串。
-	*/
-	char*
-	strcpy_n(char*, const char*);
-
-	/*!
-	\brief 带空指针检查的字符串复制。
-	\return 成功时为复制的字符串的结尾指针，失败时为空指针。
-
-	当目标字符串和源字符串都非空时用 stpcpy 复制字符串。
-	*/
-	char*
-	stpcpy_n(char*, const char*);
-
-	/*!
-	\brief 带空指针检查的字符串忽略大小写比较。
-	\return 成功时为比较结果，否则为 EOF 。
-
-	当两个字符串都非空时 stricmp 比较的字符串结果。
-	*/
-	int
-	stricmp_n(const char*, const char*);
-
-	/*!
-	\brief 带空指针检查的字符串复制。
-	\return 成功时为复制的字符串的结尾指针，失败时为空指针。
-
-	当字符指针非空时用 strdup 复制字符串。
-	*/
-	char*
-	strdup_n(const char*);
-
-	/*!
-	\brief 带空指针检查的字符串连接。
-	\return 返回目标参数。
-
-	对传入参数进行非空检查后串接指定的两个字符串，结果复制至指定位置。
-	*/
-	char*
-	strcpycat(char*, const char*, const char*);
-
-	/*!
-	\brief 带空指针检查的字符串连接复制。
-	\return 目标参数。
-
-	对传入参数进行非空检查后串接指定的两个字符串，
-	结果复制至用指定分配函数（默认为 std::malloc）新分配的空间。
-	*/
-	char*
-	strcatdup(const char*, const char*, void*(*)(std::size_t) = std::malloc);
-
-	/*!
-	\brief 判断指定路径的文件是否存在。
-	\note 使用 C 标准函数库实现。
-	*/
-	bool
-	fexists(CPATH);
-}
+#include "ycast.hpp" //平台无关部分。
 
 //平台相关部分。
 
@@ -456,26 +380,16 @@ namespace platform
 		_ATTRIBUTE ((format (printf, 1, 2)));
 
 	//断言。
-	#ifdef YC_USE_YASSERT
+	#ifdef YCL_USE_YASSERT
 
 	#undef YAssert
 
 	/*!
 	\brief YCLib 默认断言函数。
-	\note 当定义 YC_USE_YASSERT 宏时，宏 YAssert 操作由此函数实现。
+	\note 当定义 YCL_USE_YASSERT 宏时，宏 YAssert 操作由此函数实现。
 	*/
-	inline void
-	yassert(bool exp, const char* expstr, const char* message,
-		int line, const char* file)
-	{
-		if(!exp)
-		{
-			yprintf("Assertion failed: \n"
-				"%s\nMessage: \n%s\nAt line %i in file \"%s\".\n",
-				expstr, message, line, file);
-			abort();
-		}
-	}
+	void
+	yassert(bool, const char*, const char*, int, const char*);
 
 	#define YAssert(exp, message) \
 		platform::yassert(exp, #exp, message, __LINE__, __FILE__)
@@ -525,7 +439,6 @@ namespace platform
 		~HDirectory();
 
 		/*!
-
 		\brief 迭代：向后遍历。
 		*/
 		HDirectory&
@@ -555,14 +468,12 @@ namespace platform
 		Open(CPATH);
 
 		/*!
-
 		\brief 关闭。
 		*/
 		void
 		Close();
 
 		/*!
-
 		\brief 复位。
 		*/
 		void
@@ -571,13 +482,13 @@ namespace platform
 
 	inline
 	HDirectory::HDirectory(CPATH path)
-	: dir(NULL)
+		: dir(NULL)
 	{
 		Open(path);
 	}
 	inline
 	HDirectory::HDirectory(HDirectory::IteratorType& d)
-	: dir(d)
+		: dir(d)
 	{}
 	inline
 	HDirectory::~HDirectory()
@@ -595,31 +506,6 @@ namespace platform
 	HDirectory::IsValid() const
 	{
 		return dir;
-	}
-
-	inline bool
-	HDirectory::IsDirectory()
-	{
-		return Stat.st_mode & S_IFDIR;
-	}
-
-	inline void
-	HDirectory::Open(CPATH path)
-	{
-		dir = path ? ::diropen(path) : NULL;
-	}
-
-	inline void
-	HDirectory::Close()
-	{
-		if(IsValid())
-			LastError = ::dirclose(dir);
-	}
-
-	inline void
-	HDirectory::Reset()
-	{
-		LastError = ::dirreset(dir);
 	}
 
 

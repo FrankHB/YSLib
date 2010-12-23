@@ -16,12 +16,12 @@
 /*!	\file ytmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4319;
+\version 0.4325;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 + 08:00;
 \par 修改时间:
-	2010-12-08 20:29 + 08:00;
+	2010-12-17 19:06 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -179,7 +179,7 @@ TextBuffer::GetNextNewline(SizeType o)
 inline void
 TextBuffer::ClearText()
 {
-	memset(text, 0, GetSizeOfBuffer());
+	std::memset(text, 0, GetSizeOfBuffer());
 }
 inline bool
 TextBuffer::Load(const uchar_t* s)
@@ -457,24 +457,28 @@ public:
 };
 
 inline bool
-operator!=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs) ythrow()
+operator!=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
+	ythrow()
 {
 	return !(lhs == rhs);
 }
 
 inline bool
-operator>(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs) ythrow()
+operator>(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
+	ythrow()
 {
 	return rhs < lhs;
 }
 inline bool
-operator<=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs) ythrow()
+operator<=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
+	ythrow()
 {
 	return !(rhs < lhs);
 }
 
 inline bool
-operator>=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs) ythrow()
+operator>=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
+	ythrow()
 {
 	return !(lhs < rhs);
 }
@@ -495,18 +499,6 @@ inline SizeType
 TextFileBuffer::HText::GetBlockLength() const ythrow()
 {
 	return GetBlockLength(blk);
-}
-
-inline TextFileBuffer::HText
-TextFileBuffer::begin() ythrow()
-{
-	return TextFileBuffer::HText(this);
-}
-
-inline TextFileBuffer::HText
-TextFileBuffer::end() ythrow()
-{
-	return TextFileBuffer::HText(this, (nTextSize + nBlockSize - 1) / nBlockSize);
 }
 
 YSL_END_NAMESPACE(Text)

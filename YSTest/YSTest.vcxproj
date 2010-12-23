@@ -79,6 +79,7 @@
   <ItemGroup>
     <ClCompile Include="arm7\source\main.cpp" />
     <ClCompile Include="arm9\YCLib\ycommon.cpp" />
+    <ClCompile Include="arm9\YCLib\ystdex.cpp" />
     <ClCompile Include="arm9\YSLib\Adaptor\yfont.cpp" />
     <ClCompile Include="arm9\YSLib\Adaptor\ynew.cpp" />
     <ClCompile Include="arm9\YSLib\Adaptor\ysinit.cpp" />
@@ -119,8 +120,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arm9\include\platform.h" />
+    <ClInclude Include="arm9\YCLib\ycast.hpp" />
     <ClInclude Include="arm9\YCLib\ycommon.h" />
     <ClInclude Include="arm9\YCLib\ydef.h" />
+    <ClInclude Include="arm9\YCLib\ystdex.h" />
     <ClInclude Include="arm9\YSLib\Adaptor\base.h" />
     <ClInclude Include="arm9\YSLib\Adaptor\config.h" />
     <ClInclude Include="arm9\YSLib\Adaptor\cont.h" />

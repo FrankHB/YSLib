@@ -11,12 +11,12 @@
 /*!	\file ysmsg.h
 \ingroup Core
 \brief 消息处理。
-\version 0.1912;
+\version 0.2037;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 + 08:00;
 \par 修改时间:
-	2010-11-12 18:32 + 08:00;
+	2010-12-17 13:43 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,62 +28,52 @@
 #define INCLUDED_YSMSG_H_
 
 #include "ysdef.h"
-#include "ysmsgdef.h"
 #include "yobject.h"
 #include "../Adaptor/cont.h"
-//#include <queue>
 #include <ctime>
 
 YSL_BEGIN
 
 using Drawing::Point;
 
-YSL_BEGIN_NAMESPACE(Shells)
+YSL_BEGIN_NAMESPACE(Messaging)
 
-typedef u32 MSGID;
-typedef u8 MSGPRIORITY;
+typedef u32 ID;
+typedef u8 Priority;
 
-extern const time_t DEF_TIMEOUT;
+const std::time_t DefTimeout(0);
 
-class Message : public GMCounter<Message> //!< 消息类。
+
+//! \brief 消息上下文接口。
+DeclInterface(IContext)
+	DeclIEntry(bool operator==(const IContext&) const)
+EndDecl
+
+
+//! \brief 消息类。
+class Message : public GMCounter<Message>
 {
 	friend class YMessageQueue;
 
 private:
-	HSHL hShl; //!<  Shell 句柄。
-	MSGID msg; //!< 消息标识。
-	MSGPRIORITY prior; //!< 消息优先级。
-	WPARAM wParam; //!< 字长相关参数。
-	LPARAM lParam; //!< 字长无关参数。
+	GHHandle<YShell> hShl; //!< 目的 Shell 句柄。
+	ID id; //!< 消息标识。
+	Priority prior; //!< 消息优先级。
+	SmartPtr<IContext> pContext; //消息上下文指针。
 
-#ifndef YSLIB_NO_CURSOR
-
-	Point pt; //!< 光标位置。
-
-#endif
-
+public:
 	std::clock_t timestamp; //!< 消息时间戳：消息产生的进程时间。
+
+private:
 	std::clock_t timeout; //!< 消息有效期。
 
 public:
-
-#ifdef YSLIB_NO_CURSOR
-
 	/*!
-	\brief 构造：使用 Shell 句柄、消息标识、消息优先级和参数。
+	\brief 构造：
+		使用 Shell 句柄、消息标识、消息优先级、光标位置和消息上下文指针。
 	*/
-	Message(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0,
-		WPARAM = 0, const LPARAM = 0);
-
-#else
-
-	/*!
-	\brief 构造：使用 Shell 句柄、消息标识、消息优先级、光标位置和参数。
-	*/
-	Message(HSHL = NULL, MSGID = SM_NULL, MSGPRIORITY = 0,
-		WPARAM = 0, const LPARAM = 0, const Point& pt = Point::Zero);
-
-#endif
+	Message(GHHandle<YShell> = NULL, ID = 0, Priority = 0,
+		SmartPtr<IContext> = NULL);
 
 	/*!
 	\brief 比较：相等关系。
@@ -97,28 +87,12 @@ public:
 	operator!=(const Message&) const;
 
 	DefPredicate(TimeOut, timestamp + timeout < std::clock()) //!< 判断消息是否过期。
-	DefPredicate(Valid, msg) //!< 判断消息是否有效。
+	DefPredicate(Valid, id) //!< 判断消息是否有效。
 
-	DefGetter(HSHL, ShellHandle, hShl) //!< 取关联的 Shell 句柄。
-	DefGetter(MSGID, MsgID, msg) //!< 取消息标识。
-	DefGetter(MSGPRIORITY, Priority, prior) //!< 取消息优先级。
-	DefGetter(WPARAM, WParam, wParam)
-	DefGetter(LPARAM, LParam, lParam)
-
-#ifndef YSLIB_NO_CURSOR
-
-	DefGetter(const Point&, CursorLocation, pt)
-
-#endif
-
-	DefGetter(std::clock_t, Timestamp, timestamp) //!< 取消息时间戳。
-
-	/*!
-	\brief 设置消息参数。
-	*/
-	void
-	SetParam(WPARAM, LPARAM);
-	DefSetter(std::clock_t, Timestamp, timestamp) //!< 设置消息时间戳。
+	DefGetter(GHHandle<YShell>, ShellHandle, hShl) //!< 取关联的 Shell 句柄。
+	DefGetter(ID, MessageID, id) //!< 取消息标识。
+	DefGetter(Priority, Priority, prior) //!< 取消息优先级。
+	DefGetter(SmartPtr<IContext>, ContextPtr, pContext) //!< 取消息上下文。
 
 	/*!
 	\brief 更新消息时间戳。
@@ -129,20 +103,24 @@ public:
 
 inline bool Message::operator!=(const Message& m) const
 {
-	return !this->operator==(m);
-}
-
-inline void
-Message::SetParam(WPARAM wp, LPARAM lp)
-{
-	wParam = wp;
-	lParam = lp;
+	return !(*this == m);
 }
 
 inline void
 Message::UpdateTimestamp()
 {
-	SetTimestamp(std::clock());
+	timestamp = std::clock();
+}
+
+
+/*!
+\brief 取指定消息的消息上下文指针并用 dynamic_cast 转换为制定类型的内建指针。
+*/
+template<class _type>
+_type*
+FetchContextRawPtr(const Message& m)
+{
+	return dynamic_cast<_type*>(GetPointer(m.GetContextPtr()));
 }
 
 
@@ -161,7 +139,7 @@ private:
 		{
 			if(i.prior == j.prior)
 			//	return i.time > j.time;
-				return i.GetID() > j.GetID();
+				return i.GetObjectID() > j.GetObjectID();
 			return i.prior < j.prior;
 		}
 	};
@@ -227,7 +205,7 @@ public:
 	\brief 若消息 m 有效，插入 m 至消息队列中。返回 m 是否有效。
 	*/
 	bool
-	InsertMessage(const Message& m);
+	Insert(const Message& m);
 };
 
 
@@ -242,9 +220,9 @@ Merge(YMessageQueue& dst, vector<Message>& src);
 void
 Merge(YMessageQueue& dst, YMessageQueue& src);
 
-YSL_END_NAMESPACE(Shells)
+YSL_END_NAMESPACE(Messaging)
 
-using Shells::Message;
+using Messaging::Message;
 
 YSL_END
 

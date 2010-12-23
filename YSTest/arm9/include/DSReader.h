@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器实现。
-\version 0.2241;
+\version 0.2251;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 + 08:00; 
 \par 修改时间:
-	2010-11-28 13:21 + 08:00;
+	2010-12-19 13:22 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef _DSREADER_H_
-#define _DSREADER_H_
+#ifndef INCLUDED_DSREADER_H_
+#define INCLUDED_DSREADER_H_
 
 #include "../YSLib/Helper/shlds.h"
 
@@ -39,6 +39,9 @@ YSL_BEGIN_NAMESPACE(Components)
 #define SM_DSR_INIT				0x8001
 #define SM_DSR_REFRESH			0x8002
 #define SM_DSR_PRINTTEXT		0x8003
+
+typedef void FVOID(void);
+typedef FVOID *PFVOID;
 
 class BlockedText
 {

@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5621;
+\version 0.5650;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-11 13:09 + 08:00;
+	2010-12-21 15:44 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -64,30 +64,16 @@ class Widget;
 
 #undef YWindowAssert
 
-#ifdef YC_USE_YASSERT
+#ifdef YCL_USE_YASSERT
 
 /*!
 \brief 断言：判断所给表达式，如果为假给出指定错误信息。
 */
-inline void
-yassert(bool exp, const char* msg, int line, const char* file,
-	const char* comp, const char* func)
-{
-	if(!exp)
-	{
-		YConsole dbg;
-
-		iprintf(
-			"At line %i in file %s: \n"
-			"An error occured in precedure %s of \n"
-			"Components::%s:\n"
-			"%s", line, file, func, comp, msg);
-		dbg.Pause();
-	}
-}
+void
+yassert(bool, const char*, int, const char*, const char*, const char*);
 
 #	define YWidgetAssert(ptr, comp, func) \
-	Components::Widgets::yassert((ptr) && FetchDirectWindowHandle(*(ptr)), \
+	Components::Widgets::yassert((ptr) && FetchDirectWindowPtr(*(ptr)), \
 		"The direct window handle is null.", __LINE__, __FILE__, #comp, #func)
 
 #	define YWindowAssert(ptr, comp, func) \
@@ -98,7 +84,7 @@ yassert(bool exp, const char* msg, int line, const char* file,
 #else
 
 #	define YWidgetAssert(ptr, comp, func) \
-	assert((ptr) && FetchDirectWindowHandle(*(ptr)))
+	assert((ptr) && FetchDirectWindowPtr(*(ptr)))
 
 #	define YWindowAssert(ptr, comp, func) \
 	assert((ptr) && static_cast<Drawing::Graphics>(*ptr).IsValid())
@@ -219,38 +205,38 @@ ContainsVisible(const IWidget& w, const Point& p)
 \brief 取指针指定的部件的直接窗口句柄。
 */
 template<class _tWidget>
-HWND
-FetchWidgetDirectWindowHandle(const _tWidget* pWgt)
+IWindow*
+FetchWidgetDirectWindowPtr(const _tWidget* pWgt)
 {
 	const IWindow* pWnd(NULL);
 
 	while(pWgt && !(pWnd = dynamic_cast<const IWindow*>(pWgt)))
 		pWgt = pWgt->GetContainerPtr();
-	return HWND(const_cast<IWindow*>(pWnd));
+	return const_cast<IWindow*>(pWnd);
 }
 
 /*!
-\brief 取指针指定的部件的直接桌面指针。
+\brief 取指针指定的部件的直接桌面句柄。
 */
 YDesktop*
 FetchWidgetDirectDesktopPtr(const IWidget*);
 
 /*!
-\brief 取指定部件的窗口句柄。
+\brief 取指定部件的窗口指针。
 */
 template<class _tWidget>
-HWND
-FetchWindowHandle(const _tWidget& w)
+IWindow*
+FetchWindowPtr(const _tWidget& w)
 {
-	return FetchWidgetDirectWindowHandle(w.GetContainerPtr());
+	return FetchWidgetDirectWindowPtr(w.GetContainerPtr());
 }
 /*!
-\brief 取指定部件的窗口句柄。
+\brief 取指定部件的窗口指针。
 */
-inline HWND
-FetchWindowHandle(const IWidget& w)
+inline IWindow*
+FetchWindowPtr(const IWidget& w)
 {
-	return FetchWindowHandle<IWidget>(w);
+	return FetchWindowPtr<IWidget>(w);
 }
 
 /*!
@@ -278,23 +264,23 @@ FetchDirectContainerPtr(const IWidget& w)
 \note 加入容器指针判断。
 */
 template<class _tWidget>
-HWND
-FetchDirectWindowHandle(const _tWidget& w)
+IWindow*
+FetchDirectWindowPtr(const _tWidget& w)
 {
-	return FetchWidgetDirectWindowHandle(FetchDirectContainerPtr(w));
+	return FetchWidgetDirectWindowPtr(FetchDirectContainerPtr(w));
 }
 /*!
 \brief 取指定部件的直接窗口句柄。
 \note 加入容器指针判断。
 */
-inline HWND
-FetchDirectWindowHandle(const IWidget& w)
+inline IWindow*
+FetchDirectWindowPtr(const IWidget& w)
 {
-	return FetchDirectWindowHandle<IWidget>(w);
+	return FetchDirectWindowPtr<IWidget>(w);
 }
 
 /*!
-\brief 取指定部件的直接桌面指针。
+\brief 取指定部件的直接桌面句柄。
 \note 加入容器指针判断。
 */
 inline YDesktop*
@@ -336,7 +322,7 @@ LocateContainerOffset(const IWidget& w, const Point& p)
 inline Point
 LocateWindowOffset(const IWidget& w, const Point& p)
 {
-	return LocateOffset(&w, p, GetPointer(FetchWindowHandle(w)));
+	return LocateOffset(&w, p, GetPointer(FetchWindowPtr(w)));
 }
 
 /*!
@@ -632,8 +618,7 @@ public:
 
 
 //! \brief 部件容器模块。
-class MUIContainer : protected GMFocusResponser<IVisualControl>,
-	implements GIContainer<IVisualControl>
+class MUIContainer : protected GMFocusResponser<IVisualControl>
 {
 public:
 	typedef GContainer<IWidget> WidgetSet;
@@ -650,10 +635,10 @@ public:
 	virtual DefEmptyDtor(MUIContainer)
 
 protected:
-	ImplI(GIContainer<IVisualControl>) PDefHOperator(void, +=,
+	virtual PDefHOperator(void, +=,
 		IVisualControl& r) //!< 向焦点对象组添加焦点对象。
 		ImplBodyBaseVoid(GMFocusResponser<IVisualControl>, operator+=, r)
-	ImplI(GIContainer<IVisualControl>) PDefHOperator(bool, -=,
+	virtual PDefHOperator(bool, -=,
 		IVisualControl& r) //!< 从焦点对象组移除焦点对象。
 		ImplBodyBase(GMFocusResponser<IVisualControl>, operator-=, r)
 	PDefHOperator(void, +=, GMFocusResponser<IVisualControl>& c) \

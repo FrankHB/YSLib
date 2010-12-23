@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.1878;
+\version 0.1982;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 + 08:00;
 \par 修改时间:
-	2010-12-11 14:04 + 08:00;
+	2010-12-23 11:26 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,7 +50,7 @@ template<class _handle>
 inline void
 ReplaceHandle(_handle& h, _handle hWnd)
 {
-	YDelete(h);
+	YReset(h);
 	h = hWnd;
 }
 
@@ -78,70 +78,66 @@ HandleToReference(_handle h) ythrow(std::bad_cast)
 	return *_tmp;
 }
 
-/*!
-\brief 从指定 Shell 新建窗体。
-*/
-template<class _type>
-HWND NewWindow(HSHL hShl)
-{
-	return HWND(new _type(HSHL(hShl)));
-}
-
 
 //全局函数。
 
 /*!
 \brief 取当前线程空间中运行的 Shell 句柄。
 */
-inline HSHL
-NowShell()
+inline GHHandle<YShell>
+FetchShellHandle()
 {
 	return theApp.GetShellHandle();
 }
+/*!
+\brief 取当前线程空间中运行的 GUI Shell 句柄。
+*/
+GHHandle<YGUIShell>
+FetchGUIShellHandle();
+
+
+/*!
+\brief 从指定 Shell 新建窗体。
+*/
+template<class _type>
+HWND NewWindow()
+{
+	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
+
+	YAssert(hShl, "GUI Shell handle is null.");
+
+	HWND hWnd(new _type());
+
+	YAssert(hWnd, "Window handle is null.");
+
+	*hShl += hWnd;
+	return hWnd;
+}
+
 
 /*!
 \brief 判断 Shell 句柄是否为当前线程空间中运行的 Shell 句柄。
 */
 inline bool
-IsNowShell(HSHL hShl)
+IsNowShell(GHHandle<YShell> hShl)
 {
 	return theApp.GetShellHandle() == hShl;
 }
 
 /*!
-\brief 添加 Shell 对象。
-*/
-inline HSHL
-NowShellAdd(HSHL hShl)
-{
-	if(hShl)
-		theApp += *hShl;
-	return hShl;
-}
-/*!
-\brief 添加 Shell 对象。
-*/
-inline HSHL
-NowShellAdd(YShell& shl)
-{
-	theApp += shl;
-	return HSHL(&shl);
-}
-
-/*!
 \brief 向指定 Shell 对象转移线程控制权。
 */
-inline ERRNO
-NowShellTo(HSHL hShl)
+inline ystdex::errno_t
+NowShellTo(GHHandle<YShell> hShl)
 {
-	return -!hShl->Activate();
+	return -!Shells::Activate(hShl);
 }
 
 /*!
 \brief 向新建 Shell 对象转移控制权。
 */
 template<class _tShl>
-inline ERRNO
+inline ystdex::errno_t
 NowShellToNew()
 {
 	return NowShellTo(new _tShl());
@@ -151,19 +147,20 @@ NowShellToNew()
 \brief 向全局 Shell 管理器的对象转移控制权。
 */
 template<class _tShl>
-inline ERRNO
+inline ystdex::errno_t
 NowShellToStored()
 {
-	return NowShellTo(GStaticCache<_tShl>::GetPointer());
+	return NowShellTo(GStaticCache<_tShl, GHHandle<YShell> >::GetPointer());
 }
 
 /*!
 \brief 通过主消息队列向指定 Shell 对象转移控制权。
 */
 inline void
-SetShellTo(HSHL hShl, Shells::MSGPRIORITY p = 0x80)
+SetShellTo(GHHandle<YShell> hShl, Messaging::Priority p = 0x80)
 {
-	InsertMessage(NULL, SM_SET, p, handle_cast<WPARAM>(hShl));
+	SendMessage(NULL, SM_SET, p,
+		new Messaging::GHandleContext<GHHandle<YShell> >(hShl));
 }
 
 /*!
@@ -183,7 +180,7 @@ template<class _tShl>
 inline void
 SetShellToStored()
 {
-	SetShellTo(GStaticCache<_tShl>::GetPointer());
+	SetShellTo(GStaticCache<_tShl, GHHandle<YShell> >::GetPointer());
 }
 
 /*!
@@ -220,8 +217,8 @@ typedef void (*PPDRAW)(BitmapPtr, SDST, SDST); //!< 简单屏幕绘图函数指�
 inline void
 ScrDraw(BitmapPtr buf, PPDRAW f)
 {
-	for(SDST y = 0; y < SCRH; ++y)
-		for(SDST x = 0; x < SCRW; ++x)
+	for(SDST y(0); y < SCRH; ++y)
+		for(SDST x(0); x < SCRW; ++x)
 			f(buf, x, y);
 }
 

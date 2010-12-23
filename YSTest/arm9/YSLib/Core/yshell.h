@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 定义。
-\version 0.2649;
+\version 0.2760;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 + 08:00;
 \par 修改时间:
-	2010-12-11 17:03 + 08:00;
+	2010-12-23 13:02 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,41 +27,27 @@
 #ifndef INCLUDED_YSHELL_H_
 #define INCLUDED_YSHELL_H_
 
-#include "ysmsg.h"
+#include "ysmsgdef.h"
 #include "yfunc.hpp"
-//#include <set>
-//#include <list>
+
 
 YSL_BEGIN
 
-/*!
-\brief 主 Shell 处理函数。
-*/
-extern LRES
-MainShlProc(const Message&);
-
 YSL_BEGIN_NAMESPACE(Shells)
 
-//外壳程序：实现线程语义。
-class YShell : public YObject,
-	implements GIContainer<IWindow>
+//! \brief 外壳程序：实现线程语义。
+class YShell : public YObject
 {
 public:
-	typedef list<HWND> WNDs;
+	typedef YObject ParentType;
 
-private:
-	WNDs sWnds; //!< 窗口组。
-
-public:
 	/*!
 	\brief 无参数构造。
-	\note 发送 SM_CREATE 消息。
 	*/
 	YShell();
 	/*!
 	\brief 析构。
 	\note 无异常抛出。
-		发送 SM_DESTROY 消息。
 	*/
 	virtual
 	~YShell() ythrow();
@@ -73,91 +59,31 @@ public:
 	IsActive() const;
 
 	/*!
-	\brief 激活 Shell 对象：ShlProc 控制权转移给此对象以维持单线程运行。
-	*/
-	bool
-	Activate();
-
-	/*!
-	\brief 向窗口组添加窗口对象。
-	*/
-	ImplI(GIContainer<IWindow>) void
-	operator+=(IWindow&);
-	/*!
-	\brief 从窗口组中移除指定窗口对象。
-	*/
-	ImplI(GIContainer<IWindow>) bool
-	operator-=(IWindow&);
-	/*!
-	\brief 从窗口组中移除所有指定窗口对象，返回移除的对象数。
-	*/
-	WNDs::size_type
-	RemoveAll(IWindow&);
-	/*!
-	\brief 移除窗口队列中首个窗口对象。
-	*/
-	void
-	RemoveWindow();
-
-	/*!
-	\brief 取得窗口组中首个窗口对象的句柄。
-	*/
-	HWND
-	GetFirstWindowHandle() const;
-	/*!
-	\brief 取得窗口组中顶端窗口对象的句柄。
-	*/
-	HWND
-	GetTopWindowHandle() const;
-	/*!
-	\brief 取得窗口组中指定屏幕的指定的点所处的最顶层窗口对象的句柄。
-	*/
-	HWND
-	GetTopWindowHandle(YDesktop&, const Point&) const;
-
-	/*!
-	\brief 向屏幕发送指定窗口对象。
-	*/
-	bool
-	SendWindow(IWindow&);
-
-	/*!
-	\brief 向屏幕分发窗口对象。
-	*/
-	void
-	DispatchWindows();
-
-	/*!
-	\brief 清除指定屏幕中属于窗口组的窗口对象。
-	*/
-	void
-	ClearScreenWindows(YDesktop&);
-
-	/*!
 	\brief 默认 Shell 处理函数。
 	*/
-	static LRES
+	static int
 	DefShlProc(const Message&);
 
 	// Shell 处理函数：响应线程的直接调用。
-	virtual PDefH(LRES, ShlProc, const Message& m)
+	virtual PDefH(int, ShlProc, const Message& m)
 		ImplRet(DefShlProc(m))
 
 	/*!
 	\brief 处理线程的激活。
 	*/
-	virtual LRES
+	virtual int
 	OnActivated(const Message&);
 
 	/*!
 	\brief 处理线程的停用。
 	*/
-	virtual LRES
+	virtual int
 	OnDeactivated(const Message&);
 };
 
 
-class YShellMain : /*public GMCounter<YShellMain>*/ public YShell
+//! \brief 主 Shell 。
+class YMainShell : /*public GMCounter<YMainShell>*/ public YShell
 {
 public:
 	typedef YShell ParentType;
@@ -166,34 +92,31 @@ public:
 	\brief 无参数构造。
 	\note 向应用程序对象添加自身。
 	*/
-	YShellMain();
+	YMainShell();
 	/*!
 	\brief 析构。
 	\note 无异常抛出。
 			空实现。
 	*/
-	virtual
-	~YShellMain() ythrow();
+	virtual DefEmptyDtor(YMainShell)
 
 	/*!
 	\brief Shell 处理函数。
 	*/
-	virtual LRES
+	virtual int
 	ShlProc(const Message&);
 };
 
-inline
-YShellMain::~YShellMain() ythrow()
-{}
 
-inline LRES
-Shells::YShellMain::ShlProc(const Message& msg)
-{
-	return MainShlProc(msg);
-}
+/*!
+\ingroup HelperFunction
+\brief 激活 Shell 对象：ShlProc 控制权转移给此对象以维持单线程运行。
+*/
+bool
+Activate(GHHandle<YShell>);
 
 
-typedef LRES FSHLPROC(const Message&);
+typedef int FSHLPROC(const Message&);
 typedef FSHLPROC* PFSHLPROC;
 
 
@@ -210,7 +133,7 @@ struct HShellProc : public GHBase<PFSHLPROC>
 	/*!
 	\brief 调用函数。
 	*/
-	LRES
+	int
 	operator()(const Message& msg) const
 	{
 		if(GetPtr())
@@ -224,14 +147,14 @@ struct HShellProc : public GHBase<PFSHLPROC>
 \brief 以优先级 p 发起 Shell 终止请求，返回 nExitCode。
 */
 void
-PostQuitMessage(int nExitCode, Shells::MSGPRIORITY p = 0xF0);
+PostQuitMessage(int nExitCode, Messaging::Priority p = 0xF0);
 
 /*!
 \brief 默认 Shell 处理函数。
 \note 调用默认 Shell 函数为应用程序没有处理的 Shell 消息提供默认处理，
 		确保每一个消息得到处理。
 */
-inline LRES
+inline int
 DefShellProc(const Message& msg)
 {
 	return YShell::DefShlProc(msg);
@@ -255,33 +178,36 @@ DefShellProc(const Message& msg)
 /*!
 \brief 从全局消息队列中取消息。
 */
-IRES
-PeekMessage(Message& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0, u32 wRemoveMsg = PM_NOREMOVE);
+int
+PeekMessage(Message& msg, GHHandle<YShell> hShl = NULL,
+	Messaging::ID wMsgFilterMin = 0, Messaging::ID wMsgFilterMax = 0,
+	u32 wRemoveMsg = PM_NOREMOVE);
 
 /*!
 \brief 从全局消息队列中取消息。
 \note 取得的消息从消息队列中清除。
 */
-IRES
-GetMessage(Message& msg, HSHL hShl = NULL, MSGID wMsgFilterMin = 0, MSGID wMsgFilterMax = 0);
+int
+GetMessage(Message& msg, GHHandle<YShell> hShl = NULL,
+	Messaging::ID wMsgFilterMin = 0, Messaging::ID wMsgFilterMax = 0);
 
 /*!
 \brief 翻译消息。
 \note 空实现。
 */
-ERRNO
+ystdex::errno_t
 TranslateMessage(const Message& msg);
 
 /*!
 \brief 分发消息。
 */
-LRES
+int
 DispatchMessage(const Message& msg);
 
 /*!
 \brief 备份主消息队列中的消息。
 */
-ERRNO
+ystdex::errno_t
 BackupMessage(const Message& msg);
 
 /*!

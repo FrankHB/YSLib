@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3326;
+\version 0.3412;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-12-12 06:22 + 08:00;
+	2010-12-23 11:28 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,18 +35,14 @@ char strtbuf[0x400],
 
 YSL_BEGIN
 
-LRES
+using namespace Shells;
+
+int
 MainShlProc(const Message& msg)
 {
-/*
-	const HSHL& hShl(msg.GetShellHandle());
-	const WPARAM& wParam(msg.GetWParam());
-	const LPARAM& lParam(msg.GetLParam());
-	const Point& pt(msg.GetCursorLocation());
-*/
-	switch(msg.GetMsgID())
+	switch(msg.GetMessageID())
 	{
-	case SM_CREATE:
+	case SM_ACTIVATED:
 		try
 		{
 			NowShellToStored<ShlLoad>();
@@ -57,9 +53,6 @@ MainShlProc(const Message& msg)
 			return -1;
 		}
 		return 0;
-
-//	case SM_DESTROY:
-//		GStaticCache<ShlLoad>::Release();
 
 	default:
 		return DefShellProc(msg);
@@ -268,26 +261,26 @@ void
 ReleaseShells()
 {
 	for(std::size_t i(0); i != 10; ++i)
-		YDelete(g_pi[i]);
-	GStaticCache<ShlReader>::Release();
-	GStaticCache<ShlSetting>::Release();
-	GStaticCache<ShlExplorer>::Release();
-	GStaticCache<ShlLoad>::Release();
+		YReset(g_pi[i]);
+	GStaticCache<ShlReader, GHHandle<YShell> >::Release();
+	GStaticCache<ShlSetting, GHHandle<YShell> >::Release();
+	GStaticCache<ShlExplorer, GHHandle<YShell> >::Release();
+	GStaticCache<ShlLoad, GHHandle<YShell> >::Release();
 	ReleaseGlobalResource<TextRegion>();
 }
 
 using namespace DS;
 
-LRES
+int
 ShlLoad::OnActivated(const Message& m)
 {
-	//如果不添加此段且没有桌面没有被添加窗口等设置刷性状态的操作，
+	//如果不添加此段且没有桌面没有被添加窗口等设置刷新状态的操作，
 	//那么任何绘制都不会进行。
-	pDesktopUp->SetRefresh(true);
-	pDesktopDown->SetRefresh(true);
+	hDesktopUp->SetRefresh(true);
+	hDesktopDown->SetRefresh(true);
 	//新建窗口。
-	hWndUp = NewWindow<TFrmLoadUp>(this);
-	hWndDown = NewWindow<TFrmLoadDown>(this);
+	hWndUp = NewWindow<TFrmLoadUp>();
+	hWndDown = NewWindow<TFrmLoadDown>();
 	DispatchWindows();
 	UpdateToScreen();
 	try
@@ -324,7 +317,7 @@ void
 ShlExplorer::TFrmFileListSelecter::fb_Selected(IndexEventArgs& e)
 {
 	YLabel& l(HandleCast<TFrmFileListMonitor>(
-		HandleCast<ShlExplorer>(hShell)->hWndUp)->lblPath);
+		HandleCast<ShlExplorer>(FetchShellHandle())->hWndUp)->lblPath);
 
 	l.Text = fbMain.GetPath();
 	l.Refresh();
@@ -352,7 +345,7 @@ ShlExplorer::TFrmFileListSelecter::btnTest_Click(TouchEventArgs&)
 	switchShl1();
 /*	if(fbMain.IsSelected())
 	{
-		YConsole con(*pScreenUp);
+		YConsole con(*hScreenUp);
 
 		Activate(con, Color::Silver);
 
@@ -364,7 +357,7 @@ ShlExplorer::TFrmFileListSelecter::btnTest_Click(TouchEventArgs&)
 	}
 	else
 	{
-		YConsole con(*pScreenDown);
+		YConsole con(*hScreenDown);
 		Activate(con, Color::Yellow, ColorSpace::Green);
 		iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
 		puts("OK");
@@ -382,15 +375,15 @@ ShlExplorer::TFrmFileListSelecter::btnOK_Click(TouchEventArgs&)
 	Activate(con);
 	iprintf("%s\n%s\n%s\n%d,%d\n",fbMain.GetDirectory().c_str(),
 		StringToMBCS(fbMain.YListBox::GetList()[fbMain.GetSelected()]).c_str(),
-		s.c_str(),IO::ValidateDirectory(s), stdex::fexists(s.c_str()));
+		s.c_str(),IO::ValidateDirectory(s), ystdex::fexists(s.c_str()));
 	WaitForABXY();
 	Deactivate(con);*/
-		if(!IO::ValidateDirectory(s) && stdex::fexists(s.c_str()))
+		if(!IO::ValidateDirectory(s) && ystdex::fexists(s.c_str()))
 			switchShl2(s.c_str());
 	}
 }
 
-LRES
+int
 ShlExplorer::ShlProc(const Message& msg)
 {
 
@@ -404,8 +397,8 @@ ShlExplorer::ShlProc(const Message& msg)
 	//	YDebugBegin();
 		iprintf("time : %u ticks\n", GetTicks());
 		iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
-			"W : %u;\nL : %lx;\n", msg.GetMsgID(),
-			msg.GetPriority(), msg.GetID(), msg.GetWParam(), msg.GetLParam());
+			"W : %u;\nL : %lx;\n", msg.GetMessageID(),
+			msg.GetPriority(), msg.GetObjectID(), msg.GetWParam(), msg.GetLParam());
 		WaitForInput();
 	//	StartTicks();
 	}*/
@@ -413,11 +406,11 @@ ShlExplorer::ShlProc(const Message& msg)
 	YDebugBegin();
 	iprintf("time : %u ticks\n", GetTicks());
 	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
-		"W : %u;\nL : %lx;\n", msg.GetMsgID(), msg.GetPriority(),
-		msg.GetID(), msg.GetWParam(), msg.GetLParam());
+		"W : %u;\nL : %lx;\n", msg.GetMessageID(), msg.GetPriority(),
+		msg.GetObjectID(), msg.GetWParam(), msg.GetLParam());
 	WaitForInput();*/
 
-	switch(msg.GetMsgID())
+	switch(msg.GetMessageID())
 	{
 	case SM_INPUT:
 /*
@@ -434,14 +427,14 @@ ShlExplorer::ShlProc(const Message& msg)
 	}
 }
 
-LRES
+int
 ShlExplorer::OnActivated(const Message&)
 {
-	hWndUp = NewWindow<TFrmFileListMonitor>(this);
-	hWndDown = NewWindow<TFrmFileListSelecter>(this);
+	hWndUp = NewWindow<TFrmFileListMonitor>();
+	hWndDown = NewWindow<TFrmFileListSelecter>();
 /*
-	ReplaceHandle<HWND>(hWndUp, new TFrmFileListMonitor(HSHL(this)));
-	ReplaceHandle<HWND>(hWndDown, new TFrmFileListSelecter(HSHL(this)));
+	ReplaceHandle<HWND>(hWndUp, new TFrmFileListMonitor(GHHandle<YShell>(this)));
+	ReplaceHandle<HWND>(hWndDown, new TFrmFileListSelecter(GHHandle<YShell>(this)));
 */
 	//	HandleCast<TFrmFileListSelecter>(
 	//		hWndDown)->fbMain.RequestFocus(GetZeroElement<EventArgs>());
@@ -459,7 +452,7 @@ YSL_BEGIN_SHELL(ShlSetting)
 //输出设备刷新函数。
 /*static void ScrRefresh()
 {
-	InsertMessage(NULL, SM_SCRREFRESH, 0x80, DefaultShellHandle->scrType, 0);
+	SendMessage(NULL, SM_SCRREFRESH, 0x80, DefaultShellHandle->scrType, 0);
 }
 */
 
@@ -494,14 +487,14 @@ void
 ShlSetting::TFormC::btnC_TouchUp(TouchEventArgs& e)
 {
 	InputCounter(e);
-	HandleCast<ShlSetting>(hShell)->ShowString(strCount);
+	HandleCast<ShlSetting>(FetchShellHandle())->ShowString(strCount);
 	btnC.Refresh();
 }
 void
 ShlSetting::TFormC::btnC_TouchDown(TouchEventArgs& e)
 {
 	InputCounterAnother(e);
-	HandleCast<ShlSetting>(hShell)->ShowString(strCount);
+	HandleCast<ShlSetting>(FetchShellHandle())->ShowString(strCount);
 //	btnC.Refresh();
 }
 void
@@ -549,7 +542,7 @@ ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, KeyEventArgs& e)
 
 	DefDynInitRef(YButton, lbl, sender);
 //	YButton& lbl(dynamic_cast<TFormA&>(
-//		*(dynamic_cast<ShlSetting&>(*NowShell()).hWndUp)).lblA2);
+//		*(dynamic_cast<ShlSetting&>(*FetchShellHandle()).hWndUp)).lblA2);
 	lbl.SetTransparent(!lbl.IsTransparent());
 //	++lbl.ForeColor;
 //	--lbl.BackColor;
@@ -578,14 +571,14 @@ ShlSetting::TFormC::btnExit_Click(TouchEventArgs&)
 	Shells::PostQuitMessage(0);
 }
 
-LRES
+int
 ShlSetting::OnActivated(const Message& msg)
 {
-	pDesktopDown->BackColor = ARGB16(1, 15, 15, 31);
-	pDesktopDown->SetBackground(GetImage(6));
-	hWndUp = NewWindow<TFormA>(this);
-	hWndDown = NewWindow<TFormB>(this);
-	hWndC = NewWindow<TFormC>(this);
+	hDesktopDown->BackColor = ARGB16(1, 15, 15, 31);
+	hDesktopDown->SetBackground(GetImage(6));
+	hWndUp = NewWindow<TFormA>();
+	hWndDown = NewWindow<TFormB>();
+	hWndC = NewWindow<TFormC>();
 	hWndUp->Draw();
 	hWndDown->Draw();
 	hWndC->Draw();
@@ -593,15 +586,16 @@ ShlSetting::OnActivated(const Message& msg)
 	return 0;
 }
 
-LRES
+int
 ShlSetting::OnDeactivated(const Message& m)
 {
 	ParentType::OnDeactivated(m);
-	YDelete(hWndC);
+	*FetchGUIShellHandle() -= hWndC;
+	YReset(hWndC);
 	return 0;
 }
 
-LRES
+int
 ShlSetting::ShlProc(const Message& msg)
 {
 	using namespace YSL_SHL(ShlSetting);
@@ -611,7 +605,7 @@ ShlSetting::ShlProc(const Message& msg)
 
 //	UpdateToScreen();
 
-	switch(msg.GetMsgID())
+	switch(msg.GetMessageID())
 	{
 	case SM_INPUT:
 		ResponseInput(msg);
@@ -632,46 +626,46 @@ ShlReader::ShlReader()
 	Reader(), pTextFile(NULL), hUp(NULL), hDn(NULL), bgDirty(false)
 {}
 
-LRES
+int
 ShlReader::OnActivated(const Message& msg)
 {
 	pTextFile = ynew YTextFile(path.c_str());
 	Reader.LoadText(*pTextFile);
 	bgDirty = true;
-	hUp = pDesktopUp->GetBackground();
-	hDn = pDesktopDown->GetBackground();
-	pDesktopUp->SetBackground(NULL);
-	pDesktopDown->SetBackground(NULL);
-	pDesktopUp->BackColor = ARGB16(1, 30, 27, 24);
-	pDesktopDown->BackColor = ARGB16(1, 24, 27, 30);
-	FetchEvent<EControl::Click>(*pDesktopDown).Add(*this,
+	hUp = hDesktopUp->GetBackground();
+	hDn = hDesktopDown->GetBackground();
+	hDesktopUp->SetBackground(NULL);
+	hDesktopDown->SetBackground(NULL);
+	hDesktopUp->BackColor = ARGB16(1, 30, 27, 24);
+	hDesktopDown->BackColor = ARGB16(1, 24, 27, 30);
+	FetchEvent<EControl::Click>(*hDesktopDown).Add(*this,
 		&ShlReader::OnClick);
-	FetchEvent<EControl::KeyPress>(*pDesktopDown).Add(*this,
+	FetchEvent<EControl::KeyPress>(*hDesktopDown).Add(*this,
 		&ShlReader::OnKeyPress);
-	RequestFocusCascade(*pDesktopDown);
+	RequestFocusCascade(*hDesktopDown);
 	UpdateToScreen();
 	return 0;
 }
 
-LRES
+int
 ShlReader::OnDeactivated(const Message& msg)
 {
 	ShlClearBothScreen();
-	FetchEvent<EControl::Click>(*pDesktopDown).Remove(*this,
+	FetchEvent<EControl::Click>(*hDesktopDown).Remove(*this,
 		&ShlReader::OnClick);
-	FetchEvent<EControl::KeyPress>(*pDesktopDown).Remove(*this,
+	FetchEvent<EControl::KeyPress>(*hDesktopDown).Remove(*this,
 		&ShlReader::OnKeyPress);
-	pDesktopUp->SetBackground(hUp);
-	pDesktopDown->SetBackground(hDn);
+	hDesktopUp->SetBackground(hUp);
+	hDesktopDown->SetBackground(hDn);
 	Reader.UnloadText();
 	safe_delete_obj()(pTextFile);
 	return 0;
 }
 
-LRES
+int
 ShlReader::ShlProc(const Message& msg)
 {
-	switch(msg.GetMsgID())
+	switch(msg.GetMessageID())
 	{
 	case SM_INPUT:
 		ResponseInput(msg);
@@ -691,13 +685,13 @@ ShlReader::UpdateToScreen()
 	{
 		bgDirty = false;
 		//强制刷新背景。
-		pDesktopUp->SetRefresh(true);
-		pDesktopDown->SetRefresh(true);
-		pDesktopUp->Refresh();
-		pDesktopDown->Refresh();
+		hDesktopUp->SetRefresh(true);
+		hDesktopDown->SetRefresh(true);
+		hDesktopUp->Refresh();
+		hDesktopDown->Refresh();
 		Reader.PrintText();
-		pDesktopUp->Update();
-		pDesktopDown->Update();
+		hDesktopUp->Update();
+		hDesktopDown->Update();
 	}
 }
 

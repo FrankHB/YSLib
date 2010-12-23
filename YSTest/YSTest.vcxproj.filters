@@ -235,6 +235,9 @@
     <ClCompile Include="arm9\YSLib\Adaptor\ynew.cpp">
       <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClCompile>
+    <ClCompile Include="arm9\YCLib\ystdex.cpp">
+      <Filter>ARM9\YCLib</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arm9\YCLib\ycommon.h">
@@ -1220,6 +1223,12 @@
     </ClInclude>
     <ClInclude Include="arm9\YSLib\Adaptor\ynew.h">
       <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YCLib\ycast.hpp">
+      <Filter>ARM9\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YCLib\ystdex.h">
+      <Filter>ARM9\YCLib</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

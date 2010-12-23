@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7070;
+\version 0.7092;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 + 08:00;
 \par 修改时间:
-	2010-12-08 19:52 + 08:00;
+	2010-12-17 18:56 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,8 +91,7 @@ EFontStyle::operator Styles&()
 
 
 //! \brief 字型家族 (Typeface Family) 标识。
-class FontFamily// : implements GIEquatable<FontFamily>,
-	// implements GILess<FontFamily>, implements GIContainer<Typeface>
+class FontFamily
 {
 	friend class Typeface;
 	friend class YFontCache;
@@ -160,8 +159,7 @@ private:
 
 
 //! \brief 字型标识。
-class Typeface// : implements GIEquatable<Typeface>,
-	// implements GILess<Typeface>
+class Typeface
 {
 	friend class YFontCache;
 	friend FT_Error simpleFaceRequester(FTC_FaceID,
@@ -219,8 +217,7 @@ public:
 
 
 //! \brief 字体文件。
-class FontFile// : implements GIEquatable<FontFile>,
-	// implements GILess<FontFile>
+class FontFile
 {
 public:
 	static const u16 MaxFontPathLength = MAX_FILENAME_LENGTH; \
@@ -359,13 +356,6 @@ public:
 	ReleaseDefault();
 };
 
-inline void
-Font::SetFont(const Font& f)
-{
-	*this = f;
-	Update();
-}
-
 
 //! \brief 字符位图。
 class CharBitmap
@@ -403,9 +393,7 @@ CharBitmap::CharBitmap(const CharBitmap::NativeType& b)
 
 
 //! \brief 字体缓存。
-class YFontCache : public YObject,
-	implements GIContainer<const FontFile>,
-	implements GIContainer<Typeface>, implements GIContainer<FontFamily>
+class YFontCache : public YObject
 {
 	friend class Typeface;
 
@@ -538,34 +526,34 @@ private:
 	/*!
 	\brief 向字体文件组添加字体文件对象。
 	*/
-	ImplI(GIContainer<const FontFile>) void
+	virtual void
 	operator+=(const FontFile&);
 	/*!
 	\brief 从字体文件组中移除指定字体文件对象。
 	*/
-	ImplI(GIContainer<const FontFile>) bool
+	virtual bool
 	operator-=(const FontFile&);
 
 	/*!
 	\brief 向字型组添加字型对象。
 	*/
-	ImplI(GIContainer<Typeface>) void
+	virtual void
 	operator+=(Typeface&);
 	/*!
 	\brief 从字型组中移除指定字型对象。
 	*/
-	ImplI(GIContainer<Typeface>) bool
+	virtual bool
 	operator-=(Typeface&);
 
 	/*!
 	\brief 向字型家族组添加字型对象。
 	*/
-	ImplI(GIContainer<const FontFamily>) void
+	virtual void
 	operator+=(FontFamily&);
 	/*!
 	\brief 从字型家族组中移除指定字型对象。
 	*/
-	ImplI(GIContainer<const FontFamily>) bool
+	virtual bool
 	operator-=(FontFamily&);
 
 	/*!
@@ -629,25 +617,19 @@ public:
 
 
 /*!
-\brief 以路径 path 创建字体缓存。
-\note 指针存储至 p 。
+\ingroup HelperFunction
+\brief 以指定路径 path 创建字体缓存。
+\note 指针存储至指定指针。
 */
-inline void
-CreateFontCache(YFontCache*& p, CPATH path)
-{
-	ydelete(p);
-	p = ynew YFontCache(path);
-}
+void
+CreateFontCache(YFontCache*&, CPATH);
 
 /*!
-\brief 销毁 p 指向的字体缓存。
+\ingroup HelperFunction
+\brief 销毁指定指针指向的字体缓存。
 */
-inline void
-DestroyFontCache(YFontCache*& p)
-{
-	ydelete(p);
-	p = NULL;
-}
+void
+DestroyFontCache(YFontCache*&);
 
 YSL_END_NAMESPACE(Drawing)
 

@@ -11,12 +11,12 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief 库编译配置。
-\version 0.1533;
+\version 0.1540;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:26 + 08:00;
 \par 修改时间:
-	2010-12-11 13:30 + 08:00;
+	2010-12-17 19:24 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,7 @@
 //#define NDEBUG //!< 非调试模式。
 
 #ifndef NDEBUG
-#	define YC_USE_YASSERT //!< 使用 YCLib 断言。
+#	define YCL_USE_YASSERT //!< 使用 YCLib 断言。
 #	define YSL_USE_MEMORY_DEBUG //!< 使用 YSLib 内存调试设施。
 #endif
 
@@ -61,11 +61,11 @@
 
 /*!
 \brief YSLib MSG Debug
-\li bit0 ：InsertMessage 。
+\li bit0 ：SendMessage 。
 \li bit1 ：PeekMessage 。
-\note PeekMessage 包含 InsertMessage 。
+\note PeekMessage 包含 SendMessage 。
 */
-#define YSLIB_DEBUG_MSG 0
+#define YSL_DEBUG_MSG 0
 
 //! \brief 使用多播事件。
 #define YSL_EVENT_MULTICAST

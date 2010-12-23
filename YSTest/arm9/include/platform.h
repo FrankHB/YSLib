@@ -19,12 +19,12 @@
 /*!	\file platform.h
 \ingroup DS
 \brief 通用平台描述文件。
-\version 0.1258;
+\version 0.1268;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 00:05:08 + 08:00;
 \par 修改时间:
-	2010-11-12 18:37 + 08:00;
+	2010-12-17 11:39 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,8 +32,8 @@
 */
 
 
-#ifndef _PLATFORM_H_
-#define _PLATFORM_H_
+#ifndef INCLUDED_PLATFORM_H_
+#define INCLUDED_PLATFORM_H_
 
 //GNUC __attribute__ 支持。
 #ifndef _ATTRIBUTE
@@ -61,8 +61,8 @@ namespace std
 #include <unistd.h>
 #include <sys/dir.h>
 
-#define YC_YCOMMON_H "../YCLib/ycommon.h"
-#define YS_YSBUILD_H "../YSLib/Helper/yshelper.h"
+#define YCL_YCOMMON_H "../YCLib/ycommon.h"
+#define YSL_YSBUILD_H "../YSLib/Helper/yshelper.h"
 
 //包含 PALib 。
 //#include <PA9.h>

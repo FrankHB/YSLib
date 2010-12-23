@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4710;
+\version 0.4733;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-11 13:10 + 08:00;
+	2010-12-20 23:11 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,6 +31,27 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Widgets)
+
+#ifdef YCL_USE_YASSERT
+
+void
+yassert(bool exp, const char* msg, int line, const char* file,
+	const char* comp, const char* func)
+{
+	if(!exp)
+	{
+		YConsole dbg;
+
+		iprintf(
+			"At line %i in file %s: \n"
+			"An error occured in precedure %s of \n"
+			"Components::%s:\n"
+			"%s", line, file, func, comp, msg);
+		dbg.Pause();
+	}
+}
+
+#endif
 
 using Controls::YVisualControl;
 
@@ -125,10 +146,9 @@ LocateForWindow(IWidget& w)
 	if(dynamic_cast<IWindow*>(&w))
 		return Point::Zero;
 
-	const HWND hWnd(FetchDirectWindowHandle(w));
+	const IWindow* pWnd(FetchDirectWindowPtr(w));
 
-	return hWnd ? LocateOffset(&w, Point::Zero, GetPointer(hWnd))
-		: Point::FullScreen;
+	return pWnd ? LocateOffset(&w, Point::Zero, pWnd) : Point::FullScreen;
 }
 
 Point
@@ -153,9 +173,9 @@ LocateForParentContainer(const IWidget& w)
 Point
 LocateForParentWindow(const IWidget& w)
 {
-	const HWND hWnd(FetchWindowHandle(w));
+	const IWindow* pWnd(FetchWindowPtr(w));
 
-	return hWnd ? LocateWindowOffset(*hWnd, w.GetLocation())
+	return pWnd ? LocateWindowOffset(*pWnd, w.GetLocation())
 		: Point::FullScreen;
 }
 
@@ -210,14 +230,13 @@ namespace
 	void
 	Fill(_tWidget& w, Color c)
 	{
-		HWND hWnd(FetchDirectWindowHandle(w));
+		IWindow* pWnd(FetchDirectWindowPtr(w));
 
-		if(hWnd)
+		if(pWnd)
 		{
-			Graphics g(*hWnd);
+			Graphics g(*pWnd);
 
-			FillRect(g, LocateOffset(&w, Point::Zero, GetPointer(hWnd)),
-				w.GetSize(), c);
+			FillRect(g, LocateOffset(&w, Point::Zero, pWnd), w.GetSize(), c);
 		}
 	}
 }
@@ -284,10 +303,10 @@ Widget::DrawForeground()
 void
 Widget::Refresh()
 {
-	const HWND hWnd(FetchWindowHandle(*this));
+	IWindow* const pWnd(FetchWindowPtr(*this));
 
-	if(hWnd)
-		hWnd->SetRefresh(true);
+	if(pWnd)
+		pWnd->SetRefresh(true);
 }
 
 
@@ -384,9 +403,9 @@ MLabel::MLabel(const Drawing::Font& f, GHWeak<Drawing::TextRegion> pTr_)
 void
 MLabel::PaintText(Widget& w, const Point& pt)
 {
-	HWND hWnd(FetchDirectWindowHandle(w));
+	IWindow* pWnd(FetchDirectWindowPtr(w));
 
-	if(hWnd && pTextRegion)
+	if(pWnd && pTextRegion)
 	{
 		pTextRegion->Font = Font;
 		pTextRegion->Font.Update();
@@ -396,7 +415,7 @@ MLabel::PaintText(Widget& w, const Point& pt)
 		SetMarginsTo(*pTextRegion, 2, 2, 2, 2);
 		pTextRegion->PutLine(Text);
 
-		Graphics g(*hWnd);
+		Graphics g(*pWnd);
 
 		pTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
 			g.GetSize(), Point::Zero, pt, w.GetSize());

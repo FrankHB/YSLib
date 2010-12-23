@@ -11,12 +11,12 @@
 /*!	\file ysmsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version 0.2165;
+\version 0.2745;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-08 12:05:26 + 08:00;
 \par 修改时间:
-	2010-11-12 15:52 + 08:00;
+	2010-12-21 16:14 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,44 +27,146 @@
 #ifndef INCLUDED_YSMSGDEF_H_
 #define INCLUDED_YSMSGDEF_H_
 
-#define SM_NULL					0x0000
-#define SM_CREATE				0x0001
-#define SM_DESTROY				0x0002
-#define SM_SET					0x0003
-#define SM_DROP					0x0004
-#define SM_ACTIVATED			0x0005
-#define SM_DEACTIVATED			0x0006
-#define SM_SETFOCUS				0x0007
-#define SM_KILLFOCUS			0x0008
+#include "ysmsg.h"
 
-#define SM_ENABLE				0x000A
-#define SM_SETREDRAW			0x000B
-#define SM_SETTEXT				0x000C
-#define SM_GETTEXT				0x000D
-#define SM_GETTEXTLENGTH		0x000E
-#define SM_PAINT				0x000F
-#define SM_CLOSE				0x0010
-#define SM_QUIT					0x0012
-#define SM_ERASEBKGND			0x0014
-#define SM_SYSCOLORCHANGE		0x0015
-#define SM_SHOWWINDOW			0x0018
+YSL_BEGIN
 
-#define SM_DEVMODECHANGE		0x001B
-#define SM_ACTIVATEAPP			0x001C
-#define SM_FONTCHANGE			0x001D
-#define SM_TIMECHANGE			0x001E
-#define SM_CANCELMODE			0x001F
-#define SM_SETCURSOR			0x0020
-#define SM_MOUSEACTIVATE		0x0021
-#define SM_CHILDACTIVATE		0x0022
-#define SM_QUEUESYNC			0x0023
+YSL_BEGIN_NAMESPACE(Messaging)
 
-#define SM_WNDCREATE			0x2001
-#define SM_WNDDESTROY			0x2002
-#define SM_WNDDROP				0x2004
+#define DefMessageTypeMapping(_name, _tContext) \
+	template<> \
+	struct MessageTypeMapping<_name> \
+	{ \
+		typedef _tContext ContextType; \
+	};
 
-#define SM_INPUT				0x4001
-#define SM_SCRREFRESH			0x4002
+
+struct EStandard
+{
+	typedef enum MessageSpace
+	{
+		Null = 0x0000,
+
+		Set = 0x0003,
+		Drop = 0x0004,
+		Activated = 0x0005,
+		Deactivated = 0x0006,
+
+		Paint = 0x000F,
+		Quit = 0x0012,
+
+		Input = 0x4001
+
+	} MessageID;
+};
+
+template<typename _type>
+class GObjectContext : implements IContext
+{
+public:
+	_type Object;
+
+	GObjectContext(_type o)
+		: Object(o)
+	{}
+	virtual DefEmptyDtor(GObjectContext)
+
+	ImplI(IContext) bool
+	operator==(const IContext& rhs) const
+	{
+		if(this == &rhs)
+			return true;
+
+		const GObjectContext* const
+			pContext(dynamic_cast<const GObjectContext*>(&rhs));
+
+		return pContext ? &this->Object == &pContext->Object : false;
+	}
+};
+
+
+template<typename _type>
+class GHandleContext : implements IContext
+{
+public:
+	_type Handle;
+
+	GHandleContext(_type h)
+		: Handle(h)
+	{}
+	virtual DefEmptyDtor(GHandleContext)
+
+	ImplI(IContext) bool
+	operator==(const IContext& rhs) const
+	{
+		if(this == &rhs)
+			return true;
+
+		const GHandleContext* const
+			pContext(dynamic_cast<const GHandleContext*>(&rhs));
+
+		return pContext ? this->Handle == pContext->Handle : false;
+	}
+};
+
+
+class InputContext;
+
+
+template<ID>
+struct MessageTypeMapping
+{};
+
+
+DefMessageTypeMapping(EStandard::Null, IContext)
+DefMessageTypeMapping(EStandard::Set, GHandleContext<GHHandle<YShell> >)
+DefMessageTypeMapping(EStandard::Drop, GHandleContext<GHHandle<YShell> >)
+DefMessageTypeMapping(EStandard::Activated, GHandleContext<GHHandle<YShell> >)
+DefMessageTypeMapping(EStandard::Deactivated, GHandleContext<GHHandle<YShell> >)
+
+DefMessageTypeMapping(EStandard::Paint, GHandleContext<GHHandle<YDesktop> >)
+DefMessageTypeMapping(EStandard::Quit, GObjectContext<int>)
+
+DefMessageTypeMapping(EStandard::Input, InputContext)
+
+/*!
+\ingroup HelperFunction
+\brief 使用 dynamic_cast 转换指定类型消息指针。
+\note 需要确保 MessageEventTypeMapping 中有对应的 ID ，否则无法匹配此函数模板。
+*/
+template<ID id>
+inline typename MessageTypeMapping<id>::ContextType*
+CastMessage(IContext* c)
+{
+	return dynamic_cast<typename MessageTypeMapping<id>::ContextType*>(c);
+}
+/*!
+\ingroup HelperFunction
+\brief 使用 dynamic_cast 转换指定类型消息的消息指针。
+\note 需要确保 MessageEventTypeMapping 中有对应的 ID ，否则无法匹配此函数模板。
+*/
+template<ID id>
+typename MessageTypeMapping<id>::ContextType*
+CastMessage(const Message& msg)
+{
+	return CastMessage<id>(GetPointer(msg.GetContextPtr()));
+}
+
+
+#define SM_NULL					Messaging::EStandard::Null
+#define SM_SET					Messaging::EStandard::Set
+#define SM_DROP					Messaging::EStandard::Drop
+#define SM_ACTIVATED			Messaging::EStandard::Activated
+#define SM_DEACTIVATED			Messaging::EStandard::Deactivated
+
+#define SM_PAINT				Messaging::EStandard::Paint
+#define SM_QUIT					Messaging::EStandard::Quit
+
+#define SM_INPUT				Messaging::EStandard::Input
+
+YSL_END_NAMESPACE(Messaging)
+
+YSL_END
 
 #endif
 

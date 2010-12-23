@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.2834;
+\version 0.3103;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 + 08:00;
 \par 修改时间:
-	2010-12-12 06:21 + 08:00;
+	2010-12-23 13:02 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,29 +25,32 @@
 
 
 #include "yapp.h"
-#include "../Shell/ywindow.h"
-#include "../Shell/ycontrol.h"
 #include "../Shell/ygui.h"
 #include "../Helper/yglobal.h"
 
 YSL_BEGIN
 
+/*!
+\brief 主 Shell 处理函数。
+*/
+extern int
+MainShlProc(const Message&);
+
 YSL_BEGIN_NAMESPACE(Shells)
 
 using namespace Components;
 using namespace Components::Controls;
+using namespace Messaging;
 
 YShell::YShell()
-	: YObject(),
-	sWnds()
-{
-	InsertMessage(NULL, SM_CREATE, 0xF0, reinterpret_cast<WPARAM>(this));
-}
+	: YObject()
+{}
 YShell::~YShell() ythrow()
 {
+	if(theApp.DefaultShellHandle == this)
+		theApp.Log.FatalError("Default shell destructed.");
 	if(theApp.GetShellHandle() == this)
 		theApp.ResetShellHandle();
-	InsertMessage(NULL, SM_DESTROY, 0xF0, reinterpret_cast<WPARAM>(this));
 }
 
 bool
@@ -56,155 +59,62 @@ YShell::IsActive() const
 	return theApp.GetShellHandle() == this;
 }
 
-bool
-YShell::Activate()
-{
-	return theApp.SetShellHandle(this);
-}
-
-void
-YShell::operator+=(IWindow& w)
-{
-	sWnds.push_back(&w);
-}
-bool
-YShell::operator-=(IWindow& w)
-{
-	WNDs::iterator i(std::find(sWnds.begin(), sWnds.end(), &w));
-
-	if(i == sWnds.end())
-		return false;
-	sWnds.erase(i);
-	return true;
-}
-YShell::WNDs::size_type YShell::RemoveAll(IWindow& w)
-{
-	return erase_all(sWnds, &w);
-}
-
-void
-YShell::RemoveWindow()
-{
-	sWnds.pop_back();
-}
-
-HWND
-YShell::GetFirstWindowHandle() const
-{
-	return HWND(sWnds.empty() ? NULL : sWnds.front());
-}
-HWND
-YShell::GetTopWindowHandle() const
-{
-	return HWND(sWnds.empty() ? NULL : sWnds.back());
-}
-HWND
-YShell::GetTopWindowHandle(YDesktop& d, const Point& p) const
-{
-	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
-	{
-		// TODO: assert(*i);
-
-		if(FetchDirectDesktopPtr(**i) == &d && Contains(**i, p))
-			return HWND(*i);
-	}
-	return NULL;
-}
-
-bool
-YShell::SendWindow(IWindow& w)
-{
-	if(std::find(sWnds.begin(), sWnds.end(), &w) != sWnds.end())
-	{
-		YDesktop* const pDsk(FetchDirectDesktopPtr(w));
-
-		if(pDsk)
-		{
-			*pDsk += static_cast<IVisualControl&>(w);
-			return true;
-		}
-	}
-	return false;
-}
-
-void
-YShell::DispatchWindows()
-{
-	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
-	{
-		// TODO: assert(*i);
-
-		YDesktop* const pDsk(FetchDirectDesktopPtr(**i));
-
-		if(pDsk)
-			*pDsk += *static_cast<IVisualControl*>(GetPointer(*i));
-	}
-}
-
-void
-YShell::ClearScreenWindows(YDesktop& d)
-{
-	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
-		d.RemoveAll(*static_cast<IVisualControl*>(GetPointer(*i)));
-}
-
-LRES
+int
 YShell::DefShlProc(const Message& msg)
 {
-//	const HSHL& hShl(msg.GetShellHandle());
-	const WPARAM& wParam(msg.GetWParam());
-	const LPARAM& lParam(msg.GetLParam());
-
-	switch(msg.GetMsgID())
+	switch(msg.GetMessageID())
 	{
-	case SM_PAINT:
-		if(lParam)
-			reinterpret_cast<YDesktop*>(lParam)->Draw();
-	/*
-		hDC = BeginPaint(hWnd, &ps);
-		TextOut(hDC, 0, 0, str, (int)wcslen(str));
-		EndPaint(hWnd, &ps);
-	*/
-		return 0;
-
-	case SM_CREATE:
-		return 0;
-
-	case SM_DESTROY:
-		if(reinterpret_cast<YShell*>(lParam)
-			== YApplication::DefaultShellHandle)
-			PostQuitMessage(lParam);
-		return 0;
-
 	case SM_SET:
-		return -!theApp.SetShellHandle(HSHL(reinterpret_cast<YShell*>(wParam)));
-
 	case SM_DROP:
 		{
-			HSHL hShl(reinterpret_cast<YShell*>(wParam));
-			if(hShl == YApplication::DefaultShellHandle)
-				return 1;
-			else if(hShl->IsActive())
-				theApp.SetShellHandle(YApplication::DefaultShellHandle);
-			if(hShl->IsActive())
-				return -1;
-			YDelete(hShl);
-			return 0;
+			GHandleContext<GHHandle<YShell> >* const
+				p(FetchContextRawPtr<GHandleContext<GHHandle<YShell> > >(msg));
+
+			if(p)
+			{
+				GHHandle<YShell> h(p->Handle);
+
+				switch(msg.GetMessageID())
+				{
+
+				case SM_SET:
+					return -!theApp.SetShellHandle(h);
+
+				case SM_DROP:
+					{
+						if(h == YApplication::DefaultShellHandle)
+							return 1;
+						else if(h->IsActive())
+							theApp.SetShellHandle(YApplication
+								::DefaultShellHandle);
+						if(h->IsActive())
+							return -1;
+						YReset(h);
+						return 0;
+					}
+				default:
+					break;
+				}
+			}
 		}
 
-	case SM_SETFOCUS:
-	case SM_KILLFOCUS:
-	case SM_WNDCREATE:
-	case SM_WNDDESTROY:
-	case SM_SCRREFRESH:
-		return 0;
+	case SM_PAINT:
+		{
+			GHandleContext<GHHandle<YDesktop> >* const
+				p(CastMessage<SM_PAINT>(msg));
 
-	case SM_WNDDROP:
-		YDelete(HWND(reinterpret_cast<IWindow*>(wParam)));
+			if(p && p->Handle)
+				p->Handle->Draw();
+		}
 		return 0;
 
 	case SM_QUIT:
-		std::exit(lParam);
+		{
+			GObjectContext<int>* const p(CastMessage<SM_QUIT>(msg));
+
+			if(p)
+				std::exit(p->Object);
+		}
 
 	default:
 		break;
@@ -212,82 +122,90 @@ YShell::DefShlProc(const Message& msg)
 	return 0;
 }
 
-LRES
+int
 YShell::OnActivated(const Message& m)
 {
-	InsertMessage(m);
+	SendMessage(m);
 	return 0;
 }
 
-LRES
+int
 YShell::OnDeactivated(const Message& m)
 {
-	InsertMessage(m);
+	SendMessage(m);
 	return 0;
 }
 
 
-YShellMain::YShellMain()
+YMainShell::YMainShell()
 	: YShell()
+{}
+
+int
+YMainShell::ShlProc(const Message& msg)
 {
-	theApp += *this;
+	return MainShlProc(msg);
+}
+
+
+bool
+Activate(GHHandle<YShell> h)
+{
+	return theApp.SetShellHandle(h);
 }
 
 
 void
-PostQuitMessage(int nExitCode, Shells::MSGPRIORITY p)
+PostQuitMessage(int nExitCode, Priority p)
 {
-	InsertMessage(NULL, SM_SET, p,
-		handle_cast<WPARAM>(theApp.DefaultShellHandle));
-	InsertMessage(Message(NULL, SM_QUIT, p, 0, nExitCode));
+	SendMessage(NULL, SM_SET, p,
+		new GHandleContext<GHHandle<YShell> >(theApp.DefaultShellHandle));
+	SendMessage(Message(NULL, SM_QUIT, p,
+		new GObjectContext<int>(nExitCode)));
 }
 
-#if YSLIB_DEBUG_MSG & 2
+#if YSL_DEBUG_MSG & 2
 
-static IRES
-PeekMessage_(Message& msg, HSHL hShl,
-	MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg);
+static int
+PeekMessage_(Message& msg, GHHandle<YShell> hShl,
+	ID wMsgFilterMin, ID wMsgFilterMax, ID wRemoveMsg);
 
-IRES
-PeekMessage(Message& msg, HSHL hShl,
-	MSGID wMsgFilterMin, MSGID wMsgFilterMax, MSGID wRemoveMsg)
+int
+PeekMessage(Message& msg, GHHandle<YShell> hShl,
+	ID wMsgFilterMin, ID wMsgFilterMax, ID wRemoveMsg)
 {
 	void YSDebug_MSG_Peek(Message&);
-	IRES t(PeekMessage_(msg, hShl, wMsgFilterMin, wMsgFilterMax, wRemoveMsg));
+	int t(PeekMessage_(msg, hShl, wMsgFilterMin, wMsgFilterMax, wRemoveMsg));
 
 	YSDebug_MSG_Peek(msg);
 	return t;
 }
 
-inline IRES
+inline int
 PeekMessage_
 
 #else
 
-IRES
+int
 PeekMessage
 
 #endif
 
-	(Message& msg, HSHL hShl,
-		MSGID wMsgFilterMin, MSGID wMsgFilterMax, u32 wRemoveMsg)
+	(Message& msg, GHHandle<YShell> hShl,
+		ID wMsgFilterMin, ID wMsgFilterMax,
+		u32 wRemoveMsg)
 {
 	if(!theApp.GetDefaultMessageQueue().empty())
 	{
 		vector<Message> mqt;
 		Message m;
-	/*	void (YMessageQueue::*fngmq)(Message&) = wRemoveMsg & PM_REMOVE
-		? &YMessageQueue::GetMessage
-		: (void (YMessageQueue::*)(Message&))&YMessageQueue::PeekMessage;
-		(theApp.GetDefaultMessageQueue().*fngmq)(m);
-	*/
 
 		while(!theApp.GetDefaultMessageQueue().empty())
 		{
 			theApp.GetDefaultMessageQueue().GetMessage(m);
 			if(!hShl || !m.GetShellHandle() || hShl == m.GetShellHandle())
 			{
-				MSGID msgID(m.GetMsgID());
+				ID msgID(m.GetMessageID());
 
 				if(!(wMsgFilterMin || wMsgFilterMax)
 					|| (wMsgFilterMin <= msgID && msgID <= wMsgFilterMax))
@@ -295,7 +213,7 @@ PeekMessage
 					msg = m;
 
 					if(wRemoveMsg == PM_NOREMOVE)
-						theApp.GetDefaultMessageQueue().InsertMessage(m);
+						theApp.GetDefaultMessageQueue().Insert(m);
 					Merge(theApp.GetDefaultMessageQueue(), mqt);
 					return msgID;
 				}
@@ -307,30 +225,31 @@ PeekMessage
 	return -1;
 }
 
-IRES
-GetMessage(Message& msg, HSHL hShl, MSGID wMsgFilterMin, MSGID wMsgFilterMax)
+int
+GetMessage(Message& msg, GHHandle<YShell> hShl,
+	ID wMsgFilterMin, ID wMsgFilterMax)
 {
 	if(theApp.GetDefaultMessageQueue().empty())
 		Idle();
 	return PeekMessage(msg, hShl, wMsgFilterMin, wMsgFilterMax, PM_REMOVE);
 }
 
-ERRNO
+ystdex::errno_t
 TranslateMessage(const Message& msg)
 {
 	return 0;
 }
 
-LRES
+int
 DispatchMessage(const Message& msg)
 {
 	return theApp.GetShellHandle()->ShlProc(msg);
 }
 
-ERRNO
+ystdex::errno_t
 BackupMessage(const Message& msg)
 {
-	return -!theApp.GetBackupMessageQueue().InsertMessage(msg);
+	return -!theApp.GetBackupMessageQueue().Insert(msg);
 }
 
 void

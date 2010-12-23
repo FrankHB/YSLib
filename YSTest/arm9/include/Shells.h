@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.2970;
+\version 0.3029;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-12-12 06:34 + 08:00;
+	2010-12-21 17:09 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -60,8 +60,8 @@ private:
 	{
 		YLabel lblTitle, lblStatus;
 
-		TFrmLoadUp(HSHL hShl)
-		: YForm(Rect::FullScreen, GetImage(1), pDesktopUp, hShl),
+		TFrmLoadUp()
+		: YForm(Rect::FullScreen, GetImage(1), HWND(hDesktopUp)),
 			lblTitle(Rect(50, 20, 100, 22), this),
 			lblStatus(Rect(60, 80, 80, 22), this)
 		{
@@ -76,8 +76,8 @@ private:
 	{
 		YLabel lblStatus;
 
-		TFrmLoadDown(HSHL hShl)
-		: YForm(Rect::FullScreen, GetImage(2), pDesktopDown, hShl),
+		TFrmLoadDown()
+			: YForm(Rect::FullScreen, GetImage(2), HWND(hDesktopDown)),
 			lblStatus(Rect(30, 20, 160, 22), this)
 		{
 			lblStatus.Text = FS("初始化中，请稍后……");
@@ -87,7 +87,7 @@ private:
 	};
 
 public:
-	virtual LRES
+	virtual int
 	OnActivated(const Message&);
 	//	InitializeComponents();
 };
@@ -101,8 +101,8 @@ private:
 	{
 		YLabel lblTitle, lblPath;
 
-		TFrmFileListMonitor(HSHL hShl)
-		: YForm(Rect::FullScreen, GetImage(3), pDesktopUp, hShl),
+		TFrmFileListMonitor()
+			: YForm(Rect::FullScreen, GetImage(3), HWND(hDesktopUp)),
 			lblTitle(Rect(16, 20, 220, 22), this),
 			lblPath(Rect(12, 80, 240, 22), this)
 		{
@@ -122,8 +122,8 @@ private:
 	//	YHorizontalTrack tkTestH;
 		YVerticalTrack tkTestV;
 
-		TFrmFileListSelecter(HSHL hShl)
-		: YForm(Rect::FullScreen, GetImage(4), pDesktopDown, hShl),
+		TFrmFileListSelecter()
+			: YForm(Rect::FullScreen, GetImage(4), HWND(hDesktopDown)),
 			fbMain(Rect(6, 10, 210, 150), this),
 			btnTest(Rect(115, 165, 65, 22), this),
 			btnOK(Rect(185, 165, 65, 22), this),
@@ -163,10 +163,10 @@ private:
 	void LoadNextWindows();
 
 public:
-	virtual LRES
+	virtual int
 	OnActivated(const Message&);
 
-	virtual LRES
+	virtual int
 	ShlProc(const Message&);
 
 	static void
@@ -192,8 +192,8 @@ public:
 		YLabel lblA;
 		YLabel lblA2;
 
-		TFormA(HSHL hShl)
-			: YForm(Rect::FullScreen, GetImage(5), pDesktopUp, hShl),
+		TFormA()
+			: YForm(Rect::FullScreen, GetImage(5), HWND(hDesktopUp)),
 			lblA(Rect(s_left, 20, 200, s_size), this),
 			lblA2(Rect(s_left, 80, 72, s_size), this)
 		{
@@ -212,10 +212,9 @@ public:
 	{
 		YButton btnB, btnB2;
 
-		TFormB(HSHL hShl)
-			: YForm(Rect(10, 40, 228, 70), /*GetImage(6)*/NULL,
-			pDesktopDown, hShl),
-			btnB(Rect(2, 5, 224, s_size), this),
+		TFormB()
+			: YForm(Rect(10, 40, 228, 70), NULL, HWND(hDesktopDown)),
+			btnB(Rect(2, 5, 224, s_size), this), /*GetImage(6)*/
 			btnB2(Rect(45, 35, 124, s_size), this)
 		{
 			btnB.Text = FS("测试程序");
@@ -242,10 +241,9 @@ public:
 		YButton btnReturn;
 		YButton btnExit;
 
-		TFormC(HSHL hShl)
-			: YForm(Rect(5, 60, 180, 120), /*GetImage(7)*/NULL,
-			pDesktopDown, hShl),
-			btnC(Rect(13, 45, 184, s_size), this),
+		TFormC()
+			: YForm(Rect(5, 60, 180, 120), NULL, HWND(hDesktopDown)),
+			btnC(Rect(13, 45, 184, s_size), this),/*GetImage(7)*/
 			btnReturn(Rect(13, 82, 60, s_size), this),
 			btnExit(Rect(83, 82, 60, s_size), this)
 		{
@@ -313,13 +311,13 @@ public:
 		{}
 	}
 
-	virtual LRES
+	virtual int
 	OnActivated(const Message&);
 
-	virtual LRES
+	virtual int
 	OnDeactivated(const Message&);
 
-	virtual LRES
+	virtual int
 	ShlProc(const Message&);
 };
 
@@ -342,13 +340,13 @@ public:
 	~ShlReader() ythrow()
 	{}
 
-	virtual LRES
+	virtual int
 	OnActivated(const Message&);
 
-	virtual LRES
+	virtual int
 	OnDeactivated(const Message&);
 
-	virtual LRES
+	virtual int
 	ShlProc(const Message&);
 
 	virtual void

@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.2279;
+\version 0.2289;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-19 22:49 + 08:00;
+	2010-12-20 23:10 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,7 +42,7 @@ YSL_BEGIN_NAMESPACE(Controls)
 \brief 从指定 Shell 传递指定屏幕的指针设备光标至 GUI 界面，返回部件指针。
 */
 IWidget*
-GetCursorWidgetPtr(HSHL, YDesktop&, const Point&);
+GetCursorWidgetPtr(GHHandle<YGUIShell>, YDesktop&, const Point&);
 
 /*!
 \brief 取指定屏幕中的当前焦点对象指针。
@@ -88,7 +88,7 @@ struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
 	*/
 	inline explicit
 	HKeyCallback(KeyEventArgs e, PFKeyCallback p)
-	: GHBase<PFKeyCallback>(p), AHKeyCallback(e)
+		: GHBase<PFKeyCallback>(p), AHKeyCallback(e)
 	{}
 
 	inline bool
@@ -194,7 +194,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 \brief 绘制窗口边框。
 */
 void
-DrawWindowBounds(HWND, Color);
+DrawWindowBounds(IWindow*, Color);
 
 /*!
 \brief 绘制部件边框。

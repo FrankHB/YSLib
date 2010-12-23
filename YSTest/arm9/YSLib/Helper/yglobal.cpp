@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2671;
+\version 0.2777;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 + 08:00;
 \par 修改时间:
-	2010-12-09 23:43 + 08:00;
+	2010-12-21 17:13 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,17 +29,15 @@
 #include <exception>
 //#include <clocale>
 
-using namespace platform;
-
 YSL_BEGIN
 
 using namespace Runtime;
 
 //全局常量。
-extern CSTR DEF_DIRECTORY; //<! 默认目录。
-extern CSTR G_COMP_NAME; //<! 制作组织名称。
-extern CSTR G_APP_NAME; //!< 产品名称。
-extern CSTR G_APP_VER; //!< 产品版本。
+extern const char* DEF_DIRECTORY; //<! 默认目录。
+extern const char* G_COMP_NAME; //<! 制作组织名称。
+extern const char* G_APP_NAME; //!< 产品名称。
+extern const char* G_APP_VER; //!< 产品版本。
 const SDST SCRW(SCREEN_WIDTH), SCRH(SCREEN_HEIGHT);
 const IO::Path YApplication::CommonAppDataPath(DEF_DIRECTORY);
 const String YApplication::CompanyName(G_COMP_NAME);
@@ -47,8 +45,10 @@ const String YApplication::ProductName(G_APP_NAME);
 const String YApplication::ProductVersion(G_APP_VER);
 
 //全局变量。
-YScreen *pScreenUp, *pScreenDown;
-YDesktop *pDesktopUp, *pDesktopDown;
+GHHandle<YScreen> hScreenUp;
+GHHandle<YScreen> hScreenDown;
+GHHandle<YDesktop> hDesktopUp;
+GHHandle<YDesktop> hDesktopDown;
 #ifdef YSL_USE_MEMORY_DEBUG
 MemoryList DebugMemory(NULL);
 #endif
@@ -58,22 +58,43 @@ YLog DefaultLog;
 \ingroup PublicObject
 \brief 全局变量映射。
 \note 需要保证 YApplication::DefaultShellHandle 在 theApp 初始化之后初始化，
-	因为 YShellMain 的基类 YShell 的构造函数调用了 theApp 的非静态成员函数。
+	因为 YMainShell 的基类 YShell 的构造函数调用了 theApp 的非静态成员函数。
 */
-/*! @{ */
-YApplication& theApp(YApplication::GetApp(pScreenUp, pDesktopUp));
-const HSHL YApplication::DefaultShellHandle(new YShellMain());
-/*! @} */
-
+//@{
+YApplication& theApp(YApplication::GetApp(hScreenUp, hDesktopUp));
+const GHHandle<YShell> YApplication::DefaultShellHandle(new YMainShell());
+//@}
 
 namespace
 {
 	bool
-	operator!=(const KeysInfo& a, const KeysInfo& b)
+	operator==(const KeysInfo& a, const KeysInfo& b)
 	{
-		return a.up != b.up || a.down != b.down || a.held != b.held;
+		return a.up == b.up && a.down == b.down && a.held == b.held;
 	}
 
+	bool
+	operator!=(const KeysInfo& a, const KeysInfo& b)
+	{
+		return !(a == b);
+	}
+}
+
+YSL_BEGIN_NAMESPACE(Messaging)
+
+bool
+InputContext::operator==(const IContext& rhs) const
+{
+	const InputContext* p(dynamic_cast<const InputContext*>(&rhs));
+
+	return p ? (Key == p->Key || (Key && p->Key && *Key == *p->Key))
+		&& CursorLocation == p->CursorLocation : false;
+}
+
+YSL_END_NAMESPACE(Messaging)
+
+namespace
+{
 	/*!
 	\note 转换指针设备光标位置为屏幕点。
 	*/
@@ -87,9 +108,11 @@ namespace
 	void
 	WaitForGUIInput()
 	{
+		using namespace Messaging;
+
 		static KeysInfo Key;
 		static CursorInfo TouchPos_Old, TouchPos;
-		static Message /*InputMessage_Old, */InputMessage;
+		static Message InputMessage;
 
 		if(Key.held & KeySpace::Touch)
 			TouchPos_Old = TouchPos;
@@ -98,23 +121,13 @@ namespace
 
 		const Point pt(ToSPoint(Key.held & KeySpace::Touch
 			? TouchPos : TouchPos_Old));
+		InputContext* const pContext(CastMessage<SM_INPUT>(InputMessage));
 
-		if((theApp.GetDefaultMessageQueue().empty()
-			|| Key != *reinterpret_cast<KeysInfo*>(InputMessage.GetWParam())
-			|| pt != InputMessage.GetCursorLocation())
-			&& pt != Point::FullScreen)
-			InsertMessage((InputMessage = Message(
-				NULL, SM_INPUT, 0x40, reinterpret_cast<WPARAM>(&Key), 0, pt)));
-	/*
-		InputMessage = Message(NULL, SM_INPUT, 0x40,
-			reinterpret_cast<WPARAM>(&Key), 0, ToSPoint(tp));
-
-		if(InputMessage != InputMessage_Old)
-		{
-			InsertMessage(InputMessage);
-			InputMessage_Old = InputMessage;
-		}
-	*/
+		if(!pContext || ((theApp.GetDefaultMessageQueue().empty()
+			|| Key != *pContext->Key || pt != pContext->CursorLocation)
+			&& pt != Point::FullScreen))
+			SendMessage((InputMessage = Message(NULL, SM_INPUT, 0x40,
+				new InputContext(&Key, pt))));
 	}
 }
 
@@ -122,18 +135,17 @@ namespace
 void
 Idle()
 {
-//	if(DefaultShellHandle->insRefresh)
-//		InsertMessage(NULL, SM_SCRREFRESH, 0x80,
-//			DefaultShellHandle->scrType, 0);
 	WaitForGUIInput();
 }
 
 bool
 InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 {
-	if(&scr == pScreenUp)
+	using namespace platform;
+
+	if(&scr == hScreenUp)
 		YConsoleInit(true, fc, bc);
-	else if(&scr == pScreenDown)
+	else if(&scr == hScreenDown)
 		YConsoleInit(false, fc, bc);
 	else
 		return false;
@@ -145,8 +157,8 @@ Destroy_Static(YObject&, EventArgs&)
 {
 }
 
-LRES
-ShlProc(HSHL hShl, const Message& msg)
+int
+ShlProc(GHHandle<YShell> hShl, const Message& msg)
 {
 	return hShl->ShlProc(msg);
 }
@@ -159,8 +171,8 @@ InitAllScreens()
 	using namespace Runtime;
 
 	InitVideo();
-	pScreenUp->SetPtr(DS::InitScrUp(pScreenUp->bg));
-	pScreenDown->SetPtr(DS::InitScrDown(pScreenDown->bg));
+	hScreenUp->SetPtr(DS::InitScrUp(hScreenUp->bg));
+	hScreenDown->SetPtr(DS::InitScrDown(hScreenDown->bg));
 	return true;
 }
 
@@ -172,10 +184,10 @@ namespace
 	YDestroy()
 	{
 		//释放显示设备。
-		ydelete(pDesktopUp);
-		ydelete(pScreenUp);
-		ydelete(pDesktopDown);
-		ydelete(pScreenDown);
+		YReset(hDesktopUp);
+		YReset(hScreenUp);
+		YReset(hDesktopDown);
+		YReset(hScreenDown);
 
 		//释放默认字体资源。
 		DestroySystemFontCache();
@@ -229,8 +241,8 @@ namespace
 		//初始化显示设备。
 		try
 		{
-			pScreenUp = ynew YScreen(SCRW, SCRH);
-			pScreenDown = ynew YScreen(SCRW, SCRH);
+			hScreenUp = new YScreen(SCRW, SCRH);
+			hScreenDown = new YScreen(SCRW, SCRH);
 		}
 		catch(...)
 		{
@@ -238,8 +250,8 @@ namespace
 		}
 		try
 		{
-			pDesktopUp = ynew YDesktop(*pScreenUp);
-			pDesktopDown = ynew YDesktop(*pScreenDown);
+			hDesktopUp = new YDesktop(*hScreenUp);
+			hDesktopDown = new YDesktop(*hScreenDown);
 		}
 		catch(...)
 		{
@@ -247,7 +259,7 @@ namespace
 		}
 		//注册全局应用程序对象。
 		theApp.ResetShellHandle();
-		//theApp.SetOutputPtr(pDesktopUp);
+		//theApp.SetOutputPtr(hDesktopUp);
 		//DefaultShellHandle->SetShlProc(ShlProc);
 	}
 }
@@ -260,11 +272,24 @@ extern void
 ReleaseShells();
 
 
+void
+ShowFatalError(const char* s)
+{
+	using namespace platform;
+
+	YDebugSetStatus();
+	YDebugBegin();
+	std::printf("Fatal Error:\n%s\n", s);
+	terminate();
+}
+
 #ifdef YSL_USE_MEMORY_DEBUG
 
 void
 OnExit_DebugMemory()
 {
+	using namespace platform;
+
 	YDebugSetStatus();
 	YDebugBegin();
 	std::puts("Normal exit;");

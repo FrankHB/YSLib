@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7047;
+\version 0.7056;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 + 08:00;
 \par 修改时间:
-	2010-12-08 20:19 + 08:00;
+	2010-12-23 11:29 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,7 @@
 //#include FT_OUTLINE_H
 //#include FT_SYNTHESIS_H
 
-using namespace stdex;
+using namespace ystdex;
 using namespace platform;
 
 YSL_BEGIN
@@ -263,16 +263,17 @@ GetDefaultFontFamily() ythrow()
 	const Typeface* pDefaultTypeface(GetDefaultTypefacePtr());
 
 	YAssert(pDefaultTypeface,
-		"In function \"inline const FontFamily&\n"
+		"In function \"const FontFamily&\n"
 		"GetDefaultFontFamily()\": \n"
 		"The default font face pointer is null.");
 
 	const FontFamily* pFontFamily(pDefaultTypeface->GetFontFamilyPtr());
 
 	YAssert(pFontFamily,
-		"In function \"inline const FontFamily&\n"
+		"In function \"const FontFamily&\n"
 		"GetDefaultFontFamily()\": \n"
 		"The default font family pointer is null.");
+
 	return *pFontFamily;
 }
 
@@ -297,6 +298,13 @@ Font::SetSize(Font::SizeType s)
 {
 	if(s >= MinSize && s <= MaxSize)
 		Size = s;
+}
+
+void
+Font::SetFont(const Font& f)
+{
+	*this = f;
+	Update();
 }
 
 bool
@@ -687,6 +695,21 @@ YFontCache::ClearCache()
 {
 	ClearContainers();
 	FTC_Manager_Reset(manager);
+}
+
+
+void
+CreateFontCache(YFontCache*& p, CPATH path)
+{
+	ydelete(p);
+	p = ynew YFontCache(path);
+}
+
+void
+DestroyFontCache(YFontCache*& p)
+{
+	ydelete(p);
+	p = NULL;
 }
 
 YSL_END_NAMESPACE(Drawing)

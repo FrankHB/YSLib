@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1423;
+\version 0.1510;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 + 08:00;
 \par 修改时间:
-	2010-11-12 18:43 + 08:00;
+	2010-12-21 16:15 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,60 +31,61 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Shells)
 
-LRES
+using namespace Messaging;
+
+int
 ShlCLI::OnActivated(const Message&)
 {
 	return 0;
 }
 
-LRES
+int
 ShlCLI::OnDeactivated(const Message&)
 {
 	return 0;
 }
 
-IRES
+int
 ShlCLI::ExecuteCommand(const uchar_t* s)
 {
 	return 0;
 }
 
 
-LRES
+int
 ShlGUI::OnDeactivated(const Message&)
 {
-	ClearScreenWindows(*pDesktopUp);
-	ClearScreenWindows(*pDesktopDown);
+	ClearScreenWindows(*hDesktopUp);
+	ClearScreenWindows(*hDesktopDown);
 	return 0;
 }
 
 void
 ShlGUI::SendDrawingMessage()
 {
-//	pDesktopUp->ClearDesktopObjects();
-//	pDesktopDown->ClearDesktopObjects();
+//	hDesktopUp->ClearDesktopObjects();
+//	hDesktopDown->ClearDesktopObjects();
 	DispatchWindows();
-	InsertMessage(NULL, SM_PAINT, 0xE0,
-		reinterpret_cast<WPARAM>(this), reinterpret_cast<LPARAM>(pDesktopUp));
-	InsertMessage(NULL, SM_PAINT, 0xE0,
-		reinterpret_cast<WPARAM>(this), reinterpret_cast<LPARAM>(pDesktopDown));
+	SendMessage(NULL, SM_PAINT, 0xE0,
+		new GHandleContext<GHHandle<YDesktop> >(hDesktopUp));
+	SendMessage(NULL, SM_PAINT, 0xE0,
+		new GHandleContext<GHHandle<YDesktop> >(hDesktopDown));
 }
 
 void
 ShlGUI::UpdateToScreen()
 {
-/*
-	YAssert(pDesktopUp,
+	YAssert(hDesktopUp,
 		"In function \"void\nDS::ShlGUI::UpdateToScreen()\":\n"
 		"The desktop pointer is null.");
-	YAssert(pDesktopDown,
+	YAssert(hDesktopDown,
 		"In function \"void\nDS::ShlGUI::UpdateToScreen()\":\n"
 		"The desktop pointer is null.");
-*/
-	pDesktopUp->Refresh();
-	pDesktopUp->Update();
-	pDesktopDown->Refresh();
-	pDesktopDown->Update();
+
+	hDesktopUp->Refresh();
+	hDesktopUp->Update();
+	hDesktopDown->Refresh();
+	hDesktopDown->Update();
 }
 
 YSL_END_NAMESPACE(Shells)
@@ -96,26 +97,33 @@ ShlDS::ShlDS()
 	: ShlGUI()
 {}
 
-LRES
+int
 ShlDS::ShlProc(const Message& msg)
 {
-	switch(msg.GetMsgID())
+	switch(msg.GetMessageID())
 	{
 	case SM_INPUT:
 		ResponseInput(msg);
 		return 0;
 
 	default:
-		return DefShellProc(msg);
+		return Shells::DefShellProc(msg);
 	}
 }
 
-LRES
+int
 ShlDS::OnDeactivated(const Message& m)
 {
 	ShlGUI::OnDeactivated(m);
-	YDelete(hWndUp);
-	YDelete(hWndDown);
+	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
+
+	if(hShl)
+	{
+		*hShl -= hWndUp;
+		*hShl -= hWndDown;
+	}
+	YReset(hWndUp);
+	YReset(hWndDown);
 	return 0;
 }
 
@@ -123,24 +131,42 @@ ShlDS::OnDeactivated(const Message& m)
 void
 ResponseInput(const Message& msg)
 {
-	Runtime::KeysInfo* p(reinterpret_cast<Runtime::KeysInfo*>(msg.GetWParam()));
+	using namespace Messaging;
+
+	InputContext* const pContext(CastMessage<SM_INPUT>(msg));
+
+	if(!pContext)
+		return;
+
+	Runtime::KeysInfo* const p(pContext->Key);
 
 	if(p)
 	{
 		using namespace Runtime::KeySpace;
 
 		if(p->up & Touch)
-			OnTouchUp(msg.GetCursorLocation());
+			OnTouchUp(pContext->CursorLocation);
 		else if(p->up)
 			OnKeyUp(p->up);
 		if(p->down & Touch)
-			OnTouchDown(msg.GetCursorLocation());
+			OnTouchDown(pContext->CursorLocation);
 		else if(p->down)
 			OnKeyDown(p->down);
 		if(p->held & Touch)
-			OnTouchHeld(msg.GetCursorLocation());
+			OnTouchHeld(pContext->CursorLocation);
 		else if(p->held)
 			OnKeyHeld(p->held);
+	}
+}
+
+
+void
+ShlClearBothScreen(GHHandle<YGUIShell> h)
+{
+	if(h)
+	{
+		h->ClearScreenWindows(*hDesktopUp);
+		h->ClearScreenWindows(*hDesktopDown);
 	}
 }
 

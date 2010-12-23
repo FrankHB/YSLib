@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件实现。
-\version 0.2874;
+\version 0.2920;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 + 08:00;
 \par 修改时间:
-	2010-11-29 23:28 + 08:00;
+	2010-12-21 16:31 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,6 +36,36 @@
 #include "../Core/yevt.hpp"
 
 YSL_BEGIN
+
+YSL_BEGIN_NAMESPACE(Components)
+
+YSL_BEGIN_NAMESPACE(Controls)
+PDeclInterface(IControl)
+PDeclInterface(IVisualControl)
+YSL_END_NAMESPACE(Controls)
+
+YSL_BEGIN_NAMESPACE(Forms)
+PDeclInterface(IWindow)
+class YFrameWindow;
+class YForm;
+YSL_END_NAMESPACE(Forms)
+
+YSL_BEGIN_NAMESPACE(Widgets)
+PDeclInterface(IWidget)
+PDeclInterface(IUIBox)
+PDeclInterface(IUIContainer)
+YSL_END_NAMESPACE(Widgets)
+
+YSL_END_NAMESPACE(Components)
+
+using Components::Controls::IControl;
+using Components::Controls::IVisualControl;
+using Components::Forms::IWindow;
+using Components::Widgets::IWidget;
+using Components::Widgets::IUIBox;
+using Components::Widgets::IUIContainer;
+
+DeclareHandle(IWindow, HWND)
 
 YSL_BEGIN_NAMESPACE(Components)
 
@@ -280,7 +310,7 @@ public:
 	\brief 构造：使用指定屏幕、有效性、前景色和背景色。
 	*/
 	explicit
-	YConsole(YScreen& = *theApp.pDefaultScreen, bool = true,
+	YConsole(YScreen& = *theApp.hDefaultScreen, bool = true,
 		Drawing::Color = Drawing::ColorSpace::White,
 		Drawing::Color = Drawing::ColorSpace::Black);
 	/*!
@@ -328,6 +358,102 @@ YConsole::Pause()
 }
 
 YSL_END_NAMESPACE(Components)
+
+YSL_BEGIN_NAMESPACE(Shells)
+
+//! \breif 默认图形用户界面 Shell 。
+class YGUIShell : public YShell
+{
+public:
+	typedef YShell ParentType;
+	typedef list<HWND> WNDs;
+
+private:
+	WNDs sWnds; //!< 窗口组。
+
+public:
+	/*!
+	\brief 无参数构造。
+	\note 向应用程序对象添加自身。
+	*/
+	YGUIShell();
+	/*!
+	\brief 析构。
+	\note 无异常抛出。
+			空实现。
+	*/
+	virtual
+	~YGUIShell() ythrow();
+
+	/*!
+	\brief 向窗口组添加指定窗口句柄。
+	\note 仅当句柄非空时添加。
+	*/
+	virtual void
+	operator+=(HWND);
+	/*!
+	\brief 从窗口组中移除指定窗口句柄。
+	*/
+	virtual bool
+	operator-=(HWND);
+	/*!
+	\brief 从窗口组中移除所有指定窗口句柄，返回移除的对象数。
+	\note 使用 set 实现，因此返回值应为 0 或 1 。
+	*/
+	WNDs::size_type
+	RemoveAll(HWND);
+	/*!
+	\brief 移除窗口队列中首个窗口对象。
+	*/
+	void
+	RemoveWindow();
+
+	/*!
+	\brief 取得窗口组中首个窗口对象的句柄。
+	*/
+	HWND
+	GetFirstWindowHandle() const;
+	/*!
+	\brief 取得窗口组中顶端窗口对象的句柄。
+	*/
+	HWND
+	GetTopWindowHandle() const;
+	/*!
+	\brief 取得窗口组中指定屏幕的指定的点所处的最顶层窗口对象的句柄。
+	*/
+	HWND
+	GetTopWindowHandle(YDesktop&, const Point&) const;
+
+	/*!
+	\brief 向屏幕发送指定窗口对象。
+	*/
+	bool
+	SendWindow(IWindow&);
+
+	/*!
+	\brief 向屏幕分发窗口对象。
+	*/
+	void
+	DispatchWindows();
+
+	/*!
+	\brief 清除指定屏幕中属于窗口组的窗口对象。
+	*/
+	void
+	ClearScreenWindows(YDesktop&);
+
+	/*!
+	\brief Shell 处理函数。
+	*/
+	virtual int
+	ShlProc(const Message&);
+};
+
+YSL_END_NAMESPACE(Shells)
+
+using Components::Forms::YForm;
+using Components::Forms::YFrameWindow;
+using Shells::YGUIShell;
 
 YSL_END
 

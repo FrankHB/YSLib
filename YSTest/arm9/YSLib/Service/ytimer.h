@@ -11,12 +11,12 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version 0.1638;
+\version 0.1642;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 + 08:00;
 \par 修改时间:
-	2010-11-15 11:59 + 08:00;
+	2010-12-17 19:01 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -137,14 +137,6 @@ public:
 	friend void
 	Deactivate(YTimer&);
 };
-
-inline void
-YTimer::SetInterval(TimeSpan i)
-{
-	nInterval = i;
-	if(!nInterval)
-		Deactivate(*this);
-}
 
 inline void
 YTimer::Synchronize()

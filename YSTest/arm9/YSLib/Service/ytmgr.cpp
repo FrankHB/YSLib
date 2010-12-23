@@ -11,12 +11,12 @@
 /*!	\file ytmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4046;
+\version 0.4051;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 + 08:00;
 \par 修改时间:
-	2010-12-08 20:28 + 08:00;
+	2010-12-17 19:06 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -338,6 +338,19 @@ TextFileBuffer::operator[](const BlockSizeType& i)
 		throw LoggedEvent("Allocation failed"
 			" @@ TextFileBuffer::operator[];", 2);
 	}
+}
+
+TextFileBuffer::HText
+TextFileBuffer::begin() ythrow()
+{
+	return TextFileBuffer::HText(this);
+}
+
+TextFileBuffer::HText
+TextFileBuffer::end() ythrow()
+{
+	return TextFileBuffer::HText(this,
+		(nTextSize + nBlockSize - 1) / nBlockSize);
 }
 
 YSL_END_NAMESPACE(Text)

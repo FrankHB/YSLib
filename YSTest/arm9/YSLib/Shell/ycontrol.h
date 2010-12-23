@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4604;
+\version 0.4605;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 + 08:00;
 \par 修改时间:
-	2010-12-02 09:59 + 08:00;
+	2010-12-16 14:57 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -232,6 +232,7 @@ EndDecl
 
 
 /*!
+\ingroup HelperFunction
 \brief 取控件事件。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 */

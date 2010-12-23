@@ -8,19 +8,15 @@
 	understand and accept it fully.
 */
 
-/*!	\defgroup YCLib YCommonLib
-\brief YSLib 基础库。
-*/
-
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2049;
+\version 0.2082;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 + 08:00;
 \par 修改时间:
-	2010-12-05 06:25 + 08:00;
+	2010-12-23 11:48 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,74 +28,6 @@
 #include <cstdarg>
 #include <cstring>
 #include <cerrno>
-#include <stack>
-
-namespace stdex
-{
-	std::size_t
-	strlen_n(const char* s)
-	{
-		return s ? std::strlen(s) : 0;
-	}
-
-	char*
-	strcpy_n(char* d, const char* s)
-	{
-		return d && s ? std::strcpy(d, s) : NULL;
-	}
-
-	char*
-	stpcpy_n(char* d, const char* s)
-	{
-		return d && s ? stpcpy(d, s) : NULL;
-	}
-
-	int
-	stricmp_n(const char* s1, const char* s2)
-	{
-		return s1 && s2 ? stricmp(s1, s2) : EOF;
-	}
-
-	char*
-	strdup_n(const char* s)
-	{
-		return s ? strdup(s) : NULL;
-	}
-
-	char*
-	strcpycat(char* d, const char* s1, const char* s2)
-	{
-		if(!d)
-			return NULL;
-		if(s1)
-			std::strcpy(d, s1);
-		if(s2)
-			std::strcat(d, s2);
-		return d;
-	}
-
-	char*
-	strcatdup(const char* s1, const char* s2, void*(*fun)(std::size_t))
-	{
-		char* d(static_cast<char*>(
-			fun((strlen(s1) + strlen(s2) + 1) * sizeof(char))));
-
-		return strcpycat(d, s1, s2);
-	}
-
-
-	bool
-	fexists(CPATH path)
-	{
-		FILE* file = fopen(path, "rb");
-		if(file)
-		{
-			std::fclose(file);
-			return true;
-		}
-		return false;
-	}
-}
 
 
 namespace platform
@@ -137,198 +65,6 @@ namespace platform
 		return ::mkdir(path, S_IRWXU|S_IRWXG|S_IRWXO) == 0 || errno == EEXIST;
 	}
 
-	/*#define LOWC(x) ((x)&31)
-
-	u8 backlight = 0;
-
-	void FIFOBacklight(u32 value, void* userdata)
-	{
-		++backlight;
-		backlight = value;
-	}
-
-	void toggleBacklight()
-	{
-		fifoSendValue32(TCOMMON_FIFO_CHANNEL_ARM7, MSG_TOGGLE_BACKLIGHT);
-		//--in libnds 1.3.1 you HAVE to check the return value or the command
-		// won't be sent (GCC is probably to blame)
-		if(!fifoSendValue32(TCOMMON_FIFO_CHANNEL_ARM7, MSG_TOGGLE_BACKLIGHT))
-			iprintf("Error sending backlight message to ARM7\n");
-		fifoSendValue32(FIFO_AUDIO, backlight);
-		++backlight;
-	}
-
-	u8 chartohex(char c)
-	{
-		if(c >= '0' && c <= '9') return c - '0';
-		if(c >= 'a' && c <= 'f') return 10 + c - 'a';
-		if(c >= 'A' && c <= 'F') return 10 + c - 'A';
-		return 0;
-	}
-
-	u32 oldMode;
-	u32 oldModeSub;
-
-	void fadeBlack(u16 frames)
-	{
-		oldMode = (REG_DISPCNT);
-		oldModeSub = (REG_DISPCNT_SUB);
-		videoSetMode(oldMode & (~DISPLAY_SPR_ACTIVE));
-		videoSetModeSub(oldModeSub & (~DISPLAY_SPR_ACTIVE));
-
-		REG_BLDCNT = BLEND_FADE_BLACK
-			| BLEND_SRC_BG0 | BLEND_SRC_BG2 | BLEND_SRC_BG3;
-		REG_BLDCNT_SUB = BLEND_FADE_BLACK | BLEND_SRC_BG2 | BLEND_SRC_BG3;
-
-		for(u16 n = 0; n <= frames; ++n)
-		{
-			REG_BLDY = 0x1F * n / frames;
-			REG_BLDY_SUB = 0x1F * n / frames;
-			swiWaitForVBlank();
-		}
-	}
-
-	void unfadeBlack2(u16 frames)
-	{
-		for(u16 n = 0; n <= frames; ++n)
-		{
-			REG_BLDY = 0x1F - 0x1F * n / frames;
-			REG_BLDY_SUB = 0x1F - 0x1F * n / frames;
-			swiWaitForVBlank();
-		}
-
-		REG_BLDCNT = BLEND_NONE;
-		REG_BLDCNT_SUB = BLEND_NONE;
-	}
-	void unfadeBlack(u16 frames)
-	{
-		unfadeBlack2(frames);
-
-		videoSetMode(oldMode);
-		videoSetModeSub(oldModeSub);
-	}
-
-	bool loadImage(const char* file, u16* out,
-		u8* outA, u16 w, u16 h, int format)
-	{
-		if(format == 0)
-		{
-			char path[MAXPATHLEN];
-			sprintf(path, "%s.png", file);
-
-			FILE* file = fopen(path, "rb");
-			if(file)
-			{
-				fseek(file, 0, SEEK_END);
-
-				int dataL(ftell(file));
-
-				fseek(file, 0, SEEK_SET);
-
-				char* data(new char[dataL]);
-
-				fread(data, sizeof(char), dataL, file);
-
-				bool result(pngLoadImage(data, dataL, out, outA, w, h));
-
-				delete[] data;
-				fclose(file);
-				return result;
-			}
-			return false;
-		}
-
-		char dtaPath[MAXPATHLEN];
-		sprintf(dtaPath, "%s.dta", file);
-		char palPath[MAXPATHLEN];
-		sprintf(palPath, "%s.pal", file);
-
-		FileHandle* fhDTA(fhOpen(dtaPath));
-
-		if(!fhDTA)
-			return false;
-
-		FileHandle* fhPAL(NULL);
-		u16* pal(NULL);
-
-		if(format != GL_RGBA)
-		{
-			fhPAL = fhOpen(palPath);
-			if(!fhPAL)
-			{
-				fhClose(fhDTA);
-				return false;
-			}
-			pal = new u16[fhPAL->length / sizeof(u16)];
-			fhReadFully(pal, fhPAL);
-		}
-
-		u8* dta(new u8[fhDTA->length]);
-
-		fhReadFully(dta, fhDTA);
-		if(format == GL_RGB32_A3)
-			for(u32 n = 0; n < fhDTA->length; ++n)
-			{
-				out[n] = pal[dta[n] & 31];
-				if(outA)
-				{
-					outA[n] = (dta[n] & 0xE0) + 16;
-					if(outA[n] >= 255 - 16)
-						outA[n] = 255;
-					if(outA[n] <= 16)
-						outA[n] = 0;
-				}
-			}
-		else if(format == GL_RGB8_A5)
-			for(u32 n = 0; n < fhDTA->length; n++)
-			{
-				out[n] = pal[dta[n] & 7];
-				if(outA)
-				{
-					outA[n] = (dta[n]&0xF8) + 4;
-					if(outA[n] >= 255-4) outA[n] = 255;
-					if(outA[n] <= 4) outA[n] = 0;
-				}
-			}
-		else if(format == GL_RGB256)
-			for(u32 n = 0; n < fhDTA->length; ++n)
-			{
-				out[n] = pal[dta[n]]|BITALPHA;
-				if(outA) outA[n] = (out[n]|BITALPHA ? 255 : 0);
-			}
-		else if(format == GL_RGBA)
-			for(u32 n = 0; n < fhDTA->length; ++n)
-			{
-				out[n >> 1] = (dta[n + 1] << 8) | (dta[n]);
-				++n;
-				if(outA)
-					outA[n] = (out[n] | BITALPHA ? 255 : 0);
-			}
-		if(fhDTA)
-			fhClose(fhDTA);
-		delete[] dta;
-		if(fhPAL)
-			fhClose(fhPAL);
-		delete[] pal;
-		return true;
-	}
-
-	void darken(u16* screen, u8 factor, s16 x, s16 y, s16 w, s16 h)
-	{
-		int t = y * 256;
-		for(int v = y; v < y + h; ++v)
-		{
-			t += x;
-			for(int u = x; u < x + w; ++u)
-			{
-				screen[t] = RGB15(((screen[t] & 31) >> factor),
-					(((screen[t] >> 5) & 31) >> factor),
-					(((screen[t] >> 10) & 31) >> factor)) | BITALPHA;
-				++t;
-			}
-			t += 256 - (x+w);
-		}
-	}*/
 
 	void
 	terminate()
@@ -413,6 +149,23 @@ namespace platform
 		return t;
 	}
 
+	#ifdef YCL_USE_YASSERT
+
+	void
+	yassert(bool exp, const char* expstr, const char* message,
+		int line, const char* file)
+	{
+		if(!exp)
+		{
+			yprintf("Assertion failed: \n"
+				"%s\nMessage: \n%s\nAt line %i in file \"%s\".\n",
+				expstr, message, line, file);
+			std::abort();
+		}
+	}
+
+	#endif
+
 
 	PATHSTR HDirectory::Name;
 	struct ::stat HDirectory::Stat;
@@ -423,6 +176,31 @@ namespace platform
 	{
 		LastError = ::dirnext(dir, Name, &Stat);
 		return *this;
+	}
+
+	bool
+	HDirectory::IsDirectory()
+	{
+		return Stat.st_mode & S_IFDIR;
+	}
+
+	void
+	HDirectory::Open(CPATH path)
+	{
+		dir = path ? ::diropen(path) : NULL;
+	}
+
+	void
+	HDirectory::Close()
+	{
+		if(IsValid())
+			LastError = ::dirclose(dir);
+	}
+
+	void
+	HDirectory::Reset()
+	{
+		LastError = ::dirreset(dir);
 	}
 
 

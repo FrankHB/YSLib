@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version 0.1704;
+\version 0.1724;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 + 08:00; 
 \par 修改时间:
-	2010-11-11 21:20 + 08:00;
+	2010-12-17 18:37 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,25 +38,6 @@ using std::tolower;
 using std::malloc;
 using std::strlen;
 using std::memcpy;
-
-/*
-char* U2A(char* Ui)
-{
-	ubyte_t t;
-	char* R(Ui);
-	const char S[]("0123456789ABCDEF");
-
-	for(t(0); t < 4; ++t)
-	{
-		U[t << 1] = S[(*R & 0xF0) >> 4];
-		U[(t << 1) + 1] = S[*R & 0xF];
-		++R;
-		//++t;
-	}
-	U[(t + 1) << 1] = 0;
-	return U;
-}
-*/
 
 usize_t
 ucslen(const uchar_t* s)
@@ -151,23 +132,26 @@ ToUTF(FILE* fp, uchar_t& uchr, const CSID& cp)
 	return feof(fp) ? 0 : len;
 }
 
-template<typename _tChar>
-static inline usize_t
-StrToANSI(char* d, const _tChar* s, char c = ' ')
+namespace
 {
-	char* const p(d);
+	template<typename _tChar>
+	usize_t
+	StrToANSI(char* d, const _tChar* s, char c = ' ')
+	{
+		char* const p(d);
 
-	if(c)
-		while(*s)
-		{
-			*d++ = IsASCII(*s) ? *s : c;
-			++s;
-		}
-	else
-		while(*s)
-			*d++ = ToASCII(*s++);
-	*d = 0;
-	return d - p;
+		if(c)
+			while(*s)
+			{
+				*d++ = IsASCII(*s) ? *s : c;
+				++s;
+			}
+		else
+			while(*s)
+				*d++ = ToASCII(*s++);
+		*d = 0;
+		return d - p;
+	}
 }
 
 usize_t
@@ -175,11 +159,13 @@ MBCSToANSI(char* d, const char* s, char c)
 {
 	return StrToANSI(d, s, c);
 }
+
 usize_t
 UCS2ToANSI(char* d, const uchar_t* s, char c)
 {
 	return StrToANSI(d, s, c);
 }
+
 usize_t
 UCS4ToANSI(char* d, const fchar_t* s, char c)
 {

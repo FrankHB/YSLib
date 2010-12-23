@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2021;
+\version 0.2022;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 + 08:00;
 \par 修改时间:
-	2010-12-11 15:40 + 08:00;
+	2010-12-23 11:29 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,7 +40,7 @@
 
 #include "../../CHRLib/chrlib.h"
 
-namespace stdex
+namespace ystdex
 {
 	using CHRLib::uchar_t;
 	using CHRLib::uint_t;

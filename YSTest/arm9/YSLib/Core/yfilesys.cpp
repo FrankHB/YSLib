@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2130;
+\version 0.2131;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 + 08:00;
 \par 修改时间:
-	2010-12-08 20:22 + 08:00;
+	2010-12-23 11:29 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -219,7 +219,7 @@ GetStemFrom(const string& name)
 bool
 IsStemOf(const char* str, const char* name)
 {
-	using stdex::strlen_n;
+	using ystdex::strlen_n;
 
 	std::size_t t(strlen_n(str));
 
@@ -302,14 +302,14 @@ HaveSameExtendNames(const char* a, const char* b)
 
 	if(!(pa && pb))
 		return false;
-	return stdex::stricmp_n(pa, pb) != 0;
+	return ystdex::stricmp_n(pa, pb) != 0;
 }
 bool
 HaveSameExtendNames(const string& a, const string& b)
 {
 	string ea(GetExtendNameFrom(a)), eb(GetExtendNameFrom(b));
 
-	return stdex::stricmp_n(ea.c_str(), eb.c_str()) != 0;
+	return ystdex::stricmp_n(ea.c_str(), eb.c_str()) != 0;
 //	return ucsicmp(ea.c_str(), eb.c_str());
 }
 

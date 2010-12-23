@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3274;
+\version 0.3345;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 + 08:00;
 \par 修改时间:
-	2010-11-27 23:38 + 08:00;
+	2010-12-18 17:30 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,15 +38,14 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Forms)
 
-MWindow::MWindow(const GHStrong<YImage> i, HWND hWnd, HSHL hShl)
+MWindow::MWindow(const GHStrong<YImage> i, HWND hWnd)
 	: MWindowObject(hWnd),
-	Buffer(), hShell(hShl), prBackImage(i), bRefresh(false), bUpdate(false)
+	Buffer(), prBackImage(i), bRefresh(false), bUpdate(false)
 {}
 
 
-AWindow::AWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd,
-	HSHL hShl)
-	: AVisualControl(r, GetPointer(hWnd)), MWindow(i, hWnd, hShl)
+AWindow::AWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
+	: AVisualControl(r, GetPointer(hWnd)), MWindow(i, hWnd)
 {}
 
 BitmapPtr
@@ -181,10 +180,9 @@ AWindow::Show()
 }
 
 
-YFrameWindow::YFrameWindow(const Rect& r, const GHStrong<YImage> i,
-	HWND hWnd, HSHL hShl)
+YFrameWindow::YFrameWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
 	: YComponent(),
-	AWindow(r, i, hWnd, hShl), MUIContainer()
+	AWindow(r, i, hWnd), MUIContainer()
 {
 	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
 
@@ -192,9 +190,6 @@ YFrameWindow::YFrameWindow(const Rect& r, const GHStrong<YImage> i,
 		*p += static_cast<GMFocusResponser<IVisualControl>&>(*this);
 	SetSize(GetSize());
 	DrawBackground();
-	InsertMessage(hShell, SM_WNDCREATE, 0xF0,
-		handle_cast<WPARAM>(GetWindowHandle()), reinterpret_cast<LPARAM>(this));
-	*hShl += *this;
 
 	YDesktop* pDsk(FetchDirectDesktopPtr(*this));
 
@@ -207,14 +202,11 @@ YFrameWindow::~YFrameWindow() ythrow()
 
 	if(p)
 		*p -= static_cast<GMFocusResponser<IVisualControl>&>(*this);
-	hShell->RemoveAll(*this);
 
 	YDesktop* pDsk(FetchDirectDesktopPtr(*this));
 
 	if(pDsk)
 		pDsk->RemoveAll(*this);
-	InsertMessage(hShell, SM_WNDDESTROY, 0xF0,
-		handle_cast<WPARAM>(GetWindowHandle()), reinterpret_cast<LPARAM>(this));
 }
 
 bool

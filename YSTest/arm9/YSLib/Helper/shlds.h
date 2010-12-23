@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1711;
+\version 0.1771;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 + 08:00;
 \par 修改时间:
-	2010-11-19 11:52 + 08:00;
+	2010-12-21 15:45 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Shells)
 
 //标准命令行界面 Shell 。
-class ShlCLI : public YShellMain
+class ShlCLI : public YShell
 {
 public:
 	/*!
@@ -46,39 +46,35 @@ public:
 	\brief 析构。
 	\note 无异常抛出。
 	*/
-	virtual
-	~ShlCLI() ythrow();
+	virtual DefEmptyDtor(ShlCLI)
 
 	/*!
 	\brief 处理激活消息。
 	*/
-	virtual LRES
+	virtual int
 	OnActivated(const Message&);
 
 	/*!
 	\brief 处理停用消息。
 	*/
-	virtual LRES
+	virtual int
 	OnDeactivated(const Message&);
 
 	/*!
 	\brief 执行命令行。
 	*/
-	IRES
+	int
 	ExecuteCommand(const uchar_t*);
 	/*!
 	\brief 执行命令行。
 	*/
-	IRES
+	int
 	ExecuteCommand(const String&);
 };
 
 inline
 ShlCLI::ShlCLI()
-	: YShellMain()
-{}
-inline
-ShlCLI::~ShlCLI() ythrow()
+	: YShell()
 {}
 
 inline int
@@ -89,7 +85,7 @@ ShlCLI::ExecuteCommand(const String& s)
 
 
 //标准图形用户界面窗口 Shell 。
-class ShlGUI : public YShellMain
+class ShlGUI : public YGUIShell
 {
 public:
 	ShlGUI();
@@ -97,16 +93,12 @@ public:
 	~ShlGUI() ythrow();
 
 	/*!
-	\
-	\
 	\brief 处理停用消息。
 	*/
-	virtual LRES
+	virtual int
 	OnDeactivated(const Message&);
 
 	/*!
-	\
-	\
 	\brief 发送绘制消息。
 	*/
 	void
@@ -121,7 +113,7 @@ public:
 
 inline
 ShlGUI::ShlGUI()
-	: YShellMain()
+	: YGUIShell()
 {}
 inline
 ShlGUI::~ShlGUI() ythrow()
@@ -151,13 +143,13 @@ public:
 	/*!
 	\brief Shell 处理函数。
 	*/
-	virtual LRES
+	virtual int
 	ShlProc(const Message&);
 
 	/*!
 	\brief 处理停用消息。
 	*/
-	virtual LRES
+	virtual int
 	OnDeactivated(const Message&);
 };
 
@@ -172,7 +164,7 @@ OnTouchUp(const Components::Controls::TouchEventArgs::InputType& pt)
 {
 	Components::Controls::TouchEventArgs e(pt);
 
-	ResponseTouchUp(*pDesktopDown, e);
+	ResponseTouchUp(*hDesktopDown, e);
 }
 
 /*!
@@ -183,7 +175,7 @@ OnTouchDown(const Components::Controls::TouchEventArgs::InputType& pt)
 {
 	Components::Controls::TouchEventArgs e(pt);
 
-	ResponseTouchDown(*pDesktopDown, e);
+	ResponseTouchDown(*hDesktopDown, e);
 }
 
 /*!
@@ -194,7 +186,7 @@ OnTouchHeld(const Components::Controls::TouchEventArgs::InputType& pt)
 {
 	Components::Controls::TouchEventArgs e(pt);
 
-	ResponseTouchHeld(*pDesktopDown, e);
+	ResponseTouchHeld(*hDesktopDown, e);
 }
 
 /*!
@@ -205,7 +197,7 @@ OnKeyUp(const Components::Controls::KeyEventArgs::InputType& key)
 {
 	Components::Controls::KeyEventArgs e(key);
 
-	ResponseKeyUp(*pDesktopDown, e);
+	ResponseKeyUp(*hDesktopDown, e);
 }
 
 /*!
@@ -216,7 +208,7 @@ OnKeyDown(const Components::Controls::KeyEventArgs::InputType& key)
 {
 	Components::Controls::KeyEventArgs e(key);
 
-	ResponseKeyDown(*pDesktopDown, e);
+	ResponseKeyDown(*hDesktopDown, e);
 }
 
 /*!
@@ -227,7 +219,7 @@ OnKeyHeld(const Components::Controls::KeyEventArgs::InputType& key)
 {
 	Components::Controls::KeyEventArgs e(key);
 
-	ResponseKeyHeld(*pDesktopDown, e);
+	ResponseKeyHeld(*hDesktopDown, e);
 }
 
 /*!
@@ -239,35 +231,37 @@ ResponseInput(const Message&);
 
 // Shell 快捷操作。
 
+//! \ingroup HelperFunction
+//@{
+
 /*!
 \brief 发送当前 Shell 预注销消息。
 */
 inline void
-NowShellInsertDropMessage(Shells::MSGPRIORITY p = 0x80)
+NowShellInsertDropMessage(Messaging::Priority p = 0x80)
 {
-	InsertMessage(NULL, SM_DROP, p, handle_cast<WPARAM>(NowShell()));
+	SendMessage(NULL, SM_DROP, p,
+		new Messaging::GHandleContext<GHHandle<YShell> >(FetchShellHandle()));
 }
 
 /*!
 \brief 清除屏幕内容。
 */
-inline void
-ShlClearBothScreen(HSHL h = NowShell())
-{
-	h->ClearScreenWindows(*pDesktopUp);
-	h->ClearScreenWindows(*pDesktopDown);
-}
+void
+ShlClearBothScreen(GHHandle<YGUIShell> h = FetchGUIShellHandle());
 
 /*!
 \brief 当前 Shell 预注销。
 \note 发送预注销消息后清除屏幕内容。
 */
 inline void
-NowShellDrop(Shells::MSGPRIORITY p = 0x80)
+NowShellDrop(Messaging::Priority p = 0x80)
 {
 	NowShellInsertDropMessage(p);
 	ShlClearBothScreen();
 }
+
+//@}
 
 YSL_END_NAMESPACE(DS)
 

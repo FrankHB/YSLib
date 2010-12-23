@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-12-11 15:41 + 08:00;
-// Version = r10386;
+// UTime = 2010-12-23 11:51 + 08:00;
+// Version = r10588;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -112,15 +112,192 @@ extern const u16 $SCREEN_WIDTH, $SCREEN_HEIGHT;
 } //$code;
 
 
+//既定内部宏污染列表。
+$herder *
+{
+INCLUDED_*
+}
+
+$header Platform
+{
+YCL_YCOMMON_H
+YSL_YSBUILD_H
+UNICODE
+CHRLIB_WCHAR_T_SIZE
+}
+
+$dir CHRLib
+{
+$header CHRLib
+{
+CHRLIB_BEGIN
+CHRLIB_END
+CHRLIB_
+CHRLIB
+CHRLIB_BEGIN_NAMESPACE(s)
+CHRLIB_END_NAMESPACE(s)
+FS(str)
+}
+} //$dir CHRLib;
+
+$dir YCLib
+{
+$header YDefinition
+{
+FALSE
+TRUE
+BASETYPES
+UCSCHAR_INVALID_CHARACTER
+MIN_UCSCHAR
+MAX_UCSCHAR
+}
+$header YCommon
+{
+UNICODE
+MAX_FILENAME_LENGTH
+MAX_PATH_LENGTH
+DEF_SHELL_FONTSIZE
+DEF_SHELL_FONTSIZE_MIN
+DEF_SHELL_FONTSIZE_MAX
+DEF_PATH_ROOT
+BITALPHA
+} //$dir YCLib;
+
+$dir YSLib
+{
+$dir Adaptor
+{
+$header Config
+{
+YCL_USE_YASSERT
+YSL_USE_MEMORY_DEBUG
+YSL_USE_EXCEPTION_SPECIFICATION
+YSL_MULTITHREAD
+YSL_USE_COPY_ON_WRITE
+YSL_USE_YASLI_VECTOR
+YSL_USE_FLEX_STRING
+YSL_OPT_SMALL_STRING_LENGTH
+YSL_DEBUG_MSG
+YSL_EVENT_MULTICAST
+}
+$header Base
+{
+_yJOIN
+YSL_BEGIN
+YSL_END
+YSL_
+YSL
+YSL_BEGIN_NAMESPACE(s)
+YSL_END_NAMESPACE(s)
+YSL_BEGIN_SHELL(s)
+YSL_END_SHELL(s)
+YSL_SHL_(s)
+YSL_SHL(s)
+ythrow(*)?
+_yInterface
+_yInterfaceHead(_name)
+PDeclInterface(_name)
+DeclInterface(_name)
+DeclBasedInterface(_name, *)
+ImplI(_interface, *)
+ImplA(_interface, *)
+DeclIEntry(_signature)
+EndDecl
+PDefH(_type, _name, *)
+PDefHOperator(_type, _op, *)
+ImplExpr(_expr)
+ImplRet(_expr)
+ImplBodyBase(_base, _name, _arglist, *)
+ImplBodyBaseVoid(_base, _name, _arglist, *)
+ImplBodyMember(_member, _name, _arglist, *)
+ImplBodyMemberVoid(_member, _name, _arglist, *)
+DefEmptyDtor(_type)
+DefConverter(_type, _expr)
+DefConverterBase(_type, _base)
+DefConverterMember(_type, _member)
+DefGetter(_type, _name, _member)
+DefGetterBase(_type, _name, _base)
+DefGetterMember(_type, _name, _member)
+DefPredicate(_name, _member)
+DefPredicateBase(_name, _base)
+DefPredicateMember(_name, _member)
+DefStaticGetter(_type, _name, _member)
+DefStaticGetterBase(_type, _name, _base)
+DefStaticPredicate(_name, _member)
+DefStaticPredicateBase(_name, _base)
+DefSetter(_type, _name, _member)
+DefSetterDe(_type, _name, _member, _defv)
+DefSetterBase(_type, _name, _base)
+DefSetterBaseDe(_type, _name, _base, _defv)
+DefSetterMember(_type, _name, _member)
+DefSetterMemberDe(_type, _name, _member, _defv)
+DefSetterEx(_type, _name, _member, _tempArgName, _expr)
+DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr)
+}
+$header AGG
+{
+AGG_INCLUDED
+}
+$header YFont
+{
+GLYPH_CACHE_SIZE
+}
+} //$dir Adaptor;
+$dir Core
+{
+$header YShellDefinition
+{
+DeclareHandle(type, handle)
+}
+$header YReference
+{
+YHandleOP
+}
+$header YEvent
+{
+DefDelegate(_name, _tSender, _tEventArgs)
+}
+$header YShellMessageDefinition
+{
+SM_NULL
+SM_SET
+SM_DROP
+SM_ACTIVATED
+SM_DEACTIVATED
+SM_PAINT
+SM_QUIT
+SM_INPUT
+}
+$header YShell
+{
+PM_NOREMOVE
+PM_REMOVE
+}
+} //$dir Core;
+$dir Shell
+$header YControl
+{
+DefEventTypeMapping(_name, _tEventHandler)
+}
+} //$dir Shell
+$dir Helper
+{
+$header YShellHelper
+{
+DefDynInitRef(_type, _name, _expr)
+}
+} //$dir Helper;
+} //$dir YSLib;
+
 //非本体或 YGlobal 声明的对象列表。
 
 
 //非本体函数列表。
 $header Core::YShell
 {
-	extern LRES
+	extern int
 	MainShlProc(const Message&);
-} //$header Adaptor::YNew;
+} //$header Core::YShell;
 $header Core::YDevice
 {
 	extern bool
@@ -130,10 +307,10 @@ $header Core::YDevice
 $unit Helper::YGlobal
 {
 	extern void
-	ReleaseShell();
+	ReleaseShells();
 	extern int
 	::YMain(int, char*[]);
-} //$header Adaptor::YNew;
+} //$unit Helper::YGlobal;
 
 
 //友元列表。
@@ -151,6 +328,8 @@ namespace std
 } //namespace std;
 
 //命名空间单元分布。
+
+// YCLib 略。
 
 namespace Components
 {
@@ -176,10 +355,7 @@ namespace Design
 	$unit Core::YCoreUtilities;
 	namespace Policies
 	{
-		namespace Operations
-		{
-			$header Adaptor::Reference;
-		} //namespace Operations;
+		$header Adaptor::Reference;
 	} //namespace Policies;
 } //namespace Design;
 
@@ -194,6 +370,11 @@ namespace Drawing
 	$unit Core::YObject;
 	$unit Core::YResourse;
 } //namespace Drawing;
+
+namespace Messaging
+{
+	$unit Core::YShellMessage;
+} //namespace Messaging;
 
 namespace IO
 {
@@ -210,9 +391,7 @@ namespace Runtime
 namespace Shells
 {
 	$unit Core::YShell;
-	$unit Core::YShellMessage;
-	$unit Core::YShellMessageMapping;
-	$unit Core::YShellProcessing;
+	$unit Shell::YComponent;
 } //namespace Shells;
 
 namespace Timers
@@ -234,7 +413,66 @@ $header <platform.h>
 	typedef ::uint32_t char32_t;
 } //$header <platfrom.h>
 
-//既定 stdex 命名空间污染列表。
+//既定 ystdex 命名空间污染列表。
+
+$header YStandardExtend
+{
+	using std::tr1::add_const;
+	using std::tr1::add_cv;
+	using std::tr1::add_pointer;
+	using std::tr1::add_reference;
+	using std::tr1::add_volatile;
+	using std::tr1::aligned_storage;
+	using std::tr1::alignment_of;
+	using std::tr1::extent;
+	using std::tr1::false_type;
+	using std::tr1::has_nothrow_assign;
+	using std::tr1::has_nothrow_constructor;
+	using std::tr1::has_nothrow_copy;
+	using std::tr1::has_trivial_assign;
+	using std::tr1::has_trivial_constructor;
+	using std::tr1::has_trivial_copy;
+	using std::tr1::has_trivial_destructor;
+	using std::tr1::has_virtual_destructor;
+	using std::tr1::integral_constant;
+	using std::tr1::is_abstract;
+	using std::tr1::is_arithmetic;
+	using std::tr1::is_array;
+	using std::tr1::is_base_of;
+	using std::tr1::is_class;
+	using std::tr1::is_compound;
+	using std::tr1::is_const;
+	using std::tr1::is_convertible;
+	using std::tr1::is_empty;
+	using std::tr1::is_enum;
+	using std::tr1::is_floating_point;
+	using std::tr1::is_function;
+	using std::tr1::is_fundamental;
+	using std::tr1::is_integral;
+	using std::tr1::is_member_function_pointer;
+	using std::tr1::is_member_object_pointer;
+	using std::tr1::is_member_pointer;
+	using std::tr1::is_pod;
+	using std::tr1::is_pointer;
+	using std::tr1::is_polymorphic;
+	using std::tr1::is_reference;
+	using std::tr1::is_same;
+	using std::tr1::is_scalar;
+	using std::tr1::is_signed;
+	using std::tr1::is_union;
+	using std::tr1::is_unsigned;
+	using std::tr1::is_void;
+	using std::tr1::is_volatile;
+	using std::tr1::rank;
+	using std::tr1::remove_all_extents;
+	using std::tr1::remove_const;
+	using std::tr1::remove_cv;
+	using std::tr1::remove_extent;
+	using std::tr1::remove_pointer;
+	using std::tr1::remove_reference;
+	using std::tr1::remove_volatile;
+	using std::tr1::true_type;
+} //$header YStandardExtend;
 
 $header YAdaptor
 {
@@ -342,17 +580,16 @@ $Adaptor::Container : Adaptor::YAdaptor
 
 $header Core::YShellDefinition : Adaptor::YAdaptor
 {
-	using Components::Controls::IControl, Components::Controls::IVisualControl;
-	using Components::Forms::YForm, Components::Forms::YFrameWindow;
-	using Components::Widgets::IWidget, Components::Widgets::IUIBox, Components::Widgets::IUIContainer;
 	using Components::YDesktop;
 
 	using Device::YScreen;
 
 	using Drawing::YFontCache;
 
-	using Shells::YMessageQueue;
-	using Shells::YShell, Shells::YShellMain;
+	using Messaging::YMessageQueue;
+	
+	using Shells::
+	{YMainShell, YShell};
 
 	using Text::String;
 } //$header Core::YShellDefinition;
@@ -366,7 +603,7 @@ $header Core::YShellMessage : Core::YShellDefinition
 {
 	using Drawing::Point;
 
-	using Shells::Message, Shells::InsertMessage;
+	using Messaging::Message;
 } //$header Core::YCoreUtilities;
 
 //$header Core::YResource : Shell::YGDI;
@@ -375,7 +612,17 @@ $header Shell::YGDI
 {
 } //$header Shell::YGDI;
 
-$header Shell::YComponent : YShellMessage;
+$header Shell::YComponent : YShellMessage
+{
+	using Components::Controls::
+	{IControl, IVisualControl};
+	using Components::Forms::
+	{YForm, YFrameWindow};
+	using Components::Widgets::
+	{IWidget, IUIBox, IUIContainer};
+
+	using Shells::YGUIShell;
+} //$header Shell::YComponent;
 
 $header Shell::YWidget : Shell::YComponent, Core::YResource
 {

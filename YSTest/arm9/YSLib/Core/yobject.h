@@ -11,12 +11,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.2715;
+\version 0.2722;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-11 13:02 + 08:00;
+	2010-12-14 06:26 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,30 +34,6 @@
 YSL_BEGIN
 
 //抽象描述接口。
-
-//! \brief 值类型相等关系。
-template<typename _type>
-DeclInterface(GIEquatable)
-	DeclIEntry(bool operator==(const _type&) const)
-	virtual bool
-	operator!=(const _type& rhs) const
-	{
-		return !this->operator==(rhs);
-	}
-EndDecl
-
-//! \brief 值类型小于关系。
-template<typename _type>
-DeclInterface(GILess)
-	DeclIEntry(bool operator<(const _type&) const)
-EndDecl
-
-//! \brief 容器。
-template<typename _type>
-DeclInterface(GIContainer)
-	DeclIEntry(void operator+=(_type&))
-	DeclIEntry(bool operator-=(_type&))
-EndDecl
 
 //! \brief 对象复制构造性。
 template<typename _type>
@@ -126,8 +102,7 @@ typename GStaticCache<_type, _tPointer>::PointerType
 
 //! \brief 通用对象组类模板。
 template<class _type, class _tContainer = set<_type*> >
-class GContainer : public _tContainer,
-	implements GIContainer<_type>
+class GContainer : public _tContainer
 {
 public:
 	typedef _tContainer ContainerType; //!< 对象组类型。
@@ -147,7 +122,7 @@ public:
 	/*!
 	\brief 向对象组添加对象。
 	*/
-	ImplI(GIContainer<_type>) void
+	virtual void
 	operator+=(_type& w) 
 	{
 		insert(&w);
@@ -155,7 +130,7 @@ public:
 	/*!
 	\brief 从对象组移除对象。
 	*/
-	ImplI(GIContainer<_type>) bool
+	virtual bool
 	operator-=(_type& w)
 	{
 		return erase(&w);

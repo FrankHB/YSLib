@@ -11,12 +11,12 @@
 /*!	\file base.h
 \ingroup Adaptor
 \brief 通用基础设施。
-\version 0.2002;
+\version 0.2006;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 + 08:00;
 \par 修改时间:
-	2010-11-27 09:05 + 08:00;
+	2010-12-12 22:11 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -67,8 +67,7 @@
 
 //接口类型宏。
 
-#define __interface struct
-#define _yInterface __interface
+#define _yInterface struct
 
 #define implements public
 

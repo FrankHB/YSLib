@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2040;
+\version 0.2058;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 + 08:00;
 \par 修改时间:
-	2010-11-28 18:33 + 08:00;
+	2010-12-18 17:08 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@ YSL_BEGIN_NAMESPACE(Components)
 using namespace Controls;
 
 YDesktop::YDesktop(YScreen& s, Color c, GHStrong<YImage> i)
-	: YFrameWindow(Rect::FullScreen, i, NULL, YApplication::DefaultShellHandle),
+	: YFrameWindow(Rect::FullScreen, i),
 	Screen(s), sDOs()
 {
 	BackColor = c;

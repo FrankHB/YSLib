@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2064;
+\version 0.2066;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 + 08:00;
 \par 修改时间:
-	2010-12-08 20:21 + 08:00;
+	2010-12-13 14:36 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,7 @@
 
 #include "ystring.h"
 #include "yfunc.hpp"
-#include "../Core/yshell.h" // for HSHL delete procedure;
+#include "../Core/yshell.h" // for GHHandle<YShell> delete procedure;
 #include <iterator>
 //#include <vector>
 //#include <list>

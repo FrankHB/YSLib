@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 应用程序实例类抽象。
-\version 0.1990;
+\version 0.2141;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 + 08:00;
 \par 修改时间:
-	2010-12-03 15:26 + 08:00;
+	2010-12-23 13:02 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,9 +57,9 @@ YLog::Error(const string& s)
 }
 
 void
-YLog::FatalError(const char*)
+YLog::FatalError(const char* s)
 {
-	terminate();
+	ShowFatalError(s);
 }
 void
 YLog::FatalError(const string& s)
@@ -68,21 +68,19 @@ YLog::FatalError(const string& s)
 }
 
 
-YApplication::YApplication(YScreen*& pScr, YDesktop*& pDsk)
+YApplication::YApplication(GHHandle<YScreen>& hScr, GHHandle<YDesktop>& hDsk)
 	: YObject(),
-	Log(DefaultLog), pDefaultScreen(pScr), pDefaultDesktop(pDsk),
+	Log(DefaultLog), hDefaultScreen(hScr), hDefaultDesktop(hDsk),
 	pMessageQueue(new YMessageQueue()),
 	pMessageQueueBackup(new YMessageQueue()),
-	sShls(), hShell(NULL), pFontCache(NULL)
+	hShell(NULL), pFontCache(NULL)
 {
 	ApplicationExit += Destroy_Static;
 }
 YApplication::~YApplication() ythrow()
 {
-	for(SHLs::const_iterator i(sShls.begin()); i != sShls.end(); ++i)
-		YDelete(*i);
 	//释放主 Shell 。
-//	YDelete(DefaultShellHandle);
+//	YReset(DefaultShellHandle);
 	EventArgs e;
 
 	ApplicationExit(*this, e);
@@ -90,21 +88,13 @@ YApplication::~YApplication() ythrow()
 	delete pMessageQueueBackup;
 }
 
-void
-YApplication::operator+=(YShell& shl)
+YApplication*
+YApplication::GetInstancePtr(GHHandle<YScreen>& hScr, GHHandle<YDesktop>& hDsk)
 {
-	sShls.insert(&shl);
-}
-bool
-YApplication::operator-=(YShell& shl)
-{
-	return sShls.erase(&shl);
-}
+	//单例对象。
+	static YApplication* pInstance(new YApplication(hScr, hDsk));
 
-bool
-YApplication::Contains(HSHL hShl) const
-{
-	return sShls.count(hShl);
+	return pInstance;
 }
 
 YMessageQueue&
@@ -123,18 +113,21 @@ YApplication::GetBackupMessageQueue() ythrow(LoggedEvent)
 }
 
 bool
-YApplication::SetShellHandle(HSHL h)
+YApplication::SetShellHandle(GHHandle<YShell> h)
 {
-	if(Contains(h))
+	using namespace Messaging;
+
+	if(h)
 	{
 		if(hShell == h)
 			return false;
+
 		if(hShell)
-			hShell->OnDeactivated(Message(
-				NULL, SM_DEACTIVATED, 0xF0, handle_cast<WPARAM>(hShell)));
+			hShell->OnDeactivated(Message(NULL, SM_DEACTIVATED, 0xF0,
+				new GHandleContext<GHHandle<YShell> >(hShell)));
 		hShell = h;
-		hShell->OnActivated(Message(
-				NULL, SM_ACTIVATED, 0xF0, handle_cast<WPARAM>(h)));
+		h->OnActivated(Message(NULL, SM_ACTIVATED, 0xF0,
+			new GHandleContext<GHHandle<YShell> >(h)));
 	}
 	return h;
 }
@@ -144,6 +137,41 @@ YApplication::ResetShellHandle() ythrow()
 {
 	if(!SetShellHandle(DefaultShellHandle))
 		Log.FatalError("YApplication::ResetShellHandle();");
+}
+
+
+void
+SendMessage(const Message& msg) ythrow()
+{
+	try
+	{
+		theApp.GetDefaultMessageQueue().Insert(msg);
+
+#if YSL_DEBUG_MSG & 1
+
+		void YSDebug_MSG_Insert(Message&);
+		YSDebug_MSG_Insert(msg);
+
+#endif
+		
+	}
+	catch(...)
+	{
+		theApp.Log.FatalError("SendMessage #1;");
+	}
+}
+void
+SendMessage(GHHandle<YShell> hShl, Messaging::ID id,
+	Messaging::Priority prior, Messaging::IContext* pContext) ythrow()
+{
+	try
+	{
+		SendMessage(Message(hShl, id, prior, pContext));
+	}
+	catch(...)
+	{
+		theApp.Log.FatalError("SendMessage #2;");
+	}
 }
 
 YSL_END

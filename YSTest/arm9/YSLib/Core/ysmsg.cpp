@@ -11,12 +11,12 @@
 /*!	\file ysmsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version 0.1449;
+\version 0.1572;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 + 08:00;
 \par 修改时间:
-	2010-11-12 15:51 + 08:00;
+	2010-12-21 16:10 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,47 +25,23 @@
 
 
 #include "ysmsg.h"
-#include "../Shell/ywindow.h" // for HWND delete procedure;
+#include "../Shell/ydesktop.h" // for YDesktop & YWindow delete procedure;
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Shells)
+YSL_BEGIN_NAMESPACE(Messaging)
 
-const time_t DEF_TIMEOUT(0);
-
-#ifdef YSLIB_NO_CURSOR
-
-Message::Message(HSHL shl, MSGID m, MSGPRIORITY p, WPARAM w, const LPARAM l)
-	: hShl(shl), msg(m), prior(p), wParam(w), lParam(l),
-	timestamp(std::clock()), timeout(DEF_TIMEOUT)
+Message::Message(GHHandle<YShell> shl, ID m, Priority p,
+	SmartPtr<IContext> pCon)
+	: hShl(shl), id(m), prior(p), pContext(pCon),
+	timestamp(std::clock()), timeout(DefTimeout)
 {}
-
-#else
-
-Message::Message(HSHL shl, MSGID m, MSGPRIORITY p, WPARAM w, const LPARAM l, const Point& _pt)
-	: hShl(shl), msg(m), prior(p), wParam(w), lParam(l), pt(_pt),
-	timestamp(std::clock()), timeout(DEF_TIMEOUT)
-{}
-
-#endif
 
 bool Message::operator==(const Message& m) const
 {
-
-#ifdef YSLIB_NO_CURSOR
-
-	return hShl == m.hShl && msg == m.msg && prior == m.prior
-		&& wParam == m.wParam && lParam == m.lParam;
-
-#else
-
-	return hShl == m.hShl && msg == m.msg && prior == m.prior
-		&& wParam == m.wParam && lParam == m.lParam && pt == m.pt;
-
-#endif
-
+	return hShl == m.hShl && id == m.id && prior == m.prior
+		&& pContext != NULL && m.pContext != NULL && *pContext == *m.pContext;
 }
-
 
 YMessageQueue::YMessageQueue()
 	: q()
@@ -115,7 +91,7 @@ YMessageQueue::Update()
 }
 
 bool
-YMessageQueue::InsertMessage(const Message& m)
+YMessageQueue::Insert(const Message& m)
 {
 	if(m.IsValid())
 		q.push(m);
@@ -130,7 +106,7 @@ Merge(YMessageQueue& dst, vector<Message>& src)
 	while(!src.empty())
 	{
 		m = src[src.size() - 1];
-		dst.InsertMessage(m);
+		dst.Insert(m);
 		src.pop_back();
 	}
 }
@@ -142,11 +118,11 @@ Merge(YMessageQueue& dst, YMessageQueue& src)
 	while(!src.empty())
 	{
 		src.GetMessage(m);
-		dst.InsertMessage(m);
+		dst.Insert(m);
 	}
 }
 
-YSL_END_NAMESPACE(Shells)
+YSL_END_NAMESPACE(Messaging)
 
 YSL_END
 

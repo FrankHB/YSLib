@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3235;
+\version 0.3256;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-01 17:41 + 08:00;
+	2010-12-20 23:10 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,7 +39,7 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Controls)
 
 IWidget*
-GetCursorWidgetPtr(HSHL hShl, YDesktop& d, const Point& pt)
+GetCursorWidgetPtr(GHHandle<YGUIShell> hShl, YDesktop& d, const Point& pt)
 {
 	HWND hWnd(hShl->GetTopWindowHandle(d, pt));
 
@@ -371,40 +371,40 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 namespace
 {
-	void DrawWidgetBounds(HWND hWnd, const Point& p, const Size& s, Color c)
+	void
+	DrawWidgetBounds(IWindow& w, const Point& p, const Size& s, Color c)
 	{
-		if(hWnd)
-		{
-			Graphics g(*hWnd);
+		Graphics g(w);
 
-			DrawRect(g, p, Size(s - Vec(1, 1)), c);
-		}
+		DrawRect(g, p, Size(s - Vec(1, 1)), c);
 	}
 }
 
 void
-DrawWindowBounds(HWND hWnd, Color c)
+DrawWindowBounds(IWindow* pWnd, Color c)
 {
-	DrawWidgetBounds(hWnd, Point::Zero, hWnd->GetSize(), c);
+	YAssert(pWnd, "Window pointer is null.");
+
+	DrawWidgetBounds(*pWnd, Point::Zero, pWnd->GetSize(), c);
 }
 
 void
 DrawWidgetBounds(IWidget& w, Color c)
 {
-	HWND hWnd(FetchDirectWindowHandle(w));
+	IWindow* pWnd(FetchDirectWindowPtr(w));
 
-	if(hWnd)
-		DrawWidgetBounds(hWnd, LocateOffset(&w, Point::Zero, GetPointer(hWnd)),
+	if(pWnd)
+		DrawWidgetBounds(*pWnd, LocateOffset(&w, Point::Zero, pWnd),
 			w.GetSize(), c);
 }
 
 void
 DrawWidgetOutline(IWidget& w, Color c)
 {
-	HWND hWnd(FetchWindowHandle(w));
+	IWindow* pWnd(FetchWindowPtr(w));
 
-	if(hWnd)
-		DrawWidgetBounds(hWnd, LocateOffset(&w, Point::Zero, GetPointer(hWnd)),
+	if(pWnd)
+		DrawWidgetBounds(*pWnd, LocateOffset(&w, Point::Zero, pWnd),
 			w.GetSize(), c);
 }
 

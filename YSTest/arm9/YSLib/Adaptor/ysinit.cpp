@@ -11,12 +11,12 @@
 /*!	\file ysinit.cpp
 \ingroup Service
 \brief 程序启动时的通用初始化。
-\version 0.1727;
+\version 0.1728;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-10-21 23:15:08 + 08:00;
 \par 修改时间:
-	2010-12-07 23:32 + 08:00;
+	2010-12-23 11:29 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "yfont.h"
 #include "../Core/yapp.h"
 
-using namespace stdex;
+using namespace ystdex;
 using namespace platform;
 using std::puts;
 
@@ -162,7 +162,7 @@ CheckInstall()
 	puts("Checking installation...");
 	if(!direxists(Text::StringToMBCS(YApplication::CommonAppDataPath).c_str()))
 		installFail("Default data directory");
-	if(!(stdex::fexists(DEF_FONT_PATH)
+	if(!(ystdex::fexists(DEF_FONT_PATH)
 		|| direxists(DEF_FONT_DIRECTORY)))
 		installFail("Default font");
 	puts("OK!");

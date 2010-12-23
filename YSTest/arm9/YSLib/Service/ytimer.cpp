@@ -11,12 +11,12 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version 0.1520;
+\version 0.1527;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 + 08:00;
 \par 修改时间:
-	2010-11-15 12:01 + 08:00;
+	2010-12-19 13:42 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,6 +41,14 @@ YTimer::YTimer(TimeSpan i, bool a)
 	InitializeSystemTimer();
 	if(a)
 		Activate(*this);
+}
+
+void
+YTimer::SetInterval(TimeSpan i)
+{
+	nInterval = i;
+	if(!nInterval)
+		Deactivate(*this);
 }
 
 void
@@ -113,7 +121,7 @@ Activate(YTimer& t)
 {
 	if(t.nInterval != 0)
 	{
-		YTimer::Timers[t.GetID()] = &t;
+		YTimer::Timers[t.GetObjectID()] = &t;
 		t.Synchronize();
 		t.nBase = YTimer::SystemTick;
 	}
@@ -122,7 +130,7 @@ Activate(YTimer& t)
 void
 Deactivate(YTimer& t)
 {
-	YTimer::Timers[t.GetID()] = NULL;
+	YTimer::Timers[t.GetObjectID()] = NULL;
 }
 
 YSL_END_NAMESPACE(Timers)

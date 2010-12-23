@@ -16,12 +16,12 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version 0.2420;
+\version 0.2461;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-24 15:29:11 + 08:00;
 \par 修改时间:
-	2010-12-02 23:16 + 08:00;
+	2010-12-15 19:58 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,30 +57,16 @@ YSL_BEGIN_NAMESPACE(Drawing)
 class YFontCache;
 YSL_END_NAMESPACE(Drawing)
 
-YSL_BEGIN_NAMESPACE(Shells)
+YSL_BEGIN_NAMESPACE(Messaging)
 class YMessageQueue;
+YSL_END_NAMESPACE(Messaging)
+
+YSL_BEGIN_NAMESPACE(Shells)
 class YShell;
-class YShellMain;
+class YMainShell;
 YSL_END_NAMESPACE(Shells)
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Controls)
-PDeclInterface(IControl)
-PDeclInterface(IVisualControl)
-YSL_END_NAMESPACE(Controls)
-
-YSL_BEGIN_NAMESPACE(Forms)
-PDeclInterface(IWindow)
-class YFrameWindow;
-class YForm;
-YSL_END_NAMESPACE(Forms)
-
-YSL_BEGIN_NAMESPACE(Widgets)
-PDeclInterface(IWidget)
-PDeclInterface(IUIBox)
-PDeclInterface(IUIContainer)
-YSL_END_NAMESPACE(Widgets)
 
 class YDesktop;
 
@@ -95,43 +81,26 @@ YSL_END_NAMESPACE(Text)
 class YApplication;
 class YLog;
 
-using Components::Controls::IControl;
-using Components::Controls::IVisualControl;
-using Components::Forms::IWindow;
-using Components::Forms::YForm;
-using Components::Forms::YFrameWindow;
-using Components::Widgets::IWidget;
-using Components::Widgets::IUIBox;
-using Components::Widgets::IUIContainer;
 using Components::YDesktop;
 
 using Device::YScreen;
 
 using Drawing::YFontCache;
+using Messaging::YMessageQueue;
 
-using Shells::YMessageQueue;
+using Shells::YMainShell;
 using Shells::YShell;
-using Shells::YShellMain;
 
 using Text::String;
 
 
-#ifdef YSL_USE_SIMPLE_HANDLE
-#define DeclareHandle(type, handle) typedef type* handle
-#define handle_cast reinterpret_cast
-#else
-#define DeclareHandle(type, handle) typedef GHHandle<type> handle
-#endif
+#define DeclareHandle(type, handle) typedef GHHandle<type> handle;
 
 
 //类型定义。
 typedef s16 SPOS; //!< 屏幕坐标度量。
 typedef u16 SDST; //!< 屏幕坐标距离。
-DeclareHandle(IWindow, HWND);
-DeclareHandle(YShell, HSHL);
-DeclareHandle(YApplication, HINSTANCE);
-typedef enum {RDeg0 = 0, RDeg90 = 1, RDeg180 = 2, RDeg270 = 3} ROT; \
-	//逆时针旋转角度指示输出朝向。
+
 
 /*!	\defgroup GlobalObjects Global Objects
 \brief 全局对象。
@@ -141,19 +110,19 @@ typedef enum {RDeg0 = 0, RDeg90 = 1, RDeg180 = 2, RDeg270 = 3} ROT; \
 \ingroup GlobalObjects
 \brief 默认全局常量。
 */
-/*! @{ */
+//@{
 //! \brief 屏幕大小。
 extern const SDST SCRW, SCRH;
-/*! @} */
+//@}
 
 /*!	\defgroup DefaultGlobalVariables Default Global Variables
 \ingroup GlobalObjects
 \brief 默认全局变量。
 */
-/*! @{ */
+//@{
 //! \brief 全局日志。
 extern YLog DefaultLog;
-/*! @} */
+//@}
 
 /*!	\defgroup DefaultGlobalObjectMapping Default Global Object Mapping
 \ingroup GlobalObjects
@@ -161,10 +130,10 @@ extern YLog DefaultLog;
 
 访问全局程序实例对象。
 */
-/*! @{ */
+//@{
 //! \brief 全局应用程序对象。
 extern YApplication& theApp;
-/*! @} */
+//@}
 
 YSL_END
 

@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2796;
+\version 0.2807;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-12-11 13:11 + 08:00;
+	2010-12-20 23:10 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,13 +52,13 @@ namespace
 	}
 
 	void
-	WndDrawFocus(HWND hWnd, const Size& s)
+	WndDrawFocus(IWindow* pWnd, const Size& s)
 	{
-		YAssert(hWnd, "err: @hWnd is null.");
+		YAssert(pWnd, "Window pointer is null.");
 
-		DrawWindowBounds(hWnd, ColorSpace::Fuchsia);
+		DrawWindowBounds(pWnd, ColorSpace::Fuchsia);
 
-		IWidget* pWgt(hWnd->GetFocusingPtr());
+		IWidget* pWgt(pWnd->GetFocusingPtr());
 
 		if(pWgt)
 			DrawWidgetBounds(*pWgt, ColorSpace::Aqua);
@@ -170,12 +170,12 @@ YThumb::DrawForeground()
 
 	ParentType::DrawForeground();
 
-	HWND hWnd(FetchDirectWindowHandle(*this));
+	IWindow* pWnd(FetchDirectWindowPtr(*this));
 
-	RectDrawButton(Graphics(*hWnd), LocateForWindow(*this),
+	RectDrawButton(Graphics(*pWnd), LocateForWindow(*this),
 		 GetSize(), bPressed);
 	if(bFocused)
-		WndDrawFocus(hWnd, GetSize());
+		WndDrawFocus(pWnd, GetSize());
 }
 
 void
@@ -257,7 +257,7 @@ ATrack::DrawBackground()
 {
 	YWidgetAssert(this, Controls::ATrack, DrawBackground);
 
-	const Graphics g(*FetchDirectWindowHandle(*this));
+	const Graphics g(*FetchDirectWindowPtr(*this));
 	const Point loc(LocateForWindow(*this));
 
 	FillRect(g, loc, GetSize(), Color(237, 237, 237));
@@ -453,7 +453,7 @@ AScrollBar::DrawForeground()
 
 	ParentType::DrawForeground();
 
-	const Graphics g(*FetchDirectWindowHandle(*this));
+	const Graphics g(*FetchDirectWindowPtr(*this));
 	const Point b(LocateForWindow(*this));
 
 	YAssert(pTrack.get(),
@@ -555,12 +555,12 @@ YSimpleTextListBox::DrawForeground()
 
 	ParentType::DrawForeground();
 
-	HWND hWnd(FetchDirectWindowHandle(*this));
+	IWindow* pWnd(FetchDirectWindowPtr(*this));
 
-	if(hWnd)
+	if(pWnd)
 	{
 		if(bFocused)
-			WndDrawFocus(hWnd, GetSize());
+			WndDrawFocus(pWnd, GetSize());
 		if(pTextRegion && GetLnHeightFrom(*pTextRegion) <= GetHeight())
 		{
 			const SDST lnWidth(GetWidth());
@@ -577,7 +577,7 @@ YSimpleTextListBox::DrawForeground()
 			const ViewerType::IndexType last(Viewer.GetIndex()
 				+ Viewer.GetValid());
 			Point pt(LocateForWindow(*this));
-			const Graphics g(*hWnd);
+			const Graphics g(*pWnd);
 
 			if(Viewer.GetIndex() >= 0)
 			{

@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.1892;
+\version 0.1954;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 + 08:00;
 \par 修改时间:
-	2010-12-11 14:02 + 08:00;
+	2010-12-21 15:46 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,12 +49,35 @@ YSL_BEGIN
 \brief 平台相关的全局变量。
 */
 //@{
-extern YScreen* pScreenUp; //<! DS 上屏幕指针。
-extern YScreen* pScreenDown; //<! DS 上屏幕指针。
-extern YDesktop* pDesktopUp; //<! DS 下屏幕默认桌面指针。
-extern YDesktop* pDesktopDown; //<! DS 下屏幕默认桌面指针。
+extern GHHandle<YScreen> hScreenUp; //<! DS 上屏幕句柄。
+extern GHHandle<YScreen> hScreenDown; //<! DS 上屏幕句柄。
+extern GHHandle<YDesktop> hDesktopUp; //<! DS 下屏幕默认桌面句柄。
+extern GHHandle<YDesktop> hDesktopDown; //<! DS 下屏幕默认桌面句柄。
 //@}
 
+
+YSL_BEGIN_NAMESPACE(Messaging)
+
+//! \brief 输入消息上下文。
+class InputContext : implements IContext
+{
+public:
+	platform::KeysInfo* Key;
+	Point CursorLocation;
+
+	InputContext(Runtime::KeysInfo*, const Point&);
+	virtual DefEmptyDtor(InputContext)
+
+	ImplI(IContext) bool
+	operator==(const IContext&) const;
+};
+
+inline
+InputContext::InputContext(Runtime::KeysInfo* p, const Point& pt)
+	: Key(p), CursorLocation(pt)
+{}
+
+YSL_END_NAMESPACE(Messaging)
 
 /*!
 \brief 默认消息发生函数。
@@ -77,11 +100,14 @@ Destroy_Static(YObject&, EventArgs&);
 /*!
 \brief 公共消息处理函数。
 */
-LRES
-ShlProc(HSHL, const Message&);
+int
+ShlProc(GHHandle<YShell>, const Message&);
 
 
 //全局函数。
+
+void
+ShowFatalError(const char*);
 
 #ifdef YSL_USE_MEMORY_DEBUG
 
@@ -96,7 +122,7 @@ OnExit_DebugMemory();
 /*!
 \brief 全局 Shell 消息处理函数。
 */
-LRES
+int
 MainShlProc(const Message& msg);
 
 /*!	\defgroup HelperFunction Helper Function

@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3266;
+\version 0.3270;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2010-12-08 22:07 + 08:00;
+	2010-12-14 17:15 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -528,6 +528,9 @@ TransformRect(const Graphics& g, const Rect& r, _fTransformPixel tp)
 
 
 // GDI 逻辑对象。
+
+typedef enum {RDeg0 = 0, RDeg90 = 1, RDeg180 = 2, RDeg270 = 3} ROT; \
+	//!< 逆时针旋转角度指示输出朝向。
 
 //! \brief 笔样式：字体和笔颜色。
 class PenStyle

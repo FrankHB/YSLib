@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup Shell
 \brief GUI 焦点特性实现。
-\version 0.2114;
+\version 0.2119;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 + 08:00;
 \par 修改时间:
-	2010-11-23 23:19 + 08:00;
+	2010-12-17 19:29 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -75,7 +75,7 @@ inline MSimpleFocusResponser::MSimpleFocusResponser()
 
 //! \brief 焦点响应器模板。
 template<class _type = AFocusRequester>
-class GMFocusResponser// : implements GIContainer<_type>
+class GMFocusResponser
 {
 	friend class AFocusRequester;
 
@@ -91,7 +91,7 @@ protected:
 	*/
 	inline
 	GMFocusResponser()
-	: pFocusing(NULL), sFOs()
+		: pFocusing(NULL), sFOs()
 	{}
 
 public:

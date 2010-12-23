@@ -11,12 +11,12 @@
 /*!	\file agg.h
 \ingroup Adaptor
 \brief Anti-Grain Geometry 库关联。
-\version 0.1671;
+\version 0.1674;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-21 15:46:00 + 08:00;
 \par 修改时间:
-	2010-11-12 14:42 + 08:00;
+	2010-12-17 18:57 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -94,15 +94,18 @@
 #include "span_abgr1555.h"
 #include "span_mono8.h"
 
-inline agg::rgba8 rgb8(const u8 r, const u8 g, const u8 b)
+inline agg::rgba8
+rgb8(const u8 r, const u8 g, const u8 b)
 {
 	return agg::rgba8(b, g, r);
 }
-inline agg::rgba8 rgb5(const u8 r, const u8 g, const u8 b)
+inline
+agg::rgba8 rgb5(const u8 r, const u8 g, const u8 b)
 {
 	return agg::rgba8((b & 31) << 3, (g & 31) << 3, (r & 31) << 3);
 }
-inline agg::rgba8 argb16(const bool a, const u8 r, const u8 g, const u8 b)
+inline
+agg::rgba8 argb16(const bool a, const u8 r, const u8 g, const u8 b)
 {
 	return agg::rgba8((b & 31) << 3, (g & 31) << 3, (r & 31) << 3, -a);
 }*/

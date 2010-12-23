@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 应用程序实例类抽象。
-\version 0.1941;
+\version 0.2054;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 + 08:00;
 \par 修改时间:
-	2010-11-30 20:02 + 08:00;
+	2010-12-23 13:02 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -90,12 +90,10 @@ public:
 
 
 //! \brief 程序实例：通过单例实现进程唯一性语义。
-class YApplication : public YObject,
-	implements GIContainer<YShell>
+class YApplication : public YObject
 {
 public:
 	typedef YObject ParentType;
-	typedef set<HSHL> SHLs;
 
 	//全局常量。
 	static const IO::Path CommonAppDataPath; //!< 程序默认路径。
@@ -109,33 +107,34 @@ public:
 
 	//全局资源。
 	YLog& Log; //!< 默认程序日志。
-	YScreen*& pDefaultScreen;
-	YDesktop*& pDefaultDesktop;
-	static const HSHL DefaultShellHandle; //!< 主 Shell 句柄。
+	GHHandle<YScreen>& hDefaultScreen;
+	GHHandle<YDesktop>& hDefaultDesktop;
+	static const GHHandle<YShell> DefaultShellHandle; //!< 主 Shell 句柄。
 
 private:
 	YMessageQueue* pMessageQueue; //!< 主消息队列：在程序实例中实现以保证单线程。
 	YMessageQueue* pMessageQueueBackup; \
 		//!< 备份消息队列：在程序实例中实现以保证单线程。
 
-	SHLs sShls; //!<  Shell 对象组：实现 Shell 存储。
-	HSHL hShell;
-		//当前 Shell 句柄：指示当前线程空间中运行的 Shell ；
-		//应初始化为主 Shell ：全局单线程，生存期与进程相同。
+	GHHandle<YShell> hShell;
+		/*!<
+		当前 Shell 句柄：指示当前线程空间中运行的 Shell ；
+		全局单线程，生存期与进程相同。
+		*/
 
 public:
 	YFontCache* pFontCache; //!< 默认字体缓存。
 
 private:
 	/*!
-	\brief 构造：使用指定默认屏幕指针、默认桌面指针和默认 Shell 句柄。
+	\brief 构造：使用指定默认屏幕句柄、默认桌面句柄和默认 Shell 句柄。
 	*/
-	YApplication(YScreen*&, YDesktop*&);
+	YApplication(GHHandle<YScreen>&, GHHandle<YDesktop>&);
 	/*!
-	\brief 静态单例构造：取得自身实例指针。
+	\brief 静态单例构造：取自身实例指针。
 	*/
 	static YApplication*
-	GetInstancePtr(YScreen*&, YDesktop*&);
+	GetInstancePtr(GHHandle<YScreen>&, GHHandle<YDesktop>&);
 
 public:
 	/*!
@@ -146,27 +145,10 @@ public:
 	virtual
 	~YApplication() ythrow();
 
-	/*!
-	\brief 
-	*/
-	ImplI(GIContainer<YShell>) void
-	operator+=(YShell&); //!< 添加 Shell 对象。
-	/*!
-	\brief 
-	*/
-	ImplI(GIContainer<YShell>) bool
-	operator-=(YShell&); //!< 移除指定 Shell 对象。
-
-	/*!
-	\brief 判断包含关系：指定句柄的 Shell 是否被实例所有。
-	*/
-	bool
-	Contains(HSHL) const;
-
-	static PDefH(YApplication&, GetApp, YScreen*& pScr, YDesktop*& pDsk)
-		ImplRet(*GetInstancePtr(pScr, pDsk)) //!< 取得自身实例引用。
-	DefGetter(const SHLs, ShellSet, sShls) //!< 取 Shell 对象组。
-	DefGetter(HSHL, ShellHandle, hShell) \
+	static PDefH(YApplication&, GetApp, GHHandle<YScreen>& hScr,
+		GHHandle<YDesktop>& hDsk)
+		ImplRet(*GetInstancePtr(hScr, hDsk)) //!< 取得自身实例引用。
+	DefGetter(GHHandle<YShell>, ShellHandle, hShell) \
 		//!< 取得线程空间中当前运行的 Shell 的句柄。
 	/*!
 	\brief 取主消息队列。
@@ -185,7 +167,7 @@ public:
 	\brief 设置线程空间中当前运行的 Shell 的句柄。
 	*/
 	bool
-	SetShellHandle(HSHL h);
+	SetShellHandle(GHHandle<YShell> h);
 
 	/*!
 	\brief 复位线程：设置当前运行的线程为主线程。
@@ -195,59 +177,21 @@ public:
 
 	//启动线程消息循环。
 //	void
-//	Run(HSHL);
+//	Run(GHHandle<YShell>);
 };
 
-inline YApplication*
-YApplication::GetInstancePtr(YScreen*& pScr, YDesktop*& pDsk)
-{
-	static YApplication instance(pScr, pDsk); //!< 静态单例对象。
-
-	return &instance;
-}
-
 
 /*!
-\brief 全局默认消息插入函数。
+\brief 全局默认队列消息发送函数。
 */
-inline void
-InsertMessage(const Message& msg)
-{
-	theApp.GetDefaultMessageQueue().InsertMessage(msg);
-
-#if YSLIB_DEBUG_MSG & 1
-
-	void YSDebug_MSG_Insert(Message&);
-	YSDebug_MSG_Insert(msg);
-
-#endif
-
-}
+void
+SendMessage(const Message&) ythrow();
 /*!
-\brief 全局默认消息插入函数。
+\brief 全局默认队列消息发送函数。
 */
-inline void
-InsertMessage(const HSHL& hShl, const Shells::MSGID& id,
-	const Shells::MSGPRIORITY& prior, const WPARAM& w = 0, const LPARAM& l = 0,
-	const Point& pt = Point::Zero)
-{
-
-#if YSLIB_DEBUG_MSG & 1
-
-	void YSDebug_MSG_Insert(Message&);
-	Message msg(hShl, id, prior, w, l);
-
-	DefaultMQ.InsertMessage(msg);
-	YSDebug_MSG_Insert(msg);
-
-#else
-
-	theApp.GetDefaultMessageQueue().InsertMessage(Message(
-		hShl, id, prior, w, l, pt));
-
-#endif
-
-}
+void
+SendMessage(GHHandle<YShell>, Messaging::ID, Messaging::Priority,
+	Messaging::IContext* = NULL) ythrow();
 
 YSL_END
 
