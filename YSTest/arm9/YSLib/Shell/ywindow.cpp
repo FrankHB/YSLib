@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3345;
+\version 0.3364;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 + 08:00;
 \par 修改时间:
-	2010-12-18 17:30 + 08:00;
+	2010-12-27 13:58 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -138,7 +138,7 @@ AWindow::UpdateToScreen(YDesktop& d) const
 {
 	if(IsVisible())
 		Buffer.CopyToBuffer(d.GetBackgroundPtr(), RDeg0, d.GetSize(),
-		Point::Zero, GetLocation(), Buffer);
+		Point::Zero, GetLocation(), Buffer.GetSize());
 }
 
 void
@@ -146,10 +146,10 @@ AWindow::UpdateToWindow(IWindow& w) const
 {
 	if(IsVisible())
 	{
-		const Graphics g(w);
+		const Graphics& g(w);
 
 		Buffer.CopyToBuffer(g.GetBufferPtr(), RDeg0, g.GetSize(),
-			Point::Zero, GetLocation(), Buffer);
+			Point::Zero, GetLocation(), Buffer.GetSize());
 	}
 }
 
@@ -188,8 +188,7 @@ YFrameWindow::YFrameWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
 
 	if(p)
 		*p += static_cast<GMFocusResponser<IVisualControl>&>(*this);
-	SetSize(GetSize());
-	DrawBackground();
+	Buffer.SetSize(GetSize().Width, GetSize().Height);
 
 	YDesktop* pDsk(FetchDirectDesktopPtr(*this));
 

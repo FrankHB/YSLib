@@ -11,12 +11,12 @@
 /*!	\file chrdef.h
 \ingroup CHRLib CHRLib 库
 \brief CHRLib 类型定义。
-\version 0.1562;
+\version 0.1564;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:52:35 + 08:00;
 \par 修改时间:
-	2010-12-02 20:07 + 08:00;
+	2010-12-25 23:26 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,7 +50,7 @@ typedef s32 uint_t;
 /*!
 \brief 宽字符串转换宏。
 */
-#define FS(str) reinterpret_cast<const CHRLib::fchar_t*>(L##str)
+#define _ustr(str) reinterpret_cast<const CHRLib::fchar_t*>(L##str)
 
 CHRLIB_END
 

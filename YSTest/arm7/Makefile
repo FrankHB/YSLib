@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM7 by Franksoft 2009 - 2010
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 + 08:00;
-# UTime = 2010-10-27 16:21 + 08:00;
-# Version = 0.3025;
+# UTime = 2010-12-27 15:54 + 08:00;
+# Version = 0.3027;
 
 # This makefile is written based on devkitPro example template.
 
@@ -32,8 +32,8 @@ DATA		:=
 #--------------------------------------------------------------------------------
 ARCH	:=	-mthumb-interwork
 
-CFLAGS	:=	-g -Wall -O2\
-		-mcpu=arm7tdmi -mtune=arm7tdmi -fomit-frame-pointer\
+CFLAGS	:=	-g -Wall -O2 \
+		-mcpu=arm7tdmi -mtune=arm7tdmi -fomit-frame-pointer \
 		-ffast-math \
 		$(ARCH)
 

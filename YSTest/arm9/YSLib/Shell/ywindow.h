@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3878;
+\version 0.3905;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 + 08:00;
 \par 修改时间:
-	2010-12-21 15:45 + 08:00;
+	2010-12-27 13:58 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,7 +38,7 @@ YSL_BEGIN_NAMESPACE(Forms)
 
 //! \brief 窗口接口。
 DeclBasedInterface(IWindow, virtual IUIContainer, virtual IVisualControl)
-	DeclIEntry(operator Graphics() const) //!< 生成图形接口上下文。
+	DeclIEntry(operator const Graphics&() const) //!< 生成图形接口上下文。
 
 	DeclIEntry(bool IsRefreshRequired() const)
 	DeclIEntry(bool IsUpdateRequired() const)
@@ -125,7 +125,7 @@ public:
 		const GHStrong<YImage> = new YImage(), HWND = NULL);
 	virtual DefEmptyDtor(AWindow)
 
-	ImplI(IWindow) DefConverterMember(Graphics, Buffer)
+	ImplI(IWindow) DefConverter(const Graphics&, Buffer)
 
 	ImplI(IWindow) DefPredicateBase(RefreshRequired, MWindow)
 	ImplI(IWindow) DefPredicateBase(UpdateRequired, MWindow)
@@ -147,7 +147,7 @@ public:
 	ImplI(IWindow) DefSetter(bool, Update, bUpdate)
 	/*!
 	\brief 设置大小。
-	\note 虚公共实现。
+	\note 虚公有实现。
 	*/
 	virtual void
 	SetSize(const Size&);

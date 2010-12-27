@@ -11,12 +11,12 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version 0.2787;
+\version 0.2812;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:39:39 + 08:00;
 \par 修改时间:
-	2010-11-17 18:20 + 08:00;
+	2010-12-26 21:09 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YOUTPUT_H_
-#define INCLUDED_YOUTPUT_H_
+#ifndef INCLUDED_YDEVICE_H_
+#define INCLUDED_YDEVICE_H_
 
 #include "yexcept.h"
 
@@ -40,30 +40,22 @@ InitAllScreens();
 YSL_BEGIN_NAMESPACE(Device)
 
 //图形设备。
-class YGraphicDevice : public YObject, protected Drawing::Size
+class YGraphicDevice : public YObject, public Drawing::Graphics
 {
 public:
 	typedef YObject ParentType;
-
-protected:
-	Drawing::BitmapPtr ptr;
 
 public:
 	/*!
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
 	YGraphicDevice(SDST, SDST, Drawing::BitmapPtr = NULL);
-
-	DefGetter(const Size&, Size, *this)
-	virtual DefGetter(Drawing::BitmapPtr, Ptr, ptr)
-
-	virtual DefSetter(Drawing::BitmapPtr, Ptr, ptr)
 };
 
 inline
 YGraphicDevice::YGraphicDevice(SDST w, SDST h, Drawing::BitmapPtr p)
-	: YObject(), Size(w, h),
-	ptr(p)
+	: YObject(),
+	Graphics(p, Drawing::Size(w, h))
 {}
 
 
@@ -110,7 +102,7 @@ public:
 		进行状态检查。
 	*/
 	virtual Drawing::BitmapPtr
-	GetPtr() const ythrow();
+	GetCheckedBufferPtr() const ythrow();
 	DefGetter(const BGType&, BgID, bg)
 
 	DefSetter(const BGType&, BgID, bg)
@@ -133,13 +125,6 @@ inline void
 YScreen::InitScreen()
 {
 	S_InitScr = !InitAllScreens();
-}
-
-inline Drawing::BitmapPtr
-YScreen::GetPtr() const ythrow()
-{
-	CheckInitialization();
-	return ParentType::GetPtr();
 }
 
 YSL_END_NAMESPACE(Device)

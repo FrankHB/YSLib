@@ -1209,9 +1209,6 @@
     <ClInclude Include="arm9\YSLib\Adaptor\agg.h">
       <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\yref.hpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClInclude>
     <ClInclude Include="arm9\include\platform.h">
       <Filter>ARM9\头文件</Filter>
     </ClInclude>
@@ -1229,6 +1226,9 @@
     </ClInclude>
     <ClInclude Include="arm9\YCLib\ystdex.h">
       <Filter>ARM9\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\Adaptor\yref.hpp">
+      <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-12-23 11:51 + 08:00;
-// Version = r10588;
+// UTime = 2010-12-27 13:31 + 08:00;
+// Version = r10566;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -136,7 +136,7 @@ CHRLIB_
 CHRLIB
 CHRLIB_BEGIN_NAMESPACE(s)
 CHRLIB_END_NAMESPACE(s)
-FS(str)
+_ustr(str)
 }
 } //$dir CHRLib;
 
@@ -205,6 +205,7 @@ DeclIEntry(_signature)
 EndDecl
 PDefH(_type, _name, *)
 PDefHOperator(_type, _op, *)
+PDefConverter(_type)
 ImplExpr(_expr)
 ImplRet(_expr)
 ImplBodyBase(_base, _name, _arglist, *)
@@ -567,8 +568,6 @@ YSL_BEGIN_NAMESPACE(Policies)
 YSL_END_NAMESPACE(Policies)
 	using Loki::SmartPtr;
 	using Loki::StrongPtr;
-	using Loki::Release;
-	using Loki::ReleaseAll;
 
 } //$header Adaptor::YAdaptor;
 

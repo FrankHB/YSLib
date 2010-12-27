@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3270;
+\version 0.3328;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2010-12-14 17:15 + 08:00;
+	2010-12-27 16:38 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -375,33 +375,6 @@ blitAlphaU(BitmapPtr dst, const Size& ds,
 	const Point& sp, const Point& dp, const Size& sc);
 
 
-//! \brief 图形接口上下文。
-class Graphics
-{
-private:
-	BitmapPtr pBuffer;
-	Drawing::Size Size;
-
-public:
-	/*!
-	\brief 构造：使用指定位图指针和大小。
-	*/
-	Graphics(BitmapPtr, const Drawing::Size&);
-
-	DefPredicate(Valid, pBuffer && Size.Width != 0 && Size.Height != 0)
-
-	DefGetter(BitmapPtr, BufferPtr, pBuffer)
-	DefGetter(const Drawing::Size&, Size, Size)
-	DefGetter(SDST, Width, Size.Width)
-	DefGetter(SDST, Height, Size.Height)
-};
-
-inline
-Graphics::Graphics(BitmapPtr b, const Drawing::Size& s)
-	: pBuffer(b), Size(s)
-{}
-
-
 //图形接口上下文操作：绘图。
 
 /*!
@@ -530,7 +503,7 @@ TransformRect(const Graphics& g, const Rect& r, _fTransformPixel tp)
 // GDI 逻辑对象。
 
 typedef enum {RDeg0 = 0, RDeg90 = 1, RDeg180 = 2, RDeg270 = 3} ROT; \
-	//!< 逆时针旋转角度指示输出朝向。
+	//!< 逆时针旋转角度指示输出指向。
 
 //! \brief 笔样式：字体和笔颜色。
 class PenStyle
@@ -637,11 +610,8 @@ SetAllTo(Padding& p, SDST h, SDST v)
 
 
 //! \brief 矩形图像缓冲区。
-class BitmapBuffer : public Size
+class BitmapBuffer : public Graphics
 {
-protected:
-	BitmapPtr img; //!< 显示缓冲区指针。
-
 public:
 	/*!
 	\brief 无参数构造。
@@ -658,16 +628,8 @@ public:
 	virtual
 	~BitmapBuffer();
 
-	/*!
-	\brief 比较：相等关系。
-	*/
-	friend bool
-	operator==(const BitmapBuffer&, const BitmapBuffer&);
-
-	DefConverter(Graphics, Graphics(img, *this)) //!< 生成图形接口上下文。
-
-	DefGetter(BitmapPtr, BufferPtr, img) //!< 取缓冲区指针。
-	DefGetter(std::size_t, SizeOfBuffer, sizeof(PixelType) * GetAreaFrom(*this)) \
+	DefGetter(std::size_t, SizeOfBuffer,
+		sizeof(PixelType) * GetAreaFrom(Size)) \
 		//!< 取缓冲区占用空间。
 
 	/*!
@@ -697,27 +659,21 @@ public:
 	BeFilledWith(Color) const;
 
 	/*!
-	\brief 按指定角度复制缓冲区内容至指定大小和指定点的指定缓存。
+	\brief 向指定大小和点（相对左上角）的指定缓存按指定输出指向复制缓冲区内容。
 	*/
 	virtual void
-	CopyToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
-		const Point& sp = Point::Zero, const Point& dp = Point::Zero,
-		const Size& sc = Size::FullScreen) const;
+	CopyToBuffer(BitmapPtr, ROT = RDeg0,
+		const Drawing::Size& = Drawing::Size::FullScreen,
+		const Point& = Point::Zero, const Point& = Point::Zero,
+		const Drawing::Size& = Drawing::Size::FullScreen) const;
 };
 
 inline BitmapBuffer::BitmapBuffer()
-	: Size(),
-	img(NULL)
+	: Graphics()
 {}
 inline BitmapBuffer::~BitmapBuffer()
 {
-	ydelete_array(img);
-}
-
-inline bool
-operator==(const BitmapBuffer& a, const BitmapBuffer& b)
-{
-	return a.img == b.img && a.Width == b.Width && a.Height == b.Height;
+	ydelete_array(pBuffer);
 }
 
 
@@ -725,7 +681,7 @@ operator==(const BitmapBuffer& a, const BitmapBuffer& b)
 class BitmapBufferEx : public BitmapBuffer
 {
 protected:
-	u8* imgAlpha; //!<  Alpha 缓冲区指针。
+	u8* pBufferAlpha; //!<  Alpha 缓冲区指针。
 
 public:
 	/*!
@@ -743,14 +699,9 @@ public:
 	virtual
 	~BitmapBufferEx();
 
-	/*!
-	\brief 比较：相等关系。
-	*/
-	friend bool
-	operator==(const BitmapBufferEx&, const BitmapBufferEx&);
-
-	DefGetter(u8*, BufferAlphaPtr, imgAlpha) //!< 取 Alpha 缓冲区的指针。
-	DefGetter(std::size_t, SizeOfBufferAlpha, sizeof(u8) * GetAreaFrom(*this)) \
+	DefGetter(u8*, BufferAlphaPtr, pBufferAlpha) //!< 取 Alpha 缓冲区的指针。
+	DefGetter(std::size_t, SizeOfBufferAlpha,
+		sizeof(u8) * GetAreaFrom(Size)) \
 		//!< 取 Alpha 缓冲区占用空间。
 
 	/*!
@@ -768,35 +719,32 @@ public:
 	ClearImage() const;
 
 	/*!
-	\brief 按指定角度复制缓冲区内容至指定大小和指定点的指定缓存。
+	\brief 向指定大小和点（相对左上角）的指定缓存按指定输出指向复制缓冲区内容。
 	*/
 	void
-	CopyToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
-		const Point& sp = Point::Zero, const Point& dp = Point::Zero,
-		const Size& sc = Size::FullScreen) const;
+	CopyToBuffer(BitmapPtr, ROT = RDeg0,
+		const Drawing::Size& = Drawing::Size::FullScreen,
+		const Point& = Point::Zero, const Point& = Point::Zero,
+		const Drawing::Size& = Drawing::Size::FullScreen) const;
 
 	/*!
-	\brief 按指定角度贴图缓冲区内容至指定大小和指定点的指定缓存。
+	\brief 向指定大小和点（相对左上角）的指定缓存按指定输出指向
+		以缓冲区内容贴图。
 	*/
 	void
-	BlitToBuffer(BitmapPtr, ROT = RDeg0, const Size& ds = Size::FullScreen,
-		const Point& sp = Point::Zero, const Point& dp = Point::Zero,
-		const Size& sc = Size::FullScreen) const;
+	BlitToBuffer(BitmapPtr, ROT = RDeg0,
+		const Drawing::Size& = Drawing::Size::FullScreen,
+		const Point& = Point::Zero, const Point& = Point::Zero,
+		const Drawing::Size& = Drawing::Size::FullScreen) const;
 };
 
 inline
-BitmapBufferEx::BitmapBufferEx() : BitmapBuffer(), imgAlpha(NULL)
+BitmapBufferEx::BitmapBufferEx() : BitmapBuffer(), pBufferAlpha(NULL)
 {}
 inline
 BitmapBufferEx::~BitmapBufferEx()
 {
-	ydelete_array(imgAlpha);
-}
-
-inline bool
-operator==(const BitmapBufferEx& a, const BitmapBufferEx& b)
-{
-	return static_cast<BitmapBuffer>(a) == static_cast<BitmapBuffer>(b);
+	ydelete_array(pBufferAlpha);
 }
 
 YSL_END_NAMESPACE(Drawing)

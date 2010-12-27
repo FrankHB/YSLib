@@ -132,9 +132,9 @@
     <ClInclude Include="arm9\YSLib\Adaptor\yaslivsp.hpp" />
     <ClInclude Include="arm9\YSLib\Adaptor\yfont.h" />
     <ClInclude Include="arm9\YSLib\Adaptor\ynew.h" />
+    <ClInclude Include="arm9\YSLib\Adaptor\yref.hpp" />
     <ClInclude Include="arm9\YSLib\Adaptor\ysinit.h" />
     <ClInclude Include="arm9\YSLib\Core\yevt.hpp" />
-    <ClInclude Include="arm9\YSLib\Core\yref.hpp" />
     <ClInclude Include="arm9\YSLib\Shell\yfocus.h" />
     <ClInclude Include="arm9\YSLib\Shell\yguicomp.h" />
     <ClInclude Include="arm9\YSLib\ysbuild.h" />

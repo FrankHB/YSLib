@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2807;
+\version 0.2820;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-12-20 23:10 + 08:00;
+	2010-12-27 13:59 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -172,8 +172,7 @@ YThumb::DrawForeground()
 
 	IWindow* pWnd(FetchDirectWindowPtr(*this));
 
-	RectDrawButton(Graphics(*pWnd), LocateForWindow(*this),
-		 GetSize(), bPressed);
+	RectDrawButton(*pWnd, LocateForWindow(*this), GetSize(), bPressed);
 	if(bFocused)
 		WndDrawFocus(pWnd, GetSize());
 }
@@ -257,7 +256,7 @@ ATrack::DrawBackground()
 {
 	YWidgetAssert(this, Controls::ATrack, DrawBackground);
 
-	const Graphics g(*FetchDirectWindowPtr(*this));
+	const Graphics& g(*FetchDirectWindowPtr(*this));
 	const Point loc(LocateForWindow(*this));
 
 	FillRect(g, loc, GetSize(), Color(237, 237, 237));
@@ -453,7 +452,7 @@ AScrollBar::DrawForeground()
 
 	ParentType::DrawForeground();
 
-	const Graphics g(*FetchDirectWindowPtr(*this));
+	const Graphics& g(*FetchDirectWindowPtr(*this));
 	const Point b(LocateForWindow(*this));
 
 	YAssert(pTrack.get(),
@@ -577,7 +576,7 @@ YSimpleTextListBox::DrawForeground()
 			const ViewerType::IndexType last(Viewer.GetIndex()
 				+ Viewer.GetValid());
 			Point pt(LocateForWindow(*this));
-			const Graphics g(*pWnd);
+			const Graphics& g(*pWnd);
 
 			if(Viewer.GetIndex() >= 0)
 			{
@@ -589,8 +588,9 @@ YSimpleTextListBox::DrawForeground()
 					{
 						pTextRegion->Color = ColorSpace::White;
 						FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
-							Rect(pt.X + 1, pt.Y + 1, pTextRegion->Width - 2,
-							pTextRegion->Height - 1),
+							Rect(pt.X + 1, pt.Y + 1,
+							pTextRegion->GetWidth() - 2,
+							pTextRegion->GetHeight() - 1),
 							ColorSpace::Aqua);
 					}
 					else
@@ -598,7 +598,7 @@ YSimpleTextListBox::DrawForeground()
 					pTextRegion->PutLine(list[i]);
 					pTextRegion->ResetPen();
 					pTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
-						g.GetSize(), Point::Zero, pt, *pTextRegion);
+						g.GetSize(), Point::Zero, pt, pTextRegion->GetSize());
 					pt.Y += lnHeight;
 					pTextRegion->ClearImage();
 				}

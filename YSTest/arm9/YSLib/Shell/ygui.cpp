@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3256;
+\version 0.3260;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-20 23:10 + 08:00;
+	2010-12-27 13:59 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -374,7 +374,7 @@ namespace
 	void
 	DrawWidgetBounds(IWindow& w, const Point& p, const Size& s, Color c)
 	{
-		Graphics g(w);
+		const Graphics& g(w);
 
 		DrawRect(g, p, Size(s - Vec(1, 1)), c);
 	}

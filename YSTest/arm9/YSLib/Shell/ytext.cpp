@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6250;
+\version 0.6284;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 + 08:00;
 \par 修改时间:
-	2010-11-17 20:13 + 08:00;
+	2010-12-27 16:43 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,16 +92,16 @@ PrintChar(BitmapBuffer& buf, TextState& ts, fchar_t c)
 			dy(ts.PenY - sbit.GetTop()),
 			xmin(vmax<int>(0, ts.Margin.Left - dx)),
 			ymin(vmax<int>(0, ts.Margin.Top - dy)),
-			xmax(vmin<int>(buf.Width - ts.Margin.Right - dx,
+			xmax(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx,
 				sbit.GetWidth())),
-			ymax(vmin<int>(buf.Height - ts.Margin.Bottom - dy,
+			ymax(vmin<int>(buf.GetHeight() - ts.Margin.Bottom - dy,
 				sbit.GetHeight()));
 
 		if(xmax >= xmin && ymax >= ymin)
 		{
 			const int sJmp(sbit.GetWidth() - xmax + xmin),
-				dJmp(buf.Width - xmax + xmin),
-				dOff(vmax<int>(ts.Margin.Top, dy) * buf.Width
+				dJmp(buf.GetWidth() - xmax + xmin),
+				dOff(vmax<int>(ts.Margin.Top, dy) * buf.GetWidth()
 					+ vmax<int>(ts.Margin.Left, dx));
 			u8* sa(sbit.GetBuffer() + ymin * sbit.GetWidth() + xmin);
 			BitmapPtr dc(buf.GetBufferPtr() + dOff);
@@ -142,16 +142,16 @@ PrintCharEx(BitmapBufferEx& buf, TextState& ts, fchar_t c)
 			dy(ts.PenY - sbit.GetTop()),
 			xmin(vmax<int>(0, ts.Margin.Left - dx)),
 			ymin(vmax<int>(0, ts.Margin.Top - dy)),
-			xmax(vmin<int>(buf.Width - ts.Margin.Right - dx,
+			xmax(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx,
 				sbit.GetWidth())),
-			ymax(vmin<int>(buf.Height - ts.Margin.Bottom - dy,
+			ymax(vmin<int>(buf.GetHeight() - ts.Margin.Bottom - dy,
 				sbit.GetHeight()));
 
 		if(xmax >= xmin && ymax >= ymin)
 		{
 			const int sJmp(sbit.GetWidth() - xmax + xmin),
-				dJmp(buf.Width - xmax + xmin),
-				dOff(vmax<int>(ts.Margin.Top, dy) * buf.Width
+				dJmp(buf.GetWidth() - xmax + xmin),
+				dOff(vmax<int>(ts.Margin.Top, dy) * buf.GetWidth()
 					+ vmax<int>(ts.Margin.Left, dx));
 			u8* sa(sbit.GetBuffer() + ymin * sbit.GetWidth() + xmin);
 			BitmapPtr dc(buf.GetBufferPtr() + dOff);
@@ -211,15 +211,15 @@ TextRegion::GetMarginResized() const
 	const u8 t(GetLnHeightExFrom(*this));
 
 	return t ? Margin.Bottom
-		+ (Height + LineGap - Margin.Top - Margin.Bottom) % t : 0;
+		+ (GetHeight() + LineGap - Margin.Top - Margin.Bottom) % t : 0;
 }
 SDST
 TextRegion::GetBufferHeightResized() const
 {
 	const u8 t(GetLnHeightExFrom(*this));
 
-	return t ? Margin.Top + (Height + LineGap - Margin.Top - Margin.Bottom)
-		/ t * t : Height;
+	return t ? Margin.Top + (GetHeight() + LineGap - Margin.Top - Margin.Bottom)
+		/ t * t : GetHeight();
 }
 u16
 TextRegion::GetLnN() const
@@ -234,7 +234,7 @@ TextRegion::GetLnNEx() const
 SPOS
 TextRegion::GetLineLast() const
 {
-	return Height - Margin.Bottom + GetCache().GetDescender();
+	return GetHeight() - Margin.Bottom + GetCache().GetDescender();
 }
 
 void
@@ -249,17 +249,17 @@ TextRegion::SetLnLast()
 void
 TextRegion::ClearLine(u16 l, SDST n)
 {
-	if(l > Height)
+	if(l > GetHeight())
 		return;
 	if(!n)
 		--n;
-	if(img && imgAlpha)
+	if(pBuffer && pBufferAlpha)
 	{
-		const u32 t((l + n > Height ? Height - l : n) * Width),
-			s(l * Width);
+		const u32 t((l + n > GetHeight() ? GetHeight() - l : n) * GetWidth()),
+			s(l * GetWidth());
 
-		memset(&img[s], 0, t * sizeof(PixelType));
-		memset(&imgAlpha[s], 0, t * sizeof(u8));
+		std::memset(&pBuffer[s], 0, t * sizeof(PixelType));
+		std::memset(&pBufferAlpha[s], 0, t * sizeof(u8));
 	}
 }
 
@@ -276,22 +276,23 @@ TextRegion::ClearLnLast()
 {
 	SDST h(GetLnHeightExFrom(*this));
 
-	ClearLine(Height - Margin.Bottom - h, h);
+	ClearLine(GetHeight() - Margin.Bottom - h, h);
 }
 
 void
 TextRegion::Move(s16 n)
 {
-	if(Height > Margin.Bottom)
-		Move(n, Height - Margin.Bottom);
+	if(GetHeight() > Margin.Bottom)
+		Move(n, GetHeight() - Margin.Bottom);
 }
 void
 TextRegion::Move(s16 n, SDST h)
 {
-	if(img && imgAlpha)
+	if(pBuffer && pBufferAlpha)
 	{
-		const s32 t(((h + Margin.Bottom > Height ? Height - Margin.Bottom : h)
-			- Margin.Top - abs(n)) * Width);
+		const s32 t(((h + Margin.Bottom > GetHeight()
+			? GetHeight() - Margin.Bottom : h)
+			- Margin.Top - abs(n)) * GetWidth());
 
 		if(n && t > 0)
 		{
@@ -301,10 +302,10 @@ TextRegion::Move(s16 n, SDST h)
 				d += n;
 			else
 				s -= n;
-			s *= Width;
-			d *= Width;
-			std::memmove(&img[d], &img[s], t * sizeof(PixelType));
-			std::memmove(&imgAlpha[d], &imgAlpha[s], t * sizeof(u8));
+			s *= GetWidth();
+			d *= GetWidth();
+			std::memmove(&pBuffer[d], &pBuffer[s], t * sizeof(PixelType));
+			std::memmove(&pBufferAlpha[d], &pBufferAlpha[s], t * sizeof(u8));
 		}
 	}
 }
@@ -333,7 +334,7 @@ TextRegion::PutChar(fchar_t c)
 	if(maxW < spaceW)
 		return lineBreaksL = 1;
 */
-	if(PenX + GetCache().GetAdvance(c) >= Width - Margin.Right)
+	if(PenX + GetCache().GetAdvance(c) >= GetWidth() - Margin.Right)
 	{
 		PutNewline();
 		return 1;

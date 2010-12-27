@@ -11,12 +11,12 @@
 /*!	\file ydevice.cpp
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version 0.2676;
+\version 0.2702;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:39:51 + 08:00;
 \par 修改时间:
-	2010-11-12 15:35 + 08:00;
+	2010-12-26 21:09 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -54,15 +54,25 @@ YScreen::Reset()
 	InitScreen();
 }
 
+BitmapPtr
+YScreen::GetCheckedBufferPtr() const ythrow()
+{
+	CheckInitialization();
+
+	YAssert(GetBufferPtr(), "Screen buffer initializition checking failed.");
+
+	return GetBufferPtr();
+}
+
 void
 YScreen::Update(BitmapPtr buf)
 {
-	platform::ScreenSychronize(GetPtr(), buf);
+	platform::ScreenSychronize(GetCheckedBufferPtr(), buf);
 }
 void
 YScreen::Update(Color c)
 {
-	FillSeq<PixelType>(GetPtr(), GetAreaFrom(*this), c);
+	FillSeq<PixelType>(GetCheckedBufferPtr(), GetAreaFrom(GetSize()), c);
 }
 
 YSL_END_NAMESPACE(Device)

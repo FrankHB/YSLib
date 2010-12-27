@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.2601;
+\version 0.2690;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2010-12-08 22:34 + 08:00;
+	2010-12-27 13:28 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -714,12 +714,12 @@ SetAllTo(Padding& p, SDST l, SDST r, SDST t, SDST b)
 
 
 BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDST w, SDST h)
-	: Size(w, h),
-	img(NULL)
+	: Graphics()
+	//不能提前初始化 Drawing::Size ，否则指针非空和面积非零状态不一致。 
 {
 	SetSize(w, h);
 	if(i)
-		std::memcpy(img, i, sizeof(PixelType) * GetAreaFrom(*this));
+		std::memcpy(pBuffer, i, sizeof(PixelType) * GetAreaFrom(Size));
 }
 
 void
@@ -729,67 +729,69 @@ BitmapBuffer::SetSize(SDST w, SDST h)
 
 	if(s == 0)
 	{
-		ydelete_array(img);
-		img = NULL;
+		ydelete_array(pBuffer);
+		pBuffer = NULL;
 	}
-	else if(GetAreaFrom(*this) < s)
-		ydelete_array(img);
+	else if(GetAreaFrom(Size) < s)
 		try
 		{
-			img = ynew PixelType[s];
+			BitmapPtr pBufferNew(ynew PixelType[s]);
+
+			std::swap(pBuffer, pBufferNew);
+			ydelete_array(pBufferNew);
 		}
 		catch(std::bad_alloc&)
 		{
 			throw LoggedEvent("Allocation failed"
 				" @@ BitmapBuffer::SetSize(SDST, SDST);", 1);
 		}
-	Width = w;
-	Height = h;
+
+	YAssert(!((pBuffer != NULL) ^ (s != 0)), "Buffer corruptied"
+		" @@ BitmapBuffer::SetSize(SDST, SDST);");
+
+	Size.Width = w;
+	Size.Height = h;
 	ClearImage();
 }
 void
 BitmapBuffer::SetSizeSwap()
 {
-	std::swap(Width, Height);
+	std::swap(Size.Width, Size.Height);
 	ClearImage();
 }
 
 void
 BitmapBuffer::ClearImage() const
 {
-	ClearPixel(img, GetAreaFrom(*this));
+	ClearPixel(pBuffer, GetAreaFrom(Size));
 }
 
 void
 BitmapBuffer::BeFilledWith(Color c) const
 {
-	FillSeq<PixelType>(img, GetAreaFrom(*this), c);
+	FillSeq<PixelType>(pBuffer, GetAreaFrom(Size), c);
 }
 
 void
-BitmapBuffer::CopyToBuffer(BitmapPtr dst, const ROT rot, const Size& ds,
-	const Point& sp, const Point& dp, const Size& sc) const
+BitmapBuffer::CopyToBuffer(BitmapPtr dst, ROT rot, const Drawing::Size& ds,
+	const Point& sp, const Point& dp, const Drawing::Size& sc) const
 {
-	if(~rot & 1 && dst && img)
+	if(~rot & 1 && dst && pBuffer)
 	{
 		if(rot)
-			blitU(dst, ds,
-			img, *this,
-			sp, dp, sc);
+			blitU(dst, ds, pBuffer, GetSize(), sp, dp, sc);
 		else
-			blit(dst, ds,
-			img, *this,
-			sp, dp, sc);
+			blit(dst, ds, pBuffer, GetSize(), sp, dp, sc);
 	}
 }
 
 
 BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDST w, SDST h)
-	: BitmapBuffer(i, w, h), imgAlpha(NULL)
+	: BitmapBuffer(i, w, h), pBufferAlpha(NULL)
 {
 	SetSize(w, h);
 	if(i)
-		std::memcpy(img, i, sizeof(PixelType) * GetAreaFrom(*this));
+		std::memcpy(pBuffer, i, sizeof(PixelType) * GetAreaFrom(Size));
 }
 
 void
@@ -799,69 +801,77 @@ BitmapBufferEx::SetSize(SDST w, SDST h)
 
 	if(s == 0)
 	{
-		ydelete_array(img);
-		img = NULL;
-		ydelete_array(imgAlpha);
-		imgAlpha = NULL;
+		ydelete_array(pBuffer);
+		pBuffer = NULL;
+		ydelete_array(pBufferAlpha);
+		pBufferAlpha = NULL;
 	}
-	else if(GetAreaFrom(*this) < s)
+	else if(GetAreaFrom(Size) < s)
+	{
+		BitmapPtr pBufferNew(NULL);
+
 		try
 		{
-			ydelete_array(img);
-			img = ynew PixelType[s];
-			ydelete_array(imgAlpha);
-			imgAlpha = ynew u8[s];
+			pBufferNew = ynew PixelType[s];
+
+			u8* pBufferAlphaNew(ynew u8[s]);
+
+			std::swap(pBuffer, pBufferNew);
+			ydelete_array(pBufferNew);
+			std::swap(pBufferAlpha, pBufferAlphaNew);
+			ydelete_array(pBufferAlphaNew);
 		}
 		catch(std::bad_alloc&)
 		{
+			ydelete_array(pBufferNew);
 			throw LoggedEvent("Allocation failed"
 				" @@ BitmapBufferEx::SetSize(SDST, SDST);", 1);
 		}
-	Width = w;
-	Height = h;
+	}
+
+	YAssert(!((pBuffer != NULL) ^ (s != 0)), "Buffer corruptied"
+		" @@ BitmapBufferEx::SetSize(SDST, SDST);");
+	YAssert(!((pBufferAlpha != NULL) ^ (s != 0)), "Buffer corruptied"
+		" @@ BitmapBufferEx::SetSize(SDST, SDST);");
+
+	Size.Width = w;
+	Size.Height = h;
 	ClearImage();
 }
 
 void
 BitmapBufferEx::ClearImage() const
 {
-	const u32 t = GetAreaFrom(*this);
+	const u32 t = GetAreaFrom(Size);
 
-	ClearPixel(img, t);
-	ClearPixel(imgAlpha, t);
+	ClearPixel(pBuffer, t);
+	ClearPixel(pBufferAlpha, t);
 }
 
 void
-BitmapBufferEx::CopyToBuffer(BitmapPtr dst, ROT rot, const Size& ds,
-	const Point& sp, const Point& dp, const Size& sc) const
+BitmapBufferEx::CopyToBuffer(BitmapPtr dst, ROT rot, const Drawing::Size& ds,
+	const Point& sp, const Point& dp, const Drawing::Size& sc) const
 {
-	if(~rot & 1 && dst && img)
+	if(~rot & 1 && dst && pBuffer)
 	{
 		if(rot)
 			blit2U(dst, ds,
-			img, imgAlpha, *this,
-			sp, dp, sc);
+			pBuffer, pBufferAlpha, GetSize(), sp, dp, sc);
 		else
-			blit2(dst, ds,
-			img, imgAlpha, *this,
-			sp, dp, sc);
+			blit2(dst, ds, pBuffer, pBufferAlpha, GetSize(), sp, dp, sc);
 	}
 }
 
 void
-BitmapBufferEx::BlitToBuffer(BitmapPtr dst, ROT rot, const Size& ds,
-	const Point& sp, const Point& dp, const Size& sc) const
+BitmapBufferEx::BlitToBuffer(BitmapPtr dst, ROT rot, const Drawing::Size& ds,
+	const Point& sp, const Point& dp, const Drawing::Size& sc) const
 {
-	if(~rot & 1 && dst && img)
+	if(~rot & 1 && dst && pBuffer)
 	{
 		if(rot)
-			blitAlphaU(dst, ds,
-			img, imgAlpha, *this,
-			sp, dp, sc);
+			blitAlphaU(dst, ds, pBuffer, pBufferAlpha, GetSize(), sp, dp, sc);
 		else
-			blitAlpha(dst, ds,
-			img, imgAlpha, *this,
-			sp, dp, sc);
+			blitAlpha(dst, ds, pBuffer, pBufferAlpha, GetSize(), sp, dp, sc);
 	}
 }
 

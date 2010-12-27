@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2179;
+\version 0.2184;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 + 08:00;
 \par 修改时间:
-	2010-11-27 23:39 + 08:00;
+	2010-12-26 20:53 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -54,7 +54,8 @@ public:
 	virtual DefEmptyDtor(YDesktop)
 
 	DefGetter(const YScreen&, Screen, Screen) //!< 取屏幕对象。
-	DefGetter(BitmapPtr, BackgroundPtr, Screen.GetPtr()) //!< 取背景指针。
+	DefGetter(BitmapPtr, BackgroundPtr, Screen.GetCheckedBufferPtr()) \
+		//!< 取屏幕背景指针。
 
 	virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p)
 		ImplBodyBase(YDesktop, GetTopDesktopObjectPtr, p)

@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6640;
+\version 0.6650;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 + 08:00;
 \par 修改时间:
-	2010-11-17 19:59 + 08:00;
+	2010-12-27 19:59 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -213,9 +213,9 @@ public:
 	*/
 	TextRegion& operator=(const TextState& ts);
 
-	DefGetter(SDST, BufWidthN, Width - GetHorizontalFrom(Margin)) \
+	DefGetter(SDST, BufWidthN, GetWidth() - GetHorizontalFrom(Margin)) \
 		//!< 取缓冲区的文本显示区域的宽。
-	DefGetter(SDST, BufHeightN, Height - GetVerticalFrom(Margin)) \
+	DefGetter(SDST, BufHeightN, GetHeight() - GetVerticalFrom(Margin)) \
 		//!< 取缓冲区的文本显示区域的高。
 	/*!
 	\brief 根据字体大小、行距和缓冲区的高调整边距，返回调整后的底边距值。

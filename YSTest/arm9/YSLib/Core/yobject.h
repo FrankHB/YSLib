@@ -11,12 +11,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.2722;
+\version 0.2788;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-14 06:26 + 08:00;
+	2010-12-27 16:39 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -741,6 +741,52 @@ Rect::ContainsStrict(int px, int py) const
 	return Width > 1 && Height > 1 && IsInOpenInterval<int>(px - X, Width - 1)
 		&& IsInOpenInterval<int>(py - Y, Height - 1);
 }
+
+
+//! \brief 二维图形接口上下文。
+class Graphics
+{
+protected:
+	BitmapPtr pBuffer; //!< 显示缓冲区指针。
+	Drawing::Size Size; //!< 缓冲区大小。
+
+public:
+	/*!
+	\brief 构造：使用指定位图指针和大小。
+	*/
+	explicit
+	Graphics(BitmapPtr = NULL, const Drawing::Size& = Drawing::Size::Zero);
+	DefEmptyDtor(Graphics)
+
+	/*!
+	\brief 取指定行首元素指针。
+	\note 断言检查：缓冲区指针非空；参数不越界。
+		无异常抛出。
+	*/
+	BitmapPtr
+	operator[](std::size_t) ythrow();
+
+	DefPredicate(Valid, pBuffer && Size.Width != 0 && Size.Height != 0)
+
+	DefGetter(BitmapPtr, BufferPtr, pBuffer)
+	DefGetter(const Drawing::Size&, Size, Size)
+	DefGetter(SDST, Width, Size.Width)
+	DefGetter(SDST, Height, Size.Height)
+
+	/*!
+	\brief 取指定行首元素指针。
+	\exception std::runtime_error 缓冲区指针为空。
+	\exception std::out_of_range 参数越界。
+	\note 仅抛出以上异常。
+	*/
+	BitmapPtr
+	at(std::size_t) ythrow(std::runtime_error, std::out_of_range);
+};
+
+inline
+Graphics::Graphics(BitmapPtr b, const Drawing::Size& s)
+	: pBuffer(b), Size(s)
+{}
 
 YSL_END_NAMESPACE(Drawing)
 

@@ -11,12 +11,12 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version 0.2922;
+\version 0.3024;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-21 23:09:06 + 08:00;
 \par 修改时间:
-	2010-12-23 11:28 + 08:00;
+	2010-12-25 23:27 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,72 +36,7 @@ YSL_BEGIN_NAMESPACE(Design)
 YSL_BEGIN_NAMESPACE(Policies)
 
 /*!
-\brief 智能指针所有权策略：简单所有权策略。
-\note 类似内建指针。无所有权语义支持。无数据成员，可以减小指针体积，
-	可能使用 reinterpret_cast 储存至 32 位整数对象。
-*/
-template<class P>
-struct RawOwnership
-{
-	enum
-	{
-		destructiveCopy = false
-	};
-
-	/*!
-	\brief 构造。
-	*/
-	inline
-	RawOwnership()
-	{}
-
-	/*!
-	\brief 复制构造。
-	*/
-	template<class P1>
-	inline
-	RawOwnership(const RawOwnership<P1>& rhs)
-	{}
-
-	/*!
-	\brief 复制。
-	*/
-	inline static P
-	Clone(const P& val)
-	{
-		return val;
-	}
-
-	/*!
-	\brief 释放。
-	*/
-	inline static bool
-	Release(const P&)
-	{
-		return false;
-	}
-
-	/*!
-	\brief 交换。
-	*/
-	inline static void
-	Swap(RawOwnership&)
-	{}
-
-	/*!
-	\brief 合并。
-	*/
-	template<class P1>
-	inline static bool
-	Merge(RawOwnership<P1>&)
-	{
-		return false;
-	}
-};
-
-
-/*!
-\brief 使用 ystdex::general_cast 的引用计数所有权策略。
+\brief 智能指针所有权策略：使用 ystdex::general_cast 的引用计数所有权策略。
 */
 template <class P>
 class GeneralCastRefCounted
@@ -306,7 +241,7 @@ public:
 	{
 		T* p(NULL);
 
-		ReleaseAll(static_cast<SPType&>(*this), p);
+		Loki::ReleaseAll(static_cast<SPType&>(*this), p);
 		return p;
 	}
 
@@ -318,14 +253,14 @@ public:
 	bool
 	Reset(T* p = NULL)
 	{
-		return ResetAll(static_cast<SPType&>(*this), p);
+		return Loki::ResetAll(static_cast<SPType&>(*this), p);
 	}
 };
 
 
 //! \brief 句柄类。
 template<typename T,
-	template<class> class OP = Design::Policies::RawOwnership,
+	template<class> class OP = Design::Policies::GeneralCastRefCounted,
 	class CP = Policies::DisallowConversion,
 	template<class> class KP = Policies::AssertCheck,
 	template<class> class SP = Policies::DefaultSPStorage,
@@ -383,9 +318,9 @@ public:
 	T*
 	Release()
 	{
-		T* p(this->operator->());
+		T* p(NULL);
 
-		*this = NULL;
+		Loki::Release(*this, p);
 		return p;
 	}
 
@@ -397,8 +332,7 @@ public:
 	{
 		if(p != operator->())
 		{
-			delete operator->();
-			*this = p;
+			Loki::Reset(*this, p);
 			return true;
 		}
 		return false;
@@ -476,13 +410,10 @@ static_handle_cast(const GHHandle<_tReference>& h)
 \brief 转换：指定类型句柄。
 */
 template<typename _type, typename _tReference>
-GHHandle<_type>
-dynamic_handle_cast(GHHandle<_tReference> h)
+inline GHHandle<_type>
+general_handle_cast(GHHandle<_tReference> h)
 {
-	GHHandle<_type> hDst(dynamic_cast<_type*>(GetPointer(h)));
-
-	hDst.Merge(h);
-	return hDst;
+	return GHHandle<_type>(h);
 }
 
 

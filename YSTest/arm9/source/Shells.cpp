@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3412;
+\version 0.3449;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-12-23 11:28 + 08:00;
+	2010-12-25 23:26 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -271,6 +271,26 @@ ReleaseShells()
 
 using namespace DS;
 
+ShlLoad::TFrmLoadUp::TFrmLoadUp()
+	: YForm(Rect::FullScreen, GetImage(1), HWND(hDesktopUp)),
+	lblTitle(Rect(50, 20, 100, 22), this),
+	lblStatus(Rect(60, 80, 80, 22), this)
+{
+	lblTitle.Text = YApplication::ProductName;
+	lblStatus.Text = "Loading...";
+	//	lblTitle.Transparent = true;
+	Draw();
+}
+
+ShlLoad::TFrmLoadDown::TFrmLoadDown()
+	: YForm(Rect::FullScreen, GetImage(2), HWND(hDesktopDown)),
+	lblStatus(Rect(30, 20, 160, 22), this)
+{
+	lblStatus.Text = _ustr("初始化中，请稍后……");
+	lblStatus.SetTransparent(true);
+	Draw();
+}
+
 int
 ShlLoad::OnActivated(const Message& m)
 {
@@ -293,6 +313,45 @@ ShlLoad::OnActivated(const Message& m)
 		return -1;
 	}
 	return 0;
+}
+
+
+ShlExplorer::TFrmFileListMonitor::TFrmFileListMonitor()
+	: YForm(Rect::FullScreen, GetImage(3), HWND(hDesktopUp)),
+	lblTitle(Rect(16, 20, 220, 22), this),
+	lblPath(Rect(12, 80, 240, 22), this)
+{
+	lblTitle.Text = "文件列表：请选择一个文件。";
+	lblPath.Text = "/";
+	//	lblTitle.Transparent = true;
+	//	lblPath.Transparent = true;
+	Draw();
+}
+
+ShlExplorer::TFrmFileListSelecter::TFrmFileListSelecter()
+	: YForm(Rect::FullScreen, GetImage(4), HWND(hDesktopDown)),
+	fbMain(Rect(6, 10, 210, 150), this),
+	btnTest(Rect(115, 165, 65, 22), this),
+	btnOK(Rect(185, 165, 65, 22), this),
+	sbTestH(Rect(10, 165, 95, 16), this),
+	//	tkTestH(Rect(10, 165, 95, 16), this),
+	tkTestV(Rect(230, 10, 16, 95), this)
+{
+	btnTest.Text = _ustr(" 测试(X)");
+	btnOK.Text = _ustr(" 确定(R)");
+	FetchEvent<EControl::KeyPress>(*this)
+		+= &TFrmFileListSelecter::frm_KeyPress;
+	//	fbMain.TouchDown += YFileBox::OnClick;
+	//	fbMain.Click += &YListBox::_m_OnClick;
+	FetchEvent<EControl::KeyPress>(fbMain) += fb_KeyPress;
+	fbMain.Selected.Add(*this, &TFrmFileListSelecter::fb_Selected);
+	fbMain.Confirmed += fb_Confirmed;
+	FetchEvent<EControl::Click>(btnTest).Add(*this,
+		&TFrmFileListSelecter::btnTest_Click);
+	FetchEvent<EControl::Click>(btnOK).Add(*this,
+		&TFrmFileListSelecter::btnOK_Click);
+	btnOK.SetTransparent(false);
+	Draw();
 }
 
 void
@@ -331,7 +390,6 @@ ShlExplorer::fb_KeyPress(IVisualControl& sender, KeyEventArgs& e)
 	if(x & KeySpace::L)
 		switchShl1();
 }
-
 void
 ShlExplorer::fb_Confirmed(IVisualControl& sender, IndexEventArgs& e)
 {
@@ -460,6 +518,40 @@ YSL_END_SHELL(ShlSetting)
 
 HWND ShlSetting::hWndC(NULL);
 
+ShlSetting::TFormA::TFormA()
+	: YForm(Rect::FullScreen, GetImage(5), HWND(hDesktopUp)),
+	lblA(Rect(s_left, 20, 200, s_size), this),
+	lblA2(Rect(s_left, 80, 72, s_size), this)
+{
+	lblA.Text = YApplication::ProductName;
+	lblA2.Text = "程序测试";
+	lblA2.SetTransparent(true);
+}
+
+void
+ShlSetting::TFormA::ShowString(const String& s)
+{
+	lblA.Text = s;
+	lblA.Refresh();
+}
+
+ShlSetting::TFormB::TFormB()
+	: YForm(Rect(10, 40, 228, 70), NULL, HWND(hDesktopDown)),
+	btnB(Rect(2, 5, 224, s_size), this), /*GetImage(6)*/
+	btnB2(Rect(45, 35, 124, s_size), this)
+{
+	btnB.Text = _ustr("测试程序");
+	btnB2.Text = _ustr("测试程序2");
+	BackColor = ARGB16(1, 31, 31, 15);
+	FetchEvent<EControl::TouchMove>(*this) += OnDrag;
+	//	btnB.TouchMove += &AVisualControl::OnTouchMove;
+	FetchEvent<EControl::Enter>(btnB) += btnB_Enter;
+	FetchEvent<EControl::Leave>(btnB) += btnB_Leave;
+	FetchEvent<EControl::TouchMove>(btnB2) += OnDrag;
+	//	btnB2.TouchDown += btnC_Click;
+	//	btnB.Enabled = false;
+}
+
 void
 ShlSetting::TFormB::btnB_Enter(IVisualControl& sender, InputEventArgs& e)
 {
@@ -483,6 +575,33 @@ ShlSetting::TFormB::btnB_Leave(IVisualControl& sender, InputEventArgs& e)
 	btn.Refresh();
 }
 
+ShlSetting::TFormC::TFormC()
+	: YForm(Rect(5, 60, 180, 120), NULL, HWND(hDesktopDown)),
+	btnC(Rect(13, 45, 184, s_size), this),/*GetImage(7)*/
+	btnReturn(Rect(13, 82, 60, s_size), this),
+	btnExit(Rect(83, 82, 60, s_size), this)
+{
+	btnC.Text = _ustr("测试y");
+	btnReturn.Text = _ustr("返回");
+	btnExit.Text = _ustr("退出");
+	BackColor = ARGB16(1, 31, 15, 15);
+	FetchEvent<EControl::TouchDown>(*this) += TFormC_TouchDown;
+	FetchEvent<EControl::TouchMove>(*this) += OnDrag;
+	FetchEvent<EControl::TouchUp>(btnC).Add(*this,
+		&TFormC::btnC_TouchUp);
+	FetchEvent<EControl::TouchDown>(btnC).Add(*this,
+		&TFormC::btnC_TouchDown);
+	FetchEvent<EControl::TouchMove>(btnC) += OnDrag;
+	FetchEvent<EControl::Click>(btnC).Add(*this, &TFormC::btnC_Click);
+	FetchEvent<EControl::KeyPress>(btnC) += btnC_KeyPress;
+	//	btnC.Enabled = false;
+	btnReturn.BackColor = ARGB16(1, 22, 23, 24);
+	FetchEvent<EControl::Click>(btnReturn).Add(*this,
+		&TFormC::btnReturn_Click);
+	FetchEvent<EControl::Click>(btnExit).Add(*this,
+		&TFormC::btnExit_Click);
+}
+
 void
 ShlSetting::TFormC::btnC_TouchUp(TouchEventArgs& e)
 {
@@ -500,7 +619,6 @@ ShlSetting::TFormC::btnC_TouchDown(TouchEventArgs& e)
 void
 ShlSetting::TFormC::btnC_Click(TouchEventArgs& e)
 {
-
 	static const int ffilen(theApp.pFontCache->GetFilesN());
 	static const int ftypen(theApp.pFontCache->GetTypesN());
 	static const int ffacen(theApp.pFontCache->GetFacesN());
@@ -517,7 +635,7 @@ ShlSetting::TFormC::btnC_Click(TouchEventArgs& e)
 			it = theApp.pFontCache->GetTypes().begin();
 		btnC.Font = Font(*(*it)->GetFontFamilyPtr(), 18 - (itype << 1),
 			EFontStyle::Regular);
-	//	btnC.Font = Font(*(*it)->GetFontFamilyPtr()/*GetDefaultFontFamily()*/,
+	//	btnC.Font = Font(*(*it)->GetFontFamilyPtr(), //GetDefaultFontFamily(),
 	//		18 - (itype << 1), EFontStyle::Regular);
 		sprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n",
 			btnC.Font.GetSize(), ffilen, ftypen, ffacen);
@@ -570,6 +688,32 @@ ShlSetting::TFormC::btnExit_Click(TouchEventArgs&)
 {
 	Shells::PostQuitMessage(0);
 }
+
+void
+ShlSetting::ShowString(const String& s)
+{
+	general_handle_cast<TFormA>(hWndUp)->ShowString(s);
+}
+void
+ShlSetting::ShowString(const char* s)
+{
+	ShowString(String(s));
+}
+
+void
+ShlSetting::TFormC_TouchDown(IVisualControl& sender, TouchEventArgs& e)
+{
+	try
+	{
+		TFormC& frm(dynamic_cast<TFormC&>(sender));
+
+		frm.BackColor = ARGB16(1, std::rand(), std::rand(), std::rand());
+		frm.Refresh();
+	}
+	catch(std::bad_cast&)
+	{}
+}
+
 
 int
 ShlSetting::OnActivated(const Message& msg)

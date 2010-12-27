@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2777;
+\version 0.2784;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 + 08:00;
 \par 修改时间:
-	2010-12-21 17:13 + 08:00;
+	2010-12-27 07:51 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -171,8 +171,8 @@ InitAllScreens()
 	using namespace Runtime;
 
 	InitVideo();
-	hScreenUp->SetPtr(DS::InitScrUp(hScreenUp->bg));
-	hScreenDown->SetPtr(DS::InitScrDown(hScreenDown->bg));
+	hScreenUp->pBuffer = DS::InitScrUp(hScreenUp->bg);
+	hScreenDown->pBuffer = DS::InitScrDown(hScreenDown->bg);
 	return true;
 }
 

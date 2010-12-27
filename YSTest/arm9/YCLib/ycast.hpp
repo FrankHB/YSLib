@@ -11,12 +11,12 @@
 /*!	\file ycast.hpp
 \ingroup YCLib
 \brief C++ 转换模板类。
-\version 0.1510;
+\version 0.1542;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-15 08:13:18 + 08:00; 
 \par 修改时间:
-	2010-12-23 11:41 + 08:00;
+	2010-12-25 21:38 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -64,13 +64,22 @@ namespace ystdex
 	{
 		struct A
 			: _type
-		{};
+		{
+			~A() throw()
+			{}
+		};
 		struct B
 			: _type
-		{};
+		{
+			~B() throw()
+			{}
+		};
 		struct C
 			: A, B
-		{};
+		{
+			~C() throw()
+			{}
+		};
 
 		enum
 		{
@@ -83,13 +92,22 @@ namespace ystdex
 	{
 		struct A
 			: virtual _type1
-		{};
+		{
+			~A() throw()
+			{}
+		};
 		struct B
 			: virtual _type2
-		{};
+		{
+			~B() throw()
+			{}
+		};
 		struct C
 			: A, B
-		{};
+		{
+			~C() throw()
+			{}
+		};
 
 		enum
 		{

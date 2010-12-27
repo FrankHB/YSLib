@@ -11,12 +11,12 @@
 /*!	\file base.h
 \ingroup Adaptor
 \brief 通用基础设施。
-\version 0.2006;
+\version 0.2018;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 + 08:00;
 \par 修改时间:
-	2010-12-12 22:11 + 08:00;
+	2010-12-27 15:54 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,8 +32,8 @@
  GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，该宏不会被展开。
 详见：http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
 解决方案来源：
- https://www.securecoding.cert.org/confluence/display/cplusplus/\
- PRE05-CPP.+Understand+macro+replacement+when+concatenating\
+ https://www.securecoding.cert.org/confluence/display/cplusplus/ \
+ PRE05-CPP.+Understand+macro+replacement+when+concatenating \
  +tokens+or+performing+stringification 。
 */
 #define _yJOIN(x, y) x ## y
@@ -128,6 +128,8 @@
 #	define PDefHOperator(_type, _op, _paralist) \
 	_type operator _op(_paralist)
 #endif
+#define PDefConverter(_type) \
+	operator _type()
 
 
 //简单通用函数实现。

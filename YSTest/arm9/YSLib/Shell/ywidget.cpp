@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4733;
+\version 0.4743;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-20 23:11 + 08:00;
+	2010-12-27 13:59 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -234,7 +234,7 @@ namespace
 
 		if(pWnd)
 		{
-			Graphics g(*pWnd);
+			const Graphics& g(*pWnd);
 
 			FillRect(g, LocateOffset(&w, Point::Zero, pWnd), w.GetSize(), c);
 		}
@@ -415,7 +415,7 @@ MLabel::PaintText(Widget& w, const Point& pt)
 		SetMarginsTo(*pTextRegion, 2, 2, 2, 2);
 		pTextRegion->PutLine(Text);
 
-		Graphics g(*pWnd);
+		const Graphics& g(*pWnd);
 
 		pTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
 			g.GetSize(), Point::Zero, pt, w.GetSize());

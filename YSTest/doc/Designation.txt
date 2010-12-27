@@ -1,8 +1,8 @@
 ﻿// YSLib -> Designation by Franksoft 2009 - 2010
 // CharSet = UTF-8;
 // CTime = 2009-12-02 05:14:30 + 08:00;
-// UTime = 2010-12-23 13:03 + 08:00;
-// Version = 0.3966;
+// UTime = 2010-12-24 19:00 + 08:00;
+// Version = 0.3970;
 
 
 // Designation ：设计说明文档。
@@ -589,7 +589,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
  YSLib::Timers ：计时器服务。
 
 @2.1.5 名称引用限制：
-除 Adaptor 外， YSLib 命名空间下不直接使用 YSLib 、 std 、 ystdex 以外的根命名空间以及其中的名称。
+除 Adaptor 外， YSLib 命名空间下不直接使用 YSLib 、 std 、 ystdex 以外的根命名空间以及其中的名称；不使用 std::tr1 及其中的名称。
 不使用除了 main 和 YMain 以外的全局命名空间中的名称。
 
 @2.2 语言特性支持：

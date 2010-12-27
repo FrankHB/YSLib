@@ -16,12 +16,12 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version 0.2461;
+\version 0.2471;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-24 15:29:11 + 08:00;
 \par 修改时间:
-	2010-12-15 19:58 + 08:00;
+	2010-12-24 23:48 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@
 #include "../Adaptor/yadaptor.h"
 
 //间接访问类模块。
-#include "yref.hpp"
+#include "../Adaptor/yref.hpp"
 
 YSL_BEGIN
 

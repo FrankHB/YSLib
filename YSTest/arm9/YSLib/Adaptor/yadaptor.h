@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2022;
+\version 0.2032;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 + 08:00;
 \par 修改时间:
-	2010-12-23 11:29 + 08:00;
+	2010-12-24 23:56 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -198,8 +198,6 @@ YSL_BEGIN_NAMESPACE(Policies)
 YSL_END_NAMESPACE(Policies)
 	using Loki::SmartPtr;
 	using Loki::StrongPtr;
-	using Loki::Release;
-	using Loki::ReleaseAll;
 
 YSL_END
 

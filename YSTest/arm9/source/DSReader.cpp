@@ -11,12 +11,12 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 NDS 的双屏阅读器实现。
-\version 0.2964;
+\version 0.2982;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 + 08:00; 
 \par 修改时间:
-	2010-12-21 15:46 + 08:00;
+	2010-12-26 23:23 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,8 +45,8 @@ void MDualScreenReader::FillText()
 	itDn = pTrDn->PutString(pTrUp->PutString(itUp));
 }
 
-MDualScreenReader::MDualScreenReader(u16 l, u16 w, u16 t_up, u16 h_up,
-									 u16 t_down, u16 h_down, YFontCache& fc_)
+MDualScreenReader::MDualScreenReader(SDST l, SDST w, SDST t_up, SDST h_up,
+									 SDST t_down, SDST h_down, YFontCache& fc_)
 try	: pText(NULL), fc(fc_),
 	left(l), top_up(t_up), top_down(t_down),
 	pBgUp(hDesktopUp->GetBufferPtr()), pBgDn(hDesktopDown->GetBufferPtr()),
@@ -120,7 +120,7 @@ MDualScreenReader::LoadText(YTextFile& file)
 //	assert(pText);
 	if(file.IsValid())
 	{
-		pText = new BlockedText(file);
+		pText = ynew BlockedText(file);
 		itUp = pText->Blocks.begin();
 		itDn = pText->Blocks.end();
 		Update();
@@ -159,10 +159,10 @@ MDualScreenReader::LineUp()
 	if(IsTextTop())
 		return false;
 
-	const u8 h = lnHeight, hx = h + GetLnGapDn();
-	const u16 w = pTrUp->Width;
+	const u8 h = lnHeight, hx = h + GetLineGapDn();
+	const SDST w = pTrUp->GetWidth();
 	const u32 t = w * h,
-		s = (pTrUp->Height - pTrUp->GetMarginResized() - h) * w,
+		s = (pTrUp->GetHeight() - pTrUp->GetMarginResized() - h) * w,
 		d = pTrDn->Margin.Top * w;
 
 	pTrDn->Move(hx, pTrDn->GetBufferHeightResized());
@@ -187,11 +187,11 @@ MDualScreenReader::LineDown()
 	if(IsTextBottom())
 		return false;
 
-	const u8 h = lnHeight, hx = h + GetLnGapUp();
-	const u16 w = pTrUp->Width;
+	const u8 h = lnHeight, hx = h + GetLineGapUp();
+	const SDST w = pTrUp->GetWidth();
 	const u32 t = w * h,
 		s = pTrUp->Margin.Top * w,
-		d = (pTrUp->Height - pTrUp->GetMarginResized() - h) * w;
+		d = (pTrUp->GetHeight() - pTrUp->GetMarginResized() - h) * w;
 
 	pTrUp->Move(-hx);
 	std::memcpy(&pTrUp->GetBufferPtr()[d], &pTrDn->GetBufferPtr()[s],
@@ -234,10 +234,10 @@ MDualScreenReader::ScreenDown()
 	return true;
 }
 
-void
+/*void
 MDualScreenReader::Scroll(PFVOID pCheck)
 {
-}
+}*/
 
 YSL_END_NAMESPACE(Components)
 

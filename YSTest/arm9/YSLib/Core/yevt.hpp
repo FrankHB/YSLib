@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调模块。
-\version 0.3865;
+\version 0.3866;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 + 08:00;
 \par 修改时间:
-	2010-12-02 10:57 + 08:00;
+	2010-12-27 15:55 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -417,7 +417,7 @@ struct GEvent<false, _tSender, _tEventArgs>
 
 
 //! \brief 定义事件处理器委托类型。
-#define DefDelegate(_name, _tSender, _tEventArgs)\
+#define DefDelegate(_name, _tSender, _tEventArgs) \
 	typedef Runtime::GHEvent<_tSender, _tEventArgs> _name;
 
 
