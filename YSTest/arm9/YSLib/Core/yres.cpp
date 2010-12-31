@@ -11,12 +11,12 @@
 /*!	\file yres.cpp
 \ingroup Core
 \brief 资源管理模块。
-\version 0.1204;
+\version 0.1219;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 + 08:00;
 \par 修改时间:
-	2010-12-26 23:05 + 08:00;
+	2010-12-31 12:17 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,7 +39,7 @@ YImage::SetImage(ConstBitmapPtr s, SDST w, SDST h)
 {
 	SetSize(w, h);
 	if(pBuffer && s)
-		std::memcpy(pBuffer, s, GetSizeOfBuffer());
+		mmbcpy(pBuffer, s, GetSizeOfBuffer());
 }
 
 YSL_END_NAMESPACE(Drawing)

@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.3960;
+\version 0.3964;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 + 08:00;
 \par 修改时间:
-	2010-12-02 10:04 + 08:00;
+	2010-12-30 22:06 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -142,6 +142,12 @@ AVisualControl::ReleaseFocus(EventArgs& e)
 
 void
 AVisualControl::OnGotFocus(EventArgs&)
+{
+	Refresh();
+}
+
+void
+AVisualControl::OnLostFocus(EventArgs&)
 {
 	Refresh();
 }

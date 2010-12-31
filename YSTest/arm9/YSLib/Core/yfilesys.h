@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2066;
+\version 0.2070;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 + 08:00;
 \par 修改时间:
-	2010-12-13 14:36 + 08:00;
+	2010-12-31 21:15 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,8 +31,6 @@
 #include "yfunc.hpp"
 #include "../Core/yshell.h" // for GHHandle<YShell> delete procedure;
 #include <iterator>
-//#include <vector>
-//#include <list>
 
 YSL_BEGIN
 
@@ -601,7 +599,7 @@ public:
 
 protected:
 	Path Directory; //!< 目录的完整路径。
-	GHStrong<ListType> pList; //!< 目录中的项目列表。
+	GHStrong<ListType> spList; //!< 目录中的项目列表的强指针。
 
 public:
 	/*!
@@ -633,7 +631,7 @@ public:
 	operator/=(const String&);
 
 	DefGetter(const Path&, Directory, Directory) //!< 取目录的完整路径。
-	DefGetter(GHWeak<ListType>, ListWeakPtr, pList); //!< 取项目列表的弱引用。
+	DefGetter(GHWeak<ListType>, ListWeakPtr, spList); //!< 取项目列表的弱指针。
 //	DefGetter(const ListType&, List, List) //!< 取项目列表。
 
 	/*!

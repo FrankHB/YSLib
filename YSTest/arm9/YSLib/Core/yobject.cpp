@@ -11,12 +11,12 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.1488;
+\version 0.1501;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-12 17:01 + 08:00;
+	2010-11-12 18:35 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -88,9 +88,9 @@ BitmapPtr
 Graphics::operator[](std::size_t r) ythrow()
 {
 	YAssert(pBuffer, "Buffer pointer is null @@ Graphics::operator[];");
-	YAssert(r < Size.Height, "Access out of range @@ Graphics::operator[];");
+	YAssert(r < size.Height, "Access out of range @@ Graphics::operator[];");
 
-	return pBuffer + r * Size.Width;
+	return pBuffer + r * size.Width;
 }
 BitmapPtr
 Graphics::at(std::size_t r) ythrow(std::runtime_error, std::out_of_range)
@@ -98,10 +98,10 @@ Graphics::at(std::size_t r) ythrow(std::runtime_error, std::out_of_range)
 	if(!pBuffer)
 		throw std::runtime_error(
 			"Buffer pointer is null @@ Graphics::operator[];");
-	if(r >= Size.Height)
+	if(r >= size.Height)
 		throw std::out_of_range("Access out of range @@ Graphics::operator[];");
 
-	return pBuffer + r * Size.Width;
+	return pBuffer + r * size.Width;
 }
 
 

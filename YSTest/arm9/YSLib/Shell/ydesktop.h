@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2184;
+\version 0.2185;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 + 08:00;
 \par 修改时间:
-	2010-12-26 20:53 + 08:00;
+	2010-12-30 16:08 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

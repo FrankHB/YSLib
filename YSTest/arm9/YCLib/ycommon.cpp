@@ -11,12 +11,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2082;
+\version 0.2148;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 + 08:00;
 \par 修改时间:
-	2010-12-23 11:48 + 08:00;
+	2010-12-31 11:51 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,6 +32,47 @@
 
 namespace platform
 {
+	void* const main_ram(reinterpret_cast<void*>(0x02000000));
+
+	void*
+	mmbset(void* d, int v, std::size_t t)
+	{
+		if(d > main_ram)
+		{
+			v &= 0xFF;
+			v |= v << 8;
+			if(t & 3)
+			{
+				dmaFillHalfWords(v, d, t);
+				if(t & 1)
+					*(static_cast<u8*>(d) + t - 1) = v & 0xFF;
+			}
+			else
+			{
+				v |= v << 16;
+				dmaFillWords(v, d, t);
+			}
+			return d;
+		}
+		else
+			return std::memset(d, v, t);
+	}
+
+	void*
+	mmbcpy(void* d, const void* s, std::size_t t)
+	{
+		if(d > main_ram && s > main_ram)
+		{
+			dmaCopy(s, d, t);
+			if(t & 1)
+				*(static_cast<u8*>(d) + t - 1)
+					= *(static_cast<const u8*>(s) + t - 1);
+			return d;
+		}
+		else
+			return std::memcpy(d, s, t);
+	}
+
 	char*
 	getcwd_n(char* buf, std::size_t t)
 	{
@@ -230,7 +271,7 @@ namespace platform
 		vramSetBankG(VRAM_G_LCD);
 		vramSetBankH(VRAM_H_LCD);
 		vramSetBankI(VRAM_I_LCD);
-		memset(VRAM_A, 0, 0x90000);
+		std::memset(VRAM_A, 0, 0x90000);
 	//	memset(OAM, 0, SPRITE_COUNT * sizeof(SpriteEntry));
 	//	memset(OAM_SUB, 0, SPRITE_COUNT * sizeof(SpriteEntry));
 		videoSetMode(MODE_5_2D);

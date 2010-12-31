@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器实现。
-\version 0.2266;
+\version 0.2270;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 + 08:00; 
 \par 修改时间:
-	2010-12-26 13:11 + 08:00;
+	2010-12-29 16:34 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,7 +58,7 @@ private:
 	PixelType* pBgDn; //!< 下屏幕背景层显存地址。
 	GHStrong<TextRegion> pTrUp; //!< 上屏幕对应字符区域。
 	GHStrong<TextRegion> pTrDn; //!< 下屏幕对应字符区域。
-	ROT rot; //!< 屏幕指向。
+	Rotation rot; //!< 屏幕指向。
 	Text::TextFileBuffer::HText itUp; //!< 字符区域读取文本缓存迭代器。
 	Text::TextFileBuffer::HText itDn; //!< 字符区域读取文本缓存迭代器。
 	u8 lnHeight; //!< 行高。

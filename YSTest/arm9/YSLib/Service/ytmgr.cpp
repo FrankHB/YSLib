@@ -11,12 +11,12 @@
 /*!	\file ytmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4051;
+\version 0.4061;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 + 08:00;
 \par 修改时间:
-	2010-12-17 19:06 + 08:00;
+	2010-12-31 12:17 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -80,7 +80,7 @@ TextBuffer::Load(const uchar_t* s, SizeType n)
 {
 	if(n > capacity)
 		return false;
-	std::memcpy(text, s, sizeof(uchar_t) * n);
+	mmbcpy(text, s, sizeof(uchar_t) * n);
 	len = n;
 	return true;
 }
@@ -144,7 +144,7 @@ TextBuffer::TextBuffer::Output(uchar_t* d, SizeType p, SizeType n) const
 {
 	if(p + n > capacity)
 		return false;
-	std::memcpy(d, &text[p], sizeof(uchar_t) * n);
+	mmbcpy(d, &text[p], sizeof(uchar_t) * n);
 	return true;
 }
 

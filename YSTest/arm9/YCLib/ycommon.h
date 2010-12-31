@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2612;
+\version 0.2635;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 + 08:00; 
 \par 修改时间:
-	2010-12-23 11:43 + 08:00;
+	2010-12-31 11:43 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,8 +62,8 @@ namespace platform
 
 	//平台相关的全局常量。
 
-	#define MAX_FILENAME_LENGTH MAXPATHLEN //!< 最大路径长度。
-	#define MAX_PATH_LENGTH MAX_FILENAME_LENGTH
+	#define YCL_MAX_FILENAME_LENGTH MAXPATHLEN //!< 最大路径长度。
+	#define YCL_MAX_PATH_LENGTH YCL_MAX_FILENAME_LENGTH
 	#define DEF_SHELL_FONTSIZE 16
 	#define DEF_SHELL_FONTSIZE_MIN 4
 	#define DEF_SHELL_FONTSIZE_MAX 72
@@ -73,11 +73,31 @@ namespace platform
 	#define DEF_PATH_ROOT DEF_PATH_SEPERATOR
 
 	//类型定义。
-	typedef char PATHSTR[MAX_PATH_LENGTH];
+	typedef char PATHSTR[YCL_MAX_PATH_LENGTH];
 	//typedef char PATHSTR[MAXPATHLEN];
-	typedef char FILENAMESTR[MAX_FILENAME_LENGTH];
+	typedef char FILENAMESTR[YCL_MAX_FILENAME_LENGTH];
 
 	using ::iprintf;
+
+	/*!
+	\brief 主内存块设置。
+
+	满足条件时使用平台特定算法覆盖内存区域的每个字节，否则使用 std::memset 。
+	\note 参数和返回值语义同 std::memset 。
+	\warning 仅进行内存区域检查，不进行空指针或其它检查。
+	*/
+	void*
+	mmbset(void*, int, std::size_t);
+
+	/*!
+	\brief 主内存块复制。
+
+	满足条件时使用平台特定算法复制内存区域，否则使用 std::memcpy 。
+	\note 参数和返回值语义同 std::memcpy 。
+	\warning 仅进行内存区域检查，不进行空指针或其它检查。
+	*/
+	void*
+	mmbcpy(void*, const void*, std::size_t);
 
 	/*!
 	\brief 当 buf 非空时取当前工作目录复制至 buf 起始的长为 t 的缓冲区中。

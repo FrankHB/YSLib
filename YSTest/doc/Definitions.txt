@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-12-27 13:31 + 08:00;
-// Version = r10566;
+// UTime = 2010-12-31 11:45 + 08:00;
+// Version = r10574;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -154,8 +154,8 @@ MAX_UCSCHAR
 $header YCommon
 {
 UNICODE
-MAX_FILENAME_LENGTH
-MAX_PATH_LENGTH
+YCL_MAX_FILENAME_LENGTH
+YCL_MAX_PATH_LENGTH
 DEF_SHELL_FONTSIZE
 DEF_SHELL_FONTSIZE_MIN
 DEF_SHELL_FONTSIZE_MAX
@@ -493,8 +493,8 @@ $header Adaptor::YAdaptor
 
 	using platform::DEF_PATH_DELIMITER, platform::DEF_PATH_SEPERATOR,
 		platform::PATHSTR, platform::FILENAMESTR;
-	using platform::direxists,
-	platform::chdir, platform::getcwd_n;
+	using platform::mmbset, platform::mmbcpy;
+	using platform::direxists, platform::chdir, platform::getcwd_n;
 	using platform::terminate;
 	using platform::HDirectory,
 		platform::IsAbsolute, platform::GetRootNameLength;

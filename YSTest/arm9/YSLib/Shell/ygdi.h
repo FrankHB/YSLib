@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3328;
+\version 0.3423;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2010-12-27 16:38 + 08:00;
+	2010-12-29 18:38 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,6 +35,21 @@ YSL_BEGIN
 // GDI 基本数据类型和宏定义。
 
 YSL_BEGIN_NAMESPACE(Drawing)
+
+//! \brief 逆时针旋转角度指示输出指向。
+typedef enum {
+	RDeg0 = 0,
+	RDeg90 = 1,
+	RDeg180 = 2,
+	RDeg270 = 3
+} Rotation;
+
+//! \brief 二元方向。
+typedef enum
+{
+	Horizontal = 0,
+	Vertical = 1
+} Orientation;
 
 //基本函数对象。
 
@@ -230,6 +245,7 @@ FillRect(_tPixel* dst, SDST dw, SDST dh, SPOS sx, SPOS sy, SDST sw, SDST sh,
 
 /*!
 \brief 复制一块矩形区域的像素。
+\note 不检查指针有效性。自动裁剪适应大小。
 */
 void
 blit(BitmapPtr dst, const Size& ds,
@@ -238,6 +254,7 @@ blit(BitmapPtr dst, const Size& ds,
 
 /*!
 \brief 水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素。
+\note 不检查指针有效性。自动裁剪适应大小。
 */
 void
 blitH(BitmapPtr dst, const Size& ds,
@@ -246,6 +263,7 @@ blitH(BitmapPtr dst, const Size& ds,
 
 /*!
 \brief 竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素。
+\note 不检查指针有效性。自动裁剪适应大小。
 */
 void
 blitV(BitmapPtr dst, const Size& ds,
@@ -253,6 +271,7 @@ blitV(BitmapPtr dst, const Size& ds,
 	const Point& sp, const Point& dp, const Size& sc);
 /*!
 \brief 倒置复制一块矩形区域的像素。
+\note 不检查指针有效性。自动裁剪适应大小。
 */
 void
 blitU(BitmapPtr dst, const Size& ds,
@@ -268,7 +287,7 @@ blit(u8* dst, SDST dw, SDST dh,
 
 /*!
 \brief 复制一块矩形区域的像素。
-\note 使用第 15 位表示透明性。
+\note 不检查指针有效性。自动裁剪适应大小。使用第 15 位表示透明性。
 */
 void
 blit2(BitmapPtr dst, const Size& ds,
@@ -277,7 +296,7 @@ blit2(BitmapPtr dst, const Size& ds,
 
 /*!
 \brief 水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素。
-\note 使用第 15 位表示透明性。
+\note 不检查指针有效性。自动裁剪适应大小。使用第 15 位表示透明性。
 */
 void
 blit2H(BitmapPtr dst, const Size& ds,
@@ -286,7 +305,7 @@ blit2H(BitmapPtr dst, const Size& ds,
 
 /*!
 \brief 竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素。
-\note 使用第 15 位表示透明性。
+\note 不检查指针有效性。自动裁剪适应大小。使用第 15 位表示透明性。
 */
 void
 blit2V(BitmapPtr dst, const Size& ds,
@@ -295,7 +314,7 @@ blit2V(BitmapPtr dst, const Size& ds,
 
 /*!
 \brief 倒置复制一块矩形区域的像素。
-\note 使用第 15 位表示透明性。
+\note 不检查指针有效性。自动裁剪适应大小。使用第 15 位表示透明性。
 */
 void
 blit2U(BitmapPtr dst, const Size& ds,
@@ -304,7 +323,7 @@ blit2U(BitmapPtr dst, const Size& ds,
 
 /*!
 \brief 复制一块矩形区域的像素。
-\note 使用 Alpha 通道表示透明性。
+\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示透明性。
 */
 void
 blit2(BitmapPtr dst, const Size& ds,
@@ -313,7 +332,7 @@ blit2(BitmapPtr dst, const Size& ds,
 
 /*!
 \brief 水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素。
-\note 使用 Alpha 通道表示透明性。
+\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示透明性。
 */
 void
 blit2H(BitmapPtr dst, const Size& ds,
@@ -322,7 +341,7 @@ blit2H(BitmapPtr dst, const Size& ds,
 
 /*!
 \brief 竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素。
-\note 使用 Alpha 通道表示透明性。
+\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示透明性。
 */
 void
 blit2V(BitmapPtr dst, const Size& ds,
@@ -331,7 +350,7 @@ blit2V(BitmapPtr dst, const Size& ds,
 
 /*!
 \brief 倒置复制一块矩形区域的像素。
-\note 使用 Alpha 通道表示透明性。
+\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示透明性。
 */
 void
 blit2U(BitmapPtr dst, const Size& ds,
@@ -340,7 +359,7 @@ blit2U(BitmapPtr dst, const Size& ds,
 
 /*!
 \brief 复制一块矩形区域的像素。
-\note 使用 Alpha 通道表示 8 位透明度。
+\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示 8 位透明度。
 */
 void
 blitAlpha(BitmapPtr dst, const Size& ds,
@@ -349,7 +368,7 @@ blitAlpha(BitmapPtr dst, const Size& ds,
 
 /*!
 \brief 水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素。
-\note 使用 Alpha 通道表示 8 位透明度。
+\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示 8 位透明度。
 */
 void
 blitAlphaH(BitmapPtr dst, const Size& ds,
@@ -358,7 +377,7 @@ blitAlphaH(BitmapPtr dst, const Size& ds,
 
 /*!
 \brief 竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素。
-\note 使用 Alpha 通道表示 8 位透明度。
+\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示 8 位透明度。
 */
 void
 blitAlphaV(BitmapPtr dst, const Size& ds,
@@ -367,7 +386,7 @@ blitAlphaV(BitmapPtr dst, const Size& ds,
 
 /*!
 \brief 倒置复制一块矩形区域的像素。
-\note 使用 Alpha 通道表示 8 位透明度。
+\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示 8 位透明度。
 */
 void
 blitAlphaU(BitmapPtr dst, const Size& ds,
@@ -499,11 +518,44 @@ TransformRect(const Graphics& g, const Rect& r, _fTransformPixel tp)
 	return TransformRect<_fTransformPixel>(g, r, r, tp);
 }
 
+/*!
+\brief 以第一个参数作为目标，复制第二个参数的缓冲区内容。
+\note 断言检查：指针有效；大小相等。
+*/
+void
+CopyBuffer(const Graphics&, const Graphics&);
+
+/*!
+\brief 以第一个参数作为目标，以指定输出指向
+	复制第二个参数的缓冲区内容至相对于目标缓冲区的点。
+\note 仅当指针和指向有效。自动裁剪适应大小。
+*/
+void
+CopyToBuffer(const Graphics&, const Graphics&,
+	const Point& = Point::Zero, Rotation = RDeg0);
+/*!
+\brief 以指定图形接口上下文作为源，向指定大小和点（相对左上角）的
+	指定图形接口上下文以指定输出指向复制缓冲区内容。
+\note 仅当指针和指向有效。自动裁剪适应大小。
+*/
+void
+CopyToBuffer(BitmapPtr, const Graphics&, Rotation, const Size&,
+	const Point&, const Point&, const Size&);
+
+/*!
+\brief 清除图形接口上下文缓冲区。
+*/
+void
+ClearImage(const Graphics&);
+
+/*!
+\brief 使用指定颜色填充图形接口上下文缓冲区。
+*/
+void
+Fill(const Graphics&, Color);
+
 
 // GDI 逻辑对象。
-
-typedef enum {RDeg0 = 0, RDeg90 = 1, RDeg180 = 2, RDeg270 = 3} ROT; \
-	//!< 逆时针旋转角度指示输出指向。
 
 //! \brief 笔样式：字体和笔颜色。
 class PenStyle
@@ -628,10 +680,6 @@ public:
 	virtual
 	~BitmapBuffer();
 
-	DefGetter(std::size_t, SizeOfBuffer,
-		sizeof(PixelType) * GetAreaFrom(Size)) \
-		//!< 取缓冲区占用空间。
-
 	/*!
 	\brief 重新设置缓冲区大小。
 	\note 若有一边为零则删除缓冲区；若大于缓冲区空间则重新分配；
@@ -659,13 +707,15 @@ public:
 	BeFilledWith(Color) const;
 
 	/*!
-	\brief 向指定大小和点（相对左上角）的指定缓存按指定输出指向复制缓冲区内容。
+	\brief 向指定大小和点（相对左上角）的指定图形接口上下文
+		以指定输出指向复制缓冲区内容。
+	\note 若有无效指针或指向则不复制。自动适应大小。
 	*/
 	virtual void
-	CopyToBuffer(BitmapPtr, ROT = RDeg0,
-		const Drawing::Size& = Drawing::Size::FullScreen,
+	CopyToBuffer(BitmapPtr, Rotation = RDeg0,
+		const Size& = Size::FullScreen,
 		const Point& = Point::Zero, const Point& = Point::Zero,
-		const Drawing::Size& = Drawing::Size::FullScreen) const;
+		const Size& = Size::FullScreen) const;
 };
 
 inline BitmapBuffer::BitmapBuffer()
@@ -674,6 +724,13 @@ inline BitmapBuffer::BitmapBuffer()
 inline BitmapBuffer::~BitmapBuffer()
 {
 	ydelete_array(pBuffer);
+}
+
+inline void
+BitmapBuffer::CopyToBuffer(BitmapPtr dst, Rotation rot, const Size& ds,
+	const Point& sp, const Point& dp, const Size& sc) const
+{
+	Drawing::CopyToBuffer(dst, *this, rot, ds, sp, dp, sc);
 }
 
 
@@ -701,7 +758,7 @@ public:
 
 	DefGetter(u8*, BufferAlphaPtr, pBufferAlpha) //!< 取 Alpha 缓冲区的指针。
 	DefGetter(std::size_t, SizeOfBufferAlpha,
-		sizeof(u8) * GetAreaFrom(Size)) \
+		sizeof(u8) * GetAreaFrom(GetSize())) \
 		//!< 取 Alpha 缓冲区占用空间。
 
 	/*!
@@ -719,23 +776,26 @@ public:
 	ClearImage() const;
 
 	/*!
-	\brief 向指定大小和点（相对左上角）的指定缓存按指定输出指向复制缓冲区内容。
+	\brief 向指定大小和点（相对左上角）的指定图形接口上下文
+		以指定输出指向复制缓冲区内容。
+	\note 若有无效指针或指向则不复制。自动适应大小。
 	*/
 	void
-	CopyToBuffer(BitmapPtr, ROT = RDeg0,
-		const Drawing::Size& = Drawing::Size::FullScreen,
+	CopyToBuffer(BitmapPtr, Rotation = RDeg0,
+		const Size& = Size::FullScreen,
 		const Point& = Point::Zero, const Point& = Point::Zero,
-		const Drawing::Size& = Drawing::Size::FullScreen) const;
+		const Size& = Size::FullScreen) const;
 
 	/*!
-	\brief 向指定大小和点（相对左上角）的指定缓存按指定输出指向
-		以缓冲区内容贴图。
+	\brief 向指定大小和点（相对左上角）的指定图形接口上下文
+		以指定输出指向以缓冲区内容贴图。
+	\note 仅当指针和指向有效。自动裁剪适应大小。
 	*/
 	void
-	BlitToBuffer(BitmapPtr, ROT = RDeg0,
-		const Drawing::Size& = Drawing::Size::FullScreen,
+	BlitToBuffer(BitmapPtr, Rotation = RDeg0,
+		const Size& = Size::FullScreen,
 		const Point& = Point::Zero, const Point& = Point::Zero,
-		const Drawing::Size& = Drawing::Size::FullScreen) const;
+		const Size& = Size::FullScreen) const;
 };
 
 inline

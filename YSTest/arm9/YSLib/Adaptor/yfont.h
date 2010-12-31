@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7092;
+\version 0.7095;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 + 08:00;
 \par 修改时间:
-	2010-12-17 18:56 + 08:00;
+	2010-12-31 11:06 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -220,7 +220,7 @@ public:
 class FontFile
 {
 public:
-	static const u16 MaxFontPathLength = MAX_FILENAME_LENGTH; \
+	static const u16 MaxFontPathLength = YCL_MAX_FILENAME_LENGTH; \
 		//!< 最大字体文件路径长度。
 
 private:

@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.2690;
+\version 0.2810;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2010-12-27 13:28 + 08:00;
+	2010-12-31 12:15 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,7 +82,7 @@ blitFor(int deltaX, int deltaY,
 	deltaX *= sizeof(PixelType);
 	for(int y(0); y < deltaY; ++y)
 	{
-		memcpy(dc, sc, deltaX);
+		mmbcpy(dc, sc, deltaX);
 		sc += sInc;
 		dc += dInc;
 	}
@@ -174,7 +174,7 @@ u8* dc = dst + vmax<int>(0, dp.Y) * ds.Width + vmax<int>(0, dp.X);
 
 for(int y = minY; y < maxY; y++)
 {
-memcpy(dc, sc, maxX - minX);
+mmbcpy(dc, sc, maxX - minX);
 sc += sw;
 dc += dw;
 }
@@ -666,6 +666,48 @@ FillRect(const Graphics& g, const Point& p, const Size& s, Color c)
 	return false;
 }
 
+void
+CopyBuffer(const Graphics& dst, const Graphics& src)
+{
+	YAssert(dst.GetBufferPtr(), "Destination bitmap pointer is null.");
+	YAssert(src.GetBufferPtr(), "Source bitmap pointer is null.");
+	YAssert(dst.GetSize() == src.GetSize(), "Source and destination sizes"
+		"are not same.");
+
+	mmbcpy(dst.GetBufferPtr(), src.GetBufferPtr(),
+		src.GetSizeOfBuffer());
+}
+
+void
+CopyToBuffer(const Graphics& dst, const Graphics& src,
+	const Point& dp, Rotation rot)
+{
+	if(~rot & 1 && dst.IsValid() && src.IsValid())
+		(rot ? blitU : blit)(dst.GetBufferPtr(), dst.GetSize(),
+			src.GetBufferPtr(), src.GetSize(),
+			Point::Zero, dp, src.GetSize());
+}
+void
+CopyToBuffer(BitmapPtr dst, const Graphics& g, Rotation rot, const Size& ds,
+	const Point& sp, const Point& dp, const Size& sc)
+{
+	if(~rot & 1 && dst && g.GetBufferPtr())
+		(rot ? blitU : blit)(dst, ds,
+			g.GetBufferPtr(), g.GetSize(), sp, dp, sc);
+}
+
+void
+ClearImage(const Graphics& g)
+{
+	ClearPixel(g.GetBufferPtr(), GetAreaFrom(g.GetSize()));
+}
+
+void
+Fill(const Graphics& g, Color c)
+{
+	FillSeq<PixelType>(g.GetBufferPtr(), GetAreaFrom(g.GetSize()), c);
+}
+
 
 Padding::Padding(SDST l, SDST r, SDST t, SDST b)
 	: Left(l), Right(r), Top(t), Bottom(b)
@@ -715,11 +757,11 @@ SetAllTo(Padding& p, SDST l, SDST r, SDST t, SDST b)
 
 BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDST w, SDST h)
 	: Graphics()
-	//不能提前初始化 Drawing::Size ，否则指针非空和面积非零状态不一致。 
+	//不能提前初始化 size ，否则指针非空和面积非零状态不一致。 
 {
 	SetSize(w, h);
 	if(i)
-		std::memcpy(pBuffer, i, sizeof(PixelType) * GetAreaFrom(Size));
+		mmbcpy(pBuffer, i, GetSizeOfBuffer());
 }
 
 void
@@ -732,7 +774,7 @@ BitmapBuffer::SetSize(SDST w, SDST h)
 		ydelete_array(pBuffer);
 		pBuffer = NULL;
 	}
-	else if(GetAreaFrom(Size) < s)
+	else if(GetAreaFrom(GetSize()) < s)
 		try
 		{
 			BitmapPtr pBufferNew(ynew PixelType[s]);
@@ -749,49 +791,36 @@ BitmapBuffer::SetSize(SDST w, SDST h)
 	YAssert(!((pBuffer != NULL) ^ (s != 0)), "Buffer corruptied"
 		" @@ BitmapBuffer::SetSize(SDST, SDST);");
 
-	Size.Width = w;
-	Size.Height = h;
+	size.Width = w;
+	size.Height = h;
 	ClearImage();
 }
 void
 BitmapBuffer::SetSizeSwap()
 {
-	std::swap(Size.Width, Size.Height);
+	std::swap(size.Width, size.Height);
 	ClearImage();
 }
 
 void
 BitmapBuffer::ClearImage() const
 {
-	ClearPixel(pBuffer, GetAreaFrom(Size));
+	Drawing::ClearImage(*this);
 }
 
 void
 BitmapBuffer::BeFilledWith(Color c) const
 {
-	FillSeq<PixelType>(pBuffer, GetAreaFrom(Size), c);
-}
-
-void
-BitmapBuffer::CopyToBuffer(BitmapPtr dst, ROT rot, const Drawing::Size& ds,
-	const Point& sp, const Point& dp, const Drawing::Size& sc) const
-{
-	if(~rot & 1 && dst && pBuffer)
-	{
-		if(rot)
-			blitU(dst, ds, pBuffer, GetSize(), sp, dp, sc);
-		else
-			blit(dst, ds, pBuffer, GetSize(), sp, dp, sc);
-	}
+	Fill(*this, c);
 }
 
 
 BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDST w, SDST h)
-	: BitmapBuffer(i, w, h), pBufferAlpha(NULL)
+	: BitmapBuffer(), pBufferAlpha(NULL)
 {
 	SetSize(w, h);
 	if(i)
-		std::memcpy(pBuffer, i, sizeof(PixelType) * GetAreaFrom(Size));
+		mmbcpy(pBuffer, i, GetSizeOfBuffer());
 }
 
 void
@@ -806,7 +835,7 @@ BitmapBufferEx::SetSize(SDST w, SDST h)
 		ydelete_array(pBufferAlpha);
 		pBufferAlpha = NULL;
 	}
-	else if(GetAreaFrom(Size) < s)
+	else if(GetAreaFrom(size) < s)
 	{
 		BitmapPtr pBufferNew(NULL);
 
@@ -834,23 +863,23 @@ BitmapBufferEx::SetSize(SDST w, SDST h)
 	YAssert(!((pBufferAlpha != NULL) ^ (s != 0)), "Buffer corruptied"
 		" @@ BitmapBufferEx::SetSize(SDST, SDST);");
 
-	Size.Width = w;
-	Size.Height = h;
+	size.Width = w;
+	size.Height = h;
 	ClearImage();
 }
 
 void
 BitmapBufferEx::ClearImage() const
 {
-	const u32 t = GetAreaFrom(Size);
+	const u32 t = GetAreaFrom(size);
 
 	ClearPixel(pBuffer, t);
 	ClearPixel(pBufferAlpha, t);
 }
 
 void
-BitmapBufferEx::CopyToBuffer(BitmapPtr dst, ROT rot, const Drawing::Size& ds,
-	const Point& sp, const Point& dp, const Drawing::Size& sc) const
+BitmapBufferEx::CopyToBuffer(BitmapPtr dst, Rotation rot, const Size& ds,
+	const Point& sp, const Point& dp, const Size& sc) const
 {
 	if(~rot & 1 && dst && pBuffer)
 	{
@@ -863,8 +892,8 @@ BitmapBufferEx::CopyToBuffer(BitmapPtr dst, ROT rot, const Drawing::Size& ds,
 }
 
 void
-BitmapBufferEx::BlitToBuffer(BitmapPtr dst, ROT rot, const Drawing::Size& ds,
-	const Point& sp, const Point& dp, const Drawing::Size& sc) const
+BitmapBufferEx::BlitToBuffer(BitmapPtr dst, Rotation rot, const Size& ds,
+	const Point& sp, const Point& dp, const Size& sc) const
 {
 	if(~rot & 1 && dst && pBuffer)
 	{

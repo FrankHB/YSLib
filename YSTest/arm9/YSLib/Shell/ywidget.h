@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5650;
+\version 0.5712;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-21 15:44 + 08:00;
+	2010-12-30 16:02 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,6 +36,29 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
+
+// GUI 断言。
+
+#undef YWidgetAssert
+
+#ifdef YCL_USE_YASSERT
+
+/*!
+\brief 断言：判断所给表达式，如果为假给出指定错误信息。
+*/
+void
+yassert(bool, const char*, int, const char*, const char*, const char*);
+
+#	define YWidgetAssert(ptr, comp, func) \
+	Components::yassert((ptr) && FetchDirectWindowPtr(*(ptr)), \
+		"The direct window handle is null.", __LINE__, __FILE__, #comp, #func)
+
+#else
+
+#	define YWidgetAssert(ptr, comp, func) \
+	assert((ptr) && FetchDirectWindowPtr(*(ptr)))
+
+#endif
 
 //名称引用。
 using Drawing::PixelType;
@@ -58,50 +81,6 @@ YSL_BEGIN_NAMESPACE(Widgets)
 //前向声明。
 class Widget;
 
-// GUI 断言。
-
-#undef YWidgetAssert
-
-#undef YWindowAssert
-
-#ifdef YCL_USE_YASSERT
-
-/*!
-\brief 断言：判断所给表达式，如果为假给出指定错误信息。
-*/
-void
-yassert(bool, const char*, int, const char*, const char*, const char*);
-
-#	define YWidgetAssert(ptr, comp, func) \
-	Components::Widgets::yassert((ptr) && FetchDirectWindowPtr(*(ptr)), \
-		"The direct window handle is null.", __LINE__, __FILE__, #comp, #func)
-
-#	define YWindowAssert(ptr, comp, func) \
-	Components::Widgets::yassert( \
-	(ptr) && static_cast<Drawing::Graphics>(*(ptr)).IsValid(), \
-	"The graphics context is invalid.", __LINE__, __FILE__, #comp, #func)
-
-#else
-
-#	define YWidgetAssert(ptr, comp, func) \
-	assert((ptr) && FetchDirectWindowPtr(*(ptr)))
-
-#	define YWindowAssert(ptr, comp, func) \
-	assert((ptr) && static_cast<Drawing::Graphics>(*ptr).IsValid())
-
-#endif
-
-
-// GUI 特性定义。
-
-//方向。
-typedef enum
-{
-	Horizontal = 0,
-	Vertical = 1
-} Orientation;
-
-
 // GUI 接口和部件定义。
 
 //! \brief 部件接口。
@@ -119,6 +98,8 @@ DeclInterface(IWidget)
 	DeclIEntry(void SetBgRedrawed(bool)) //!< 设置重绘状态。
 	DeclIEntry(void SetLocation(const Point&)) \
 		//!< 设置左上角所在位置（相对于容器的偏移坐标）。
+	DeclIEntry(void SetSize(const Size&)) \
+		//!< 设置大小。
 
 	/*!
 	\breif 绘制背景。
@@ -202,24 +183,37 @@ ContainsVisible(const IWidget& w, const Point& p)
 
 
 /*!
+\brief 取部件边界。
+*/
+Rect
+GetBoundsOf(IWidget&);
+
+/*!
+\brief 设置部件边界。
+*/
+void
+SetBoundsOf(IWidget&, const Rect& r);
+
+
+/*!
 \brief 取指针指定的部件的直接窗口句柄。
 */
 template<class _tWidget>
 IWindow*
-FetchWidgetDirectWindowPtr(const _tWidget* pWgt)
+FetchWidgetDirectWindowPtr(_tWidget* pWgt)
 {
-	const IWindow* pWnd(NULL);
+	IWindow* pWnd(NULL);
 
-	while(pWgt && !(pWnd = dynamic_cast<const IWindow*>(pWgt)))
+	while(pWgt && !(pWnd = dynamic_cast<IWindow*>(pWgt)))
 		pWgt = pWgt->GetContainerPtr();
-	return const_cast<IWindow*>(pWnd);
+	return pWnd;
 }
 
 /*!
 \brief 取指针指定的部件的直接桌面句柄。
 */
 YDesktop*
-FetchWidgetDirectDesktopPtr(const IWidget*);
+FetchWidgetDirectDesktopPtr(IWidget*);
 
 /*!
 \brief 取指定部件的窗口指针。
@@ -244,9 +238,9 @@ FetchWindowPtr(const IWidget& w)
 */
 template<class _tWidget>
 IUIBox*
-FetchDirectContainerPtr(const _tWidget& w)
+FetchDirectContainerPtr(_tWidget& w)
 {
-	IUIBox* const pCon(const_cast<IUIBox*>(dynamic_cast<const IUIBox*>(&w)));
+	IUIBox* const pCon(dynamic_cast<IUIBox*>(&w));
 
 	return pCon ? pCon : w.GetContainerPtr();
 }
@@ -254,7 +248,7 @@ FetchDirectContainerPtr(const _tWidget& w)
 \brief 取指定部件的直接容器指针。
 */
 inline IUIBox*
-FetchDirectContainerPtr(const IWidget& w)
+FetchDirectContainerPtr(IWidget& w)
 {
 	return FetchDirectContainerPtr<IWidget>(w);
 }
@@ -265,7 +259,7 @@ FetchDirectContainerPtr(const IWidget& w)
 */
 template<class _tWidget>
 IWindow*
-FetchDirectWindowPtr(const _tWidget& w)
+FetchDirectWindowPtr(_tWidget& w)
 {
 	return FetchWidgetDirectWindowPtr(FetchDirectContainerPtr(w));
 }
@@ -274,7 +268,7 @@ FetchDirectWindowPtr(const _tWidget& w)
 \note 加入容器指针判断。
 */
 inline IWindow*
-FetchDirectWindowPtr(const IWidget& w)
+FetchDirectWindowPtr(IWidget& w)
 {
 	return FetchDirectWindowPtr<IWidget>(w);
 }
@@ -284,7 +278,7 @@ FetchDirectWindowPtr(const IWidget& w)
 \note 加入容器指针判断。
 */
 inline YDesktop*
-FetchDirectDesktopPtr(const IWidget& w)
+FetchDirectDesktopPtr(IWidget& w)
 {
 	return FetchWidgetDirectDesktopPtr(FetchDirectContainerPtr(w));
 }
@@ -405,16 +399,16 @@ Fill(Widget&, Color);
 class MOriented
 {
 protected:
-	Widgets::Orientation Orientation;
+	Drawing::Orientation Orientation;
 
 	explicit
-	MOriented(Widgets::Orientation);
+	MOriented(Drawing::Orientation);
 
-	DefGetter(Widgets::Orientation, Orientation, Orientation)
+	DefGetter(Drawing::Orientation, Orientation, Orientation)
 };
 
 inline
-MOriented::MOriented(Widgets::Orientation o)
+MOriented::MOriented(Drawing::Orientation o)
 	: Orientation(o)
 {}
 
@@ -482,7 +476,6 @@ public:
 	DefGetter(SDST, Height, GetSize().Height)
 	DefGetter(const Point&, Location, location)
 	DefGetter(const Size&, Size, size)
-	DefGetter(Rect, Bounds, Rect(GetLocation(), GetSize()))
 
 	DefSetter(bool, Visible, visible)
 	DefSetter(bool, Transparent, transparent)
@@ -502,20 +495,14 @@ public:
 	\brief 设置大小。
 	\note 虚公有实现。
 	*/
-	virtual PDefH(void, SetSize, const Size& s)
-		ImplExpr(SetSize(s.Width, s.Height))
+	virtual void
+	SetSize(const Size& s);
 	/*!
 	\brief 设置大小。
 	\note 非虚公有实现。
 	*/
-	void
-	SetSize(SDST, SDST);
-	/*!
-	\brief 设置边界。
-	\note 虚公有实现。
-	*/
-	virtual void
-	SetBounds(const Rect& r);
+	PDefH(void, SetSize, SDST w, SDST h)
+		ImplBodyBaseVoid(Visual, SetSize, Size(w, h))
 };
 
 
@@ -597,6 +584,7 @@ public:
 	ImplI(IWidget) DefSetterBase(bool, Transparent, Visual)
 	ImplI(IWidget) DefSetterBase(bool, BgRedrawed, Visual)
 	ImplI(IWidget) DefSetterBase(const Point&, Location, Visual)
+	ImplI(IWidget) DefSetterBase(const Size&, Size, Visual)
 
 	ImplI(IWidget) PDefH(void, DrawBackground)
 		ImplBodyBaseVoid(Widget, DrawBackground)
@@ -734,6 +722,7 @@ public:
 	ImplI(IUIContainer) DefSetterBase(bool, Transparent, Visual)
 	ImplI(IUIContainer) DefSetterBase(bool, BgRedrawed, Visual)
 	ImplI(IUIContainer) DefSetterBase(const Point&, Location, Visual)
+	ImplI(IUIContainer) DefSetterBase(const Size&, Size, Visual)
 
 	ImplI(IUIContainer) PDefH(void, ClearFocusingPtr)
 		ImplBodyBaseVoid(MUIContainer, ClearFocusingPtr)

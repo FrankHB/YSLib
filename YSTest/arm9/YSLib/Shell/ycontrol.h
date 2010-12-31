@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4605;
+\version 0.4615;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 + 08:00;
 \par 修改时间:
-	2010-12-16 14:57 + 08:00;
+	2010-12-30 22:06 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -381,6 +381,7 @@ public:
 	ImplI(IVisualControl) DefSetterBase(bool, Transparent, Visual)
 	ImplI(IVisualControl) DefSetterBase(bool, BgRedrawed, Visual)
 	ImplI(IVisualControl) DefSetterBase(const Point&, Location, Visual)
+	ImplI(IVisualControl) DefSetterBase(const Size&, Size, Visual)
 	ImplI(IVisualControl) DefSetterBase(bool, Enabled, Control)
 
 	ImplI(IVisualControl) PDefH(void, DrawBackground)
@@ -391,9 +392,6 @@ public:
 
 	ImplI(IVisualControl) PDefH(void, Refresh)
 		ImplBodyBaseVoid(Widget, Refresh)
-
-	ImplA(IVisualControl)
-	DeclIEntry(void RequestToTop())
 
 	/*!
 	\brief 向部件容器请求获得焦点。
@@ -428,12 +426,6 @@ private:
 	void
 	OnTouchDown(TouchEventArgs&);
 };
-
-inline void
-AVisualControl::OnLostFocus(EventArgs& e)
-{
-	OnGotFocus(e);
-}
 
 
 //! \brief 可视控件基类。

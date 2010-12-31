@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2378;
+\version 0.2383;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 + 08:00;
 \par 修改时间:
-	2010-12-18 09:34 + 08:00;
+	2010-12-31 12:15 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -417,7 +417,7 @@ void
 ClearSequence(_type* dst, std::size_t n)
 {
 	if(dst && n)
-		std::memset(dst, 0, sizeof(_type) * n);
+		mmbset(dst, 0, sizeof(_type) * n);
 }
 
 

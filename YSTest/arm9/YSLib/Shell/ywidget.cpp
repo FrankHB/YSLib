@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4743;
+\version 0.4797;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-27 13:59 + 08:00;
+	2010-12-30 22:40 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,8 +29,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Widgets)
 
 #ifdef YCL_USE_YASSERT
 
@@ -53,6 +51,8 @@ yassert(bool exp, const char* msg, int line, const char* file,
 
 #endif
 
+YSL_BEGIN_NAMESPACE(Widgets)
+
 using Controls::YVisualControl;
 
 bool
@@ -68,14 +68,28 @@ ContainsVisible(const IWidget& w, SPOS x, SPOS y)
 }
 
 
-YDesktop*
-FetchWidgetDirectDesktopPtr(const IWidget* pWgt)
+Rect
+GetBoundsOf(IWidget& w)
 {
-	const YDesktop* pDsk(NULL);
+	return Rect(w.GetLocation(), w.GetSize());
+}
 
-	while(pWgt && !(pDsk = dynamic_cast<const YDesktop*>(pWgt)))
+void
+SetBoundsOf(IWidget& w, const Rect& r)
+{
+	w.SetLocation(r.GetPoint());
+	w.SetSize(r.GetSize());
+}
+
+
+YDesktop*
+FetchWidgetDirectDesktopPtr(IWidget* pWgt)
+{
+	YDesktop* pDsk(NULL);
+
+	while(pWgt && !(pDsk = dynamic_cast<YDesktop*>(pWgt)))
 		pWgt = pWgt->GetContainerPtr();
-	return const_cast<YDesktop*>(pDsk);
+	return pDsk;
 }
 
 
@@ -234,7 +248,7 @@ namespace
 
 		if(pWnd)
 		{
-			const Graphics& g(*pWnd);
+			const Graphics& g(pWnd->GetContext());
 
 			FillRect(g, LocateOffset(&w, Point::Zero, pWnd), w.GetSize(), c);
 		}
@@ -260,20 +274,13 @@ Visual::Visual(const Rect& r, Color b, Color f)
 {}
 
 void
-Visual::SetSize(SDST w, SDST h)
+Visual::SetSize(const Size& s)
 {
-	if(size.Width != w || size.Height != h)
+	if(size != s)
 	{
+		size = s;
 		background_redrawed = false;
-		size.Width = w;
-		size.Height = h;
 	}
-}
-void
-Visual::SetBounds(const Rect& r)
-{
-	location = r.GetPoint();
-	SetSize(r.Width, r.Height);
 }
 
 
@@ -303,10 +310,13 @@ Widget::DrawForeground()
 void
 Widget::Refresh()
 {
-	IWindow* const pWnd(FetchWindowPtr(*this));
+	IWindow* pWnd(FetchWindowPtr(*this));
 
-	if(pWnd)
+	while(pWnd && !pWnd->IsRefreshRequired())
+	{
 		pWnd->SetRefresh(true);
+		pWnd = FetchWindowPtr(*pWnd);
+	}
 }
 
 
@@ -415,7 +425,7 @@ MLabel::PaintText(Widget& w, const Point& pt)
 		SetMarginsTo(*pTextRegion, 2, 2, 2, 2);
 		pTextRegion->PutLine(Text);
 
-		const Graphics& g(*pWnd);
+		const Graphics& g(pWnd->GetContext());
 
 		pTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
 			g.GetSize(), Point::Zero, pt, w.GetSize());

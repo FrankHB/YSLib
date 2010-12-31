@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3364;
+\version 0.3471;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 + 08:00;
 \par 修改时间:
-	2010-12-27 13:58 + 08:00;
+	2010-12-31 12:15 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,7 +40,7 @@ YSL_BEGIN_NAMESPACE(Forms)
 
 MWindow::MWindow(const GHStrong<YImage> i, HWND hWnd)
 	: MWindowObject(hWnd),
-	Buffer(), prBackImage(i), bRefresh(false), bUpdate(false)
+	prBackImage(i), bRefresh(false), bUpdate(false)
 {}
 
 
@@ -57,8 +57,8 @@ AWindow::GetBackgroundPtr() const
 void
 AWindow::SetSize(const Size& s)
 {
-	Buffer.SetSize(s.Width, s.Height);
-	Widget::SetSize(s);
+	SetBufferSize(s);
+	ParentType::SetSize(s);
 }
 
 void
@@ -75,13 +75,14 @@ AWindow::DrawBackgroundImage()
 {
 	YWindowAssert(this, Forms::AWindow, DrawBackgroundImage);
 
-	if(prBackImage && GetBufferPtr())
+	if(prBackImage)
 	{
 		ConstBitmapPtr imgBg(prBackImage->GetImagePtr());
 
 		if(imgBg)
 		{
-			std::memcpy(GetBufferPtr(), imgBg, Buffer.GetSizeOfBuffer());
+			mmbcpy(GetContext().GetBufferPtr(), imgBg,
+				GetContext().GetSizeOfBuffer());
 			return true;
 		}
 	}
@@ -110,8 +111,8 @@ AWindow::Refresh()
 {
 	if(bRefresh)
 	{
-		bRefresh = false;
 		Draw();
+		bRefresh = false;
 	}
 	Widget::Refresh();
 }
@@ -122,44 +123,25 @@ AWindow::Update()
 	if(bUpdate)
 	{
 		bUpdate = false;
-
-		HWND hWnd(GetWindowHandle());
-
-		if(hWnd)
-		{
+		if(GetWindowHandle())
 			UpdateToWindow();
-			hWnd->SetUpdate(true);
-		}
 	}
 }
 
 void
-AWindow::UpdateToScreen(YDesktop& d) const
+AWindow::UpdateTo(const Graphics& g, const Point& p) const
 {
 	if(IsVisible())
-		Buffer.CopyToBuffer(d.GetBackgroundPtr(), RDeg0, d.GetSize(),
-		Point::Zero, GetLocation(), Buffer.GetSize());
+		CopyToBuffer(g, GetContext(), p);
 }
 
 void
-AWindow::UpdateToWindow(IWindow& w) const
-{
-	if(IsVisible())
-	{
-		const Graphics& g(w);
-
-		Buffer.CopyToBuffer(g.GetBufferPtr(), RDeg0, g.GetSize(),
-			Point::Zero, GetLocation(), Buffer.GetSize());
-	}
-}
-
-void
-AWindow::UpdateToScreen() const
+AWindow::UpdateToDesktop()
 {
 	YDesktop* const pDsk(FetchDirectDesktopPtr(*this));
 
 	if(pDsk)
-		UpdateToScreen(*pDsk);
+		UpdateTo(pDsk->GetContext(), LocateForDesktop(*this));
 }
 
 void
@@ -168,7 +150,7 @@ AWindow::UpdateToWindow() const
 	const HWND hWnd(GetWindowHandle());
 
 	if(hWnd)
-		UpdateToWindow(*hWnd);
+		UpdateTo(hWnd->GetContext(), LocateForParentWindow(*this));
 }
 
 void
@@ -176,18 +158,31 @@ AWindow::Show()
 {
 	SetVisible(true);
 	Draw();
-	UpdateToScreen();
+	UpdateToDesktop();
 }
 
 
-YFrameWindow::YFrameWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
-	: YComponent(),
-	AWindow(r, i, hWnd), MUIContainer()
+AFrameWindow::AFrameWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
+	: AWindow(r, i, hWnd), MUIContainer()
 {
 	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
 
 	if(p)
 		*p += static_cast<GMFocusResponser<IVisualControl>&>(*this);
+}
+AFrameWindow::~AFrameWindow() ythrow()
+{
+	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
+
+	if(p)
+		*p -= static_cast<GMFocusResponser<IVisualControl>&>(*this);
+}
+
+
+YFrameWindow::YFrameWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
+	: YComponent(),
+	AFrameWindow(r, i, hWnd), Buffer()
+{
 	Buffer.SetSize(GetSize().Width, GetSize().Height);
 
 	YDesktop* pDsk(FetchDirectDesktopPtr(*this));
@@ -197,11 +192,6 @@ YFrameWindow::YFrameWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
 }
 YFrameWindow::~YFrameWindow() ythrow()
 {
-	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
-
-	if(p)
-		*p -= static_cast<GMFocusResponser<IVisualControl>&>(*this);
-
 	YDesktop* pDsk(FetchDirectDesktopPtr(*this));
 
 	if(pDsk)

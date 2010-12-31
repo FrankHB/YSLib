@@ -11,12 +11,12 @@
 /*!	\file yguicomp.h
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2447;
+\version 0.2453;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-12-11 13:11 + 08:00;
+	2010-12-29 16:37 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -137,8 +137,8 @@ public:
 	ATrack(const Rect& = Rect::FullScreen, IUIBox* = NULL, SDST = 8);
 	virtual DefEmptyDtor(ATrack)
 
-	DefPredicate(Horizontal, GetOrientation() == Widgets::Horizontal)
-	DefPredicate(Vertical, GetOrientation() == Widgets::Vertical)
+	DefPredicate(Horizontal, GetOrientation() == Horizontal)
+	DefPredicate(Vertical, GetOrientation() == Vertical)
 
 	/*!
 	\brief 取焦点指针。
@@ -158,7 +158,7 @@ public:
 	ImplI(IUIBox) IVisualControl*
 	GetTopVisualControlPtr(const Point&);
 	DefGetter(SDST, MinThumbLength, MinThumbLength)
-	DeclIEntry(Widgets::Orientation GetOrientation() const) //!< 取轨道方向。
+	DeclIEntry(Orientation GetOrientation() const) //!< 取轨道方向。
 	DefGetter(SDST, ThumbLength,
 		SelectFrom(Thumb.GetSize(), IsHorizontal())) //!< 取轨道方向上的滑块长度。
 	DefGetter(SDST, ThumbPosition,
@@ -252,7 +252,7 @@ public:
 	virtual DefEmptyDtor(YHorizontalTrack)
 
 	ImplI(ATrack)
-		DefGetter(Widgets::Orientation, Orientation, Widgets::Horizontal)
+		DefGetter(Orientation, Orientation, Horizontal)
 
 private:
 	/*!
@@ -277,7 +277,7 @@ public:
 	virtual DefEmptyDtor(YVerticalTrack)
 
 	ImplI(ATrack)
-		DefGetter(Widgets::Orientation, Orientation, Widgets::Vertical)
+		DefGetter(Orientation, Orientation, Vertical)
 
 private:
 	/*!
@@ -307,7 +307,7 @@ public:
 	*/
 	explicit
 	AScrollBar(const Rect& = Rect::FullScreen, IUIBox* = NULL, SDST = 8,
-		Widgets::Orientation = Widgets::Horizontal);
+		Orientation = Horizontal);
 	virtual DefEmptyDtor(AScrollBar)
 
 	/*!
@@ -385,7 +385,7 @@ public:
 
 public:
 	ImplI(ATrack)
-		DefGetter(Widgets::Orientation, Orientation, Widgets::Vertical)
+		DefGetter(Orientation, Orientation, Vertical)
 };
 
 

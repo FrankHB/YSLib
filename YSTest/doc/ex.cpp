@@ -1,4 +1,4 @@
-//v 0.2935; *Build 176 r194;
+//v 0.2935; *Build 177 r81;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -160,280 +160,315 @@ $using:
 }
 
 $DONE:
-r1-r36:
-/= test 1;
+r1:
+/ @@ \u YWindow:
+	/ @@ \cl MWindow:
+		/ protected \m Drawing::BitmapBuffer Buffer => \cl YFrameWindow;
+		/ \impl @@ \exp \ctor;
+	/ @@ \cl AWindow:
+		- \vt \mf DefGetterMember(BitmapPtr, BufferPtr, Buffer)
+			=> \cl YFrameWindow;
+		/ \vt \mf DefGetter(const Drawing::BitmapBuffer&, Buffer, Buffer) 
+			-> ImplI(AWindow) \mf @@ \cl YFrameWindow;
+		+ \amf DeclIEntry(BitmapPtr GetBufferPtr() const ythrow());
+		+ \amf DeclA(IWindow) DeclIEntry(operator const Graphics&()
+			const ythrow())
+		/ \mf ImplI(IWindow) DefConverter(const Graphics&, Buffer)
+			-> ImplA(AWindow) DefConverter(const Graphics&, Buffer);
+		+ \amf DeclIEntry(const Drawing::BitmapBuffer& GetBuffer()
+			const ythrow());
+		/ \tr \impl @@ \i \mf (ClearBackground & BeFilledWith()
+			& SetSize & DrawBackgroundImage & UpdateToScreen & UpdateToWindow);
+		+ \amf DeclIEntry(Drawing::BitmapBuffer& GetBuffer() ythrow());
+	/ @@ \cl YFrameWindow:
+		/ \tr \impl @@ \exp \ctor;
+		+ \mf ImplI(AWindow) Drawing::BitmapBuffer& GetBuffer() ythrow();
+/ \tr \impl @@ \ctor @@ \cl MDualScreenReader @@ \u DSReader;
+/ \impl @@ \mf (DrawBackground & Update) @@ \cl YDesktop @@ \u YDesktop;
 
-r37:
-/ \impl @@ \ctor @@ \cl YFrameWindow @@ \u YWindow;
+r2:
+/ \mf DefGetter(std::size_t, SizeOfBuffer,
+	sizeof(PixelType) * GetAreaFrom(Size)) @@ \cl BitmapBuffer @@ \h YGDI
+	>> \cl Graphics @@ \h YObject;
 
-r38-r75:
-/= test 2;
+r3:
+/ \tr \impl @@ \mf AWindow::DrawBackgroundImage @@ \u YWindow;
 
-r76-r79:
+r4:
 / @@ \u YGDI:
-	* \impl @@ (\ctor BitmapBuffer(ConstBitmapPtr, SDST, SDST))
-		& (\mf void SetSize(SDST, SDST)) @@ \cl BitmapBuffer;
-	/ \tr \rem;
-	* \impl @@ \mf void SetSize(SDST, SDST) @@ \cl BitmapBufferEx;
-
-r80:
-+ \as @@ \impl @@ \mf void SetSize(SDST, SDST)
-	@@ \cl (BitmapBuffer & BitmapBufferEx) @@ \u YGDI;
-
-
-r81-r160:
-/= test 3;
-
-r161-r162:
-/ \h YReference >> \dir Adaptor ~ Core;
-/ @@ \h YReference:
-	/ @@ \clt GHHandle:
-		* \impl @@ \mf Reset;
-		/ \impl @@ \mf Release;
-	/ (\impl & + \i) @@ \ft<typename _type, typename _tReference>
-		GHHandle<_type> dynamic_handle_cast(GHHandle<_tReference>);
-	+ \i \mf \t<typename P1> P Clone(const P1&) @@ \clt RawOwnership<P>;
-/ @@ \h YAdaptor:
-	- {
-		using Loki::Release;
-		using Loki::ReleaseAll;
-	};
-/ \a RawOwnership => GeneralCastRawOwnership;
-
-r163:
-/= test 4;
-
-r164:
-/ @@ \u Shells:
-	- \a 11 \i \mf & \ctor;
-	/= \em \vt \dtor @@ \cl ShlReader -> \vt DefEmptyDtor(ShlReader);
-
-r165-r174:
-/= test 5;
-
-r175:
-* \impl @@ \mf void ShlSetting::ShowString(String&) @@ \u Shells;
-* \decl @@ \stt has_nonempty_virtual_base & has_common_nonempty_virtual_base
-	@@ \h YCast;
-	+ 6 \es @@ \m \st;
-
-r176:
-/ @@ \h YReference:
-	/ \inc Design::Policies::GeneralCastRawOwnership
-		-> \clt Design::Policies::GeneralCastRefCounted @@ \clt GHHandle;
-		* ynew memory leaks;
-	- \clt GeneralCastRawOwnership;
-
-r177
-/ \a dynamic_handle_cast => general_handle_cast;
-/ \a FS => _ustr;
-/ @@ \cl MDualScreenReader @@ \h DSReader:
-	/ \mf DefGetter(u8, LnGapUp, pTrUp->LineGap)
-		-> DefGetter(u8, LineGapUp, pTrUp->LineGap);
-	/ \mf DefGetter(u8, LnGapDn, pTrDn->LineGap)
-		-> DefGetter(u8, LineGapDn, pTrDn->LineGap);
-	/ \mf DefSetterDe(u8, LnGapUp, pTrUp->LineGap, 0)
-		-> DefSetterDe(u8, LineGapUp, pTrUp->LineGap, 0);
-	/ \mf DefSetterDe(u8, LnGapDn, pTrDn->LineGap, 0)
-		-> DefSetterDe(u8, LineGapDn, pTrDn->LineGap, 0);
-	/ \mf DefGetter(u8, LineGap, GetLnGapUp())
-		-> DefGetter(u8, LineGap, GetLineGapUp());
-
-r178:
-/ @@ \cl MDualScreenReader @@ \u DSReader:
-	/ \mf DefGetter(u16, ColorUp, pTrUp->Color)
-		-> DefGetter(Color, ColorUp, pTrUp->Color);
-	/ \mf DefGetter(u16, ColorDn, pTrDn->Color)
-		-> DefGetter(Color, ColorDn, pTrDn->Color);
-	/ \mf DefGetter(u16, Color, GetColorUp())
-		-> DefGetter(Color, Color, GetColorUp());
-	/ \a \tp u16 -> \tp SDST;
-	- {
-		#define SM_DSR_INIT				0x8001
-		#define SM_DSR_REFRESH			0x8002
-		#define SM_DSR_PRINTTEXT		0x8003
-	};
-	/ \rem \mf void Scroll(PFVOID pCheck);
-	- {
-		typedef void FVOID(void);
-		typedef FVOID *PFVOID;
-	};
-
-r179:
-/ ^ \mac ynew @@ \mf void MDualScreenReader::LoadText(YTextFile&)
-	@@ \cl MDualScreenReader @@ \u DSReader;
-
-r180-r181:
-* \a INCLUDED_YOUTPUT_H_ => INCLUDED_YDEVICE_H_;
-/ \cl Graphics @@ \h YGDI => \h YObject;
-/ @@ \cl Graphics @@ \h YObject:
-	+ protected \mf DefSetter(const Drawing::Size&, Size, Size);
-	+ public \dtor DefEmptyDtor(Graphics);
-	+ protected \mf DefSetter(BitmapPtr, BufferPtr, pBuffer);
-
-r182:
-/ @@ \u YDevice:
-	/ @@ \cl YGraphicDevice:
-		- \mf DefGetter(const Size&, Size, *this);
-		- \vt \mf DefGetter(Drawing::BitmapPtr, Ptr, ptr);
-			-> !\vt \mf DefGetter(Drawing::BitmapPtr, BufferPtr, ptr);
-		- \vt \mf DefSetter(Drawing::BitmapPtr, Ptr, ptr);
-			-> !\vt \mf DefSetter(Drawing::BitmapPtr, BufferPtr, ptr);
-	/ @@ \cl YScreen:
-		/ \vt \i \mf Drawing::BitmapPtr GetPtr()
-			=> \vt !\i \mf Drawing::BitmapPtr GetCheckedBufferPtr();
-		+ \as @@ \mf Drawing::BitmapPtr GetCheckedBufferPtr();
-		/ \tr \impl @@ \mf void Update(BitmapPtr);
-		/ \tr \impl @@ \mf void Update(Color);
-/ \mf DefGetter(BitmapPtr, BackgroundPtr, Screen.GetPtr())
-	@@ \cl YDesktop @@ \h YDesktop
-	-> DefGetter(BitmapPtr, BackgroundPtr, Screen.GetCheckedBufferPtr());
-/ \tr \impl @@ \f bool InitAllScreens() @@ \u YGlobal;
-
-r183:
-/ @@ \u YDevice:
-	/ @@ \cl YGraphicDevice:
-		/ protected \inh Drawing::Size -> public \inh Drawing::Graphics;
-		- protected \m Drawing::BitmapPtr ptr;
-		- \mf DefGetter(Drawing::BitmapPtr, BufferPtr, ptr);
-		- \mf DefSetter(Drawing::BitmapPtr, BufferPtr, ptr);
-		/ \impl @@ \i \ctor;
-	/ \tr \impl @@ \i \mf Drawing::BitmapPtr GetPtr() const ythrow()
-		@@ \cl YScreen;
-
-r184:
-/ @@ \u YGDI:
-	/ \m img => pBuffer @@ \cl BitmapBuffer;
-	/ \m imgAlpha => pBufferAlpha @@ \cl BitmapBufferEx;
-	/ \a imgNew => pBufferNew;
-	/ \a imgAlphaNew => pBufferAlphaNew;
-
-r185-r187:
-/ @@ \u YGDI:
+	+ \f void CopyBuffer(const Graphics&,
+		BitmapPtr, ROT, const Drawing::Size&,
+		const Point&, const Point&, const Drawing::Size&);
+	+ \f void CopyBuffer(const Graphics&, const Graphics&);
 	/ @@ \cl BitmapBuffer:
-		- \mf \op Graphics;
-		+ \mf DefGetter(SDST, Width, Size::Width);
-		+ \mf DefGetter(SDST, Height, Size::Height);
-	/ @@ \cl BitmapBufferEx:
-		- friend \f operator==;
-/ @@ \cl Graphics @@ \h YObject:
-	/ \ctor Graphics(BitmapPtr, const Drawing::Size&);
-		-> \exp \ctor Graphics(BitmapPtr = NULL,
-		const Drawing::Size& = Drawing::Size::Zero);
-	/ \ac @@ \a private \m -> protected;
-	- protected \mf DefSetter(BitmapPtr, BufferPtr, pBuffer);
-	- protected \mf DefSetter(const Drawing::Size&, Size, Size);
-/ \tr \impl @@ \mf bool LineUp() & bool LineDown() @@ \cl MDualScreenReader
-	@@ \u DSReader;
-/ \impl @@ \f bool InitAllScreens() @@ \u YGlobal;
-
-r188:
-/ @@ \u YText:
-	/ @@ \cl TextRegion:
-		/ \mf DefGetter(SDST, BufWidthN, Width - GetHorizontalFrom(Margin))
-			-> DefGetter(SDST, BufWidthN,
-			GetWidth() - GetHorizontalFrom(Margin));
-		/ \mf DefGetter(SDST, BufHeightN, Height - GetVerticalFrom(Margin))
-			-> DefGetter(SDST, BufHeightN,
-			GetHeight() - GetVerticalFrom(Margin));
-		/ \tr \impl @@ \mf SDST GetMarginResized() const;
-		/ \tr \impl @@ \mf SDST GetBufferHeightResized() const;
-		/ \tr \impl @@ \mf SPOS GetLineLast() const;
-		/ \tr \impl @@ \mf void ClearLine(u16, SDST);
-		/ \tr \impl @@ \mf void ClearLnLast();
-		/ \tr \impl @@ \mf void Move(s16);
-		/ \tr \impl @@ \mf void Move(s16, SDST);
-		/ \tr \impl @@ \mf void PutChar(fchar_t);
-
-r189:
-/ \impl @@ \mf void YSimpleTextListBox::DrawForeground() @@ \u YGUIComponent;
+		/ \simp \impl @@ \vt \mf void
+			CopyToBuffer(BitmapPtr, ROT = RDeg0,
+			const Drawing::Size& = Drawing::Size::FullScreen,
+			const Point& = Point::Zero, const Point& = Point::Zero,
+			const Drawing::Size& = Drawing::Size::FullScreen) const
+			^ \f CopyBuffer;
+		/ \simp \impl @@ \vt \mf void ClearImage() const;
+	+ \f void ClearImage(const Graphics&);
 / @@ \cl AWindow @@ \u YWindow:
 	/ \impl @@ \mf void UpdateToScreen(YDesktop&) const;
 	/ \impl @@ \mf void UpdateToWindow(IWindow&) const;
-+ \mf DefGetter(const Size&, Size, *this) @@ \cl BitmapBuffer @@ \cl YGDI;
-/ @@ \u YText:
-	/ \impl @@ \f void PrintChar(BitmapBuffer&, TextState&, fchar_t);
-	/ \impl @@ \f void PrintCharEx(BitmapBufferEx&, TextState&, fchar_t);
-/ @@ \cl Graphics @@ \h YObject:
-	/ \ctor Graphics(BitmapPtr, const Drawing::Size&);
-		-> \exp \ctor Graphics(BitmapPtr = NULL,
-		const Drawing::Size& = Drawing::Size::Zero);
+	- \amf DeclIEntry(const Drawing::BitmapBuffer& GetBuffer() const ythrow());
+	/ \impl @@ \mf ClearBackground;
+	- \mf const BitmapBuffer& GetBuffer() const;
 
-r190:
+r5:
 / @@ \u YGDI:
-	/ @@ \cl BitmapBuffer:
-		/ \a 'GetAreaFrom(*this)' -> 'GetAreaFrom(Size)';
-		- \m pBuffer;
-		/ \impl @@ \2 \ctor;
-		/ \impl @@ \vt \mf void SetSize(SDST, SDST);
-		/ \impl @@ \mf CopyToBuffer;
-		/ \inh Size -> \inh Graphics;
-		- \mf DefGetter(const Size&, Size, *this);
-		- \mf DefGetter(SDST, Width, Size::Width);
-		- \mf DefGetter(SDST, Height, Size::Height);
-		- \mf DefConverter(Graphics, Graphics(pBuffer, *this));
-		- \mf DefGetter(BitmapPtr, BufferPtr, pBuffer);
-		/ \impl @@ \mf void SetSizeSwap();
-	/ @@ \cl BitmapBufferEx:
-		/ \a 'GetAreaFrom(*this)' -> 'GetAreaFrom(Size)';
-		/ \impl @@ \mf CopyToBuffer;
-		/ \impl @@ \mf BlitToBuffer;
-		/ \impl @@ \vt \mf void SetSize(SDST, SDST);
-/ \mf DefConverterMember(Graphics, Buffer) @@ \cl AWindow @@ \u YWindow
-		-> \mf DefConverter(Graphics, Buffer);
+	/ \f void CopyBuffer(const Graphics&, BitmapPtr, ROT, const Drawing::Size&,
+		const Point&, const Point&, const Drawing::Size&);
+		-> void CopyBuffer(BitmapPtr, const Graphics&, ROT,
+		const Drawing::Size&, const Point&, const Point&, const Drawing::Size&);
+	/ \impl @@ \i \mf BitmapBuffer::CopyToBuffer(BitmapPtr, ROT,
+		const Drawing::Size&, const Point&, const Point&,
+		const Drawing::Size&) const;
+/ \tr \impl @@ \mf (CopyBufferToWindow & CopyBufferToScreen)
+	@@ \cl AWindow @@ \u YWindow;
+/ \a CopyBuffer => CopyToBuffer;
 
-r191:
+r6:
+/ @@ \u YGDI:
+	+ \f void CopyToBuffer(const Graphics&, const Graphics&, ROT = RDeg0);
+	/ \simp \impl @@ \f void CopyToBuffer(BitmapPtr, const Graphics&,
+		ROT, const Size&, const Point&, const Point&, const Size&);
+
+r7:
+* void CopyToBuffer(const Graphics&, const Graphics&) => CopyBuffer @@ \u YGDI;
+/ \simp \impl @@ \mf (void UpdateToScreen(YDesktop&)
+	& void UpdateToWindow(IWindow&)) @@ \cl AWindow @@ \u YWindow;
+
+r8:
+* \f void CopyToBuffer(const Graphics&, const Graphics&, const Point&,
+	ROT = RDeg0) -> void CopyToBuffer(const Graphics&, const Graphics&,
+	const Point& = Point::Zero, ROT = RDeg0) @@ \u YGDI;
+* \impl @@ \mf (void UpdateToScreen(YDesktop&)
+	& void UpdateToWindow(IWindow&)) @@ \cl AWindow @@ \u YWindow;
+
+r9:
+* \impl @@ void CopyToBuffer(const Graphics&, const Graphics&,
+	const Point& = Point::Zero, ROT = RDeg0) @@ \u YGDI;
+
+r10:
+/ @@ \cl AWindow @@ \u YWindow:
+	/ \vt \mf void UpdateToWindow(IWindow&) const
+		-> \mf ImplI(AWindow) void UpdateTo(const Graphics&,
+		const Point& = Point::Zero) const;
+	/ \vt \mf UpdateToScreen -> \mf ImplI(AWindow) UpdateToDesktop;
+
+r11:
+/ @@ \u YWidget:
+	- \a \c @@ \param @@ \a (\f & \ft) 'Fetch*Direct*';
+	/ \impl @@ \ft<class _tWidget> IWindow*
+		FetchWidgetDirectWindowPtr(_tWidget*);
+	/ \impl @@ \ft<class _tWidget> IUIBox* FetchDirectContainerPtr(_tWidget&);
+	/ \impl @@ \f YDesktop* FetchWidgetDirectDesktopPtr(IWidget*);
+	/ \mf void UpdateToDesktop() const
+		-> void UpdateToDesktop() @@ \cl AWindow @@ \u YWindow;
+	- \mf DefGetter(HWND, Handle, HWND(const_cast<AWindow*>(this)));
+
+r12:
+- \cl MDesktopObject @@ \h YWindow;
+
+r13:
 / @@ \u YWindow:
-	/ @@ \in IWindow:
-		/ \amf DeclIEntry(operator Graphics() const)
-			-> DeclIEntry(operator const Graphics&() const);
-		+ \amf DeclIEntry(operator Graphics&());
-	/ @@ \cl AWindow:
-		/ \vt \mf DefConverter(Graphics, Buffer)
-			-> \mf DefConverter(const Graphics&, Buffer);
-		+ \i \vt \mf operator Graphics&();
-+ \mac PDefConverter(_type) @@ \h Base @@ \dir Adaptor;
+	+ \cl AFrameWindow;
+	+ \inh AWindow @@ AFrameWindow;
+	/ protected Widgets::MUIContainer & public \mf
+	{
+		virtual PDefHOperator(void, +=, IWidget& w)
+			ImplExpr(sWgtSet += w)
+		virtual PDefHOperator(bool, -=, IWidget& w)
+			ImplRet(sWgtSet -= w)
+		virtual PDefHOperator(void, +=, IVisualControl& c)
+			ImplBodyBaseVoid(MUIContainer, operator+=, c)
+		virtual PDefHOperator(bool, -=, IVisualControl& c)
+			ImplBodyBase(MUIContainer, operator-=, c)
+		virtual PDefHOperator(void, +=, GMFocusResponser<IVisualControl>& c)
+			ImplBodyBaseVoid(MUIContainer, operator+=, c)
+		virtual PDefHOperator(bool, -=, GMFocusResponser<IVisualControl>& c)
+			ImplBodyBase(MUIContainer, operator-=, c)
+		ImplI(IWindow) PDefH(IVisualControl*, GetFocusingPtr)
+			ImplBodyBase(GMFocusResponser<IVisualControl>, GetFocusingPtr)
+		ImplI(IWindow) PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
+			ImplBodyBase(MUIContainer, GetTopWidgetPtr, p)
+		ImplI(IWindow) PDefH(IVisualControl*, GetTopVisualControlPtr,
+			const Point& p)
+		ImplBodyBase(MUIContainer, GetTopVisualControlPtr, p)
+		ImplI(IWindow) PDefH(void, ClearFocusingPtr)
+			ImplBodyBaseVoid(MUIContainer, ClearFocusingPtr)
+		ImplI(IWindow) PDefH(bool, ResponseFocusRequest, AFocusRequester& w)
+			ImplBodyBase(MUIContainer, ResponseFocusRequest, w)
+		ImplI(IWindow) PDefH(bool, ResponseFocusRelease, AFocusRequester& w)
+			ImplBodyBase(MUIContainer, ResponseFocusRelease, w)
+	} @@ \cl YFrameWindow >> AWindow;
+	/ \inh AWindow -> \inh AFrameWindow @@ \cl YFrameWindow;
+	/ \impl (\ctor & \dtor) @@ \cl (AFrameWindow & YFrameWindow);
 
-r192:
-/ \a \tp (Graphic & const Graphic) \o \def -> \tp const Graphics&;
-/ \impl @@ \mf YThumb::DrawForeground() @@ \cl YGUIComponent;
+r14:
 / @@ \h YWindow:
-	- DeclIEntry(operator Graphics&()) @@ \in IWindow;
-	- \mf operator Graphic& @@ \cl AWindow;
+	/ @@ \cl AWindow:
+		- \amf ImplA(IWindow)
+			DeclIEntry(operator const Graphics&() const ythrow());
+		-= ImplA(IWindow) @@ \amf DeclIEntry(bool DrawWidgets());
+- \amf ImplA(IVisualControl) DeclIEntry(void RequestToTop())
+	@@ \cl AVisualControl @@ \u YControl;
 
-r193:
-/= test 6;
+r15:
+- \mf ImplI(AWindow) DefGetter(const Drawing::BitmapBuffer&, Buffer, Buffer)
+	@@ \cl YFrameWindow @@ \h YWindow;
 
-r194:
-/ @@ \cl Graphics @@ \u YObject:
-	+ \mf BitmapPtr operator[](std::size_t) ythrow();
-	+ \mf BitmapPtr at(std::size_t);
-/= \tr \impl @@ \mf TextRegion::ClearLine(u16, SDST) @@ \u YText;
+r16:
+/ @@ \h YWidget:
+	/ typedef \en Orientation @@ \ns Widgets >> \ns Drawing @@ \h YGDI;
+	/ \tr \impl @@ \cl MOriented;
+/ \a Widgets::Orientation -> Orientation;
+/ \a ROT -> Rotation;
+/ \a Widgets::Horizontal -> Horizontal;
+/ \a Widgets::Vertical -> Vertical;
+
+r17:
+/ @@ \u YWidget:
+	/ @@ \cl Visual:
+		/ \impl @@ 2 \mf SetSize;
+		/ \i \mf void SetBounds(const Rect& r)
+			-> !\m !\i \f void SetBoundsOf(IWidget&, const Rect&);
+		/ \i \mf DefGetter(Rect, Bounds, Rect(GetLocation(), GetSize()))
+			-> !\m !\i \f void GetBoundsOf(IWidget&, const Rect&);
+	+ \amf DeclIEntry(void SetSize(const Size&)) @@ \in IWidget;
+	+ ImplI(IWidget) DefSetterBase(const Size&, Size, Visual) @@ \cl YWidget;
+	+ ImplI(IUIContainer) DefSetterBase(const Size&, Size, Visual)
+		@@ \cl YUIContainer;
++ ImplI(IVisualControl) DefSetterBase(const Size&, Size, Visual)
+	@@ \cl AVisualControl @@ \h YControl;
+- 8 ythrow() @@ \impl @@ \mac 'Def*Setter*' @@ \h Base @@ \dir Adaptor;
++ \mf DefGetter(Size, Size, Size(Width, Height)) @@ \cl Rect @@ \h YObject;
+
+r18-r21:
+/ \tr \impl @@ \ctor MDualScreenReader @@ \u DSReader;
+/ \tr \impl @@ \mf (DrawBackground & Update) @@ \cl YDesktop @@ \u YDesktop;
+
+r22:
+/ @@ \u YGDI:
+	+ \f void Fill(const Graphics&, Color);
+	/ \impl @@ \vt \mf void BeFilledWith(Color) @@ \cl BitmapBuffer;
+
+r23:
+* \impl @@ \f void Fill(const Graphics&, Color) @@ \u YGDI;
+
+r24:
+/ @@ \u YWindow:
+	/ @@ \cl AWindow:
+		/ \amf DeclIEntry(Drawing::BitmapBuffer& GetBuffer() ythrow())
+			-> \amf DeclIEntry(void SetBufferSize(const Size&));
+		/ \impl @@ \vt \mf SetSize;
+		/ \mf void BeFilledWith(PixelType)
+			-> \mf void beFilledWith(PixelType) const;
+		/= \tr \impl @@ \mf DrawBackgroundImage;
+	/ \mf ImplI(AWindow) Drawing::BitmapBuffer& GetBuffer() ythrow()
+		@@ \cl YFrameWindow -> \i \mf void SetBuffer(const Size&);
+
+r25:
+/ \m Drawing::Size Size => Size size @@ \cl Graphics @@ \u YObject;
+/ @@ \u YGDI:
+	/ \simp \decl;
+	/ @@ \cl BitmapBufferEx:
+		/ \mf DefGetter(std::size_t, SizeOfBufferAlpha,
+			sizeof(u8) * GetAreaFrom(Size))
+			-> DefGetter(std::size_t, SizeOfBufferAlpha,
+			sizeof(u8) * GetAreaFrom(GetSize()));
+		* \impl @@ \ctor;
+		/ \impl @@ \mf (SetSize & ClearImage);
+	/ \impl @@ (\ctor & \mf (SetSize & SetSizeSwap)) @@ \cl BitmapBuffer;
+
+r26:
+/= test 1;
+
+r27:
+* \impl @@ \mac (YWindowAssert & YWidgetAssert) @@ \h YWidget;
+
+r28-r36:
+/= test 2;
+
+r37:
+/ @@ \h YWindow:
+	/ \amf operator const Graphics&() const @@ \in IWindow
+		-> \amf const Graphics& GetContext() const;
+	/ ImplI(AWindow) DefConverter(const Graphics&, Buffer) @@ \cl YFrameWindow
+		-> ImplI(AWindow) DefGetter(const Graphics&, Context, Buffer);
+	/ \tr \impl @@ \mf (ClearBackground & BeFilledWith) @@ \cl AWindow;
+/ \tr \impl @@ \ctor @@ \cl MDualScreenReader @@ \u DSReader;
+/ \impl @@ 2 \mac YWindowAssert 
+/ #undef YWindowAssert & 2 \mac YWindowAssert >> \h YWindow ~ \h YWidget;
+/ \f yassert @@ \ns Components::Widgets >> \ns Components @@ \u YWidget;
+/ \tr \impl @@ \mf (Update & DrawBackground) @@ \cl YDesktop @@ \u YDesktop;
+/ \tr \impl @@ \f DrawWidgetBounds @@ \un \ns @@ \u YGUI;
+/ \tr \impl @@ 5 \mf DrawForeground @@ \u YGUIComponent;
+/ 2 \tr \impl @@ \u YWidget;
+/ 4 \tr \impl @@ 3 \mf @@ \cl AWindow @@ \u YWindow;
+
+r38-r60:
+/= test 3;
+
+r61:
+* \simp \impl @@ \mf void AWindow::Update() @@ \u YWindow;
+
+r62-r69:
+/= test 4;
+
+r70:
+/ (\impl & - \i) @@ \mf void AVisualControl::OnLostFocus(EventArgs&)
+	@@ \u YControl;
+* \tr \impl @@ \mf YDesktop::Refresh() @@ \u YDesktop;
+* \tr \impl @@ \mf AWindow::Refresh() @@ \u YWindwo;
+
+r71-r76:
+/= test 5;
+
+r77-r78:
+* \impl @@ \mf Widget::Refresh @@ \u YWidget;
+
+r79:
+/ \a MAX_FILENAME_LENGTH => YCL_MAX_FILENAME_LENGTH;
+/ \a MAX_PATH_LENGTH => YCL_MAX_PATH_LENGTH;
++ \f (mmbset & mmbcpy) @@ \u YCommon;
++ {
+	using platform::mmbset;
+	using platform::mmbcpy;
+} @@ \h YAdaptor;
+/ \a std::memset @@ \a \dir \exc (\h & \u) YCommon -> mmbset;
+
+r80:
+/ \a std::memcpy @@ \lib YSLib -> mmbcpy;
+
+r81:
+/ GHStrong<ListType> pList => spList @@ \cl FileList @@ \u YFileSystem;
+* \impl @@ \mf void YSimpleTextListBox::CallConfirmed(YSimpleTextListBox
+	::ViewerType::IndexType) @@ \u YGUIComponent;
 
 $DOING:
 
 
 relative process:
-2010-12-27:
--20.4d;
+2010-12-31:
+-20.0d;
 
 / ...
 
 
 $NEXT:
-
-b177-b195:
-/ graphic interface context @@ \cl YScreen;
-/ user-defined bitmap buffer @@ \cl YDesktop;
-* store more than one newed objects in smart pointers(see effc++ 3rd item17)
-	@@ \ctor @@ \dir Shell;
+b178-b195:
+/ scroll bars @@ listbox;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
 * non-ASCII character path error in FAT16;
+
+r196-r288:
 + \impl loading pictures;
 + \impl style on widgets;
-/ - const_cast;
-/ memcpy optimizing ^ DMA copy;
+/ user-defined bitmap buffer @@ \cl YDesktop;
 / general component operations:
 	/ serialization;
 	/ designer;
@@ -445,6 +480,7 @@ F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 	-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02055838
 	ftc_snode_weight
 	ftcsbits.c:271
+* screen font output uncleared @@ real machine;
 
 $TODO:
 
@@ -475,6 +511,33 @@ Design by contract: DbC for C/C++, GNU nana.
 */
 //---- temp code;
 /*
+
+//! \brief 桌面对象模块。
+class MDesktopObject
+{
+protected:
+	GHHandle<YDesktop> hDesktop; //!< 桌面句柄。
+
+public:
+	//! \brief 构造：使用指定桌面句柄。
+	explicit
+	MDesktopObject(GHHandle<YDesktop>);
+
+protected:
+	DefEmptyDtor(MDesktopObject)
+
+public:
+	//判断从属关系。
+	PDefH(bool, BelongsTo, GHHandle<YDesktop> hDsk) const
+		ImplRet(hDesktop == hDsk)
+
+	DefGetter(GHHandle<YDesktop>, DesktopHandle, hDesktop)
+};
+
+inline
+MDesktopObject::MDesktopObject(GHHandle<YDesktop> hDsk)
+	: hDesktop(hDsk)
+{}
 
 class RefCountedImpl
 {

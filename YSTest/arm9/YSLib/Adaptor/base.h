@@ -11,12 +11,12 @@
 /*!	\file base.h
 \ingroup Adaptor
 \brief 通用基础设施。
-\version 0.2018;
+\version 0.2034;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 + 08:00;
 \par 修改时间:
-	2010-12-27 15:54 + 08:00;
+	2010-12-29 17:13 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -276,42 +276,42 @@
 	}
 
 #define DefSetter(_type, _name, _member) \
-	void _yJOIN(Set, _name)(_type _tempArgName) ythrow() \
+	void _yJOIN(Set, _name)(_type _tempArgName) \
 	{ \
 		(_member) = _tempArgName; \
 	}
 #define DefSetterDe(_type, _name, _member, _defv) \
-	void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() \
+	void _yJOIN(Set, _name)(_type _tempArgName = _defv) \
 	{ \
 		(_member) = _tempArgName; \
 	}
 #define DefSetterBase(_type, _name, _base) \
-	void _yJOIN(Set, _name)(_type _tempArgName) ythrow() \
+	void _yJOIN(Set, _name)(_type _tempArgName) \
 	{ \
 		_base::_yJOIN(Set, _name)(_tempArgName); \
 	}
 #define DefSetterBaseDe(_type, _name, _base, _defv) \
-	void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() \
+	void _yJOIN(Set, _name)(_type _tempArgName = _defv) \
 	{ \
 		_base::_yJOIN(Set, _name)(_tempArgName); \
 	}
 #define DefSetterMember(_type, _name, _member) \
-	void _yJOIN(Set, _name)(_type _tempArgName) ythrow() \
+	void _yJOIN(Set, _name)(_type _tempArgName) \
 	{ \
 		(_member)._yJOIN(Set, _name)(_tempArgName); \
 	}
 #define DefSetterMemberDe(_type, _name, _member, _defv) \
-	void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() \
+	void _yJOIN(Set, _name)(_type _tempArgName = _defv) \
 	{ \
 		(_member)._yJOIN(Set, _name)(_tempArgName); \
 	}
 #define DefSetterEx(_type, _name, _member, _tempArgName, _expr) \
-	void _yJOIN(Set, _name)(_type _tempArgName) ythrow() \
+	void _yJOIN(Set, _name)(_type _tempArgName) \
 	{ \
 		(_member) = (_expr); \
 	}
 #define DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr) \
-	void _yJOIN(Set, _name)(_type _tempArgName = _defv) ythrow() \
+	void _yJOIN(Set, _name)(_type _tempArgName = _defv) \
 	{ \
 		(_member) = (_expr); \
 	}

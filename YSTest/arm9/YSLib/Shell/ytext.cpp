@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6284;
+\version 0.6291;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 + 08:00;
 \par 修改时间:
-	2010-12-27 16:43 + 08:00;
+	2010-12-31 12:16 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -258,8 +258,8 @@ TextRegion::ClearLine(u16 l, SDST n)
 		const u32 t((l + n > GetHeight() ? GetHeight() - l : n) * GetWidth()),
 			s(l * GetWidth());
 
-		std::memset(&pBuffer[s], 0, t * sizeof(PixelType));
-		std::memset(&pBufferAlpha[s], 0, t * sizeof(u8));
+		mmbset(&pBuffer[s], 0, t * sizeof(PixelType));
+		mmbset(&pBufferAlpha[s], 0, t * sizeof(u8));
 	}
 }
 

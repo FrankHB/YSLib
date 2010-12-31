@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3905;
+\version 0.4006;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 + 08:00;
 \par 修改时间:
-	2010-12-27 13:58 + 08:00;
+	2010-12-30 16:02 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,17 +32,31 @@
 
 YSL_BEGIN
 
+#undef YWindowAssert
+
 YSL_BEGIN_NAMESPACE(Components)
+
+#ifdef YCL_USE_YASSERT
+
+#	define YWindowAssert(ptr, comp, func) \
+	Components::yassert((ptr) && (ptr)->GetContext().IsValid(), \
+	"The graphics context is invalid.", __LINE__, __FILE__, #comp, #func)
+
+#else
+
+#	define YWindowAssert(ptr, comp, func) \
+	assert((ptr) && (ptr)->GetContext().IsValid())
+
+#endif
 
 YSL_BEGIN_NAMESPACE(Forms)
 
 //! \brief 窗口接口。
 DeclBasedInterface(IWindow, virtual IUIContainer, virtual IVisualControl)
-	DeclIEntry(operator const Graphics&() const) //!< 生成图形接口上下文。
-
 	DeclIEntry(bool IsRefreshRequired() const)
 	DeclIEntry(bool IsUpdateRequired() const)
 
+	DeclIEntry(const Graphics& GetContext() const) //!< 取图形接口上下文。
 	DeclIEntry(HWND GetWindowHandle() const)
 
 	DeclIEntry(void SetRefresh(bool))
@@ -54,41 +68,10 @@ DeclBasedInterface(IWindow, virtual IUIContainer, virtual IVisualControl)
 EndDecl
 
 
-//! \brief 桌面对象模块。
-class MDesktopObject
-{
-protected:
-	GHHandle<YDesktop> hDesktop; //!< 桌面句柄。
-
-public:
-	/*!
-	\brief 构造：使用指定桌面句柄。
-	*/
-	explicit
-	MDesktopObject(GHHandle<YDesktop>);
-
-protected:
-	DefEmptyDtor(MDesktopObject)
-
-public:
-	//判断从属关系。
-	PDefH(bool, BelongsTo, GHHandle<YDesktop> hDsk) const
-		ImplRet(hDesktop == hDsk)
-
-	DefGetter(GHHandle<YDesktop>, DesktopHandle, hDesktop)
-};
-
-inline
-MDesktopObject::MDesktopObject(GHHandle<YDesktop> hDsk)
-	: hDesktop(hDsk)
-{}
-
-
 //! \brief 窗口模块。
 class MWindow : protected Widgets::MWindowObject
 {
 protected:
-	Drawing::BitmapBuffer Buffer; //!< 显示缓冲区。
 	//基类中的 hWindow 为父窗口对象句柄，若为空则说明无父窗口。
 	GHStrong<YImage> prBackImage; //!< 背景图像指针。
 	bool bRefresh; //!< 刷新属性：表示有新的绘制请求。
@@ -125,17 +108,10 @@ public:
 		const GHStrong<YImage> = new YImage(), HWND = NULL);
 	virtual DefEmptyDtor(AWindow)
 
-	ImplI(IWindow) DefConverter(const Graphics&, Buffer)
-
 	ImplI(IWindow) DefPredicateBase(RefreshRequired, MWindow)
 	ImplI(IWindow) DefPredicateBase(UpdateRequired, MWindow)
 
 	ImplI(IWindow) DefGetterBase(HWND, WindowHandle, MWindowObject)
-	ImplI(IWindow) DefGetter(const Drawing::BitmapBuffer&, Buffer, Buffer) \
-		//!< 取显示缓冲区。
-	ImplI(IWindow) DefGetterMember(BitmapPtr, BufferPtr, Buffer) \
-		//!< 取缓冲区指针。
-	DefGetter(HWND, Handle, HWND(const_cast<AWindow*>(this)))
 	DefGetterBase(GHStrong<YImage>, Background, MWindow)
 	/*!
 	\brief 取位图背景指针。
@@ -153,12 +129,14 @@ public:
 	SetSize(const Size&);
 	ImplI(IWindow) DefSetterBaseDe(GHStrong<YImage>, Background, MWindow,
 		NULL)
+	DeclIEntry(void SetBufferSize(const Size&)) //!< 设置显示缓冲区大小。
 
 	PDefH(void, ClearBackground) const //!< 清除背景。
-		ImplExpr(Buffer.ClearImage())
+		ImplExpr(ClearImage(GetContext()))
 
-	PDefH(void, BeFilledWith, PixelType c)
-		ImplBodyMemberVoid(Buffer, BeFilledWith, c) //!< 以纯色填充显示缓冲区。
+	PDefH(void, BeFilledWith, PixelType c) const
+		ImplExpr(Drawing::Fill(GetContext(), c)) \
+		//!< 以纯色填充显示缓冲区。
 
 protected:
 	/*!
@@ -175,7 +153,6 @@ public:
 	DrawBackground();
 
 protected:
-	ImplA(IWindow)
 	DeclIEntry(bool DrawWidgets())
 
 public:
@@ -205,28 +182,23 @@ public:
 	RequestToTop();
 
 	/*!
-	\brief 更新至屏幕。
+	\brief 更新至指定图形设备上下文的指定点。
+	\note 以相对于容器的坐标作为相对于图形设备上下文的偏移。
+	*/
+	void
+	UpdateTo(const Graphics&, const Point& = Point::Zero) const;
+
+	/*!
+	\brief 更新至桌面。
 	*/
 	virtual void
-	UpdateToScreen() const;
+	UpdateToDesktop();
 
 	/*!
 	\brief 更新至上层窗口缓冲区。
 	*/
 	virtual void
 	UpdateToWindow() const;
-
-	/*!
-	\brief 更新至指定桌面所在的屏幕。
-	*/
-	void
-	UpdateToScreen(YDesktop&) const;
-
-	/*!
-	\brief 更新至指定窗口缓冲区。
-	*/
-	void
-	UpdateToWindow(IWindow&) const;
 
 	/*!
 	\brief 显示窗口。
@@ -237,25 +209,20 @@ public:
 };
 
 
-//! \brief 框架窗口。
-class YFrameWindow : public GMCounter<YFrameWindow>, public YComponent,
-	public AWindow, protected Widgets::MUIContainer
+//! \brief 抽象框架窗口。
+class AFrameWindow : public AWindow, protected Widgets::MUIContainer
 {
 public:
-	typedef YComponent ParentType;
+	typedef AWindow ParentType;
 
-	/*!
-	\brief 构造：使用指定边界、背景图像、窗口句柄和 Shell 句柄。
-	*/
 	explicit
-	YFrameWindow(const Rect& = Rect::Empty,
+	AFrameWindow(const Rect& = Rect::Empty,
 		const GHStrong<YImage> = new YImage(), HWND = NULL);
 	/*!
-	\brief 无异常抛出。
-	\note 空实现。
+	\note 无异常抛出。
 	*/
 	virtual
-	~YFrameWindow() ythrow();
+	~AFrameWindow() ythrow();
 
 	virtual PDefHOperator(void, +=, IWidget& w)
 		ImplExpr(sWgtSet += w)
@@ -286,6 +253,36 @@ public:
 
 	ImplI(IWindow) PDefH(bool, ResponseFocusRelease, AFocusRequester& w)
 		ImplBodyBase(MUIContainer, ResponseFocusRelease, w)
+};
+
+
+//! \brief 框架窗口。
+class YFrameWindow : public GMCounter<YFrameWindow>, public YComponent,
+	public AFrameWindow
+{
+public:
+	typedef YComponent ParentType;
+
+protected:
+	Drawing::BitmapBuffer Buffer; //!< 显示缓冲区。
+
+public:
+	/*!
+	\brief 构造：使用指定边界、背景图像、窗口句柄和 Shell 句柄。
+	*/
+	explicit
+	YFrameWindow(const Rect& = Rect::Empty,
+		const GHStrong<YImage> = new YImage(), HWND = NULL);
+	/*!
+	\note 无异常抛出。
+	*/
+	virtual
+	~YFrameWindow() ythrow();
+
+	ImplI(AWindow) DefGetter(const Graphics&, Context, Buffer)
+
+	ImplI(AWindow) PDefH(void, SetBufferSize, const Size& s)
+		ImplExpr(Buffer.SetSize(s.Width, s.Height)) //!< 设置显示缓冲区大小。
 
 protected:
 	/*!

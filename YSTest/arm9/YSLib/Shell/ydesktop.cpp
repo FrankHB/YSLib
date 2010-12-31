@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2058;
+\version 0.2085;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 + 08:00;
 \par 修改时间:
-	2010-12-18 17:08 + 08:00;
+	2010-12-31 12:16 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -144,17 +144,22 @@ YDesktop::DrawBackground()
 {
 	YWindowAssert(this, YDesktop, DrawBackground);
 
-	if(prBackImage && GetBufferPtr())
+	if(prBackImage)
 	{
-		const PixelType* imgBg(prBackImage->GetImagePtr());
+		const BitmapPtr buf(GetContext().GetBufferPtr());
 
-		if(imgBg)
+		if(buf)
 		{
-			std::memcpy(GetBufferPtr(), imgBg, Buffer.GetSizeOfBuffer());
-			return;
+			const BitmapPtr imgBg(prBackImage->GetImagePtr());
+
+			if(imgBg)
+			{
+				mmbcpy(buf, imgBg, GetContext().GetSizeOfBuffer());
+				return;
+			}
 		}
 	}
-	Buffer.BeFilledWith(BackColor);
+	BeFilledWith(BackColor);
 }
 
 void
@@ -189,8 +194,8 @@ YDesktop::Refresh()
 {
 	if(bRefresh)
 	{
-		bRefresh = false;
 		Draw();
+		bRefresh = false;
 	}
 }
 
@@ -200,7 +205,7 @@ YDesktop::Update()
 	if(bUpdate)
 	{
 		bUpdate = false;
-		Screen.Update(GetBufferPtr());
+		Screen.Update(GetContext().GetBufferPtr());
 	}
 }
 

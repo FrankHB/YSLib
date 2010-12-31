@@ -11,12 +11,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.2788;
+\version 0.2811;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-27 16:39 + 08:00;
+	2010-12-29 18:35 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -670,6 +670,7 @@ public:
 	*/
 
 	DefGetter(Point, Point, Point(X, Y)) //!< 取左上角位置。
+	DefGetter(Size, Size, Size(Width, Height)) //!< 取大小。
 };
 
 inline
@@ -748,14 +749,14 @@ class Graphics
 {
 protected:
 	BitmapPtr pBuffer; //!< 显示缓冲区指针。
-	Drawing::Size Size; //!< 缓冲区大小。
+	Size size; //!< 缓冲区大小。
 
 public:
 	/*!
 	\brief 构造：使用指定位图指针和大小。
 	*/
 	explicit
-	Graphics(BitmapPtr = NULL, const Drawing::Size& = Drawing::Size::Zero);
+	Graphics(BitmapPtr = NULL, const Size& = Size::Zero);
 	DefEmptyDtor(Graphics)
 
 	/*!
@@ -766,12 +767,14 @@ public:
 	BitmapPtr
 	operator[](std::size_t) ythrow();
 
-	DefPredicate(Valid, pBuffer && Size.Width != 0 && Size.Height != 0)
+	DefPredicate(Valid, pBuffer && size.Width != 0 && size.Height != 0)
 
 	DefGetter(BitmapPtr, BufferPtr, pBuffer)
-	DefGetter(const Drawing::Size&, Size, Size)
-	DefGetter(SDST, Width, Size.Width)
-	DefGetter(SDST, Height, Size.Height)
+	DefGetter(const Size&, Size, size)
+	DefGetter(SDST, Width, size.Width)
+	DefGetter(SDST, Height, size.Height)
+	DefGetter(std::size_t, SizeOfBuffer,
+		sizeof(PixelType) * GetAreaFrom(size)) //!< 取缓冲区占用空间。
 
 	/*!
 	\brief 取指定行首元素指针。
@@ -784,8 +787,8 @@ public:
 };
 
 inline
-Graphics::Graphics(BitmapPtr b, const Drawing::Size& s)
-	: pBuffer(b), Size(s)
+Graphics::Graphics(BitmapPtr b, const Size& s)
+	: pBuffer(b), size(s)
 {}
 
 YSL_END_NAMESPACE(Drawing)

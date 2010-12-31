@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2820;
+\version 0.2835;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-12-27 13:59 + 08:00;
+	2010-12-31 21:31 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,7 +66,7 @@ namespace
 
 	void
 	RectDrawArrow(const Graphics& g, const Point& p, SDST halfSize,
-		ROT rot = RDeg0, Color c = ColorSpace::Black)
+		Rotation rot = RDeg0, Color c = ColorSpace::Black)
 	{
 		YAssert(g.IsValid(), "err: @g is invalid.");
 
@@ -111,7 +111,7 @@ namespace
 
 	void
 	WndDrawArrow(const Graphics& g, const Rect& r, SDST halfSize,
-		ROT rot = RDeg0, Color c = ColorSpace::Black)
+		Rotation rot = RDeg0, Color c = ColorSpace::Black)
 	{
 		SPOS x(r.X), y(r.Y);
 
@@ -172,7 +172,8 @@ YThumb::DrawForeground()
 
 	IWindow* pWnd(FetchDirectWindowPtr(*this));
 
-	RectDrawButton(*pWnd, LocateForWindow(*this), GetSize(), bPressed);
+	RectDrawButton(pWnd->GetContext(), LocateForWindow(*this),
+		GetSize(), bPressed);
 	if(bFocused)
 		WndDrawFocus(pWnd, GetSize());
 }
@@ -256,7 +257,7 @@ ATrack::DrawBackground()
 {
 	YWidgetAssert(this, Controls::ATrack, DrawBackground);
 
-	const Graphics& g(*FetchDirectWindowPtr(*this));
+	const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
 	const Point loc(LocateForWindow(*this));
 
 	FillRect(g, loc, GetSize(), Color(237, 237, 237));
@@ -393,10 +394,10 @@ YVerticalTrack::OnDrag_Thumb_Vertical(TouchEventArgs& e)
 
 
 AScrollBar::AScrollBar(const Rect& r, IUIBox* pCon, SDST uMinThumbSize,
-	Widgets::Orientation o)
+	Orientation o)
 try	: AVisualControl(r, pCon),
 	MSimpleFocusResponser(),
-	pTrack(o == Widgets::Horizontal
+	pTrack(o == Horizontal
 		? static_cast<ATrack*>(new YHorizontalTrack(
 			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), this,
 			uMinThumbSize))
@@ -406,7 +407,7 @@ try	: AVisualControl(r, pCon),
 	PrevButton(Rect(), this), NextButton(Rect(), this)
 {
 	Size s(GetSize());
-	const bool bHorizontal(o == Widgets::Horizontal);
+	const bool bHorizontal(o == Horizontal);
 	const SDST l(SelectFrom(s, !bHorizontal));
 
 	UpdateTo(s, l, bHorizontal);
@@ -452,7 +453,7 @@ AScrollBar::DrawForeground()
 
 	ParentType::DrawForeground();
 
-	const Graphics& g(*FetchDirectWindowPtr(*this));
+	const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
 	const Point b(LocateForWindow(*this));
 
 	YAssert(pTrack.get(),
@@ -482,7 +483,7 @@ AScrollBar::GetButtonLength(ValueType i, ValueType n) const
 YHorizontalScrollBar::YHorizontalScrollBar(const Rect& r, IUIBox* pCon,
 	SDST uMinThumbLength)
 	: YComponent(),
-	AScrollBar(r, pCon, uMinThumbLength, Widgets::Horizontal)
+	AScrollBar(r, pCon, uMinThumbLength, Horizontal)
 {}
 
 
@@ -576,7 +577,7 @@ YSimpleTextListBox::DrawForeground()
 			const ViewerType::IndexType last(Viewer.GetIndex()
 				+ Viewer.GetValid());
 			Point pt(LocateForWindow(*this));
-			const Graphics& g(*pWnd);
+			const Graphics& g(pWnd->GetContext());
 
 			if(Viewer.GetIndex() >= 0)
 			{
@@ -626,7 +627,7 @@ YSimpleTextListBox::CallSelected()
 void
 YSimpleTextListBox::CallConfirmed(YSimpleTextListBox::ViewerType::IndexType i)
 {
-	if(Viewer.IsSelected() && Viewer.GetSelected() + Viewer.GetIndex() == i)
+	if(Viewer.IsSelected() && Viewer.GetSelected() == i)
 	{
 		IndexEventArgs e(*this, i);
 

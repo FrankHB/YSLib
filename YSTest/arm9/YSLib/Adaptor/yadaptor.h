@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2032;
+\version 0.2042;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 + 08:00;
 \par 修改时间:
-	2010-12-24 23:56 + 08:00;
+	2010-12-31 11:44 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,6 +73,8 @@ YSL_BEGIN
 	using platform::PATHSTR;
 	using platform::FILENAMESTR;
 
+	using platform::mmbset;
+	using platform::mmbcpy;
 	using platform::direxists;
 	using platform::chdir;
 	using platform::getcwd_n;
