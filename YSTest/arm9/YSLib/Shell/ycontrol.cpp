@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.3964;
+\version 0.3966;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 + 08:00;
 \par 修改时间:
-	2010-12-30 22:06 + 08:00;
+	2011-01-01 19:25 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -78,7 +78,7 @@ OnTouchMove(IVisualControl& c, TouchEventArgs& e)
 }
 
 void
-OnDrag(IVisualControl& c, TouchEventArgs& e)
+OnDrag(IVisualControl& c, TouchEventArgs&)
 {
 	using namespace InputStatus;
 

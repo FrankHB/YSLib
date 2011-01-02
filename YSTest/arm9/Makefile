@@ -1,8 +1,8 @@
-# DS Makefile for YShell -> ARM9 by Franksoft 2009 - 2010
+# DS Makefile for YShell -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 + 08:00;
-# UTime = 2010-12-10 22:25 + 08:00;
-# Version = 0.3168;
+# UTime = 2011-01-01 20:34 + 08:00;
+# Version = 0.3197;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -44,20 +44,23 @@ ARCH	:=	-mthumb-interwork
 # note: arm9tdmi isn't the correct CPU arch, but anything newer and LD
 # *insists* it has a FPU or VFP, and it won't take no for an answer!
 
-#CFLAGS	:=	-g  -Wformat=2 -Winline -Wall -O2\
-# 		-mcpu=arm946e-s -mtune=arm946e-s -fomit-frame-pointer\
+#CFLAGS	:=	-g  -Wformat=2 -Winline -Wall -O2 \
+# 		-mcpu=arm946e-s -mtune=arm946e-s -fomit-frame-pointer \
 #		-ffast-math \
 #		$(ARCH)
 
-CFLAGS	:=	-g -Wall -O2\
- 			-march=armv5te -mtune=arm946e-s -fomit-frame-pointer\
+CFLAGS	:=	-g -Wall -O2 \
+ 			-march=armv5te -mtune=arm946e-s -fomit-frame-pointer \
 			-ffast-math \
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM9
 #CFLAGS	+=	$(INCLUDE) -DARM9 -I$(PAPATH)/include/nds
 #CXXFLAGS	:=	$(CFLAGS) -frepo -fno-threadsafe-statics -fno-rtti -fno-exceptions
-CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit
+CXXFLAGS	:=	$(CFLAGS) \
+#	-Weffc++ -Wold-style-cast -Woverloaded-virtual -pedantic\
+	-Wextra -Winit-self -Wmissing-include-dirs -Wsign-promo \
+	-fno-threadsafe-statics -fuse-cxa-atexit
 
 #ASFLAGS:=	-g $(ARCH) -march=armv5te -mtune=arm946e-s
 ASFLAGS	:=	-g $(ARCH)

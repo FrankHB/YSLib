@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6650;
+\version 0.6658;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 + 08:00;
 \par 修改时间:
-	2010-12-27 19:59 + 08:00;
+	2010-01-01 18:51 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Drawing)
 
 //文本状态：笔样式、边框样式、字体缓存和行距。
-struct TextState : public PenStyle
+class TextState : public PenStyle
 {
 public:
 	typedef PenStyle ParentType;
@@ -61,6 +61,11 @@ public:
 	*/
 	explicit
 	TextState(YFontCache&);
+	/*!
+	\brief 析构：空实现。
+	\note 无异常抛出。
+	*/
+	virtual DefEmptyDtor(TextState)
 
 	/*!
 	\brief 从笔样式中恢复样式。
@@ -203,10 +208,10 @@ public:
 	explicit
 	TextRegion(YFontCache&);
 	/*!
-	\brief 析构。
+	\brief 析构：空实现。
+	\note 无异常抛出。
 	*/
-	virtual
-	~TextRegion();
+	virtual DefEmptyDtor(TextRegion)
 
 	/*!
 	\brief 从文本状态中恢复状态。

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yres.h
 \ingroup Core
 \brief 资源管理模块。
-\version 0.1448;
+\version 0.1453;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 + 08:00;
 \par 修改时间:
-	2010-12-11 15:18 + 08:00;
+	2011-01-01 18:55 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -77,6 +77,11 @@ public:
 	*/
 	explicit
 	YImage(ConstBitmapPtr = NULL, SDST = 0, SDST = 0);
+	/*!
+	\brief 析构：空实现。
+	\note 无异常抛出。
+	*/
+	virtual DefEmptyDtor(YImage)
 
 	DefGetter(BitmapPtr, ImagePtr, GetBufferPtr())
 

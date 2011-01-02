@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.2810;
+\version 0.2830;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2010-12-31 12:15 + 08:00;
+	2011-01-01 20:38 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,12 +50,12 @@ namespace
 		return sy + vmax<int>(0, -dy);
 	}
 	inline SPOS
-	blitMaxX(SPOS minX, SDST sw, SDST dw, SPOS sx, SPOS dx, SDST cw)
+	blitMaxX(SDST sw, SDST dw, SPOS sx, SPOS dx, SDST cw)
 	{
 		return sx + vmin<int>(vmin<int>(dw - dx, sw - sx), cw);
 	}
 	inline SPOS
-	blitMaxY(SPOS minY, SDST sh, SDST dh, SPOS sy, SPOS dy, SDST ch)
+	blitMaxY(SDST sh, SDST dh, SPOS sy, SPOS dy, SDST ch)
 	{
 		return sy + vmin<int>(vmin<int>(dh - dy, sh - sy), ch);
 	}
@@ -69,8 +69,8 @@ blitScale(const Point& sp, const Point& dp,
 {
 	minX = blitMinX(sp.X, dp.X);
 	minY = blitMinY(sp.Y, dp.Y);
-	maxX = blitMaxX(minX, ss.Width, ds.Width, sp.X, dp.X, sc.Width);
-	maxY = blitMaxY(minY, ss.Height, ds.Height, sp.Y, dp.Y, sc.Height);
+	maxX = blitMaxX(ss.Width, ds.Width, sp.X, dp.X, sc.Width);
+	maxY = blitMaxY(ss.Height, ds.Height, sp.Y, dp.Y, sc.Height);
 }
 
 
@@ -167,8 +167,8 @@ const Point& sp, const Point& dp, const Size& sc)
 {
 const int minX = blitMinX(sx, dx),
 minY = blitMinY(sy, dy),
-maxX = blitMaxX(minX, sw, dw, sx, dx, cw),
-maxY = blitMaxY(minY, sh, dh, sy, dy, ch);
+maxX = blitMaxX(sw, dw, sx, dx, cw),
+maxY = blitMaxY(sh, dh, sy, dy, ch);
 const u8* sc = src + minY * ss.Width + minX;
 u8* dc = dst + vmax<int>(0, dp.Y) * ds.Width + vmax<int>(0, dp.X);
 

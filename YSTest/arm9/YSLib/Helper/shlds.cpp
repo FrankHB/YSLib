@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1510;
+\version 0.1512;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 + 08:00;
 \par 修改时间:
-	2010-12-21 16:15 + 08:00;
+	2011-01-01 19:24 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,8 +46,9 @@ ShlCLI::OnDeactivated(const Message&)
 }
 
 int
-ShlCLI::ExecuteCommand(const uchar_t* s)
+ShlCLI::ExecuteCommand(const uchar_t* /*s*/)
 {
+	// TODO: impl;
 	return 0;
 }
 

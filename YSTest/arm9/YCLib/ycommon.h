@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2635;
+\version 0.2648;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 + 08:00; 
 \par 修改时间:
-	2010-12-31 11:43 + 08:00;
+	2011-01-01 18:44 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -441,20 +441,24 @@ namespace platform
 
 	public:
 		/*!
-		\brief 使用路径字符串构造 HDirectory 对象。
+		\brief 构造：使用路径字符串。
 		*/
 		explicit
 		HDirectory(CPATH = NULL);
 
 	private:
 		/*!
-		\brief 使用本机迭代器构造 HDirectory 对象。
+		\brief 构造：使用本机迭代器。
 		*/
 		HDirectory(IteratorType&);
 
 	public:
 		/*!
-		\brief 析构函数。
+		\brief 复制构造：浅复制。
+		*/
+		HDirectory(const HDirectory&);
+		/*!
+		\brief 析构。
 		*/
 		~HDirectory();
 
@@ -506,6 +510,10 @@ namespace platform
 	{
 		Open(path);
 	}
+	inline
+	HDirectory::HDirectory(const HDirectory& h)
+		: dir(h.dir)
+	{}
 	inline
 	HDirectory::HDirectory(HDirectory::IteratorType& d)
 		: dir(d)
@@ -656,7 +664,7 @@ namespace platform
 	/*!
 	\brief 组合计时器寄存器的值。
 	*/
-	inline vu32
+	inline u32
 	timers2msRaw(vu16 l, vu16 h)
 	{
 		return l | (h << 16);
@@ -664,7 +672,7 @@ namespace platform
 	/*!
 	\brief 寄存器 - 毫秒转换。
 	*/
-	inline vu32
+	inline u32
 	timers2ms(vu16 l, vu16 h)
 	{
 		return timers2msRaw(l, h) >> 5;
@@ -725,7 +733,7 @@ namespace platform
 	/*!
 	\brief 取实时时钟计数。
 	*/
-	inline vu32
+	inline u32
 	GetRTC()
 	{
 		return timers2ms(TIMER2_DATA, TIMER3_DATA);

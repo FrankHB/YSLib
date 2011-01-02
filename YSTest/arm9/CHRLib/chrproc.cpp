@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version 0.1724;
+\version 0.1725;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 + 08:00; 
 \par 修改时间:
-	2010-12-17 18:37 + 08:00;
+	2011-01-01 19:19 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -197,9 +197,9 @@ MBCSToUCS(fchar_t* d, const char* s, const CSID& cp)
 	return d - p;
 }
 usize_t
-UTF16LEToMBCS(char* d, const uchar_t* s, const CSID& cp)
+UTF16LEToMBCS(char* d, const uchar_t* s, const CSID& /*cp*/)
 {
-	// Not implemented.
+	// TODO: impl;
 	char* const p(d);
 //	char t;
 

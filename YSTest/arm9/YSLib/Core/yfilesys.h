@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2070;
+\version 0.2072;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 + 08:00;
 \par 修改时间:
-	2010-12-31 21:15 + 08:00;
+	2011-01-01 18:37 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -339,6 +339,7 @@ Path::HasExtension() const
 
 inline
 Path::iterator::iterator()
+	: ptr(NULL), n(StringType::npos)
 {}
 inline
 Path::iterator::iterator(const value_type& p)

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file chrmap.cpp
 \ingroup CHRLib
 \brief 字符映射。
-\version 0.1501;
+\version 0.1505;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 + 08:00; 
 \par 修改时间:
-	2010-11-11 21:18 + 08:00;
+	2011-01-01 19:16 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -212,14 +212,14 @@ codemap<CharSet::GBK>(ubyte_t& l, FILE* fp)
 
 template<>
 uchar_t
-codemap<CharSet::UTF_16BE>(ubyte_t& l, const char* c)
+codemap<CharSet::UTF_16BE>(ubyte_t& /*l*/, const char* c)
 {
 	//l = 2;
 	return getword_BE(c);
 }
 template<>
 uchar_t
-codemap<CharSet::UTF_16BE>(ubyte_t& l, FILE* fp)
+codemap<CharSet::UTF_16BE>(ubyte_t& /*l*/, FILE* fp)
 {
 	//l = 2;
 	return std::getc(fp) << 8 | std::getc(fp);
@@ -227,14 +227,14 @@ codemap<CharSet::UTF_16BE>(ubyte_t& l, FILE* fp)
 
 template<>
 uchar_t
-codemap<CharSet::UTF_16LE>(ubyte_t& l, const char* c)
+codemap<CharSet::UTF_16LE>(ubyte_t& /*l*/, const char* c)
 {
 	//l = 2;
 	return getword_LE(c);
 }
 template<>
 uchar_t
-codemap<CharSet::UTF_16LE>(ubyte_t& l, FILE* fp)
+codemap<CharSet::UTF_16LE>(ubyte_t& /*l*/, FILE* fp)
 {
 	//l = 2;
 	return std::getc(fp) | std::getc(fp) << 8;

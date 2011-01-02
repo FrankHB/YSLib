@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5712;
+\version 0.5726;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-30 16:02 + 08:00;
+	2010-01-01 18:35 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,6 @@
 #include "ycomp.h"
 #include "yfocus.h"
 #include "../Core/yres.h"
-//#include <set>
 #include "ytext.h"
 
 YSL_BEGIN
@@ -445,7 +444,7 @@ MWindowObject::BelongsTo(HWND hWnd) const
 
 
 //! \brief 可视样式模块。
-class Visual
+class Visual : public NonCopyable
 {
 private:
 	bool visible; //!< 可见性。
@@ -753,10 +752,10 @@ public:
 
 
 //标签模块。
-class MLabel
+class MLabel : public NonCopyable
 {
 protected:
-	GHWeak<Drawing::TextRegion> pTextRegion; //!< 文本区域指针。
+	GHWeak<Drawing::TextRegion> wpTextRegion; //!< 文本区域指针。
 
 public:
 	Drawing::Font Font; //!< 字体。
@@ -765,15 +764,13 @@ public:
 	bool AutoEllipsis; //!< 启用对超出标签宽度的文本调整大小。
 	String Text; //!< 标签文本。
 
+protected:
 	/*!
 	\brief 构造：使用指定字体和文本区域指针。
 	*/
 	explicit
 	MLabel(const Drawing::Font& = Drawing::Font::GetDefault(),
 		GHWeak<Drawing::TextRegion> = NULL);
-
-protected:
-	DefEmptyDtor(MLabel)
 
 	/*!
 	\brief 绘制文本。

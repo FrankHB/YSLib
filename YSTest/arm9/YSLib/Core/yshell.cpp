@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.3103;
+\version 0.3105;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 + 08:00;
 \par 修改时间:
-	2010-12-23 13:02 + 08:00;
+	2011-01-01 19:26 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -235,8 +235,9 @@ GetMessage(Message& msg, GHHandle<YShell> hShl,
 }
 
 ystdex::errno_t
-TranslateMessage(const Message& msg)
+TranslateMessage(const Message& /*msg*/)
 {
+	// TODO: impl;
 	return 0;
 }
 

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version 0.2812;
+\version 0.2822;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:39:39 + 08:00;
 \par 修改时间:
-	2010-12-26 21:09 + 08:00;
+	2011-01-01 18:51 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,6 +50,11 @@ public:
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
 	YGraphicDevice(SDST, SDST, Drawing::BitmapPtr = NULL);
+	/*!
+	\brief 析构：空实现。
+	\note 无异常抛出。
+	*/
+	virtual DefEmptyDtor(YGraphicDevice)
 };
 
 inline
@@ -88,6 +93,11 @@ public:
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
 	YScreen(SDST, SDST, Drawing::BitmapPtr = NULL);
+	/*!
+	\brief 析构：空实现。
+	\note 无异常抛出。
+	*/
+	virtual DefEmptyDtor(YScreen)
 
 	/*!
 	\brief 复位。

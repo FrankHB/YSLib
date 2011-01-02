@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2138;
+\version 0.2141;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 + 08:00;
 \par 修改时间:
-	2010-12-31 21:15 + 08:00;
+	2011-01-01 19:26 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -118,13 +118,15 @@ Path::GetExtension() const
 }
 
 Path&
-Path::MakeAbsolute(const Path& base)
+Path::MakeAbsolute(const Path& /*base*/)
 {
+	// TODO: impl;
 	return *this;
 }
 Path&
 Path::RemoveFilename()
 {
+	// TODO: impl;
 	return *this;
 }
 Path&

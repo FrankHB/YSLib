@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup Shell
 \brief GUI 焦点特性实现。
-\version 0.2119;
+\version 0.2126;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 + 08:00;
 \par 修改时间:
-	2010-12-17 19:29 + 08:00;
+	2011-01-01 18:36 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,7 @@ class AFocusRequester;
 
 
 //! \brief 简单焦点响应器。
-class MSimpleFocusResponser
+class MSimpleFocusResponser : public NonCopyable
 {
 protected:
 	IVisualControl* pFocusing; //!< 焦点指针。
@@ -75,7 +75,7 @@ inline MSimpleFocusResponser::MSimpleFocusResponser()
 
 //! \brief 焦点响应器模板。
 template<class _type = AFocusRequester>
-class GMFocusResponser
+class GMFocusResponser : public NonCopyable
 {
 	friend class AFocusRequester;
 

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数对象封装。
-\version 0.1672;
+\version 0.1675;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-14 18:48:44 + 08:00;
 \par 修改时间:
-	2010-11-19 10:29 + 08:00;
+	2011-01-01 19:13 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -271,7 +271,7 @@ public:
 	*/
 	template<class _tN>
 	_tRet
-	operator()(_tN& o, _tPara arg)
+	operator()(_tN&, _tPara arg)
 	{
 		if(_po && _pm)
 			return (_po->*_pm)(arg);

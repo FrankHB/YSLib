@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7056;
+\version 0.7057;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 + 08:00;
 \par 修改时间:
-	2010-12-23 11:29 + 08:00;
+	2011-01-01 19:18 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -80,7 +80,7 @@ EFontStyle::GetName() const ythrow()
 */
 FT_Error
 simpleFaceRequester(FTC_FaceID face_id, FT_Library library,
-					FT_Pointer request_data, FT_Face* aface)
+					FT_Pointer /*request_data*/, FT_Face* aface)
 {
 	Typeface* fontFace(static_cast<Typeface*>(face_id));
 	FT_Face& face(*aface);

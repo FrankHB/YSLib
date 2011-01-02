@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4797;
+\version 0.4801;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-30 22:40 + 08:00;
+	2011-01-01 09:03 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -405,8 +405,8 @@ YUIContainer::~YUIContainer() ythrow()
 
 
 MLabel::MLabel(const Drawing::Font& f, GHWeak<Drawing::TextRegion> pTr_)
-	: pTextRegion(pTr_ ? pTr_ : GetGlobalResource<Drawing::TextRegion>()),
-	Font(f), Margin(pTextRegion->Margin), AutoSize(true), AutoEllipsis(false),
+	: wpTextRegion(pTr_ ? pTr_ : GetGlobalResource<Drawing::TextRegion>()),
+	Font(f), Margin(wpTextRegion->Margin), AutoSize(true), AutoEllipsis(false),
 	Text()
 {}
 
@@ -415,21 +415,21 @@ MLabel::PaintText(Widget& w, const Point& pt)
 {
 	IWindow* pWnd(FetchDirectWindowPtr(w));
 
-	if(pWnd && pTextRegion)
+	if(pWnd && wpTextRegion)
 	{
-		pTextRegion->Font = Font;
-		pTextRegion->Font.Update();
-		pTextRegion->ResetPen();
-		pTextRegion->Color = w.ForeColor;
-		pTextRegion->SetSize(w.GetWidth(), w.GetHeight());
-		SetMarginsTo(*pTextRegion, 2, 2, 2, 2);
-		pTextRegion->PutLine(Text);
+		wpTextRegion->Font = Font;
+		wpTextRegion->Font.Update();
+		wpTextRegion->ResetPen();
+		wpTextRegion->Color = w.ForeColor;
+		wpTextRegion->SetSize(w.GetWidth(), w.GetHeight());
+		SetMarginsTo(*wpTextRegion, 2, 2, 2, 2);
+		wpTextRegion->PutLine(Text);
 
 		const Graphics& g(pWnd->GetContext());
 
-		pTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
+		wpTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
 			g.GetSize(), Point::Zero, pt, w.GetSize());
-		pTextRegion->SetSize(0, 0);
+		wpTextRegion->SetSize(0, 0);
 	}
 }
 

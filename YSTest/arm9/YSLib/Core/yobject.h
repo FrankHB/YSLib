@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.2811;
+\version 0.2820;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-29 18:35 + 08:00;
+	2011-01-01 18:56 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -757,7 +757,15 @@ public:
 	*/
 	explicit
 	Graphics(BitmapPtr = NULL, const Size& = Size::Zero);
-	DefEmptyDtor(Graphics)
+	/*!
+	\brief 复制构造：浅复制。
+	*/
+	Graphics(const Graphics&);
+	/*!
+	\brief 析构：空实现。
+	\note 无异常抛出。
+	*/
+	virtual DefEmptyDtor(Graphics)
 
 	/*!
 	\brief 取指定行首元素指针。
@@ -789,6 +797,10 @@ public:
 inline
 Graphics::Graphics(BitmapPtr b, const Size& s)
 	: pBuffer(b), size(s)
+{}
+inline
+Graphics::Graphics(const Graphics& g)
+	: pBuffer(g.pBuffer), size(g.size)
 {}
 
 YSL_END_NAMESPACE(Drawing)

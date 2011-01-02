@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件实现。
-\version 0.2920;
+\version 0.2928;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 + 08:00;
 \par 修改时间:
-	2010-12-21 16:31 + 08:00;
+	2011-01-01 19:25 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -189,12 +189,7 @@ public:
 	{
 		if(l != nLength)
 		{
-			if(l < 0)
-			{
-				nLength = 0;
-				nSelected = 0;
-			}
-			else if(l < nLength && nSelected >= static_cast<IndexType>(l))
+			if(l < nLength && nSelected >= static_cast<IndexType>(l))
 				nSelected = l - 1;
 			else
 				nLength = l;

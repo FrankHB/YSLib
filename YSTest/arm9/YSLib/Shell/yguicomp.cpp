@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2835;
+\version 0.2839;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-12-31 21:31 + 08:00;
+	2011-01-02 10:20 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,7 +52,7 @@ namespace
 	}
 
 	void
-	WndDrawFocus(IWindow* pWnd, const Size& s)
+	WndDrawFocus(IWindow* pWnd, const Size&)
 	{
 		YAssert(pWnd, "Window pointer is null.");
 
@@ -353,7 +353,7 @@ YHorizontalTrack::YHorizontalTrack(const Rect& r, IUIBox* pCon,
 }
 
 void
-YHorizontalTrack::OnDrag_Thumb_Horizontal(TouchEventArgs& e)
+YHorizontalTrack::OnDrag_Thumb_Horizontal(TouchEventArgs&)
 {
 	using namespace InputStatus;
 
@@ -381,7 +381,7 @@ YVerticalTrack::YVerticalTrack(const Rect& r, IUIBox* pCon,
 }
 
 void
-YVerticalTrack::OnDrag_Thumb_Vertical(TouchEventArgs& e)
+YVerticalTrack::OnDrag_Thumb_Vertical(TouchEventArgs&)
 {
 	using namespace InputStatus;
 
@@ -596,6 +596,10 @@ YSimpleTextListBox::DrawForeground()
 					}
 					else
 						pTextRegion->Color = ForeColor;
+					// TEST: begin: blit pollution;
+					Drawing::ClearPixel(pTextRegion->GetBufferAlphaPtr(),
+						Drawing::GetAreaFrom(pTextRegion->GetSize()));
+					// TEST: end: blit pollution;
 					pTextRegion->PutLine(list[i]);
 					pTextRegion->ResetPen();
 					pTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
@@ -707,7 +711,7 @@ YSimpleTextListBox::OnClick(TouchEventArgs& e)
 }
 
 void
-YSimpleTextListBox::OnSelected(IndexEventArgs& e)
+YSimpleTextListBox::OnSelected(IndexEventArgs&)
 {
 	Refresh();
 }

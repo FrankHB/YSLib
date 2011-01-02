@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version 0.2073;
+\version 0.2075;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 21:26:30;
 \par 修改时间:
-	2010-12-19 14:57 + 08:00;
+	2010-01-01 19:15 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -98,7 +98,7 @@ YSL_END
 using namespace YSLib;
 
 int
-YMain(int argc, char* argv[])
+YMain(int /*argc*/, char* /*argv*/[])
 {
 	using namespace Shells;
 

@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3449;
+\version 0.3465;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-12-25 23:26 + 08:00;
+	2010-01-02 09:43 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -198,7 +198,7 @@ namespace
 	}
 
 	void
-	InputCounterAnother(const Point& pt)
+	InputCounterAnother(const Point& /*pt*/)
 	{
 	//	nCountInput++;
 	//	std::sprintf(strCount, "%d,%d,%d,%d,",sizeof(YForm),sizeof(YShell),
@@ -292,7 +292,7 @@ ShlLoad::TFrmLoadDown::TFrmLoadDown()
 }
 
 int
-ShlLoad::OnActivated(const Message& m)
+ShlLoad::OnActivated(const Message& /*m*/)
 {
 	//如果不添加此段且没有桌面没有被添加窗口等设置刷新状态的操作，
 	//那么任何绘制都不会进行。
@@ -373,7 +373,7 @@ ShlExplorer::TFrmFileListSelecter::frm_KeyPress(KeyEventArgs& e)
 }
 
 void
-ShlExplorer::TFrmFileListSelecter::fb_Selected(IndexEventArgs& e)
+ShlExplorer::TFrmFileListSelecter::fb_Selected(IndexEventArgs& /*e*/)
 {
 	YLabel& l(HandleCast<TFrmFileListMonitor>(
 		HandleCast<ShlExplorer>(FetchShellHandle())->hWndUp)->lblPath);
@@ -383,7 +383,7 @@ ShlExplorer::TFrmFileListSelecter::fb_Selected(IndexEventArgs& e)
 }
 
 void
-ShlExplorer::fb_KeyPress(IVisualControl& sender, KeyEventArgs& e)
+ShlExplorer::fb_KeyPress(IVisualControl& /*sender*/, KeyEventArgs& e)
 {
 	Key x(e);
 
@@ -391,7 +391,7 @@ ShlExplorer::fb_KeyPress(IVisualControl& sender, KeyEventArgs& e)
 		switchShl1();
 }
 void
-ShlExplorer::fb_Confirmed(IVisualControl& sender, IndexEventArgs& e)
+ShlExplorer::fb_Confirmed(IVisualControl& /*sender*/, IndexEventArgs& /*e*/)
 {
 //	if(e.Index == 2)
 //		switchShl1();
@@ -617,7 +617,7 @@ ShlSetting::TFormC::btnC_TouchDown(TouchEventArgs& e)
 //	btnC.Refresh();
 }
 void
-ShlSetting::TFormC::btnC_Click(TouchEventArgs& e)
+ShlSetting::TFormC::btnC_Click(TouchEventArgs& /*e*/)
 {
 	static const int ffilen(theApp.pFontCache->GetFilesN());
 	static const int ftypen(theApp.pFontCache->GetTypesN());
@@ -640,6 +640,8 @@ ShlSetting::TFormC::btnC_Click(TouchEventArgs& e)
 		sprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n",
 			btnC.Font.GetSize(), ffilen, ftypen, ffacen);
 		btnC.Text = strtf;
+		btnC.ForeColor = Color(std::rand(), std::rand(), std::rand());
+		btnC.BackColor = Color(std::rand(), std::rand(), std::rand());
 	}
 	else
 	{
@@ -701,7 +703,7 @@ ShlSetting::ShowString(const char* s)
 }
 
 void
-ShlSetting::TFormC_TouchDown(IVisualControl& sender, TouchEventArgs& e)
+ShlSetting::TFormC_TouchDown(IVisualControl& sender, TouchEventArgs& /*e*/)
 {
 	try
 	{
@@ -716,7 +718,7 @@ ShlSetting::TFormC_TouchDown(IVisualControl& sender, TouchEventArgs& e)
 
 
 int
-ShlSetting::OnActivated(const Message& msg)
+ShlSetting::OnActivated(const Message& /*msg*/)
 {
 	hDesktopDown->BackColor = ARGB16(1, 15, 15, 31);
 	hDesktopDown->SetBackground(GetImage(6));
@@ -771,7 +773,7 @@ ShlReader::ShlReader()
 {}
 
 int
-ShlReader::OnActivated(const Message& msg)
+ShlReader::OnActivated(const Message& /*msg*/)
 {
 	pTextFile = ynew YTextFile(path.c_str());
 	Reader.LoadText(*pTextFile);
@@ -792,7 +794,7 @@ ShlReader::OnActivated(const Message& msg)
 }
 
 int
-ShlReader::OnDeactivated(const Message& msg)
+ShlReader::OnDeactivated(const Message& /*msg*/)
 {
 	ShlClearBothScreen();
 	FetchEvent<EControl::Click>(*hDesktopDown).Remove(*this,
@@ -840,7 +842,7 @@ ShlReader::UpdateToScreen()
 }
 
 void
-ShlReader::OnClick(TouchEventArgs& e)
+ShlReader::OnClick(TouchEventArgs& /*e*/)
 {
 	CallStored<ShlExplorer>();
 }

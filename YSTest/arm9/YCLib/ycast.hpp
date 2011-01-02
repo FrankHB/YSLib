@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ycast.hpp
 \ingroup YCLib
 \brief C++ 转换模板类。
-\version 0.1542;
+\version 0.1564;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-15 08:13:18 + 08:00; 
 \par 修改时间:
-	2010-12-25 21:38 + 08:00;
+	2011-01-01 20:47 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -96,6 +96,18 @@ namespace ystdex
 			~A() throw()
 			{}
 		};
+
+#ifdef __GNUC__
+//#pragma GCC diagnostic push
+#pragma GCC system_header
+//临时处理：关闭所有警告。
+//#pragma GCC diagnostic ignored "-Wextra"
+/*
+关闭编译警告：(C++ only) Ambiguous virtual bases. ，
+参见 http://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html 。
+*/
+#endif
+
 		struct B
 			: virtual _type2
 		{
@@ -108,6 +120,12 @@ namespace ystdex
 			~C() throw()
 			{}
 		};
+
+#ifdef __GNUC__
+// TODO: GCC push/pop with GCC 4.6+;
+//#pragma GCC diagnostic warning "-Wextra"
+//#pragma GCC diagnostic pop
+#endif
 
 		enum
 		{

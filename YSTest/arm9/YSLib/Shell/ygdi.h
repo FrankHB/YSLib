@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3423;
+\version 0.3430;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2010-12-29 18:38 + 08:00;
+	2011-01-01 18:51 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -571,6 +571,11 @@ public:
 	PenStyle(const FontFamily& = GetDefaultFontFamily(),
 		Font::SizeType = Font::DefSize,
 		Drawing::Color = Drawing::ColorSpace::White);
+	/*!
+	\brief 析构：空实现。
+	\note 无异常抛出。
+	*/
+	virtual DefEmptyDtor(PenStyle)
 
 	DefGetterMember(const FontFamily&, FontFamily, Font)
 	DefGetterMember(YFontCache&, Cache, Font)
@@ -662,7 +667,7 @@ SetAllTo(Padding& p, SDST h, SDST v)
 
 
 //! \brief 矩形图像缓冲区。
-class BitmapBuffer : public Graphics
+class BitmapBuffer : public NonCopyable, public Graphics
 {
 public:
 	/*!
@@ -676,9 +681,10 @@ public:
 	BitmapBuffer(ConstBitmapPtr, SDST, SDST);
 	/*!
 	\brief 析构：释放资源。
+	\note 无异常抛出。
 	*/
 	virtual
-	~BitmapBuffer();
+	~BitmapBuffer() ythrow();
 
 	/*!
 	\brief 重新设置缓冲区大小。
@@ -721,7 +727,7 @@ public:
 inline BitmapBuffer::BitmapBuffer()
 	: Graphics()
 {}
-inline BitmapBuffer::~BitmapBuffer()
+inline BitmapBuffer::~BitmapBuffer() ythrow()
 {
 	ydelete_array(pBuffer);
 }
@@ -752,9 +758,10 @@ public:
 	BitmapBufferEx(ConstBitmapPtr, SDST, SDST);
 	/*!
 	\brief 析构：释放资源。
+	\note 无异常抛出。
 	*/
 	virtual
-	~BitmapBufferEx();
+	~BitmapBufferEx() ythrow();
 
 	DefGetter(u8*, BufferAlphaPtr, pBufferAlpha) //!< 取 Alpha 缓冲区的指针。
 	DefGetter(std::size_t, SizeOfBufferAlpha,
@@ -802,7 +809,7 @@ inline
 BitmapBufferEx::BitmapBufferEx() : BitmapBuffer(), pBufferAlpha(NULL)
 {}
 inline
-BitmapBufferEx::~BitmapBufferEx()
+BitmapBufferEx::~BitmapBufferEx() ythrow()
 {
 	ydelete_array(pBufferAlpha);
 }

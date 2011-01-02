@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7095;
+\version 0.7103;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 + 08:00;
 \par 修改时间:
-	2010-12-31 11:06 + 08:00;
+	2011-01-01 18:37 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,7 +91,7 @@ EFontStyle::operator Styles&()
 
 
 //! \brief 字型家族 (Typeface Family) 标识。
-class FontFamily
+class FontFamily : public NonCopyable
 {
 	friend class Typeface;
 	friend class YFontCache;
@@ -159,7 +159,7 @@ private:
 
 
 //! \brief 字型标识。
-class Typeface
+class Typeface : public NonCopyable
 {
 	friend class YFontCache;
 	friend FT_Error simpleFaceRequester(FTC_FaceID,
@@ -367,7 +367,7 @@ public:
 	typedef FT_Char SignedScaleType;
 
 private:
-	FTC_SBit bitmap;
+	NativeType bitmap;
 
 public:
 	/*!
