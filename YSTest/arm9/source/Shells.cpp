@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3465;
+\version 0.3467;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-01-02 09:43 + 08:00;
+	2010-01-02 10:43 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -641,7 +641,7 @@ ShlSetting::TFormC::btnC_Click(TouchEventArgs& /*e*/)
 			btnC.Font.GetSize(), ffilen, ftypen, ffacen);
 		btnC.Text = strtf;
 		btnC.ForeColor = Color(std::rand(), std::rand(), std::rand());
-		btnC.BackColor = Color(std::rand(), std::rand(), std::rand());
+		btnReturn.ForeColor = Color(std::rand(), std::rand(), std::rand());
 	}
 	else
 	{

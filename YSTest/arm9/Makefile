@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 + 08:00;
-# UTime = 2011-01-01 20:34 + 08:00;
-# Version = 0.3197;
+# UTime = 2011-01-02 14:08 + 08:00;
+# Version = 0.3201;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -49,7 +49,7 @@ ARCH	:=	-mthumb-interwork
 #		-ffast-math \
 #		$(ARCH)
 
-CFLAGS	:=	-g -Wall -O2 \
+CFLAGS	:=	-g -Wall -O0 \
  			-march=armv5te -mtune=arm946e-s -fomit-frame-pointer \
 			-ffast-math \
 			$(ARCH)

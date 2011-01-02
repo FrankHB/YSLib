@@ -1,4 +1,4 @@
-//v 0.2935; *Build 178 r10;
+//v 0.2937; *Build 179 r11;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -161,114 +161,87 @@ $using:
 
 $DONE:
 r1:
-/= test 0;
-
-r2:
-/= private \m FTC_SBit bitmap -> NativeType bitmap
-	@@ \cl CharBitmap @@ \h Adaptor::YFont;
-
-r3:
-/ \m GHWeak<TextRegion> pTextRegion => wpTextRegion \cl MLabel @@ \u YWidget;
-
-r4:
-+ {
-	-Wextra -Winit-self -Wmissing-include-dirs \
-	-Weffc++ -Wold-style-cast -Woverloaded-virtual 
-} @@ \mac CXXFLAG @@ arm9 makefile;
-
-r5:
-/ @@ \h YCommon:
-	*= -\v @@ \ret \tp @@ \f (GetRTC & timers2msRaw & timers2ms);
-	* + \i copy \ctor HDirectory(const HDirectory&) @@ \cl HDirectory;
-/ @@ \h YObject @@ \cl Graphics:
-	* + \vt @@ DefEmptyDtor(Graphics);
-	+ \i copy \ctor Graphics(const Graphics&);
-* \tr @@ \i \ctor Path::iterator::iterator() @@ \h YFileSystem;
-* + \inh NonCopyable @@ \cl (FontFamily & Typeface) @@ \h YFont;
-/ @@ \h YGDI:
-	* + \inh NonCopyable @@ \cl BitmapBuffer;
-	* + \vt DefEmptyDtor(PenStyle) @@ \cl PenStyle;
-	+ \es ythrow() @@ \dtor @@ \cl (BitmapBuffer & BitmapBufferEx);
-/ @@ \h YText:
-	/ \st TextState -> \cl TextState;
-	* + \vt DefEmptyDtor(TextState) @@ \cl TextState;
-	/ \em \vt \dtor @@ \cl TextRegion -> \vt DefEmptyDtor(TextRegion);
-/ @@ \h YWidget:
-	* + \inh NonCopyable @@ \cl Visual;
-	/ @@ \cl MLabel:
-		+ \inh NonCopyable;
-		* \ac @@ \exp \ctor MLabel -> protected ~ public;
-		- protected \dtor;
-* + \inh NonCopyable @@ (\cl MSimpleFocusResponser & \clt GMFocusResponser)
-	@@ \h YFocus;
-/ \rem {
-	-Weffc++ -Wold-style-cast -Woverloaded-virtual 
-} @@ \mac CXXFLAG @@ arm9 makefile;
-/ @@ \h YDevice:
-	+ \vt DefEmptyDtor(YGraphicDevice) @@ \cl YGraphicDevice;
-	+ \vt DefEmptyDtor(YScreen) @@ \cl YScreen;
-+ \vt DefEmptyDtor(YImage) @@ \cl YImage @@ \h YResource;
-
-r6:
-/= test 1;
-
-r7:
-*= \rem 12 !^ \param @@ \u Shells;
-*= - 1 !^ \param @@ \t<class _tN> _tRet operator()(_tN&, _tPara)
-	@@ \clt ExpandMemberFirstBinder @@ \h YFunc;
-*= \rem 2 !^ \param @@ \f YMain @@ \u Main;
-*= \rem 4 !^ \param @@ 4 \ft<> codemap @@ \u CharacterMapping;
-*= \rem 1 !^ \param @@ \u UTF16LEToMBCS @@ \u CharacterProcessing;
-*= \rem 1 !^ \param @@ simpleFaceRequester @@ \u YFont;
-*= \rem 1 !^ \param @@ !\impl @@ \f MakeAbsolute @@ \u YFileSystem;
-*= \rem 1 !^ \param @@ !\impl @@ \f TranslateMessage @@ \u YShell;
-*= - 1 !^ \param @@ \impl @@ \f OnDrag @@ \u YControl;
-*= - 4 !^ \param @@ \u YGUIComponent;
-/ \simp \impl @@ \mf bool SetLength(SizeType)
-	@@ \clt GSequenceViewer @@ \h YComponent;
-*= \rem 1 !^ \param @@ !\impl @@ \mf ExecuteCommand
-	@@ \cl ShlCLI @@ \u ShellDS;
-/ + proprecessing segments of #ifdef __GNUC__ & #pragma GCC diagnostic
-	to supress warning 'vitrual base ambiguity' with option '-Wextra'
-	@@ \h YCast;
-+ -Wsign-promo @@ \mac CXXFLAG @@ arm9 makefile;
-/ @@ \u YGDI:
-	- 1st \param @@ \i \f (blitMaxX & blitMaxY) @@ \un \ns;
-	/ \tr \impl @@ \f blitScale;
-
-r8:
-/ ^ #pragma GCC system_header ~ #pragma GCC diagnostic
-	to suppress \a warnings @@ \h YCast;
-
-r9:
-/= test 2;
-
-r10:
-/ test for b179;
+/ test for b180 part 1:
 	/ \tr \impl @@ \mf DrawForeground @@ \YSimpleListBox @@ \u YGUIComponent;
 	/ \tr \impl @@ \mf ShlSetting::TFormC::btnC_Click @@ \u Shells;
+
+r2:
+/ \a YSimpleTextListBox => YSimpleListBox;
++ 2 \tf polymorphic_crosscast @@ \ns ystdex @@ \h YCast;
+
+r3-r5:
+* \impl @@ \tf<class _tDst, class _tSrc> \i _tDstpolymorphic_crosscast(_tSrc*)
+	@@ \h YCast;
+/ @@ \impl \u YWidget:
+	- \tf Fill @@ \un \ns;
+	/ \impl \f void Fill(IWidget&, Color);
+	- \f void Fill(Widget&, Color) ^ ystdex::polymorphic_crosscast;;
+
+r6:
+/ \impl @@ \mf void Widget::Refresh() @@ \impl \u YWidget
+	^ ystdex::polymorphic_crosscast;
+
+r7:
+/ @@ \h YWidget:
+	- \ft<class _tWidget> IWindow* FetchDirectWindowPtr(_tWidget&);
+	/ \impl @@ \i \f IWindow* FetchDirectWindowPtr(IWidget&);
+	- \ft<class _tWidget> IUIBox* FetchDirectContainerPtr(_tWidget&);
+	/ \impl @@ \i \f IUIBox* FetchDirectContainerPtr(IWidget&);
+	- \ft<class _tWidget> IWindow* FetchWindowPtr(const _tWidget&);
+	/ \impl @@ \i \f IWindow* FetchWindowPtr(const IWidget&);
+	/ \impl @@ 2 \mac YWidgetAssert ^ ystdex::general_cast;
+	/ \impl @@ \mf MLabel::PaintText;
+
+r8:
+- \i @@ \f IUIBox* FetchDirectContainerPtr(IWidget&) @@ \u YWidget;
+
+r9:
+/ \ft<class _tWidget> IWindow* FetchWidgetDirectWindowPtr(_tWidget*)
+	-> \f IWindow* FetchWidgetDirectWindowPtr(IWidget*) @@ \u YWidget;
+
+r10:
+/ @@ \u YWidget:
+	/ merge \impl @@ \f (FetchWidgetDirectWindowPtr
+		& FetchWidgetDirectWindowPtr)
+		-> \ft<class _tNode> _tNode* FetchWidgetDirectNodePtr(IWidget*);
+	/ \impl @@ \f (FetchDirectContainerPtr
+		& FetchDirectWindowPtr & FetchDirectDesktopPtr);
+
+r11:
+/ @@ \cl YSimpleListBox @@ \u YGUIComponent:
+	/ \m GHWeak<Drawing::TextRegion> pTextRegion => wpTextRegion;
+	/ \tr \impl @@ \mf DrawForeground;
+/ '-O2' -> '-O0' @@ \impl @@ \mac CFLAGS @@ arm9 Makefile;
+/ @@ \impl \u YCommon:
+	* extern u8 default_font_bin[] => extern u8 default_font[]
+		>> extern "C" @@ \un \ns;
+	/= \st PrintConsole mainConsole & \f PrintConsole* consoleMainInit()
+		>> \un \ns ~ static;
+
 
 $DOING:
 
 relative process:
 2011-01-02:
--20.6d;
+-19.9d;
 
 / ...
 
 
 $NEXT:
+
+b180-b215:
 * screen output polluted @@ real machine;
 * fatal \err @@ b177 when press L + click on the ListBox:
+[
 F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 -e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 0201f484
 GetTouchedVisualControlPtr
 ygui.cpp:215
 ??
 ygui.cpp:325
-
-
-b179-b195:
+]
+/ improve efficiency @@ \tf polymorphic_crosscast @@ \h YCast;
 / scroll bars @@ listbox;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
@@ -278,18 +251,23 @@ b179-b195:
 r196-r288:
 + \impl loading pictures;
 + \impl style on widgets;
++ \impl general blit algorithm;
 / user-defined bitmap buffer @@ \cl YDesktop;
 / general component operations:
 	/ serialization;
 	/ designer;
 / database interface;
 
+
 $NOTHING_TODO:
 * fatal \err @@ b16x:
+[
 F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 	-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02055838
 	ftc_snode_weight
 	ftcsbits.c:271
+]
+
 
 $TODO:
 

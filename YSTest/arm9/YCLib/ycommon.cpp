@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2148;
+\version 0.2156;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 + 08:00;
 \par 修改时间:
-	2010-12-31 11:51 + 08:00;
+	2010-01-02 14:46 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -279,52 +279,59 @@ namespace platform
 	}
 
 
-	extern const u8 default_font_bin[];
-
-	static PrintConsole mainConsole =
+	namespace
 	{
-		//Font:
+		extern "C"
 		{
-			reinterpret_cast<u16*>(
-				const_cast<u8*>(default_font_bin)), //font gfx
-			0, //font palette
-			0, //font color count
-			4, //bpp
-			0, //first ascii character in the set
-			128, //number of characters in the font set
-			true //convert single color
-		},
-		0, //font background map
-		0, //font background gfx
-		22, //map base
-		3, //char base
-		0, //bg layer in use
-		-1, //bg id
-		0,0, //cursorX cursorY
-		0,0, //prevcursorX prevcursorY
-		32, //console width
-		24, //console height
-		0,  //window x
-		0,  //window y
-		32, //window width
-		24, //window height
-		3, //tab size
-		0, //font character offset
-		0, //selected palette
-		0,  //print callback
-		false, //console initialized
-		true, //load graphics
-	};
+			extern const u8 default_font[];
+		}
 
-	static PrintConsole*
-	consoleMainInit()
-	{
-		videoSetMode(MODE_0_2D);
-		vramSetBankA(VRAM_A_MAIN_BG);
-		return consoleInit(NULL, mainConsole.bgLayer,
-			BgType_Text4bpp, BgSize_T_256x256,
-			mainConsole.mapBase, mainConsole.gfxBase, true, true);
+		PrintConsole mainConsole =
+		{
+			//Font:
+			{
+				reinterpret_cast<u16*>(
+					const_cast<u8*>(default_font)), //font gfx
+				0, //font palette
+				0, //font color count
+				4, //bpp
+				0, //first ascii character in the set
+				128, //number of characters in the font set
+				true //convert single color
+			},
+			0, //font background map
+			0, //font background gfx
+			22, //map base
+			3, //char base
+			0, //bg layer in use
+			-1, //bg id
+			0,0, //cursorX cursorY
+			0,0, //prevcursorX prevcursorY
+			32, //console width
+			24, //console height
+			0,  //window x
+			0,  //window y
+			32, //window width
+			24, //window height
+			3, //tab size
+			0, //font character offset
+			0, //selected palette
+			0,  //print callback
+			false, //console initialized
+			true, //load graphics
+		};
+
+		PrintConsole*
+		consoleMainInit()
+		{
+			videoSetMode(MODE_0_2D);
+			vramSetBankA(VRAM_A_MAIN_BG);
+			return consoleInit(NULL, mainConsole.bgLayer,
+				BgType_Text4bpp, BgSize_T_256x256,
+				mainConsole.mapBase, mainConsole.gfxBase, true, true);
+		}
 	}
+
 
 	void
 	YConsoleInit(u8 dspIndex, Color fc, Color bc)

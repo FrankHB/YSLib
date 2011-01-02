@@ -1,8 +1,8 @@
-﻿// YSLib -> Designation by Franksoft 2009 - 2010
+﻿// YSLib -> Designation by Franksoft 2009 - 2011
 // CharSet = UTF-8;
 // CTime = 2009-12-02 05:14:30 + 08:00;
-// UTime = 2010-12-24 19:00 + 08:00;
-// Version = 0.3970;
+// UTime = 2011-01-02 13:54 + 08:00;
+// Version = 0.3974;
 
 
 // Designation ：设计说明文档。
@@ -553,7 +553,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 一个命名空间可能在多个模块中。
 
 @2.1.1 一般准则：
-禁止在头文件中使用不具名命名空间 (unnamed namespace) 。
+禁止在头文件中使用不具名命名空间 (unnamed namespace) ，除非其中仅包含 inline 函数和模板。
 禁止在头文件中使用全局 using 指示符，除非是有意的（例如减少别名个数；需在文档中说明）。
 局部对象在声明时同时初始化。
 函数内变量尽可能置于最小作用域内——除非效率原因，尽可能使用语句块级对象代替函数级局部对象。

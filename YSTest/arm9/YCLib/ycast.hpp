@@ -11,12 +11,12 @@
 /*!	\file ycast.hpp
 \ingroup YCLib
 \brief C++ 转换模板类。
-\version 0.1564;
+\version 0.1598;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-15 08:13:18 + 08:00; 
 \par 修改时间:
-	2011-01-01 20:47 + 08:00;
+	2011-01-02 12:05 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -158,6 +158,23 @@ namespace ystdex
 	polymorphic_downcast(_tSrc& x)
 	{
 		return *polymorphic_downcast<typename remove_reference<_tDst>
+			::type*>(&x);
+	}
+
+	template <class _tDst, class _tSrc>
+	inline _tDst
+	polymorphic_crosscast(_tSrc* x)
+	{
+		_tDst p(dynamic_cast<_tDst>(x));
+
+		assert(p);
+		return p;
+	}
+	template <class _tDst, class _tSrc>
+	inline _tDst&
+	polymorphic_crosscast(_tSrc& x)
+	{
+		return *polymorphic_crosscast<typename remove_reference<_tDst>
 			::type*>(&x);
 	}
 

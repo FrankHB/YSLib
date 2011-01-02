@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4801;
+\version 0.4845;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-01-01 09:03 + 08:00;
+	2011-01-02 13:46 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,14 +82,12 @@ SetBoundsOf(IWidget& w, const Rect& r)
 }
 
 
-YDesktop*
-FetchWidgetDirectDesktopPtr(IWidget* pWgt)
+IUIBox*
+FetchDirectContainerPtr(IWidget& w)
 {
-	YDesktop* pDsk(NULL);
+	IUIBox* const pCon(dynamic_cast<IUIBox*>(&w));
 
-	while(pWgt && !(pDsk = dynamic_cast<YDesktop*>(pWgt)))
-		pWgt = pWgt->GetContainerPtr();
-	return pDsk;
+	return pCon ? pCon : w.GetContainerPtr();
 }
 
 
@@ -238,32 +236,17 @@ void MoveToBottom(IWidget& w)
 }
 
 
-namespace
-{
-	template<class _tWidget>
-	void
-	Fill(_tWidget& w, Color c)
-	{
-		IWindow* pWnd(FetchDirectWindowPtr(w));
-
-		if(pWnd)
-		{
-			const Graphics& g(pWnd->GetContext());
-
-			FillRect(g, LocateOffset(&w, Point::Zero, pWnd), w.GetSize(), c);
-		}
-	}
-}
-
 void
 Fill(IWidget& w, Color c)
 {
-	return Fill<IWidget>(w, c);
-}
-void
-Fill(Widget& w, Color c)
-{
-	return Fill<Widget>(w, c);
+	IWindow* pWnd(FetchDirectWindowPtr(w));
+
+	if(pWnd)
+	{
+		const Graphics& g(pWnd->GetContext());
+
+		FillRect(g, LocateOffset(&w, Point::Zero, pWnd), w.GetSize(), c);
+	}
 }
 
 
@@ -295,7 +278,7 @@ Widget::DrawBackground()
 	YWidgetAssert(this, Widgets::Widget, DrawBackground);
 
 	if(!IsTransparent())
-		Fill(*this, BackColor);
+		Fill(*ystdex::polymorphic_crosscast<IWidget*>(this), BackColor);
 }
 
 void
@@ -310,7 +293,8 @@ Widget::DrawForeground()
 void
 Widget::Refresh()
 {
-	IWindow* pWnd(FetchWindowPtr(*this));
+	IWindow* pWnd(FetchWindowPtr(
+		*ystdex::polymorphic_crosscast<IWidget*>(this)));
 
 	while(pWnd && !pWnd->IsRefreshRequired())
 	{
@@ -413,7 +397,8 @@ MLabel::MLabel(const Drawing::Font& f, GHWeak<Drawing::TextRegion> pTr_)
 void
 MLabel::PaintText(Widget& w, const Point& pt)
 {
-	IWindow* pWnd(FetchDirectWindowPtr(w));
+	IWindow* pWnd(FetchDirectWindowPtr(
+		ystdex::polymorphic_crosscast<IWidget&>(w)));
 
 	if(pWnd && wpTextRegion)
 	{

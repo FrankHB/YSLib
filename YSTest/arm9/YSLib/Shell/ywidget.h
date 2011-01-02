@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5726;
+\version 0.5768;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-01-01 18:35 + 08:00;
+	2010-01-02 13:46 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,13 +49,15 @@ void
 yassert(bool, const char*, int, const char*, const char*, const char*);
 
 #	define YWidgetAssert(ptr, comp, func) \
-	Components::yassert((ptr) && FetchDirectWindowPtr(*(ptr)), \
+	Components::yassert((ptr) && FetchDirectWindowPtr( \
+		ystdex::general_cast<IWidget&>(*(ptr))), \
 		"The direct window handle is null.", __LINE__, __FILE__, #comp, #func)
 
 #else
 
 #	define YWidgetAssert(ptr, comp, func) \
-	assert((ptr) && FetchDirectWindowPtr(*(ptr)))
+	assert((ptr) && FetchDirectWindowPtr( \
+		ystdex::general_cast<IWidget&>(*(ptr))))
 
 #endif
 
@@ -195,73 +197,33 @@ SetBoundsOf(IWidget&, const Rect& r);
 
 
 /*!
-\brief 取指针指定的部件的直接窗口句柄。
+\brief 取指针指定的部件在视图树中的直接节点指针。
 */
-template<class _tWidget>
-IWindow*
-FetchWidgetDirectWindowPtr(_tWidget* pWgt)
+template<class _tNode>
+_tNode* FetchWidgetDirectNodePtr(IWidget* pWgt)
 {
-	IWindow* pWnd(NULL);
+	_tNode* pNode(NULL);
 
-	while(pWgt && !(pWnd = dynamic_cast<IWindow*>(pWgt)))
+	while(pWgt && !(pNode = dynamic_cast<_tNode*>(pWgt)))
 		pWgt = pWgt->GetContainerPtr();
-	return pWnd;
+	return pNode;
 }
 
-/*!
-\brief 取指针指定的部件的直接桌面句柄。
-*/
-YDesktop*
-FetchWidgetDirectDesktopPtr(IWidget*);
-
-/*!
-\brief 取指定部件的窗口指针。
-*/
-template<class _tWidget>
-IWindow*
-FetchWindowPtr(const _tWidget& w)
-{
-	return FetchWidgetDirectWindowPtr(w.GetContainerPtr());
-}
 /*!
 \brief 取指定部件的窗口指针。
 */
 inline IWindow*
 FetchWindowPtr(const IWidget& w)
 {
-	return FetchWindowPtr<IWidget>(w);
+	return FetchWidgetDirectNodePtr<IWindow>(w.GetContainerPtr());
 }
 
 /*!
 \brief 取指定部件的直接容器指针。
 */
-template<class _tWidget>
 IUIBox*
-FetchDirectContainerPtr(_tWidget& w)
-{
-	IUIBox* const pCon(dynamic_cast<IUIBox*>(&w));
+FetchDirectContainerPtr(IWidget&);
 
-	return pCon ? pCon : w.GetContainerPtr();
-}
-/*!
-\brief 取指定部件的直接容器指针。
-*/
-inline IUIBox*
-FetchDirectContainerPtr(IWidget& w)
-{
-	return FetchDirectContainerPtr<IWidget>(w);
-}
-
-/*!
-\brief 取指定部件的直接窗口句柄。
-\note 加入容器指针判断。
-*/
-template<class _tWidget>
-IWindow*
-FetchDirectWindowPtr(_tWidget& w)
-{
-	return FetchWidgetDirectWindowPtr(FetchDirectContainerPtr(w));
-}
 /*!
 \brief 取指定部件的直接窗口句柄。
 \note 加入容器指针判断。
@@ -269,7 +231,7 @@ FetchDirectWindowPtr(_tWidget& w)
 inline IWindow*
 FetchDirectWindowPtr(IWidget& w)
 {
-	return FetchDirectWindowPtr<IWidget>(w);
+	return FetchWidgetDirectNodePtr<IWindow>(FetchDirectContainerPtr(w));
 }
 
 /*!
@@ -279,7 +241,7 @@ FetchDirectWindowPtr(IWidget& w)
 inline YDesktop*
 FetchDirectDesktopPtr(IWidget& w)
 {
-	return FetchWidgetDirectDesktopPtr(FetchDirectContainerPtr(w));
+	return FetchWidgetDirectNodePtr<YDesktop>(FetchDirectContainerPtr(w));
 }
 
 
@@ -387,11 +349,6 @@ MoveToBottom(IWidget&);
 */
 void
 Fill(IWidget&, Color);
-/*!
-\brief 以纯色填充部件所在窗口的对应显示缓冲区。
-*/
-void
-Fill(Widget&, Color);
 
 
 //! \brief 方向模块。

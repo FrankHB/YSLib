@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2839;
+\version 0.2852;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2011-01-02 10:20 + 08:00;
+	2011-01-02 14:05 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -487,43 +487,43 @@ YHorizontalScrollBar::YHorizontalScrollBar(const Rect& r, IUIBox* pCon,
 {}
 
 
-YSimpleTextListBox::YSimpleTextListBox(const Rect& r, IUIBox* pCon,
+YSimpleListBox::YSimpleListBox(const Rect& r, IUIBox* pCon,
 	GHWeak<TextRegion> pTr_, GHWeak<ListType> wpList_)
 	: YVisualControl(r, pCon),
-	pTextRegion(pTr_ ? pTr_ : GetGlobalResource<TextRegion>()), Font(),
-	Margin(pTextRegion->Margin), wpList(wpList_), Viewer(GetList())
+	pwTextRegion(pTr_ ? pTr_ : GetGlobalResource<TextRegion>()), Font(),
+	Margin(pwTextRegion->Margin), wpList(wpList_), Viewer(GetList())
 {
-	FetchEvent<EControl::KeyDown>(*this) += &YSimpleTextListBox::OnKeyDown;
+	FetchEvent<EControl::KeyDown>(*this) += &YSimpleListBox::OnKeyDown;
 	FetchEvent<EControl::KeyHeld>(*this) += OnKeyHeld;
-	FetchEvent<EControl::TouchDown>(*this) += &YSimpleTextListBox::OnTouchDown;
-	FetchEvent<EControl::TouchMove>(*this) += &YSimpleTextListBox::OnTouchMove;
-	FetchEvent<EControl::Click>(*this) += &YSimpleTextListBox::OnClick;
-	Selected += &YSimpleTextListBox::OnSelected;
-	Confirmed += &YSimpleTextListBox::OnConfirmed;
+	FetchEvent<EControl::TouchDown>(*this) += &YSimpleListBox::OnTouchDown;
+	FetchEvent<EControl::TouchMove>(*this) += &YSimpleListBox::OnTouchMove;
+	FetchEvent<EControl::Click>(*this) += &YSimpleListBox::OnClick;
+	Selected += &YSimpleListBox::OnSelected;
+	Confirmed += &YSimpleListBox::OnConfirmed;
 }
 
 Drawing::TextRegion&
-YSimpleTextListBox::GetTextRegion() const ythrow()
+YSimpleListBox::GetTextRegion() const ythrow()
 {
-	YAssert(pTextRegion,
+	YAssert(pwTextRegion,
 		"In function \"SDST\n"
-		"Components::Controls::YSimpleTextListBox::GetItemHeight()\": \n"
+		"Components::Controls::YSimpleListBox::GetItemHeight()\": \n"
 		"The text region pointer is null.");
 
-	return *pTextRegion;
+	return *pwTextRegion;
 }
-YSimpleTextListBox::ListType&
-YSimpleTextListBox::GetList() const ythrow()
+YSimpleListBox::ListType&
+YSimpleListBox::GetList() const ythrow()
 {
 	YAssert(wpList,
-		"In function \"Components::Controls::YSimpleTextListBox::ListType\n"
-		"Components::Controls::YSimpleTextListBox::GetList()\":\n"
+		"In function \"Components::Controls::YSimpleListBox::ListType\n"
+		"Components::Controls::YSimpleListBox::GetList()\":\n"
 		"The list pointer is null.");
 
 	return *wpList;
 }
-YSimpleTextListBox::ItemType*
-YSimpleTextListBox::GetItemPtr(ViewerType::IndexType i)
+YSimpleListBox::ItemType*
+YSimpleListBox::GetItemPtr(ViewerType::IndexType i)
 {
 	ListType& list(GetList());
 
@@ -531,27 +531,27 @@ YSimpleTextListBox::GetItemPtr(ViewerType::IndexType i)
 		? &list[i] : NULL;
 }
 SDST
-YSimpleTextListBox::GetItemHeight() const
+YSimpleListBox::GetItemHeight() const
 {
 	return GetLnHeightExFrom(GetTextRegion()) + defMarginV * 2;
 }
 
 void
-YSimpleTextListBox::SetSelected(YSimpleTextListBox::ViewerType::IndexType i)
+YSimpleListBox::SetSelected(YSimpleListBox::ViewerType::IndexType i)
 {
 	if(Viewer.Contains(i) && Viewer.SetSelected(Viewer.GetIndex() + i))
 		CallSelected();
 }
 void
-YSimpleTextListBox::SetSelected(SPOS x, SPOS y)
+YSimpleListBox::SetSelected(SPOS x, SPOS y)
 {
 	SetSelected(CheckPoint(x, y));
 }
 
 void
-YSimpleTextListBox::DrawForeground()
+YSimpleListBox::DrawForeground()
 {
-	YWidgetAssert(this, Controls::YSimpleTextListBox, DrawForeground);
+	YWidgetAssert(this, Controls::YSimpleListBox, DrawForeground);
 
 	ParentType::DrawForeground();
 
@@ -561,17 +561,17 @@ YSimpleTextListBox::DrawForeground()
 	{
 		if(bFocused)
 			WndDrawFocus(pWnd, GetSize());
-		if(pTextRegion && GetLnHeightFrom(*pTextRegion) <= GetHeight())
+		if(pwTextRegion && GetLnHeightFrom(*pwTextRegion) <= GetHeight())
 		{
 			const SDST lnWidth(GetWidth());
 			const SDST lnHeight(GetItemHeight());
 
-			pTextRegion->Font = Font;
-			pTextRegion->Font.Update();
-			pTextRegion->ResetPen();
-			pTextRegion->SetSize(lnWidth, lnHeight);
-			SetMarginsTo(*pTextRegion, defMarginH, defMarginV);
-			Viewer.SetLength((GetHeight() + pTextRegion->LineGap)
+			pwTextRegion->Font = Font;
+			pwTextRegion->Font.Update();
+			pwTextRegion->ResetPen();
+			pwTextRegion->SetSize(lnWidth, lnHeight);
+			SetMarginsTo(*pwTextRegion, defMarginH, defMarginV);
+			Viewer.SetLength((GetHeight() + pwTextRegion->LineGap)
 				/ lnHeight);
 
 			const ViewerType::IndexType last(Viewer.GetIndex()
@@ -587,41 +587,37 @@ YSimpleTextListBox::DrawForeground()
 				{
 					if(Viewer.IsSelected() && i == Viewer.GetSelected())
 					{
-						pTextRegion->Color = ColorSpace::White;
+						pwTextRegion->Color = ColorSpace::White;
 						FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
 							Rect(pt.X + 1, pt.Y + 1,
-							pTextRegion->GetWidth() - 2,
-							pTextRegion->GetHeight() - 1),
+							pwTextRegion->GetWidth() - 2,
+							pwTextRegion->GetHeight() - 1),
 							ColorSpace::Aqua);
 					}
 					else
-						pTextRegion->Color = ForeColor;
-					// TEST: begin: blit pollution;
-					Drawing::ClearPixel(pTextRegion->GetBufferAlphaPtr(),
-						Drawing::GetAreaFrom(pTextRegion->GetSize()));
-					// TEST: end: blit pollution;
-					pTextRegion->PutLine(list[i]);
-					pTextRegion->ResetPen();
-					pTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
-						g.GetSize(), Point::Zero, pt, pTextRegion->GetSize());
+						pwTextRegion->Color = ForeColor;
+					pwTextRegion->PutLine(list[i]);
+					pwTextRegion->ResetPen();
+					pwTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
+						g.GetSize(), Point::Zero, pt, pwTextRegion->GetSize());
 					pt.Y += lnHeight;
-					pTextRegion->ClearImage();
+					pwTextRegion->ClearImage();
 				}
 			}
-			pTextRegion->SetSize(0, 0);
+			pwTextRegion->SetSize(0, 0);
 		}
 	}
 }
 
-YSimpleTextListBox::ViewerType::IndexType
-YSimpleTextListBox::CheckPoint(SPOS x, SPOS y)
+YSimpleListBox::ViewerType::IndexType
+YSimpleListBox::CheckPoint(SPOS x, SPOS y)
 {
 	return Rect(Point::Zero, GetSize()).Contains(x, y)
 		? y / GetItemHeight() : -1;
 }
 
 void
-YSimpleTextListBox::CallSelected()
+YSimpleListBox::CallSelected()
 {
 	IndexEventArgs e(*this, Viewer.GetSelected());
 
@@ -629,7 +625,7 @@ YSimpleTextListBox::CallSelected()
 }
 
 void
-YSimpleTextListBox::CallConfirmed(YSimpleTextListBox::ViewerType::IndexType i)
+YSimpleListBox::CallConfirmed(YSimpleListBox::ViewerType::IndexType i)
 {
 	if(Viewer.IsSelected() && Viewer.GetSelected() == i)
 	{
@@ -640,7 +636,7 @@ YSimpleTextListBox::CallConfirmed(YSimpleTextListBox::ViewerType::IndexType i)
 }
 
 void
-YSimpleTextListBox::OnKeyDown(KeyEventArgs& k)
+YSimpleListBox::OnKeyDown(KeyEventArgs& k)
 {
 	if(Viewer.IsSelected())
 	{
@@ -693,31 +689,31 @@ YSimpleTextListBox::OnKeyDown(KeyEventArgs& k)
 }
 
 void
-YSimpleTextListBox::OnTouchDown(TouchEventArgs& e)
+YSimpleListBox::OnTouchDown(TouchEventArgs& e)
 {
 	SetSelected(e);
 }
 
 void
-YSimpleTextListBox::OnTouchMove(TouchEventArgs& e)
+YSimpleListBox::OnTouchMove(TouchEventArgs& e)
 {
 	SetSelected(e);
 }
 
 void
-YSimpleTextListBox::OnClick(TouchEventArgs& e)
+YSimpleListBox::OnClick(TouchEventArgs& e)
 {
 	CallConfirmed(CheckPoint(e));
 }
 
 void
-YSimpleTextListBox::OnSelected(IndexEventArgs&)
+YSimpleListBox::OnSelected(IndexEventArgs&)
 {
 	Refresh();
 }
 
 void
-YSimpleTextListBox::OnConfirmed(IndexEventArgs& e)
+YSimpleListBox::OnConfirmed(IndexEventArgs& e)
 {
 	OnSelected(e);
 }
@@ -743,7 +739,7 @@ YListBox::GetTopVisualControlPtr(const Point& p)
 void
 YListBox::DrawForeground()
 {
-	YWidgetAssert(this, Controls::YSimpleTextListBox, DrawForeground);
+	YWidgetAssert(this, Controls::YSimpleListBox, DrawForeground);
 
 	ParentType::DrawForeground();
 	HorizontalScrollBar.DrawForeground();
@@ -754,7 +750,7 @@ YListBox::DrawForeground()
 
 YFileBox::YFileBox(const Rect& r, IUIBox* pCon,
 	GHWeak<TextRegion> pTr_)
-	: FileList(), YSimpleTextListBox(r, pCon, pTr_, GetListWeakPtr())
+	: FileList(), YSimpleListBox(r, pCon, pTr_, GetListWeakPtr())
 {
 	Confirmed += &YFileBox::OnConfirmed;
 }

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yguicomp.h
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2453;
+\version 0.2459;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2010-12-29 16:37 + 08:00;
+	2011-01-02 14:01 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -397,7 +397,7 @@ class YVerticalScrollBar
 
 
 //! \brief 文本列表框。
-class YSimpleTextListBox : public GMCounter<YSimpleTextListBox>,
+class YSimpleListBox : public GMCounter<YSimpleListBox>,
 	public YVisualControl
 {
 public:
@@ -410,7 +410,7 @@ protected:
 	static const SDST defMarginH = 4; //!< 默认水平边距。
 	static const SDST defMarginV = 2; //!< 默认垂直边距。
 
-	GHWeak<Drawing::TextRegion> pTextRegion; //!< 文本区域指针。
+	GHWeak<Drawing::TextRegion> pwTextRegion; //!< 文本区域指针。
 
 public:
 	Drawing::Font Font; //!< 字体。
@@ -428,13 +428,13 @@ public:
 	\brief 构造：使用指定边界、部件容器指针、文本区域和文本列表。
 	*/
 	explicit
-	YSimpleTextListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
+	YSimpleListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
 		GHWeak<Drawing::TextRegion> = NULL, GHWeak<ListType> = NULL); 
 	/*!
 	\brief 析构。
 	\note 无异常抛出。
 	*/
-	virtual DefEmptyDtor(YSimpleTextListBox)
+	virtual DefEmptyDtor(YSimpleListBox)
 
 public:
 	DefPredicateMember(Selected, Viewer)
@@ -560,13 +560,13 @@ private:
 };
 
 inline void
-YSimpleTextListBox::SetSelected(const Point& pt)
+YSimpleListBox::SetSelected(const Point& pt)
 {
 	SetSelected(pt.X, pt.Y);
 }
 
-inline YSimpleTextListBox::ViewerType::IndexType
-YSimpleTextListBox::CheckPoint(const Point& p)
+inline YSimpleListBox::ViewerType::IndexType
+YSimpleListBox::CheckPoint(const Point& p)
 {
 	return CheckPoint(p.X, p.Y);
 }
@@ -579,10 +579,10 @@ class YListBox : public GMCounter<YListBox>, public YVisualControl,
 {
 public:
 	typedef YVisualControl ParentType;
-	typedef typename YSimpleTextListBox::ListType ListType;
+	typedef typename YSimpleListBox::ListType ListType;
 
 private:
-	YSimpleTextListBox TextListBox;
+	YSimpleListBox TextListBox;
 	YHorizontalScrollBar HorizontalScrollBar;
 
 public:
@@ -637,10 +637,10 @@ public:
 
 //! \brief 文件列表框。
 class YFileBox : public GMCounter<YFileBox>, public IO::FileList,
-	public YSimpleTextListBox
+	public YSimpleListBox
 {
 public:
-	typedef YSimpleTextListBox ParentType;
+	typedef YSimpleListBox ParentType;
 
 	explicit
 	YFileBox(const Rect& = Rect::Empty, IUIBox* = NULL,
