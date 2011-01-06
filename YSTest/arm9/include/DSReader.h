@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器实现。
-\version 0.2270;
+\version 0.2272;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 + 08:00; 
 \par 修改时间:
-	2010-12-29 16:34 + 08:00;
+	2011-01-03 10:29 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -120,7 +120,7 @@ public:
 	void
 	SetFontSize(Font::SizeType = Font::DefSize); //!< 设置字符区域字体大小。
 	void
-	SetColor(Color = ColorSpace::Black); //!< 设置字符颜色。
+	SetColor(Color = Drawing::ColorSpace::Black); //!< 设置字符颜色。
 	void
 	SetLineGap(u8 = 0); //!< 设置行距。
 

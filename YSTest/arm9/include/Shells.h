@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3051;
+\version 0.3064;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-12-25 16:27 + 08:00;
+	2011-01-03 10:12 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -94,7 +94,8 @@ private:
 		YButton btnTest, btnOK;
 		YHorizontalScrollBar sbTestH;
 	//	YHorizontalTrack tkTestH;
-		YVerticalTrack tkTestV;
+		YVerticalScrollBar sbTestV;
+	//	YVerticalTrack tkTestV;
 
 		TFrmFileListSelecter();
 
@@ -160,6 +161,7 @@ public:
 	struct TFormC : public YForm
 	{
 		YButton btnC;
+		YButton btnD;
 		YButton btnReturn;
 		YButton btnExit;
 
@@ -171,8 +173,12 @@ public:
 		btnC_TouchDown(TouchEventArgs&);
 		void
 		btnC_Click(TouchEventArgs&);
+
 		static void
 		btnC_KeyPress(IVisualControl& sender, KeyEventArgs& e);
+
+		void
+		btnD_Click(TouchEventArgs&);
 
 		void
 		btnReturn_Click(TouchEventArgs&);

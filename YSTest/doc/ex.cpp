@@ -1,4 +1,4 @@
-//v 0.2937; *Build 179 r11;
+//v 0.2937; *Build 180 r57;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -161,76 +161,168 @@ $using:
 
 $DONE:
 r1:
-/ test for b180 part 1:
-	/ \tr \impl @@ \mf DrawForeground @@ \YSimpleListBox @@ \u YGUIComponent;
-	/ \tr \impl @@ \mf ShlSetting::TFormC::btnC_Click @@ \u Shells;
++= \vt @@ \dtor @@ \cl YListBox @@ \h YGUIComponent;
 
 r2:
-/ \a YSimpleTextListBox => YSimpleListBox;
-+ 2 \tf polymorphic_crosscast @@ \ns ystdex @@ \h YCast;
+/ test for b181:
+	/ \tr \impl @@ \mf void MDualScreenReader::PrintText() @@ \u DSReader;
+/ @@ \u YGUIComponent:
+	/ @@ \cl YListBox:
+		+ private \m YVerticalScrollBar VerticalScrollBar;
+		/ \tr \impl @@ \ctor;
+		/ \tr \impl @@ \mf (DrawForeground & GetTopVisualControlPtr);
+		+ \mf void FixLayout();
+	/ (\decl & \impl) \cl YVerticalScrollBar;
+	* \mf GetOrientation @@ \cl YHorizontalScrollBar;
+/ \a \param.de 'const Rect& = Rect::FullScreen' -> 'const Rect& = Rect::Empty';
 
-r3-r5:
-* \impl @@ \tf<class _tDst, class _tSrc> \i _tDstpolymorphic_crosscast(_tSrc*)
-	@@ \h YCast;
-/ @@ \impl \u YWidget:
-	- \tf Fill @@ \un \ns;
-	/ \impl \f void Fill(IWidget&, Color);
-	- \f void Fill(Widget&, Color) ^ ystdex::polymorphic_crosscast;;
+r3:
+/ \st TFrmFileListSelecter @@ \cl ShlExplorer @@ \u Shells:
+	/ \rem \m YHorizontalScrollBar sbTestH;
+	+ \m YVerticalScrollBar sbTestV;
+	/ !\rem \m YHorizontalTrack tkTestH;
+	/ \rem \m YVerticalScrollBar sbTestV;
+	/ \impl @@ \ctor;
 
-r6:
-/ \impl @@ \mf void Widget::Refresh() @@ \impl \u YWidget
-	^ ystdex::polymorphic_crosscast;
-
-r7:
-/ @@ \h YWidget:
-	- \ft<class _tWidget> IWindow* FetchDirectWindowPtr(_tWidget&);
-	/ \impl @@ \i \f IWindow* FetchDirectWindowPtr(IWidget&);
-	- \ft<class _tWidget> IUIBox* FetchDirectContainerPtr(_tWidget&);
-	/ \impl @@ \i \f IUIBox* FetchDirectContainerPtr(IWidget&);
-	- \ft<class _tWidget> IWindow* FetchWindowPtr(const _tWidget&);
-	/ \impl @@ \i \f IWindow* FetchWindowPtr(const IWidget&);
-	/ \impl @@ 2 \mac YWidgetAssert ^ ystdex::general_cast;
-	/ \impl @@ \mf MLabel::PaintText;
-
-r8:
-- \i @@ \f IUIBox* FetchDirectContainerPtr(IWidget&) @@ \u YWidget;
+r4-r8:
+/= test 1;
 
 r9:
-/ \ft<class _tWidget> IWindow* FetchWidgetDirectWindowPtr(_tWidget*)
-	-> \f IWindow* FetchWidgetDirectWindowPtr(IWidget*) @@ \u YWidget;
+* \impl @@ \ctor @@ \cl AScrollBar @@ \impl \u YGUIComponent;
 
 r10:
-/ @@ \u YWidget:
-	/ merge \impl @@ \f (FetchWidgetDirectWindowPtr
-		& FetchWidgetDirectWindowPtr)
-		-> \ft<class _tNode> _tNode* FetchWidgetDirectNodePtr(IWidget*);
-	/ \impl @@ \f (FetchDirectContainerPtr
-		& FetchDirectWindowPtr & FetchDirectDesktopPtr);
+/ @@ \impl \u YGUIComponent:
+	/ @@ \cl AScrollBar:
+		/ @@ \mf DrawForeground();
+			/ \tr \impl @@ \as;
+			* arrows output orientation;
+		/ \tr \impl @@ \as
+			@@ (\mf (DrawBackground & GetTopVisualControlPtr) & \ctor);
+	/ \as @@ \ctor @@ \cl YHorizontalTrack >> \ctor @@ \cl YHorizontalScrollBar;
+	/ \as @@ \ctor @@ \cl YVertictalTrack >> \ctor @@ \cl YVerticalScrollBar;
+	+ \as @@ \ctor @@ \cl (YHorizontalTrack & YVertictalTrack);
 
 r11:
-/ @@ \cl YSimpleListBox @@ \u YGUIComponent:
-	/ \m GHWeak<Drawing::TextRegion> pTextRegion => wpTextRegion;
-	/ \tr \impl @@ \mf DrawForeground;
-/ '-O2' -> '-O0' @@ \impl @@ \mac CFLAGS @@ arm9 Makefile;
-/ @@ \impl \u YCommon:
-	* extern u8 default_font_bin[] => extern u8 default_font[]
-		>> extern "C" @@ \un \ns;
-	/= \st PrintConsole mainConsole & \f PrintConsole* consoleMainInit()
-		>> \un \ns ~ static;
+/ @@ \un \ns @@ \impl \u YGUIComponent:
+	* \impl @@ \f WndDrawArrow;
+	/ \tr \impl @@ \f RectDrawArrow;
+/ \st TFrmFileListSelecter @@ \cl ShlExplorer @@ \u Shells:
+	/ \rem \m YHorizontalTrack tkTestH;
+	/ !\rem \m YVerticalScrollBar sbTestH;
+	/ \impl @@ \ctor;
+
+r12-r13:
+/= test 2;
+
+r14:
+* \impl @@ \ctor @@ \cl YHorizontalScrollBar @@ \impl \u @@ YGUIComponent;
+
+r15-r16:
+* \impl @@ \f WndDrawArrow @@ \un \ns @@ \impl \u YGUIComponent;
+
+r17:
+/ @@ \cl ShlSetting::TFormC @@ \u Shells:
+	+ \m YButton btnD;
+	/ \impl @@ \ctor;
+	+ \mf void btnD_Click(TouchEventArgs&);
+	+ \f void TestPause(const GHHandle<YDesktop>& = hDesktopDown) @@ \un \ns;
+/ \a BlitToBuffer => BlitTo;
+/ \a CopyToBuffer => CopyTo;
+/ @@ \h YWidget:
+	- namespace ColorSpace = Drawing::ColorSpace to avoid ambigity
+		@@ \impl \u;
+	/ 4 \tr \param @@ 2 \decl @@ \ctor;
+/ \tr @@ \h DSReader @@ \impl \u YGUIComponent;
+
+r18:
+/ @@ \cl ShlSetting::TFormC @@ \impl \u Shells:
+	/ \tr \impl @@ \ctor;
+	/ \tr \impl @@ \mf void btnD_Click(TouchEventArgs&);
+
+r19:
+* \impl @@ \f TestPause @@ \un \ns @@ \impl \u Shells;
+
+r20-r32:
+/ test 3:
+	/ \impl @@ \mf void btnD_Click(TouchEventArgs&)
+		@@ \cl ShlSetting::TFormC @@ \impl \u Shells;
+
+r33:
+/ ((\mf (void btnD_Click(TouchEventArgs&) @@ \cl ShlSetting::TFormC)
+	& \f TestPause) @@ \un \ns) @@ \impl \u Shells >> \impl \u file "GBKEX.cpp";
++ \inc \h Shells @@ \impl \u "GBKEX.cpp";
+
+r34-r44:
+/ test 4:
+	/ \impl @@ \mf void btnD_Click(TouchEventArgs&)
+		@@ \cl ShlSetting::TFormC @@ \impl \u "GBKEX.cpp";
+
+r45:
+/ @@ \impl \u YGDI:
+	/ \tr \impl @@ \s \i \f biltAlphaPoint;
+	/= 9 \s \f & >> \un \ns;
+
+r47-r52:
+/ test 5:
+	/ \impl @@ \mf void btnD_Click(TouchEventArgs&)
+		@@ \cl ShlSetting::TFormC @@ \impl \u "GBKEX.cpp";
+
+r53:
+/ @@ \u YGDI:
+	/ @@ \cl BitmapBuffer:
+		/ \i \vt \mf void
+		CopyTo(BitmapPtr, Rotation = RDeg0,
+			const Size& = Size::FullScreen,
+			const Point& = Point::Zero, const Point& = Point::Zero,
+			const Size& = Size::FullScreen) const;
+			-> CopyTo(BitmapPtr, const Size& = Size::FullScreen,
+			const Point& = Point::Zero, const Point& = Point::Zero,
+			const Size& = Size::FullScreen, Rotation = RDeg0) const;
+	/ @@ \cl BitmapBufferEx:
+		/ \vt \mf void
+		CopyTo(BitmapPtr, Rotation = RDeg0,
+			const Size& = Size::FullScreen,
+			const Point& = Point::Zero, const Point& = Point::Zero,
+			const Size& = Size::FullScreen) const;
+			-> CopyTo(BitmapPtr, const Size& = Size::FullScreen,
+			const Point& = Point::Zero, const Point& = Point::Zero,
+			const Size& = Size::FullScreen, Rotation = RDeg0) const;
+		/ \vt \mf void
+		BlitTo(BitmapPtr, Rotation = RDeg0,
+			const Size& = Size::FullScreen,
+			const Point& = Point::Zero, const Point& = Point::Zero,
+			const Size& = Size::FullScreen) const;
+			-> BlitTo(BitmapPtr, const Size& = Size::FullScreen,
+			const Point& = Point::Zero, const Point& = Point::Zero,
+			const Size& = Size::FullScreen, Rotation = RDeg0) const;
+/ \impl @@ \mf void MDualScreenReader::PrintText() @@ \u DSReader;
+/ \impl @@ \mf void YSimpleListBox::DrawForeground() @@ \u YGUIComponent;
+/ \impl @@ \mf void MLabel::PaintText(Widget&, const Point&) @@ \u YWidget;
+
+r54:
+* \tr \impl @@ \mf void MDualScreenReader::PrintText() @@ \u DSReader;
+
+r55-r56:
+/ test 6:
+	/ \impl @@ \mf void btnD_Click(TouchEventArgs&)
+		@@ \cl ShlSetting::TFormC @@ \impl \u "GBKEX.cpp";
+
+r57:
++ test fast \i \f blitAlphaPoint !^ alpha blending @@ \un \ns @@ \impl \u YGDI;
 
 
 $DOING:
 
 relative process:
-2011-01-02:
--19.9d;
+2011-01-06:
+-21.9d;
 
 / ...
 
 
 $NEXT:
 
-b180-b215:
+b181-b215:
 * screen output polluted @@ real machine;
 * fatal \err @@ b177 when press L + click on the ListBox:
 [
@@ -249,6 +341,7 @@ ygui.cpp:325
 / non-ordinary operator used in \clt GSequenceViewer @@ \h YComponent;
 
 r196-r288:
+* alpha blending platform independence;
 + \impl loading pictures;
 + \impl style on widgets;
 + \impl general blit algorithm;
@@ -299,6 +392,31 @@ Design by contract: DbC for C/C++, GNU nana.
 //---- temp code;
 /*
 
+/*	static YTimer Timer(1250);
+
+	if(Timer.Refresh())
+	{
+	//	InitYSConsole();
+	//	YDebugBegin();
+		iprintf("time : %u ticks\n", GetTicks());
+		iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
+			"W : %u;\nL : %lx;\n", msg.GetMessageID(),
+			msg.GetPriority(), msg.GetObjectID(), msg.GetWParam(), msg.GetLParam());
+		WaitForInput();
+	//	StartTicks();
+	}*/
+/*
+	YDebugBegin();
+	iprintf("time : %u ticks\n", GetTicks());
+	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
+		"W : %u;\nL : %lx;\n", msg.GetMessageID(), msg.GetPriority(),
+		msg.GetObjectID(), msg.GetWParam(), msg.GetLParam());
+	WaitForInput();*/
+/*
+		InitYSConsole();
+		iprintf("%d,(%d,%d)\n",msg.GetWParam(),
+			msg.GetCursorLocation().X, msg.GetCursorLocation().Y);
+*/
 //! \brief 桌面对象模块。
 class MDesktopObject
 {

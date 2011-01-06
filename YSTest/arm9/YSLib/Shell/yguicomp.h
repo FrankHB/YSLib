@@ -11,12 +11,12 @@
 /*!	\file yguicomp.h
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2459;
+\version 0.2479;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2011-01-02 14:01 + 08:00;
+	2011-01-02 19:42 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,7 +53,7 @@ public:
 	\brief 构造：使用指定边界和部件容器指针。
 	*/
 	explicit
-	YThumb(const Rect& = Rect::FullScreen, IUIBox* = NULL);
+	YThumb(const Rect& = Rect::Empty, IUIBox* = NULL);
 	virtual DefEmptyDtor(YThumb)
 
 	/*!
@@ -93,7 +93,7 @@ public:
 	\brief 构造：使用指定边界、部件容器指针和字体。
 	*/
 	explicit
-	YButton(const Rect& = Rect::FullScreen, IUIBox* = NULL,
+	YButton(const Rect& = Rect::Empty, IUIBox* = NULL,
 		const Drawing::Font& = Drawing::Font::GetDefault(),
 		GHWeak<Drawing::TextRegion> = NULL);
 	virtual DefEmptyDtor(YButton)
@@ -134,7 +134,7 @@ public:
 	\brief 构造：使用指定边界、部件容器指针和大小。
 	*/
 	explicit
-	ATrack(const Rect& = Rect::FullScreen, IUIBox* = NULL, SDST = 8);
+	ATrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDST = 8);
 	virtual DefEmptyDtor(ATrack)
 
 	DefPredicate(Horizontal, GetOrientation() == Horizontal)
@@ -248,11 +248,11 @@ public:
 	\note 断言检查：宽大于长的 2 倍。
 	*/
 	explicit
-	YHorizontalTrack(const Rect& = Rect::FullScreen, IUIBox* = NULL, SDST = 8);
+	YHorizontalTrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDST = 8);
 	virtual DefEmptyDtor(YHorizontalTrack)
 
 	ImplI(ATrack)
-		DefGetter(Orientation, Orientation, Horizontal)
+	DefGetter(Orientation, Orientation, Horizontal)
 
 private:
 	/*!
@@ -273,7 +273,7 @@ public:
 	\note 断言检查：长大于宽的 2 倍。
 	*/
 	explicit
-	YVerticalTrack(const Rect& = Rect::FullScreen, IUIBox* = NULL, SDST = 8);
+	YVerticalTrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDST = 8);
 	virtual DefEmptyDtor(YVerticalTrack)
 
 	ImplI(ATrack)
@@ -306,7 +306,7 @@ public:
 	\brief 构造：使用指定边界、部件容器指针、大小和方向。
 	*/
 	explicit
-	AScrollBar(const Rect& = Rect::FullScreen, IUIBox* = NULL, SDST = 8,
+	AScrollBar(const Rect& = Rect::Empty, IUIBox* = NULL, SDST = 8,
 		Orientation = Horizontal);
 	virtual DefEmptyDtor(AScrollBar)
 
@@ -378,21 +378,34 @@ public:
 	typedef YComponent ParentType;
 
 	explicit
-	YHorizontalScrollBar(const Rect& = Rect::FullScreen, IUIBox* = NULL,
+	YHorizontalScrollBar(const Rect& = Rect::Empty, IUIBox* = NULL,
 		SDST = 8);
 
 	virtual DefEmptyDtor(YHorizontalScrollBar)
 
 public:
 	ImplI(ATrack)
-		DefGetter(Orientation, Orientation, Vertical)
+	DefGetter(Orientation, Orientation, Horizontal)
 };
 
 
 //! \brief 垂直滚动条。
-class YVerticalScrollBar
+class YVerticalScrollBar : public GMCounter<YVerticalScrollBar>,
+	public YComponent,
+	public AScrollBar
 {
+public:
+	typedef YComponent ParentType;
 
+	explicit
+	YVerticalScrollBar(const Rect& = Rect::Empty, IUIBox* = NULL,
+		SDST = 8);
+
+	virtual DefEmptyDtor(YVerticalScrollBar)
+
+public:
+	ImplI(ATrack)
+	DefGetter(Orientation, Orientation, Vertical)
 };
 
 
@@ -584,12 +597,13 @@ public:
 private:
 	YSimpleListBox TextListBox;
 	YHorizontalScrollBar HorizontalScrollBar;
+	YVerticalScrollBar VerticalScrollBar;
 
 public:
 	explicit
 	YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
 		GHWeak<Drawing::TextRegion> = NULL, ListType* = NULL);
-	DefEmptyDtor(YListBox)
+	virtual DefEmptyDtor(YListBox)
 
 	/*!
 	\brief 取焦点指针。
@@ -632,6 +646,13 @@ public:
 	*/
 	virtual void
 	DrawForeground();
+
+private:
+	/*!
+	\brief 固定布局。
+	*/
+	void
+	FixLayout();
 };
 
 

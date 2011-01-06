@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3430;
+\version 0.3442;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2011-01-01 18:51 + 08:00;
+	2011-01-04 20:45 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -531,7 +531,7 @@ CopyBuffer(const Graphics&, const Graphics&);
 \note 仅当指针和指向有效。自动裁剪适应大小。
 */
 void
-CopyToBuffer(const Graphics&, const Graphics&,
+CopyTo(const Graphics&, const Graphics&,
 	const Point& = Point::Zero, Rotation = RDeg0);
 /*!
 \brief 以指定图形接口上下文作为源，向指定大小和点（相对左上角）的
@@ -539,7 +539,7 @@ CopyToBuffer(const Graphics&, const Graphics&,
 \note 仅当指针和指向有效。自动裁剪适应大小。
 */
 void
-CopyToBuffer(BitmapPtr, const Graphics&, Rotation, const Size&,
+CopyTo(BitmapPtr, const Graphics&, Rotation, const Size&,
 	const Point&, const Point&, const Size&);
 
 /*!
@@ -718,10 +718,9 @@ public:
 	\note 若有无效指针或指向则不复制。自动适应大小。
 	*/
 	virtual void
-	CopyToBuffer(BitmapPtr, Rotation = RDeg0,
-		const Size& = Size::FullScreen,
+	CopyTo(BitmapPtr, const Size& = Size::FullScreen,
 		const Point& = Point::Zero, const Point& = Point::Zero,
-		const Size& = Size::FullScreen) const;
+		const Size& = Size::FullScreen, Rotation = RDeg0) const;
 };
 
 inline BitmapBuffer::BitmapBuffer()
@@ -733,10 +732,10 @@ inline BitmapBuffer::~BitmapBuffer() ythrow()
 }
 
 inline void
-BitmapBuffer::CopyToBuffer(BitmapPtr dst, Rotation rot, const Size& ds,
-	const Point& sp, const Point& dp, const Size& sc) const
+BitmapBuffer::CopyTo(BitmapPtr dst, const Size& ds,
+	const Point& sp, const Point& dp, const Size& sc, Rotation rot) const
 {
-	Drawing::CopyToBuffer(dst, *this, rot, ds, sp, dp, sc);
+	Drawing::CopyTo(dst, *this, rot, ds, sp, dp, sc);
 }
 
 
@@ -788,10 +787,9 @@ public:
 	\note 若有无效指针或指向则不复制。自动适应大小。
 	*/
 	void
-	CopyToBuffer(BitmapPtr, Rotation = RDeg0,
-		const Size& = Size::FullScreen,
+	CopyTo(BitmapPtr, const Size& = Size::FullScreen,
 		const Point& = Point::Zero, const Point& = Point::Zero,
-		const Size& = Size::FullScreen) const;
+		const Size& = Size::FullScreen, Rotation = RDeg0) const;
 
 	/*!
 	\brief 向指定大小和点（相对左上角）的指定图形接口上下文
@@ -799,10 +797,9 @@ public:
 	\note 仅当指针和指向有效。自动裁剪适应大小。
 	*/
 	void
-	BlitToBuffer(BitmapPtr, Rotation = RDeg0,
-		const Size& = Size::FullScreen,
+	BlitTo(BitmapPtr, const Size& = Size::FullScreen,
 		const Point& = Point::Zero, const Point& = Point::Zero,
-		const Size& = Size::FullScreen) const;
+		const Size& = Size::FullScreen, Rotation = RDeg0) const;
 };
 
 inline

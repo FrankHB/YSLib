@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 NDS 的双屏阅读器实现。
-\version 0.2990;
+\version 0.3006;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 + 08:00; 
 \par 修改时间:
-	2010-12-30 15:47 + 08:00;
+	2011-01-04 23:54 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -141,10 +141,10 @@ MDualScreenReader::UnloadText()
 void
 MDualScreenReader::PrintText()
 {
-//	pTrUp->BlitToBuffer(pBgUp, RDeg0, SCRW, SCRH, 0, 0, 0, 0,
-//		pTrUp->Width, pTrUp->GetBufferHeightResized());
-	pTrUp->BlitToBuffer(pBgUp, rot);
-	pTrDn->BlitToBuffer(pBgDn, rot);
+	pTrUp->BlitTo(pBgUp, Size::FullScreen, Point::Zero,
+		Point::Zero, Size::FullScreen, rot);
+	pTrDn->BlitTo(pBgDn, Size::FullScreen, Point::Zero,
+		Point::Zero, Size::FullScreen, rot);
 }
 
 void

@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3467;
+\version 0.3498;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2010-01-02 10:43 + 08:00;
+	2011-01-03 11:32 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,6 +36,8 @@ char strtbuf[0x400],
 YSL_BEGIN
 
 using namespace Shells;
+using namespace Drawing::ColorSpace;
+
 
 int
 MainShlProc(const Message& msg)
@@ -334,8 +336,9 @@ ShlExplorer::TFrmFileListSelecter::TFrmFileListSelecter()
 	btnTest(Rect(115, 165, 65, 22), this),
 	btnOK(Rect(185, 165, 65, 22), this),
 	sbTestH(Rect(10, 165, 95, 16), this),
-	//	tkTestH(Rect(10, 165, 95, 16), this),
-	tkTestV(Rect(230, 10, 16, 95), this)
+//	tkTestH(Rect(10, 165, 95, 16), this),
+	sbTestV(Rect(230, 10, 16, 95), this)
+//	tkTestV(Rect(230, 10, 16, 95), this)
 {
 	btnTest.Text = _ustr(" 测试(X)");
 	btnOK.Text = _ustr(" 确定(R)");
@@ -444,38 +447,9 @@ ShlExplorer::TFrmFileListSelecter::btnOK_Click(TouchEventArgs&)
 int
 ShlExplorer::ShlProc(const Message& msg)
 {
-
-//	const WPARAM& wParam(msg.GetWParam());
-//	YDebugSetStatus();
-/*	static YTimer Timer(1250);
-
-	if(Timer.Refresh())
-	{
-	//	InitYSConsole();
-	//	YDebugBegin();
-		iprintf("time : %u ticks\n", GetTicks());
-		iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
-			"W : %u;\nL : %lx;\n", msg.GetMessageID(),
-			msg.GetPriority(), msg.GetObjectID(), msg.GetWParam(), msg.GetLParam());
-		WaitForInput();
-	//	StartTicks();
-	}*/
-/*
-	YDebugBegin();
-	iprintf("time : %u ticks\n", GetTicks());
-	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
-		"W : %u;\nL : %lx;\n", msg.GetMessageID(), msg.GetPriority(),
-		msg.GetObjectID(), msg.GetWParam(), msg.GetLParam());
-	WaitForInput();*/
-
 	switch(msg.GetMessageID())
 	{
 	case SM_INPUT:
-/*
-		InitYSConsole();
-		iprintf("%d,(%d,%d)\n",msg.GetWParam(),
-			msg.GetCursorLocation().X, msg.GetCursorLocation().Y);
-*/
 		ResponseInput(msg);
 		UpdateToScreen();
 		return 0;
@@ -577,11 +551,13 @@ ShlSetting::TFormB::btnB_Leave(IVisualControl& sender, InputEventArgs& e)
 
 ShlSetting::TFormC::TFormC()
 	: YForm(Rect(5, 60, 180, 120), NULL, HWND(hDesktopDown)),
-	btnC(Rect(13, 45, 184, s_size), this),/*GetImage(7)*/
+	btnC(Rect(13, 15, 184, s_size), this),/*GetImage(7)*/
+	btnD(Rect(13, 52, 60, s_size), this),
 	btnReturn(Rect(13, 82, 60, s_size), this),
 	btnExit(Rect(83, 82, 60, s_size), this)
 {
-	btnC.Text = _ustr("测试y");
+	btnC.Text = _ustr("测试拖放控件");
+	btnD.Text = _ustr("测试");
 	btnReturn.Text = _ustr("返回");
 	btnExit.Text = _ustr("退出");
 	BackColor = ARGB16(1, 31, 15, 15);
@@ -593,6 +569,7 @@ ShlSetting::TFormC::TFormC()
 		&TFormC::btnC_TouchDown);
 	FetchEvent<EControl::TouchMove>(btnC) += OnDrag;
 	FetchEvent<EControl::Click>(btnC).Add(*this, &TFormC::btnC_Click);
+	FetchEvent<EControl::Click>(btnD).Add(*this, &TFormC::btnD_Click);
 	FetchEvent<EControl::KeyPress>(btnC) += btnC_KeyPress;
 	//	btnC.Enabled = false;
 	btnReturn.BackColor = ARGB16(1, 22, 23, 24);
@@ -653,6 +630,7 @@ ShlSetting::TFormC::btnC_Click(TouchEventArgs& /*e*/)
 	}
 	//	btnC.Refresh();
 }
+
 void
 ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, KeyEventArgs& e)
 {
@@ -678,6 +656,13 @@ ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, KeyEventArgs& e)
 		lbl.Text = strtf;
 	}*/
 }
+
+/*void
+ShlSetting::TFormC::btnD_Click(TouchEventArgs&)
+{
+
+}*/
+
 
 void
 ShlSetting::TFormC::btnReturn_Click(TouchEventArgs&)

@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4845;
+\version 0.4852;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-01-02 13:46 + 08:00;
+	2011-01-04 23:55 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -412,8 +412,8 @@ MLabel::PaintText(Widget& w, const Point& pt)
 
 		const Graphics& g(pWnd->GetContext());
 
-		wpTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
-			g.GetSize(), Point::Zero, pt, w.GetSize());
+		wpTextRegion->BlitTo(g.GetBufferPtr(), g.GetSize(), Point::Zero,
+			pt, w.GetSize());
 		wpTextRegion->SetSize(0, 0);
 	}
 }

@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2648;
+\version 0.2649;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 + 08:00; 
 \par 修改时间:
-	2011-01-01 18:44 + 08:00;
+	2011-01-03 10:28 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -571,8 +571,7 @@ namespace platform
 	*/
 	void
 	YConsoleInit(u8 dspIndex,
-		Color fc = ColorSpace::White,
-		Color bc = ColorSpace::Black);
+		Color fc = ColorSpace::White, Color bc = ColorSpace::Black);
 
 	/*!
 	\brief 输出控制台字（int 型数据）。

@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2852;
+\version 0.2926;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2011-01-02 14:05 + 08:00;
+	2011-01-04 23:55 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,9 +66,9 @@ namespace
 
 	void
 	RectDrawArrow(const Graphics& g, const Point& p, SDST halfSize,
-		Rotation rot = RDeg0, Color c = ColorSpace::Black)
+		Rotation rot = RDeg0, Color c = Drawing::ColorSpace::Black)
 	{
-		YAssert(g.IsValid(), "err: @g is invalid.");
+		YAssert(g.IsValid(), "err: graphics context is invalid.");
 
 		SDST x(p.X), y(p.Y);
 
@@ -82,6 +82,7 @@ namespace
 					DrawVLineSeg(g, x--, y--, t++, c);
 			}
 			break;
+
 		case RDeg90:
 			{
 				SDST t(p.X);
@@ -90,6 +91,7 @@ namespace
 					DrawHLineSeg(g, y++, x--, t++, c);
 			}
 			break;
+
 		case RDeg180:
 			{
 				SDST t(p.Y);
@@ -98,6 +100,7 @@ namespace
 					DrawVLineSeg(g, x++, y--, t++, c);
 			}
 			break;
+
 		case RDeg270:
 			{
 				SDST t(p.X);
@@ -105,29 +108,32 @@ namespace
 				for(SDST i(0); i < halfSize; ++i)
 					DrawHLineSeg(g, y--, x--, t++, c);
 			}
+		default:
 			break;
 		}
 	}
 
 	void
 	WndDrawArrow(const Graphics& g, const Rect& r, SDST halfSize,
-		Rotation rot = RDeg0, Color c = ColorSpace::Black)
+		Rotation rot = RDeg0, Color c = Drawing::ColorSpace::Black)
 	{
 		SPOS x(r.X), y(r.Y);
 
 		switch(rot)
 		{
 		case RDeg0:
-			x += r.Width - 11;
 		case RDeg180:
-			x += 5;
+			x += (rot == RDeg180
+				? (r.Width - halfSize) : (r.Width + halfSize)) / 2;
 			y += (r.Height + 1) / 2;
 			break;
+
 		case RDeg90:
-			y += r.Height - 11;
 		case RDeg270:
-			y += 5;
+			y += (rot == RDeg90
+				? (r.Height - halfSize) : (r.Height + halfSize)) / 2;
 			x += (r.Width + 1) / 2;
+		default:
 			break;
 		}
 		RectDrawArrow(g, Point(x, y), halfSize, rot, c);
@@ -342,11 +348,11 @@ YHorizontalTrack::YHorizontalTrack(const Rect& r, IUIBox* pCon,
 	: YComponent(),
 	ATrack(r, pCon, uMinThumbLength)
 {
-	YAssert(GetWidth() > GetHeight() * 2,
+	YAssert(GetWidth() > GetHeight(),
 		"In constructor Components::Controls::\n"
 			"YHorizontalTrack::YHorizontalTrack"
-		"(HWND hWnd, const Rect& r, IUIBox* pCon) const\": \n"
-		"Width is not greater than two times of height.");
+		"(const Rect& r, IUIBox* pCon, SDST uMinThumbLength) const\": \n"
+		"Width is not greater than height.");
 
 	FetchEvent<EControl::TouchMove>(Thumb).Add(*this,
 		&YHorizontalTrack::OnDrag_Thumb_Horizontal);
@@ -370,11 +376,11 @@ YVerticalTrack::YVerticalTrack(const Rect& r, IUIBox* pCon,
 	: YComponent(),
 	ATrack(r, pCon, uMinThumbLength)
 {
-	YAssert(GetHeight() > GetWidth() * 2,
+	YAssert(GetHeight() > GetWidth(),
 		"In constructor Components::Controls::\n"
 			"YHorizontalTrack::YHorizontalTrack"
-		"(HWND hWnd, const Rect& r, IUIBox* pCon) const\": \n"
-		"height is not greater than two times of width.");
+		"(const Rect& r, IUIBox* pCon, SDST uMinThumbLength) const\": \n"
+		"height is not greater than width.");
 
 	FetchEvent<EControl::TouchMove>(Thumb).Add(*this,
 		&YVerticalTrack::OnDrag_Thumb_Vertical);
@@ -402,7 +408,7 @@ try	: AVisualControl(r, pCon),
 			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), this,
 			uMinThumbSize))
 		: static_cast<ATrack*>(new YVerticalTrack(
-			Rect(0, r.Width, r.Height - r.Width * 2, r.Width), this,
+			Rect(0, r.Width, r.Width, r.Height - r.Width * 2), this,
 			uMinThumbSize))),
 	PrevButton(Rect(), this), NextButton(Rect(), this)
 {
@@ -419,7 +425,7 @@ try	: AVisualControl(r, pCon),
 }
 catch(...)
 {
-	throw LoggedEvent("Error occured @@ AScrollBar::AScrollBar();");
+	throw LoggedEvent("Error occured @@ constructor of AScrollBar;");
 }
 
 IVisualControl*
@@ -431,7 +437,7 @@ AScrollBar::GetTopVisualControlPtr(const Point& p)
 		return &NextButton;
 
 	YAssert(pTrack.get(),
-		"Invalid widget found @@ AScrollBar::GetTopVisualControlPtr;");
+		"Null widget pointer found @@ AScrollBar::GetTopVisualControlPtr;");
 
 	return pTrack.get();
 }
@@ -441,7 +447,7 @@ AScrollBar::DrawBackground()
 {
 	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawBackground);
 	YAssert(pTrack.get(),
-		"Invalid widget found @@ AScrollBar::DrawBackground;");
+		"Null widget pointer found @@ AScrollBar::DrawBackground;");
 
 	pTrack->DrawBackground();
 }
@@ -457,34 +463,44 @@ AScrollBar::DrawForeground()
 	const Point b(LocateForWindow(*this));
 
 	YAssert(pTrack.get(),
-		"Invalid widget found @@ AScrollBar::DrawForeground;");
+		"Null widget pointer found @@ AScrollBar::DrawForeground;");
 
 	pTrack->DrawForeground();
 	PrevButton.DrawForeground();
 	NextButton.DrawForeground();
 	WndDrawArrow(g, Rect(PrevButton.GetLocation() + GetLocation(),
-		PrevButton.GetSize()), 4, RDeg180, ForeColor);
+		PrevButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
+			? RDeg180 : RDeg90, ForeColor);
 	WndDrawArrow(g, Rect(NextButton.GetLocation() + GetLocation(),
-		NextButton.GetSize()), 4, RDeg0, ForeColor);
+		NextButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
+			? RDeg0 : RDeg270, ForeColor);
 }
-
-/*SDST
-AScrollBar::GetButtonLength(ValueType i, ValueType n) const
-{*/
-/*
-> 可能的错误：
-当所用 SDST 和 ValueType 的值需要用不小于 int 的整数类型才能容纳时，
-乘法的中间结果时有可能溢出。但这里不考虑这点。
-*/
-/*	return i < n ? GetScrollAreaFixedSize() * i / n : 0;
-}*/
 
 
 YHorizontalScrollBar::YHorizontalScrollBar(const Rect& r, IUIBox* pCon,
 	SDST uMinThumbLength)
 	: YComponent(),
 	AScrollBar(r, pCon, uMinThumbLength, Horizontal)
-{}
+{
+	YAssert(GetWidth() > GetHeight() * 2,
+		"In constructor Components::Controls::\n"
+			"YHorizontalScrollBar::YHorizontalScrollBar"
+		"(const Rect& r, IUIBox* pCon, SDST uMinThumbLength) const\": \n"
+		"Width is not greater than twice of height.");
+}
+
+
+YVerticalScrollBar::YVerticalScrollBar(const Rect& r, IUIBox* pCon,
+	SDST uMinThumbLength)
+	: YComponent(),
+	AScrollBar(r, pCon, uMinThumbLength, Vertical)
+{
+	YAssert(GetHeight() > GetWidth() * 2,
+		"In constructor Components::Controls::\n"
+			"YVerticalScrollBar::YVerticalScrollBar"
+		"(const Rect& r, IUIBox* pCon, SDST uMinThumbLength) const\": \n"
+		"height is not greater than twice of width.");
+}
 
 
 YSimpleListBox::YSimpleListBox(const Rect& r, IUIBox* pCon,
@@ -587,7 +603,7 @@ YSimpleListBox::DrawForeground()
 				{
 					if(Viewer.IsSelected() && i == Viewer.GetSelected())
 					{
-						pwTextRegion->Color = ColorSpace::White;
+						pwTextRegion->Color = Drawing::ColorSpace::White;
 						FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
 							Rect(pt.X + 1, pt.Y + 1,
 							pwTextRegion->GetWidth() - 2,
@@ -598,8 +614,8 @@ YSimpleListBox::DrawForeground()
 						pwTextRegion->Color = ForeColor;
 					pwTextRegion->PutLine(list[i]);
 					pwTextRegion->ResetPen();
-					pwTextRegion->BlitToBuffer(g.GetBufferPtr(), RDeg0,
-						g.GetSize(), Point::Zero, pt, pwTextRegion->GetSize());
+					pwTextRegion->BlitTo(g.GetBufferPtr(), g.GetSize(),
+						Point::Zero, pt, pwTextRegion->GetSize());
 					pt.Y += lnHeight;
 					pwTextRegion->ClearImage();
 				}
@@ -723,9 +739,12 @@ YListBox::YListBox(const Rect& r, IUIBox* pCon,
 	GHWeak<TextRegion> pTr_, ListType* wpList_)
 	: YVisualControl(r, pCon),
 	MSimpleFocusResponser(),
-	TextListBox(r, this, pTr_, wpList_), HorizontalScrollBar(r, this)
+	TextListBox(r, this, pTr_, wpList_),
+	HorizontalScrollBar(Rect(Point::Zero, r.Width, 16), this),
+	VerticalScrollBar(Rect(Point::Zero, 16, r.Height), this)
 {
-	HorizontalScrollBar.SetVisible(false);
+	MoveToBottom(HorizontalScrollBar);
+	MoveToRight(VerticalScrollBar);
 }
 
 IVisualControl*
@@ -733,6 +752,8 @@ YListBox::GetTopVisualControlPtr(const Point& p)
 {
 	if(ContainsVisible(HorizontalScrollBar, p))
 		return &HorizontalScrollBar;
+	if(ContainsVisible(VerticalScrollBar, p))
+		return &VerticalScrollBar;
 	return &TextListBox;
 }
 
@@ -741,10 +762,19 @@ YListBox::DrawForeground()
 {
 	YWidgetAssert(this, Controls::YSimpleListBox, DrawForeground);
 
+	FixLayout();
 	ParentType::DrawForeground();
-	HorizontalScrollBar.DrawForeground();
 	if(HorizontalScrollBar.IsVisible())
 		HorizontalScrollBar.DrawForeground();
+	if(VerticalScrollBar.IsVisible())
+		VerticalScrollBar.DrawForeground();
+}
+
+void
+YListBox::FixLayout()
+{
+	HorizontalScrollBar.SetVisible(false);
+	VerticalScrollBar.SetVisible(false);
 }
 
 

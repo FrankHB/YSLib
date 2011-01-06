@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5768;
+\version 0.5774;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-01-02 13:46 + 08:00;
+	2011-01-03 10:26 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -67,7 +67,6 @@ using Drawing::BitmapPtr;
 using Drawing::ConstBitmapPtr;
 using Drawing::ScreenBufferType;
 using Drawing::Color;
-namespace ColorSpace = Drawing::ColorSpace;
 
 using Drawing::Point;
 using Drawing::Vec;
@@ -419,7 +418,7 @@ public:
 	*/
 	explicit
 	Visual(const Rect& = Rect::Empty,
-		Color = ColorSpace::White, Color = ColorSpace::Black);
+		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
 	virtual DefEmptyDtor(Visual)
 
 	DefPredicate(Visible, visible)
@@ -471,7 +470,7 @@ private:
 public:
 	explicit
 	Widget(const Rect& = Rect::Empty, IUIBox* = NULL,
-		Color = ColorSpace::White, Color = ColorSpace::Black);
+		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
 	virtual DefEmptyDtor(Widget)
 
 	/*!
@@ -754,7 +753,7 @@ public:
 	\brief 构造：使用指定边界、部件容器指针、字体和文本区域。
 	*/
 	explicit
-	YLabel(const Rect& = Rect::FullScreen, IUIBox* = NULL,
+	YLabel(const Rect& = Rect::Empty, IUIBox* = NULL,
 		const Drawing::Font& = Drawing::Font::GetDefault(),
 		GHWeak<Drawing::TextRegion> = NULL);
 

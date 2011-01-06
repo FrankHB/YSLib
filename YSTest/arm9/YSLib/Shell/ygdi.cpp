@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.2830;
+\version 0.2878;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2011-01-01 20:38 + 08:00;
+	2011-01-06 14:07 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,19 +74,23 @@ blitScale(const Point& sp, const Point& dp,
 }
 
 
-static void
-blitFor(int deltaX, int deltaY,
-	BitmapPtr dc, ConstBitmapPtr sc,
-	int dInc, int sInc)
+namespace
 {
-	deltaX *= sizeof(PixelType);
-	for(int y(0); y < deltaY; ++y)
+	void
+	blitFor(int deltaX, int deltaY,
+		BitmapPtr dc, ConstBitmapPtr sc,
+		int dInc, int sInc)
 	{
-		mmbcpy(dc, sc, deltaX);
-		sc += sInc;
-		dc += dInc;
+		deltaX *= sizeof(PixelType);
+		for(int y(0); y < deltaY; ++y)
+		{
+			mmbcpy(dc, sc, deltaX);
+			sc += sInc;
+			dc += dInc;
+		}
 	}
 }
+
 void
 blit(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
@@ -101,6 +105,7 @@ blit(BitmapPtr dst, const Size& ds,
 		src + minY * ss.Width + minX,
 		ds.Width, ss.Width);
 }
+
 void
 blitH(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
@@ -116,19 +121,24 @@ blitH(BitmapPtr dst, const Size& ds,
 		src + minY * ss.Width + minX,
 		minX - maxX - ds.Width, ss.Width - maxX + minX);
 }
-static void
-blitForU(int deltaX, int deltaY,
-	BitmapPtr dc, ConstBitmapPtr sc,
-	int dInc, int sInc)
+
+namespace
 {
-	for(int y(0); y < deltaY; ++y)
+	void
+	blitForU(int deltaX, int deltaY,
+		BitmapPtr dc, ConstBitmapPtr sc,
+		int dInc, int sInc)
 	{
-		for(int x(0); x < deltaX; ++x)
-			*dc-- = *sc++;
-		sc += sInc;
-		dc -= dInc;
+		for(int y(0); y < deltaY; ++y)
+		{
+			for(int x(0); x < deltaX; ++x)
+				*dc-- = *sc++;
+			sc += sInc;
+			dc -= dInc;
+		}
 	}
 }
+
 void
 blitV(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
@@ -144,6 +154,7 @@ blitV(BitmapPtr dst, const Size& ds,
 		src + minY * ss.Width + minX,
 		minX - maxX - ds.Width, ss.Width - maxX + minX);
 }
+
 void
 blitU(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
@@ -181,24 +192,28 @@ dc += dw;
 }
 */
 
-static void
-blit2For(int deltaX, int deltaY,
-	BitmapPtr dc, ConstBitmapPtr sc,
-	int dInc, int sInc)
+namespace
 {
-	for(int y(0); y < deltaY; ++y)
+	void
+	blit2For(int deltaX, int deltaY,
+		BitmapPtr dc, ConstBitmapPtr sc,
+		int dInc, int sInc)
 	{
-		for(int x(0); x < deltaX; ++x)
+		for(int y(0); y < deltaY; ++y)
 		{
-			if(*sc & BITALPHA)
-				*dc = *sc;
-			++sc;
-			++dc;
+			for(int x(0); x < deltaX; ++x)
+			{
+				if(*sc & BITALPHA)
+					*dc = *sc;
+				++sc;
+				++dc;
+			}
+			sc += sInc;
+			dc += dInc;
 		}
-		sc += sInc;
-		dc += dInc;
 	}
 }
+
 void
 blit2(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
@@ -213,6 +228,7 @@ blit2(BitmapPtr dst, const Size& ds,
 		src + minY * ss.Width + minX,
 		ds.Width - maxX + minX, ss.Width - maxX + minX);
 }
+
 void
 blit2H(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
@@ -228,24 +244,29 @@ blit2H(BitmapPtr dst, const Size& ds,
 		src + minY * ss.Width + minX,
 		minX - maxX - ds.Width, ss.Width - maxX + minX);
 }
-static void
-blit2ForU(int deltaX, int deltaY,
-	BitmapPtr dc, ConstBitmapPtr sc,
-	int dInc, int sInc)
+
+namespace
 {
-	for(int y(0); y < deltaY; ++y)
+	void
+	blit2ForU(int deltaX, int deltaY,
+		BitmapPtr dc, ConstBitmapPtr sc,
+		int dInc, int sInc)
 	{
-		for(int x(0); x < deltaX; ++x)
+		for(int y(0); y < deltaY; ++y)
 		{
-			if(*sc & BITALPHA)
-				*dc = *sc;
-			++sc;
-			--dc;
+			for(int x(0); x < deltaX; ++x)
+			{
+				if(*sc & BITALPHA)
+					*dc = *sc;
+				++sc;
+				--dc;
+			}
+			sc += sInc;
+			dc -= dInc;
 		}
-		sc += sInc;
-		dc -= dInc;
 	}
 }
+
 void
 blit2V(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
@@ -261,6 +282,7 @@ blit2V(BitmapPtr dst, const Size& ds,
 		src + minY * ss.Width + minX,
 		minX - maxX - ds.Width, ss.Width - maxX + minX);
 }
+
 void
 blit2U(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
@@ -277,23 +299,27 @@ blit2U(BitmapPtr dst, const Size& ds,
 		ds.Width - maxX + minX, ss.Width - maxX + minX);
 }
 
-static void
-blit2For(int deltaX, int deltaY,
-	BitmapPtr dc, ConstBitmapPtr sc, const u8* sa,
-	int dInc, int sInc)
+namespace
 {
-	for(int y(0); y < deltaY; ++y)
+	void
+	blit2For(int deltaX, int deltaY,
+		BitmapPtr dc, ConstBitmapPtr sc, const u8* sa,
+		int dInc, int sInc)
 	{
-		for(int x(0); x < deltaX; ++x)
+		for(int y(0); y < deltaY; ++y)
 		{
-			*dc = ((*sa++ & 0x80) ? *sc : 0) | BITALPHA;
-			++sc;
-			++dc;
+			for(int x(0); x < deltaX; ++x)
+			{
+				*dc = ((*sa++ & 0x80) ? *sc : 0) | BITALPHA;
+				++sc;
+				++dc;
+			}
+			sc += sInc;
+			dc += dInc;
 		}
-		sc += sInc;
-		dc += dInc;
 	}
 }
+
 void
 blit2(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
@@ -312,6 +338,7 @@ blit2(BitmapPtr dst, const Size& ds,
 		srcA + srcOffset,
 		ds.Width - maxX + minX, ss.Width - maxX + minX);
 }
+
 void
 blit2H(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
@@ -330,23 +357,28 @@ blit2H(BitmapPtr dst, const Size& ds,
 		src + srcOffset, srcA + srcOffset,
 		minX - maxX - ds.Width, ss.Width - maxX + minX);
 }
-static void
-blit2ForU(int deltaX, int deltaY,
-	BitmapPtr dc, ConstBitmapPtr sc, const u8* sa,
-	int dInc, int sInc)
+
+namespace
 {
-	for(int y(0); y < deltaY; ++y)
+	void
+	blit2ForU(int deltaX, int deltaY,
+		BitmapPtr dc, ConstBitmapPtr sc, const u8* sa,
+		int dInc, int sInc)
 	{
-		for(int x(0); x < deltaX; ++x)
+		for(int y(0); y < deltaY; ++y)
 		{
-			*dc = ((*sa++ & 0x80) ? *sc : 0) | BITALPHA;
-			++sc;
-			--dc;
+			for(int x(0); x < deltaX; ++x)
+			{
+				*dc = ((*sa++ & 0x80) ? *sc : 0) | BITALPHA;
+				++sc;
+				--dc;
+			}
+			sc += sInc;
+			dc -= dInc;
 		}
-		sc += sInc;
-		dc -= dInc;
 	}
 }
+
 void
 blit2V(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
@@ -365,6 +397,7 @@ blit2V(BitmapPtr dst, const Size& ds,
 		src + srcOffset, srcA + srcOffset,
 		minX - maxX - ds.Width, ss.Width - maxX + minX);
 }
+
 void
 blit2U(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
@@ -384,48 +417,88 @@ blit2U(BitmapPtr dst, const Size& ds,
 		ds.Width - maxX + minX, ss.Width - maxX + minX);
 }
 
-static inline void
-biltAlphaPoint(BitmapPtr dc, ConstBitmapPtr sc, const u8* sa)
+namespace
 {
-	int a = *sa;
+#define YSL_FAST_BLIT
 
-	if(a >= BLT_THRESHOLD)
+#ifdef YSL_FAST_BLIT
+
+	//测试用，不使用 Alpha 混合的快速算法。
+	inline void
+	biltAlphaPoint(BitmapPtr dc, ConstBitmapPtr sc, const u8* sa)
 	{
-		int s = *sc, d = *dc;
+		if(*sa >= BLT_THRESHOLD2)
+			*dc = *sc | BITALPHA;
+	}
 
-		if(d & BITALPHA && a <= BLT_MAX_ALPHA - BLT_THRESHOLD)
+#else
+
+	inline void
+	biltAlphaPoint(BitmapPtr dc, ConstBitmapPtr sc, const u8* sa)
+	{
+		register u32 a = *sa;
+
+		if(a >= BLT_THRESHOLD)
 		{
-			int dbr = (d & 0x1F) | (d << 6 & 0x1F0000), dg = d & 0x3E0;
+			/*
+			格式： 16 位 ARGB1555 。
+			算法示意：
+								arrrrrgggggbbbbb
+				0000000000arrrrrgggggbbbbb000000
+				00000000000111110000000000000000
+				00000000000rrrrr0000000000000000
+				00000000000rrrrr00000000000bbbbb : dbr
+				0000000000000000000000ggggg00000 : dg
+			分解红色和蓝色分量至 32 位寄存器以减少乘法次数。
+			使用下列 Alpha 混合公式（其中 alpha = a / BLT_MAX_ALPHA）：
+			dc = (1 - alpha) * d + alpha * s
+			= ((BLT_MAX_ALPHA - a) * d + a * s) >> BLT_ALPHA_BITS
+			= ((d << BLT_ALPHA_BITS) + BLT_ROUND + a * (s - d))
+				>> BLT_ALPHA_BITS;
+			可进一步近似为 d + ((a * (s - d)) >> BLT_ALPHA_BITS)，但有额外损失。
+			*/
+			register u32 s = *sc, d = *dc;
 
-			dbr = (dbr + (((((s & 0x1F) | (s << 6 & 0x1F0000)) - dbr)
-				* a + BLT_ROUND) >> BLT_ALPHA_BITS));
-			dg  = (dg  + ((((s & 0x3E0) - dg ) * a + BLT_ROUND)
-				>> BLT_ALPHA_BITS));
-			*dc = (dbr & 0x1F) | (dg & 0x3E0) | (dbr >> 6 & 0x7C00) | BITALPHA;
+			if(d & BITALPHA && a <= BLT_MAX_ALPHA - BLT_THRESHOLD)
+			{
+				register u32 dbr = (d & 0x1F) | (d << 6 & 0x1F0000),
+					dg = d & 0x3E0;
+
+				dbr = (dbr + (((((s & 0x1F) | (s << 6 & 0x1F0000)) - dbr)
+					* a + BLT_ROUND) >> BLT_ALPHA_BITS));
+				dg  = (dg  + ((((s & 0x3E0) - dg) * a + BLT_ROUND)
+					>> BLT_ALPHA_BITS));
+				*dc = (dbr & 0x1F) | (dg & 0x3E0)
+					| (dbr >> 6 & 0x7C00) | BITALPHA;
+			}
+			else if(a >= BLT_THRESHOLD2)
+				*dc = s | BITALPHA;
 		}
-		else if(a >= BLT_THRESHOLD2)
-			*dc = s | BITALPHA;
+	}
+
+#endif
+
+	void
+	blitAlphaFor(int deltaX, int deltaY,
+		BitmapPtr dc, ConstBitmapPtr sc, const u8* sa,
+		int dInc, int sInc)
+	{
+		for(int y(0); y < deltaY; ++y)
+		{
+			for(int x(0); x < deltaX; ++x)
+			{
+				biltAlphaPoint(dc, sc, sa);
+				++sa;
+				++sc;
+				++dc;
+			}
+			sc += sInc;
+			sa += sInc;
+			dc += dInc;
+		}
 	}
 }
-static void
-blitAlphaFor(int deltaX, int deltaY,
-	BitmapPtr dc, ConstBitmapPtr sc, const u8* sa,
-	int dInc, int sInc)
-{
-	for(int y(0); y < deltaY; ++y)
-	{
-		for(int x(0); x < deltaX; ++x)
-		{
-			biltAlphaPoint(dc, sc, sa);
-			++sa;
-			++sc;
-			++dc;
-		}
-		sc += sInc;
-		sa += sInc;
-		dc += dInc;
-	}
-}
+
 void
 blitAlpha(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
@@ -443,6 +516,7 @@ blitAlpha(BitmapPtr dst, const Size& ds,
 		src + srcOffset, srcA + srcOffset,
 		ds.Width - maxX + minX, ss.Width - maxX + minX);
 }
+
 void
 blitAlphaH(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
@@ -461,25 +535,30 @@ blitAlphaH(BitmapPtr dst, const Size& ds,
 		src + srcOffset, srcA + srcOffset,
 		minX - maxX - ds.Width, ss.Width - maxX + minX);
 }
-static void
-blitAlphaForU(int deltaX, int deltaY,
-	BitmapPtr dc, ConstBitmapPtr sc, const u8* sa,
-	int dInc, int sInc)
+
+namespace
 {
-	for(int y(0); y < deltaY; ++y)
+	void
+	blitAlphaForU(int deltaX, int deltaY,
+		BitmapPtr dc, ConstBitmapPtr sc, const u8* sa,
+		int dInc, int sInc)
 	{
-		for(int x(0); x < deltaX; ++x)
+		for(int y(0); y < deltaY; ++y)
 		{
-			biltAlphaPoint(dc, sc, sa);
-			++sa;
-			++sc;
-			--dc;
+			for(int x(0); x < deltaX; ++x)
+			{
+				biltAlphaPoint(dc, sc, sa);
+				++sa;
+				++sc;
+				--dc;
+			}
+			sc += sInc;
+			sa += sInc;
+			dc -= dInc;
 		}
-		sc += sInc;
-		sa += sInc;
-		dc -= dInc;
 	}
 }
+
 void
 blitAlphaV(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
@@ -498,6 +577,7 @@ blitAlphaV(BitmapPtr dst, const Size& ds,
 		src + srcOffset, srcA + srcOffset,
 		minX - maxX - ds.Width, ss.Width - maxX + minX);
 }
+
 void
 blitAlphaU(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
@@ -679,7 +759,7 @@ CopyBuffer(const Graphics& dst, const Graphics& src)
 }
 
 void
-CopyToBuffer(const Graphics& dst, const Graphics& src,
+CopyTo(const Graphics& dst, const Graphics& src,
 	const Point& dp, Rotation rot)
 {
 	if(~rot & 1 && dst.IsValid() && src.IsValid())
@@ -688,7 +768,7 @@ CopyToBuffer(const Graphics& dst, const Graphics& src,
 			Point::Zero, dp, src.GetSize());
 }
 void
-CopyToBuffer(BitmapPtr dst, const Graphics& g, Rotation rot, const Size& ds,
+CopyTo(BitmapPtr dst, const Graphics& g, Rotation rot, const Size& ds,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	if(~rot & 1 && dst && g.GetBufferPtr())
@@ -878,8 +958,8 @@ BitmapBufferEx::ClearImage() const
 }
 
 void
-BitmapBufferEx::CopyToBuffer(BitmapPtr dst, Rotation rot, const Size& ds,
-	const Point& sp, const Point& dp, const Size& sc) const
+BitmapBufferEx::CopyTo(BitmapPtr dst, const Size& ds,
+	const Point& sp, const Point& dp, const Size& sc, Rotation rot) const
 {
 	if(~rot & 1 && dst && pBuffer)
 	{
@@ -892,8 +972,8 @@ BitmapBufferEx::CopyToBuffer(BitmapPtr dst, Rotation rot, const Size& ds,
 }
 
 void
-BitmapBufferEx::BlitToBuffer(BitmapPtr dst, Rotation rot, const Size& ds,
-	const Point& sp, const Point& dp, const Size& sc) const
+BitmapBufferEx::BlitTo(BitmapPtr dst, const Size& ds,
+	const Point& sp, const Point& dp, const Size& sc, Rotation rot) const
 {
 	if(~rot & 1 && dst && pBuffer)
 	{

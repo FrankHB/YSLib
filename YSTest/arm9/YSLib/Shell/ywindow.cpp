@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3471;
+\version 0.3473;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 + 08:00;
 \par 修改时间:
-	2010-12-31 12:15 + 08:00;
+	2010-01-03 10:09 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -132,7 +132,7 @@ void
 AWindow::UpdateTo(const Graphics& g, const Point& p) const
 {
 	if(IsVisible())
-		CopyToBuffer(g, GetContext(), p);
+		CopyTo(g, GetContext(), p);
 }
 
 void
