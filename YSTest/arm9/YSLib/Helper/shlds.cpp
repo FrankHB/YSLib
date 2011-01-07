@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1512;
+\version 0.1534;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 + 08:00;
 \par 修改时间:
-	2011-01-01 19:24 + 08:00;
+	2011-01-07 14:35 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,6 +56,7 @@ ShlCLI::ExecuteCommand(const uchar_t* /*s*/)
 int
 ShlGUI::OnDeactivated(const Message&)
 {
+	Components::Controls::ResetGUIStates();
 	ClearScreenWindows(*hDesktopUp);
 	ClearScreenWindows(*hDesktopDown);
 	return 0;
@@ -67,9 +68,9 @@ ShlGUI::SendDrawingMessage()
 //	hDesktopUp->ClearDesktopObjects();
 //	hDesktopDown->ClearDesktopObjects();
 	DispatchWindows();
-	SendMessage(NULL, SM_PAINT, 0xE0,
+	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
 		new GHandleContext<GHHandle<YDesktop> >(hDesktopUp));
-	SendMessage(NULL, SM_PAINT, 0xE0,
+	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
 		new GHandleContext<GHHandle<YDesktop> >(hDesktopDown));
 }
 

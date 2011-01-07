@@ -419,7 +419,7 @@ blit2U(BitmapPtr dst, const Size& ds,
 
 namespace
 {
-#define YSL_FAST_BLIT
+//#define YSL_FAST_BLIT
 
 #ifdef YSL_FAST_BLIT
 

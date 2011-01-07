@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3262;
+\version 0.3284;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-30 16:11 + 08:00;
+	2011-01-07 14:40 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -104,7 +104,7 @@ RepeatHeld(HeldStateType& s,
 	{
 	case Free:
 		/*
-		必须立即转移状态，否则 HeldTimer.Activate() 会使 HeldTimer.Refresh()
+		必须立即转移状态，否则 Activate(HeldTimer) 会使 HeldTimer.Refresh()
 		始终为 false ，导致状态无法转移。
 		*/
 		s = Pressed;
@@ -326,6 +326,24 @@ namespace
 
 		return pVC ? f(*pVC, f) : false;
 	}
+}
+
+void
+ResetGUIStates()
+{
+	{
+		using namespace InputStatus;
+
+		KeyHeldState = Free;
+		TouchHeldState = Free;
+		DraggingOffset = Vec::FullScreen;
+		HeldTimer.SetInterval(1000);
+		Deactivate(HeldTimer);
+		VisualControlLocation = Point::FullScreen;
+		LastVisualControlLocation = Point::FullScreen;
+	}
+	p_TouchDown = NULL;
+	p_KeyDown = NULL;
 }
 
 bool

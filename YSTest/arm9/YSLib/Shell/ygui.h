@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.2289;
+\version 0.2301;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-12-20 23:10 + 08:00;
+	2011-01-07 14:33 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -149,6 +149,12 @@ ResetHeldState(HeldStateType&);
 
 YSL_END_NAMESPACE(InputStatus)
 
+/*!
+\brief 复位 GUI 状态。
+\note 为了避免处理无效指针，需要在切换 Shell 或其它控件对象被销毁后立即调用。
+*/
+void
+ResetGUIStates();
 
 //响应标准按键状态。
 /*!

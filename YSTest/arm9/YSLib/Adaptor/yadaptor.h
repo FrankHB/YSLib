@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -21,7 +21,7 @@
 \par 创建时间:
 	2010-02-22 20:16:21 + 08:00;
 \par 修改时间:
-	2010-12-31 11:44 + 08:00;
+	2011-01-06 20:05 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,6 +66,8 @@ YSL_END
 
 // !\brief YSLib 命名空间。
 YSL_BEGIN
+
+	using ystdex::errno_t;
 
 	//文件系统常量。
 	using platform::DEF_PATH_DELIMITER;

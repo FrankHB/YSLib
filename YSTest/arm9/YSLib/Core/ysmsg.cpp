@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ysmsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version 0.1572;
+\version 0.1658;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 + 08:00;
 \par 修改时间:
-	2010-12-21 16:10 + 08:00;
+	2011-01-06 22:10 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,12 +36,39 @@ Message::Message(GHHandle<YShell> shl, ID m, Priority p,
 	: hShl(shl), id(m), prior(p), pContext(pCon),
 	timestamp(std::clock()), timeout(DefTimeout)
 {}
+Message::Message(const Message& m)
+	: hShl(m.hShl), id(m.id), prior(m.prior), pContext(m.pContext),
+	timestamp(m.timestamp), timeout(m.timeout)
+{}
 
-bool Message::operator==(const Message& m) const
+Message&
+Message::operator=(const Message& rhs)
 {
-	return hShl == m.hShl && id == m.id && prior == m.prior
-		&& pContext != NULL && m.pContext != NULL && *pContext == *m.pContext;
+	Message m(rhs);
+
+	m.Swap(*this);
+	return *this;
 }
+
+void
+Message::Swap(Message& rhs) ythrow()
+{
+	std::swap(hShl, rhs.hShl);
+	std::swap(id, rhs.id);
+	std::swap(prior, rhs.prior);
+	std::swap(pContext, rhs.pContext);
+	std::swap(timestamp, rhs.timestamp);
+	std::swap(timeout, rhs.timeout);
+}
+
+bool
+operator==(const Message& lhs, const Message& rhs)
+{
+	return lhs.hShl == rhs.hShl && lhs.id == rhs.id && lhs.prior == rhs.prior
+		&& lhs.pContext != NULL && rhs.pContext != NULL
+		&& *lhs.pContext == *rhs.pContext;
+}
+
 
 YMessageQueue::YMessageQueue()
 	: q()
@@ -49,15 +76,18 @@ YMessageQueue::YMessageQueue()
 YMessageQueue::~YMessageQueue() ythrow()
 {}
 
-void
-YMessageQueue::GetMessage(Message& m)
+Message
+YMessageQueue::GetMessage()
 {
+	Message m;
+
 	if(!q.empty())
 	{
 		if(q.top().IsValid())
 			m = q.top();
 		q.pop();
 	}
+	return m;
 }
 
 void
@@ -68,12 +98,12 @@ YMessageQueue::PeekMessage(Message& m) const
 			m = q.top();
 }
 
-YMessageQueue::size_type
+YMessageQueue::SizeType
 YMessageQueue::Clear()
 {
-	size_type n = 0;
+	SizeType n = 0;
 
-	while(!empty())
+	while(!IsEmpty())
 	{
 		q.pop();
 		++n;
@@ -99,13 +129,12 @@ YMessageQueue::Insert(const Message& m)
 }
 
 void
-Merge(YMessageQueue& dst, vector<Message>& src)
+Merge(YMessageQueue& dst, list<Message>& src)
 {
-	Message m;
-
 	while(!src.empty())
 	{
-		m = src[src.size() - 1];
+		Message m(src.back());
+
 		dst.Insert(m);
 		src.pop_back();
 	}
@@ -113,13 +142,9 @@ Merge(YMessageQueue& dst, vector<Message>& src)
 void
 Merge(YMessageQueue& dst, YMessageQueue& src)
 {
-	Message m;
-
-	while(!src.empty())
-	{
-		src.GetMessage(m);
-		dst.Insert(m);
-	}
+	// TODO: 处理异常安全事项。
+	while(!src.IsEmpty())
+		dst.Insert(src.GetMessage());
 }
 
 YSL_END_NAMESPACE(Messaging)

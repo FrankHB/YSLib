@@ -1,8 +1,8 @@
-﻿// YSLib::Definitions by Franksoft 2010
+﻿// YSLib::Definitions by Franksoft 2010 - 2011
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2010-12-31 11:45 + 08:00;
-// Version = r10574;
+// UTime = 2011-01-06 20:04 + 08:00;
+// Version = r10576;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -490,6 +490,8 @@ $header Adaptor::YAdaptor
 		using namespace CHRLib;
 	} //namespace Text;
 	using Text::fchar_t, Text::uchar_t, Text::uint_t;	
+
+	using ystdex::errno_t;
 
 	using platform::DEF_PATH_DELIMITER, platform::DEF_PATH_SEPERATOR,
 		platform::PATHSTR, platform::FILENAMESTR;

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2784;
+\version 0.2795;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 + 08:00;
 \par 修改时间:
-	2010-12-27 07:51 + 08:00;
+	2010-01-06 23:15 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,7 +73,7 @@ namespace
 		return a.up == b.up && a.down == b.down && a.held == b.held;
 	}
 
-	bool
+	inline bool
 	operator!=(const KeysInfo& a, const KeysInfo& b)
 	{
 		return !(a == b);
@@ -123,11 +123,11 @@ namespace
 			? TouchPos : TouchPos_Old));
 		InputContext* const pContext(CastMessage<SM_INPUT>(InputMessage));
 
-		if(!pContext || ((theApp.GetDefaultMessageQueue().empty()
+		if(!pContext || ((theApp.GetDefaultMessageQueue().IsEmpty()
 			|| Key != *pContext->Key || pt != pContext->CursorLocation)
 			&& pt != Point::FullScreen))
-			SendMessage((InputMessage = Message(NULL, SM_INPUT, 0x40,
-				new InputContext(&Key, pt))));
+			SendMessage((InputMessage = Message(Shells::GetCurrentShellHandle(),
+				SM_INPUT, 0x40, new InputContext(&Key, pt))));
 	}
 }
 

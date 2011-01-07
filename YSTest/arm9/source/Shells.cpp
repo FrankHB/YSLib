@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3498;
+\version 0.3502;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2011-01-03 11:32 + 08:00;
+	2011-01-06 23:12 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -484,7 +484,8 @@ YSL_BEGIN_SHELL(ShlSetting)
 //输出设备刷新函数。
 /*static void ScrRefresh()
 {
-	SendMessage(NULL, SM_SCRREFRESH, 0x80, DefaultShellHandle->scrType, 0);
+	SendMessage(GetCurrentShellHandle(), SM_SCRREFRESH, 0x80,
+		DefaultShellHandle->scrType, 0);
 }
 */
 

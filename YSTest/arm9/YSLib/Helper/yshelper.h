@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.1987;
+\version 0.1994;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 + 08:00;
 \par 修改时间:
-	2010-12-31 12:17 + 08:00;
+	2011-01-06 23:14 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -127,7 +127,7 @@ IsNowShell(GHHandle<YShell> hShl)
 /*!
 \brief 向指定 Shell 对象转移线程控制权。
 */
-inline ystdex::errno_t
+inline errno_t
 NowShellTo(GHHandle<YShell> hShl)
 {
 	return -!Shells::Activate(hShl);
@@ -137,7 +137,7 @@ NowShellTo(GHHandle<YShell> hShl)
 \brief 向新建 Shell 对象转移控制权。
 */
 template<class _tShl>
-inline ystdex::errno_t
+inline errno_t
 NowShellToNew()
 {
 	return NowShellTo(new _tShl());
@@ -147,7 +147,7 @@ NowShellToNew()
 \brief 向全局 Shell 管理器的对象转移控制权。
 */
 template<class _tShl>
-inline ystdex::errno_t
+inline errno_t
 NowShellToStored()
 {
 	return NowShellTo(GStaticCache<_tShl, GHHandle<YShell> >::GetPointer());
@@ -159,7 +159,7 @@ NowShellToStored()
 inline void
 SetShellTo(GHHandle<YShell> hShl, Messaging::Priority p = 0x80)
 {
-	SendMessage(NULL, SM_SET, p,
+	SendMessage(Shells::GetCurrentShellHandle(), SM_SET, p,
 		new Messaging::GHandleContext<GHHandle<YShell> >(hShl));
 }
 

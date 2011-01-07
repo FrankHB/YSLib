@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 定义。
-\version 0.2760;
+\version 0.2804;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 + 08:00;
 \par 修改时间:
-	2010-12-23 13:02 + 08:00;
+	2011-01-06 21:47 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -110,6 +110,13 @@ public:
 
 /*!
 \ingroup HelperFunction
+\brief 取当前应用程序活动 Shell 句柄。
+*/
+GHHandle<YShell>
+GetCurrentShellHandle() ythrow();
+
+/*!
+\ingroup HelperFunction
 \brief 激活 Shell 对象：ShlProc 控制权转移给此对象以维持单线程运行。
 */
 bool
@@ -164,38 +171,25 @@ DefShellProc(const Message& msg)
 \brief 从全局消息队列中取消息。
 \param lpMsg 接收消息信息的 Message 结构指针。
 \param hShl：消息关联（发送目标）的 Shell 的句柄，
-	为 NULL 时无限制（为全局对象）。
-\param wMsgFilterMin 指定被检查的消息范围里的第一个消息。
-\param wMsgFilterMax 指定被检查的消息范围里的最后一个消息。
-\param wRemoveMsg 确定消息如何被处理。此参数可取下列值之一：
-	\arg PM_NOREMOVE PeekMessage处理后，消息不从消息队列中清除。
-	\arg PM_REMOVE PeekMessage处理后，消息从消息队列中清除。
+	为 NULL 时无限制（为全局消息）。
+\param bRemoveMsg 确定取得的消息是否消息队列中清除。
 */
-
-#define PM_NOREMOVE 0x0
-#define PM_REMOVE 0x1
+int
+PeekMessage(Message& msg, GHHandle<YShell> hShl = GetCurrentShellHandle(),
+	bool bRemoveMsg = false);
 
 /*!
 \brief 从全局消息队列中取消息。
+\note 若消息队列为空则调用 Idle() 等待消息。取得的消息从消息队列中清除。
 */
 int
-PeekMessage(Message& msg, GHHandle<YShell> hShl = NULL,
-	Messaging::ID wMsgFilterMin = 0, Messaging::ID wMsgFilterMax = 0,
-	u32 wRemoveMsg = PM_NOREMOVE);
-
-/*!
-\brief 从全局消息队列中取消息。
-\note 取得的消息从消息队列中清除。
-*/
-int
-GetMessage(Message& msg, GHHandle<YShell> hShl = NULL,
-	Messaging::ID wMsgFilterMin = 0, Messaging::ID wMsgFilterMax = 0);
+GetMessage(Message& msg, GHHandle<YShell> hShl = GetCurrentShellHandle());
 
 /*!
 \brief 翻译消息。
 \note 空实现。
 */
-ystdex::errno_t
+errno_t
 TranslateMessage(const Message& msg);
 
 /*!
@@ -207,7 +201,7 @@ DispatchMessage(const Message& msg);
 /*!
 \brief 备份主消息队列中的消息。
 */
-ystdex::errno_t
+errno_t
 BackupMessage(const Message& msg);
 
 /*!

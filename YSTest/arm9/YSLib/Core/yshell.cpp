@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.3105;
+\version 0.3163;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 + 08:00;
 \par 修改时间:
-	2011-01-01 19:26 + 08:00;
+	2011-01-06 23:20 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -148,6 +148,12 @@ YMainShell::ShlProc(const Message& msg)
 }
 
 
+GHHandle<YShell>
+GetCurrentShellHandle() ythrow()
+{
+	return theApp.GetShellHandle();
+}
+
 bool
 Activate(GHHandle<YShell> h)
 {
@@ -160,22 +166,20 @@ PostQuitMessage(int nExitCode, Priority p)
 {
 	SendMessage(NULL, SM_SET, p,
 		new GHandleContext<GHHandle<YShell> >(theApp.DefaultShellHandle));
-	SendMessage(Message(NULL, SM_QUIT, p,
-		new GObjectContext<int>(nExitCode)));
+	SendMessage(NULL, SM_QUIT, p,
+		new GObjectContext<int>(nExitCode));
 }
 
 #if YSL_DEBUG_MSG & 2
 
 static int
-PeekMessage_(Message& msg, GHHandle<YShell> hShl,
-	ID wMsgFilterMin, ID wMsgFilterMax, ID wRemoveMsg);
+PeekMessage_(Message& msg, GHHandle<YShell> hShl, bool bRemoveMsg);
 
 int
-PeekMessage(Message& msg, GHHandle<YShell> hShl,
-	ID wMsgFilterMin, ID wMsgFilterMax, ID wRemoveMsg)
+PeekMessage(Message& msg, GHHandle<YShell> hShl, bool bRemoveMsg)
 {
 	void YSDebug_MSG_Peek(Message&);
-	int t(PeekMessage_(msg, hShl, wMsgFilterMin, wMsgFilterMax, wRemoveMsg));
+	int t(PeekMessage_(msg, hShl, bRemoveMsg));
 
 	YSDebug_MSG_Peek(msg);
 	return t;
@@ -191,50 +195,39 @@ PeekMessage
 
 #endif
 
-	(Message& msg, GHHandle<YShell> hShl,
-		ID wMsgFilterMin, ID wMsgFilterMax,
-		u32 wRemoveMsg)
+	(Message& msg, GHHandle<YShell> hShl, bool bRemoveMsg)
 {
-	if(!theApp.GetDefaultMessageQueue().empty())
+	list<Message> mqt;
+	int r(-1);
+
+	while(!theApp.GetDefaultMessageQueue().IsEmpty())
 	{
-		vector<Message> mqt;
-		Message m;
+		Message m(theApp.GetDefaultMessageQueue().GetMessage());
 
-		while(!theApp.GetDefaultMessageQueue().empty())
+		if(!hShl || !m.GetShellHandle() || hShl == m.GetShellHandle())
 		{
-			theApp.GetDefaultMessageQueue().GetMessage(m);
-			if(!hShl || !m.GetShellHandle() || hShl == m.GetShellHandle())
-			{
-				ID msgID(m.GetMessageID());
-
-				if(!(wMsgFilterMin || wMsgFilterMax)
-					|| (wMsgFilterMin <= msgID && msgID <= wMsgFilterMax))
-				{
-					msg = m;
-
-					if(wRemoveMsg == PM_NOREMOVE)
-						theApp.GetDefaultMessageQueue().Insert(m);
-					Merge(theApp.GetDefaultMessageQueue(), mqt);
-					return msgID;
-				}
-			}
-			mqt.push_back(m);
+			msg = m;
+			if(!bRemoveMsg)
+				theApp.GetDefaultMessageQueue().Insert(m);
+			r = m.GetMessageID();
+			break;
 		}
-		Merge(theApp.GetDefaultMessageQueue(), mqt);
+		else if(!bRemoveMsg)
+			mqt.push_back(m);
 	}
-	return -1;
+	Merge(theApp.GetDefaultMessageQueue(), mqt);
+	return r;
 }
 
 int
-GetMessage(Message& msg, GHHandle<YShell> hShl,
-	ID wMsgFilterMin, ID wMsgFilterMax)
+GetMessage(Message& msg, GHHandle<YShell> hShl)
 {
-	if(theApp.GetDefaultMessageQueue().empty())
+	if(theApp.GetDefaultMessageQueue().IsEmpty())
 		Idle();
-	return PeekMessage(msg, hShl, wMsgFilterMin, wMsgFilterMax, PM_REMOVE);
+	return PeekMessage(msg, hShl, true);
 }
 
-ystdex::errno_t
+errno_t
 TranslateMessage(const Message& /*msg*/)
 {
 	// TODO: impl;
@@ -247,7 +240,7 @@ DispatchMessage(const Message& msg)
 	return theApp.GetShellHandle()->ShlProc(msg);
 }
 
-ystdex::errno_t
+errno_t
 BackupMessage(const Message& msg)
 {
 	return -!theApp.GetBackupMessageQueue().Insert(msg);

@@ -11,12 +11,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2157;
+\version 0.2168;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 + 08:00;
 \par 修改时间:
-	2011-01-02 18:39 + 08:00;
+	2011-01-06 17:21 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,7 @@ namespace platform
 	void*
 	mmbset(void* d, int v, std::size_t t)
 	{
-		if(d > main_ram)
+	/*	if(d > main_ram)
 		{
 			v &= 0xFF;
 			v |= v << 8;
@@ -54,14 +54,14 @@ namespace platform
 			}
 			return d;
 		}
-		else
+		else*/
 			return std::memset(d, v, t);
 	}
 
 	void*
 	mmbcpy(void* d, const void* s, std::size_t t)
 	{
-		if(d > main_ram && s > main_ram)
+	/*	if(d > main_ram && s > main_ram)
 		{
 			dmaCopy(s, d, t);
 			if(t & 1)
@@ -69,7 +69,7 @@ namespace platform
 					= *(static_cast<const u8*>(s) + t - 1);
 			return d;
 		}
-		else
+		else*/
 			return std::memcpy(d, s, t);
 	}
 
@@ -265,7 +265,7 @@ namespace platform
 	{
 		REG_BG0CNT = REG_BG1CNT = REG_BG2CNT = REG_BG3CNT = 0;
 		REG_BG0CNT_SUB = REG_BG1CNT_SUB = REG_BG2CNT_SUB = REG_BG3CNT_SUB = 0;
-		vramSetMainBanks(VRAM_A_LCD, VRAM_B_LCD, VRAM_C_LCD, VRAM_D_LCD);
+		vramSetPrimaryBanks(VRAM_A_LCD, VRAM_B_LCD, VRAM_C_LCD, VRAM_D_LCD);
 		vramSetBankE(VRAM_E_LCD);
 		vramSetBankF(VRAM_F_LCD);
 		vramSetBankG(VRAM_G_LCD);

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1771;
+\version 0.1779;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 + 08:00;
 \par 修改时间:
-	2010-12-21 15:45 + 08:00;
+	2011-01-06 23:14 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -240,7 +240,7 @@ ResponseInput(const Message&);
 inline void
 NowShellInsertDropMessage(Messaging::Priority p = 0x80)
 {
-	SendMessage(NULL, SM_DROP, p,
+	SendMessage(Shells::GetCurrentShellHandle(), SM_DROP, p,
 		new Messaging::GHandleContext<GHHandle<YShell> >(FetchShellHandle()));
 }
 

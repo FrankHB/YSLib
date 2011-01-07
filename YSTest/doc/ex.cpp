@@ -1,4 +1,4 @@
-//v 0.2937; *Build 180 r57;
+//v 0.2937; *Build 181 r13;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -161,177 +161,137 @@ $using:
 
 $DONE:
 r1:
-+= \vt @@ \dtor @@ \cl YListBox @@ \h YGUIComponent;
+/ \rem \mac YSL_FAST_BLIT @@ \impl \u YGDI;
 
 r2:
-/ test for b181:
-	/ \tr \impl @@ \mf void MDualScreenReader::PrintText() @@ \u DSReader;
-/ @@ \u YGUIComponent:
-	/ @@ \cl YListBox:
-		+ private \m YVerticalScrollBar VerticalScrollBar;
-		/ \tr \impl @@ \ctor;
-		/ \tr \impl @@ \mf (DrawForeground & GetTopVisualControlPtr);
-		+ \mf void FixLayout();
-	/ (\decl & \impl) \cl YVerticalScrollBar;
-	* \mf GetOrientation @@ \cl YHorizontalScrollBar;
-/ \a \param.de 'const Rect& = Rect::FullScreen' -> 'const Rect& = Rect::Empty';
+/ !^ DMA @@ \f (mmbset & mmbcpy) @@ \impl \u YCommon;
 
 r3:
-/ \st TFrmFileListSelecter @@ \cl ShlExplorer @@ \u Shells:
-	/ \rem \m YHorizontalScrollBar sbTestH;
-	+ \m YVerticalScrollBar sbTestV;
-	/ !\rem \m YHorizontalTrack tkTestH;
-	/ \rem \m YVerticalScrollBar sbTestV;
-	/ \impl @@ \ctor;
+/ fully recompiled ^ updated libnds 1.4.9:
+	/ \a vramSetMainBanks => vramSetPrimaryBanks;
 
-r4-r8:
-/= test 1;
+r4:
+/ @@ \cl Message @@ \u YShellMessage:
+	+ \mf void Swap(Message&);
+	+ copy \ctor Message(const Message&);
+	+ copy assignment \mf Message& \op=(const Message&);
+	/ \mf \op== -> friend !\m \f op==;
+	- \mf \op!=;
+
+r5:
++ using ystdex::errno_t @@ \ns YSLib @@ \h YAdaptor;
+/= \simp \a ystdex::errno_t -> errno_t @@ \ns YSLib;
+
+r6:
++ \i @@ \f bool operator!=(const KeysInfo&, const KeysInfo&) @@ \un \ns
+	@@ \impl \u YGlobal;
+
+r7:
+/ @@ \u YShellMessage:
+	/ \f void Merge(YMessageQueue&, vector<Message>&)
+		-> void Merge(YMessageQueue&, list<Message>&);
+	/ \tr \impl @@ \f void Merge(YMessageQueue&, YMessageQueue&);
+/ \impl @@ \f PeekMessage @@ \impl \u YShell;
+
+r8:
+/ @@ \u YShell:
+	/ \f int PeekMessage(Message& msg, GHHandle<YShell> hShl = NULL,
+		Messaging::ID wMsgFilterMin = 0, Messaging::ID wMsgFilterMax = 0,
+		u32 wRemoveMsg = PM_NOREMOVE)
+		-> int PeekMessage(Message& msg, GHHandle<YShell> hShl
+		= GetCurrentShellHandle(), bool bRemoveMsg = false);
+	/ \f int GetMessage(Message& msg, GHHandle<YShell> hShl = NULL,
+		Messaging::ID wMsgFilterMin = 0, Messaging::ID wMsgFilterMax = 0)
+		-> int GetMessage(Message& msg, GHHandle<YShell> hShl
+		= GetCurrentShellHandle());
+	- \mac PM_NOREMOVE;
+	- \mac PM_REMOVE;
+	+ \f GHHandle<YShell> GetCurrentShellHandle() ythrow();
 
 r9:
-* \impl @@ \ctor @@ \cl AScrollBar @@ \impl \u YGUIComponent;
+/ \cl YMessageQueue @@ \u YShellMessage:
+	/ \mf void GetMessage(Message&) -> Message GetMessage() ythrow();
+	/ \m size_type => SizeType;
+	/ \mf bool empty() const -> bool IsEmpty() const ythrow();
+	/ \mf SizeType size() const -> SizeType() const ythrow();
+/ \tr \impl @@ \f (PeekMessage & GetMessage) @@ \u YShell;
+/ \tr \impl @@ \f void WaitForGUIInput() @@ \un \ns @@ \impl \u YGlobal;
 
 r10:
-/ @@ \impl \u YGUIComponent:
-	/ @@ \cl AScrollBar:
-		/ @@ \mf DrawForeground();
-			/ \tr \impl @@ \as;
-			* arrows output orientation;
-		/ \tr \impl @@ \as
-			@@ (\mf (DrawBackground & GetTopVisualControlPtr) & \ctor);
-	/ \as @@ \ctor @@ \cl YHorizontalTrack >> \ctor @@ \cl YHorizontalScrollBar;
-	/ \as @@ \ctor @@ \cl YVertictalTrack >> \ctor @@ \cl YVerticalScrollBar;
-	+ \as @@ \ctor @@ \cl (YHorizontalTrack & YVertictalTrack);
+/ \impl @@ \f PeekMessage @@ \impl \u YShell;
 
 r11:
-/ @@ \un \ns @@ \impl \u YGUIComponent:
-	* \impl @@ \f WndDrawArrow;
-	/ \tr \impl @@ \f RectDrawArrow;
-/ \st TFrmFileListSelecter @@ \cl ShlExplorer @@ \u Shells:
-	/ \rem \m YHorizontalTrack tkTestH;
-	/ !\rem \m YVerticalScrollBar sbTestH;
-	/ \impl @@ \ctor;
+/ \impl @@ \mf YApplication::SetShellHandle(GHHandle<YShell>)
+	@@ \impl \u YApplication;
+/ \simp \impl @@ \f void PostQuitMessage(int, Priority) @@ \impl \u YShell;
+/ \impl @@ \mf void ShlGUI::SendDrawingMessage() @@ \impl \u ShlDS;
+/ \impl @@ \i \f NowShellInsertDropMessage(Messaging::Priority = 0x80)
+	@@ \h ShlDS;
+/ \impl @@ \f void WaitForGUIInput() @@ \un \ns @@ \impl \u YGlobal;
+/ \impl @@ \i \f void SetShellTo(GHHandle<YShell>, Messaging::Priority = 0x80)
+	@@ \h YShellHelper;
 
-r12-r13:
-/= test 2;
+r12:
+/ \impl @@ \f (PeekMessage & PostQuitMessage) @@ \impl \u YShell;
 
-r14:
-* \impl @@ \ctor @@ \cl YHorizontalScrollBar @@ \impl \u @@ YGUIComponent;
-
-r15-r16:
-* \impl @@ \f WndDrawArrow @@ \un \ns @@ \impl \u YGUIComponent;
-
-r17:
-/ @@ \cl ShlSetting::TFormC @@ \u Shells:
-	+ \m YButton btnD;
-	/ \impl @@ \ctor;
-	+ \mf void btnD_Click(TouchEventArgs&);
-	+ \f void TestPause(const GHHandle<YDesktop>& = hDesktopDown) @@ \un \ns;
-/ \a BlitToBuffer => BlitTo;
-/ \a CopyToBuffer => CopyTo;
-/ @@ \h YWidget:
-	- namespace ColorSpace = Drawing::ColorSpace to avoid ambigity
-		@@ \impl \u;
-	/ 4 \tr \param @@ 2 \decl @@ \ctor;
-/ \tr @@ \h DSReader @@ \impl \u YGUIComponent;
-
-r18:
-/ @@ \cl ShlSetting::TFormC @@ \impl \u Shells:
-	/ \tr \impl @@ \ctor;
-	/ \tr \impl @@ \mf void btnD_Click(TouchEventArgs&);
-
-r19:
-* \impl @@ \f TestPause @@ \un \ns @@ \impl \u Shells;
-
-r20-r32:
-/ test 3:
-	/ \impl @@ \mf void btnD_Click(TouchEventArgs&)
-		@@ \cl ShlSetting::TFormC @@ \impl \u Shells;
-
-r33:
-/ ((\mf (void btnD_Click(TouchEventArgs&) @@ \cl ShlSetting::TFormC)
-	& \f TestPause) @@ \un \ns) @@ \impl \u Shells >> \impl \u file "GBKEX.cpp";
-+ \inc \h Shells @@ \impl \u "GBKEX.cpp";
-
-r34-r44:
-/ test 4:
-	/ \impl @@ \mf void btnD_Click(TouchEventArgs&)
-		@@ \cl ShlSetting::TFormC @@ \impl \u "GBKEX.cpp";
-
-r45:
-/ @@ \impl \u YGDI:
-	/ \tr \impl @@ \s \i \f biltAlphaPoint;
-	/= 9 \s \f & >> \un \ns;
-
-r47-r52:
-/ test 5:
-	/ \impl @@ \mf void btnD_Click(TouchEventArgs&)
-		@@ \cl ShlSetting::TFormC @@ \impl \u "GBKEX.cpp";
-
-r53:
-/ @@ \u YGDI:
-	/ @@ \cl BitmapBuffer:
-		/ \i \vt \mf void
-		CopyTo(BitmapPtr, Rotation = RDeg0,
-			const Size& = Size::FullScreen,
-			const Point& = Point::Zero, const Point& = Point::Zero,
-			const Size& = Size::FullScreen) const;
-			-> CopyTo(BitmapPtr, const Size& = Size::FullScreen,
-			const Point& = Point::Zero, const Point& = Point::Zero,
-			const Size& = Size::FullScreen, Rotation = RDeg0) const;
-	/ @@ \cl BitmapBufferEx:
-		/ \vt \mf void
-		CopyTo(BitmapPtr, Rotation = RDeg0,
-			const Size& = Size::FullScreen,
-			const Point& = Point::Zero, const Point& = Point::Zero,
-			const Size& = Size::FullScreen) const;
-			-> CopyTo(BitmapPtr, const Size& = Size::FullScreen,
-			const Point& = Point::Zero, const Point& = Point::Zero,
-			const Size& = Size::FullScreen, Rotation = RDeg0) const;
-		/ \vt \mf void
-		BlitTo(BitmapPtr, Rotation = RDeg0,
-			const Size& = Size::FullScreen,
-			const Point& = Point::Zero, const Point& = Point::Zero,
-			const Size& = Size::FullScreen) const;
-			-> BlitTo(BitmapPtr, const Size& = Size::FullScreen,
-			const Point& = Point::Zero, const Point& = Point::Zero,
-			const Size& = Size::FullScreen, Rotation = RDeg0) const;
-/ \impl @@ \mf void MDualScreenReader::PrintText() @@ \u DSReader;
-/ \impl @@ \mf void YSimpleListBox::DrawForeground() @@ \u YGUIComponent;
-/ \impl @@ \mf void MLabel::PaintText(Widget&, const Point&) @@ \u YWidget;
-
-r54:
-* \tr \impl @@ \mf void MDualScreenReader::PrintText() @@ \u DSReader;
-
-r55-r56:
-/ test 6:
-	/ \impl @@ \mf void btnD_Click(TouchEventArgs&)
-		@@ \cl ShlSetting::TFormC @@ \impl \u "GBKEX.cpp";
-
-r57:
-+ test fast \i \f blitAlphaPoint !^ alpha blending @@ \un \ns @@ \impl \u YGDI;
+r13:
+* GUI states invalid when changing shells;
+	+ \f void ResetGUIStates() @@ \ns Components::Controls @@ \u YGUI;
+	/ \impl @@ \mf int ShlGUI::OnDeactivated(const Message&) @@ \impl \u ShlDS;
 
 
 $DOING:
 
 relative process:
-2011-01-06:
--21.9d;
+2011-01-07:
+-21.1d;
 
 / ...
 
 
 $NEXT:
 
-b181-b215:
+b182-b215:
 * screen output polluted @@ real machine;
-* fatal \err @@ b177 when press L + click on the ListBox:
+* fatal \err @@ since b178 when closing lid:
 [
+b180 r56:
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020BBC5C
+YSLib::Messaging::Message::operator=(YSLib::Messaging::Message const&)
+ysmsg.h:55
+
+b180 r57:
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020A0BB4
+Loki::SmartPtr<YSLib::Shells::YShell, YSLib::Design::Policies::GeneralCastRefCou
+nted, Loki::DisallowConversion, Loki::AssertCheck, Loki::DefaultSPStorage, Loki:
+:DontPropagateConst>::operator=(Loki::SmartPtr<YSLib::Shells::YShell, YSLib::Des
+ign::Policies::GeneralCastRefCounted, Loki::DisallowConversion, Loki::AssertChec
+k, Loki::DefaultSPStorage, Loki::DontPropagateConst> const&)
+SmartPtr.h:1217
+]
+* fatal \err before b170(after b158) when touching on the ListBox
+	& key L being released:
+[
+b177
 F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 -e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 0201f484
 GetTouchedVisualControlPtr
 ygui.cpp:215
 ??
 ygui.cpp:325
+
+b180 r56:
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 0201E8BC
+YSLib::Components::Controls::(anonymous namespace)::TryLeave(YSLib::Components::
+Controls::IVisualControl&, YSLib::Components::Controls::TouchEventArgs&)
+ygui.cpp:176
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020D7D6C
+__dynamic_cast
+crtstuff.c:0
 ]
 / improve efficiency @@ \tf polymorphic_crosscast @@ \h YCast;
 / scroll bars @@ listbox;
