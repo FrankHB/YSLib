@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ydevice.cpp
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version 0.2702;
+\version 0.2705;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:39:51 + 08:00;
 \par 修改时间:
-	2010-12-26 21:09 + 08:00;
+	2011-01-07 22:50 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -72,7 +72,7 @@ YScreen::Update(BitmapPtr buf)
 void
 YScreen::Update(Color c)
 {
-	FillSeq<PixelType>(GetCheckedBufferPtr(), GetAreaFrom(GetSize()), c);
+	FillPixel<PixelType>(GetCheckedBufferPtr(), GetAreaFrom(GetSize()), c);
 }
 
 YSL_END_NAMESPACE(Device)

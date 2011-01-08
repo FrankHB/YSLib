@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,13 +10,13 @@
 
 /*!	\file main.cpp
 \ingroup DS
-\brief ARM9 主源文件。
-\version 0.1022;
+\brief ARM7 主源文件。
+\version 0.1024;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-18 12:27:40;
 \par 修改时间:
-	2010-11-11 22:24 + 08:00;
+	2011-01-07 18:13 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,7 +62,7 @@ int main()
 	irqSet(IRQ_VCOUNT, VcountHandler);
 	irqSet(IRQ_VBLANK, VblankHandler);
 
-	irqEnable( IRQ_VBLANK | IRQ_VCOUNT | IRQ_NETWORK);
+	irqEnable(IRQ_VBLANK | IRQ_VCOUNT | IRQ_NETWORK);
 
 	//保持 ARM7 空闲状态。
 	while(true)

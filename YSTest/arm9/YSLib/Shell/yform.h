@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yform.h
 \ingroup Shell
 \brief 平台无关的 GUI 窗体实现。
-\version 0.1456;
+\version 0.1457;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 + 08:00;
 \par 修改时间:
-	2010-12-18 17:08 + 08:00;
+	2011-01-08 18:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -51,7 +51,7 @@ public:
 	*/
 	explicit
 	YForm(const Rect& = Rect::Empty,
-		const GHStrong<YImage> = new YImage(), HWND = NULL);
+		const GHStrong<YImage> = ynew YImage(), HWND = NULL);
 	/*!
 	\brief 析构。
 	\note 无异常抛出。

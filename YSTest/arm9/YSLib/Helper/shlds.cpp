@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1534;
+\version 0.1552;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 + 08:00;
 \par 修改时间:
-	2011-01-07 14:35 + 08:00;
+	2011-01-07 21:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -140,25 +140,22 @@ ResponseInput(const Message& msg)
 	if(!pContext)
 		return;
 
-	Runtime::KeysInfo* const p(pContext->Key);
+	Runtime::KeysInfo& k(pContext->Key);
 
-	if(p)
-	{
-		using namespace Runtime::KeySpace;
+	using namespace Runtime::KeySpace;
 
-		if(p->up & Touch)
-			OnTouchUp(pContext->CursorLocation);
-		else if(p->up)
-			OnKeyUp(p->up);
-		if(p->down & Touch)
-			OnTouchDown(pContext->CursorLocation);
-		else if(p->down)
-			OnKeyDown(p->down);
-		if(p->held & Touch)
-			OnTouchHeld(pContext->CursorLocation);
-		else if(p->held)
-			OnKeyHeld(p->held);
-	}
+	if(k.Up & Touch)
+		OnTouchUp(pContext->CursorLocation);
+	else if(k.Up)
+		OnKeyUp(k.Up);
+	if(k.Down & Touch)
+		OnTouchDown(pContext->CursorLocation);
+	else if(k.Down)
+		OnKeyDown(k.Down);
+	if(k.Held & Touch)
+		OnTouchHeld(pContext->CursorLocation);
+	else if(k.Held)
+		OnKeyHeld(k.Held);
 }
 
 

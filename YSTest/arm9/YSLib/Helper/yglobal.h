@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.1954;
+\version 0.1965;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 + 08:00;
 \par 修改时间:
-	2010-12-21 15:46 + 08:00;
+	2011-01-07 21:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,10 +62,11 @@ YSL_BEGIN_NAMESPACE(Messaging)
 class InputContext : implements IContext
 {
 public:
-	platform::KeysInfo* Key;
+	Runtime::KeysInfo Key;
 	Point CursorLocation;
 
-	InputContext(Runtime::KeysInfo*, const Point&);
+	explicit
+	InputContext(Runtime::KeysInfo, const Point&);
 	virtual DefEmptyDtor(InputContext)
 
 	ImplI(IContext) bool
@@ -73,8 +74,8 @@ public:
 };
 
 inline
-InputContext::InputContext(Runtime::KeysInfo* p, const Point& pt)
-	: Key(p), CursorLocation(pt)
+InputContext::InputContext(Runtime::KeysInfo k, const Point& pt)
+	: Key(k), CursorLocation(pt)
 {}
 
 YSL_END_NAMESPACE(Messaging)

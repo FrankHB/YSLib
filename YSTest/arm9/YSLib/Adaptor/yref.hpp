@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version 0.3024;
+\version 0.3096;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-21 23:09:06 + 08:00;
 \par 修改时间:
-	2010-12-25 23:27 + 08:00;
+	2011-01-08 17:48 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,12 +31,11 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Design)
-
 YSL_BEGIN_NAMESPACE(Policies)
 
 /*!
 \brief 智能指针所有权策略：使用 ystdex::general_cast 的引用计数所有权策略。
+\note ystdex::general_cast 在调试模式下可能会断言失败。
 */
 template <class P>
 class GeneralCastRefCounted
@@ -102,18 +101,78 @@ public:
 	}
 };
 
-YSL_END_NAMESPACE(Policies)
 
-YSL_END_NAMESPACE(Design)
+/*!
+\brief 强指针删除策略：使用 ydelete 删除非数组对象。
+\warning 删除依赖于 ynew/ydelete ，未指定初始化顺序时使用在全局对象上
+	可能导致程序无法正常运行。
+*/
+template <class P>
+class DeleteSingle_Debug
+{
+public:
+	inline static void
+	Delete(const P* p)
+	{
+		/*!
+		\note 不完整类型检查。
+		*/
+		typedef char Type_Must_Be_Defined[sizeof(P) ? 1 : -1];
+		ydelete(p);
+	}
+
+	inline static P*
+	Default()
+	{
+		return 0;
+	}
+
+	inline void
+	Swap(DeleteSingle_Debug&)
+	{}
+};
+
+
+/*!
+\brief 强指针删除策略：使用 ydelete_array 删除数组对象。
+\warning 删除依赖于 ynew/ydelete ，未指定初始化顺序时使用在全局对象上
+	可能导致程序无法正常运行。
+*/
+template <class P>
+class DeleteArray_Debug
+{
+public:
+	inline static void
+	Delete(const P* p)
+	{
+		/*!
+		\note 不完整类型检查。
+		*/
+		typedef char Type_Must_Be_Defined[sizeof(P) ? 1 : -1];
+		ydelete_array(p);
+	}
+
+	inline static P*
+	Default()
+	{
+		return 0;
+	}
+
+	inline void
+	Swap(DeleteArray_Debug&)
+	{}
+};
+
+YSL_END_NAMESPACE(Policies)
 
 
 //! \brief 资源指针。
 template<typename T,
+	template<class> class DP = Policies::DeleteSingle_Debug,
 	class OP = Policies::TwoRefCounts,
 	class CP = Policies::DisallowConversion,
 	template<class> class KP = Policies::AssertCheck,
 	template<class> class RP = Policies::CantResetWithStrong,
-	template<class> class DP = Policies::DeleteSingle,
 	typename SPType = StrongPtr<T, true, OP, CP, KP, RP, DP> >
 class GHStrong : public SPType
 {
@@ -182,11 +241,11 @@ public:
 
 //! \brief 资源引用指针。
 template<typename T,
+	template<class> class DP = Policies::DeleteSingle_Debug,
 	class OP = Policies::TwoRefCounts,
 	class CP = Policies::DisallowConversion,
 	template<class> class KP = Policies::AssertCheck,
 	template<class> class RP = Policies::CantResetWithStrong,
-	template<class> class DP = Policies::DeleteSingle,
 	typename SPType = StrongPtr<T, false, OP, CP, KP, RP, DP> >
 class GHWeak : public SPType
 {
@@ -258,9 +317,9 @@ public:
 };
 
 
-//! \brief 句柄类。
+//! \brief 句柄。
 template<typename T,
-	template<class> class OP = Design::Policies::GeneralCastRefCounted,
+	template<class> class OP = Policies::GeneralCastRefCounted,
 	class CP = Policies::DisallowConversion,
 	template<class> class KP = Policies::AssertCheck,
 	template<class> class SP = Policies::DefaultSPStorage,
@@ -432,7 +491,6 @@ YReset(_type*& h) ythrow()
 	h = NULL;
 	return b;
 }
-//! \warning 句柄不会被自动回收，需要手动释放。
 template<typename _type>
 inline bool
 YReset(GHHandle<_type>& h) ythrow()
@@ -456,13 +514,32 @@ YReset(GHWeak<_type>& h) ythrow()
 
 template<typename _type>
 inline bool
-YDelete_Debug(_type*& h) ythrow()
+YReset_Debug(_type*& h) ythrow()
 {
 	bool b(h);
 
 	ydelete(h);
 	h = NULL;
 	return b;
+}
+template<typename _type>
+inline bool
+YReset_Debug(GHHandle<_type>& h) ythrow()
+{
+	DebugMemory.Unregister(GetPointer(h), __FILE__, __LINE__);
+	return h.Reset();
+}
+template<typename _type>
+inline bool
+YReset_Debug(GHStrong<_type>& h) ythrow()
+{
+	return h.Reset();
+}
+template<typename _type>
+inline bool
+YReset_Debug(GHWeak<_type>& h) ythrow()
+{
+	return h.Reset();
 }
 
 #else

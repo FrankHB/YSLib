@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -9,14 +9,14 @@
 */
 
 /*!	\file ynew.cpp
-\ingroup Service
+\ingroup Adaptor
 \brief 存储调试设施。
-\version 0.1686;
+\version 0.1760;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-02 19:49:41 + 08:00;
 \par 修改时间:
-	2010-12-05 06:52 + 08:00;
+	2011-01-08 18:27 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -98,7 +98,7 @@ operator delete[](void* p, const std::nothrow_t&, const char* f, int l) throw()
 YSL_BEGIN
 
 MemoryList::MemoryList(void(*p)())
-	: m_map()
+	: Blocks(), DuplicateDeletedBlocks()
 {
 	if(p)
 		std::atexit(p);
@@ -108,19 +108,19 @@ void
 MemoryList::Register(const void* p, std::size_t s, const char* f, int l)
 {
 	if(p)
-		m_map.insert(std::make_pair(p, MemoryList::BlockInfo(s, f, l)));
+		Blocks.insert(std::make_pair(p, MemoryList::BlockInfo(s, f, l)));
 }
 
 void
-MemoryList::Unregister(const void* p, const char*, int)
+MemoryList::Unregister(const void* p, const char* f, int l)
 {
 	if(p)
 	{
-		m_map.erase(p);
+		std::size_t n(Blocks.erase(p));
 
-	//	std::size_t n(m_map.erase(p));
-
-	//	assert(n == 1);
+		if(n != 1)
+			DuplicateDeletedBlocks.push_back(std::make_pair(p,
+				MemoryList::BlockInfo(0, f, l)));
 	}
 }
 
@@ -130,11 +130,25 @@ MemoryList::Print(MapType::const_iterator i, std::FILE* stream)
 	std::fprintf(stream, "@%p, [%u] @ %s: %d;\n", i->first,
 		i->second.size, i->second.file.c_str(), i->second.line);
 }
+void
+MemoryList::Print(ListType::const_iterator i, std::FILE* stream)
+{
+	std::fprintf(stream, "@%p, [%u] @ %s: %d;\n", i->first,
+		i->second.size, i->second.file.c_str(), i->second.line);
+}
 
 void
 MemoryList::PrintAll(std::FILE* stream)
 {
-	for(MapType::const_iterator i(m_map.begin()); i != m_map.end(); ++i)
+	for(MapType::const_iterator i(Blocks.begin()); i != Blocks.end(); ++i)
+		Print(i, stream);
+}
+
+void
+MemoryList::PrintAllDuplicate(std::FILE* stream)
+{
+	for(ListType::const_iterator i(DuplicateDeletedBlocks.begin());
+		i != DuplicateDeletedBlocks.end(); ++i)
 		Print(i, stream);
 }
 

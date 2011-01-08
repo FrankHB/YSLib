@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yshelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.1197;
+\version 0.1241;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-04 13:42:15 + 08:00;
 \par 修改时间:
-	2010-12-25 23:27 + 08:00;
+	2011-01-08 19:42 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,22 +36,19 @@ FetchGUIShellHandle()
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-YImage*
+GHStrong<YImage>
 NewScrImage(PPDRAW f, BitmapPtr gbuf)
 {
 	bool s(!gbuf);
 
 	if(s)
-		gbuf = new ScreenBufferType;
+		gbuf = ynew ScreenBufferType;
 	ScrDraw(gbuf, f);
 
-	YImage* pi(NewScrImage(gbuf));
+	GHStrong<YImage> pi(NewScrImage(gbuf));
 
 	if(s)
-	{
-		ydelete_array(gbuf);
-		gbuf = NULL;
-	}
+		safe_delete_obj_debug()(gbuf);
 	return pi;
 }
 

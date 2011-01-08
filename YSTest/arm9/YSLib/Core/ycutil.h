@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2383;
+\version 0.2393;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 + 08:00;
 \par 修改时间:
-	2010-12-31 12:15 + 08:00;
+	2011-01-08 16:56 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -482,7 +482,7 @@ struct safe_delete_obj_debug
 	inline void
 	operator()(_tPointer& _ptr) ythrow()
 	{
-		YDelete_Debug(_ptr);
+		YReset_Debug(_ptr);
 	}
 };
 

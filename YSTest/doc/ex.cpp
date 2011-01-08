@@ -1,4 +1,4 @@
-//v 0.2937; *Build 181 r13;
+//v 0.2944; *Build 182 r23;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -161,100 +161,133 @@ $using:
 
 $DONE:
 r1:
-/ \rem \mac YSL_FAST_BLIT @@ \impl \u YGDI;
+/ @@ \ns platform @@ \impl \u YCommon:
+	- \o void* const main_ram(reinterpret_cast<void*>(0x02000000));
+	/ @@ \un \ns:
+		+ \i \f bool dma_out_of_range(u32);
+		+ \f ystdex::errno_t safe_dma_fill(void *dst, int v, std::size_t size);
+		+ \f ystdex::errno_t safe_dma_copy(void *dst, const void *src,
+			std::size_t size);
+	* \impl @@ \f (mmbset & mmbcpy);
 
 r2:
-/ !^ DMA @@ \f (mmbset & mmbcpy) @@ \impl \u YCommon;
+* \i \f void ScreenSychronize(PixelType*, const PixelType*) @@ \ns platform
+	@@ \u YCommon -> !\i \f void ScreenSychronize(PixelType*, const PixelType*);
 
 r3:
-/ fully recompiled ^ updated libnds 1.4.9:
-	/ \a vramSetMainBanks => vramSetPrimaryBanks;
+/= \tr @@ arm7 "main.cpp";
 
 r4:
-/ @@ \cl Message @@ \u YShellMessage:
-	+ \mf void Swap(Message&);
-	+ copy \ctor Message(const Message&);
-	+ copy assignment \mf Message& \op=(const Message&);
-	/ \mf \op== -> friend !\m \f op==;
-	- \mf \op!=;
+/ 3 \m Key up, down, held @@ \st KeyInfo @@ \h YCommon => Key
+	Up, Down, Held;
 
 r5:
-+ using ystdex::errno_t @@ \ns YSLib @@ \h YAdaptor;
-/= \simp \a ystdex::errno_t -> errno_t @@ \ns YSLib;
+/ @@ \cl Messaging::InputContext @@ \u YGlobal:
+	/ \m platform::KeysInfo* Key -> Runtime::KeysInfo Key;
+	/ !\exp \ctor InputContext(Runtime::KeysInfo*, const Point&)
+		-> \exp \ctor InputContext(Runtime::KeysInfo, const Point&);
+	/ \impl @@ \op==;
+/ \tr \impl @@ \f void WaitForGUIInput() @@ \un \ns @@ \impl \u YGlobal;
+/ \tr \impl @@ \f void ResponseInput(const Message&) @@ \impl \u Shell_DS;
 
 r6:
-+ \i @@ \f bool operator!=(const KeysInfo&, const KeysInfo&) @@ \un \ns
-	@@ \impl \u YGlobal;
+/ \impl @@ \f void WaitForGUIInput() @@ \un \ns @@ \impl \u YGlobal;
 
 r7:
-/ @@ \u YShellMessage:
-	/ \f void Merge(YMessageQueue&, vector<Message>&)
-		-> void Merge(YMessageQueue&, list<Message>&);
-	/ \tr \impl @@ \f void Merge(YMessageQueue&, YMessageQueue&);
-/ \impl @@ \f PeekMessage @@ \impl \u YShell;
+/ \a blitScale => BlitScale;
+/ \a FillPixel => PixelFiller;
+/ \a FillSeq => FillPixel;
+/ \a transSeq => SequenceTransformer;
+/ \a transVLine => VerticalLineTransfomer;
+/ \a transRect => RectTransfomer;
+/ \a FillVLine => FillVerticalLine;
+/ \a blit => Blit;
+/ \a blitH => BlitH;
+/ \a blitV => BlitV;
+/ \a blitU => BlitU;
+/ \a blit2 => Blit2;
+/ \a blit2H => Blit2H;
+/ \a blit2V => Blit2V;
+/ \a blit2U => Blit2U;
+/ \a blitAlpha => BlitAlpha;
+/ \a blitAlphaH => BlitAlphaH;
+/ \a blitAlphaV => BlitAlphaV;
+/ \a blitAlphaU => BlitAlphaU;
 
 r8:
-/ @@ \u YShell:
-	/ \f int PeekMessage(Message& msg, GHHandle<YShell> hShl = NULL,
-		Messaging::ID wMsgFilterMin = 0, Messaging::ID wMsgFilterMax = 0,
-		u32 wRemoveMsg = PM_NOREMOVE)
-		-> int PeekMessage(Message& msg, GHHandle<YShell> hShl
-		= GetCurrentShellHandle(), bool bRemoveMsg = false);
-	/ \f int GetMessage(Message& msg, GHHandle<YShell> hShl = NULL,
-		Messaging::ID wMsgFilterMin = 0, Messaging::ID wMsgFilterMax = 0)
-		-> int GetMessage(Message& msg, GHHandle<YShell> hShl
-		= GetCurrentShellHandle());
-	- \mac PM_NOREMOVE;
-	- \mac PM_REMOVE;
-	+ \f GHHandle<YShell> GetCurrentShellHandle() ythrow();
+/ @@ \h YReference:
+	/ @@ \ns Design::Policies:
+		+ \clt DeleteSingle_Debug;
+		+ \clt DeleteArray_Debug;
+	/ \decl @@ \clt (GHStrong & GHWeak) ^ DeleteSingle_Debug ~ DeleteSingle;
+	* \a @@ \ns Design => \ns YSLib;
 
 r9:
-/ \cl YMessageQueue @@ \u YShellMessage:
-	/ \mf void GetMessage(Message&) -> Message GetMessage() ythrow();
-	/ \m size_type => SizeType;
-	/ \mf bool empty() const -> bool IsEmpty() const ythrow();
-	/ \mf SizeType size() const -> SizeType() const ythrow();
-/ \tr \impl @@ \f (PeekMessage & GetMessage) @@ \u YShell;
-/ \tr \impl @@ \f void WaitForGUIInput() @@ \un \ns @@ \impl \u YGlobal;
+/ \impl @@ \cl GStaticCache ^ ((ynew ~ new) & (safe_delete_obj_debug
+	~ safe_delete_obj_ndebug);
+/ \a YDelete_Debug => YReset_Debug;
+* + 4 \i \ft YReset_Debug overloading version @@ \h YReference;
 
-r10:
-/ \impl @@ \f PeekMessage @@ \impl \u YShell;
+r10-r15:
+/ test 1;
+	* \impl @@ \i \ft<typename _type> bool YReset_Debug(GHWeak<_type>&) ythrow()
+		@@ \h YReference;
 
-r11:
-/ \impl @@ \mf YApplication::SetShellHandle(GHHandle<YShell>)
-	@@ \impl \u YApplication;
-/ \simp \impl @@ \f void PostQuitMessage(int, Priority) @@ \impl \u YShell;
-/ \impl @@ \mf void ShlGUI::SendDrawingMessage() @@ \impl \u ShlDS;
-/ \impl @@ \i \f NowShellInsertDropMessage(Messaging::Priority = 0x80)
-	@@ \h ShlDS;
-/ \impl @@ \f void WaitForGUIInput() @@ \un \ns @@ \impl \u YGlobal;
-/ \impl @@ \i \f void SetShellTo(GHHandle<YShell>, Messaging::Priority = 0x80)
-	@@ \h YShellHelper;
+r16:
+/ @@ \cl MemoryList \u YNew:
+	+ \m typedef std::list<std::pair<const void*, BlockInfo>,
+		__gnu_cxx::malloc_allocator<std::pair<const void*, BlockInfo> > >
+		ListType;
+	+ \m ListType DuplicateDeletedBlocks;
+	/ \m MapType m_map => Blocks;
+	/ \impl @@ \ctor;
+	/ !\s \mf Print -> \smf; 
+	+ \smf void Print(ListType::const_iterator, std::FILE*);
+	+ \mf void PrintAllDuplicate(std::FILE*);
+	/ \impl @@ \mf Unregister;
+/ \impl @@ \f void OnExit_DebugMemory() @@ \impl \u YGlobal;
++ \inc <list> @@ \h YNew;
 
-r12:
-/ \impl @@ \f (PeekMessage & PostQuitMessage) @@ \impl \u YShell;
+r17:
+/ \tr \impl @@ \f void OnExit_DebugMemory() @@ \impl \u YGlobal;
+* \impl @@ \YImage* NewScrImage(PPDRAW, BitmapPtr) @@ \impl \u YShellHelper;
+* 5 new -> ynew @@ \decl @@ 5 \ctor @@ \h (YWindow @@ YForm);
 
-r13:
-* GUI states invalid when changing shells;
-	+ \f void ResetGUIStates() @@ \ns Components::Controls @@ \u YGUI;
-	/ \impl @@ \mf int ShlGUI::OnDeactivated(const Message&) @@ \impl \u ShlDS;
+r18-r19:
+/ \tr \impl @@ \f void OnExit_DebugMemory() @@ \impl \u YGlobal;
+
+r20:
+* 3 new -> ynew @@ \impl @@ 3 \ctor @@ \cl FileList @@ \impl \u YFileSystem;
+
+r21-r22:
+/= test 2;
+
+r23:
+/ @@ \u YShellHelper:
+	* \f YImage* NewScrImage(PPDRAW, BitmapPtr)
+		-> GHStrong<YImage> NewScrImage(PPDRAW, BitmapPtr);
+	* \i \f YImage* NewScrImage(ConstBitmapPtr)
+		-> GHStrong<YImage> NewScrImage(ConstBitmapPtr);
 
 
 $DOING:
 
 relative process:
-2011-01-07:
--21.1d;
+2011-01-08:
+-20.7d;
 
 / ...
 
 
-$NEXT:
+$NEXT_TODO:
 
 b182-b215:
-* screen output polluted @@ real machine;
-* fatal \err @@ since b178 when closing lid:
+* screen output polluted @@ real DS since b13x or before;
+* fatal \err @@ since b178 when opening closed lid @@ real DS:
 [
+b178:
+(pc: 02013000, addr: FFFFFFFF);
+
 b180 r56:
 F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 -e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020BBC5C
@@ -270,7 +303,47 @@ nted, Loki::DisallowConversion, Loki::AssertCheck, Loki::DefaultSPStorage, Loki:
 ign::Policies::GeneralCastRefCounted, Loki::DisallowConversion, Loki::AssertChec
 k, Loki::DefaultSPStorage, Loki::DontPropagateConst> const&)
 SmartPtr.h:1217
+
+b181:
+(pc: 02138EA0, addr: 02138EA0);
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02138EA0
+YSLib::(anonymous namespace)::WaitForGUIInput()::InputMessage
+crtstuff.c:0
 ]
+/ impl 'real' RTC;
+/ improve efficiency @@ \tf polymorphic_crosscast @@ \h YCast;
+/ scroll bars @@ listbox;
+/ fully \impl \u DSReader;
+	* moved text after setting lnGap;
+* non-ASCII character path error in FAT16;
+/ non-ordinary operator used in \clt GSequenceViewer @@ \h YComponent;
+
+r196-r288:
+* alpha blending platform independence;
++ \impl loading pictures;
++ \impl style on widgets;
++ \impl general Blit algorithm;
+/ user-defined bitmap buffer @@ \cl YDesktop;
+/ general component operations:
+	/ serialization;
+	/ designer;
+/ database interface;
+
+
+$NOTHING_TODO:
+* fatal \err @@ b16x:
+[
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+	-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02055838
+	ftc_snode_weight
+	ftcsbits.c:271
+]
+
+
+$LAST_SUCCESSFULLY_FIXED:
+b180:
+* ramdom screen output polluted @@ real machine since b177;
 * fatal \err before b170(after b158) when touching on the ListBox
 	& key L being released:
 [
@@ -292,33 +365,6 @@ F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 -e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020D7D6C
 __dynamic_cast
 crtstuff.c:0
-]
-/ improve efficiency @@ \tf polymorphic_crosscast @@ \h YCast;
-/ scroll bars @@ listbox;
-/ fully \impl \u DSReader;
-	* moved text after setting lnGap;
-* non-ASCII character path error in FAT16;
-/ non-ordinary operator used in \clt GSequenceViewer @@ \h YComponent;
-
-r196-r288:
-* alpha blending platform independence;
-+ \impl loading pictures;
-+ \impl style on widgets;
-+ \impl general blit algorithm;
-/ user-defined bitmap buffer @@ \cl YDesktop;
-/ general component operations:
-	/ serialization;
-	/ designer;
-/ database interface;
-
-
-$NOTHING_TODO:
-* fatal \err @@ b16x:
-[
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
-	-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02055838
-	ftc_snode_weight
-	ftcsbits.c:271
 ]
 
 
@@ -376,84 +422,5 @@ Design by contract: DbC for C/C++, GNU nana.
 		InitYSConsole();
 		iprintf("%d,(%d,%d)\n",msg.GetWParam(),
 			msg.GetCursorLocation().X, msg.GetCursorLocation().Y);
-*/
-//! \brief 桌面对象模块。
-class MDesktopObject
-{
-protected:
-	GHHandle<YDesktop> hDesktop; //!< 桌面句柄。
-
-public:
-	//! \brief 构造：使用指定桌面句柄。
-	explicit
-	MDesktopObject(GHHandle<YDesktop>);
-
-protected:
-	DefEmptyDtor(MDesktopObject)
-
-public:
-	//判断从属关系。
-	PDefH(bool, BelongsTo, GHHandle<YDesktop> hDsk) const
-		ImplRet(hDesktop == hDsk)
-
-	DefGetter(GHHandle<YDesktop>, DesktopHandle, hDesktop)
-};
-
-inline
-MDesktopObject::MDesktopObject(GHHandle<YDesktop> hDsk)
-	: hDesktop(hDsk)
-{}
-
-class RefCountedImpl
-{
-public:
-	typedef uintptr_t CountType;
-
-private:
-	CountType* pCount;
-
-protected:
-	RefCountedImpl()
-		: pCount_(static_cast<CountType*>(
-		SmallObject<>::operator new(sizeof(CountType))))
-	{
-		assert(pCount_ != NULL);
-		*pCount_ = 1;
-	}
-
-	inline
-	RefCountedImpl(const RefCountedImpl& rhs)
-		: pCount_(rhs.pCount_)
-	{}
-
-	inline CountType
-	Clone()
-	{
-		return ++*pCount;
-	}
-
-	bool
-	Release()
-	{
-		if(--*pCount_ == 0)
-		{
-			SmallObject<>::operator delete(pCount_, sizeof(CountType));
-			pCount_ = NULL;
-			return true;
-		}
-		return false;
-	}
-
-	void
-	Merge(RefCountedImpl& rhs)
-	{
-		CountType count(*pCount_);
-
-		SmallObject<>::operator delete(pCount_, sizeof(CountType));
-		pCount_ = rhs.pCount_;
-		*pCount_ += count;
-		return true;
-	}
-};
 */
 

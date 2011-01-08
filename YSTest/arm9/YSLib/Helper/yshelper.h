@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.1994;
+\version 0.2014;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 + 08:00;
 \par 修改时间:
-	2011-01-06 23:14 + 08:00;
+	2011-01-08 19:42 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -225,16 +225,16 @@ ScrDraw(BitmapPtr buf, PPDRAW f)
 /*!
 \brief 新建屏幕图像。
 */
-inline YImage*
+inline GHStrong<YImage>
 NewScrImage(ConstBitmapPtr p)
 {
-	return new YImage(p, SCRW, SCRH);
+	return ynew YImage(p, SCRW, SCRH);
 }
 
 /*!
 \brief 新建屏幕图像并指定绘图函数填充。
 */
-YImage*
+GHStrong<YImage>
 NewScrImage(PPDRAW f, BitmapPtr gbuf = NULL);
 
 /*!

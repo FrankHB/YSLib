@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.2878;
+\version 0.2902;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2011-01-06 14:07 + 08:00;
+	2011-01-07 23:04 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -63,7 +63,7 @@ namespace
 
 
 void
-blitScale(const Point& sp, const Point& dp,
+BlitScale(const Point& sp, const Point& dp,
 	const Size& ss, const Size& ds, const Size& sc,
 	int& minX, int& minY, int& maxX, int& maxY)
 {
@@ -92,13 +92,13 @@ namespace
 }
 
 void
-blit(BitmapPtr dst, const Size& ds,
+Blit(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 	blitFor(maxX - minX, maxY - minY,
 		dst + vmax<int>(0, dp.Y) * ds.Width + vmax<int>(0, dp.X),
@@ -107,13 +107,13 @@ blit(BitmapPtr dst, const Size& ds,
 }
 
 void
-blitH(BitmapPtr dst, const Size& ds,
+BlitH(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 	blitFor(maxX - minX, maxY - minY,
 		dst + (vmax<int>(0, dp.Y) + maxY - minY - 1) * ds.Width
@@ -140,13 +140,13 @@ namespace
 }
 
 void
-blitV(BitmapPtr dst, const Size& ds,
+BlitV(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 	blitForU(maxX - minX, maxY - minY,
 		dst + vmax<int>(0, dp.Y) * ds.Width + vmax<int>(0, dp.X)
@@ -156,13 +156,13 @@ blitV(BitmapPtr dst, const Size& ds,
 }
 
 void
-blitU(BitmapPtr dst, const Size& ds,
+BlitU(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 	blitForU(maxX - minX, maxY - minY,
 		dst + (vmax<int>(0, dp.Y) + maxY - minY - 1) * ds.Width
@@ -172,7 +172,7 @@ blitU(BitmapPtr dst, const Size& ds,
 }
 
 /*
-void blit(u8* dst, SDST dw, SDST dh,
+void Blit(u8* dst, SDST dw, SDST dh,
 const u8* src, SDST sw, SDST sh,
 const Point& sp, const Point& dp, const Size& sc)
 {
@@ -215,13 +215,13 @@ namespace
 }
 
 void
-blit2(BitmapPtr dst, const Size& ds,
+Blit2(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 	blit2For(maxX - minX, maxY - minY,
 		dst + vmax<int>(0, dp.Y) * ds.Width + vmax<int>(0, dp.X),
@@ -230,13 +230,13 @@ blit2(BitmapPtr dst, const Size& ds,
 }
 
 void
-blit2H(BitmapPtr dst, const Size& ds,
+Blit2H(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 	blit2For(maxX - minX, maxY - minY,
 		dst + (vmax<int>(0, dp.Y) + maxY - minY - 1) * ds.Width
@@ -268,13 +268,13 @@ namespace
 }
 
 void
-blit2V(BitmapPtr dst, const Size& ds,
+Blit2V(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 	blit2ForU(maxX - minX, maxY - minY,
 		dst + vmax<int>(0, dp.Y) * ds.Width + vmax<int>(0, dp.X)
@@ -284,13 +284,13 @@ blit2V(BitmapPtr dst, const Size& ds,
 }
 
 void
-blit2U(BitmapPtr dst, const Size& ds,
+Blit2U(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 	blit2ForU(maxX - minX, maxY - minY,
 		dst + (vmax<int>(0, dp.Y) + maxY - minY - 1) * ds.Width
@@ -321,13 +321,13 @@ namespace
 }
 
 void
-blit2(BitmapPtr dst, const Size& ds,
+Blit2(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 
 	const int srcOffset(minY * ss.Width + minX);
@@ -340,13 +340,13 @@ blit2(BitmapPtr dst, const Size& ds,
 }
 
 void
-blit2H(BitmapPtr dst, const Size& ds,
+Blit2H(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 
 	const int srcOffset(minY * ss.Width + minX);
@@ -380,13 +380,13 @@ namespace
 }
 
 void
-blit2V(BitmapPtr dst, const Size& ds,
+Blit2V(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 
 	const int srcOffset(minY * ss.Width + minX);
@@ -399,13 +399,13 @@ blit2V(BitmapPtr dst, const Size& ds,
 }
 
 void
-blit2U(BitmapPtr dst, const Size& ds,
+Blit2U(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 
 	const int srcOffset(minY * ss.Width + minX);
@@ -500,13 +500,13 @@ namespace
 }
 
 void
-blitAlpha(BitmapPtr dst, const Size& ds,
+BlitAlpha(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 
 	const int srcOffset(minY * ss.Width + minX);
@@ -518,13 +518,13 @@ blitAlpha(BitmapPtr dst, const Size& ds,
 }
 
 void
-blitAlphaH(BitmapPtr dst, const Size& ds,
+BlitAlphaH(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 
 	const int srcOffset(minY * ss.Width + minX);
@@ -560,13 +560,13 @@ namespace
 }
 
 void
-blitAlphaV(BitmapPtr dst, const Size& ds,
+BlitAlphaV(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 
 	const int srcOffset(minY * ss.Width + minX);
@@ -579,13 +579,13 @@ blitAlphaV(BitmapPtr dst, const Size& ds,
 }
 
 void
-blitAlphaU(BitmapPtr dst, const Size& ds,
+BlitAlphaU(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	int minX, minY, maxX, maxY;
 
-	blitScale(sp, dp, ss, ds, sc,
+	BlitScale(sp, dp, ss, ds, sc,
 		minX, minY, maxX, maxY);
 
 	const int srcOffset(minY * ss.Width + minX);
@@ -613,7 +613,7 @@ DrawHLineSeg(const Graphics& g, SPOS y, SPOS x1, SPOS x2, Color c)
 		RestrictInInterval(x1, 0, g.GetWidth());
 		RestrictInInterval(x2, 0, g.GetWidth());
 		RestrictLessEqual(x1, x2);
-		FillSeq<PixelType>(&g.GetBufferPtr()[y * g.GetWidth() + x1],
+		FillPixel<PixelType>(&g.GetBufferPtr()[y * g.GetWidth() + x1],
 			x2 - x1, c);
 		return true;
 	}
@@ -636,7 +636,7 @@ DrawVLineSeg(const Graphics& g, SPOS x, SPOS y1, SPOS y2, Color c)
 		RestrictInInterval(y1, 0, g.GetHeight());
 		RestrictInInterval(y2, 0, g.GetHeight());
 		RestrictLessEqual(y1, y2);
-		FillVLine<PixelType>(&g.GetBufferPtr()[y1 * g.GetWidth() + x],
+		FillVerticalLine<PixelType>(&g.GetBufferPtr()[y1 * g.GetWidth() + x],
 			y2 - y1, g.GetWidth(), c);
 		return true;
 	}
@@ -763,7 +763,7 @@ CopyTo(const Graphics& dst, const Graphics& src,
 	const Point& dp, Rotation rot)
 {
 	if(~rot & 1 && dst.IsValid() && src.IsValid())
-		(rot ? blitU : blit)(dst.GetBufferPtr(), dst.GetSize(),
+		(rot ? BlitU : Blit)(dst.GetBufferPtr(), dst.GetSize(),
 			src.GetBufferPtr(), src.GetSize(),
 			Point::Zero, dp, src.GetSize());
 }
@@ -772,7 +772,7 @@ CopyTo(BitmapPtr dst, const Graphics& g, Rotation rot, const Size& ds,
 	const Point& sp, const Point& dp, const Size& sc)
 {
 	if(~rot & 1 && dst && g.GetBufferPtr())
-		(rot ? blitU : blit)(dst, ds,
+		(rot ? BlitU : Blit)(dst, ds,
 			g.GetBufferPtr(), g.GetSize(), sp, dp, sc);
 }
 
@@ -785,7 +785,7 @@ ClearImage(const Graphics& g)
 void
 Fill(const Graphics& g, Color c)
 {
-	FillSeq<PixelType>(g.GetBufferPtr(), GetAreaFrom(g.GetSize()), c);
+	FillPixel<PixelType>(g.GetBufferPtr(), GetAreaFrom(g.GetSize()), c);
 }
 
 
@@ -964,10 +964,10 @@ BitmapBufferEx::CopyTo(BitmapPtr dst, const Size& ds,
 	if(~rot & 1 && dst && pBuffer)
 	{
 		if(rot)
-			blit2U(dst, ds,
+			Blit2U(dst, ds,
 			pBuffer, pBufferAlpha, GetSize(), sp, dp, sc);
 		else
-			blit2(dst, ds, pBuffer, pBufferAlpha, GetSize(), sp, dp, sc);
+			Blit2(dst, ds, pBuffer, pBufferAlpha, GetSize(), sp, dp, sc);
 	}
 }
 
@@ -978,9 +978,9 @@ BitmapBufferEx::BlitTo(BitmapPtr dst, const Size& ds,
 	if(~rot & 1 && dst && pBuffer)
 	{
 		if(rot)
-			blitAlphaU(dst, ds, pBuffer, pBufferAlpha, GetSize(), sp, dp, sc);
+			BlitAlphaU(dst, ds, pBuffer, pBufferAlpha, GetSize(), sp, dp, sc);
 		else
-			blitAlpha(dst, ds, pBuffer, pBufferAlpha, GetSize(), sp, dp, sc);
+			BlitAlpha(dst, ds, pBuffer, pBufferAlpha, GetSize(), sp, dp, sc);
 	}
 }
 

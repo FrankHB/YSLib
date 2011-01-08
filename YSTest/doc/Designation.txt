@@ -1,8 +1,8 @@
 ﻿// YSLib -> Designation by Franksoft 2009 - 2011
 // CharSet = UTF-8;
 // CTime = 2009-12-02 05:14:30 + 08:00;
-// UTime = 2011-01-07 14:13 + 08:00;
-// Version = 0.4004;
+// UTime = 2011-01-08 16:37 + 08:00;
+// Version = 0.4008;
 
 
 // Designation ：设计说明文档。
@@ -579,14 +579,12 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
  YSLib::Components::Forms ：窗体应用。
  YSLib::Design ：基础语言设施（类型操作等）。
  YSLib::Design::Pattern ：设计模式。
- YSLib::Design::Policies ：类构建策略。
- YSLib::Design::Policies::Storage ：类存储构建策略。
- YSLib::Design::Policies::Operation ：类操作构建策略。
  YSLib::Design::TL ：类型表 (Typelist) 操作。
  YSLib::Device ：设备抽象。
  YSLib::Drawing ：图形处理。
  YSLib::Messaging ：消息机制。
  YSLib::IO ：输入/输出管理。
+ YSLib::Policies ：策略。
  YSLib::Runtime ：运行时对象。
  YSLib::Shells ：Shell 抽象层。
  YSLib::Text ：文本服务。

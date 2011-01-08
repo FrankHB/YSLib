@@ -11,12 +11,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2168;
+\version 0.2259;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 + 08:00;
 \par 修改时间:
-	2011-01-06 17:21 + 08:00;
+	2011-01-07 21:37 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,45 +32,83 @@
 
 namespace platform
 {
-	void* const main_ram(reinterpret_cast<void*>(0x02000000));
+	namespace
+	{
+		/*
+		解释和代码参考：
+		http://www.coranac.com/2009/05/dma-vs-arm9-fight/#ft-nr1 。
+		*/
+
+		//! \brief 检查 32 位地址是否在 DMA 操作有效范围之外。
+		inline 
+		bool dma_out_of_range(u32 s)
+		{
+			// 检查 TCM 和 BIOS (0x01000000, 0x0B000000, 0xFFFF0000) 。
+			// NOTE: probably incomplete checks;
+			return ((s >> 24) == 0x01 || (s >> 24) == 0x0B || !~(s|0xFFFF));
+		}
+
+		ystdex::errno_t
+		safe_dma_fill(void *dst, int v, std::size_t size)
+		{
+			u32 d(reinterpret_cast<u32>(dst));
+
+			if(dma_out_of_range(d))
+				return 1;
+			if(d & 1) //非对齐字节覆盖失败。
+				return 2;
+			while(DMA_CR(3) & DMA_BUSY)
+				;
+			v &= 0xFF;
+			v |= v << 8;
+			if((d|size) & 3)
+				dmaFillHalfWords(v, dst, size);
+			else
+			{
+				v |= v<<16;
+				dmaFillWords(v, dst, size);
+			}
+			if((d>>24)==0x02) //设置目标范围内 CACHE 污染状态。
+				DC_InvalidateRange(dst, size);
+			return 0;
+		}
+
+		ystdex::errno_t
+		safe_dma_copy(void *dst, const void *src, std::size_t size)
+		{
+			const u32 s(reinterpret_cast<u32>(src)),
+				d(reinterpret_cast<u32>(dst));
+
+			// 检查 TCM 和 BIOS (0x01000000, 0x0B000000, 0xFFFF0000) 。
+			// NOTE: probably incomplete checks;
+			if(dma_out_of_range(s) || dma_out_of_range(d))
+				return 1;
+			if((s | d) & 1) //非对齐字节复制失败。
+				return 2;
+			while(DMA_CR(3) & DMA_BUSY)
+				;
+			if((s>>24)==0x02) //需要写回内存。
+				DC_FlushRange(src, size);
+			if((s | d | size) & 3)
+				dmaCopyHalfWords(3, src, dst, size);
+			else
+				dmaCopyWords(3, src, dst, size);
+			if((d>>24) == 0x02) //设置目标范围内 CACHE 污染状态。
+				DC_InvalidateRange(dst, size);
+			return 0;
+		}
+	}
 
 	void*
 	mmbset(void* d, int v, std::size_t t)
 	{
-	/*	if(d > main_ram)
-		{
-			v &= 0xFF;
-			v |= v << 8;
-			if(t & 3)
-			{
-				dmaFillHalfWords(v, d, t);
-				if(t & 1)
-					*(static_cast<u8*>(d) + t - 1) = v & 0xFF;
-			}
-			else
-			{
-				v |= v << 16;
-				dmaFillWords(v, d, t);
-			}
-			return d;
-		}
-		else*/
-			return std::memset(d, v, t);
+		return safe_dma_fill(d, v, t) != 0 ? std::memset(d, v, t) : d;
 	}
 
 	void*
 	mmbcpy(void* d, const void* s, std::size_t t)
 	{
-	/*	if(d > main_ram && s > main_ram)
-		{
-			dmaCopy(s, d, t);
-			if(t & 1)
-				*(static_cast<u8*>(d) + t - 1)
-					= *(static_cast<const u8*>(s) + t - 1);
-			return d;
-		}
-		else*/
-			return std::memcpy(d, s, t);
+		return safe_dma_copy(d, s, t) != 0 ? std::memcpy(d, s, t) : d;
 	}
 
 	char*
@@ -261,6 +299,13 @@ namespace platform
 	}
 
 	void
+	ScreenSychronize(PixelType* buf, const PixelType* src)
+	{
+		YAssert(safe_dma_copy(buf, src, sizeof(ScreenBufferType)) == 0,
+			"Screen sychronize failure;");
+	}
+
+	void
 	ResetVideo()
 	{
 		REG_BG0CNT = REG_BG1CNT = REG_BG2CNT = REG_BG3CNT = 0;
@@ -392,9 +437,9 @@ namespace platform
 			tp.py = SCREEN_HEIGHT;
 		}
 		//记录按键状态。
-		key.up = keysUp();
-		key.down = keysDown();
-		key.held = keysHeld();
+		key.Up = keysUp();
+		key.Down = keysDown();
+		key.Held = keysHeld();
 	}
 
 

@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2141;
+\version 0.2144;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 + 08:00;
 \par 修改时间:
-	2011-01-01 19:26 + 08:00;
+	2011-01-08 19:10 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -352,14 +352,14 @@ ValidateDirectory(const string& pathstr)
 
 
 FileList::FileList(CPATH path)
-	: Directory((path && *path) ? path : FS_Root), spList(new ListType())
+	: Directory((path && *path) ? path : FS_Root), spList(ynew ListType())
 {}
 FileList::FileList(const string& path)
-	: Directory(path.empty() ? FS_Root : path.c_str()), spList(new ListType())
+	: Directory(path.empty() ? FS_Root : path.c_str()), spList(ynew ListType())
 {}
 FileList::FileList(const FileList::ItemType& path)
 	: Directory(path.empty() ? FS_Root : StringToMBCS(path).c_str()),
-	spList(new ListType())
+	spList(ynew ListType())
 {}
 
 bool

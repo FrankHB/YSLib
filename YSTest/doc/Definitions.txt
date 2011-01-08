@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010 - 2011
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2011-01-06 20:04 + 08:00;
-// Version = r10576;
+// UTime = 2011-01-08 16:36 + 08:00;
+// Version = r10583;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -269,16 +269,15 @@ SM_PAINT
 SM_QUIT
 SM_INPUT
 }
-$header YShell
-{
-PM_NOREMOVE
-PM_REMOVE
-}
 } //$dir Core;
 $dir Shell
 $header YControl
 {
 DefEventTypeMapping(_name, _tEventHandler)
+}
+$unit YGDI
+{
+YSL_FAST_BLIT
 }
 } //$dir Shell
 $dir Helper
@@ -353,11 +352,8 @@ namespace Components
 
 namespace Design
 {
+	$header Adaptor::YAdaptor;	
 	$unit Core::YCoreUtilities;
-	namespace Policies
-	{
-		$header Adaptor::Reference;
-	} //namespace Policies;
 } //namespace Design;
 
 namespace Device
@@ -381,6 +377,12 @@ namespace IO
 {
 	$unit Core::YFile;
 } //namespace IO;
+
+namespace Policies
+{
+	$header Adaptor::YAdaptor;
+	$header Adaptor::Reference;
+} //namespace Policies;
 
 namespace Runtime
 {

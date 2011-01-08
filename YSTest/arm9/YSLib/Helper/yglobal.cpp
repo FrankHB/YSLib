@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2795;
+\version 0.2842;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 + 08:00;
 \par 修改时间:
-	2010-01-06 23:15 + 08:00;
+	2010-01-08 19:03 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,7 +70,7 @@ namespace
 	bool
 	operator==(const KeysInfo& a, const KeysInfo& b)
 	{
-		return a.up == b.up && a.down == b.down && a.held == b.held;
+		return a.Up == b.Up && a.Down == b.Down && a.Held == b.Held;
 	}
 
 	inline bool
@@ -87,8 +87,7 @@ InputContext::operator==(const IContext& rhs) const
 {
 	const InputContext* p(dynamic_cast<const InputContext*>(&rhs));
 
-	return p ? (Key == p->Key || (Key && p->Key && *Key == *p->Key))
-		&& CursorLocation == p->CursorLocation : false;
+	return Key == p->Key && CursorLocation == p->CursorLocation;
 }
 
 YSL_END_NAMESPACE(Messaging)
@@ -112,22 +111,24 @@ namespace
 
 		static KeysInfo Key;
 		static CursorInfo TouchPos_Old, TouchPos;
-		static Message InputMessage;
+		static SmartPtr<InputContext> pContext;
 
-		if(Key.held & KeySpace::Touch)
+		if(Key.Held & KeySpace::Touch)
 			TouchPos_Old = TouchPos;
 		scanKeys();
 		WriteKeysInfo(Key, TouchPos);
 
-		const Point pt(ToSPoint(Key.held & KeySpace::Touch
+		const Point pt(ToSPoint(Key.Held & KeySpace::Touch
 			? TouchPos : TouchPos_Old));
-		InputContext* const pContext(CastMessage<SM_INPUT>(InputMessage));
 
 		if(!pContext || ((theApp.GetDefaultMessageQueue().IsEmpty()
-			|| Key != *pContext->Key || pt != pContext->CursorLocation)
+			|| Key != pContext->Key || pt != pContext->CursorLocation)
 			&& pt != Point::FullScreen))
-			SendMessage((InputMessage = Message(Shells::GetCurrentShellHandle(),
-				SM_INPUT, 0x40, new InputContext(&Key, pt))));
+		{
+			pContext = new InputContext(Key, pt);
+			SendMessage(Message(Shells::GetCurrentShellHandle(), SM_INPUT, 0x40,
+				pContext));
+		}
 	}
 }
 
@@ -285,6 +286,17 @@ ShowFatalError(const char* s)
 
 #ifdef YSL_USE_MEMORY_DEBUG
 
+namespace
+{
+	void
+	OnExit_DebugMemory_continue()
+	{
+		std::fflush(stderr);
+		std::puts("Input to continue...");
+		WaitForInput();
+	}
+}
+
 void
 OnExit_DebugMemory()
 {
@@ -295,7 +307,7 @@ OnExit_DebugMemory()
 	std::puts("Normal exit;");
 
 //	std::FILE* fp(std::freopen("memdbg.log", "w", stderr));
-	const typename MemoryList::MapType& Map(DebugMemory.m_map);
+	const typename MemoryList::MapType& Map(DebugMemory.Blocks);
 //	MemoryList::MapType::size_type s(DebugMemory.GetSize());
 
 	if(!Map.empty())
@@ -307,18 +319,42 @@ OnExit_DebugMemory()
 		for(typename MemoryList::MapType::const_iterator i(Map.begin());
 			i != Map.end(); ++i)
 		{
-			if(n++ < 6)
+			if(n++ < 4)
 				DebugMemory.Print(i, stderr);
 			else
 			{
 				n = 0;
-				std::fflush(stderr);
-				std::puts("Input to continue...");
-				WaitForInput();
+				OnExit_DebugMemory_continue();
 			}
 		}
 	//	DebugMemory.PrintAll(stderr);
 	//	DebugMemory.PrintAll(fp);
+		OnExit_DebugMemory_continue();
+	}
+
+	const typename MemoryList::ListType&
+		List(DebugMemory.DuplicateDeletedBlocks);
+
+	if(!List.empty())
+	{
+		std::fprintf(stderr, "%i duplicate memory deleting(s) detected:\n",
+			List.size());
+
+		MemoryList::ListType::size_type n(0);
+
+		for(typename MemoryList::ListType::const_iterator i(List.begin());
+			i != List.end(); ++i)
+		{
+			if(n++ < 4)
+				DebugMemory.Print(i, stderr);
+			else
+			{
+				n = 0;
+				OnExit_DebugMemory_continue();
+			}
+		}
+	//	DebugMemory.PrintAllDuplicate(stderr);
+	//	DebugMemory.PrintAllDuplicate(fp);
 	}
 //	std::fclose(fp);
 	std::puts("Input to terminate...");

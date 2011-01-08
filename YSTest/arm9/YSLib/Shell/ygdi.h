@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3442;
+\version 0.3461;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2011-01-04 20:45 + 08:00;
+	2011-01-07 23:46 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,8 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Drawing)
 
 //! \brief 逆时针旋转角度指示输出指向。
-typedef enum {
+typedef enum
+{
 	RDeg0 = 0,
 	RDeg90 = 1,
 	RDeg180 = 2,
@@ -51,11 +52,12 @@ typedef enum
 	Vertical = 1
 } Orientation;
 
+
 //基本函数对象。
 
 //! \brief 像素填充器。
 template<typename _tPixel>
-struct FillPixel
+struct PixelFiller
 {
 	_tPixel Color;
 
@@ -63,7 +65,7 @@ struct FillPixel
 	\brief 构造：使用指定颜色。
 	*/
 	inline explicit
-	FillPixel(_tPixel c)
+	PixelFiller(_tPixel c)
 		: Color(c)
 	{}
 
@@ -78,7 +80,7 @@ struct FillPixel
 };
 
 //! \brief 序列转换器。
-struct transSeq
+struct SequenceTransformer
 {
 	/*!
 	\brief 渲染连续像素。
@@ -98,7 +100,7 @@ struct transSeq
 };
 
 //! \brief 竖直线转换器。
-struct transVLine
+struct VerticalLineTransfomer
 {
 	/*!
 	\brief 渲染竖直线上的像素。
@@ -119,13 +121,13 @@ struct transVLine
 
 //! \brief 贴图位置计算器。
 void
-blitScale(const Point& sp, const Point& dp,
+BlitScale(const Point& sp, const Point& dp,
 	const Size& ss, const Size& ds, const Size& cs,
 	int& minX, int& minY, int& maxX, int& maxY);
 
 
 //! \brief 正则矩形转换器。
-struct transRect
+struct RectTransfomer
 {
 	/*!
 	\brief 渲染正则矩形内的像素。
@@ -138,7 +140,7 @@ struct transRect
 	{
 		int minX, minY, maxX, maxY;
 
-		blitScale(Point::Zero, dp, ss, ds, ss,
+		BlitScale(Point::Zero, dp, ss, ds, ss,
 			minX, minY, maxX, maxY);
 
 		const int deltaX(maxX - minX),
@@ -195,9 +197,9 @@ ClearPixel(_tPixel* dst, std::size_t n)
 */
 template<typename _tPixel>
 inline void
-FillSeq(_tPixel* dst, std::size_t n, _tPixel c)
+FillPixel(_tPixel* dst, std::size_t n, _tPixel c)
 {
-	transSeq()(dst, n, FillPixel<_tPixel>(c));
+	SequenceTransformer()(dst, n, PixelFiller<_tPixel>(c));
 }
 
 /*!
@@ -205,9 +207,9 @@ FillSeq(_tPixel* dst, std::size_t n, _tPixel c)
 */
 template<typename _tPixel>
 inline void
-FillVLine(_tPixel* dst, std::size_t n, SDST dw, _tPixel c)
+FillVerticalLine(_tPixel* dst, std::size_t n, SDST dw, _tPixel c)
 {
-	transVLine()(dst, n, dw, FillPixel<_tPixel>(c));
+	VerticalLineTransfomer()(dst, n, dw, PixelFiller<_tPixel>(c));
 }
 
 /*!
@@ -218,7 +220,8 @@ inline void
 FillRect(_tPixel* dst, const Size& ds, const Point& sp, const Size& ss,
 	_tPixel c)
 {
-	transRect()(dst, ds, sp, ss, FillPixel<_tPixel>(c), transSeq());
+	RectTransfomer()(dst, ds, sp, ss, PixelFiller<_tPixel>(c),
+		SequenceTransformer());
 }
 /*!
 \brief 使用指定像素填充指定的正则矩形区域。
@@ -227,7 +230,8 @@ template<typename _tPixel>
 inline void
 FillRect(_tPixel* dst, const Size& ds, const Rect& rSrc, _tPixel c)
 {
-	transRect()(dst, ds, rSrc, FillPixel<_tPixel>(c), transSeq());
+	RectTransfomer()(dst, ds, rSrc, PixelFiller<_tPixel>(c),
+		SequenceTransformer());
 }
 /*!
 \brief 使用指定像素填充指定的正则矩形区域。
@@ -237,7 +241,8 @@ inline void
 FillRect(_tPixel* dst, SDST dw, SDST dh, SPOS sx, SPOS sy, SDST sw, SDST sh,
 	_tPixel c)
 {
-	transRect()(dst, dw, dh, sx, sy, sw, sh, FillPixel<_tPixel>(c), transSeq());
+	RectTransfomer()(dst, dw, dh, sx, sy, sw, sh, PixelFiller<_tPixel>(c),
+		SequenceTransformer());
 }
 
 
@@ -248,7 +253,7 @@ FillRect(_tPixel* dst, SDST dw, SDST dh, SPOS sx, SPOS sy, SDST sw, SDST sh,
 \note 不检查指针有效性。自动裁剪适应大小。
 */
 void
-blit(BitmapPtr dst, const Size& ds,
+Blit(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -257,7 +262,7 @@ blit(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。
 */
 void
-blitH(BitmapPtr dst, const Size& ds,
+BlitH(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -266,7 +271,7 @@ blitH(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。
 */
 void
-blitV(BitmapPtr dst, const Size& ds,
+BlitV(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 /*!
@@ -274,13 +279,13 @@ blitV(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。
 */
 void
-blitU(BitmapPtr dst, const Size& ds,
+BlitU(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
 /*
 void
-blit(u8* dst, SDST dw, SDST dh,
+Blit(u8* dst, SDST dw, SDST dh,
 	const u8* src, SDST sw, SDST sh,
 	const Point& sp, const Point& dp, const Size& sc);
 */
@@ -290,7 +295,7 @@ blit(u8* dst, SDST dw, SDST dh,
 \note 不检查指针有效性。自动裁剪适应大小。使用第 15 位表示透明性。
 */
 void
-blit2(BitmapPtr dst, const Size& ds,
+Blit2(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -299,7 +304,7 @@ blit2(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。使用第 15 位表示透明性。
 */
 void
-blit2H(BitmapPtr dst, const Size& ds,
+Blit2H(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -308,7 +313,7 @@ blit2H(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。使用第 15 位表示透明性。
 */
 void
-blit2V(BitmapPtr dst, const Size& ds,
+Blit2V(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -317,7 +322,7 @@ blit2V(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。使用第 15 位表示透明性。
 */
 void
-blit2U(BitmapPtr dst, const Size& ds,
+Blit2U(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -326,7 +331,7 @@ blit2U(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示透明性。
 */
 void
-blit2(BitmapPtr dst, const Size& ds,
+Blit2(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -335,7 +340,7 @@ blit2(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示透明性。
 */
 void
-blit2H(BitmapPtr dst, const Size& ds,
+Blit2H(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -344,7 +349,7 @@ blit2H(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示透明性。
 */
 void
-blit2V(BitmapPtr dst, const Size& ds,
+Blit2V(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -353,7 +358,7 @@ blit2V(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示透明性。
 */
 void
-blit2U(BitmapPtr dst, const Size& ds,
+Blit2U(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -362,7 +367,7 @@ blit2U(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示 8 位透明度。
 */
 void
-blitAlpha(BitmapPtr dst, const Size& ds,
+BlitAlpha(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -371,7 +376,7 @@ blitAlpha(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示 8 位透明度。
 */
 void
-blitAlphaH(BitmapPtr dst, const Size& ds,
+BlitAlphaH(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -380,7 +385,7 @@ blitAlphaH(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示 8 位透明度。
 */
 void
-blitAlphaV(BitmapPtr dst, const Size& ds,
+BlitAlphaV(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -389,7 +394,7 @@ blitAlphaV(BitmapPtr dst, const Size& ds,
 \note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示 8 位透明度。
 */
 void
-blitAlphaU(BitmapPtr dst, const Size& ds,
+BlitAlphaU(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* srcA, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc);
 
@@ -503,7 +508,8 @@ TransformRect(const Graphics& g, const Point& p, const Size& s,
 {
 	if(g.IsValid())
 	{
-		transRect()(g.GetBufferPtr(), g.GetSize(), p, s, tp, transSeq());
+		RectTransfomer()(g.GetBufferPtr(), g.GetSize(), p, s, tp,
+			SequenceTransformer());
 		return true;
 	}
 	return false;

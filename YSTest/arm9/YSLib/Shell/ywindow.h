@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.4006;
+\version 0.4010;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 + 08:00;
 \par 修改时间:
-	2010-12-30 16:02 + 08:00;
+	2011-01-08 18:53 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,7 +82,7 @@ public:
 	\brief 构造：使用指定背景图像、窗口句柄和 Shell 。
 	*/
 	explicit
-	MWindow(const GHStrong<YImage> = new YImage(), HWND = NULL);
+	MWindow(const GHStrong<YImage> = ynew YImage(), HWND = NULL);
 
 	DefPredicate(RefreshRequired, bRefresh)
 	DefPredicate(UpdateRequired, bUpdate)
@@ -105,7 +105,7 @@ public:
 	*/
 	explicit
 	AWindow(const Rect& = Rect::Empty,
-		const GHStrong<YImage> = new YImage(), HWND = NULL);
+		const GHStrong<YImage> = ynew YImage(), HWND = NULL);
 	virtual DefEmptyDtor(AWindow)
 
 	ImplI(IWindow) DefPredicateBase(RefreshRequired, MWindow)
@@ -217,7 +217,7 @@ public:
 
 	explicit
 	AFrameWindow(const Rect& = Rect::Empty,
-		const GHStrong<YImage> = new YImage(), HWND = NULL);
+		const GHStrong<YImage> = ynew YImage(), HWND = NULL);
 	/*!
 	\note 无异常抛出。
 	*/
@@ -272,7 +272,7 @@ public:
 	*/
 	explicit
 	YFrameWindow(const Rect& = Rect::Empty,
-		const GHStrong<YImage> = new YImage(), HWND = NULL);
+		const GHStrong<YImage> = ynew YImage(), HWND = NULL);
 	/*!
 	\note 无异常抛出。
 	*/

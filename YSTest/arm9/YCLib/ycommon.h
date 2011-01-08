@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2649;
+\version 0.2663;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 + 08:00; 
 \par 修改时间:
-	2011-01-03 10:28 + 08:00;
+	2011-01-07 21:37 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -326,7 +326,7 @@ namespace platform
 	//! \brief 按键信息。
 	typedef struct KeysInfo
 	{
-		Key up, down, held;
+		Key Up, Down, Held;
 	} KeysInfo;
 
 
@@ -550,14 +550,11 @@ namespace platform
 	GetRootNameLength(CPATH);
 
 	/*!
-	\brief 快速刷新缓存映像到主显示屏。
+	\brief 快速刷新缓存映像到显示屏缓冲区。
+	\note 第一参数为显示屏缓冲区，第二参数为源缓冲区。
 	*/
-	inline void
-	ScreenSychronize(PixelType* scr, const PixelType* buf)
-	{
-		dmaCopy(buf, scr, sizeof(ScreenBufferType));
-	//	swiFastCopy(buf, scr, sizeof(ScreenBufferType) >> 2);
-	}
+	void
+	ScreenSychronize(PixelType*, const PixelType*);
 
 	/*!
 	\brief 复位屏幕显示模式。
