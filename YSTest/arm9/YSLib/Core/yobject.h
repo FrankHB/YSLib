@@ -11,12 +11,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.2840;
+\version 0.2844;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-01-08 16:44 + 08:00;
+	2011-01-08 20:18 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,7 +91,7 @@ public:
 	inline static void
 	Release()
 	{
-		safe_delete_obj_debug()(_ptr);
+		safe_delete_obj()(_ptr);
 	}
 };
 

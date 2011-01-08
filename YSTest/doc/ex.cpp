@@ -1,4 +1,4 @@
-//v 0.2944; *Build 182 r23;
+//v 0.2944; *Build 183 r8;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -161,128 +161,46 @@ $using:
 
 $DONE:
 r1:
-/ @@ \ns platform @@ \impl \u YCommon:
-	- \o void* const main_ram(reinterpret_cast<void*>(0x02000000));
-	/ @@ \un \ns:
-		+ \i \f bool dma_out_of_range(u32);
-		+ \f ystdex::errno_t safe_dma_fill(void *dst, int v, std::size_t size);
-		+ \f ystdex::errno_t safe_dma_copy(void *dst, const void *src,
-			std::size_t size);
-	* \impl @@ \f (mmbset & mmbcpy);
+/= test 0;
 
 r2:
-* \i \f void ScreenSychronize(PixelType*, const PixelType*) @@ \ns platform
-	@@ \u YCommon -> !\i \f void ScreenSychronize(PixelType*, const PixelType*);
-
-r3:
-/= \tr @@ arm7 "main.cpp";
+/ \impl \un \ns @@ \impl \u Shells:
+	- array g_pi;
+	+ \f GHStrong<YImage>& GetGlobalImageRef(std::size_t);
 
 r4:
-/ 3 \m Key up, down, held @@ \st KeyInfo @@ \h YCommon => Key
-	Up, Down, Held;
+* \impl @@ \i \sf void Release() @@ \clt GStaticCache @@ \h YObject when 
+	defined \mac NDEBUG;
 
 r5:
-/ @@ \cl Messaging::InputContext @@ \u YGlobal:
-	/ \m platform::KeysInfo* Key -> Runtime::KeysInfo Key;
-	/ !\exp \ctor InputContext(Runtime::KeysInfo*, const Point&)
-		-> \exp \ctor InputContext(Runtime::KeysInfo, const Point&);
-	/ \impl @@ \op==;
-/ \tr \impl @@ \f void WaitForGUIInput() @@ \un \ns @@ \impl \u YGlobal;
-/ \tr \impl @@ \f void ResponseInput(const Message&) @@ \impl \u Shell_DS;
+* \impl @@ \f GHStrong<YImage> NewScrImage(PPDRAW, BitmapPtr)
+	@@ \impl \u YShellHelper;
 
-r6:
-/ \impl @@ \f void WaitForGUIInput() @@ \un \ns @@ \impl \u YGlobal;
-
-r7:
-/ \a blitScale => BlitScale;
-/ \a FillPixel => PixelFiller;
-/ \a FillSeq => FillPixel;
-/ \a transSeq => SequenceTransformer;
-/ \a transVLine => VerticalLineTransfomer;
-/ \a transRect => RectTransfomer;
-/ \a FillVLine => FillVerticalLine;
-/ \a blit => Blit;
-/ \a blitH => BlitH;
-/ \a blitV => BlitV;
-/ \a blitU => BlitU;
-/ \a blit2 => Blit2;
-/ \a blit2H => Blit2H;
-/ \a blit2V => Blit2V;
-/ \a blit2U => Blit2U;
-/ \a blitAlpha => BlitAlpha;
-/ \a blitAlphaH => BlitAlphaH;
-/ \a blitAlphaV => BlitAlphaV;
-/ \a blitAlphaU => BlitAlphaU;
-
-r8:
-/ @@ \h YReference:
-	/ @@ \ns Design::Policies:
-		+ \clt DeleteSingle_Debug;
-		+ \clt DeleteArray_Debug;
-	/ \decl @@ \clt (GHStrong & GHWeak) ^ DeleteSingle_Debug ~ DeleteSingle;
-	* \a @@ \ns Design => \ns YSLib;
-
-r9:
-/ \impl @@ \cl GStaticCache ^ ((ynew ~ new) & (safe_delete_obj_debug
-	~ safe_delete_obj_ndebug);
-/ \a YDelete_Debug => YReset_Debug;
-* + 4 \i \ft YReset_Debug overloading version @@ \h YReference;
-
-r10-r15:
-/ test 1;
-	* \impl @@ \i \ft<typename _type> bool YReset_Debug(GHWeak<_type>&) ythrow()
-		@@ \h YReference;
-
-r16:
-/ @@ \cl MemoryList \u YNew:
-	+ \m typedef std::list<std::pair<const void*, BlockInfo>,
-		__gnu_cxx::malloc_allocator<std::pair<const void*, BlockInfo> > >
-		ListType;
-	+ \m ListType DuplicateDeletedBlocks;
-	/ \m MapType m_map => Blocks;
-	/ \impl @@ \ctor;
-	/ !\s \mf Print -> \smf; 
-	+ \smf void Print(ListType::const_iterator, std::FILE*);
-	+ \mf void PrintAllDuplicate(std::FILE*);
-	/ \impl @@ \mf Unregister;
-/ \impl @@ \f void OnExit_DebugMemory() @@ \impl \u YGlobal;
-+ \inc <list> @@ \h YNew;
-
-r17:
-/ \tr \impl @@ \f void OnExit_DebugMemory() @@ \impl \u YGlobal;
-* \impl @@ \YImage* NewScrImage(PPDRAW, BitmapPtr) @@ \impl \u YShellHelper;
-* 5 new -> ynew @@ \decl @@ 5 \ctor @@ \h (YWindow @@ YForm);
-
-r18-r19:
-/ \tr \impl @@ \f void OnExit_DebugMemory() @@ \impl \u YGlobal;
-
-r20:
-* 3 new -> ynew @@ \impl @@ 3 \ctor @@ \cl FileList @@ \impl \u YFileSystem;
-
-r21-r22:
-/= test 2;
-
-r23:
-/ @@ \u YShellHelper:
-	* \f YImage* NewScrImage(PPDRAW, BitmapPtr)
-		-> GHStrong<YImage> NewScrImage(PPDRAW, BitmapPtr);
-	* \i \f YImage* NewScrImage(ConstBitmapPtr)
-		-> GHStrong<YImage> NewScrImage(ConstBitmapPtr);
+r6-r8:
+/= test 1;
 
 
 $DOING:
 
 relative process:
 2011-01-08:
--20.7d;
+-20.5d;
 
 / ...
 
 
 $NEXT_TODO:
 
-b182-b215:
+b183-b215:
 * screen output polluted @@ real DS since b13x or before;
+* fatal \err @@ b183:
+[
+02078454 3A758FC5
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02078454
+_free_r
+crtstuff.c:0
+]
 * fatal \err @@ since b178 when opening closed lid @@ real DS:
 [
 b178:

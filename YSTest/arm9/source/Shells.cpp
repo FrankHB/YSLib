@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3502;
+\version 0.3510;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2011-01-06 23:12 + 08:00;
+	2011-01-08 20:14 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -67,42 +67,42 @@ namespace
 	//测试函数。
 
 	//背景测试。
-	static void
+	void
 	dfa(BitmapPtr buf, SDST x, SDST y)
 	{
 		//raz2
 		buf[y * SCRW + x] = ARGB16(1, ((x >> 2) + 15) & 31,
 			((y >> 2) + 15) & 31, ((~(x * y) >> 2) + 15) & 31);
 	}
-	static void
+	void
 	dfap(BitmapPtr buf, SDST x, SDST y)
 	{
 		//bza1
 		buf[y * SCRW + x] = ARGB16(1, ((x | y << 1) % (y + 2)) & 31,
 			((~y | x << 1) % 27 + 3) & 31, ((x << 4) / (y | 1)) & 31);
 	}
-	static void
+	void
 	dfac1(BitmapPtr buf, SDST x, SDST y)
 	{
 		//fl1
 		buf[y * SCRW + x] = ARGB16(1, (x + y * y) & 31, (x * x + y) & 31,
 			((x & y) ^ (x | y)) & 31);
 	}
-	static void
+	void
 	dfac1p(BitmapPtr buf, SDST x, SDST y)
 	{
 		//rz3
 		buf[y * SCRW + x] = ARGB16(1, ((x * y) | y) & 31, ((x * y) | x) & 31,
 			((x ^ y) * (x ^ y)) & 31);
 	}
-	static void
+	void
 	dfac2(BitmapPtr buf, SDST x, SDST y)
 	{
 		//v1
 		buf[y * SCRW + x] = ARGB16(1, ((x + y) % ((y - 2) & 1) + (x << 2)) & 31,
 			(~x % 101 + y) & 31, ((x << 4) / (y & 1)) & 31);
 	}
-	static void
+	void
 	dfac2p(BitmapPtr buf, SDST x, SDST y)
 	{
 		//arz1
@@ -113,16 +113,26 @@ namespace
 	////
 
 	//测试用变量。
-	static BitmapPtr gbuf;
-	static int nCountInput;
-	static char strCount[40];
-	GHStrong<YImage> g_pi[10];
+	BitmapPtr gbuf;
+	int nCountInput;
+	char strCount[40];
+
+	GHStrong<YImage>&
+	GetGlobalImageRef(std::size_t i)
+	{
+		static GHStrong<YImage> spi[10];
+
+		YAssert(IsInInterval(i, 10u), "Array index out of range @@"
+			" GetGlobalImageRef;");
+
+		return spi[i];
+	}
 
 	void
 	LoadL()
 	{
 		//色块覆盖测试用程序段。
-		if(!g_pi[1])
+		if(!GetGlobalImageRef(1))
 		{
 			try
 			{
@@ -133,9 +143,9 @@ namespace
 				return;
 			}
 		//	memset(gbuf, 0xEC, sizeof(ScreenBufferType));
-			g_pi[1] = NewScrImage(dfa, gbuf);
+			GetGlobalImageRef(1) = NewScrImage(dfa, gbuf);
 		//	memset(gbuf, 0xF2, sizeof(ScreenBufferType));
-			g_pi[2] = NewScrImage(dfap, gbuf);
+			GetGlobalImageRef(2) = NewScrImage(dfap, gbuf);
 			ydelete_array(gbuf);
 		}
 	}
@@ -143,7 +153,7 @@ namespace
 	void
 	LoadS()
 	{
-		if(!g_pi[3])
+		if(!GetGlobalImageRef(3))
 		{
 			try
 			{
@@ -153,8 +163,8 @@ namespace
 			{
 				return;
 			}
-			g_pi[3] = NewScrImage(dfac1, gbuf);
-			g_pi[4] = NewScrImage(dfac1p, gbuf);
+			GetGlobalImageRef(3) = NewScrImage(dfac1, gbuf);
+			GetGlobalImageRef(4) = NewScrImage(dfac1p, gbuf);
 			ydelete_array(gbuf);
 		}
 	}
@@ -162,7 +172,7 @@ namespace
 	void
 	LoadA()
 	{
-		if(!g_pi[5])
+		if(!GetGlobalImageRef(5))
 		{
 			try
 			{
@@ -172,8 +182,8 @@ namespace
 			{
 				return;
 			}
-			g_pi[5] = NewScrImage(dfac2, gbuf);
-			g_pi[6] = NewScrImage(dfac2p, gbuf);
+			GetGlobalImageRef(5) = NewScrImage(dfac2, gbuf);
+			GetGlobalImageRef(6) = NewScrImage(dfac2p, gbuf);
 			ydelete_array(gbuf);
 		}
 	}
@@ -256,14 +266,14 @@ GetImage(int i)
 	default:
 		i = 0;
 	}
-	return g_pi[i];
+	return GetGlobalImageRef(i);
 }
 
 void
 ReleaseShells()
 {
 	for(std::size_t i(0); i != 10; ++i)
-		YReset(g_pi[i]);
+		YReset(GetGlobalImageRef(i));
 	GStaticCache<ShlReader, GHHandle<YShell> >::Release();
 	GStaticCache<ShlSetting, GHHandle<YShell> >::Release();
 	GStaticCache<ShlExplorer, GHHandle<YShell> >::Release();
