@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010 - 2011
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2011-01-08 16:36 + 08:00;
-// Version = r10583;
+// UTime = 2011-01-09 12:03 + 08:00;
+// Version = r10586;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -502,7 +502,7 @@ $header Adaptor::YAdaptor
 	using platform::terminate;
 	using platform::HDirectory,
 		platform::IsAbsolute, platform::GetRootNameLength;
-	using platform::ScreenSychronize;
+	using platform::ScreenSynchronize;
 	using platform::WaitForInput;
 	using platform::GetRTC, platform::ResetRTC;
 	using platform::InitVideo;

@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2663;
+\version 0.2665;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 + 08:00; 
 \par 修改时间:
-	2011-01-07 21:37 + 08:00;
+	2011-01-09 12:04 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -554,7 +554,7 @@ namespace platform
 	\note 第一参数为显示屏缓冲区，第二参数为源缓冲区。
 	*/
 	void
-	ScreenSychronize(PixelType*, const PixelType*);
+	ScreenSynchronize(PixelType*, const PixelType*);
 
 	/*!
 	\brief 复位屏幕显示模式。

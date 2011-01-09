@@ -1,4 +1,4 @@
-//v 0.2944; *Build 183 r8;
+//v0.2944; *Build 184 r8;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -161,37 +161,35 @@ $using:
 
 $DONE:
 r1:
-/= test 0;
+* \a ScreenSynchronize => ScreenSynchronize;
 
-r2:
-/ \impl \un \ns @@ \impl \u Shells:
-	- array g_pi;
-	+ \f GHStrong<YImage>& GetGlobalImageRef(std::size_t);
+r2-r7:
+/ test 1:
+	* \impl @@ \f (mmbcpy & mmbset) @@ \impl \u YCommon;
 
-r4:
-* \impl @@ \i \sf void Release() @@ \clt GStaticCache @@ \h YObject when 
-	defined \mac NDEBUG;
-
-r5:
-* \impl @@ \f GHStrong<YImage> NewScrImage(PPDRAW, BitmapPtr)
-	@@ \impl \u YShellHelper;
-
-r6-r8:
-/= test 1;
+r8:
+/ @@ \impl \u YCommon:
+	/ @@ \un \ns:
+		+ \i \f is_in_main_RAM;
+		+ const std::size_t ARM9_CACHE_LINE_SIZE(32);
+		+ \i \f dc_check;
+		+ \i \f dc_check2
+		/ \impl @@ \f (safe_dma_fill & safe_dma_copy);
+	* \impl @@ \f (mmbcpy & mmbset);
 
 
 $DOING:
 
 relative process:
-2011-01-08:
--20.5d;
+2011-01-09:
+-20.9d;
 
 / ...
 
 
 $NEXT_TODO:
 
-b183-b215:
+b184-b215:
 * screen output polluted @@ real DS since b13x or before;
 * fatal \err @@ b183:
 [
@@ -260,31 +258,8 @@ F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 
 
 $LAST_SUCCESSFULLY_FIXED:
-b180:
-* ramdom screen output polluted @@ real machine since b177;
-* fatal \err before b170(after b158) when touching on the ListBox
-	& key L being released:
-[
-b177
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 0201f484
-GetTouchedVisualControlPtr
-ygui.cpp:215
-??
-ygui.cpp:325
-
-b180 r56:
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 0201E8BC
-YSLib::Components::Controls::(anonymous namespace)::TryLeave(YSLib::Components::
-Controls::IVisualControl&, YSLib::Components::Controls::TouchEventArgs&)
-ygui.cpp:176
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020D7D6C
-__dynamic_cast
-crtstuff.c:0
-]
-
+b184:
+?;
 
 $TODO:
 
