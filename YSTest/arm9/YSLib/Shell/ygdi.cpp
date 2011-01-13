@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.2902;
+\version 0.2906;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2011-01-07 23:04 + 08:00;
+	2011-01-11 20:14 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -958,7 +958,7 @@ BitmapBufferEx::ClearImage() const
 }
 
 void
-BitmapBufferEx::CopyTo(BitmapPtr dst, const Size& ds,
+BitmapBufferEx::Flush(BitmapPtr dst, const Size& ds,
 	const Point& sp, const Point& dp, const Size& sc, Rotation rot) const
 {
 	if(~rot & 1 && dst && pBuffer)

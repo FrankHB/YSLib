@@ -11,12 +11,12 @@
 /*!	\file GBKEX.cpp
 \ingroup YReader
 \brief 测试文件。
-\version 0.3025; *Build 180 r56;
+\version 0.3035; *Build 185 r16;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11;
 \par 修改时间:
-	2011-01-06 12:05 + 08:00;
+	2011-01-14 06:53 + 08:00;
 \par 字符集:
 	ANSI / GBK;
 \par 模块名称:
@@ -68,7 +68,7 @@ namespace YSLib
 			void
 			Pause()
 			{
-				h->SetUpdate(true);
+				h->Refresh();
 				h->Update();
 				WaitForInput();
 			}

@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3461;
+\version 0.3464;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2011-01-07 23:46 + 08:00;
+	2011-01-11 20:14 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -719,12 +719,12 @@ public:
 	BeFilledWith(Color) const;
 
 	/*!
-	\brief 向指定大小和点（相对左上角）的指定图形接口上下文
+	\brief 刷新：向指定大小和点（相对左上角）的指定图形接口上下文
 		以指定输出指向复制缓冲区内容。
 	\note 若有无效指针或指向则不复制。自动适应大小。
 	*/
 	virtual void
-	CopyTo(BitmapPtr, const Size& = Size::FullScreen,
+	Flush(BitmapPtr, const Size& = Size::FullScreen,
 		const Point& = Point::Zero, const Point& = Point::Zero,
 		const Size& = Size::FullScreen, Rotation = RDeg0) const;
 };
@@ -738,10 +738,10 @@ inline BitmapBuffer::~BitmapBuffer() ythrow()
 }
 
 inline void
-BitmapBuffer::CopyTo(BitmapPtr dst, const Size& ds,
+BitmapBuffer::Flush(BitmapPtr dst, const Size& ds,
 	const Point& sp, const Point& dp, const Size& sc, Rotation rot) const
 {
-	Drawing::CopyTo(dst, *this, rot, ds, sp, dp, sc);
+	CopyTo(dst, *this, rot, ds, sp, dp, sc);
 }
 
 
@@ -788,12 +788,12 @@ public:
 	ClearImage() const;
 
 	/*!
-	\brief 向指定大小和点（相对左上角）的指定图形接口上下文
+	\brief 刷新：向指定大小和点（相对左上角）的指定图形接口上下文
 		以指定输出指向复制缓冲区内容。
 	\note 若有无效指针或指向则不复制。自动适应大小。
 	*/
 	void
-	CopyTo(BitmapPtr, const Size& = Size::FullScreen,
+	Flush(BitmapPtr, const Size& = Size::FullScreen,
 		const Point& = Point::Zero, const Point& = Point::Zero,
 		const Size& = Size::FullScreen, Rotation = RDeg0) const;
 

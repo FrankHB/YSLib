@@ -1,4 +1,4 @@
-//v0.2944; *Build 184 r8;
+//v0.2944; *Build 185 r18;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -161,45 +161,46 @@ $using:
 
 $DONE:
 r1:
-* \a ScreenSynchronize => ScreenSynchronize;
+/ \mf CopyTo => Flush @@ \cl (BitmapBuffer & BitmapBufferEx) @@ \u YGDI;
 
-r2-r7:
+r2-r13:
 / test 1:
-	* \impl @@ \f (mmbcpy & mmbset) @@ \impl \u YCommon;
+	^ libfreetype 2.4.4;
 
-r8:
-/ @@ \impl \u YCommon:
-	/ @@ \un \ns:
-		+ \i \f is_in_main_RAM;
-		+ const std::size_t ARM9_CACHE_LINE_SIZE(32);
-		+ \i \f dc_check;
-		+ \i \f dc_check2
-		/ \impl @@ \f (safe_dma_fill & safe_dma_copy);
-	* \impl @@ \f (mmbcpy & mmbset);
+r14:
+* \impl @@ \f (safe_dma_copy & safe_dma_fill) \impl \u YCommon;
+
+r15:
+/ \impl @@ \mf (DrawDesktopObjects & Update) @@ \cl YDesktop
+	@@ \impl \u YDesktop;
+/ \impl @@ \mf AWindow::Update @@ \impl \u YWindow;
+
+r16:
+/ @@ \h YWindow:
+	- \amf SetUpdate @@ \in IWindow;
+	- \mf SetUpdate @@ \cl AWindow;
+/ \tr \impl @@ \impl \u GBKEX;
+
+r17:
+/ - ^ \f (safe_dma_fill & safe_dma_cpoy) for debug;
+
+r18:
+* \tr \impl @@ \ctor @@ \cl MDualScreenReader ^ ynew @@ \impl \u DSReader;
 
 
 $DOING:
 
 relative process:
-2011-01-09:
--20.9d;
+2011-01-14:
+-23.4d;
 
 / ...
 
 
 $NEXT_TODO:
 
-b184-b215:
-* screen output polluted @@ real DS since b13x or before;
-* fatal \err @@ b183:
-[
-02078454 3A758FC5
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02078454
-_free_r
-crtstuff.c:0
-]
-* fatal \err @@ since b178 when opening closed lid @@ real DS:
+b185-b215:
+* fatal \err @@ since b177 when opening closed lid @@ real DS:
 [
 b178:
 (pc: 02013000, addr: FFFFFFFF);
@@ -225,6 +226,18 @@ b181:
 F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 -e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02138EA0
 YSLib::(anonymous namespace)::WaitForGUIInput()::InputMessage
+crtstuff.c:0
+
+b184:
+(pc: 020AD108, addr: 020AD108);
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020AD108
+SmartPtr
+SmartPtr.h:1176
+(pc: 020909F8, addr: 020909F8);
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020909F8
+__clzsi2
 crtstuff.c:0
 ]
 / impl 'real' RTC;
@@ -259,7 +272,15 @@ F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 
 $LAST_SUCCESSFULLY_FIXED:
 b184:
-?;
+* screen output polluted @@ real DS since b13x or before;
+* fatal \err @@ b183:
+[
+02078454 3A758FC5
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02078454
+_free_r
+crtstuff.c:0
+]
 
 $TODO:
 

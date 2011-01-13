@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2085;
+\version 0.2092;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 + 08:00;
 \par 修改时间:
-	2010-12-31 12:16 + 08:00;
+	2011-01-14 06:50 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -173,7 +173,6 @@ YDesktop::DrawDesktopObjects()
 		{
 			IWindow& w(dynamic_cast<IWindow&>(**i));
 			w.Refresh();
-			w.SetUpdate(true);
 			w.Update();
 		}
 		catch(std::bad_cast&)
@@ -202,11 +201,10 @@ YDesktop::Refresh()
 void
 YDesktop::Update()
 {
-	if(bUpdate)
-	{
+	if(bRefresh)
 		bUpdate = false;
+	if(bUpdate)
 		Screen.Update(GetContext().GetBufferPtr());
-	}
 }
 
 YSL_END_NAMESPACE(Components)

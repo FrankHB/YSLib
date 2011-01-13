@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.4010;
+\version 0.4020;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 + 08:00;
 \par 修改时间:
-	2011-01-08 18:53 + 08:00;
+	2011-01-14 06:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -60,7 +60,6 @@ DeclBasedInterface(IWindow, virtual IUIContainer, virtual IVisualControl)
 	DeclIEntry(HWND GetWindowHandle() const)
 
 	DeclIEntry(void SetRefresh(bool))
-	DeclIEntry(void SetUpdate(bool))
 
 	DeclIEntry(void Draw())
 
@@ -120,7 +119,6 @@ public:
 	GetBackgroundPtr() const;
 
 	ImplI(IWindow) DefSetter(bool, Refresh, bRefresh)
-	ImplI(IWindow) DefSetter(bool, Update, bUpdate)
 	/*!
 	\brief 设置大小。
 	\note 虚公有实现。

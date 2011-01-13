@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3473;
+\version 0.3484;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 + 08:00;
 \par 修改时间:
-	2010-01-03 10:09 + 08:00;
+	2010-01-14 06:50 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -120,12 +120,11 @@ AWindow::Refresh()
 void
 AWindow::Update()
 {
-	if(bUpdate)
-	{
+	if(bRefresh)
 		bUpdate = false;
+	if(bUpdate)
 		if(GetWindowHandle())
 			UpdateToWindow();
-	}
 }
 
 void

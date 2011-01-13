@@ -11,12 +11,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2346;
+\version 0.2363;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 + 08:00;
 \par 修改时间:
-	2011-01-09 13:39 + 08:00;
+	2011-01-14 07:02 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,7 +58,7 @@ namespace platform
 		http://www.coranac.com/2010/03/dma-vs-arm9-round-2/ 。
 		*/
 
-		const std::size_t ARM9_CACHE_LINE_SIZE(32);
+/*		const std::size_t ARM9_CACHE_LINE_SIZE(32);
 
 
 		//! \brief 检查缓存区域端点。
@@ -67,19 +67,19 @@ namespace platform
 		{
 			if(addr % ARM9_CACHE_LINE_SIZE)
 				DC_FlushRange(reinterpret_cast<void*>(addr), 1);
-		}
+		}*/
 
 		/*!
 		\brief 检查缓存区域两端。
 		\warning 如果之后无效化高速缓存，之间 CPU 对高速缓存的改动会被丢弃。
 		*/
-		inline void
+/*		inline void
 		dc_check2(u32 addr, u32 size)
 		{
 			dc_check(addr); //检查缓存区域头部。
 			dc_check(addr + size); //检查缓存区域尾部。
 		}
-
+*/
 
 //		/*!
 //		\brief 内存复制。
@@ -122,7 +122,8 @@ namespace platform
 			bool b(is_in_main_RAM(d)); //目标在主内存中。
 
 			if(b)
-				dc_check2(d, size);
+			//	dc_check2(d, size);
+				DC_FlushRange(dst, size);
 			if((d | size) & 3)
 				dmaFillHalfWords(v, dst, size);
 			else
@@ -155,13 +156,14 @@ namespace platform
 			bool b(is_in_main_RAM(d));
 
 			if(b)
-				dc_check2(d, size);
+			//	dc_check2(d, size);
+				DC_FlushRange(dst, size);
 			if((s | d | size) & 3)
 				dmaCopyHalfWords(3, src, dst, size);
 			else
 				dmaCopyWords(3, src, dst, size);
-			if(b) //设置目标范围内高速缓存污染状态。
-				DC_InvalidateRange(dst, size);
+		//	if(b) //设置目标范围内高速缓存污染状态。
+		//		DC_InvalidateRange(dst, size);
 			return 0;
 		}
 	}
@@ -169,13 +171,15 @@ namespace platform
 	void*
 	mmbset(void* d, int v, std::size_t t)
 	{
-		return safe_dma_fill(d, v, t) != 0 ? std::memset(d, v, t) : d;
+	//	return safe_dma_fill(d, v, t) != 0 ? std::memset(d, v, t) : d;
+		return std::memset(d, v, t);
 	}
 
 	void*
 	mmbcpy(void* d, const void* s, std::size_t t)
 	{
-		return safe_dma_copy(d, s, t) != 0 ? std::memcpy(d, s, t) : d;
+	//	return safe_dma_copy(d, s, t) != 0 ? std::memcpy(d, s, t) : d;
+		return std::memcpy(d, s, t);
 	}
 
 	char*
@@ -368,8 +372,9 @@ namespace platform
 	void
 	ScreenSynchronize(PixelType* buf, const PixelType* src)
 	{
-		YAssert(safe_dma_copy(buf, src, sizeof(ScreenBufferType)) == 0,
-			"Screen sychronize failure;");
+	//	YAssert(safe_dma_copy(buf, src, sizeof(ScreenBufferType)) == 0,
+	//		"Screen sychronize failure;");
+		std::memcpy(buf, src, sizeof(ScreenBufferType));
 	}
 
 	void
