@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5774;
+\version 0.5775;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-01-03 10:26 + 08:00;
+	2011-01-15 19:03 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -102,13 +102,13 @@ DeclInterface(IWidget)
 		//!< 设置大小。
 
 	/*!
-	\breif 绘制背景。
+	\brief 绘制背景。
 	\warning 可能不检查缓冲区指针是否为空。
 	*/
 	DeclIEntry(void DrawBackground())
 
 	/*!
-	\breif 绘制前景。
+	\brief 绘制前景。
 	\warning 可能不检查缓冲区指针是否为空。
 	*/
 	DeclIEntry(void DrawForeground())

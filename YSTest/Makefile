@@ -1,8 +1,8 @@
-# DS Makefile for YShell by Franksoft 2009 - 2010
+# DS Makefile for YShell by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-11-12 21:26:30 + 08:00;
-# UTime = 2010-11-11 22:58 + 08:00;
-# Version = 0.3081;
+# UTime = 2011-01-15 14:41 + 08:00;
+# Version = 0.3112;
 
 # This makefile is written based on devkitPro example template.
 
@@ -13,20 +13,21 @@ ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 endif
 
+export TOPDIR		:=	$(CURDIR)
+
 #--------------------------------------------------------------------------------
 
 export TARGET		:=	$(shell basename $(CURDIR))
-export TOPDIR		:=	$(CURDIR)
-export BUILD		:=	build
-export RELEASE		:=	Release
-export GBUILD		:=	$(TOPDIR)/$(BUILD)/$(TARGET)
-export OUTPUT		:=	$(TOPDIR)/$(RELEASE)/$(TARGET)
+export BUILD		?=	release
+export RELEASE		=	$(BUILD)
+export GBUILD		=	$(TOPDIR)/$(BUILD)/$(TARGET)
+export OUTPUT		=	$(TOPDIR)/$(RELEASE)/$(TARGET)
 
 #--------------------------------------------------------------------------------
 
 GAME_TITLE		:= YSTest
 GAME_SUBTITLE1 	:= Franksoft
-GAME_SUBTITLE2 	:= 2009 - 2010
+GAME_SUBTITLE2 	:= 2009 - 2011
 GAME_ICON		:= $(TOPDIR)/common/data/logo.bmp
 
 #--------------------------------------------------------------------------------
@@ -149,7 +150,8 @@ clean:
 	$(MAKE) -C arm9 clean
 	$(MAKE) -C arm7 clean
 	@echo Cleaning releases ...
-	@rm -fr $(TOPDIR)/$(BUILD)
+	@rm -f $(TOPDIR)/$(BUILD)/*.d
+	@rm -f $(TOPDIR)/$(BUILD)/*.o
 	@rm -f $(TOPDIR)/$(RELEASE)/*.*arm*
 	@rm -f $(TOPDIR)/$(RELEASE)/*.*ds*
 	@echo Cleaned.

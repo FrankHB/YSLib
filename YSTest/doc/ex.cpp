@@ -1,4 +1,4 @@
-//v0.2944; *Build 185 r18;
+//v0.2944; *Build 186 r18;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -161,45 +161,100 @@ $using:
 
 $DONE:
 r1:
-/ \mf CopyTo => Flush @@ \cl (BitmapBuffer & BitmapBufferEx) @@ \u YGDI;
+/= test 0;
 
-r2-r13:
-/ test 1:
-	^ libfreetype 2.4.4;
+r2:
+/ \lib CHRLib >> VC++ project CHRLib;
+/ YSTest project configuration;
+/ (top & arm9) Makefile;
+/ \tr \inc @@ \h YAdaptor;
 
-r14:
-* \impl @@ \f (safe_dma_copy & safe_dma_fill) \impl \u YCommon;
+r3:
+/ solution config;
+/ project Makefile;
 
-r15:
-/ \impl @@ \mf (DrawDesktopObjects & Update) @@ \cl YDesktop
-	@@ \impl \u YDesktop;
-/ \impl @@ \mf AWindow::Update @@ \impl \u YWindow;
+r4:
+/ ARM9 Makefile to support no-debug (\mac NDEBUG) release;
 
-r16:
-/ @@ \h YWindow:
-	- \amf SetUpdate @@ \in IWindow;
-	- \mf SetUpdate @@ \cl AWindow;
-/ \tr \impl @@ \impl \u GBKEX;
+r5-r12:
+* CXXFLAGS @@ 2 Makefile to support no-debug (\mac NDEBUG) release;
 
-r17:
-/ - ^ \f (safe_dma_fill & safe_dma_cpoy) for debug;
+r13-r14:
+/ data file "cp113.bin" >> \lib CHRLib;
+* $(ARCH) @@ Makefile @@ \lib CHRLib;
+/ \tr \inc @@ \h YAdaptor;
+/ $(ARCH) @@ ARM9 Makefile;
 
-r18:
-* \tr \impl @@ \ctor @@ \cl MDualScreenReader ^ ynew @@ \impl \u DSReader;
+r15-r16:
+/ \lib YCLib >> VC++ project YCLib;
+* @@ 4 Makefile;
+/ \tr \inc @@ \impl \u GBKEX;
 
+r17-r18:
+* \tr \rem @@ \h (YComponent & YWidget);
+/ \tr \impl @@ \f usize_t MBCSToUCS(fchar_t*, const char*, const CSID&)
+	@@ \impl \u CharacterProcessing @@ \lib CHRLib;
+/ test 1;
 
 $DOING:
 
 relative process:
-2011-01-14:
--23.4d;
+2011-01-15:
+-20.9d;
 
 / ...
 
 
 $NEXT_TODO:
 
-b185-b215:
+b186-b240:
+* invalid listbox click;
+/ scroll bars @@ listbox \cl;
+* fatal \err @@ since b177 when opening closed lid @@ real DS:
+[
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02037F04
+guruMeditationDump
+gurumeditation.c:229
+]
+/ fully \impl \u DSReader;
+	* moved text after setting lnGap;
+* non-ASCII character path error in FAT16;
+/ improve efficiency @@ \tf polymorphic_crosscast @@ \h YCast;
+/ non-ordinary operator usage in \clt GSequenceViewer @@ \h YComponent;
+
+r241-r324:
++ data config;
+/ impl 'real' RTC;
++ correct DMA (copy & fill);
+* platform-independence @@ alpha blending:
+	+ \impl general Blit algorithm;
+/ user-defined bitmap buffer @@ \cl YDesktop;
++ (compressing & decompressing) @@ gfx copying;
++ \impl loading pictures;
+
+
+$LOW_PRIOR_TODO:
+r325-r768:
++ \impl styles @@ widgets;
+/ general component operations:
+	/ serialization;
+	/ designer;
+/ database interface;
+
+
+$NOTHING_TODO:
+* fatal \err @@ b16x:
+[
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+	-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02055838
+	ftc_snode_weight
+	ftcsbits.c:271
+]
+
+
+$LAST_SUCCESSFULLY_FIXED:
+b185 r18:
 * fatal \err @@ since b177 when opening closed lid @@ real DS:
 [
 b178:
@@ -238,47 +293,6 @@ SmartPtr.h:1176
 F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 -e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020909F8
 __clzsi2
-crtstuff.c:0
-]
-/ impl 'real' RTC;
-/ improve efficiency @@ \tf polymorphic_crosscast @@ \h YCast;
-/ scroll bars @@ listbox;
-/ fully \impl \u DSReader;
-	* moved text after setting lnGap;
-* non-ASCII character path error in FAT16;
-/ non-ordinary operator used in \clt GSequenceViewer @@ \h YComponent;
-
-r196-r288:
-* alpha blending platform independence;
-+ \impl loading pictures;
-+ \impl style on widgets;
-+ \impl general Blit algorithm;
-/ user-defined bitmap buffer @@ \cl YDesktop;
-/ general component operations:
-	/ serialization;
-	/ designer;
-/ database interface;
-
-
-$NOTHING_TODO:
-* fatal \err @@ b16x:
-[
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
-	-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02055838
-	ftc_snode_weight
-	ftcsbits.c:271
-]
-
-
-$LAST_SUCCESSFULLY_FIXED:
-b184:
-* screen output polluted @@ real DS since b13x or before;
-* fatal \err @@ b183:
-[
-02078454 3A758FC5
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02078454
-_free_r
 crtstuff.c:0
 ]
 

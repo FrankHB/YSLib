@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件实现。
-\version 0.2928;
+\version 0.2929;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 + 08:00;
 \par 修改时间:
-	2011-01-01 19:25 + 08:00;
+	2011-01-15 19:03 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -356,7 +356,7 @@ YSL_END_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Shells)
 
-//! \breif 默认图形用户界面 Shell 。
+//! \brief 默认图形用户界面 Shell 。
 class YGUIShell : public YShell
 {
 public:

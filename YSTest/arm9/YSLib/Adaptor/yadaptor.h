@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2044;
+\version 0.2052;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 + 08:00;
 \par 修改时间:
-	2011-01-09 12:03 + 08:00;
+	2011-01-15 14:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,7 +38,7 @@
 
 //包含 CHRLib 。
 
-#include "../../CHRLib/chrlib.h"
+#include "../../../CHRLib/include/chrlib.h"
 
 namespace ystdex
 {
@@ -62,7 +62,7 @@ YSL_END
 
 //包含 YCLib 。
 
-#include "../../YCLib/ycommon.h"
+#include "../../../YCLib/include/ycommon.h"
 
 // !\brief YSLib 命名空间。
 YSL_BEGIN

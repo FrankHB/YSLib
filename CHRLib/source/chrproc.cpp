@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version 0.1725;
+\version 0.1727;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 + 08:00; 
 \par 修改时间:
-	2011-01-01 19:19 + 08:00;
+	2011-01-15 19:09 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -186,7 +186,7 @@ usize_t
 MBCSToUCS(fchar_t* d, const char* s, const CSID& cp)
 {
 	fchar_t* const p(d);
-	uchar_t t;
+	uchar_t t(0);
 
 	while(*s)
 	{

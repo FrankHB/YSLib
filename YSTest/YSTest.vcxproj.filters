@@ -10,14 +10,8 @@
     <Filter Include="ARM9">
       <UniqueIdentifier>{dbecf682-3ec1-48e6-9ad6-96ffbfd8e81b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ARM9\YCLib">
-      <UniqueIdentifier>{3be6f786-36ae-4cdb-9892-bf90bea5980f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ARM9\YSLib">
       <UniqueIdentifier>{53656387-c62c-46a9-89f9-530e52281d34}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\CHRLib">
-      <UniqueIdentifier>{14f7cc89-c4ce-4357-a495-cccc6701bb1f}</UniqueIdentifier>
     </Filter>
     <Filter Include="ARM9\源文件">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
@@ -86,6 +80,10 @@
     <Filter Include="ARM9\YSLib\Service">
       <UniqueIdentifier>{2056444f-c557-4246-b7dc-6b5037083526}</UniqueIdentifier>
     </Filter>
+    <Filter Include="common\头文件">
+      <UniqueIdentifier>{1b2f7d79-86f5-478d-8178-e4c26e30abaf}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="arm7\Makefile">
@@ -93,12 +91,6 @@
     </None>
     <None Include="arm9\Makefile">
       <Filter>ARM9</Filter>
-    </None>
-    <None Include="arm9\data\cp113.bin">
-      <Filter>ARM9\资源文件</Filter>
-    </None>
-    <None Include="arm9\data\default_font.bin">
-      <Filter>ARM9\资源文件</Filter>
     </None>
     <None Include="doc\Definitions.txt">
       <Filter>文档</Filter>
@@ -120,9 +112,6 @@
   <ItemGroup>
     <ClCompile Include="arm7\source\main.cpp">
       <Filter>ARM7\源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YCLib\ycommon.cpp">
-      <Filter>ARM9\YCLib</Filter>
     </ClCompile>
     <ClCompile Include="arm9\YSLib\Core\yapp.cpp">
       <Filter>ARM9\YSLib\Core</Filter>
@@ -199,12 +188,6 @@
     <ClCompile Include="arm9\YSLib\Shell\ywindow.cpp">
       <Filter>ARM9\YSLib\Shell</Filter>
     </ClCompile>
-    <ClCompile Include="arm9\CHRLib\chrmap.cpp">
-      <Filter>ARM9\CHRLib</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\CHRLib\chrproc.cpp">
-      <Filter>ARM9\CHRLib</Filter>
-    </ClCompile>
     <ClCompile Include="arm9\source\DSReader.cpp">
       <Filter>ARM9\源文件</Filter>
     </ClCompile>
@@ -235,17 +218,8 @@
     <ClCompile Include="arm9\YSLib\Adaptor\ynew.cpp">
       <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClCompile>
-    <ClCompile Include="arm9\YCLib\ystdex.cpp">
-      <Filter>ARM9\YCLib</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="arm9\YCLib\ycommon.h">
-      <Filter>ARM9\YCLib</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YCLib\ydef.h">
-      <Filter>ARM9\YCLib</Filter>
-    </ClInclude>
     <ClInclude Include="arm9\YSLib\Core\yapp.h">
       <Filter>ARM9\YSLib\Core</Filter>
     </ClInclude>
@@ -335,18 +309,6 @@
     </ClInclude>
     <ClInclude Include="arm9\YSLib\Shell\ywindow.h">
       <Filter>ARM9\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\CHRLib\chrdef.h">
-      <Filter>ARM9\CHRLib</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\CHRLib\chrlib.h">
-      <Filter>ARM9\CHRLib</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\CHRLib\chrmap.h">
-      <Filter>ARM9\CHRLib</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\CHRLib\chrproc.h">
-      <Filter>ARM9\CHRLib</Filter>
     </ClInclude>
     <ClInclude Include="arm9\include\DSReader.h">
       <Filter>ARM9\头文件</Filter>
@@ -1209,26 +1171,20 @@
     <ClInclude Include="arm9\YSLib\Adaptor\agg.h">
       <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\platform.h">
-      <Filter>ARM9\头文件</Filter>
-    </ClInclude>
     <ClInclude Include="arm9\YSLib\Adaptor\ysinit.h">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\ysbuild.h">
       <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClInclude>
     <ClInclude Include="arm9\YSLib\Adaptor\ynew.h">
       <Filter>ARM9\YSLib\Adaptor</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YCLib\ycast.hpp">
-      <Filter>ARM9\YCLib</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YCLib\ystdex.h">
-      <Filter>ARM9\YCLib</Filter>
-    </ClInclude>
     <ClInclude Include="arm9\YSLib\Adaptor\yref.hpp">
       <Filter>ARM9\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="arm9\YSLib\ysbuild.h">
+      <Filter>ARM9\YSLib</Filter>
+    </ClInclude>
+    <ClInclude Include="common\include\platform.h">
+      <Filter>common\头文件</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
