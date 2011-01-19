@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="debug|Win32">
+      <Configuration>debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="release|Win32">
+      <Configuration>release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\ysbuild.h" />
+    <ClInclude Include="include\YSLib\Adaptor\agg.h" />
+    <ClInclude Include="include\YSLib\Adaptor\base.h" />
+    <ClInclude Include="include\YSLib\Adaptor\config.h" />
+    <ClInclude Include="include\YSLib\Adaptor\cont.h" />
+    <ClInclude Include="include\YSLib\Adaptor\yadaptor.h" />
+    <ClInclude Include="include\YSLib\Adaptor\yaslivsp.hpp" />
+    <ClInclude Include="include\YSLib\Adaptor\yfont.h" />
+    <ClInclude Include="include\YSLib\Adaptor\ynew.h" />
+    <ClInclude Include="include\YSLib\Adaptor\yref.hpp" />
+    <ClInclude Include="include\YSLib\Adaptor\ysinit.h" />
+    <ClInclude Include="include\YSLib\Core\yapp.h" />
+    <ClInclude Include="include\YSLib\Core\ycounter.hpp" />
+    <ClInclude Include="include\YSLib\Core\ycutil.h" />
+    <ClInclude Include="include\YSLib\Core\ydevice.h" />
+    <ClInclude Include="include\YSLib\Core\yevt.hpp" />
+    <ClInclude Include="include\YSLib\Core\yexcept.h" />
+    <ClInclude Include="include\YSLib\Core\yfile.h" />
+    <ClInclude Include="include\YSLib\Core\yfilesys.h" />
+    <ClInclude Include="include\YSLib\Core\yftext.h" />
+    <ClInclude Include="include\YSLib\Core\yfunc.hpp" />
+    <ClInclude Include="include\YSLib\Core\yobject.h" />
+    <ClInclude Include="include\YSLib\Core\yres.h" />
+    <ClInclude Include="include\YSLib\Core\ysdef.h" />
+    <ClInclude Include="include\YSLib\Core\yshell.h" />
+    <ClInclude Include="include\YSLib\Core\ysmsg.h" />
+    <ClInclude Include="include\YSLib\Core\ysmsgdef.h" />
+    <ClInclude Include="include\YSLib\Core\ystring.h" />
+    <ClInclude Include="include\YSLib\Helper\shlds.h" />
+    <ClInclude Include="include\YSLib\Helper\yglobal.h" />
+    <ClInclude Include="include\YSLib\Helper\yshelper.h" />
+    <ClInclude Include="include\YSLib\Service\ytimer.h" />
+    <ClInclude Include="include\YSLib\Service\ytmgr.h" />
+    <ClInclude Include="include\YSLib\Shell\ycomp.h" />
+    <ClInclude Include="include\YSLib\Shell\ycontrol.h" />
+    <ClInclude Include="include\YSLib\Shell\ydesktop.h" />
+    <ClInclude Include="include\YSLib\Shell\yfocus.h" />
+    <ClInclude Include="include\YSLib\Shell\yform.h" />
+    <ClInclude Include="include\YSLib\Shell\ygdi.h" />
+    <ClInclude Include="include\YSLib\Shell\ygui.h" />
+    <ClInclude Include="include\YSLib\Shell\yguicomp.h" />
+    <ClInclude Include="include\YSLib\Shell\ytext.h" />
+    <ClInclude Include="include\YSLib\Shell\ywidget.h" />
+    <ClInclude Include="include\YSLib\Shell\ywindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\YSLib\Adaptor\yfont.cpp" />
+    <ClCompile Include="source\YSLib\Adaptor\ynew.cpp" />
+    <ClCompile Include="source\YSLib\Adaptor\ysinit.cpp" />
+    <ClCompile Include="source\YSLib\Core\yapp.cpp" />
+    <ClCompile Include="source\YSLib\Core\ydevice.cpp" />
+    <ClCompile Include="source\YSLib\Core\yexcept.cpp" />
+    <ClCompile Include="source\YSLib\Core\yfile.cpp" />
+    <ClCompile Include="source\YSLib\Core\yfilesys.cpp" />
+    <ClCompile Include="source\YSLib\Core\yftext.cpp" />
+    <ClCompile Include="source\YSLib\Core\yobject.cpp" />
+    <ClCompile Include="source\YSLib\Core\yres.cpp" />
+    <ClCompile Include="source\YSLib\Core\yshell.cpp" />
+    <ClCompile Include="source\YSLib\Core\ysmsg.cpp" />
+    <ClCompile Include="source\YSLib\Core\ystring.cpp" />
+    <ClCompile Include="source\YSLib\Helper\shlds.cpp" />
+    <ClCompile Include="source\YSLib\Helper\yglobal.cpp" />
+    <ClCompile Include="source\YSLib\Helper\yshelper.cpp" />
+    <ClCompile Include="source\YSLib\Service\ytimer.cpp" />
+    <ClCompile Include="source\YSLib\Service\ytmgr.cpp" />
+    <ClCompile Include="source\YSLib\Shell\ycomp.cpp" />
+    <ClCompile Include="source\YSLib\Shell\ycontrol.cpp" />
+    <ClCompile Include="source\YSLib\Shell\ydesktop.cpp" />
+    <ClCompile Include="source\YSLib\Shell\yfocus.cpp" />
+    <ClCompile Include="source\YSLib\Shell\yform.cpp" />
+    <ClCompile Include="source\YSLib\Shell\ygdi.cpp" />
+    <ClCompile Include="source\YSLib\Shell\ygui.cpp" />
+    <ClCompile Include="source\YSLib\Shell\yguicomp.cpp" />
+    <ClCompile Include="source\YSLib\Shell\ytext.cpp" />
+    <ClCompile Include="source\YSLib\Shell\ywidget.cpp" />
+    <ClCompile Include="source\YSLib\Shell\ywindow.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{305D480F-C3DC-4A3D-915A-88E9D2224742}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
+    <ProjectName>YSLib</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <OutDir>$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <OutDir>$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
+    <NMakePreprocessorDefinitions>DEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <IncludePath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</IncludePath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
+    <ExcludePath>$(ExcludePath)</ExcludePath>
+    <NMakeBuildCommandLine>make -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
+    <NMakePreprocessorDefinitions>NDEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <NMakeBuildCommandLine>make -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
+    <IncludePath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</IncludePath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
+    <ExcludePath>$(ExcludePath)</ExcludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

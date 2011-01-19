@@ -1,8 +1,8 @@
-# DS Makefile for CHRLib -> ARM9 by Franksoft 2009 - 2011
+# DS Makefile for YSLib -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 + 08:00;
-# UTime = 2011-01-17 11:55 + 08:00;
-# Version = 0.3824;
+# UTime = 2011-01-17 11:56 + 08:00;
+# Version = 0.3864;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -29,8 +29,8 @@ export TOPDIR		?=	$(CURDIR)
 export TARGET		:= $(shell basename $(CURDIR))
 export BUILD		?= release
 export RELEASE		= $(BUILD)
-export SOURCES		:= source data
-export INCLUDES	:= include ../YSTest/include data
+export SOURCES		:= source source/YSLib source/YSLib/Adaptor source/YSLib/Core source/YSLib/Helper source/YSLib/Service Source/YSLib/Shell data
+export INCLUDES	:= include ../YSTest/include ../CHRLib/include ../YCLib/include include/YSLib include/YSLib/Adaptor include/YSLib/Core include/YSLib/Helper include/YSLib/Service include/YSLib/Shell data
 export DATA		:= data
 #export GRAPHICS	:= gfx
 #export MUSIC		:= music
@@ -81,7 +81,7 @@ PREFIX			:=	arm-eabi-
 #--------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #--------------------------------------------------------------------------------
-LIBS	:=	-lnds9 #-lfat
+LIBS	:=	#-lfat -lnds9
 
 #--------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

@@ -1,8 +1,8 @@
-# DS Makefile for CHRLib -> ARM9 by Franksoft 2009 - 2011
+# DS Makefile for YShell -> ARM7 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 + 08:00;
-# UTime = 2011-01-17 11:55 + 08:00;
-# Version = 0.3824;
+# UTime = 2011-01-17 11:57 + 08:00;
+# Version = 0.3324;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -30,27 +30,22 @@ export TARGET		:= $(shell basename $(CURDIR))
 export BUILD		?= release
 export RELEASE		= $(BUILD)
 export SOURCES		:= source data
-export INCLUDES	:= include ../YSTest/include data
-export DATA		:= data
+export INCLUDES		:= include ../NDS/common/include data ../Library/include data
+export DATA			:= data
 #export GRAPHICS	:= gfx
 #export MUSIC		:= music
 
 #--------------------------------------------------------------------------------
 # options for code generation
 #--------------------------------------------------------------------------------
-ARCH	:=	-mthumb -mthumb-interwork -march=armv5te
-
-# note: arm9tdmi isn't the correct CPU arch, but anything newer and LD
-# *insists* it has a FPU or VFP, and it won't take no for an answer!
+ARCH	:=	-mthumb -mthumb-interwork
 
 ASFLAGS	:=	$(ARCH)
 
 CFLAGS	:=	-Wall \
- 			-fomit-frame-pointer \
+			-mcpu=arm7tdmi -mtune=arm7tdmi -fomit-frame-pointer \
 			-ffast-math \
 			$(ARCH)
-
-CFLAGS	+=	$(INCLUDE) -DARM9
 
 ifneq ($(BUILD),debug)
 CFLAGS	+=	-O3 -DNDEBUG
@@ -59,9 +54,11 @@ ASFLAGS	+=	-g
 CFLAGS	+=	-g -O0 -DDEBUG
 endif
 
+CFLAGS		+=	$(INCLUDE) -DARM7
 CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit
 
-LDFLAGS	:=	-specs=ds_arm9.specs -g $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
+
+LDFLAGS	:=	-specs=ds_arm7.specs -g $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
 
 #--------------------------------------------------------------------------------
 # path to tools - this can be deleted if you set the path in windows
@@ -81,7 +78,7 @@ PREFIX			:=	arm-eabi-
 #--------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #--------------------------------------------------------------------------------
-LIBS	:=	-lnds9 #-lfat
+LIBS	:=	-ldswifi7 -lmm7 -lnds7
 
 #--------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -96,8 +93,8 @@ LIBDIRS	:=	$(LIBNDS)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #--------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(RELEASE)/lib$(TARGET).a
-
+export ARM7BIN	:=	$(CURDIR)/$(RELEASE)/$(TARGET).arm7
+export ARM7ELF	:=	$(CURDIR)/$(BUILD)/$(TARGET).arm7.elf
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
@@ -148,10 +145,7 @@ else
 endif
 #--------------------------------------------------------------------------------
 
-#export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
-#					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
-
-export OFILES	:=	$(MAPFILES:.map=.o) $(RAWFILES:.raw=.o) $(PALFILES:.pal=.o) $(BINFILES:.bin=.o) $(PNGFILES:.png=.o) $(PCXFILES:.pcx=.o) $(JPEGFILES:.jpg=.o) $(MODFILES:.mod=.o) $(GIFFILES:.gif=.o) $(BMPFILES:.bmp=.o) $(MP3FILES:.mp3=.o)\
+export OFILES	:=	$(MAPFILES:.map=.o) $(RAWFILES:.raw=.o) $(PALFILES:.pal=.o) $(BINFILES:.bin=.o) $(PNGFILES:.png=.o) $(PCXFILES:.pcx=.o) $(JPEGFILES:.jpg=.o) $(MODFILES:.mod=.o) $(GIFFILES:.gif=.o) $(BMPFILES:.bmp=.o) $(MP3FILES:.mp3=.o) \
 					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
@@ -160,22 +154,23 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 					-I$(CURDIR)/$(BUILD)
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) clean
+.PHONY: $(BUILD) rebuild clean
 
 #--------------------------------------------------------------------------------
 $(BUILD):
 	@echo Building configuration: $(notdir $@) ...
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	@echo Built configuration: $(notdir $@).
+	@echo Built configuration: $(notdir $@) .
 
 #--------------------------------------------------------------------------------
 clean:
-	@echo Cleaning $(TARGET) - ARM9 ...
+	@echo Cleaning $(TARGET) ...
+	@rm -f $(BUILD)/.map
 	@rm -f $(BUILD)/*.d
 	@rm -f $(BUILD)/*.o
-	@rm -f $(OUTPUT)
-	@echo Cleaned.
+	@rm -f $(ARM7BIN)
+	@rm -f $(ARM7ELF)
 
 rebuild: all
 
@@ -190,10 +185,14 @@ DEPENDS	:= $(OFILES:.o=.d)
 # main targets
 #--------------------------------------------------------------------------------
 
-$(OUTPUT)	:	$(OFILES)
-	@rm -f "$(OUTPUT)"
-	@$(AR) rcs "$(OUTPUT)" $(OFILES)
+$(ARM7BIN)	:	$(ARM7ELF)
+	@$(OBJCOPY) -O binary $< $@
+	@echo Built $(notdir $@) .
+
+$(ARM7ELF)	:	$(OFILES)
 	@echo Linking $(notdir $@) ...
+	$(LD) $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
+# IMPORTANT: the order of files is significant.
 
 #--------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
@@ -319,4 +318,6 @@ endef
 #--------------------------------------------------------------------------------
 endif
 #--------------------------------------------------------------------------------
+
+rebuild: all
 

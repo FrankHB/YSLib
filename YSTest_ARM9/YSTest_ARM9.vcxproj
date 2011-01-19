@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="debug|Win32">
+      <Configuration>debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="release|Win32">
+      <Configuration>release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\DSReader.cpp" />
+    <ClCompile Include="source\GBKEX.cpp" />
+    <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\Shells.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\DSReader.h" />
+    <ClInclude Include="include\Shells.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{501944E8-ADCC-40E6-87F0-08816CFAA343}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
+    <ProjectName>YSTest_ARM9</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <OutDir>$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <OutDir>$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
+    <NMakePreprocessorDefinitions>DEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <IncludePath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</IncludePath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
+    <ExcludePath>$(ExcludePath)</ExcludePath>
+    <NMakeBuildCommandLine>make -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
+    <NMakePreprocessorDefinitions>NDEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <NMakeBuildCommandLine>make -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
+    <IncludePath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.5.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.5.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)common\include;$(ProjectDir)arm7\include;$(ProjectDir)arm9\include;$(NMakeIncludeSearchPath)</IncludePath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
+    <ExcludePath>$(ExcludePath)</ExcludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,4 +1,4 @@
-//v0.2944; *Build 186 r18;
+//v0.2959; *Build 187 r37;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -31,6 +31,7 @@ $Record prefix and abbrevations:
 \cb ::= catch blocks
 \cl ::= classes
 \clt ::= class templates
+\conf ::= configuration
 \cp ::= copied
 \ctor ::= constructors
 \ctort ::= constuctor templates
@@ -76,6 +77,7 @@ $Record prefix and abbrevations:
 \mem ::= memory
 \mf ::= member functions
 \mft ::= member function templates
+\mg ::= merged
 \mo ::= member objects
 \mt ::= member templates
 \n ::= names
@@ -86,6 +88,7 @@ $Record prefix and abbrevations:
 \param ::= parameters
 \param.de ::= default parameters
 \pre ::= prepared
+\proj ::= projects
 \pt ::= points
 \ptr ::= pointers
 \q ::= qualifiers
@@ -160,62 +163,184 @@ $using:
 }
 
 $DONE:
-r1:
-/= test 0;
-
-r2:
-/ \lib CHRLib >> VC++ project CHRLib;
-/ YSTest project configuration;
-/ (top & arm9) Makefile;
-/ \tr \inc @@ \h YAdaptor;
-
-r3:
-/ solution config;
-/ project Makefile;
-
-r4:
-/ ARM9 Makefile to support no-debug (\mac NDEBUG) release;
-
-r5-r12:
-* CXXFLAGS @@ 2 Makefile to support no-debug (\mac NDEBUG) release;
-
-r13-r14:
-/ data file "cp113.bin" >> \lib CHRLib;
-* $(ARCH) @@ Makefile @@ \lib CHRLib;
-/ \tr \inc @@ \h YAdaptor;
-/ $(ARCH) @@ ARM9 Makefile;
-
-r15-r16:
-/ \lib YCLib >> VC++ project YCLib;
-* @@ 4 Makefile;
+r1-r3:
+/ \lib YSLib >> VC++ \proj YSLib;
+/ YSTest \proj \conf;
+/ @@ arm9 Makefile;
+/ \tr \inc @@ \h DSReader.h;
+/ \tr \inc @@ \h Build;
+/ \tr \inc @@ \h Platform::DS;
 / \tr \inc @@ \impl \u GBKEX;
+/ \tr \inc @@ \h YAdaptor;
+/ \h @@ \lib (FreeType2 & Loki & AGG) >> "common/include" ~ "arm9/include";
+/ \tr \inc @@ \h YShellHelper;
+* \tr \inc @@ \h YFocus;
 
-r17-r18:
-* \tr \rem @@ \h (YComponent & YWidget);
-/ \tr \impl @@ \f usize_t MBCSToUCS(fchar_t*, const char*, const CSID&)
-	@@ \impl \u CharacterProcessing @@ \lib CHRLib;
-/ test 1;
+r4-r5:
+/ ARM7 >> VC++ \proj YSLib;
+* \proj command line(only release version was run);
+
+r6-r7:
+/ ARM9 >> VC++ \proj YSLib;
+/ (top & ARM9) Makefile @@ \proj YSTest;
+/ \tr \inc @@ \h YAdaptor;
+/ common (\inc & data) >> \proj YSTest \dir ~ \dir "YSTest\common";
+/ Makefile @@ \lib (CHRLib & YCLib & YSLib);
+
+r8:
+* \tr @@ YSTest \proj Makefile;
+
+r9:
+/= test 1;
+
+r10:
+/ \tr \impl @@ \impl \u YFile;
+
+r11-r12:
+* '-g' option @@ release mode @@ 5 Makefile;
+/ ^ '-O3' & arm specified options compiled "libloki.a" @@ \proj YSTest;
+
+r13:
+/ \f BackMessage => BackMessageQueue @@ \u YShell;
+
+r14:
+/ @@ \h YCoreUtilities:
+	+ \stt (xcrease_t & delta_assignment_t);
+	+ \ft<bool> (xcrease & delta_assignment); 
+/ @@ \impl \u YGDI:
+	/= \tr \def order;
+	/ @@ \un \ns:
+		/ \f (blitAlphaFor & blitAlphaForU) \mg -> \ft<bool> blitAlphaFor
+			^ \ft (xcrease & delta_assignment);
+		/ \tr \impl @@ 4 \f BlitAlpha*;
+
+r15-r21:
+/ @@ \u YGDI:
+ 	/ \f BlitScale => BlitPositon;
+	+ \tf<bool, bool> BlitScale;
+	/ \impl @@ \a blit \f;
+	/ \a maxX => max_x;
+	/ \a maxY => max_y;
+	/ \a deltaX => delta_x;
+	/ \a deltaY => delta_y;
+	/ \a minX => min_x;
+	/ \a minY => min_y;
+	/ \mf \op () @@ \stt RectTransfomer;
+	/ \a srcOffset => src_off;
+	/ \a srcA => src_alpha;
+	/ @@ \un \ns:
+		* \f '*H' & '*V';
+		/ 4 \f blit2For \mg -> 2 \ft<bool> blit2For
+			^ \ft (xcrease & delta_assignment);
+
+r22:
+/= test 2 ^ \conf release;
+
+r23:
+/ @@ \u YGDI:
+	+ \as @@ 4 \f BlitScale;
+	/ \a int& 'delta_*' -> std::size& 'delta_*';
+	/ \a int 'delta_*' -> std::size 'delta_*';
+	/ \tr \impl @@ \f @@ \un \ns;
+	+ \as @@ \mft operator() @@ \st RectTransfomer;
+	/ \a 'int dInc, int sInc' -> 'std::ptrdiff_t dInc, std::ptrdiff_t sInc';
+	/ \a 'for(int y(0); y < delta_y; ++y)'
+		-> 'for(std::size_t y(0); y < delta_y; ++y)';
+	/ \a 'for(int x(0); x < delta_x; ++x)'
+		-> 'for(std::size_t x(0); x < delta_x; ++x)';
+	/ \tp @@ \a '*_off' -> std::ptrdiff_t ~ std::size_t;
+	/ \tp @@ \a '*_off' -> std::ptrdiff_t& ~ std::size_t&;
+	/ \a 'vmax<int>' -> 'vmax<std::ptrdiff_t>';
+	/ \a 'vmin<int>' -> 'vmin<std::ptrdiff_t>';
+	/ \a sInc => src_inc;
+	/ \a dInc => dst_inc;
+
+r24:
+/ @@ \impl \u YGDI:
+	/ @@ \un \ns:
+		+ \ft blitLine;
+		/ 2 \f blitFor \mg -> 1 \ft<bool> blitFor
+			^ \ft (blitLine & delta_assignment);;
+	/ \tr \impl @@ 4 \f 'Blit?';
+
+r25-r29:
+/= test 3;
+
+r30:
+* \ft YReset @@ \h YReference:
+	- #define YDelete_Debug YReset;
+	/ \ft YReset => YReset_ndebug;
+	+ #define YReset YReset_ndebug @@ !defined \mac YSL_USE_MEMORY_DEBUG;
+	+ #define YReset YReset_Debug @@ defined \mac YSL_USE_MEMORY_DEBUG;
+/ \a YReset_Debug => YReset_debug;
+/ @@ \h YCoreUtilities:
+	- typedef delete_obj delete_obj_ndebug;
+	- typedef safe_delete_obj safe_delete_obj_ndebug;
+	+ #define delete_obj delete_obj_ndebug
+		@@ !defined \mac YSL_USE_MEMORY_DEBUG;
+	+ #define safe_delete_obj safe_delete_obj_ndebug
+		@@ !defined \mac YSL_USE_MEMORY_DEBUG;
+
+r31:
+/= test 4;
+
+r32:
+* \impl @@ \i \ft<typename _type>
+	bool YReset_debug(GHHandle<_type>& h) ythrow() @@ \h YReference;
+
+r33:
+* @@ \h YCoreUtilities:
+	/ \stt delete_obj => delete_obj_ndebug;
+	/ \stt safe_delete_obj => safe_delete_obj_ndebug;
+* impl @@ \clt GStaticCache @@ \h YObject;
+
+r34:
+/ @@ \h YReference:
+	- \clt DeleteSingle_Debug;
+	- \clt DeleteArray_Debug;
+	/ \t \param DeleteSingle_Debug -> DeleteSingle @@ \clt (GHWeak & GHStrong);
+/ @@ \h YShellHelper:
+	/ \a ynew -> new;
+
+r35:
+* \tr \impl @@ 3 \ctor @@ \cl FileList;
+
+r36:
+/ test 5 ^ \conf release;
+	* \tr \mac @@ defined \mac YSL_USE_MEMORY_DEBUG @@ \h YReference;
+
+r37:
+/= test 6 ^ \conf debug;
 
 $DOING:
 
 relative process:
-2011-01-15:
--20.9d;
+2011-01-19:
+-20.1d;
 
 / ...
 
 
 $NEXT_TODO:
 
-b186-b240:
+b188-b240:
 * invalid listbox click;
 / scroll bars @@ listbox \cl;
 * fatal \err @@ since b177 when opening closed lid @@ real DS:
 [
+b185:
 F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 -e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02037F04
 guruMeditationDump
 gurumeditation.c:229
+b186 r17[realease]:
+pc: 09529334, addr: 09529334;
+b187 r18[debug]:
+pc: 020227C8, addr: 0380FDA4;
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020227C8
+guruMeditationDump
+gurumeditation.c:254
 ]
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;

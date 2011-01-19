@@ -1,97 +1,54 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="ARM7">
-      <UniqueIdentifier>{8814175e-d926-407d-ae93-6be4bacb9ba4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM7\源文件">
-      <UniqueIdentifier>{9966c568-c42e-4b92-9c88-eb027aa88fcb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9">
-      <UniqueIdentifier>{dbecf682-3ec1-48e6-9ad6-96ffbfd8e81b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\YSLib">
-      <UniqueIdentifier>{53656387-c62c-46a9-89f9-530e52281d34}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\源文件">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="ARM9\资源文件">
-      <UniqueIdentifier>{63ecc30e-fbaf-4c19-ac99-2a42a6ec8f16}</UniqueIdentifier>
-    </Filter>
     <Filter Include="文档">
       <UniqueIdentifier>{6ac5d7c6-b453-47ba-a130-e23acade5f8a}</UniqueIdentifier>
       <Extensions>txt;doc</Extensions>
     </Filter>
-    <Filter Include="common">
-      <UniqueIdentifier>{22ce99d7-1d4a-4424-a50e-bd6206ff516d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="common\资源文件">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
-    </Filter>
-    <Filter Include="ARM9\YSLib\Adaptor">
-      <UniqueIdentifier>{528ca737-2440-465a-be55-2d1a745a2539}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\头文件">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="ARM9\头文件\FreeType2">
-      <UniqueIdentifier>{1c81311a-786c-4906-89a0-cd4b45bba9f1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\头文件\FreeType2\config">
-      <UniqueIdentifier>{5a2271eb-c90a-4dc3-bcc0-8513ae390df2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\头文件\FreeType2\internal">
-      <UniqueIdentifier>{b0e47c44-b921-48c2-b609-28006deb58e8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\头文件\FreeType2\internal\services">
-      <UniqueIdentifier>{d25a9845-5e14-4b6c-aba1-1ad80bf39d69}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\头文件\AGG">
-      <UniqueIdentifier>{788d7939-4e3d-4a45-97e5-ac14d51a6a51}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\头文件\AGG\util">
-      <UniqueIdentifier>{306ccd79-8622-4892-885e-c8cc4175911e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\头文件\AGG\ctrl">
-      <UniqueIdentifier>{b605d2ad-4deb-4540-943a-6071a9d781a6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\头文件\Loki">
-      <UniqueIdentifier>{2ec99398-ae93-4633-9ecd-08f485c419ae}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\头文件\Loki\flex">
-      <UniqueIdentifier>{f5d8aa6e-8c36-44d8-ab53-e65c2f2f4cb5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\头文件\Loki\yasli">
-      <UniqueIdentifier>{3ed49585-ce75-4fbe-9589-3d5f025987b5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\YSLib\Core">
-      <UniqueIdentifier>{87880e54-e940-4400-8fd1-ab080884beac}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\YSLib\Shell">
-      <UniqueIdentifier>{5f1312e8-ea53-4ae4-88d6-12070c37afe5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\YSLib\Helper">
-      <UniqueIdentifier>{fedbdc16-047f-4315-a03d-de661e320bd5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ARM9\YSLib\Service">
-      <UniqueIdentifier>{2056444f-c557-4246-b7dc-6b5037083526}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="common\头文件">
+    <Filter Include="头文件">
       <UniqueIdentifier>{1b2f7d79-86f5-478d-8178-e4c26e30abaf}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="头文件\AGG">
+      <UniqueIdentifier>{12bbb957-0e4d-4e82-9b02-e6d35e358720}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\AGG\ctrl">
+      <UniqueIdentifier>{93021b31-a5c6-4868-9e97-c2421502b1d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\AGG\util">
+      <UniqueIdentifier>{8fb2966c-b785-47c6-9ea9-c84c3d7869e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Loki">
+      <UniqueIdentifier>{238a9d36-4ccb-4b1c-87c2-6622c13fb0cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\FreeType2">
+      <UniqueIdentifier>{fa7bb748-406b-4302-ad94-470fb74619fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Loki\flex">
+      <UniqueIdentifier>{384faee0-c9ed-4c5f-bdc4-5af6d19e01ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Loki\yasli">
+      <UniqueIdentifier>{75363155-537d-4418-9d91-1a7e3605d3cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\FreeType2\config">
+      <UniqueIdentifier>{1f4ea3f2-b82c-467c-986a-fc35108d6802}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\FreeType2\internal">
+      <UniqueIdentifier>{c57a11fc-ca68-4435-9566-782713aca5cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\FreeType2\internal\services">
+      <UniqueIdentifier>{736518b5-4f79-4a1e-a0d5-8a41a44eaca8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{22ce99d7-1d4a-4424-a50e-bd6206ff516d}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="arm7\Makefile">
-      <Filter>ARM7</Filter>
-    </None>
-    <None Include="arm9\Makefile">
-      <Filter>ARM9</Filter>
-    </None>
     <None Include="doc\Definitions.txt">
       <Filter>文档</Filter>
     </None>
@@ -102,1089 +59,846 @@
       <Filter>文档</Filter>
     </None>
     <None Include="data\logo.bmp">
-      <Filter>common\资源文件</Filter>
+      <Filter>资源文件</Filter>
     </None>
     <None Include="data\logo_wifi.bmp">
-      <Filter>common\资源文件</Filter>
+      <Filter>资源文件</Filter>
     </None>
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="arm7\source\main.cpp">
-      <Filter>ARM7\源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\yapp.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\ydevice.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\yexcept.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\yfile.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\yfilesys.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\yftext.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\yobject.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\yres.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\yshell.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\ysmsg.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Core\ystring.cpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Helper\shlds.cpp">
-      <Filter>ARM9\YSLib\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Helper\yglobal.cpp">
-      <Filter>ARM9\YSLib\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Helper\yshelper.cpp">
-      <Filter>ARM9\YSLib\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Service\ytimer.cpp">
-      <Filter>ARM9\YSLib\Service</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Service\ytmgr.cpp">
-      <Filter>ARM9\YSLib\Service</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Shell\ycomp.cpp">
-      <Filter>ARM9\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Shell\ycontrol.cpp">
-      <Filter>ARM9\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Shell\ydesktop.cpp">
-      <Filter>ARM9\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Shell\yform.cpp">
-      <Filter>ARM9\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Shell\ygdi.cpp">
-      <Filter>ARM9\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Shell\ygui.cpp">
-      <Filter>ARM9\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Shell\ytext.cpp">
-      <Filter>ARM9\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Shell\ywidget.cpp">
-      <Filter>ARM9\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Shell\ywindow.cpp">
-      <Filter>ARM9\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\source\DSReader.cpp">
-      <Filter>ARM9\源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\source\GBKEX.cpp">
-      <Filter>ARM9\源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\source\main.cpp">
-      <Filter>ARM9\源文件</Filter>
-    </ClCompile>
     <ClCompile Include="doc\ex.cpp">
       <Filter>文档</Filter>
     </ClCompile>
-    <ClCompile Include="arm9\YSLib\Shell\yguicomp.cpp">
-      <Filter>ARM9\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Adaptor\yfont.cpp">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\source\Shells.cpp">
-      <Filter>ARM9\源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Shell\yfocus.cpp">
-      <Filter>ARM9\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Adaptor\ysinit.cpp">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClCompile>
-    <ClCompile Include="arm9\YSLib\Adaptor\ynew.cpp">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="arm9\YSLib\Core\yapp.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\ft2build.h">
+      <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\ycounter.hpp">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\platform.h">
+      <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\ycutil.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_alpha_mask_u8.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\ydevice.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_arc.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\yexcept.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_array.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\yfile.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_arrowhead.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\yfilesys.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_basics.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\yftext.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_bezier_arc.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\yfunc.hpp">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_bitset_iterator.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\yobject.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_blur.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\yres.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_bounding_rect.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\ysdef.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_bspline.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\yshell.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_clip_liang_barsky.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\ysmsg.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_color_gray.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\ysmsgdef.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_color_rgba.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\ystring.h">
-      <Filter>ARM9\YSLib\Core</Filter>
+    <ClInclude Include="include\agg\agg_config.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Helper\shlds.h">
-      <Filter>ARM9\YSLib\Helper</Filter>
+    <ClInclude Include="include\agg\agg_conv_adaptor_vcgen.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Helper\yglobal.h">
-      <Filter>ARM9\YSLib\Helper</Filter>
+    <ClInclude Include="include\agg\agg_conv_adaptor_vpgen.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Helper\yshelper.h">
-      <Filter>ARM9\YSLib\Helper</Filter>
+    <ClInclude Include="include\agg\agg_conv_bspline.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Service\ytimer.h">
-      <Filter>ARM9\YSLib\Service</Filter>
+    <ClInclude Include="include\agg\agg_conv_clip_polygon.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Service\ytmgr.h">
-      <Filter>ARM9\YSLib\Service</Filter>
+    <ClInclude Include="include\agg\agg_conv_clip_polyline.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Shell\ycomp.h">
-      <Filter>ARM9\YSLib\Shell</Filter>
+    <ClInclude Include="include\agg\agg_conv_close_polygon.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Shell\ycontrol.h">
-      <Filter>ARM9\YSLib\Shell</Filter>
+    <ClInclude Include="include\agg\agg_conv_concat.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Shell\ydesktop.h">
-      <Filter>ARM9\YSLib\Shell</Filter>
+    <ClInclude Include="include\agg\agg_conv_contour.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Shell\yform.h">
-      <Filter>ARM9\YSLib\Shell</Filter>
+    <ClInclude Include="include\agg\agg_conv_curve.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Shell\ygdi.h">
-      <Filter>ARM9\YSLib\Shell</Filter>
+    <ClInclude Include="include\agg\agg_conv_dash.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Shell\ygui.h">
-      <Filter>ARM9\YSLib\Shell</Filter>
+    <ClInclude Include="include\agg\agg_conv_gpc.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Shell\ytext.h">
-      <Filter>ARM9\YSLib\Shell</Filter>
+    <ClInclude Include="include\agg\agg_conv_marker.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Shell\ywidget.h">
-      <Filter>ARM9\YSLib\Shell</Filter>
+    <ClInclude Include="include\agg\agg_conv_marker_adaptor.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\YSLib\Shell\ywindow.h">
-      <Filter>ARM9\YSLib\Shell</Filter>
+    <ClInclude Include="include\agg\agg_conv_segmentator.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\DSReader.h">
-      <Filter>ARM9\头文件</Filter>
+    <ClInclude Include="include\agg\agg_conv_shorten_path.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\ft2build.h">
-      <Filter>ARM9\头文件</Filter>
+    <ClInclude Include="include\agg\agg_conv_smooth_poly1.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\Shells.h">
-      <Filter>ARM9\头文件</Filter>
+    <ClInclude Include="include\agg\agg_conv_stroke.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\freetype.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_conv_transform.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftadvanc.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_conv_unclose_polygon.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftbbox.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_curves.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftbdf.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_dda_line.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftbitmap.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_ellipse.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftcache.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_ellipse_bresenham.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftchapters.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_embedded_raster_fonts.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftcid.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_font_cache_manager.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\fterrdef.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_gamma_functions.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\fterrors.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_gamma_lut.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftgasp.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_glyph_raster_bin.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftglyph.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_gradient_lut.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftgxval.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_gsv_text.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftgzip.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_image_accessors.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftimage.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_image_filters.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftincrem.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_line_aa_basics.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftlcdfil.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_math.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftlist.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_math_stroke.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftlzw.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_path_length.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftmac.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_path_storage.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftmm.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_path_storage_integer.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftmodapi.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_pattern_filters_rgba.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftmoderr.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_pixfmt_amask_adaptor.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftotval.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_pixfmt_gray.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftoutln.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_pixfmt_rgb.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftpfr.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_pixfmt_rgb_packed.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftrender.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_pixfmt_rgba.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftsizes.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_pixfmt_transposer.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftsnames.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_rasterizer_cells_aa.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftstroke.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_rasterizer_compound_aa.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftsynth.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_rasterizer_outline.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftsystem.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_rasterizer_outline_aa.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\fttrigon.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_rasterizer_scanline_aa.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\fttypes.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_rasterizer_sl_clip.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftwinfnt.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_renderer_base.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ftxf86.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_renderer_markers.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\t1tables.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_renderer_mclip.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ttnameid.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_renderer_outline_aa.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\tttables.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_renderer_outline_image.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\tttags.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_renderer_primitives.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\ttunpat.h">
-      <Filter>ARM9\头文件\FreeType2</Filter>
+    <ClInclude Include="include\agg\agg_renderer_raster_text.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\config\ftconfig.h">
-      <Filter>ARM9\头文件\FreeType2\config</Filter>
+    <ClInclude Include="include\agg\agg_renderer_scanline.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\config\ftheader.h">
-      <Filter>ARM9\头文件\FreeType2\config</Filter>
+    <ClInclude Include="include\agg\agg_rendering_buffer.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\config\ftmodule.h">
-      <Filter>ARM9\头文件\FreeType2\config</Filter>
+    <ClInclude Include="include\agg\agg_rendering_buffer_dynarow.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\config\ftoption.h">
-      <Filter>ARM9\头文件\FreeType2\config</Filter>
+    <ClInclude Include="include\agg\agg_rounded_rect.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\config\ftstdlib.h">
-      <Filter>ARM9\头文件\FreeType2\config</Filter>
+    <ClInclude Include="include\agg\agg_scanline_bin.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\autohint.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_scanline_boolean_algebra.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\ftcalc.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_scanline_p.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\ftdebug.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_scanline_storage_aa.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\ftdriver.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_scanline_storage_bin.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\ftgloadr.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_scanline_u.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\ftmemory.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_shorten_path.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\ftobjs.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_simul_eq.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\ftpic.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_span_allocator.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\ftrfork.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_span_converter.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\ftserv.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_span_gouraud.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\ftstream.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_span_gouraud_gray.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\fttrace.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_span_gouraud_rgba.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\ftvalid.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_span_gradient.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\internal.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_span_gradient_alpha.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\pcftypes.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_span_image_filter.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\psaux.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_span_image_filter_gray.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\pshints.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_span_image_filter_rgb.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\sfnt.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_span_image_filter_rgba.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\t1types.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_span_interpolator_adaptor.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\tttypes.h">
-      <Filter>ARM9\头文件\FreeType2\internal</Filter>
+    <ClInclude Include="include\agg\agg_span_interpolator_linear.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svbdf.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_span_interpolator_persp.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svcid.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_span_interpolator_trans.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svgldict.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_span_pattern_gray.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svgxval.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_span_pattern_rgb.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svkern.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_span_pattern_rgba.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svmm.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_span_solid.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svotval.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_span_subdiv_adaptor.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svpfr.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_trans_affine.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svpostnm.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_trans_bilinear.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svpscmap.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_trans_double_path.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svpsinfo.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_trans_perspective.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svsfnt.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_trans_single_path.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svttcmap.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_trans_viewport.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svtteng.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_trans_warp_magnifier.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svttglyf.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_vcgen_bspline.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svwinfnt.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_vcgen_contour.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\freetype\internal\services\svxf86nm.h">
-      <Filter>ARM9\头文件\FreeType2\internal\services</Filter>
+    <ClInclude Include="include\agg\agg_vcgen_dash.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_alpha_mask_u8.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\agg_vcgen_markers_term.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_arc.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\agg_vcgen_smooth_poly1.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_array.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\agg_vcgen_stroke.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_arrowhead.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\agg_vcgen_vertex_sequence.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_basics.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\agg_vertex_sequence.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_bezier_arc.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\agg_vpgen_clip_polygon.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_bitset_iterator.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\agg_vpgen_clip_polyline.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_blur.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\agg_vpgen_segmentator.h">
+      <Filter>头文件\AGG</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_bounding_rect.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\ctrl\agg_bezier_ctrl.h">
+      <Filter>头文件\AGG\ctrl</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_bspline.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\ctrl\agg_cbox_ctrl.h">
+      <Filter>头文件\AGG\ctrl</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_clip_liang_barsky.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\ctrl\agg_ctrl.h">
+      <Filter>头文件\AGG\ctrl</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_color_gray.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\ctrl\agg_gamma_ctrl.h">
+      <Filter>头文件\AGG\ctrl</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_color_rgba.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\ctrl\agg_gamma_spline.h">
+      <Filter>头文件\AGG\ctrl</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_config.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\ctrl\agg_polygon_ctrl.h">
+      <Filter>头文件\AGG\ctrl</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_adaptor_vcgen.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\ctrl\agg_rbox_ctrl.h">
+      <Filter>头文件\AGG\ctrl</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_adaptor_vpgen.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\ctrl\agg_scale_ctrl.h">
+      <Filter>头文件\AGG\ctrl</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_bspline.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\ctrl\agg_slider_ctrl.h">
+      <Filter>头文件\AGG\ctrl</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_clip_polygon.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\ctrl\agg_spline_ctrl.h">
+      <Filter>头文件\AGG\ctrl</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_clip_polyline.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\util\agg_color_conv.h">
+      <Filter>头文件\AGG\util</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_close_polygon.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\util\agg_color_conv_rgb8.h">
+      <Filter>头文件\AGG\util</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_concat.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\agg\util\agg_color_conv_rgb16.h">
+      <Filter>头文件\AGG\util</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_contour.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\AbstractFactory.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_curve.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Allocator.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_dash.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\AssocVector.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_gpc.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\CachedFactory.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_marker.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Checker.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_marker_adaptor.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\CheckReturn.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_segmentator.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\ConstPolicy.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_shorten_path.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\DataGenerators.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_smooth_poly1.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\EmptyType.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_stroke.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Factory.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_transform.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Function.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_conv_unclose_polygon.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Functor.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_curves.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\HierarchyGenerators.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_dda_line.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Key.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_ellipse.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\LevelMutex.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_ellipse_bresenham.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\LockingPtr.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_embedded_raster_fonts.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\LokiExport.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_font_cache_manager.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\LokiTypeInfo.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_gamma_functions.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\MultiMethods.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_gamma_lut.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\NullType.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_glyph_raster_bin.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\OrderedStatic.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_gradient_lut.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Pimpl.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_gsv_text.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\RefToValue.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_image_accessors.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Register.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_image_filters.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\SafeBits.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_line_aa_basics.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\SafeFormat.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_math.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\ScopeGuard.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_math_stroke.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Sequence.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_path_length.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Singleton.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_path_storage.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\SmallObj.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_path_storage_integer.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\SmartPtr.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_pattern_filters_rgba.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\SPCachedFactory.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_pixfmt_amask_adaptor.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\static_check.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_pixfmt_gray.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\StrongPtr.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_pixfmt_rgb.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Threads.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_pixfmt_rgb_packed.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Tuple.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_pixfmt_rgba.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Typelist.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_pixfmt_transposer.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\TypelistMacros.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_rasterizer_cells_aa.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\TypeManip.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_rasterizer_compound_aa.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\TypeTraits.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_rasterizer_outline.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\Visitor.h">
+      <Filter>头文件\Loki</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_rasterizer_outline_aa.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\flex\allocatorstringstorage.h">
+      <Filter>头文件\Loki\flex</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_rasterizer_scanline_aa.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\flex\cowstringopt.h">
+      <Filter>头文件\Loki\flex</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_rasterizer_sl_clip.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\flex\flex_string.h">
+      <Filter>头文件\Loki\flex</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_renderer_base.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\flex\flex_string_details.h">
+      <Filter>头文件\Loki\flex</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_renderer_markers.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\flex\flex_string_shell.h">
+      <Filter>头文件\Loki\flex</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_renderer_mclip.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\flex\simplestringstorage.h">
+      <Filter>头文件\Loki\flex</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_renderer_outline_aa.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\flex\smallstringopt.h">
+      <Filter>头文件\Loki\flex</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_renderer_outline_image.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\flex\vectorstringstorage.h">
+      <Filter>头文件\Loki\flex</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_renderer_primitives.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\yasli\platform.h">
+      <Filter>头文件\Loki\yasli</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_renderer_raster_text.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\yasli\random.h">
+      <Filter>头文件\Loki\yasli</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_renderer_scanline.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\yasli\yasli_fill_iterator.h">
+      <Filter>头文件\Loki\yasli</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_rendering_buffer.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\yasli\yasli_memory.h">
+      <Filter>头文件\Loki\yasli</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_rendering_buffer_dynarow.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\yasli\yasli_protocols.h">
+      <Filter>头文件\Loki\yasli</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_rounded_rect.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\yasli\yasli_traits.h">
+      <Filter>头文件\Loki\yasli</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_scanline_bin.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\loki\yasli\yasli_vector.h">
+      <Filter>头文件\Loki\yasli</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_scanline_boolean_algebra.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\freetype.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_scanline_p.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftadvanc.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_scanline_storage_aa.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftbbox.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_scanline_storage_bin.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftbdf.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_scanline_u.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftbitmap.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_shorten_path.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftcache.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_simul_eq.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftchapters.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_allocator.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftcid.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_converter.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\fterrdef.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_gouraud.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\fterrors.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_gouraud_gray.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftgasp.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_gouraud_rgba.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftglyph.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_gradient.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftgxval.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_gradient_alpha.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftgzip.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_image_filter.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftimage.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_image_filter_gray.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftincrem.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_image_filter_rgb.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftlcdfil.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_image_filter_rgba.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftlist.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_interpolator_adaptor.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftlzw.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_interpolator_linear.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftmac.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_interpolator_persp.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftmm.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_interpolator_trans.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftmodapi.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_pattern_gray.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftmoderr.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_pattern_rgb.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftotval.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_pattern_rgba.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftoutln.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_solid.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftpfr.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_span_subdiv_adaptor.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftrender.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_trans_affine.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftsizes.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_trans_bilinear.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftsnames.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_trans_double_path.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftstroke.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_trans_perspective.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftsynth.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_trans_single_path.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftsystem.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_trans_viewport.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\fttrigon.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_trans_warp_magnifier.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\fttypes.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_vcgen_bspline.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftwinfnt.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_vcgen_contour.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ftxf86.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_vcgen_dash.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\t1tables.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_vcgen_markers_term.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ttnameid.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_vcgen_smooth_poly1.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\tttables.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_vcgen_stroke.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\tttags.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_vcgen_vertex_sequence.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\ttunpat.h">
+      <Filter>头文件\FreeType2</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_vertex_sequence.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\config\ftconfig.h">
+      <Filter>头文件\FreeType2\config</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_vpgen_clip_polygon.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\config\ftheader.h">
+      <Filter>头文件\FreeType2\config</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_vpgen_clip_polyline.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\config\ftmodule.h">
+      <Filter>头文件\FreeType2\config</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\agg_vpgen_segmentator.h">
-      <Filter>ARM9\头文件\AGG</Filter>
+    <ClInclude Include="include\freetype\config\ftoption.h">
+      <Filter>头文件\FreeType2\config</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\util\agg_color_conv.h">
-      <Filter>ARM9\头文件\AGG\util</Filter>
+    <ClInclude Include="include\freetype\config\ftstdlib.h">
+      <Filter>头文件\FreeType2\config</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\util\agg_color_conv_rgb16.h">
-      <Filter>ARM9\头文件\AGG\util</Filter>
+    <ClInclude Include="include\freetype\internal\autohint.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\util\agg_color_conv_rgb8.h">
-      <Filter>ARM9\头文件\AGG\util</Filter>
+    <ClInclude Include="include\freetype\internal\ftcalc.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\ctrl\agg_bezier_ctrl.h">
-      <Filter>ARM9\头文件\AGG\ctrl</Filter>
+    <ClInclude Include="include\freetype\internal\ftdebug.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\ctrl\agg_cbox_ctrl.h">
-      <Filter>ARM9\头文件\AGG\ctrl</Filter>
+    <ClInclude Include="include\freetype\internal\ftdriver.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\ctrl\agg_ctrl.h">
-      <Filter>ARM9\头文件\AGG\ctrl</Filter>
+    <ClInclude Include="include\freetype\internal\ftgloadr.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\ctrl\agg_gamma_ctrl.h">
-      <Filter>ARM9\头文件\AGG\ctrl</Filter>
+    <ClInclude Include="include\freetype\internal\ftmemory.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\ctrl\agg_gamma_spline.h">
-      <Filter>ARM9\头文件\AGG\ctrl</Filter>
+    <ClInclude Include="include\freetype\internal\ftobjs.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\ctrl\agg_polygon_ctrl.h">
-      <Filter>ARM9\头文件\AGG\ctrl</Filter>
+    <ClInclude Include="include\freetype\internal\ftpic.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\ctrl\agg_rbox_ctrl.h">
-      <Filter>ARM9\头文件\AGG\ctrl</Filter>
+    <ClInclude Include="include\freetype\internal\ftrfork.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\ctrl\agg_scale_ctrl.h">
-      <Filter>ARM9\头文件\AGG\ctrl</Filter>
+    <ClInclude Include="include\freetype\internal\ftserv.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\ctrl\agg_slider_ctrl.h">
-      <Filter>ARM9\头文件\AGG\ctrl</Filter>
+    <ClInclude Include="include\freetype\internal\ftstream.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\agg\ctrl\agg_spline_ctrl.h">
-      <Filter>ARM9\头文件\AGG\ctrl</Filter>
+    <ClInclude Include="include\freetype\internal\fttrace.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\AbstractFactory.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\ftvalid.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\Allocator.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\internal.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\AssocVector.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\pcftypes.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\CachedFactory.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\psaux.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\Checker.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\pshints.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\CheckReturn.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\sfnt.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\ConstPolicy.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\t1types.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\DataGenerators.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\tttypes.h">
+      <Filter>头文件\FreeType2\internal</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\EmptyType.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svbdf.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\Factory.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svcid.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\Function.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svgldict.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\Functor.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svgxval.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\HierarchyGenerators.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svkern.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\Key.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svmm.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\LevelMutex.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svotval.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\LockingPtr.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svpfr.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\LokiExport.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svpostnm.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\LokiTypeInfo.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svpscmap.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\MultiMethods.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svpsinfo.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\NullType.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svsfnt.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\OrderedStatic.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svttcmap.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\Pimpl.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svtteng.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\RefToValue.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svttglyf.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\Register.h">
-      <Filter>ARM9\头文件\Loki</Filter>
+    <ClInclude Include="include\freetype\internal\services\svwinfnt.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="arm9\include\loki\SafeBits.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\SafeFormat.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\ScopeGuard.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\Sequence.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\Singleton.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\SmallObj.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\SmartPtr.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\SPCachedFactory.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\static_check.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\StrongPtr.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\Threads.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\Tuple.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\Typelist.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\TypelistMacros.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\TypeManip.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\TypeTraits.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\Visitor.h">
-      <Filter>ARM9\头文件\Loki</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\flex\allocatorstringstorage.h">
-      <Filter>ARM9\头文件\Loki\flex</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\flex\cowstringopt.h">
-      <Filter>ARM9\头文件\Loki\flex</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\flex\flex_string.h">
-      <Filter>ARM9\头文件\Loki\flex</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\flex\flex_string_details.h">
-      <Filter>ARM9\头文件\Loki\flex</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\flex\flex_string_shell.h">
-      <Filter>ARM9\头文件\Loki\flex</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\flex\simplestringstorage.h">
-      <Filter>ARM9\头文件\Loki\flex</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\flex\smallstringopt.h">
-      <Filter>ARM9\头文件\Loki\flex</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\flex\vectorstringstorage.h">
-      <Filter>ARM9\头文件\Loki\flex</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\yasli\platform.h">
-      <Filter>ARM9\头文件\Loki\yasli</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\yasli\random.h">
-      <Filter>ARM9\头文件\Loki\yasli</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\yasli\yasli_fill_iterator.h">
-      <Filter>ARM9\头文件\Loki\yasli</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\yasli\yasli_memory.h">
-      <Filter>ARM9\头文件\Loki\yasli</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\yasli\yasli_protocols.h">
-      <Filter>ARM9\头文件\Loki\yasli</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\yasli\yasli_traits.h">
-      <Filter>ARM9\头文件\Loki\yasli</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\include\loki\yasli\yasli_vector.h">
-      <Filter>ARM9\头文件\Loki\yasli</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Shell\yguicomp.h">
-      <Filter>ARM9\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adaptor\yadaptor.h">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adaptor\base.h">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adaptor\config.h">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adaptor\yfont.h">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adaptor\cont.h">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adaptor\yaslivsp.hpp">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Shell\yfocus.h">
-      <Filter>ARM9\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Core\yevt.hpp">
-      <Filter>ARM9\YSLib\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adaptor\agg.h">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adaptor\ysinit.h">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adaptor\ynew.h">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\Adaptor\yref.hpp">
-      <Filter>ARM9\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="arm9\YSLib\ysbuild.h">
-      <Filter>ARM9\YSLib</Filter>
-    </ClInclude>
-    <ClInclude Include="common\include\platform.h">
-      <Filter>common\头文件</Filter>
+    <ClInclude Include="include\freetype\internal\services\svxf86nm.h">
+      <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

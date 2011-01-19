@@ -1,8 +1,8 @@
 # DS Makefile for YCLib -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 + 08:00;
-# UTime = 2011-01-15 17:21 + 08:00;
-# Version = 0.3811;
+# UTime = 2011-01-17 11:55 + 08:00;
+# Version = 0.3827;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -30,7 +30,7 @@ export TARGET		:= $(shell basename $(CURDIR))
 export BUILD		?= release
 export RELEASE		= $(BUILD)
 export SOURCES		:= source data
-export INCLUDES	:= include ../YSTest/common/include data
+export INCLUDES	:= include ../YSTest/include data
 export DATA		:= data
 #export GRAPHICS	:= gfx
 #export MUSIC		:= music
@@ -43,7 +43,9 @@ ARCH	:=	-mthumb -mthumb-interwork -march=armv5te
 # note: arm9tdmi isn't the correct CPU arch, but anything newer and LD
 # *insists* it has a FPU or VFP, and it won't take no for an answer!
 
-CFLAGS	:=	-g -Wall \
+ASFLAGS	:=	$(ARCH)
+
+CFLAGS	:=	-Wall \
  			-fomit-frame-pointer \
 			-ffast-math \
 			$(ARCH)
@@ -53,12 +55,11 @@ CFLAGS	+=	$(INCLUDE) -DARM9
 ifneq ($(BUILD),debug)
 CFLAGS	+=	-O3 -DNDEBUG
 else
-CFLAGS	+=	-O0 -DDEBUG
+ASFLAGS	+=	-g
+CFLAGS	+=	-g -O0 -DDEBUG
 endif
 
 CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit
-
-ASFLAGS	:=	-g $(ARCH)
 
 LDFLAGS	:=	-specs=ds_arm9.specs -g $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
 
@@ -95,7 +96,7 @@ LIBDIRS	:=	$(LIBNDS)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #--------------------------------------------------------------------------------
 
-export ARM9BIN	:=	$(CURDIR)/$(RELEASE)/lib$(TARGET).a
+export OUTPUT	:=	$(CURDIR)/$(RELEASE)/lib$(TARGET).a
 
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
@@ -163,7 +164,7 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 #--------------------------------------------------------------------------------
 $(BUILD):
-	@echo Building congfiguration: $(notdir $@) ...
+	@echo Building configuration: $(notdir $@) ...
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 	@echo Built configuration: $(notdir $@).
@@ -173,12 +174,12 @@ clean:
 	@echo Cleaning $(TARGET) - ARM9 ...
 	@rm -f $(BUILD)/*.d
 	@rm -f $(BUILD)/*.o
-	@rm -f $(ARM9BIN)
+	@rm -f $(OUTPUT)
 	@echo Cleaned.
 
 rebuild: all
 
-all: $(BUILD) $(ARM9BIN)
+all: $(BUILD) $(OUTPUT)
 
 #--------------------------------------------------------------------------------
 else
@@ -189,10 +190,10 @@ DEPENDS	:= $(OFILES:.o=.d)
 # main targets
 #--------------------------------------------------------------------------------
 
-$(ARM9BIN)	:	$(OFILES)
-	@rm -f "$(ARM9BIN)"
+$(OUTPUT)	:	$(OFILES)
+	@rm -f "$(OUTPUT)"
 	@echo Linking $(notdir $@) ...
-	@$(AR) rcs "$(ARM9BIN)" $(OFILES)
+	@$(AR) rcs "$(OUTPUT)" $(OFILES)
 
 #--------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
