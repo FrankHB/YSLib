@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2926;
+\version 0.2938;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2011-01-04 23:55 + 08:00;
+	2011-01-23 07:32 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -200,9 +200,9 @@ YThumb::OnLeave(InputEventArgs&)
 
 
 YButton::YButton(const Rect& r, IUIBox* pCon, const Drawing::Font& f,
-	GHWeak<Drawing::TextRegion> pTr_)
+	GHWeak<Drawing::TextRegion> wpTr_)
 	: YThumb(r, pCon),
-	MLabel(f, pTr_)
+	MLabel(f, wpTr_)
 {}
 
 void
@@ -211,7 +211,7 @@ YButton::DrawForeground()
 	YWidgetAssert(this, Controls::YButton, DrawForeground);
 
 	ParentType::DrawForeground();
-	PaintText(*this, LocateForWindow(*this));
+	PaintText(*this, FetchContext(*this), LocateForWindow(*this));
 }
 
 
@@ -504,10 +504,10 @@ YVerticalScrollBar::YVerticalScrollBar(const Rect& r, IUIBox* pCon,
 
 
 YSimpleListBox::YSimpleListBox(const Rect& r, IUIBox* pCon,
-	GHWeak<TextRegion> pTr_, GHWeak<ListType> wpList_)
+	GHWeak<TextRegion> wpTr_, GHWeak<ListType> wpList_)
 	: YVisualControl(r, pCon),
-	pwTextRegion(pTr_ ? pTr_ : GetGlobalResource<TextRegion>()), Font(),
-	Margin(pwTextRegion->Margin), wpList(wpList_), Viewer(GetList())
+	wpTextRegion(wpTr_ ? wpTr_ : GetGlobalResource<TextRegion>()), Font(),
+	Margin(wpTextRegion->Margin), wpList(wpList_), Viewer(GetList())
 {
 	FetchEvent<EControl::KeyDown>(*this) += &YSimpleListBox::OnKeyDown;
 	FetchEvent<EControl::KeyHeld>(*this) += OnKeyHeld;
@@ -521,12 +521,12 @@ YSimpleListBox::YSimpleListBox(const Rect& r, IUIBox* pCon,
 Drawing::TextRegion&
 YSimpleListBox::GetTextRegion() const ythrow()
 {
-	YAssert(pwTextRegion,
+	YAssert(wpTextRegion,
 		"In function \"SDST\n"
 		"Components::Controls::YSimpleListBox::GetItemHeight()\": \n"
 		"The text region pointer is null.");
 
-	return *pwTextRegion;
+	return *wpTextRegion;
 }
 YSimpleListBox::ListType&
 YSimpleListBox::GetList() const ythrow()
@@ -555,7 +555,7 @@ YSimpleListBox::GetItemHeight() const
 void
 YSimpleListBox::SetSelected(YSimpleListBox::ViewerType::IndexType i)
 {
-	if(Viewer.Contains(i) && Viewer.SetSelected(Viewer.GetIndex() + i))
+	if(Viewer.Contains(i) && Viewer.SetSelected(i))
 		CallSelected();
 }
 void
@@ -577,17 +577,17 @@ YSimpleListBox::DrawForeground()
 	{
 		if(bFocused)
 			WndDrawFocus(pWnd, GetSize());
-		if(pwTextRegion && GetLnHeightFrom(*pwTextRegion) <= GetHeight())
+		if(wpTextRegion && GetLnHeightFrom(*wpTextRegion) <= GetHeight())
 		{
 			const SDST lnWidth(GetWidth());
 			const SDST lnHeight(GetItemHeight());
 
-			pwTextRegion->Font = Font;
-			pwTextRegion->Font.Update();
-			pwTextRegion->ResetPen();
-			pwTextRegion->SetSize(lnWidth, lnHeight);
-			SetMarginsTo(*pwTextRegion, defMarginH, defMarginV);
-			Viewer.SetLength((GetHeight() + pwTextRegion->LineGap)
+			wpTextRegion->Font = Font;
+			wpTextRegion->Font.Update();
+			wpTextRegion->ResetPen();
+			wpTextRegion->SetSize(lnWidth, lnHeight);
+			SetMarginsTo(*wpTextRegion, defMarginH, defMarginV);
+			Viewer.SetLength((GetHeight() + wpTextRegion->LineGap)
 				/ lnHeight);
 
 			const ViewerType::IndexType last(Viewer.GetIndex()
@@ -603,24 +603,24 @@ YSimpleListBox::DrawForeground()
 				{
 					if(Viewer.IsSelected() && i == Viewer.GetSelected())
 					{
-						pwTextRegion->Color = Drawing::ColorSpace::White;
+						wpTextRegion->Color = Drawing::ColorSpace::White;
 						FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
 							Rect(pt.X + 1, pt.Y + 1,
-							pwTextRegion->GetWidth() - 2,
-							pwTextRegion->GetHeight() - 1),
+							wpTextRegion->GetWidth() - 2,
+							wpTextRegion->GetHeight() - 1),
 							ColorSpace::Aqua);
 					}
 					else
-						pwTextRegion->Color = ForeColor;
-					pwTextRegion->PutLine(list[i]);
-					pwTextRegion->ResetPen();
-					pwTextRegion->BlitTo(g.GetBufferPtr(), g.GetSize(),
-						Point::Zero, pt, pwTextRegion->GetSize());
+						wpTextRegion->Color = ForeColor;
+					wpTextRegion->PutLine(list[i]);
+					wpTextRegion->ResetPen();
+					wpTextRegion->BlitTo(g.GetBufferPtr(), g.GetSize(),
+						Point::Zero, pt, wpTextRegion->GetSize());
 					pt.Y += lnHeight;
-					pwTextRegion->ClearImage();
+					wpTextRegion->ClearImage();
 				}
 			}
-			pwTextRegion->SetSize(0, 0);
+			wpTextRegion->SetSize(0, 0);
 		}
 	}
 }
@@ -629,7 +629,7 @@ YSimpleListBox::ViewerType::IndexType
 YSimpleListBox::CheckPoint(SPOS x, SPOS y)
 {
 	return Rect(Point::Zero, GetSize()).Contains(x, y)
-		? y / GetItemHeight() : -1;
+		? y / GetItemHeight() + Viewer.GetIndex(): -1;
 }
 
 void
@@ -736,13 +736,15 @@ YSimpleListBox::OnConfirmed(IndexEventArgs& e)
 
 
 YListBox::YListBox(const Rect& r, IUIBox* pCon,
-	GHWeak<TextRegion> pTr_, ListType* wpList_)
+	GHWeak<TextRegion> wpTr_, GHWeak<ListType> wpList_)
 	: YVisualControl(r, pCon),
 	MSimpleFocusResponser(),
-	TextListBox(r, this, pTr_, wpList_),
+	TextListBox(r, this, wpTr_, wpList_),
 	HorizontalScrollBar(Rect(Point::Zero, r.Width, 16), this),
 	VerticalScrollBar(Rect(Point::Zero, 16, r.Height), this)
 {
+	Selected = TextListBox.Selected;
+	Confirmed = TextListBox.Confirmed;
 	MoveToBottom(HorizontalScrollBar);
 	MoveToRight(VerticalScrollBar);
 }
@@ -779,8 +781,8 @@ YListBox::FixLayout()
 
 
 YFileBox::YFileBox(const Rect& r, IUIBox* pCon,
-	GHWeak<TextRegion> pTr_)
-	: FileList(), YSimpleListBox(r, pCon, pTr_, GetListWeakPtr())
+	GHWeak<TextRegion> wpTr_)
+	: FileList(), YSimpleListBox(r, pCon, wpTr_, GetListWeakPtr())
 {
 	Confirmed += &YFileBox::OnConfirmed;
 }

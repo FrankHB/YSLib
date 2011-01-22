@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6293;
+\version 0.6301;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 + 08:00;
 \par 修改时间:
-	2011-01-01 18:48 + 08:00;
+	2011-01-23 06:58 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -339,6 +339,16 @@ TextRegion::PutChar(fchar_t c)
 	}
 	PrintCharEx(*this, *this, c);
 	return 0;
+}
+
+
+void
+DrawText(TextRegion& tr, const Graphics& g, const Point& pt, const Size& s,
+	const String& str)
+{
+	tr.PutLine(str);
+	tr.BlitTo(g.GetBufferPtr(), g.GetSize(), Point::Zero,
+		pt, s);
 }
 
 YSL_END_NAMESPACE(Drawing)

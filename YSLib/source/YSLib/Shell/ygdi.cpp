@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3082;
+\version 0.3138;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2011-01-18 23:10 + 08:00;
+	2011-01-19 09:45 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,29 +40,29 @@ YSL_BEGIN_NAMESPACE(Drawing)
 namespace
 {
 	inline SPOS
-	blitMinX(SPOS sx, SPOS dx)
+	blit_min_x(SPOS sx, SPOS dx)
 	{
-		return sx + vmax<std::ptrdiff_t>(0, -dx);
+		return sx + vmax<int>(0, -dx);
 	}
 
 	inline SPOS
-	blitMinY(SPOS sy, SPOS dy)
+	blit_min_y(SPOS sy, SPOS dy)
 	{
-		return sy + vmax<std::ptrdiff_t>(0, -dy);
+		return sy + vmax<int>(0, -dy);
 	}
 
 	inline SPOS
-	blitMaxX(SDST sw, SDST dw, SPOS sx, SPOS dx, SDST cw)
+	blit_max_x(SDST sw, SDST dw, SPOS sx, SPOS dx, SDST cw)
 	{
-		return sx + vmin<std::ptrdiff_t>(
-			vmin<std::ptrdiff_t>(dw - dx, sw - sx), cw);
+		return sx + vmin<int>(
+			vmin<int>(dw - dx, sw - sx), cw);
 	}
 
 	inline SPOS
-	blitMaxY(SDST sh, SDST dh, SPOS sy, SPOS dy, SDST ch)
+	blit_max_y(SDST sh, SDST dh, SPOS sy, SPOS dy, SDST ch)
 	{
-		return sy + vmin<std::ptrdiff_t>(
-			vmin<std::ptrdiff_t>(dh - dy, sh - sy), ch);
+		return sy + vmin<int>(
+			vmin<int>(dh - dy, sh - sy), ch);
 	}
 }
 
@@ -71,18 +71,18 @@ BlitPosition(const Point& sp, const Point& dp,
 	const Size& ss, const Size& ds, const Size& sc,
 	int& min_x, int& min_y, int& max_x, int& max_y)
 {
-	min_x = blitMinX(sp.X, dp.X);
-	min_y = blitMinY(sp.Y, dp.Y);
-	max_x = blitMaxX(ss.Width, ds.Width, sp.X, dp.X, sc.Width);
-	max_y = blitMaxY(ss.Height, ds.Height, sp.Y, dp.Y, sc.Height);
+	min_x = blit_min_x(sp.X, dp.X);
+	min_y = blit_min_y(sp.Y, dp.Y);
+	max_x = blit_max_x(ss.Width, ds.Width, sp.X, dp.X, sc.Width);
+	max_y = blit_max_y(ss.Height, ds.Height, sp.Y, dp.Y, sc.Height);
 }
 
 template<>
 void
 BlitScale<false, false>(const Point& sp, const Point& dp,
 	const Size& ss, const Size& ds, const Size& sc,
-	std::size_t& delta_x, std::size_t& delta_y,
-	ptrdiff_t& src_off, ptrdiff_t& dst_off)
+	int& delta_x, int& delta_y,
+	int& src_off, int& dst_off)
 {
 	int min_x, min_y, max_x, max_y;
 	BlitPosition(sp, dp, ss, ds, sc, min_x, min_y, max_x, max_y);
@@ -92,15 +92,15 @@ BlitScale<false, false>(const Point& sp, const Point& dp,
 	delta_x = max_x - min_x;
 	delta_y = max_y - min_y;
 	src_off = min_y * ss.Width + min_x;
-	dst_off = vmax<std::ptrdiff_t>(0, dp.Y) * ds.Width
-		+ vmax<std::ptrdiff_t>(0, dp.X);
+	dst_off = vmax<int>(0, dp.Y) * ds.Width
+		+ vmax<int>(0, dp.X);
 }
 template<>
 void
 BlitScale<true, false>(const Point& sp, const Point& dp,
 	const Size& ss, const Size& ds, const Size& sc,
-	std::size_t& delta_x, std::size_t& delta_y,
-	ptrdiff_t& src_off, ptrdiff_t& dst_off)
+	int& delta_x, int& delta_y,
+	int& src_off, int& dst_off)
 {
 	int min_x, min_y, max_x, max_y;
 	BlitPosition(sp, dp, ss, ds, sc, min_x, min_y, max_x, max_y);
@@ -110,15 +110,15 @@ BlitScale<true, false>(const Point& sp, const Point& dp,
 	delta_x = max_x - min_x;
 	delta_y = max_y - min_y;
 	src_off = min_y * ss.Width + min_x;
-	dst_off = (vmax<std::ptrdiff_t>(0, dp.Y) + delta_y - 1) * ds.Width
-		+ vmax<std::ptrdiff_t>(0, dp.X);
+	dst_off = (vmax<int>(0, dp.Y) + delta_y - 1) * ds.Width
+		+ vmax<int>(0, dp.X);
 }
 template<>
 void
 BlitScale<false, true>(const Point& sp, const Point& dp,
 	const Size& ss, const Size& ds, const Size& sc,
-	std::size_t& delta_x, std::size_t& delta_y,
-	ptrdiff_t& src_off, ptrdiff_t& dst_off)
+	int& delta_x, int& delta_y,
+	int& src_off, int& dst_off)
 {
 	int min_x, min_y, max_x, max_y;
 	BlitPosition(sp, dp, ss, ds, sc, min_x, min_y, max_x, max_y);
@@ -128,15 +128,15 @@ BlitScale<false, true>(const Point& sp, const Point& dp,
 	delta_x = max_x - min_x;
 	delta_y = max_y - min_y;
 	src_off = min_y * ss.Width + min_x;
-	dst_off = vmax<std::ptrdiff_t>(0, dp.Y) * ds.Width
-		+ vmax<std::ptrdiff_t>(0, dp.X) + delta_x - 1;
+	dst_off = vmax<int>(0, dp.Y) * ds.Width
+		+ vmax<int>(0, dp.X) + delta_x - 1;
 }
 template<>
 void
 BlitScale<true, true>(const Point& sp, const Point& dp,
 	const Size& ss, const Size& ds, const Size& sc,
-	std::size_t& delta_x, std::size_t& delta_y,
-	ptrdiff_t& src_off, ptrdiff_t& dst_off)
+	int& delta_x, int& delta_y,
+	int& src_off, int& dst_off)
 {
 	int min_x, min_y, max_x, max_y;
 	BlitPosition(sp, dp, ss, ds, sc, min_x, min_y, max_x, max_y);
@@ -146,8 +146,8 @@ BlitScale<true, true>(const Point& sp, const Point& dp,
 	delta_x = max_x - min_x;
 	delta_y = max_y - min_y;
 	src_off = min_y * ss.Width + min_x;
-	dst_off = (vmax<std::ptrdiff_t>(0, dp.Y) + delta_y - 1) * ds.Width
-		+ vmax<std::ptrdiff_t>(0, dp.X) + delta_x - 1;
+	dst_off = (vmax<int>(0, dp.Y) + delta_y - 1) * ds.Width
+		+ vmax<int>(0, dp.X) + delta_x - 1;
 }
 
 
@@ -155,29 +155,30 @@ namespace
 {
 	template<bool _bPositiveScan>
 	void
-	blitLine(BitmapPtr dc, ConstBitmapPtr sc, std::size_t delta_x)
+	blit_line(BitmapPtr dst_iter, ConstBitmapPtr src_iter, int delta_x)
 	{
-		mmbcpy(dc, sc, delta_x * sizeof(PixelType));
+		if(delta_x > 0)
+			mmbcpy(dst_iter, src_iter, delta_x * sizeof(PixelType));
 	}
 	template<>
 	void
-	blitLine<false>(BitmapPtr dc, ConstBitmapPtr sc, std::size_t delta_x)
+	blit_line<false>(BitmapPtr dst_iter, ConstBitmapPtr src_iter, int delta_x)
 	{
-		for(std::size_t x(0); x < delta_x; ++x)
-			*dc-- = *sc++;
+		for(int x(0); x < delta_x; ++x)
+			*dst_iter-- = *src_iter++;
 	}
 
 	template<bool _bPositiveScan>
 	void
-	blitFor(std::size_t delta_x, std::size_t delta_y,
-		BitmapPtr dc, ConstBitmapPtr sc,
-		std::ptrdiff_t dst_inc, std::ptrdiff_t src_inc)
+	blit_for(int delta_x, int delta_y,
+		BitmapPtr dst_iter, ConstBitmapPtr src_iter,
+		int dst_inc, int src_inc)
 	{
-		for(std::size_t y(0); y < delta_y; ++y)
+		for(int y(0); y < delta_y; ++y)
 		{
-			blitLine<_bPositiveScan>(dc, sc, delta_x);
-			sc += src_inc;
-			delta_assignment<_bPositiveScan>(dc, dst_inc);
+			blit_line<_bPositiveScan>(dst_iter, src_iter, delta_x);
+			src_iter += src_inc;
+			delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
 		}
 	}
 }
@@ -187,12 +188,12 @@ Blit(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<false, false>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blitFor<true>(delta_x, delta_y, dst + dst_off, src + src_off,
+	blit_for<true>(delta_x, delta_y, dst + dst_off, src + src_off,
 		ds.Width, ss.Width);
 }
 
@@ -201,12 +202,12 @@ BlitH(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<true, false>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blitFor<false>(delta_x, delta_y, dst + dst_off, src + src_off,
+	blit_for<false>(delta_x, delta_y, dst + dst_off, src + src_off,
 		- ds.Width - delta_x, ss.Width - delta_x);
 }
 
@@ -215,12 +216,12 @@ BlitV(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<false, true>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blitFor<true>(delta_x, delta_y, dst + dst_off, src + src_off,
+	blit_for<true>(delta_x, delta_y, dst + dst_off, src + src_off,
 		- ds.Width - delta_x, ss.Width - delta_x);
 }
 
@@ -229,12 +230,12 @@ BlitU(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<true, true>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blitFor<false>(delta_x, delta_y, dst + dst_off, src + src_off,
+	blit_for<false>(delta_x, delta_y, dst + dst_off, src + src_off,
 		ds.Width, ss.Width);
 }
 
@@ -243,18 +244,18 @@ void Blit(u8* dst, SDST dw, SDST dh,
 const u8* src, SDST sw, SDST sh,
 const Point& sp, const Point& dp, const Size& sc)
 {
-const int min_x = blitMinX(sx, dx),
-min_y = blitMinY(sy, dy),
-max_x = blitMaxX(sw, dw, sx, dx, cw),
-max_y = blitMaxY(sh, dh, sy, dy, ch);
-const u8* sc = src + min_y * ss.Width + min_x;
-u8* dc = dst + vmax<std::ptrdiff_t>(0, dp.Y) * ds.Width + vmax<std::ptrdiff_t>(0, dp.X);
+const int min_x = blit_min_x(sx, dx),
+min_y = blit_min_y(sy, dy),
+max_x = blit_max_x(sw, dw, sx, dx, cw),
+max_y = blit_max_y(sh, dh, sy, dy, ch);
+const u8* src_iter = src + min_y * ss.Width + min_x;
+u8* dst_iter = dst + vmax<int>(0, dp.Y) * ds.Width + vmax<int>(0, dp.X);
 
 for(int y = min_y; y < max_y; y++)
 {
-mmbcpy(dc, sc, max_x - min_x);
-sc += sw;
-dc += dw;
+mmbcpy(dst_iter, src_iter, max_x - min_x);
+src_iter += sw;
+dst_iter += dw;
 }
 }
 */
@@ -263,21 +264,21 @@ namespace
 {
 	template<bool _bPositiveScan>
 	void
-	blit2For(std::size_t delta_x, std::size_t delta_y,
-		BitmapPtr dc, ConstBitmapPtr sc,
-		std::ptrdiff_t dst_inc, std::ptrdiff_t src_inc)
+	blit2_for(int delta_x, int delta_y,
+		BitmapPtr dst_iter, ConstBitmapPtr src_iter,
+		int dst_inc, int src_inc)
 	{
-		for(std::size_t y(0); y < delta_y; ++y)
+		for(int y(0); y < delta_y; ++y)
 		{
-			for(std::size_t x(0); x < delta_x; ++x)
+			for(int x(0); x < delta_x; ++x)
 			{
-				if(*sc & BITALPHA)
-					*dc = *sc;
-				++sc;
-				xcrease<_bPositiveScan>(dc);
+				if(*src_iter & BITALPHA)
+					*dst_iter = *src_iter;
+				++src_iter;
+				xcrease<_bPositiveScan>(dst_iter);
 			}
-			sc += src_inc;
-			delta_assignment<_bPositiveScan>(dc, dst_inc);
+			src_iter += src_inc;
+			delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
 		}
 	}
 }
@@ -287,12 +288,12 @@ Blit2(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<false, false>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blit2For<true>(delta_x, delta_y, dst + dst_off, src + src_off,
+	blit2_for<true>(delta_x, delta_y, dst + dst_off, src + src_off,
 		ds.Width - delta_x, ss.Width - delta_x);
 }
 
@@ -301,12 +302,12 @@ Blit2H(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<true, false>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blit2For<false>(delta_x, delta_y, dst + dst_off, src + src_off,
+	blit2_for<false>(delta_x, delta_y, dst + dst_off, src + src_off,
 		- ds.Width - delta_x, ss.Width - delta_x);
 }
 
@@ -315,12 +316,12 @@ Blit2V(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<false, true>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blit2For<true>(delta_x, delta_y, dst + dst_off, src + src_off,
+	blit2_for<true>(delta_x, delta_y, dst + dst_off, src + src_off,
 		- ds.Width - delta_x, ss.Width - delta_x);
 }
 
@@ -329,12 +330,12 @@ Blit2U(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<true, true>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blit2For<false>(delta_x, delta_y, dst + dst_off, src + src_off,
+	blit2_for<false>(delta_x, delta_y, dst + dst_off, src + src_off,
 		ds.Width - delta_x, ss.Width - delta_x);
 }
 
@@ -342,20 +343,20 @@ namespace
 {
 	template<bool _bPositiveScan>
 	void
-	blit2For(std::size_t delta_x, std::size_t delta_y,
-		BitmapPtr dc, ConstBitmapPtr sc, const u8* sa,
-		std::ptrdiff_t dst_inc, std::ptrdiff_t src_inc)
+	blit2_for(int delta_x, int delta_y,
+		BitmapPtr dst_iter, ConstBitmapPtr src_iter, const u8* src_alpha,
+		int dst_inc, int src_inc)
 	{
-		for(std::size_t y(0); y < delta_y; ++y)
+		for(int y(0); y < delta_y; ++y)
 		{
-			for(std::size_t x(0); x < delta_x; ++x)
+			for(int x(0); x < delta_x; ++x)
 			{
-				*dc = ((*sa++ & 0x80) ? *sc : 0) | BITALPHA;
-				++sc;
-				xcrease<_bPositiveScan>(dc);
+				*dst_iter = ((*src_alpha++ & 0x80) ? *src_iter : 0) | BITALPHA;
+				++src_iter;
+				xcrease<_bPositiveScan>(dst_iter);
 			}
-			sc += src_inc;
-			delta_assignment<_bPositiveScan>(dc, dst_inc);
+			src_iter += src_inc;
+			delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
 		}
 	}
 }
@@ -365,12 +366,12 @@ Blit2(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<false, false>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blit2For<true>(delta_x, delta_y, dst + dst_off, src + src_off, src_alpha + src_off,
+	blit2_for<true>(delta_x, delta_y, dst + dst_off, src + src_off, src_alpha + src_off,
 		ds.Width - delta_x, ss.Width - delta_x);
 }
 
@@ -379,12 +380,12 @@ Blit2H(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<true, false>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blit2For<false>(delta_x, delta_y,
+	blit2_for<false>(delta_x, delta_y,
 		dst + dst_off, src + src_off, src_alpha + src_off,
 		- ds.Width - delta_x, ss.Width - delta_x);
 }
@@ -394,12 +395,12 @@ Blit2V(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<false, true>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blit2For<true>(delta_x, delta_y,
+	blit2_for<true>(delta_x, delta_y,
 		dst + dst_off, src + src_off, src_alpha + src_off,
 		- ds.Width - delta_x, ss.Width - delta_x);
 }
@@ -409,12 +410,12 @@ Blit2U(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<true, true>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blit2For<false>(delta_x, delta_y,
+	blit2_for<false>(delta_x, delta_y,
 		dst + dst_off, src + src_off, src_alpha + src_off,
 		ds.Width - delta_x, ss.Width - delta_x);
 }
@@ -427,18 +428,19 @@ namespace
 
 	//测试用，不使用 Alpha 混合的快速算法。
 	inline void
-	biltAlphaPoint(BitmapPtr dc, ConstBitmapPtr sc, const u8* sa)
+	biltAlphaPoint(BitmapPtr dst_iter, ConstBitmapPtr src_iter, const u8* src_alpha)
 	{
-		if(*sa >= BLT_THRESHOLD2)
-			*dc = *sc | BITALPHA;
+		if(*src_alpha >= BLT_THRESHOLD2)
+			*dst_iter = *src_iter | BITALPHA;
 	}
 
 #else
 
 	inline void
-	biltAlphaPoint(BitmapPtr dc, ConstBitmapPtr sc, const u8* sa)
+	biltAlphaPoint(BitmapPtr dst_iter, ConstBitmapPtr src_iter,
+		const u8* src_alpha)
 	{
-		register u32 a = *sa;
+		register u32 a = *src_alpha;
 
 		if(a >= BLT_THRESHOLD)
 		{
@@ -453,13 +455,13 @@ namespace
 				0000000000000000000000ggggg00000 : dg
 			分解红色和蓝色分量至 32 位寄存器以减少乘法次数。
 			使用下列 Alpha 混合公式（其中 alpha = a / BLT_MAX_ALPHA）：
-			dc = (1 - alpha) * d + alpha * s
+			dst_iter = (1 - alpha) * d + alpha * s
 			= ((BLT_MAX_ALPHA - a) * d + a * s) >> BLT_ALPHA_BITS
 			= ((d << BLT_ALPHA_BITS) + BLT_ROUND + a * (s - d))
 				>> BLT_ALPHA_BITS;
 			可进一步近似为 d + ((a * (s - d)) >> BLT_ALPHA_BITS)，但有额外损失。
 			*/
-			register u32 s = *sc, d = *dc;
+			register u32 s = *src_iter, d = *dst_iter;
 
 			if(d & BITALPHA && a <= BLT_MAX_ALPHA - BLT_THRESHOLD)
 			{
@@ -470,11 +472,11 @@ namespace
 					* a + BLT_ROUND) >> BLT_ALPHA_BITS));
 				dg  = (dg  + ((((s & 0x3E0) - dg) * a + BLT_ROUND)
 					>> BLT_ALPHA_BITS));
-				*dc = (dbr & 0x1F) | (dg & 0x3E0)
+				*dst_iter = (dbr & 0x1F) | (dg & 0x3E0)
 					| (dbr >> 6 & 0x7C00) | BITALPHA;
 			}
 			else if(a >= BLT_THRESHOLD2)
-				*dc = s | BITALPHA;
+				*dst_iter = s | BITALPHA;
 		}
 	}
 
@@ -482,22 +484,22 @@ namespace
 
 	template<bool _bPositiveScan>
 	void
-	blitAlphaFor(std::size_t delta_x, std::size_t delta_y,
-		BitmapPtr dc, ConstBitmapPtr sc, const u8* sa,
-		std::ptrdiff_t dst_inc, std::ptrdiff_t src_inc)
+	blitAlpha_for(int delta_x, int delta_y,
+		BitmapPtr dst_iter, ConstBitmapPtr src_iter, const u8* src_alpha,
+		int dst_inc, int src_inc)
 	{
-		for(std::size_t y(0); y < delta_y; ++y)
+		for(int y(0); y < delta_y; ++y)
 		{
-			for(std::size_t x(0); x < delta_x; ++x)
+			for(int x(0); x < delta_x; ++x)
 			{
-				biltAlphaPoint(dc, sc, sa);
-				++sa;
-				++sc;
-				xcrease<_bPositiveScan>(dc);
+				biltAlphaPoint(dst_iter, src_iter, src_alpha);
+				++src_alpha;
+				++src_iter;
+				xcrease<_bPositiveScan>(dst_iter);
 			}
-			sc += src_inc;
-			sa += src_inc;
-			delta_assignment<_bPositiveScan>(dc, dst_inc);
+			src_iter += src_inc;
+			src_alpha += src_inc;
+			delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
 		}
 	}
 }
@@ -507,12 +509,12 @@ BlitAlpha(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<false, false>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blitAlphaFor<true>(delta_x, delta_y,
+	blitAlpha_for<true>(delta_x, delta_y,
 		dst + dst_off, src + src_off, src_alpha + src_off,
 		ds.Width - delta_x, ss.Width - delta_x);
 }
@@ -522,12 +524,12 @@ BlitAlphaH(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<true, false>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blitAlphaFor<false>(delta_x, delta_y,
+	blitAlpha_for<false>(delta_x, delta_y,
 		dst + dst_off, src + src_off, src_alpha + src_off,
 		- ds.Width - delta_x, ss.Width - delta_x);
 }
@@ -537,12 +539,12 @@ BlitAlphaV(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<false, true>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blitAlphaFor<true>(delta_x, delta_y,
+	blitAlpha_for<true>(delta_x, delta_y,
 		dst + dst_off, src + src_off, src_alpha + src_off,
 		- ds.Width - delta_x, ss.Width - delta_x);
 }
@@ -552,12 +554,12 @@ BlitAlphaU(BitmapPtr dst, const Size& ds,
 	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
 	const Point& sp, const Point& dp, const Size& sc)
 {
-	std::size_t delta_x, delta_y;
-	std::ptrdiff_t src_off, dst_off;
+	int delta_x, delta_y;
+	int src_off, dst_off;
 
 	BlitScale<true, true>(sp, dp, ss, ds, sc,
 		delta_x, delta_y, src_off, dst_off);
-	blitAlphaFor<false>(delta_x, delta_y,
+	blitAlpha_for<false>(delta_x, delta_y,
 		dst + dst_off, src + src_off, src_alpha + src_off,
 		ds.Width - delta_x, ss.Width - delta_x);
 }

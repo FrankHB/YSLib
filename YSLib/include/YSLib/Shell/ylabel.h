@@ -1,0 +1,122 @@
+﻿/*
+	Copyright (C) by Franksoft 2011.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ylabel.h
+\ingroup Shell
+\brief 平台无关的标签模块实现。
+\version 0.1866;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2011-01-22 08:30:47 + 08:00;
+\par 修改时间:
+	2011-01-23 07:03 + 08:00;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Shell::YLabel;
+*/
+
+
+#ifndef INCLUDED_YLABEL_H_
+#define INCLUDED_YLABEL_H_
+
+#include "ywidget.h"
+//#include "../Core/yres.h"
+#include "ytext.h"
+
+YSL_BEGIN
+
+YSL_BEGIN_NAMESPACE(Components)
+
+YSL_BEGIN_NAMESPACE(Widgets)
+
+//标签模块。
+class MLabel : public NonCopyable
+{
+protected:
+	GHWeak<Drawing::TextRegion> wpTextRegion; //!< 文本区域指针。
+
+public:
+	Drawing::Font Font; //!< 字体。
+	Drawing::Padding Margin; //!< 文本和容器的间距。
+	bool AutoSize; //!< 启用根据字号自动调整大小。
+	bool AutoEllipsis; //!< 启用对超出标签宽度的文本调整大小。
+	String Text; //!< 标签文本。
+
+protected:
+	/*!
+	\brief 构造：使用指定字体和文本区域指针。
+	*/
+	explicit
+	MLabel(const Drawing::Font& = Drawing::Font::GetDefault(),
+		GHWeak<Drawing::TextRegion> = NULL);
+
+	/*!
+	\brief 绘制文本。
+	\note 绘制结束后重设缓冲区大小为零。
+	*/
+	bool
+	PaintText(Widget&, const Graphics&, const Point&);
+};
+
+
+//标签。
+class YLabel : public GMCounter<YLabel>, public YWidget,
+	public MLabel
+{
+public:
+	typedef YWidget ParentType;
+
+/*
+	YImage BackgroundImage; //!< 背景图像。
+	YImage Image; //!< 前景图像。
+*/
+
+	/*!
+	\brief 构造：使用指定边界、部件容器指针、字体和文本区域。
+	*/
+	explicit
+	YLabel(const Rect& = Rect::Empty, IUIBox* = NULL,
+		const Drawing::Font& = Drawing::Font::GetDefault(),
+		GHWeak<Drawing::TextRegion> = NULL);
+
+	virtual DefEmptyDtor(YLabel)
+
+	/*!
+	\brief 绘制前景。
+	*/
+	virtual void
+	DrawForeground();
+};
+
+
+//! \brief 文本列表模块。
+class MTextList : private MLabel
+{
+protected:
+	/*!
+	\brief 构造：使用指定字体和文本区域指针。
+	*/
+	explicit
+	MTextList(const Drawing::Font& = Drawing::Font::GetDefault(),
+		GHWeak<Drawing::TextRegion> = NULL);
+
+	//void
+	//PaintTextList(Widget&, const Point&);
+};
+
+YSL_END_NAMESPACE(Widgets)
+
+YSL_END_NAMESPACE(Components)
+
+YSL_END
+
+#endif
+

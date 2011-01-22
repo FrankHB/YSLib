@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.3164;
+\version 0.3166;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 + 08:00;
 \par 修改时间:
-	2011-01-17 21:18 + 08:00;
+	2011-01-22 09:34 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,7 @@
 
 
 #include "yapp.h"
-#include "../Shell/ygui.h"
+#include "../Shell/ydesktop.h"
 #include "../Helper/yglobal.h"
 
 YSL_BEGIN
@@ -38,8 +38,6 @@ MainShlProc(const Message&);
 
 YSL_BEGIN_NAMESPACE(Shells)
 
-using namespace Components;
-using namespace Components::Controls;
 using namespace Messaging;
 
 YShell::YShell()

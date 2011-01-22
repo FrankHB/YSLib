@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version 0.1669;
+\version 0.1679;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-09 20:43:52 + 08:00;
 \par 修改时间:
-	2010-12-19 13:41 + 08:00;
+	2011-01-21 23:12 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,8 +70,8 @@ protected:
 	}
 
 public:
-	DefStaticGetter(count_t, Count, nCount)
-	DefStaticGetter(count_t, Total, nTotal)
+	static DefMutableGetter(count_t, Count, nCount)
+	static DefMutableGetter(count_t, Total, nTotal)
 	DefGetter(count_t, ObjectID, nID)
 
 protected:

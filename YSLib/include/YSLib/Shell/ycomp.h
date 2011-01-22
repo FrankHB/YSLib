@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件实现。
-\version 0.2929;
+\version 0.2934;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 + 08:00;
 \par 修改时间:
-	2011-01-15 19:03 + 08:00;
+	2011-01-21 13:22 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -95,7 +95,7 @@ private:
 	_tContainer& c; //!< 序列容器引用。
 	IndexType nIndex, //!< 项目索引：视图中首个项目下标，若不存在则为 -1 。
 		nSelected; //!< 选中项目下标，大于等于 GetTotal() 时无效。
-	SizeType nLength; //!< 视图长度。
+	SizeType nLength; //!< 视图长度：最大可视项目数。
 	bool bSelected; //!< 选中状态。
 
 public:
@@ -151,7 +151,8 @@ public:
 	bool
 	Contains(IndexType i)
 	{
-		return IsInInterval<IndexType>(i, GetLength());
+		return i < nIndex ? false
+			: IsInInterval<IndexType>(i - GetIndex(), GetLength());
 	}
 
 	DefGetter(SizeType, Total, c.size()) //!< 取容器中项目个数。

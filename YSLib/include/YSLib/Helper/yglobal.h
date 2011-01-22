@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.1965;
+\version 0.1975;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 + 08:00;
 \par 修改时间:
-	2011-01-07 21:52 + 08:00;
+	2011-01-23 07:20 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -127,7 +127,9 @@ int
 MainShlProc(const Message& msg);
 
 /*!	\defgroup HelperFunction Helper Function
-\brief 助手函数。
+\brief 助手功能/函数。
+
+仅帮助简化编码形式，并不包含编译期之后逻辑功能实现的代码设施。
 */
 
 YSL_END

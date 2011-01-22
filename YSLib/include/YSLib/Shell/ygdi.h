@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3524;
+\version 0.3564;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2011-01-18 14:54 + 08:00;
+	2011-01-20 09:13 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -130,32 +130,32 @@ template<bool _bSwapLR, bool _bSwapUD>
 void
 BlitScale(const Point& sp, const Point& dp,
 	const Size& ss, const Size& ds, const Size& cs,
-	std::size_t& delta_x, std::size_t& delta_y,
-	ptrdiff_t& src_off, ptrdiff_t& dst_off);
+	int& delta_x, int& delta_y,
+	int& src_off, int& dst_off);
 template<>
 void
 BlitScale<false, false>(const Point& sp, const Point& dp,
 	const Size& ss, const Size& ds, const Size& cs,
-	std::size_t& delta_x, std::size_t& delta_y,
-	ptrdiff_t& src_off, ptrdiff_t& dst_off);
+	int& delta_x, int& delta_y,
+	int& src_off, int& dst_off);
 template<>
 void
 BlitScale<true, false>(const Point& sp, const Point& dp,
 	const Size& ss, const Size& ds, const Size& cs,
-	std::size_t& delta_x, std::size_t& delta_y,
-	ptrdiff_t& src_off, ptrdiff_t& dst_off);
+	int& delta_x, int& delta_y,
+	int& src_off, int& dst_off);
 template<>
 void
 BlitScale<false, true>(const Point& sp, const Point& dp,
 	const Size& ss, const Size& ds, const Size& cs,
-	std::size_t& delta_x, std::size_t& delta_y,
-	ptrdiff_t& src_off, ptrdiff_t& dst_off);
+	int& delta_x, int& delta_y,
+	int& src_off, int& dst_off);
 template<>
 void
 BlitScale<true, true>(const Point& sp, const Point& dp,
 	const Size& ss, const Size& ds, const Size& cs,
-	std::size_t& delta_x, std::size_t& delta_y,
-	ptrdiff_t& src_off, ptrdiff_t& dst_off);
+	int& delta_x, int& delta_y,
+	int& src_off, int& dst_off);
 
 
 //! \brief 正则矩形转换器。
@@ -170,19 +170,16 @@ struct RectTransfomer
 	operator()(_tPixel* dst, const Size& ds, const Point& dp, const Size& ss,
 		_fTransformPixel tp, _fTransformLine tl)
 	{
-		int min_x, min_y, max_x, maxY;
+		int min_x, min_y, max_x, max_y;
 
 		BlitPosition(Point::Zero, dp, ss, ds, ss,
-			min_x, min_y, max_x, maxY);
+			min_x, min_y, max_x, max_y);
 
-		YAssert(!(max_x < min_x || max_x < min_x), "Error occured"
-			" @@ RectTransformer::operator().");
-
-		const std::size_t delta_x(max_x - min_x),
-			delta_y(maxY - min_y);
+		const int delta_x(max_x - min_x),
+			delta_y(max_y - min_y);
 
 		dst += (vmax<SPOS>(0, dp.Y) * ds.Width) + vmax<SPOS>(0, dp.X);
-		for(std::size_t y(0); y < delta_y; ++y)
+		for(int y(0); y < delta_y; ++y)
 		{
 			tl(dst, delta_x, tp);
 			dst += ds.Width;

@@ -11,12 +11,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.2850;
+\version 0.2855;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-01-19 12:07 + 08:00;
+	2011-01-21 23:11 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,7 +65,7 @@ private:
 	}
 
 public:
-	DefStaticGetter(PointerType, PointerRaw, _ptr)
+	static DefMutableGetter(PointerType, PointerRaw, _ptr)
 	/*!
 	\brief 取指针。
 	*/

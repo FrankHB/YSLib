@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7103;
+\version 0.7108;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 + 08:00;
 \par 修改时间:
-	2011-01-01 18:37 + 08:00;
+	2011-01-21 23:10 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -304,7 +304,7 @@ public:
 	DefPredicate(Underline, Style | EFontStyle::Underline)
 	DefPredicate(Strikeout, Style | EFontStyle::Strikeout)
 
-	DefStaticGetter(const Font&, Default, *pDefFont)
+	static DefMutableGetter(const Font&, Default, *pDefFont)
 	DefGetter(const FontFamily&, FontFamily, *pFontFamily)
 	DefGetter(EFontStyle, Style, Style)
 	DefGetter(SizeType, Size, Size)

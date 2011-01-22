@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4619;
+\version 0.4625;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 + 08:00;
 \par 修改时间:
-	2011-01-02 18:37 + 08:00;
+	2011-01-22 09:37 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,6 +28,7 @@
 #define INCLUDED_YCONTROL_H_
 
 #include "ywidget.h"
+#include "yfocus.h"
 
 YSL_BEGIN
 
@@ -321,8 +322,8 @@ public:
 	//可视控件标准事件见 EControl 。
 
 	//可视控件扩展事件。
-	DefEvent(HPointEvent, Move) //!< 可视控件移动。
-	DefEvent(HSizeEvent, Resize) //!< 可视控件大小调整。
+	DeclEvent(HPointEvent, Move) //!< 可视控件移动。
+	DeclEvent(HSizeEvent, Resize) //!< 可视控件大小调整。
 
 	explicit
 	MVisualControl();

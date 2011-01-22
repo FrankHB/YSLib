@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version 0.1642;
+\version 0.1647;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 + 08:00;
 \par 修改时间:
-	2010-12-17 19:01 + 08:00;
+	2011-01-21 23:09 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,7 +57,7 @@ public:
 	explicit
 	YTimer(TimeSpan = 1000, bool = true);
 
-	DefStaticGetter(TimeSpan, SystemTick, SystemTick)
+	static DefMutableGetter(TimeSpan, SystemTick, SystemTick)
 	DefGetter(TimeSpan, Interval, nInterval)
 	DefGetter(TimeSpan, BaseTick, nBase)
 

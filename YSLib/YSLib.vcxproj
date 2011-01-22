@@ -55,7 +55,9 @@
     <ClInclude Include="include\YSLib\Shell\ygdi.h" />
     <ClInclude Include="include\YSLib\Shell\ygui.h" />
     <ClInclude Include="include\YSLib\Shell\yguicomp.h" />
+    <ClInclude Include="include\YSLib\Shell\ylabel.h" />
     <ClInclude Include="include\YSLib\Shell\ytext.h" />
+    <ClInclude Include="include\YSLib\Shell\yuicont.h" />
     <ClInclude Include="include\YSLib\Shell\ywidget.h" />
     <ClInclude Include="include\YSLib\Shell\ywindow.h" />
   </ItemGroup>
@@ -87,7 +89,9 @@
     <ClCompile Include="source\YSLib\Shell\ygdi.cpp" />
     <ClCompile Include="source\YSLib\Shell\ygui.cpp" />
     <ClCompile Include="source\YSLib\Shell\yguicomp.cpp" />
+    <ClCompile Include="source\YSLib\Shell\ylabel.cpp" />
     <ClCompile Include="source\YSLib\Shell\ytext.cpp" />
+    <ClCompile Include="source\YSLib\Shell\yuicont.cpp" />
     <ClCompile Include="source\YSLib\Shell\ywidget.cpp" />
     <ClCompile Include="source\YSLib\Shell\ywindow.cpp" />
   </ItemGroup>

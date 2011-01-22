@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010 - 2011
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2011-01-09 12:03 + 08:00;
-// Version = r10586;
+// UTime = 2011-01-21 23:11 + 08:00;
+// Version = r10601;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -216,16 +216,18 @@ DefEmptyDtor(_type)
 DefConverter(_type, _expr)
 DefConverterBase(_type, _base)
 DefConverterMember(_type, _member)
-DefGetter(_type, _name, _member)
-DefGetterBase(_type, _name, _base)
-DefGetterMember(_type, _name, _member)
 DefPredicate(_name, _member)
 DefPredicateBase(_name, _base)
 DefPredicateMember(_name, _member)
-DefStaticGetter(_type, _name, _member)
-DefStaticGetterBase(_type, _name, _base)
-DefStaticPredicate(_name, _member)
-DefStaticPredicateBase(_name, _base)
+DefMutablePredicate(_name, _member)
+DefMutablePredicateBase(_name, _base)
+DefMutablePredicateMember(_name, _member)
+DefGetter(_type, _name, _member)
+DefGetterBase(_type, _name, _base)
+DefGetterMember(_type, _name, _member)
+DefMutableGetter(_type, _name, _member)
+DefMutableGetterBase(_type, _name, _base)
+DefMutableGetterMember(_type, _name, _member)
 DefSetter(_type, _name, _member)
 DefSetterDe(_type, _name, _member, _defv)
 DefSetterBase(_type, _name, _base)

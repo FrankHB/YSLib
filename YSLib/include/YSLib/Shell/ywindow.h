@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.4020;
+\version 0.4022;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 + 08:00;
 \par 修改时间:
-	2011-01-14 06:52 + 08:00;
+	2011-01-22 09:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,6 @@
 #ifndef INCLUDED_YWINDOW_H_
 #define INCLUDED_YWINDOW_H_
 
-#include "ywidget.h"
 #include "yguicomp.h"
 
 YSL_BEGIN

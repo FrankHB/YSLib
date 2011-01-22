@@ -187,6 +187,12 @@
     <ClInclude Include="include\ysbuild.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\yuicont.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\ylabel.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\yfont.cpp">
@@ -277,6 +283,12 @@
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Shell\ywindow.cpp">
+      <Filter>源文件\YSLib\Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Shell\ylabel.cpp">
+      <Filter>源文件\YSLib\Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Shell\yuicont.cpp">
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
   </ItemGroup>

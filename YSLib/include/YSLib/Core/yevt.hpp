@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调模块。
-\version 0.3866;
+\version 0.3946;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 + 08:00;
 \par 修改时间:
-	2010-12-27 15:55 + 08:00;
+	2011-01-21 23:07 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -144,9 +144,16 @@ protected:
 public:
 	/*!
 	\brief 无参数构造。
-	\note 得到空实例。
+	\note 空实现；得到空实例。
 	*/
 	GEvent()
+	{}
+	/*!
+	\brief 复制构造。
+	\note 深复制。
+	*/
+	GEvent(const GEvent& rhs)
+		: List(rhs.List)
 	{}
 
 protected:
@@ -163,13 +170,24 @@ protected:
 
 public:
 	/*!
+	\brief 复制赋值：覆盖事件响应。
+	*/
+	GEvent&
+	operator=(const GEvent& rhs)
+	{
+		GEvent e(rhs);
+
+		e.Swap(*this);
+		return *this;
+	}
+	/*!
 	\brief 赋值：覆盖事件响应：使用事件处理器。
 	*/
 	inline GEvent&
 	operator=(const _tEventHandler& h)
 	{
-		Clear();
-		return AddRaw(h);
+		this->Clear();
+		return this->AddRaw(h);
 	}
 	/*!
 	\brief 赋值：覆盖事件响应：使用函数引用。
@@ -185,7 +203,7 @@ public:
 	inline GEvent&
 	operator=(FunctorType f)
 	{
-		Clear();
+		this->Clear();
 		return *this = _tEventHandler(f);
 	}
 	/*!
@@ -195,7 +213,7 @@ public:
 	inline GEvent&
 	operator=(void(_type::*pm)(_tEventArgs&))
 	{
-		Clear();
+		this->Clear();
 		return *this = _tEventHandler(pm);
 	}
 	/*!
@@ -204,8 +222,8 @@ public:
 	GEvent&
 	operator+=(const _tEventHandler& h)
 	{
-		operator-=(h);
-		return AddRaw(h);
+		this->operator-=(h);
+		return this->AddRaw(h);
 	}
 	/*!
 	\brief 添加事件响应：使用函数引用。
@@ -213,7 +231,7 @@ public:
 	inline GEvent&
 	operator+=(FuncType& f)
 	{
-		return operator+=(_tEventHandler(f));
+		return this->operator+=(_tEventHandler(f));
 	}
 	/*!
 	\brief 添加事件响应：使用函数对象。
@@ -221,7 +239,7 @@ public:
 	inline GEvent&
 	operator+=(FunctorType f)
 	{
-		return operator+=(_tEventHandler(f));
+		return this->operator+=(_tEventHandler(f));
 	}
 	/*!
 	\brief 添加事件响应：使用成员函数指针。
@@ -230,7 +248,7 @@ public:
 	inline GEvent&
 	operator+=(void(_type::*pm)(_tEventArgs&))
 	{
-		return operator+=(_tEventHandler(pm));
+		return this->operator+=(_tEventHandler(pm));
 	}
 	/*!
 	\brief 添加事件响应：使用对象引用和成员函数指针。
@@ -239,7 +257,7 @@ public:
 	inline GEvent&
 	Add(_type& obj, void(_type::*pm)(_tEventArgs&))
 	{
-		return operator+=(_tEventHandler(obj, pm));
+		return this->operator+=(_tEventHandler(obj, pm));
 	}
 	/*!
 	\brief 移除事件响应：目标为指定事件处理器。
@@ -247,7 +265,7 @@ public:
 	GEvent&
 	operator-=(const _tEventHandler& h)
 	{
-		erase_all(List, h);
+		erase_all(this->List, h);
 		return *this;
 	}
 	/*!
@@ -256,7 +274,7 @@ public:
 	inline GEvent&
 	operator-=(FuncType& f)
 	{
-		return operator-=(_tEventHandler(f));
+		return this->operator-=(_tEventHandler(f));
 	}
 	/*!
 	\brief 
@@ -264,7 +282,7 @@ public:
 	inline GEvent&
 	operator-=(FunctorType f)
 	{
-		return operator-=(_tEventHandler(f));
+		return this->operator-=(_tEventHandler(f));
 	}
 	/*!
 	\brief 移除事件响应：目标为指定成员函数指针。
@@ -292,8 +310,8 @@ public:
 	operator()(_tSender& sender, _tEventArgs& e) const
 	{
 		for(typename list<_tEventHandler>
-				::const_iterator i(List.begin());
-				i != List.end(); ++i)
+				::const_iterator i(this->List.begin());
+				i != this->List.end(); ++i)
 			(*i)(sender, e);
 	}
 
@@ -303,7 +321,7 @@ public:
 	inline typename ListType::size_type
 	GetSize() const
 	{
-		return List.size();
+		return this->List.size();
 	}
 
 	/*!
@@ -312,7 +330,16 @@ public:
 	inline void
 	Clear()
 	{
-		List.clear();
+		this->List.clear();
+	}
+
+	/*
+	\brief 交换。
+	*/
+	void
+	Swap(GEvent& rhs) ythrow()
+	{
+		rhs.List.swap(this->List);
 	}
 };
 
@@ -454,26 +481,37 @@ struct GSEventTemplate
 #endif
 
 
-//! \brief 定义事件。
-#	define DefEvent(_tEventHandler, _name) \
-		Runtime::GSEventTemplate<_tEventHandler>::EventType _name;
+//! \brief 事件类型宏。
+#define EventT(_tEventHandler) \
+	Runtime::GSEventTemplate<_tEventHandler>::EventType
 
-//! \brief 定义事件接口。
-#	define DeclIEventEntry(_tEventHandler, _name) \
-		DeclIEntry(const Runtime::GSEventTemplate<_tEventHandler> \
-			::EventType& _yJOIN(Get, _name)() const)
+//! \brief 声明事件。
+#define DeclEvent(_tEventHandler, _name) \
+	EventT(_tEventHandler) _name;
+
+//! \brief 声明事件引用。
+#define DeclEventRef(_tEventHandler, _name) \
+	EventT(_tEventHandler)& _name;
+
+//! \brief 声明事件接口函数。
+#define DeclIEventEntry(_tEventHandler, _name) \
+	DeclIEntry(const EventT(_tEventHandler)& _yJOIN(Get, _name)() const)
 
 //! \brief 定义事件访问器。
-#	define DefEventGetter(_tEventHandler, _name) \
-		DefGetter(const Runtime::GSEventTemplate<_tEventHandler> \
-			::EventType&, _name, _name)
-#	define DefEventGetterBase(_tEventHandler, _name, _base) \
-		DefGetterBase(const Runtime::GSEventTemplate<_tEventHandler> \
-			::EventType&, _name, _base)
-#	define DefEventGetterMember(_tEventHandler, _name, _member) \
-		DefGetterMember(const Runtime::GSEventTemplate<_tEventHandler> \
-			::EventType&, _name, _member)
+#define DefEventGetter(_tEventHandler, _name) \
+	DefGetter(const EventT(_tEventHandler)&, _name, _name)
+#define DefEventGetterBase(_tEventHandler, _name, _base) \
+	DefGetterBase(const EventT(_tEventHandler)&, _name, _base)
+#define DefEventGetterMember(_tEventHandler, _name, _member) \
+	DefGetterMember(const EventT(_tEventHandler)&, _name, _member)
 
+//! \brief 定义事件可修改访问器。
+#define DefMutableEventGetter(_tEventHandler, _name) \
+	DefMutableGetter(EventT(_tEventHandler)&, _name, _name)
+#define DefMutableEventGetterBase(_tEventHandler, _name, _base) \
+	DefMutableGetterBase(EventT(_tEventHandler)&, _name, _base)
+#define DefMutableEventGetterMember(_tEventHandler, _name, _member) \
+	DefMutableGetterMember(EventT(_tEventHandler)&, _name, _member)
 
 //! \brief 事件处理器接口模板。
 template<class _tSender = YObject, class _tEventArgs = EventArgs>

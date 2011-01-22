@@ -1,4 +1,4 @@
-//v0.2959; *Build 187 r37;
+//v0.2959; *Build 188 r21;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -164,191 +164,171 @@ $using:
 
 $DONE:
 r1-r3:
-/ \lib YSLib >> VC++ \proj YSLib;
-/ YSTest \proj \conf;
-/ @@ arm9 Makefile;
-/ \tr \inc @@ \h DSReader.h;
-/ \tr \inc @@ \h Build;
-/ \tr \inc @@ \h Platform::DS;
-/ \tr \inc @@ \impl \u GBKEX;
-/ \tr \inc @@ \h YAdaptor;
-/ \h @@ \lib (FreeType2 & Loki & AGG) >> "common/include" ~ "arm9/include";
-/ \tr \inc @@ \h YShellHelper;
-* \tr \inc @@ \h YFocus;
-
-r4-r5:
-/ ARM7 >> VC++ \proj YSLib;
-* \proj command line(only release version was run);
-
-r6-r7:
-/ ARM9 >> VC++ \proj YSLib;
-/ (top & ARM9) Makefile @@ \proj YSTest;
-/ \tr \inc @@ \h YAdaptor;
-/ common (\inc & data) >> \proj YSTest \dir ~ \dir "YSTest\common";
-/ Makefile @@ \lib (CHRLib & YCLib & YSLib);
-
-r8:
-* \tr @@ YSTest \proj Makefile;
-
-r9:
 /= test 1;
 
-r10:
-/ \tr \impl @@ \impl \u YFile;
+r4:
+/ \tr \impl @@ \mf ShlLoad::OnActivated @@ \impl \u Shells;
 
-r11-r12:
-* '-g' option @@ release mode @@ 5 Makefile;
-/ ^ '-O3' & arm specified options compiled "libloki.a" @@ \proj YSTest;
+r5:
+/ test 2;
 
-r13:
-/ \f BackMessage => BackMessageQueue @@ \u YShell;
-
-r14:
-/ @@ \h YCoreUtilities:
-	+ \stt (xcrease_t & delta_assignment_t);
-	+ \ft<bool> (xcrease & delta_assignment); 
-/ @@ \impl \u YGDI:
-	/= \tr \def order;
-	/ @@ \un \ns:
-		/ \f (blitAlphaFor & blitAlphaForU) \mg -> \ft<bool> blitAlphaFor
-			^ \ft (xcrease & delta_assignment);
-		/ \tr \impl @@ 4 \f BlitAlpha*;
-
-r15-r21:
+r6-r7:
 / @@ \u YGDI:
- 	/ \f BlitScale => BlitPositon;
-	+ \tf<bool, bool> BlitScale;
-	/ \impl @@ \a blit \f;
-	/ \a maxX => max_x;
-	/ \a maxY => max_y;
-	/ \a deltaX => delta_x;
-	/ \a deltaY => delta_y;
-	/ \a minX => min_x;
-	/ \a minY => min_y;
-	/ \mf \op () @@ \stt RectTransfomer;
-	/ \a srcOffset => src_off;
-	/ \a srcA => src_alpha;
-	/ @@ \un \ns:
-		* \f '*H' & '*V';
-		/ 4 \f blit2For \mg -> 2 \ft<bool> blit2For
-			^ \ft (xcrease & delta_assignment);
+	* lost response while moving touched button point downward out of window:
+		* \a std::ptrdiff_t -> int;
+		* \a std::size_t 'delta_*' -> int 'delta_*';		
+		*\a std::size_t x -> int x;
+		* \a std::size_t y -> int y;
+		/ - \a \as;
+	/ \a sa => src_alpha;
+	/ blitMaxX => blit_max_x;
+	/ blitMinX => blit_min_x;
+	/ blitMaxY => blit_max_y;
+	/ blitMinY => blit_min_y;
+	/ blitLine => blit_line;
+	/ \impl @@ \f template<> void
+		blit_line<false>(BitmapPtr, ConstBitmapPtr, int);
+	/ \a (!\tp Size&) dc => dst_iter;
+	/ \a (!\tp Size&) sc => src_iter;
+	/ \a '*For' => '*_for';
 
-r22:
-/= test 2 ^ \conf release;
-
-r23:
-/ @@ \u YGDI:
-	+ \as @@ 4 \f BlitScale;
-	/ \a int& 'delta_*' -> std::size& 'delta_*';
-	/ \a int 'delta_*' -> std::size 'delta_*';
-	/ \tr \impl @@ \f @@ \un \ns;
-	+ \as @@ \mft operator() @@ \st RectTransfomer;
-	/ \a 'int dInc, int sInc' -> 'std::ptrdiff_t dInc, std::ptrdiff_t sInc';
-	/ \a 'for(int y(0); y < delta_y; ++y)'
-		-> 'for(std::size_t y(0); y < delta_y; ++y)';
-	/ \a 'for(int x(0); x < delta_x; ++x)'
-		-> 'for(std::size_t x(0); x < delta_x; ++x)';
-	/ \tp @@ \a '*_off' -> std::ptrdiff_t ~ std::size_t;
-	/ \tp @@ \a '*_off' -> std::ptrdiff_t& ~ std::size_t&;
-	/ \a 'vmax<int>' -> 'vmax<std::ptrdiff_t>';
-	/ \a 'vmin<int>' -> 'vmin<std::ptrdiff_t>';
-	/ \a sInc => src_inc;
-	/ \a dInc => dst_inc;
-
-r24:
-/ @@ \impl \u YGDI:
-	/ @@ \un \ns:
-		+ \ft blitLine;
-		/ 2 \f blitFor \mg -> 1 \ft<bool> blitFor
-			^ \ft (blitLine & delta_assignment);;
-	/ \tr \impl @@ 4 \f 'Blit?';
-
-r25-r29:
+r8-r9:
 /= test 3;
 
-r30:
-* \ft YReset @@ \h YReference:
-	- #define YDelete_Debug YReset;
-	/ \ft YReset => YReset_ndebug;
-	+ #define YReset YReset_ndebug @@ !defined \mac YSL_USE_MEMORY_DEBUG;
-	+ #define YReset YReset_Debug @@ defined \mac YSL_USE_MEMORY_DEBUG;
-/ \a YReset_Debug => YReset_debug;
-/ @@ \h YCoreUtilities:
-	- typedef delete_obj delete_obj_ndebug;
-	- typedef safe_delete_obj safe_delete_obj_ndebug;
-	+ #define delete_obj delete_obj_ndebug
-		@@ !defined \mac YSL_USE_MEMORY_DEBUG;
-	+ #define safe_delete_obj safe_delete_obj_ndebug
-		@@ !defined \mac YSL_USE_MEMORY_DEBUG;
+r10:
+- DLDI patch commands @@ Makefile;
 
-r31:
+r11:
+* invalid listbox input when the list not beginning from the top:
+	/ \impl @@ \mf Contains @@ \clt GSequenceViewer @@ \h YComponent;
+	/ @@ \cl YSimpleListBox @@ \impl \u YGUIComponent:
+		/ \impl @@ \mf ViewerType::IndexType CheckPoint(SPOS, SPOS);
+		/ \impl @@ \mf void SetSelected(ViewerType::IndexType);
+
+r12-r14:
 /= test 4;
 
-r32:
-* \impl @@ \i \ft<typename _type>
-	bool YReset_debug(GHHandle<_type>& h) ythrow() @@ \h YReference;
+r15:
+/ \exp \ctor YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
+	GHWeak<Drawing::TextRegion> = NULL, ListType* = NULL)
+	@@ \cl YListBox @@ \u YGUIComponent
+	-> YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
+	GHWeak<Drawing::TextRegion> = NULL, GHWeak<ListType> = NULL);
 
-r33:
-* @@ \h YCoreUtilities:
-	/ \stt delete_obj => delete_obj_ndebug;
-	/ \stt safe_delete_obj => safe_delete_obj_ndebug;
-* impl @@ \clt GStaticCache @@ \h YObject;
+r16:
+/ @@ \clt GEvent @@ \h YEvent:
+	+ copy \ctor;
+	+ GEvent& operator=(const GEvent&);
+	+ \mf void Swap(const GEvent&) ythrow();
+	^ this @@ \a \impl @@ \mf;
+/ @@ \cl YListBox @@ \u YGUIComponent:
+	+ \m DefEvent(HIndexEvent, Selected);
+	+ \m DefEvent(HIndexEvent, Confirmed);
+	/ \impl @@ \ctor;
 
-r34:
-/ @@ \h YReference:
-	- \clt DeleteSingle_Debug;
-	- \clt DeleteArray_Debug;
-	/ \t \param DeleteSingle_Debug -> DeleteSingle @@ \clt (GHWeak & GHStrong);
-/ @@ \h YShellHelper:
-	/ \a ynew -> new;
+r17:
+/ @@ \h YEvent:
+	+ \mac EventT;
+	+ \mac DefEventRef;
+	/ \simp \impl @@ 5 \mac ^ \mac EventT;
+/ \a DefEvent => DeclEvent;
+/ \a DefEventRef => DeclEventRef;
 
-r35:
-* \tr \impl @@ 3 \ctor @@ \cl FileList;
+r18:
+/ @@ \h Base:
+	+ \mac DefMutableGetter;
+	+ \mac DefMutableGetterBase;
+	+ \mac DefMutableGetterMember;
+	+ \mac DefMutablePredicate;
+	+ \mac DefMutablePredicateBase;
+	+ \mac DefMutablePredicateMember;
+	- \mac DefStaticPredicate;
+	- \mac DefStaticPredicateBase;
+	- \mac DefStaticPredicate;
+	- \mac DefStaticPredicateBase
+/ @@ \h YEvent:
+	+ \mac DefMutableEventGetter;
+	+ \mac DefMutableEventGetterBase;
+	+ \mac DefMutableEventGetterMember;
+/ \a DefStaticGetter => static DefMutableGetter;
+/ \simp @@ \mf GetFocusingPtr @@ \cl (ATrack & AScrollBar & YListBox
+	& YUIContainer & AFrameWindow) ^ DefMutableGetterBase;
 
-r36:
-/ test 5 ^ \conf release;
-	* \tr \mac @@ defined \mac YSL_USE_MEMORY_DEBUG @@ \h YReference;
+r19:
+/ @@ \u YGUIComponent:
+	/ \m pwTextRegion => wpTextRegion @@ \cl YSimpleListBox;
++ \u YUIContainer @@ \dir Shell;
++ \u YLabel @@ \dir Shell;
+/ @@ \ns Widgets @@ \u YWidget:
+	/= \tr \inc @@ \cl YLabel;
+	+ \mf void DrawText(Widget&, const Point&) @@ \u MLabel;
+	/ \impl @@ \mf PaintText;
+	/ \cl MUIContainer >> \u YUIContainer;
+	/ \cl YUIContainer >> \u YUIContainer;
+	/ \cl MLabel >> \u YLabel;
+	/ \cl YLabel >> \u YLabel;
+	- \inc \h YText @@ \h;
+	- \inc \h YResource @@ \h;
+	- \inc \h YFocus @@ \h;
+	- using Drawing::YImage;
+	/ \in IUIBox >> \u YUIContainer;
+	/ \in IUIContainer >> \u YUIContainer;
+	+ \pre \decl \cl IUIBox;
+	+ \pre \decl \in IUIContainer;
+	/ \a (\f & \ft) ('Fetch*' & 'MoveTo*' & Fill)
+		& (\f GetContainersListFrom @@ \un \ns) >> \u YUIContainer;
+	+ \inc \h YGDI @@ \h;
+- \inc \h YWidget @@ \h YWindow;
++ \inc \h YLabel @@ \h YGUIComponent;
+* @@ \h YFocus:
+	/ \mac INCLUDED_YMODULE_H_ => \mac INCLUDED_YFOCUS_H_;
+	/ \inc \h YObject -> \inc \h YComponent;
++ \inc \h (YResource & YUIContainer) @@ \h YGUIComponent;
+/ @@ \impl \u YShell:
+	/ \inc \h YGUI -> \inc \h YDesktop;
+	- using namespace Components;
+	- using namespace Components::Controls;
++ \inc \h YFocus @@ \h YControl;
 
-r37:
-/= test 6 ^ \conf debug;
+r20:
+/ @@ \u YLabel:
+	+ \cl MTextList;
+	/ @@ \cl MLabel:
+		/ \mf void MLabel::DrawText(Widgets&, const Point&)
+			-> !\m \f DrawText(TextRegion&, const Graphics&, const Point&,
+				const Size&, const String&) @@ \u YText;
+		/ \mf void PaintText(Widget&, const Point&)
+			-> bool PaintText(Widget&, const Graphics&, const Point&);
+	/ \impl @@ \mf DrawForeground @@ \cl YLabel;
+/ \a pTr_ => wpTr_;
++ using Drawing::Graphics @@ \h YWidget;
++ \f const Graphics& FetchContext(IWidget&) @@ \u YUIContainer;
+/ \tr \impl @@ \mf void YButton::DrawForeground();
+
+r21:
+/= test 5;
+
 
 $DOING:
 
 relative process:
-2011-01-19:
--20.1d;
+2011-01-23:
+-20.7d;
 
 / ...
 
 
 $NEXT_TODO:
 
-b188-b240:
-* invalid listbox click;
+b189-b240:
 / scroll bars @@ listbox \cl;
-* fatal \err @@ since b177 when opening closed lid @@ real DS:
-[
-b185:
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02037F04
-guruMeditationDump
-gurumeditation.c:229
-b186 r17[realease]:
-pc: 09529334, addr: 09529334;
-b187 r18[debug]:
-pc: 020227C8, addr: 0380FDA4;
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020227C8
-guruMeditationDump
-gurumeditation.c:254
-]
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
 * non-ASCII character path error in FAT16;
-/ improve efficiency @@ \tf polymorphic_crosscast @@ \h YCast;
 / non-ordinary operator usage in \clt GSequenceViewer @@ \h YComponent;
 
-r241-r324:
+b241-b648:
+/ improve efficiency @@ \ft polymorphic_crosscast @@ \h YCast;
 + data config;
 / impl 'real' RTC;
 + correct DMA (copy & fill);
@@ -376,50 +356,25 @@ F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
 	ftc_snode_weight
 	ftcsbits.c:271
 ]
+* fatal \err @@ since b177 when opening closed lid @@ real DS:
+[
+b185:
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02037F04
+guruMeditationDump
+gurumeditation.c:229
+b186 r17[realease]:
+pc: 09529334, addr: 09529334;
+b187 r18[debug]:
+pc: 020227C8, addr: 0380FDA4;
+F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
+-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020227C8
+guruMeditationDump
+gurumeditation.c:254
+]
 
 
 $LAST_SUCCESSFULLY_FIXED:
-b185 r18:
-* fatal \err @@ since b177 when opening closed lid @@ real DS:
-[
-b178:
-(pc: 02013000, addr: FFFFFFFF);
-
-b180 r56:
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020BBC5C
-YSLib::Messaging::Message::operator=(YSLib::Messaging::Message const&)
-ysmsg.h:55
-
-b180 r57:
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020A0BB4
-Loki::SmartPtr<YSLib::Shells::YShell, YSLib::Design::Policies::GeneralCastRefCou
-nted, Loki::DisallowConversion, Loki::AssertCheck, Loki::DefaultSPStorage, Loki:
-:DontPropagateConst>::operator=(Loki::SmartPtr<YSLib::Shells::YShell, YSLib::Des
-ign::Policies::GeneralCastRefCounted, Loki::DisallowConversion, Loki::AssertChec
-k, Loki::DefaultSPStorage, Loki::DontPropagateConst> const&)
-SmartPtr.h:1217
-
-b181:
-(pc: 02138EA0, addr: 02138EA0);
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02138EA0
-YSLib::(anonymous namespace)::WaitForGUIInput()::InputMessage
-crtstuff.c:0
-
-b184:
-(pc: 020AD108, addr: 020AD108);
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020AD108
-SmartPtr
-SmartPtr.h:1176
-(pc: 020909F8, addr: 020909F8);
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020909F8
-__clzsi2
-crtstuff.c:0
-]
 
 $TODO:
 

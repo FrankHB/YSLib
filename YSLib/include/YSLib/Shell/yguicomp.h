@@ -11,12 +11,12 @@
 /*!	\file yguicomp.h
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2479;
+\version 0.2507;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2011-01-02 19:42 + 08:00;
+	2011-01-22 09:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,6 +28,9 @@
 #define INCLUDED_YGUICOMP_H_
 
 #include "ycontrol.h"
+#include "yuicont.h"
+#include "../Core/yres.h"
+#include "ylabel.h"
 //#include "ystyle.h"
 
 YSL_BEGIN
@@ -143,8 +146,8 @@ public:
 	/*!
 	\brief 取焦点指针。
 	*/
-	ImplI(IUIBox) PDefH(IVisualControl*, GetFocusingPtr)
-		ImplBodyBase(MSimpleFocusResponser, GetFocusingPtr)
+	ImplI(IUIBox) DefMutableGetterBase(IVisualControl*, FocusingPtr,
+		MSimpleFocusResponser)
 	/*!
 	\brief 取顶端部件指针。
 	\note 由顶端可视部件指针转换。
@@ -313,8 +316,8 @@ public:
 	/*!
 	\brief 取焦点指针。
 	*/
-	ImplI(IUIBox) PDefH(IVisualControl*, GetFocusingPtr)
-		ImplBodyBase(MSimpleFocusResponser, GetFocusingPtr)
+	ImplI(IUIBox) DefMutableGetterBase(IVisualControl*, FocusingPtr,
+		MSimpleFocusResponser)
 	/*!
 	\brief 取顶端部件指针。
 	\note 由顶端可视部件指针转换。
@@ -423,7 +426,7 @@ protected:
 	static const SDST defMarginH = 4; //!< 默认水平边距。
 	static const SDST defMarginV = 2; //!< 默认垂直边距。
 
-	GHWeak<Drawing::TextRegion> pwTextRegion; //!< 文本区域指针。
+	GHWeak<Drawing::TextRegion> wpTextRegion; //!< 文本区域指针。
 
 public:
 	Drawing::Font Font; //!< 字体。
@@ -434,8 +437,8 @@ protected:
 	ViewerType Viewer; //!< 列表视图。
 
 public:
-	DefEvent(HIndexEvent, Selected) //!< 项目选择状态改变事件。
-	DefEvent(HIndexEvent, Confirmed) //!< 项目选中确定事件。
+	DeclEvent(HIndexEvent, Selected) //!< 项目选择状态改变事件。
+	DeclEvent(HIndexEvent, Confirmed) //!< 项目选中确定事件。
 
 	/*!
 	\brief 构造：使用指定边界、部件容器指针、文本区域和文本列表。
@@ -600,16 +603,19 @@ private:
 	YVerticalScrollBar VerticalScrollBar;
 
 public:
+	DeclEvent(HIndexEvent, Selected) //!< 项目选择状态改变事件。
+	DeclEvent(HIndexEvent, Confirmed) //!< 项目选中确定事件。
+
 	explicit
 	YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHWeak<Drawing::TextRegion> = NULL, ListType* = NULL);
+		GHWeak<Drawing::TextRegion> = NULL, GHWeak<ListType> = NULL);
 	virtual DefEmptyDtor(YListBox)
 
 	/*!
 	\brief 取焦点指针。
 	*/
-	ImplI(IUIBox) PDefH(IVisualControl*, GetFocusingPtr)
-		ImplBodyBase(MSimpleFocusResponser, GetFocusingPtr)
+	ImplI(IUIBox) DefMutableGetterBase(IVisualControl*, FocusingPtr,
+		MSimpleFocusResponser)
 	/*!
 	\brief 取顶端部件指针。
 	\note 由顶端可视部件指针转换。

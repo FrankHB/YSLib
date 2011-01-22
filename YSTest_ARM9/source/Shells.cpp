@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3510;
+\version 0.3512;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2011-01-08 20:14 + 08:00;
+	2011-01-20 07:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -306,6 +306,7 @@ ShlLoad::TFrmLoadDown::TFrmLoadDown()
 int
 ShlLoad::OnActivated(const Message& /*m*/)
 {
+	YDebugSetStatus(true);
 	//如果不添加此段且没有桌面没有被添加窗口等设置刷新状态的操作，
 	//那么任何绘制都不会进行。
 	hDesktopUp->SetRefresh(true);

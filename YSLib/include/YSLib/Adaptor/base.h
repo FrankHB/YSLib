@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file base.h
 \ingroup Adaptor
 \brief 通用基础设施。
-\version 0.2034;
+\version 0.2101;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 + 08:00;
 \par 修改时间:
-	2010-12-29 17:13 + 08:00;
+	2011-01-21 23:06 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -221,22 +221,6 @@
 		return (_member).operator _type(); \
 	}
 
-#define DefGetter(_type, _name, _member) \
-	_type _yJOIN(Get, _name)() const ythrow() \
-	{ \
-		return (_member); \
-	}
-#define DefGetterBase(_type, _name, _base) \
-	_type _yJOIN(Get, _name)() const ythrow() \
-	{ \
-		return _base::_yJOIN(Get, _name)(); \
-	}
-#define DefGetterMember(_type, _name, _member) \
-	_type _yJOIN(Get, _name)() const ythrow() \
-	{ \
-		return (_member)._yJOIN(Get, _name)(); \
-	}
-
 #define DefPredicate(_name, _member) \
 	bool _yJOIN(Is, _name)() const ythrow() \
 	{ \
@@ -253,26 +237,52 @@
 		return (_member)._yJOIN(Is, _name)(); \
 	}
 
-#define DefStaticGetter(_type, _name, _member) \
-	static _type _yJOIN(Get, _name)() ythrow() \
+#define DefMutablePredicate(_name, _member) \
+	bool _yJOIN(Is, _name)() ythrow() \
 	{ \
 		return (_member); \
 	}
-#define DefStaticGetterBase(_type, _name, _base) \
-	static _type _yJOIN(Get, _name)() ythrow() \
+#define DefMutablePredicateBase(_name, _base) \
+	bool _yJOIN(Is, _name)() ythrow() \
+	{ \
+		return _base::_yJOIN(Is, _name)(); \
+	}
+#define DefMutablePredicateMember(_name, _member) \
+	bool _yJOIN(Is, _name)() ythrow() \
+	{ \
+		return (_member)._yJOIN(Is, _name)(); \
+	}
+
+#define DefGetter(_type, _name, _member) \
+	_type _yJOIN(Get, _name)() const ythrow() \
+	{ \
+		return (_member); \
+	}
+#define DefGetterBase(_type, _name, _base) \
+	_type _yJOIN(Get, _name)() const ythrow() \
 	{ \
 		return _base::_yJOIN(Get, _name)(); \
 	}
+#define DefGetterMember(_type, _name, _member) \
+	_type _yJOIN(Get, _name)() const ythrow() \
+	{ \
+		return (_member)._yJOIN(Get, _name)(); \
+	}
 
-#define DefStaticPredicate(_name, _member) \
-	static bool _yJOIN(Is, _name)() ythrow() \
+#define DefMutableGetter(_type, _name, _member) \
+	_type _yJOIN(Get, _name)() ythrow() \
 	{ \
 		return (_member); \
 	}
-#define DefStaticPredicateBase(_name, _base) \
-	static bool _yJOIN(Is, _name)() ythrow() \
+#define DefMutableGetterBase(_type, _name, _base) \
+	_type _yJOIN(Get, _name)() ythrow() \
 	{ \
-		return _base::_yJOIN(Is, _name)(); \
+		return _base::_yJOIN(Get, _name)(); \
+	}
+#define DefMutableGetterMember(_type, _name, _member) \
+	_type _yJOIN(Get, _name)() ythrow() \
+	{ \
+		return (_member)._yJOIN(Get, _name)(); \
 	}
 
 #define DefSetter(_type, _name, _member) \

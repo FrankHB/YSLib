@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup Shell
 \brief GUI 焦点特性实现。
-\version 0.2130;
+\version 0.2145;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 + 08:00;
 \par 修改时间:
-	2011-01-16 08:46 + 08:00;
+	2011-01-22 09:31 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,7 @@
 #ifndef INCLUDED_YMODULE_H_
 #define INCLUDED_YMODULE_H_
 
-#include "../Core/yobject.h"
+#include "ycomp.h"
 
 YSL_BEGIN
 
