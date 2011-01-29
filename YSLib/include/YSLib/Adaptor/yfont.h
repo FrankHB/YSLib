@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7108;
+\version 0.7114;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 + 08:00;
 \par 修改时间:
-	2011-01-21 23:10 + 08:00;
+	2011-01-27 23:19 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -98,7 +98,7 @@ class FontFamily : public NonCopyable
 
 public:
 	typedef set<Typeface*> FTypes; //!< 字型组类型。
-	typedef map<const FT_String*, Typeface*, deref_str_comp<FT_String> >
+	typedef map<const FT_String*, Typeface*, ystdex::deref_str_comp<FT_String> >
 		FTypesIndex; //!< 字型组索引类型。
 
 	YFontCache& Cache;
@@ -409,13 +409,13 @@ private:
 	FTC_SBit sbit;
 
 public:
-	typedef set<const FontFile*, deref_comp<const FontFile> >
+	typedef set<const FontFile*, ystdex::deref_comp<const FontFile> >
 		FFiles; //!< 字体文件组类型。
-	typedef set<Typeface*, deref_comp<const Typeface> >
+	typedef set<Typeface*, ystdex::deref_comp<const Typeface> >
 		FTypes; //!< 字型组类型。
-	typedef set<FontFamily*, deref_comp<FontFamily> >
+	typedef set<FontFamily*, ystdex::deref_comp<FontFamily> >
 		FFaces; //!< 字型家族组类型。
-	typedef map<const FT_String*, FontFamily*, deref_str_comp<FT_String> >
+	typedef map<const FT_String*, FontFamily*, ystdex::deref_str_comp<FT_String> >
 		FFacesIndex; //!< 字型家族组索引类型。
 
 private:

@@ -15,10 +15,12 @@
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\ycast.hpp" />
     <ClInclude Include="include\ycommon.h" />
     <ClInclude Include="include\ydef.h" />
     <ClInclude Include="include\ystdex.h" />
+    <ClInclude Include="include\ystdex\cast.hpp" />
+    <ClInclude Include="include\ystdex\iterator.hpp" />
+    <ClInclude Include="include\ystdex\util.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ycommon.cpp" />

@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2665;
+\version 0.2668;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 + 08:00; 
 \par 修改时间:
-	2011-01-09 12:04 + 08:00;
+	2011-01-27 23:14 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,9 +37,12 @@
 #define UNICODE
 #endif
 
+//平台无关部分。
 #include "ydef.h"
 #include <cstdio>
-#include "ycast.hpp" //平台无关部分。
+#include "ystdex/cast.hpp"
+#include "ystdex/iterator.hpp"
+#include "ystdex/util.hpp"
 
 //平台相关部分。
 

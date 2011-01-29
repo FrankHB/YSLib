@@ -8,7 +8,7 @@
 	understand and accept it fully.
 */
 
-/*!	\file ycast.hpp
+/*!	\file cast.hpp
 \ingroup YCLib
 \brief C++ 转换模板类。
 \version 0.1598;
@@ -16,18 +16,18 @@
 \par 创建时间:
 	2010-12-15 08:13:18 + 08:00; 
 \par 修改时间:
-	2011-01-02 12:05 + 08:00;
+	2011-01-27 23:08 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YCLib::YCast;
+	YCLib::Cast;
 */
 
 
-#ifndef INCLUDED_XWRAPPER_HPP_
-#define INCLUDED_XWRAPPER_HPP_
+#ifndef INCLUDED_YSTDEX_CAST_HPP_
+#define INCLUDED_YSTDEX_CAST_HPP_
 
-#include "ystdex.h"
+#include <ystdex.h>
 #include <memory>
 #include <typeinfo>
 

@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调模块。
-\version 0.3946;
+\version 0.3950;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 + 08:00;
 \par 修改时间:
-	2011-01-21 23:07 + 08:00;
+	2011-01-27 23:22 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -265,7 +265,7 @@ public:
 	GEvent&
 	operator-=(const _tEventHandler& h)
 	{
-		erase_all(this->List, h);
+		ystdex::erase_all(this->List, h);
 		return *this;
 	}
 	/*!
@@ -576,7 +576,7 @@ public:
 			EventType;
 
 		std::pair<typename map<ID, SmartPtr<ItemType> >::iterator, bool>
-			pr(search_map(m_map, id));
+			pr(ystdex::search_map(m_map, id));
 
 		if(pr.second)
 			pr.first = m_map.insert(pr.first,

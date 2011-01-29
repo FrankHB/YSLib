@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ycomp.cpp
 \ingroup Shell
 \brief 平台无关的组件和图形用户界面组件实现。
-\version 0.1888;
+\version 0.1890;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:18 + 08:00;
 \par 修改时间:
-	2010-12-20 10:18 + 08:00;
+	2011-01-27 23:27 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -79,7 +79,7 @@ YGUIShell::operator-=(HWND h)
 }
 YGUIShell::WNDs::size_type YGUIShell::RemoveAll(HWND h)
 {
-	return erase_all(sWnds, h);
+	return ystdex::erase_all(sWnds, h);
 }
 
 void

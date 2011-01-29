@@ -1,4 +1,4 @@
-//v0.2959; *Build 188 r21;
+//v0.2959; *Build 189 r40;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -163,164 +163,201 @@ $using:
 }
 
 $DONE:
-r1-r3:
-/= test 1;
+r1:
+/ @@ \impl \u YGDI:
+	+ \ft BlitCore;
+	/ \ft blit_for => \stt;
+	/ \impl @@ \f 'Blit?' ^ BlitCore;
+
+r2:
+/ @@ \impl \u YGDI:
+	/ @@ \un \ns:
+		* \ft void blit_line(BitmapPtr, ConstBitmapPtr, int)
+			-> void blit_line(BitmapPtr&, ConstBitmapPtr&, int);
+	* \impl @@ \ft BlitCore;
+
+r3:
+/ @@ \impl \u YGDI:
+	/ \ft BlitCore => \h;
 
 r4:
-/ \tr \impl @@ \mf ShlLoad::OnActivated @@ \impl \u Shells;
+/ @@ \u YGDI:
+	+ typedef std::pair<ConstBitmapPtr, const u8*> IteratorPair;
+	+ \i \f IteratorPair operator+(const IteratorPair&, std::ptrdiff_t);
+	+ \i \f IteratorPair& operator+=(IteratorPair&, std::ptrdiff_t);
+	+ \i \f IteratorPair& operator++(IteratorPair&);
+	/ \f with \tp const u8* \param ^ IteratorPair;
+	/ \impl @@ \mf void Flush(BitmapPtr, const Size&,
+		const Point&, const Point&, const Size&, Rotation) const
+		& \mf void BlitTo(BitmapPtr, const Size&, const Point&, const Point&,
+		const Size&, Rotation) const @@ \cl BitmapBufferEx ^ IteratorPair;
 
 r5:
-/ test 2;
+/ @@ \impl \u YGDI:
+	+ \ft BlitCore;
+	/ \ft blit2_for => \stt;
+	/ \impl @@ \f 'Blit2?' ^ BlitCore;
+	/ \ft blitAlpha_for => \stt;
+	/ \impl @@ \f 'BlitAlpha?' ^ BlitCore;
 
-r6-r7:
+r6:
+/ @@ \impl \u YGDI:
+	/ \mac 'BLT*' & (\stt 'blit*' \un \ns) & \ft 'Blit*' => \h @@ !\un \ns;
+	- \a \f 'Blit*';
+	/ \impl @@ 2 \f CopyTo;
+	/ \impl @@ \mf void Flush(BitmapPtr, const Size&,
+		const Point&, const Point&, const Size&, Rotation) const
+		& \mf void BlitTo(BitmapPtr, const Size&, const Point&, const Point&,
+		const Size&, Rotation) const @@ \cl BitmapBufferEx ^ BlitCore;
+	+ \i @@ \f blit_line<false>;
+	/ \a blit_line => BlitLine;
+	/ \a blit_for => BlitFor;
+	/ \a blit2_for => BlitTransparentFor;
+	/ \a blitAlpha_for => BlitBlendFor;
+	/ \a BlitCore => Blit;
+	+ several explicit instantiation @@ \impl \u
+		to prevent the linker complaint;
+
+r7:
+/ @@ \h YGDI:
+	/ \mac 'BLT_*' -> const u32 'BLT_*';
+	/ + \ft<typename _tOut, typename _tIn> biltAlphaPoint;
+	/ \i \f biltAlphaPoint -> template<> \i \f
+		biltAlphaPointbiltAlphaPoint(u16*, std::pair<const u16*, const u8*>);
+/= test 1;
+
+r8:
 / @@ \u YGDI:
-	* lost response while moving touched button point downward out of window:
-		* \a std::ptrdiff_t -> int;
-		* \a std::size_t 'delta_*' -> int 'delta_*';		
-		*\a std::size_t x -> int x;
-		* \a std::size_t y -> int y;
-		/ - \a \as;
-	/ \a sa => src_alpha;
-	/ blitMaxX => blit_max_x;
-	/ blitMinX => blit_min_x;
-	/ blitMaxY => blit_max_y;
-	/ blitMinY => blit_min_y;
-	/ blitLine => blit_line;
-	/ \impl @@ \f template<> void
-		blit_line<false>(BitmapPtr, ConstBitmapPtr, int);
-	/ \a (!\tp Size&) dc => dst_iter;
-	/ \a (!\tp Size&) sc => src_iter;
-	/ \a '*For' => '*_for';
+	/ \a BlitFor => BlitLoop;
+	/ \a BlitTransparentFor => BlitTransparentLoop;
+	/ \a BlitBlendFor => BlitBlendLoop;
+	/ \a \smf Loop => Blit;
 
-r8-r9:
-/= test 3;
-
-r10:
-- DLDI patch commands @@ Makefile;
-
+r9-r10:
+/ \simp \a \impl @@ outermost for loop @@ \impl
+	@@ (RectTransfomer::operator() & BlitLine<false> & BlitLoop::Blit
+	& BlitTransparentLoop::Blit & BlitBlendLoop::Blit) @@ \h YGDI;
+	
 r11:
-* invalid listbox input when the list not beginning from the top:
-	/ \impl @@ \mf Contains @@ \clt GSequenceViewer @@ \h YComponent;
-	/ @@ \cl YSimpleListBox @@ \impl \u YGUIComponent:
-		/ \impl @@ \mf ViewerType::IndexType CheckPoint(SPOS, SPOS);
-		/ \impl @@ \mf void SetSelected(ViewerType::IndexType);
+/ @@ \h YGDI:
+	+ \i \f IteratorPair operator-(const IteratorPair&, std::ptrdiff_t);
+	+ \i \f IteratorPair& operator-=(IteratorPair&, std::ptrdiff_t);
+	+ \i \f IteratorPair& operator--(IteratorPair&);
+	/ \impl @@ \ft Blit;
+	/ \a 4 \smf Blit @@ \stt '*Loop' -> !\s \mf operator();
 
-r12-r14:
-/= test 4;
+r12:
+/ @@ \lib YCLib:
+	+ \dir "ystdex";
+	/ file "ycast.hpp" >> \dir "ystdex";
+	/ @@ \dir "ystdex":
+		/ \h YCast["ycast.hpp"] => Cast "cast.hpp";
+		/ @@ \h Cast:
+			/ \tr \inc;
+			* \a INCLUDED_XWRAPPER_HPP_ => INCLUDED_YSTDEX_CAST_HPP_;
+		+ \h Iterator["iterator.hpp"];
+		+ \h Utilities["util.hpp"];
+	/ \tr \inc @@ \h YCommon;
+/ @@ \h YCoreUtilities:
+	/ \stt (deref_op & const_deref_op & deref_comp & deref_str_comp)
+		& \ft (erase_all & erase_all_if & search_map)
+		>> \h YCLib::Utilities;
+	- \inc <functional>;
+/ \tr \impl @@ (\ft GetEvent & \mf GEvent::operator-=) @@ \h YEvent;
+/ \tr \decl @@ \h YFont;
+/ \tr @@ \impl @@ \mf YGUIShell::RemoveAll @@ \impl \u YComponent;
 
-r15:
-/ \exp \ctor YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-	GHWeak<Drawing::TextRegion> = NULL, ListType* = NULL)
-	@@ \cl YListBox @@ \u YGUIComponent
-	-> YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-	GHWeak<Drawing::TextRegion> = NULL, GHWeak<ListType> = NULL);
+r13:
+/ @@ \ns ystdex @@ \h YCLib::Iterator:
+	+ \clt pair_iterator;
+/ @@ \h YGDI:
+	/ typedef std::pair<ConstBitmapPtr, const u8*> IteratorPair
+		-> typedef ystdex::pair_iterator<ConstBitmapPtr, const u8*>
+		IteratorPair;
+	/ \impl @@ \mf with IteratorPair iteration;
+	- \i \f IteratorPair& operator++(IteratorPair&);
+	- \i \f IteratorPair& operator--(IteratorPair&);
+	- \i \f IteratorPair operator+(const IteratorPair&, std::ptrdiff_t);
+	- \i \f IteratorPair operator-(const IteratorPair&, std::ptrdiff_t);
+	- \i \f IteratorPair& operator+=(IteratorPair&, std::ptrdiff_t);
+	- \i \f IteratorPair& operator-=(IteratorPair&, std::ptrdiff_t);
 
-r16:
-/ @@ \clt GEvent @@ \h YEvent:
-	+ copy \ctor;
-	+ GEvent& operator=(const GEvent&);
-	+ \mf void Swap(const GEvent&) ythrow();
-	^ this @@ \a \impl @@ \mf;
-/ @@ \cl YListBox @@ \u YGUIComponent:
-	+ \m DefEvent(HIndexEvent, Selected);
-	+ \m DefEvent(HIndexEvent, Confirmed);
-	/ \impl @@ \ctor;
+r14:
+/ \impl @@ \f PrintCharEx @@ \impl \u YText;
+
+r15-r16:
+/= test 2;
 
 r17:
-/ @@ \h YEvent:
-	+ \mac EventT;
-	+ \mac DefEventRef;
-	/ \simp \impl @@ 5 \mac ^ \mac EventT;
-/ \a DefEvent => DeclEvent;
-/ \a DefEventRef => DeclEventRef;
+* 4 \as @@ 4 \f BlitScale @@ \impl \u YGDI;
 
 r18:
-/ @@ \h Base:
-	+ \mac DefMutableGetter;
-	+ \mac DefMutableGetterBase;
-	+ \mac DefMutableGetterMember;
-	+ \mac DefMutablePredicate;
-	+ \mac DefMutablePredicateBase;
-	+ \mac DefMutablePredicateMember;
-	- \mac DefStaticPredicate;
-	- \mac DefStaticPredicateBase;
-	- \mac DefStaticPredicate;
-	- \mac DefStaticPredicateBase
-/ @@ \h YEvent:
-	+ \mac DefMutableEventGetter;
-	+ \mac DefMutableEventGetterBase;
-	+ \mac DefMutableEventGetterMember;
-/ \a DefStaticGetter => static DefMutableGetter;
-/ \simp @@ \mf GetFocusingPtr @@ \cl (ATrack & AScrollBar & YListBox
-	& YUIContainer & AFrameWindow) ^ DefMutableGetterBase;
+/ \mg 4 \as @@ \f BlitScale >> \f BlitPosition @@ \impl \u YGDI;
 
 r19:
-/ @@ \u YGUIComponent:
-	/ \m pwTextRegion => wpTextRegion @@ \cl YSimpleListBox;
-+ \u YUIContainer @@ \dir Shell;
-+ \u YLabel @@ \dir Shell;
-/ @@ \ns Widgets @@ \u YWidget:
-	/= \tr \inc @@ \cl YLabel;
-	+ \mf void DrawText(Widget&, const Point&) @@ \u MLabel;
-	/ \impl @@ \mf PaintText;
-	/ \cl MUIContainer >> \u YUIContainer;
-	/ \cl YUIContainer >> \u YUIContainer;
-	/ \cl MLabel >> \u YLabel;
-	/ \cl YLabel >> \u YLabel;
-	- \inc \h YText @@ \h;
-	- \inc \h YResource @@ \h;
-	- \inc \h YFocus @@ \h;
-	- using Drawing::YImage;
-	/ \in IUIBox >> \u YUIContainer;
-	/ \in IUIContainer >> \u YUIContainer;
-	+ \pre \decl \cl IUIBox;
-	+ \pre \decl \in IUIContainer;
-	/ \a (\f & \ft) ('Fetch*' & 'MoveTo*' & Fill)
-		& (\f GetContainersListFrom @@ \un \ns) >> \u YUIContainer;
-	+ \inc \h YGDI @@ \h;
-- \inc \h YWidget @@ \h YWindow;
-+ \inc \h YLabel @@ \h YGUIComponent;
-* @@ \h YFocus:
-	/ \mac INCLUDED_YMODULE_H_ => \mac INCLUDED_YFOCUS_H_;
-	/ \inc \h YObject -> \inc \h YComponent;
-+ \inc \h (YResource & YUIContainer) @@ \h YGUIComponent;
-/ @@ \impl \u YShell:
-	/ \inc \h YGUI -> \inc \h YDesktop;
-	- using namespace Components;
-	- using namespace Components::Controls;
-+ \inc \h YFocus @@ \h YControl;
+/ @@ \un \ns @@ \impl \u YGDI:
+	/ \mg \i \f (blit_min_x & blit_min_y) -> blit_min;
+	/ \mg \i \f (blit_max_x & blit_max_y) -> blit_max;
+	/ \param order @@ \i \f blit_max;
 
 r20:
-/ @@ \u YLabel:
-	+ \cl MTextList;
-	/ @@ \cl MLabel:
-		/ \mf void MLabel::DrawText(Widgets&, const Point&)
-			-> !\m \f DrawText(TextRegion&, const Graphics&, const Point&,
-				const Size&, const String&) @@ \u YText;
-		/ \mf void PaintText(Widget&, const Point&)
-			-> bool PaintText(Widget&, const Graphics&, const Point&);
-	/ \impl @@ \mf DrawForeground @@ \cl YLabel;
-/ \a pTr_ => wpTr_;
-+ using Drawing::Graphics @@ \h YWidget;
-+ \f const Graphics& FetchContext(IWidget&) @@ \u YUIContainer;
-/ \tr \impl @@ \mf void YButton::DrawForeground();
+/  @@ \u YGDI:
+	/ \f void BlitPosition() -> bool BlitBounds();
+	/ (\decl & \impl) @@ \ft BlitScale;
+	/ \impl @@ \ft Blit;
 
-r21:
-/= test 5;
+r21-r35:
+/ test 3;
+/ @@ \impl \u YText:
+	+ \stt BlitTextLoop @@ \un \ns;
+	/ \impl @@ \f PrintCharEx ^ BlitTextLoop;
+	- \f PrintChar;
+	/ \f PrintCharEx => PrintChar;
+	/ \s \o Alpha_Threshold -> !\s \o BLT_TEXT_ALPHA_THRESHOLD @@ \un \ns;
+	- \mac INVISIBLE_CHAR;
+
+r36:
+/ \tp @@ \o (BLT_ALPHA_BITS & 'BLT_THRESHOLD?') -> \c u8 ~ \c u32 @@ \h YGDI;
+
+r37:
+/ @@ \h YGDI:
+	/ + \i \f blitAlphaBlend(u32, u32, u8);
+	/ \ft<> \i void blitAlpha(u16*, IteratorPair)
+		-> \ft<> \i void blitAlpha(PixelType*, IteratorPair);
+
+r38:
++ \stt<typename _type, typename _tIterator = _type*> struct pseudo_iterator 
+	@@ \h YCLib::Iterator;
+/ @@ \h YGDI:
+	+ typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
+		const u8*> MonoIteratorPair;
+	+ \ft<> \i void biltAlphaPoint(PixelType*, MonoIteratorPair);
+	/ \mf void operator()(int, int, BitmapPtr, IteratorPair, int, int)
+		@@ \stt BlitBlendLoop -> \mf \t<typename _tIn>
+		void operator()(int, int, BitmapPtr, _tIn, int, int);
+
+r39:
+/ ((\stt xcrease_t & delta_assignment_t) & \ft (xcrease & delta_assignment))
+	@@ \ns YSLib @@ \h YCoreUtilities >> \ns ystdex @@ \h YCLib::Utilities;
+/ ystdex::pair_iterator<BitmapPtr, u8*> @@ \impl \u YText
+	-> ystdex::pair_iterator<ConstBitmapPtr, const u8*>;
+
+r40:
+/= test 3 ^ \conf release;
 
 
 $DOING:
 
 relative process:
-2011-01-23:
--20.7d;
+2011-01-29:
+-21.9d;
 
 / ...
 
 
 $NEXT_TODO:
 
-b189-b240:
+b190-b240:
 / scroll bars @@ listbox \cl;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;

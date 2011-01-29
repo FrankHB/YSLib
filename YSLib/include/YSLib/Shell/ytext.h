@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6666;
+\version 0.6676;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 + 08:00;
 \par 修改时间:
-	2010-01-23 06:57 + 08:00;
+	2010-01-28 19:05 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -178,13 +178,7 @@ SetLnNNowTo(TextState&, u16);
 \brief 打印单个字符。
 */
 void
-PrintChar(BitmapBuffer&, TextState&, fchar_t); 
-
-/*!
-\brief 打印单个字符。
-*/
-void
-PrintCharEx(BitmapBufferEx&, TextState&, fchar_t); 
+PrintChar(BitmapBufferEx&, TextState&, fchar_t); 
 
 
 //文本区域。

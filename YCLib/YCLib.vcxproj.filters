@@ -14,6 +14,9 @@
       <Extensions>
       </Extensions>
     </Filter>
+    <Filter Include="头文件\ystdex">
+      <UniqueIdentifier>{cbbbb3e5-cc2e-4e3c-a4ae-fbe2fac7370a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />
@@ -22,9 +25,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\ycast.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="include\ycommon.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -33,6 +33,15 @@
     </ClInclude>
     <ClInclude Include="include\ystdex.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\cast.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\iterator.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\util.hpp">
+      <Filter>头文件\ystdex</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

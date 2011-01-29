@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6301;
+\version 0.6379;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 + 08:00;
 \par 修改时间:
-	2011-01-23 06:58 + 08:00;
+	2011-01-29 14:59 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,10 +32,6 @@ using namespace Drawing;
 using namespace Text;
 
 YSL_BEGIN_NAMESPACE(Drawing)
-
-#define INVISIBLE_CHAR(c) ((c) == ' ' || (c) == '\t' || (c)== '\r')
-
-static const u8 Alpha_Threshold = 16;
 
 TextState::TextState()
 	: PenStyle(GetDefaultFontFamily()), Margin(),
@@ -74,58 +70,40 @@ SetLnNNowTo(TextState& s, u16 n)
 }
 
 
-void
-PrintChar(BitmapBuffer& buf, TextState& ts, fchar_t c)
+namespace
 {
-	if(!buf.GetBufferPtr())
-		//无缓冲区时无法绘图。
-		return;
+	const u8 BLT_TEXT_ALPHA_THRESHOLD(16);
+	PixelType char_color;
 
-	YFontCache& cache(ts.GetCache());
-	CharBitmap sbit(cache.GetGlyph(c));
-	const int tx(ts.PenX + cache.GetAdvance(c, sbit));
-
-	if(!INVISIBLE_CHAR(c) && sbit.GetBuffer())
+	template<bool _bPositiveScan>
+	struct BlitTextLoop
 	{
-		PixelType col(ts.Color | BITALPHA);
-		const int dx(ts.PenX + sbit.GetLeft()),
-			dy(ts.PenY - sbit.GetTop()),
-			xmin(vmax<int>(0, ts.Margin.Left - dx)),
-			ymin(vmax<int>(0, ts.Margin.Top - dy)),
-			xmax(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx,
-				sbit.GetWidth())),
-			ymax(vmin<int>(buf.GetHeight() - ts.Margin.Bottom - dy,
-				sbit.GetHeight()));
-
-		if(xmax >= xmin && ymax >= ymin)
+		void
+		operator()(int delta_x, int delta_y,
+			ystdex::pair_iterator<BitmapPtr, u8*> dst_iter, u8* src_iter,
+			int dst_inc, int src_inc)
 		{
-			const int sJmp(sbit.GetWidth() - xmax + xmin),
-				dJmp(buf.GetWidth() - xmax + xmin),
-				dOff(vmax<int>(ts.Margin.Top, dy) * buf.GetWidth()
-					+ vmax<int>(ts.Margin.Left, dx));
-			u8* sa(sbit.GetBuffer() + ymin * sbit.GetWidth() + xmin);
-			BitmapPtr dc(buf.GetBufferPtr() + dOff);
-
-			for(int y(ymin); y < ymax; ++y)
+			for(; delta_y > 0; --delta_y)
 			{
-				for(int x(xmin); x < xmax; ++x)
+				for(int x(0); x < delta_x; ++x)
 				{
-					if(*sa >= Alpha_Threshold)
-						*dc = col;
-					++sa;
-					++dc;
+					if(*src_iter >= BLT_TEXT_ALPHA_THRESHOLD)
+					{
+						*dst_iter.base().second = *src_iter;
+						*dst_iter = char_color;
+					}
+					++src_iter;
+					ystdex::xcrease<_bPositiveScan>(dst_iter);
 				}
-				sa += sJmp;
-				dc += dJmp;
+				src_iter += src_inc;
+				ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
 			}
 		}
-	}
-	//移动笔。
-	ts.PenX = tx;
+	};
 }
 
 void
-PrintCharEx(BitmapBufferEx& buf, TextState& ts, fchar_t c)
+PrintChar(BitmapBufferEx& buf, TextState& ts, fchar_t c)
 {
 	if(!buf.GetBufferPtr())
 		//无缓冲区时无法绘图。
@@ -135,46 +113,23 @@ PrintCharEx(BitmapBufferEx& buf, TextState& ts, fchar_t c)
 	CharBitmap sbit(cache.GetGlyph(c));
 	const int tx(ts.PenX + cache.GetAdvance(c, sbit));
 
-	if(!INVISIBLE_CHAR(c) && sbit.GetBuffer())
+	if(std::iswgraph(c) && sbit.GetBuffer())
 	{
-		PixelType col(ts.Color | BITALPHA);
+		char_color = ts.Color | BITALPHA;
+
 		const int dx(ts.PenX + sbit.GetLeft()),
 			dy(ts.PenY - sbit.GetTop()),
 			xmin(vmax<int>(0, ts.Margin.Left - dx)),
-			ymin(vmax<int>(0, ts.Margin.Top - dy)),
-			xmax(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx,
-				sbit.GetWidth())),
-			ymax(vmin<int>(buf.GetHeight() - ts.Margin.Bottom - dy,
-				sbit.GetHeight()));
+			ymin(vmax<int>(0, ts.Margin.Top - dy));
 
-		if(xmax >= xmin && ymax >= ymin)
-		{
-			const int sJmp(sbit.GetWidth() - xmax + xmin),
-				dJmp(buf.GetWidth() - xmax + xmin),
-				dOff(vmax<int>(ts.Margin.Top, dy) * buf.GetWidth()
-					+ vmax<int>(ts.Margin.Left, dx));
-			u8* sa(sbit.GetBuffer() + ymin * sbit.GetWidth() + xmin);
-			BitmapPtr dc(buf.GetBufferPtr() + dOff);
-			u8* da(buf.GetBufferAlphaPtr() + dOff);
-
-			for(int y(ymin); y < ymax; ++y)
-			{
-				for(int x(xmin); x < xmax; ++x)
-				{
-					if(*sa >= Alpha_Threshold)
-					{
-						*da = *sa;
-						*dc = col;
-					}
-					++sa;
-					++dc;
-					++da;
-				}
-				sa += sJmp;
-				dc += dJmp;
-				da += dJmp;
-			}
-		}
+		Blit<BlitTextLoop, false, false>(ystdex::pair_iterator<BitmapPtr, u8*>(
+			buf.GetBufferPtr(), buf.GetBufferAlphaPtr()), buf.GetSize(),
+			sbit.GetBuffer() + ymin * sbit.GetWidth() + xmin,
+			Size(sbit.GetWidth(), sbit.GetHeight()), Point::Zero,
+			Point(vmax<int>(ts.Margin.Left, dx), vmax<int>(ts.Margin.Top, dy)),
+			Size(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx,
+				sbit.GetWidth()) - xmin, vmin<int>(buf.GetHeight()
+				- ts.Margin.Bottom - dy, sbit.GetHeight()) - ymin));
 	}
 	//移动笔。
 	ts.PenX = tx;
@@ -337,7 +292,7 @@ TextRegion::PutChar(fchar_t c)
 		PutNewline();
 		return 1;
 	}
-	PrintCharEx(*this, *this, c);
+	PrintChar(*this, *this, c);
 	return 0;
 }
 

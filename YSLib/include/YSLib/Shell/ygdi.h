@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3564;
+\version 0.3848;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2011-01-20 09:13 + 08:00;
+	2011-01-29 14:51 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -51,6 +51,14 @@ typedef enum
 	Horizontal = 0,
 	Vertical = 1
 } Orientation;
+
+
+//! \brief Alpha 单色光栅化源迭代器对。
+typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
+	const u8*> MonoIteratorPair;
+
+//! \brief Alpha 光栅化源迭代器对。
+typedef ystdex::pair_iterator<ConstBitmapPtr, const u8*> IteratorPair;
 
 
 //基本函数对象。
@@ -119,43 +127,65 @@ struct VerticalLineTransfomer
 };
 
 
-//! \brief 贴图位置计算器。
-void
-BlitPosition(const Point& sp, const Point& dp,
+//! \brief 贴图边界计算器。
+bool
+BlitBounds(const Point& sp, const Point& dp,
 	const Size& ss, const Size& ds, const Size& cs,
 	int& min_x, int& min_y, int& max_x, int& max_y);
 
 //! \brief 贴图偏移量计算器。
 template<bool _bSwapLR, bool _bSwapUD>
-void
+int
 BlitScale(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& cs,
-	int& delta_x, int& delta_y,
-	int& src_off, int& dst_off);
+	const Size& ss, const Size& ds, const Size& cs, int delta_x, int delta_y);
 template<>
-void
+int
 BlitScale<false, false>(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& cs,
-	int& delta_x, int& delta_y,
-	int& src_off, int& dst_off);
+	const Size& ss, const Size& ds, const Size& cs, int delta_x, int delta_y);
 template<>
-void
+int
 BlitScale<true, false>(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& cs,
-	int& delta_x, int& delta_y,
-	int& src_off, int& dst_off);
+	const Size& ss, const Size& ds, const Size& cs, int delta_x, int delta_y);
 template<>
-void
+int
 BlitScale<false, true>(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& cs,
-	int& delta_x, int& delta_y,
-	int& src_off, int& dst_off);
+	const Size& ss, const Size& ds, const Size& cs, int delta_x, int delta_y);
 template<>
-void
+int
 BlitScale<true, true>(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& cs,
-	int& delta_x, int& delta_y,
-	int& src_off, int& dst_off);
+	const Size& ss, const Size& ds, const Size& cs, int delta_x, int delta_y);
+
+
+/*!
+\brief 贴图函数模板。
+
+复制一块矩形区域的像素。
+\param _gBlitLoop 循环实现模板类。
+\param _bSwapLR 水平翻转镜像（关于水平中轴对称）。
+\param _bSwapUD 竖直翻转镜像（关于竖直中轴对称）。
+\param _tOut 输出迭代器类型。
+\param _tOut 输入迭代器类型。
+*/
+template<template<bool> class _gBlitLoop, bool _bSwapLR, bool _bSwapUD,
+	typename _tOut, typename _tIn>
+void Blit(_tOut dst, const Size& ds,
+	_tIn src, const Size& ss,
+	const Point& sp, const Point& dp, const Size& sc)
+{
+	int min_x, min_y, max_x, max_y;
+
+	if(BlitBounds(sp, dp, ss, ds, sc, min_x, min_y, max_x, max_y))
+	{
+		const int delta_x(max_x - min_x), delta_y(max_y - min_y),
+			src_off(min_y * ss.Width + min_x),
+			dst_off(BlitScale<_bSwapLR, _bSwapUD>(sp, dp, ss, ds, sc,
+				delta_x, delta_y));
+
+		_gBlitLoop<!_bSwapLR>()(delta_x, delta_y, dst + dst_off, src + src_off,
+			(_bSwapLR ^ _bSwapUD ? -1 : 1) * ds.Width - delta_x,
+			ss.Width - delta_x);
+	}
+}
 
 
 //! \brief 正则矩形转换器。
@@ -172,14 +202,14 @@ struct RectTransfomer
 	{
 		int min_x, min_y, max_x, max_y;
 
-		BlitPosition(Point::Zero, dp, ss, ds, ss,
+		BlitBounds(Point::Zero, dp, ss, ds, ss,
 			min_x, min_y, max_x, max_y);
 
-		const int delta_x(max_x - min_x),
-			delta_y(max_y - min_y);
+		const int delta_x(max_x - min_x);
+		int delta_y(max_y - min_y);
 
-		dst += (vmax<SPOS>(0, dp.Y) * ds.Width) + vmax<SPOS>(0, dp.X);
-		for(int y(0); y < delta_y; ++y)
+		dst += vmax<SPOS>(0, dp.Y) * ds.Width + vmax<SPOS>(0, dp.X);
+		for(; delta_y > 0; --delta_y)
 		{
 			tl(dst, delta_x, tp);
 			dst += ds.Width;
@@ -281,154 +311,205 @@ FillRect(_tPixel* dst, SDST dw, SDST dh, SPOS sx, SPOS sy, SDST sw, SDST sh,
 //显示缓存操作：复制和贴图。
 
 /*!
-\brief 复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。
+\brief 循环：按指定扫描顺序复制一行像素。
+\note 不检查迭代器有效性。
 */
+template<bool _bPositiveScan>
 void
-Blit(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
+BlitLine(BitmapPtr& dst_iter, ConstBitmapPtr& src_iter, int delta_x)
+{
+	if(delta_x > 0)
+	{
+		mmbcpy(dst_iter, src_iter, delta_x * sizeof(PixelType));
+		src_iter += delta_x;
+		dst_iter += delta_x;
+	}
+}
+template<>
+inline void
+BlitLine<false>(BitmapPtr& dst_iter, ConstBitmapPtr& src_iter, int delta_x)
+{
+	for(; delta_x > 0; --delta_x)
+		*dst_iter-- = *src_iter++;
+}
 
 /*!
-\brief 水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。
+\brief 循环：按指定扫描顺序复制一块矩形区域的像素。
+\note 不检查迭代器有效性。
 */
-void
-BlitH(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
+template<bool _bPositiveScan>
+struct BlitLoop
+{
+	void
+	operator()(int delta_x, int delta_y,
+		BitmapPtr dst_iter, ConstBitmapPtr src_iter,
+		int dst_inc, int src_inc)
+	{
+		for(; delta_y > 0; --delta_y)
+		{
+			BlitLine<_bPositiveScan>(dst_iter, src_iter, delta_x);
+			src_iter += src_inc;
+			ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+		}
+	}
+};
 
 /*!
-\brief 竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。
+\brief 循环：按指定扫描顺序复制一块矩形区域的像素。
+\note 不检查迭代器有效性。透明性复制。
 */
-void
-BlitV(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
-/*!
-\brief 倒置复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。
-*/
-void
-BlitU(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
+template<bool _bPositiveScan>
+struct BlitTransparentLoop
+{
+	//使用源迭代器对应像素的第 15 位表示透明性。
+	void
+	operator()(int delta_x, int delta_y,
+		BitmapPtr dst_iter, ConstBitmapPtr src_iter,
+		int dst_inc, int src_inc)
+	{
+		for(; delta_y > 0; --delta_y)
+		{
+			for(int x(0); x < delta_x; ++x)
+			{
+				if(*src_iter & BITALPHA)
+				*dst_iter = *src_iter;
+				++src_iter;
+				ystdex::xcrease<_bPositiveScan>(dst_iter);
+			}
+			src_iter += src_inc;
+			ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+		}
+	}
 
-/*
+	//使用 Alpha 通道表示透明性。
+	void
+	operator()(int delta_x, int delta_y,
+		BitmapPtr dst_iter, IteratorPair src_iter,
+		int dst_inc, int src_inc)
+	{
+		for(; delta_y > 0; --delta_y)
+		{
+			for(int x(0); x < delta_x; ++x)
+			{
+				*dst_iter = ((*src_iter.base().second & 0x80) ? *src_iter : 0)
+					| BITALPHA;
+				++src_iter;
+				ystdex::xcrease<_bPositiveScan>(dst_iter);
+			}
+			src_iter += src_inc;
+			ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+		}
+	}
+};
+
+const u8 BLT_ALPHA_BITS(8);
+const u32 BLT_MAX_ALPHA((1 << BLT_ALPHA_BITS) - 1);
+const u32 BLT_ROUND(1 << (BLT_ALPHA_BITS - 1));
+const u8 BLT_THRESHOLD(8);
+const u8 BLT_THRESHOLD2(128);
+
+//#define YSL_FAST_BLIT
+
+#ifdef YSL_FAST_BLIT
+
+//测试用，不使用 Alpha 混合的快速算法。
+inline void
+biltAlphaPoint(BitmapPtr dst_iter, IteratorPair src_iter)
+{
+	if(*src_iter.base().second >= BLT_THRESHOLD2)
+		*dst_iter = *src_iter | BITALPHA;
+}
+
+#else
+
+// TODO: 消除具体像素格式依赖。
+inline u16
+blitAlphaBlend(u32 d, u32 s, u8 a)
+{
+	/*
+	格式： 16 位 ARGB1555 。
+	算法示意：
+						arrrrrgggggbbbbb
+		0000000000arrrrrgggggbbbbb000000
+		00000000000111110000000000000000
+		00000000000rrrrr0000000000000000
+		00000000000rrrrr00000000000bbbbb : dbr
+		0000000000000000000000ggggg00000 : dg
+	分解红色和蓝色分量至 32 位寄存器以减少乘法次数。
+	使用下列 Alpha 混合公式（其中 alpha = a / BLT_MAX_ALPHA）：
+	*dst_iter = (1 - alpha) * d + alpha * s
+	= ((BLT_MAX_ALPHA - a) * d + a * s) >> BLT_ALPHA_BITS
+	= ((d << BLT_ALPHA_BITS) + BLT_ROUND + a * (s - d))
+		>> BLT_ALPHA_BITS;
+	可进一步近似为 d + ((a * (s - d)) >> BLT_ALPHA_BITS)，但有额外损失。
+	*/
+	if(d & BITALPHA && a <= BLT_MAX_ALPHA - BLT_THRESHOLD)
+	{
+		register u32 dbr((d & 0x1F) | (d << 6 & 0x1F0000)), dg(d & 0x3E0);
+
+		dbr = (dbr + (((((s & 0x1F) | (s << 6 & 0x1F0000)) - dbr)
+			* a + BLT_ROUND) >> BLT_ALPHA_BITS));
+		dg  = (dg  + ((((s & 0x3E0) - dg) * a + BLT_ROUND)
+			>> BLT_ALPHA_BITS));
+		return (dbr & 0x1F) | (dg & 0x3E0)
+			| (dbr >> 6 & 0x7C00) | BITALPHA;
+	}
+	if(a >= BLT_THRESHOLD2)
+		return s | BITALPHA;
+	return d;
+}
+
+template<typename _tOut, typename _tIn>
 void
-Blit(u8* dst, SDST dw, SDST dh,
-	const u8* src, SDST sw, SDST sh,
-	const Point& sp, const Point& dp, const Size& sc);
-*/
+biltAlphaPoint(_tOut dst_iter, _tIn src_iter);
+template<>
+inline void
+biltAlphaPoint(PixelType* dst_iter, MonoIteratorPair src_iter)
+{
+	register u8 a(*src_iter.base().second);
+
+	if(a >= BLT_THRESHOLD)
+		*dst_iter = blitAlphaBlend(*dst_iter, *src_iter, a);
+}
+template<>
+inline void
+biltAlphaPoint(PixelType* dst_iter, IteratorPair src_iter)
+{
+	register u8 a(*src_iter.base().second);
+
+	if(a >= BLT_THRESHOLD)
+		*dst_iter = blitAlphaBlend(*dst_iter, *src_iter, a);
+}
+
+#endif
 
 /*!
-\brief 复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。使用第 15 位表示透明性。
+\brief 循环：按指定扫描顺序复制一块矩形区域的像素。
+\note 不检查迭代器有效性。透明度 Alpha 混合。
 */
-void
-Blit2(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
-
-/*!
-\brief 水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。使用第 15 位表示透明性。
-*/
-void
-Blit2H(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
-
-/*!
-\brief 竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。使用第 15 位表示透明性。
-*/
-void
-Blit2V(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
-
-/*!
-\brief 倒置复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。使用第 15 位表示透明性。
-*/
-void
-Blit2U(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
-
-/*!
-\brief 复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示透明性。
-*/
-void
-Blit2(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
-
-/*!
-\brief 水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示透明性。
-*/
-void
-Blit2H(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
-
-/*!
-\brief 竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示透明性。
-*/
-void
-Blit2V(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
-
-/*!
-\brief 倒置复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示透明性。
-*/
-void
-Blit2U(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
-
-/*!
-\brief 复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示 8 位透明度。
-*/
-void
-BlitAlpha(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
-
-/*!
-\brief 水平翻转镜像（关于水平中轴对称）复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示 8 位透明度。
-*/
-void
-BlitAlphaH(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
-
-/*!
-\brief 竖直翻转镜像（关于竖直中轴对称）复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示 8 位透明度。
-*/
-void
-BlitAlphaV(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
-
-/*!
-\brief 倒置复制一块矩形区域的像素。
-\note 不检查指针有效性。自动裁剪适应大小。使用 Alpha 通道表示 8 位透明度。
-*/
-void
-BlitAlphaU(BitmapPtr dst, const Size& ds,
-	ConstBitmapPtr src, const u8* src_alpha, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc);
+template<bool _bPositiveScan>
+struct BlitBlendLoop
+{
+	//使用 Alpha 通道表示 8 位透明度。
+	template<typename _tIn>
+	void
+	operator()(int delta_x, int delta_y,
+		BitmapPtr dst_iter, _tIn src_iter,
+		int dst_inc, int src_inc)
+	{
+		for(; delta_y > 0; --delta_y)
+		{
+			for(int x(0); x < delta_x; ++x)
+			{
+				biltAlphaPoint(dst_iter, src_iter);
+				++src_iter;
+				ystdex::xcrease<_bPositiveScan>(dst_iter);
+			}
+			src_iter += src_inc;
+			ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+		}
+	}
+};
 
 
 //图形接口上下文操作：绘图。
