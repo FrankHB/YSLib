@@ -11,12 +11,12 @@
 /*!	\file GBKEX.cpp
 \ingroup YReader
 \brief 测试文件。
-\version 0.3046; *Build 187 r1;
+\version 0.3055; *Build 190 r17;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11;
 \par 修改时间:
-	2011-01-16 08:56 + 08:00;
+	2011-02-05 23:47 + 08:00;
 \par 字符集:
 	ANSI / GBK;
 \par 模块名称:
@@ -109,7 +109,7 @@ namespace YSLib
 				t.Pause();
 
 			//	tr.BeFilledWith(ColorSpace::Black);
-				tr.PutLine(str);
+				PutLine(tr, str);
 				t.Blit(tr);
 				t.Pause();
 
@@ -117,7 +117,7 @@ namespace YSLib
 				tr.ClearImage();
 				tr.ResetPen();
 				tr.Color = ColorSpace::Black;
-				tr.PutLine(str);
+				PutLine(tr, str);
 				t.Blit(tr);
 				t.Pause();
 
@@ -125,7 +125,7 @@ namespace YSLib
 				tr.ClearImage();
 				tr.ResetPen();
 				tr.Color = ColorSpace::Blue;
-				tr.PutLine(str);
+				PutLine(tr, str);
 				t.Pause();
 
 				t.Blit(tr);
@@ -141,7 +141,7 @@ namespace YSLib
 				tr2.ClearImage();
 				tr2.ResetPen();
 				tr2.Color = ColorSpace::White;
-				tr2.PutLine(str);
+				PutLine(tr2, str);
 				t.Blit(tr2);
 				t.Pause();
 
@@ -149,7 +149,7 @@ namespace YSLib
 				tr2.ClearImage();
 				tr2.ResetPen();
 				tr2.Color = ColorSpace::Black;
-				tr2.PutLine(str);
+				PutLine(tr2, str);
 				t.Blit(tr2);
 				t.Pause();
 
@@ -158,7 +158,7 @@ namespace YSLib
 				tr2.ResetPen();
 				tr2.Color = ColorSpace::Red;
 				t.Blit(tr2);
-				tr2.PutLine(str);
+				PutLine(tr2, str);
 				t.Pause();
 
 				t.Blit(tr2);
@@ -172,7 +172,7 @@ namespace YSLib
 				t.Pause();
 
 			//	tr.BeFilledWith(ColorSpace::Black);
-				tr.PutLine(str);
+				PutLine(tr, str);
 				t.Blit(tr);
 				t.Pause();
 
@@ -180,7 +180,7 @@ namespace YSLib
 				tr.ClearImage();
 				tr.ResetPen();
 				tr.Color = ColorSpace::Black;
-				tr.PutLine(str);
+				PutLine(tr, str);
 				t.Blit(tr);
 				t.Pause();
 
@@ -188,7 +188,7 @@ namespace YSLib
 				tr.ClearImage();
 				tr.ResetPen();
 				tr.Color = ColorSpace::Blue;
-				tr.PutLine(str);
+				PutLine(tr, str);
 				t.Pause();
 
 				t.Blit(tr);
@@ -206,7 +206,7 @@ namespace YSLib
 				tr2.ClearImage();
 				tr2.ResetPen();
 				tr2.Color = ColorSpace::White;
-				tr2.PutLine(str);
+				PutLine(tr2, str);
 				t.Blit(tr2);
 				t.Pause();
 
@@ -214,7 +214,7 @@ namespace YSLib
 				tr2.ClearImage();
 				tr2.ResetPen();
 				tr2.Color = ColorSpace::Black;
-				tr2.PutLine(str);
+				PutLine(tr2, str);
 				t.Blit(tr2);
 				t.Pause();
 
@@ -223,7 +223,7 @@ namespace YSLib
 				tr2.ResetPen();
 				tr2.Color = ColorSpace::Red;
 				t.Blit(tr2);
-				tr2.PutLine(str);
+				PutLine(tr2, str);
 				t.Pause();
 
 				t.Blit(tr2);

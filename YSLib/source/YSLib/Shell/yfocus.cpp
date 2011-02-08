@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yfocus.cpp
 \ingroup Shell
 \brief GUI 焦点特性实现。
-\version 0.1305;
+\version 0.1307;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 + 08:00;
 \par 修改时间:
-	2010-12-21 16:11 + 08:00;
+	2011-01-31 14:40 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -78,7 +78,7 @@ bool
 AFocusRequester::ReleaseFocus(GMFocusResponser<AFocusRequester>& c)
 {
 	return bFocused && IsFocusOfContainer(c)
-		&& (bFocused = NULL, !(c.ClearFocusingPtr()));
+		&& (bFocused = NULL, !(c.SetFocusingPtr(NULL)));
 }
 
 YSL_END_NAMESPACE(Components)

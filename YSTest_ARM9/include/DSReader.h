@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器实现。
-\version 0.2276;
+\version 0.2278;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 + 08:00; 
 \par 修改时间:
-	2011-01-16 08:00 + 08:00;
+	2011-01-31 19:16 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,37 +56,37 @@ private:
 	SDST top_down; //!< 下字符区域距离下屏顶端距离。
 	PixelType* pBgUp; //!< 上屏幕背景层显存地址。
 	PixelType* pBgDn; //!< 下屏幕背景层显存地址。
-	GHStrong<TextRegion> pTrUp; //!< 上屏幕对应字符区域。
-	GHStrong<TextRegion> pTrDn; //!< 下屏幕对应字符区域。
+	GHStrong<TextRegion> pTextRegionUp; //!< 上屏幕对应字符区域。
+	GHStrong<TextRegion> pTextRegionDn; //!< 下屏幕对应字符区域。
 	Rotation rot; //!< 屏幕指向。
 	Text::TextFileBuffer::HText itUp; //!< 字符区域读取文本缓存迭代器。
 	Text::TextFileBuffer::HText itDn; //!< 字符区域读取文本缓存迭代器。
 	u8 lnHeight; //!< 行高。
 
-	DefGetter(Color, ColorUp, pTrUp->Color) //!< 取上字符区域的字体颜色。
-	DefGetter(Color, ColorDn, pTrDn->Color) //!< 取下字符区域的字体颜色。
-	DefGetter(u8, LineGapUp, pTrUp->LineGap) //!< 取上字符区域的行距。
-	DefGetter(u8, LineGapDn, pTrDn->LineGap) //!< 取下字符区域的行距。
+	DefGetter(Color, ColorUp, pTextRegionUp->Color) //!< 取上字符区域的字体颜色。
+	DefGetter(Color, ColorDn, pTextRegionDn->Color) //!< 取下字符区域的字体颜色。
+	DefGetter(u8, LineGapUp, pTextRegionUp->LineGap) //!< 取上字符区域的行距。
+	DefGetter(u8, LineGapDn, pTextRegionDn->LineGap) //!< 取下字符区域的行距。
 
-	DefSetterDe(PixelType, ColorUp, pTrUp->Color, 0) \
+	DefSetterDe(PixelType, ColorUp, pTextRegionUp->Color, 0) \
 		//!< 设置上字符区域的字体颜色。
-	DefSetterDe(PixelType, ColorDn, pTrDn->Color, 0) \
+	DefSetterDe(PixelType, ColorDn, pTextRegionDn->Color, 0) \
 		//!< 设置下字符区域的字体颜色。
-	DefSetterDe(u8, LineGapUp, pTrUp->LineGap, 0) //!< 设置上字符区域的行距。
-	DefSetterDe(u8, LineGapDn, pTrDn->LineGap, 0) //!< 设置下字符区域的行距。
+	DefSetterDe(u8, LineGapUp, pTextRegionUp->LineGap, 0) //!< 设置上字符区域的行距。
+	DefSetterDe(u8, LineGapDn, pTextRegionDn->LineGap, 0) //!< 设置下字符区域的行距。
 
 	//! \brief 清除字符区域缓冲区。
 	void Clear()
 	{
-		pTrUp->ClearImage();
-		pTrDn->ClearImage();
+		pTextRegionUp->ClearImage();
+		pTextRegionDn->ClearImage();
 	}
 
 	//! \brief 复位缓存区域写入位置。
 	void ResetPen()
 	{
-		pTrUp->ResetPen();
-		pTrDn->ResetPen();
+		pTextRegionUp->ResetPen();
+		pTextRegionDn->ResetPen();
 	}
 
 	//! \brief 文本填充：输出文本缓冲区字符串，并返回填充字符数。
@@ -111,8 +111,8 @@ public:
 	bool IsTextBottom(); //!< 判断输出位置是否到文本底端。
 
 	DefGetter(u8, FontSize, fc.GetFontSize()) //!< 取字符区域的字体大小。
-	DefGetter(TextRegion&, Up, *pTrUp) //!< 取上字符区域的引用。
-	DefGetter(TextRegion&, Dn, *pTrDn) //!< 取下字符区域的引用。
+	DefGetter(TextRegion&, Up, *pTextRegionUp) //!< 取上字符区域的引用。
+	DefGetter(TextRegion&, Dn, *pTextRegionDn) //!< 取下字符区域的引用。
 	DefGetter(Color, Color, GetColorUp()) //!< 取字符区域的字体颜色。
 	DefGetter(u8, LineGap, GetLineGapUp()) //!< 取字符区域的行距。
 

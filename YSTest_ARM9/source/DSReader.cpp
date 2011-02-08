@@ -11,12 +11,12 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 NDS 的双屏阅读器实现。
-\version 0.3012;
+\version 0.3058;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 + 08:00; 
 \par 修改时间:
-	2011-01-14 07:08 + 08:00;
+	2011-02-05 23:44 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,7 +42,7 @@ BlockedText::BlockedText(YTextFile& file)
 
 void MDualScreenReader::FillText()
 {
-	itDn = pTrDn->PutString(pTrUp->PutString(itUp));
+	itDn = PutString(*pTextRegionDn, PutString(*pTextRegionUp, itUp));
 }
 
 MDualScreenReader::MDualScreenReader(SDST l, SDST w, SDST t_up, SDST h_up,
@@ -51,12 +51,12 @@ try	: pText(NULL), fc(fc_),
 	left(l), top_up(t_up), top_down(t_down),
 	pBgUp(hDesktopUp->GetContext().GetBufferPtr()),
 	pBgDn(hDesktopDown->GetContext().GetBufferPtr()),
-	pTrUp(ynew TextRegion(fc_)), pTrDn(ynew TextRegion(fc_)), rot(RDeg0),
+	pTextRegionUp(new TextRegion(fc_)), pTextRegionDn(new TextRegion(fc_)), rot(RDeg0),
 	itUp(NULL), itDn(NULL)
 {
 	//初始化视图。
-	pTrUp->SetSize(w, h_up);
-	pTrDn->SetSize(w, h_down);
+	pTextRegionUp->SetSize(w, h_up);
+	pTextRegionDn->SetSize(w, h_down);
 	SetFontSize();
 	SetColor();
 	SetLineGap();
@@ -85,14 +85,14 @@ MDualScreenReader::IsTextBottom()
 void
 MDualScreenReader::SetColor(Color c)
 {
-	pTrUp->Color = c;
-	pTrDn->Color = c;
+	pTextRegionUp->Color = c;
+	pTextRegionDn->Color = c;
 }
 void
 MDualScreenReader::SetLineGap(u8 g)
 {
-	pTrUp->LineGap = g;
-	pTrDn->LineGap = g;
+	pTextRegionUp->LineGap = g;
+	pTextRegionDn->LineGap = g;
 }
 void
 MDualScreenReader::SetFontSize(Font::SizeType fz)
@@ -104,7 +104,7 @@ MDualScreenReader::SetFontSize(Font::SizeType fz)
 void MDualScreenReader::SetLnNNowTo(u8 n)
 {
 	if(n >= 0)
-		pTrUp->SetLnNNowTo(n);
+		pTextRegionUp->SetLnNNowTo(n);
 }
 */
 
@@ -127,7 +127,7 @@ MDualScreenReader::LoadText(YTextFile& file)
 		Update();
 	}
 	else
-		pTrUp->PutString(L"文件打开失败！\n");
+		PutString(*pTextRegionUp, L"文件打开失败！\n");
 }
 
 void
@@ -141,9 +141,9 @@ MDualScreenReader::UnloadText()
 void
 MDualScreenReader::PrintText()
 {
-	pTrUp->BlitTo(pBgUp, Size::FullScreen, Point::Zero,
+	pTextRegionUp->BlitTo(pBgUp, Size::FullScreen, Point::Zero,
 		Point::Zero, Size::FullScreen, rot);
-	pTrDn->BlitTo(pBgDn, Size::FullScreen, Point::Zero,
+	pTextRegionDn->BlitTo(pBgDn, Size::FullScreen, Point::Zero,
 		Point::Zero, Size::FullScreen, rot);
 }
 
@@ -161,25 +161,28 @@ MDualScreenReader::LineUp()
 		return false;
 
 	const u8 h = lnHeight, hx = h + GetLineGapDn();
-	const SDST w = pTrUp->GetWidth();
+	const SDST w = pTextRegionUp->GetWidth();
 	const u32 t = w * h,
-		s = (pTrUp->GetHeight() - pTrUp->GetMarginResized() - h) * w,
-		d = pTrDn->Margin.Top * w;
+		s = (pTextRegionUp->GetHeight() - FetchResizedMargin(*pTextRegionUp,
+			pTextRegionUp->GetHeight()) - h) * w,
+		d = pTextRegionDn->Margin.Top * w;
 
-	pTrDn->Move(hx, pTrDn->GetBufferHeightResized());
-	std::memcpy(&pTrDn->GetBufferPtr()[d], &pTrUp->GetBufferPtr()[s],
-		t * sizeof(PixelType));
-	std::memcpy(&pTrDn->GetBufferAlphaPtr()[d], &pTrUp->GetBufferAlphaPtr()[s],
-		t * sizeof(u8));
-	pTrUp->Move(hx, pTrUp->GetBufferHeightResized());
-	pTrUp->ClearLn(0);
-	SetLnNNowTo(*pTrUp, 0);
+	pTextRegionDn->Scroll(hx, FetchResizedBufferHeight(*pTextRegionDn,
+		pTextRegionDn->GetHeight()));
+	std::memcpy(&pTextRegionDn->GetBufferPtr()[d],
+		&pTextRegionUp->GetBufferPtr()[s], t * sizeof(PixelType));
+	std::memcpy(&pTextRegionDn->GetBufferAlphaPtr()[d],
+		&pTextRegionUp->GetBufferAlphaPtr()[s], t * sizeof(u8));
+	pTextRegionUp->Scroll(hx, FetchResizedBufferHeight(*pTextRegionUp,
+		pTextRegionUp->GetHeight()));
+	pTextRegionUp->ClearLn(0);
+	SetLnNNowTo(*pTextRegionUp, 0);
 
 	TextFileBuffer::HText itUpOld(itUp);
 
-	itUp = GetPreviousLinePtr(*pTrUp, itUp, pText->Blocks.begin());
-	pTrUp->PutLine<TextFileBuffer::HText, uchar_t>(itUp, itUpOld);
-	itDn = GetPreviousLinePtr(*pTrUp, itDn, pText->Blocks.begin());
+	itUp = GetPreviousLinePtr(*pTextRegionUp, itUp, pText->Blocks.begin());
+	PutLine<TextFileBuffer::HText, uchar_t>(*pTextRegionUp, itUp, itUpOld);
+	itDn = GetPreviousLinePtr(*pTextRegionUp, itDn, pText->Blocks.begin());
 	return true;
 }
 bool
@@ -189,21 +192,22 @@ MDualScreenReader::LineDown()
 		return false;
 
 	const u8 h = lnHeight, hx = h + GetLineGapUp();
-	const SDST w = pTrUp->GetWidth();
+	const SDST w = pTextRegionUp->GetWidth();
 	const u32 t = w * h,
-		s = pTrUp->Margin.Top * w,
-		d = (pTrUp->GetHeight() - pTrUp->GetMarginResized() - h) * w;
+		s = pTextRegionUp->Margin.Top * w,
+		d = (pTextRegionUp->GetHeight() - FetchResizedMargin(*pTextRegionUp,
+			pTextRegionUp->GetHeight()) - h) * w;
 
-	pTrUp->Move(-hx);
-	std::memcpy(&pTrUp->GetBufferPtr()[d], &pTrDn->GetBufferPtr()[s],
-		t * sizeof(PixelType));
-	std::memcpy(&pTrUp->GetBufferAlphaPtr()[d], &pTrDn->GetBufferAlphaPtr()[s],
-		t * sizeof(u8));
-	pTrDn->Move(-hx);
-	pTrDn->ClearLnLast();
-	pTrDn->SetLnLast();
-	itDn = pTrDn->PutLine(itDn);
-	itUp = GetNextLinePtr(*pTrUp, itUp, pText->Blocks.end());
+	pTextRegionUp->Scroll(-hx);
+	std::memcpy(&pTextRegionUp->GetBufferPtr()[d],
+		&pTextRegionDn->GetBufferPtr()[s], t * sizeof(PixelType));
+	std::memcpy(&pTextRegionUp->GetBufferAlphaPtr()[d],
+		&pTextRegionDn->GetBufferAlphaPtr()[s], t * sizeof(u8));
+	pTextRegionDn->Scroll(-hx);
+	pTextRegionDn->ClearLnLast();
+	pTextRegionDn->SetLnLast();
+	itDn = PutLine(*pTextRegionDn, itDn);
+	itUp = GetNextLinePtr(*pTextRegionUp, itUp, pText->Blocks.end());
 	return true;
 }
 
@@ -212,8 +216,8 @@ MDualScreenReader::ScreenUp()
 {
 	if(IsTextTop())
 		return false;
-	itUp = GetPreviousLinePtr(*pTrUp, itUp, pText->Blocks.begin(),
-		pTrUp->GetLnN() + pTrDn->GetLnN());
+	itUp = GetPreviousLinePtr(*pTextRegionUp, itUp, pText->Blocks.begin(),
+		pTextRegionUp->GetLnN() + pTextRegionDn->GetLnN());
 	Update();
 	return true;
 }
@@ -223,12 +227,12 @@ MDualScreenReader::ScreenDown()
 	if(IsTextBottom())
 		return false;
 
-	int t(pTrUp->GetLnN() + pTrDn->GetLnN());
+	int t(pTextRegionUp->GetLnN() + pTextRegionDn->GetLnN());
 
 	while(t-- && itDn != pText->Blocks.end())
 	{
-		itUp = GetNextLinePtr(*pTrUp, itUp, pText->Blocks.end());
-		itDn = GetNextLinePtr(*pTrDn, itDn, pText->Blocks.end());
+		itUp = GetNextLinePtr(*pTextRegionUp, itUp, pText->Blocks.end());
+		itDn = GetNextLinePtr(*pTextRegionDn, itDn, pText->Blocks.end());
 	}
 //	itUp = itDn;
 	Update();

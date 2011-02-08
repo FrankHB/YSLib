@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2060;
+\version 0.2062;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 + 08:00;
 \par 修改时间:
-	2011-01-16 20:15 + 08:00;
+	2011-01-31 14:52 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -209,7 +209,7 @@ YSL_END
 #define YSL_STATIC_CHECK(expr, msg) LOKI_STATIC_CHECK(expr, msg)
 
 //! \brief 使用 Loki 的 Typelist 。
-#define YSL_TL(n, ...) LOKI_TYPELIST##n(...)
+//#define YSL_TL(n, ...) LOKI_TYPELIST##n(...)
 
 
 #endif

@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7114;
+\version 0.7115;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 + 08:00;
 \par 修改时间:
-	2011-01-27 23:19 + 08:00;
+	2011-01-31 14:54 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,7 +57,7 @@ public:
 		Bold = 1, //!< 粗体。
 		Italic = 2, //!< 斜体。
 		Underline = 4, //!< 下划线。
-		Strikeout = 8, //!< 删除线。
+		Strikeout = 8 //!< 删除线。
 	} Styles;
 
 private:

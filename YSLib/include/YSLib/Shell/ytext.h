@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6676;
+\version 0.6889;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 + 08:00;
 \par 修改时间:
-	2010-01-28 19:05 + 08:00;
+	2010-02-08 11:47 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,13 +36,22 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-//文本状态：笔样式、边框样式、字体缓存和行距。
+/*!
+\brief 文本状态。
+
+包含笔样式、显示区域边界、字体缓存和行距。
+文本区域指文本状态描述的平面区域。
+笔位置以文本区域左上角为原点的屏幕坐标系表示。
+显示区域为文本区域内部实际显示文本光栅化结果的区域。
+边距描述显示区域和文本区域的位置关系。
+文本状态不包含文本区域和显示区域的大小，应由外部图形接口上下文或缓冲区状态确定。
+*/
 class TextState : public PenStyle
 {
 public:
 	typedef PenStyle ParentType;
 
-	Padding Margin; //!< 显示区域到边框的距离。
+	Padding Margin; //!< 边距：文本区域到显示区域的距离。
 	SPOS PenX, PenY; //!< 笔坐标。
 	u8 LineGap; //!< 行距。
 
@@ -68,21 +77,35 @@ public:
 	virtual DefEmptyDtor(TextState)
 
 	/*!
-	\brief 从笔样式中恢复样式。
+	\brief 赋值：恢复笔样式。
 	*/
 	TextState&
 	operator=(const PenStyle& ps);
 	/*!
-	\brief 从边距样式中恢复样式。
+	\brief 赋值：恢复边距。
 	*/
 	TextState&
 	operator=(const Padding& ms);
 
 	/*!
-	\brief 复位笔：按字体大小设置笔位置为默认位置（区域左上角）。
+	\brief 输出换行。
+	*/
+	void
+	PutNewline();
+
+	/*!
+	\brief 复位笔：按字体大小设置笔位置为默认位置。
+	\note 默认笔位置在由边距约束的显示区域左上角。
 	*/
 	void
 	ResetPen();
+
+	/*!
+	\brief 按指定显示区域边界、文本区域大小和附加边距重新设置边距和笔位置。
+	\note 通过已有的区域大小和附加边距约束新的边距和笔位置。
+	*/
+	void
+	ResetForBounds(const Rect&, const Size&, const Padding&);
 };
 
 inline TextState&
@@ -178,14 +201,387 @@ SetLnNNowTo(TextState&, u16);
 \brief 打印单个字符。
 */
 void
-PrintChar(BitmapBufferEx&, TextState&, fchar_t); 
+RenderChar(const Graphics&, TextState&, fchar_t); 
+/*!
+\brief 打印单个字符。
+*/
+void
+RenderChar(BitmapBufferEx&, TextState&, fchar_t); 
 
 
-//文本区域。
-class TextRegion : public TextState, public BitmapBufferEx
+/*!
+\brief 取指定文本状态和高调整的底边距。
+\return 返回调整后的底边距值（由字体大小、行距和高决定）。
+*/
+SDST
+FetchResizedMargin(const TextState&, SDST);
+
+/*!
+\brief 取指定文本状态和高调整的高。
+\note 不含底边距。
+*/
+SDST
+FetchResizedBufferHeight(const TextState&, SDST);
+
+/*!
+\brief 取最底行的基线位置。
+*/
+SPOS
+FetchLastLineBasePosition(const TextState&, SDST);
+
+
+/*!
+\brief 打印单个字符。
+*/
+template<class _tRenderer>
+u8
+PrintChar(_tRenderer& r, fchar_t c)
+{
+	if(c == '\n')
+	{
+		r.GetTextState().PutNewline();
+		return 0;
+	}
+	if(!std::iswprint(c))
+		return 0;
+	r(c);
+	return 0;
+}
+
+/*!
+\brief 输出单个字符。
+\note 当行内无法容纳完整字符时换行。
+*/
+template<class _tRenderer>
+u8
+PutChar(_tRenderer& r, fchar_t c)
+{
+	TextState& ts(r);
+
+	if(c == '\n')
+	{
+		ts.PutNewline();
+		return 0;
+	}
+	if(!std::iswprint(c))
+		return 0;
+/*
+	const int maxW(GetBufWidthN() - 1), spaceW(ts.GetCache().GetAdvance(' '));
+
+	if(maxW < spaceW)
+		return lineBreaksL = 1;
+*/
+	if(ts.PenX + ts.GetCache().GetAdvance(c)
+		>= r.GetContext().GetWidth() - ts.Margin.Right)
+	{
+		ts.PutNewline();
+		return 1;
+	}
+	r(c);
+	return 0;
+}
+
+/*!
+\brief 输出迭代器 s 指向字符串，直至行尾或字符串结束。
+\return 输出迭代器。
+*/
+template<class _tOut, class _tRenderer>
+_tOut
+PrintLine(_tRenderer& r, _tOut s)
+{
+	TextState& ts(r.GetTextState());
+	const SPOS fpy(ts.PenY);
+	_tOut t(s);
+
+	while(*t != 0 && fpy == ts.PenY)
+		if(!PrintChar(r, *t))
+			++t;
+	return t;
+}
+/*!
+\brief 输出迭代器 s 指向字符串，直至行尾、遇到指定迭代器 g 或遇到指定字符 c 。
+\return 输出迭代器。
+*/
+template<typename _tOut, typename _tChar, class _tRenderer>
+_tOut
+PrintLine(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
+{
+	TextState& ts(r.GetTextState());
+	const SPOS fpy(ts.PenY);
+
+	while(s != g && *s != c && fpy == ts.PenY)
+		if(!PrintChar(r, *s))
+			++s;
+	return s;
+}
+/*!
+\brief 输出字符串，直至行尾或字符串结束。
+\return 输出字符数。
+*/
+template<class _tRenderer>
+inline String::size_type
+PrintLine(_tRenderer& r, const String& str)
+{
+	return PrintLine(r, str.c_str()) - str.c_str();
+}
+
+/*!
+\brief 输出迭代器 s 指向字符串，直至行尾或字符串结束。
+\note 当行内无法容纳完整字符时换行。
+\return 输出迭代器。
+*/
+template<class _tOut, class _tRenderer>
+_tOut
+PutLine(_tRenderer& r, _tOut s)
+{
+	TextState& ts(r.GetTextState());
+	const SPOS fpy(ts.PenY);
+	_tOut t(s);
+
+	while(*t != 0 && fpy == ts.PenY)
+		if(!PutChar(r, *t))
+			++t;
+	return t;
+}
+/*!
+\brief 输出迭代器 s 指向字符串，直至行尾、遇到指定迭代器 g 或遇到指定字符 c 。
+\note 当行内无法容纳完整字符时换行。
+\return 输出迭代器。
+*/
+template<typename _tOut, typename _tChar, class _tRenderer>
+_tOut
+PutLine(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
+{
+	TextState& ts(r.GetTextState());
+	const SPOS fpy(ts.PenY);
+
+	while(s != g && *s != c && fpy == ts.PenY)
+		if(!PutChar(r, *s))
+			++s;
+	return s;
+}
+/*!
+\brief 输出字符串，直至行尾或字符串结束。
+\note 当行内无法容纳完整字符时换行。
+\return 输出字符数。
+*/
+template<class _tRenderer>
+inline String::size_type
+PutLine(_tRenderer& r, const String& str)
+{
+	return PutLine(r, str.c_str()) - str.c_str();
+}
+
+/*!
+\brief 输出迭代器 s 指向字符串，直至区域末尾或字符串结束。
+\return 输出迭代器。
+*/
+template<class _tOut, class _fBuffer>
+_tOut
+PrintString(_fBuffer& r, _tOut s)
+{
+	TextState& ts(r.GetTextState());
+	const SPOS mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
+	_tOut t(s);
+
+	while(*t != 0 && ts.PenY <= mpy)
+		if(!PrintChar(r, *t))
+			++t;
+	return t;
+}
+/*!
+\brief 输出迭代器 s 指向字符串，
+	直至区域末尾、遇到指定迭代器 g 或遇到指定字符 c 。
+\return 输出迭代器。
+*/
+template<typename _tOut, typename _tChar, class _tRenderer>
+_tOut
+PrintString(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
+{
+	TextState& ts(r.GetTextState());
+	const SPOS mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
+
+	while(s != g && *s != c && ts.PenY <= mpy)
+		if(!PrintChar(r, *s))
+			++s;
+	return s;
+}
+/*!
+\brief 输出字符串，直至区域末尾或字符串结束。
+\return 输出字符数。
+*/
+template<class _tRenderer>
+inline String::size_type
+PrintString(_tRenderer& r, const String& str)
+{
+	return PrintString(r, str.c_str()) - str.c_str();
+}
+
+/*!
+\brief 输出迭代器 s 指向字符串，直至区域末尾或字符串结束。
+\note 当行内无法容纳完整字符时换行。
+\return 输出迭代器。
+*/
+template<class _tOut, class _fBuffer>
+_tOut
+PutString(_fBuffer& r, _tOut s)
+{
+	TextState& ts(r.GetTextState());
+	const SPOS mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
+	_tOut t(s);
+
+	while(*t != 0 && ts.PenY <= mpy)
+		if(!PutChar(r, *t))
+			++t;
+	return t;
+}
+/*!
+\brief 输出迭代器 s 指向字符串，
+	直至区域末尾、遇到指定迭代器 g 或遇到指定字符 c 。
+\note 当行内无法容纳完整字符时换行。
+\return 输出迭代器。
+*/
+template<typename _tOut, typename _tChar, class _tRenderer>
+_tOut
+PutString(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
+{
+	TextState& ts(r.GetTextState());
+	const SPOS mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
+
+	while(s != g && *s != c && ts.PenY <= mpy)
+		if(!PutChar(r, *s))
+			++s;
+	return s;
+}
+/*!
+\brief 输出字符串，直至区域末尾或字符串结束。
+\note 当行内无法容纳完整字符时换行。
+\return 输出字符数。
+*/
+template<class _tRenderer>
+inline String::size_type
+PutString(_tRenderer& r, const String& str)
+{
+	return PutString(r, str.c_str()) - str.c_str();
+}
+
+
+/*!	\defgroup TextRenderers Text Renderers
+\brief 文本渲染器。
+*/
+
+/*!
+\ingroup TextRenderers
+\brief 抽象文本渲染器。
+*/
+class ATextRenderer
 {
 public:
-	typedef TextState ParentType;
+	/*!
+	\brief 析构：空实现。
+	\note 无异常抛出。
+	*/
+	virtual DefEmptyDtor(ATextRenderer)
+
+	DeclIEntry(const TextState& GetTextState() const) //!< 取文本状态。
+	DeclIEntry(TextState& GetTextState()) //!< 取文本状态。
+	DeclIEntry(const Graphics& GetContext() const) //!< 取图形接口上下文。
+
+	/*!
+	\brief 取按当前行高和行距所能显示的最大行数。
+	*/
+	u16
+	GetLnN() const;
+	/*!
+	\brief 取按当前行高和行距（行间距数小于行数 1 ）所能显示的最大行数。
+	*/
+	u16
+	GetLnNEx() const;
+
+	/*!
+	\brief 设置笔的行位置为最底行。
+	*/
+	void
+	SetLnLast();
+
+	/*!
+	\brief 清除缓冲区第 l 行起始的 n 行像素。
+	\note n 为 0 时清除之后的所有行。
+	*/
+	virtual void
+	ClearLine(u16 l, SDST n);
+
+	//清除缓冲区第 l 个文本行。
+	/*!
+	\brief 清除缓冲区中的第 l 个文本行。
+	\note l 为 0 表示首行。
+	*/
+	void
+	ClearLn(u16 l);
+
+	//
+	/*!
+	\brief 清除缓冲区中的最后一个文本行。
+	*/
+	void
+	ClearLnLast();
+};
+
+
+/*!
+\ingroup TextRenderers
+\brief 文本渲染器。
+
+简单实现。
+*/
+class TextRenderer : public ATextRenderer
+{
+public:
+	typedef ATextRenderer ParentType;
+
+	TextState& State;
+	const Graphics& Buffer;
+
+	TextRenderer(TextState&, const Graphics&);
+	/*!
+	\brief 析构：空实现。
+	\note 无异常抛出。
+	*/
+	virtual DefEmptyDtor(TextRenderer)
+
+	/*!
+	\brief 渲染单个字符。
+	*/
+	void
+	operator()(fchar_t);
+
+	ImplI1(ATextRenderer) DefGetter(const TextState&, TextState, State)
+	ImplI1(ATextRenderer) DefMutableGetter(TextState&, TextState, State)
+	ImplI1(ATextRenderer) DefGetter(const Graphics&, Context, Buffer)
+};
+
+inline
+TextRenderer::TextRenderer(TextState& ts, const Graphics& g)
+	: ATextRenderer(), State(ts), Buffer(g)
+{}
+
+inline void
+TextRenderer::operator()(fchar_t c)
+{
+	RenderChar(GetContext(), GetTextState(), c);
+}
+
+
+/*!
+\ingroup TextRenderers
+\brief 文本区域。
+
+自带缓冲区的文本渲染器，通过 Alpha 贴图刷新至位图缓冲区显示光栅化文本。
+*/
+class TextRegion : public ATextRenderer, public TextState, public BitmapBufferEx
+{
+public:
+	typedef ATextRenderer ParentType;
 
 	/*!
 	\brief 无参数构造。
@@ -210,136 +606,46 @@ public:
 	/*!
 	\brief 从文本状态中恢复状态。
 	*/
-	TextRegion& operator=(const TextState& ts);
-
-	DefGetter(SDST, BufWidthN, GetWidth() - GetHorizontalFrom(Margin)) \
-		//!< 取缓冲区的文本显示区域的宽。
-	DefGetter(SDST, BufHeightN, GetHeight() - GetVerticalFrom(Margin)) \
-		//!< 取缓冲区的文本显示区域的高。
-	/*!
-	\brief 根据字体大小、行距和缓冲区的高调整边距，返回调整后的底边距值。
-	*/
-	SDST
-	GetMarginResized() const;
-	/*!
-	\brief 取根据字体大小和行距调整后的缓冲区的高。
-	\note 不含底边距。
-	*/
-	SDST
-	GetBufferHeightResized() const;
-	/*!
-	\brief 取按当前行高和行距所能显示的最大行数。
-	*/
-	u16
-	GetLnN() const;
-	/*!
-	\brief 取按当前行高和行距（行间距数小于行数 1）所能显示的最大行数。
-	*/
-	u16
-	GetLnNEx() const;
-	/*!
-	\brief 取最底行的基线位置。
-	*/
-	SPOS
-	GetLineLast() const;
+	TextRegion&
+	operator=(const TextState& ts);
 
 	/*!
-	\brief 设置笔的行位置为最底行。
+	\brief 渲染单个字符。
 	*/
 	void
-	SetLnLast();
+	operator()(fchar_t);
 
+	ImplI1(ATextRenderer) DefGetter(const TextState&, TextState, *this)
+	ImplI1(ATextRenderer) DefMutableGetter(TextState&, TextState, *this)
+	ImplI1(ATextRenderer) DefGetter(const Graphics&, Context, *this)
+
+protected:
+	/*!
+	\brief 初始化字体。
+	*/
+	void InitializeFont();
+
+public:
 	/*!
 	\brief 清除缓冲区第 l 行起始的 n 行像素。
 	\note n 为 0 时清除之后的所有行。
 	*/
-	void
+	virtual void
 	ClearLine(u16 l, SDST n);
-
-	//清除缓冲区第 l 个文本行。
-	/*!
-	\brief 清除缓冲区中的第 l 个文本行。
-	\note l 为 0 表示首行。
-	*/
-	void
-	ClearLn(u16 l);
-
-	//
-	/*!
-	\brief 清除缓冲区中的最后一个文本行。
-	*/
-	void
-	ClearLnLast();
 
 	/*!
 	\brief 缓冲区特效：整体移动 n 像素。
 	\note 除上下边界区域；n > 0 时下移， n < 0 时上移。
 	*/
 	void
-	Move(s16 n);
+	Scroll(std::ptrdiff_t n);
 	/*!
 	\brief 缓冲区特效：整体移动 n 像素。
 	\note 从缓冲区顶端起高 h 的区域内，除上下边界区域；
 	//			n > 0 时下移， n < 0 时上移。
 	*/
 	void
-	Move(s16 n, SDST h);
-
-	/*!
-	\brief 输出换行。
-	*/
-	void
-	PutNewline();
-
-	/*!
-	\brief 输出单个字符。
-	*/
-	u8
-	PutChar(fchar_t);
-
-	/*!
-	\brief 输出迭代器 s 指向字符串，直至行尾或字符串结束。
-	\return 输出迭代器。
-	*/
-	template<typename _tOut>
-	_tOut
-	PutLine(_tOut s);
-	/*!
-	\brief 输出迭代器 s 指向字符串，
-		直至行尾、遇到指定迭代器 g 或遇到指定字符 f 。
-	\return 输出迭代器。
-	*/
-	template<typename _tOut, typename _tChar>
-	_tOut
-	PutLine(_tOut s, _tOut g, _tChar f = '\0');
-	/*!
-	\brief 输出字符串，直至行尾或字符串结束。
-	\return 输出字符数。
-	*/
-	String::size_type
-	PutLine(const String&);
-
-	/*!
-	\brief 输出迭代器 s 指向字符串，直至区域末尾或字符串结束。
-	\return 输出迭代器。
-	*/
-	template<typename _tOut>
-	_tOut
-	PutString(_tOut s);
-	/*!
-	\brief 输出迭代器 s 指向字符串，
-		直至区域末尾、遇到指定迭代器 g 或遇到指定字符 f 。
-	\return 输出迭代器。
-	*/
-	template<typename _tOut, typename _tChar>
-	_tOut
-	PutString(_tOut s, _tOut g , _tChar f = '\0');
-	/*!
-	\brief 输出字符串，直至区域末尾或字符串结束。
-	\return 输出字符数。
-	*/
-	String::size_type
-	PutString(const String&);
+	Scroll(std::ptrdiff_t n, SDST h);
 };
 
 inline TextRegion&
@@ -349,63 +655,10 @@ TextRegion::operator=(const TextState& ts)
 	return *this;
 }
 
-template<typename _tOut>
-_tOut
-TextRegion::PutLine(_tOut s)
+inline void
+TextRegion::operator()(fchar_t c)
 {
-	const SPOS fpy(PenY);
-	_tOut t(s);
-
-	while(*t != 0 && fpy == PenY)
-		if(!PutChar(*t))
-			++t;
-	return t;
-}
-template<typename _tOut, typename _tChar>
-_tOut
-TextRegion::PutLine(_tOut s, _tOut g, _tChar f)
-{
-	const SPOS fpy(PenY);
-
-	while(s != g && *s != f && fpy == PenY)
-		if(!PutChar(*s))
-			++s;
-	return s;
-}
-
-inline String::size_type
-TextRegion::PutLine(const String& s)
-{
-	return PutLine(s.c_str()) - s.c_str();
-}
-
-template<typename _tOut>
-_tOut
-TextRegion::PutString(_tOut s)
-{
-	const SPOS mpy(GetLineLast());
-	_tOut t(s);
-
-	while(*t != 0 && PenY <= mpy)
-		if(!PutChar(*t))
-			++t;
-	return t;
-}
-template<typename _tOut, typename _tChar>
-_tOut
-TextRegion::PutString(_tOut s, _tOut g, _tChar f)
-{
-	const SPOS mpy(GetLineLast());
-
-	while(s != g && *s != f && PenY <= mpy)
-		if(!PutChar(*s))
-			++s;
-	return s;
-}
-inline String::size_type
-TextRegion::PutString(const String& s)
-{
-	return PutString(s.c_str()) - s.c_str();
+	RenderChar(*this, *this, c);
 }
 
 
@@ -413,9 +666,19 @@ TextRegion::PutString(const String& s)
 \brief 绘制文本。
 */
 void
+DrawText(const Graphics&, TextState&, const String&);
+/*!
+\brief 绘制文本。
+*/
+void
+DrawText(const Graphics&, const Rect&, const String&, const Padding&, Color);
+/*!
+\brief 绘制文本。
+\note 间接绘制并贴图。
+*/
+void
 DrawText(TextRegion&, const Graphics&, const Point&, const Size&,
 	const String&);
-
 
 YSL_END_NAMESPACE(Drawing)
 
@@ -454,7 +717,8 @@ GetPreviousLinePtr(const Drawing::TextRegion& r, _tOut p, _tOut g, u16 l = 1)
 		p = rfind<_tOut, uchar_t>(r.GetCache(), r.PenX - r.Margin.Left, p, g, '\n');
 		if(p != g)
 		{
-			p = rfind<_tOut, uchar_t>(r.GetCache(), r.GetBufWidthN(), p, g, '\n');
+			p = rfind<_tOut, uchar_t>(r.GetCache(),
+				r.GetHeight() - GetVerticalFrom(r.Margin), p, g, '\n');
 			if(p != g)
 				++p;
 		}
@@ -474,7 +738,7 @@ GetNextLinePtr(const Drawing::TextRegion& r, _tOut p, _tOut g)
 		return p;
 
 	YFontCache& cache(r.GetCache());
-	SDST nw(r.GetBufWidthN());
+	SDST nw(r.GetHeight() - GetVerticalFrom(r.Margin));
 	SDST w(r.PenX - r.Margin.Left);
 
 	while(p != g)

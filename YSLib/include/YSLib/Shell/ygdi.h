@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3848;
+\version 0.3854;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2011-01-29 14:51 + 08:00;
+	2011-02-08 11:23 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -783,6 +783,13 @@ SetAllTo(Padding& p, SDST h, SDST v)
 {
 	SetAllTo(p, h, h, v, v);
 }
+
+
+/*!
+\brief 取内边界相对于外边界的边距。
+*/
+Padding
+FetchMargin(const Rect&, const Size&);
 
 
 //! \brief 矩形图像缓冲区。

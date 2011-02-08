@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 应用程序实例类抽象。
-\version 0.2062;
+\version 0.2064;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 + 08:00;
 \par 修改时间:
-	2011-01-21 22:13 + 08:00;
+	2011-01-31 13:42 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -145,7 +145,7 @@ public:
 	virtual
 	~YApplication() ythrow();
 
-	static PDefH(YApplication&, GetApp, GHHandle<YScreen>& hScr,
+	static PDefH2(YApplication&, GetApp, GHHandle<YScreen>& hScr,
 		GHHandle<YDesktop>& hDsk)
 		ImplRet(*GetInstancePtr(hScr, hDsk)) //!< 取得自身实例引用。
 	DefGetter(GHHandle<YShell>, ShellHandle, hShell) \

@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup Shell
 \brief GUI 焦点特性实现。
-\version 0.2145;
+\version 0.2159;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 + 08:00;
 \par 修改时间:
-	2011-01-22 09:31 + 08:00;
+	2011-01-31 15:01 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -96,7 +96,7 @@ protected:
 
 public:
 	//! \brief 判断指定指针是否和焦点对象指针相等。
-	inline PDefH(bool, IsFocusing, _type* p) const
+	inline PDefH1(bool, IsFocusing, _type* p) const
 		ImplRet(pFocusing == p)
 
 	//! \brief 取焦点对象指针。
@@ -125,16 +125,16 @@ protected:
 	}
 
 	//! \brief 向焦点对象组添加焦点对象。
-	inline PDefHOperator(void, +=, _type& c)
-		ImplExpr(sFOs += c)
+	inline PDefHOperator1(void, +=, _type& c)
+		ImplRet(sFOs += c)
 	//! \brief 从焦点对象组移除焦点对象。
-	inline PDefHOperator(bool, -=, _type& c)
+	inline PDefHOperator1(bool, -=, _type& c)
 		ImplRet(sFOs -= c)
 
 public:
 	//! \brief 清空焦点指针。
-	inline PDefH(bool, ClearFocusingPtr)
-		ImplRet(SetFocusingPtr(NULL))
+	inline PDefH0(void, ClearFocusingPtr)
+		ImplRet(static_cast<void>(SetFocusingPtr(NULL)))
 };
 
 
@@ -168,12 +168,12 @@ public:
 	/*!
 	\brief 判断是否为获得焦点状态。
 	*/
-	ImplI(GIFocusRequester<GMFocusResponser, AFocusRequester>) bool
+	ImplI1((GIFocusRequester<GMFocusResponser, AFocusRequester>)) bool
 	IsFocused() const;
 	/*!
 	\brief 判断是否已在指定响应器中获得焦点。
 	*/
-	ImplI(GIFocusRequester<GMFocusResponser, AFocusRequester>) bool
+	ImplI1((GIFocusRequester<GMFocusResponser, AFocusRequester>)) bool
 	IsFocusOfContainer(GMFocusResponser<AFocusRequester>&) const;
 	/*!
 	\brief 判断是否已在指定响应器中获得焦点。
@@ -185,7 +185,7 @@ public:
 	/*!
 	\brief 判断是否已在指定响应器中获得焦点，若是则释放焦点。
 	*/
-	ImplI(GIFocusRequester<GMFocusResponser, AFocusRequester>) bool
+	ImplI1((GIFocusRequester<GMFocusResponser, AFocusRequester>)) bool
 	CheckRemoval(GMFocusResponser<AFocusRequester>&) const;
 	/*!
 	\brief 判断是否已在指定响应器中获得焦点，若是则释放焦点。
@@ -209,7 +209,7 @@ public:
 	/*!
 	\brief 释放焦点。
 	*/
-	ImplI(GIFocusRequester<GMFocusResponser, AFocusRequester>) bool
+	ImplI1((GIFocusRequester<GMFocusResponser, AFocusRequester>)) bool
 	ReleaseFocus(GMFocusResponser<AFocusRequester>&);
 	/*!
 	\brief 释放焦点。
@@ -218,7 +218,7 @@ public:
 	bool
 	ReleaseFocus(_tResponser<_type>&);
 
-	ImplA(GIFocusRequester<GMFocusResponser, AFocusRequester>)
+	ImplA1((GIFocusRequester<GMFocusResponser, AFocusRequester>))
 	DeclIEntry(void ReleaseFocus(EventArgs&))
 };
 
@@ -270,7 +270,7 @@ bool
 AFocusRequester::ReleaseFocus(_tResponser<_type>& c)
 {
 	return bFocused && IsFocusOfContainer(c)
-		&& (bFocused = false, !(c.ClearFocusingPtr()));
+		&& (bFocused = false, !(c.SetFocusingPtr(NULL)));
 }
 
 YSL_END_NAMESPACE(Components)

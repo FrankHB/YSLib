@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2938;
+\version 0.2965;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2011-01-23 07:32 + 08:00;
+	2011-02-08 21:56 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -199,10 +199,9 @@ YThumb::OnLeave(InputEventArgs&)
 }
 
 
-YButton::YButton(const Rect& r, IUIBox* pCon, const Drawing::Font& f,
-	GHWeak<Drawing::TextRegion> wpTr_)
+YButton::YButton(const Rect& r, IUIBox* pCon, const Drawing::Font& f)
 	: YThumb(r, pCon),
-	MLabel(f, wpTr_)
+	MLabel(f)
 {}
 
 void
@@ -504,10 +503,10 @@ YVerticalScrollBar::YVerticalScrollBar(const Rect& r, IUIBox* pCon,
 
 
 YSimpleListBox::YSimpleListBox(const Rect& r, IUIBox* pCon,
-	GHWeak<TextRegion> wpTr_, GHWeak<ListType> wpList_)
+	GHWeak<ListType> wpList_)
 	: YVisualControl(r, pCon),
-	wpTextRegion(wpTr_ ? wpTr_ : GetGlobalResource<TextRegion>()), Font(),
-	Margin(wpTextRegion->Margin), wpList(wpList_), Viewer(GetList())
+	Font(), Margin(defMarginH, defMarginH, defMarginV, defMarginV),
+	wpList(wpList_), Viewer(GetList()), TextState(Font)
 {
 	FetchEvent<EControl::KeyDown>(*this) += &YSimpleListBox::OnKeyDown;
 	FetchEvent<EControl::KeyHeld>(*this) += OnKeyHeld;
@@ -518,15 +517,11 @@ YSimpleListBox::YSimpleListBox(const Rect& r, IUIBox* pCon,
 	Confirmed += &YSimpleListBox::OnConfirmed;
 }
 
-Drawing::TextRegion&
-YSimpleListBox::GetTextRegion() const ythrow()
+Drawing::TextState&
+YSimpleListBox::GetTextState() ythrow()
 {
-	YAssert(wpTextRegion,
-		"In function \"SDST\n"
-		"Components::Controls::YSimpleListBox::GetItemHeight()\": \n"
-		"The text region pointer is null.");
-
-	return *wpTextRegion;
+	TextState.Font.SetFont(Font);
+	return TextState;
 }
 YSimpleListBox::ListType&
 YSimpleListBox::GetList() const ythrow()
@@ -547,9 +542,9 @@ YSimpleListBox::GetItemPtr(ViewerType::IndexType i)
 		? &list[i] : NULL;
 }
 SDST
-YSimpleListBox::GetItemHeight() const
+YSimpleListBox::GetItemHeight()
 {
-	return GetLnHeightExFrom(GetTextRegion()) + defMarginV * 2;
+	return GetLnHeightExFrom(GetTextState()) + defMarginV * 2;
 }
 
 void
@@ -577,50 +572,38 @@ YSimpleListBox::DrawForeground()
 	{
 		if(bFocused)
 			WndDrawFocus(pWnd, GetSize());
-		if(wpTextRegion && GetLnHeightFrom(*wpTextRegion) <= GetHeight())
+		if(GetLnHeightFrom(GetTextState()) <= GetHeight())
 		{
 			const SDST lnWidth(GetWidth());
 			const SDST lnHeight(GetItemHeight());
 
-			wpTextRegion->Font = Font;
-			wpTextRegion->Font.Update();
-			wpTextRegion->ResetPen();
-			wpTextRegion->SetSize(lnWidth, lnHeight);
-			SetMarginsTo(*wpTextRegion, defMarginH, defMarginV);
-			Viewer.SetLength((GetHeight() + wpTextRegion->LineGap)
-				/ lnHeight);
-
-			const ViewerType::IndexType last(Viewer.GetIndex()
-				+ Viewer.GetValid());
-			Point pt(LocateForWindow(*this));
-			const Graphics& g(pWnd->GetContext());
-
+			Viewer.SetLength((GetHeight() + TextState.LineGap) / lnHeight);
 			if(Viewer.GetIndex() >= 0)
 			{
+				const Padding m(defMarginH, defMarginH, defMarginV, defMarginV);
+				const ViewerType::IndexType last(Viewer.GetIndex()
+					+ Viewer.GetValid());
+				const Graphics& g(pWnd->GetContext());
+				Point pt(LocateForWindow(*this));
 				ListType& list(GetList());
 
 				for(ViewerType::IndexType i(Viewer.GetIndex()); i < last; ++i)
 				{
 					if(Viewer.IsSelected() && i == Viewer.GetSelected())
 					{
-						wpTextRegion->Color = Drawing::ColorSpace::White;
+						TextState.Color = Drawing::ColorSpace::White;
 						FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
-							Rect(pt.X + 1, pt.Y + 1,
-							wpTextRegion->GetWidth() - 2,
-							wpTextRegion->GetHeight() - 1),
+							Rect(pt.X + 1, pt.Y + 1, lnWidth - 2, lnHeight - 1),
 							ColorSpace::Aqua);
 					}
 					else
-						wpTextRegion->Color = ForeColor;
-					wpTextRegion->PutLine(list[i]);
-					wpTextRegion->ResetPen();
-					wpTextRegion->BlitTo(g.GetBufferPtr(), g.GetSize(),
-						Point::Zero, pt, wpTextRegion->GetSize());
+						TextState.Color = ForeColor;
+					TextState.ResetForBounds(Rect(pt,lnWidth, lnHeight),
+						g.GetSize(), m);
+					DrawText(g, TextState, list[i]);
 					pt.Y += lnHeight;
-					wpTextRegion->ClearImage();
 				}
 			}
-			wpTextRegion->SetSize(0, 0);
 		}
 	}
 }
@@ -735,11 +718,10 @@ YSimpleListBox::OnConfirmed(IndexEventArgs& e)
 }
 
 
-YListBox::YListBox(const Rect& r, IUIBox* pCon,
-	GHWeak<TextRegion> wpTr_, GHWeak<ListType> wpList_)
+YListBox::YListBox(const Rect& r, IUIBox* pCon, GHWeak<ListType> wpList_)
 	: YVisualControl(r, pCon),
 	MSimpleFocusResponser(),
-	TextListBox(r, this, wpTr_, wpList_),
+	TextListBox(r, this, wpList_),
 	HorizontalScrollBar(Rect(Point::Zero, r.Width, 16), this),
 	VerticalScrollBar(Rect(Point::Zero, 16, r.Height), this)
 {
@@ -780,9 +762,8 @@ YListBox::FixLayout()
 }
 
 
-YFileBox::YFileBox(const Rect& r, IUIBox* pCon,
-	GHWeak<TextRegion> wpTr_)
-	: FileList(), YSimpleListBox(r, pCon, wpTr_, GetListWeakPtr())
+YFileBox::YFileBox(const Rect& r, IUIBox* pCon)
+	: FileList(), YSimpleListBox(r, pCon, GetListWeakPtr())
 {
 	Confirmed += &YFileBox::OnConfirmed;
 }

@@ -11,12 +11,12 @@
 /*!	\file util.hpp
 \ingroup YCLib
 \brief 函数对象、算法和实用程序。
-\version 0.1404;
+\version 0.1408;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 + 08:00; 
 \par 修改时间:
-	2011-01-29 14:49 + 08:00;
+	2011-02-02 15:03 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -131,18 +131,18 @@ namespace ystdex
 	//! \brief 间接访问比较仿函数。
 	template<
 		typename _type, typename _tPointer = _type*,
-		template<typename _type> class _fCompare = std::less
+		template<typename _type> class _gfCompare = std::less
 	>
-	struct deref_comp : _fCompare<_type>
+	struct deref_comp : _gfCompare<_type>
 	{
 		/*!
-		\brief 返回 _fCompare<_type>::operator()(*_x, *_y) 。
+		\brief 返回 _gfCompare<_type>::operator()(*_x, *_y) 。
 		\note 如有空指针则不进行判断，直接返回 false 。
 		*/
 		bool
 		operator()(const _tPointer& _x, const _tPointer& _y) const
 		{
-			return _x && _y && _fCompare<_type>::operator()(*_x, *_y);
+			return _x && _y && _gfCompare<_type>::operator()(*_x, *_y);
 		}
 	};
 
@@ -151,18 +151,18 @@ namespace ystdex
 	template<
 		typename _tChar,
 		int (*_lexi_cmp)(const _tChar*, const _tChar*) = std::strcmp,
-		class _fCompare = std::less<int>
+		class _gfCompare = std::less<int>
 	>
-	struct deref_str_comp : _fCompare
+	struct deref_str_comp : _gfCompare
 	{
 		/*!
-		\brief 返回 _fCompare::operator()(_lexi_cmp(_x, _y), 0) 。
+		\brief 返回 _gfCompare::operator()(_lexi_cmp(_x, _y), 0) 。
 		\note 如有空指针则不进行判断，直接返回 false 。
 		*/
 		bool
 		operator()(const _tChar* _x, const _tChar* _y) const
 		{
-			return _x && _y && _fCompare::operator()(_lexi_cmp(_x, _y), 0);
+			return _x && _y && _gfCompare::operator()(_lexi_cmp(_x, _y), 0);
 		}
 	};
 

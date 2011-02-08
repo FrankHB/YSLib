@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010 - 2011
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2011-01-21 23:11 + 08:00;
-// Version = r10601;
+// UTime = 2011-02-05 15:51 + 08:00;
+// Version = r10666;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -15,7 +15,7 @@
 @ //作用于可打印字符或空白符（见以下定义）的字符序列，表示逻辑位置。
 
 以下列表中的概念参考 ISO/IEC-14882:2003 - The C++ Programing Language （以下简称“语言标准”）：
-翻译单元(translation unit) ：(@2|1 [lex])；
+翻译单元(translation unit) ：(@2/1 [lex])；
 字符集(character set) ：(@2.2 [lex.charset])；
 预处理记号(preprocessing token) ：(@2.4 [lex.pptoken])；
 记号(token) ：(@2.6 [lex.token])；
@@ -27,9 +27,9 @@
 标点符(punctuator) ：(@2.11 [lex.operators])；
 字面量(literal) ：(@2.13 [lex.literals])；
 转义[字符]序列(escape sequence) ：(@2.13.2 [lex.ccon])；
-实体(entity) ：(@3|3 [basic])；
-名称(name) ：(@3|4 [basic])；
-作用域(scope) ：(@3.3|1 [basic.scope])；
+实体(entity) ：(@3/3 [basic])；
+名称(name) ：(@3/4 [basic])；
+作用域(scope) ：(@3.3/1 [basic.scope])；
 链接(linkage) ：(@3.5 [basic.link])；
 存储期(storage duration) ：(@3.7 [basic.stc])；
 类型(type) ：(@3.9 [basic.types])；
@@ -38,7 +38,7 @@
 命名空间(namespace) ：(@7.3 [basic.namespace])。
 
 以下内容参考语言标准相关描述：
-续行/断行连接(line continuation) ：(@2.1|2 [lex.phases])，“splicing physical source lines to form logical source lines”。
+续行/断行连接(line continuation) ：(@2.1/2 [lex.phases])，“splicing physical source lines to form logical source lines”。
 
 以下为附加语法和语义说明。
 
@@ -201,17 +201,46 @@ DeclInterface(_name)
 DeclBasedInterface(_name, *)
 ImplI(_interface, *)
 ImplA(_interface, *)
+DeclBasedInterface1(_name, _base1)
+DeclBasedInterface2(_name, _base1, _base2)
+DeclBasedInterface3(_name, _base1, _base2, _base3)
+DeclBasedInterface4(_name, _base1, _base2, _base3, _base4)
+ImplI1(_interface, _base1)
+ImplI2(_interface, _base1, _base2)
+ImplI3(_interface, _base1, _base2, _base3)
+ImplI4(_interface, _base1, _base2, _base3, _base4)
+ImplA1(_interface, _base1)
+ImplA2(_interface, _base1, _base2)
+ImplA3(_interface, _base1, _base2, _base3)
+ImplA4(_interface, _base1, _base2, _base3, _base4)
 DeclIEntry(_signature)
 EndDecl
 PDefH(_type, _name, *)
 PDefHOperator(_type, _op, *)
+PDefH0(_type, _name)
+PDefH1(_type, _name, _param1)
+PDefH2(_type, _name, _param1, _param2)
+PDefH3(_type, _name, _param1, _param2, _param3)
+PDefH4(_type, _name, _param1, _param2, _param3, _param4)
+PDefHOperator0(_type, _op)
+PDefHOperator1(_type, _op, _param1)
+PDefHOperator2(_type, _op, _param1, _param2)
+PDefHOperator3(_type, _op, _param1, _param2, _param3)
+PDefHOperator4(_type, _op, _param1, _param2, _param3, _param4)
 PDefConverter(_type)
-ImplExpr(_expr)
 ImplRet(_expr)
 ImplBodyBase(_base, _name, _arglist, *)
-ImplBodyBaseVoid(_base, _name, _arglist, *)
 ImplBodyMember(_member, _name, _arglist, *)
-ImplBodyMemberVoid(_member, _name, _arglist, *)
+ImplBodyBase0(_base, _name)
+ImplBodyBase1(_base, _name, _arg1)
+ImplBodyBase2(_base, _name, _arg1, _arg2)
+ImplBodyBase3(_base, _name, _arg1, _arg2, _arg3)
+ImplBodyBase4(_base, _name, _arg1, _arg2, _arg3, _arg4)
+ImplBodyMember0(_member, _name)
+ImplBodyMember1(_member, _name, _arg1)
+ImplBodyMember2(_member, _name, _arg1, _arg2)
+ImplBodyMember3(_member, _name, _arg1, _arg2, _arg3)
+ImplBodyMember4(_member, _name, _arg1, _arg2, _arg3, _arg4)
 DefEmptyDtor(_type)
 DefConverter(_type, _expr)
 DefConverterBase(_type, _base)

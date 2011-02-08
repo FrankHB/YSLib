@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4625;
+\version 0.4637;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 + 08:00;
 \par 修改时间:
-	2011-01-22 09:37 + 08:00;
+	2011-01-31 14:34 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -248,8 +248,9 @@ FetchEvent(IControl& c)
 
 
 //! \brief 可视控件接口。
-DeclBasedInterface(IVisualControl, virtual IWidget, virtual IControl,
+DeclBasedInterface4(IVisualControl, virtual IWidget, virtual IControl,
 	virtual GIFocusRequester<GMFocusResponser, IVisualControl>)
+	//实际有 3 个基接口，但由于预处理的限制，所以用 DeclBasedInterface4 。
 
 	//! \brief 向部件容器请求获得焦点。
 	DeclIEntry(void RequestFocus(EventArgs&))
@@ -358,54 +359,54 @@ public:
 	*/
 	~AVisualControl() ythrow();
 
-	ImplI(IVisualControl) DefPredicateBase(Visible, Visual)
-	ImplI(IVisualControl) DefPredicateBase(Transparent, Visual)
-	ImplI(IVisualControl) DefPredicateBase(BgRedrawed, Visual)
-	ImplI(IVisualControl) DefPredicateBase(Enabled, Control)
-	ImplI(IVisualControl) DefPredicateBase(Focused, AFocusRequester)
+	ImplI1(IVisualControl) DefPredicateBase(Visible, Visual)
+	ImplI1(IVisualControl) DefPredicateBase(Transparent, Visual)
+	ImplI1(IVisualControl) DefPredicateBase(BgRedrawed, Visual)
+	ImplI1(IVisualControl) DefPredicateBase(Enabled, Control)
+	ImplI1(IVisualControl) DefPredicateBase(Focused, AFocusRequester)
 
-	ImplI(IVisualControl)
-		PDefH(bool, IsFocusOfContainer,
+	ImplI1(IVisualControl)
+		PDefH1(bool, IsFocusOfContainer,
 		GMFocusResponser<IVisualControl>& c) const
-		ImplBodyBase(AFocusRequester, IsFocusOfContainer, c)
-	ImplI(IVisualControl)
-		PDefH(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
-		ImplBodyBase(MVisualControl, CheckRemoval, c)
+		ImplBodyBase1(AFocusRequester, IsFocusOfContainer, c)
+	ImplI1(IVisualControl)
+		PDefH1(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
+		ImplBodyBase1(MVisualControl, CheckRemoval, c)
 
-	ImplI(IVisualControl) DefGetterBase(const Point&, Location, Visual)
-	ImplI(IVisualControl) DefGetterBase(const Size&, Size, Visual)
-	ImplI(IVisualControl) DefGetterBase(IUIBox*, ContainerPtr, Widget)
-	ImplI(IVisualControl) DefGetterBase(Runtime::GEventMap<EControl>&, EventMap,
+	ImplI1(IVisualControl) DefGetterBase(const Point&, Location, Visual)
+	ImplI1(IVisualControl) DefGetterBase(const Size&, Size, Visual)
+	ImplI1(IVisualControl) DefGetterBase(IUIBox*, ContainerPtr, Widget)
+	ImplI1(IVisualControl) DefGetterBase(Runtime::GEventMap<EControl>&, EventMap,
 		Control)
 
-	ImplI(IVisualControl) DefSetterBase(bool, Visible, Visual)
-	ImplI(IVisualControl) DefSetterBase(bool, Transparent, Visual)
-	ImplI(IVisualControl) DefSetterBase(bool, BgRedrawed, Visual)
-	ImplI(IVisualControl) DefSetterBase(const Point&, Location, Visual)
-	ImplI(IVisualControl) DefSetterBase(const Size&, Size, Visual)
-	ImplI(IVisualControl) DefSetterBase(bool, Enabled, Control)
+	ImplI1(IVisualControl) DefSetterBase(bool, Visible, Visual)
+	ImplI1(IVisualControl) DefSetterBase(bool, Transparent, Visual)
+	ImplI1(IVisualControl) DefSetterBase(bool, BgRedrawed, Visual)
+	ImplI1(IVisualControl) DefSetterBase(const Point&, Location, Visual)
+	ImplI1(IVisualControl) DefSetterBase(const Size&, Size, Visual)
+	ImplI1(IVisualControl) DefSetterBase(bool, Enabled, Control)
 
-	ImplI(IVisualControl) PDefH(void, DrawBackground)
-		ImplBodyBaseVoid(Widget, DrawBackground)
+	ImplI1(IVisualControl) PDefH0(void, DrawBackground)
+		ImplBodyBase0(Widget, DrawBackground)
 
-	ImplI(IVisualControl) PDefH(void, DrawForeground)
-		ImplBodyBaseVoid(Widget, DrawForeground)
+	ImplI1(IVisualControl) PDefH0(void, DrawForeground)
+		ImplBodyBase0(Widget, DrawForeground)
 
-	ImplI(IVisualControl) PDefH(void, Refresh)
-		ImplBodyBaseVoid(Widget, Refresh)
+	ImplI1(IVisualControl) PDefH0(void, Refresh)
+		ImplBodyBase0(Widget, Refresh)
 
 	/*!
 	\brief 向部件容器请求获得焦点。
 	\note 若成功则触发 GotFocus 事件。
 	*/
-	ImplI(IVisualControl) void
+	ImplI1(IVisualControl) void
 	RequestFocus(EventArgs&);
 
 	/*!
 	\brief 释放焦点。
 	\note 触发 LostFocus 事件。
 	*/
-	ImplI(IVisualControl) void
+	ImplI1(IVisualControl) void
 	ReleaseFocus(EventArgs&);
 
 private:
@@ -451,7 +452,7 @@ public:
 	\brief 请求提升至容器顶端。
 	\note 空实现。
 	*/
-	ImplI(IVisualControl) void
+	ImplI1(IVisualControl) void
 	RequestToTop()
 	{}
 };

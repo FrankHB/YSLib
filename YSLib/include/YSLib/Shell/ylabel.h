@@ -11,12 +11,12 @@
 /*!	\file ylabel.h
 \ingroup Shell
 \brief 平台无关的标签模块实现。
-\version 0.1866;
+\version 0.1896;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 + 08:00;
 \par 修改时间:
-	2011-01-23 07:03 + 08:00;
+	2011-02-08 13:41 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,9 +40,6 @@ YSL_BEGIN_NAMESPACE(Widgets)
 //标签模块。
 class MLabel : public NonCopyable
 {
-protected:
-	GHWeak<Drawing::TextRegion> wpTextRegion; //!< 文本区域指针。
-
 public:
 	Drawing::Font Font; //!< 字体。
 	Drawing::Padding Margin; //!< 文本和容器的间距。
@@ -52,17 +49,15 @@ public:
 
 protected:
 	/*!
-	\brief 构造：使用指定字体和文本区域指针。
+	\brief 构造：使用指定字体。
 	*/
 	explicit
-	MLabel(const Drawing::Font& = Drawing::Font::GetDefault(),
-		GHWeak<Drawing::TextRegion> = NULL);
+	MLabel(const Drawing::Font& = Drawing::Font::GetDefault());
 
 	/*!
 	\brief 绘制文本。
-	\note 绘制结束后重设缓冲区大小为零。
 	*/
-	bool
+	void
 	PaintText(Widget&, const Graphics&, const Point&);
 };
 
@@ -80,12 +75,11 @@ public:
 */
 
 	/*!
-	\brief 构造：使用指定边界、部件容器指针、字体和文本区域。
+	\brief 构造：使用指定边界、部件容器指针和字体文本区域。
 	*/
 	explicit
 	YLabel(const Rect& = Rect::Empty, IUIBox* = NULL,
-		const Drawing::Font& = Drawing::Font::GetDefault(),
-		GHWeak<Drawing::TextRegion> = NULL);
+		const Drawing::Font& = Drawing::Font::GetDefault());
 
 	virtual DefEmptyDtor(YLabel)
 
@@ -102,11 +96,10 @@ class MTextList : private MLabel
 {
 protected:
 	/*!
-	\brief 构造：使用指定字体和文本区域指针。
+	\brief 构造：使用指定字体指针。
 	*/
 	explicit
-	MTextList(const Drawing::Font& = Drawing::Font::GetDefault(),
-		GHWeak<Drawing::TextRegion> = NULL);
+	MTextList(const Drawing::Font& = Drawing::Font::GetDefault());
 
 	//void
 	//PaintTextList(Widget&, const Point&);

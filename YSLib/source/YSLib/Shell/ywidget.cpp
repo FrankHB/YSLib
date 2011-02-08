@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4888;
+\version 0.4851;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-01-22 09:59 + 08:00;
+	2011-02-08 13:26 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -67,12 +67,6 @@ ContainsVisible(const IWidget& w, SPOS x, SPOS y)
 	return w.IsVisible() && Contains(w, x, y);
 }
 
-
-Rect
-GetBoundsOf(IWidget& w)
-{
-	return Rect(w.GetLocation(), w.GetSize());
-}
 
 void
 SetBoundsOf(IWidget& w, const Rect& r)

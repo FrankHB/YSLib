@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.2023;
+\version 0.2034;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 + 08:00;
 \par 修改时间:
-	2011-01-23 07:32 + 08:00;
+	2011-01-31 14:34 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,7 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Widgets)
 
 //! \brief 固定部件容器接口。
-DeclBasedInterface(IUIBox, virtual IWidget)
+DeclBasedInterface1(IUIBox, virtual IWidget)
 	DeclIEntry(IVisualControl* GetFocusingPtr()) //!< 取焦点对象指针。
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&)) \
 		//!< 取指定的点（屏幕坐标）所处的部件的指针。
@@ -56,7 +56,7 @@ EndDecl
 
 
 //部件容器接口。
-DeclBasedInterface(IUIContainer, virtual IUIBox)
+DeclBasedInterface1(IUIContainer, virtual IUIBox)
 	DeclIEntry(void operator+=(IWidget&)) //!< 向部件组添加部件。
 	DeclIEntry(bool operator-=(IWidget&)) //!< 从部件组移除部件。
 	DeclIEntry(void operator+=(IVisualControl&)) //!< 向焦点对象组添加可视控件。
@@ -248,18 +248,18 @@ public:
 	virtual DefEmptyDtor(MUIContainer)
 
 protected:
-	virtual PDefHOperator(void, +=,
+	virtual PDefHOperator1(void, +=,
 		IVisualControl& r) //!< 向焦点对象组添加焦点对象。
-		ImplBodyBaseVoid(GMFocusResponser<IVisualControl>, operator+=, r)
-	virtual PDefHOperator(bool, -=,
+		ImplBodyBase1(GMFocusResponser<IVisualControl>, operator+=, r)
+	virtual PDefHOperator1(bool, -=,
 		IVisualControl& r) //!< 从焦点对象组移除焦点对象。
-		ImplBodyBase(GMFocusResponser<IVisualControl>, operator-=, r)
-	PDefHOperator(void, +=, GMFocusResponser<IVisualControl>& c) \
+		ImplBodyBase1(GMFocusResponser<IVisualControl>, operator-=, r)
+	PDefHOperator1(void, +=, GMFocusResponser<IVisualControl>& c) \
 		//!< 向子焦点对象容器组添加子焦点对象容器。
-		ImplBodyMemberVoid(sFOCSet, insert, &c)
-	PDefHOperator(bool, -=, GMFocusResponser<IVisualControl>& c) \
+		ImplRet(static_cast<void>(sFOCSet.insert(&c)))
+	PDefHOperator1(bool, -=, GMFocusResponser<IVisualControl>& c) \
 		//!< 从子焦点对象容器组移除子焦点对象容器。
-		ImplBodyMember(sFOCSet, erase, &c)
+		ImplBodyMember1(sFOCSet, erase, &c)
 
 public:
 	/*!
@@ -312,66 +312,66 @@ public:
 	virtual
 	~YUIContainer() ythrow();
 
-	ImplI(IUIContainer) PDefHOperator(void, +=, IWidget& w)
-		ImplExpr(sWgtSet += w)
-	ImplI(IUIContainer) PDefHOperator(bool, -=, IWidget& w)
+	ImplI1(IUIContainer) PDefHOperator1(void, +=, IWidget& w)
+		ImplRet(sWgtSet += w)
+	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IWidget& w)
 		ImplRet(sWgtSet -= w)
-	ImplI(IUIContainer) PDefHOperator(void, +=, IVisualControl& c)
-		ImplBodyBaseVoid(MUIContainer, operator+=, c)
-	ImplI(IUIContainer) PDefHOperator(bool, -=, IVisualControl& c)
-		ImplBodyBase(MUIContainer, operator-=, c)
-	ImplI(IUIContainer) PDefHOperator(void, +=,
+	ImplI1(IUIContainer) PDefHOperator1(void, +=, IVisualControl& c)
+		ImplBodyBase1(MUIContainer, operator+=, c)
+	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IVisualControl& c)
+		ImplBodyBase1(MUIContainer, operator-=, c)
+	ImplI1(IUIContainer) PDefHOperator1(void, +=,
 		GMFocusResponser<IVisualControl>& c)
-		ImplBodyBaseVoid(MUIContainer, operator+=, c)
-	ImplI(IUIContainer) PDefHOperator(bool, -=,
+		ImplBodyBase1(MUIContainer, operator+=, c)
+	ImplI1(IUIContainer) PDefHOperator1(bool, -=,
 		GMFocusResponser<IVisualControl>& c)
-		ImplBodyBase(MUIContainer, operator-=, c)
+		ImplBodyBase1(MUIContainer, operator-=, c)
 
-	ImplI(IUIContainer) DefPredicateBase(Visible, Visual)
-	ImplI(IUIContainer) DefPredicateBase(Transparent, Visual)
-	ImplI(IUIContainer) DefPredicateBase(BgRedrawed, Visual)
+	ImplI1(IUIContainer) DefPredicateBase(Visible, Visual)
+	ImplI1(IUIContainer) DefPredicateBase(Transparent, Visual)
+	ImplI1(IUIContainer) DefPredicateBase(BgRedrawed, Visual)
 
-	ImplI(IUIContainer) DefGetterBase(const Point&, Location, Visual)
-	ImplI(IUIContainer) DefGetterBase(const Size&, Size, Visual)
-	ImplI(IUIContainer) DefGetterBase(IUIBox*, ContainerPtr,
+	ImplI1(IUIContainer) DefGetterBase(const Point&, Location, Visual)
+	ImplI1(IUIContainer) DefGetterBase(const Size&, Size, Visual)
+	ImplI1(IUIContainer) DefGetterBase(IUIBox*, ContainerPtr,
 		Widget)
-	ImplI(IUIContainer) DefMutableGetterBase(IVisualControl*, FocusingPtr,
+	ImplI1(IUIContainer) DefMutableGetterBase(IVisualControl*, FocusingPtr,
 		GMFocusResponser<IVisualControl>)
-	ImplI(IUIContainer) PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
-		ImplBodyBase(MUIContainer, GetTopWidgetPtr, p)
-	ImplI(IUIContainer) PDefH(IVisualControl*, GetTopVisualControlPtr,
+	ImplI1(IUIContainer) PDefH1(IWidget*, GetTopWidgetPtr, const Point& p)
+		ImplBodyBase1(MUIContainer, GetTopWidgetPtr, p)
+	ImplI1(IUIContainer) PDefH1(IVisualControl*, GetTopVisualControlPtr,
 		const Point& p)
-		ImplBodyBase(MUIContainer, GetTopVisualControlPtr, p)
+		ImplBodyBase1(MUIContainer, GetTopVisualControlPtr, p)
 
-	ImplI(IUIContainer) DefSetterBase(bool, Visible, Visual)
-	ImplI(IUIContainer) DefSetterBase(bool, Transparent, Visual)
-	ImplI(IUIContainer) DefSetterBase(bool, BgRedrawed, Visual)
-	ImplI(IUIContainer) DefSetterBase(const Point&, Location, Visual)
-	ImplI(IUIContainer) DefSetterBase(const Size&, Size, Visual)
+	ImplI1(IUIContainer) DefSetterBase(bool, Visible, Visual)
+	ImplI1(IUIContainer) DefSetterBase(bool, Transparent, Visual)
+	ImplI1(IUIContainer) DefSetterBase(bool, BgRedrawed, Visual)
+	ImplI1(IUIContainer) DefSetterBase(const Point&, Location, Visual)
+	ImplI1(IUIContainer) DefSetterBase(const Size&, Size, Visual)
 
-	ImplI(IUIContainer) PDefH(void, ClearFocusingPtr)
-		ImplBodyBaseVoid(MUIContainer, ClearFocusingPtr)
+	ImplI1(IUIContainer) PDefH0(void, ClearFocusingPtr)
+		ImplBodyBase0(MUIContainer, ClearFocusingPtr)
 
-	ImplI(IUIContainer) PDefH(bool, ResponseFocusRequest, AFocusRequester& w)
-		ImplBodyBase(MUIContainer, ResponseFocusRequest, w)
+	ImplI1(IUIContainer) PDefH1(bool, ResponseFocusRequest, AFocusRequester& w)
+		ImplBodyBase1(MUIContainer, ResponseFocusRequest, w)
 
-	ImplI(IUIContainer) PDefH(bool, ResponseFocusRelease, AFocusRequester& w)
-		ImplBodyBase(MUIContainer, ResponseFocusRelease, w)
+	ImplI1(IUIContainer) PDefH1(bool, ResponseFocusRelease, AFocusRequester& w)
+		ImplBodyBase1(MUIContainer, ResponseFocusRelease, w)
 
-	ImplI(IUIContainer) PDefH(void, DrawBackground)
-		ImplBodyBaseVoid(Widget, DrawBackground)
+	ImplI1(IUIContainer) PDefH0(void, DrawBackground)
+		ImplBodyBase0(Widget, DrawBackground)
 
-	ImplI(IUIContainer) PDefH(void, DrawForeground)
-		ImplBodyBaseVoid(Widget, DrawForeground)
+	ImplI1(IUIContainer) PDefH0(void, DrawForeground)
+		ImplBodyBase0(Widget, DrawForeground)
 
-	ImplI(IUIContainer) PDefH(void, Refresh)
-		ImplBodyBaseVoid(Widget, Refresh)
+	ImplI1(IUIContainer) PDefH0(void, Refresh)
+		ImplBodyBase0(Widget, Refresh)
 
 	/*!
 	\brief 请求提升至容器顶端。
 	\note 空实现。
 	*/
-	ImplI(IUIContainer) void
+	ImplI1(IUIContainer) void
 	RequestToTop()
 	{}
 };

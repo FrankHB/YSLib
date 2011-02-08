@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2185;
+\version 0.2188;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 + 08:00;
 \par 修改时间:
-	2010-12-30 16:08 + 08:00;
+	2011-01-31 13:36 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,8 +57,8 @@ public:
 	DefGetter(BitmapPtr, BackgroundPtr, Screen.GetCheckedBufferPtr()) \
 		//!< 取屏幕背景指针。
 
-	virtual PDefH(IVisualControl*, GetTopVisualControlPtr, const Point& p)
-		ImplBodyBase(YDesktop, GetTopDesktopObjectPtr, p)
+	virtual PDefH1(IVisualControl*, GetTopVisualControlPtr, const Point& p)
+		ImplBodyBase1(YDesktop, GetTopDesktopObjectPtr, p)
 
 	/*!
 	\brief 向桌面对象组添加桌面对象。

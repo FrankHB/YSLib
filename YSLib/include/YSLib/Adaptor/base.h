@@ -11,12 +11,12 @@
 /*!	\file base.h
 \ingroup Adaptor
 \brief 通用基础设施。
-\version 0.2101;
+\version 0.2241;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 + 08:00;
 \par 修改时间:
-	2011-01-21 23:06 + 08:00;
+	2011-01-31 17:04 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -86,21 +86,45 @@
 // ImplA = Implements Abstractly;
 #ifdef __GNUC__
 #	define DeclBasedInterface(_name, _base...) \
-	_yInterface _name : _base _yInterfaceHead(_name)
+	_yInterface _name : _base \
+	_yInterfaceHead(_name)
 #	define ImplI(_interface, ...) virtual
 #	define ImplA(_interface, ...)
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #	define DeclBasedInterface(_name, _base, ...) \
-	_yInterface _name : _base, __VA_ARGS__ _yInterfaceHead(_name)
+	_yInterface _name : _base, __VA_ARGS__ \
+	_yInterfaceHead(_name)
 #	define ImplI(_interface, ...) virtual
 #	define ImplA(_interface, ...)
 #else
 //注意 ISO/IEC C++ 不支持宏的可变参数列表，因此无法实现接口多继承。
 #	define DeclBasedInterface(_name, _base) \
-	_yInterface _name : _base _yInterfaceHead(_name)
+	_yInterface _name : _base \
+	_yInterfaceHead(_name)
 #	define ImplI(_interface) virtual
 #	define ImplA(_interface)
 #endif
+
+#define DeclBasedInterface1(_name, _base1) \
+	_yInterface _name : _base1 \
+	_yInterfaceHead(_name)
+#define DeclBasedInterface2(_name, _base1, _base2) \
+	_yInterface _name : _base1, _base2 \
+	_yInterfaceHead(_name)
+#define DeclBasedInterface3(_name, _base1, _base2, _base3) \
+	_yInterface _name : _base1, _base2, _base3 \
+	_yInterfaceHead(_name)
+#define DeclBasedInterface4(_name, _base1, _base2, _base3, _base4) \
+	_yInterface _name : _base1, _base2, _base3, _base4 \
+	_yInterfaceHead(_name)
+#	define ImplI1(_interface1) virtual
+#	define ImplI2(_interface1, _interface2) virtual
+#	define ImplI3(_interface1, _interface2, _interface3) virtual
+#	define ImplI4(_interface1, _interface2, _interface3, _interface4) virtual
+#	define ImplA1(_interface1)
+#	define ImplA2(_interface1, _interface2)
+#	define ImplA3(_interface1, _interface2, _interface3)
+#	define ImplA4(_interface1, _interface2, _interface3, _interface4)
 
 //"DeclIEntry" = Declare Interface Entry;
 #define DeclIEntry(_signature) virtual _signature = 0;
@@ -113,31 +137,47 @@
 //通用函数头定义。
 //prefix "PDefH" = Partially Define Head;
 #ifdef __GNUC__
-#	define PDefH(_type, _name, _paralist...) \
-	_type _name(_paralist)
-#	define PDefHOperator(_type, _op, _paralist...) \
-	_type operator _op(_paralist)
+#	define PDefH(_type, _name, _paramlist...) \
+	_type _name(_paramlist)
+#	define PDefHOperator(_type, _op, _paramlist...) \
+	_type operator _op(_paramlist)
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-#	define PDefH(_type, _name, _paralist, ...) \
-	_type _name(_paralist, __VA_ARGS__)
-#	define PDefHOperator(_type, _op, _paralist, ...) \
-	_type operator _op(_paralist, __VA_ARGS__)
+#	define PDefH(_type, _name, _paramlist, ...) \
+	_type _name(_paramlist, __VA_ARGS__)
+#	define PDefHOperator(_type, _op, _paramlist, ...) \
+	_type operator _op(_paramlist, __VA_ARGS__)
 #else
-#	define PDefH(_type, _name, _paralist) \
-	_type _name(_paralist)
-#	define PDefHOperator(_type, _op, _paralist) \
-	_type operator _op(_paralist)
+#	define PDefH(_type, _name, _paramlist) \
+	_type _name(_paramlist)
+#	define PDefHOperator(_type, _op, _paramlist) \
+	_type operator _op(_paramlist)
 #endif
+#define PDefH0(_type, _name) \
+	_type _name()
+#define PDefH1(_type, _name, _param1) \
+	_type _name(_param1)
+#define PDefH2(_type, _name, _param1, _param2) \
+	_type _name(_param1, _param2)
+#define PDefH3(_type, _name, _param1, _param2, _param3) \
+	_type _name(_param1, _param2, _param3)
+#define PDefH4(_type, _name, _param1, _param2, _param3, _param4) \
+	_type _name(_param1, _param2, _param3, _param4)
+#define PDefHOperator0(_type, _op) \
+	_type operator _op()
+#define PDefHOperator1(_type, _op, _param1) \
+	_type operator _op(_param1)
+#define PDefHOperator2(_type, _op, _param1, _param2) \
+	_type operator _op(_param1, _param2)
+#define PDefHOperator3(_type, _op, _param1, _param2, _param3) \
+	_type operator _op(_param1, _param2, _param3)
+#define PDefHOperator4(_type, _op, _param1, _param2, _param3, _param4) \
+	_type operator _op(_param1, _param2, _param3, _param4)
 #define PDefConverter(_type) \
 	operator _type()
 
 
 //简单通用函数实现。
 //prefix "Impl" = Implement;
-#define ImplExpr(_expr) \
-	{ \
-		_expr; \
-	}
 #define ImplRet(_expr) \
 	{ \
 		return _expr; \
@@ -150,53 +190,69 @@
 	{ \
 		return _base::_name(_arglist); \
 	}
-#	define ImplBodyBaseVoid(_base, _name, _arglist...) \
-	{ \
-		_base::_name(_arglist); \
-	}
 #	define ImplBodyMember(_member, _name, _arglist...) \
 	{ \
 		return (_member)._name(_arglist); \
-	}
-#	define ImplBodyMemberVoid(_member, _name, _arglist...) \
-	{ \
-		(_member)._name(_arglist); \
 	}
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #	define ImplBodyBase(_base, _name, _arglist, ...) \
 	{ \
 		return _base::_name(_arglist, __VA_ARGS__); \
 	}
-#	define ImplBodyBaseVoid(_base, _name, _arglist, ...) \
-	{ \
-		_base::_name(_arglist, __VA_ARGS__); \
-	}
 #	define ImplBodyMember(_member, _name, _arglist...) \
 	{ \
 		return (_member)._name(_arglist); \
-	}
-#	define ImplBodyMemberVoid(_member, _name, _arglist...) \
-	{ \
-		(_member)._name(_arglist); \
 	}
 #else
 #	define ImplBodyBase(_base, _name, _arglist) \
 	{ \
 		return _base::_name(_arglist); \
 	}
-#	define ImplBodyBaseVoid(_base, _name, _arglist) \
-	{ \
-		_base::_name(_arglist); \
-	}
 #	define ImplBodyMember(_member, _name, _arglist) \
 	{ \
 		return (_member)._name(_arglist); \
 	}
-#	define ImplBodyMemberVoid(_member, _name, _arglist) \
-	{ \
-		(_member)._name(_arglist); \
-	}
 #endif
+#define ImplBodyBase0(_base, _name) \
+	{ \
+		return _base::_name(); \
+	}
+#define ImplBodyBase1(_base, _name, _arg1) \
+	{ \
+		return _base::_name(_arg1); \
+	}
+#define ImplBodyBase2(_base, _name, _arg1, _arg2) \
+	{ \
+		return _base::_name(_arg1, _arg2); \
+	}
+#define ImplBodyBase3(_base, _name, _arg1, _arg2, _arg3) \
+	{ \
+		return _base::_name(_arg1, _arg2, _arg3); \
+	}
+#define ImplBodyBase4(_base, _name, _arg1, _arg2, _arg3, _arg4) \
+	{ \
+		return _base::_name(_arg1, _arg2, _arg3, _arg4); \
+	}
+#define ImplBodyMember0(_member, _name) \
+	{ \
+		return (_member)._name(); \
+	}
+#define ImplBodyMember1(_member, _name, _arg1) \
+	{ \
+		return (_member)._name(_arg1); \
+	}
+#define ImplBodyMember2(_member, _name, _arg1, _arg2) \
+	{ \
+		return (_member)._name(_arg1, _arg2); \
+	}
+#define ImplBodyMember3(_member, _name, _arg1, _arg2, _arg3) \
+	{ \
+		return (_member)._name(_arg1, _arg2, _arg3); \
+	}
+#define ImplBodyMember4(_member, _name, _arg1, _arg2, _arg3, _arg4) \
+	{ \
+		return (_member)._name(_arg1, _arg2, _arg3, _arg4); \
+	}
 
 
 //简单通用成员函数定义。

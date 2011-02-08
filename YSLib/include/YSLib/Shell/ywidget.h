@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5824;
+\version 0.5841;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-01-23 07:07 + 08:00;
+	2011-02-08 13:26 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -153,8 +153,12 @@ ContainsVisible(const IWidget& w, const Point& p)
 /*!
 \brief 取部件边界。
 */
-Rect
-GetBoundsOf(IWidget&);
+template<class _tWidget>
+inline Rect
+GetBoundsOf(const _tWidget& w)
+{
+	return Rect(w.GetLocation(), w.GetSize());
+}
 
 /*!
 \brief 设置部件边界。
@@ -257,8 +261,8 @@ public:
 	\brief 设置位置。
 	\note 非虚公有实现。
 	*/
-	PDefH(void, SetLocation, SPOS x, SPOS y)
-		ImplBodyBaseVoid(Visual, SetLocation, Point(x, y))
+	PDefH2(void, SetLocation, SPOS x, SPOS y)
+		ImplBodyBase1(Visual, SetLocation, Point(x, y))
 	/*!
 	\brief 设置大小。
 	\note 虚公有实现。
@@ -269,8 +273,8 @@ public:
 	\brief 设置大小。
 	\note 非虚公有实现。
 	*/
-	PDefH(void, SetSize, SDST w, SDST h)
-		ImplBodyBaseVoid(Visual, SetSize, Size(w, h))
+	PDefH2(void, SetSize, SDST w, SDST h)
+		ImplBodyBase1(Visual, SetSize, Size(w, h))
 };
 
 
@@ -340,34 +344,34 @@ public:
 	virtual
 	~YWidget() ythrow();
 
-	ImplI(IWidget) DefPredicateBase(Visible, Visual)
-	ImplI(IWidget) DefPredicateBase(Transparent, Visual)
-	ImplI(IWidget) DefPredicateBase(BgRedrawed, Visual)
+	ImplI1(IWidget) DefPredicateBase(Visible, Visual)
+	ImplI1(IWidget) DefPredicateBase(Transparent, Visual)
+	ImplI1(IWidget) DefPredicateBase(BgRedrawed, Visual)
 
-	ImplI(IWidget) DefGetterBase(const Point&, Location, Visual)
-	ImplI(IWidget) DefGetterBase(const Size&, Size, Visual)
-	ImplI(IWidget) DefGetterBase(IUIBox*, ContainerPtr, Widget)
+	ImplI1(IWidget) DefGetterBase(const Point&, Location, Visual)
+	ImplI1(IWidget) DefGetterBase(const Size&, Size, Visual)
+	ImplI1(IWidget) DefGetterBase(IUIBox*, ContainerPtr, Widget)
 
-	ImplI(IWidget) DefSetterBase(bool, Visible, Visual)
-	ImplI(IWidget) DefSetterBase(bool, Transparent, Visual)
-	ImplI(IWidget) DefSetterBase(bool, BgRedrawed, Visual)
-	ImplI(IWidget) DefSetterBase(const Point&, Location, Visual)
-	ImplI(IWidget) DefSetterBase(const Size&, Size, Visual)
+	ImplI1(IWidget) DefSetterBase(bool, Visible, Visual)
+	ImplI1(IWidget) DefSetterBase(bool, Transparent, Visual)
+	ImplI1(IWidget) DefSetterBase(bool, BgRedrawed, Visual)
+	ImplI1(IWidget) DefSetterBase(const Point&, Location, Visual)
+	ImplI1(IWidget) DefSetterBase(const Size&, Size, Visual)
 
-	ImplI(IWidget) PDefH(void, DrawBackground)
-		ImplBodyBaseVoid(Widget, DrawBackground)
+	ImplI1(IWidget) PDefH0(void, DrawBackground)
+		ImplBodyBase0(Widget, DrawBackground)
 
-	ImplI(IWidget) PDefH(void, DrawForeground)
-		ImplBodyBaseVoid(Widget, DrawForeground)
+	ImplI1(IWidget) PDefH0(void, DrawForeground)
+		ImplBodyBase0(Widget, DrawForeground)
 
-	ImplI(IWidget) PDefH(void, Refresh)
-		ImplBodyBaseVoid(Widget, Refresh)
+	ImplI1(IWidget) PDefH0(void, Refresh)
+		ImplBodyBase0(Widget, Refresh)
 
 	/*!
 	\brief 请求提升至容器顶端。
 	\note 空实现。
 	*/
-	ImplI(IWidget) void
+	ImplI1(IWidget) void
 	RequestToTop()
 	{}
 };

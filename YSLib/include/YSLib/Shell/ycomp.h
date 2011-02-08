@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件实现。
-\version 0.2934;
+\version 0.2938;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 + 08:00;
 \par 修改时间:
-	2011-01-21 13:22 + 08:00;
+	2011-01-21 14:34 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -107,13 +107,13 @@ public:
 	: c(c_), nIndex(0), nSelected(0), nLength(0), bSelected(false)
 	{}
 
-	inline PDefHOperator(GSequenceViewer&, ++) //!< 选中项目下标自增。
+	inline PDefHOperator0(GSequenceViewer&, ++) //!< 选中项目下标自增。
 		ImplRet(*this += 1)
-	inline PDefHOperator(GSequenceViewer&, --) //!< 选中项目下标自减。
+	inline PDefHOperator0(GSequenceViewer&, --) //!< 选中项目下标自减。
 		ImplRet(*this -= 1)
-	inline PDefHOperator(GSequenceViewer&, ++, int) //!< 视图中首个项目下标自增。
+	inline PDefHOperator1(GSequenceViewer&, ++, int) //!< 视图中首个项目下标自增。
 		ImplRet(*this >> 1)
-	inline PDefHOperator(GSequenceViewer&, --, int) //!< 视图中首个项目下标自减。
+	inline PDefHOperator1(GSequenceViewer&, --, int) //!< 视图中首个项目下标自减。
 		ImplRet(*this >> -1)
 	/*!
 	\brief 视图中首个项目下标增加 d 。
@@ -124,7 +124,7 @@ public:
 		SetIndex(nIndex + d);
 		return *this;
 	}
-	inline PDefHOperator(GSequenceViewer&, <<, IndexType d) \
+	inline PDefHOperator1(GSequenceViewer&, <<, IndexType d) \
 		//!< 视图中首个项目下标减少 d 。
 		ImplRet(*this >> -d)
 	/*!
@@ -136,7 +136,7 @@ public:
 		SetSelected(nSelected + d);
 		return *this;
 	}
-	inline PDefHOperator(GSequenceViewer&, -=, IndexType d) \
+	inline PDefHOperator1(GSequenceViewer&, -=, IndexType d) \
 		//!< 选中项目下标减少 d 。
 		ImplRet(*this += -d)
 

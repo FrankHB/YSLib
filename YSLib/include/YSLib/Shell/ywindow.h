@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.4022;
+\version 0.4029;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 + 08:00;
 \par 修改时间:
-	2011-01-22 09:52 + 08:00;
+	2011-01-31 14:21 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -106,10 +106,10 @@ public:
 		const GHStrong<YImage> = ynew YImage(), HWND = NULL);
 	virtual DefEmptyDtor(AWindow)
 
-	ImplI(IWindow) DefPredicateBase(RefreshRequired, MWindow)
-	ImplI(IWindow) DefPredicateBase(UpdateRequired, MWindow)
+	ImplI1(IWindow) DefPredicateBase(RefreshRequired, MWindow)
+	ImplI1(IWindow) DefPredicateBase(UpdateRequired, MWindow)
 
-	ImplI(IWindow) DefGetterBase(HWND, WindowHandle, MWindowObject)
+	ImplI1(IWindow) DefGetterBase(HWND, WindowHandle, MWindowObject)
 	DefGetterBase(GHStrong<YImage>, Background, MWindow)
 	/*!
 	\brief 取位图背景指针。
@@ -117,22 +117,22 @@ public:
 	BitmapPtr
 	GetBackgroundPtr() const;
 
-	ImplI(IWindow) DefSetter(bool, Refresh, bRefresh)
+	ImplI1(IWindow) DefSetter(bool, Refresh, bRefresh)
 	/*!
 	\brief 设置大小。
 	\note 虚公有实现。
 	*/
 	virtual void
 	SetSize(const Size&);
-	ImplI(IWindow) DefSetterBaseDe(GHStrong<YImage>, Background, MWindow,
+	ImplI1(IWindow) DefSetterBaseDe(GHStrong<YImage>, Background, MWindow,
 		NULL)
 	DeclIEntry(void SetBufferSize(const Size&)) //!< 设置显示缓冲区大小。
 
-	PDefH(void, ClearBackground) const //!< 清除背景。
-		ImplExpr(ClearImage(GetContext()))
+	PDefH0(void, ClearBackground) const //!< 清除背景。
+		ImplRet(ClearImage(GetContext()))
 
-	PDefH(void, BeFilledWith, PixelType c) const
-		ImplExpr(Drawing::Fill(GetContext(), c)) \
+	PDefH1(void, BeFilledWith, PixelType c) const
+		ImplRet(Drawing::Fill(GetContext(), c)) \
 		//!< 以纯色填充显示缓冲区。
 
 protected:
@@ -146,7 +146,7 @@ public:
 	/*!
 	\brief 绘制背景。
 	*/
-	ImplI(IWindow) void
+	ImplI1(IWindow) void
 	DrawBackground();
 
 protected:
@@ -156,26 +156,26 @@ public:
 	/*!
 	\brief 绘图。
 	*/
-	ImplI(IWindow) void
+	ImplI1(IWindow) void
 	Draw();
 
 	/*!
 	\brief 刷新至窗口缓冲区。
 	*/
-	ImplI(IWindow) void
+	ImplI1(IWindow) void
 	Refresh();
 
 	/*!
 	\brief 按需更新。
 	\note 以父窗口、屏幕优先顺序。
 	*/
-	ImplI(IWindow) void
+	ImplI1(IWindow) void
 	Update();
 
 	/*!
 	\brief 请求提升至容器顶端。
 	*/
-	ImplI(IWindow) void
+	ImplI1(IWindow) void
 	RequestToTop();
 
 	/*!
@@ -221,35 +221,35 @@ public:
 	virtual
 	~AFrameWindow() ythrow();
 
-	virtual PDefHOperator(void, +=, IWidget& w)
-		ImplExpr(sWgtSet += w)
-	virtual PDefHOperator(bool, -=, IWidget& w)
+	virtual PDefHOperator1(void, +=, IWidget& w)
+		ImplRet(sWgtSet += w)
+	virtual PDefHOperator1(bool, -=, IWidget& w)
 		ImplRet(sWgtSet -= w)
-	virtual PDefHOperator(void, +=, IVisualControl& c)
-		ImplBodyBaseVoid(MUIContainer, operator+=, c)
-	virtual PDefHOperator(bool, -=, IVisualControl& c)
-		ImplBodyBase(MUIContainer, operator-=, c)
-	virtual PDefHOperator(void, +=, GMFocusResponser<IVisualControl>& c)
-		ImplBodyBaseVoid(MUIContainer, operator+=, c)
-	virtual PDefHOperator(bool, -=, GMFocusResponser<IVisualControl>& c)
-		ImplBodyBase(MUIContainer, operator-=, c)
+	virtual PDefHOperator1(void, +=, IVisualControl& c)
+		ImplBodyBase1(MUIContainer, operator+=, c)
+	virtual PDefHOperator1(bool, -=, IVisualControl& c)
+		ImplBodyBase1(MUIContainer, operator-=, c)
+	virtual PDefHOperator1(void, +=, GMFocusResponser<IVisualControl>& c)
+		ImplBodyBase1(MUIContainer, operator+=, c)
+	virtual PDefHOperator1(bool, -=, GMFocusResponser<IVisualControl>& c)
+		ImplBodyBase1(MUIContainer, operator-=, c)
 
-	ImplI(IWindow) PDefH(IVisualControl*, GetFocusingPtr)
-		ImplBodyBase(GMFocusResponser<IVisualControl>, GetFocusingPtr)
-	ImplI(IWindow) PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
-		ImplBodyBase(MUIContainer, GetTopWidgetPtr, p)
-	ImplI(IWindow) PDefH(IVisualControl*, GetTopVisualControlPtr,
+	ImplI1(IWindow) PDefH0(IVisualControl*, GetFocusingPtr)
+		ImplBodyBase0(GMFocusResponser<IVisualControl>, GetFocusingPtr)
+	ImplI1(IWindow) PDefH1(IWidget*, GetTopWidgetPtr, const Point& p)
+		ImplBodyBase1(MUIContainer, GetTopWidgetPtr, p)
+	ImplI1(IWindow) PDefH1(IVisualControl*, GetTopVisualControlPtr,
 		const Point& p)
-		ImplBodyBase(MUIContainer, GetTopVisualControlPtr, p)
+		ImplBodyBase1(MUIContainer, GetTopVisualControlPtr, p)
 
-	ImplI(IWindow) PDefH(void, ClearFocusingPtr)
-		ImplBodyBaseVoid(MUIContainer, ClearFocusingPtr)
+	ImplI1(IWindow) PDefH0(void, ClearFocusingPtr)
+		ImplBodyBase0(MUIContainer, ClearFocusingPtr)
 
-	ImplI(IWindow) PDefH(bool, ResponseFocusRequest, AFocusRequester& w)
-		ImplBodyBase(MUIContainer, ResponseFocusRequest, w)
+	ImplI1(IWindow) PDefH1(bool, ResponseFocusRequest, AFocusRequester& w)
+		ImplBodyBase1(MUIContainer, ResponseFocusRequest, w)
 
-	ImplI(IWindow) PDefH(bool, ResponseFocusRelease, AFocusRequester& w)
-		ImplBodyBase(MUIContainer, ResponseFocusRelease, w)
+	ImplI1(IWindow) PDefH1(bool, ResponseFocusRelease, AFocusRequester& w)
+		ImplBodyBase1(MUIContainer, ResponseFocusRelease, w)
 };
 
 
@@ -276,16 +276,16 @@ public:
 	virtual
 	~YFrameWindow() ythrow();
 
-	ImplI(AWindow) DefGetter(const Graphics&, Context, Buffer)
+	ImplI1(AWindow) DefGetter(const Graphics&, Context, Buffer)
 
-	ImplI(AWindow) PDefH(void, SetBufferSize, const Size& s)
-		ImplExpr(Buffer.SetSize(s.Width, s.Height)) //!< 设置显示缓冲区大小。
+	ImplI1(AWindow) PDefH1(void, SetBufferSize, const Size& s)
+		ImplRet(Buffer.SetSize(s.Width, s.Height)) //!< 设置显示缓冲区大小。
 
 protected:
 	/*!
 	\brief 绘制部件组。
 	*/
-	ImplI(AWindow) bool
+	ImplI1(AWindow) bool
 	DrawWidgets();
 };
 

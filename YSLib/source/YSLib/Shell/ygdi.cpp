@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3368;
+\version 0.3378;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2011-01-28 16:46 + 08:00;
+	2011-02-07 01:18 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -355,6 +355,14 @@ SetAllTo(Padding& p, SDST l, SDST r, SDST t, SDST b)
 	p.Right = r;
 	p.Top = t;
 	p.Bottom = b;
+}
+
+
+Padding
+FetchMargin(const Rect& r, const Size& s)
+{
+	return Padding(vmax<int>(0, r.X), vmax<int>(0, s.Width - r.X - r.Width),
+		vmax<int>(0, r.Y), vmax<int>(0, s.Height - r.Y - r.Height));
 }
 
 

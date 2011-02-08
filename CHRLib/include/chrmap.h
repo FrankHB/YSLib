@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version 0.1662;
+\version 0.1664;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:52:35 + 08:00; 
 \par 修改时间:
-	2010-11-12 16:59 + 08:00;
+	2011-01-31 14:53 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,7 +68,7 @@ typedef enum
 	UTF_32LE = 1019,
 
 	GB2312 = 2025, //!< 仅 EUC-CN ，GB2312 最常用实现。
-	Big5 = 2026,
+	Big5 = 2026//,
 
 	//其它。
 	/*

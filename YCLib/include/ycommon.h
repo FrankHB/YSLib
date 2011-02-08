@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2668;
+\version 0.2670;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 + 08:00; 
 \par 修改时间:
-	2011-01-27 23:14 + 08:00;
+	2011-01-31 14:54 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -148,27 +148,27 @@ namespace platform
 		#define DefColorH_(hex, name) name = \
 			RGB8(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF)) \
 			| BITALPHA
-		#define DefColorH(hex_, name) DefColorH_(HexAdd0x(hex_), name),
+		#define DefColorH(hex_, name) DefColorH_(HexAdd0x(hex_), name)
 
 		//参考：http://www.w3schools.com/html/html_colornames.asp 。
 
 		typedef enum ColorSet
 		{
-			DefColorH(00FFFF, Aqua)
-			DefColorH(000000, Black)
-			DefColorH(0000FF, Blue)
-			DefColorH(FF00FF, Fuchsia)
-			DefColorH(808080, Gray)
-			DefColorH(008000, Green)
-			DefColorH(00FF00, Lime)
-			DefColorH(800000, Maroon)
-			DefColorH(000080, Navy)
-			DefColorH(808000, Olive)
-			DefColorH(800080, Purple)
-			DefColorH(FF0000, Red)
-			DefColorH(C0C0C0, Silver)
-			DefColorH(008080, Teal)
-			DefColorH(FFFFFF, White)
+			DefColorH(00FFFF, Aqua),
+			DefColorH(000000, Black),
+			DefColorH(0000FF, Blue),
+			DefColorH(FF00FF, Fuchsia),
+			DefColorH(808080, Gray),
+			DefColorH(008000, Green),
+			DefColorH(00FF00, Lime),
+			DefColorH(800000, Maroon),
+			DefColorH(000080, Navy),
+			DefColorH(808000, Olive),
+			DefColorH(800080, Purple),
+			DefColorH(FF0000, Red),
+			DefColorH(C0C0C0, Silver),
+			DefColorH(008080, Teal),
+			DefColorH(FFFFFF, White),
 			DefColorH(FFFF00, Yellow)
 		} ColorSet;
 

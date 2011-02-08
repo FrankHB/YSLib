@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,7 +16,7 @@
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2010-11-12 18:35 + 08:00;
+	2011-02-06 23:07 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -85,7 +85,7 @@ UpdateTo(Size& s, SDST v, bool is_1st)
 
 
 BitmapPtr
-Graphics::operator[](std::size_t r) ythrow()
+Graphics::operator[](std::size_t r) const ythrow()
 {
 	YAssert(pBuffer, "Buffer pointer is null @@ Graphics::operator[];");
 	YAssert(r < size.Height, "Access out of range @@ Graphics::operator[];");
@@ -93,7 +93,7 @@ Graphics::operator[](std::size_t r) ythrow()
 	return pBuffer + r * size.Width;
 }
 BitmapPtr
-Graphics::at(std::size_t r) ythrow(std::runtime_error, std::out_of_range)
+Graphics::at(std::size_t r) const ythrow(std::runtime_error, std::out_of_range)
 {
 	if(!pBuffer)
 		throw std::runtime_error(

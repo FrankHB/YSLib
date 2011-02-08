@@ -11,12 +11,12 @@
 /*!	\file ylabel.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.1721;
+\version 0.1848;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 + 08:00;
 \par 修改时间:
-	2011-01-23 07:40 + 08:00;
+	2011-02-08 14:02 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,42 +32,25 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Widgets)
 
-MLabel::MLabel(const Drawing::Font& f, GHWeak<Drawing::TextRegion> wpTr_)
-	: wpTextRegion(wpTr_ ? wpTr_ : GetGlobalResource<Drawing::TextRegion>()),
-	Font(f), Margin(wpTextRegion->Margin), AutoSize(true), AutoEllipsis(false),
-	Text()
+MLabel::MLabel(const Drawing::Font& f)
+	: Font(f), Margin(2, 2, 2, 2),
+	AutoSize(true), AutoEllipsis(false), Text()
 {}
 
-bool
+void
 MLabel::PaintText(Widget& w, const Graphics& g, const Point& pt)
 {
-/*
-	YAssert(wpTextRegion,
-		"In function \"void\n"
-		"MLabel::DrawText(Widget& w, const Point& pt)\": \n"
-		"Text region pointer is null.");
-*/
+	TextState ts;
 
-	if(wpTextRegion)
-	{
-		wpTextRegion->Font = Font;
-		wpTextRegion->Font.Update();
-		wpTextRegion->ResetPen();
-		wpTextRegion->Color = w.ForeColor;
-		wpTextRegion->SetSize(w.GetWidth(), w.GetHeight());
-		SetMarginsTo(*wpTextRegion, 2, 2, 2, 2);
-		DrawText(*wpTextRegion, g, pt, w.GetSize(), Text);
-		wpTextRegion->SetSize(0, 0);
-		return true;
-	}
-	return false;
+	ts.Font.SetFont(Font);
+	ts.ResetForBounds(GetBoundsOf(w), g.GetSize(), Margin);
+	ts.Color = w.ForeColor;
+	DrawText(g, ts, Text);
 }
 
 
-YLabel::YLabel(const Rect& r, IUIBox* pCon, const Drawing::Font& f,
-	GHWeak<Drawing::TextRegion> wpTr_)
-	: YWidget(r, pCon), MLabel(f, pCon
-	? wpTr_ : GetGlobalResource<Drawing::TextRegion>())
+YLabel::YLabel(const Rect& r, IUIBox* pCon, const Drawing::Font& f)
+	: YWidget(r, pCon), MLabel(f)
 {}
 
 void
@@ -80,8 +63,8 @@ YLabel::DrawForeground()
 }
 
 
-MTextList::MTextList(const Drawing::Font& f, GHWeak<Drawing::TextRegion> wpTr_)
-	: MLabel(f, wpTr_)
+MTextList::MTextList(const Drawing::Font& f)
+	: MLabel(f)
 {}
 
 /*void

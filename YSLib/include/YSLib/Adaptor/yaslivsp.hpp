@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yaslivsp.hpp
 \ingroup Adaptor
 \brief yasli::vector 存储策略。
-\version 0.2296;
+\version 0.2299;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 22:38:03 + 08:00;
 \par 修改时间:
-	2010-11-12 18:35 + 08:00;
+	2011-01-31 13:36 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,25 +92,25 @@ public: //!<  protected:
 		return *this;
 	}
 
-	PDefH(iterator, begin)
-		ImplBodyBase(base, begin)
+	PDefH1(iterator, begin)
+		ImplBodyBase1(base, begin)
 
-	PDefH(const_iterator, begin) const
-		ImplBodyBase(base, begin)
+	PDefH1(const_iterator, begin) const
+		ImplBodyBase1(base, begin)
 
-	PDefH(iterator, end)
+	PDefH1(iterator, end)
 		ImplRet(base::end() - 1)
 
-	PDefH(const_iterator, end) const
+	PDefH1(const_iterator, end) const
 		ImplRet(base::end() - 1)
 
-	PDefH(size_type, size) const
+	PDefH1(size_type, size) const
 		ImplRet(base::size() - 1)
 
-	PDefH(size_type, max_size) const
+	PDefH1(size_type, max_size) const
 		ImplRet(base::max_size() - 1)
 
-	PDefH(size_type, capacity) const
+	PDefH1(size_type, capacity) const
 		ImplRet(base::capacity() - 1)
 
 	/*!
@@ -173,17 +173,17 @@ public: //!<  protected:
 		base::back() = _tChar();
 	}
 
-	PDefH(void, swap, VectorStringStorage& rhs)
-		ImplBodyBaseVoid(base, swap, rhs)
+	PDefH1(void, swap, VectorStringStorage& rhs)
+		ImplBodyBase1(base, swap, rhs)
 
-	PDefH(const _tChar*, c_str) const
+	PDefH1(const _tChar*, c_str) const
 		ImplRet(&*begin())
 
-	PDefH(const _tChar*, data) const
+	PDefH1(const _tChar*, data) const
 		ImplRet(&*begin())
 
-	PDefH(_tAlloc, get_allocator) const
-		ImplBodyBase(base, get_allocator)
+	PDefH1(_tAlloc, get_allocator) const
+		ImplBodyBase1(base, get_allocator)
 };
 
 #endif

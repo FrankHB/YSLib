@@ -11,12 +11,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.2855;
+\version 0.2859;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-01-21 23:11 + 08:00;
+	2011-02-06 23:07 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -773,7 +773,7 @@ public:
 		无异常抛出。
 	*/
 	BitmapPtr
-	operator[](std::size_t) ythrow();
+	operator[](std::size_t) const ythrow();
 
 	DefPredicate(Valid, pBuffer && size.Width != 0 && size.Height != 0)
 
@@ -791,7 +791,7 @@ public:
 	\note 仅抛出以上异常。
 	*/
 	BitmapPtr
-	at(std::size_t) ythrow(std::runtime_error, std::out_of_range);
+	at(std::size_t) const ythrow(std::runtime_error, std::out_of_range);
 };
 
 inline

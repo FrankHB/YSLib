@@ -11,12 +11,12 @@
 /*!	\file ysmsg.h
 \ingroup Core
 \brief 消息处理。
-\version 0.2104;
+\version 0.2110;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 + 08:00;
 \par 修改时间:
-	2011-01-06 21:57 + 08:00;
+	2011-01-31 13:45 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -154,12 +154,12 @@ private:
 	//消息优先队列。
 	priority_queue<Message, vector<Message>, cmp> q;
 
-	PDefH(const Message&, top) const
-		ImplBodyMember(q, top)
-	PDefH(void, push, const Message& msg)
-		ImplBodyMemberVoid(q, push, msg)
-	PDefH(void, pop)
-		ImplBodyMemberVoid(q, pop)
+	PDefH0(const Message&, top) const
+		ImplBodyMember0(q, top)
+	PDefH1(void, push, const Message& msg)
+		ImplBodyMember1(q, push, msg)
+	PDefH0(void, pop)
+		ImplBodyMember0(q, pop)
 
 public:
 	typedef priority_queue<int, vector<int>, cmp>::size_type SizeType;

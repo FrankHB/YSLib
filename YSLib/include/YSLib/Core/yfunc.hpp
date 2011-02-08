@@ -11,12 +11,12 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数对象封装。
-\version 0.1675;
+\version 0.1677;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-14 18:48:44 + 08:00;
 \par 修改时间:
-	2011-01-01 19:13 + 08:00;
+	2011-01-31 13:35 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -295,7 +295,7 @@ struct InversedCurrying
 		: f(f_)
 	{}
 
-	PDefHOperator(bool, ==, const InversedCurrying& r) const
+	PDefHOperator1(bool, ==, const InversedCurrying& r) const
 		ImplRet(f == r.f)
 
 	/*!

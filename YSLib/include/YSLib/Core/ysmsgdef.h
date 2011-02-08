@@ -11,12 +11,12 @@
 /*!	\file ysmsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version 0.2745;
+\version 0.2748;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-08 12:05:26 + 08:00;
 \par 修改时间:
-	2010-12-21 16:14 + 08:00;
+	2010-12-31 12:46 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,7 +71,7 @@ public:
 	{}
 	virtual DefEmptyDtor(GObjectContext)
 
-	ImplI(IContext) bool
+	ImplI1(IContext) bool
 	operator==(const IContext& rhs) const
 	{
 		if(this == &rhs)
@@ -96,7 +96,7 @@ public:
 	{}
 	virtual DefEmptyDtor(GHandleContext)
 
-	ImplI(IContext) bool
+	ImplI1(IContext) bool
 	operator==(const IContext& rhs) const
 	{
 		if(this == &rhs)

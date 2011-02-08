@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.1975;
+\version 0.1978;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 + 08:00;
 \par 修改时间:
-	2011-01-23 07:20 + 08:00;
+	2011-01-31 12:46 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,7 +69,7 @@ public:
 	InputContext(Runtime::KeysInfo, const Point&);
 	virtual DefEmptyDtor(InputContext)
 
-	ImplI(IContext) bool
+	ImplI1(IContext) bool
 	operator==(const IContext&) const;
 };
 

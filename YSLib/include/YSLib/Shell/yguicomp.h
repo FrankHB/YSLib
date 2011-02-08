@@ -11,12 +11,12 @@
 /*!	\file yguicomp.h
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2507;
+\version 0.2541;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2011-01-22 09:52 + 08:00;
+	2011-02-08 21:56 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -97,8 +97,7 @@ public:
 	*/
 	explicit
 	YButton(const Rect& = Rect::Empty, IUIBox* = NULL,
-		const Drawing::Font& = Drawing::Font::GetDefault(),
-		GHWeak<Drawing::TextRegion> = NULL);
+		const Drawing::Font& = Drawing::Font::GetDefault());
 	virtual DefEmptyDtor(YButton)
 
 public:
@@ -146,19 +145,19 @@ public:
 	/*!
 	\brief 取焦点指针。
 	*/
-	ImplI(IUIBox) DefMutableGetterBase(IVisualControl*, FocusingPtr,
+	ImplI1(IUIBox) DefMutableGetterBase(IVisualControl*, FocusingPtr,
 		MSimpleFocusResponser)
 	/*!
 	\brief 取顶端部件指针。
 	\note 由顶端可视部件指针转换。
 	*/
-	ImplI(IUIBox) PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
+	ImplI1(IUIBox) PDefH1(IWidget*, GetTopWidgetPtr, const Point& p)
 		ImplRet(GetTopVisualControlPtr(p))
 	/*!
 	\brief 取顶端可视部件指针。
 	\note 仅滑块。
 	*/
-	ImplI(IUIBox) IVisualControl*
+	ImplI1(IUIBox) IVisualControl*
 	GetTopVisualControlPtr(const Point&);
 	DefGetter(SDST, MinThumbLength, MinThumbLength)
 	DeclIEntry(Orientation GetOrientation() const) //!< 取轨道方向。
@@ -183,20 +182,20 @@ public:
 	/*!
 	\brief 清除焦点指针。
 	*/
-	ImplI(IUIBox) PDefH(void, ClearFocusingPtr)
-		ImplBodyBaseVoid(MSimpleFocusResponser, ClearFocusingPtr)
+	ImplI1(IUIBox) PDefH0(void, ClearFocusingPtr)
+		ImplBodyBase0(MSimpleFocusResponser, ClearFocusingPtr)
 
 	/*!
 	\brief 响应焦点请求。
 	*/
-	ImplI(IUIBox) PDefH(bool, ResponseFocusRequest, AFocusRequester& w)
-		ImplBodyBase(MSimpleFocusResponser, ResponseFocusRequest, w)
+	ImplI1(IUIBox) PDefH1(bool, ResponseFocusRequest, AFocusRequester& w)
+		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRequest, w)
 
 	/*!
 	\brief 响应焦点释放。
 	*/
-	ImplI(IUIBox) PDefH(bool, ResponseFocusRelease, AFocusRequester& w)
-		ImplBodyBase(MSimpleFocusResponser, ResponseFocusRelease, w)
+	ImplI1(IUIBox) PDefH1(bool, ResponseFocusRelease, AFocusRequester& w)
+		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRelease, w)
 
 	/*!
 	\brief 绘制背景。
@@ -214,7 +213,7 @@ public:
 	\brief 请求提升至容器顶端。
 	\note 空实现。
 	*/
-	ImplI(IVisualControl) void
+	ImplI1(IVisualControl) void
 	RequestToTop()
 	{}
 
@@ -254,7 +253,7 @@ public:
 	YHorizontalTrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDST = 8);
 	virtual DefEmptyDtor(YHorizontalTrack)
 
-	ImplI(ATrack)
+	ImplI1(ATrack)
 	DefGetter(Orientation, Orientation, Horizontal)
 
 private:
@@ -279,7 +278,7 @@ public:
 	YVerticalTrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDST = 8);
 	virtual DefEmptyDtor(YVerticalTrack)
 
-	ImplI(ATrack)
+	ImplI1(ATrack)
 		DefGetter(Orientation, Orientation, Vertical)
 
 private:
@@ -316,39 +315,39 @@ public:
 	/*!
 	\brief 取焦点指针。
 	*/
-	ImplI(IUIBox) DefMutableGetterBase(IVisualControl*, FocusingPtr,
+	ImplI1(IUIBox) DefMutableGetterBase(IVisualControl*, FocusingPtr,
 		MSimpleFocusResponser)
 	/*!
 	\brief 取顶端部件指针。
 	\note 由顶端可视部件指针转换。
 	*/
-	ImplI(IUIBox) PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
+	ImplI1(IUIBox) PDefH1(IWidget*, GetTopWidgetPtr, const Point& p)
 		ImplRet(GetTopVisualControlPtr(p))
 	/*!
 	\brief 取顶端可视部件指针。
 	\note 仅滑块和滚动条按钮。
 	*/
-	ImplI(IUIBox) IVisualControl*
+	ImplI1(IUIBox) IVisualControl*
 	GetTopVisualControlPtr(const Point&);
 	DefGetter(ATrack&, Track, *pTrack)
 
 	/*!
 	\brief 清除焦点指针。
 	*/
-	ImplI(IUIBox) PDefH(void, ClearFocusingPtr)
-		ImplBodyBaseVoid(MSimpleFocusResponser, ClearFocusingPtr)
+	ImplI1(IUIBox) PDefH0(void, ClearFocusingPtr)
+		ImplBodyBase0(MSimpleFocusResponser, ClearFocusingPtr)
 
 	/*!
 	\brief 响应焦点请求。
 	*/
-	ImplI(IUIBox) PDefH(bool, ResponseFocusRequest, AFocusRequester& w)
-		ImplBodyBase(MSimpleFocusResponser, ResponseFocusRequest, w)
+	ImplI1(IUIBox) PDefH1(bool, ResponseFocusRequest, AFocusRequester& w)
+		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRequest, w)
 
 	/*!
 	\brief 响应焦点释放。
 	*/
-	ImplI(IUIBox) PDefH(bool, ResponseFocusRelease, AFocusRequester& w)
-		ImplBodyBase(MSimpleFocusResponser, ResponseFocusRelease, w)
+	ImplI1(IUIBox) PDefH1(bool, ResponseFocusRelease, AFocusRequester& w)
+		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRelease, w)
 
 	/*!
 	\brief 绘制背景。
@@ -366,7 +365,7 @@ public:
 	\brief 请求提升至容器顶端。
 	\note 空实现。
 	*/
-	ImplI(IVisualControl) void
+	ImplI1(IVisualControl) void
 	RequestToTop()
 	{}
 };
@@ -387,7 +386,7 @@ public:
 	virtual DefEmptyDtor(YHorizontalScrollBar)
 
 public:
-	ImplI(ATrack)
+	ImplI1(ATrack)
 	DefGetter(Orientation, Orientation, Horizontal)
 };
 
@@ -407,7 +406,7 @@ public:
 	virtual DefEmptyDtor(YVerticalScrollBar)
 
 public:
-	ImplI(ATrack)
+	ImplI1(ATrack)
 	DefGetter(Orientation, Orientation, Vertical)
 };
 
@@ -426,8 +425,6 @@ protected:
 	static const SDST defMarginH = 4; //!< 默认水平边距。
 	static const SDST defMarginV = 2; //!< 默认垂直边距。
 
-	GHWeak<Drawing::TextRegion> wpTextRegion; //!< 文本区域指针。
-
 public:
 	Drawing::Font Font; //!< 字体。
 	Drawing::Padding Margin; //!< 文本和容器的间距。
@@ -435,6 +432,7 @@ public:
 protected:
 	GHWeak<ListType> wpList; //!< 文本列表指针。
 	ViewerType Viewer; //!< 列表视图。
+	Drawing::TextState TextState; //!< 文本状态。
 
 public:
 	DeclEvent(HIndexEvent, Selected) //!< 项目选择状态改变事件。
@@ -445,7 +443,7 @@ public:
 	*/
 	explicit
 	YSimpleListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHWeak<Drawing::TextRegion> = NULL, GHWeak<ListType> = NULL); 
+		GHWeak<ListType> = NULL); 
 	/*!
 	\brief 析构。
 	\note 无异常抛出。
@@ -457,11 +455,10 @@ public:
 
 protected:
 	/*!
-	\brief 取文本区域。
-	\note 断言检查：wpList 。
+	\brief 取文本状态。
 	*/
-	Drawing::TextRegion&
-	GetTextRegion() const ythrow();
+	Drawing::TextState&
+	GetTextState() ythrow();
 
 public:
 	/*!
@@ -481,7 +478,7 @@ public:
 	\brief 取项目行高。
 	*/
 	SDST
-	GetItemHeight() const;
+	GetItemHeight();
 
 //	DefSetter(const ListType&, List, List)
 	/*!
@@ -522,8 +519,8 @@ protected:
 	CheckPoint(const Point&);
 
 public:
-	PDefH(void, ClearSelected)
-		ImplBodyMemberVoid(Viewer, ClearSelected)
+	PDefH0(void, ClearSelected)
+		ImplRet(static_cast<void>(Viewer.ClearSelected()))
 
 private:
 	/*!
@@ -608,44 +605,44 @@ public:
 
 	explicit
 	YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHWeak<Drawing::TextRegion> = NULL, GHWeak<ListType> = NULL);
+		GHWeak<ListType> = NULL);
 	virtual DefEmptyDtor(YListBox)
 
 	/*!
 	\brief 取焦点指针。
 	*/
-	ImplI(IUIBox) DefMutableGetterBase(IVisualControl*, FocusingPtr,
+	ImplI1(IUIBox) DefMutableGetterBase(IVisualControl*, FocusingPtr,
 		MSimpleFocusResponser)
 	/*!
 	\brief 取顶端部件指针。
 	\note 由顶端可视部件指针转换。
 	*/
-	ImplI(IUIBox) PDefH(IWidget*, GetTopWidgetPtr, const Point& p)
+	ImplI1(IUIBox) PDefH1(IWidget*, GetTopWidgetPtr, const Point& p)
 		ImplRet(GetTopVisualControlPtr(p))
 	/*!
 	\brief 取顶端可视部件指针。
 	\note 仅滑块。
 	*/
-	ImplI(IUIBox) IVisualControl*
+	ImplI1(IUIBox) IVisualControl*
 	GetTopVisualControlPtr(const Point&);
 
 	/*!
 	\brief 清除焦点指针。
 	*/
-	ImplI(IUIBox) PDefH(void, ClearFocusingPtr)
-		ImplBodyBaseVoid(MSimpleFocusResponser, ClearFocusingPtr)
+	ImplI1(IUIBox) PDefH0(void, ClearFocusingPtr)
+		ImplBodyBase0(MSimpleFocusResponser, ClearFocusingPtr)
 
 	/*!
 	\brief 响应焦点请求。
 	*/
-	ImplI(IUIBox) PDefH(bool, ResponseFocusRequest, AFocusRequester& w)
-		ImplBodyBase(MSimpleFocusResponser, ResponseFocusRequest, w)
+	ImplI1(IUIBox) PDefH1(bool, ResponseFocusRequest, AFocusRequester& w)
+		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRequest, w)
 
 	/*!
 	\brief 响应焦点释放。
 	*/
-	ImplI(IUIBox) PDefH(bool, ResponseFocusRelease, AFocusRequester& w)
-		ImplBodyBase(MSimpleFocusResponser, ResponseFocusRelease, w)
+	ImplI1(IUIBox) PDefH1(bool, ResponseFocusRelease, AFocusRequester& w)
+		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRelease, w)
 
 	/*!
 	\brief 绘制前景。
@@ -670,8 +667,7 @@ public:
 	typedef YSimpleListBox ParentType;
 
 	explicit
-	YFileBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHWeak<Drawing::TextRegion> = NULL);
+	YFileBox(const Rect& = Rect::Empty, IUIBox* = NULL);
 	virtual
 	~YFileBox() ythrow();
 
