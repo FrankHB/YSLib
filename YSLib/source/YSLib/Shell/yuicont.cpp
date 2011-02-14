@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.2011;
+\version 0.2021;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 + 08:00;
 \par 修改时间:
-	2011-01-23 07:24 + 08:00;
+	2011-02-14 14:55 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,6 +38,18 @@ FetchDirectContainerPtr(IWidget& w)
 	IUIBox* const pCon(dynamic_cast<IUIBox*>(&w));
 
 	return pCon ? pCon : w.GetContainerPtr();
+}
+
+IWindow*
+FetchDirectWindowPtr(IWidget& w)
+{
+	return FetchWidgetDirectNodePtr<IWindow>(FetchDirectContainerPtr(w));
+}
+
+YDesktop*
+FetchDirectDesktopPtr(IWidget& w)
+{
+	return FetchWidgetDirectNodePtr<YDesktop>(FetchDirectContainerPtr(w));
 }
 
 

@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3284;
+\version 0.3295;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-01-07 14:40 + 08:00;
+	2011-02-13 21:46 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -195,16 +195,22 @@ namespace
 		while((p = pCon->GetTopVisualControlPtr(pt)))
 		{
 			pt -= p->GetLocation();
-			if(!(pCon = dynamic_cast<IUIBox*>(p)))
-				break;
 			if(ExtraOperation == TouchDown)
 			{
-				pCon->RequestToTop();
-				pCon->ClearFocusingPtr();
+				p->RequestToTop();
+
+				EventArgs e;
+
+				p->RequestFocus(e);
 			}
+			if(!(pCon = dynamic_cast<IUIBox*>(p)))
+				break;
 		}
 		if(!p)
+		{
+			pCon->ClearFocusingPtr();
 			p = dynamic_cast<IVisualControl*>(pCon);
+		}
 		if(ExtraOperation == TouchHeld)
 		{
 			if(p_TouchDown != p)
@@ -322,6 +328,7 @@ namespace
 	ResponseTouchBase(IUIBox& con, HTouchCallback f)
 	{
 		VisualControlLocation = f;
+
 		IVisualControl* const pVC(GetTouchedVisualControlPtr(con, f));
 
 		return pVC ? f(*pVC, f) : false;

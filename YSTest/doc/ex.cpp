@@ -1,4 +1,4 @@
-//v0.2959; *Build 190 r38;
+//v0.2959; *Build 191 r48;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -164,381 +164,250 @@ $using:
 
 $DONE:
 r1:
-/ @@ \h Base:
-	+ \mac DeclBasedInterface1;
-	+ \mac DeclBasedInterface2;
-	+ \mac DeclBasedInterface3;
-	+ \mac ImplI1;
-	+ \mac ImplI2;
-	+ \mac ImplI3;
-	+ \mac ImplI4;
-	+ \mac ImplA1;
-	+ \mac ImplA2;
-	+ \mac ImplA3;
-	+ \mac ImplA4;
-	- \mac ImplBodyBaseVoid;
-	- \mac ImplBodyMemberVoid;
-	- \mac ImplExpr;
-	/ \a _paralist -> _paramlist;
-	+ \mac PDefH1;
-	+ \mac PDefH2;
-	+ \mac PDefH3;
-	+ \mac PDefH4;
-	+ \mac PDefHOperator1;
-	+ \mac PDefHOperator2;
-	+ \mac PDefHOperator3;
-	+ \mac PDefHOperator4;
-	+ \mac ImplBodyBase1;
-	+ \mac ImplBodyBase2;
-	+ \mac ImplBodyBase3;
-	+ \mac ImplBodyBase4;
-	+ \mac ImplBodyMember1;
-	+ \mac ImplBodyMember2;
-	+ \mac ImplBodyMember3;
-	+ \mac ImplBodyMember4;
-	+ \mac PDefH0;
-	+ \mac PDefHOperator0;
-	+ \mac ImplBodyBase0;
-	+ \mac ImplBodyMember0;
-/ \a DeclBasedInterface -> DeclBasedInterface1 \ex \h Base;
-/ \a ImplI -> ImplI1 \ex \h Base;
-/ \a ImplA -> ImplA1 \ex \h Base;
-/ \a ImplBodyBaseVoid -> ImplBodyBase;
-/ \a ImplBodyMemberVoid -> ImplBodyMember;
-/ \a ImplExpr -> ImplRet;
-/ \a PDefH -> PDefH1 \ex \h Base;
-/ \a PDefHOperator -> PDefHOperator1 \ex \h Base;
-/ \a ImplBodyBase -> ImplBodyBase1 \ex \h Base;
-/ \a ImplBodyMember -> ImplBodyMember1 \ex \h Base;
-* \mac \param number mismatch \mac \n;
-/ @@ \u YFocus:
-	/ \ret \tp @@ \mf ClearFocusingPtr @@ \clt GMFocusResponser
-		-> void ~ bool;
-	/ \tr \impl @@ (\mf & \mft) AFocusRequester::ReleaseFocus;
-/ \test 1:
-	/ try '-pedantic' @@ \mac CFLAG @@ YSLib Makefile;
-	* \rem \mac YSL_TL @@ \h YAdaptor;
-	* comma at end of enumerator list;
-		/ \tr @@ \lib CHRLib;
-		/ \impl @@ \mac DefColorH @@ \h YCommon @@ \lib YCLib;
-		/ \tr @@ \h YFont;
+/= test 0;
 
-r2-r9:
-/= test 2 ^ \conf release;
+r2:
+/ @@ \cl YSimpleListBox @@ \u YGUIComponent:
+	+ protected \m SDST TopOffset;
+	/ \tr \impl @@ \ctor;
+	/ \impl @@ \mf DrawForeground;
+	/ \impl @@ \mf OnKeyDown;
+	+ protected \mf SDST AdjustTopOffset();
+	+ protected \mf SDST AdjustDownOffset();
+
+r3-r6:
+* \impl @@ \mf DrawForeground @@ \cl YSimpleListBox @@ \u YGUIComponent;
+
+r7:
+/ \rem !\tr \impl @@ \mf AdjustDownOffset @@ \cl YSimpleListBox
+	@@ \u YGUIComponent;
+
+r8:
+/ @@ \cl YSimpleListBox @@ \u YGUIComponent:
+	* \impl @@ \mf OnKeyDown;
+	/ !\rem !\tr \impl @@ \mf AdjustDownOffset;
+	/ \mf AdjustDownOffset => AdjustBottomOffset;
+/ @@ \clt GSequenceViewer @@ \h YComponent:
+	+ DefGetter(IndexType, Relative, IsSelected() ? GetSelected() - GetIndex()
+		: -1);
+
+r9:
+* \tr \impl @@ \mf YFileBox::OnConfirmed(IndexEventArgs&) @@ \u YGUIComponent;
 
 r10:
-* undid makefile to increase file size;
+* \impl @@ \mf OnKeyDown @@ \cl YSimpleListBox @@ \u YGUIComponent;
 
-r11:
-/= test 3 ^ \conf release;
-
-r12:
-/ @@ \cl MDualScreenReader @@ \u DSReader:
-	* fake memory leak @@ \impl @@ \ctor;
-	/ \m pTextRegionUp => spTextRegionUp;
-	/ \m pTextRegionDn => spTextRegionDn;
+r11-r12:
+* \impl @@ \mf AdjustDownOffset @@ \cl YSimpleListBox @@ \u YGUIComponent;
 
 r13:
-/ \a _fCompare => _gfCompare @@ \h YCLib::Utilities;
-/ @@ \cl TextRegion @@ \u YText:
-	/ \mf void Move(s16) -> void Scroll(std::ptrdiff_t);
-	/ \mf void Move(s16, SDST) -> void Scroll(std::ptrdiff_t, SDST);
+* \impl @@ \mf OnKeyDown @@ \cl YSimpleListBox @@ \u YGUIComponent;
 
 r14:
-/ @@ \u YText:
-	/ \mf SDST TextRegion::GetBufferHeightResized() const
-		-> !\m \f SDST FetchResizedBufferHeight(const TextState&, SDST);
-	/ \mf SDST GetMarginResized() const
-		-> !\m \f SDST FetchResizedMargin(const TextState&, SDST);
-/ \tr \impl @@ \mf (LineUp & LineDn) @@ \cl MDualScreenReader
-	@@ \impl \u DSReader;
+/ @@ \u YGUIComponent:
+	+ \mf void YSimpleListBox::ResetView();
+	/ \simp \impl @@ \mf YFileBox::OnConfirmed ^ YSimpleListBox::ResetView;
 
-r15:
-/ @@ \u YText:
-	/ @@ \cl TextRegion:
-		- \i \f GetBufWidthN;
-		- \i \f GetBufHeightN;
-		/ \tr \impl @@ \mf (GetLnN & GetLnNEx);
-	/ \tr \impl @@ \ft (GetPreviousLinePtr & GetNextLinePtr);
-
-r16:
-/ @@ \u YText:
-	/ \mf void PutNewline() -> \cl TextState ~ \cl TextRegion;
-	/ @@ \cl TextRegion:
-		/ \tr \impl @@ 3 \ctor;
-		/ \mf u8 PutChar(fchar_t) -> !\m \ft<class _tBuffer>
-			u8 TextRegion::PutChar(_tBuffer&, TextState&, fchar_t);
-		/ \mft<typename _tOut> _tOut PutLine(_tOut)
-			-> !\m \ft<class _tOut, typename _tBuffer>
-			_tOut PutLine(_tBuffer&, TextState&, _tOut);
-		/ \mft<typename _tOut> _tOut PutLine(_tOut, _tOut, _tChar = '\0')
-			-> !\m \ft<class _tOut, typename _tChar, typename _tBuffer>
-			_tOut PutLine(_tBuffer&, TextState&, _tOut, _tOut, _tChar = '\0');
-		/ \i \mf String::size_type PutLine(const String&)
-			-> !\m \i \ft<class _tBuffer>
-			String::size_type PutLine(_tBuffer&, TextState&, const String&);
-		/ \mft template<typename _tOut> _tOut PutString(_tOut)
-			-> !\m \ft<class _tOut, typename _tBuffer> _tOut
-			PutString(_tBuffer&, TextState&, _tOut);
-		/ \mft template<typename _tOut, typename _tChar> _tOut
-			PutString(_tOut, _tOut, _tChar = '\0')
-			-> !\m \ft<typename _tOut, typename _tChar, class _tBuffer>  _tOut
-			PutString(_tBuffer&, TextState&, _tOut, _tOut, _tChar = '\0');
-		/ \i \mf String::size_type PutString(const String&)
-			-> !\m \i \ft<class _tBuffer>
-			String::size_type PutString(_tBuffer&, TextState&, const String&);
-		/ \mf SPOS GetLineLast() const
-			-> !\m \f SPOS FetchLastLineBasePosition(const TextState&, SDST);
-	/ \tr \impl @@ \f void DrawText(TextRegion&, const Graphics&, const Point&,
-		const Size&, const String&);
-/ @@ \cl MDualScreenReader @@ \impl \u DSReader:
-	/ \tr \impl @@ \mf void FillText();
-	/ \tr \impl @@ \mf void LoadText(YTextFile&);
-	/ \tr \impl @@ \mf bool LineDown();
-	/ \tr \impl @@ \mf bool LineUp();
-/ \tr \impl @@ \mf void YSimpleListBox::DrawForeground()
-	@@ \impl \u YGUIComponent;
-/ \tr @@ \impl \u GBKEX;
+r15-r16:
+	r15:
+	* \def @@ \mf Contains @@ \clt GSequenceViewer @@ \h YComponent:
+		+ \c;
+/= test 1;
 
 r17:
-/ @@ \u YText:
-	+ \i \mf u8 operator()(fchar_t) @@ \cl TextRegion ^ \ft PutChar;
-	/ \ft<class _tOut, typename _tBuffer> _tOut
-		PutLine(_tBuffer&, TextState&, _tOut)
-		-> \ft<class _tOut, class _fRenderer> _tOut
-		PutLine(_fRenderer&, _tOut);
-	/ \ft<typename _tOut, typename _tChar, class _tBuffer> _tOut
-		PutLine(_tBuffer&, TextState&, _tOut, _tOut g, _tChar = '\0')
-		-> \ft<class _tOut, typename _tChar, class _fRenderer> _tOut
-		PutLine(_fRenderer&, _tOut, _tOut, _tChar = '\0');
-	/ \i \ft<class _tBuffer> String::size_type
-		PutLine(_tBuffer&, TextState&, const String&)
-		-> \i \ft<class _fRenderer> String::size_type
-		PutLine(_fRenderer&, const String&);
-	/ \ft<class _tOut, typename _tBuffer> _tOut
-		PutString(_tBuffer&, TextState&, _tOut)
-		-> \ft<class _tOut, class _fRenderer> _tOut
-		PutString(_fRenderer&, _tOut);
-	/ \ft<typename _tOut, typename _tChar, class _tBuffer> _tOut
-		PutString(_tBuffer&, TextState&, _tOut, _tOut, _tChar = '\0')
-		-> ft<typename _tOut, typename _tChar, class _fRenderer> _tOut
-		PutString(_fRenderer&, _tOut, _tOut, _tChar = '\0');
-	/ \i \ft<class _tBuffer> String::size_type
-		PutString(_tBuffer&, TextState&, const String&)
-		-> \i \ft<class _fRenderer> inline String::size_type
-		PutString(_fRenderer& const String&);
-/ @@ \cl MDualScreenReader @@ \impl \u DSReader:
-	/ \tr \impl @@ \mf void FillText();
-	/ \tr \impl @@ \mf void LoadText(YTextFile&);
-	/ \tr \impl @@ \mf bool LineUp();
-	/ \tr \impl @@ \mf bool LineDown();
-/ \tr @@ \impl \u GBKEX;
-/ \tr \impl @@ \mf void YSimpleListBox::DrawForeground()
-	@@ \impl \u YGUIComponent;
+/ @@ \cl YListBox @@ \impl \u YGUIComponent:
+	/ \impl @@ \mf DrawForeground;
+/ @@ \h YComponent:
+	/ \clt<class _tContainer> GSequenceViewer
+		-> \clt<class _tContainer, typename _tSize = typename
+		_tContainer::size_type, typename _tIndex = std::ptrdiff_t>
+		GSequenceViewer:
+		/ typedef typename _tContainer::size_type SizeType
+			-> typedef _tSize SizeType;
+		/ typedef std::ptrdiff_t IndexType -> typedef _tIndex IndexType;
 
 r18:
-/ @@ \u YText:
-	+ \ab \cl ATextRenderer;
-	/ @@ \cl TextRegion:
-		/ typedef TextState ParentType -> typedef ATextRenderer ParentType;
-		/ \mf (GetLnN & GetLnNEx & SetLnLast & ClearLine & ClearLn
-			& ClearLnLast) >> \ab \cl ATextRenderer;
-		/ \inh \cl TextState >> \ab \cl ATextRenderer;
-		+ \mf \vt void ClearLine(u16, SDST);
-		+ \i \mf ImplI1(ATextRenderer)
-			DefGetter(const Graphics&, Context, *this);
-		/ \tr \impl @@ \i \f \op=(const TextRegion&);
-		/ \impl @@ 3 \ctor;
-		/ \tr \impl @@ \mf ClearLine;
-	+ \vt @@ \mf ATextRenderer::ClearLine;
-+ \c @@ \mf (\op[] & at) @@ \cl Graphics @@ \u YObject;
+/ \u YGUIComponent:
+	/ @@ \cl YListBox:
+		+ DefPredicateMember(Selected, TextListBox);
+		+ typedef YSimpleListBox::ViewerType ViewerType;
+		+ DefGetterMember(ViewerType::IndexType, Index, TextListBox);
+		+ DefGetterMember(ViewerType::IndexType, Selected, TextListBox);
+		+ \mf bool Contains(ViewerType) const;
+	/ @@ \cl YSimpleListBox:
+		/ protected \m ViewerType Viewer -> private \m ViewerType viewer;
+		/ protected \m SDST TopOffset -> private \m SDST top_offset;
+		/ protected \m Drawing::TextState TextState -> private \m
+			TextState text_state;
+		+ \mf bool Contains(ViewerType) const;
+	/ \simp \impl @@ \mf (GetPath & OnConfirmed) @@ \cl YFileBox;
 
 r19:
-/ @@ \u YText:
-	* \impl @@ \vt \mf ClearLine @@ \cl (ATextRenderer & TextRegion);
-	+ \cl TextRenderer;
-	+ \f void PrintChar(const Graphics&, TextState&, fchar_t);
+/ @@ \u YGUIComponent:
+	/ @@ \cl YListBox:
+		+ DefGetterMember(ListType&, List, TextListBox);
+		+ \mf void ResetView() ^ \mac PDefH0;
+	/ @@ \cl YFileBox:
+		/ \inh \cl YSimpleListBox -> \cl YListBox;
+		/ typedef YSimpleListBox ParentType -> typedef YListBox ParentType;
+		/ \impl @@ \ctor;
 
 r20:
-+ \f void DrawText(const Graphics&, const String&, const Point&, Color,
-	const Padding&) @@ \u YText;
-/ \impl @@ \f bool PaintText(Widget&, const Graphics&, const Point&)
-	@@ \impl \u YLabel;
+* \impl @@ \ctor @@ \cl YListBox @@ \impl \u YGUIComponent;
 
 r21:
-/ @@ \impl \u YText:
-	/ \tr \simp \impl @@ 2 \f PrintChar;
-	* \impl @@ \f void DrawText(const Graphics&, const String&, const Point&,
-		Color, const Padding&);
-/ \impl @@ \mf PaintText @@ \cl MLabel @@ \u YLabel;
+/ @@ \clt GSequenceViewer @@ \h YComponent:
+	/ \mf GetSelected => GetSelectedIndex;
+	/ \a \m nIndex => head;
+	/ \a \m nSelected => selected;
+	/ \a \m nLength => length;
+	/ \a \m bSelected => is_selected;
+	/ \mf GetIndex => GetHeadIndex;
+	/ \mf SetIndex => SetHeadIndex;
+	/ \mf SetSelected => SetSelectedIndex;
+	/ \mf GetRelative => GetRelativeIndex;
+/ @@ \h YGUIComponent:
+	/ @@ \cl YSimpleListBox:
+		/ DefGetterMember(ViewerType::IndexType, Selected, viewer)
+			-> DefGetterMember(ViewerType::IndexType, SelectedIndex, viewer);
+		/ DefGetterMember(ViewerType::IndexType, Index, viewer)
+			-> DefGetterMember(ViewerType::IndexType, HeadIndex, viewer);
+	/ @@ \cl YListBox:
+		/ DefGetterMember(ViewerType::IndexType, Selected, TextListBox)
+			-> DefGetterMember(ViewerType::IndexType, SelectedIndex,
+			TextListBox);
+		/ DefGetterMember(ViewerType::IndexType, Index, TextListBox)
+			-> DefGetterMember(ViewerType::IndexType, HeadIndex, TextListBox);
 
 r22:
-+ \f Padding FetchMargin(const Rect&, const Size&) @@ \u YGDI;
-/ \impl @@ \mf PaintText @@ \cl MLabel @@ \u YLabel;
-/ \f void DrawText(const Graphics&, const String&, const Point&,
-	Color, const Padding&) -> void DrawText(const Graphics&, const String&,
-	const Padding&, Color) @@ \u YText;
+/ @@ \h YEvent:
+	/ \mac DefMutableEventGetter(_tEventHandler, _name)
+		-> DefMutableEventGetter(_tEventHandler, _name, _member);
+	/ \mac DefEventGetter(_tEventHandler, _name)
+		-> DefEventGetter(_tEventHandler, _name, _member);
 
 r23:
-/ \f void DrawText(const Graphics&, const String&, const Point&,
-	Color, const Padding&) -> void DrawText(const Graphics&, const Rect&,
-	const String&, const Padding&, Color) @@ \u YText;
-/ \impl @@ \mf PaintText @@ \cl MLabel @@ \u YLabel;
-
-r24-r25:
-* \impl @@ \f void DrawText(const Graphics&, const Rect&,
-	const String&, const Padding&, Color) @@ \u YText;
-
-r26:
-/ @@ \u YText:
-	/ \a !\m \f PrintChar => RenderChar;
-	/ 2 \i \mf u8 operator() -> void operator();
-	/ \ft<class _tBuffer> u8 PutChar(tBuffer&, TextState&, fchar_t)
-		-> \ft<class _fRenderer> u8 PutChar(_fRenderer&, fchar_t);
-	+ \i \tf<class _fRenderer> u8 PrintChar(_fRenderer&, fchar_t);
-	/ \a _fRenderer => _tRenderer;
-	/ \tr \impl @@ 2 \ft PrintLine;
-	+ 3 \ft PrintLine;
-	+ 3 \ft PrintString;
-	/ \tr \impl @@ \f void DrawText(const Graphics&, const Rect&,
-		const String&, const Padding&, Color) ^ PrintLine ~ PutLine;
-	/ \tr \impl @@ \f ReadX;
-
-r27:
-/ @@ \u Text:
-	/ @@ \cl ATextRenderer:
-		+ DeclIEntry(TextState& GetTextState());
-		- \inh TextState;
-		- \mf ATextRenderer& operator=(const TextState&);
-		- \ctor \exp ATextRenderer(Drawing::Font&);
-		- \ctor \exp ATextRenderer(YFontCache&);
-		- \ctor ATextRenderer();
+/ @@ \u YGUIComponent:
+	/ @@ \cl YListBox:
+		- \m DeclEvent(HIndexEvent, Selected);
+		- \m DeclEvent(HIndexEvent, Confirmed);
+		+ DefMutableEventGetter(HIndexEvent, Selected, TextListBox.Selected);
+		+ DefMutableEventGetter(HIndexEvent, Confirmed, TextListBox.Confirmed);
 		/ \impl @@ \ctor;
-		- typedef TextState ParentType;		
-		+ DeclIEntry(const TextState& GetTextState() const);
-		/ \tr \impl @@ \mf (GetLnN & GetLnNEx & SetLnLast & ClearLn);
-	/ @@ \cl TextRenderer:
-		/ \ctor TextRenderer(const Graphics&)
-			-> TextRenderer(TextState&, const Graphics&);
-		+ \m TextState& TextState;
-		+ \mf ImplI1(ATextRenderer)
-			DefMutableGetter(TextState&, TextState, State);
-		/= \tr \impl @@ \i \mf void operator()(fchar_t);
-		+ \mf ImplI1(ATextRenderer)
-			DefGetter(const TextState&, TextState, State);
-	/ @@ \cl TextRegion:
-		+ \inh TextState;
-		+ protected \mf void InitiailizeFont();
-		/ \impl @@ 3 \ctor;
-		/= \tr \impl @@ \i \mf TextRegion& operator=(const TextState&);
-		+ \mf ImplI1(ATextRenderer)
-			DefMutableGetter(TextState&, TextState, *this);
-		+ \mf ImplI1(ATextRenderer)
-			DefGetter(const TextState&, TextState, *this);
-	/ \impl @@ \f void DrawText(const Graphics&, const Rect&,
-		const String&, const Padding&, Color);
-	/ \tr \impl @@ 2 \ft PrintLine;
-	/ \tr \impl @@ 2 \ft PutLine;
-	/ \tr \impl @@ 2 \ft PrintString;
-	/ \tr \impl @@ 2 \ft PutString;
+	/ \impl @@ \ctor @@ \cl YFileBox;
+/ \tr \impl @@ \ctor @@ \cl ShlExplorer::TFrmFileListSelecter
+	@@ \impl \u Shells;
+
+r24-r27:
+* \impl @@ \f IVisualControl* GetTouchedVisualControlPtr(IUIBox&, Point&)
+	@@ \un \ns @@ \impl \u YGUI;
 
 r28:
-/ @@ \u YText:
-	+ \f void DrawText(const Graphics&, const TextState&, const String&);
-	+ \mf ResetForBound(const Rect&) @@ \cl ATextRenderer;
-	/ \impl @@ \f void DrawText(const Graphics&, const Rect&,
-		const String&, const Padding&, Color) ^ ATextRenderer::ResetForBound;
+/= \tr \impl @@ \mf DrawForeground @@ \cl (YThumb & YSimpleListBox)
+	@@ \impl \u YGUIComponent;
+* \h YControl:
+	/ \inh AFocusRequester >> \cl AVisualControl ~ \cl MVisualControl;
+	/ \tr \impl @@ \ctor @@ \cl (MVisualControl & AVisualControl);
+	* \tr \impl @@ \mf AVisualControl::CheckRemoval;
 
 r29:
-/ @@ \u YWidget:
-	/ \f Rect GetBoundsOf(IWidget&) -> \i \ft<class _tWidget>
-		Rect GetBoundsOf(const _tWidget&);
-/ @@ \cl MLabel @@ \impl \u YLabel:
-	/ \mf bool PaintText(Widget&, const Graphics&, const Point&)
-		-> void PaintText(Widget&, const Graphics&, const Point&);
+/ @@ \u YFocus:
+	/ @@ \cl AFocusRequester:
+		/ \impl @@ \a (\mf & \mft) (ReleaseFocus & RequestFocus);
+		/ \impl @@ \ctor;
+		- \m bFocus;
+		/ mf bool IsFocused() const -> \amf;
+/ @@ \cl AVisualControl @@ \u YControl:
+	- ImplI1(IVisualControl) DefPredicateBase(Focused, AFocusRequester);
+	+ !\i \impl \amf IsFocused ^ \mf (GetContainerPtr);
 
-r30:
-/ @@ \u YLabel:
-	/ @@ \cl MLabel:
-		- \m wpTextRegion;
-		/ \ctor \exp MLabel(const Drawing::Font& = Drawing::Font::GetDefault(),
-			GHWeak<Drawing::TextRegion> = NULL)
-			-> \exp MLabel(const Drawing::Font& = Drawing::Font::GetDefault());
-	/ \ctor \exp YLabel(const Rect& = Rect::Empty, IUIBox* = NULL,
-		const Drawing::Font& = Drawing::Font::GetDefault(),
-		GHWeak<Drawing::TextRegion> = NULL) @@ \cl YLabel
-		-> \exp YLabel(const Rect& = Rect::Empty, IUIBox* = NULL,
-		const Drawing::Font& = Drawing::Font::GetDefault());
-	/ \ctor \exp MTextList(const Drawing::Font& = Drawing::Font::GetDefault(),
-		GHWeak<Drawing::TextRegion> = NULL) @@ \cl MTextList
-		-> \exp MTextList(const Drawing::Font& = Drawing::Font::GetDefault());
-/ @@ \cl YButton @@ \u YGUIComponent:
-	\ctor \exp YButton(const Rect& = Rect::Empty, IUIBox* = NULL,
-		const Drawing::Font& = Drawing::Font::GetDefault(),
-		GHWeak<Drawing::TextRegion> = NULL)
-		-> \exp YButton(const Rect& = Rect::Empty, IUIBox* = NULL,
-		const Drawing::Font& = Drawing::Font::GetDefault());
+r30-r31:
+/= test 2;
 
-r31-r33:
-/= test 4;
+r32:
+* \impl @@ \mf bool SetFocusingPtr(_type*) @@ \clt GMFocusResponser
+	@@ \h YFocus;
+
+r33:
+/ @@ \h YFocus:
+	- \amf DeclIEntry(bool IsFocusOfContainer(_tResponser<_type>&) const)
+		@@ \in \t GIFocusRequester;
+	- ImplI1((GIFocusRequester<GMFocusResponser, AFocusRequester>)) @@ \mf
+		IsFocusOfContainer @@ \cl AFocusRequester;
+- \mf IsFocusOfContainer @@ \cl AVisualControl @@ \h YControl;
 
 r34:
-* \impl @@ \f MLabel::PaintText @@ \impl \u YLabel;
-* \impl @@ \f void DrawText(const Graphics&, const Rect&, const String&,
-	const Padding&, Color color) @@ \impl \u YText;
+/= test 3;
 
 r35:
-* \impl @@ 2 \f RenderChar @@ \impl \u YText;
+/ \impl @@ \mf (bool operator-=(IVisualControl&) & DOs::size_type
+	RemoveAll(IVisualControl&)) @@ \cl YDesktop @@ \impl \u YDesktop;
 
 r36:
-/ \impl @@ \mf void YSimpleListBox::DrawForeground() @@ \impl \u YGUIComponent;
+/ \impl @@ \mf void YDesktop::RemoveTopDesktopObject() @@ \impl \u YDesktop;
+- \mf CheckRemoval @@ \cl AVisualControl @@ \h YControl;
+/ @@ \u YFocus:
+	/ @@ \in \t GIFocusRequester:
+		- \amf DeclIEntry(void ReleaseFocus(EventArgs&));
+		- \amf DeclIEntry(bool CheckRemoval(_tResponser<_type>&) const);
+	/ \a GIFocusRequester<GMFocusResponser, AFocusRequester>
+		-> GIFocusRequester<GMFocusResponser>;
+	/ @@ \cl AFocusRequester & \in \t GIFocusRequester:
+		- \amf DeclIEntry(void ReleaseFocus(EventArgs&));
+		- \mf bool RequestFocus(GMFocusResponser<AFocusRequester>&);
+		- \mf bool ReleaseFocus(GMFocusResponser<AFocusRequester>&);
+		- \a (\mf & \mft CheckRemoval);
+	/ @@ \clt GFocusResponser:
+		- \de \t \param AFocusRequester;
+		- friend \cl AFocusRequester;
 
 r37:
-/ @@ \u YGUIComponent:
-	/ @@ \cl YSimpleListBox:
-		- \m wpTextRegion;
-		/ \exp \ctor YSimpleListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-			GHWeak<Drawing::TextRegion> = NULL, GHWeak<ListType> = NULL)
-			-> YSimpleListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-			GHWeak<ListType> = NULL); ; ;
-		/ \tr \impl @@ \mf void DrawForeground();
-		+ \m Drawing::TextState TextState;
-		/ protected \mf Drawing::TextRegion& GetTextRegion() const ythrow()
-			-> Drawing::TextState& GetTextRegion() ythrow();
-		- \c @@ \mf SDST GetItemHeight() const;
-	/ \exp \ctor YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHWeak<Drawing::TextRegion> = NULL, GHWeak<ListType> = NULL)
-		@@ \cl YListBox -> YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHWeak<ListType> = NULL)
-	/ \exp \ctor YFileBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHWeak<Drawing::TextRegion> = NULL)
-		-> YFileBox(const Rect& = Rect::Empty, IUIBox* = NULL);
+/ @@ \h YFocus:
+	/ \t<template<class> class _tResponser = GMFocusResponser,
+		class _type = AFocusRequester> \in GIFocusRequester
+		-> \t<template<class> class _tResponser = GMFocusResponser>
+		\in GIFocusRequester;
+/ \vt \inh GIFocusRequester<GMFocusResponser, IVisualControl>
+	-> GIFocusRequester<GMFocusResponser> @@ \in IVisualControl @@ \h YControl;
+/ \inc "ydesktop.h" -> "ywindow.h" @@ \impl \u YFocus;
+- \i @@ \f (FetchDirectWindowPtr & FetchDirectDesktopPtr) @@ \u YUIContainer;
 
 r38:
-/= test 5 ^ \conf release;
+* \impl @@ \ctor @@ \cl YFileBox @@ \impl \u YGUIComponent;
+
+r39:
+/= test 4 ^ \conf release;
+
+r40-r47:
+* \impl @@ void YSimpleListBox::DrawForeground();
+/= test 5;
+
+r48:
+/= test 6 ^ \conf release;
 
 
 $DOING:
 
 relative process:
-2011-02-08:
--24.6d;
+2011-02-14:
+-26.5d;
 
 / ...
 
 
 $NEXT_TODO:
 
-b191-b240:
+b192-b270:
 / scroll bars @@ listbox \cl;
+/ text alignment;
+/ GDI brushes;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
 * non-ASCII character path error in FAT16;
 / non-ordinary operator usage in \clt GSequenceViewer @@ \h YComponent;
-
-b241-b648:
 / improve efficiency @@ \ft polymorphic_crosscast @@ \h YCast;
-/ strict stdc++ \conf \mac;
+
+b271-b648:
 + data config;
 / impl 'real' RTC;
 + correct DMA (copy & fill);

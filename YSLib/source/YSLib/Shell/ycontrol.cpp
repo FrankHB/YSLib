@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.3966;
+\version 0.3972;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 + 08:00;
 \par 修改时间:
-	2011-01-01 19:25 + 08:00;
+	2011-02-14 11:17 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,12 +91,12 @@ OnDrag(IVisualControl& c, TouchEventArgs&)
 
 
 MVisualControl::MVisualControl()
-	: Control(), AFocusRequester()
+	: Control()
 {}
 
 
 AVisualControl::AVisualControl(const Rect& r, IUIBox* pCon)
-	: Widget(r, pCon), MVisualControl()
+	: Widget(r, pCon), MVisualControl(), AFocusRequester()
 {
 	FetchEvent<EControl::GotFocus>(*this) += &AVisualControl::OnGotFocus;
 	FetchEvent<EControl::LostFocus>(*this) += &AVisualControl::OnLostFocus;
@@ -120,6 +120,14 @@ AVisualControl::~AVisualControl() ythrow()
 		*p -= static_cast<IWidget&>(*this);
 		*p -= static_cast<IVisualControl&>(*this);
 	}
+}
+
+bool
+AVisualControl::IsFocused() const
+{
+	IUIBox* p(GetContainerPtr());
+
+	return p ? p->GetFocusingPtr() == this : false;
 }
 
 void

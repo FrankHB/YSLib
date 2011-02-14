@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.2034;
+\version 0.2044;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 + 08:00;
 \par 修改时间:
-	2011-01-31 14:34 + 08:00;
+	2011-02-14 14:55 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -100,21 +100,15 @@ FetchDirectContainerPtr(IWidget&);
 \brief 取指定部件的直接窗口句柄。
 \note 加入容器指针判断。
 */
-inline IWindow*
-FetchDirectWindowPtr(IWidget& w)
-{
-	return FetchWidgetDirectNodePtr<IWindow>(FetchDirectContainerPtr(w));
-}
+IWindow*
+FetchDirectWindowPtr(IWidget&);
 
 /*!
 \brief 取指定部件的直接桌面句柄。
 \note 加入容器指针判断。
 */
-inline YDesktop*
-FetchDirectDesktopPtr(IWidget& w)
-{
-	return FetchWidgetDirectNodePtr<YDesktop>(FetchDirectContainerPtr(w));
-}
+YDesktop*
+FetchDirectDesktopPtr(IWidget&);
 
 
 /*!

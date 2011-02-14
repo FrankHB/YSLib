@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4637;
+\version 0.4669;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 + 08:00;
 \par 修改时间:
-	2011-01-31 14:34 + 08:00;
+	2011-02-14 14:45 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -248,9 +248,8 @@ FetchEvent(IControl& c)
 
 
 //! \brief 可视控件接口。
-DeclBasedInterface4(IVisualControl, virtual IWidget, virtual IControl,
-	virtual GIFocusRequester<GMFocusResponser, IVisualControl>)
-	//实际有 3 个基接口，但由于预处理的限制，所以用 DeclBasedInterface4 。
+DeclBasedInterface3(IVisualControl, virtual IWidget, virtual IControl,
+	virtual GIFocusRequester<GMFocusResponser>)
 
 	//! \brief 向部件容器请求获得焦点。
 	DeclIEntry(void RequestFocus(EventArgs&))
@@ -317,7 +316,7 @@ Control::Control(bool e)
 
 
 //! \brief 可视控件模块类。
-class MVisualControl : public Control, public AFocusRequester
+class MVisualControl : public Control
 {
 public:
 	//可视控件标准事件见 EControl 。
@@ -345,6 +344,7 @@ public:
 
 //! \brief 可视控件抽象基类。
 class AVisualControl : public Widgets::Widget, public MVisualControl,
+	public AFocusRequester,
 	virtual implements IVisualControl
 {
 public:
@@ -363,15 +363,8 @@ public:
 	ImplI1(IVisualControl) DefPredicateBase(Transparent, Visual)
 	ImplI1(IVisualControl) DefPredicateBase(BgRedrawed, Visual)
 	ImplI1(IVisualControl) DefPredicateBase(Enabled, Control)
-	ImplI1(IVisualControl) DefPredicateBase(Focused, AFocusRequester)
-
-	ImplI1(IVisualControl)
-		PDefH1(bool, IsFocusOfContainer,
-		GMFocusResponser<IVisualControl>& c) const
-		ImplBodyBase1(AFocusRequester, IsFocusOfContainer, c)
-	ImplI1(IVisualControl)
-		PDefH1(bool, CheckRemoval, GMFocusResponser<IVisualControl>& c) const
-		ImplBodyBase1(MVisualControl, CheckRemoval, c)
+	ImplI1(AFocusRequester) bool
+	IsFocused() const;
 
 	ImplI1(IVisualControl) DefGetterBase(const Point&, Location, Visual)
 	ImplI1(IVisualControl) DefGetterBase(const Size&, Size, Visual)

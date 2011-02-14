@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup Shell
 \brief GUI 焦点特性实现。
-\version 0.2159;
+\version 0.2248;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 + 08:00;
 \par 修改时间:
-	2011-01-31 15:01 + 08:00;
+	2011-02-14 14:42 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,11 +74,9 @@ inline MSimpleFocusResponser::MSimpleFocusResponser()
 
 
 //! \brief 焦点响应器模板。
-template<class _type = AFocusRequester>
+template<class _type>
 class GMFocusResponser : public NonCopyable
 {
-	friend class AFocusRequester;
-
 protected:
 	_type* pFocusing; //!< 焦点对象指针。
 	GContainer<_type> sFOs; //!< 焦点对象组。
@@ -104,14 +102,15 @@ public:
 	//! \brief 取焦点对象组（只读）。
 	inline DefGetter(const FOs&, FocusingSet, sFOs)
 
-protected:
 	/*!
 	\brief 设置焦点对象指针。
 	*/
 	bool
 	SetFocusingPtr(_type* p)
 	{
-		if(p && sFOs.find(p) == sFOs.end())
+		if(!p)
+			return (pFocusing = NULL);
+		if(sFOs.find(p) == sFOs.end())
 			return false;
 		if(pFocusing != p)
 		{
@@ -131,7 +130,6 @@ protected:
 	inline PDefHOperator1(bool, -=, _type& c)
 		ImplRet(sFOs -= c)
 
-public:
 	//! \brief 清空焦点指针。
 	inline PDefH0(void, ClearFocusingPtr)
 		ImplRet(static_cast<void>(SetFocusingPtr(NULL)))
@@ -139,25 +137,16 @@ public:
 
 
 //! \brief 焦点申请器接口模板。
-template<template<class> class _tResponser = GMFocusResponser,
-	class _type = AFocusRequester>
+template<template<class> class _tResponser = GMFocusResponser>
 DeclInterface(GIFocusRequester)
 	DeclIEntry(bool IsFocused() const)
-	DeclIEntry(bool IsFocusOfContainer(_tResponser<_type>&) const)
-
-	DeclIEntry(bool CheckRemoval(_tResponser<_type>&) const)
-
-	DeclIEntry(void ReleaseFocus(EventArgs&))
 EndDecl
 
 
 //! \brief 焦点申请器。
 class AFocusRequester
-	: implements GIFocusRequester<GMFocusResponser, AFocusRequester>
+	: implements GIFocusRequester<GMFocusResponser>
 {
-protected:
-	bool bFocused; //!< 是否为所在容器的焦点。
-
 public:
 	/*!
 	\brief 无参数构造。
@@ -165,15 +154,12 @@ public:
 	AFocusRequester();
 	virtual DefEmptyDtor(AFocusRequester)
 
-	/*!
-	\brief 判断是否为获得焦点状态。
-	*/
-	ImplI1((GIFocusRequester<GMFocusResponser, AFocusRequester>)) bool
-	IsFocused() const;
+	ImplA1((GIFocusRequester<GMFocusResponser>))
+	DeclIEntry(bool IsFocused() const)
 	/*!
 	\brief 判断是否已在指定响应器中获得焦点。
 	*/
-	ImplI1((GIFocusRequester<GMFocusResponser, AFocusRequester>)) bool
+	bool
 	IsFocusOfContainer(GMFocusResponser<AFocusRequester>&) const;
 	/*!
 	\brief 判断是否已在指定响应器中获得焦点。
@@ -182,23 +168,6 @@ public:
 	bool
 	IsFocusOfContainer(_tResponser<_type>&) const;
 
-	/*!
-	\brief 判断是否已在指定响应器中获得焦点，若是则释放焦点。
-	*/
-	ImplI1((GIFocusRequester<GMFocusResponser, AFocusRequester>)) bool
-	CheckRemoval(GMFocusResponser<AFocusRequester>&) const;
-	/*!
-	\brief 判断是否已在指定响应器中获得焦点，若是则释放焦点。
-	*/
-	template<template<class> class _tResponser, class _type>
-	bool
-	CheckRemoval(_tResponser<_type>&) const;
-
-	/*!
-	\brief 向指定响应器对应的容器申请获得焦点。
-	*/
-	bool
-	RequestFocus(GMFocusResponser<AFocusRequester>&);
 	/*!
 	\brief 向指定响应器对应的容器申请获得焦点。
 	*/
@@ -209,29 +178,14 @@ public:
 	/*!
 	\brief 释放焦点。
 	*/
-	ImplI1((GIFocusRequester<GMFocusResponser, AFocusRequester>)) bool
-	ReleaseFocus(GMFocusResponser<AFocusRequester>&);
-	/*!
-	\brief 释放焦点。
-	*/
 	template<template<class> class _tResponser, class _type>
 	bool
 	ReleaseFocus(_tResponser<_type>&);
-
-	ImplA1((GIFocusRequester<GMFocusResponser, AFocusRequester>))
-	DeclIEntry(void ReleaseFocus(EventArgs&))
 };
 
 inline
 AFocusRequester::AFocusRequester()
-	: bFocused(false)
 {}
-
-inline bool
-AFocusRequester::IsFocused() const
-{
-	return bFocused;
-}
 
 inline bool
 AFocusRequester::IsFocusOfContainer(GMFocusResponser<AFocusRequester>& c) const
@@ -247,30 +201,17 @@ AFocusRequester::IsFocusOfContainer(_tResponser<_type>& c) const
 
 template<template<class> class _tResponser, class _type>
 bool
-AFocusRequester::CheckRemoval(_tResponser<_type>& c) const
-{
-	if(IsFocusOfContainer(c))
-	{
-		c.ClearFocusingPtr();
-		return true;
-	}
-	return false;
-}
-
-template<template<class> class _tResponser, class _type>
-bool
 AFocusRequester::RequestFocus(_tResponser<_type>& c)
 {
-	return !(bFocused && IsFocusOfContainer(c))
-		&& (bFocused = c.SetFocusingPtr(dynamic_cast<_type*>(this)));
+	return !(IsFocusOfContainer(c))
+		&& c.SetFocusingPtr(dynamic_cast<_type*>(this));
 }
 
 template<template<class> class _tResponser, class _type>
 bool
 AFocusRequester::ReleaseFocus(_tResponser<_type>& c)
 {
-	return bFocused && IsFocusOfContainer(c)
-		&& (bFocused = false, !(c.SetFocusingPtr(NULL)));
+	return IsFocusOfContainer(c) && !(c.SetFocusingPtr(NULL));
 }
 
 YSL_END_NAMESPACE(Components)

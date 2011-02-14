@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2965;
+\version 0.3046;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2011-02-08 21:56 + 08:00;
+	2011-02-14 21:27 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -180,7 +180,7 @@ YThumb::DrawForeground()
 
 	RectDrawButton(pWnd->GetContext(), LocateForWindow(*this),
 		GetSize(), bPressed);
-	if(bFocused)
+	if(IsFocused())
 		WndDrawFocus(pWnd, GetSize());
 }
 
@@ -506,7 +506,7 @@ YSimpleListBox::YSimpleListBox(const Rect& r, IUIBox* pCon,
 	GHWeak<ListType> wpList_)
 	: YVisualControl(r, pCon),
 	Font(), Margin(defMarginH, defMarginH, defMarginV, defMarginV),
-	wpList(wpList_), Viewer(GetList()), TextState(Font)
+	wpList(wpList_), viewer(GetList()), top_offset(0), text_state(Font)
 {
 	FetchEvent<EControl::KeyDown>(*this) += &YSimpleListBox::OnKeyDown;
 	FetchEvent<EControl::KeyHeld>(*this) += OnKeyHeld;
@@ -520,8 +520,8 @@ YSimpleListBox::YSimpleListBox(const Rect& r, IUIBox* pCon,
 Drawing::TextState&
 YSimpleListBox::GetTextState() ythrow()
 {
-	TextState.Font.SetFont(Font);
-	return TextState;
+	text_state.Font.SetFont(Font);
+	return text_state;
 }
 YSimpleListBox::ListType&
 YSimpleListBox::GetList() const ythrow()
@@ -550,7 +550,7 @@ YSimpleListBox::GetItemHeight()
 void
 YSimpleListBox::SetSelected(YSimpleListBox::ViewerType::IndexType i)
 {
-	if(Viewer.Contains(i) && Viewer.SetSelected(i))
+	if(viewer.Contains(i) && viewer.SetSelectedIndex(i))
 		CallSelected();
 }
 void
@@ -570,55 +570,99 @@ YSimpleListBox::DrawForeground()
 
 	if(pWnd)
 	{
-		if(bFocused)
+		if(IsFocused())
 			WndDrawFocus(pWnd, GetSize());
-		if(GetLnHeightFrom(GetTextState()) <= GetHeight())
+
+		const SDST h(GetHeight());
+
+		if(h != 0)
 		{
-			const SDST lnWidth(GetWidth());
-			const SDST lnHeight(GetItemHeight());
+			const SDST ln_w(GetWidth());
+			const SDST ln_h(GetItemHeight());
 
-			Viewer.SetLength((GetHeight() + TextState.LineGap) / lnHeight);
-			if(Viewer.GetIndex() >= 0)
+			viewer.SetLength((GetHeight() + text_state.LineGap - 1) / ln_h + 1);
+			if(viewer.GetHeadIndex() >= 0)
 			{
-				const Padding m(defMarginH, defMarginH, defMarginV, defMarginV);
-				const ViewerType::IndexType last(Viewer.GetIndex()
-					+ Viewer.GetValid());
+				const ViewerType::IndexType last(viewer.GetHeadIndex()
+					+ viewer.GetValid());
+				const ListType& list(GetList());
 				const Graphics& g(pWnd->GetContext());
-				Point pt(LocateForWindow(*this));
-				ListType& list(GetList());
+				const Point pt(LocateForWindow(*this));
+				Padding m(defMarginH, defMarginH, defMarginV, defMarginV);
+				SPOS y(-top_offset);
 
-				for(ViewerType::IndexType i(Viewer.GetIndex()); i < last; ++i)
+				for(ViewerType::IndexType i(viewer.GetHeadIndex());
+					i < last; ++i)
 				{
-					if(Viewer.IsSelected() && i == Viewer.GetSelected())
+					int top(y), tmp(y + ln_h);
+
+					RestrictInInterval<int>(top, 0, h);
+					RestrictInInterval<int>(tmp, 0, h);
+					tmp -= top;
+					top += pt.Y;
+					if(viewer.IsSelected() && i == viewer.GetSelectedIndex())
 					{
-						TextState.Color = Drawing::ColorSpace::White;
+						text_state.Color = Drawing::ColorSpace::White;
 						FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
-							Rect(pt.X + 1, pt.Y + 1, lnWidth - 2, lnHeight - 1),
+							Rect(pt.X + 1, top + 1, ln_w - 2, tmp - 1),
 							ColorSpace::Aqua);
 					}
 					else
-						TextState.Color = ForeColor;
-					TextState.ResetForBounds(Rect(pt,lnWidth, lnHeight),
+						text_state.Color = ForeColor;
+					text_state.ResetForBounds(Rect(pt.X, top, ln_w, tmp),
 						g.GetSize(), m);
-					DrawText(g, TextState, list[i]);
-					pt.Y += lnHeight;
+					if(y < 0)
+						text_state.PenY -= top_offset;
+					DrawText(g, text_state, list[i]);
+					y += ln_h;
 				}
 			}
 		}
 	}
 }
 
+SDST
+YSimpleListBox::AdjustTopOffset()
+{
+	SDST d(top_offset);
+
+	top_offset = 0;
+	return d;
+}
+
+SDST
+YSimpleListBox::AdjustBottomOffset()
+{
+	if(viewer.GetTotal() <= viewer.GetLength())
+		return 0;
+
+	SDST h(GetItemHeight());
+	SDST down_offset((GetHeight() + text_state.LineGap) % h);
+
+	top_offset = h - down_offset;
+	return down_offset;
+}
+
 YSimpleListBox::ViewerType::IndexType
 YSimpleListBox::CheckPoint(SPOS x, SPOS y)
 {
 	return Rect(Point::Zero, GetSize()).Contains(x, y)
-		? y / GetItemHeight() + Viewer.GetIndex(): -1;
+		? y / GetItemHeight() + viewer.GetHeadIndex() : -1;
+}
+
+void
+YSimpleListBox::ResetView()
+{
+	viewer.MoveViewerToBegin();
+	if(viewer.IsSelected())
+		viewer.SetSelectedIndex(0);
+	top_offset = 0;
 }
 
 void
 YSimpleListBox::CallSelected()
 {
-	IndexEventArgs e(*this, Viewer.GetSelected());
+	IndexEventArgs e(*this, viewer.GetSelectedIndex());
 
 	Selected(*this, e);
 }
@@ -626,7 +670,7 @@ YSimpleListBox::CallSelected()
 void
 YSimpleListBox::CallConfirmed(YSimpleListBox::ViewerType::IndexType i)
 {
-	if(Viewer.IsSelected() && Viewer.GetSelected() == i)
+	if(viewer.IsSelected() && viewer.GetSelectedIndex() == i)
 	{
 		IndexEventArgs e(*this, i);
 
@@ -637,12 +681,12 @@ YSimpleListBox::CallConfirmed(YSimpleListBox::ViewerType::IndexType i)
 void
 YSimpleListBox::OnKeyDown(KeyEventArgs& k)
 {
-	if(Viewer.IsSelected())
+	if(viewer.IsSelected())
 	{
 		switch(k.GetKey())
 		{
 		case KeySpace::Enter:
-			CallConfirmed(Viewer.GetSelected());
+			CallConfirmed(viewer.GetSelectedIndex());
 			break;
 
 		case KeySpace::ESC:
@@ -655,27 +699,34 @@ YSimpleListBox::OnKeyDown(KeyEventArgs& k)
 		case KeySpace::PgUp:
 		case KeySpace::PgDn:
 			{
-				const ViewerType::IndexType nOld(Viewer.GetSelected());
+				const ViewerType::IndexType nOld(viewer.GetSelectedIndex());
 
 				switch(k.GetKey())
 				{
 				case KeySpace::Up:
-					--Viewer;
+					--viewer;
+					if(viewer.GetRelativeIndex() == 0)
+						AdjustTopOffset();
 					break;
 
 				case KeySpace::Down:
-					++Viewer;
+					++viewer;
+					if(viewer.GetRelativeIndex()
+						== static_cast<int>(viewer.GetLength() - 1))
+						AdjustBottomOffset();
 					break;
 
 				case KeySpace::PgUp:
-					Viewer -= Viewer.GetLength();
+					viewer -= viewer.GetLength();
+					AdjustTopOffset();
 					break;
 
 				case KeySpace::PgDn:
-					Viewer += Viewer.GetLength();
+					viewer += viewer.GetLength();
+					AdjustBottomOffset();
 					break;
 				}
-				if(Viewer.GetSelected() != nOld)
+				if(viewer.GetSelectedIndex() != nOld)
 					CallSelected();
 			}
 			break;
@@ -683,7 +734,8 @@ YSimpleListBox::OnKeyDown(KeyEventArgs& k)
 		default:
 			return;
 		}
-		//	(*this)[es](*this, IndexEventArgs(*this, Viewer.GetSelected()));
+		//	(*this)[es](*this, IndexEventArgs(*this,
+		//		viewer.GetSelectedIndex()));
 	}
 }
 
@@ -721,12 +773,10 @@ YSimpleListBox::OnConfirmed(IndexEventArgs& e)
 YListBox::YListBox(const Rect& r, IUIBox* pCon, GHWeak<ListType> wpList_)
 	: YVisualControl(r, pCon),
 	MSimpleFocusResponser(),
-	TextListBox(r, this, wpList_),
+	TextListBox(Rect(Point::Zero, r), this, wpList_),
 	HorizontalScrollBar(Rect(Point::Zero, r.Width, 16), this),
 	VerticalScrollBar(Rect(Point::Zero, 16, r.Height), this)
 {
-	Selected = TextListBox.Selected;
-	Confirmed = TextListBox.Confirmed;
 	MoveToBottom(HorizontalScrollBar);
 	MoveToRight(VerticalScrollBar);
 }
@@ -752,6 +802,7 @@ YListBox::DrawForeground()
 		HorizontalScrollBar.DrawForeground();
 	if(VerticalScrollBar.IsVisible())
 		VerticalScrollBar.DrawForeground();
+	TextListBox.DrawForeground();
 }
 
 void
@@ -763,9 +814,9 @@ YListBox::FixLayout()
 
 
 YFileBox::YFileBox(const Rect& r, IUIBox* pCon)
-	: FileList(), YSimpleListBox(r, pCon, GetListWeakPtr())
+	: FileList(), YListBox(r, pCon, GetListWeakPtr())
 {
-	Confirmed += &YFileBox::OnConfirmed;
+	GetConfirmed().Add(*this, &YFileBox::OnConfirmed);
 }
 YFileBox::~YFileBox() ythrow()
 {}
@@ -773,8 +824,8 @@ YFileBox::~YFileBox() ythrow()
 IO::Path
 YFileBox::GetPath() const
 {
-	if(Viewer.IsSelected() && Viewer.GetSelected() >= 0)
-		return Directory / (GetList()[Viewer.GetSelected()]);
+	if(IsSelected() && GetSelectedIndex() >= 0)
+		return Directory / (GetList()[GetSelectedIndex()]);
 	return Directory;
 }
 
@@ -798,10 +849,9 @@ YFileBox::DrawForeground()
 void
 YFileBox::OnConfirmed(IndexEventArgs& e)
 {
-	if(Viewer.Contains(e) && static_cast<bool>(*this /= GetList()[e.Index]))
-	{
-		Viewer.MoveViewerToBegin();
-		Viewer.SetSelected(0);
+	if(Contains(e) && static_cast<bool>(*this /= GetList()[e.Index]))
+	{	
+		ResetView();
 		Refresh();
 	}
 }

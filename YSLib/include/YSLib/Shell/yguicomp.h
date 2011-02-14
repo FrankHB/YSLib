@@ -11,12 +11,12 @@
 /*!	\file yguicomp.h
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2541;
+\version 0.2598;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2011-02-08 21:56 + 08:00;
+	2011-02-13 17:57 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -431,8 +431,11 @@ public:
 
 protected:
 	GHWeak<ListType> wpList; //!< 文本列表指针。
-	ViewerType Viewer; //!< 列表视图。
-	Drawing::TextState TextState; //!< 文本状态。
+
+private:
+	ViewerType viewer; //!< 列表视图。
+	SDST top_offset; //!< 列表视图首项目超出上边界的垂直偏移量。
+	Drawing::TextState text_state; //!< 文本状态。
 
 public:
 	DeclEvent(HIndexEvent, Selected) //!< 项目选择状态改变事件。
@@ -451,7 +454,16 @@ public:
 	virtual DefEmptyDtor(YSimpleListBox)
 
 public:
-	DefPredicateMember(Selected, Viewer)
+	DefPredicateMember(Selected, viewer)
+	PDefH1(bool, Contains, ViewerType::IndexType i)
+		ImplBodyMember1(viewer, Contains, i)
+
+	/*!
+	\brief 取文本列表。
+	\note 断言检查：wpList 。
+	*/
+	ListType&
+	GetList() const ythrow();
 
 protected:
 	/*!
@@ -461,14 +473,8 @@ protected:
 	GetTextState() ythrow();
 
 public:
-	/*!
-	\brief 取文本列表。
-	\note 断言检查：wpList 。
-	*/
-	ListType&
-	GetList() const ythrow();
-	DefGetterMember(ViewerType::IndexType, Index, Viewer)
-	DefGetterMember(ViewerType::IndexType, Selected, Viewer)
+	DefGetterMember(ViewerType::IndexType, HeadIndex, viewer)
+	DefGetterMember(ViewerType::IndexType, SelectedIndex, viewer)
 	/*!
 	\brief 取指定项目索引的项目指针。
 	*/
@@ -505,6 +511,19 @@ public:
 
 protected:
 	/*!
+	\brief 调整列表视图首项目超出上边界的垂直偏移量为零。
+	\return 返回调整前的偏移量值。
+	*/
+	SDST
+	AdjustTopOffset();
+	/*!
+	\brief 调整列表视图底项目超出上边界的垂直偏移量为零。
+	\return 返回调整前的偏移量值。
+	\note 若没有底项目则不调整，返回 0 。
+	*/
+	SDST
+	AdjustBottomOffset();
+	/*!
 	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
 	\return 选择的项目索引。
 	*/
@@ -520,7 +539,14 @@ protected:
 
 public:
 	PDefH0(void, ClearSelected)
-		ImplRet(static_cast<void>(Viewer.ClearSelected()))
+		ImplRet(static_cast<void>(viewer.ClearSelected()))
+
+	/*!
+	\brief 复位视图。
+	\note 若项目列表非空则选择首个项目。
+	*/
+	void
+	ResetView();
 
 private:
 	/*!
@@ -592,7 +618,8 @@ class YListBox : public GMCounter<YListBox>, public YVisualControl,
 {
 public:
 	typedef YVisualControl ParentType;
-	typedef typename YSimpleListBox::ListType ListType;
+	typedef YSimpleListBox::ListType ListType;
+	typedef YSimpleListBox::ViewerType ViewerType;
 
 private:
 	YSimpleListBox TextListBox;
@@ -600,13 +627,14 @@ private:
 	YVerticalScrollBar VerticalScrollBar;
 
 public:
-	DeclEvent(HIndexEvent, Selected) //!< 项目选择状态改变事件。
-	DeclEvent(HIndexEvent, Confirmed) //!< 项目选中确定事件。
-
 	explicit
 	YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
 		GHWeak<ListType> = NULL);
 	virtual DefEmptyDtor(YListBox)
+
+	DefPredicateMember(Selected, TextListBox)
+	PDefH1(bool, Contains, ViewerType::IndexType i)
+		ImplBodyMember1(TextListBox, Contains, i)
 
 	/*!
 	\brief 取焦点指针。
@@ -625,6 +653,13 @@ public:
 	*/
 	ImplI1(IUIBox) IVisualControl*
 	GetTopVisualControlPtr(const Point&);
+	DefGetterMember(ViewerType::IndexType, HeadIndex, TextListBox)
+	DefGetterMember(ViewerType::IndexType, SelectedIndex, TextListBox)
+	DefGetterMember(ListType&, List, TextListBox)
+	DefMutableEventGetter(HIndexEvent, Selected, TextListBox.Selected) \
+		//!< 项目选择状态改变事件。
+	DefMutableEventGetter(HIndexEvent, Confirmed, TextListBox.Confirmed) \
+		//!< 项目选中确定事件。
 
 	/*!
 	\brief 清除焦点指针。
@@ -650,6 +685,9 @@ public:
 	virtual void
 	DrawForeground();
 
+	PDefH0(void, ResetView)
+		ImplBodyMember0(TextListBox, ResetView)
+
 private:
 	/*!
 	\brief 固定布局。
@@ -661,10 +699,10 @@ private:
 
 //! \brief 文件列表框。
 class YFileBox : public GMCounter<YFileBox>, public IO::FileList,
-	public YSimpleListBox
+	public YListBox
 {
 public:
-	typedef YSimpleListBox ParentType;
+	typedef YListBox ParentType;
 
 	explicit
 	YFileBox(const Rect& = Rect::Empty, IUIBox* = NULL);

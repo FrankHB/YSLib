@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3512;
+\version 0.3516;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2011-01-20 07:52 + 08:00;
+	2011-02-13 18:26 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -358,8 +358,8 @@ ShlExplorer::TFrmFileListSelecter::TFrmFileListSelecter()
 	//	fbMain.TouchDown += YFileBox::OnClick;
 	//	fbMain.Click += &YListBox::_m_OnClick;
 	FetchEvent<EControl::KeyPress>(fbMain) += fb_KeyPress;
-	fbMain.Selected.Add(*this, &TFrmFileListSelecter::fb_Selected);
-	fbMain.Confirmed += fb_Confirmed;
+	fbMain.GetSelected().Add(*this, &TFrmFileListSelecter::fb_Selected);
+	fbMain.GetConfirmed() += fb_Confirmed;
 	FetchEvent<EControl::Click>(btnTest).Add(*this,
 		&TFrmFileListSelecter::btnTest_Click);
 	FetchEvent<EControl::Click>(btnOK).Add(*this,

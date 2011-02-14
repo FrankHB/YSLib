@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010 - 2011
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2011-02-05 15:51 + 08:00;
-// Version = r10666;
+// UTime = 2011-02-13 18:12 + 08:00;
+// Version = r10681;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -288,6 +288,16 @@ YHandleOP
 $header YEvent
 {
 DefDelegate(_name, _tSender, _tEventArgs)
+EventT(_tEventHandler)
+DeclEvent(_tEventHandler, _name)
+DeclEventRef(_tEventHandler, _name)
+DeclIEventEntry(_tEventHandler, _name)
+DefEventGetter(_tEventHandler, _name, _member)
+DefEventGetterBase(_tEventHandler, _name, _base)
+DefEventGetterMember(_tEventHandler, _name, _member)
+DefMutableEventGetter(_tEventHandler, _name, _member)
+DefMutableEventGetterBase(_tEventHandler, _name, _base)
+DefMutableEventGetterMember(_tEventHandler, _name, _member)
 }
 $header YShellMessageDefinition
 {

@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调模块。
-\version 0.3950;
+\version 0.3958;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 + 08:00;
 \par 修改时间:
-	2011-01-27 23:22 + 08:00;
+	2011-02-13 18:12 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -498,16 +498,16 @@ struct GSEventTemplate
 	DeclIEntry(const EventT(_tEventHandler)& _yJOIN(Get, _name)() const)
 
 //! \brief 定义事件访问器。
-#define DefEventGetter(_tEventHandler, _name) \
-	DefGetter(const EventT(_tEventHandler)&, _name, _name)
+#define DefEventGetter(_tEventHandler, _name, _member) \
+	DefGetter(const EventT(_tEventHandler)&, _name, _member)
 #define DefEventGetterBase(_tEventHandler, _name, _base) \
 	DefGetterBase(const EventT(_tEventHandler)&, _name, _base)
 #define DefEventGetterMember(_tEventHandler, _name, _member) \
 	DefGetterMember(const EventT(_tEventHandler)&, _name, _member)
 
 //! \brief 定义事件可修改访问器。
-#define DefMutableEventGetter(_tEventHandler, _name) \
-	DefMutableGetter(EventT(_tEventHandler)&, _name, _name)
+#define DefMutableEventGetter(_tEventHandler, _name, _member) \
+	DefMutableGetter(EventT(_tEventHandler)&, _name, _member)
 #define DefMutableEventGetterBase(_tEventHandler, _name, _base) \
 	DefMutableGetterBase(EventT(_tEventHandler)&, _name, _base)
 #define DefMutableEventGetterMember(_tEventHandler, _name, _member) \

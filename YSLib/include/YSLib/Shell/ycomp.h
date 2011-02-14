@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件实现。
-\version 0.2938;
+\version 0.2962;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 + 08:00;
 \par 修改时间:
-	2011-01-21 14:34 + 08:00;
+	2011-02-13 17:50 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -84,19 +84,20 @@ public:
 
 
 //! \brief 序列视图类模板。
-template<class _tContainer>
+template<class _tContainer, typename _tSize = typename _tContainer::size_type,
+		typename _tIndex = std::ptrdiff_t>
 class GSequenceViewer
 {
 public:
-	typedef typename _tContainer::size_type SizeType; //!< 项目下标类型。
-	typedef std::ptrdiff_t IndexType; //!< 项目索引类型。
+	typedef _tSize SizeType; //!< 项目下标类型。
+	typedef _tIndex IndexType; //!< 项目索引类型。
 
 private:
 	_tContainer& c; //!< 序列容器引用。
-	IndexType nIndex, //!< 项目索引：视图中首个项目下标，若不存在则为 -1 。
-		nSelected; //!< 选中项目下标，大于等于 GetTotal() 时无效。
-	SizeType nLength; //!< 视图长度：最大可视项目数。
-	bool bSelected; //!< 选中状态。
+	IndexType head, //!< 视图中首个项目下标，若不存在则为 -1 。
+		selected; //!< 选中项目下标，大于等于 GetTotal() 时无效。
+	SizeType length; //!< 视图长度：最大可视项目数。
+	bool is_selected; //!< 选中状态。
 
 public:
 	/*!
@@ -104,16 +105,18 @@ public:
 	*/
 	explicit
 	GSequenceViewer(_tContainer& c_)
-	: c(c_), nIndex(0), nSelected(0), nLength(0), bSelected(false)
+	: c(c_), head(0), selected(0), length(0), is_selected(false)
 	{}
 
 	inline PDefHOperator0(GSequenceViewer&, ++) //!< 选中项目下标自增。
 		ImplRet(*this += 1)
 	inline PDefHOperator0(GSequenceViewer&, --) //!< 选中项目下标自减。
 		ImplRet(*this -= 1)
-	inline PDefHOperator1(GSequenceViewer&, ++, int) //!< 视图中首个项目下标自增。
+	inline PDefHOperator1(GSequenceViewer&, ++, int) \
+		//!< 视图中首个项目下标自增。
 		ImplRet(*this >> 1)
-	inline PDefHOperator1(GSequenceViewer&, --, int) //!< 视图中首个项目下标自减。
+	inline PDefHOperator1(GSequenceViewer&, --, int) \
+		//!< 视图中首个项目下标自减。
 		ImplRet(*this >> -1)
 	/*!
 	\brief 视图中首个项目下标增加 d 。
@@ -121,7 +124,7 @@ public:
 	inline GSequenceViewer&
 	operator>>(IndexType d)
 	{
-		SetIndex(nIndex + d);
+		SetHeadIndex(head + d);
 		return *this;
 	}
 	inline PDefHOperator1(GSequenceViewer&, <<, IndexType d) \
@@ -133,7 +136,7 @@ public:
 	inline GSequenceViewer&
 	operator+=(IndexType d)
 	{
-		SetSelected(nSelected + d);
+		SetSelectedIndex(selected + d);
 		return *this;
 	}
 	inline PDefHOperator1(GSequenceViewer&, -=, IndexType d) \
@@ -143,40 +146,43 @@ public:
 	/*!
 	\brief 判断是否为选中状态。
 	*/
-	DefPredicate(Selected, bSelected)
+	DefPredicate(Selected, is_selected)
 
 	/*!
 	\brief 判断是否在有效范围内包含指定项目索引。
 	*/
 	bool
-	Contains(IndexType i)
+	Contains(IndexType i) const
 	{
-		return i < nIndex ? false
-			: IsInInterval<IndexType>(i - GetIndex(), GetLength());
+		return i < head ? false
+			: IsInInterval<IndexType>(i - GetHeadIndex(), GetLength());
 	}
 
 	DefGetter(SizeType, Total, c.size()) //!< 取容器中项目个数。
-	DefGetter(SizeType, Length, nLength)
-	DefGetter(IndexType, Index, nIndex)
-	DefGetter(IndexType, Selected, nSelected)
-	DefGetter(SizeType, Valid, vmin(GetTotal() - GetIndex(), GetLength())) \
+	DefGetter(SizeType, Length, length)
+	DefGetter(IndexType, HeadIndex, head)
+	DefGetter(IndexType, SelectedIndex, selected)
+	DefGetter(IndexType, RelativeIndex, IsSelected()
+		? GetSelectedIndex() - GetHeadIndex() : -1) \
+		//!< 取选中的项目相对于视图中首个项目的下标偏移。
+	DefGetter(SizeType, Valid, vmin(GetTotal() - GetHeadIndex(), GetLength())) \
 		//!< 取当前视图中有效项目个数。
 
 	/*!
 	\brief 设置项目索引。
 	*/
 	bool
-	SetIndex(IndexType t)
+	SetHeadIndex(IndexType t)
 	{
 		if(GetTotal() && IsInInterval<IndexType>(t, GetTotal())
-			&& t != nIndex)
+			&& t != head)
 		{
 			if(!t)
 				MoveViewerToBegin();
-			else if(nLength + t > GetTotal())
+			else if(length + t > GetTotal())
 				MoveViewerToEnd();
 			else
-				nIndex = t;
+				head = t;
 			RestrictSelected();
 			return true;
 		}
@@ -188,12 +194,12 @@ public:
 	bool
 	SetLength(SizeType l)
 	{
-		if(l != nLength)
+		if(l != length)
 		{
-			if(l < nLength && nSelected >= static_cast<IndexType>(l))
-				nSelected = l - 1;
+			if(l < length && selected >= static_cast<IndexType>(l))
+				selected = l - 1;
 			else
-				nLength = l;
+				length = l;
 			RestrictSelected();
 			return true;
 		}
@@ -203,14 +209,14 @@ public:
 	\brief 设置选中项目下标。
 	*/
 	bool
-	SetSelected(IndexType t)
+	SetSelectedIndex(IndexType t)
 	{
 		if(GetTotal() && IsInInterval<IndexType>(t, GetTotal())
-			&& !(t == nSelected && bSelected))
+			&& !(t == selected && is_selected))
 		{
-			nSelected = t;
+			selected = t;
 			RestrictViewer();
-			bSelected = true;
+			is_selected = true;
 			return true;
 		}
 		return false;
@@ -224,7 +230,7 @@ public:
 	{
 		if(IsSelected())
 		{
-			bSelected = false;
+			is_selected = false;
 			return true;
 		}
 		return false;
@@ -236,12 +242,12 @@ public:
 	bool
 	RestrictSelected()
 	{
-		if(nIndex < 0)
+		if(head < 0)
 			return false;
-		if(nSelected < nIndex)
-			nSelected = nIndex;
-		else if(nSelected >= nIndex + static_cast<IndexType>(nLength))
-			nSelected = nIndex + nLength - 1;
+		if(selected < head)
+			selected = head;
+		else if(selected >= head + static_cast<IndexType>(length))
+			selected = head + length - 1;
 		else
 			return false;
 		return true;
@@ -253,12 +259,12 @@ public:
 	bool
 	RestrictViewer()
 	{
-		if(nIndex < 0)
+		if(head < 0)
 			return false;
-		if(nSelected < nIndex)
-			nIndex = nSelected;
-		else if(nSelected >= nIndex + static_cast<IndexType>(nLength))
-			nIndex = nSelected + 1 - nLength;
+		if(selected < head)
+			head = selected;
+		else if(selected >= head + static_cast<IndexType>(length))
+			head = selected + 1 - length;
 		else
 			return false;
 		return true;
@@ -270,23 +276,23 @@ public:
 	bool
 	MoveViewerToBegin()
 	{
-		if(nIndex)
+		if(head)
 		{
-			nIndex = 0;
+			head = 0;
 			return true;
 		}
 		return false;
 	}
 
 	/*!
-	\brief 移图至序列结动视尾。
+	\brief 移动视图至序列结尾。
 	*/
 	bool
 	MoveViewerToEnd()
 	{
-		if(GetTotal() >= nLength)
+		if(GetTotal() >= length)
 		{
-			nIndex = GetTotal() - nLength;
+			head = GetTotal() - length;
 			return true;
 		}
 		return false;
