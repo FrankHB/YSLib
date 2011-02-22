@@ -11,12 +11,12 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version 0.1647;
+\version 0.1655;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 + 08:00;
 \par 修改时间:
-	2011-01-21 23:09 + 08:00;
+	2011-02-20 13:58 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,9 +27,9 @@
 #ifndef INCLUDED_YTIMER_H_
 #define INCLUDED_YTIMER_H_
 
+#include "../Core/ysdef.h"
 #include "../Core/yobject.h"
 #include "../Adaptor/cont.h"
-//#include <map>
 
 YSL_BEGIN
 

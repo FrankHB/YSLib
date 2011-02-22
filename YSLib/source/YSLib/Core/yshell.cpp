@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.3166;
+\version 0.3168;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 + 08:00;
 \par 修改时间:
-	2011-01-22 09:34 + 08:00;
+	2011-02-20 14:57 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,6 +24,7 @@
 */
 
 
+#include "yshell.h"
 #include "yapp.h"
 #include "../Shell/ydesktop.h"
 #include "../Helper/yglobal.h"

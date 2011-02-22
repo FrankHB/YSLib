@@ -16,12 +16,12 @@
 /*!	\file ytmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4330;
+\version 0.4334;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 + 08:00;
 \par 修改时间:
-	2010-12-31 12:16 + 08:00;
+	2011-02-20 13:58 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,9 +32,11 @@
 #ifndef INCLUDED_YTMGR_H_
 #define INCLUDED_YTMGR_H_
 
+#include "../Core/ysdef.h"
+#include "../Core/yobject.h"
 #include "../Core/ystring.h"
 #include "../Core/yftext.h"
-//#include <map>
+#include "../Adaptor/cont.h"
 
 YSL_BEGIN
 

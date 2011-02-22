@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3295;
+\version 0.3333;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-02-13 21:46 + 08:00;
+	2011-02-20 14:41 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,8 @@
 
 
 #include "ygui.h"
-//#include <stack>
+#include "ywindow.h"
+#include "ydesktop.h"
 
 YSL_BEGIN
 
@@ -160,20 +161,20 @@ namespace
 	ExOp::ExOpType ExtraOperation(ExOp::NoOp);
 
 	void
-	TryEnter(IVisualControl& c, TouchEventArgs& e)
+	TryEntering(IVisualControl& c, TouchEventArgs& e)
 	{
 		if(!bEntered && p_TouchDown == &c)
 		{
-			FetchEvent<EControl::Enter>(c)(c, e);
+			CallEvent<Enter>(c, e);
 			bEntered = true;
 		}
 	}
 	void
-	TryLeave(IVisualControl& c, TouchEventArgs& e)
+	TryLeaving(IVisualControl& c, TouchEventArgs& e)
 	{
 		if(bEntered && p_TouchDown == &c)
 		{
-			FetchEvent<EControl::Leave>(c)(c, e);
+			CallEvent<Leave>(c, e);
 			bEntered = false;
 		}
 	}
@@ -197,7 +198,7 @@ namespace
 			pt -= p->GetLocation();
 			if(ExtraOperation == TouchDown)
 			{
-				p->RequestToTop();
+				RequestToTop(*p);
 
 				EventArgs e;
 
@@ -223,7 +224,7 @@ namespace
 					{
 						TouchEventArgs e(pt);
 
-						TryLeave(*p_TouchDown, e);
+						TryLeaving(*p_TouchDown, e);
 					}
 				}
 				return p_TouchDown;
@@ -232,7 +233,7 @@ namespace
 			{
 				TouchEventArgs e(pt);
 
-				TryEnter(*p, e);
+				TryEntering(*p, e);
 			}
 		}
 		return p;
@@ -255,9 +256,9 @@ namespace
 	{
 		ResetHeldState(KeyHeldState);
 		if(p_KeyDown == &c && KeyHeldState == Free)
-			FetchEvent<EControl::KeyPress>(c)(c, e);
-		FetchEvent<EControl::KeyUp>(c)(c, e);
-		FetchEvent<EControl::Leave>(c)(c, e);
+			CallEvent<KeyPress>(c, e);
+		CallEvent<KeyUp>(c, e);
+		CallEvent<Leave>(c, e);
 		p_KeyDown = NULL;
 		return true;
 	}
@@ -265,8 +266,8 @@ namespace
 	ResponseKeyDownBase(IVisualControl& c, KeyEventArgs& e)
 	{
 		p_KeyDown = &c;
-		FetchEvent<EControl::Enter>(c)(c, e);
-		FetchEvent<EControl::KeyDown>(c)(c, e);
+		CallEvent<Enter>(c, e);
+		CallEvent<KeyDown>(c, e);
 		return true;
 	}
 	bool
@@ -277,7 +278,7 @@ namespace
 			ResetHeldState(KeyHeldState);
 			return false;
 		}
-		FetchEvent<EControl::KeyHeld>(c)(c, e);
+		CallEvent<KeyHeld>(c, e);
 		return true;
 	}
 
@@ -286,9 +287,9 @@ namespace
 	{
 		ResetTouchHeldState();
 		if(p_TouchDown == &c && TouchHeldState == Free)
-			FetchEvent<EControl::Click>(c)(c, e);
-		FetchEvent<EControl::TouchUp>(c)(c, e);
-		TryLeave(c, e);
+			CallEvent<Click>(c, e);
+		CallEvent<TouchUp>(c, e);
+		TryLeaving(c, e);
 		p_TouchDown = NULL;
 		return true;
 	}
@@ -296,8 +297,8 @@ namespace
 	ResponseTouchDownBase(IVisualControl& c, TouchEventArgs& e)
 	{
 		p_TouchDown = &c;
-		TryEnter(c, e);
-		FetchEvent<EControl::TouchDown>(c)(c, e);
+		TryEntering(c, e);
+		CallEvent<TouchDown>(c, e);
 		return true;
 	}
 	bool
@@ -310,7 +311,7 @@ namespace
 		}*/
 		if(p_TouchDown == &c)
 		{
-			FetchEvent<EControl::TouchHeld>(c)(c, e);
+			CallEvent<TouchHeld>(c, e);
 			return true;
 		}
 		return false;

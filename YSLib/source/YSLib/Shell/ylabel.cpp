@@ -11,12 +11,12 @@
 /*!	\file ylabel.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.1848;
+\version 0.1855;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 + 08:00;
 \par 修改时间:
-	2011-02-08 14:02 + 08:00;
+	2011-02-20 15:21 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,7 +24,9 @@
 */
 
 
-#include "ydesktop.h"
+#include "ylabel.h"
+#include "yuicont.h"
+#include "ywindow.h"
 
 YSL_BEGIN
 
@@ -40,7 +42,7 @@ MLabel::MLabel(const Drawing::Font& f)
 void
 MLabel::PaintText(Widget& w, const Graphics& g, const Point& pt)
 {
-	TextState ts;
+	Drawing::TextState ts;
 
 	ts.Font.SetFont(Font);
 	ts.ResetForBounds(GetBoundsOf(w), g.GetSize(), Margin);

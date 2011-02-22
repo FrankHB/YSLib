@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5841;
+\version 0.5858;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-02-08 13:26 + 08:00;
+	2011-02-22 07:21 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,37 +27,13 @@
 #ifndef INCLUDED_YWIDGET_H_
 #define INCLUDED_YWIDGET_H_
 
+#include "../Core/ysdef.h"
 #include "ycomp.h"
 #include "ygdi.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-// GUI 断言。
-
-#undef YWidgetAssert
-
-#ifdef YCL_USE_YASSERT
-
-/*!
-\brief 断言：判断所给表达式，如果为假给出指定错误信息。
-*/
-void
-yassert(bool, const char*, int, const char*, const char*, const char*);
-
-#	define YWidgetAssert(ptr, comp, func) \
-	Components::yassert((ptr) && FetchDirectWindowPtr( \
-		ystdex::general_cast<IWidget&>(*(ptr))), \
-		"The direct window handle is null.", __LINE__, __FILE__, #comp, #func)
-
-#else
-
-#	define YWidgetAssert(ptr, comp, func) \
-	assert((ptr) && FetchDirectWindowPtr( \
-		ystdex::general_cast<IWidget&>(*(ptr))))
-
-#endif
 
 //名称引用。
 using Drawing::PixelType;
@@ -115,9 +91,6 @@ DeclInterface(IWidget)
 
 	//! \brief 刷新至窗口缓冲区。
 	DeclIEntry(void Refresh())
-
-	//! \brief 请求提升至容器顶端。
-	DeclIEntry(void RequestToTop())
 EndDecl
 
 
@@ -148,6 +121,16 @@ ContainsVisible(const IWidget& w, const Point& p)
 {
 	return ContainsVisible(w, p.X, p.Y);
 }
+
+
+/*!
+\brief 请求提升至容器顶端。
+
+\todo 完全实现提升 IWidget 至容器顶端（目前仅实现 IVisualControl 且
+	父容器为 YDesktop 的情形）。
+*/
+void
+RequestToTop(IWidget&);
 
 
 /*!
@@ -216,7 +199,7 @@ MWindowObject::BelongsTo(HWND hWnd) const
 }
 
 
-//! \brief 可视样式模块。
+//! \brief 可视样式基实现类。
 class Visual : public NonCopyable
 {
 private:
@@ -253,6 +236,30 @@ public:
 	DefSetter(bool, Transparent, transparent)
 	DefSetter(bool, BgRedrawed, background_redrawed)
 	/*!
+	\brief 设置位置：横坐标。
+	\note 非虚公有实现。
+	*/
+	PDefH1(void, SetX, SPOS x)
+		ImplBodyBase1(Visual, SetLocation, Point(x, GetY()))
+	/*!
+	\brief 设置位置：纵坐标。
+	\note 非虚公有实现。
+	*/
+	PDefH1(void, SetY, SPOS y)
+		ImplBodyBase1(Visual, SetLocation, Point(GetX(), y))
+	/*!
+	\brief 设置大小：宽。
+	\note 非虚公有实现。
+	*/
+	PDefH1(void, SetWidth, SDST w)
+		ImplBodyBase1(Visual, SetSize, Size(w, GetHeight()))
+	/*!
+	\brief 设置大小：高。
+	\note 非虚公有实现。
+	*/
+	PDefH1(void, SetHeight, SDST h)
+		ImplBodyBase1(Visual, SetSize, Size(GetWidth(), h))
+	/*!
 	\brief 设置位置。
 	\note 虚公有实现。
 	*/
@@ -278,7 +285,7 @@ public:
 };
 
 
-//! \brief 部件模块。
+//! \brief 部件基实现类。
 class Widget : public Visual
 {
 private:
@@ -366,14 +373,6 @@ public:
 
 	ImplI1(IWidget) PDefH0(void, Refresh)
 		ImplBodyBase0(Widget, Refresh)
-
-	/*!
-	\brief 请求提升至容器顶端。
-	\note 空实现。
-	*/
-	ImplI1(IWidget) void
-	RequestToTop()
-	{}
 };
 
 YSL_END_NAMESPACE(Widgets)

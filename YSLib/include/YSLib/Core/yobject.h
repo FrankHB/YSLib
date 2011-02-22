@@ -11,12 +11,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.2859;
+\version 0.2862;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-02-06 23:07 + 08:00;
+	2011-02-20 13:37 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,8 +27,9 @@
 #ifndef INCLUDED_YOBJECT_H_
 #define INCLUDED_YOBJECT_H_
 
-#include "ycounter.hpp"
+#include "ysdef.h"
 #include "ycutil.h"
+#include "ycounter.hpp"
 #include "../Adaptor/cont.h"
 
 YSL_BEGIN

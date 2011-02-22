@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3066;
+\version 0.3068;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2011-01-16 08:02 + 08:00;
+	2011-02-20 03:18 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,7 @@
 #ifndef INCLUDED_SHELLS_H_
 #define INCLUDED_SHELLS_H_
 
-//#include <YSLib/Helper/shlds.h>
+#include <YSLib/Helper/shlds.h>
 #include "DSReader.h"
 
 YSL_BEGIN

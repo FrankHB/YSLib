@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ysmsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version 0.2748;
+\version 0.2752;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-08 12:05:26 + 08:00;
 \par 修改时间:
-	2010-12-31 12:46 + 08:00;
+	2011-02-20 13:53 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,7 @@
 #ifndef INCLUDED_YSMSGDEF_H_
 #define INCLUDED_YSMSGDEF_H_
 
+#include "ysdef.h"
 #include "ysmsg.h"
 
 YSL_BEGIN

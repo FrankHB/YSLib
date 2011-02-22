@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2842;
+\version 0.2852;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 + 08:00;
 \par 修改时间:
-	2010-01-08 19:03 + 08:00;
+	2011-02-20 15:09 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,13 @@
 
 
 #include "yglobal.h"
-#include "../ysbuild.h"
-#include <exception>
+#include "../Core/yfilesys.h"
+#include "../Core/yapp.h"
+#include "../Core/yshell.h"
+#include "../Core/ydevice.h"
+#include "../Adaptor/yfont.h"
+#include "../Adaptor/ysinit.h"
+#include "../Shell/ydesktop.h"
 //#include <clocale>
 
 YSL_BEGIN

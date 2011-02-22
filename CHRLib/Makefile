@@ -1,8 +1,8 @@
 # DS Makefile for CHRLib -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 + 08:00;
-# UTime = 2011-01-17 11:55 + 08:00;
-# Version = 0.3824;
+# UTime = 2011-02-21 10:20 + 08:00;
+# Version = 0.3829;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -46,6 +46,7 @@ ARCH	:=	-mthumb -mthumb-interwork -march=armv5te
 ASFLAGS	:=	$(ARCH)
 
 CFLAGS	:=	-Wall \
+			-mtune=arm946e-s \
  			-fomit-frame-pointer \
 			-ffast-math \
 			$(ARCH)

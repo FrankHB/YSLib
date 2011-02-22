@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010 - 2011
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2011-02-13 18:12 + 08:00;
-// Version = r10681;
+// UTime = 2011-02-20 12:49 + 08:00;
+// Version = r10683;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -676,7 +676,7 @@ $header Shell::YWidget : Shell::YComponent, Core::YResource
 		namespace ColorSpace = Drawing::ColorSpace;
 
 		using Drawing::Point, Drawing::Vec, Drawing::Size, Drawing::Rect;
-		using Drawing::YImage;
+		using Drawing::Graphics;
 	} //namespace Components;
 } //$header Shell::YWidget;
 

@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.2021;
+\version 0.2036;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 + 08:00;
 \par 修改时间:
-	2011-02-14 14:55 + 08:00;
+	2011-02-21 09:14 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,13 +24,42 @@
 */
 
 
+#include "yuicont.h"
+#include "ywindow.h"
 #include "ydesktop.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
+#ifdef YCL_USE_YASSERT
+
+void
+yassert(bool exp, const char* msg, int line, const char* file,
+	const char* comp, const char* func)
+{
+	if(!exp)
+	{
+		YConsole dbg;
+
+		iprintf(
+			"At line %i in file %s: \n"
+			"An error occured in precedure %s of \n"
+			"Components::%s:\n"
+			"%s", line, file, func, comp, msg);
+		dbg.Pause();
+	}
+}
+
+#endif
+
 YSL_BEGIN_NAMESPACE(Widgets)
+
+IWindow*
+FetchWindowPtr(const IWidget& w)
+{
+	return FetchWidgetDirectNodePtr<IWindow>(w.GetContainerPtr());
+}
 
 IUIBox*
 FetchDirectContainerPtr(IWidget& w)

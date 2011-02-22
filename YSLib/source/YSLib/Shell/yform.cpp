@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yform.cpp
 \ingroup Shell
 \brief 平台无关的 GUI 窗体实现。
-\version 0.1479;
+\version 0.1482;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 + 08:00;
 \par 修改时间:
-	2010-12-21 16:12 + 08:00;
+	2011-02-20 15:28 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,6 @@
 
 
 #include "yform.h"
-#include "ydesktop.h" // for YDesktop delete procedure;
 
 YSL_BEGIN
 

@@ -11,12 +11,12 @@
 /*!	\file ylabel.h
 \ingroup Shell
 \brief 平台无关的标签模块实现。
-\version 0.1896;
+\version 0.1900;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 + 08:00;
 \par 修改时间:
-	2011-02-08 13:41 + 08:00;
+	2011-02-20 14:27 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,10 @@
 #ifndef INCLUDED_YLABEL_H_
 #define INCLUDED_YLABEL_H_
 
+#include "../Core/ysdef.h"
+#include "../Core/ycutil.h"
+#include "../Core/ycounter.hpp"
+#include "../Adaptor/yfont.h"
 #include "ywidget.h"
 //#include "../Core/yres.h"
 #include "ytext.h"

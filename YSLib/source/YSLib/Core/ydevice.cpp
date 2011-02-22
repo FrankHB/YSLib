@@ -11,12 +11,12 @@
 /*!	\file ydevice.cpp
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version 0.2707;
+\version 0.2710;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:39:51 + 08:00;
 \par 修改时间:
-	2011-01-09 12:03 + 08:00;
+	2011-02-20 15:31 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,6 @@
 
 
 #include "ydevice.h"
-#include "yshell.h"
 #include "../Shell/ygdi.h"
 
 YSL_BEGIN

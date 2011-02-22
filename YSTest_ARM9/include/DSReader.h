@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器实现。
-\version 0.2278;
+\version 0.2287;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 + 08:00; 
 \par 修改时间:
-	2011-01-31 19:16 + 08:00;
+	2011-02-20 13:15 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,12 @@
 #ifndef INCLUDED_DSREADER_H_
 #define INCLUDED_DSREADER_H_
 
-#include <YSLib/Helper/shlds.h>
+#include <YSLib/Core/yapp.h>
+#include <YSLib/Core/yftext.h>
+#include <YSLib/Shell/ydesktop.h>
+#include <YSLib/Shell/ytext.h>
+#include <YSLib/Helper/yglobal.h> 
+#include <YSLib/Service/ytmgr.h>
 
 YSL_BEGIN
 
@@ -56,9 +61,9 @@ private:
 	SDST top_down; //!< 下字符区域距离下屏顶端距离。
 	PixelType* pBgUp; //!< 上屏幕背景层显存地址。
 	PixelType* pBgDn; //!< 下屏幕背景层显存地址。
-	GHStrong<TextRegion> pTextRegionUp; //!< 上屏幕对应字符区域。
-	GHStrong<TextRegion> pTextRegionDn; //!< 下屏幕对应字符区域。
-	Rotation rot; //!< 屏幕指向。
+	GHStrong<Drawing::TextRegion> pTextRegionUp; //!< 上屏幕对应字符区域。
+	GHStrong<Drawing::TextRegion> pTextRegionDn; //!< 下屏幕对应字符区域。
+	Drawing::Rotation rot; //!< 屏幕指向。
 	Text::TextFileBuffer::HText itUp; //!< 字符区域读取文本缓存迭代器。
 	Text::TextFileBuffer::HText itDn; //!< 字符区域读取文本缓存迭代器。
 	u8 lnHeight; //!< 行高。
@@ -111,14 +116,17 @@ public:
 	bool IsTextBottom(); //!< 判断输出位置是否到文本底端。
 
 	DefGetter(u8, FontSize, fc.GetFontSize()) //!< 取字符区域的字体大小。
-	DefGetter(TextRegion&, Up, *pTextRegionUp) //!< 取上字符区域的引用。
-	DefGetter(TextRegion&, Dn, *pTextRegionDn) //!< 取下字符区域的引用。
+	DefGetter(Drawing::TextRegion&, Up, *pTextRegionUp) \
+		//!< 取上字符区域的引用。
+	DefGetter(Drawing::TextRegion&, Dn, *pTextRegionDn) \
+		//!< 取下字符区域的引用。
 	DefGetter(Color, Color, GetColorUp()) //!< 取字符区域的字体颜色。
 	DefGetter(u8, LineGap, GetLineGapUp()) //!< 取字符区域的行距。
 
 	DefSetterDe(SDST, Left, left, 0) //!< 设置字符区域距离屏幕左边距离。
 	void
-	SetFontSize(Font::SizeType = Font::DefSize); //!< 设置字符区域字体大小。
+	SetFontSize(Drawing::Font::SizeType = Drawing::Font::DefSize); \
+		//!< 设置字符区域字体大小。
 	void
 	SetColor(Color = Drawing::ColorSpace::Black); //!< 设置字符颜色。
 	void

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yexcept.h
 \ingroup Core
 \brief 异常处理模块。
-\version 0.1219;
+\version 0.1223;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-15 20:30:14 + 08:00;
 \par 修改时间:
-	2010-11-12 18:34 + 08:00;
+	2011-02-20 13:44 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,8 @@
 #ifndef INCLUDED_YEXCEPT_H_
 #define INCLUDED_YEXCEPT_H_
 
-#include "yobject.h"
+#include "ysdef.h"
+#include "../Adaptor/cont.h"
 #include <new>
 #include <typeinfo>
 

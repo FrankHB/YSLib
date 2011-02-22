@@ -11,12 +11,12 @@
 /*!	\file yform.h
 \ingroup Shell
 \brief 平台无关的 GUI 窗体实现。
-\version 0.1457;
+\version 0.1466;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 + 08:00;
 \par 修改时间:
-	2011-01-08 18:52 + 08:00;
+	2011-02-20 14:13 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,9 @@
 #ifndef INCLUDED_YFORM_H_
 #define INCLUDED_YFORM_H_
 
+#include "../Core/ysdef.h"
+#include "../Core/ycounter.hpp"
+#include "../Core/yres.h"
 #include "ywindow.h"
 
 YSL_BEGIN
@@ -51,7 +54,7 @@ public:
 	*/
 	explicit
 	YForm(const Rect& = Rect::Empty,
-		const GHStrong<YImage> = ynew YImage(), HWND = NULL);
+		const GHStrong<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
 	/*!
 	\brief 析构。
 	\note 无异常抛出。

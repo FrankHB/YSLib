@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.2044;
+\version 0.2058;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 + 08:00;
 \par 修改时间:
-	2011-02-14 14:55 + 08:00;
+	2011-02-21 09:13 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,12 +27,39 @@
 #ifndef INCLUDED_YUICONT_H_
 #define INCLUDED_YUICONT_H_
 
+#include "../Core/ysdef.h"
 #include "ywidget.h"
+#include "../Core/yobject.h"
 #include "yfocus.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
+
+// GUI 断言。
+
+#undef YWidgetAssert
+
+#ifdef YCL_USE_YASSERT
+
+/*!
+\brief 断言：判断所给表达式，如果为假给出指定错误信息。
+*/
+void
+yassert(bool, const char*, int, const char*, const char*, const char*);
+
+#	define YWidgetAssert(ptr, comp, func) \
+	Components::yassert((ptr) && FetchDirectWindowPtr( \
+		ystdex::general_cast<IWidget&>(*(ptr))), \
+		"The direct window handle is null.", __LINE__, __FILE__, #comp, #func)
+
+#else
+
+#	define YWidgetAssert(ptr, comp, func) \
+	assert((ptr) && FetchDirectWindowPtr( \
+		ystdex::general_cast<IWidget&>(*(ptr))))
+
+#endif
 
 YSL_BEGIN_NAMESPACE(Widgets)
 
@@ -84,11 +111,8 @@ _tNode* FetchWidgetDirectNodePtr(IWidget* pWgt)
 /*!
 \brief 取指定部件的窗口指针。
 */
-inline IWindow*
-FetchWindowPtr(const IWidget& w)
-{
-	return FetchWidgetDirectNodePtr<IWindow>(w.GetContainerPtr());
-}
+IWindow*
+FetchWindowPtr(const IWidget&);
 
 /*!
 \brief 取指定部件的直接容器指针。
@@ -360,14 +384,6 @@ public:
 
 	ImplI1(IUIContainer) PDefH0(void, Refresh)
 		ImplBodyBase0(Widget, Refresh)
-
-	/*!
-	\brief 请求提升至容器顶端。
-	\note 空实现。
-	*/
-	ImplI1(IUIContainer) void
-	RequestToTop()
-	{}
 };
 
 YSL_END_NAMESPACE(Widgets)

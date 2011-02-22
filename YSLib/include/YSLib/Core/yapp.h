@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 应用程序实例类抽象。
-\version 0.2064;
+\version 0.2069;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 + 08:00;
 \par 修改时间:
-	2011-01-31 13:42 + 08:00;
+	2011-02-20 13:34 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,10 +27,13 @@
 #ifndef INCLUDED_YAPP_H_
 #define INCLUDED_YAPP_H_
 
-#include "ydevice.h"
-#include "yshell.h"
+#include "ysdef.h"
+#include "yobject.h"
 #include "yfilesys.h"
+#include "ystring.h"
 #include "yevt.hpp"
+#include "ysmsg.h"
+#include "yexcept.h"
 
 YSL_BEGIN
 

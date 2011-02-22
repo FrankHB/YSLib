@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.2301;
+\version 0.2305;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-01-07 14:33 + 08:00;
+	2011-02-20 14:34 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,9 +27,10 @@
 #ifndef INCLUDED_YGUI_H_
 #define INCLUDED_YGUI_H_
 
-#include "../Core/yshell.h"
-#include "ydesktop.h"
-#include "yform.h"
+#include "../Core/ysdef.h"
+#include "ycomp.h"
+#include "ycontrol.h"
+#include "../Core/yfunc.hpp"
 #include "../Service/ytimer.h"
 
 YSL_BEGIN

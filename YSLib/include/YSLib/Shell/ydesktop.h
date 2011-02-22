@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2188;
+\version 0.2193;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 + 08:00;
 \par 修改时间:
-	2011-01-31 13:36 + 08:00;
+	2011-02-20 14:09 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,8 +27,10 @@
 #ifndef INCLUDED_YDESKTOP_H_
 #define INCLUDED_YDESKTOP_H_
 
+#include "../Core/ysdef.h"
 #include "ywindow.h"
-//#include <list>
+#include "../Adaptor/cont.h"
+#include "../Core/ydevice.h"
 
 YSL_BEGIN
 
@@ -79,6 +81,7 @@ public:
 
 	/*!
 	\brief 请求提升至容器顶端。
+
 	从桌面对象组中查找指定桌面对象并重新插入至顶端。
 	*/
 	bool
@@ -86,6 +89,7 @@ public:
 
 	/*!
 	\brief 移除桌面对象组中顶端桌面对象。
+
 	移除桌面对象组中首个桌面对象。
 	*/
 	void

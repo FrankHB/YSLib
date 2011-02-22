@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.3046;
+\version 0.3117;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2011-02-14 21:27 + 08:00;
+	2011-02-22 21:16 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,8 @@
 
 
 #include "yguicomp.h"
-#include "ywindow.h"
 #include "ygui.h"
+#include "ywindow.h"
 
 YSL_BEGIN
 
@@ -158,6 +158,48 @@ namespace
 		if(bPressed)
 			TransformRect(g, p, s, transPixelEx<56, 24, 32>);
 	}
+
+	std::pair<bool, bool>
+	FixScrollBarLayout(Size& d, const Size& s, SDST min_width, SDST min_height)
+	{
+		bool need_h(d.Width < s.Width), need_v(d.Height < s.Height);
+
+		if(need_h)
+		{
+			if(d.Height < min_height)
+				throw std::runtime_error("Scroll bar need more height.");
+			d.Height -= min_height;
+		}
+		if(need_v)
+		{
+			if(d.Width < min_width)
+				throw std::runtime_error("Scroll bar need more width.");
+			d.Width -= min_width;
+		}
+		if(need_h ^ need_v)
+		{
+			if(!need_h && d.Width < s.Width)
+			{
+				need_h = true;
+				if(d.Height < min_height)
+					throw std::runtime_error("Scroll bar need more height.");
+				d.Height -= min_height;
+			}
+			if(!need_v && d.Height < s.Height)
+			{
+				need_v = true;
+				if(d.Width < min_width)
+					throw std::runtime_error("Scroll bar need more width.");
+				d.Width -= min_width;
+			}
+		}
+		return std::pair<bool, bool>(need_h, need_v);
+	}
+
+	const SDST defMarginH(4); //!< 默认水平边距。
+	const SDST defMarginV(2); //!< 默认垂直边距。
+	const SDST defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
+	const SDST defMinScrollBarHeight(16); //!< 默认最小滚动条高。
 }
 
 
@@ -165,8 +207,8 @@ YThumb::YThumb(const Rect& r, IUIBox* pCon)
 	: YVisualControl(r, pCon),
 	MButton()
 {
-	FetchEvent<EControl::Enter>(*this) += &YThumb::OnEnter;
-	FetchEvent<EControl::Leave>(*this) += &YThumb::OnLeave;
+	FetchEvent<Enter>(*this) += &YThumb::OnEnter;
+	FetchEvent<Leave>(*this) += &YThumb::OnLeave;
 }
 
 void
@@ -215,13 +257,14 @@ YButton::DrawForeground()
 
 
 ATrack::ATrack(const Rect& r, IUIBox* pCon, SDST uMinThumbLength)
-	: AVisualControl(Rect(r.GetPoint(),
-		vmax<SDST>(16, r.Width), vmax<SDST>(16, r.Height)), pCon),
-	MSimpleFocusResponser(),
-	Thumb(Rect(0, 0, 16, 16), this), MinThumbLength(uMinThumbLength)
+	: AUIBoxControl(Rect(r.GetPoint(),
+		vmax<SDST>(defMinScrollBarWidth, r.Width),
+		vmax<SDST>(defMinScrollBarHeight, r.Height)), pCon),
+	Thumb(Rect(0, 0, defMinScrollBarWidth, defMinScrollBarHeight), this),
+	MinThumbLength(uMinThumbLength)
 {
-	FetchEvent<EControl::TouchMove>(*this) += OnTouchMove;
-	FetchEvent<EControl::TouchDown>(*this) += &ATrack::OnTouchDown;
+	FetchEvent<TouchMove>(*this) += OnTouchMove;
+	FetchEvent<TouchDown>(*this) += &ATrack::OnTouchDown;
 }
 
 IVisualControl*
@@ -288,7 +331,7 @@ ATrack::DrawForeground()
 {
 	YWidgetAssert(this, Controls::ATrack, DrawForeground);
 
-	ParentType::DrawForeground();
+	VisualControl::DrawForeground();
 	Thumb.DrawForeground();
 }
 
@@ -353,7 +396,7 @@ YHorizontalTrack::YHorizontalTrack(const Rect& r, IUIBox* pCon,
 		"(const Rect& r, IUIBox* pCon, SDST uMinThumbLength) const\": \n"
 		"Width is not greater than height.");
 
-	FetchEvent<EControl::TouchMove>(Thumb).Add(*this,
+	FetchEvent<TouchMove>(Thumb).Add(*this,
 		&YHorizontalTrack::OnDrag_Thumb_Horizontal);
 }
 
@@ -381,7 +424,7 @@ YVerticalTrack::YVerticalTrack(const Rect& r, IUIBox* pCon,
 		"(const Rect& r, IUIBox* pCon, SDST uMinThumbLength) const\": \n"
 		"height is not greater than width.");
 
-	FetchEvent<EControl::TouchMove>(Thumb).Add(*this,
+	FetchEvent<TouchMove>(Thumb).Add(*this,
 		&YVerticalTrack::OnDrag_Thumb_Vertical);
 }
 
@@ -400,8 +443,7 @@ YVerticalTrack::OnDrag_Thumb_Vertical(TouchEventArgs&)
 
 AScrollBar::AScrollBar(const Rect& r, IUIBox* pCon, SDST uMinThumbSize,
 	Orientation o)
-try	: AVisualControl(r, pCon),
-	MSimpleFocusResponser(),
+try	: AUIBoxControl(r, pCon),
 	pTrack(o == Horizontal
 		? static_cast<ATrack*>(new YHorizontalTrack(
 			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), this,
@@ -456,7 +498,7 @@ AScrollBar::DrawForeground()
 {
 	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawForeground);
 
-	ParentType::DrawForeground();
+	VisualControl::DrawForeground();
 
 	const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
 	const Point b(LocateForWindow(*this));
@@ -467,10 +509,10 @@ AScrollBar::DrawForeground()
 	pTrack->DrawForeground();
 	PrevButton.DrawForeground();
 	NextButton.DrawForeground();
-	WndDrawArrow(g, Rect(PrevButton.GetLocation() + GetLocation(),
+	WndDrawArrow(g, Rect(LocateForWindow(PrevButton),
 		PrevButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
 			? RDeg180 : RDeg90, ForeColor);
-	WndDrawArrow(g, Rect(NextButton.GetLocation() + GetLocation(),
+	WndDrawArrow(g, Rect(LocateForWindow(NextButton),
 		NextButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
 			? RDeg0 : RDeg270, ForeColor);
 }
@@ -502,17 +544,84 @@ YVerticalScrollBar::YVerticalScrollBar(const Rect& r, IUIBox* pCon,
 }
 
 
+ScrollableContainer::ScrollableContainer(const Rect& r, IUIBox* pCon)
+	: AUIBoxControl(r, pCon),
+	HorizontalScrollBar(Rect(Point::Zero, r.Width, defMinScrollBarHeight),
+		this),
+	VerticalScrollBar(Rect(Point::Zero, defMinScrollBarWidth, r.Height), this)
+{
+	MoveToBottom(HorizontalScrollBar);
+	MoveToRight(VerticalScrollBar);
+}
+
+IVisualControl*
+ScrollableContainer::GetTopVisualControlPtr(const Point& p)
+{
+	if(ContainsVisible(HorizontalScrollBar, p))
+		return &HorizontalScrollBar;
+	if(ContainsVisible(VerticalScrollBar, p))
+		return &VerticalScrollBar;
+	return this;
+}
+
+void
+ScrollableContainer::DrawForeground()
+{
+	YWidgetAssert(this, Controls::YScrollableContainer, DrawForeground);
+
+	AUIBoxControl::DrawForeground();
+	if(HorizontalScrollBar.IsVisible())
+		HorizontalScrollBar.DrawForeground();
+	if(VerticalScrollBar.IsVisible())
+		VerticalScrollBar.DrawForeground();
+}
+
+Size
+ScrollableContainer::FixLayout(const Size& s)
+{
+	Size arena(GetSize());
+
+	try
+	{
+		const std::pair<bool, bool> p(FixScrollBarLayout(arena, s,
+			defMinScrollBarWidth, defMinScrollBarHeight));
+
+		if(p.first && p.second && GetWidth() > defMinScrollBarWidth
+			&& GetHeight() > defMinScrollBarHeight)
+		{
+			HorizontalScrollBar.SetWidth(GetWidth() - defMinScrollBarWidth);
+			VerticalScrollBar.SetHeight(GetHeight() - defMinScrollBarHeight);
+		}
+		else if(p.first)
+		{
+			HorizontalScrollBar.SetWidth(GetWidth());
+			MoveToBottom(HorizontalScrollBar);
+		}
+		else if(p.second)
+		{
+			VerticalScrollBar.SetHeight(GetHeight());
+			MoveToRight(VerticalScrollBar);
+		}
+		HorizontalScrollBar.SetVisible(p.first);
+		VerticalScrollBar.SetVisible(p.second);
+	}
+	catch(std::runtime_error&)
+	{}
+	return arena;
+}
+
+
 YSimpleListBox::YSimpleListBox(const Rect& r, IUIBox* pCon,
 	GHWeak<ListType> wpList_)
 	: YVisualControl(r, pCon),
 	Font(), Margin(defMarginH, defMarginH, defMarginV, defMarginV),
 	wpList(wpList_), viewer(GetList()), top_offset(0), text_state(Font)
 {
-	FetchEvent<EControl::KeyDown>(*this) += &YSimpleListBox::OnKeyDown;
-	FetchEvent<EControl::KeyHeld>(*this) += OnKeyHeld;
-	FetchEvent<EControl::TouchDown>(*this) += &YSimpleListBox::OnTouchDown;
-	FetchEvent<EControl::TouchMove>(*this) += &YSimpleListBox::OnTouchMove;
-	FetchEvent<EControl::Click>(*this) += &YSimpleListBox::OnClick;
+	FetchEvent<KeyDown>(*this) += &YSimpleListBox::OnKeyDown;
+	FetchEvent<KeyHeld>(*this) += OnKeyHeld;
+	FetchEvent<TouchDown>(*this) += &YSimpleListBox::OnTouchDown;
+	FetchEvent<TouchMove>(*this) += &YSimpleListBox::OnTouchMove;
+	FetchEvent<Click>(*this) += &YSimpleListBox::OnClick;
 	Selected += &YSimpleListBox::OnSelected;
 	Confirmed += &YSimpleListBox::OnConfirmed;
 }
@@ -520,6 +629,7 @@ YSimpleListBox::YSimpleListBox(const Rect& r, IUIBox* pCon,
 Drawing::TextState&
 YSimpleListBox::GetTextState() ythrow()
 {
+	text_state.LineGap = GetVerticalFrom(Margin);
 	text_state.Font.SetFont(Font);
 	return text_state;
 }
@@ -542,9 +652,18 @@ YSimpleListBox::GetItemPtr(ViewerType::IndexType i)
 		? &list[i] : NULL;
 }
 SDST
-YSimpleListBox::GetItemHeight()
+YSimpleListBox::GetItemHeight() const
 {
-	return GetLnHeightExFrom(GetTextState()) + defMarginV * 2;
+	return GetLnHeightExFrom(text_state);
+}
+Size
+YSimpleListBox::GetFullViewSize() const
+{
+	const SDST h1(GetItemHeight()),
+		h2(GetLnHeightFrom(text_state));
+	const ViewerType::SizeType t(viewer.GetTotal());
+
+	return Size(GetWidth(), t == 0 ? 0 : (t - 1) * h1 + h2);
 }
 
 void
@@ -577,6 +696,8 @@ YSimpleListBox::DrawForeground()
 
 		if(h != 0)
 		{
+			GetTextState();
+
 			const SDST ln_w(GetWidth());
 			const SDST ln_h(GetItemHeight());
 
@@ -588,7 +709,6 @@ YSimpleListBox::DrawForeground()
 				const ListType& list(GetList());
 				const Graphics& g(pWnd->GetContext());
 				const Point pt(LocateForWindow(*this));
-				Padding m(defMarginH, defMarginH, defMarginV, defMarginV);
 				SPOS y(-top_offset);
 
 				for(ViewerType::IndexType i(viewer.GetHeadIndex());
@@ -610,7 +730,7 @@ YSimpleListBox::DrawForeground()
 					else
 						text_state.Color = ForeColor;
 					text_state.ResetForBounds(Rect(pt.X, top, ln_w, tmp),
-						g.GetSize(), m);
+						g.GetSize(), Margin);
 					if(y < 0)
 						text_state.PenY -= top_offset;
 					DrawText(g, text_state, list[i]);
@@ -771,45 +891,35 @@ YSimpleListBox::OnConfirmed(IndexEventArgs& e)
 
 
 YListBox::YListBox(const Rect& r, IUIBox* pCon, GHWeak<ListType> wpList_)
-	: YVisualControl(r, pCon),
-	MSimpleFocusResponser(),
-	TextListBox(Rect(Point::Zero, r), this, wpList_),
-	HorizontalScrollBar(Rect(Point::Zero, r.Width, 16), this),
-	VerticalScrollBar(Rect(Point::Zero, 16, r.Height), this)
-{
-	MoveToBottom(HorizontalScrollBar);
-	MoveToRight(VerticalScrollBar);
-}
+	: YComponent(),
+	ScrollableContainer(r, pCon),
+	TextListBox(Rect(Point::Zero, r), this, wpList_)
+{}
 
 IVisualControl*
 YListBox::GetTopVisualControlPtr(const Point& p)
 {
-	if(ContainsVisible(HorizontalScrollBar, p))
-		return &HorizontalScrollBar;
-	if(ContainsVisible(VerticalScrollBar, p))
-		return &VerticalScrollBar;
-	return &TextListBox;
+	IVisualControl* pCon(ScrollableContainer::GetTopVisualControlPtr(p));
+
+	if(pCon == this)
+		return &TextListBox;
+	return pCon;
 }
 
 void
 YListBox::DrawForeground()
 {
-	YWidgetAssert(this, Controls::YSimpleListBox, DrawForeground);
+	YWidgetAssert(this, Controls::YListBox, DrawForeground);
 
-	FixLayout();
-	ParentType::DrawForeground();
-	if(HorizontalScrollBar.IsVisible())
-		HorizontalScrollBar.DrawForeground();
-	if(VerticalScrollBar.IsVisible())
-		VerticalScrollBar.DrawForeground();
+	if(GetWidth() > defMinScrollBarWidth)
+	{
+		Size view_arena(TextListBox.GetFullViewSize());
+
+		view_arena.Width = GetWidth() - defMinScrollBarWidth;
+		TextListBox.SetSize(FixLayout(view_arena));
+		ScrollableContainer::DrawForeground();
+	}
 	TextListBox.DrawForeground();
-}
-
-void
-YListBox::FixLayout()
-{
-	HorizontalScrollBar.SetVisible(false);
-	VerticalScrollBar.SetVisible(false);
 }
 
 

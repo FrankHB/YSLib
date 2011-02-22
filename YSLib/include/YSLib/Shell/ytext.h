@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6889;
+\version 0.6894;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 + 08:00;
 \par 修改时间:
-	2010-02-08 11:47 + 08:00;
+	2010-02-20 14:47 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,9 +27,11 @@
 #ifndef INCLUDED_YTEXT_H_
 #define INCLUDED_YTEXT_H_
 
-#include "../Core/ystring.h"
-#include "../Core/yftext.h"
+#include "../Core/ysdef.h"
 #include "ygdi.h"
+#include "../Adaptor/yfont.h"
+#include "../Core/yobject.h"
+#include "../Core/yftext.h"
 #include <cwctype>
 
 YSL_BEGIN

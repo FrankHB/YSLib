@@ -27,6 +27,7 @@
 #ifndef INCLUDED_YGDI_H_
 #define INCLUDED_YGDI_H_
 
+#include "../Core/ysdef.h"
 #include "../Core/yobject.h"
 #include "../Adaptor/yfont.h"
 

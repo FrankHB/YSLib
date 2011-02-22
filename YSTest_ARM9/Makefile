@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 + 08:00;
-# UTime = 2011-01-17 11:56 + 08:00;
-# Version = 0.3329;
+# UTime = 2011-02-21 10:24 + 08:00;
+# Version = 0.3331;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -38,12 +38,12 @@ export DATA			:= data
 #--------------------------------------------------------------------------------
 # options for code generation
 #--------------------------------------------------------------------------------
-ARCH	:=	-mthumb -mthumb-interwork
+ARCH	:=	-mthumb -mthumb-interwork -march=armv5te
 
 # note: arm9tdmi isn't the correct CPU arch, but anything newer and LD
 # *insists* it has a FPU or VFP, and it won't take no for an answer!
 
-#ASFLAGS:=	-g $(ARCH) -march=armv5te -mtune=arm946e-s
+#ASFLAGS:=	-g $(ARCH)
 ASFLAGS	:=	$(ARCH)
 
 #CFLAGS	:=	-g -Wformat=2 -Winline -Wall \
@@ -52,7 +52,8 @@ ASFLAGS	:=	$(ARCH)
 #		$(ARCH)
 
 CFLAGS	:=	-Wall \
-			-march=armv5te -mtune=arm946e-s -fomit-frame-pointer \
+			-mtune=arm946e-s \
+			-fomit-frame-pointer \
 			-ffast-math \
 			$(ARCH)
 

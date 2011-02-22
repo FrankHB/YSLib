@@ -11,12 +11,12 @@
 /*!	\file ysmsg.h
 \ingroup Core
 \brief 消息处理。
-\version 0.2110;
+\version 0.2114;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 + 08:00;
 \par 修改时间:
-	2011-01-31 13:45 + 08:00;
+	2011-02-20 13:39 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,6 +29,7 @@
 
 #include "ysdef.h"
 #include "yobject.h"
+#include "ycounter.hpp"
 #include "../Adaptor/cont.h"
 #include <ctime>
 

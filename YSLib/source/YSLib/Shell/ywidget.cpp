@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4851;
+\version 0.4864;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-02-08 13:26 + 08:00;
+	2011-02-20 15:40 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,32 +24,14 @@
 */
 
 
+#include "ywidget.h"
 #include "ydesktop.h"
+#include "ywindow.h"
+#include "yuicont.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-#ifdef YCL_USE_YASSERT
-
-void
-yassert(bool exp, const char* msg, int line, const char* file,
-	const char* comp, const char* func)
-{
-	if(!exp)
-	{
-		YConsole dbg;
-
-		iprintf(
-			"At line %i in file %s: \n"
-			"An error occured in precedure %s of \n"
-			"Components::%s:\n"
-			"%s", line, file, func, comp, msg);
-		dbg.Pause();
-	}
-}
-
-#endif
 
 YSL_BEGIN_NAMESPACE(Widgets)
 
@@ -65,6 +47,21 @@ bool
 ContainsVisible(const IWidget& w, SPOS x, SPOS y)
 {
 	return w.IsVisible() && Contains(w, x, y);
+}
+
+
+void
+RequestToTop(IWidget& w)
+{
+	YDesktop* pDsk(FetchDirectDesktopPtr(w));
+
+	if(pDsk && pDsk == w.GetContainerPtr())
+	{
+		IVisualControl* pCon(dynamic_cast<IVisualControl*>(&w));
+
+		if(pCon)
+			pDsk->MoveToTop(*pCon);
+	}
 }
 
 

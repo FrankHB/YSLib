@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3516;
+\version 0.3520;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2011-02-13 18:26 + 08:00;
+	2011-02-15 17:48 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -353,16 +353,16 @@ ShlExplorer::TFrmFileListSelecter::TFrmFileListSelecter()
 {
 	btnTest.Text = _ustr(" 测试(X)");
 	btnOK.Text = _ustr(" 确定(R)");
-	FetchEvent<EControl::KeyPress>(*this)
+	FetchEvent<KeyPress>(*this)
 		+= &TFrmFileListSelecter::frm_KeyPress;
 	//	fbMain.TouchDown += YFileBox::OnClick;
 	//	fbMain.Click += &YListBox::_m_OnClick;
-	FetchEvent<EControl::KeyPress>(fbMain) += fb_KeyPress;
+	FetchEvent<KeyPress>(fbMain) += fb_KeyPress;
 	fbMain.GetSelected().Add(*this, &TFrmFileListSelecter::fb_Selected);
 	fbMain.GetConfirmed() += fb_Confirmed;
-	FetchEvent<EControl::Click>(btnTest).Add(*this,
+	FetchEvent<Click>(btnTest).Add(*this,
 		&TFrmFileListSelecter::btnTest_Click);
-	FetchEvent<EControl::Click>(btnOK).Add(*this,
+	FetchEvent<Click>(btnOK).Add(*this,
 		&TFrmFileListSelecter::btnOK_Click);
 	btnOK.SetTransparent(false);
 	Draw();
@@ -376,10 +376,10 @@ ShlExplorer::TFrmFileListSelecter::frm_KeyPress(KeyEventArgs& e)
 	switch(e.GetKey())
 	{
 	case KeySpace::X:
-		FetchEvent<EControl::Click>(btnTest)(btnTest, et);
+		FetchEvent<Click>(btnTest)(btnTest, et);
 		break;
 	case KeySpace::R:
-		FetchEvent<EControl::Click>(btnOK)(btnOK, et);
+		FetchEvent<Click>(btnOK)(btnOK, et);
 		break;
 	default:
 		break;
@@ -529,11 +529,11 @@ ShlSetting::TFormB::TFormB()
 	btnB.Text = _ustr("测试程序");
 	btnB2.Text = _ustr("测试程序2");
 	BackColor = ARGB16(1, 31, 31, 15);
-	FetchEvent<EControl::TouchMove>(*this) += OnDrag;
+	FetchEvent<TouchMove>(*this) += OnDrag;
 	//	btnB.TouchMove += &AVisualControl::OnTouchMove;
-	FetchEvent<EControl::Enter>(btnB) += btnB_Enter;
-	FetchEvent<EControl::Leave>(btnB) += btnB_Leave;
-	FetchEvent<EControl::TouchMove>(btnB2) += OnDrag;
+	FetchEvent<Enter>(btnB) += btnB_Enter;
+	FetchEvent<Leave>(btnB) += btnB_Leave;
+	FetchEvent<TouchMove>(btnB2) += OnDrag;
 	//	btnB2.TouchDown += btnC_Click;
 	//	btnB.Enabled = false;
 }
@@ -573,21 +573,21 @@ ShlSetting::TFormC::TFormC()
 	btnReturn.Text = _ustr("返回");
 	btnExit.Text = _ustr("退出");
 	BackColor = ARGB16(1, 31, 15, 15);
-	FetchEvent<EControl::TouchDown>(*this) += TFormC_TouchDown;
-	FetchEvent<EControl::TouchMove>(*this) += OnDrag;
-	FetchEvent<EControl::TouchUp>(btnC).Add(*this,
+	FetchEvent<TouchDown>(*this) += TFormC_TouchDown;
+	FetchEvent<TouchMove>(*this) += OnDrag;
+	FetchEvent<TouchUp>(btnC).Add(*this,
 		&TFormC::btnC_TouchUp);
-	FetchEvent<EControl::TouchDown>(btnC).Add(*this,
+	FetchEvent<TouchDown>(btnC).Add(*this,
 		&TFormC::btnC_TouchDown);
-	FetchEvent<EControl::TouchMove>(btnC) += OnDrag;
-	FetchEvent<EControl::Click>(btnC).Add(*this, &TFormC::btnC_Click);
-	FetchEvent<EControl::Click>(btnD).Add(*this, &TFormC::btnD_Click);
-	FetchEvent<EControl::KeyPress>(btnC) += btnC_KeyPress;
+	FetchEvent<TouchMove>(btnC) += OnDrag;
+	FetchEvent<Click>(btnC).Add(*this, &TFormC::btnC_Click);
+	FetchEvent<Click>(btnD).Add(*this, &TFormC::btnD_Click);
+	FetchEvent<KeyPress>(btnC) += btnC_KeyPress;
 	//	btnC.Enabled = false;
 	btnReturn.BackColor = ARGB16(1, 22, 23, 24);
-	FetchEvent<EControl::Click>(btnReturn).Add(*this,
+	FetchEvent<Click>(btnReturn).Add(*this,
 		&TFormC::btnReturn_Click);
-	FetchEvent<EControl::Click>(btnExit).Add(*this,
+	FetchEvent<Click>(btnExit).Add(*this,
 		&TFormC::btnExit_Click);
 }
 
@@ -781,9 +781,9 @@ ShlReader::OnActivated(const Message& /*msg*/)
 	hDesktopDown->SetBackground(NULL);
 	hDesktopUp->BackColor = ARGB16(1, 30, 27, 24);
 	hDesktopDown->BackColor = ARGB16(1, 24, 27, 30);
-	FetchEvent<EControl::Click>(*hDesktopDown).Add(*this,
+	FetchEvent<Click>(*hDesktopDown).Add(*this,
 		&ShlReader::OnClick);
-	FetchEvent<EControl::KeyPress>(*hDesktopDown).Add(*this,
+	FetchEvent<KeyPress>(*hDesktopDown).Add(*this,
 		&ShlReader::OnKeyPress);
 	RequestFocusCascade(*hDesktopDown);
 	UpdateToScreen();
@@ -794,9 +794,9 @@ int
 ShlReader::OnDeactivated(const Message& /*msg*/)
 {
 	ShlClearBothScreen();
-	FetchEvent<EControl::Click>(*hDesktopDown).Remove(*this,
+	FetchEvent<Click>(*hDesktopDown).Remove(*this,
 		&ShlReader::OnClick);
-	FetchEvent<EControl::KeyPress>(*hDesktopDown).Remove(*this,
+	FetchEvent<KeyPress>(*hDesktopDown).Remove(*this,
 		&ShlReader::OnKeyPress);
 	hDesktopUp->SetBackground(hUp);
 	hDesktopDown->SetBackground(hDn);

@@ -1,8 +1,8 @@
 ﻿// YSLib -> Designation by Franksoft 2009 - 2011
 // CharSet = UTF-8;
 // CTime = 2009-12-02 05:14:30 + 08:00;
-// UTime = 2011-02-14 20:26 + 08:00;
-// Version = 0.4267;
+// UTime = 2011-02-19 01:19 + 08:00;
+// Version = 0.4283;
 
 
 // Designation ：设计规则指定和说明文档。
@@ -488,6 +488,8 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 @1.7.1 事件：
 事件是用户发出的信号在进程中的抽象。
 事件本身是即时的，包含发生时间和事件内容两个方面的意义（有时后者又包含前者）。
+需要注意，从实现而言，这种即时性是相对的。原因是使事件发生需要时间（具体实现表现为若干个机器的指令周期）。
+所以，发生动作时触发事件指紧接动作完成后产生事件在存储器中的映像。例如，“控件发生移动时产生 Move 事件”指紧随控件位置发生变化后构造 Move 事件的对象（或进入 Move 事件的处理程序等）。这样的行为在逻辑上有确定的顺序。
 
 @1.7.1.1 事件空间：
 对于有限的不同种类事件，它们内容可以用整数或枚举类型标识，对应的取值集合称为事件空间。
@@ -850,14 +852,13 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 @2.6.2 GUI 事件：
 
 @2.6.2.1 默认 GUI 事件：
-由 Core::YEvent 实现。
-默认 GUI 事件和 YGUI 单元、 YControl 单元和默认部件模块类相关。
-在 YControl 单元中的枚举结构 struct EControl （可视控件事件空间）中定义，包含焦点事件、基本输入事件和边界事件。
+即 YControl 中定义的标准可视控件事件，使用 Core::YEvent 实现。
+默认 GUI 事件和 YControl 单元、 YGUI 单元和默认部件抽象类相关。
+在 YControl 单元中的枚举 enum VisualEventSpace （标准可视控件事件空间，一般使用 typedef 名称 VisualEvent）中定义，包含焦点事件、基本输入事件和边界事件。
 
-@2.6.2.1.1 焦点事件：
-包括 GotFocus 和 LostFocus 事件。
-触发条件参见 @2.6.4 。
-功能概述参见 @1.8.2.5 。
+@2.6.2.1.1 视图变更事件：
+包括 Move 、 Resize 事件等。
+在视图改变时触发。
 
 @2.6.2.1.2 基本输入事件：
 包括按键输入事件 KeyUp 、 KeyDown 、 KeyHeld 和 KeyPress；指针设备（屏幕光标定位设备）接触事件 TouchUp 、TouchDown 、 TouchHeld 、 TouchMove 和 Click 。
@@ -870,7 +871,12 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 最近操作的全局（相对于屏幕的）坐标保存于全局变量 VisualControlLocation 中。
 拖放操作依赖的最近全局坐标保存于全局变量 LastVisualControlLocation 中。
 
-@2.6.2.1.3 边界事件：
+@2.6.2.1.3 焦点事件：
+包括 GotFocus 和 LostFocus 事件。
+触发条件参见 @2.6.4 。
+功能概述参见 @1.8.2.5 。
+
+@2.6.2.1.4 边界事件：
 包括 Enter 和 Leave 事件。
 指针设备作用于 AVisualControl 派生的控件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
 

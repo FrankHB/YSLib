@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version 0.2964;
+\version 0.2968;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-05 22:06:05 + 08:00;
 \par 修改时间:
-	2010-11-28 22:17 + 08:00;
+	2011-02-20 13:40 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,6 @@
 #define INCLUDED_YSTRING_H_
 
 #include "yobject.h"
-//#include <string>
 #include "../Adaptor/cont.h"
 
 YSL_BEGIN

@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3484;
+\version 0.3496;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 + 08:00;
 \par 修改时间:
-	2010-01-14 06:50 + 08:00;
+	2010-02-20 19:40 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
+#include "ywindow.h"
 #include "ydesktop.h"
-#include "ycontrol.h"
 
 YSL_BEGIN
 
@@ -45,7 +45,7 @@ MWindow::MWindow(const GHStrong<YImage> i, HWND hWnd)
 
 
 AWindow::AWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
-	: AVisualControl(r, GetPointer(hWnd)), MWindow(i, hWnd)
+	: VisualControl(r, GetPointer(hWnd)), MWindow(i, hWnd)
 {}
 
 BitmapPtr
@@ -58,16 +58,7 @@ void
 AWindow::SetSize(const Size& s)
 {
 	SetBufferSize(s);
-	ParentType::SetSize(s);
-}
-
-void
-AWindow::RequestToTop()
-{
-	YDesktop* pDsk(FetchDirectDesktopPtr(*this));
-
-	if(pDsk)
-		pDsk->MoveToTop(*this);
+	VisualControl::SetSize(s);
 }
 
 bool

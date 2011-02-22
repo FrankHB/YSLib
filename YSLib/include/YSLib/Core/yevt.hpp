@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调模块。
-\version 0.3958;
+\version 0.3976;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 + 08:00;
 \par 修改时间:
-	2011-02-13 18:12 + 08:00;
+	2011-02-20 13:41 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,7 @@
 #ifndef INCLUDED_YEVT_HPP_
 #define INCLUDED_YEVT_HPP_
 
+#include "ysdef.h"
 #include "yobject.h"
 #include "yfunc.hpp"
 
@@ -455,7 +456,7 @@ typedef GEvent<> Event;
 
 //! \brief 多播事件类型。
 template<class _tEventHandler>
-struct GSEventTemplate
+struct GSEvent
 {
 	typedef Runtime::GEvent<true,
 		typename _tEventHandler::SenderType,
@@ -470,7 +471,7 @@ typedef GEvent<false> Event;
 
 //! \brief 单播事件类型。
 template<class _tEventHandler>
-struct GSEventTemplate
+struct GSEvent
 {
 	typedef Runtime::GEvent<false,
 		typename _tEventHandler::SenderType,
@@ -483,7 +484,7 @@ struct GSEventTemplate
 
 //! \brief 事件类型宏。
 #define EventT(_tEventHandler) \
-	Runtime::GSEventTemplate<_tEventHandler>::EventType
+	Runtime::GSEvent<_tEventHandler>::EventType
 
 //! \brief 声明事件。
 #define DeclEvent(_tEventHandler, _name) \
@@ -530,12 +531,15 @@ public:
 	typedef typename EventType::SenderType SenderType;
 	typedef typename EventType::EventArgsType EventArgsType;
 
+	/*!
+	\brief 委托调用。
+	\warning 需要确保 EventArgs& 引用的对象能够转换至 EventArgsType 对象。
+	*/
 	void
 	operator()(YObject& sender, EventArgs& e) const
 	{
 		SenderType* p(dynamic_cast<SenderType*>(&sender));
 
-		//需要确保 EventArgs 对象能够转换至 _tEventArgs 对象。
 		if(p)
 			_tEvent::operator()(*p, reinterpret_cast<EventArgsType&>(e));
 	}
@@ -543,18 +547,21 @@ public:
 
 
 //! \brief 事件映射表模板。
-template<class _tEventSpace, class _tEvent = Event>
+template<typename _tEventSpace>
 class GEventMap
 {
 public:
-	typedef typename _tEventSpace::EventID ID;
-	typedef _tEvent EventType;
-	typedef typename EventType::SenderType SenderType;
-	typedef typename EventType::EventArgsType EventArgsType;
+	typedef _tEventSpace ID;
 	typedef GIHEvent<YObject, EventArgs> ItemType;
+	typedef SmartPtr<ItemType> PointerType;
+	typedef std::pair<ID, PointerType> PairType;
+	typedef map<ID, PointerType> MapType;
 
 private:
-	mutable map<ID, SmartPtr<ItemType> > m_map; //!< 映射表。
+	typedef std::pair<typename MapType::iterator, bool> InternalPairType; \
+		//!< 搜索表结果类型。
+
+	mutable MapType m_map; //!< 映射表。
 
 public:
 	/*!
@@ -565,24 +572,44 @@ public:
 		: m_map()
 	{}
 
+private:
+	InternalPairType
+	GetSerachResult(const ID& id) const
+	{
+		return ystdex::search_map(m_map, id);
+	}
+
+public:
 	/*!
 	\brief 取指定 id 对应的 _tEventHandler 类型事件。
 	*/
 	template<class _tEventHandler>
-	typename Runtime::GSEventTemplate<_tEventHandler>::EventType&
+	typename Runtime::GSEvent<_tEventHandler>::EventType&
 	GetEvent(const ID& id) const
 	{
-		typedef typename Runtime::GSEventTemplate<_tEventHandler>::EventType
+		InternalPairType pr(GetSerachResult(id));
+
+		typedef typename Runtime::GSEvent<_tEventHandler>::EventType
 			EventType;
 
-		std::pair<typename map<ID, SmartPtr<ItemType> >::iterator, bool>
-			pr(ystdex::search_map(m_map, id));
-
 		if(pr.second)
-			pr.first = m_map.insert(pr.first,
-				std::pair<ID, SmartPtr<ItemType> >(id,
+			pr.first = m_map.insert(pr.first, PairType(id,
 				new GEventWrapper<EventType>()));
 		return dynamic_cast<EventType&>(*pr.first->second);
+	}
+
+	template<class _tEventHandler>
+	void
+	DoEvent(const ID& id, typename _tEventHandler::SenderType& sender,
+		typename _tEventHandler::EventArgsType& e) const
+	{
+		InternalPairType pr(GetSerachResult(id));
+
+		typedef typename Runtime::GSEvent<_tEventHandler>::EventType
+			EventType;
+
+		if(!pr.second)
+			dynamic_cast<EventType&>(*pr.first->second)(sender, e);
 	}
 
 	/*!

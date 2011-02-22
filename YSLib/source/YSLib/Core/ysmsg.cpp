@@ -11,12 +11,12 @@
 /*!	\file ysmsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version 0.1658;
+\version 0.1660;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 + 08:00;
 \par 修改时间:
-	2011-01-06 22:10 + 08:00;
+	2011-01-06 14:59 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,7 @@
 
 
 #include "ysmsg.h"
-#include "../Shell/ydesktop.h" // for YDesktop & YWindow delete procedure;
+#include "../Shell/ywindow.h" // for YWindow delete procedure;
 
 YSL_BEGIN
 

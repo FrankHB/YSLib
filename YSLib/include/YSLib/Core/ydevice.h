@@ -11,12 +11,12 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version 0.2822;
+\version 0.2826;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:39:39 + 08:00;
 \par 修改时间:
-	2011-01-01 18:51 + 08:00;
+	2011-02-20 13:45 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,8 @@
 #ifndef INCLUDED_YDEVICE_H_
 #define INCLUDED_YDEVICE_H_
 
-#include "yexcept.h"
+#include "ysdef.h"
+#include "yobject.h"
 
 YSL_BEGIN
 

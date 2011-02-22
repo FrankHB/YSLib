@@ -1,4 +1,4 @@
-//v0.2959; *Build 191 r48;
+//v0.2959; *Build 192 r47;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -164,233 +164,356 @@ $using:
 
 $DONE:
 r1:
-/= test 0;
+/ @@ \h YControl:
+	/= \tr \decl @@ \st ScreenPositionEventArgs;
+	/ \tr \decl @@ \st InputEventArgs:
+		/ + \c @@ \s \m InputEventArgs Empty;
+	/ \tr \decl @@ \st KeyEventArgs:
+		/ + \c @@ \s \m KeyEventArgs Empty;
+	/ \tr \decl @@ \st TouchEventArgs:
+		/ + \c @@ \s \m TouchEventArgs Empty;
 
 r2:
-/ @@ \cl YSimpleListBox @@ \u YGUIComponent:
-	+ protected \m SDST TopOffset;
-	/ \tr \impl @@ \ctor;
-	/ \impl @@ \mf DrawForeground;
-	/ \impl @@ \mf OnKeyDown;
-	+ protected \mf SDST AdjustTopOffset();
-	+ protected \mf SDST AdjustDownOffset();
+/ @@ \h YEvent:
+	/ \clt<class _tEventSpace, class _tEvent = Event> GEventMap
+		-> \clt<typename _tEventSpace> GEventMap;
+	/ typedef typename _tEventSpace::EventID ID @@ \clt GEventMap;
+		-> typedef _tEventSpace ID;
+/ @@ \h YControl:
+	/ DeclIEntry(Runtime::GEventMap<EControl>& GetEventMap() const)
+		@@ \in IControl -> DeclIEntry(Runtime::GEventMap<EControl::EventID>&
+		GetEventMap() const);
+	/ ImplI1(IVisualControl) DefGetterBase(Runtime::GEventMap<EControl>&,
+		EventMap, Control) @@ \cl AVisualControl -> ImplI1(IVisualControl)
+		DefGetterBase(Runtime::GEventMap<EControl::EventID>&, EventMap,
+		Control);
+	/ @@ \cl Control:
+		/ \m mutable Runtime::GEventMap<EControl> EventMap -> mutable
+			Runtime::GEventMap<EControl::EventID> EventMap;
+		/ DefGetter(Runtime::GEventMap<EControl>&, EventMap, EventMap)
+			-> DefGetter(Runtime::GEventMap<EControl::EventID>&, EventMap,
+			EventMap);
 
-r3-r6:
-* \impl @@ \mf DrawForeground @@ \cl YSimpleListBox @@ \u YGUIComponent;
+r3:
+/ @@ \h YControl:
+	/ \a EControl::EventID -> VisualEvent;
+	/ \en EControl::EventID -> \en VisualEvent !@@ \st EControl;
+	- \st EControl;
+	/ \a EventSpace => VisualEventSpace;
+/ \a "EControl::" -> "";
+
+r4:
+/ @@ \clt GEventMap @@ \h YEvent:
+	+ typedef SmartPtr<ItemType> PointerType;
+	+ typedef map<ID, PointerType> MapType;
+	/ mutable map<ID, SmartPtr<ItemType> > m_map -> mutable MapType m_map;
+	/ \tr \simp \impl @@ \mf GetEvent;
+/ \simp \impl @@ \mf GetEvent;
+
+r5:
+/ \a GSEventTemplate => GSEvent;
+/ \a TryEnter => TryEntering;
+/ \a TryLeave => TryLeaving;
+^ libnds 1.5.0;
+
+r6:
+/ @@ \clt GEventMap @@ \h YEvent:
+	+ \mft<class _tEventHandler> void DoEvent(const ID& id,
+		typename _tEventHandler::SenderType&,
+		typename _tEventHandler::EventArgsType&) const;
+	/= \tr \impl @@ \mft GetEvent;
+	+ private typedef std::pair<typename MapType::iterator, bool>
+		InternalPairType;
+	+ private \mf InternalPairType GetSerachResult(const ID&) const;
+	+ typedef std::pair<ID, PointerType> PairType;
++ \ft<VisualEvent id> \i typename Runtime::GSEvent<typename
+	EventTypeMapping<id>::HandlerType>::EventType& CallEvent(IControl&,
+	typename EventTypeMapping<id>::HandlerType::SenderType&, typename
+	EventTypeMapping<id>::HandlerType::EventArgsType&) @@ \h YControl;
 
 r7:
-/ \rem !\tr \impl @@ \mf AdjustDownOffset @@ \cl YSimpleListBox
-	@@ \u YGUIComponent;
+/  @@ \h YControl:
+	+ \ft<VisualEvent id> \i typename Runtime::GSEvent<typename
+		EventTypeMapping<id>::HandlerType>::EventType& CallEvent(
+		IVisualControl&, typename EventTypeMapping<id>::HandlerType::
+		EventArgsType&);
+	* \a 2 \ret \tp @@ \ft CallEvent;
+/ \impl @@ \f @@ \impl \u YGUI ^ \ft CallEvent;
 
 r8:
-/ @@ \cl YSimpleListBox @@ \u YGUIComponent:
-	* \impl @@ \mf OnKeyDown;
-	/ !\rem !\tr \impl @@ \mf AdjustDownOffset;
-	/ \mf AdjustDownOffset => AdjustBottomOffset;
-/ @@ \clt GSequenceViewer @@ \h YComponent:
-	+ DefGetter(IndexType, Relative, IsSelected() ? GetSelected() - GetIndex()
-		: -1);
+/ @@ \h YControl:
+	+ \n (Move & Resize) @@ \en VisualEventSpace;
+	- event (Move & Resize) @@ \cl MVisualControl;
+	/ DefDelegate(HFocusEvent, IControl, EventArgs)
+		-> DefDelegate(HVisualEvent, IVisualControl, EventArgs);
+	+ DefEventTypeMapping(Move, HVisualEvent);
+	+ DefEventTypeMapping(Resize, HVisualEvent);
+	/ \rem \def @@ HPointEvent;
+	/ \rem \def @@ HSizeEvent;
+	/ ImplI1(IVisualControl) (DefSetterBase(const Point&, Location, Visual)
+		-> void SetLocation(const Point&));
+	/ ImplI1(IVisualControl) (DefSetterBase(const Size&, Size, Visual)
+		-> void SetSize(const Size&));
 
 r9:
-* \tr \impl @@ \mf YFileBox::OnConfirmed(IndexEventArgs&) @@ \u YGUIComponent;
++ \f void RequestToTop(IWidget&) @@ \u YWidget;
+/ \impl @@ \f IVisualControl* GetTouchedVisualControlPtr(IUIBox&, Point&)
+	@@ \un \ns @@ \u YGUI;
+- \a (\amf & \mf) RequestToTop;
 
-r10:
-* \impl @@ \mf OnKeyDown @@ \cl YSimpleListBox @@ \u YGUIComponent;
+r10-r11:
+/ @@ \u YGUIComponent:
+	+ \cl YScrollableContainer;
+	/ @@ \cl YListBox ^ YScrollableContainer;
 
-r11-r12:
-* \impl @@ \mf AdjustDownOffset @@ \cl YSimpleListBox @@ \u YGUIComponent;
+r12:
+/ \inc "yguicomp.h"  @@ \h YWindow
+	-> ("ycontrol.h" & "yuicont.h" & "../Core/yres.h");
+/ \a YImage -> Drawing::YImage @@ \h (YWindow & YForm);
+/ @@ \impl \u YLabel:
+	+ \inc "ylabel.h";
+	/ \tr \impl @@ \mf void MLabel::PaintText(Widget&, const Graphics&,
+		const Point&);
+/ @@ \h DSReader:
+	/ \a TextRegion -> Drawing::TextRegion;
+	/ \a Rotation -> Drawing::Rotation;
+	/ \a Font -> Drawing::Font;
+- using namespace Drawing @@ \h YGUIComponent;
++ \inc <YSLib/Shell/yguicomp.h> @@ "ysbuild.h";
 
 r13:
-* \impl @@ \mf OnKeyDown @@ \cl YSimpleListBox @@ \u YGUIComponent;
+/= \inc @@ \h:
+	/ \inc <YSLib/Helper/shlds.h> @@ \h DSReader
+		-> (<YSLib/Core/yapp.h> & <YSLib/Core/yftext.h>
+		& <YSLib/Shell/ytext.h> & <YSLib/Shell/ydesktop.h>
+		& <YSLib/Helper/yglobal.h> & <YSLib/Service/ytmgr.h>);
+	/ !\rem \inc <YSLib/Helper/yglobal.h> @@ \h Shells;
 
 r14:
-/ @@ \u YGUIComponent:
-	+ \mf void YSimpleListBox::ResetView();
-	/ \simp \impl @@ \mf YFileBox::OnConfirmed ^ YSimpleListBox::ResetView;
+/= \inc:
+	/ @@ \h YApplication:
+		- \a \inc;
+		+ \inc "ysdef.h";
+		+ \inc "yobject.h";
+		+ \inc "yfilesys.h";
+		+ \inc "ystring.h";
+		+ \inc "yevt.hpp";
+		+ \inc "ysmsg.h";
+		+ \inc "yexcept.h";
+	+ \inc "ysdef.h" @@ \h (YObject & YFileSystem & YEvent & YFile_(Text)
+		& YShellMessageDefinition);
+	+ \inc "ycounter.hpp" @@ \h YShellMessage;
+	/ @@ \h YException:
+		+ \inc \h YShellDefinition;
+		/ \inc "yobject.h" -> "../Adaptor/ycont.h";
+	/ \inc "yexcept.h" -> \h (YShellDefinition & YObject) @@ \h YDevice;
+	+ \inc \h (YShellDefinition & YObject) @@ \h YFile;
+	+= \inc "ysdef.h" & "ycouter.hpp" @@ \h YResource;
+	+= \inc "ysdef.h" & "yobject.h" @@ \h YShell;
+	+ \inc "../Core/ysdef.h" @@ \a \h @@ \dir (Service & Shell) @@ \lib YSLib;
+	+ \inc "../Core/yobject.h" @@ \h (YTextManager & YComponent & YControl
+		& YFocus & YGDI & YUIContainer & YGUIComponent);
+	+ \inc "../Core/ycounter.hpp" @@ \h (YComponent & YForm & YLabel
+		& YGUIComponent);
+	/ @@ \h YComponent:
+		/ \inc "../Core/yevt.hpp" -> "../Core/yshell.h";
+	/ @@ \h YDesktop:
+		+ \inc "../Core/ydevice.h"
+		+ \inc "../Adaptor/ycont.h";
+	+ \inc "../Core/yres.h" @@ \h (YForm & );
+	+ \inc "../Core/ycutil.h" @@ \h (YFocus & YLabel);
+	+ \inc "ywidget.h" @@ \h YWindow;
+	+ \inc "../Core/yevt.hpp" @@ \h YControl;
+	- \inc ("../Core/ystring.h" & "<cwctype>") @@ \h YText;
+	+ \inc "../Adaptor/yfont.h" @@ \h (YText & YLabel & YGUIComponent);
+	/ \inc ("../Core/yshell.h" & "ydesktop.h" & "yform.h")
+		-> "ycomp.h" & "ycontrol.h" & "../Core/yfunc.hpp" @@ \h YGUI;
+	+ \inc (<YSLib/Core/ysdef.h> & <YSLib/Core/ydevice.h>
+		& <YSLib/Shell/ydesktop.h> & <YSLib/Shell/yform.h>) @@ \h "ysbuild.h";
+	+ \inc "ywindow.h" & "ydesktop.h" @@ \impl \u YGUI;
 
-r15-r16:
-	r15:
-	* \def @@ \mf Contains @@ \clt GSequenceViewer @@ \h YComponent:
-		+ \c;
-/= test 1;
+r15:
+*= + \inc \h <cwctype> @@ \h YText;
+/= \inc @@ \impl \u:
+	+ \inc "../Core/yfilesys.h" @@ \impl \u YFont;
+	- \inc "yshell.h" @@ \impl \u YDevice;
+	+ \inc "yshell.h" @@ \impl \u YShell;
+	/ \inc "../Shell/ydesktop.h" -> "../Shell/ywindow.h"
+		@@ \impl \u YShellMessage;
+
+r16:
+/= \inc @@ \impl \u:
+	/= \inc "../Shell/yapp.h" -> "../Shell/yexcept.h"
+		@@ \impl \u YTextManager;
+	/= \inc "../ysbuild.h" -> ("../Core/yfilesys.h" & "../Core/yapp.h"
+		& "../Core/yshell.h" & "../Core/ydevice.h" & "../Adaptor/yfont.h"
+		& "../Adaptor/ysinit.h" & "../Shell/ydesktop.h") @@ \impl \u YGlobal;
+	+= \inc "yuicont.h" @@ \impl \u YControl;
+	/= \inc "ydesktop.h" -> ("yuicont.h" & "ywindow.h") @@ \impl \u YLabel;
+	+= \inc ("yfocus.h" & "ycontrol.h") @@ \impl \u YFocus;
+	+= \inc ("yuicont.h" & "ywindow.h") @@ \impl \u YUIContainer;
+	-= \inc "ydesktop.h" @@ \impl \u YForm;
+	+= \inc ("ywidget.h" & "yuicont.h" & "ywindow.h") @@ \impl \u YWidget;
+	/= \inc "ycontrol.h" -> "ywindow.h" @@ \impl \u YWindow;
 
 r17:
-/ @@ \cl YListBox @@ \impl \u YGUIComponent:
-	/ \impl @@ \mf DrawForeground;
-/ @@ \h YComponent:
-	/ \clt<class _tContainer> GSequenceViewer
-		-> \clt<class _tContainer, typename _tSize = typename
-		_tContainer::size_type, typename _tIndex = std::ptrdiff_t>
-		GSequenceViewer:
-		/ typedef typename _tContainer::size_type SizeType
-			-> typedef _tSize SizeType;
-		/ typedef std::ptrdiff_t IndexType -> typedef _tIndex IndexType;
+/ \mac (YCL_USE_YASSERT & YWidgetAssert) & \f YWidget @@ \ns Widgets
+	@@ \u YWidget -> \u YUIContainer;
 
 r18:
-/ \u YGUIComponent:
-	/ @@ \cl YListBox:
-		+ DefPredicateMember(Selected, TextListBox);
-		+ typedef YSimpleListBox::ViewerType ViewerType;
-		+ DefGetterMember(ViewerType::IndexType, Index, TextListBox);
-		+ DefGetterMember(ViewerType::IndexType, Selected, TextListBox);
-		+ \mf bool Contains(ViewerType) const;
-	/ @@ \cl YSimpleListBox:
-		/ protected \m ViewerType Viewer -> private \m ViewerType viewer;
-		/ protected \m SDST TopOffset -> private \m SDST top_offset;
-		/ protected \m Drawing::TextState TextState -> private \m
-			TextState text_state;
-		+ \mf bool Contains(ViewerType) const;
-	/ \simp \impl @@ \mf (GetPath & OnConfirmed) @@ \cl YFileBox;
+/ \a AVisualControl => VisualControl;
+- \a typedef VisualControl ParentType;
+- \a typedef Controls::VisualControl ParentType;
+/ @@ \u YControl:
+	* + \vt @@ \dtor @@ \cl VisualControl;
+	/ + \i @@ dtor @@ \cl YVisualControl ^ \mac DefEmptyDtor;
+	* + \inh IControl @@ \cl YControl;
+	- \exp \ctor @@ \cl MVisualControl;
+/ \tr \impl @@ \mf ((DrawForeground @@ \cl (ATrack & AScrollBar) @@ \impl \u
+	YGUIComponent) & (AWindow::SetSize @@ \impl \u YWindow));
 
 r19:
-/ @@ \u YGUIComponent:
-	/ @@ \cl YListBox:
-		+ DefGetterMember(ListType&, List, TextListBox);
-		+ \mf void ResetView() ^ \mac PDefH0;
-	/ @@ \cl YFileBox:
-		/ \inh \cl YSimpleListBox -> \cl YListBox;
-		/ typedef YSimpleListBox ParentType -> typedef YListBox ParentType;
+/ @@ \u YControl:
+	- \cl MVisualControl;
+	/ @@ \cl VisualControl:
+		/ \inh MVisualControl -> Control;
 		/ \impl @@ \ctor;
 
 r20:
-* \impl @@ \ctor @@ \cl YListBox @@ \impl \u YGUIComponent;
++ \u YUIContainerEx @@ \dir Shell;
++ \cl AUIBoxControl @@ \u YUIContainerEx;
++ \inc "yuicontx.h" @@ \h YGUIComponent;
 
 r21:
-/ @@ \clt GSequenceViewer @@ \h YComponent:
-	/ \mf GetSelected => GetSelectedIndex;
-	/ \a \m nIndex => head;
-	/ \a \m nSelected => selected;
-	/ \a \m nLength => length;
-	/ \a \m bSelected => is_selected;
-	/ \mf GetIndex => GetHeadIndex;
-	/ \mf SetIndex => SetHeadIndex;
-	/ \mf SetSelected => SetSelectedIndex;
-	/ \mf GetRelative => GetRelativeIndex;
-/ @@ \h YGUIComponent:
-	/ @@ \cl YSimpleListBox:
-		/ DefGetterMember(ViewerType::IndexType, Selected, viewer)
-			-> DefGetterMember(ViewerType::IndexType, SelectedIndex, viewer);
-		/ DefGetterMember(ViewerType::IndexType, Index, viewer)
-			-> DefGetterMember(ViewerType::IndexType, HeadIndex, viewer);
-	/ @@ \cl YListBox:
-		/ DefGetterMember(ViewerType::IndexType, Selected, TextListBox)
-			-> DefGetterMember(ViewerType::IndexType, SelectedIndex,
-			TextListBox);
-		/ DefGetterMember(ViewerType::IndexType, Index, TextListBox)
-			-> DefGetterMember(ViewerType::IndexType, HeadIndex, TextListBox);
+- \inh "ywindow.h" @@ \impl \u YUIContainerEx;
+/ - \i @@ \f FetchWindowPtr(const IWidget&) @@ \u YUIContainer;
 
 r22:
-/ @@ \h YEvent:
-	/ \mac DefMutableEventGetter(_tEventHandler, _name)
-		-> DefMutableEventGetter(_tEventHandler, _name, _member);
-	/ \mac DefEventGetter(_tEventHandler, _name)
-		-> DefEventGetter(_tEventHandler, _name, _member);
+/ @@ \u YGUIComponent:
+	/ @@ \cl YScrollableContainer:
+		/ \inh (YVisualControl & MSimpleFocusResponser)
+			-> (YComponent & AUIBoxControl);
+		- \inh IUIBox;
+		/ typedef YVisualControl ParentType
+			-> typedef YComponent ParentType;
+		/ \impl @@ \ctor;
+		/= \mf ImplI1(IUIBox) IVisualControl* GetTopVisualControlPtr(const
+			Point&) -> ImplI1(AUIBoxControl) IVisualControl*
+			GetTopVisualControlPtr(const Point&);
+		- \a \mf with tag 'Impl?(IUIBox)';
+		/ \tr \impl @@ \mf void DrawForeground();
 
 r23:
-/ @@ \u YGUIComponent:
-	/ @@ \cl YListBox:
-		- \m DeclEvent(HIndexEvent, Selected);
-		- \m DeclEvent(HIndexEvent, Confirmed);
-		+ DefMutableEventGetter(HIndexEvent, Selected, TextListBox.Selected);
-		+ DefMutableEventGetter(HIndexEvent, Confirmed, TextListBox.Confirmed);
-		/ \impl @@ \ctor;
-	/ \impl @@ \ctor @@ \cl YFileBox;
-/ \tr \impl @@ \ctor @@ \cl ShlExplorer::TFrmFileListSelecter
-	@@ \impl \u Shells;
+- \vt @@ \inh IWindow @@ \cl AWindow @@ \h YWindow;
 
-r24-r27:
-* \impl @@ \f IVisualControl* GetTouchedVisualControlPtr(IUIBox&, Point&)
-	@@ \un \ns @@ \impl \u YGUI;
+r24:
+/ @@ \u YGUIComponent:
+	/ \cl YScrollableContainer -> \cl ScrollableContainer:
+		- \inh GMCounter<YScrollableContainer>;
+		- \inh YComponent;
+		- typedef YComponent ParentType;
+		/ \impl @@ \ctor;
+	/ @@ \cl YSimpleListBox:
+		/ \inh YScrollableContainer -> (YComponent & AScrollableContainer);
+		/ typedef YScrollableContainer ParentType
+			-> typedef YComponent ParentType;
+		/ \impl @@ \ctor;
+		/ \tr \impl @@ \mf void DrawForeground();
+		/ \tr \impl @@ \mf IVisualControl* GetTopVisualControlPtr(const Point&);
+
+r25:
+* + '-mtune=arm946e-s' @@ \mac CFLAGS @@ (YSTest & YCLib & CHRLib)
+	ARM9 makefile;
+
+r26:
+/= test 1 ^ \conf release;
+
+r27:
+/ @@ \cl (ATrack & AScrollBar) @@ \u YGUIComponent:
+	/ \inh (VisualControl & MSimpleFocusResponser & IUIBox)
+		-> \inh AUIBoxControl;
+	- \a \mf with tag ImplI1(IUIBox) \exc GetTopVisualControlPtr;
+	/ tag @@ GetTopVisualControlPtr -> ImplI1(AUIBoxControl);
+	/ \impl @@ \ctor;
 
 r28:
-/= \tr \impl @@ \mf DrawForeground @@ \cl (YThumb & YSimpleListBox)
-	@@ \impl \u YGUIComponent;
-* \h YControl:
-	/ \inh AFocusRequester >> \cl AVisualControl ~ \cl MVisualControl;
-	/ \tr \impl @@ \ctor @@ \cl (MVisualControl & AVisualControl);
-	* \tr \impl @@ \mf AVisualControl::CheckRemoval;
+/ @@ \u YGUIComponent:
+	+ \f std::pair<bool, bool> FixScrollBarLayout(Size&, const Size&,
+		SDST, SDST) @@ \un \ns;
+	/ @@ \cl ScrollableContainer:
+		/ private \mf void FixLayout()
+			-> protected \mf void FixLayout(const Size&)
+				^ \f FixScrollBarLayout;
+		/ \impl @@ \ctor;
+		/ \tr \impl @@ \mf DrawForeground;
 
 r29:
-/ @@ \u YFocus:
-	/ @@ \cl AFocusRequester:
-		/ \impl @@ \a (\mf & \mft) (ReleaseFocus & RequestFocus);
-		/ \impl @@ \ctor;
-		- \m bFocus;
-		/ mf bool IsFocused() const -> \amf;
-/ @@ \cl AVisualControl @@ \u YControl:
-	- ImplI1(IVisualControl) DefPredicateBase(Focused, AFocusRequester);
-	+ !\i \impl \amf IsFocused ^ \mf (GetContainerPtr);
+* \impl @@ FixScrollBarLayout @@ \un \ns @@ \u YGUIComponent;
 
-r30-r31:
-/= test 2;
+r30:
+* \impl @@ \mf AScrollBar::DrawForeground() @@ \u YGUIComponent;
+
+r31:
+/ @@ \u YGUIComponent:
+	+ \mf Size GetFullViewSize() const @@ \cl YSimpleListBox;
+	/ \impl @@ \mf void DrawForeground() @@ \cl YListBox;
 
 r32:
-* \impl @@ \mf bool SetFocusingPtr(_type*) @@ \clt GMFocusResponser
-	@@ \h YFocus;
+/ @@ \u YGUIComponent:
+	/ \mf void FixLayout(const Size&) @@ \cl ScrollableContainer
+		-> Size FixLayout(const Size&);
+	/ \impl @@ \mf void DrawForeground() @@ \cl YListBox;
 
 r33:
-/ @@ \h YFocus:
-	- \amf DeclIEntry(bool IsFocusOfContainer(_tResponser<_type>&) const)
-		@@ \in \t GIFocusRequester;
-	- ImplI1((GIFocusRequester<GMFocusResponser, AFocusRequester>)) @@ \mf
-		IsFocusOfContainer @@ \cl AFocusRequester;
-- \mf IsFocusOfContainer @@ \cl AVisualControl @@ \h YControl;
+/ @@ \impl \u YGUIComponent:
+	* \impl @@ FixScrollBarLayout @@ \un \ns;
+	/ \impl @@ \mf Size ScrollableContainer::FixLayout(const Size&);
+/ @@ \cl Visual @@ \h YWidget:
+	+ !\vt \mf void SetX(SPOS);
+	+ !\vt \mf void SetY(SPOS);
+	+ !\vt \mf void SetWidth(SDST);
+	+ !\vt \mf void SetHeight(SDST);
 
 r34:
-/= test 3;
+/ @@ \u YGUIComponent:
+	- \a 'defMargin?' >> (\un \ns @@ \impl \u) ~ (\cl \decl @@ \h);
+	/ @@ \un \ns:
+		+ \c SDST defMinScrallBarWidth(16);
+		+ \c SDST defMinScrallBarHeight(16);
+	/ \impl @@ \cl ScrollableContainer
+		^ defMinScrallBarWidth & defMinScrallBarHeight;
+	* \impl @@ \mf Size ScrollableContainer::FixLayout(const Size&);
 
 r35:
-/ \impl @@ \mf (bool operator-=(IVisualControl&) & DOs::size_type
-	RemoveAll(IVisualControl&)) @@ \cl YDesktop @@ \impl \u YDesktop;
+/ \impl @@ \mf Size ScrollableContainer::FixLayout(const Size&)
+	@@ \impl \u YGUIComponent;
 
 r36:
-/ \impl @@ \mf void YDesktop::RemoveTopDesktopObject() @@ \impl \u YDesktop;
-- \mf CheckRemoval @@ \cl AVisualControl @@ \h YControl;
-/ @@ \u YFocus:
-	/ @@ \in \t GIFocusRequester:
-		- \amf DeclIEntry(void ReleaseFocus(EventArgs&));
-		- \amf DeclIEntry(bool CheckRemoval(_tResponser<_type>&) const);
-	/ \a GIFocusRequester<GMFocusResponser, AFocusRequester>
-		-> GIFocusRequester<GMFocusResponser>;
-	/ @@ \cl AFocusRequester & \in \t GIFocusRequester:
-		- \amf DeclIEntry(void ReleaseFocus(EventArgs&));
-		- \mf bool RequestFocus(GMFocusResponser<AFocusRequester>&);
-		- \mf bool ReleaseFocus(GMFocusResponser<AFocusRequester>&);
-		- \a (\mf & \mft CheckRemoval);
-	/ @@ \clt GFocusResponser:
-		- \de \t \param AFocusRequester;
-		- friend \cl AFocusRequester;
+/ \impl @@ \ctor @@ \cl ScrollableContainer @@ \impl \u YGUIComponent;
 
-r37:
-/ @@ \h YFocus:
-	/ \t<template<class> class _tResponser = GMFocusResponser,
-		class _type = AFocusRequester> \in GIFocusRequester
-		-> \t<template<class> class _tResponser = GMFocusResponser>
-		\in GIFocusRequester;
-/ \vt \inh GIFocusRequester<GMFocusResponser, IVisualControl>
-	-> GIFocusRequester<GMFocusResponser> @@ \in IVisualControl @@ \h YControl;
-/ \inc "ydesktop.h" -> "ywindow.h" @@ \impl \u YFocus;
-- \i @@ \f (FetchDirectWindowPtr & FetchDirectDesktopPtr) @@ \u YUIContainer;
+r37-r45:
+/= test 2;
 
-r38:
-* \impl @@ \ctor @@ \cl YFileBox @@ \impl \u YGUIComponent;
+r46:
+/ @@ \u YGUIComponent:
+	* invisible scroll bar shown:
+		/ \impl @@ mf void YListBox::DrawForeground();
+	* visible scroll bar not shown:
+		/ @@ \cl YSimpleListBox:
+			+ \c @@ \mf GetItemHeight;
+			/ \impl @@ \mf GetTextState;
+			/ \impl @@ \mf GetFullViewSize;
+			/ \tr \impl @@ \mf DrawForeground;
 
-r39:
-/= test 4 ^ \conf release;
-
-r40-r47:
-* \impl @@ void YSimpleListBox::DrawForeground();
-/= test 5;
-
-r48:
-/= test 6 ^ \conf release;
+r47:
+/= test 3 ^ \conf release;
 
 
 $DOING:
 
 relative process:
-2011-02-14:
--26.5d;
+2011-02-22:
+-25.3d;
 
 / ...
 

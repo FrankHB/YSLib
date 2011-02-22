@@ -16,7 +16,7 @@
 \par 创建时间:
 	2010-05-23 06:10:59 + 08:00; 
 \par 修改时间:
-	2011-02-02 15:03 + 08:00;
+	2011-02-15 19:28 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -217,8 +217,8 @@ namespace ystdex
 	/*!
 	\ingroup Algorithm
 	\brief 按指定键值搜索指定映射。
-	\return 一个用于表示结果的 std::pair 对象，其 first 成员为迭代器， second 成员
-		表示是否需要插入（行为同 std::map::operator[] ）。
+	\return 一个用于表示结果的 std::pair 对象，其 first 成员为迭代器，
+		second 成员表示是否需要插入（行为同 std::map::operator[] ）。
 	*/
 	template<class _tMap>
 	std::pair<typename _tMap::iterator, bool>
