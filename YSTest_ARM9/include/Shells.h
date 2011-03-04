@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3068;
+\version 0.3074;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2011-02-20 03:18 + 08:00;
+	2011-02-27 21:30 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -103,7 +103,7 @@ private:
 		frm_KeyPress(KeyEventArgs&);
 
 		void
-		fb_Selected(IndexEventArgs&);
+		fb_ViewChanged(EventArgs&);
 
 		void
 		btnTest_Click(TouchEventArgs&);

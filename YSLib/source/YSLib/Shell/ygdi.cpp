@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3378;
+\version 0.3380;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2011-02-07 01:18 + 08:00;
+	2011-02-23 16:21 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,6 +28,9 @@
 #include "../Core/yexcept.h"
 
 YSL_BEGIN
+
+using ystdex::vmin;
+using ystdex::vmax;
 
 YSL_BEGIN_NAMESPACE(Drawing)
 

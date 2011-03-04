@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2492;
+\version 0.2507;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 + 08:00;
 \par 修改时间:
-	2011-01-29 14:50 + 08:00;
+	2011-03-02 12:14 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,17 +70,17 @@ YSL_END_NAMESPACE(Design)
 
 using Design::NonCopyable;
 
-
 /*!
-\brief 判断引用相等关系。
+\brief 取指定类型的静态默认对象。
 */
 template<typename _type>
-inline bool
-ReferenceEquals(const _type& a, const _type& b)
+inline _type&
+GetStaticRef()
 {
-	return &a == &b;
-}
+	static _type _obj;
 
+	return _obj;
+}
 
 /*!
 \brief 取整数类型的零元素。
@@ -97,49 +97,8 @@ template<typename _type>
 inline _type
 GetZeroElement()
 {
-	return _type();
+	return _type(0);
 }
-
-
-/*!
-\brief 取值类型最小值。
-*/
-template<typename _type>
-inline _type
-vmin(_type a, _type b)
-{
-	return b < a ? b : a;
-}
-/*!
-\brief 取值类型最大值。
-*/
-template<typename _type>
-inline _type
-vmax(_type a, _type b)
-{
-	return a < b ? b : a;
-}
-/*!
-\brief 取值类型最小值。
-\note 使用指定判断操作。
-*/
-template<typename _type, typename _fCompare>
-inline _type
-vmin(_type a, _type b, _fCompare _comp)
-{
-	return _comp(b, a) ? b : a;
-}
-/*!
-\brief 取值类型最大值。
-\note 使用指定判断操作。
-*/
-template<typename _type, typename _fCompare>
-inline _type
-vmax(_type a, _type b, _fCompare _comp)
-{
-	return _comp(a, b) ? b : a;
-}
-
 
 /*!
 \brief 整数类型符号函数。
@@ -324,18 +283,18 @@ SwitchAddedInterval(_type v, const _type* a, std::size_t n)
 
 /*!
 \brief 约束整数 i 在闭区间 [a, b] 中。
-\pre 断言：a < b 。
+\pre 断言：!(b < a) 。
 \post !(i < a || b < i) 。
 */
 template<typename _type>
 void
 RestrictInClosedInterval(_type& i, int a, int b)
 {
-	YAssert(a < b,
+	YAssert(!(b < a),
 		"In function \"template<typename _type>\n"
 		"void\n"
 		"RestrictInClosedInterval(_type& i, int a, int b)\":\n"
-		"Lower bound is not less than upper bound.");
+		"Upper bound is less than lower bound.");
 
 	if(i < a)
 		i = a;

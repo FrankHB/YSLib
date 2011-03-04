@@ -1,8 +1,8 @@
 ﻿// YSLib -> Designation by Franksoft 2009 - 2011
 // CharSet = UTF-8;
 // CTime = 2009-12-02 05:14:30 + 08:00;
-// UTime = 2011-02-19 01:19 + 08:00;
-// Version = 0.4283;
+// UTime = 2011-03-03 22:11 + 08:00;
+// Version = 0.4296;
 
 
 // Designation ：设计规则指定和说明文档。
@@ -489,7 +489,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 事件是用户发出的信号在进程中的抽象。
 事件本身是即时的，包含发生时间和事件内容两个方面的意义（有时后者又包含前者）。
 需要注意，从实现而言，这种即时性是相对的。原因是使事件发生需要时间（具体实现表现为若干个机器的指令周期）。
-所以，发生动作时触发事件指紧接动作完成后产生事件在存储器中的映像。例如，“控件发生移动时产生 Move 事件”指紧随控件位置发生变化后构造 Move 事件的对象（或进入 Move 事件的处理程序等）。这样的行为在逻辑上有确定的顺序。
+所以，发生动作时触发事件指紧接动作完成后产生事件在存储器中的映像。例如，“设置控件位置时产生 Move 事件”指紧随试图设置控件位置的后构造 Move 事件的对象（或进入 Move 事件的处理程序等）。这样的行为在逻辑上有确定的顺序。
 
 @1.7.1.1 事件空间：
 对于有限的不同种类事件，它们内容可以用整数或枚举类型标识，对应的取值集合称为事件空间。
@@ -692,17 +692,11 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 当作为非多态类时析构函数应为 protected （除非它的所有派生类都没有在它的基础上扩展域，或都满足析构函数为 protected ），且不可作为类的成员或被实例化。
 其它情况下可实例化，但通常仅用于作为类实例的子对象（mixin 实例）。此时应尽可能减少虚表体积，并降低额外的运行时效率开销（例如，不使用引用类型的成员）。
 
-@2.3.8 E 前缀类名的类：
-枚举包装类。
-一般是非多态类。
-包括事件空间类，即实现了 EventID 类型成员的类，仅作为模板参数使用。 EventID 可以是整数或枚举类型。
-其它特性类型同屏幕对象类。
-
-@2.3.9 H 前缀类名的类：
+@2.3.8 H 前缀类名的类：
 句柄类。
 具有间接访问语义的类（例如指针、引用或迭代器）。
 
-@2.3.10 无前缀类名的类：
+@2.3.9 无前缀类名的类：
 一般类。
 不属于以上有前缀类的类。无其它限制和特性。
 
@@ -858,15 +852,16 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 
 @2.6.2.1.1 视图变更事件：
 包括 Move 、 Resize 事件等。
-在视图改变时触发。
+在试图变更视图时触发。
+需要注意，不包括必然的视图改变后置条件。即使设置控件视图操作的结果与未设置时相同，仍触发事件。 
 
 @2.6.2.1.2 基本输入事件：
 包括按键输入事件 KeyUp 、 KeyDown 、 KeyHeld 和 KeyPress；指针设备（屏幕光标定位设备）接触事件 TouchUp 、TouchDown 、 TouchHeld 、 TouchMove 和 Click 。
 触发过程：由 YGlobal 等单元完成平台相关的用户输入信号捕获并向 YGUI 单元传递，后者处理后生成对应输入事件。
 当用户按键时，触发 KeyDown 事件；持续时触发 KeyHeld 事件；结束时依次触发 KeyPress 和 KeyUp 事件。
 当用户使用指针设备（包括触摸屏）输入时，触发 TouchDown 事件；持续时触发 TouchHeld 事件；持续且移动时可触发 TouchMove 事件；结束时依次触发 Click 和 TouchUp 事件。
-在 YControl 单元及其中的可视控件抽象类 AVisualControl 中定义了主要处理程序。
- AVisualControl 默认使用成员函数处理 TouchDown 事件，调用本类成员函数 RequestFocus(...) 向容器请求焦点。若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
+在 YControl 单元及其中的可视控件类 VisualControl 中定义了主要处理程序。
+ VisualControl 默认使用成员函数处理 TouchDown 事件，调用本类成员函数 RequestFocus(...) 向容器请求焦点。若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
 指针设备相关事件中，参数包含了相对于控件的坐标。
 最近操作的全局（相对于屏幕的）坐标保存于全局变量 VisualControlLocation 中。
 拖放操作依赖的最近全局坐标保存于全局变量 LastVisualControlLocation 中。
@@ -878,17 +873,19 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 
 @2.6.2.1.4 边界事件：
 包括 Enter 和 Leave 事件。
-指针设备作用于 AVisualControl 派生的控件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
+指针设备作用于 VisualControl 派生的控件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
 
 @2.6.2.1.3 公用和扩展事件处理程序：
  YControl 单元中定义了部分非成员函数公用事件处理器。
  OnKeyHeld 使用 RepeatHeld 产生有延迟的连续按键输入。
- OnTouchMove 可结合 OnTouchHeld 用于处理 TouchMove 事件，或使用 OnDrag 实现控件拖曳。
+ OnTouchHeld 是 VisualControl 默认加载的 TouchHeld 事件处理器，在其中实现记录坐标偏移（用于拖放）或触发 TouchMove 事件。
+ OnTouchMove 可结合 OnTouchHeld 用于处理 TouchMove 事件实现重复触发 TouchDown 事件。
+ OnTouchMove_Dragging 可结合 OnTouchHeld 实现控件拖曳。
 
 @2.6.2.1.4 默认实现细节：
 事件处理器不适用虚函数，以免在基类添加事件后，在派生类重复添加事件响应。
 在派生类定义的和基类同名的事件响应函数（函数名以 On 起始）会被隐藏而不是覆盖基类的事件响应函数，是非 public 方法。一般应该避免在类实现外部调用响应函数。
-派生 AVisualControl 类实现的类在构造函数中添加了 GotFocus 、 LostFocus 、 TouchDown 、 TouchHeld 的事件响应器，且除了 TouchHeld 外，都是 AVisualControl 的成员函数。
+ VisualControl 类在构造函数中添加了 GotFocus 、 LostFocus 、 TouchDown 、 TouchHeld 的事件处理器，且除了 TouchHeld 外，都是 VisualControl 的成员函数。
 
 @2.6.3 GUI 输入控制器：
 由于设备的特点， GUI 输入相对于输出而言是容易规格化的。因此在 YControl 单元中定义了一些默认 GUI 输入事件（参见 @2.6.2.1 ），且在 YGUI 单元中定义了若干函数/类用于处理默认 GUI 输入事件。
@@ -1139,7 +1136,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
  Get* ： * 为目标名称；取特定目标；包括成员读访问器：取对应名称的成员。
  Is* ： * 为目标名称；谓词：计算目标状态，返回类型为 bool 的结果。
  Set* ： * 为目标名称；取特定目标；包括成员写访问器：设置对应名称的成员的值。
- On* ： * 为事件名称；事件响应函数。
+ On* ： * 为描述事件及事件响应目标的名称；事件处理器。
 
 @4.2
 宏定义:
@@ -1206,10 +1203,6 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 模块类前缀 M(Module) 。
 
 @4.3.5.2.7
-枚举包装类前缀 E(Enum) ，供包装枚举的 struct 和 class 类型使用。
-含有事件的含义也属于此范畴，即事件空间类 E(Event Space) 。
-
-@4.3.5.2.8
 句柄类前缀 H(Handle) 。
 
 @4.5

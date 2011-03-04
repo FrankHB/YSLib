@@ -11,12 +11,12 @@
 /*!	\file util.hpp
 \ingroup YCLib
 \brief 函数对象、算法和实用程序。
-\version 0.1408;
+\version 0.1508;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 + 08:00; 
 \par 修改时间:
-	2011-02-15 19:28 + 08:00;
+	2011-02-23 16:15 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +35,28 @@
 
 namespace ystdex
 {
-	//! \brief 编译期选择自增/自减运算仿函数。
+	/*!	\defgroup Functors General Functors
+	\brief 算法。
+	*/
+
+	/*!
+	\ingroup Functors
+	\brief 引用相等关系仿函数。
+	*/
+	template<typename _type>
+	struct ref_eq : public std::binary_function<_type, _type, bool>
+	{
+		inline bool
+		operator()(const _type& _x, const _type& _y) const
+		{
+			return &_x == &_y;
+		}
+	};
+
+	/*!
+	\ingroup Functors
+	\brief 编译期选择自增/自减运算仿函数。
+	*/
 	template<bool /*_bPositive*/, typename _tScalar>
 	struct xcrease_t
 	{
@@ -55,7 +76,11 @@ namespace ystdex
 		}
 	};
 
-	//! \brief 编译期选择加法/减法复合赋值运算仿函数。
+	/*!
+	\ingroup Functors
+	\brief 编译期选择加法/减法复合赋值运算仿函数。
+	*/
+	//@{
 	template<bool /*_bPositive*/, typename _tScalar1, typename _tScalar2>
 	struct delta_assignment_t
 	{
@@ -74,6 +99,7 @@ namespace ystdex
 			return x -= y;
 		}
 	};
+	//@}
 
 	/*!
 	\ingroup HelperFunction
@@ -98,7 +124,10 @@ namespace ystdex
 	}
 
 
-	//! \brief 引用仿函数。
+	/*!
+	\ingroup Functors
+	\brief 引用仿函数。
+	*/
 	template<typename _type>
 	struct deref_op : std::unary_function<_type, _type*>
 	{
@@ -113,7 +142,10 @@ namespace ystdex
 	};
 
 
-	//! \brief 常量引用仿函数。
+	/*!
+	\ingroup Functors
+	\brief 常量引用仿函数。
+	*/
 	template<typename _type>
 	struct const_deref_op : std::unary_function<const _type, const _type*>
 	{
@@ -128,7 +160,10 @@ namespace ystdex
 	};
 
 
-	//! \brief 间接访问比较仿函数。
+	/*!
+	\ingroup Functors
+	\brief 间接访问比较仿函数。
+	*/
 	template<
 		typename _type, typename _tPointer = _type*,
 		template<typename _type> class _gfCompare = std::less
@@ -147,7 +182,10 @@ namespace ystdex
 	};
 
 
-	//! \brief 间接访问字符串比较仿函数。
+	/*!
+	\ingroup Functors
+	\brief 间接访问字符串比较仿函数。
+	*/
 	template<
 		typename _tChar,
 		int (*_lexi_cmp)(const _tChar*, const _tChar*) = std::strcmp,
@@ -167,12 +205,57 @@ namespace ystdex
 	};
 
 
-	/*!	\defgroup Algorithm Gerneral Algorithm
+	/*!	\defgroup Algorithms Gerneral Algorithms
 	\brief 算法。
 	*/
 
 	/*!
-	\ingroup Algorithm
+	\ingroup Algorithms
+	\brief 取值类型最小值。
+	*/
+	template<typename _type>
+	inline _type
+	vmin(_type a, _type b)
+	{
+		return b < a ? b : a;
+	}
+	/*!
+	\ingroup Algorithms
+	\brief 取值类型最小值。
+	\note 使用指定判断操作。
+	*/
+	template<typename _type, typename _fCompare>
+	inline _type
+	vmin(_type a, _type b, _fCompare _comp)
+	{
+		return _comp(b, a) ? b : a;
+	}
+
+	/*!
+	\ingroup Algorithms
+	\brief 取值类型最大值。
+	*/
+	template<typename _type>
+	inline _type
+	vmax(_type a, _type b)
+	{
+		return a < b ? b : a;
+	}
+	/*!
+	\ingroup Algorithms
+	\brief 取值类型最大值。
+	\note 使用指定判断操作。
+	*/
+	template<typename _type, typename _fCompare>
+	inline _type
+	vmax(_type a, _type b, _fCompare _comp)
+	{
+		return _comp(a, b) ? b : a;
+	}
+
+
+	/*!
+	\ingroup Algorithms
 	\brief 删除指定标准容器中所有相同元素。
 	*/
 	template<typename _tContainer>
@@ -193,7 +276,7 @@ namespace ystdex
 	}
 
 	/*!
-	\ingroup Algorithm
+	\ingroup Algorithms
 	\brief 删除指定标准容器中所有满足条件元素。
 	*/
 	template<typename _tContainer, typename _fPredicate>
@@ -215,10 +298,11 @@ namespace ystdex
 	}
 
 	/*!
-	\ingroup Algorithm
+	\ingroup Algorithms
 	\brief 按指定键值搜索指定映射。
 	\return 一个用于表示结果的 std::pair 对象，其 first 成员为迭代器，
-		second 成员表示是否需要插入（行为同 std::map::operator[] ）。
+		second 成员表示是否需要插入。
+	\note 行为同 std::map::operator[] 。
 	*/
 	template<class _tMap>
 	std::pair<typename _tMap::iterator, bool>

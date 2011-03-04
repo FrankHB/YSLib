@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6603;
+\version 0.6605;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 + 08:00;
 \par 修改时间:
-	2011-02-08 18:47 + 08:00;
+	2011-02-23 16:21 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,8 @@ YSL_BEGIN
 
 using namespace Drawing;
 using namespace Text;
+using ystdex::vmin;
+using ystdex::vmax;
 
 YSL_BEGIN_NAMESPACE(Drawing)
 

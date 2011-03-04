@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3520;
+\version 0.3528;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 + 08:00;
 \par 修改时间:
-	2011-02-15 17:48 + 08:00;
+	2011-03-03 22:10 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -358,7 +358,7 @@ ShlExplorer::TFrmFileListSelecter::TFrmFileListSelecter()
 	//	fbMain.TouchDown += YFileBox::OnClick;
 	//	fbMain.Click += &YListBox::_m_OnClick;
 	FetchEvent<KeyPress>(fbMain) += fb_KeyPress;
-	fbMain.GetSelected().Add(*this, &TFrmFileListSelecter::fb_Selected);
+	fbMain.GetViewChanged().Add(*this, &TFrmFileListSelecter::fb_ViewChanged);
 	fbMain.GetConfirmed() += fb_Confirmed;
 	FetchEvent<Click>(btnTest).Add(*this,
 		&TFrmFileListSelecter::btnTest_Click);
@@ -387,7 +387,7 @@ ShlExplorer::TFrmFileListSelecter::frm_KeyPress(KeyEventArgs& e)
 }
 
 void
-ShlExplorer::TFrmFileListSelecter::fb_Selected(IndexEventArgs& /*e*/)
+ShlExplorer::TFrmFileListSelecter::fb_ViewChanged(EventArgs&)
 {
 	YLabel& l(HandleCast<TFrmFileListMonitor>(
 		HandleCast<ShlExplorer>(FetchShellHandle())->hWndUp)->lblPath);
@@ -529,11 +529,11 @@ ShlSetting::TFormB::TFormB()
 	btnB.Text = _ustr("测试程序");
 	btnB2.Text = _ustr("测试程序2");
 	BackColor = ARGB16(1, 31, 31, 15);
-	FetchEvent<TouchMove>(*this) += OnDrag;
-	//	btnB.TouchMove += &AVisualControl::OnTouchMove;
+	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
+	//	btnB.TouchMove += &VisualControl::OnTouchMove;
 	FetchEvent<Enter>(btnB) += btnB_Enter;
 	FetchEvent<Leave>(btnB) += btnB_Leave;
-	FetchEvent<TouchMove>(btnB2) += OnDrag;
+	FetchEvent<TouchMove>(btnB2) += OnTouchMove_Dragging;
 	//	btnB2.TouchDown += btnC_Click;
 	//	btnB.Enabled = false;
 }
@@ -574,12 +574,12 @@ ShlSetting::TFormC::TFormC()
 	btnExit.Text = _ustr("退出");
 	BackColor = ARGB16(1, 31, 15, 15);
 	FetchEvent<TouchDown>(*this) += TFormC_TouchDown;
-	FetchEvent<TouchMove>(*this) += OnDrag;
+	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 	FetchEvent<TouchUp>(btnC).Add(*this,
 		&TFormC::btnC_TouchUp);
 	FetchEvent<TouchDown>(btnC).Add(*this,
 		&TFormC::btnC_TouchDown);
-	FetchEvent<TouchMove>(btnC) += OnDrag;
+	FetchEvent<TouchMove>(btnC) += OnTouchMove_Dragging;
 	FetchEvent<Click>(btnC).Add(*this, &TFormC::btnC_Click);
 	FetchEvent<Click>(btnD).Add(*this, &TFormC::btnD_Click);
 	FetchEvent<KeyPress>(btnC) += btnC_KeyPress;

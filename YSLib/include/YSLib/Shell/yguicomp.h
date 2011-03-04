@@ -11,12 +11,12 @@
 /*!	\file yguicomp.h
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.2634;
+\version 0.2948;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2011-02-22 21:16 + 08:00;
+	2011-03-04 23:18 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,13 +71,13 @@ public:
 
 private:
 	/*!
-	\brief 响应控件进入事件。
+	\brief 处理控件进入事件。
 	*/
 	void
 	OnEnter(InputEventArgs&);
 
 	/*!
-	\brief 响应控件离开事件。
+	\brief 处理控件离开事件。
 	*/
 	void
 	OnLeave(InputEventArgs&);
@@ -114,7 +114,7 @@ public:
 
 
 //! \brief 轨道。
-class ATrack : public AUIBoxControl
+class ATrack : public AUIBoxControl, public GMRange<u16>
 {
 public:
 	//! \brief 轨道区域。
@@ -125,14 +125,23 @@ public:
 		OnPrev = 2,
 		OnNext = 3
 	} Area;
+	//注意值类型需要和继承的 GMRange 的 ValueType 一致。
+	typedef u16 ValueType; //!< 值类型。
 
 protected:
-	YThumb Thumb; //!< 滑块。
+	YThumb Thumb; //!< 滑块：轨道区域上的滚动框。
 
 private:
-	SDST MinThumbLength; //!< 最小滑块长度。
+	SDST min_thumb_length; //!< 最小滑块长度。
+	// MRange 实现滚动事件关联值操作。
+	ValueType large_delta; \
+		//!< 大距离滚动偏移量：滚动事件关联的滑块位置变化绝对值。
+	// MRange::value 实际最大取值为 MRange::max_value - large_delta 。
 
 public:
+	DeclEvent(HVisualEvent, ThumbDrag) //!< 滑块拖动事件。
+	DeclEvent(HScrollEvent, Scroll) //!< 滚动事件。
+
 	/*!
 	\brief 构造：使用指定边界、部件容器指针和大小。
 	*/
@@ -155,14 +164,15 @@ public:
 	*/
 	ImplI1(AUIBoxControl) IVisualControl*
 	GetTopVisualControlPtr(const Point&);
-	DefGetter(SDST, MinThumbLength, MinThumbLength)
+	DefGetter(SDST, MinThumbLength, min_thumb_length)
 	DeclIEntry(Orientation GetOrientation() const) //!< 取轨道方向。
-	DefGetter(SDST, ThumbLength,
-		SelectFrom(Thumb.GetSize(), IsHorizontal())) //!< 取轨道方向上的滑块长度。
+	DefGetter(SDST, ThumbLength, SelectFrom(Thumb.GetSize(),
+		IsHorizontal())) //!< 取轨道方向上的滑块长度。
 	DefGetter(SDST, ThumbPosition,
 		SelectFrom(Thumb.GetLocation(), IsHorizontal())) //!< 取滑块位置。
 	virtual DefGetter(SDST, TrackLength,
 		SelectFrom(GetSize(), IsHorizontal())) //!< 取轨道方向上的轨道长度。
+	DefGetter(ValueType, LargeDelta, large_delta)
 
 	/*!
 	\brief 设置轨道方向上的滑块长度。
@@ -172,8 +182,28 @@ public:
 	/*!
 	\brief 设置滑块位置。
 	*/
-	virtual void
-	SetThumbPosition(SDST);
+	void
+	SetThumbPosition(SPOS);
+	/*!
+	\brief 设置滚动事件关联值最大取值。
+	\note 当指定值不大于 1 时无效。
+	\note 约束 large_delta 小于指定值。
+	*/
+	void
+	SetMaxValue(ValueType);
+	/*!
+	\brief 设置滚动事件关联值。
+	\note 同步按比例设置滑块位置。
+	*/
+	void
+	SetValue(ValueType);
+	/*!
+	\brief 设置大距离滚动偏移量。
+	\note 同步按比例设置滑块长度。
+	*/
+	void
+	SetLargeDelta(ValueType);
+
 
 	/*!
 	\brief 绘制背景。
@@ -195,19 +225,150 @@ protected:
 	Area
 	CheckArea(SDST) const;
 
+public:
 	/*!
-	\brief 响应轨道方向指定位置的点击事件。
+	\brief 设置和调用滚动事件处理器。
+	\param 滚动事件和旧的滚动事件值。
 	*/
 	void
-	ResponseTouchDown(SDST);
+	CheckScroll(ScrollEventSpace::ScrollEventType, ValueType);
+
+	/*!
+	\brief 定位滑块。
+	\note 按指定滚动事件关联值设置滑块位置并触发滚动定位事件。
+	*/
+	virtual void
+	LocateThumb(ValueType);
 
 private:
 	/*!
-	\brief 处理区域点击事件。
+	\brief 定位滑块。
+	\note 指定滚动事件关联值设置滑块位置并触发对应事件。
+	*/
+	void
+	LocateThumb(ScrollEventSpace::ScrollEventType, ValueType);
+
+public:
+	/*!
+	\brief 定位滑块至最小位置。
+	\note 设置滑块位置并触发滚动定位事件。
+	*/
+	void
+	LocateThumbToFirst();
+
+	/*!
+	\brief 定位滑块至最大位置。
+	\note 设置滑块位置并触发滚动定位事件。
+	*/
+	void
+	LocateThumbToLast();
+
+private:
+	/*!
+	\brief 定位滑块（增量移动）。
+	\note 设置滑块位置并触发滚动定位事件。
+	*/
+	void
+	LocateThumbForIncrement(ScrollEventSpace::ScrollEventType, ValueType);
+
+	/*!
+	\brief 定位滑块（减量移动）。
+	\note 设置滑块位置并触发滚动定位事件。
+	*/
+	void
+	LocateThumbForDecrement(ScrollEventSpace::ScrollEventType, ValueType);
+
+public:
+	/*!
+	\brief 定位滑块（大距离增量移动）。
+	\note 设置滑块位置并触发滚动定位事件。
+	*/
+	void
+	LocateThumbForLargeIncrement();
+
+	/*!
+	\brief 定位滑块（大距离减量移动）。
+	\note 设置滑块位置并触发滚动定位事件。
+	*/
+	void
+	LocateThumbForLargeDecrement();
+
+	/*!
+	\brief 定位滑块（指定小距离增量移动）。
+	\note 设置滑块位置并触发滚动定位事件。
+	*/
+	void
+	LocateThumbForSmallIncrement(ValueType);
+
+	/*!
+	\brief 定位滑块（指定小距离减量移动）。
+	\note 设置滑块位置并触发滚动定位事件。
+	*/
+	void
+	LocateThumbForSmallDecrement(ValueType);
+
+	/*!
+	\brief 更新滚动事件关联值。
+	\note 由滑块位置按比例设置。
+	*/
+	void
+	UpdateValue();
+
+private:
+	/*!
+	\brief 处理屏幕接触开始事件。
 	*/
 	void
 	OnTouchDown(TouchEventArgs&);
+
+	/*!
+	\brief 处理滑块移动事件。
+	*/
+	void
+	OnThumbDrag(EventArgs&);
 };
+
+inline void
+ATrack::LocateThumb(ATrack::ValueType v)
+{
+	LocateThumb(ScrollEventSpace::ThumbPosition, v);
+}
+
+inline void
+ATrack::LocateThumbToFirst()
+{
+	LocateThumb(ScrollEventSpace::First, 0);
+}
+
+inline void
+ATrack::LocateThumbToLast()
+{
+	LocateThumb(ScrollEventSpace::Last, 0);
+}
+
+inline void
+ATrack::LocateThumbForLargeIncrement()
+{
+	LocateThumbForIncrement(ScrollEventSpace::LargeIncrement, GetLargeDelta());
+}
+
+inline void
+ATrack::LocateThumbForLargeDecrement()
+{
+	LocateThumbForDecrement(ScrollEventSpace::LargeDecrement, GetLargeDelta());
+}
+
+inline void
+ATrack::LocateThumbForSmallIncrement(ValueType abs_delta)
+{
+	LocateThumbForIncrement(ScrollEventSpace::SmallIncrement, abs_delta);
+}
+
+inline void
+ATrack::LocateThumbForSmallDecrement(ValueType abs_delta)
+{
+	LocateThumbForDecrement(ScrollEventSpace::SmallDecrement, abs_delta);
+}
 
 
 //! \brief 水平轨道。
@@ -231,7 +392,7 @@ private:
 	\brief 处理水平滑块移动事件。
 	*/
 	void
-	OnDrag_Thumb_Horizontal(TouchEventArgs&);
+	OnTouchMove_Thumb_Horizontal(TouchEventArgs&);
 };
 
 
@@ -256,18 +417,25 @@ private:
 	\brief 处理垂直滑块移动事件。
 	*/
 	void
-	OnDrag_Thumb_Vertical(TouchEventArgs&);
+	OnTouchMove_Thumb_Vertical(TouchEventArgs&);
 };
 
 
 //! \brief 滚动条。
 class AScrollBar : public AUIBoxControl
 {
+public:
+	typedef ATrack::ValueType ValueType; //!< 值类型。
+
 private:
 	std::auto_ptr<ATrack> pTrack; //轨道。
 
 protected:
 	YThumb PrevButton, NextButton; //!< 滚动条按钮。
+
+private:
+	ValueType small_delta; \
+		//!< 小距离滚动偏移量：滚动事件关联的滑块位置变化绝对值。
 
 public:
 	/*!
@@ -284,7 +452,21 @@ public:
 	*/
 	ImplI1(AUIBoxControl) IVisualControl*
 	GetTopVisualControlPtr(const Point&);
-	DefGetter(ATrack&, Track, *pTrack)
+	/*!
+	\brief 取轨道引用。
+	\pre 断言检查： pTrack.get() 。
+	*/
+	ATrack&
+	GetTrack() const ythrow();
+	DefGetterMember(ValueType, MaxValue, GetTrack())
+	DefGetterMember(ValueType, Value, GetTrack())
+	DefGetterMember(ValueType, LargeDelta, GetTrack())
+	DefGetter(ValueType, SmallDelta, small_delta)
+
+	DefSetterMember(ValueType, MaxValue, GetTrack())
+	DefSetterMember(ValueType, Value, GetTrack())
+	DefSetterMember(ValueType, LargeDelta, GetTrack())
+	DefSetter(ValueType, SmallDelta, small_delta)
 
 	/*!
 	\brief 绘制背景。
@@ -297,7 +479,29 @@ public:
 	*/
 	virtual void
 	DrawForeground();
+
+private:
+	/*!
+	\brief 处理减量按钮屏幕接触开始事件。
+	*/
+	void
+	OnTouchDown_PrevButton(TouchEventArgs&);
+
+	/*!
+	\brief 处理增量按钮屏幕接触开始事件。
+	*/
+	void
+	OnTouchDown_NextButton(TouchEventArgs&);
 };
+
+inline ATrack&
+AScrollBar::GetTrack() const ythrow()
+{
+	YAssert(pTrack.get(),
+		"Null widget pointer found @@ AScrollBar::GetTrack;");
+
+	return *pTrack;
+}
 
 
 //! \brief 水平滚动条。
@@ -343,7 +547,7 @@ public:
 //! \brief 带滚动条的容器基实现类。
 class ScrollableContainer : public AUIBoxControl
 {
-private:
+protected:
 	YHorizontalScrollBar HorizontalScrollBar;
 	YVerticalScrollBar VerticalScrollBar;
 
@@ -397,7 +601,8 @@ private:
 	Drawing::TextState text_state; //!< 文本状态。
 
 public:
-	DeclEvent(HIndexEvent, Selected) //!< 项目选择状态改变事件。
+	DeclEvent(HVisualEvent, ViewChanged) //!< 视图变更事件。
+	DeclEvent(HIndexEvent, Selected) //!< 项目选择状态变更事件。
 	DeclEvent(HIndexEvent, Confirmed) //!< 项目选中确定事件。
 
 	/*!
@@ -445,10 +650,20 @@ public:
 	SDST
 	GetItemHeight() const;
 	/*!
+	\brief 取完整视图高。
+	*/
+	SDST
+	GetFullViewHeight() const;
+	/*!
 	\brief 取完整视图大小。
 	*/
 	Size
 	GetFullViewSize() const;
+	/*!
+	\brief 取视图顶端垂直位置。
+	*/
+	SDST
+	GetViewPosition() const;
 
 //	DefSetter(const ListType&, List, List)
 	/*!
@@ -506,57 +721,70 @@ public:
 		ImplRet(static_cast<void>(viewer.ClearSelected()))
 
 	/*!
+	\brief 定位视图顶端至指定垂直位置。
+	*/
+	void
+	LocateViewPosition(SDST);
+
+	/*!
 	\brief 复位视图。
 	\note 若项目列表非空则选择首个项目。
 	*/
 	void
 	ResetView();
 
+	/*!
+	\brief 更新视图。
+	\note 调用视图变更事件。
+	*/
+	void
+	UpdateView();
+
 private:
 	/*!
-	\brief 调用选中事件响应器。
+	\brief 调用选中事件处理器。
 	*/
 	void
 	CallSelected();
 
 	/*!
-	\brief 调用确认事件响应器。
+	\brief 检查和调用确认事件处理器。
 	*/
 	void
-	CallConfirmed(ViewerType::IndexType);
+	CheckConfirmed(ViewerType::IndexType);
 
 	/*!
-	\brief 响应键接触开始事件。
+	\brief 处理键接触开始事件。
 	*/
 	void
 	OnKeyDown(KeyEventArgs&);
 
 	/*!
-	\brief 响应屏幕接触开始事件。
+	\brief 处理屏幕接触开始事件。
 	*/
 	void
 	OnTouchDown(TouchEventArgs&);
 
 	/*!
-	\brief 响应屏幕接触移动事件。
+	\brief 处理屏幕接触移动事件。
 	*/
 	void
 	OnTouchMove(TouchEventArgs&);
 
 	/*!
-	\brief 响应屏幕点击事件。
+	\brief 处理屏幕点击事件。
 	*/
 	void
 	OnClick(TouchEventArgs&);
 
 	/*!
-	\brief 响应选中事件。
+	\brief 处理选中事件。
 	*/
 	void
 	OnSelected(IndexEventArgs&);
 
 	/*!
-	\brief 响应确认事件。
+	\brief 处理确认事件。
 	*/
 	void
 	OnConfirmed(IndexEventArgs&);
@@ -589,7 +817,7 @@ public:
 	typedef YSimpleListBox::ViewerType ViewerType;
 
 private:
-	YSimpleListBox TextListBox;
+	YSimpleListBox TextListBox; //文本列表框。
 
 public:
 	explicit
@@ -609,8 +837,10 @@ public:
 	DefGetterMember(ViewerType::IndexType, HeadIndex, TextListBox)
 	DefGetterMember(ViewerType::IndexType, SelectedIndex, TextListBox)
 	DefGetterMember(ListType&, List, TextListBox)
+	DefMutableEventGetter(HVisualEvent, ViewChanged, TextListBox.ViewChanged)
+		//!< 视图变更事件。
 	DefMutableEventGetter(HIndexEvent, Selected, TextListBox.Selected) \
-		//!< 项目选择状态改变事件。
+		//!< 项目选择状态变更事件。
 	DefMutableEventGetter(HIndexEvent, Confirmed, TextListBox.Confirmed) \
 		//!< 项目选中确定事件。
 
@@ -622,6 +852,21 @@ public:
 
 	PDefH0(void, ResetView)
 		ImplBodyMember0(TextListBox, ResetView)
+	PDefH0(void, UpdateView)
+		ImplBodyMember0(TextListBox, UpdateView)
+
+private:
+	/*!
+	\brief 处理垂直滚动条滚动事件。
+	*/
+	void
+	OnScroll_VerticalScrollBar(ScrollEventArgs&);
+
+	/*!
+	\brief 处理文本列表框视图变更事件。
+	*/
+	void
+	OnViewChanged_TextListBox(EventArgs&);
 };
 
 
@@ -634,8 +879,7 @@ public:
 
 	explicit
 	YFileBox(const Rect& = Rect::Empty, IUIBox* = NULL);
-	virtual
-	~YFileBox() ythrow();
+	virtual DefEmptyDtor(YFileBox)
 
 	/*!
 	\brief 取当前路径。
@@ -643,21 +887,9 @@ public:
 	IO::Path
 	GetPath() const;
 
-	/*!
-	\brief 绘制背景。
-	*/
-	virtual void
-	DrawBackground();
-
-	/*!
-	\brief 绘制前景。
-	*/
-	virtual void
-	DrawForeground();
-
 private:
 	/*!
-	\brief 响应确认事件。
+	\brief 处理确认事件。
 	*/
 	void
 	OnConfirmed(IndexEventArgs&);

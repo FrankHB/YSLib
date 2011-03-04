@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 应用程序实例类抽象。
-\version 0.2145;
+\version 0.2146;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 + 08:00;
 \par 修改时间:
-	2010-01-06 23:13 + 08:00;
+	2010-02-23 18:58 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -81,9 +81,7 @@ YApplication::~YApplication() ythrow()
 {
 	//释放主 Shell 。
 //	YReset(DefaultShellHandle);
-	EventArgs e;
-
-	ApplicationExit(*this, e);
+	ApplicationExit(*this, GetStaticRef<EventArgs>());
 	delete pMessageQueue;
 	delete pMessageQueueBackup;
 }

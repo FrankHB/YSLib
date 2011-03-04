@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7059;
+\version 0.7061;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 + 08:00;
 \par 修改时间:
-	2011-02-20 14:51 + 08:00;
+	2011-02-23 16:37 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -143,7 +143,7 @@ bool
 FontFamily::operator<(const FontFamily& rhs) const
 {
 	return &Cache < &rhs.Cache
-		|| (ReferenceEquals(Cache, rhs.Cache)
+		|| (ystdex::ref_eq<YFontCache>()(Cache, rhs.Cache)
 		&& family_name && rhs.family_name
 		&& strcmp(family_name, rhs.family_name) < 0);
 }

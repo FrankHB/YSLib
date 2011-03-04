@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4008;
+\version 0.4020;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 + 08:00;
 \par 修改时间:
-	2011-02-20 20:55 + 08:00;
+	2011-03-01 13:05 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,19 +34,6 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
-
-const ScreenPositionEventArgs
-	ScreenPositionEventArgs::Empty = ScreenPositionEventArgs();
-
-
-const InputEventArgs InputEventArgs::Empty = InputEventArgs();
-
-
-const KeyEventArgs KeyEventArgs::Empty = KeyEventArgs();
-
-
-const TouchEventArgs TouchEventArgs::Empty = TouchEventArgs();
-
 
 void
 OnKeyHeld(IVisualControl& c, KeyEventArgs& e)
@@ -79,7 +66,7 @@ OnTouchMove(IVisualControl& c, TouchEventArgs& e)
 }
 
 void
-OnDrag(IVisualControl& c, TouchEventArgs&)
+OnTouchMove_Dragging(IVisualControl& c, TouchEventArgs&)
 {
 	using namespace InputStatus;
 
@@ -130,21 +117,15 @@ void
 VisualControl::SetLocation(const Point& pt)
 {
 	Visual::SetLocation(pt);
-
-	EventArgs e;
-
 	GetEventMap().DoEvent<EventTypeMapping<Move>::HandlerType>(Move,
-		*this, e);
+		*this, GetStaticRef<EventArgs>());
 }
 void
 VisualControl::SetSize(const Size& s)
 {
 	Visual::SetSize(s);
-
-	EventArgs e;
-
 	GetEventMap().DoEvent<EventTypeMapping<Resize>::HandlerType>(Resize,
-		*this, e);
+		*this, GetStaticRef<EventArgs>());
 }
 
 void

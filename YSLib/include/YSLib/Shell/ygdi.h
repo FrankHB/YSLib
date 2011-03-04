@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3854;
+\version 0.3856;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 + 08:00;
 \par 修改时间:
-	2011-02-08 11:23 + 08:00;
+	2011-02-23 16:18 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -209,7 +209,8 @@ struct RectTransfomer
 		const int delta_x(max_x - min_x);
 		int delta_y(max_y - min_y);
 
-		dst += vmax<SPOS>(0, dp.Y) * ds.Width + vmax<SPOS>(0, dp.X);
+		dst += ystdex::vmax<SPOS>(0, dp.Y) * ds.Width
+			+ ystdex::vmax<SPOS>(0, dp.X);
 		for(; delta_y > 0; --delta_y)
 		{
 			tl(dst, delta_x, tp);

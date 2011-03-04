@@ -11,12 +11,12 @@
 /*!	\file yguicomp.cpp
 \ingroup Shell
 \brief 样式相关图形用户界面组件实现。
-\version 0.3117;
+\version 0.3427;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 + 08:00;
 \par 修改时间:
-	2011-02-22 21:16 + 08:00;
+	2011-03-04 23:18 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,12 +30,14 @@
 
 YSL_BEGIN
 
+using namespace Runtime;
+using ystdex::vmin;
+using ystdex::vmax;
+
 YSL_BEGIN_NAMESPACE(Components)
 
-using namespace Runtime;
 
 YSL_BEGIN_NAMESPACE(Widgets)
-
 
 
 YSL_END_NAMESPACE(Widgets)
@@ -148,11 +150,13 @@ namespace
 		FillRect(g, p, s, c);
 		if(s.Width > 4 && s.Height > 4)
 		{
-			const Size sz(s.Width - 4, (s.Height - 4) / 2);
+			Size sz(s.Width - 4, (s.Height - 4) / 2);
 			Point sp(p.X + 2, p.Y + 2);
 
 			FillRect(g, sp, sz, Color(232, 240, 255));
 			sp.Y += sz.Height;
+			if(s.Height % 2 != 0)
+				++sz.Height;
 			FillRect(g, sp, sz, Color(192, 224, 255));
 		}
 		if(bPressed)
@@ -196,8 +200,8 @@ namespace
 		return std::pair<bool, bool>(need_h, need_v);
 	}
 
-	const SDST defMarginH(4); //!< 默认水平边距。
-	const SDST defMarginV(2); //!< 默认垂直边距。
+	const SDST defMarginH(2); //!< 默认水平边距。
+	const SDST defMarginV(1); //!< 默认垂直边距。
 	const SDST defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
 	const SDST defMinScrollBarHeight(16); //!< 默认最小滚动条高。
 }
@@ -260,11 +264,13 @@ ATrack::ATrack(const Rect& r, IUIBox* pCon, SDST uMinThumbLength)
 	: AUIBoxControl(Rect(r.GetPoint(),
 		vmax<SDST>(defMinScrollBarWidth, r.Width),
 		vmax<SDST>(defMinScrollBarHeight, r.Height)), pCon),
+	GMRange<u16>(0xFF, 0),
 	Thumb(Rect(0, 0, defMinScrollBarWidth, defMinScrollBarHeight), this),
-	MinThumbLength(uMinThumbLength)
+	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length)
 {
 	FetchEvent<TouchMove>(*this) += OnTouchMove;
 	FetchEvent<TouchDown>(*this) += &ATrack::OnTouchDown;
+	ThumbDrag += &ATrack::OnThumbDrag;
 }
 
 IVisualControl*
@@ -276,7 +282,7 @@ ATrack::GetTopVisualControlPtr(const Point& p)
 void
 ATrack::SetThumbLength(SDST l)
 {
-	RestrictInClosedInterval(l, MinThumbLength, GetTrackLength());
+	RestrictInClosedInterval(l, min_thumb_length, GetTrackLength());
 
 	Size s(Thumb.GetSize());
 
@@ -285,19 +291,39 @@ ATrack::SetThumbLength(SDST l)
 	Refresh();
 }
 void
-ATrack::SetThumbPosition(SDST l)
+ATrack::SetThumbPosition(SPOS pos)
 {
-	const SDST tl(GetThumbLength());
-	const SDST wl(GetTrackLength());
-
-	if(l + tl > wl)
-		l = wl - tl;
+	RestrictInClosedInterval(pos, 0, GetTrackLength() - GetThumbLength());
 
 	Point p(Thumb.GetLocation());
 
-	UpdateTo(p, l, IsHorizontal());
+	UpdateTo(p, pos, IsHorizontal());
 	Thumb.SetLocation(p);
 	Refresh();
+}
+void
+ATrack::SetMaxValue(ValueType m)
+{
+	if(m > 1)
+	{
+		if(large_delta >= m)
+			large_delta = m - 1;
+		max_value = m;
+	}
+}
+void
+ATrack::SetValue(ATrack::ValueType v)
+{
+	value = v;
+	// TODO: check ValueType incompatibility(perhaps overflow);
+	SetThumbPosition(v * GetTrackLength() / max_value);
+}
+void
+ATrack::SetLargeDelta(ATrack::ValueType ld)
+{
+	large_delta = ld;
+	// TODO: check ValueType incompatibility(perhaps overflow);
+	SetThumbLength(ld * GetTrackLength() / max_value);
 }
 
 void
@@ -352,36 +378,104 @@ ATrack::CheckArea(SDST q) const
 }
 
 void
-ATrack::ResponseTouchDown(SDST v)
+ATrack::CheckScroll(ScrollEventSpace::ScrollEventType t, ValueType old_value)
 {
-	SPOS l(GetThumbPosition());
+	ScrollEventArgs e(t, value, old_value);
 
-	switch(CheckArea(v))
+	Scroll(*this, e);
+}
+
+void
+ATrack::LocateThumb(ScrollEventSpace::ScrollEventType t, ValueType v)
+{
+	switch(t)
 	{
-	case OnThumb:
-		return;
-
-	case OnPrev:
-		l -= GetThumbLength();
+	case ScrollEventSpace::First:
+		v = 0;
 		break;
 
-	case OnNext:
-		l += GetThumbLength();
+	case ScrollEventSpace::Last:
+		v = max_value - large_delta;
 		break;
 
 	default:
 		break;
 	}
-	if(l < 0)
-		l = 0;
-	SetThumbPosition(l);
+
+	ValueType old_value(value);
+
+	SetValue(v);
+	CheckScroll(t, old_value);
+}
+
+void
+ATrack::LocateThumbForIncrement(ScrollEventSpace::ScrollEventType t,
+	ValueType abs_delta)
+{
+	ValueType v(value);
+
+	const ValueType m(max_value - large_delta);
+
+	if(v + abs_delta > m)
+		v = m;
+	else
+		v += abs_delta;
+	LocateThumb(t, v);
+}
+
+void
+ATrack::LocateThumbForDecrement(ScrollEventSpace::ScrollEventType t,
+	ValueType abs_delta)
+{
+	ValueType v(value);
+
+	if(v < abs_delta)
+		v = 0;
+	else
+		v -= abs_delta;
+	LocateThumb(t, v);
+}
+
+void
+ATrack::UpdateValue()
+{
+	// TODO: check ValueType incompatibility(perhaps overflow);
+	value = GetThumbPosition() * max_value / GetTrackLength();
 }
 
 void
 ATrack::OnTouchDown(TouchEventArgs& e)
 {
 	if(Rect(Point::Zero, GetSize()).Contains(e))
-		ResponseTouchDown(SelectFrom(e, IsHorizontal()));
+	{
+		using namespace ScrollEventSpace;
+
+		switch(CheckArea(SelectFrom(e, IsHorizontal())))
+		{
+		case OnPrev:
+			LocateThumbForLargeDecrement();
+			break;
+
+		case OnNext:
+			LocateThumbForLargeIncrement();
+			break;
+
+		case OnThumb:
+		default:
+			LocateThumb(EndScroll, value);
+			break;
+		}
+	}
+}
+
+void
+ATrack::OnThumbDrag(EventArgs&)
+{
+	ValueType old_value(value);
+	// TODO: get correct old value;
+	UpdateValue();
+	CheckScroll(ScrollEventSpace::ThumbTrack, old_value);
+	Refresh();
 }
 
 
@@ -397,11 +491,11 @@ YHorizontalTrack::YHorizontalTrack(const Rect& r, IUIBox* pCon,
 		"Width is not greater than height.");
 
 	FetchEvent<TouchMove>(Thumb).Add(*this,
-		&YHorizontalTrack::OnDrag_Thumb_Horizontal);
+		&YHorizontalTrack::OnTouchMove_Thumb_Horizontal);
 }
 
 void
-YHorizontalTrack::OnDrag_Thumb_Horizontal(TouchEventArgs&)
+YHorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs&)
 {
 	using namespace InputStatus;
 
@@ -409,7 +503,7 @@ YHorizontalTrack::OnDrag_Thumb_Horizontal(TouchEventArgs&)
 
 	RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
 	Thumb.SetLocation(Point(x, Thumb.GetLocation().Y));
-	Refresh();
+	ThumbDrag(*this, GetStaticRef<EventArgs>());
 }
 
 
@@ -425,11 +519,11 @@ YVerticalTrack::YVerticalTrack(const Rect& r, IUIBox* pCon,
 		"height is not greater than width.");
 
 	FetchEvent<TouchMove>(Thumb).Add(*this,
-		&YVerticalTrack::OnDrag_Thumb_Vertical);
+		&YVerticalTrack::OnTouchMove_Thumb_Vertical);
 }
 
 void
-YVerticalTrack::OnDrag_Thumb_Vertical(TouchEventArgs&)
+YVerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs&)
 {
 	using namespace InputStatus;
 
@@ -437,7 +531,7 @@ YVerticalTrack::OnDrag_Thumb_Vertical(TouchEventArgs&)
 
 	RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
 	Thumb.SetLocation(Point(Thumb.GetLocation().X, y));
-	Refresh();
+	ThumbDrag(*this, GetStaticRef<EventArgs>());
 }
 
 
@@ -451,8 +545,15 @@ try	: AUIBoxControl(r, pCon),
 		: static_cast<ATrack*>(new YVerticalTrack(
 			Rect(0, r.Width, r.Width, r.Height - r.Width * 2), this,
 			uMinThumbSize))),
-	PrevButton(Rect(), this), NextButton(Rect(), this)
+	PrevButton(Rect(), this), NextButton(Rect(), this), small_delta(2)
 {
+	FetchEvent<TouchMove>(PrevButton) += OnTouchMove;
+	FetchEvent<TouchDown>(PrevButton).Add(*this,
+		&AScrollBar::OnTouchDown_PrevButton);
+	FetchEvent<TouchMove>(NextButton) += OnTouchMove;
+	FetchEvent<TouchDown>(NextButton).Add(*this,
+		&AScrollBar::OnTouchDown_NextButton);
+
 	Size s(GetSize());
 	const bool bHorizontal(o == Horizontal);
 	const SDST l(SelectFrom(s, !bHorizontal));
@@ -515,6 +616,18 @@ AScrollBar::DrawForeground()
 	WndDrawArrow(g, Rect(LocateForWindow(NextButton),
 		NextButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
 			? RDeg0 : RDeg270, ForeColor);
+}
+
+void
+AScrollBar::OnTouchDown_PrevButton(TouchEventArgs&)
+{
+	GetTrack().LocateThumbForSmallDecrement(small_delta);
+}
+
+void
+AScrollBar::OnTouchDown_NextButton(TouchEventArgs&)
+{
+	GetTrack().LocateThumbForSmallIncrement(small_delta);
 }
 
 
@@ -656,14 +769,20 @@ YSimpleListBox::GetItemHeight() const
 {
 	return GetLnHeightExFrom(text_state);
 }
+SDST
+YSimpleListBox::GetFullViewHeight() const
+{
+	return GetItemHeight() * viewer.GetTotal();
+}
 Size
 YSimpleListBox::GetFullViewSize() const
 {
-	const SDST h1(GetItemHeight()),
-		h2(GetLnHeightFrom(text_state));
-	const ViewerType::SizeType t(viewer.GetTotal());
-
-	return Size(GetWidth(), t == 0 ? 0 : (t - 1) * h1 + h2);
+	return Size(GetWidth(), GetFullViewHeight());
+}
+SDST
+YSimpleListBox::GetViewPosition() const
+{
+	return GetItemHeight() * viewer.GetHeadIndex() + top_offset;
 }
 
 void
@@ -701,7 +820,7 @@ YSimpleListBox::DrawForeground()
 			const SDST ln_w(GetWidth());
 			const SDST ln_h(GetItemHeight());
 
-			viewer.SetLength((GetHeight() + text_state.LineGap - 1) / ln_h + 1);
+			viewer.SetLength((GetHeight() + top_offset + ln_h - 1) / ln_h);
 			if(viewer.GetHeadIndex() >= 0)
 			{
 				const ViewerType::IndexType last(viewer.GetHeadIndex()
@@ -744,6 +863,8 @@ YSimpleListBox::DrawForeground()
 SDST
 YSimpleListBox::AdjustTopOffset()
 {
+	viewer.RestrictSelected();
+
 	SDST d(top_offset);
 
 	top_offset = 0;
@@ -753,13 +874,14 @@ YSimpleListBox::AdjustTopOffset()
 SDST
 YSimpleListBox::AdjustBottomOffset()
 {
-	if(viewer.GetTotal() <= viewer.GetLength())
+	if(GetFullViewHeight() <= GetHeight())
 		return 0;
+	viewer.RestrictSelected();
 
-	SDST h(GetItemHeight());
-	SDST down_offset((GetHeight() + text_state.LineGap) % h);
+	const SDST item_height(GetItemHeight()),
+		down_offset(GetHeight() % item_height);
 
-	top_offset = h - down_offset;
+	top_offset = item_height - down_offset;
 	return down_offset;
 }
 
@@ -767,7 +889,21 @@ YSimpleListBox::ViewerType::IndexType
 YSimpleListBox::CheckPoint(SPOS x, SPOS y)
 {
 	return Rect(Point::Zero, GetSize()).Contains(x, y)
-		? y / GetItemHeight() + viewer.GetHeadIndex() : -1;
+		? (y + top_offset) / GetItemHeight() + viewer.GetHeadIndex() : -1;
+}
+
+void
+YSimpleListBox::LocateViewPosition(SDST h)
+{
+	RestrictInInterval(h, 0, GetFullViewHeight());
+
+	if(GetViewPosition() != h)
+	{
+		const SDST item_height(GetItemHeight());
+
+		viewer.SetHeadIndex(h / item_height);
+		top_offset = h % item_height;
+	}
 }
 
 void
@@ -777,6 +913,14 @@ YSimpleListBox::ResetView()
 	if(viewer.IsSelected())
 		viewer.SetSelectedIndex(0);
 	top_offset = 0;
+	UpdateView();
+}
+
+void
+YSimpleListBox::UpdateView()
+{
+	ViewChanged(*this, GetStaticRef<EventArgs>());
+	Refresh();
 }
 
 void
@@ -788,7 +932,7 @@ YSimpleListBox::CallSelected()
 }
 
 void
-YSimpleListBox::CallConfirmed(YSimpleListBox::ViewerType::IndexType i)
+YSimpleListBox::CheckConfirmed(YSimpleListBox::ViewerType::IndexType i)
 {
 	if(viewer.IsSelected() && viewer.GetSelectedIndex() == i)
 	{
@@ -806,7 +950,7 @@ YSimpleListBox::OnKeyDown(KeyEventArgs& k)
 		switch(k.GetKey())
 		{
 		case KeySpace::Enter:
-			CallConfirmed(viewer.GetSelectedIndex());
+			CheckConfirmed(viewer.GetSelectedIndex());
 			break;
 
 		case KeySpace::ESC:
@@ -854,8 +998,7 @@ YSimpleListBox::OnKeyDown(KeyEventArgs& k)
 		default:
 			return;
 		}
-		//	(*this)[es](*this, IndexEventArgs(*this,
-		//		viewer.GetSelectedIndex()));
+		UpdateView();
 	}
 }
 
@@ -863,18 +1006,20 @@ void
 YSimpleListBox::OnTouchDown(TouchEventArgs& e)
 {
 	SetSelected(e);
+	UpdateView();
 }
 
 void
 YSimpleListBox::OnTouchMove(TouchEventArgs& e)
 {
 	SetSelected(e);
+	UpdateView();
 }
 
 void
 YSimpleListBox::OnClick(TouchEventArgs& e)
 {
-	CallConfirmed(CheckPoint(e));
+	CheckConfirmed(CheckPoint(e));
 }
 
 void
@@ -894,7 +1039,11 @@ YListBox::YListBox(const Rect& r, IUIBox* pCon, GHWeak<ListType> wpList_)
 	: YComponent(),
 	ScrollableContainer(r, pCon),
 	TextListBox(Rect(Point::Zero, r), this, wpList_)
-{}
+{
+	VerticalScrollBar.GetTrack().Scroll.Add(*this,
+		&YListBox::OnScroll_VerticalScrollBar);
+	TextListBox.ViewChanged.Add(*this, &YListBox::OnViewChanged_TextListBox);
+}
 
 IVisualControl*
 YListBox::GetTopVisualControlPtr(const Point& p)
@@ -922,14 +1071,30 @@ YListBox::DrawForeground()
 	TextListBox.DrawForeground();
 }
 
+void
+YListBox::OnScroll_VerticalScrollBar(ScrollEventArgs& e)
+{
+	TextListBox.LocateViewPosition(e.Value);
+	Refresh();
+}
+
+void
+YListBox::OnViewChanged_TextListBox(EventArgs&)
+{
+	VerticalScrollBar.SetMaxValue(TextListBox.GetFullViewHeight());
+	VerticalScrollBar.SetValue(TextListBox.GetViewPosition());
+	VerticalScrollBar.SetLargeDelta(TextListBox.GetHeight());
+	VerticalScrollBar.SetSmallDelta(TextListBox.GetItemHeight());
+}
+
 
 YFileBox::YFileBox(const Rect& r, IUIBox* pCon)
 	: FileList(), YListBox(r, pCon, GetListWeakPtr())
 {
 	GetConfirmed().Add(*this, &YFileBox::OnConfirmed);
+	ListItems();
+	UpdateView();
 }
-YFileBox::~YFileBox() ythrow()
-{}
 
 IO::Path
 YFileBox::GetPath() const
@@ -940,29 +1105,12 @@ YFileBox::GetPath() const
 }
 
 void
-YFileBox::DrawBackground()
-{
-	YWidgetAssert(this, Controls::YFileBox, DrawBackground);
-
-	ParentType::DrawBackground();
-}
-
-void
-YFileBox::DrawForeground()
-{
-	YWidgetAssert(this, Controls::YFileBox, DrawForeground);
-
-	ListItems();
-	ParentType::DrawForeground();
-}
-
-void
 YFileBox::OnConfirmed(IndexEventArgs& e)
 {
 	if(Contains(e) && static_cast<bool>(*this /= GetList()[e.Index]))
-	{	
+	{
+		ListItems();
 		ResetView();
-		Refresh();
 	}
 }
 

@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3333;
+\version 0.3334;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 + 08:00;
 \par 修改时间:
-	2011-02-20 14:41 + 08:00;
+	2011-02-23 18:58 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -63,11 +63,10 @@ void
 RequestFocusCascade(IVisualControl& c)
 {
 	IVisualControl* p(&c);
-	EventArgs e;
 
 	do
 	{
-		p->RequestFocus(e);
+		p->RequestFocus(GetStaticRef<EventArgs>());
 	}while((p = dynamic_cast<IVisualControl*>(p->GetContainerPtr())));
 }
 
@@ -75,11 +74,10 @@ void
 ReleaseFocusCascade(IVisualControl& c)
 {
 	IVisualControl* p(&c);
-	EventArgs e;
 
 	do
 	{
-		p->ReleaseFocus(e);
+		p->ReleaseFocus(GetStaticRef<EventArgs>());
 	}while((p = dynamic_cast<IVisualControl*>(p->GetContainerPtr())));
 }
 
@@ -199,10 +197,7 @@ namespace
 			if(ExtraOperation == TouchDown)
 			{
 				RequestToTop(*p);
-
-				EventArgs e;
-
-				p->RequestFocus(e);
+				p->RequestFocus(GetStaticRef<EventArgs>());
 			}
 			if(!(pCon = dynamic_cast<IUIBox*>(p)))
 				break;

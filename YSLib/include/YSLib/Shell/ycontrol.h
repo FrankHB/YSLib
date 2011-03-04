@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4752;
+\version 0.4801;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 + 08:00;
 \par 修改时间:
-	2011-02-21 10:00 + 08:00;
+	2011-03-03 23:18 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,8 +45,6 @@ using namespace Drawing;
 struct ScreenPositionEventArgs : public EventArgs, public Drawing::Point
 {
 public:
-	static const ScreenPositionEventArgs Empty;
-
 	/*!
 	\brief 构造：使用指定点。
 	*/
@@ -63,8 +61,6 @@ ScreenPositionEventArgs::ScreenPositionEventArgs(const Drawing::Point& pt)
 struct InputEventArgs
 {
 public:
-	static const InputEventArgs Empty;
-
 	typedef Runtime::Key Key;
 
 	Key key;
@@ -90,8 +86,6 @@ struct KeyEventArgs : public EventArgs, public InputEventArgs
 {
 	typedef Key InputType; //!< 输入类型。
 
-	static const KeyEventArgs Empty;
-
 	/*!
 	\brief 构造：使用输入类型对象。
 	*/
@@ -108,8 +102,6 @@ KeyEventArgs::KeyEventArgs(const InputType& k)
 struct TouchEventArgs : public ScreenPositionEventArgs, public InputEventArgs
 {
 	typedef Drawing::Point InputType; //!< 输入类型。
-
-	static const TouchEventArgs Empty;
 
 	/*!
 	\brief 构造：使用输入类型对象。
@@ -143,6 +135,30 @@ struct IndexEventArgs : public EventArgs
 };
 
 
+//! \brief 值类型参数类模块模板。
+template<typename _type>
+struct GMValueEventArgs
+{
+public:
+	typedef _type ValueType; //值类型。
+	_type Value, OldValue; //值和旧值。
+
+	/*!
+	\brief 构造：使用指定值。
+	\note 值等于旧值。
+	*/
+	GMValueEventArgs(ValueType v)
+		: Value(v), OldValue(v)
+	{}
+	/*!
+	\brief 构造：使用指定值和旧值。
+	*/
+	GMValueEventArgs(ValueType v, ValueType old_value)
+		: Value(v), OldValue(old_value)
+	{}
+};
+
+
 //事件处理器类型。
 DefDelegate(HVisualEvent, IVisualControl, EventArgs)
 DefDelegate(HInputEvent, IVisualControl, InputEventArgs)
@@ -162,7 +178,7 @@ DefDelegate(HIndexEvent, IVisualControl, IndexEventArgs)
 
 
 //! \brief 标准可视控件事件空间。
-typedef enum VisualEventSpace
+typedef enum
 {
 //	AutoSizeChanged,
 //	BackColorChanged,
@@ -307,21 +323,26 @@ OnKeyHeld(IVisualControl&, KeyEventArgs&);
 
 /*!
 \brief 处理屏幕接触保持事件。
+
+ VisualControl 加载的默认 TouchHeld 事件处理器。
+实现记录坐标偏移（用于拖放）或触发 TouchMove 事件。
 */
 void
 OnTouchHeld(IVisualControl&, TouchEventArgs&);
 
 /*!
 \brief 处理屏幕接触移动事件。
+\note 重复触发 TouchDown 事件。
 */
 void
 OnTouchMove(IVisualControl&, TouchEventArgs&);
 
 /*!
-\brief 处理屏幕接触移动事件：使用拖放。
+\brief 处理屏幕接触移动事件。
+\note 使用拖放。
 */
 void
-OnDrag(IVisualControl&, TouchEventArgs&);
+OnTouchMove_Dragging(IVisualControl&, TouchEventArgs&);
 
 
 //! \brief 控件基实现类。
@@ -496,6 +517,85 @@ inline
 MButton::MButton(bool b)
 	: bPressed(b)
 {}
+
+
+//! \brief 滚动事件类型空间。
+namespace ScrollEventSpace
+{
+	//! \brief 滚动事件类型。
+	typedef enum
+	{
+		SmallDecrement = 0, //!< 滚动框小距离减量移动。
+		SmallIncrement = 1, //!< 滚动框小距离增量移动。
+		LargeDecrement = 2, //!< 滚动框大距离减量移动。
+		LargeIncrement = 3, //!< 滚动框大距离增量移动。
+		ThumbPosition = 4, //!< 滚动框定位（通过直接设置位置）。
+		ThumbTrack = 5, //!< 滚动框当前正在移动。
+		First = 6, //!< 滚动框移动至最小位置。
+		Last = 7, //!< 滚动框移动至最大位置。
+		EndScroll = 8 //!< 滚动框移动停止。
+	} ScrollEventType;
+};
+
+
+//! \brief 滚动事件参数类。
+struct ScrollEventArgs : public EventArgs,
+	public GMValueEventArgs<SDST>
+{
+public:
+	typedef GMValueEventArgs<SDST> MEventArgs;
+	typedef MEventArgs::ValueType ValueType;
+
+	ScrollEventSpace::ScrollEventType Type; //滚动事件类型。
+
+	/*!
+	\brief 构造：使用指定滚动事件类型和值。
+	\note 值等于旧值。
+	*/
+	ScrollEventArgs(ScrollEventSpace::ScrollEventType, ValueType);
+	/*!
+	\brief 构造：使用指定滚动事件类型、值和旧值。
+	*/
+	ScrollEventArgs(ScrollEventSpace::ScrollEventType, ValueType, ValueType);
+};
+
+inline
+ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
+	ScrollEventArgs::ValueType v)
+	: GMValueEventArgs<SDST>(v), Type(t)
+{}
+inline
+ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
+	ScrollEventArgs::ValueType v, ScrollEventArgs::ValueType old_value)
+	: GMValueEventArgs<SDST>(v, old_value), Type(t)
+{}
+
+
+DefDelegate(HScrollEvent, IVisualControl, ScrollEventArgs)
+
+
+//! \brief 范围模块类。
+template<typename _type>
+class GMRange
+{
+public:
+	typedef _type ValueType;
+
+protected:
+	ValueType max_value; //!< 最大取值。
+	ValueType value; //!< 值。
+
+	/*!
+	\brief 构造：使用指定最大取值和值。
+	*/
+	GMRange(ValueType m, ValueType v)
+		: max_value(m), value(v)
+	{}
+
+public:
+	DefGetter(ValueType, MaxValue, max_value)
+	DefGetter(ValueType, Value, value)
+};
 
 YSL_END_NAMESPACE(Controls)
 

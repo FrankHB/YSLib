@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件实现。
-\version 0.2969;
+\version 0.2994;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 + 08:00;
 \par 修改时间:
-	2011-02-20 14:12 + 08:00;
+	2011-03-03 14:06 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -108,7 +108,7 @@ public:
 	*/
 	explicit
 	GSequenceViewer(_tContainer& c_)
-	: c(c_), head(0), selected(0), length(0), is_selected(false)
+		: c(c_), head(0), selected(0), length(0), is_selected(false)
 	{}
 
 	inline PDefHOperator0(GSequenceViewer&, ++) //!< 选中项目下标自增。
@@ -168,8 +168,8 @@ public:
 	DefGetter(IndexType, RelativeIndex, IsSelected()
 		? GetSelectedIndex() - GetHeadIndex() : -1) \
 		//!< 取选中的项目相对于视图中首个项目的下标偏移。
-	DefGetter(SizeType, Valid, vmin(GetTotal() - GetHeadIndex(), GetLength())) \
-		//!< 取当前视图中有效项目个数。
+	DefGetter(SizeType, Valid, ystdex::vmin(GetTotal() - GetHeadIndex(),
+		GetLength())) //!< 取当前视图中有效项目个数。
 
 	/*!
 	\brief 设置项目索引。
@@ -186,7 +186,6 @@ public:
 				MoveViewerToEnd();
 			else
 				head = t;
-			RestrictSelected();
 			return true;
 		}
 		return false;
@@ -199,11 +198,7 @@ public:
 	{
 		if(l != length)
 		{
-			if(l < length && selected >= static_cast<IndexType>(l))
-				selected = l - 1;
-			else
-				length = l;
-			RestrictSelected();
+			length = l;
 			return true;
 		}
 		return false;
@@ -218,7 +213,7 @@ public:
 			&& !(t == selected && is_selected))
 		{
 			selected = t;
-			RestrictViewer();
+			RestrictView();
 			is_selected = true;
 			return true;
 		}
@@ -260,7 +255,7 @@ public:
 	\brief 约束视图包含被选中的元素。
 	*/
 	bool
-	RestrictViewer()
+	RestrictView()
 	{
 		if(head < 0)
 			return false;

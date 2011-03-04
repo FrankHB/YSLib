@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2096;
+\version 0.2097;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 + 08:00;
 \par 修改时间:
-	2011-02-14 14:25 + 08:00;
+	2011-02-23 18:57 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,10 +59,7 @@ YDesktop::operator-=(IVisualControl& w)
 
 	if(i == sDOs.end())
 		return false;
-
-	EventArgs e;
-
-	w.ReleaseFocus(e);
+	w.ReleaseFocus(GetStaticRef<EventArgs>());
 	sDOs.erase(i);
 	bRefresh = true;
 	return true;
@@ -75,9 +72,7 @@ YDesktop::RemoveAll(IVisualControl& w)
 
 	while((i = std::find(sDOs.begin(), sDOs.end(), &w)) != sDOs.end())
 	{
-		EventArgs e;
-
-		w.ReleaseFocus(e);
+		w.ReleaseFocus(GetStaticRef<EventArgs>());
 		sDOs.erase(i);
 		++n;
 	}
@@ -104,9 +99,7 @@ YDesktop::RemoveTopDesktopObject()
 {
 	if(!sDOs.empty())
 	{
-		EventArgs e;
-
-		sDOs.back()->ReleaseFocus(e);
+		sDOs.back()->ReleaseFocus(GetStaticRef<EventArgs>());
 		sDOs.pop_back();
 		bRefresh = true;
 	}

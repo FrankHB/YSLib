@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2670;
+\version 0.2672;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 + 08:00; 
 \par 修改时间:
-	2011-01-31 14:54 + 08:00;
+	2011-02-23 10:33 + 08:00;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -152,7 +152,7 @@ namespace platform
 
 		//参考：http://www.w3schools.com/html/html_colornames.asp 。
 
-		typedef enum ColorSet
+		typedef enum
 		{
 			DefColorH(00FFFF, Aqua),
 			DefColorH(000000, Black),
@@ -265,7 +265,7 @@ namespace platform
 	namespace KeySpace
 	{
 		//按键集合。
-		typedef enum KeySet
+		typedef enum
 		{
 			Empty	= 0,
 			A		= KEY_A,
