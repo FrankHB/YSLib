@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器实现。
-\version 0.2287;
+\version 0.2302;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-01-05 14:03:47 + 08:00; 
+	2010-01-05 14:03:47 +0800; 
 \par 修改时间:
-	2011-02-20 13:15 + 08:00;
+	2011-03-07 13:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -108,9 +108,10 @@ public:
 	\param h_down 下字符区域高。
 	\param fc_ 字体缓存对象引用。
 	*/
-	MDualScreenReader(SDST l = 0, SDST w = SCRW,
-		SDST t_up = 0, SDST h_up = SCRH, SDST t_down = 0, SDST h_down = SCRH,
-		YFontCache& fc_ = *theApp.pFontCache);
+	MDualScreenReader(SDST l = 0, SDST w = Global::MainScreenWidth,
+		SDST t_up = 0, SDST h_up = Global::MainScreenHeight,
+		SDST t_down = 0, SDST h_down = Global::MainScreenHeight,
+		YFontCache& fc_ = theApp.GetFontCache());
 
 	bool IsTextTop(); //!< 判断输出位置是否到文本顶端。	
 	bool IsTextBottom(); //!< 判断输出位置是否到文本底端。

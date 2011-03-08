@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file chrdef.h
 \ingroup CHRLib CHRLib 库
 \brief CHRLib 类型定义。
-\version 0.1564;
+\version 0.1566;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-17 17:52:35 + 08:00;
+	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2010-12-25 23:26 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

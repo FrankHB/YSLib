@@ -1,8 +1,8 @@
 # DS Makefile for YShell by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
-# CTime = 2009-11-12 21:26:30 + 08:00;
-# UTime = 2011-01-21 07:15 + 08:00;
-# Version = 0.3240;
+# CTime = 2009-11-12 21:26:30 +0800;
+# UTime = 2011-03-05 16:55 +0800;
+# Version = 0.3242;
 
 # This makefile is written based on devkitPro example template.
 

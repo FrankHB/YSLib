@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version 0.1727;
+\version 0.1729;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-17 17:53:21 + 08:00; 
+	2009-11-17 17:53:21 +0800; 
 \par 修改时间:
-	2011-01-15 19:09 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

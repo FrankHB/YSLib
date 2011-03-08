@@ -11,12 +11,12 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.1501;
+\version 0.1518;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-16 20:06:58 + 08:00;
+	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-02-06 23:07 + 08:00;
+	2011-03-07 13:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,22 +25,28 @@
 
 
 #include "yobject.h"
+#include "../Helper/yglobal.h"
+#include "../Core/yshell.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
 const Point Point::Zero = Point();
-const Point Point::FullScreen = Point(SCRW, SCRH);
+const Point Point::FullScreen = Point(Global::MainScreenWidth,
+	Global::MainScreenHeight);
 
 const Vec Vec::Zero = Vec();
-const Vec Vec::FullScreen = Vec(SCRW, SCRH);
+const Vec Vec::FullScreen = Vec(Global::MainScreenWidth,
+	Global::MainScreenHeight);
 
 const Size Size::Zero = Size();
-const Size Size::FullScreen = Size(SCRW, SCRH);
+const Size Size::FullScreen = Size(Global::MainScreenWidth,
+	Global::MainScreenHeight);
 
 const Rect Rect::Empty = Rect();
-const Rect Rect::FullScreen = Rect(Point::Zero, SCRW, SCRH);
+const Rect Rect::FullScreen = Rect(Point::Zero,
+	Global::MainScreenWidth, Global::MainScreenHeight);
 
 
 SPOS

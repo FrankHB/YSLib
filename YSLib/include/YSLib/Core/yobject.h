@@ -1,4 +1,5 @@
-﻿/*
+﻿
+/*
 	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
@@ -11,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.2862;
+\version 0.2864;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-16 20:06:58 + 08:00;
+	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-02-20 13:37 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file agg.h
 \ingroup Adaptor
 \brief Anti-Grain Geometry 库关联。
-\version 0.1674;
+\version 0.1676;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-02-21 15:46:00 + 08:00;
+	2010-02-21 15:46:00 +0800;
 \par 修改时间:
-	2010-12-17 18:57 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

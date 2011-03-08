@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.1978;
+\version 0.2057;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-22 15:14:57 + 08:00;
+	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-01-31 12:46 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,7 +32,9 @@
 #ifndef INCLUDED_YGLOBAL_H_
 #define INCLUDED_YGLOBAL_H_
 
+#include "../Core/ysdef.h"
 #include "../Core/ysmsg.h"
+#include "../Core/ycutil.h"
 #include "../Core/yexcept.h"
 
 YSL_BEGIN
@@ -49,11 +51,95 @@ YSL_BEGIN
 \brief 平台相关的全局变量。
 */
 //@{
-extern GHHandle<YScreen> hScreenUp; //<! DS 上屏幕句柄。
-extern GHHandle<YScreen> hScreenDown; //<! DS 上屏幕句柄。
-extern GHHandle<YDesktop> hDesktopUp; //<! DS 下屏幕默认桌面句柄。
-extern GHHandle<YDesktop> hDesktopDown; //<! DS 下屏幕默认桌面句柄。
 //@}
+
+/*!
+\brief 平台相关的全局资源类。
+*/
+class Global : public NonCopyable
+{
+	friend class YApplication;
+
+public:
+	//! \brief 屏幕大小。
+	static const SDST MainScreenWidth, MainScreenHeight;
+
+private:
+	GHHandle<YScreen> hScreenUp; //<! DS 上屏幕句柄。
+	GHHandle<YScreen> hScreenDown; //<! DS 上屏幕句柄。
+	GHHandle<YDesktop> hDesktopUp; //<! DS 下屏幕默认桌面句柄。
+	GHHandle<YDesktop> hDesktopDown; //<! DS 下屏幕默认桌面句柄。
+
+	Global(); //!< 构造函数：非内联。
+	~Global(); //!< 析构函数：非内联。
+
+public:
+	DefGetter(const GHHandle<YScreen>&, ScreenUpHandle, hScreenUp)
+	DefGetter(const GHHandle<YScreen>&, ScreenDownHandle, hScreenDown)
+	DefGetter(const GHHandle<YDesktop>&, DesktopUpHandle, hDesktopUp)
+	DefGetter(const GHHandle<YDesktop>&, DesktopDownHandle, hDesktopDown)
+	/*!
+	\brief 取上屏幕。
+	\note 断言检查：句柄非空。
+	\note 无异常抛出。
+	*/
+	YScreen&
+	GetScreenUp() const ythrow();
+	/*!
+	\brief 取下屏幕。
+	\note 断言检查：句柄非空。
+	\note 无异常抛出。
+	*/
+	YScreen&
+	GetScreenDown() const ythrow();
+	/*!
+	\brief 取上桌面。
+	\note 断言检查：句柄非空。
+	\note 无异常抛出。
+	*/
+	YDesktop&
+	GetDesktopUp() const ythrow();
+	/*!
+	\brief 取下桌面。
+	\note 断言检查：句柄非空。
+	\note 无异常抛出。
+	*/
+	YDesktop&
+	GetDesktopDown() const ythrow();
+	/*!
+	\brief 取默认屏幕。
+	\note 无异常抛出。
+	*/
+	PDefH0(YScreen&, GetDefaultScreen)
+		ImplRet(GetScreenUp())
+	/*!
+	\brief 取默认桌面。
+	\note 无异常抛出。
+	*/
+	PDefH0(YDesktop&, GetDefaultDesktop)
+		ImplRet(GetDesktopUp())
+	/*!
+	\brief 取触摸屏所在桌面。
+	\note 断言检查：句柄非空。
+	\note 无异常抛出。
+	*/
+	PDefH0(YDesktop&, GetTouchableDesktop)
+		ImplRet(GetDesktopDown())
+
+	/*!
+	\brief 初始化设备。
+	\note 无异常抛出。
+	*/
+	void
+	InitializeDevices() ythrow();
+
+	/*!
+	\brief 释放设备。
+	\note 无异常抛出。
+*/
+	void
+	ReleaseDevices() ythrow();
+};
 
 
 YSL_BEGIN_NAMESPACE(Messaging)

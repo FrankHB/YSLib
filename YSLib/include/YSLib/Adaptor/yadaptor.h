@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2062;
+\version 0.2064;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-02-22 20:16:21 + 08:00;
+	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2011-01-31 14:52 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

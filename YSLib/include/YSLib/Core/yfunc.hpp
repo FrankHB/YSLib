@@ -11,12 +11,12 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数对象封装。
-\version 0.1677;
+\version 0.1679;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-02-14 18:48:44 + 08:00;
+	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2011-01-31 13:35 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3334;
+\version 0.3425;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-16 20:06:58 + 08:00;
+	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-02-23 18:58 + 08:00;
+	2011-03-08 13:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,7 @@
 #include "ygui.h"
 #include "ywindow.h"
 #include "ydesktop.h"
+#include "../Helper/yshelper.h"
 
 YSL_BEGIN
 
@@ -39,18 +40,10 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
 
-IWidget*
-GetCursorWidgetPtr(GHHandle<YGUIShell> hShl, YDesktop& d, const Point& pt)
-{
-	HWND hWnd(hShl->GetTopWindowHandle(d, pt));
-
-	return hWnd ? hWnd->GetTopWidgetPtr(pt) : NULL;
-}
-
-IVisualControl*
+IControl*
 GetFocusedObjectPtr(YDesktop& d)
 {
-	IVisualControl* p(d.GetFocusingPtr()), *q(NULL);
+	IControl* p(d.GetFocusingPtr()), *q(NULL);
 	IUIBox* pCon;
 
 	while(p && (pCon = dynamic_cast<IUIBox*>(p))
@@ -60,42 +53,140 @@ GetFocusedObjectPtr(YDesktop& d)
 }
 
 void
-RequestFocusCascade(IVisualControl& c)
+RequestFocusCascade(IControl& c)
 {
-	IVisualControl* p(&c);
+	IControl* p(&c);
 
 	do
 	{
 		p->RequestFocus(GetStaticRef<EventArgs>());
-	}while((p = dynamic_cast<IVisualControl*>(p->GetContainerPtr())));
+	}while((p = dynamic_cast<IControl*>(p->GetContainerPtr())));
 }
 
 void
-ReleaseFocusCascade(IVisualControl& c)
+ReleaseFocusCascade(IControl& c)
 {
-	IVisualControl* p(&c);
+	IControl* p(&c);
 
 	do
 	{
 		p->ReleaseFocus(GetStaticRef<EventArgs>());
-	}while((p = dynamic_cast<IVisualControl*>(p->GetContainerPtr())));
+	}while((p = dynamic_cast<IControl*>(p->GetContainerPtr())));
 }
 
+YSL_END_NAMESPACE(Controls)
 
-//记录输入保持状态。
+YSL_END_NAMESPACE(Components)
 
-YSL_BEGIN_NAMESPACE(InputStatus)
+YSL_BEGIN_NAMESPACE(Shells)
 
-HeldStateType KeyHeldState(Free);
-HeldStateType TouchHeldState(Free);
-Vec DraggingOffset(Vec::FullScreen);
-Timers::YTimer HeldTimer(1000, false);
-Point VisualControlLocation(Point::FullScreen);
-Point LastVisualControlLocation(Point::FullScreen);
+YGUIShell::YGUIShell()
+	: YShell(),
+	sWnds(), KeyHeldState(Free), TouchHeldState(Free),
+	DraggingOffset(Vec::FullScreen), HeldTimer(1000, false),
+	ControlLocation(Point::FullScreen),
+	LastControlLocation(Point::FullScreen),
+	p_KeyDown(NULL), p_TouchDown(NULL), bEntered(false), ExtraOperation(NoOp)
+{}
+YGUIShell::~YGUIShell() ythrow()
+{}
 
+void
+YGUIShell::operator+=(HWND h)
+{
+	if(h)
+		sWnds.push_back(h);
+}
+bool
+YGUIShell::operator-=(HWND h)
+{
+	WNDs::iterator i(std::find(sWnds.begin(), sWnds.end(), h));
+
+	if(i == sWnds.end())
+		return false;
+	sWnds.erase(i);
+	return true;
+}
+YGUIShell::WNDs::size_type YGUIShell::RemoveAll(HWND h)
+{
+	return ystdex::erase_all(sWnds, h);
+}
+
+void
+YGUIShell::RemoveWindow()
+{
+	sWnds.pop_back();
+}
+
+HWND
+YGUIShell::GetFirstWindowHandle() const
+{
+	return HWND(sWnds.empty() ? NULL : sWnds.front());
+}
+HWND
+YGUIShell::GetTopWindowHandle() const
+{
+	return HWND(sWnds.empty() ? NULL : sWnds.back());
+}
+HWND
+YGUIShell::GetTopWindowHandle(YDesktop& d, const Point& p) const
+{
+	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
+	{
+		// TODO: assert(*i);
+
+		if(FetchDirectDesktopPtr(**i) == &d && Contains(**i, p))
+			return HWND(*i);
+	}
+	return NULL;
+}
+IWidget*
+YGUIShell::GetCursorWidgetPtr(YDesktop& d, const Point& pt) const
+{
+	HWND hWnd(GetTopWindowHandle(d, pt));
+
+	return hWnd ? hWnd->GetTopWidgetPtr(pt) : NULL;
+}
 
 bool
-RepeatHeld(HeldStateType& s,
+YGUIShell::SendWindow(IWindow& w)
+{
+	if(std::find(sWnds.begin(), sWnds.end(), &w) != sWnds.end())
+	{
+		YDesktop* const pDsk(FetchDirectDesktopPtr(w));
+
+		if(pDsk)
+		{
+			*pDsk += static_cast<IControl&>(w);
+			return true;
+		}
+	}
+	return false;
+}
+
+void
+YGUIShell::DispatchWindows()
+{
+	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
+	{
+		// TODO: assert(*i);
+
+		YDesktop* const pDsk(FetchDirectDesktopPtr(**i));
+
+		if(pDsk)
+			*pDsk += *static_cast<IControl*>(GetPointer(*i));
+	}
+}
+
+void
+YGUIShell::ClearScreenWindows(YDesktop& d)
+{
+	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
+		d.RemoveAll(*static_cast<IControl*>(GetPointer(*i)));
+}
+
+bool
+YGUIShell::RepeatHeld(HeldStateType& s,
 	Timers::TimeSpan InitialDelay, Timers::TimeSpan RepeatedDelay)
 {
 	//三状态自动机。
@@ -128,265 +219,244 @@ RepeatHeld(HeldStateType& s,
 }
 
 void
-ResetHeldState(HeldStateType& s)
+YGUIShell::ResetHeldState(HeldStateType& s)
 {
 	Deactivate(HeldTimer);
 	s = Free;
 }
 
-YSL_END_NAMESPACE(InputStatus)
-
-namespace
-{
-	using namespace InputStatus;
-
-	//独立焦点指针：即时输入（按下）状态所在控件指针。
-	IVisualControl* p_TouchDown(NULL);
-	IVisualControl* p_KeyDown(NULL);
-
-	bool bEntered(false); //记录指针是否在控件内部。
-
-	namespace ExOp
-	{
-		typedef enum
-		{
-			NoOp = 0,
-			TouchUp = 1,
-			TouchDown = 2,
-			TouchHeld = 3
-		} ExOpType;
-	};
-	ExOp::ExOpType ExtraOperation(ExOp::NoOp);
-
-	void
-	TryEntering(IVisualControl& c, TouchEventArgs& e)
-	{
-		if(!bEntered && p_TouchDown == &c)
-		{
-			CallEvent<Enter>(c, e);
-			bEntered = true;
-		}
-	}
-	void
-	TryLeaving(IVisualControl& c, TouchEventArgs& e)
-	{
-		if(bEntered && p_TouchDown == &c)
-		{
-			CallEvent<Leave>(c, e);
-			bEntered = false;
-		}
-	}
-
-	void ResetTouchHeldState()
-	{
-		ResetHeldState(TouchHeldState);
-		DraggingOffset = Vec::FullScreen;
-	}
-
-	IVisualControl*
-	GetTouchedVisualControlPtr(IUIBox& con, Point& pt)
-	{
-		using namespace ExOp;
-
-		IUIBox* pCon(&con);
-		IVisualControl* p;
-
-		while((p = pCon->GetTopVisualControlPtr(pt)))
-		{
-			pt -= p->GetLocation();
-			if(ExtraOperation == TouchDown)
-			{
-				RequestToTop(*p);
-				p->RequestFocus(GetStaticRef<EventArgs>());
-			}
-			if(!(pCon = dynamic_cast<IUIBox*>(p)))
-				break;
-		}
-		if(!p)
-		{
-			pCon->ClearFocusingPtr();
-			p = dynamic_cast<IVisualControl*>(pCon);
-		}
-		if(ExtraOperation == TouchHeld)
-		{
-			if(p_TouchDown != p)
-			{
-				if(p_TouchDown)
-				{
-					if(p)
-						pt += LocateForWidget(*p, *p_TouchDown);
-					if(bEntered)
-					{
-						TouchEventArgs e(pt);
-
-						TryLeaving(*p_TouchDown, e);
-					}
-				}
-				return p_TouchDown;
-			}
-			else if(!bEntered)
-			{
-				TouchEventArgs e(pt);
-
-				TryEntering(*p, e);
-			}
-		}
-		return p;
-	}
-
-	IVisualControl*
-	GetFocusedEnabledVisualControlPtr(IVisualControl* p)
-	{
-		return p && p->IsEnabled() ? p : NULL;
-	}
-
-	inline IVisualControl*
-	GetFocusedEnabledVisualControlPtr(YDesktop& d)
-	{
-		return GetFocusedEnabledVisualControlPtr(GetFocusedObjectPtr(d));
-	}
-
-	bool
-	ResponseKeyUpBase(IVisualControl& c, KeyEventArgs& e)
-	{
-		ResetHeldState(KeyHeldState);
-		if(p_KeyDown == &c && KeyHeldState == Free)
-			CallEvent<KeyPress>(c, e);
-		CallEvent<KeyUp>(c, e);
-		CallEvent<Leave>(c, e);
-		p_KeyDown = NULL;
-		return true;
-	}
-	bool
-	ResponseKeyDownBase(IVisualControl& c, KeyEventArgs& e)
-	{
-		p_KeyDown = &c;
-		CallEvent<Enter>(c, e);
-		CallEvent<KeyDown>(c, e);
-		return true;
-	}
-	bool
-	ResponseKeyHeldBase(IVisualControl& c, KeyEventArgs& e)
-	{
-		if(p_KeyDown != &c)
-		{
-			ResetHeldState(KeyHeldState);
-			return false;
-		}
-		CallEvent<KeyHeld>(c, e);
-		return true;
-	}
-
-	bool
-	ResponseTouchUpBase(IVisualControl& c, TouchEventArgs& e)
-	{
-		ResetTouchHeldState();
-		if(p_TouchDown == &c && TouchHeldState == Free)
-			CallEvent<Click>(c, e);
-		CallEvent<TouchUp>(c, e);
-		TryLeaving(c, e);
-		p_TouchDown = NULL;
-		return true;
-	}
-	bool
-	ResponseTouchDownBase(IVisualControl& c, TouchEventArgs& e)
-	{
-		p_TouchDown = &c;
-		TryEntering(c, e);
-		CallEvent<TouchDown>(c, e);
-		return true;
-	}
-	bool
-	ResponseTouchHeldBase(IVisualControl& c, TouchEventArgs& e)
-	{
-	/*	if(p_TouchDown != &c)
-		{
-			ResetTouchHeldState();
-			return false;
-		}*/
-		if(p_TouchDown == &c)
-		{
-			CallEvent<TouchHeld>(c, e);
-			return true;
-		}
-		return false;
-	}
-
-	bool
-	ResponseKeyBase(YDesktop& d, HKeyCallback f)
-	{
-		IVisualControl* const p(GetFocusedEnabledVisualControlPtr(d));
-
-		return f(p ? *p : d);
-	}
-
-	bool
-	ResponseTouchBase(IUIBox& con, HTouchCallback f)
-	{
-		VisualControlLocation = f;
-
-		IVisualControl* const pVC(GetTouchedVisualControlPtr(con, f));
-
-		return pVC ? f(*pVC, f) : false;
-	}
-}
-
 void
-ResetGUIStates()
+YGUIShell::ResetGUIStates()
 {
-	{
-		using namespace InputStatus;
-
-		KeyHeldState = Free;
-		TouchHeldState = Free;
-		DraggingOffset = Vec::FullScreen;
-		HeldTimer.SetInterval(1000);
-		Deactivate(HeldTimer);
-		VisualControlLocation = Point::FullScreen;
-		LastVisualControlLocation = Point::FullScreen;
-	}
+	KeyHeldState = Free;
+	TouchHeldState = Free;
+	DraggingOffset = Vec::FullScreen;
+	HeldTimer.SetInterval(1000);
+	Deactivate(HeldTimer);
+	ControlLocation = Point::FullScreen;
+	LastControlLocation = Point::FullScreen;
 	p_TouchDown = NULL;
 	p_KeyDown = NULL;
 }
 
-bool
-ResponseKeyUp(YDesktop& d, KeyEventArgs& e)
+void
+YGUIShell::TryEntering(IControl& c, TouchEventArgs& e)
 {
-	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyUpBase));
+	if(!bEntered && p_TouchDown == &c)
+	{
+		CallEvent<Enter>(c, e);
+		bEntered = true;
+	}
 }
-bool
-ResponseKeyDown(YDesktop& d, KeyEventArgs& e)
+void
+YGUIShell::TryLeaving(IControl& c, TouchEventArgs& e)
 {
-	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyDownBase));
+	if(bEntered && p_TouchDown == &c)
+	{
+		CallEvent<Leave>(c, e);
+		bEntered = false;
+	}
 }
-bool
-ResponseKeyHeld(YDesktop& d, KeyEventArgs& e)
+
+void
+YGUIShell::ResetTouchHeldState()
 {
-	return ResponseKeyBase(d, HKeyCallback(e, ResponseKeyHeldBase));
+	ResetHeldState(TouchHeldState);
+	DraggingOffset = Vec::FullScreen;
+}
+
+IControl*
+YGUIShell::GetTouchedVisualControlPtr(IUIBox& con, Point& pt)
+{
+	IUIBox* pCon(&con);
+	IControl* p;
+
+	while((p = pCon->GetTopControlPtr(pt)))
+	{
+		pt -= p->GetLocation();
+		if(ExtraOperation == ExOp_TouchDown)
+		{
+			RequestToTop(*p);
+			p->RequestFocus(GetStaticRef<EventArgs>());
+		}
+		if(!(pCon = dynamic_cast<IUIBox*>(p)))
+			break;
+	}
+	if(!p)
+	{
+		if(pCon && ExtraOperation == ExOp_TouchDown)
+			pCon->ClearFocusingPtr();
+		p = dynamic_cast<IControl*>(pCon);
+	}
+	if(ExtraOperation == ExOp_TouchHeld)
+	{
+		if(p_TouchDown != p)
+		{
+			if(p_TouchDown)
+			{
+				if(p)
+					pt += LocateForWidget(*p, *p_TouchDown);
+				if(bEntered)
+				{
+					TouchEventArgs e(pt);
+
+					TryLeaving(*p_TouchDown, e);
+				}
+			}
+			return p_TouchDown;
+		}
+		else if(!bEntered)
+		{
+			TouchEventArgs e(pt);
+
+			TryEntering(*p, e);
+		}
+	}
+	return p;
+}
+
+IControl*
+YGUIShell::GetFocusedEnabledVisualControlPtr(IControl* p)
+{
+	return p && p->IsEnabled() ? p : NULL;
 }
 
 bool
-ResponseTouchUp(IUIBox& con, TouchEventArgs& e)
+YGUIShell::ResponseKeyUpBase(IControl& c, KeyEventArgs& e)
 {
-	ExtraOperation = ExOp::TouchUp;
-	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchUpBase));
-}
-bool
-ResponseTouchDown(IUIBox& con, TouchEventArgs& e)
-{
-	ExtraOperation = ExOp::TouchDown;
-	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchDownBase));
-}
-bool
-ResponseTouchHeld(IUIBox& con, TouchEventArgs& e)
-{
-	ExtraOperation = ExOp::TouchHeld;
-	return ResponseTouchBase(con, HTouchCallback(e, ResponseTouchHeldBase));
+	ResetHeldState(KeyHeldState);
+	if(p_KeyDown == &c && KeyHeldState == Free)
+		CallEvent<KeyPress>(c, e);
+	CallEvent<KeyUp>(c, e);
+	CallEvent<Leave>(c, e);
+	p_KeyDown = NULL;
+	return true;
 }
 
-YSL_END_NAMESPACE(Controls)
+bool
+YGUIShell::ResponseKeyDownBase(IControl& c, KeyEventArgs& e)
+{
+	p_KeyDown = &c;
+	CallEvent<Enter>(c, e);
+	CallEvent<KeyDown>(c, e);
+	return true;
+}
 
-YSL_END_NAMESPACE(Components)
+bool
+YGUIShell::ResponseKeyHeldBase(IControl& c, KeyEventArgs& e)
+{
+	if(p_KeyDown != &c)
+	{
+		ResetHeldState(KeyHeldState);
+		return false;
+	}
+	CallEvent<KeyHeld>(c, e);
+	return true;
+}
+
+bool
+YGUIShell::ResponseTouchUpBase(IControl& c, TouchEventArgs& e)
+{
+	ResetTouchHeldState();
+	if(p_TouchDown == &c && TouchHeldState == Free)
+		CallEvent<Click>(c, e);
+	CallEvent<TouchUp>(c, e);
+	TryLeaving(c, e);
+	p_TouchDown = NULL;
+	return true;
+}
+
+bool
+YGUIShell::ResponseTouchDownBase(IControl& c, TouchEventArgs& e)
+{
+	p_TouchDown = &c;
+	TryEntering(c, e);
+	CallEvent<TouchDown>(c, e);
+	return true;
+}
+
+bool
+YGUIShell::ResponseTouchHeldBase(IControl& c, TouchEventArgs& e)
+{
+	/*	if(p_TouchDown != &c)
+	{
+	ResetTouchHeldState();
+	return false;
+	}*/
+	if(p_TouchDown == &c)
+	{
+		CallEvent<TouchHeld>(c, e);
+		return true;
+	}
+	return false;
+}
+
+bool
+YGUIShell::ResponseKeyBase(YDesktop& d, KeyEventArgs& e,
+	bool(YGUIShell::*pmf)(IControl&, KeyEventArgs&))
+{
+	IControl* const p(GetFocusedEnabledVisualControlPtr(d));
+
+	return (this->*pmf)(p ? *p : d, e);
+}
+
+bool
+YGUIShell::ResponseTouchBase(IUIBox& con, TouchEventArgs& e,
+	bool(YGUIShell::*pmf)(IControl&, TouchEventArgs&))
+{
+	ControlLocation = e;
+
+	IControl* const pVC(GetTouchedVisualControlPtr(con, e));
+
+	return pVC ? (this->*pmf)(*pVC, e) : false;
+}
+
+bool
+YGUIShell::ResponseKeyUp(YDesktop& d, KeyEventArgs& e)
+{
+	return ResponseKeyBase(d, e, &YGUIShell::ResponseKeyUpBase);
+}
+
+bool
+YGUIShell::ResponseKeyDown(YDesktop& d, KeyEventArgs& e)
+{
+	return ResponseKeyBase(d, e, &YGUIShell::ResponseKeyDownBase);
+}
+
+bool
+YGUIShell::ResponseKeyHeld(YDesktop& d, KeyEventArgs& e)
+{
+	return ResponseKeyBase(d, e, &YGUIShell::ResponseKeyHeldBase);
+}
+
+bool
+YGUIShell::ResponseTouchUp(IUIBox& con, TouchEventArgs& e)
+{
+	ExtraOperation = ExOp_TouchUp;
+	return ResponseTouchBase(con, e, &YGUIShell::ResponseTouchUpBase);
+}
+
+bool
+YGUIShell::ResponseTouchDown(IUIBox& con, TouchEventArgs& e)
+{
+	ExtraOperation = ExOp_TouchDown;
+	return ResponseTouchBase(con, e, &YGUIShell::ResponseTouchDownBase);
+}
+
+bool
+YGUIShell::ResponseTouchHeld(IUIBox& con, TouchEventArgs& e)
+{
+	ExtraOperation = ExOp_TouchHeld;
+	return ResponseTouchBase(con, e, &YGUIShell::ResponseTouchHeldBase);
+}
+
+int
+YGUIShell::ShlProc(const Message& msg)
+{
+	return ParentType::ShlProc(msg);
+}
+
+YSL_END_NAMESPACE(Shells)
 
 YSL_BEGIN_NAMESPACE(Drawing)
 

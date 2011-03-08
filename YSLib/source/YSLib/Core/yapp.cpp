@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 应用程序实例类抽象。
-\version 0.2146;
+\version 0.2226;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-27 17:12:36 + 08:00;
+	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2010-02-23 18:58 + 08:00;
+	2011-03-07 19:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 #include "yapp.h"
 #include "../Helper/yglobal.h"
+#include "../Adaptor/yfont.h"
 
 YSL_BEGIN
 
@@ -68,10 +69,9 @@ YLog::FatalError(const string& s)
 }
 
 
-YApplication::YApplication(GHHandle<YScreen>& hScr, GHHandle<YDesktop>& hDsk)
+YApplication::YApplication()
 	: YObject(),
-	Log(DefaultLog), hDefaultScreen(hScr), hDefaultDesktop(hDsk),
-	pMessageQueue(new YMessageQueue()),
+	Log(), pResource(new Global()), pMessageQueue(new YMessageQueue()),
 	pMessageQueueBackup(new YMessageQueue()),
 	hShell(NULL), pFontCache(NULL)
 {
@@ -82,19 +82,41 @@ YApplication::~YApplication() ythrow()
 	//释放主 Shell 。
 //	YReset(DefaultShellHandle);
 	ApplicationExit(*this, GetStaticRef<EventArgs>());
-	delete pMessageQueue;
 	delete pMessageQueueBackup;
+	delete pMessageQueue;
+	delete pResource;
 }
 
 YApplication*
-YApplication::GetInstancePtr(GHHandle<YScreen>& hScr, GHHandle<YDesktop>& hDsk)
+YApplication::GetInstancePtr() ythrow()
 {
 	//单例对象。
-	static YApplication* pInstance(new YApplication(hScr, hDsk));
+	static YApplication* pInstance(new YApplication());
 
 	return pInstance;
 }
+YApplication&
+YApplication::GetInstance() ythrow()
+{
+	try
+	{
+		YApplication* pInstance(GetInstancePtr());
+		return *pInstance;
+	}
+	catch(...)
+	{
+		YAssert(false, "Fatal error @@ YApplication:"
+			" the application instance pointer is null.");
+	}
+}
+Global&
+YApplication::GetPlatformResource() ythrow()
+{
+	YAssert(pResource, "Fatal error @@ YApplication:"
+		" the platform resource pointer is null.");
 
+	return *pResource;
+}
 YMessageQueue&
 YApplication::GetDefaultMessageQueue() ythrow(LoggedEvent)
 {
@@ -108,6 +130,13 @@ YApplication::GetBackupMessageQueue() ythrow(LoggedEvent)
 	if(!pMessageQueueBackup)
 		throw LoggedEvent("Get backup message queue failed @@ YApplication.");
 	return *pMessageQueueBackup;
+}
+YFontCache&
+YApplication::GetFontCache() const ythrow(LoggedEvent)
+{
+	if(!pFontCache)
+		throw LoggedEvent("Get default font cache failed @@ YApplication.");
+	return *pFontCache;
 }
 
 bool
@@ -134,7 +163,28 @@ void
 YApplication::ResetShellHandle() ythrow()
 {
 	if(!SetShellHandle(DefaultShellHandle))
-		Log.FatalError("YApplication::ResetShellHandle();");
+		Log.FatalError("Error occured @@ YApplication::ResetShellHandle();");
+}
+
+void
+YApplication::ResetFontCache(CPATH path) ythrow(LoggedEvent)
+{
+	try
+	{
+		Drawing::CreateFontCache(pFontCache, path);
+	}
+	catch(...)
+	{
+		throw LoggedEvent("Error occured @@"
+			" YApplication::ResetFontCache(CPATH path);");
+	}
+}
+
+void
+YApplication::DestroyFontCache()
+{
+	Drawing::Font::ReleaseDefault();
+	Drawing::DestroyFontCache(pFontCache);
 }
 
 

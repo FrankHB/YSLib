@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 应用程序实例类抽象。
-\version 0.2069;
+\version 0.2148;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-27 17:12:27 + 08:00;
+	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-02-20 13:34 + 08:00;
+	2011-03-07 19:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,10 @@
 
 YSL_BEGIN
 
-//! \brief 程序日志。
+class Global; //!< 平台资源类前向声明。
+
+
+//! \brief 程序日志类。
 class YLog : public YObject
 {
 public:
@@ -92,7 +95,7 @@ public:
 };
 
 
-//! \brief 程序实例：通过单例实现进程唯一性语义。
+//! \brief 程序实例类：通过单例实现进程唯一性语义。
 class YApplication : public YObject
 {
 public:
@@ -109,62 +112,79 @@ public:
 	DeclEvent(HEvent, Idle)
 
 	//全局资源。
-	YLog& Log; //!< 默认程序日志。
-	GHHandle<YScreen>& hDefaultScreen;
-	GHHandle<YDesktop>& hDefaultDesktop;
+	YLog Log; //!< 默认程序日志。
+
+private:
+	Global* pResource; //!< 平台相关的全局资源。
+
+public:
 	static const GHHandle<YShell> DefaultShellHandle; //!< 主 Shell 句柄。
 
 private:
 	YMessageQueue* pMessageQueue; //!< 主消息队列：在程序实例中实现以保证单线程。
 	YMessageQueue* pMessageQueueBackup; \
 		//!< 备份消息队列：在程序实例中实现以保证单线程。
-
 	GHHandle<YShell> hShell;
 		/*!<
 		当前 Shell 句柄：指示当前线程空间中运行的 Shell ；
 		全局单线程，生存期与进程相同。
 		*/
-
-public:
 	YFontCache* pFontCache; //!< 默认字体缓存。
 
-private:
 	/*!
-	\brief 构造：使用指定默认屏幕句柄、默认桌面句柄和默认 Shell 句柄。
+	\brief 无参数构造。
 	*/
-	YApplication(GHHandle<YScreen>&, GHHandle<YDesktop>&);
+	YApplication();
 	/*!
 	\brief 静态单例构造：取自身实例指针。
 	*/
 	static YApplication*
-	GetInstancePtr(GHHandle<YScreen>&, GHHandle<YDesktop>&);
+	GetInstancePtr() ythrow();
 
 public:
 	/*!
-	\exception ythrow()
 	\brief 析构：释放 Shell 所有权和其它资源。
 	\note 无异常抛出。
 	*/
 	virtual
 	~YApplication() ythrow();
 
-	static PDefH2(YApplication&, GetApp, GHHandle<YScreen>& hScr,
-		GHHandle<YDesktop>& hDsk)
-		ImplRet(*GetInstancePtr(hScr, hDsk)) //!< 取得自身实例引用。
+	/*!
+	\brief 取得自身实例引用。
+	\note 断言检查：指针非空。
+	*/
+	static YApplication&
+	GetInstance() ythrow();
+	/*!
+	\brief 取平台相关的全局资源实例。
+	\note 断言检查：指针非空。
+	\note 无异常抛出。
+	*/
+	Global&
+	GetPlatformResource() ythrow();
 	DefGetter(GHHandle<YShell>, ShellHandle, hShell) \
 		//!< 取得线程空间中当前运行的 Shell 的句柄。
 	/*!
 	\brief 取主消息队列。
-	\exception ythrow(LoggedEvent)
+	\exception LoggedEvent 记录异常事件。
+	\note 仅抛出以上异常。
 	*/
 	YMessageQueue&
 	GetDefaultMessageQueue() ythrow(LoggedEvent);
 	/*!
 	\brief 取备份消息队列。
-	\exception ythrow(LoggedEvent)
+	\exception LoggedEvent 记录异常事件。
+	\note 仅抛出以上异常。
 	*/
 	YMessageQueue&
 	GetBackupMessageQueue() ythrow(LoggedEvent);
+	/*!
+	\brief 取字体缓存引用。
+	\exception LoggedEvent 记录异常事件。
+	\note 仅抛出以上异常。
+	*/
+	YFontCache&
+	GetFontCache() const ythrow(LoggedEvent); 
 
 	/*!
 	\brief 设置线程空间中当前运行的 Shell 的句柄。
@@ -177,6 +197,20 @@ public:
 	*/
 	void
 	ResetShellHandle() ythrow();
+
+	/*!
+	\brief 复位默认字体缓存：使用指定路径。
+	\exception LoggedEvent 记录异常事件。
+	\note 仅抛出以上异常。
+	*/
+	void
+	ResetFontCache(CPATH) ythrow(LoggedEvent);
+
+	/*!
+	\brief 注销字体缓存。
+	*/
+	void
+	DestroyFontCache();
 
 	//启动线程消息循环。
 //	void

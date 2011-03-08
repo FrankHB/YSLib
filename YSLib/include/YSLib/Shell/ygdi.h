@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3856;
+\version 0.3860;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-14 18:29:46 + 08:00;
+	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-02-23 16:18 + 08:00;
+	2011-03-07 19:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -689,7 +689,7 @@ public:
 	\brief 构造：使用指定字体家族、字体大小和颜色。
 	*/
 	explicit
-	PenStyle(const FontFamily& = GetDefaultFontFamily(),
+	PenStyle(const FontFamily& = FetchDefaultFontFamily(),
 		Font::SizeType = Font::DefSize,
 		Drawing::Color = Drawing::ColorSpace::White);
 	/*!

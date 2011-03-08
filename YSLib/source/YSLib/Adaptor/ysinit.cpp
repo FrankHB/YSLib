@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ysinit.cpp
 \ingroup Service
 \brief 程序启动时的通用初始化。
-\version 0.1728;
+\version 0.1740;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-10-21 23:15:08 + 08:00;
+	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2010-12-23 11:29 + 08:00;
+	2011-03-07 19:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -128,32 +128,27 @@ void
 InitializeSystemFontCache()
 {
 	puts("Loading font files...");
-	CreateFontCache(theApp.pFontCache, DEF_FONT_PATH);
-	if(theApp.pFontCache && DEF_FONT_DIRECTORY)
-		theApp.pFontCache->LoadFontFileDirectory(DEF_FONT_DIRECTORY);
+	theApp.ResetFontCache(DEF_FONT_PATH);
+
+	YFontCache& fc(theApp.GetFontCache());
+
+	if(DEF_FONT_DIRECTORY)
+		fc.LoadFontFileDirectory(DEF_FONT_DIRECTORY);
 	CheckSystemFontCache();
-	iprintf("%u font file(s) are loaded\nsuccessfully.\n",
-		theApp.pFontCache->GetFilesN());
+	std::printf("%u font file(s) are loaded\nsuccessfully.\n", fc.GetFilesN());
 	puts("Setting default font face...");
 
 	const Drawing::Typeface* const
-		pf(theApp.pFontCache->GetDefaultTypefacePtr());
+		pf(fc.GetDefaultTypefacePtr());
 
 	if(pf && Drawing::Font::InitializeDefault())
-		iprintf("\"%s\":\"%s\",\nsuccessfully.\n", pf->GetFamilyName(),
+		std::printf("\"%s\":\"%s\",\nsuccessfully.\n", pf->GetFamilyName(),
 			pf->GetStyleName());
 	else
 	{
 		puts("failed.");
 		defFontFail();
 	}
-}
-
-void
-DestroySystemFontCache()
-{
-	Drawing::Font::ReleaseDefault();
-	Drawing::DestroyFontCache(theApp.pFontCache);
 }
 
 void
@@ -171,8 +166,14 @@ CheckInstall()
 void
 CheckSystemFontCache()
 {
-	if(!(theApp.pFontCache && theApp.pFontCache->GetTypesN() > 0))
-		defFontFail();
+	try
+	{
+		if(theApp.GetFontCache().GetTypesN() > 0)
+			return;
+	}
+	catch(...)
+	{}
+	defFontFail();
 }
 
 YSL_END

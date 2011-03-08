@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调模块。
-\version 0.3976;
+\version 0.3978;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-04-23 23:08:23 + 08:00;
+	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-02-20 13:41 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

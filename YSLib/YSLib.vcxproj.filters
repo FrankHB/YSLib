@@ -16,39 +16,51 @@
     </Filter>
     <Filter Include="头文件\YSLib">
       <UniqueIdentifier>{fbb995fa-dfe1-4f20-99ac-8f01e13a54ba}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\YSLib\Adaptor">
       <UniqueIdentifier>{88a70fc5-239e-4e2b-802c-dad41bd268c6}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\YSLib\Shell">
       <UniqueIdentifier>{3f3c55e4-eda4-4ba3-ab26-6be64fb4989a}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\YSLib\Core">
       <UniqueIdentifier>{bd4a3a95-5fe7-4471-9093-a76228bc5a0c}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\YSLib\Helper">
       <UniqueIdentifier>{23faab97-d24f-4e94-9fbb-b17430d9d973}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\YSLib\Service">
       <UniqueIdentifier>{d887d565-3b62-45a1-8ea5-d5ef0a4ce41d}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="源文件\YSLib">
       <UniqueIdentifier>{f3275f4a-7c35-4f37-9e01-2a72fdf5a481}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="源文件\YSLib\Core">
       <UniqueIdentifier>{ff96e32d-5490-430c-8ca1-170ec27e1627}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="源文件\YSLib\Adaptor">
       <UniqueIdentifier>{601e8484-d8c2-4306-bc57-a8d4bd31d7d4}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="源文件\YSLib\Helper">
       <UniqueIdentifier>{77af520d-12d5-4756-aa39-7e64082a89f2}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="源文件\YSLib\Shell">
       <UniqueIdentifier>{054afee5-882b-444f-96b3-d5b5af8708a9}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="源文件\YSLib\Service">
       <UniqueIdentifier>{b96801fe-820c-41af-aace-65b79a972730}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -172,9 +184,6 @@
     <ClInclude Include="include\YSLib\Shell\ygui.h">
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\yguicomp.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Shell\ytext.h">
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
@@ -194,6 +203,18 @@
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Shell\yuicontx.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\ystyle.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\scroll.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\listbox.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\button.h">
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
   </ItemGroup>
@@ -276,9 +297,6 @@
     <ClCompile Include="source\YSLib\Shell\ygui.cpp">
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\yguicomp.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
     <ClCompile Include="source\YSLib\Shell\ytext.cpp">
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
@@ -295,6 +313,18 @@
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Shell\yuicontx.cpp">
+      <Filter>源文件\YSLib\Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Shell\scroll.cpp">
+      <Filter>源文件\YSLib\Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Shell\ystyle.cpp">
+      <Filter>源文件\YSLib\Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Shell\listbox.cpp">
+      <Filter>源文件\YSLib\Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Shell\button.cpp">
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
   </ItemGroup>

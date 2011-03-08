@@ -11,12 +11,12 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version 0.1582;
+\version 0.1584;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-24 23:14:41 + 08:00;
+	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-02-20 13:49 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

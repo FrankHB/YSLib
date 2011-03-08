@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3074;
+\version 0.3087;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-03-06 21:38:16 + 08:00;
+	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-02-27 21:30 + 08:00;
+	2011-03-06 21:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,10 +92,6 @@ private:
 	{
 		YFileBox fbMain;
 		YButton btnTest, btnOK;
-		YHorizontalScrollBar sbTestH;
-	//	YHorizontalTrack tkTestH;
-		YVerticalScrollBar sbTestV;
-	//	YVerticalTrack tkTestV;
 
 		TFrmFileListSelecter();
 
@@ -121,9 +117,9 @@ public:
 	ShlProc(const Message&);
 
 	static void
-	fb_KeyPress(IVisualControl&, KeyEventArgs&);
+	fb_KeyPress(IControl&, KeyEventArgs&);
 	static void
-	fb_Confirmed(IVisualControl&, IndexEventArgs&);
+	fb_Confirmed(IControl&, IndexEventArgs&);
 };
 
 
@@ -153,9 +149,9 @@ public:
 		TFormB();
 
 		static void
-		btnB_Enter(IVisualControl& sender, InputEventArgs&);
+		btnB_Enter(IControl& sender, InputEventArgs&);
 		static void
-		btnB_Leave(IVisualControl& sender, InputEventArgs&);
+		btnB_Leave(IControl& sender, InputEventArgs&);
 	};
 
 	struct TFormC : public YForm
@@ -175,7 +171,7 @@ public:
 		btnC_Click(TouchEventArgs&);
 
 		static void
-		btnC_KeyPress(IVisualControl& sender, KeyEventArgs& e);
+		btnC_KeyPress(IControl& sender, KeyEventArgs& e);
 
 		void
 		btnD_Click(TouchEventArgs&);
@@ -191,7 +187,7 @@ public:
 	void ShowString(const char*);
 
 	static void
-	TFormC_TouchDown(IVisualControl&, TouchEventArgs&);
+	TFormC_TouchDown(IControl&, TouchEventArgs&);
 
 	virtual int
 	OnActivated(const Message&);

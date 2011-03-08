@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3496;
+\version 0.3510;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-22 17:28:28 + 08:00;
+	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2010-02-20 19:40 + 08:00;
+	2010-03-08 14:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,7 +45,7 @@ MWindow::MWindow(const GHStrong<YImage> i, HWND hWnd)
 
 
 AWindow::AWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
-	: VisualControl(r, GetPointer(hWnd)), MWindow(i, hWnd)
+	: Control(r, GetPointer(hWnd)), MWindow(i, hWnd)
 {}
 
 BitmapPtr
@@ -58,7 +58,7 @@ void
 AWindow::SetSize(const Size& s)
 {
 	SetBufferSize(s);
-	VisualControl::SetSize(s);
+	Control::SetSize(s);
 }
 
 bool
@@ -158,14 +158,26 @@ AFrameWindow::AFrameWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
 	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
 
 	if(p)
-		*p += static_cast<GMFocusResponser<IVisualControl>&>(*this);
+		*p += static_cast<GMFocusResponser<IControl>&>(*this);
 }
 AFrameWindow::~AFrameWindow() ythrow()
 {
 	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
 
 	if(p)
-		*p -= static_cast<GMFocusResponser<IVisualControl>&>(*this);
+		*p -= static_cast<GMFocusResponser<IControl>&>(*this);
+}
+
+void AFrameWindow::ClearFocusingPtr()
+{
+	IControl* const p(GetFocusingPtr());
+
+	if(p)
+	{
+		MUIContainer::ClearFocusingPtr();
+		EventMap.GetEvent<HVisualEvent>(LostFocus)(*p,
+			GetStaticRef<EventArgs>());
+	}
 }
 
 
@@ -178,7 +190,7 @@ YFrameWindow::YFrameWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
 	YDesktop* pDsk(FetchDirectDesktopPtr(*this));
 
 	if(pDsk)
-		*pDsk += static_cast<IVisualControl&>(*this);
+		*pDsk += static_cast<IControl&>(*this);
 }
 YFrameWindow::~YFrameWindow() ythrow()
 {

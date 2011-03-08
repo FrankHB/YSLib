@@ -11,12 +11,12 @@
 /*!	\file yexcept.h
 \ingroup Core
 \brief 异常处理模块。
-\version 0.1223;
+\version 0.1225;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-06-15 20:30:14 + 08:00;
+	2010-06-15 20:30:14 +0800;
 \par 修改时间:
-	2011-02-20 13:44 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

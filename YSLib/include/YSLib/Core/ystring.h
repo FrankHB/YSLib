@@ -11,12 +11,12 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version 0.2968;
+\version 0.2970;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-03-05 22:06:05 + 08:00;
+	2010-03-05 22:06:05 +0800;
 \par 修改时间:
-	2011-02-20 13:40 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

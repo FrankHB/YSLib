@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1779;
+\version 0.1832;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-03-13 14:17:14 + 08:00;
+	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-01-06 23:14 + 08:00;
+	2011-03-05 22:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -157,69 +157,80 @@ public:
 //平台相关输入处理。
 
 /*!
-\brief 处理屏幕接触结束事件。
-*/
-inline void
-OnTouchUp(const Components::Controls::TouchEventArgs::InputType& pt)
-{
-	Components::Controls::TouchEventArgs e(pt);
-
-	ResponseTouchUp(*hDesktopDown, e);
-}
-
-/*!
-\brief 处理屏幕接触开始事件。
-*/
-inline void
-OnTouchDown(const Components::Controls::TouchEventArgs::InputType& pt)
-{
-	Components::Controls::TouchEventArgs e(pt);
-
-	ResponseTouchDown(*hDesktopDown, e);
-}
-
-/*!
-\brief 处理屏幕接触保持事件。
-*/
-inline void
-OnTouchHeld(const Components::Controls::TouchEventArgs::InputType& pt)
-{
-	Components::Controls::TouchEventArgs e(pt);
-
-	ResponseTouchHeld(*hDesktopDown, e);
-}
-
-/*!
 \brief 处理键接触结束事件。
 */
 inline void
-OnKeyUp(const Components::Controls::KeyEventArgs::InputType& key)
+OnKeyUp(GHHandle<YGUIShell> hShl,
+	const Components::Controls::KeyEventArgs::InputType& key)
 {
 	Components::Controls::KeyEventArgs e(key);
 
-	ResponseKeyUp(*hDesktopDown, e);
+	hShl->ResponseKeyUp(theApp.GetPlatformResource().GetTouchableDesktop(), e);
 }
 
 /*!
 \brief 处理键接触开始事件。
 */
 inline void
-OnKeyDown(const Components::Controls::KeyEventArgs::InputType& key)
+OnKeyDown(GHHandle<YGUIShell> hShl,
+	const Components::Controls::KeyEventArgs::InputType& key)
 {
 	Components::Controls::KeyEventArgs e(key);
 
-	ResponseKeyDown(*hDesktopDown, e);
+	hShl->ResponseKeyDown(
+		theApp.GetPlatformResource().GetTouchableDesktop(), e);
 }
 
 /*!
 \brief 处理键接触保持事件。
 */
 inline void
-OnKeyHeld(const Components::Controls::KeyEventArgs::InputType& key)
+OnKeyHeld(GHHandle<YGUIShell> hShl,
+	const Components::Controls::KeyEventArgs::InputType& key)
 {
 	Components::Controls::KeyEventArgs e(key);
 
-	ResponseKeyHeld(*hDesktopDown, e);
+	hShl->ResponseKeyHeld(
+		theApp.GetPlatformResource().GetTouchableDesktop(), e);
+}
+
+/*!
+\brief 处理屏幕接触结束事件。
+*/
+inline void
+OnTouchUp(GHHandle<YGUIShell> hShl,
+	const Components::Controls::TouchEventArgs::InputType& pt)
+{
+	Components::Controls::TouchEventArgs e(pt);
+
+	hShl->ResponseTouchUp(
+		theApp.GetPlatformResource().GetTouchableDesktop(), e);
+}
+
+/*!
+\brief 处理屏幕接触开始事件。
+*/
+inline void
+OnTouchDown(GHHandle<YGUIShell> hShl,
+	const Components::Controls::TouchEventArgs::InputType& pt)
+{
+	Components::Controls::TouchEventArgs e(pt);
+
+	hShl->ResponseTouchDown(
+		theApp.GetPlatformResource().GetTouchableDesktop(), e);
+}
+
+/*!
+\brief 处理屏幕接触保持事件。
+*/
+inline void
+OnTouchHeld(GHHandle<YGUIShell> hShl,
+	const Components::Controls::TouchEventArgs::InputType& pt)
+{
+	Components::Controls::TouchEventArgs e(pt);
+
+	hShl->ResponseTouchHeld(
+		theApp.GetPlatformResource().GetTouchableDesktop(), e);
 }
 
 /*!

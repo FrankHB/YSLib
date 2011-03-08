@@ -11,12 +11,12 @@
 /*!	\file ylabel.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.1855;
+\version 0.1857;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2011-01-22 08:32:34 + 08:00;
+	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-02-20 15:21 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

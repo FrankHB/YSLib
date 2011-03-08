@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2193;
+\version 0.2202;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-05-02 12:00:08 + 08:00;
+	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-02-20 14:09 + 08:00;
+	2011-03-06 21:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,7 +41,7 @@ class YDesktop : public YFrameWindow
 {
 public:
 	typedef YComponent ParentType;
-	typedef list<IVisualControl*> DOs; //!< 桌面对象组类型。
+	typedef list<IControl*> DOs; //!< 桌面对象组类型。
 
 private:
 	YScreen& Screen; //!< 屏幕对象。
@@ -59,25 +59,25 @@ public:
 	DefGetter(BitmapPtr, BackgroundPtr, Screen.GetCheckedBufferPtr()) \
 		//!< 取屏幕背景指针。
 
-	virtual PDefH1(IVisualControl*, GetTopVisualControlPtr, const Point& p)
+	virtual PDefH1(IControl*, GetTopControlPtr, const Point& p)
 		ImplBodyBase1(YDesktop, GetTopDesktopObjectPtr, p)
 
 	/*!
 	\brief 向桌面对象组添加桌面对象。
 	*/
 	virtual void
-	operator+=(IVisualControl&);
+	operator+=(IControl&);
 	/*!
 	\brief 从桌面对象组中移除指定桌面对象。
 	*/
 	virtual bool
-	operator-=(IVisualControl&);
+	operator-=(IControl&);
 	/*!
 	\brief 从桌面对象组中移除所有指定桌面对象。
 	\return 移除的对象数。
 	*/
 	DOs::size_type
-	RemoveAll(IVisualControl&);
+	RemoveAll(IControl&);
 
 	/*!
 	\brief 请求提升至容器顶端。
@@ -85,7 +85,7 @@ public:
 	从桌面对象组中查找指定桌面对象并重新插入至顶端。
 	*/
 	bool
-	MoveToTop(IVisualControl&);
+	MoveToTop(IControl&);
 
 	/*!
 	\brief 移除桌面对象组中顶端桌面对象。
@@ -104,17 +104,17 @@ public:
 	/*!
 	\brief 取得桌面对象组中首个桌面对象的句柄。
 	*/
-	IVisualControl*
+	IControl*
 	GetFirstDesktopObjectPtr() const;
 	/*!
 	\brief 取得桌面对象组中顶端桌面对象的句柄。
 	*/
-	IVisualControl*
+	IControl*
 	GetTopDesktopObjectPtr() const;
 	/*!
 	\brief 取得桌面对象组中包含指定点的顶端桌面对象的句柄。
 	*/
-	IVisualControl*
+	IControl*
 	GetTopDesktopObjectPtr(const Point&) const;
 
 	/*!

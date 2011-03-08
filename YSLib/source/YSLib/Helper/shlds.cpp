@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1552;
+\version 0.1626;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-03-13 14:17:14 + 08:00;
+	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-01-07 21:52 + 08:00;
+	2011-03-05 23:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,9 +56,9 @@ ShlCLI::ExecuteCommand(const uchar_t* /*s*/)
 int
 ShlGUI::OnDeactivated(const Message&)
 {
-	Components::Controls::ResetGUIStates();
-	ClearScreenWindows(*hDesktopUp);
-	ClearScreenWindows(*hDesktopDown);
+	ResetGUIStates();
+	ClearScreenWindows(theApp.GetPlatformResource().GetDesktopUp());
+	ClearScreenWindows(theApp.GetPlatformResource().GetDesktopDown());
 	return 0;
 }
 
@@ -69,25 +69,20 @@ ShlGUI::SendDrawingMessage()
 //	hDesktopDown->ClearDesktopObjects();
 	DispatchWindows();
 	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<GHHandle<YDesktop> >(hDesktopUp));
+		new GHandleContext<GHHandle<YDesktop> >(
+		theApp.GetPlatformResource().GetDesktopUpHandle()));
 	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<GHHandle<YDesktop> >(hDesktopDown));
+		new GHandleContext<GHHandle<YDesktop> >(
+		theApp.GetPlatformResource().GetDesktopDownHandle()));
 }
 
 void
 ShlGUI::UpdateToScreen()
 {
-	YAssert(hDesktopUp,
-		"In function \"void\nDS::ShlGUI::UpdateToScreen()\":\n"
-		"The desktop pointer is null.");
-	YAssert(hDesktopDown,
-		"In function \"void\nDS::ShlGUI::UpdateToScreen()\":\n"
-		"The desktop pointer is null.");
-
-	hDesktopUp->Refresh();
-	hDesktopUp->Update();
-	hDesktopDown->Refresh();
-	hDesktopDown->Update();
+	theApp.GetPlatformResource().GetDesktopUp().Refresh();
+	theApp.GetPlatformResource().GetDesktopUp().Update();
+	theApp.GetPlatformResource().GetDesktopDown().Refresh();
+	theApp.GetPlatformResource().GetDesktopDown().Update();
 }
 
 YSL_END_NAMESPACE(Shells)
@@ -141,21 +136,22 @@ ResponseInput(const Message& msg)
 		return;
 
 	Runtime::KeysInfo& k(pContext->Key);
+	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
 
 	using namespace Runtime::KeySpace;
 
 	if(k.Up & Touch)
-		OnTouchUp(pContext->CursorLocation);
+		OnTouchUp(hShl, pContext->CursorLocation);
 	else if(k.Up)
-		OnKeyUp(k.Up);
+		OnKeyUp(hShl, k.Up);
 	if(k.Down & Touch)
-		OnTouchDown(pContext->CursorLocation);
+		OnTouchDown(hShl, pContext->CursorLocation);
 	else if(k.Down)
-		OnKeyDown(k.Down);
+		OnKeyDown(hShl, k.Down);
 	if(k.Held & Touch)
-		OnTouchHeld(pContext->CursorLocation);
+		OnTouchHeld(hShl, pContext->CursorLocation);
 	else if(k.Held)
-		OnKeyHeld(k.Held);
+		OnKeyHeld(hShl, k.Held);
 }
 
 
@@ -164,8 +160,8 @@ ShlClearBothScreen(GHHandle<YGUIShell> h)
 {
 	if(h)
 	{
-		h->ClearScreenWindows(*hDesktopUp);
-		h->ClearScreenWindows(*hDesktopDown);
+		h->ClearScreenWindows(theApp.GetPlatformResource().GetDesktopUp());
+		h->ClearScreenWindows(theApp.GetPlatformResource().GetDesktopDown());
 	}
 }
 

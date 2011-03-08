@@ -11,12 +11,12 @@
 /*!	\file ylabel.h
 \ingroup Shell
 \brief 平台无关的标签模块实现。
-\version 0.1900;
+\version 0.1902;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2011-01-22 08:30:47 + 08:00;
+	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-02-20 14:27 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

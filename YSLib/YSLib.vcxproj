@@ -47,6 +47,9 @@
     <ClInclude Include="include\YSLib\Helper\yshelper.h" />
     <ClInclude Include="include\YSLib\Service\ytimer.h" />
     <ClInclude Include="include\YSLib\Service\ytmgr.h" />
+    <ClInclude Include="include\YSLib\Shell\button.h" />
+    <ClInclude Include="include\YSLib\Shell\listbox.h" />
+    <ClInclude Include="include\YSLib\Shell\scroll.h" />
     <ClInclude Include="include\YSLib\Shell\ycomp.h" />
     <ClInclude Include="include\YSLib\Shell\ycontrol.h" />
     <ClInclude Include="include\YSLib\Shell\ydesktop.h" />
@@ -54,8 +57,8 @@
     <ClInclude Include="include\YSLib\Shell\yform.h" />
     <ClInclude Include="include\YSLib\Shell\ygdi.h" />
     <ClInclude Include="include\YSLib\Shell\ygui.h" />
-    <ClInclude Include="include\YSLib\Shell\yguicomp.h" />
     <ClInclude Include="include\YSLib\Shell\ylabel.h" />
+    <ClInclude Include="include\YSLib\Shell\ystyle.h" />
     <ClInclude Include="include\YSLib\Shell\ytext.h" />
     <ClInclude Include="include\YSLib\Shell\yuicont.h" />
     <ClInclude Include="include\YSLib\Shell\yuicontx.h" />
@@ -82,6 +85,9 @@
     <ClCompile Include="source\YSLib\Helper\yshelper.cpp" />
     <ClCompile Include="source\YSLib\Service\ytimer.cpp" />
     <ClCompile Include="source\YSLib\Service\ytmgr.cpp" />
+    <ClCompile Include="source\YSLib\Shell\button.cpp" />
+    <ClCompile Include="source\YSLib\Shell\listbox.cpp" />
+    <ClCompile Include="source\YSLib\Shell\scroll.cpp" />
     <ClCompile Include="source\YSLib\Shell\ycomp.cpp" />
     <ClCompile Include="source\YSLib\Shell\ycontrol.cpp" />
     <ClCompile Include="source\YSLib\Shell\ydesktop.cpp" />
@@ -89,8 +95,8 @@
     <ClCompile Include="source\YSLib\Shell\yform.cpp" />
     <ClCompile Include="source\YSLib\Shell\ygdi.cpp" />
     <ClCompile Include="source\YSLib\Shell\ygui.cpp" />
-    <ClCompile Include="source\YSLib\Shell\yguicomp.cpp" />
     <ClCompile Include="source\YSLib\Shell\ylabel.cpp" />
+    <ClCompile Include="source\YSLib\Shell\ystyle.cpp" />
     <ClCompile Include="source\YSLib\Shell\ytext.cpp" />
     <ClCompile Include="source\YSLib\Shell\yuicont.cpp" />
     <ClCompile Include="source\YSLib\Shell\yuicontx.cpp" />

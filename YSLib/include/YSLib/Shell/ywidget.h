@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5858;
+\version 0.5867;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-16 20:06:58 + 08:00;
+	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-02-22 07:21 + 08:00;
+	2011-03-06 21:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -126,7 +126,7 @@ ContainsVisible(const IWidget& w, const Point& p)
 /*!
 \brief 请求提升至容器顶端。
 
-\todo 完全实现提升 IWidget 至容器顶端（目前仅实现 IVisualControl 且
+\todo 完全实现提升 IWidget 至容器顶端（目前仅实现 IControl 且
 	父容器为 YDesktop 的情形）。
 */
 void

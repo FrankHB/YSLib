@@ -11,12 +11,12 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version 0.3137;
+\version 0.3139;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-03-21 23:09:06 + 08:00;
+	2010-03-21 23:09:06 +0800;
 \par 修改时间:
-	2011-01-19 12:41 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

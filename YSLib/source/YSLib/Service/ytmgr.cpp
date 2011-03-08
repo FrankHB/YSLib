@@ -11,12 +11,12 @@
 /*!	\file ytmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4064;
+\version 0.4066;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-01-05 17:48:09 + 08:00;
+	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-02-20 15:01 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

@@ -11,12 +11,12 @@
 /*!	\file GBKEX.cpp
 \ingroup YReader
 \brief 测试文件。
-\version 0.3055; *Build 190 r17;
+\version 0.3062; *Build 194 r7;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11;
 \par 修改时间:
-	2011-02-05 23:47 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	ANSI / GBK;
 \par 模块名称:
@@ -55,7 +55,8 @@ namespace YSLib
 			Size s;
 
 			TestObj()
-				: h(hDesktopDown), c(ColorSpace::White),
+				: h(theApp.GetPlatformResource().GetDesktopDownHandle()),
+				c(ColorSpace::White),
 				l(20, 32), s(120, 90)
 			{}
 

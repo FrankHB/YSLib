@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.2058;
+\version 0.2071;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2011-01-22 07:59:47 + 08:00;
+	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-02-21 09:13 + 08:00;
+	2011-03-06 22:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,11 +65,11 @@ YSL_BEGIN_NAMESPACE(Widgets)
 
 //! \brief 固定部件容器接口。
 DeclBasedInterface1(IUIBox, virtual IWidget)
-	DeclIEntry(IVisualControl* GetFocusingPtr()) //!< 取焦点对象指针。
+	DeclIEntry(IControl* GetFocusingPtr()) //!< 取焦点对象指针。
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&)) \
 		//!< 取指定的点（屏幕坐标）所处的部件的指针。
-	DeclIEntry(IVisualControl* GetTopVisualControlPtr(const Point&)) \
-		//!< 取指定的点（屏幕坐标）所处的可视控件的指针。
+	DeclIEntry(IControl* GetTopControlPtr(const Point&)) \
+		//!< 取指定的点（屏幕坐标）所处的控件的指针。
 
 	//! \brief 清除焦点指针。
 	DeclIEntry(void ClearFocusingPtr())
@@ -83,14 +83,14 @@ EndDecl
 
 
 //部件容器接口。
-DeclBasedInterface1(IUIContainer, virtual IUIBox)
+DeclBasedInterface1(IUIContainer, IUIBox)
 	DeclIEntry(void operator+=(IWidget&)) //!< 向部件组添加部件。
 	DeclIEntry(bool operator-=(IWidget&)) //!< 从部件组移除部件。
-	DeclIEntry(void operator+=(IVisualControl&)) //!< 向焦点对象组添加可视控件。
-	DeclIEntry(bool operator-=(IVisualControl&)) //!< 从焦点对象组移除可视控件。
-	DeclIEntry(void operator+=(GMFocusResponser<IVisualControl>&)) \
+	DeclIEntry(void operator+=(IControl&)) //!< 向焦点对象组添加控件。
+	DeclIEntry(bool operator-=(IControl&)) //!< 从焦点对象组移除控件。
+	DeclIEntry(void operator+=(GMFocusResponser<IControl>&)) \
 		//!< 向焦点对象组添加子焦点对象容器。
-	DeclIEntry(bool operator-=(GMFocusResponser<IVisualControl>&)) \
+	DeclIEntry(bool operator-=(GMFocusResponser<IControl>&)) \
 		//!< 从焦点对象组移除子焦点对象容器。
 EndDecl
 
@@ -249,12 +249,12 @@ Fill(IWidget&, Color);
 
 
 //! \brief 部件容器模块。
-class MUIContainer : protected GMFocusResponser<IVisualControl>
+class MUIContainer : protected GMFocusResponser<IControl>
 {
 public:
 	typedef GContainer<IWidget> WidgetSet;
 	typedef WidgetSet::ContainerType WGTs; //!< 部件组类型。
-	typedef GContainer<GMFocusResponser<IVisualControl> > FOCs; \
+	typedef GContainer<GMFocusResponser<IControl> > FOCs; \
 		//!< 子焦点对象容器组类型。
 
 protected:
@@ -267,15 +267,15 @@ public:
 
 protected:
 	virtual PDefHOperator1(void, +=,
-		IVisualControl& r) //!< 向焦点对象组添加焦点对象。
-		ImplBodyBase1(GMFocusResponser<IVisualControl>, operator+=, r)
+		IControl& r) //!< 向焦点对象组添加焦点对象。
+		ImplBodyBase1(GMFocusResponser<IControl>, operator+=, r)
 	virtual PDefHOperator1(bool, -=,
-		IVisualControl& r) //!< 从焦点对象组移除焦点对象。
-		ImplBodyBase1(GMFocusResponser<IVisualControl>, operator-=, r)
-	PDefHOperator1(void, +=, GMFocusResponser<IVisualControl>& c) \
+		IControl& r) //!< 从焦点对象组移除焦点对象。
+		ImplBodyBase1(GMFocusResponser<IControl>, operator-=, r)
+	PDefHOperator1(void, +=, GMFocusResponser<IControl>& c) \
 		//!< 向子焦点对象容器组添加子焦点对象容器。
 		ImplRet(static_cast<void>(sFOCSet.insert(&c)))
-	PDefHOperator1(bool, -=, GMFocusResponser<IVisualControl>& c) \
+	PDefHOperator1(bool, -=, GMFocusResponser<IControl>& c) \
 		//!< 从子焦点对象容器组移除子焦点对象容器。
 		ImplBodyMember1(sFOCSet, erase, &c)
 
@@ -283,7 +283,7 @@ public:
 	/*!
 	\brief 取焦点控件指针。
 	*/
-	IVisualControl*
+	IControl*
 	GetFocusingPtr() const;
 	/*!
 	\brief 取顶端部件指针。
@@ -291,10 +291,10 @@ public:
 	IWidget*
 	GetTopWidgetPtr(const Point&);
 	/*!
-	\brief 取顶端可视部件指针。
+	\brief 取顶端控件指针。
 	*/
-	IVisualControl*
-	GetTopVisualControlPtr(const Point&);
+	IControl*
+	GetTopControlPtr(const Point&);
 
 	/*!
 	\brief 响应焦点请求。
@@ -334,15 +334,15 @@ public:
 		ImplRet(sWgtSet += w)
 	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IWidget& w)
 		ImplRet(sWgtSet -= w)
-	ImplI1(IUIContainer) PDefHOperator1(void, +=, IVisualControl& c)
+	ImplI1(IUIContainer) PDefHOperator1(void, +=, IControl& c)
 		ImplBodyBase1(MUIContainer, operator+=, c)
-	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IVisualControl& c)
+	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IControl& c)
 		ImplBodyBase1(MUIContainer, operator-=, c)
 	ImplI1(IUIContainer) PDefHOperator1(void, +=,
-		GMFocusResponser<IVisualControl>& c)
+		GMFocusResponser<IControl>& c)
 		ImplBodyBase1(MUIContainer, operator+=, c)
 	ImplI1(IUIContainer) PDefHOperator1(bool, -=,
-		GMFocusResponser<IVisualControl>& c)
+		GMFocusResponser<IControl>& c)
 		ImplBodyBase1(MUIContainer, operator-=, c)
 
 	ImplI1(IUIContainer) DefPredicateBase(Visible, Visual)
@@ -353,13 +353,13 @@ public:
 	ImplI1(IUIContainer) DefGetterBase(const Size&, Size, Visual)
 	ImplI1(IUIContainer) DefGetterBase(IUIBox*, ContainerPtr,
 		Widget)
-	ImplI1(IUIContainer) DefMutableGetterBase(IVisualControl*, FocusingPtr,
-		GMFocusResponser<IVisualControl>)
+	ImplI1(IUIContainer) DefMutableGetterBase(IControl*, FocusingPtr,
+		GMFocusResponser<IControl>)
 	ImplI1(IUIContainer) PDefH1(IWidget*, GetTopWidgetPtr, const Point& p)
 		ImplBodyBase1(MUIContainer, GetTopWidgetPtr, p)
-	ImplI1(IUIContainer) PDefH1(IVisualControl*, GetTopVisualControlPtr,
+	ImplI1(IUIContainer) PDefH1(IControl*, GetTopControlPtr,
 		const Point& p)
-		ImplBodyBase1(MUIContainer, GetTopVisualControlPtr, p)
+		ImplBodyBase1(MUIContainer, GetTopControlPtr, p)
 
 	ImplI1(IUIContainer) DefSetterBase(bool, Visible, Visual)
 	ImplI1(IUIContainer) DefSetterBase(bool, Transparent, Visual)

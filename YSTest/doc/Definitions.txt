@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010 - 2011
 // CharSet = UTF-8;
-// CTime = 2010-01-26 19:34:51 + 08:00;
-// UTime = 2011-02-20 12:49 + 08:00;
-// Version = r10683;
+// CTime = 2010-01-26 19:34:51 +0800;
+// UTime = 2011-03-06 20:49 +0800;
+// Version = r10671;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -315,12 +315,12 @@ $dir Shell
 $header YControl
 {
 DefEventTypeMapping(_name, _tEventHandler)
-}
+} //$header YControl;
 $unit YGDI
 {
 YSL_FAST_BLIT
 }
-} //$dir Shell
+} //$dir Shell;
 $dir Helper
 {
 $header YShellHelper
@@ -360,6 +360,11 @@ class YScreen @@ $header Core::YDevice
 	friend bool
 	InitAllScreens();
 } //class YScreen;
+
+class PlatformResource @@ $header Helper::YGlobal
+{
+	friend class YApplication;
+} //class PlatformResource;
 
 
 // std 命名空间扩展。
@@ -659,7 +664,7 @@ $header Shell::YGDI
 $header Shell::YComponent : YShellMessage
 {
 	using Components::Controls::
-	{IControl, IVisualControl};
+	{IControlableComponent, IControl};
 	using Components::Forms::
 	{YForm, YFrameWindow};
 	using Components::Widgets::

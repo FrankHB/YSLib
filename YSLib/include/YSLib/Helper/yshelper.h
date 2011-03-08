@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2022;
+\version 0.2032;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-03-14 14:07:22 + 08:00;
+	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-01-18 12:12 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -217,8 +217,8 @@ typedef void (*PPDRAW)(BitmapPtr, SDST, SDST); //!< 简单屏幕绘图函数指�
 inline void
 ScrDraw(BitmapPtr buf, PPDRAW f)
 {
-	for(SDST y(0); y < SCRH; ++y)
-		for(SDST x(0); x < SCRW; ++x)
+	for(SDST y(0); y < Global::MainScreenHeight; ++y)
+		for(SDST x(0); x < Global::MainScreenWidth; ++x)
 			f(buf, x, y);
 }
 
@@ -228,7 +228,8 @@ ScrDraw(BitmapPtr buf, PPDRAW f)
 inline GHStrong<YImage>
 NewScrImage(ConstBitmapPtr p)
 {
-	return new YImage(p, SCRW, SCRH);
+	return new YImage(p, Global::MainScreenWidth,
+		Global::MainScreenHeight);
 }
 
 /*!

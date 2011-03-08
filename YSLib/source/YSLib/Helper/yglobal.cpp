@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2852;
+\version 0.2944;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-22 15:28:52 + 08:00;
+	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-02-20 15:09 + 08:00;
+	2011-03-07 19:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,21 +43,15 @@ extern const char* DEF_DIRECTORY; //<! 默认目录。
 extern const char* G_COMP_NAME; //<! 制作组织名称。
 extern const char* G_APP_NAME; //!< 产品名称。
 extern const char* G_APP_VER; //!< 产品版本。
-const SDST SCRW(SCREEN_WIDTH), SCRH(SCREEN_HEIGHT);
 const IO::Path YApplication::CommonAppDataPath(DEF_DIRECTORY);
 const String YApplication::CompanyName(G_COMP_NAME);
 const String YApplication::ProductName(G_APP_NAME);
 const String YApplication::ProductVersion(G_APP_VER);
 
 //全局变量。
-GHHandle<YScreen> hScreenUp;
-GHHandle<YScreen> hScreenDown;
-GHHandle<YDesktop> hDesktopUp;
-GHHandle<YDesktop> hDesktopDown;
 #ifdef YSL_USE_MEMORY_DEBUG
 MemoryList DebugMemory(NULL);
 #endif
-YLog DefaultLog;
 
 /*!
 \ingroup PublicObject
@@ -66,9 +60,86 @@ YLog DefaultLog;
 	因为 YMainShell 的基类 YShell 的构造函数调用了 theApp 的非静态成员函数。
 */
 //@{
-YApplication& theApp(YApplication::GetApp(hScreenUp, hDesktopUp));
+YApplication& theApp(YApplication::GetInstance());
 const GHHandle<YShell> YApplication::DefaultShellHandle(new YMainShell());
 //@}
+
+
+const SDST Global::MainScreenWidth(SCREEN_WIDTH);
+const SDST Global::MainScreenHeight(SCREEN_HEIGHT);
+
+Global::Global()
+	: hScreenUp(NULL), hScreenDown(NULL), hDesktopUp(NULL), hDesktopDown(NULL)
+{}
+Global::~Global()
+{}
+
+YScreen&
+Global::GetScreenUp() const ythrow()
+{
+	YAssert(hScreenUp, "Fatal error @@ Global:"
+		" the up screen handle is null.");
+
+	return *hScreenUp;
+}
+YScreen&
+Global::GetScreenDown() const ythrow()
+{
+	YAssert(hScreenDown, "Fatal error @@ Global:"
+		" the down screen handle is null.");
+
+	return *hScreenDown;
+}
+YDesktop&
+Global::GetDesktopUp() const ythrow()
+{
+	YAssert(hDesktopUp, "Fatal error @@ Global:"
+		" the up desktop handle is null.");
+
+	return *hDesktopUp;
+}
+YDesktop&
+Global::GetDesktopDown() const ythrow()
+{
+	YAssert(hDesktopDown, "Fatal error @@ Global:"
+		" the down desktop handle is null.");
+
+	return *hDesktopDown;
+}
+
+void
+Global::InitializeDevices() ythrow()
+{
+	//初始化显示设备。
+	try
+	{
+		hScreenUp = new YScreen(MainScreenWidth, MainScreenHeight);
+		hScreenDown = new YScreen(MainScreenWidth, MainScreenHeight);
+	}
+	catch(...)
+	{
+		throw LoggedEvent("Screen initialization failed.");
+	}
+	try
+	{
+		hDesktopUp = new YDesktop(*hScreenUp);
+		hDesktopDown = new YDesktop(*hScreenDown);
+	}
+	catch(...)
+	{
+		throw LoggedEvent("Desktop initialization failed.");
+	}
+}
+
+void
+Global::ReleaseDevices() ythrow()
+{
+	YReset(hDesktopUp);
+	YReset(hScreenUp);
+	YReset(hDesktopDown);
+	YReset(hScreenDown);
+}
+
 
 namespace
 {
@@ -149,9 +220,9 @@ InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 {
 	using namespace platform;
 
-	if(&scr == hScreenUp)
+	if(&scr == theApp.GetPlatformResource().GetScreenUpHandle())
 		YConsoleInit(true, fc, bc);
-	else if(&scr == hScreenDown)
+	else if(&scr == theApp.GetPlatformResource().GetScreenDownHandle())
 		YConsoleInit(false, fc, bc);
 	else
 		return false;
@@ -177,8 +248,14 @@ InitAllScreens()
 	using namespace Runtime;
 
 	InitVideo();
-	hScreenUp->pBuffer = DS::InitScrUp(hScreenUp->bg);
-	hScreenDown->pBuffer = DS::InitScrDown(hScreenDown->bg);
+
+	YScreen& up_scr(theApp.GetPlatformResource().GetScreenUp());
+
+	up_scr.pBuffer = DS::InitScrUp(up_scr.bg);
+
+	YScreen& down_scr(theApp.GetPlatformResource().GetScreenDown());
+
+	down_scr.pBuffer = DS::InitScrDown(down_scr.bg);
 	return true;
 }
 
@@ -189,17 +266,14 @@ namespace
 	void
 	YDestroy()
 	{
-		//释放显示设备。
-		YReset(hDesktopUp);
-		YReset(hScreenUp);
-		YReset(hDesktopDown);
-		YReset(hScreenDown);
-
 		//释放默认字体资源。
-		DestroySystemFontCache();
+		theApp.DestroyFontCache();
+
+		//释放设备。
+		theApp.GetPlatformResource().ReleaseDevices();		
 	}
 
-	//! \brief 初始化函数。
+	//! \brief 全局初始化函数。
 	void
 	YInit()
 	{
@@ -244,25 +318,9 @@ namespace
 		//初始化系统字体资源。
 		InitializeSystemFontCache();
 
-		//初始化显示设备。
-		try
-		{
-			hScreenUp = new YScreen(SCRW, SCRH);
-			hScreenDown = new YScreen(SCRW, SCRH);
-		}
-		catch(...)
-		{
-			throw LoggedEvent("Screen initialization failed.");
-		}
-		try
-		{
-			hDesktopUp = new YDesktop(*hScreenUp);
-			hDesktopDown = new YDesktop(*hScreenDown);
-		}
-		catch(...)
-		{
-			throw LoggedEvent("Desktop initialization failed.");
-		}
+		//初始化系统设备。
+		theApp.GetPlatformResource().InitializeDevices();
+
 		//注册全局应用程序对象。
 		theApp.ResetShellHandle();
 		//theApp.SetOutputPtr(hDesktopUp);

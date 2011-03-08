@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7061;
+\version 0.7071;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-12 22:06:13 + 08:00;
+	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-02-23 16:37 + 08:00;
+	2011-03-07 19:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -246,34 +246,27 @@ FontFile::ReloadFaces()
 }
 
 
-const Typeface*
-GetDefaultTypefacePtr() ythrow()
+const Typeface&
+FetchDefaultTypeface() ythrow(LoggedEvent)
 {
-	YAssert(theApp.pFontCache,
-		"In function \"const Typeface*\n"
-		"GetDefaultTypefacePtr()\": \n"
-		"The default font cache pointer is null.");
+	const Typeface* const pDefaultTypeface(
+		theApp.GetFontCache().GetDefaultTypefacePtr());
 
-	return theApp.pFontCache->GetDefaultTypefacePtr();
+	if(!pDefaultTypeface)
+		throw LoggedEvent("The default font face pointer is null"
+			" @@ FetchDefaultFontFamily.");	
+	return *pDefaultTypeface;
 }
 
 const FontFamily&
-GetDefaultFontFamily() ythrow()
+FetchDefaultFontFamily() ythrow(LoggedEvent)
 {
-	const Typeface* pDefaultTypeface(GetDefaultTypefacePtr());
+	const FontFamily* const pFontFamily(
+		FetchDefaultTypeface().GetFontFamilyPtr());
 
-	YAssert(pDefaultTypeface,
-		"In function \"const FontFamily&\n"
-		"GetDefaultFontFamily()\": \n"
-		"The default font face pointer is null.");
-
-	const FontFamily* pFontFamily(pDefaultTypeface->GetFontFamilyPtr());
-
-	YAssert(pFontFamily,
-		"In function \"const FontFamily&\n"
-		"GetDefaultFontFamily()\": \n"
-		"The default font family pointer is null.");
-
+	if(!pFontFamily)
+		throw LoggedEvent("The default font family pointer is null"
+			" @@ FetchDefaultFontFamily.");
 	return *pFontFamily;
 }
 
@@ -401,11 +394,11 @@ YFontCache::GetFontFamilyPtr(const FT_String* family_name) const
 	return i < sTypes.size() ? sTypes[i] : NULL;
 }*/
 const Typeface*
-YFontCache::GetDefaultTypefacePtr() const
+YFontCache::GetDefaultTypefacePtr() const ythrow(LoggedEvent)
 {
 	//默认字体缓存的默认字型指针由初始化保证为非空指针。
 	return pDefaultFace ? pDefaultFace
-		: theApp.pFontCache->GetDefaultTypefacePtr();
+		: theApp.GetFontCache().GetDefaultTypefacePtr();
 }
 const Typeface*
 YFontCache::GetTypefacePtr(const FT_String* family_name,

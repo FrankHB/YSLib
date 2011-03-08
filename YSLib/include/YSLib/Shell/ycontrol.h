@@ -11,16 +11,16 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4801;
+\version 0.4839;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-02-18 13:44:24 + 08:00;
+	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-03-03 23:18 + 08:00;
+	2011-03-08 09:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YControl;
+	YSLib::Shell::YComponent;
 */
 
 
@@ -120,13 +120,13 @@ struct IndexEventArgs : public EventArgs
 {
 	typedef std::ptrdiff_t IndexType;
 
-	IVisualControl& Control;
+	IControl& Control;
 	IndexType Index;
 
 	/*!
-	\brief 构造：使用可视控件引用和索引值。
+	\brief 构造：使用控件引用和索引值。
 	*/
-	IndexEventArgs(IVisualControl& c, IndexType i)
+	IndexEventArgs(IControl& c, IndexType i)
 		: EventArgs(),
 		Control(c), Index(i)
 	{}
@@ -160,13 +160,13 @@ public:
 
 
 //事件处理器类型。
-DefDelegate(HVisualEvent, IVisualControl, EventArgs)
-DefDelegate(HInputEvent, IVisualControl, InputEventArgs)
-DefDelegate(HKeyEvent, IVisualControl, KeyEventArgs)
-DefDelegate(HTouchEvent, IVisualControl, TouchEventArgs)
-DefDelegate(HIndexEvent, IVisualControl, IndexEventArgs)
-//DefDelegate(HPointEvent, IVisualControl, Drawing::Point)
-//DefDelegate(HSizeEvent, IVisualControl, Size)
+DefDelegate(HVisualEvent, IControl, EventArgs)
+DefDelegate(HInputEvent, IControl, InputEventArgs)
+DefDelegate(HKeyEvent, IControl, KeyEventArgs)
+DefDelegate(HTouchEvent, IControl, TouchEventArgs)
+DefDelegate(HIndexEvent, IControl, IndexEventArgs)
+//DefDelegate(HPointEvent, IControl, Drawing::Point)
+//DefDelegate(HSizeEvent, IControl, Size)
 
 
 #define DefEventTypeMapping(_name, _tEventHandler) \
@@ -177,7 +177,7 @@ DefDelegate(HIndexEvent, IVisualControl, IndexEventArgs)
 	};
 
 
-//! \brief 标准可视控件事件空间。
+//! \brief 标准控件事件空间。
 typedef enum
 {
 //	AutoSizeChanged,
@@ -247,19 +247,14 @@ DefEventTypeMapping(Leave, HInputEvent)
 
 
 //! \brief 控件接口。
-DeclInterface(IControl)
+DeclBasedInterface1(IControl, virtual IWidget)
 	DeclIEntry(bool IsEnabled() const) //!< 判断是否有效。
+	DeclIEntry(bool IsFocused() const) //!< 判断是否取得焦点。
 
 	DeclIEntry(Runtime::GEventMap<VisualEvent>& GetEventMap() const) \
 		//!< 取事件映射表。
 
 	DeclIEntry(void SetEnabled(bool)) //!< 设置有效性。
-EndDecl
-
-
-//! \brief 可视控件接口。
-DeclBasedInterface3(IVisualControl, virtual IWidget, virtual IControl,
-	virtual GIFocusRequester<GMFocusResponser>)
 
 	//! \brief 向部件容器请求获得焦点。
 	DeclIEntry(void RequestFocus(EventArgs&))
@@ -301,13 +296,13 @@ CallEvent(IControl& c, typename EventTypeMapping<id>
 }
 /*!
 \ingroup HelperFunction
-\brief 调用可视控件自身事件。
+\brief 调用控件自身事件。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则忽略。
 */
 template<VisualEvent id>
 inline void
-CallEvent(IVisualControl& c, typename EventTypeMapping<id>
+CallEvent(IControl& c, typename EventTypeMapping<id>
 	::HandlerType::EventArgsType& e)
 {
 	c.GetEventMap().DoEvent<typename EventTypeMapping<id>
@@ -319,34 +314,35 @@ CallEvent(IVisualControl& c, typename EventTypeMapping<id>
 \brief 处理键接触保持事件。
 */
 void
-OnKeyHeld(IVisualControl&, KeyEventArgs&);
+OnKeyHeld(IControl&, KeyEventArgs&);
 
 /*!
 \brief 处理屏幕接触保持事件。
 
- VisualControl 加载的默认 TouchHeld 事件处理器。
+ Control 加载的默认 TouchHeld 事件处理器。
 实现记录坐标偏移（用于拖放）或触发 TouchMove 事件。
 */
 void
-OnTouchHeld(IVisualControl&, TouchEventArgs&);
+OnTouchHeld(IControl&, TouchEventArgs&);
 
 /*!
 \brief 处理屏幕接触移动事件。
 \note 重复触发 TouchDown 事件。
 */
 void
-OnTouchMove(IVisualControl&, TouchEventArgs&);
+OnTouchMove(IControl&, TouchEventArgs&);
 
 /*!
 \brief 处理屏幕接触移动事件。
 \note 使用拖放。
 */
 void
-OnTouchMove_Dragging(IVisualControl&, TouchEventArgs&);
+OnTouchMove_Dragging(IControl&, TouchEventArgs&);
 
 
 //! \brief 控件基实现类。
-class Control
+class Control : public Widgets::Widget, public AFocusRequester,
+	virtual implements IControl
 {
 private:
 	bool enabled; //!< 控件有效性。
@@ -355,105 +351,67 @@ protected:
 	mutable Runtime::GEventMap<VisualEvent> EventMap; //!< 事件映射表。
 
 public:
-	/*!
-	\brief 构造：使用有效性。
-	*/
-	explicit
-	Control(bool = true);
+	//标准控件事件见 VisualEvent 。
 
-	virtual DefEmptyDtor(Control)
-
-	virtual DefPredicate(Enabled, enabled)
-
-	DefGetter(Runtime::GEventMap<VisualEvent>&, EventMap, EventMap)
-
-	virtual DefSetter(bool, Enabled, enabled)
-};
-
-inline
-Control::Control(bool e)
-	: enabled(e), EventMap()
-{}
-
-
-//! \brief 控件基类。
-class YControl : public YComponent,
-	public Control,
-	implements IControl
-{
-public:
-	typedef YComponent ParentType;
-
-	virtual DefEmptyDtor(YControl)
-};
-
-
-//! \brief 可视控件基实现类。
-class VisualControl : public Widgets::Widget, public Control,
-	public AFocusRequester,
-	virtual implements IVisualControl
-{
-public:
-	//标准可视控件事件见 VisualEvent 。
-
-	//扩展可视控件事件。
-//	DeclEvent(HPointEvent, Move) //!< 可视控件移动。
-//	DeclEvent(HSizeEvent, Resize) //!< 可视控件大小调整。
+	//扩展控件事件。
+//	DeclEvent(HPointEvent, Move) //!< 控件移动。
+//	DeclEvent(HSizeEvent, Resize) //!< 控件大小调整。
 
 	/*!
 	\brief 构造：使用指定边界和部件容器指针。
 	*/
 	explicit
-	VisualControl(const Rect& = Rect::Empty, IUIBox* = NULL);
+	Control(const Rect& = Rect::Empty, IUIBox* = NULL);
 	/*!
 	\brief 析构。
 	\note 无异常抛出。
 	*/
-	virtual ~VisualControl() ythrow();
+	virtual
+	~Control() ythrow();
 
-	ImplI1(IVisualControl) DefPredicateBase(Visible, Visual)
-	ImplI1(IVisualControl) DefPredicateBase(Transparent, Visual)
-	ImplI1(IVisualControl) DefPredicateBase(BgRedrawed, Visual)
-	ImplI1(IVisualControl) DefPredicateBase(Enabled, Control)
-	ImplI1(AFocusRequester) bool
+	ImplI1(IControl) DefPredicateBase(Visible, Visual)
+	ImplI1(IControl) DefPredicateBase(Transparent, Visual)
+	ImplI1(IControl) DefPredicateBase(BgRedrawed, Visual)
+	ImplI1(IControl) DefPredicate(Enabled, enabled)
+	ImplI1(IControl) bool
 	IsFocused() const;
 
-	ImplI1(IVisualControl) DefGetterBase(const Point&, Location, Visual)
-	ImplI1(IVisualControl) DefGetterBase(const Size&, Size, Visual)
-	ImplI1(IVisualControl) DefGetterBase(IUIBox*, ContainerPtr, Widget)
-	ImplI1(IVisualControl) DefGetterBase(Runtime::GEventMap<VisualEvent>&,
-		EventMap, Control)
+	ImplI1(IControl) DefGetterBase(const Point&, Location, Visual)
+	ImplI1(IControl) DefGetterBase(const Size&, Size, Visual)
+	ImplI1(IControl) DefGetterBase(IUIBox*, ContainerPtr, Widget)
+	ImplI1(IControl) DefGetter(Runtime::GEventMap<VisualEvent>&, EventMap,
+		EventMap)
 
-	ImplI1(IVisualControl) DefSetterBase(bool, Visible, Visual)
-	ImplI1(IVisualControl) DefSetterBase(bool, Transparent, Visual)
-	ImplI1(IVisualControl) DefSetterBase(bool, BgRedrawed, Visual)
-	ImplI1(IVisualControl) void
+	ImplI1(IControl) DefSetterBase(bool, Visible, Visual)
+	ImplI1(IControl) DefSetterBase(bool, Transparent, Visual)
+	ImplI1(IControl) DefSetterBase(bool, BgRedrawed, Visual)
+	ImplI1(IControl) void
 	SetLocation(const Point&);
-	ImplI1(IVisualControl) void
+	ImplI1(IControl) void
 	SetSize(const Size&);
-	ImplI1(IVisualControl) DefSetterBase(bool, Enabled, Control)
+	ImplI1(IControl) DefSetter(bool, Enabled, enabled)
 
-	ImplI1(IVisualControl) PDefH0(void, DrawBackground)
+	ImplI1(IControl) PDefH0(void, DrawBackground)
 		ImplBodyBase0(Widget, DrawBackground)
 
-	ImplI1(IVisualControl) PDefH0(void, DrawForeground)
+	ImplI1(IControl) PDefH0(void, DrawForeground)
 		ImplBodyBase0(Widget, DrawForeground)
 
-	ImplI1(IVisualControl) PDefH0(void, Refresh)
+	ImplI1(IControl) PDefH0(void, Refresh)
 		ImplBodyBase0(Widget, Refresh)
 
 	/*!
 	\brief 向部件容器请求获得焦点。
 	\note 若成功则触发 GotFocus 事件。
 	*/
-	ImplI1(IVisualControl) void
+	ImplI1(IControl) void
 	RequestFocus(EventArgs&);
 
 	/*!
 	\brief 释放焦点。
 	\note 触发 LostFocus 事件。
 	*/
-	ImplI1(IVisualControl) void
+	ImplI1(IControl) void
 	ReleaseFocus(EventArgs&);
 
 private:
@@ -477,9 +435,9 @@ private:
 };
 
 
-//! \brief 可视控件基类。
-class YVisualControl : public YComponent,
-	public VisualControl
+//! \brief 控件基类。
+class YControl : public YComponent,
+	public Control
 {
 public:
 	typedef YComponent ParentType;
@@ -488,12 +446,12 @@ public:
 	\brief 构造：使用指定边界和部件容器指针。
 	*/
 	explicit
-	YVisualControl(const Rect& = Rect::Empty, IUIBox* = NULL);
+	YControl(const Rect& = Rect::Empty, IUIBox* = NULL);
 	/*!
 	\brief 析构。
 	\note 无异常抛出。
 	*/
-	virtual DefEmptyDtor(YVisualControl)
+	virtual DefEmptyDtor(YControl)
 };
 
 
@@ -571,7 +529,7 @@ ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
 {}
 
 
-DefDelegate(HScrollEvent, IVisualControl, ScrollEventArgs)
+DefDelegate(HScrollEvent, IControl, ScrollEventArgs)
 
 
 //! \brief 范围模块类。

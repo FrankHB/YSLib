@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ysinit.h
 \ingroup Service
 \brief 程序启动时的通用初始化。
-\version 0.1533;
+\version 0.1539;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-10-21 23:15:08 + 08:00;
+	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2010-12-02 19:50 + 08:00;
+	2011-03-07 19:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,16 +44,11 @@ extern CPATH DEF_FONT_DIRECTORY;
 
 /*!
 \brief 初始化系统字体缓存：
-//			以默认字型路径创建默认字体缓存并加载默认字型目录中的字体文件。
+
+以默认字型路径创建默认字体缓存并加载默认字型目录中的字体文件。
 */
 void
 InitializeSystemFontCache();
-
-/*!
-\brief 注销系统字体缓存。
-*/
-void
-DestroySystemFontCache();
 
 /*!
 \brief 初始化失败公用程序。

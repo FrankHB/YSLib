@@ -11,12 +11,12 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version 0.1898;
+\version 0.1900;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-12-02 19:49:40 + 08:00;
+	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2011-01-08 18:21 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3528;
+\version 0.3586;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-03-06 21:38:16 + 08:00;
+	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-03-03 22:10 + 08:00;
+	2011-03-07 13:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,43 +71,46 @@ namespace
 	dfa(BitmapPtr buf, SDST x, SDST y)
 	{
 		//raz2
-		buf[y * SCRW + x] = ARGB16(1, ((x >> 2) + 15) & 31,
+		buf[y * Global::MainScreenWidth + x] = ARGB16(1, ((x >> 2) + 15) & 31,
 			((y >> 2) + 15) & 31, ((~(x * y) >> 2) + 15) & 31);
 	}
 	void
 	dfap(BitmapPtr buf, SDST x, SDST y)
 	{
 		//bza1
-		buf[y * SCRW + x] = ARGB16(1, ((x | y << 1) % (y + 2)) & 31,
-			((~y | x << 1) % 27 + 3) & 31, ((x << 4) / (y | 1)) & 31);
+		buf[y * Global::MainScreenWidth + x] = ARGB16(1,
+			((x | y << 1) % (y + 2)) & 31, ((~y | x << 1) % 27 + 3) & 31,
+			((x << 4) / (y | 1)) & 31);
 	}
 	void
 	dfac1(BitmapPtr buf, SDST x, SDST y)
 	{
 		//fl1
-		buf[y * SCRW + x] = ARGB16(1, (x + y * y) & 31, (x * x + y) & 31,
-			((x & y) ^ (x | y)) & 31);
+		buf[y * Global::MainScreenWidth + x] = ARGB16(1, (x + y * y) & 31,
+			(x * x + y) & 31, ((x & y) ^ (x | y)) & 31);
 	}
 	void
 	dfac1p(BitmapPtr buf, SDST x, SDST y)
 	{
 		//rz3
-		buf[y * SCRW + x] = ARGB16(1, ((x * y) | y) & 31, ((x * y) | x) & 31,
-			((x ^ y) * (x ^ y)) & 31);
+		buf[y * Global::MainScreenWidth + x] = ARGB16(1, ((x * y) | y) & 31,
+			((x * y) | x) & 31, ((x ^ y) * (x ^ y)) & 31);
 	}
 	void
 	dfac2(BitmapPtr buf, SDST x, SDST y)
 	{
 		//v1
-		buf[y * SCRW + x] = ARGB16(1, ((x + y) % ((y - 2) & 1) + (x << 2)) & 31,
-			(~x % 101 + y) & 31, ((x << 4) / (y & 1)) & 31);
+		buf[y * Global::MainScreenWidth + x] = ARGB16(1,
+			((x + y) % ((y - 2) & 1) + (x << 2)) & 31, (~x % 101 + y) & 31,
+			((x << 4) / (y & 1)) & 31);
 	}
 	void
 	dfac2p(BitmapPtr buf, SDST x, SDST y)
 	{
 		//arz1
-		buf[y * SCRW + x] = ARGB16(1, ((x | y) % (y + 2)) & 31,
-			((~y | x) % 27 + 3) & 31, ((x << 6) / (y | 1)) & 31);
+		buf[y * Global::MainScreenWidth + x]
+			= ARGB16(1, ((x | y) % (y + 2)) & 31, ((~y | x) % 27 + 3) & 31,
+			((x << 6) / (y | 1)) & 31);
 	}
 
 	////
@@ -284,7 +287,8 @@ ReleaseShells()
 using namespace DS;
 
 ShlLoad::TFrmLoadUp::TFrmLoadUp()
-	: YForm(Rect::FullScreen, GetImage(1), HWND(hDesktopUp)),
+	: YForm(Rect::FullScreen, GetImage(1),
+		HWND(theApp.GetPlatformResource().GetDesktopUpHandle())),
 	lblTitle(Rect(50, 20, 100, 22), this),
 	lblStatus(Rect(60, 80, 80, 22), this)
 {
@@ -295,7 +299,8 @@ ShlLoad::TFrmLoadUp::TFrmLoadUp()
 }
 
 ShlLoad::TFrmLoadDown::TFrmLoadDown()
-	: YForm(Rect::FullScreen, GetImage(2), HWND(hDesktopDown)),
+	: YForm(Rect::FullScreen, GetImage(2),
+		HWND(theApp.GetPlatformResource().GetDesktopDownHandle())),
 	lblStatus(Rect(30, 20, 160, 22), this)
 {
 	lblStatus.Text = _ustr("初始化中，请稍后……");
@@ -309,8 +314,8 @@ ShlLoad::OnActivated(const Message& /*m*/)
 	YDebugSetStatus(true);
 	//如果不添加此段且没有桌面没有被添加窗口等设置刷新状态的操作，
 	//那么任何绘制都不会进行。
-	hDesktopUp->SetRefresh(true);
-	hDesktopDown->SetRefresh(true);
+	theApp.GetPlatformResource().GetDesktopUp().SetRefresh(true);
+	theApp.GetPlatformResource().GetDesktopDown().SetRefresh(true);
 	//新建窗口。
 	hWndUp = NewWindow<TFrmLoadUp>();
 	hWndDown = NewWindow<TFrmLoadDown>();
@@ -330,7 +335,8 @@ ShlLoad::OnActivated(const Message& /*m*/)
 
 
 ShlExplorer::TFrmFileListMonitor::TFrmFileListMonitor()
-	: YForm(Rect::FullScreen, GetImage(3), HWND(hDesktopUp)),
+	: YForm(Rect::FullScreen, GetImage(3),
+		HWND(theApp.GetPlatformResource().GetDesktopUpHandle())),
 	lblTitle(Rect(16, 20, 220, 22), this),
 	lblPath(Rect(12, 80, 240, 22), this)
 {
@@ -342,14 +348,11 @@ ShlExplorer::TFrmFileListMonitor::TFrmFileListMonitor()
 }
 
 ShlExplorer::TFrmFileListSelecter::TFrmFileListSelecter()
-	: YForm(Rect::FullScreen, GetImage(4), HWND(hDesktopDown)),
-	fbMain(Rect(6, 10, 210, 150), this),
+	: YForm(Rect::FullScreen, GetImage(4),
+	HWND(theApp.GetPlatformResource().GetDesktopDownHandle())),
+	fbMain(Rect(6, 10, 224, 150), this),
 	btnTest(Rect(115, 165, 65, 22), this),
-	btnOK(Rect(185, 165, 65, 22), this),
-	sbTestH(Rect(10, 165, 95, 16), this),
-//	tkTestH(Rect(10, 165, 95, 16), this),
-	sbTestV(Rect(230, 10, 16, 95), this)
-//	tkTestV(Rect(230, 10, 16, 95), this)
+	btnOK(Rect(185, 165, 65, 22), this)
 {
 	btnTest.Text = _ustr(" 测试(X)");
 	btnOK.Text = _ustr(" 确定(R)");
@@ -397,7 +400,7 @@ ShlExplorer::TFrmFileListSelecter::fb_ViewChanged(EventArgs&)
 }
 
 void
-ShlExplorer::fb_KeyPress(IVisualControl& /*sender*/, KeyEventArgs& e)
+ShlExplorer::fb_KeyPress(IControl& /*sender*/, KeyEventArgs& e)
 {
 	Key x(e);
 
@@ -405,7 +408,7 @@ ShlExplorer::fb_KeyPress(IVisualControl& /*sender*/, KeyEventArgs& e)
 		switchShl1();
 }
 void
-ShlExplorer::fb_Confirmed(IVisualControl& /*sender*/, IndexEventArgs& /*e*/)
+ShlExplorer::fb_Confirmed(IControl& /*sender*/, IndexEventArgs& /*e*/)
 {
 //	if(e.Index == 2)
 //		switchShl1();
@@ -476,8 +479,10 @@ ShlExplorer::OnActivated(const Message&)
 	hWndUp = NewWindow<TFrmFileListMonitor>();
 	hWndDown = NewWindow<TFrmFileListSelecter>();
 /*
-	ReplaceHandle<HWND>(hWndUp, new TFrmFileListMonitor(GHHandle<YShell>(this)));
-	ReplaceHandle<HWND>(hWndDown, new TFrmFileListSelecter(GHHandle<YShell>(this)));
+	ReplaceHandle<HWND>(hWndUp,
+		new TFrmFileListMonitor(GHHandle<YShell>(this)));
+	ReplaceHandle<HWND>(hWndDown,
+		new TFrmFileListSelecter(GHHandle<YShell>(this)));
 */
 	//	HandleCast<TFrmFileListSelecter>(
 	//		hWndDown)->fbMain.RequestFocus(GetZeroElement<EventArgs>());
@@ -505,7 +510,8 @@ YSL_END_SHELL(ShlSetting)
 HWND ShlSetting::hWndC(NULL);
 
 ShlSetting::TFormA::TFormA()
-	: YForm(Rect::FullScreen, GetImage(5), HWND(hDesktopUp)),
+	: YForm(Rect::FullScreen, GetImage(5),
+	HWND(theApp.GetPlatformResource().GetDesktopUpHandle())),
 	lblA(Rect(s_left, 20, 200, s_size), this),
 	lblA2(Rect(s_left, 80, 72, s_size), this)
 {
@@ -522,7 +528,8 @@ ShlSetting::TFormA::ShowString(const String& s)
 }
 
 ShlSetting::TFormB::TFormB()
-	: YForm(Rect(10, 40, 228, 70), NULL, HWND(hDesktopDown)),
+	: YForm(Rect(10, 40, 228, 70), NULL,
+		HWND(theApp.GetPlatformResource().GetDesktopDownHandle())),
 	btnB(Rect(2, 5, 224, s_size), this), /*GetImage(6)*/
 	btnB2(Rect(45, 35, 124, s_size), this)
 {
@@ -530,7 +537,7 @@ ShlSetting::TFormB::TFormB()
 	btnB2.Text = _ustr("测试程序2");
 	BackColor = ARGB16(1, 31, 31, 15);
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
-	//	btnB.TouchMove += &VisualControl::OnTouchMove;
+	//	btnB.TouchMove += &Control::OnTouchMove;
 	FetchEvent<Enter>(btnB) += btnB_Enter;
 	FetchEvent<Leave>(btnB) += btnB_Leave;
 	FetchEvent<TouchMove>(btnB2) += OnTouchMove_Dragging;
@@ -539,7 +546,7 @@ ShlSetting::TFormB::TFormB()
 }
 
 void
-ShlSetting::TFormB::btnB_Enter(IVisualControl& sender, InputEventArgs& e)
+ShlSetting::TFormB::btnB_Enter(IControl& sender, InputEventArgs& e)
 {
 	DefDynInitRef(YButton, btn, sender)
 	TouchEventArgs& pt(static_cast<TouchEventArgs&>(e));
@@ -550,7 +557,7 @@ ShlSetting::TFormB::btnB_Enter(IVisualControl& sender, InputEventArgs& e)
 	btn.Refresh();
 }
 void
-ShlSetting::TFormB::btnB_Leave(IVisualControl& sender, InputEventArgs& e)
+ShlSetting::TFormB::btnB_Leave(IControl& sender, InputEventArgs& e)
 {
 	DefDynInitRef(YButton, btn, sender)
 	TouchEventArgs& pt(static_cast<TouchEventArgs&>(e));
@@ -562,7 +569,8 @@ ShlSetting::TFormB::btnB_Leave(IVisualControl& sender, InputEventArgs& e)
 }
 
 ShlSetting::TFormC::TFormC()
-	: YForm(Rect(5, 60, 180, 120), NULL, HWND(hDesktopDown)),
+	: YForm(Rect(5, 60, 180, 120), NULL,
+		HWND(theApp.GetPlatformResource().GetDesktopDownHandle())),
 	btnC(Rect(13, 15, 184, s_size), this),/*GetImage(7)*/
 	btnD(Rect(13, 52, 60, s_size), this),
 	btnReturn(Rect(13, 82, 60, s_size), this),
@@ -608,20 +616,20 @@ ShlSetting::TFormC::btnC_TouchDown(TouchEventArgs& e)
 void
 ShlSetting::TFormC::btnC_Click(TouchEventArgs& /*e*/)
 {
-	static const int ffilen(theApp.pFontCache->GetFilesN());
-	static const int ftypen(theApp.pFontCache->GetTypesN());
-	static const int ffacen(theApp.pFontCache->GetFacesN());
+	static YFontCache& fc(theApp.GetFontCache());
+	static const int ffilen(fc.GetFilesN());
+	static const int ftypen(fc.GetTypesN());
+	static const int ffacen(fc.GetFacesN());
 	static int itype;
-	static YFontCache::FTypes::const_iterator it(
-		theApp.pFontCache->GetTypes().begin());
+	static YFontCache::FTypes::const_iterator it(fc.GetTypes().begin());
 
 	//	btnC.Transparent ^= 1;
 	if(nCountInput & 1)
 	{
 		//	btnC.Visible ^= 1;
 		++itype %= ftypen;
-		if(++it == theApp.pFontCache->GetTypes().end())
-			it = theApp.pFontCache->GetTypes().begin();
+		if(++it == fc.GetTypes().end())
+			it = fc.GetTypes().begin();
 		btnC.Font = Font(*(*it)->GetFontFamilyPtr(), 18 - (itype << 1),
 			EFontStyle::Regular);
 	//	btnC.Font = Font(*(*it)->GetFontFamilyPtr(), //GetDefaultFontFamily(),
@@ -637,14 +645,14 @@ ShlSetting::TFormC::btnC_Click(TouchEventArgs& /*e*/)
 		sprintf(strtf, "%d/%d;%s:%s;\n", itype + 1, ftypen,
 			(*it)->GetFamilyName(), (*it)->GetStyleName());
 		//	sprintf(strtf, "B%p\n",
-		//		theApp.pFontCache->GetTypefacePtr("FZYaoti", "Regular"));
+		//		fc.GetTypefacePtr("FZYaoti", "Regular"));
 		btnC.Text = strtf;
 	}
 	//	btnC.Refresh();
 }
 
 void
-ShlSetting::TFormC::btnC_KeyPress(IVisualControl& sender, KeyEventArgs& e)
+ShlSetting::TFormC::btnC_KeyPress(IControl& sender, KeyEventArgs& e)
 {
 	//测试程序。
 
@@ -700,7 +708,7 @@ ShlSetting::ShowString(const char* s)
 }
 
 void
-ShlSetting::TFormC_TouchDown(IVisualControl& sender, TouchEventArgs& /*e*/)
+ShlSetting::TFormC_TouchDown(IControl& sender, TouchEventArgs& /*e*/)
 {
 	try
 	{
@@ -717,8 +725,9 @@ ShlSetting::TFormC_TouchDown(IVisualControl& sender, TouchEventArgs& /*e*/)
 int
 ShlSetting::OnActivated(const Message& /*msg*/)
 {
-	hDesktopDown->BackColor = ARGB16(1, 15, 15, 31);
-	hDesktopDown->SetBackground(GetImage(6));
+	theApp.GetPlatformResource().GetDesktopDown().BackColor
+		= ARGB16(1, 15, 15, 31);
+	theApp.GetPlatformResource().GetDesktopDown().SetBackground(GetImage(6));
 	hWndUp = NewWindow<TFormA>();
 	hWndDown = NewWindow<TFormB>();
 	hWndC = NewWindow<TFormC>();
@@ -775,17 +784,19 @@ ShlReader::OnActivated(const Message& /*msg*/)
 	pTextFile = ynew YTextFile(path.c_str());
 	Reader.LoadText(*pTextFile);
 	bgDirty = true;
-	hUp = hDesktopUp->GetBackground();
-	hDn = hDesktopDown->GetBackground();
-	hDesktopUp->SetBackground(NULL);
-	hDesktopDown->SetBackground(NULL);
-	hDesktopUp->BackColor = ARGB16(1, 30, 27, 24);
-	hDesktopDown->BackColor = ARGB16(1, 24, 27, 30);
-	FetchEvent<Click>(*hDesktopDown).Add(*this,
-		&ShlReader::OnClick);
-	FetchEvent<KeyPress>(*hDesktopDown).Add(*this,
-		&ShlReader::OnKeyPress);
-	RequestFocusCascade(*hDesktopDown);
+	hUp = theApp.GetPlatformResource().GetDesktopUp().GetBackground();
+	hDn = theApp.GetPlatformResource().GetDesktopDown().GetBackground();
+	theApp.GetPlatformResource().GetDesktopUp().SetBackground(NULL);
+	theApp.GetPlatformResource().GetDesktopDown().SetBackground(NULL);
+	theApp.GetPlatformResource().GetDesktopUp().BackColor
+		= ARGB16(1, 30, 27, 24);
+	theApp.GetPlatformResource().GetDesktopDown().BackColor
+		= ARGB16(1, 24, 27, 30);
+	FetchEvent<Click>(*theApp.GetPlatformResource().GetDesktopDownHandle())
+		.Add(*this, &ShlReader::OnClick);
+	FetchEvent<KeyPress>(*theApp.GetPlatformResource().GetDesktopDownHandle())
+		.Add(*this, &ShlReader::OnKeyPress);
+	RequestFocusCascade(*theApp.GetPlatformResource().GetDesktopDownHandle());
 	UpdateToScreen();
 	return 0;
 }
@@ -794,12 +805,12 @@ int
 ShlReader::OnDeactivated(const Message& /*msg*/)
 {
 	ShlClearBothScreen();
-	FetchEvent<Click>(*hDesktopDown).Remove(*this,
-		&ShlReader::OnClick);
-	FetchEvent<KeyPress>(*hDesktopDown).Remove(*this,
-		&ShlReader::OnKeyPress);
-	hDesktopUp->SetBackground(hUp);
-	hDesktopDown->SetBackground(hDn);
+	FetchEvent<Click>(*theApp.GetPlatformResource().GetDesktopDownHandle())
+		.Remove(*this, &ShlReader::OnClick);
+	FetchEvent<KeyPress>(*theApp.GetPlatformResource().GetDesktopDownHandle())
+		.Remove(*this, &ShlReader::OnKeyPress);
+	theApp.GetPlatformResource().GetDesktopUp().SetBackground(hUp);
+	theApp.GetPlatformResource().GetDesktopDown().SetBackground(hDn);
 	Reader.UnloadText();
 	safe_delete_obj()(pTextFile);
 	return 0;
@@ -828,13 +839,13 @@ ShlReader::UpdateToScreen()
 	{
 		bgDirty = false;
 		//强制刷新背景。
-		hDesktopUp->SetRefresh(true);
-		hDesktopDown->SetRefresh(true);
-		hDesktopUp->Refresh();
-		hDesktopDown->Refresh();
+		theApp.GetPlatformResource().GetDesktopUp().SetRefresh(true);
+		theApp.GetPlatformResource().GetDesktopDown().SetRefresh(true);
+		theApp.GetPlatformResource().GetDesktopUp().Refresh();
+		theApp.GetPlatformResource().GetDesktopDown().Refresh();
 		Reader.PrintText();
-		hDesktopUp->Update();
-		hDesktopDown->Update();
+		theApp.GetPlatformResource().GetDesktopUp().Update();
+		theApp.GetPlatformResource().GetDesktopDown().Update();
 	}
 }
 

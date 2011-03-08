@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.4047;
+\version 0.4065;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-28 16:46:40 + 08:00;
+	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-02-21 09:50 + 08:00;
+	2011-03-08 14:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -55,7 +55,7 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Forms)
 
 //! \brief 窗口接口。
-DeclBasedInterface(IWindow, virtual IUIContainer, virtual IVisualControl)
+DeclBasedInterface(IWindow, IUIContainer, virtual IControl)
 	DeclIEntry(bool IsRefreshRequired() const)
 	DeclIEntry(bool IsUpdateRequired() const)
 
@@ -97,7 +97,7 @@ public:
 
 
 //! \brief 抽象窗口。
-class AWindow : public Controls::VisualControl, protected MWindow,
+class AWindow : public Controls::Control, protected MWindow,
 	implements IWindow
 {
 public:
@@ -222,25 +222,25 @@ public:
 		ImplRet(sWgtSet += w)
 	virtual PDefHOperator1(bool, -=, IWidget& w)
 		ImplRet(sWgtSet -= w)
-	virtual PDefHOperator1(void, +=, IVisualControl& c)
+	virtual PDefHOperator1(void, +=, IControl& c)
 		ImplBodyBase1(MUIContainer, operator+=, c)
-	virtual PDefHOperator1(bool, -=, IVisualControl& c)
+	virtual PDefHOperator1(bool, -=, IControl& c)
 		ImplBodyBase1(MUIContainer, operator-=, c)
-	virtual PDefHOperator1(void, +=, GMFocusResponser<IVisualControl>& c)
+	virtual PDefHOperator1(void, +=, GMFocusResponser<IControl>& c)
 		ImplBodyBase1(MUIContainer, operator+=, c)
-	virtual PDefHOperator1(bool, -=, GMFocusResponser<IVisualControl>& c)
+	virtual PDefHOperator1(bool, -=, GMFocusResponser<IControl>& c)
 		ImplBodyBase1(MUIContainer, operator-=, c)
 
-	ImplI1(IWindow) PDefH0(IVisualControl*, GetFocusingPtr)
-		ImplBodyBase0(GMFocusResponser<IVisualControl>, GetFocusingPtr)
+	ImplI1(IWindow) PDefH0(IControl*, GetFocusingPtr)
+		ImplBodyBase0(GMFocusResponser<IControl>, GetFocusingPtr)
 	ImplI1(IWindow) PDefH1(IWidget*, GetTopWidgetPtr, const Point& p)
 		ImplBodyBase1(MUIContainer, GetTopWidgetPtr, p)
-	ImplI1(IWindow) PDefH1(IVisualControl*, GetTopVisualControlPtr,
+	ImplI1(IWindow) PDefH1(IControl*, GetTopControlPtr,
 		const Point& p)
-		ImplBodyBase1(MUIContainer, GetTopVisualControlPtr, p)
+		ImplBodyBase1(MUIContainer, GetTopControlPtr, p)
 
-	ImplI1(IWindow) PDefH0(void, ClearFocusingPtr)
-		ImplBodyBase0(MUIContainer, ClearFocusingPtr)
+	ImplI1(IWindow) void
+	ClearFocusingPtr();
 
 	ImplI1(IWindow) PDefH1(bool, ResponseFocusRequest, AFocusRequester& w)
 		ImplBodyBase1(MUIContainer, ResponseFocusRequest, w)

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yres.cpp
 \ingroup Core
 \brief 资源管理模块。
-\version 0.1219;
+\version 0.1225;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-22 17:28:28 + 08:00;
+	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2010-12-31 12:17 + 08:00;
+	2011-03-06 09:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,6 +25,7 @@
 
 
 #include "yres.h"
+#include "yshell.h"
 
 YSL_BEGIN
 

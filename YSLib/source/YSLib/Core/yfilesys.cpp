@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2144;
+\version 0.2146;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-03-28 00:36:30 + 08:00;
+	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-01-19 12:29 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

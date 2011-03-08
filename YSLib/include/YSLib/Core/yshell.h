@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 定义。
-\version 0.2814;
+\version 0.2816;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-13 21:09:15 + 08:00;
+	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-02-20 13:52 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

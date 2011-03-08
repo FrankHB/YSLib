@@ -1,8 +1,8 @@
 # DS Makefile for CHRLib -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
-# CTime = 2009-12-18 12:27:40 + 08:00;
-# UTime = 2011-02-21 10:20 + 08:00;
-# Version = 0.3829;
+# CTime = 2009-12-18 12:27:40 +0800;
+# UTime = 2011-03-05 16:54 +0800;
+# Version = 0.3831;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 

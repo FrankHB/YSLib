@@ -1,8 +1,8 @@
-﻿// YSLib -> YSLib by Franksoft 2009 - 2010
+﻿// YSLib -> YSLib by Franksoft 2009 - 2011
 // CharSet = UTF-8;
-// CTime = 2009-12-02 05:14:30 + 08:00;
-// UTime = 2010-12-20 19:48 + 08:00;
-// Version = 0.2025;
+// CTime = 2009-12-02 05:14:30 +0800;
+// UTime = 2011-03-05 17:05 +0800;
+// Version = 0.2026;
 
 
 // YSLib ：YSLib说明。

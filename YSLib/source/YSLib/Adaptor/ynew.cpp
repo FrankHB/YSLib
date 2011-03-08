@@ -11,12 +11,12 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version 0.1760;
+\version 0.1762;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-12-02 19:49:41 + 08:00;
+	2010-12-02 19:49:41 +0800;
 \par 修改时间:
-	2011-01-08 18:27 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

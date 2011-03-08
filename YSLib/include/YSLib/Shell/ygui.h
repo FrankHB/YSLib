@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.2305;
+\version 0.2407;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-16 20:06:58 + 08:00;
+	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-02-20 14:34 + 08:00;
+	2011-03-06 22:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,7 @@
 #define INCLUDED_YGUI_H_
 
 #include "../Core/ysdef.h"
-#include "ycomp.h"
+#include "../Core/yshell.h"
 #include "ycontrol.h"
 #include "../Core/yfunc.hpp"
 #include "../Service/ytimer.h"
@@ -40,160 +40,264 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Controls)
 
 /*!
-\brief 从指定 Shell 传递指定屏幕的指针设备光标至 GUI 界面，返回部件指针。
-*/
-IWidget*
-GetCursorWidgetPtr(GHHandle<YGUIShell>, YDesktop&, const Point&);
-
-/*!
 \brief 取指定屏幕中的当前焦点对象指针。
 */
-IVisualControl*
+IControl*
 GetFocusedObjectPtr(YDesktop&);
 
 /*!
-\brief 级联请求可视控件及上层容器焦点。
+\brief 级联请求控件及上层容器焦点。
 */
 void
-RequestFocusCascade(IVisualControl&);
+RequestFocusCascade(IControl&);
 
 /*!
-\brief 级联释放可视控件及上层容器焦点。
+\brief 级联释放控件及上层容器焦点。
 */
 void
-ReleaseFocusCascade(IVisualControl&);
-
-
-//标准 GUI 事件回调函数抽象类。
-typedef Runtime::GAHEventCallback<Components::Controls::IVisualControl,
-	EventArgs> AHEventCallback;
-typedef Runtime::GAHEventCallback<Components::Controls::IVisualControl,
-	KeyEventArgs> AHKeyCallback;
-typedef Runtime::GAHEventCallback<Components::Controls::IVisualControl,
-	TouchEventArgs> AHTouchCallback;
-
-//标准 GUI 事件回调函数类型。
-typedef bool FKeyCallback(Components::Controls::IVisualControl&,
-	KeyEventArgs&);
-typedef bool FTouchCallback(Components::Controls::IVisualControl&,
-	TouchEventArgs&);
-typedef FKeyCallback* PFKeyCallback;
-typedef FTouchCallback* PFTouchCallback;
-
-//标准 GUI 事件回调函数对象类。
-
-struct HKeyCallback : public GHBase<PFKeyCallback>, public AHKeyCallback
-{
-	/*!
-	\brief 构造：从参数和回调函数指针。
-	*/
-	inline explicit
-	HKeyCallback(KeyEventArgs e, PFKeyCallback p)
-		: GHBase<PFKeyCallback>(p), AHKeyCallback(e)
-	{}
-
-	inline bool
-	operator()(Components::Controls::IVisualControl& c)
-	{
-		return GetPtr()(c, *this);
-	}
-};
-
-struct HTouchCallback : public GHBase<PFTouchCallback>, public AHTouchCallback
-{
-	/*!
-	\brief 构造：从参数和回调函数指针。
-	*/
-	inline explicit
-	HTouchCallback(TouchEventArgs e, PFTouchCallback p)
-		: GHBase<PFTouchCallback>(p), AHTouchCallback(e)
-	{}
-
-	/*!
-	\brief 调用函数。
-	*/
-	inline bool
-	operator()(Components::Controls::IVisualControl& c)
-	{
-		return GetPtr()(c, *this);
-	}
-};
-
-
-//! \brief 记录输入状态。
-YSL_BEGIN_NAMESPACE(InputStatus)
-
-typedef enum
-{
-	Free = 0,
-	Pressed = 1,
-	Held = 2
-} HeldStateType;
-
-extern HeldStateType KeyHeldState, TouchHeldState; //!< 输入接触状态。
-extern Vec DraggingOffset; //!< 拖放偏移量。
-extern Timers::YTimer HeldTimer; //!< 输入接触保持计时器。
-extern Point VisualControlLocation, LastVisualControlLocation; \
-	//最近两次的指针设备操作时的控件全局位置（屏幕坐标）。
-
-/*!
-\brief 重复检测输入接触保持事件。
-*/
-bool
-RepeatHeld(HeldStateType&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
-
-/*!
-\brief 复位接触保持状态。
-*/
-void
-ResetHeldState(HeldStateType&);
-
-YSL_END_NAMESPACE(InputStatus)
-
-/*!
-\brief 复位 GUI 状态。
-\note 为了避免处理无效指针，需要在切换 Shell 或其它控件对象被销毁后立即调用。
-*/
-void
-ResetGUIStates();
-
-//响应标准按键状态。
-/*!
-\brief 响应键接触结束。
-*/
-bool
-ResponseKeyUp(YDesktop&, KeyEventArgs&);
-/*!
-\brief 响应键接触开始。
-*/
-bool
-ResponseKeyDown(YDesktop&, KeyEventArgs&);
-/*!
-\brief 响应键接触保持。
-*/
-bool
-ResponseKeyHeld(YDesktop&, KeyEventArgs&);
-
-//响应屏幕接触状态。
-/*!
-\brief 响应屏幕接触结束。
-*/
-bool
-ResponseTouchUp(IUIBox&, TouchEventArgs&);
-/*!
-\brief 响应屏幕接触开始。
-*/
-bool
-ResponseTouchDown(IUIBox&, TouchEventArgs&);
-/*!
-\brief 响应屏幕接触保持。
-*/
-bool
-ResponseTouchHeld(IUIBox&, TouchEventArgs&);
+ReleaseFocusCascade(IControl&);
 
 YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
+
+YSL_BEGIN_NAMESPACE(Shells)
+
+//! \brief 默认图形用户界面 Shell 。
+class YGUIShell : public YShell
+{
+public:
+	typedef YShell ParentType;
+	typedef list<HWND> WNDs;
+	//! \brief 输入保持状态。
+	typedef enum
+	{
+		Free = 0,
+		Pressed = 1,
+		Held = 2
+	} HeldStateType;
+
+private:
+	WNDs sWnds; //!< 窗口组。
+
+public:
+	HeldStateType KeyHeldState, TouchHeldState; //!< 输入接触状态。
+	Drawing::Vec DraggingOffset; //!< 拖放偏移量。
+	Timers::YTimer HeldTimer; //!< 输入接触保持计时器。
+	Point ControlLocation, LastControlLocation; \
+		//最近两次的指针设备操作时的控件全局位置（屏幕坐标）。
+
+private:
+	//独立焦点指针：即时输入（按下）状态所在控件指针。
+	IControl* p_KeyDown;
+	IControl* p_TouchDown;
+	bool bEntered; //!< 记录指针是否在控件内部。
+	typedef enum
+	{
+		NoOp = 0,
+		ExOp_TouchUp = 1,
+		ExOp_TouchDown = 2,
+		ExOp_TouchHeld = 3
+	} ExOpType;
+	ExOpType ExtraOperation;
+	
+public:
+	/*!
+	\brief 无参数构造。
+	\note 向应用程序对象添加自身。
+	*/
+	YGUIShell();
+	/*!
+	\brief 析构。
+	\note 无异常抛出。
+	\note 空实现。
+	*/
+	virtual
+	~YGUIShell() ythrow();
+
+	/*!
+	\brief 向窗口组添加指定窗口句柄。
+	\note 仅当句柄非空时添加。
+	*/
+	virtual void
+	operator+=(HWND);
+	/*!
+	\brief 从窗口组中移除指定窗口句柄。
+	*/
+	virtual bool
+	operator-=(HWND);
+	/*!
+	\brief 从窗口组中移除所有指定窗口句柄，返回移除的对象数。
+	\note 使用 set 实现，因此返回值应为 0 或 1 。
+	*/
+	WNDs::size_type
+	RemoveAll(HWND);
+	/*!
+	\brief 移除窗口队列中首个窗口对象。
+	*/
+	void
+	RemoveWindow();
+
+	/*!
+	\brief 取得窗口组中首个窗口对象的句柄。
+	*/
+	HWND
+	GetFirstWindowHandle() const;
+	/*!
+	\brief 取得窗口组中顶端窗口对象的句柄。
+	*/
+	HWND
+	GetTopWindowHandle() const;
+	/*!
+	\brief 取得窗口组中指定屏幕的指定的点所处的最顶层窗口对象的句柄。
+	*/
+	HWND
+	GetTopWindowHandle(YDesktop&, const Point&) const;
+	/*!
+	\brief 取传递指定屏幕的指针设备光标至 GUI 界面返回的部件指针。
+	*/
+	IWidget*
+	GetCursorWidgetPtr(YDesktop&, const Point&) const;
+
+	/*!
+	\brief 向屏幕发送指定窗口对象。
+	*/
+	bool
+	SendWindow(IWindow&);
+
+	/*!
+	\brief 向屏幕分发窗口对象。
+	*/
+	void
+	DispatchWindows();
+
+	/*!
+	\brief 清除指定屏幕中属于窗口组的窗口对象。
+	*/
+	void
+	ClearScreenWindows(YDesktop&);
+
+	/*!
+	\brief 重复检测输入接触保持事件。
+	*/
+	bool
+	RepeatHeld(HeldStateType&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
+
+	/*!
+	\brief 复位接触保持状态。
+	*/
+	void
+	ResetHeldState(HeldStateType&);
+
+	/*!
+	\brief 复位 GUI 状态。
+	\note 需要在没有销毁时自动释放焦点的相关控件对象被销毁后立即调用，
+		以避免处理无效指针。
+	*/
+	void
+	ResetGUIStates();
+
+private:
+	void
+	TryEntering(IControl&, Components::Controls::TouchEventArgs&);
+
+	void
+	TryLeaving(IControl&, Components::Controls::TouchEventArgs&);
+
+	void
+	ResetTouchHeldState();
+
+	IControl*
+	GetTouchedVisualControlPtr(IUIBox&, Point&);
+
+	IControl*
+	GetFocusedEnabledVisualControlPtr(IControl*);
+
+	IControl*
+	GetFocusedEnabledVisualControlPtr(YDesktop&);
+
+	bool
+	ResponseKeyUpBase(IControl&, Components::Controls::KeyEventArgs&);
+
+	bool
+	ResponseKeyDownBase(IControl&, Components::Controls::KeyEventArgs&);
+
+	bool
+	ResponseKeyHeldBase(IControl&, Components::Controls::KeyEventArgs&);
+
+	bool
+	ResponseTouchUpBase(IControl&, Components::Controls::TouchEventArgs&);
+
+	bool
+	ResponseTouchDownBase(IControl&,
+		Components::Controls::TouchEventArgs&);
+
+	bool
+	ResponseTouchHeldBase(IControl&,
+		Components::Controls::TouchEventArgs&);
+
+	bool
+	ResponseKeyBase(YDesktop&, Components::Controls::KeyEventArgs&,
+		bool(YGUIShell::*)(IControl&,
+		Components::Controls::KeyEventArgs&));
+
+	bool
+	ResponseTouchBase(IUIBox&, Components::Controls::TouchEventArgs&,
+		bool(YGUIShell::*)(IControl&,
+		Components::Controls::TouchEventArgs&));
+
+public:
+	//响应标准按键状态。
+	/*!
+	\brief 响应键接触结束。
+	*/
+	bool
+	ResponseKeyUp(YDesktop&, Components::Controls::KeyEventArgs&);
+	/*!
+	\brief 响应键接触开始。
+	*/
+	bool
+	ResponseKeyDown(YDesktop&, Components::Controls::KeyEventArgs&);
+	/*!
+	\brief 响应键接触保持。
+	*/
+	bool
+	ResponseKeyHeld(YDesktop&, Components::Controls::KeyEventArgs&);
+
+	//响应屏幕接触状态。
+	/*!
+	\brief 响应屏幕接触结束。
+	*/
+	bool
+	ResponseTouchUp(IUIBox&, Components::Controls::TouchEventArgs&);
+	/*!
+	\brief 响应屏幕接触开始。
+	*/
+	bool
+	ResponseTouchDown(IUIBox&, Components::Controls::TouchEventArgs&);
+	/*!
+	\brief 响应屏幕接触保持。
+	*/
+	bool
+	ResponseTouchHeld(IUIBox&, Components::Controls::TouchEventArgs&);
+
+	/*!
+	\brief Shell 处理函数。
+	*/
+	virtual int
+	ShlProc(const Message&);
+};
+
+inline IControl*
+YGUIShell::GetFocusedEnabledVisualControlPtr(YDesktop& d)
+{
+	return GetFocusedEnabledVisualControlPtr(
+		Components::Controls::GetFocusedObjectPtr(d));
+}
+
+YSL_END_NAMESPACE(Shells)
+
+using Shells::YGUIShell;
 
 YSL_BEGIN_NAMESPACE(Drawing)
 

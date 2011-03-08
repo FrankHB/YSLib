@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2097;
+\version 0.2106;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-05-02 12:00:08 + 08:00;
+	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-02-23 18:57 + 08:00;
+	2011-03-06 21:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,17 +43,17 @@ YDesktop::YDesktop(YScreen& s, Color c, GHStrong<YImage> i)
 }
 
 void
-YDesktop::operator+=(IVisualControl& w)
+YDesktop::operator+=(IControl& w)
 {
 	if(std::find(sDOs.begin(), sDOs.end(), &w) == sDOs.end())
 	{
 		sDOs.push_back(&w);
-		GMFocusResponser<IVisualControl>::operator+=(w);
+		GMFocusResponser<IControl>::operator+=(w);
 		bRefresh = true;
 	}
 }
 bool
-YDesktop::operator-=(IVisualControl& w)
+YDesktop::operator-=(IControl& w)
 {
 	DOs::iterator i(std::find(sDOs.begin(), sDOs.end(), &w));
 
@@ -65,7 +65,7 @@ YDesktop::operator-=(IVisualControl& w)
 	return true;
 }
 YDesktop::DOs::size_type
-YDesktop::RemoveAll(IVisualControl& w)
+YDesktop::RemoveAll(IControl& w)
 {
 	DOs::size_type n(0);
 	DOs::iterator i;
@@ -81,7 +81,7 @@ YDesktop::RemoveAll(IVisualControl& w)
 }
 
 bool
-YDesktop::MoveToTop(IVisualControl& w)
+YDesktop::MoveToTop(IControl& w)
 {
 	DOs::iterator i(std::find(sDOs.begin(), sDOs.end(), &w));
 
@@ -113,17 +113,17 @@ YDesktop::ClearDesktopObjects()
 	bRefresh = true;
 }
 
-IVisualControl*
+IControl*
 YDesktop::GetFirstDesktopObjectPtr() const
 {
 	return sDOs.empty() ? NULL : sDOs.front();
 }
-IVisualControl*
+IControl*
 YDesktop::GetTopDesktopObjectPtr() const
 {
 	return sDOs.empty() ? NULL : sDOs.back();
 }
-IVisualControl*
+IControl*
 YDesktop::GetTopDesktopObjectPtr(const Point& pt) const
 {
 	for(DOs::const_reverse_iterator i(sDOs.rbegin()); i != sDOs.rend(); ++i)

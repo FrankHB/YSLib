@@ -1,8 +1,8 @@
 ﻿// YSLib -> Designation by Franksoft 2009 - 2011
 // CharSet = UTF-8;
-// CTime = 2009-12-02 05:14:30 + 08:00;
-// UTime = 2011-03-03 22:11 + 08:00;
-// Version = 0.4296;
+// CTime = 2009-12-02 05:14:30 +0800;
+// UTime = 2011-03-06 22:14 +0800;
+// Version = 0.4337;
 
 
 // Designation ：设计规则指定和说明文档。
@@ -48,6 +48,7 @@
 
 @1.2.3.2 交互式设计：
 窗体-控件(Form-Control)；
+窗口-图标-菜单-指针设备(WIMP, window-icon-menu-pointing device) 。
 模型-视图-控制器(Model-View-Controller) /显示-抽象-控制(Presentation-Abstraction-Control) 。
 
 @1.2.3.3 分布式设计：
@@ -528,8 +529,8 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 基于性能考虑，底层不实现观察者模式。
 
 @1.8.2.1 构件实体：
-相较于典型的窗体-控件模式， GUI控件(controls) 退化为组件(components) ，组件退化为部件(widgets) ，进而分离控件和部件属性，抽象出独立于部件的控件特征，细分功能以实现高度可配置性。
- YSLib 本身不提供大量成熟的控件，而是着重提供可供组装为控件的基本 GUI 类（部件模块类）、部件类、在部件基础上衍生的构件以及部件简单组合的组件。这些设计元件都不具有消息处理或事件响应的功能，因此不是控件。
+相较于典型的窗体-控件模式， GUI控件(controls) 退化为部件(widgets) ，部件退化为组件(components) ，进而分离可视属性，抽象出独立于这些构件的部件特征，细分功能以实现高度可配置性。
+ YSLib 本身不提供大量成熟的控件，而是着重提供可供组装为控件的基本 GUI 类（部件模块类）、部件类、在部件基础上衍生的构件以及部件简单组合的组件。这些用户界面元素(UI elements) 不一定具有消息处理或事件响应的功能，因此可以不是控件；参见 @1.8.2.4 。
 控件主要由用户通过组装以上的构件定制。
 
 @1.8.2.1 模型(model) ：
@@ -549,7 +550,7 @@ $例外：在需要复制构造参数的场合（如某些 copy-and-swap idiom �
 模型和视图不能直接修改控制器的状态，但可以提交状态等待控制器自行更新。
 
 @1.8.2.4 组合构件：
-可以自定义任意的模型类来组装控件。
+可以自定义任意的模型类来组装部件、控件或其它用户界面元素。
 但是，并非每一个成分都是必须的。某些成分可能在具体的类的外部实现。
 若组合的结果能处理消息或响应事件，同时能够呈现界面数据，那么就是控件。
 
@@ -799,11 +800,9 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 组件类是非抽象类，默认基类为 YComponent ，继承自 YCountableObject，可以引用方式作为参数传递。
 组件对 GUI 对象进行直接支持。包含部件和控件类：
 具有基本屏幕输出效果，实现了部件接口 IWidget 的类，称为部件 (Widget) 类；
-具有公共事件响应能力，实现了控件接口 IControl 的类，称为控件 (Control) 类；
-同时具有基本屏幕输出效果和公共事件响应能力，实现了接口 IWidget 和 IControl 的类，称为可视控件 (VisualControl) 类。
+具有基本屏幕输出效果和公共事件响应能力，实现了接口 IControl 的类，称为控件(Control) 类。
 部件仅仅负责 Shell 直接和 UI 相关的部分，默认不包含任何消息处理。
 消息应被其从属的 YShell 消息处理过程截获并进行处理。
-控件是可以处理消息的组件。
 控件行为由事件机制(@2.6.2) 控制（在运行期加载函数）。其它组件行为原则上直接由 YShell 消息处理过程控制，以避免消息转发带来的开销。
 在 YControl 单元中提供最常用的控件实现。
 
@@ -820,7 +819,6 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
  IUIBox ：固定部件容器接口。
  IContainer ：部件容器接口。相对 IUIBox ，扩展了动态添加和移除部件的能力。
  IControl ：控件接口。
- IVisualControl ：可视控件接口。
  IWindow ：窗口接口。
 功能说明和其它描述参见 @2.6 、 @2.6.1.1 、 @2.6.1.3 。
 
@@ -832,9 +830,8 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 部件是实现了 IWidget 接口的类，是基本的 GUI 对象类。
 组件容器是能够以引用方式在逻辑上包含其它组件的组件。
 部件容器是实现了 IUIBox 接口或 IUIContainer 接口（都继承了 IWidget 接口）的类（标准基类为 YUIContainer ），是一般化的组件容器，它能以可视化方式处理其包含的部件（例如顺序显示）。其中 IUIContainer 限制了添加和移除部件的抽象方法。
-控件是实现了 IControl 接口的类（标准基类为 YControl ），是具有一般化的事件（不一定是 GUI 事件）响应能力的组件。
-可视控件是实现了 IVisualControl 接口（继承 IControl 接口）的类（标准基类为 YVisualControl ），是具有控件特性的组件。 YVisualControl 同时也是部件。
-窗口是实现了 IWindow 接口（继承 IUIContainer 和 IVisualControl 接口）的类（标准模块基类为 AWindow 抽象类），是作为一种能在桌面显示的自带缓冲区的特殊组件，不涉及界面以外的任务，不通过事件映射方式响应事件（尽管同时是焦点响应类和焦点请求类）。
+控件是实现了 IControl 接口（继承 IWidget 接口和 GIFocusRequester<GMFocusResponser> 接口）的类（标准基类为 YControl ），是具有事件响应特性的可视组件，同时也是部件。
+窗口是实现了 IWindow 接口（继承 IUIContainer 和 IControl 接口）的类（标准模块基类为 AWindow 抽象类），是作为一种能在桌面显示的自带缓冲区的特殊组件，不涉及界面以外的任务，不通过事件映射方式响应事件（尽管同时是焦点响应类和焦点请求类）。
 框架窗口（基类为 YFrameWindow ）是具有一般化的部件容器功能的窗口。
 窗体（基类为 YForm ）是增加了事件映射响应能力和客户区布局管理的框架窗口。
 默认组件中，除继承自窗口的组件（基类为 YWindow ，缓冲区继承自类 BitmapBuffer ）外，所有部件默认不带显示缓冲区。实际使用时可以用其它类型成员（如 TextRegion ）提供显示缓冲区。
@@ -846,9 +843,9 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 @2.6.2 GUI 事件：
 
 @2.6.2.1 默认 GUI 事件：
-即 YControl 中定义的标准可视控件事件，使用 Core::YEvent 实现。
+即 YControl 单元中定义的标准控件事件，使用 Core::YEvent 实现。
 默认 GUI 事件和 YControl 单元、 YGUI 单元和默认部件抽象类相关。
-在 YControl 单元中的枚举 enum VisualEventSpace （标准可视控件事件空间，一般使用 typedef 名称 VisualEvent）中定义，包含焦点事件、基本输入事件和边界事件。
+在 YControl 单元中的枚举 enum VisualEventSpace （标准控件事件空间，一般使用 typedef 名称 VisualEvent）中定义，包含焦点事件、基本输入事件和边界事件。
 
 @2.6.2.1.1 视图变更事件：
 包括 Move 、 Resize 事件等。
@@ -860,11 +857,11 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 触发过程：由 YGlobal 等单元完成平台相关的用户输入信号捕获并向 YGUI 单元传递，后者处理后生成对应输入事件。
 当用户按键时，触发 KeyDown 事件；持续时触发 KeyHeld 事件；结束时依次触发 KeyPress 和 KeyUp 事件。
 当用户使用指针设备（包括触摸屏）输入时，触发 TouchDown 事件；持续时触发 TouchHeld 事件；持续且移动时可触发 TouchMove 事件；结束时依次触发 Click 和 TouchUp 事件。
-在 YControl 单元及其中的可视控件类 VisualControl 中定义了主要处理程序。
- VisualControl 默认使用成员函数处理 TouchDown 事件，调用本类成员函数 RequestFocus(...) 向容器请求焦点。若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
+在 YControl 单元及其中的控件类 Control 中定义了主要处理程序。
+ Control 默认使用成员函数处理 TouchDown 事件，调用本类成员函数 RequestFocus(...) 向容器请求焦点。若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
 指针设备相关事件中，参数包含了相对于控件的坐标。
-最近操作的全局（相对于屏幕的）坐标保存于全局变量 VisualControlLocation 中。
-拖放操作依赖的最近全局坐标保存于全局变量 LastVisualControlLocation 中。
+最近操作的全局（相对于屏幕的）坐标保存于全局变量 ControlLocation 中。
+拖放操作依赖的最近全局坐标保存于全局变量 LastControlLocation 中。
 
 @2.6.2.1.3 焦点事件：
 包括 GotFocus 和 LostFocus 事件。
@@ -873,19 +870,19 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 
 @2.6.2.1.4 边界事件：
 包括 Enter 和 Leave 事件。
-指针设备作用于 VisualControl 派生的控件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
+指针设备作用于 Control 派生的控件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
 
 @2.6.2.1.3 公用和扩展事件处理程序：
  YControl 单元中定义了部分非成员函数公用事件处理器。
  OnKeyHeld 使用 RepeatHeld 产生有延迟的连续按键输入。
- OnTouchHeld 是 VisualControl 默认加载的 TouchHeld 事件处理器，在其中实现记录坐标偏移（用于拖放）或触发 TouchMove 事件。
+ OnTouchHeld 是 Control 默认加载的 TouchHeld 事件处理器，在其中实现记录坐标偏移（用于拖放）或触发 TouchMove 事件。
  OnTouchMove 可结合 OnTouchHeld 用于处理 TouchMove 事件实现重复触发 TouchDown 事件。
  OnTouchMove_Dragging 可结合 OnTouchHeld 实现控件拖曳。
 
 @2.6.2.1.4 默认实现细节：
 事件处理器不适用虚函数，以免在基类添加事件后，在派生类重复添加事件响应。
 在派生类定义的和基类同名的事件响应函数（函数名以 On 起始）会被隐藏而不是覆盖基类的事件响应函数，是非 public 方法。一般应该避免在类实现外部调用响应函数。
- VisualControl 类在构造函数中添加了 GotFocus 、 LostFocus 、 TouchDown 、 TouchHeld 的事件处理器，且除了 TouchHeld 外，都是 VisualControl 的成员函数。
+ Control 类在构造函数中添加了 GotFocus 、 LostFocus 、 TouchDown 、 TouchHeld 的事件处理器，且除了 TouchHeld 外，都是 Control 的成员函数。
 
 @2.6.3 GUI 输入控制器：
 由于设备的特点， GUI 输入相对于输出而言是容易规格化的。因此在 YControl 单元中定义了一些默认 GUI 输入事件（参见 @2.6.2.1 ），且在 YGUI 单元中定义了若干函数/类用于处理默认 GUI 输入事件。
@@ -900,7 +897,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 
 @2.6.4.2 焦点请求链：
 在排除 @2.6.4.1 中叙述的副作用的情况下，可以认为不同对象的 RequestFocus(...) 的调用是顺序无关的，可以任意调度。
-使用 YGUI 单元声明的函数 void RequestFocusCascade(Components::Controls::IVisualControl&) 可以实现由 IVisualControl 对象自下向上的嵌套容器焦点申请。注意，会以相同的顺序触发 GotFocus 事件。
+使用 YGUI 单元声明的函数 void RequestFocusCascade(Components::Controls::IControl&) 可以实现由 IControl 对象自下向上的嵌套容器焦点申请。注意，会以相同的顺序触发 GotFocus 事件。
 
 @2.6.4.3 默认实现相关的定义：
 具有焦点响应能力（即储存了关于集中焦点于特定的子对象的状态）的类称为焦点响应类。
@@ -910,12 +907,12 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 默认通过继承 MSimpleFocusResponser 类或 GMFocusResponser 类模板实例实现焦点响应类，继承并实现 AFocusRequester 抽象类实现焦点请求类。
  IUIBox 接口要求实现者需要响应焦点的请求和释放操作。
 典型的实现方式是控件类以通过继承 GMFocusResponser 类模板的实例成为焦点响应类。这种方式会储存一个子焦点容器指针的集合，对于具有确定的子对象的控件而言效率较低，因此 GUI 默认实现中并不都采用此方法。
-在 GUI 实现中独立保存额外的可视控件独立焦点指针。
-为了支持拖放操作，指针索引可视控件时，按位置判断作用的可视控件并根据上述独立焦点指针和状态变量判断附加操作，而不通过上述的通用焦点。
+在 GUI 实现中独立保存额外的控件独立焦点指针。
+为了支持拖放操作，指针索引控件时，按位置判断作用的控件并根据上述独立焦点指针和状态变量判断附加操作，而不通过上述的通用焦点。
 
 @2.6.4.5 实例：
- YDesktop 是 IVisualControl 的焦点响应类。
- YFrameWindow 和 YForm 同时是 IVisualControl 的焦点响应类和对于 YDesktop 焦点请求类。
+ YDesktop 是 IControl 的焦点响应类。
+ YFrameWindow 和 YForm 同时是 IControl 的焦点响应类和对于 YDesktop 焦点请求类。
 
 @2.6.5 默认 GUI 响应流程：
 

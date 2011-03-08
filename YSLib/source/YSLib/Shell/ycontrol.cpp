@@ -11,21 +11,22 @@
 /*!	\file ycontrol.cpp
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4020;
+\version 0.4053;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-02-18 13:44:34 + 08:00;
+	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-03-01 13:05 + 08:00;
+	2011-03-06 22:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YControl;
+	YSLib::Shell::YComponent;
 */
 
 
 #include "ycontrol.h"
 #include "ygui.h"
+#include "../Helper/yshelper.h"
 #include "yuicont.h"
 #include "ywindow.h"
 
@@ -36,54 +37,54 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Controls)
 
 void
-OnKeyHeld(IVisualControl& c, KeyEventArgs& e)
+OnKeyHeld(IControl& c, KeyEventArgs& e)
 {
-	using namespace InputStatus;
+	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
 
-	if(RepeatHeld(KeyHeldState, 240, 120))
+	if(hShl->RepeatHeld(hShl->KeyHeldState, 240, 120))
 		FetchEvent<KeyDown>(c)(c, e);
 }
 
 void
-OnTouchHeld(IVisualControl& c, TouchEventArgs& e)
+OnTouchHeld(IControl& c, TouchEventArgs& e)
 {
-	using namespace InputStatus;
+	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
 
-	if(DraggingOffset == Vec::FullScreen)
-		DraggingOffset = c.GetLocation() - VisualControlLocation;
+	if(hShl->DraggingOffset == Vec::FullScreen)
+		hShl->DraggingOffset = c.GetLocation() - hShl->ControlLocation;
 	else
 		FetchEvent<TouchMove>(c)(c, e);
-	LastVisualControlLocation = VisualControlLocation;
+	hShl->LastControlLocation = hShl->ControlLocation;
 }
 
 void
-OnTouchMove(IVisualControl& c, TouchEventArgs& e)
+OnTouchMove(IControl& c, TouchEventArgs& e)
 {
-	using namespace InputStatus;
+	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
 
-	if(RepeatHeld(TouchHeldState, 240, 60))
+	if(hShl->RepeatHeld(hShl->TouchHeldState, 240, 60))
 		FetchEvent<TouchDown>(c)(c, e);
 }
 
 void
-OnTouchMove_Dragging(IVisualControl& c, TouchEventArgs&)
+OnTouchMove_Dragging(IControl& c, TouchEventArgs&)
 {
-	using namespace InputStatus;
+	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
 
-	if(LastVisualControlLocation != VisualControlLocation)
+	if(hShl->LastControlLocation != hShl->ControlLocation)
 	{
-		c.SetLocation(LastVisualControlLocation + DraggingOffset);
+		c.SetLocation(hShl->LastControlLocation + hShl->DraggingOffset);
 		c.Refresh();
 	}
 }
 
 
-VisualControl::VisualControl(const Rect& r, IUIBox* pCon)
-	: Widget(r, pCon), Control(), AFocusRequester()
+Control::Control(const Rect& r, IUIBox* pCon)
+	: Widget(r, pCon), AFocusRequester(), enabled(true), EventMap()
 {
-	FetchEvent<GotFocus>(*this) += &VisualControl::OnGotFocus;
-	FetchEvent<LostFocus>(*this) += &VisualControl::OnLostFocus;
-	FetchEvent<TouchDown>(*this) += &VisualControl::OnTouchDown;
+	FetchEvent<GotFocus>(*this) += &Control::OnGotFocus;
+	FetchEvent<LostFocus>(*this) += &Control::OnLostFocus;
+	FetchEvent<TouchDown>(*this) += &Control::OnTouchDown;
 	FetchEvent<TouchHeld>(*this) += OnTouchHeld;
 
 	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
@@ -91,22 +92,23 @@ VisualControl::VisualControl(const Rect& r, IUIBox* pCon)
 	if(p)
 	{
 		*p += static_cast<IWidget&>(*this);
-		*p += static_cast<IVisualControl&>(*this);
+		*p += static_cast<IControl&>(*this);
 	}
 }
-VisualControl::~VisualControl() ythrow()
+Control::~Control() ythrow()
 {
+	ReleaseFocus(GetStaticRef<EventArgs>());
 	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
 
 	if(p)
 	{
 		*p -= static_cast<IWidget&>(*this);
-		*p -= static_cast<IVisualControl&>(*this);
+		*p -= static_cast<IControl&>(*this);
 	}
 }
 
 bool
-VisualControl::IsFocused() const
+Control::IsFocused() const
 {
 	IUIBox* p(GetContainerPtr());
 
@@ -114,14 +116,14 @@ VisualControl::IsFocused() const
 }
 
 void
-VisualControl::SetLocation(const Point& pt)
+Control::SetLocation(const Point& pt)
 {
 	Visual::SetLocation(pt);
 	GetEventMap().DoEvent<EventTypeMapping<Move>::HandlerType>(Move,
 		*this, GetStaticRef<EventArgs>());
 }
 void
-VisualControl::SetSize(const Size& s)
+Control::SetSize(const Size& s)
 {
 	Visual::SetSize(s);
 	GetEventMap().DoEvent<EventTypeMapping<Resize>::HandlerType>(Resize,
@@ -129,7 +131,7 @@ VisualControl::SetSize(const Size& s)
 }
 
 void
-VisualControl::RequestFocus(EventArgs& e)
+Control::RequestFocus(EventArgs& e)
 {
 	IUIBox* p(GetContainerPtr());
 
@@ -138,7 +140,7 @@ VisualControl::RequestFocus(EventArgs& e)
 }
 
 void
-VisualControl::ReleaseFocus(EventArgs& e)
+Control::ReleaseFocus(EventArgs& e)
 {
 	IUIBox* p(GetContainerPtr());
 
@@ -147,27 +149,27 @@ VisualControl::ReleaseFocus(EventArgs& e)
 }
 
 void
-VisualControl::OnGotFocus(EventArgs&)
+Control::OnGotFocus(EventArgs&)
 {
 	Refresh();
 }
 
 void
-VisualControl::OnLostFocus(EventArgs&)
+Control::OnLostFocus(EventArgs&)
 {
 	Refresh();
 }
 
 void
-VisualControl::OnTouchDown(TouchEventArgs& e)
+Control::OnTouchDown(TouchEventArgs& e)
 {
 	RequestFocus(e);
 }
 
 
-YVisualControl::YVisualControl(const Rect& r, IUIBox* pCon)
+YControl::YControl(const Rect& r, IUIBox* pCon)
 	: YComponent(),
-	VisualControl(r, pCon)
+	Control(r, pCon)
 {}
 
 YSL_END_NAMESPACE(Controls)

@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6605;
+\version 0.6609;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-13 00:06:05 + 08:00;
+	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-02-23 16:21 + 08:00;
+	2011-03-07 19:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@ using ystdex::vmax;
 YSL_BEGIN_NAMESPACE(Drawing)
 
 TextState::TextState()
-	: PenStyle(GetDefaultFontFamily()), Margin(),
+	: PenStyle(FetchDefaultFontFamily()), Margin(),
 	PenX(0), PenY(0), LineGap(0)
 {}
 TextState::TextState(Drawing::Font& font)

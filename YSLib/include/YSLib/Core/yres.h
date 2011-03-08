@@ -11,12 +11,12 @@
 /*!	\file yres.h
 \ingroup Core
 \brief 资源管理模块。
-\version 0.1457;
+\version 0.1468;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-28 16:46:40 + 08:00;
+	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-02-20 13:50 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "yobject.h"
 #include "ycounter.hpp"
 #include "../Shell/ygdi.h"
+#include "../Helper/yglobal.h"
 
 YSL_BEGIN
 
@@ -88,7 +89,8 @@ public:
 	DefGetter(BitmapPtr, ImagePtr, GetBufferPtr())
 
 	void
-	SetImage(ConstBitmapPtr, SDST = SCRW, SDST = SCRH);
+	SetImage(ConstBitmapPtr, SDST = Global::MainScreenWidth,
+		SDST = Global::MainScreenHeight);
 };
 
 YSL_END_NAMESPACE(Drawing)

@@ -1,8 +1,8 @@
 # DS Makefile for YSLib -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
-# CTime = 2009-12-18 12:27:40 + 08:00;
-# UTime = 2011-02-21 10:20 + 08:00;
-# Version = 0.3869;
+# CTime = 2009-12-18 12:27:40 +0800;
+# UTime = 2011-03-05 16:37 +0800;
+# Version = 0.3871;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 

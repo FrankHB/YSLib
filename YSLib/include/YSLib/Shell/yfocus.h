@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup Shell
 \brief GUI 焦点特性实现。
-\version 0.2253;
+\version 0.2283;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-05-01 13:52:56 + 08:00;
+	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-02-23 18:59 + 08:00;
+	2011-03-07 10:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,12 +38,11 @@ YSL_BEGIN_NAMESPACE(Components)
 
 class AFocusRequester;
 
-
 //! \brief 简单焦点响应器。
 class MSimpleFocusResponser : public NonCopyable
 {
 protected:
-	IVisualControl* pFocusing; //!< 焦点指针。
+	IControl* pFocusing; //!< 焦点指针。
 
 	MSimpleFocusResponser();
 
@@ -51,7 +50,7 @@ public:
 	/*!
 	\brief 取焦点指针。
 	*/
-	DefGetter(IVisualControl*, FocusingPtr, pFocusing)
+	DefGetter(IControl*, FocusingPtr, pFocusing)
 	/*!
 	\brief 清除焦点指针。
 	*/
@@ -137,16 +136,8 @@ public:
 };
 
 
-//! \brief 焦点申请器接口模板。
-template<template<class> class _tResponser = GMFocusResponser>
-DeclInterface(GIFocusRequester)
-	DeclIEntry(bool IsFocused() const)
-EndDecl
-
-
 //! \brief 焦点申请器。
 class AFocusRequester
-	: implements GIFocusRequester<GMFocusResponser>
 {
 public:
 	/*!
@@ -155,13 +146,6 @@ public:
 	AFocusRequester();
 	virtual DefEmptyDtor(AFocusRequester)
 
-	ImplA1((GIFocusRequester<GMFocusResponser>))
-	DeclIEntry(bool IsFocused() const)
-	/*!
-	\brief 判断是否已在指定响应器中获得焦点。
-	*/
-	bool
-	IsFocusOfContainer(GMFocusResponser<AFocusRequester>&) const;
 	/*!
 	\brief 判断是否已在指定响应器中获得焦点。
 	*/
@@ -188,11 +172,6 @@ inline
 AFocusRequester::AFocusRequester()
 {}
 
-inline bool
-AFocusRequester::IsFocusOfContainer(GMFocusResponser<AFocusRequester>& c) const
-{
-	return c.GetFocusingPtr() == this;
-}
 template<template<class> class _tResponser, class _type>
 inline bool
 AFocusRequester::IsFocusOfContainer(_tResponser<_type>& c) const

@@ -11,12 +11,12 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM7 主源文件。
-\version 0.1024;
+\version 0.1026;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-18 12:27:40;
+	2009-12-18 12:27:40 +0800;
 \par 修改时间:
-	2011-01-07 18:13 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.2036;
+\version 0.2045;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2011-01-22 08:03:49 + 08:00;
+	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-02-21 09:14 + 08:00;
+	2011-03-06 21:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -253,14 +253,14 @@ Fill(IWidget& w, Color c)
 
 
 MUIContainer::MUIContainer()
-	: GMFocusResponser<IVisualControl>(),
+	: GMFocusResponser<IControl>(),
 	sWgtSet(), sFOCSet()
 {}
 
-IVisualControl*
+IControl*
 MUIContainer::GetFocusingPtr() const
 {
-	return GMFocusResponser<IVisualControl>::GetFocusingPtr();
+	return GMFocusResponser<IControl>::GetFocusingPtr();
 }
 IWidget*
 MUIContainer::GetTopWidgetPtr(const Point& pt)
@@ -270,8 +270,8 @@ MUIContainer::GetTopWidgetPtr(const Point& pt)
 			return *i;
 	return NULL;
 }
-IVisualControl*
-MUIContainer::GetTopVisualControlPtr(const Point& pt)
+IControl*
+MUIContainer::GetTopControlPtr(const Point& pt)
 {
 	for(FOs::const_iterator i(sFOs.begin()); i != sFOs.end(); ++i)
 	{
@@ -284,13 +284,13 @@ MUIContainer::GetTopVisualControlPtr(const Point& pt)
 bool
 MUIContainer::ResponseFocusRequest(AFocusRequester& w)
 {
-	return w.RequestFocus<GMFocusResponser, IVisualControl>(*this);
+	return w.RequestFocus<GMFocusResponser, IControl>(*this);
 }
 
 bool
 MUIContainer::ResponseFocusRelease(AFocusRequester& w)
 {
-	return w.ReleaseFocus<GMFocusResponser, IVisualControl>(*this);
+	return w.ReleaseFocus<GMFocusResponser, IControl>(*this);
 }
 
 
@@ -303,7 +303,7 @@ YUIContainer::YUIContainer(const Rect& r, IUIBox* pCon)
 	if(p)
 	{
 		*p += static_cast<IWidget&>(*this);
-		*p += static_cast<GMFocusResponser<IVisualControl>&>(*this);
+		*p += static_cast<GMFocusResponser<IControl>&>(*this);
 	}
 }
 YUIContainer::~YUIContainer() ythrow()
@@ -313,7 +313,7 @@ YUIContainer::~YUIContainer() ythrow()
 	if(p)
 	{
 		*p -= static_cast<IWidget&>(*this);
-		*p -= static_cast<GMFocusResponser<IVisualControl>&>(*this);
+		*p -= static_cast<GMFocusResponser<IControl>&>(*this);
 	}
 }
 

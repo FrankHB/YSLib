@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7115;
+\version 0.7125;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-12 22:02:40 + 08:00;
+	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-01-31 14:54 + 08:00;
+	2011-03-07 19:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,9 @@
 #define INCLUDED_YFONT_H_
 
 #include "../Core/yfunc.hpp"
-#include "../Core/ystring.h"
+#include "../Core/ycutil.h"
+#include "../Core/yobject.h"
+#include "../Core/yexcept.h"
 
 #define GLYPH_CACHE_SIZE	(512 << 10)
 
@@ -262,18 +264,20 @@ public:
 
 
 /*!
-\brief 取默认字型。
-\note 断言检查。
-\note 无异常抛出。
+\brief 取默认字型引用。
+\exception LoggedEvent 记录异常事件。
+\note 仅抛出以上异常。
 */
-const Typeface*
-GetDefaultTypefacePtr() ythrow();
+const Typeface&
+FetchDefaultTypeface() ythrow(LoggedEvent);
 
 /*!
 \brief 取默认字型家族引用。
+\exception LoggedEvent 记录异常事件。
+\note 仅抛出以上异常。
 */
 const FontFamily&
-GetDefaultFontFamily() ythrow();
+FetchDefaultFontFamily() ythrow(LoggedEvent);
 
 
 //! \brief 字体：字模，包含字型和大小。
@@ -296,7 +300,7 @@ public:
 	\brief 构造指定字型家族、大小和样式的字体对象。
 	*/
 	explicit
-	Font(const FontFamily& = GetDefaultFontFamily(), SizeType = DefSize,
+	Font(const FontFamily& = FetchDefaultFontFamily(), SizeType = DefSize,
 		EFontStyle = EFontStyle::Regular);
 
 	DefPredicate(Bold, Style | EFontStyle::Bold)
@@ -468,9 +472,11 @@ public:
 	GetFontFamilyPtr(const FT_String*) const;
 	/*!
 	\brief 取默认字型指针。
+	\exception LoggedEvent 记录异常事件。
+	\note 仅抛出以上异常。
 	*/
 	const Typeface*
-	GetDefaultTypefacePtr() const;
+	GetDefaultTypefacePtr() const ythrow(LoggedEvent);
 	DefGetter(const Typeface*, TypefacePtr, pFace) //!< 取当前处理的字型指针。
 //	Typeface*
 //	GetTypefacePtr(u16) const; //!< 取字型组储存的指定索引的字型指针。

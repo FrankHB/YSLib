@@ -8,51 +8,49 @@
 	understand and accept it fully.
 */
 
-/*!	\file yshelper.cpp
-\ingroup Helper
-\brief Shell 助手模块。
-\version 0.1245;
+/*!	\file ystyle.cpp
+\ingroup Shell
+\brief 图形用户界面样式实现。
+\version 0.1045;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-04-04 13:42:15 +0800;
+	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-07 22:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Helper::YShellHelper;
+	YSLib::Shell::YStyle;
 */
 
 
-#include "yshelper.h"
+#include "ystyle.h"
+#include "ygui.h"
+#include "ywindow.h"
 
 YSL_BEGIN
 
-GHHandle<YGUIShell>
-FetchGUIShellHandle()
-{
-	return general_handle_cast<YGUIShell>(FetchShellHandle());
-}
-
 YSL_BEGIN_NAMESPACE(Drawing)
 
-GHStrong<YImage>
-NewScrImage(PPDRAW f, BitmapPtr gbuf)
+void
+WndDrawFocus(IWindow* pWnd, const Size&)
 {
-	bool s(!gbuf);
+	YAssert(pWnd, "Window pointer is null.");
 
-	if(s)
-		gbuf = ynew ScreenBufferType;
-	ScrDraw(gbuf, f);
+	DrawWindowBounds(pWnd, ColorSpace::Fuchsia);
 
-	GHStrong<YImage> pi(NewScrImage(gbuf));
+	IWidget* pWgt(pWnd->GetFocusingPtr());
 
-	if(s)
-		safe_delete_obj()(gbuf);
-	return pi;
+	if(pWgt)
+		DrawWidgetBounds(*pWgt, ColorSpace::Aqua);
 }
 
 YSL_END_NAMESPACE(Drawing)
+	
+YSL_BEGIN_NAMESPACE(Components)
 
-YSL_END;
+
+YSL_END_NAMESPACE(Components)
+
+YSL_END
 

@@ -11,12 +11,12 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version 0.2826;
+\version 0.2829;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-28 16:39:39 + 08:00;
+	2009-12-28 16:39:39 +0800;
 \par 修改时间:
-	2011-02-20 13:45 + 08:00;
+	2011-03-05 20:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -95,7 +95,8 @@ public:
 	*/
 	YScreen(SDST, SDST, Drawing::BitmapPtr = NULL);
 	/*!
-	\brief 析构：空实现。
+	\brief 析构。
+	\note 空实现。
 	\note 无异常抛出。
 	*/
 	virtual DefEmptyDtor(YScreen)

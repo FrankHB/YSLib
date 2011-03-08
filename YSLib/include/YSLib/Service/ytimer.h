@@ -11,12 +11,12 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version 0.1655;
+\version 0.1657;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-06-05 10:28:58 + 08:00;
+	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2011-02-20 13:58 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

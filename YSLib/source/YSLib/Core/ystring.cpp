@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010.
+	Copyright (C) by Franksoft 2010 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ystring.cpp
 \ingroup Core
 \brief 基础字符串管理。
-\version 0.2670;
+\version 0.2672;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-03-05 22:44:04 + 08:00;
+	2010-03-05 22:44:04 +0800;
 \par 修改时间:
-	2010-11-12 15:54 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

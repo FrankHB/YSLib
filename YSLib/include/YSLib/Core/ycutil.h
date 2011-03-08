@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2507;
+\version 0.2511;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-05-23 06:10:59 + 08:00;
+	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-03-02 12:14 + 08:00;
+	2011-03-07 19:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,6 @@
 #define INCLUDED_YCUTIL_H_
 
 #include "ysdef.h"
-#include <cstring>
 
 YSL_BEGIN
 

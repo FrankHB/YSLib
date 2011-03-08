@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file ydef.h
 \ingroup YCLib
 \brief 系统环境和公用类型和宏的基础定义。
-\version 0.2442;
+\version 0.2445;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-02 21:42:44 + 08:00;
+	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2010-12-23 11:30 + 08:00;
+	2011-03-06 08:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

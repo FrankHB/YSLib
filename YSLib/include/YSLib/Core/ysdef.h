@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2010.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,12 +16,12 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version 0.2471;
+\version 0.2484;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-24 15:29:11 + 08:00;
+	2009-12-24 15:29:11 +0800;
 \par 修改时间:
-	2010-12-24 23:48 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -111,8 +111,6 @@ typedef u16 SDST; //!< 屏幕坐标距离。
 \brief 默认全局常量。
 */
 //@{
-//! \brief 屏幕大小。
-extern const SDST SCRW, SCRH;
 //@}
 
 /*!	\defgroup DefaultGlobalVariables Default Global Variables
@@ -120,8 +118,6 @@ extern const SDST SCRW, SCRH;
 \brief 默认全局变量。
 */
 //@{
-//! \brief 全局日志。
-extern YLog DefaultLog;
 //@}
 
 /*!	\defgroup DefaultGlobalObjectMapping Default Global Object Mapping

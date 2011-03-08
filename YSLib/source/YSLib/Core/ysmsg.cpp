@@ -11,12 +11,12 @@
 /*!	\file ysmsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version 0.1660;
+\version 0.1662;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-06 02:44:31 + 08:00;
+	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-01-06 14:59 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

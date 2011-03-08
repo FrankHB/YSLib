@@ -11,12 +11,12 @@
 /*!	\file yfile.cpp
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version 0.1332;
+\version 0.1334;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-24 23:14:51 + 08:00;
+	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2011-01-17 08:06 + 08:00;
+	2011-03-07 13:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

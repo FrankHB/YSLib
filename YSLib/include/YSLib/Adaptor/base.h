@@ -11,12 +11,12 @@
 /*!	\file base.h
 \ingroup Adaptor
 \brief 通用基础设施。
-\version 0.2241;
+\version 0.2243;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-10-09 09:25:27 + 08:00;
+	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-01-31 17:04 + 08:00;
+	2011-03-05 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
