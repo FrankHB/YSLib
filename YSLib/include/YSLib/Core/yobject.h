@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.2864;
+\version 0.2997;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-18 06:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,111 +34,6 @@
 #include "../Adaptor/cont.h"
 
 YSL_BEGIN
-
-//抽象描述接口。
-
-//! \brief 对象复制构造性。
-template<typename _type>
-DeclInterface(GIClonable)
-	DeclIEntry(_type* Clone() const)
-EndDecl
-
-
-//! \brief 全局静态单例存储器。
-template<typename _type, typename _tPointer = _type*>
-class GStaticCache
-{
-public:
-	typedef _tPointer PointerType;
-
-private:
-	static PointerType _ptr;
-
-	GStaticCache();
-
-	/*!
-	\brief 检查是否已经初始化，否则构造新对象。
-	*/
-	static void
-	Check()
-	{
-		if(!_ptr)
-			_ptr = new _type();
-	}
-
-public:
-	static DefMutableGetter(PointerType, PointerRaw, _ptr)
-	/*!
-	\brief 取指针。
-	*/
-	static PointerType
-	GetPointer()
-	{
-		Check();
-		return GetPointerRaw();
-	}
-	/*!
-	\brief 取实例引用。
-	*/
-	static _type&
-	GetInstance()
-	{
-		Check();
-		return *GetPointer();
-	}
-
-	/*!
-	\brief 删除对象并置指针为空值。
-	*/
-	inline static void
-	Release()
-	{
-		safe_delete_obj()(_ptr);
-	}
-};
-
-template<typename _type, typename _tPointer>
-typename GStaticCache<_type, _tPointer>::PointerType
-	GStaticCache<_type, _tPointer>::_ptr(NULL);
-
-
-//! \brief 通用对象组类模板。
-template<class _type, class _tContainer = set<_type*> >
-class GContainer : public _tContainer
-{
-public:
-	typedef _tContainer ContainerType; //!< 对象组类型。
-
-	virtual DefEmptyDtor(GContainer)
-
-	/*!
-	\brief 取容器引用。
-	*/
-	ContainerType&
-	GetContainer()
-	{
-		return *this;
-	}
-	inline DefGetter(const ContainerType&, Container, *this)
-
-	/*!
-	\brief 向对象组添加对象。
-	*/
-	virtual void
-	operator+=(_type& w) 
-	{
-		insert(&w);
-	}
-	/*!
-	\brief 从对象组移除对象。
-	*/
-	virtual bool
-	operator-=(_type& w)
-	{
-		return erase(&w);
-	}
-};
-
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
@@ -788,8 +683,8 @@ public:
 
 	/*!
 	\brief 取指定行首元素指针。
-	\exception std::runtime_error 缓冲区指针为空。
-	\exception std::out_of_range 参数越界。
+	\throw std::runtime_error 缓冲区指针为空。
+	\throw std::out_of_range 参数越界。
 	\note 仅抛出以上异常。
 	*/
 	BitmapPtr
@@ -840,6 +735,51 @@ protected:
 inline
 YCountableObject::YCountableObject()
 {}
+
+
+/*!
+\brief 依赖项类模板。
+
+基于被依赖的默认对象，可通过写时复制策略创建新对象。
+\warning 指针类型需要具有所有权，否则无法回收内存导致泄漏。
+*/
+template<typename _type, class _tOwnerPointer = SmartPtr<_type> >
+class GDependency
+{
+public:
+	typedef _type T;
+	typedef _tOwnerPointer PointerType;
+
+private:
+	PointerType ptr;
+
+public:
+	GDependency(PointerType p = NULL)
+		: ptr(p)
+	{
+		GetCopyOnWritePtr();
+	}
+
+	DefConverter(const T&, *ptr)
+	DefMutableConverter(T&, *ptr)
+
+	DefGetter(const T&, Ref, operator const T&())
+	DefMutableGetter(T&, Ref, operator T&())
+	DefMutableGetter(T&, NewRef, *GetCopyOnWritePtr())
+
+	PointerType
+	GetCopyOnWritePtr()
+	{
+		if(!ptr)
+			ptr = new T();
+		else if(!ptr.IsUnique())
+			ptr = new T(*ptr);
+
+		YAssert(ptr, "Null pointer found @@ GDependency::GetCopyOnWritePtr;");
+
+		return ptr;
+	}
+};
 
 YSL_END
 

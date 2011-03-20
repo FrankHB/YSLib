@@ -1,4 +1,4 @@
-//v0.3017; *Build 194 r42;
+//v0.3027; *Build 195 r187;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -122,6 +122,12 @@ $Record prefix and abbrevations:
 \val ::= values
 
 $using:
+\u YObject
+{
+	\cl YObject;
+	\cl YCountableObject;
+	\clt GDependence;
+}
 \u YShell
 {
 	\cl YShell;
@@ -163,7 +169,7 @@ $using:
 	\in IWindow;
 	\cl MWindow;
 	\cl AWindow;
-	\cl YFrameWindow;
+	\cl YWindow;
 }
 \u YForm
 {
@@ -199,250 +205,331 @@ $using:
 
 $DONE:
 r1:
-/ @@ \st TFrmFileListSelecter @@ \cl ShlExplorer @@ \u Shells:
-	- \m YHorizontalScrollBar sbTestH;
-	- \m YVerticalScrollBar sbTestV;
-	/ \impl @@ \ctor;
+/ @@ \h Base:
+	+ \mac DefMutableConverter;
+	+ \mac DefMutableConverterBase;
+	+ \mac DefMutableConverterMember;
++ \clt GDependence @@ \h YObject;
 
 r2:
-* \tr \impl @@ \ctor @@ \st TFrmFileListSelecter @@ \cl ShlExplorer
-	@@ \impl \u Shells;
+/ @@ \h Base:
+	+ \mac DefMemberFunctionImage1;
+	+ \mac DefMemberFunctionImage2;
+	+ \mac DefMemberFunctionImage3;
+	+ \mac DefMemberFunctionImage4;
+/ @@ \clt GDependence;
+	* \impl @@ getter;
+	+ operators;
 
 r3:
-/ @@ \cl YApplication @@ \u YApplication:
-	- \m YLog& Log;
-/ \g \o YLog DefaultLog @@ \h YShellDefinition & \impl \u YGlobal
-	-> \m YLog Log @@ \cl YApplication @@ \u YApplication;
+* 5 \mac 'DefMemberFunctionImage?' @@ \h Base;
 
 r4:
-/ @@ \u YGlobal:
-	+ \cl PlatformResource;
-	+= \inc \h YShellDefinition @@ \h;
-	+ \inc \h YCoreUtilities @@ \h;
-	/ extern \g \o (GHHandle<YScreen> hScreenUp & GHHandle<YScreen> hScreenDown
-		& GHHandle<YDesktop> hDesktopUp & GHHandle<YDesktop> hDesktopDown
-		-> !extern \m @@ \cl PlatformResource;
-	/ \impl @@ \f (YInit & YDestroy) @@ \un \ns;
-	/ \tr \init @@ \g \o YApplication& theApp;
-	/ \tr \impl @@ \f (InitConsole & InitAllScreens);
-/ @@ \u YApplication:
-	+ \pre \decl \cl PlatformResource @@ \h;
-	/ @@ \cl YApplication:
-		+ \m PlatformResource* Resource;
-		+ \mf PlatformResource& GetPlatformResource() ythrow();
-		/ \impl @@ \dtor;
-		- \m GHHandle<YScreen>& hDefaultScreen;
-		- \m GHHandle<YDesktop>& hDefaultDesktop;
-		/ \ctor -> YApplication()
-			~ YApplication(GHHandle<YScreen>&, GHHandle<YDesktop>&);
-		/ private \smf YApplication* GetInstancePtr(GHHandle<YScreen>&,
-			GHHandle<YDesktop>&) -> YApplication* GetInstancePtr() ythrow();
-		/ \i \smf YApplication& GetApp(GHHandle<YScreen>&,
-			GHHandle<YDesktop>&) -> !\i YApplication& GetInstance() ythrow();
-/ @@ \h YComponent:
-	+ \inc \h "../Helper/yglobal.h";
-	/ \tr \param.de @@ \exp \ctor @@ YConsole;
-/ \tr \impl @@ \i \f (4 'OnTouch*' & 3 'OnKey*') @@ \h Shell_DS;
-/ \tr \impl @@ \impl \u Shell_DS;
-/ \tr \impl @@ \cl MDualScreenReader @@ \impl \u DSReader;
-/ \tr \impl @@ \impl \u GBKEX;
+/ 5 \mac 'DefMemberFunctionImage?'(_name)
+	-> 'DefMemberFunctionImage?'(_type, _name) @@ \h Base;
+/ \tr \impl @@ \clt GDependence;
 
 r5:
-/= test 1 ^ \conf release;
+- 5 \mac 'DefMemberFunctionImage';
+/ \decl @@ \clt GDependence;
 
-r6:
-/ \a PlatformResource => PlatformResources;
-/ extern const SDST SCRW, SCRH @@ \h YShellDefinition
-	>> \sm @@ \cl PlatformResources @@ \u YGlobal;
-/ @@ \cl PlatformResources @@ \u YGlobal:
-	/ \m SCRW => MainScreenWidth;
-	/ \m SCRH => MainScreenHeight;
-+ \inc \h YGlobal @@ (\h YResource & \impl \u YObject);
-+ \inc \h YShell @@ \impl \u YObject;
-
-r7:
-/= \a PlatformResource => Global;
+r6-r7:
+/= test 1;
 
 r8:
-/ (\cl YGUIShell @@ \ns Shells & \decl using Shells::YGUIShell)
-	>> \u YGUI ~ \u YComponent;
-/ @@ \h YGUI:
-	+ \inc \h YShell;
-	- \inc \h "ycomp.h";
+* \mf GetCopyOnWritePtr @@ \clt GDependence;
 
-r9:
-/ !\m \f IWidget* GetCursorWidgetPtr(GHHandle<YGUIShell>, YDesktop&,
-	const Point&) @@ \ns Components::Controls @@ \u YGUI -> \c \mf IWidget*
-	GetCursorWidgetPtr(YDesktop&, const Point&)
-	@@ \cl YGUIShell @@ \ns Shells;
+r9-r15:
+/ test 2:
+	* \tr \def @@ \mac @@ \a makefile \exc \proj YSTest;
 
-r10:
-/ @@ \u YGUI:
-	/ \a extern \o & \f @@ \ns InputStatus >> \cl YGUIShell;
-	- \ns InputStatus;
-	/ \impl @@ \ctor @@ \cl YGUIShell;
-	/ \tr \impl @@ \un \ns;
-	+ \inc \h YShellHelper @@ \impl \u;
-	/ \impl @@ \f ResetGUIStatus;
-/ @@ \impl \u YControl:
-	+ \inc \h YShellHelper;
-	/ \impl @@ \f (OnKeyHeld & OnTouchHeld & OnTouchMove
-		& OnTouchMove_Dragging);
-/ @@ \impl \u YGUIComponent:
-	/ \impl @@ \mf OnTouchMove_Thumb_Horizontal @@ \cl YHorizontalTrack;
-	/ \impl @@ \mf OnTouchMove_Thumb_Vertical @@ \cl YVerticalTrack;
-	+ \inc \h YShellHelper;
-
-r11:
-/ @@ \u YGUI:
-	/ \a (\o & \en & \f) @@ \un \ns >> \cl YGUIShell as private \m;
-	/ @@ \cl YGUIShell:
-		\impl @@ \ctor @@ \cl YGUIShell;
-		+ prefix 'ExOp_' @@ \exc NoOp @@ \m @@ \en ExOp @@ \cl YGUIShell;
-		/ \mf void ResponseKeyBase(YDesktop&, HKeyCallback)
-			-> void ResponseKeyBase(YDesktop&, KeyEventArgs&,
-			bool(YGUIShell::*)(IVisualControl&, KeyEventArgs&));
-		/ \mf void ResponseTouchBase(IUIBox&, HTouchCallback)
-			-> void ResponseTouchBase(IUIBox&, TouchEventArgs&,
-			bool(YGUIShell::*)(IVisualControl&, TouchEventArgs&));
-	\f (ResetGUIStates & 3 \f 'ResponseKey*' & 3 \f 'ResponseTouch*')
-		@@ \ns Components::Controls >> \cl YGUIShell;
-	- typedef FKeyCallback* PFKeyCallback;
-	- typedef FTouchCallback* PFTouchCallback;
-	- typedef @@ FKeyCallback;
-	- typedef @@ FTouchCallback;
-	- typedef @@ AHEventCallback;
-	- typedef @@ AHKeyCallback;
-	- typedef @@ AHTouchCallback;
-	- \st HKeyCallback;
-	- \st HTouchCallback;
-/ \tr \decl & \impl @@ \u Shell_DS;
-+ \inc \h "yshell.h" @@ \impl \u YResource;
-
-r12:
-* \impl @@ \dtor @@ \cl VisualControl;
-
-r13:
-/ \a EFontStyle => FontStyle;
-
-r14-r16:
-/ \a IControl => IControlableComponent;
-/ \a YControl => YControlableComponent;
-/ \a Control => ControlableComponent;
-/ \a IVisualControl => IControl;
-/ \a VisualControl => Control;
-/ \a YVisualControl => YControl;
-/ \a GetTopVisualControlPtr => GetTopControlPtr;
-/ \a VisualControlLocation => ControlLocation;
-/ \a LastVisualControlLocation => LastControlLocation;
-
-r17:
-/= test 2 ^ \conf release;
-
-r18:
-/ @@ \u YControl:
-	/ \a \m >> \in IControl ~ \in IControlableComponent;
-	- \cl YControlableComponent;
-	/ \a \m >> \cl Control ~ \cl ControlableComponent;
-	/ \impl @@ \ctor @@ \cl Control;
-	- \vt \inh \in IControlableComponent @@ \in IControl;
-	/ \a \param \tp IControlableComponent -> IControl;
-	- \in IControlableComponent;
-	- \inh \cl ControlableComponent @@ \cl Control;
-- \a \decl @@ \in IControlableComponent @@ \h YComponent;
-
-r19:
-- \vt @@ \inh GIFocusRequester<GMFocusResponser> @@ \in IControl;
-
-r20:
-* \tr \impl @@ \ctor @@ \cl Control;
-
-r21:
-- \vt @@ \a \inh \exc \in IWidget @@ \in (IWindow & IUIContainer);
-+ \vt @@ \a \inh \in GIFocusRequester<GMFocusResponser>;
-+ \vt @@ \a \inh \in IControl;
-
-r22:
-/ @@ \h YFocus:
-	- \param.de @@ \in \t GIFocusRequester;
-	/ \in \t GIFocusRequester -> !\t \in IFocusRequester;
-	/ \decl @@ AFocusRequester;
-/ \tr \decl @@ \h YControl;
-
-r23:
-/ @@ \cl AFocusRequester @@ \h YFocus:
-	- \vt \inh \in IFocusRequest;
-	- \amf bool IsFocused() const;
-	- \mf bool IsFocusOfContainer(GMFocusResponser<AFocusRequester>&) const;
-	- \in IFocusRequester;
-+ \amf bool IsFocused() const @@ \in IControl @@ \h YControl;
-- \vt @@ \a \inh \in IFocusRequester;
-
-r24:
-/ \ac @@ \inh AFocusRequester @@ \cl Control ~ public -> protected;
-/ \ac @@ \inh MSimpleFocusResponser @@ \cl AUIBoxControl ~ public -> protected;
-
-r25:
-/ @@ \u YApplication:
-	/ @@ \cl YApplication:
-		/ \ac @@ \m YFontCache* pFontCache -> private ~ public;
-		+ \mf YFontCache& GetFontCache() const ythrow(LoggedEvent);
-		+ \mf void ResetFontCache(CPATH) ythrow(LoggedEvent);
-	+ \h "../Adaptor/yfont.h" @@ \impl \u;
-/ \tr \decl @@ \param.de @@ \ctor @@ \cl MDualScreenReader @@ \h DSReader;
-/ \impl @@ \mf void ShlSetting::TFormC::btnC_Click(TouchEventArgs&)
-	@@ \impl \u Shells;
-/ @@ \u YFont:
-	/ \f const Typeface* GetDefaultTypefacePtr() ythrow() -> const Typeface&
-		FetchDefaultTypeface() ythrow(LoggedEvent);
-	/ \f const FontFamily& GetDefaultFontFamily() ythrow() -> const FontFamily&
-		FetchDefaultFontFamily() ythrow(LoggedEvent);
-	/ \inc \h (YString -> YCoreUtilites & YObject & YException);
-	/ \mf const Typeface* YFontCache::GetDefaultTypefacePtr() const
-		-> const Typeface* YFontCache::GetDefaultTypefacePtr() const
-		ythrow(LoggedEvent);
-- \inc <cstring> @@ \h YCoreUtilities;
-/ @@ \u YInitialization:
-	/ \tr \impl @@ \f InitializeSystemFontCache;
-	/ \f DestroySystemFontCache -> \mf YApplication::DestroyFontCache;
-	/ \tr \impl @@ \f InitializeSystemFontCache;
-	/ \impl @@ \f void CheckSystemFontCache();
-/ \tr \impl \f @@ void YDestroy() @@ \un \ns @@ \impl \u YGlobal;
-
-r26-r27:
+r16-r27:
 /= test 3;
 
 r28:
-* \ac @@ \inh AFocusRequester @@ \cl Control:
-	/ protected -> public;
+/ \clt<class _type> GDependence
+	-> \clt<typename _type, class _tOwnerPointer = SmartPtr<_type> >;
 
 r29-r31:
 /= test 4;
 
-r32-r40:
-/ test 5:
-	* \impl @@ \mf IControl* YGUIShell::GetTouchedVisualControlPtr(IUIBox&,
-		Point&);
+r32:
+/ @@ \h YEvent:
+	+ \clt GDependencyEvent @@ \ns Runtime;
+	/ \a _tEventHandler => EventHandlerType @@ \clt GDependencyEvent;
 
-r41:
-* \impl @@ \mf ClearFocusingPtr @@ \cl (AUIBoxControl & AWindow);
+r33:
+/ @@ \h YEvent:
+	/ \a _tEventHandler => EventHandlerType @@ \clt GDependencyEvent;
+	+ \mac (DepEventT & DeclDepEvent & DeclDepEventRef & DefIDepEventEntry
+		& GetDepEvent & GetDepEventBase & GetDepEventMember & GetMutableDepEvent
+		& GetMutableDepEventBase & GetMutableDepEventMember;
 
-r42:
-/= test 6 ^ \conf release;
+r34-r35:
+/ test 5;
++ \mf uintptr_t GetCount() const @@ \clt GeneralCastRefCounted
+	@@ \h YReference;
+/ \impl @@ \mf GetCopyOnWritePtr @@ \clt GDependence;
+/ \impl @@ \clt GDependenceEvent @@ \h YEvent;
+
+r36-r38:
+/= test 6;
+
+r39:
+/ \impl @@ \u (ListBox & Scroll);
+
+r40:
+/ \tr \impl @@ \clt RefCounted @@ \h SmartPtr @@ \lib Loki; 7
+/ \tr \impl \h YReference;
+/ \tr \impl @@ \clt GDependence @@ \h YObject;
+
+r41-r49:
++ \mf bool Insert(const ID&, const ItemType&) @@ \clt GEventMap @@ \h YEvent;
+/ test 7;
+
+r50:
+/ @@ \h YShellHelper:
+	+ \t<class _tShl> \i \f GHHandle<YShell> FetchStored();
+	+ \t<class _tShl> \i \f void ReleaseStored();
+	/ \impl @@ \t<class _tShl> \i \f errno_t NowShellToStored() ^ FetchStored;
+	/ \impl @@ \t<class _tShl> \i \f void SetShellToStored() ^ FetchStored;
+/ \impl @@ \mf ReleaseShells @@ \impl \u Shells;
+
+r51:
++ \h YStatic["ystatic.hpp"] @@ \dir Core;
+/ @@ \h YObject:
+	/ \clt GStaticCache >> \h YStatic;
+	- \in \t GIClonable;
+	- \cl \t GContainer;
+/ \a GContainer -> set;
+/ \t<typename _type> \i \f _type& GetStaticRef() @@ \h YCoreUtilities
+	>> \h YStatic;
++ \inc \h YStatic @@ (\impl \u YApplication & \h YFocus);
+- \inc \h (YCoreUtilities & YObject) @@ \h YFocus;
+/ \inc \h (YObjcet -> YStatic) @@ \h YResource;
+
+r52:
++ \clt GLocalStaticCache @@ \h YStatic;
+/ \impl @@ \i \tf (FetchStored & ReleaseStored) @@ \h YShellHelper
+	^ GLocalStaticCache ~ GStaticCache;
+
+r53-r63:
+/= test 8;
+
+r64:
+/ @@ \h YEvent:
+	/ \decl @@ \clt GEventWrapper:
+		/ \inh _tEvent -> GDependencyEvent<_tEvent>;
+		+ typedef GDependencyEvent<_tEvent> DependencyType;
+		/ \tr \impl @@ typedef;
+	/ @@ \clt GEventMap:
+		/ \impl @@ \mf GetEvent;
+		/ \tr \impl @@ \mf DoEvent;
+	+ typedef Runtime::GDependencyEvent<EventType> DependencyType
+		@@ 2 \stt GSEvent;
+	/ \impl @@ \mac DepEventT;
+/ \impl @@ \ft FetchEvent @@ \h YControl;
+
+r65-r66:
+/= test 9;
+
+r67:
+/ @@ \h YControl:
+	+ typedef Runtime::GEventMap<VisualEvent> VisualEventMapType;
+	/= \a Runtime::GEventMap<VisualEvent> \exc typedef -> VisualEventMapType;
+	+ 1 overloaded \i \ft FetchEvent;
+	+ 1 overloaded \i \ft CallEvent;
+	/ \tr @@ \i \ft (FetchEvent & CallEvent) ^ overloaded \i \ft;
+
+r68:
++ \i \mf PointerType& at(const ID& k) const ythrow(std::out_of_range)
+	@@ \clt GEventMap @@ \h YEvent;
+
+r69:
+/ @@ \cl Control:
+	+ \smf const VisualEventMapType& GetDefaultEventMap();
+	/ \impl @@ \ctor;
+
+r70-r75:
+/= test 10;
+
+r76:
+* \impl @@ \smf GetDefaultEventMap @@ \cl Control;
+
+r77-r116:
+/= test 11;
+
+r117:
+/ @@ \clt GDependency @@ \h YObject:
+	- \i \mf Create;
+	* \impl @@ \mf GetCopyOnWritePtr;
+* \impl @@ \f OnTouchMove @@ \u YControl;
+
+r118-r122:
+/= test 12;
+
+r123:
+/ @@ \cl YControl:
+	- \mf GetDefaultEventMap;
+	/ \impl @@ \ctor;
+* \def @@ \mf Insert @@ \clt GEventMap @@ \h YEvent;
+
+r124:
+/ @@ \u YControl:
+	/ \impl @@ \ctor @@ \cl YControl;
+	/ \ret \tp @@ 2 \ft FetchEvent;
+/ @@ \h YEvent:
+	/ \decl @@ \clt (GEventWrapper & GEventMap);
+	- \clt GAHEventCallback;
+
+r125:
+/= test 13 ^ \conf release;
+
+r126:
+/ \a YFrameWindow => YWindow;
+
+r127:
+/ @@ \h YControl:
+	+ \st RoutedEventArgs;
+	/ \st ScreenPositionEventArgs => MScreenPositionEventArgs;
+	/ @@ \st MScreenPositionEventArgs:
+		- \inh \st EventArgs;
+		/ \ac @@ \ctor protected ~ public;
+		/ \tr \impl @@ \ctor;
+	* @@ \st InputEventArgs:
+		+ public \inh \st RoutedEventArgs;
+		/ \tr \impl @@ \ctor;
+	/ @@ \st KeyEventArgs:
+		- \inh \st EventArgs;
+		/ \tr \def @@ \ctor;
+	/ @@ \st TouchEventArgs:
+		/ order @@ \inh;
+		/ \tr \def @@ \ctor;
+
+r128:
+/ @@ \cl YGUIShell @@ \u YGUI:
+	/ \mf bool ResponseTouchUp(IUIBox&, Components::Controls::TouchEventArgs&)
+		-> \f bool ResponseTouchUp(IControl&,
+		Components::Controls::TouchEventArgs&);
+	/ \mf bool ResponseTouchDown(IUIBox&, Components::Controls::TouchEventArgs&)
+		-> \f bool ResponseTouchUp(IControl&,
+		Components::Controls::TouchEventArgs&);
+	/ \mf bool ResponseTouchHeld(IUIBox&, Components::Controls::TouchEventArgs&)
+		-> \f bool ResponseTouchUp(IControl&,
+		Components::Controls::TouchEventArgs&);
+	/ \mf bool ResponseTouchBase(IUIBox&, Components::Controls::TouchEventArgs&,
+		bool(YGUIShell::*)(IControl&, Components::Controls::TouchEventArgs&))
+		-> bool ResponseTouchBase(IControl&, Components::Controls
+		::TouchEventArgs&, bool(YGUIShell::*)(IControl&,
+		Components::Controls::TouchEventArgs&));
+	/ \mf IControl* GetTouchedVisualControlPtr(IUIBox&, Point&)
+		-> IControl* GetTouchedVisualControlPtr(IControl&, Point&);
+
+r129:
+/ @@ \cl YGUIShell @@ \u YGUI:
+	/ private \m ExOpType ExtraOperation
+		-> Components::Controls::VisualEvent OperationType;
+		- typedef \en ExOpType;
+	/ \tr \impl @@ \mf (GetTouchedVisualControlPtr & ResponseTouchUp
+		& ResponseTouchDown & ResponseTouchHeld) & \ctor;
+
+r130:
+/ @@ \cl RoutedEventArgs @@ \h YControl:
+	/ typedef \en RoutingType => RoutingStrategy;
+	/ \m Type => Strategy;
+
+r131:
+/ @@ \u Shell_DS:
+	- \i \f (3 'OnKey*' & 3 'OnTouch*') @@ \h;
+	/ \impl @@ \f ResponseInput;
+
+r132:
+/ @@ \cl YGUIShell @@ \u YGUI:
+	/ \mf IControl* GetTouchedVisualControlPtr(IControl&, Point&)
+		-> IControl* GetTouchedVisualControlPtr(IControl&, Point&,
+		Components::Controls::VisualEvent);
+	- private \m Components::Controls::VisualEvent OperationType;
+	/ private \mf bool ResponseTouchBase(IControl&,
+		Components::Controls::TouchEventArgs&,
+		bool(YGUIShell::*)(IControl&, Components::Controls::TouchEventArgs&))
+		-> public \mf bool ResponseTouch(IControl&, Components::Controls
+		::TouchEventArgs&, Components::Controls::VisualEvent);
+	- \mf ResponseTouchUp;
+	- \mf ResponseTouchDown;
+	- \mf ResponseTouchHeld;
+	/ \tr \impl @@ \ctor;
+/ \impl @@ \f ResponseInput @@ \impl \u Shell_DS;
+
+r133:
+/ @@ \cl YGUIShell @@ \u YGUI:
+	- \mf GetTouchedVisualControlPtr;
+	/ \impl @@ ResponseTouch;
+
+r134:
+/ \impl @@ \f ResponseInput @@ \impl \u Shell_DS;
+/ @@ \cl YGUIShell @@ \u YGUI:
+	/ private \mf bool ResponseKeyBase(YDesktop&,
+		Components::Controls::KeyEventArgs&, bool(YGUIShell::*)(IControl&,
+		Components::Controls::KeyEventArgs&)
+		-> public \mf bool ResponseKey(YDesktop&, Components::Controls
+		::KeyEventArgs&, Components::Controls::VisualEvent);
+	- \mf (ResponseKeyUp & ResponseKeyDown & ResponseKeyHeld);
+
+r135:
+/ \impl @@ \mf YGUIShell::ResponseTouch;
+
+r136:
+/ \tr \impl @@ (\f (OnTouchHeld & OnTouchMove & OnTouchMove_Dragging)
+	& \mf Control::OnTouchDown) @@ \impl \u YControl;
+/ \tr \impl @@ \mf (ATrack::OnTouchDown
+	& YHorizontalTrack::OnTouchMove_Thumb_Horizontal
+	& YVerticalTrack::OnTouchMove_Thumb_Vertical & (OnTouchDown_PrevButton
+	& OnTouchDown_NextButton) @@ \cl AScrollBar) @@ \impl \u Scroll;
+/ \tr \impl @@ \mf (OnTouchDown & OnTouchMove) @@ \cl YSimpleListBox
+	@@ \impl \u ListBox;
+
+r137-r146:
+/= test 14;
+
+r147:
+/ @@ \cl YGUIShell @@ \u YGUI:
+	/ \impl @@ \mf ResponseTouch;
+	- private \mf (ResponseTouchUpBase & ResponseTouchDownBase
+		& ResponseTouchHeldBase);
+
+r148-r150:
+/= test 15;
+
+r151-r152:
+* \impl @@ \mf YGUIShell::ResponseTouch;
+
+r153-r154:
+/= test 16 ^ \conf release;
+
+r155:
+/= test 17 ^ \conf debug;
+
+r156-r186:
+/ test 18 ^ \conf release:
+	/ YSLib ARM9 Makefile optimizing commands ^ \conf release;
+
+r187:
+/= test 19 ^ \conf debug;
 
 
 $DOING:
 
 relative process:
-2011-03-08:
--23.9d;
+2011-03-20:
+-27.6d;
 
 / ...
 
 
 $NEXT_TODO:
 
-b195-b270:
+b196-b270:
++ routing event for the view tree;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
 * non-ASCII character path error in FAT16;
@@ -450,11 +537,12 @@ b195-b270:
 / impl 'real' RTC;
 
 b271-b648:
++ data configuragion;
++ shared property: additional;
 / GDI brushes;
 / text alignment;
 + \impl pictures loading;
 / improve efficiency @@ \ft polymorphic_crosscast @@ \h YCast;
-+ data config;
 + correct DMA (copy & fill);
 * platform-independence @@ alpha blending:
 	+ \impl general Blit algorithm;
@@ -518,18 +606,81 @@ Build a more advanced console wrapper.
 
 Build a series set of robust gfx APIs.
 
-GUI characteristics needed:
+More GUI features needed:
 Icons;
 Other controls.
 
 Other stuff to be considered to append:
 Design by contract: DbC for C/C++, GNU nana.
 
+
+$HISTORY:
+
+all:
+{
+"dependency events",
+$fix "makefiles"
+},
+
+b170_b194:
+{
+"controls: track",
+"controls: scroll bar",
+"controls: scrollable container",
+"controls: listbox"
+},
+
+b159_b169:
+{
+"controls: buttons": class ("%YThumb", "%YButton"),
+"controls: listbox class",
+"events",
+},
+
+b132_b158:
+{
+"core utility templates",
+"smart pointers using Loki",
+"Anti-Grain Geometry test",
+"GUI focus",
+"shells",
+"base abbreviation macros",
+"controls",
+"virtual inheritance in control classes",
+"exceptions",
+"debug macros & functions",
+"color type",
+"class template %general_cast",
+"timer class"
+},
+
+b1_b131:
+{
+"initial test with PALib & libnds",
+"shell classes",
+"the application class",
+"CHRLib: character set management",
+"fonts management using freetype 2",
+"YCLib: platform independence",
+"basic objects & counting",
+"global objects",
+"string class",
+"file classes",
+"dual screen text file reader",
+"output devices & desktops",
+"messaging",
+"program initialization",
+"simple GUI: widgets & windows",
+"simple GDI",
+"simple resource classes"
+};
+
+
 */
 //---- temp code;
 /*
 
-/*	static YTimer Timer(1250);
+	static YTimer Timer(1250);
 
 	if(Timer.Refresh())
 	{

@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件实现。
-\version 0.3456;
+\version 0.3492;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-03-07 22:27 +0800;
+	2011-03-20 13:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -48,19 +48,24 @@ namespace
 }
 
 
+YSimpleListBox::Dependencies::Dependencies()
+{
+	Selected.GetRef() += &YSimpleListBox::OnSelected;
+	Confirmed.GetRef() += &YSimpleListBox::OnConfirmed;
+}
+
 YSimpleListBox::YSimpleListBox(const Rect& r, IUIBox* pCon,
 	GHWeak<ListType> wpList_)
 	: YControl(r, pCon),
 	Font(), Margin(defMarginH, defMarginH, defMarginV, defMarginV),
-	wpList(wpList_), viewer(GetList()), top_offset(0), text_state(Font)
+	wpList(wpList_), viewer(GetList()), top_offset(0), text_state(Font),
+	Events(GetStaticRef<Dependencies>())
 {
 	FetchEvent<KeyDown>(*this) += &YSimpleListBox::OnKeyDown;
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld;
 	FetchEvent<TouchDown>(*this) += &YSimpleListBox::OnTouchDown;
 	FetchEvent<TouchMove>(*this) += &YSimpleListBox::OnTouchMove;
 	FetchEvent<Click>(*this) += &YSimpleListBox::OnClick;
-	Selected += &YSimpleListBox::OnSelected;
-	Confirmed += &YSimpleListBox::OnConfirmed;
 }
 
 Drawing::TextState&
@@ -243,7 +248,7 @@ YSimpleListBox::ResetView()
 void
 YSimpleListBox::UpdateView()
 {
-	ViewChanged(*this, GetStaticRef<EventArgs>());
+	GetViewChanged()(*this, GetStaticRef<EventArgs>());
 	Refresh();
 }
 
@@ -252,7 +257,7 @@ YSimpleListBox::CallSelected()
 {
 	IndexEventArgs e(*this, viewer.GetSelectedIndex());
 
-	Selected(*this, e);
+	GetSelected()(*this, e);
 }
 
 void
@@ -262,7 +267,7 @@ YSimpleListBox::CheckConfirmed(YSimpleListBox::ViewerType::IndexType i)
 	{
 		IndexEventArgs e(*this, i);
 
-		Confirmed(*this, e);
+		GetConfirmed()(*this, e);
 	}
 }
 
@@ -278,12 +283,10 @@ YSimpleListBox::OnKeyDown(KeyEventArgs& k)
 		case KeySpace::Enter:
 			CheckConfirmed(viewer.GetSelectedIndex());
 			break;
-
 		case KeySpace::ESC:
 			ClearSelected();
 			CallSelected();
 			break;
-
 		case KeySpace::Up:
 		case KeySpace::Down:
 		case KeySpace::PgUp:
@@ -298,19 +301,16 @@ YSimpleListBox::OnKeyDown(KeyEventArgs& k)
 					if(viewer.GetRelativeIndex() == 0)
 						AdjustTopOffset();
 					break;
-
 				case KeySpace::Down:
 					++viewer;
 					if(viewer.GetRelativeIndex()
 						== static_cast<int>(viewer.GetLength() - 1))
 						AdjustBottomOffset();
 					break;
-
 				case KeySpace::PgUp:
 					viewer -= viewer.GetLength();
 					AdjustTopOffset();
 					break;
-
 				case KeySpace::PgDn:
 					viewer += viewer.GetLength();
 					AdjustBottomOffset();
@@ -320,7 +320,6 @@ YSimpleListBox::OnKeyDown(KeyEventArgs& k)
 					CallSelected();
 			}
 			break;
-
 		default:
 			return;
 		}
@@ -331,15 +330,21 @@ YSimpleListBox::OnKeyDown(KeyEventArgs& k)
 void
 YSimpleListBox::OnTouchDown(TouchEventArgs& e)
 {
-	SetSelected(e);
-	UpdateView();
+	if(e.Strategy == RoutedEventArgs::Direct)
+	{
+		SetSelected(e);
+		UpdateView();
+	}
 }
 
 void
 YSimpleListBox::OnTouchMove(TouchEventArgs& e)
 {
-	SetSelected(e);
-	UpdateView();
+	if(e.Strategy == RoutedEventArgs::Direct)
+	{
+		SetSelected(e);
+		UpdateView();
+	}
 }
 
 void
@@ -366,9 +371,10 @@ YListBox::YListBox(const Rect& r, IUIBox* pCon, GHWeak<ListType> wpList_)
 	ScrollableContainer(r, pCon),
 	TextListBox(Rect(Point::Zero, r), this, wpList_)
 {
-	VerticalScrollBar.GetTrack().Scroll.Add(*this,
+	VerticalScrollBar.GetTrack().GetScroll().Add(*this,
 		&YListBox::OnScroll_VerticalScrollBar);
-	TextListBox.ViewChanged.Add(*this, &YListBox::OnViewChanged_TextListBox);
+	TextListBox.GetViewChanged().Add(*this,
+		&YListBox::OnViewChanged_TextListBox);
 }
 
 IControl*

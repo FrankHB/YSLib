@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2202;
+\version 0.2206;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-03-06 21:39 +0800;
+	2011-03-18 17:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 //! \brief 桌面。
-class YDesktop : public YFrameWindow
+class YDesktop : public YWindow
 {
 public:
 	typedef YComponent ParentType;

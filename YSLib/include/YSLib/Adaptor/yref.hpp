@@ -11,12 +11,12 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version 0.3139;
+\version 0.3148;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-21 23:09:06 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-14 08:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -64,6 +64,18 @@ public:
 	GeneralCastRefCounted(const GeneralCastRefCounted<P1>& rhs)
 		: pCount_(reinterpret_cast<const GeneralCastRefCounted&>(rhs).pCount_)
 	{}
+
+	bool
+	IsUnique() const
+	{
+		return *pCount_ == 1;
+	}
+
+	uintptr_t
+	GetCount() const
+	{
+		return *pCount_;
+	}
 
 	P
 	Clone(const P& val)

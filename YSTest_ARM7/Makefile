@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM7 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-03-03 16:33 +0800;
-# Version = 0.3326;
+# UTime = 2011-03-11 20:41 +0800;
+# Version = 0.3335;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -38,27 +38,31 @@ export DATA			:= data
 #--------------------------------------------------------------------------------
 # options for code generation
 #--------------------------------------------------------------------------------
-ARCH	:=	-mthumb -mthumb-interwork
+ARCH	:=	-mthumb -mthumb-interwork -mcpu=arm7tdmi
 
-ASFLAGS	:=	$(ARCH)
+# note: arm9tdmi isn't the correct CPU arch, but anything newer and LD
+# *insists* it has a FPU or VFP, and it won't take no for an answer!
+
+ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 
 CFLAGS	:=	-Wall \
-			-mcpu=arm7tdmi -mtune=arm7tdmi -fomit-frame-pointer \
+ 			-mtune=arm7tdmi \
+ 			-fomit-frame-pointer \
 			-ffast-math \
 			$(ARCH)
+
+CFLAGS	+=	$(INCLUDE) -DARM7
+LDFLAGS :=	-specs=ds_arm7.specs $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
 
 ifneq ($(BUILD),debug)
 CFLAGS	+=	-O3 -DNDEBUG
 else
 ASFLAGS	+=	-g
 CFLAGS	+=	-g -O0 -DDEBUG
+LDFLAGS	+=	-g
 endif
 
-CFLAGS		+=	$(INCLUDE) -DARM7
 CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit
-
-
-LDFLAGS	:=	-specs=ds_arm7.specs -g $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
 
 #--------------------------------------------------------------------------------
 # path to tools - this can be deleted if you set the path in windows

@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.2071;
+\version 0.2094;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-03-06 22:27 +0800;
+	2011-03-16 13:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -236,7 +236,7 @@ MoveToBottom(IWidget&);
 
 /*!
 \brief 取指定部件的直接窗口的图形接口上下文。
-\exception std::runtime_error 无法找到有效的直接窗口。
+\throw std::runtime_error 无法找到有效的直接窗口。
 */
 const Graphics&
 FetchContext(IWidget&);
@@ -252,13 +252,12 @@ Fill(IWidget&, Color);
 class MUIContainer : protected GMFocusResponser<IControl>
 {
 public:
-	typedef GContainer<IWidget> WidgetSet;
-	typedef WidgetSet::ContainerType WGTs; //!< 部件组类型。
-	typedef GContainer<GMFocusResponser<IControl> > FOCs; \
+	typedef set<IWidget*> WGTs; //!< 部件组类型。
+	typedef set<GMFocusResponser<IControl>*> FOCs; \
 		//!< 子焦点对象容器组类型。
 
 protected:
-	WidgetSet sWgtSet; //!< 部件对象组模块。
+	WGTs sWgtSet; //!< 部件对象组模块。
 	FOCs sFOCSet; //!< 子焦点对象容器组。
 
 public:
@@ -277,7 +276,7 @@ protected:
 		ImplRet(static_cast<void>(sFOCSet.insert(&c)))
 	PDefHOperator1(bool, -=, GMFocusResponser<IControl>& c) \
 		//!< 从子焦点对象容器组移除子焦点对象容器。
-		ImplBodyMember1(sFOCSet, erase, &c)
+		ImplRet(sFOCSet.erase(&c))
 
 public:
 	/*!
@@ -331,9 +330,9 @@ public:
 	~YUIContainer() ythrow();
 
 	ImplI1(IUIContainer) PDefHOperator1(void, +=, IWidget& w)
-		ImplRet(sWgtSet += w)
+		ImplRet(static_cast<void>(sWgtSet.insert(&w)))
 	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IWidget& w)
-		ImplRet(sWgtSet -= w)
+		ImplRet(sWgtSet.erase(&w))
 	ImplI1(IUIContainer) PDefHOperator1(void, +=, IControl& c)
 		ImplBodyBase1(MUIContainer, operator+=, c)
 	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IControl& c)

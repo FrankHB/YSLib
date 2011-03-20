@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件实现。
-\version 0.2957;
+\version 0.3048;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-03-07 21:40 +0800;
+	2011-03-13 23:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,13 +34,6 @@
 #include "ycomp.h"
 #include "ytext.h"
 #include "scroll.h"
-//#include "../Core/yobject.h"
-//#include "yuicont.h"
-//#include "yuicontx.h"
-//#include "../Core/yres.h"
-//#include "../Adaptor/yfont.h"
-//#include "../Core/yres.h"
-//#include "ylabel.h"
 //#include "ystyle.h"
 
 YSL_BEGIN
@@ -54,8 +47,7 @@ YSL_END_NAMESPACE(Widgets)
 YSL_BEGIN_NAMESPACE(Controls)
 
 //! \brief 文本列表框。
-class YSimpleListBox : public GMCounter<YSimpleListBox>,
-	public YControl
+class YSimpleListBox : public GMCounter<YSimpleListBox>, public YControl
 {
 public:
 	typedef YControl ParentType;
@@ -63,7 +55,6 @@ public:
 	typedef vector<ItemType> ListType; //!< 列表类型。
 	typedef GSequenceViewer<ListType> ViewerType; //!< 视图类型。
 
-public:
 	Drawing::Font Font; //!< 字体。
 	Drawing::Padding Margin; //!< 文本项的边距。
 
@@ -75,11 +66,18 @@ private:
 	SDST top_offset; //!< 列表视图首项目超出上边界的垂直偏移量。
 	Drawing::TextState text_state; //!< 文本状态。
 
-public:
-	DeclEvent(HVisualEvent, ViewChanged) //!< 视图变更事件。
-	DeclEvent(HIndexEvent, Selected) //!< 项目选择状态变更事件。
-	DeclEvent(HIndexEvent, Confirmed) //!< 项目选中确定事件。
+	//! \brief 事件依赖项。
+	class Dependencies
+	{
+	public:
+		DeclDepEvent(HVisualEvent, ViewChanged) //!< 视图变更事件。
+		DeclDepEvent(HIndexEvent, Selected) //!< 项目选择状态变更事件。
+		DeclDepEvent(HIndexEvent, Confirmed) //!< 项目选中确定事件。
 
+		Dependencies();
+	} Events;
+
+public:
 	/*!
 	\brief 构造：使用指定边界、部件容器指针、文本区域和文本列表。
 	*/
@@ -96,6 +94,13 @@ public:
 	DefPredicateMember(Selected, viewer)
 	PDefH1(bool, Contains, ViewerType::IndexType i)
 		ImplBodyMember1(viewer, Contains, i)
+
+	DefMutableDepEventGetter(HVisualEvent, ViewChanged, Events.ViewChanged) \
+		//!< 视图变更事件。
+	DefMutableDepEventGetter(HIndexEvent, Selected, Events.Selected) \
+		//!< 项目选择状态变更事件。
+	DefMutableDepEventGetter(HIndexEvent, Confirmed, Events.Confirmed) \
+		//!< 项目选中确定事件。
 
 	/*!
 	\brief 取文本列表。
@@ -312,11 +317,11 @@ public:
 	DefGetterMember(ViewerType::IndexType, HeadIndex, TextListBox)
 	DefGetterMember(ViewerType::IndexType, SelectedIndex, TextListBox)
 	DefGetterMember(ListType&, List, TextListBox)
-	DefMutableEventGetter(HVisualEvent, ViewChanged, TextListBox.ViewChanged)
+	DefMutableDepEventGetterMember(HVisualEvent, ViewChanged, TextListBox) \
 		//!< 视图变更事件。
-	DefMutableEventGetter(HIndexEvent, Selected, TextListBox.Selected) \
+	DefMutableDepEventGetterMember(HIndexEvent, Selected, TextListBox) \
 		//!< 项目选择状态变更事件。
-	DefMutableEventGetter(HIndexEvent, Confirmed, TextListBox.Confirmed) \
+	DefMutableDepEventGetterMember(HIndexEvent, Confirmed, TextListBox) \
 		//!< 项目选中确定事件。
 
 	/*!

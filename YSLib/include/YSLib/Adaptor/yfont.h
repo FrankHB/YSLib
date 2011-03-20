@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7125;
+\version 0.7127;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-03-07 19:34 +0800;
+	2011-03-16 13:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -265,7 +265,7 @@ public:
 
 /*!
 \brief 取默认字型引用。
-\exception LoggedEvent 记录异常事件。
+\throw LoggedEvent 记录异常事件。
 \note 仅抛出以上异常。
 */
 const Typeface&
@@ -273,7 +273,7 @@ FetchDefaultTypeface() ythrow(LoggedEvent);
 
 /*!
 \brief 取默认字型家族引用。
-\exception LoggedEvent 记录异常事件。
+\throw LoggedEvent 记录异常事件。
 \note 仅抛出以上异常。
 */
 const FontFamily&
@@ -472,7 +472,7 @@ public:
 	GetFontFamilyPtr(const FT_String*) const;
 	/*!
 	\brief 取默认字型指针。
-	\exception LoggedEvent 记录异常事件。
+	\throw LoggedEvent 记录异常事件。
 	\note 仅抛出以上异常。
 	*/
 	const Typeface*

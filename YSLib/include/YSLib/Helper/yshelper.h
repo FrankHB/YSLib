@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2032;
+\version 0.2070;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-15 17:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -97,7 +97,7 @@ FetchGUIShellHandle();
 
 
 /*!
-\brief 从指定 Shell 新建窗体。
+\brief 从当前 Shell 新建指定类型窗体。
 */
 template<class _type>
 HWND NewWindow()
@@ -116,7 +116,28 @@ HWND NewWindow()
 
 
 /*!
-\brief 判断 Shell 句柄是否为当前线程空间中运行的 Shell 句柄。
+\brief 取全局 Shell 句柄。
+*/
+template<class _tShl>
+inline GHHandle<YShell>
+FetchStored()
+{
+	return GLocalStaticCache<_tShl, GHHandle<YShell> >::GetPointer();
+}
+
+/*!
+\brief 释放全局 Shell 。
+*/
+template<class _tShl>
+inline void
+ReleaseStored()
+{
+	GLocalStaticCache<_tShl, GHHandle<YShell> >::Release();
+}
+
+
+/*!
+\brief 判断句柄指定的 Shell 是否为当前线程空间中运行的 Shell 。
 */
 inline bool
 IsNowShell(GHHandle<YShell> hShl)
@@ -125,7 +146,7 @@ IsNowShell(GHHandle<YShell> hShl)
 }
 
 /*!
-\brief 向指定 Shell 对象转移线程控制权。
+\brief 向句柄指定的 Shell 对象转移线程控制权。
 */
 inline errno_t
 NowShellTo(GHHandle<YShell> hShl)
@@ -150,7 +171,7 @@ template<class _tShl>
 inline errno_t
 NowShellToStored()
 {
-	return NowShellTo(GStaticCache<_tShl, GHHandle<YShell> >::GetPointer());
+	return NowShellTo(FetchStored<_tShl>());
 }
 
 /*!
@@ -180,7 +201,7 @@ template<class _tShl>
 inline void
 SetShellToStored()
 {
-	SetShellTo(GStaticCache<_tShl, GHHandle<YShell> >::GetPointer());
+	SetShellTo(FetchStored<_tShl>());
 }
 
 /*!

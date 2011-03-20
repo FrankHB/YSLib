@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件实现。
-\version 0.2960;
+\version 0.3007;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-03-07 21:43 +0800;
+	2011-03-13 23:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,6 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
 
-
 //! \brief 轨道。
 class ATrack : public AUIBoxControl, public GMRange<u16>
 {
@@ -69,10 +68,17 @@ private:
 		//!< 大距离滚动偏移量：滚动事件关联的滑块位置变化绝对值。
 	// MRange::value 实际最大取值为 MRange::max_value - large_delta 。
 
-public:
-	DeclEvent(HVisualEvent, ThumbDrag) //!< 滑块拖动事件。
-	DeclEvent(HScrollEvent, Scroll) //!< 滚动事件。
+	//! \brief 事件依赖项。
+	class Dependencies
+	{
+	public:
+		DeclDepEvent(HVisualEvent, ThumbDrag) //!< 滑块拖动事件。
+		DeclDepEvent(HScrollEvent, Scroll) //!< 滚动事件。
 
+		Dependencies();
+	} Events;
+
+public:
 	/*!
 	\brief 构造：使用指定边界、部件容器指针和大小。
 	*/
@@ -88,13 +94,16 @@ public:
 	*/
 	ImplI1(IUIBox) DefMutableGetterBase(IControl*, FocusingPtr,
 		MSimpleFocusResponser)
-
 	/*!
 	\brief 取顶端控件指针。
 	\note 仅滑块。
 	*/
 	ImplI1(AUIBoxControl) IControl*
 	GetTopControlPtr(const Point&);
+	DefMutableDepEventGetter(HVisualEvent, ThumbDrag, Events.ThumbDrag) \
+		//!< 滑块拖动事件。
+	DefMutableDepEventGetter(HScrollEvent, Scroll, Events.Scroll) \
+		//!< 滚动事件。
 	DefGetter(SDST, MinThumbLength, min_thumb_length)
 	DeclIEntry(Orientation GetOrientation() const) //!< 取轨道方向。
 	DefGetter(SDST, ThumbLength, SelectFrom(Thumb.GetSize(),

@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件实现。
-\version 0.3450;
+\version 0.3501;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-03-07 22:24 +0800;
+	2011-03-20 13:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,7 +62,6 @@ namespace
 					DrawVLineSeg(g, x--, y--, t++, c);
 			}
 			break;
-
 		case RDeg90:
 			{
 				SDST t(p.X);
@@ -71,7 +70,6 @@ namespace
 					DrawHLineSeg(g, y++, x--, t++, c);
 			}
 			break;
-
 		case RDeg180:
 			{
 				SDST t(p.Y);
@@ -80,7 +78,6 @@ namespace
 					DrawVLineSeg(g, x++, y--, t++, c);
 			}
 			break;
-
 		case RDeg270:
 			{
 				SDST t(p.X);
@@ -107,7 +104,6 @@ namespace
 				? (r.Width - halfSize) : (r.Width + halfSize)) / 2;
 			y += (r.Height + 1) / 2;
 			break;
-
 		case RDeg90:
 		case RDeg270:
 			y += (rot == RDeg90
@@ -161,17 +157,22 @@ namespace
 }
 
 
+ATrack::Dependencies::Dependencies()
+{
+	ThumbDrag.GetRef() += &ATrack::OnThumbDrag;
+}
+
 ATrack::ATrack(const Rect& r, IUIBox* pCon, SDST uMinThumbLength)
 	: AUIBoxControl(Rect(r.GetPoint(),
 		vmax<SDST>(defMinScrollBarWidth, r.Width),
 		vmax<SDST>(defMinScrollBarHeight, r.Height)), pCon),
 	GMRange<u16>(0xFF, 0),
 	Thumb(Rect(0, 0, defMinScrollBarWidth, defMinScrollBarHeight), this),
-	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length)
+	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length),
+	Events(GetStaticRef<Dependencies>())
 {
 	FetchEvent<TouchMove>(*this) += OnTouchMove;
 	FetchEvent<TouchDown>(*this) += &ATrack::OnTouchDown;
-	ThumbDrag += &ATrack::OnThumbDrag;
 }
 
 IControl*
@@ -283,7 +284,7 @@ ATrack::CheckScroll(ScrollEventSpace::ScrollEventType t, ValueType old_value)
 {
 	ScrollEventArgs e(t, value, old_value);
 
-	Scroll(*this, e);
+	GetScroll()(*this, e);
 }
 
 void
@@ -294,11 +295,9 @@ ATrack::LocateThumb(ScrollEventSpace::ScrollEventType t, ValueType v)
 	case ScrollEventSpace::First:
 		v = 0;
 		break;
-
 	case ScrollEventSpace::Last:
 		v = max_value - large_delta;
 		break;
-
 	default:
 		break;
 	}
@@ -347,7 +346,8 @@ ATrack::UpdateValue()
 void
 ATrack::OnTouchDown(TouchEventArgs& e)
 {
-	if(Rect(Point::Zero, GetSize()).Contains(e))
+	if(e.Strategy == RoutedEventArgs::Direct
+		&& Rect(Point::Zero, GetSize()).Contains(e))
 	{
 		using namespace ScrollEventSpace;
 
@@ -356,11 +356,9 @@ ATrack::OnTouchDown(TouchEventArgs& e)
 		case OnPrev:
 			LocateThumbForLargeDecrement();
 			break;
-
 		case OnNext:
 			LocateThumbForLargeIncrement();
 			break;
-
 		case OnThumb:
 		default:
 			LocateThumb(EndScroll, value);
@@ -396,14 +394,17 @@ YHorizontalTrack::YHorizontalTrack(const Rect& r, IUIBox* pCon,
 }
 
 void
-YHorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs&)
+YHorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs& e)
 {
-	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
-	SPOS x(hShl->LastControlLocation.X + hShl->DraggingOffset.X);
+	if(e.Strategy == RoutedEventArgs::Direct)
+	{
+		GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
+		SPOS x(hShl->LastControlLocation.X + hShl->DraggingOffset.X);
 
-	RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
-	Thumb.SetLocation(Point(x, Thumb.GetLocation().Y));
-	ThumbDrag(*this, GetStaticRef<EventArgs>());
+		RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
+		Thumb.SetLocation(Point(x, Thumb.GetLocation().Y));
+		GetThumbDrag()(*this, GetStaticRef<EventArgs>());
+	}
 }
 
 
@@ -423,14 +424,17 @@ YVerticalTrack::YVerticalTrack(const Rect& r, IUIBox* pCon,
 }
 
 void
-YVerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs&)
+YVerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs& e)
 {
-	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
-	SPOS y(hShl->LastControlLocation.Y + hShl->DraggingOffset.Y);
+	if(e.Strategy == RoutedEventArgs::Direct)
+	{
+		GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
+		SPOS y(hShl->LastControlLocation.Y + hShl->DraggingOffset.Y);
 
-	RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
-	Thumb.SetLocation(Point(Thumb.GetLocation().X, y));
-	ThumbDrag(*this, GetStaticRef<EventArgs>());
+		RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
+		Thumb.SetLocation(Point(Thumb.GetLocation().X, y));
+		GetThumbDrag()(*this, GetStaticRef<EventArgs>());
+	}
 }
 
 
@@ -518,15 +522,17 @@ AScrollBar::DrawForeground()
 }
 
 void
-AScrollBar::OnTouchDown_PrevButton(TouchEventArgs&)
+AScrollBar::OnTouchDown_PrevButton(TouchEventArgs& e)
 {
-	GetTrack().LocateThumbForSmallDecrement(small_delta);
+	if(e.Strategy == RoutedEventArgs::Direct)
+		GetTrack().LocateThumbForSmallDecrement(small_delta);
 }
 
 void
-AScrollBar::OnTouchDown_NextButton(TouchEventArgs&)
+AScrollBar::OnTouchDown_NextButton(TouchEventArgs& e)
 {
-	GetTrack().LocateThumbForSmallIncrement(small_delta);
+	if(e.Strategy == RoutedEventArgs::Direct)
+		GetTrack().LocateThumbForSmallIncrement(small_delta);
 }
 
 

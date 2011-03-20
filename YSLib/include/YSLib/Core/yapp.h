@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 应用程序实例类抽象。
-\version 0.2148;
+\version 0.2150;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-03-07 19:54 +0800;
+	2011-03-16 13:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -166,21 +166,21 @@ public:
 		//!< 取得线程空间中当前运行的 Shell 的句柄。
 	/*!
 	\brief 取主消息队列。
-	\exception LoggedEvent 记录异常事件。
+	\throw LoggedEvent 记录异常事件。
 	\note 仅抛出以上异常。
 	*/
 	YMessageQueue&
 	GetDefaultMessageQueue() ythrow(LoggedEvent);
 	/*!
 	\brief 取备份消息队列。
-	\exception LoggedEvent 记录异常事件。
+	\throw LoggedEvent 记录异常事件。
 	\note 仅抛出以上异常。
 	*/
 	YMessageQueue&
 	GetBackupMessageQueue() ythrow(LoggedEvent);
 	/*!
 	\brief 取字体缓存引用。
-	\exception LoggedEvent 记录异常事件。
+	\throw LoggedEvent 记录异常事件。
 	\note 仅抛出以上异常。
 	*/
 	YFontCache&
@@ -200,7 +200,7 @@ public:
 
 	/*!
 	\brief 复位默认字体缓存：使用指定路径。
-	\exception LoggedEvent 记录异常事件。
+	\throw LoggedEvent 记录异常事件。
 	\note 仅抛出以上异常。
 	*/
 	void

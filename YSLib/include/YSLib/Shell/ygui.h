@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.2407;
+\version 0.2447;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-06 22:03 +0800;
+	2011-03-20 14:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,14 +92,6 @@ private:
 	IControl* p_KeyDown;
 	IControl* p_TouchDown;
 	bool bEntered; //!< 记录指针是否在控件内部。
-	typedef enum
-	{
-		NoOp = 0,
-		ExOp_TouchUp = 1,
-		ExOp_TouchDown = 2,
-		ExOp_TouchHeld = 3
-	} ExOpType;
-	ExOpType ExtraOperation;
 	
 public:
 	/*!
@@ -208,9 +200,6 @@ private:
 	ResetTouchHeldState();
 
 	IControl*
-	GetTouchedVisualControlPtr(IUIBox&, Point&);
-
-	IControl*
 	GetFocusedEnabledVisualControlPtr(IControl*);
 
 	IControl*
@@ -225,61 +214,20 @@ private:
 	bool
 	ResponseKeyHeldBase(IControl&, Components::Controls::KeyEventArgs&);
 
-	bool
-	ResponseTouchUpBase(IControl&, Components::Controls::TouchEventArgs&);
-
-	bool
-	ResponseTouchDownBase(IControl&,
-		Components::Controls::TouchEventArgs&);
-
-	bool
-	ResponseTouchHeldBase(IControl&,
-		Components::Controls::TouchEventArgs&);
-
-	bool
-	ResponseKeyBase(YDesktop&, Components::Controls::KeyEventArgs&,
-		bool(YGUIShell::*)(IControl&,
-		Components::Controls::KeyEventArgs&));
-
-	bool
-	ResponseTouchBase(IUIBox&, Components::Controls::TouchEventArgs&,
-		bool(YGUIShell::*)(IControl&,
-		Components::Controls::TouchEventArgs&));
-
 public:
-	//响应标准按键状态。
 	/*!
-	\brief 响应键接触结束。
+	\brief 响应标准按键状态。
 	*/
 	bool
-	ResponseKeyUp(YDesktop&, Components::Controls::KeyEventArgs&);
-	/*!
-	\brief 响应键接触开始。
-	*/
-	bool
-	ResponseKeyDown(YDesktop&, Components::Controls::KeyEventArgs&);
-	/*!
-	\brief 响应键接触保持。
-	*/
-	bool
-	ResponseKeyHeld(YDesktop&, Components::Controls::KeyEventArgs&);
+	ResponseKey(YDesktop&, Components::Controls::KeyEventArgs&,
+		Components::Controls::VisualEvent);
 
-	//响应屏幕接触状态。
 	/*!
-	\brief 响应屏幕接触结束。
+	\brief 响应屏幕接触状态。
 	*/
 	bool
-	ResponseTouchUp(IUIBox&, Components::Controls::TouchEventArgs&);
-	/*!
-	\brief 响应屏幕接触开始。
-	*/
-	bool
-	ResponseTouchDown(IUIBox&, Components::Controls::TouchEventArgs&);
-	/*!
-	\brief 响应屏幕接触保持。
-	*/
-	bool
-	ResponseTouchHeld(IUIBox&, Components::Controls::TouchEventArgs&);
+	ResponseTouch(IControl&, Components::Controls::TouchEventArgs&,
+		Components::Controls::VisualEvent);
 
 	/*!
 	\brief Shell 处理函数。

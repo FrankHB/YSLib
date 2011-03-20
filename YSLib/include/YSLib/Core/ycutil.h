@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2511;
+\version 0.2516;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-03-07 19:31 +0800;
+	2011-03-14 20:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,18 +68,6 @@ private:
 YSL_END_NAMESPACE(Design)
 
 using Design::NonCopyable;
-
-/*!
-\brief 取指定类型的静态默认对象。
-*/
-template<typename _type>
-inline _type&
-GetStaticRef()
-{
-	static _type _obj;
-
-	return _obj;
-}
 
 /*!
 \brief 取整数类型的零元素。

@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1832;
+\version 0.1844;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-03-05 22:23 +0800;
+	2011-03-19 20:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -155,83 +155,6 @@ public:
 
 
 //平台相关输入处理。
-
-/*!
-\brief 处理键接触结束事件。
-*/
-inline void
-OnKeyUp(GHHandle<YGUIShell> hShl,
-	const Components::Controls::KeyEventArgs::InputType& key)
-{
-	Components::Controls::KeyEventArgs e(key);
-
-	hShl->ResponseKeyUp(theApp.GetPlatformResource().GetTouchableDesktop(), e);
-}
-
-/*!
-\brief 处理键接触开始事件。
-*/
-inline void
-OnKeyDown(GHHandle<YGUIShell> hShl,
-	const Components::Controls::KeyEventArgs::InputType& key)
-{
-	Components::Controls::KeyEventArgs e(key);
-
-	hShl->ResponseKeyDown(
-		theApp.GetPlatformResource().GetTouchableDesktop(), e);
-}
-
-/*!
-\brief 处理键接触保持事件。
-*/
-inline void
-OnKeyHeld(GHHandle<YGUIShell> hShl,
-	const Components::Controls::KeyEventArgs::InputType& key)
-{
-	Components::Controls::KeyEventArgs e(key);
-
-	hShl->ResponseKeyHeld(
-		theApp.GetPlatformResource().GetTouchableDesktop(), e);
-}
-
-/*!
-\brief 处理屏幕接触结束事件。
-*/
-inline void
-OnTouchUp(GHHandle<YGUIShell> hShl,
-	const Components::Controls::TouchEventArgs::InputType& pt)
-{
-	Components::Controls::TouchEventArgs e(pt);
-
-	hShl->ResponseTouchUp(
-		theApp.GetPlatformResource().GetTouchableDesktop(), e);
-}
-
-/*!
-\brief 处理屏幕接触开始事件。
-*/
-inline void
-OnTouchDown(GHHandle<YGUIShell> hShl,
-	const Components::Controls::TouchEventArgs::InputType& pt)
-{
-	Components::Controls::TouchEventArgs e(pt);
-
-	hShl->ResponseTouchDown(
-		theApp.GetPlatformResource().GetTouchableDesktop(), e);
-}
-
-/*!
-\brief 处理屏幕接触保持事件。
-*/
-inline void
-OnTouchHeld(GHHandle<YGUIShell> hShl,
-	const Components::Controls::TouchEventArgs::InputType& pt)
-{
-	Components::Controls::TouchEventArgs e(pt);
-
-	hShl->ResponseTouchHeld(
-		theApp.GetPlatformResource().GetTouchableDesktop(), e);
-}
 
 /*!
 \brief 响应输入。

@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.2045;
+\version 0.2046;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-03-06 21:28 +0800;
+	2011-03-14 20:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -265,7 +265,7 @@ MUIContainer::GetFocusingPtr() const
 IWidget*
 MUIContainer::GetTopWidgetPtr(const Point& pt)
 {
-	for(WidgetSet::const_iterator i(sWgtSet.begin()); i != sWgtSet.end(); ++i)
+	for(WGTs::const_iterator i(sWgtSet.begin()); i != sWgtSet.end(); ++i)
 		if(Contains(**i, pt))
 			return *i;
 	return NULL;

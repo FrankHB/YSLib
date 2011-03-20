@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.4065;
+\version 0.4074;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-03-08 14:14 +0800;
+	2011-03-18 17:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -203,7 +203,7 @@ public:
 };
 
 
-//! \brief 抽象框架窗口。
+//! \brief 抽象标准窗口。
 class AFrameWindow : public AWindow, protected Widgets::MUIContainer
 {
 public:
@@ -219,9 +219,9 @@ public:
 	~AFrameWindow() ythrow();
 
 	virtual PDefHOperator1(void, +=, IWidget& w)
-		ImplRet(sWgtSet += w)
+		ImplRet(static_cast<void>(sWgtSet.insert(&w)))
 	virtual PDefHOperator1(bool, -=, IWidget& w)
-		ImplRet(sWgtSet -= w)
+		ImplRet(sWgtSet.erase(&w))
 	virtual PDefHOperator1(void, +=, IControl& c)
 		ImplBodyBase1(MUIContainer, operator+=, c)
 	virtual PDefHOperator1(bool, -=, IControl& c)
@@ -250,8 +250,8 @@ public:
 };
 
 
-//! \brief 框架窗口。
-class YFrameWindow : public GMCounter<YFrameWindow>, public YComponent,
+//! \brief 标准窗口。
+class YWindow : public GMCounter<YWindow>, public YComponent,
 	public AFrameWindow
 {
 public:
@@ -265,13 +265,13 @@ public:
 	\brief 构造：使用指定边界、背景图像、窗口句柄和 Shell 句柄。
 	*/
 	explicit
-	YFrameWindow(const Rect& = Rect::Empty,
+	YWindow(const Rect& = Rect::Empty,
 		const GHStrong<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
 	/*!
 	\note 无异常抛出。
 	*/
 	virtual
-	~YFrameWindow() ythrow();
+	~YWindow() ythrow();
 
 	ImplI1(AWindow) DefGetter(const Graphics&, Context, Buffer)
 

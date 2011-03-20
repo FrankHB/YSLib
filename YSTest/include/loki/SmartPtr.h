@@ -16,7 +16,8 @@
 #define LOKI_SMARTPTR_INC_
 
 // $Id: SmartPtr.h 903 2008-11-10 05:55:12Z rich_sposato $
-// $Id: SmartPtr.h 904 2010-12-10 22:03 + 08:00 FrankHB $
+// $Id: SmartPtr.h 904 2010-12-10 22:03 +0800 FrankHB $
+// $Id: SmartPtr.h 905 2011-03-14 08:47 +0800 FrankHB $
 
 
 ///  \defgroup  SmartPointerGroup Smart pointers
@@ -476,6 +477,19 @@ namespace Loki
         { std::swap(pCount_, rhs.pCount_); }
 
         enum { destructiveCopy = false };
+
+		// [ Add @@ 2011-3-14:
+		uintptr_t IsUnique() const
+		{
+			return *pCount_ == 1;
+		}
+
+		uintptr_t GetCount() const
+		{
+			return *pCount_;
+		}
+
+		// ]
 
     private:
         // Data

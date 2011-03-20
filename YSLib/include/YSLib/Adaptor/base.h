@@ -11,12 +11,12 @@
 /*!	\file base.h
 \ingroup Adaptor
 \brief 通用基础设施。
-\version 0.2243;
+\version 0.2314;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-11 12:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -277,6 +277,22 @@
 		return (_member).operator _type(); \
 	}
 
+#define DefMutableConverter(_type, _expr) \
+	operator _type() ythrow() \
+	{ \
+		return _expr; \
+	}
+#define DefMutableConverterBase(_type, _base) \
+	operator _type() ythrow() \
+	{ \
+		return _base::operator _type(); \
+	}
+#define DefMutableConverterMember(_type, _member) \
+	operator _type() ythrow() \
+	{ \
+		return (_member).operator _type(); \
+	}
+
 #define DefPredicate(_name, _member) \
 	bool _yJOIN(Is, _name)() const ythrow() \
 	{ \
@@ -381,6 +397,10 @@
 	{ \
 		(_member) = (_expr); \
 	}
+
+
+//成员函数和模板映射。
+
 
 #endif
 

@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3425;
+\version 0.3517;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-08 13:51 +0800;
+	2011-03-20 15:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -86,7 +86,7 @@ YGUIShell::YGUIShell()
 	DraggingOffset(Vec::FullScreen), HeldTimer(1000, false),
 	ControlLocation(Point::FullScreen),
 	LastControlLocation(Point::FullScreen),
-	p_KeyDown(NULL), p_TouchDown(NULL), bEntered(false), ExtraOperation(NoOp)
+	p_KeyDown(NULL), p_TouchDown(NULL), bEntered(false)
 {}
 YGUIShell::~YGUIShell() ythrow()
 {}
@@ -266,56 +266,6 @@ YGUIShell::ResetTouchHeldState()
 }
 
 IControl*
-YGUIShell::GetTouchedVisualControlPtr(IUIBox& con, Point& pt)
-{
-	IUIBox* pCon(&con);
-	IControl* p;
-
-	while((p = pCon->GetTopControlPtr(pt)))
-	{
-		pt -= p->GetLocation();
-		if(ExtraOperation == ExOp_TouchDown)
-		{
-			RequestToTop(*p);
-			p->RequestFocus(GetStaticRef<EventArgs>());
-		}
-		if(!(pCon = dynamic_cast<IUIBox*>(p)))
-			break;
-	}
-	if(!p)
-	{
-		if(pCon && ExtraOperation == ExOp_TouchDown)
-			pCon->ClearFocusingPtr();
-		p = dynamic_cast<IControl*>(pCon);
-	}
-	if(ExtraOperation == ExOp_TouchHeld)
-	{
-		if(p_TouchDown != p)
-		{
-			if(p_TouchDown)
-			{
-				if(p)
-					pt += LocateForWidget(*p, *p_TouchDown);
-				if(bEntered)
-				{
-					TouchEventArgs e(pt);
-
-					TryLeaving(*p_TouchDown, e);
-				}
-			}
-			return p_TouchDown;
-		}
-		else if(!bEntered)
-		{
-			TouchEventArgs e(pt);
-
-			TryEntering(*p, e);
-		}
-	}
-	return p;
-}
-
-IControl*
 YGUIShell::GetFocusedEnabledVisualControlPtr(IControl* p)
 {
 	return p && p->IsEnabled() ? p : NULL;
@@ -355,99 +305,112 @@ YGUIShell::ResponseKeyHeldBase(IControl& c, KeyEventArgs& e)
 }
 
 bool
-YGUIShell::ResponseTouchUpBase(IControl& c, TouchEventArgs& e)
-{
-	ResetTouchHeldState();
-	if(p_TouchDown == &c && TouchHeldState == Free)
-		CallEvent<Click>(c, e);
-	CallEvent<TouchUp>(c, e);
-	TryLeaving(c, e);
-	p_TouchDown = NULL;
-	return true;
-}
-
-bool
-YGUIShell::ResponseTouchDownBase(IControl& c, TouchEventArgs& e)
-{
-	p_TouchDown = &c;
-	TryEntering(c, e);
-	CallEvent<TouchDown>(c, e);
-	return true;
-}
-
-bool
-YGUIShell::ResponseTouchHeldBase(IControl& c, TouchEventArgs& e)
-{
-	/*	if(p_TouchDown != &c)
-	{
-	ResetTouchHeldState();
-	return false;
-	}*/
-	if(p_TouchDown == &c)
-	{
-		CallEvent<TouchHeld>(c, e);
-		return true;
-	}
-	return false;
-}
-
-bool
-YGUIShell::ResponseKeyBase(YDesktop& d, KeyEventArgs& e,
-	bool(YGUIShell::*pmf)(IControl&, KeyEventArgs&))
+YGUIShell::ResponseKey(YDesktop& d, KeyEventArgs& e,
+	Components::Controls::VisualEvent op)
 {
 	IControl* const p(GetFocusedEnabledVisualControlPtr(d));
+	bool(YGUIShell::*pmf)(IControl&, KeyEventArgs&)(NULL);
 
+	switch(op)
+	{
+	case KeyUp:
+		pmf = &YGUIShell::ResponseKeyUpBase;
+		break;
+	case KeyDown:
+		pmf = &YGUIShell::ResponseKeyDownBase;
+		break;
+	case KeyHeld:
+		pmf = &YGUIShell::ResponseKeyHeldBase;
+		break;
+	default:
+		YAssert(false, "Invalid function @@ YGUIShell::ResponseKeyBase;");
+	}
 	return (this->*pmf)(p ? *p : d, e);
 }
 
 bool
-YGUIShell::ResponseTouchBase(IUIBox& con, TouchEventArgs& e,
-	bool(YGUIShell::*pmf)(IControl&, TouchEventArgs&))
+YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
+	Components::Controls::VisualEvent op)
 {
 	ControlLocation = e;
 
-	IControl* const pVC(GetTouchedVisualControlPtr(con, e));
+	IControl* p(&c);
+	IUIBox* pCon;
 
-	return pVC ? (this->*pmf)(*pVC, e) : false;
-}
+	e.Strategy = Controls::RoutedEventArgs::Tunnel;
+	while(!e.IsHandled && (pCon = dynamic_cast<IUIBox*>(p)))
+	{
+		if(op == TouchDown)
+		{
+			RequestToTop(*p);
+			p->RequestFocus(GetStaticRef<EventArgs>());
+		}
+		p->GetEventMap().DoEvent<HTouchEvent>(op, *p, e);
+		e -= p->GetLocation();
 
-bool
-YGUIShell::ResponseKeyUp(YDesktop& d, KeyEventArgs& e)
-{
-	return ResponseKeyBase(d, e, &YGUIShell::ResponseKeyUpBase);
-}
+		IControl* t;
 
-bool
-YGUIShell::ResponseKeyDown(YDesktop& d, KeyEventArgs& e)
-{
-	return ResponseKeyBase(d, e, &YGUIShell::ResponseKeyDownBase);
-}
+		if(!(t = pCon->GetTopControlPtr(e)))
+		{
+			if(pCon && op == TouchDown)
+				pCon->ClearFocusingPtr();
+			break;
+		}
+		p = t;
+	}
 
-bool
-YGUIShell::ResponseKeyHeld(YDesktop& d, KeyEventArgs& e)
-{
-	return ResponseKeyBase(d, e, &YGUIShell::ResponseKeyHeldBase);
-}
+	YAssert(p, "Null pointer found @@ YGUIShell::ResponseTouch");
 
-bool
-YGUIShell::ResponseTouchUp(IUIBox& con, TouchEventArgs& e)
-{
-	ExtraOperation = ExOp_TouchUp;
-	return ResponseTouchBase(con, e, &YGUIShell::ResponseTouchUpBase);
-}
+	e.Strategy = Controls::RoutedEventArgs::Direct;
+	switch(op)
+	{
+	case TouchUp:
+		ResetTouchHeldState();
+		if(p_TouchDown == p && TouchHeldState == Free)
+			CallEvent<Click>(*p, e);
+		CallEvent<TouchUp>(*p, e);
+		TryLeaving(*p, e);
+		p_TouchDown = NULL;
+		break;
+	case TouchDown:
+		p_TouchDown = p;
+		TryEntering(*p, e);
+		CallEvent<TouchDown>(*p, e);
+		break;
+	case TouchHeld:
+		if(p_TouchDown != p)
+		{
+			if(p_TouchDown)
+			{
+				TouchEventArgs el(e);
 
-bool
-YGUIShell::ResponseTouchDown(IUIBox& con, TouchEventArgs& e)
-{
-	ExtraOperation = ExOp_TouchDown;
-	return ResponseTouchBase(con, e, &YGUIShell::ResponseTouchDownBase);
-}
-
-bool
-YGUIShell::ResponseTouchHeld(IUIBox& con, TouchEventArgs& e)
-{
-	ExtraOperation = ExOp_TouchHeld;
-	return ResponseTouchBase(con, e, &YGUIShell::ResponseTouchHeldBase);
+				if(p)
+					el += LocateForWidget(*p, *p_TouchDown);
+				if(bEntered)
+					TryLeaving(*p_TouchDown, el);
+			}
+		}
+		else if(!bEntered)
+			TryEntering(*p, e);
+	/*	if(p_TouchDown != p)
+		{
+		ResetTouchHeldState();
+		return false;
+		}*/
+		CallEvent<TouchHeld>(*p_TouchDown, e);
+		break;
+	default:
+		YAssert(false, "Invalid operation found"
+			" @@ YGUIShell::ResponseTouchBase;");
+	}
+	e.Strategy = Controls::RoutedEventArgs::Bubble;
+	while(!e.IsHandled && (pCon = p->GetContainerPtr()))
+	{
+		e += p->GetLocation();
+		p = dynamic_cast<IControl*>(pCon);
+		p->GetEventMap().DoEvent<HTouchEvent>(op, *p, e);
+	}
+	return true;
 }
 
 int

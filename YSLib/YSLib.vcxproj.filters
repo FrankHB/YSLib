@@ -217,6 +217,9 @@
     <ClInclude Include="include\YSLib\Shell\button.h">
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Core\ystatic.hpp">
+      <Filter>头文件\YSLib\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\yfont.cpp">

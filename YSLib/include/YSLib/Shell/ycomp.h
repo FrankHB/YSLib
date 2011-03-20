@@ -21,7 +21,7 @@
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2011-03-06 21:59 +0800;
+	2011-03-18 17:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,7 @@ YSL_END_NAMESPACE(Controls)
 
 YSL_BEGIN_NAMESPACE(Forms)
 PDeclInterface(IWindow)
-class YFrameWindow;
+class YWindow;
 class YForm;
 YSL_END_NAMESPACE(Forms)
 
@@ -360,7 +360,7 @@ YConsole::Pause()
 YSL_END_NAMESPACE(Components)
 
 using Components::Forms::YForm;
-using Components::Forms::YFrameWindow;
+using Components::Forms::YWindow;
 
 YSL_END
 

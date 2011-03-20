@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3510;
+\version 0.3515;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2010-03-08 14:13 +0800;
+	2010-03-18 17:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -181,7 +181,7 @@ void AFrameWindow::ClearFocusingPtr()
 }
 
 
-YFrameWindow::YFrameWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
+YWindow::YWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
 	: YComponent(),
 	AFrameWindow(r, i, hWnd), Buffer()
 {
@@ -192,7 +192,7 @@ YFrameWindow::YFrameWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
 	if(pDsk)
 		*pDsk += static_cast<IControl&>(*this);
 }
-YFrameWindow::~YFrameWindow() ythrow()
+YWindow::~YWindow() ythrow()
 {
 	YDesktop* pDsk(FetchDirectDesktopPtr(*this));
 
@@ -201,12 +201,12 @@ YFrameWindow::~YFrameWindow() ythrow()
 }
 
 bool
-YFrameWindow::DrawWidgets()
+YWindow::DrawWidgets()
 {
-	YWindowAssert(this, Forms::YFrameWindow, DrawWidgets);
+	YWindowAssert(this, Forms::YWindow, DrawWidgets);
 
 	bool bBgChanged(!IsBgRedrawed());
-	WidgetSet::iterator i;
+	WGTs::iterator i;
 
 	for(i = sWgtSet.begin(); !bBgChanged && i != sWgtSet.end(); ++i)
 	{

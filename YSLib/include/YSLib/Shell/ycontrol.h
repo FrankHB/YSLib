@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4839;
+\version 0.4887;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-03-08 09:16 +0800;
+	2011-03-19 19:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,24 +41,50 @@ YSL_BEGIN_NAMESPACE(Controls)
 
 using namespace Drawing;
 
-//! \brief 屏幕事件参数类。
-struct ScreenPositionEventArgs : public EventArgs, public Drawing::Point
+
+//! \brief 路由事件基类。
+struct RoutedEventArgs : public EventArgs
 {
 public:
-	/*!
-	\brief 构造：使用指定点。
-	*/
-	ScreenPositionEventArgs(const Drawing::Point& = Drawing::Point::Zero);
+	//! 事件路由策略枚举。
+	typedef enum
+	{
+		Bubble = 0, //!< 气泡事件：向上遍历视图树时触发。
+		Tunnel = 1, //!< 隧道事件：向下遍历视图树时触发。
+		Direct = 2 //!< 直接事件：仅当遍历至目标控件时触发。
+	} RoutingStrategy;
+
+	RoutingStrategy Strategy; //!< 事件路由策略。
+	bool IsHandled; //!< 事件已经被处理。
+
+	explicit
+	RoutedEventArgs(RoutingStrategy = Direct);
 };
 
 inline
-ScreenPositionEventArgs::ScreenPositionEventArgs(const Drawing::Point& pt)
-	: EventArgs(), Point(pt)
+RoutedEventArgs::RoutedEventArgs(RoutedEventArgs::RoutingStrategy s)
+	: Strategy(s)
+{}
+
+
+//! \brief 屏幕事件参数模块类。
+struct MScreenPositionEventArgs : public Drawing::Point
+{
+protected:
+	/*!
+	\brief 构造：使用指定点。
+	*/
+	MScreenPositionEventArgs(const Drawing::Point& = Drawing::Point::Zero);
+};
+
+inline
+MScreenPositionEventArgs::MScreenPositionEventArgs(const Drawing::Point& pt)
+	: Point(pt)
 {}
 
 
 //! \brief 输入事件参数类。
-struct InputEventArgs
+struct InputEventArgs : public RoutedEventArgs
 {
 public:
 	typedef Runtime::Key Key;
@@ -66,9 +92,9 @@ public:
 	Key key;
 
 	/*!
-	\brief 构造：使用本机键按下对象。
+	\brief 构造：使用本机键按下对象和路由事件类型。
 	*/
-	InputEventArgs(const Key& = 0);
+	InputEventArgs(const Key& = 0, RoutingStrategy = Direct);
 
 	DefConverter(Key, key)
 
@@ -76,42 +102,44 @@ public:
 };
 
 inline
-InputEventArgs::InputEventArgs(const Key& k)
-	: key(k)
+InputEventArgs::InputEventArgs(const Key& k, RoutingStrategy s)
+	: RoutedEventArgs(s), key(k)
 {}
 
 
 //! \brief 键盘输入事件参数类。
-struct KeyEventArgs : public EventArgs, public InputEventArgs
+struct KeyEventArgs : public InputEventArgs
 {
+public:
 	typedef Key InputType; //!< 输入类型。
 
 	/*!
-	\brief 构造：使用输入类型对象。
+	\brief 构造：使用输入类型对象和路由事件类型。
 	*/
-	KeyEventArgs(const InputType& = 0);
+	KeyEventArgs(const InputType& = 0, RoutingStrategy = Direct);
 };
 
 inline
-KeyEventArgs::KeyEventArgs(const InputType& k)
-	: InputEventArgs(k)
+KeyEventArgs::KeyEventArgs(const InputType& k, RoutingStrategy s)
+	: InputEventArgs(k, s)
 {}
 
 
 //! \brief 指针设备输入事件参数类。
-struct TouchEventArgs : public ScreenPositionEventArgs, public InputEventArgs
+struct TouchEventArgs : public InputEventArgs, public MScreenPositionEventArgs
 {
+public:
 	typedef Drawing::Point InputType; //!< 输入类型。
 
 	/*!
-	\brief 构造：使用输入类型对象。
+	\brief 构造：使用输入类型对象和路由事件类型。
 	*/
-	TouchEventArgs(const InputType& = InputType::Zero);
+	TouchEventArgs(const InputType& = InputType::Zero, RoutingStrategy = Direct);
 };
 
 inline
-TouchEventArgs::TouchEventArgs(const InputType& pt)
-	: ScreenPositionEventArgs(pt), InputEventArgs()
+TouchEventArgs::TouchEventArgs(const InputType& pt, RoutingStrategy s)
+	: InputEventArgs(s), MScreenPositionEventArgs(pt)
 {}
 
 
@@ -246,13 +274,16 @@ DefEventTypeMapping(Enter, HInputEvent)
 DefEventTypeMapping(Leave, HInputEvent)
 
 
+//! \brief 控件事件映射表类型。
+typedef Runtime::GEventMap<VisualEvent> VisualEventMapType;
+
+
 //! \brief 控件接口。
 DeclBasedInterface1(IControl, virtual IWidget)
 	DeclIEntry(bool IsEnabled() const) //!< 判断是否有效。
 	DeclIEntry(bool IsFocused() const) //!< 判断是否取得焦点。
 
-	DeclIEntry(Runtime::GEventMap<VisualEvent>& GetEventMap() const) \
-		//!< 取事件映射表。
+	DeclIEntry(VisualEventMapType& GetEventMap() const) //!< 取事件映射表。
 
 	DeclIEntry(void SetEnabled(bool)) //!< 设置有效性。
 
@@ -271,14 +302,38 @@ EndDecl
 \note 若控件事件不存在则自动添加空事件。
 */
 template<VisualEvent id>
-inline typename Runtime::GSEvent<typename EventTypeMapping<id>
-	::HandlerType>::EventType&
+inline typename EventT(typename EventTypeMapping<id>::HandlerType)&
+FetchEvent(VisualEventMapType& m)
+{
+	return m.GetEvent<typename EventTypeMapping<id>::HandlerType>(id);
+}
+/*!
+\ingroup HelperFunction
+\brief 取控件事件。
+\note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
+\note 若控件事件不存在则自动添加空事件。
+*/
+template<VisualEvent id>
+inline typename EventT(typename EventTypeMapping<id>::HandlerType)&
 FetchEvent(IControl& c)
 {
-	return c.GetEventMap().GetEvent<typename EventTypeMapping<id>
-		::HandlerType>(id);
+	return FetchEvent<id>(c.GetEventMap());
 }
 
+/*!
+\ingroup HelperFunction
+\brief 调用控件事件。
+\note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
+\note 若控件事件不存在则忽略。
+*/
+template<VisualEvent id>
+inline void
+CallEvent(VisualEventMapType& m, typename EventTypeMapping<id>
+	::HandlerType::SenderType& sender, typename EventTypeMapping<id>
+	::HandlerType::EventArgsType& e)
+{
+	m.DoEvent<typename EventTypeMapping<id>::HandlerType>(id, sender, e);
+}
 /*!
 \ingroup HelperFunction
 \brief 调用控件事件。
@@ -291,8 +346,7 @@ CallEvent(IControl& c, typename EventTypeMapping<id>
 	::HandlerType::SenderType& sender, typename EventTypeMapping<id>
 	::HandlerType::EventArgsType& e)
 {
-	c.GetEventMap().DoEvent<typename EventTypeMapping<id>
-		::HandlerType>(id, sender, e);
+	CallEvent<id>(c.GetEventMap(), sender, e);
 }
 /*!
 \ingroup HelperFunction
@@ -305,8 +359,7 @@ inline void
 CallEvent(IControl& c, typename EventTypeMapping<id>
 	::HandlerType::EventArgsType& e)
 {
-	c.GetEventMap().DoEvent<typename EventTypeMapping<id>
-		::HandlerType>(id, c, e);
+	CallEvent<id>(c.GetEventMap(), c, e);
 }
 
 
@@ -348,7 +401,7 @@ private:
 	bool enabled; //!< 控件有效性。
 
 protected:
-	mutable Runtime::GEventMap<VisualEvent> EventMap; //!< 事件映射表。
+	mutable VisualEventMapType EventMap; //!< 事件映射表。
 
 public:
 	//标准控件事件见 VisualEvent 。
@@ -379,8 +432,7 @@ public:
 	ImplI1(IControl) DefGetterBase(const Point&, Location, Visual)
 	ImplI1(IControl) DefGetterBase(const Size&, Size, Visual)
 	ImplI1(IControl) DefGetterBase(IUIBox*, ContainerPtr, Widget)
-	ImplI1(IControl) DefGetter(Runtime::GEventMap<VisualEvent>&, EventMap,
-		EventMap)
+	ImplI1(IControl) DefGetter(VisualEventMapType&, EventMap, EventMap)
 
 	ImplI1(IControl) DefSetterBase(bool, Visible, Visual)
 	ImplI1(IControl) DefSetterBase(bool, Transparent, Visual)

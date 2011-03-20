@@ -11,12 +11,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2365;
+\version 0.2367;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-16 19:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -224,9 +224,8 @@ namespace platform
 	//	std::terminate();
 	}
 
-
-	static bool
-	bDebugStatus = false;
+	
+	static bool bDebugStatus(false);
 
 	void
 	YDebugSetStatus(bool s)

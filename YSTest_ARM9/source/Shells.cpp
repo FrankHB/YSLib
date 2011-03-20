@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3586;
+\version 0.3594;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-03-07 13:16 +0800;
+	2011-03-18 17:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -208,7 +208,7 @@ namespace
 	InputCounter(const Point& pt)
 	{
 		sprintf(strCount, "%d,%d,%d;Count = %d, Pos = (%d, %d);",
-			sizeof(AWindow), sizeof(YFrameWindow), sizeof(YForm),
+			sizeof(AWindow), sizeof(YWindow), sizeof(YForm),
 			nCountInput++, pt.X, pt.Y);
 	}
 
@@ -217,7 +217,7 @@ namespace
 	{
 	//	nCountInput++;
 	//	std::sprintf(strCount, "%d,%d,%d,%d,",sizeof(YForm),sizeof(YShell),
-	//		sizeof(YApplication),sizeof(YFrameWindow));
+	//		sizeof(YApplication),sizeof(YWindow));
 		struct mallinfo t(mallinfo());
 
 	/*	std::sprintf(strCount, "%d,%d,%d,%d,%d;",
@@ -277,10 +277,10 @@ ReleaseShells()
 {
 	for(std::size_t i(0); i != 10; ++i)
 		YReset(GetGlobalImageRef(i));
-	GStaticCache<ShlReader, GHHandle<YShell> >::Release();
-	GStaticCache<ShlSetting, GHHandle<YShell> >::Release();
-	GStaticCache<ShlExplorer, GHHandle<YShell> >::Release();
-	GStaticCache<ShlLoad, GHHandle<YShell> >::Release();
+	ReleaseStored<ShlReader>();
+	ReleaseStored<ShlSetting>();
+	ReleaseStored<ShlExplorer>();
+	ReleaseStored<ShlLoad>();
 	ReleaseGlobalResource<TextRegion>();
 }
 

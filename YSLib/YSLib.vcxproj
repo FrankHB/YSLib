@@ -41,6 +41,7 @@
     <ClInclude Include="include\YSLib\Core\yshell.h" />
     <ClInclude Include="include\YSLib\Core\ysmsg.h" />
     <ClInclude Include="include\YSLib\Core\ysmsgdef.h" />
+    <ClInclude Include="include\YSLib\Core\ystatic.hpp" />
     <ClInclude Include="include\YSLib\Core\ystring.h" />
     <ClInclude Include="include\YSLib\Helper\shlds.h" />
     <ClInclude Include="include\YSLib\Helper\yglobal.h" />

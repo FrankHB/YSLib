@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1626;
+\version 0.1647;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-03-05 23:02 +0800;
+	2011-03-19 23:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -137,21 +137,47 @@ ResponseInput(const Message& msg)
 
 	Runtime::KeysInfo& k(pContext->Key);
 	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
+	YDesktop& d(theApp.GetPlatformResource().GetTouchableDesktop());
 
 	using namespace Runtime::KeySpace;
+	using namespace Components::Controls;
 
 	if(k.Up & Touch)
-		OnTouchUp(hShl, pContext->CursorLocation);
+	{
+		Components::Controls::TouchEventArgs e(pContext->CursorLocation);
+
+		hShl->ResponseTouch(d, e, TouchUp);
+	}
 	else if(k.Up)
-		OnKeyUp(hShl, k.Up);
+	{
+		Components::Controls::KeyEventArgs e(k.Up);
+
+		hShl->ResponseKey(d, e, KeyUp);
+	}
 	if(k.Down & Touch)
-		OnTouchDown(hShl, pContext->CursorLocation);
+	{
+		Components::Controls::TouchEventArgs e(pContext->CursorLocation);
+
+		hShl->ResponseTouch(d, e, TouchDown);
+	}
 	else if(k.Down)
-		OnKeyDown(hShl, k.Down);
+	{
+		Components::Controls::KeyEventArgs e(k.Down);
+
+		hShl->ResponseKey(d, e, KeyDown);
+	}
 	if(k.Held & Touch)
-		OnTouchHeld(hShl, pContext->CursorLocation);
+	{
+		Components::Controls::TouchEventArgs e(pContext->CursorLocation);
+
+		hShl->ResponseTouch(d, e, TouchHeld);
+	}
 	else if(k.Held)
-		OnKeyHeld(hShl, k.Held);
+	{
+		Components::Controls::KeyEventArgs e(k.Held);
+
+		hShl->ResponseKey(d, e, KeyHeld);
+	}
 }
 
 

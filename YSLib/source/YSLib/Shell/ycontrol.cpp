@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4053;
+\version 0.4091;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-03-06 22:19 +0800;
+	2011-03-20 13:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -48,44 +48,54 @@ OnKeyHeld(IControl& c, KeyEventArgs& e)
 void
 OnTouchHeld(IControl& c, TouchEventArgs& e)
 {
-	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
+	if(e.Strategy == RoutedEventArgs::Direct)
+	{
+		GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
 
-	if(hShl->DraggingOffset == Vec::FullScreen)
-		hShl->DraggingOffset = c.GetLocation() - hShl->ControlLocation;
-	else
-		FetchEvent<TouchMove>(c)(c, e);
-	hShl->LastControlLocation = hShl->ControlLocation;
+		if(hShl->DraggingOffset == Vec::FullScreen)
+			hShl->DraggingOffset = c.GetLocation() - hShl->ControlLocation;
+		else
+			FetchEvent<TouchMove>(c)(c, e);
+		hShl->LastControlLocation = hShl->ControlLocation;
+	}
 }
 
 void
 OnTouchMove(IControl& c, TouchEventArgs& e)
 {
-	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
+	if(e.Strategy == RoutedEventArgs::Direct)
+	{
+		GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
 
-	if(hShl->RepeatHeld(hShl->TouchHeldState, 240, 60))
-		FetchEvent<TouchDown>(c)(c, e);
+		if(hShl->RepeatHeld(hShl->TouchHeldState, 240, 60))
+			CallEvent<TouchDown>(c, e);
+	}
 }
 
 void
-OnTouchMove_Dragging(IControl& c, TouchEventArgs&)
+OnTouchMove_Dragging(IControl& c, TouchEventArgs& e)
 {
-	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
-
-	if(hShl->LastControlLocation != hShl->ControlLocation)
+	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		c.SetLocation(hShl->LastControlLocation + hShl->DraggingOffset);
-		c.Refresh();
+		GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
+
+		if(hShl->LastControlLocation != hShl->ControlLocation)
+		{
+			c.SetLocation(hShl->LastControlLocation + hShl->DraggingOffset);
+			c.Refresh();
+		}
 	}
 }
 
 
 Control::Control(const Rect& r, IUIBox* pCon)
-	: Widget(r, pCon), AFocusRequester(), enabled(true), EventMap()
+	: Widget(r, pCon), AFocusRequester(), enabled(true),
+	EventMap()
 {
-	FetchEvent<GotFocus>(*this) += &Control::OnGotFocus;
-	FetchEvent<LostFocus>(*this) += &Control::OnLostFocus;
-	FetchEvent<TouchDown>(*this) += &Control::OnTouchDown;
-	FetchEvent<TouchHeld>(*this) += OnTouchHeld;
+	FetchEvent<GotFocus>(EventMap) += &Control::OnGotFocus;
+	FetchEvent<LostFocus>(EventMap) += &Control::OnLostFocus;
+	FetchEvent<TouchDown>(EventMap) += &Control::OnTouchDown;
+	FetchEvent<TouchHeld>(EventMap) += OnTouchHeld;
 
 	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
 
@@ -163,7 +173,8 @@ Control::OnLostFocus(EventArgs&)
 void
 Control::OnTouchDown(TouchEventArgs& e)
 {
-	RequestFocus(e);
+	if(e.Strategy == RoutedEventArgs::Direct)
+		RequestFocus(e);
 }
 
 

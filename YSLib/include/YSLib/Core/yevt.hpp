@@ -10,13 +10,13 @@
 
 /*!	\file yevt.hpp
 \ingroup Core
-\brief 事件回调模块。
-\version 0.3978;
+\brief 事件回调实现。
+\version 0.4112;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-18 15:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -136,8 +136,8 @@ public:
 	typedef GSEventTypeSpace<_tSender, _tEventArgs> SEventType;
 	typedef typename SEventType::FuncType FuncType;
 	typedef typename SEventType::FunctorType FunctorType;
-	typedef GHEvent<_tSender, _tEventArgs> _tEventHandler;
-	typedef list<_tEventHandler> ListType;
+	typedef GHEvent<_tSender, _tEventArgs> HandlerType;
+	typedef list<HandlerType> ListType;
 
 protected:
 	ListType List; //!< 响应列表。
@@ -163,7 +163,7 @@ protected:
 	\note 不检查是否已经在列表中。
 	*/
 	inline GEvent&
-	AddRaw(const _tEventHandler& h)
+	AddRaw(const HandlerType& h)
 	{
 		List.push_back(h);
 		return *this;
@@ -185,7 +185,7 @@ public:
 	\brief 赋值：覆盖事件响应：使用事件处理器。
 	*/
 	inline GEvent&
-	operator=(const _tEventHandler& h)
+	operator=(const HandlerType& h)
 	{
 		this->Clear();
 		return this->AddRaw(h);
@@ -196,7 +196,7 @@ public:
 	inline GEvent&
 	operator=(FuncType& f)
 	{
-		return *this = _tEventHandler(f);
+		return *this = HandlerType(f);
 	}
 	/*!
 	\brief 赋值：覆盖事件响应：使用函数对象。
@@ -205,7 +205,7 @@ public:
 	operator=(FunctorType f)
 	{
 		this->Clear();
-		return *this = _tEventHandler(f);
+		return *this = HandlerType(f);
 	}
 	/*!
 	\brief 赋值：覆盖事件响应：使用成员函数指针。
@@ -215,13 +215,13 @@ public:
 	operator=(void(_type::*pm)(_tEventArgs&))
 	{
 		this->Clear();
-		return *this = _tEventHandler(pm);
+		return *this = HandlerType(pm);
 	}
 	/*!
 	\brief 添加事件响应：使用事件处理器。
 	*/
 	GEvent&
-	operator+=(const _tEventHandler& h)
+	operator+=(const HandlerType& h)
 	{
 		this->operator-=(h);
 		return this->AddRaw(h);
@@ -232,7 +232,7 @@ public:
 	inline GEvent&
 	operator+=(FuncType& f)
 	{
-		return this->operator+=(_tEventHandler(f));
+		return this->operator+=(HandlerType(f));
 	}
 	/*!
 	\brief 添加事件响应：使用函数对象。
@@ -240,7 +240,7 @@ public:
 	inline GEvent&
 	operator+=(FunctorType f)
 	{
-		return this->operator+=(_tEventHandler(f));
+		return this->operator+=(HandlerType(f));
 	}
 	/*!
 	\brief 添加事件响应：使用成员函数指针。
@@ -249,7 +249,7 @@ public:
 	inline GEvent&
 	operator+=(void(_type::*pm)(_tEventArgs&))
 	{
-		return this->operator+=(_tEventHandler(pm));
+		return this->operator+=(HandlerType(pm));
 	}
 	/*!
 	\brief 添加事件响应：使用对象引用和成员函数指针。
@@ -258,13 +258,13 @@ public:
 	inline GEvent&
 	Add(_type& obj, void(_type::*pm)(_tEventArgs&))
 	{
-		return this->operator+=(_tEventHandler(obj, pm));
+		return this->operator+=(HandlerType(obj, pm));
 	}
 	/*!
 	\brief 移除事件响应：目标为指定事件处理器。
 	*/
 	GEvent&
-	operator-=(const _tEventHandler& h)
+	operator-=(const HandlerType& h)
 	{
 		ystdex::erase_all(this->List, h);
 		return *this;
@@ -275,7 +275,7 @@ public:
 	inline GEvent&
 	operator-=(FuncType& f)
 	{
-		return this->operator-=(_tEventHandler(f));
+		return this->operator-=(HandlerType(f));
 	}
 	/*!
 	\brief 
@@ -283,7 +283,7 @@ public:
 	inline GEvent&
 	operator-=(FunctorType f)
 	{
-		return this->operator-=(_tEventHandler(f));
+		return this->operator-=(HandlerType(f));
 	}
 	/*!
 	\brief 移除事件响应：目标为指定成员函数指针。
@@ -292,7 +292,7 @@ public:
 	inline GEvent&
 	operator-=(void(_type::*pm)(_tEventArgs&))
 	{
-		return operator-=(_tEventHandler(pm));
+		return operator-=(HandlerType(pm));
 	}
 	/*!
 	\brief 移除事件响应：目标为指定对象引用和成员函数指针。
@@ -301,7 +301,7 @@ public:
 	inline GEvent&
 	Remove(_type& obj, void(_type::*pm)(_tEventArgs&))
 	{
-		return operator-=(_tEventHandler(obj, pm));
+		return operator-=(HandlerType(obj, pm));
 	}
 
 	/*!
@@ -310,7 +310,7 @@ public:
 	void
 	operator()(_tSender& sender, _tEventArgs& e) const
 	{
-		for(typename list<_tEventHandler>
+		for(typename list<HandlerType>
 				::const_iterator i(this->List.begin());
 				i != this->List.end(); ++i)
 			(*i)(sender, e);
@@ -354,30 +354,30 @@ struct GEvent<false, _tSender, _tEventArgs>
 	typedef GSEventTypeSpace<_tSender, _tEventArgs> SEventType;
 	typedef typename SEventType::FuncType FuncType;
 	typedef typename SEventType::FunctorType FunctorType;
-	typedef typename SEventType::_tEventHandler _tEventHandler;
+	typedef typename SEventType::_tEventHandler HandlerType;
 
 	/*!
 	\brief 无参数构造。
 	*/
 	inline
 	GEvent()
-		: _tEventHandler()
+		: HandlerType()
 	{}
 
 	/*!
 	\brief 
 	*/
 	inline GEvent&
-	operator=(const _tEventHandler* p)
+	operator=(const HandlerType* p)
 	{
-		_tEventHandler::_ptr = p;
+		HandlerType::_ptr = p;
 		return *this;
 	}
 	/*!
 	\brief 添加事件响应：使用事件处理器。
 	*/
 	inline GEvent&
-	operator+=(const _tEventHandler& h)
+	operator+=(const HandlerType& h)
 	{
 		return *this = h;
 	}
@@ -387,7 +387,7 @@ struct GEvent<false, _tSender, _tEventArgs>
 	inline GEvent&
 	operator+=(FuncType& f)
 	{
-		return operator+=(_tEventHandler(f));
+		return operator+=(HandlerType(f));
 	}
 	/*!
 	\brief 添加事件响应：使用函数对象。
@@ -395,16 +395,16 @@ struct GEvent<false, _tSender, _tEventArgs>
 	inline GEvent&
 	operator+=(FunctorType f)
 	{
-		return operator+=(_tEventHandler(f));
+		return operator+=(HandlerType(f));
 	}
 	/*!
 	\brief 移除事件响应：目标为指定事件处理器。
 	*/
 	GEvent&
-	operator-=(const _tEventHandler& h)
+	operator-=(const HandlerType& h)
 	{
-		if(_tEventHandler::_ptr == h)
-			_tEventHandler::_ptr = NULL;
+		if(HandlerType::_ptr == h)
+			HandlerType::_ptr = NULL;
 		return *this;
 	}
 	/*!
@@ -413,7 +413,7 @@ struct GEvent<false, _tSender, _tEventArgs>
 	inline GEvent&
 	operator-=(FuncType& f)
 	{
-		return operator-=(_tEventHandler(f));
+		return operator-=(HandlerType(f));
 	}
 	/*!
 	\brief 移除事件响应：目标为指定函数对象。
@@ -421,16 +421,16 @@ struct GEvent<false, _tSender, _tEventArgs>
 	inline GEvent&
 	operator-=(FunctorType f)
 	{
-		return operator-=(_tEventHandler(f));
+		return operator-=(HandlerType(f));
 	}
 
 	/*!
 	\brief 取事件处理器指针。
 	*/
-	inline _tEventHandler*
+	inline HandlerType*
 	GetHandlerPtr()
 	{
-		return _tEventHandler::_ptr;
+		return HandlerType::_ptr;
 	}
 
 	/*!
@@ -439,7 +439,7 @@ struct GEvent<false, _tSender, _tEventArgs>
 	inline void
 	Clear()
 	{
-		_tEventHandler::_ptr = NULL;
+		HandlerType::_ptr = NULL;
 	}
 };
 
@@ -447,6 +447,141 @@ struct GEvent<false, _tSender, _tEventArgs>
 //! \brief 定义事件处理器委托类型。
 #define DefDelegate(_name, _tSender, _tEventArgs) \
 	typedef Runtime::GHEvent<_tSender, _tEventArgs> _name;
+
+
+/*!
+\brief 依赖事件项类模板。
+*/
+template<class _tEvent>
+class GDependencyEvent : public GDependency<_tEvent>
+{
+public:
+	typedef typename GDependency<_tEvent>::PointerType PointerType;
+	typedef _tEvent EventType;
+	typedef typename EventType::SenderType SenderType;
+	typedef typename EventType::EventArgsType EventArgsType;
+	typedef typename EventType::SEventType SEventType;
+	typedef typename EventType::FuncType FuncType;
+	typedef typename EventType::FunctorType FunctorType;
+	typedef typename EventType::HandlerType HandlerType;
+	typedef typename EventType::ListType ListType;
+
+	GDependencyEvent(PointerType p = NULL)
+		: GDependency<_tEvent>(p)
+	{}
+
+	/*!
+	\brief 添加事件响应：使用事件处理器。
+	*/
+	EventType&
+	operator+=(const HandlerType& h)
+	{
+		return this->GetNewRef().operator+=(h);
+	}
+	/*!
+	\brief 添加事件响应：使用函数引用。
+	*/
+	inline EventType&
+	operator+=(FuncType& f)
+	{
+		return this->GetNewRef().operator+=(f);
+	}
+	/*!
+	\brief 添加事件响应：使用函数对象。
+	*/
+	inline EventType&
+	operator+=(FunctorType f)
+	{
+		return this->GetNewRef().operator+=(f);
+	}
+	/*!
+	\brief 添加事件响应：使用成员函数指针。
+	*/
+	template<class _type>
+	inline EventType&
+	operator+=(void(_type::*pm)(EventArgsType&))
+	{
+		return this->GetNewRef().operator+=(pm);
+	}
+	/*!
+	\brief 添加事件响应：使用对象引用和成员函数指针。
+	*/
+	template<class _type>
+	inline EventType&
+	Add(_type& obj, void(_type::*pm)(EventArgsType&))
+	{
+		return this->GetNewRef().Add(obj, pm);
+	}
+	/*!
+	\brief 移除事件响应：目标为指定事件处理器。
+	*/
+	EventType&
+	operator-=(const HandlerType& h)
+	{
+		return this->GetNewRef().operator-=(h);
+	}
+	/*!
+	\brief 移除事件响应：目标为指定函数引用。
+	*/
+	inline EventType&
+	operator-=(FuncType& f)
+	{
+		return this->GetNewRef().operator-=(f);
+	}
+	/*!
+	\brief 
+	*/
+	inline EventType&
+	operator-=(FunctorType f)
+	{
+		return this->GetNewRef().operator-=(f);
+	}
+	/*!
+	\brief 移除事件响应：目标为指定成员函数指针。
+	*/
+	template<class _type>
+	inline EventType&
+	operator-=(void(_type::*pm)(EventArgsType&))
+	{
+		return this->GetNewRef().operator-=(pm);
+	}
+	/*!
+	\brief 移除事件响应：目标为指定对象引用和成员函数指针。
+	*/
+	template<class _type>
+	inline EventType&
+	Remove(_type& obj, void(_type::*pm)(EventArgsType&))
+	{
+		return this->GetNewRef().Remove(obj, pm);
+	}
+
+	/*!
+	\brief 调用函数。
+	*/
+	inline void
+	operator()(SenderType& sender, EventArgsType& e) const
+	{
+		return this->GetRef().operator()(sender, e);
+	}
+
+	/*!
+	\brief 取列表中的响应数。
+	*/
+	inline typename ListType::size_type
+	GetSize() const
+	{
+		return this->GetRef().GetSize();
+	}
+
+	/*!
+	\brief 清除：移除所有事件响应。
+	*/
+	inline void
+	Clear()
+	{
+		return this->GetNewRef().Clear();
+	}
+};
 
 
 #ifdef YSL_EVENT_MULTICAST
@@ -462,6 +597,7 @@ struct GSEvent
 		typename _tEventHandler::SenderType,
 		typename _tEventHandler::EventArgsType
 	> EventType;
+	typedef Runtime::GDependencyEvent<EventType> DependencyType;
 };
 
 #else
@@ -477,6 +613,7 @@ struct GSEvent
 		typename _tEventHandler::SenderType,
 		typename _tEventHandler::EventArgsType
 	> EventType;
+	typedef Runtime::GDependencyEvent<EventType> DependencyType;
 };
 
 #endif
@@ -485,18 +622,26 @@ struct GSEvent
 //! \brief 事件类型宏。
 #define EventT(_tEventHandler) \
 	Runtime::GSEvent<_tEventHandler>::EventType
+#define DepEventT(_tEventHandler) \
+	Runtime::GSEvent<_tEventHandler>::DependencyType
 
 //! \brief 声明事件。
 #define DeclEvent(_tEventHandler, _name) \
 	EventT(_tEventHandler) _name;
+#define DeclDepEvent(_tEventHandler, _name) \
+	DepEventT(_tEventHandler) _name;
 
 //! \brief 声明事件引用。
 #define DeclEventRef(_tEventHandler, _name) \
 	EventT(_tEventHandler)& _name;
+#define DeclDepEventRef(_tEventHandler, _name) \
+	DepEventT(_tEventHandler)& _name;
 
 //! \brief 声明事件接口函数。
 #define DeclIEventEntry(_tEventHandler, _name) \
 	DeclIEntry(const EventT(_tEventHandler)& _yJOIN(Get, _name)() const)
+#define DeclIDepEventEntry(_tEventHandler, _name) \
+	DeclIEntry(const DepEventT(_tEventHandler)& _yJOIN(Get, _name)() const)
 
 //! \brief 定义事件访问器。
 #define DefEventGetter(_tEventHandler, _name, _member) \
@@ -505,6 +650,12 @@ struct GSEvent
 	DefGetterBase(const EventT(_tEventHandler)&, _name, _base)
 #define DefEventGetterMember(_tEventHandler, _name, _member) \
 	DefGetterMember(const EventT(_tEventHandler)&, _name, _member)
+#define DefDepEventGetter(_tEventHandler, _name, _member) \
+	DefGetter(const DepEventT(_tEventHandler)&, _name, _member)
+#define DefDepEventGetterBase(_tEventHandler, _name, _base) \
+	DefGetterBase(const DepEventT(_tEventHandler)&, _name, _base)
+#define DefDepEventGetterMember(_tEventHandler, _name, _member) \
+	DefGetterMember(const DepEventT(_tEventHandler)&, _name, _member)
 
 //! \brief 定义事件可修改访问器。
 #define DefMutableEventGetter(_tEventHandler, _name, _member) \
@@ -513,6 +664,13 @@ struct GSEvent
 	DefMutableGetterBase(EventT(_tEventHandler)&, _name, _base)
 #define DefMutableEventGetterMember(_tEventHandler, _name, _member) \
 	DefMutableGetterMember(EventT(_tEventHandler)&, _name, _member)
+#define DefMutableDepEventGetter(_tEventHandler, _name, _member) \
+	DefMutableGetter(DepEventT(_tEventHandler)&, _name, _member)
+#define DefMutableDepEventGetterBase(_tEventHandler, _name, _base) \
+	DefMutableGetterBase(DepEventT(_tEventHandler)&, _name, _base)
+#define DefMutableDepEventGetterMember(_tEventHandler, _name, _member) \
+	DefMutableGetterMember(DepEventT(_tEventHandler)&, _name, _member)
+
 
 //! \brief 事件处理器接口模板。
 template<class _tSender = YObject, class _tEventArgs = EventArgs>
@@ -541,7 +699,7 @@ public:
 		SenderType* p(dynamic_cast<SenderType*>(&sender));
 
 		if(p)
-			_tEvent::operator()(*p, reinterpret_cast<EventArgsType&>(e));
+			EventType::operator()(*p, reinterpret_cast<EventArgsType&>(e));
 	}
 };
 
@@ -572,6 +730,17 @@ public:
 		: m_map()
 	{}
 
+	/*!
+	\brief 访问映射表数据。
+	\throw 参数越界。
+	\note 仅抛出以上异常。
+	*/
+	inline PointerType&
+	at(const ID& k) const ythrow(std::out_of_range)
+	{
+		return m_map.at(k);
+	}
+
 private:
 	InternalPairType
 	GetSerachResult(const ID& id) const
@@ -584,7 +753,7 @@ public:
 	\brief 取指定 id 对应的 _tEventHandler 类型事件。
 	*/
 	template<class _tEventHandler>
-	typename Runtime::GSEvent<_tEventHandler>::EventType&
+	typename EventT(_tEventHandler)&
 	GetEvent(const ID& id) const
 	{
 		InternalPairType pr(GetSerachResult(id));
@@ -613,6 +782,16 @@ public:
 	}
 
 	/*!
+	\brief 插入映射项。
+	\return 是否插入成功。
+	*/
+	bool
+	Insert(const ID& id, PointerType p)
+	{
+		return m_map.insert(PairType(id, p)).second;
+	}
+
+	/*!
 	\brief 清除映射表。
 	*/
 	inline void
@@ -620,21 +799,6 @@ public:
 	{
 		m_map.clear();
 	}
-};
-
-
-//! \brief 标准事件回调函数抽象类模板。
-template<class _tResponser, class _tEventArgs>
-struct GAHEventCallback : public _tEventArgs
-{
-	/*!
-	\brief 构造：使用事件参数。
-	*/
-	inline explicit
-	GAHEventCallback(_tEventArgs& e)
-		: _tEventArgs(e)
-	{}
-	DeclIEntry(bool operator()(_tResponser&))
 };
 
 YSL_END_NAMESPACE(Runtime)

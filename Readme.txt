@@ -61,4 +61,9 @@ $(NDSEmulator) $(TargetPath) --cflash-path=H:\NDS\efsroot
 2011-01-21
 补遗：使用新版本DeSmuME可以运行。因为我不时更新SVN版，所以没很长时间没注意到devkitPro官网上说的最近的libnds无法在最新的DeSmuMe的release版（0.9.6；这个版本还有关于FAT访问的bug）中运行……
 顺便删了makefile里面的DLDI patch命令行（反正模拟器会自动打补丁）。
+====
+2011-3-20
+发现优化-O0以上除了-Os外出问题（莫名其妙就控件状态就乱掉了），照着gnu.gcc.org上的Manual上的优化选项一个个试了，居然全部没问题……
+更orz的是-Os加上对照-Os禁用的选项后文件体积还缩小了1K。
+暂时先这样，继续原因不明好了……
 

@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup Shell
 \brief GUI 焦点特性实现。
-\version 0.2283;
+\version 0.2304;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-03-07 10:28 +0800;
+	2011-03-14 20:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,8 +28,7 @@
 #define INCLUDED_YMODULE_H_
 
 #include "../Core/ysdef.h"
-#include "../Core/ycutil.h"
-#include "../Core/yobject.h"
+#include "../Core/ystatic.hpp"
 #include "ycomp.h"
 
 YSL_BEGIN
@@ -79,12 +78,12 @@ inline MSimpleFocusResponser::MSimpleFocusResponser()
 template<class _type>
 class GMFocusResponser : public NonCopyable
 {
+public:
+	typedef set<_type*> FOs; //!< 焦点对象组类型。
+
 protected:
 	_type* pFocusing; //!< 焦点对象指针。
-	GContainer<_type> sFOs; //!< 焦点对象组。
-
-	typedef typename GContainer<_type>::ContainerType FOs; \
-		//!< 焦点对象组类型。
+	FOs sFOs; //!< 焦点对象组。
 
 	/*!
 	\brief 无参数构造。
@@ -125,10 +124,10 @@ public:
 
 	//! \brief 向焦点对象组添加焦点对象。
 	inline PDefHOperator1(void, +=, _type& c)
-		ImplRet(sFOs += c)
+		ImplRet(static_cast<void>(sFOs.insert(&c)))
 	//! \brief 从焦点对象组移除焦点对象。
 	inline PDefHOperator1(bool, -=, _type& c)
-		ImplRet(sFOs -= c)
+		ImplRet(sFOs.erase(&c) != 0)
 
 	//! \brief 清空焦点指针。
 	inline PDefH0(void, ClearFocusingPtr)
