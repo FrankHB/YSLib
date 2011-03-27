@@ -11,12 +11,12 @@
 /*!	\file yshelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.1245;
+\version 0.1249;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-04 13:42:15 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-23 11:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,12 +27,6 @@
 #include "yshelper.h"
 
 YSL_BEGIN
-
-GHHandle<YGUIShell>
-FetchGUIShellHandle()
-{
-	return general_handle_cast<YGUIShell>(FetchShellHandle());
-}
 
 YSL_BEGIN_NAMESPACE(Drawing)
 

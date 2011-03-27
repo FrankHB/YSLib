@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件实现。
-\version 0.3501;
+\version 0.3513;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-03-20 13:12 +0800;
+	2011-03-25 15:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,14 +25,9 @@
 
 
 #include "scroll.h"
-#include "../Core/yobject.h"
-#include "ygdi.h"
-#include "ycontrol.h"
-#include "ywidget.h"
-#include "yuicont.h"
-#include "../Helper/yshelper.h"
-#include "../Core/ycutil.h"
 #include "ywindow.h"
+#include "ygdi.h"
+#include "ygui.h"
 
 YSL_BEGIN
 
@@ -45,44 +40,44 @@ using ystdex::vmax;
 namespace
 {
 	void
-	RectDrawArrow(const Graphics& g, const Point& p, SDST halfSize,
+	RectDrawArrow(const Graphics& g, const Point& p, SDst halfSize,
 		Rotation rot = RDeg0, Color c = Drawing::ColorSpace::Black)
 	{
 		YAssert(g.IsValid(), "err: graphics context is invalid.");
 
-		SDST x(p.X), y(p.Y);
+		SDst x(p.X), y(p.Y);
 
 		switch(rot)
 		{
 		case RDeg0:
 			{
-				SDST t(p.Y);
+				SDst t(p.Y);
 
-				for(SDST i(0); i < halfSize; ++i)
+				for(SDst i(0); i < halfSize; ++i)
 					DrawVLineSeg(g, x--, y--, t++, c);
 			}
 			break;
 		case RDeg90:
 			{
-				SDST t(p.X);
+				SDst t(p.X);
 
-				for(SDST i(0); i < halfSize; ++i)
+				for(SDst i(0); i < halfSize; ++i)
 					DrawHLineSeg(g, y++, x--, t++, c);
 			}
 			break;
 		case RDeg180:
 			{
-				SDST t(p.Y);
+				SDst t(p.Y);
 
-				for(SDST i(0); i < halfSize; ++i)
+				for(SDst i(0); i < halfSize; ++i)
 					DrawVLineSeg(g, x++, y--, t++, c);
 			}
 			break;
 		case RDeg270:
 			{
-				SDST t(p.X);
+				SDst t(p.X);
 
-				for(SDST i(0); i < halfSize; ++i)
+				for(SDst i(0); i < halfSize; ++i)
 					DrawHLineSeg(g, y--, x--, t++, c);
 			}
 		default:
@@ -91,10 +86,10 @@ namespace
 	}
 
 	void
-	WndDrawArrow(const Graphics& g, const Rect& r, SDST halfSize,
+	WndDrawArrow(const Graphics& g, const Rect& r, SDst halfSize,
 		Rotation rot = RDeg0, Color c = Drawing::ColorSpace::Black)
 	{
-		SPOS x(r.X), y(r.Y);
+		SPos x(r.X), y(r.Y);
 
 		switch(rot)
 		{
@@ -116,20 +111,20 @@ namespace
 	}
 
 	std::pair<bool, bool>
-	FixScrollBarLayout(Size& d, const Size& s, SDST min_width, SDST min_height)
+	FixScrollBarLayout(Size& d, const Size& s, SDst min_width, SDst min_height)
 	{
 		bool need_h(d.Width < s.Width), need_v(d.Height < s.Height);
 
 		if(need_h)
 		{
 			if(d.Height < min_height)
-				throw std::runtime_error("Scroll bar need more height.");
+				throw GeneralEvent("Scroll bar need more height.");
 			d.Height -= min_height;
 		}
 		if(need_v)
 		{
 			if(d.Width < min_width)
-				throw std::runtime_error("Scroll bar need more width.");
+				throw GeneralEvent("Scroll bar need more width.");
 			d.Width -= min_width;
 		}
 		if(need_h ^ need_v)
@@ -138,22 +133,22 @@ namespace
 			{
 				need_h = true;
 				if(d.Height < min_height)
-					throw std::runtime_error("Scroll bar need more height.");
+					throw GeneralEvent("Scroll bar need more height.");
 				d.Height -= min_height;
 			}
 			if(!need_v && d.Height < s.Height)
 			{
 				need_v = true;
 				if(d.Width < min_width)
-					throw std::runtime_error("Scroll bar need more width.");
+					throw GeneralEvent("Scroll bar need more width.");
 				d.Width -= min_width;
 			}
 		}
 		return std::pair<bool, bool>(need_h, need_v);
 	}
 
-	const SDST defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
-	const SDST defMinScrollBarHeight(16); //!< 默认最小滚动条高。
+	const SDst defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
+	const SDst defMinScrollBarHeight(16); //!< 默认最小滚动条高。
 }
 
 
@@ -162,10 +157,10 @@ ATrack::Dependencies::Dependencies()
 	ThumbDrag.GetRef() += &ATrack::OnThumbDrag;
 }
 
-ATrack::ATrack(const Rect& r, IUIBox* pCon, SDST uMinThumbLength)
+ATrack::ATrack(const Rect& r, IUIBox* pCon, SDst uMinThumbLength)
 	: AUIBoxControl(Rect(r.GetPoint(),
-		vmax<SDST>(defMinScrollBarWidth, r.Width),
-		vmax<SDST>(defMinScrollBarHeight, r.Height)), pCon),
+		vmax<SDst>(defMinScrollBarWidth, r.Width),
+		vmax<SDst>(defMinScrollBarHeight, r.Height)), pCon),
 	GMRange<u16>(0xFF, 0),
 	Thumb(Rect(0, 0, defMinScrollBarWidth, defMinScrollBarHeight), this),
 	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length),
@@ -182,7 +177,7 @@ ATrack::GetTopControlPtr(const Point& p)
 }
 
 void
-ATrack::SetThumbLength(SDST l)
+ATrack::SetThumbLength(SDst l)
 {
 	RestrictInClosedInterval(l, min_thumb_length, GetTrackLength());
 
@@ -193,7 +188,7 @@ ATrack::SetThumbLength(SDST l)
 	Refresh();
 }
 void
-ATrack::SetThumbPosition(SPOS pos)
+ATrack::SetThumbPosition(SPos pos)
 {
 	RestrictInClosedInterval(pos, 0, GetTrackLength() - GetThumbLength());
 
@@ -238,8 +233,8 @@ ATrack::DrawBackground()
 
 	FillRect(g, loc, GetSize(), Color(237, 237, 237));
 
-	const SPOS xr(loc.X + GetWidth() - 1);
-	const SPOS yr(loc.Y + GetHeight() - 1);
+	const SPos xr(loc.X + GetWidth() - 1);
+	const SPos yr(loc.Y + GetHeight() - 1);
 	const Color c(227, 227, 227);
 
 	if(IsHorizontal())
@@ -264,16 +259,16 @@ ATrack::DrawForeground()
 }
 
 ATrack::Area
-ATrack::CheckArea(SDST q) const
+ATrack::CheckArea(SDst q) const
 {
 	const Area lst[] = {OnPrev, OnThumb, OnNext};
-	const SDST a[] = {0, GetThumbPosition(),
+	const SDst a[] = {0, GetThumbPosition(),
 		GetThumbPosition() + GetThumbLength()}; 
 	std::size_t n(SwitchInterval(q, a, 3));
 
 	YAssert(n < 3,
 		"In function \"Components::Controls::ATrack::Area\n"
-		"Components::Controls::ATrack::CheckArea(SPOS q) const\": \n"
+		"Components::Controls::ATrack::CheckArea(SPos q) const\": \n"
 		"Array index is out of bound.");
 
 	return lst[n];
@@ -379,14 +374,14 @@ ATrack::OnThumbDrag(EventArgs&)
 
 
 YHorizontalTrack::YHorizontalTrack(const Rect& r, IUIBox* pCon,
-	SDST uMinThumbLength)
+	SDst uMinThumbLength)
 	: YComponent(),
 	ATrack(r, pCon, uMinThumbLength)
 {
 	YAssert(GetWidth() > GetHeight(),
 		"In constructor Components::Controls::\n"
 			"YHorizontalTrack::YHorizontalTrack"
-		"(const Rect& r, IUIBox* pCon, SDST uMinThumbLength) const\": \n"
+		"(const Rect& r, IUIBox* pCon, SDst uMinThumbLength) const\": \n"
 		"Width is not greater than height.");
 
 	FetchEvent<TouchMove>(Thumb).Add(*this,
@@ -399,7 +394,7 @@ YHorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs& e)
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
 		GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
-		SPOS x(hShl->LastControlLocation.X + hShl->DraggingOffset.X);
+		SPos x(hShl->LastControlLocation.X + hShl->DraggingOffset.X);
 
 		RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
 		Thumb.SetLocation(Point(x, Thumb.GetLocation().Y));
@@ -409,14 +404,14 @@ YHorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs& e)
 
 
 YVerticalTrack::YVerticalTrack(const Rect& r, IUIBox* pCon,
-	SDST uMinThumbLength)
+	SDst uMinThumbLength)
 	: YComponent(),
 	ATrack(r, pCon, uMinThumbLength)
 {
 	YAssert(GetHeight() > GetWidth(),
 		"In constructor Components::Controls::\n"
 			"YHorizontalTrack::YHorizontalTrack"
-		"(const Rect& r, IUIBox* pCon, SDST uMinThumbLength) const\": \n"
+		"(const Rect& r, IUIBox* pCon, SDst uMinThumbLength) const\": \n"
 		"height is not greater than width.");
 
 	FetchEvent<TouchMove>(Thumb).Add(*this,
@@ -429,7 +424,7 @@ YVerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs& e)
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
 		GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
-		SPOS y(hShl->LastControlLocation.Y + hShl->DraggingOffset.Y);
+		SPos y(hShl->LastControlLocation.Y + hShl->DraggingOffset.Y);
 
 		RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
 		Thumb.SetLocation(Point(Thumb.GetLocation().X, y));
@@ -438,7 +433,7 @@ YVerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs& e)
 }
 
 
-AScrollBar::AScrollBar(const Rect& r, IUIBox* pCon, SDST uMinThumbSize,
+AScrollBar::AScrollBar(const Rect& r, IUIBox* pCon, SDst uMinThumbSize,
 	Orientation o)
 try	: AUIBoxControl(r, pCon),
 	pTrack(o == Horizontal
@@ -459,7 +454,7 @@ try	: AUIBoxControl(r, pCon),
 
 	Size s(GetSize());
 	const bool bHorizontal(o == Horizontal);
-	const SDST l(SelectFrom(s, !bHorizontal));
+	const SDst l(SelectFrom(s, !bHorizontal));
 
 	UpdateTo(s, l, bHorizontal);
 	PrevButton.SetSize(s);
@@ -537,27 +532,27 @@ AScrollBar::OnTouchDown_NextButton(TouchEventArgs& e)
 
 
 YHorizontalScrollBar::YHorizontalScrollBar(const Rect& r, IUIBox* pCon,
-	SDST uMinThumbLength)
+	SDst uMinThumbLength)
 	: YComponent(),
 	AScrollBar(r, pCon, uMinThumbLength, Horizontal)
 {
 	YAssert(GetWidth() > GetHeight() * 2,
 		"In constructor Components::Controls::\n"
 			"YHorizontalScrollBar::YHorizontalScrollBar"
-		"(const Rect& r, IUIBox* pCon, SDST uMinThumbLength) const\": \n"
+		"(const Rect& r, IUIBox* pCon, SDst uMinThumbLength) const\": \n"
 		"Width is not greater than twice of height.");
 }
 
 
 YVerticalScrollBar::YVerticalScrollBar(const Rect& r, IUIBox* pCon,
-	SDST uMinThumbLength)
+	SDst uMinThumbLength)
 	: YComponent(),
 	AScrollBar(r, pCon, uMinThumbLength, Vertical)
 {
 	YAssert(GetHeight() > GetWidth() * 2,
 		"In constructor Components::Controls::\n"
 			"YVerticalScrollBar::YVerticalScrollBar"
-		"(const Rect& r, IUIBox* pCon, SDST uMinThumbLength) const\": \n"
+		"(const Rect& r, IUIBox* pCon, SDst uMinThumbLength) const\": \n"
 		"height is not greater than twice of width.");
 }
 
@@ -623,7 +618,7 @@ ScrollableContainer::FixLayout(const Size& s)
 		HorizontalScrollBar.SetVisible(p.first);
 		VerticalScrollBar.SetVisible(p.second);
 	}
-	catch(std::runtime_error&)
+	catch(GeneralEvent&)
 	{}
 	return arena;
 }

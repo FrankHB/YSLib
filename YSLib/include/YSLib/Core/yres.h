@@ -11,12 +11,12 @@
 /*!	\file yres.h
 \ingroup Core
 \brief 资源管理模块。
-\version 0.1474;
+\version 0.1479;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-03-14 20:41 +0800;
+	2011-03-27 14:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,9 +27,8 @@
 #ifndef INCLUDED_YRES_H_
 #define INCLUDED_YRES_H_
 
-#include "ysdef.h"
-#include "ystatic.hpp"
 #include "ycounter.hpp"
+#include "ystatic.hpp"
 #include "../Shell/ygdi.h"
 #include "../Helper/yglobal.h"
 
@@ -79,7 +78,7 @@ public:
 	\brief 构造：使用指定位图指针、长和宽。
 	*/
 	explicit
-	YImage(ConstBitmapPtr = NULL, SDST = 0, SDST = 0);
+	YImage(ConstBitmapPtr = NULL, SDst = 0, SDst = 0);
 	/*!
 	\brief 析构：空实现。
 	\note 无异常抛出。
@@ -89,8 +88,8 @@ public:
 	DefGetter(BitmapPtr, ImagePtr, GetBufferPtr())
 
 	void
-	SetImage(ConstBitmapPtr, SDST = Global::MainScreenWidth,
-		SDST = Global::MainScreenHeight);
+	SetImage(ConstBitmapPtr, SDst = Global::MainScreenWidth,
+		SDst = Global::MainScreenHeight);
 };
 
 YSL_END_NAMESPACE(Drawing)

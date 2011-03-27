@@ -11,12 +11,12 @@
 /*!	\file yres.cpp
 \ingroup Core
 \brief 资源管理模块。
-\version 0.1225;
+\version 0.1227;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-03-06 09:03 +0800;
+	2011-03-25 15:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,12 +31,12 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-YImage::YImage(ConstBitmapPtr s, SDST w, SDST h)
+YImage::YImage(ConstBitmapPtr s, SDst w, SDst h)
 	: BitmapBuffer(s, w, h)
 {}
 
 void
-YImage::SetImage(ConstBitmapPtr s, SDST w, SDST h)
+YImage::SetImage(ConstBitmapPtr s, SDst w, SDst h)
 {
 	SetSize(w, h);
 	if(pBuffer && s)

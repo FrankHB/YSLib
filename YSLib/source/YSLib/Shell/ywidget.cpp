@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4873;
+\version 0.4875;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-06 21:28 +0800;
+	2011-03-25 15:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,13 +38,13 @@ YSL_BEGIN_NAMESPACE(Widgets)
 using Controls::YControl;
 
 bool
-Contains(const IWidget& w, SPOS x, SPOS y)
+Contains(const IWidget& w, SPos x, SPos y)
 {
 	return Rect(w.GetLocation(), w.GetSize()).Contains(x, y);
 }
 
 bool
-ContainsVisible(const IWidget& w, SPOS x, SPOS y)
+ContainsVisible(const IWidget& w, SPos x, SPos y)
 {
 	return w.IsVisible() && Contains(w, x, y);
 }

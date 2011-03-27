@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2070;
+\version 0.2076;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-03-15 17:15 +0800;
+	2011-03-25 14:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -80,21 +80,6 @@ HandleToReference(_handle h) ythrow(std::bad_cast)
 
 
 //全局函数。
-
-/*!
-\brief 取当前线程空间中运行的 Shell 句柄。
-*/
-inline GHHandle<YShell>
-FetchShellHandle()
-{
-	return theApp.GetShellHandle();
-}
-/*!
-\brief 取当前线程空间中运行的 GUI Shell 句柄。
-*/
-GHHandle<YGUIShell>
-FetchGUIShellHandle();
-
 
 /*!
 \brief 从当前 Shell 新建指定类型窗体。
@@ -229,7 +214,7 @@ CallStored()
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-typedef void (*PPDRAW)(BitmapPtr, SDST, SDST); //!< 简单屏幕绘图函数指针类型。
+typedef void (*PPDRAW)(BitmapPtr, SDst, SDst); //!< 简单屏幕绘图函数指针类型。
 
 /*!
 \brief 全屏幕描点。
@@ -238,8 +223,8 @@ typedef void (*PPDRAW)(BitmapPtr, SDST, SDST); //!< 简单屏幕绘图函数指�
 inline void
 ScrDraw(BitmapPtr buf, PPDRAW f)
 {
-	for(SDST y(0); y < Global::MainScreenHeight; ++y)
-		for(SDST x(0); x < Global::MainScreenWidth; ++x)
+	for(SDst y(0); y < Global::MainScreenHeight; ++y)
+		for(SDst x(0); x < Global::MainScreenWidth; ++x)
 			f(buf, x, y);
 }
 

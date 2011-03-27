@@ -16,12 +16,12 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version 0.2484;
+\version 0.2488;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-24 15:29:11 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-25 14:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -97,9 +97,8 @@ using Text::String;
 #define DeclareHandle(type, handle) typedef GHHandle<type> handle;
 
 
-//类型定义。
-typedef s16 SPOS; //!< 屏幕坐标度量。
-typedef u16 SDST; //!< 屏幕坐标距离。
+//平台无关的类型定义。
+//
 
 
 /*!	\defgroup GlobalObjects Global Objects

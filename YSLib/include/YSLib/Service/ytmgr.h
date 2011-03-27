@@ -16,12 +16,12 @@
 /*!	\file ytmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4336;
+\version 0.4339;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-27 14:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,8 +32,6 @@
 #ifndef INCLUDED_YTMGR_H_
 #define INCLUDED_YTMGR_H_
 
-#include "../Core/ysdef.h"
-#include "../Core/yobject.h"
 #include "../Core/ystring.h"
 #include "../Core/yftext.h"
 #include "../Adaptor/cont.h"
@@ -208,8 +206,7 @@ public:
 	*/
 	TextBlock(BlockSizeType, SizeType);
 	/*!
-	\brief 析构。
-	\note 空实现。
+	\brief 析构：空实现。
 	*/
 	virtual
 	~TextBlock();

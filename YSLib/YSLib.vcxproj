@@ -49,6 +49,7 @@
     <ClInclude Include="include\YSLib\Service\ytimer.h" />
     <ClInclude Include="include\YSLib\Service\ytmgr.h" />
     <ClInclude Include="include\YSLib\Shell\button.h" />
+    <ClInclude Include="include\YSLib\Shell\checkbox.h" />
     <ClInclude Include="include\YSLib\Shell\listbox.h" />
     <ClInclude Include="include\YSLib\Shell\scroll.h" />
     <ClInclude Include="include\YSLib\Shell\ycomp.h" />
@@ -87,6 +88,7 @@
     <ClCompile Include="source\YSLib\Service\ytimer.cpp" />
     <ClCompile Include="source\YSLib\Service\ytmgr.cpp" />
     <ClCompile Include="source\YSLib\Shell\button.cpp" />
+    <ClCompile Include="source\YSLib\Shell\checkbox.cpp" />
     <ClCompile Include="source\YSLib\Shell\listbox.cpp" />
     <ClCompile Include="source\YSLib\Shell\scroll.cpp" />
     <ClCompile Include="source\YSLib\Shell\ycomp.cpp" />

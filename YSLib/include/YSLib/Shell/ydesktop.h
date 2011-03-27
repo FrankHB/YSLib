@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2206;
+\version 0.2218;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-03-18 17:26 +0800;
+	2011-03-23 12:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,6 @@
 #ifndef INCLUDED_YDESKTOP_H_
 #define INCLUDED_YDESKTOP_H_
 
-#include "../Core/ysdef.h"
 #include "ywindow.h"
 #include "../Adaptor/cont.h"
 #include "../Core/ydevice.h"
@@ -72,12 +71,28 @@ public:
 	*/
 	virtual bool
 	operator-=(IControl&);
+
 	/*!
-	\brief 从桌面对象组中移除所有指定桌面对象。
-	\return 移除的对象数。
+	\brief 取桌面对象组中首个桌面对象的句柄。
 	*/
-	DOs::size_type
-	RemoveAll(IControl&);
+	IControl*
+	GetFirstDesktopObjectPtr() const;
+	/*!
+	\brief 取桌面对象组中顶端桌面对象的句柄。
+	*/
+	IControl*
+	GetTopDesktopObjectPtr() const;
+	/*!
+	\brief 取桌面对象组中包含指定点的顶端桌面对象的句柄。
+	*/
+	IControl*
+	GetTopDesktopObjectPtr(const Point&) const;
+
+	/*!
+	\brief 清除桌面对象组。
+	*/
+	void
+	ClearDesktopObjects();
 
 	/*!
 	\brief 请求提升至容器顶端。
@@ -88,34 +103,19 @@ public:
 	MoveToTop(IControl&);
 
 	/*!
+	\brief 从桌面对象组中移除所有指定桌面对象。
+	\return 移除的对象数。
+	*/
+	DOs::size_type
+	RemoveAll(IControl&);
+
+	/*!
 	\brief 移除桌面对象组中顶端桌面对象。
 
 	移除桌面对象组中首个桌面对象。
 	*/
 	void
 	RemoveTopDesktopObject();
-
-	/*!
-	\brief 清除桌面对象组。
-	*/
-	void
-	ClearDesktopObjects();
-
-	/*!
-	\brief 取得桌面对象组中首个桌面对象的句柄。
-	*/
-	IControl*
-	GetFirstDesktopObjectPtr() const;
-	/*!
-	\brief 取得桌面对象组中顶端桌面对象的句柄。
-	*/
-	IControl*
-	GetTopDesktopObjectPtr() const;
-	/*!
-	\brief 取得桌面对象组中包含指定点的顶端桌面对象的句柄。
-	*/
-	IControl*
-	GetTopDesktopObjectPtr(const Point&) const;
 
 	/*!
 	\brief 绘制背景。

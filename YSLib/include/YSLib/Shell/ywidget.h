@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5867;
+\version 0.5871;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-06 21:39 +0800;
+	2011-03-25 14:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,6 @@
 #ifndef INCLUDED_YWIDGET_H_
 #define INCLUDED_YWIDGET_H_
 
-#include "../Core/ysdef.h"
 #include "ycomp.h"
 #include "ygdi.h"
 
@@ -98,7 +97,7 @@ EndDecl
 \brief 判断点是否在部件的可视区域内。
 */
 bool
-Contains(const IWidget& w, SPOS x, SPOS y);
+Contains(const IWidget& w, SPos x, SPos y);
 /*!
 \brief 判断点是否在部件的可视区域内。
 */
@@ -112,7 +111,7 @@ Contains(const IWidget& w, const Point& p)
 \brief 判断点是否在可见部件的可视区域内。
 */
 bool
-ContainsVisible(const IWidget& w, SPOS x, SPOS y);
+ContainsVisible(const IWidget& w, SPos x, SPos y);
 /*!
 \brief 判断点是否在可见部件的可视区域内。
 */
@@ -225,10 +224,10 @@ public:
 	DefPredicate(Transparent, transparent)
 	DefPredicate(BgRedrawed, background_redrawed)
 
-	DefGetter(SPOS, X, GetLocation().X)
-	DefGetter(SPOS, Y, GetLocation().Y)
-	DefGetter(SDST, Width, GetSize().Width)
-	DefGetter(SDST, Height, GetSize().Height)
+	DefGetter(SPos, X, GetLocation().X)
+	DefGetter(SPos, Y, GetLocation().Y)
+	DefGetter(SDst, Width, GetSize().Width)
+	DefGetter(SDst, Height, GetSize().Height)
 	DefGetter(const Point&, Location, location)
 	DefGetter(const Size&, Size, size)
 
@@ -239,25 +238,25 @@ public:
 	\brief 设置位置：横坐标。
 	\note 非虚公有实现。
 	*/
-	PDefH1(void, SetX, SPOS x)
+	PDefH1(void, SetX, SPos x)
 		ImplBodyBase1(Visual, SetLocation, Point(x, GetY()))
 	/*!
 	\brief 设置位置：纵坐标。
 	\note 非虚公有实现。
 	*/
-	PDefH1(void, SetY, SPOS y)
+	PDefH1(void, SetY, SPos y)
 		ImplBodyBase1(Visual, SetLocation, Point(GetX(), y))
 	/*!
 	\brief 设置大小：宽。
 	\note 非虚公有实现。
 	*/
-	PDefH1(void, SetWidth, SDST w)
+	PDefH1(void, SetWidth, SDst w)
 		ImplBodyBase1(Visual, SetSize, Size(w, GetHeight()))
 	/*!
 	\brief 设置大小：高。
 	\note 非虚公有实现。
 	*/
-	PDefH1(void, SetHeight, SDST h)
+	PDefH1(void, SetHeight, SDst h)
 		ImplBodyBase1(Visual, SetSize, Size(GetWidth(), h))
 	/*!
 	\brief 设置位置。
@@ -268,7 +267,7 @@ public:
 	\brief 设置位置。
 	\note 非虚公有实现。
 	*/
-	PDefH2(void, SetLocation, SPOS x, SPOS y)
+	PDefH2(void, SetLocation, SPos x, SPos y)
 		ImplBodyBase1(Visual, SetLocation, Point(x, y))
 	/*!
 	\brief 设置大小。
@@ -280,7 +279,7 @@ public:
 	\brief 设置大小。
 	\note 非虚公有实现。
 	*/
-	PDefH2(void, SetSize, SDST w, SDST h)
+	PDefH2(void, SetSize, SDst w, SDst h)
 		ImplBodyBase1(Visual, SetSize, Size(w, h))
 };
 

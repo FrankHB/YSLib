@@ -11,12 +11,12 @@
 /*!	\file yform.cpp
 \ingroup Shell
 \brief 平台无关的 GUI 窗体实现。
-\version 0.1488;
+\version 0.1492;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-03-18 17:26 +0800;
+	2011-03-25 14:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,7 +45,7 @@ YForm::~YForm() ythrow()
 {}
 /*
 void
-YForm::SetSize(SDST w, SDST h)
+YForm::SetSize(SDst w, SDst h)
 {
 	YWindow::SetSize(w, h);
 //	BitmapBuffer::SetSize(w, h);

@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件实现。
-\version 0.3048;
+\version 0.3056;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-03-13 23:13 +0800;
+	2011-03-25 15:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,11 +27,7 @@
 #ifndef INCLUDED_LISTBOX_H_
 #define INCLUDED_LISTBOX_H_
 
-#include "../Core/ysdef.h"
-#include "../Core/ycounter.hpp"
 #include "ycontrol.h"
-#include "../Core/ystring.h"
-#include "ycomp.h"
 #include "ytext.h"
 #include "scroll.h"
 //#include "ystyle.h"
@@ -63,7 +59,7 @@ protected:
 
 private:
 	ViewerType viewer; //!< 列表视图。
-	SDST top_offset; //!< 列表视图首项目超出上边界的垂直偏移量。
+	SDst top_offset; //!< 列表视图首项目超出上边界的垂直偏移量。
 	Drawing::TextState text_state; //!< 文本状态。
 
 	//! \brief 事件依赖项。
@@ -127,12 +123,12 @@ public:
 	/*!
 	\brief 取项目行高。
 	*/
-	SDST
+	SDst
 	GetItemHeight() const;
 	/*!
 	\brief 取完整视图高。
 	*/
-	SDST
+	SDst
 	GetFullViewHeight() const;
 	/*!
 	\brief 取完整视图大小。
@@ -142,7 +138,7 @@ public:
 	/*!
 	\brief 取视图顶端垂直位置。
 	*/
-	SDST
+	SDst
 	GetViewPosition() const;
 
 //	DefSetter(const ListType&, List, List)
@@ -155,7 +151,7 @@ public:
 	\brief 按接触点设置选中项目。
 	*/
 	void
-	SetSelected(SPOS, SPOS);
+	SetSelected(SPos, SPos);
 	/*!
 	\brief 按接触点设置选中项目。
 	*/
@@ -173,21 +169,21 @@ protected:
 	\brief 调整列表视图首项目超出上边界的垂直偏移量为零。
 	\return 返回调整前的偏移量值。
 	*/
-	SDST
+	SDst
 	AdjustTopOffset();
 	/*!
 	\brief 调整列表视图底项目超出上边界的垂直偏移量为零。
 	\return 返回调整前的偏移量值。
 	\note 若没有底项目则不调整，返回 0 。
 	*/
-	SDST
+	SDst
 	AdjustBottomOffset();
 	/*!
 	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
 	\return 选择的项目索引。
 	*/
 	ViewerType::IndexType
-	CheckPoint(SPOS, SPOS);
+	CheckPoint(SPos, SPos);
 
 	/*!
 	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
@@ -204,7 +200,7 @@ public:
 	\brief 定位视图顶端至指定垂直位置。
 	*/
 	void
-	LocateViewPosition(SDST);
+	LocateViewPosition(SDst);
 
 	/*!
 	\brief 复位视图。

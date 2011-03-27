@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2110;
+\version 0.2114;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-03-18 17:26 +0800;
+	2011-03-23 08:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -64,6 +64,33 @@ YDesktop::operator-=(IControl& w)
 	bRefresh = true;
 	return true;
 }
+
+IControl*
+YDesktop::GetFirstDesktopObjectPtr() const
+{
+	return sDOs.empty() ? NULL : sDOs.front();
+}
+IControl*
+YDesktop::GetTopDesktopObjectPtr() const
+{
+	return sDOs.empty() ? NULL : sDOs.back();
+}
+IControl*
+YDesktop::GetTopDesktopObjectPtr(const Point& pt) const
+{
+	for(DOs::const_reverse_iterator i(sDOs.rbegin()); i != sDOs.rend(); ++i)
+	{
+		try
+		{
+			if(Contains(**i, pt))
+				return *i;
+		}
+		catch(std::bad_cast&)
+		{}
+	}
+	return NULL;
+}
+
 YDesktop::DOs::size_type
 YDesktop::RemoveAll(IControl& w)
 {
@@ -111,32 +138,6 @@ YDesktop::ClearDesktopObjects()
 	ClearFocusingPtr();
 	sDOs.clear();
 	bRefresh = true;
-}
-
-IControl*
-YDesktop::GetFirstDesktopObjectPtr() const
-{
-	return sDOs.empty() ? NULL : sDOs.front();
-}
-IControl*
-YDesktop::GetTopDesktopObjectPtr() const
-{
-	return sDOs.empty() ? NULL : sDOs.back();
-}
-IControl*
-YDesktop::GetTopDesktopObjectPtr(const Point& pt) const
-{
-	for(DOs::const_reverse_iterator i(sDOs.rbegin()); i != sDOs.rend(); ++i)
-	{
-		try
-		{
-			if(Contains(**i, pt))
-				return *i;
-		}
-		catch(std::bad_cast&)
-		{}
-	}
-	return NULL;
 }
 
 void

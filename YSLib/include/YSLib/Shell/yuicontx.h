@@ -11,12 +11,12 @@
 /*!	\file yuicontx.h
 \ingroup Shell
 \brief 平台无关的图形用户界面控件实现。
-\version 0.1096;
+\version 0.1098;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-02-21 08:59:34 +0800;
 \par 修改时间:
-	2011-03-08 14:03 +0800;
+	2011-03-08 21:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,6 @@
 #ifndef INCLUDED_YUICONTX_H_
 #define INCLUDED_YUICONTX_H_
 
-#include "../Core/ysdef.h"
 #include "ycontrol.h"
 #include "yfocus.h"
 #include "yuicont.h"

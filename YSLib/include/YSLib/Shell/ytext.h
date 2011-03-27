@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6896;
+\version 0.6923;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-27 17:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,10 +27,8 @@
 #ifndef INCLUDED_YTEXT_H_
 #define INCLUDED_YTEXT_H_
 
-#include "../Core/ysdef.h"
 #include "ygdi.h"
 #include "../Adaptor/yfont.h"
-#include "../Core/yobject.h"
 #include "../Core/yftext.h"
 #include <cwctype>
 
@@ -54,7 +52,7 @@ public:
 	typedef PenStyle ParentType;
 
 	Padding Margin; //!< 边距：文本区域到显示区域的距离。
-	SPOS PenX, PenY; //!< 笔坐标。
+	SPos PenX, PenY; //!< 笔坐标。
 	u8 LineGap; //!< 行距。
 
 public:
@@ -127,7 +125,7 @@ TextState::operator=(const Padding& ms)
 /*!
 \brief 在指定文本状态中取当前字体设置对应的行高。
 */
-inline SDST
+inline SDst
 GetLnHeightFrom(const TextState& s)
 {
 	return s.GetCache().GetHeight();
@@ -136,7 +134,7 @@ GetLnHeightFrom(const TextState& s)
 /*!
 \brief 在指定文本状态中取当前字体设置对应的行高与行距之和。
 */
-inline SDST
+inline SDst
 GetLnHeightExFrom(const TextState& s)
 {
 	return s.GetCache().GetHeight() + s.LineGap;
@@ -155,7 +153,7 @@ GetLnNNowFrom(const TextState& s)
 \brief 设置笔位置。
 */
 inline void
-SetPenTo(TextState& s, SPOS x, SPOS y)
+SetPenTo(TextState& s, SPos x, SPos y)
 {
 	s.PenX = x;
 	s.PenY = y;
@@ -166,7 +164,7 @@ SetPenTo(TextState& s, SPOS x, SPOS y)
 \note 4 个 16 位无符号整数形式。
 */
 inline void
-SetMarginsTo(TextState& s, SDST l, SDST r, SDST t, SDST b)
+SetMarginsTo(TextState& s, SDst l, SDst r, SDst t, SDst b)
 {
 	SetAllTo(s.Margin, l, r, t, b);
 	s.ResetPen();
@@ -186,7 +184,7 @@ SetMarginsTo(TextState& s, u64 m)
 \note 2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
 */
 inline void
-SetMarginsTo(TextState& s, SDST h, SDST v)
+SetMarginsTo(TextState& s, SDst h, SDst v)
 {
 	SetAllTo(s.Margin, h, v);
 	s.ResetPen();
@@ -197,6 +195,12 @@ SetMarginsTo(TextState& s, SDST h, SDST v)
 */
 void
 SetLnNNowTo(TextState&, u16);
+
+/*!
+\brief 按字符跨距移动笔。
+*/
+void
+MovePen(TextState&, fchar_t);
 
 
 /*!
@@ -215,21 +219,21 @@ RenderChar(BitmapBufferEx&, TextState&, fchar_t);
 \brief 取指定文本状态和高调整的底边距。
 \return 返回调整后的底边距值（由字体大小、行距和高决定）。
 */
-SDST
-FetchResizedMargin(const TextState&, SDST);
+SDst
+FetchResizedMargin(const TextState&, SDst);
 
 /*!
 \brief 取指定文本状态和高调整的高。
 \note 不含底边距。
 */
-SDST
-FetchResizedBufferHeight(const TextState&, SDST);
+SDst
+FetchResizedBufferHeight(const TextState&, SDst);
 
 /*!
 \brief 取最底行的基线位置。
 */
-SPOS
-FetchLastLineBasePosition(const TextState&, SDST);
+SPos
+FetchLastLineBasePosition(const TextState&, SDst);
 
 
 /*!
@@ -292,7 +296,7 @@ _tOut
 PrintLine(_tRenderer& r, _tOut s)
 {
 	TextState& ts(r.GetTextState());
-	const SPOS fpy(ts.PenY);
+	const SPos fpy(ts.PenY);
 	_tOut t(s);
 
 	while(*t != 0 && fpy == ts.PenY)
@@ -309,7 +313,7 @@ _tOut
 PrintLine(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
 {
 	TextState& ts(r.GetTextState());
-	const SPOS fpy(ts.PenY);
+	const SPos fpy(ts.PenY);
 
 	while(s != g && *s != c && fpy == ts.PenY)
 		if(!PrintChar(r, *s))
@@ -337,7 +341,7 @@ _tOut
 PutLine(_tRenderer& r, _tOut s)
 {
 	TextState& ts(r.GetTextState());
-	const SPOS fpy(ts.PenY);
+	const SPos fpy(ts.PenY);
 	_tOut t(s);
 
 	while(*t != 0 && fpy == ts.PenY)
@@ -355,7 +359,7 @@ _tOut
 PutLine(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
 {
 	TextState& ts(r.GetTextState());
-	const SPOS fpy(ts.PenY);
+	const SPos fpy(ts.PenY);
 
 	while(s != g && *s != c && fpy == ts.PenY)
 		if(!PutChar(r, *s))
@@ -378,12 +382,12 @@ PutLine(_tRenderer& r, const String& str)
 \brief 输出迭代器 s 指向字符串，直至区域末尾或字符串结束。
 \return 输出迭代器。
 */
-template<class _tOut, class _fBuffer>
+template<class _tOut, class _tRenderer>
 _tOut
-PrintString(_fBuffer& r, _tOut s)
+PrintString(_tRenderer& r, _tOut s)
 {
 	TextState& ts(r.GetTextState());
-	const SPOS mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
+	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
 	_tOut t(s);
 
 	while(*t != 0 && ts.PenY <= mpy)
@@ -401,7 +405,7 @@ _tOut
 PrintString(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
 {
 	TextState& ts(r.GetTextState());
-	const SPOS mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
+	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
 
 	while(s != g && *s != c && ts.PenY <= mpy)
 		if(!PrintChar(r, *s))
@@ -424,12 +428,12 @@ PrintString(_tRenderer& r, const String& str)
 \note 当行内无法容纳完整字符时换行。
 \return 输出迭代器。
 */
-template<class _tOut, class _fBuffer>
+template<class _tOut, class _tRenderer>
 _tOut
-PutString(_fBuffer& r, _tOut s)
+PutString(_tRenderer& r, _tOut s)
 {
 	TextState& ts(r.GetTextState());
-	const SPOS mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
+	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
 	_tOut t(s);
 
 	while(*t != 0 && ts.PenY <= mpy)
@@ -448,7 +452,7 @@ _tOut
 PutString(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
 {
 	TextState& ts(r.GetTextState());
-	const SPOS mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
+	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
 
 	while(s != g && *s != c && ts.PenY <= mpy)
 		if(!PutChar(r, *s))
@@ -468,9 +472,51 @@ PutString(_tRenderer& r, const String& str)
 }
 
 
+/*!
+\brief 取单行字符串在指定文本状态和高度限制下的宽度。
+*/
+SDst
+FetchStringWidth(TextState&, String&, SDst);
+
+
 /*!	\defgroup TextRenderers Text Renderers
 \brief 文本渲染器。
 */
+
+/*!
+\ingroup TextRenderers
+\brief 空文本渲染器。
+*/
+class EmptyTextRenderer
+{
+public:
+	TextState& State;
+	SDst Height;
+
+	EmptyTextRenderer(TextState&, SDst);
+
+	/*!
+	\brief 渲染单个字符：仅移动笔，不绘制。
+	*/
+	void
+	operator()(fchar_t);
+
+	DefGetter(const TextState&, TextState, State)
+	DefMutableGetter(TextState&, TextState, State)
+	DefGetter(SDst, Height, Height)
+};
+
+inline
+EmptyTextRenderer::EmptyTextRenderer(TextState& ts, SDst h)
+	: State(ts), Height(h)
+{}
+
+inline void
+EmptyTextRenderer::operator()(fchar_t c)
+{
+	MovePen(State, c);
+}
+
 
 /*!
 \ingroup TextRenderers
@@ -511,7 +557,7 @@ public:
 	\note n 为 0 时清除之后的所有行。
 	*/
 	virtual void
-	ClearLine(u16 l, SDST n);
+	ClearLine(u16 l, SDst n);
 
 	//清除缓冲区第 l 个文本行。
 	/*!
@@ -633,21 +679,22 @@ public:
 	\note n 为 0 时清除之后的所有行。
 	*/
 	virtual void
-	ClearLine(u16 l, SDST n);
+	ClearLine(u16 l, SDst n);
 
 	/*!
 	\brief 缓冲区特效：整体移动 n 像素。
-	\note 除上下边界区域；n > 0 时下移， n < 0 时上移。
+	\note 除上下边界区域。
+	\note n > 0 时下移， n < 0 时上移。
 	*/
 	void
 	Scroll(std::ptrdiff_t n);
 	/*!
 	\brief 缓冲区特效：整体移动 n 像素。
-	\note 从缓冲区顶端起高 h 的区域内，除上下边界区域；
-	//			n > 0 时下移， n < 0 时上移。
+	\note 从缓冲区顶端起高 h 的区域内，除上下边界区域。
+	\note n > 0 时下移， n < 0 时上移。
 	*/
 	void
-	Scroll(std::ptrdiff_t n, SDST h);
+	Scroll(std::ptrdiff_t n, SDst h);
 };
 
 inline TextRegion&
@@ -693,14 +740,15 @@ YSL_BEGIN_NAMESPACE(Text)
 */
 template<typename _tOut, typename _tChar>
 _tOut
-rfind(YFontCache& cache, SDST width, _tOut p, _tOut g, _tChar f)
+rfind(YFontCache& cache, SDst width, _tOut p, _tOut g, _tChar f)
 {
 	if(p != g)
 	{
-		SDST w(0);
+		SDst w(0);
 		_tChar c(0);
 
-		while(--p != g && (c = *p, c != f && !(std::iswprint(c) && (w += cache.GetAdvance(c)) > width)))
+		while(--p != g && (c = *p, c != f && !(std::iswprint(c)
+			&& (w += cache.GetAdvance(c)) > width)))
 			;
 	}
 	return p;
@@ -712,11 +760,13 @@ rfind(YFontCache& cache, SDST width, _tOut p, _tOut g, _tChar f)
 */
 template<typename _tOut>
 _tOut
-GetPreviousLinePtr(const Drawing::TextRegion& r, _tOut p, _tOut g, u16 l = 1)
+FetchPreviousLineIterator(const Drawing::TextRegion& r, _tOut p, _tOut g,
+	u16 l = 1)
 {
 	while(l-- != 0 && p != g)
 	{
-		p = rfind<_tOut, uchar_t>(r.GetCache(), r.PenX - r.Margin.Left, p, g, '\n');
+		p = rfind<_tOut, uchar_t>(r.GetCache(), r.PenX - r.Margin.Left, p, g,
+			'\n');
 		if(p != g)
 		{
 			p = rfind<_tOut, uchar_t>(r.GetCache(),
@@ -734,14 +784,14 @@ GetPreviousLinePtr(const Drawing::TextRegion& r, _tOut p, _tOut g, u16 l = 1)
 */
 template<typename _tOut>
 _tOut
-GetNextLinePtr(const Drawing::TextRegion& r, _tOut p, _tOut g)
+FetchNextLineIterator(const Drawing::TextRegion& r, _tOut p, _tOut g)
 {
 	if(p == g)
 		return p;
 
 	YFontCache& cache(r.GetCache());
-	SDST nw(r.GetHeight() - GetVerticalFrom(r.Margin));
-	SDST w(r.PenX - r.Margin.Left);
+	SDst nw(r.GetHeight() - GetVerticalFrom(r.Margin));
+	SDst w(r.PenX - r.Margin.Left);
 
 	while(p != g)
 	{

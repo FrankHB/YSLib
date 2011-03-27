@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 定义。
-\version 0.2816;
+\version 0.2820;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-27 14:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,6 @@
 #ifndef INCLUDED_YSHELL_H_
 #define INCLUDED_YSHELL_H_
 
-#include "ysdef.h"
 #include "yobject.h"
 #include "ysmsgdef.h"
 #include "yfunc.hpp"
@@ -95,9 +94,8 @@ public:
 	*/
 	YMainShell();
 	/*!
-	\brief 析构。
+	\brief 析构：空实现。
 	\note 无异常抛出。
-			空实现。
 	*/
 	virtual DefEmptyDtor(YMainShell)
 
@@ -187,8 +185,7 @@ int
 GetMessage(Message& msg, GHHandle<YShell> hShl = GetCurrentShellHandle());
 
 /*!
-\brief 翻译消息。
-\note 空实现。
+\brief 翻译消息：空实现。
 */
 errno_t
 TranslateMessage(const Message& msg);

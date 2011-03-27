@@ -11,12 +11,12 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.1518;
+\version 0.1522;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-07 13:10 +0800;
+	2011-03-25 15:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,30 +49,30 @@ const Rect Rect::FullScreen = Rect(Point::Zero,
 	Global::MainScreenWidth, Global::MainScreenHeight);
 
 
-SPOS
+SPos
 SelectFrom(const BinaryGroup& o, bool is_1st)
 {
 	return is_1st ? o.X : o.Y;
 }
-SDST
+SDst
 SelectFrom(const Size& s, bool is_1st)
 {
 	return is_1st ? s.Width : s.Height;
 }
 
-SPOS&
+SPos&
 SelectRefFrom(BinaryGroup& o, bool is_1st)
 {
 	return is_1st ? o.X : o.Y;
 }
-SDST&
+SDst&
 SelectRefFrom(Size& s, bool is_1st)
 {
 	return is_1st ? s.Width : s.Height;
 }
 
 void
-UpdateTo(BinaryGroup& o, SPOS v, bool is_1st)
+UpdateTo(BinaryGroup& o, SPos v, bool is_1st)
 {
 	if(is_1st)
 		o.X = v;
@@ -81,7 +81,7 @@ UpdateTo(BinaryGroup& o, SPOS v, bool is_1st)
 }
 
 void
-UpdateTo(Size& s, SDST v, bool is_1st)
+UpdateTo(Size& s, SDst v, bool is_1st)
 {
 	if(is_1st)
 		s.Width = v;
@@ -99,11 +99,10 @@ Graphics::operator[](std::size_t r) const ythrow()
 	return pBuffer + r * size.Width;
 }
 BitmapPtr
-Graphics::at(std::size_t r) const ythrow(std::runtime_error, std::out_of_range)
+Graphics::at(std::size_t r) const ythrow(GeneralEvent, std::out_of_range)
 {
 	if(!pBuffer)
-		throw std::runtime_error(
-			"Buffer pointer is null @@ Graphics::operator[];");
+		throw GeneralEvent("Buffer pointer is null @@ Graphics::operator[];");
 	if(r >= size.Height)
 		throw std::out_of_range("Access out of range @@ Graphics::operator[];");
 

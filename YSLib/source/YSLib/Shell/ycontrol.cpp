@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4091;
+\version 0.4093;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-03-20 13:16 +0800;
+	2011-03-22 11:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,6 @@
 
 #include "ycontrol.h"
 #include "ygui.h"
-#include "../Helper/yshelper.h"
 #include "yuicont.h"
 #include "ywindow.h"
 

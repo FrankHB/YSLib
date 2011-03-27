@@ -8,15 +8,15 @@
 	understand and accept it fully.
 */
 
-/*!	\file ybutton.h
+/*!	\file button.h
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件实现。
-\version 0.2970;
+\version 0.2985;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-03-07 21:45 +0800;
+	2011-03-23 12:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,8 +27,6 @@
 #ifndef INCLUDED_BUTTON_H_
 #define INCLUDED_BUTTON_H_
 
-#include "../Core/ysdef.h"
-#include "../Core/ycounter.hpp"
 #include "ycontrol.h"
 #include "ylabel.h"
 //#include "ystyle.h"
@@ -38,6 +36,28 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
+
+//! \brief 按钮模块。
+class MButton
+{
+protected:
+	bool bPressed; //!< 键按下状态：是否处于按下状态。
+
+	/*!
+	\brief 构造：使用键按下状态。
+	*/
+	explicit
+	MButton(bool = false);
+
+public:
+	DefPredicate(Pressed, bPressed)
+};
+
+inline
+MButton::MButton(bool b)
+	: bPressed(b)
+{}
+
 
 //! \brief 基本按钮/滑块。
 class YThumb : public GMCounter<YThumb>, public YControl,
@@ -94,7 +114,6 @@ public:
 		const Drawing::Font& = Drawing::Font::GetDefault());
 	virtual DefEmptyDtor(YButton)
 
-public:
 	/*!
 	\brief 绘制前景。
 	*/

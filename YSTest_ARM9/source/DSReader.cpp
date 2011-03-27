@@ -11,12 +11,12 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 NDS 的双屏阅读器实现。
-\version 0.3064;
+\version 0.3068;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 +0800; 
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-27 14:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,8 +45,8 @@ void MDualScreenReader::FillText()
 	itDn = PutString(*pTextRegionDn, PutString(*pTextRegionUp, itUp));
 }
 
-MDualScreenReader::MDualScreenReader(SDST l, SDST w, SDST t_up, SDST h_up,
-									 SDST t_down, SDST h_down, YFontCache& fc_)
+MDualScreenReader::MDualScreenReader(SDst l, SDst w, SDst t_up, SDst h_up,
+									 SDst t_down, SDst h_down, YFontCache& fc_)
 try	: pText(NULL), fc(fc_),
 	left(l), top_up(t_up), top_down(t_down),
 	pBgUp(theApp.GetPlatformResource().GetDesktopUp().GetContext().
@@ -163,7 +163,7 @@ MDualScreenReader::LineUp()
 		return false;
 
 	const u8 h = lnHeight, hx = h + GetLineGapDn();
-	const SDST w = pTextRegionUp->GetWidth();
+	const SDst w = pTextRegionUp->GetWidth();
 	const u32 t = w * h,
 		s = (pTextRegionUp->GetHeight() - FetchResizedMargin(*pTextRegionUp,
 			pTextRegionUp->GetHeight()) - h) * w,
@@ -182,9 +182,9 @@ MDualScreenReader::LineUp()
 
 	TextFileBuffer::HText itUpOld(itUp);
 
-	itUp = GetPreviousLinePtr(*pTextRegionUp, itUp, pText->Blocks.begin());
+	itUp = FetchPreviousLineIterator(*pTextRegionUp, itUp, pText->Blocks.begin());
 	PutLine<TextFileBuffer::HText, uchar_t>(*pTextRegionUp, itUp, itUpOld);
-	itDn = GetPreviousLinePtr(*pTextRegionUp, itDn, pText->Blocks.begin());
+	itDn = FetchPreviousLineIterator(*pTextRegionUp, itDn, pText->Blocks.begin());
 	return true;
 }
 bool
@@ -194,7 +194,7 @@ MDualScreenReader::LineDown()
 		return false;
 
 	const u8 h = lnHeight, hx = h + GetLineGapUp();
-	const SDST w = pTextRegionUp->GetWidth();
+	const SDst w = pTextRegionUp->GetWidth();
 	const u32 t = w * h,
 		s = pTextRegionUp->Margin.Top * w,
 		d = (pTextRegionUp->GetHeight() - FetchResizedMargin(*pTextRegionUp,
@@ -209,7 +209,7 @@ MDualScreenReader::LineDown()
 	pTextRegionDn->ClearLnLast();
 	pTextRegionDn->SetLnLast();
 	itDn = PutLine(*pTextRegionDn, itDn);
-	itUp = GetNextLinePtr(*pTextRegionUp, itUp, pText->Blocks.end());
+	itUp = FetchNextLineIterator(*pTextRegionUp, itUp, pText->Blocks.end());
 	return true;
 }
 
@@ -218,7 +218,7 @@ MDualScreenReader::ScreenUp()
 {
 	if(IsTextTop())
 		return false;
-	itUp = GetPreviousLinePtr(*pTextRegionUp, itUp, pText->Blocks.begin(),
+	itUp = FetchPreviousLineIterator(*pTextRegionUp, itUp, pText->Blocks.begin(),
 		pTextRegionUp->GetLnN() + pTextRegionDn->GetLnN());
 	Update();
 	return true;
@@ -233,8 +233,8 @@ MDualScreenReader::ScreenDown()
 
 	while(t-- && itDn != pText->Blocks.end())
 	{
-		itUp = GetNextLinePtr(*pTextRegionUp, itUp, pText->Blocks.end());
-		itDn = GetNextLinePtr(*pTextRegionDn, itDn, pText->Blocks.end());
+		itUp = FetchNextLineIterator(*pTextRegionUp, itUp, pText->Blocks.end());
+		itDn = FetchNextLineIterator(*pTextRegionDn, itDn, pText->Blocks.end());
 	}
 //	itUp = itDn;
 	Update();

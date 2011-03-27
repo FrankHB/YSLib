@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.2094;
+\version 0.2100;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-03-16 13:16 +0800;
+	2011-03-22 21:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,9 +27,7 @@
 #ifndef INCLUDED_YUICONT_H_
 #define INCLUDED_YUICONT_H_
 
-#include "../Core/ysdef.h"
 #include "ywidget.h"
-#include "../Core/yobject.h"
 #include "yfocus.h"
 
 YSL_BEGIN
@@ -236,7 +234,7 @@ MoveToBottom(IWidget&);
 
 /*!
 \brief 取指定部件的直接窗口的图形接口上下文。
-\throw std::runtime_error 无法找到有效的直接窗口。
+\throw GeneralEvent 无法找到有效的直接窗口。
 */
 const Graphics&
 FetchContext(IWidget&);

@@ -11,12 +11,12 @@
 /*!	\file yform.h
 \ingroup Shell
 \brief 平台无关的 GUI 窗体实现。
-\version 0.1472;
+\version 0.1480;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-03-18 17:26 +0800;
+	2011-03-25 14:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,8 +27,6 @@
 #ifndef INCLUDED_YFORM_H_
 #define INCLUDED_YFORM_H_
 
-#include "../Core/ysdef.h"
-#include "../Core/ycounter.hpp"
 #include "../Core/yres.h"
 #include "ywindow.h"
 
@@ -63,7 +61,7 @@ public:
 	~YForm() ythrow();
 
 /*	virtual void
-	SetSize(SDST, SDST);
+	SetSize(SDst, SDst);
 	virtual void
 	SetBounds(const Rect&);
 

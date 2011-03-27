@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3382;
+\version 0.3395;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-25 15:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,6 @@
 
 
 #include "ygdi.h"
-#include "../Core/yexcept.h"
 
 YSL_BEGIN
 
@@ -36,14 +35,14 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 namespace
 {
-	inline SPOS
-	blit_min(SPOS s, SPOS d)
+	inline SPos
+	blit_min(SPos s, SPos d)
 	{
 		return s + vmax<int>(0, -d);
 	}
 
-	inline SPOS
-	blit_max(SPOS s, SPOS d, SDST sl, SDST dl, SDST cl)
+	inline SPos
+	blit_max(SPos s, SPos d, SDst sl, SDst dl, SDst cl)
 	{
 		return s + vmin<int>(vmin<int>(dl - d, sl - s), cl);
 	}
@@ -120,11 +119,11 @@ void Blit<BlitBlendLoop, true, true>(BitmapPtr, const Size&,
 
 
 bool
-DrawHLineSeg(const Graphics& g, SPOS y, SPOS x1, SPOS x2, Color c)
+DrawHLineSeg(const Graphics& g, SPos y, SPos x1, SPos x2, Color c)
 {
 	YAssert(g.IsValid(),
 		"In function \"void\n"
-		"DrawHLineSeg(const Graphics& g, SPOS y, SPOS x1, SPOS x2, Color c)"
+		"DrawHLineSeg(const Graphics& g, SPos y, SPos x1, SPos x2, Color c)"
 		"\": \n"
 		"The graphics device context is invalid.");
 
@@ -142,17 +141,17 @@ DrawHLineSeg(const Graphics& g, SPOS y, SPOS x1, SPOS x2, Color c)
 }
 
 bool
-DrawVLineSeg(const Graphics& g, SPOS x, SPOS y1, SPOS y2, Color c)
+DrawVLineSeg(const Graphics& g, SPos x, SPos y1, SPos y2, Color c)
 {
 	YAssert(g.IsValid(),
 		"In function \"void\n"
-		"DrawVLineSeg(const Graphics& g, SPOS x, SPOS y1, SPOS y2, Color c)"
+		"DrawVLineSeg(const Graphics& g, SPos x, SPos y1, SPos y2, Color c)"
 		"\": \n"
 		"The graphics device context is invalid.");
 
 	if(IsInInterval<int>(x, g.GetWidth())
-		&& !((y1 < 0 && y2 < 0)
-		|| (y1 >= g.GetHeight() && y2 >= g.GetHeight())))
+		&& !((y1 < 0 && y2 < 0) || (y1 >= g.GetHeight()
+		&& y2 >= g.GetHeight())))
 	{
 		RestrictInInterval(y1, 0, g.GetHeight());
 		RestrictInInterval(y2, 0, g.GetHeight());
@@ -172,18 +171,18 @@ namespace
 	\pre 断言：x1 != x2 。
 	*/
 	bool
-	DrawObliqueLine(const Graphics& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2,
+	DrawObliqueLine(const Graphics& g, SPos x1, SPos y1, SPos x2, SPos y2,
 		Color c)
 	{
 		YAssert(y1 != y2,
 			"In function \"static void\n"
-			"DrawObliqueLine(const Graphics& g, SPOS x1, SPOS y1,"
-			" SPOS x2, SPOS y2, Color c)\": \n"
+			"DrawObliqueLine(const Graphics& g, SPos x1, SPos y1,"
+			" SPos x2, SPos y2, Color c)\": \n"
 			"Not drawing an oblique line: the line is horizontal.");
 		YAssert(x1 != x2,
 			"In function \"static void\n"
-			"DrawObliqueLine(const Graphics& g, SPOS x1, SPOS y1,"
-			" SPOS x2, SPOS y2, Color c)\": \n"
+			"DrawObliqueLine(const Graphics& g, SPos x1, SPos y1,"
+			" SPos x2, SPos y2, Color c)\": \n"
 			"Not drawing an oblique line: the line is vertical.");
 
 		if(Rect(g.GetSize()).Contains(x1, y1)
@@ -196,14 +195,14 @@ namespace
 			//起点 (x1, y1) 和终点 (x2, y2) 不同。
 
 			const s8 sx(sgn(x2 - x1)), sy(sgn(y2 - y1));
-			SDST dx(abs(x2 - x1)), dy(abs(y2 - y1));
+			SDst dx(abs(x2 - x1)), dy(abs(y2 - y1));
 			bool f(dy > dx);
 
 			if(f)
 				std::swap(dx, dy);
 
 			//初始化误差项以补偿非零截断。
-			const SDST dx2(dx << 1), dy2(dy << 1);
+			const SDst dx2(dx << 1), dy2(dy << 1);
 			int e(dy2 - dx);
 
 			//主循环。
@@ -231,7 +230,7 @@ namespace
 }
 
 bool
-DrawLineSeg(const Graphics& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c)
+DrawLineSeg(const Graphics& g, SPos x1, SPos y1, SPos x2, SPos y2, Color c)
 {
 	if(y1 == y2)
 		return DrawHLineSeg(g, y1, x1, x2 + 1, c);
@@ -244,15 +243,18 @@ DrawLineSeg(const Graphics& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c)
 bool
 DrawRect(const Graphics& g, const Point& p, const Size& s, Color c)
 {
-	SPOS x1(p.X), y1(p.Y),
-		x2(x1 + vmax<SPOS>(s.Width, 0)),
-		y2(y1 + vmax<SPOS>(s.Height, 0));
-	bool b(DrawVLineSeg(g, x1, y1, y2, c));
-	b |= DrawHLineSeg(g, y2, x1, x2 + 1, c);
-	b |= DrawVLineSeg(g, x2, y2 + 1, y1, c);
-	b |= DrawHLineSeg(g, y1, x2, x1, c);
+	const SPos x1(p.X), y1(p.Y), x2(x1 + s.Width - 1), y2(y1 + s.Height - 1);
+	if(x1 < x2 && y1 < y2)
+	{
+		bool b(DrawVLineSeg(g, x1, y1, y2, c));
 
-	return b;
+		b |= DrawHLineSeg(g, y2, x1, x2, c);
+		b |= DrawVLineSeg(g, x2, y1, y2 + 1, c);
+		b |= DrawHLineSeg(g, y1, x1, x2, c);
+
+		return b;
+	}
+	return false;
 }
 
 bool
@@ -315,7 +317,7 @@ Fill(const Graphics& g, Color c)
 }
 
 
-Padding::Padding(SDST l, SDST r, SDST t, SDST b)
+Padding::Padding(SDst l, SDst r, SDst t, SDst b)
 	: Left(l), Right(r), Top(t), Bottom(b)
 {}
 /*Padding::Padding(u64 m)
@@ -352,7 +354,7 @@ GetAllFrom(Padding& p)
 }
 
 void
-SetAllTo(Padding& p, SDST l, SDST r, SDST t, SDST b)
+SetAllTo(Padding& p, SDst l, SDst r, SDst t, SDst b)
 {
 	p.Left = l;
 	p.Right = r;
@@ -369,7 +371,7 @@ FetchMargin(const Rect& r, const Size& s)
 }
 
 
-BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDST w, SDST h)
+BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDst w, SDst h)
 	: Graphics()
 	//不能提前初始化 size ，否则指针非空和面积非零状态不一致。 
 {
@@ -379,7 +381,7 @@ BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDST w, SDST h)
 }
 
 void
-BitmapBuffer::SetSize(SDST w, SDST h)
+BitmapBuffer::SetSize(SDst w, SDst h)
 {
 	u32 s(w * h);
 
@@ -399,11 +401,11 @@ BitmapBuffer::SetSize(SDST w, SDST h)
 		catch(std::bad_alloc&)
 		{
 			throw LoggedEvent("Allocation failed"
-				" @@ BitmapBuffer::SetSize(SDST, SDST);", 1);
+				" @@ BitmapBuffer::SetSize(SDst, SDst);", 1);
 		}
 
 	YAssert(!((pBuffer != NULL) ^ (s != 0)), "Buffer corruptied"
-		" @@ BitmapBuffer::SetSize(SDST, SDST);");
+		" @@ BitmapBuffer::SetSize(SDst, SDst);");
 
 	size.Width = w;
 	size.Height = h;
@@ -429,7 +431,7 @@ BitmapBuffer::BeFilledWith(Color c) const
 }
 
 
-BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDST w, SDST h)
+BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDst w, SDst h)
 	: BitmapBuffer(), pBufferAlpha(NULL)
 {
 	SetSize(w, h);
@@ -438,7 +440,7 @@ BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDST w, SDST h)
 }
 
 void
-BitmapBufferEx::SetSize(SDST w, SDST h)
+BitmapBufferEx::SetSize(SDst w, SDst h)
 {
 	u32 s(w * h);
 
@@ -468,14 +470,14 @@ BitmapBufferEx::SetSize(SDST w, SDST h)
 		{
 			ydelete_array(pBufferNew);
 			throw LoggedEvent("Allocation failed"
-				" @@ BitmapBufferEx::SetSize(SDST, SDST);", 1);
+				" @@ BitmapBufferEx::SetSize(SDst, SDst);", 1);
 		}
 	}
 
 	YAssert(!((pBuffer != NULL) ^ (s != 0)), "Buffer corruptied"
-		" @@ BitmapBufferEx::SetSize(SDST, SDST);");
+		" @@ BitmapBufferEx::SetSize(SDst, SDst);");
 	YAssert(!((pBufferAlpha != NULL) ^ (s != 0)), "Buffer corruptied"
-		" @@ BitmapBufferEx::SetSize(SDST, SDST);");
+		" @@ BitmapBufferEx::SetSize(SDst, SDst);");
 
 	size.Width = w;
 	size.Height = h;

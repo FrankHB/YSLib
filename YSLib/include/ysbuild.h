@@ -15,12 +15,12 @@
 /*!	\file ysbuild.h
 \ingroup YSLib
 \brief YSLib 库配置文件。
-\version 0.1678;
+\version 0.1683;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 21:53:55 +0800;
 \par 修改时间:
-	2011-03-07 23:07 +0800;
+	2011-03-23 20:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,6 +40,7 @@
 #include <YSLib/Service/ytmgr.h>
 #include <YSLib/Helper/yglobal.h>
 #include <YSLib/Shell/listbox.h>
+#include <YSLib/Shell/checkbox.h>
 
 #endif
 

@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6609;
+\version 0.6623;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-03-07 19:27 +0800;
+	2011-03-27 18:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -84,6 +84,15 @@ SetLnNNowTo(TextState& s, u16 n)
 {
 	s.PenY = s.Margin.Top + s.GetCache().GetAscender()
 		+ GetLnHeightExFrom(s) * n;
+}
+
+void
+MovePen(TextState& ts, fchar_t c)
+{
+	YFontCache& cache(ts.GetCache());
+	CharBitmap sbit(cache.GetGlyph(c));
+
+	ts.PenX += cache.GetAdvance(c, sbit);
 }
 
 
@@ -184,8 +193,8 @@ RenderChar(BitmapBufferEx& buf, TextState& ts, fchar_t c)
 }
 
 
-SDST
-FetchResizedMargin(const TextState& ts, SDST h)
+SDst
+FetchResizedMargin(const TextState& ts, SDst h)
 {
 	const u8 t(GetLnHeightExFrom(ts));
 
@@ -193,8 +202,8 @@ FetchResizedMargin(const TextState& ts, SDST h)
 		% t : 0;
 }
 
-SDST
-FetchResizedBufferHeight(const TextState& ts, SDST h)
+SDst
+FetchResizedBufferHeight(const TextState& ts, SDst h)
 {
 	const u8 t(GetLnHeightExFrom(ts));
 
@@ -202,10 +211,21 @@ FetchResizedBufferHeight(const TextState& ts, SDST h)
 		/ t * t : h;
 }
 
-SPOS
-FetchLastLineBasePosition(const TextState& ts, SDST h)
+SPos
+FetchLastLineBasePosition(const TextState& ts, SDst h)
 {
-	return h - ts.Margin.Bottom + ts.GetCache().GetDescender();
+	return h - ts.Margin.Bottom + ts.GetCache().GetDescender() + 1;
+}
+
+
+SDst
+FetchStringWidth(TextState& ts, String& str, SDst h)
+{
+	const SPos x(ts.PenX);
+	EmptyTextRenderer r(ts, h);
+
+	PrintString(r, str);
+	return ts.PenX - x;
 }
 
 
@@ -236,7 +256,7 @@ ATextRenderer::SetLnLast()
 }
 
 void
-ATextRenderer::ClearLine(u16 l, SDST n)
+ATextRenderer::ClearLine(u16 l, SDst n)
 {
 	const Graphics& g(GetContext());
 
@@ -252,7 +272,7 @@ ATextRenderer::ClearLine(u16 l, SDST n)
 void
 ATextRenderer::ClearLn(u16 l)
 {
-	SDST h(GetLnHeightExFrom(GetTextState()));
+	SDst h(GetLnHeightExFrom(GetTextState()));
 
 	ClearLine(GetTextState().Margin.Top + h * l, h);
 }
@@ -261,7 +281,7 @@ void
 ATextRenderer::ClearLnLast()
 {
 	TextState ts(GetTextState());
-	SDST h(GetLnHeightExFrom(ts));
+	SDst h(GetLnHeightExFrom(ts));
 
 	ClearLine(GetContext().GetHeight() - ts.Margin.Bottom - h, h);
 }
@@ -292,7 +312,7 @@ TextRegion::InitializeFont()
 }
 
 void
-TextRegion::ClearLine(u16 l, SDST n)
+TextRegion::ClearLine(u16 l, SDst n)
 {
 	const Graphics& g(GetContext());
 
@@ -317,7 +337,7 @@ TextRegion::Scroll(std::ptrdiff_t n)
 		Scroll(n, GetHeight() - Margin.Bottom);
 }
 void
-TextRegion::Scroll(std::ptrdiff_t n, SDST h)
+TextRegion::Scroll(std::ptrdiff_t n, SDst h)
 {
 	if(pBuffer && pBufferAlpha)
 	{

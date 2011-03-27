@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.2997;
+\version 0.3021;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-18 06:18 +0800;
+	2011-03-27 14:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef INCLUDED_YOBJECT_H_
 #define INCLUDED_YOBJECT_H_
 
-#include "ysdef.h"
 #include "ycutil.h"
+#include "yexcept.h"
 #include "ycounter.hpp"
 #include "../Adaptor/cont.h"
 
@@ -50,7 +50,7 @@ class Rect;
 class BinaryGroup
 {
 public:
-	SPOS X, Y; //!< 分量。
+	SPos X, Y; //!< 分量。
 
 	/*!
 	\brief 无参数构造。
@@ -92,8 +92,8 @@ public:
 		return BinaryGroup(-X, -Y);
 	}
 
-	DefGetter(SPOS, X, X)
-	DefGetter(SPOS, Y, Y)
+	DefGetter(SPos, X, X)
+	DefGetter(SPos, Y, Y)
 };
 
 inline
@@ -363,7 +363,7 @@ operator-(const Vec& a, const Vec& b)
 
 struct Size //!< 屏幕区域大小。
 {
-	SDST Width, Height; //!< 宽和高。
+	SDst Width, Height; //!< 宽和高。
 
 	static const Size Zero; //!< 无参数构造参数构造的零元素对象。
 	static const Size FullScreen; //!< 无参数构造参数构造的全屏幕对象。
@@ -378,11 +378,10 @@ struct Size //!< 屏幕区域大小。
 	*/
 	Size(const Size&);
 	/*!
-	\brief 构造：使用二维向量。
+	\brief 构造：使用屏幕二维向量。
 	*/
-	template<typename _tVec>
 	inline explicit
-	Size(const _tVec& v)
+	Size(const Vec& v)
 		: Width(v.X), Height(v.Y)
 	{}
 	/*!
@@ -444,26 +443,26 @@ Vec::Vec(const Size& s)
 \brief 选择分量。
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
 */
-SPOS
+SPos
 SelectFrom(const BinaryGroup&, bool = true);
 /*!
 \brief 选择分量。
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
 */
-SDST
+SDst
 SelectFrom(const Size&, bool = true);
 
 /*!
 \brief 选择分量引用。
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
 */
-SPOS&
+SPos&
 SelectRefFrom(BinaryGroup&, bool = true);
 /*!
 \brief 选择分量引用。
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
 */
-SDST&
+SDst&
 SelectRefFrom(Size&, bool = true);
 
 /*!
@@ -471,13 +470,13 @@ SelectRefFrom(Size&, bool = true);
 \note 第三参数为 true 时更新第一分量，否则更新第二分量。
 */
 void
-UpdateTo(BinaryGroup&, SPOS, bool = true);
+UpdateTo(BinaryGroup&, SPos, bool = true);
 /*!
 \brief 更新：其中的一个分量。
 \note 第三参数为 true 时更新第一分量，否则更新第二分量。
 */
 void
-UpdateTo(Size&, SDST, bool = true);
+UpdateTo(Size&, SDst, bool = true);
 
 /*!
 \brief 二元对象转置。
@@ -530,17 +529,17 @@ public:
 	*/
 	Rect(const Point&, const Size&);
 	/*!
-	\brief 构造：使用屏幕二维点和表示长宽的两个 SDST 值。
+	\brief 构造：使用屏幕二维点和表示长宽的两个 SDst 值。
 	*/
-	Rect(const Point&, SDST, SDST);
+	Rect(const Point&, SDst, SDst);
 	/*!
-	\brief 构造：使用表示位置的两个 SPOS 值和 Size 对象。
+	\brief 构造：使用表示位置的两个 SPos 值和 Size 对象。
 	*/
-	Rect(SPOS, SPOS, const Size&);
+	Rect(SPos, SPos, const Size&);
 	/*!
-	\brief 构造：使用表示位置的两个 SPOS 值和表示大小的两个 SDST 值。
+	\brief 构造：使用表示位置的两个 SPos 值和表示大小的两个 SDst 值。
 	*/
-	Rect(SPOS, SPOS, SDST, SDST);
+	Rect(SPos, SPos, SDst, SDst);
 
 	/*!
 	\brief 判断点是否在矩形内或边上。
@@ -591,15 +590,15 @@ Rect::Rect(const Point& p, const Size& s)
 	: Point(p), Size(s)
 {}
 inline
-Rect::Rect(const Point& p, SDST w, SDST h)
+Rect::Rect(const Point& p, SDst w, SDst h)
 	: Point(p.X, p.Y), Size(w, h)
 {}
 inline
-Rect::Rect(SPOS x, SPOS y, const Size& s)
+Rect::Rect(SPos x, SPos y, const Size& s)
 	: Point(x, y), Size(s.Width, s.Height)
 {}
 inline
-Rect::Rect(SPOS x, SPOS y, SDST w, SDST h)
+Rect::Rect(SPos x, SPos y, SDst w, SDst h)
 	: Point(x, y), Size(w, h)
 {}
 
@@ -676,19 +675,19 @@ public:
 
 	DefGetter(BitmapPtr, BufferPtr, pBuffer)
 	DefGetter(const Size&, Size, size)
-	DefGetter(SDST, Width, size.Width)
-	DefGetter(SDST, Height, size.Height)
+	DefGetter(SDst, Width, size.Width)
+	DefGetter(SDst, Height, size.Height)
 	DefGetter(std::size_t, SizeOfBuffer,
 		sizeof(PixelType) * GetAreaFrom(size)) //!< 取缓冲区占用空间。
 
 	/*!
 	\brief 取指定行首元素指针。
-	\throw std::runtime_error 缓冲区指针为空。
+	\throw GeneralEvent 缓冲区指针为空。
 	\throw std::out_of_range 参数越界。
 	\note 仅抛出以上异常。
 	*/
 	BitmapPtr
-	at(std::size_t) const ythrow(std::runtime_error, std::out_of_range);
+	at(std::size_t) const ythrow(GeneralEvent, std::out_of_range);
 };
 
 inline
@@ -709,8 +708,7 @@ class YObject : private NonCopyable
 {
 public:
 	/*!
-	\brief 析构。
-	\note 空实现。必要的虚函数以构造多态基类。
+	\brief 析构：空实现。必要的虚函数以构造多态基类。
 	*/
 	virtual
 	~YObject()

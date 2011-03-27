@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件实现。
-\version 0.3492;
+\version 0.3508;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-03-20 13:13 +0800;
+	2011-03-25 15:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,12 +25,8 @@
 
 
 #include "listbox.h"
-#include "../Core/yobject.h"
-#include "ycontrol.h"
-#include "yuicont.h"
-#include "ystyle.h"
-#include "../Core/ycutil.h"
 #include "ywindow.h"
+#include "ystyle.h"
 #include "ytext.h"
 
 YSL_BEGIN
@@ -41,10 +37,10 @@ YSL_BEGIN_NAMESPACE(Controls)
 
 namespace
 {
-	const SDST defMarginH(2); //!< 默认水平边距。
-	const SDST defMarginV(1); //!< 默认垂直边距。
-	const SDST defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
-//	const SDST defMinScrollBarHeight(16); //!< 默认最小滚动条高。
+	const SDst defMarginH(2); //!< 默认水平边距。
+	const SDst defMarginV(1); //!< 默认垂直边距。
+	const SDst defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
+//	const SDst defMinScrollBarHeight(16); //!< 默认最小滚动条高。
 }
 
 
@@ -93,12 +89,12 @@ YSimpleListBox::GetItemPtr(ViewerType::IndexType i)
 	return IsInInterval<ViewerType::IndexType>(i, list.size())
 		? &list[i] : NULL;
 }
-SDST
+SDst
 YSimpleListBox::GetItemHeight() const
 {
 	return GetLnHeightExFrom(text_state);
 }
-SDST
+SDst
 YSimpleListBox::GetFullViewHeight() const
 {
 	return GetItemHeight() * viewer.GetTotal();
@@ -108,7 +104,7 @@ YSimpleListBox::GetFullViewSize() const
 {
 	return Size(GetWidth(), GetFullViewHeight());
 }
-SDST
+SDst
 YSimpleListBox::GetViewPosition() const
 {
 	return GetItemHeight() * viewer.GetHeadIndex() + top_offset;
@@ -121,7 +117,7 @@ YSimpleListBox::SetSelected(YSimpleListBox::ViewerType::IndexType i)
 		CallSelected();
 }
 void
-YSimpleListBox::SetSelected(SPOS x, SPOS y)
+YSimpleListBox::SetSelected(SPos x, SPos y)
 {
 	SetSelected(CheckPoint(x, y));
 }
@@ -140,14 +136,14 @@ YSimpleListBox::DrawForeground()
 		if(IsFocused())
 			WndDrawFocus(pWnd, GetSize());
 
-		const SDST h(GetHeight());
+		const SDst h(GetHeight());
 
 		if(h != 0)
 		{
 			GetTextState();
 
-			const SDST ln_w(GetWidth());
-			const SDST ln_h(GetItemHeight());
+			const SDst ln_w(GetWidth());
+			const SDst ln_h(GetItemHeight());
 
 			viewer.SetLength((GetHeight() + top_offset + ln_h - 1) / ln_h);
 			if(viewer.GetHeadIndex() >= 0)
@@ -157,7 +153,7 @@ YSimpleListBox::DrawForeground()
 				const ListType& list(GetList());
 				const Graphics& g(pWnd->GetContext());
 				const Point pt(LocateForWindow(*this));
-				SPOS y(-top_offset);
+				SPos y(-top_offset);
 
 				for(ViewerType::IndexType i(viewer.GetHeadIndex());
 					i < last; ++i)
@@ -189,25 +185,25 @@ YSimpleListBox::DrawForeground()
 	}
 }
 
-SDST
+SDst
 YSimpleListBox::AdjustTopOffset()
 {
 	viewer.RestrictSelected();
 
-	SDST d(top_offset);
+	SDst d(top_offset);
 
 	top_offset = 0;
 	return d;
 }
 
-SDST
+SDst
 YSimpleListBox::AdjustBottomOffset()
 {
 	if(GetFullViewHeight() <= GetHeight())
 		return 0;
 	viewer.RestrictSelected();
 
-	const SDST item_height(GetItemHeight()),
+	const SDst item_height(GetItemHeight()),
 		down_offset(GetHeight() % item_height);
 
 	top_offset = item_height - down_offset;
@@ -215,20 +211,20 @@ YSimpleListBox::AdjustBottomOffset()
 }
 
 YSimpleListBox::ViewerType::IndexType
-YSimpleListBox::CheckPoint(SPOS x, SPOS y)
+YSimpleListBox::CheckPoint(SPos x, SPos y)
 {
 	return Rect(Point::Zero, GetSize()).Contains(x, y)
 		? (y + top_offset) / GetItemHeight() + viewer.GetHeadIndex() : -1;
 }
 
 void
-YSimpleListBox::LocateViewPosition(SDST h)
+YSimpleListBox::LocateViewPosition(SDst h)
 {
 	RestrictInInterval(h, 0, GetFullViewHeight());
 
 	if(GetViewPosition() != h)
 	{
-		const SDST item_height(GetItemHeight());
+		const SDst item_height(GetItemHeight());
 
 		viewer.SetHeadIndex(h / item_height);
 		top_offset = h % item_height;
@@ -308,11 +304,11 @@ YSimpleListBox::OnKeyDown(KeyEventArgs& k)
 						AdjustBottomOffset();
 					break;
 				case KeySpace::PgUp:
-					viewer -= viewer.GetLength();
+					viewer.DecreaseSelected(viewer.GetLength());
 					AdjustTopOffset();
 					break;
 				case KeySpace::PgDn:
-					viewer += viewer.GetLength();
+					viewer.IncreaseSelected(viewer.GetLength());
 					AdjustBottomOffset();
 					break;
 				}
@@ -330,21 +326,15 @@ YSimpleListBox::OnKeyDown(KeyEventArgs& k)
 void
 YSimpleListBox::OnTouchDown(TouchEventArgs& e)
 {
-	if(e.Strategy == RoutedEventArgs::Direct)
-	{
-		SetSelected(e);
-		UpdateView();
-	}
+	SetSelected(e);
+	UpdateView();
 }
 
 void
 YSimpleListBox::OnTouchMove(TouchEventArgs& e)
 {
-	if(e.Strategy == RoutedEventArgs::Direct)
-	{
-		SetSelected(e);
-		UpdateView();
-	}
+	SetSelected(e);
+	UpdateView();
 }
 
 void

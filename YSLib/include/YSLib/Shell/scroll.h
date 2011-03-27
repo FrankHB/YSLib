@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件实现。
-\version 0.3007;
+\version 0.3017;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-03-13 23:13 +0800;
+	2011-03-25 15:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,12 +27,8 @@
 #ifndef INCLUDED_SCROLL_H_
 #define INCLUDED_SCROLL_H_
 
-#include "../Core/ysdef.h"
-#include "../Core/ycounter.hpp"
 #include "yuicontx.h"
 #include "button.h"
-#include "../Core/yobject.h"
-#include "yuicont.h"
 #include "yfocus.h"
 //#include "../Core/yres.h"
 //#include "ystyle.h"
@@ -62,7 +58,7 @@ protected:
 	YThumb Thumb; //!< 滑块：轨道区域上的滚动框。
 
 private:
-	SDST min_thumb_length; //!< 最小滑块长度。
+	SDst min_thumb_length; //!< 最小滑块长度。
 	// MRange 实现滚动事件关联值操作。
 	ValueType large_delta; \
 		//!< 大距离滚动偏移量：滚动事件关联的滑块位置变化绝对值。
@@ -83,7 +79,7 @@ public:
 	\brief 构造：使用指定边界、部件容器指针和大小。
 	*/
 	explicit
-	ATrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDST = 8);
+	ATrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDst = 8);
 	virtual DefEmptyDtor(ATrack)
 
 	DefPredicate(Horizontal, GetOrientation() == Horizontal)
@@ -104,13 +100,13 @@ public:
 		//!< 滑块拖动事件。
 	DefMutableDepEventGetter(HScrollEvent, Scroll, Events.Scroll) \
 		//!< 滚动事件。
-	DefGetter(SDST, MinThumbLength, min_thumb_length)
+	DefGetter(SDst, MinThumbLength, min_thumb_length)
 	DeclIEntry(Orientation GetOrientation() const) //!< 取轨道方向。
-	DefGetter(SDST, ThumbLength, SelectFrom(Thumb.GetSize(),
+	DefGetter(SDst, ThumbLength, SelectFrom(Thumb.GetSize(),
 		IsHorizontal())) //!< 取轨道方向上的滑块长度。
-	DefGetter(SDST, ThumbPosition,
+	DefGetter(SDst, ThumbPosition,
 		SelectFrom(Thumb.GetLocation(), IsHorizontal())) //!< 取滑块位置。
-	virtual DefGetter(SDST, TrackLength,
+	virtual DefGetter(SDst, TrackLength,
 		SelectFrom(GetSize(), IsHorizontal())) //!< 取轨道方向上的轨道长度。
 	DefGetter(ValueType, LargeDelta, large_delta)
 
@@ -118,12 +114,12 @@ public:
 	\brief 设置轨道方向上的滑块长度。
 	*/
 	virtual void
-	SetThumbLength(SDST);
+	SetThumbLength(SDst);
 	/*!
 	\brief 设置滑块位置。
 	*/
 	void
-	SetThumbPosition(SPOS);
+	SetThumbPosition(SPos);
 	/*!
 	\brief 设置滚动事件关联值最大取值。
 	\note 当指定值不大于 1 时无效。
@@ -163,7 +159,7 @@ protected:
 	\note 断言检查。
 	*/
 	Area
-	CheckArea(SDST) const;
+	CheckArea(SDst) const;
 
 public:
 	/*!
@@ -321,7 +317,7 @@ public:
 	\note 断言检查：宽大于长的 2 倍。
 	*/
 	explicit
-	YHorizontalTrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDST = 8);
+	YHorizontalTrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDst = 8);
 	virtual DefEmptyDtor(YHorizontalTrack)
 
 	ImplI1(ATrack)
@@ -346,7 +342,7 @@ public:
 	\note 断言检查：长大于宽的 2 倍。
 	*/
 	explicit
-	YVerticalTrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDST = 8);
+	YVerticalTrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDst = 8);
 	virtual DefEmptyDtor(YVerticalTrack)
 
 	ImplI1(ATrack)
@@ -382,7 +378,7 @@ public:
 	\brief 构造：使用指定边界、部件容器指针、大小和方向。
 	*/
 	explicit
-	AScrollBar(const Rect& = Rect::Empty, IUIBox* = NULL, SDST = 8,
+	AScrollBar(const Rect& = Rect::Empty, IUIBox* = NULL, SDst = 8,
 		Orientation = Horizontal);
 	virtual DefEmptyDtor(AScrollBar)
 
@@ -454,7 +450,7 @@ public:
 
 	explicit
 	YHorizontalScrollBar(const Rect& = Rect::Empty, IUIBox* = NULL,
-		SDST = 8);
+		SDst = 8);
 
 	virtual DefEmptyDtor(YHorizontalScrollBar)
 
@@ -474,7 +470,7 @@ public:
 
 	explicit
 	YVerticalScrollBar(const Rect& = Rect::Empty, IUIBox* = NULL,
-		SDST = 8);
+		SDst = 8);
 
 	virtual DefEmptyDtor(YVerticalScrollBar)
 

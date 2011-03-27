@@ -8,15 +8,15 @@
 	understand and accept it fully.
 */
 
-/*!	\file ybutton.cpp
+/*!	\file button.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件实现。
-\version 0.3450;
+\version 0.3457;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-03-07 22:10 +0800;
+	2011-03-27 19:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,16 +37,9 @@ YSL_BEGIN_NAMESPACE(Controls)
 
 namespace
 {
-	template<u8 r, u8 g, u8 b>
-	inline void
-	transPixelEx(BitmapPtr dst)
-	{
-		*dst ^= Color(r, g, b) & ~BITALPHA;
-	}
-
 	void
 	RectDrawButton(const Graphics& g, const Point& p, const Size& s,
-		bool bPressed = false, Color c = Color(48, 216, 255))
+		bool is_pressed = false, Color c = Color(48, 216, 255))
 	{
 		YAssert(g.IsValid(), "err: @g is invalid.");
 
@@ -62,8 +55,8 @@ namespace
 				++sz.Height;
 			FillRect(g, sp, sz, Color(192, 224, 255));
 		}
-		if(bPressed)
-			TransformRect(g, p, s, transPixelEx<56, 24, 32>);
+		if(is_pressed)
+			TransformRect(g, p, s, Drawing::transform_pixel_ex<56, 24, 32>);
 	}
 }
 
@@ -108,7 +101,7 @@ YThumb::OnLeave(InputEventArgs&)
 
 YButton::YButton(const Rect& r, IUIBox* pCon, const Drawing::Font& f)
 	: YThumb(r, pCon),
-	MLabel(f)
+	MLabel(f, MLabel::Center)
 {}
 
 void

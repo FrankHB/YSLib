@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4887;
+\version 0.4896;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-03-19 19:46 +0800;
+	2011-03-25 14:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,10 +27,8 @@
 #ifndef INCLUDED_YCONTROL_H_
 #define INCLUDED_YCONTROL_H_
 
-#include "../Core/ysdef.h"
-#include "../Core/yobject.h"
-#include "../Core/yevt.hpp"
 #include "ywidget.h"
+#include "../Core/yevt.hpp"
 #include "yfocus.h"
 
 YSL_BEGIN
@@ -507,28 +505,6 @@ public:
 };
 
 
-//! \brief 按钮模块。
-class MButton
-{
-protected:
-	bool bPressed; //!< 键按下状态：是否处于按下状态。
-
-	/*!
-	\brief 构造：使用键按下状态。
-	*/
-	explicit
-	MButton(bool = false);
-
-public:
-	DefPredicate(Pressed, bPressed)
-};
-
-inline
-MButton::MButton(bool b)
-	: bPressed(b)
-{}
-
-
 //! \brief 滚动事件类型空间。
 namespace ScrollEventSpace
 {
@@ -550,10 +526,10 @@ namespace ScrollEventSpace
 
 //! \brief 滚动事件参数类。
 struct ScrollEventArgs : public EventArgs,
-	public GMValueEventArgs<SDST>
+	public GMValueEventArgs<SDst>
 {
 public:
-	typedef GMValueEventArgs<SDST> MEventArgs;
+	typedef GMValueEventArgs<SDst> MEventArgs;
 	typedef MEventArgs::ValueType ValueType;
 
 	ScrollEventSpace::ScrollEventType Type; //滚动事件类型。
@@ -572,12 +548,12 @@ public:
 inline
 ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
 	ScrollEventArgs::ValueType v)
-	: GMValueEventArgs<SDST>(v), Type(t)
+	: GMValueEventArgs<SDst>(v), Type(t)
 {}
 inline
 ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
 	ScrollEventArgs::ValueType v, ScrollEventArgs::ValueType old_value)
-	: GMValueEventArgs<SDST>(v, old_value), Type(t)
+	: GMValueEventArgs<SDst>(v, old_value), Type(t)
 {}
 
 

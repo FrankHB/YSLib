@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3517;
+\version 0.3542;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-20 15:00 +0800;
+	2011-03-25 14:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,6 @@
 #include "ygui.h"
 #include "ywindow.h"
 #include "ydesktop.h"
-#include "../Helper/yshelper.h"
 
 YSL_BEGIN
 
@@ -35,48 +34,6 @@ using namespace Drawing;
 using namespace Components;
 using namespace Components::Controls;
 using namespace Components::Widgets;
-
-YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Controls)
-
-IControl*
-GetFocusedObjectPtr(YDesktop& d)
-{
-	IControl* p(d.GetFocusingPtr()), *q(NULL);
-	IUIBox* pCon;
-
-	while(p && (pCon = dynamic_cast<IUIBox*>(p))
-		&& (q = pCon->GetFocusingPtr()))
-		p = q;
-	return p;
-}
-
-void
-RequestFocusCascade(IControl& c)
-{
-	IControl* p(&c);
-
-	do
-	{
-		p->RequestFocus(GetStaticRef<EventArgs>());
-	}while((p = dynamic_cast<IControl*>(p->GetContainerPtr())));
-}
-
-void
-ReleaseFocusCascade(IControl& c)
-{
-	IControl* p(&c);
-
-	do
-	{
-		p->ReleaseFocus(GetStaticRef<EventArgs>());
-	}while((p = dynamic_cast<IControl*>(p->GetContainerPtr())));
-}
-
-YSL_END_NAMESPACE(Controls)
-
-YSL_END_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Shells)
 
@@ -86,9 +43,7 @@ YGUIShell::YGUIShell()
 	DraggingOffset(Vec::FullScreen), HeldTimer(1000, false),
 	ControlLocation(Point::FullScreen),
 	LastControlLocation(Point::FullScreen),
-	p_KeyDown(NULL), p_TouchDown(NULL), bEntered(false)
-{}
-YGUIShell::~YGUIShell() ythrow()
+	p_KeyDown(NULL), p_TouchDown(NULL), control_entered(false)
 {}
 
 void
@@ -97,6 +52,7 @@ YGUIShell::operator+=(HWND h)
 	if(h)
 		sWnds.push_back(h);
 }
+
 bool
 YGUIShell::operator-=(HWND h)
 {
@@ -106,16 +62,6 @@ YGUIShell::operator-=(HWND h)
 		return false;
 	sWnds.erase(i);
 	return true;
-}
-YGUIShell::WNDs::size_type YGUIShell::RemoveAll(HWND h)
-{
-	return ystdex::erase_all(sWnds, h);
-}
-
-void
-YGUIShell::RemoveWindow()
-{
-	sWnds.pop_back();
 }
 
 HWND
@@ -148,20 +94,11 @@ YGUIShell::GetCursorWidgetPtr(YDesktop& d, const Point& pt) const
 	return hWnd ? hWnd->GetTopWidgetPtr(pt) : NULL;
 }
 
-bool
-YGUIShell::SendWindow(IWindow& w)
+void
+YGUIShell::ClearScreenWindows(YDesktop& d)
 {
-	if(std::find(sWnds.begin(), sWnds.end(), &w) != sWnds.end())
-	{
-		YDesktop* const pDsk(FetchDirectDesktopPtr(w));
-
-		if(pDsk)
-		{
-			*pDsk += static_cast<IControl&>(w);
-			return true;
-		}
-	}
-	return false;
+	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
+		d.RemoveAll(*static_cast<IControl*>(GetPointer(*i)));
 }
 
 void
@@ -178,11 +115,15 @@ YGUIShell::DispatchWindows()
 	}
 }
 
-void
-YGUIShell::ClearScreenWindows(YDesktop& d)
+YGUIShell::WNDs::size_type YGUIShell::RemoveAll(HWND h)
 {
-	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
-		d.RemoveAll(*static_cast<IControl*>(GetPointer(*i)));
+	return ystdex::erase_all(sWnds, h);
+}
+
+void
+YGUIShell::RemoveWindow()
+{
+	sWnds.pop_back();
 }
 
 bool
@@ -242,19 +183,19 @@ YGUIShell::ResetGUIStates()
 void
 YGUIShell::TryEntering(IControl& c, TouchEventArgs& e)
 {
-	if(!bEntered && p_TouchDown == &c)
+	if(!control_entered && p_TouchDown == &c)
 	{
 		CallEvent<Enter>(c, e);
-		bEntered = true;
+		control_entered = true;
 	}
 }
 void
 YGUIShell::TryLeaving(IControl& c, TouchEventArgs& e)
 {
-	if(bEntered && p_TouchDown == &c)
+	if(control_entered && p_TouchDown == &c)
 	{
 		CallEvent<Leave>(c, e);
-		bEntered = false;
+		control_entered = false;
 	}
 }
 
@@ -268,7 +209,7 @@ YGUIShell::ResetTouchHeldState()
 IControl*
 YGUIShell::GetFocusedEnabledVisualControlPtr(IControl* p)
 {
-	return p && p->IsEnabled() ? p : NULL;
+	return p && p->IsVisible() && p->IsEnabled() ? p : NULL;
 }
 
 bool
@@ -308,7 +249,8 @@ bool
 YGUIShell::ResponseKey(YDesktop& d, KeyEventArgs& e,
 	Components::Controls::VisualEvent op)
 {
-	IControl* const p(GetFocusedEnabledVisualControlPtr(d));
+	IControl* const p(GetFocusedEnabledVisualControlPtr(
+		Components::Controls::GetFocusedObjectPtr(d)));
 	bool(YGUIShell::*pmf)(IControl&, KeyEventArgs&)(NULL);
 
 	switch(op)
@@ -386,11 +328,11 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 
 				if(p)
 					el += LocateForWidget(*p, *p_TouchDown);
-				if(bEntered)
+				if(control_entered)
 					TryLeaving(*p_TouchDown, el);
 			}
 		}
-		else if(!bEntered)
+		else if(!control_entered)
 			TryEntering(*p, e);
 	/*	if(p_TouchDown != p)
 		{
@@ -413,6 +355,22 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 	return true;
 }
 
+bool
+YGUIShell::SendWindow(IWindow& w)
+{
+	if(std::find(sWnds.begin(), sWnds.end(), &w) != sWnds.end())
+	{
+		YDesktop* const pDsk(FetchDirectDesktopPtr(w));
+
+		if(pDsk)
+		{
+			*pDsk += static_cast<IControl&>(w);
+			return true;
+		}
+	}
+	return false;
+}
+
 int
 YGUIShell::ShlProc(const Message& msg)
 {
@@ -421,6 +379,64 @@ YGUIShell::ShlProc(const Message& msg)
 
 YSL_END_NAMESPACE(Shells)
 
+GHHandle<YGUIShell>
+FetchGUIShellHandle()
+{
+	return general_handle_cast<YGUIShell>(FetchShellHandle());
+}
+
+YSL_BEGIN_NAMESPACE(Components)
+
+YSL_BEGIN_NAMESPACE(Controls)
+
+IControl*
+GetFocusedObjectPtr(YDesktop& d)
+{
+	IControl* p(d.GetFocusingPtr()), *q(NULL);
+	IUIBox* pCon;
+
+	while(p && (pCon = dynamic_cast<IUIBox*>(p))
+		&& (q = pCon->GetFocusingPtr()))
+		p = q;
+	return p;
+}
+
+void
+RequestFocusCascade(IControl& c)
+{
+	IControl* p(&c);
+
+	do
+	{
+		p->RequestFocus(GetStaticRef<EventArgs>());
+	}while((p = dynamic_cast<IControl*>(p->GetContainerPtr())));
+}
+
+void
+ReleaseFocusCascade(IControl& c)
+{
+	IControl* p(&c);
+
+	do
+	{
+		p->ReleaseFocus(GetStaticRef<EventArgs>());
+	}while((p = dynamic_cast<IControl*>(p->GetContainerPtr())));
+}
+
+
+bool
+IsFocusedByShell(const IControl& c, GHHandle<YGUIShell> hShl)
+{
+	if(!hShl)
+		throw GeneralEvent("Null GUI handle found @@ YCheckBox"
+			"::IsLockedByCurrentShell");
+	return hShl->GetTouchDownPtr() == &c;
+}
+
+YSL_END_NAMESPACE(Controls)
+
+YSL_END_NAMESPACE(Components)
+
 YSL_BEGIN_NAMESPACE(Drawing)
 
 namespace
@@ -428,7 +444,7 @@ namespace
 	void
 	DrawWidgetBounds(IWindow& w, const Point& p, const Size& s, Color c)
 	{
-		DrawRect(w.GetContext(), p, Size(s - Vec(1, 1)), c);
+		DrawRect(w.GetContext(), p, s, c);
 	}
 }
 

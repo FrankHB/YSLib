@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2057;
+\version 0.2062;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-25 14:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -55,6 +55,7 @@ YSL_BEGIN
 
 /*!
 \brief 平台相关的全局资源类。
+\note 含默认接口。
 */
 class Global : public NonCopyable
 {
@@ -62,7 +63,7 @@ class Global : public NonCopyable
 
 public:
 	//! \brief 屏幕大小。
-	static const SDST MainScreenWidth, MainScreenHeight;
+	static const SDst MainScreenWidth, MainScreenHeight;
 
 private:
 	GHHandle<YScreen> hScreenUp; //<! DS 上屏幕句柄。
@@ -114,12 +115,14 @@ public:
 		ImplRet(GetScreenUp())
 	/*!
 	\brief 取默认桌面。
+	\note 默认接口：可能会被 YSLib 本体使用。
 	\note 无异常抛出。
 	*/
 	PDefH0(YDesktop&, GetDefaultDesktop)
 		ImplRet(GetDesktopUp())
 	/*!
 	\brief 取触摸屏所在桌面。
+	\note 默认接口：可能会被 YSLib 本体使用。
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
 	*/
@@ -136,7 +139,7 @@ public:
 	/*!
 	\brief 释放设备。
 	\note 无异常抛出。
-*/
+	*/
 	void
 	ReleaseDevices() ythrow();
 };

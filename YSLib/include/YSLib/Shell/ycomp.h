@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件实现。
-\version 0.3011;
+\version 0.3040;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2011-03-18 17:26 +0800;
+	2011-03-23 11:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,8 +32,6 @@
 #ifndef INCLUDED_YCOMPONENT_H_
 #define INCLUDED_YCOMPONENT_H_
 
-#include "../Core/ysdef.h"
-#include "../Core/ycounter.hpp"
 #include "../Core/yobject.h"
 #include "../Helper/yglobal.h"
 #include "../Core/yshell.h"
@@ -111,39 +109,15 @@ public:
 	{}
 
 	inline PDefHOperator0(GSequenceViewer&, ++) //!< 选中项目下标自增。
-		ImplRet(*this += 1)
+		ImplRet(IncreaseSelected(1))
 	inline PDefHOperator0(GSequenceViewer&, --) //!< 选中项目下标自减。
-		ImplRet(*this -= 1)
+		ImplRet(IncreaseSelected(-1))
 	inline PDefHOperator1(GSequenceViewer&, ++, int) \
 		//!< 视图中首个项目下标自增。
-		ImplRet(*this >> 1)
+		ImplRet(IncreaseHead(1))
 	inline PDefHOperator1(GSequenceViewer&, --, int) \
 		//!< 视图中首个项目下标自减。
-		ImplRet(*this >> -1)
-	/*!
-	\brief 视图中首个项目下标增加 d 。
-	*/
-	inline GSequenceViewer&
-	operator>>(IndexType d)
-	{
-		SetHeadIndex(head + d);
-		return *this;
-	}
-	inline PDefHOperator1(GSequenceViewer&, <<, IndexType d) \
-		//!< 视图中首个项目下标减少 d 。
-		ImplRet(*this >> -d)
-	/*!
-	\brief 选中项目下标增加 d 。
-	*/
-	inline GSequenceViewer&
-	operator+=(IndexType d)
-	{
-		SetSelectedIndex(selected + d);
-		return *this;
-	}
-	inline PDefHOperator1(GSequenceViewer&, -=, IndexType d) \
-		//!< 选中项目下标减少 d 。
-		ImplRet(*this += -d)
+		ImplRet(IncreaseHead(-1))
 
 	/*!
 	\brief 判断是否为选中状态。
@@ -233,6 +207,62 @@ public:
 		return false;
 	}
 
+	inline PDefH1(GSequenceViewer&, DecreaseHead, IndexType d) \
+		//!< 视图中首个项目下标减少 d 。
+		ImplRet(IncreaseHead(-d))
+
+	inline PDefH1(GSequenceViewer&, DecreaseSelected, IndexType d) \
+		//!< 选中项目下标减少 d 。
+		ImplRet(IncreaseSelected(-d))
+
+	/*!
+	\brief 视图中首个项目下标增加 d 。
+	*/
+	inline GSequenceViewer&
+	IncreaseHead(IndexType d)
+	{
+		SetHeadIndex(head + d);
+		return *this;
+	}
+
+	/*!
+	\brief 选中项目下标增加 d 。
+	*/
+	inline GSequenceViewer&
+	IncreaseSelected(IndexType d)
+	{
+		SetSelectedIndex(selected + d);
+		return *this;
+	}
+
+	/*!
+	\brief 移动视图至序列起始。
+	*/
+	bool
+	MoveViewerToBegin()
+	{
+		if(head)
+		{
+			head = 0;
+			return true;
+		}
+		return false;
+	}
+
+	/*!
+	\brief 移动视图至序列结尾。
+	*/
+	bool
+	MoveViewerToEnd()
+	{
+		if(GetTotal() >= length)
+		{
+			head = GetTotal() - length;
+			return true;
+		}
+		return false;
+	}
+
 	/*!
 	\brief 约束被选中的元素在视图内。
 	*/
@@ -265,34 +295,6 @@ public:
 		else
 			return false;
 		return true;
-	}
-
-	/*!
-	\brief 移动视图至序列起始。
-	*/
-	bool
-	MoveViewerToBegin()
-	{
-		if(head)
-		{
-			head = 0;
-			return true;
-		}
-		return false;
-	}
-
-	/*!
-	\brief 移动视图至序列结尾。
-	*/
-	bool
-	MoveViewerToEnd()
-	{
-		if(GetTotal() >= length)
-		{
-			head = GetTotal() - length;
-			return true;
-		}
-		return false;
 	}
 };
 
@@ -361,6 +363,16 @@ YSL_END_NAMESPACE(Components)
 
 using Components::Forms::YForm;
 using Components::Forms::YWindow;
+
+/*!
+\ingroup HeplerFunction
+\brief 取当前线程空间中运行的 Shell 句柄。
+*/
+inline GHHandle<YShell>
+FetchShellHandle()
+{
+	return theApp.GetShellHandle();
+}
 
 YSL_END
 

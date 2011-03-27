@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2064;
+\version 0.2072;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-25 14:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,6 +82,9 @@ YSL_BEGIN
 	using platform::getcwd_n;
 
 	using platform::terminate;
+
+	using platform::SPos;
+	using platform::SDst;
 
 	using platform::HDirectory;
 	using platform::IsAbsolute;

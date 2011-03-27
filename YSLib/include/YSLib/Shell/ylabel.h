@@ -11,12 +11,12 @@
 /*!	\file ylabel.h
 \ingroup Shell
 \brief 平台无关的标签模块实现。
-\version 0.1902;
+\version 0.1924;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-27 19:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,11 +27,8 @@
 #ifndef INCLUDED_YLABEL_H_
 #define INCLUDED_YLABEL_H_
 
-#include "../Core/ysdef.h"
-#include "../Core/ycutil.h"
-#include "../Core/ycounter.hpp"
-#include "../Adaptor/yfont.h"
 #include "ywidget.h"
+#include "../Adaptor/yfont.h"
 //#include "../Core/yres.h"
 #include "ytext.h"
 
@@ -45,10 +42,19 @@ YSL_BEGIN_NAMESPACE(Widgets)
 class MLabel : public NonCopyable
 {
 public:
+	//文本（水平）对齐样式。
+	typedef enum
+	{
+		Left = 0,
+		Center = 1,
+		Right = 2
+	} TextAlignmentStyle;
+
 	Drawing::Font Font; //!< 字体。
 	Drawing::Padding Margin; //!< 文本和容器的间距。
-	bool AutoSize; //!< 启用根据字号自动调整大小。
-	bool AutoEllipsis; //!< 启用对超出标签宽度的文本调整大小。
+	TextAlignmentStyle Alignment; //!< 文本对齐属性。
+//	bool AutoSize; //!< 启用根据字号自动调整大小。
+//	bool AutoEllipsis; //!< 启用对超出标签宽度的文本调整大小。
 	String Text; //!< 标签文本。
 
 protected:
@@ -56,7 +62,8 @@ protected:
 	\brief 构造：使用指定字体。
 	*/
 	explicit
-	MLabel(const Drawing::Font& = Drawing::Font::GetDefault());
+	MLabel(const Drawing::Font& = Drawing::Font::GetDefault(),
+		TextAlignmentStyle = Left);
 
 	/*!
 	\brief 绘制文本。

@@ -11,12 +11,12 @@
 /*!	\file yexcept.h
 \ingroup Core
 \brief 异常处理模块。
-\version 0.1225;
+\version 0.1307;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-15 20:30:14 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-22 21:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,73 +28,38 @@
 #define INCLUDED_YEXCEPT_H_
 
 #include "ysdef.h"
-#include "../Adaptor/cont.h"
-#include <new>
-#include <typeinfo>
-
-//#include <string>
+#include <exception>
+#include <stdexcept>
+#include <string>
 
 YSL_BEGIN
 
 //! \brief YSLib 异常基类。
-class Exception : public std::exception
-{
-public:
-	/*!
-	\brief 无参数构造。
-	*/
-	Exception();
-	/*!
-	\brief 析构。
-	\note 无异常抛出。
-	*/
-	virtual
-	~Exception() throw();
-};
+typedef std::exception Exception;
 
 
-//! \brief 一般异常事件类。
-class GeneralEvent : public Exception
-{
-private:
-	string str;
-
-public:
-	/*!
-	\brief 构造：使用异常字符串。
-	*/
-	GeneralEvent(const string&);
-	/*!
-	\brief 析构。
-	\note 无异常抛出。
-	*/
-	virtual
-	~GeneralEvent() throw();
-
-	/*!
-	\brief 取异常字符串。
-	\note 无异常抛出。
-	*/
-	const char*
-	what() const throw();
-};
+//! \brief 一般运行时异常事件类。
+typedef std::runtime_error GeneralEvent;
 
 
 //记录异常事件类。
 class LoggedEvent : public GeneralEvent
 {
+public:
+	typedef u8 LevelType;
+
 private:
-	u8 level;
+	LevelType level;
 
 public:
 	/*!
 	\brief 构造：使用异常字符串和异常等级。
 	*/
-	LoggedEvent(const string&, u8 = 0);
+	LoggedEvent(const std::string&, LevelType = 0);
 	/*!
 	\brief 构造：使用一般异常事件对象和异常等级。
 	*/
-	LoggedEvent(const GeneralEvent&, u8 = 0);
+	LoggedEvent(const GeneralEvent&, LevelType = 0);
 	/*!
 	\brief 析构。
 	\note 无异常抛出。
@@ -102,7 +67,7 @@ public:
 	virtual
 	~LoggedEvent() throw();
 
-	DefGetter(u8, Level, level);
+	DefGetter(LevelType, Level, level);
 };
 
 YSL_END

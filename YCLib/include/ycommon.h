@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2674;
+\version 0.2687;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 +0800; 
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-27 14:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -131,7 +131,8 @@ namespace platform
 	void
 	terminate();
 
-
+	typedef s16 SPos; //!< 屏幕坐标度量。
+	typedef u16 SDst; //!< 屏幕坐标距离。
 	typedef u16 PixelType; //!< 像素。
 	typedef PixelType* BitmapPtr;
 	typedef const PixelType* ConstBitmapPtr;
@@ -243,7 +244,7 @@ namespace platform
 	inline Color::MonoType
 	Color::GetR() const
 	{
-		return _value >> 7 & 248;
+		return _value << 3 & 248;
 	}
 	inline Color::MonoType
 	Color::GetG() const
@@ -253,7 +254,7 @@ namespace platform
 	inline Color::MonoType
 	Color::GetB() const
 	{
-		return _value << 3 & 248;
+		return _value >> 7 & 248;
 	}
 	inline Color::AlphaType
 	Color::GetA() const
@@ -339,19 +340,19 @@ namespace platform
 		/*!
 		\brief 取横坐标。
 		*/
-		u16 GetX() const;
+		SDst GetX() const;
 		/*!
 		\brief 取纵坐标。
 		*/
-		u16 GetY() const;
+		SDst GetY() const;
 	} CursorInfo;
 
-	inline u16
+	inline SDst
 	CursorInfo::GetX() const
 	{
 		return px;
 	}
-	inline u16
+	inline SDst
 	CursorInfo::GetY() const
 	{
 		return py;
@@ -457,7 +458,8 @@ namespace platform
 
 	public:
 		/*!
-		\brief 复制构造：浅复制。
+		\brief 复制构造。
+		\note 浅复制。
 		*/
 		HDirectory(const HDirectory&);
 		/*!

@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3860;
+\version 0.3871;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-03-07 19:27 +0800;
+	2011-03-27 14:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,6 @@
 #ifndef INCLUDED_YGDI_H_
 #define INCLUDED_YGDI_H_
 
-#include "../Core/ysdef.h"
 #include "../Core/yobject.h"
 #include "../Adaptor/yfont.h"
 
@@ -116,7 +115,7 @@ struct VerticalLineTransfomer
 	*/
 	template<typename _tPixel, class _fTransformPixel>
 	void
-	operator()(_tPixel* dst, std::size_t n, SDST dw, _fTransformPixel tp)
+	operator()(_tPixel* dst, std::size_t n, SDst dw, _fTransformPixel tp)
 	{
 		if(dst && n)
 			while(n--)
@@ -209,8 +208,8 @@ struct RectTransfomer
 		const int delta_x(max_x - min_x);
 		int delta_y(max_y - min_y);
 
-		dst += ystdex::vmax<SPOS>(0, dp.Y) * ds.Width
-			+ ystdex::vmax<SPOS>(0, dp.X);
+		dst += ystdex::vmax<SPos>(0, dp.Y) * ds.Width
+			+ ystdex::vmax<SPos>(0, dp.X);
 		for(; delta_y > 0; --delta_y)
 		{
 			tl(dst, delta_x, tp);
@@ -235,8 +234,8 @@ struct RectTransfomer
 	*/
 	template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
 	inline void
-	operator()(_tPixel* dst, SDST dw, SDST dh, SPOS dx, SPOS dy,
-		SDST sw, SDST sh, _fTransformPixel tp, _fTransformLine tl)
+	operator()(_tPixel* dst, SDst dw, SDst dh, SPos dx, SPos dy,
+		SDst sw, SDst sh, _fTransformPixel tp, _fTransformLine tl)
 	{
 		operator()<_tPixel, _fTransformPixel, _fTransformLine>(
 			dst, Size(dw, dh), Point(dx, dy), Size(sw, sh), tp, tl);
@@ -271,7 +270,7 @@ FillPixel(_tPixel* dst, std::size_t n, _tPixel c)
 */
 template<typename _tPixel>
 inline void
-FillVerticalLine(_tPixel* dst, std::size_t n, SDST dw, _tPixel c)
+FillVerticalLine(_tPixel* dst, std::size_t n, SDst dw, _tPixel c)
 {
 	VerticalLineTransfomer()(dst, n, dw, PixelFiller<_tPixel>(c));
 }
@@ -302,7 +301,7 @@ FillRect(_tPixel* dst, const Size& ds, const Rect& rSrc, _tPixel c)
 */
 template<typename _tPixel>
 inline void
-FillRect(_tPixel* dst, SDST dw, SDST dh, SPOS sx, SPOS sy, SDST sw, SDST sh,
+FillRect(_tPixel* dst, SDst dw, SDst dh, SPos sx, SPos sy, SDst sw, SDst sh,
 	_tPixel c)
 {
 	RectTransfomer()(dst, dw, dh, sx, sy, sw, sh, PixelFiller<_tPixel>(c),
@@ -521,15 +520,15 @@ struct BlitBlendLoop
 \pre 断言 g.IsValid && Rect(g.GetSize()).Contains(x, y) 。
 */
 inline void
-PutPixel(const Graphics& g, SPOS x, SPOS y, Color c)
+PutPixel(const Graphics& g, SPos x, SPos y, Color c)
 {
 	YAssert(g.IsValid(),
 		"In function \"inline void\n"
-		"PutPixel(const Graphics& g, SPOS x, SPOS y, Color c)\": \n"
+		"PutPixel(const Graphics& g, SPos x, SPos y, Color c)\": \n"
 		"The graphics device context is invalid.");
 	YAssert(Rect(g.GetSize()).Contains(x, y),
 		"In function \"inline void\n"
-		"PutPixel(const Graphics& g, SPOS x, SPOS y, Color c)\": \n"
+		"PutPixel(const Graphics& g, SPos x, SPos y, Color c)\": \n"
 		"The pixel is not in the device context buffer.");
 
 	g.GetBufferPtr()[y * g.GetWidth() + x] = c;
@@ -539,7 +538,7 @@ PutPixel(const Graphics& g, SPOS x, SPOS y, Color c)
 \brief 绘制点：p(x, y) 。
 */
 inline bool
-DrawPoint(const Graphics& g, SPOS x, SPOS y, Color c)
+DrawPoint(const Graphics& g, SPos x, SPos y, Color c)
 {
 	if(g.IsValid() && Rect(g.GetSize()).Contains(x, y))
 	{
@@ -558,24 +557,24 @@ DrawPoint(const Graphics& g, const Point& p, Color c)
 }
 
 /*!
-\brief 绘制水平线段：指定端点水平坐标 x1 、 x2 - 1，竖直坐标 y 。
+\brief 绘制水平线段：指定端点水平坐标 x1 、 x2 - 1 ，竖直坐标 y 。
 \pre 断言：g.IsValid() 。
 */
 bool
-DrawHLineSeg(const Graphics& g, SPOS y, SPOS x1, SPOS x2, Color c);
+DrawHLineSeg(const Graphics& g, SPos y, SPos x1, SPos x2, Color c);
 
 /*!
 \brief 绘制竖直线段：指定竖直水平坐标 x ，竖直坐标 y1 - 1 、 y2 。
 \pre 断言：g.IsValid() 。
 */
 bool
-DrawVLineSeg(const Graphics& g, SPOS x, SPOS y1, SPOS y2, Color c);
+DrawVLineSeg(const Graphics& g, SPos x, SPos y1, SPos y2, Color c);
 
 /*!
-\brief 绘制一般线段：端点 p1(x1, y1), p2(x2, y2) 。
+\brief 绘制一般线段：端点 p1(x1, y1) 和 p2(x2, y2) 。
 */
 bool
-DrawLineSeg(const Graphics& g, SPOS x1, SPOS y1, SPOS x2, SPOS y2, Color c);
+DrawLineSeg(const Graphics& g, SPos x1, SPos y1, SPos x2, SPos y2, Color c);
 /*!
 \brief 绘制一般线段：端点 p1, p2 。
 */
@@ -587,11 +586,13 @@ DrawLineSeg(const Graphics& g, const Point& p1, const Point& p2, Color c)
 
 /*!
 \brief 绘制空心正则矩形。
+\note 右下角顶点坐标 (p.X + s.Width - 1, p.Y + s.Height - 1) 。
 */
 bool
 DrawRect(const Graphics& g, const Point& p, const Size& s, Color c);
 /*!
 \brief 绘制空心正则矩形。
+\note 右下角顶点坐标 (p.X + s.Width - 1, p.Y + s.Height - 1) 。
 */
 inline bool
 DrawRect(const Graphics& g, const Rect& r, Color c)
@@ -601,11 +602,13 @@ DrawRect(const Graphics& g, const Rect& r, Color c)
 
 /*!
 \brief 绘制实心正则矩形。
+\note 右下角顶点坐标 (p.X + s.Width - 1, p.Y + s.Height - 1) 。
 */
 bool
 FillRect(const Graphics& g, const Point& p, const Size& s, Color c);
 /*!
 \brief 绘制实心正则矩形。
+\note 右下角顶点坐标 (p.X + s.Width - 1, p.Y + s.Height - 1) 。
 */
 inline bool
 FillRect(const Graphics& g, const Rect& r, Color c)
@@ -712,13 +715,13 @@ PenStyle::PenStyle(const FontFamily& family, Font::SizeType size,
 //! \brief 边距样式。
 struct Padding
 {
-	SDST Left, Right, Top, Bottom; //!< 边距：左、右、上、下。
+	SDst Left, Right, Top, Bottom; //!< 边距：左、右、上、下。
 
 	/*!
 	\brief 构造：使用 4 个 16 位无符号整数形式的边距。
 	*/
 	explicit
-	Padding(SDST = 4, SDST = 4, SDST = 4, SDST = 4);
+	Padding(SDst = 4, SDst = 4, SDst = 4, SDst = 4);
 
 	/*!
 	\brief 加法赋值：对应分量调用 operator+= 。
@@ -739,7 +742,7 @@ operator+(const Padding& a, const Padding& b);
 /*!
 \brief 取水平边距和。
 */
-inline SDST
+inline SDst
 GetHorizontalFrom(const Padding& p)
 {
 	return p.Left + p.Right;
@@ -748,7 +751,7 @@ GetHorizontalFrom(const Padding& p)
 /*!
 \brief 取竖直边距和。
 */
-inline SDST
+inline SDst
 GetVerticalFrom(const Padding& p)
 {
 	return p.Top + p.Bottom;
@@ -766,7 +769,7 @@ GetAllFrom(const Padding&);
 \note 4 个 16 位无符号整数形式。
 */
 void
-SetAllTo(Padding&, SDST, SDST, SDST, SDST);
+SetAllTo(Padding&, SDst, SDst, SDst, SDst);
 /*!
 \brief 设置边距。
 \note 64 位无符号整数形式。
@@ -781,7 +784,7 @@ SetAllTo(Padding& p, u64 m)
 \note 2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
 */
 inline void
-SetAllTo(Padding& p, SDST h, SDST v)
+SetAllTo(Padding& p, SDst h, SDst v)
 {
 	SetAllTo(p, h, h, v, v);
 }
@@ -806,7 +809,7 @@ public:
 	/*!
 	\brief 构造：使用指定位图指针和大小。
 	*/
-	BitmapBuffer(ConstBitmapPtr, SDST, SDST);
+	BitmapBuffer(ConstBitmapPtr, SDst, SDst);
 	/*!
 	\brief 析构：释放资源。
 	\note 无异常抛出。
@@ -820,7 +823,7 @@ public:
 		设置后清除缓冲区。
 	*/
 	virtual void
-	SetSize(SDST, SDST);
+	SetSize(SDst, SDst);
 
 	/*!
 	\brief 交换宽和高；同时清除缓冲区。
@@ -882,7 +885,7 @@ public:
 	/*!
 	\brief 构造：使用指定位图指针和大小。
 	*/
-	BitmapBufferEx(ConstBitmapPtr, SDST, SDST);
+	BitmapBufferEx(ConstBitmapPtr, SDst, SDst);
 	/*!
 	\brief 析构：释放资源。
 	\note 无异常抛出。
@@ -901,7 +904,7 @@ public:
 		设置后清除缓冲区。
 	*/
 	virtual void
-	SetSize(SDST, SDST);
+	SetSize(SDst, SDst);
 
 	/*!
 	\brief 清除缓冲区。

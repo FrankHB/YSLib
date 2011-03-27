@@ -11,12 +11,12 @@
 /*!	\file ylabel.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.1857;
+\version 0.1892;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-27 19:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,19 +34,36 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Widgets)
 
-MLabel::MLabel(const Drawing::Font& f)
+MLabel::MLabel(const Drawing::Font& f, MLabel::TextAlignmentStyle a)
 	: Font(f), Margin(2, 2, 2, 2),
-	AutoSize(true), AutoEllipsis(false), Text()
+	Alignment(a), /*AutoSize(false), AutoEllipsis(false),*/ Text()
 {}
 
 void
 MLabel::PaintText(Widget& w, const Graphics& g, const Point& pt)
 {
 	Drawing::TextState ts;
+	const Rect& r(GetBoundsOf(w));
 
 	ts.Font.SetFont(Font);
-	ts.ResetForBounds(GetBoundsOf(w), g.GetSize(), Margin);
+	ts.ResetForBounds(r, g.GetSize(), Margin);
 	ts.Color = w.ForeColor;
+
+	switch(Alignment)
+	{
+	case Center:
+	case Right:
+		{
+			const SDst dx(g.GetWidth() - GetHorizontalFrom(ts.Margin)
+				- FetchStringWidth(ts, Text, g.GetHeight()));
+
+			ts.ResetForBounds(r, g.GetSize(), Margin);
+			ts.PenX += Alignment == Center ? dx / 2 : dx;
+		}
+	case Left:
+	default:
+		break;
+	}
 	DrawText(g, ts, Text);
 }
 

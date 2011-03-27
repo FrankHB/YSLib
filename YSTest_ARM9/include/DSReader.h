@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器实现。
-\version 0.2302;
+\version 0.2304;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 +0800; 
 \par 修改时间:
-	2011-03-07 13:14 +0800;
+	2011-03-25 14:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,9 +56,9 @@ class MDualScreenReader
 private:
 	BlockedText* pText; //!< 文本资源。
 	YFontCache& fc; //!< 字体缓存。
-	SDST left; //!< 上下字符区域距离屏幕左边距离。
-	SDST top_up; //!< 上字符区域距离上屏顶端距离。
-	SDST top_down; //!< 下字符区域距离下屏顶端距离。
+	SDst left; //!< 上下字符区域距离屏幕左边距离。
+	SDst top_up; //!< 上字符区域距离上屏顶端距离。
+	SDst top_down; //!< 下字符区域距离下屏顶端距离。
 	PixelType* pBgUp; //!< 上屏幕背景层显存地址。
 	PixelType* pBgDn; //!< 下屏幕背景层显存地址。
 	GHStrong<Drawing::TextRegion> pTextRegionUp; //!< 上屏幕对应字符区域。
@@ -108,9 +108,9 @@ public:
 	\param h_down 下字符区域高。
 	\param fc_ 字体缓存对象引用。
 	*/
-	MDualScreenReader(SDST l = 0, SDST w = Global::MainScreenWidth,
-		SDST t_up = 0, SDST h_up = Global::MainScreenHeight,
-		SDST t_down = 0, SDST h_down = Global::MainScreenHeight,
+	MDualScreenReader(SDst l = 0, SDst w = Global::MainScreenWidth,
+		SDst t_up = 0, SDst h_up = Global::MainScreenHeight,
+		SDst t_down = 0, SDst h_down = Global::MainScreenHeight,
 		YFontCache& fc_ = theApp.GetFontCache());
 
 	bool IsTextTop(); //!< 判断输出位置是否到文本顶端。	
@@ -124,7 +124,7 @@ public:
 	DefGetter(Color, Color, GetColorUp()) //!< 取字符区域的字体颜色。
 	DefGetter(u8, LineGap, GetLineGapUp()) //!< 取字符区域的行距。
 
-	DefSetterDe(SDST, Left, left, 0) //!< 设置字符区域距离屏幕左边距离。
+	DefSetterDe(SDst, Left, left, 0) //!< 设置字符区域距离屏幕左边距离。
 	void
 	SetFontSize(Drawing::Font::SizeType = Drawing::Font::DefSize); \
 		//!< 设置字符区域字体大小。

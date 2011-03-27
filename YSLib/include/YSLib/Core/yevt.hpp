@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调实现。
-\version 0.4112;
+\version 0.4115;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-03-18 15:35 +0800;
+	2011-03-27 14:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,6 @@
 #ifndef INCLUDED_YEVT_HPP_
 #define INCLUDED_YEVT_HPP_
 
-#include "ysdef.h"
 #include "yobject.h"
 #include "yfunc.hpp"
 
@@ -144,14 +143,13 @@ protected:
 
 public:
 	/*!
-	\brief 无参数构造。
-	\note 空实现；得到空实例。
+	\brief 无参数构造：空实现。
+	\note 得到空实例。
 	*/
 	GEvent()
 	{}
 	/*!
-	\brief 复制构造。
-	\note 深复制。
+	\brief 复制构造：深复制。
 	*/
 	GEvent(const GEvent& rhs)
 		: List(rhs.List)

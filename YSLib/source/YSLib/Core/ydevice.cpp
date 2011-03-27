@@ -11,12 +11,12 @@
 /*!	\file ydevice.cpp
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version 0.2712;
+\version 0.2714;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:39:51 +0800;
 \par 修改时间:
-	2011-03-07 13:10 +0800;
+	2011-03-25 15:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN_NAMESPACE(Device)
 
 bool YScreen::S_InitScr(true);
 
-YScreen::YScreen(SDST w, SDST h, BitmapPtr p)
+YScreen::YScreen(SDst w, SDst h, BitmapPtr p)
 	: YGraphicDevice(w, h, p),
 bg(-1)
 {}

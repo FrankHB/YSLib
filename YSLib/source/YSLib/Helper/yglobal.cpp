@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2944;
+\version 0.2946;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-03-07 19:58 +0800;
+	2011-03-25 15:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,8 +65,8 @@ const GHHandle<YShell> YApplication::DefaultShellHandle(new YMainShell());
 //@}
 
 
-const SDST Global::MainScreenWidth(SCREEN_WIDTH);
-const SDST Global::MainScreenHeight(SCREEN_HEIGHT);
+const SDst Global::MainScreenWidth(SCREEN_WIDTH);
+const SDst Global::MainScreenHeight(SCREEN_HEIGHT);
 
 Global::Global()
 	: hScreenUp(NULL), hScreenDown(NULL), hDesktopUp(NULL), hDesktopDown(NULL)

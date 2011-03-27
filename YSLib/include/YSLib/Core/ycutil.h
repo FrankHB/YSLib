@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2516;
+\version 0.2517;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-03-14 20:31 +0800;
+	2011-03-27 14:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,14 +39,12 @@ class NonCopyable
 //保护非多态类。
 protected:
 	/*!
-	\brief 保护构造。
-	\note 空实现。
+	\brief 保护构造：空实现。
 	*/
 	NonCopyable()
 	{}
 	/*!
-	\brief 保护析构。
-	\note 空实现。
+	\brief 保护析构：空实现。
 	*/
 	~NonCopyable()
 	{}

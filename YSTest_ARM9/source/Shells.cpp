@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3594;
+\version 0.3614;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-03-18 17:25 +0800;
+	2011-03-27 19:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,14 +68,14 @@ namespace
 
 	//背景测试。
 	void
-	dfa(BitmapPtr buf, SDST x, SDST y)
+	dfa(BitmapPtr buf, SDst x, SDst y)
 	{
 		//raz2
 		buf[y * Global::MainScreenWidth + x] = ARGB16(1, ((x >> 2) + 15) & 31,
 			((y >> 2) + 15) & 31, ((~(x * y) >> 2) + 15) & 31);
 	}
 	void
-	dfap(BitmapPtr buf, SDST x, SDST y)
+	dfap(BitmapPtr buf, SDst x, SDst y)
 	{
 		//bza1
 		buf[y * Global::MainScreenWidth + x] = ARGB16(1,
@@ -83,21 +83,21 @@ namespace
 			((x << 4) / (y | 1)) & 31);
 	}
 	void
-	dfac1(BitmapPtr buf, SDST x, SDST y)
+	dfac1(BitmapPtr buf, SDst x, SDst y)
 	{
 		//fl1
 		buf[y * Global::MainScreenWidth + x] = ARGB16(1, (x + y * y) & 31,
 			(x * x + y) & 31, ((x & y) ^ (x | y)) & 31);
 	}
 	void
-	dfac1p(BitmapPtr buf, SDST x, SDST y)
+	dfac1p(BitmapPtr buf, SDst x, SDst y)
 	{
 		//rz3
 		buf[y * Global::MainScreenWidth + x] = ARGB16(1, ((x * y) | y) & 31,
 			((x * y) | x) & 31, ((x ^ y) * (x ^ y)) & 31);
 	}
 	void
-	dfac2(BitmapPtr buf, SDST x, SDST y)
+	dfac2(BitmapPtr buf, SDst x, SDst y)
 	{
 		//v1
 		buf[y * Global::MainScreenWidth + x] = ARGB16(1,
@@ -105,7 +105,7 @@ namespace
 			((x << 4) / (y & 1)) & 31);
 	}
 	void
-	dfac2p(BitmapPtr buf, SDST x, SDST y)
+	dfac2p(BitmapPtr buf, SDst x, SDst y)
 	{
 		//arz1
 		buf[y * Global::MainScreenWidth + x]
@@ -352,10 +352,11 @@ ShlExplorer::TFrmFileListSelecter::TFrmFileListSelecter()
 	HWND(theApp.GetPlatformResource().GetDesktopDownHandle())),
 	fbMain(Rect(6, 10, 224, 150), this),
 	btnTest(Rect(115, 165, 65, 22), this),
-	btnOK(Rect(185, 165, 65, 22), this)
+	btnOK(Rect(185, 165, 65, 22), this),
+	chkTest(Rect(45, 165, 16, 16), this)
 {
-	btnTest.Text = _ustr(" 测试(X)");
-	btnOK.Text = _ustr(" 确定(R)");
+	btnTest.Text = _ustr("测试(X)");
+	btnOK.Text = _ustr("确定(R)");
 	FetchEvent<KeyPress>(*this)
 		+= &TFrmFileListSelecter::frm_KeyPress;
 	//	fbMain.TouchDown += YFileBox::OnClick;
@@ -534,7 +535,9 @@ ShlSetting::TFormB::TFormB()
 	btnB2(Rect(45, 35, 124, s_size), this)
 {
 	btnB.Text = _ustr("测试程序");
+	btnB.Alignment = MLabel::Right;
 	btnB2.Text = _ustr("测试程序2");
+	btnB2.Alignment = MLabel::Left;
 	BackColor = ARGB16(1, 31, 31, 15);
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 	//	btnB.TouchMove += &Control::OnTouchMove;
@@ -542,7 +545,6 @@ ShlSetting::TFormB::TFormB()
 	FetchEvent<Leave>(btnB) += btnB_Leave;
 	FetchEvent<TouchMove>(btnB2) += OnTouchMove_Dragging;
 	//	btnB2.TouchDown += btnC_Click;
-	//	btnB.Enabled = false;
 }
 
 void
@@ -579,6 +581,7 @@ ShlSetting::TFormC::TFormC()
 	btnC.Text = _ustr("测试拖放控件");
 	btnD.Text = _ustr("测试");
 	btnReturn.Text = _ustr("返回");
+	btnReturn.SetEnabled(false);
 	btnExit.Text = _ustr("退出");
 	BackColor = ARGB16(1, 31, 15, 15);
 	FetchEvent<TouchDown>(*this) += TFormC_TouchDown;
@@ -639,6 +642,7 @@ ShlSetting::TFormC::btnC_Click(TouchEventArgs& /*e*/)
 		btnC.Text = strtf;
 		btnC.ForeColor = Color(std::rand(), std::rand(), std::rand());
 		btnReturn.ForeColor = Color(std::rand(), std::rand(), std::rand());
+		btnReturn.SetEnabled(true);
 	}
 	else
 	{

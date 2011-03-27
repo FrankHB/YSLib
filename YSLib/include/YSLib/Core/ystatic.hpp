@@ -12,12 +12,12 @@
 /*!	\file ystatic.hpp
 \ingroup Core
 \brief 全局静态类型存储管理。
-\version 0.1314;
+\version 0.1316;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-14 20:17:34 +0800;
 \par 修改时间:
-	2011-03-15 07:44 +0800;
+	2011-03-22 21:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,6 @@
 #ifndef INCLUDED_YSTATIC_HPP_
 #define INCLUDED_YSTATIC_HPP_
 
-#include "ysdef.h"
 #include "ycutil.h"
 
 YSL_BEGIN

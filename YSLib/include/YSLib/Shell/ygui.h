@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.2447;
+\version 0.2484;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-20 14:21 +0800;
+	2011-03-23 13:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,39 +27,12 @@
 #ifndef INCLUDED_YGUI_H_
 #define INCLUDED_YGUI_H_
 
-#include "../Core/ysdef.h"
-#include "../Core/yshell.h"
 #include "ycontrol.h"
+#include "../Core/yshell.h"
 #include "../Core/yfunc.hpp"
 #include "../Service/ytimer.h"
 
 YSL_BEGIN
-
-YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Controls)
-
-/*!
-\brief 取指定屏幕中的当前焦点对象指针。
-*/
-IControl*
-GetFocusedObjectPtr(YDesktop&);
-
-/*!
-\brief 级联请求控件及上层容器焦点。
-*/
-void
-RequestFocusCascade(IControl&);
-
-/*!
-\brief 级联释放控件及上层容器焦点。
-*/
-void
-ReleaseFocusCascade(IControl&);
-
-YSL_END_NAMESPACE(Controls)
-
-YSL_END_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Shells)
 
@@ -88,10 +61,10 @@ public:
 		//最近两次的指针设备操作时的控件全局位置（屏幕坐标）。
 
 private:
-	//独立焦点指针：即时输入（按下）状态所在控件指针。
+	//独立焦点指针：自由状态时即时输入（按下）状态捕获的控件指针。
 	IControl* p_KeyDown;
 	IControl* p_TouchDown;
-	bool bEntered; //!< 记录指针是否在控件内部。
+	bool control_entered; //!< 记录指针是否在控件内部。
 	
 public:
 	/*!
@@ -99,13 +72,7 @@ public:
 	\note 向应用程序对象添加自身。
 	*/
 	YGUIShell();
-	/*!
-	\brief 析构。
-	\note 无异常抛出。
-	\note 空实现。
-	*/
-	virtual
-	~YGUIShell() ythrow();
+	virtual DefEmptyDtor(YGUIShell)
 
 	/*!
 	\brief 向窗口组添加指定窗口句柄。
@@ -113,22 +80,17 @@ public:
 	*/
 	virtual void
 	operator+=(HWND);
+
 	/*!
 	\brief 从窗口组中移除指定窗口句柄。
 	*/
 	virtual bool
 	operator-=(HWND);
-	/*!
-	\brief 从窗口组中移除所有指定窗口句柄，返回移除的对象数。
-	\note 使用 set 实现，因此返回值应为 0 或 1 。
-	*/
-	WNDs::size_type
-	RemoveAll(HWND);
-	/*!
-	\brief 移除窗口队列中首个窗口对象。
-	*/
-	void
-	RemoveWindow();
+
+	DefPredicate(ControlEntered, control_entered)
+
+	DefGetter(IControl*, KeyDownPtr, p_KeyDown) //独立键焦点指针。
+	DefGetter(IControl*, TouchDownPtr, p_TouchDown) //独立屏幕焦点指针。
 
 	/*!
 	\brief 取得窗口组中首个窗口对象的句柄。
@@ -152,10 +114,10 @@ public:
 	GetCursorWidgetPtr(YDesktop&, const Point&) const;
 
 	/*!
-	\brief 向屏幕发送指定窗口对象。
+	\brief 清除指定屏幕中属于窗口组的窗口对象。
 	*/
-	bool
-	SendWindow(IWindow&);
+	void
+	ClearScreenWindows(YDesktop&);
 
 	/*!
 	\brief 向屏幕分发窗口对象。
@@ -164,10 +126,17 @@ public:
 	DispatchWindows();
 
 	/*!
-	\brief 清除指定屏幕中属于窗口组的窗口对象。
+	\brief 从窗口组中移除所有指定窗口句柄，返回移除的对象数。
+	\note 使用 set 实现，因此返回值应为 0 或 1 。
+	*/
+	WNDs::size_type
+	RemoveAll(HWND);
+
+	/*!
+	\brief 移除窗口队列中首个窗口对象。
 	*/
 	void
-	ClearScreenWindows(YDesktop&);
+	RemoveWindow();
 
 	/*!
 	\brief 重复检测输入接触保持事件。
@@ -189,6 +158,12 @@ public:
 	void
 	ResetGUIStates();
 
+	/*!
+	\brief 向屏幕发送指定窗口对象。
+	*/
+	bool
+	SendWindow(IWindow&);
+
 private:
 	void
 	TryEntering(IControl&, Components::Controls::TouchEventArgs&);
@@ -201,9 +176,6 @@ private:
 
 	IControl*
 	GetFocusedEnabledVisualControlPtr(IControl*);
-
-	IControl*
-	GetFocusedEnabledVisualControlPtr(YDesktop&);
 
 	bool
 	ResponseKeyUpBase(IControl&, Components::Controls::KeyEventArgs&);
@@ -236,16 +208,49 @@ public:
 	ShlProc(const Message&);
 };
 
-inline IControl*
-YGUIShell::GetFocusedEnabledVisualControlPtr(YDesktop& d)
-{
-	return GetFocusedEnabledVisualControlPtr(
-		Components::Controls::GetFocusedObjectPtr(d));
-}
-
 YSL_END_NAMESPACE(Shells)
 
 using Shells::YGUIShell;
+
+/*!
+\brief 取当前线程空间中运行的 GUI Shell 句柄。
+*/
+GHHandle<YGUIShell>
+FetchGUIShellHandle();
+
+YSL_BEGIN_NAMESPACE(Components)
+
+YSL_BEGIN_NAMESPACE(Controls)
+
+/*!
+\brief 取指定屏幕中的当前焦点对象指针。
+*/
+IControl*
+GetFocusedObjectPtr(YDesktop&);
+
+/*!
+\brief 级联请求控件及上层容器焦点。
+*/
+void
+RequestFocusCascade(IControl&);
+
+/*!
+\brief 级联释放控件及上层容器焦点。
+*/
+void
+ReleaseFocusCascade(IControl&);
+
+
+/*
+\brief 判断指定控件是否被句柄指定的图形用户界面 Shell 锁定为独立焦点。
+\throw GeneralEvent 空图形用户界面 Shell 句柄。
+*/
+bool
+IsFocusedByShell(const IControl&, GHHandle<YGUIShell> = FetchGUIShellHandle());
+
+YSL_END_NAMESPACE(Controls)
+
+YSL_END_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
