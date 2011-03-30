@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1647;
+\version 0.1652;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-03-19 23:11 +0800;
+	2011-03-28 10:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,7 +62,7 @@ ShlGUI::OnDeactivated(const Message&)
 	return 0;
 }
 
-void
+/*void
 ShlGUI::SendDrawingMessage()
 {
 //	hDesktopUp->ClearDesktopObjects();
@@ -74,7 +74,7 @@ ShlGUI::SendDrawingMessage()
 	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
 		new GHandleContext<GHHandle<YDesktop> >(
 		theApp.GetPlatformResource().GetDesktopDownHandle()));
-}
+}*/
 
 void
 ShlGUI::UpdateToScreen()
@@ -109,9 +109,9 @@ ShlDS::ShlProc(const Message& msg)
 }
 
 int
-ShlDS::OnDeactivated(const Message& m)
+ShlDS::OnDeactivated(const Message& msg)
 {
-	ShlGUI::OnDeactivated(m);
+	ShlGUI::OnDeactivated(msg);
 	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
 
 	if(hShl)

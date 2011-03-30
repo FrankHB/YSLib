@@ -11,12 +11,12 @@
 /*!	\file ysinit.cpp
 \ingroup Service
 \brief 程序启动时的通用初始化。
-\version 0.1740;
+\version 0.1774;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2011-03-07 19:55 +0800;
+	2011-03-30 08:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,6 +33,9 @@ using namespace platform;
 using std::puts;
 
 YSL_BEGIN
+
+using namespace Drawing;
+using namespace IO;
 
 void
 InitYSConsole()
@@ -92,6 +95,24 @@ namespace
 		iprintf(" %s\n cannot be found!\n", str);
 		fatalError();
 	}
+
+
+	/*!
+	\brief 读取字体文件目录并载入目录下指定后缀名的字体文件。
+	*/
+	void
+	LoadFontFileDirectory(YFontCache& fc, CPATH path, CPATH ext = "ttf")
+	{
+		HDirectory dir(path);
+
+		if(dir.IsValid())
+			while((++dir).LastError == 0)
+				if(std::strcmp(HDirectory::Name, FS_Now) != 0
+					&& !HDirectory::IsDirectory()
+					&& IsExtendNameOf(ext, HDirectory::Name))
+					fc.LoadFontFile((FontFile::PathType(path)
+						+ HDirectory::Name).c_str());
+	}
 }
 
 void
@@ -132,8 +153,17 @@ InitializeSystemFontCache()
 
 	YFontCache& fc(theApp.GetFontCache());
 
+	if(DEF_FONT_PATH)
+	{
+		fc.LoadFontFile(DEF_FONT_PATH);
+		fc.LoadTypefaces();
+		fc.ResetDefaultTypeface();
+	}
 	if(DEF_FONT_DIRECTORY)
-		fc.LoadFontFileDirectory(DEF_FONT_DIRECTORY);
+	{
+		LoadFontFileDirectory(fc, DEF_FONT_DIRECTORY);
+		fc.LoadTypefaces();
+	}
 	CheckSystemFontCache();
 	std::printf("%u font file(s) are loaded\nsuccessfully.\n", fc.GetFilesN());
 	puts("Setting default font face...");
@@ -141,9 +171,9 @@ InitializeSystemFontCache()
 	const Drawing::Typeface* const
 		pf(fc.GetDefaultTypefacePtr());
 
-	if(pf && Drawing::Font::InitializeDefault())
-		std::printf("\"%s\":\"%s\",\nsuccessfully.\n", pf->GetFamilyName(),
-			pf->GetStyleName());
+	if(pf)
+		std::printf("\"%s\":\"%s\",\nsuccessfully.\n",
+			pf->GetFamilyName().c_str(), pf->GetStyleName().c_str());
 	else
 	{
 		puts("failed.");

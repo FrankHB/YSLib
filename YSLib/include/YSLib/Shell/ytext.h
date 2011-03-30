@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6923;
+\version 0.6972;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-03-27 17:14 +0800;
+	2011-03-29 20:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -88,7 +88,7 @@ public:
 	operator=(const Padding& ms);
 
 	/*!
-	\brief 输出换行。
+	\brief 打印换行。
 	*/
 	void
 	PutNewline();
@@ -255,7 +255,7 @@ PrintChar(_tRenderer& r, fchar_t c)
 }
 
 /*!
-\brief 输出单个字符。
+\brief 打印单个字符。
 \note 当行内无法容纳完整字符时换行。
 */
 template<class _tRenderer>
@@ -288,16 +288,17 @@ PutChar(_tRenderer& r, fchar_t c)
 }
 
 /*!
-\brief 输出迭代器 s 指向字符串，直至行尾或字符串结束。
-\return 输出迭代器。
+\brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
+\note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
+\return 指向结束位置的迭代器。
 */
-template<class _tOut, class _tRenderer>
-_tOut
-PrintLine(_tRenderer& r, _tOut s)
+template<typename _tIn, class _tRenderer>
+_tIn
+PrintLine(_tRenderer& r, _tIn s)
 {
 	TextState& ts(r.GetTextState());
 	const SPos fpy(ts.PenY);
-	_tOut t(s);
+	_tIn t(s);
 
 	while(*t != 0 && fpy == ts.PenY)
 		if(!PrintChar(r, *t))
@@ -305,12 +306,13 @@ PrintLine(_tRenderer& r, _tOut s)
 	return t;
 }
 /*!
-\brief 输出迭代器 s 指向字符串，直至行尾、遇到指定迭代器 g 或遇到指定字符 c 。
-\return 输出迭代器。
+\brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
+\note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
+\return 指向结束位置的迭代器。
 */
-template<typename _tOut, typename _tChar, class _tRenderer>
-_tOut
-PrintLine(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
+template<typename _tIn, typename _tChar, class _tRenderer>
+_tIn
+PrintLine(_tRenderer& r, _tIn s, _tIn g, _tChar c = '\0')
 {
 	TextState& ts(r.GetTextState());
 	const SPos fpy(ts.PenY);
@@ -321,8 +323,8 @@ PrintLine(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
 	return s;
 }
 /*!
-\brief 输出字符串，直至行尾或字符串结束。
-\return 输出字符数。
+\brief 打印字符串，直至行尾或字符串结束。
+\return 打印字符数。
 */
 template<class _tRenderer>
 inline String::size_type
@@ -332,17 +334,18 @@ PrintLine(_tRenderer& r, const String& str)
 }
 
 /*!
-\brief 输出迭代器 s 指向字符串，直至行尾或字符串结束。
+\brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
+\note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
 \note 当行内无法容纳完整字符时换行。
-\return 输出迭代器。
+\return 指向结束位置的迭代器。
 */
-template<class _tOut, class _tRenderer>
-_tOut
-PutLine(_tRenderer& r, _tOut s)
+template<typename _tIn, class _tRenderer>
+_tIn
+PutLine(_tRenderer& r, _tIn s)
 {
 	TextState& ts(r.GetTextState());
 	const SPos fpy(ts.PenY);
-	_tOut t(s);
+	_tIn t(s);
 
 	while(*t != 0 && fpy == ts.PenY)
 		if(!PutChar(r, *t))
@@ -350,13 +353,14 @@ PutLine(_tRenderer& r, _tOut s)
 	return t;
 }
 /*!
-\brief 输出迭代器 s 指向字符串，直至行尾、遇到指定迭代器 g 或遇到指定字符 c 。
+\brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
+\note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \note 当行内无法容纳完整字符时换行。
-\return 输出迭代器。
+\return 指向结束位置的迭代器。
 */
-template<typename _tOut, typename _tChar, class _tRenderer>
-_tOut
-PutLine(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
+template<typename _tIn, typename _tChar, class _tRenderer>
+_tIn
+PutLine(_tRenderer& r, _tIn s, _tIn g, _tChar c = '\0')
 {
 	TextState& ts(r.GetTextState());
 	const SPos fpy(ts.PenY);
@@ -367,9 +371,9 @@ PutLine(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
 	return s;
 }
 /*!
-\brief 输出字符串，直至行尾或字符串结束。
+\brief 打印字符串，直至行尾或字符串结束。
 \note 当行内无法容纳完整字符时换行。
-\return 输出字符数。
+\return 打印字符数。
 */
 template<class _tRenderer>
 inline String::size_type
@@ -379,16 +383,17 @@ PutLine(_tRenderer& r, const String& str)
 }
 
 /*!
-\brief 输出迭代器 s 指向字符串，直至区域末尾或字符串结束。
-\return 输出迭代器。
+\brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
+\note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
+\return 指向结束位置的迭代器。
 */
-template<class _tOut, class _tRenderer>
-_tOut
-PrintString(_tRenderer& r, _tOut s)
+template<typename _tIn, class _tRenderer>
+_tIn
+PrintString(_tRenderer& r, _tIn s)
 {
 	TextState& ts(r.GetTextState());
 	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
-	_tOut t(s);
+	_tIn t(s);
 
 	while(*t != 0 && ts.PenY <= mpy)
 		if(!PrintChar(r, *t))
@@ -396,13 +401,13 @@ PrintString(_tRenderer& r, _tOut s)
 	return t;
 }
 /*!
-\brief 输出迭代器 s 指向字符串，
-	直至区域末尾、遇到指定迭代器 g 或遇到指定字符 c 。
-\return 输出迭代器。
+\brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
+\note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
+\return 指向结束位置的迭代器。
 */
-template<typename _tOut, typename _tChar, class _tRenderer>
-_tOut
-PrintString(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
+template<typename _tIn, typename _tChar, class _tRenderer>
+_tIn
+PrintString(_tRenderer& r, _tIn s, _tIn g, _tChar c = '\0')
 {
 	TextState& ts(r.GetTextState());
 	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
@@ -413,8 +418,8 @@ PrintString(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
 	return s;
 }
 /*!
-\brief 输出字符串，直至区域末尾或字符串结束。
-\return 输出字符数。
+\brief 打印字符串，直至区域末尾或字符串结束。
+\return 打印字符数。
 */
 template<class _tRenderer>
 inline String::size_type
@@ -424,17 +429,18 @@ PrintString(_tRenderer& r, const String& str)
 }
 
 /*!
-\brief 输出迭代器 s 指向字符串，直至区域末尾或字符串结束。
+\brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
+\note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
 \note 当行内无法容纳完整字符时换行。
-\return 输出迭代器。
+\return 指向结束位置的迭代器。
 */
-template<class _tOut, class _tRenderer>
-_tOut
-PutString(_tRenderer& r, _tOut s)
+template<typename _tIn, class _tRenderer>
+_tIn
+PutString(_tRenderer& r, _tIn s)
 {
 	TextState& ts(r.GetTextState());
 	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
-	_tOut t(s);
+	_tIn t(s);
 
 	while(*t != 0 && ts.PenY <= mpy)
 		if(!PutChar(r, *t))
@@ -442,14 +448,14 @@ PutString(_tRenderer& r, _tOut s)
 	return t;
 }
 /*!
-\brief 输出迭代器 s 指向字符串，
-	直至区域末尾、遇到指定迭代器 g 或遇到指定字符 c 。
+\brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
+\note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \note 当行内无法容纳完整字符时换行。
-\return 输出迭代器。
+\return 指向结束位置的迭代器。
 */
-template<typename _tOut, typename _tChar, class _tRenderer>
-_tOut
-PutString(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
+template<typename _tIn, typename _tChar, class _tRenderer>
+_tIn
+PutString(_tRenderer& r, _tIn s, _tIn g, _tChar c = '\0')
 {
 	TextState& ts(r.GetTextState());
 	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
@@ -460,9 +466,9 @@ PutString(_tRenderer& r, _tOut s, _tOut g, _tChar c = '\0')
 	return s;
 }
 /*!
-\brief 输出字符串，直至区域末尾或字符串结束。
+\brief 打印字符串，直至区域末尾或字符串结束。
 \note 当行内无法容纳完整字符时换行。
-\return 输出字符数。
+\return 打印字符数。
 */
 template<class _tRenderer>
 inline String::size_type
@@ -473,10 +479,10 @@ PutString(_tRenderer& r, const String& str)
 
 
 /*!
-\brief 取单行字符串在指定文本状态和高度限制下的宽度。
+\brief 取指定的字符在字体指定、无边界限制时的显示宽度。
 */
 SDst
-FetchStringWidth(TextState&, String&, SDst);
+FetchCharWidth(Font&, fchar_t);
 
 
 /*!	\defgroup TextRenderers Text Renderers
@@ -712,6 +718,83 @@ TextRegion::operator()(fchar_t c)
 
 
 /*!
+\brief 取迭代器指定的字符串在字体指定、无边界限制时的显示宽度。
+\note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
+*/
+template<typename _tIn>
+SDst
+FetchStringWidth(Font& f, _tIn s)
+{
+	SDst w(0);
+
+	while(*s != '\0')
+		w += FetchCharWidth(f, *s++);
+	return w;
+}
+/*!
+\brief 取迭代器指定的单行字符串在字体指定、无边界限制时的显示宽度。
+\note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
+*/
+template<typename _tIn, typename _tChar>
+SDst
+FetchStringWidth(Font& f, _tIn s, _tIn g, _tChar c = '\0')
+{
+	SDst w(0);
+
+	while(s != g && *s != c)
+		w += FetchCharWidth(f, *s++);
+	return w;
+}
+/*!
+\brief 取单行字符串在字体指定、无边界限制时的显示宽度。
+*/
+inline SDst
+FetchStringWidth(Font& f, String& str)
+{
+	return FetchStringWidth(f, str.c_str());
+}
+/*!
+\brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。
+\note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
+\note 字体由文本状态指定。
+*/
+template<typename _tIn>
+SDst
+FetchStringWidth(TextState& ts, SDst h, _tIn s)
+{
+	const SPos x(ts.PenX);
+	EmptyTextRenderer r(ts, h);
+
+	PrintString(r, s);
+	return ts.PenX - x;
+}
+/*!
+\brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。
+\note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
+\note 字体由文本状态指定。
+*/
+template<typename _tIn, typename _tChar>
+SDst
+FetchStringWidth(TextState& ts, SDst h, _tIn s, _tIn g, _tChar c = '\0')
+{
+	const SPos x(ts.PenX);
+	EmptyTextRenderer r(ts, h);
+
+	PrintString(r, s, g, c);
+	return ts.PenX - x;
+}
+/*!
+\brief 取单行字符串在指定文本状态和高度限制时的显示宽度。
+\note 字体由文本状态指定。
+*/
+inline SDst
+FetchStringWidth(TextState& ts, SDst h, const String& str)
+{
+	return FetchStringWidth(ts, h, str.c_str());
+}
+
+
+/*!
 \brief 绘制文本。
 */
 void
@@ -738,9 +821,9 @@ YSL_BEGIN_NAMESPACE(Text)
 	从当前文本迭代器 p 开始逆向查找字符 f 。
 \note 不含 p ；满足 p != --g 。
 */
-template<typename _tOut, typename _tChar>
-_tOut
-rfind(YFontCache& cache, SDst width, _tOut p, _tOut g, _tChar f)
+template<typename _tIn, typename _tChar>
+_tIn
+rfind(YFontCache& cache, SDst width, _tIn p, _tIn g, _tChar f)
 {
 	if(p != g)
 	{
@@ -758,18 +841,18 @@ rfind(YFontCache& cache, SDst width, _tOut p, _tOut g, _tChar f)
 \brief 在 r 中取当前文本迭代器 p 的前 l 行首对应文本迭代器。
 \note 满足 p != --g 。
 */
-template<typename _tOut>
-_tOut
-FetchPreviousLineIterator(const Drawing::TextRegion& r, _tOut p, _tOut g,
+template<typename _tIn>
+_tIn
+FetchPreviousLineIterator(const Drawing::TextRegion& r, _tIn p, _tIn g,
 	u16 l = 1)
 {
 	while(l-- != 0 && p != g)
 	{
-		p = rfind<_tOut, uchar_t>(r.GetCache(), r.PenX - r.Margin.Left, p, g,
+		p = rfind<_tIn, uchar_t>(r.GetCache(), r.PenX - r.Margin.Left, p, g,
 			'\n');
 		if(p != g)
 		{
-			p = rfind<_tOut, uchar_t>(r.GetCache(),
+			p = rfind<_tIn, uchar_t>(r.GetCache(),
 				r.GetHeight() - GetVerticalFrom(r.Margin), p, g, '\n');
 			if(p != g)
 				++p;
@@ -782,9 +865,9 @@ FetchPreviousLineIterator(const Drawing::TextRegion& r, _tOut p, _tOut g,
 \brief 在 r 中取当前文本迭代器 p 至后一行首对应文本迭代器。
 \note 满足 p != g 。
 */
-template<typename _tOut>
-_tOut
-FetchNextLineIterator(const Drawing::TextRegion& r, _tOut p, _tOut g)
+template<typename _tIn>
+_tIn
+FetchNextLineIterator(const Drawing::TextRegion& r, _tIn p, _tIn g)
 {
 	if(p == g)
 		return p;

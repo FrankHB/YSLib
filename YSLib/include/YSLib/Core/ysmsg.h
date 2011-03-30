@@ -11,12 +11,12 @@
 /*!	\file ysmsg.h
 \ingroup Core
 \brief 消息处理。
-\version 0.2118;
+\version 0.2120;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-03-22 21:22 +0800;
+	2011-03-28 10:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -124,9 +124,9 @@ Message::UpdateTimestamp()
 */
 template<class _type>
 _type*
-FetchContextRawPtr(const Message& m)
+FetchContextRawPtr(const Message& msg)
 {
-	return dynamic_cast<_type*>(GetPointer(m.GetContextPtr()));
+	return dynamic_cast<_type*>(GetPointer(msg.GetContextPtr()));
 }
 
 
@@ -187,11 +187,11 @@ public:
 	GetMessage();
 
 	/*!
-	\brief 从消息队列中取优先级最高的消息存至 m 中。
+	\brief 从消息队列中取优先级最高的消息存至 msg 中。
 	\note 在队列中保留消息。
 	*/
 	void
-	PeekMessage(Message& m) const;
+	PeekMessage(Message& msg) const;
 
 	/*!
 	\brief 清除消息队列，返回清除的消息数。
@@ -206,10 +206,10 @@ public:
 	Update();
 
 	/*!
-	\brief 若消息 m 有效，插入 m 至消息队列中。返回 m 是否有效。
+	\brief 若消息 msg 有效，插入 msg 至消息队列中。返回 msg 是否有效。
 	*/
 	bool
-	Insert(const Message& m);
+	Insert(const Message& msg);
 };
 
 

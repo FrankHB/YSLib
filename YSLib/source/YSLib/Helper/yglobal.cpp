@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2946;
+\version 0.2950;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-03-25 15:01 +0800;
+	2011-03-28 22:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -451,17 +451,7 @@ main(int argc, char* argv[])
 	#endif
 		return r;
 	}
-	catch(std::bad_alloc&)
-	{
-		YSL_ theApp.Log.FatalError("Unhandled std::bad_alloc"
-			" @@ int main(int, char*[]);");
-	}
-	catch(std::bad_cast&)
-	{
-		YSL_ theApp.Log.FatalError("Unhandled std::bad_cast"
-			" @@ int main(int, char*[]);");
-	}
-	catch(YSL_ LoggedEvent& e)
+	catch(std::exception& e)
 	{
 		YSL_ theApp.Log.FatalError(e.what());
 	}

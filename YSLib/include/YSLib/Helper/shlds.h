@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1844;
+\version 0.1846;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-03-19 20:23 +0800;
+	2011-03-28 10:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -101,8 +101,8 @@ public:
 	/*!
 	\brief 发送绘制消息。
 	*/
-	void
-	SendDrawingMessage();
+//	void
+//	SendDrawingMessage();
 
 	/*!
 	\brief 更新到屏幕。

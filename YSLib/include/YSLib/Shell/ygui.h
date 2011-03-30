@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.2484;
+\version 0.2489;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-23 13:16 +0800;
+	2011-03-28 10:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -214,6 +214,7 @@ using Shells::YGUIShell;
 
 /*!
 \brief 取当前线程空间中运行的 GUI Shell 句柄。
+\deprecated 不能简单兼容多线程模型。
 */
 GHHandle<YGUIShell>
 FetchGUIShellHandle();
@@ -243,7 +244,7 @@ ReleaseFocusCascade(IControl&);
 
 /*
 \brief 判断指定控件是否被句柄指定的图形用户界面 Shell 锁定为独立焦点。
-\throw GeneralEvent 空图形用户界面 Shell 句柄。
+\throw GeneralEvent 图形用户界面 Shell 句柄为空。
 */
 bool
 IsFocusedByShell(const IControl&, GHHandle<YGUIShell> = FetchGUIShellHandle());

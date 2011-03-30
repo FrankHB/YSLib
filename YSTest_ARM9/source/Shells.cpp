@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3614;
+\version 0.3624;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-03-27 19:32 +0800;
+	2011-03-30 08:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -309,7 +309,7 @@ ShlLoad::TFrmLoadDown::TFrmLoadDown()
 }
 
 int
-ShlLoad::OnActivated(const Message& /*m*/)
+ShlLoad::OnActivated(const Message& /*msg*/)
 {
 	YDebugSetStatus(true);
 	//如果不添加此段且没有桌面没有被添加窗口等设置刷新状态的操作，
@@ -579,6 +579,7 @@ ShlSetting::TFormC::TFormC()
 	btnExit(Rect(83, 82, 60, s_size), this)
 {
 	btnC.Text = _ustr("测试拖放控件");
+	btnC.Alignment = MLabel::Left;
 	btnD.Text = _ustr("测试");
 	btnReturn.Text = _ustr("返回");
 	btnReturn.SetEnabled(false);
@@ -634,9 +635,9 @@ ShlSetting::TFormC::btnC_Click(TouchEventArgs& /*e*/)
 		if(++it == fc.GetTypes().end())
 			it = fc.GetTypes().begin();
 		btnC.Font = Font(*(*it)->GetFontFamilyPtr(), 18 - (itype << 1),
-			EFontStyle::Regular);
+			FontStyle::Regular);
 	//	btnC.Font = Font(*(*it)->GetFontFamilyPtr(), //GetDefaultFontFamily(),
-	//		18 - (itype << 1), EFontStyle::Regular);
+	//		18 - (itype << 1), FontStyle::Regular);
 		sprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n",
 			btnC.Font.GetSize(), ffilen, ftypen, ffacen);
 		btnC.Text = strtf;
@@ -646,8 +647,8 @@ ShlSetting::TFormC::btnC_Click(TouchEventArgs& /*e*/)
 	}
 	else
 	{
-		sprintf(strtf, "%d/%d;%s:%s;\n", itype + 1, ftypen,
-			(*it)->GetFamilyName(), (*it)->GetStyleName());
+		sprintf(strtf, "%d/%d;%s:%s;", itype + 1, ftypen,
+			(*it)->GetFamilyName().c_str(), (*it)->GetStyleName().c_str());
 		//	sprintf(strtf, "B%p\n",
 		//		fc.GetTypefacePtr("FZYaoti", "Regular"));
 		btnC.Text = strtf;
@@ -743,9 +744,9 @@ ShlSetting::OnActivated(const Message& /*msg*/)
 }
 
 int
-ShlSetting::OnDeactivated(const Message& m)
+ShlSetting::OnDeactivated(const Message& msg)
 {
-	ParentType::OnDeactivated(m);
+	ParentType::OnDeactivated(msg);
 	*FetchGUIShellHandle() -= hWndC;
 	YReset(hWndC);
 	return 0;

@@ -1,8 +1,8 @@
 ﻿// YSLib -> Designation by Franksoft 2009 - 2011
 // CharSet = UTF-8;
 // CTime = 2009-12-02 05:14:30 +0800;
-// UTime = 2011-03-26 23:24 +0800;
-// Version = 0.4475;
+// UTime = 2011-03-29 15:24 +0800;
+// Version = 0.4481;
 
 
 // Designation ：设计规则指定和说明文档。
@@ -995,11 +995,30 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 其中 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元的重新编译。
 因此除非是外部的库，新增的平台相关的部分应尽量放在 Helper 而不是 Adaptor 中。
 
-@2.10.1 本体内部头文件依赖性：
+@2.10.1 Adaptor 和本体头文件依赖性：
 源文件(.cpp) 可能依赖于任何 YSLib 头文件。
+
+@2.10.1.1 不在本体中显式包含，需要在 "ycont.h" 包含或提供替代品的 C++ 标准库依赖项：
+ <vector> 、 <list> 、 <set> 、 <map>、 <stack> 、 <queue> 和 <string> 。
+例外：同时需要使用容器和限定标准库容器时，目前仅有一例：
+ "yexcept.h" 包含 <string> （鉴于重用标准库异常需要的参数类型 std::string 不一定是 "ycont.h" 配置的类型）。
+
+@2.10.1.2 不在本体中显式包含，需要在除了 "ycont.h" 的 Adaptor 直接或间接包含的 C++ 标准库依赖项：
+所有 C 标准库的 C++ 标准库版本头文件，以及以下头文件：
+ <new> 。
+
+@2.10.1.3 不在本体中显式包含，也不在 Adaptor 包含的 C++ 标准库依赖项：
+基于性能、兼容性或其它因素考虑，Adaptor 和本体不直接使用以下头文件（但 Adaptor 可能会间接依赖）：
+<fstream> 、 <iomanip> 、 <ios> 、 <iosfwd>  、 <iostream> 、 <istream> 、 <locale>、 <ostream> 、 <sstream> 、 <streambuf> 和 <strstream> 。
+
+@2.10.1.4 本体中显式包含的 C++ 标准库依赖项：
+<exception> 、 <functional> 、 <iterator> 、 <stdexcept> 和 <typeinfo> 。
+
+@2.10.1.5 本体中未限定（可能会在将来版本显式包含）的 C++ 标准库依赖项：
+<algorithm> 、 <complex> 、 <deque> 、 <bitset> 、 <limits> 、 <numeric> 、 <utility> 、 <memory> 和 <valarray> 
+
+@2.10.2 本体内部头文件依赖性：
  Core 的头文件仅包含 Adaptor 或 Core 的头文件。
- YAdaptor 直接或间接依赖于除了 <exception> 、 <stdexcept> 、 <string> 、 <iterator> 、 <functional> 、 <typeinfo> 和所有 C 标准库（ C++ 实现）头文件以外的 C++ 标准库头文件。
-除了上述 YAdaptor 中依赖的标准库头文件外， YSLib 实现中不包含标准库头文件。
 在 Core 中，以下依赖关系对于头文件包含是确定的：
 除了 "ysdef.h" 外都依赖于 "ysdef.h"；
  "yobject.h" 依赖于 "ycutil.h" 、 "yexcept.h" 和 "ycounter.hpp" ；

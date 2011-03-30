@@ -1,4 +1,4 @@
-//v0.3032; *Build 196 r66;
+//v0.3032; *Build 197 r107;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -203,248 +203,291 @@ $using:
 
 
 $DONE:
-r1:
-/ non-ordinary operator usage in \clt GSequenceViewer @@ \h YComponent:
-	/ \i \mf operator>> => IncreaseHead;
-	/ \i \mf operator<< => DecreaseHead;
-	/ \i \mf operator+= => IncreaseSelected;
-	/ \i \mf operator-= => DecreaseSelected;
-/ \tr \impl @@ \mf YSimpleListBox::OnKeyDown @@ \impl \u ListBox;
-
-r2:
-+ \u CheckBox @@ \dir Shell:
-	+ \cl YCheckBox public \inh \cl (GMCounter<YCheckBox> & YControl) @@ \ns
-		Components::Controls;
-/= \tr \decl @@ \cl YButton;
-
-r3:
-/ @@ \cl YCheckBox @@ \u CheckBox:
-	+ \mf bool IsLockedByCurrentShell();
-	* + \inc \h YWindow @@ \impl \u;
-	+ \inc \h YShellHelper @@ \impl \u;
-/ \impl @@ \ctor @@ \cl MLabel @@ \impl \u YLabel;
-/ @@ \cl YGUIShell \u YGUI:
-	/= \impl \vt \dtor ^ \mac DefEmptyDtor;
-	/ \a \m bool bEntered => control_entered;
-	+ \mf DefPredicate(ControlEntered, control_entered);
-	+ \mf DefGetter(IControl*, KeyDownPtr, p_KeyDown);
-	+ \mf DefGetter(IControl*, TouchDownPtr, p_TouchDown);
-
-r4:
-/ @@ \u YException:
-	/ \def \cl Exception -> typedef std::exception Exception;
-	* + \inc <exception> @@ \h;
-	* + \inc <stdexcept> @@ \h;
-	/ \def \cl GeneralEvent -> typedef std::runtime_error GeneralEvent;
-	- \inc "../Adaptor/cont.h";
-	- \inc <new> @@ \h;
-	- \inc <typeinfo> @@ \h;
-	/ @@ \cl LoggedEvent:
-		/ \a u8 -> LevelType;
-		+ typedef u8 LevelType;
-	* + \inc <string> @@ \h;
-/= \a std::runtime_error -> GeneralEvent @@ (\u (CheckBox & YObject
-	& YUIContainer) & \impl \u Scroll);
-+ \h YException @@ \h YObject;
--= \inc "ysdef.h" @@ \a file @@ \dir Core \exc ("ycutil.h" & "yexcept.h"
-	& "ycounter.hpp");
--= \a \inc \h (YShellDefinition & YException & YCounter & YCoreUtilities)
-	\a file @@ \dir (Shell & Service);
--= \inc \h (YControl & YUIContainer) @@ \h (ListBox & Scroll);
-
-r5:
-/ @@ \cl YCheckBox @@ \u CheckBox:
-	/ \impl @@ \ctor;
-	+ private \mf void OnClick(TouchEventArgs&);
-	/ \inh YControl -> YThumb;
-	+ \inc \h YButton @@ \h;
-	/ typedef YControl ParentType -> typedef YThumb ParentType;
-	* + \impl @@ \mf DrawForeground;
-	+ \inc \h YGUI @@ \impl \u;
-	+ \inc \h YStyle @@ \h;
-/ \simp \impl @@ \mf (OnTouchDown & OnClick) @@ \cl YSimpleListBox
-	@@ \impl \u ListBox;
-/ \i \f FetchShellHandle @@ \u YShellHelper >> \h YComponent;
-/ \f FetchGUIShellHandle @@ \u YShellHelper >> \u YGUI;
-- \inc "../Helper/yshelper.h" @@ \impl \u
-	(YGUI & CheckBox & Scroll & YControl);
-+ \inc \h YGUI @@ \impl \u Scroll;
-	
-r6:
-/ @@ \cl YCheckBox @@ \u CheckBox:
-	/ \mf bool IsLockedByCurrentShell() >> !\m \f bool
-		IsFocusedByShell(IControl&, GHHandle<YGUIShell> = FetchGUIShellHandle())
-		@@ \u YGUI;
-/ \cl MButton @@ \u YControl >> \u Button;
+r1-r18:
+/ @@ \cl ShlGUI @@ \u Shell_DS:
+	/ \rem \mf void SendDrawingMessage();
 / @@ \u YGUI:
-	/ @@ \cl YGUIShell :
-		- private \i \mf IControl* GetFocusedEnabledVisualControlPtr(YDesktop&);
-		/ \tr \impl @@ \mf ResponseKey
-	/ \impl @@ \f GetFocusedEnabledVisualControlPtr;
-	
-r7-r8:
-/ \f bool IsFocusedByShell(IControl&, GHHandle<YGUIShell>
-	= FetchGUIShellHandle()) -> \f bool IsFocusedByShell(const IControl&,
-	GHHandle<YGUIShell> = FetchGUIShellHandle()) @@ \u YGUI;
-
-r9:
-/ @@ \cl YCheckBox @@ \u CheckBox:
-	+ protected \m bool bTicked;
-	/ \tr \impl @@ \ctor;
-	/ \impl @@ \un \ns @@ \impl \u;
-/ 2 \i \ft<u8 r, u8 g, u8 b> void transPixelEx() @@ \un \ns @@ \impl
-	\u (CheckBox & Button) -> \i \ft<Color::MonoType r, Color::MonoType g,
-	Color::MonoType b> void transform_pixel_ex() @@ \ns Drawing @@ \h YStyle;
-/ \tr @@ \impl @@ \un \ns @@ \impl \u Button;
-/ @@ \ns Drawing @@ \u YStyle:
-	+ typedef Color rgb_t;
-	+ \cl hsl_t;
-	+ \f hsl_t rgb2hsl(rgb_t);
-	+ \f rgb_t hsl2rgb(hsl_t);
-	+ \i \f Color rgb2Color(const rgb_t&);
-	+ \i \f rgb_t Color2rgb(const Color&);
-+ \inc <YSLib/Shell/checkbox.h> @@ \h Build;
-/ @@ \cl ShlExplorer::TFrmFileListSelecter @@ \u Shells:
-	+ \m YCheckBox chkTest;
-	/ \tr \impl @@ \ctor;
-* @@ \h CheckBox:
-	/ \mac INCLUDED_LISTBOX_H_ => INCLUDED_CHECKBOX_H_
-
-r10-r12:
+	+ \f GHHandle<YGUIShell> FetchGUIShellHandle(IWidget&);
+	/ \f bool IsFocusedByShell(const IControl&,
+		GHHandle<YGUIShell> = FetchGUIShellHandle())
+		-> bool IsFocusedByShell(IControl&);
+	/ \impl @@ \mf YGUIShell::ShlProc;
+	/ \ren @@ \h;
+/ @@ \impl \u Shell:
+	- \inc \h YDesktop;
+	/ \impl @@ \mf YShell::DefShlProc;
 /= test 1;
-
-r13:
-* @@ \h YObject:
-	/ \ctor \t<typename _tVec> \i \exp Size(const _tVec&)
-		-> !\t \ctor \i \exp Size(const Vec&);
-
-r14-r17:
-/ \impl @@ \un \ns @@ \impl \u CheckBox; 
-
-r18:
-* \impl @@ \i \f (GetR & GetB) @@ \cl Color @@ \h YCommon;
-* \impl @@ \f hsl_t rgb2hsl(rgb_t) @@ \impl \u YStyle;
+/= \tr \decl @@ \u (YShell & YShellMessage);
+/= test 2;
+/ @@ \h Shells:
+	+ typedef ShlDS ParentType @@ \cl (ShlLoad & ShlExplorer);
 
 r19:
-/= test 2 ^ \conf Release;
+/ @@ \u YFont:
+	/ @@ \cl FontFamily:
+		/ private \mf void operator+=(Typeface&)
+			-> \mf void operator+=(Typeface*);
+		/ private \mf bool operator-=(Typeface&)
+			-> \mf bool operator-=(Typeface*);
+	/ \tr \impl @@ \mf YFontCache::LoadTypefaces;
 
 r20:
-* \impl @@ \f (hsl_t rgb2hsl(rgb_t) & rgb_t hsl2rgb(hsl_t)) @@ \impl \u YStyle;
+/ @@ \u YFont:
+	/ @@ \cl YFontCache:
+		/ private \vt \mf void operator+=(const FontFile&)
+			-> !\vt \mf void operator+=(const FontFile*);
+		/ private \vt \mf bool operator-=(const FontFile&)
+			-> !\vt \mf bool operator-=(const FontFile*);
+	/ @@ \cl YFontCache;
+		/ \impl @@ \mf void LoadFontFileDirectory(CPATH, CPATH = "ttf");
+		/ \impl @@ \mf void LoadFontFile(CPATH path) ythrow()
 
 r21:
-/ \tr \impl @@ \ctor \cl ShlExplorer::TFrmFileListSelecter @@ \u Shells;
+/ @@ \u YFont:
+	/ @@ \cl FontFile:
+		/ \mf void ReloadFaces() -> void ReloadFaces(FT_Library&) const;
+		- \m FT_Library library;
+		/ \ctor FontFile(CPATH, FT_Library&) -> FontFile(CPATH);
+		/ \ctor FontFile(CPATH, const char*, FT_Library&)
+			-> FontFile(CPATH, const char*);
+		/ \impl @@ \mf bool operator==(const FontFile&) const;
+		/ \impl @@ \mf bool operator<(const FontFile&) const;
+		+ \inh public NonCopyable;
+		/ private \m FT_Long nFace -> mutable FT_Long nFace;
+	/ @@ \cl YFontCache:
+		/ \tr \impl @@ \mf LoadFontFile;
+		/ \tr \impl @@ \mf LoadFontFileDirectory;
+/ \simp \eh @@ \impl @@ \f main @@ \impl \u YGlobal;
 
-r22-r24:
-	r(22, 24):
-	* \impl @@ \f (hsl_t rgb2hsl(rgb_t) & rgb_t hsl2rgb(hsl_t))
-		@@ \impl \u YStyle;
-	r22-r24;
-	/ \impl @@ \un \ns @@ \impl \u CheckBox;
+r22:
+/ @@ \cl YFontCache @@ \u YFont:
+	/ \impl @@ \mf void LoadFontFileDirectory(CPATH, CPATH = "ttf");
+	/ void LoadFontFile(CPATH path) ythrow()
+		-> bool LoadFontFile(CPATH path) ythrow();
+	/ \tr \impl @@ \ctor;
+	+ \mf void ResetDefaultTypeface();
+	* \impl @@ \mf bool operator-=(Typeface&);
+/ \impl @@ \f void InitializeSystemFontCache() @@ \impl \u YShellInitialization;
 
-r25-r26:
-/= test 3;
+r23:
+/ \impl @@ \mf void DestroyFontCache() & \mf void ResetFontCache()
+	@@ \cl YApplication;
+/ @@ \u YFont:
+	- \f (CreateFontCache & DestroyFontCache) @@ \ns Drawing ;
+	* \tr \impl @@ bool YFontCache::LoadFontFile(CPATH) ythrow();
 
-r27:
-/ \impl @@ \f bool DrawRect(const Graphics&, const Point&, const Size&, Color)
-	@@ \impl \u YGDI;
-/ \tr \impl @@ \f DrawWidgetBounds @@ \un \ns @@ \impl \u YGUI;
+r24:
+/ @@ \cl YFontCache @@ \u YFont:
+	/ \impl @@ \ctor;
+	/ \mf bool LoadFontFile(CPATH path) ythrow()
+		-> bool LoadFontFile(CPATH path);
 
-r28:
-* \impl @@ \f bool DrawRect(const Graphics&, const Point&, const Size&, Color)
-	@@ \impl \u YGDI;
+r25:
+/ \impl @@ \ctor @@ \cl YFontCache @@ \impl \u YFont;
 
-r29-r30:
-/ \impl @@ \un \ns @@ \impl \u CheckBox;
+r26:
+/ @@ \u YFont:
+	-= \inc \h YCoreUtilities @@ \h;
+	+ \inc \h <string>;
+	/ @@ \cl FontFile:
+		+ typedef std::string ParhType;
+		/ private \m CPATH path -> PathType;;
+		-= \ctor FontFile(CPATH, const char*);
+		/ \ctor FontFile(CPATH) -> FontFile(const PathType&);
+		/ \impl @@ bool operator==(const FontFile&) const;
+		/ \impl @@ bool operator<(const FontFile&) const;
+		+ \i @@ \mf \op== & \op<;
+		- \sm MaxFontPathLength;
+		/ \mf DefGetter(const char*, Path, path)
+			-> DefGetter(PathType, Path, path);
+		/ \tr \impl @@ \mf ReloadFaces;
+	/ \tr \impl @@ \f simpleFaceRequester;
+	/ \tr \impl @@ \mf LoadFontFileDirectory @@ \cl YFontCache;
+/ \a EFontStyle => FontStyle;
 
-r31:
-/ \tr \impl @@ \ctor \cl ShlExplorer::TFrmFileListSelecter @@ \u Shells;
+r27-r28:
+/ @@ \cl YFontCache @@ \u YFont:
+	/ \mf void LoadFontFileDirectory(CPATH, CPATH = "ttf")
+		-> !\m \f LoadFontFileDirectory(YFontCache&, CPATH, CPATH = "ttf")
+		@@ \un \ns @@ \impl \u YShellInitialization;
+	/ \impl @@ \ctor;
+	/ \impl @@ \mf LoadFontFile;
+/ @@ \impl \u YShellInitialization:
+	/ \impl \f void InitializeSystemFontCache();
+	/ @@ \ns YSLib:
+		+ using namespace Drawing;
+		+ using namespace IO;
+/= test 3 ^ \conf release;
 
-r32:
-/ {
-	typedef s16 SPOS;
-	typedef u16 SDST;
-} >> \ns platform @@ \h YCommon ~ @@ \ns YSLib @@ \h YShellDefinition;
-/ @@ \h YCommon:
-	/= \a u16 -> SDST @@ \st CursorInfo;
-+ using platform::SPOS & using platform::SDST @@ \ns YSLib @@ \h YAdaptor;
-/ \a SPOS => SPos;
-/ \a SDST => SDst;
+r29-r31:
+/= test 4;
 
-r33:
-/ \tr \impl @@ \f hsl2rgb @@ \impl \u YShell to remove warnings;
-/= test 4 ^ \conf release;
+r32-r33:
+* \impl @@ \mf void MLabel::PaintText(Widget&, const Graphics&, const Point&)
+	@@ \impl \u YLabel;
 
-r34-r42:
-/ \impl @@ \un \ns @@ \impl \u CheckBox;
-
-r43:
-/ @@ \h YText:
-	+ \cl EmptyTextRenderer;
-	+ \f SDst FetchStringWidth(TextState&, String&);
-/ \a GetPreviousLinePtr => FetchPreviousLineIterator;
-/ \a GetNextLinePtr => FetchNextLineIterator;
-/ \impl @@ \mf void PaintText(Widget&, const Graphics&, const Point&)
-	@@ \cl MLabel @@ \impl \u YLabel;
-
-r44:
-* \impl @@ \mf void PaintText(Widget&, const Graphics&, const Point&)
-	@@ \cl MLabel @@ \impl \u YLabel;
-
-r45:
+r34:
 / @@ \u YText:
-	+ \f void MovePen(TextState&, fchar_t);
-	* @@ \cl EmptyTeztRenderer:
-		/ \i void \op()(fchar_t) -> !\i void op()(fchar_t) ^ \f MovePen;
+	/ \f SDst FetchStringWidth(TextState&, String&, SDst)
+		-> \i SDst \i FetchStringWidth(TextState&, SDst, const String&);
+	+ \tf template<typename _tIn, typename _tChar> SDst FetchStringWidth(Font&,
+		_tIn, _tIn, _tChar = '\0');
+	+ \i \f SDst FetchStringWidth(Font&, const String&);
+	+ \tf template<typename _tIn, typename _tChar> SDst FetchStringWidth(
+		TextState&, SDst, _tIn, _tIn, _tChar = '\0');
+	/= \a 'class _tOut' -> 'typename _tIn';
+	/= \a _tOut => _tIn;
+	- \a duplicate \param @@ \t \def;
+	+ \f SDst FetchCharWidth(Font&, fchar_t);
+	+ \tf<typename _tIn> SDst FetchStringWidth(Font&, _tIn);
+	+ \tf<typename _tIn> SDst FetchStringWidth(TextState&, SDst, _tIn);
+/ \tr \impl @@ \mf void MLabel::PaintText(Widget&, const Graphics&,
+	const Point&) @@ \impl \u YLabel;
 
-r46-r53:
-/= test 5;
+r35:
+* \impl @@ \mf void MLabel::PaintText(Widget&, const Graphics&, const Point&)
+	@@ \impl \u YLabel;
 
-r54:
-* \impl @@ \f SPos FetchLastLineBasePosition(const TextState&, SDst)
-	@@ \impl \u YText;
-* \impl @@ \mf void PaintText(Widget&, const Graphics&, const Point&)
-	@@ \cl MLabel @@ \impl \u YLabel;
+r36:
+/ \impl @@ \ctor @@ \cl ShlSetting::TFormC @@ \u Shells;
 
-r55-r61:
+r37:
+/ \impl @@ \mf void MLabel::PaintText(Widget&, const Graphics&, const Point&)
+	@@ \impl \u YLabel;
+
+r38:
+/ undo r36;
+
+r39-r43:
+/ test 5 ^ \conf release:
+	/ \impl @@ \mf void ShlSetting::TFormC::btnC_Click(TouchEventArgs&)
+		@@ \impl \u Shells;
+
+r44-r45:
 /= test 6;
 
-r62:
-* \impl @@ \mf void PaintText(Widget&, const Graphics&, const Point&)
-	@@ \cl MLabel @@ \impl \u YLabel;
+r46:
+/ \impl @@ \ctor @@ \cl ShlSetting::TFormC @@ \u Shells;
 
-r63:
-/ @@ \cl MLabel @@ \u YLabel:
-	/ \rem \m bool AutoSize;
-	/ \rem \m bool AutoEllipsis;
-	+ typedef \en TextAlignmentStyle;
-	+ \m TextAlignmentStyle Alignment;
-	/ \exp \ctor MLabel(const Drawing::Font&) -> MLabel(const Drawing::Font&,
-		TextAlignmentStyle = Left);
-	/ \impl @@ \mf void PaintText(Widget&, const Graphics&, const Point&);
-/ \impl @@ \ctor @@ \cl YButton @@ \impl \u Button;
+r47:
+* \impl @@ \f void InitializeSystemFontCache() @@ \impl \u YShellInitialization;
+/ @@ \cl YFontCache @@ \h YFont:
+	/ \ac @@ 2 \mf LoadTypefaces -> public ~ private;
+	/ \impl @@ \mf void LoadTypefaces(const FontFile&);
 
-r64:
-/ \tr \impl @@ \mf YApplication::ResetFontCache;
-/ \tr @@ \impl \u Shells:
-	/ \tr \impl @@ \f GetGlobalImageRef @@ \un \ns;
-	/ \impl @@ \ctor @@ \cl ShlExplorer::TFrmFileListSelecter;
-	
-r65:
-/ \tr @@ \impl \u Shells:
-	/ \impl @@ \ctor @@ \cl ShlSetting::TFormB;
-	/ @@ \cl ShlSetting::TFormC:
-		/ \impl @@ \ctor;
-		/ \impl @@ \mf btnC_Click;
+r48:
+* \impl @@ \f void InitializeSystemFontCache() @@ \impl \u YShellInitialization;
 
-r66:
-/= test 7 ^ \conf release;
+r49-r51:
+/= test 7;
+
+r52:
+/ @@ \cl Font @@ \u YFont:
+	/ \impl @@ \i \smf GetDefault;
+	- \mf InitializeDefault;
+	- \mf ReleaseDefault;
+/ \impl @@ \f void InitializeSystemFontCache() @@ \impl \u YShellInitialization;
+/ \impl @@ void YApplication::DestroyFontCache();
+
+r53-r55:
+/= test 8;
+
+r56: 
+/ @@ \u YFont:
+	* \tr \impl @@ \f const Typeface& FetchDefaultTypeface()
+		ythrow(LoggedEvent);
+	/ @@ \cl FontFamily:
+		+ typedef std::string NameType;
+		/ private \m FT_String* family_name -> \m NameType family_name;
+		/ \ctor FontFamily(YFontCache&, const FT_String*)
+			-> FontFamily(YFontCache&, const NameType&);
+		/ \dtor -> \i \dtor ^ \mac DefEmptyDtor;
+		/ \tr @@ \mf GetFamilyName && \op== && op<;
+	/ @@ \cl YFontCache:
+		/ typedef map<const FT_String*, FontFamily*,
+			ystdex::deref_str_comp<FT_String> > FFacesIndex
+			-> 	typedef map<const FontFamily::NameType, FontFamily*>
+			FFacesIndex;
+		/ \tr @@ \mf GetFontFamilyPtr;
+		/ \tr @@ \mf GetTypefacePtr;
+		/ \tr \impl @@ \mf LoadTypefaces;
+	/ \tr @@ \i \mf Typeface::GetFamilyName;
+	+ \inc \h YStatic;
+/ \tr \impl @@ \mf ShlSetting::TFormC::btnC_Click @@ \impl \u Shells;
+/ \tr \impl @@ \f void InitializeSystemFontCache()
+	@@ \impl \u YShellInitialization;
+
+r57:
+/ @@ \u YFont:
+	/ @@ \cl Typeface:
+		+ typedef std::string NameType;
+		/ private \m FT_String* style_name -> \m NameType style_name;
+		/ \tr \impl @@ \ctor;
+		/ \dtor -> \i \dtor ^ \mac DefEmptyDtor;
+		/ \tr @@ \mf GetStyleName;
+	/ @@ \cl YFontCache:
+		/ \tr @@ \mf GetTypefacePtr;
+	/ @@ \cl FontFamily:
+		/ \tr @@ \mf GetTypefacePtr;
+		/ typedef map<const FT_String*, Typeface*,
+			ystdex::deref_str_comp<FT_String> >
+			-> typedef <const std::string, Typeface*> FTypesIndex;
+	/ \tr @@ \mf Font::GetStyleName;
+	/ @@ \mf Typeface::GetFamilyName;
+	- \inh \h YStatic;
+/ \tr \impl @@ \f void InitializeSystemFontCache()
+	@@ \impl \u YShellInitialization;
+/ \tr \impl @@ \mf ShlSetting::TFormC::btnC_Click @@ \impl \u Shells;
+
+r58-r65:
+/= test 9;
+
+r66-r67:
+* \impl @@ \mf void YFontCache::LoadTypefaces(const FontFile&)
+	@@ \impl \u YFont;
+
+r68-r70:
+/= test 10;
+
+r71:
+* \tr \impl @@ \f simpleFaceRequester @@ \impl \u YFont;
+
+r72-r78:
+/= test 11;
+
+r79-r103:
+/= test 12;
+
+r104:
+/ @@ \cl YFontCache @@ \impl \u YFont:
+	/ \tr \impl @@ \mf bool SetTypeface(Typeface*);
+	* \impl @@ \mf void LoadTypefaces(const FontFile&);
+
+r105:
+/= test 13 ^ \conf release;
+
+r106:
+/ @@ \u YFont:
+	/ @@ \cl YFontCache:
+		/ private \mf \vt void operator+=(Typeface&)
+			-> !\vt void operator+=(Typeface*);
+		/ private \mf \vt bool operator-=(Typeface&)
+			-> !\vt bool operator-=(Typeface*);
+		/ private \mf \vt void operator+=(FontFamily&)
+			-> !\vt void operator+=(FontFamily*);
+		/ private \mf \vt bool operator-=(FontFamily&)
+			-> !\vt bool operator-=(FontFamily*);
+		/ \simp \impl @@ \mf bool operator-=(const FontFile*);
+
+r107:
+/= test 14 ^ \conf release;
 
 
 $DOING:
 
 relative process:
-2011-03-27:
--27.3d;
+2011-03-30:
+-26.6d;
 
 / ...
 
@@ -541,6 +584,12 @@ $fix_bugs *;
 $transform $list ($lest_member $pattern "b*"."\(\"\*\"\)") +;
 
 now:
+{
+* "label alignment",
+"%std::string based font cache"
+},
+
+b196:
 {
 "controls: checkbox",
 * "platform color type",

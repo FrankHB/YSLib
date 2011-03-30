@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.3170;
+\version 0.3184;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-03-07 13:10 +0800;
+	2011-03-28 10:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,6 @@
 
 #include "yshell.h"
 #include "yapp.h"
-#include "../Shell/ydesktop.h"
 #include "../Helper/yglobal.h"
 
 YSL_BEGIN
@@ -89,21 +88,11 @@ YShell::DefShlProc(const Message& msg)
 						if(h->IsActive())
 							return -1;
 						YReset(h);
-						return 0;
 					}
 				default:
 					break;
 				}
 			}
-		}
-
-	case SM_PAINT:
-		{
-			GHandleContext<GHHandle<YDesktop> >* const
-				p(CastMessage<SM_PAINT>(msg));
-
-			if(p && p->Handle)
-				p->Handle->Draw();
 		}
 		return 0;
 
@@ -122,16 +111,16 @@ YShell::DefShlProc(const Message& msg)
 }
 
 int
-YShell::OnActivated(const Message& m)
+YShell::OnActivated(const Message& msg)
 {
-	SendMessage(m);
+	SendMessage(msg);
 	return 0;
 }
 
 int
-YShell::OnDeactivated(const Message& m)
+YShell::OnDeactivated(const Message& msg)
 {
-	SendMessage(m);
+	SendMessage(msg);
 	return 0;
 }
 

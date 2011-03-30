@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3542;
+\version 0.3554;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-25 14:03 +0800;
+	2011-03-28 10:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -374,6 +374,22 @@ YGUIShell::SendWindow(IWindow& w)
 int
 YGUIShell::ShlProc(const Message& msg)
 {
+	using namespace Messaging;
+
+	switch(msg.GetMessageID())
+	{
+	case SM_PAINT:
+		{
+			GHandleContext<GHHandle<YDesktop> >* const
+				p(CastMessage<SM_PAINT>(msg));
+
+			if(p && p->Handle)
+				p->Handle->Draw();
+		}
+		return 0;
+	default:
+		break;
+	}
 	return ParentType::ShlProc(msg);
 }
 

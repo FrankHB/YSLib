@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 定义。
-\version 0.2820;
+\version 0.2822;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-03-27 14:41 +0800;
+	2011-03-28 10:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,8 +65,8 @@ public:
 	DefShlProc(const Message&);
 
 	// Shell 处理函数：响应线程的直接调用。
-	virtual PDefH1(int, ShlProc, const Message& m)
-		ImplRet(DefShlProc(m))
+	virtual PDefH1(int, ShlProc, const Message& msg)
+		ImplRet(DefShlProc(msg))
 
 	/*!
 	\brief 处理线程的激活。

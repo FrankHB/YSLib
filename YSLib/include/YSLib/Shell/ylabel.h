@@ -16,7 +16,7 @@
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-03-27 19:12 +0800;
+	2011-03-29 20:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,7 +52,8 @@ public:
 
 	Drawing::Font Font; //!< 字体。
 	Drawing::Padding Margin; //!< 文本和容器的间距。
-	TextAlignmentStyle Alignment; //!< 文本对齐属性。
+	TextAlignmentStyle Alignment; \
+		//!< 文本水平对齐属性（只在可完整显示时有效）。
 //	bool AutoSize; //!< 启用根据字号自动调整大小。
 //	bool AutoEllipsis; //!< 启用对超出标签宽度的文本调整大小。
 	String Text; //!< 标签文本。

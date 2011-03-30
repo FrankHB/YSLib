@@ -11,12 +11,12 @@
 /*!	\file ysmsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version 0.1662;
+\version 0.1664;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-28 10:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,9 +36,9 @@ Message::Message(GHHandle<YShell> shl, ID m, Priority p,
 	: hShl(shl), id(m), prior(p), pContext(pCon),
 	timestamp(std::clock()), timeout(DefTimeout)
 {}
-Message::Message(const Message& m)
-	: hShl(m.hShl), id(m.id), prior(m.prior), pContext(m.pContext),
-	timestamp(m.timestamp), timeout(m.timeout)
+Message::Message(const Message& msg)
+	: hShl(msg.hShl), id(msg.id), prior(msg.prior), pContext(msg.pContext),
+	timestamp(msg.timestamp), timeout(msg.timeout)
 {}
 
 Message&
@@ -91,11 +91,11 @@ YMessageQueue::GetMessage()
 }
 
 void
-YMessageQueue::PeekMessage(Message& m) const
+YMessageQueue::PeekMessage(Message& msg) const
 {
 	if(!q.empty())
 		if(q.top().IsValid())
-			m = q.top();
+			msg = q.top();
 }
 
 YMessageQueue::SizeType
@@ -121,11 +121,11 @@ YMessageQueue::Update()
 }
 
 bool
-YMessageQueue::Insert(const Message& m)
+YMessageQueue::Insert(const Message& msg)
 {
-	if(m.IsValid())
-		q.push(m);
-	return m.IsValid();
+	if(msg.IsValid())
+		q.push(msg);
+	return msg.IsValid();
 }
 
 void

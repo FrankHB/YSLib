@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 应用程序实例类抽象。
-\version 0.2234;
+\version 0.2240;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-03-27 19:22 +0800;
+	2011-03-29 23:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -172,7 +172,8 @@ YApplication::ResetFontCache(CPATH path) ythrow(LoggedEvent)
 {
 	try
 	{
-		Drawing::CreateFontCache(pFontCache, path);
+		ydelete(pFontCache);
+		pFontCache = ynew YFontCache(path);
 	}
 	catch(...)
 	{
@@ -184,8 +185,8 @@ YApplication::ResetFontCache(CPATH path) ythrow(LoggedEvent)
 void
 YApplication::DestroyFontCache()
 {
-	Drawing::Font::ReleaseDefault();
-	Drawing::DestroyFontCache(pFontCache);
+	ydelete(pFontCache);
+	pFontCache = NULL;
 }
 
 

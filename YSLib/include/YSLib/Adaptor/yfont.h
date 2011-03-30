@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7127;
+\version 0.7196;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-03-16 13:17 +0800;
+	2011-03-30 21:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,8 +28,8 @@
 #define INCLUDED_YFONT_H_
 
 #include "../Core/yfunc.hpp"
-#include "../Core/ycutil.h"
 #include "../Core/yobject.h"
+#include <string>
 #include "../Core/yexcept.h"
 
 #define GLYPH_CACHE_SIZE	(512 << 10)
@@ -50,7 +50,7 @@ class YFontCache;
 
 
 //! \brief 字体样式。
-struct EFontStyle
+struct FontStyle
 {
 public:
 	typedef enum Styles
@@ -66,7 +66,7 @@ private:
 	Styles style;
 
 public:
-	EFontStyle(Styles = Regular);
+	FontStyle(Styles = Regular);
 
 	DefConverter(const Styles&, style);
 	operator Styles&();
@@ -81,12 +81,12 @@ public:
 };
 
 inline
-EFontStyle::EFontStyle(Styles s)
+FontStyle::FontStyle(Styles s)
 	: style(s)
 {}
 
 inline
-EFontStyle::operator Styles&()
+FontStyle::operator Styles&()
 {
 	return style;
 }
@@ -99,14 +99,15 @@ class FontFamily : public NonCopyable
 	friend class YFontCache;
 
 public:
+	typedef std::string NameType;
 	typedef set<Typeface*> FTypes; //!< 字型组类型。
-	typedef map<const FT_String*, Typeface*, ystdex::deref_str_comp<FT_String> >
+	typedef map<const std::string/*Typeface::NameType*/, Typeface*>
 		FTypesIndex; //!< 字型组索引类型。
 
 	YFontCache& Cache;
 
 private:
-	FT_String* family_name;
+	NameType family_name;
 	FTypes sTypes; //!< 字型组类型。
 	FTypesIndex mTypesIndex; //!< 字型组索引类型。
 
@@ -114,12 +115,12 @@ public:
 	/*!
 	\brief 使用字体缓存引用和名称构造字型家族。
 	*/
-	FontFamily(YFontCache&, const FT_String*);
+	FontFamily(YFontCache&, const NameType&);
 	/*!
 	\brief 析构函数。
 	\note 无异常抛出。
 	*/
-	~FontFamily() ythrow();
+	DefEmptyDtor(FontFamily)
 
 	/*!
 	\brief 比较：相等关系。
@@ -133,30 +134,32 @@ public:
 	operator<(const FontFamily&) const;
 
 
-	DefGetter(const FT_String*, FamilyName, family_name)
+	DefGetter(const NameType&, FamilyName, family_name)
 	/*!
 	\brief 取指定样式的字型指针。
 	\note 若非 Regular 样式失败则尝试取 Regular 样式的字型指针。
 	*/
 	Typeface*
-	GetTypefacePtr(EFontStyle) const;
+	GetTypefacePtr(FontStyle) const;
 	/*!
 	\brief 取指定样式名称的字型指针。
 	*/
 	Typeface*
-	GetTypefacePtr(const FT_String*) const;
+	GetTypefacePtr(const std::string/*Typeface::NameType*/&) const;
 
 private:
 	/*!
 	\brief 向字型组和字型组索引添加字型对象。
+	\note 参数为空指针时忽略。
 	*/
 	void
-	operator+=(Typeface&);
+	operator+=(Typeface*);
 	/*!
 	\brief 从字型组和字型组索引中移除指定字型对象。
+	\note 参数为空指针时返回 false 。
 	*/
 	bool
-	operator-=(Typeface&);
+	operator-=(Typeface*);
 };
 
 
@@ -169,6 +172,8 @@ class Typeface : public NonCopyable
 
 //	static const FT_Matrix MNormal, MOblique;
 public:
+	typedef std::string NameType;
+
 	YFontCache& Cache;
 	const FontFile& File;
 
@@ -176,7 +181,7 @@ private:
 	FontFamily* pFontFamily;
 //	FT_Face face;
 //	bool bBold, bOblique, bUnderline;
-	FT_String* style_name;
+	NameType style_name;
 
 	FT_Long faceIndex;
 	FT_Int cmapIndex;
@@ -198,7 +203,7 @@ public:
 	\brief 析构函数。
 	\note 无异常抛出。
 	*/
-	~Typeface() ythrow();
+	DefEmptyDtor(Typeface)
 
 	/*!
 	\brief 比较：相等关系。
@@ -212,34 +217,27 @@ public:
 	operator<(const Typeface&) const;
 
 	DefGetter(const FontFamily*, FontFamilyPtr, pFontFamily)
-	DefGetter(const FT_String*, FamilyName, pFontFamily
-		? pFontFamily->GetFamilyName() : NULL)
-	DefGetter(const FT_String*, StyleName, style_name)
+	DefGetter(FontFamily::NameType, FamilyName, pFontFamily
+		? pFontFamily->GetFamilyName() : "")
+	DefGetter(const NameType&, StyleName, style_name)
 };
 
 
 //! \brief 字体文件。
-class FontFile
+class FontFile : public NonCopyable
 {
 public:
-	static const u16 MaxFontPathLength = YCL_MAX_FILENAME_LENGTH; \
-		//!< 最大字体文件路径长度。
+	typedef std::string PathType; //!< 路径类型。
 
 private:
-	CPATH path;
-	FT_Library& library;
-	FT_Long nFace;
+	PathType path;
+	mutable FT_Long nFace;
 
 public:
 	/*!
-	\brief 使用路径字符串和本地字体库文件构造字体文件对象。
+	\brief 使用路径字符串构造字体文件对象。
 	*/
-	FontFile(CPATH, FT_Library&);
-	/*!
-	\brief 使用路径字符串和本地字体库文件构造字体文件对象。
-	\note 两个路径字符串被串接作为字体文件路径。
-	*/
-	FontFile(CPATH, const char*, FT_Library&);
+	FontFile(const PathType&);
 
 	/*!
 	\brief 比较：相等关系。
@@ -252,15 +250,26 @@ public:
 	bool
 	operator<(const FontFile&) const;
 
-	DefGetter(const char*, Path, path)
+	DefGetter(PathType, Path, path)
 	DefGetter(s32, FaceN, nFace)
 
 	/*!
-	\brief 重新读取字体文件，载入全部字体。
+	\brief 向指定本地字体库中重新读取字体文件，载入全部字体。
 	*/
 	void
-	ReloadFaces();
+	ReloadFaces(FT_Library&) const;
 };
+
+inline bool
+FontFile::operator==(const FontFile& rhs) const
+{
+	return path == rhs.path;
+}
+inline bool
+FontFile::operator<(const FontFile& rhs) const
+{
+	return path < rhs.path;
+}
 
 
 /*!
@@ -292,7 +301,7 @@ private:
 	static Font* pDefFont; //!< 默认 Shell 字体。
 
 	const FontFamily* pFontFamily;
-	EFontStyle Style;
+	FontStyle Style;
 	SizeType Size;
 
 public:
@@ -301,20 +310,24 @@ public:
 	*/
 	explicit
 	Font(const FontFamily& = FetchDefaultFontFamily(), SizeType = DefSize,
-		EFontStyle = EFontStyle::Regular);
+		FontStyle = FontStyle::Regular);
 
-	DefPredicate(Bold, Style | EFontStyle::Bold)
-	DefPredicate(Italic, Style | EFontStyle::Italic)
-	DefPredicate(Underline, Style | EFontStyle::Underline)
-	DefPredicate(Strikeout, Style | EFontStyle::Strikeout)
+	DefPredicate(Bold, Style | FontStyle::Bold)
+	DefPredicate(Italic, Style | FontStyle::Italic)
+	DefPredicate(Underline, Style | FontStyle::Underline)
+	DefPredicate(Strikeout, Style | FontStyle::Strikeout)
 
-	static DefMutableGetter(const Font&, Default, *pDefFont)
+	/*!
+	\brief 取默认实例。
+	*/
+	static const Font&
+	GetDefault();
 	DefGetter(const FontFamily&, FontFamily, *pFontFamily)
-	DefGetter(EFontStyle, Style, Style)
+	DefGetter(FontStyle, Style, Style)
 	DefGetter(SizeType, Size, Size)
 	DefGetter(YFontCache&, Cache, GetFontFamily().Cache)
-	DefGetterMember(const FT_String*, FamilyName, GetFontFamily())
-	DefGetter(const FT_String*, StyleName, Style.GetName())
+	DefGetterMember(const FontFamily::NameType&, FamilyName, GetFontFamily())
+	DefGetter(Typeface::NameType, StyleName, Style.GetName())
 	/*!
 	\brief 取字体对应的字符高度。
 	*/
@@ -323,7 +336,7 @@ public:
 
 /*	FontFamily&
 	SetFontFamily(const FontFamily&);*/
-	DefSetter(EFontStyle, Style, Style)
+	DefSetter(FontStyle, Style, Style)
 	/*!
 	\brief 设置字体大小。
 	*/
@@ -346,19 +359,16 @@ public:
 	*/
 	void
 	UpdateSize();
-
-	/*!
-	\brief 初始化默认字体。
-	*/
-	static bool
-	InitializeDefault();
-
-	/*!
-	\brief 释放默认字体。
-	*/
-	static void
-	ReleaseDefault();
 };
+
+inline
+const Font&
+Font::GetDefault()
+{
+	static Font f;
+
+	return f;
+}
 
 
 //! \brief 字符位图。
@@ -419,7 +429,7 @@ public:
 		FTypes; //!< 字型组类型。
 	typedef set<FontFamily*, ystdex::deref_comp<FontFamily> >
 		FFaces; //!< 字型家族组类型。
-	typedef map<const FT_String*, FontFamily*, ystdex::deref_str_comp<FT_String> >
+	typedef map<FontFamily::NameType, FontFamily*>
 		FFacesIndex; //!< 字型家族组索引类型。
 
 private:
@@ -466,10 +476,10 @@ public:
 //	Font*
 //	GetFontPtr() const;
 	/*!
-	\brief 取指定名称字型家族指针。
+	\brief 取指定名称的字型家族指针。
 	*/
 	const FontFamily*
-	GetFontFamilyPtr(const FT_String*) const;
+	GetFontFamilyPtr(const FontFamily::NameType&) const;
 	/*!
 	\brief 取默认字型指针。
 	\throw LoggedEvent 记录异常事件。
@@ -481,10 +491,11 @@ public:
 //	Typeface*
 //	GetTypefacePtr(u16) const; //!< 取字型组储存的指定索引的字型指针。
 	/*!
-	\brief 取指定名称字型指针。
+	\brief 取指定名称的字型指针。
 	*/
 	const Typeface*
-	GetTypefacePtr(const FT_String*, const FT_String*) const;
+	GetTypefacePtr(const FontFamily::NameType&, const Typeface::NameType&)
+		const;
 	DefGetter(u8, FontSize, curSize) //!< 取当前处理的字体大小。
 	/*!
 	\brief 取当前字型和大小渲染的指定字符的字形。
@@ -531,37 +542,44 @@ public:
 private:
 	/*!
 	\brief 向字体文件组添加字体文件对象。
+	\note 参数为空指针时忽略。
 	*/
-	virtual void
-	operator+=(const FontFile&);
+	void
+	operator+=(const FontFile*);
 	/*!
 	\brief 从字体文件组中移除指定字体文件对象。
+	\note 参数为空指针时返回 false 。
 	*/
-	virtual bool
-	operator-=(const FontFile&);
+	bool
+	operator-=(const FontFile*);
 
 	/*!
 	\brief 向字型组添加字型对象。
+	\note 参数为空指针时忽略。
 	*/
-	virtual void
-	operator+=(Typeface&);
+	void
+	operator+=(Typeface*);
 	/*!
 	\brief 从字型组中移除指定字型对象。
+	\note 参数为空指针时忽略。
 	*/
-	virtual bool
-	operator-=(Typeface&);
+	bool
+	operator-=(Typeface*);
 
 	/*!
 	\brief 向字型家族组添加字型对象。
+	\note 参数为空指针时返回 false 。
 	*/
-	virtual void
-	operator+=(FontFamily&);
+	void
+	operator+=(FontFamily*);
 	/*!
 	\brief 从字型家族组中移除指定字型对象。
+	\note 参数为空指针时忽略。
 	*/
-	virtual bool
-	operator-=(FontFamily&);
+	bool
+	operator-=(FontFamily*);
 
+public:
 	/*!
 	\brief 从字体文件组中载入字体信息。
 	*/
@@ -570,23 +588,22 @@ private:
 
 	/*!
 	\brief 从指定字体文件中载入字体信息。
+	\note 若指定字体文件不在字体文件组中则先按路径添加该文件。
 	*/
 	void
 	LoadTypefaces(const FontFile&);
 
-public:
-	/*!
-	\brief 读取字体文件目录并载入目录下指定后缀名的字体文件。
-	*/
-	void
-	LoadFontFileDirectory(CPATH, CPATH = "ttf");
-
 	/*!
 	\brief 按路径添加字体文件并载入字体信息。
-	\note 无异常抛出。
+	*/
+	bool
+	LoadFontFile(CPATH);
+
+	/*!
+	\brief 重设默认字体。
 	*/
 	void
-	LoadFontFile(CPATH) ythrow();
+	ResetDefaultTypeface();
 
 private:
 	/*!
@@ -620,22 +637,6 @@ public:
 	void
 	ClearCache();
 };
-
-
-/*!
-\ingroup HelperFunction
-\brief 以指定路径 path 创建字体缓存。
-\note 指针存储至指定指针。
-*/
-void
-CreateFontCache(YFontCache*&, CPATH);
-
-/*!
-\ingroup HelperFunction
-\brief 销毁指定指针指向的字体缓存。
-*/
-void
-DestroyFontCache(YFontCache*&);
 
 YSL_END_NAMESPACE(Drawing)
 
