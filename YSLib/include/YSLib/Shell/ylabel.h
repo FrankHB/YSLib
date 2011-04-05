@@ -11,12 +11,12 @@
 /*!	\file ylabel.h
 \ingroup Shell
 \brief 平台无关的标签模块实现。
-\version 0.1924;
+\version 0.1926;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-03-29 20:39 +0800;
+	2011-04-04 20:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -87,13 +87,11 @@ public:
 */
 
 	/*!
-	\brief 构造：使用指定边界、部件容器指针和字体文本区域。
+	\brief 构造：使用指定边界和字体。
 	*/
 	explicit
-	YLabel(const Rect& = Rect::Empty, IUIBox* = NULL,
+	YLabel(const Rect& = Rect::Empty,
 		const Drawing::Font& = Drawing::Font::GetDefault());
-
-	virtual DefEmptyDtor(YLabel)
 
 	/*!
 	\brief 绘制前景。

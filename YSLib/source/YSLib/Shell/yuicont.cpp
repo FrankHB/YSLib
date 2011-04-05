@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.2051;
+\version 0.2093;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-03-22 20:50 +0800;
+	2011-04-05 20:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -79,6 +79,16 @@ YDesktop*
 FetchDirectDesktopPtr(IWidget& w)
 {
 	return FetchWidgetDirectNodePtr<YDesktop>(FetchDirectContainerPtr(w));
+}
+
+const Graphics&
+FetchContext(IWidget& w)
+{
+	IWindow* pWnd(FetchDirectWindowPtr(w));
+
+	if(!pWnd)
+		throw GeneralEvent("Null direct window pointer found @ FetchContext");
+	return pWnd->GetContext();
 }
 
 
@@ -194,7 +204,8 @@ MoveToLeft(IWidget& w)
 	w.SetLocation(Point(0, w.GetLocation().Y));
 }
 
-void MoveToRight(IWidget& w)
+void
+MoveToRight(IWidget& w)
 {
 	YAssert(w.GetContainerPtr(),
 		"In function \"void\n"
@@ -205,7 +216,8 @@ void MoveToRight(IWidget& w)
 		- w.GetSize().Width, w.GetLocation().Y));
 }
 
-void MoveToTop(IWidget& w)
+void
+MoveToTop(IWidget& w)
 {
 	YAssert(w.GetContainerPtr(),
 		"In function \"void\n"
@@ -215,7 +227,8 @@ void MoveToTop(IWidget& w)
 	w.SetLocation(Point(w.GetLocation().X, 0));
 }
 
-void MoveToBottom(IWidget& w)
+void
+MoveToBottom(IWidget& w)
 {
 	YAssert(w.GetContainerPtr(),
 		"In function \"void\n"
@@ -227,15 +240,19 @@ void MoveToBottom(IWidget& w)
 }
 
 
-const Graphics&
-FetchContext(IWidget& w)
+bool
+SetContainerBgRedrawedOf(IWidget& w, bool b)
 {
-	IWindow* pWnd(FetchDirectWindowPtr(w));
+	IUIBox* const pCon(w.GetContainerPtr());
 
-	if(!pWnd)
-		throw GeneralEvent("Null direct window pointer found @@ FetchContext");
-	return pWnd->GetContext();
+	if(pCon)
+	{
+		pCon->SetBgRedrawed(b);
+		return true;
+	}
+	return false;
 }
+
 
 void
 Fill(IWidget& w, Color c)
@@ -256,6 +273,45 @@ MUIContainer::MUIContainer()
 	sWgtSet(), sFOCSet()
 {}
 
+void
+MUIContainer::operator+=(IWidget* p)
+{
+	if(p)
+		sWgtSet.insert(p);
+}
+void
+MUIContainer::operator+=(IControl* p)
+{
+	if(p)
+	{
+		sWgtSet.insert(p);
+		GMFocusResponser<IControl>::operator+=(*p);
+	}
+}
+void
+MUIContainer::operator+=(GMFocusResponser<IControl>* p)
+{
+	if(p)
+		sFOCSet.insert(p);
+}
+
+bool
+MUIContainer::operator-=(IWidget* p)
+{
+	return sWgtSet.erase(p) != 0;
+}
+bool
+MUIContainer::operator-=(IControl* p)
+{
+	return p ? GMFocusResponser<IControl>::operator-=(*p)
+		&& sWgtSet.erase(p) != 0 : false;
+}
+bool
+MUIContainer::operator-=(GMFocusResponser<IControl>* p)
+{
+	return sFOCSet.erase(p) != 0;
+}
+
 IControl*
 MUIContainer::GetFocusingPtr() const
 {
@@ -265,7 +321,7 @@ IWidget*
 MUIContainer::GetTopWidgetPtr(const Point& pt)
 {
 	for(WGTs::const_iterator i(sWgtSet.begin()); i != sWgtSet.end(); ++i)
-		if(Contains(**i, pt))
+		if((*i)->IsVisible() && Contains(**i, pt))
 			return *i;
 	return NULL;
 }
@@ -273,10 +329,8 @@ IControl*
 MUIContainer::GetTopControlPtr(const Point& pt)
 {
 	for(FOs::const_iterator i(sFOs.begin()); i != sFOs.end(); ++i)
-	{
-		if(*i && Contains(**i, pt))
+		if((*i)->IsVisible() && Contains(**i, pt))
 			return *i;
-	}
 	return NULL;
 }
 
@@ -293,28 +347,10 @@ MUIContainer::ResponseFocusRelease(AFocusRequester& w)
 }
 
 
-YUIContainer::YUIContainer(const Rect& r, IUIBox* pCon)
+YUIContainer::YUIContainer(const Rect& r)
 	: YComponent(),
-	Widget(r, pCon), MUIContainer()
-{
-	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
-
-	if(p)
-	{
-		*p += static_cast<IWidget&>(*this);
-		*p += static_cast<GMFocusResponser<IControl>&>(*this);
-	}
-}
-YUIContainer::~YUIContainer() ythrow()
-{
-	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
-
-	if(p)
-	{
-		*p -= static_cast<IWidget&>(*this);
-		*p -= static_cast<GMFocusResponser<IControl>&>(*this);
-	}
-}
+	Widget(r), MUIContainer()
+{}
 
 YSL_END_NAMESPACE(Widgets)
 

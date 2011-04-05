@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7196;
+\version 0.7224;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-03-30 21:54 +0800;
+	2011-04-03 19:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,14 +32,12 @@
 #include <string>
 #include "../Core/yexcept.h"
 
-#define GLYPH_CACHE_SIZE	(512 << 10)
-
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-//! \brief 默认字体大小（pt）。
-const u8 DEFAULT_FONT_SIZE	= 14;
+const u8 DEFAULT_FONT_SIZE(14); //!< 默认字体大小（ pt ）。
+const std::size_t GLYPH_CACHE_SIZE(128 << 10); //!< 字形缓冲区大小（字节）。
 
 //前向声明。
 class Font;
@@ -116,11 +114,6 @@ public:
 	\brief 使用字体缓存引用和名称构造字型家族。
 	*/
 	FontFamily(YFontCache&, const NameType&);
-	/*!
-	\brief 析构函数。
-	\note 无异常抛出。
-	*/
-	DefEmptyDtor(FontFamily)
 
 	/*!
 	\brief 比较：相等关系。
@@ -199,11 +192,6 @@ public:
 	Typeface(YFontCache&, const FontFile&, u32 = 0
 		/*, const bool bb = false,
 		const bool bi = false, const bool bu = false*/);
-	/*!
-	\brief 析构函数。
-	\note 无异常抛出。
-	*/
-	DefEmptyDtor(Typeface)
 
 	/*!
 	\brief 比较：相等关系。
@@ -295,7 +283,7 @@ class Font
 public:
 	typedef u8 SizeType;
 
-	static const SizeType DefSize, MinSize, MaxSize;
+	static const SizeType DefaultSize, MinimalSize, MaximalSize;
 
 private:
 	static Font* pDefFont; //!< 默认 Shell 字体。
@@ -309,7 +297,7 @@ public:
 	\brief 构造指定字型家族、大小和样式的字体对象。
 	*/
 	explicit
-	Font(const FontFamily& = FetchDefaultFontFamily(), SizeType = DefSize,
+	Font(const FontFamily& = FetchDefaultFontFamily(), SizeType = DefaultSize,
 		FontStyle = FontStyle::Regular);
 
 	DefPredicate(Bold, Style | FontStyle::Bold)
@@ -341,7 +329,7 @@ public:
 	\brief 设置字体大小。
 	*/
 	void
-	SetSize(SizeType = DefSize);
+	SetSize(SizeType = DefaultSize);
 	/*!
 	\brief 设置字体并更新字体缓存中当前处理的字体。
 	*/
@@ -420,7 +408,6 @@ private:
 	FTC_ScalerRec scaler;
 	FTC_CMapCache cmapCache;
 	FTC_SBitCache sbitCache;
-	FTC_SBit sbit;
 
 public:
 	typedef set<const FontFile*, ystdex::deref_comp<const FontFile> >
@@ -439,15 +426,13 @@ private:
 	FFacesIndex mFacesIndex; //!< 字型家族组索引。
 
 	Typeface* pDefaultFace; //!< 默认字型指针。
-	Typeface* pFace; //!< 当前处理的字型指针。
-	Font::SizeType curSize; //!< 当前处理的字体大小。
 
 public:
 	/*!
 	\brief 构造：读取指定路径的字体文件并分配指定大小的缓存空间。
 	*/
 	explicit
-	YFontCache(CPATH, u32 cacheSize = GLYPH_CACHE_SIZE);
+	YFontCache(CPATH, u32 = GLYPH_CACHE_SIZE);
 	/*!
 	\brief 析构：释放空间。
 	*/
@@ -487,7 +472,8 @@ public:
 	*/
 	const Typeface*
 	GetDefaultTypefacePtr() const ythrow(LoggedEvent);
-	DefGetter(const Typeface*, TypefacePtr, pFace) //!< 取当前处理的字型指针。
+	DefGetter(const Typeface*, TypefacePtr,
+		static_cast<Typeface*>(scaler.face_id)) //!< 取当前处理的字型指针。
 //	Typeface*
 //	GetTypefacePtr(u16) const; //!< 取字型组储存的指定索引的字型指针。
 	/*!
@@ -496,7 +482,8 @@ public:
 	const Typeface*
 	GetTypefacePtr(const FontFamily::NameType&, const Typeface::NameType&)
 		const;
-	DefGetter(u8, FontSize, curSize) //!< 取当前处理的字体大小。
+	DefGetter(u8, FontSize, static_cast<u8>(scaler.width)) \
+		//!< 取当前处理的字体大小。
 	/*!
 	\brief 取当前字型和大小渲染的指定字符的字形。
 	*/
@@ -506,7 +493,7 @@ public:
 	\brief 取跨距。
 	*/
 	s8
-	GetAdvance(fchar_t, FTC_SBit sbit = NULL);
+	GetAdvance(fchar_t, FTC_SBit = NULL);
 	/*!
 	\brief 取行高。
 	*/
@@ -581,29 +568,10 @@ private:
 
 public:
 	/*!
-	\brief 从字体文件组中载入字体信息。
+	\brief 清除缓存。
 	*/
 	void
-	LoadTypefaces();
-
-	/*!
-	\brief 从指定字体文件中载入字体信息。
-	\note 若指定字体文件不在字体文件组中则先按路径添加该文件。
-	*/
-	void
-	LoadTypefaces(const FontFile&);
-
-	/*!
-	\brief 按路径添加字体文件并载入字体信息。
-	*/
-	bool
-	LoadFontFile(CPATH);
-
-	/*!
-	\brief 重设默认字体。
-	*/
-	void
-	ResetDefaultTypeface();
+	ClearCache();
 
 private:
 	/*!
@@ -631,12 +599,44 @@ private:
 	ClearContainers();
 
 public:
+
 	/*!
-	\brief 清除缓存。
+	\brief 从字体文件组中载入字体信息。
 	*/
 	void
-	ClearCache();
+	LoadTypefaces();
+
+	/*!
+	\brief 从指定字体文件中载入字体信息。
+	\note 若指定字体文件不在字体文件组中则先按路径添加该文件。
+	*/
+	void
+	LoadTypefaces(const FontFile&);
+
+	/*!
+	\brief 按路径添加字体文件并载入字体信息。
+	*/
+	bool
+	LoadFontFile(CPATH);
+
+	/*!
+	\brief 初始化默认字型。
+	*/
+	void
+	InitializeDefaultTypeface();
+
+	/*
+	!\brief 清除字形缓存。
+	*/
+	void
+	ResetGlyphCache();
 };
+
+inline void
+YFontCache::ResetGlyphCache()
+{
+	FTC_Manager_Reset(manager);
+}
 
 YSL_END_NAMESPACE(Drawing)
 

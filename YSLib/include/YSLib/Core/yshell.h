@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 定义。
-\version 0.2822;
+\version 0.2826;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-03-28 10:23 +0800;
+	2011-04-03 19:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -47,10 +47,9 @@ public:
 	YShell();
 	/*!
 	\brief 析构。
-	\note 无异常抛出。
 	*/
 	virtual
-	~YShell() ythrow();
+	~YShell();
 
 	/*!
 	\brief 判断 Shell 是否处于激活状态。
@@ -93,11 +92,6 @@ public:
 	\note 向应用程序对象添加自身。
 	*/
 	YMainShell();
-	/*!
-	\brief 析构：空实现。
-	\note 无异常抛出。
-	*/
-	virtual DefEmptyDtor(YMainShell)
 
 	/*!
 	\brief Shell 处理函数。

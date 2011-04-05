@@ -11,12 +11,12 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version 0.2834;
+\version 0.2838;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:39:39 +0800;
 \par 修改时间:
-	2011-03-27 14:39 +0800;
+	2011-04-03 19:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,11 +50,6 @@ public:
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
 	YGraphicDevice(SDst, SDst, Drawing::BitmapPtr = NULL);
-	/*!
-	\brief 析构：空实现。
-	\note 无异常抛出。
-	*/
-	virtual DefEmptyDtor(YGraphicDevice)
 };
 
 inline
@@ -93,11 +88,6 @@ public:
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
 	YScreen(SDst, SDst, Drawing::BitmapPtr = NULL);
-	/*!
-	\brief 析构：空实现。
-	\note 无异常抛出。
-	*/
-	virtual DefEmptyDtor(YScreen)
 
 	/*!
 	\brief 复位。
@@ -109,7 +99,7 @@ public:
 	/*!
 	\brief 取指针。
 	\note 无异常抛出。
-		进行状态检查。
+	\note 进行状态检查。
 	*/
 	virtual Drawing::BitmapPtr
 	GetCheckedBufferPtr() const ythrow();

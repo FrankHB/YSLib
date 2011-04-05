@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3554;
+\version 0.3609;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-28 10:26 +0800;
+	2011-04-03 16:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,92 +39,12 @@ YSL_BEGIN_NAMESPACE(Shells)
 
 YGUIShell::YGUIShell()
 	: YShell(),
-	sWnds(), KeyHeldState(Free), TouchHeldState(Free),
+	KeyHeldState(Free), TouchHeldState(Free),
 	DraggingOffset(Vec::FullScreen), HeldTimer(1000, false),
 	ControlLocation(Point::FullScreen),
 	LastControlLocation(Point::FullScreen),
 	p_KeyDown(NULL), p_TouchDown(NULL), control_entered(false)
 {}
-
-void
-YGUIShell::operator+=(HWND h)
-{
-	if(h)
-		sWnds.push_back(h);
-}
-
-bool
-YGUIShell::operator-=(HWND h)
-{
-	WNDs::iterator i(std::find(sWnds.begin(), sWnds.end(), h));
-
-	if(i == sWnds.end())
-		return false;
-	sWnds.erase(i);
-	return true;
-}
-
-HWND
-YGUIShell::GetFirstWindowHandle() const
-{
-	return HWND(sWnds.empty() ? NULL : sWnds.front());
-}
-HWND
-YGUIShell::GetTopWindowHandle() const
-{
-	return HWND(sWnds.empty() ? NULL : sWnds.back());
-}
-HWND
-YGUIShell::GetTopWindowHandle(YDesktop& d, const Point& p) const
-{
-	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
-	{
-		// TODO: assert(*i);
-
-		if(FetchDirectDesktopPtr(**i) == &d && Contains(**i, p))
-			return HWND(*i);
-	}
-	return NULL;
-}
-IWidget*
-YGUIShell::GetCursorWidgetPtr(YDesktop& d, const Point& pt) const
-{
-	HWND hWnd(GetTopWindowHandle(d, pt));
-
-	return hWnd ? hWnd->GetTopWidgetPtr(pt) : NULL;
-}
-
-void
-YGUIShell::ClearScreenWindows(YDesktop& d)
-{
-	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
-		d.RemoveAll(*static_cast<IControl*>(GetPointer(*i)));
-}
-
-void
-YGUIShell::DispatchWindows()
-{
-	for(WNDs::const_iterator i(sWnds.begin()); i != sWnds.end(); ++i)
-	{
-		// TODO: assert(*i);
-
-		YDesktop* const pDsk(FetchDirectDesktopPtr(**i));
-
-		if(pDsk)
-			*pDsk += *static_cast<IControl*>(GetPointer(*i));
-	}
-}
-
-YGUIShell::WNDs::size_type YGUIShell::RemoveAll(HWND h)
-{
-	return ystdex::erase_all(sWnds, h);
-}
-
-void
-YGUIShell::RemoveWindow()
-{
-	sWnds.pop_back();
-}
 
 bool
 YGUIShell::RepeatHeld(HeldStateType& s,
@@ -265,7 +185,7 @@ YGUIShell::ResponseKey(YDesktop& d, KeyEventArgs& e,
 		pmf = &YGUIShell::ResponseKeyHeldBase;
 		break;
 	default:
-		YAssert(false, "Invalid function @@ YGUIShell::ResponseKeyBase;");
+		YAssert(false, "Invalid function @ YGUIShell::ResponseKeyBase;");
 	}
 	return (this->*pmf)(p ? *p : d, e);
 }
@@ -301,7 +221,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 		p = t;
 	}
 
-	YAssert(p, "Null pointer found @@ YGUIShell::ResponseTouch");
+	YAssert(p, "Null pointer found @ YGUIShell::ResponseTouch");
 
 	e.Strategy = Controls::RoutedEventArgs::Direct;
 	switch(op)
@@ -343,7 +263,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 		break;
 	default:
 		YAssert(false, "Invalid operation found"
-			" @@ YGUIShell::ResponseTouchBase;");
+			" @ YGUIShell::ResponseTouchBase;");
 	}
 	e.Strategy = Controls::RoutedEventArgs::Bubble;
 	while(!e.IsHandled && (pCon = p->GetContainerPtr()))
@@ -353,22 +273,6 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 		p->GetEventMap().DoEvent<HTouchEvent>(op, *p, e);
 	}
 	return true;
-}
-
-bool
-YGUIShell::SendWindow(IWindow& w)
-{
-	if(std::find(sWnds.begin(), sWnds.end(), &w) != sWnds.end())
-	{
-		YDesktop* const pDsk(FetchDirectDesktopPtr(w));
-
-		if(pDsk)
-		{
-			*pDsk += static_cast<IControl&>(w);
-			return true;
-		}
-	}
-	return false;
 }
 
 int
@@ -444,8 +348,8 @@ bool
 IsFocusedByShell(const IControl& c, GHHandle<YGUIShell> hShl)
 {
 	if(!hShl)
-		throw GeneralEvent("Null GUI handle found @@ YCheckBox"
-			"::IsLockedByCurrentShell");
+		throw GeneralEvent("Null GUI handle found"
+			" @ YCheckBox::IsLockedByCurrentShell");
 	return hShl->GetTouchDownPtr() == &c;
 }
 

@@ -11,12 +11,12 @@
 /*!	\file agg.h
 \ingroup Adaptor
 \brief Anti-Grain Geometry 库关联。
-\version 0.1676;
+\version 0.1680;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-21 15:46:00 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-31 06:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef AGG_INCLUDED
-#define AGG_INCLUDED
+#ifndef INCLUDED_AGG_H_
+#define INCLUDED_AGG_H_
 
 //#include <agg/agg_pixfmt_rgb.h>
 //#include <agg/agg_pixfmt_rgba.h>

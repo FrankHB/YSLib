@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1846;
+\version 0.1915;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-03-28 10:14 +0800;
+	2011-04-05 19:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,11 +42,6 @@ public:
 	\brief 无参数构造。
 	*/
 	ShlCLI();
-	/*!
-	\brief 析构。
-	\note 无异常抛出。
-	*/
-	virtual DefEmptyDtor(ShlCLI)
 
 	/*!
 	\brief 处理激活消息。
@@ -83,14 +78,34 @@ ShlCLI::ExecuteCommand(const String& s)
 	return ExecuteCommand(s.c_str());
 }
 
+YSL_END_NAMESPACE(Shells)
 
-//标准图形用户界面窗口 Shell 。
-class ShlGUI : public YGUIShell
+
+YSL_BEGIN_NAMESPACE(DS)
+
+//双屏全屏窗口 Shell 。
+class ShlDS : public Shells::YGUIShell
 {
+private:
+	GHHandle<YDesktop> hDskUp, hDskDown; \
+		//正常状态下应该总是指向有效的桌面对象。
+
 public:
-	ShlGUI();
-	virtual
-	~ShlGUI() ythrow();
+	/*!
+	\brief 无参数构造。
+	*/
+	ShlDS(GHHandle<YDesktop>
+		= theApp.GetPlatformResource().GetDesktopUpHandle(), GHHandle<YDesktop>
+		= theApp.GetPlatformResource().GetDesktopDownHandle());
+
+	DefGetter(const GHHandle<YDesktop>&, DesktopUpHandle, hDskUp)
+	DefGetter(const GHHandle<YDesktop>&, DesktopDownHandle, hDskDown)
+
+	/*!
+	\brief 处理激活消息。
+	*/
+	virtual int
+	OnActivated(const Message&);
 
 	/*!
 	\brief 处理停用消息。
@@ -105,52 +120,16 @@ public:
 //	SendDrawingMessage();
 
 	/*!
-	\brief 更新到屏幕。
-	*/
-	virtual void
-	UpdateToScreen();
-};
-
-inline
-ShlGUI::ShlGUI()
-	: YGUIShell()
-{}
-inline
-ShlGUI::~ShlGUI() ythrow()
-{}
-
-YSL_END_NAMESPACE(Shells)
-
-
-YSL_BEGIN_NAMESPACE(DS)
-
-//双屏全屏窗口 Shell 。
-class ShlDS : public Shells::ShlGUI
-{
-protected:
-	HWND hWndUp, hWndDown;
-
-public:
-	/*!
-	\brief 无参数构造。
-	*/
-	ShlDS();
-	DefEmptyDtor(ShlDS)
-
-	DefGetter(HWND, UpWindowHandle, hWndUp)
-	DefGetter(HWND, DownWindowHandle, hWndDown)
-
-	/*!
 	\brief Shell 处理函数。
 	*/
 	virtual int
 	ShlProc(const Message&);
 
 	/*!
-	\brief 处理停用消息。
+	\brief 更新到屏幕。
 	*/
-	virtual int
-	OnDeactivated(const Message&);
+	virtual void
+	UpdateToScreen();
 };
 
 
@@ -176,23 +155,6 @@ NowShellInsertDropMessage(Messaging::Priority p = 0x80)
 {
 	SendMessage(Shells::GetCurrentShellHandle(), SM_DROP, p,
 		new Messaging::GHandleContext<GHHandle<YShell> >(FetchShellHandle()));
-}
-
-/*!
-\brief 清除屏幕内容。
-*/
-void
-ShlClearBothScreen(GHHandle<YGUIShell> h = FetchGUIShellHandle());
-
-/*!
-\brief 当前 Shell 预注销。
-\note 发送预注销消息后清除屏幕内容。
-*/
-inline void
-NowShellDrop(Messaging::Priority p = 0x80)
-{
-	NowShellInsertDropMessage(p);
-	ShlClearBothScreen();
 }
 
 //@}

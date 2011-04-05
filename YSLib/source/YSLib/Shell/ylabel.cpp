@@ -11,12 +11,12 @@
 /*!	\file ylabel.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.1902;
+\version 0.1903;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-03-29 20:40 +0800;
+	2011-04-04 20:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,8 +73,8 @@ MLabel::PaintText(Widget& w, const Graphics& g, const Point& pt)
 }
 
 
-YLabel::YLabel(const Rect& r, IUIBox* pCon, const Drawing::Font& f)
-	: YWidget(r, pCon), MLabel(f)
+YLabel::YLabel(const Rect& r, const Drawing::Font& f)
+	: YWidget(r), MLabel(f)
 {}
 
 void

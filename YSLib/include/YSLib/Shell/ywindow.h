@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.4078;
+\version 0.4144;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-03-22 21:52 +0800;
+	2011-04-05 19:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,6 +68,21 @@ DeclBasedInterface(IWindow, IUIContainer, virtual IControl)
 EndDecl
 
 
+/*!
+\brief 显示窗口。
+\note 设置可见性和容器（若存在）背景重绘状态并设置自身刷新状态。
+*/
+bool
+Show(HWND);
+
+/*!
+\brief 隐藏窗口。
+\note 设置不可见性和容器（若存在）背景重绘状态并取消自身刷新状态。
+*/
+bool
+Hide(HWND);
+
+
 //! \brief 窗口模块。
 class MWindow : protected Widgets::MWindowObject
 {
@@ -105,7 +120,6 @@ public:
 	explicit
 	AWindow(const Rect& = Rect::Empty,
 		const GHStrong<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
-	virtual DefEmptyDtor(AWindow)
 
 	ImplI1(IWindow) DefPredicateBase(RefreshRequired, MWindow)
 	ImplI1(IWindow) DefPredicateBase(UpdateRequired, MWindow)
@@ -151,7 +165,7 @@ public:
 	DrawBackground();
 
 protected:
-	DeclIEntry(bool DrawWidgets())
+	DeclIEntry(bool DrawContents())
 
 public:
 	/*!
@@ -191,51 +205,41 @@ public:
 	*/
 	virtual void
 	UpdateToWindow() const;
-
-	/*!
-	\brief 显示窗口。
-	\note 自动设置可见性和更新至屏幕。
-	*/
-	void
-	Show();
 };
 
 
-//! \brief 抽象标准窗口。
-class AFrameWindow : public AWindow, protected Widgets::MUIContainer
+//! \brief 抽象框架窗口。
+class AFrame : public AWindow, protected Widgets::MUIContainer
 {
 public:
 	typedef AWindow ParentType;
 
 	explicit
-	AFrameWindow(const Rect& = Rect::Empty,
+	AFrame(const Rect& = Rect::Empty,
 		const GHStrong<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
-	/*!
-	\note 无异常抛出。
-	*/
 	virtual
-	~AFrameWindow() ythrow();
+	~AFrame();
 
-	virtual PDefHOperator1(void, +=, IWidget& w)
-		ImplRet(static_cast<void>(sWgtSet.insert(&w)))
-	virtual PDefHOperator1(bool, -=, IWidget& w)
-		ImplRet(sWgtSet.erase(&w))
-	virtual PDefHOperator1(void, +=, IControl& c)
-		ImplBodyBase1(MUIContainer, operator+=, c)
-	virtual PDefHOperator1(bool, -=, IControl& c)
-		ImplBodyBase1(MUIContainer, operator-=, c)
-	virtual PDefHOperator1(void, +=, GMFocusResponser<IControl>& c)
-		ImplBodyBase1(MUIContainer, operator+=, c)
-	virtual PDefHOperator1(bool, -=, GMFocusResponser<IControl>& c)
-		ImplBodyBase1(MUIContainer, operator-=, c)
+	virtual void
+	operator+=(IWidget*);
+	virtual void
+	operator+=(IControl*);
+	virtual PDefHOperator1(void, +=, GMFocusResponser<IControl>* p)
+		ImplBodyBase1(MUIContainer, operator+=, p)
+
+	virtual bool
+	operator-=(IWidget*);
+	virtual bool
+	operator-=(IControl*);
+	virtual PDefHOperator1(bool, -=, GMFocusResponser<IControl>* p)
+		ImplBodyBase1(MUIContainer, operator-=, p)
 
 	ImplI1(IWindow) PDefH0(IControl*, GetFocusingPtr)
 		ImplBodyBase0(GMFocusResponser<IControl>, GetFocusingPtr)
-	ImplI1(IWindow) PDefH1(IWidget*, GetTopWidgetPtr, const Point& p)
-		ImplBodyBase1(MUIContainer, GetTopWidgetPtr, p)
-	ImplI1(IWindow) PDefH1(IControl*, GetTopControlPtr,
-		const Point& p)
-		ImplBodyBase1(MUIContainer, GetTopControlPtr, p)
+	ImplI1(IWindow) PDefH1(IWidget*, GetTopWidgetPtr, const Point& pt)
+		ImplBodyBase1(MUIContainer, GetTopWidgetPtr, pt)
+	ImplI1(IWindow) PDefH1(IControl*, GetTopControlPtr, const Point& pt)
+		ImplBodyBase1(MUIContainer, GetTopControlPtr, pt)
 
 	ImplI1(IWindow) void
 	ClearFocusingPtr();
@@ -248,9 +252,9 @@ public:
 };
 
 
-//! \brief 标准窗口。
-class YWindow : public GMCounter<YWindow>, public YComponent,
-	public AFrameWindow
+//! \brief 标准框架窗口。
+class YFrame : public GMCounter<YFrame>, public YComponent,
+	public AFrame
 {
 public:
 	typedef YComponent ParentType;
@@ -260,16 +264,13 @@ protected:
 
 public:
 	/*!
-	\brief 构造：使用指定边界、背景图像、窗口句柄和 Shell 句柄。
+	\brief 构造：使用指定边界、背景图像和窗口句柄。
 	*/
 	explicit
-	YWindow(const Rect& = Rect::Empty,
+	YFrame(const Rect& = Rect::Empty,
 		const GHStrong<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
-	/*!
-	\note 无异常抛出。
-	*/
 	virtual
-	~YWindow() ythrow();
+	~YFrame();
 
 	ImplI1(AWindow) DefGetter(const Graphics&, Context, Buffer)
 
@@ -278,10 +279,16 @@ public:
 
 protected:
 	/*!
-	\brief 绘制部件组。
+	\brief 绘制内容。
+	\note 绘制部件。
 	*/
 	ImplI1(AWindow) bool
-	DrawWidgets();
+	DrawContents();
+	/*!
+	\brief 绘制内容组件及自身背景。
+	*/
+	bool
+	DrawContensBackground();
 };
 
 YSL_END_NAMESPACE(Forms)

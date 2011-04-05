@@ -11,12 +11,12 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version 0.3148;
+\version 0.3201;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-21 23:09:06 +0800;
 \par 修改时间:
-	2011-03-14 08:48 +0800;
+	2011-04-02 10:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -116,34 +116,32 @@ public:
 YSL_END_NAMESPACE(Policies)
 
 
-//! \brief 资源指针。
+//! \brief 强指针：资源指针。
 template<typename T,
 	template<class> class DP = Policies::DeleteSingle,
 	class OP = Policies::TwoRefCounts,
 	class CP = Policies::DisallowConversion,
 	template<class> class KP = Policies::AssertCheck,
 	template<class> class RP = Policies::CantResetWithStrong,
-	typename SPType = StrongPtr<T, true, OP, CP, KP, RP, DP> >
-class GHStrong : public SPType
+	typename SPT = StrongPtr<T, true, OP, CP, KP, RP, DP> >
+class GHStrong : public SPT
 {
 public:
+	typedef SPT PtrType;
+	typedef SPT StrongPtrType;
+	typedef StrongPtr<T, false, OP, CP, KP, RP, DP> WeakPtrType;
+
 	/*!
 	\brief 构造：使用内建指针。
 	*/
 	GHStrong(T* p = NULL)
-		: SPType(p)
+		: SPT(p)
 	{};
 	/*!
-	\brief 构造：使用对象引用。
+	\brief 构造：使用强指针引用。
 	*/
-	GHStrong(T& rhs)
-		: SPType(rhs)
-	{}
-	/*!
-	\brief 构造：使用智能指针引用。
-	*/
-	GHStrong(RefToValue<GHStrong> rhs)
-		: SPType(rhs)
+	GHStrong(RefToValue<GHStrong> p)
+		: SPT(p)
 	{}
 
 	/*!
@@ -189,46 +187,44 @@ public:
 };
 
 
-//! \brief 资源引用指针。
+//! \brief 弱指针：资源引用指针。
 template<typename T,
 	template<class> class DP = Policies::DeleteSingle,
 	class OP = Policies::TwoRefCounts,
 	class CP = Policies::DisallowConversion,
 	template<class> class KP = Policies::AssertCheck,
 	template<class> class RP = Policies::CantResetWithStrong,
-	typename SPType = StrongPtr<T, false, OP, CP, KP, RP, DP> >
-class GHWeak : public SPType
+	typename SPT = StrongPtr<T, false, OP, CP, KP, RP, DP> >
+class GHWeak : public SPT
 {
 public:
+	typedef SPT PtrType;
+	typedef StrongPtr<T, true, OP, CP, KP, RP, DP> StrongPtrType;
+	typedef SPT WeakPtrType;
+
 	/*!
 	\brief 构造：使用内建指针。
 	*/
 	GHWeak(T* p = NULL)
-		: SPType(p)
-	{}
-	/*!
-	\brief 构造：使用对象引用。
-	*/
-	GHWeak(T& rhs)
-		: SPType(rhs)
+		: SPT(p)
 	{}
 	/*!
 	\brief 构造：使用强指针。
 	*/
-	GHWeak(GHStrong<T> p)
-		: SPType(p)
+	GHWeak(StrongPtrType p)
+		: SPT(p)
 	{}
 	/*!
 	\brief 构造：使用强指针引用。
 	*/
-	GHWeak(RefToValue<GHStrong<T> > rhs)
-		: SPType(rhs)
+	GHWeak(RefToValue<StrongPtrType> p)
+		: SPT(p)
 	{}
 	/*!
 	\brief 构造：使用弱指针引用。
 	*/
-	GHWeak(RefToValue<GHWeak> rhs)
-		: SPType(rhs)
+	GHWeak(RefToValue<GHWeak> p)
+		: SPT(p)
 	{}
 
 	/*!
@@ -250,7 +246,7 @@ public:
 	{
 		T* p(NULL);
 
-		Loki::ReleaseAll(static_cast<SPType&>(*this), p);
+		Loki::ReleaseAll(static_cast<SPT&>(*this), p);
 		return p;
 	}
 
@@ -262,7 +258,7 @@ public:
 	bool
 	Reset(T* p = NULL)
 	{
-		return Loki::ResetAll(static_cast<SPType&>(*this), p);
+		return Loki::ResetAll(static_cast<SPT&>(*this), p);
 	}
 };
 
@@ -273,27 +269,23 @@ template<typename T,
 	class CP = Policies::DisallowConversion,
 	template<class> class KP = Policies::AssertCheck,
 	template<class> class SP = Policies::DefaultSPStorage,
-	typename SPType = SmartPtr<T, OP, CP, KP, SP> >
-class GHHandle : public SPType
+	typename SPT = SmartPtr<T, OP, CP, KP, SP> >
+class GHHandle : public SPT
 {
 public:
+	typedef SPT PtrType;
+
 	/*!
 	\brief 构造：使用内建指针。
 	*/
 	GHHandle(T* p = NULL)
-		: SPType(p)
-	{}
-	/*!
-	\brief 构造：使用对象引用。
-	*/
-	GHHandle(T& rhs)
-		: SPType(rhs)
+		: SPT(p)
 	{}
 	/*!
 	\brief 构造：使用句柄引用。
 	*/
-	GHHandle(RefToValue<GHHandle> rhs)
-		: SPType(rhs)
+	GHHandle(RefToValue<GHHandle> p)
+		: SPT(p)
 	{}
 	/*!
 	\brief 构造：使用其它类型句柄引用。
@@ -301,7 +293,7 @@ public:
 	template<class C>
 	inline explicit
 	GHHandle(const GHHandle<C>& h)
-		: SPType(h)
+		: SPT(h)
 	{}
 
 	/*!

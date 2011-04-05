@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1652;
+\version 0.1734;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-03-28 10:23 +0800;
+	2011-04-05 20:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,46 +53,67 @@ ShlCLI::ExecuteCommand(const uchar_t* /*s*/)
 }
 
 
-int
-ShlGUI::OnDeactivated(const Message&)
-{
-	ResetGUIStates();
-	ClearScreenWindows(theApp.GetPlatformResource().GetDesktopUp());
-	ClearScreenWindows(theApp.GetPlatformResource().GetDesktopDown());
-	return 0;
-}
-
-/*void
-ShlGUI::SendDrawingMessage()
-{
-//	hDesktopUp->ClearDesktopObjects();
-//	hDesktopDown->ClearDesktopObjects();
-	DispatchWindows();
-	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<GHHandle<YDesktop> >(
-		theApp.GetPlatformResource().GetDesktopUpHandle()));
-	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<GHHandle<YDesktop> >(
-		theApp.GetPlatformResource().GetDesktopDownHandle()));
-}*/
-
-void
-ShlGUI::UpdateToScreen()
-{
-	theApp.GetPlatformResource().GetDesktopUp().Refresh();
-	theApp.GetPlatformResource().GetDesktopUp().Update();
-	theApp.GetPlatformResource().GetDesktopDown().Refresh();
-	theApp.GetPlatformResource().GetDesktopDown().Update();
-}
-
 YSL_END_NAMESPACE(Shells)
 
 
 YSL_BEGIN_NAMESPACE(DS)
 
-ShlDS::ShlDS()
-	: ShlGUI()
+ShlDS::ShlDS(GHHandle<YDesktop> h_dsk_up, GHHandle<YDesktop> h_dsk_down)
+	: YGUIShell(),
+	hDskUp(h_dsk_up ? h_dsk_up : new YDesktop(theApp.GetPlatformResource()
+		.GetScreenUp())),
+	hDskDown(h_dsk_down ? h_dsk_down : new YDesktop(theApp.GetPlatformResource()
+		.GetScreenDown()))
 {}
+
+void
+ShlDS::UpdateToScreen()
+{
+	hDskUp->Refresh();
+	hDskDown->Refresh();
+	hDskUp->Update();
+	hDskDown->Update();
+}
+
+/*void
+ShlDS::SendDrawingMessage()
+{
+//	hDesktopUp->ClearContents();
+//	hDesktopDown->ClearContents();
+	DispatchWindows();
+	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
+		new GHandleContext<GHHandle<YDesktop> >(hDskUp));
+	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
+		new GHandleContext<GHHandle<YDesktop> >(hDskDown));
+}*/
+
+int
+ShlDS::OnActivated(const Message& /*msg*/)
+{
+	YAssert(hDskUp, "Null up desktop handle found @ ShlDS::ShlDS;");
+	YAssert(hDskDown, "Null down desktop handle found @ ShlDS::ShlDS;");
+
+	ResetGUIStates();
+	//使背景无效。
+	hDskUp->SetBgRedrawed(false);
+	hDskDown->SetBgRedrawed(false);
+	//如果不添加此段且没有桌面没有被添加窗口等设置刷新状态的操作，
+	//那么除了背景以外任何绘制都不会进行。
+	hDskUp->SetRefresh(true);
+	hDskDown->SetRefresh(true);
+	return 0;
+}
+
+int
+ShlDS::OnDeactivated(const Message& /*msg*/)
+{
+	YAssert(FetchGUIShellHandle() == this,
+		"Invalid GUI shell found @ ShlDS::OnDeactivated");
+
+	hDskUp->ClearContents();
+	hDskDown->ClearContents();
+	return 0;
+}
 
 int
 ShlDS::ShlProc(const Message& msg)
@@ -104,24 +125,8 @@ ShlDS::ShlProc(const Message& msg)
 		return 0;
 
 	default:
-		return Shells::DefShellProc(msg);
+		return ParentType::ShlProc(msg);
 	}
-}
-
-int
-ShlDS::OnDeactivated(const Message& msg)
-{
-	ShlGUI::OnDeactivated(msg);
-	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
-
-	if(hShl)
-	{
-		*hShl -= hWndUp;
-		*hShl -= hWndDown;
-	}
-	YReset(hWndUp);
-	YReset(hWndDown);
-	return 0;
 }
 
 
@@ -177,17 +182,6 @@ ResponseInput(const Message& msg)
 		Components::Controls::KeyEventArgs e(k.Held);
 
 		hShl->ResponseKey(d, e, KeyHeld);
-	}
-}
-
-
-void
-ShlClearBothScreen(GHHandle<YGUIShell> h)
-{
-	if(h)
-	{
-		h->ClearScreenWindows(theApp.GetPlatformResource().GetDesktopUp());
-		h->ClearScreenWindows(theApp.GetPlatformResource().GetDesktopDown());
 	}
 }
 

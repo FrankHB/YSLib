@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件实现。
-\version 0.3457;
+\version 0.3459;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-03-27 19:15 +0800;
+	2011-04-04 20:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -61,8 +61,8 @@ namespace
 }
 
 
-YThumb::YThumb(const Rect& r, IUIBox* pCon)
-	: YControl(r, pCon),
+YThumb::YThumb(const Rect& r)
+	: YControl(r),
 	MButton()
 {
 	FetchEvent<Enter>(*this) += &YThumb::OnEnter;
@@ -99,8 +99,8 @@ YThumb::OnLeave(InputEventArgs&)
 }
 
 
-YButton::YButton(const Rect& r, IUIBox* pCon, const Drawing::Font& f)
-	: YThumb(r, pCon),
+YButton::YButton(const Rect& r, const Drawing::Font& f)
+	: YThumb(r),
 	MLabel(f, MLabel::Center)
 {}
 

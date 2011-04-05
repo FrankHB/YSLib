@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4896;
+\version 0.4904;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-03-25 14:59 +0800;
+	2011-04-04 21:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -409,16 +409,15 @@ public:
 //	DeclEvent(HSizeEvent, Resize) //!< 控件大小调整。
 
 	/*!
-	\brief 构造：使用指定边界和部件容器指针。
+	\brief 构造：使用指定边界。
 	*/
 	explicit
-	Control(const Rect& = Rect::Empty, IUIBox* = NULL);
+	Control(const Rect& = Rect::Empty);
 	/*!
 	\brief 析构。
-	\note 无异常抛出。
 	*/
 	virtual
-	~Control() ythrow();
+	~Control();
 
 	ImplI1(IControl) DefPredicateBase(Visible, Visual)
 	ImplI1(IControl) DefPredicateBase(Transparent, Visual)
@@ -429,7 +428,7 @@ public:
 
 	ImplI1(IControl) DefGetterBase(const Point&, Location, Visual)
 	ImplI1(IControl) DefGetterBase(const Size&, Size, Visual)
-	ImplI1(IControl) DefGetterBase(IUIBox*, ContainerPtr, Widget)
+	ImplI1(IControl) DefGetterBase(IUIBox*&, ContainerPtr, Widget)
 	ImplI1(IControl) DefGetter(VisualEventMapType&, EventMap, EventMap)
 
 	ImplI1(IControl) DefSetterBase(bool, Visible, Visual)
@@ -493,15 +492,10 @@ public:
 	typedef YComponent ParentType;
 
 	/*!
-	\brief 构造：使用指定边界和部件容器指针。
+	\brief 构造：使用指定边界。
 	*/
 	explicit
-	YControl(const Rect& = Rect::Empty, IUIBox* = NULL);
-	/*!
-	\brief 析构。
-	\note 无异常抛出。
-	*/
-	virtual DefEmptyDtor(YControl)
+	YControl(const Rect& = Rect::Empty);
 };
 
 

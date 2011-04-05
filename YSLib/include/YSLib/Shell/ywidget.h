@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5871;
+\version 0.5885;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-25 14:59 +0800;
+	2011-04-05 20:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,7 +66,7 @@ DeclInterface(IWidget)
 
 	DeclIEntry(const Point& GetLocation() const)
 	DeclIEntry(const Size& GetSize() const)
-	DeclIEntry(IUIBox* GetContainerPtr() const)
+	DeclIEntry(IUIBox*& GetContainerPtr() const)
 
 	DeclIEntry(void SetVisible(bool)) //!< 设置可见。
 	DeclIEntry(void SetTransparent(bool)) //!< 设置透明。
@@ -97,7 +97,7 @@ EndDecl
 \brief 判断点是否在部件的可视区域内。
 */
 bool
-Contains(const IWidget& w, SPos x, SPos y);
+Contains(const IWidget&, SPos, SPos);
 /*!
 \brief 判断点是否在部件的可视区域内。
 */
@@ -288,13 +288,12 @@ public:
 class Widget : public Visual
 {
 private:
-	IUIBox* pContainer; //!< 从属的部件容器的指针。
+	mutable IUIBox* pContainer; //!< 从属的部件容器的指针。
 
 public:
 	explicit
-	Widget(const Rect& = Rect::Empty, IUIBox* = NULL,
+	Widget(const Rect& = Rect::Empty,
 		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
-	virtual DefEmptyDtor(Widget)
 
 	/*!
 	\brief 判断是否属于指定部件容器指针指定的部件容器。
@@ -302,7 +301,7 @@ public:
 	bool
 	BelongsTo(IUIBox*) const;
 
-	DefGetter(IUIBox*, ContainerPtr, pContainer)
+	DefGetter(IUIBox*&, ContainerPtr, pContainer)
 
 	/*!
 	\brief 绘制背景。
@@ -339,16 +338,10 @@ public:
 	typedef YComponent ParentType;
 
 	/*!
-	\brief 构造：使用指定边界和部件容器指针。
+	\brief 构造：使用指定边界。
 	*/
 	explicit
-	YWidget(const Rect& = Rect::Empty, IUIBox* = NULL);
-	/*!
-	\brief 析构。
-	\note 无异常抛出。
-	*/
-	virtual
-	~YWidget() ythrow();
+	YWidget(const Rect& = Rect::Empty);
 
 	ImplI1(IWidget) DefPredicateBase(Visible, Visual)
 	ImplI1(IWidget) DefPredicateBase(Transparent, Visual)
@@ -356,7 +349,7 @@ public:
 
 	ImplI1(IWidget) DefGetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefGetterBase(const Size&, Size, Visual)
-	ImplI1(IWidget) DefGetterBase(IUIBox*, ContainerPtr, Widget)
+	ImplI1(IWidget) DefGetterBase(IUIBox*&, ContainerPtr, Widget)
 
 	ImplI1(IWidget) DefSetterBase(bool, Visible, Visual)
 	ImplI1(IWidget) DefSetterBase(bool, Transparent, Visual)

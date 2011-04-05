@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3095;
+\version 0.3135;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-03-28 10:31 +0800;
+	2011-04-05 20:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,25 +57,15 @@ class ShlLoad : public ShlDS
 public:
 	typedef ShlDS ParentType;
 
-private:
-	struct TFrmLoadUp
-		: public YForm
-	{
-		YLabel lblTitle, lblStatus;
+	YLabel lblTitle, lblStatus, lblDetails;
 
-		TFrmLoadUp();
-	};
-	struct TFrmLoadDown
-		: public YForm
-	{
-		YLabel lblStatus;
+	ShlLoad();
 
-		TFrmLoadDown();
-	};
-
-public:
 	virtual int
 	OnActivated(const Message&);
+
+	virtual int
+	OnDeactivated(const Message&);
 	//	InitializeComponents();
 };
 
@@ -85,46 +75,37 @@ class ShlExplorer : public ShlDS
 public:
 	typedef ShlDS ParentType;
 
-private:
-	struct TFrmFileListMonitor
-		: public YForm
-	{
-		YLabel lblTitle, lblPath;
+	YLabel lblTitle, lblPath;
+	YFileBox fbMain;
+	YButton btnTest, btnOK;
+	YCheckBox chkTest;
 
-		TFrmFileListMonitor();
-	};
-	struct TFrmFileListSelecter
-		: public YForm
-	{
-		YFileBox fbMain;
-		YButton btnTest, btnOK;
-		YCheckBox chkTest;
+	ShlExplorer();
 
-		TFrmFileListSelecter();
-
-		void
-		frm_KeyPress(KeyEventArgs&);
-
-		void
-		fb_ViewChanged(EventArgs&);
-
-		void
-		btnTest_Click(TouchEventArgs&);
-
-		void
-		btnOK_Click(TouchEventArgs&);
-	};
-	void LoadNextWindows();
-
-public:
 	virtual int
 	OnActivated(const Message&);
 
 	virtual int
+	OnDeactivated(const Message&);
+
+	virtual int
 	ShlProc(const Message&);
+
+	void
+	frm_KeyPress(KeyEventArgs&);
+
+	void
+	btnTest_Click(TouchEventArgs&);
+
+	void
+	btnOK_Click(TouchEventArgs&);
+
+	void
+	fb_ViewChanged(EventArgs&);
 
 	static void
 	fb_KeyPress(IControl&, KeyEventArgs&);
+
 	static void
 	fb_Confirmed(IControl&, IndexEventArgs&);
 };
@@ -138,6 +119,10 @@ public:
 	static const SPos s_left = 5;
 	static const SDst s_size = 22;
 
+private:
+	HWND hWndUp, hWndDown;
+
+public:
 	static HWND hWndC;
 
 	struct TFormA : public YForm
@@ -149,6 +134,7 @@ public:
 
 		void ShowString(const String&);
 	};
+
 	struct TFormB : public YForm
 	{
 		YButton btnB, btnB2;
@@ -157,8 +143,12 @@ public:
 
 		static void
 		btnB_Enter(IControl& sender, InputEventArgs&);
+
 		static void
 		btnB_Leave(IControl& sender, InputEventArgs&);
+
+		void
+		btnB2_Click(TouchEventArgs&);
 	};
 
 	struct TFormC : public YForm
@@ -172,8 +162,10 @@ public:
 
 		void
 		btnC_TouchUp(TouchEventArgs&);
+
 		void
 		btnC_TouchDown(TouchEventArgs&);
+
 		void
 		btnC_Click(TouchEventArgs&);
 
@@ -207,10 +199,10 @@ public:
 };
 
 
-class ShlReader : public Shells::ShlGUI
+class ShlReader : public ShlDS
 {
 public:
-	typedef ShlGUI ParentType;
+	typedef ShlDS ParentType;
 
 	static string path;
 
@@ -221,7 +213,6 @@ public:
 	bool bgDirty;
 
 	ShlReader();
-	virtual DefEmptyDtor(ShlReader);
 
 	virtual int
 	OnActivated(const Message&);
@@ -235,6 +226,7 @@ public:
 	virtual void
 	UpdateToScreen();
 
+private:
 	void
 	OnClick(TouchEventArgs&);
 

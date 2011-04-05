@@ -10,13 +10,13 @@
 
 /*!	\file yres.h
 \ingroup Core
-\brief 资源管理模块。
-\version 0.1479;
+\brief 应用程序资源管理模块。
+\version 0.1482;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-03-27 14:38 +0800;
+	2011-04-03 20:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,7 +62,7 @@ ReleaseGlobalResource() ythrow()
 	return GStaticCache<_type, GHStrong<_type> >::Release();
 }
 
-//资源定义。
+//应用程序资源类型定义。
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
@@ -79,11 +79,6 @@ public:
 	*/
 	explicit
 	YImage(ConstBitmapPtr = NULL, SDst = 0, SDst = 0);
-	/*!
-	\brief 析构：空实现。
-	\note 无异常抛出。
-	*/
-	virtual DefEmptyDtor(YImage)
 
 	DefGetter(BitmapPtr, ImagePtr, GetBufferPtr())
 

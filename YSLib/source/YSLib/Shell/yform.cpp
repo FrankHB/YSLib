@@ -11,12 +11,12 @@
 /*!	\file yform.cpp
 \ingroup Shell
 \brief 平台无关的 GUI 窗体实现。
-\version 0.1492;
+\version 0.1498;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-03-25 14:56 +0800;
+	2011-04-03 18:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,26 +35,26 @@ YSL_BEGIN_NAMESPACE(Forms)
 using namespace Controls;
 
 YForm::YForm(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
-	: YWindow(r, i, hWnd)//,
+	: YFrame(r, i, hWnd)//,
 //	Client(this, Rect::Empty/*r*/)
 {
 //	SetSize(Size.Width, Size.Height);
 //	DrawBackground();
 }
-YForm::~YForm() ythrow()
+YForm::~YForm()
 {}
 /*
 void
 YForm::SetSize(SDst w, SDst h)
 {
-	YWindow::SetSize(w, h);
+	YFrame::SetSize(w, h);
 //	BitmapBuffer::SetSize(w, h);
 //	YWidget::SetSize(w, h);
 }
 void
 YForm::SetBounds(const Rect& r)
 {
-	YWindow::SetBounds(r);
+	YFrame::SetBounds(r);
 //	Location = r.GetPoint();
 //	SetSize(r.Width, r.Height);
 }
@@ -62,7 +62,7 @@ YForm::SetBounds(const Rect& r)
 void
 YForm::DrawBackground()
 {
-	YWindow::DrawBackground();
+	YFrame::DrawBackground();
 
 //	Client.DrawBackground();
 }
@@ -70,14 +70,14 @@ YForm::DrawBackground()
 void
 YForm::DrawForeground()
 {
-	YWindow::DrawForeground();
+	YFrame::DrawForeground();
 //	Client.DrawForeground();
 
 }
 void
 YForm::Draw()
 {
-	YWindow::Draw();
+	YFrame::Draw();
 }
 */
 YSL_END_NAMESPACE(Forms)

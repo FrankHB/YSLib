@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6972;
+\version 0.6978;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-03-29 20:01 +0800;
+	2011-04-03 19:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,11 +70,6 @@ public:
 	*/
 	explicit
 	TextState(YFontCache&);
-	/*!
-	\brief 析构：空实现。
-	\note 无异常抛出。
-	*/
-	virtual DefEmptyDtor(TextState)
 
 	/*!
 	\brief 赋值：恢复笔样式。
@@ -533,7 +528,6 @@ class ATextRenderer
 public:
 	/*!
 	\brief 析构：空实现。
-	\note 无异常抛出。
 	*/
 	virtual DefEmptyDtor(ATextRenderer)
 
@@ -597,11 +591,6 @@ public:
 	const Graphics& Buffer;
 
 	TextRenderer(TextState&, const Graphics&);
-	/*!
-	\brief 析构：空实现。
-	\note 无异常抛出。
-	*/
-	virtual DefEmptyDtor(TextRenderer)
 
 	/*!
 	\brief 渲染单个字符。
@@ -651,11 +640,6 @@ public:
 	*/
 	explicit
 	TextRegion(YFontCache&);
-	/*!
-	\brief 析构：空实现。
-	\note 无异常抛出。
-	*/
-	virtual DefEmptyDtor(TextRegion)
 
 	/*!
 	\brief 从文本状态中恢复状态。

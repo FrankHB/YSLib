@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.3021;
+\version 0.3024;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-27 14:39 +0800;
+	2011-04-03 19:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -659,14 +659,13 @@ public:
 	Graphics(const Graphics&);
 	/*!
 	\brief 析构：空实现。
-	\note 无异常抛出。
 	*/
 	virtual DefEmptyDtor(Graphics)
 
 	/*!
 	\brief 取指定行首元素指针。
 	\note 断言检查：缓冲区指针非空；参数不越界。
-		无异常抛出。
+	\note 无异常抛出。
 	*/
 	BitmapPtr
 	operator[](std::size_t) const ythrow();
@@ -773,7 +772,7 @@ public:
 		else if(!ptr.IsUnique())
 			ptr = new T(*ptr);
 
-		YAssert(ptr, "Null pointer found @@ GDependency::GetCopyOnWritePtr;");
+		YAssert(ptr, "Null pointer found @ GDependency::GetCopyOnWritePtr;");
 
 		return ptr;
 	}

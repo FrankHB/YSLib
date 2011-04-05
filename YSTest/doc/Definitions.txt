@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010 - 2011
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 +0800;
-// UTime = 2011-03-18 17:27 +0800;
-// Version = r10708;
+// UTime = 2011-04-03 15:59 +0800;
+// Version = r10721;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -115,7 +115,7 @@ extern const u16 $SCREEN_WIDTH, $SCREEN_HEIGHT;
 //既定内部宏污染列表。
 $herder *
 {
-INCLUDED_*
+INCLUDED_*_
 }
 
 $header Platform
@@ -156,9 +156,6 @@ $header YCommon
 UNICODE
 YCL_MAX_FILENAME_LENGTH
 YCL_MAX_PATH_LENGTH
-DEF_SHELL_FONTSIZE
-DEF_SHELL_FONTSIZE_MIN
-DEF_SHELL_FONTSIZE_MAX
 DEF_PATH_ROOT
 BITALPHA
 } //$dir YCLib;
@@ -269,14 +266,6 @@ DefSetterMemberDe(_type, _name, _member, _defv)
 DefSetterEx(_type, _name, _member, _tempArgName, _expr)
 DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr)
 }
-$header AGG
-{
-AGG_INCLUDED
-}
-$header YFont
-{
-GLYPH_CACHE_SIZE
-}
 } //$dir Adaptor;
 $dir Core
 {
@@ -368,13 +357,13 @@ $unit Helper::YGlobal
 
 
 //友元列表。
-class YScreen @@ $header Core::YDevice
+class YScreen @ $header Core::YDevice
 {
 	friend bool
 	InitAllScreens();
 } //class YScreen;
 
-class PlatformResource @@ $header Helper::YGlobal
+class PlatformResource @ $header Helper::YGlobal
 {
 	friend class YApplication;
 } //class PlatformResource;

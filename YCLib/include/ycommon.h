@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2687;
+\version 0.2690;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 +0800; 
 \par 修改时间:
-	2011-03-27 14:37 +0800;
+	2011-03-31 06:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -67,9 +67,6 @@ namespace platform
 
 	#define YCL_MAX_FILENAME_LENGTH MAXPATHLEN //!< 最大路径长度。
 	#define YCL_MAX_PATH_LENGTH YCL_MAX_FILENAME_LENGTH
-	#define DEF_SHELL_FONTSIZE 16
-	#define DEF_SHELL_FONTSIZE_MIN 4
-	#define DEF_SHELL_FONTSIZE_MAX 72
 
 	const char DEF_PATH_DELIMITER = '/'; //!< 文件路径分隔符。
 	const char* const DEF_PATH_SEPERATOR = "/"; //!< 文件路径分隔字符串。

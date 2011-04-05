@@ -10,13 +10,13 @@
 
 /*!	\file yapp.cpp
 \ingroup Core
-\brief 应用程序实例类抽象。
-\version 0.2240;
+\brief 系统资源和应用程序实例抽象。
+\version 0.2256;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-03-29 23:10 +0800;
+	2011-04-03 16:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -106,14 +106,14 @@ YApplication::GetInstance() ythrow()
 	}
 	catch(...)
 	{
-		YAssert(false, "Fatal error @@ YApplication:"
+		YAssert(false, "Fatal error @ YApplication::GetInstance:"
 			" the application instance pointer is null.");
 	}
 }
 Global&
 YApplication::GetPlatformResource() ythrow()
 {
-	YAssert(pResource, "Fatal error @@ YApplication:"
+	YAssert(pResource, "Fatal error @ YApplication::GetPlatformResource:"
 		" the platform resource pointer is null.");
 
 	return *pResource;
@@ -122,21 +122,24 @@ YMessageQueue&
 YApplication::GetDefaultMessageQueue() ythrow(LoggedEvent)
 {
 	if(!pMessageQueue)
-		throw LoggedEvent("Get default message queue failed @@ YApplication.");
+		throw LoggedEvent("Null default message queue pointer found"
+			" @ YApplication::GetDefaultMessageQueue;");
 	return *pMessageQueue;
 }
 YMessageQueue&
 YApplication::GetBackupMessageQueue() ythrow(LoggedEvent)
 {
 	if(!pMessageQueueBackup)
-		throw LoggedEvent("Get backup message queue failed @@ YApplication.");
+		throw LoggedEvent("Null backup message queue pointer found"
+			" @ YApplication::GetBackupMessageQueue;");
 	return *pMessageQueueBackup;
 }
 YFontCache&
 YApplication::GetFontCache() const ythrow(LoggedEvent)
 {
 	if(!pFontCache)
-		throw LoggedEvent("Get default font cache failed @@ YApplication.");
+		throw LoggedEvent("Null font cache pointer found"
+			" @ YApplication::GetFontCache;");
 	return *pFontCache;
 }
 
@@ -164,7 +167,7 @@ void
 YApplication::ResetShellHandle() ythrow()
 {
 	if(!SetShellHandle(DefaultShellHandle))
-		Log.FatalError("Error occured @@ YApplication::ResetShellHandle();");
+		Log.FatalError("Error occured @ YApplication::ResetShellHandle;");
 }
 
 void
@@ -177,8 +180,7 @@ YApplication::ResetFontCache(CPATH path) ythrow(LoggedEvent)
 	}
 	catch(...)
 	{
-		throw LoggedEvent("Error occured"
-			" @@ YApplication::ResetFontCache(CPATH path);");
+		throw LoggedEvent("Error occured @ YApplication::ResetFontCache;");
 	}
 }
 

@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6633;
+\version 0.6635;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-03-29 20:03 +0800;
+	2011-03-31 06:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -305,7 +305,7 @@ TextRegion::TextRegion(YFontCache& fc)
 void
 TextRegion::InitializeFont()
 {
-	Font.SetSize(Font::DefSize);
+	Font.SetSize(Font::DefaultSize);
 	Font.UpdateSize();
 	ResetPen();
 }

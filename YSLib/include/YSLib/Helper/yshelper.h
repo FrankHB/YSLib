@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2076;
+\version 0.2087;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-03-25 14:58 +0800;
+	2011-04-02 18:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,9 +46,9 @@ YSL_BEGIN
 /*!
 \brief 句柄赋值。
 */
-template<class _handle>
+template<class _tHandle>
 inline void
-ReplaceHandle(_handle& h, _handle hWnd)
+ReplaceHandle(_tHandle& h, _tHandle hWnd)
 {
 	YReset(h);
 	h = hWnd;
@@ -57,9 +57,9 @@ ReplaceHandle(_handle& h, _handle hWnd)
 /*!
 \brief 句柄转换：内建指针。
 */
-template<class _type, class _handle>
+template<class _type, class _tHandle>
 inline _type*
-HandleCast(_handle h)
+HandleCast(_tHandle h)
 {
 	return dynamic_cast<_type*>(GetPointer(h));
 }
@@ -67,9 +67,9 @@ HandleCast(_handle h)
 /*!
 \brief 句柄转换：对象引用。
 */
-template<class _type, class _handle>
+template<class _type, class _tHandle>
 inline _type&
-HandleToReference(_handle h) ythrow(std::bad_cast)
+HandleToReference(_tHandle h) ythrow(std::bad_cast)
 {
 	_type* _tmp(dynamic_cast<_type*>(GetPointer(h)));
 
@@ -95,7 +95,6 @@ HWND NewWindow()
 
 	YAssert(hWnd, "Window handle is null.");
 
-	*hShl += hWnd;
 	return hWnd;
 }
 

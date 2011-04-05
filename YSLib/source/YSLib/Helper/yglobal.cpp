@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2950;
+\version 0.2954;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-03-28 22:49 +0800;
+	2011-04-03 16:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -77,7 +77,7 @@ Global::~Global()
 YScreen&
 Global::GetScreenUp() const ythrow()
 {
-	YAssert(hScreenUp, "Fatal error @@ Global:"
+	YAssert(hScreenUp, "Fatal error @ Global::GetScreenUp:"
 		" the up screen handle is null.");
 
 	return *hScreenUp;
@@ -85,7 +85,7 @@ Global::GetScreenUp() const ythrow()
 YScreen&
 Global::GetScreenDown() const ythrow()
 {
-	YAssert(hScreenDown, "Fatal error @@ Global:"
+	YAssert(hScreenDown, "Fatal error @ Global::GetScreenDown:"
 		" the down screen handle is null.");
 
 	return *hScreenDown;
@@ -93,7 +93,7 @@ Global::GetScreenDown() const ythrow()
 YDesktop&
 Global::GetDesktopUp() const ythrow()
 {
-	YAssert(hDesktopUp, "Fatal error @@ Global:"
+	YAssert(hDesktopUp, "Fatal error @ Global::GetDesktopUp:"
 		" the up desktop handle is null.");
 
 	return *hDesktopUp;
@@ -101,7 +101,7 @@ Global::GetDesktopUp() const ythrow()
 YDesktop&
 Global::GetDesktopDown() const ythrow()
 {
-	YAssert(hDesktopDown, "Fatal error @@ Global:"
+	YAssert(hDesktopDown, "Fatal error @ Global::GetDesktopDown:"
 		" the down desktop handle is null.");
 
 	return *hDesktopDown;
@@ -458,7 +458,7 @@ main(int argc, char* argv[])
 	catch(...)
 	{
 		YSL_ theApp.Log.FatalError("Unhandled exception"
-			" @@ int main(int, char*[]);");
+			" @ int main(int, char*[]);");
 	}
 }
 

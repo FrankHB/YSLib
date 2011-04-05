@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3871;
+\version 0.3882;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-03-27 14:37 +0800;
+	2011-04-03 19:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -693,11 +693,10 @@ public:
 	*/
 	explicit
 	PenStyle(const FontFamily& = FetchDefaultFontFamily(),
-		Font::SizeType = Font::DefSize,
+		Font::SizeType = Font::DefaultSize,
 		Drawing::Color = Drawing::ColorSpace::White);
 	/*!
 	\brief 析构：空实现。
-	\note 无异常抛出。
 	*/
 	virtual DefEmptyDtor(PenStyle)
 
@@ -812,10 +811,9 @@ public:
 	BitmapBuffer(ConstBitmapPtr, SDst, SDst);
 	/*!
 	\brief 析构：释放资源。
-	\note 无异常抛出。
 	*/
 	virtual
-	~BitmapBuffer() ythrow();
+	~BitmapBuffer();
 
 	/*!
 	\brief 重新设置缓冲区大小。
@@ -857,7 +855,7 @@ public:
 inline BitmapBuffer::BitmapBuffer()
 	: Graphics()
 {}
-inline BitmapBuffer::~BitmapBuffer() ythrow()
+inline BitmapBuffer::~BitmapBuffer()
 {
 	ydelete_array(pBuffer);
 }
@@ -888,10 +886,9 @@ public:
 	BitmapBufferEx(ConstBitmapPtr, SDst, SDst);
 	/*!
 	\brief 析构：释放资源。
-	\note 无异常抛出。
 	*/
 	virtual
-	~BitmapBufferEx() ythrow();
+	~BitmapBufferEx();
 
 	DefGetter(u8*, BufferAlphaPtr, pBufferAlpha) //!< 取 Alpha 缓冲区的指针。
 	DefGetter(std::size_t, SizeOfBufferAlpha,
@@ -937,7 +934,7 @@ inline
 BitmapBufferEx::BitmapBufferEx() : BitmapBuffer(), pBufferAlpha(NULL)
 {}
 inline
-BitmapBufferEx::~BitmapBufferEx() ythrow()
+BitmapBufferEx::~BitmapBufferEx()
 {
 	ydelete_array(pBufferAlpha);
 }

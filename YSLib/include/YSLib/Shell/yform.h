@@ -11,12 +11,12 @@
 /*!	\file yform.h
 \ingroup Shell
 \brief 平台无关的 GUI 窗体实现。
-\version 0.1480;
+\version 0.1486;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-03-25 14:56 +0800;
+	2011-04-03 18:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,10 +37,10 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Forms)
 
 //窗体。
-class YForm : public GMCounter<YForm>, public YWindow
+class YForm : public GMCounter<YForm>, public YFrame
 {
 public:
-	typedef YWindow ParentType;
+	typedef YFrame ParentType;
 
 //	Widgets::YUIContainer Client;
 
@@ -55,10 +55,9 @@ public:
 		const GHStrong<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
 	/*!
 	\brief 析构。
-	\note 无异常抛出。
 	*/
 	virtual
-	~YForm() ythrow();
+	~YForm();
 
 /*	virtual void
 	SetSize(SDst, SDst);

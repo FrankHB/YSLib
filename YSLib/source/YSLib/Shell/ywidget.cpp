@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4875;
+\version 0.4887;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-25 15:02 +0800;
+	2011-04-05 20:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -90,9 +90,9 @@ Visual::SetSize(const Size& s)
 }
 
 
-Widget::Widget(const Rect& r, IUIBox* pCon, Color b, Color f)
+Widget::Widget(const Rect& r, Color b, Color f)
 	: Visual(r, b, f),
-	pContainer(pCon)
+	pContainer(NULL)
 {}
 
 void
@@ -127,22 +127,10 @@ Widget::Refresh()
 }
 
 
-YWidget::YWidget(const Rect& r, IUIBox* pCon)
+YWidget::YWidget(const Rect& r)
 	: YComponent(),
-	Widget(r, pCon)
-{
-	IUIContainer* const p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
-
-	if(p)
-		*p += static_cast<IWidget&>(*this);
-}
-YWidget::~YWidget() ythrow()
-{
-	IUIContainer* const p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
-
-	if(p)
-		*p -= static_cast<IWidget&>(*this);
-}
+	Widget(r)
+{}
 
 YSL_END_NAMESPACE(Widgets)
 

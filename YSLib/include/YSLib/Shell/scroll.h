@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件实现。
-\version 0.3017;
+\version 0.3034;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-03-25 15:00 +0800;
+	2011-04-04 20:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -76,11 +76,10 @@ private:
 
 public:
 	/*!
-	\brief 构造：使用指定边界、部件容器指针和大小。
+	\brief 构造：使用指定边界和大小。
 	*/
 	explicit
-	ATrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDst = 8);
-	virtual DefEmptyDtor(ATrack)
+	ATrack(const Rect& = Rect::Empty, SDst = 8);
 
 	DefPredicate(Horizontal, GetOrientation() == Horizontal)
 	DefPredicate(Vertical, GetOrientation() == Vertical)
@@ -129,13 +128,13 @@ public:
 	SetMaxValue(ValueType);
 	/*!
 	\brief 设置滚动事件关联值。
-	\note 同步按比例设置滑块位置。
+	\note 同步按滑块长度和最大取值的比例设置滑块位置。
 	*/
 	void
 	SetValue(ValueType);
 	/*!
 	\brief 设置大距离滚动偏移量。
-	\note 同步按比例设置滑块长度。
+	\note 同步按滑块长度和最大取值的比例设置滑块位置。
 	*/
 	void
 	SetLargeDelta(ValueType);
@@ -313,12 +312,11 @@ class YHorizontalTrack : public GMCounter<YHorizontalTrack>, public YComponent,
 {
 public:
 	/*!
-	\brief 构造：使用指定边界和部件容器指针和最小滑块长。
+	\brief 构造：使用指定边界和最小滑块长。
 	\note 断言检查：宽大于长的 2 倍。
 	*/
 	explicit
-	YHorizontalTrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDst = 8);
-	virtual DefEmptyDtor(YHorizontalTrack)
+	YHorizontalTrack(const Rect& = Rect::Empty, SDst = 8);
 
 	ImplI1(ATrack)
 	DefGetter(Orientation, Orientation, Horizontal)
@@ -338,12 +336,11 @@ class YVerticalTrack : public GMCounter<YVerticalTrack>, public YComponent,
 {
 public:
 	/*!
-	\brief 构造：使用指定边界、部件容器指针和最小滑块长。
+	\brief 构造：使用指定边界和最小滑块长。
 	\note 断言检查：长大于宽的 2 倍。
 	*/
 	explicit
-	YVerticalTrack(const Rect& = Rect::Empty, IUIBox* = NULL, SDst = 8);
-	virtual DefEmptyDtor(YVerticalTrack)
+	YVerticalTrack(const Rect& = Rect::Empty, SDst = 8);
 
 	ImplI1(ATrack)
 		DefGetter(Orientation, Orientation, Vertical)
@@ -375,12 +372,10 @@ private:
 
 public:
 	/*!
-	\brief 构造：使用指定边界、部件容器指针、大小和方向。
+	\brief 构造：使用指定边界、大小和方向。
 	*/
 	explicit
-	AScrollBar(const Rect& = Rect::Empty, IUIBox* = NULL, SDst = 8,
-		Orientation = Horizontal);
-	virtual DefEmptyDtor(AScrollBar)
+	AScrollBar(const Rect& = Rect::Empty, SDst = 8, Orientation = Horizontal);
 
 	/*!
 	\brief 取顶端控件指针。
@@ -434,7 +429,7 @@ inline ATrack&
 AScrollBar::GetTrack() const ythrow()
 {
 	YAssert(pTrack.get(),
-		"Null widget pointer found @@ AScrollBar::GetTrack;");
+		"Null widget pointer found @ AScrollBar::GetTrack;");
 
 	return *pTrack;
 }
@@ -449,10 +444,7 @@ public:
 	typedef YComponent ParentType;
 
 	explicit
-	YHorizontalScrollBar(const Rect& = Rect::Empty, IUIBox* = NULL,
-		SDst = 8);
-
-	virtual DefEmptyDtor(YHorizontalScrollBar)
+	YHorizontalScrollBar(const Rect& = Rect::Empty, SDst = 8);
 
 public:
 	ImplI1(ATrack)
@@ -469,10 +461,7 @@ public:
 	typedef YComponent ParentType;
 
 	explicit
-	YVerticalScrollBar(const Rect& = Rect::Empty, IUIBox* = NULL,
-		SDst = 8);
-
-	virtual DefEmptyDtor(YVerticalScrollBar)
+	YVerticalScrollBar(const Rect& = Rect::Empty, SDst = 8);
 
 public:
 	ImplI1(ATrack)
@@ -489,8 +478,7 @@ protected:
 
 public:
 	explicit
-	ScrollableContainer(const Rect& = Rect::Empty, IUIBox* = NULL);
-	virtual DefEmptyDtor(ScrollableContainer)
+	ScrollableContainer(const Rect& = Rect::Empty);
 
 	/*!
 	\brief 取顶端控件指针。

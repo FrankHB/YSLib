@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup Shell
 \brief GUI 焦点特性实现。
-\version 0.2308;
+\version 0.2334;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-03-22 21:40 +0800;
+	2011-04-05 21:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -93,6 +93,21 @@ protected:
 	{}
 
 public:
+	//! \brief 向焦点对象组添加焦点对象。
+	inline PDefHOperator1(void, +=, _type& c)
+		ImplRet(static_cast<void>(sFOs.insert(&c)))
+
+	/*!
+	\brief 从焦点对象组移除焦点对象。
+	\note 若为当前焦点，则先清除。
+	*/
+	bool operator-=(_type& c)
+	{
+		if(&c == pFocusing)
+			ClearFocusingPtr();
+		return sFOs.erase(&c) != 0;
+	}
+
 	//! \brief 判断指定指针是否和焦点对象指针相等。
 	inline PDefH1(bool, IsFocusing, _type* p) const
 		ImplRet(pFocusing == p)
@@ -121,13 +136,6 @@ public:
 		return pFocusing;
 	}
 
-	//! \brief 向焦点对象组添加焦点对象。
-	inline PDefHOperator1(void, +=, _type& c)
-		ImplRet(static_cast<void>(sFOs.insert(&c)))
-	//! \brief 从焦点对象组移除焦点对象。
-	inline PDefHOperator1(bool, -=, _type& c)
-		ImplRet(sFOs.erase(&c) != 0)
-
 	//! \brief 清空焦点指针。
 	inline PDefH0(void, ClearFocusingPtr)
 		ImplRet(static_cast<void>(SetFocusingPtr(NULL)))
@@ -138,11 +146,7 @@ public:
 class AFocusRequester
 {
 public:
-	/*!
-	\brief 无参数构造。
-	*/
-	AFocusRequester();
-	virtual DefEmptyDtor(AFocusRequester)
+	DeclIEntry(~AFocusRequester())
 
 	/*!
 	\brief 判断是否已在指定响应器中获得焦点。
@@ -166,9 +170,7 @@ public:
 	ReleaseFocus(_tResponser<_type>&);
 };
 
-inline
-AFocusRequester::AFocusRequester()
-{}
+ImplEmptyDtor(AFocusRequester)
 
 template<template<class> class _tResponser, class _type>
 inline bool

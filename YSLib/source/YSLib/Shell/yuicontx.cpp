@@ -11,12 +11,12 @@
 /*!	\file yuicontx.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面控件实现。
-\version 0.1054;
+\version 0.1056;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-02-21 09:01:13 +0800;
 \par 修改时间:
-	2011-03-08 14:10 +0800;
+	2011-04-04 20:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,8 +33,8 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
 
-AUIBoxControl::AUIBoxControl(const Rect& r, IUIBox* pCon)
-	: Control(r, pCon), MSimpleFocusResponser()
+AUIBoxControl::AUIBoxControl(const Rect& r)
+	: Control(r), MSimpleFocusResponser()
 {}
 
 void

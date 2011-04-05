@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件实现。
-\version 0.3056;
+\version 0.3068;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-03-25 15:00 +0800;
+	2011-04-04 20:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -75,16 +75,10 @@ private:
 
 public:
 	/*!
-	\brief 构造：使用指定边界、部件容器指针、文本区域和文本列表。
+	\brief 构造：使用指定边界和文本列表。
 	*/
 	explicit
-	YSimpleListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHWeak<ListType> = NULL); 
-	/*!
-	\brief 析构。
-	\note 无异常抛出。
-	*/
-	virtual DefEmptyDtor(YSimpleListBox)
+	YSimpleListBox(const Rect& = Rect::Empty, GHWeak<ListType> = NULL);
 
 public:
 	DefPredicateMember(Selected, viewer)
@@ -105,14 +99,12 @@ public:
 	ListType&
 	GetList() const ythrow();
 
-protected:
 	/*!
 	\brief 取文本状态。
 	*/
 	Drawing::TextState&
 	GetTextState() ythrow();
 
-public:
 	DefGetterMember(ViewerType::IndexType, HeadIndex, viewer)
 	DefGetterMember(ViewerType::IndexType, SelectedIndex, viewer)
 	/*!
@@ -127,6 +119,7 @@ public:
 	GetItemHeight() const;
 	/*!
 	\brief 取完整视图高。
+	\note 依赖于 GetItemHeight 方法的结果。
 	*/
 	SDst
 	GetFullViewHeight() const;
@@ -137,6 +130,7 @@ public:
 	GetFullViewSize() const;
 	/*!
 	\brief 取视图顶端垂直位置。
+	\note 依赖于 GetItemHeight 方法的结果。
 	*/
 	SDst
 	GetViewPosition() const;
@@ -297,9 +291,7 @@ private:
 
 public:
 	explicit
-	YListBox(const Rect& = Rect::Empty, IUIBox* = NULL,
-		GHWeak<ListType> = NULL);
-	virtual DefEmptyDtor(YListBox)
+	YListBox(const Rect& = Rect::Empty, GHWeak<ListType> = NULL);
 
 	DefPredicateMember(Selected, TextListBox)
 	PDefH1(bool, Contains, ViewerType::IndexType i)
@@ -354,8 +346,7 @@ public:
 	typedef YListBox ParentType;
 
 	explicit
-	YFileBox(const Rect& = Rect::Empty, IUIBox* = NULL);
-	virtual DefEmptyDtor(YFileBox)
+	YFileBox(const Rect& = Rect::Empty);
 
 	/*!
 	\brief 取当前路径。

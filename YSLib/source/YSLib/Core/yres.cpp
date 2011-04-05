@@ -10,13 +10,13 @@
 
 /*!	\file yres.cpp
 \ingroup Core
-\brief 资源管理模块。
-\version 0.1227;
+\brief 应用程序资源管理模块。
+\version 0.1228;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-03-25 15:02 +0800;
+	2011-03-31 20:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

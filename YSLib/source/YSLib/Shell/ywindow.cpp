@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3515;
+\version 0.3587;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2010-03-18 17:26 +0800;
+	2011-04-05 20:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,6 +38,33 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Forms)
 
+bool
+Show(HWND hWnd)
+{
+	if(hWnd)
+	{
+		hWnd->SetVisible(true);
+		hWnd->SetRefresh(true);
+		SetContainerBgRedrawedOf(*hWnd, false);
+		return true;
+	}
+	return false;
+}
+
+bool
+Hide(HWND hWnd)
+{
+	if(hWnd)
+	{
+		hWnd->SetVisible(false);
+		hWnd->SetRefresh(false);
+		SetContainerBgRedrawedOf(*hWnd, false);
+		return true;
+	}
+	return false;
+}
+
+
 MWindow::MWindow(const GHStrong<YImage> i, HWND hWnd)
 	: MWindowObject(hWnd),
 	prBackImage(i), bRefresh(false), bUpdate(false)
@@ -45,7 +72,7 @@ MWindow::MWindow(const GHStrong<YImage> i, HWND hWnd)
 
 
 AWindow::AWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
-	: Control(r, GetPointer(hWnd)), MWindow(i, hWnd)
+	: Control(r), MWindow(i, hWnd)
 {}
 
 BitmapPtr
@@ -92,20 +119,24 @@ AWindow::DrawBackground()
 void
 AWindow::Draw()
 {
-	DrawBackground();
-	DrawWidgets();
+	DrawContents();
 	bUpdate = true;
 }
 
 void
 AWindow::Refresh()
 {
-	if(bRefresh)
+	if(!IsBgRedrawed() || bRefresh)
 	{
 		Draw();
+
+		YAssert(IsBgRedrawed(),
+			"Background is not redrawed @ AWindow::Refresh");
+
 		bRefresh = false;
 	}
-	Widget::Refresh();
+	if(GetContainerPtr())
+		Widget::Refresh();
 }
 
 void
@@ -143,32 +174,55 @@ AWindow::UpdateToWindow() const
 		UpdateTo(hWnd->GetContext(), LocateForParentWindow(*this));
 }
 
-void
-AWindow::Show()
-{
-	SetVisible(true);
-	Draw();
-	UpdateToDesktop();
-}
 
-
-AFrameWindow::AFrameWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
+AFrame::AFrame(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
 	: AWindow(r, i, hWnd), MUIContainer()
+{}
+AFrame::~AFrame()
+{}
+
+void
+AFrame::operator+=(IWidget* p)
 {
-	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
-
 	if(p)
-		*p += static_cast<GMFocusResponser<IControl>&>(*this);
+	{
+		MUIContainer::operator+=(p);
+		p->GetContainerPtr() = this;
+	}
 }
-AFrameWindow::~AFrameWindow() ythrow()
+void
+AFrame::operator+=(IControl* p)
 {
-	IUIContainer* p(dynamic_cast<IUIContainer*>(GetContainerPtr()));
-
 	if(p)
-		*p -= static_cast<GMFocusResponser<IControl>&>(*this);
+	{
+		MUIContainer::operator+=(p);
+		p->GetContainerPtr() = this;
+	}
 }
 
-void AFrameWindow::ClearFocusingPtr()
+bool
+AFrame::operator-=(IWidget* p)
+{
+	if(p && p->GetContainerPtr() == this)
+	{
+		p->GetContainerPtr() = NULL;
+		return MUIContainer::operator-=(p);
+	}
+	return false;
+}
+bool
+AFrame::operator-=(IControl* p)
+{
+	if(p && p->GetContainerPtr() == this)
+	{
+		p->GetContainerPtr() = NULL;
+		return MUIContainer::operator-=(p);
+	}
+	return false;
+}
+
+void
+AFrame::ClearFocusingPtr()
 {
 	IControl* const p(GetFocusingPtr());
 
@@ -181,43 +235,64 @@ void AFrameWindow::ClearFocusingPtr()
 }
 
 
-YWindow::YWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
+YFrame::YFrame(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
 	: YComponent(),
-	AFrameWindow(r, i, hWnd), Buffer()
+	AFrame(r, i, hWnd), Buffer()
 {
 	Buffer.SetSize(GetSize().Width, GetSize().Height);
 
 	YDesktop* pDsk(FetchDirectDesktopPtr(*this));
 
 	if(pDsk)
-		*pDsk += static_cast<IControl&>(*this);
+		*pDsk += static_cast<IControl*>(this);
 }
-YWindow::~YWindow() ythrow()
+YFrame::~YFrame()
 {
 	YDesktop* pDsk(FetchDirectDesktopPtr(*this));
 
 	if(pDsk)
-		pDsk->RemoveAll(*this);
+		*pDsk -= this;
 }
 
 bool
-YWindow::DrawWidgets()
+YFrame::DrawContents()
 {
-	YWindowAssert(this, Forms::YWindow, DrawWidgets);
+	bool background_changed(DrawContensBackground());
 
-	bool bBgChanged(!IsBgRedrawed());
-	WGTs::iterator i;
-
-	for(i = sWgtSet.begin(); !bBgChanged && i != sWgtSet.end(); ++i)
+	for(WGTs::iterator i(sWgtSet.begin()); i != sWgtSet.end(); ++i)
 	{
 		IWidget& w(**i);
 
-		bBgChanged |= !w.IsTransparent() && w.IsVisible() && !w.IsBgRedrawed();
+		if(w.IsVisible())
+			w.DrawForeground();
 	}
-	if(bBgChanged)
+//	DrawForeground();
+
+	bool result(background_changed || !IsBgRedrawed());
+
+	SetBgRedrawed(true);
+	return result;
+}
+
+bool
+YFrame::DrawContensBackground()
+{
+	YWindowAssert(this, Forms::YFrame, DrawContents);
+
+	bool background_changed(!IsBgRedrawed());
+
+	for(WGTs::iterator i(sWgtSet.begin());
+		!background_changed && i != sWgtSet.end(); ++i)
+	{
+		IWidget& w(**i);
+
+		background_changed |= !w.IsTransparent() && w.IsVisible()
+			&& !w.IsBgRedrawed();
+	}
+	if(background_changed)
 	{
 		DrawBackground();
-		for(i = sWgtSet.begin(); i != sWgtSet.end(); ++i)
+		for(WGTs::iterator i(sWgtSet.begin()); i != sWgtSet.end(); ++i)
 		{
 			IWidget& w(**i);
 
@@ -229,19 +304,7 @@ YWindow::DrawWidgets()
 			}
 		}
 	}
-	for (i = sWgtSet.begin(); i != sWgtSet.end(); ++i)
-	{
-		IWidget& w(**i);
-
-		if(w.IsVisible())
-			w.DrawForeground();
-	}
-	DrawForeground();
-
-	bool result(bBgChanged || !IsBgRedrawed());
-
-	SetBgRedrawed(true);
-	return result;
+	return background_changed;
 }
 
 YSL_END_NAMESPACE(Forms)

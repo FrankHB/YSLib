@@ -11,12 +11,12 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 NDS 的双屏阅读器实现。
-\version 0.3068;
+\version 0.3070;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 +0800; 
 \par 修改时间:
-	2011-03-27 14:53 +0800;
+	2011-04-03 16:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,8 +53,8 @@ try	: pText(NULL), fc(fc_),
 		GetBufferPtr()),
 	pBgDn(theApp.GetPlatformResource().GetDesktopDown().GetContext().
 		GetBufferPtr()),
-	pTextRegionUp(new TextRegion(fc_)), pTextRegionDn(new TextRegion(fc_)), rot(RDeg0),
-	itUp(NULL), itDn(NULL)
+	pTextRegionUp(new TextRegion(fc_)), pTextRegionDn(new TextRegion(fc_)),
+	rot(RDeg0), itUp(NULL), itDn(NULL)
 {
 	//初始化视图。
 	pTextRegionUp->SetSize(w, h_up);
@@ -69,8 +69,7 @@ catch(LoggedEvent&)
 }
 catch(...)
 {
-	throw LoggedEvent("Error occured"
-		" @@ MDualScreenReader::MDualScreenReader();");
+	throw LoggedEvent("Error occured @ MDualScreenReader::MDualScreenReader;");
 }
 
 bool

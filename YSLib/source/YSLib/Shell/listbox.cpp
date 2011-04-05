@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件实现。
-\version 0.3508;
+\version 0.3522;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-03-25 15:01 +0800;
+	2011-04-04 21:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,9 +50,8 @@ YSimpleListBox::Dependencies::Dependencies()
 	Confirmed.GetRef() += &YSimpleListBox::OnConfirmed;
 }
 
-YSimpleListBox::YSimpleListBox(const Rect& r, IUIBox* pCon,
-	GHWeak<ListType> wpList_)
-	: YControl(r, pCon),
+YSimpleListBox::YSimpleListBox(const Rect& r, GHWeak<ListType> wpList_)
+	: YControl(r),
 	Font(), Margin(defMarginH, defMarginH, defMarginV, defMarginV),
 	wpList(wpList_), viewer(GetList()), top_offset(0), text_state(Font),
 	Events(GetStaticRef<Dependencies>())
@@ -356,15 +355,18 @@ YSimpleListBox::OnConfirmed(IndexEventArgs& e)
 }
 
 
-YListBox::YListBox(const Rect& r, IUIBox* pCon, GHWeak<ListType> wpList_)
+YListBox::YListBox(const Rect& r, GHWeak<ListType> wpList_)
 	: YComponent(),
-	ScrollableContainer(r, pCon),
-	TextListBox(Rect(Point::Zero, r), this, wpList_)
+	ScrollableContainer(r),
+	TextListBox(Rect(Point::Zero, r), wpList_)
 {
+	TextListBox.GetContainerPtr() = this;
 	VerticalScrollBar.GetTrack().GetScroll().Add(*this,
 		&YListBox::OnScroll_VerticalScrollBar);
 	TextListBox.GetViewChanged().Add(*this,
 		&YListBox::OnViewChanged_TextListBox);
+	//刷新文本状态，防止第一次绘制时无法正确决定是否需要滚动条。
+	TextListBox.GetTextState();
 }
 
 IControl*
@@ -382,14 +384,7 @@ YListBox::DrawForeground()
 {
 	YWidgetAssert(this, Controls::YListBox, DrawForeground);
 
-	if(GetWidth() > defMinScrollBarWidth)
-	{
-		Size view_arena(TextListBox.GetFullViewSize());
-
-		view_arena.Width = GetWidth() - defMinScrollBarWidth;
-		TextListBox.SetSize(FixLayout(view_arena));
-		ScrollableContainer::DrawForeground();
-	}
+	ScrollableContainer::DrawForeground();
 	TextListBox.DrawForeground();
 }
 
@@ -403,15 +398,22 @@ YListBox::OnScroll_VerticalScrollBar(ScrollEventArgs& e)
 void
 YListBox::OnViewChanged_TextListBox(EventArgs&)
 {
-	VerticalScrollBar.SetMaxValue(TextListBox.GetFullViewHeight());
-	VerticalScrollBar.SetValue(TextListBox.GetViewPosition());
-	VerticalScrollBar.SetLargeDelta(TextListBox.GetHeight());
-	VerticalScrollBar.SetSmallDelta(TextListBox.GetItemHeight());
+	if(GetWidth() > defMinScrollBarWidth)
+	{
+		Size view_arena(TextListBox.GetFullViewSize());
+
+		view_arena.Width = GetWidth() - defMinScrollBarWidth;
+		TextListBox.SetSize(FixLayout(view_arena));
+		VerticalScrollBar.SetSmallDelta(TextListBox.GetItemHeight());
+		VerticalScrollBar.SetMaxValue(view_arena.Height);
+		VerticalScrollBar.SetLargeDelta(TextListBox.GetHeight());
+		VerticalScrollBar.SetValue(TextListBox.GetViewPosition());
+	}
 }
 
 
-YFileBox::YFileBox(const Rect& r, IUIBox* pCon)
-	: FileList(), YListBox(r, pCon, GetListWeakPtr())
+YFileBox::YFileBox(const Rect& r)
+	: FileList(), YListBox(r, GetListWeakPtr())
 {
 	GetConfirmed().Add(*this, &YFileBox::OnConfirmed);
 	ListItems();

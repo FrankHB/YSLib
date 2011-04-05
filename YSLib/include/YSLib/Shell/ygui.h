@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.2489;
+\version 0.2535;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-03-28 10:17 +0800;
+	2011-04-03 19:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,7 +41,6 @@ class YGUIShell : public YShell
 {
 public:
 	typedef YShell ParentType;
-	typedef list<HWND> WNDs;
 	//! \brief 输入保持状态。
 	typedef enum
 	{
@@ -50,10 +49,6 @@ public:
 		Held = 2
 	} HeldStateType;
 
-private:
-	WNDs sWnds; //!< 窗口组。
-
-public:
 	HeldStateType KeyHeldState, TouchHeldState; //!< 输入接触状态。
 	Drawing::Vec DraggingOffset; //!< 拖放偏移量。
 	Timers::YTimer HeldTimer; //!< 输入接触保持计时器。
@@ -72,71 +67,11 @@ public:
 	\note 向应用程序对象添加自身。
 	*/
 	YGUIShell();
-	virtual DefEmptyDtor(YGUIShell)
-
-	/*!
-	\brief 向窗口组添加指定窗口句柄。
-	\note 仅当句柄非空时添加。
-	*/
-	virtual void
-	operator+=(HWND);
-
-	/*!
-	\brief 从窗口组中移除指定窗口句柄。
-	*/
-	virtual bool
-	operator-=(HWND);
 
 	DefPredicate(ControlEntered, control_entered)
 
 	DefGetter(IControl*, KeyDownPtr, p_KeyDown) //独立键焦点指针。
 	DefGetter(IControl*, TouchDownPtr, p_TouchDown) //独立屏幕焦点指针。
-
-	/*!
-	\brief 取得窗口组中首个窗口对象的句柄。
-	*/
-	HWND
-	GetFirstWindowHandle() const;
-	/*!
-	\brief 取得窗口组中顶端窗口对象的句柄。
-	*/
-	HWND
-	GetTopWindowHandle() const;
-	/*!
-	\brief 取得窗口组中指定屏幕的指定的点所处的最顶层窗口对象的句柄。
-	*/
-	HWND
-	GetTopWindowHandle(YDesktop&, const Point&) const;
-	/*!
-	\brief 取传递指定屏幕的指针设备光标至 GUI 界面返回的部件指针。
-	*/
-	IWidget*
-	GetCursorWidgetPtr(YDesktop&, const Point&) const;
-
-	/*!
-	\brief 清除指定屏幕中属于窗口组的窗口对象。
-	*/
-	void
-	ClearScreenWindows(YDesktop&);
-
-	/*!
-	\brief 向屏幕分发窗口对象。
-	*/
-	void
-	DispatchWindows();
-
-	/*!
-	\brief 从窗口组中移除所有指定窗口句柄，返回移除的对象数。
-	\note 使用 set 实现，因此返回值应为 0 或 1 。
-	*/
-	WNDs::size_type
-	RemoveAll(HWND);
-
-	/*!
-	\brief 移除窗口队列中首个窗口对象。
-	*/
-	void
-	RemoveWindow();
 
 	/*!
 	\brief 重复检测输入接触保持事件。
@@ -157,12 +92,6 @@ public:
 	*/
 	void
 	ResetGUIStates();
-
-	/*!
-	\brief 向屏幕发送指定窗口对象。
-	*/
-	bool
-	SendWindow(IWindow&);
 
 private:
 	void

@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3395;
+\version 0.3402;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-03-25 15:00 +0800;
+	2011-04-03 16:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -400,12 +400,11 @@ BitmapBuffer::SetSize(SDst w, SDst h)
 		}
 		catch(std::bad_alloc&)
 		{
-			throw LoggedEvent("Allocation failed"
-				" @@ BitmapBuffer::SetSize(SDst, SDst);", 1);
+			throw LoggedEvent("Allocation failed @ BitmapBuffer::SetSize;", 1);
 		}
 
 	YAssert(!((pBuffer != NULL) ^ (s != 0)), "Buffer corruptied"
-		" @@ BitmapBuffer::SetSize(SDst, SDst);");
+		" @ BitmapBuffer::SetSize;");
 
 	size.Width = w;
 	size.Height = h;
@@ -470,14 +469,14 @@ BitmapBufferEx::SetSize(SDst w, SDst h)
 		{
 			ydelete_array(pBufferNew);
 			throw LoggedEvent("Allocation failed"
-				" @@ BitmapBufferEx::SetSize(SDst, SDst);", 1);
+				" @ BitmapBufferEx::SetSize;", 1);
 		}
 	}
 
 	YAssert(!((pBuffer != NULL) ^ (s != 0)), "Buffer corruptied"
-		" @@ BitmapBufferEx::SetSize(SDst, SDst);");
+		" @ BitmapBufferEx::SetSize;");
 	YAssert(!((pBufferAlpha != NULL) ^ (s != 0)), "Buffer corruptied"
-		" @@ BitmapBufferEx::SetSize(SDst, SDst);");
+		" @ BitmapBufferEx::SetSize;");
 
 	size.Width = w;
 	size.Height = h;

@@ -11,12 +11,12 @@
 /*!	\file base.h
 \ingroup Adaptor
 \brief 通用基础设施。
-\version 0.2314;
+\version 0.2326;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-03-11 12:35 +0800;
+	2011-04-03 20:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -258,8 +258,11 @@
 //简单通用成员函数定义。
 //prefix "Def" = Define;
 #define DefEmptyDtor(_type) \
-	~_type() ythrow() \
+	~_type() \
 	{}
+
+#define ImplEmptyDtor(_type) \
+	inline _type::DefEmptyDtor(_type)
 
 #define DefConverter(_type, _expr) \
 	operator _type() const ythrow() \

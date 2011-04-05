@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2146;
+\version 0.2148;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-04-03 16:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -381,7 +381,7 @@ FileList::LoadSubItems()
 
 	if(dir.IsValid())
 	{
-		YAssert(spList, "Invalid strong pointer @@ FileList::LoadSubItems;");
+		YAssert(spList, "Null strong pointer found @ FileList::LoadSubItems;");
 
 		spList->clear();
 

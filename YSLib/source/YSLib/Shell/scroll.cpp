@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件实现。
-\version 0.3513;
+\version 0.3535;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-03-25 15:01 +0800;
+	2011-04-04 21:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -157,15 +157,16 @@ ATrack::Dependencies::Dependencies()
 	ThumbDrag.GetRef() += &ATrack::OnThumbDrag;
 }
 
-ATrack::ATrack(const Rect& r, IUIBox* pCon, SDst uMinThumbLength)
+ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	: AUIBoxControl(Rect(r.GetPoint(),
 		vmax<SDst>(defMinScrollBarWidth, r.Width),
-		vmax<SDst>(defMinScrollBarHeight, r.Height)), pCon),
+		vmax<SDst>(defMinScrollBarHeight, r.Height))),
 	GMRange<u16>(0xFF, 0),
-	Thumb(Rect(0, 0, defMinScrollBarWidth, defMinScrollBarHeight), this),
+	Thumb(Rect(0, 0, defMinScrollBarWidth, defMinScrollBarHeight)),
 	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length),
 	Events(GetStaticRef<Dependencies>())
 {
+	Thumb.GetContainerPtr() = this;
 	FetchEvent<TouchMove>(*this) += OnTouchMove;
 	FetchEvent<TouchDown>(*this) += &ATrack::OnTouchDown;
 }
@@ -373,15 +374,14 @@ ATrack::OnThumbDrag(EventArgs&)
 }
 
 
-YHorizontalTrack::YHorizontalTrack(const Rect& r, IUIBox* pCon,
-	SDst uMinThumbLength)
+YHorizontalTrack::YHorizontalTrack(const Rect& r, SDst uMinThumbLength)
 	: YComponent(),
-	ATrack(r, pCon, uMinThumbLength)
+	ATrack(r, uMinThumbLength)
 {
 	YAssert(GetWidth() > GetHeight(),
 		"In constructor Components::Controls::\n"
 			"YHorizontalTrack::YHorizontalTrack"
-		"(const Rect& r, IUIBox* pCon, SDst uMinThumbLength) const\": \n"
+		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"Width is not greater than height.");
 
 	FetchEvent<TouchMove>(Thumb).Add(*this,
@@ -403,15 +403,14 @@ YHorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs& e)
 }
 
 
-YVerticalTrack::YVerticalTrack(const Rect& r, IUIBox* pCon,
-	SDst uMinThumbLength)
+YVerticalTrack::YVerticalTrack(const Rect& r, SDst uMinThumbLength)
 	: YComponent(),
-	ATrack(r, pCon, uMinThumbLength)
+	ATrack(r, uMinThumbLength)
 {
 	YAssert(GetHeight() > GetWidth(),
 		"In constructor Components::Controls::\n"
 			"YHorizontalTrack::YHorizontalTrack"
-		"(const Rect& r, IUIBox* pCon, SDst uMinThumbLength) const\": \n"
+		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"height is not greater than width.");
 
 	FetchEvent<TouchMove>(Thumb).Add(*this,
@@ -433,18 +432,18 @@ YVerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs& e)
 }
 
 
-AScrollBar::AScrollBar(const Rect& r, IUIBox* pCon, SDst uMinThumbSize,
-	Orientation o)
-try	: AUIBoxControl(r, pCon),
+AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
+try	: AUIBoxControl(r),
 	pTrack(o == Horizontal
 		? static_cast<ATrack*>(new YHorizontalTrack(
-			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), this,
-			uMinThumbSize))
+			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), uMinThumbSize))
 		: static_cast<ATrack*>(new YVerticalTrack(
-			Rect(0, r.Width, r.Width, r.Height - r.Width * 2), this,
-			uMinThumbSize))),
-	PrevButton(Rect(), this), NextButton(Rect(), this), small_delta(2)
+			Rect(0, r.Width, r.Width, r.Height - r.Width * 2), uMinThumbSize))),
+	PrevButton(Rect()), NextButton(Rect()), small_delta(2)
 {
+	pTrack->GetContainerPtr() = this;
+	PrevButton.GetContainerPtr() = this;
+	NextButton.GetContainerPtr() = this;
 	FetchEvent<TouchMove>(PrevButton) += OnTouchMove;
 	FetchEvent<TouchDown>(PrevButton).Add(*this,
 		&AScrollBar::OnTouchDown_PrevButton);
@@ -465,7 +464,7 @@ try	: AUIBoxControl(r, pCon),
 }
 catch(...)
 {
-	throw LoggedEvent("Error occured @@ constructor of AScrollBar;");
+	throw LoggedEvent("Error occured @ constructor of AScrollBar;");
 }
 
 IControl*
@@ -477,7 +476,7 @@ AScrollBar::GetTopControlPtr(const Point& p)
 		return &NextButton;
 
 	YAssert(pTrack.get(),
-		"Null widget pointer found @@ AScrollBar::GetTopControlPtr;");
+		"Null widget pointer found @ AScrollBar::GetTopControlPtr;");
 
 	return pTrack.get();
 }
@@ -487,7 +486,7 @@ AScrollBar::DrawBackground()
 {
 	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawBackground);
 	YAssert(pTrack.get(),
-		"Null widget pointer found @@ AScrollBar::DrawBackground;");
+		"Null widget pointer found @ AScrollBar::DrawBackground;");
 
 	pTrack->DrawBackground();
 }
@@ -502,8 +501,8 @@ AScrollBar::DrawForeground()
 	const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
 	const Point b(LocateForWindow(*this));
 
-	YAssert(pTrack.get(),
-		"Null widget pointer found @@ AScrollBar::DrawForeground;");
+	YAssert(pTrack.get(), "Null widget pointer found"
+		" @ AScrollBar::DrawForeground;");
 
 	pTrack->DrawForeground();
 	PrevButton.DrawForeground();
@@ -531,38 +530,37 @@ AScrollBar::OnTouchDown_NextButton(TouchEventArgs& e)
 }
 
 
-YHorizontalScrollBar::YHorizontalScrollBar(const Rect& r, IUIBox* pCon,
-	SDst uMinThumbLength)
+YHorizontalScrollBar::YHorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
 	: YComponent(),
-	AScrollBar(r, pCon, uMinThumbLength, Horizontal)
+	AScrollBar(r, uMinThumbLength, Horizontal)
 {
 	YAssert(GetWidth() > GetHeight() * 2,
 		"In constructor Components::Controls::\n"
 			"YHorizontalScrollBar::YHorizontalScrollBar"
-		"(const Rect& r, IUIBox* pCon, SDst uMinThumbLength) const\": \n"
+		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"Width is not greater than twice of height.");
 }
 
 
-YVerticalScrollBar::YVerticalScrollBar(const Rect& r, IUIBox* pCon,
-	SDst uMinThumbLength)
+YVerticalScrollBar::YVerticalScrollBar(const Rect& r, SDst uMinThumbLength)
 	: YComponent(),
-	AScrollBar(r, pCon, uMinThumbLength, Vertical)
+	AScrollBar(r, uMinThumbLength, Vertical)
 {
 	YAssert(GetHeight() > GetWidth() * 2,
 		"In constructor Components::Controls::\n"
 			"YVerticalScrollBar::YVerticalScrollBar"
-		"(const Rect& r, IUIBox* pCon, SDst uMinThumbLength) const\": \n"
+		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"height is not greater than twice of width.");
 }
 
 
-ScrollableContainer::ScrollableContainer(const Rect& r, IUIBox* pCon)
-	: AUIBoxControl(r, pCon),
-	HorizontalScrollBar(Rect(Point::Zero, r.Width, defMinScrollBarHeight),
-		this),
-	VerticalScrollBar(Rect(Point::Zero, defMinScrollBarWidth, r.Height), this)
+ScrollableContainer::ScrollableContainer(const Rect& r)
+	: AUIBoxControl(r),
+	HorizontalScrollBar(Rect(Point::Zero, r.Width, defMinScrollBarHeight)),
+	VerticalScrollBar(Rect(Point::Zero, defMinScrollBarWidth, r.Height))
 {
+	HorizontalScrollBar.GetContainerPtr() = this;
+	VerticalScrollBar.GetContainerPtr() = this;
 	MoveToBottom(HorizontalScrollBar);
 	MoveToRight(VerticalScrollBar);
 }
@@ -580,7 +578,7 @@ ScrollableContainer::GetTopControlPtr(const Point& p)
 void
 ScrollableContainer::DrawForeground()
 {
-	YWidgetAssert(this, Controls::YScrollableContainer, DrawForeground);
+	YWidgetAssert(this, Controls::ScrollableContainer, DrawForeground);
 
 	AUIBoxControl::DrawForeground();
 	if(HorizontalScrollBar.IsVisible())

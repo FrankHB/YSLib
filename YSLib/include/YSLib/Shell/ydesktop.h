@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2218;
+\version 0.2248;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-03-23 12:31 +0800;
+	2011-04-05 20:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,10 +36,10 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 //! \brief 桌面。
-class YDesktop : public YWindow
+class YDesktop : public YFrame
 {
 public:
-	typedef YComponent ParentType;
+	typedef YFrame ParentType;
 	typedef list<IControl*> DOs; //!< 桌面对象组类型。
 
 private:
@@ -52,47 +52,47 @@ public:
 	*/
 	explicit
 	YDesktop(YScreen&, Color = 0, GHStrong<Drawing::YImage> = NULL);
-	virtual DefEmptyDtor(YDesktop)
 
 	DefGetter(const YScreen&, Screen, Screen) //!< 取屏幕对象。
 	DefGetter(BitmapPtr, BackgroundPtr, Screen.GetCheckedBufferPtr()) \
 		//!< 取屏幕背景指针。
 
 	virtual PDefH1(IControl*, GetTopControlPtr, const Point& p)
-		ImplBodyBase1(YDesktop, GetTopDesktopObjectPtr, p)
+		ImplBodyBase1(YDesktop, GetTopVisibleDesktopObjectPtr, p)
 
 	/*!
 	\brief 向桌面对象组添加桌面对象。
 	*/
 	virtual void
-	operator+=(IControl&);
+	operator+=(IControl*);
 	/*!
 	\brief 从桌面对象组中移除指定桌面对象。
 	*/
 	virtual bool
-	operator-=(IControl&);
+	operator-=(IControl*);
 
 	/*!
-	\brief 取桌面对象组中首个桌面对象的句柄。
+	\brief 取桌面对象组中首个桌面对象指针。
 	*/
 	IControl*
 	GetFirstDesktopObjectPtr() const;
 	/*!
-	\brief 取桌面对象组中顶端桌面对象的句柄。
+	\brief 取桌面对象组中顶端桌面对象指针。
 	*/
 	IControl*
 	GetTopDesktopObjectPtr() const;
 	/*!
-	\brief 取桌面对象组中包含指定点的顶端桌面对象的句柄。
+	\brief 取桌面对象组中包含指定点的可见的顶端桌面对象指针。
 	*/
 	IControl*
-	GetTopDesktopObjectPtr(const Point&) const;
+	GetTopVisibleDesktopObjectPtr(const Point&) const;
 
 	/*!
-	\brief 清除桌面对象组。
+	\brief 清除桌面内容。
+	\note 直接清除桌面对象组、部件组和焦点对象组中的指针，不进行焦点或其它操作。
 	*/
 	void
-	ClearDesktopObjects();
+	ClearContents();
 
 	/*!
 	\brief 请求提升至容器顶端。
@@ -101,13 +101,6 @@ public:
 	*/
 	bool
 	MoveToTop(IControl&);
-
-	/*!
-	\brief 从桌面对象组中移除所有指定桌面对象。
-	\return 移除的对象数。
-	*/
-	DOs::size_type
-	RemoveAll(IControl&);
 
 	/*!
 	\brief 移除桌面对象组中顶端桌面对象。
@@ -125,25 +118,13 @@ public:
 
 protected:
 	/*!
-	\brief 绘制桌面对象。
-	依次绘制桌面对象组对象。
+	\brief 绘制内容。
+	\note 依次绘制桌面对象组对象后再绘制其它部件。
 	*/
-	void
-	DrawDesktopObjects();
+	virtual bool
+	DrawContents();
 
 public:
-	/*!
-	\brief 绘图。
-	*/
-	virtual void
-	Draw();
-
-	/*!
-	\brief 刷新至窗口缓冲区。
-	*/
-	virtual void
-	Refresh();
-
 	/*!
 	\brief 更新缓冲区至屏幕。
 	*/

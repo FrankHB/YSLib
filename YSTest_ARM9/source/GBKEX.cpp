@@ -11,12 +11,12 @@
 /*!	\file GBKEX.cpp
 \ingroup YReader
 \brief 测试文件。
-\version 0.3062; *Build 194 r7;
+\version 0.3064; *Build 198 r11;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-31 07:21 +0800;
 \par 字符集:
 	ANSI / GBK;
 \par 模块名称:

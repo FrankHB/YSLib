@@ -11,12 +11,12 @@
 /*!	\file button.h
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件实现。
-\version 0.2985;
+\version 0.2989;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-03-23 12:59 +0800;
+	2011-04-04 20:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -67,11 +67,10 @@ public:
 	typedef YControl ParentType;
 
 	/*!
-	\brief 构造：使用指定边界和部件容器指针。
+	\brief 构造：使用指定边界。
 	*/
 	explicit
-	YThumb(const Rect& = Rect::Empty, IUIBox* = NULL);
-	virtual DefEmptyDtor(YThumb)
+	YThumb(const Rect& = Rect::Empty);
 
 	/*!
 	\brief 绘制前景。
@@ -107,12 +106,11 @@ public:
 */
 
 	/*!
-	\brief 构造：使用指定边界、部件容器指针和字体。
+	\brief 构造：使用指定边界和字体。
 	*/
 	explicit
-	YButton(const Rect& = Rect::Empty, IUIBox* = NULL,
+	YButton(const Rect& = Rect::Empty,
 		const Drawing::Font& = Drawing::Font::GetDefault());
-	virtual DefEmptyDtor(YButton)
 
 	/*!
 	\brief 绘制前景。
