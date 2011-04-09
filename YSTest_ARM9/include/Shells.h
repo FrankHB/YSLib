@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3135;
+\version 0.3152;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-05 20:41 +0800;
+	2011-04-09 08:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -83,13 +83,19 @@ public:
 	ShlExplorer();
 
 	virtual int
+	ShlProc(const Message&);
+
+	virtual int
 	OnActivated(const Message&);
 
 	virtual int
 	OnDeactivated(const Message&);
 
-	virtual int
-	ShlProc(const Message&);
+	void
+	frm_KeyUp(KeyEventArgs&);
+
+	void
+	frm_KeyDown(KeyEventArgs&);
 
 	void
 	frm_KeyPress(KeyEventArgs&);
@@ -182,11 +188,8 @@ public:
 		btnExit_Click(TouchEventArgs&);
 	};
 
-	void ShowString(const String&);
-	void ShowString(const char*);
-
-	static void
-	TFormC_TouchDown(IControl&, TouchEventArgs&);
+	virtual int
+	ShlProc(const Message&);
 
 	virtual int
 	OnActivated(const Message&);
@@ -194,8 +197,11 @@ public:
 	virtual int
 	OnDeactivated(const Message&);
 
-	virtual int
-	ShlProc(const Message&);
+	void ShowString(const String&);
+	void ShowString(const char*);
+
+	static void
+	TFormC_TouchDown(IControl&, TouchEventArgs&);
 };
 
 
@@ -215,13 +221,13 @@ public:
 	ShlReader();
 
 	virtual int
+	ShlProc(const Message&);
+
+	virtual int
 	OnActivated(const Message&);
 
 	virtual int
 	OnDeactivated(const Message&);
-
-	virtual int
-	ShlProc(const Message&);
 
 	virtual void
 	UpdateToScreen();

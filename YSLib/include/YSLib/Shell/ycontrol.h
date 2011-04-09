@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4904;
+\version 0.4926;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-04-04 21:20 +0800;
+	2011-04-09 21:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,7 +53,7 @@ public:
 	} RoutingStrategy;
 
 	RoutingStrategy Strategy; //!< 事件路由策略。
-	bool IsHandled; //!< 事件已经被处理。
+	bool Handled; //!< 事件已经被处理。
 
 	explicit
 	RoutedEventArgs(RoutingStrategy = Direct);
@@ -61,7 +61,7 @@ public:
 
 inline
 RoutedEventArgs::RoutedEventArgs(RoutedEventArgs::RoutingStrategy s)
-	: Strategy(s)
+	: Strategy(s), Handled(false)
 {}
 
 
@@ -219,7 +219,7 @@ typedef enum
 	Move, //!< 移动：位置调整。
 	Resize, //!< 大小调整。
 
-	//基本输入事件。
+	//图形用户界面输入事件。
 	KeyUp, //!< 键接触结束。
 	KeyDown, //!< 键接触开始。
 	KeyHeld, //!< 键接触保持。
@@ -229,14 +229,12 @@ typedef enum
 	TouchHeld, //!< 屏幕接触保持。
 	TouchMove, //!< 屏幕接触移动。
 	Click, //!< 屏幕点击。
+	Enter, //!< 控件进入。
+	Leave, //!< 控件离开。
 
 	//焦点事件。
 	GotFocus, //!< 焦点获得。
-	LostFocus, //!< 焦点失去。
-
-	//边界事件。
-	Enter, //!< 控件进入。
-	Leave //!< 控件离开。
+	LostFocus //!< 焦点失去。
 
 //	TextChanged,
 //	FontChanged,
@@ -264,12 +262,11 @@ DefEventTypeMapping(TouchDown, HTouchEvent)
 DefEventTypeMapping(TouchHeld, HTouchEvent)
 DefEventTypeMapping(TouchMove, HTouchEvent)
 DefEventTypeMapping(Click, HTouchEvent)
+DefEventTypeMapping(Enter, HTouchEvent)
+DefEventTypeMapping(Leave, HTouchEvent)
 
 DefEventTypeMapping(GotFocus, HVisualEvent)
 DefEventTypeMapping(LostFocus, HVisualEvent)
-
-DefEventTypeMapping(Enter, HInputEvent)
-DefEventTypeMapping(Leave, HInputEvent)
 
 
 //! \brief 控件事件映射表类型。

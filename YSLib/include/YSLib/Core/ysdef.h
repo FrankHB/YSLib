@@ -16,12 +16,12 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version 0.2488;
+\version 0.2490;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-24 15:29:11 +0800;
 \par 修改时间:
-	2011-03-25 14:47 +0800;
+	2011-04-09 21:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,7 +73,7 @@ class YDesktop;
 YSL_END_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Text)
-typedef std::size_t SizeType; //!< 字符大小类型。
+typedef size_t SizeType; //!< 字符大小类型。
 typedef usize_t IndexType; //!< 字符索引类型。
 class String;
 YSL_END_NAMESPACE(Text)

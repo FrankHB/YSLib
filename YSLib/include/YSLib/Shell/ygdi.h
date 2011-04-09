@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3882;
+\version 0.3884;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-04-03 19:04 +0800;
+	2011-04-09 21:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -95,7 +95,7 @@ struct SequenceTransformer
 	*/
 	template<typename _tPixel, class _fTransformPixel>
 	void
-	operator()(_tPixel* dst, std::size_t n, _fTransformPixel tp)
+	operator()(_tPixel* dst, size_t n, _fTransformPixel tp)
 	{
 		if(dst && n)
 		{
@@ -115,7 +115,7 @@ struct VerticalLineTransfomer
 	*/
 	template<typename _tPixel, class _fTransformPixel>
 	void
-	operator()(_tPixel* dst, std::size_t n, SDst dw, _fTransformPixel tp)
+	operator()(_tPixel* dst, size_t n, SDst dw, _fTransformPixel tp)
 	{
 		if(dst && n)
 			while(n--)
@@ -250,7 +250,7 @@ struct RectTransfomer
 */
 template<typename _tPixel>
 inline void
-ClearPixel(_tPixel* dst, std::size_t n)
+ClearPixel(_tPixel* dst, size_t n)
 {
 	ClearSequence(dst, n);
 }
@@ -260,7 +260,7 @@ ClearPixel(_tPixel* dst, std::size_t n)
 */
 template<typename _tPixel>
 inline void
-FillPixel(_tPixel* dst, std::size_t n, _tPixel c)
+FillPixel(_tPixel* dst, size_t n, _tPixel c)
 {
 	SequenceTransformer()(dst, n, PixelFiller<_tPixel>(c));
 }
@@ -270,7 +270,7 @@ FillPixel(_tPixel* dst, std::size_t n, _tPixel c)
 */
 template<typename _tPixel>
 inline void
-FillVerticalLine(_tPixel* dst, std::size_t n, SDst dw, _tPixel c)
+FillVerticalLine(_tPixel* dst, size_t n, SDst dw, _tPixel c)
 {
 	VerticalLineTransfomer()(dst, n, dw, PixelFiller<_tPixel>(c));
 }
@@ -891,7 +891,7 @@ public:
 	~BitmapBufferEx();
 
 	DefGetter(u8*, BufferAlphaPtr, pBufferAlpha) //!< 取 Alpha 缓冲区的指针。
-	DefGetter(std::size_t, SizeOfBufferAlpha,
+	DefGetter(size_t, SizeOfBufferAlpha,
 		sizeof(u8) * GetAreaFrom(GetSize())) \
 		//!< 取 Alpha 缓冲区占用空间。
 

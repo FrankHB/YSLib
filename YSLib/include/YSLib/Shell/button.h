@@ -11,12 +11,12 @@
 /*!	\file button.h
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件实现。
-\version 0.2989;
+\version 0.2991;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-04-04 20:39 +0800;
+	2011-04-07 22:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -83,13 +83,13 @@ private:
 	\brief 处理控件进入事件。
 	*/
 	void
-	OnEnter(InputEventArgs&);
+	OnEnter(TouchEventArgs&);
 
 	/*!
 	\brief 处理控件离开事件。
 	*/
 	void
-	OnLeave(InputEventArgs&);
+	OnLeave(TouchEventArgs&);
 };
 
 

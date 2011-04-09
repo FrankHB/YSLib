@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.2535;
+\version 0.2565;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-03 19:24 +0800;
+	2011-04-09 12:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -103,28 +103,34 @@ private:
 	void
 	ResetTouchHeldState();
 
-	IControl*
-	GetFocusedEnabledVisualControlPtr(IControl*);
-
-	bool
-	ResponseKeyUpBase(IControl&, Components::Controls::KeyEventArgs&);
-
-	bool
-	ResponseKeyDownBase(IControl&, Components::Controls::KeyEventArgs&);
-
-	bool
-	ResponseKeyHeldBase(IControl&, Components::Controls::KeyEventArgs&);
-
 public:
 	/*!
 	\brief 响应标准按键状态。
+	\note 无视事件路由，直接响应。
 	*/
 	bool
-	ResponseKey(YDesktop&, Components::Controls::KeyEventArgs&,
+	ResponseKeyBase(IControl&, Components::Controls::KeyEventArgs&,
+		Components::Controls::VisualEvent);
+
+	/*!
+	\brief 响应标准按键状态。
+	\note 无视事件路由，直接响应。
+	*/
+	bool
+	ResponseTouchBase(IControl&, Components::Controls::TouchEventArgs&,
+		Components::Controls::VisualEvent);
+
+	/*!
+	\brief 响应标准按键状态。
+	\return 已被响应时为 true 。
+	*/
+	bool
+	ResponseKey(IControl&, Components::Controls::KeyEventArgs&,
 		Components::Controls::VisualEvent);
 
 	/*!
 	\brief 响应屏幕接触状态。
+	\return 已被响应时为 true 。
 	*/
 	bool
 	ResponseTouch(IControl&, Components::Controls::TouchEventArgs&,
@@ -151,12 +157,6 @@ FetchGUIShellHandle();
 YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
-
-/*!
-\brief 取指定屏幕中的当前焦点对象指针。
-*/
-IControl*
-GetFocusedObjectPtr(YDesktop&);
 
 /*!
 \brief 级联请求控件及上层容器焦点。

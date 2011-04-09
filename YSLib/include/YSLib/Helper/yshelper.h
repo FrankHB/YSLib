@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2087;
+\version 0.2089;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-04-02 18:55 +0800;
+	2011-04-09 21:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -248,11 +248,11 @@ NewScrImage(PPDRAW f, BitmapPtr gbuf = NULL);
 */
 template<typename _tPixel>
 _tPixel*
-NewBitmapRaw(const _tPixel* s, std::size_t n)
+NewBitmapRaw(const _tPixel* s, size_t n)
 {
 	if(s && n)
 	{
-		std::size_t size(sizeof(_tPixel) * n);
+		size_t size(sizeof(_tPixel) * n);
 		_tPixel* d(new _tPixel[size]);
 
 		if(d)

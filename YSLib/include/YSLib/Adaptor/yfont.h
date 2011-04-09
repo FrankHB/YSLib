@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7224;
+\version 0.7226;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-04-03 19:15 +0800;
+	2011-04-09 21:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Drawing)
 
 const u8 DEFAULT_FONT_SIZE(14); //!< 默认字体大小（ pt ）。
-const std::size_t GLYPH_CACHE_SIZE(128 << 10); //!< 字形缓冲区大小（字节）。
+const size_t GLYPH_CACHE_SIZE(128 << 10); //!< 字形缓冲区大小（字节）。
 
 //前向声明。
 class Font;

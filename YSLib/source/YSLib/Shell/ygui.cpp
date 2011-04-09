@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3609;
+\version 0.3723;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-03 16:05 +0800;
+	2011-04-09 21:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -126,68 +126,125 @@ YGUIShell::ResetTouchHeldState()
 	DraggingOffset = Vec::FullScreen;
 }
 
-IControl*
-YGUIShell::GetFocusedEnabledVisualControlPtr(IControl* p)
-{
-	return p && p->IsVisible() && p->IsEnabled() ? p : NULL;
-}
-
 bool
-YGUIShell::ResponseKeyUpBase(IControl& c, KeyEventArgs& e)
-{
-	ResetHeldState(KeyHeldState);
-	if(p_KeyDown == &c && KeyHeldState == Free)
-		CallEvent<KeyPress>(c, e);
-	CallEvent<KeyUp>(c, e);
-	CallEvent<Leave>(c, e);
-	p_KeyDown = NULL;
-	return true;
-}
-
-bool
-YGUIShell::ResponseKeyDownBase(IControl& c, KeyEventArgs& e)
-{
-	p_KeyDown = &c;
-	CallEvent<Enter>(c, e);
-	CallEvent<KeyDown>(c, e);
-	return true;
-}
-
-bool
-YGUIShell::ResponseKeyHeldBase(IControl& c, KeyEventArgs& e)
-{
-	if(p_KeyDown != &c)
-	{
-		ResetHeldState(KeyHeldState);
-		return false;
-	}
-	CallEvent<KeyHeld>(c, e);
-	return true;
-}
-
-bool
-YGUIShell::ResponseKey(YDesktop& d, KeyEventArgs& e,
+YGUIShell::ResponseKeyBase(IControl& c, KeyEventArgs& e,
 	Components::Controls::VisualEvent op)
 {
-	IControl* const p(GetFocusedEnabledVisualControlPtr(
-		Components::Controls::GetFocusedObjectPtr(d)));
-	bool(YGUIShell::*pmf)(IControl&, KeyEventArgs&)(NULL);
-
 	switch(op)
 	{
 	case KeyUp:
-		pmf = &YGUIShell::ResponseKeyUpBase;
+		ResetHeldState(KeyHeldState);
+		CallEvent<KeyUp>(c, e);
+		if(p_KeyDown == &c)
+		{
+			CallEvent<KeyPress>(c, e);
+			p_KeyDown = NULL;
+		}
 		break;
 	case KeyDown:
-		pmf = &YGUIShell::ResponseKeyDownBase;
+		p_KeyDown = &c;
+		CallEvent<KeyDown>(c, e);
 		break;
 	case KeyHeld:
-		pmf = &YGUIShell::ResponseKeyHeldBase;
+		if(p_KeyDown != &c)
+		{
+			ResetHeldState(KeyHeldState);
+			return false;
+		}
+		CallEvent<KeyHeld>(c, e);
 		break;
 	default:
 		YAssert(false, "Invalid function @ YGUIShell::ResponseKeyBase;");
 	}
-	return (this->*pmf)(p ? *p : d, e);
+	return true;
+}
+
+bool
+YGUIShell::ResponseTouchBase(IControl& c, TouchEventArgs& e,
+	Components::Controls::VisualEvent op)
+{
+	switch(op)
+	{
+	case TouchUp:
+		ResetTouchHeldState();
+		CallEvent<TouchUp>(c, e);
+		TryLeaving(c, e);
+		if(p_TouchDown == &c)
+		{
+			CallEvent<Click>(c, e);
+			p_TouchDown = NULL;
+		}
+		break;
+	case TouchDown:
+		p_TouchDown = &c;
+		TryEntering(c, e);
+		CallEvent<TouchDown>(c, e);
+		break;
+	case TouchHeld:
+		if(p_TouchDown != &c)
+		{
+			if(p_TouchDown)
+			{
+				TouchEventArgs el(e);
+
+				el += LocateForWidget(c, *p_TouchDown);
+				if(control_entered)
+					TryLeaving(*p_TouchDown, el);
+			}
+		}
+		else if(!control_entered)
+			TryEntering(c, e);
+	/*	if(p_TouchDown != &c)
+		{
+		ResetTouchHeldState();
+		return false;
+		}*/
+		CallEvent<TouchHeld>(*p_TouchDown, e);
+		break;
+	default:
+		YAssert(false, "Invalid operation found"
+			" @ YGUIShell::ResponseTouchBase;");
+	}
+	return true;
+}
+
+bool
+YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e,
+	Components::Controls::VisualEvent op)
+{
+	IControl* p(&c);
+	IUIBox* pCon;
+	bool r(false);
+
+	e.Strategy = Controls::RoutedEventArgs::Tunnel;
+	while((pCon = dynamic_cast<IUIBox*>(p)))
+	{
+		if(!(p->IsVisible() && p->IsEnabled()))
+			return false;
+		if(e.Handled)
+			return true;
+		r |= ResponseKeyBase(*p, e, op);
+
+		IControl* t(pCon->GetFocusingPtr());
+
+		if(!t)
+			break;
+		p = t;
+	}
+
+	YAssert(p, "Null pointer found @ YGUIShell::ResponseKey");
+
+	e.Strategy = Controls::RoutedEventArgs::Direct;
+	r |= ResponseKeyBase(*p, e, op);
+	e.Strategy = Controls::RoutedEventArgs::Bubble;
+	while(!e.Handled && (pCon = p->GetContainerPtr()))
+	{
+		p = dynamic_cast<IControl*>(pCon);
+		if(!p)
+			break;
+		r |= ResponseKeyBase(*p, e, op);
+	}
+	return r;
 }
 
 bool
@@ -198,16 +255,21 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 
 	IControl* p(&c);
 	IUIBox* pCon;
+	bool r(false);
 
 	e.Strategy = Controls::RoutedEventArgs::Tunnel;
-	while(!e.IsHandled && (pCon = dynamic_cast<IUIBox*>(p)))
+	while((pCon = dynamic_cast<IUIBox*>(p)))
 	{
+		if(!(p->IsVisible() && p->IsEnabled()))
+			return false;
+		if(e.Handled)
+			return true;
 		if(op == TouchDown)
 		{
 			RequestToTop(*p);
 			p->RequestFocus(GetStaticRef<EventArgs>());
 		}
-		p->GetEventMap().DoEvent<HTouchEvent>(op, *p, e);
+		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, e) != 0;
 		e -= p->GetLocation();
 
 		IControl* t;
@@ -224,55 +286,17 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 	YAssert(p, "Null pointer found @ YGUIShell::ResponseTouch");
 
 	e.Strategy = Controls::RoutedEventArgs::Direct;
-	switch(op)
-	{
-	case TouchUp:
-		ResetTouchHeldState();
-		if(p_TouchDown == p && TouchHeldState == Free)
-			CallEvent<Click>(*p, e);
-		CallEvent<TouchUp>(*p, e);
-		TryLeaving(*p, e);
-		p_TouchDown = NULL;
-		break;
-	case TouchDown:
-		p_TouchDown = p;
-		TryEntering(*p, e);
-		CallEvent<TouchDown>(*p, e);
-		break;
-	case TouchHeld:
-		if(p_TouchDown != p)
-		{
-			if(p_TouchDown)
-			{
-				TouchEventArgs el(e);
-
-				if(p)
-					el += LocateForWidget(*p, *p_TouchDown);
-				if(control_entered)
-					TryLeaving(*p_TouchDown, el);
-			}
-		}
-		else if(!control_entered)
-			TryEntering(*p, e);
-	/*	if(p_TouchDown != p)
-		{
-		ResetTouchHeldState();
-		return false;
-		}*/
-		CallEvent<TouchHeld>(*p_TouchDown, e);
-		break;
-	default:
-		YAssert(false, "Invalid operation found"
-			" @ YGUIShell::ResponseTouchBase;");
-	}
+	r |= ResponseTouchBase(*p, e, op);
 	e.Strategy = Controls::RoutedEventArgs::Bubble;
-	while(!e.IsHandled && (pCon = p->GetContainerPtr()))
+	while(!e.Handled && (pCon = p->GetContainerPtr()))
 	{
 		e += p->GetLocation();
 		p = dynamic_cast<IControl*>(pCon);
-		p->GetEventMap().DoEvent<HTouchEvent>(op, *p, e);
+		if(!p)
+			break;
+		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, e) != 0;
 	}
-	return true;
+	return r;
 }
 
 int
@@ -308,18 +332,6 @@ FetchGUIShellHandle()
 YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
-
-IControl*
-GetFocusedObjectPtr(YDesktop& d)
-{
-	IControl* p(d.GetFocusingPtr()), *q(NULL);
-	IUIBox* pCon;
-
-	while(p && (pCon = dynamic_cast<IUIBox*>(p))
-		&& (q = pCon->GetFocusingPtr()))
-		p = q;
-	return p;
-}
 
 void
 RequestFocusCascade(IControl& c)

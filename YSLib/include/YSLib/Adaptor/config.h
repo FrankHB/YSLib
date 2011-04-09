@@ -11,12 +11,12 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief 库编译配置。
-\version 0.1542;
+\version 0.1562;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-04-07 10:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,6 +28,15 @@
 #define INCLUDED_CONFIG_H_
 
 //#define NDEBUG //!< 非调试模式。
+
+#if defined(DEBUG) && defined(NDEBUG)
+#error Macro DEBUG cannot be used with NDEBUG. \
+	Exactly one of macro DEBUG and NDEBUG should be defined.
+#endif
+#if !defined(DEBUG) && !defined(NDEBUG)
+#error No debug configuration macro found. \
+	Exactly one of macro DEBUG and NDEBUG should be defined.
+#endif
 
 #ifndef NDEBUG
 #	define YCL_USE_YASSERT //!< 使用 YCLib 断言。

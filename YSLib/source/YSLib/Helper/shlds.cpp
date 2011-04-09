@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1734;
+\version 0.1736;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-04-05 20:05 +0800;
+	2011-04-09 08:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,26 +66,19 @@ ShlDS::ShlDS(GHHandle<YDesktop> h_dsk_up, GHHandle<YDesktop> h_dsk_down)
 		.GetScreenDown()))
 {}
 
-void
-ShlDS::UpdateToScreen()
+int
+ShlDS::ShlProc(const Message& msg)
 {
-	hDskUp->Refresh();
-	hDskDown->Refresh();
-	hDskUp->Update();
-	hDskDown->Update();
-}
+	switch(msg.GetMessageID())
+	{
+	case SM_INPUT:
+		ResponseInput(msg);
+		return 0;
 
-/*void
-ShlDS::SendDrawingMessage()
-{
-//	hDesktopUp->ClearContents();
-//	hDesktopDown->ClearContents();
-	DispatchWindows();
-	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<GHHandle<YDesktop> >(hDskUp));
-	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<GHHandle<YDesktop> >(hDskDown));
-}*/
+	default:
+		return ParentType::ShlProc(msg);
+	}
+}
 
 int
 ShlDS::OnActivated(const Message& /*msg*/)
@@ -115,18 +108,25 @@ ShlDS::OnDeactivated(const Message& /*msg*/)
 	return 0;
 }
 
-int
-ShlDS::ShlProc(const Message& msg)
+/*void
+ShlDS::SendDrawingMessage()
 {
-	switch(msg.GetMessageID())
-	{
-	case SM_INPUT:
-		ResponseInput(msg);
-		return 0;
+//	hDesktopUp->ClearContents();
+//	hDesktopDown->ClearContents();
+	DispatchWindows();
+	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
+		new GHandleContext<GHHandle<YDesktop> >(hDskUp));
+	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
+		new GHandleContext<GHHandle<YDesktop> >(hDskDown));
+}*/
 
-	default:
-		return ParentType::ShlProc(msg);
-	}
+void
+ShlDS::UpdateToScreen()
+{
+	hDskUp->Refresh();
+	hDskDown->Refresh();
+	hDskUp->Update();
+	hDskDown->Update();
 }
 
 

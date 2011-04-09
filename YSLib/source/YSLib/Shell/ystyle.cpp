@@ -11,12 +11,12 @@
 /*!	\file ystyle.cpp
 \ingroup Shell
 \brief 图形用户界面样式实现。
-\version 0.1293;
+\version 0.1295;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-03-25 15:09 +0800;
+	2011-04-09 21:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -105,7 +105,7 @@ hsl2rgb(hsl_t c)
 		s32 temp3[3] = {t3 + 0x60000, t3, t3 - 0x60000}; \
 			// temp3 每个元素对应一个 RGB 分量，值 0x120000 对应一个圆周。
 
-			for(std::size_t i(0); i < 3; ++i)
+			for(size_t i(0); i < 3; ++i)
 			{
 				if(temp3[i] < 0)
 					temp3[i] += 0x120000;
@@ -116,7 +116,7 @@ hsl2rgb(hsl_t c)
 			u32 dc[3] = {t1, t1, t1}; \
 				//对应 RGB 分量，为 8.24 定点数 。
 
-			for(std::size_t i(0); i < 3; ++i)
+			for(size_t i(0); i < 3; ++i)
 			{
 				if(temp3[i] < 0x30000)
 					dc[i] += ((t2 - t1) >> 8) * ((temp3[i] / 3) >> 8);

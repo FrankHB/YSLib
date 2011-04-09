@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调实现。
-\version 0.4115;
+\version 0.4171;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-03-27 14:41 +0800;
+	2011-04-09 21:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -137,6 +137,7 @@ public:
 	typedef typename SEventType::FunctorType FunctorType;
 	typedef GHEvent<_tSender, _tEventArgs> HandlerType;
 	typedef list<HandlerType> ListType;
+	typedef typename ListType::size_type SizeType;
 
 protected:
 	ListType List; //!< 响应列表。
@@ -305,19 +306,22 @@ public:
 	/*!
 	\brief 调用函数。
 	*/
-	void
+	SizeType
 	operator()(_tSender& sender, _tEventArgs& e) const
 	{
+		SizeType n(0);
+
 		for(typename list<HandlerType>
 				::const_iterator i(this->List.begin());
-				i != this->List.end(); ++i)
+				i != this->List.end(); ++i, ++n)
 			(*i)(sender, e);
+		return n;
 	}
 
 	/*!
 	\brief 取列表中的响应数。
 	*/
-	inline typename ListType::size_type
+	inline SizeType
 	GetSize() const
 	{
 		return this->List.size();
@@ -353,6 +357,7 @@ struct GEvent<false, _tSender, _tEventArgs>
 	typedef typename SEventType::FuncType FuncType;
 	typedef typename SEventType::FunctorType FunctorType;
 	typedef typename SEventType::_tEventHandler HandlerType;
+	typedef size_t SizeType;
 
 	/*!
 	\brief 无参数构造。
@@ -423,6 +428,25 @@ struct GEvent<false, _tSender, _tEventArgs>
 	}
 
 	/*!
+	\brief 调用函数。
+	*/
+	inline SizeType
+	operator()(_tSender& sender, _tEventArgs& e) const
+	{
+		GHEvent<_tSender, _tEventArgs>::operator()(sender, e);
+		return 1;
+	}
+
+	/*!
+	\brief 取事件响应数。
+	*/
+	inline SizeType
+	GetSize() const
+	{
+		return 1;
+	}
+
+	/*!
 	\brief 取事件处理器指针。
 	*/
 	inline HandlerType*
@@ -462,7 +486,7 @@ public:
 	typedef typename EventType::FuncType FuncType;
 	typedef typename EventType::FunctorType FunctorType;
 	typedef typename EventType::HandlerType HandlerType;
-	typedef typename EventType::ListType ListType;
+	typedef typename EventType::SizeType SizeType;
 
 	GDependencyEvent(PointerType p = NULL)
 		: GDependency<_tEvent>(p)
@@ -556,7 +580,7 @@ public:
 	/*!
 	\brief 调用函数。
 	*/
-	inline void
+	inline SizeType
 	operator()(SenderType& sender, EventArgsType& e) const
 	{
 		return this->GetRef().operator()(sender, e);
@@ -565,7 +589,7 @@ public:
 	/*!
 	\brief 取列表中的响应数。
 	*/
-	inline typename ListType::size_type
+	inline SizeType
 	GetSize() const
 	{
 		return this->GetRef().GetSize();
@@ -673,7 +697,7 @@ struct GSEvent
 //! \brief 事件处理器接口模板。
 template<class _tSender = YObject, class _tEventArgs = EventArgs>
 DeclInterface(GIHEvent)
-	DeclIEntry(void operator()(_tSender&, _tEventArgs&) const)
+	DeclIEntry(size_t operator()(_tSender&, _tEventArgs&) const)
 EndDecl
 
 
@@ -691,13 +715,14 @@ public:
 	\brief 委托调用。
 	\warning 需要确保 EventArgs& 引用的对象能够转换至 EventArgsType 对象。
 	*/
-	void
+	size_t
 	operator()(YObject& sender, EventArgs& e) const
 	{
 		SenderType* p(dynamic_cast<SenderType*>(&sender));
 
-		if(p)
-			EventType::operator()(*p, reinterpret_cast<EventArgsType&>(e));
+		
+		return p ? EventType::operator()(*p,
+			reinterpret_cast<EventArgsType&>(e)) : 0;
 	}
 };
 
@@ -710,11 +735,11 @@ public:
 	typedef _tEventSpace ID;
 	typedef GIHEvent<YObject, EventArgs> ItemType;
 	typedef SmartPtr<ItemType> PointerType;
-	typedef std::pair<ID, PointerType> PairType;
+	typedef pair<ID, PointerType> PairType;
 	typedef map<ID, PointerType> MapType;
 
 private:
-	typedef std::pair<typename MapType::iterator, bool> InternalPairType; \
+	typedef pair<typename MapType::iterator, bool> InternalPairType; \
 		//!< 搜索表结果类型。
 
 	mutable MapType m_map; //!< 映射表。
@@ -766,7 +791,7 @@ public:
 	}
 
 	template<class _tEventHandler>
-	void
+	size_t
 	DoEvent(const ID& id, typename _tEventHandler::SenderType& sender,
 		typename _tEventHandler::EventArgsType& e) const
 	{
@@ -775,8 +800,8 @@ public:
 		typedef typename Runtime::GSEvent<_tEventHandler>::EventType
 			EventType;
 
-		if(!pr.second)
-			dynamic_cast<EventType&>(*pr.first->second)(sender, e);
+		return pr.second ? 0
+			: dynamic_cast<EventType&>(*pr.first->second)(sender, e);
 	}
 
 	/*!

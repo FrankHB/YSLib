@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象实现。
-\version 0.3024;
+\version 0.3026;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-03 19:05 +0800;
+	2011-04-09 21:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -668,7 +668,7 @@ public:
 	\note 无异常抛出。
 	*/
 	BitmapPtr
-	operator[](std::size_t) const ythrow();
+	operator[](size_t) const ythrow();
 
 	DefPredicate(Valid, pBuffer && size.Width != 0 && size.Height != 0)
 
@@ -676,7 +676,7 @@ public:
 	DefGetter(const Size&, Size, size)
 	DefGetter(SDst, Width, size.Width)
 	DefGetter(SDst, Height, size.Height)
-	DefGetter(std::size_t, SizeOfBuffer,
+	DefGetter(size_t, SizeOfBuffer,
 		sizeof(PixelType) * GetAreaFrom(size)) //!< 取缓冲区占用空间。
 
 	/*!
@@ -686,7 +686,7 @@ public:
 	\note 仅抛出以上异常。
 	*/
 	BitmapPtr
-	at(std::size_t) const ythrow(GeneralEvent, std::out_of_range);
+	at(size_t) const ythrow(GeneralEvent, std::out_of_range);
 };
 
 inline

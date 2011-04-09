@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件实现。
-\version 0.3459;
+\version 0.3461;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-04-04 20:48 +0800;
+	2011-04-07 22:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -85,14 +85,14 @@ YThumb::DrawForeground()
 }
 
 void
-YThumb::OnEnter(InputEventArgs&)
+YThumb::OnEnter(TouchEventArgs&)
 {
 	bPressed = true;
 	Refresh();
 }
 
 void
-YThumb::OnLeave(InputEventArgs&)
+YThumb::OnLeave(TouchEventArgs&)
 {
 	bPressed = false;
 	Refresh();

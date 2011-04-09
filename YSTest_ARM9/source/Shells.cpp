@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3815;
+\version 0.3846;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-05 21:00 +0800;
+	2011-04-09 21:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -351,6 +351,113 @@ ShlExplorer::ShlExplorer()
 	FetchEvent<Click>(btnOK).Add(*this, &ShlExplorer::btnOK_Click);
 }
 
+int
+ShlExplorer::ShlProc(const Message& msg)
+{
+	switch(msg.GetMessageID())
+	{
+	case SM_INPUT:
+		ResponseInput(msg);
+		UpdateToScreen();
+		return 0;
+
+	default:
+		return ShlDS::ShlProc(msg);
+	}
+}
+
+int
+ShlExplorer::OnActivated(const Message& msg)
+{
+	static_cast<YFrame&>(*GetDesktopUpHandle()) += &lblTitle;
+	static_cast<YFrame&>(*GetDesktopUpHandle()) += &lblPath;
+	*GetDesktopDownHandle() += &fbMain;
+	*GetDesktopDownHandle() += &btnTest;
+	*GetDesktopDownHandle() += &btnOK;
+	*GetDesktopDownHandle() += &chkTest;
+	GetDesktopUpHandle()->SetBackground(GetImage(3));
+	GetDesktopDownHandle()->SetBackground(GetImage(4));
+	lblTitle.Text = "文件列表：请选择一个文件。";
+	lblPath.Text = "/";
+//	lblTitle.Transparent = true;
+//	lblPath.Transparent = true;
+	btnTest.Text = _ustr("测试(X)");
+	btnOK.Text = _ustr("确定(R)");
+	FetchEvent<KeyUp>(*GetDesktopDownHandle()).Add(*this,
+		&ShlExplorer::frm_KeyUp);
+	FetchEvent<KeyDown>(*GetDesktopDownHandle()).Add(*this,
+		&ShlExplorer::frm_KeyDown);
+	FetchEvent<KeyPress>(*GetDesktopDownHandle()).Add(*this,
+		&ShlExplorer::frm_KeyPress);
+	btnOK.SetTransparent(false);
+/*
+	ReplaceHandle<HWND>(hWndUp,
+		new TFrmFileListMonitor(GHHandle<YShell>(this)));
+	ReplaceHandle<HWND>(hWndDown,
+		new TFrmFileListSelecter(GHHandle<YShell>(this)));
+*/
+	//	HandleCast<TFrmFileListSelecter>(
+	//		hWndDown)->fbMain.RequestFocus(GetZeroElement<EventArgs>());
+	//	hWndDown->RequestFocus(GetZeroElement<EventArgs>());
+	ParentType::OnActivated(msg);
+	RequestFocusCascade(fbMain);
+	UpdateToScreen();
+	return 0;
+}
+
+int
+ShlExplorer::OnDeactivated(const Message& msg)
+{
+	FetchEvent<KeyUp>(*GetDesktopDownHandle()).Remove(*this,
+		&ShlExplorer::frm_KeyUp);
+	FetchEvent<KeyDown>(*GetDesktopDownHandle()).Remove(*this,
+		&ShlExplorer::frm_KeyDown);
+	FetchEvent<KeyPress>(*GetDesktopDownHandle()).Remove(*this,
+		&ShlExplorer::frm_KeyPress);
+	GetDesktopUpHandle()->SetBackground(NULL);
+	GetDesktopDownHandle()->SetBackground(NULL);
+	ParentType::OnDeactivated(msg);
+	return 0;
+}
+
+void
+ShlExplorer::frm_KeyUp(KeyEventArgs& e)
+{
+	TouchEventArgs et(TouchEventArgs::FullScreen);
+
+	switch(e.GetKey())
+	{
+	case KeySpace::X:
+		CallEvent<Leave>(btnTest, et);
+		break;
+	case KeySpace::R:
+		CallEvent<Leave>(btnOK, et);
+		break;
+	default:
+		return;
+	}
+	e.Handled = true;
+}
+
+void
+ShlExplorer::frm_KeyDown(KeyEventArgs& e)
+{
+	TouchEventArgs et(TouchEventArgs::FullScreen);
+
+	switch(e.GetKey())
+	{
+	case KeySpace::X:
+		CallEvent<Enter>(btnTest, et);
+		break;
+	case KeySpace::R:
+		CallEvent<Enter>(btnOK, et);
+		break;
+	default:
+		return;
+	}
+	e.Handled = true;
+}
+
 void
 ShlExplorer::frm_KeyPress(KeyEventArgs& e)
 {
@@ -359,14 +466,15 @@ ShlExplorer::frm_KeyPress(KeyEventArgs& e)
 	switch(e.GetKey())
 	{
 	case KeySpace::X:
-		FetchEvent<Click>(btnTest)(btnTest, et);
+		CallEvent<Click>(btnTest, et);
 		break;
 	case KeySpace::R:
-		FetchEvent<Click>(btnOK)(btnOK, et);
+		CallEvent<Click>(btnOK, et);
 		break;
 	default:
-		break;
+		return;
 	}
+	e.Handled = true;
 }
 
 void
@@ -435,68 +543,6 @@ ShlExplorer::fb_Confirmed(IControl& /*sender*/, IndexEventArgs& /*e*/)
 //	if(e.Index == 2)
 //		switchShl1();
 }
-
-int
-ShlExplorer::ShlProc(const Message& msg)
-{
-	switch(msg.GetMessageID())
-	{
-	case SM_INPUT:
-		ResponseInput(msg);
-		UpdateToScreen();
-		return 0;
-
-	default:
-		return ShlDS::ShlProc(msg);
-	}
-}
-
-int
-ShlExplorer::OnActivated(const Message& msg)
-{
-	static_cast<YFrame&>(*GetDesktopUpHandle()) += &lblTitle;
-	static_cast<YFrame&>(*GetDesktopUpHandle()) += &lblPath;
-	*GetDesktopDownHandle() += &fbMain;
-	*GetDesktopDownHandle() += &btnTest;
-	*GetDesktopDownHandle() += &btnOK;
-	*GetDesktopDownHandle() += &chkTest;
-	GetDesktopUpHandle()->SetBackground(GetImage(3));
-	GetDesktopDownHandle()->SetBackground(GetImage(4));
-	lblTitle.Text = "文件列表：请选择一个文件。";
-	lblPath.Text = "/";
-//	lblTitle.Transparent = true;
-//	lblPath.Transparent = true;
-	btnTest.Text = _ustr("测试(X)");
-	btnOK.Text = _ustr("确定(R)");
-	FetchEvent<KeyPress>(*GetDesktopUpHandle()).Add(*this,
-		&ShlExplorer::frm_KeyPress);
-	btnOK.SetTransparent(false);
-/*
-	ReplaceHandle<HWND>(hWndUp,
-		new TFrmFileListMonitor(GHHandle<YShell>(this)));
-	ReplaceHandle<HWND>(hWndDown,
-		new TFrmFileListSelecter(GHHandle<YShell>(this)));
-*/
-	//	HandleCast<TFrmFileListSelecter>(
-	//		hWndDown)->fbMain.RequestFocus(GetZeroElement<EventArgs>());
-	//	hWndDown->RequestFocus(GetZeroElement<EventArgs>());
-	ParentType::OnActivated(msg);
-	RequestFocusCascade(fbMain);
-	UpdateToScreen();
-	return 0;
-}
-
-int
-ShlExplorer::OnDeactivated(const Message& msg)
-{
-	FetchEvent<KeyPress>(*GetDesktopUpHandle()).Remove(*this,
-		&ShlExplorer::frm_KeyPress);
-	GetDesktopUpHandle()->SetBackground(NULL);
-	GetDesktopDownHandle()->SetBackground(NULL);
-	ParentType::OnDeactivated(msg);
-	return 0;
-}
-
 
 YSL_BEGIN_SHELL(ShlSetting)
 
@@ -725,31 +771,28 @@ ShlSetting::TFormC::btnExit_Click(TouchEventArgs&)
 	Shells::PostQuitMessage(0);
 }
 
-void
-ShlSetting::ShowString(const String& s)
+int
+ShlSetting::ShlProc(const Message& msg)
 {
-	general_handle_cast<TFormA>(hWndUp)->ShowString(s);
-}
-void
-ShlSetting::ShowString(const char* s)
-{
-	ShowString(String(s));
-}
+	using namespace YSL_SHL(ShlSetting);
+//	ClearDefaultMessageQueue();
 
-void
-ShlSetting::TFormC_TouchDown(IControl& sender, TouchEventArgs& /*e*/)
-{
-	try
+//	const WPARAM& wParam(msg.GetWParam());
+
+//	UpdateToScreen();
+
+	switch(msg.GetMessageID())
 	{
-		TFormC& frm(dynamic_cast<TFormC&>(sender));
+	case SM_INPUT:
+		ResponseInput(msg);
+		UpdateToScreen();
+		return 0;
 
-		frm.BackColor = ARGB16(1, std::rand(), std::rand(), std::rand());
-		frm.Refresh();
+	default:
+		break;
 	}
-	catch(std::bad_cast&)
-	{}
+	return DefShellProc(msg);
 }
-
 
 int
 ShlSetting::OnActivated(const Message& msg)
@@ -781,16 +824,42 @@ ShlSetting::OnDeactivated(const Message& msg)
 	return 0;
 }
 
-int
-ShlSetting::ShlProc(const Message& msg)
+void
+ShlSetting::ShowString(const String& s)
 {
-	using namespace YSL_SHL(ShlSetting);
-//	ClearDefaultMessageQueue();
+	general_handle_cast<TFormA>(hWndUp)->ShowString(s);
+}
+void
+ShlSetting::ShowString(const char* s)
+{
+	ShowString(String(s));
+}
 
-//	const WPARAM& wParam(msg.GetWParam());
+void
+ShlSetting::TFormC_TouchDown(IControl& sender, TouchEventArgs& /*e*/)
+{
+	try
+	{
+		TFormC& frm(dynamic_cast<TFormC&>(sender));
 
-//	UpdateToScreen();
+		frm.BackColor = ARGB16(1, std::rand(), std::rand(), std::rand());
+		frm.Refresh();
+	}
+	catch(std::bad_cast&)
+	{}
+}
 
+
+string ShlReader::path;
+
+ShlReader::ShlReader()
+	: ShlDS(),
+	Reader(), pTextFile(NULL), hUp(NULL), hDn(NULL), bgDirty(false)
+{}
+
+int
+ShlReader::ShlProc(const Message& msg)
+{
 	switch(msg.GetMessageID())
 	{
 	case SM_INPUT:
@@ -803,14 +872,6 @@ ShlSetting::ShlProc(const Message& msg)
 	}
 	return DefShellProc(msg);
 }
-
-
-string ShlReader::path;
-
-ShlReader::ShlReader()
-	: ShlDS(),
-	Reader(), pTextFile(NULL), hUp(NULL), hDn(NULL), bgDirty(false)
-{}
 
 int
 ShlReader::OnActivated(const Message& msg)
@@ -847,22 +908,6 @@ ShlReader::OnDeactivated(const Message& /*msg*/)
 	Reader.UnloadText();
 	safe_delete_obj()(pTextFile);
 	return 0;
-}
-
-int
-ShlReader::ShlProc(const Message& msg)
-{
-	switch(msg.GetMessageID())
-	{
-	case SM_INPUT:
-		ResponseInput(msg);
-		UpdateToScreen();
-		return 0;
-
-	default:
-		break;
-	}
-	return DefShellProc(msg);
 }
 
 void

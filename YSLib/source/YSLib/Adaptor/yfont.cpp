@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7202;
+\version 0.7204;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-04-04 09:45 +0800;
+	2011-04-08 11:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -161,7 +161,7 @@ FontFamily::operator+=(Typeface* face_pointer)
 	if(face_pointer)
 	{
 		sTypes.insert(face_pointer);
-		mTypesIndex.insert(std::make_pair(face_pointer->GetStyleName(),
+		mTypesIndex.insert(make_pair(face_pointer->GetStyleName(),
 			face_pointer));
 	}
 }
@@ -465,7 +465,7 @@ YFontCache::operator+=(FontFamily* family_pointer)
 	if(family_pointer)
 	{
 		sFaces.insert(family_pointer);
-		mFacesIndex.insert(std::make_pair(family_pointer->family_name,
+		mFacesIndex.insert(make_pair(family_pointer->family_name,
 			family_pointer));
 	}
 }

@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2148;
+\version 0.2150;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-04-03 16:03 +0800;
+	2011-04-09 21:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -223,7 +223,7 @@ IsStemOf(const char* str, const char* name)
 {
 	using ystdex::strlen_n;
 
-	std::size_t t(strlen_n(str));
+	size_t t(strlen_n(str));
 
 	if(t > strlen_n(name))
 		return false;

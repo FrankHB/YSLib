@@ -16,12 +16,12 @@
 /*!	\file ytmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4339;
+\version 0.4340;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-03-27 14:38 +0800;
+	2011-04-08 11:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -278,7 +278,7 @@ TextMap::operator[](const BlockSizeType& id)
 inline void
 TextMap::operator+=(TextBlock& item)
 {
-	Map.insert(std::make_pair(item.Index, &item));
+	Map.insert(make_pair(item.Index, &item));
 }
 inline bool
 TextMap::operator-=(const BlockSizeType& i)

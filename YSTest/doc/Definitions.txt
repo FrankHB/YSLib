@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010 - 2011
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 +0800;
-// UTime = 2011-04-03 15:59 +0800;
-// Version = r10721;
+// UTime = 2011-04-09 21:11 +0800;
+// Version = r10732;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -372,7 +372,6 @@ class PlatformResource @ $header Helper::YGlobal
 // std 命名空间扩展。
 namespace std
 {
-	$unit YString;
 } //namespace std;
 
 //命名空间单元分布。
@@ -531,7 +530,7 @@ $header YAdaptor
 	using CHRLib::uint_t;
 } //$header YAdaptor;
 
-//既定内部命名空间污染列表。
+//既定 YSLib 命名空间污染列表。
 
 $header Adaptor::YAdaptor
 {
@@ -541,6 +540,7 @@ $header Adaptor::YAdaptor
 	} //namespace Text;
 	using Text::fchar_t, Text::uchar_t, Text::uint_t;	
 
+	using std::size_t;
 	using ystdex::errno_t;
 
 	using platform::DEF_PATH_DELIMITER, platform::DEF_PATH_SEPERATOR,
@@ -625,8 +625,13 @@ YSL_END_NAMESPACE(Policies)
 
 $Adaptor::Container : Adaptor::YAdaptor
 {
+#ifdef YSL_USE_YASLI_VECTOR
 	using yasli::vector;
-	using std::list, std::map, std::set, std::stack, std::queue, std::priority_queue, std::basic_string, std::string;
+#else
+	using std::vector
+#endif
+	using std::pair, std::make_pair;
+	using std::list, std::map, std::set, std::stack, std::queue, std::priority_queue;
 } //$header Adaptor::Container;
 
 $header Core::YShellDefinition : Adaptor::YAdaptor

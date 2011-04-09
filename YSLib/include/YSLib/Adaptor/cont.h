@@ -11,12 +11,12 @@
 /*!	\file cont.h
 \ingroup Adaptor
 \brief 容器适配器。
-\version 0.1522;
+\version 0.1542;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-04-08 11:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,6 +28,7 @@
 #define INCLUDED_CONT_H_
 
 #include "yadaptor.h"
+#include <utility>
 
 //包含 YASLI 。
 #ifdef YSL_USE_YASLI_VECTOR
@@ -81,6 +82,9 @@ YSL_END
 #include <queue>
 
 YSL_BEGIN
+
+using std::pair;
+using std::make_pair;
 
 #ifdef YSL_USE_YASLI_VECTOR
 	using yasli::vector;

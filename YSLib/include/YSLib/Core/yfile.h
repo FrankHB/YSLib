@@ -11,12 +11,12 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version 0.1704;
+\version 0.1706;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-03-22 21:19 +0800;
+	2011-04-09 21:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@ class YFile : public YObject
 {
 public:
 	typedef YObject ParentType;
-	typedef std::size_t SizeType; //!< 大小类型。
+	typedef size_t SizeType; //!< 大小类型。
 	typedef std::ptrdiff_t OffType; //!< 偏移量类型。
 
 protected:
@@ -125,8 +125,8 @@ YFile::fseek(YFile::OffType offset, int whence) const
 	return std::fseek(fp, offset, whence);
 }
 
-inline std::size_t
-YFile::fread(void* ptr, std::size_t size, std::size_t nmemb) const
+inline size_t
+YFile::fread(void* ptr, size_t size, size_t nmemb) const
 {
 	return std::fread(ptr, size, nmemb, fp);
 }

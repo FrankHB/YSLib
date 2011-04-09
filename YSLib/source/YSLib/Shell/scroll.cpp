@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件实现。
-\version 0.3535;
+\version 0.3539;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-04-04 21:25 +0800;
+	2011-04-09 21:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -110,7 +110,7 @@ namespace
 		RectDrawArrow(g, Point(x, y), halfSize, rot, c);
 	}
 
-	std::pair<bool, bool>
+	pair<bool, bool>
 	FixScrollBarLayout(Size& d, const Size& s, SDst min_width, SDst min_height)
 	{
 		bool need_h(d.Width < s.Width), need_v(d.Height < s.Height);
@@ -144,7 +144,7 @@ namespace
 				d.Width -= min_width;
 			}
 		}
-		return std::pair<bool, bool>(need_h, need_v);
+		return pair<bool, bool>(need_h, need_v);
 	}
 
 	const SDst defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
@@ -265,7 +265,7 @@ ATrack::CheckArea(SDst q) const
 	const Area lst[] = {OnPrev, OnThumb, OnNext};
 	const SDst a[] = {0, GetThumbPosition(),
 		GetThumbPosition() + GetThumbLength()}; 
-	std::size_t n(SwitchInterval(q, a, 3));
+	size_t n(SwitchInterval(q, a, 3));
 
 	YAssert(n < 3,
 		"In function \"Components::Controls::ATrack::Area\n"
@@ -594,7 +594,7 @@ ScrollableContainer::FixLayout(const Size& s)
 
 	try
 	{
-		const std::pair<bool, bool> p(FixScrollBarLayout(arena, s,
+		const pair<bool, bool> p(FixScrollBarLayout(arena, s,
 			defMinScrollBarWidth, defMinScrollBarHeight));
 
 		if(p.first && p.second && GetWidth() > defMinScrollBarWidth

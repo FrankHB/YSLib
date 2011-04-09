@@ -1,10 +1,9 @@
 ﻿Copyright (C) by Franksoft 2010 - 2011.
 
-This is the license document of the YSLib Project.
+This file is the overall license document of the YSLib Project.
 Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
-The YSLib Project uses several libraries distributed under distinct licenses below.
-Everyone is permitted to copy and distribute the YSLib Project under all of these license agreements legally.
-
+The YSLib Project used file from several libraries(might be modified ) distributed under distinct licenses below.
+Everyone is permitted to copy and distribute the YSLib Project under *ALL* of these license agreements, or under the corresponding license for each library(including modification) respectively.
 ====
 License for all documents of the YSLib Project except for this file:
 (Reference: http://creativecommons.org/licenses/by-sa/3.0/legalcode .)
@@ -113,7 +112,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ====
-License for all other parts, included FreeType2 and Anti-Grain Geometry:
+License for  FreeType2:
+----
+License compatible to at least one of the following licenses shall be used:
+FreeType License - See FTL.txt;
+GNU General Public License Version 2 - See GPL.txt.
+====
+License for Anti-Grain Geometry:
+----
+Anti-Grain Geometry - Version 2.4
+Copyright (C) 2002-2005 Maxim Shemanarev (McSeem)
+
+Permission to copy, use, modify, sell and distribute this software
+is granted provided this copyright notice appears in all copies.
+This software is provided "as is" without express or implied
+warranty, and with no claim as to its suitability for any purpose.
+
+====
+License for other parts:
 ----
 GNU GENERAL PUBLIC LICENSE
 

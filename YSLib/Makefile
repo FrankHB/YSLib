@@ -1,8 +1,8 @@
 # DS Makefile for YSLib -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-03-20 18:47 +0800;
-# Version = 0.3898;
+# UTime = 2011-04-07 15:22 +0800;
+# Version = 0.3904;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -55,19 +55,7 @@ CFLAGS	+=	$(INCLUDE) -DARM9
 LDFLAGS :=	-specs=ds_arm9.specs $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
 
 ifneq ($(BUILD),debug)
-OB	:=	-Os \
- 		-falign-functions \
- 		-falign-jumps \
- 		-falign-loops \
- 		-falign-labels \
- 		-freorder-blocks \
- 		-ftree-vect-loop-version \
- 		-finline-functions \
-		-funswitch-loops \
-		-fpredictive-commoning \
-		-fgcse-after-reload \
-		-ftree-vectorize \
-		-fipa-cp-clone
+OB	:=	-O3
 CFLAGS	+=	$(OB) -DNDEBUG
 else
 ASFLAGS	+=	-g

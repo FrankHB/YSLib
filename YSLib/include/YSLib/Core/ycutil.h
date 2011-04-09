@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2517;
+\version 0.2523;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-03-27 14:39 +0800;
+	2011-04-09 21:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -205,26 +205,26 @@ IsInOpenInterval(_type i, _type a, _type b)
 
 */
 template<typename _type>
-std::size_t
-SwitchInterval(_type v, const _type* a, std::size_t n)
+size_t
+SwitchInterval(_type v, const _type* a, size_t n)
 {
 	YAssert(a,
 		"In function \"template<typename _type>\n"
-		"std::size_t\n"
-		"SwitchInterval(_type v, const _type* a, std::size_t n)\":\n"
+		"size_t\n"
+		"SwitchInterval(_type v, const _type* a, size_t n)\":\n"
 		"The array pointer is null.");
 	YAssert(n != 0,
 		"In function \"template<typename _type>\n"
-		"std::size_t\n"
-		"SwitchInterval(_type v, const _type* a, std::size_t n)\":\n"
+		"size_t\n"
+		"SwitchInterval(_type v, const _type* a, size_t n)\":\n"
 		"The length of array is zero.");
 	YAssert(!(v < *a),
 		"In function \"template<typename _type>\n"
-		"std::size_t\n"
-		"SwitchInterval(_type v, const _type* a, std::size_t n)\":\n"
+		"size_t\n"
+		"SwitchInterval(_type v, const _type* a, size_t n)\":\n"
 		"The value is less than lower bound.");
 
-	std::size_t i(0);
+	size_t i(0);
 
 	while(!(++i == n || v < a[i]))
 		;
@@ -239,27 +239,27 @@ SwitchInterval(_type v, const _type* a, std::size_t n)
 \pre 断言：!(v < *a) 。
 */
 template<typename _type>
-std::size_t
-SwitchAddedInterval(_type v, const _type* a, std::size_t n)
+size_t
+SwitchAddedInterval(_type v, const _type* a, size_t n)
 {
 	YAssert(a,
 		"In function \"template<typename _type>\n"
-		"std::size_t\n"
-		"SwitchAddedInterval(_type v, const _type* a, std::size_t n)\":\n"
+		"size_t\n"
+		"SwitchAddedInterval(_type v, const _type* a, size_t n)\":\n"
 		"The array pointer is null.");
 	YAssert(n != 0,
 		"In function \"template<typename _type>\n"
-		"std::size_t\n"
-		"SwitchAddedInterval(_type v, const _type* a, std::size_t n)\":\n"
+		"size_t\n"
+		"SwitchAddedInterval(_type v, const _type* a, size_t n)\":\n"
 		"Length of array is zero.");
 	YAssert(!(v < *a),
 		"In function \"template<typename _type>\n"
-		"std::size_t\n"
-		"SwitchAddedInterval(_type v, const _type* a, std::size_t n)\":\n"
+		"size_t\n"
+		"SwitchAddedInterval(_type v, const _type* a, size_t n)\":\n"
 		"Value is less than lower bound.");
 
 	_type s(*a);
-	std::size_t i(0);
+	size_t i(0);
 
 	while(!(++i == n || v < (s += a[i])))
 		;
@@ -357,7 +357,7 @@ RestrictLessEqual(_type& a, _type& b)
 */
 template<typename _type>
 void
-ClearSequence(_type* dst, std::size_t n)
+ClearSequence(_type* dst, size_t n)
 {
 	if(dst && n)
 		mmbset(dst, 0, sizeof(_type) * n);

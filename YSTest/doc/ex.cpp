@@ -1,4 +1,4 @@
-//v0.3077; *Build 198 r154;
+//v0.3077; *Build 199 r121;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -204,520 +204,227 @@ $using:
 
 
 $DONE:
-r1-r2:
-/ \def @ \f LoadFontFileDirectory @ \un \ns @ \impl \u YShellInitialization;
-/= test 1;
-
-r3:
-/ @ \dir Adaptor:
-	/ \mac GLYPH_CACHE_SIZE (512 << 10) @ \h YFont
-		-> \c std::size_t GLYPH_CACHE_SIZE(1024 << 10) @ \ns Drawing;
-	/ \mac AGG_INCLUDED => INCLUDED_AGG_H_ @ \h "agg.h";
-- 3 \mac 'DEF_SHELL_*' @ \h YCommon;
-/ \a Font::DefSize => Font::DefaultSize;
-/ \a Font::MinSize => Font::MinimalSize;
-/ \a Font::MaxSize => Font::MaximalSize;
-
-r4:
-/= test 2;
-
-r5:
-/ @ \u YFont:
-	/ \c std::size_t GLYPH_CACHE_SIZE(1024 << 10)
-		-> \c std::size_t GLYPH_CACHE_SIZE(128 << 10);
-	/ @ \cl YFontCache:
-		/ \tr @ \mf order;
-		+ \i \mf void ResetGlyphCache();
-
-r6-r11:
-/= test 3;
-
-r12:
-/ \impl @ \f InitializeSystemFontCache @ \impl \u YShellInitialization;
-/ \mf ResetDefaultTypeface => InitializeDefaultTypeface
-	@ \cl YFontCache @ \u YFont;
-
-r13-r18:
-/= test 4;
-
-r19:
-/ @ \cl YFontCache @ \u YFont:
-	- \m Font::SizeType curSize;
-	/ \tr \impl @ \mf SetFontSize;
-	/ \impl @ \ctor;
-	/ \impl @ \i \mf GetFontSize;
-
-r20:
-/ \impl @ \mf LoadTypefaces @ \cl YFontCache @ \impl \u YFont;
-
-r21:
-/ @ \cl YFontCache @ \u YFont:
-	- private \m Typeface* pFace;
-	/ \tr \impl @ \i \mf GetTypefacePtr;
-	/ \tr \impl @ \ctor;
-
-r22:
-/ @ \cl YFontCache @ \u YFont:
-	/ \impl @ \mf FTC_SBit CharBitmap GetGlyph(fchar_t);
-	- private \m FTC_SBit sbit;
-
-r23:
-/ @ \u YWindow:
-	/ \mf void AWindow::Show() -> !\m \f bool Show(HWND);
-	+ \f bool Hide(HWND);
-/ @ \cl ShlSetting@ \u Shells:
-	/ @ \cl TFormB:
-		+ \mf btnB2_Click();
-/ \a _handle => _tHandle;
-
-r24:
-/ @ \cl ShlSetting::TForm @ \u Shells:
-	/ \impl @ \ctor @ \cl ShlSetting::TFormB ;
-	* \decl @ \mf void btnB2_Click(InputEventArgs&)
-		-> void btnB2_Click(TouchEventArgs&);
-
-r25:
-/ @ \u Shell_DS:
-	/ \mg \a \mf @ \cl ShlGUI @ \ns Shells -> \cl ShlDS @ \ns DS;
-	/ @ \cl ShlDS:
-		- \mf DefGetter(HWND, UpWindowHandle, hWndUp);
-		- \mfDefGetter(HWND, DownWindowHandle, hWndDown);
-		/ \impl @ \mf ShlProc;
-		/ \inh \cl Shells::ShlGUI -> Shells::YGUIShell;
-	- \cl ShlGUI;
-/ @ \cl ShlReader @ \u Shells:
-	/ \inh \cl Shells::ShlGUI -> ShlDS;
-	/ typedef ShlGUI ParentType -> typedef ShlDS ParentType;
-	/ \ac @ \mf OnClick & OnKeyPress -> private ~ public;
-	/ \tr \impl @ \ctor;
-
-r26-r28:
-* \impl @ \mf YListBox::OnViewChanged_TextListBox @ \impl \u ListBox;
-
-r29:
-/ @ \impl \u Scroll:
-	* \tr \impl @ \mf void ScrollableContainer::DrawForeground();
-* \impl @ \cl YListBox @ \impl \u ListBox:
-	/ \impl @ \mf DrawForeground;
-	/ \impl @ \mf OnViewChanged_TextListBox;
-
-r30:
-* @ \u ListBox:
-	* \impl @ \cl YListBox:
-		/ \impl @ \ctor;
-	/ \ac @ \mf GetTextState @ \cl YSimpleListBox -> public ~ protected;
+r1-r30:
+/= test 1-6 ^ \a \conf;
 
 r31:
-/ @ \h YReference:
-	+ typedef @ \clt (GHStrong & GHWeak & GHHandle);
-	* @ \ctor:
-		- \ctor GHHandle(T&) @ \clt GHHandle;
-		/ @ \clt GHWeak:
-			- \ctor GHWeak(T&);
-			/ \ctor GHWeak(RefToValue<GHStrong<T> >)
-				-> 	/ \ctor GHWeak(RefToValue<GHStrong<StrongPtrType>)
-			* \ctor GHWeak(GHStrong<T>) -> GHWeak(StrongPtrType p)
-		- \ctor GHStrong(T&) @ \clt GHStrong;
-	/ \a SPType => SPT;
++ \conf \mac test @ \h Config @ \dir YAdaptor;
+* \as string @ \impl @ \mf (ResponseKey & ResponseTouch) @ \cl YGUIShell;
 
 r32:
-/ @ \cl ShlDS @ \u Shell_DS:
-	+ private \m GHHandle<YDesktop> hDskUp, hDskDown;
-	/ \ctor ShlDS() -> ShlDS(GHHandle<YDesktop>
-		= theApp.GetPlatformResource().GetDesktopUpHandle(), GHHandle<YDesktop>
-		= theApp.GetPlatformResource().GetDesktopDownHandle());
-	/ \impl @ \mf UpdateToScreen;
-	/ \impl @ \mf OnDeactivated;
-	+ \mf DefGetter(const GHHandle<YDesktop>&, DesktopUpHandle, hDskUp);
-	+ \mf DefGetter(const GHHandle<YDesktop>&, DesktopDownHandle, hDskDown);
+/= \test 7 ^ \conf release;
 
 r33:
-/ \impl @ \mf ShlDS::OnDeactivated @ \impl \u YShell_DS;
+/ @ \cl YGUIShell @ \u YGUI:
+	/ \impl @ \mf ResponseKey;
+	- \mf ResponseKeyUpBase;
+	- \mf ResponseKeyDownBase;
+	- \mf ResponseKeyHeldBase;
 
 r34:
-/ \impl (\mf (OnActivated & OnDeactivated & UpdateToScreen) @ \cl ShlReader
-	& \mf ShlLoad::OnActivated) @ \impl \u Shells;
+/= \test 8 ^ \conf release;
 
 r35:
-/ @ \h YUIContainer:
-	/ @ \in IUIContainer:
-		/ \amf void operator+=(IWidget&) -> void operator+=(IWidget*);
-		/ \amf bool operator-=(IWidget&) -> bool operator-=(IWidget*)
-		/ \amf void operator+=(IControl&) -> void operator+=(IControl*);
-		/ \amf bool operator-=(IControl&) -> bool operator-=(IControl*)
-		/ \amf void operator+=(GMFocusResponser<IControl>&)
-			-> void operator+=(GMFocusResponser<IControl>*);
-		/ \amf bool operator-=(GMFocusResponser<IControl>&)
-			-> bool operator-=(GMFocusResponser<IControl>*)
-	/ @ \cl MUIContainer:
-		/ \mf void operator+=(IControl&) -> void operator+=(IControl*);
-		/ \mf bool operator-=(IControl&) -> bool operator-=(IControl*);
-		/ \mf void operator+=(GMFocusResponser<IControl>&)
-			-> void operator+=(GMFocusResponser<IControl>*);
-		/ \mf bool operator-=(GMFocusResponser<IControl>&)
-			-> bool operator-=(GMFocusResponser<IControl>*);
-	/ @ \cl YUIContainer:
-		/ \mf void operator+=(IWidget&) -> void operator+=(IWidget*);
-		/ \mf bool operator-=(IWidget&) -> bool operator-=(IWidget*);
-		/ \mf void operator+=(IControl&) -> void operator+=(IControl*);
-		/ \mf bool operator-=(IControl&) -> bool operator-=(IControl*);
-		/ \mf void operator+=(GMFocusResponser<IControl>&)
-			-> void operator+=(GMFocusResponser<IControl>*);
-		/ \mf bool operator-=(GMFocusResponser<IControl>&)
-			-> bool operator-=(GMFocusResponser<IControl>*);
-/ @ \h YWindow:
-	/ @ \cl AFrameWindow:
-		/ \mf void operator+=(IWidget&) -> void operator+=(IWidget*);
-		/ \mf bool operator-=(IWidget&) -> bool operator-=(IWidget*);
-		/ \mf void operator+=(IControl&) -> void operator+=(IControl*);
-		/ \mf bool operator-=(IControl&) -> bool operator-=(IControl*);
-		/ \mf void operator+=(GMFocusResponser<IControl>&)
-			-> void operator+=(GMFocusResponser<IControl>*);
-		/ \mf bool operator-=(GMFocusResponser<IControl>&)
-			-> bool operator-=(GMFocusResponser<IControl>*);
-/ \tr \impl @ (\ctor & \dtor) @ \cl Control @ \impl \u YControl;
-/ \tr \impl @ (\ctor & \dtor) @ \cl YUIContainer @ \impl \u YUIContainer;
-/ \tr \impl @ (\ctor & \dtor) @ \cl YWidget @ \impl \u YWidget;
-/ \tr \impl @ (\ctor & \dtor) @ \cl AFrameWindow @ \impl \u YWindow;
-/ \a AFrameWindow => AFrame;
-/ \a \cl YWindow => YFrame;
+/ @ \u YGUI:
+	/ @ \cl YGUIShell:
+		- \mf GetFocusedEnabledVisualControlPtr @ \ns Components::Controls;
+		/ \mf bool ResponseKey(YDesktop&, KeyEventArgs&,
+			Components::Controls::VisualEvent) -> bool ResponseKey(IControl&,
+			KeyEventArgs&, Components::Controls::VisualEvent);
+	- \f IControl* GetFocusedObjectPtr(YDesktop&);
 
-r36:
-/= test 5 ^ \conf release;
+r36-r48:
+/ \test 9:
+	/ \impl @ \mf YGUIShell::ResponseKey @ \impl \u YGUI;
 
-r37:
-/ @ \cl YGUIShell @ \u YGUI:
-	/ \impl @ \mf void ClearScreenWindows(YDesktop&);
-	/ \rem \mf HWND GetFirstWindowHandle() const;
-	/ \rem \mf HWND GetTopWindowHandle() const;
+r49-r60:
+/ \test 10 ^ \conf release;
+	* \impl @ \mf YGUIShell::ResponseKey @ \impl \u YGUI;
 
-r38:
-/ \impl @ \mf int OnActivated(const Message&) @ \cl (ShlExplorer & ShlLoad);
+r61-r62:
+/ \impl @ \mf YGUIShell::ResponseKey @ \impl \u YGUI;
 
-r39:
-/= test 6 ^ \conf release;
-
-r40:
-/ @ \cl YGUIShell @ \u YGUI:
-	- (\rem \mf HWND GetFirstWindowHandle() const);
-	- (\rem \mf HWND GetTopWindowHandle() const);
-	- \mf void DispatchWindows();
-	- \mf WNDs::size_type RemoveAll();
-	- \mf void RemoveWindow();
-	- \mf void operator+=(HWND);
-	- \mf void operator-=(HWND);
-	- private \m WNDs sWnds;
-	- typedef list<HWND> WNDs;
-	/ \tr \impl @ \ctor;
-	/ \simp \impl @ \mf HWND GetTopWindowHandle(YDesktop&, const Point&) const;
-	- \mf bool SendWindow(IWindow&);
-/ \tr \impl @ \ft<class _type> HWND NewWindow() @ \h YShellHelper;
-/ \tr \impl @ \mf int ShlDS::OnDeactivated(const Message&)
-	@ \impl \u Shell_DS;
-/ \tr \impl @ \mf int ShlSetting::OnDeactivated(const Message&)
-	@ \impl \u Shells;
-
-r41:
-/ @ \cl YGUIShell @ \u YGUI:
-	- \mf HWND GetTopWindowHandle(YDesktop&, const Point&) const;
-	- \mf IWidget* GetCursorWidgetPtr(YDesktop&, const Point&) const;
-
-r42:
-/= test 7 ^ \conf release;
-
-r43:
-/ @ \u Shell_DS:
-	/ \impl @ \mf ShlDS::OnDeactivated;
-	- \f ShlClearBothScreen;
-	- \i \f NowShellDrop;
-/ \impl @ \mf ShlReader::OnDeactivated @ \impl \u Shells;
-- \mf void YGUIShell::ClearScreenWindows(YDesktop&) @ \u YGUI;
-
-r44:
-/ @ \cl MUIContainer @ \u YUIContainer:
-	- (\i & \vt) @ protected \vt void operator+=(IControl*);
-	- (\i & \vt) @ protected \vt bool operator-=(IControl*);
-	- \i @ protected void operator+=(GMFocusResponser<IControl>*);
-	* (- \i & \impl) @ protected bool operator-=(GMFocusResponser<IControl>*);
-- \i @ \mf void AFrame::operator+=(IWidget*) @ \u YWindow;
-
-r45:
-/ \simp \impl @ \mf IControl* MUIContainer::GetTopControlPtr(const Point&)
-	@ \impl \u YUIContainer;
-/ error message string;
-/ @ \cl YDesktop @ \u YDesktop:
-	/ \mf DOs::size_type RemoveAll(IControl&)
-		-> \mf DOs::size_type RemoveAll(IControl*);
-	/ \mf \vt void operator+=(IControl&) -> \vt void operator+=(IControl*);
-	/ \mf \vt bool operator-=(IControl&) -> \vt bool operator-=(IControl*);
-	* typedef YComponent ParentType -> typedef YFrame ParentType;
-/ \tr \impl @ (\ctor & \dtor) @ \cl YFrame @ \impl \u YWindow;
-
-r46:
-/ \cl (ShlLoad & ShlExplorer & ShlSetting) @ \u Shells:
-	+ private \m HWND hWndUp, hWndDown;
-	((+ \mf) | (/ \impl)) \vt int OnDeactivated(const Message&);
-/ @ \cl ShlDS @ u Shell_DS:
-	/ \impl @ \mf int OnDeactivated(const Message&);
-	- protected \m HWND hWndUp, hWndDown;
-/ \mac DefEmptyDtor @ \h Base;
-/ - \es @ \vt \dtor @ \cl YShell;
-/ - \es @ \i \vt \dtor @ \cl (BitmapBuffer & BitmapBufferEx);
-/ - \es @ \vt \dtor @ \cl (Control & AFrame & YFrame & YForm & YUIContainer);
-
-r47:
-- \a DefEmptyDtor(*) @ \a \cl \exc \cl ((FileList @ \u YFileSystem)
-	& (Graphics @ \u YObject) & (AFocusRequester @ \u YFocus)
-	& (PenStyle @ \u YGDI) & (ATextRenderer & \u YText)
-	& (MUIContainer @ \u YUIContainer) & (Visual @ \u YWidget));
-+ \mac ImplEmptyDtor(_type) @ \h Base;
-* @ \cl AFocusRequester:
-	/ \dtor -> \adtor ^ \mac (DeclIEntry & ImplEmptyDtor);
-/ \simp @ \def @ \cl AFocusRequester:
-	-= empty \ctor AFocusRequester;
-
-r48:
-/ ^ \conf release;
-/= test 8;
-
-r49-r64:
-/= test 9 ^ \conf release;
-/= test 10 ^ \conf debug;
+r63-r64:
+/= \test 11 ^ \conf release;
 
 r65:
-/ @ \cl MUIContainer:
-	+ protected \mf void \op+=(IWidget*);
-	+ protected \mf bool \op-=(IWidget*);
-	/ protected \impl @ \mf void \op+=(IControl*);
-	/ protected \impl @ \mf void \op-=(IControl*);
-* @ \cl AFrame:
-	/ \impl @ \mf \vt void \op+=(IWidget*) ^ \mf @ \cl MUIContainer;
-	/ \impl @ \mf \vt bool \op-=(IWidget*) ^ \mf @ \cl MUIContainer;
+* \impl @ \ctor @ \st RoutedEvent @ \h YControl;
+/ \impl @ \mf YGUIShell::ResponseKey @ \impl \u YGUI;
 
 r66:
-* \mf IControl* GetTopDesktopObjectPtr(const Point&) const
-	-> IControl* GetTopVisibleDesktopObjectPtr(const Point&) const
-	@ \cl YDesktop;
-* \impl @ \mf (GetTopWidgetPtr & GetTopControlPtr) @ \cl MUIContainer;
+/= \test 12 ^ \conf release;
 
 r67:
-/ @ \u YWindow:
-	/ @ \cl YFrame:
-		+ protected \mf bool DrawContensBackground();
-		/ \impl @ \mf DrawWidgets ^ DrawContensBackground;
-	/ \a DrawWidgets => DrawContents;
-	/ \impl @ \mf AWindow::Draw;
+/ \impl @ \mf YGUIShell::ResponseTouch @ \impl \u YGUI;
 
-r68-r71:
-/ @ \cl YDesktop:
-	/ \mf !\vt void DrawDesktopObjects() -> \vt bool DrawContents();
-	- \mf Draw;
+r68:
+/ \test 13 ^ \conf release:
+	/ YSLib makefile optimizing @ \conf release;
 
-r72:
-/ \impl @ mf bool YDesktop::DrawContents();
-
-r73:
-/ \cl Font @ \impl \u YFont:
-	/ Font::DefaultSize(16) -> Font::DefaultSize(14);
-	/ Font::DefaultSize(72) -> Font::DefaultSize(96);
-
-r74:
-/= test 11 ^ \conf release;
-
-r75:
-- \a \tp IUIBox* @ \a \ctor @ \ns Components @ \dir Shell;
-/ \tr @ \u Shells;
-/ @ \h YWidget:
-	/ private \m IUIBox* pContainer -> mutable private \m @ \cl Widget;
-	/ \ret \tp @ \amf GetContainerPtr @ \in IWidget -> IUIBox*& ~ IUIBox*;
-/ \tr \decl @ \mf GetContainerPtr @ \cl (Widget & YWidget & Control
-	& YUIContainer);
-
-r76-r77:
-/= test 12;
-
-r78:
-* @ \cl MUIContainer @ \impl \u YUIContainer:
-	/ \impl @ \mf void operator+=(IWidget*);
-	/ \impl @ \mf void operator+=(IControl*);
-	/ \impl @ \mf bool operator-=(IWidget*);
-	/ \impl @ \mf bool operator-=(IControl*);
-
-r79-r80:
-/= test 13;
-
-r81:
-* \tr \impl @ \impl \u YWindow;
-
-r82-r86:
+r69-r71:
 /= test 14;
 
-r87:
-* @ \cl MUIContainer @ \impl \u YUIContainer:
-	/ undid r78;
-* @ \cl YFrame @ \u YWindow:
-	/ \impl @ \mf void operator+=(IWidget*);
-	/ \impl @ \mf void operator+=(IControl*);
-	/ \impl @ \mf bool operator-=(IWidget*);
-	/ \impl @ \mf bool operator-=(IControl*);
+r72:
+/ @ \h YControl:
+	/ DefEventTypeMapping(Enter, HInputEvent)
+		-> DefEventTypeMapping(Enter, HTouchEvent);
+	/ DefEventTypeMapping(Leave, HInputEvent)
+		-> DefEventTypeMapping(Leave, HTouchEvent);
+* \impl @ \mf ResponseKey @ \cl YGUIShell @ \impl \u YGUI;
+/ \tr @ \decl @ \mf (OnEnter & OnLeave) @ \cl Button; 
 
-r88-r89:
-* \impl \mf (OnActivated & OnDeactivated) @ \cl (ShlLoad & ShlExplorer)
-	@ \impl \u Shells;
+r73:
+/= test 15 ^ \conf release;
 
-r90-r96:
-/= test 15;
+r74-r75:
+/ @ \h Container @ \dir Adaptor:
+	+ \inc \h <utility>;
+	+ using std::pair @ \ns YSLib;
+	+ using std::make_pair @ \ns YSLib;
+/ \a std::pair -> pair @ \ns YSLib;
+/ \a std::make_pair -> make_pair @ \ns YSLib;
 
-r97:
-* \impl @ \mf bool YDesktop::DrawContents() @ \impl \u YDesktop;
+r76:
+/ @ \cl ShlExplorer @ \u Shells:
+	+ \mf void frm_KeyUp(KeyEventArgs&);
+	+ \mf void frm_KeyDown(KeyEventArgs&);
+	- \mf void frm_KeyPress(KeyEventArgs&);
+	/ \impl @ \mf int OnActivated(const Message&);
+	/ \impl @ \mf int OnDeactivated(const Message&);
 
-r98-r108:
+r77-r84:
 /= test 16;
 
-r109-r110:
-* \impl @ \mf bool YDesktop::operator-=(IControl*) @ \impl \u YDesktop;
+r85:
+* \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \impl \u Shells;
 
-r111-r114:
+r86:
 /= test 17;
 
-r115:
-* @ \cl AFrame @ \impl \u YWindow:
-	/ \impl @ \mf bool operator-=(IWidget*);
-	/ \impl @ \mf bool operator-=(IControl*);
-* + \inc \h <algorithm> @ \impl \u YDesktop;
+r87:
+/ @ \cl ShlExplorer @ \impl \u Shells:
+	* \impl @ \mf (frm_KeyUp & frm_KeyDown);
+	+ \mf void frm_KeyPress(KeyEventArgs&);
 
-r116:
-* \impl \mf (OnActivated & OnDeactivated) @ \cl ShlSetting @ \impl \u Shells;
-
-r117:
-/ \impl @ \ctor ShlSetting::TFormB @ \impl \u Shells;
-
-r118-r122:
+r88-r93:
 /= test 18;
 
-r123:
-* \impl @ \mf int ShlSetting::OnDeactivated(const Message&) @ \impl \u Shells;
+r94-r95:
+* \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \impl \u Shells;
 
-r124:
-^ \conf release;
+r96:
 /= test 19;
 
-r125:
-/ @ \cl ShlLoad @ \u Shells:
-	/ \m YLabel lblStatus => lblDetais @ \cl TFrmLoadDown;
-	/ \a \m \exc \st @ \m (\st (TFrmLoadUp & TFrmLoadDown)) >> \cl ShlLoad;
-	- private \m \st (TFrmLoadUp & TFrmLoadDown);
-	- private \m HWND hWndUp, hWndDown;	
-	+ \ctor ShlLoad();
-	/ \impl @ \mf (OnActivated & OnDeactivated);
+r97:
+/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \impl \u Shells;
 
-r126:
-* \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlLoad @ \impl \u Shells;
+r98:
+/ @ \cl YShellGUI:
+	+ protected \mf bool ResponseKeyBase(IControl&,
+		Components::Controls::KeyEventArgs&, Components::Controls::VisualEvent);
+	+ protected \mf bool ResponseTouchBase(IControl&,
+		Components::Controls::TouchEventArgs&,
+		Components::Controls::VisualEvent);
+	/ \impl @ \mf ResponseKey;
+	/ \impl @ \mf ResponseTouch;
 
-r127:
-/ \impl @ \mf void ShlDS::UpdateToScreen() @ \impl \u Shell_DS;
+r99:
+* @ \cl YShellGUI:
+	/ \impl @ \mf ResponseKeyBase;
+	/ \impl @ \mf ResponseTouchBase;
 
-r128-r131:
+r100:
 /= test 20;
 
-r132-r134:
-^ \conf debug;
-/ \impl \mf bool DrawContents() @ \cl YDesktop:
-	+ \as;
+r101:
+* @ \cl YShellGUI:
+	/ \impl @ \mf ResponseKeyBase;
+	/ \impl @ \mf ResponseTouchBase;
+	/ \impl @ \mf ResponseTouch;
+	/ \impl @ \mf ResponseKey;
+/ @ \cl ShlExplorer @ \impl \u Shells:
+	* \impl @ \mf frm_KeyUp & frm_KeyDown;
+	/ \impl @ \mf frm_KeyPress;
 
-r135:
-/ @ \cl YDesktop:
-	/ \impl \mf void operator+=(IControl*);
-	/ \impl \mf bool operator-=(IControl*);
-
-r136:
-- \mf DOs::size_type RemoveAll() @ \cl YDesktop;
-/ \tr \impl @ \dtor @ \cl YFrame;
-
-r137-r138:
-/ \impl \mf bool DrawContents() @ \cl YDesktop;
-/ \impl @ \f void OnTouchMove_Dragging(IControl&, TouchEventArgs&)
-	@ \impl \u YControl;
-
-r139:
-/ @ \cl ShlDS @ \u Shell_DS:
-	+ \mf \vt int OnActivated(const Message&);
-	/ 2 \as @ \ctor >> \mf OnActivated;
-	/ \impl @ \mf OnDeactivated;
-/ \tr \impl @ 3 \mf OnActivated @ \impl \u Shells;
-
-r140:
-/ \impl @ \mf Refresh @ \cl (AWindow & YDesktop);
-
-r141:
-/ \impl @ \mf int ShlDS::OnActivated(const Message&) @ \impl \u Shell_DS;
-
-r142:
-+ bool SetContainerBgRedrawedOf(IWidget&, bool) @ \u YUIContainer;
-* \impl @ \f (Show & Hide) @ \impl \u YWindow ^ \f SetContainerBgRedrawedOf;
-
-r143:
-* \impl @ \cl ShlReader @ \impl \cl Shells:
-	/ \impl @ \mf OnActivated;
-	/ \impl @ \mf UpdateToScreen;
-
-r144:
+r102:
 /= test 21 ^ \conf release;
 
-r145:
-/ \impl @ \mf AWindow::Refresh;
-- \mf YDesktop::Refresh;
+r103-r104:
+* \impl @ \mf (ResponseTouchBase & ResponseKeyBase) @ \cl YShellGUI;
 
-r146:
-/ \mf void ClearDesktopObjects() @ \cl YDesktop -> void ClearContents();
-- \dtor @ \cl (YWidget & YUIContainer);
+r105:
+/ @ \cl YShellGUI:
+	/ \impl @ \mf (ResponseTouchBase & ResponseKeyBase);
+	* \impl @ \mf ResponseKey;
 
-r147:
-/ \simp 3 \mf OnDeactivated @ \cl @ \impl \u Shells;
-
-r148:
-/ @ \cl ShlExplorer @ \u Shells:
-	- \decl @ \mf void LoadNextWindows();
-	/ \a \m \exc \st @ \m (\st (TFrmFileListMonitor
-		& TFrmFileListSelecter)) >> \cl ShlLoad;
-	- private \m \st (TFrmFileListMonitor & TFrmFileListSelecter);
-	- private \m HWND hWndUp, hWndDown;	
-	+ \ctor ShlExplorer();
-	/ \impl @ \mf (OnActivated & OnDeactivated);
-	/ \simp \impl @ \mf fb_ViewChanged;
-
-r149:
-* \impl @ \mf bool YDesktop::DrawContents();
-
-r150:
-* \ctor & \mf OnActivated @ \cl ShlExplorer @ \u Shells;
-
-r151-r152:
+r106-r112:
 /= test 22;
 
-r153:
-* @ \impl \u YDesktop:
-	* \impl @ \mf void operator+=(IControl*);
-	* \impl @ \mf bool operator-=(IControl*);
-* \i \mf operator-=(_type&) @ \clt GMFocusResponser<_type>
-	-> !\i \mf;
+r113:
+* \impl @ \mf ResponseTouchBase @ \cl YShellGUI;
 
-r154:
-/= test  ^ \conf release;
+r114:
+* \impl @ \mf ResponseKeyBase @ \cl YShellGUI;
+
+r115:
+/= test 23 ^ \conf release;
+
+r116-r118:
+/= test 24;
+
+r119:
+/ @ \h YEvent:
+	/ @ \clt GEvent<true>:
+		+ typedef typename ListType::size_type SizeType;
+		/= \ret \tp @ \mf GetSize -> SizeType ~ Listtype::size_type;
+		/ \mf void operator()(_tSender&, _tEventArgs&) const
+			-> SizeType operator()(_tSender&, _tEventArgs&) const;
+	/ @ \clt GEvent<false>:
+		+ typedef std::size_t SizeType;
+		+ \i \mf SizeType operator()(_tSender&, _tEventArgs&) const;
+		+ \i \mf SizeType GetSize() const;
+	+ typedef EventType::SizeType SizeType @ 2 \clt GSEvent;
+	/ \amf DeclIEntry(void operator()(_tSender&, _tEventArgs&) const)
+		-> DeclIEntry(std::size_t operator()(_tSender&, _tEventArgs&) const);
+	/ \mf std::size_t operator()(YObject&, EventArgs&) const
+		@ \clt GEventWrapper -> std::size_t
+		operator()(YObject&, EventArgs&) const;
+	/ \mft<class _tEventHandler> void DoEvent(const ID&,
+		typename _tEventHandler::SenderType&,
+		typename _tEventHandler::EventArgsType&) const @ \clt GEventMap
+		-> 	template<class _tEventHandler> std::size_t DoEvent(const ID&,
+		typename _tEventHandler::SenderType&,
+		typename _tEventHandler::EventArgsType&) const;
+	/ @ \clt GDependencyEvent:
+		- typedef typename EventType::ListType ListType;
+		+ typedef typename EventType::SizeType SizeType;
+		/ \tr \impl @ \tr @ \i \mf GDependencyEvent::operator() const
+			-> SizeType ~ void;
+		/ \tr \impl @ \tr @ \i \mf GDependencyEvent::GetSize() const
+			-> SizeType ~ typename ListType::size_type;
+
+r120:
+/ \impl @ \mf ResponseTouch @ \cl YShellGUI;
++ using std::size_t @ \ns YSLib @ \h Adaptor;
+/ \a std::size_t @ \lib YSLib \exc \u YNew -> size_t;
+/ \m IsHandled @ \cl RoutedEventArgs => Handled;
+
+r121:
+/= test 25 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-04-05:
--24.6d;
+2011-04-09:
+-26.4d;
 
 / ...
 
 
 $NEXT_TODO:
 
-b196-b240:
+b199-b240:
 + key routing events for the view tree;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
@@ -747,7 +454,7 @@ r577-r864:
 + database interface;
 
 
-$NOTHING_TODO:
+$KNOWN_ISSUE:
 * fatal \err @ b16x:
 [
 F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
@@ -772,8 +479,6 @@ guruMeditationDump
 gurumeditation.c:254
 ]
 
-
-$LAST_SUCCESSFULLY_FIXED:
 
 $TODO:
 
@@ -809,9 +514,17 @@ $remove_features -;
 $using ^;
 
 $transform $list ($list_member $pattern $all($exclude $pattern
-	$direct_str "*")) +;
+	$string_literal "*")) +;
 
 $now
+(
+"event routing for %KeyUp, %KeyDown and %KeyHeld",
+* "event behavior with optimizing since b196",
++ "keypad shortcut for file selecter",
++ "returning number of called handles in event calling"
+),
+
+b198
 (
 * "font caching without default font file load successfully",
 "showing and hiding windows",
