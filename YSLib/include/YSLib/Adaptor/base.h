@@ -11,12 +11,12 @@
 /*!	\file base.h
 \ingroup Adaptor
 \brief 通用基础设施。
-\version 0.2326;
+\version 0.2330;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-04-03 20:53 +0800;
+	2011-04-10 21:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -47,12 +47,7 @@
 #define YSL			::YSLib
 
 #define YSL_BEGIN_NAMESPACE(s)	namespace s {
-#define YSL_END_NAMESPACE(s)		}
-
-#define YSL_BEGIN_SHELL(s)	namespace _yJOIN(_YSHL_, s) {
-#define YSL_END_SHELL(s)	}
-#define YSL_SHL_(s)		YSL_ _yJOIN(_YSHL_, s)::
-#define YSL_SHL(s)		YSL_ _yJOIN(_YSHL_, s)
+#define YSL_END_NAMESPACE(s)	}
 
 
 //异常规范宏。

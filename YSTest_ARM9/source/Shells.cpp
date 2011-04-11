@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3846;
+\version 0.3914;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-09 21:15 +0800;
+	2011-04-11 07:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,11 +27,8 @@
 #include <Shells.h>
 
 ////////
-//测试用声明：资源定义。
-extern char gstr[128];
-char strtbuf[0x400],
-	strtf[0x400],
-	strttxt[0x400];
+//测试用声明：全局资源定义。
+//extern char gstr[128];
 
 YSL_BEGIN
 
@@ -70,39 +67,39 @@ namespace
 	void
 	dfa(BitmapPtr buf, SDst x, SDst y)
 	{
-		//raz2
-		buf[y * Global::MainScreenWidth + x] = ARGB16(1, ((x >> 2) + 15) & 31,
-			((y >> 2) + 15) & 31, ((~(x * y) >> 2) + 15) & 31);
+		//raz2GBR
+		buf[y * Global::MainScreenWidth + x] = ARGB16(1, ((y >> 2) + 15) & 31,
+			((~(x * y) >> 2) + 15) & 31, ((x >> 2) + 15) & 31);
 	}
 	void
 	dfap(BitmapPtr buf, SDst x, SDst y)
 	{
-		//bza1
+		//bza1BRG
 		buf[y * Global::MainScreenWidth + x] = ARGB16(1,
-			((x | y << 1) % (y + 2)) & 31, ((~y | x << 1) % 27 + 3) & 31,
-			((x << 4) / (y | 1)) & 31);
+			((x << 4) / (y | 1)) & 31,
+			((x | y << 1) % (y + 2)) & 31, ((~y | x << 1) % 27 + 3) & 31);
 	}
 	void
 	dfac1(BitmapPtr buf, SDst x, SDst y)
 	{
-		//fl1
+		//fl1RBG
 		buf[y * Global::MainScreenWidth + x] = ARGB16(1, (x + y * y) & 31,
-			(x * x + y) & 31, ((x & y) ^ (x | y)) & 31);
+			((x & y) ^ (x | y)) & 31, (x * x + y) & 31);
 	}
 	void
 	dfac1p(BitmapPtr buf, SDst x, SDst y)
 	{
-		//rz3
-		buf[y * Global::MainScreenWidth + x] = ARGB16(1, ((x * y) | y) & 31,
-			((x * y) | x) & 31, ((x ^ y) * (x ^ y)) & 31);
+		//rz3GRB
+		buf[y * Global::MainScreenWidth + x] = ARGB16(1, ((x * y) | x) & 31,
+			((x * y) | y) & 31, ((x ^ y) * (x ^ y)) & 31);
 	}
 	void
 	dfac2(BitmapPtr buf, SDst x, SDst y)
 	{
-		//v1
+		//v1BGR
 		buf[y * Global::MainScreenWidth + x] = ARGB16(1,
-			((x + y) % ((y - 2) & 1) + (x << 2)) & 31, (~x % 101 + y) & 31,
-			((x << 4) / (y & 1)) & 31);
+			((x << 4) / (y & 1)) & 31,
+			(~x % 101 + y) & 31,((x + y) % ((y - 2) & 1) + (x << 2)) & 31);
 	}
 	void
 	dfac2p(BitmapPtr buf, SDst x, SDst y)
@@ -119,6 +116,8 @@ namespace
 	BitmapPtr gbuf;
 	int nCountInput;
 	char strCount[40];
+	char strtf[0x400];
+	char strttxt[0x400];
 
 	GHStrong<YImage>&
 	GetGlobalImageRef(std::size_t i)
@@ -207,7 +206,7 @@ namespace
 	void
 	InputCounter(const Point& pt)
 	{
-		sprintf(strCount, "%d,%d,%d;Count = %d, Pos = (%d, %d);",
+		std::sprintf(strCount, "%d,%d,%d;Count = %d, Pos = (%d, %d);",
 			sizeof(AWindow), sizeof(YFrame), sizeof(YForm),
 			nCountInput++, pt.X, pt.Y);
 	}
@@ -342,13 +341,11 @@ ShlExplorer::ShlExplorer()
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
 	chkTest(Rect(45, 165, 16, 16))
 {
-	//	fbMain.TouchDown += YFileBox::OnClick;
-	//	fbMain.Click += &YListBox::_m_OnClick;
-	FetchEvent<KeyPress>(fbMain) += fb_KeyPress;
-	fbMain.GetViewChanged().Add(*this, &ShlExplorer::fb_ViewChanged);
-	fbMain.GetConfirmed() += fb_Confirmed;
-	FetchEvent<Click>(btnTest).Add(*this, &ShlExplorer::btnTest_Click);
-	FetchEvent<Click>(btnOK).Add(*this, &ShlExplorer::btnOK_Click);
+	FetchEvent<KeyPress>(fbMain) += OnKeyPress_fbMain;
+	fbMain.GetViewChanged().Add(*this, &ShlExplorer::OnViewChanged_fbMain);
+	fbMain.GetConfirmed() += OnConfirmed_fbMain;
+	FetchEvent<Click>(btnTest).Add(*this, &ShlExplorer::OnClick_btnTest);
+	FetchEvent<Click>(btnOK).Add(*this, &ShlExplorer::OnClick_btnOK);
 }
 
 int
@@ -384,11 +381,11 @@ ShlExplorer::OnActivated(const Message& msg)
 	btnTest.Text = _ustr("测试(X)");
 	btnOK.Text = _ustr("确定(R)");
 	FetchEvent<KeyUp>(*GetDesktopDownHandle()).Add(*this,
-		&ShlExplorer::frm_KeyUp);
+		&ShlExplorer::OnKeyUp_frm);
 	FetchEvent<KeyDown>(*GetDesktopDownHandle()).Add(*this,
-		&ShlExplorer::frm_KeyDown);
+		&ShlExplorer::OnKeyDown_frm);
 	FetchEvent<KeyPress>(*GetDesktopDownHandle()).Add(*this,
-		&ShlExplorer::frm_KeyPress);
+		&ShlExplorer::OnKeyPress_frm);
 	btnOK.SetTransparent(false);
 /*
 	ReplaceHandle<HWND>(hWndUp,
@@ -409,11 +406,11 @@ int
 ShlExplorer::OnDeactivated(const Message& msg)
 {
 	FetchEvent<KeyUp>(*GetDesktopDownHandle()).Remove(*this,
-		&ShlExplorer::frm_KeyUp);
+		&ShlExplorer::OnKeyUp_frm);
 	FetchEvent<KeyDown>(*GetDesktopDownHandle()).Remove(*this,
-		&ShlExplorer::frm_KeyDown);
+		&ShlExplorer::OnKeyDown_frm);
 	FetchEvent<KeyPress>(*GetDesktopDownHandle()).Remove(*this,
-		&ShlExplorer::frm_KeyPress);
+		&ShlExplorer::OnKeyPress_frm);
 	GetDesktopUpHandle()->SetBackground(NULL);
 	GetDesktopDownHandle()->SetBackground(NULL);
 	ParentType::OnDeactivated(msg);
@@ -421,7 +418,7 @@ ShlExplorer::OnDeactivated(const Message& msg)
 }
 
 void
-ShlExplorer::frm_KeyUp(KeyEventArgs& e)
+ShlExplorer::OnKeyUp_frm(KeyEventArgs& e)
 {
 	TouchEventArgs et(TouchEventArgs::FullScreen);
 
@@ -440,7 +437,7 @@ ShlExplorer::frm_KeyUp(KeyEventArgs& e)
 }
 
 void
-ShlExplorer::frm_KeyDown(KeyEventArgs& e)
+ShlExplorer::OnKeyDown_frm(KeyEventArgs& e)
 {
 	TouchEventArgs et(TouchEventArgs::FullScreen);
 
@@ -459,7 +456,7 @@ ShlExplorer::frm_KeyDown(KeyEventArgs& e)
 }
 
 void
-ShlExplorer::frm_KeyPress(KeyEventArgs& e)
+ShlExplorer::OnKeyPress_frm(KeyEventArgs& e)
 {
 	TouchEventArgs et(TouchEventArgs::FullScreen);
 
@@ -478,7 +475,7 @@ ShlExplorer::frm_KeyPress(KeyEventArgs& e)
 }
 
 void
-ShlExplorer::btnTest_Click(TouchEventArgs&)
+ShlExplorer::OnClick_btnTest(TouchEventArgs&)
 {
 	switchShl1();
 /*	if(fbMain.IsSelected())
@@ -504,7 +501,7 @@ ShlExplorer::btnTest_Click(TouchEventArgs&)
 }
 
 void
-ShlExplorer::btnOK_Click(TouchEventArgs&)
+ShlExplorer::OnClick_btnOK(TouchEventArgs&)
 {
 	if(fbMain.IsSelected())
 	{
@@ -522,14 +519,14 @@ ShlExplorer::btnOK_Click(TouchEventArgs&)
 }
 
 void
-ShlExplorer::fb_ViewChanged(EventArgs&)
+ShlExplorer::OnViewChanged_fbMain(EventArgs&)
 {
 	lblPath.Text = fbMain.GetPath();
 	lblPath.Refresh();
 }
 
 void
-ShlExplorer::fb_KeyPress(IControl& /*sender*/, KeyEventArgs& e)
+ShlExplorer::OnKeyPress_fbMain(IControl& /*sender*/, KeyEventArgs& e)
 {
 	Key x(e);
 
@@ -538,71 +535,48 @@ ShlExplorer::fb_KeyPress(IControl& /*sender*/, KeyEventArgs& e)
 }
 
 void
-ShlExplorer::fb_Confirmed(IControl& /*sender*/, IndexEventArgs& /*e*/)
+ShlExplorer::OnConfirmed_fbMain(IControl& /*sender*/, IndexEventArgs& /*e*/)
 {
 //	if(e.Index == 2)
 //		switchShl1();
 }
 
-YSL_BEGIN_SHELL(ShlSetting)
 
-//屏幕刷新消息生成函数。
-//输出设备刷新函数。
-/*static void ScrRefresh()
+ShlSetting::ShlSetting()
+	: hWndTest(NULL), hWndExtra(NULL),
+	lblA(Rect(5, 20, 200, 22)),
+	lblB(Rect(5, 80, 72, 22))
 {
-	SendMessage(GetCurrentShellHandle(), SM_SCRREFRESH, 0x80,
-		DefaultShellHandle->scrType, 0);
-}
-*/
-
-YSL_END_SHELL(ShlSetting)
-
-HWND ShlSetting::hWndC(NULL);
-
-ShlSetting::TFormA::TFormA()
-	: YForm(Rect::FullScreen, GetImage(5),
-	HWND(theApp.GetPlatformResource().GetDesktopUpHandle())),
-	lblA(Rect(s_left, 20, 200, s_size)),
-	lblA2(Rect(s_left, 80, 72, s_size))
-{
-	*this += &lblA;
-	*this += &lblA2;
 	lblA.Text = YApplication::ProductName;
-	lblA2.Text = "程序测试";
-	lblA2.SetTransparent(true);
+	lblB.Text = "程序测试";
+	lblB.SetTransparent(true);
 }
 
-void
-ShlSetting::TFormA::ShowString(const String& s)
-{
-	lblA.Text = s;
-	lblA.Refresh();
-}
-
-ShlSetting::TFormB::TFormB()
+ShlSetting::TFormTest::TFormTest()
 	: YForm(Rect(10, 40, 228, 70), NULL,
 		HWND(theApp.GetPlatformResource().GetDesktopDownHandle())),
-	btnB(Rect(2, 5, 224, s_size)), /*GetImage(6)*/
-	btnB2(Rect(45, 35, 124, s_size))
+	btnEnterTest(Rect(2, 5, 224, 22)), /*GetImage(6)*/
+	btnShowWindow(Rect(45, 35, 124, 22))
 {
-	*this += &btnB;
-	*this += &btnB2;
-	btnB.Text = _ustr("测试程序");
-	btnB.Alignment = MLabel::Right;
-	btnB2.Text = _ustr("显示/隐藏窗口");
-	btnB2.Alignment = MLabel::Left;
+	*this += &btnEnterTest;
+	*this += &btnShowWindow;
+	btnEnterTest.Text = _ustr("测试程序");
+	btnEnterTest.Alignment = MLabel::Right;
+	btnShowWindow.Text = _ustr("显示/隐藏窗口");
+	btnShowWindow.Alignment = MLabel::Left;
 	BackColor = ARGB16(1, 31, 31, 15);
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
-	//	btnB.TouchMove += &Control::OnTouchMove;
-	FetchEvent<Enter>(btnB) += btnB_Enter;
-	FetchEvent<Leave>(btnB) += btnB_Leave;
-	FetchEvent<Click>(btnB2).Add(*this, &TFormB::btnB2_Click);
-//	FetchEvent<TouchMove>(btnB2) += OnTouchMove_Dragging;
-	//	btnB2.TouchDown += btnC_Click;
+//	FetchEvent<TouchMove>(btnEnterTest) += &Control::OnTouchMove;
+	FetchEvent<Enter>(btnEnterTest) += OnEnter_btnEnterTest;
+	FetchEvent<Leave>(btnEnterTest) += OnLeave_btnEnterTest;
+	FetchEvent<Click>(btnShowWindow).Add(*this, &TFormTest::OnClick_btnShowWindow);
+//	FetchEvent<TouchMove>(btnShowWindow) += OnTouchMove_Dragging;
+//	FetchEvent<TouchDown>(btnShowWindow) += OnClick_btnDragTest;
 }
 
 void
-ShlSetting::TFormB::btnB_Enter(IControl& sender, InputEventArgs& e)
+ShlSetting::TFormTest::OnEnter_btnEnterTest(IControl& sender,
+	InputEventArgs& e)
 {
 	DefDynInitRef(YButton, btn, sender)
 	TouchEventArgs& pt(static_cast<TouchEventArgs&>(e));
@@ -613,7 +587,8 @@ ShlSetting::TFormB::btnB_Enter(IControl& sender, InputEventArgs& e)
 	btn.Refresh();
 }
 void
-ShlSetting::TFormB::btnB_Leave(IControl& sender, InputEventArgs& e)
+ShlSetting::TFormTest::OnLeave_btnEnterTest(IControl& sender,
+	InputEventArgs& e)
 {
 	DefDynInitRef(YButton, btn, sender)
 	TouchEventArgs& pt(static_cast<TouchEventArgs&>(e));
@@ -625,9 +600,9 @@ ShlSetting::TFormB::btnB_Leave(IControl& sender, InputEventArgs& e)
 }
 
 void
-ShlSetting::TFormB::btnB2_Click(TouchEventArgs& /*e*/)
+ShlSetting::TFormTest::OnClick_btnShowWindow(TouchEventArgs& /*e*/)
 {
-	HWND hWnd(HandleCast<ShlSetting>(FetchShellHandle())->hWndC);
+	HWND hWnd(HandleCast<ShlSetting>(FetchShellHandle())->hWndExtra);
 
 	if(hWnd)
 	{
@@ -638,57 +613,57 @@ ShlSetting::TFormB::btnB2_Click(TouchEventArgs& /*e*/)
 	}
 }
 
-ShlSetting::TFormC::TFormC()
-	: YForm(Rect(5, 60, 180, 120), NULL,
+ShlSetting::TFormExtra::TFormExtra()
+	: YForm(Rect(5, 60, 208, 120), NULL, /*GetImage(7)*/
 		HWND(theApp.GetPlatformResource().GetDesktopDownHandle())),
-	btnC(Rect(13, 15, 184, s_size)),/*GetImage(7)*/
-	btnD(Rect(13, 52, 60, s_size)),
-	btnReturn(Rect(13, 82, 60, s_size)),
-	btnExit(Rect(83, 82, 60, s_size))
+	btnDragTest(Rect(13, 15, 184, 22)),
+	btnTestEx(Rect(13, 52, 168, 22)),
+	btnReturn(Rect(13, 82, 60, 22)),
+	btnExit(Rect(83, 82, 60, 22))
 {
-	*this += &btnC;
-	*this += &btnD;
+	*this += &btnDragTest;
+	*this += &btnTestEx;
 	*this += &btnReturn;
 	*this += &btnExit;
-	btnC.Text = _ustr("测试拖放控件");
-	btnC.Alignment = MLabel::Left;
-	btnD.Text = _ustr("测试");
+	btnDragTest.Text = _ustr("测试拖放控件");
+	btnDragTest.Alignment = MLabel::Left;
+	btnTestEx.Text = _ustr("直接屏幕绘制测试");
 	btnReturn.Text = _ustr("返回");
 	btnReturn.SetEnabled(false);
 	btnExit.Text = _ustr("退出");
 	BackColor = ARGB16(1, 31, 15, 15);
-	FetchEvent<TouchDown>(*this) += TFormC_TouchDown;
+	FetchEvent<TouchDown>(*this) += OnTouchDown_FormExtra;
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
-	FetchEvent<TouchUp>(btnC).Add(*this,
-		&TFormC::btnC_TouchUp);
-	FetchEvent<TouchDown>(btnC).Add(*this,
-		&TFormC::btnC_TouchDown);
-	FetchEvent<TouchMove>(btnC) += OnTouchMove_Dragging;
-	FetchEvent<Click>(btnC).Add(*this, &TFormC::btnC_Click);
-	FetchEvent<Click>(btnD).Add(*this, &TFormC::btnD_Click);
-	FetchEvent<KeyPress>(btnC) += btnC_KeyPress;
-	//	btnC.Enabled = false;
+	FetchEvent<TouchUp>(btnDragTest).Add(*this,
+		&TFormExtra::OnTouchUp_btnDragTest);
+	FetchEvent<TouchDown>(btnDragTest).Add(*this,
+		&TFormExtra::OnTouchDown_btnDragTest);
+	FetchEvent<TouchMove>(btnDragTest) += OnTouchMove_Dragging;
+	FetchEvent<Click>(btnDragTest).Add(*this, &TFormExtra::OnClick_btnDragTest);
+	FetchEvent<Click>(btnTestEx).Add(*this, &TFormExtra::OnClick_btnTestEx);
+	FetchEvent<KeyPress>(btnDragTest) += OnKeyPress_btnDragTest;
+//	btnDragTest.Enabled = false;
 	btnReturn.BackColor = ARGB16(1, 22, 23, 24);
-	FetchEvent<Click>(btnReturn).Add(*this, &TFormC::btnReturn_Click);
-	FetchEvent<Click>(btnExit).Add(*this, &TFormC::btnExit_Click);
+	FetchEvent<Click>(btnReturn).Add(*this, &TFormExtra::OnClick_btnReturn);
+	FetchEvent<Click>(btnExit).Add(*this, &TFormExtra::OnClick_btnExit);
 }
 
 void
-ShlSetting::TFormC::btnC_TouchUp(TouchEventArgs& e)
+ShlSetting::TFormExtra::OnTouchUp_btnDragTest(TouchEventArgs& e)
 {
 	InputCounter(e);
 	HandleCast<ShlSetting>(FetchShellHandle())->ShowString(strCount);
-	btnC.Refresh();
+	btnDragTest.Refresh();
 }
 void
-ShlSetting::TFormC::btnC_TouchDown(TouchEventArgs& e)
+ShlSetting::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs& e)
 {
 	InputCounterAnother(e);
 	HandleCast<ShlSetting>(FetchShellHandle())->ShowString(strCount);
-//	btnC.Refresh();
+//	btnDragTest.Refresh();
 }
 void
-ShlSetting::TFormC::btnC_Click(TouchEventArgs& /*e*/)
+ShlSetting::TFormExtra::OnClick_btnDragTest(TouchEventArgs& /*e*/)
 {
 	static YFontCache& fc(theApp.GetFontCache());
 	static const int ffilen(fc.GetFilesN());
@@ -697,49 +672,50 @@ ShlSetting::TFormC::btnC_Click(TouchEventArgs& /*e*/)
 	static int itype;
 	static YFontCache::FTypes::const_iterator it(fc.GetTypes().begin());
 
-	//	btnC.Transparent ^= 1;
+	//	btnDragTest.Transparent ^= 1;
 	if(nCountInput & 1)
 	{
-		//	btnC.Visible ^= 1;
+		//	btnDragTest.Visible ^= 1;
 		++itype %= ftypen;
 		if(++it == fc.GetTypes().end())
 			it = fc.GetTypes().begin();
-		btnC.Font = Font(*(*it)->GetFontFamilyPtr(), 18 - (itype << 1),
+		btnDragTest.Font = Font(*(*it)->GetFontFamilyPtr(), 16 - (itype << 1),
 			FontStyle::Regular);
-	//	btnC.Font = Font(*(*it)->GetFontFamilyPtr(), //GetDefaultFontFamily(),
-	//		18 - (itype << 1), FontStyle::Regular);
-		sprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n",
-			btnC.Font.GetSize(), ffilen, ftypen, ffacen);
-		btnC.Text = strtf;
-		btnC.ForeColor = Color(std::rand(), std::rand(), std::rand());
+	//	btnDragTest.Font = Font(*(*it)->GetFontFamilyPtr(),
+	//	GetDefaultFontFamily(),
+	//		16 - (itype << 1), FontStyle::Regular);
+		std::sprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n",
+			btnDragTest.Font.GetSize(), ffilen, ftypen, ffacen);
+		btnDragTest.Text = strtf;
+		btnDragTest.ForeColor = Color(std::rand(), std::rand(), std::rand());
 		btnReturn.ForeColor = Color(std::rand(), std::rand(), std::rand());
 		btnReturn.SetEnabled(true);
 	}
 	else
 	{
-		sprintf(strtf, "%d/%d;%s:%s;", itype + 1, ftypen,
+		std::sprintf(strtf, "%d/%d;%s:%s;", itype + 1, ftypen,
 			(*it)->GetFamilyName().c_str(), (*it)->GetStyleName().c_str());
 		//	sprintf(strtf, "B%p\n",
 		//		fc.GetTypefacePtr("FZYaoti", "Regular"));
-		btnC.Text = strtf;
+		btnDragTest.Text = strtf;
 	}
-	//	btnC.Refresh();
+	//	btnDragTest.Refresh();
 }
 
 void
-ShlSetting::TFormC::btnC_KeyPress(IControl& sender, KeyEventArgs& e)
+ShlSetting::TFormExtra::OnKeyPress_btnDragTest(IControl& sender, KeyEventArgs& e)
 {
 	//测试程序。
 
 	u32 k(static_cast<KeyEventArgs::Key>(e));
 
 	DefDynInitRef(YButton, lbl, sender);
-//	YButton& lbl(dynamic_cast<TFormA&>(
-//		*(dynamic_cast<ShlSetting&>(*FetchShellHandle()).hWndUp)).lblA2);
+//	YButton& lbl(dynamic_cast<TFormUp&>(
+//		*(dynamic_cast<ShlSetting&>(*FetchShellHandle()).hWndUp)).lblB);
 	lbl.SetTransparent(!lbl.IsTransparent());
 //	++lbl.ForeColor;
 //	--lbl.BackColor;
-	sprintf(strttxt, "%d;\n", k);
+	std::sprintf(strttxt, "%d;\n", k);
 	lbl.Text = strttxt;
 	lbl.Refresh();
 /*
@@ -753,28 +729,218 @@ ShlSetting::TFormC::btnC_KeyPress(IControl& sender, KeyEventArgs& e)
 }
 
 /*void
-ShlSetting::TFormC::btnD_Click(TouchEventArgs&)
+ShlSetting::TFormExtra::OnClick_btnTestEx(TouchEventArgs&)
 {
 
 }*/
 
 
 void
-ShlSetting::TFormC::btnReturn_Click(TouchEventArgs&)
+ShlSetting::TFormExtra::OnClick_btnReturn(TouchEventArgs&)
 {
 	CallStored<ShlExplorer>();
 }
 
 void
-ShlSetting::TFormC::btnExit_Click(TouchEventArgs&)
+ShlSetting::TFormExtra::OnClick_btnExit(TouchEventArgs&)
 {
 	Shells::PostQuitMessage(0);
+}
+
+void
+ShlSetting::TFormExtra::OnClick_btnTestEx(TouchEventArgs& e)
+{
+	using namespace Drawing;
+
+	class TestObj
+	{
+	public:
+		GHHandle<YDesktop> h;
+		Color c;
+		Point l;
+		Size s;
+
+		TestObj(GHHandle<YDesktop> h_)
+			: h(h_),
+			c(ColorSpace::White),
+			l(20, 32), s(120, 90)
+		{}
+
+		void
+		Fill()
+		{
+			Graphics g(h->GetScreen().GetBufferPtr(), h->GetSize());
+
+			FillRect(g, l, s, c);
+		}
+
+		void
+		Pause()
+		{
+			WaitForInput();
+		}
+
+		void
+		Blit(const TextRegion& tr)
+		{
+			tr.BlitTo(h->GetScreen().GetBufferPtr(),
+				h->GetScreen().GetSize(), Point::Zero, l, tr.GetSize());
+		}
+	};
+
+//	static int test_state = 0;
+	{
+	/*
+		uchar_t* tstr(Text::ucsdup("Abc测试", Text::CS_Local));
+		String str(tstr);
+
+		std::free(tstr);
+	*/
+		String str(_ustr("Abc测试"));
+
+		TestObj t(theApp.GetPlatformResource().GetDesktopDownHandle());
+	//	const Graphics& g(t.h->GetContext());
+
+		TextRegion tr;
+		tr.SetSize(t.s.Width, t.s.Height);
+		TextRegion& tr2(*GetGlobalResource<TextRegion>());
+
+		switch(e.X * 4 / btnTestEx.GetWidth())
+		{
+		case 0:
+			t.Fill();
+			t.Pause();
+
+		//	tr.BeFilledWith(ColorSpace::Black);
+			PutLine(tr, str);
+			t.Blit(tr);
+			t.Pause();
+
+			t.Fill();				
+			tr.ClearImage();
+			tr.ResetPen();
+			tr.Color = ColorSpace::Black;
+			PutLine(tr, str);
+			t.Blit(tr);
+			t.Pause();
+
+			t.Fill();
+			tr.ClearImage();
+			tr.ResetPen();
+			tr.Color = ColorSpace::Blue;
+			PutLine(tr, str);
+			t.Pause();
+
+			t.Blit(tr);
+			t.Pause();
+
+		case 1:
+			tr2.SetSize(t.s.Width, t.s.Height);
+
+			t.Fill();
+			t.Pause();
+
+			//	tr2.BeFilledWith(ColorSpace::Black);
+			tr2.ClearImage();
+			tr2.ResetPen();
+			tr2.Color = ColorSpace::White;
+			PutLine(tr2, str);
+			t.Blit(tr2);
+			t.Pause();
+
+			t.Fill();
+			tr2.ClearImage();
+			tr2.ResetPen();
+			tr2.Color = ColorSpace::Black;
+			PutLine(tr2, str);
+			t.Blit(tr2);
+			t.Pause();
+
+			t.Fill();
+			tr2.ClearImage();
+			tr2.ResetPen();
+			tr2.Color = ColorSpace::Red;
+			t.Blit(tr2);
+			PutLine(tr2, str);
+			t.Pause();
+
+			t.Blit(tr2);
+			t.Pause();
+			break;
+
+		case 2:
+			t.c = ColorSpace::Lime;
+
+			t.Fill();
+			t.Pause();
+
+		//	tr.BeFilledWith(ColorSpace::Black);
+			PutLine(tr, str);
+			t.Blit(tr);
+			t.Pause();
+
+			t.Fill();				
+			tr.ClearImage();
+			tr.ResetPen();
+			tr.Color = ColorSpace::Black;
+			PutLine(tr, str);
+			t.Blit(tr);
+			t.Pause();
+
+			t.Fill();
+			tr.ClearImage();
+			tr.ResetPen();
+			tr.Color = ColorSpace::Blue;
+			PutLine(tr, str);
+			t.Pause();
+
+			t.Blit(tr);
+			t.Pause();
+
+		case 3:
+			t.c = ColorSpace::Lime;
+
+			tr2.SetSize(t.s.Width, t.s.Height);
+
+			t.Fill();
+			t.Pause();
+
+			//	tr2.BeFilledWith(ColorSpace::Black);
+			tr2.ClearImage();
+			tr2.ResetPen();
+			tr2.Color = ColorSpace::White;
+			PutLine(tr2, str);
+			t.Blit(tr2);
+			t.Pause();
+
+			t.Fill();
+			tr2.ClearImage();
+			tr2.ResetPen();
+			tr2.Color = ColorSpace::Black;
+			PutLine(tr2, str);
+			t.Blit(tr2);
+			t.Pause();
+
+			t.Fill();
+			tr2.ClearImage();
+			tr2.ResetPen();
+			tr2.Color = ColorSpace::Red;
+			t.Blit(tr2);
+			PutLine(tr2, str);
+			t.Pause();
+
+			t.Blit(tr2);
+			t.Pause();
+
+		default:
+			break;
+		}
+	}
 }
 
 int
 ShlSetting::ShlProc(const Message& msg)
 {
-	using namespace YSL_SHL(ShlSetting);
 //	ClearDefaultMessageQueue();
 
 //	const WPARAM& wParam(msg.GetWParam());
@@ -797,18 +963,21 @@ ShlSetting::ShlProc(const Message& msg)
 int
 ShlSetting::OnActivated(const Message& msg)
 {
+	static_cast<YFrame&>(*GetDesktopUpHandle()) += &lblA;
+	static_cast<YFrame&>(*GetDesktopUpHandle()) += &lblB;
+	GetDesktopUpHandle()->SetBackground(GetImage(5));
+
+
 	GetDesktopDownHandle()->BackColor
 		= ARGB16(1, 15, 15, 31);
 	GetDesktopDownHandle()->SetBackground(GetImage(6));
-	hWndUp = NewWindow<TFormA>();
-	hWndDown = NewWindow<TFormB>();
-	hWndC = NewWindow<TFormC>();
-	*GetDesktopUpHandle() += GetPointer(hWndUp);
-	*GetDesktopDownHandle() += GetPointer(hWndDown);
-	*GetDesktopDownHandle() += GetPointer(hWndC);
-	hWndUp->Draw();
-	hWndDown->Draw();
-	hWndC->Draw();
+	hWndTest = NewWindow<TFormTest>();
+	hWndExtra = NewWindow<TFormExtra>();
+	*GetDesktopDownHandle() += GetPointer(hWndTest);
+	*GetDesktopDownHandle() += GetPointer(hWndExtra);
+//	hWndTest->Draw();
+//	hWndExtra->Draw();
+
 	ParentType::OnActivated(msg);
 	UpdateToScreen();
 	return 0;
@@ -817,17 +986,19 @@ ShlSetting::OnActivated(const Message& msg)
 int
 ShlSetting::OnDeactivated(const Message& msg)
 {
+	GetDesktopUpHandle()->SetBackground(NULL);
+	GetDesktopDownHandle()->SetBackground(NULL);
 	ParentType::OnDeactivated(msg);
-	YReset(hWndUp);
-	YReset(hWndDown);
-	YReset(hWndC);
+	YReset(hWndTest);
+	YReset(hWndExtra);
 	return 0;
 }
 
 void
 ShlSetting::ShowString(const String& s)
 {
-	general_handle_cast<TFormA>(hWndUp)->ShowString(s);
+	lblA.Text = s;
+	lblA.Refresh();
 }
 void
 ShlSetting::ShowString(const char* s)
@@ -836,11 +1007,11 @@ ShlSetting::ShowString(const char* s)
 }
 
 void
-ShlSetting::TFormC_TouchDown(IControl& sender, TouchEventArgs& /*e*/)
+ShlSetting::OnTouchDown_FormExtra(IControl& sender, TouchEventArgs& /*e*/)
 {
 	try
 	{
-		TFormC& frm(dynamic_cast<TFormC&>(sender));
+		TFormExtra& frm(dynamic_cast<TFormExtra&>(sender));
 
 		frm.BackColor = ARGB16(1, std::rand(), std::rand(), std::rand());
 		frm.Refresh();

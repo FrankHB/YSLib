@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3723;
+\version 0.3726;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-09 21:17 +0800;
+	2011-04-09 20:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -146,11 +146,11 @@ YGUIShell::ResponseKeyBase(IControl& c, KeyEventArgs& e,
 		CallEvent<KeyDown>(c, e);
 		break;
 	case KeyHeld:
-		if(p_KeyDown != &c)
+	/*	if(e.Strategy == RoutedEventArgs::Direct && p_KeyDown != &c)
 		{
 			ResetHeldState(KeyHeldState);
 			return false;
-		}
+		}*/
 		CallEvent<KeyHeld>(c, e);
 		break;
 	default:

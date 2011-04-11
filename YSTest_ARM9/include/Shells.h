@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3152;
+\version 0.3182;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-09 08:04 +0800;
+	2011-04-11 07:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,29 +91,30 @@ public:
 	virtual int
 	OnDeactivated(const Message&);
 
+private:
 	void
-	frm_KeyUp(KeyEventArgs&);
+	OnKeyUp_frm(KeyEventArgs&);
 
 	void
-	frm_KeyDown(KeyEventArgs&);
+	OnKeyDown_frm(KeyEventArgs&);
 
 	void
-	frm_KeyPress(KeyEventArgs&);
+	OnKeyPress_frm(KeyEventArgs&);
 
 	void
-	btnTest_Click(TouchEventArgs&);
+	OnClick_btnTest(TouchEventArgs&);
 
 	void
-	btnOK_Click(TouchEventArgs&);
+	OnClick_btnOK(TouchEventArgs&);
 
 	void
-	fb_ViewChanged(EventArgs&);
+	OnViewChanged_fbMain(EventArgs&);
 
 	static void
-	fb_KeyPress(IControl&, KeyEventArgs&);
+	OnKeyPress_fbMain(IControl&, KeyEventArgs&);
 
 	static void
-	fb_Confirmed(IControl&, IndexEventArgs&);
+	OnConfirmed_fbMain(IControl&, IndexEventArgs&);
 };
 
 
@@ -122,71 +123,57 @@ class ShlSetting : public ShlDS
 public:
 	typedef ShlDS ParentType;
 
-	static const SPos s_left = 5;
-	static const SDst s_size = 22;
+	HWND hWndTest, hWndExtra;
+	YLabel lblA, lblB;
 
-private:
-	HWND hWndUp, hWndDown;
-
-public:
-	static HWND hWndC;
-
-	struct TFormA : public YForm
+	struct TFormTest : public YForm
 	{
-		YLabel lblA;
-		YLabel lblA2;
+		YButton btnEnterTest, btnShowWindow;
 
-		TFormA();
-
-		void ShowString(const String&);
-	};
-
-	struct TFormB : public YForm
-	{
-		YButton btnB, btnB2;
-
-		TFormB();
+		TFormTest();
 
 		static void
-		btnB_Enter(IControl& sender, InputEventArgs&);
+		OnEnter_btnEnterTest(IControl& sender, InputEventArgs&);
 
 		static void
-		btnB_Leave(IControl& sender, InputEventArgs&);
+		OnLeave_btnEnterTest(IControl& sender, InputEventArgs&);
 
 		void
-		btnB2_Click(TouchEventArgs&);
+		OnClick_btnShowWindow(TouchEventArgs&);
 	};
 
-	struct TFormC : public YForm
+	struct TFormExtra : public YForm
 	{
-		YButton btnC;
-		YButton btnD;
+		YButton btnDragTest;
+		YButton btnTestEx;
 		YButton btnReturn;
 		YButton btnExit;
 
-		TFormC();
+		TFormExtra();
 
 		void
-		btnC_TouchUp(TouchEventArgs&);
+		OnTouchUp_btnDragTest(TouchEventArgs&);
 
 		void
-		btnC_TouchDown(TouchEventArgs&);
+		OnTouchDown_btnDragTest(TouchEventArgs&);
 
 		void
-		btnC_Click(TouchEventArgs&);
+		OnClick_btnDragTest(TouchEventArgs&);
 
 		static void
-		btnC_KeyPress(IControl& sender, KeyEventArgs& e);
+		OnKeyPress_btnDragTest(IControl& sender, KeyEventArgs& e);
 
 		void
-		btnD_Click(TouchEventArgs&);
+		OnClick_btnTestEx(TouchEventArgs&);
 
 		void
-		btnReturn_Click(TouchEventArgs&);
+		OnClick_btnReturn(TouchEventArgs&);
 
 		void
-		btnExit_Click(TouchEventArgs&);
+		OnClick_btnExit(TouchEventArgs&);
 	};
+
+	ShlSetting();
 
 	virtual int
 	ShlProc(const Message&);
@@ -197,11 +184,12 @@ public:
 	virtual int
 	OnDeactivated(const Message&);
 
+private:
 	void ShowString(const String&);
 	void ShowString(const char*);
 
 	static void
-	TFormC_TouchDown(IControl&, TouchEventArgs&);
+	OnTouchDown_FormExtra(IControl&, TouchEventArgs&);
 };
 
 

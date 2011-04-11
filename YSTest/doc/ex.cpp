@@ -1,4 +1,4 @@
-//v0.3077; *Build 199 r121;
+//v0.3079; *Build 200 r20;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -204,228 +204,107 @@ $using:
 
 
 $DONE:
-r1-r30:
-/= test 1-6 ^ \a \conf;
+r1:
+/= test 1 ^ \conf release:
+	/ \m rename @ \u Shells & \impl \u GBKEX;
 
-r31:
-+ \conf \mac test @ \h Config @ \dir YAdaptor;
-* \as string @ \impl @ \mf (ResponseKey & ResponseTouch) @ \cl YGUIShell;
+r2-r4:
+/= test 2;
 
-r32:
-/= \test 7 ^ \conf release;
+r5-r6:
+/ \impl @ \impl \u GBKEX;
 
-r33:
-/ @ \cl YGUIShell @ \u YGUI:
-	/ \impl @ \mf ResponseKey;
-	- \mf ResponseKeyUpBase;
-	- \mf ResponseKeyDownBase;
-	- \mf ResponseKeyHeldBase;
+r7:
+/ @ \impl \u GBKEX:
+	/ \cl TestObj @ \ns >> \mf void
+		ShlSetting::TFormDown2::OnClick_btnTestEx(TouchEventArgs&);
+	/ \mf void ShlSetting::TFormDown2::OnClick_btnTestEx(TouchEventArgs&)
+		>> \impl \u Shells;
 
-r34:
-/= \test 8 ^ \conf release;
+r8:
+/ \impl @ \mf void ShlSetting::TFormDown2::OnClick_btnTestEx(TouchEventArgs&)
+	@ \impl \u Shells;
 
-r35:
-/ @ \u YGUI:
-	/ @ \cl YGUIShell:
-		- \mf GetFocusedEnabledVisualControlPtr @ \ns Components::Controls;
-		/ \mf bool ResponseKey(YDesktop&, KeyEventArgs&,
-			Components::Controls::VisualEvent) -> bool ResponseKey(IControl&,
-			KeyEventArgs&, Components::Controls::VisualEvent);
-	- \f IControl* GetFocusedObjectPtr(YDesktop&);
+r9:
+/ @ \cl ShlSetting::TFormDown2 @ \impl \u Shells:
+	/ \impl @ \ctor;
+	/ \impl @ \mf void OnClick_btnDragTest(TouchEventArgs&):
 
-r36-r48:
-/ \test 9:
-	/ \impl @ \mf YGUIShell::ResponseKey @ \impl \u YGUI;
+r10:
+/ \impl @ \ctor @ \cl ShlSetting::TFormDown2 @ \impl \u Shells:
 
-r49-r60:
-/ \test 10 ^ \conf release;
-	* \impl @ \mf YGUIShell::ResponseKey @ \impl \u YGUI;
+r11:
+/= test 3 ^ \conf release;
 
-r61-r62:
-/ \impl @ \mf YGUIShell::ResponseKey @ \impl \u YGUI;
+r12-r13:
+* \impl @ \mf bool ResponseKeyBase(IControl&, KeyEventArgs&,
+	Components::Controls::VisualEvent) @ \cl YGUIShell;
 
-r63-r64:
-/= \test 11 ^ \conf release;
+r14:
+^ \conf release;
+/= test 4;
 
-r65:
-* \impl @ \ctor @ \st RoutedEvent @ \h YControl;
-/ \impl @ \mf YGUIShell::ResponseKey @ \impl \u YGUI;
+r15:
+/ @ \impl \u Shells:
+	- \g \o char strtbuf[0x400];
+	/ \g \o char strtf[0x400] & char strtxt[0x400] >> \un \ns @ \ns YSLib;
+	/ \mac YSL_SHL*(*);
+	/ \mac YSL_BEGIN_SHELL(*);
+	/ \mac YSL_END_SHELL(*);
+/ @ \h Base:
+	/ \mac YSL_BEGIN_SHELL(s);
+	/ \mac YSL_END_SHELL(s);
+	/ \mac YSL_SHL_(s);
+	/ \mac YSL_SHL(s);
 
-r66:
-/= \test 12 ^ \conf release;
+r16:
+^ \conf debug;
+/= test 5;
 
-r67:
-/ \impl @ \mf YGUIShell::ResponseTouch @ \impl \u YGUI;
+r17:
+/ \impl background drawing functions @ \un \ns @ \impl \u Shells;
 
-r68:
-/ \test 13 ^ \conf release:
-	/ YSLib makefile optimizing @ \conf release;
+r18:
+/ @ \cl ShlSetting @ \u Shells:
+	/ \a \m \o @ \cl TFormUp >> \cl ShlSetting;
+	+ @ \ctor;
+	/ \impl @ \mf (OnActivated & OnDeactivated);
+	- private \m hWndUp;
+	/ private \m hWndDown -> public \m hWndTest;
+	/ \sm hWndExtra -> !\s \m;
+	/ \tr \impl @ \mf void ShowString(const String&);
 
-r69-r71:
-/= test 14;
+r19:
+/ @ \u Shells:
+	/ @ \cl ShlSetting:
+		/ \cl TFormDown1 => TFormTest;
+		/ \cl TFormDown2 => TFormExtra;
+		- \scm (s_left & s_size);
+		/ \tr \impl @ \ctor;
+		/ \tr \impl @ \ctor @ \m \cl TFormExtra;
+		/ \smf OnTouchDown_FormDown2 => OnTouchDown_FormExtra;
+		/ \ac @ \mf (2 ShowString & OnTouchDown_FormExtra) -> private ~ public;
+	/ \a \mf 'On*' \exc (OnActivated & OnDeactivated) @ \cl ShlExplorer
+		-> private ~ public;
+	/ \rem \decl @ \g \o char gstr[128];
+/ \rem \def @ \g \o char gstr[128] @ \impl \u GBKEX;
 
-r72:
-/ @ \h YControl:
-	/ DefEventTypeMapping(Enter, HInputEvent)
-		-> DefEventTypeMapping(Enter, HTouchEvent);
-	/ DefEventTypeMapping(Leave, HInputEvent)
-		-> DefEventTypeMapping(Leave, HTouchEvent);
-* \impl @ \mf ResponseKey @ \cl YGUIShell @ \impl \u YGUI;
-/ \tr @ \decl @ \mf (OnEnter & OnLeave) @ \cl Button; 
-
-r73:
-/= test 15 ^ \conf release;
-
-r74-r75:
-/ @ \h Container @ \dir Adaptor:
-	+ \inc \h <utility>;
-	+ using std::pair @ \ns YSLib;
-	+ using std::make_pair @ \ns YSLib;
-/ \a std::pair -> pair @ \ns YSLib;
-/ \a std::make_pair -> make_pair @ \ns YSLib;
-
-r76:
-/ @ \cl ShlExplorer @ \u Shells:
-	+ \mf void frm_KeyUp(KeyEventArgs&);
-	+ \mf void frm_KeyDown(KeyEventArgs&);
-	- \mf void frm_KeyPress(KeyEventArgs&);
-	/ \impl @ \mf int OnActivated(const Message&);
-	/ \impl @ \mf int OnDeactivated(const Message&);
-
-r77-r84:
-/= test 16;
-
-r85:
-* \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \impl \u Shells;
-
-r86:
-/= test 17;
-
-r87:
-/ @ \cl ShlExplorer @ \impl \u Shells:
-	* \impl @ \mf (frm_KeyUp & frm_KeyDown);
-	+ \mf void frm_KeyPress(KeyEventArgs&);
-
-r88-r93:
-/= test 18;
-
-r94-r95:
-* \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \impl \u Shells;
-
-r96:
-/= test 19;
-
-r97:
-/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \impl \u Shells;
-
-r98:
-/ @ \cl YShellGUI:
-	+ protected \mf bool ResponseKeyBase(IControl&,
-		Components::Controls::KeyEventArgs&, Components::Controls::VisualEvent);
-	+ protected \mf bool ResponseTouchBase(IControl&,
-		Components::Controls::TouchEventArgs&,
-		Components::Controls::VisualEvent);
-	/ \impl @ \mf ResponseKey;
-	/ \impl @ \mf ResponseTouch;
-
-r99:
-* @ \cl YShellGUI:
-	/ \impl @ \mf ResponseKeyBase;
-	/ \impl @ \mf ResponseTouchBase;
-
-r100:
-/= test 20;
-
-r101:
-* @ \cl YShellGUI:
-	/ \impl @ \mf ResponseKeyBase;
-	/ \impl @ \mf ResponseTouchBase;
-	/ \impl @ \mf ResponseTouch;
-	/ \impl @ \mf ResponseKey;
-/ @ \cl ShlExplorer @ \impl \u Shells:
-	* \impl @ \mf frm_KeyUp & frm_KeyDown;
-	/ \impl @ \mf frm_KeyPress;
-
-r102:
-/= test 21 ^ \conf release;
-
-r103-r104:
-* \impl @ \mf (ResponseTouchBase & ResponseKeyBase) @ \cl YShellGUI;
-
-r105:
-/ @ \cl YShellGUI:
-	/ \impl @ \mf (ResponseTouchBase & ResponseKeyBase);
-	* \impl @ \mf ResponseKey;
-
-r106-r112:
-/= test 22;
-
-r113:
-* \impl @ \mf ResponseTouchBase @ \cl YShellGUI;
-
-r114:
-* \impl @ \mf ResponseKeyBase @ \cl YShellGUI;
-
-r115:
-/= test 23 ^ \conf release;
-
-r116-r118:
-/= test 24;
-
-r119:
-/ @ \h YEvent:
-	/ @ \clt GEvent<true>:
-		+ typedef typename ListType::size_type SizeType;
-		/= \ret \tp @ \mf GetSize -> SizeType ~ Listtype::size_type;
-		/ \mf void operator()(_tSender&, _tEventArgs&) const
-			-> SizeType operator()(_tSender&, _tEventArgs&) const;
-	/ @ \clt GEvent<false>:
-		+ typedef std::size_t SizeType;
-		+ \i \mf SizeType operator()(_tSender&, _tEventArgs&) const;
-		+ \i \mf SizeType GetSize() const;
-	+ typedef EventType::SizeType SizeType @ 2 \clt GSEvent;
-	/ \amf DeclIEntry(void operator()(_tSender&, _tEventArgs&) const)
-		-> DeclIEntry(std::size_t operator()(_tSender&, _tEventArgs&) const);
-	/ \mf std::size_t operator()(YObject&, EventArgs&) const
-		@ \clt GEventWrapper -> std::size_t
-		operator()(YObject&, EventArgs&) const;
-	/ \mft<class _tEventHandler> void DoEvent(const ID&,
-		typename _tEventHandler::SenderType&,
-		typename _tEventHandler::EventArgsType&) const @ \clt GEventMap
-		-> 	template<class _tEventHandler> std::size_t DoEvent(const ID&,
-		typename _tEventHandler::SenderType&,
-		typename _tEventHandler::EventArgsType&) const;
-	/ @ \clt GDependencyEvent:
-		- typedef typename EventType::ListType ListType;
-		+ typedef typename EventType::SizeType SizeType;
-		/ \tr \impl @ \tr @ \i \mf GDependencyEvent::operator() const
-			-> SizeType ~ void;
-		/ \tr \impl @ \tr @ \i \mf GDependencyEvent::GetSize() const
-			-> SizeType ~ typename ListType::size_type;
-
-r120:
-/ \impl @ \mf ResponseTouch @ \cl YShellGUI;
-+ using std::size_t @ \ns YSLib @ \h Adaptor;
-/ \a std::size_t @ \lib YSLib \exc \u YNew -> size_t;
-/ \m IsHandled @ \cl RoutedEventArgs => Handled;
-
-r121:
-/= test 25 ^ \conf release;
+r20:
+/= test 6 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-04-09:
--26.4d;
+2011-04-11:
+-26.9d;
 
 / ...
 
 
 $NEXT_TODO:
 
-b199-b240:
-+ key routing events for the view tree;
+b201-b240:
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
 * non-ASCII character path error in FAT16;
@@ -434,7 +313,7 @@ b241-b576:
 / impl 'real' RTC;
 + data configuragion;
 + shared property: additional;
-/ GDI brushes;
++ GDI brushes;
 / text alignment;
 + \impl pictures loading;
 / improve efficiency @ \ft polymorphic_crosscast @ \h YCast;
@@ -518,8 +397,16 @@ $transform $list ($list_member $pattern $all($exclude $pattern
 
 $now
 (
+* "direct drawing test",
+/ "test UI view",
+* "%KeyHeld response" $since b199,
++ "direct desktop drawing for %ShlSetting"
+),
+
+b199
+(
 "event routing for %KeyUp, %KeyDown and %KeyHeld",
-* "event behavior with optimizing since b196",
+* "event behavior with optimizing" $since b195,
 + "keypad shortcut for file selecter",
 + "returning number of called handles in event calling"
 ),
@@ -611,7 +498,7 @@ b1_b131
 "global objects",
 "string class",
 "file classes",
-"dual screen text file reader",
+"dual screen text file reader framework",
 "output devices & desktops",
 "messaging",
 "program initialization",

@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010 - 2011
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 +0800;
-// UTime = 2011-04-09 21:11 +0800;
-// Version = r10732;
+// UTime = 2011-04-10 21:12 +0800;
+// Version = r10736;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -186,10 +186,6 @@ YSL_
 YSL
 YSL_BEGIN_NAMESPACE(s)
 YSL_END_NAMESPACE(s)
-YSL_BEGIN_SHELL(s)
-YSL_END_SHELL(s)
-YSL_SHL_(s)
-YSL_SHL(s)
 ythrow(*)?
 _yInterface
 _yInterfaceHead(_name)
