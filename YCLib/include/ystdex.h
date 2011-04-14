@@ -11,12 +11,12 @@
 /*!	\file ystdex.h
 \ingroup YCLib
 \brief YCLib C++ 标准库扩展。
-\version 0.2066;
+\version 0.2166;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:31:14 +0800; 
 \par 修改时间:
-	2011-03-05 08:45 +0800;
+	2011-04-14 08:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,11 +27,52 @@
 #ifndef INCLUDED_YSTDEX_H_
 #define INCLUDED_YSTDEX_H_
 
+#ifdef __cplusplus
+#	define YCL_IMPL_CPP __cplusplus
+#	define YCL_IMPL_MSCPP 0
+#	define YCL_IMPL_GNUCPP 0
+#	ifdef _MSC_VER
+#		undef YCL_IMPL_MSCPP
+#		define YCL_IMPL_MSCPP _MSC_VER
+#	elif defined(__GNUC__)
+#		undef YCL_IMPL_GNUCPP
+#		define YCL_IMPL_GNUCPP 1
+#	endif
+#else
+#	error This header is only for C++!
+#endif
+
 #include "ydef.h"
 #include <cstddef>
 #include <cassert>
 #include <cstdlib>
-#include <tr1/type_traits>
+#include "ydef.h"
+#include <cstddef>
+#include <cassert>
+#include <cstdlib>
+#if YCL_IMPL_CPP >= 201103L || YCL_IMPL_MSCPP >= 1600
+#	include <type_traits>
+#else
+// TODO: complete version checking for compiler and library implementation;
+//#ifdef __GNUC__
+#	include <tr1/type_traits>
+#endif
+
+#ifndef YCL_CHAR_BIT
+#define YCL_CHAR_BIT CHAR_BIT
+#endif
+
+#ifndef YCL_UNUSED
+#	define YCL_UNUSED(arg) ((arg) = (arg))
+#endif
+
+#ifndef YCL_VOID
+#	define YCL_VOID(arg) ((void)(arg))
+#endif
+
+#ifndef YCL_VOIDX
+#	define YCL_VOIDX(arg) (static_cast<void>(arg))
+#endif
 
 namespace ystdex
 {

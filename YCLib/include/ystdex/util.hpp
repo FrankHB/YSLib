@@ -11,23 +11,23 @@
 /*!	\file util.hpp
 \ingroup YCLib
 \brief 函数对象、算法和实用程序。
-\version 0.1511;
+\version 0.1513;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800; 
 \par 修改时间:
-	2011-03-06 08:44 +0800;
+	2011-04-14 08:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YCLib::Utilities;
+	YCLib::YStandardExtend::Utilities;
 */
 
 
 #ifndef INCLUDED_YSTDEX_UTIL_HPP_
 #define INCLUDED_YSTDEX_UTIL_HPP_
 
-#include <ystdex.h>
+#include "../ystdex.h"
 #include <cstring>
 #include <utility>
 #include <functional>

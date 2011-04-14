@@ -11,12 +11,12 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 NDS 的双屏阅读器实现。
-\version 0.3070;
+\version 0.3105;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 +0800; 
 \par 修改时间:
-	2011-04-03 16:05 +0800;
+	2011-04-13 11:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,25 +40,15 @@ BlockedText::BlockedText(YTextFile& file)
 {}
 
 
-void MDualScreenReader::FillText()
-{
-	itDn = PutString(*pTextRegionDn, PutString(*pTextRegionUp, itUp));
-}
-
-MDualScreenReader::MDualScreenReader(SDst l, SDst w, SDst t_up, SDst h_up,
-									 SDst t_down, SDst h_down, YFontCache& fc_)
+MDualScreenReader::MDualScreenReader(SDst w, SDst h_up, SDst h_down,
+	YFontCache& fc_)
 try	: pText(NULL), fc(fc_),
-	left(l), top_up(t_up), top_down(t_down),
-	pBgUp(theApp.GetPlatformResource().GetDesktopUp().GetContext().
-		GetBufferPtr()),
-	pBgDn(theApp.GetPlatformResource().GetDesktopDown().GetContext().
-		GetBufferPtr()),
-	pTextRegionUp(new TextRegion(fc_)), pTextRegionDn(new TextRegion(fc_)),
+	pTextRegionUp(new TextRegion(fc_)), pTextRegionDown(new TextRegion(fc_)),
 	rot(RDeg0), itUp(NULL), itDn(NULL)
 {
 	//初始化视图。
 	pTextRegionUp->SetSize(w, h_up);
-	pTextRegionDn->SetSize(w, h_down);
+	pTextRegionDown->SetSize(w, h_down);
 	SetFontSize();
 	SetColor();
 	SetLineGap();
@@ -87,13 +77,13 @@ void
 MDualScreenReader::SetColor(Color c)
 {
 	pTextRegionUp->Color = c;
-	pTextRegionDn->Color = c;
+	pTextRegionDown->Color = c;
 }
 void
 MDualScreenReader::SetLineGap(u8 g)
 {
 	pTextRegionUp->LineGap = g;
-	pTextRegionDn->LineGap = g;
+	pTextRegionDown->LineGap = g;
 }
 void
 MDualScreenReader::SetFontSize(Font::SizeType fz)
@@ -108,6 +98,11 @@ void MDualScreenReader::SetLnNNowTo(u8 n)
 		pTextRegionUp->SetLnNNowTo(n);
 }
 */
+
+void MDualScreenReader::FillText()
+{
+	itDn = PutString(*pTextRegionDown, PutString(*pTextRegionUp, itUp));
+}
 
 void
 MDualScreenReader::Reset()
@@ -140,12 +135,15 @@ MDualScreenReader::UnloadText()
 }
 
 void
-MDualScreenReader::PrintText()
+MDualScreenReader::PrintText(const Graphics& g_up, const Graphics& g_down)
 {
-	pTextRegionUp->BlitTo(pBgUp, Size::FullScreen, Point::Zero,
-		Point::Zero, Size::FullScreen, rot);
-	pTextRegionDn->BlitTo(pBgDn, Size::FullScreen, Point::Zero,
-		Point::Zero, Size::FullScreen, rot);
+	YAssert(pTextRegionUp,
+		"Null pointer found @ MDualScreenReader::PrintText;");
+	YAssert(pTextRegionDown,
+		"Null pointer found @ MDualScreenReader::PrintText;");
+
+	BlitTo(g_up, *pTextRegionUp, Point::Zero, Point::Zero, rot);
+	BlitTo(g_down, *pTextRegionDown, Point::Zero, Point::Zero, rot);
 }
 
 void
@@ -161,18 +159,18 @@ MDualScreenReader::LineUp()
 	if(IsTextTop())
 		return false;
 
-	const u8 h = lnHeight, hx = h + GetLineGapDn();
+	const u8 h = lnHeight, hx = h + GetLineGapDown();
 	const SDst w = pTextRegionUp->GetWidth();
 	const u32 t = w * h,
 		s = (pTextRegionUp->GetHeight() - FetchResizedMargin(*pTextRegionUp,
 			pTextRegionUp->GetHeight()) - h) * w,
-		d = pTextRegionDn->Margin.Top * w;
+		d = pTextRegionDown->Margin.Top * w;
 
-	pTextRegionDn->Scroll(hx, FetchResizedBufferHeight(*pTextRegionDn,
-		pTextRegionDn->GetHeight()));
-	std::memcpy(&pTextRegionDn->GetBufferPtr()[d],
+	pTextRegionDown->Scroll(hx, FetchResizedBufferHeight(*pTextRegionDown,
+		pTextRegionDown->GetHeight()));
+	std::memcpy(&pTextRegionDown->GetBufferPtr()[d],
 		&pTextRegionUp->GetBufferPtr()[s], t * sizeof(PixelType));
-	std::memcpy(&pTextRegionDn->GetBufferAlphaPtr()[d],
+	std::memcpy(&pTextRegionDown->GetBufferAlphaPtr()[d],
 		&pTextRegionUp->GetBufferAlphaPtr()[s], t * sizeof(u8));
 	pTextRegionUp->Scroll(hx, FetchResizedBufferHeight(*pTextRegionUp,
 		pTextRegionUp->GetHeight()));
@@ -181,9 +179,11 @@ MDualScreenReader::LineUp()
 
 	TextFileBuffer::HText itUpOld(itUp);
 
-	itUp = FetchPreviousLineIterator(*pTextRegionUp, itUp, pText->Blocks.begin());
+	itUp = FetchPreviousLineIterator(*pTextRegionUp, itUp,
+		pText->Blocks.begin());
 	PutLine<TextFileBuffer::HText, uchar_t>(*pTextRegionUp, itUp, itUpOld);
-	itDn = FetchPreviousLineIterator(*pTextRegionUp, itDn, pText->Blocks.begin());
+	itDn = FetchPreviousLineIterator(*pTextRegionUp, itDn,
+		pText->Blocks.begin());
 	return true;
 }
 bool
@@ -201,13 +201,13 @@ MDualScreenReader::LineDown()
 
 	pTextRegionUp->Scroll(-hx);
 	std::memcpy(&pTextRegionUp->GetBufferPtr()[d],
-		&pTextRegionDn->GetBufferPtr()[s], t * sizeof(PixelType));
+		&pTextRegionDown->GetBufferPtr()[s], t * sizeof(PixelType));
 	std::memcpy(&pTextRegionUp->GetBufferAlphaPtr()[d],
-		&pTextRegionDn->GetBufferAlphaPtr()[s], t * sizeof(u8));
-	pTextRegionDn->Scroll(-hx);
-	pTextRegionDn->ClearLnLast();
-	pTextRegionDn->SetLnLast();
-	itDn = PutLine(*pTextRegionDn, itDn);
+		&pTextRegionDown->GetBufferAlphaPtr()[s], t * sizeof(u8));
+	pTextRegionDown->Scroll(-hx);
+	pTextRegionDown->ClearLnLast();
+	pTextRegionDown->SetLnLast();
+	itDn = PutLine(*pTextRegionDown, itDn);
 	itUp = FetchNextLineIterator(*pTextRegionUp, itUp, pText->Blocks.end());
 	return true;
 }
@@ -218,7 +218,7 @@ MDualScreenReader::ScreenUp()
 	if(IsTextTop())
 		return false;
 	itUp = FetchPreviousLineIterator(*pTextRegionUp, itUp, pText->Blocks.begin(),
-		pTextRegionUp->GetLnN() + pTextRegionDn->GetLnN());
+		pTextRegionUp->GetLnN() + pTextRegionDown->GetLnN());
 	Update();
 	return true;
 }
@@ -228,12 +228,13 @@ MDualScreenReader::ScreenDown()
 	if(IsTextBottom())
 		return false;
 
-	int t(pTextRegionUp->GetLnN() + pTextRegionDn->GetLnN());
+	int t(pTextRegionUp->GetLnN() + pTextRegionDown->GetLnN());
 
 	while(t-- && itDn != pText->Blocks.end())
 	{
 		itUp = FetchNextLineIterator(*pTextRegionUp, itUp, pText->Blocks.end());
-		itDn = FetchNextLineIterator(*pTextRegionDn, itDn, pText->Blocks.end());
+		itDn = FetchNextLineIterator(*pTextRegionDown, itDn,
+			pText->Blocks.end());
 	}
 //	itUp = itDn;
 	Update();
@@ -241,7 +242,7 @@ MDualScreenReader::ScreenDown()
 }
 
 /*void
-MDualScreenReader::Scroll(PFVOID pCheck)
+MDualScreenReader::Scroll(Function<void()> pCheck)
 {
 }*/
 

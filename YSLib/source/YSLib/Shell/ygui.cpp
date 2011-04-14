@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3726;
+\version 0.3732;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-09 20:59 +0800;
+	2011-04-13 11:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -308,7 +308,7 @@ YGUIShell::ShlProc(const Message& msg)
 	{
 	case SM_PAINT:
 		{
-			GHandleContext<GHHandle<YDesktop> >* const
+			GHandleContext<GHandle<YDesktop> >* const
 				p(CastMessage<SM_PAINT>(msg));
 
 			if(p && p->Handle)
@@ -323,7 +323,7 @@ YGUIShell::ShlProc(const Message& msg)
 
 YSL_END_NAMESPACE(Shells)
 
-GHHandle<YGUIShell>
+GHandle<YGUIShell>
 FetchGUIShellHandle()
 {
 	return general_handle_cast<YGUIShell>(FetchShellHandle());
@@ -357,7 +357,7 @@ ReleaseFocusCascade(IControl& c)
 
 
 bool
-IsFocusedByShell(const IControl& c, GHHandle<YGUIShell> hShl)
+IsFocusedByShell(const IControl& c, GHandle<YGUIShell> hShl)
 {
 	if(!hShl)
 		throw GeneralEvent("Null GUI handle found"

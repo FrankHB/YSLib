@@ -20,6 +20,7 @@
     <ClInclude Include="include\ystdex.h" />
     <ClInclude Include="include\ystdex\cast.hpp" />
     <ClInclude Include="include\ystdex\iterator.hpp" />
+    <ClInclude Include="include\ystdex\type_op.hpp" />
     <ClInclude Include="include\ystdex\util.hpp" />
   </ItemGroup>
   <ItemGroup>

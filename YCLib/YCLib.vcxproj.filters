@@ -43,6 +43,9 @@
     <ClInclude Include="include\ystdex\util.hpp">
       <Filter>头文件\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\type_op.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ycommon.cpp">

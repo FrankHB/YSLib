@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.4144;
+\version 0.4201;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-04-05 19:29 +0800;
+	2011-04-14 16:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,9 +27,7 @@
 #ifndef INCLUDED_YWINDOW_H_
 #define INCLUDED_YWINDOW_H_
 
-#include "ycontrol.h"
-#include "yuicont.h"
-#include "../Core/yres.h"
+#include "ypanel.h"
 
 YSL_BEGIN
 
@@ -53,7 +51,7 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Forms)
 
 //! \brief 窗口接口。
-DeclBasedInterface(IWindow, IUIContainer, virtual IControl)
+DeclBasedInterface(IWindow, IPanel)
 	DeclIEntry(bool IsRefreshRequired() const)
 	DeclIEntry(bool IsUpdateRequired() const)
 
@@ -61,8 +59,6 @@ DeclBasedInterface(IWindow, IUIContainer, virtual IControl)
 	DeclIEntry(HWND GetWindowHandle() const)
 
 	DeclIEntry(void SetRefresh(bool))
-
-	DeclIEntry(void Draw())
 
 	DeclIEntry(void Update()) //!< 按需更新（以父窗口、屏幕优先顺序）。
 EndDecl
@@ -88,7 +84,7 @@ class MWindow : protected Widgets::MWindowObject
 {
 protected:
 	//基类中的 hWindow 为父窗口对象句柄，若为空则说明无父窗口。
-	GHStrong<Drawing::YImage> prBackImage; //!< 背景图像指针。
+	mutable GHStrong<Drawing::YImage> spBgImage; //!< 背景图像指针。
 	bool bRefresh; //!< 刷新属性：表示有新的绘制请求。
 	bool bUpdate; //!< 更新属性：表示绘制结束，缓冲区准备完毕。
 
@@ -103,9 +99,7 @@ public:
 	DefPredicate(RefreshRequired, bRefresh)
 	DefPredicate(UpdateRequired, bUpdate)
 
-	DefGetter(GHStrong<Drawing::YImage>, Background, prBackImage)
-
-	DefSetterDe(GHStrong<Drawing::YImage>, Background, prBackImage, NULL)
+	DefGetter(GHStrong<Drawing::YImage>&, BackgroundImagePtr, spBgImage)
 };
 
 
@@ -114,6 +108,8 @@ class AWindow : public Controls::Control, protected MWindow,
 	implements IWindow
 {
 public:
+	typedef Controls::Control ParentType;
+
 	/*!
 	\brief 构造：使用指定边界、背景图像、窗口句柄和 Shell 句柄。
 	*/
@@ -125,7 +121,7 @@ public:
 	ImplI1(IWindow) DefPredicateBase(UpdateRequired, MWindow)
 
 	ImplI1(IWindow) DefGetterBase(HWND, WindowHandle, MWindowObject)
-	DefGetterBase(GHStrong<Drawing::YImage>, Background, MWindow)
+	DefGetterBase(GHStrong<Drawing::YImage>&, BackgroundImagePtr, MWindow)
 	/*!
 	\brief 取位图背景指针。
 	*/
@@ -139,8 +135,6 @@ public:
 	*/
 	virtual void
 	SetSize(const Size&);
-	ImplI1(IWindow) DefSetterBaseDe(GHStrong<Drawing::YImage>,
-		Background, MWindow, NULL)
 	DeclIEntry(void SetBufferSize(const Size&)) //!< 设置显示缓冲区大小。
 
 	PDefH0(void, ClearBackground) const //!< 清除背景。
@@ -159,21 +153,15 @@ protected:
 
 public:
 	/*!
-	\brief 绘制背景。
+	\brief 绘制。
 	*/
 	ImplI1(IWindow) void
-	DrawBackground();
+	Draw();
 
 protected:
 	DeclIEntry(bool DrawContents())
 
 public:
-	/*!
-	\brief 绘图。
-	*/
-	ImplI1(IWindow) void
-	Draw();
-
 	/*!
 	\brief 刷新至窗口缓冲区。
 	*/
@@ -212,27 +200,39 @@ public:
 class AFrame : public AWindow, protected Widgets::MUIContainer
 {
 public:
-	typedef AWindow ParentType;
-
 	explicit
 	AFrame(const Rect& = Rect::Empty,
 		const GHStrong<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
 	virtual
 	~AFrame();
 
-	virtual void
+	ImplI1(IWindow) void
 	operator+=(IWidget*);
-	virtual void
+	ImplI1(IWindow) void
 	operator+=(IControl*);
-	virtual PDefHOperator1(void, +=, GMFocusResponser<IControl>* p)
+	ImplI1(IWindow) PDefHOperator1(void, +=, GMFocusResponser<IControl>* p)
 		ImplBodyBase1(MUIContainer, operator+=, p)
+	template<class _type>
+	inline void
+	operator+=(_type* p)
+	{
+		return operator+=(Design::MoreConvertible<_type*,
+			IControl*, IWidget*>::Cast(p));
+	}
 
-	virtual bool
+	ImplI1(IWindow) bool
 	operator-=(IWidget*);
-	virtual bool
+	ImplI1(IWindow) bool
 	operator-=(IControl*);
-	virtual PDefHOperator1(bool, -=, GMFocusResponser<IControl>* p)
+	ImplI1(IWindow) PDefHOperator1(bool, -=, GMFocusResponser<IControl>* p)
 		ImplBodyBase1(MUIContainer, operator-=, p)
+	template<class _type>
+	inline bool
+	operator-=(_type* p)
+	{
+		return operator-=(Design::MoreConvertible<_type*,
+			IControl*, IWidget*>::Cast(p));
+	}
 
 	ImplI1(IWindow) PDefH0(IControl*, GetFocusingPtr)
 		ImplBodyBase0(GMFocusResponser<IControl>, GetFocusingPtr)
@@ -258,6 +258,8 @@ class YFrame : public GMCounter<YFrame>, public YComponent,
 {
 public:
 	typedef YComponent ParentType;
+	using AFrame::operator+=;
+	using AFrame::operator-=;
 
 protected:
 	Drawing::BitmapBuffer Buffer; //!< 显示缓冲区。
@@ -284,11 +286,6 @@ protected:
 	*/
 	ImplI1(AWindow) bool
 	DrawContents();
-	/*!
-	\brief 绘制内容组件及自身背景。
-	*/
-	bool
-	DrawContensBackground();
 };
 
 YSL_END_NAMESPACE(Forms)

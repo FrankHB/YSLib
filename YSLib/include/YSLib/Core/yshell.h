@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 定义。
-\version 0.2826;
+\version 0.2828;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-04-03 19:34 +0800;
+	2011-04-13 11:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -105,7 +105,7 @@ public:
 \ingroup HelperFunction
 \brief 取当前应用程序活动 Shell 句柄。
 */
-GHHandle<YShell>
+GHandle<YShell>
 GetCurrentShellHandle() ythrow();
 
 /*!
@@ -113,7 +113,7 @@ GetCurrentShellHandle() ythrow();
 \brief 激活 Shell 对象：ShlProc 控制权转移给此对象以维持单线程运行。
 */
 bool
-Activate(GHHandle<YShell>);
+Activate(GHandle<YShell>);
 
 
 typedef int FSHLPROC(const Message&);
@@ -168,7 +168,7 @@ DefShellProc(const Message& msg)
 \param bRemoveMsg 确定取得的消息是否消息队列中清除。
 */
 int
-PeekMessage(Message& msg, GHHandle<YShell> hShl = GetCurrentShellHandle(),
+PeekMessage(Message& msg, GHandle<YShell> hShl = GetCurrentShellHandle(),
 	bool bRemoveMsg = false);
 
 /*!
@@ -176,7 +176,7 @@ PeekMessage(Message& msg, GHHandle<YShell> hShl = GetCurrentShellHandle(),
 \note 若消息队列为空则调用 Idle() 等待消息。取得的消息从消息队列中清除。
 */
 int
-GetMessage(Message& msg, GHHandle<YShell> hShl = GetCurrentShellHandle());
+GetMessage(Message& msg, GHandle<YShell> hShl = GetCurrentShellHandle());
 
 /*!
 \brief 翻译消息：空实现。

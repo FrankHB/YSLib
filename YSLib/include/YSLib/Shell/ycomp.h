@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件实现。
-\version 0.3046;
+\version 0.3060;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2011-04-02 17:19 +0800;
+	2011-04-13 20:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,6 +43,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
 PDeclInterface(IControl)
+PDeclInterface(IPanel)
 YSL_END_NAMESPACE(Controls)
 
 YSL_BEGIN_NAMESPACE(Forms)
@@ -60,6 +61,7 @@ YSL_END_NAMESPACE(Widgets)
 YSL_END_NAMESPACE(Components)
 
 using Components::Controls::IControl;
+using Components::Controls::IPanel;
 using Components::Forms::IWindow;
 using Components::Widgets::IWidget;
 using Components::Widgets::IUIBox;
@@ -368,7 +370,7 @@ using Components::Forms::YFrame;
 \ingroup HeplerFunction
 \brief 取当前线程空间中运行的 Shell 句柄。
 */
-inline GHHandle<YShell>
+inline GHandle<YShell>
 FetchShellHandle()
 {
 	return theApp.GetShellHandle();

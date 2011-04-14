@@ -900,5 +900,8 @@
     <ClInclude Include="include\freetype\internal\services\svxf86nm.h">
       <Filter>头文件\FreeType2\internal\services</Filter>
     </ClInclude>
+    <ClInclude Include="include\api.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

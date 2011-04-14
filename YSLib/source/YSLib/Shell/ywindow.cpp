@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3587;
+\version 0.3625;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-04-05 20:08 +0800;
+	2011-04-13 08:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,7 +45,6 @@ Show(HWND hWnd)
 	{
 		hWnd->SetVisible(true);
 		hWnd->SetRefresh(true);
-		SetContainerBgRedrawedOf(*hWnd, false);
 		return true;
 	}
 	return false;
@@ -58,7 +57,6 @@ Hide(HWND hWnd)
 	{
 		hWnd->SetVisible(false);
 		hWnd->SetRefresh(false);
-		SetContainerBgRedrawedOf(*hWnd, false);
 		return true;
 	}
 	return false;
@@ -67,7 +65,7 @@ Hide(HWND hWnd)
 
 MWindow::MWindow(const GHStrong<YImage> i, HWND hWnd)
 	: MWindowObject(hWnd),
-	prBackImage(i), bRefresh(false), bUpdate(false)
+	spBgImage(i), bRefresh(true), bUpdate(false)
 {}
 
 
@@ -78,7 +76,7 @@ AWindow::AWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
 BitmapPtr
 AWindow::GetBackgroundPtr() const
 {
-	return prBackImage ? prBackImage->GetImagePtr() : NULL;
+	return spBgImage ? spBgImage->GetImagePtr() : NULL;
 }
 
 void
@@ -93,32 +91,20 @@ AWindow::DrawBackgroundImage()
 {
 	YWindowAssert(this, Forms::AWindow, DrawBackgroundImage);
 
-	if(prBackImage)
-	{
-		ConstBitmapPtr imgBg(prBackImage->GetImagePtr());
-
-		if(imgBg)
-		{
-			mmbcpy(GetContext().GetBufferPtr(), imgBg,
-				GetContext().GetSizeOfBuffer());
-			return true;
-		}
-	}
-	return false;
-}
-
-void
-AWindow::DrawBackground()
-{
-	YWindowAssert(this, Forms::AWindow, DrawBackground);
-
-	if(!DrawBackgroundImage())
-		BeFilledWith(BackColor);
+	return spBgImage ? CopyTo(GetContext(), *spBgImage) : false;
 }
 
 void
 AWindow::Draw()
 {
+	if(!IsTransparent())
+	{
+		if(!DrawBackgroundImage())
+			BeFilledWith(BackColor);
+	}
+
+	YWindowAssert(this, Forms::AWindow, Draw);
+
 	DrawContents();
 	bUpdate = true;
 }
@@ -126,13 +112,9 @@ AWindow::Draw()
 void
 AWindow::Refresh()
 {
-	if(!IsBgRedrawed() || bRefresh)
+	if(bRefresh)
 	{
 		Draw();
-
-		YAssert(IsBgRedrawed(),
-			"Background is not redrawed @ AWindow::Refresh");
-
 		bRefresh = false;
 	}
 	if(GetContainerPtr())
@@ -257,54 +239,29 @@ YFrame::~YFrame()
 bool
 YFrame::DrawContents()
 {
-	bool background_changed(DrawContensBackground());
-
-	for(WGTs::iterator i(sWgtSet.begin()); i != sWgtSet.end(); ++i)
-	{
-		IWidget& w(**i);
-
-		if(w.IsVisible())
-			w.DrawForeground();
-	}
-//	DrawForeground();
-
-	bool result(background_changed || !IsBgRedrawed());
-
-	SetBgRedrawed(true);
-	return result;
-}
-
-bool
-YFrame::DrawContensBackground()
-{
 	YWindowAssert(this, Forms::YFrame, DrawContents);
 
-	bool background_changed(!IsBgRedrawed());
+	bool result(bRefresh);
 
-	for(WGTs::iterator i(sWgtSet.begin());
-		!background_changed && i != sWgtSet.end(); ++i)
+	for(WGTs::iterator i(sWgtSet.begin()); !result && i != sWgtSet.end(); ++i)
 	{
 		IWidget& w(**i);
 
-		background_changed |= !w.IsTransparent() && w.IsVisible()
-			&& !w.IsBgRedrawed();
+		result |= w.IsVisible();
 	}
-	if(background_changed)
+	if(result)
 	{
-		DrawBackground();
 		for(WGTs::iterator i(sWgtSet.begin()); i != sWgtSet.end(); ++i)
 		{
-			IWidget& w(**i);
+			IWidget* const p(*i);
 
-			if(w.IsVisible() && !(IsBgRedrawed()
-				&& w.IsBgRedrawed()) && !w.IsTransparent())
-			{
-				w.DrawBackground();
-				w.SetBgRedrawed(true);
-			}
+			YAssert(p, "Null widget pointer found @ YFrame::DrawContents");
+
+			if(p->IsVisible())
+				p->Draw();
 		}
 	}
-	return background_changed;
+	return result;
 }
 
 YSL_END_NAMESPACE(Forms)

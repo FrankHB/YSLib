@@ -11,23 +11,23 @@
 /*!	\file iterator.hpp
 \ingroup YCLib
 \brief C++ 标准库迭代器扩展。
-\version 0.1220;
+\version 0.1224;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-27 23:01:00 +0800; 
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-04-14 08:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YCLib::Iterator;
+	YCLib::YStandardExtend::Iterator;
 */
 
 
 #ifndef INCLUDED_YSTDEX_ITERATOR_HPP_
 #define INCLUDED_YSTDEX_ITERATOR_HPP_
 
-#include <ystdex.h>
+#include "../ystdex.h"
 #include <iterator>
 #include <utility>
 

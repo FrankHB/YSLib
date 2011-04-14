@@ -11,12 +11,12 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version 0.3201;
+\version 0.3203;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-21 23:09:06 +0800;
 \par 修改时间:
-	2011-04-02 10:09 +0800;
+	2011-04-13 11:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -270,7 +270,7 @@ template<typename T,
 	template<class> class KP = Policies::AssertCheck,
 	template<class> class SP = Policies::DefaultSPStorage,
 	typename SPT = SmartPtr<T, OP, CP, KP, SP> >
-class GHHandle : public SPT
+class GHandle : public SPT
 {
 public:
 	typedef SPT PtrType;
@@ -278,13 +278,13 @@ public:
 	/*!
 	\brief 构造：使用内建指针。
 	*/
-	GHHandle(T* p = NULL)
+	GHandle(T* p = NULL)
 		: SPT(p)
 	{}
 	/*!
 	\brief 构造：使用句柄引用。
 	*/
-	GHHandle(RefToValue<GHHandle> p)
+	GHandle(RefToValue<GHandle> p)
 		: SPT(p)
 	{}
 	/*!
@@ -292,16 +292,16 @@ public:
 	*/
 	template<class C>
 	inline explicit
-	GHHandle(const GHHandle<C>& h)
+	GHandle(const GHandle<C>& h)
 		: SPT(h)
 	{}
 
 	/*!
 	\brief 转换：句柄引用。
 	*/
-	operator RefToValue<GHHandle>()
+	operator RefToValue<GHandle>()
 	{
-		return RefToValue<GHHandle>(*this);
+		return RefToValue<GHandle>(*this);
 	}
 
 	/*!
@@ -310,7 +310,7 @@ public:
 	T*
 	operator->() const
 	{
-		return GHHandle<T>::GetPointer(*this);
+		return GHandle<T>::GetPointer(*this);
 	}
 
 	/*!
@@ -371,7 +371,7 @@ GetPointer(GHWeak<_type> h)
 }
 template<typename _type>
 inline _type*
-GetPointer(GHHandle<_type> h)
+GetPointer(GHandle<_type> h)
 {
 	return h.operator->();
 }
@@ -382,7 +382,7 @@ GetPointer(GHHandle<_type> h)
 */
 template<typename _tIntegral, typename _tReference>
 inline _tIntegral
-handle2int(GHHandle<_tReference> h)
+handle2int(GHandle<_tReference> h)
 {
 	return reinterpret_cast<_tIntegral>(GetPointer(h));
 }
@@ -391,30 +391,30 @@ handle2int(GHHandle<_tReference> h)
 \brief 转换：指定类型整数为句柄。
 */
 template<typename _tIntegral, typename _tReference>
-inline GHHandle<_tReference>
+inline GHandle<_tReference>
 handle2int(_tIntegral i)
 {
-	return GHHandle<_tReference>(reinterpret_cast<_tIntegral>(i));
+	return GHandle<_tReference>(reinterpret_cast<_tIntegral>(i));
 }
 
 /*!
 \brief 转换：指定类型句柄。
 */
 template<typename _type, typename _tReference>
-inline GHHandle<_type>
-static_handle_cast(const GHHandle<_tReference>& h)
+inline GHandle<_type>
+static_handle_cast(const GHandle<_tReference>& h)
 {
-	return GHHandle<_type>(h);
+	return GHandle<_type>(h);
 }
 
 /*!
 \brief 转换：指定类型句柄。
 */
 template<typename _type, typename _tReference>
-inline GHHandle<_type>
-general_handle_cast(GHHandle<_tReference> h)
+inline GHandle<_type>
+general_handle_cast(GHandle<_tReference> h)
 {
-	return GHHandle<_type>(h);
+	return GHandle<_type>(h);
 }
 
 
@@ -435,7 +435,7 @@ YReset_ndebug(_type*& h) ythrow()
 }
 template<typename _type>
 inline bool
-YReset_ndebug(GHHandle<_type>& h) ythrow()
+YReset_ndebug(GHandle<_type>& h) ythrow()
 {
 	return h.Reset();
 }
@@ -466,7 +466,7 @@ YReset_debug(_type*& h) ythrow()
 }
 template<typename _type>
 inline bool
-YReset_debug(GHHandle<_type>& h) ythrow()
+YReset_debug(GHandle<_type>& h) ythrow()
 {
 //	DebugMemory.Unregister(GetPointer(h), __FILE__, __LINE__);
 	return h.Reset();

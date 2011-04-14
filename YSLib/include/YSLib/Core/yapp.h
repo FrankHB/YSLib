@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2153;
+\version 0.2155;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-03-31 20:03 +0800;
+	2011-04-13 11:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -117,13 +117,13 @@ private:
 	Global* pResource; //!< 平台相关的全局资源。
 
 public:
-	static const GHHandle<YShell> DefaultShellHandle; //!< 主 Shell 句柄。
+	static const GHandle<YShell> DefaultShellHandle; //!< 主 Shell 句柄。
 
 private:
 	YMessageQueue* pMessageQueue; //!< 主消息队列：在程序实例中实现以保证单线程。
 	YMessageQueue* pMessageQueueBackup; \
 		//!< 备份消息队列：在程序实例中实现以保证单线程。
-	GHHandle<YShell> hShell;
+	GHandle<YShell> hShell;
 		/*!<
 		当前 Shell 句柄：指示当前线程空间中运行的 Shell ；
 		全局单线程，生存期与进程相同。
@@ -161,7 +161,7 @@ public:
 	*/
 	Global&
 	GetPlatformResource() ythrow();
-	DefGetter(GHHandle<YShell>, ShellHandle, hShell) \
+	DefGetter(GHandle<YShell>, ShellHandle, hShell) \
 		//!< 取得线程空间中当前运行的 Shell 的句柄。
 	/*!
 	\brief 取主消息队列。
@@ -189,7 +189,7 @@ public:
 	\brief 设置线程空间中当前运行的 Shell 的句柄。
 	*/
 	bool
-	SetShellHandle(GHHandle<YShell> h);
+	SetShellHandle(GHandle<YShell> h);
 
 	/*!
 	\brief 复位线程：设置当前运行的线程为主线程。
@@ -213,7 +213,7 @@ public:
 
 	//启动线程消息循环。
 //	void
-//	Run(GHHandle<YShell>);
+//	Run(GHandle<YShell>);
 };
 
 
@@ -226,7 +226,7 @@ SendMessage(const Message&) ythrow();
 \brief 全局默认队列消息发送函数。
 */
 void
-SendMessage(GHHandle<YShell>, Messaging::ID, Messaging::Priority,
+SendMessage(GHandle<YShell>, Messaging::ID, Messaging::Priority,
 	Messaging::IContext* = NULL) ythrow();
 
 YSL_END

@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4926;
+\version 0.4936;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-04-09 21:16 +0800;
+	2011-04-14 22:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -418,7 +418,6 @@ public:
 
 	ImplI1(IControl) DefPredicateBase(Visible, Visual)
 	ImplI1(IControl) DefPredicateBase(Transparent, Visual)
-	ImplI1(IControl) DefPredicateBase(BgRedrawed, Visual)
 	ImplI1(IControl) DefPredicate(Enabled, enabled)
 	ImplI1(IControl) bool
 	IsFocused() const;
@@ -430,18 +429,14 @@ public:
 
 	ImplI1(IControl) DefSetterBase(bool, Visible, Visual)
 	ImplI1(IControl) DefSetterBase(bool, Transparent, Visual)
-	ImplI1(IControl) DefSetterBase(bool, BgRedrawed, Visual)
 	ImplI1(IControl) void
 	SetLocation(const Point&);
 	ImplI1(IControl) void
 	SetSize(const Size&);
 	ImplI1(IControl) DefSetter(bool, Enabled, enabled)
 
-	ImplI1(IControl) PDefH0(void, DrawBackground)
-		ImplBodyBase0(Widget, DrawBackground)
-
-	ImplI1(IControl) PDefH0(void, DrawForeground)
-		ImplBodyBase0(Widget, DrawForeground)
+	ImplI1(IControl) PDefH0(void, Draw)
+		ImplBodyBase0(Widget, Draw)
 
 	ImplI1(IControl) PDefH0(void, Refresh)
 		ImplBodyBase0(Widget, Refresh)
@@ -494,61 +489,6 @@ public:
 	explicit
 	YControl(const Rect& = Rect::Empty);
 };
-
-
-//! \brief 滚动事件类型空间。
-namespace ScrollEventSpace
-{
-	//! \brief 滚动事件类型。
-	typedef enum
-	{
-		SmallDecrement = 0, //!< 滚动框小距离减量移动。
-		SmallIncrement = 1, //!< 滚动框小距离增量移动。
-		LargeDecrement = 2, //!< 滚动框大距离减量移动。
-		LargeIncrement = 3, //!< 滚动框大距离增量移动。
-		ThumbPosition = 4, //!< 滚动框定位（通过直接设置位置）。
-		ThumbTrack = 5, //!< 滚动框当前正在移动。
-		First = 6, //!< 滚动框移动至最小位置。
-		Last = 7, //!< 滚动框移动至最大位置。
-		EndScroll = 8 //!< 滚动框移动停止。
-	} ScrollEventType;
-};
-
-
-//! \brief 滚动事件参数类。
-struct ScrollEventArgs : public EventArgs,
-	public GMValueEventArgs<SDst>
-{
-public:
-	typedef GMValueEventArgs<SDst> MEventArgs;
-	typedef MEventArgs::ValueType ValueType;
-
-	ScrollEventSpace::ScrollEventType Type; //滚动事件类型。
-
-	/*!
-	\brief 构造：使用指定滚动事件类型和值。
-	\note 值等于旧值。
-	*/
-	ScrollEventArgs(ScrollEventSpace::ScrollEventType, ValueType);
-	/*!
-	\brief 构造：使用指定滚动事件类型、值和旧值。
-	*/
-	ScrollEventArgs(ScrollEventSpace::ScrollEventType, ValueType, ValueType);
-};
-
-inline
-ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
-	ScrollEventArgs::ValueType v)
-	: GMValueEventArgs<SDst>(v), Type(t)
-{}
-inline
-ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
-	ScrollEventArgs::ValueType v, ScrollEventArgs::ValueType old_value)
-	: GMValueEventArgs<SDst>(v, old_value), Type(t)
-{}
-
-
-DefDelegate(HScrollEvent, IControl, ScrollEventArgs)
 
 
 //! \brief 范围模块类。

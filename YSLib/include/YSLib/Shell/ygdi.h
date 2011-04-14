@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3884;
+\version 0.3981;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-04-09 21:15 +0800;
+	2011-04-13 08:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -129,56 +129,63 @@ struct VerticalLineTransfomer
 
 //! \brief 贴图边界计算器。
 bool
-BlitBounds(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& cs,
+BlitBounds(const Point& dp, const Point& sp,
+	const Size& ds, const Size& ss, const Size& cs,
 	int& min_x, int& min_y, int& max_x, int& max_y);
 
 //! \brief 贴图偏移量计算器。
 template<bool _bSwapLR, bool _bSwapUD>
 int
-BlitScale(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& cs, int delta_x, int delta_y);
+BlitScale(const Point& dp, const Point& sp,
+	const Size& ds, const Size& ss, const Size& sc, int delta_x, int delta_y);
 template<>
 int
-BlitScale<false, false>(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& cs, int delta_x, int delta_y);
+BlitScale<false, false>(const Point&, const Point&,
+	const Size&, const Size&, const Size&, int, int);
 template<>
 int
-BlitScale<true, false>(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& cs, int delta_x, int delta_y);
+BlitScale<true, false>(const Point&, const Point&,
+	const Size&, const Size&, const Size&, int, int);
 template<>
 int
-BlitScale<false, true>(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& cs, int delta_x, int delta_y);
+BlitScale<false, true>(const Point&, const Point&,
+	const Size&, const Size&, const Size&, int, int);
 template<>
 int
-BlitScale<true, true>(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& cs, int delta_x, int delta_y);
+BlitScale<true, true>(const Point&, const Point&,
+	const Size&, const Size&, const Size&, int, int);
 
 
 /*!
 \brief 贴图函数模板。
 
-复制一块矩形区域的像素。
+对一块矩形区域的逐像素顺序批量操作（如复制或贴图）。
 \param _gBlitLoop 循环实现模板类。
 \param _bSwapLR 水平翻转镜像（关于水平中轴对称）。
 \param _bSwapUD 竖直翻转镜像（关于竖直中轴对称）。
 \param _tOut 输出迭代器类型。
-\param _tOut 输入迭代器类型。
+\param _tIn 输入迭代器类型。
+\param dst 目标迭代器。
+\param ds 目标迭代器所在缓冲区大小。
+\param src 源迭代器。
+\param ss 源迭代器所在缓冲区大小。
+\param dp 目标迭代器起始点所在缓冲区偏移。
+\param sp 源迭代器起始点所在缓冲区偏移。
+\param sc 源迭代器需要复制的区域大小。
 */
 template<template<bool> class _gBlitLoop, bool _bSwapLR, bool _bSwapUD,
 	typename _tOut, typename _tIn>
 void Blit(_tOut dst, const Size& ds,
 	_tIn src, const Size& ss,
-	const Point& sp, const Point& dp, const Size& sc)
+	const Point& dp, const Point& sp, const Size& sc)
 {
 	int min_x, min_y, max_x, max_y;
 
-	if(BlitBounds(sp, dp, ss, ds, sc, min_x, min_y, max_x, max_y))
+	if(BlitBounds(dp, sp, ds, ss, sc, min_x, min_y, max_x, max_y))
 	{
 		const int delta_x(max_x - min_x), delta_y(max_y - min_y),
 			src_off(min_y * ss.Width + min_x),
-			dst_off(BlitScale<_bSwapLR, _bSwapUD>(sp, dp, ss, ds, sc,
+			dst_off(BlitScale<_bSwapLR, _bSwapUD>(dp, sp, ds, ss, sc,
 				delta_x, delta_y));
 
 		_gBlitLoop<!_bSwapLR>()(delta_x, delta_y, dst + dst_off, src + src_off,
@@ -202,7 +209,7 @@ struct RectTransfomer
 	{
 		int min_x, min_y, max_x, max_y;
 
-		BlitBounds(Point::Zero, dp, ss, ds, ss,
+		BlitBounds(dp, Point::Zero, ds, ss, ss,
 			min_x, min_y, max_x, max_y);
 
 		const int delta_x(max_x - min_x);
@@ -650,23 +657,6 @@ void
 CopyBuffer(const Graphics&, const Graphics&);
 
 /*!
-\brief 以第一个参数作为目标，以指定输出指向
-	复制第二个参数的缓冲区内容至相对于目标缓冲区的点。
-\note 仅当指针和指向有效。自动裁剪适应大小。
-*/
-void
-CopyTo(const Graphics&, const Graphics&,
-	const Point& = Point::Zero, Rotation = RDeg0);
-/*!
-\brief 以指定图形接口上下文作为源，向指定大小和点（相对左上角）的
-	指定图形接口上下文以指定输出指向复制缓冲区内容。
-\note 仅当指针和指向有效。自动裁剪适应大小。
-*/
-void
-CopyTo(BitmapPtr, const Graphics&, Rotation, const Size&,
-	const Point&, const Point&, const Size&);
-
-/*!
 \brief 清除图形接口上下文缓冲区。
 */
 void
@@ -796,7 +786,7 @@ Padding
 FetchMargin(const Rect&, const Size&);
 
 
-//! \brief 矩形图像缓冲区。
+//! \brief 正则矩形位图缓冲区。
 class BitmapBuffer : public NonCopyable, public Graphics
 {
 public:
@@ -840,16 +830,6 @@ public:
 	*/
 	virtual void
 	BeFilledWith(Color) const;
-
-	/*!
-	\brief 刷新：向指定大小和点（相对左上角）的指定图形接口上下文
-		以指定输出指向复制缓冲区内容。
-	\note 若有无效指针或指向则不复制。自动适应大小。
-	*/
-	virtual void
-	Flush(BitmapPtr, const Size& = Size::FullScreen,
-		const Point& = Point::Zero, const Point& = Point::Zero,
-		const Size& = Size::FullScreen, Rotation = RDeg0) const;
 };
 
 inline BitmapBuffer::BitmapBuffer()
@@ -860,15 +840,8 @@ inline BitmapBuffer::~BitmapBuffer()
 	ydelete_array(pBuffer);
 }
 
-inline void
-BitmapBuffer::Flush(BitmapPtr dst, const Size& ds,
-	const Point& sp, const Point& dp, const Size& sc, Rotation rot) const
-{
-	CopyTo(dst, *this, rot, ds, sp, dp, sc);
-}
 
-
-//! \brief 矩形增强图像缓冲区。
+//! \brief 扩展的正则矩形位图缓冲区。
 class BitmapBufferEx : public BitmapBuffer
 {
 protected:
@@ -908,26 +881,6 @@ public:
 	*/
 	virtual void
 	ClearImage() const;
-
-	/*!
-	\brief 刷新：向指定大小和点（相对左上角）的指定图形接口上下文
-		以指定输出指向复制缓冲区内容。
-	\note 若有无效指针或指向则不复制。自动适应大小。
-	*/
-	void
-	Flush(BitmapPtr, const Size& = Size::FullScreen,
-		const Point& = Point::Zero, const Point& = Point::Zero,
-		const Size& = Size::FullScreen, Rotation = RDeg0) const;
-
-	/*!
-	\brief 向指定大小和点（相对左上角）的指定图形接口上下文
-		以指定输出指向以缓冲区内容贴图。
-	\note 仅当指针和指向有效。自动裁剪适应大小。
-	*/
-	void
-	BlitTo(BitmapPtr, const Size& = Size::FullScreen,
-		const Point& = Point::Zero, const Point& = Point::Zero,
-		const Size& = Size::FullScreen, Rotation = RDeg0) const;
 };
 
 inline
@@ -937,6 +890,83 @@ inline
 BitmapBufferEx::~BitmapBufferEx()
 {
 	ydelete_array(pBufferAlpha);
+}
+
+
+/*!
+\brief 图形接口上下文向指针指定的缓冲区复制。
+\note 仅当指针和指向有效。自动裁剪适应大小。
+
+以指定图形接口上下文作为源，向指定大小和点（相对左上角）的
+	指定图形接口上下文以指定输出指向复制缓冲区内容。
+*/
+bool
+CopyTo(BitmapPtr, const Graphics&, const Size& = Size::FullScreen,
+	const Point& = Point::Zero, const Point& = Point::Zero,
+	const Size& = Size::FullScreen, Rotation = RDeg0);
+/*!
+\brief 刷新：位图缓冲区向指针指定的缓冲区复制。
+\note 仅当指针和指向有效。自动裁剪适应大小。
+
+向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向复制缓冲区内容。
+*/
+bool
+CopyTo(BitmapPtr, const BitmapBufferEx&, const Size& = Size::FullScreen,
+	const Point& = Point::Zero, const Point& = Point::Zero,
+	const Size& = Size::FullScreen, Rotation = RDeg0);
+/*!
+\brief 图形接口上下文复制。
+\note 仅当指针和指向有效。自动裁剪适应大小。
+
+以第一个参数作为目标，以指定输出指向复制第二个参数的缓冲区内容
+	至相对于目标缓冲区的点。
+*/
+inline bool
+CopyTo(const Graphics& dst, const Graphics& src,
+	const Point& dp = Point::Zero, const Point& sp = Point::Zero,
+	Rotation rot = RDeg0)
+{
+	return CopyTo(dst.GetBufferPtr(), src, dst.GetSize(),
+		dp, sp, src.GetSize(), rot);
+}
+/*!
+\brief 刷新：位图缓冲区向图形接口上下文复制。
+\note 仅当指针和指向有效。自动裁剪适应大小。
+
+向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向复制缓冲区内容。
+*/
+inline bool
+CopyTo(const Graphics& dst, const BitmapBufferEx& src,
+	const Point& dp = Point::Zero, const Point& sp = Point::Zero,
+	Rotation rot = RDeg0)
+{
+	return CopyTo(dst.GetBufferPtr(), src, dst.GetSize(),
+		dp, sp, src.GetSize(), rot);
+}
+
+/*!
+\brief 贴图：位图缓冲区向指针指定的缓冲区以贴图算法复制。
+\note 仅当指针和指向有效。自动裁剪适应大小。
+
+向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向以缓冲区内容贴图。
+*/
+bool
+BlitTo(BitmapPtr, const BitmapBufferEx&, const Size& = Size::FullScreen,
+	const Point& = Point::Zero, const Point& = Point::Zero,
+	const Size& = Size::FullScreen, Rotation = RDeg0);
+/*!
+\brief 贴图：位图缓冲区向指针指定的缓冲区以贴图算法复制。
+\note 仅当指针和指向有效。自动裁剪适应大小。
+
+向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向以缓冲区内容贴图。
+*/
+inline bool
+BlitTo(const Graphics& dst, const BitmapBufferEx& src,
+	const Point& dp = Point::Zero, const Point& sp = Point::Zero,
+	Rotation rot = RDeg0)
+{
+	return BlitTo(dst.GetBufferPtr(), src, dst.GetSize(),
+		dp, sp, src.GetSize(), rot);
 }
 
 YSL_END_NAMESPACE(Drawing)

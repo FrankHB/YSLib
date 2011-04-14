@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1917;
+\version 0.1923;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-04-09 08:06 +0800;
+	2011-04-13 11:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -87,19 +87,21 @@ YSL_BEGIN_NAMESPACE(DS)
 class ShlDS : public Shells::YGUIShell
 {
 private:
-	GHHandle<YDesktop> hDskUp, hDskDown; \
+	GHandle<YDesktop> hDskUp, hDskDown; \
 		//正常状态下应该总是指向有效的桌面对象。
 
 public:
 	/*!
 	\brief 无参数构造。
 	*/
-	ShlDS(GHHandle<YDesktop>
-		= theApp.GetPlatformResource().GetDesktopUpHandle(), GHHandle<YDesktop>
+	ShlDS(GHandle<YDesktop>
+		= theApp.GetPlatformResource().GetDesktopUpHandle(), GHandle<YDesktop>
 		= theApp.GetPlatformResource().GetDesktopDownHandle());
 
-	DefGetter(const GHHandle<YDesktop>&, DesktopUpHandle, hDskUp)
-	DefGetter(const GHHandle<YDesktop>&, DesktopDownHandle, hDskDown)
+	DefGetter(const GHandle<YDesktop>&, DesktopUpHandle, hDskUp)
+	DefGetter(const GHandle<YDesktop>&, DesktopDownHandle, hDskDown)
+	DefGetter(YDesktop&, DesktopUp, *hDskUp)
+	DefGetter(YDesktop&, DesktopDown, *hDskDown)
 
 	/*!
 	\brief Shell 处理函数。
@@ -154,7 +156,7 @@ inline void
 NowShellInsertDropMessage(Messaging::Priority p = 0x80)
 {
 	SendMessage(Shells::GetCurrentShellHandle(), SM_DROP, p,
-		new Messaging::GHandleContext<GHHandle<YShell> >(FetchShellHandle()));
+		new Messaging::GHandleContext<GHandle<YShell> >(FetchShellHandle()));
 }
 
 //@}

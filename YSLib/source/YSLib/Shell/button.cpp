@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件实现。
-\version 0.3461;
+\version 0.3477;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-04-07 22:22 +0800;
+	2011-04-13 08:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,18 +70,28 @@ YThumb::YThumb(const Rect& r)
 }
 
 void
-YThumb::DrawForeground()
+YThumb::Draw()
 {
-	YWidgetAssert(this, Controls::YThumb, DrawForeground);
+	YWidgetAssert(this, Controls::YThumb, Draw);
 
-	ParentType::DrawForeground();
+	ParentType::Draw();
 
 	IWindow* pWnd(FetchDirectWindowPtr(*this));
 
 	RectDrawButton(pWnd->GetContext(), LocateForWindow(*this),
 		GetSize(), bPressed);
 	if(IsFocused())
-		WndDrawFocus(pWnd, GetSize());
+	{
+		Size s(GetSize());
+
+		if(s.Width > 6 && s.Height > 6)
+		{
+			s.Width -= 6;
+			s.Height -= 6;
+			DrawRect(pWnd->GetContext(), LocateForWindow(*this) + Vec(3, 3), s,
+				ColorSpace::Aqua);
+		}
+	}
 }
 
 void
@@ -105,11 +115,11 @@ YButton::YButton(const Rect& r, const Drawing::Font& f)
 {}
 
 void
-YButton::DrawForeground()
+YButton::Draw()
 {
-	YWidgetAssert(this, Controls::YButton, DrawForeground);
+	YWidgetAssert(this, Controls::YButton, Draw);
 
-	ParentType::DrawForeground();
+	ParentType::Draw();
 	PaintText(*this, FetchContext(*this), LocateForWindow(*this));
 }
 

@@ -11,12 +11,12 @@
 /*!	\file ysmsg.h
 \ingroup Core
 \brief 消息处理。
-\version 0.2120;
+\version 0.2122;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-03-28 10:22 +0800;
+	2011-04-13 11:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -55,7 +55,7 @@ class Message : public GMCounter<Message>
 	friend class YMessageQueue;
 
 private:
-	GHHandle<YShell> hShl; //!< 目的 Shell 句柄。
+	GHandle<YShell> hShl; //!< 目的 Shell 句柄。
 	ID id; //!< 消息标识。
 	Priority prior; //!< 消息优先级。
 	SmartPtr<IContext> pContext; //消息上下文指针。
@@ -71,7 +71,7 @@ public:
 	\brief 构造：
 		使用 Shell 句柄、消息标识、消息优先级、光标位置和消息上下文指针。
 	*/
-	Message(GHHandle<YShell> = NULL, ID = 0, Priority = 0,
+	Message(GHandle<YShell> = NULL, ID = 0, Priority = 0,
 		SmartPtr<IContext> = NULL);
 	/*!
 	\brief 复制构造。
@@ -94,7 +94,7 @@ public:
 		//!< 判断消息是否过期。
 	DefPredicate(Valid, id) //!< 判断消息是否有效。
 
-	DefGetter(GHHandle<YShell>, ShellHandle, hShl) //!< 取关联的 Shell 句柄。
+	DefGetter(GHandle<YShell>, ShellHandle, hShl) //!< 取关联的 Shell 句柄。
 	DefGetter(ID, MessageID, id) //!< 取消息标识。
 	DefGetter(Priority, Priority, prior) //!< 取消息优先级。
 	DefGetter(SmartPtr<IContext>, ContextPtr, pContext) //!< 取消息上下文。

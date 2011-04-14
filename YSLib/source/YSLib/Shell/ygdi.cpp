@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口实现。
-\version 0.3402;
+\version 0.3458;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-04-03 16:07 +0800;
+	2011-04-13 08:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,8 +49,8 @@ namespace
 }
 
 bool
-BlitBounds(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& sc,
+BlitBounds(const Point& dp, const Point& sp,
+	const Size& ds, const Size& ss, const Size& sc,
 	int& min_x, int& min_y, int& max_x, int& max_y)
 {
 	min_x = blit_min(sp.X, dp.X);
@@ -63,35 +63,35 @@ BlitBounds(const Point& sp, const Point& dp,
 
 template<>
 int
-BlitScale<false, false>(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& sc, int delta_x, int delta_y)
+BlitScale<false, false>(const Point& dp, const Point& sp,
+	const Size& ds, const Size& ss, const Size& sc, int delta_x, int delta_y)
 {
 	return vmax<int>(0, dp.Y) * ds.Width + vmax<int>(0, dp.X);
 }
 template<>
 int
-BlitScale<true, false>(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& sc, int delta_x, int delta_y)
+BlitScale<true, false>(const Point& dp, const Point& sp,
+	const Size& ds, const Size& ss, const Size& sc, int delta_x, int delta_y)
 {
 	return (vmax<int>(0, dp.Y) + delta_y - 1) * ds.Width + vmax<int>(0, dp.X);
 }
 template<>
 int
-BlitScale<false, true>(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& sc, int delta_x, int delta_y)
+BlitScale<false, true>(const Point& dp, const Point& sp,
+	const Size& ds, const Size& ss, const Size& sc, int delta_x, int delta_y)
 {
 	return vmax<int>(0, dp.Y) * ds.Width + vmax<int>(0, dp.X) + delta_x - 1;
 }
 template<>
 int
-BlitScale<true, true>(const Point& sp, const Point& dp,
-	const Size& ss, const Size& ds, const Size& sc, int delta_x, int delta_y)
+BlitScale<true, true>(const Point& dp, const Point& sp,
+	const Size& ds, const Size& ss, const Size& sc, int delta_x, int delta_y)
 {
 	return (vmax<int>(0, dp.Y) + delta_y - 1) * ds.Width
 		+ vmax<int>(0, dp.X) + delta_x - 1;
 }
 
-//显式实例化：防止链接器错误。
+//显式实例化：防止链接错误。
 template
 void Blit<BlitLoop, false, false>(BitmapPtr, const Size&,
 	ConstBitmapPtr, const Size&,
@@ -282,29 +282,6 @@ CopyBuffer(const Graphics& dst, const Graphics& src)
 }
 
 void
-CopyTo(const Graphics& dst, const Graphics& src,
-	const Point& dp, Rotation rot)
-{
-	if(~rot & 1 && dst.IsValid() && src.IsValid())
-		(rot == RDeg0
-			? Blit<BlitLoop, false, false, BitmapPtr, ConstBitmapPtr>
-			: Blit<BlitLoop, true, true, BitmapPtr, ConstBitmapPtr>)(
-			dst.GetBufferPtr(), dst.GetSize(),
-			src.GetBufferPtr(), src.GetSize(),
-			Point::Zero, dp, src.GetSize());
-}
-void
-CopyTo(BitmapPtr dst, const Graphics& g, Rotation rot, const Size& ds,
-	const Point& sp, const Point& dp, const Size& sc)
-{
-	if(~rot & 1 && dst && g.GetBufferPtr())
-		(rot == RDeg0
-			? Blit<BlitLoop, false, false, BitmapPtr, ConstBitmapPtr>
-			: Blit<BlitLoop, true, true, BitmapPtr, ConstBitmapPtr>)(
-			dst, ds, g.GetBufferPtr(), g.GetSize(), sp, dp, sc);
-}
-
-void
 ClearImage(const Graphics& g)
 {
 	ClearPixel(g.GetBufferPtr(), GetAreaFrom(g.GetSize()));
@@ -492,28 +469,50 @@ BitmapBufferEx::ClearImage() const
 	ClearPixel(pBufferAlpha, t);
 }
 
-void
-BitmapBufferEx::Flush(BitmapPtr dst, const Size& ds,
-	const Point& sp, const Point& dp, const Size& sc, Rotation rot) const
+bool
+CopyTo(BitmapPtr dst, const Graphics& g, const Size& ds,
+	const Point& dp, const Point& sp, const Size& sc, Rotation rot)
 {
-	if(~rot & 1 && dst && pBuffer)
+	if(~rot & 1 && dst && g.IsValid())
+	{
+		(rot == RDeg0
+			? Blit<BlitLoop, false, false, BitmapPtr, ConstBitmapPtr>
+			: Blit<BlitLoop, true, true, BitmapPtr, ConstBitmapPtr>)(
+			dst, ds, g.GetBufferPtr(), g.GetSize(), dp, sp, sc);
+		return true;
+	}
+	return false;
+}
+bool
+CopyTo(BitmapPtr dst, const BitmapBufferEx& buf, const Size& ds,
+	const Point& dp, const Point& sp, const Size& sc, Rotation rot)
+{
+	if(~rot & 1 && dst && buf.IsValid())
+	{
 		(rot == RDeg0
 			? Blit<BlitTransparentLoop, false, false, BitmapPtr, IteratorPair>
 			: Blit<BlitTransparentLoop, true, true, BitmapPtr, IteratorPair>)(
-			dst, ds, IteratorPair(pBuffer, pBufferAlpha),
-			GetSize(), sp, dp, sc);
+			dst, ds, IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()),
+			buf.GetSize(), dp, sp, sc);
+		return true;
+	}
+	return false;
 }
 
-void
-BitmapBufferEx::BlitTo(BitmapPtr dst, const Size& ds,
-	const Point& sp, const Point& dp, const Size& sc, Rotation rot) const
+bool
+BlitTo(BitmapPtr dst, const BitmapBufferEx& buf, const Size& ds,
+	const Point& dp, const Point& sp, const Size& sc, Rotation rot)
 {
-	if(~rot & 1 && dst && pBuffer)
+	if(~rot & 1 && dst && buf.IsValid())
+	{
 		(rot == RDeg0
 			? Blit<BlitBlendLoop, false, false, BitmapPtr, IteratorPair>
 			: Blit<BlitBlendLoop, true, true, BitmapPtr, IteratorPair>)(
-			dst, ds, IteratorPair(pBuffer, pBufferAlpha),
-			GetSize(), sp, dp, sc);
+			dst, ds, IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()),
+			buf.GetSize(), dp, sp, sc);
+		return true;
+	}
+	return false;
 }
 
 YSL_END_NAMESPACE(Drawing)

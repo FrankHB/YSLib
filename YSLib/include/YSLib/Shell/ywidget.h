@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5885;
+\version 0.5910;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-05 20:09 +0800;
+	2011-04-13 20:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,7 +62,6 @@ class Widget;
 DeclInterface(IWidget)
 	DeclIEntry(bool IsVisible() const) //!< 判断是否可见。
 	DeclIEntry(bool IsTransparent() const) //!< 判断是否透明。
-	DeclIEntry(bool IsBgRedrawed() const) //!< 判断是否需要重绘。
 
 	DeclIEntry(const Point& GetLocation() const)
 	DeclIEntry(const Size& GetSize() const)
@@ -70,23 +69,16 @@ DeclInterface(IWidget)
 
 	DeclIEntry(void SetVisible(bool)) //!< 设置可见。
 	DeclIEntry(void SetTransparent(bool)) //!< 设置透明。
-	DeclIEntry(void SetBgRedrawed(bool)) //!< 设置重绘状态。
 	DeclIEntry(void SetLocation(const Point&)) \
 		//!< 设置左上角所在位置（相对于容器的偏移坐标）。
 	DeclIEntry(void SetSize(const Size&)) \
 		//!< 设置大小。
 
 	/*!
-	\brief 绘制背景。
+	\brief 绘制。
 	\warning 可能不检查缓冲区指针是否为空。
 	*/
-	DeclIEntry(void DrawBackground())
-
-	/*!
-	\brief 绘制前景。
-	\warning 可能不检查缓冲区指针是否为空。
-	*/
-	DeclIEntry(void DrawForeground())
+	DeclIEntry(void Draw())
 
 	//! \brief 刷新至窗口缓冲区。
 	DeclIEntry(void Refresh())
@@ -204,7 +196,6 @@ class Visual : public NonCopyable
 private:
 	bool visible; //!< 可见性。
 	bool transparent; //!< 透明性。
-	mutable bool background_redrawed; //!< 背景重绘状态。
 	Point location; //!< 左上角所在位置（相对于容器的偏移坐标）。
 	Size size; //!< 部件大小。
 
@@ -222,7 +213,6 @@ public:
 
 	DefPredicate(Visible, visible)
 	DefPredicate(Transparent, transparent)
-	DefPredicate(BgRedrawed, background_redrawed)
 
 	DefGetter(SPos, X, GetLocation().X)
 	DefGetter(SPos, Y, GetLocation().Y)
@@ -233,7 +223,6 @@ public:
 
 	DefSetter(bool, Visible, visible)
 	DefSetter(bool, Transparent, transparent)
-	DefSetter(bool, BgRedrawed, background_redrawed)
 	/*!
 	\brief 设置位置：横坐标。
 	\note 非虚公有实现。
@@ -304,16 +293,10 @@ public:
 	DefGetter(IUIBox*&, ContainerPtr, pContainer)
 
 	/*!
-	\brief 绘制背景。
+	\brief 绘制。
 	*/
 	virtual void
-	DrawBackground();
-
-	/*!
-	\brief 绘制前景。
-	*/
-	virtual void
-	DrawForeground();
+	Draw();
 
 	/*!
 	\brief 刷新至窗口缓冲区。
@@ -345,7 +328,6 @@ public:
 
 	ImplI1(IWidget) DefPredicateBase(Visible, Visual)
 	ImplI1(IWidget) DefPredicateBase(Transparent, Visual)
-	ImplI1(IWidget) DefPredicateBase(BgRedrawed, Visual)
 
 	ImplI1(IWidget) DefGetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefGetterBase(const Size&, Size, Visual)
@@ -353,15 +335,11 @@ public:
 
 	ImplI1(IWidget) DefSetterBase(bool, Visible, Visual)
 	ImplI1(IWidget) DefSetterBase(bool, Transparent, Visual)
-	ImplI1(IWidget) DefSetterBase(bool, BgRedrawed, Visual)
 	ImplI1(IWidget) DefSetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefSetterBase(const Size&, Size, Visual)
 
-	ImplI1(IWidget) PDefH0(void, DrawBackground)
-		ImplBodyBase0(Widget, DrawBackground)
-
-	ImplI1(IWidget) PDefH0(void, DrawForeground)
-		ImplBodyBase0(Widget, DrawForeground)
+	ImplI1(IWidget) PDefH0(void, Draw)
+		ImplBodyBase0(Widget, Draw)
 
 	ImplI1(IWidget) PDefH0(void, Refresh)
 		ImplBodyBase0(Widget, Refresh)

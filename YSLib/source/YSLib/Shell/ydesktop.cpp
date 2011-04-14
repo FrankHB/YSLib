@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2185;
+\version 0.2201;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-04-05 21:44 +0800;
+	2011-04-13 08:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -129,47 +129,11 @@ YDesktop::ClearContents()
 	bRefresh = true;
 }
 
-void
-YDesktop::DrawBackground()
-{
-	YWindowAssert(this, YDesktop, DrawBackground);
-
-	if(prBackImage)
-	{
-		const BitmapPtr buf(GetContext().GetBufferPtr());
-
-		if(buf)
-		{
-			const BitmapPtr imgBg(prBackImage->GetImagePtr());
-
-			if(imgBg)
-			{
-				mmbcpy(buf, imgBg, GetContext().GetSizeOfBuffer());
-				return;
-			}
-		}
-	}
-	BeFilledWith(BackColor);
-}
-
 bool
 YDesktop::DrawContents()
 {
-//	DrawBackground();
-	bool background_changed(DrawContensBackground());
-
-	for(WGTs::iterator i(sWgtSet.begin()); i != sWgtSet.end(); ++i)
-	{
-		IWidget* const p(*i);
-
-		YAssert(p, "Null widget pointer found @ YDesktop::DrawContents");
-
-		if(p->IsVisible())
-			p->DrawForeground();
-	}
-//	DrawForeground();
-
-	bool result(background_changed || !IsBgRedrawed());
+	bool result(ParentType::DrawContents());
+//	Draw();
 
 	for(DOs::iterator i(sDOs.begin()); i != sDOs.end(); ++i)
 	{
@@ -188,13 +152,9 @@ YDesktop::DrawContents()
 				pWnd->Update();
 			}
 			else
-			{
-				p->DrawBackground();
-				p->DrawForeground();
-			}
+				p->Draw();
 		}
 	}
-	SetBgRedrawed(true);
 	return result;
 }
 

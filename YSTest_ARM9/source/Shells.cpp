@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3914;
+\version 0.3962;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-11 07:28 +0800;
+	2011-04-14 16:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -299,17 +299,17 @@ ShlLoad::OnActivated(const Message& msg)
 	//新建窗口。
 //	hWndUp = NewWindow<TFrmLoadUp>();
 //	hWndDown = NewWindow<TFrmLoadDown>();
-	static_cast<YFrame&>(*GetDesktopUpHandle()) += &lblTitle;
-	static_cast<YFrame&>(*GetDesktopUpHandle()) += &lblStatus;
-	static_cast<YFrame&>(*GetDesktopDownHandle()) += &lblDetails;
-	GetDesktopUpHandle()->SetBackground(GetImage(1));
-	GetDesktopDownHandle()->SetBackground(GetImage(2));
+	GetDesktopUp() += &lblTitle;
+	GetDesktopUp() += &lblStatus;
+	GetDesktopDown() += &lblDetails;
+	GetDesktopUp().GetBackgroundImagePtr() = GetImage(1);
+	GetDesktopDown().GetBackgroundImagePtr() = GetImage(2);
 	lblTitle.Text = YApplication::ProductName;
 	lblStatus.Text = "Loading...";
 	lblDetails.Text = _ustr("初始化中，请稍后……");
 	lblDetails.SetTransparent(true);
 //	lblTitle.Transparent = true;
-//	Draw();
+//	DrawContents();
 	ParentType::OnActivated(msg);
 	UpdateToScreen();
 	try
@@ -327,8 +327,8 @@ ShlLoad::OnActivated(const Message& msg)
 int
 ShlLoad::OnDeactivated(const Message& msg)
 {
-	GetDesktopUpHandle()->SetBackground(NULL);
-	GetDesktopDownHandle()->SetBackground(NULL);
+	GetDesktopUp().GetBackgroundImagePtr() = NULL;
+	GetDesktopDown().GetBackgroundImagePtr() = NULL;
 	ParentType::OnDeactivated(msg);
 	return 0;
 }
@@ -366,32 +366,32 @@ ShlExplorer::ShlProc(const Message& msg)
 int
 ShlExplorer::OnActivated(const Message& msg)
 {
-	static_cast<YFrame&>(*GetDesktopUpHandle()) += &lblTitle;
-	static_cast<YFrame&>(*GetDesktopUpHandle()) += &lblPath;
-	*GetDesktopDownHandle() += &fbMain;
-	*GetDesktopDownHandle() += &btnTest;
-	*GetDesktopDownHandle() += &btnOK;
-	*GetDesktopDownHandle() += &chkTest;
-	GetDesktopUpHandle()->SetBackground(GetImage(3));
-	GetDesktopDownHandle()->SetBackground(GetImage(4));
+	GetDesktopUp() += &lblTitle;
+	GetDesktopUp() += &lblPath;
+	GetDesktopDown() += &fbMain;
+	GetDesktopDown() += &btnTest;
+	GetDesktopDown() += &btnOK;
+	GetDesktopDown() += &chkTest;
+	GetDesktopUp().GetBackgroundImagePtr() = GetImage(3);
+	GetDesktopDown().GetBackgroundImagePtr() = GetImage(4);
 	lblTitle.Text = "文件列表：请选择一个文件。";
 	lblPath.Text = "/";
 //	lblTitle.Transparent = true;
 //	lblPath.Transparent = true;
 	btnTest.Text = _ustr("测试(X)");
 	btnOK.Text = _ustr("确定(R)");
-	FetchEvent<KeyUp>(*GetDesktopDownHandle()).Add(*this,
+	FetchEvent<KeyUp>(GetDesktopDown()).Add(*this,
 		&ShlExplorer::OnKeyUp_frm);
-	FetchEvent<KeyDown>(*GetDesktopDownHandle()).Add(*this,
+	FetchEvent<KeyDown>(GetDesktopDown()).Add(*this,
 		&ShlExplorer::OnKeyDown_frm);
-	FetchEvent<KeyPress>(*GetDesktopDownHandle()).Add(*this,
+	FetchEvent<KeyPress>(GetDesktopDown()).Add(*this,
 		&ShlExplorer::OnKeyPress_frm);
 	btnOK.SetTransparent(false);
 /*
 	ReplaceHandle<HWND>(hWndUp,
-		new TFrmFileListMonitor(GHHandle<YShell>(this)));
+		new TFrmFileListMonitor(GHandle<YShell>(this)));
 	ReplaceHandle<HWND>(hWndDown,
-		new TFrmFileListSelecter(GHHandle<YShell>(this)));
+		new TFrmFileListSelecter(GHandle<YShell>(this)));
 */
 	//	HandleCast<TFrmFileListSelecter>(
 	//		hWndDown)->fbMain.RequestFocus(GetZeroElement<EventArgs>());
@@ -405,14 +405,14 @@ ShlExplorer::OnActivated(const Message& msg)
 int
 ShlExplorer::OnDeactivated(const Message& msg)
 {
-	FetchEvent<KeyUp>(*GetDesktopDownHandle()).Remove(*this,
+	FetchEvent<KeyUp>(GetDesktopDown()).Remove(*this,
 		&ShlExplorer::OnKeyUp_frm);
-	FetchEvent<KeyDown>(*GetDesktopDownHandle()).Remove(*this,
+	FetchEvent<KeyDown>(GetDesktopDown()).Remove(*this,
 		&ShlExplorer::OnKeyDown_frm);
-	FetchEvent<KeyPress>(*GetDesktopDownHandle()).Remove(*this,
+	FetchEvent<KeyPress>(GetDesktopDown()).Remove(*this,
 		&ShlExplorer::OnKeyPress_frm);
-	GetDesktopUpHandle()->SetBackground(NULL);
-	GetDesktopDownHandle()->SetBackground(NULL);
+	GetDesktopUp().GetBackgroundImagePtr() = NULL;
+	GetDesktopDown().GetBackgroundImagePtr() = NULL;
 	ParentType::OnDeactivated(msg);
 	return 0;
 }
@@ -755,12 +755,12 @@ ShlSetting::TFormExtra::OnClick_btnTestEx(TouchEventArgs& e)
 	class TestObj
 	{
 	public:
-		GHHandle<YDesktop> h;
+		GHandle<YDesktop> h;
 		Color c;
 		Point l;
 		Size s;
 
-		TestObj(GHHandle<YDesktop> h_)
+		TestObj(GHandle<YDesktop> h_)
 			: h(h_),
 			c(ColorSpace::White),
 			l(20, 32), s(120, 90)
@@ -783,8 +783,8 @@ ShlSetting::TFormExtra::OnClick_btnTestEx(TouchEventArgs& e)
 		void
 		Blit(const TextRegion& tr)
 		{
-			tr.BlitTo(h->GetScreen().GetBufferPtr(),
-				h->GetScreen().GetSize(), Point::Zero, l, tr.GetSize());
+			BlitTo(h->GetScreen().GetBufferPtr(), tr,
+				h->GetScreen().GetSize(), l, Point::Zero, tr.GetSize());
 		}
 	};
 
@@ -840,7 +840,7 @@ ShlSetting::TFormExtra::OnClick_btnTestEx(TouchEventArgs& e)
 			t.Fill();
 			t.Pause();
 
-			//	tr2.BeFilledWith(ColorSpace::Black);
+		//	tr2.BeFilledWith(ColorSpace::Black);
 			tr2.ClearImage();
 			tr2.ResetPen();
 			tr2.Color = ColorSpace::White;
@@ -963,20 +963,17 @@ ShlSetting::ShlProc(const Message& msg)
 int
 ShlSetting::OnActivated(const Message& msg)
 {
-	static_cast<YFrame&>(*GetDesktopUpHandle()) += &lblA;
-	static_cast<YFrame&>(*GetDesktopUpHandle()) += &lblB;
-	GetDesktopUpHandle()->SetBackground(GetImage(5));
-
-
-	GetDesktopDownHandle()->BackColor
-		= ARGB16(1, 15, 15, 31);
-	GetDesktopDownHandle()->SetBackground(GetImage(6));
+	GetDesktopUp() += &lblA;
+	GetDesktopUp() += &lblB;
+	GetDesktopUp().GetBackgroundImagePtr() = GetImage(5);
+	GetDesktopDown().BackColor = ARGB16(1, 15, 15, 31);
+	GetDesktopDown().GetBackgroundImagePtr() = GetImage(6);
 	hWndTest = NewWindow<TFormTest>();
 	hWndExtra = NewWindow<TFormExtra>();
-	*GetDesktopDownHandle() += GetPointer(hWndTest);
-	*GetDesktopDownHandle() += GetPointer(hWndExtra);
-//	hWndTest->Draw();
-//	hWndExtra->Draw();
+	GetDesktopDown() += GetPointer(hWndTest);
+	GetDesktopDown() += GetPointer(hWndExtra);
+//	hWndTest->DrawContents();
+//	hWndExtra->DrawContents();
 
 	ParentType::OnActivated(msg);
 	UpdateToScreen();
@@ -986,8 +983,8 @@ ShlSetting::OnActivated(const Message& msg)
 int
 ShlSetting::OnDeactivated(const Message& msg)
 {
-	GetDesktopUpHandle()->SetBackground(NULL);
-	GetDesktopDownHandle()->SetBackground(NULL);
+	GetDesktopUp().GetBackgroundImagePtr() = NULL;
+	GetDesktopDown().GetBackgroundImagePtr() = NULL;
 	ParentType::OnDeactivated(msg);
 	YReset(hWndTest);
 	YReset(hWndExtra);
@@ -1050,17 +1047,15 @@ ShlReader::OnActivated(const Message& msg)
 	pTextFile = ynew YTextFile(path.c_str());
 	Reader.LoadText(*pTextFile);
 	bgDirty = true;
-	hUp = GetDesktopUpHandle()->GetBackground();
-	hDn = GetDesktopDownHandle()->GetBackground();
-	GetDesktopUpHandle()->SetBackground(NULL);
-	GetDesktopDownHandle()->SetBackground(NULL);
-	GetDesktopUpHandle()->BackColor = ARGB16(1, 30, 27, 24);
-	GetDesktopDownHandle()->BackColor = ARGB16(1, 24, 27, 30);
-	FetchEvent<Click>(*GetDesktopDownHandle()).Add(*this, &ShlReader::OnClick);
-	FetchEvent<KeyPress>(*GetDesktopDownHandle()).Add(*this,
-		&ShlReader::OnKeyPress);
+	std::swap(hUp, GetDesktopUp().GetBackgroundImagePtr());
+	std::swap(hDn, GetDesktopDown().GetBackgroundImagePtr());
+	GetDesktopUp().BackColor = ARGB16(1, 30, 27, 24);
+	GetDesktopDown().BackColor = ARGB16(1, 24, 27, 30);
+	FetchEvent<Click>(GetDesktopDown()).Add(*this, &ShlReader::OnClick);
+	FetchEvent<KeyDown>(GetDesktopDown()).Add(*this, &ShlReader::OnKeyDown);
+	FetchEvent<KeyHeld>(GetDesktopDown()) += OnKeyHeld;
 	ParentType::OnActivated(msg);
-	RequestFocusCascade(*GetDesktopDownHandle());
+	RequestFocusCascade(GetDesktopDown());
 	UpdateToScreen();
 	return 0;
 }
@@ -1068,14 +1063,13 @@ ShlReader::OnActivated(const Message& msg)
 int
 ShlReader::OnDeactivated(const Message& /*msg*/)
 {
-	GetDesktopUpHandle()->ClearContents();
-	GetDesktopDownHandle()->ClearContents();
-	FetchEvent<Click>(*GetDesktopDownHandle()).Remove(*this,
-		&ShlReader::OnClick);
-	FetchEvent<KeyPress>(*GetDesktopDownHandle()).Remove(*this,
-		&ShlReader::OnKeyPress);
-	GetDesktopUpHandle()->SetBackground(hUp);
-	GetDesktopDownHandle()->SetBackground(hDn);
+	GetDesktopUp().ClearContents();
+	GetDesktopDown().ClearContents();
+	FetchEvent<Click>(GetDesktopDown()).Remove(*this, &ShlReader::OnClick);
+	FetchEvent<KeyPress>(GetDesktopDown()).Remove(*this, &ShlReader::OnKeyDown);
+	FetchEvent<KeyHeld>(GetDesktopDown()) -= OnKeyHeld;
+	std::swap(hUp, GetDesktopUp().GetBackgroundImagePtr());
+	std::swap(hDn, GetDesktopDown().GetBackgroundImagePtr());
 	Reader.UnloadText();
 	safe_delete_obj()(pTextFile);
 	return 0;
@@ -1088,13 +1082,14 @@ ShlReader::UpdateToScreen()
 	{
 		bgDirty = false;
 		//强制刷新背景。
-		GetDesktopUpHandle()->SetBgRedrawed(false);
-		GetDesktopDownHandle()->SetBgRedrawed(false);
-		GetDesktopUpHandle()->Refresh();
-		GetDesktopDownHandle()->Refresh();
-		Reader.PrintText();
-		GetDesktopUpHandle()->Update();
-		GetDesktopDownHandle()->Update();
+		GetDesktopUp().SetRefresh(true);
+		GetDesktopDown().SetRefresh(true);
+		GetDesktopUp().Refresh();
+		GetDesktopDown().Refresh();
+		Reader.PrintText(GetDesktopUp().GetContext(),
+			GetDesktopDown().GetContext());
+		GetDesktopUp().Update();
+		GetDesktopDown().Update();
 	}
 }
 
@@ -1105,7 +1100,7 @@ ShlReader::OnClick(TouchEventArgs& /*e*/)
 }
 
 void
-ShlReader::OnKeyPress(KeyEventArgs& e)
+ShlReader::OnKeyDown(KeyEventArgs& e)
 {
 	u32 k(static_cast<KeyEventArgs::Key>(e));
 

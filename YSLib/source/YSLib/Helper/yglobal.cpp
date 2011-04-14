@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2954;
+\version 0.2956;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-04-03 16:09 +0800;
+	2011-04-13 11:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -61,7 +61,7 @@ MemoryList DebugMemory(NULL);
 */
 //@{
 YApplication& theApp(YApplication::GetInstance());
-const GHHandle<YShell> YApplication::DefaultShellHandle(new YMainShell());
+const GHandle<YShell> YApplication::DefaultShellHandle(new YMainShell());
 //@}
 
 
@@ -235,7 +235,7 @@ Destroy_Static(YObject&, EventArgs&)
 }
 
 int
-ShlProc(GHHandle<YShell> hShl, const Message& msg)
+ShlProc(GHandle<YShell> hShl, const Message& msg)
 {
 	return hShl->ShlProc(msg);
 }

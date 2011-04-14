@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.4887;
+\version 0.4898;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-05 20:09 +0800;
+	2011-04-13 08:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,7 +74,7 @@ SetBoundsOf(IWidget& w, const Rect& r)
 
 
 Visual::Visual(const Rect& r, Color b, Color f)
-	: visible(true), transparent(false), background_redrawed(false),
+	: visible(true), transparent(false),
 	location(r.GetPoint()), size(r.Width, r.Height),
 	BackColor(b), ForeColor(f)
 {}
@@ -82,11 +82,7 @@ Visual::Visual(const Rect& r, Color b, Color f)
 void
 Visual::SetSize(const Size& s)
 {
-	if(size != s)
-	{
-		size = s;
-		background_redrawed = false;
-	}
+	size = s;
 }
 
 
@@ -96,21 +92,12 @@ Widget::Widget(const Rect& r, Color b, Color f)
 {}
 
 void
-Widget::DrawBackground()
+Widget::Draw()
 {
-	YWidgetAssert(this, Widgets::Widget, DrawBackground);
+	YWidgetAssert(this, Widgets::Widget, Draw);
 
 	if(!IsTransparent())
 		Fill(*ystdex::polymorphic_crosscast<IWidget*>(this), BackColor);
-}
-
-void
-Widget::DrawForeground()
-{
-	YWidgetAssert(this, Widgets::Widget, DrawForeground);
-
-	if(!IsTransparent())
-		SetBgRedrawed(false);
 }
 
 void

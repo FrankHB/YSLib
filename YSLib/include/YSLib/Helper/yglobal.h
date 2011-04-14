@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2063;
+\version 0.2065;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-04-03 19:33 +0800;
+	2011-04-13 11:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,19 +66,19 @@ public:
 	static const SDst MainScreenWidth, MainScreenHeight;
 
 private:
-	GHHandle<YScreen> hScreenUp; //<! DS 上屏幕句柄。
-	GHHandle<YScreen> hScreenDown; //<! DS 上屏幕句柄。
-	GHHandle<YDesktop> hDesktopUp; //<! DS 下屏幕默认桌面句柄。
-	GHHandle<YDesktop> hDesktopDown; //<! DS 下屏幕默认桌面句柄。
+	GHandle<YScreen> hScreenUp; //<! DS 上屏幕句柄。
+	GHandle<YScreen> hScreenDown; //<! DS 上屏幕句柄。
+	GHandle<YDesktop> hDesktopUp; //<! DS 下屏幕默认桌面句柄。
+	GHandle<YDesktop> hDesktopDown; //<! DS 下屏幕默认桌面句柄。
 
 	Global(); //!< 构造函数：非内联。
 	~Global(); //!< 析构函数：非内联。
 
 public:
-	DefGetter(const GHHandle<YScreen>&, ScreenUpHandle, hScreenUp)
-	DefGetter(const GHHandle<YScreen>&, ScreenDownHandle, hScreenDown)
-	DefGetter(const GHHandle<YDesktop>&, DesktopUpHandle, hDesktopUp)
-	DefGetter(const GHHandle<YDesktop>&, DesktopDownHandle, hDesktopDown)
+	DefGetter(const GHandle<YScreen>&, ScreenUpHandle, hScreenUp)
+	DefGetter(const GHandle<YScreen>&, ScreenDownHandle, hScreenDown)
+	DefGetter(const GHandle<YDesktop>&, DesktopUpHandle, hDesktopUp)
+	DefGetter(const GHandle<YDesktop>&, DesktopDownHandle, hDesktopDown)
 	/*!
 	\brief 取上屏幕。
 	\note 断言检查：句柄非空。
@@ -190,7 +190,7 @@ Destroy_Static(YObject&, EventArgs&);
 \brief 公共消息处理函数。
 */
 int
-ShlProc(GHHandle<YShell>, const Message&);
+ShlProc(GHandle<YShell>, const Message&);
 
 
 //全局函数。

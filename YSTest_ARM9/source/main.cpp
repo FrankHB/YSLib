@@ -11,12 +11,12 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version 0.2077;
+\version 0.2081;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-04-13 20:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,6 +46,7 @@
 #define PLATFORM_H <platform.h>
 #endif
 #include PLATFORM_H
+#include <api.h>
 
 #include YSL_YSBUILD_H
 

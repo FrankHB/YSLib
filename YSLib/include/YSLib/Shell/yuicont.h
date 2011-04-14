@@ -10,13 +10,13 @@
 
 /*!	\file yuicont.h
 \ingroup Shell
-\brief 平台无关的图形用户界面部件实现。
-\version 0.2180;
+\brief 平台无关的图形用户界面容器实现。
+\version 0.2204;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-04-05 20:10 +0800;
+	2011-04-13 22:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -83,11 +83,11 @@ EndDecl
 //部件容器接口。
 DeclBasedInterface1(IUIContainer, IUIBox)
 	DeclIEntry(void operator+=(IWidget*)) //!< 向部件组添加部件指针。
-	DeclIEntry(bool operator-=(IWidget*)) //!< 从部件组移除部件指针。
 	DeclIEntry(void operator+=(IControl*)) //!< 向焦点对象组添加控件指针。
-	DeclIEntry(bool operator-=(IControl*)) //!< 从焦点对象组移除控件指针。
 	DeclIEntry(void operator+=(GMFocusResponser<IControl>*)) \
 		//!< 向焦点对象组添加子焦点对象容器指针。
+	DeclIEntry(bool operator-=(IWidget*)) //!< 从部件组移除部件指针。
+	DeclIEntry(bool operator-=(IControl*)) //!< 从焦点对象组移除控件指针。
 	DeclIEntry(bool operator-=(GMFocusResponser<IControl>*)) \
 		//!< 从焦点对象组移除子焦点对象容器指针。
 EndDecl
@@ -158,21 +158,21 @@ LocateOffset(const _tWidget* pCon, const Point& p, const IWindow* pWnd)
 }
 
 /*!
-\brief 取指定的点 p （相对部件 w 的坐标）相对于 w 的容器的偏移坐标。
+\brief 取指定的点 pt （相对部件 w 的坐标）相对于 w 的容器的偏移坐标。
 */
 inline Point
-LocateContainerOffset(const IWidget& w, const Point& p)
+LocateContainerOffset(const IWidget& w, const Point& pt)
 {
-	return p + w.GetLocation();
+	return pt + w.GetLocation();
 }
 
 /*!
-\brief 取指定的点 p （相对部件 w 的坐标）相对于 w 的窗口的偏移坐标。
+\brief 取指定的点 pt （相对部件 w 的坐标）相对于 w 的窗口的偏移坐标。
 */
 inline Point
-LocateWindowOffset(const IWidget& w, const Point& p)
+LocateWindowOffset(const IWidget& w, const Point& pt)
 {
-	return LocateOffset(&w, p, GetPointer(FetchWindowPtr(w)));
+	return LocateOffset(&w, pt, FetchWindowPtr(w));
 }
 
 /*!
@@ -238,13 +238,6 @@ MoveToTop(IWidget&);
 void
 MoveToBottom(IWidget&);
 
-
-/*!
-\brief 设置指定部件的容器的背景重绘状态。
-\return 指定部件的容器是否存在。
-*/
-bool
-SetContainerBgRedrawedOf(IWidget&, bool);
 
 /*!
 \brief 以纯色填充部件所在窗口的对应显示缓冲区。
@@ -364,7 +357,6 @@ public:
 
 	ImplI1(IUIContainer) DefPredicateBase(Visible, Visual)
 	ImplI1(IUIContainer) DefPredicateBase(Transparent, Visual)
-	ImplI1(IUIContainer) DefPredicateBase(BgRedrawed, Visual)
 
 	ImplI1(IUIContainer) DefGetterBase(const Point&, Location, Visual)
 	ImplI1(IUIContainer) DefGetterBase(const Size&, Size, Visual)
@@ -378,7 +370,6 @@ public:
 
 	ImplI1(IUIContainer) DefSetterBase(bool, Visible, Visual)
 	ImplI1(IUIContainer) DefSetterBase(bool, Transparent, Visual)
-	ImplI1(IUIContainer) DefSetterBase(bool, BgRedrawed, Visual)
 	ImplI1(IUIContainer) DefSetterBase(const Point&, Location, Visual)
 	ImplI1(IUIContainer) DefSetterBase(const Size&, Size, Visual)
 
@@ -391,11 +382,8 @@ public:
 	ImplI1(IUIContainer) PDefH1(bool, ResponseFocusRelease, AFocusRequester& w)
 		ImplBodyBase1(MUIContainer, ResponseFocusRelease, w)
 
-	ImplI1(IUIContainer) PDefH0(void, DrawBackground)
-		ImplBodyBase0(Widget, DrawBackground)
-
-	ImplI1(IUIContainer) PDefH0(void, DrawForeground)
-		ImplBodyBase0(Widget, DrawForeground)
+	ImplI1(IUIContainer) PDefH0(void, Draw)
+		ImplBodyBase0(Widget, Draw)
 
 	ImplI1(IUIContainer) PDefH0(void, Refresh)
 		ImplBodyBase0(Widget, Refresh)

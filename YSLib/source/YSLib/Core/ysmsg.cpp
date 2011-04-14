@@ -11,12 +11,12 @@
 /*!	\file ysmsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version 0.1664;
+\version 0.1665;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-03-28 10:22 +0800;
+	2011-04-13 11:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,7 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Messaging)
 
-Message::Message(GHHandle<YShell> shl, ID m, Priority p,
+Message::Message(GHandle<YShell> shl, ID m, Priority p,
 	SmartPtr<IContext> pCon)
 	: hShl(shl), id(m), prior(p), pContext(pCon),
 	timestamp(std::clock()), timeout(DefTimeout)

@@ -11,12 +11,12 @@
 /*!	\file button.h
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件实现。
-\version 0.2991;
+\version 0.2995;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-04-07 22:23 +0800;
+	2011-04-13 08:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,10 +73,10 @@ public:
 	YThumb(const Rect& = Rect::Empty);
 
 	/*!
-	\brief 绘制前景。
+	\brief 绘制。
 	*/
 	virtual void
-	DrawForeground();
+	Draw();
 
 private:
 	/*!
@@ -113,10 +113,10 @@ public:
 		const Drawing::Font& = Drawing::Font::GetDefault());
 
 	/*!
-	\brief 绘制前景。
+	\brief 绘制。
 	*/
 	virtual void
-	DrawForeground();
+	Draw();
 };
 
 YSL_END_NAMESPACE(Controls)

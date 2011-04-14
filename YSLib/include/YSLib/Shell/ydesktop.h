@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2248;
+\version 0.2254;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-04-05 20:12 +0800;
+	2011-04-14 16:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,6 +41,8 @@ class YDesktop : public YFrame
 public:
 	typedef YFrame ParentType;
 	typedef list<IControl*> DOs; //!< 桌面对象组类型。
+	using ParentType::operator+=;
+	using ParentType::operator-=;
 
 private:
 	YScreen& Screen; //!< 屏幕对象。
@@ -109,12 +111,6 @@ public:
 	*/
 	void
 	RemoveTopDesktopObject();
-
-	/*!
-	\brief 绘制背景。
-	*/
-	virtual void
-	DrawBackground();
 
 protected:
 	/*!

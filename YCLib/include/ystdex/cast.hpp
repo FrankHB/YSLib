@@ -11,23 +11,24 @@
 /*!	\file cast.hpp
 \ingroup YCLib
 \brief C++ 转换模板类。
-\version 0.1601;
+\version 0.1625;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-15 08:13:18 +0800; 
 \par 修改时间:
-	2011-03-06 08:44 +0800;
+	2011-04-14 09:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YCLib::Cast;
+	YCLib::YStandardExtend::Cast;
 */
 
 
 #ifndef INCLUDED_YSTDEX_CAST_HPP_
 #define INCLUDED_YSTDEX_CAST_HPP_
 
-#include <ystdex.h>
+#include "../ystdex.h"
+#include "type_op.hpp"
 #include <memory>
 #include <typeinfo>
 
@@ -57,81 +58,6 @@ namespace ystdex
 
 		return *p;
 	}
-
-
-	template<class _type>
-	struct has_nonempty_virtual_base
-	{
-		struct A
-			: _type
-		{
-			~A() throw()
-			{}
-		};
-		struct B
-			: _type
-		{
-			~B() throw()
-			{}
-		};
-		struct C
-			: A, B
-		{
-			~C() throw()
-			{}
-		};
-
-		enum
-		{
-			value = sizeof(C) < sizeof(A) + sizeof(B)
-		};
-	};
-
-	template<class _type1, class _type2>
-	struct has_common_nonempty_virtual_base
-	{
-		struct A
-			: virtual _type1
-		{
-			~A() throw()
-			{}
-		};
-
-#ifdef __GNUC__
-//#pragma GCC diagnostic push
-#pragma GCC system_header
-//临时处理：关闭所有警告。
-//#pragma GCC diagnostic ignored "-Wextra"
-/*
-关闭编译警告：(C++ only) Ambiguous virtual bases. ，
-参见 http://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html 。
-*/
-#endif
-
-		struct B
-			: virtual _type2
-		{
-			~B() throw()
-			{}
-		};
-		struct C
-			: A, B
-		{
-			~C() throw()
-			{}
-		};
-
-#ifdef __GNUC__
-// TODO: GCC push/pop with GCC 4.6+;
-//#pragma GCC diagnostic warning "-Wextra"
-//#pragma GCC diagnostic pop
-#endif
-
-		enum
-		{
-			value = sizeof(C) < sizeof(A) + sizeof(B)
-		};
-	};
 
 
 	template <class _tDst, class _tSrc>

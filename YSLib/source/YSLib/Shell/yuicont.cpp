@@ -10,13 +10,13 @@
 
 /*!	\file yuicont.cpp
 \ingroup Shell
-\brief 平台无关的图形用户界面部件实现。
-\version 0.2094;
+\brief 平台无关的图形用户界面容器实现。
+\version 0.2104;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-04-08 11:10 +0800;
+	2011-04-13 20:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -237,20 +237,6 @@ MoveToBottom(IWidget& w)
 
 	w.SetLocation(Point(w.GetLocation().X,
 		w.GetContainerPtr()->GetSize().Height - w.GetSize().Height));
-}
-
-
-bool
-SetContainerBgRedrawedOf(IWidget& w, bool b)
-{
-	IUIBox* const pCon(w.GetContainerPtr());
-
-	if(pCon)
-	{
-		pCon->SetBgRedrawed(b);
-		return true;
-	}
-	return false;
 }
 
 

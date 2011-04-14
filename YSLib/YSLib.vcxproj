@@ -60,6 +60,7 @@
     <ClInclude Include="include\YSLib\Shell\ygdi.h" />
     <ClInclude Include="include\YSLib\Shell\ygui.h" />
     <ClInclude Include="include\YSLib\Shell\ylabel.h" />
+    <ClInclude Include="include\YSLib\Shell\ypanel.h" />
     <ClInclude Include="include\YSLib\Shell\ystyle.h" />
     <ClInclude Include="include\YSLib\Shell\ytext.h" />
     <ClInclude Include="include\YSLib\Shell\yuicont.h" />
@@ -99,6 +100,7 @@
     <ClCompile Include="source\YSLib\Shell\ygdi.cpp" />
     <ClCompile Include="source\YSLib\Shell\ygui.cpp" />
     <ClCompile Include="source\YSLib\Shell\ylabel.cpp" />
+    <ClCompile Include="source\YSLib\Shell\ypanel.cpp" />
     <ClCompile Include="source\YSLib\Shell\ystyle.cpp" />
     <ClCompile Include="source\YSLib\Shell\ytext.cpp" />
     <ClCompile Include="source\YSLib\Shell\yuicont.cpp" />

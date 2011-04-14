@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1736;
+\version 0.1745;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-04-09 08:06 +0800;
+	2011-04-13 11:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,7 +58,7 @@ YSL_END_NAMESPACE(Shells)
 
 YSL_BEGIN_NAMESPACE(DS)
 
-ShlDS::ShlDS(GHHandle<YDesktop> h_dsk_up, GHHandle<YDesktop> h_dsk_down)
+ShlDS::ShlDS(GHandle<YDesktop> h_dsk_up, GHandle<YDesktop> h_dsk_down)
 	: YGUIShell(),
 	hDskUp(h_dsk_up ? h_dsk_up : new YDesktop(theApp.GetPlatformResource()
 		.GetScreenUp())),
@@ -87,13 +87,6 @@ ShlDS::OnActivated(const Message& /*msg*/)
 	YAssert(hDskDown, "Null down desktop handle found @ ShlDS::ShlDS;");
 
 	ResetGUIStates();
-	//使背景无效。
-	hDskUp->SetBgRedrawed(false);
-	hDskDown->SetBgRedrawed(false);
-	//如果不添加此段且没有桌面没有被添加窗口等设置刷新状态的操作，
-	//那么除了背景以外任何绘制都不会进行。
-	hDskUp->SetRefresh(true);
-	hDskDown->SetRefresh(true);
 	return 0;
 }
 
@@ -115,9 +108,9 @@ ShlDS::SendDrawingMessage()
 //	hDesktopDown->ClearContents();
 	DispatchWindows();
 	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<GHHandle<YDesktop> >(hDskUp));
+		new GHandleContext<GHandle<YDesktop> >(hDskUp));
 	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<GHHandle<YDesktop> >(hDskDown));
+		new GHandleContext<GHandle<YDesktop> >(hDskDown));
 }*/
 
 void
@@ -141,7 +134,7 @@ ResponseInput(const Message& msg)
 		return;
 
 	Runtime::KeysInfo& k(pContext->Key);
-	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
+	GHandle<YGUIShell> hShl(FetchGUIShellHandle());
 	YDesktop& d(theApp.GetPlatformResource().GetTouchableDesktop());
 
 	using namespace Runtime::KeySpace;

@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2089;
+\version 0.2091;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-04-09 21:16 +0800;
+	2011-04-13 11:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -87,7 +87,7 @@ HandleToReference(_tHandle h) ythrow(std::bad_cast)
 template<class _type>
 HWND NewWindow()
 {
-	GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
+	GHandle<YGUIShell> hShl(FetchGUIShellHandle());
 
 	YAssert(hShl, "GUI Shell handle is null.");
 
@@ -103,10 +103,10 @@ HWND NewWindow()
 \brief 取全局 Shell 句柄。
 */
 template<class _tShl>
-inline GHHandle<YShell>
+inline GHandle<YShell>
 FetchStored()
 {
-	return GLocalStaticCache<_tShl, GHHandle<YShell> >::GetPointer();
+	return GLocalStaticCache<_tShl, GHandle<YShell> >::GetPointer();
 }
 
 /*!
@@ -116,7 +116,7 @@ template<class _tShl>
 inline void
 ReleaseStored()
 {
-	GLocalStaticCache<_tShl, GHHandle<YShell> >::Release();
+	GLocalStaticCache<_tShl, GHandle<YShell> >::Release();
 }
 
 
@@ -124,7 +124,7 @@ ReleaseStored()
 \brief 判断句柄指定的 Shell 是否为当前线程空间中运行的 Shell 。
 */
 inline bool
-IsNowShell(GHHandle<YShell> hShl)
+IsNowShell(GHandle<YShell> hShl)
 {
 	return theApp.GetShellHandle() == hShl;
 }
@@ -133,7 +133,7 @@ IsNowShell(GHHandle<YShell> hShl)
 \brief 向句柄指定的 Shell 对象转移线程控制权。
 */
 inline errno_t
-NowShellTo(GHHandle<YShell> hShl)
+NowShellTo(GHandle<YShell> hShl)
 {
 	return -!Shells::Activate(hShl);
 }
@@ -162,10 +162,10 @@ NowShellToStored()
 \brief 通过主消息队列向指定 Shell 对象转移控制权。
 */
 inline void
-SetShellTo(GHHandle<YShell> hShl, Messaging::Priority p = 0x80)
+SetShellTo(GHandle<YShell> hShl, Messaging::Priority p = 0x80)
 {
 	SendMessage(Shells::GetCurrentShellHandle(), SM_SET, p,
-		new Messaging::GHandleContext<GHHandle<YShell> >(hShl));
+		new Messaging::GHandleContext<GHandle<YShell> >(hShl));
 }
 
 /*!

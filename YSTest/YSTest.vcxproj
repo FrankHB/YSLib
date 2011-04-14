@@ -211,6 +211,7 @@
     <ClInclude Include="include\agg\util\agg_color_conv.h" />
     <ClInclude Include="include\agg\util\agg_color_conv_rgb16.h" />
     <ClInclude Include="include\agg\util\agg_color_conv_rgb8.h" />
+    <ClInclude Include="include\api.h" />
     <ClInclude Include="include\freetype\config\ftconfig.h" />
     <ClInclude Include="include\freetype\config\ftheader.h" />
     <ClInclude Include="include\freetype\config\ftmodule.h" />

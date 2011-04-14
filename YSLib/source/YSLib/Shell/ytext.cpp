@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6635;
+\version 0.6641;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-03-31 06:36 +0800;
+	2011-04-12 08:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -117,8 +117,9 @@ RenderChar(const Graphics& g, TextState& ts, fchar_t c)
 		Blit<BlitBlendLoop, false, false>(g.GetBufferPtr(), g.GetSize(),
 			MonoIteratorPair(ystdex::pseudo_iterator<const PixelType>(
 			ts.Color | BITALPHA), sbit.GetBuffer()),
-			Size(sbit.GetWidth(), sbit.GetHeight()), Point(xmin, ymin),
+			Size(sbit.GetWidth(), sbit.GetHeight()),
 			Point(vmax<int>(ts.Margin.Left, dx), vmax<int>(ts.Margin.Top, dy)),
+			Point(xmin, ymin),
 			Size(vmax<int>(vmin<int>(g.GetWidth() - ts.Margin.Right - dx,
 				sbit.GetWidth()) - xmin, 0), vmax<int>(vmin<int>(g.GetHeight()
 				- ts.Margin.Bottom - dy, sbit.GetHeight()) - ymin, 0)));
@@ -182,8 +183,9 @@ RenderChar(BitmapBufferEx& buf, TextState& ts, fchar_t c)
 		Blit<BlitTextLoop, false, false>(ystdex::pair_iterator<BitmapPtr, u8*>(
 			buf.GetBufferPtr(), buf.GetBufferAlphaPtr()),
 			buf.GetSize(), sbit.GetBuffer(),
-			Size(sbit.GetWidth(), sbit.GetHeight()), Point(xmin, ymin),
+			Size(sbit.GetWidth(), sbit.GetHeight()),
 			Point(vmax<int>(ts.Margin.Left, dx), vmax<int>(ts.Margin.Top, dy)),
+			Point(xmin, ymin),
 			Size(vmax<int>(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx,
 				sbit.GetWidth()) - xmin, 0), vmax<int>(vmin<int>(buf.GetHeight()
 				- ts.Margin.Bottom - dy, sbit.GetHeight()) - ymin, 0)));
@@ -384,7 +386,7 @@ DrawText(TextRegion& tr, const Graphics& g, const Point& pt, const Size& s,
 	const String& str)
 {
 	PutLine(tr, str);
-	tr.BlitTo(g.GetBufferPtr(), g.GetSize(), Point::Zero,
+	BlitTo(g.GetBufferPtr(), tr, g.GetSize(), Point::Zero,
 		pt, s);
 }
 

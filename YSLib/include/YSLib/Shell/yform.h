@@ -11,12 +11,12 @@
 /*!	\file yform.h
 \ingroup Shell
 \brief 平台无关的 GUI 窗体实现。
-\version 0.1486;
+\version 0.1491;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-04-03 18:56 +0800;
+	2011-04-13 20:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -64,14 +64,9 @@ public:
 	virtual void
 	SetBounds(const Rect&);
 
-protected:
 	virtual void
-	DrawBackground();
+	Draw();
 
-	virtual void
-	DrawForeground();
-
-public:
 	virtual void
 	Draw();
 */

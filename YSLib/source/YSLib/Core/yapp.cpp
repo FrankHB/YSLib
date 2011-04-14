@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2256;
+\version 0.2258;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-04-03 16:02 +0800;
+	2011-04-13 11:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -144,7 +144,7 @@ YApplication::GetFontCache() const ythrow(LoggedEvent)
 }
 
 bool
-YApplication::SetShellHandle(GHHandle<YShell> h)
+YApplication::SetShellHandle(GHandle<YShell> h)
 {
 	using namespace Messaging;
 
@@ -155,10 +155,10 @@ YApplication::SetShellHandle(GHHandle<YShell> h)
 
 		if(hShell)
 			hShell->OnDeactivated(Message(h, SM_DEACTIVATED, 0xF0,
-				new GHandleContext<GHHandle<YShell> >(hShell)));
+				new GHandleContext<GHandle<YShell> >(hShell)));
 		hShell = h;
 		h->OnActivated(Message(h, SM_ACTIVATED, 0xF0,
-			new GHandleContext<GHHandle<YShell> >(h)));
+			new GHandleContext<GHandle<YShell> >(h)));
 	}
 	return h;
 }
@@ -213,7 +213,7 @@ SendMessage(const Message& msg) ythrow()
 	}
 }
 void
-SendMessage(GHHandle<YShell> hShl, Messaging::ID id,
+SendMessage(GHandle<YShell> hShl, Messaging::ID id,
 	Messaging::Priority prior, Messaging::IContext* pContext) ythrow()
 {
 	try

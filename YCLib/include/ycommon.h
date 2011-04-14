@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2690;
+\version 0.2696;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 +0800; 
 \par 修改时间:
-	2011-03-31 06:30 +0800;
+	2011-04-13 20:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,6 +45,7 @@
 #include "ystdex/util.hpp"
 
 //平台相关部分。
+#include <api.h>
 
 //#define HEAP_SIZE (mallinfo().uordblks)
 

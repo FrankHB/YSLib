@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件实现。
-\version 0.3539;
+\version 0.3549;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-04-09 21:14 +0800;
+	2011-04-13 11:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -225,38 +225,35 @@ ATrack::SetLargeDelta(ATrack::ValueType ld)
 }
 
 void
-ATrack::DrawBackground()
+ATrack::Draw()
 {
-	YWidgetAssert(this, Controls::ATrack, DrawBackground);
-
-	const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
-	const Point loc(LocateForWindow(*this));
-
-	FillRect(g, loc, GetSize(), Color(237, 237, 237));
-
-	const SPos xr(loc.X + GetWidth() - 1);
-	const SPos yr(loc.Y + GetHeight() - 1);
-	const Color c(227, 227, 227);
-
-	if(IsHorizontal())
+	if(!IsTransparent())
 	{
-		DrawHLineSeg(g, loc.Y, loc.X, xr, c);
-		DrawHLineSeg(g, yr, loc.X, xr, c);
-	}
-	else
-	{
-		DrawVLineSeg(g, loc.X, loc.Y, yr, c);
-		DrawVLineSeg(g, xr, loc.Y, yr, c);
-	}
-}
+		const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
+		const Point loc(LocateForWindow(*this));
 
-void
-ATrack::DrawForeground()
-{
-	YWidgetAssert(this, Controls::ATrack, DrawForeground);
+		FillRect(g, loc, GetSize(), Color(237, 237, 237));
 
-	Control::DrawForeground();
-	Thumb.DrawForeground();
+		const SPos xr(loc.X + GetWidth() - 1);
+		const SPos yr(loc.Y + GetHeight() - 1);
+		const Color c(227, 227, 227);
+
+		if(IsHorizontal())
+		{
+			DrawHLineSeg(g, loc.Y, loc.X, xr, c);
+			DrawHLineSeg(g, yr, loc.X, xr, c);
+		}
+		else
+		{
+			DrawVLineSeg(g, loc.X, loc.Y, yr, c);
+			DrawVLineSeg(g, xr, loc.Y, yr, c);
+		}
+	}
+
+	YWidgetAssert(this, Controls::ATrack, Draw);
+
+	Control::Draw();
+	Thumb.Draw();
 }
 
 ATrack::Area
@@ -393,7 +390,7 @@ YHorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
+		GHandle<YGUIShell> hShl(FetchGUIShellHandle());
 		SPos x(hShl->LastControlLocation.X + hShl->DraggingOffset.X);
 
 		RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
@@ -422,7 +419,7 @@ YVerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		GHHandle<YGUIShell> hShl(FetchGUIShellHandle());
+		GHandle<YGUIShell> hShl(FetchGUIShellHandle());
 		SPos y(hShl->LastControlLocation.Y + hShl->DraggingOffset.Y);
 
 		RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
@@ -482,31 +479,21 @@ AScrollBar::GetTopControlPtr(const Point& p)
 }
 
 void
-AScrollBar::DrawBackground()
+AScrollBar::Draw()
 {
-	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawBackground);
 	YAssert(pTrack.get(),
-		"Null widget pointer found @ AScrollBar::DrawBackground;");
+		"Null widget pointer found @ AScrollBar::Draw;");
 
-	pTrack->DrawBackground();
-}
+	YWidgetAssert(this, Controls::YHorizontalScrollBar, Draw);
 
-void
-AScrollBar::DrawForeground()
-{
-	YWidgetAssert(this, Controls::YHorizontalScrollBar, DrawForeground);
-
-	Control::DrawForeground();
+	Control::Draw();
 
 	const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
 	const Point b(LocateForWindow(*this));
 
-	YAssert(pTrack.get(), "Null widget pointer found"
-		" @ AScrollBar::DrawForeground;");
-
-	pTrack->DrawForeground();
-	PrevButton.DrawForeground();
-	NextButton.DrawForeground();
+	pTrack->Draw();
+	PrevButton.Draw();
+	NextButton.Draw();
 	WndDrawArrow(g, Rect(LocateForWindow(PrevButton),
 		PrevButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
 			? RDeg180 : RDeg90, ForeColor);
@@ -576,15 +563,15 @@ ScrollableContainer::GetTopControlPtr(const Point& p)
 }
 
 void
-ScrollableContainer::DrawForeground()
+ScrollableContainer::Draw()
 {
-	YWidgetAssert(this, Controls::ScrollableContainer, DrawForeground);
+	YWidgetAssert(this, Controls::ScrollableContainer, Draw);
 
-	AUIBoxControl::DrawForeground();
+	AUIBoxControl::Draw();
 	if(HorizontalScrollBar.IsVisible())
-		HorizontalScrollBar.DrawForeground();
+		HorizontalScrollBar.Draw();
 	if(VerticalScrollBar.IsVisible())
-		VerticalScrollBar.DrawForeground();
+		VerticalScrollBar.Draw();
 }
 
 Size

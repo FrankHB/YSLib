@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.3186;
+\version 0.3188;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-04-03 18:44 +0800;
+	2011-04-13 11:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,12 +65,12 @@ YShell::DefShlProc(const Message& msg)
 	case SM_SET:
 	case SM_DROP:
 		{
-			GHandleContext<GHHandle<YShell> >* const
-				p(FetchContextRawPtr<GHandleContext<GHHandle<YShell> > >(msg));
+			GHandleContext<GHandle<YShell> >* const
+				p(FetchContextRawPtr<GHandleContext<GHandle<YShell> > >(msg));
 
 			if(p)
 			{
-				GHHandle<YShell> h(p->Handle);
+				GHandle<YShell> h(p->Handle);
 
 				switch(msg.GetMessageID())
 				{
@@ -136,14 +136,14 @@ YMainShell::ShlProc(const Message& msg)
 }
 
 
-GHHandle<YShell>
+GHandle<YShell>
 GetCurrentShellHandle() ythrow()
 {
 	return theApp.GetShellHandle();
 }
 
 bool
-Activate(GHHandle<YShell> h)
+Activate(GHandle<YShell> h)
 {
 	return theApp.SetShellHandle(h);
 }
@@ -153,7 +153,7 @@ void
 PostQuitMessage(int nExitCode, Priority p)
 {
 	SendMessage(NULL, SM_SET, p,
-		new GHandleContext<GHHandle<YShell> >(theApp.DefaultShellHandle));
+		new GHandleContext<GHandle<YShell> >(theApp.DefaultShellHandle));
 	SendMessage(NULL, SM_QUIT, p,
 		new GObjectContext<int>(nExitCode));
 }
@@ -161,10 +161,10 @@ PostQuitMessage(int nExitCode, Priority p)
 #if YSL_DEBUG_MSG & 2
 
 static int
-PeekMessage_(Message& msg, GHHandle<YShell> hShl, bool bRemoveMsg);
+PeekMessage_(Message& msg, GHandle<YShell> hShl, bool bRemoveMsg);
 
 int
-PeekMessage(Message& msg, GHHandle<YShell> hShl, bool bRemoveMsg)
+PeekMessage(Message& msg, GHandle<YShell> hShl, bool bRemoveMsg)
 {
 	void YSDebug_MSG_Peek(Message&);
 	int t(PeekMessage_(msg, hShl, bRemoveMsg));
@@ -183,7 +183,7 @@ PeekMessage
 
 #endif
 
-	(Message& msg, GHHandle<YShell> hShl, bool bRemoveMsg)
+	(Message& msg, GHandle<YShell> hShl, bool bRemoveMsg)
 {
 	list<Message> mqt;
 	int r(-1);
@@ -208,7 +208,7 @@ PeekMessage
 }
 
 int
-GetMessage(Message& msg, GHHandle<YShell> hShl)
+GetMessage(Message& msg, GHandle<YShell> hShl)
 {
 	if(theApp.GetDefaultMessageQueue().IsEmpty())
 		Idle();

@@ -19,12 +19,12 @@
 /*!	\file platform.h
 \ingroup DS
 \brief 通用平台描述文件。
-\version 0.1276;
+\version 0.1304;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 00:05:08 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-04-13 20:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,6 +45,9 @@
 #endif
 
 
+//整数类型。
+#include <nds/ndstypes.h>
+
 //字符兼容性补充。
 
 #include <stdint.h>
@@ -54,23 +57,6 @@ namespace std
 	typedef ::uint16_t char16_t;
 	typedef ::uint32_t char32_t;
 }
-
-
-#include <nds.h>
-#include <fat.h>
-#include <unistd.h>
-#include <sys/dir.h>
-
-#define YCL_YCOMMON_H <ycommon.h>
-#define YSL_YSBUILD_H <YSLib/Helper/yshelper.h>
-
-//包含 PALib 。
-//#include <PA9.h>
-
-#ifdef USE_EFS
-//包含 EFSLib 。
-#include "efs_lib.h"
-#endif
 
 //定义使用 Unicode 编码字符串。
 #ifndef UNICODE

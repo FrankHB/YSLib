@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2523;
+\version 0.2560;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-04-09 21:17 +0800;
+	2011-04-14 16:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,7 +33,9 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Design)
 
-//不可复制对象：继承此类的对象在外部无法调用复制构造函数和复制赋值操作符。
+/*
+\brief 不可复制对象：继承此类的对象在外部无法调用复制构造函数和复制赋值操作符。
+*/
 class NonCopyable
 {
 //保护非多态类。
@@ -61,6 +63,38 @@ private:
 	\note 无实现。
 	*/
 	NonCopyable& operator=(const NonCopyable&);
+};
+
+
+/*!
+\brief 转换类型选择。
+
+若 _type 能隐式转换为 _tStrict 则 Result 为 _tStrict，否则 Result 为 _tWeak 。
+*/
+template<typename _type, typename _tStrict, typename _tWeak>
+struct MoreConvertible
+{
+	typedef typename Select<ystdex::is_convertible<_type, _tStrict>::value,
+			_tStrict, _tWeak>::Result Result;
+
+	inline static Result
+	Cast(_type o)
+	{
+		return static_cast<Result>(o);
+	}
+};
+
+
+/*!
+\brief 转换类型选择。
+
+若 _type 能隐式转换为 _tStrict 则 Result 为 _tStrict，否则 Result 为 _type 。
+*/
+template<typename _type, typename _tStrict>
+struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
+{
+	typedef typename MoreConvertible<_type, _tStrict, _type>::Result
+		Result;
 };
 
 YSL_END_NAMESPACE(Design)

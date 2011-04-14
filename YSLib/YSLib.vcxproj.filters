@@ -223,6 +223,9 @@
     <ClInclude Include="include\YSLib\Shell\checkbox.h">
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\ypanel.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\yfont.cpp">
@@ -334,6 +337,9 @@
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Shell\checkbox.cpp">
+      <Filter>源文件\YSLib\Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Shell\ypanel.cpp">
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
   </ItemGroup>

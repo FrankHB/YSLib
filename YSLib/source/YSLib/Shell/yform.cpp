@@ -11,12 +11,12 @@
 /*!	\file yform.cpp
 \ingroup Shell
 \brief 平台无关的 GUI 窗体实现。
-\version 0.1498;
+\version 0.1502;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-04-03 18:56 +0800;
+	2011-04-13 08:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,7 +39,6 @@ YForm::YForm(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
 //	Client(this, Rect::Empty/*r*/)
 {
 //	SetSize(Size.Width, Size.Height);
-//	DrawBackground();
 }
 YForm::~YForm()
 {}
@@ -60,18 +59,10 @@ YForm::SetBounds(const Rect& r)
 }
 
 void
-YForm::DrawBackground()
+YForm::Draw()
 {
-	YFrame::DrawBackground();
-
-//	Client.DrawBackground();
-}
-
-void
-YForm::DrawForeground()
-{
-	YFrame::DrawForeground();
-//	Client.DrawForeground();
+	YFrame::Draw();
+//	Client.Draw();
 
 }
 void

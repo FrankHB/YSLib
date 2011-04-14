@@ -16,12 +16,12 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version 0.2490;
+\version 0.2491;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-24 15:29:11 +0800;
 \par 修改时间:
-	2011-04-09 21:14 +0800;
+	2011-04-13 11:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -94,7 +94,7 @@ using Shells::YShell;
 using Text::String;
 
 
-#define DeclareHandle(type, handle) typedef GHHandle<type> handle;
+#define DeclareHandle(type, handle) typedef GHandle<type> handle;
 
 
 //平台无关的类型定义。

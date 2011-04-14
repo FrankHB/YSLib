@@ -11,12 +11,12 @@
 /*!	\file ysmsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version 0.2758;
+\version 0.2760;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-08 12:05:26 +0800;
 \par 修改时间:
-	2011-04-03 19:33 +0800;
+	2011-04-13 11:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -117,12 +117,12 @@ struct MessageTypeMapping
 
 
 DefMessageTypeMapping(EStandard::Null, IContext)
-DefMessageTypeMapping(EStandard::Set, GHandleContext<GHHandle<YShell> >)
-DefMessageTypeMapping(EStandard::Drop, GHandleContext<GHHandle<YShell> >)
-DefMessageTypeMapping(EStandard::Activated, GHandleContext<GHHandle<YShell> >)
-DefMessageTypeMapping(EStandard::Deactivated, GHandleContext<GHHandle<YShell> >)
+DefMessageTypeMapping(EStandard::Set, GHandleContext<GHandle<YShell> >)
+DefMessageTypeMapping(EStandard::Drop, GHandleContext<GHandle<YShell> >)
+DefMessageTypeMapping(EStandard::Activated, GHandleContext<GHandle<YShell> >)
+DefMessageTypeMapping(EStandard::Deactivated, GHandleContext<GHandle<YShell> >)
 
-DefMessageTypeMapping(EStandard::Paint, GHandleContext<GHHandle<YDesktop> >)
+DefMessageTypeMapping(EStandard::Paint, GHandleContext<GHandle<YDesktop> >)
 DefMessageTypeMapping(EStandard::Quit, GObjectContext<int>)
 
 DefMessageTypeMapping(EStandard::Input, InputContext)

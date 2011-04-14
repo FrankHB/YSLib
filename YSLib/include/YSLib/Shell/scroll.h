@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件实现。
-\version 0.3034;
+\version 0.3044;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-04-04 20:41 +0800;
+	2011-04-14 22:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,6 +38,61 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
+
+//! \brief 滚动事件类型空间。
+namespace ScrollEventSpace
+{
+	//! \brief 滚动事件类型。
+	typedef enum
+	{
+		SmallDecrement = 0, //!< 滚动框小距离减量移动。
+		SmallIncrement = 1, //!< 滚动框小距离增量移动。
+		LargeDecrement = 2, //!< 滚动框大距离减量移动。
+		LargeIncrement = 3, //!< 滚动框大距离增量移动。
+		ThumbPosition = 4, //!< 滚动框定位（通过直接设置位置）。
+		ThumbTrack = 5, //!< 滚动框当前正在移动。
+		First = 6, //!< 滚动框移动至最小位置。
+		Last = 7, //!< 滚动框移动至最大位置。
+		EndScroll = 8 //!< 滚动框移动停止。
+	} ScrollEventType;
+};
+
+
+//! \brief 滚动事件参数类。
+struct ScrollEventArgs : public EventArgs,
+	public GMValueEventArgs<SDst>
+{
+public:
+	typedef GMValueEventArgs<SDst> MEventArgs;
+	typedef MEventArgs::ValueType ValueType;
+
+	ScrollEventSpace::ScrollEventType Type; //滚动事件类型。
+
+	/*!
+	\brief 构造：使用指定滚动事件类型和值。
+	\note 值等于旧值。
+	*/
+	ScrollEventArgs(ScrollEventSpace::ScrollEventType, ValueType);
+	/*!
+	\brief 构造：使用指定滚动事件类型、值和旧值。
+	*/
+	ScrollEventArgs(ScrollEventSpace::ScrollEventType, ValueType, ValueType);
+};
+
+inline
+ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
+	ScrollEventArgs::ValueType v)
+	: GMValueEventArgs<SDst>(v), Type(t)
+{}
+inline
+ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
+	ScrollEventArgs::ValueType v, ScrollEventArgs::ValueType old_value)
+	: GMValueEventArgs<SDst>(v, old_value), Type(t)
+{}
+
+
+DefDelegate(HScrollEvent, IControl, ScrollEventArgs)
+
 
 //! \brief 轨道。
 class ATrack : public AUIBoxControl, public GMRange<u16>
@@ -139,18 +194,11 @@ public:
 	void
 	SetLargeDelta(ValueType);
 
-
 	/*!
-	\brief 绘制背景。
+	\brief 绘制。
 	*/
 	virtual void
-	DrawBackground();
-
-	/*!
-	\brief 绘制前景。
-	*/
-	virtual void
-	DrawForeground();
+	Draw();
 
 protected:
 	/*!
@@ -400,16 +448,10 @@ public:
 	DefSetter(ValueType, SmallDelta, small_delta)
 
 	/*!
-	\brief 绘制背景。
+	\brief 绘制。
 	*/
 	virtual void
-	DrawBackground();
-
-	/*!
-	\brief 绘制前景。
-	*/
-	virtual void
-	DrawForeground();
+	Draw();
 
 private:
 	/*!
@@ -487,10 +529,10 @@ public:
 	GetTopControlPtr(const Point&);
 
 	/*!
-	\brief 绘制前景。
+	\brief 绘制。
 	*/
 	virtual void
-	DrawForeground();
+	Draw();
 
 protected:
 	/*!
