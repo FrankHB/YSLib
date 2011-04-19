@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2254;
+\version 0.2283;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-04-14 16:09 +0800;
+	2011-04-16 13:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,13 +40,9 @@ class YDesktop : public YFrame
 {
 public:
 	typedef YFrame ParentType;
-	typedef list<IControl*> DOs; //!< 桌面对象组类型。
-	using ParentType::operator+=;
-	using ParentType::operator-=;
 
 private:
 	YScreen& Screen; //!< 屏幕对象。
-	DOs sDOs; //!< 桌面对象组（末尾表示顶端）。
 
 public:
 	/*!
@@ -62,27 +58,6 @@ public:
 	virtual PDefH1(IControl*, GetTopControlPtr, const Point& p)
 		ImplBodyBase1(YDesktop, GetTopVisibleDesktopObjectPtr, p)
 
-	/*!
-	\brief 向桌面对象组添加桌面对象。
-	*/
-	virtual void
-	operator+=(IControl*);
-	/*!
-	\brief 从桌面对象组中移除指定桌面对象。
-	*/
-	virtual bool
-	operator-=(IControl*);
-
-	/*!
-	\brief 取桌面对象组中首个桌面对象指针。
-	*/
-	IControl*
-	GetFirstDesktopObjectPtr() const;
-	/*!
-	\brief 取桌面对象组中顶端桌面对象指针。
-	*/
-	IControl*
-	GetTopDesktopObjectPtr() const;
 	/*!
 	\brief 取桌面对象组中包含指定点的可见的顶端桌面对象指针。
 	*/
@@ -103,22 +78,6 @@ public:
 	*/
 	bool
 	MoveToTop(IControl&);
-
-	/*!
-	\brief 移除桌面对象组中顶端桌面对象。
-
-	移除桌面对象组中首个桌面对象。
-	*/
-	void
-	RemoveTopDesktopObject();
-
-protected:
-	/*!
-	\brief 绘制内容。
-	\note 依次绘制桌面对象组对象后再绘制其它部件。
-	*/
-	virtual bool
-	DrawContents();
 
 public:
 	/*!

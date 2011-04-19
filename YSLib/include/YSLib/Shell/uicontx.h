@@ -8,19 +8,19 @@
 	understand and accept it fully.
 */
 
-/*!	\file yuicontx.h
+/*!	\file uicontx.h
 \ingroup Shell
-\brief 平台无关的图形用户界面控件实现。
-\version 0.1102;
+\brief 样式无关的图形用户界面附加容器实现。
+\version 0.1103;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-02-21 08:59:34 +0800;
 \par 修改时间:
-	2011-04-04 20:36 +0800;
+	2011-04-15 09:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YUIContainerEx;
+	YSLib::Shell::UIContainerEx;
 */
 
 

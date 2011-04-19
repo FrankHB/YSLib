@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 平台无关的图形用户界面容器实现。
-\version 0.2204;
+\version 0.2241;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-04-13 22:25 +0800;
+	2011-04-16 21:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -250,12 +250,13 @@ Fill(IWidget&, Color);
 class MUIContainer : protected GMFocusResponser<IControl>
 {
 public:
-	typedef set<IWidget*> WGTs; //!< 部件组类型。
+	typedef IWidget* ItemType; //!< 部件组项目类型：记录部件指针。
+	typedef list<ItemType> WGTs; //!< 部件组类型。
 	typedef set<GMFocusResponser<IControl>*> FOCs; \
 		//!< 子焦点对象容器组类型。
 
 protected:
-	WGTs sWgtSet; //!< 部件对象组模块。
+	WGTs WidgetsList; //!< 部件对象组模块。
 	FOCs sFOCSet; //!< 子焦点对象容器组。
 
 public:
@@ -264,12 +265,14 @@ public:
 
 protected:
 	/*!
-	\brief 向部件组添加部件指针。
+	\brief 向部件组添加部件。
 	*/
 	void
 	operator+=(IWidget*);
 	/*!
-	\brief 向焦点对象组添加焦点对象指针，同时向部件组添加部件指针。
+	\brief 向部件组添加控件。
+	
+	向焦点对象组添加焦点对象指针，同时向部件组添加部件指针。
 	*/
 	void
 	operator+=(IControl*);
@@ -278,13 +281,16 @@ protected:
 	*/
 	void
 	operator+=(GMFocusResponser<IControl>*);
+
 	/*!
-	\brief 向部件组添加部件指针，同时从部件组移除部件指针。
+	\brief 从部件组移除部件。
 	*/
 	bool
 	operator-=(IWidget*);
 	/*!
-	\brief 从焦点对象组移除焦点对象指针。
+	\brief 从部件组移除控件。
+
+	从部件组移除部件指针，同时从焦点对象组移除焦点对象指针。
 	*/
 	bool
 	operator-=(IControl*);
@@ -322,6 +328,20 @@ public:
 	*/
 	bool
 	ResponseFocusRelease(AFocusRequester&);
+
+protected:
+	/*!
+	\brief 检查部件指针是否满足添加条件。
+	\return 若部件指针为空或已在部件组中则返回 false ，否则返回 true 。
+	*/
+	bool
+	CheckWidget(IWidget*);
+
+	/*!
+	\brief 从部件组移除部件。
+	*/
+	bool
+	RemoveWidget(IWidget*);
 };
 
 
@@ -340,12 +360,9 @@ public:
 	YUIContainer(const Rect& = Rect::Empty);
 
 	ImplI1(IUIContainer) PDefHOperator1(void, +=, IWidget* p)
-	{
-		if(p)
-			sWgtSet.insert(p);
-	}
+		ImplBodyBase1(MUIContainer, operator+=, p)
 	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IWidget* p)
-		ImplRet(sWgtSet.erase(p) != 0)
+		ImplBodyBase1(MUIContainer, operator-=, p)
 	ImplI1(IUIContainer) PDefHOperator1(void, +=, IControl* p)
 		ImplBodyBase1(MUIContainer, operator+=, p)
 	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IControl* p)
@@ -382,8 +399,8 @@ public:
 	ImplI1(IUIContainer) PDefH1(bool, ResponseFocusRelease, AFocusRequester& w)
 		ImplBodyBase1(MUIContainer, ResponseFocusRelease, w)
 
-	ImplI1(IUIContainer) PDefH0(void, Draw)
-		ImplBodyBase0(Widget, Draw)
+	ImplI1(IUIContainer) PDefH0(void, Paint)
+		ImplBodyBase0(Widget, Paint)
 
 	ImplI1(IUIContainer) PDefH0(void, Refresh)
 		ImplBodyBase0(Widget, Refresh)

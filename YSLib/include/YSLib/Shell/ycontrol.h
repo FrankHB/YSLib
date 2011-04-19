@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 平台无关的控件实现。
-\version 0.4936;
+\version 0.4938;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-04-14 22:49 +0800;
+	2011-04-16 20:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -435,8 +435,8 @@ public:
 	SetSize(const Size&);
 	ImplI1(IControl) DefSetter(bool, Enabled, enabled)
 
-	ImplI1(IControl) PDefH0(void, Draw)
-		ImplBodyBase0(Widget, Draw)
+	ImplI1(IControl) PDefH0(void, Paint)
+		ImplBodyBase0(Widget, Paint)
 
 	ImplI1(IControl) PDefH0(void, Refresh)
 		ImplBodyBase0(Widget, Refresh)

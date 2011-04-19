@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件实现。
-\version 0.3044;
+\version 0.3048;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-04-14 22:49 +0800;
+	2011-04-16 21:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,7 @@
 #ifndef INCLUDED_SCROLL_H_
 #define INCLUDED_SCROLL_H_
 
-#include "yuicontx.h"
+#include "uicontx.h"
 #include "button.h"
 #include "yfocus.h"
 //#include "../Core/yres.h"
@@ -195,10 +195,10 @@ public:
 	SetLargeDelta(ValueType);
 
 	/*!
-	\brief 绘制。
+	\brief 绘制界面。
 	*/
 	virtual void
-	Draw();
+	Paint();
 
 protected:
 	/*!
@@ -448,10 +448,10 @@ public:
 	DefSetter(ValueType, SmallDelta, small_delta)
 
 	/*!
-	\brief 绘制。
+	\brief 绘制界面。
 	*/
 	virtual void
-	Draw();
+	Paint();
 
 private:
 	/*!
@@ -529,10 +529,10 @@ public:
 	GetTopControlPtr(const Point&);
 
 	/*!
-	\brief 绘制。
+	\brief 绘制界面。
 	*/
 	virtual void
-	Draw();
+	Paint();
 
 protected:
 	/*!

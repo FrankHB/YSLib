@@ -8,23 +8,23 @@
 	understand and accept it fully.
 */
 
-/*!	\file ylabel.cpp
+/*!	\file label.cpp
 \ingroup Shell
-\brief 平台无关的图形用户界面部件实现。
-\version 0.1905;
+\brief 样式无关的标签模块实现。
+\version 0.1909;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-04-13 08:02 +0800;
+	2011-04-16 21:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YLabel;
+	YSLib::Shell::Label;
 */
 
 
-#include "ylabel.h"
+#include "label.h"
 #include "yuicont.h"
 #include "ywindow.h"
 
@@ -78,11 +78,11 @@ YLabel::YLabel(const Rect& r, const Drawing::Font& f)
 {}
 
 void
-YLabel::Draw()
+YLabel::Paint()
 {
 	YWidgetAssert(this, Widgets::YLabel, Draw);
 
-	ParentType::Draw();
+	ParentType::Paint();
 	PaintText(*this, FetchContext(*this), LocateForWindow(*this));
 }
 

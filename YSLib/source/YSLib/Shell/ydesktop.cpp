@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2201;
+\version 0.2260;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-04-13 08:15 +0800;
+	2011-04-16 21:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,55 +38,21 @@ using namespace Controls;
 
 YDesktop::YDesktop(YScreen& s, Color c, GHStrong<YImage> i)
 	: YFrame(Rect::FullScreen, i),
-	Screen(s), sDOs()
+	Screen(s)
 {
 	BackColor = c;
 }
 
-void
-YDesktop::operator+=(IControl* p)
-{
-	if(p && std::find(sDOs.begin(), sDOs.end(), p) == sDOs.end())
-	{
-		sDOs.push_back(p);
-		GMFocusResponser<IControl>::operator+=(*p);
-		p->GetContainerPtr() = this;
-		bRefresh = true;
-	}
-}
-bool
-YDesktop::operator-=(IControl* p)
-{
-	if(p)
-	{
-		GMFocusResponser<IControl>::operator-=(*p);
-		sDOs.erase(std::remove(sDOs.begin(), sDOs.end(), p), sDOs.end()); 
-		p->GetContainerPtr() = NULL;
-		bRefresh = true;
-		return true;
-	}
-	return false;
-}
-
-IControl*
-YDesktop::GetFirstDesktopObjectPtr() const
-{
-	return sDOs.empty() ? NULL : sDOs.front();
-}
-IControl*
-YDesktop::GetTopDesktopObjectPtr() const
-{
-	return sDOs.empty() ? NULL : sDOs.back();
-}
 IControl*
 YDesktop::GetTopVisibleDesktopObjectPtr(const Point& pt) const
 {
-	for(DOs::const_reverse_iterator i(sDOs.rbegin()); i != sDOs.rend(); ++i)
+	for(WGTs::const_reverse_iterator i(WidgetsList.rbegin());
+		i != WidgetsList.rend(); ++i)
 	{
 		try
 		{
 			if((*i)->IsVisible() && Contains(**i, pt))
-				return *i;
+				return &dynamic_cast<IControl&>(**i);
 		}
 		catch(std::bad_cast&)
 		{}
@@ -97,18 +63,18 @@ YDesktop::GetTopVisibleDesktopObjectPtr(const Point& pt) const
 bool
 YDesktop::MoveToTop(IControl& w)
 {
-	DOs::iterator i(std::find(sDOs.begin(), sDOs.end(), &w));
+	WGTs::iterator i(std::find(WidgetsList.begin(), WidgetsList.end(), &w));
 
-	if(i != sDOs.end())
+	if(i != WidgetsList.end())
 	{
-		std::swap(*i, sDOs.back());
+		std::swap(*i, WidgetsList.back());
 		bRefresh = true;
 		return true;
 	}
 	return false;
 }
 
-void
+/*void
 YDesktop::RemoveTopDesktopObject()
 {
 	if(!sDOs.empty())
@@ -117,45 +83,15 @@ YDesktop::RemoveTopDesktopObject()
 		sDOs.pop_back();
 		bRefresh = true;
 	}
-}
+}*/
 
 void
 YDesktop::ClearContents()
 {
 	ClearFocusingPtr();
-	sDOs.clear();
-	sWgtSet.clear();
+	WidgetsList.clear();
 	sFOCSet.clear();
 	bRefresh = true;
-}
-
-bool
-YDesktop::DrawContents()
-{
-	bool result(ParentType::DrawContents());
-//	Draw();
-
-	for(DOs::iterator i(sDOs.begin()); i != sDOs.end(); ++i)
-	{
-		IControl* const p(*i);
-
-		YAssert(p, "Null control pointer found @ YDesktop::DrawContents");
-
-		if(p->IsVisible())
-		{
-			IWindow* const pWnd(dynamic_cast<IWindow*>(p));
-
-			if(pWnd)
-			{
-				result = true;
-				pWnd->Refresh();
-				pWnd->Update();
-			}
-			else
-				p->Draw();
-		}
-	}
-	return result;
 }
 
 void

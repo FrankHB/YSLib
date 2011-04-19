@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.4201;
+\version 0.4258;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-04-14 16:09 +0800;
+	2011-04-16 21:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -151,17 +151,21 @@ protected:
 	bool
 	DrawBackgroundImage();
 
-public:
-	/*!
-	\brief 绘制。
-	*/
-	ImplI1(IWindow) void
-	Draw();
-
-protected:
 	DeclIEntry(bool DrawContents())
 
 public:
+	/*!
+	\brief 绘制界面（不检查刷新状态）。
+	*/
+	virtual void
+	Draw();
+
+	/*!
+	\brief 绘制界面。
+	*/
+	ImplI1(IWindow) void
+	Paint();
+
 	/*!
 	\brief 刷新至窗口缓冲区。
 	*/
@@ -203,8 +207,6 @@ public:
 	explicit
 	AFrame(const Rect& = Rect::Empty,
 		const GHStrong<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
-	virtual
-	~AFrame();
 
 	ImplI1(IWindow) void
 	operator+=(IWidget*);
@@ -212,12 +214,18 @@ public:
 	operator+=(IControl*);
 	ImplI1(IWindow) PDefHOperator1(void, +=, GMFocusResponser<IControl>* p)
 		ImplBodyBase1(MUIContainer, operator+=, p)
+	virtual void
+	operator+=(IWindow*);
+	PDefHOperator1(void, +=, HWND h)
+		ImplRet(static_cast<void>(operator+=(GetPointer(h))))
 	template<class _type>
 	inline void
-	operator+=(_type* p)
+	operator+=(_type p)
 	{
-		return operator+=(Design::MoreConvertible<_type*,
-			IControl*, IWidget*>::Cast(p));
+		return operator+=(static_cast<typename Design::Select<
+			ystdex::is_convertible<_type, IWindow*>::value,
+			IWindow*, typename Design::Select<ystdex::is_convertible<_type,
+			IControl*>::value, IControl*, IWidget*>::Result>::Result>(p));
 	}
 
 	ImplI1(IWindow) bool
@@ -226,12 +234,18 @@ public:
 	operator-=(IControl*);
 	ImplI1(IWindow) PDefHOperator1(bool, -=, GMFocusResponser<IControl>* p)
 		ImplBodyBase1(MUIContainer, operator-=, p)
+	virtual bool
+	operator-=(IWindow*);
+	PDefHOperator1(bool, -=, HWND h)
+		ImplRet(operator-=(GetPointer(h)))
 	template<class _type>
 	inline bool
-	operator-=(_type* p)
+	operator-=(_type p)
 	{
-		return operator-=(Design::MoreConvertible<_type*,
-			IControl*, IWidget*>::Cast(p));
+		return operator-=(static_cast<typename Design::Select<
+			ystdex::is_convertible<_type, IWindow*>::value,
+			IWindow*, typename Design::Select<ystdex::is_convertible<_type,
+			IControl*>::value, IControl*, IWidget*>::Result>::Result>(p));
 	}
 
 	ImplI1(IWindow) PDefH0(IControl*, GetFocusingPtr)
@@ -258,8 +272,6 @@ class YFrame : public GMCounter<YFrame>, public YComponent,
 {
 public:
 	typedef YComponent ParentType;
-	using AFrame::operator+=;
-	using AFrame::operator-=;
 
 protected:
 	Drawing::BitmapBuffer Buffer; //!< 显示缓冲区。

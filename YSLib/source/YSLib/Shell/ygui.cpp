@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面实现。
-\version 0.3732;
+\version 0.3734;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-13 11:26 +0800;
+	2011-04-16 20:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -312,7 +312,7 @@ YGUIShell::ShlProc(const Message& msg)
 				p(CastMessage<SM_PAINT>(msg));
 
 			if(p && p->Handle)
-				p->Handle->Draw();
+				p->Handle->Paint();
 		}
 		return 0;
 	default:

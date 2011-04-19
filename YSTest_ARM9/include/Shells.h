@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3184;
+\version 0.3190;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-12 06:50 +0800;
+	2011-04-17 22:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -150,6 +150,9 @@ public:
 		YButton btnExit;
 
 		TFormExtra();
+
+		void
+		OnMove_btnDragTest(EventArgs&);
 
 		void
 		OnTouchUp_btnDragTest(TouchEventArgs&);

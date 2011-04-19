@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 平台无关的图形用户界面部件实现。
-\version 0.5910;
+\version 0.5912;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-13 20:18 +0800;
+	2011-04-16 20:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -75,10 +75,10 @@ DeclInterface(IWidget)
 		//!< 设置大小。
 
 	/*!
-	\brief 绘制。
+	\brief 绘制界面。
 	\warning 可能不检查缓冲区指针是否为空。
 	*/
-	DeclIEntry(void Draw())
+	DeclIEntry(void Paint())
 
 	//! \brief 刷新至窗口缓冲区。
 	DeclIEntry(void Refresh())
@@ -293,10 +293,10 @@ public:
 	DefGetter(IUIBox*&, ContainerPtr, pContainer)
 
 	/*!
-	\brief 绘制。
+	\brief 绘制界面。
 	*/
 	virtual void
-	Draw();
+	Paint();
 
 	/*!
 	\brief 刷新至窗口缓冲区。
@@ -338,8 +338,8 @@ public:
 	ImplI1(IWidget) DefSetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefSetterBase(const Size&, Size, Visual)
 
-	ImplI1(IWidget) PDefH0(void, Draw)
-		ImplBodyBase0(Widget, Draw)
+	ImplI1(IWidget) PDefH0(void, Paint)
+		ImplBodyBase0(Widget, Paint)
 
 	ImplI1(IWidget) PDefH0(void, Refresh)
 		ImplBodyBase0(Widget, Refresh)

@@ -8,23 +8,23 @@
 	understand and accept it fully.
 */
 
-/*!	\file yuicontx.cpp
+/*!	\file uicontx.cpp
 \ingroup Shell
-\brief 平台无关的图形用户界面控件实现。
-\version 0.1056;
+\brief 样式无关的图形用户界面附加容器实现。
+\version 0.1057;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-02-21 09:01:13 +0800;
 \par 修改时间:
-	2011-04-04 20:36 +0800;
+	2011-04-15 09:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YUIContainerEx;
+	YSLib::Shell::UIContainerEx;
 */
 
 
-#include "yuicontx.h"
+#include "uicontx.h"
 #include "ywindow.h"
 
 YSL_BEGIN

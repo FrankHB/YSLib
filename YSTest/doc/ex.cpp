@@ -1,4 +1,4 @@
-//v0.3086; *Build 201 r53;
+//v0.3086; *Build 202 r63;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -154,6 +154,11 @@ $using:
 	\in IUIContainer;
 	\cl YUIContainer;
 }
+\u YPanel
+{
+	\in IPanel;
+	\cl YPanel;
+}
 \u YUIContainerEx
 {
 	\cl AUIBoxControl;
@@ -205,380 +210,211 @@ $using:
 
 $DONE:
 r1:
-/ @ \h YWindow:
-	/ \m mutable GHStrong<YImage> prBackImage
-		-> mutable \m GHStrong<YImage> spBgImage;
-	/ @ \cl MWindow:
-		/ \mf DefGetter(GHStrong<Drawing::YImage>, Background, prBackImage)
-			-> DefGetter(GHStrong<Drawing::YImage>&, BackgroundImagePtr,
-			spBgImage);
-		- \mf DefSetterDe(GHStrong<Drawing::YImage>, Background, spBgImage,
-			NULL);
-	/ @ \cl AWindow:
-		/ DefGetterBase(GHStrong<Drawing::YImage>, Background, MWindow)
-			-> DefGetterBase(GHStrong<Drawing::YImage>&, BackgroundImagePtr,
-			MWindow);
-		- \mf ImplI1(IWindow) DefSetterBaseDe(GHStrong<Drawing::YImage>,
-			Background, MWindow, NULL);
-/ \tr @ \impl @ \mf (ShlLoad::OnActivated & ShlReader::OnActivated
-	& ShlReader::OnDeactivated & ShlLoad::OnDeactivated
-	& ShlExplorer::OnActivated & ShlExplorer::OnDeactivated
-	& ShlSetting::OnActivated & ShlSetting::OnDeactivated) @ \impl \u Shells;
+^ \conf release;
+/ @ \dir Shell:
+	/ \u YLabel["ylabel.h", "ylabel.cpp"] => Label["label.h", "label.cpp"];
+	/ \tr @ \inc @ \h Button;
+	/ \u YUIContainerEx["yuicontx.h", "yuicontx.cpp"]
+		=> UIContainerEx["uicontx.h", "uicontx.cpp"];
+	/ \tr @ \inc @ \h Scroll;
+	/ \u YForm["yform.h", "yform.cpp"] => Form["form.h", "form.cpp"];
+	/ \tr @ \inc @ \h Build;
 
 r2:
-/ @ \cl ShlDS @ \h Shell_DS:
-	+ \mf DefGetter(YDesktop&, DesktopUp, *hDskUp);
-	+ \mf DefGetter(YDesktop&, DesktopDown, *hDskDown);
-/ \simp \impl @ \mf @ \impl \u Shells
-	^ GetDesktopUp & GetDesktopDown @ \cl ShlDS @ \h Shell_DS;
+^ \conf debug;
+/= test 1;
 
-r3-r4:
-/ \impl @ \mf void YThumb::DrawForeground();
+r3
+/ @ \cl MUIContainer:
+	/ typedef set<IWidget*> WGTs -> typedef list<IWidget*> WGTs;
+	/ WGTs sWgtSet => WidgetsList;
+	/ \tr \impl @ \mf void operator+=(IWidget*);
+	/ \impl @ \mf bool operator-=(IWidget*);
+	/ \tr \impl @ \mf void operator+=(IControl*);
+	/ \tr \impl @ \mf bool operator-=(IControl*);
+/ \simp \impl @ \mf bool YDesktop::operator-=(IControl*);
+* \tr \simp \impl @ \mf (void operator+=(IWidget*) & bool operator-=(IWidget*))
+	@ \cl YUIContainer;
+/= \impl @ \f const Graphics& FetchContext(IWidget&);
+
+r4:
+/ @ \cl AFrame:
+	+ typedef set<IWindow*> WNDs;
+	+ protected \m WNDs WindowsSet;
+	/ \tr \impl @ \ctor;
+	-= empty \dtor;
+	+ \mf \vt void operator+=(IWindow*);
+	+ \mf \vt bool operator-=(IWindow*);
+	/ \i \mft<typename _type> void operator+=(_type*)
+		-> \i \mft<typename _type> void operator+=(_type);
+	/ \i \mft<typename _type> bool operator-=(_type*)
+		-> \i \mft<typename _type> bool operator-=(_type);
+	+ \i \mf void operator+=(HWND) ^ \mac(PDefHOperator1 & ImplBodyBase1);
+	+ \i \mf bool operator-=(HWND) ^ \mac(PDefHOperator1 & ImplBodyBase1);
+/ \simp @ \impl @ \mf ShlSetting::OnActivated @ \impl \u Shells;
 
 r5:
-/ @ \impl \u Shells:
-	/ \simp \impl @ \mf ^ GetDesktopUp & GetDesktopDown @ \cl ShlDS
-		@ \h Shell_DS;
-	/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlReader;
-
-r6:
-/ @ \cl ShlReader @ \u Shells:
-	/ \mf OnKeyPress -> OnKeyDown;
-	/ \impl @ \mf OnActivated;
-
-r7:
-/ @ \u YGDI:
-	/ \mf \vt void BitmapBuffer::Flush(BitmapPtr,
-		const Size& = Size::FullScreen,
-		const Point& = Point::Zero, const Point& = Point::Zero,
-		const Size& = Size::FullScreen, Rotation = RDeg0) const -> !\m \f;
-	/ \mf void BitmapBufferEx::Flush(BitmapPtr,
-		const Size& = Size::FullScreen,
-		const Point& = Point::Zero, const Point& = Point::Zero,
-		const Size& = Size::FullScreen, Rotation = RDeg0) const -> !\m \f;
-	/ \mf void BitmapBufferEx::BlitTo(BitmapPtr,
-		const Size& = Size::FullScreen,
-		const Point& = Point::Zero, const Point& = Point::Zero,
-		const Size& = Size::FullScreen, Rotation = RDeg0) const -> !\m \f;
-/ \tr \impl @ \impl \u (Shells & DSReader & YText);
-
-r8:
-/ @ \u YGDI:
-	/ \param order @ \a blit functions;
-	/ \tr \impl @ \f (2 CopyTo & Flush & BlitTo) @ \impl \u;
-	/ \tr \impl @ \f (void RenderChar(const Graphics&, TextState&, fchar_t)
-		& void RenderChar(BitmapBufferEx&, TextState&, fchar_t))
-		@ \impl \u YText;
-
-r9:
-/ @ \u YGDI:
-	/ \param order @ \f BlitBounds;
-	/ \tr @ \ft Blit & \mft RectTransfomer::operator();
-
-r10:
-/ @ \u YGDI:
-	/ \param order @ \ft BlitScale;
-	/ \tr @ \ft Blit;
-
-r11:
-/ @ \u YGDI:
-	/ 2 \f Flush => CopyTo;
-	/ \f void CopyTo(const Graphics&, const Graphics&,
-		const Point& = Point::Zero, Rotation = RDeg0);
-		-> void CopyTo(const Graphics&, const Graphics&, const Point&
-		= Point::Zero const Point& = Point::Zero, Rotation = RDeg0);
-	/ \param order @ \f (2 CopyTo & BlitTo);
-/ \tr \impl @ \impl \u (Shells & DSReader & YText);
-
-r12:
-/ @ \u YGDI:
-	/ \f void CopyTo(BitmapPtr, const Graphics&, Rotation, const Size&,
-		const Point&, const Point&, const Size&);
-		-> void CopyTo(BitmapPtr, const Graphics&,
-		const Size& ds = Size::FullScreen, const Point& sp = Point::Zero,
-		const Point& dp = Point::Zero, const Size& sc = Size::FullScreen,
-		Rotation rot = RDeg0);
-	-= \i \f void CopyTo(BitmapPtr, const BitmapBuffer&,
-		const Size& = Size::FullScreen, const Point& = Point::Zero,
-		const Point& = Point::Zero, const Size& = Size::FullScreen,
-		Rotation = RDeg0);
-	/ \impl @ \f (2 CopyTo & BlitTo);
-
-r13:
-/ !\i \f void CopyTo(const Graphics&, const Graphics&,
-	const Point& = Point::Zero, const Point& = Point::Zero,
-	Rotation = RDeg0) @ \u YGDI -> \i \f;
-
-r14:
-/ \h YGDI:
-	+ \i \f void CopyTo(const Graphics&, const BitmapBufferEx&,
-		const Point& = Point::Zero, const Point& = Point::Zero,
-		Rotation = RDeg0);
-	+ \i \f void BlitTo(const Graphics&, const BitmapBufferEx&,
-		const Point& = Point::Zero, const Point& = Point::Zero,
-		Rotation = RDeg0);
-
-r15:
-/ @ \cl MDualScreenReader @ \u DSReader:
-	/ \mf void PrintText() -> void PrintText(const Graphics&, const Graphics&);
-	/ \simp \impl @ \ctor;
-	- \m pBgUp;
-	- \m pBgDn;
-/ \tr @ \impl @ \mf void ShlReader::UpdateToScreen() @ \impl \u Shells;
-
-r16:
-/= test 1 ^ \conf release;
-
-r17:
-/ \simp @ \cl MDualScreenReader @ \u DSReader:
-	- \mf DefSetterDe(SDst, Left, left, 0);
-	- \m SDst left;
-	- \m SDst top_up;
-	- \m SDst top_down;
-	/ \ctor MDualScreenReader(SDst l = 0, SDst w = Global::MainScreenWidth,
-		SDst t_up = 0, SDst h_up = Global::MainScreenHeight,
-		SDst t_down = 0, SDst h_down = Global::MainScreenHeight,
-		YFontCache& fc_ = theApp.GetFontCache())
-		-> MDualScreenReader(SDst w = Global::MainScreenWidth,
-		SDst h_up = Global::MainScreenHeight,
-		SDst h_down = Global::MainScreenHeight,
-		YFontCache& fc_ = theApp.GetFontCache());
-	/ \m GHStrong<Drawing::TextRegion> pTextRegionUp
-		-> std::auto_ptr<Drawing::TextRegion> pTextRegionUp
-	/ \m GHStrong<Drawing::TextRegion> pTextRegionDn
-		-> std::auto_ptr<Drawing::TextRegion> pTextRegionDown;
-	/ \ac @ \mf (GetColorUp & GetColorDn & GetLineGapUp & GetLineGapDn)
-		-> public ~ private;
-	/ \mf GetColorDn => GetColorDown;
-	/ \mf GetLineGapDn => GetLineGapDown;
-	/ \mf SetColorDn => SetColorDown;
-	/ \mf SetLineGapDn => SetLineGapDown;
-
-r18:
-/ @ \u YWidget:
-	/ @ \in IWidget:
-		- \amf DeclIEntry(bool IsBgRedrawed() const);
-		- \amf DeclIEntry(void SetBgRedrawed(bool));
-	/ @ \cl Visual:
-		- \m mutable bool background_redrawed;
-		- \mf DefPredicate(BgRedrawed, background_redrawed);
-		- \mf DefSetter(bool, BgRedrawed, background_redrawed);
-		/ \tr \impl @ \ctor;
-		/ \tr \impl @ \mf void SetSize(const Size&);
-	/ \tr \impl @ Widget::DrawForeground;
-	/ @ \cl YWidget:
-		- \mf ImplI1(IWidget) DefPredicateBase(BgRedrawed, Visual);
-		- \mf ImplI1(IWidget) DefSetterBase(bool, BgRedrawed, Visual);
-		/ ImplI1(IWidget) PDefH0(void, DrawForeground)
-			ImplBodyBase0(Widget, DrawForeground) -> \em \i \mf;
-	/ \tr \impl @ \mf ShlDS::OnActivated @ \impl \u Shell_DS;
-	/ @ \u YControl:
-		/ @ \cl Control:
-			- \mf ImplI1(IControl) DefPredicateBase(BgRedrawed, Visual);
-			- \mf ImplI1(IControl) DefSetterBase(bool, BgRedrawed, Visual);
-		/ \tr \impl @ \f OnTouchMove_Dragging;
-	/ \tr \impl @ \mf YDesktop::DrawContents @ \impl \u YDesktop;
-	/ @ \u YUIContainer:
-		- \f bool SetContainerBgRedrawedOf(IWidget&, bool);
-		/ @ \cl YUIContainer:
-			- \mf ImplI1(IUIContainer) DefPredicateBase(BgRedrawed, Visual);
-			- \mf ImplI1(IUIContainer) DefSetterBase(bool, BgRedrawed, Visual);
-	/ @ \impl \u YWindow:
-		/ \tr \impl @ \f (Show & Hide);
-		/ @ \cl YFrame:
-			/ \tr \impl @ \mf DrawContents;
-			/ \tr \impl @ \mf DrawContensBackground;
-		/ \impl @ \mf AWindow::Refresh;
-	/ \tr \impl @ \mf ShlReader::UpdateToScreen @ \impl \u Shells;
-
-r19:
-* \impl @ \mf YFrame::DrawContensBackground;
-
-r20-r21:
+* @ \cl YDesktop:
+	+ \mf \vt void operator+=(IWindow*);
+	+ \mf \vt bool operator-=(IWindow*);
+	
+r6-r12:
 /= test 2;
 
-r22:
-/ \impl @ \ctor @ \cl MWindow @ \impl \u YWindow;
+r13:
+* ^ \mac ImplBodyBase @ \impl @ \i \mf (void operaotr+=(HWND)
+	& bool operaotr-=(HWND)) @ \cl AFrame;
 
-r23:
-/ \simp \impl @ \mf ShlDS::OnActivated @ \impl \u Shell_DS;
+r14-r15;
+/= test 3;
 
-r24:
-* \impl @ \mf ShlReader::UpdateToScreen @ \impl \u Shells;
+r16:
+/ @ \cl MUIContainer:
+	+ typedef pair<IWidget*, bool> ItemType;
+	/ typedef list<IWidget*> WGTs -> typedef list<ItemType> WGTs;
+	+ \mf void operator+=(IWindow*);
+	+ \mf bool operator-=(IWindow*);
+	+ protected \mf RemoveWidget(IWidget*, bool);
+	/ \tr \impl @ \mf GetTopWidgetPtr;
+/ \tr \impl @ \mf YFrame::DrawContents;
 
-r25:
-* \impl @ \mf TestObj::Blit @ \mf ShlSetting::TFormExtra::OnClick_btnTestEx
-	@ \impl \u Shells;
+r17:
+/ \simp @ \cl AFrame:
+	- typedef set<IWindow*> WNDs;
+	- protected \m WNDs WindowsSet;
+	/ \tr @ \ctor;
+	/ \tr @ \mf \vt void operator+=(IWindow*);
+	/ \tr @ \mf \vt bool operator-=(IWindow*);
 
-r26:
-/= test 3 ^ \conf release;
+r18-r19:
+/ \impl @ YFrame::DrawContents;
 
-r27:
-/ @ \impl @ \mf YFrame::DrawContents;
-/ \simp \impl @ \mf YDesktop::DrawContents;
+r20-r21:
+/= test 4;
 
-r28:
+r22-r36:
+/ \simp @ \cl YDesktop:
+	- protected \mf \vt bool DrawContents();
+	- \mf void RemoveTopDesktopObject();
+	- \mf IControl* GetFirstDesktopObjectPtr() const;
+	- \mf IControl* GetTopDesktopObjectPtr() const;
+	- \mf \vt void operator+=(IControl*);
+	- \mf \vt void operator+=(IWindow*);
+	- \mf \vt bool operator-=(IControl*);
+	- \mf \vt bool operator-=(IWindow*);
+	- using ParentType::operator+=;
+	- using ParentType::operator-=;
+	- DOs sDOs;
+	- typedef list<IControl*> DOs;
+	/ \tr \impl @ \ctor;
+	/ \tr \impl @ \mf ClearContents;
+* @ \cl MUIContainer:
+	* \impl @ \mf void operator+=(IWidget*);
+	* \impl @ \mf void operator+=(IControl*);
+	* \impl @ \mf void operator+=(IWindow*);
+	* \impl @ \mf RemoveWidget;
+	+ protected \mf bool CheckWidget(IWidget*);
 / @ \cl YFrame:
-	* \mf DrawContensBackground => DrawContentsBackground;
-	/ \mf DrawContensBackground \mg -> \mf DrawContents;
-
-r29:
-/= test 4 ^ \conf release;
-
-r30:
-/ @ \u YWindow:
-	- \amf void Draw() @ \in IWindow;
-	/ \a \mf Draw => DrawForeground;
-	/= \mf ImplI1(IWindow) void
-		DrawForeground() -> \vt void DrawForeground() @ \cl AWindow;
-/ \tr \impl @ \mf YGUIShell::ShlProc;
-
-r31-r33:
-/ \a (\ab & !\ab) \mf void DrawBackground() \mg -> void DrawForeground();
-
-r34:
-/ \a \mf DrawForeground => Draw;
-
-r35:
-/ \ret \tp @ \f (4 CopyTo & 2 BlitTo) @ \u YGDI -> bool ~ void;
-
-r36:
-/ \simp \impl @ \mf bool AWindow::DrawBackgroundImage() @ \impl \u YWindow
-	^ \f CopyTo;
+	- using AFrame::operator+=;
+	- using AFrame::operator-=;
 
 r37:
-/ \simp \impl @ \i \f Point LocateWindowOffset(const IWidget&, const Point&)
-	@ \h YUIContainer;
-* \impl @ \mf void YThumb::Draw() @ \impl \u Button;
+/ \simp \impl @ \mf void AWindow::Update();
 
-r38:
-^ \conf release;
+r38-r41:
 /= test 5;
 
-r39:
-* \a GHHandle => GHandle;
-
-r40-r41:
-^ \conf debug;
-/= test 6;
-
 r42:
-/ @ \dir YSLib/include:
-	+ \h Platform::DS::API["api.h"];
-	/ \decl @ Platform::DS["platform.h"];
-+ \inc \h <api.h> @ \h YCommon;
-+ \inc \h <api.h> @ \impl \u Platform::DS::Main;
+/= test 6 ^ \conf release;
 
-r43:
-+ \u YPanel["ypanel.h", "ypanel.cpp"] @ \dir Shell @ \lib YSLib;
-+ \in IPanel \ns Components::Controls @ \h YPanel;
-+ (\pre \decl & using \decl) \in IPanel @ \h YComponent;
-/ @ \h YWindow:
-	- \inc \h "ycontrol.h"
-	- \inc \h "yuicont.h"
-	- \inc \h "../Core/yres.h"
-	+ \inc \h "ypanel.h"
-	/ @ \in IWindow:
-		- \inh \in IUIContainer;
-		- \vt \inh \in IControl;
-		+ \inh \in IPanel;
+r43-r44:
+/ \a \mf Draw => Paint;
 
-r44-r45:
-+ typedef Controls::Control ParentType @ \cl AWindow;
-/ order @ \amf @ \in IUIContainer;
-/ @ \u YPanel:
-	+ \cl Panel;
-	+ \cl YPanel;
+r45:
+/ @ \cl AWindow;
+	+ protected \mf \vt void Paint();
+	/ \tr @ \mf orders;
+	/ \impl @ \mf Draw;
+	/ \impl @ \mf Refresh;
+	/ \simp \impl @ \mf DrawContents;
 
-r46:
-/= test 7 ^ \conf release;
-
-r47:
-/ @ \h YStandardExtend:
-	+ partial complier check;
-	+ \mac YCL_CHAR_BIT;
-	+ \mac YCL_UNUSED;
-	+ \mac YCL_VOID;
-	+ \mac YCL_VOIDX;
-/ \a \inc <ystdex.h> -> "../ystdex.h";
+r46-r47:
+/= test 7;
 
 r48:
-+ \h TypeOperation["type_op.hpp"] @ \lib YCLib::YStandardExtend;
-/ @ \h YCLib::YStandardExtend::Cast:
-	/ \clt (has_nonempty_virtual_base & has_common_nonempty_virtual_base)
-		>> \h TypeOperation;
-	+ \inc \h "type_op.hpp";
+/ @ \cl MUIContainer:
+	/ typedef pair<IWidget*, bool> ItemType -> typedef IWidget* ItemType;
+	/ \tr \impl @ \mf void operator+=(IWidget*);
+	/ \tr \impl @ \mf void operator+=(IControl*);
+	- \mf void operator+=(IWindow*);
+	/ \tr \impl @ \mf bool operator-=(IWidget*);
+	/ \tr \impl @ \mf bool operator-=(IControl*);
+	- \mf bool operator-=(IWindow*);
+	/ \mf bool RemoveWidget(IWidget*, bool) -> bool RemoveWidget(IWidget*);
+	/ \tr \impl @ \mf CheckWidget;
+	/ \tr \impl @ \mf GetTopWidgetPtr;
+/ \tr \impl @ \mf YFrame::DrawContents;
+/ \tr \impl @ \mf (GetTopVisibleDesktopObjectPtr & MoveToTop) @ \cl YDesktop;
 
-r49:
-/ @ \h YWindow:
-	/ @ \cl AFrame:
-		+ \ft<class _type> \i void operator+=(_type*);
-		+ \ft<class _type> \i bool operator-=(_type*);
-	/ @ \cl YFrame:
-		+ using AFrame::operator+=;
-		+ using AFrame::operator-=;
-/ @ \cl YDesktop @ \h YDesktop:
-		+ using ParentType::operator+=;
-		+ using ParentType::operator-=;
-/ \simp \impl @ \mf ShlLoad::OnActivated @ \impl \u Shells;
-
-r50:
-+ \stt (MoreConvertible & SelectConvertible) @ \ns Design @ \h YCoreUtilities;
-/ \simp \impl @ \ft<class _type> \op(+= & -=) ^ MoreConvertible
-	@ \cl AFrame @ \h YWindow;
-/ @ \cl Panel @ \h YPanel:
-	+ \ft<class _type> \i void operator+=(_type*);
-	+ \ft<class _type> \i bool operator-=(_type*);
-/ \simp \impl @ \mf OnActivated @ (ShlExplorer & ShlSetting) @ \impl \u Shells;
-
-r51:
+r49-r50:
 /= test 8 ^ \conf release;
 
-r52:
-/ \ns ScrollEventSpace & \st ScrollEventArgs & DefDelegate(HScrollEvent,
-	IControl, ScrollEventArgs) @ \h YControl -> \h Scroll;
+r51-r54:
+/= test 9;
 
-r53:
-/= test 9 ^ \conf release;
+r55-r56:
+/ @ ShlSetting::TFormExtra @ \u Shells:
+	+ \mf void OnMove_btnDragTest(TouchEventArgs&);
+	/ \impl @ \ctor;
+
+r57-r61:
+/= test 10;
+
+r62:
+* \impl @ \f OnTouchMove_Dragging @ \impl \u YControl;
+
+r63:
+/= test 11 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-04-15:
--24.8d;
+2011-04-19:
+-25.9d;
 
 / ...
 
 
 $NEXT_TODO:
 
-b202-b252:
+b203-b288:
 * fatel error @ direct UI drawing testing;
++ menus;
 + Z order;
-+ menu;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
 * non-ASCII character path error in FAT16;
 
-b253-b600:
+b289-b648:
 / impl 'real' RTC;
 + data configuragion;
-+ shared property: additional;
-+ GDI brushes;
 / text alignment;
 + \impl pictures loading;
 / improve efficiency @ \ft polymorphic_crosscast @ \h YCast;
 + correct DMA (copy & fill);
 * platform-independence @ alpha blending:
 	+ \impl general Blit algorithm;
++ shared property: additional;
++ GDI brushes;
 / user-defined bitmap buffer @ \cl YDesktop;
-+ (compressing & decompressing) @ gfx copying;
++ \impl styles @ widgets;
 
 
 $LOW_PRIOR_TODO:
-r601-r960:
-+ \impl styles @ widgets;
+r649-r1024:
++ (compressing & decompressing) @ gfx copying;
++ Microsoft Windows port;
 + general component operations:
 	+ serialization;
 	+ designer;
@@ -651,6 +487,13 @@ $transform $list ($list_member $pattern $all($exclude $pattern
 $ellipse_refactoring;
 
 $now
+(
+/ $design "unit renaming",
+/ "improvoed windows painting efficiency",
+* "buffered coordinate delayed in painting dragged control" $since b169
+),
+
+b201
 (
 / "focused button style",
 "key held response in %ShlReader",

@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件实现。
-\version 0.3526;
+\version 0.3530;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-04-13 08:03 +0800;
+	2011-04-16 21:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -122,11 +122,11 @@ YSimpleListBox::SetSelected(SPos x, SPos y)
 }
 
 void
-YSimpleListBox::Draw()
+YSimpleListBox::Paint()
 {
 	YWidgetAssert(this, Controls::YSimpleListBox, Draw);
 
-	ParentType::Draw();
+	ParentType::Paint();
 
 	IWindow* pWnd(FetchDirectWindowPtr(*this));
 
@@ -380,12 +380,12 @@ YListBox::GetTopControlPtr(const Point& p)
 }
 
 void
-YListBox::Draw()
+YListBox::Paint()
 {
 	YWidgetAssert(this, Controls::YListBox, Draw);
 
-	ScrollableContainer::Draw();
-	TextListBox.Draw();
+	ScrollableContainer::Paint();
+	TextListBox.Paint();
 }
 
 void

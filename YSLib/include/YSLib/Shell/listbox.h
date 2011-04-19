@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件实现。
-\version 0.3072;
+\version 0.3075;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-04-13 08:06 +0800;
+	2011-04-16 21:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -153,10 +153,10 @@ public:
 	SetSelected(const Point&);
 
 	/*!
-	\brief 绘制。
+	\brief 绘制界面。
 	*/
 	virtual void
-	Draw();
+	Paint();
 
 protected:
 	/*!
@@ -313,10 +313,10 @@ public:
 		//!< 项目选中确定事件。
 
 	/*!
-	\brief 绘制。
+	\brief 绘制界面。
 	*/
 	virtual void
-	Draw();
+	Paint();
 
 	PDefH0(void, ResetView)
 		ImplBodyMember0(TextListBox, ResetView)

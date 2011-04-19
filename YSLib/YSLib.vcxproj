@@ -56,15 +56,15 @@
     <ClInclude Include="include\YSLib\Shell\ycontrol.h" />
     <ClInclude Include="include\YSLib\Shell\ydesktop.h" />
     <ClInclude Include="include\YSLib\Shell\yfocus.h" />
-    <ClInclude Include="include\YSLib\Shell\yform.h" />
+    <ClInclude Include="include\YSLib\Shell\form.h" />
     <ClInclude Include="include\YSLib\Shell\ygdi.h" />
     <ClInclude Include="include\YSLib\Shell\ygui.h" />
-    <ClInclude Include="include\YSLib\Shell\ylabel.h" />
+    <ClInclude Include="include\YSLib\Shell\label.h" />
     <ClInclude Include="include\YSLib\Shell\ypanel.h" />
     <ClInclude Include="include\YSLib\Shell\ystyle.h" />
     <ClInclude Include="include\YSLib\Shell\ytext.h" />
     <ClInclude Include="include\YSLib\Shell\yuicont.h" />
-    <ClInclude Include="include\YSLib\Shell\yuicontx.h" />
+    <ClInclude Include="include\YSLib\Shell\uicontx.h" />
     <ClInclude Include="include\YSLib\Shell\ywidget.h" />
     <ClInclude Include="include\YSLib\Shell\ywindow.h" />
   </ItemGroup>
@@ -96,15 +96,15 @@
     <ClCompile Include="source\YSLib\Shell\ycontrol.cpp" />
     <ClCompile Include="source\YSLib\Shell\ydesktop.cpp" />
     <ClCompile Include="source\YSLib\Shell\yfocus.cpp" />
-    <ClCompile Include="source\YSLib\Shell\yform.cpp" />
+    <ClCompile Include="source\YSLib\Shell\form.cpp" />
     <ClCompile Include="source\YSLib\Shell\ygdi.cpp" />
     <ClCompile Include="source\YSLib\Shell\ygui.cpp" />
-    <ClCompile Include="source\YSLib\Shell\ylabel.cpp" />
+    <ClCompile Include="source\YSLib\Shell\label.cpp" />
     <ClCompile Include="source\YSLib\Shell\ypanel.cpp" />
     <ClCompile Include="source\YSLib\Shell\ystyle.cpp" />
     <ClCompile Include="source\YSLib\Shell\ytext.cpp" />
     <ClCompile Include="source\YSLib\Shell\yuicont.cpp" />
-    <ClCompile Include="source\YSLib\Shell\yuicontx.cpp" />
+    <ClCompile Include="source\YSLib\Shell\uicontx.cpp" />
     <ClCompile Include="source\YSLib\Shell\ywidget.cpp" />
     <ClCompile Include="source\YSLib\Shell\ywindow.cpp" />
   </ItemGroup>

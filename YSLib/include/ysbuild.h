@@ -15,12 +15,12 @@
 /*!	\file ysbuild.h
 \ingroup YSLib
 \brief YSLib 库配置文件。
-\version 0.1683;
+\version 0.1684;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 21:53:55 +0800;
 \par 修改时间:
-	2011-03-23 20:40 +0800;
+	2011-04-15 09:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,7 @@
 #include <YSLib/Core/ysdef.h>
 #include <YSLib/Core/ydevice.h>
 #include <YSLib/Shell/ydesktop.h>
-#include <YSLib/Shell/yform.h>
+#include <YSLib/Shell/form.h>
 #include <YSLib/Shell/ygui.h>
 #include <YSLib/Adaptor/ysinit.h>
 #include <YSLib/Service/ytmgr.h>

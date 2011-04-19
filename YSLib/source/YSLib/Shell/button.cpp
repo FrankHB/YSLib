@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件实现。
-\version 0.3477;
+\version 0.3480;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-04-13 08:33 +0800;
+	2011-04-16 21:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,11 +70,11 @@ YThumb::YThumb(const Rect& r)
 }
 
 void
-YThumb::Draw()
+YThumb::Paint()
 {
 	YWidgetAssert(this, Controls::YThumb, Draw);
 
-	ParentType::Draw();
+	ParentType::Paint();
 
 	IWindow* pWnd(FetchDirectWindowPtr(*this));
 
@@ -115,11 +115,11 @@ YButton::YButton(const Rect& r, const Drawing::Font& f)
 {}
 
 void
-YButton::Draw()
+YButton::Paint()
 {
 	YWidgetAssert(this, Controls::YButton, Draw);
 
-	ParentType::Draw();
+	ParentType::Paint();
 	PaintText(*this, FetchContext(*this), LocateForWindow(*this));
 }
 

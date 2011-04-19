@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件实现。
-\version 0.3549;
+\version 0.3553;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-04-13 11:26 +0800;
+	2011-04-16 21:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -225,7 +225,7 @@ ATrack::SetLargeDelta(ATrack::ValueType ld)
 }
 
 void
-ATrack::Draw()
+ATrack::Paint()
 {
 	if(!IsTransparent())
 	{
@@ -252,8 +252,8 @@ ATrack::Draw()
 
 	YWidgetAssert(this, Controls::ATrack, Draw);
 
-	Control::Draw();
-	Thumb.Draw();
+	Control::Paint();
+	Thumb.Paint();
 }
 
 ATrack::Area
@@ -479,21 +479,21 @@ AScrollBar::GetTopControlPtr(const Point& p)
 }
 
 void
-AScrollBar::Draw()
+AScrollBar::Paint()
 {
 	YAssert(pTrack.get(),
 		"Null widget pointer found @ AScrollBar::Draw;");
 
 	YWidgetAssert(this, Controls::YHorizontalScrollBar, Draw);
 
-	Control::Draw();
+	Control::Paint();
 
 	const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
 	const Point b(LocateForWindow(*this));
 
-	pTrack->Draw();
-	PrevButton.Draw();
-	NextButton.Draw();
+	pTrack->Paint();
+	PrevButton.Paint();
+	NextButton.Paint();
 	WndDrawArrow(g, Rect(LocateForWindow(PrevButton),
 		PrevButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
 			? RDeg180 : RDeg90, ForeColor);
@@ -563,15 +563,15 @@ ScrollableContainer::GetTopControlPtr(const Point& p)
 }
 
 void
-ScrollableContainer::Draw()
+ScrollableContainer::Paint()
 {
 	YWidgetAssert(this, Controls::ScrollableContainer, Draw);
 
-	AUIBoxControl::Draw();
+	AUIBoxControl::Paint();
 	if(HorizontalScrollBar.IsVisible())
-		HorizontalScrollBar.Draw();
+		HorizontalScrollBar.Paint();
 	if(VerticalScrollBar.IsVisible())
-		VerticalScrollBar.Draw();
+		VerticalScrollBar.Paint();
 }
 
 Size

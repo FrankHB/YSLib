@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 实现。
-\version 0.3962;
+\version 0.3975;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-14 16:13 +0800;
+	2011-04-17 22:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -634,6 +634,8 @@ ShlSetting::TFormExtra::TFormExtra()
 	BackColor = ARGB16(1, 31, 15, 15);
 	FetchEvent<TouchDown>(*this) += OnTouchDown_FormExtra;
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
+	FetchEvent<Move>(btnDragTest).Add(*this,
+		&TFormExtra::OnMove_btnDragTest);
 	FetchEvent<TouchUp>(btnDragTest).Add(*this,
 		&TFormExtra::OnTouchUp_btnDragTest);
 	FetchEvent<TouchDown>(btnDragTest).Add(*this,
@@ -646,6 +648,17 @@ ShlSetting::TFormExtra::TFormExtra()
 	btnReturn.BackColor = ARGB16(1, 22, 23, 24);
 	FetchEvent<Click>(btnReturn).Add(*this, &TFormExtra::OnClick_btnReturn);
 	FetchEvent<Click>(btnExit).Add(*this, &TFormExtra::OnClick_btnExit);
+}
+
+
+void
+ShlSetting::TFormExtra::OnMove_btnDragTest(EventArgs& /*e*/)
+{
+	static char sloc[20];
+
+	std::sprintf(sloc, "(%d, %d);", btnDragTest.GetX(), btnDragTest.GetY());
+	btnDragTest.Text = sloc;
+	btnDragTest.Refresh();
 }
 
 void
@@ -662,6 +675,7 @@ ShlSetting::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs& e)
 	HandleCast<ShlSetting>(FetchShellHandle())->ShowString(strCount);
 //	btnDragTest.Refresh();
 }
+
 void
 ShlSetting::TFormExtra::OnClick_btnDragTest(TouchEventArgs& /*e*/)
 {
@@ -970,8 +984,8 @@ ShlSetting::OnActivated(const Message& msg)
 	GetDesktopDown().GetBackgroundImagePtr() = GetImage(6);
 	hWndTest = NewWindow<TFormTest>();
 	hWndExtra = NewWindow<TFormExtra>();
-	GetDesktopDown() += GetPointer(hWndTest);
-	GetDesktopDown() += GetPointer(hWndExtra);
+	GetDesktopDown() += hWndTest;
+	GetDesktopDown() += hWndExtra;
 //	hWndTest->DrawContents();
 //	hWndExtra->DrawContents();
 

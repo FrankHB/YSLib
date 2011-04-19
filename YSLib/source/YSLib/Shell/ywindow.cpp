@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面窗口实现。
-\version 0.3625;
+\version 0.3678;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-04-13 08:24 +0800;
+	2011-04-16 21:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -110,6 +110,13 @@ AWindow::Draw()
 }
 
 void
+AWindow::Paint()
+{
+	Refresh();
+	Update();
+}
+
+void
 AWindow::Refresh()
 {
 	if(bRefresh)
@@ -127,8 +134,7 @@ AWindow::Update()
 	if(bRefresh)
 		bUpdate = false;
 	if(bUpdate)
-		if(GetWindowHandle())
-			UpdateToWindow();
+		UpdateToWindow();
 }
 
 void
@@ -160,8 +166,6 @@ AWindow::UpdateToWindow() const
 AFrame::AFrame(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
 	: AWindow(r, i, hWnd), MUIContainer()
 {}
-AFrame::~AFrame()
-{}
 
 void
 AFrame::operator+=(IWidget* p)
@@ -174,6 +178,15 @@ AFrame::operator+=(IWidget* p)
 }
 void
 AFrame::operator+=(IControl* p)
+{
+	if(p)
+	{
+		MUIContainer::operator+=(p);
+		p->GetContainerPtr() = this;
+	}
+}
+void
+AFrame::operator+=(IWindow* p)
 {
 	if(p)
 	{
@@ -194,6 +207,16 @@ AFrame::operator-=(IWidget* p)
 }
 bool
 AFrame::operator-=(IControl* p)
+{
+	if(p && p->GetContainerPtr() == this)
+	{
+		p->GetContainerPtr() = NULL;
+		return MUIContainer::operator-=(p);
+	}
+	return false;
+}
+bool
+AFrame::operator-=(IWindow* p)
 {
 	if(p && p->GetContainerPtr() == this)
 	{
@@ -243,22 +266,23 @@ YFrame::DrawContents()
 
 	bool result(bRefresh);
 
-	for(WGTs::iterator i(sWgtSet.begin()); !result && i != sWgtSet.end(); ++i)
+	for(WGTs::iterator i(WidgetsList.begin());
+		!result && i != WidgetsList.end(); ++i)
 	{
-		IWidget& w(**i);
+		IWidget* const p(*i);
 
-		result |= w.IsVisible();
+		YAssert(p, "Null widget pointer found @ YFrame::DrawContents");
+
+		result |= p->IsVisible();
 	}
 	if(result)
 	{
-		for(WGTs::iterator i(sWgtSet.begin()); i != sWgtSet.end(); ++i)
+		for(WGTs::iterator i(WidgetsList.begin()); i != WidgetsList.end(); ++i)
 		{
-			IWidget* const p(*i);
+			IWidget& w(**i);
 
-			YAssert(p, "Null widget pointer found @ YFrame::DrawContents");
-
-			if(p->IsVisible())
-				p->Draw();
+			if(w.IsVisible())
+				w.Paint();
 		}
 	}
 	return result;

@@ -8,23 +8,23 @@
 	understand and accept it fully.
 */
 
-/*!	\file yform.cpp
+/*!	\file form.cpp
 \ingroup Shell
-\brief 平台无关的 GUI 窗体实现。
-\version 0.1502;
+\brief 平台无关的图形用户界面窗体实现。
+\version 0.1505;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-04-13 08:03 +0800;
+	2011-04-15 21:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YForm;
+	YSLib::Shell::Form;
 */
 
 
-#include "yform.h"
+#include "form.h"
 
 YSL_BEGIN
 
@@ -59,16 +59,16 @@ YForm::SetBounds(const Rect& r)
 }
 
 void
-YForm::Draw()
+YForm::Paint()
 {
-	YFrame::Draw();
-//	Client.Draw();
+	YFrame::Paint();
+//	Client.Paint();
 
 }
 void
-YForm::Draw()
+YForm::Paint()
 {
-	YFrame::Draw();
+	YFrame::Paint();
 }
 */
 YSL_END_NAMESPACE(Forms)

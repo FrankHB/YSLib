@@ -8,19 +8,19 @@
 	understand and accept it fully.
 */
 
-/*!	\file yform.h
+/*!	\file form.h
 \ingroup Shell
-\brief 平台无关的 GUI 窗体实现。
-\version 0.1491;
+\brief 平台无关的图形用户界面窗体实现。
+\version 0.1493;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-04-13 20:19 +0800;
+	2011-04-16 21:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YForm;
+	YSLib::Shell::Form;
 */
 
 
@@ -65,10 +65,10 @@ public:
 	SetBounds(const Rect&);
 
 	virtual void
-	Draw();
+	Paint();
 
 	virtual void
-	Draw();
+	Paint();
 */
 };
 

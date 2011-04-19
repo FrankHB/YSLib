@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面容器实现。
-\version 0.2104;
+\version 0.2174;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-04-13 20:19 +0800;
+	2011-04-16 21:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -84,7 +84,7 @@ FetchDirectDesktopPtr(IWidget& w)
 const Graphics&
 FetchContext(IWidget& w)
 {
-	IWindow* pWnd(FetchDirectWindowPtr(w));
+	IWindow* const pWnd(FetchDirectWindowPtr(w));
 
 	if(!pWnd)
 		throw GeneralEvent("Null direct window pointer found @ FetchContext");
@@ -256,21 +256,21 @@ Fill(IWidget& w, Color c)
 
 MUIContainer::MUIContainer()
 	: GMFocusResponser<IControl>(),
-	sWgtSet(), sFOCSet()
+	WidgetsList(), sFOCSet()
 {}
 
 void
 MUIContainer::operator+=(IWidget* p)
 {
-	if(p)
-		sWgtSet.insert(p);
+	if(CheckWidget(p))
+		WidgetsList.push_back(p);
 }
 void
 MUIContainer::operator+=(IControl* p)
 {
-	if(p)
+	if(CheckWidget(p))
 	{
-		sWgtSet.insert(p);
+		WidgetsList.push_back(p);
 		GMFocusResponser<IControl>::operator+=(*p);
 	}
 }
@@ -284,13 +284,13 @@ MUIContainer::operator+=(GMFocusResponser<IControl>* p)
 bool
 MUIContainer::operator-=(IWidget* p)
 {
-	return sWgtSet.erase(p) != 0;
+	return RemoveWidget(p);
 }
 bool
 MUIContainer::operator-=(IControl* p)
 {
 	return p ? GMFocusResponser<IControl>::operator-=(*p)
-		&& sWgtSet.erase(p) != 0 : false;
+		&& RemoveWidget(p) : false;
 }
 bool
 MUIContainer::operator-=(GMFocusResponser<IControl>* p)
@@ -306,7 +306,8 @@ MUIContainer::GetFocusingPtr() const
 IWidget*
 MUIContainer::GetTopWidgetPtr(const Point& pt)
 {
-	for(WGTs::const_iterator i(sWgtSet.begin()); i != sWgtSet.end(); ++i)
+	for(WGTs::const_iterator i(WidgetsList.begin()); i != WidgetsList.end();
+		++i)
 		if((*i)->IsVisible() && Contains(**i, pt))
 			return *i;
 	return NULL;
@@ -330,6 +331,31 @@ bool
 MUIContainer::ResponseFocusRelease(AFocusRequester& w)
 {
 	return w.ReleaseFocus<GMFocusResponser, IControl>(*this);
+}
+
+bool
+MUIContainer::CheckWidget(IWidget* p)
+{
+	return p ? std::find(WidgetsList.begin(), WidgetsList.end(), p)
+		== WidgetsList.end() : false;
+}
+
+bool
+MUIContainer::RemoveWidget(IWidget* p)
+{
+	//WidgetsList.erase(std::remove(WidgetsList.begin(),
+	//	WidgetsList.end(), p), WidgetsList.end());
+	const WGTs::size_type s(WidgetsList.size());
+
+	WidgetsList.erase(std::remove(WidgetsList.begin(), WidgetsList.end(), p),
+		WidgetsList.end());
+
+	const std::ptrdiff_t t(s - WidgetsList.size());
+
+	YAssert(t <= 1, "Duplicate desktop object pointer found"
+		" @ bool MUIContainer::operator-=(IWidget*);");
+
+	return t != 0;
 }
 
 

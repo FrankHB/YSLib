@@ -175,9 +175,6 @@
     <ClInclude Include="include\YSLib\Shell\yfocus.h">
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\yform.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Shell\ygdi.h">
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
@@ -199,12 +196,6 @@
     <ClInclude Include="include\YSLib\Shell\yuicont.h">
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\ylabel.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\yuicontx.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Shell\ystyle.h">
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
@@ -224,6 +215,15 @@
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Shell\ypanel.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\label.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\uicontx.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\form.h">
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
   </ItemGroup>
@@ -297,9 +297,6 @@
     <ClCompile Include="source\YSLib\Shell\yfocus.cpp">
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\yform.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
     <ClCompile Include="source\YSLib\Shell\ygdi.cpp">
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
@@ -315,13 +312,7 @@
     <ClCompile Include="source\YSLib\Shell\ywindow.cpp">
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\ylabel.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
     <ClCompile Include="source\YSLib\Shell\yuicont.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\yuicontx.cpp">
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Shell\scroll.cpp">
@@ -340,6 +331,15 @@
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Shell\ypanel.cpp">
+      <Filter>源文件\YSLib\Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Shell\label.cpp">
+      <Filter>源文件\YSLib\Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Shell\uicontx.cpp">
+      <Filter>源文件\YSLib\Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Shell\form.cpp">
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
   </ItemGroup>
