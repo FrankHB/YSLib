@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2065;
+\version 0.2141;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-04-13 11:22 +0800;
+	2011-04-21 07:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,8 +29,8 @@
 */
 
 
-#ifndef INCLUDED_YGLOBAL_H_
-#define INCLUDED_YGLOBAL_H_
+#ifndef YSL_INC_HELPER_YGLOBAL_H_
+#define YSL_INC_HELPER_YGLOBAL_H_
 
 #include "../Core/ysdef.h"
 #include "../Core/ysmsg.h"
@@ -59,7 +59,7 @@ YSL_BEGIN
 */
 class Global : public NonCopyable
 {
-	friend class YApplication;
+	friend Global& GetGlobal() ythrow();
 
 public:
 	//! \brief 屏幕大小。
@@ -143,6 +143,30 @@ public:
 	void
 	ReleaseDevices() ythrow();
 };
+
+
+/*!
+\brief 取平台相关的全局资源。
+\note 无异常抛出。
+*/
+Global&
+GetGlobal() ythrow();
+
+/*!
+\brief 取应用程序实例。
+\note 保证在平台相关的全局资源初始化之后初始化此实例。
+*/
+YApplication&
+GetApp();
+
+/*!
+\brief 取主 Shell 句柄。
+\note 需要保证主 Shell 句柄在应用程序实例初始化之后初始化，
+	因为 YMainShell 的基类 YShell 的构造函数
+	调用了 YApplication 的非静态成员函数。
+*/
+const GHandle<YShell>&
+GetMainShellHandle();
 
 
 YSL_BEGIN_NAMESPACE(Messaging)

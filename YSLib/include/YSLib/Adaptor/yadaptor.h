@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2076;
+\version 0.2112;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2011-04-09 21:10 +0800;
+	2011-04-22 22:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,8 +29,8 @@
 */
 
 
-#ifndef INCLUDED_YADAPTOR_H_
-#define INCLUDED_YADAPTOR_H_
+#ifndef YSL_INC_ADAPTOR_YADAPTOR_H_
+#define YSL_INC_ADAPTOR_YADAPTOR_H_
 
 //引入平台设置和存储调试设施。
 #include "ynew.h"
@@ -183,29 +183,6 @@ YSL_END_NAMESPACE(Design)
 
 	//使用 Loki 小对象。
 	using Loki::SmallObject;
-
-	//使用 Loki 策略、智能指针、强指针。
-	using Loki::RefToValue;
-YSL_BEGIN_NAMESPACE(Policies)
-	using Loki::PropagateConst;
-	using Loki::DontPropagateConst;
-	using Loki::RefCounted;
-	using Loki::AllowConversion;
-	using Loki::DisallowConversion;
-	using Loki::RejectNull;
-	using Loki::AssertCheck;
-	using Loki::DefaultSPStorage;
-	using Loki::HeapStorage;
-	using Loki::TwoRefCounts;
-	using Loki::CantResetWithStrong;
-	using Loki::AllowReset;
-	using Loki::NeverReset;
-	using Loki::DeleteSingle;
-	using Loki::DeleteNothing;
-	using Loki::DeleteArray;
-YSL_END_NAMESPACE(Policies)
-	using Loki::SmartPtr;
-	using Loki::StrongPtr;
 
 YSL_END
 

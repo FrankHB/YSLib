@@ -10,22 +10,22 @@
 
 /*!	\file ystyle.h
 \ingroup Shell
-\brief 图形用户界面样式实现。
-\version 0.1148;
+\brief 图形用户界面样式。
+\version 0.1150;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-08 13:21:10 +0800;
 \par 修改时间:
-	2011-03-23 21:02 +0800;
+	2011-04-20 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YGUIComponent;
+	YSLib::Shell::YStyle;
 */
 
 
-#ifndef INCLUDED_YGUICOMP_H_
-#define INCLUDED_YGUICOMP_H_
+#ifndef YSL_INC_SHELL_YSTYLE_H_
+#define YSL_INC_SHELL_YSTYLE_H_
 
 #include "ycomp.h"
 

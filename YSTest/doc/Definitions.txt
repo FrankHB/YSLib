@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010 - 2011
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 +0800;
-// UTime = 2011-04-13 20:18 +0800;
-// Version = r10737;
+// UTime = 2011-04-22 22:03 +0800;
+// Version = r10761;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -347,8 +347,6 @@ $unit Helper::YGlobal
 {
 	extern void
 	ReleaseShells();
-	extern int
-	::YMain(int, char*[]);
 } //$unit Helper::YGlobal;
 
 
@@ -420,12 +418,6 @@ namespace IO
 {
 	$unit Core::YFile;
 } //namespace IO;
-
-namespace Policies
-{
-	$header Adaptor::YAdaptor;
-	$header Adaptor::Reference;
-} //namespace Policies;
 
 namespace Runtime
 {
@@ -593,29 +585,6 @@ YSL_END_NAMESPACE(Design)
 
 	//使用 Loki 小对象。
 	using Loki::SmallObject;
-
-	//使用 Loki 策略、智能指针、强指针。
-	using Loki::RefToValue;
-YSL_BEGIN_NAMESPACE(Policies)
-	using Loki::PropagateConst;
-	using Loki::DontPropagateConst;
-	using Loki::RefCounted;
-	using Loki::AllowConversion;
-	using Loki::DisallowConversion;
-	using Loki::RejectNull;
-	using Loki::AssertCheck;
-	using Loki::DefaultSPStorage;
-	using Loki::HeapStorage;
-	using Loki::TwoRefCounts;
-	using Loki::CantResetWithStrong;
-	using Loki::AllowReset;
-	using Loki::NeverReset;
-	using Loki::DeleteNothing;
-	using Loki::DeleteArray;
-	using Loki::DeleteSingle;
-YSL_END_NAMESPACE(Policies)
-	using Loki::SmartPtr;
-	using Loki::StrongPtr;
 
 } //$header Adaptor::YAdaptor;
 

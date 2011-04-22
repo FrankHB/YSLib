@@ -10,13 +10,13 @@
 
 /*!	\file ypanel.h
 \ingroup Shell
-\brief 平台无关的图形用户界面面板实现。
-\version 0.1145;
+\brief 样式无关的图形用户界面面板。
+\version 0.1147;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:40:51 +0800;
 \par 修改时间:
-	2011-04-16 20:50 +0800;
+	2011-04-20 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YPANEL_H_
-#define INCLUDED_YPANEL_H_
+#ifndef YSL_INC_SHELL_YPANEL_H_
+#define YSL_INC_SHELL_YPANEL_H_
 
 #include "ycontrol.h"
 #include "yuicont.h"

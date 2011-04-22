@@ -10,13 +10,13 @@
 
 /*!	\file Shells.cpp
 \ingroup YReader
-\brief Shell 实现。
-\version 0.3975;
+\brief Shell 抽象。
+\version 0.3996;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-17 22:25 +0800;
+	2011-04-22 22:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -119,10 +119,10 @@ namespace
 	char strtf[0x400];
 	char strttxt[0x400];
 
-	GHStrong<YImage>&
+	GHandle<YImage>&
 	GetGlobalImageRef(std::size_t i)
 	{
-		static GHStrong<YImage> spi[10];
+		static GHandle<YImage> spi[10];
 
 		YAssert(IsInInterval(i, 10u), "Array index out of range"
 			" @ GetGlobalImageRef;");
@@ -243,7 +243,7 @@ namespace
 	}
 }
 
-GHStrong<YImage>&
+GHandle<YImage>&
 GetImage(int i)
 {
 	switch(i)
@@ -275,7 +275,7 @@ void
 ReleaseShells()
 {
 	for(std::size_t i(0); i != 10; ++i)
-		YReset(GetGlobalImageRef(i));
+		ResetHandle(GetGlobalImageRef(i));
 	ReleaseStored<ShlReader>();
 	ReleaseStored<ShlSetting>();
 	ReleaseStored<ShlExplorer>();
@@ -543,7 +543,7 @@ ShlExplorer::OnConfirmed_fbMain(IControl& /*sender*/, IndexEventArgs& /*e*/)
 
 
 ShlSetting::ShlSetting()
-	: hWndTest(NULL), hWndExtra(NULL),
+	: hWndTest(), hWndExtra(),
 	lblA(Rect(5, 20, 200, 22)),
 	lblB(Rect(5, 80, 72, 22))
 {
@@ -554,7 +554,7 @@ ShlSetting::ShlSetting()
 
 ShlSetting::TFormTest::TFormTest()
 	: YForm(Rect(10, 40, 228, 70), NULL,
-		HWND(theApp.GetPlatformResource().GetDesktopDownHandle())),
+		HWND(GetGlobal().GetDesktopDownHandle())),
 	btnEnterTest(Rect(2, 5, 224, 22)), /*GetImage(6)*/
 	btnShowWindow(Rect(45, 35, 124, 22))
 {
@@ -615,7 +615,7 @@ ShlSetting::TFormTest::OnClick_btnShowWindow(TouchEventArgs& /*e*/)
 
 ShlSetting::TFormExtra::TFormExtra()
 	: YForm(Rect(5, 60, 208, 120), NULL, /*GetImage(7)*/
-		HWND(theApp.GetPlatformResource().GetDesktopDownHandle())),
+		HWND(GetGlobal().GetDesktopDownHandle())),
 	btnDragTest(Rect(13, 15, 184, 22)),
 	btnTestEx(Rect(13, 52, 168, 22)),
 	btnReturn(Rect(13, 82, 60, 22)),
@@ -679,7 +679,7 @@ ShlSetting::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs& e)
 void
 ShlSetting::TFormExtra::OnClick_btnDragTest(TouchEventArgs& /*e*/)
 {
-	static YFontCache& fc(theApp.GetFontCache());
+	static YFontCache& fc(GetApp().GetFontCache());
 	static const int ffilen(fc.GetFilesN());
 	static const int ftypen(fc.GetTypesN());
 	static const int ffacen(fc.GetFacesN());
@@ -812,7 +812,7 @@ ShlSetting::TFormExtra::OnClick_btnTestEx(TouchEventArgs& e)
 	*/
 		String str(_ustr("Abc测试"));
 
-		TestObj t(theApp.GetPlatformResource().GetDesktopDownHandle());
+		TestObj t(GetGlobal().GetDesktopDownHandle());
 	//	const Graphics& g(t.h->GetContext());
 
 		TextRegion tr;
@@ -1000,8 +1000,8 @@ ShlSetting::OnDeactivated(const Message& msg)
 	GetDesktopUp().GetBackgroundImagePtr() = NULL;
 	GetDesktopDown().GetBackgroundImagePtr() = NULL;
 	ParentType::OnDeactivated(msg);
-	YReset(hWndTest);
-	YReset(hWndExtra);
+	ResetHandle(hWndTest);
+	ResetHandle(hWndExtra);
 	return 0;
 }
 
@@ -1036,7 +1036,7 @@ string ShlReader::path;
 
 ShlReader::ShlReader()
 	: ShlDS(),
-	Reader(), pTextFile(NULL), hUp(NULL), hDn(NULL), bgDirty(false)
+	Reader(), pTextFile(), hUp(), hDn(), bgDirty(false)
 {}
 
 int

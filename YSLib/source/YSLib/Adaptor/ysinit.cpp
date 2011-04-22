@@ -11,12 +11,12 @@
 /*!	\file ysinit.cpp
 \ingroup Service
 \brief 程序启动时的通用初始化。
-\version 0.1782;
+\version 0.1785;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2011-03-31 07:28 +0800;
+	2011-04-21 06:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,7 @@
 #include "ysinit.h"
 #include "yfont.h"
 #include "../Core/yapp.h"
+#include "../Helper/yglobal.h"
 
 using namespace ystdex;
 using namespace platform;
@@ -149,9 +150,9 @@ void
 InitializeSystemFontCache()
 {
 	puts("Loading font files...");
-	theApp.ResetFontCache(DEF_FONT_PATH);
+	GetApp().ResetFontCache(DEF_FONT_PATH);
 
-	YFontCache& fc(theApp.GetFontCache());
+	YFontCache& fc(GetApp().GetFontCache());
 
 	if(DEF_FONT_PATH)
 	{
@@ -201,7 +202,7 @@ CheckSystemFontCache()
 {
 	try
 	{
-		if(theApp.GetFontCache().GetTypesN() > 0)
+		if(GetApp().GetFontCache().GetTypesN() > 0)
 			return;
 	}
 	catch(...)

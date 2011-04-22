@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1745;
+\version 0.1752;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-04-13 11:27 +0800;
+	2011-04-21 07:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -60,9 +60,9 @@ YSL_BEGIN_NAMESPACE(DS)
 
 ShlDS::ShlDS(GHandle<YDesktop> h_dsk_up, GHandle<YDesktop> h_dsk_down)
 	: YGUIShell(),
-	hDskUp(h_dsk_up ? h_dsk_up : new YDesktop(theApp.GetPlatformResource()
+	hDskUp(h_dsk_up ? h_dsk_up : new YDesktop(GetGlobal()
 		.GetScreenUp())),
-	hDskDown(h_dsk_down ? h_dsk_down : new YDesktop(theApp.GetPlatformResource()
+	hDskDown(h_dsk_down ? h_dsk_down : new YDesktop(GetGlobal()
 		.GetScreenDown()))
 {}
 
@@ -135,7 +135,7 @@ ResponseInput(const Message& msg)
 
 	Runtime::KeysInfo& k(pContext->Key);
 	GHandle<YGUIShell> hShl(FetchGUIShellHandle());
-	YDesktop& d(theApp.GetPlatformResource().GetTouchableDesktop());
+	YDesktop& d(GetGlobal().GetTouchableDesktop());
 
 	using namespace Runtime::KeySpace;
 	using namespace Components::Controls;

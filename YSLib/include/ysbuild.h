@@ -20,7 +20,7 @@
 \par 创建时间:
 	2009-11-12 21:53:55 +0800;
 \par 修改时间:
-	2011-04-15 09:38 +0800;
+	2011-04-20 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,8 +28,8 @@
 */
 
 
-#ifndef INCLUDED_YSBUILD_H_
-#define INCLUDED_YSBUILD_H_
+#ifndef YSL_INC_YSBUILD_H_
+#define YSL_INC_YSBUILD_H_
 
 #include <YSLib/Core/ysdef.h>
 #include <YSLib/Core/ydevice.h>

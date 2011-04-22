@@ -11,12 +11,12 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief 库编译配置。
-\version 0.1562;
+\version 0.1564;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2011-04-07 10:34 +0800;
+	2011-04-20 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_CONFIG_H_
-#define INCLUDED_CONFIG_H_
+#ifndef YSL_INC_ADAPTOR_CONFIG_H_
+#define YSL_INC_ADAPTOR_CONFIG_H_
 
 //#define NDEBUG //!< 非调试模式。
 

@@ -10,13 +10,13 @@
 
 /*!	\file checkbox.h
 \ingroup Shell
-\brief 样式相关的图形用户界面复选框控件实现。
-\version 0.1150;
+\brief 样式相关的图形用户界面复选框控件。
+\version 0.1152;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-22 07:17:17 +0800;
 \par 修改时间:
-	2011-04-16 21:07 +0800;
+	2011-04-20 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_CHECKBOX_H_
-#define INCLUDED_CHECKBOX_H_
+#ifndef YSL_INC_SHELL_CHECKBOX_H_
+#define YSL_INC_SHELL_CHECKBOX_H_
 
 #include "ycontrol.h"
 #include "button.h"

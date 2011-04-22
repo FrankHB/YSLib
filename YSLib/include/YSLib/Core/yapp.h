@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2155;
+\version 0.2181;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-04-13 11:25 +0800;
+	2011-04-21 07:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YAPP_H_
-#define INCLUDED_YAPP_H_
+#ifndef YSL_INC_CORE_YAPP_H_
+#define YSL_INC_CORE_YAPP_H_
 
 #include "yobject.h"
 #include "yfilesys.h"
@@ -35,9 +35,6 @@
 #include "yexcept.h"
 
 YSL_BEGIN
-
-class Global; //!< 平台资源类前向声明。
-
 
 //! \brief 程序日志类。
 class YLog : public YObject
@@ -114,12 +111,6 @@ public:
 	YLog Log; //!< 默认程序日志。
 
 private:
-	Global* pResource; //!< 平台相关的全局资源。
-
-public:
-	static const GHandle<YShell> DefaultShellHandle; //!< 主 Shell 句柄。
-
-private:
 	YMessageQueue* pMessageQueue; //!< 主消息队列：在程序实例中实现以保证单线程。
 	YMessageQueue* pMessageQueueBackup; \
 		//!< 备份消息队列：在程序实例中实现以保证单线程。
@@ -154,13 +145,6 @@ public:
 	*/
 	static YApplication&
 	GetInstance() ythrow();
-	/*!
-	\brief 取平台相关的全局资源实例。
-	\note 断言检查：指针非空。
-	\note 无异常抛出。
-	*/
-	Global&
-	GetPlatformResource() ythrow();
 	DefGetter(GHandle<YShell>, ShellHandle, hShell) \
 		//!< 取得线程空间中当前运行的 Shell 的句柄。
 	/*!

@@ -10,13 +10,13 @@
 
 /*!	\file ycontrol.h
 \ingroup Shell
-\brief 平台无关的控件实现。
-\version 0.4938;
+\brief 样式无关的控件。
+\version 0.4941;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-04-16 20:46 +0800;
+	2011-04-20 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YCONTROL_H_
-#define INCLUDED_YCONTROL_H_
+#ifndef YSL_INC_SHELL_YCONTROL_H_
+#define YSL_INC_SHELL_YCONTROL_H_
 
 #include "ywidget.h"
 #include "../Core/yevt.hpp"

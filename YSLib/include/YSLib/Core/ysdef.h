@@ -16,12 +16,12 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version 0.2491;
+\version 0.2497;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-24 15:29:11 +0800;
 \par 修改时间:
-	2011-04-13 11:24 +0800;
+	2011-04-21 06:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,8 +29,8 @@
 */
 
 
-#ifndef INCLUDED_YSDEF_H_
-#define INCLUDED_YSDEF_H_
+#ifndef YSL_INC_CORE_YSDEF_H_
+#define YSL_INC_CORE_YSDEF_H_
 
 //适配器模块。
 #include "../Adaptor/yadaptor.h"
@@ -126,8 +126,6 @@ using Text::String;
 访问全局程序实例对象。
 */
 //@{
-//! \brief 全局应用程序对象。
-extern YApplication& theApp;
 //@}
 
 YSL_END

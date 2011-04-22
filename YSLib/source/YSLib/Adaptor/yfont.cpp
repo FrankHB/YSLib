@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7204;
+\version 0.7208;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-04-08 11:10 +0800;
+	2011-04-22 17:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "../Core/yapp.h"
 #include "../Core/yexcept.h"
 #include "../Core/yfilesys.h"
+#include "../Helper/yglobal.h"
 //#include FT_OUTLINE_H
 //#include FT_SYNTHESIS_H
 
@@ -220,7 +221,7 @@ const Typeface&
 FetchDefaultTypeface() ythrow(LoggedEvent)
 {
 	const Typeface* const pDefaultTypeface(
-		theApp.GetFontCache().GetDefaultTypefacePtr());
+		GetApp().GetFontCache().GetDefaultTypefacePtr());
 
 	if(!pDefaultTypeface)
 		throw LoggedEvent("The default font face pointer is null"
@@ -354,7 +355,7 @@ YFontCache::GetDefaultTypefacePtr() const ythrow(LoggedEvent)
 {
 	//默认字体缓存的默认字型指针由初始化保证为非空指针。
 	return pDefaultFace ? pDefaultFace
-		: theApp.GetFontCache().GetDefaultTypefacePtr();
+		: GetApp().GetFontCache().GetDefaultTypefacePtr();
 }
 const Typeface*
 YFontCache::GetTypefacePtr(const FontFamily::NameType& family_name,
@@ -599,7 +600,7 @@ YFontCache::LoadFontFile(CPATH path)
 	{
 		if(GetFileNameFrom(path) && fexists(path))
 		{
-			std::auto_ptr<const FontFile> p(ynew FontFile(path));
+			auto_ptr<const FontFile> p(ynew FontFile(path));
 
 			p->ReloadFaces(library);
 			if(sFiles.find(p.get()) != sFiles.end())

@@ -8,23 +8,23 @@
 	understand and accept it fully.
 */
 
-/*!	\file label.cpp
+/*!	\file ylabel.cpp
 \ingroup Shell
-\brief 样式无关的标签模块实现。
-\version 0.1909;
+\brief 样式无关的标签模块。
+\version 0.2012;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-04-16 21:04 +0800;
+	2011-04-22 09:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::Label;
+	YSLib::Shell::YLabel;
 */
 
 
-#include "label.h"
+#include "ylabel.h"
 #include "yuicont.h"
 #include "ywindow.h"
 
@@ -87,9 +87,43 @@ YLabel::Paint()
 }
 
 
-MTextList::MTextList(const Drawing::Font& f)
-	: MLabel(f)
+MTextList::MTextList(GHWeak<ListType> wp, const Drawing::Font& f)
+	: MLabel(f),
+	wpList(wp), text_state(Font)
 {}
+
+MTextList::ListType&
+MTextList::GetList() const
+{
+	if(!wpList)
+		wpList = new ListType();
+	return *wpList;
+}
+MTextList::ItemType*
+MTextList::GetItemPtr(MTextList::IndexType i) const
+{
+	ListType& list(GetList());
+
+	return IsInInterval<IndexType>(i, list.size())
+		? &list[i] : NULL;
+}
+SDst
+MTextList::GetItemHeight() const
+{
+	return GetLnHeightExFrom(text_state);
+}
+Drawing::TextState&
+MTextList::GetTextState()
+{
+	return text_state;
+}
+
+void
+MTextList::RefreshTextState()
+{
+	text_state.LineGap = GetVerticalFrom(Margin);
+	text_state.Font.SetFont(Font);
+}
 
 /*void
 MTextList::PaintTextList(Widget& w, const Point& pt)

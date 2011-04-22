@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2091;
+\version 0.2100;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-04-13 11:22 +0800;
+	2011-04-22 21:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YSHELPER_H_
-#define INCLUDED_YSHELPER_H_
+#ifndef YSL_INC_HELPER_YSHELPER_H_
+#define YSL_INC_HELPER_YSHELPER_H_
 
 #include "../../ysbuild.h"
 
@@ -126,7 +126,7 @@ ReleaseStored()
 inline bool
 IsNowShell(GHandle<YShell> hShl)
 {
-	return theApp.GetShellHandle() == hShl;
+	return GetApp().GetShellHandle() == hShl;
 }
 
 /*!
@@ -230,7 +230,7 @@ ScrDraw(BitmapPtr buf, PPDRAW f)
 /*!
 \brief 新建屏幕图像。
 */
-inline GHStrong<YImage>
+inline GHandle<YImage>
 NewScrImage(ConstBitmapPtr p)
 {
 	return new YImage(p, Global::MainScreenWidth,
@@ -240,7 +240,7 @@ NewScrImage(ConstBitmapPtr p)
 /*!
 \brief 新建屏幕图像并指定绘图函数填充。
 */
-GHStrong<YImage>
+GHandle<YImage>
 NewScrImage(PPDRAW f, BitmapPtr gbuf = NULL);
 
 /*!

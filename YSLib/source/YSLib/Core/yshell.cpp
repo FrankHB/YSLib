@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.3188;
+\version 0.3197;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-04-13 11:27 +0800;
+	2011-04-22 19:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,16 +45,16 @@ YShell::YShell()
 {}
 YShell::~YShell()
 {
-	if(theApp.DefaultShellHandle == this)
-		theApp.Log.FatalError("Default shell destructed.");
-	if(theApp.GetShellHandle() == this)
-		theApp.ResetShellHandle();
+	if(GetMainShellHandle() == this)
+		GetApp().Log.FatalError("Default shell destructed.");
+	if(GetApp().GetShellHandle() == this)
+		GetApp().ResetShellHandle();
 }
 
 bool
 YShell::IsActive() const
 {
-	return theApp.GetShellHandle() == this;
+	return GetApp().GetShellHandle() == this;
 }
 
 int
@@ -76,18 +76,17 @@ YShell::DefShlProc(const Message& msg)
 				{
 
 				case SM_SET:
-					return -!theApp.SetShellHandle(h);
+					return -!GetApp().SetShellHandle(h);
 
 				case SM_DROP:
 					{
-						if(h == YApplication::DefaultShellHandle)
+						if(h == GetMainShellHandle())
 							return 1;
 						else if(h->IsActive())
-							theApp.SetShellHandle(YApplication
-								::DefaultShellHandle);
+							GetApp().SetShellHandle(GetMainShellHandle());
 						if(h->IsActive())
 							return -1;
-						YReset(h);
+						ResetHandle(h);
 					}
 				default:
 					break;
@@ -139,13 +138,13 @@ YMainShell::ShlProc(const Message& msg)
 GHandle<YShell>
 GetCurrentShellHandle() ythrow()
 {
-	return theApp.GetShellHandle();
+	return GetApp().GetShellHandle();
 }
 
 bool
 Activate(GHandle<YShell> h)
 {
-	return theApp.SetShellHandle(h);
+	return GetApp().SetShellHandle(h);
 }
 
 
@@ -153,7 +152,7 @@ void
 PostQuitMessage(int nExitCode, Priority p)
 {
 	SendMessage(NULL, SM_SET, p,
-		new GHandleContext<GHandle<YShell> >(theApp.DefaultShellHandle));
+		new GHandleContext<GHandle<YShell> >(GetMainShellHandle()));
 	SendMessage(NULL, SM_QUIT, p,
 		new GObjectContext<int>(nExitCode));
 }
@@ -188,29 +187,29 @@ PeekMessage
 	list<Message> mqt;
 	int r(-1);
 
-	while(!theApp.GetDefaultMessageQueue().IsEmpty())
+	while(!GetApp().GetDefaultMessageQueue().IsEmpty())
 	{
-		Message m(theApp.GetDefaultMessageQueue().GetMessage());
+		Message m(GetApp().GetDefaultMessageQueue().GetMessage());
 
 		if(!hShl || !m.GetShellHandle() || hShl == m.GetShellHandle())
 		{
 			msg = m;
 			if(!bRemoveMsg)
-				theApp.GetDefaultMessageQueue().Insert(m);
+				GetApp().GetDefaultMessageQueue().Insert(m);
 			r = m.GetMessageID();
 			break;
 		}
 		else if(!bRemoveMsg)
 			mqt.push_back(m);
 	}
-	Merge(theApp.GetDefaultMessageQueue(), mqt);
+	Merge(GetApp().GetDefaultMessageQueue(), mqt);
 	return r;
 }
 
 int
 GetMessage(Message& msg, GHandle<YShell> hShl)
 {
-	if(theApp.GetDefaultMessageQueue().IsEmpty())
+	if(GetApp().GetDefaultMessageQueue().IsEmpty())
 		Idle();
 	return PeekMessage(msg, hShl, true);
 }
@@ -225,19 +224,19 @@ TranslateMessage(const Message& /*msg*/)
 int
 DispatchMessage(const Message& msg)
 {
-	return theApp.GetShellHandle()->ShlProc(msg);
+	return GetApp().GetShellHandle()->ShlProc(msg);
 }
 
 errno_t
 BackupMessageQueue(const Message& msg)
 {
-	return -!theApp.GetBackupMessageQueue().Insert(msg);
+	return -!GetApp().GetBackupMessageQueue().Insert(msg);
 }
 
 void
 RecoverMessageQueue()
 {
-	Merge(theApp.GetDefaultMessageQueue(), theApp.GetBackupMessageQueue());
+	Merge(GetApp().GetDefaultMessageQueue(), GetApp().GetBackupMessageQueue());
 }
 
 YSL_END_NAMESPACE(Shells)

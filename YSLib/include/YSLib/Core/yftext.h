@@ -11,12 +11,12 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version 0.1588;
+\version 0.1590;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-04-03 19:18 +0800;
+	2011-04-20 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YFTEXT_H_
-#define INCLUDED_YFTEXT_H_
+#ifndef YSL_INC_CORE_YFTEXT_H_
+#define YSL_INC_CORE_YFTEXT_H_
 
 #include "yfile.h"
 

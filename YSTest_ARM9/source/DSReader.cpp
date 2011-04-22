@@ -10,13 +10,13 @@
 
 /*!	\file DSReader.cpp
 \ingroup YReader
-\brief 适用于 NDS 的双屏阅读器实现。
-\version 0.3105;
+\brief 适用于 DS 的双屏阅读器。
+\version 0.3106;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 +0800; 
 \par 修改时间:
-	2011-04-13 11:30 +0800;
+	2011-04-20 10:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

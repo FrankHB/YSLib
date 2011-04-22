@@ -10,13 +10,13 @@
 
 /*!	\file yfocus.h
 \ingroup Shell
-\brief GUI 焦点特性实现。
-\version 0.2334;
+\brief 图形用户界面焦点特性。
+\version 0.2336;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-04-05 21:47 +0800;
+	2011-04-20 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YMODULE_H_
-#define INCLUDED_YMODULE_H_
+#ifndef YSL_INC_SHELL_YFOCUS_H_
+#define YSL_INC_SHELL_YFOCUS_H_
 
 #include "ycomp.h"
 #include "../Core/ystatic.hpp"

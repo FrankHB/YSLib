@@ -11,12 +11,12 @@
 /*!	\file ydef.h
 \ingroup YCLib
 \brief 系统环境和公用类型和宏的基础定义。
-\version 0.2445;
+\version 0.2447;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2011-03-06 08:44 +0800;
+	2011-04-20 10:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YDEF_H_
-#define INCLUDED_YDEF_H_
+#ifndef YCL_INC_YDEF_H_
+#define YCL_INC_YDEF_H_
 
 #ifndef NDEBUG
 #	define YCL_USE_YASSERT

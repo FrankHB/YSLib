@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1923;
+\version 0.1931;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-04-13 11:23 +0800;
+	2011-04-21 07:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef INCLUDED_SHLDS_H_
-#define INCLUDED_SHLDS_H_
+#ifndef YSL_INC_HELPER_SHLDS_H_
+#define YSL_INC_HELPER_SHLDS_H_
 
 #include "yshelper.h"
 
@@ -94,9 +94,8 @@ public:
 	/*!
 	\brief 无参数构造。
 	*/
-	ShlDS(GHandle<YDesktop>
-		= theApp.GetPlatformResource().GetDesktopUpHandle(), GHandle<YDesktop>
-		= theApp.GetPlatformResource().GetDesktopDownHandle());
+	ShlDS(GHandle<YDesktop> = GetGlobal().GetDesktopUpHandle(),
+		GHandle<YDesktop> = GetGlobal().GetDesktopDownHandle());
 
 	DefGetter(const GHandle<YDesktop>&, DesktopUpHandle, hDskUp)
 	DefGetter(const GHandle<YDesktop>&, DesktopDownHandle, hDskDown)

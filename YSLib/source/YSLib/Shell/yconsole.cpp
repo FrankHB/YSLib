@@ -8,49 +8,39 @@
 	understand and accept it fully.
 */
 
-/*!	\file uicontx.cpp
+/*!	\file yconsole.cpp
 \ingroup Shell
-\brief 样式无关的图形用户界面附加容器。
-\version 0.1058;
+\brief 平台无关的控制台。
+\version 0.1045;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2011-02-21 09:01:13 +0800;
+	2011-04-20 09:28:39 +0800;
 \par 修改时间:
-	2011-04-20 10:39 +0800;
+	2011-04-20 12:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::UIContainerEx;
+	YSLib::Shell::YConsole
 */
 
 
-#include "uicontx.h"
-#include "ywindow.h"
+#include "yconsole.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-YSL_BEGIN_NAMESPACE(Controls)
-
-AUIBoxControl::AUIBoxControl(const Rect& r)
-	: Control(r), MSimpleFocusResponser()
-{}
-
 void
-AUIBoxControl::ClearFocusingPtr()
+Activate(YConsole& c, Drawing::Color fc, Drawing::Color bc)
 {
-	IControl* const p(GetFocusingPtr());
-
-	if(p)
-	{
-		MSimpleFocusResponser::ClearFocusingPtr();
-		EventMap.GetEvent<HVisualEvent>(LostFocus)(*p,
-			GetStaticRef<EventArgs>());
-	}
+	InitConsole(c.Screen, fc, bc);
 }
 
-YSL_END_NAMESPACE(Controls)
+void
+Deactivate(YConsole&)
+{
+	InitVideo();
+}
 
 YSL_END_NAMESPACE(Components)
 

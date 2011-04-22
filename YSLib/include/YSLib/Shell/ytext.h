@@ -16,7 +16,7 @@
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-04-03 19:25 +0800;
+	2011-04-20 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YTEXT_H_
-#define INCLUDED_YTEXT_H_
+#ifndef YSL_INC_SHELL_TEXT_H_
+#define YSL_INC_SHELL_TEXT_H_
 
 #include "ygdi.h"
 #include "../Adaptor/yfont.h"

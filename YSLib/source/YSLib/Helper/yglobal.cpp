@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2956;
+\version 0.3047;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-04-13 11:27 +0800;
+	2011-04-22 22:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,18 +50,14 @@ const String YApplication::ProductVersion(G_APP_VER);
 
 //全局变量。
 #ifdef YSL_USE_MEMORY_DEBUG
-MemoryList DebugMemory(NULL);
+//MemoryList DebugMemory(NULL);
 #endif
 
 /*!
 \ingroup PublicObject
 \brief 全局变量映射。
-\note 需要保证 YApplication::DefaultShellHandle 在 theApp 初始化之后初始化，
-	因为 YMainShell 的基类 YShell 的构造函数调用了 theApp 的非静态成员函数。
 */
 //@{
-YApplication& theApp(YApplication::GetInstance());
-const GHandle<YShell> YApplication::DefaultShellHandle(new YMainShell());
 //@}
 
 
@@ -134,10 +130,39 @@ Global::InitializeDevices() ythrow()
 void
 Global::ReleaseDevices() ythrow()
 {
-	YReset(hDesktopUp);
-	YReset(hScreenUp);
-	YReset(hDesktopDown);
-	YReset(hScreenDown);
+	ResetHandle(hDesktopUp);
+	ResetHandle(hScreenUp);
+	ResetHandle(hDesktopDown);
+	ResetHandle(hScreenDown);
+}
+
+
+Global&
+GetGlobal() ythrow()
+{
+	static Global global_resource;
+
+	return global_resource;
+}
+
+YApplication&
+GetApp()
+{
+	GetGlobal();
+
+	static YApplication& theApp(YApplication::GetInstance());
+
+	return theApp;
+}
+
+const GHandle<YShell>&
+GetMainShellHandle()
+{
+	GetApp();
+
+	static GHandle<YShell> hMainShell(new YMainShell());
+
+	return hMainShell;
 }
 
 
@@ -187,7 +212,7 @@ namespace
 
 		static KeysInfo Key;
 		static CursorInfo TouchPos_Old, TouchPos;
-		static SmartPtr<InputContext> pContext;
+		static GHandle<InputContext> pContext;
 
 		if(Key.Held & KeySpace::Touch)
 			TouchPos_Old = TouchPos;
@@ -197,7 +222,7 @@ namespace
 		const Point pt(ToSPoint(Key.Held & KeySpace::Touch
 			? TouchPos : TouchPos_Old));
 
-		if(!pContext || ((theApp.GetDefaultMessageQueue().IsEmpty()
+		if(!pContext || ((GetApp().GetDefaultMessageQueue().IsEmpty()
 			|| Key != pContext->Key || pt != pContext->CursorLocation)
 			&& pt != Point::FullScreen))
 		{
@@ -220,9 +245,9 @@ InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 {
 	using namespace platform;
 
-	if(&scr == theApp.GetPlatformResource().GetScreenUpHandle())
+	if(GetGlobal().GetScreenUpHandle() == &scr)
 		YConsoleInit(true, fc, bc);
-	else if(&scr == theApp.GetPlatformResource().GetScreenDownHandle())
+	else if(GetGlobal().GetScreenDownHandle() == &scr)
 		YConsoleInit(false, fc, bc);
 	else
 		return false;
@@ -249,83 +274,14 @@ InitAllScreens()
 
 	InitVideo();
 
-	YScreen& up_scr(theApp.GetPlatformResource().GetScreenUp());
+	YScreen& up_scr(GetGlobal().GetScreenUp());
 
 	up_scr.pBuffer = DS::InitScrUp(up_scr.bg);
 
-	YScreen& down_scr(theApp.GetPlatformResource().GetScreenDown());
+	YScreen& down_scr(GetGlobal().GetScreenDown());
 
 	down_scr.pBuffer = DS::InitScrDown(down_scr.bg);
 	return true;
-}
-
-
-namespace
-{
-	//! \brief 全局非静态资源释放函数。
-	void
-	YDestroy()
-	{
-		//释放默认字体资源。
-		theApp.DestroyFontCache();
-
-		//释放设备。
-		theApp.GetPlatformResource().ReleaseDevices();		
-	}
-
-	//! \brief 全局初始化函数。
-	void
-	YInit()
-	{
-		//设置默认异常终止函数。
-		std::set_terminate(terminate);
-
-		//启用设备。
-		powerOn(POWER_ALL);
-
-		//启用 LibNDS 默认异常处理。
-		defaultExceptionHandler();
-
-		//初始化主控制台。
-		InitYSConsole();
-
-	/*	if(!setlocale(LC_ALL, "zh_CN.GBK"))
-		{
-			EpicFail();
-			platform::yprintf("setlocale() with %s failed.\n", "zh_CN.GBK");
-			terminate();
-		}*/
-
-		//初始化文件系统。
-		//初始化 EFSLib 和 LibFAT 。
-		//当 .nds 文件大于32MB时， EFS 行为异常。
-	#ifdef USE_EFS
-		if(!EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, NULL))
-		{
-			//如果初始化 EFS 失败则初始化 FAT 。
-	#endif
-			if(!fatInitDefault())
-				LibfatFail();
-			IO::ChangeDirectory(Text::StringToMBCS(
-				YApplication::CommonAppDataPath));
-	#ifdef USE_EFS
-		}
-	#endif
-
-		//检查程序是否被正确安装。
-		CheckInstall();
-
-		//初始化系统字体资源。
-		InitializeSystemFontCache();
-
-		//初始化系统设备。
-		theApp.GetPlatformResource().InitializeDevices();
-
-		//注册全局应用程序对象。
-		theApp.ResetShellHandle();
-		//theApp.SetOutputPtr(hDesktopUp);
-		//DefaultShellHandle->SetShlProc(ShlProc);
-	}
 }
 
 
@@ -370,7 +326,8 @@ OnExit_DebugMemory()
 	std::puts("Normal exit;");
 
 //	std::FILE* fp(std::freopen("memdbg.log", "w", stderr));
-	const typename MemoryList::MapType& Map(DebugMemory.Blocks);
+	MemoryList& debug_memory_list(GetDebugMemoryList());
+	const typename MemoryList::MapType& Map(debug_memory_list.Blocks);
 //	MemoryList::MapType::size_type s(DebugMemory.GetSize());
 
 	if(!Map.empty())
@@ -383,7 +340,7 @@ OnExit_DebugMemory()
 			i != Map.end(); ++i)
 		{
 			if(n++ < 4)
-				DebugMemory.Print(i, stderr);
+				debug_memory_list.Print(i, stderr);
 			else
 			{
 				n = 0;
@@ -396,7 +353,7 @@ OnExit_DebugMemory()
 	}
 
 	const typename MemoryList::ListType&
-		List(DebugMemory.DuplicateDeletedBlocks);
+		List(debug_memory_list.DuplicateDeletedBlocks);
 
 	if(!List.empty())
 	{
@@ -409,7 +366,7 @@ OnExit_DebugMemory()
 			i != List.end(); ++i)
 		{
 			if(n++ < 4)
-				DebugMemory.Print(i, stderr);
+				debug_memory_list.Print(i, stderr);
 			else
 			{
 				n = 0;
@@ -428,36 +385,103 @@ OnExit_DebugMemory()
 
 YSL_END
 
-/*!
-\brief 程序默认入口函数。
-*/
-extern int
-YMain(int argc, char* argv[]);
-
 int
 main(int argc, char* argv[])
 {
+	using namespace YSL;
+
 	try
 	{
 		//全局初始化。
-		YSL_ YInit();
 
-		int r(YMain(argc, argv));
+		//设置默认异常终止函数。
+		std::set_terminate(terminate);
+
+		//启用设备。
+		powerOn(POWER_ALL);
+
+		//启用 LibNDS 默认异常处理。
+		defaultExceptionHandler();
+
+		//初始化主控制台。
+		InitYSConsole();
+
+	/*	if(!setlocale(LC_ALL, "zh_CN.GBK"))
+		{
+			EpicFail();
+			platform::yprintf("setlocale() with %s failed.\n", "zh_CN.GBK");
+			terminate();
+		}*/
+
+		//初始化文件系统。
+		//初始化 EFSLib 和 LibFAT 。
+		//当 .nds 文件大于32MB时， EFS 行为异常。
+	#ifdef USE_EFS
+		if(!EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, NULL))
+		{
+			//如果初始化 EFS 失败则初始化 FAT 。
+	#endif
+			if(!fatInitDefault())
+				LibfatFail();
+			IO::ChangeDirectory(Text::StringToMBCS(
+				YApplication::CommonAppDataPath));
+	#ifdef USE_EFS
+		}
+	#endif
+
+		//检查程序是否被正确安装。
+		CheckInstall();
+
+		//初始化系统字体资源。
+		InitializeSystemFontCache();
+
+		//初始化系统设备。
+		GetGlobal().InitializeDevices();
+
+		//注册全局应用程序对象。
+		GetApp().ResetShellHandle();
+		//GetApp().SetOutputPtr(hDesktopUp);
+		//DefaultShellHandle->SetShlProc(ShlProc);
+
+		//主体。
+
+		using namespace Shells;
+
+		Message msg;
+
+		//消息循环。
+		while(GetMessage(msg) != SM_QUIT)
+		{
+			TranslateMessage(msg);
+			DispatchMessage(msg);
+		}
+
+		const int r(msg.GetContextPtr() ? 0 : -1);
+
+		//释放 Shell 。
 
 		YSL_ ReleaseShells();
-		YSL_ YDestroy();
+
+		//释放全局非静态资源。
+
+		//释放默认字体资源。
+		GetApp().DestroyFontCache();
+
+		//释放设备。
+		GetGlobal().ReleaseDevices();
+
 	#ifdef YSL_USE_MEMORY_DEBUG
-		YSL_ OnExit_DebugMemory();
+		OnExit_DebugMemory();
 	#endif
 		return r;
 	}
 	catch(std::exception& e)
 	{
-		YSL_ theApp.Log.FatalError(e.what());
+		YSL_ GetApp().Log.FatalError(e.what());
 	}
 	catch(...)
 	{
-		YSL_ theApp.Log.FatalError("Unhandled exception"
+		YSL_ GetApp().Log.FatalError("Unhandled exception"
 			" @ int main(int, char*[]);");
 	}
 }

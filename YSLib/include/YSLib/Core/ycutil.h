@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2560;
+\version 0.2576;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-04-14 16:24 +0800;
+	2011-04-22 19:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YCUTIL_H_
-#define INCLUDED_YCUTIL_H_
+#ifndef YSL_INC_CORE_YCUTIL_H_
+#define YSL_INC_CORE_YCUTIL_H_
 
 #include "ysdef.h"
 
@@ -412,19 +412,6 @@ struct delete_obj_ndebug
 	}
 };
 
-//! \brief 带置空指针操作的 delete 仿函数。
-struct safe_delete_obj_ndebug
-{
-	/*!
-	\brief 删除指针指向的对象，并置指针为空值。
-	*/
-	template<typename _tPointer>
-	inline void
-	operator()(_tPointer& _ptr) ythrow()
-	{
-		YReset(_ptr);
-	}
-};
 
 #ifdef YSL_USE_MEMORY_DEBUG
 
@@ -442,8 +429,16 @@ struct delete_obj_debug
 	}
 };
 
-//! \brief 带置空指针操作的 delete 仿函数（调试版本）。
-struct safe_delete_obj_debug
+#	define delete_obj delete_obj_debug
+
+#else
+
+#	define delete_obj delete_obj_ndebug
+
+#endif
+
+//! \brief 带置空指针操作的 delete 仿函数。
+struct safe_delete_obj
 {
 	/*!
 	\brief 删除指针指向的对象，并置指针为空值。
@@ -452,19 +447,9 @@ struct safe_delete_obj_debug
 	inline void
 	operator()(_tPointer& _ptr) ythrow()
 	{
-		YReset_debug(_ptr);
+		ResetHandle(_ptr);
 	}
 };
-
-#	define delete_obj delete_obj_debug
-#	define safe_delete_obj safe_delete_obj_debug
-
-#else
-
-#	define delete_obj delete_obj_ndebug
-#	define safe_delete_obj safe_delete_obj_ndebug
-
-#endif
 
 YSL_END
 

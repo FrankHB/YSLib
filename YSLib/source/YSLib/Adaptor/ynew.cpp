@@ -11,12 +11,12 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version 0.1763;
+\version 0.1886;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-02 19:49:41 +0800;
 \par 修改时间:
-	2011-04-08 11:09 +0800;
+	2011-04-21 15:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,7 @@
 
 
 #include "ynew.h"
-#include <cstdlib> //for std::atexit;
+#include <cstdlib> //for std::atexit & std::malloc & std::free;
 #include <cassert> //for assert;
 
 #ifdef YSL_USE_MEMORY_DEBUG
@@ -34,68 +34,83 @@ YSL_BEGIN
 
 YSL_END
 
-using YSLib::DebugMemory;
+/*
+using YSLib::GetDebugMemoryList;
 
 void*
 operator new(std::size_t s, const char* f, int l) throw (std::bad_alloc)
 {
 	void* p(::operator new(s));
 
-	DebugMemory.Register(p, s, f, l);
+	GetDebugMemoryList().Register(p, s, f, l);
 	return p;
 }
 void*
 operator new[](std::size_t s, const char* f, int l) throw (std::bad_alloc)
 {
-	void* p(::operator new(s));
+	void* p(::operator new[](s));
 
-	DebugMemory.Register(p, s, f, l);
+	GetDebugMemoryList().Register(p, s, f, l);
 	return p;
 }
 void*
-operator new(std::size_t s, const std::nothrow_t&, const char* f, int l) throw()
+operator new(std::size_t s, const std::nothrow_t& unused,
+	const char* f, int l) throw()
 {
 	void* p(::operator new(s, std::nothrow));
 
-	DebugMemory.Register(p, s, f, l);
+	GetDebugMemoryList().Register(p, s, f, l);
 	return p;
 }
 void*
-operator new[](std::size_t s, const std::nothrow_t&, const char* f, int l)
+operator new[](std::size_t s, const std::nothrow_t& unused,
+	const char* f, int l)
 	throw()
 {
-	void* p(::operator new(s, std::nothrow));
+	void* p(::operator new[](s, std::nothrow));
 
-	DebugMemory.Register(p, s, f, l);
+	GetDebugMemoryList().Register(p, s, f, l);
 	return p;
 }
 
 void
 operator delete(void* p, const char* f, int l) throw()
 {
-	DebugMemory.Unregister(p, f, l);
+	GetDebugMemoryList().Unregister(p, f, l);
 	::operator delete(p);
 }
 void
 operator delete[](void* p, const char* f, int l) throw()
 {
-	DebugMemory.Unregister(p, f, l);
+	GetDebugMemoryList().Unregister(p, f, l);
+	::operator delete[](p);
+}
+void
+operator delete(void* p, const std::nothrow_t& unused,
+	const char* f, int l) throw()
+{
+	GetDebugMemoryList().Unregister(p, f, l);
 	::operator delete(p);
 }
 void
-operator delete(void* p, const std::nothrow_t&, const char* f, int l) throw()
+operator delete[](void* p, const std::nothrow_t& unused,
+	const char* f, int l) throw()
 {
-	DebugMemory.Unregister(p, f, l);
-	::operator delete(p);
+	GetDebugMemoryList().Unregister(p, f, l);
+	::operator delete[](p);
 }
-void
-operator delete[](void* p, const std::nothrow_t&, const char* f, int l) throw()
-{
-	DebugMemory.Unregister(p, f, l);
-	::operator delete(p);
-}
+*/
 
 YSL_BEGIN
+
+MemoryList&
+GetDebugMemoryList()
+{
+	static MemoryList debug_memory_list(NULL);
+
+	return debug_memory_list;
+}
+
 
 MemoryList::MemoryList(void(*p)())
 	: Blocks(), DuplicateDeletedBlocks()

@@ -10,13 +10,13 @@
 
 /*!	\file yevt.hpp
 \ingroup Core
-\brief 事件回调实现。
-\version 0.4171;
+\brief 事件回调。
+\version 0.4177;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-04-09 21:17 +0800;
+	2011-04-22 22:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YEVT_HPP_
-#define INCLUDED_YEVT_HPP_
+#ifndef INCLUDED_CORE_YEVT_HPP_
+#define INCLUDED_CORE_YEVT_HPP_
 
 #include "yobject.h"
 #include "yfunc.hpp"
@@ -734,7 +734,7 @@ class GEventMap
 public:
 	typedef _tEventSpace ID;
 	typedef GIHEvent<YObject, EventArgs> ItemType;
-	typedef SmartPtr<ItemType> PointerType;
+	typedef GHandle<ItemType> PointerType;
 	typedef pair<ID, PointerType> PairType;
 	typedef map<ID, PointerType> MapType;
 

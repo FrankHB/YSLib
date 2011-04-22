@@ -10,13 +10,13 @@
 
 /*!	\file yuicont.cpp
 \ingroup Shell
-\brief 平台无关的图形用户界面容器实现。
-\version 0.2174;
+\brief 样式无关的图形用户界面容器。
+\version 0.2176;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-04-16 21:57 +0800;
+	2011-04-20 12:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,6 +25,7 @@
 
 
 #include "yuicont.h"
+#include "yconsole.h"
 #include "ywindow.h"
 #include "ydesktop.h"
 

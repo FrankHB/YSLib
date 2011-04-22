@@ -16,7 +16,7 @@
 \par 创建时间:
 	2009-11-17 17:52:35 +0800; 
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-03-20 10:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_CHRMAP_H_
-#define INCLUDED_CHRMAP_H_
+#ifndef CHRLIB_INC_CHRMAP_H_
+#define CHRLIB_INC_CHRMAP_H_
 
 #include "chrdef.h"
 #include <cstdio>

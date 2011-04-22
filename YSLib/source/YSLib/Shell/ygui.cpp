@@ -10,13 +10,13 @@
 
 /*!	\file ygui.cpp
 \ingroup Shell
-\brief 平台无关的图形用户界面实现。
-\version 0.3734;
+\brief 平台无关的图形用户界面。
+\version 0.3738;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-16 20:46 +0800;
+	2011-04-22 19:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -326,7 +326,7 @@ YSL_END_NAMESPACE(Shells)
 GHandle<YGUIShell>
 FetchGUIShellHandle()
 {
-	return general_handle_cast<YGUIShell>(FetchShellHandle());
+	return dynamic_pointer_cast<YGUIShell>(FetchShellHandle());
 }
 
 YSL_BEGIN_NAMESPACE(Components)

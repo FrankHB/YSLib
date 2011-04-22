@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2696;
+\version 0.2698;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 +0800; 
 \par 修改时间:
-	2011-04-13 20:38 +0800;
+	2011-04-20 10:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,8 +28,8 @@
 */
 
 
-#ifndef INCLUDED_YCOMMON_H_
-#define INCLUDED_YCOMMON_H_
+#ifndef YCL_INC_YCOMMON_H_
+#define YCL_INC_YCOMMON_H_
 
 #include <platform.h>
 

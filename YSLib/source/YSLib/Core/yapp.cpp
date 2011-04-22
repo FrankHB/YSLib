@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2258;
+\version 0.2289;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-04-13 11:28 +0800;
+	2011-04-22 22:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -72,7 +72,7 @@ YLog::FatalError(const string& s)
 
 YApplication::YApplication()
 	: YObject(),
-	Log(), pResource(new Global()), pMessageQueue(new YMessageQueue()),
+	Log(), pMessageQueue(new YMessageQueue()),
 	pMessageQueueBackup(new YMessageQueue()),
 	hShell(NULL), pFontCache(NULL)
 {
@@ -85,7 +85,6 @@ YApplication::~YApplication() ythrow()
 	ApplicationExit(*this, GetStaticRef<EventArgs>());
 	delete pMessageQueueBackup;
 	delete pMessageQueue;
-	delete pResource;
 }
 
 YApplication*
@@ -109,14 +108,6 @@ YApplication::GetInstance() ythrow()
 		YAssert(false, "Fatal error @ YApplication::GetInstance:"
 			" the application instance pointer is null.");
 	}
-}
-Global&
-YApplication::GetPlatformResource() ythrow()
-{
-	YAssert(pResource, "Fatal error @ YApplication::GetPlatformResource:"
-		" the platform resource pointer is null.");
-
-	return *pResource;
 }
 YMessageQueue&
 YApplication::GetDefaultMessageQueue() ythrow(LoggedEvent)
@@ -166,7 +157,7 @@ YApplication::SetShellHandle(GHandle<YShell> h)
 void
 YApplication::ResetShellHandle() ythrow()
 {
-	if(!SetShellHandle(DefaultShellHandle))
+	if(!SetShellHandle(GetMainShellHandle()))
 		Log.FatalError("Error occured @ YApplication::ResetShellHandle;");
 }
 
@@ -197,7 +188,7 @@ SendMessage(const Message& msg) ythrow()
 {
 	try
 	{
-		theApp.GetDefaultMessageQueue().Insert(msg);
+		GetApp().GetDefaultMessageQueue().Insert(msg);
 
 #if YSL_DEBUG_MSG & 1
 
@@ -209,7 +200,7 @@ SendMessage(const Message& msg) ythrow()
 	}
 	catch(...)
 	{
-		theApp.Log.FatalError("SendMessage #1;");
+		GetApp().Log.FatalError("SendMessage #1;");
 	}
 }
 void
@@ -222,7 +213,7 @@ SendMessage(GHandle<YShell> hShl, Messaging::ID id,
 	}
 	catch(...)
 	{
-		theApp.Log.FatalError("SendMessage #2;");
+		GetApp().Log.FatalError("SendMessage #2;");
 	}
 }
 

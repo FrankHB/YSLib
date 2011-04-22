@@ -8,24 +8,24 @@
 	understand and accept it fully.
 */
 
-/*!	\file label.h
+/*!	\file ylabel.h
 \ingroup Shell
-\brief 样式无关的标签模块实现。
-\version 0.1934;
+\brief 样式无关的标签模块。
+\version 0.2016;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-04-16 21:07 +0800;
+	2011-04-22 09:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::Label;
+	YSLib::Shell::YLabel;
 */
 
 
-#ifndef INCLUDED_YLABEL_H_
-#define INCLUDED_YLABEL_H_
+#ifndef YSL_INC_SHELL_LABEL_H_
+#define YSL_INC_SHELL_LABEL_H_
 
 #include "ywidget.h"
 #include "../Adaptor/yfont.h"
@@ -102,17 +102,61 @@ public:
 
 
 //! \brief 文本列表模块。
-class MTextList : private MLabel
+class MTextList : public MLabel
 {
+public:
+	typedef String ItemType; //!< 项目类型：字符串。
+	typedef vector<ItemType> ListType; //!< 列表类型。
+	typedef typename ListType::size_type IndexType; //!< 索引类型。
+
+protected:
+	mutable GHWeak<ListType> wpList; //!< 文本列表指针。
+
+private:
+	Drawing::TextState text_state; //!< 文本状态。
+
 protected:
 	/*!
-	\brief 构造：使用指定字体指针。
+	\brief 构造：使用指定文本列表和字体指针。
 	*/
 	explicit
-	MTextList(const Drawing::Font& = Drawing::Font::GetDefault());
+	MTextList(GHWeak<ListType> = NULL,
+		const Drawing::Font& = Drawing::Font::GetDefault());
 
 	//void
 	//PaintTextList(Widget&, const Point&);
+
+public:
+	/*!
+	\brief 取文本列表。
+	\note 当文本列表指针为空时新建。
+	*/
+	ListType&
+	GetList() const;
+	/*!
+	\brief 取指定项目索引的项目指针。
+	*/
+	ItemType*
+	GetItemPtr(IndexType) const;
+	/*!
+	\brief 取项目行高。
+	*/
+	SDst
+	GetItemHeight() const;
+
+protected:
+	/*!
+	\brief 取文本状态。
+	*/
+	Drawing::TextState&
+	GetTextState();
+
+public:
+	/*!
+	\brief 刷新文本状态。
+	*/
+	void
+	RefreshTextState();
 };
 
 YSL_END_NAMESPACE(Widgets)

@@ -217,13 +217,22 @@
     <ClInclude Include="include\YSLib\Shell\ypanel.h">
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\label.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Shell\uicontx.h">
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Shell\form.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\yconsole.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\ymenu.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\ylabel.h">
+      <Filter>头文件\YSLib\Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Shell\yviewer.hpp">
       <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
   </ItemGroup>
@@ -333,13 +342,19 @@
     <ClCompile Include="source\YSLib\Shell\ypanel.cpp">
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\label.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
     <ClCompile Include="source\YSLib\Shell\uicontx.cpp">
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Shell\form.cpp">
+      <Filter>源文件\YSLib\Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Shell\yconsole.cpp">
+      <Filter>源文件\YSLib\Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Shell\ymenu.cpp">
+      <Filter>源文件\YSLib\Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Shell\ylabel.cpp">
       <Filter>源文件\YSLib\Shell</Filter>
     </ClCompile>
   </ItemGroup>

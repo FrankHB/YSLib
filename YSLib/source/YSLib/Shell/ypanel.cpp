@@ -10,13 +10,13 @@
 
 /*!	\file ypanel.cpp
 \ingroup Shell
-\brief 平台无关的图形用户界面面板实现。
-\version 0.1108;
+\brief 样式无关的图形用户界面面板。
+\version 0.1109;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2011-04-14 07:04 +0800;
+	2011-04-20 10:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

@@ -11,12 +11,12 @@
 /*!	\file ystdex.h
 \ingroup YCLib
 \brief YCLib C++ 标准库扩展。
-\version 0.2166;
+\version 0.2168;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:31:14 +0800; 
 \par 修改时间:
-	2011-04-14 08:38 +0800;
+	2011-04-20 10:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YSTDEX_H_
-#define INCLUDED_YSTDEX_H_
+#ifndef YCL_INC_YSTDEX_H_
+#define YCL_INC_YSTDEX_H_
 
 #ifdef __cplusplus
 #	define YCL_IMPL_CPP __cplusplus

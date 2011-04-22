@@ -10,13 +10,13 @@
 
 /*!	\file ygdi.h
 \ingroup Shell
-\brief 平台无关的图形设备接口实现。
-\version 0.3981;
+\brief 平台无关的图形设备接口。
+\version 0.3983;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-04-13 08:19 +0800;
+	2011-04-20 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YGDI_H_
-#define INCLUDED_YGDI_H_
+#ifndef YSL_INC_SHELL_YGDI_H_
+#define YSL_INC_SHELL_YGDI_H_
 
 #include "../Core/yobject.h"
 #include "../Adaptor/yfont.h"

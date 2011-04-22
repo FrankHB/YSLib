@@ -10,13 +10,13 @@
 
 /*!	\file yshell.h
 \ingroup Core
-\brief Shell 定义。
-\version 0.2828;
+\brief Shell 抽象。
+\version 0.2830;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-04-13 11:24 +0800;
+	2011-04-20 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YSHELL_H_
-#define INCLUDED_YSHELL_H_
+#ifndef YSL_INC_CORE_YSHELL_H_
+#define YSL_INC_CORE_YSHELL_H_
 
 #include "yobject.h"
 #include "ysmsgdef.h"

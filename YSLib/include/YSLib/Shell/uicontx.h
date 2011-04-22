@@ -10,13 +10,13 @@
 
 /*!	\file uicontx.h
 \ingroup Shell
-\brief 样式无关的图形用户界面附加容器实现。
-\version 0.1103;
+\brief 样式无关的图形用户界面附加容器。
+\version 0.1105;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-02-21 08:59:34 +0800;
 \par 修改时间:
-	2011-04-15 09:33 +0800;
+	2011-04-20 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YUICONTX_H_
-#define INCLUDED_YUICONTX_H_
+#ifndef YSL_INC_SHELL_UICONTX_H_
+#define YSL_INC_SHELL_YUICONTX_H_
 
 #include "ycontrol.h"
 #include "yfocus.h"

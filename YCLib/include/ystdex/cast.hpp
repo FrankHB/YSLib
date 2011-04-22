@@ -11,12 +11,12 @@
 /*!	\file cast.hpp
 \ingroup YCLib
 \brief C++ 转换模板类。
-\version 0.1625;
+\version 0.1627;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-15 08:13:18 +0800; 
 \par 修改时间:
-	2011-04-14 09:03 +0800;
+	2011-04-20 10:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YSTDEX_CAST_HPP_
-#define INCLUDED_YSTDEX_CAST_HPP_
+#ifndef YCL_INC_YSTDEX_CAST_HPP_
+#define YCL_INC_YSTDEX_CAST_HPP_
 
 #include "../ystdex.h"
 #include "type_op.hpp"

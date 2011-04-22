@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2080;
+\version 0.2088;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-03-22 21:20 +0800;
+	2011-04-22 21:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YFILESYS_H_
-#define INCLUDED_YFILESYS_H_
+#ifndef YSL_INC_CORE_YFILESYS_H_
+#define YSL_INC_CORE_YFILESYS_H_
 
 #include "ystring.h"
 #include "yfunc.hpp"
@@ -49,7 +49,7 @@ typedef GSStringTemplate<NativePathCharType>::basic_string NativeStringType; \
 	//!< 本地字符串类型。
 
 //! \brief 路径类。
-class Path : public ustring
+class Path : public u16string
 {
 public:
 	typedef uchar_t ValueType;
@@ -273,24 +273,24 @@ public:
 
 inline
 Path::Path()
-	: ustring()
+	: u16string()
 {}
 inline
 Path::Path(const Path::ValueType* pathstr)
-	: ustring(pathstr)
+	: u16string(pathstr)
 {}
 inline
 Path::Path(const NativePathCharType* pathstr)
-	: ustring(Text::MBCSToString(pathstr))
+	: u16string(Text::MBCSToString(pathstr))
 {}
 inline
 Path::Path(const NativeStringType& pathstr)
-	: ustring(Text::MBCSToString(pathstr))
+	: u16string(Text::MBCSToString(pathstr))
 {}
 template<class _tString>
 inline
 Path::Path(const _tString& pathstr)
-	: ustring(pathstr)
+	: u16string(pathstr)
 {}
 inline
 Path::~Path()
@@ -600,7 +600,7 @@ public:
 
 protected:
 	Path Directory; //!< 目录的完整路径。
-	GHStrong<ListType> spList; //!< 目录中的项目列表的强指针。
+	GHandle<ListType> spList; //!< 目录中的项目列表的强指针。
 
 public:
 	/*!

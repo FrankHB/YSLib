@@ -10,13 +10,13 @@
 
 /*!	\file ywindow.cpp
 \ingroup Shell
-\brief 平台无关的图形用户界面窗口实现。
-\version 0.3678;
+\brief 样式无关的图形用户界面窗口。
+\version 0.3683;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-04-16 21:45 +0800;
+	2011-04-22 21:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -63,13 +63,13 @@ Hide(HWND hWnd)
 }
 
 
-MWindow::MWindow(const GHStrong<YImage> i, HWND hWnd)
+MWindow::MWindow(const GHandle<YImage> i, HWND hWnd)
 	: MWindowObject(hWnd),
 	spBgImage(i), bRefresh(true), bUpdate(false)
 {}
 
 
-AWindow::AWindow(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
+AWindow::AWindow(const Rect& r, const GHandle<YImage> i, HWND hWnd)
 	: Control(r), MWindow(i, hWnd)
 {}
 
@@ -163,7 +163,7 @@ AWindow::UpdateToWindow() const
 }
 
 
-AFrame::AFrame(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
+AFrame::AFrame(const Rect& r, const GHandle<YImage> i, HWND hWnd)
 	: AWindow(r, i, hWnd), MUIContainer()
 {}
 
@@ -240,7 +240,7 @@ AFrame::ClearFocusingPtr()
 }
 
 
-YFrame::YFrame(const Rect& r, const GHStrong<YImage> i, HWND hWnd)
+YFrame::YFrame(const Rect& r, const GHandle<YImage> i, HWND hWnd)
 	: YComponent(),
 	AFrame(r, i, hWnd), Buffer()
 {

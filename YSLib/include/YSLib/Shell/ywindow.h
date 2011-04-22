@@ -10,13 +10,13 @@
 
 /*!	\file ywindow.h
 \ingroup Shell
-\brief 平台无关的图形用户界面窗口实现。
-\version 0.4258;
+\brief 样式无关的图形用户界面窗口。
+\version 0.4265;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-04-16 21:17 +0800;
+	2011-04-22 21:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YWINDOW_H_
-#define INCLUDED_YWINDOW_H_
+#ifndef YSL_INC_SHELL_YWINDOW_H_
+#define YSL_INC_SHELL_YWINDOW_H_
 
 #include "ypanel.h"
 
@@ -84,7 +84,7 @@ class MWindow : protected Widgets::MWindowObject
 {
 protected:
 	//基类中的 hWindow 为父窗口对象句柄，若为空则说明无父窗口。
-	mutable GHStrong<Drawing::YImage> spBgImage; //!< 背景图像指针。
+	mutable GHandle<Drawing::YImage> spBgImage; //!< 背景图像指针。
 	bool bRefresh; //!< 刷新属性：表示有新的绘制请求。
 	bool bUpdate; //!< 更新属性：表示绘制结束，缓冲区准备完毕。
 
@@ -93,13 +93,13 @@ public:
 	\brief 构造：使用指定背景图像、窗口句柄和 Shell 。
 	*/
 	explicit
-	MWindow(const GHStrong<Drawing::YImage> = ynew Drawing::YImage(),
+	MWindow(const GHandle<Drawing::YImage> = ynew Drawing::YImage(),
 		HWND = NULL);
 
 	DefPredicate(RefreshRequired, bRefresh)
 	DefPredicate(UpdateRequired, bUpdate)
 
-	DefGetter(GHStrong<Drawing::YImage>&, BackgroundImagePtr, spBgImage)
+	DefGetter(GHandle<Drawing::YImage>&, BackgroundImagePtr, spBgImage)
 };
 
 
@@ -115,13 +115,13 @@ public:
 	*/
 	explicit
 	AWindow(const Rect& = Rect::Empty,
-		const GHStrong<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
+		const GHandle<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
 
 	ImplI1(IWindow) DefPredicateBase(RefreshRequired, MWindow)
 	ImplI1(IWindow) DefPredicateBase(UpdateRequired, MWindow)
 
 	ImplI1(IWindow) DefGetterBase(HWND, WindowHandle, MWindowObject)
-	DefGetterBase(GHStrong<Drawing::YImage>&, BackgroundImagePtr, MWindow)
+	DefGetterBase(GHandle<Drawing::YImage>&, BackgroundImagePtr, MWindow)
 	/*!
 	\brief 取位图背景指针。
 	*/
@@ -206,7 +206,7 @@ class AFrame : public AWindow, protected Widgets::MUIContainer
 public:
 	explicit
 	AFrame(const Rect& = Rect::Empty,
-		const GHStrong<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
+		const GHandle<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
 
 	ImplI1(IWindow) void
 	operator+=(IWidget*);
@@ -282,7 +282,7 @@ public:
 	*/
 	explicit
 	YFrame(const Rect& = Rect::Empty,
-		const GHStrong<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
+		const GHandle<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
 	virtual
 	~YFrame();
 

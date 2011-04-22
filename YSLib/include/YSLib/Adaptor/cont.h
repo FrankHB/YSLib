@@ -10,13 +10,13 @@
 
 /*!	\file cont.h
 \ingroup Adaptor
-\brief 容器适配器。
-\version 0.1542;
+\brief 容器、拟容器和适配器。
+\version 0.1568;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2011-04-08 11:16 +0800;
+	2011-04-22 22:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_CONT_H_
-#define INCLUDED_CONT_H_
+#ifndef YSL_INC_ADAPTOR_CONT_H_
+#define YSL_INC_ADAPTOR_CONT_H_
 
 #include "yadaptor.h"
 #include <utility>
@@ -45,8 +45,6 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Design)
 
-YSL_BEGIN_NAMESPACE(Policies)
-
 YSL_BEGIN_NAMESPACE(Storage)
 
 /*
@@ -63,8 +61,6 @@ YSL_BEGIN_NAMESPACE(Storage)
 #	endif
 
 YSL_END_NAMESPACE(Storage)
-
-YSL_END_NAMESPACE(Policies)
 
 YSL_END_NAMESPACE(Design)
 
@@ -106,12 +102,12 @@ template<typename _tChar,
 	class _tAlloc = std::allocator<_tChar>,
 	class _tStorage = 
 #	if defined(YSL_OPT_SMALL_STRING_LENGTH) && YSL_OPT_SMALL_STRING_LENGTH > 0
-		Design::Policies::Storage::SmallStringOpt<
+		Design::Storage::SmallStringOpt<
 #	endif
 #	ifdef YSL_USE_COPY_ON_WRITE
-		Design::Policies::Storage::CowStringOpt<
+		Design::Storage::CowStringOpt<
 #	endif
-			Design::Policies::Storage::AllocatorStringStorage<_tChar, _tAlloc>
+			Design::Storage::AllocatorStringStorage<_tChar, _tAlloc>
 #	ifdef YSL_USE_COPY_ON_WRITE
 		>
 #	endif
@@ -138,7 +134,7 @@ struct GSStringTemplate
 typedef GSStringTemplate<char>::basic_string string;
 
 // YSLib 基本字符串（使用 UTF-16LE ）。
-typedef GSStringTemplate<uchar_t>::basic_string ustring;
+typedef GSStringTemplate<uchar_t>::basic_string u16string;
 
 YSL_END
 

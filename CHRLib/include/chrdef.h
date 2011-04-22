@@ -11,12 +11,12 @@
 /*!	\file chrdef.h
 \ingroup CHRLib CHRLib 库
 \brief CHRLib 类型定义。
-\version 0.1566;
+\version 0.1568;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-04-20 10:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_CHRDEF_H_
-#define INCLUDED_CHRDEF_H_
+#ifndef CHRLIB_INC_CHRDEF_H_
+#define CHRLIB_INC_CHRDEF_H_
 
 #include <platform.h>
 

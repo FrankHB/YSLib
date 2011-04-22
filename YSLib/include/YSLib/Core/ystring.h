@@ -11,12 +11,12 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version 0.2970;
+\version 0.2974;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-05 22:06:05 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-04-20 11:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YSTRING_H_
-#define INCLUDED_YSTRING_H_
+#ifndef YSL_INC_CORE_YSTRING_H_
+#define YSL_INC_CORE_YSTRING_H_
 
 #include "yobject.h"
 #include "../Adaptor/cont.h"
@@ -35,7 +35,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Text)
 
 //! \brief YSLib 标准字符串（使用 UTF-16LE ）。
-class String : public ustring
+class String : public u16string
 {
 private:
 	static uchar_t* s_str; //!< 内码转换生成字符串临时指针。
@@ -57,26 +57,26 @@ public:
 	/*!
 	\brief 构造：使用 YSLib 基本字符串。
 	*/
-	String(const ustring&);
+	String(const u16string&);
 };
 
 inline
 String::String()
-	: ustring()
+	: u16string()
 {}
 inline
 String::String(const uchar_t* s)
-	: ustring(s)
+	: u16string(s)
 {}
 template<class _tChar>
 String::String(const _tChar* s)
-	: ustring(s_str = ucsdup(s))
+	: u16string(s_str = ucsdup(s))
 {
 	std::free(s_str);
 }
 inline
-String::String(const ustring& s)
-	: ustring(s)
+String::String(const u16string& s)
+	: u16string(s)
 {}
 
 
@@ -98,7 +98,7 @@ MBCSToString(const string& s, const CSID& cp = CS_Local)
 \brief  YSLib 基本字符串转化为多字节字符串。
 */
 string
-StringToMBCS(const ustring&, const CSID& = CS_Local);
+StringToMBCS(const u16string&, const CSID& = CS_Local);
 
 YSL_END_NAMESPACE(Text)
 

@@ -11,12 +11,12 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version 0.1900;
+\version 0.2045;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-04-21 15:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YDEBUG_H_
-#define INCLUDED_YDEBUG_H_
+#ifndef YSL_INC_ADAPTOR_YNEW_H_
+#define YSL_INC_ADAPTOR_YNEW_H_
 
 //包含编译配置。
 #include "config.h"
@@ -48,8 +48,9 @@
 
 //@{
 /*!	\defgroup YSLMemoryDebugFunctions YSLib Memory Debug Functions
-\brief 调试用重载 operator new 和 operator delete 。
+\brief 调试用重载 ::operator new 和 ::operator delete 。
 */
+/*
 void*
 operator new(std::size_t, const char*, int) throw (std::bad_alloc);
 void*
@@ -65,11 +66,21 @@ operator delete[](void*, const char*, int) throw();
 void
 operator delete(void*, const std::nothrow_t&, const char*, int) throw();
 void
-operator delete[](void*, const std::nothrow_t&) throw();
+operator delete[](void*, const std::nothrow_t&, const char*, int) throw();
+*/
 //}@
 
 
 YSL_BEGIN
+
+class MemoryList;
+
+/*
+!\brief 取调试用内存块列表。
+*/
+MemoryList&
+GetDebugMemoryList();
+
 
 //内存块列表。
 class MemoryList
@@ -84,6 +95,34 @@ public:
 	
 		explicit
 		BlockInfo(std::size_t, const char*, int);
+	};
+
+	/*
+	\brief new 表达式记录器。
+	*/
+	class NewRecorder
+	{
+	private:
+		MemoryList& blocks;
+		const char* file;
+		const int line;
+
+	public:
+		explicit
+		NewRecorder(const char*, int, MemoryList& = GetDebugMemoryList());
+
+	private:
+		NewRecorder(const NewRecorder&);
+		NewRecorder& operator=(const NewRecorder&);
+
+	public:
+		template<typename T>
+		T*
+		operator->*(T* p)
+		{
+			blocks.Register(p, sizeof(T), file, line);
+			return p;
+		}
 	};
 
 	typedef std::map<const void*, BlockInfo, std::less<const void*>,
@@ -124,16 +163,19 @@ MemoryList::BlockInfo::BlockInfo(std::size_t s, const char* f, int l)
 	: size(s), file(f), line(l)
 {}
 
-
-//! \brief 调试用内存块列表。
-extern YSLib::MemoryList DebugMemory;
+inline
+MemoryList::NewRecorder::NewRecorder(const char* f, int l, MemoryList& b)
+	: blocks(b), file(f), line(l)
+{}
 
 YSL_END
 
-#	define ynew new(__FILE__, __LINE__)
+#	define ynew YSLib::MemoryList::NewRecorder(__FILE__, __LINE__)->*new
 #	define ynew_nothrow new(std::nothrow, __FILE__, __LINE__)
-#	define ydelete(p) (DebugMemory.Unregister(p, __FILE__, __LINE__), delete p)
-#	define ydelete_array(p) (DebugMemory.Unregister(p, __FILE__, __LINE__), \
+#	define ydelete(p) (GetDebugMemoryList().Unregister(p, __FILE__, \
+		__LINE__), delete p)
+#	define ydelete_array(p) (GetDebugMemoryList().Unregister(p, __FILE__, \
+		__LINE__), \
 	delete[] p)
 
 #else

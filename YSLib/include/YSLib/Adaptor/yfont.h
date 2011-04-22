@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7226;
+\version 0.7228;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-04-09 21:15 +0800;
+	2011-04-20 11:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YFONT_H_
-#define INCLUDED_YFONT_H_
+#ifndef YSL_INC_ADAPTOR_YFONT_H_
+#define YSL_INC_ADAPTOR_YFONT_H_
 
 #include "../Core/yfunc.hpp"
 #include "../Core/yobject.h"

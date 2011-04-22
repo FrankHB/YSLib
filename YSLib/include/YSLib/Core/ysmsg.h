@@ -11,12 +11,12 @@
 /*!	\file ysmsg.h
 \ingroup Core
 \brief 消息处理。
-\version 0.2122;
+\version 0.2128;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-04-13 11:23 +0800;
+	2011-04-22 22:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YSMSG_H_
-#define INCLUDED_YSMSG_H_
+#ifndef YSL_INC_CORE_YSMSG_H_
+#define YSL_INC_CORE_YSMSG_H_
 
 #include "yobject.h"
 #include "../Adaptor/cont.h"
@@ -58,7 +58,7 @@ private:
 	GHandle<YShell> hShl; //!< 目的 Shell 句柄。
 	ID id; //!< 消息标识。
 	Priority prior; //!< 消息优先级。
-	SmartPtr<IContext> pContext; //消息上下文指针。
+	GHandle<IContext> pContext; //消息上下文指针。
 
 public:
 	std::clock_t timestamp; //!< 消息时间戳：消息产生的进程时间。
@@ -72,7 +72,7 @@ public:
 		使用 Shell 句柄、消息标识、消息优先级、光标位置和消息上下文指针。
 	*/
 	Message(GHandle<YShell> = NULL, ID = 0, Priority = 0,
-		SmartPtr<IContext> = NULL);
+		GHandle<IContext> = NULL);
 	/*!
 	\brief 复制构造。
 	*/
@@ -97,7 +97,7 @@ public:
 	DefGetter(GHandle<YShell>, ShellHandle, hShl) //!< 取关联的 Shell 句柄。
 	DefGetter(ID, MessageID, id) //!< 取消息标识。
 	DefGetter(Priority, Priority, prior) //!< 取消息优先级。
-	DefGetter(SmartPtr<IContext>, ContextPtr, pContext) //!< 取消息上下文。
+	DefGetter(GHandle<IContext>, ContextPtr, pContext) //!< 取消息上下文。
 
 	/*
 	\brief 交换。

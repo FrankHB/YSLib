@@ -10,13 +10,13 @@
 
 /*!	\file button.cpp
 \ingroup Shell
-\brief 样式相关的图形用户界面按钮控件实现。
-\version 0.3480;
+\brief 样式相关的图形用户界面按钮控件。
+\version 0.3481;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-04-16 21:06 +0800;
+	2011-04-20 10:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

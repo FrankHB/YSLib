@@ -11,13 +11,13 @@
 
 /*!	\file yobject.h
 \ingroup Core
-\brief 平台无关的基础对象实现。
-\version 0.3026;
+\brief 平台无关的基础对象。
+\version 0.3032;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-09 21:16 +0800;
+	2011-04-22 22:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef INCLUDED_YOBJECT_H_
-#define INCLUDED_YOBJECT_H_
+#ifndef YSL_INC_CORE_YOBJECT_H_
+#define YSL_INC_CORE_YOBJECT_H_
 
 #include "ycutil.h"
 #include "yexcept.h"
@@ -740,7 +740,7 @@ YCountableObject::YCountableObject()
 基于被依赖的默认对象，可通过写时复制策略创建新对象。
 \warning 指针类型需要具有所有权，否则无法回收内存导致泄漏。
 */
-template<typename _type, class _tOwnerPointer = SmartPtr<_type> >
+template<typename _type, class _tOwnerPointer = GHandle<_type> >
 class GDependency
 {
 public:
@@ -769,7 +769,7 @@ public:
 	{
 		if(!ptr)
 			ptr = new T();
-		else if(!ptr.IsUnique())
+		else if(!ptr.unique())
 			ptr = new T(*ptr);
 
 		YAssert(ptr, "Null pointer found @ GDependency::GetCopyOnWritePtr;");

@@ -10,13 +10,13 @@
 
 /*!	\file form.h
 \ingroup Shell
-\brief 平台无关的图形用户界面窗体实现。
-\version 0.1493;
+\brief 样式无关的图形用户界面窗体。
+\version 0.1500;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-04-16 21:08 +0800;
+	2011-04-22 21:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YFORM_H_
-#define INCLUDED_YFORM_H_
+#ifndef YSL_INC_SHELL_FORM_H_
+#define YSL_INC_SHELL_FORM_H_
 
 #include "../Core/yres.h"
 #include "ywindow.h"
@@ -52,7 +52,7 @@ public:
 	*/
 	explicit
 	YForm(const Rect& = Rect::Empty,
-		const GHStrong<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
+		const GHandle<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
 	/*!
 	\brief 析构。
 	*/

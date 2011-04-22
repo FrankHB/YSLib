@@ -11,12 +11,12 @@
 /*!	\file yres.h
 \ingroup Core
 \brief 应用程序资源管理模块。
-\version 0.1482;
+\version 0.1488;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-04-03 20:43 +0800;
+	2011-04-22 21:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_YRES_H_
-#define INCLUDED_YRES_H_
+#ifndef YSL_INC_CORE_YRES_H_
+#define YSL_INC_CORE_YRES_H_
 
 #include "ycounter.hpp"
 #include "ystatic.hpp"
@@ -48,7 +48,7 @@ template<class _type>
 inline GHWeak<_type>
 GetGlobalResource()
 {
-	return GStaticCache<_type, GHStrong<_type> >::GetPointer();
+	return GStaticCache<_type, GHandle<_type> >::GetPointer();
 }
 
 /*!
@@ -59,7 +59,7 @@ template<class _type>
 inline void
 ReleaseGlobalResource() ythrow()
 {
-	return GStaticCache<_type, GHStrong<_type> >::Release();
+	return GStaticCache<_type, GHandle<_type> >::Release();
 }
 
 //应用程序资源类型定义。

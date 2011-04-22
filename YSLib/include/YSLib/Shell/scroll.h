@@ -10,13 +10,13 @@
 
 /*!	\file scroll.h
 \ingroup Shell
-\brief 样式相关的图形用户界面滚动控件实现。
-\version 0.3048;
+\brief 样式相关的图形用户界面滚动控件。
+\version 0.3051;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-04-16 21:06 +0800;
+	2011-04-22 17:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef INCLUDED_SCROLL_H_
-#define INCLUDED_SCROLL_H_
+#ifndef YSL_INC_SHELL_SCROLL_H_
+#define YSL_INC_SHELL_SCROLL_H_
 
 #include "uicontx.h"
 #include "button.h"
@@ -409,7 +409,7 @@ public:
 	typedef ATrack::ValueType ValueType; //!< 值类型。
 
 private:
-	std::auto_ptr<ATrack> pTrack; //轨道。
+	auto_ptr<ATrack> pTrack; //轨道。
 
 protected:
 	YThumb PrevButton, NextButton; //!< 滚动条按钮。
