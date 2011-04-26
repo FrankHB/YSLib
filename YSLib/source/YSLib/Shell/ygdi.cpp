@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口。
-\version 0.3459;
+\version 0.3463;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-04-20 10:39 +0800;
+	2011-04-25 12:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -365,7 +365,7 @@ BitmapBuffer::SetSize(SDst w, SDst h)
 	if(s == 0)
 	{
 		ydelete_array(pBuffer);
-		pBuffer = NULL;
+		pBuffer = nullptr;
 	}
 	else if(GetAreaFrom(GetSize()) < s)
 		try
@@ -380,7 +380,7 @@ BitmapBuffer::SetSize(SDst w, SDst h)
 			throw LoggedEvent("Allocation failed @ BitmapBuffer::SetSize;", 1);
 		}
 
-	YAssert(!((pBuffer != NULL) ^ (s != 0)), "Buffer corruptied"
+	YAssert(!((pBuffer != nullptr) ^ (s != 0)), "Buffer corruptied"
 		" @ BitmapBuffer::SetSize;");
 
 	size.Width = w;
@@ -408,7 +408,7 @@ BitmapBuffer::BeFilledWith(Color c) const
 
 
 BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDst w, SDst h)
-	: BitmapBuffer(), pBufferAlpha(NULL)
+	: BitmapBuffer(), pBufferAlpha(nullptr)
 {
 	SetSize(w, h);
 	if(i)
@@ -423,13 +423,13 @@ BitmapBufferEx::SetSize(SDst w, SDst h)
 	if(s == 0)
 	{
 		ydelete_array(pBuffer);
-		pBuffer = NULL;
+		pBuffer = nullptr;
 		ydelete_array(pBufferAlpha);
-		pBufferAlpha = NULL;
+		pBufferAlpha = nullptr;
 	}
 	else if(GetAreaFrom(size) < s)
 	{
-		BitmapPtr pBufferNew(NULL);
+		BitmapPtr pBufferNew(nullptr);
 
 		try
 		{
@@ -450,9 +450,9 @@ BitmapBufferEx::SetSize(SDst w, SDst h)
 		}
 	}
 
-	YAssert(!((pBuffer != NULL) ^ (s != 0)), "Buffer corruptied"
+	YAssert(!((pBuffer != nullptr) ^ (s != 0)), "Buffer corruptied"
 		" @ BitmapBufferEx::SetSize;");
-	YAssert(!((pBufferAlpha != NULL) ^ (s != 0)), "Buffer corruptied"
+	YAssert(!((pBufferAlpha != nullptr) ^ (s != 0)), "Buffer corruptied"
 		" @ BitmapBufferEx::SetSize;");
 
 	size.Width = w;

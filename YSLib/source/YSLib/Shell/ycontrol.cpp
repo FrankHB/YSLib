@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup Shell
 \brief 样式无关的控件。
-\version 0.4119;
+\version 0.4129;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-04-22 08:34 +0800;
+	2011-04-26 11:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,9 +38,9 @@ YSL_BEGIN_NAMESPACE(Controls)
 void
 OnKeyHeld(IControl& c, KeyEventArgs& e)
 {
-	GHandle<YGUIShell> hShl(FetchGUIShellHandle());
+	YGUIShell& shl(FetchGUIShell());
 
-	if(hShl->RepeatHeld(hShl->KeyHeldState, 240, 120))
+	if(shl.RepeatHeld(shl.KeyHeldState, 240, 120))
 		FetchEvent<KeyDown>(c)(c, e);
 }
 
@@ -49,13 +49,13 @@ OnTouchHeld(IControl& c, TouchEventArgs& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		GHandle<YGUIShell> hShl(FetchGUIShellHandle());
+		YGUIShell& shl(FetchGUIShell());
 
-		if(hShl->DraggingOffset == Vec::FullScreen)
-			hShl->DraggingOffset = c.GetLocation() - hShl->ControlLocation;
+		if(shl.DraggingOffset == Vec::FullScreen)
+			shl.DraggingOffset = c.GetLocation() - shl.ControlLocation;
 		else
 			FetchEvent<TouchMove>(c)(c, e);
-		hShl->LastControlLocation = hShl->ControlLocation;
+		shl.LastControlLocation = shl.ControlLocation;
 	}
 }
 
@@ -64,9 +64,9 @@ OnTouchMove(IControl& c, TouchEventArgs& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		GHandle<YGUIShell> hShl(FetchGUIShellHandle());
+		YGUIShell& shl(FetchGUIShell());
 
-		if(hShl->RepeatHeld(hShl->TouchHeldState, 240, 60))
+		if(shl.RepeatHeld(shl.TouchHeldState, 240, 60))
 			CallEvent<TouchDown>(c, e);
 	}
 }
@@ -76,12 +76,12 @@ OnTouchMove_Dragging(IControl& c, TouchEventArgs& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		GHandle<YGUIShell> hShl(FetchGUIShellHandle());
+		YGUIShell& shl(FetchGUIShell());
 
 	// TODO: analysis buffered coordinate delayed painting bug;
 	//	if(hShl->LastControlLocation != hShl->ControlLocation)
 	//	{
-			c.SetLocation(hShl->LastControlLocation + hShl->DraggingOffset);
+			c.SetLocation(shl.LastControlLocation + shl.DraggingOffset);
 			c.Refresh();
 	//	}
 	}
@@ -113,14 +113,14 @@ Control::IsFocused() const
 void
 Control::SetLocation(const Point& pt)
 {
-	Visual::SetLocation(pt);
+	Widget::SetLocation(pt);
 	GetEventMap().DoEvent<EventTypeMapping<Move>::HandlerType>(Move,
 		*this, GetStaticRef<EventArgs>());
 }
 void
 Control::SetSize(const Size& s)
 {
-	Visual::SetSize(s);
+	Widget::SetSize(s);
 	GetEventMap().DoEvent<EventTypeMapping<Resize>::HandlerType>(Resize,
 		*this, GetStaticRef<EventArgs>());
 }

@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.3197;
+\version 0.3212;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-04-22 19:10 +0800;
+	2011-04-25 12:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,7 +66,8 @@ YShell::DefShlProc(const Message& msg)
 	case SM_DROP:
 		{
 			GHandleContext<GHandle<YShell> >* const
-				p(FetchContextRawPtr<GHandleContext<GHandle<YShell> > >(msg));
+				p(dynamic_cast<GHandleContext<GHandle<YShell> >*>(
+				msg.GetContextPtr().get()));
 
 			if(p)
 			{
@@ -86,7 +87,7 @@ YShell::DefShlProc(const Message& msg)
 							GetApp().SetShellHandle(GetMainShellHandle());
 						if(h->IsActive())
 							return -1;
-						ResetHandle(h);
+						h.reset();
 					}
 				default:
 					break;
@@ -136,7 +137,7 @@ YMainShell::ShlProc(const Message& msg)
 
 
 GHandle<YShell>
-GetCurrentShellHandle() ythrow()
+GetCurrentShellHandle() ynothrow
 {
 	return GetApp().GetShellHandle();
 }
@@ -151,9 +152,9 @@ Activate(GHandle<YShell> h)
 void
 PostQuitMessage(int nExitCode, Priority p)
 {
-	SendMessage(NULL, SM_SET, p,
+	SendMessage(nullptr, SM_SET, p,
 		new GHandleContext<GHandle<YShell> >(GetMainShellHandle()));
-	SendMessage(NULL, SM_QUIT, p,
+	SendMessage(nullptr, SM_QUIT, p,
 		new GObjectContext<int>(nExitCode));
 }
 

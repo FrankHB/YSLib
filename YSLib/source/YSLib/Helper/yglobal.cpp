@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3047;
+\version 0.3057;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-04-22 22:18 +0800;
+	2011-04-25 12:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,7 +50,7 @@ const String YApplication::ProductVersion(G_APP_VER);
 
 //全局变量。
 #ifdef YSL_USE_MEMORY_DEBUG
-//MemoryList DebugMemory(NULL);
+//MemoryList DebugMemory(nullptr);
 #endif
 
 /*!
@@ -65,13 +65,13 @@ const SDst Global::MainScreenWidth(SCREEN_WIDTH);
 const SDst Global::MainScreenHeight(SCREEN_HEIGHT);
 
 Global::Global()
-	: hScreenUp(NULL), hScreenDown(NULL), hDesktopUp(NULL), hDesktopDown(NULL)
+	: hScreenUp(nullptr), hScreenDown(nullptr), hDesktopUp(nullptr), hDesktopDown(nullptr)
 {}
 Global::~Global()
 {}
 
 YScreen&
-Global::GetScreenUp() const ythrow()
+Global::GetScreenUp() const ynothrow
 {
 	YAssert(hScreenUp, "Fatal error @ Global::GetScreenUp:"
 		" the up screen handle is null.");
@@ -79,7 +79,7 @@ Global::GetScreenUp() const ythrow()
 	return *hScreenUp;
 }
 YScreen&
-Global::GetScreenDown() const ythrow()
+Global::GetScreenDown() const ynothrow
 {
 	YAssert(hScreenDown, "Fatal error @ Global::GetScreenDown:"
 		" the down screen handle is null.");
@@ -87,7 +87,7 @@ Global::GetScreenDown() const ythrow()
 	return *hScreenDown;
 }
 YDesktop&
-Global::GetDesktopUp() const ythrow()
+Global::GetDesktopUp() const ynothrow
 {
 	YAssert(hDesktopUp, "Fatal error @ Global::GetDesktopUp:"
 		" the up desktop handle is null.");
@@ -95,7 +95,7 @@ Global::GetDesktopUp() const ythrow()
 	return *hDesktopUp;
 }
 YDesktop&
-Global::GetDesktopDown() const ythrow()
+Global::GetDesktopDown() const ynothrow
 {
 	YAssert(hDesktopDown, "Fatal error @ Global::GetDesktopDown:"
 		" the down desktop handle is null.");
@@ -104,7 +104,7 @@ Global::GetDesktopDown() const ythrow()
 }
 
 void
-Global::InitializeDevices() ythrow()
+Global::InitializeDevices() ynothrow
 {
 	//初始化显示设备。
 	try
@@ -128,17 +128,17 @@ Global::InitializeDevices() ythrow()
 }
 
 void
-Global::ReleaseDevices() ythrow()
+Global::ReleaseDevices() ynothrow
 {
-	ResetHandle(hDesktopUp);
-	ResetHandle(hScreenUp);
-	ResetHandle(hDesktopDown);
-	ResetHandle(hScreenDown);
+	hDesktopUp.reset();
+	hScreenUp.reset();
+	hDesktopDown.reset();
+	hScreenDown.reset();
 }
 
 
 Global&
-GetGlobal() ythrow()
+GetGlobal() ynothrow
 {
 	static Global global_resource;
 
@@ -417,7 +417,7 @@ main(int argc, char* argv[])
 		//初始化 EFSLib 和 LibFAT 。
 		//当 .nds 文件大于32MB时， EFS 行为异常。
 	#ifdef USE_EFS
-		if(!EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, NULL))
+		if(!EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, nullptr))
 		{
 			//如果初始化 EFS 失败则初始化 FAT 。
 	#endif

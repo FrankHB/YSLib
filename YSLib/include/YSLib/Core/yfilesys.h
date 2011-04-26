@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2088;
+\version 0.2092;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-04-22 21:56 +0800;
+	2011-04-25 12:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -339,7 +339,7 @@ Path::HasExtension() const
 
 inline
 Path::iterator::iterator()
-	: ptr(NULL), n(StringType::npos)
+	: ptr(nullptr), n(StringType::npos)
 {}
 inline
 Path::iterator::iterator(const value_type& p)
@@ -574,7 +574,7 @@ struct HFileNameFilter : public GHBase<PFNFILTER>
 	/*!
 	\brief 构造：使用函数指针。
 	*/
-	HFileNameFilter(const PFNFILTER pf = NULL)
+	HFileNameFilter(const PFNFILTER pf = nullptr)
 	: GHBase<PFNFILTER>(pf)
 	{}
 
@@ -607,7 +607,7 @@ public:
 	\brief 构造：使用指定路径。
 	\note 参数为空或空字符串时为根目录。
 	*/
-	FileList(CPATH = NULL);
+	FileList(CPATH = nullptr);
 	/*!
 	\brief 构造：使用窄字符串。
 	\note 参数为空字符串时为根目录。

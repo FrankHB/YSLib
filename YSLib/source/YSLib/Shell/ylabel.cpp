@@ -11,12 +11,12 @@
 /*!	\file ylabel.cpp
 \ingroup Shell
 \brief 样式无关的标签模块。
-\version 0.2012;
+\version 0.2021;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-04-22 09:13 +0800;
+	2011-04-26 08:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,7 @@
 #include "ylabel.h"
 #include "yuicont.h"
 #include "ywindow.h"
+#include "ygui.h"
 
 YSL_BEGIN
 
@@ -40,14 +41,14 @@ MLabel::MLabel(const Drawing::Font& f, MLabel::TextAlignmentStyle a)
 {}
 
 void
-MLabel::PaintText(Widget& w, const Graphics& g, const Point& pt)
+MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt)
 {
 	Drawing::TextState ts;
 	const Rect& r(GetBoundsOf(w));
 
 	ts.Font.SetFont(Font);
 	ts.ResetForBounds(r, g.GetSize(), Margin);
-	ts.Color = w.ForeColor;
+	ts.Color = c;
 
 	switch(Alignment)
 	{
@@ -55,7 +56,7 @@ MLabel::PaintText(Widget& w, const Graphics& g, const Point& pt)
 	case Right:
 		{
 			const SDst string_width(FetchStringWidth(ts.Font, Text)),
-				area_width(w.GetWidth() - GetHorizontalFrom(Margin));
+				area_width(w.GetSize().Width - GetHorizontalFrom(Margin));
 			if(area_width > string_width)
 			{
 				const SDst horizontal_offset(area_width - string_width);
@@ -80,10 +81,10 @@ YLabel::YLabel(const Rect& r, const Drawing::Font& f)
 void
 YLabel::Paint()
 {
-	YWidgetAssert(this, Widgets::YLabel, Draw);
+	YWidgetAssert(this, Widgets::YLabel, Paint);
 
 	ParentType::Paint();
-	PaintText(*this, FetchContext(*this), LocateForWindow(*this));
+	PaintText(*this, ForeColor, FetchContext(*this), LocateForWindow(*this));
 }
 
 
@@ -105,7 +106,7 @@ MTextList::GetItemPtr(MTextList::IndexType i) const
 	ListType& list(GetList());
 
 	return IsInInterval<IndexType>(i, list.size())
-		? &list[i] : NULL;
+		? &list[i] : nullptr;
 }
 SDst
 MTextList::GetItemHeight() const

@@ -11,12 +11,12 @@
 /*!	\file ystdex.h
 \ingroup YCLib
 \brief YCLib C++ 标准库扩展。
-\version 0.2168;
+\version 0.2173;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:31:14 +0800; 
 \par 修改时间:
-	2011-04-20 10:44 +0800;
+	2011-04-25 12:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,6 +52,7 @@
 #include <cstdlib>
 #if YCL_IMPL_CPP >= 201103L || YCL_IMPL_MSCPP >= 1600
 #	include <type_traits>
+#	define YCL_HAS_BUILTIN_NULLPTR
 #else
 // TODO: complete version checking for compiler and library implementation;
 //#ifdef __GNUC__

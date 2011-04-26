@@ -11,12 +11,12 @@
 /*!	\file ylabel.h
 \ingroup Shell
 \brief 样式无关的标签模块。
-\version 0.2016;
+\version 0.2022;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-04-22 09:12 +0800;
+	2011-04-26 08:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,7 +70,7 @@ protected:
 	\brief 绘制文本。
 	*/
 	void
-	PaintText(Widget&, const Graphics&, const Point&);
+	PaintText(IWidget&, Color, const Graphics&, const Point&);
 };
 
 
@@ -120,7 +120,7 @@ protected:
 	\brief 构造：使用指定文本列表和字体指针。
 	*/
 	explicit
-	MTextList(GHWeak<ListType> = NULL,
+	MTextList(GHWeak<ListType> = nullptr,
 		const Drawing::Font& = Drawing::Font::GetDefault());
 
 	//void

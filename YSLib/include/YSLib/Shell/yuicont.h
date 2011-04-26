@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 样式无关的图形用户界面容器。
-\version 0.2244;
+\version 0.2255;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-04-26 08:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,7 @@ yassert(bool, const char*, int, const char*, const char*, const char*);
 #	define YWidgetAssert(ptr, comp, func) \
 	Components::yassert((ptr) && FetchDirectWindowPtr( \
 		ystdex::general_cast<IWidget&>(*(ptr))), \
-		"The direct window handle is null.", __LINE__, __FILE__, #comp, #func)
+		"The direct window pointer is null.", __LINE__, __FILE__, #comp, #func)
 
 #else
 
@@ -99,7 +99,7 @@ EndDecl
 template<class _tNode>
 _tNode* FetchWidgetDirectNodePtr(IWidget* pWgt)
 {
-	_tNode* pNode(NULL);
+	_tNode* pNode(nullptr);
 
 	while(pWgt && !(pNode = dynamic_cast<_tNode*>(pWgt)))
 		pWgt = pWgt->GetContainerPtr();
@@ -119,7 +119,7 @@ IUIBox*
 FetchDirectContainerPtr(IWidget&);
 
 /*!
-\brief 取指定部件的直接窗口句柄。
+\brief 取指定部件的直接窗口指针。
 \note 加入容器指针判断。
 */
 IWindow*
@@ -145,17 +145,6 @@ FetchContext(IWidget&);
 */
 Point
 LocateOffset(const IWidget*, Point, const IWindow*);
-/*!
-\brief 取指定的点（相对此部件的坐标）相对于指定指针指向的父窗口的偏移坐标。
-*/
-template<class _tWidget>
-Point
-LocateOffset(const _tWidget* pCon, const Point& p, const IWindow* pWnd)
-{
-	const IWidget* pConI(dynamic_cast<const IWidget*>(pCon));
-
-	return pConI ? LocateOffset(pConI, p, pWnd) : p;
-}
 
 /*!
 \brief 取指定的点 pt （相对部件 w 的坐标）相对于 w 的容器的偏移坐标。

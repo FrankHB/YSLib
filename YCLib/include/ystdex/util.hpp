@@ -11,12 +11,12 @@
 /*!	\file util.hpp
 \ingroup YCLib
 \brief 函数对象、算法和实用程序。
-\version 0.1515;
+\version 0.1596;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800; 
 \par 修改时间:
-	2011-04-20 10:46 +0800;
+	2011-04-25 14:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,6 +35,114 @@
 
 namespace ystdex
 {
+	/*
+	\brief 不可复制对象：禁止继承此类的对象调用复制构造函数和复制赋值操作符。
+	*/
+	class noncopyable
+	{
+	//保护非多态类。
+	protected:
+		/*!
+		\brief 保护构造：空实现。
+		*/
+		noncopyable()
+		{}
+		/*!
+		\brief 保护析构：空实现。
+		*/
+		~noncopyable()
+		{}
+
+	private: 
+		/*!
+		\brief 禁止复制构造。
+		\note 无实现。
+		*/
+		noncopyable(const noncopyable&);
+
+		/*!
+		\brief 禁止赋值复制。
+		\note 无实现。
+		*/
+		noncopyable& operator=(const noncopyable&);
+	};
+
+#ifdef YCL_HAS_BUILTIN_NULLPTR
+
+	using std::nullptr_t;
+
+#else
+
+	/*!
+	\brief 空指针类。
+	\note 代码参考：
+	http://topic.csdn.net/u/20100924/17/ \
+		BE0C26F8-5127-46CD-9136-C9A96AAFDA76.html 。
+	*/
+	const class nullptr_t
+	{
+	public:
+		/*
+		\brief 转换任意类型至空非成员或静态成员指针。
+		*/
+		template<typename T>
+		inline operator T*() const
+		{
+			return 0;
+		}
+
+		/*
+		\brief 转换任意类型至空非静态成员指针。
+		*/
+		template<typename C, typename T>
+		inline operator T C::*() const
+		{
+			return 0;
+		}
+		/*
+		\brief 支持关系运算符重载。
+		*/
+		template<typename T> bool
+		equals(T const& rhs) const
+		{
+			return rhs == 0;
+		}
+
+	private:
+		/*
+		\brief 禁止取 nullptr 的指针：无实现。
+		*/
+		void operator&() const;
+	} nullptr = {};
+
+	template<typename T>
+	inline bool
+	operator==(const nullptr_t& lhs, T const& rhs)
+	{
+		return lhs.equals(rhs);
+	}
+	template<typename T>
+	inline bool
+	operator==(T const& lhs, const nullptr_t& rhs)
+	{
+		return rhs.equals(lhs);
+	}
+
+	template<typename T>
+	inline bool
+	operator!=(const nullptr_t& lhs, T const& rhs)
+	{
+		return !lhs.equals(rhs);
+	}
+	template<typename T>
+	inline bool
+	operator!=(T const& lhs, const nullptr_t& rhs)
+	{
+		return !rhs.equals(lhs);
+	}
+
+#endif
+
 	/*!	\defgroup Functors General Functors
 	\brief 算法。
 	*/
@@ -313,6 +421,10 @@ namespace ystdex
 		return std::make_pair(i, (i == m.end() || m.key_comp()(k, i->first)));
 	}
 }
+
+#ifndef YCL_HAS_BUILTIN_NULLPTR
+using ystdex::nullptr;
+#endif
 
 #endif
 

@@ -11,12 +11,12 @@
 /*!	\file ytmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4071;
+\version 0.4079;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-04-03 16:08 +0800;
+	2011-04-25 12:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,7 +41,7 @@ catch(...)
 }
 
 uchar_t&
-TextBuffer::operator[](SizeType i) ythrow()
+TextBuffer::operator[](SizeType i) ynothrow
 {
 	YAssert(i < capacity,
 		"In function \"uchar_t\n"
@@ -158,14 +158,14 @@ TextMap::Clear()
 
 
 TextFileBuffer::HText::HText(TextFileBuffer* pBuf, BlockSizeType b, SizeType i)
-	ythrow()
+	ynothrow
 	: pBuffer(pBuf), blk(b), idx(i)
 {
 //	assert(buf.GetTextSize() >= 1);
 }
 
 TextFileBuffer::HText&
-TextFileBuffer::HText::operator++() ythrow()
+TextFileBuffer::HText::operator++() ynothrow
 {
 	if(pBuffer)
 	{
@@ -185,7 +185,7 @@ TextFileBuffer::HText::operator++() ythrow()
 }
 
 TextFileBuffer::HText&
-TextFileBuffer::HText::operator--() ythrow()
+TextFileBuffer::HText::operator--() ynothrow
 {
 	if(pBuffer)
 	{
@@ -202,7 +202,7 @@ TextFileBuffer::HText::operator--() ythrow()
 }
 
 uchar_t
-TextFileBuffer::HText::operator*() ythrow()
+TextFileBuffer::HText::operator*() ynothrow
 {
 	const uchar_t* p(GetTextPtr());
 
@@ -222,7 +222,7 @@ TextFileBuffer::HText::operator+(std::ptrdiff_t o)
 
 bool
 operator==(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
-	ythrow()
+	ynothrow
 {
 	return lhs.pBuffer == rhs.pBuffer
 		&& lhs.blk == rhs.blk && lhs.idx == rhs.idx;
@@ -230,7 +230,7 @@ operator==(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
 
 bool
 operator<(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
-	ythrow()
+	ynothrow
 {
 	if(lhs.pBuffer < rhs.pBuffer)
 		return true;
@@ -259,9 +259,9 @@ TextFileBuffer::HText::operator+=(std::ptrdiff_t o)
 }
 
 const uchar_t*
-TextFileBuffer::HText::GetTextPtr() const ythrow()
+TextFileBuffer::HText::GetTextPtr() const ynothrow
 {
-	const uchar_t* p(NULL);
+	const uchar_t* p(nullptr);
 
 	if(pBuffer)
 	{
@@ -271,14 +271,14 @@ TextFileBuffer::HText::GetTextPtr() const ythrow()
 		}
 		catch(...)
 		{
-			return NULL;
+			return nullptr;
 		}
 	}
 	return p;
 }
 
 SizeType
-TextFileBuffer::HText::GetBlockLength(BlockSizeType i) const ythrow()
+TextFileBuffer::HText::GetBlockLength(BlockSizeType i) const ynothrow
 {
 	if(!pBuffer)
 		return 0;
@@ -339,13 +339,13 @@ TextFileBuffer::operator[](const BlockSizeType& i)
 }
 
 TextFileBuffer::HText
-TextFileBuffer::begin() ythrow()
+TextFileBuffer::begin() ynothrow
 {
 	return TextFileBuffer::HText(this);
 }
 
 TextFileBuffer::HText
-TextFileBuffer::end() ythrow()
+TextFileBuffer::end() ynothrow
 {
 	return TextFileBuffer::HText(this,
 		(nTextSize + nBlockSize - 1) / nBlockSize);

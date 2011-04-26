@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 样式无关的控件。
-\version 0.4941;
+\version 0.4947;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-04-20 11:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -416,19 +416,19 @@ public:
 	virtual
 	~Control();
 
-	ImplI1(IControl) DefPredicateBase(Visible, Visual)
-	ImplI1(IControl) DefPredicateBase(Transparent, Visual)
+	ImplI1(IControl) DefPredicateBase(Visible, Widget)
+	ImplI1(IControl) DefPredicateBase(Transparent, Widget)
 	ImplI1(IControl) DefPredicate(Enabled, enabled)
 	ImplI1(IControl) bool
 	IsFocused() const;
 
-	ImplI1(IControl) DefGetterBase(const Point&, Location, Visual)
-	ImplI1(IControl) DefGetterBase(const Size&, Size, Visual)
+	ImplI1(IControl) DefGetterBase(const Point&, Location, Widget)
+	ImplI1(IControl) DefGetterBase(const Size&, Size, Widget)
 	ImplI1(IControl) DefGetterBase(IUIBox*&, ContainerPtr, Widget)
 	ImplI1(IControl) DefGetter(VisualEventMapType&, EventMap, EventMap)
 
-	ImplI1(IControl) DefSetterBase(bool, Visible, Visual)
-	ImplI1(IControl) DefSetterBase(bool, Transparent, Visual)
+	ImplI1(IControl) DefSetterBase(bool, Visible, Widget)
+	ImplI1(IControl) DefSetterBase(bool, Transparent, Widget)
 	ImplI1(IControl) void
 	SetLocation(const Point&);
 	ImplI1(IControl) void

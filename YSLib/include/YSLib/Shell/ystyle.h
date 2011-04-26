@@ -11,12 +11,12 @@
 /*!	\file ystyle.h
 \ingroup Shell
 \brief 图形用户界面样式。
-\version 0.1150;
+\version 0.1216;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-08 13:21:10 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-04-24 18:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -86,6 +86,72 @@ YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Components)
 
+YSL_BEGIN_NAMESPACE(Styles)
+
+typedef enum
+{
+	//背景和填充区域。
+	Null = 0, //!< 空（屏幕背景）。
+	Desktop = 1, //!< 桌面背景。
+	Window = 2, //!< 窗口背景。
+	Panel = 3, //!< 面板背景。
+	Track = 4, //!< 滚动条背景。
+	Workspace = 5, //!< 应用程序工作区背景。
+	Shadow = 6, //!< 阴影背景。
+	DockShadow = 7, //!< 容器阴影背景。
+	Light = 8, //!< 明亮背景。
+	Frame = 9, //!< 框架背景。
+	Highlight = 10, //!< 高亮背景。
+	BorderFill = 11, //!< 边框填充。
+	ActiveBorder = 12, //!< 活动边框背景。
+	InactiveBorder = 13, //!< 不活动边框背景。
+	ActiveTitle = 14, //!< 活动标题背景。
+	InactiveTitle = 15, //!< 不活动标题背景。
+
+	//前景和文本。
+	HighlightText = 16,
+	WindowText = 17,
+	PanelText = 18,
+	GrayText = 19,
+	TitleText = 20,
+	InactiveTitleText = 21,
+	HotTracking = 22,
+
+	EndArea = 24
+} Area;
+
+
+/*!
+\brief 默认调色板。
+*/
+class Palette
+{
+public:
+	typedef Drawing::Color ItemType; //项目类型。
+	typedef vector<ItemType> ColorListType; //颜色组类型。
+
+private:
+	ColorListType colors; //颜色组。
+//	Drawing::Color colors[EndArea];
+
+public:
+	/*!
+	\brief 无参数构造。
+	\note 得到包含默认界面颜色配置的调色板。
+	*/
+	Palette();
+
+	/*!
+	\brief 取颜色引用。
+	*/
+	PDefHOperator1(Drawing::Color&, [], size_t s)
+		ImplRet(colors[s])
+
+	DefGetter(const ColorListType&, List, colors)
+	DefMutableGetter(ColorListType&, List, colors)
+};
+
+YSL_END_NAMESPACE(Styles)
 
 YSL_END_NAMESPACE(Components)
 

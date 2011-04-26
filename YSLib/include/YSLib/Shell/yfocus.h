@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup Shell
 \brief 图形用户界面焦点特性。
-\version 0.2336;
+\version 0.2340;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-04-25 12:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,7 +69,7 @@ public:
 };
 
 inline MSimpleFocusResponser::MSimpleFocusResponser()
-	: pFocusing(NULL)
+	: pFocusing(nullptr)
 {}
 
 
@@ -89,7 +89,7 @@ protected:
 	*/
 	inline
 	GMFocusResponser()
-		: pFocusing(NULL), sFOs()
+		: pFocusing(nullptr), sFOs()
 	{}
 
 public:
@@ -124,7 +124,7 @@ public:
 	SetFocusingPtr(_type* p)
 	{
 		if(!p)
-			return (pFocusing = NULL);
+			return (pFocusing = nullptr);
 		if(sFOs.find(p) == sFOs.end())
 			return false;
 		if(pFocusing != p)
@@ -138,7 +138,7 @@ public:
 
 	//! \brief 清空焦点指针。
 	inline PDefH0(void, ClearFocusingPtr)
-		ImplRet(static_cast<void>(SetFocusingPtr(NULL)))
+		ImplRet(static_cast<void>(SetFocusingPtr(nullptr)))
 };
 
 
@@ -191,7 +191,7 @@ template<template<class> class _tResponser, class _type>
 bool
 AFocusRequester::ReleaseFocus(_tResponser<_type>& c)
 {
-	return IsFocusOfContainer(c) && !(c.SetFocusingPtr(NULL));
+	return IsFocusOfContainer(c) && !(c.SetFocusingPtr(nullptr));
 }
 
 YSL_END_NAMESPACE(Components)

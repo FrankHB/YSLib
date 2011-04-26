@@ -11,12 +11,12 @@
 /*!	\file ysmsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version 0.2762;
+\version 0.2767;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-08 12:05:26 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-04-23 12:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -147,7 +147,7 @@ template<ID id>
 typename MessageTypeMapping<id>::ContextType*
 CastMessage(const Message& msg)
 {
-	return CastMessage<id>(GetPointer(msg.GetContextPtr()));
+	return CastMessage<id>(msg.GetContextPtr().get());
 }
 
 

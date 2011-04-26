@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2112;
+\version 0.2119;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2011-04-22 22:01 +0800;
+	2011-04-25 14:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,6 +69,7 @@ YSL_BEGIN
 
 	using std::size_t;
 	using ystdex::errno_t;
+	using ystdex::nullptr_t;
 
 	//文件系统常量。
 	using platform::DEF_PATH_DELIMITER;

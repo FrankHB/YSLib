@@ -1,4 +1,4 @@
-//v0.3110; *Build 203 r24;
+//v0.3115; *Build 204 r59;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -159,6 +159,17 @@ $using:
 	\in IUIContainer;
 	\cl YUIContainer;
 }
+\u YControl
+{
+	\in IControl;
+	\cl Control;
+	\cl YControl;
+}
+\u YMenu
+{
+	\cl Menu;
+	\cl YMenu;
+}
 \u YPanel
 {
 	\in IPanel;
@@ -167,12 +178,6 @@ $using:
 \u YUIContainerEx
 {
 	\cl AUIBoxControl;
-}
-\u YControl
-{
-	\in IControl;
-	\cl Control;
-	\cl YControl;
 }
 \u YWindow
 {
@@ -215,272 +220,262 @@ $using:
 
 $DONE:
 r1:
-/ @ \dir Shell:
-	+ \u YMenu;
-	+ \u Viewer;
-	+ \u YConsole;
-/ \h guard @ \a \h @ \lib (YSLib & YCLib & CHRLib);
-/ @ \u YComponent:
-	/ \cl YConsole >> \u YConsole;
-	/ \clt GSequenceViewer >> \h Viewer;
-	- \inc "../Helper/yglobal.h" @ (\h & \impl \u);
-+ \inc "../Helper/yglobal.h" @ \h YConsole;
-/ \a ustring => u16string;
-+ \inc "viewer.h" @ \h ListBox;
-+ \inc "yconsole.h" @ \impl \u YUIcontainer;
+/ \simp \impl @ \mf bool operator!() const ^ \mf expired @ \clt GHWeak
+	@ \h YReference;
 
 r2:
-/= test 1 ^ \conf release;
+/ @ \h YReference:
+	/ \ft GetPointer => raw;
+	/ \ft ResetHandle => reset_pointer;
+	+ \ft<typename _type>_type* raw(auto_ptr<_type>);
+	/ \def @ \a \ft raw ^ \c \ref \param;
+	+ \es ythrow() @ \a \ft raw;
+	+ \ft<typename _type>_type* reset_pointer(auto_ptr<_type>&) ythrow();
+	+ \ft<typename _type>_type* reset_pointer(shared_ptr<_type>&) ythrow();
++ \mac ynothrow @ \h Base;
+/ \h Base["base.h"] => YBase["ybase.h"];
+/ \tr \inc @ \h YNew;
+/ \a ythrow() -> ynothrow;
 
 r3:
-/ \mg \f YMain @ \impl \u Platform::DS::Main -> \f main \impl \u YGlobal;
-/ @ \impu \u YGlobal:
-	/ \mg \f void YDestroy() @ \un \ns -> \f main;
-	/ \mg \f void YSInit() @ \un \ns -> \f main;
-	- \pre \decl @ \f int YMain(int, char*[]);
+/= test 1 ^ \conf release;
 
 r4:
-- \sm DefaultShellHandle @ \cl YApplication;
-/ @ \u YGlobal:
-	+ \f YApplication& GetApp();
-	+ \f const GHandle<YShell>& GetMainShellHandle();
-	- \g reference theApp;
-/ \a theApp -> GetApp();
-- \pre \decl extern YApplication& theApp @ \h YShellDefinition;
-+ \tr \inc \h @ \impl \u (YFont & YShellInitialization);
-/ \tr \impl @ \mf void YApplication::ResetShellHandle() ythrow();
-/ \tr \impl @ (\dtor & \mf DefShlProc & \mf PostQuitMessage) @ cl YShell;
+/ \impl @ \mf (void Global::ReleaseDevices() ynothrow
+	& int YShell::DefShlProc(const Message&)
+	& int ShlSetting::OnDeactivated(const Message& msg) ^ (\mf GHandle::reset
+	~ !\m \ft reset @ \h YReference);
+- \mf T* Release() @ \clt GHandle @ \h YReference;
+- \ft<class _type> _type* FetchContextRawPtr(const Message&)
+	@ \h YShellMessage;
+/ \impl ^ \ft dynamic_handle_cast ~ \ft HandleCast @ \impl \u Shells;
+/ @ \h YShellHelper:
+	- \ft<class _type, class _tHandle> \i _type* HandleCast(_tHandle);
+	- \ft<class _tHandle> \i void ReplaceHandle(_tHandle&, _tHandle);
 
 r5:
-/= test 2 ^ \conf release;
+/ \impl @ \tf CastMessage ^ (\mf get @ \clt GHandle ~ \ft raw @ \h YReference);
 
 r6:
-/ @ \cl YApplication:
-	- \m Global* pResource;
-	/ \tr \impl @ (\ctor & \dtor);
-	/ \mf GetPlatformResource() ythrow()
-		-> !\m \f GetGlobal() ythrow() @ \u YGlobal;
-	- \pre \decl @ \cl Global @ \h;
-/ @ \u YGlobal:
-	/ \impl @ \f GetApp;
-	/ friend \decl \cl YApplication -> friend \f Global& GetGlobal() ythrow()
-		@ \cl Global;
+/= test 2 ^ \conf release;
 
 r7:
-/= test 3 ^ \conf release;
+/ DeclareHandle(IWindow, HWND) -> typedef IWindow* HWND @ \h YComponent;
+- \mac DeclareHandle(type, handle) @ \h YShellDefinition;
+/ \tr @ \cl AFrame:
+	- \mf !\vt void operator+=(HWND);
+	- \mf !\vt bool operator-=(HWND);
+/ \tr @ \impl \u Shells;
+* \tf<typename _type> \i _type* raw(const _type*&) @ \h YReference
+	-> \tf<typename _type> \i _type* raw(_type* const&);
 
 r8:
-/ @ \u YNew:
-	- \g \o extern YSLib::MemoryList DebugMemory;
-	+ \f MemoryList& GetDebugMemoryList();
-	/ \tr @ \impl \u;
-	/ \tr @ \mac (ydelete & ydelete_array);
-/ \tr @ \impl \u YGlobal;
+- typedef IWindow* HWND @ \h YComponent;
+/ \a hWindow => pWindow;
+/ \a hWnd => pWnd;
+/ \a HWND -> IWindow*;
+/ \tr @ \impl \u Shells;
+/ \a GetWindowHandle => GetWindowPtr;
+/= \impl @ \f LocateForParentWindow @ \impl \u YUIContainer;
 
 r9:
-/ @ \u YNew:
-	+ \m \cl NewRecorder @ \cl MemoryList;
-	/ \impl @ \mac ^ MemoryList::NewRecorder
-		~ ::operator new(__FILE__, __LINE__);
+/ \a hWndExtra => pWndExtra;
+/ @ \u YWindow:
+	/ \f bool Show(IWindow*) -> void Show(IWindow&);
+	/ \f bool Hide(IWindow*) -> void Hide(IWindow&);
+/ \tr @ \impl @ \mf ShlSetting::TFormTest::OnClick_btnShowWindow
+	@ \impl \u Shells;
 
 r10:
-/= test 4 ^ \conf release;
+* \tr \impl @ \ft<class _type> IWindow* NewWindow() @ \h YShellHelper;
 
 r11:
-/ \rem \a overload (\f ::operator new & ::operator delete) @ \u YNew;
+/ undid r10;
+* @ \cl ShlSetting @ \u Shells:
+	/ \m IWindow* hWndTest -> auto_ptr<IWindow> pWndTest;
+	/ \m IWindow* pWndExtra -> auto_ptr<IWindow> pWndExtra;
+	/ \tr @ \impl \u;
 
 r12:
-/ \u Label["label.h", "label.cpp"] => YLabel["ylabel.h", "ylabel.cpp"];
-+ \u YLabelEx["ylabelx.h", "ylabelx.cpp"];
-/ \cl MTextList @ \ns Components::Widgets => \ns Components::Widgets
-	@ \u YLabelEx ~ \u YLabel;
-/ \tr \inc @ \h (ListBox & Button);
-/ \inc \h YText -> \h YLabelEx @ \h ListBox;
+/= test 3 ^ \conf release;
 
 r13:
-/ @ \cl MTextList:
-	/ \ac @ \inh MLabel -> public ~ private;
-	/ \ctor \exp MTextList(const Drawing::Font& = Drawing::Font::GetDefault())
-		-> \exp MTextList(GHWeak<ListType> = NULL,
-		const Drawing::Font& = Drawing::Font::GetDefault());
-	+ typedef typename ListType::size_type IndexType;
-	+ \mf void RefreshTextState();
-/ @ \u ListBox:
-	/ @ \cl YSimpleListBox:
-		/ protected \m GHWeak<ListType> wpList -> protected mutable \m
-			@ \cl MTextList;
-		/ private \m Drawing::TextState text_state >> \cl MTextList;
-		+ \inh \cl Widgets::MTextList;
-		- \m Drawing::Font Font;
-		- \m Drawing::Padding Margin;
+/= \tr \rem @ \h (YNew & YObject);
+*= \tr \rem @ \h (YEvent);
+/ @ \ns Components @ \u YStyle:
+	+ \ns Styles;
+	/ @ \ns Styles:
+		+ typedef \en Area;
+		+ \cl Palette;
+/ @ \u YGUI:
+	+ \h YStyle;
+	/ @ \cl YGUIShell:
+		+ \m Components::Styles::Palette Colors;
 		/ \tr \impl @ \ctor;
-		/ \mf ListType& GetList() const ythrow()
-			-> ListType& GetList() @ \cl MTextList;
-		/ \mf Drawing::TextState& GetTextState() ythrow()
-			-> protected Drawing::TextState& GetTextState() @ \cl MTextList;
-		/ typedef String ItemType >> \cl MTextList;
-		/ typedef vector<ItemType> ListType >> \cl MTextList;
-		/ \mf ItemType* GetItemPtr(ViewerType::IndexType)
-			-> ItemType* GetItemPtr(IndexType) const @ \cl MTextList;
-		/ \tr \impl @ \mf Paint;
-		/ \mf GetItemHeight >> \cl MTextList;
-	/ \tr \impl @ \ctor @ \cl YListBox;
 
 r14:
-/ \cl MTextList >> \u YLabel;
-- \u YLabelEx;
-/ \tr \inh \h YLabelEx -> \h YLabel @ \h ListBox;
+/ @ \u YGUI:
+	/ \f bool IsFocusedByShell(const IControl&,
+		GHandle<YGUIShell> = FetchGUIShellHandle()) -> bool
+		IsFocusedByShell(const IControl&, const YGUIShell&);
+	/ \f GHandle<YGUIShell> FetchGUIShellHandle() -> YGUIShell& FetchGUIShell();
+/ \tr \impl @ \impl \u (Shell_DS & Scroll & YControl);
+/ \simp \impl @ \ft NewWindow @ \h YShellHelper;
 
 r15:
-/= test 5 ^ \conf release;
+/ \impl @ \impl \u (Scroll & ) ^ \u YStyle;
 
 r16:
-/ @ \dir Shell
-	- file "viewer.cpp";
-	/ \h Viewer["viewer.h"] => YViewer["yviewer.hpp"];
-/ @ \u ListBox:
-	/ \cl YSimpleListBox -> \cl YMenu @ \u YMenu;
-	+ \inc \h YMenu @ \h;
-	- \inc \h YControl @ \h;
-	- \inc \h YLabel @ \h;
-	- \inc \h Viewer @ \h;
-/ @ \h YMenu:
-	+ \inc \h YControl;
-	+ \inc \h YLabel;
-	- \inc \h YWindow;
-	+ \inc \h YViewer;
-	+ \h YWindow @ \impl \u;
-	+ \h YStyle @ \impl \u;
+* \impl @ \mf ATrack::Paint;
 
 r17:
-/= test 6 ^ \conf release;
+/= test 4 ^ \conf release;
 
 r18:
-/ @ \h YReference:
-	+ \inc \h <memory>;
-	+ \inc \h <tr1/memory>;
-	/ @ \ns YSLib:
-		+ using std::auto_ptr;
-		+ using std::tr1::bad_weak_ptr;
-		+ using std::tr1::const_pointer_cast;
-		+ using std::tr1::dynamic_pointer_cast;
-		+ using std::tr1::enable_shared_from_this;
-		+ using std::tr1::get_deleter;
-		+ using std::tr1::shared_ptr;
-		+ using std::tr1::static_pointer_cast;
-		+ using std::tr1::weak_ptr;
-	- 2 \ft handle2int;
-	- \ft static_handle_cast;
-/= \a std::auto_ptr -> auto_ptr @ (\h Scroll & \impl \u YFont);
+/ \impl @ \mf ATrack::Paint;
 
 r19:
-/ @ \h YReference:
-	/ \t<typename T,
-		template<class> class OP = Policies::GeneralCastRefCounted,
-		class CP = Policies::DisallowConversion,
-		template<class> class KP = Policies::AssertCheck,
-		template<class> class SP = Policies::DefaultSPStorage,
-		typename SPT = SmartPtr<T, OP, CP, KP, SP> > class GHandle
-		-> \clt<typename T, class SPT = shared_ptr<T> >;
-	/ @ \clt GHandle:
-		+ \mf \op==;
-		+ !\exp \ctor @ GHandle(SPT);
-		- \mf \op->;
-	/ \tr @ \ft<typename _type> \i _type* GetPointer(GHandle<_type>);
-/ \impl @ \f FetchGUIShellHandle @ \impl \u YGUI:
-	^ dynamic_pointer_cast ~ general_handle_cast;
-/ \tr \impl @ \f InitConsole @ \impl \u YGlobal;
+/= test 5 ^ \conf release;
 
 r20:
-/ @ \h YReference:
-	- \ft general_handle_cast;
-	/ \mg \a YReset_debug => YReset_ndebug;
-	/ \a YReset_ndebug => ResetHandle;
-	- \mac YReset;
-	- \clt GeneralCastRefCounted @ \ns Policies;
-	- \ns Policies;
-/ @ \h YCoreUtilities:
-	/ \tr @ \cl safe_delete_obj_ndebug;
-	/ \cl safe_delete_obj_debug \mg -> safe_delete_obj_ndebug;
-	/ \cl safe_delete_obj => safe_delete_obj;
-	- \mac safe_delete_obj;
-/ \tr @ \impl \u YShell;
-/ \tr \impl @ \mf Global::ReleaseDevices @ \impl \u YGlobal;
-/ \tr \impl @ \impl \u Shells;
+/= \simp \impl @ \i \mf BelongsTo @ \cl (MWindowObject & MWidget)
+	^ \mac PDefH1 @ \h YWidget;
+/ @ \h YFont:
+	/= \simp \impl @ \i \mf (\op== & \op<) @ \cl FontFile
+		^ \mac PDefHOperator;
+	/= \simp \impl @ \i \mf void ResetGlyphCache() @ \cl YFontCache
+		^ \mac PDefH0;
 
 r21:
-* \tr \impl @ \ft<typename _type> \i bool ResetHandle(_type*&) ythrow()
-	@ \h YReference;
+/ \cl NonCopyable @ \ns Design @ \h YCoreUtilities
+	>> \h Utilities @ \ns ystdex \lib YCLib;
+/ @ \ns ystdex @ \h Utilities:
+	/ \cl NonCopyable => noncopyable;
+	+ \cl nullptr_t @ #ifdef YCL_HAS_BUILTIN_NULLPTR;
++ typedef ystdex::noncopyable @ \ns Design @ \h YCoreUtilities;
++ \mac YCL_HAS_BUILTIN_NULLPTR @ #ifdef \
+	YCL_IMPL_CPP >= 201103L || YCL_IMPL_MSCPP >= 1600;
++ {
+		using ystdex::nullptr_t;
+	#ifndef YCL_HAS_BUILTIN_NULLPTR
+		using ystdex::nullptr;
+	#endif
+} @ \ns YSLib @ \h YAdaptor;
 
 r22:
-/ @ \h YReference:
-	/ \t<typename T,
-		template<class> class DP = Policies::DeleteSingle,
-		class OP = Policies::TwoRefCounts,
-		class CP = Policies::DisallowConversion,
-		template<class> class KP = Policies::AssertCheck,
-		template<class> class RP = Policies::CantResetWithStrong,
-		typename SPT = StrongPtr<T, false, OP, CP, KP, RP, DP> > class GHWeak
-		-> \clt<typename T, SPT = weak_ptr<T> >;
-	- \clt GHStrong;
-	/ \a GHStrong -> GHandle;
-	- \mf Reset @ \clt (GHandle & GHWeak);
-	/ \tr \impl 2 @ \ft ResetHandle;
-	/ @ \clt (GHandle & GHWeak):
-		- \mf \op RefToValue<GHandle>();
-		+ \mf bool \op!() const;
-		+ \mf \op bool() const;
-	+ \mf typename std::tr1::add_reference<_Tp>::type operator*() const
-		@ \clt GHWeak;
-- using Loki::StrongPtr @ \h YAdaptor;
+/ @ \h Utilities @ \lib YCLib:
+	* \inh noncopy @ nullptr_t; // cause default argument conversion failure;
+	+ using std::nullptr_t @ #ifdef YCL_HAS_BUILTIN_NULLPTR;
+/ \a NULL -> nullptr @ \lib YSLib;
+/ \tr \impl @ \mf CharBitmap YFontCache::GetGlyph(fchar_t);
+/ \tr \decl @ \a \mf with nullptr \de \param;
+* !^ nullptr @ \f MemoryList& GetDebugMemoryList() @ \impl \u YNew;
+/ @ \clt GHandle @ YReference:
+	- \de \param @ \ctor GHandle(T* = nullptr);
+	+ \ctor GHandle(nullptr_t = nullptr);
+	- \de \param @ \ctor GWeak(T* = nullptr);
+	+ \ctor GWeak(nullptr_t = nullptr);
 
 r23:
-/ @ \h YAdaptor:
-	- using Loki::RefToValue;
-	- {
-		using Loki::PropagateConst;
-		using Loki::DontPropagateConst;
-		using Loki::RefCounted;
-		using Loki::AllowConversion;
-		using Loki::DisallowConversion;
-		using Loki::RejectNull;
-		using Loki::AssertCheck;
-		using Loki::DefaultSPStorage;
-		using Loki::HeapStorage;
-		using Loki::TwoRefCounts;
-		using Loki::CantResetWithStrong;
-		using Loki::AllowReset;
-		using Loki::NeverReset;
-		using Loki::DeleteSingle;
-		using Loki::DeleteNothing;
-		using Loki::DeleteArray;
-	} @ \ns Policies
-	- using Loki::SmartPtr;
-	- \ns Policies;
-/ \tr @ \h Container @ \dir Adaptor;
-/ \a SmartPtr -> GHandle;
-/ \tr \impl @ \ft<typename _type> \i _type* GetPointer(shared_ptr<_type>)
-	@ \h YReference;
-/ \tr \impl @ \f bool operator==(const Message&, const Message&)
-	@ \impl \u YShellMessage;
-/ \tr \impl @ \mf GetCopyOnWritePtr @ \clt GDependency @ \h YObject;
+/ \a NULL -> nullptr @ (YSTest_ARM9 & \lib YCLib);
++ \inc \h Utilities @ \impl \u (YCommon & YStandardEx);
+/ {
+	#ifndef YCL_HAS_BUILTIN_NULLPTR
+	using ystdex::nullptr;
+	#endif
+} >> \h Utilities ~ \h YAdaptor;
+/ \tr \impl @ \mf void MDualScreenReader::UnloadText() @ \impl \u DSReader;
 
 r24:
+/= test 6 ^ \conf release;
+
+r25:
+/ @ \u YMenu:
+	+ \cl Menu;
+	/ \inh (YControl & Widgets::MTextList) -> (YComponent & Menu) @ \cl YMenu;
+	/ \a \m \exc (ParentType & Paint) >> \cl Menu ~ YMenu;
+	/ @ \cl Menu:
+		+ \m Color HilightBackColor;
+		+ \m Color HilightTextColor;
+		/ \tr @ \ctor;
+		+ protected \mf void DrawItems(const Graphics&);
+
+r26:
+* \de \param order @ \ctor @ \cl Menu @ \h YMenu;
+
+r27:
+/ @ \u Menu:
+	/ \merge YMenu::Paint >> Menu::Paint;
+	+ \vt @ protected \mf Menu::DrawItems; 
+
+r28:
 /= test 7 ^ \conf release;
 
+r29-r40:
+/= test 8;
+
+r41:
+/ \mf void MLabel::PaintText(Widget&, const Graphics&, const Point&)
+	-> void MLabel::PaintText(IWidget&, Color, const Graphics&, const Point&);
+/ \tr @ \mf Paint @ \cl (YLabel & YButton);
+/ \ft<class _tWidget> \i Rect GetBoundsOf(const _tWidget&) @ \h YWidget
+	-> \f \i Rect GetBoundsOf(const IWidget&);
+- \ft<class _tWidget> Point LocateOffset(const _tWidget*, const Point&,
+	const IWindow*) @ \h YUIContainer;
+
+r42:
+/ \a DrawItems => PaintItems;
+
+r43:
+/= test 9 ^ \conf release;
+
+r44:
+- \mf bool BelongsTo(IUIBox*) const @ \cl Widget @ \h YWidget;
+
+r45-r46:
+/= test 10;
+
+r47:
+/ @ \cl Rect @ \u YObject:
+	/ 2 \i \mf Contains -> !\i \mf;
+	/ 2 \i \mf ContainsStrict -> !\i \mf;
+
+r48:
+/ @ \cl Rect @ \u YObject:
+	/ !\i \mf bool Contains(const Point&) const -> \i \mf
+		^ \mac (PDefH1 & ImplRet);
+	/ !\i \mf bool ContainsStrict(const Point&) const -> !\i \mf
+		^ \mac (PDefH1 & ImplRet);
+
+r49-r53:
+/= test 11;
+
+r54:
+/ \a Visual -> Widget @ \u YControl;
+
+r55:
+/ \a Widget -> Control @ \h YPanel;
+/ \a MWindowObject -> MWindow @ \cl AWindow @ \h YWindow;
+
+r56-r58:
+/= test 12;
+
+r59
+/= test 13 ^ \conf release;
 
 $DOING:
 
 $relative_process:
-2011-04-22:
--23.7d;
+2011-04-26:
+-23.8d;
+//c1-c74:r3726;
 
 / ...
 
 
 $NEXT_TODO:
 
-b203-b288:
+b205-b288:
 * fatel error @ direct UI drawing testing;
 + menus;
 + Z order;
@@ -572,26 +567,42 @@ $fix_bugs *; //bugs fixed;
 $modify_features /; //features modified;
 $remove_features -; //features removed;
 $using ^; //using;
+$instead_of ~; //features replacing;
 
-$transform $list ($list_member $pattern $all($exclude $pattern
-	$string_literal "*")) +;
+//$transform $list ($list_member $pattern $all($exclude $pattern
+//	$string_literal "*")) +;
 
 $ellipse_refactoring;
 
 $now
 (
+	/ "weak handle improvement",
+	/ $design "exception specification macro",
+	- "window handles" $=
+	(
+		- "type %HWND",
+		^ "%IWindow*" ~ "%HWND"
+	),
+	* track background painting ignored $since b191,
+	+ "class %nullptr_t at namespace ystdex",
+	^ "nullptr at YSLib",
+	/ $design "widgets virtual member functions"
+),
+
+b203
+(
 	/ $design "units rearrangement",
 	/ $design "global architecture" $=
 	(
-		"global instance function",
+		+ "global instance function",
 		- "all global objects",
 		- "platform dependent global resource from class %YApplication",
 		- "global object in unit YNew"
 	),
-	"class %MTextList",
+	+ "class %MTextList",
 	/ "class %YSimpleText List using class %MTextList inheritance",
 	/ "class %YSimpleText renamed to %YMenu",
-
+	/ "using std::tr1::shared_ptr instead of smart pointers in Loki"
 ),
 
 b202
@@ -604,18 +615,18 @@ b202
 b201
 (
 	/ "focused button style",
-	"key held response in %ShlReader",
-	"GDI API %BlitTo",
+	+ "key helding response in %ShlReader",
+	+ "GDI API %BlitTo",
 	/ "widgets drawing",
 	/ $design "GDI API %CopyTo",
-	"controls: panel",
+	+ "controls: panel",
 	/ $design "YCLib" $=
 	(
-		"partial version checking for compiler and library implementation",
-		"minor macros in YCLib",
+		+ "partial version checking for compiler and library implementation",
+		+ "minor macros in YCLib",
 	),
-	"type conversion helper template",
-	$design "implicit member overloading by interface parameter with type %IControl
+	+ "type conversion helper template",
+	+ $design "implicit member overloading by interface parameter with type %IControl
 		and %IWidget in container class"
 ),
 
@@ -629,7 +640,7 @@ b200
 
 b199
 (
-	"event routing for %KeyUp, %KeyDown and %KeyHeld",
+	+ "event routing for %KeyUp, %KeyDown and %KeyHeld",
 	* "event behavior with optimizing" $since b195,
 	+ "keypad shortcut for file selecter",
 	+ $design "returning number of called handles in event calling"
@@ -638,7 +649,7 @@ b199
 b198
 (
 	* "font caching without default font file load successfully",
-	"showing and hiding windows",
+	+ "showing and hiding windows",
 	* "%ListBox scroll bar length",
 	* "handle constructors",
 	/ $design "shells for DS" $=
@@ -662,74 +673,74 @@ b198
 b197
 (
 	* "label alignment",
-	"%std::string based font cache"
+	+ "%std::string based font cache"
 ),
 
 b196
 (
-	"controls: checkbox",
+	+ "controls: checkbox",
 	* "platform color type",
-	"horizontal text alignment in class %MLabel"
+	+ "horizontal text alignment in class %MLabel"
 ),
 
 b195
 (
 	* $design "makefiles",
-	"dependency events",
-	"simple events routing"
+	+ "dependency events",
+	+ "simple events routing"
 ),
 
 b170_b194
 (
-	"controls: track",
-	"controls: scroll bar",
-	"controls: scrollable container",
-	"controls: listbox"
+	+ "controls: track",
+	+ "controls: scroll bar",
+	+ "controls: scrollable container",
+	+ "controls: listbox"
 ),
 
 b159_b169
 (
-	"controls: buttons": class ("%YThumb", "%YButton"),
-	"controls: listbox class",
-	"events"
+	+ "controls: buttons": class ("%YThumb", "%YButton"),
+	+ "controls: listbox class",
+	+ "events"
 ),
 
 b132_b158
 (
-	$design "core utility templates",
-	"smart pointers using Loki",
-	"Anti-Grain Geometry test",
-	"GUI focus",
-	"shells",
-	"base abbreviation macros",
-	"controls",
-	"virtual inheritance in control classes",
-	"exceptions",
-	"debug macros & functions",
-	"color type",
-	"class template %general_cast",
-	"timer class"
+	+ $design "core utility templates",
+	+ "smart pointers using Loki",
+	+ "Anti-Grain Geometry test",
+	+ "GUI focus",
+	+ "shells",
+	+ "base abbreviation macros",
+	+ "controls",
+	+ "virtual inheritance in control classes",
+	+ "exceptions",
+	+ "debug macros & functions",
+	+ "color type",
+	+ "class template %general_cast",
+	+ "timer class"
 ),
 
 b1_b131
 (
-	"initial test with PALib & libnds",
-	"shell classes",
-	"the application class",
-	"CHRLib: character set management",
-	"fonts management using freetype 2",
-	"YCLib: platform independence",
-	"basic objects & counting",
-	"global objects",
-	"string class",
-	"file classes",
-	"dual screen text file reader framework",
-	"output devices & desktops",
-	"messaging",
-	"program initialization",
-	"simple GUI: widgets & windows",
-	"simple GDI",
-	"simple resource classes"
+	+ "initial test with PALib & libnds",
+	+ "shell classes",
+	+ "the application class",
+	+ "CHRLib: character set management",
+	+ "fonts management using freetype 2",
+	+ "YCLib: platform independence",
+	+ "basic objects & counting",
+	+ "global objects",
+	+ "string class",
+	+ "file classes",
+	+ "dual screen text file reader framework",
+	+ "output devices & desktops",
+	+ "messaging",
+	+ "program initialization",
+	+ "simple GUI: widgets & windows",
+	+ "simple GDI",
+	+ "simple resource classes"
 );
 
 

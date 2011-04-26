@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2181;
+\version 0.2189;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-04-21 07:20 +0800;
+	2011-04-25 12:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -129,7 +129,7 @@ private:
 	\brief 静态单例构造：取自身实例指针。
 	*/
 	static YApplication*
-	GetInstancePtr() ythrow();
+	GetInstancePtr() ynothrow;
 
 public:
 	/*!
@@ -137,14 +137,14 @@ public:
 	\note 无异常抛出。
 	*/
 	virtual
-	~YApplication() ythrow();
+	~YApplication() ynothrow;
 
 	/*!
 	\brief 取得自身实例引用。
 	\note 断言检查：指针非空。
 	*/
 	static YApplication&
-	GetInstance() ythrow();
+	GetInstance() ynothrow;
 	DefGetter(GHandle<YShell>, ShellHandle, hShell) \
 		//!< 取得线程空间中当前运行的 Shell 的句柄。
 	/*!
@@ -179,7 +179,7 @@ public:
 	\brief 复位线程：设置当前运行的线程为主线程。
 	*/
 	void
-	ResetShellHandle() ythrow();
+	ResetShellHandle() ynothrow;
 
 	/*!
 	\brief 复位默认字体缓存：使用指定路径。
@@ -205,13 +205,13 @@ public:
 \brief 全局默认队列消息发送函数。
 */
 void
-SendMessage(const Message&) ythrow();
+SendMessage(const Message&) ynothrow;
 /*!
 \brief 全局默认队列消息发送函数。
 */
 void
 SendMessage(GHandle<YShell>, Messaging::ID, Messaging::Priority,
-	Messaging::IContext* = NULL) ythrow();
+	Messaging::IContext* = nullptr) ynothrow;
 
 YSL_END
 

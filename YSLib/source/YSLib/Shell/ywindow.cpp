@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面窗口。
-\version 0.3683;
+\version 0.3697;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-04-22 21:57 +0800;
+	2011-04-25 12:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,45 +38,35 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Forms)
 
-bool
-Show(HWND hWnd)
+void
+Show(IWindow& wnd)
 {
-	if(hWnd)
-	{
-		hWnd->SetVisible(true);
-		hWnd->SetRefresh(true);
-		return true;
-	}
-	return false;
+	wnd.SetVisible(true);
+	wnd.SetRefresh(true);
 }
 
-bool
-Hide(HWND hWnd)
+void
+Hide(IWindow& wnd)
 {
-	if(hWnd)
-	{
-		hWnd->SetVisible(false);
-		hWnd->SetRefresh(false);
-		return true;
-	}
-	return false;
+	wnd.SetVisible(false);
+	wnd.SetRefresh(false);
 }
 
 
-MWindow::MWindow(const GHandle<YImage> i, HWND hWnd)
-	: MWindowObject(hWnd),
+MWindow::MWindow(const GHandle<YImage> i, IWindow* pWnd)
+	: MWindowObject(pWnd),
 	spBgImage(i), bRefresh(true), bUpdate(false)
 {}
 
 
-AWindow::AWindow(const Rect& r, const GHandle<YImage> i, HWND hWnd)
-	: Control(r), MWindow(i, hWnd)
+AWindow::AWindow(const Rect& r, const GHandle<YImage> i, IWindow* pWnd)
+	: Control(r), MWindow(i, pWnd)
 {}
 
 BitmapPtr
 AWindow::GetBackgroundPtr() const
 {
-	return spBgImage ? spBgImage->GetImagePtr() : NULL;
+	return spBgImage ? spBgImage->GetImagePtr() : nullptr;
 }
 
 void
@@ -156,15 +146,15 @@ AWindow::UpdateToDesktop()
 void
 AWindow::UpdateToWindow() const
 {
-	const HWND hWnd(GetWindowHandle());
+	IWindow* const pWnd(GetWindowPtr());
 
-	if(hWnd)
-		UpdateTo(hWnd->GetContext(), LocateForParentWindow(*this));
+	if(pWnd)
+		UpdateTo(pWnd->GetContext(), LocateForParentWindow(*this));
 }
 
 
-AFrame::AFrame(const Rect& r, const GHandle<YImage> i, HWND hWnd)
-	: AWindow(r, i, hWnd), MUIContainer()
+AFrame::AFrame(const Rect& r, const GHandle<YImage> i, IWindow* pWnd)
+	: AWindow(r, i, pWnd), MUIContainer()
 {}
 
 void
@@ -200,7 +190,7 @@ AFrame::operator-=(IWidget* p)
 {
 	if(p && p->GetContainerPtr() == this)
 	{
-		p->GetContainerPtr() = NULL;
+		p->GetContainerPtr() = nullptr;
 		return MUIContainer::operator-=(p);
 	}
 	return false;
@@ -210,7 +200,7 @@ AFrame::operator-=(IControl* p)
 {
 	if(p && p->GetContainerPtr() == this)
 	{
-		p->GetContainerPtr() = NULL;
+		p->GetContainerPtr() = nullptr;
 		return MUIContainer::operator-=(p);
 	}
 	return false;
@@ -220,7 +210,7 @@ AFrame::operator-=(IWindow* p)
 {
 	if(p && p->GetContainerPtr() == this)
 	{
-		p->GetContainerPtr() = NULL;
+		p->GetContainerPtr() = nullptr;
 		return MUIContainer::operator-=(p);
 	}
 	return false;
@@ -240,9 +230,9 @@ AFrame::ClearFocusingPtr()
 }
 
 
-YFrame::YFrame(const Rect& r, const GHandle<YImage> i, HWND hWnd)
+YFrame::YFrame(const Rect& r, const GHandle<YImage> i, IWindow* pWnd)
 	: YComponent(),
-	AFrame(r, i, hWnd), Buffer()
+	AFrame(r, i, pWnd), Buffer()
 {
 	Buffer.SetSize(GetSize().Width, GetSize().Height);
 

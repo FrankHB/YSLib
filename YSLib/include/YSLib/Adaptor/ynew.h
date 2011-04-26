@@ -11,12 +11,12 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version 0.2045;
+\version 0.2049;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2011-04-21 15:49 +0800;
+	2011-04-24 10:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,7 @@
 #include <platform.h>
 
 //引入 YSLib 命名空间宏。
-#include "base.h"
+#include "ybase.h"
 
 #ifdef YSL_USE_MEMORY_DEBUG
 
@@ -98,7 +98,7 @@ public:
 	};
 
 	/*
-	\brief new 表达式记录器。
+	\brief new 表达式分配记录器。
 	*/
 	class NewRecorder
 	{
@@ -116,6 +116,12 @@ public:
 		NewRecorder& operator=(const NewRecorder&);
 
 	public:
+		/*!
+		\brief 接受 new 表达式返回的指针并注册内存分配记录。
+
+		\note 此用法参考 nvwa 0.8.2 ：
+		http://sourceforge.net/projects/nvwa/files/nvwa/ 。
+		*/
 		template<typename T>
 		T*
 		operator->*(T* p)

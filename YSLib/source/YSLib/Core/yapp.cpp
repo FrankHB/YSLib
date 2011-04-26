@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2289;
+\version 0.2297;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-04-22 22:18 +0800;
+	2011-04-25 12:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,11 +74,11 @@ YApplication::YApplication()
 	: YObject(),
 	Log(), pMessageQueue(new YMessageQueue()),
 	pMessageQueueBackup(new YMessageQueue()),
-	hShell(NULL), pFontCache(NULL)
+	hShell(nullptr), pFontCache(nullptr)
 {
 	ApplicationExit += Destroy_Static;
 }
-YApplication::~YApplication() ythrow()
+YApplication::~YApplication() ynothrow
 {
 	//释放主 Shell 。
 //	YReset(DefaultShellHandle);
@@ -88,7 +88,7 @@ YApplication::~YApplication() ythrow()
 }
 
 YApplication*
-YApplication::GetInstancePtr() ythrow()
+YApplication::GetInstancePtr() ynothrow
 {
 	//单例对象。
 	static YApplication* pInstance(new YApplication());
@@ -96,7 +96,7 @@ YApplication::GetInstancePtr() ythrow()
 	return pInstance;
 }
 YApplication&
-YApplication::GetInstance() ythrow()
+YApplication::GetInstance() ynothrow
 {
 	try
 	{
@@ -155,7 +155,7 @@ YApplication::SetShellHandle(GHandle<YShell> h)
 }
 
 void
-YApplication::ResetShellHandle() ythrow()
+YApplication::ResetShellHandle() ynothrow
 {
 	if(!SetShellHandle(GetMainShellHandle()))
 		Log.FatalError("Error occured @ YApplication::ResetShellHandle;");
@@ -179,12 +179,12 @@ void
 YApplication::DestroyFontCache()
 {
 	ydelete(pFontCache);
-	pFontCache = NULL;
+	pFontCache = nullptr;
 }
 
 
 void
-SendMessage(const Message& msg) ythrow()
+SendMessage(const Message& msg) ynothrow
 {
 	try
 	{
@@ -205,7 +205,7 @@ SendMessage(const Message& msg) ythrow()
 }
 void
 SendMessage(GHandle<YShell> hShl, Messaging::ID id,
-	Messaging::Priority prior, Messaging::IContext* pContext) ythrow()
+	Messaging::Priority prior, Messaging::IContext* pContext) ynothrow
 {
 	try
 	{

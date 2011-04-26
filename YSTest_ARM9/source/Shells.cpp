@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 抽象。
-\version 0.3996;
+\version 0.4029;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-22 22:18 +0800;
+	2011-04-25 14:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -275,7 +275,7 @@ void
 ReleaseShells()
 {
 	for(std::size_t i(0); i != 10; ++i)
-		ResetHandle(GetGlobalImageRef(i));
+		GetGlobalImageRef(i).reset();
 	ReleaseStored<ShlReader>();
 	ReleaseStored<ShlSetting>();
 	ReleaseStored<ShlExplorer>();
@@ -327,8 +327,8 @@ ShlLoad::OnActivated(const Message& msg)
 int
 ShlLoad::OnDeactivated(const Message& msg)
 {
-	GetDesktopUp().GetBackgroundImagePtr() = NULL;
-	GetDesktopDown().GetBackgroundImagePtr() = NULL;
+	GetDesktopUp().GetBackgroundImagePtr() = nullptr;
+	GetDesktopDown().GetBackgroundImagePtr() = nullptr;
 	ParentType::OnDeactivated(msg);
 	return 0;
 }
@@ -388,12 +388,12 @@ ShlExplorer::OnActivated(const Message& msg)
 		&ShlExplorer::OnKeyPress_frm);
 	btnOK.SetTransparent(false);
 /*
-	ReplaceHandle<HWND>(hWndUp,
+	ReplaceHandle<IWindow*>(hWndUp,
 		new TFrmFileListMonitor(GHandle<YShell>(this)));
-	ReplaceHandle<HWND>(hWndDown,
+	ReplaceHandle<IWindow*>(hWndDown,
 		new TFrmFileListSelecter(GHandle<YShell>(this)));
 */
-	//	HandleCast<TFrmFileListSelecter>(
+	//	dynamic_pointer_cast<TFrmFileListSelecter>(
 	//		hWndDown)->fbMain.RequestFocus(GetZeroElement<EventArgs>());
 	//	hWndDown->RequestFocus(GetZeroElement<EventArgs>());
 	ParentType::OnActivated(msg);
@@ -411,8 +411,8 @@ ShlExplorer::OnDeactivated(const Message& msg)
 		&ShlExplorer::OnKeyDown_frm);
 	FetchEvent<KeyPress>(GetDesktopDown()).Remove(*this,
 		&ShlExplorer::OnKeyPress_frm);
-	GetDesktopUp().GetBackgroundImagePtr() = NULL;
-	GetDesktopDown().GetBackgroundImagePtr() = NULL;
+	GetDesktopUp().GetBackgroundImagePtr() = nullptr;
+	GetDesktopDown().GetBackgroundImagePtr() = nullptr;
 	ParentType::OnDeactivated(msg);
 	return 0;
 }
@@ -543,7 +543,7 @@ ShlExplorer::OnConfirmed_fbMain(IControl& /*sender*/, IndexEventArgs& /*e*/)
 
 
 ShlSetting::ShlSetting()
-	: hWndTest(), hWndExtra(),
+	: pWndTest(nullptr), pWndExtra(nullptr),
 	lblA(Rect(5, 20, 200, 22)),
 	lblB(Rect(5, 80, 72, 22))
 {
@@ -553,8 +553,8 @@ ShlSetting::ShlSetting()
 }
 
 ShlSetting::TFormTest::TFormTest()
-	: YForm(Rect(10, 40, 228, 70), NULL,
-		HWND(GetGlobal().GetDesktopDownHandle())),
+	: YForm(Rect(10, 40, 228, 70), nullptr,
+		raw(GetGlobal().GetDesktopDownHandle())),
 	btnEnterTest(Rect(2, 5, 224, 22)), /*GetImage(6)*/
 	btnShowWindow(Rect(45, 35, 124, 22))
 {
@@ -569,7 +569,8 @@ ShlSetting::TFormTest::TFormTest()
 //	FetchEvent<TouchMove>(btnEnterTest) += &Control::OnTouchMove;
 	FetchEvent<Enter>(btnEnterTest) += OnEnter_btnEnterTest;
 	FetchEvent<Leave>(btnEnterTest) += OnLeave_btnEnterTest;
-	FetchEvent<Click>(btnShowWindow).Add(*this, &TFormTest::OnClick_btnShowWindow);
+	FetchEvent<Click>(btnShowWindow).Add(*this,
+		&TFormTest::OnClick_btnShowWindow);
 //	FetchEvent<TouchMove>(btnShowWindow) += OnTouchMove_Dragging;
 //	FetchEvent<TouchDown>(btnShowWindow) += OnClick_btnDragTest;
 }
@@ -602,20 +603,21 @@ ShlSetting::TFormTest::OnLeave_btnEnterTest(IControl& sender,
 void
 ShlSetting::TFormTest::OnClick_btnShowWindow(TouchEventArgs& /*e*/)
 {
-	HWND hWnd(HandleCast<ShlSetting>(FetchShellHandle())->hWndExtra);
+	IWindow* pWnd(raw(dynamic_pointer_cast<ShlSetting>(FetchShellHandle())
+		->pWndExtra));
 
-	if(hWnd)
+	if(pWnd)
 	{
-		if(hWnd->IsVisible())
-			Hide(hWnd);
+		if(pWnd->IsVisible())
+			Hide(*pWnd);
 		else
-			Show(hWnd);
+			Show(*pWnd);
 	}
 }
 
 ShlSetting::TFormExtra::TFormExtra()
-	: YForm(Rect(5, 60, 208, 120), NULL, /*GetImage(7)*/
-		HWND(GetGlobal().GetDesktopDownHandle())),
+	: YForm(Rect(5, 60, 208, 120), nullptr, /*GetImage(7)*/
+		raw(GetGlobal().GetDesktopDownHandle())),
 	btnDragTest(Rect(13, 15, 184, 22)),
 	btnTestEx(Rect(13, 52, 168, 22)),
 	btnReturn(Rect(13, 82, 60, 22)),
@@ -665,14 +667,14 @@ void
 ShlSetting::TFormExtra::OnTouchUp_btnDragTest(TouchEventArgs& e)
 {
 	InputCounter(e);
-	HandleCast<ShlSetting>(FetchShellHandle())->ShowString(strCount);
+	dynamic_pointer_cast<ShlSetting>(FetchShellHandle())->ShowString(strCount);
 	btnDragTest.Refresh();
 }
 void
 ShlSetting::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs& e)
 {
 	InputCounterAnother(e);
-	HandleCast<ShlSetting>(FetchShellHandle())->ShowString(strCount);
+	dynamic_pointer_cast<ShlSetting>(FetchShellHandle())->ShowString(strCount);
 //	btnDragTest.Refresh();
 }
 
@@ -982,12 +984,12 @@ ShlSetting::OnActivated(const Message& msg)
 	GetDesktopUp().GetBackgroundImagePtr() = GetImage(5);
 	GetDesktopDown().BackColor = ARGB16(1, 15, 15, 31);
 	GetDesktopDown().GetBackgroundImagePtr() = GetImage(6);
-	hWndTest = NewWindow<TFormTest>();
-	hWndExtra = NewWindow<TFormExtra>();
-	GetDesktopDown() += hWndTest;
-	GetDesktopDown() += hWndExtra;
-//	hWndTest->DrawContents();
-//	hWndExtra->DrawContents();
+	pWndTest = auto_ptr<IWindow>(NewWindow<TFormTest>());
+	pWndExtra = auto_ptr<IWindow>(NewWindow<TFormExtra>());
+	GetDesktopDown() += pWndTest.get();
+	GetDesktopDown() += pWndExtra.get();
+//	pWndTest->DrawContents();
+//	pWndExtra->DrawContents();
 
 	ParentType::OnActivated(msg);
 	UpdateToScreen();
@@ -997,11 +999,11 @@ ShlSetting::OnActivated(const Message& msg)
 int
 ShlSetting::OnDeactivated(const Message& msg)
 {
-	GetDesktopUp().GetBackgroundImagePtr() = NULL;
-	GetDesktopDown().GetBackgroundImagePtr() = NULL;
+	GetDesktopUp().GetBackgroundImagePtr() = nullptr;
+	GetDesktopDown().GetBackgroundImagePtr() = nullptr;
 	ParentType::OnDeactivated(msg);
-	ResetHandle(hWndTest);
-	ResetHandle(hWndExtra);
+	reset_pointer(pWndTest);
+	reset_pointer(pWndExtra);
 	return 0;
 }
 
@@ -1036,7 +1038,7 @@ string ShlReader::path;
 
 ShlReader::ShlReader()
 	: ShlDS(),
-	Reader(), pTextFile(), hUp(), hDn(), bgDirty(false)
+	Reader(), pTextFile(nullptr), hUp(), hDn(), bgDirty(false)
 {}
 
 int

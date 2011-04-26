@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2141;
+\version 0.2145;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-04-21 07:31 +0800;
+	2011-04-23 09:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,7 +59,7 @@ YSL_BEGIN
 */
 class Global : public NonCopyable
 {
-	friend Global& GetGlobal() ythrow();
+	friend Global& GetGlobal() ynothrow;
 
 public:
 	//! \brief 屏幕大小。
@@ -85,28 +85,28 @@ public:
 	\note 无异常抛出。
 	*/
 	YScreen&
-	GetScreenUp() const ythrow();
+	GetScreenUp() const ynothrow;
 	/*!
 	\brief 取下屏幕。
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
 	*/
 	YScreen&
-	GetScreenDown() const ythrow();
+	GetScreenDown() const ynothrow;
 	/*!
 	\brief 取上桌面。
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
 	*/
 	YDesktop&
-	GetDesktopUp() const ythrow();
+	GetDesktopUp() const ynothrow;
 	/*!
 	\brief 取下桌面。
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
 	*/
 	YDesktop&
-	GetDesktopDown() const ythrow();
+	GetDesktopDown() const ynothrow;
 	/*!
 	\brief 取默认屏幕。
 	\note 无异常抛出。
@@ -134,14 +134,14 @@ public:
 	\note 无异常抛出。
 	*/
 	void
-	InitializeDevices() ythrow();
+	InitializeDevices() ynothrow;
 
 	/*!
 	\brief 释放设备。
 	\note 无异常抛出。
 	*/
 	void
-	ReleaseDevices() ythrow();
+	ReleaseDevices() ynothrow;
 };
 
 
@@ -150,7 +150,7 @@ public:
 \note 无异常抛出。
 */
 Global&
-GetGlobal() ythrow();
+GetGlobal() ynothrow;
 
 /*!
 \brief 取应用程序实例。

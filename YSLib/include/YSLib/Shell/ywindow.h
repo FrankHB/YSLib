@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 样式无关的图形用户界面窗口。
-\version 0.4265;
+\version 0.4284;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-04-22 21:56 +0800;
+	2011-04-26 11:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,7 +56,7 @@ DeclBasedInterface(IWindow, IPanel)
 	DeclIEntry(bool IsUpdateRequired() const)
 
 	DeclIEntry(const Graphics& GetContext() const) //!< 取图形接口上下文。
-	DeclIEntry(HWND GetWindowHandle() const)
+	DeclIEntry(IWindow* GetWindowPtr() const)
 
 	DeclIEntry(void SetRefresh(bool))
 
@@ -68,33 +68,33 @@ EndDecl
 \brief 显示窗口。
 \note 设置可见性和容器（若存在）背景重绘状态并设置自身刷新状态。
 */
-bool
-Show(HWND);
+void
+Show(IWindow&);
 
 /*!
 \brief 隐藏窗口。
 \note 设置不可见性和容器（若存在）背景重绘状态并取消自身刷新状态。
 */
-bool
-Hide(HWND);
+void
+Hide(IWindow&);
 
 
 //! \brief 窗口模块。
 class MWindow : protected Widgets::MWindowObject
 {
 protected:
-	//基类中的 hWindow 为父窗口对象句柄，若为空则说明无父窗口。
+	//基类中的 pWindow 为父窗口对象句柄，若为空则说明无父窗口。
 	mutable GHandle<Drawing::YImage> spBgImage; //!< 背景图像指针。
 	bool bRefresh; //!< 刷新属性：表示有新的绘制请求。
 	bool bUpdate; //!< 更新属性：表示绘制结束，缓冲区准备完毕。
 
 public:
 	/*!
-	\brief 构造：使用指定背景图像、窗口句柄和 Shell 。
+	\brief 构造：使用指定背景图像、窗口指针和 Shell 。
 	*/
 	explicit
 	MWindow(const GHandle<Drawing::YImage> = ynew Drawing::YImage(),
-		HWND = NULL);
+		IWindow* = nullptr);
 
 	DefPredicate(RefreshRequired, bRefresh)
 	DefPredicate(UpdateRequired, bUpdate)
@@ -111,16 +111,17 @@ public:
 	typedef Controls::Control ParentType;
 
 	/*!
-	\brief 构造：使用指定边界、背景图像、窗口句柄和 Shell 句柄。
+	\brief 构造：使用指定边界、背景图像、窗口指针和 Shell 句柄。
 	*/
 	explicit
 	AWindow(const Rect& = Rect::Empty,
-		const GHandle<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
+		const GHandle<Drawing::YImage> = ynew Drawing::YImage(),
+		IWindow* = nullptr);
 
 	ImplI1(IWindow) DefPredicateBase(RefreshRequired, MWindow)
 	ImplI1(IWindow) DefPredicateBase(UpdateRequired, MWindow)
 
-	ImplI1(IWindow) DefGetterBase(HWND, WindowHandle, MWindowObject)
+	ImplI1(IWindow) DefGetterBase(IWindow*, WindowPtr, MWindow)
 	DefGetterBase(GHandle<Drawing::YImage>&, BackgroundImagePtr, MWindow)
 	/*!
 	\brief 取位图背景指针。
@@ -206,7 +207,8 @@ class AFrame : public AWindow, protected Widgets::MUIContainer
 public:
 	explicit
 	AFrame(const Rect& = Rect::Empty,
-		const GHandle<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
+		const GHandle<Drawing::YImage> = ynew Drawing::YImage(),
+		IWindow* = nullptr);
 
 	ImplI1(IWindow) void
 	operator+=(IWidget*);
@@ -216,8 +218,6 @@ public:
 		ImplBodyBase1(MUIContainer, operator+=, p)
 	virtual void
 	operator+=(IWindow*);
-	PDefHOperator1(void, +=, HWND h)
-		ImplRet(static_cast<void>(operator+=(GetPointer(h))))
 	template<class _type>
 	inline void
 	operator+=(_type p)
@@ -236,8 +236,6 @@ public:
 		ImplBodyBase1(MUIContainer, operator-=, p)
 	virtual bool
 	operator-=(IWindow*);
-	PDefHOperator1(bool, -=, HWND h)
-		ImplRet(operator-=(GetPointer(h)))
 	template<class _type>
 	inline bool
 	operator-=(_type p)
@@ -278,11 +276,12 @@ protected:
 
 public:
 	/*!
-	\brief 构造：使用指定边界、背景图像和窗口句柄。
+	\brief 构造：使用指定边界、背景图像和窗口指针。
 	*/
 	explicit
 	YFrame(const Rect& = Rect::Empty,
-		const GHandle<Drawing::YImage> = ynew Drawing::YImage(), HWND = NULL);
+		const GHandle<Drawing::YImage> = ynew Drawing::YImage(),
+		IWindow* = nullptr);
 	virtual
 	~YFrame();
 

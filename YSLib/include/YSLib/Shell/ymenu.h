@@ -11,12 +11,12 @@
 /*!	\file ymenu.h
 \ingroup Shell
 \brief 样式相关的菜单。
-\version 0.1150;
+\version 0.1210;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-04-22 12:53 +0800;
+	2011-04-26 09:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,13 +38,14 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
 
-//! \brief 文本菜单。
-class YMenu : public GMCounter<YMenu>, public YControl,
-	public Widgets::MTextList
+//! \brief 文本菜单模块。
+class Menu : public Controls::Control, public Widgets::MTextList
 {
 public:
-	typedef YControl ParentType;
 	typedef GSequenceViewer<ListType> ViewerType; //!< 视图类型。
+
+	Color HilightBackColor; //!< 高亮背景色。
+	Color HilightTextColor; //!< 高亮文本色。
 
 private:
 	ViewerType viewer; //!< 列表视图。
@@ -61,12 +62,13 @@ private:
 		Dependencies();
 	} Events;
 
-public:
+protected:
 	/*!
-	\brief 构造：使用指定边界和文本列表。
+	\brief 构造：使用指定边界、文本列表、高亮背景色和高亮文本色。
 	*/
 	explicit
-	YMenu(const Rect& = Rect::Empty, GHWeak<ListType> = NULL);
+	Menu(const Rect& = Rect::Empty, GHWeak<ListType> = nullptr,
+		Color = Drawing::ColorSpace::Aqua, Color = Drawing::ColorSpace::White);
 
 public:
 	DefPredicateMember(Selected, viewer)
@@ -118,12 +120,6 @@ public:
 	void
 	SetSelected(const Point&);
 
-	/*!
-	\brief 绘制界面。
-	*/
-	virtual void
-	Paint();
-
 protected:
 	/*!
 	\brief 调整列表视图首项目超出上边界的垂直偏移量为零。
@@ -138,13 +134,13 @@ protected:
 	*/
 	SDst
 	AdjustBottomOffset();
+
 	/*!
 	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
 	\return 选择的项目索引。
 	*/
 	ViewerType::IndexType
 	CheckPoint(SPos, SPos);
-
 	/*!
 	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
 	\return 选择的项目索引。
@@ -156,11 +152,25 @@ public:
 	PDefH0(void, ClearSelected)
 		ImplRet(static_cast<void>(viewer.ClearSelected()))
 
+protected:
+	/*!
+	\brief 绘制菜单项。
+	*/
+	virtual void
+	PaintItems(const Graphics&);
+
+public:
 	/*!
 	\brief 定位视图顶端至指定垂直位置。
 	*/
 	void
 	LocateViewPosition(SDst);
+
+	/*!
+	\brief 绘制界面。
+	*/
+	virtual void
+	Paint();
 
 	/*!
 	\brief 复位视图。
@@ -227,16 +237,31 @@ private:
 };
 
 inline void
-YMenu::SetSelected(const Point& pt)
+Menu::SetSelected(const Point& pt)
 {
 	SetSelected(pt.X, pt.Y);
 }
 
-inline YMenu::ViewerType::IndexType
-YMenu::CheckPoint(const Point& p)
+inline Menu::ViewerType::IndexType
+Menu::CheckPoint(const Point& p)
 {
 	return CheckPoint(p.X, p.Y);
 }
+
+
+//! \brief 文本菜单。
+class YMenu : public GMCounter<YMenu>, public YComponent,
+	public Menu
+{
+public:
+	typedef YControl ParentType;
+
+	/*!
+	\brief 构造：使用指定边界和文本列表。
+	*/
+	explicit
+	YMenu(const Rect& = Rect::Empty, GHWeak<ListType> = nullptr);
+};
 
 YSL_END_NAMESPACE(Controls)
 

@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2100;
+\version 0.2124;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-04-22 21:55 +0800;
+	2011-04-25 12:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,34 +44,13 @@ YSL_BEGIN
 //句柄语法糖。
 
 /*!
-\brief 句柄赋值。
-*/
-template<class _tHandle>
-inline void
-ReplaceHandle(_tHandle& h, _tHandle hWnd)
-{
-	YReset(h);
-	h = hWnd;
-}
-
-/*!
-\brief 句柄转换：内建指针。
-*/
-template<class _type, class _tHandle>
-inline _type*
-HandleCast(_tHandle h)
-{
-	return dynamic_cast<_type*>(GetPointer(h));
-}
-
-/*!
 \brief 句柄转换：对象引用。
 */
 template<class _type, class _tHandle>
 inline _type&
 HandleToReference(_tHandle h) ythrow(std::bad_cast)
 {
-	_type* _tmp(dynamic_cast<_type*>(GetPointer(h)));
+	_type* _tmp(dynamic_cast<_type*>(raw(h)));
 
 	if(!_tmp)
 		throw std::bad_cast();
@@ -85,17 +64,13 @@ HandleToReference(_tHandle h) ythrow(std::bad_cast)
 \brief 从当前 Shell 新建指定类型窗体。
 */
 template<class _type>
-HWND NewWindow()
+IWindow* NewWindow()
 {
-	GHandle<YGUIShell> hShl(FetchGUIShellHandle());
+	IWindow* pWnd(new _type());
 
-	YAssert(hShl, "GUI Shell handle is null.");
+	YAssert(pWnd, "Window pointer is null.");
 
-	HWND hWnd(new _type());
-
-	YAssert(hWnd, "Window handle is null.");
-
-	return hWnd;
+	return pWnd;
 }
 
 
@@ -241,7 +216,7 @@ NewScrImage(ConstBitmapPtr p)
 \brief 新建屏幕图像并指定绘图函数填充。
 */
 GHandle<YImage>
-NewScrImage(PPDRAW f, BitmapPtr gbuf = NULL);
+NewScrImage(PPDRAW f, BitmapPtr gbuf = nullptr);
 
 /*!
 \brief 使用 new 分配空间并复制无压缩位图。
@@ -259,7 +234,7 @@ NewBitmapRaw(const _tPixel* s, size_t n)
 			mmbcpy(d, s, size);
 		return d;
 	}
-	return NULL;
+	return nullptr;
 }
 
 YSL_END_NAMESPACE(Drawing)

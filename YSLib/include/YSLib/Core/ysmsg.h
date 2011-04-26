@@ -11,12 +11,12 @@
 /*!	\file ysmsg.h
 \ingroup Core
 \brief 消息处理。
-\version 0.2128;
+\version 0.2142;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-04-22 22:16 +0800;
+	2011-04-25 13:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,8 +71,8 @@ public:
 	\brief 构造：
 		使用 Shell 句柄、消息标识、消息优先级、光标位置和消息上下文指针。
 	*/
-	Message(GHandle<YShell> = NULL, ID = 0, Priority = 0,
-		GHandle<IContext> = NULL);
+	Message(GHandle<YShell> = GHandle<YShell>(), ID = 0, Priority = 0,
+		GHandle<IContext> = GHandle<IContext>());
 	/*!
 	\brief 复制构造。
 	*/
@@ -103,7 +103,7 @@ public:
 	\brief 交换。
 	*/
 	void
-	Swap(Message&) ythrow();
+	Swap(Message&) ynothrow;
 
 	/*!
 	\brief 更新消息时间戳。
@@ -116,17 +116,6 @@ inline void
 Message::UpdateTimestamp()
 {
 	timestamp = std::clock();
-}
-
-
-/*!
-\brief 取指定消息的消息上下文指针并用 dynamic_cast 转换为制定类型的内建指针。
-*/
-template<class _type>
-_type*
-FetchContextRawPtr(const Message& msg)
-{
-	return dynamic_cast<_type*>(GetPointer(msg.GetContextPtr()));
 }
 
 
@@ -174,7 +163,7 @@ public:
 	\note 非内联。
 	*/
 	virtual
-	~YMessageQueue() ythrow();
+	~YMessageQueue() ynothrow;
 
 	DefPredicate(Empty, q.empty()) //!< 判断消息队列是否为空。
 

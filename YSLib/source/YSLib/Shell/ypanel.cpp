@@ -11,12 +11,12 @@
 /*!	\file ypanel.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面面板。
-\version 0.1109;
+\version 0.1113;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2011-04-20 10:39 +0800;
+	2011-04-25 12:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -63,7 +63,7 @@ Panel::operator-=(IWidget* p)
 {
 	if(p && p->GetContainerPtr() == this)
 	{
-		p->GetContainerPtr() = NULL;
+		p->GetContainerPtr() = nullptr;
 		return MUIContainer::operator-=(p);
 	}
 	return false;
@@ -73,7 +73,7 @@ Panel::operator-=(IControl* p)
 {
 	if(p && p->GetContainerPtr() == this)
 	{
-		p->GetContainerPtr() = NULL;
+		p->GetContainerPtr() = nullptr;
 		return MUIContainer::operator-=(p);
 	}
 	return false;

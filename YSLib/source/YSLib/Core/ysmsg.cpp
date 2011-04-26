@@ -11,12 +11,12 @@
 /*!	\file ysmsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version 0.1671;
+\version 0.1675;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-04-22 22:21 +0800;
+	2011-04-23 09:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -51,7 +51,7 @@ Message::operator=(const Message& rhs)
 }
 
 void
-Message::Swap(Message& rhs) ythrow()
+Message::Swap(Message& rhs) ynothrow
 {
 	std::swap(hShl, rhs.hShl);
 	std::swap(id, rhs.id);
@@ -72,7 +72,7 @@ operator==(const Message& lhs, const Message& rhs)
 YMessageQueue::YMessageQueue()
 	: q()
 {}
-YMessageQueue::~YMessageQueue() ythrow()
+YMessageQueue::~YMessageQueue() ynothrow
 {}
 
 Message

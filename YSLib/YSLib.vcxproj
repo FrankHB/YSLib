@@ -16,11 +16,11 @@
   <ItemGroup>
     <ClInclude Include="include\ysbuild.h" />
     <ClInclude Include="include\YSLib\Adaptor\agg.h" />
-    <ClInclude Include="include\YSLib\Adaptor\base.h" />
     <ClInclude Include="include\YSLib\Adaptor\config.h" />
     <ClInclude Include="include\YSLib\Adaptor\cont.h" />
     <ClInclude Include="include\YSLib\Adaptor\yadaptor.h" />
     <ClInclude Include="include\YSLib\Adaptor\yaslivsp.hpp" />
+    <ClInclude Include="include\YSLib\Adaptor\ybase.h" />
     <ClInclude Include="include\YSLib\Adaptor\yfont.h" />
     <ClInclude Include="include\YSLib\Adaptor\ynew.h" />
     <ClInclude Include="include\YSLib\Adaptor\yref.hpp" />

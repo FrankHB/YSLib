@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2576;
+\version 0.2585;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-04-22 19:12 +0800;
+	2011-04-25 12:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,37 +33,7 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Design)
 
-/*
-\brief 不可复制对象：继承此类的对象在外部无法调用复制构造函数和复制赋值操作符。
-*/
-class NonCopyable
-{
-//保护非多态类。
-protected:
-	/*!
-	\brief 保护构造：空实现。
-	*/
-	NonCopyable()
-	{}
-	/*!
-	\brief 保护析构：空实现。
-	*/
-	~NonCopyable()
-	{}
-
-private: 
-	/*!
-	\brief 禁止复制构造。
-	\note 无实现。
-	*/
-	NonCopyable(const NonCopyable&);
-
-	/*!
-	\brief 禁止赋值复制。
-	\note 无实现。
-	*/
-	NonCopyable& operator=(const NonCopyable&);
-};
+typedef ystdex::noncopyable NonCopyable;
 
 
 /*!
@@ -406,7 +376,7 @@ struct delete_obj_ndebug
 	*/
 	template<typename _type>
 	inline void
-	operator()(_type* _ptr) ythrow()
+	operator()(_type* _ptr) ynothrow
 	{
 		delete _ptr;
 	}
@@ -423,7 +393,7 @@ struct delete_obj_debug
 	*/
 	template<typename _type>
 	inline void
-	operator()(_type* _ptr) ythrow()
+	operator()(_type* _ptr) ynothrow
 	{
 		ydelete(_ptr);
 	}
@@ -445,9 +415,9 @@ struct safe_delete_obj
 	*/
 	template<typename _tPointer>
 	inline void
-	operator()(_tPointer& _ptr) ythrow()
+	operator()(_tPointer& _ptr) ynothrow
 	{
-		ResetHandle(_ptr);
+		reset_pointer(_ptr);
 	}
 };
 

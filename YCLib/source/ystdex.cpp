@@ -11,12 +11,12 @@
 /*!	\file ystdex.cpp
 \ingroup YCLib
 \brief YCLib C++ 标准库扩展。
-\version 0.2025;
+\version 0.2030;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:31:20 +0800; 
 \par 修改时间:
-	2011-03-06 08:45 +0800;
+	2011-04-25 14:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,7 @@
 #include "ystdex.h"
 #include <cstdio>
 #include <cstring>
+#include "ystdex/util.hpp" // for nullptr;
 
 namespace ystdex
 {
@@ -39,13 +40,13 @@ namespace ystdex
 	char*
 	strcpy_n(char* d, const char* s)
 	{
-		return d && s ? std::strcpy(d, s) : NULL;
+		return d && s ? std::strcpy(d, s) : nullptr;
 	}
 
 	char*
 	stpcpy_n(char* d, const char* s)
 	{
-		return d && s ? stpcpy(d, s) : NULL;
+		return d && s ? stpcpy(d, s) : nullptr;
 	}
 
 	int
@@ -57,14 +58,14 @@ namespace ystdex
 	char*
 	strdup_n(const char* s)
 	{
-		return s ? strdup(s) : NULL;
+		return s ? strdup(s) : nullptr;
 	}
 
 	char*
 	strcpycat(char* d, const char* s1, const char* s2)
 	{
 		if(!d)
-			return NULL;
+			return nullptr;
 		if(s1)
 			std::strcpy(d, s1);
 		if(s2)

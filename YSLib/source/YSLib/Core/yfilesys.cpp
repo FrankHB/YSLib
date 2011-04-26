@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2150;
+\version 0.2154;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-04-09 21:15 +0800;
+	2011-04-25 12:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -170,11 +170,11 @@ const char*
 GetFileNameFrom(CPATH path)
 {
 	if(!path)
-		return NULL;
+		return nullptr;
 
 	const char* p(strrchr(path, DEF_PATH_DELIMITER));
 
-	return p ? (*++p ? p : NULL) : path;
+	return p ? (*++p ? p : nullptr) : path;
 }
 string
 GetFileNameFrom(const string& path)
@@ -263,11 +263,11 @@ const char*
 GetExtendNameFrom(const char* name)
 {
 	if(!name)
-		return NULL;
+		return nullptr;
 
 	const char* p(strrchr(name, '.'));
 
-	return p && *++p ? p : NULL;
+	return p && *++p ? p : nullptr;
 }
 string
 GetExtendNameFrom(const string& name)

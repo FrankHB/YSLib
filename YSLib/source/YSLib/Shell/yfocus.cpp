@@ -11,12 +11,12 @@
 /*!	\file yfocus.cpp
 \ingroup Shell
 \brief 图形用户界面焦点特性。
-\version 0.1383;
+\version 0.1387;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-04-20 10:39 +0800;
+	2011-04-25 12:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN_NAMESPACE(Components)
 void
 MSimpleFocusResponser::ClearFocusingPtr()
 {
-	pFocusing = NULL;
+	pFocusing = nullptr;
 }
 
 bool
@@ -50,7 +50,7 @@ MSimpleFocusResponser::ResponseFocusRelease(AFocusRequester& w)
 {
 	if(pFocusing == dynamic_cast<IControl*>(&w))
 	{
-		pFocusing = NULL;
+		pFocusing = nullptr;
 	//	w.ReleaseFocusRaw();
 		return true;
 	}

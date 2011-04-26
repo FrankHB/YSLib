@@ -12,12 +12,12 @@
 /*!	\file ystatic.hpp
 \ingroup Core
 \brief 全局静态类型存储管理。
-\version 0.1318;
+\version 0.1326;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-14 20:17:34 +0800;
 \par 修改时间:
-	2011-04-20 10:30 +0800;
+	2011-04-25 12:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -100,7 +100,7 @@ public:
 
 template<typename _type, typename _tPointer>
 typename GStaticCache<_type, _tPointer>::PointerType
-	GStaticCache<_type, _tPointer>::_ptr(NULL);
+	GStaticCache<_type, _tPointer>::_ptr(nullptr);
 
 
 //! \brief 全局局部静态单例存储器。
@@ -121,7 +121,7 @@ private:
 	inline static PointerType&
 	GetStaticPtrRef()
 	{
-		static PointerType ptr(NULL);
+		static PointerType ptr(nullptr);
 
 		return ptr;
 	}

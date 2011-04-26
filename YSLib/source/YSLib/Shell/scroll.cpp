@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3554;
+\version 0.3568;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-04-20 10:40 +0800;
+	2011-04-25 12:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -174,7 +174,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 IControl*
 ATrack::GetTopControlPtr(const Point& p)
 {
-	return Contains(Thumb, p) ? &Thumb : NULL;
+	return Contains(Thumb, p) ? &Thumb : nullptr;
 }
 
 void
@@ -227,16 +227,20 @@ ATrack::SetLargeDelta(ATrack::ValueType ld)
 void
 ATrack::Paint()
 {
+	YWidgetAssert(this, Controls::ATrack, Paint);
+
+	Control::Paint();
 	if(!IsTransparent())
 	{
 		const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
 		const Point loc(LocateForWindow(*this));
+		Styles::Palette& pal(FetchGUIShell().Colors);
 
-		FillRect(g, loc, GetSize(), Color(237, 237, 237));
+		FillRect(g, loc, GetSize(), pal[Styles::Track]);
 
 		const SPos xr(loc.X + GetWidth() - 1);
 		const SPos yr(loc.Y + GetHeight() - 1);
-		const Color c(227, 227, 227);
+		const Color& c(pal[Styles::Light]);
 
 		if(IsHorizontal())
 		{
@@ -249,10 +253,6 @@ ATrack::Paint()
 			DrawVLineSeg(g, xr, loc.Y, yr, c);
 		}
 	}
-
-	YWidgetAssert(this, Controls::ATrack, Draw);
-
-	Control::Paint();
 	Thumb.Paint();
 }
 
@@ -390,8 +390,8 @@ YHorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		GHandle<YGUIShell> hShl(FetchGUIShellHandle());
-		SPos x(hShl->LastControlLocation.X + hShl->DraggingOffset.X);
+		YGUIShell& shl(FetchGUIShell());
+		SPos x(shl.LastControlLocation.X + shl.DraggingOffset.X);
 
 		RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
 		Thumb.SetLocation(Point(x, Thumb.GetLocation().Y));
@@ -419,8 +419,8 @@ YVerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		GHandle<YGUIShell> hShl(FetchGUIShellHandle());
-		SPos y(hShl->LastControlLocation.Y + hShl->DraggingOffset.Y);
+		YGUIShell& shl(FetchGUIShell());
+		SPos y(shl.LastControlLocation.Y + shl.DraggingOffset.Y);
 
 		RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
 		Thumb.SetLocation(Point(Thumb.GetLocation().X, y));

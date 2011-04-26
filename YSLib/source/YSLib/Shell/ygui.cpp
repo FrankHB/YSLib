@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面。
-\version 0.3738;
+\version 0.3755;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-22 19:01 +0800;
+	2011-04-25 12:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,8 +42,8 @@ YGUIShell::YGUIShell()
 	KeyHeldState(Free), TouchHeldState(Free),
 	DraggingOffset(Vec::FullScreen), HeldTimer(1000, false),
 	ControlLocation(Point::FullScreen),
-	LastControlLocation(Point::FullScreen),
-	p_KeyDown(NULL), p_TouchDown(NULL), control_entered(false)
+	LastControlLocation(Point::FullScreen), Colors(),
+	p_KeyDown(nullptr), p_TouchDown(nullptr), control_entered(false)
 {}
 
 bool
@@ -96,8 +96,8 @@ YGUIShell::ResetGUIStates()
 	Deactivate(HeldTimer);
 	ControlLocation = Point::FullScreen;
 	LastControlLocation = Point::FullScreen;
-	p_TouchDown = NULL;
-	p_KeyDown = NULL;
+	p_TouchDown = nullptr;
+	p_KeyDown = nullptr;
 }
 
 void
@@ -138,7 +138,7 @@ YGUIShell::ResponseKeyBase(IControl& c, KeyEventArgs& e,
 		if(p_KeyDown == &c)
 		{
 			CallEvent<KeyPress>(c, e);
-			p_KeyDown = NULL;
+			p_KeyDown = nullptr;
 		}
 		break;
 	case KeyDown:
@@ -172,7 +172,7 @@ YGUIShell::ResponseTouchBase(IControl& c, TouchEventArgs& e,
 		if(p_TouchDown == &c)
 		{
 			CallEvent<Click>(c, e);
-			p_TouchDown = NULL;
+			p_TouchDown = nullptr;
 		}
 		break;
 	case TouchDown:
@@ -323,10 +323,15 @@ YGUIShell::ShlProc(const Message& msg)
 
 YSL_END_NAMESPACE(Shells)
 
-GHandle<YGUIShell>
-FetchGUIShellHandle()
+YGUIShell&
+FetchGUIShell()
 {
-	return dynamic_pointer_cast<YGUIShell>(FetchShellHandle());
+	GHandle<YGUIShell> hShl(dynamic_pointer_cast<YGUIShell>(
+		FetchShellHandle()));
+
+	YAssert(hShl, "Invalid handle found @ FetchGUIShell;");
+
+	return *hShl;
 }
 
 YSL_BEGIN_NAMESPACE(Components)
@@ -357,12 +362,9 @@ ReleaseFocusCascade(IControl& c)
 
 
 bool
-IsFocusedByShell(const IControl& c, GHandle<YGUIShell> hShl)
+IsFocusedByShell(const IControl& c, const YGUIShell& shl)
 {
-	if(!hShl)
-		throw GeneralEvent("Null GUI handle found"
-			" @ YCheckBox::IsLockedByCurrentShell");
-	return hShl->GetTouchDownPtr() == &c;
+	return shl.GetTouchDownPtr() == &c;
 }
 
 YSL_END_NAMESPACE(Controls)

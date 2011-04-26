@@ -1,8 +1,8 @@
 ﻿// YSLib::Definitions by Franksoft 2010 - 2011
 // CharSet = UTF-8;
 // CTime = 2010-01-26 19:34:51 +0800;
-// UTime = 2011-04-22 22:03 +0800;
-// Version = r10761;
+// UTime = 2011-04-25 19:29 +0800;
+// Version = r10784;
 
 
 // Definitions ：方法和公共域定义与说明。
@@ -378,13 +378,20 @@ namespace Components
 	$unit Shell::YDesktop;
 	namespace Controls
 	{
-		$unit Shell::Controls;
+		$unit Shell::Button;
+		$unit Shell::CheckBox;
+		$unit Shell::ListBox;
+		$unit Shell::YControl;
 	} //namespace Controls;
 	namespace Forms
 	{
 		$unit Shell::YWindow;
-		$unit Shell::YForm;
+		$unit Shell::Form;
 	} //namespace Forms;
+	namespace Styles
+	{
+		$unit Shell::YStyle;
+	} //namespace Styles;
 	namespace Widgets
 	{
 		$unit Shell::YWidgets;
@@ -404,7 +411,7 @@ namespace Device
 
 namespace Drawing
 {
-	$unit Adaptor::Font;
+	$unit Adaptor::YFont;
 	$unit Core::YObject;
 	$unit Core::YResourse;
 } //namespace Drawing;
@@ -422,7 +429,7 @@ namespace IO
 namespace Runtime
 {
 	$header Core::YEvent;
-	$unit Shell::Control;
+	$unit Shell::YControl;
 	$unit Shell::YGUI;
 } //namespace Runtime;
 
@@ -442,6 +449,15 @@ namespace Text
 	$unit Core::YString;
 	$unit Service::YTextManager;
 } //namespace Text;
+
+// YCLib 全局命名空间污染列表。
+
+$header "ystdex/util.hpp"
+{
+#ifndef YCL_HAS_BUILTIN_NULLPTR
+	using ystdex::nullptr;
+#endif
+} //$header "ystdex/util.hpp"
 
 // std 命名空间兼容性污染列表。
 
@@ -530,6 +546,7 @@ $header Adaptor::YAdaptor
 
 	using std::size_t;
 	using ystdex::errno_t;
+	using ystdex::nullptr_t;
 
 	using platform::DEF_PATH_DELIMITER, platform::DEF_PATH_SEPERATOR,
 		platform::PATHSTR, platform::FILENAMESTR;
@@ -650,7 +667,6 @@ $header Shell::YWidget : Shell::YComponent, Core::YResource
 	namespace Components
 	{
 		using Drawing::PixelType, Drawing::BitmapPtr, Drawing::ConstBitmapPtr, Drawing::ScreenBufferType, Drawing::Color;
-		namespace ColorSpace = Drawing::ColorSpace;
 
 		using Drawing::Point, Drawing::Vec, Drawing::Size, Drawing::Rect;
 		using Drawing::Graphics;

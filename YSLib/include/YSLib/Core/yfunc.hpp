@@ -11,12 +11,12 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数对象封装。
-\version 0.1681;
+\version 0.1684;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2011-04-20 10:31 +0800;
+	2011-04-25 12:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,7 +45,7 @@ protected:
 	\brief 构造：使用指针。
 	*/
 	inline explicit
-	GHBase(_tPointer pf = NULL) : _ptr(pf)
+	GHBase(_tPointer pf = nullptr) : _ptr(pf)
 	{}
 	/*!
 	\brief 构造：使用其它 GHBase 对象。

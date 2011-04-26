@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version 0.2830;
+\version 0.2838;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-04-25 12:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -106,7 +106,7 @@ public:
 \brief 取当前应用程序活动 Shell 句柄。
 */
 GHandle<YShell>
-GetCurrentShellHandle() ythrow();
+GetCurrentShellHandle() ynothrow;
 
 /*!
 \ingroup HelperFunction
@@ -126,7 +126,7 @@ struct HShellProc : public GHBase<PFSHLPROC>
 	/*!
 	\brief 构造：使用函数指针。
 	*/
-	HShellProc(const PFSHLPROC pf = NULL)
+	HShellProc(const PFSHLPROC pf = nullptr)
 	: GHBase<PFSHLPROC>(pf)
 	{}
 
@@ -164,7 +164,7 @@ DefShellProc(const Message& msg)
 \brief 从全局消息队列中取消息。
 \param lpMsg 接收消息信息的 Message 结构指针。
 \param hShl：消息关联（发送目标）的 Shell 的句柄，
-	为 NULL 时无限制（为全局消息）。
+	为 nullptr 时无限制（为全局消息）。
 \param bRemoveMsg 确定取得的消息是否消息队列中清除。
 */
 int

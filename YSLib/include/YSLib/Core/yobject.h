@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version 0.3032;
+\version 0.3048;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-22 22:28 +0800;
+	2011-04-26 10:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -542,31 +542,35 @@ public:
 	Rect(SPos, SPos, SDst, SDst);
 
 	/*!
-	\brief 判断点是否在矩形内或边上。
-	*/
-	bool
-	Contains(const Point&) const;
-	/*!
 	\brief 判断点 (px, py) 是否在矩形内或边上。
 	*/
 	bool
 	Contains(int px, int py) const;
 	/*!
-	\brief 判断点是否在矩形内。
+	\brief 判断点是否在矩形内或边上。
 	*/
-	bool
-	ContainsStrict(const Point& p) const;
+	PDefH1(bool, Contains, const Point& pt) const
+		ImplRet(Contains(pt.X, pt.Y))
+
 	/*!
 	\brief 判断点 (px, py) 是否在矩形内。
 	*/
 	bool
 	ContainsStrict(int px, int py) const;
 	/*!
-	\brief 
+	\brief 判断点是否在矩形内。
 	*/
+	PDefH1(bool, ContainsStrict, const Point& pt) const
+		ImplRet(ContainsStrict(pt.X, pt.Y))
 
-	DefGetter(Point, Point, Point(X, Y)) //!< 取左上角位置。
-	DefGetter(Size, Size, Size(Width, Height)) //!< 取大小。
+	/*!
+	\brief 取左上角位置。
+	*/
+	DefGetter(Point, Point, Point(X, Y))
+	/*!
+	\brief 取大小。
+	*/
+	DefGetter(Size, Size, Size(Width, Height))
 };
 
 inline
@@ -614,31 +618,6 @@ operator!=(const Rect& a, const Rect& b)
 	return !(a == b);
 }
 
-inline bool
-Rect::Contains(const Point& p) const
-{
-	return IsInInterval<int>(p.X - X, Width)
-		&& IsInInterval<int>(p.Y - Y, Height);
-}
-inline bool
-Rect::Contains(int px, int py) const
-{
-	return IsInInterval<int>(px - X, Width)
-		&& IsInInterval<int>(py - Y, Height);
-}
-inline bool
-Rect::ContainsStrict(const Point& p) const
-{
-	return Width > 1 && Height > 1 && IsInOpenInterval<int>(p.X - X, Width - 1)
-		&& IsInOpenInterval<int>(p.Y - Y, Height - 1);
-}
-inline bool
-Rect::ContainsStrict(int px, int py) const
-{
-	return Width > 1 && Height > 1 && IsInOpenInterval<int>(px - X, Width - 1)
-		&& IsInOpenInterval<int>(py - Y, Height - 1);
-}
-
 
 //! \brief 二维图形接口上下文。
 class Graphics
@@ -652,7 +631,7 @@ public:
 	\brief 构造：使用指定位图指针和大小。
 	*/
 	explicit
-	Graphics(BitmapPtr = NULL, const Size& = Size::Zero);
+	Graphics(BitmapPtr = nullptr, const Size& = Size::Zero);
 	/*!
 	\brief 复制构造：浅复制。
 	*/
@@ -668,7 +647,7 @@ public:
 	\note 无异常抛出。
 	*/
 	BitmapPtr
-	operator[](size_t) const ythrow();
+	operator[](size_t) const ynothrow;
 
 	DefPredicate(Valid, pBuffer && size.Width != 0 && size.Height != 0)
 
@@ -738,7 +717,11 @@ YCountableObject::YCountableObject()
 \brief 依赖项类模板。
 
 基于被依赖的默认对象，可通过写时复制策略创建新对象。
-\warning 指针类型需要具有所有权，否则无法回收内存导致泄漏。
+\param _type 被依赖的对象类型，需能被默认构造。
+\param _tOwnerPointer 依赖所有者指针类型。
+\warning 依赖所有者指针需要实现所有权语义，
+	否则出现无法释放资源导致内存泄漏或其它非预期行为。
+\todo 线程模型及安全性。
 */
 template<typename _type, class _tOwnerPointer = GHandle<_type> >
 class GDependency
@@ -751,7 +734,7 @@ private:
 	PointerType ptr;
 
 public:
-	GDependency(PointerType p = NULL)
+	GDependency(PointerType p = nullptr)
 		: ptr(p)
 	{
 		GetCopyOnWritePtr();

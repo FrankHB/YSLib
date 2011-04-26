@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3051;
+\version 0.3055;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-04-22 17:07 +0800;
+	2011-04-23 09:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -436,7 +436,7 @@ public:
 	\pre 断言检查： pTrack.get() 。
 	*/
 	ATrack&
-	GetTrack() const ythrow();
+	GetTrack() const ynothrow;
 	DefGetterMember(ValueType, MaxValue, GetTrack())
 	DefGetterMember(ValueType, Value, GetTrack())
 	DefGetterMember(ValueType, LargeDelta, GetTrack())
@@ -468,7 +468,7 @@ private:
 };
 
 inline ATrack&
-AScrollBar::GetTrack() const ythrow()
+AScrollBar::GetTrack() const ynothrow
 {
 	YAssert(pTrack.get(),
 		"Null widget pointer found @ AScrollBar::GetTrack;");

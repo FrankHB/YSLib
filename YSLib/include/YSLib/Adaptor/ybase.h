@@ -8,19 +8,19 @@
 	understand and accept it fully.
 */
 
-/*!	\file base.h
+/*!	\file ybase.h
 \ingroup Adaptor
 \brief 通用基础设施。
-\version 0.2332;
+\version 0.2352;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-04-23 09:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Adaptor::Base;
+	YSLib::Adaptor::YBase;
 */
 
 
@@ -58,6 +58,8 @@
 #else
 #	define ythrow(...)
 #endif
+
+#define ynothrow ythrow()
 
 
 //接口类型宏。
@@ -260,97 +262,97 @@
 	inline _type::DefEmptyDtor(_type)
 
 #define DefConverter(_type, _expr) \
-	operator _type() const ythrow() \
+	operator _type() const ynothrow \
 	{ \
 		return _expr; \
 	}
 #define DefConverterBase(_type, _base) \
-	operator _type() const ythrow() \
+	operator _type() const ynothrow \
 	{ \
 		return _base::operator _type(); \
 	}
 #define DefConverterMember(_type, _member) \
-	operator _type() const ythrow() \
+	operator _type() const ynothrow \
 	{ \
 		return (_member).operator _type(); \
 	}
 
 #define DefMutableConverter(_type, _expr) \
-	operator _type() ythrow() \
+	operator _type() ynothrow \
 	{ \
 		return _expr; \
 	}
 #define DefMutableConverterBase(_type, _base) \
-	operator _type() ythrow() \
+	operator _type() ynothrow \
 	{ \
 		return _base::operator _type(); \
 	}
 #define DefMutableConverterMember(_type, _member) \
-	operator _type() ythrow() \
+	operator _type() ynothrow \
 	{ \
 		return (_member).operator _type(); \
 	}
 
 #define DefPredicate(_name, _member) \
-	bool _yJOIN(Is, _name)() const ythrow() \
+	bool _yJOIN(Is, _name)() const ynothrow \
 	{ \
 		return (_member); \
 	}
 #define DefPredicateBase(_name, _base) \
-	bool _yJOIN(Is, _name)() const ythrow() \
+	bool _yJOIN(Is, _name)() const ynothrow \
 	{ \
 		return _base::_yJOIN(Is, _name)(); \
 	}
 #define DefPredicateMember(_name, _member) \
-	bool _yJOIN(Is, _name)() const ythrow() \
+	bool _yJOIN(Is, _name)() const ynothrow \
 	{ \
 		return (_member)._yJOIN(Is, _name)(); \
 	}
 
 #define DefMutablePredicate(_name, _member) \
-	bool _yJOIN(Is, _name)() ythrow() \
+	bool _yJOIN(Is, _name)() ynothrow \
 	{ \
 		return (_member); \
 	}
 #define DefMutablePredicateBase(_name, _base) \
-	bool _yJOIN(Is, _name)() ythrow() \
+	bool _yJOIN(Is, _name)() ynothrow \
 	{ \
 		return _base::_yJOIN(Is, _name)(); \
 	}
 #define DefMutablePredicateMember(_name, _member) \
-	bool _yJOIN(Is, _name)() ythrow() \
+	bool _yJOIN(Is, _name)() ynothrow \
 	{ \
 		return (_member)._yJOIN(Is, _name)(); \
 	}
 
 #define DefGetter(_type, _name, _member) \
-	_type _yJOIN(Get, _name)() const ythrow() \
+	_type _yJOIN(Get, _name)() const ynothrow \
 	{ \
 		return (_member); \
 	}
 #define DefGetterBase(_type, _name, _base) \
-	_type _yJOIN(Get, _name)() const ythrow() \
+	_type _yJOIN(Get, _name)() const ynothrow \
 	{ \
 		return _base::_yJOIN(Get, _name)(); \
 	}
 #define DefGetterMember(_type, _name, _member) \
-	_type _yJOIN(Get, _name)() const ythrow() \
+	_type _yJOIN(Get, _name)() const ynothrow \
 	{ \
 		return (_member)._yJOIN(Get, _name)(); \
 	}
 
 #define DefMutableGetter(_type, _name, _member) \
-	_type _yJOIN(Get, _name)() ythrow() \
+	_type _yJOIN(Get, _name)() ynothrow \
 	{ \
 		return (_member); \
 	}
 #define DefMutableGetterBase(_type, _name, _base) \
-	_type _yJOIN(Get, _name)() ythrow() \
+	_type _yJOIN(Get, _name)() ynothrow \
 	{ \
 		return _base::_yJOIN(Get, _name)(); \
 	}
 #define DefMutableGetterMember(_type, _name, _member) \
-	_type _yJOIN(Get, _name)() ythrow() \
+	_type _yJOIN(Get, _name)() ynothrow \
 	{ \
 		return (_member)._yJOIN(Get, _name)(); \
 	}

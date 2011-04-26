@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面容器。
-\version 0.2176;
+\version 0.2181;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-04-20 12:46 +0800;
+	2011-04-25 12:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -106,7 +106,7 @@ namespace
 			pCon = w.GetContainerPtr();
 			pt = w.GetLocation();
 		}
-		while(pCon != NULL)
+		while(pCon != nullptr)
 		{
 			m.insert(make_pair(pCon, pt));
 			pt += pCon->GetLocation();
@@ -142,7 +142,7 @@ LocateForWidget(IWidget& a, IWidget& b)
 		pt = a.GetLocation();
 	}
 
-	while(pCon != NULL)
+	while(pCon != nullptr)
 	{
 		map<IUIBox*, Point>::const_iterator i(m.find(pCon));
 
@@ -160,7 +160,7 @@ LocateForWindow(IWidget& w)
 	if(dynamic_cast<IWindow*>(&w))
 		return Point::Zero;
 
-	const IWindow* pWnd(FetchDirectWindowPtr(w));
+	IWindow* const pWnd(FetchDirectWindowPtr(w));
 
 	return pWnd ? LocateOffset(&w, Point::Zero, pWnd) : Point::FullScreen;
 }
@@ -187,7 +187,7 @@ LocateForParentContainer(const IWidget& w)
 Point
 LocateForParentWindow(const IWidget& w)
 {
-	const IWindow* pWnd(FetchWindowPtr(w));
+	const IWindow* const pWnd(FetchWindowPtr(w));
 
 	return pWnd ? LocateWindowOffset(*pWnd, w.GetLocation())
 		: Point::FullScreen;
@@ -311,7 +311,7 @@ MUIContainer::GetTopWidgetPtr(const Point& pt)
 		++i)
 		if((*i)->IsVisible() && Contains(**i, pt))
 			return *i;
-	return NULL;
+	return nullptr;
 }
 IControl*
 MUIContainer::GetTopControlPtr(const Point& pt)
@@ -319,7 +319,7 @@ MUIContainer::GetTopControlPtr(const Point& pt)
 	for(FOs::const_iterator i(sFOs.begin()); i != sFOs.end(); ++i)
 		if((*i)->IsVisible() && Contains(**i, pt))
 			return *i;
-	return NULL;
+	return nullptr;
 }
 
 bool

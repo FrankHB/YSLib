@@ -11,12 +11,12 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version 0.1527;
+\version 0.1541;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-20 10:40 +0800;
+	2011-04-26 10:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,13 +40,10 @@ const Vec Vec::Zero = Vec();
 const Vec Vec::FullScreen = Vec(Global::MainScreenWidth,
 	Global::MainScreenHeight);
 
+
 const Size Size::Zero = Size();
 const Size Size::FullScreen = Size(Global::MainScreenWidth,
 	Global::MainScreenHeight);
-
-const Rect Rect::Empty = Rect();
-const Rect Rect::FullScreen = Rect(Point::Zero,
-	Global::MainScreenWidth, Global::MainScreenHeight);
 
 
 SPos
@@ -79,7 +76,6 @@ UpdateTo(BinaryGroup& o, SPos v, bool is_1st)
 	else
 		o.Y = v;
 }
-
 void
 UpdateTo(Size& s, SDst v, bool is_1st)
 {
@@ -90,8 +86,27 @@ UpdateTo(Size& s, SDst v, bool is_1st)
 }
 
 
+const Rect Rect::Empty = Rect();
+const Rect Rect::FullScreen = Rect(Point::Zero,
+	Global::MainScreenWidth, Global::MainScreenHeight);
+
+bool
+Rect::Contains(int px, int py) const
+{
+	return IsInInterval<int>(px - X, Width)
+		&& IsInInterval<int>(py - Y, Height);
+}
+
+bool
+Rect::ContainsStrict(int px, int py) const
+{
+	return Width > 1 && Height > 1 && IsInOpenInterval<int>(px - X, Width - 1)
+		&& IsInOpenInterval<int>(py - Y, Height - 1);
+}
+
+
 BitmapPtr
-Graphics::operator[](size_t r) const ythrow()
+Graphics::operator[](size_t r) const ynothrow
 {
 	YAssert(pBuffer, "Buffer pointer is null @ Graphics::operator[];");
 	YAssert(r < size.Height, "Access out of range @ Graphics::operator[];");

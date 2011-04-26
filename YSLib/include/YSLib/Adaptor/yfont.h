@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7228;
+\version 0.7240;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-04-20 11:03 +0800;
+	2011-04-25 12:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -75,7 +75,7 @@ public:
 	\note 无异常抛出。
 	*/
 	const char*
-	GetName() const ythrow();
+	GetName() const ynothrow;
 };
 
 inline
@@ -230,13 +230,14 @@ public:
 	/*!
 	\brief 比较：相等关系。
 	*/
-	bool
-	operator==(const FontFile&) const;
+	PDefHOperator(bool, ==, const FontFile& rhs) const
+		ImplRet(path == rhs.path);
+
 	/*!
 	\brief 比较：严格递增偏序关系。
 	*/
-	bool
-	operator<(const FontFile&) const;
+	PDefHOperator(bool, <, const FontFile& rhs) const
+		ImplRet(path < rhs.path);
 
 	DefGetter(PathType, Path, path)
 	DefGetter(s32, FaceN, nFace)
@@ -247,17 +248,6 @@ public:
 	void
 	ReloadFaces(FT_Library&) const;
 };
-
-inline bool
-FontFile::operator==(const FontFile& rhs) const
-{
-	return path == rhs.path;
-}
-inline bool
-FontFile::operator<(const FontFile& rhs) const
-{
-	return path < rhs.path;
-}
 
 
 /*!
@@ -493,7 +483,7 @@ public:
 	\brief 取跨距。
 	*/
 	s8
-	GetAdvance(fchar_t, FTC_SBit = NULL);
+	GetAdvance(fchar_t, FTC_SBit = nullptr);
 	/*!
 	\brief 取行高。
 	*/
@@ -628,15 +618,9 @@ public:
 	/*
 	!\brief 清除字形缓存。
 	*/
-	void
-	ResetGlyphCache();
+	PDefH0(void, ResetGlyphCache)
+		ImplRet(FTC_Manager_Reset(manager))
 };
-
-inline void
-YFontCache::ResetGlyphCache()
-{
-	FTC_Manager_Reset(manager);
-}
 
 YSL_END_NAMESPACE(Drawing)
 

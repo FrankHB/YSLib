@@ -11,12 +11,12 @@
 /*!	\file yres.h
 \ingroup Core
 \brief 应用程序资源管理模块。
-\version 0.1488;
+\version 0.1496;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-04-22 21:56 +0800;
+	2011-04-25 12:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,7 +57,7 @@ GetGlobalResource()
 */
 template<class _type>
 inline void
-ReleaseGlobalResource() ythrow()
+ReleaseGlobalResource() ynothrow
 {
 	return GStaticCache<_type, GHandle<_type> >::Release();
 }
@@ -78,7 +78,7 @@ public:
 	\brief 构造：使用指定位图指针、长和宽。
 	*/
 	explicit
-	YImage(ConstBitmapPtr = NULL, SDst = 0, SDst = 0);
+	YImage(ConstBitmapPtr = nullptr, SDst = 0, SDst = 0);
 
 	DefGetter(BitmapPtr, ImagePtr, GetBufferPtr())
 

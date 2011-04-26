@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 样式无关的图形用户界面部件。
-\version 0.5915;
+\version 0.5927;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-04-26 09:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -127,9 +127,8 @@ RequestToTop(IWidget&);
 /*!
 \brief 取部件边界。
 */
-template<class _tWidget>
 inline Rect
-GetBoundsOf(const _tWidget& w)
+GetBoundsOf(const IWidget& w)
 {
 	return Rect(w.GetLocation(), w.GetSize());
 }
@@ -163,31 +162,25 @@ MOriented::MOriented(Drawing::Orientation o)
 class MWindowObject
 {
 private:
-	HWND hWindow; //!< 从属的窗口的句柄。
+	IWindow* pWindow; //!< 从属的窗口指针。
 
 protected:
-	MWindowObject(HWND);
+	MWindowObject(IWindow*);
 
 public:
 	/*!
-	\brief 判断是否属于窗口句柄指定的窗口。
+	\brief 判断是否属于窗口指针指定的窗口。
 	*/
-	bool
-	BelongsTo(HWND) const;
+	PDefH1(bool, BelongsTo, IWindow* pWnd) const
+		ImplRet(pWindow == pWnd)
 
-	DefGetter(HWND, WindowHandle, hWindow)
+	DefGetter(IWindow*, WindowPtr, pWindow)
 };
 
 inline
-MWindowObject::MWindowObject(HWND hWnd)
-	: hWindow(hWnd)
+MWindowObject::MWindowObject(IWindow* pWnd)
+	: pWindow(pWnd)
 {}
-
-inline bool
-MWindowObject::BelongsTo(HWND hWnd) const
-{
-	return hWindow == hWnd;
-}
 
 
 //! \brief 可视样式基实现类。
@@ -284,12 +277,6 @@ public:
 	Widget(const Rect& = Rect::Empty,
 		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
 
-	/*!
-	\brief 判断是否属于指定部件容器指针指定的部件容器。
-	*/
-	bool
-	BelongsTo(IUIBox*) const;
-
 	DefGetter(IUIBox*&, ContainerPtr, pContainer)
 
 	/*!
@@ -304,12 +291,6 @@ public:
 	virtual void
 	Refresh();
 };
-
-inline bool
-Widget::BelongsTo(IUIBox* pCon) const
-{
-	return pContainer == pCon;
-}
 
 
 //! \brief 部件。

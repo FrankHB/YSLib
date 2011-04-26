@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3134;
+\version 0.3138;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-04-22 12:42 +0800;
+	2011-04-25 12:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,7 +59,7 @@ private:
 
 public:
 	explicit
-	YListBox(const Rect& = Rect::Empty, GHWeak<ListType> = NULL);
+	YListBox(const Rect& = Rect::Empty, GHWeak<ListType> = nullptr);
 
 	DefPredicateMember(Selected, TextListBox)
 	PDefH1(bool, Contains, ViewerType::IndexType i)

@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面。
-\version 0.2569;
+\version 0.2582;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-04-24 18:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "../Core/yshell.h"
 #include "../Core/yfunc.hpp"
 #include "../Service/ytimer.h"
+#include "ystyle.h"
 
 YSL_BEGIN
 
@@ -53,7 +54,8 @@ public:
 	Drawing::Vec DraggingOffset; //!< 拖放偏移量。
 	Timers::YTimer HeldTimer; //!< 输入接触保持计时器。
 	Point ControlLocation, LastControlLocation; \
-		//最近两次的指针设备操作时的控件全局位置（屏幕坐标）。
+		//!< 最近两次的指针设备操作时的控件全局位置（屏幕坐标）。
+	Components::Styles::Palette Colors; //!< 调色板。
 
 private:
 	//独立焦点指针：自由状态时即时输入（按下）状态捕获的控件指针。
@@ -149,10 +151,11 @@ using Shells::YGUIShell;
 
 /*!
 \brief 取当前线程空间中运行的 GUI Shell 句柄。
-\deprecated 不能简单兼容多线程模型。
+\todo 线程模型和安全性。
+\note 不能简单兼容多线程模型。
 */
-GHandle<YGUIShell>
-FetchGUIShellHandle();
+YGUIShell&
+FetchGUIShell();
 
 YSL_BEGIN_NAMESPACE(Components)
 
@@ -176,7 +179,7 @@ ReleaseFocusCascade(IControl&);
 \throw GeneralEvent 图形用户界面 Shell 句柄为空。
 */
 bool
-IsFocusedByShell(const IControl&, GHandle<YGUIShell> = FetchGUIShellHandle());
+IsFocusedByShell(const IControl&, const YGUIShell& = FetchGUIShell());
 
 YSL_END_NAMESPACE(Controls)
 

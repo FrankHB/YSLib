@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2264;
+\version 0.2268;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-04-22 21:57 +0800;
+	2011-04-25 12:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,7 +57,7 @@ YDesktop::GetTopVisibleDesktopObjectPtr(const Point& pt) const
 		catch(std::bad_cast&)
 		{}
 	}
-	return NULL;
+	return nullptr;
 }
 
 bool

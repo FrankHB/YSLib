@@ -11,12 +11,12 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version 0.1886;
+\version 0.1891;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-02 19:49:41 +0800;
 \par 修改时间:
-	2011-04-21 15:49 +0800;
+	2011-04-25 13:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -106,7 +106,7 @@ YSL_BEGIN
 MemoryList&
 GetDebugMemoryList()
 {
-	static MemoryList debug_memory_list(NULL);
+	static MemoryList debug_memory_list(0);
 
 	return debug_memory_list;
 }

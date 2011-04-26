@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件。
-\version 0.3079;
+\version 0.3085;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2011-04-21 06:38 +0800;
+	2011-04-23 13:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,8 +66,6 @@ using Components::Forms::IWindow;
 using Components::Widgets::IWidget;
 using Components::Widgets::IUIBox;
 using Components::Widgets::IUIContainer;
-
-DeclareHandle(IWindow, HWND)
 
 YSL_BEGIN_NAMESPACE(Components)
 

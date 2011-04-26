@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1752;
+\version 0.1762;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-04-21 07:18 +0800;
+	2011-04-24 18:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -93,7 +93,7 @@ ShlDS::OnActivated(const Message& /*msg*/)
 int
 ShlDS::OnDeactivated(const Message& /*msg*/)
 {
-	YAssert(FetchGUIShellHandle() == this,
+	YAssert(&FetchGUIShell() == this,
 		"Invalid GUI shell found @ ShlDS::OnDeactivated");
 
 	hDskUp->ClearContents();
@@ -134,7 +134,7 @@ ResponseInput(const Message& msg)
 		return;
 
 	Runtime::KeysInfo& k(pContext->Key);
-	GHandle<YGUIShell> hShl(FetchGUIShellHandle());
+	YGUIShell& shl(FetchGUIShell());
 	YDesktop& d(GetGlobal().GetTouchableDesktop());
 
 	using namespace Runtime::KeySpace;
@@ -144,37 +144,37 @@ ResponseInput(const Message& msg)
 	{
 		Components::Controls::TouchEventArgs e(pContext->CursorLocation);
 
-		hShl->ResponseTouch(d, e, TouchUp);
+		shl.ResponseTouch(d, e, TouchUp);
 	}
 	else if(k.Up)
 	{
 		Components::Controls::KeyEventArgs e(k.Up);
 
-		hShl->ResponseKey(d, e, KeyUp);
+		shl.ResponseKey(d, e, KeyUp);
 	}
 	if(k.Down & Touch)
 	{
 		Components::Controls::TouchEventArgs e(pContext->CursorLocation);
 
-		hShl->ResponseTouch(d, e, TouchDown);
+		shl.ResponseTouch(d, e, TouchDown);
 	}
 	else if(k.Down)
 	{
 		Components::Controls::KeyEventArgs e(k.Down);
 
-		hShl->ResponseKey(d, e, KeyDown);
+		shl.ResponseKey(d, e, KeyDown);
 	}
 	if(k.Held & Touch)
 	{
 		Components::Controls::TouchEventArgs e(pContext->CursorLocation);
 
-		hShl->ResponseTouch(d, e, TouchHeld);
+		shl.ResponseTouch(d, e, TouchHeld);
 	}
 	else if(k.Held)
 	{
 		Components::Controls::KeyEventArgs e(k.Held);
 
-		hShl->ResponseKey(d, e, KeyHeld);
+		shl.ResponseKey(d, e, KeyHeld);
 	}
 }
 

@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2289;
+\version 0.2294;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-04-22 21:56 +0800;
+	2011-04-25 13:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,8 @@ public:
 	\brief 构造：使用指定屏幕对象引用、背景色和背景图像。
 	*/
 	explicit
-	YDesktop(YScreen&, Color = 0, GHandle<Drawing::YImage> = NULL);
+	YDesktop(YScreen&, Color = 0,
+		GHandle<Drawing::YImage> = GHandle<Drawing::YImage>());
 
 	DefGetter(const YScreen&, Screen, Screen) //!< 取屏幕对象。
 	DefGetter(BitmapPtr, BackgroundPtr, Screen.GetCheckedBufferPtr()) \

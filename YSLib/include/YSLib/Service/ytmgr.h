@@ -16,12 +16,12 @@
 /*!	\file ytmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4342;
+\version 0.4350;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-04-25 12:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,7 +70,7 @@ public:
 	\note 无运行期范围检查。
 	*/
 	uchar_t&
-	operator[](SizeType) ythrow();
+	operator[](SizeType) ynothrow;
 
 	DefGetter(SizeType, Capacity, capacity) //!< 取最大文本长度。
 	DefGetter(SizeType, SizeOfBuffer, sizeof(uchar_t) * capacity) //!< 取文本缓冲区的大小。
@@ -315,24 +315,24 @@ public:
 		\brief 构造：指定文本读取位置。
 		\note 无异常抛出。
 		*/
-		HText(TextFileBuffer* = NULL, BlockSizeType = 0, SizeType = 0) ythrow();
+		HText(TextFileBuffer* = nullptr, BlockSizeType = 0, SizeType = 0) ynothrow;
 
 		/*!
 		\brief 迭代：循环向后遍历。
 		\note 无异常抛出。
 		*/
 		HText&
-		operator++() ythrow();
+		operator++() ynothrow;
 
 		/*!
 		\brief 迭代：循环向前遍历。
 		\note 无异常抛出。
 		*/
 		HText&
-		operator--() ythrow();
+		operator--() ynothrow;
 
 		uchar_t
-		operator*() ythrow();
+		operator*() ynothrow;
 
 		/*!
 		\brief 迭代：重复循环向后遍历。
@@ -352,37 +352,37 @@ public:
 		\brief 比较：相等关系。
 		*/
 		friend bool
-		operator==(const HText&, const HText&) ythrow();
+		operator==(const HText&, const HText&) ynothrow;
 
 		/*!
 		\brief 比较：不等关系。
 		*/
 		friend bool
-		operator!=(const HText&, const HText&) ythrow();
+		operator!=(const HText&, const HText&) ynothrow;
 
 		/*!
 		\brief 比较：严格偏序递增关系。
 		*/
 		friend bool
-		operator<(const HText&, const HText&) ythrow();
+		operator<(const HText&, const HText&) ynothrow;
 
 		/*!
 		\brief 比较：严格偏序递减关系。
 		*/
 		friend bool
-		operator>(const HText&, const HText&) ythrow();
+		operator>(const HText&, const HText&) ynothrow;
 
 		/*!
 		\brief 比较：非严格偏序递增关系。
 		*/
 		friend bool
-		operator<=(const HText&, const HText&) ythrow();
+		operator<=(const HText&, const HText&) ynothrow;
 
 		/*!
 		\brief 比较：非严格偏序递减关系。
 		*/
 		friend bool
-		operator>=(const HText&, const HText&) ythrow();
+		operator>=(const HText&, const HText&) ynothrow;
 
 		/*!
 		\brief 迭代：重复循环向后遍历。
@@ -404,19 +404,19 @@ public:
 		*/
 		DefGetter(SizeType, IndexN, idx)
 		const uchar_t*
-		GetTextPtr() const ythrow();
+		GetTextPtr() const ynothrow;
 		/*!
 		\brief 取当前区块的长度。
 		\note 无异常抛出。
 		*/
 		SizeType
-		GetBlockLength() const ythrow();
+		GetBlockLength() const ynothrow;
 		/*!
 		\brief 取指定区块号的区块的长度。
 		\note 无异常抛出。
 		*/
 		SizeType
-		GetBlockLength(BlockSizeType) const ythrow();
+		GetBlockLength(BlockSizeType) const ynothrow;
 	};
 
 	YTextFile& File; //!< 文本文件。
@@ -445,39 +445,39 @@ public:
 	\note 无异常抛出。
 	*/
 	HText
-	begin() ythrow();
+	begin() ynothrow;
 
 	/*!
 	\brief 取终止迭代器。
 	\note 无异常抛出。
 	*/
 	HText
-	end() ythrow();
+	end() ynothrow;
 };
 
 inline bool
 operator!=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
-	ythrow()
+	ynothrow
 {
 	return !(lhs == rhs);
 }
 
 inline bool
 operator>(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
-	ythrow()
+	ynothrow
 {
 	return rhs < lhs;
 }
 inline bool
 operator<=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
-	ythrow()
+	ynothrow
 {
 	return !(rhs < lhs);
 }
 
 inline bool
 operator>=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
-	ythrow()
+	ynothrow
 {
 	return !(lhs < rhs);
 }
@@ -495,7 +495,7 @@ TextFileBuffer::HText::operator-=(std::ptrdiff_t o)
 }
 
 inline SizeType
-TextFileBuffer::HText::GetBlockLength() const ythrow()
+TextFileBuffer::HText::GetBlockLength() const ynothrow
 {
 	return GetBlockLength(blk);
 }

@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3194;
+\version 0.3192;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-22 21:55 +0800;
+	2011-04-23 14:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -123,7 +123,8 @@ class ShlSetting : public ShlDS
 public:
 	typedef ShlDS ParentType;
 
-	HWND hWndTest, hWndExtra;
+	auto_ptr<IWindow> pWndTest;
+	auto_ptr<IWindow> pWndExtra;
 	YLabel lblA, lblB;
 
 	struct TFormTest : public YForm

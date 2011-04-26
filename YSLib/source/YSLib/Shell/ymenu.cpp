@@ -11,16 +11,16 @@
 /*!	\file ymenu.cpp
 \ingroup Shell
 \brief 样式相关的菜单。
-\version 0.1138;
+\version 0.1189;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-04-22 12:54 +0800;
+	2011-04-26 09:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YMenu
+	YSLib::Shell::Menu
 */
 
 
@@ -46,118 +46,56 @@ namespace
 }
 
 
-YMenu::Dependencies::Dependencies()
+Menu::Dependencies::Dependencies()
 {
-	Selected.GetRef() += &YMenu::OnSelected;
-	Confirmed.GetRef() += &YMenu::OnConfirmed;
+	Selected.GetRef() += &Menu::OnSelected;
+	Confirmed.GetRef() += &Menu::OnConfirmed;
 }
 
-YMenu::YMenu(const Rect& r, GHWeak<ListType> wp)
-	: YControl(r),
-	MTextList(wp),
+Menu::Menu(const Rect& r, GHWeak<ListType> wp,
+	Color hi_back, Color hi_text)
+	: Control(r), MTextList(wp),
+	HilightBackColor(hi_back), HilightTextColor(hi_text),
 	viewer(GetList()), top_offset(0), Events(GetStaticRef<Dependencies>())
 {
 	SetAllTo(Margin, defMarginH, defMarginV);
-	FetchEvent<KeyDown>(*this) += &YMenu::OnKeyDown;
+	FetchEvent<KeyDown>(*this) += &Menu::OnKeyDown;
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld;
-	FetchEvent<TouchDown>(*this) += &YMenu::OnTouchDown;
-	FetchEvent<TouchMove>(*this) += &YMenu::OnTouchMove;
-	FetchEvent<Click>(*this) += &YMenu::OnClick;
+	FetchEvent<TouchDown>(*this) += &Menu::OnTouchDown;
+	FetchEvent<TouchMove>(*this) += &Menu::OnTouchMove;
+	FetchEvent<Click>(*this) += &Menu::OnClick;
 }
 
 SDst
-YMenu::GetFullViewHeight() const
+Menu::GetFullViewHeight() const
 {
 	return GetItemHeight() * viewer.GetTotal();
 }
 Size
-YMenu::GetFullViewSize() const
+Menu::GetFullViewSize() const
 {
 	return Size(GetWidth(), GetFullViewHeight());
 }
 SDst
-YMenu::GetViewPosition() const
+Menu::GetViewPosition() const
 {
 	return GetItemHeight() * viewer.GetHeadIndex() + top_offset;
 }
 
 void
-YMenu::SetSelected(YMenu::ViewerType::IndexType i)
+Menu::SetSelected(Menu::ViewerType::IndexType i)
 {
 	if(viewer.Contains(i) && viewer.SetSelectedIndex(i))
 		CallSelected();
 }
 void
-YMenu::SetSelected(SPos x, SPos y)
+Menu::SetSelected(SPos x, SPos y)
 {
 	SetSelected(CheckPoint(x, y));
 }
 
-void
-YMenu::Paint()
-{
-	YWidgetAssert(this, Controls::YMenu, Paint);
-
-	ParentType::Paint();
-
-	IWindow* pWnd(FetchDirectWindowPtr(*this));
-
-	if(pWnd)
-	{
-		if(IsFocused())
-			WndDrawFocus(pWnd, GetSize());
-
-		const SDst h(GetHeight());
-
-		if(h != 0)
-		{
-			RefreshTextState();
-
-			const SDst ln_w(GetWidth());
-			const SDst ln_h(GetItemHeight());
-
-			viewer.SetLength((GetHeight() + top_offset + ln_h - 1) / ln_h);
-			if(viewer.GetHeadIndex() >= 0)
-			{
-				const ViewerType::IndexType last(viewer.GetHeadIndex()
-					+ viewer.GetValid());
-				const ListType& list(GetList());
-				const Graphics& g(pWnd->GetContext());
-				const Point pt(LocateForWindow(*this));
-				SPos y(-top_offset);
-
-				for(ViewerType::IndexType i(viewer.GetHeadIndex());
-					i < last; ++i)
-				{
-					int top(y), tmp(y + ln_h);
-
-					RestrictInInterval<int>(top, 0, h);
-					RestrictInInterval<int>(tmp, 0, h);
-					tmp -= top;
-					top += pt.Y;
-					if(viewer.IsSelected() && i == viewer.GetSelectedIndex())
-					{
-						GetTextState().Color = Drawing::ColorSpace::White;
-						FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
-							Rect(pt.X + 1, top + 1, ln_w - 2, tmp - 1),
-							ColorSpace::Aqua);
-					}
-					else
-						GetTextState().Color = ForeColor;
-					GetTextState().ResetForBounds(Rect(pt.X, top, ln_w, tmp),
-						g.GetSize(), Margin);
-					if(y < 0)
-						GetTextState().PenY -= top_offset;
-					DrawText(g, GetTextState(), list[i]);
-					y += ln_h;
-				}
-			}
-		}
-	}
-}
-
 SDst
-YMenu::AdjustTopOffset()
+Menu::AdjustTopOffset()
 {
 	viewer.RestrictSelected();
 
@@ -168,7 +106,7 @@ YMenu::AdjustTopOffset()
 }
 
 SDst
-YMenu::AdjustBottomOffset()
+Menu::AdjustBottomOffset()
 {
 	if(GetFullViewHeight() <= GetHeight())
 		return 0;
@@ -181,15 +119,65 @@ YMenu::AdjustBottomOffset()
 	return down_offset;
 }
 
-YMenu::ViewerType::IndexType
-YMenu::CheckPoint(SPos x, SPos y)
+Menu::ViewerType::IndexType
+Menu::CheckPoint(SPos x, SPos y)
 {
 	return Rect(Point::Zero, GetSize()).Contains(x, y)
 		? (y + top_offset) / GetItemHeight() + viewer.GetHeadIndex() : -1;
 }
 
 void
-YMenu::LocateViewPosition(SDst h)
+Menu::PaintItems(const Graphics& g)
+{
+	const SDst h(GetHeight());
+
+	if(h != 0)
+	{
+		RefreshTextState();
+
+		const SDst ln_w(GetWidth());
+		const SDst ln_h(GetItemHeight());
+
+		viewer.SetLength((GetHeight() + top_offset + ln_h - 1) / ln_h);
+		if(viewer.GetHeadIndex() >= 0)
+		{
+			const ViewerType::IndexType last(viewer.GetHeadIndex()
+				+ viewer.GetValid());
+			const ListType& list(GetList());
+			const Point pt(LocateForWindow(*this));
+			SPos y(-top_offset);
+
+			for(ViewerType::IndexType i(viewer.GetHeadIndex());
+				i < last; ++i)
+			{
+				int top(y), tmp(y + ln_h);
+
+				RestrictInInterval<int>(top, 0, h);
+				RestrictInInterval<int>(tmp, 0, h);
+				tmp -= top;
+				top += pt.Y;
+				if(viewer.IsSelected() && i == viewer.GetSelectedIndex())
+				{
+					GetTextState().Color = HilightTextColor;
+					FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
+						Rect(pt.X + 1, top + 1, ln_w - 2, tmp - 1),
+						HilightBackColor);
+				}
+				else
+					GetTextState().Color = ForeColor;
+				GetTextState().ResetForBounds(Rect(pt.X, top, ln_w, tmp),
+					g.GetSize(), Margin);
+				if(y < 0)
+					GetTextState().PenY -= top_offset;
+				DrawText(g, GetTextState(), list[i]);
+				y += ln_h;
+			}
+		}
+	}
+}
+
+void
+Menu::LocateViewPosition(SDst h)
 {
 	RestrictInInterval(h, 0, GetFullViewHeight());
 
@@ -203,7 +191,23 @@ YMenu::LocateViewPosition(SDst h)
 }
 
 void
-YMenu::ResetView()
+Menu::Paint()
+{
+	YWidgetAssert(this, Controls::Menu, Paint);
+
+	IWindow* pWnd(FetchDirectWindowPtr(*this));
+
+	if(pWnd)
+	{
+		Control::Paint();
+		if(IsFocused())
+			WndDrawFocus(pWnd, GetSize());
+		PaintItems(pWnd->GetContext());
+	}
+}
+
+void
+Menu::ResetView()
 {
 	viewer.MoveViewerToBegin();
 	if(viewer.IsSelected())
@@ -213,14 +217,14 @@ YMenu::ResetView()
 }
 
 void
-YMenu::UpdateView()
+Menu::UpdateView()
 {
 	GetViewChanged()(*this, GetStaticRef<EventArgs>());
 	Refresh();
 }
 
 void
-YMenu::CallSelected()
+Menu::CallSelected()
 {
 	IndexEventArgs e(*this, viewer.GetSelectedIndex());
 
@@ -228,7 +232,7 @@ YMenu::CallSelected()
 }
 
 void
-YMenu::CheckConfirmed(YMenu::ViewerType::IndexType i)
+Menu::CheckConfirmed(Menu::ViewerType::IndexType i)
 {
 	if(viewer.IsSelected() && viewer.GetSelectedIndex() == i)
 	{
@@ -239,7 +243,7 @@ YMenu::CheckConfirmed(YMenu::ViewerType::IndexType i)
 }
 
 void
-YMenu::OnKeyDown(KeyEventArgs& k)
+Menu::OnKeyDown(KeyEventArgs& k)
 {
 	if(viewer.IsSelected())
 	{
@@ -295,36 +299,42 @@ YMenu::OnKeyDown(KeyEventArgs& k)
 }
 
 void
-YMenu::OnTouchDown(TouchEventArgs& e)
+Menu::OnTouchDown(TouchEventArgs& e)
 {
 	SetSelected(e);
 	UpdateView();
 }
 
 void
-YMenu::OnTouchMove(TouchEventArgs& e)
+Menu::OnTouchMove(TouchEventArgs& e)
 {
 	SetSelected(e);
 	UpdateView();
 }
 
 void
-YMenu::OnClick(TouchEventArgs& e)
+Menu::OnClick(TouchEventArgs& e)
 {
 	CheckConfirmed(CheckPoint(e));
 }
 
 void
-YMenu::OnSelected(IndexEventArgs&)
+Menu::OnSelected(IndexEventArgs&)
 {
 	Refresh();
 }
 
 void
-YMenu::OnConfirmed(IndexEventArgs& e)
+Menu::OnConfirmed(IndexEventArgs& e)
 {
 	OnSelected(e);
 }
+
+
+YMenu::YMenu(const Rect& r, GHWeak<ListType> wp)
+	: YComponent(),
+	Menu(r, wp)
+{}
 
 YSL_END_NAMESPACE(Controls)
 

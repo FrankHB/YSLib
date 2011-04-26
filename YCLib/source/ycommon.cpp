@@ -11,12 +11,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2367;
+\version 0.2373;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2011-03-16 19:19 +0800;
+	2011-04-25 14:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include <cstdarg>
 #include <cstring>
 #include <cerrno>
+#include "ystdex/util.hpp" // for nullptr;
 
 
 namespace platform
@@ -187,7 +188,7 @@ namespace platform
 	{
 		if(buf)
 			return ::getcwd(buf, t);
-		return NULL;
+		return nullptr;
 	}
 
 	bool
@@ -336,7 +337,7 @@ namespace platform
 	void
 	HDirectory::Open(CPATH path)
 	{
-		dir = path ? ::diropen(path) : NULL;
+		dir = path ? ::diropen(path) : nullptr;
 	}
 
 	void
@@ -442,7 +443,7 @@ namespace platform
 		{
 			videoSetMode(MODE_0_2D);
 			vramSetBankA(VRAM_A_MAIN_BG);
-			return consoleInit(NULL, mainConsole.bgLayer,
+			return consoleInit(nullptr, mainConsole.bgLayer,
 				BgType_Text4bpp, BgSize_T_256x256,
 				mainConsole.mapBase, mainConsole.gfxBase, true, true);
 		}
@@ -563,7 +564,7 @@ namespace platform
 		u32 version = 0;
 
 		char* firstDot = strchr(string, '.');
-		char* secondDot = NULL;
+		char* secondDot = nullptr;
 		if(firstDot) {
 			*firstDot = '\0';
 			secondDot = strchr(firstDot+1, '.');

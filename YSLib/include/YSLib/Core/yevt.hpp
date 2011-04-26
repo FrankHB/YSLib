@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version 0.4177;
+\version 0.4187;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-04-22 22:18 +0800;
+	2011-04-25 12:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -156,19 +156,6 @@ public:
 		: List(rhs.List)
 	{}
 
-protected:
-	/*!
-	\brief 添加事件响应。
-	\note 不检查是否已经在列表中。
-	*/
-	inline GEvent&
-	AddRaw(const HandlerType& h)
-	{
-		List.push_back(h);
-		return *this;
-	}
-
-public:
 	/*!
 	\brief 复制赋值：覆盖事件响应。
 	*/
@@ -216,6 +203,7 @@ public:
 		this->Clear();
 		return *this = HandlerType(pm);
 	}
+
 	/*!
 	\brief 添加事件响应：使用事件处理器。
 	*/
@@ -250,15 +238,7 @@ public:
 	{
 		return this->operator+=(HandlerType(pm));
 	}
-	/*!
-	\brief 添加事件响应：使用对象引用和成员函数指针。
-	*/
-	template<class _type>
-	inline GEvent&
-	Add(_type& obj, void(_type::*pm)(_tEventArgs&))
-	{
-		return this->operator+=(HandlerType(obj, pm));
-	}
+
 	/*!
 	\brief 移除事件响应：目标为指定事件处理器。
 	*/
@@ -277,7 +257,7 @@ public:
 		return this->operator-=(HandlerType(f));
 	}
 	/*!
-	\brief 
+	\brief 移除事件响应：使用为指定函数对象。
 	*/
 	inline GEvent&
 	operator-=(FunctorType f)
@@ -293,6 +273,30 @@ public:
 	{
 		return operator-=(HandlerType(pm));
 	}
+
+protected:
+	/*!
+	\brief 添加事件响应。
+	\note 不检查是否已经在列表中。
+	*/
+	inline GEvent&
+	AddRaw(const HandlerType& h)
+	{
+		List.push_back(h);
+		return *this;
+	}
+
+public:
+	/*!
+	\brief 添加事件响应：使用对象引用和成员函数指针。
+	*/
+	template<class _type>
+	inline GEvent&
+	Add(_type& obj, void(_type::*pm)(_tEventArgs&))
+	{
+		return this->operator+=(HandlerType(obj, pm));
+	}
+
 	/*!
 	\brief 移除事件响应：目标为指定对象引用和成员函数指针。
 	*/
@@ -340,7 +344,7 @@ public:
 	\brief 交换。
 	*/
 	void
-	Swap(GEvent& rhs) ythrow()
+	Swap(GEvent& rhs) ynothrow
 	{
 		rhs.List.swap(this->List);
 	}
@@ -376,6 +380,7 @@ struct GEvent<false, _tSender, _tEventArgs>
 		HandlerType::_ptr = p;
 		return *this;
 	}
+
 	/*!
 	\brief 添加事件响应：使用事件处理器。
 	*/
@@ -400,6 +405,7 @@ struct GEvent<false, _tSender, _tEventArgs>
 	{
 		return operator+=(HandlerType(f));
 	}
+
 	/*!
 	\brief 移除事件响应：目标为指定事件处理器。
 	*/
@@ -407,7 +413,7 @@ struct GEvent<false, _tSender, _tEventArgs>
 	operator-=(const HandlerType& h)
 	{
 		if(HandlerType::_ptr == h)
-			HandlerType::_ptr = NULL;
+			HandlerType::_ptr = nullptr;
 		return *this;
 	}
 	/*!
@@ -445,7 +451,6 @@ struct GEvent<false, _tSender, _tEventArgs>
 	{
 		return 1;
 	}
-
 	/*!
 	\brief 取事件处理器指针。
 	*/
@@ -461,7 +466,7 @@ struct GEvent<false, _tSender, _tEventArgs>
 	inline void
 	Clear()
 	{
-		HandlerType::_ptr = NULL;
+		HandlerType::_ptr = nullptr;
 	}
 };
 
@@ -488,7 +493,7 @@ public:
 	typedef typename EventType::HandlerType HandlerType;
 	typedef typename EventType::SizeType SizeType;
 
-	GDependencyEvent(PointerType p = NULL)
+	GDependencyEvent(PointerType p = nullptr)
 		: GDependency<_tEvent>(p)
 	{}
 
@@ -525,15 +530,7 @@ public:
 	{
 		return this->GetNewRef().operator+=(pm);
 	}
-	/*!
-	\brief 添加事件响应：使用对象引用和成员函数指针。
-	*/
-	template<class _type>
-	inline EventType&
-	Add(_type& obj, void(_type::*pm)(EventArgsType&))
-	{
-		return this->GetNewRef().Add(obj, pm);
-	}
+
 	/*!
 	\brief 移除事件响应：目标为指定事件处理器。
 	*/
@@ -567,15 +564,6 @@ public:
 	{
 		return this->GetNewRef().operator-=(pm);
 	}
-	/*!
-	\brief 移除事件响应：目标为指定对象引用和成员函数指针。
-	*/
-	template<class _type>
-	inline EventType&
-	Remove(_type& obj, void(_type::*pm)(EventArgsType&))
-	{
-		return this->GetNewRef().Remove(obj, pm);
-	}
 
 	/*!
 	\brief 调用函数。
@@ -584,6 +572,26 @@ public:
 	operator()(SenderType& sender, EventArgsType& e) const
 	{
 		return this->GetRef().operator()(sender, e);
+	}
+
+	/*!
+	\brief 添加事件响应：使用对象引用和成员函数指针。
+	*/
+	template<class _type>
+	inline EventType&
+	Add(_type& obj, void(_type::*pm)(EventArgsType&))
+	{
+		return this->GetNewRef().Add(obj, pm);
+	}
+
+	/*!
+	\brief 移除事件响应：目标为指定对象引用和成员函数指针。
+	*/
+	template<class _type>
+	inline EventType&
+	Remove(_type& obj, void(_type::*pm)(EventArgsType&))
+	{
+		return this->GetNewRef().Remove(obj, pm);
 	}
 
 	/*!
