@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3138;
+\version 0.3148;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-04-25 12:53 +0800;
+	2011-04-26 16:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,20 +46,18 @@ YSL_BEGIN_NAMESPACE(Controls)
 
 带滚动条的文本列表框。
 */
-class YListBox : public GMCounter<YListBox>, public YComponent,
-	public ScrollableContainer
+class ListBox : public ScrollableContainer
 {
 public:
-	typedef YComponent ParentType;
-	typedef YMenu::ListType ListType;
-	typedef YMenu::ViewerType ViewerType;
+	typedef Menu::ListType ListType;
+	typedef Menu::ViewerType ViewerType;
 
 private:
-	YMenu TextListBox; //文本列表框。
+	Menu TextListBox; //文本列表框。
 
 public:
 	explicit
-	YListBox(const Rect& = Rect::Empty, GHWeak<ListType> = nullptr);
+	ListBox(const Rect& = Rect::Empty, GHWeak<ListType> = nullptr);
 
 	DefPredicateMember(Selected, TextListBox)
 	PDefH1(bool, Contains, ViewerType::IndexType i)
@@ -107,14 +105,11 @@ private:
 
 
 //! \brief 文件列表框。
-class YFileBox : public GMCounter<YFileBox>, public IO::FileList,
-	public YListBox
+class FileBox : public IO::FileList, public ListBox
 {
 public:
-	typedef YListBox ParentType;
-
 	explicit
-	YFileBox(const Rect& = Rect::Empty);
+	FileBox(const Rect& = Rect::Empty);
 
 	/*!
 	\brief 取当前路径。

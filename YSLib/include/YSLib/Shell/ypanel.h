@@ -11,12 +11,12 @@
 /*!	\file ypanel.h
 \ingroup Shell
 \brief 样式无关的图形用户界面面板。
-\version 0.1149;
+\version 0.1158;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:40:51 +0800;
 \par 修改时间:
-	2011-04-26 11:32 +0800;
+	2011-04-26 16:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,13 +42,11 @@ DeclBasedInterface(IPanel, IUIContainer, virtual IControl)
 EndDecl
 
 
-//! \brief 面板基实现类。
+//! \brief 面板。
 class Panel : public Control, protected Widgets::MUIContainer,
 	implements IPanel
 {
 public:
-	typedef Control ParentType;
-
 	/*!
 	\brief 构造：使用指定边界。
 	*/
@@ -107,21 +105,6 @@ public:
 
 	ImplI1(IPanel) PDefH0(void, Refresh)
 		ImplBodyBase0(Control, Refresh)
-};
-
-
-//! \brief 控件基类。
-class YPanel : public YComponent,
-	public Panel
-{
-public:
-	typedef YComponent ParentType;
-
-	/*!
-	\brief 构造：使用指定边界。
-	*/
-	explicit
-	YPanel(const Rect& = Rect::Empty);
 };
 
 YSL_END_NAMESPACE(Controls)

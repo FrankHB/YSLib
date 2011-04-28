@@ -16,7 +16,7 @@
 \par 创建时间:
 	2009-12-08 12:05:26 +0800;
 \par 修改时间:
-	2011-04-23 12:02 +0800;
+	2011-04-28 17:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -122,7 +122,7 @@ DefMessageTypeMapping(EStandard::Drop, GHandleContext<GHandle<YShell> >)
 DefMessageTypeMapping(EStandard::Activated, GHandleContext<GHandle<YShell> >)
 DefMessageTypeMapping(EStandard::Deactivated, GHandleContext<GHandle<YShell> >)
 
-DefMessageTypeMapping(EStandard::Paint, GHandleContext<GHandle<YDesktop> >)
+DefMessageTypeMapping(EStandard::Paint, GHandleContext<GHandle<Desktop> >)
 DefMessageTypeMapping(EStandard::Quit, GObjectContext<int>)
 
 DefMessageTypeMapping(EStandard::Input, InputContext)

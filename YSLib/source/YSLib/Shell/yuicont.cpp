@@ -11,16 +11,16 @@
 /*!	\file yuicont.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面容器。
-\version 0.2181;
+\version 0.2189;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-04-25 12:48 +0800;
+	2011-04-28 17:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YUIContainer;
+	YSLib::Shell::UIContainer;
 */
 
 
@@ -41,7 +41,7 @@ yassert(bool exp, const char* msg, int line, const char* file,
 {
 	if(!exp)
 	{
-		YConsole dbg;
+		Console dbg;
 
 		iprintf(
 			"At line %i in file %s: \n"
@@ -76,10 +76,10 @@ FetchDirectWindowPtr(IWidget& w)
 	return FetchWidgetDirectNodePtr<IWindow>(FetchDirectContainerPtr(w));
 }
 
-YDesktop*
+Desktop*
 FetchDirectDesktopPtr(IWidget& w)
 {
-	return FetchWidgetDirectNodePtr<YDesktop>(FetchDirectContainerPtr(w));
+	return FetchWidgetDirectNodePtr<Desktop>(FetchDirectContainerPtr(w));
 }
 
 const Graphics&
@@ -168,10 +168,10 @@ LocateForWindow(IWidget& w)
 Point
 LocateForDesktop(IWidget& w)
 {
-	if(dynamic_cast<YDesktop*>(&w))
+	if(dynamic_cast<Desktop*>(&w))
 		return Point::Zero;
 
-	YDesktop* pDsk(FetchDirectDesktopPtr(w));
+	Desktop* pDsk(FetchDirectDesktopPtr(w));
 
 	return pDsk ? LocateOffset(&w, Point::Zero, pDsk) : Point::FullScreen;
 }
@@ -360,9 +360,8 @@ MUIContainer::RemoveWidget(IWidget* p)
 }
 
 
-YUIContainer::YUIContainer(const Rect& r)
-	: YComponent(),
-	Widget(r), MUIContainer()
+UIContainer::UIContainer(const Rect& r)
+	: Widget(r), MUIContainer()
 {}
 
 YSL_END_NAMESPACE(Widgets)

@@ -11,12 +11,12 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version 0.1708;
+\version 0.1710;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-04-26 16:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +35,6 @@ YSL_BEGIN
 class YFile : public YObject
 {
 public:
-	typedef YObject ParentType;
 	typedef size_t SizeType; //!< 大小类型。
 	typedef std::ptrdiff_t OffType; //!< 偏移量类型。
 

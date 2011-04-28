@@ -11,16 +11,16 @@
 /*!	\file yconsole.cpp
 \ingroup Shell
 \brief 平台无关的控制台。
-\version 0.1045;
+\version 0.1049;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:39 +0800;
 \par 修改时间:
-	2011-04-20 12:44 +0800;
+	2011-04-26 16:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YConsole
+	YSLib::Shell::Console
 */
 
 
@@ -31,13 +31,13 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 void
-Activate(YConsole& c, Drawing::Color fc, Drawing::Color bc)
+Activate(Console& c, Drawing::Color fc, Drawing::Color bc)
 {
 	InitConsole(c.Screen, fc, bc);
 }
 
 void
-Deactivate(YConsole&)
+Deactivate(Console&)
 {
 	InitVideo();
 }

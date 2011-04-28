@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2092;
+\version 0.2094;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-04-25 12:55 +0800;
+	2011-04-26 16:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -569,8 +569,6 @@ typedef FNFILTER* PFNFILTER;
 
 struct HFileNameFilter : public GHBase<PFNFILTER>
 {
-	typedef GHBase<PFNFILTER> ParentType;
-
 	/*!
 	\brief 构造：使用函数指针。
 	*/

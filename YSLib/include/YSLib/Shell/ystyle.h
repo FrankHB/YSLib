@@ -11,12 +11,12 @@
 /*!	\file ystyle.h
 \ingroup Shell
 \brief 图形用户界面样式。
-\version 0.1216;
+\version 0.1221;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-08 13:21:10 +0800;
 \par 修改时间:
-	2011-04-24 18:11 +0800;
+	2011-04-27 19:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -149,6 +149,11 @@ public:
 
 	DefGetter(const ColorListType&, List, colors)
 	DefMutableGetter(ColorListType&, List, colors)
+	/*!
+	\brief 取指定下标的颜色对。
+	*/
+	pair<Drawing::Color, Drawing::Color>
+	GetPair(ColorListType::size_type, ColorListType::size_type) const;
 };
 
 YSL_END_NAMESPACE(Styles)

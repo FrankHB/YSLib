@@ -11,16 +11,16 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2268;
+\version 0.2278;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-04-25 12:49 +0800;
+	2011-04-28 17:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YDesktop;
+	YSLib::Shell::Desktop;
 */
 
 
@@ -36,15 +36,15 @@ YSL_BEGIN_NAMESPACE(Components)
 
 using namespace Controls;
 
-YDesktop::YDesktop(YScreen& s, Color c, GHandle<YImage> i)
-	: YFrame(Rect::FullScreen, i),
+Desktop::Desktop(YScreen& s, Color c, GHandle<Image> i)
+	: Frame(Rect::FullScreen, i),
 	Screen(s)
 {
 	BackColor = c;
 }
 
 IControl*
-YDesktop::GetTopVisibleDesktopObjectPtr(const Point& pt) const
+Desktop::GetTopVisibleDesktopObjectPtr(const Point& pt) const
 {
 	for(WGTs::const_reverse_iterator i(WidgetsList.rbegin());
 		i != WidgetsList.rend(); ++i)
@@ -61,7 +61,7 @@ YDesktop::GetTopVisibleDesktopObjectPtr(const Point& pt) const
 }
 
 bool
-YDesktop::MoveToTop(IControl& w)
+Desktop::MoveToTop(IControl& w)
 {
 	WGTs::iterator i(std::find(WidgetsList.begin(), WidgetsList.end(), &w));
 
@@ -75,7 +75,7 @@ YDesktop::MoveToTop(IControl& w)
 }
 
 /*void
-YDesktop::RemoveTopDesktopObject()
+Desktop::RemoveTopDesktopObject()
 {
 	if(!sDOs.empty())
 	{
@@ -86,7 +86,7 @@ YDesktop::RemoveTopDesktopObject()
 }*/
 
 void
-YDesktop::ClearContents()
+Desktop::ClearContents()
 {
 	ClearFocusingPtr();
 	WidgetsList.clear();
@@ -95,7 +95,7 @@ YDesktop::ClearContents()
 }
 
 void
-YDesktop::Update()
+Desktop::Update()
 {
 	if(bRefresh)
 		bUpdate = false;

@@ -11,12 +11,12 @@
 /*!	\file form.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面窗体。
-\version 0.1514;
+\version 0.1520;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-04-23 13:35 +0800;
+	2011-04-26 15:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,41 +34,41 @@ YSL_BEGIN_NAMESPACE(Forms)
 
 using namespace Controls;
 
-YForm::YForm(const Rect& r, const GHandle<YImage> i, IWindow* pWnd)
-	: YFrame(r, i, pWnd)//,
+Form::Form(const Rect& r, const GHandle<Image> i, IWindow* pWnd)
+	: Frame(r, i, pWnd)//,
 //	Client(this, Rect::Empty/*r*/)
 {
 //	SetSize(Size.Width, Size.Height);
 }
-YForm::~YForm()
+Form::~Form()
 {}
 /*
 void
-YForm::SetSize(SDst w, SDst h)
+Form::SetSize(SDst w, SDst h)
 {
-	YFrame::SetSize(w, h);
+	Frame::SetSize(w, h);
 //	BitmapBuffer::SetSize(w, h);
 //	YWidget::SetSize(w, h);
 }
 void
-YForm::SetBounds(const Rect& r)
+Form::SetBounds(const Rect& r)
 {
-	YFrame::SetBounds(r);
+	Frame::SetBounds(r);
 //	Location = r.GetPoint();
 //	SetSize(r.Width, r.Height);
 }
 
 void
-YForm::Paint()
+Form::Paint()
 {
-	YFrame::Paint();
+	Frame::Paint();
 //	Client.Paint();
 
 }
 void
-YForm::Paint()
+Form::Paint()
 {
-	YFrame::Paint();
+	Frame::Paint();
 }
 */
 YSL_END_NAMESPACE(Forms)

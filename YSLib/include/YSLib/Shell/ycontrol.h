@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 样式无关的控件。
-\version 0.4947;
+\version 0.4964;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-04-20 11:24 +0800;
+	2011-04-27 07:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,19 +66,7 @@ RoutedEventArgs::RoutedEventArgs(RoutedEventArgs::RoutingStrategy s)
 
 
 //! \brief 屏幕事件参数模块类。
-struct MScreenPositionEventArgs : public Drawing::Point
-{
-protected:
-	/*!
-	\brief 构造：使用指定点。
-	*/
-	MScreenPositionEventArgs(const Drawing::Point& = Drawing::Point::Zero);
-};
-
-inline
-MScreenPositionEventArgs::MScreenPositionEventArgs(const Drawing::Point& pt)
-	: Point(pt)
-{}
+typedef Drawing::Point MScreenPositionEventArgs;
 
 
 //! \brief 输入事件参数类。
@@ -388,7 +376,7 @@ void
 OnTouchMove_Dragging(IControl&, TouchEventArgs&);
 
 
-//! \brief 控件基实现类。
+//! \brief 控件。
 class Control : public Widgets::Widget, public AFocusRequester,
 	virtual implements IControl
 {
@@ -416,30 +404,17 @@ public:
 	virtual
 	~Control();
 
-	ImplI1(IControl) DefPredicateBase(Visible, Widget)
-	ImplI1(IControl) DefPredicateBase(Transparent, Widget)
 	ImplI1(IControl) DefPredicate(Enabled, enabled)
 	ImplI1(IControl) bool
 	IsFocused() const;
 
-	ImplI1(IControl) DefGetterBase(const Point&, Location, Widget)
-	ImplI1(IControl) DefGetterBase(const Size&, Size, Widget)
-	ImplI1(IControl) DefGetterBase(IUIBox*&, ContainerPtr, Widget)
 	ImplI1(IControl) DefGetter(VisualEventMapType&, EventMap, EventMap)
 
-	ImplI1(IControl) DefSetterBase(bool, Visible, Widget)
-	ImplI1(IControl) DefSetterBase(bool, Transparent, Widget)
 	ImplI1(IControl) void
 	SetLocation(const Point&);
 	ImplI1(IControl) void
 	SetSize(const Size&);
 	ImplI1(IControl) DefSetter(bool, Enabled, enabled)
-
-	ImplI1(IControl) PDefH0(void, Paint)
-		ImplBodyBase0(Widget, Paint)
-
-	ImplI1(IControl) PDefH0(void, Refresh)
-		ImplBodyBase0(Widget, Refresh)
 
 	/*!
 	\brief 向部件容器请求获得焦点。
@@ -473,21 +448,6 @@ private:
 	*/
 	void
 	OnTouchDown(TouchEventArgs&);
-};
-
-
-//! \brief 控件基类。
-class YControl : public YComponent,
-	public Control
-{
-public:
-	typedef YComponent ParentType;
-
-	/*!
-	\brief 构造：使用指定边界。
-	*/
-	explicit
-	YControl(const Rect& = Rect::Empty);
 };
 
 

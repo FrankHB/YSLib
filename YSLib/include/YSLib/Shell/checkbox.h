@@ -11,12 +11,12 @@
 /*!	\file checkbox.h
 \ingroup Shell
 \brief 样式相关的图形用户界面复选框控件。
-\version 0.1152;
+\version 0.1158;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-22 07:17:17 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-04-26 16:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,11 +38,8 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Controls)
 
 //! \brief 复选框。
-class YCheckBox: public GMCounter<YCheckBox>, public YThumb
+class CheckBox: public Thumb
 {
-public:
-	typedef YThumb ParentType;
-
 protected:
 	bool bTicked; //选中状态。
 
@@ -51,7 +48,7 @@ public:
 	\brief 构造：使用指定边界。
 	*/
 	explicit
-	YCheckBox(const Rect& = Rect::Empty);
+	CheckBox(const Rect& = Rect::Empty);
 
 	/*!
 	\brief 绘制界面。

@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3568;
+\version 0.3588;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-04-25 12:49 +0800;
+	2011-04-26 15:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -371,22 +371,21 @@ ATrack::OnThumbDrag(EventArgs&)
 }
 
 
-YHorizontalTrack::YHorizontalTrack(const Rect& r, SDst uMinThumbLength)
-	: YComponent(),
-	ATrack(r, uMinThumbLength)
+HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
+	: ATrack(r, uMinThumbLength)
 {
 	YAssert(GetWidth() > GetHeight(),
 		"In constructor Components::Controls::\n"
-			"YHorizontalTrack::YHorizontalTrack"
+			"HorizontalTrack::HorizontalTrack"
 		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"Width is not greater than height.");
 
 	FetchEvent<TouchMove>(Thumb).Add(*this,
-		&YHorizontalTrack::OnTouchMove_Thumb_Horizontal);
+		&HorizontalTrack::OnTouchMove_Thumb_Horizontal);
 }
 
 void
-YHorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs& e)
+HorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
@@ -400,22 +399,21 @@ YHorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs& e)
 }
 
 
-YVerticalTrack::YVerticalTrack(const Rect& r, SDst uMinThumbLength)
-	: YComponent(),
-	ATrack(r, uMinThumbLength)
+VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
+	: ATrack(r, uMinThumbLength)
 {
 	YAssert(GetHeight() > GetWidth(),
 		"In constructor Components::Controls::\n"
-			"YHorizontalTrack::YHorizontalTrack"
+			"HorizontalTrack::HorizontalTrack"
 		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"height is not greater than width.");
 
 	FetchEvent<TouchMove>(Thumb).Add(*this,
-		&YVerticalTrack::OnTouchMove_Thumb_Vertical);
+		&VerticalTrack::OnTouchMove_Thumb_Vertical);
 }
 
 void
-YVerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs& e)
+VerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
@@ -432,9 +430,9 @@ YVerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs& e)
 AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 try	: AUIBoxControl(r),
 	pTrack(o == Horizontal
-		? static_cast<ATrack*>(new YHorizontalTrack(
+		? static_cast<ATrack*>(new HorizontalTrack(
 			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), uMinThumbSize))
-		: static_cast<ATrack*>(new YVerticalTrack(
+		: static_cast<ATrack*>(new VerticalTrack(
 			Rect(0, r.Width, r.Width, r.Height - r.Width * 2), uMinThumbSize))),
 	PrevButton(Rect()), NextButton(Rect()), small_delta(2)
 {
@@ -484,7 +482,7 @@ AScrollBar::Paint()
 	YAssert(pTrack.get(),
 		"Null widget pointer found @ AScrollBar::Draw;");
 
-	YWidgetAssert(this, Controls::YHorizontalScrollBar, Draw);
+	YWidgetAssert(this, Controls::HorizontalScrollBar, Draw);
 
 	Control::Paint();
 
@@ -517,25 +515,23 @@ AScrollBar::OnTouchDown_NextButton(TouchEventArgs& e)
 }
 
 
-YHorizontalScrollBar::YHorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
-	: YComponent(),
-	AScrollBar(r, uMinThumbLength, Horizontal)
+HorizontalScrollBar::HorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
+	: AScrollBar(r, uMinThumbLength, Horizontal)
 {
 	YAssert(GetWidth() > GetHeight() * 2,
 		"In constructor Components::Controls::\n"
-			"YHorizontalScrollBar::YHorizontalScrollBar"
+			"HorizontalScrollBar::HorizontalScrollBar"
 		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"Width is not greater than twice of height.");
 }
 
 
-YVerticalScrollBar::YVerticalScrollBar(const Rect& r, SDst uMinThumbLength)
-	: YComponent(),
-	AScrollBar(r, uMinThumbLength, Vertical)
+VerticalScrollBar::VerticalScrollBar(const Rect& r, SDst uMinThumbLength)
+	: AScrollBar(r, uMinThumbLength, Vertical)
 {
 	YAssert(GetHeight() > GetWidth() * 2,
 		"In constructor Components::Controls::\n"
-			"YVerticalScrollBar::YVerticalScrollBar"
+			"VerticalScrollBar::VerticalScrollBar"
 		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"height is not greater than twice of width.");
 }

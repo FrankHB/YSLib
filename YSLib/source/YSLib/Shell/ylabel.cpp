@@ -11,16 +11,16 @@
 /*!	\file ylabel.cpp
 \ingroup Shell
 \brief 样式无关的标签模块。
-\version 0.2021;
+\version 0.2026;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-04-26 08:59 +0800;
+	2011-04-26 16:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YLabel;
+	YSLib::Shell::Label;
 */
 
 
@@ -74,16 +74,16 @@ MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt)
 }
 
 
-YLabel::YLabel(const Rect& r, const Drawing::Font& f)
-	: YWidget(r), MLabel(f)
+Label::Label(const Rect& r, const Drawing::Font& f)
+	: Widget(r), MLabel(f)
 {}
 
 void
-YLabel::Paint()
+Label::Paint()
 {
-	YWidgetAssert(this, Widgets::YLabel, Paint);
+	YWidgetAssert(this, Widgets::Label, Paint);
 
-	ParentType::Paint();
+	Widget::Paint();
 	PaintText(*this, ForeColor, FetchContext(*this), LocateForWindow(*this));
 }
 

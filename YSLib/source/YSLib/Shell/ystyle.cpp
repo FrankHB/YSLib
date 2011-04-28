@@ -11,12 +11,12 @@
 /*!	\file ystyle.cpp
 \ingroup Shell
 \brief 图形用户界面样式。
-\version 0.1374;
+\version 0.1379;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-04-24 17:53 +0800;
+	2011-04-27 19:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -171,6 +171,13 @@ Palette::Palette()
 
 	//"GradientActiveTitle"="185 209 234"
 	//"GradientInactiveTitle"="215 228 242"
+}
+
+pair<Drawing::Color, Drawing::Color>
+Palette::GetPair(Palette::ColorListType::size_type n1,
+	Palette::ColorListType::size_type n2) const
+{
+	return make_pair(colors[n1], colors[n2]);
 }
 
 YSL_END_NAMESPACE(Styles)

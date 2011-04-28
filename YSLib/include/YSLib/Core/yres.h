@@ -11,12 +11,12 @@
 /*!	\file yres.h
 \ingroup Core
 \brief 应用程序资源管理模块。
-\version 0.1496;
+\version 0.1502;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-04-25 12:54 +0800;
+	2011-04-26 16:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -67,18 +67,15 @@ ReleaseGlobalResource() ynothrow
 YSL_BEGIN_NAMESPACE(Drawing)
 
 //图像资源。
-class YImage : public GMCounter<YImage>, public YCountableObject,
-	public BitmapBuffer,
+class Image : public BitmapBuffer,
 	implements IResource
 {
 public:
-	typedef YCountableObject ParentType;
-
 	/*!
 	\brief 构造：使用指定位图指针、长和宽。
 	*/
 	explicit
-	YImage(ConstBitmapPtr = nullptr, SDst = 0, SDst = 0);
+	Image(ConstBitmapPtr = nullptr, SDst = 0, SDst = 0);
 
 	DefGetter(BitmapPtr, ImagePtr, GetBufferPtr())
 

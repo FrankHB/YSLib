@@ -11,16 +11,16 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 样式无关的图形用户界面部件。
-\version 0.5927;
+\version 0.5942;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-26 09:19 +0800;
+	2011-04-28 17:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YWidget;
+	YSLib::Shell::Widget;
 */
 
 
@@ -118,7 +118,7 @@ ContainsVisible(const IWidget& w, const Point& p)
 \brief 请求提升至容器顶端。
 
 \todo 完全实现提升 IWidget 至容器顶端（目前仅实现 IControl 且
-	父容器为 YDesktop 的情形）。
+	父容器为 Desktop 的情形）。
 */
 void
 RequestToTop(IWidget&);
@@ -183,7 +183,7 @@ MWindowObject::MWindowObject(IWindow* pWnd)
 {}
 
 
-//! \brief 可视样式基实现类。
+//! \brief 可视样式。
 class Visual : public NonCopyable
 {
 private:
@@ -266,8 +266,9 @@ public:
 };
 
 
-//! \brief 部件基实现类。
-class Widget : public Visual
+//! \brief 部件。
+class Widget : public Visual,
+	virtual implements IWidget
 {
 private:
 	mutable IUIBox* pContainer; //!< 从属的部件容器的指针。
@@ -277,53 +278,29 @@ public:
 	Widget(const Rect& = Rect::Empty,
 		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
 
-	DefGetter(IUIBox*&, ContainerPtr, pContainer)
-
-	/*!
-	\brief 绘制界面。
-	*/
-	virtual void
-	Paint();
-
-	/*!
-	\brief 刷新至窗口缓冲区。
-	*/
-	virtual void
-	Refresh();
-};
-
-
-//! \brief 部件。
-class YWidget : public GMCounter<YWidget>, public YComponent,
-	public Widget,
-	implements IWidget
-{
-public:
-	typedef YComponent ParentType;
-
-	/*!
-	\brief 构造：使用指定边界。
-	*/
-	explicit
-	YWidget(const Rect& = Rect::Empty);
-
 	ImplI1(IWidget) DefPredicateBase(Visible, Visual)
 	ImplI1(IWidget) DefPredicateBase(Transparent, Visual)
 
 	ImplI1(IWidget) DefGetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefGetterBase(const Size&, Size, Visual)
-	ImplI1(IWidget) DefGetterBase(IUIBox*&, ContainerPtr, Widget)
+	ImplI1(IWidget) DefGetter(IUIBox*&, ContainerPtr, pContainer)
 
 	ImplI1(IWidget) DefSetterBase(bool, Visible, Visual)
 	ImplI1(IWidget) DefSetterBase(bool, Transparent, Visual)
 	ImplI1(IWidget) DefSetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefSetterBase(const Size&, Size, Visual)
 
-	ImplI1(IWidget) PDefH0(void, Paint)
-		ImplBodyBase0(Widget, Paint)
+	/*!
+	\brief 绘制界面。
+	*/
+	ImplI1(IWidget) void
+	Paint();
 
-	ImplI1(IWidget) PDefH0(void, Refresh)
-		ImplBodyBase0(Widget, Refresh)
+	/*!
+	\brief 刷新至窗口缓冲区。
+	*/
+	ImplI1(IWidget) void
+	Refresh();
 };
 
 YSL_END_NAMESPACE(Widgets)

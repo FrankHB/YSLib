@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 抽象。
-\version 0.4029;
+\version 0.4041;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-25 14:08 +0800;
+	2011-04-28 17:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -119,10 +119,10 @@ namespace
 	char strtf[0x400];
 	char strttxt[0x400];
 
-	GHandle<YImage>&
+	GHandle<Image>&
 	GetGlobalImageRef(std::size_t i)
 	{
-		static GHandle<YImage> spi[10];
+		static GHandle<Image> spi[10];
 
 		YAssert(IsInInterval(i, 10u), "Array index out of range"
 			" @ GetGlobalImageRef;");
@@ -207,7 +207,7 @@ namespace
 	InputCounter(const Point& pt)
 	{
 		std::sprintf(strCount, "%d,%d,%d;Count = %d, Pos = (%d, %d);",
-			sizeof(AWindow), sizeof(YFrame), sizeof(YForm),
+			sizeof(AWindow), sizeof(Frame), sizeof(Form),
 			nCountInput++, pt.X, pt.Y);
 	}
 
@@ -215,7 +215,7 @@ namespace
 	InputCounterAnother(const Point& /*pt*/)
 	{
 	//	nCountInput++;
-	//	std::sprintf(strCount, "%d,%d,%d,%d,",sizeof(YForm),sizeof(YShell),
+	//	std::sprintf(strCount, "%d,%d,%d,%d,",sizeof(Form),sizeof(YShell),
 	//		sizeof(YApplication),sizeof(YWindow));
 		struct mallinfo t(mallinfo());
 
@@ -243,7 +243,7 @@ namespace
 	}
 }
 
-GHandle<YImage>&
+GHandle<Image>&
 GetImage(int i)
 {
 	switch(i)
@@ -553,7 +553,7 @@ ShlSetting::ShlSetting()
 }
 
 ShlSetting::TFormTest::TFormTest()
-	: YForm(Rect(10, 40, 228, 70), nullptr,
+	: Form(Rect(10, 40, 228, 70), nullptr,
 		raw(GetGlobal().GetDesktopDownHandle())),
 	btnEnterTest(Rect(2, 5, 224, 22)), /*GetImage(6)*/
 	btnShowWindow(Rect(45, 35, 124, 22))
@@ -579,7 +579,7 @@ void
 ShlSetting::TFormTest::OnEnter_btnEnterTest(IControl& sender,
 	InputEventArgs& e)
 {
-	DefDynInitRef(YButton, btn, sender)
+	DefDynInitRef(Button, btn, sender)
 	TouchEventArgs& pt(static_cast<TouchEventArgs&>(e));
 	char str[20];
 
@@ -591,7 +591,7 @@ void
 ShlSetting::TFormTest::OnLeave_btnEnterTest(IControl& sender,
 	InputEventArgs& e)
 {
-	DefDynInitRef(YButton, btn, sender)
+	DefDynInitRef(Button, btn, sender)
 	TouchEventArgs& pt(static_cast<TouchEventArgs&>(e));
 	char str[20];
 
@@ -616,7 +616,7 @@ ShlSetting::TFormTest::OnClick_btnShowWindow(TouchEventArgs& /*e*/)
 }
 
 ShlSetting::TFormExtra::TFormExtra()
-	: YForm(Rect(5, 60, 208, 120), nullptr, /*GetImage(7)*/
+	: Form(Rect(5, 60, 208, 120), nullptr, /*GetImage(7)*/
 		raw(GetGlobal().GetDesktopDownHandle())),
 	btnDragTest(Rect(13, 15, 184, 22)),
 	btnTestEx(Rect(13, 52, 168, 22)),
@@ -725,8 +725,8 @@ ShlSetting::TFormExtra::OnKeyPress_btnDragTest(IControl& sender, KeyEventArgs& e
 
 	u32 k(static_cast<KeyEventArgs::Key>(e));
 
-	DefDynInitRef(YButton, lbl, sender);
-//	YButton& lbl(dynamic_cast<TFormUp&>(
+	DefDynInitRef(Button, lbl, sender);
+//	Button& lbl(dynamic_cast<TFormUp&>(
 //		*(dynamic_cast<ShlSetting&>(*FetchShellHandle()).hWndUp)).lblB);
 	lbl.SetTransparent(!lbl.IsTransparent());
 //	++lbl.ForeColor;
@@ -735,7 +735,7 @@ ShlSetting::TFormExtra::OnKeyPress_btnDragTest(IControl& sender, KeyEventArgs& e
 	lbl.Text = strttxt;
 	lbl.Refresh();
 /*
-	YButton& lbl(static_cast<YButton&>(sender));
+	Button& lbl(static_cast<Button&>(sender));
 
 	if(nCountInput & 1)
 	{
@@ -771,12 +771,12 @@ ShlSetting::TFormExtra::OnClick_btnTestEx(TouchEventArgs& e)
 	class TestObj
 	{
 	public:
-		GHandle<YDesktop> h;
+		GHandle<Desktop> h;
 		Color c;
 		Point l;
 		Size s;
 
-		TestObj(GHandle<YDesktop> h_)
+		TestObj(GHandle<Desktop> h_)
 			: h(h_),
 			c(ColorSpace::White),
 			l(20, 32), s(120, 90)

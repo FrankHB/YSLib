@@ -1,4 +1,4 @@
-//v0.3115; *Build 204 r59;
+//v0.3121; *Build 205 r19;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -145,35 +145,32 @@ $using:
 	\in IWidget;
 	\cl Visual;
 	\cl Widget;
-	\cl YWidget;
 }
 \u YLabel
 {
 	\cl MLabel;
-	\cl YLabel;
+	\cl Label;
 	\cl MTextList;
 }
 \u YUIContainer
 {
 	\in IUIBox;
 	\in IUIContainer;
-	\cl YUIContainer;
+	\cl UIContainer;
 }
 \u YControl
 {
 	\in IControl;
 	\cl Control;
-	\cl YControl;
 }
 \u YMenu
 {
 	\cl Menu;
-	\cl YMenu;
 }
 \u YPanel
 {
 	\in IPanel;
-	\cl YPanel;
+	\cl Panel;
 }
 \u YUIContainerEx
 {
@@ -219,263 +216,193 @@ $using:
 
 
 $DONE:
-r1:
-/ \simp \impl @ \mf bool operator!() const ^ \mf expired @ \clt GHWeak
-	@ \h YReference;
-
-r2:
-/ @ \h YReference:
-	/ \ft GetPointer => raw;
-	/ \ft ResetHandle => reset_pointer;
-	+ \ft<typename _type>_type* raw(auto_ptr<_type>);
-	/ \def @ \a \ft raw ^ \c \ref \param;
-	+ \es ythrow() @ \a \ft raw;
-	+ \ft<typename _type>_type* reset_pointer(auto_ptr<_type>&) ythrow();
-	+ \ft<typename _type>_type* reset_pointer(shared_ptr<_type>&) ythrow();
-+ \mac ynothrow @ \h Base;
-/ \h Base["base.h"] => YBase["ybase.h"];
-/ \tr \inc @ \h YNew;
-/ \a ythrow() -> ynothrow;
-
-r3:
-/= test 1 ^ \conf release;
-
-r4:
-/ \impl @ \mf (void Global::ReleaseDevices() ynothrow
-	& int YShell::DefShlProc(const Message&)
-	& int ShlSetting::OnDeactivated(const Message& msg) ^ (\mf GHandle::reset
-	~ !\m \ft reset @ \h YReference);
-- \mf T* Release() @ \clt GHandle @ \h YReference;
-- \ft<class _type> _type* FetchContextRawPtr(const Message&)
-	@ \h YShellMessage;
-/ \impl ^ \ft dynamic_handle_cast ~ \ft HandleCast @ \impl \u Shells;
-/ @ \h YShellHelper:
-	- \ft<class _type, class _tHandle> \i _type* HandleCast(_tHandle);
-	- \ft<class _tHandle> \i void ReplaceHandle(_tHandle&, _tHandle);
-
-r5:
-/ \impl @ \tf CastMessage ^ (\mf get @ \clt GHandle ~ \ft raw @ \h YReference);
+r1-r5:
+/= test 1;
 
 r6:
-/= test 2 ^ \conf release;
+/ @ \h YWidget:
+	/ @ \cl Widget:
+		+ \inh \vt \in IWidget;
+		+ 'ImplI1(IWidget)' @ \i \mf GetContainerPtr;
+		/= \a \vt -> 'ImplI1(IWidget)';
+	/ @ \cl YWidget:
+		- \inh !\vt \in IWidget;
+		- \mf (Paint & Refresh & GetContainerPtr);
+		/ \a \mf >> \cl Widget;
+/ \simp \impl @ \mf (Paint & Refresh) @ \cl Widget @ \impl \u YWidget;
 
 r7:
-/ DeclareHandle(IWindow, HWND) -> typedef IWindow* HWND @ \h YComponent;
-- \mac DeclareHandle(type, handle) @ \h YShellDefinition;
-/ \tr @ \cl AFrame:
-	- \mf !\vt void operator+=(HWND);
-	- \mf !\vt bool operator-=(HWND);
-/ \tr @ \impl \u Shells;
-* \tf<typename _type> \i _type* raw(const _type*&) @ \h YReference
-	-> \tf<typename _type> \i _type* raw(_type* const&);
+- \a \mf \impl \inh ~ Widget @ \cl Control @ \h YControl:
 
 r8:
-- typedef IWindow* HWND @ \h YComponent;
-/ \a hWindow => pWindow;
-/ \a hWnd => pWnd;
-/ \a HWND -> IWindow*;
-/ \tr @ \impl \u Shells;
-/ \a GetWindowHandle => GetWindowPtr;
-/= \impl @ \f LocateForParentWindow @ \impl \u YUIContainer;
+/ \a \cl YLabel => Label;
+/ \a YWidget \exc \h YWidget -> Widget;
+- \cl YWidget @ \u YWidget;
+/ \a YControl \exc \h YControl -> Control;
+- \cl YControl @ \u YControl;
 
 r9:
-/ \a hWndExtra => pWndExtra;
-/ @ \u YWindow:
-	/ \f bool Show(IWindow*) -> void Show(IWindow&);
-	/ \f bool Hide(IWindow*) -> void Hide(IWindow&);
-/ \tr @ \impl @ \mf ShlSetting::TFormTest::OnClick_btnShowWindow
-	@ \impl \u Shells;
+/ \a \cl YThumb => Thumb;
+- \inh GMCounter<Thumb> @ \cl Thumb;
+/ \a \cl YButton => Button;
+- \inh GMCounter<Button> @ \cl Button;
+/ \a \cl YCheckBox => CheckBox;
+- \inh GMCounter<CheckBox> @ \cl CheckBox;
+* \tr \m Thumb Thumb -> Controls::Thumb Thumb @ \cl ATrack;
 
 r10:
-* \tr \impl @ \ft<class _type> IWindow* NewWindow() @ \h YShellHelper;
+^ \conf release;
+/= test 2;
 
 r11:
-/ undid r10;
-* @ \cl ShlSetting @ \u Shells:
-	/ \m IWindow* hWndTest -> auto_ptr<IWindow> pWndTest;
-	/ \m IWindow* pWndExtra -> auto_ptr<IWindow> pWndExtra;
-	/ \tr @ \impl \u;
+/ \a \cl YUIContainer => UIContainer;
+/ @ \cl UIContainer:
+	- \inh (GMCounter<UIContainer> & YComponent);
+	/ \tr \impl @ \ctor;
+	- \a \mf \impl \inh ~ Visual;
+	- \a \mf \impl \inh ~ Widget;
+- \cl YPanel @ \u YPanel;
+/ \a YMenu \exc \h YMenu -> Menu;
+/ @ \u YMenu:
+	- \cl YMenu @ \u YMenu;
+	/ \ac @ \ctor @ \cl Menu -> public ~ protected;
 
 r12:
-/= test 3 ^ \conf release;
+^ \conf debug;
+/ \a \cl YFrame => Frame;
+/ @ \cl Frame:
+	- \inh (GMCounter<Frame> & YComponent);
+	/ \tr \impl @ \ctor;
+/ \a \cl YFrame => Form;
+- \inh GMCounter<Form> @ \cl Form;
+/ \a YHorizontalTrack => HorizontalTrack;
+/ \a YVerticalTrack => VerticalTrack;
+/ \a YHorizontalScrollBar => HorizontalScrollBar;
+/ \a YVerticalScrollBar => VerticalScrollBar;
+/ @ \u Scroll:
+	/ @ \cl HorizontalTrack:
+		- \inh (YComponent & GMCounter<HorizontalTrack>);
+		/ \tr \impl @ \ctor;
+	/ @ \cl VerticalTrack:
+		- \inh (YComponent & GMCounter<VerticalTrack>);
+		/ \tr \impl @ \ctor;
+	/ @ \cl HorizontalScrollBar:
+		- \inh (YComponent & GMCounter<HorizontalScrollBar>);
+		/ \tr \impl @ \ctor;
+		- typedef YComponent ParentType;
+	/ @ \cl VerticalScrollBar:
+		- \inh (YComponent & GMCounter<VerticalScrollBar>);
+		/ \tr \impl @ \ctor;
+		- typedef YComponent ParentType;
+	* \tr @ \cl ScrollableContainer:
+		/ protected \m HorizontalScrollBar HorizontalScrollBar
+			-> Controls::HorizontalScrollBar HorizontalScrollBar;
+		/ protected \m VerticalScrollBar VerticalScrollBar;
+			-> Controls::VerticalScrollBar VerticalScrollBar;
+/ \tr \pre \decl & using \decl @ \h YComponent;
+/ \a YListBox => ListBox;
+/ \a YFileBox => FileBox;
+/ @ \u ListBox:
+	/ @ \cl ListBox:
+		- \inh (YComponent & GMCounter<ListBox>);
+		/ \tr \impl @ \ctor;
+		- typedef YComponent ParentType;
+	/ @ \cl FileBox:
+		- \inh GMCounter<FileBox>;
+		- typedef ListBox ParentType;
+- \inh GMCounter<Label> @ \cl Label;
+/ \a YImage => Image;
+/ @ \h YResource:
+	- \inh YCountableObject;
+	- \inh GMCounter<Image>;
+	- typedef YCountableObject ParentType;
+/ \a YConsole => Console;
+/ @ \cl Console @ \u YConsole:
+	- typedef YComponent ParentType;
+	- \inh YComponent;
+	/ \tr \impl @ \ctor;
+/ @ \h YComponent:
+	- \in IComponent;
+	- \cl YComponent;
+	- using Components::Forms::Form @ \ns YSLib;
+- \tr typedef YComponent ParentType @ \cl (UIContainer & AFrame);
+- \a typedef '*' ParentType @ \lib YSLib;
 
 r13:
-/= \tr \rem @ \h (YNew & YObject);
-*= \tr \rem @ \h (YEvent);
-/ @ \ns Components @ \u YStyle:
-	+ \ns Styles;
-	/ @ \ns Styles:
-		+ typedef \en Area;
-		+ \cl Palette;
-/ @ \u YGUI:
-	+ \h YStyle;
-	/ @ \cl YGUIShell:
-		+ \m Components::Styles::Palette Colors;
-		/ \tr \impl @ \ctor;
+/= test 3 ^ \conf release;
 
 r14:
-/ @ \u YGUI:
-	/ \f bool IsFocusedByShell(const IControl&,
-		GHandle<YGUIShell> = FetchGUIShellHandle()) -> bool
-		IsFocusedByShell(const IControl&, const YGUIShell&);
-	/ \f GHandle<YGUIShell> FetchGUIShellHandle() -> YGUIShell& FetchGUIShell();
-/ \tr \impl @ \impl \u (Shell_DS & Scroll & YControl);
-/ \simp \impl @ \ft NewWindow @ \h YShellHelper;
+/= recovered \h YShellMessage ~ b204;
 
 r15:
-/ \impl @ \impl \u (Scroll & ) ^ \u YStyle;
+/ @ \cl Menu:
+	/ \ac @ \inh Widgets::MTextList -> protected ~ public;
+	+ public using MTextList::ItemType;
+	+ public using MTextList::ListType;
+	+ public using MTextList::IndexType;
+	+ public using MTextList::TextAlignmentStyle;
+	+ public using MTextList::Font;
+	+ public using MTextList::Margin;
+	+ public using MTextList::Alignment;
+	+ public using MTextList::Text;
+	+ public using MTextList::GetList;
+	+ public using MTextList::GetItemPtr;
+	+ public using MTextList::GetItemHeight;
+	+ public using MTextList::RefreshTextState;
+/ @ \cl Button:
+	/ \ac @ \inh Widgets::MLabel -> protected ~ public;
+	+ public using MLabel::TextAlignmentStyle;
+	+ public using MLabel::Font;
+	+ public using MLabel::Margin;
+	+ public using MLabel::Alignment;
+	+ public using MLabel::Text;
+/ @ \cl Label:
+	/ \ac @ \inh MLabel -> protected ~ public;
+	+ public using MLabel::TextAlignmentStyle;
+	+ public using MLabel::Font;
+	+ public using MLabel::Margin;
+	+ public using MLabel::Alignment;
+	+ public using MLabel::Text;
+/ \cl MScreenPositionEventArgs @ \h YControl
+	-> typedef Drawing::Point MScreenPositionEventArgs;
 
 r16:
-* \impl @ \mf ATrack::Paint;
++ \mf pair<Drawing::Color, Drawing::Color> GetPair(ColorListType::size_type,
+	ColorListType::size_type) const @ \cl Palette @ \u YStyle;
+/ @ \u YMenu:
+	/ !\rem \inh \h YStyle @ \h;
+	- \inh \h YStyle @ \impl \u;
+	/ \ctor @ \cl Menu \exp Menu(const Rect& = Rect::Empty,
+		GHWeak<ListType> = nullptr, Color = Drawing::ColorSpace::Aqua,
+		Color = Drawing::ColorSpace::White) -> \exp
+		Menu(const Rect& = Rect::Empty, GHWeak<ListType> = nullptr,
+		pair<Color, Color> = FetchGUIShell().Colors.GetPair(Styles::Highlight,
+		Styles::HighlightText));
+	/ \inh \h YControl -> YGUI @ \h;
 
 r17:
 /= test 4 ^ \conf release;
 
 r18:
-/ \impl @ \mf ATrack::Paint;
+/ \cl YDesktop => Desktop @ \u YDesktop;
 
 r19:
 /= test 5 ^ \conf release;
 
-r20:
-/= \simp \impl @ \i \mf BelongsTo @ \cl (MWindowObject & MWidget)
-	^ \mac PDefH1 @ \h YWidget;
-/ @ \h YFont:
-	/= \simp \impl @ \i \mf (\op== & \op<) @ \cl FontFile
-		^ \mac PDefHOperator;
-	/= \simp \impl @ \i \mf void ResetGlyphCache() @ \cl YFontCache
-		^ \mac PDefH0;
-
-r21:
-/ \cl NonCopyable @ \ns Design @ \h YCoreUtilities
-	>> \h Utilities @ \ns ystdex \lib YCLib;
-/ @ \ns ystdex @ \h Utilities:
-	/ \cl NonCopyable => noncopyable;
-	+ \cl nullptr_t @ #ifdef YCL_HAS_BUILTIN_NULLPTR;
-+ typedef ystdex::noncopyable @ \ns Design @ \h YCoreUtilities;
-+ \mac YCL_HAS_BUILTIN_NULLPTR @ #ifdef \
-	YCL_IMPL_CPP >= 201103L || YCL_IMPL_MSCPP >= 1600;
-+ {
-		using ystdex::nullptr_t;
-	#ifndef YCL_HAS_BUILTIN_NULLPTR
-		using ystdex::nullptr;
-	#endif
-} @ \ns YSLib @ \h YAdaptor;
-
-r22:
-/ @ \h Utilities @ \lib YCLib:
-	* \inh noncopy @ nullptr_t; // cause default argument conversion failure;
-	+ using std::nullptr_t @ #ifdef YCL_HAS_BUILTIN_NULLPTR;
-/ \a NULL -> nullptr @ \lib YSLib;
-/ \tr \impl @ \mf CharBitmap YFontCache::GetGlyph(fchar_t);
-/ \tr \decl @ \a \mf with nullptr \de \param;
-* !^ nullptr @ \f MemoryList& GetDebugMemoryList() @ \impl \u YNew;
-/ @ \clt GHandle @ YReference:
-	- \de \param @ \ctor GHandle(T* = nullptr);
-	+ \ctor GHandle(nullptr_t = nullptr);
-	- \de \param @ \ctor GWeak(T* = nullptr);
-	+ \ctor GWeak(nullptr_t = nullptr);
-
-r23:
-/ \a NULL -> nullptr @ (YSTest_ARM9 & \lib YCLib);
-+ \inc \h Utilities @ \impl \u (YCommon & YStandardEx);
-/ {
-	#ifndef YCL_HAS_BUILTIN_NULLPTR
-	using ystdex::nullptr;
-	#endif
-} >> \h Utilities ~ \h YAdaptor;
-/ \tr \impl @ \mf void MDualScreenReader::UnloadText() @ \impl \u DSReader;
-
-r24:
-/= test 6 ^ \conf release;
-
-r25:
-/ @ \u YMenu:
-	+ \cl Menu;
-	/ \inh (YControl & Widgets::MTextList) -> (YComponent & Menu) @ \cl YMenu;
-	/ \a \m \exc (ParentType & Paint) >> \cl Menu ~ YMenu;
-	/ @ \cl Menu:
-		+ \m Color HilightBackColor;
-		+ \m Color HilightTextColor;
-		/ \tr @ \ctor;
-		+ protected \mf void DrawItems(const Graphics&);
-
-r26:
-* \de \param order @ \ctor @ \cl Menu @ \h YMenu;
-
-r27:
-/ @ \u Menu:
-	/ \merge YMenu::Paint >> Menu::Paint;
-	+ \vt @ protected \mf Menu::DrawItems; 
-
-r28:
-/= test 7 ^ \conf release;
-
-r29-r40:
-/= test 8;
-
-r41:
-/ \mf void MLabel::PaintText(Widget&, const Graphics&, const Point&)
-	-> void MLabel::PaintText(IWidget&, Color, const Graphics&, const Point&);
-/ \tr @ \mf Paint @ \cl (YLabel & YButton);
-/ \ft<class _tWidget> \i Rect GetBoundsOf(const _tWidget&) @ \h YWidget
-	-> \f \i Rect GetBoundsOf(const IWidget&);
-- \ft<class _tWidget> Point LocateOffset(const _tWidget*, const Point&,
-	const IWindow*) @ \h YUIContainer;
-
-r42:
-/ \a DrawItems => PaintItems;
-
-r43:
-/= test 9 ^ \conf release;
-
-r44:
-- \mf bool BelongsTo(IUIBox*) const @ \cl Widget @ \h YWidget;
-
-r45-r46:
-/= test 10;
-
-r47:
-/ @ \cl Rect @ \u YObject:
-	/ 2 \i \mf Contains -> !\i \mf;
-	/ 2 \i \mf ContainsStrict -> !\i \mf;
-
-r48:
-/ @ \cl Rect @ \u YObject:
-	/ !\i \mf bool Contains(const Point&) const -> \i \mf
-		^ \mac (PDefH1 & ImplRet);
-	/ !\i \mf bool ContainsStrict(const Point&) const -> !\i \mf
-		^ \mac (PDefH1 & ImplRet);
-
-r49-r53:
-/= test 11;
-
-r54:
-/ \a Visual -> Widget @ \u YControl;
-
-r55:
-/ \a Widget -> Control @ \h YPanel;
-/ \a MWindowObject -> MWindow @ \cl AWindow @ \h YWindow;
-
-r56-r58:
-/= test 12;
-
-r59
-/= test 13 ^ \conf release;
 
 $DOING:
 
 $relative_process:
-2011-04-26:
--23.8d;
-//c1-c74:r3726;
+2011-04-28:
+-23.4d;
+//c1-c75:r3785;
 
 / ...
 
 
 $NEXT_TODO:
 
-b205-b288:
+b206-b288:
 * fatel error @ direct UI drawing testing;
 + menus;
 + Z order;
@@ -569,12 +496,21 @@ $remove_features -; //features removed;
 $using ^; //using;
 $instead_of ~; //features replacing;
 
-//$transform $list ($list_member $pattern $all($exclude $pattern
+//$transform $list ($list_member $pattern $all($exclude $pattern \
 //	$string_literal "*")) +;
 
 $ellipse_refactoring;
 
 $now
+(
+	/ "simplified widgets and controls inheritance",
+	/ "simplified image resource type",
+	/ $design "protected inheritance of module classes except \
+		%MScreenPositionEventArgs",
+	/ "listbox highlight text color"
+),
+
+b204
 (
 	/ "weak handle improvement",
 	/ $design "exception specification macro",
@@ -626,8 +562,8 @@ b201
 		+ "minor macros in YCLib",
 	),
 	+ "type conversion helper template",
-	+ $design "implicit member overloading by interface parameter with type %IControl
-		and %IWidget in container class"
+	+ $design "implicit member overloading by interface parameter with type \
+		%IControl and %IWidget in container class"
 ),
 
 b200
@@ -656,7 +592,7 @@ b198
 	(
 		- "class %ShlGUI in unit Shell_DS"
 	),
-	/ $design "using pointers instead of references in parameters
+	/ $design "using pointers instead of references in parameters \
 		of container methods",
 	/ "simplified GUI shell" $=
 	(
@@ -757,7 +693,8 @@ b1_b131
 		iprintf("time : %u ticks\n", GetTicks());
 		iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
 			"W : %u;\nL : %lx;\n", msg.GetMessageID(),
-			msg.GetPriority(), msg.GetObjectID(), msg.GetWParam(), msg.GetLParam());
+			msg.GetPriority(), msg.GetObjectID(), msg.GetWParam(),
+			msg.GetLParam());
 		WaitForInput();
 	//	StartTicks();
 	}*/

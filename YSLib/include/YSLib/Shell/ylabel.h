@@ -11,16 +11,16 @@
 /*!	\file ylabel.h
 \ingroup Shell
 \brief 样式无关的标签模块。
-\version 0.2022;
+\version 0.2038;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-04-26 08:59 +0800;
+	2011-04-27 07:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YLabel;
+	YSLib::Shell::Label;
 */
 
 
@@ -75,12 +75,14 @@ protected:
 
 
 //标签。
-class YLabel : public GMCounter<YLabel>, public YWidget,
-	public MLabel
+class Label : public Widget, protected MLabel
 {
 public:
-	typedef YWidget ParentType;
-
+	using MLabel::TextAlignmentStyle;
+	using MLabel::Font;
+	using MLabel::Margin;
+	using MLabel::Alignment;
+	using MLabel::Text;
 /*
 	YImage BackgroundImage; //!< 背景图像。
 	YImage Image; //!< 前景图像。
@@ -90,7 +92,7 @@ public:
 	\brief 构造：使用指定边界和字体。
 	*/
 	explicit
-	YLabel(const Rect& = Rect::Empty,
+	Label(const Rect& = Rect::Empty,
 		const Drawing::Font& = Drawing::Font::GetDefault());
 
 	/*!

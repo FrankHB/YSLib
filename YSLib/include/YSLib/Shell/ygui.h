@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面。
-\version 0.2582;
+\version 0.2584;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-24 18:27 +0800;
+	2011-04-26 16:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,7 +41,6 @@ YSL_BEGIN_NAMESPACE(Shells)
 class YGUIShell : public YShell
 {
 public:
-	typedef YShell ParentType;
 	//! \brief 输入保持状态。
 	typedef enum
 	{

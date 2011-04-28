@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version 0.2838;
+\version 0.2842;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-04-25 12:54 +0800;
+	2011-04-26 16:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,8 +39,6 @@ YSL_BEGIN_NAMESPACE(Shells)
 class YShell : public YObject
 {
 public:
-	typedef YObject ParentType;
-
 	/*!
 	\brief 无参数构造。
 	*/
@@ -85,8 +83,6 @@ public:
 class YMainShell : /*public GMCounter<YMainShell>*/ public YShell
 {
 public:
-	typedef YShell ParentType;
-
 	/*!
 	\brief 无参数构造。
 	\note 向应用程序对象添加自身。

@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件。
-\version 0.3482;
+\version 0.3492;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-04-26 09:01 +0800;
+	2011-04-26 16:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -61,20 +61,20 @@ namespace
 }
 
 
-YThumb::YThumb(const Rect& r)
-	: YControl(r),
+Thumb::Thumb(const Rect& r)
+	: Control(r),
 	MButton()
 {
-	FetchEvent<Enter>(*this) += &YThumb::OnEnter;
-	FetchEvent<Leave>(*this) += &YThumb::OnLeave;
+	FetchEvent<Enter>(*this) += &Thumb::OnEnter;
+	FetchEvent<Leave>(*this) += &Thumb::OnLeave;
 }
 
 void
-YThumb::Paint()
+Thumb::Paint()
 {
-	YWidgetAssert(this, Controls::YThumb, Draw);
+	YWidgetAssert(this, Controls::Thumb, Draw);
 
-	ParentType::Paint();
+	Control::Paint();
 
 	IWindow* pWnd(FetchDirectWindowPtr(*this));
 
@@ -95,31 +95,31 @@ YThumb::Paint()
 }
 
 void
-YThumb::OnEnter(TouchEventArgs&)
+Thumb::OnEnter(TouchEventArgs&)
 {
 	bPressed = true;
 	Refresh();
 }
 
 void
-YThumb::OnLeave(TouchEventArgs&)
+Thumb::OnLeave(TouchEventArgs&)
 {
 	bPressed = false;
 	Refresh();
 }
 
 
-YButton::YButton(const Rect& r, const Drawing::Font& f)
-	: YThumb(r),
+Button::Button(const Rect& r, const Drawing::Font& f)
+	: Thumb(r),
 	MLabel(f, MLabel::Center)
 {}
 
 void
-YButton::Paint()
+Button::Paint()
 {
-	YWidgetAssert(this, Controls::YButton, Draw);
+	YWidgetAssert(this, Controls::Button, Draw);
 
-	ParentType::Paint();
+	Thumb::Paint();
 	PaintText(*this, ForeColor, FetchContext(*this), LocateForWindow(*this));
 }
 

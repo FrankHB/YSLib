@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2294;
+\version 0.2306;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-04-25 13:48 +0800;
+	2011-04-28 17:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,11 +36,8 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 //! \brief 桌面。
-class YDesktop : public YFrame
+class Desktop : public Frame
 {
-public:
-	typedef YFrame ParentType;
-
 private:
 	YScreen& Screen; //!< 屏幕对象。
 
@@ -49,15 +46,15 @@ public:
 	\brief 构造：使用指定屏幕对象引用、背景色和背景图像。
 	*/
 	explicit
-	YDesktop(YScreen&, Color = 0,
-		GHandle<Drawing::YImage> = GHandle<Drawing::YImage>());
+	Desktop(YScreen&, Color = 0,
+		GHandle<Drawing::Image> = GHandle<Drawing::Image>());
 
 	DefGetter(const YScreen&, Screen, Screen) //!< 取屏幕对象。
 	DefGetter(BitmapPtr, BackgroundPtr, Screen.GetCheckedBufferPtr()) \
 		//!< 取屏幕背景指针。
 
 	virtual PDefH1(IControl*, GetTopControlPtr, const Point& p)
-		ImplBodyBase1(YDesktop, GetTopVisibleDesktopObjectPtr, p)
+		ImplBodyBase1(Desktop, GetTopVisibleDesktopObjectPtr, p)
 
 	/*!
 	\brief 取桌面对象组中包含指定点的可见的顶端桌面对象指针。

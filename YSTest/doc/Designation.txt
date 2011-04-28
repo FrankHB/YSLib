@@ -1,11 +1,28 @@
-﻿// YSLib -> Designation by Franksoft 2009 - 2011
-// CharSet = UTF-8;
-// CTime = 2009-12-02 05:14:30 +0800;
-// UTime = 2011-04-24 18:20 +0800;
-// Version = 0.4678;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2011.
 
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
 
-// Designation ：设计规则指定和说明。
+/*!	\file Designation.txt
+\ingroup Documentation
+\brief 设计规则指定和说明。
+\version 0.4697;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-12-02 05:14:30 +0800;
+\par 修改时间:
+	2011-04-28 17:28 +0800;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Documentation::Designation;
+*/
+
 
 // Shell 消息列表见 YSLib.txt 。
 // 接口定义见 Interface.txt 。
@@ -78,7 +95,9 @@
 应控制冗余在适量的程度。
 
 @1.2.7.2 Shell 概念扩展：
- Shell 和 Core 的关系是相对的。高级操作系统对于操作系统内核 (Kernel) 来说，即 Shell 相对于 Core 的关系。基于操作系统 Shell 的应用程序相对于操作系统 Shell 来说，也是这种关系。即这种关系可以级联。对组织虚拟机等仿真程序来说较为方便。
+静态角度上， Shell 是程序的一部分（除了 Shell 以外的部分称为 Core ），可以作为的代码重用的单位。
+动态角度上， Shell 或 Core 是运行中的程序的一部分，和运行时状态相关；但又不同于与控制流直接相关的进程/线程/纤程，仅强调可以保存特定的可随时间改变的状态。
+ Shell 和 Core 的关系是相对的。最终用户使用的操作系统上层用户界面和服务相对于操作系统内核(Kernel) 来说，即 Shell 相对于 Core 的关系。基于操作系统 Shell 的应用程序相对于操作系统 Shell 来说，也是这种关系。即这种关系可以是级联的。对组织虚拟机等仿真程序来说有一定意义。
 因此， YSLib 中的实现 Shell 的类 YShell 本身位于 "/Core" ，而不是 "/Shell" 。
 
 @1.2.7.2.1 设计意义：
@@ -826,7 +845,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 
 @2.5.1 设备抽象：
 位于命名空间 Device 中。
-桌面是大小和对应输出屏幕相等的窗口（参见 @2.7.1.2.3 ），默认实现为 YDesktop 类。
+桌面是大小和对应输出屏幕相等的窗口（参见 @2.7.1.2.3 ），默认实现为 Desktop 类。
 
 @2.5.1.1 物理设备：
  YGraphicDevice 是输出设备基类。
@@ -888,7 +907,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 包含 GDI/GUI 常用 API 以及其它较底层的绘图函数。更基本的图形抽象和图像资源管理则来自于 "/Core/YObject" 和 "/Core/YResource" 。
 
 @2.6.1 桌面：
-组件命名空间 Components 中的 YDesktop 类是桌面的抽象，自带显示缓冲区，和 YScreen 关联，负责把窗体和其它桌面对象输出至屏幕。
+组件命名空间 Components 中的 Desktop 类是桌面的抽象，自带显示缓冲区，和 YScreen 关联，负责把窗体和其它桌面对象输出至屏幕。
 
 @2.6.2 文本服务：
 通用的字符/字符串栅格化处理。字符串本身的逻辑处理在 "/Core" 中，而不在此处。
@@ -909,7 +928,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 
 @2.7.1.1 视图组织：
 默认为视图树，其中的节点实现了 IWidget 接口，非叶子节点进一步实现了 IUIBox 接口。
- YDesktop 作为默认视图树的默认根节点。
+ Desktop 作为默认视图树的默认根节点。
 
 @2.7.1.2 类组织：
 
@@ -931,9 +950,9 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 部件容器是实现了 IUIBox 接口或 IUIContainer 接口（都继承了 IWidget 接口）的类（标准基类为 YUIContainer ），是一般化的组件容器，它能以可视化方式处理其包含的部件（例如顺序显示）。其中 IUIContainer 限制了添加和移除部件的抽象方法。
 控件是实现了 IControl 接口（继承 IWidget 接口和 GIFocusRequester<GMFocusResponser> 接口）的类（标准基类为 YControl ），是具有事件响应特性的可视组件，同时也是部件。
 窗口是实现了 IWindow 接口（继承 IUIContainer 和 IControl 接口）的类（标准模块基类为 AWindow 抽象类），是作为一种能在桌面显示的自带缓冲区的部件容器，同时是焦点响应类和焦点请求类。
-标准窗口（基类为 YWindow ）是具有一般化的部件容器功能的窗口。
-窗体（基类为 YForm ）是增加了客户区布局管理的标准窗口。
-默认组件中，除继承自窗口的组件（基类为 YWindow ，缓冲区继承自类 BitmapBuffer ）外，所有部件默认不带显示缓冲区。实际使用时可以用其它类型成员（如 TextRegion ）提供显示缓冲区。
+标准窗口（基类为 Frame ）是具有一般化的部件容器功能的窗口。
+窗体（基类为 Form ）是增加了客户区布局管理的标准窗口。
+默认组件中，除继承自窗口的组件（基类为 Frame ，缓冲区继承自类 BitmapBuffer ）外，所有部件默认不带显示缓冲区。实际使用时可以用其它类型成员（如 TextRegion ）提供显示缓冲区。
 
 @2.7.1.2.4 辅助模块类：
 默认提供基本事件回调模板类，以方便用户实现消息映射和其它间接传递消息的功能。
@@ -1022,8 +1041,8 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 为了支持拖放操作，指针索引控件时，按位置判断作用的控件并根据上述独立焦点指针和状态变量判断附加操作，而不通过上述的通用焦点。
 
 @2.7.4.5 实例：
- YDesktop 是 IControl 的焦点响应类。
- YWindow 和 YForm 同时是 IControl 的焦点响应类和对于 YDesktop 焦点请求类。
+ Desktop 是 IControl 的焦点响应类。
+ Frame 和 Form 同时是 IControl 的焦点响应类和对于 Desktop 焦点请求类。
 
 @2.7.5 默认图形用户界面响应流程：
 
@@ -1111,11 +1130,12 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 
 @2.11.2 本体内部头文件依赖性：
  Core 的头文件仅包含 Adaptor 或 Core 的头文件。
+实现源文件依赖于同名头文件，应显式包含该头文件，不应重复包含此头文件已经包含的其它头文件。
 在 Core 中，以下依赖关系对于头文件包含是确定的：
 除了 "ysdef.h" 外都依赖于 "ysdef.h"；
  "yobject.h" 依赖于 "ycutil.h" 、 "yexcept.h" 和 "ycounter.hpp" ；
  "ystring.h" 依赖于 "yobject.h" 。
-在整个 YSLib 包含指令中排除以下重复的依赖项（仅 #include 其中最近一组）：
+在整个 YSLib 包含指令中排除以下重复的依赖项（仅包含其中最近一组）：
  "ysdef.h" ；
  "ycutil.h" 、 "yexcept.h" 和 "ycounter.hpp" ；
  "yobject.h" ；
@@ -1125,13 +1145,18 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
  "ycomp.h" 依赖于 Core 的 "yobject.h" 和 "yshell.h"；
  "ywidget.h" 依赖于 "ycomp.h" ；
  "ycontrol.h" 和 "yuicont.h" 依赖于 "ywidget.h" ；
+ "ygui.h" 依赖于 "ycontrol.h" 和 "ystyle.h" ；
+ "ymenu.h" 依赖于 "ygui.h" ；
  "ywindow.h" 和 "uicontx.h" 依赖于 "ycontrol.h" 和 "yuicont.h" 。
-在 Shell 包含指令中排除以下重复的依赖项（仅 #include 其中最近一组）：
+在 Shell 包含指令中排除以下重复的依赖项（如果需要，头文件尽可能只包含较靠后的）：
  "ycomp.h" ；
  "ywidget.h" ；
  "ycontrol.h" 和 "yuicont.h" ；
+ "ystyle.h" ；
+ "ygui.h" ；
+ "ymenu.h" ；
  "ywindow.h" 和 "uicontx.h" 。
-在 Shell 包含指令中排除所有 Core 中重复的依赖项（不 #include ）：
+在 Shell 包含指令中排除所有 Core 中重复的依赖项（不包含）。
 
 @3 库配置：
 
@@ -1431,7 +1456,7 @@ $4.1.3.1.4 临时性例外：
 @5 一般实现导引：
 自定义应用程序 Shell 类，继承 YShell 类并产生实例。
 完成自定义 Shell 类的消息处理过程。一般把多个处理过程的响应封装为单一函数。
-对于支持实现对应 Shell 的窗口封装为窗体（Form）类（一般继承自 YWindow 类），在该自定义类中添加所需的图形用户界面部件的定义，并实现界面效果。
+对于支持实现对应 Shell 的窗口封装为窗体（Form）类（一般继承自 Frame 类），在该自定义类中添加所需的图形用户界面部件的定义，并实现界面效果。
 在响应 SM_ACTIVATED 的处理过程中添加需要初始化的资源或子 Shell ，在 SM_DEACTIVATED 的处理过程中添加退出程序或转移线程控制权的指令。
 在响应输入等事件消息的处理过程中添加对应的代码。
 

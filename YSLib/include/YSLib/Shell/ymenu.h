@@ -11,26 +11,25 @@
 /*!	\file ymenu.h
 \ingroup Shell
 \brief 样式相关的菜单。
-\version 0.1210;
+\version 0.1236;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-04-26 09:06 +0800;
+	2011-04-27 19:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YMenu
+	YSLib::Shell::Menu
 */
 
 
 #ifndef YSL_INC_SHELL_YMENU_H_
 #define YSL_INC_SHELL_YMENU_H_
 
-#include "ycontrol.h"
+#include "ygui.h"
 #include "yviewer.hpp"
 #include "ylabel.h"
-//#include "ystyle.h"
 
 YSL_BEGIN
 
@@ -39,11 +38,19 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Controls)
 
 //! \brief 文本菜单模块。
-class Menu : public Controls::Control, public Widgets::MTextList
+class Menu : public Controls::Control, protected Widgets::MTextList
 {
 public:
+	using MTextList::ItemType;
+	using MTextList::ListType;
+	using MTextList::IndexType;
+	using MTextList::TextAlignmentStyle;
 	typedef GSequenceViewer<ListType> ViewerType; //!< 视图类型。
 
+	using MTextList::Font;
+	using MTextList::Margin;
+	using MTextList::Alignment;
+	using MTextList::Text;
 	Color HilightBackColor; //!< 高亮背景色。
 	Color HilightTextColor; //!< 高亮文本色。
 
@@ -62,13 +69,14 @@ private:
 		Dependencies();
 	} Events;
 
-protected:
+public:
 	/*!
-	\brief 构造：使用指定边界、文本列表、高亮背景色和高亮文本色。
+	\brief 构造：使用指定边界、文本列表和高亮背景色/文本色对。
 	*/
 	explicit
 	Menu(const Rect& = Rect::Empty, GHWeak<ListType> = nullptr,
-		Color = Drawing::ColorSpace::Aqua, Color = Drawing::ColorSpace::White);
+		pair<Color, Color> = FetchGUIShell().Colors.GetPair(Styles::Highlight,
+		Styles::HighlightText));
 
 public:
 	DefPredicateMember(Selected, viewer)
@@ -82,6 +90,9 @@ public:
 	DefMutableDepEventGetter(HIndexEvent, Confirmed, Events.Confirmed) \
 		//!< 项目选中确定事件。
 
+	using MTextList::GetList;
+	using MTextList::GetItemPtr;
+	using MTextList::GetItemHeight;
 	DefGetterMember(ViewerType::IndexType, HeadIndex, viewer)
 	DefGetterMember(ViewerType::IndexType, SelectedIndex, viewer)
 
@@ -152,14 +163,6 @@ public:
 	PDefH0(void, ClearSelected)
 		ImplRet(static_cast<void>(viewer.ClearSelected()))
 
-protected:
-	/*!
-	\brief 绘制菜单项。
-	*/
-	virtual void
-	PaintItems(const Graphics&);
-
-public:
 	/*!
 	\brief 定位视图顶端至指定垂直位置。
 	*/
@@ -171,6 +174,16 @@ public:
 	*/
 	virtual void
 	Paint();
+
+protected:
+	/*!
+	\brief 绘制菜单项。
+	*/
+	virtual void
+	PaintItems(const Graphics&);
+
+public:
+	using MTextList::RefreshTextState;
 
 	/*!
 	\brief 复位视图。
@@ -247,21 +260,6 @@ Menu::CheckPoint(const Point& p)
 {
 	return CheckPoint(p.X, p.Y);
 }
-
-
-//! \brief 文本菜单。
-class YMenu : public GMCounter<YMenu>, public YComponent,
-	public Menu
-{
-public:
-	typedef YControl ParentType;
-
-	/*!
-	\brief 构造：使用指定边界和文本列表。
-	*/
-	explicit
-	YMenu(const Rect& = Rect::Empty, GHWeak<ListType> = nullptr);
-};
 
 YSL_END_NAMESPACE(Controls)
 

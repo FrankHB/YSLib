@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1931;
+\version 0.1934;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-04-21 07:19 +0800;
+	2011-04-28 17:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -87,20 +87,20 @@ YSL_BEGIN_NAMESPACE(DS)
 class ShlDS : public Shells::YGUIShell
 {
 private:
-	GHandle<YDesktop> hDskUp, hDskDown; \
+	GHandle<Desktop> hDskUp, hDskDown; \
 		//正常状态下应该总是指向有效的桌面对象。
 
 public:
 	/*!
 	\brief 无参数构造。
 	*/
-	ShlDS(GHandle<YDesktop> = GetGlobal().GetDesktopUpHandle(),
-		GHandle<YDesktop> = GetGlobal().GetDesktopDownHandle());
+	ShlDS(GHandle<Desktop> = GetGlobal().GetDesktopUpHandle(),
+		GHandle<Desktop> = GetGlobal().GetDesktopDownHandle());
 
-	DefGetter(const GHandle<YDesktop>&, DesktopUpHandle, hDskUp)
-	DefGetter(const GHandle<YDesktop>&, DesktopDownHandle, hDskDown)
-	DefGetter(YDesktop&, DesktopUp, *hDskUp)
-	DefGetter(YDesktop&, DesktopDown, *hDskDown)
+	DefGetter(const GHandle<Desktop>&, DesktopUpHandle, hDskUp)
+	DefGetter(const GHandle<Desktop>&, DesktopDownHandle, hDskDown)
+	DefGetter(Desktop&, DesktopUp, *hDskUp)
+	DefGetter(Desktop&, DesktopDown, *hDskDown)
 
 	/*!
 	\brief Shell 处理函数。

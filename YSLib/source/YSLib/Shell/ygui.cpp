@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面。
-\version 0.3755;
+\version 0.3759;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-25 12:49 +0800;
+	2011-04-28 17:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -308,7 +308,7 @@ YGUIShell::ShlProc(const Message& msg)
 	{
 	case SM_PAINT:
 		{
-			GHandleContext<GHandle<YDesktop> >* const
+			GHandleContext<GHandle<Desktop> >* const
 				p(CastMessage<SM_PAINT>(msg));
 
 			if(p && p->Handle)
@@ -318,7 +318,7 @@ YGUIShell::ShlProc(const Message& msg)
 	default:
 		break;
 	}
-	return ParentType::ShlProc(msg);
+	return YShell::ShlProc(msg);
 }
 
 YSL_END_NAMESPACE(Shells)

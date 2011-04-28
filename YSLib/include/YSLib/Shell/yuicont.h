@@ -11,16 +11,16 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 样式无关的图形用户界面容器。
-\version 0.2255;
+\version 0.2276;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-04-26 08:51 +0800;
+	2011-04-28 17:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YUIContainer;
+	YSLib::Shell::UIContainer;
 */
 
 
@@ -129,7 +129,7 @@ FetchDirectWindowPtr(IWidget&);
 \brief 取指定部件的直接桌面句柄。
 \note 加入容器指针判断。
 */
-YDesktop*
+Desktop*
 FetchDirectDesktopPtr(IWidget&);
 
 /*!
@@ -335,18 +335,15 @@ protected:
 
 
 //部件容器。
-class YUIContainer : public GMCounter<YUIContainer>, public YComponent,
-	public Widget, protected MUIContainer,
+class UIContainer : public Widget, protected MUIContainer,
 	implements IUIContainer
 {
 public:
-	typedef YComponent ParentType;
-
 	/*!
 	\brief 构造：使用指定边界。
 	*/
 	explicit
-	YUIContainer(const Rect& = Rect::Empty);
+	UIContainer(const Rect& = Rect::Empty);
 
 	ImplI1(IUIContainer) PDefHOperator1(void, +=, IWidget* p)
 		ImplBodyBase1(MUIContainer, operator+=, p)
@@ -361,23 +358,12 @@ public:
 	ImplI1(IUIContainer) PDefHOperator1(bool, -=, GMFocusResponser<IControl>* p)
 		ImplBodyBase1(MUIContainer, operator-=, p)
 
-	ImplI1(IUIContainer) DefPredicateBase(Visible, Visual)
-	ImplI1(IUIContainer) DefPredicateBase(Transparent, Visual)
-
-	ImplI1(IUIContainer) DefGetterBase(const Point&, Location, Visual)
-	ImplI1(IUIContainer) DefGetterBase(const Size&, Size, Visual)
-	ImplI1(IUIContainer) DefGetterBase(IUIBox*&, ContainerPtr, Widget)
 	ImplI1(IUIContainer) DefMutableGetterBase(IControl*, FocusingPtr,
 		GMFocusResponser<IControl>)
 	ImplI1(IUIContainer) PDefH1(IWidget*, GetTopWidgetPtr, const Point& pt)
 		ImplBodyBase1(MUIContainer, GetTopWidgetPtr, pt)
 	ImplI1(IUIContainer) PDefH1(IControl*, GetTopControlPtr, const Point& pt)
 		ImplBodyBase1(MUIContainer, GetTopControlPtr, pt)
-
-	ImplI1(IUIContainer) DefSetterBase(bool, Visible, Visual)
-	ImplI1(IUIContainer) DefSetterBase(bool, Transparent, Visual)
-	ImplI1(IUIContainer) DefSetterBase(const Point&, Location, Visual)
-	ImplI1(IUIContainer) DefSetterBase(const Size&, Size, Visual)
 
 	ImplI1(IUIContainer) PDefH0(void, ClearFocusingPtr)
 		ImplBodyBase0(MUIContainer, ClearFocusingPtr)
@@ -387,12 +373,6 @@ public:
 
 	ImplI1(IUIContainer) PDefH1(bool, ResponseFocusRelease, AFocusRequester& w)
 		ImplBodyBase1(MUIContainer, ResponseFocusRelease, w)
-
-	ImplI1(IUIContainer) PDefH0(void, Paint)
-		ImplBodyBase0(Widget, Paint)
-
-	ImplI1(IUIContainer) PDefH0(void, Refresh)
-		ImplBodyBase0(Widget, Refresh)
 };
 
 YSL_END_NAMESPACE(Widgets)

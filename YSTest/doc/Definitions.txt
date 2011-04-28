@@ -1,11 +1,28 @@
-﻿// YSLib::Definitions by Franksoft 2010 - 2011
-// CharSet = UTF-8;
-// CTime = 2010-01-26 19:34:51 +0800;
-// UTime = 2011-04-25 19:29 +0800;
-// Version = r10784;
+﻿/*
+	Copyright (C) by Franksoft 2010 - 2011.
 
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
 
-// Definitions ：方法和公共域定义与说明。
+/*!	\file Definitions.txt
+\ingroup Documentation
+\brief 方法和公共域定义与说明。
+\version r10791;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2010-01-26 19:34:51 +0800;
+\par 修改时间:
+	2011-04-28 17:28 +0800;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Documentation::Definitions;
+*/
+
 
 /*
 
@@ -375,7 +392,7 @@ namespace std
 namespace Components
 {
 	$unit Shell::YComponents;
-	$unit Shell::YDesktop;
+	$unit Shell::Desktop;
 	namespace Controls
 	{
 		$unit Shell::Button;
@@ -385,7 +402,7 @@ namespace Components
 	} //namespace Controls;
 	namespace Forms
 	{
-		$unit Shell::YWindow;
+		$unit Shell::Frame;
 		$unit Shell::Form;
 	} //namespace Forms;
 	namespace Styles
@@ -618,7 +635,7 @@ $Adaptor::Container : Adaptor::YAdaptor
 
 $header Core::YShellDefinition : Adaptor::YAdaptor
 {
-	using Components::YDesktop;
+	using Components::Desktop;
 
 	using Device::YScreen;
 
@@ -654,8 +671,7 @@ $header Shell::YComponent : YShellMessage
 {
 	using Components::Controls::
 	{IControlableComponent, IControl};
-	using Components::Forms::
-	{YForm, YWindow};
+	using Components::Forms::Frame;
 	using Components::Widgets::
 	{IWidget, IUIBox, IUIContainer};
 

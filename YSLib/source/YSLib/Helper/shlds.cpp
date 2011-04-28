@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1762;
+\version 0.1766;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-04-24 18:30 +0800;
+	2011-04-28 17:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,11 +58,11 @@ YSL_END_NAMESPACE(Shells)
 
 YSL_BEGIN_NAMESPACE(DS)
 
-ShlDS::ShlDS(GHandle<YDesktop> h_dsk_up, GHandle<YDesktop> h_dsk_down)
+ShlDS::ShlDS(GHandle<Desktop> h_dsk_up, GHandle<Desktop> h_dsk_down)
 	: YGUIShell(),
-	hDskUp(h_dsk_up ? h_dsk_up : new YDesktop(GetGlobal()
+	hDskUp(h_dsk_up ? h_dsk_up : new Desktop(GetGlobal()
 		.GetScreenUp())),
-	hDskDown(h_dsk_down ? h_dsk_down : new YDesktop(GetGlobal()
+	hDskDown(h_dsk_down ? h_dsk_down : new Desktop(GetGlobal()
 		.GetScreenDown()))
 {}
 
@@ -76,7 +76,7 @@ ShlDS::ShlProc(const Message& msg)
 		return 0;
 
 	default:
-		return ParentType::ShlProc(msg);
+		return YGUIShell::ShlProc(msg);
 	}
 }
 
@@ -108,9 +108,9 @@ ShlDS::SendDrawingMessage()
 //	hDesktopDown->ClearContents();
 	DispatchWindows();
 	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<GHandle<YDesktop> >(hDskUp));
+		new GHandleContext<GHandle<Desktop> >(hDskUp));
 	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<GHandle<YDesktop> >(hDskDown));
+		new GHandleContext<GHandle<Desktop> >(hDskDown));
 }*/
 
 void
@@ -135,7 +135,7 @@ ResponseInput(const Message& msg)
 
 	Runtime::KeysInfo& k(pContext->Key);
 	YGUIShell& shl(FetchGUIShell());
-	YDesktop& d(GetGlobal().GetTouchableDesktop());
+	Desktop& d(GetGlobal().GetTouchableDesktop());
 
 	using namespace Runtime::KeySpace;
 	using namespace Components::Controls;

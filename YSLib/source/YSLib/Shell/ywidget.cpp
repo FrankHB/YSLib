@@ -11,16 +11,16 @@
 /*!	\file ywidget.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面部件。
-\version 0.4905;
+\version 0.4916;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-25 12:48 +0800;
+	2011-04-28 17:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YWidget;
+	YSLib::Shell::Widget;
 */
 
 
@@ -35,7 +35,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Widgets)
 
-using Controls::YControl;
+using Controls::Control;
 
 bool
 Contains(const IWidget& w, SPos x, SPos y)
@@ -53,7 +53,7 @@ ContainsVisible(const IWidget& w, SPos x, SPos y)
 void
 RequestToTop(IWidget& w)
 {
-	YDesktop* pDsk(FetchDirectDesktopPtr(w));
+	Desktop* pDsk(FetchDirectDesktopPtr(w));
 
 	if(pDsk && pDsk == w.GetContainerPtr())
 	{
@@ -97,14 +97,13 @@ Widget::Paint()
 	YWidgetAssert(this, Widgets::Widget, Paint);
 
 	if(!IsTransparent())
-		Fill(*ystdex::polymorphic_crosscast<IWidget*>(this), BackColor);
+		Fill(*this, BackColor);
 }
 
 void
 Widget::Refresh()
 {
-	IWindow* pWnd(FetchWindowPtr(
-		*ystdex::polymorphic_crosscast<IWidget*>(this)));
+	IWindow* pWnd(FetchWindowPtr(*this));
 
 	while(pWnd && !pWnd->IsRefreshRequired())
 	{
@@ -112,12 +111,6 @@ Widget::Refresh()
 		pWnd = FetchWindowPtr(*pWnd);
 	}
 }
-
-
-YWidget::YWidget(const Rect& r)
-	: YComponent(),
-	Widget(r)
-{}
 
 YSL_END_NAMESPACE(Widgets)
 

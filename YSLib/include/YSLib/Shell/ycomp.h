@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件。
-\version 0.3085;
+\version 0.3096;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2011-04-23 13:31 +0800;
+	2011-04-26 16:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -48,8 +48,8 @@ YSL_END_NAMESPACE(Controls)
 
 YSL_BEGIN_NAMESPACE(Forms)
 PDeclInterface(IWindow)
-class YFrame;
-class YForm;
+class Frame;
+class Form;
 YSL_END_NAMESPACE(Forms)
 
 YSL_BEGIN_NAMESPACE(Widgets)
@@ -63,29 +63,11 @@ YSL_END_NAMESPACE(Components)
 using Components::Controls::IControl;
 using Components::Controls::IPanel;
 using Components::Forms::IWindow;
+using Components::Forms::Frame;
 using Components::Widgets::IWidget;
 using Components::Widgets::IUIBox;
 using Components::Widgets::IUIContainer;
 
-YSL_BEGIN_NAMESPACE(Components)
-
-//! \brief 基本组件接口。
-DeclInterface(IComponent)
-EndDecl
-
-
-//! \brief 基本组件。
-class YComponent : public GMCounter<YComponent>, public YCountableObject,
-	implements IComponent
-{
-public:
-	typedef YCountableObject ParentType;
-};
-
-YSL_END_NAMESPACE(Components)
-
-using Components::Forms::YForm;
-using Components::Forms::YFrame;
 
 /*!
 \ingroup HeplerFunction

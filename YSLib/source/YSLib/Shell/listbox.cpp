@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3601;
+\version 0.3609;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-04-22 12:42 +0800;
+	2011-04-26 15:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,22 +42,21 @@ namespace
 }
 
 
-YListBox::YListBox(const Rect& r, GHWeak<ListType> wpList_)
-	: YComponent(),
-	ScrollableContainer(r),
+ListBox::ListBox(const Rect& r, GHWeak<ListType> wpList_)
+	: ScrollableContainer(r),
 	TextListBox(Rect(Point::Zero, r), wpList_)
 {
 	TextListBox.GetContainerPtr() = this;
 	VerticalScrollBar.GetTrack().GetScroll().Add(*this,
-		&YListBox::OnScroll_VerticalScrollBar);
+		&ListBox::OnScroll_VerticalScrollBar);
 	TextListBox.GetViewChanged().Add(*this,
-		&YListBox::OnViewChanged_TextListBox);
+		&ListBox::OnViewChanged_TextListBox);
 	//刷新文本状态，防止第一次绘制时无法正确决定是否需要滚动条。
 	TextListBox.RefreshTextState();
 }
 
 IControl*
-YListBox::GetTopControlPtr(const Point& p)
+ListBox::GetTopControlPtr(const Point& p)
 {
 	IControl* pCon(ScrollableContainer::GetTopControlPtr(p));
 
@@ -67,23 +66,23 @@ YListBox::GetTopControlPtr(const Point& p)
 }
 
 void
-YListBox::Paint()
+ListBox::Paint()
 {
-	YWidgetAssert(this, Controls::YListBox, Draw);
+	YWidgetAssert(this, Controls::ListBox, Draw);
 
 	ScrollableContainer::Paint();
 	TextListBox.Paint();
 }
 
 void
-YListBox::OnScroll_VerticalScrollBar(ScrollEventArgs& e)
+ListBox::OnScroll_VerticalScrollBar(ScrollEventArgs& e)
 {
 	TextListBox.LocateViewPosition(e.Value);
 	Refresh();
 }
 
 void
-YListBox::OnViewChanged_TextListBox(EventArgs&)
+ListBox::OnViewChanged_TextListBox(EventArgs&)
 {
 	if(GetWidth() > defMinScrollBarWidth)
 	{
@@ -99,16 +98,16 @@ YListBox::OnViewChanged_TextListBox(EventArgs&)
 }
 
 
-YFileBox::YFileBox(const Rect& r)
-	: FileList(), YListBox(r, GetListWeakPtr())
+FileBox::FileBox(const Rect& r)
+	: FileList(), ListBox(r, GetListWeakPtr())
 {
-	GetConfirmed().Add(*this, &YFileBox::OnConfirmed);
+	GetConfirmed().Add(*this, &FileBox::OnConfirmed);
 	ListItems();
 	UpdateView();
 }
 
 IO::Path
-YFileBox::GetPath() const
+FileBox::GetPath() const
 {
 	if(IsSelected() && GetSelectedIndex() >= 0)
 		return Directory / (GetList()[GetSelectedIndex()]);
@@ -116,7 +115,7 @@ YFileBox::GetPath() const
 }
 
 void
-YFileBox::OnConfirmed(IndexEventArgs& e)
+FileBox::OnConfirmed(IndexEventArgs& e)
 {
 	if(Contains(e) && static_cast<bool>(*this /= GetList()[e.Index]))
 	{

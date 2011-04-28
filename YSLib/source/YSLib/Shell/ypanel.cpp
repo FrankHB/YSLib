@@ -11,12 +11,12 @@
 /*!	\file ypanel.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面面板。
-\version 0.1113;
+\version 0.1117;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2011-04-25 12:48 +0800;
+	2011-04-26 15:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,12 +91,6 @@ Panel::ClearFocusingPtr()
 			GetStaticRef<EventArgs>());
 	}
 }
-
-
-YPanel::YPanel(const Rect& r)
-	: YComponent(),
-	Panel(r)
-{}
 
 YSL_END_NAMESPACE(Controls)
 

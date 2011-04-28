@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3055;
+\version 0.3081;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-04-23 09:08 +0800;
+	2011-04-26 16:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -110,7 +110,7 @@ public:
 	typedef u16 ValueType; //!< 值类型。
 
 protected:
-	YThumb Thumb; //!< 滑块：轨道区域上的滚动框。
+	Controls::Thumb Thumb; //!< 滑块：轨道区域上的滚动框。
 
 private:
 	SDst min_thumb_length; //!< 最小滑块长度。
@@ -355,8 +355,7 @@ ATrack::LocateThumbForSmallDecrement(ValueType abs_delta)
 
 
 //! \brief 水平轨道。
-class YHorizontalTrack : public GMCounter<YHorizontalTrack>, public YComponent,
-	public ATrack
+class HorizontalTrack : public ATrack
 {
 public:
 	/*!
@@ -364,7 +363,7 @@ public:
 	\note 断言检查：宽大于长的 2 倍。
 	*/
 	explicit
-	YHorizontalTrack(const Rect& = Rect::Empty, SDst = 8);
+	HorizontalTrack(const Rect& = Rect::Empty, SDst = 8);
 
 	ImplI1(ATrack)
 	DefGetter(Orientation, Orientation, Horizontal)
@@ -379,8 +378,7 @@ private:
 
 
 //! \brief 垂直轨道。
-class YVerticalTrack : public GMCounter<YVerticalTrack>, public YComponent,
-	public ATrack
+class VerticalTrack : public ATrack
 {
 public:
 	/*!
@@ -388,7 +386,7 @@ public:
 	\note 断言检查：长大于宽的 2 倍。
 	*/
 	explicit
-	YVerticalTrack(const Rect& = Rect::Empty, SDst = 8);
+	VerticalTrack(const Rect& = Rect::Empty, SDst = 8);
 
 	ImplI1(ATrack)
 		DefGetter(Orientation, Orientation, Vertical)
@@ -412,7 +410,7 @@ private:
 	auto_ptr<ATrack> pTrack; //轨道。
 
 protected:
-	YThumb PrevButton, NextButton; //!< 滚动条按钮。
+	Thumb PrevButton, NextButton; //!< 滚动条按钮。
 
 private:
 	ValueType small_delta; \
@@ -478,15 +476,11 @@ AScrollBar::GetTrack() const ynothrow
 
 
 //! \brief 水平滚动条。
-class YHorizontalScrollBar : public GMCounter<YHorizontalScrollBar>,
-	public YComponent,
-	public AScrollBar
+class HorizontalScrollBar : public AScrollBar
 {
 public:
-	typedef YComponent ParentType;
-
 	explicit
-	YHorizontalScrollBar(const Rect& = Rect::Empty, SDst = 8);
+	HorizontalScrollBar(const Rect& = Rect::Empty, SDst = 8);
 
 public:
 	ImplI1(ATrack)
@@ -495,15 +489,11 @@ public:
 
 
 //! \brief 垂直滚动条。
-class YVerticalScrollBar : public GMCounter<YVerticalScrollBar>,
-	public YComponent,
-	public AScrollBar
+class VerticalScrollBar : public AScrollBar
 {
 public:
-	typedef YComponent ParentType;
-
 	explicit
-	YVerticalScrollBar(const Rect& = Rect::Empty, SDst = 8);
+	VerticalScrollBar(const Rect& = Rect::Empty, SDst = 8);
 
 public:
 	ImplI1(ATrack)
@@ -515,8 +505,8 @@ public:
 class ScrollableContainer : public AUIBoxControl
 {
 protected:
-	YHorizontalScrollBar HorizontalScrollBar;
-	YVerticalScrollBar VerticalScrollBar;
+	Controls::HorizontalScrollBar HorizontalScrollBar;
+	Controls::VerticalScrollBar VerticalScrollBar;
 
 public:
 	explicit

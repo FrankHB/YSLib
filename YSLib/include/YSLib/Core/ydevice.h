@@ -11,12 +11,12 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version 0.2848;
+\version 0.2850;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:39:39 +0800;
 \par 修改时间:
-	2011-04-25 12:55 +0800;
+	2011-04-26 16:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,9 +43,6 @@ YSL_BEGIN_NAMESPACE(Device)
 class YGraphicDevice : public YObject, public Drawing::Graphics
 {
 public:
-	typedef YObject ParentType;
-
-public:
 	/*!
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
@@ -66,7 +63,6 @@ class YScreen : public YGraphicDevice
 	YSLib::InitAllScreens();
 
 public:
-	typedef YGraphicDevice ParentType;
 	typedef int BGType;
 
 private:

@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6978;
+\version 0.6972;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-04-26 16:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,8 +49,6 @@ YSL_BEGIN_NAMESPACE(Drawing)
 class TextState : public PenStyle
 {
 public:
-	typedef PenStyle ParentType;
-
 	Padding Margin; //!< 边距：文本区域到显示区域的距离。
 	SPos PenX, PenY; //!< 笔坐标。
 	u8 LineGap; //!< 行距。
@@ -585,8 +583,6 @@ public:
 class TextRenderer : public ATextRenderer
 {
 public:
-	typedef ATextRenderer ParentType;
-
 	TextState& State;
 	const Graphics& Buffer;
 
@@ -624,8 +620,6 @@ TextRenderer::operator()(fchar_t c)
 class TextRegion : public ATextRenderer, public TextState, public BitmapBufferEx
 {
 public:
-	typedef ATextRenderer ParentType;
-
 	/*!
 	\brief 无参数构造。
 	*/

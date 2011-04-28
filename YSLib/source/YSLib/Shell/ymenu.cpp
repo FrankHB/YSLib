@@ -11,12 +11,12 @@
 /*!	\file ymenu.cpp
 \ingroup Shell
 \brief 样式相关的菜单。
-\version 0.1189;
+\version 0.1197;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-04-26 09:06 +0800;
+	2011-04-27 19:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,6 @@
 
 #include "ymenu.h"
 #include "ywindow.h"
-#include "ystyle.h"
 
 YSL_BEGIN
 
@@ -53,9 +52,9 @@ Menu::Dependencies::Dependencies()
 }
 
 Menu::Menu(const Rect& r, GHWeak<ListType> wp,
-	Color hi_back, Color hi_text)
+	pair<Color, Color> hilight_pair)
 	: Control(r), MTextList(wp),
-	HilightBackColor(hi_back), HilightTextColor(hi_text),
+	HilightBackColor(hilight_pair.first), HilightTextColor(hilight_pair.second),
 	viewer(GetList()), top_offset(0), Events(GetStaticRef<Dependencies>())
 {
 	SetAllTo(Margin, defMarginH, defMarginV);
@@ -329,12 +328,6 @@ Menu::OnConfirmed(IndexEventArgs& e)
 {
 	OnSelected(e);
 }
-
-
-YMenu::YMenu(const Rect& r, GHWeak<ListType> wp)
-	: YComponent(),
-	Menu(r, wp)
-{}
 
 YSL_END_NAMESPACE(Controls)
 

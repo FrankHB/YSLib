@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面窗口。
-\version 0.3697;
+\version 0.3708;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-04-25 12:47 +0800;
+	2011-04-28 17:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,13 +53,13 @@ Hide(IWindow& wnd)
 }
 
 
-MWindow::MWindow(const GHandle<YImage> i, IWindow* pWnd)
+MWindow::MWindow(const GHandle<Image> i, IWindow* pWnd)
 	: MWindowObject(pWnd),
 	spBgImage(i), bRefresh(true), bUpdate(false)
 {}
 
 
-AWindow::AWindow(const Rect& r, const GHandle<YImage> i, IWindow* pWnd)
+AWindow::AWindow(const Rect& r, const GHandle<Image> i, IWindow* pWnd)
 	: Control(r), MWindow(i, pWnd)
 {}
 
@@ -137,7 +137,7 @@ AWindow::UpdateTo(const Graphics& g, const Point& p) const
 void
 AWindow::UpdateToDesktop()
 {
-	YDesktop* const pDsk(FetchDirectDesktopPtr(*this));
+	Desktop* const pDsk(FetchDirectDesktopPtr(*this));
 
 	if(pDsk)
 		UpdateTo(pDsk->GetContext(), LocateForDesktop(*this));
@@ -153,7 +153,7 @@ AWindow::UpdateToWindow() const
 }
 
 
-AFrame::AFrame(const Rect& r, const GHandle<YImage> i, IWindow* pWnd)
+AFrame::AFrame(const Rect& r, const GHandle<Image> i, IWindow* pWnd)
 	: AWindow(r, i, pWnd), MUIContainer()
 {}
 
@@ -230,29 +230,29 @@ AFrame::ClearFocusingPtr()
 }
 
 
-YFrame::YFrame(const Rect& r, const GHandle<YImage> i, IWindow* pWnd)
-	: YComponent(),
-	AFrame(r, i, pWnd), Buffer()
+Frame::Frame(const Rect& r, const GHandle<Image> i, IWindow* pWnd)
+	: AFrame(r, i, pWnd),
+	Buffer()
 {
 	Buffer.SetSize(GetSize().Width, GetSize().Height);
 
-	YDesktop* pDsk(FetchDirectDesktopPtr(*this));
+	Desktop* pDsk(FetchDirectDesktopPtr(*this));
 
 	if(pDsk)
 		*pDsk += static_cast<IControl*>(this);
 }
-YFrame::~YFrame()
+Frame::~Frame()
 {
-	YDesktop* pDsk(FetchDirectDesktopPtr(*this));
+	Desktop* pDsk(FetchDirectDesktopPtr(*this));
 
 	if(pDsk)
 		*pDsk -= this;
 }
 
 bool
-YFrame::DrawContents()
+Frame::DrawContents()
 {
-	YWindowAssert(this, Forms::YFrame, DrawContents);
+	YWindowAssert(this, Forms::Frame, DrawContents);
 
 	bool result(bRefresh);
 
@@ -261,7 +261,7 @@ YFrame::DrawContents()
 	{
 		IWidget* const p(*i);
 
-		YAssert(p, "Null widget pointer found @ YFrame::DrawContents");
+		YAssert(p, "Null widget pointer found @ Frame::DrawContents");
 
 		result |= p->IsVisible();
 	}

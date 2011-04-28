@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version 0.3048;
+\version 0.3053;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-26 10:12 +0800;
+	2011-04-26 16:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -127,8 +127,6 @@ operator!=(const BinaryGroup& a, const BinaryGroup& b)
 class Point : public BinaryGroup
 {
 public:
-	typedef BinaryGroup ParentType;
-
 	static const Point Zero; //!< 无参数构造参数构造的原点对象。
 	static const Point FullScreen; \
 		//!< 无参数构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
@@ -204,8 +202,6 @@ Point::Point(const Point& p)
 class Vec : public BinaryGroup
 {
 public:
-	typedef BinaryGroup ParentType;
-
 	static const Vec Zero; //!< 无参数构造参数构造的零向量对象。
 	static const Vec FullScreen;
 		//无参数构造参数构造的由屏幕坐标系原点
@@ -697,9 +693,6 @@ public:
 //! \brief 基本可数对象类：所有可数的基本对象类的公共基类。
 class YCountableObject : public GMCounter<YCountableObject>, public YObject
 {
-public:
-	typedef YObject ParentType;
-
 protected:
 	/*!
 	\brief 无参数构造。

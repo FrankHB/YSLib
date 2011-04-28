@@ -11,12 +11,12 @@
 /*!	\file button.h
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件。
-\version 0.3003;
+\version 0.3021;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-04-22 08:20 +0800;
+	2011-04-26 07:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -60,17 +60,15 @@ MButton::MButton(bool b)
 
 
 //! \brief 基本按钮/滑块。
-class YThumb : public GMCounter<YThumb>, public YControl,
+class Thumb : public Control,
 	protected MButton
 {
 public:
-	typedef YControl ParentType;
-
 	/*!
 	\brief 构造：使用指定边界。
 	*/
 	explicit
-	YThumb(const Rect& = Rect::Empty);
+	Thumb(const Rect& = Rect::Empty);
 
 	/*!
 	\brief 绘制界面。
@@ -94,12 +92,14 @@ private:
 
 
 //! \brief 按钮。
-class YButton : public GMCounter<YButton>, public YThumb,
-	public Widgets::MLabel
+class Button : public Thumb, protected Widgets::MLabel
 {
 public:
-	typedef YThumb ParentType;
-
+	using MLabel::TextAlignmentStyle;
+	using MLabel::Font;
+	using MLabel::Margin;
+	using MLabel::Alignment;
+	using MLabel::Text;
 /*
 	YImage BackgroundImage; //!< 背景图像。
 	YImage Image; //!< 前景图像。
@@ -109,7 +109,7 @@ public:
 	\brief 构造：使用指定边界和字体。
 	*/
 	explicit
-	YButton(const Rect& = Rect::Empty,
+	Button(const Rect& = Rect::Empty,
 		const Drawing::Font& = Drawing::Font::GetDefault());
 
 	/*!

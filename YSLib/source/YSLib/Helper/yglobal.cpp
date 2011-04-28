@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3057;
+\version 0.3060;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-04-25 12:50 +0800;
+	2011-04-28 17:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -86,7 +86,7 @@ Global::GetScreenDown() const ynothrow
 
 	return *hScreenDown;
 }
-YDesktop&
+Desktop&
 Global::GetDesktopUp() const ynothrow
 {
 	YAssert(hDesktopUp, "Fatal error @ Global::GetDesktopUp:"
@@ -94,7 +94,7 @@ Global::GetDesktopUp() const ynothrow
 
 	return *hDesktopUp;
 }
-YDesktop&
+Desktop&
 Global::GetDesktopDown() const ynothrow
 {
 	YAssert(hDesktopDown, "Fatal error @ Global::GetDesktopDown:"
@@ -118,8 +118,8 @@ Global::InitializeDevices() ynothrow
 	}
 	try
 	{
-		hDesktopUp = new YDesktop(*hScreenUp);
-		hDesktopDown = new YDesktop(*hScreenDown);
+		hDesktopUp = new Desktop(*hScreenUp);
+		hDesktopDown = new Desktop(*hScreenDown);
 	}
 	catch(...)
 	{

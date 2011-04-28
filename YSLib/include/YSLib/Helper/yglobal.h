@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2145;
+\version 0.2148;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-04-23 09:08 +0800;
+	2011-04-28 17:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,8 +68,8 @@ public:
 private:
 	GHandle<YScreen> hScreenUp; //<! DS 上屏幕句柄。
 	GHandle<YScreen> hScreenDown; //<! DS 上屏幕句柄。
-	GHandle<YDesktop> hDesktopUp; //<! DS 下屏幕默认桌面句柄。
-	GHandle<YDesktop> hDesktopDown; //<! DS 下屏幕默认桌面句柄。
+	GHandle<Desktop> hDesktopUp; //<! DS 下屏幕默认桌面句柄。
+	GHandle<Desktop> hDesktopDown; //<! DS 下屏幕默认桌面句柄。
 
 	Global(); //!< 构造函数：非内联。
 	~Global(); //!< 析构函数：非内联。
@@ -77,8 +77,8 @@ private:
 public:
 	DefGetter(const GHandle<YScreen>&, ScreenUpHandle, hScreenUp)
 	DefGetter(const GHandle<YScreen>&, ScreenDownHandle, hScreenDown)
-	DefGetter(const GHandle<YDesktop>&, DesktopUpHandle, hDesktopUp)
-	DefGetter(const GHandle<YDesktop>&, DesktopDownHandle, hDesktopDown)
+	DefGetter(const GHandle<Desktop>&, DesktopUpHandle, hDesktopUp)
+	DefGetter(const GHandle<Desktop>&, DesktopDownHandle, hDesktopDown)
 	/*!
 	\brief 取上屏幕。
 	\note 断言检查：句柄非空。
@@ -98,14 +98,14 @@ public:
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
 	*/
-	YDesktop&
+	Desktop&
 	GetDesktopUp() const ynothrow;
 	/*!
 	\brief 取下桌面。
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
 	*/
-	YDesktop&
+	Desktop&
 	GetDesktopDown() const ynothrow;
 	/*!
 	\brief 取默认屏幕。
@@ -118,7 +118,7 @@ public:
 	\note 默认接口：可能会被 YSLib 本体使用。
 	\note 无异常抛出。
 	*/
-	PDefH0(YDesktop&, GetDefaultDesktop)
+	PDefH0(Desktop&, GetDefaultDesktop)
 		ImplRet(GetDesktopUp())
 	/*!
 	\brief 取触摸屏所在桌面。
@@ -126,7 +126,7 @@ public:
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
 	*/
-	PDefH0(YDesktop&, GetTouchableDesktop)
+	PDefH0(Desktop&, GetTouchableDesktop)
 		ImplRet(GetDesktopDown())
 
 	/*!

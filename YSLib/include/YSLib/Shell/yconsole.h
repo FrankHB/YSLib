@@ -11,16 +11,16 @@
 /*!	\file yconsole.h
 \ingroup Shell
 \brief 平台无关的控制台。
-\version 0.1079;
+\version 0.1085;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 23:00:29 +0800;
 \par 修改时间:
-	2011-04-21 07:18 +0800;
+	2011-04-26 16:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Shell::YConsole
+	YSLib::Shell::Console
 */
 
 
@@ -35,18 +35,16 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 //! \brief 控制台。
-class YConsole : public YComponent
+class Console
 {
 public:
-	typedef YComponent ParentType;
-
 	YScreen& Screen;
 
 	/*!
 	\brief 构造：使用指定屏幕、有效性、前景色和背景色。
 	*/
 	explicit
-	YConsole(YScreen& = GetGlobal().GetDefaultScreen(), bool = true,
+	Console(YScreen& = GetGlobal().GetDefaultScreen(), bool = true,
 		Drawing::Color = Drawing::ColorSpace::White,
 		Drawing::Color = Drawing::ColorSpace::Black);
 	/*!
@@ -54,41 +52,40 @@ public:
 	\note 自动停用。
 	*/
 	virtual
-	~YConsole();
+	~Console();
 
 	/*!
 	\brief 激活：使用指定屏幕、有效性、前景色和背景色。
 	*/
 	friend void
-	Activate(YConsole&, Drawing::Color = Drawing::ColorSpace::White,
+	Activate(Console&, Drawing::Color = Drawing::ColorSpace::White,
 		Drawing::Color = Drawing::ColorSpace::Black);
 
 	/*!
 	\brief 停用。
 	*/
 	friend void
-	Deactivate(YConsole&);
+	Deactivate(Console&);
 
 	void
 	Pause();
 };
 
 inline
-YConsole::YConsole(YScreen& scr, bool a, Drawing::Color fc, Drawing::Color bc)
-	: YComponent(),
-	Screen(scr)
+Console::Console(YScreen& scr, bool a, Drawing::Color fc, Drawing::Color bc)
+	: Screen(scr)
 {
 	if(a)
 		Activate(*this, fc, bc);
 }
 inline
-YConsole::~YConsole()
+Console::~Console()
 {
 	Deactivate(*this);
 }
 
 inline void
-YConsole::Pause()
+Console::Pause()
 {
 	WaitForInput();
 }

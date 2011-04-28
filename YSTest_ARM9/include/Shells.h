@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3192;
+\version 0.3201;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-23 14:21 +0800;
+	2011-04-26 16:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,7 @@ using namespace Runtime;
 using namespace DS;
 using namespace DS::Components;
 
-GHandle<YImage>&
+GHandle<Image>&
 GetImage(int);
 
 class ShlLoad : public ShlDS
@@ -57,7 +57,7 @@ class ShlLoad : public ShlDS
 public:
 	typedef ShlDS ParentType;
 
-	YLabel lblTitle, lblStatus, lblDetails;
+	Label lblTitle, lblStatus, lblDetails;
 
 	ShlLoad();
 
@@ -75,10 +75,10 @@ class ShlExplorer : public ShlDS
 public:
 	typedef ShlDS ParentType;
 
-	YLabel lblTitle, lblPath;
-	YFileBox fbMain;
-	YButton btnTest, btnOK;
-	YCheckBox chkTest;
+	Label lblTitle, lblPath;
+	FileBox fbMain;
+	Button btnTest, btnOK;
+	CheckBox chkTest;
 
 	ShlExplorer();
 
@@ -125,11 +125,11 @@ public:
 
 	auto_ptr<IWindow> pWndTest;
 	auto_ptr<IWindow> pWndExtra;
-	YLabel lblA, lblB;
+	Label lblA, lblB;
 
-	struct TFormTest : public YForm
+	struct TFormTest : public Form
 	{
-		YButton btnEnterTest, btnShowWindow;
+		Button btnEnterTest, btnShowWindow;
 
 		TFormTest();
 
@@ -143,12 +143,12 @@ public:
 		OnClick_btnShowWindow(TouchEventArgs&);
 	};
 
-	struct TFormExtra : public YForm
+	struct TFormExtra : public Form
 	{
-		YButton btnDragTest;
-		YButton btnTestEx;
-		YButton btnReturn;
-		YButton btnExit;
+		Button btnDragTest;
+		Button btnTestEx;
+		Button btnReturn;
+		Button btnExit;
 
 		TFormExtra();
 
@@ -207,7 +207,7 @@ public:
 	MDualScreenReader Reader;
 	YTextFile* pTextFile;
 
-	GHandle<YImage> hUp, hDn;
+	GHandle<Image> hUp, hDn;
 	bool bgDirty;
 
 	ShlReader();
