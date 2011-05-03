@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3081;
+\version 0.3084;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-04-26 16:05 +0800;
+	2011-05-03 13:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -407,7 +407,7 @@ public:
 	typedef ATrack::ValueType ValueType; //!< 值类型。
 
 private:
-	auto_ptr<ATrack> pTrack; //轨道。
+	unique_ptr<ATrack> pTrack; //轨道。
 
 protected:
 	Thumb PrevButton, NextButton; //!< 滚动条按钮。

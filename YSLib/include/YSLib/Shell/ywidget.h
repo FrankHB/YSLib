@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 样式无关的图形用户界面部件。
-\version 0.5942;
+\version 0.5944;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-28 17:26 +0800;
+	2011-05-03 19:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -184,7 +184,7 @@ MWindowObject::MWindowObject(IWindow* pWnd)
 
 
 //! \brief 可视样式。
-class Visual : public NonCopyable
+class Visual : public noncopyable
 {
 private:
 	bool visible; //!< 可见性。

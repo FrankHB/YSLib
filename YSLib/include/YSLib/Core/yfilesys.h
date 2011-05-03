@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2094;
+\version 0.2100;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-04-26 16:18 +0800;
+	2011-05-01 22:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -598,7 +598,7 @@ public:
 
 protected:
 	Path Directory; //!< 目录的完整路径。
-	GHandle<ListType> spList; //!< 目录中的项目列表的强指针。
+	GHandle<ListType> pList; //!< 目录中的项目列表句柄。
 
 public:
 	/*!
@@ -630,7 +630,7 @@ public:
 	operator/=(const String&);
 
 	DefGetter(const Path&, Directory, Directory) //!< 取目录的完整路径。
-	DefGetter(GHWeak<ListType>, ListWeakPtr, spList); //!< 取项目列表的弱指针。
+	DefGetter(GHandle<ListType>, ListPtr, pList); //!< 取项目列表的弱指针。
 //	DefGetter(const ListType&, List, List) //!< 取项目列表。
 
 	/*!

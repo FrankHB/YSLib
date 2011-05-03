@@ -1,4 +1,4 @@
-//v0.3121; *Build 205 r19;
+//v0.3121; *Build 206 r16;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -216,196 +216,323 @@ $using:
 
 
 $DONE:
-r1-r5:
-/= test 1;
+r1:
+/ @ \cl ShlSetting::TFormTest @ \u Shells;
+	+ \m Button btnMenuTest;
+	/ \impl @ \ctor;
+
+r2:
+* \impl @ \ctor @ \cl ShlSetting::TFormTest @ \u Shells;
+
+r3:
+/ @ \cl YFile:
+	/ \mf rewind => Rewind;
+	/ typedef std::ptrdiff_t OffType => OffsetType;
+	/ \mf ftell => GetPosition;
+	/ \mf fseek => SetPosition;
+	/ \mf fread => Read;
+	/ \mf feof => CheckEOF;
+	+= \i \mf ^ \mac ImplRet;
+	/ \mf Release => Close;
+	/= \mf order;
+	/ \inh YObject -> NonCopyable;
+/ \mf GetPos => GetTextPosition @ \cl YTextFile;
+/ \a \cl YFile => File;
+/ \a \cl YTextFile => TextFile;
+/ @ \h YStandardEx:
+	+ using ::memcmp;
+	* @ \h:
+		-= duplicate \inc;
+	+ \inc \h <cstring>;
++ using ystdex::memcmp @ \impl \u YFile_(Text);
++ using File::Read @ \cl TextFile;
+
+r4:
+/ @ \cl FileList @ \u YFileSystem:
+	/ protected \m GHWeak<ListType> wpList -> GHandle<ListType> pList;
+	/ \tr \impl @ \ctor;
+	/ \mf DefGetter(GHandle<ListType>, ListWeakPtr, pList)
+		-> DefGetter(GHandle<ListType>, ListPtr, pList);
+	/ \tr \impl @ \mf;
+/ @ \cl MTextList @ \u YLabel:
+	/ protected mutable \m GHWeak<ListType> wpList -> GHandle<ListType> pList;
+	/ \tr \impl @ \ctor;
+	/ \tr \impl @ \mf;
+/ \tr \decl @ \ctor @ \cl (Menu & ListBox & FileBox);
+
+r5:
+/= test 1 ^ \conf release;
 
 r6:
-/ @ \h YWidget:
-	/ @ \cl Widget:
-		+ \inh \vt \in IWidget;
-		+ 'ImplI1(IWidget)' @ \i \mf GetContainerPtr;
-		/= \a \vt -> 'ImplI1(IWidget)';
-	/ @ \cl YWidget:
-		- \inh !\vt \in IWidget;
-		- \mf (Paint & Refresh & GetContainerPtr);
-		/ \a \mf >> \cl Widget;
-/ \simp \impl @ \mf (Paint & Refresh) @ \cl Widget @ \impl \u YWidget;
+/ \u YFile @ \dir Core >> \dir Service; 
+/ \u YFile_(Text) @ \dir Core >> \dir Service; 
++ \u YGDIBase["ygdibase.h", "ygdibase.cpp"] @ \dir Core;
+/ @ \u YObject:
+	/ \ns Drawing >> \u YGDIBase;
+	- \inc \h (YShell & YGlobal) @ \impl \u;
+/ \tr + \inc "ygdibase.h" @ \h YDevice;
+- using Drawing::Point @ \h YShellMessage;
+/ \h Config["config.h"] @ \dir Adaptor => Configuration["config.h"];
+- \rem \mac YSLIB_NO_CURSOR @ \h Configuration;
+/ \tr \inc "../Core/yftext.h" -> \inc "yftext.h"
+	@ \h YTextManager @ \dir Service;
+/ \tr \inc "../Core/yftext.h" -> \inc "../Service/yftext.h"
+	@ \h YText;
+/ \tr @ \h YGlobal:
+	+ \inh \c "../Core/ygdibase.h";
+	/ \a Point @ \ns Messaging -> Drawing::Point;
+/ \tr \inc \h "ystring.h" -> "../Core/ycutil.h" @ \h YFile;
+/ \tr @ \h YGDI:
+	- \inc \h YObject;
+	+ \inc \h YCoreUtility;
+	+ \inc \h YGDIBase;
+/ \tr @ \h YGUI:
+	/ \a Point -> Drawing::Point;
+/ \tr \inc <YSLib/Core/yftext.h> -> <YSLib/Service/yftext.h> @ \h DSReader;
+/ @ \impl \u YGlobal:
+	/ \a Drawing::Point -> Point;
+	+ using \ns Drawing;
++ \inc \h YString @ \h YText;
 
 r7:
-- \a \mf \impl \inh ~ Widget @ \cl Control @ \h YControl:
+/= test 2 ^ \conf release;
 
 r8:
-/ \a \cl YLabel => Label;
-/ \a YWidget \exc \h YWidget -> Widget;
-- \cl YWidget @ \u YWidget;
-/ \a YControl \exc \h YControl -> Control;
-- \cl YControl @ \u YControl;
++ '-std=c++0x' @ \a \mac CXXFLAGS @ makefiles;
+/ \a '> >' -> '>>' @ \lib YCLib;
+/ @ \h Platform:
+	/ \ns std => ystdex ;
+	/ @ \ns ystdex:
+		/ char16_t => uchar_t;
+		/ char32_t => fchar_t;
+/ @ \h CHRDefinition:
+	/ typedef std::char32_t fchar_t -> using ystdex::fchar_t;
+	/ typedef std::char16_t uchar_t -> using ystdex::uchar_t;
+/ \a '-std=c++0x' -> '-std=gnu++0x' @ \mac CXXFLAGS
+	@ makefiles \exc makefile @ \lib CHRLib;
+* implicit narrowing conversion @ \impl \u (YStyle & Scroll);
 
 r9:
-/ \a \cl YThumb => Thumb;
-- \inh GMCounter<Thumb> @ \cl Thumb;
-/ \a \cl YButton => Button;
-- \inh GMCounter<Button> @ \cl Button;
-/ \a \cl YCheckBox => CheckBox;
-- \inh GMCounter<CheckBox> @ \cl CheckBox;
-* \tr \m Thumb Thumb -> Controls::Thumb Thumb @ \cl ATrack;
-
-r10:
-^ \conf release;
-/= test 2;
-
-r11:
-/ \a \cl YUIContainer => UIContainer;
-/ @ \cl UIContainer:
-	- \inh (GMCounter<UIContainer> & YComponent);
-	/ \tr \impl @ \ctor;
-	- \a \mf \impl \inh ~ Visual;
-	- \a \mf \impl \inh ~ Widget;
-- \cl YPanel @ \u YPanel;
-/ \a YMenu \exc \h YMenu -> Menu;
-/ @ \u YMenu:
-	- \cl YMenu @ \u YMenu;
-	/ \ac @ \ctor @ \cl Menu -> public ~ protected;
-
-r12:
-^ \conf debug;
-/ \a \cl YFrame => Frame;
-/ @ \cl Frame:
-	- \inh (GMCounter<Frame> & YComponent);
-	/ \tr \impl @ \ctor;
-/ \a \cl YFrame => Form;
-- \inh GMCounter<Form> @ \cl Form;
-/ \a YHorizontalTrack => HorizontalTrack;
-/ \a YVerticalTrack => VerticalTrack;
-/ \a YHorizontalScrollBar => HorizontalScrollBar;
-/ \a YVerticalScrollBar => VerticalScrollBar;
-/ @ \u Scroll:
-	/ @ \cl HorizontalTrack:
-		- \inh (YComponent & GMCounter<HorizontalTrack>);
-		/ \tr \impl @ \ctor;
-	/ @ \cl VerticalTrack:
-		- \inh (YComponent & GMCounter<VerticalTrack>);
-		/ \tr \impl @ \ctor;
-	/ @ \cl HorizontalScrollBar:
-		- \inh (YComponent & GMCounter<HorizontalScrollBar>);
-		/ \tr \impl @ \ctor;
-		- typedef YComponent ParentType;
-	/ @ \cl VerticalScrollBar:
-		- \inh (YComponent & GMCounter<VerticalScrollBar>);
-		/ \tr \impl @ \ctor;
-		- typedef YComponent ParentType;
-	* \tr @ \cl ScrollableContainer:
-		/ protected \m HorizontalScrollBar HorizontalScrollBar
-			-> Controls::HorizontalScrollBar HorizontalScrollBar;
-		/ protected \m VerticalScrollBar VerticalScrollBar;
-			-> Controls::VerticalScrollBar VerticalScrollBar;
-/ \tr \pre \decl & using \decl @ \h YComponent;
-/ \a YListBox => ListBox;
-/ \a YFileBox => FileBox;
-/ @ \u ListBox:
-	/ @ \cl ListBox:
-		- \inh (YComponent & GMCounter<ListBox>);
-		/ \tr \impl @ \ctor;
-		- typedef YComponent ParentType;
-	/ @ \cl FileBox:
-		- \inh GMCounter<FileBox>;
-		- typedef ListBox ParentType;
-- \inh GMCounter<Label> @ \cl Label;
-/ \a YImage => Image;
-/ @ \h YResource:
-	- \inh YCountableObject;
-	- \inh GMCounter<Image>;
-	- typedef YCountableObject ParentType;
-/ \a YConsole => Console;
-/ @ \cl Console @ \u YConsole:
-	- typedef YComponent ParentType;
-	- \inh YComponent;
-	/ \tr \impl @ \ctor;
-/ @ \h YComponent:
-	- \in IComponent;
-	- \cl YComponent;
-	- using Components::Forms::Form @ \ns YSLib;
-- \tr typedef YComponent ParentType @ \cl (UIContainer & AFrame);
-- \a typedef '*' ParentType @ \lib YSLib;
-
-r13:
 /= test 3 ^ \conf release;
 
-r14:
-/= recovered \h YShellMessage ~ b204;
+r10:
+/ @ \ns ystdex @ \h YStandardEx:
+	+ \inc \h <type_traits>;
+	/ \rem {
+		using std::tr1::add_reference;
 
-r15:
-/ @ \cl Menu:
-	/ \ac @ \inh Widgets::MTextList -> protected ~ public;
-	+ public using MTextList::ItemType;
-	+ public using MTextList::ListType;
-	+ public using MTextList::IndexType;
-	+ public using MTextList::TextAlignmentStyle;
-	+ public using MTextList::Font;
-	+ public using MTextList::Margin;
-	+ public using MTextList::Alignment;
-	+ public using MTextList::Text;
-	+ public using MTextList::GetList;
-	+ public using MTextList::GetItemPtr;
-	+ public using MTextList::GetItemHeight;
-	+ public using MTextList::RefreshTextState;
-/ @ \cl Button:
-	/ \ac @ \inh Widgets::MLabel -> protected ~ public;
-	+ public using MLabel::TextAlignmentStyle;
-	+ public using MLabel::Font;
-	+ public using MLabel::Margin;
-	+ public using MLabel::Alignment;
-	+ public using MLabel::Text;
-/ @ \cl Label:
-	/ \ac @ \inh MLabel -> protected ~ public;
-	+ public using MLabel::TextAlignmentStyle;
-	+ public using MLabel::Font;
-	+ public using MLabel::Margin;
-	+ public using MLabel::Alignment;
-	+ public using MLabel::Text;
-/ \cl MScreenPositionEventArgs @ \h YControl
-	-> typedef Drawing::Point MScreenPositionEventArgs;
+		using std::tr1::has_nothrow_assign;
+		using std::tr1::has_nothrow_constructor;
+		using std::tr1::has_nothrow_copy;
+		using std::tr1::has_trivial_assign;
+		using std::tr1::has_trivial_constructor;
+		using std::tr1::has_trivial_copy;
+		using std::tr1::has_trivial_destructor;
+	- \a !\rem using;
+	+ {
+		using std::integral_constant;
+		using std::true_type;
+		using std::false_type;
 
-r16:
-+ \mf pair<Drawing::Color, Drawing::Color> GetPair(ColorListType::size_type,
-	ColorListType::size_type) const @ \cl Palette @ \u YStyle;
-/ @ \u YMenu:
-	/ !\rem \inh \h YStyle @ \h;
-	- \inh \h YStyle @ \impl \u;
-	/ \ctor @ \cl Menu \exp Menu(const Rect& = Rect::Empty,
-		GHWeak<ListType> = nullptr, Color = Drawing::ColorSpace::Aqua,
-		Color = Drawing::ColorSpace::White) -> \exp
-		Menu(const Rect& = Rect::Empty, GHWeak<ListType> = nullptr,
-		pair<Color, Color> = FetchGUIShell().Colors.GetPair(Styles::Highlight,
-		Styles::HighlightText));
-	/ \inh \h YControl -> YGUI @ \h;
+		using std::is_void;
+		using std::is_integral;
+		using std::is_floating_point;
+		using std::is_array;
+		using std::is_pointer;
+		using std::is_lvalue_reference;
+		using std::is_rvalue_reference;
+		using std::is_member_object_pointer;
+		using std::is_member_function_pointer;
+		using std::is_enum;
+		using std::is_class;
+		using std::is_union;
+		using std::is_function;
 
-r17:
+		using std::is_reference;
+		using std::is_arithmetic;
+		using std::is_fundamental;
+		using std::is_object;
+		using std::is_scalar;
+		using std::is_compound;
+		using std::is_member_pointer;
+
+		using std::is_const;
+		using std::is_volatile;
+		using std::is_trivial;
+	//	using std::is_trivially_copyable;
+		using std::is_standard_layout;
+		using std::is_pod;
+	//	using std::is_literal_type;
+		using std::is_empty;
+		using std::is_polymorphic;
+		using std::is_abstract;
+
+		using std::is_signed;
+		using std::is_unsigned;
+
+		using std::is_constructible;
+
+		using std::has_virtual_destructor;
+
+		using std::alignment_of;
+		using std::rank;
+		using std::extent;
+
+		using std::is_same;
+		using std::is_base_of;
+		using std::is_convertible;
+
+		using std::remove_const;
+		using std::remove_volatile;
+		using std::remove_cv;
+		using std::add_const;
+		using std::add_volatile;
+		using std::add_cv;
+
+		using std::remove_reference;
+		using std::add_lvalue_reference;
+		using std::add_rvalue_reference;
+
+		using std::make_signed;
+		using std::make_unsigned;
+
+		using std::remove_extent;
+		using std::remove_all_extents;
+
+		using std::remove_pointer;
+		using std::add_pointer;
+
+		using std::aligned_storage;
+		using std::decay;
+		using std::enable_if;
+		using std::conditional;
+		using std::common_type;
+	//	using std::underlying_type;
+	//	using std::result_of;
+	}
+	+ \rem
+	{
+		using std::is_default_constructible;
+		using std::is_copy_constructible;
+		using std::is_move_constructible;
+
+		using std::is_assignable;
+		using std::is_copy_assignable;
+		using std::is_move_assignable;
+
+		using std::is_destructible;
+
+		using std::is_trivially_constructible;
+		using std::is_trivially_default_constructible;
+		using std::is_trivially_copy_constructible;
+		using std::is_trivially_move_constructible;
+
+		using std::is_trivially_assignable;
+		using std::is_trivially_copy_assignable;
+		using std::is_trivially_move_assignable;
+		using std::is_trivially_destructible;
+
+		using std::is_nothrow_constructible;
+		using std::is_nothrow_default_constructible;
+		using std::is_nothrow_copy_constructible;
+		using std::is_nothrow_move_constructible;
+
+		using std::is_nothrow_assignable;
+		using std::is_nothrow_copy_assignable;
+		using std::is_nothrow_move_assignable;
+
+		using std::is_nothrow_destructible;
+	}
+/ \a 'std::tr1::' -> 'std::';
+/ \a auto_ptr -> unique_ptr;
+/ @ \h YReference:
+	- using std::auto_ptr;
+	/ \inc \h <tr1/memory> -> <utility>;
+	/ @ \cl GHWeak:
+		/ \mf typename std::add_reference<T>::type operator*() const
+		-> typename std::add_rvalue_reference<T>::type operator*() const
+		^ \ft std::move;
+	+ using std::unique_ptr;
+/ @ \h Container:
+	+ \inc \h <unordered_set>;
+	+ \inc \h <unordered_map>;
+	+ using std::unordered_map;
+	+ using std::unordered_set;
+	+ \inc \h <tuple>;
+	+ using std::tuple;
+	+ using std::make_tuple;
+
+r11:
 /= test 4 ^ \conf release;
 
-r18:
-/ \cl YDesktop => Desktop @ \u YDesktop;
+r12:
+/ \impl @ \f template<> uchar_t
+	codemap<CharSet::SHIFT_JIS>(ubyte_t&, const char*)
+	@ \impl \u CharacterMapping ^ u16 ~ unsigned short;
+^ auto @ \lib YCLib;
+/= \impl @ \f safe_dma_fill @ \impl \u YCommon;
 
-r19:
+r13:
+^ (auto & (\mf \n cbegin & cend)) @ \lib YSLib;
+
+r14:
+/ \a '> >' -> '>>' @ \lib YSLib;
+
+r15:
+/ @ \h Adaptor:
+	- \mac YSL_STATIC_CHECK;
+	/ @ \ns YSLib::Design:
+		- using Loki::Functor;
+		- using Loki::EmptyType;
+		- using Loki::IsCustomUnsignedInt;
+		- using Loki::IsCustomSignedInt;
+		- using Loki::IsCustomFloat;
+		- using Loki::TypeTraits;
+		- using Loki::Typelist;
+		- namespace TL = Loki::TL;
+		- using Loki::NullType;
+		- using Loki::Int2Type;
+		- using Loki::Type2Type;
+		- using Loki::Select;
+	/ \inc \h <loki/StrongPtr.h> -> <loki/SmallObj.h>;
+	/ @ \ns YSLib:
+		- using ystdex::errno_t;
+		- using ystdex::nullptr_t;
+		+ using namespace ystdex;
+- \a 'using ystdex::*' @ \ns YSLib;
+- \a 'ystdex::' @ \ns YSLib;
+/ \a NonCopyable -> noncopyable @ \lib YSLib;
+/ @ \h YCoreUtility:
+	- using Design::NonCopyable;
+	/ @ \ns Design:
+		/ \impl @ \clt MoreConvertible ^ conditional ~ Select;
+		- typedef noncopyable NonCopyable;
+/ \impl @ \i \mf (void operator+=(_type) & bool operator-=(_type))
+	@ \cl AFrame ^ conditional
+	~ Design::Select;
+
+r16:
 /= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-04-28:
--23.4d;
-//c1-c75:r3785;
+2011-05-03:
+-24.9d;
+//c1-c76:r3804;
 
 / ...
 
 
 $NEXT_TODO:
 
-b206-b288:
-* fatel error @ direct UI drawing testing;
+b207-b288:
 + menus;
-+ Z order;
+* fatel error @ direct UI drawing testing;
+^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
+	libstdc++ for known associative container operation bugs;
++ overlay for \a widgets;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
 * non-ASCII character path error in FAT16;
@@ -488,7 +615,7 @@ Design by contract: DbC for C/C++, GNU nana.
 
 $HISTORY:
 
-$design; //features only for developers;
+$design; //features changing only made sense to library developers;
 $add_features +; //features added;
 $fix_bugs *; //bugs fixed;
 $modify_features /; //features modified;
@@ -502,6 +629,30 @@ $instead_of ~; //features replacing;
 $ellipse_refactoring;
 
 $now
+(
+	+ "menu test button",
+	/ "file API",
+	* strict ISO C++2003 code compatibility $=
+	(
+		+ "function %memcmp declation in namespace %ystdex"
+	),
+	* strict ISO C++2011 code compatibility $=
+	(
+		* implicit narrowing conversion(N3242 8.5.4/6) \
+			in C++2011(N3242 5.17/9) ^ explicit static_cast,
+		/ character types in "platform.h"
+	),
+	/ coding using limited C++2011 features $=
+	(
+		/ $design ^ C++2011 style nested template angle brackets,
+		/ $design ^ keyword %auto,
+		/ ^ C++2011 type_traits in namespace std instead of std::tr1
+	),
+	- Loki type operations,
+	/ ^ namespace ystdex in namespace YSLib
+),
+
+b205,
 (
 	/ "simplified widgets and controls inheritance",
 	/ "simplified image resource type",

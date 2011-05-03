@@ -11,12 +11,12 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version 0.1592;
+\version 0.1626;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-04-26 16:19 +0800;
+	2011-04-30 20:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,7 +32,7 @@
 YSL_BEGIN
 
 //! \brief 文本文件类。
-class YTextFile : public YFile
+class TextFile : public File
 {
 private:
 	SizeType bl; //!<  BOM 大小。
@@ -43,17 +43,18 @@ public:
 	\brief 构造：使用指定文件路径初始化对象。
 	*/
 	explicit
-	YTextFile(CPATH);
+	TextFile(CPATH);
 
 	DefGetter(u8, BOMSize, bl) //!< 取 BOM 大小。
 	DefGetter(Text::CSID, CP, cp) //!< 取编码。
-	DefGetter(SizeType, TextSize, GetSize() - GetBOMSize()) //!< 取文本区段大小。
-	DefGetter(SizeType, Pos, ftell() - bl) //!< 取文件指针关于文本区段的位置。
+	DefGetter(SizeType, TextSize, GetSize() - GetBOMSize()) \
+		//!< 取文本区段大小。
+	DefGetter(SizeType, TextPosition, GetPosition() - bl) \
+		//!< 取文件指针关于文本区段的位置。
 
-	//
 	/*!
 	\brief 检查文件头是否有 BOM(Byte Order Mark) ，若有则据此判断编码。
-	//			返回 BOM 的长度。
+		返回 BOM 的长度。
 	*/
 	u8
 	CheckBOM(Text::CSID&);
@@ -77,6 +78,7 @@ public:
 	void
 	Seek(long, int whence) const;
 
+	using File::Read;
 	/*!
 	\brief 从文件读 n 字节到 s 中。
 	*/

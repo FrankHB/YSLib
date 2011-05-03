@@ -11,12 +11,12 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version 0.3439;
+\version 0.3457;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-21 23:09:06 +0800;
 \par 修改时间:
-	2011-04-25 13:57 +0800;
+	2011-05-03 17:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,23 +29,23 @@
 
 #include "yadaptor.h"
 #include <memory>
-#include <tr1/memory>
+#include <utility>
 
 YSL_BEGIN
 
-using std::auto_ptr;
-using std::tr1::bad_weak_ptr;
-using std::tr1::const_pointer_cast;
-using std::tr1::dynamic_pointer_cast;
-using std::tr1::enable_shared_from_this;
-using std::tr1::get_deleter;
-using std::tr1::shared_ptr;
-using std::tr1::static_pointer_cast;
-using std::tr1::weak_ptr;
+using std::bad_weak_ptr;
+using std::const_pointer_cast;
+using std::dynamic_pointer_cast;
+using std::enable_shared_from_this;
+using std::get_deleter;
+using std::shared_ptr;
+using std::static_pointer_cast;
+using std::unique_ptr;
+using std::weak_ptr;
 
 
 //! \brief 句柄：强指针。
-template<typename T, class SPT = shared_ptr<T> >
+template<typename T, class SPT = shared_ptr<T>>
 class GHandle : public SPT
 {
 public:
@@ -106,12 +106,12 @@ public:
 
 
 //! \brief 弱句柄：弱指针。
-template<typename T, class SPT = weak_ptr<T> >
+template<typename T, class SPT = weak_ptr<T>>
 class GHWeak : public SPT
 {
 public:
 	typedef SPT PtrType;
-	typedef GHandle<T, shared_ptr<T> > StrongPtrType;
+	typedef GHandle<T, shared_ptr<T>> StrongPtrType;
 
 	/*!
 	\brief 无参数构造。
@@ -147,10 +147,10 @@ public:
 		return this->expired();
 	}
 
-	typename std::tr1::add_reference<T>::type
+	typename std::add_lvalue_reference<T>::type
 	operator*() const
 	{
-		return *this->lock();
+		return std::move(*this->lock());
 	}
 
 	/*!
@@ -180,7 +180,7 @@ raw(_type* const& p)
 }
 template<typename _type>
 inline _type*
-raw(const auto_ptr<_type>& p)
+raw(const unique_ptr<_type>& p)
 {
 	return p.get();
 }
@@ -223,7 +223,7 @@ reset_pointer(_type*& p) ynothrow
 }
 template<typename _type>
 inline bool
-reset_pointer(auto_ptr<_type>& p) ynothrow
+reset_pointer(unique_ptr<_type>& p) ynothrow
 {
 	if(p.get())
 	{

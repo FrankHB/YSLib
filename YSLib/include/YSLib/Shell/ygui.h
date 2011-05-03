@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面。
-\version 0.2584;
+\version 0.2585;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-04-26 16:21 +0800;
+	2011-05-03 07:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,7 +52,7 @@ public:
 	HeldStateType KeyHeldState, TouchHeldState; //!< 输入接触状态。
 	Drawing::Vec DraggingOffset; //!< 拖放偏移量。
 	Timers::YTimer HeldTimer; //!< 输入接触保持计时器。
-	Point ControlLocation, LastControlLocation; \
+	Drawing::Point ControlLocation, LastControlLocation; \
 		//!< 最近两次的指针设备操作时的控件全局位置（屏幕坐标）。
 	Components::Styles::Palette Colors; //!< 调色板。
 

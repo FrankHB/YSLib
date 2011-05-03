@@ -11,12 +11,12 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version 0.1533;
+\version 0.1542;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2011-04-25 12:50 +0800;
+	2011-05-03 16:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -86,7 +86,7 @@ YTimer::RefreshAll()
 {
 	bool t(false);
 	Synchronize();
-	for(TMRs::iterator i(Timers.begin()); i != Timers.end(); ++i)
+	for(auto i(Timers.begin()); i != Timers.end(); ++i)
 		if(i->second)
 			t |= i->second->RefreshRaw();
 	return t;
@@ -95,7 +95,7 @@ YTimer::RefreshAll()
 void
 YTimer::ResetAll()
 {
-	for(TMRs::iterator i(Timers.begin()); i != Timers.end(); ++i)
+	for(auto i(Timers.begin()); i != Timers.end(); ++i)
 		if(i->second)
 			i->second->Reset();
 }
@@ -103,7 +103,7 @@ YTimer::ResetAll()
 void
 YTimer::ResetYTimer()
 {
-	for(TMRs::iterator i(Timers.begin()); i != Timers.end(); ++i)
+	for(auto i(Timers.begin()); i != Timers.end(); ++i)
 	{
 		YTimer* const p(i->second);
 		if(p)

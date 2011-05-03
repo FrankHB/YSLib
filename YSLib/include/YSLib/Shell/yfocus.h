@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup Shell
 \brief 图形用户界面焦点特性。
-\version 0.2340;
+\version 0.2342;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-04-25 12:52 +0800;
+	2011-05-03 19:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,7 @@ YSL_BEGIN_NAMESPACE(Components)
 class AFocusRequester;
 
 //! \brief 简单焦点响应器。
-class MSimpleFocusResponser : public NonCopyable
+class MSimpleFocusResponser : public noncopyable
 {
 protected:
 	IControl* pFocusing; //!< 焦点指针。
@@ -75,7 +75,7 @@ inline MSimpleFocusResponser::MSimpleFocusResponser()
 
 //! \brief 焦点响应器模板。
 template<class _type>
-class GMFocusResponser : public NonCopyable
+class GMFocusResponser : public noncopyable
 {
 public:
 	typedef set<_type*> FOs; //!< 焦点对象组类型。

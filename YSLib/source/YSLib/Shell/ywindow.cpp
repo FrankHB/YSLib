@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面窗口。
-\version 0.3708;
+\version 0.3711;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-04-28 17:22 +0800;
+	2011-04-28 16:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -256,7 +256,7 @@ Frame::DrawContents()
 
 	bool result(bRefresh);
 
-	for(WGTs::iterator i(WidgetsList.begin());
+	for(auto i(WidgetsList.begin());
 		!result && i != WidgetsList.end(); ++i)
 	{
 		IWidget* const p(*i);
@@ -267,7 +267,7 @@ Frame::DrawContents()
 	}
 	if(result)
 	{
-		for(WGTs::iterator i(WidgetsList.begin()); i != WidgetsList.end(); ++i)
+		for(auto i(WidgetsList.begin()); i != WidgetsList.end(); ++i)
 		{
 			IWidget& w(**i);
 

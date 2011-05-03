@@ -11,12 +11,12 @@
 /*!	\file ystyle.cpp
 \ingroup Shell
 \brief 图形用户界面样式。
-\version 0.1379;
+\version 0.1386;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-04-27 19:13 +0800;
+	2011-05-03 19:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,9 +50,6 @@ WndDrawFocus(IWindow* pWnd, const Size&)
 hsl_t
 rgb2hsl(rgb_t c)
 {
-	using ystdex::vmin;
-	using ystdex::vmax;
-
 	const u8 min_color(vmin(vmin(c.r, c.g), c.b)),
 		max_color(vmax(vmax(c.r, c.g), c.b));
 	u16 s(0), l;
@@ -84,7 +81,7 @@ rgb2hsl(rgb_t c)
 			h += 0x60000;
 	}
 
-	const hsl_t r = {h * 15 >> 8, s, l};
+	const hsl_t r = {static_cast<u16>(h * 15 >> 8), s, l};
 
 	return r;
 }

@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 样式无关的图形用户界面容器。
-\version 0.2276;
+\version 0.2278;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-04-28 17:21 +0800;
+	2011-05-03 19:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -48,14 +48,14 @@ yassert(bool, const char*, int, const char*, const char*, const char*);
 
 #	define YWidgetAssert(ptr, comp, func) \
 	Components::yassert((ptr) && FetchDirectWindowPtr( \
-		ystdex::general_cast<IWidget&>(*(ptr))), \
+		general_cast<IWidget&>(*(ptr))), \
 		"The direct window pointer is null.", __LINE__, __FILE__, #comp, #func)
 
 #else
 
 #	define YWidgetAssert(ptr, comp, func) \
 	assert((ptr) && FetchDirectWindowPtr( \
-		ystdex::general_cast<IWidget&>(*(ptr))))
+		general_cast<IWidget&>(*(ptr))))
 
 #endif
 

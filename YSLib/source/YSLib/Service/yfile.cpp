@@ -11,12 +11,12 @@
 /*!	\file yfile.cpp
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version 0.1338;
+\version 0.1364;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2011-03-25 12:51 +0800;
+	2011-04-30 20:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,34 +28,33 @@
 
 YSL_BEGIN
 
-YFile::YFile(CPATH p)
-	: YObject(),
-	fp(nullptr), fsize(0)
+File::File(CPATH p)
+	: fp(nullptr), fsize(0)
 {
 	if(Open(p))
 	{
-		fseek(0, SEEK_END);
-		fsize = ftell();
-		rewind();
+		SetPosition(0, SEEK_END);
+		fsize = GetPosition();
+		Rewind();
 	}
 }
 
-YFile::~YFile()
+File::~File()
 {
-	Release();
+	Close();
 }
 
 void
-YFile::Release()
+File::Close()
 {
 	if(IsValid())
 		std::fclose(fp);
 }
 
 bool
-YFile::Open(CPATH p)
+File::Open(CPATH p)
 {
-	Release();
+	Close();
 	fp = std::fopen(p, "r");
 	return IsValid();
 }

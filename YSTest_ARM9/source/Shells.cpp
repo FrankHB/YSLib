@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 抽象。
-\version 0.4041;
+\version 0.4054;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-28 17:25 +0800;
+	2011-05-03 19:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -510,10 +510,10 @@ ShlExplorer::OnClick_btnOK(TouchEventArgs&)
 	Activate(con);
 	iprintf("%s\n%s\n%s\n%d,%d\n",fbMain.GetDirectory().c_str(),
 		StringToMBCS(fbMain.YListBox::GetList()[fbMain.GetSelected()]).c_str(),
-		s.c_str(),IO::ValidateDirectory(s), ystdex::fexists(s.c_str()));
+		s.c_str(),IO::ValidateDirectory(s), fexists(s.c_str()));
 	WaitForABXY();
 	Deactivate(con);*/
-		if(!IO::ValidateDirectory(s) && ystdex::fexists(s.c_str()))
+		if(!IO::ValidateDirectory(s) && fexists(s.c_str()))
 			switchShl2(s.c_str());
 	}
 }
@@ -555,13 +555,16 @@ ShlSetting::ShlSetting()
 ShlSetting::TFormTest::TFormTest()
 	: Form(Rect(10, 40, 228, 70), nullptr,
 		raw(GetGlobal().GetDesktopDownHandle())),
-	btnEnterTest(Rect(2, 5, 224, 22)), /*GetImage(6)*/
+	btnEnterTest(Rect(2, 5, 148, 22)), /*GetImage(6)*/
+	btnMenuTest(Rect(152, 5, 60, 22)),
 	btnShowWindow(Rect(45, 35, 124, 22))
 {
 	*this += &btnEnterTest;
+	*this += &btnMenuTest;
 	*this += &btnShowWindow;
-	btnEnterTest.Text = _ustr("测试程序");
+	btnEnterTest.Text = _ustr("边界测试");
 	btnEnterTest.Alignment = MLabel::Right;
+	btnMenuTest.Text = _ustr("菜单测试");
 	btnShowWindow.Text = _ustr("显示/隐藏窗口");
 	btnShowWindow.Alignment = MLabel::Left;
 	BackColor = ARGB16(1, 31, 31, 15);
@@ -984,8 +987,8 @@ ShlSetting::OnActivated(const Message& msg)
 	GetDesktopUp().GetBackgroundImagePtr() = GetImage(5);
 	GetDesktopDown().BackColor = ARGB16(1, 15, 15, 31);
 	GetDesktopDown().GetBackgroundImagePtr() = GetImage(6);
-	pWndTest = auto_ptr<IWindow>(NewWindow<TFormTest>());
-	pWndExtra = auto_ptr<IWindow>(NewWindow<TFormExtra>());
+	pWndTest = unique_ptr<IWindow>(NewWindow<TFormTest>());
+	pWndExtra = unique_ptr<IWindow>(NewWindow<TFormExtra>());
 	GetDesktopDown() += pWndTest.get();
 	GetDesktopDown() += pWndExtra.get();
 //	pWndTest->DrawContents();
@@ -1060,7 +1063,7 @@ ShlReader::ShlProc(const Message& msg)
 int
 ShlReader::OnActivated(const Message& msg)
 {
-	pTextFile = ynew YTextFile(path.c_str());
+	pTextFile = ynew TextFile(path.c_str());
 	Reader.LoadText(*pTextFile);
 	bgDirty = true;
 	std::swap(hUp, GetDesktopUp().GetBackgroundImagePtr());

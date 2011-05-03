@@ -11,12 +11,12 @@
 /*!	\file chrdef.h
 \ingroup CHRLib CHRLib 库
 \brief CHRLib 类型定义。
-\version 0.1568;
+\version 0.1571;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-04-20 10:47 +0800;
+	2011-05-03 12:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,8 +43,8 @@ typedef unsigned char ubyte_t;
 typedef unsigned long usize_t;
 
 // 字符类型定义。
-typedef std::char32_t fchar_t; //!< UCS-4 字符类型。
-typedef std::char16_t uchar_t; //!< UCS-2 字符类型。
+using ystdex::uchar_t; //!< UCS-2 字符类型。
+using ystdex::fchar_t; //!< UCS-4 字符类型。
 typedef s32 uint_t;
 
 /*!

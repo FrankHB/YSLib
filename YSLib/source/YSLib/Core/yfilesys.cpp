@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2154;
+\version 0.2161;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-04-25 12:51 +0800;
+	2011-05-03 19:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -221,8 +221,6 @@ GetStemFrom(const string& name)
 bool
 IsStemOf(const char* str, const char* name)
 {
-	using ystdex::strlen_n;
-
 	size_t t(strlen_n(str));
 
 	if(t > strlen_n(name))
@@ -304,14 +302,14 @@ HaveSameExtendNames(const char* a, const char* b)
 
 	if(!(pa && pb))
 		return false;
-	return ystdex::stricmp_n(pa, pb) != 0;
+	return stricmp_n(pa, pb) != 0;
 }
 bool
 HaveSameExtendNames(const string& a, const string& b)
 {
 	string ea(GetExtendNameFrom(a)), eb(GetExtendNameFrom(b));
 
-	return ystdex::stricmp_n(ea.c_str(), eb.c_str()) != 0;
+	return stricmp_n(ea.c_str(), eb.c_str()) != 0;
 //	return ucsicmp(ea.c_str(), eb.c_str());
 }
 
@@ -352,14 +350,14 @@ ValidateDirectory(const string& pathstr)
 
 
 FileList::FileList(CPATH path)
-	: Directory((path && *path) ? path : FS_Root), spList(new ListType())
+	: Directory((path && *path) ? path : FS_Root), pList(new ListType())
 {}
 FileList::FileList(const string& path)
-	: Directory(path.empty() ? FS_Root : path.c_str()), spList(new ListType())
+	: Directory(path.empty() ? FS_Root : path.c_str()), pList(new ListType())
 {}
 FileList::FileList(const FileList::ItemType& path)
 	: Directory(path.empty() ? FS_Root : StringToMBCS(path).c_str()),
-	spList(new ListType())
+	pList(new ListType())
 {}
 
 bool
@@ -381,18 +379,18 @@ FileList::LoadSubItems()
 
 	if(dir.IsValid())
 	{
-		YAssert(spList, "Null strong pointer found @ FileList::LoadSubItems;");
+		YAssert(pList, "Null strong pointer found @ FileList::LoadSubItems;");
 
-		spList->clear();
+		pList->clear();
 
 		while((++dir).LastError == 0)
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
 				++n;
-		spList->reserve(n);
+		pList->reserve(n);
 		dir.Reset();
 		while((++dir).LastError == 0)
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
-				spList->push_back(std::strcmp(HDirectory::Name, FS_Parent)
+				pList->push_back(std::strcmp(HDirectory::Name, FS_Parent)
 					&& HDirectory::IsDirectory()
 					? MBCSToString(string(HDirectory::Name) + FS_Seperator)
 					: MBCSToString(HDirectory::Name));

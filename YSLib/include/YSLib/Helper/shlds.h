@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1934;
+\version 0.1937;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-04-28 17:27 +0800;
+	2011-05-03 17:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -155,7 +155,7 @@ inline void
 NowShellInsertDropMessage(Messaging::Priority p = 0x80)
 {
 	SendMessage(Shells::GetCurrentShellHandle(), SM_DROP, p,
-		new Messaging::GHandleContext<GHandle<YShell> >(FetchShellHandle()));
+		new Messaging::GHandleContext<GHandle<YShell>>(FetchShellHandle()));
 }
 
 //@}

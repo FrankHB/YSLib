@@ -19,12 +19,12 @@
 /*!	\file platform.h
 \ingroup DS
 \brief 通用平台描述文件。
-\version 0.1304;
+\version 0.1307;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 00:05:08 +0800;
 \par 修改时间:
-	2011-04-13 20:31 +0800;
+	2011-05-03 12:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,10 +52,10 @@
 
 #include <stdint.h>
 
-namespace std
+namespace ystdex
 {
-	typedef ::uint16_t char16_t;
-	typedef ::uint32_t char32_t;
+	typedef ::uint16_t uchar_t;
+	typedef ::uint32_t fchar_t;
 }
 
 //定义使用 Unicode 编码字符串。

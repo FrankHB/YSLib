@@ -11,16 +11,16 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief 库编译配置。
-\version 0.1564;
+\version 0.1574;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-05-03 07:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Adaptor::Config;
+	YSLib::Adaptor::Configuration;
 */
 
 
@@ -58,13 +58,6 @@
 //#define YSL_USE_YASLI_VECTOR //!< 使用 yasli::vector 。
 //#define YSL_USE_FLEX_STRING //!< 使用 flex_string 。
 #define YSL_OPT_SMALL_STRING_LENGTH 16 //!< 使用小字符串优化。
-
-/*!
-\brief YSLib No_Cursor
-定义无指针设备。
-消息成员列表中不会包含 Point pt 。
-*/
-//#define YSLIB_NO_CURSOR
 
 // YSLib Debug 选项。
 

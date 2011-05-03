@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7242;
+\version 0.7249;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-04-26 16:18 +0800;
+	2011-05-03 19:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,7 +91,7 @@ FontStyle::operator Styles&()
 
 
 //! \brief 字型家族 (Typeface Family) 标识。
-class FontFamily : public NonCopyable
+class FontFamily : public noncopyable
 {
 	friend class Typeface;
 	friend class YFontCache;
@@ -157,7 +157,7 @@ private:
 
 
 //! \brief 字型标识。
-class Typeface : public NonCopyable
+class Typeface : public noncopyable
 {
 	friend class YFontCache;
 	friend FT_Error simpleFaceRequester(FTC_FaceID,
@@ -212,7 +212,7 @@ public:
 
 
 //! \brief 字体文件。
-class FontFile : public NonCopyable
+class FontFile : public noncopyable
 {
 public:
 	typedef std::string PathType; //!< 路径类型。
@@ -397,11 +397,11 @@ private:
 	FTC_SBitCache sbitCache;
 
 public:
-	typedef set<const FontFile*, ystdex::deref_comp<const FontFile> >
+	typedef set<const FontFile*, deref_comp<const FontFile>>
 		FFiles; //!< 字体文件组类型。
-	typedef set<Typeface*, ystdex::deref_comp<const Typeface> >
+	typedef set<Typeface*, deref_comp<const Typeface>>
 		FTypes; //!< 字型组类型。
-	typedef set<FontFamily*, ystdex::deref_comp<FontFamily> >
+	typedef set<FontFamily*, deref_comp<FontFamily>>
 		FFaces; //!< 字型家族组类型。
 	typedef map<FontFamily::NameType, FontFamily*>
 		FFacesIndex; //!< 字型家族组索引类型。

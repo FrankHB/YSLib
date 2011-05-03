@@ -1,8 +1,8 @@
 # DS Makefile for YSLib -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-04-07 15:22 +0800;
-# Version = 0.3904;
+# UTime = 2011-05-03 13:19 +0800;
+# Version = 0.3909;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -63,7 +63,7 @@ CFLAGS	+=	-g -O0 -DDEBUG
 LDFLAGS	+=	-g
 endif
 
-CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit
+CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=gnu++0x
 
 #--------------------------------------------------------------------------------
 # path to tools - this can be deleted if you set the path in windows

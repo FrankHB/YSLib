@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2278;
+\version 0.2281;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-04-28 17:25 +0800;
+	2011-05-03 16:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -63,7 +63,7 @@ Desktop::GetTopVisibleDesktopObjectPtr(const Point& pt) const
 bool
 Desktop::MoveToTop(IControl& w)
 {
-	WGTs::iterator i(std::find(WidgetsList.begin(), WidgetsList.end(), &w));
+	auto i(std::find(WidgetsList.begin(), WidgetsList.end(), &w));
 
 	if(i != WidgetsList.end())
 	{

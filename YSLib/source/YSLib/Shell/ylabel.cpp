@@ -11,12 +11,12 @@
 /*!	\file ylabel.cpp
 \ingroup Shell
 \brief 样式无关的标签模块。
-\version 0.2026;
+\version 0.2032;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-04-26 16:33 +0800;
+	2011-05-03 19:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -88,17 +88,17 @@ Label::Paint()
 }
 
 
-MTextList::MTextList(GHWeak<ListType> wp, const Drawing::Font& f)
+MTextList::MTextList(GHandle<ListType> p, const Drawing::Font& f)
 	: MLabel(f),
-	wpList(wp), text_state(Font)
+	pList(p), text_state(Font)
 {}
 
 MTextList::ListType&
 MTextList::GetList() const
 {
-	if(!wpList)
-		wpList = new ListType();
-	return *wpList;
+	if(!pList)
+		pList = new ListType();
+	return *pList;
 }
 MTextList::ItemType*
 MTextList::GetItemPtr(MTextList::IndexType i) const
@@ -130,7 +130,7 @@ MTextList::RefreshTextState()
 MTextList::PaintTextList(Widget& w, const Point& pt)
 {
 	IWindow* pWnd(FetchDirectWindowPtr(
-		ystdex::polymorphic_crosscast<IWidget&>(w)));
+		polymorphic_crosscast<IWidget&>(w)));
 
 	if(pWnd && wpTextRegion)
 	{

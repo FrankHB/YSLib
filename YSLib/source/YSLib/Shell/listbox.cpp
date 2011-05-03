@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3609;
+\version 0.3612;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-04-26 15:49 +0800;
+	2011-05-01 22:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,9 +42,9 @@ namespace
 }
 
 
-ListBox::ListBox(const Rect& r, GHWeak<ListType> wpList_)
+ListBox::ListBox(const Rect& r, GHandle<ListType> p)
 	: ScrollableContainer(r),
-	TextListBox(Rect(Point::Zero, r), wpList_)
+	TextListBox(Rect(Point::Zero, r), p)
 {
 	TextListBox.GetContainerPtr() = this;
 	VerticalScrollBar.GetTrack().GetScroll().Add(*this,
@@ -99,7 +99,7 @@ ListBox::OnViewChanged_TextListBox(EventArgs&)
 
 
 FileBox::FileBox(const Rect& r)
-	: FileList(), ListBox(r, GetListWeakPtr())
+	: FileList(), ListBox(r, GetListPtr())
 {
 	GetConfirmed().Add(*this, &FileBox::OnConfirmed);
 	ListItems();

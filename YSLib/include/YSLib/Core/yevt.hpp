@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version 0.4187;
+\version 0.4193;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-04-25 12:55 +0800;
+	2011-05-03 19:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -245,7 +245,7 @@ public:
 	GEvent&
 	operator-=(const HandlerType& h)
 	{
-		ystdex::erase_all(this->List, h);
+		erase_all(this->List, h);
 		return *this;
 	}
 	/*!
@@ -315,9 +315,7 @@ public:
 	{
 		SizeType n(0);
 
-		for(typename list<HandlerType>
-				::const_iterator i(this->List.begin());
-				i != this->List.end(); ++i, ++n)
+		for(auto i(this->List.cbegin()); i != this->List.cend(); ++i, ++n)
 			(*i)(sender, e);
 		return n;
 	}
@@ -776,7 +774,7 @@ private:
 	InternalPairType
 	GetSerachResult(const ID& id) const
 	{
-		return ystdex::search_map(m_map, id);
+		return search_map(m_map, id);
 	}
 
 public:

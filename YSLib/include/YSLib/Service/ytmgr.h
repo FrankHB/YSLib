@@ -16,12 +16,12 @@
 /*!	\file ytmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4350;
+\version 0.4359;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-04-25 12:53 +0800;
+	2011-05-03 19:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,7 +33,7 @@
 #define YSL_INC_SERVICE_YTMGR_H_
 
 #include "../Core/ystring.h"
-#include "../Core/yftext.h"
+#include "yftext.h"
 #include "../Adaptor/cont.h"
 
 YSL_BEGIN
@@ -41,7 +41,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Text)
 
 //文本缓冲区。
-class TextBuffer : private NonCopyable
+class TextBuffer : private noncopyable
 {
 private:
 	const SizeType capacity; //!< 最大长度（字符数）。
@@ -131,26 +131,26 @@ ythrow(std::out_of_range)
 	bool
 	Load(const uchar_t* s, SizeType n);
 	/*!
-	\brief 从文本文件 f 中读取连续的 capacity 个字符，
+	\brief 从文本文件中读取连续的 capacity 个字符，
 		并返回成功读取的字符数。
 	\note 自动校验换行并转换为 Unix / Linux 格式。
 	*/
 	SizeType
-	Load(YTextFile& f);
+	Load(TextFile&);
 	/*!
-	\brief 从文本文件 f 中读取连续的 n 个（）uchar_t 字符，
+	\brief 从文本文件中读取连续的 n 个 uchar_t 字符，
 		并返回成功读取的字符数。
 	\note 超过最大长度则放弃读取。
 	\note 自动校验换行并转换为 Unix / Linux 格式。
 	*/
 	SizeType
-	Load(YTextFile& f, SizeType n);
+	Load(TextFile&, SizeType n);
 
 	/*!
 	\brief 从文本文件 f 中读取连续的 n 个字节，并返回成功读取的字符数。
 	*/
 	SizeType
-	LoadN(YTextFile& f, SizeType n);
+	LoadN(TextFile& f, SizeType n);
 
 	/*!
 	\brief 从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
@@ -187,7 +187,7 @@ TextBuffer::Load(const uchar_t* s)
 	return Load(s, capacity);
 }
 inline SizeType
-TextBuffer::Load(YTextFile& f)
+TextBuffer::Load(TextFile& f)
 {
 	return Load(f, capacity);
 }
@@ -419,7 +419,7 @@ public:
 		GetBlockLength(BlockSizeType) const ynothrow;
 	};
 
-	YTextFile& File; //!< 文本文件。
+	TextFile& File; //!< 文本文件。
 
 private:
 	const SizeType nTextSize; //!< 文本区段长度。
@@ -430,7 +430,7 @@ public:
 	\brief 构造：使用文本文件。
 	*/
 	explicit
-	TextFileBuffer(YTextFile&);
+	TextFileBuffer(TextFile&);
 
 	/*!
 	\brief 取指定区块号的区块。

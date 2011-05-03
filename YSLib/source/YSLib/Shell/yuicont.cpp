@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面容器。
-\version 0.2189;
+\version 0.2192;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-04-28 17:22 +0800;
+	2011-05-03 16:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -144,9 +144,9 @@ LocateForWidget(IWidget& a, IWidget& b)
 
 	while(pCon != nullptr)
 	{
-		map<IUIBox*, Point>::const_iterator i(m.find(pCon));
+		auto i(m.find(pCon));
 
-		if(i != m.end())
+		if(i != m.cend())
 			return pt - i->second;
 		pt += pCon->GetLocation();
 		pCon = pCon->GetContainerPtr();
@@ -307,8 +307,7 @@ MUIContainer::GetFocusingPtr() const
 IWidget*
 MUIContainer::GetTopWidgetPtr(const Point& pt)
 {
-	for(WGTs::const_iterator i(WidgetsList.begin()); i != WidgetsList.end();
-		++i)
+	for(auto i(WidgetsList.cbegin()); i != WidgetsList.cend(); ++i)
 		if((*i)->IsVisible() && Contains(**i, pt))
 			return *i;
 	return nullptr;
@@ -316,7 +315,7 @@ MUIContainer::GetTopWidgetPtr(const Point& pt)
 IControl*
 MUIContainer::GetTopControlPtr(const Point& pt)
 {
-	for(FOs::const_iterator i(sFOs.begin()); i != sFOs.end(); ++i)
+	for(auto i(sFOs.cbegin()); i != sFOs.cend(); ++i)
 		if((*i)->IsVisible() && Contains(**i, pt))
 			return *i;
 	return nullptr;

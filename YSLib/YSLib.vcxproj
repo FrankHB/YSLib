@@ -31,10 +31,9 @@
     <ClInclude Include="include\YSLib\Core\ydevice.h" />
     <ClInclude Include="include\YSLib\Core\yevt.hpp" />
     <ClInclude Include="include\YSLib\Core\yexcept.h" />
-    <ClInclude Include="include\YSLib\Core\yfile.h" />
     <ClInclude Include="include\YSLib\Core\yfilesys.h" />
-    <ClInclude Include="include\YSLib\Core\yftext.h" />
     <ClInclude Include="include\YSLib\Core\yfunc.hpp" />
+    <ClInclude Include="include\YSLib\Core\ygdibase.h" />
     <ClInclude Include="include\YSLib\Core\yobject.h" />
     <ClInclude Include="include\YSLib\Core\yres.h" />
     <ClInclude Include="include\YSLib\Core\ysdef.h" />
@@ -46,6 +45,8 @@
     <ClInclude Include="include\YSLib\Helper\shlds.h" />
     <ClInclude Include="include\YSLib\Helper\yglobal.h" />
     <ClInclude Include="include\YSLib\Helper\yshelper.h" />
+    <ClInclude Include="include\YSLib\Service\yfile.h" />
+    <ClInclude Include="include\YSLib\Service\yftext.h" />
     <ClInclude Include="include\YSLib\Service\ytimer.h" />
     <ClInclude Include="include\YSLib\Service\ytmgr.h" />
     <ClInclude Include="include\YSLib\Shell\button.h" />
@@ -78,9 +79,8 @@
     <ClCompile Include="source\YSLib\Core\yapp.cpp" />
     <ClCompile Include="source\YSLib\Core\ydevice.cpp" />
     <ClCompile Include="source\YSLib\Core\yexcept.cpp" />
-    <ClCompile Include="source\YSLib\Core\yfile.cpp" />
     <ClCompile Include="source\YSLib\Core\yfilesys.cpp" />
-    <ClCompile Include="source\YSLib\Core\yftext.cpp" />
+    <ClCompile Include="source\YSLib\Core\ygdibase.cpp" />
     <ClCompile Include="source\YSLib\Core\yobject.cpp" />
     <ClCompile Include="source\YSLib\Core\yres.cpp" />
     <ClCompile Include="source\YSLib\Core\yshell.cpp" />
@@ -89,6 +89,8 @@
     <ClCompile Include="source\YSLib\Helper\shlds.cpp" />
     <ClCompile Include="source\YSLib\Helper\yglobal.cpp" />
     <ClCompile Include="source\YSLib\Helper\yshelper.cpp" />
+    <ClCompile Include="source\YSLib\Service\yfile.cpp" />
+    <ClCompile Include="source\YSLib\Service\yftext.cpp" />
     <ClCompile Include="source\YSLib\Service\ytimer.cpp" />
     <ClCompile Include="source\YSLib\Service\ytmgr.cpp" />
     <ClCompile Include="source\YSLib\Shell\button.cpp" />

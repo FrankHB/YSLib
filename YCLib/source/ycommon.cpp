@@ -11,12 +11,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2373;
+\version 0.2376;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2011-04-25 14:10 +0800;
+	2011-05-03 15:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -109,7 +109,7 @@ namespace platform
 		ystdex::errno_t
 		safe_dma_fill(void *dst, int v, std::size_t size)
 		{
-			u32 d(reinterpret_cast<u32>(dst));
+			const u32 d(reinterpret_cast<u32>(dst));
 
 			if(dma_out_of_range(d))
 				return 1;

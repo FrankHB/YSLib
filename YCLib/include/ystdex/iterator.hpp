@@ -11,12 +11,12 @@
 /*!	\file iterator.hpp
 \ingroup YCLib
 \brief C++ 标准库迭代器扩展。
-\version 0.1226;
+\version 0.1232;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-27 23:01:00 +0800; 
 \par 修改时间:
-	2011-04-20 10:45 +0800;
+	2011-05-03 12:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -131,7 +131,7 @@ namespace ystdex
 
 	//! \brief 成对迭代器：拼接两个迭代器对得到的迭代器，以第一个为主迭代器。
 	template<typename _tMaster, typename _tSlave,
-		class _tTraits = std::iterator_traits<_tMaster> >
+		class _tTraits = std::iterator_traits<_tMaster>>
 	class pair_iterator : protected std::pair<_tMaster, _tSlave>
 	{
 	protected:

@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6972;
+\version 0.6980;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-04-26 16:21 +0800;
+	2011-05-03 08:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,8 @@
 
 #include "ygdi.h"
 #include "../Adaptor/yfont.h"
-#include "../Core/yftext.h"
+#include "../Core/ystring.h"
+#include "../Service/yftext.h"
 #include <cwctype>
 
 YSL_BEGIN
@@ -866,11 +867,11 @@ FetchNextLineIterator(const Drawing::TextRegion& r, _tIn p, _tIn g)
 
 
 /*!
-\brief 从文本文件 f 中读取 n 字节到 txtbox 中。
+\brief 从文本文件中读取 n 字节到 tr 中。
 \note 无文本缓冲方式；按默认编码转换为 UTF-16LE 。
 */
 u32
-ReadX(YTextFile& f, Drawing::TextRegion& txtbox, u32 n);
+ReadX(TextFile&, Drawing::TextRegion& tr, u32 n);
 
 YSL_END_NAMESPACE(Text)
 

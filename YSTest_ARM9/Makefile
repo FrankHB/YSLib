@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-03-11 20:42 +0800;
-# Version = 0.3339;
+# UTime = 2011-05-03 13:18 +0800;
+# Version = 0.3344;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -62,7 +62,7 @@ CFLAGS	+=	-g -O0 -DDEBUG
 LDFLAGS	+=	-g
 endif
 
-CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit
+CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=gnu++0x
 
 #CFLAGS	:=	-g -Wformat=2 -Winline -Wall \
 #		-mcpu=arm946e-s -mtune=arm946e-s -fomit-frame-pointer \
@@ -70,7 +70,7 @@ CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit
 #		$(ARCH)
 #CFLAGS	+=	$(INCLUDE) -I$(PAPATH)/include/nds
 #CXXFLAGS	:=	$(CFLAGS) -frepo -fno-threadsafe-statics -fno-rtti -fno-exceptions
-#CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit
+#CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=gnu++0x
 #	-Weffc++ -Wold-style-cast -Woverloaded-virtual -pedantic
 #	-Wextra -Winit-self -Wmissing-include-dirs -Wsign-promo
 

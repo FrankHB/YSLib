@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3201;
+\version 0.3209;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-04-26 16:13 +0800;
+	2011-05-03 13:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -123,13 +123,13 @@ class ShlSetting : public ShlDS
 public:
 	typedef ShlDS ParentType;
 
-	auto_ptr<IWindow> pWndTest;
-	auto_ptr<IWindow> pWndExtra;
+	unique_ptr<IWindow> pWndTest;
+	unique_ptr<IWindow> pWndExtra;
 	Label lblA, lblB;
 
 	struct TFormTest : public Form
 	{
-		Button btnEnterTest, btnShowWindow;
+		Button btnEnterTest, btnMenuTest, btnShowWindow;
 
 		TFormTest();
 
@@ -205,7 +205,7 @@ public:
 	static string path;
 
 	MDualScreenReader Reader;
-	YTextFile* pTextFile;
+	TextFile* pTextFile;
 
 	GHandle<Image> hUp, hDn;
 	bool bgDirty;

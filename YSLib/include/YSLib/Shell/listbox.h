@@ -57,7 +57,7 @@ private:
 
 public:
 	explicit
-	ListBox(const Rect& = Rect::Empty, GHWeak<ListType> = nullptr);
+	ListBox(const Rect& = Rect::Empty, GHandle<ListType> = nullptr);
 
 	DefPredicateMember(Selected, TextListBox)
 	PDefH1(bool, Contains, ViewerType::IndexType i)

@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2585;
+\version 0.2596;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-04-25 12:27 +0800;
+	2011-05-03 19:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,9 +33,6 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Design)
 
-typedef ystdex::noncopyable NonCopyable;
-
-
 /*!
 \brief 转换类型选择。
 
@@ -44,8 +41,8 @@ typedef ystdex::noncopyable NonCopyable;
 template<typename _type, typename _tStrict, typename _tWeak>
 struct MoreConvertible
 {
-	typedef typename Select<ystdex::is_convertible<_type, _tStrict>::value,
-			_tStrict, _tWeak>::Result Result;
+	typedef typename conditional<is_convertible<_type, _tStrict>::value,
+		_tStrict, _tWeak>::Result Result;
 
 	inline static Result
 	Cast(_type o)
@@ -68,8 +65,6 @@ struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
 };
 
 YSL_END_NAMESPACE(Design)
-
-using Design::NonCopyable;
 
 /*!
 \brief 取整数类型的零元素。

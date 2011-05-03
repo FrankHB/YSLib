@@ -11,12 +11,12 @@
 /*!	\file cont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version 0.1568;
+\version 0.1598;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2011-04-22 22:03 +0800;
+	2011-05-03 14:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,6 +29,7 @@
 
 #include "yadaptor.h"
 #include <utility>
+#include <tuple>
 
 //包含 YASLI 。
 #ifdef YSL_USE_YASLI_VECTOR
@@ -76,11 +77,15 @@ YSL_END
 #include <map>
 #include <stack>
 #include <queue>
+#include <unordered_set>
+#include <unordered_map>
 
 YSL_BEGIN
 
 using std::pair;
+using std::tuple;
 using std::make_pair;
+using std::make_tuple;
 
 #ifdef YSL_USE_YASLI_VECTOR
 	using yasli::vector;
@@ -94,6 +99,8 @@ using std::set;
 using std::stack;
 using std::queue;
 using std::priority_queue;
+using std::unordered_map;
+using std::unordered_set;
 
 #ifdef YSL_USE_FLEX_STRING
 

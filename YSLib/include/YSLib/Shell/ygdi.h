@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口。
-\version 0.3987;
+\version 0.3995;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-04-25 12:52 +0800;
+	2011-05-03 19:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,8 @@
 #ifndef YSL_INC_SHELL_YGDI_H_
 #define YSL_INC_SHELL_YGDI_H_
 
-#include "../Core/yobject.h"
+#include "../Core/ycutil.h"
+#include "../Core/ygdibase.h"
 #include "../Adaptor/yfont.h"
 
 YSL_BEGIN
@@ -54,11 +55,11 @@ typedef enum
 
 
 //! \brief Alpha 单色光栅化源迭代器对。
-typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
+typedef pair_iterator<pseudo_iterator<const PixelType>,
 	const u8*> MonoIteratorPair;
 
 //! \brief Alpha 光栅化源迭代器对。
-typedef ystdex::pair_iterator<ConstBitmapPtr, const u8*> IteratorPair;
+typedef pair_iterator<ConstBitmapPtr, const u8*> IteratorPair;
 
 
 //基本函数对象。
@@ -215,8 +216,8 @@ struct RectTransfomer
 		const int delta_x(max_x - min_x);
 		int delta_y(max_y - min_y);
 
-		dst += ystdex::vmax<SPos>(0, dp.Y) * ds.Width
-			+ ystdex::vmax<SPos>(0, dp.X);
+		dst += vmax<SPos>(0, dp.Y) * ds.Width
+			+ vmax<SPos>(0, dp.X);
 		for(; delta_y > 0; --delta_y)
 		{
 			tl(dst, delta_x, tp);
@@ -357,7 +358,7 @@ struct BlitLoop
 		{
 			BlitLine<_bPositiveScan>(dst_iter, src_iter, delta_x);
 			src_iter += src_inc;
-			ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+			delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
 		}
 	}
 };
@@ -382,10 +383,10 @@ struct BlitTransparentLoop
 				if(*src_iter & BITALPHA)
 				*dst_iter = *src_iter;
 				++src_iter;
-				ystdex::xcrease<_bPositiveScan>(dst_iter);
+				xcrease<_bPositiveScan>(dst_iter);
 			}
 			src_iter += src_inc;
-			ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+			delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
 		}
 	}
 
@@ -402,10 +403,10 @@ struct BlitTransparentLoop
 				*dst_iter = ((*src_iter.base().second & 0x80) ? *src_iter : 0)
 					| BITALPHA;
 				++src_iter;
-				ystdex::xcrease<_bPositiveScan>(dst_iter);
+				xcrease<_bPositiveScan>(dst_iter);
 			}
 			src_iter += src_inc;
-			ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+			delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
 		}
 	}
 };
@@ -511,10 +512,10 @@ struct BlitBlendLoop
 			{
 				biltAlphaPoint(dst_iter, src_iter);
 				++src_iter;
-				ystdex::xcrease<_bPositiveScan>(dst_iter);
+				xcrease<_bPositiveScan>(dst_iter);
 			}
 			src_iter += src_inc;
-			ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+			delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
 		}
 	}
 };
@@ -787,7 +788,7 @@ FetchMargin(const Rect&, const Size&);
 
 
 //! \brief 正则矩形位图缓冲区。
-class BitmapBuffer : public NonCopyable, public Graphics
+class BitmapBuffer : public noncopyable, public Graphics
 {
 public:
 	/*!

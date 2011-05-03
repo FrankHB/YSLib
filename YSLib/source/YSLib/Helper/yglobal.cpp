@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3060;
+\version 0.3068;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-04-28 17:25 +0800;
+	2011-05-03 16:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,6 +36,7 @@
 
 YSL_BEGIN
 
+using namespace Drawing;
 using namespace Runtime;
 
 //全局常量。
@@ -198,10 +199,10 @@ namespace
 	/*!
 	\note 转换指针设备光标位置为屏幕点。
 	*/
-	inline Drawing::Point
+	inline Point
 	ToSPoint(const Runtime::CursorInfo& c)
 	{
-		return Drawing::Point(c.GetX(), c.GetY());
+		return Point(c.GetX(), c.GetY());
 	}
 
 	//图形用户界面输入等待函数。
@@ -336,8 +337,7 @@ OnExit_DebugMemory()
 
 		MemoryList::MapType::size_type n(0);
 
-		for(typename MemoryList::MapType::const_iterator i(Map.begin());
-			i != Map.end(); ++i)
+		for(auto i(Map.cbegin()); i != Map.cend(); ++i)
 		{
 			if(n++ < 4)
 				debug_memory_list.Print(i, stderr);
@@ -362,8 +362,7 @@ OnExit_DebugMemory()
 
 		MemoryList::ListType::size_type n(0);
 
-		for(typename MemoryList::ListType::const_iterator i(List.begin());
-			i != List.end(); ++i)
+		for(auto i(List.cbegin()); i != List.cend(); ++i)
 		{
 			if(n++ < 4)
 				debug_memory_list.Print(i, stderr);

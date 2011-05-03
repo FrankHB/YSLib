@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2297;
+\version 0.2300;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-04-25 12:51 +0800;
+	2011-05-03 17:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -146,10 +146,10 @@ YApplication::SetShellHandle(GHandle<YShell> h)
 
 		if(hShell)
 			hShell->OnDeactivated(Message(h, SM_DEACTIVATED, 0xF0,
-				new GHandleContext<GHandle<YShell> >(hShell)));
+				new GHandleContext<GHandle<YShell>>(hShell)));
 		hShell = h;
 		h->OnActivated(Message(h, SM_ACTIVATED, 0xF0,
-			new GHandleContext<GHandle<YShell> >(h)));
+			new GHandleContext<GHandle<YShell>>(h)));
 	}
 	return h;
 }

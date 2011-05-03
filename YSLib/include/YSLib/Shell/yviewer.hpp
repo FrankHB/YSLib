@@ -11,12 +11,12 @@
 /*!	\file yviewer.hpp
 \ingroup Shell
 \brief 样式无关的视图。
-\version 0.1081;
+\version 0.1083;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 23:00:28 +0800;
 \par 修改时间:
-	2011-04-22 12:46 +0800;
+	2011-05-03 19:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,7 +91,7 @@ public:
 	DefGetter(IndexType, RelativeIndex, IsSelected()
 		? GetSelectedIndex() - GetHeadIndex() : -1) \
 		//!< 取选中的项目相对于视图中首个项目的下标偏移。
-	DefGetter(SizeType, Valid, ystdex::vmin(GetTotal() - GetHeadIndex(),
+	DefGetter(SizeType, Valid, vmin(GetTotal() - GetHeadIndex(),
 		GetLength())) //!< 取当前视图中有效项目个数。
 
 	/*!

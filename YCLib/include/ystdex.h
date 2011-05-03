@@ -11,12 +11,12 @@
 /*!	\file ystdex.h
 \ingroup YCLib
 \brief YCLib C++ 标准库扩展。
-\version 0.2173;
+\version 0.2312;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:31:14 +0800; 
 \par 修改时间:
-	2011-04-25 12:27 +0800;
+	2011-05-03 14:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,17 +46,16 @@
 #include <cstddef>
 #include <cassert>
 #include <cstdlib>
-#include "ydef.h"
-#include <cstddef>
-#include <cassert>
-#include <cstdlib>
+#include <cstring>
+#include <type_traits>
+
 #if YCL_IMPL_CPP >= 201103L || YCL_IMPL_MSCPP >= 1600
-#	include <type_traits>
+//#	include <type_traits>
 #	define YCL_HAS_BUILTIN_NULLPTR
 #else
 // TODO: complete version checking for compiler and library implementation;
 //#ifdef __GNUC__
-#	include <tr1/type_traits>
+//#	include <tr1/type_traits>
 #endif
 
 #ifndef YCL_CHAR_BIT
@@ -77,15 +76,9 @@
 
 namespace ystdex
 {
-	using std::tr1::add_const;
-	using std::tr1::add_cv;
-	using std::tr1::add_pointer;
+/*
 	using std::tr1::add_reference;
-	using std::tr1::add_volatile;
-	using std::tr1::aligned_storage;
-	using std::tr1::alignment_of;
-	using std::tr1::extent;
-	using std::tr1::false_type;
+
 	using std::tr1::has_nothrow_assign;
 	using std::tr1::has_nothrow_constructor;
 	using std::tr1::has_nothrow_copy;
@@ -93,45 +86,122 @@ namespace ystdex
 	using std::tr1::has_trivial_constructor;
 	using std::tr1::has_trivial_copy;
 	using std::tr1::has_trivial_destructor;
-	using std::tr1::has_virtual_destructor;
-	using std::tr1::integral_constant;
-	using std::tr1::is_abstract;
-	using std::tr1::is_arithmetic;
-	using std::tr1::is_array;
-	using std::tr1::is_base_of;
-	using std::tr1::is_class;
-	using std::tr1::is_compound;
-	using std::tr1::is_const;
-	using std::tr1::is_convertible;
-	using std::tr1::is_empty;
-	using std::tr1::is_enum;
-	using std::tr1::is_floating_point;
-	using std::tr1::is_function;
-	using std::tr1::is_fundamental;
-	using std::tr1::is_integral;
-	using std::tr1::is_member_function_pointer;
-	using std::tr1::is_member_object_pointer;
-	using std::tr1::is_member_pointer;
-	using std::tr1::is_pod;
-	using std::tr1::is_pointer;
-	using std::tr1::is_polymorphic;
-	using std::tr1::is_reference;
-	using std::tr1::is_same;
-	using std::tr1::is_scalar;
-	using std::tr1::is_signed;
-	using std::tr1::is_union;
-	using std::tr1::is_unsigned;
-	using std::tr1::is_void;
-	using std::tr1::is_volatile;
-	using std::tr1::rank;
-	using std::tr1::remove_all_extents;
-	using std::tr1::remove_const;
-	using std::tr1::remove_cv;
-	using std::tr1::remove_extent;
-	using std::tr1::remove_pointer;
-	using std::tr1::remove_reference;
-	using std::tr1::remove_volatile;
-	using std::tr1::true_type;
+*/
+
+	using std::integral_constant;
+	using std::true_type;
+	using std::false_type;
+
+	using std::is_void;
+	using std::is_integral;
+	using std::is_floating_point;
+	using std::is_array;
+	using std::is_pointer;
+	using std::is_lvalue_reference;
+	using std::is_rvalue_reference;
+	using std::is_member_object_pointer;
+	using std::is_member_function_pointer;
+	using std::is_enum;
+	using std::is_class;
+	using std::is_union;
+	using std::is_function;
+
+	using std::is_reference;
+	using std::is_arithmetic;
+	using std::is_fundamental;
+	using std::is_object;
+	using std::is_scalar;
+	using std::is_compound;
+	using std::is_member_pointer;
+
+	using std::is_const;
+	using std::is_volatile;
+	using std::is_trivial;
+//	using std::is_trivially_copyable;
+	using std::is_standard_layout;
+	using std::is_pod;
+//	using std::is_literal_type;
+	using std::is_empty;
+	using std::is_polymorphic;
+	using std::is_abstract;
+
+	using std::is_signed;
+	using std::is_unsigned;
+
+	using std::is_constructible;
+	/*
+	using std::is_default_constructible;
+	using std::is_copy_constructible;
+	using std::is_move_constructible;
+
+	using std::is_assignable;
+	using std::is_copy_assignable;
+	using std::is_move_assignable;
+
+	using std::is_destructible;
+
+	using std::is_trivially_constructible;
+	using std::is_trivially_default_constructible;
+	using std::is_trivially_copy_constructible;
+	using std::is_trivially_move_constructible;
+
+	using std::is_trivially_assignable;
+	using std::is_trivially_copy_assignable;
+	using std::is_trivially_move_assignable;
+	using std::is_trivially_destructible;
+
+	using std::is_nothrow_constructible;
+	using std::is_nothrow_default_constructible;
+	using std::is_nothrow_copy_constructible;
+	using std::is_nothrow_move_constructible;
+
+	using std::is_nothrow_assignable;
+	using std::is_nothrow_copy_assignable;
+	using std::is_nothrow_move_assignable;
+
+	using std::is_nothrow_destructible;
+	*/
+	using std::has_virtual_destructor;
+
+	using std::alignment_of;
+	using std::rank;
+	using std::extent;
+
+	using std::is_same;
+	using std::is_base_of;
+	using std::is_convertible;
+
+	using std::remove_const;
+	using std::remove_volatile;
+	using std::remove_cv;
+	using std::add_const;
+	using std::add_volatile;
+	using std::add_cv;
+
+	using std::remove_reference;
+	using std::add_lvalue_reference;
+	using std::add_rvalue_reference;
+
+	using std::make_signed;
+	using std::make_unsigned;
+
+	using std::remove_extent;
+	using std::remove_all_extents;
+
+	using std::remove_pointer;
+	using std::add_pointer;
+
+	using std::aligned_storage;
+	using std::decay;
+	using std::enable_if;
+	using std::conditional;
+	using std::common_type;
+//	using std::underlying_type;
+//	using std::result_of;
+
+
+	//非 ISO C/C++ 扩展库函数。
+	using ::memcmp;
 
 	/*!
 	\brief 带空指针检查的字符串长度计算。

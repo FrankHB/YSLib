@@ -11,12 +11,12 @@
 /*!	\file yaslivsp.hpp
 \ingroup Adaptor
 \brief yasli::vector 存储策略。
-\version 0.2303;
+\version 0.2306;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 22:38:03 +0800;
 \par 修改时间:
-	2011-04-20 10:26 +0800;
+	2011-05-03 17:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@
 */
 
 //! \brief 字符串存储策略类模板：使用 yasli::vector 和 空基类优化。
-template <typename _tChar, class _tAlloc = std::allocator<_tChar> >
+template <typename _tChar, class _tAlloc = std::allocator<_tChar>>
 class VectorStringStorage : protected yasli::vector<_tChar, _tAlloc>
 {
 	typedef yasli::vector<_tChar, _tAlloc> base;

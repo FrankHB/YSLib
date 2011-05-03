@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6641;
+\version 0.6647;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-04-12 08:19 +0800;
+	2011-05-03 19:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,8 +30,6 @@ YSL_BEGIN
 
 using namespace Drawing;
 using namespace Text;
-using ystdex::vmin;
-using ystdex::vmax;
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
@@ -115,7 +113,7 @@ RenderChar(const Graphics& g, TextState& ts, fchar_t c)
 			ymin(vmax<int>(0, ts.Margin.Top - dy));
 
 		Blit<BlitBlendLoop, false, false>(g.GetBufferPtr(), g.GetSize(),
-			MonoIteratorPair(ystdex::pseudo_iterator<const PixelType>(
+			MonoIteratorPair(pseudo_iterator<const PixelType>(
 			ts.Color | BITALPHA), sbit.GetBuffer()),
 			Size(sbit.GetWidth(), sbit.GetHeight()),
 			Point(vmax<int>(ts.Margin.Left, dx), vmax<int>(ts.Margin.Top, dy)),
@@ -138,7 +136,7 @@ namespace
 	{
 		void
 		operator()(int delta_x, int delta_y,
-			ystdex::pair_iterator<BitmapPtr, u8*> dst_iter, u8* src_iter,
+			pair_iterator<BitmapPtr, u8*> dst_iter, u8* src_iter,
 			int dst_inc, int src_inc)
 		{
 			for(; delta_y > 0; --delta_y)
@@ -151,10 +149,10 @@ namespace
 						*dst_iter = char_color;
 					}
 					++src_iter;
-					ystdex::xcrease<_bPositiveScan>(dst_iter);
+					xcrease<_bPositiveScan>(dst_iter);
 				}
 				src_iter += src_inc;
-				ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+				delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
 			}
 		}
 	};
@@ -180,7 +178,7 @@ RenderChar(BitmapBufferEx& buf, TextState& ts, fchar_t c)
 			xmin(vmax<int>(0, ts.Margin.Left - dx)),
 			ymin(vmax<int>(0, ts.Margin.Top - dy));
 
-		Blit<BlitTextLoop, false, false>(ystdex::pair_iterator<BitmapPtr, u8*>(
+		Blit<BlitTextLoop, false, false>(pair_iterator<BitmapPtr, u8*>(
 			buf.GetBufferPtr(), buf.GetBufferAlphaPtr()),
 			buf.GetSize(), sbit.GetBuffer(),
 			Size(sbit.GetWidth(), sbit.GetHeight()),
@@ -395,7 +393,7 @@ YSL_END_NAMESPACE(Drawing)
 YSL_BEGIN_NAMESPACE(Text)
 
 u32
-ReadX(YTextFile& f, TextRegion& tr, u32 n)
+ReadX(TextFile& f, TextRegion& tr, u32 n)
 {
 	u32 l(0);
 

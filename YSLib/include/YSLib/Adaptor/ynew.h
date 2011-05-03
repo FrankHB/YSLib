@@ -11,12 +11,12 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version 0.2049;
+\version 0.2052;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2011-04-24 10:43 +0800;
+	2011-05-03 17:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -132,10 +132,10 @@ public:
 	};
 
 	typedef std::map<const void*, BlockInfo, std::less<const void*>,
-		__gnu_cxx::malloc_allocator<std::pair<const void* const, BlockInfo> > >
+		__gnu_cxx::malloc_allocator<std::pair<const void* const, BlockInfo>> >
 		MapType;
 	typedef std::list<std::pair<const void*, BlockInfo>,
-		__gnu_cxx::malloc_allocator<std::pair<const void*, BlockInfo> > >
+		__gnu_cxx::malloc_allocator<std::pair<const void*, BlockInfo>> >
 		ListType;
 
 	MapType Blocks;

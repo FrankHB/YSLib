@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2119;
+\version 0.2132;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2011-04-25 14:12 +0800;
+	2011-05-03 19:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,8 +68,7 @@ YSL_END
 YSL_BEGIN
 
 	using std::size_t;
-	using ystdex::errno_t;
-	using ystdex::nullptr_t;
+	using namespace ystdex;
 
 	//文件系统常量。
 	using platform::DEF_PATH_DELIMITER;
@@ -152,29 +151,15 @@ YSL_END
 //#define LOKI_FUNCTOR_IS_NOT_A_SMALLOBJECT
 #define LOKI_FUNCTORS_ARE_COMPARABLE //实现事件机制需要能被比较的仿函数。
 #include <loki/Function.h>
-#include <loki/StrongPtr.h>
+#include <loki/SmallObj.h>
 
 YSL_BEGIN
 
 //! \brief 基础语言设施。
 YSL_BEGIN_NAMESPACE(Design)
 
-	//类型操作和类型特征。
-	using Loki::Typelist;
-	namespace TL = Loki::TL;
-	using Loki::NullType;
-	using Loki::EmptyType;
-	using Loki::Int2Type;
-	using Loki::Type2Type;
-	using Loki::Select;
-	using Loki::IsCustomUnsignedInt;
-	using Loki::IsCustomSignedInt;
-	using Loki::IsCustomFloat;
-	using Loki::TypeTraits;
-
-	// Function 和 Function 。
+	// Function 。
 	using Loki::Function;
-	using Loki::Functor;
 
 //! \brief 设计模式。
 YSL_BEGIN_NAMESPACE(Pattern)
@@ -186,9 +171,6 @@ YSL_END_NAMESPACE(Design)
 	using Loki::SmallObject;
 
 YSL_END
-
-//! \brief 使用 Loki 的编译期静态检查。
-#define YSL_STATIC_CHECK(expr, msg) LOKI_STATIC_CHECK(expr, msg)
 
 //! \brief 使用 Loki 的 Typelist 。
 //#define YSL_TL(n, ...) LOKI_TYPELIST##n(...)

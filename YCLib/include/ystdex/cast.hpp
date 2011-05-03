@@ -11,12 +11,12 @@
 /*!	\file cast.hpp
 \ingroup YCLib
 \brief C++ 转换模板类。
-\version 0.1627;
+\version 0.1634;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-15 08:13:18 +0800; 
 \par 修改时间:
-	2011-04-20 10:45 +0800;
+	2011-05-03 15:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,7 +52,7 @@ namespace ystdex
 	_type
 	integral_auto_cast(_tIntegral i)
 	{
-		_type* p(reinterpret_cast<std::auto_ptr<_type> >(i).release());
+		auto p(reinterpret_cast<std::auto_ptr<_type>>(i).release());
 
 		assert(p);
 
@@ -64,7 +64,7 @@ namespace ystdex
 	inline _tDst
 	polymorphic_cast(_tSrc* x)
 	{
-		_tDst tmp(dynamic_cast<_tDst>(x));
+		auto tmp(dynamic_cast<_tDst>(x));
 
 		if(!tmp)
 			throw std::bad_cast();
@@ -91,7 +91,7 @@ namespace ystdex
 	inline _tDst
 	polymorphic_crosscast(_tSrc* x)
 	{
-		_tDst p(dynamic_cast<_tDst>(x));
+		auto p(dynamic_cast<_tDst>(x));
 
 		assert(p);
 		return p;

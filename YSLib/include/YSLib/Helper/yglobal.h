@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2148;
+\version 0.2158;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-04-28 17:28 +0800;
+	2011-05-03 19:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,6 +36,7 @@
 #include "../Core/ysmsg.h"
 #include "../Core/ycutil.h"
 #include "../Core/yexcept.h"
+#include "../Core/ygdibase.h"
 
 YSL_BEGIN
 
@@ -57,7 +58,7 @@ YSL_BEGIN
 \brief 平台相关的全局资源类。
 \note 含默认接口。
 */
-class Global : public NonCopyable
+class Global : public noncopyable
 {
 	friend Global& GetGlobal() ynothrow;
 
@@ -176,17 +177,17 @@ class InputContext : implements IContext
 {
 public:
 	Runtime::KeysInfo Key;
-	Point CursorLocation;
+	Drawing::Point CursorLocation;
 
 	explicit
-	InputContext(Runtime::KeysInfo, const Point&);
+	InputContext(Runtime::KeysInfo, const Drawing::Point&);
 
 	ImplI1(IContext) bool
 	operator==(const IContext&) const;
 };
 
 inline
-InputContext::InputContext(Runtime::KeysInfo k, const Point& pt)
+InputContext::InputContext(Runtime::KeysInfo k, const Drawing::Point& pt)
 	: Key(k), CursorLocation(pt)
 {}
 

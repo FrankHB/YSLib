@@ -11,12 +11,12 @@
 /*!	\file ymenu.h
 \ingroup Shell
 \brief 样式相关的菜单。
-\version 0.1236;
+\version 0.1238;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-04-27 19:33 +0800;
+	2011-05-01 22:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,7 +74,7 @@ public:
 	\brief 构造：使用指定边界、文本列表和高亮背景色/文本色对。
 	*/
 	explicit
-	Menu(const Rect& = Rect::Empty, GHWeak<ListType> = nullptr,
+	Menu(const Rect& = Rect::Empty, GHandle<ListType> = nullptr,
 		pair<Color, Color> = FetchGUIShell().Colors.GetPair(Styles::Highlight,
 		Styles::HighlightText));
 

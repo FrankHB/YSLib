@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7218;
+\version 0.7228;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-04-25 13:47 +0800;
+	2011-05-03 16:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -151,9 +151,9 @@ FontFamily::GetTypefacePtr(FontStyle s) const
 Typeface*
 FontFamily::GetTypefacePtr(const Typeface::NameType& style_name) const
 {
-	const FTypesIndex::const_iterator i(mTypesIndex.find(style_name));
+	const auto i(mTypesIndex.find(style_name));
 
-	return (i == mTypesIndex.end()) ? nullptr : i->second;
+	return (i == mTypesIndex.cend()) ? nullptr : i->second;
 }
 
 void
@@ -342,9 +342,9 @@ YFontCache::~YFontCache()
 const FontFamily*
 YFontCache::GetFontFamilyPtr(const FontFamily::NameType& family_name) const
 {
-	const FFacesIndex::const_iterator i(mFacesIndex.find(family_name));
+	const auto i(mFacesIndex.find(family_name));
 
-	return (i == mFacesIndex.end()) ? nullptr : i->second;
+	return (i == mFacesIndex.cend()) ? nullptr : i->second;
 }
 /*Typeface* YFontCache::GetTypefacePtr(u16 i) const
 {
@@ -501,8 +501,7 @@ YFontCache::ClearTypefaces()
 void
 YFontCache::ClearFontFamilies()
 {
-	for(FFacesIndex::const_iterator i(mFacesIndex.begin());
-			i != mFacesIndex.end(); ++i)
+	for(auto i(mFacesIndex.cbegin()); i != mFacesIndex.cend(); ++i)
 		ydelete(i->second);
 	mFacesIndex.clear();
 }
@@ -518,7 +517,7 @@ YFontCache::ClearContainers()
 void
 YFontCache::LoadTypefaces()
 {
-	for(FFiles::iterator i(sFiles.begin()); i != sFiles.end(); ++i)
+	for(auto i(sFiles.begin()); i != sFiles.end(); ++i)
 		LoadTypefaces(**i);
 }
 
@@ -555,8 +554,7 @@ YFontCache::LoadTypefaces(const FontFile& f)
 						if(!scaler.face_id)
 							scaler.face_id = new_face_id;
 
-						FFacesIndex::iterator i(mFacesIndex.find(
-							face->family_name));
+						auto i(mFacesIndex.find(face->family_name));
 
 						q->pFontFamily = r = i == mFacesIndex.end()
 							? ynew FontFamily(*this, face->family_name)
@@ -600,7 +598,7 @@ YFontCache::LoadFontFile(CPATH path)
 	{
 		if(GetFileNameFrom(path) && fexists(path))
 		{
-			auto_ptr<const FontFile> p(ynew FontFile(path));
+			unique_ptr<const FontFile> p(ynew FontFile(path));
 
 			p->ReloadFaces(library);
 			if(sFiles.find(p.get()) != sFiles.end())

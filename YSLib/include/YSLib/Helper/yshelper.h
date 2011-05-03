@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2128;
+\version 0.2131;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-04-26 15:55 +0800;
+	2011-05-03 17:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -81,7 +81,7 @@ template<class _tShl>
 inline GHandle<YShell>
 FetchStored()
 {
-	return GLocalStaticCache<_tShl, GHandle<YShell> >::GetPointer();
+	return GLocalStaticCache<_tShl, GHandle<YShell>>::GetPointer();
 }
 
 /*!
@@ -91,7 +91,7 @@ template<class _tShl>
 inline void
 ReleaseStored()
 {
-	GLocalStaticCache<_tShl, GHandle<YShell> >::Release();
+	GLocalStaticCache<_tShl, GHandle<YShell>>::Release();
 }
 
 
@@ -140,7 +140,7 @@ inline void
 SetShellTo(GHandle<YShell> hShl, Messaging::Priority p = 0x80)
 {
 	SendMessage(Shells::GetCurrentShellHandle(), SM_SET, p,
-		new Messaging::GHandleContext<GHandle<YShell> >(hShl));
+		new Messaging::GHandleContext<GHandle<YShell>>(hShl));
 }
 
 /*!

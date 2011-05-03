@@ -11,12 +11,12 @@
 /*!	\file chrmap.cpp
 \ingroup CHRLib
 \brief 字符映射。
-\version 0.1507;
+\version 0.1508;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 +0800; 
 \par 修改时间:
-	2011-03-05 17:05 +0800;
+	2011-05-03 15:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,7 +32,7 @@ template<>
 uchar_t
 codemap<CharSet::SHIFT_JIS>(ubyte_t& l, const char* c)
 {
-	unsigned short row(0), col(0), ln(188); // (7E-40 + 1 + FC-80 + 1)
+	u16 row(0), col(0), ln(188); // (7E-40 + 1 + FC-80 + 1)
 
 	//l = 2;
 	if((*c >= 0xA1) && (*c <= 0xC6))

@@ -11,12 +11,12 @@
 /*!	\file ysmsg.h
 \ingroup Core
 \brief 消息处理。
-\version 0.2142;
+\version 0.2145;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-04-25 13:47 +0800;
+	2011-05-03 07:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,8 +32,6 @@
 #include <ctime>
 
 YSL_BEGIN
-
-using Drawing::Point;
 
 YSL_BEGIN_NAMESPACE(Messaging)
 

@@ -11,12 +11,12 @@
 /*!	\file ytmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4079;
+\version 0.4085;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-04-25 12:50 +0800;
+	2011-05-03 16:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -84,7 +84,7 @@ TextBuffer::Load(const uchar_t* s, SizeType n)
 	return true;
 }
 SizeType
-TextBuffer::Load(YTextFile& f, SizeType n)
+TextBuffer::Load(TextFile& f, SizeType n)
 {
 	if(n > capacity)
 		return 0;
@@ -113,7 +113,7 @@ TextBuffer::Load(YTextFile& f, SizeType n)
 }
 
 SizeType
-TextBuffer::LoadN(YTextFile& f, SizeType n)
+TextBuffer::LoadN(TextFile& f, SizeType n)
 {
 	SizeType l(0);
 
@@ -151,7 +151,7 @@ TextBuffer::TextBuffer::Output(uchar_t* d, SizeType p, SizeType n) const
 void
 TextMap::Clear()
 {
-	for(MapType::const_iterator i(Map.begin()); i != Map.end(); ++i)
+	for(auto i(Map.cbegin()); i != Map.cend(); ++i)
 		ydelete(i->second);
 	Map.clear();
 }
@@ -301,7 +301,7 @@ TextFileBuffer::HText::GetBlockLength(BlockSizeType i) const ynothrow
 }
 
 
-TextFileBuffer::TextFileBuffer(YTextFile& file)
+TextFileBuffer::TextFileBuffer(TextFile& file)
 	: TextMap(),
 	File(file), nTextSize(std::max<u32>(File.GetTextSize(), 1)),
 	nBlock((nTextSize + nBlockSize - 1) / nBlockSize)
@@ -315,13 +315,13 @@ TextFileBuffer::operator[](const BlockSizeType& i)
 		if(i * nBlockSize > File.GetSize())
 			throw std::out_of_range("YSLib::Text::TextBlock");
 
-		MapType::const_iterator it(Map.find(i));
-		TextBlock& block(*(it == Map.end()
+		auto it(Map.find(i));
+		TextBlock& block(*(it == Map.cend()
 			? ynew TextBlock(i, nBlockSize) : it->second));
 
 		if(it == Map.end())
 		{
-			File.fseek(i * nBlockSize + File.GetBOMSize(), SEEK_SET);
+			File.SetPosition(i * nBlockSize + File.GetBOMSize(), SEEK_SET);
 			block.LoadN(File, nBlockSize);
 			*this += block;
 		}
