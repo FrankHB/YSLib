@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面容器。
-\version 0.2192;
+\version 0.2197;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-05-03 16:04 +0800;
+	2011-05-06 14:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -343,14 +343,10 @@ MUIContainer::CheckWidget(IWidget* p)
 bool
 MUIContainer::RemoveWidget(IWidget* p)
 {
-	//WidgetsList.erase(std::remove(WidgetsList.begin(),
-	//	WidgetsList.end(), p), WidgetsList.end());
-	const WGTs::size_type s(WidgetsList.size());
+	auto t(WidgetsList.size());
 
-	WidgetsList.erase(std::remove(WidgetsList.begin(), WidgetsList.end(), p),
-		WidgetsList.end());
-
-	const std::ptrdiff_t t(s - WidgetsList.size());
+	WidgetsList.remove(p);
+	t -= WidgetsList.size();
 
 	YAssert(t <= 1, "Duplicate desktop object pointer found"
 		" @ bool MUIContainer::operator-=(IWidget*);");

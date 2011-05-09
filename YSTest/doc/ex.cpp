@@ -1,4 +1,4 @@
-//v0.3121; *Build 206 r16;
+//v0.3132; *Build 207 r96;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -138,7 +138,7 @@ $using:
 }
 \u YConsole
 {
-	\cl YConsole;
+	\cl Console;
 }
 \u YWidget
 {
@@ -182,11 +182,11 @@ $using:
 	\cl MWindow;
 	\cl AWindow;
 	\cl AFrame;
-	\cl YFrame;
+	\cl Frame;
 }
 \u YForm
 {
-	\cl YForm;
+	\cl Form;
 }
 \u YGUI
 {
@@ -194,340 +194,250 @@ $using:
 }
 \u Button
 {
-	\cl YThumb;
-	\cl YButton;
+	\cl Thumb;
+	\cl Button;
 }
 \u Scroll
 {
 	\cl ATrack;
-	\cl YHorizontalTrack;
-	\cl YVerticalTrack;
+	\cl HorizontalTrack;
+	\cl VerticalTrack;
 	\cl MScrollBar;
 	\cl AScrollBar;
-	\cl YHorizontalScrollBar;
-	\cl YVerticalScrollBar;
+	\cl HorizontalScrollBar;
+	\cl VerticalScrollBar;
 }
 \u ListBox
 {
-	\cl YSimpleListBox;
-	\cl YListBox;
-	\cl YFileBox;
+	\cl ListBox;
+	\cl FileBox;
 }
 
 
 $DONE:
-r1:
-/ @ \cl ShlSetting::TFormTest @ \u Shells;
-	+ \m Button btnMenuTest;
-	/ \impl @ \ctor;
-
-r2:
-* \impl @ \ctor @ \cl ShlSetting::TFormTest @ \u Shells;
-
-r3:
-/ @ \cl YFile:
-	/ \mf rewind => Rewind;
-	/ typedef std::ptrdiff_t OffType => OffsetType;
-	/ \mf ftell => GetPosition;
-	/ \mf fseek => SetPosition;
-	/ \mf fread => Read;
-	/ \mf feof => CheckEOF;
-	+= \i \mf ^ \mac ImplRet;
-	/ \mf Release => Close;
-	/= \mf order;
-	/ \inh YObject -> NonCopyable;
-/ \mf GetPos => GetTextPosition @ \cl YTextFile;
-/ \a \cl YFile => File;
-/ \a \cl YTextFile => TextFile;
-/ @ \h YStandardEx:
-	+ using ::memcmp;
-	* @ \h:
-		-= duplicate \inc;
-	+ \inc \h <cstring>;
-+ using ystdex::memcmp @ \impl \u YFile_(Text);
-+ using File::Read @ \cl TextFile;
-
-r4:
-/ @ \cl FileList @ \u YFileSystem:
-	/ protected \m GHWeak<ListType> wpList -> GHandle<ListType> pList;
-	/ \tr \impl @ \ctor;
-	/ \mf DefGetter(GHandle<ListType>, ListWeakPtr, pList)
-		-> DefGetter(GHandle<ListType>, ListPtr, pList);
-	/ \tr \impl @ \mf;
-/ @ \cl MTextList @ \u YLabel:
-	/ protected mutable \m GHWeak<ListType> wpList -> GHandle<ListType> pList;
-	/ \tr \impl @ \ctor;
-	/ \tr \impl @ \mf;
-/ \tr \decl @ \ctor @ \cl (Menu & ListBox & FileBox);
-
-r5:
-/= test 1 ^ \conf release;
+r1-r5:
++ \ft<class _tSender, class _tEventArgs> \i bool operator==(const GHEvent<
+	_tSender, _tEventArgs>&, const GHEvent<_tSender, _tEventArgs>&) @ \h YEvent;
+- \mac LOKI_FUNCTORS_ARE_COMPARABLE @ \h YAdaptor;
+/ \a Design::Function -> std::function;
 
 r6:
-/ \u YFile @ \dir Core >> \dir Service; 
-/ \u YFile_(Text) @ \dir Core >> \dir Service; 
-+ \u YGDIBase["ygdibase.h", "ygdibase.cpp"] @ \dir Core;
-/ @ \u YObject:
-	/ \ns Drawing >> \u YGDIBase;
-	- \inc \h (YShell & YGlobal) @ \impl \u;
-/ \tr + \inc "ygdibase.h" @ \h YDevice;
-- using Drawing::Point @ \h YShellMessage;
-/ \h Config["config.h"] @ \dir Adaptor => Configuration["config.h"];
-- \rem \mac YSLIB_NO_CURSOR @ \h Configuration;
-/ \tr \inc "../Core/yftext.h" -> \inc "yftext.h"
-	@ \h YTextManager @ \dir Service;
-/ \tr \inc "../Core/yftext.h" -> \inc "../Service/yftext.h"
-	@ \h YText;
-/ \tr @ \h YGlobal:
-	+ \inh \c "../Core/ygdibase.h";
-	/ \a Point @ \ns Messaging -> Drawing::Point;
-/ \tr \inc \h "ystring.h" -> "../Core/ycutil.h" @ \h YFile;
-/ \tr @ \h YGDI:
-	- \inc \h YObject;
-	+ \inc \h YCoreUtility;
-	+ \inc \h YGDIBase;
-/ \tr @ \h YGUI:
-	/ \a Point -> Drawing::Point;
-/ \tr \inc <YSLib/Core/yftext.h> -> <YSLib/Service/yftext.h> @ \h DSReader;
-/ @ \impl \u YGlobal:
-	/ \a Drawing::Point -> Point;
-	+ using \ns Drawing;
-+ \inc \h YString @ \h YText;
+/ @ \h YAdaptor:
+	/ @ \ns Design:
+		- using Loki::Function;
+		- using Loki::SmallObject;
+	- \inc \h <loki/Function.h>;
+	- \inc \h <loki/SmallObj.h>;
+	- (\rem \mac) YSL_TL;
+	- (\rem \inc \h) \lib AGG;
+- \h AGG @ \dir Adaptor;
+- \lib (AGG & Loki);
+/ \tr @ \mac LIBEX @ ARM9 makefile;
 
 r7:
-/= test 2 ^ \conf release;
+/= test 1 ^ \conf release;
 
 r8:
-+ '-std=c++0x' @ \a \mac CXXFLAGS @ makefiles;
-/ \a '> >' -> '>>' @ \lib YCLib;
-/ @ \h Platform:
-	/ \ns std => ystdex ;
-	/ @ \ns ystdex:
-		/ char16_t => uchar_t;
-		/ char32_t => fchar_t;
-/ @ \h CHRDefinition:
-	/ typedef std::char32_t fchar_t -> using ystdex::fchar_t;
-	/ typedef std::char16_t uchar_t -> using ystdex::uchar_t;
-/ \a '-std=c++0x' -> '-std=gnu++0x' @ \mac CXXFLAGS
-	@ makefiles \exc makefile @ \lib CHRLib;
-* implicit narrowing conversion @ \impl \u (YStyle & Scroll);
+/ \impl @ tf<class _tSender, class _tEventArgs> \i bool
+	operator==(const GHEvent<_tSender, _tEventArgs>&, const GHEvent<_tSender,
+	_tEventArgs>&) ^ \mf target_type;
 
 r9:
-/= test 3 ^ \conf release;
+/ \i \f op() -> using std::function<FuncType>::operator() @ \clt GHEvent
+	@ \h YEvent;
 
 r10:
-/ @ \ns ystdex @ \h YStandardEx:
-	+ \inc \h <type_traits>;
-	/ \rem {
-		using std::tr1::add_reference;
-
-		using std::tr1::has_nothrow_assign;
-		using std::tr1::has_nothrow_constructor;
-		using std::tr1::has_nothrow_copy;
-		using std::tr1::has_trivial_assign;
-		using std::tr1::has_trivial_constructor;
-		using std::tr1::has_trivial_copy;
-		using std::tr1::has_trivial_destructor;
-	- \a !\rem using;
-	+ {
-		using std::integral_constant;
-		using std::true_type;
-		using std::false_type;
-
-		using std::is_void;
-		using std::is_integral;
-		using std::is_floating_point;
-		using std::is_array;
-		using std::is_pointer;
-		using std::is_lvalue_reference;
-		using std::is_rvalue_reference;
-		using std::is_member_object_pointer;
-		using std::is_member_function_pointer;
-		using std::is_enum;
-		using std::is_class;
-		using std::is_union;
-		using std::is_function;
-
-		using std::is_reference;
-		using std::is_arithmetic;
-		using std::is_fundamental;
-		using std::is_object;
-		using std::is_scalar;
-		using std::is_compound;
-		using std::is_member_pointer;
-
-		using std::is_const;
-		using std::is_volatile;
-		using std::is_trivial;
-	//	using std::is_trivially_copyable;
-		using std::is_standard_layout;
-		using std::is_pod;
-	//	using std::is_literal_type;
-		using std::is_empty;
-		using std::is_polymorphic;
-		using std::is_abstract;
-
-		using std::is_signed;
-		using std::is_unsigned;
-
-		using std::is_constructible;
-
-		using std::has_virtual_destructor;
-
-		using std::alignment_of;
-		using std::rank;
-		using std::extent;
-
-		using std::is_same;
-		using std::is_base_of;
-		using std::is_convertible;
-
-		using std::remove_const;
-		using std::remove_volatile;
-		using std::remove_cv;
-		using std::add_const;
-		using std::add_volatile;
-		using std::add_cv;
-
-		using std::remove_reference;
-		using std::add_lvalue_reference;
-		using std::add_rvalue_reference;
-
-		using std::make_signed;
-		using std::make_unsigned;
-
-		using std::remove_extent;
-		using std::remove_all_extents;
-
-		using std::remove_pointer;
-		using std::add_pointer;
-
-		using std::aligned_storage;
-		using std::decay;
-		using std::enable_if;
-		using std::conditional;
-		using std::common_type;
-	//	using std::underlying_type;
-	//	using std::result_of;
-	}
-	+ \rem
-	{
-		using std::is_default_constructible;
-		using std::is_copy_constructible;
-		using std::is_move_constructible;
-
-		using std::is_assignable;
-		using std::is_copy_assignable;
-		using std::is_move_assignable;
-
-		using std::is_destructible;
-
-		using std::is_trivially_constructible;
-		using std::is_trivially_default_constructible;
-		using std::is_trivially_copy_constructible;
-		using std::is_trivially_move_constructible;
-
-		using std::is_trivially_assignable;
-		using std::is_trivially_copy_assignable;
-		using std::is_trivially_move_assignable;
-		using std::is_trivially_destructible;
-
-		using std::is_nothrow_constructible;
-		using std::is_nothrow_default_constructible;
-		using std::is_nothrow_copy_constructible;
-		using std::is_nothrow_move_constructible;
-
-		using std::is_nothrow_assignable;
-		using std::is_nothrow_copy_assignable;
-		using std::is_nothrow_move_assignable;
-
-		using std::is_nothrow_destructible;
-	}
-/ \a 'std::tr1::' -> 'std::';
-/ \a auto_ptr -> unique_ptr;
-/ @ \h YReference:
-	- using std::auto_ptr;
-	/ \inc \h <tr1/memory> -> <utility>;
-	/ @ \cl GHWeak:
-		/ \mf typename std::add_reference<T>::type operator*() const
-		-> typename std::add_rvalue_reference<T>::type operator*() const
-		^ \ft std::move;
-	+ using std::unique_ptr;
-/ @ \h Container:
-	+ \inc \h <unordered_set>;
-	+ \inc \h <unordered_map>;
-	+ using std::unordered_map;
-	+ using std::unordered_set;
-	+ \inc \h <tuple>;
-	+ using std::tuple;
-	+ using std::make_tuple;
+/= test 2 ^ \conf release;
 
 r11:
-/= test 4 ^ \conf release;
+/ @ \ns ystdex @ \h Utilties:
+	+ union no_copy_t;
+	+ union any_pod_t;
+/ @ \h YEvent:
+	+ \pre \decl @ \clt GHEvent with \de \t \param;
+	+ \decl @ \tf<class _tSender, class _tEventArgs> bool
+		operator==(const GHEvent<_tSender, _tEventArgs>&,
+		const GHEvent<_tSender, _tEventArgs>&) @ friend \decl @ \clt GHEvent;
+	/ @ \clt GHEvent:
+		- \tr \de \t \param @ \def;
+		* \ctor \param ^ \c rvalue \r;
+/ @ \h YFunc:
+	+ \cl PolymorphicFunctorBase;
+	+ \clt GFunctor;
 
 r12:
-/ \impl @ \f template<> uchar_t
-	codemap<CharSet::SHIFT_JIS>(ubyte_t&, const char*)
-	@ \impl \u CharacterMapping ^ u16 ~ unsigned short;
-^ auto @ \lib YCLib;
-/= \impl @ \f safe_dma_fill @ \impl \u YCommon;
+/ @ \h YEvent:
+	/ @ \clt GEvent<true, _tSender, _tEventArgs>:
+		- 3 \mf \i \op+= & 3 \mf \i \op-=;
+		+ \mft \i \op+=;
+		+ \mft \i \op-=;
+	- \clt GEvent<false, _tSender, _tEventArgs>;
 
 r13:
-^ (auto & (\mf \n cbegin & cend)) @ \lib YSLib;
+/ @ \h YEvent:
+	/ \clt GEvent<true, _tSender, _tEventArgs> -> GEvent<_tSender, _tEventArgs>;
+	/ \tr @ typedef EventType @ \cl GSEvent;
+- \a \mac YSL_EVENT_MULTICAST;
+^ delete \mf \decl @ \h (Utilities & YEvent);
+/= \i \dtor @ \cl TextBlock @ \h YTextManager ^ \mac DefEmptyDtor;
 
 r14:
-/ \a '> >' -> '>>' @ \lib YSLib;
+/= test 3 ^ \conf release;
 
-r15:
-/ @ \h Adaptor:
-	- \mac YSL_STATIC_CHECK;
-	/ @ \ns YSLib::Design:
-		- using Loki::Functor;
-		- using Loki::EmptyType;
-		- using Loki::IsCustomUnsignedInt;
-		- using Loki::IsCustomSignedInt;
-		- using Loki::IsCustomFloat;
-		- using Loki::TypeTraits;
-		- using Loki::Typelist;
-		- namespace TL = Loki::TL;
-		- using Loki::NullType;
-		- using Loki::Int2Type;
-		- using Loki::Type2Type;
-		- using Loki::Select;
-	/ \inc \h <loki/StrongPtr.h> -> <loki/SmallObj.h>;
-	/ @ \ns YSLib:
-		- using ystdex::errno_t;
-		- using ystdex::nullptr_t;
-		+ using namespace ystdex;
-- \a 'using ystdex::*' @ \ns YSLib;
-- \a 'ystdex::' @ \ns YSLib;
-/ \a NonCopyable -> noncopyable @ \lib YSLib;
-/ @ \h YCoreUtility:
-	- using Design::NonCopyable;
-	/ @ \ns Design:
-		/ \impl @ \clt MoreConvertible ^ conditional ~ Select;
-		- typedef noncopyable NonCopyable;
-/ \impl @ \i \mf (void operator+=(_type) & bool operator-=(_type))
-	@ \cl AFrame ^ conditional
-	~ Design::Select;
+r15-r33:
+/ \h YEvent:
+	/ @ \clt GEvent:
+		- 3 \mf \i \op=;
+		+ \mft \i \op=;
+		/ \mf \i GEvent& operator=(const HandlerType&);
+		+ \mf \i GEvent& operator=(HandlerType&&);
+		/ protected \mf \i GEvent& AddRaw(const HandlerType&);
+		+ \mf \i GEvent& AddRaw(HandlerType&&);
+		/ \mf \i GEvent& operator+=(const HandlerType&);
+		+ \mf \i GEvent& operator+=(HandlerType&&);
+		/ \mf \i GEvent& operator-=(const HandlerType&);
+		+ \mf \i GEvent& operator-=(HandlerType&&);
+		/ \simp \impl @ \mft \op=;
+		/= \impl @ \mft op+=;
+		/= \impl @ \mft op-=
+		/= \simp \impl @ \mf op+=;
+		+ move \ctor GEvent(GEvent&&) = default;
+		+ \rem \mf GEvent& operator=(GEvent&&) = default;
+		/ copy \ctor GEvent(const GEvent&) -> default;
+		/ \mf \i GEvent& operator=(const HandlerType&)
+			-> \i GEvent& operator=(HandlerType&&);
+		* \mf GEvent& operator=(const GEvent&) exception safety;
+		+ \mf \i GEvent& operator=(GEvent&&);
+		+ \mf \i GEvent& AddRaw(HandlerType&&);
+		+ private \ctor \t<typename _tHandler> \i GEvent(_tHandler);
+	/ @ \clt GHEvent:
+		+ copy \ctor GEvent(const GHEvent&) = default;
+		+ move \ctor GEvent(GHEvent&&) = default;
+		+ \mf GHEvent& operator=(const GHEvent&) = default;
+		+ \rem \mf GHEvent& operator=(GHEvent&&) = default;
+		* \impl @ \i \ctor \t<typename _tFunc> GHEvent(_tFunc) ^ std::forward;
+	+ \i @ \a \exp defaulted \mf;
+	/ @ \clt GEvent:
+/= test 4 ^ \conf release;
+/= test 5;
 
-r16:
-/= test 5 ^ \conf release;
+r34:
+/ @ \h Utilities:
+	/ \ft<typename _tContainer> typename _tContainer::size_type
+		erase_all(_tContainer&, const typename _tContainer::value_type&);
+	* \impl @ \ft erase_all_if;
+/ \impl @ \mf bool MUIContainer::RemoveWidget(IWidget*) ^ erase_all;
+
+r35:
+/= \ft search_map @ \h Utilities ^ auto;
+/ \impl @ (\mf bool MUIContainer::RemoveWidget(IWidget*)
+	& \mf \op-= @ \clt YEvent) ^ list \mf remove ~ erase_all;
+
+r36:
+/ @ \clt GEvent @ \h YEvent:
+	+ \i @ \a (\op+= & \op-=);
+	+ \mf \i GEvent& operator+=(const HandlerType&);
+	+ \mf \i GEvent& operator-=(const HandlerType&);
+
+r37:
+/ @ \clt GEvent @ \h YEvent:
+	- \i @ private \t \ctor;
+	/ !\i \mf Swap -> \i \mf;
+	/= \impl \i \mf (Clear & GetSize & Swap) ^ \mac;
+
+r38:
+/= test 6 ^ \conf release;
+
+r39:
+* @ \cl ShlSetting::TFormTest @ \u Shells:
+	/ \smf void OnEnter_btnEnterTest(IControl&, InputEventArgs&)
+		-> \smf void OnEnter_btnEnterTest(IControl&, TouchEventArgs&);
+	/ \smf void OnLeave_btnEnterTest(IControl&, InputEventArgs&)
+		-> \smf void OnLeave_btnEnterTest(IControl&, TouchEventArgs&);
+* @ \clt GHEvent @ \h YEvent:
+	/ \i \ctor GHEvent(const FuncType&&)
+		-> \i \ctor GHEvent(FuncType*);
+
+r40-r58:
+/= test 7;
+
+r59:
+/= test 8 ^ \conf release;
+
+r60:
+/ @ \h YEvent:
+	/ @ \clt GHEvent:
+		+ typedef bool(*Comparer)(const GHEvent&, const GHEvent&);
+		+ \m \clt<class _tFunctor> GEquality;
+		* \ctor \param \tp;
+		/ \impl @ \ctor;
+	/ \impl @ \op== for \clt GHEvent;
+
+r61:
+/= test 9;
+
+r62:
+/= test 10 ^ \conf release;
+
+r63:
+/ @ \h YEvent:
+	/ @ \clt GHEvent:
+		/ \mg \def -> \decl @ \mf AreEqual @ \clt GEqulity;
+	/ !\m \f @ \op== for \clt GHEvent -> \f @ \clt GHEvent;
+	- friend \decl @ for \clt GHEvent;
+	- \pre \decl @ \clt GHEvent;
+
+r64-r70:
+/= test 11;
+
+r71:
+* \impl @ \smf AddEqual @ \clt GEquality @ \clt GHEvent @ \h YEvent;
+
+r72-r79:
+/= test 12;
+
+r80:
+* \impl @ \smf AddEqual @ \clt GEquality @ \clt GHEvent @ \h YEvent;
+
+r81:
+/= test 13 ^ \conf release;
+
+r82-r84:
+/= test 14;
+
+r85:
+* \impl @ \mf ShlReader::OnDeactivated @ \impl \u Shells;
+/ @ \h YFunc:
+	/ \rem \st PolymorphicFunctorBase;
+	/ \rem \clt GFunctor;
+	/ \rem \clt InversedCurrying;
+
+r86-r91:
+/= test 15;
+
+r92-r94:
+* \impl @ \mf (ResponseKey & ResponseTouch) @ \cl YGUIShell @ \impl \u YGUI;
+
+r95:
+/= test 16;
+
+r96
+/= test 17 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-05-03:
--24.9d;
-//c1-c76:r3804;
+2011-05-09:
+-24.1d;
+//Mercurial rev1-rev77:r3820;
 
 / ...
 
 
 $NEXT_TODO:
 
-b207-b288:
+b208-b288:
 + menus;
 * fatel error @ direct UI drawing testing;
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
@@ -630,29 +540,48 @@ $ellipse_refactoring;
 
 $now
 (
+	/ $design "event handler implementation ^ std::function \
+		instead of Loki::Function",
+	- "library AGG",
+	- "library Loki",
+	+ $design "union %no_copy_t and union %any_pod_t for supressing \
+		static type checking",
+	+ $design "polymorphic function object template and base class",
+	- "single-cast event class template",
+	^ "rvalue reference in event class",
+	* "ystdex algorithms",
+	* "minor event handler parameter type mismatch in test code",
+	* "key events response(added as %KeyDown, but removed as %KeyPress) in \
+		YSTest_ARM9" $since b201,
+	* "tunnel and direct key and touch response repeated in %YGUIShell"
+		$since b198
+),
+
+b206
+(
 	+ "menu test button",
 	/ "file API",
-	* strict ISO C++2003 code compatibility $=
+	* "strict ISO C++2003 code compatibility" $=
 	(
 		+ "function %memcmp declation in namespace %ystdex"
 	),
-	* strict ISO C++2011 code compatibility $=
+	* "strict ISO C++2011 code compatibility" $=
 	(
-		* implicit narrowing conversion(N3242 8.5.4/6) \
-			in C++2011(N3242 5.17/9) ^ explicit static_cast,
-		/ character types in "platform.h"
+		* "implicit narrowing conversion(N3242 8.5.4/6) \
+			in C++2011(N3242 5.17/9)" ^ "explicit static_cast",
+		/ "character types in \"platform.h\""
 	),
-	/ coding using limited C++2011 features $=
+	/ "coding using limited C++2011 features" $=
 	(
-		/ $design ^ C++2011 style nested template angle brackets,
-		/ $design ^ keyword %auto,
-		/ ^ C++2011 type_traits in namespace std instead of std::tr1
+		/ $design ^ "C++2011 style nested template angle brackets",
+		/ $design ^ "keyword %auto",
+		/ ^ "C++2011 type_traits in namespace std instead of std::tr1"
 	),
-	- Loki type operations,
-	/ ^ namespace ystdex in namespace YSLib
+	- "Loki type operations",
+	/ ^ "namespace ystdex in namespace YSLib"
 ),
 
-b205,
+b205
 (
 	/ "simplified widgets and controls inheritance",
 	/ "simplified image resource type",
@@ -670,7 +599,7 @@ b204
 		- "type %HWND",
 		^ "%IWindow*" ~ "%HWND"
 	),
-	* track background painting ignored $since b191,
+	* "track background painting ignored" $since b191,
 	+ "class %nullptr_t at namespace ystdex",
 	^ "nullptr at YSLib",
 	/ $design "widgets virtual member functions"

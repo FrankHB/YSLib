@@ -67,9 +67,6 @@
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\YSLib\Adaptor\agg.h">
-      <Filter>头文件\YSLib\Adaptor</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Adaptor\config.h">
       <Filter>头文件\YSLib\Adaptor</Filter>
     </ClInclude>

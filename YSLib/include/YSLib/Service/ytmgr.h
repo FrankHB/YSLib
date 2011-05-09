@@ -16,12 +16,12 @@
 /*!	\file ytmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4359;
+\version 0.4361;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-05-03 19:31 +0800;
+	2011-05-05 20:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -208,17 +208,13 @@ public:
 	/*!
 	\brief 析构：空实现。
 	*/
-	virtual
-	~TextBlock();
+	virtual DefEmptyDtor(TextBlock)
 };
 
 inline
 TextBlock::TextBlock(BlockSizeType i, SizeType tlen)
 	: TextBuffer(tlen),
 	Index(i)
-{}
-inline
-TextBlock::~TextBlock()
 {}
 
 

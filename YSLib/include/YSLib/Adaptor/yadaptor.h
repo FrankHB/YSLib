@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2132;
+\version 0.2152;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2011-05-03 19:38 +0800;
+	2011-05-03 21:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -143,23 +143,10 @@ YSL_END
 //#include FT_OUTLINE_H
 
 
-//包含 Anti-Grain Geometry 。
-//#include "agg.h"
-
-
-//包含 Loki 。
-//#define LOKI_FUNCTOR_IS_NOT_A_SMALLOBJECT
-#define LOKI_FUNCTORS_ARE_COMPARABLE //实现事件机制需要能被比较的仿函数。
-#include <loki/Function.h>
-#include <loki/SmallObj.h>
-
 YSL_BEGIN
 
 //! \brief 基础语言设施。
 YSL_BEGIN_NAMESPACE(Design)
-
-	// Function 。
-	using Loki::Function;
 
 //! \brief 设计模式。
 YSL_BEGIN_NAMESPACE(Pattern)
@@ -167,13 +154,7 @@ YSL_END_NAMESPACE(Pattern)
 
 YSL_END_NAMESPACE(Design)
 
-	//使用 Loki 小对象。
-	using Loki::SmallObject;
-
 YSL_END
-
-//! \brief 使用 Loki 的 Typelist 。
-//#define YSL_TL(n, ...) LOKI_TYPELIST##n(...)
 
 
 #endif

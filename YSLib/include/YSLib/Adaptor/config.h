@@ -11,12 +11,12 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief 库编译配置。
-\version 0.1574;
+\version 0.1576;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2011-05-03 07:30 +0800;
+	2011-05-05 19:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,9 +68,6 @@
 \note PeekMessage 包含 SendMessage 。
 */
 #define YSL_DEBUG_MSG 0
-
-//! \brief 使用多播事件。
-#define YSL_EVENT_MULTICAST
 
 #endif
 

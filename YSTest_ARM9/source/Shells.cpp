@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 抽象。
-\version 0.4054;
+\version 0.4062;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-05-03 19:19 +0800;
+	2011-05-09 13:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -580,10 +580,10 @@ ShlSetting::TFormTest::TFormTest()
 
 void
 ShlSetting::TFormTest::OnEnter_btnEnterTest(IControl& sender,
-	InputEventArgs& e)
+	TouchEventArgs& e)
 {
 	DefDynInitRef(Button, btn, sender)
-	TouchEventArgs& pt(static_cast<TouchEventArgs&>(e));
+	TouchEventArgs& pt(e);
 	char str[20];
 
 	std::sprintf(str, "Enter:(%d,%d)", pt.Point::X, pt.Point::Y);
@@ -592,10 +592,10 @@ ShlSetting::TFormTest::OnEnter_btnEnterTest(IControl& sender,
 }
 void
 ShlSetting::TFormTest::OnLeave_btnEnterTest(IControl& sender,
-	InputEventArgs& e)
+	TouchEventArgs& e)
 {
 	DefDynInitRef(Button, btn, sender)
-	TouchEventArgs& pt(static_cast<TouchEventArgs&>(e));
+	TouchEventArgs& pt(e);
 	char str[20];
 
 	std::sprintf(str, "Leave:(%d,%d)", pt.Point::X, pt.Point::Y);
@@ -1085,7 +1085,7 @@ ShlReader::OnDeactivated(const Message& /*msg*/)
 	GetDesktopUp().ClearContents();
 	GetDesktopDown().ClearContents();
 	FetchEvent<Click>(GetDesktopDown()).Remove(*this, &ShlReader::OnClick);
-	FetchEvent<KeyPress>(GetDesktopDown()).Remove(*this, &ShlReader::OnKeyDown);
+	FetchEvent<KeyDown>(GetDesktopDown()).Remove(*this, &ShlReader::OnKeyDown);
 	FetchEvent<KeyHeld>(GetDesktopDown()) -= OnKeyHeld;
 	std::swap(hUp, GetDesktopUp().GetBackgroundImagePtr());
 	std::swap(hDn, GetDesktopDown().GetBackgroundImagePtr());

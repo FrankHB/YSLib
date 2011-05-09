@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3209;
+\version 0.3213;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-05-03 13:52 +0800;
+	2011-05-06 21:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -134,10 +134,10 @@ public:
 		TFormTest();
 
 		static void
-		OnEnter_btnEnterTest(IControl& sender, InputEventArgs&);
+		OnEnter_btnEnterTest(IControl& sender, TouchEventArgs&);
 
 		static void
-		OnLeave_btnEnterTest(IControl& sender, InputEventArgs&);
+		OnLeave_btnEnterTest(IControl& sender, TouchEventArgs&);
 
 		void
 		OnClick_btnShowWindow(TouchEventArgs&);

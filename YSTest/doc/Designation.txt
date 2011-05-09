@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version 0.4758;
+\version 0.4763;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-05-03 14:44 +0800;
+	2011-05-05 13:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -140,12 +140,14 @@
 定义于 ISO/IEC C 1999 和 ISO/IEC C++ 2011(N3242) 中，且有一个以上完整的语言实现。
  Static assertions(N1720) ；
  long long(N1811) ；
- Right Angle Brackets(N1757) ；
- Built-in Type Traits(N1836) ；
+ Right angle brackets(N1757) ；
+ Built-in type traits(N1836) ；
  auto-typed variables(N1984) ；
  Extern templates(N1987) ；
  Rvalue references(N2118) ；
  Declared type of an expression(N2343) ；
+ Defaulted and deleted functions(N2346) ；
+ New function declaration syntax for deduced return types(N2541) ；
  Lambda expressions and closures(N2550) 。
 仅使用ISO/IEC C++ 2011 中头文件 <type_traits> 、 <tuple> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
 

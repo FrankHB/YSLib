@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面。
-\version 0.3762;
+\version 0.3766;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-05-03 17:27 +0800;
+	2011-05-09 17:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -223,12 +223,12 @@ YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e,
 			return false;
 		if(e.Handled)
 			return true;
-		r |= ResponseKeyBase(*p, e, op);
 
 		IControl* t(pCon->GetFocusingPtr());
 
 		if(!t)
 			break;
+		r |= ResponseKeyBase(*p, e, op);
 		p = t;
 	}
 
@@ -269,7 +269,6 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 			RequestToTop(*p);
 			p->RequestFocus(GetStaticRef<EventArgs>());
 		}
-		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, e) != 0;
 		e -= p->GetLocation();
 
 		IControl* t;
@@ -280,6 +279,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 				pCon->ClearFocusingPtr();
 			break;
 		}
+		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, e) != 0;
 		p = t;
 	}
 

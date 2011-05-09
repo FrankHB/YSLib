@@ -11,12 +11,12 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数对象封装。
-\version 0.1684;
+\version 0.1718;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2011-04-25 12:55 +0800;
+	2011-05-09 13:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -279,7 +279,7 @@ public:
 };
 
 
-//! \brief 逆向柯里化：在参数列表起始添加一个形式参数。
+/*! \brief 逆向柯里化：在参数列表起始添加一个形式参数。
 template<class _tFunc, typename _tParm>
 struct InversedCurrying
 {
@@ -288,9 +288,9 @@ struct InversedCurrying
 
 	_tFunc f;
 
-	/*!
+	/!
 	\brief 构造：使用函数对象。
-	*/
+	/
 	InversedCurrying(_tFunc f_)
 		: f(f_)
 	{}
@@ -298,15 +298,42 @@ struct InversedCurrying
 	PDefHOperator1(bool, ==, const InversedCurrying& r) const
 		ImplRet(f == r.f)
 
-	/*!
+	/!
 	\brief 调用：忽略第一个参数。
-	*/
+	/
 	Result
 	operator()(_tParm, Parm1 arg1) const
 	{
 		return f(arg1);
 	}
-};
+};*/
+
+
+/* \brief 多态函数对象基类。
+struct PolymorphicFunctorBase
+{
+	DefEmptyDtor(PolymorphicFunctorBase)
+};*/
+
+
+/*
+\brief 多态函数对象模板。
+\note 继承其它函数对象类。
+*/
+/*template<class _tFunctor>
+class GFunctor : public PolymorphicFunctorBase, public _tFunctor
+{
+public:
+	GFunctor(_tFunctor&& _f)
+		: PolymorphicFunctorBase(), _tFunctor(std::forward<_tFunctor>(_f))
+	{}
+
+	template<typename... _tArgs>
+	GFunctor(_tArgs... _args)
+		: PolymorphicFunctorBase(),
+		_tFunctor(std::forward<_tArgs>(_args)...)
+	{}
+};*/
 
 YSL_END
 

@@ -15,7 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ysbuild.h" />
-    <ClInclude Include="include\YSLib\Adaptor\agg.h" />
     <ClInclude Include="include\YSLib\Adaptor\config.h" />
     <ClInclude Include="include\YSLib\Adaptor\cont.h" />
     <ClInclude Include="include\YSLib\Adaptor\yadaptor.h" />

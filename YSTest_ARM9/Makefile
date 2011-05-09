@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-05-03 13:18 +0800;
-# Version = 0.3344;
+# UTime = 2011-05-03 22:00 +0800;
+# Version = 0.3346;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -100,7 +100,7 @@ LIBS	:=	-lfat -lnds9
 #---- User defined libraries.
 
 LIBPATHEX	:= -L$(TOPDIR)/../YSTest/lib
-LIBEX		:= -lfreetype -lloki
+LIBEX		:= -lfreetype
 #LIBEX		:= -lfreetype -lagg -lloki
 
 LIBPATH_CHRLIB := -L$(TOPDIR)/../CHRLib/$(RELEASE)
