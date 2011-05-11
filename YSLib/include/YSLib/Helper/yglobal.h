@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2158;
+\version 0.2159;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-05-03 19:32 +0800;
+	2011-05-10 15:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -209,7 +209,7 @@ InitConsole(YScreen&, Drawing::PixelType, Drawing::PixelType);
 \brief 全局静态资源释放函数。
 */
 void
-Destroy_Static(YObject&, EventArgs&);
+Destroy_Static(YObject&, EventArgs&&);
 
 /*!
 \brief 公共消息处理函数。

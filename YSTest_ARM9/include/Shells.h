@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3213;
+\version 0.3235;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-05-06 21:56 +0800;
+	2011-05-10 16:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -93,28 +93,28 @@ public:
 
 private:
 	void
-	OnKeyUp_frm(KeyEventArgs&);
+	OnKeyUp_frm(KeyEventArgs&&);
 
 	void
-	OnKeyDown_frm(KeyEventArgs&);
+	OnKeyDown_frm(KeyEventArgs&&);
 
 	void
-	OnKeyPress_frm(KeyEventArgs&);
+	OnKeyPress_frm(KeyEventArgs&&);
 
 	void
-	OnClick_btnTest(TouchEventArgs&);
+	OnClick_btnTest(TouchEventArgs&&);
 
 	void
-	OnClick_btnOK(TouchEventArgs&);
+	OnClick_btnOK(TouchEventArgs&&);
 
 	void
-	OnViewChanged_fbMain(EventArgs&);
+	OnViewChanged_fbMain(EventArgs&&);
 
 	static void
-	OnKeyPress_fbMain(IControl&, KeyEventArgs&);
+	OnKeyPress_fbMain(IControl&, KeyEventArgs&&);
 
 	static void
-	OnConfirmed_fbMain(IControl&, IndexEventArgs&);
+	OnConfirmed_fbMain(IControl&, IndexEventArgs&&);
 };
 
 
@@ -134,13 +134,13 @@ public:
 		TFormTest();
 
 		static void
-		OnEnter_btnEnterTest(IControl& sender, TouchEventArgs&);
+		OnEnter_btnEnterTest(IControl& sender, TouchEventArgs&&);
 
 		static void
-		OnLeave_btnEnterTest(IControl& sender, TouchEventArgs&);
+		OnLeave_btnEnterTest(IControl& sender, TouchEventArgs&&);
 
 		void
-		OnClick_btnShowWindow(TouchEventArgs&);
+		OnClick_btnShowWindow(TouchEventArgs&&);
 	};
 
 	struct TFormExtra : public Form
@@ -153,28 +153,28 @@ public:
 		TFormExtra();
 
 		void
-		OnMove_btnDragTest(EventArgs&);
+		OnMove_btnDragTest(EventArgs&&);
 
 		void
-		OnTouchUp_btnDragTest(TouchEventArgs&);
+		OnTouchUp_btnDragTest(TouchEventArgs&&);
 
 		void
-		OnTouchDown_btnDragTest(TouchEventArgs&);
+		OnTouchDown_btnDragTest(TouchEventArgs&&);
 
 		void
-		OnClick_btnDragTest(TouchEventArgs&);
+		OnClick_btnDragTest(TouchEventArgs&&);
 
 		static void
-		OnKeyPress_btnDragTest(IControl& sender, KeyEventArgs& e);
+		OnKeyPress_btnDragTest(IControl& sender, KeyEventArgs&& e);
 
 		void
-		OnClick_btnTestEx(TouchEventArgs&);
+		OnClick_btnTestEx(TouchEventArgs&&);
 
 		void
-		OnClick_btnReturn(TouchEventArgs&);
+		OnClick_btnReturn(TouchEventArgs&&);
 
 		void
-		OnClick_btnExit(TouchEventArgs&);
+		OnClick_btnExit(TouchEventArgs&&);
 	};
 
 	ShlSetting();
@@ -193,7 +193,7 @@ private:
 	void ShowString(const char*);
 
 	static void
-	OnTouchDown_FormExtra(IControl&, TouchEventArgs&);
+	OnTouchDown_FormExtra(IControl&, TouchEventArgs&&);
 };
 
 
@@ -226,10 +226,10 @@ public:
 
 private:
 	void
-	OnClick(TouchEventArgs&);
+	OnClick(TouchEventArgs&&);
 
 	void
-	OnKeyDown(KeyEventArgs&);
+	OnKeyDown(KeyEventArgs&&);
 };
 
 YSL_END;

@@ -11,12 +11,12 @@
 /*!	\file ylabel.cpp
 \ingroup Shell
 \brief 样式无关的标签模块。
-\version 0.2032;
+\version 0.2062;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-05-03 19:20 +0800;
+	2011-05-10 21:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,8 @@ YSL_BEGIN_NAMESPACE(Widgets)
 
 MLabel::MLabel(const Drawing::Font& f, MLabel::TextAlignmentStyle a)
 	: Font(f), Margin(2, 2, 2, 2),
-	Alignment(a), /*AutoSize(false), AutoEllipsis(false),*/ Text()
+	HorizontalAlignment(a), VerticalAlignment(Center),
+	/*AutoSize(false), AutoEllipsis(false),*/ Text()
 {}
 
 void
@@ -50,26 +51,48 @@ MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt)
 	ts.ResetForBounds(r, g.GetSize(), Margin);
 	ts.Color = c;
 
-	switch(Alignment)
+	switch(HorizontalAlignment)
 	{
 	case Center:
 	case Right:
 		{
-			const SDst string_width(FetchStringWidth(ts.Font, Text)),
-				area_width(w.GetSize().Width - GetHorizontalFrom(Margin));
-			if(area_width > string_width)
-			{
-				const SDst horizontal_offset(area_width - string_width);
+			SPos horizontal_offset(r.Width - GetHorizontalFrom(Margin)
+				- FetchStringWidth(ts.Font, Text));
 
-				ts.ResetForBounds(r, g.GetSize(), Margin);
-				ts.PenX += Alignment == Center ? horizontal_offset / 2
-					: horizontal_offset;
+			if(horizontal_offset > 0)
+			{
+				if(HorizontalAlignment == Center)
+					horizontal_offset /= 2;
+				ts.PenX += horizontal_offset;
 			}
 		}
 	case Left:
 	default:
 		break;
 	}
+
+	SPos vertical_offset(0);
+
+	switch(VerticalAlignment)
+	{
+	case Center:
+	case Down:
+		{
+			SPos vertical_offset(r.Height - GetHorizontalFrom(Margin)
+				- GetLnHeightFrom(ts));
+
+			if(vertical_offset > 0)
+			{
+				if(VerticalAlignment == Center)
+					vertical_offset /= 2;
+				ts.PenY += vertical_offset;
+			}
+		}
+	case Up:
+	default:
+		break;
+	}
+	ts.PenY += vertical_offset;
 	DrawText(g, ts, Text);
 }
 

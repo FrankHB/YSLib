@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3591;
+\version 0.3598;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-05-03 19:40 +0800;
+	2011-05-10 16:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -275,7 +275,7 @@ ATrack::CheckScroll(ScrollEventSpace::ScrollEventType t, ValueType old_value)
 {
 	ScrollEventArgs e(t, value, old_value);
 
-	GetScroll()(*this, e);
+	GetScroll()(*this, std::move(e));
 }
 
 void
@@ -335,7 +335,7 @@ ATrack::UpdateValue()
 }
 
 void
-ATrack::OnTouchDown(TouchEventArgs& e)
+ATrack::OnTouchDown(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct
 		&& Rect(Point::Zero, GetSize()).Contains(e))
@@ -359,7 +359,7 @@ ATrack::OnTouchDown(TouchEventArgs& e)
 }
 
 void
-ATrack::OnThumbDrag(EventArgs&)
+ATrack::OnThumbDrag(EventArgs&& /*e*/)
 {
 	ValueType old_value(value);
 	// TODO: get correct old value;
@@ -383,7 +383,7 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 }
 
 void
-HorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs& e)
+HorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
@@ -392,7 +392,7 @@ HorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs& e)
 
 		RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
 		Thumb.SetLocation(Point(x, Thumb.GetLocation().Y));
-		GetThumbDrag()(*this, GetStaticRef<EventArgs>());
+		GetThumbDrag()(*this, EventArgs());
 	}
 }
 
@@ -411,7 +411,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 }
 
 void
-VerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs& e)
+VerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
@@ -420,7 +420,7 @@ VerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs& e)
 
 		RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
 		Thumb.SetLocation(Point(Thumb.GetLocation().X, y));
-		GetThumbDrag()(*this, GetStaticRef<EventArgs>());
+		GetThumbDrag()(*this, EventArgs());
 	}
 }
 
@@ -499,14 +499,14 @@ AScrollBar::Paint()
 }
 
 void
-AScrollBar::OnTouchDown_PrevButton(TouchEventArgs& e)
+AScrollBar::OnTouchDown_PrevButton(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 		GetTrack().LocateThumbForSmallDecrement(small_delta);
 }
 
 void
-AScrollBar::OnTouchDown_NextButton(TouchEventArgs& e)
+AScrollBar::OnTouchDown_NextButton(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 		GetTrack().LocateThumbForSmallIncrement(small_delta);

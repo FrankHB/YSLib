@@ -1,4 +1,4 @@
-//v0.3132; *Build 207 r96;
+//v0.3132; *Build 208 r12;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -215,239 +215,104 @@ $using:
 
 
 $DONE:
-r1-r5:
-+ \ft<class _tSender, class _tEventArgs> \i bool operator==(const GHEvent<
-	_tSender, _tEventArgs>&, const GHEvent<_tSender, _tEventArgs>&) @ \h YEvent;
-- \mac LOKI_FUNCTORS_ARE_COMPARABLE @ \h YAdaptor;
-/ \a Design::Function -> std::function;
+r1:
+^ \conf release;
+/ @ \clt GDependency @ \h YObject:
+	+ \exp \de copy \ctor GDependency(const GDependency&) = default;
+	+ \exp \de move \ctor GDependency(GDependency&&) = default;
 
-r6:
-/ @ \h YAdaptor:
-	/ @ \ns Design:
-		- using Loki::Function;
-		- using Loki::SmallObject;
-	- \inc \h <loki/Function.h>;
-	- \inc \h <loki/SmallObj.h>;
-	- (\rem \mac) YSL_TL;
-	- (\rem \inc \h) \lib AGG;
-- \h AGG @ \dir Adaptor;
-- \lib (AGG & Loki);
-/ \tr @ \mac LIBEX @ ARM9 makefile;
+r2:
+^ \conf debug;
+/= test 1;
 
-r7:
-/= test 1 ^ \conf release;
+r3:
+/ @ \h YEvent:
+	- typedef typename std::pointer_to_binary_function<_tSender&, _tEventArgs&,
+		void> FunctorType @ \stt GSEventTypeSpace;
+	- typedef typename SEventType::FunctorType FunctorType @ \clt GEvent;
+	/ @ \clt GDependencyEvent:
+		- typedef typename EventType::FunctorType FunctorType;
+		/ \a 4 \op+= -> 1 \mft \i \op+=;
+		/ \a 4 \op-= -> 1 \mft \i \op-=;
+		/ \def \mf \i GetSize ^ \mac DefGetterMember;
+		/ \def \mf \i Clear ^ \mac (PDefH0 & ImplBodyMember0);
 
-r8:
-/ \impl @ tf<class _tSender, class _tEventArgs> \i bool
-	operator==(const GHEvent<_tSender, _tEventArgs>&, const GHEvent<_tSender,
-	_tEventArgs>&) ^ \mf target_type;
+r4:
+/ @ \h YEvent:
+	/ typedef void FuncType(_tSender&, _tEventArgs&) @ \stt GSEventTypeSpace
+		-> typedef void FuncType(_tSender&, _tEventArgs&&);
+	/ \mf SizeType operator()(_tSender&, _tEventArgs&) const @ \clt GEvent
+		-> SizeType operator()(_tSender&, _tEventArgs&&) const;
+	/ \mf \i SizeType operator()(SenderType&, EventArgsType&) const
+		@ \clt GDependencyEvent -> SizeType operator()(SenderType&,
+		EventArgsType&&) const;
+/ \a 'GetStaticRef<EventArgs>()' -> 'EventArgs()';
+/ \a event arguments \tp @ \param @ event handlers -> rvalue \ref ~ lvalue \ref;
+/ \tr \impl ^ std::move;
+/ \tr \impl @ \mf \op() ^ std::forward @ \clt (ExpandMemberFunctionFirst
+	& ExpandMemberFunctionBinder) @ \h YFunc;
 
-r9:
-/ \i \f op() -> using std::function<FuncType>::operator() @ \clt GHEvent
-	@ \h YEvent;
-
-r10:
+r5:
 /= test 2 ^ \conf release;
 
-r11:
-/ @ \ns ystdex @ \h Utilties:
-	+ union no_copy_t;
-	+ union any_pod_t;
-/ @ \h YEvent:
-	+ \pre \decl @ \clt GHEvent with \de \t \param;
-	+ \decl @ \tf<class _tSender, class _tEventArgs> bool
-		operator==(const GHEvent<_tSender, _tEventArgs>&,
-		const GHEvent<_tSender, _tEventArgs>&) @ friend \decl @ \clt GHEvent;
-	/ @ \clt GHEvent:
-		- \tr \de \t \param @ \def;
-		* \ctor \param ^ \c rvalue \r;
-/ @ \h YFunc:
-	+ \cl PolymorphicFunctorBase;
-	+ \clt GFunctor;
+r6:
+/ \simp @ \impl \u Shells:
+	/ \a array \o \exc char strCount[40] @ \un \ns >> \mf;
+/ const Font::SizeType Font::DefaultSize(14)
+	-> const Font::SizeType Font::DefaultSize(12) @ \impl \u YFont;
 
-r12:
-/ @ \h YEvent:
-	/ @ \clt GEvent<true, _tSender, _tEventArgs>:
-		- 3 \mf \i \op+= & 3 \mf \i \op-=;
-		+ \mft \i \op+=;
-		+ \mft \i \op-=;
-	- \clt GEvent<false, _tSender, _tEventArgs>;
+r7:
+/ @ \cl MLabel @ \u YLabel:
+	/ @ \en TextAlignmentStyle:
+		+ \m Up = 0;
+		+ \m Down = 2;
+	/ \m TextAlignmentStyle Alignment => HorizontalAlignment;
+	+ \m TextAlignmentStyle VerticalAlignment;
+	/ \tr \impl @ \ctor;
++ using MLabel::VerticalAlignment @ \cl Button @ \h Button;
+/ \impl @ \mf ShlSetting::TFormTest::TFormTest @ \impl \u Shells;
 
-r13:
-/ @ \h YEvent:
-	/ \clt GEvent<true, _tSender, _tEventArgs> -> GEvent<_tSender, _tEventArgs>;
-	/ \tr @ typedef EventType @ \cl GSEvent;
-- \a \mac YSL_EVENT_MULTICAST;
-^ delete \mf \decl @ \h (Utilities & YEvent);
-/= \i \dtor @ \cl TextBlock @ \h YTextManager ^ \mac DefEmptyDtor;
+r8:
+* \impl @ void MLabel::PaintText(IWidget&, Color, const Graphics&, const Point&)
+	@ \impl \u YLabel;
 
-r14:
+r9:
 /= test 3 ^ \conf release;
 
-r15-r33:
-/ \h YEvent:
-	/ @ \clt GEvent:
-		- 3 \mf \i \op=;
-		+ \mft \i \op=;
-		/ \mf \i GEvent& operator=(const HandlerType&);
-		+ \mf \i GEvent& operator=(HandlerType&&);
-		/ protected \mf \i GEvent& AddRaw(const HandlerType&);
-		+ \mf \i GEvent& AddRaw(HandlerType&&);
-		/ \mf \i GEvent& operator+=(const HandlerType&);
-		+ \mf \i GEvent& operator+=(HandlerType&&);
-		/ \mf \i GEvent& operator-=(const HandlerType&);
-		+ \mf \i GEvent& operator-=(HandlerType&&);
-		/ \simp \impl @ \mft \op=;
-		/= \impl @ \mft op+=;
-		/= \impl @ \mft op-=
-		/= \simp \impl @ \mf op+=;
-		+ move \ctor GEvent(GEvent&&) = default;
-		+ \rem \mf GEvent& operator=(GEvent&&) = default;
-		/ copy \ctor GEvent(const GEvent&) -> default;
-		/ \mf \i GEvent& operator=(const HandlerType&)
-			-> \i GEvent& operator=(HandlerType&&);
-		* \mf GEvent& operator=(const GEvent&) exception safety;
-		+ \mf \i GEvent& operator=(GEvent&&);
-		+ \mf \i GEvent& AddRaw(HandlerType&&);
-		+ private \ctor \t<typename _tHandler> \i GEvent(_tHandler);
-	/ @ \clt GHEvent:
-		+ copy \ctor GEvent(const GHEvent&) = default;
-		+ move \ctor GEvent(GHEvent&&) = default;
-		+ \mf GHEvent& operator=(const GHEvent&) = default;
-		+ \rem \mf GHEvent& operator=(GHEvent&&) = default;
-		* \impl @ \i \ctor \t<typename _tFunc> GHEvent(_tFunc) ^ std::forward;
-	+ \i @ \a \exp defaulted \mf;
-	/ @ \clt GEvent:
-/= test 4 ^ \conf release;
-/= test 5;
+r10:
+/= test 4;
 
-r34:
-/ @ \h Utilities:
-	/ \ft<typename _tContainer> typename _tContainer::size_type
-		erase_all(_tContainer&, const typename _tContainer::value_type&);
-	* \impl @ \ft erase_all_if;
-/ \impl @ \mf bool MUIContainer::RemoveWidget(IWidget*) ^ erase_all;
+r11:
+* fatel error @ direct UI drawing testing:
+	/ \impl @ \mf bool YGUIShell::ResponseTouchBase(IControl&, TouchEventArgs&,
+		Components::Controls::VisualEvent) @ \impl \u YGUI;
 
-r35:
-/= \ft search_map @ \h Utilities ^ auto;
-/ \impl @ (\mf bool MUIContainer::RemoveWidget(IWidget*)
-	& \mf \op-= @ \clt YEvent) ^ list \mf remove ~ erase_all;
-
-r36:
-/ @ \clt GEvent @ \h YEvent:
-	+ \i @ \a (\op+= & \op-=);
-	+ \mf \i GEvent& operator+=(const HandlerType&);
-	+ \mf \i GEvent& operator-=(const HandlerType&);
-
-r37:
-/ @ \clt GEvent @ \h YEvent:
-	- \i @ private \t \ctor;
-	/ !\i \mf Swap -> \i \mf;
-	/= \impl \i \mf (Clear & GetSize & Swap) ^ \mac;
-
-r38:
-/= test 6 ^ \conf release;
-
-r39:
-* @ \cl ShlSetting::TFormTest @ \u Shells:
-	/ \smf void OnEnter_btnEnterTest(IControl&, InputEventArgs&)
-		-> \smf void OnEnter_btnEnterTest(IControl&, TouchEventArgs&);
-	/ \smf void OnLeave_btnEnterTest(IControl&, InputEventArgs&)
-		-> \smf void OnLeave_btnEnterTest(IControl&, TouchEventArgs&);
-* @ \clt GHEvent @ \h YEvent:
-	/ \i \ctor GHEvent(const FuncType&&)
-		-> \i \ctor GHEvent(FuncType*);
-
-r40-r58:
-/= test 7;
-
-r59:
-/= test 8 ^ \conf release;
-
-r60:
-/ @ \h YEvent:
-	/ @ \clt GHEvent:
-		+ typedef bool(*Comparer)(const GHEvent&, const GHEvent&);
-		+ \m \clt<class _tFunctor> GEquality;
-		* \ctor \param \tp;
-		/ \impl @ \ctor;
-	/ \impl @ \op== for \clt GHEvent;
-
-r61:
-/= test 9;
-
-r62:
-/= test 10 ^ \conf release;
-
-r63:
-/ @ \h YEvent:
-	/ @ \clt GHEvent:
-		/ \mg \def -> \decl @ \mf AreEqual @ \clt GEqulity;
-	/ !\m \f @ \op== for \clt GHEvent -> \f @ \clt GHEvent;
-	- friend \decl @ for \clt GHEvent;
-	- \pre \decl @ \clt GHEvent;
-
-r64-r70:
-/= test 11;
-
-r71:
-* \impl @ \smf AddEqual @ \clt GEquality @ \clt GHEvent @ \h YEvent;
-
-r72-r79:
-/= test 12;
-
-r80:
-* \impl @ \smf AddEqual @ \clt GEquality @ \clt GHEvent @ \h YEvent;
-
-r81:
-/= test 13 ^ \conf release;
-
-r82-r84:
-/= test 14;
-
-r85:
-* \impl @ \mf ShlReader::OnDeactivated @ \impl \u Shells;
-/ @ \h YFunc:
-	/ \rem \st PolymorphicFunctorBase;
-	/ \rem \clt GFunctor;
-	/ \rem \clt InversedCurrying;
-
-r86-r91:
-/= test 15;
-
-r92-r94:
-* \impl @ \mf (ResponseKey & ResponseTouch) @ \cl YGUIShell @ \impl \u YGUI;
-
-r95:
-/= test 16;
-
-r96
-/= test 17 ^ \conf release;
+r12:
+/= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-05-09:
--24.1d;
-//Mercurial rev1-rev77:r3820;
+2011-05-11:
+-23.4d;
+//Mercurial rev1-rev78: r3916;
 
 / ...
 
 
 $NEXT_TODO:
 
-b208-b288:
+b209-b324:
 + menus;
-* fatel error @ direct UI drawing testing;
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
 	libstdc++ for known associative container operation bugs;
+* non-ASCII character path error in FAT16;
 + overlay for \a widgets;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
-* non-ASCII character path error in FAT16;
 
-b289-b648:
+b325-b768:
 / impl 'real' RTC;
 + data configuragion;
 / text alignment;
@@ -463,7 +328,7 @@ b289-b648:
 
 
 $LOW_PRIOR_TODO:
-r649-r1024:
+b769-b1536:
 + (compressing & decompressing) @ gfx copying;
 + Microsoft Windows port;
 + general component operations:
@@ -539,6 +404,14 @@ $instead_of ~; //features replacing;
 $ellipse_refactoring;
 
 $now
+(
+	^ $design "rvalue references as parameter types of event handlers",
+	/ "set default font size smaller",
+	+ "vertical alignment in labeled controls",
+	* "fatel error in direct UI drawing testing"
+),
+
+b207
 (
 	/ $design "event handler implementation ^ std::function \
 		instead of Loki::Function",

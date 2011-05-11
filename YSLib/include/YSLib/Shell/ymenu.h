@@ -11,12 +11,12 @@
 /*!	\file ymenu.h
 \ingroup Shell
 \brief 样式相关的菜单。
-\version 0.1238;
+\version 0.1246;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-05-01 22:07 +0800;
+	2011-05-10 20:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,8 @@ public:
 
 	using MTextList::Font;
 	using MTextList::Margin;
-	using MTextList::Alignment;
+	using MTextList::HorizontalAlignment;
+	using MTextList::VerticalAlignment;
 	using MTextList::Text;
 	Color HilightBackColor; //!< 高亮背景色。
 	Color HilightTextColor; //!< 高亮文本色。
@@ -216,37 +217,37 @@ private:
 	\brief 处理键接触开始事件。
 	*/
 	void
-	OnKeyDown(KeyEventArgs&);
+	OnKeyDown(KeyEventArgs&&);
 
 	/*!
 	\brief 处理屏幕接触开始事件。
 	*/
 	void
-	OnTouchDown(TouchEventArgs&);
+	OnTouchDown(TouchEventArgs&&);
 
 	/*!
 	\brief 处理屏幕接触移动事件。
 	*/
 	void
-	OnTouchMove(TouchEventArgs&);
+	OnTouchMove(TouchEventArgs&&);
 
 	/*!
 	\brief 处理屏幕点击事件。
 	*/
 	void
-	OnClick(TouchEventArgs&);
+	OnClick(TouchEventArgs&&);
 
 	/*!
 	\brief 处理选中事件。
 	*/
 	void
-	OnSelected(IndexEventArgs&);
+	OnSelected(IndexEventArgs&&);
 
 	/*!
 	\brief 处理确认事件。
 	*/
 	void
-	OnConfirmed(IndexEventArgs&);
+	OnConfirmed(IndexEventArgs&&);
 };
 
 inline void

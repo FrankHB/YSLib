@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version 0.3067;
+\version 0.3071;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-05-03 19:32 +0800;
+	2011-05-10 09:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,6 +92,9 @@ public:
 	{
 		GetCopyOnWritePtr();
 	}
+	GDependency(const GDependency&) = default;
+	GDependency(GDependency&&) = default;
+
 
 	DefConverter(const T&, *ptr)
 	DefMutableConverter(T&, *ptr)

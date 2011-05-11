@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面。
-\version 0.3766;
+\version 0.3773;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-05-09 17:58 +0800;
+	2011-05-11 02:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -199,6 +199,8 @@ YGUIShell::ResponseTouchBase(IControl& c, TouchEventArgs& e,
 		ResetTouchHeldState();
 		return false;
 		}*/
+		if(!p_TouchDown)
+			return false;
 		CallEvent<TouchHeld>(*p_TouchDown, e);
 		break;
 	default:
@@ -267,7 +269,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 		if(op == TouchDown)
 		{
 			RequestToTop(*p);
-			p->RequestFocus(GetStaticRef<EventArgs>());
+			p->RequestFocus(EventArgs());
 		}
 		e -= p->GetLocation();
 
@@ -279,7 +281,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 				pCon->ClearFocusingPtr();
 			break;
 		}
-		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, e) != 0;
+		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, std::move(e)) != 0;
 		p = t;
 	}
 
@@ -294,7 +296,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 		p = dynamic_cast<IControl*>(pCon);
 		if(!p)
 			break;
-		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, e) != 0;
+		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, std::move(e)) != 0;
 	}
 	return r;
 }
@@ -345,7 +347,7 @@ RequestFocusCascade(IControl& c)
 
 	do
 	{
-		p->RequestFocus(GetStaticRef<EventArgs>());
+		p->RequestFocus(EventArgs());
 	}while((p = dynamic_cast<IControl*>(p->GetContainerPtr())));
 }
 
@@ -356,7 +358,7 @@ ReleaseFocusCascade(IControl& c)
 
 	do
 	{
-		p->ReleaseFocus(GetStaticRef<EventArgs>());
+		p->ReleaseFocus(EventArgs());
 	}while((p = dynamic_cast<IControl*>(p->GetContainerPtr())));
 }
 

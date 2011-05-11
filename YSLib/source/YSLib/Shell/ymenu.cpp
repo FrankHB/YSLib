@@ -11,12 +11,12 @@
 /*!	\file ymenu.cpp
 \ingroup Shell
 \brief 样式相关的菜单。
-\version 0.1199;
+\version 0.1210;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-05-01 22:09 +0800;
+	2011-05-10 16:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -217,37 +217,31 @@ Menu::ResetView()
 void
 Menu::UpdateView()
 {
-	GetViewChanged()(*this, GetStaticRef<EventArgs>());
+	GetViewChanged()(*this, EventArgs());
 	Refresh();
 }
 
 void
 Menu::CallSelected()
 {
-	IndexEventArgs e(*this, viewer.GetSelectedIndex());
-
-	GetSelected()(*this, e);
+	GetSelected()(*this, IndexEventArgs(*this, viewer.GetSelectedIndex()));
 }
 
 void
 Menu::CheckConfirmed(Menu::ViewerType::IndexType i)
 {
 	if(viewer.IsSelected() && viewer.GetSelectedIndex() == i)
-	{
-		IndexEventArgs e(*this, i);
-
-		GetConfirmed()(*this, e);
-	}
+		GetConfirmed()(*this, IndexEventArgs(*this, i));
 }
 
 void
-Menu::OnKeyDown(KeyEventArgs& k)
+Menu::OnKeyDown(KeyEventArgs&& e)
 {
 	if(viewer.IsSelected())
 	{
 		using namespace Runtime;
 
-		switch(k.GetKey())
+		switch(e.GetKey())
 		{
 		case KeySpace::Enter:
 			CheckConfirmed(viewer.GetSelectedIndex());
@@ -263,7 +257,7 @@ Menu::OnKeyDown(KeyEventArgs& k)
 			{
 				const ViewerType::IndexType nOld(viewer.GetSelectedIndex());
 
-				switch(k.GetKey())
+				switch(e.GetKey())
 				{
 				case KeySpace::Up:
 					--viewer;
@@ -297,35 +291,35 @@ Menu::OnKeyDown(KeyEventArgs& k)
 }
 
 void
-Menu::OnTouchDown(TouchEventArgs& e)
+Menu::OnTouchDown(TouchEventArgs&& e)
 {
 	SetSelected(e);
 	UpdateView();
 }
 
 void
-Menu::OnTouchMove(TouchEventArgs& e)
+Menu::OnTouchMove(TouchEventArgs&& e)
 {
 	SetSelected(e);
 	UpdateView();
 }
 
 void
-Menu::OnClick(TouchEventArgs& e)
+Menu::OnClick(TouchEventArgs&& e)
 {
 	CheckConfirmed(CheckPoint(e));
 }
 
 void
-Menu::OnSelected(IndexEventArgs&)
+Menu::OnSelected(IndexEventArgs&& /*e*/)
 {
 	Refresh();
 }
 
 void
-Menu::OnConfirmed(IndexEventArgs& e)
+Menu::OnConfirmed(IndexEventArgs&& e)
 {
-	OnSelected(e);
+	OnSelected(std::move(e));
 }
 
 YSL_END_NAMESPACE(Controls)

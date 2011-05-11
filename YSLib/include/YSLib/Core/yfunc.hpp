@@ -11,12 +11,12 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数对象封装。
-\version 0.1718;
+\version 0.1722;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2011-05-09 13:11 +0800;
+	2011-05-10 15:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -225,7 +225,8 @@ public:
 		if(_pm)
 			try
 			{
-				return (dynamic_cast<_type&>(o).*_pm)(arg);
+				return (dynamic_cast<_type&>(o).*_pm)(
+					std::forward<_tPara>(arg));
 			}
 			catch(std::bad_cast&)
 			{}
@@ -274,7 +275,7 @@ public:
 	operator()(_tN&, _tPara arg)
 	{
 		if(_po && _pm)
-			return (_po->*_pm)(arg);
+			return (_po->*_pm)(std::forward<_tPara>(arg));
 	}
 };
 

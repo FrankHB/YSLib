@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件。
-\version 0.3492;
+\version 0.3494;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-04-26 16:31 +0800;
+	2011-05-10 15:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -95,14 +95,14 @@ Thumb::Paint()
 }
 
 void
-Thumb::OnEnter(TouchEventArgs&)
+Thumb::OnEnter(TouchEventArgs&&)
 {
 	bPressed = true;
 	Refresh();
 }
 
 void
-Thumb::OnLeave(TouchEventArgs&)
+Thumb::OnLeave(TouchEventArgs&&)
 {
 	bPressed = false;
 	Refresh();

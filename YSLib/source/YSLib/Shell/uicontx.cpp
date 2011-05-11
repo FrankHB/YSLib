@@ -11,12 +11,12 @@
 /*!	\file uicontx.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面附加容器。
-\version 0.1058;
+\version 0.1059;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-02-21 09:01:13 +0800;
 \par 修改时间:
-	2011-04-20 10:39 +0800;
+	2011-05-10 15:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,8 +45,7 @@ AUIBoxControl::ClearFocusingPtr()
 	if(p)
 	{
 		MSimpleFocusResponser::ClearFocusingPtr();
-		EventMap.GetEvent<HVisualEvent>(LostFocus)(*p,
-			GetStaticRef<EventArgs>());
+		EventMap.GetEvent<HVisualEvent>(LostFocus)(*p, EventArgs());
 	}
 }
 

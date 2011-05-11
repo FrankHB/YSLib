@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2281;
+\version 0.2282;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-05-03 16:07 +0800;
+	2011-05-10 15:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -79,7 +79,7 @@ Desktop::RemoveTopDesktopObject()
 {
 	if(!sDOs.empty())
 	{
-		sDOs.back()->ReleaseFocus(GetStaticRef<EventArgs>());
+		sDOs.back()->ReleaseFocus(EventArgs());
 		sDOs.pop_back();
 		bRefresh = true;
 	}

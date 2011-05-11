@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面窗口。
-\version 0.3711;
+\version 0.3712;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-04-28 16:07 +0800;
+	2011-05-10 15:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -224,8 +224,7 @@ AFrame::ClearFocusingPtr()
 	if(p)
 	{
 		MUIContainer::ClearFocusingPtr();
-		EventMap.GetEvent<HVisualEvent>(LostFocus)(*p,
-			GetStaticRef<EventArgs>());
+		EventMap.GetEvent<HVisualEvent>(LostFocus)(*p, EventArgs());
 	}
 }
 

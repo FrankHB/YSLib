@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup Shell
 \brief 样式无关的控件。
-\version 0.4133;
+\version 0.4152;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-04-26 14:57 +0800;
+	2011-05-10 16:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,16 +36,16 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Controls)
 
 void
-OnKeyHeld(IControl& c, KeyEventArgs& e)
+OnKeyHeld(IControl& c, KeyEventArgs&& e)
 {
 	YGUIShell& shl(FetchGUIShell());
 
 	if(shl.RepeatHeld(shl.KeyHeldState, 240, 120))
-		FetchEvent<KeyDown>(c)(c, e);
+		FetchEvent<KeyDown>(c)(c, std::move(e));
 }
 
 void
-OnTouchHeld(IControl& c, TouchEventArgs& e)
+OnTouchHeld(IControl& c, TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
@@ -54,13 +54,13 @@ OnTouchHeld(IControl& c, TouchEventArgs& e)
 		if(shl.DraggingOffset == Vec::FullScreen)
 			shl.DraggingOffset = c.GetLocation() - shl.ControlLocation;
 		else
-			FetchEvent<TouchMove>(c)(c, e);
+			FetchEvent<TouchMove>(c)(c, std::move(e));
 		shl.LastControlLocation = shl.ControlLocation;
 	}
 }
 
 void
-OnTouchMove(IControl& c, TouchEventArgs& e)
+OnTouchMove(IControl& c, TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
@@ -72,7 +72,7 @@ OnTouchMove(IControl& c, TouchEventArgs& e)
 }
 
 void
-OnTouchMove_Dragging(IControl& c, TouchEventArgs& e)
+OnTouchMove_Dragging(IControl& c, TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
@@ -99,7 +99,7 @@ Control::Control(const Rect& r)
 }
 Control::~Control()
 {
-	ReleaseFocus(GetStaticRef<EventArgs>());
+	ReleaseFocus(EventArgs());
 }
 
 bool
@@ -115,51 +115,51 @@ Control::SetLocation(const Point& pt)
 {
 	Widget::SetLocation(pt);
 	GetEventMap().DoEvent<EventTypeMapping<Move>::HandlerType>(Move,
-		*this, GetStaticRef<EventArgs>());
+		*this, EventArgs());
 }
 void
 Control::SetSize(const Size& s)
 {
 	Widget::SetSize(s);
 	GetEventMap().DoEvent<EventTypeMapping<Resize>::HandlerType>(Resize,
-		*this, GetStaticRef<EventArgs>());
+		*this, EventArgs());
 }
 
 void
-Control::RequestFocus(EventArgs& e)
+Control::RequestFocus(EventArgs&& e)
 {
 	IUIBox* p(GetContainerPtr());
 
 	if(p && p->ResponseFocusRequest(*this))
-		EventMap.GetEvent<HVisualEvent>(GotFocus)(*this, e);
+		EventMap.GetEvent<HVisualEvent>(GotFocus)(*this, std::move(e));
 }
 
 void
-Control::ReleaseFocus(EventArgs& e)
+Control::ReleaseFocus(EventArgs&& e)
 {
 	IUIBox* p(GetContainerPtr());
 
 	if(p && p->ResponseFocusRelease(*this))
-		EventMap.GetEvent<HVisualEvent>(LostFocus)(*this, e);
+		EventMap.GetEvent<HVisualEvent>(LostFocus)(*this, std::move(e));
 }
 
 void
-Control::OnGotFocus(EventArgs&)
+Control::OnGotFocus(EventArgs&&)
 {
 	Refresh();
 }
 
 void
-Control::OnLostFocus(EventArgs&)
+Control::OnLostFocus(EventArgs&&)
 {
 	Refresh();
 }
 
 void
-Control::OnTouchDown(TouchEventArgs& e)
+Control::OnTouchDown(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
-		RequestFocus(e);
+		RequestFocus(std::move(e));
 }
 
 YSL_END_NAMESPACE(Controls)

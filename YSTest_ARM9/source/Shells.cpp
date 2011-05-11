@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 抽象。
-\version 0.4062;
+\version 0.4096;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-05-09 13:06 +0800;
+	2011-05-10 20:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,6 @@ MainShlProc(const Message& msg)
 		catch(...)
 		{
 			throw LoggedEvent("Run shell failed at end of ShlMain.");
-			return -1;
 		}
 		return 0;
 
@@ -116,8 +115,6 @@ namespace
 	BitmapPtr gbuf;
 	int nCountInput;
 	char strCount[40];
-	char strtf[0x400];
-	char strttxt[0x400];
 
 	GHandle<Image>&
 	GetGlobalImageRef(std::size_t i)
@@ -418,7 +415,7 @@ ShlExplorer::OnDeactivated(const Message& msg)
 }
 
 void
-ShlExplorer::OnKeyUp_frm(KeyEventArgs& e)
+ShlExplorer::OnKeyUp_frm(KeyEventArgs&& e)
 {
 	TouchEventArgs et(TouchEventArgs::FullScreen);
 
@@ -437,7 +434,7 @@ ShlExplorer::OnKeyUp_frm(KeyEventArgs& e)
 }
 
 void
-ShlExplorer::OnKeyDown_frm(KeyEventArgs& e)
+ShlExplorer::OnKeyDown_frm(KeyEventArgs&& e)
 {
 	TouchEventArgs et(TouchEventArgs::FullScreen);
 
@@ -456,7 +453,7 @@ ShlExplorer::OnKeyDown_frm(KeyEventArgs& e)
 }
 
 void
-ShlExplorer::OnKeyPress_frm(KeyEventArgs& e)
+ShlExplorer::OnKeyPress_frm(KeyEventArgs&& e)
 {
 	TouchEventArgs et(TouchEventArgs::FullScreen);
 
@@ -475,7 +472,7 @@ ShlExplorer::OnKeyPress_frm(KeyEventArgs& e)
 }
 
 void
-ShlExplorer::OnClick_btnTest(TouchEventArgs&)
+ShlExplorer::OnClick_btnTest(TouchEventArgs&& /*e*/)
 {
 	switchShl1();
 /*	if(fbMain.IsSelected())
@@ -501,7 +498,7 @@ ShlExplorer::OnClick_btnTest(TouchEventArgs&)
 }
 
 void
-ShlExplorer::OnClick_btnOK(TouchEventArgs&)
+ShlExplorer::OnClick_btnOK(TouchEventArgs&& /*e*/)
 {
 	if(fbMain.IsSelected())
 	{
@@ -519,14 +516,14 @@ ShlExplorer::OnClick_btnOK(TouchEventArgs&)
 }
 
 void
-ShlExplorer::OnViewChanged_fbMain(EventArgs&)
+ShlExplorer::OnViewChanged_fbMain(EventArgs&& /*e*/)
 {
 	lblPath.Text = fbMain.GetPath();
 	lblPath.Refresh();
 }
 
 void
-ShlExplorer::OnKeyPress_fbMain(IControl& /*sender*/, KeyEventArgs& e)
+ShlExplorer::OnKeyPress_fbMain(IControl& /*sender*/, KeyEventArgs&& e)
 {
 	Key x(e);
 
@@ -535,7 +532,7 @@ ShlExplorer::OnKeyPress_fbMain(IControl& /*sender*/, KeyEventArgs& e)
 }
 
 void
-ShlExplorer::OnConfirmed_fbMain(IControl& /*sender*/, IndexEventArgs& /*e*/)
+ShlExplorer::OnConfirmed_fbMain(IControl& /*sender*/, IndexEventArgs&& /*e*/)
 {
 //	if(e.Index == 2)
 //		switchShl1();
@@ -563,10 +560,12 @@ ShlSetting::TFormTest::TFormTest()
 	*this += &btnMenuTest;
 	*this += &btnShowWindow;
 	btnEnterTest.Text = _ustr("边界测试");
-	btnEnterTest.Alignment = MLabel::Right;
+	btnEnterTest.HorizontalAlignment = MLabel::Right;
+	btnEnterTest.VerticalAlignment = MLabel::Up;
 	btnMenuTest.Text = _ustr("菜单测试");
 	btnShowWindow.Text = _ustr("显示/隐藏窗口");
-	btnShowWindow.Alignment = MLabel::Left;
+	btnShowWindow.HorizontalAlignment = MLabel::Left;
+	btnShowWindow.VerticalAlignment = MLabel::Down;
 	BackColor = ARGB16(1, 31, 31, 15);
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 //	FetchEvent<TouchMove>(btnEnterTest) += &Control::OnTouchMove;
@@ -580,34 +579,32 @@ ShlSetting::TFormTest::TFormTest()
 
 void
 ShlSetting::TFormTest::OnEnter_btnEnterTest(IControl& sender,
-	TouchEventArgs& e)
+	TouchEventArgs&& e)
 {
 	DefDynInitRef(Button, btn, sender)
-	TouchEventArgs& pt(e);
 	char str[20];
 
-	std::sprintf(str, "Enter:(%d,%d)", pt.Point::X, pt.Point::Y);
+	std::sprintf(str, "Enter:(%d,%d)", e.Point::X, e.Point::Y);
 	btn.Text = str;
 	btn.Refresh();
 }
 void
 ShlSetting::TFormTest::OnLeave_btnEnterTest(IControl& sender,
-	TouchEventArgs& e)
+	TouchEventArgs&& e)
 {
 	DefDynInitRef(Button, btn, sender)
-	TouchEventArgs& pt(e);
 	char str[20];
 
-	std::sprintf(str, "Leave:(%d,%d)", pt.Point::X, pt.Point::Y);
+	std::sprintf(str, "Leave:(%d,%d)", e.Point::X, e.Point::Y);
 	btn.Text = str;
 	btn.Refresh();
 }
 
 void
-ShlSetting::TFormTest::OnClick_btnShowWindow(TouchEventArgs& /*e*/)
+ShlSetting::TFormTest::OnClick_btnShowWindow(TouchEventArgs&& /*e*/)
 {
-	IWindow* pWnd(raw(dynamic_pointer_cast<ShlSetting>(FetchShellHandle())
-		->pWndExtra));
+	IWindow* pWnd(raw(dynamic_pointer_cast<ShlSetting>(
+		FetchShellHandle())->pWndExtra));
 
 	if(pWnd)
 	{
@@ -631,7 +628,7 @@ ShlSetting::TFormExtra::TFormExtra()
 	*this += &btnReturn;
 	*this += &btnExit;
 	btnDragTest.Text = _ustr("测试拖放控件");
-	btnDragTest.Alignment = MLabel::Left;
+	btnDragTest.HorizontalAlignment = MLabel::Left;
 	btnTestEx.Text = _ustr("直接屏幕绘制测试");
 	btnReturn.Text = _ustr("返回");
 	btnReturn.SetEnabled(false);
@@ -657,7 +654,7 @@ ShlSetting::TFormExtra::TFormExtra()
 
 
 void
-ShlSetting::TFormExtra::OnMove_btnDragTest(EventArgs& /*e*/)
+ShlSetting::TFormExtra::OnMove_btnDragTest(EventArgs&& /*e*/)
 {
 	static char sloc[20];
 
@@ -667,14 +664,14 @@ ShlSetting::TFormExtra::OnMove_btnDragTest(EventArgs& /*e*/)
 }
 
 void
-ShlSetting::TFormExtra::OnTouchUp_btnDragTest(TouchEventArgs& e)
+ShlSetting::TFormExtra::OnTouchUp_btnDragTest(TouchEventArgs&& e)
 {
 	InputCounter(e);
 	dynamic_pointer_cast<ShlSetting>(FetchShellHandle())->ShowString(strCount);
 	btnDragTest.Refresh();
 }
 void
-ShlSetting::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs& e)
+ShlSetting::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs&& e)
 {
 	InputCounterAnother(e);
 	dynamic_pointer_cast<ShlSetting>(FetchShellHandle())->ShowString(strCount);
@@ -682,7 +679,7 @@ ShlSetting::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs& e)
 }
 
 void
-ShlSetting::TFormExtra::OnClick_btnDragTest(TouchEventArgs& /*e*/)
+ShlSetting::TFormExtra::OnClick_btnDragTest(TouchEventArgs&& /*e*/)
 {
 	static YFontCache& fc(GetApp().GetFontCache());
 	static const int ffilen(fc.GetFilesN());
@@ -690,6 +687,7 @@ ShlSetting::TFormExtra::OnClick_btnDragTest(TouchEventArgs& /*e*/)
 	static const int ffacen(fc.GetFacesN());
 	static int itype;
 	static YFontCache::FTypes::const_iterator it(fc.GetTypes().begin());
+	static char strtf[0x400];
 
 	//	btnDragTest.Transparent ^= 1;
 	if(nCountInput & 1)
@@ -722,11 +720,13 @@ ShlSetting::TFormExtra::OnClick_btnDragTest(TouchEventArgs& /*e*/)
 }
 
 void
-ShlSetting::TFormExtra::OnKeyPress_btnDragTest(IControl& sender, KeyEventArgs& e)
+ShlSetting::TFormExtra::OnKeyPress_btnDragTest(IControl& sender,
+	KeyEventArgs&& e)
 {
 	//测试程序。
 
 	u32 k(static_cast<KeyEventArgs::Key>(e));
+	char strt[100];
 
 	DefDynInitRef(Button, lbl, sender);
 //	Button& lbl(dynamic_cast<TFormUp&>(
@@ -734,17 +734,15 @@ ShlSetting::TFormExtra::OnKeyPress_btnDragTest(IControl& sender, KeyEventArgs& e
 	lbl.SetTransparent(!lbl.IsTransparent());
 //	++lbl.ForeColor;
 //	--lbl.BackColor;
-	std::sprintf(strttxt, "%d;\n", k);
-	lbl.Text = strttxt;
+	std::sprintf(strt, "%d;\n", k);
+	lbl.Text = strt;
 	lbl.Refresh();
 /*
 	Button& lbl(static_cast<Button&>(sender));
 
 	if(nCountInput & 1)
-	{
-		sprintf(strtf, "测试键盘...");
-		lbl.Text = strtf;
-	}*/
+		lbl.Text = _ustr("测试键盘...");
+*/
 }
 
 /*void
@@ -755,19 +753,19 @@ ShlSetting::TFormExtra::OnClick_btnTestEx(TouchEventArgs&)
 
 
 void
-ShlSetting::TFormExtra::OnClick_btnReturn(TouchEventArgs&)
+ShlSetting::TFormExtra::OnClick_btnReturn(TouchEventArgs&& /*e*/)
 {
 	CallStored<ShlExplorer>();
 }
 
 void
-ShlSetting::TFormExtra::OnClick_btnExit(TouchEventArgs&)
+ShlSetting::TFormExtra::OnClick_btnExit(TouchEventArgs&& /*e*/)
 {
 	Shells::PostQuitMessage(0);
 }
 
 void
-ShlSetting::TFormExtra::OnClick_btnTestEx(TouchEventArgs& e)
+ShlSetting::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 {
 	using namespace Drawing;
 
@@ -1023,7 +1021,7 @@ ShlSetting::ShowString(const char* s)
 }
 
 void
-ShlSetting::OnTouchDown_FormExtra(IControl& sender, TouchEventArgs& /*e*/)
+ShlSetting::OnTouchDown_FormExtra(IControl& sender, TouchEventArgs&& /*e*/)
 {
 	try
 	{
@@ -1113,13 +1111,13 @@ ShlReader::UpdateToScreen()
 }
 
 void
-ShlReader::OnClick(TouchEventArgs& /*e*/)
+ShlReader::OnClick(TouchEventArgs&& /*e*/)
 {
 	CallStored<ShlExplorer>();
 }
 
 void
-ShlReader::OnKeyDown(KeyEventArgs& e)
+ShlReader::OnKeyDown(KeyEventArgs&& e)
 {
 	u32 k(static_cast<KeyEventArgs::Key>(e));
 

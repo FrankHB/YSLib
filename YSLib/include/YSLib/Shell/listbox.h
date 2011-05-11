@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3148;
+\version 0.3151;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-04-26 16:05 +0800;
+	2011-05-10 16:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -94,13 +94,13 @@ private:
 	\brief 处理垂直滚动条滚动事件。
 	*/
 	void
-	OnScroll_VerticalScrollBar(ScrollEventArgs&);
+	OnScroll_VerticalScrollBar(ScrollEventArgs&&);
 
 	/*!
 	\brief 处理文本列表框视图变更事件。
 	*/
 	void
-	OnViewChanged_TextListBox(EventArgs&);
+	OnViewChanged_TextListBox(EventArgs&&);
 };
 
 
@@ -122,7 +122,7 @@ private:
 	\brief 处理确认事件。
 	*/
 	void
-	OnConfirmed(IndexEventArgs&);
+	OnConfirmed(IndexEventArgs&&);
 };
 
 YSL_END_NAMESPACE(Controls)

@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3612;
+\version 0.3615;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-05-01 22:12 +0800;
+	2011-05-10 15:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -75,14 +75,14 @@ ListBox::Paint()
 }
 
 void
-ListBox::OnScroll_VerticalScrollBar(ScrollEventArgs& e)
+ListBox::OnScroll_VerticalScrollBar(ScrollEventArgs&& e)
 {
 	TextListBox.LocateViewPosition(e.Value);
 	Refresh();
 }
 
 void
-ListBox::OnViewChanged_TextListBox(EventArgs&)
+ListBox::OnViewChanged_TextListBox(EventArgs&& /*e*/)
 {
 	if(GetWidth() > defMinScrollBarWidth)
 	{
@@ -115,7 +115,7 @@ FileBox::GetPath() const
 }
 
 void
-FileBox::OnConfirmed(IndexEventArgs& e)
+FileBox::OnConfirmed(IndexEventArgs&& e)
 {
 	if(Contains(e) && static_cast<bool>(*this /= GetList()[e.Index]))
 	{

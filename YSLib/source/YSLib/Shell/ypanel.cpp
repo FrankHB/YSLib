@@ -11,12 +11,12 @@
 /*!	\file ypanel.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面面板。
-\version 0.1117;
+\version 0.1118;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2011-04-26 15:26 +0800;
+	2011-05-10 15:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -87,8 +87,7 @@ Panel::ClearFocusingPtr()
 	if(p)
 	{
 		MUIContainer::ClearFocusingPtr();
-		EventMap.GetEvent<HVisualEvent>(LostFocus)(*p,
-			GetStaticRef<EventArgs>());
+		EventMap.GetEvent<HVisualEvent>(LostFocus)(*p, EventArgs());
 	}
 }
 

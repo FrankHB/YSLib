@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version 0.4328;
+\version 0.4380;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-05-08 12:09 +0800;
+	2011-05-10 16:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,10 +38,8 @@ YSL_BEGIN_NAMESPACE(Runtime)
 template<class _tSender = YObject, class _tEventArgs = EventArgs>
 struct GSEventTypeSpace
 {
-	typedef void FuncType(_tSender&, _tEventArgs&);
+	typedef void FuncType(_tSender&, _tEventArgs&&);
 	typedef FuncType* FuncPtrType;
-	typedef typename std::pointer_to_binary_function<_tSender&,
-		_tEventArgs&, void> FunctorType;
 };
 
 
@@ -106,43 +104,43 @@ public:
 	\brief 构造：使用 _tSender 的成员函数指针。
 	*/
 	inline
-	GHEvent(void(_tSender::*pm)(_tEventArgs&))
+	GHEvent(void(_tSender::*pm)(_tEventArgs&&))
 		: std::function<FuncType>(ExpandMemberFirst<
-			_tSender, void, _tEventArgs&>(pm)),
+			_tSender, void, _tEventArgs&&>(pm)),
 		comp_eq(GEquality<ExpandMemberFirst<
-			_tSender, void, _tEventArgs&>>::AreEqual)
+			_tSender, void, _tEventArgs&&>>::AreEqual)
 	{}
 	/*!
 	\brief 构造：使用成员函数指针。
 	*/
 	template<class _type>
 	inline
-	GHEvent(void(_type::*pm)(_tEventArgs&))
+	GHEvent(void(_type::*pm)(_tEventArgs&&))
 		: std::function<FuncType>(ExpandMemberFirst<
-			_type, void, _tEventArgs&, _tSender>(pm)),
+			_type, void, _tEventArgs&&, _tSender>(pm)),
 		comp_eq(GEquality<ExpandMemberFirst<
-			_type, void, _tEventArgs&, _tSender>>::AreEqual)
+			_type, void, _tEventArgs&&, _tSender>>::AreEqual)
 	{}
 	/*!
 	\brief 构造：使用 _tSender 类型对象引用和成员函数指针。
 	*/
 	inline
-	GHEvent(_tSender& obj, void(_tSender::*pm)(_tEventArgs&))
+	GHEvent(_tSender& obj, void(_tSender::*pm)(_tEventArgs&&))
 		: std::function<FuncType>(ExpandMemberFirstBinder<
-			_tSender, void, _tEventArgs&>(obj, pm)),
+			_tSender, void, _tEventArgs&&>(obj, pm)),
 		comp_eq(GEquality<ExpandMemberFirstBinder<
-			_tSender, void, _tEventArgs&>>::AreEqual)
+			_tSender, void, _tEventArgs&&>>::AreEqual)
 	{}
 	/*!
 	\brief 构造：使用对象引用和成员函数指针。
 	*/
 	template<class _type>
 	inline
-	GHEvent(_type& obj, void(_type::*pm)(_tEventArgs&))
+	GHEvent(_type& obj, void(_type::*pm)(_tEventArgs&&))
 		: std::function<FuncType>(ExpandMemberFirstBinder<
-			_type, void, _tEventArgs&, _tSender>(obj, pm)),
+			_type, void, _tEventArgs&&, _tSender>(obj, pm)),
 		comp_eq(GEquality<ExpandMemberFirstBinder<
-			_type, void, _tEventArgs&, _tSender>>::AreEqual)
+			_type, void, _tEventArgs&&, _tSender>>::AreEqual)
 	{}
 
 	inline GHEvent&
@@ -180,7 +178,6 @@ public:
 	typedef _tEventArgs EventArgsType;
 	typedef GSEventTypeSpace<_tSender, _tEventArgs> SEventType;
 	typedef typename SEventType::FuncType FuncType;
-	typedef typename SEventType::FunctorType FunctorType;
 	typedef GHEvent<_tSender, _tEventArgs> HandlerType;
 	typedef list<HandlerType> ListType;
 	typedef typename ListType::size_type SizeType;
@@ -348,9 +345,9 @@ public:
 	*/
 	template<class _type>
 	inline GEvent&
-	Add(_type& obj, void(_type::*pm)(_tEventArgs&))
+	Add(_type& obj, void(_type::*pm)(_tEventArgs&&))
 	{
-		return this->operator+=(HandlerType(obj, pm));
+		return this->operator+=(HandlerType(obj, std::move(pm)));
 	}
 
 	/*!
@@ -358,21 +355,21 @@ public:
 	*/
 	template<class _type>
 	inline GEvent&
-	Remove(_type& obj, void(_type::*pm)(_tEventArgs&))
+	Remove(_type& obj, void(_type::*pm)(_tEventArgs&&))
 	{
-		return operator-=(HandlerType(obj, pm));
+		return operator-=(HandlerType(obj, std::move(pm)));
 	}
 
 	/*!
 	\brief 调用函数。
 	*/
 	SizeType
-	operator()(_tSender& sender, _tEventArgs& e) const
+	operator()(_tSender& sender, _tEventArgs&& e) const
 	{
 		SizeType n(0);
 
 		for(auto i(this->List.cbegin()); i != this->List.cend(); ++i, ++n)
-			(*i)(sender, e);
+			(*i)(sender, std::move(e));
 		return n;
 	}
 
@@ -413,7 +410,6 @@ public:
 	typedef typename EventType::EventArgsType EventArgsType;
 	typedef typename EventType::SEventType SEventType;
 	typedef typename EventType::FuncType FuncType;
-	typedef typename EventType::FunctorType FunctorType;
 	typedef typename EventType::HandlerType HandlerType;
 	typedef typename EventType::SizeType SizeType;
 
@@ -422,80 +418,23 @@ public:
 	{}
 
 	/*!
-	\brief 添加事件响应：使用事件处理器。
+	\brief 添加事件响应。
 	*/
-	EventType&
-	operator+=(const HandlerType& h)
-	{
-		return this->GetNewRef().operator+=(h);
-	}
-	/*!
-	\brief 添加事件响应：使用函数引用。
-	*/
+	template<typename _type>
 	inline EventType&
-	operator+=(FuncType& f)
+	operator+=(_type _arg)
 	{
-		return this->GetNewRef().operator+=(f);
-	}
-	/*!
-	\brief 添加事件响应：使用函数对象。
-	*/
-	inline EventType&
-	operator+=(FunctorType f)
-	{
-		return this->GetNewRef().operator+=(f);
-	}
-	/*!
-	\brief 添加事件响应：使用成员函数指针。
-	*/
-	template<class _type>
-	inline EventType&
-	operator+=(void(_type::*pm)(EventArgsType&))
-	{
-		return this->GetNewRef().operator+=(pm);
+		return this->GetNewRef().operator+=(_arg);
 	}
 
 	/*!
-	\brief 移除事件响应：目标为指定事件处理器。
+	\brief 移除事件响应。
 	*/
-	EventType&
-	operator-=(const HandlerType& h)
-	{
-		return this->GetNewRef().operator-=(h);
-	}
-	/*!
-	\brief 移除事件响应：目标为指定函数引用。
-	*/
+	template<typename _type>
 	inline EventType&
-	operator-=(FuncType& f)
+	operator-=(_type _arg)
 	{
-		return this->GetNewRef().operator-=(f);
-	}
-	/*!
-	\brief 
-	*/
-	inline EventType&
-	operator-=(FunctorType f)
-	{
-		return this->GetNewRef().operator-=(f);
-	}
-	/*!
-	\brief 移除事件响应：目标为指定成员函数指针。
-	*/
-	template<class _type>
-	inline EventType&
-	operator-=(void(_type::*pm)(EventArgsType&))
-	{
-		return this->GetNewRef().operator-=(pm);
-	}
-
-	/*!
-	\brief 调用函数。
-	*/
-	inline SizeType
-	operator()(SenderType& sender, EventArgsType& e) const
-	{
-		return this->GetRef().operator()(sender, e);
+		return this->GetNewRef().operator-=(_arg);
 	}
 
 	/*!
@@ -503,7 +442,7 @@ public:
 	*/
 	template<class _type>
 	inline EventType&
-	Add(_type& obj, void(_type::*pm)(EventArgsType&))
+	Add(_type& obj, void(_type::*pm)(EventArgsType&&))
 	{
 		return this->GetNewRef().Add(obj, pm);
 	}
@@ -513,28 +452,30 @@ public:
 	*/
 	template<class _type>
 	inline EventType&
-	Remove(_type& obj, void(_type::*pm)(EventArgsType&))
+	Remove(_type& obj, void(_type::*pm)(EventArgsType&&))
 	{
 		return this->GetNewRef().Remove(obj, pm);
 	}
 
 	/*!
-	\brief 取列表中的响应数。
+	\brief 调用函数。
 	*/
 	inline SizeType
-	GetSize() const
+	operator()(SenderType& sender, EventArgsType&& e) const
 	{
-		return this->GetRef().GetSize();
+		return this->GetRef().operator()(sender, std::move(e));
 	}
+
+	/*!
+	\brief 取列表中的响应数。
+	*/
+	inline DefGetterMember(SizeType, Size, this->GetRef())
 
 	/*!
 	\brief 清除：移除所有事件响应。
 	*/
-	inline void
-	Clear()
-	{
-		return this->GetNewRef().Clear();
-	}
+	inline PDefH0(void, Clear)
+		ImplBodyMember0(this->GetNewRef(), Clear)
 };
 
 
@@ -607,7 +548,7 @@ struct GSEvent
 //! \brief 事件处理器接口模板。
 template<class _tSender = YObject, class _tEventArgs = EventArgs>
 DeclInterface(GIHEvent)
-	DeclIEntry(size_t operator()(_tSender&, _tEventArgs&) const)
+	DeclIEntry(size_t operator()(_tSender&, _tEventArgs&&) const)
 EndDecl
 
 
@@ -623,16 +564,16 @@ public:
 
 	/*!
 	\brief 委托调用。
-	\warning 需要确保 EventArgs& 引用的对象能够转换至 EventArgsType 对象。
+	\warning 需要确保 EventArgs&& 引用的对象能够转换至 EventArgsType&& 引用。
 	*/
 	size_t
-	operator()(YObject& sender, EventArgs& e) const
+	operator()(YObject& sender, EventArgs&& e) const
 	{
 		SenderType* p(dynamic_cast<SenderType*>(&sender));
 
 		
 		return p ? EventType::operator()(*p,
-			reinterpret_cast<EventArgsType&>(e)) : 0;
+			static_cast<EventArgsType&&>(std::move(e))) : 0;
 	}
 };
 
@@ -703,7 +644,7 @@ public:
 	template<class _tEventHandler>
 	size_t
 	DoEvent(const ID& id, typename _tEventHandler::SenderType& sender,
-		typename _tEventHandler::EventArgsType& e) const
+		typename _tEventHandler::EventArgsType&& e) const
 	{
 		InternalPairType pr(GetSerachResult(id));
 
@@ -711,7 +652,7 @@ public:
 			EventType;
 
 		return pr.second ? 0
-			: dynamic_cast<EventType&>(*pr.first->second)(sender, e);
+			: dynamic_cast<EventType&>(*pr.first->second)(sender, std::move(e));
 	}
 
 	/*!

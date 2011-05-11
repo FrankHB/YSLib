@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 样式无关的控件。
-\version 0.4964;
+\version 0.4977;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-04-27 07:44 +0800;
+	2011-05-10 16:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -271,10 +271,10 @@ DeclBasedInterface1(IControl, virtual IWidget)
 	DeclIEntry(void SetEnabled(bool)) //!< 设置有效性。
 
 	//! \brief 向部件容器请求获得焦点。
-	DeclIEntry(void RequestFocus(EventArgs&))
+	DeclIEntry(void RequestFocus(EventArgs&&))
 
 	//! \brief 释放焦点。
-	DeclIEntry(void ReleaseFocus(EventArgs&))
+	DeclIEntry(void ReleaseFocus(EventArgs&&))
 EndDecl
 
 
@@ -315,7 +315,8 @@ CallEvent(VisualEventMapType& m, typename EventTypeMapping<id>
 	::HandlerType::SenderType& sender, typename EventTypeMapping<id>
 	::HandlerType::EventArgsType& e)
 {
-	m.DoEvent<typename EventTypeMapping<id>::HandlerType>(id, sender, e);
+	m.DoEvent<typename EventTypeMapping<id>::HandlerType>(id, sender,
+		std::move(e));
 }
 /*!
 \ingroup HelperFunction
@@ -350,7 +351,7 @@ CallEvent(IControl& c, typename EventTypeMapping<id>
 \brief 处理键接触保持事件。
 */
 void
-OnKeyHeld(IControl&, KeyEventArgs&);
+OnKeyHeld(IControl&, KeyEventArgs&&);
 
 /*!
 \brief 处理屏幕接触保持事件。
@@ -359,21 +360,21 @@ OnKeyHeld(IControl&, KeyEventArgs&);
 实现记录坐标偏移（用于拖放）或触发 TouchMove 事件。
 */
 void
-OnTouchHeld(IControl&, TouchEventArgs&);
+OnTouchHeld(IControl&, TouchEventArgs&&);
 
 /*!
 \brief 处理屏幕接触移动事件。
 \note 重复触发 TouchDown 事件。
 */
 void
-OnTouchMove(IControl&, TouchEventArgs&);
+OnTouchMove(IControl&, TouchEventArgs&&);
 
 /*!
 \brief 处理屏幕接触移动事件。
 \note 使用拖放。
 */
 void
-OnTouchMove_Dragging(IControl&, TouchEventArgs&);
+OnTouchMove_Dragging(IControl&, TouchEventArgs&&);
 
 
 //! \brief 控件。
@@ -421,33 +422,33 @@ public:
 	\note 若成功则触发 GotFocus 事件。
 	*/
 	ImplI1(IControl) void
-	RequestFocus(EventArgs&);
+	RequestFocus(EventArgs&&);
 
 	/*!
 	\brief 释放焦点。
 	\note 触发 LostFocus 事件。
 	*/
 	ImplI1(IControl) void
-	ReleaseFocus(EventArgs&);
+	ReleaseFocus(EventArgs&&);
 
 private:
 	/*!
 	\brief 处理获得焦点事件。
 	*/
 	void
-	OnGotFocus(EventArgs&);
+	OnGotFocus(EventArgs&&);
 
 	/*!
 	\brief 处理失去焦点事件。
 	*/
 	void
-	OnLostFocus(EventArgs&);
+	OnLostFocus(EventArgs&&);
 
 	/*!
 	\brief 处理屏幕接触开始事件。
 	*/
 	void
-	OnTouchDown(TouchEventArgs&);
+	OnTouchDown(TouchEventArgs&&);
 };
 
 
