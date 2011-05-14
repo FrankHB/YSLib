@@ -11,12 +11,12 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version 0.3457;
+\version 0.3506;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-21 23:09:06 +0800;
 \par 修改时间:
-	2011-05-03 17:28 +0800;
+	2011-05-14 21:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,7 @@
 #include "yadaptor.h"
 #include <memory>
 #include <utility>
+#include <ystdex/memory.hpp>
 
 YSL_BEGIN
 
@@ -42,6 +43,10 @@ using std::shared_ptr;
 using std::static_pointer_cast;
 using std::unique_ptr;
 using std::weak_ptr;
+using ystdex::is_valid;
+using ystdex::raw;
+using ystdex::reset;
+using ystdex::share_raw;
 
 
 //! \brief 句柄：强指针。
@@ -84,18 +89,6 @@ public:
 	operator!() const
 	{
 		return this->get() == nullptr;
-	}
-
-	bool
-	operator==(const T* p) const
-	{
-		return this->get() == p;
-	}
-
-	bool
-	operator!=(const T* p) const
-	{
-		return !(*this == p);
 	}
 
 	operator bool() const
@@ -174,24 +167,6 @@ public:
 //@{
 template<typename _type>
 inline _type*
-raw(_type* const& p)
-{
-	return p;
-}
-template<typename _type>
-inline _type*
-raw(const unique_ptr<_type>& p)
-{
-	return p.get();
-}
-template<typename _type>
-inline _type*
-raw(const shared_ptr<_type>& p)
-{
-	return p.get();
-}
-template<typename _type>
-inline _type*
 raw(const GHandle<_type>& h)
 {
 	return h.get();
@@ -202,18 +177,17 @@ raw(const GHWeak<_type>& h)
 {
 	return h.lock().get();
 }
-
 //@}
 
 
-/*!	\defGroup reset_pointer Reset Pointers
+/*!	\defGroup reset Reset Pointers
 \brief 安全删除指定引用的句柄指向的对象。
 \post 指定引用的句柄值等于 nullptr 。
 */
 //@{
 template<typename _type>
 inline bool
-reset_pointer(_type*& p) ynothrow
+reset(_type*& p) ynothrow
 {
 	bool b(p);
 
@@ -223,7 +197,7 @@ reset_pointer(_type*& p) ynothrow
 }
 template<typename _type>
 inline bool
-reset_pointer(unique_ptr<_type>& p) ynothrow
+reset(GHandle<_type>& p) ynothrow
 {
 	if(p.get())
 	{
@@ -234,29 +208,7 @@ reset_pointer(unique_ptr<_type>& p) ynothrow
 }
 template<typename _type>
 inline bool
-reset_pointer(shared_ptr<_type>& p) ynothrow
-{
-	if(p.get())
-	{
-		p.reset();
-		return true;
-	}
-	return false;
-}
-template<typename _type>
-inline bool
-reset_pointer(GHandle<_type>& p) ynothrow
-{
-	if(p.get())
-	{
-		p.reset();
-		return true;
-	}
-	return false;
-}
-template<typename _type>
-inline bool
-reset_pointer(GHWeak<_type>& h) ynothrow
+reset(GHWeak<_type>& h) ynothrow
 {
 	bool b(!h.expired());
 
@@ -264,8 +216,33 @@ reset_pointer(GHWeak<_type>& h) ynothrow
 		h = GHWeak<_type>();
 	return b;
 }
-
 //@}
+
+template<typename _type>
+bool
+operator==(const shared_ptr<_type>& sp, _type* p)
+{
+	return sp.get() == p;
+}
+template<typename _type>
+bool
+operator==(shared_ptr<_type>&& sp, _type* p)
+{
+	return sp.get() == p;
+}
+
+template<typename _type>
+bool
+operator!=(const shared_ptr<_type>& sp, _type* p)
+{
+	return sp.get() != p;
+}
+template<typename _type>
+bool
+operator!=(shared_ptr<_type>&& sp, _type* p)
+{
+	return sp.get() != p;
+}
 
 YSL_END
 

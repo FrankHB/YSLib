@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2100;
+\version 0.2101;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-05-01 22:12 +0800;
+	2011-05-14 20:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -339,7 +339,7 @@ Path::HasExtension() const
 
 inline
 Path::iterator::iterator()
-	: ptr(nullptr), n(StringType::npos)
+	: ptr(), n(StringType::npos)
 {}
 inline
 Path::iterator::iterator(const value_type& p)

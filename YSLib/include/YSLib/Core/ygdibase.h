@@ -12,12 +12,12 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version 0.1376;
+\version 0.1404;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-05-03 07:47 +0800;
+	2011-05-13 00:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -309,7 +309,7 @@ Point::operator-=(const Vec& v)
 //屏幕点和二维向量二元运算。
 
 /*!
-\brief  构造屏幕二维向量：使用起点 a 和终点 b 。
+\brief 构造屏幕二维向量：使用起点 a 和终点 b 。
 */
 inline Vec
 operator-(const Point& a, const Point& b)
@@ -318,7 +318,7 @@ operator-(const Point& a, const Point& b)
 }
 
 /*!
-\brief  构造屏幕点：使用点 p 和偏移向量 d 。
+\brief 构造屏幕点：使用点 p 和偏移向量 d 。
 */
 inline Point
 operator+(const Point& p, const Vec& d)
@@ -327,12 +327,12 @@ operator+(const Point& p, const Vec& d)
 }
 
 /*!
-\brief  构造屏幕点：使用点 p 和偏移向量的加法逆元 d 。
+\brief 构造屏幕点：使用点 p 和偏移向量的加法逆元 v 。
 */
 inline Point
-operator-(const Point& p, const Vec& d)
+operator-(const Point& p, const Vec& v)
 {
-	return Point(p.X - d.X, p.Y - d.Y);
+	return Point(p.X - v.X, v.Y - v.Y);
 }
 
 /*!
@@ -491,7 +491,10 @@ GetAreaFrom(const Size& s)
 }
 
 
-//! \brief 屏幕坐标系的正则（边平行于水平直线的）矩形：使用左上点屏幕坐标、宽和高表示。
+/*!
+\brief 屏幕坐标系的正则矩形。
+\note 边平行于水平直线；使用左上点屏幕坐标、宽和高表示。
+*/
 class Rect : public Point, public Size
 {
 public:
@@ -609,6 +612,25 @@ inline bool
 operator!=(const Rect& a, const Rect& b)
 {
 	return !(a == b);
+}
+
+
+/*!
+\brief 构造屏幕正则矩形：使用正则矩形 r 和偏移向量 v 。
+*/
+inline Rect
+operator+(const Rect& r, const Vec& v)
+{
+	return Rect(r.GetPoint() + v, r.GetSize());
+}
+
+/*!
+\brief 构造屏幕正则矩形：使用正则矩形 r 和偏移向量的加法逆元 v 。
+*/
+inline Rect
+operator-(const Rect& r, const Vec& v)
+{
+	return Rect(r.GetPoint() - v, r.GetSize());
 }
 
 

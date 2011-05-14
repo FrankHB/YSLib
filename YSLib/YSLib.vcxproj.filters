@@ -22,20 +22,12 @@
       <UniqueIdentifier>{88a70fc5-239e-4e2b-802c-dad41bd268c6}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="头文件\YSLib\Shell">
-      <UniqueIdentifier>{3f3c55e4-eda4-4ba3-ab26-6be64fb4989a}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="头文件\YSLib\Core">
       <UniqueIdentifier>{bd4a3a95-5fe7-4471-9093-a76228bc5a0c}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\YSLib\Helper">
       <UniqueIdentifier>{23faab97-d24f-4e94-9fbb-b17430d9d973}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="头文件\YSLib\Service">
-      <UniqueIdentifier>{d887d565-3b62-45a1-8ea5-d5ef0a4ce41d}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="源文件\YSLib">
@@ -50,17 +42,23 @@
       <UniqueIdentifier>{77af520d-12d5-4756-aa39-7e64082a89f2}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="源文件\YSLib\Shell">
-      <UniqueIdentifier>{054afee5-882b-444f-96b3-d5b5af8708a9}</UniqueIdentifier>
+    <Filter Include="源文件\YSLib\Core">
+      <UniqueIdentifier>{ff96e32d-5490-430c-8ca1-170ec27e1627}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="源文件\YSLib\UI">
+      <UniqueIdentifier>{f7dc25e0-202c-4b9e-81d7-9c65aec7ed34}</UniqueIdentifier>
     </Filter>
     <Filter Include="源文件\YSLib\Service">
       <UniqueIdentifier>{b96801fe-820c-41af-aace-65b79a972730}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="源文件\YSLib\Core">
-      <UniqueIdentifier>{ff96e32d-5490-430c-8ca1-170ec27e1627}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="头文件\YSLib\UI">
+      <UniqueIdentifier>{96f99953-d257-4ce9-8830-18e0a9ef269e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\YSLib\Service">
+      <UniqueIdentifier>{d887d565-3b62-45a1-8ea5-d5ef0a4ce41d}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -74,9 +72,6 @@
       <Filter>头文件\YSLib\Adaptor</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Adaptor\yadaptor.h">
-      <Filter>头文件\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Adaptor\yaslivsp.hpp">
       <Filter>头文件\YSLib\Adaptor</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Adaptor\yfont.h">
@@ -148,77 +143,11 @@
     <ClInclude Include="include\YSLib\Service\ytmgr.h">
       <Filter>头文件\YSLib\Service</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\ycomp.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\ycontrol.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\ydesktop.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\yfocus.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\ygdi.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\ygui.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\ytext.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\ywidget.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\ywindow.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
     <ClInclude Include="include\ysbuild.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\yuicont.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\ystyle.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\scroll.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\listbox.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\button.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Core\ystatic.hpp">
       <Filter>头文件\YSLib\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\checkbox.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\ypanel.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\uicontx.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\form.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\yconsole.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\ymenu.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\ylabel.h">
-      <Filter>头文件\YSLib\Shell</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Shell\yviewer.hpp">
-      <Filter>头文件\YSLib\Shell</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Adaptor\ybase.h">
       <Filter>头文件\YSLib\Adaptor</Filter>
@@ -234,6 +163,72 @@
     </ClInclude>
     <ClInclude Include="include\YSLib\Helper\yshelper.h">
       <Filter>头文件\YSLib\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Core\ygdi.h">
+      <Filter>头文件\YSLib\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\button.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\checkbox.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\form.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\listbox.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\scroll.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\uicontx.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ycomp.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\yconsole.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ycontrol.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ydesktop.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\yfocus.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ygui.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ylabel.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ymenu.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ypanel.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ystyle.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ytext.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\yuicont.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\yviewer.hpp">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ywidget.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ywindow.h">
+      <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -288,69 +283,6 @@
     <ClCompile Include="source\YSLib\Service\ytmgr.cpp">
       <Filter>源文件\YSLib\Service</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\ycomp.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\ycontrol.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\ydesktop.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\yfocus.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\ygdi.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\ygui.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\ytext.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\ywidget.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\ywindow.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\yuicont.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\scroll.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\ystyle.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\listbox.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\button.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\checkbox.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\ypanel.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\uicontx.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\form.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\yconsole.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\ymenu.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Shell\ylabel.cpp">
-      <Filter>源文件\YSLib\Shell</Filter>
-    </ClCompile>
     <ClCompile Include="source\YSLib\Service\yfile.cpp">
       <Filter>源文件\YSLib\Service</Filter>
     </ClCompile>
@@ -359,6 +291,69 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\ygdibase.cpp">
       <Filter>源文件\YSLib\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Core\ygdi.cpp">
+      <Filter>源文件\YSLib\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\button.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\checkbox.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\form.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\listbox.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\scroll.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\uicontx.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ycomp.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\yconsole.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ycontrol.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ydesktop.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\yfocus.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ygui.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ylabel.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ymenu.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ypanel.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ystyle.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ytext.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\yuicont.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ywidget.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ywindow.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

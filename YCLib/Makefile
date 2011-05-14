@@ -1,8 +1,8 @@
 # DS Makefile for YCLib -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-05-03 13:19 +0800;
-# Version = 0.3845;
+# UTime = 2011-05-12 10:19 +0800;
+# Version = 0.3850;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -29,8 +29,8 @@ export TOPDIR		?=	$(CURDIR)
 export TARGET		:= $(shell basename $(CURDIR))
 export BUILD		?= release
 export RELEASE		= $(BUILD)
-export SOURCES		:= source data
-export INCLUDES	:= include ../YSTest/include data
+export SOURCES		:= source source/CHRLib data
+export INCLUDES	:= include ../YSTest/include include/CHRLib data
 export DATA		:= data
 #export GRAPHICS	:= gfx
 #export MUSIC		:= music

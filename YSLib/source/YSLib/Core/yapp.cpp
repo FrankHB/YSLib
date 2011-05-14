@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2301;
+\version 0.2304;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-05-10 15:16 +0800;
+	2011-05-14 20:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,7 +74,7 @@ YApplication::YApplication()
 	: YObject(),
 	Log(), pMessageQueue(new YMessageQueue()),
 	pMessageQueueBackup(new YMessageQueue()),
-	hShell(nullptr), pFontCache(nullptr)
+	hShell(), pFontCache()
 {
 	ApplicationExit += Destroy_Static;
 }
@@ -125,7 +125,7 @@ YApplication::GetBackupMessageQueue() ythrow(LoggedEvent)
 			" @ YApplication::GetBackupMessageQueue;");
 	return *pMessageQueueBackup;
 }
-YFontCache&
+FontCache&
 YApplication::GetFontCache() const ythrow(LoggedEvent)
 {
 	if(!pFontCache)
@@ -167,7 +167,7 @@ YApplication::ResetFontCache(CPATH path) ythrow(LoggedEvent)
 	try
 	{
 		ydelete(pFontCache);
-		pFontCache = ynew YFontCache(path);
+		pFontCache = ynew FontCache(path);
 	}
 	catch(...)
 	{

@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version 0.4380;
+\version 0.4405;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-05-10 16:29 +0800;
+	2011-05-12 18:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,7 +46,7 @@ struct GSEventTypeSpace
 //! \brief 标准事件处理器类模板。
 template<class _tSender, class _tEventArgs>
 class GHEvent : public std::function<typename GSEventTypeSpace<
-		_tSender, _tEventArgs>::FuncType>
+	_tSender, _tEventArgs>::FuncType>
 {
 public:
 	typedef _tSender SenderType;
@@ -63,11 +63,12 @@ private:
 		static bool
 		AreEqual(const GHEvent& lhs, const GHEvent& rhs)
 		{
-			auto p(lhs.template target<typename decay<_tFunctor>::type>());
+			auto p(lhs.template target<typename std::decay<_tFunctor>::type>());
 
 			if(p)
 			{
-				auto q(rhs.template target<typename decay<_tFunctor>::type>());
+				auto q(rhs.template target<typename std::decay<
+					_tFunctor>::type>());
 
 				if(q)
 					return *p == *q;
@@ -212,7 +213,7 @@ private:
 	GEvent(_tHandler h)
 		: List()
 	{
-		AddRaw(std::forward<_tHandler>(h));
+		Add(std::forward<_tHandler>(h));
 	}
 
 public:
@@ -265,22 +266,27 @@ public:
 
 	/*!
 	\brief 添加事件响应：使用事件处理器。
+	\note 不检查是否已经在列表中。
 	*/
 	inline GEvent&
 	operator+=(const HandlerType& h)
 	{
-		return (*this -= h).AddRaw(h);
+		this->List.push_back(h);
+		return *this;
 	}
 	/*!
 	\brief 添加事件响应：使用事件处理器。
+	\note 不检查是否已经在列表中。
 	*/
 	inline GEvent&
 	operator+=(HandlerType&& h)
 	{
-		return (*this -= std::move(h)).AddRaw(std::move(h));
+		this->List.push_back(std::move(h));
+		return *this;
 	}
 	/*!
 	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
+	\note 不检查是否已经在列表中。
 	*/
 	template<typename _type>
 	inline GEvent&
@@ -317,37 +323,50 @@ public:
 		return *this -= HandlerType(std::forward<_type>(_arg));
 	}
 
-protected:
-	/*!
-	\brief 添加事件响应。
-	\note 不检查是否已经在列表中。
-	*/
-	inline GEvent&
-	AddRaw(const HandlerType& h)
-	{
-		List.push_back(h);
-		return *this;
-	}
-	/*!
-	\brief 添加事件响应。
-	\note 不检查是否已经在列表中。
-	*/
-	inline GEvent&
-	AddRaw(HandlerType&& h)
-	{
-		List.push_back(std::move(h));
-		return *this;
-	}
-
-public:
 	/*!
 	\brief 添加事件响应：使用对象引用和成员函数指针。
+	\note 不检查是否已经在列表中。
 	*/
 	template<class _type>
 	inline GEvent&
 	Add(_type& obj, void(_type::*pm)(_tEventArgs&&))
 	{
-		return this->operator+=(HandlerType(obj, std::move(pm)));
+		return *this += HandlerType(obj, std::move(pm));
+	}
+
+	/*!
+	\brief 添加事件响应：使用事件处理器。
+	*/
+	inline GEvent&
+	AddUnique(const HandlerType& h)
+	{
+		return *this -= h += h;
+	}
+	/*!
+	\brief 添加事件响应：使用事件处理器。
+	*/
+	inline GEvent&
+	AddUnique(HandlerType&& h)
+	{
+		return *this -= std::move(h) += (std::move(h));
+	}
+	/*!
+	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
+	*/
+	template<typename _type>
+	inline GEvent&
+	AddUnique(_type _arg)
+	{
+		return this->AddUnique(HandlerType(std::forward<_type>(_arg)));
+	}
+	/*!
+	\brief 添加事件响应：使用对象引用和成员函数指针。
+	*/
+	template<class _type>
+	inline GEvent&
+	AddUnique(_type& obj, void(_type::*pm)(_tEventArgs&&))
+	{
+		return this->AddUnique(HandlerType(obj, std::move(pm)));
 	}
 
 	/*!
@@ -357,7 +376,26 @@ public:
 	inline GEvent&
 	Remove(_type& obj, void(_type::*pm)(_tEventArgs&&))
 	{
-		return operator-=(HandlerType(obj, std::move(pm)));
+		return *this -= HandlerType(obj, std::move(pm));
+	}
+
+	/*!
+	\brief 判断是否包含指定事件响应。
+	*/
+	inline bool
+	Contains(const HandlerType& h) const
+	{
+		return std::find(this->List.begin(), this->List.end(), h)
+			!= this->List.end();
+	}
+	/*!
+	\brief 判断是否包含单一构造参数指定的事件响应。
+	*/
+	template<typename _type>
+	inline bool
+	Contains(_type _arg) const
+	{
+		return this->Contains(HandlerType(std::forward<_type>(_arg)));
 	}
 
 	/*!

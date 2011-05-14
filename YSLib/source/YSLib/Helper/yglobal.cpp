@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3069;
+\version 0.3080;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-05-10 15:28 +0800;
+	2011-05-14 21:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "../Core/ydevice.h"
 #include "../Adaptor/yfont.h"
 #include "../Adaptor/ysinit.h"
-#include "../Shell/ydesktop.h"
+#include "../UI/ydesktop.h"
 //#include <clocale>
 
 YSL_BEGIN
@@ -66,7 +66,7 @@ const SDst Global::MainScreenWidth(SCREEN_WIDTH);
 const SDst Global::MainScreenHeight(SCREEN_HEIGHT);
 
 Global::Global()
-	: hScreenUp(nullptr), hScreenDown(nullptr), hDesktopUp(nullptr), hDesktopDown(nullptr)
+	: hScreenUp(), hScreenDown(), hDesktopUp(), hDesktopDown()
 {}
 Global::~Global()
 {}
@@ -74,7 +74,7 @@ Global::~Global()
 YScreen&
 Global::GetScreenUp() const ynothrow
 {
-	YAssert(hScreenUp, "Fatal error @ Global::GetScreenUp:"
+	YAssert(is_valid(hScreenUp), "Fatal error @ Global::GetScreenUp:"
 		" the up screen handle is null.");
 
 	return *hScreenUp;
@@ -82,7 +82,7 @@ Global::GetScreenUp() const ynothrow
 YScreen&
 Global::GetScreenDown() const ynothrow
 {
-	YAssert(hScreenDown, "Fatal error @ Global::GetScreenDown:"
+	YAssert(is_valid(hScreenDown), "Fatal error @ Global::GetScreenDown:"
 		" the down screen handle is null.");
 
 	return *hScreenDown;
@@ -90,7 +90,7 @@ Global::GetScreenDown() const ynothrow
 Desktop&
 Global::GetDesktopUp() const ynothrow
 {
-	YAssert(hDesktopUp, "Fatal error @ Global::GetDesktopUp:"
+	YAssert(is_valid(hDesktopUp), "Fatal error @ Global::GetDesktopUp:"
 		" the up desktop handle is null.");
 
 	return *hDesktopUp;
@@ -98,7 +98,7 @@ Global::GetDesktopUp() const ynothrow
 Desktop&
 Global::GetDesktopDown() const ynothrow
 {
-	YAssert(hDesktopDown, "Fatal error @ Global::GetDesktopDown:"
+	YAssert(is_valid(hDesktopDown), "Fatal error @ Global::GetDesktopDown:"
 		" the down desktop handle is null.");
 
 	return *hDesktopDown;
@@ -110,8 +110,8 @@ Global::InitializeDevices() ynothrow
 	//初始化显示设备。
 	try
 	{
-		hScreenUp = new YScreen(MainScreenWidth, MainScreenHeight);
-		hScreenDown = new YScreen(MainScreenWidth, MainScreenHeight);
+		hScreenUp = share_raw(new YScreen(MainScreenWidth, MainScreenHeight));
+		hScreenDown = share_raw(new YScreen(MainScreenWidth, MainScreenHeight));
 	}
 	catch(...)
 	{
@@ -119,8 +119,8 @@ Global::InitializeDevices() ynothrow
 	}
 	try
 	{
-		hDesktopUp = new Desktop(*hScreenUp);
-		hDesktopDown = new Desktop(*hScreenDown);
+		hDesktopUp = share_raw(new Desktop(*hScreenUp));
+		hDesktopDown = share_raw(new Desktop(*hScreenDown));
 	}
 	catch(...)
 	{
@@ -131,10 +131,10 @@ Global::InitializeDevices() ynothrow
 void
 Global::ReleaseDevices() ynothrow
 {
-	hDesktopUp.reset();
-	hScreenUp.reset();
-	hDesktopDown.reset();
-	hScreenDown.reset();
+	reset(hDesktopUp);
+	reset(hScreenUp);
+	reset(hDesktopDown);
+	reset(hScreenDown);
 }
 
 
@@ -227,7 +227,7 @@ namespace
 			|| Key != pContext->Key || pt != pContext->CursorLocation)
 			&& pt != Point::FullScreen))
 		{
-			pContext = new InputContext(Key, pt);
+			pContext = share_raw(new InputContext(Key, pt));
 			SendMessage(Message(Shells::GetCurrentShellHandle(), SM_INPUT, 0x40,
 				pContext));
 		}

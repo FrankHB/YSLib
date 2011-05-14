@@ -1,4 +1,4 @@
-//v0.3132; *Build 208 r12;
+//v0.3132; *Build 209 r27;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -216,94 +216,280 @@ $using:
 
 $DONE:
 r1:
-^ \conf release;
-/ @ \clt GDependency @ \h YObject:
-	+ \exp \de copy \ctor GDependency(const GDependency&) = default;
-	+ \exp \de move \ctor GDependency(GDependency&&) = default;
+/= test 0 ^ \conf release;
 
 r2:
-^ \conf debug;
-/= test 1;
+/ \mg \lib CHRLib -> \dir CHRLib @ \lib YCLib;
+/ \tr makefile @ \lib YCLib;
+/ \tr @ \h YAdaptor;
+/ \tr makefile @ ARM9;
 
 r3:
-/ @ \h YEvent:
-	- typedef typename std::pointer_to_binary_function<_tSender&, _tEventArgs&,
-		void> FunctorType @ \stt GSEventTypeSpace;
-	- typedef typename SEventType::FunctorType FunctorType @ \clt GEvent;
-	/ @ \clt GDependencyEvent:
-		- typedef typename EventType::FunctorType FunctorType;
-		/ \a 4 \op+= -> 1 \mft \i \op+=;
-		/ \a 4 \op-= -> 1 \mft \i \op-=;
-		/ \def \mf \i GetSize ^ \mac DefGetterMember;
-		/ \def \mf \i Clear ^ \mac (PDefH0 & ImplBodyMember0);
+/= test 1 ^ \conf release;
 
 r4:
-/ @ \h YEvent:
-	/ typedef void FuncType(_tSender&, _tEventArgs&) @ \stt GSEventTypeSpace
-		-> typedef void FuncType(_tSender&, _tEventArgs&&);
-	/ \mf SizeType operator()(_tSender&, _tEventArgs&) const @ \clt GEvent
-		-> SizeType operator()(_tSender&, _tEventArgs&&) const;
-	/ \mf \i SizeType operator()(SenderType&, EventArgsType&) const
-		@ \clt GDependencyEvent -> SizeType operator()(SenderType&,
-		EventArgsType&&) const;
-/ \a 'GetStaticRef<EventArgs>()' -> 'EventArgs()';
-/ \a event arguments \tp @ \param @ event handlers -> rvalue \ref ~ lvalue \ref;
-/ \tr \impl ^ std::move;
-/ \tr \impl @ \mf \op() ^ std::forward @ \clt (ExpandMemberFunctionFirst
-	& ExpandMemberFunctionBinder) @ \h YFunc;
+/ \ac @ \inh public std::function<typename GSEventTypeSpace<_tSender,
+	_tEventArgs>::FuncType> @ \clt GHEvent -> protected ~ public @ \h YEvent;
 
 r5:
-/= test 2 ^ \conf release;
+/ @ \clt GEvent \h YEvent:
+	/= \impl @ \mf (Add & Remove);
+	/ \a \op+= -> AddUnique;
+	/ \mf Add => AddUnique;
+	/ protected \a unary \mf AddRaw -> public \op+=;
+	/ protected \a unary \mf AddRaw => public Add;
+	+ \mf \i bool Contains(const HandlerType&) const;
+	+ \mft<typename _type> \i bool Contains(_type) const;
 
 r6:
-/ \simp @ \impl \u Shells:
-	/ \a array \o \exc char strCount[40] @ \un \ns >> \mf;
-/ const Font::SizeType Font::DefaultSize(14)
-	-> const Font::SizeType Font::DefaultSize(12) @ \impl \u YFont;
+/ \inc <platform.h> -> <ydef.h> @ \h CHRDefinition;
+/ namespace ystdex
+	{
+		typedef ::uint16_t uchar_t;
+		typedef ::uint32_t fchar_t;
+	} >> \h <ydef.h> ~ <platform.h>;
+/ @ \h <ydef.h>:
+	+ \inc \h <cstddef>;
+	+ \inc \h <cstdint>;
+	+ \inc \h <sys/types.h>
+	/ @ \ns ystdex:
+		+ {
+			typedef std::uint8_t	u8;
+			typedef std::uint16_t	u16;
+			typedef std::uint32_t	u32;
+			typedef std::uint64_t	u64;
+			typedef std::int8_t		s8;
+			typedef std::int16_t	s16;
+			typedef std::int32_t	s32;
+			typedef std::int64_t	s64;
+			typedef volatile u8		vu8;
+			typedef volatile u16	vu16;
+			typedef volatile u32	vu32;
+			typedef volatile u64	vu64;
+			typedef volatile s8		vs8;
+			typedef volatile s16	vs16;
+			typedef volatile s32	vs32;
+			typedef volatile s64	vs64;
+
+			typedef u8 byte;
+
+		//	typedef decltype(nullptr) nullptr_t;
+			// TODO: using std::nullptr_t;
+			using std::ptrdiff_t;
+			using std::size_t;
+			using ::ssize_t;
+		}
+	/ typedef ::uint16_t uchar_t -> typedef u16 uchar_t;
+	/ typedef ::uint32_t fchar_t -> typedef u32 fchar_t;
+/ @ \h CHRDefinition:
+	/ \tr typedef s32 uint_t -> typedef ystdex::s32 uint_t;
+- \inc \h <stdint.h> @ \h <platform.h>;
+/ \tr using @ \impl \u @ \lib CHRLib;
+/ @ \h YAdaptor:
+	*= using:
+		- namespace ystdex
+		{
+			using CHRLib::uchar_t;
+			using CHRLib::uint_t;
+		};
+	/ @ \ns YSLib:
+		+ {
+			using ystdex::u8;
+			using ystdex::u16;
+			using ystdex::u32;
+			using ystdex::u64;
+			using ystdex::s8;
+			using ystdex::s16;
+			using ystdex::s32;
+			using ystdex::s64;
+
+			using ystdex::errno_t;
+			using ystdex::nullptr_t;
+			using ystdex::ptrdiff_t;
+			using ystdex::size_t;
+			using ystdex::ssize_t;
+
+			using ystdex::noncopyable;
+		};
+		- using namespace ystdex;
+	/ \tr \n @ \h (YCoreUtilities & YFont & YEvent & YGDI & YWindow
+		& YUIContainer & YViewer);
+	+ using namespace ystdex @ \g \ns @ \impl \u (YFileSystem & Shells
+		& Scroll & YGDI & YStyle & YText);
 
 r7:
-/ @ \cl MLabel @ \u YLabel:
-	/ @ \en TextAlignmentStyle:
-		+ \m Up = 0;
-		+ \m Down = 2;
-	/ \m TextAlignmentStyle Alignment => HorizontalAlignment;
-	+ \m TextAlignmentStyle VerticalAlignment;
-	/ \tr \impl @ \ctor;
-+ using MLabel::VerticalAlignment @ \cl Button @ \h Button;
-/ \impl @ \mf ShlSetting::TFormTest::TFormTest @ \impl \u Shells;
+/= test 2 ^ \conf release;
 
 r8:
-* \impl @ void MLabel::PaintText(IWidget&, Color, const Graphics&, const Point&)
-	@ \impl \u YLabel;
++ \mf void OnClick_btnMenuTest(TouchEventArgs&&) @ \cl ShlSetting::TFormTest
+	@ \u Shells;
+/ @ \h YGDIBase:
+	+ \i \f Rect operator+(const Rect&, const Vec&);
+	+ \i \f Rect operator-(const Rect&, const Vec&);
 
 r9:
-/= test 3 ^ \conf release;
+/ \tr \impl @ \ctor @ \cl ShlSetting::TFormTest @ \impl \u Shells;
 
 r10:
-/= test 4;
+* \impl @ \ctor @ \cl ShlSetting::TFormTest @ \impl \u Shells;
 
-r11:
-* fatel error @ direct UI drawing testing:
-	/ \impl @ \mf bool YGUIShell::ResponseTouchBase(IControl&, TouchEventArgs&,
-		Components::Controls::VisualEvent) @ \impl \u YGUI;
+r11-r14:
+* \impl @ \ctor @ \cl ShlSetting::TFormTest @ \impl \u Shells;
 
-r12:
+r15:
+/ \impl @ \ctor @ \cl ShlSetting::TFormTest @ \impl \u Shells;
+
+r16:
+* \a 2 \mac PDefHOperator @ \h YFont => PDefHOperator1;
++ \cl MenuHost @ \impl \u Shells;
+/ @ \h YAdaptor:
+	/ \inc <ft2build.h> & {
+		#include FT_FREETYPE_H
+		#include FT_CACHE_H
+		#include FT_BITMAP_H
+		#include FT_GLYPH_H
+	} >> \h YFont;
+
+r17:
+/ @ \lib YSLib:
+	/ \simp @ \cl MUIContainer:
+		/ \mg protected \mf bool RemoveWidget(IWidget*) -> public \mf
+			bool operator-=(IWidget*);
+		/ \tr \impl @ \mf bool MUIContainer::operator-=(IControl*);
+	/ \dir Shell => UI;
+	/ \u YGDI >> \dir Core ~ \dir Shell;
+	/ \tr \inc \h \ren @ (\h (YResource & Build & DSReader & YText
+		& YWidget & Scroll & YGDI & \impl \u (YDevice & YMessage & YGlobal));
+	/ \tr @ Makefile;
+
+r18:
+/= test 3 ^ \conf release;
+
+r19:
+/ \u YFont:
+	/ \a FTypes => FaceSet;
+	/ \a FTypesIndex => FaceMap;
+	/ \a FFiles => FileSet;
+	/ \a FFaces => FamilySet;
+	/ \a FFacesIndex => FamilyMap;
+	/ @ \cl FontFamily:
+		/ private \m FaceSet sTypes -> protected \m FaceSet sFaces;
+		/ private \m FaceMap mTypesIndex -> protected \m FaceMap mFaces;
+	/ \cl Typeface:
+		/ private \m FT_Long faceIndex => face_index;
+		/ private \m FT_Int cmapIndex => cmap_index;
+	/ private mutable \m FT_Long nFace @ \cl FontFile => face_num;
+	/ @ \cl YFontCache:
+		/ private \m {
+			FileSet sFiles;
+			FaceSet sTypes;
+			FamilySet sFaces;
+			FamilyMap mFacesIndex;
+
+			Typeface* pDefaultFace;
+		}
+		-> protected \m {
+			FileSet sFiles;
+			FaceSet sFaces;
+			FamilySet sFamilies;
+			FamilyMap mFamilies;
+
+			Typeface* pDefaultFace;
+		}
+		/ \inh YObject -> noncopyable;
+		/ \tr \impl @ \ctor;
+/ \cl \n YFontCache => FontCache;
+/ @ \u YUIContainer:
+	/ @ \cl MUIContainer:
+		/ \m typedef set<GMFocusResponser<IControl>*> FOCs => FocusContainerSet;
+		/ \m FocusContainerSet sFOCSet => sFocusContainers;
+		/ \m WGTs WidgetsList => sWidgets;
+		/ \m typedef list<ItemType> WGTs => WidgetList;
+/ @ \cl YTimer @ \u YTimer:
+	/ private typedef map<u32, YTimer*> TMRs
+		-> public typedef map<u32, YTimer*> TimerMap;
+	/ \a private \m -> protected;
+	/ \m static TimerMap Timers => mTimers;
+/ typedef set<ItemType> MNUs => MenuSet @ \ cl MenuHost @ \impl \u Shells;
+/ @ \clt GMFocusResponser @ \h YFocus:
+	/ \m typedef set<_type*> FOs => FocusObjectSet;
+	/ \m FocusObjectSet sFOs => sFocusObjects;
+/ \tr @ \impl @ \cl;
+
+r20:
+/ @ \cl MenuHost @ \impl \u Shells:
+	+ typedef size_t ID;
+	/ typedef set<ItemType> MenuSet -> typedef map<ID, ItemType> MenuMap;
+	/ \tr MenuSet sMenus -> MenuMap sMenus;
+	+ typedef MenuMap::value_type ValueType;
+	/ \param \tp @ \op+= -> const ValueType& ~ Menu*;
+	/ \param \tp @ \op-= -> ID ~ Menu*;
+	/ \tr \impl @ \dtor;
+*= @ \impl \u YFont:
+	+ using std::for_each;
+
+r21:
+-= "yaslivsp.hpp" @ \dir Adaptor;
+/= test 4 ^ \conf release;
+
+r22-r26:
+/ @ \dir ystdex @ lib YCLib:
+	+ @ \h Memory["memory.hpp"];
+	/ \h Utilities["util.hpp"] => ["utility.hpp"];
+	/ \tr \mac @ \h Utilities;
+/ @ \h YCommon:
+	- \inc "ystdex/cast.hpp";
+	- \inc "ystdex/iterator.hpp";
+	- \inc "ystdex/util.hpp" @ \impl \u;
+	* nullptr:
+		/ \a ystdex::nullptr -> nullptr;
+/ \tr \inc "ystdex/util.hpp" -> <ystdex/utility.hpp> @ \impl \u YStandardExtend;
+/ @ \h YReference:
+	+ \inc \h <ystdex/memory.hpp>
+	+ using ystdex::is_valid;
+	+ using ystdex::raw;
+	+ using ystdex::reset;
+	+ using ystdex::share_raw;
+	+ \ft<typename _type> \i bool operator==(const shared_ptr<_type>&, _type*);
+	+ \ft<typename _type> \i bool operator!=(const shared_ptr<_type>&, _type*);
+	+ \ft<typename _type> \i bool operator==(shared_ptr<_type>&&, _type*);
+	+ \ft<typename _type> \i bool operator!=(shared_ptr<_type>&&, _type*);
+	/ \a \ft (raw & reset) \exc \param \tp (GHandle | GHWeak)
+		>> \ns ystdex @ \h Memory @ \dir ystdex @ \lib YCLib;
+	- \tr 3 \ft raw;
+	- \tr 2 \ft reset;
+	- \mf (\op== & \op!=) @ \clt GHandle;
+/ \a \m initializers '(nullptr)' @ \ctor \impl -> '()';
++ \inc \h (<ystdex/iterator.hpp> & <ystdex/cast.hpp>) @ \h YAdaptor;
+/ @ \impl \u Shells:
+	/ \simp \impl @ \mf OnDeactivated @ \cl (ShlSetting & ShlLoad & ShlExplorer)
+	^ reset;
+	/ \impl @ \f ReleaseShells ^ reset ~ \mf (reset @ \clt shared_ptr);
+	/ \a GetGlobalImageRef => GetGlobalImage;
+/ \impl @ \h YStatic;
 /= test 5 ^ \conf release;
+/ \impl @ \mf (YShell::DefShlProc & Global::ReleaseDevices):
+	^ reset_pointer ~ \mf (reset @ \clt shared_ptr);
+/ \a reset_pointer => reset;
+/ \impl @ \mf bool YShell::IsActive() const;
+
+r27:
+/= test 6 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-05-11:
--23.4d;
-//Mercurial rev1-rev78: r3916;
+2011-05-14:
+-21.8d;
+//Mercurial rev1-rev79: r3928;
 
 / ...
 
 
 $NEXT_TODO:
 
-b209-b324:
+b210-b324:
 + menus;
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
 	libstdc++ for known associative container operation bugs;
@@ -405,7 +591,22 @@ $ellipse_refactoring;
 
 $now
 (
-	^ $design "rvalue references as parameter types of event handlers",
+	/ "library CHRLib moved and merged to library YCLib",
+	/ $design "protected function inheritance in class template %GHEvent",
+	/ "using directive of namespace %ystdex in YSLib",
+	+ "lost %Rect operations",
+	* "strict ISO C++2003 code compatibility" $=
+	(
+		^ "fixed parameter macros in \"yfont.h\""
+	),
+	/ "renamed directory \"Shell\" to \"UI\" in YSLib",
+	/ "several memory utilities for std::shared_ptr and std::unique_ptr \
+		moved to library YCLib::YStandardExtend"
+),
+
+b208
+(
+	^ "rvalue references as parameter types of event handlers",
 	/ "set default font size smaller",
 	+ "vertical alignment in labeled controls",
 	* "fatel error in direct UI drawing testing"

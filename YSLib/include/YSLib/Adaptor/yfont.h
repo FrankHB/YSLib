@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7249;
+\version 0.7280;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-05-03 19:32 +0800;
+	2011-05-13 20:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,6 +32,16 @@
 #include <string>
 #include "../Core/yexcept.h"
 
+//包含 FreeType2 。
+
+#include <ft2build.h>
+
+#include FT_FREETYPE_H
+#include FT_CACHE_H
+#include FT_BITMAP_H
+#include FT_GLYPH_H
+//#include FT_OUTLINE_H
+
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
@@ -44,7 +54,7 @@ class Font;
 class FontFamily;
 class Typeface;
 class FontFile;
-class YFontCache;
+class FontCache;
 
 
 //! \brief 字体样式。
@@ -94,26 +104,28 @@ FontStyle::operator Styles&()
 class FontFamily : public noncopyable
 {
 	friend class Typeface;
-	friend class YFontCache;
+	friend class FontCache;
 
 public:
 	typedef std::string NameType;
-	typedef set<Typeface*> FTypes; //!< 字型组类型。
+	typedef set<Typeface*> FaceSet; //!< 字型组类型。
 	typedef map<const std::string/*Typeface::NameType*/, Typeface*>
-		FTypesIndex; //!< 字型组索引类型。
+		FaceMap; //!< 字型组索引类型。
 
-	YFontCache& Cache;
+	FontCache& Cache;
 
 private:
 	NameType family_name;
-	FTypes sTypes; //!< 字型组类型。
-	FTypesIndex mTypesIndex; //!< 字型组索引类型。
+
+protected:
+	FaceSet sFaces; //!< 字型组类型。
+	FaceMap mFaces; //!< 字型组索引类型。
 
 public:
 	/*!
 	\brief 使用字体缓存引用和名称构造字型家族。
 	*/
-	FontFamily(YFontCache&, const NameType&);
+	FontFamily(FontCache&, const NameType&);
 
 	/*!
 	\brief 比较：相等关系。
@@ -125,20 +137,6 @@ public:
 	*/
 	bool
 	operator<(const FontFamily&) const;
-
-
-	DefGetter(const NameType&, FamilyName, family_name)
-	/*!
-	\brief 取指定样式的字型指针。
-	\note 若非 Regular 样式失败则尝试取 Regular 样式的字型指针。
-	*/
-	Typeface*
-	GetTypefacePtr(FontStyle) const;
-	/*!
-	\brief 取指定样式名称的字型指针。
-	*/
-	Typeface*
-	GetTypefacePtr(const std::string/*Typeface::NameType*/&) const;
 
 private:
 	/*!
@@ -153,13 +151,27 @@ private:
 	*/
 	bool
 	operator-=(Typeface*);
+
+public:
+	DefGetter(const NameType&, FamilyName, family_name)
+	/*!
+	\brief 取指定样式的字型指针。
+	\note 若非 Regular 样式失败则尝试取 Regular 样式的字型指针。
+	*/
+	Typeface*
+	GetTypefacePtr(FontStyle) const;
+	/*!
+	\brief 取指定样式名称的字型指针。
+	*/
+	Typeface*
+	GetTypefacePtr(const std::string/*Typeface::NameType*/&) const;
 };
 
 
 //! \brief 字型标识。
 class Typeface : public noncopyable
 {
-	friend class YFontCache;
+	friend class FontCache;
 	friend FT_Error simpleFaceRequester(FTC_FaceID,
 		FT_Library, FT_Pointer, FT_Face*);
 
@@ -167,7 +179,7 @@ class Typeface : public noncopyable
 public:
 	typedef std::string NameType;
 
-	YFontCache& Cache;
+	FontCache& Cache;
 	const FontFile& File;
 
 private:
@@ -176,8 +188,8 @@ private:
 //	bool bBold, bOblique, bUnderline;
 	NameType style_name;
 
-	FT_Long faceIndex;
-	FT_Int cmapIndex;
+	FT_Long face_index;
+	FT_Int cmap_index;
 /*	FT_Long nGlyphs;
 	FT_UShort uUnitPerEM;
 	FT_Int nCharmaps;
@@ -189,7 +201,7 @@ public:
 	/*!
 	\brief 使用字体缓存引用在指定字体文件读取指定索引的字型并构造对象。
 	*/
-	Typeface(YFontCache&, const FontFile&, u32 = 0
+	Typeface(FontCache&, const FontFile&, u32 = 0
 		/*, const bool bb = false,
 		const bool bi = false, const bool bu = false*/);
 
@@ -219,7 +231,7 @@ public:
 
 private:
 	PathType path;
-	mutable FT_Long nFace;
+	mutable FT_Long face_num;
 
 public:
 	/*!
@@ -230,17 +242,17 @@ public:
 	/*!
 	\brief 比较：相等关系。
 	*/
-	PDefHOperator(bool, ==, const FontFile& rhs) const
+	PDefHOperator1(bool, ==, const FontFile& rhs) const
 		ImplRet(path == rhs.path);
 
 	/*!
 	\brief 比较：严格递增偏序关系。
 	*/
-	PDefHOperator(bool, <, const FontFile& rhs) const
+	PDefHOperator1(bool, <, const FontFile& rhs) const
 		ImplRet(path < rhs.path);
 
 	DefGetter(PathType, Path, path)
-	DefGetter(s32, FaceN, nFace)
+	DefGetter(s32, FaceN, face_num)
 
 	/*!
 	\brief 向指定本地字体库中重新读取字体文件，载入全部字体。
@@ -303,7 +315,7 @@ public:
 	DefGetter(const FontFamily&, FontFamily, *pFontFamily)
 	DefGetter(FontStyle, Style, Style)
 	DefGetter(SizeType, Size, Size)
-	DefGetter(YFontCache&, Cache, GetFontFamily().Cache)
+	DefGetter(FontCache&, Cache, GetFontFamily().Cache)
 	DefGetterMember(const FontFamily::NameType&, FamilyName, GetFontFamily())
 	DefGetter(Typeface::NameType, StyleName, Style.GetName())
 	/*!
@@ -385,9 +397,19 @@ CharBitmap::CharBitmap(const CharBitmap::NativeType& b)
 
 
 //! \brief 字体缓存。
-class YFontCache : public YObject
+class FontCache : public noncopyable
 {
 	friend class Typeface;
+
+public:
+	typedef set<const FontFile*, ystdex::deref_comp<const FontFile>>
+		FileSet; //!< 字体文件组类型。
+	typedef set<Typeface*, ystdex::deref_comp<const Typeface>>
+		FaceSet; //!< 字型组类型。
+	typedef set<FontFamily*, ystdex::deref_comp<FontFamily>>
+		FamilySet; //!< 字型家族组类型。
+	typedef map<FontFamily::NameType, FontFamily*>
+		FamilyMap; //!< 字型家族组索引类型。
 
 private:
 	FT_Library library; //!< 库实例。
@@ -396,21 +418,11 @@ private:
 	FTC_CMapCache cmapCache;
 	FTC_SBitCache sbitCache;
 
-public:
-	typedef set<const FontFile*, deref_comp<const FontFile>>
-		FFiles; //!< 字体文件组类型。
-	typedef set<Typeface*, deref_comp<const Typeface>>
-		FTypes; //!< 字型组类型。
-	typedef set<FontFamily*, deref_comp<FontFamily>>
-		FFaces; //!< 字型家族组类型。
-	typedef map<FontFamily::NameType, FontFamily*>
-		FFacesIndex; //!< 字型家族组索引类型。
-
-private:
-	FFiles sFiles; //!< 字体文件组。
-	FTypes sTypes; //!< 字型组。
-	FFaces sFaces; //!< 字型家族组索引。
-	FFacesIndex mFacesIndex; //!< 字型家族组索引。
+protected:
+	FileSet sFiles; //!< 字体文件组。
+	FaceSet sFaces; //!< 字型组。
+	FamilySet sFamilies; //!< 字型家族组索引。
+	FamilyMap mFamilies; //!< 字型家族组索引。
 
 	Typeface* pDefaultFace; //!< 默认字型指针。
 
@@ -419,12 +431,12 @@ public:
 	\brief 构造：读取指定路径的字体文件并分配指定大小的缓存空间。
 	*/
 	explicit
-	YFontCache(CPATH, u32 = GLYPH_CACHE_SIZE);
+	FontCache(CPATH, u32 = GLYPH_CACHE_SIZE);
 	/*!
 	\brief 析构：释放空间。
 	*/
 	virtual
-	~YFontCache();
+	~FontCache();
 
 private:
 	/*!
@@ -434,16 +446,16 @@ private:
 	GetInternalFaceInfo() const;
 
 public:
-	DefGetter(const FFiles&, Files, sFiles) //!< 取字体文件组。
-	DefGetter(const FTypes&, Types, sTypes) //!< 取字型组。
-	DefGetter(const FFaces&, Faces, sFaces) //!< 取字型家族组。
-	DefGetter(const FFacesIndex&, FacesIndex, mFacesIndex) \
+	DefGetter(const FileSet&, Files, sFiles) //!< 取字体文件组。
+	DefGetter(const FaceSet&, Types, sFaces) //!< 取字型组。
+	DefGetter(const FamilySet&, Faces, sFamilies) //!< 取字型家族组。
+	DefGetter(const FamilyMap&, FacesIndex, mFamilies) \
 		//!< 取字型家族组索引。
-	DefGetter(FFiles::size_type, FilesN, sFiles.size()) \
+	DefGetter(FileSet::size_type, FilesN, sFiles.size()) \
 		//!< 取字体文件组储存的文件数。
-	DefGetter(FTypes::size_type, TypesN, sTypes.size()) \
+	DefGetter(FaceSet::size_type, TypesN, sFaces.size()) \
 		//!< 取字型组储存的字型数。
-	DefGetter(FFaces::size_type, FacesN, sFaces.size()) \
+	DefGetter(FamilySet::size_type, FacesN, sFamilies.size()) \
 		//!< 取字型家族组储存的字型家族数。
 //	Font*
 //	GetFontPtr() const;

@@ -16,12 +16,12 @@
 /*!	\file ytmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4361;
+\version 0.4362;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-05-05 20:00 +0800;
+	2011-05-14 20:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -311,7 +311,8 @@ public:
 		\brief 构造：指定文本读取位置。
 		\note 无异常抛出。
 		*/
-		HText(TextFileBuffer* = nullptr, BlockSizeType = 0, SizeType = 0) ynothrow;
+		HText(TextFileBuffer* = nullptr, BlockSizeType = 0, SizeType = 0)
+			ynothrow;
 
 		/*!
 		\brief 迭代：循环向后遍历。

@@ -11,12 +11,12 @@
 /*!	\file yfile.cpp
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version 0.1364;
+\version 0.1365;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2011-04-30 20:04 +0800;
+	2011-04-14 20:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,7 @@
 YSL_BEGIN
 
 File::File(CPATH p)
-	: fp(nullptr), fsize(0)
+	: fp(), fsize(0)
 {
 	if(Open(p))
 	{

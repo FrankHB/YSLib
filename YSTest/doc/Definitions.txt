@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11046;
+\version r11076;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-05-05 19:49 +0800;
+	2011-05-12 18:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,19 +92,7 @@ $code $header <platform.h> {
 
 
 //$example:
-//字符兼容性补充。
-
-#include <stdint.h>
-
-namespace ystdex
-{
-	typedef ::uint16_t uchar_t;
-	typedef ::uint32_t fchar_t;
-}
-
-
-//$example:
-$import $header <nds.h>, <fat.h>, <unistd.h>, <sys/dir.h>;
+$import $header <nds/ndstypes.h>;
 
 //像素类型。
 $import type $pixeltype;
@@ -125,6 +113,14 @@ extern const u16 $SCREEN_WIDTH, $SCREEN_HEIGHT;
 //宽字符支持。
 #	define CHRLIB_WCHAR_T_SIZE 4
 #endif
+
+
+// $ API （可分离于 <api.h> 中）定义示例：
+//$example:
+$import $header <fat.h>, <unistd.h>, <sys/dir.h>;
+
+#define YCL_YCOMMON_H <ycommon.h>
+#define YSL_YSBUILD_H <YSLib/Helper/yshelper.h>
 
 } //$code;
 
@@ -281,14 +277,6 @@ DefSetterDeEx(_type, _name, _member, _defv, _tempArgName, _expr)
 } //$dir Adaptor;
 $dir Core
 {
-$header YShellDefinition
-{
-DeclareHandle(type, handle)
-}
-$header YReference
-{
-YHandleOP
-}
 $header YEvent
 {
 DefDelegate(_name, _tSender, _tEventArgs)
@@ -479,11 +467,41 @@ $header "ystdex/util.hpp"
 
 $header <platform.h>
 {
-	typedef ::uint16_t char16_t;
-	typedef ::uint32_t char32_t;
 } //$header <platfrom.h>
 
 //既定 ystdex 命名空间污染列表。
+
+$header YDefinition
+{
+	typedef std::uint8_t	u8;
+	typedef std::uint16_t	u16;
+	typedef std::uint32_t	u32;
+	typedef std::uint64_t	u64;
+	typedef std::int8_t		s8;
+	typedef std::int16_t	s16;
+	typedef std::int32_t	s32;
+	typedef std::int64_t	s64;
+	typedef volatile u8		vu8;
+	typedef volatile u16	vu16;
+	typedef volatile u32	vu32;
+	typedef volatile u64	vu64;
+	typedef volatile s8		vs8;
+	typedef volatile s16	vs16;
+	typedef volatile s32	vs32;
+	typedef volatile s64	vs64;
+
+	typedef u8 byte;
+
+	typedef u16 uchar_t;
+	typedef u32 fchar_t;
+
+	typedef int errno_t;
+//	typedef decltype(nullptr) nullptr_t;
+	// TODO: using std::nullptr_t;
+	using std::ptrdiff_t;
+	using std::size_t;
+	using ::ssize_t;
+} //$header YDefinition;
 
 $header YStandardExtend
 {
@@ -602,12 +620,6 @@ $header YStandardExtend
 	using ::memcmp;
 } //$header YStandardExtend;
 
-$header YAdaptor
-{
-	using CHRLib::uchar_t;
-	using CHRLib::uint_t;
-} //$header YAdaptor;
-
 //既定 YSLib 命名空间污染列表。
 
 $header Adaptor::YAdaptor
@@ -618,8 +630,22 @@ $header Adaptor::YAdaptor
 	} //namespace Text;
 	using Text::fchar_t, Text::uchar_t, Text::uint_t;	
 
-	using std::size_t;
-	using namespace ystdex;
+	using ystdex::u8;
+	using ystdex::u16;
+	using ystdex::u32;
+	using ystdex::u64;
+	using ystdex::s8;
+	using ystdex::s16;
+	using ystdex::s32;
+	using ystdex::s64;
+
+	using ystdex::errno_t;
+	using ystdex::nullptr_t;
+	using ystdex::ptrdiff_t;
+	using ystdex::size_t;
+	using ystdex::ssize_t;
+
+	using ystdex::noncopyable;
 
 	using platform::DEF_PATH_DELIMITER, platform::DEF_PATH_SEPERATOR,
 		platform::PATHSTR, platform::FILENAMESTR;

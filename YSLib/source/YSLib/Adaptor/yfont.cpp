@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7229;
+\version 0.7253;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-05-10 19:23 +0800;
+	2011-05-14 20:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,6 +34,7 @@
 
 using namespace ystdex;
 using namespace platform;
+using std::for_each;
 
 YSL_BEGIN
 
@@ -86,14 +87,14 @@ simpleFaceRequester(FTC_FaceID face_id, FT_Library library,
 	Typeface* fontFace(static_cast<Typeface*>(face_id));
 	FT_Face& face(*aface);
 	FT_Error error(FT_New_Face(library, fontFace->File.GetPath().c_str(),
-		fontFace->faceIndex, aface));
+		fontFace->face_index, aface));
 
 	if(!error)
 	{
 		error = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
 		if(!error && face)
 		{
-			fontFace->cmapIndex = face->charmap
+			fontFace->cmap_index = face->charmap
 				? FT_Get_Charmap_Index(face->charmap) : 0;
 		/*	fontFace->nGlyphs = face->num_glyphs;
 			fontFace->uUnitPerEM = face->units_per_EM;
@@ -124,8 +125,8 @@ simpleFaceRequester(FTC_FaceID face_id, FT_Library library,
 }
 
 
-FontFamily::FontFamily(YFontCache& cache, const FontFamily::NameType& name)
-	: Cache(cache), family_name(name), sTypes()
+FontFamily::FontFamily(FontCache& cache, const FontFamily::NameType& name)
+	: Cache(cache), family_name(name), sFaces()
 {}
 
 bool
@@ -140,6 +141,24 @@ FontFamily::operator<(const FontFamily& rhs) const
 		&& family_name < rhs.family_name);
 }
 
+void
+FontFamily::operator+=(Typeface* face_pointer)
+{
+	if(face_pointer)
+	{
+		sFaces.insert(face_pointer);
+		mFaces.insert(make_pair(face_pointer->GetStyleName(),
+			face_pointer));
+	}
+}
+
+bool
+FontFamily::operator-=(Typeface* face_pointer)
+{
+	return face_pointer ? mFaces.erase(face_pointer->GetStyleName()) != 0
+		&& sFaces.erase(face_pointer) != 0 : false;
+}
+
 Typeface*
 FontFamily::GetTypefacePtr(FontStyle s) const
 {
@@ -151,36 +170,19 @@ FontFamily::GetTypefacePtr(FontStyle s) const
 Typeface*
 FontFamily::GetTypefacePtr(const Typeface::NameType& style_name) const
 {
-	const auto i(mTypesIndex.find(style_name));
+	const auto i(mFaces.find(style_name));
 
-	return (i == mTypesIndex.cend()) ? nullptr : i->second;
-}
-
-void
-FontFamily::operator+=(Typeface* face_pointer)
-{
-	if(face_pointer)
-	{
-		sTypes.insert(face_pointer);
-		mTypesIndex.insert(make_pair(face_pointer->GetStyleName(),
-			face_pointer));
-	}
-}
-bool
-FontFamily::operator-=(Typeface* face_pointer)
-{
-	return face_pointer ? mTypesIndex.erase(face_pointer->GetStyleName()) != 0
-		&& sTypes.erase(face_pointer) != 0 : false;
+	return (i == mFaces.cend()) ? nullptr : i->second;
 }
 
 
 /*const FT_Matrix Typeface::MNormal = {0x10000, 0, 0, 0x10000},
 	Typeface::MOblique = {0x10000, 0x5800, 0, 0x10000};*/
 
-Typeface::Typeface(YFontCache& cache, const FontFile& file, u32 i
+Typeface::Typeface(FontCache& cache, const FontFile& file, u32 i
 	/*, const bool bb, const bool bi, const bool bu*/)
-	: Cache(cache), File(file), pFontFamily(nullptr),
-	style_name(), faceIndex(i), cmapIndex(-1)
+	: Cache(cache), File(file), pFontFamily(),
+	style_name(), face_index(i), cmap_index(-1)
 /*	, bBold(bb), bOblique(bi), bUnderline(bu),
 	, matrix(bi ? MOblique : MNormal)*/
 {}
@@ -188,18 +190,18 @@ Typeface::Typeface(YFontCache& cache, const FontFile& file, u32 i
 bool
 Typeface::operator==(const Typeface& rhs) const
 {
-	return &File == &rhs.File && faceIndex == rhs.faceIndex;
+	return &File == &rhs.File && face_index == rhs.face_index;
 }
 bool
 Typeface::operator<(const Typeface& rhs) const
 {
 	return &File < &rhs.File
-		|| (&File == &rhs.File && faceIndex < rhs.faceIndex);
+		|| (&File == &rhs.File && face_index < rhs.face_index);
 }
 
 
 FontFile::FontFile(const PathType& p)
-	: path(p), nFace(0)
+	: path(p), face_num(0)
 {}
 
 void
@@ -209,10 +211,10 @@ FontFile::ReloadFaces(FT_Library& library) const
 
 	if(FT_New_Face(library, path.c_str(), -1, &face))
 	{
-		nFace = -1;
+		face_num = -1;
 		return;
 	}
-	nFace = face->num_faces;
+	face_num = face->num_faces;
 	FT_Done_Face(face);
 }
 
@@ -246,7 +248,7 @@ const Font::SizeType
 Font::DefaultSize(12),
 Font::MinimalSize(4),
 Font::MaximalSize(96);
-Font* Font::pDefFont(nullptr);
+Font* Font::pDefFont;
 
 Font::Font(const FontFamily& family, const SizeType size, FontStyle style)
 	: pFontFamily(&family), Style(style), Size(size)
@@ -299,8 +301,7 @@ Font::UpdateSize()
 }
 
 
-YFontCache::YFontCache(CPATH defFontPath, u32 cacheSize)
-	: YObject()
+FontCache::FontCache(CPATH defFontPath, u32 cacheSize)
 {
 	scaler.face_id = nullptr;
 	scaler.width = 0;
@@ -331,7 +332,7 @@ YFontCache::YFontCache(CPATH defFontPath, u32 cacheSize)
 		throw LoggedEvent(strerr, 1);
 	}
 }
-YFontCache::~YFontCache()
+FontCache::~FontCache()
 {
 	scaler.face_id = nullptr;
 	FTC_Manager_Done(manager);
@@ -340,25 +341,25 @@ YFontCache::~YFontCache()
 }
 
 const FontFamily*
-YFontCache::GetFontFamilyPtr(const FontFamily::NameType& family_name) const
+FontCache::GetFontFamilyPtr(const FontFamily::NameType& family_name) const
 {
-	const auto i(mFacesIndex.find(family_name));
+	const auto i(mFamilies.find(family_name));
 
-	return (i == mFacesIndex.cend()) ? nullptr : i->second;
+	return (i == mFamilies.cend()) ? nullptr : i->second;
 }
-/*Typeface* YFontCache::GetTypefacePtr(u16 i) const
+/*Typeface* FontCache::GetTypefacePtr(u16 i) const
 {
-	return i < sTypes.size() ? sTypes[i] : nullptr;
+	return i < sFaces.size() ? sFaces[i] : nullptr;
 }*/
 const Typeface*
-YFontCache::GetDefaultTypefacePtr() const ythrow(LoggedEvent)
+FontCache::GetDefaultTypefacePtr() const ythrow(LoggedEvent)
 {
 	//默认字体缓存的默认字型指针由初始化保证为非空指针。
 	return pDefaultFace ? pDefaultFace
 		: GetApp().GetFontCache().GetDefaultTypefacePtr();
 }
 const Typeface*
-YFontCache::GetTypefacePtr(const FontFamily::NameType& family_name,
+FontCache::GetTypefacePtr(const FontFamily::NameType& family_name,
 	const Typeface::NameType& style_name) const
 {
 	const FontFamily* f(GetFontFamilyPtr(family_name));
@@ -368,21 +369,21 @@ YFontCache::GetTypefacePtr(const FontFamily::NameType& family_name,
 	return f->GetTypefacePtr(style_name);
 }
 CharBitmap
-YFontCache::GetGlyph(fchar_t c)
+FontCache::GetGlyph(fchar_t c)
 {
 	if(!scaler.face_id)
-		return FTC_SBit(nullptr);
+		return FTC_SBit();
 
 	const u32 flags(FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL);
 	const u32 index(FTC_CMapCache_Lookup(cmapCache, scaler.face_id,
-		GetTypefacePtr()->cmapIndex, c));
+		GetTypefacePtr()->cmap_index, c));
 	FTC_SBit sbit;
 
 	FTC_SBitCache_LookupScaler(sbitCache, &scaler, flags, index, &sbit, nullptr);
 	return sbit;
 }
 s8
-YFontCache::GetAdvance(fchar_t c, FTC_SBit sbit)
+FontCache::GetAdvance(fchar_t c, FTC_SBit sbit)
 {
 	if(c == '\t')
 		return GetAdvance(' ') << 2;
@@ -391,7 +392,7 @@ YFontCache::GetAdvance(fchar_t c, FTC_SBit sbit)
 	return sbit->xadvance;
 }
 FT_Face
-YFontCache::GetInternalFaceInfo() const
+FontCache::GetInternalFaceInfo() const
 {
 	FT_Face face(nullptr);
 
@@ -399,31 +400,31 @@ YFontCache::GetInternalFaceInfo() const
 	return face;
 }
 u8
-YFontCache::GetHeight() const
+FontCache::GetHeight() const
 {
 	return GetInternalFaceInfo()->size->metrics.height >> 6;
 }
 s8
-YFontCache::GetAscender() const
+FontCache::GetAscender() const
 {
 	return GetInternalFaceInfo()->size->metrics.ascender >> 6;
 }
 s8
-YFontCache::GetDescender() const
+FontCache::GetDescender() const
 {
 	return GetInternalFaceInfo()->size->metrics.descender >> 6;
 }
 
 bool
-YFontCache::SetTypeface(Typeface* p)
+FontCache::SetTypeface(Typeface* p)
 {
-	if(!p || sTypes.find(p) == sTypes.end())
+	if(!p || sFaces.find(p) == sFaces.end())
 		return false;
 	scaler.face_id = static_cast<FTC_FaceID>(p);
 	return true;
 }
 void
-YFontCache::SetFontSize(Font::SizeType s)
+FontCache::SetFontSize(Font::SizeType s)
 {
 	if(s == 0)
 		s = Font::DefaultSize;
@@ -435,79 +436,79 @@ YFontCache::SetFontSize(Font::SizeType s)
 }
 
 void
-YFontCache::operator+=(const FontFile* fontfile_pointer)
+FontCache::operator+=(const FontFile* fontfile_pointer)
 {
 	if(fontfile_pointer)
 		sFiles.insert(fontfile_pointer);
 }
 bool
-YFontCache::operator-=(const FontFile* fontfile_pointer)
+FontCache::operator-=(const FontFile* fontfile_pointer)
 {
 	return sFiles.erase(fontfile_pointer) != 0;
 }
 
 void
-YFontCache::operator+=(Typeface* face_pointer)
+FontCache::operator+=(Typeface* face_pointer)
 {
 	if(face_pointer)
-		sTypes.insert(face_pointer);
+		sFaces.insert(face_pointer);
 }
 bool
-YFontCache::operator-=(Typeface* face_pointer)
+FontCache::operator-=(Typeface* face_pointer)
 {
 	if(face_pointer == GetTypefacePtr() || face_pointer == pDefaultFace)
 		return false;
-	return sTypes.erase(face_pointer) != 0;
+	return sFaces.erase(face_pointer) != 0;
 }
 
 void
-YFontCache::operator+=(FontFamily* family_pointer)
+FontCache::operator+=(FontFamily* family_pointer)
 {
 	if(family_pointer)
 	{
-		sFaces.insert(family_pointer);
-		mFacesIndex.insert(make_pair(family_pointer->family_name,
+		sFamilies.insert(family_pointer);
+		mFamilies.insert(make_pair(family_pointer->family_name,
 			family_pointer));
 	}
 }
 bool
-YFontCache::operator-=(FontFamily* family_pointer)
+FontCache::operator-=(FontFamily* family_pointer)
 {
-	return family_pointer ? mFacesIndex.erase(family_pointer->family_name) != 0
-		&& sFaces.erase(family_pointer) != 0 : false;
+	return family_pointer ? mFamilies.erase(family_pointer->family_name) != 0
+		&& sFamilies.erase(family_pointer) != 0 : false;
 }
 
 void
-YFontCache::ClearCache()
+FontCache::ClearCache()
 {
 	ClearContainers();
 	FTC_Manager_Reset(manager);
 }
 
 void
-YFontCache::ClearFontFiles()
+FontCache::ClearFontFiles()
 {
 	for_each(sFiles.begin(), sFiles.end(), delete_obj());
 	sFiles.clear();
 }
 
 void
-YFontCache::ClearTypefaces()
+FontCache::ClearTypefaces()
 {
-	for_each(sTypes.begin(), sTypes.end(), delete_obj());
-	sTypes.clear();
+	for_each(sFaces.begin(), sFaces.end(), delete_obj());
+	sFaces.clear();
 }
 
 void
-YFontCache::ClearFontFamilies()
+FontCache::ClearFontFamilies()
 {
-	for(auto i(mFacesIndex.cbegin()); i != mFacesIndex.cend(); ++i)
+	for(auto i(mFamilies.cbegin()); i != mFamilies.cend(); ++i)
 		ydelete(i->second);
-	mFacesIndex.clear();
+	mFamilies.clear();
 }
 
 void
-YFontCache::ClearContainers()
+FontCache::ClearContainers()
 {
 	ClearFontFiles();
 	ClearTypefaces();
@@ -515,14 +516,14 @@ YFontCache::ClearContainers()
 }
 
 void
-YFontCache::LoadTypefaces()
+FontCache::LoadTypefaces()
 {
 	for(auto i(sFiles.begin()); i != sFiles.end(); ++i)
 		LoadTypefaces(**i);
 }
 
 void
-YFontCache::LoadTypefaces(const FontFile& f)
+FontCache::LoadTypefaces(const FontFile& f)
 {
 	if(sFiles.find(&f) == sFiles.end() && !LoadFontFile(f.GetPath().c_str()))
 		return;
@@ -540,8 +541,8 @@ YFontCache::LoadTypefaces(const FontFile& f)
 			{
 				try
 				{
-					if(sTypes.find(q = ynew Typeface(*this, f, i))
-						== sTypes.end())
+					if(sFaces.find(q = ynew Typeface(*this, f, i))
+						== sFaces.end())
 					{
 						FTC_FaceID new_face_id(static_cast<FTC_FaceID>(q));
 
@@ -554,14 +555,14 @@ YFontCache::LoadTypefaces(const FontFile& f)
 						if(!scaler.face_id)
 							scaler.face_id = new_face_id;
 
-						auto i(mFacesIndex.find(face->family_name));
+						auto i(mFamilies.find(face->family_name));
 
-						q->pFontFamily = r = i == mFacesIndex.end()
+						q->pFontFamily = r = i == mFamilies.end()
 							? ynew FontFamily(*this, face->family_name)
 							: i->second;
 						q->style_name = face->style_name;
 						*r += q;
-						if(i == mFacesIndex.end())
+						if(i == mFamilies.end())
 							*this += r;
 						*this += q;
 					}
@@ -571,7 +572,7 @@ YFontCache::LoadTypefaces(const FontFile& f)
 				catch(std::bad_alloc&)
 				{
 					throw LoggedEvent("Allocation failed"
-						" @ YFontCache::LoadTypefaces;", 2);
+						" @ FontCache::LoadTypefaces;", 2);
 				}
 			}
 			catch(...)
@@ -592,7 +593,7 @@ YFontCache::LoadTypefaces(const FontFile& f)
 }
 
 bool
-YFontCache::LoadFontFile(CPATH path)
+FontCache::LoadFontFile(CPATH path)
 {
 	try
 	{
@@ -614,16 +615,16 @@ YFontCache::LoadFontFile(CPATH path)
 	catch(std::bad_alloc&)
 	{
 		throw LoggedEvent("Allocation failed"
-			" @ YFontCache::LoadFontFileDirectory;", 2);
+			" @ FontCache::LoadFontFileDirectory;", 2);
 	}
 	return false;
 }
 
 void
-YFontCache::InitializeDefaultTypeface()
+FontCache::InitializeDefaultTypeface()
 {
-	if(!(pDefaultFace || sTypes.empty()))
-		pDefaultFace = *sTypes.begin();
+	if(!(pDefaultFace || sFaces.empty()))
+		pDefaultFace = *sFaces.begin();
 }
 
 YSL_END_NAMESPACE(Drawing)

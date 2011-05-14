@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 抽象。
-\version 0.4096;
+\version 0.4140;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-05-10 20:09 +0800;
+	2011-05-14 20:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,11 +30,12 @@
 //测试用声明：全局资源定义。
 //extern char gstr[128];
 
+using namespace ystdex;
+
 YSL_BEGIN
 
 using namespace Shells;
 using namespace Drawing::ColorSpace;
-
 
 int
 MainShlProc(const Message& msg)
@@ -117,12 +118,12 @@ namespace
 	char strCount[40];
 
 	GHandle<Image>&
-	GetGlobalImageRef(std::size_t i)
+	GetGlobalImage(std::size_t i)
 	{
 		static GHandle<Image> spi[10];
 
 		YAssert(IsInInterval(i, 10u), "Array index out of range"
-			" @ GetGlobalImageRef;");
+			" @ GetGlobalImage;");
 
 		return spi[i];
 	}
@@ -131,7 +132,7 @@ namespace
 	LoadL()
 	{
 		//色块覆盖测试用程序段。
-		if(!GetGlobalImageRef(1))
+		if(!GetGlobalImage(1))
 		{
 			try
 			{
@@ -142,9 +143,9 @@ namespace
 				return;
 			}
 		//	memset(gbuf, 0xEC, sizeof(ScreenBufferType));
-			GetGlobalImageRef(1) = NewScrImage(dfa, gbuf);
+			GetGlobalImage(1) = NewScrImage(dfa, gbuf);
 		//	memset(gbuf, 0xF2, sizeof(ScreenBufferType));
-			GetGlobalImageRef(2) = NewScrImage(dfap, gbuf);
+			GetGlobalImage(2) = NewScrImage(dfap, gbuf);
 			ydelete_array(gbuf);
 		}
 	}
@@ -152,7 +153,7 @@ namespace
 	void
 	LoadS()
 	{
-		if(!GetGlobalImageRef(3))
+		if(!GetGlobalImage(3))
 		{
 			try
 			{
@@ -162,8 +163,8 @@ namespace
 			{
 				return;
 			}
-			GetGlobalImageRef(3) = NewScrImage(dfac1, gbuf);
-			GetGlobalImageRef(4) = NewScrImage(dfac1p, gbuf);
+			GetGlobalImage(3) = NewScrImage(dfac1, gbuf);
+			GetGlobalImage(4) = NewScrImage(dfac1p, gbuf);
 			ydelete_array(gbuf);
 		}
 	}
@@ -171,7 +172,7 @@ namespace
 	void
 	LoadA()
 	{
-		if(!GetGlobalImageRef(5))
+		if(!GetGlobalImage(5))
 		{
 			try
 			{
@@ -181,8 +182,8 @@ namespace
 			{
 				return;
 			}
-			GetGlobalImageRef(5) = NewScrImage(dfac2, gbuf);
-			GetGlobalImageRef(6) = NewScrImage(dfac2p, gbuf);
+			GetGlobalImage(5) = NewScrImage(dfac2, gbuf);
+			GetGlobalImage(6) = NewScrImage(dfac2p, gbuf);
 			ydelete_array(gbuf);
 		}
 	}
@@ -265,14 +266,14 @@ GetImage(int i)
 	default:
 		i = 0;
 	}
-	return GetGlobalImageRef(i);
+	return GetGlobalImage(i);
 }
 
 void
 ReleaseShells()
 {
 	for(std::size_t i(0); i != 10; ++i)
-		GetGlobalImageRef(i).reset();
+		GetGlobalImage(i).reset();
 	ReleaseStored<ShlReader>();
 	ReleaseStored<ShlSetting>();
 	ReleaseStored<ShlExplorer>();
@@ -324,8 +325,8 @@ ShlLoad::OnActivated(const Message& msg)
 int
 ShlLoad::OnDeactivated(const Message& msg)
 {
-	GetDesktopUp().GetBackgroundImagePtr() = nullptr;
-	GetDesktopDown().GetBackgroundImagePtr() = nullptr;
+	reset(GetDesktopUp().GetBackgroundImagePtr());
+	reset(GetDesktopDown().GetBackgroundImagePtr());
 	ParentType::OnDeactivated(msg);
 	return 0;
 }
@@ -408,8 +409,8 @@ ShlExplorer::OnDeactivated(const Message& msg)
 		&ShlExplorer::OnKeyDown_frm);
 	FetchEvent<KeyPress>(GetDesktopDown()).Remove(*this,
 		&ShlExplorer::OnKeyPress_frm);
-	GetDesktopUp().GetBackgroundImagePtr() = nullptr;
-	GetDesktopDown().GetBackgroundImagePtr() = nullptr;
+	reset(GetDesktopUp().GetBackgroundImagePtr());
+	reset(GetDesktopDown().GetBackgroundImagePtr());
 	ParentType::OnDeactivated(msg);
 	return 0;
 }
@@ -540,7 +541,7 @@ ShlExplorer::OnConfirmed_fbMain(IControl& /*sender*/, IndexEventArgs&& /*e*/)
 
 
 ShlSetting::ShlSetting()
-	: pWndTest(nullptr), pWndExtra(nullptr),
+	: pWndTest(), pWndExtra(),
 	lblA(Rect(5, 20, 200, 22)),
 	lblB(Rect(5, 80, 72, 22))
 {
@@ -548,6 +549,51 @@ ShlSetting::ShlSetting()
 	lblB.Text = "程序测试";
 	lblB.SetTransparent(true);
 }
+
+
+//!< 菜单宿主。
+class MenuHost
+{
+public:
+	typedef size_t ID; //!< 菜单项标识类型。
+	typedef Menu* ItemType; //!< 菜单组项目类型：记录菜单控件指针。
+	typedef map<ID, ItemType> MenuMap; //!< 菜单组类型。
+	typedef MenuMap::value_type ValueType;
+
+protected:
+	GHandle<Desktop> hDesktop; //!< 桌面句柄。
+	MenuMap sMenus;
+
+public:
+	MenuHost(GHandle<Desktop> = nullptr);
+	virtual
+	~MenuHost();
+
+	/*!
+	\brief 向菜单组添加指针指定的菜单。
+	*/
+	PDefHOperator1(void, +=, const ValueType& v)
+		ImplRet(static_cast<void>(sMenus.insert(v)))
+
+	/*!
+	\brief 从菜单组移除指针指定的菜单。
+	*/
+	PDefHOperator1(bool, -=, ID id)
+		ImplRet(sMenus.erase(id) != 0)
+
+	DefGetter(GHandle<Desktop>, DesktopHandle, hDesktop);
+};
+
+MenuHost::MenuHost(GHandle<Desktop> h)
+	: hDesktop(h), sMenus()
+{}
+MenuHost::~MenuHost()
+{
+	for(auto i(sMenus.cbegin()); i != sMenus.cend(); ++i)
+		ydelete(i->second);
+//	std::for_each(sMenus.begin(), sMenus.end(), delete_obj());
+}
+
 
 ShlSetting::TFormTest::TFormTest()
 	: Form(Rect(10, 40, 228, 70), nullptr,
@@ -571,6 +617,7 @@ ShlSetting::TFormTest::TFormTest()
 //	FetchEvent<TouchMove>(btnEnterTest) += &Control::OnTouchMove;
 	FetchEvent<Enter>(btnEnterTest) += OnEnter_btnEnterTest;
 	FetchEvent<Leave>(btnEnterTest) += OnLeave_btnEnterTest;
+	FetchEvent<Click>(btnMenuTest).Add(*this, &TFormTest::OnClick_btnMenuTest);
 	FetchEvent<Click>(btnShowWindow).Add(*this,
 		&TFormTest::OnClick_btnShowWindow);
 //	FetchEvent<TouchMove>(btnShowWindow) += OnTouchMove_Dragging;
@@ -598,6 +645,40 @@ ShlSetting::TFormTest::OnLeave_btnEnterTest(IControl& sender,
 	std::sprintf(str, "Leave:(%d,%d)", e.Point::X, e.Point::Y);
 	btn.Text = str;
 	btn.Refresh();
+}
+
+void
+ShlSetting::TFormTest::OnClick_btnMenuTest(TouchEventArgs&& /*e*/)
+{
+	static Menu* pMenu;
+	static int t;
+	
+	if(!pMenu)
+	{
+		t = 0;
+		pMenu = new Menu(GetBoundsOf(btnMenuTest)
+			+ Vec(-btnMenuTest.GetWidth(), btnMenuTest.GetHeight()),
+			new Menu::ListType(), FetchGUIShell().Colors.GetPair(Styles::Panel,
+			Styles::HighlightText));
+		pMenu->GetList().push_back(_ustr("xx"));
+		*this += pMenu;
+	}
+	else if(t < 2)
+	{
+		char stra[4];
+
+		sprintf(stra, "%d", ++t);
+		pMenu->GetList().push_back(stra);
+		pMenu->SetSize(Size(pMenu->GetWidth(),
+			btnMenuTest.GetHeight() * pMenu->GetList().size()));
+	}
+	else
+	{
+		*this -= pMenu;
+		delete pMenu;
+		pMenu = nullptr;
+	}
+	Refresh();
 }
 
 void
@@ -681,12 +762,12 @@ ShlSetting::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs&& e)
 void
 ShlSetting::TFormExtra::OnClick_btnDragTest(TouchEventArgs&& /*e*/)
 {
-	static YFontCache& fc(GetApp().GetFontCache());
+	static FontCache& fc(GetApp().GetFontCache());
 	static const int ffilen(fc.GetFilesN());
 	static const int ftypen(fc.GetTypesN());
 	static const int ffacen(fc.GetFacesN());
 	static int itype;
-	static YFontCache::FTypes::const_iterator it(fc.GetTypes().begin());
+	static FontCache::FaceSet::const_iterator it(fc.GetTypes().begin());
 	static char strtf[0x400];
 
 	//	btnDragTest.Transparent ^= 1;
@@ -1000,11 +1081,11 @@ ShlSetting::OnActivated(const Message& msg)
 int
 ShlSetting::OnDeactivated(const Message& msg)
 {
-	GetDesktopUp().GetBackgroundImagePtr() = nullptr;
-	GetDesktopDown().GetBackgroundImagePtr() = nullptr;
+	reset(GetDesktopUp().GetBackgroundImagePtr());
+	reset(GetDesktopDown().GetBackgroundImagePtr());
 	ParentType::OnDeactivated(msg);
-	reset_pointer(pWndTest);
-	reset_pointer(pWndExtra);
+	reset(pWndTest);
+	reset(pWndExtra);
 	return 0;
 }
 
@@ -1039,7 +1120,7 @@ string ShlReader::path;
 
 ShlReader::ShlReader()
 	: ShlDS(),
-	Reader(), pTextFile(nullptr), hUp(), hDn(), bgDirty(false)
+	Reader(), pTextFile(), hUp(), hDn(), bgDirty(false)
 {}
 
 int

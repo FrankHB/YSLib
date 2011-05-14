@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2700;
+\version 0.2707;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 +0800; 
 \par 修改时间:
-	2011-04-25 14:10 +0800;
+	2011-05-14 13:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,9 +40,7 @@
 //平台无关部分。
 #include "ydef.h"
 #include <cstdio>
-#include "ystdex/cast.hpp"
-#include "ystdex/iterator.hpp"
-#include "ystdex/util.hpp"
+#include <ystdex/utility.hpp> // for nullptr;
 
 //平台相关部分。
 #include <api.h>
@@ -446,7 +444,7 @@ namespace platform
 		\brief 构造：使用路径字符串。
 		*/
 		explicit
-		HDirectory(CPATH = ystdex::nullptr);
+		HDirectory(CPATH = nullptr);
 
 	private:
 		/*!
@@ -509,7 +507,7 @@ namespace platform
 
 	inline
 	HDirectory::HDirectory(CPATH path)
-		: dir(ystdex::nullptr)
+		: dir()
 	{
 		Open(path);
 	}

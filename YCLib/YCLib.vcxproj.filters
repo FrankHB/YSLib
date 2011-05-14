@@ -17,6 +17,12 @@
     <Filter Include="头文件\ystdex">
       <UniqueIdentifier>{cbbbb3e5-cc2e-4e3c-a4ae-fbe2fac7370a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\CHRLib">
+      <UniqueIdentifier>{f35d38c0-12b7-4eeb-8065-2bdd0f4f7fb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\CHRLib">
+      <UniqueIdentifier>{f6edf058-57c4-4652-98db-f6ffa462208b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />
@@ -40,10 +46,25 @@
     <ClInclude Include="include\ystdex\iterator.hpp">
       <Filter>头文件\ystdex</Filter>
     </ClInclude>
-    <ClInclude Include="include\ystdex\util.hpp">
+    <ClInclude Include="include\ystdex\type_op.hpp">
       <Filter>头文件\ystdex</Filter>
     </ClInclude>
-    <ClInclude Include="include\ystdex\type_op.hpp">
+    <ClInclude Include="include\CHRLib\chrdef.h">
+      <Filter>头文件\CHRLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\CHRLib\chrmap.h">
+      <Filter>头文件\CHRLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\CHRLib\chrproc.h">
+      <Filter>头文件\CHRLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\CHRLib\chrlib.h">
+      <Filter>头文件\CHRLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\memory.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\utility.hpp">
       <Filter>头文件\ystdex</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,6 +74,12 @@
     </ClCompile>
     <ClCompile Include="source\ystdex.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CHRLib\chrmap.cpp">
+      <Filter>源文件\CHRLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CHRLib\chrproc.cpp">
+      <Filter>源文件\CHRLib</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

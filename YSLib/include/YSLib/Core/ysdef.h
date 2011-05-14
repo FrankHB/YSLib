@@ -16,12 +16,12 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version 0.2505;
+\version 0.2507;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-24 15:29:11 +0800;
 \par 修改时间:
-	2011-04-28 17:27 +0800;
+	2011-05-13 20:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -54,7 +54,7 @@ class YScreen;
 YSL_END_NAMESPACE(Device)
 
 YSL_BEGIN_NAMESPACE(Drawing)
-class YFontCache;
+class FontCache;
 YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Messaging)
@@ -85,7 +85,8 @@ using Components::Desktop;
 
 using Device::YScreen;
 
-using Drawing::YFontCache;
+using Drawing::FontCache;
+
 using Messaging::YMessageQueue;
 
 using Shells::YMainShell;

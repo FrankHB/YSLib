@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2152;
+\version 0.2191;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2011-05-03 21:46 +0800;
+	2011-05-14 14:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,40 +35,32 @@
 //引入平台设置和存储调试设施。
 #include "ynew.h"
 
-
-//包含 CHRLib 。
-
-#include <chrlib.h>
-
-namespace ystdex
-{
-	using CHRLib::uchar_t;
-	using CHRLib::uint_t;
-}
-
-YSL_BEGIN
-
-YSL_BEGIN_NAMESPACE(Text)
-
-	using namespace CHRLib;
-
-YSL_END_NAMESPACE(Text)
-
-	using Text::fchar_t;
-	using Text::uchar_t;
-	using Text::uint_t;
-
-YSL_END
-
 //包含 YCLib 。
-
 #include <ycommon.h>
+#include <ystdex/cast.hpp>
+#include <ystdex/iterator.hpp>
+
+#include <CHRLib/chrlib.h> //包含 CHRLib 。
 
 // !\brief YSLib 命名空间。
 YSL_BEGIN
 
-	using std::size_t;
-	using namespace ystdex;
+	using ystdex::u8;
+	using ystdex::u16;
+	using ystdex::u32;
+	using ystdex::u64;
+	using ystdex::s8;
+	using ystdex::s16;
+	using ystdex::s32;
+	using ystdex::s64;
+
+	using ystdex::errno_t;
+	using ystdex::nullptr_t;
+	using ystdex::ptrdiff_t;
+	using ystdex::size_t;
+	using ystdex::ssize_t;
+
+	using ystdex::noncopyable;
 
 	//文件系统常量。
 	using platform::DEF_PATH_DELIMITER;
@@ -100,6 +92,15 @@ YSL_BEGIN
 
 	using platform::InitVideo;
 
+//! \brief 基础语言设施。
+YSL_BEGIN_NAMESPACE(Design)
+
+//! \brief 设计模式。
+YSL_BEGIN_NAMESPACE(Pattern)
+YSL_END_NAMESPACE(Pattern)
+
+YSL_END_NAMESPACE(Design)
+
 // !\brief 图形处理。
 YSL_BEGIN_NAMESPACE(Drawing)
 
@@ -122,37 +123,22 @@ YSL_BEGIN_NAMESPACE(Runtime)
 
 YSL_END_NAMESPACE(Runtime)
 
+YSL_BEGIN_NAMESPACE(Text)
+
+	using namespace CHRLib;
+
+YSL_END_NAMESPACE(Text)
+
+	using Text::fchar_t;
+	using Text::uchar_t;
+	using Text::uint_t;
+
 	//! \brief 运行时平台。
 	namespace DS
 	{
 		using namespace platform;
 		using namespace platform_ex;
 	}
-
-YSL_END
-
-
-//包含 FreeType2 。
-
-#include <ft2build.h>
-
-#include FT_FREETYPE_H
-#include FT_CACHE_H
-#include FT_BITMAP_H
-#include FT_GLYPH_H
-//#include FT_OUTLINE_H
-
-
-YSL_BEGIN
-
-//! \brief 基础语言设施。
-YSL_BEGIN_NAMESPACE(Design)
-
-//! \brief 设计模式。
-YSL_BEGIN_NAMESPACE(Pattern)
-YSL_END_NAMESPACE(Pattern)
-
-YSL_END_NAMESPACE(Design)
 
 YSL_END
 

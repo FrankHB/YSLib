@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2191;
+\version 0.2193;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-04-26 16:18 +0800;
+	2011-05-13 21:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -117,7 +117,7 @@ private:
 		当前 Shell 句柄：指示当前线程空间中运行的 Shell ；
 		全局单线程，生存期与进程相同。
 		*/
-	YFontCache* pFontCache; //!< 默认字体缓存。
+	FontCache* pFontCache; //!< 默认字体缓存。
 
 	/*!
 	\brief 无参数构造。
@@ -164,7 +164,7 @@ public:
 	\throw LoggedEvent 记录异常事件。
 	\note 仅抛出以上异常。
 	*/
-	YFontCache&
+	FontCache&
 	GetFontCache() const ythrow(LoggedEvent); 
 
 	/*!

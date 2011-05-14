@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-05-03 22:00 +0800;
-# Version = 0.3346;
+# UTime = 2011-05-12 10:13 +0800;
+# Version = 0.3350;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -30,7 +30,7 @@ export TARGET		:= $(shell basename $(CURDIR))
 export BUILD		?= release
 export RELEASE		= $(BUILD)
 export SOURCES		:= source data
-export INCLUDES		:= include data ../YSTest/include ../CHRLib/include ../YCLib/include ../YSLib/include
+export INCLUDES		:= include data ../YSTest/include ../YCLib/include ../YSLib/include
 export DATA			:= data
 #export GRAPHICS	:= gfx
 #export MUSIC		:= music
@@ -102,9 +102,6 @@ LIBS	:=	-lfat -lnds9
 LIBPATHEX	:= -L$(TOPDIR)/../YSTest/lib
 LIBEX		:= -lfreetype
 #LIBEX		:= -lfreetype -lagg -lloki
-
-LIBPATH_CHRLIB := -L$(TOPDIR)/../CHRLib/$(RELEASE)
-LIB_CHRLIB := -lCHRLib
 
 YCLIB_A := $(TOPDIR)/../YCLib/$(RELEASE)/libYCLib.a
 YSLIB_A := $(TOPDIR)/../YSLib/$(RELEASE)/libYSLib.a
@@ -234,7 +231,7 @@ $(ARM9BIN)	:	$(ARM9ELF)
 
 $(ARM9ELF)	:	$(OFILES)
 	@echo Linking $(notdir $@) ...
-	$(LD) $(LDFLAGS) $(OFILES) $(YCLIB_A) $(YSLIB_A) $(LIBPATHS) $(LIBS) $(LIBPATHEX) $(LIBEX) $(LIBPATH_CHRLIB) $(LIB_CHRLIB) -o $@
+	$(LD) $(LDFLAGS) $(OFILES) $(YCLIB_A) $(YSLIB_A) $(LIBPATHS) $(LIBS) $(LIBPATHEX) $(LIBEX) -o $@
 # IMPORTANT: the order of files is significant.
 
 #--------------------------------------------------------------------------------

@@ -11,12 +11,12 @@
 /*!	\file ysinit.cpp
 \ingroup Service
 \brief 程序启动时的通用初始化。
-\version 0.1787;
+\version 0.1788;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2011-05-03 19:21 +0800;
+	2011-05-13 21:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -102,7 +102,7 @@ namespace
 	\brief 读取字体文件目录并载入目录下指定后缀名的字体文件。
 	*/
 	void
-	LoadFontFileDirectory(YFontCache& fc, CPATH path/*, CPATH ext = "ttf"*/)
+	LoadFontFileDirectory(FontCache& fc, CPATH path/*, CPATH ext = "ttf"*/)
 	{
 		HDirectory dir(path);
 
@@ -152,7 +152,7 @@ InitializeSystemFontCache()
 	puts("Loading font files...");
 	GetApp().ResetFontCache(DEF_FONT_PATH);
 
-	YFontCache& fc(GetApp().GetFontCache());
+	FontCache& fc(GetApp().GetFontCache());
 
 	if(DEF_FONT_PATH)
 	{

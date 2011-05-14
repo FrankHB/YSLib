@@ -19,12 +19,12 @@
 /*!	\file platform.h
 \ingroup DS
 \brief 通用平台描述文件。
-\version 0.1307;
+\version 0.1311;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 00:05:08 +0800;
 \par 修改时间:
-	2011-05-03 12:45 +0800;
+	2011-05-12 17:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,18 +45,9 @@
 #endif
 
 
-//整数类型。
+//类型。
 #include <nds/ndstypes.h>
 
-//字符兼容性补充。
-
-#include <stdint.h>
-
-namespace ystdex
-{
-	typedef ::uint16_t uchar_t;
-	typedef ::uint32_t fchar_t;
-}
 
 //定义使用 Unicode 编码字符串。
 #ifndef UNICODE

@@ -11,12 +11,12 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version 0.1661;
+\version 0.1666;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-05-13 21:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,12 +39,13 @@ typedef u32 TimeSpan;
 //! \brief 计时器。
 class YTimer : public YCountableObject
 {
-private:
-	typedef map<u32, YTimer*> TMRs; //!< 计时器组。
+public:
+	typedef map<u32, YTimer*> TimerMap; //!< 计时器组。
 
+protected:
 	static bool NotInitialized;
 	static vu32 SystemTick;
-	static TMRs Timers;
+	static TimerMap mTimers;
 
 	TimeSpan nInterval;
 	TimeSpan nBase;

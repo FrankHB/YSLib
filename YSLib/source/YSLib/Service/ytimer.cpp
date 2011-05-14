@@ -11,12 +11,12 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version 0.1542;
+\version 0.1549;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2011-05-03 16:08 +0800;
+	2011-05-13 21:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,7 +32,7 @@ YSL_BEGIN_NAMESPACE(Timers)
 
 bool YTimer::NotInitialized(true);
 vu32 YTimer::SystemTick(0);
-YTimer::TMRs YTimer::Timers;
+YTimer::TimerMap YTimer::mTimers;
 
 YTimer::YTimer(TimeSpan i, bool a)
 	: YCountableObject(),
@@ -86,7 +86,7 @@ YTimer::RefreshAll()
 {
 	bool t(false);
 	Synchronize();
-	for(auto i(Timers.begin()); i != Timers.end(); ++i)
+	for(auto i(mTimers.begin()); i != mTimers.end(); ++i)
 		if(i->second)
 			t |= i->second->RefreshRaw();
 	return t;
@@ -95,7 +95,7 @@ YTimer::RefreshAll()
 void
 YTimer::ResetAll()
 {
-	for(auto i(Timers.begin()); i != Timers.end(); ++i)
+	for(auto i(mTimers.begin()); i != mTimers.end(); ++i)
 		if(i->second)
 			i->second->Reset();
 }
@@ -103,7 +103,7 @@ YTimer::ResetAll()
 void
 YTimer::ResetYTimer()
 {
-	for(auto i(Timers.begin()); i != Timers.end(); ++i)
+	for(auto i(mTimers.begin()); i != mTimers.end(); ++i)
 	{
 		YTimer* const p(i->second);
 		if(p)
@@ -112,7 +112,7 @@ YTimer::ResetYTimer()
 			p->Reset();
 		}
 	}
-	Timers.clear();
+	mTimers.clear();
 	ResetSystemTimer();
 }
 
@@ -121,7 +121,7 @@ Activate(YTimer& t)
 {
 	if(t.nInterval != 0)
 	{
-		YTimer::Timers[t.GetObjectID()] = &t;
+		YTimer::mTimers[t.GetObjectID()] = &t;
 		t.Synchronize();
 		t.nBase = YTimer::SystemTick;
 	}
@@ -130,7 +130,7 @@ Activate(YTimer& t)
 void
 Deactivate(YTimer& t)
 {
-	YTimer::Timers[t.GetObjectID()] = nullptr;
+	YTimer::mTimers[t.GetObjectID()] = nullptr;
 }
 
 YSL_END_NAMESPACE(Timers)
