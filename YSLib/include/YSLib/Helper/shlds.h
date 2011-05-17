@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1937;
+\version 0.1947;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-05-03 17:28 +0800;
+	2011-05-17 08:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -87,18 +87,18 @@ YSL_BEGIN_NAMESPACE(DS)
 class ShlDS : public Shells::YGUIShell
 {
 private:
-	GHandle<Desktop> hDskUp, hDskDown; \
+	shared_ptr<Desktop> hDskUp, hDskDown; \
 		//正常状态下应该总是指向有效的桌面对象。
 
 public:
 	/*!
 	\brief 无参数构造。
 	*/
-	ShlDS(GHandle<Desktop> = GetGlobal().GetDesktopUpHandle(),
-		GHandle<Desktop> = GetGlobal().GetDesktopDownHandle());
+	ShlDS(const shared_ptr<Desktop>& = GetGlobal().GetDesktopUpHandle(),
+		const shared_ptr<Desktop>& = GetGlobal().GetDesktopDownHandle());
 
-	DefGetter(const GHandle<Desktop>&, DesktopUpHandle, hDskUp)
-	DefGetter(const GHandle<Desktop>&, DesktopDownHandle, hDskDown)
+	DefGetter(const shared_ptr<Desktop>&, DesktopUpHandle, hDskUp)
+	DefGetter(const shared_ptr<Desktop>&, DesktopDownHandle, hDskDown)
 	DefGetter(Desktop&, DesktopUp, *hDskUp)
 	DefGetter(Desktop&, DesktopDown, *hDskDown)
 
@@ -155,7 +155,7 @@ inline void
 NowShellInsertDropMessage(Messaging::Priority p = 0x80)
 {
 	SendMessage(Shells::GetCurrentShellHandle(), SM_DROP, p,
-		new Messaging::GHandleContext<GHandle<YShell>>(FetchShellHandle()));
+		new Messaging::Content(FetchShellHandle()));
 }
 
 //@}

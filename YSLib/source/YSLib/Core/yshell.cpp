@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.3217;
+\version 0.3251;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-05-14 21:23 +0800;
+	2011-05-17 08:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,29 +65,27 @@ YShell::DefShlProc(const Message& msg)
 	case SM_SET:
 	case SM_DROP:
 		{
-			GHandleContext<GHandle<YShell>>* const
-				p(dynamic_cast<GHandleContext<GHandle<YShell>>*>(
-				msg.GetContextPtr().get()));
+			auto h(msg.GetContentHandle());
 
-			if(p)
+			if(h)
 			{
-				GHandle<YShell> h(p->Handle);
+				auto hShl(h->GetObject<shared_ptr<YShell>>());
 
 				switch(msg.GetMessageID())
 				{
 
 				case SM_SET:
-					return -!GetApp().SetShellHandle(h);
+					return -!GetApp().SetShellHandle(hShl);
 
 				case SM_DROP:
 					{
-						if(h == GetMainShellHandle())
+						if(hShl == GetMainShellHandle())
 							return 1;
-						else if(h->IsActive())
+						else if(hShl->IsActive())
 							GetApp().SetShellHandle(GetMainShellHandle());
-						if(h->IsActive())
+						if(hShl->IsActive())
 							return -1;
-						h.reset();
+						hShl.reset();
 					}
 				default:
 					break;
@@ -98,10 +96,10 @@ YShell::DefShlProc(const Message& msg)
 
 	case SM_QUIT:
 		{
-			GObjectContext<int>* const p(CastMessage<SM_QUIT>(msg));
+			auto h(msg.GetContentHandle());
 
-			if(p)
-				std::exit(p->Object);
+			if(h)
+				std::exit(h->GetObject<int>());
 		}
 
 	default:
@@ -136,14 +134,14 @@ YMainShell::ShlProc(const Message& msg)
 }
 
 
-GHandle<YShell>
+shared_ptr<YShell>
 GetCurrentShellHandle() ynothrow
 {
 	return GetApp().GetShellHandle();
 }
 
 bool
-Activate(GHandle<YShell> h)
+Activate(const shared_ptr<YShell>& h)
 {
 	return GetApp().SetShellHandle(h);
 }
@@ -152,19 +150,18 @@ Activate(GHandle<YShell> h)
 void
 PostQuitMessage(int nExitCode, Priority p)
 {
-	SendMessage(nullptr, SM_SET, p,
-		new GHandleContext<GHandle<YShell>>(GetMainShellHandle()));
-	SendMessage(nullptr, SM_QUIT, p,
-		new GObjectContext<int>(nExitCode));
+	SendMessage(shared_ptr<YShell>(), SM_SET, p,
+		new Content(GetMainShellHandle()));
+	SendMessage(shared_ptr<YShell>(), SM_QUIT, p, new Content(nExitCode));
 }
 
 #if YSL_DEBUG_MSG & 2
 
 static int
-PeekMessage_(Message& msg, GHandle<YShell> hShl, bool bRemoveMsg);
+PeekMessage_(Message& msg, const shared_ptr<YShell>& hShl, bool bRemoveMsg);
 
 int
-PeekMessage(Message& msg, GHandle<YShell> hShl, bool bRemoveMsg)
+PeekMessage(Message& msg, const shared_ptr<YShell>& hShl, bool bRemoveMsg)
 {
 	void YSDebug_MSG_Peek(Message&);
 	int t(PeekMessage_(msg, hShl, bRemoveMsg));
@@ -183,7 +180,7 @@ PeekMessage
 
 #endif
 
-	(Message& msg, GHandle<YShell> hShl, bool bRemoveMsg)
+	(Message& msg, const shared_ptr<YShell>& hShl, bool bRemoveMsg)
 {
 	list<Message> mqt;
 	int r(-1);
@@ -208,7 +205,7 @@ PeekMessage
 }
 
 int
-GetMessage(Message& msg, GHandle<YShell> hShl)
+GetMessage(Message& msg, const shared_ptr<YShell>& hShl)
 {
 	if(GetApp().GetDefaultMessageQueue().IsEmpty())
 		Idle();

@@ -11,12 +11,12 @@
 /*!	\file ysmsg.h
 \ingroup Core
 \brief 消息处理。
-\version 0.2145;
+\version 0.2236;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-05-03 07:29 +0800;
+	2011-05-17 09:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,10 +41,78 @@ typedef u8 Priority;
 const std::time_t DefTimeout(0);
 
 
-//! \brief 消息上下文接口。
-DeclInterface(IContext)
-	DeclIEntry(bool operator==(const IContext&) const)
-EndDecl
+//! \brief 消息内容类。
+class Content
+{
+public:
+	typedef enum
+	{
+	//	Create = 0,
+		Destroy = 1,
+		Clone = 2,
+		Equality = 3
+	} OpType;
+	typedef bool (*ManagerType)(void*&, void*&, OpType);
+
+private:
+	template<typename _type>
+	struct GManager
+	{
+		static bool
+		Do(void*& lhs, void*& rhs, OpType op)
+		{
+			switch(op)
+			{
+		//	case Create:
+		//		lhs = new _type();
+		//		return false;
+			case Destroy:
+				delete static_cast<_type*>(lhs);
+				return false;
+			case Clone:
+				YAssert(rhs, "Null pointer found"
+					" @ Messaging::Content::GManager::Do#Clone;");
+
+				lhs = new _type(*static_cast<_type*>(rhs));
+				return false;
+			case Equality:
+				YAssert(lhs && rhs, "Null pointer found"
+					" @ Messaging::Content::GManager::Do#Equlitiy;");
+
+				return *static_cast<_type*>(lhs) == *static_cast<_type*>(rhs);
+			default:
+				return false;
+			}
+			return false;
+		}
+	};
+
+	ManagerType manager;
+	mutable void* obj_ptr;
+
+public:
+	template<typename _type>
+	Content(const _type& obj)
+		: manager(&GManager<_type>::Do), obj_ptr(new _type(obj))
+	{}
+	Content(const Content&);
+	Content(Content&&);
+	~Content();
+
+	template<typename _type>
+	const _type&
+	GetObject() const
+	{
+		YAssert(obj_ptr, "Null pointer found @ Messaging::Content::GetObject;");
+		YAssert(&GManager<_type>::Do == manager, "Invalid type"
+			" @ Messaging::Content::GetObject;");
+
+		return *static_cast<const _type*>(obj_ptr);
+	}
+
+	bool
+	operator==(const Content&) const;
+};
 
 
 //! \brief 消息类。
@@ -53,10 +121,10 @@ class Message : public GMCounter<Message>
 	friend class YMessageQueue;
 
 private:
-	GHandle<YShell> hShl; //!< 目的 Shell 句柄。
+	shared_ptr<YShell> hShl; //!< 目的 Shell 句柄。
 	ID id; //!< 消息标识。
 	Priority prior; //!< 消息优先级。
-	GHandle<IContext> pContext; //消息上下文指针。
+	shared_ptr<Content> hContent; //消息内容句柄。
 
 public:
 	std::clock_t timestamp; //!< 消息时间戳：消息产生的进程时间。
@@ -67,14 +135,19 @@ private:
 public:
 	/*!
 	\brief 构造：
-		使用 Shell 句柄、消息标识、消息优先级、光标位置和消息上下文指针。
+		使用 Shell 句柄、消息标识、消息优先级、光标位置和消息内容指针。
 	*/
-	Message(GHandle<YShell> = GHandle<YShell>(), ID = 0, Priority = 0,
-		GHandle<IContext> = GHandle<IContext>());
+	Message(const shared_ptr<YShell>& = shared_ptr<YShell>(), ID = 0,
+		Priority = 0, const shared_ptr<Content>& = shared_ptr<Content>());
+
 	/*!
-	\brief 复制构造。
+	\brief 复制构造：默认实现。
 	*/
-	Message(const Message&);
+	Message(const Message&) = default;
+	/*!
+	\brief 移动构造：默认实现。
+	*/
+	Message(Message&&) = default;
 
 	/*
 	\brief 复制赋值。
@@ -92,10 +165,11 @@ public:
 		//!< 判断消息是否过期。
 	DefPredicate(Valid, id) //!< 判断消息是否有效。
 
-	DefGetter(GHandle<YShell>, ShellHandle, hShl) //!< 取关联的 Shell 句柄。
+	DefGetter(shared_ptr<YShell>, ShellHandle, hShl) //!< 取关联的 Shell 句柄。
 	DefGetter(ID, MessageID, id) //!< 取消息标识。
 	DefGetter(Priority, Priority, prior) //!< 取消息优先级。
-	DefGetter(GHandle<IContext>, ContextPtr, pContext) //!< 取消息上下文。
+	DefGetter(shared_ptr<Content>, ContentHandle, hContent) \
+		//!< 取消息内容句柄。
 
 	/*
 	\brief 交换。
@@ -151,17 +225,10 @@ public:
 	typedef priority_queue<int, vector<int>, cmp>::size_type SizeType;
 
 	/*!
-	\brief 无参数构造。
-	\note 非内联。
+	\brief 无参数构造：默认实现。
 	*/
-	YMessageQueue();
-	/*!
-	\brief 析构。
-	\note 无异常抛出。
-	\note 非内联。
-	*/
-	virtual
-	~YMessageQueue() ynothrow;
+	inline
+	YMessageQueue() = default;
 
 	DefPredicate(Empty, q.empty()) //!< 判断消息队列是否为空。
 

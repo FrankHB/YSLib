@@ -11,12 +11,12 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version 0.2105;
+\version 0.2109;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2011-04-23 09:11 +0800;
+	2011-05-17 07:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -67,7 +67,7 @@ namespace
 	{
 		iprintf("time : %u ticks\n", GetTicks());
 
-		Messaging::IContext* pContext(raw(msg.GetContextPtr()));
+		Messaging::Content* pContext(raw(msg.GetContentHandle()));
 
 		iprintf("Message : 0x%04X;\n""Prior : 0x%02X;\nObject ID : %d\n"
 			"Context pointer: %p\n",

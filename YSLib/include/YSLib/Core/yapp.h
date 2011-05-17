@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2193;
+\version 0.2208;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-05-13 21:15 +0800;
+	2011-05-17 09:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -112,7 +112,7 @@ private:
 	YMessageQueue* pMessageQueue; //!< 主消息队列：在程序实例中实现以保证单线程。
 	YMessageQueue* pMessageQueueBackup; \
 		//!< 备份消息队列：在程序实例中实现以保证单线程。
-	GHandle<YShell> hShell;
+	shared_ptr<YShell> hShell;
 		/*!<
 		当前 Shell 句柄：指示当前线程空间中运行的 Shell ；
 		全局单线程，生存期与进程相同。
@@ -143,7 +143,7 @@ public:
 	*/
 	static YApplication&
 	GetInstance() ynothrow;
-	DefGetter(GHandle<YShell>, ShellHandle, hShell) \
+	DefGetter(shared_ptr<YShell>, ShellHandle, hShell) \
 		//!< 取得线程空间中当前运行的 Shell 的句柄。
 	/*!
 	\brief 取主消息队列。
@@ -171,7 +171,7 @@ public:
 	\brief 设置线程空间中当前运行的 Shell 的句柄。
 	*/
 	bool
-	SetShellHandle(GHandle<YShell> h);
+	SetShellHandle(const shared_ptr<YShell>&);
 
 	/*!
 	\brief 复位线程：设置当前运行的线程为主线程。
@@ -195,21 +195,20 @@ public:
 
 	//启动线程消息循环。
 //	void
-//	Run(GHandle<YShell>);
+//	Run(shared_ptr<YShell>);
 };
 
 
 /*!
 \brief 全局默认队列消息发送函数。
 */
+//@{
 void
 SendMessage(const Message&) ynothrow;
-/*!
-\brief 全局默认队列消息发送函数。
-*/
 void
-SendMessage(GHandle<YShell>, Messaging::ID, Messaging::Priority,
-	Messaging::IContext* = nullptr) ynothrow;
+SendMessage(const shared_ptr<YShell>&, Messaging::ID, Messaging::Priority,
+	Messaging::Content* = nullptr) ynothrow;
+//@}
 
 YSL_END
 

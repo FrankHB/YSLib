@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2101;
+\version 0.2120;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-05-14 20:53 +0800;
+	2011-05-17 03:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,6 @@
 #define YSL_INC_CORE_YFILESYS_H_
 
 #include "ystring.h"
-#include "yfunc.hpp"
 #include "yshell.h" // for GHHandle<YShell> delete procedure;
 #include <iterator>
 
@@ -563,30 +562,8 @@ ValidateDirectory(const Path& path)
 }
 
 
-//! \brief 文件名过滤器。
-typedef bool FNFILTER(const String&);
-typedef FNFILTER* PFNFILTER;
-
-struct HFileNameFilter : public GHBase<PFNFILTER>
-{
-	/*!
-	\brief 构造：使用函数指针。
-	*/
-	HFileNameFilter(const PFNFILTER pf = nullptr)
-	: GHBase<PFNFILTER>(pf)
-	{}
-
-	/*!
-	\brief 调用函数。
-	*/
-	bool
-	operator()(const String& name) const
-	{
-		if(GetPtr())
-			return GetPtr()(name);
-		return -1;
-	}
-};
+// \brief 文件名过滤器。
+// TODO: define & impl;
 
 
 //! \brief 文件列表模块。
@@ -598,7 +575,7 @@ public:
 
 protected:
 	Path Directory; //!< 目录的完整路径。
-	GHandle<ListType> pList; //!< 目录中的项目列表句柄。
+	shared_ptr<ListType> hList; //!< 目录中的项目列表句柄。
 
 public:
 	/*!
@@ -630,7 +607,7 @@ public:
 	operator/=(const String&);
 
 	DefGetter(const Path&, Directory, Directory) //!< 取目录的完整路径。
-	DefGetter(GHandle<ListType>, ListPtr, pList); //!< 取项目列表的弱指针。
+	DefGetter(shared_ptr<ListType>, ListPtr, hList); //!< 取项目列表句柄。
 //	DefGetter(const ListType&, List, List) //!< 取项目列表。
 
 	/*!

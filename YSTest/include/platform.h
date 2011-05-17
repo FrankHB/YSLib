@@ -19,12 +19,12 @@
 /*!	\file platform.h
 \ingroup DS
 \brief 通用平台描述文件。
-\version 0.1311;
+\version 0.1314;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 00:05:08 +0800;
 \par 修改时间:
-	2011-05-12 17:31 +0800;
+	2011-05-16 04:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -47,14 +47,6 @@
 
 //类型。
 #include <nds/ndstypes.h>
-
-
-//定义使用 Unicode 编码字符串。
-#ifndef UNICODE
-#	define UNICODE
-//宽字符支持。
-#	define CHRLIB_WCHAR_T_SIZE 4
-#endif
 
 #endif
 

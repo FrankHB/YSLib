@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2131;
+\version 0.2142;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-05-03 17:28 +0800;
+	2011-05-17 08:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -78,10 +78,10 @@ IWindow* NewWindow()
 \brief 取全局 Shell 句柄。
 */
 template<class _tShl>
-inline GHandle<YShell>
+inline shared_ptr<YShell>
 FetchStored()
 {
-	return GLocalStaticCache<_tShl, GHandle<YShell>>::GetPointer();
+	return GLocalStaticCache<_tShl, shared_ptr<YShell>>::GetPointer();
 }
 
 /*!
@@ -91,7 +91,7 @@ template<class _tShl>
 inline void
 ReleaseStored()
 {
-	GLocalStaticCache<_tShl, GHandle<YShell>>::Release();
+	GLocalStaticCache<_tShl, shared_ptr<YShell>>::Release();
 }
 
 
@@ -99,7 +99,7 @@ ReleaseStored()
 \brief 判断句柄指定的 Shell 是否为当前线程空间中运行的 Shell 。
 */
 inline bool
-IsNowShell(GHandle<YShell> hShl)
+IsNowShell(const shared_ptr<YShell>& hShl)
 {
 	return GetApp().GetShellHandle() == hShl;
 }
@@ -108,7 +108,7 @@ IsNowShell(GHandle<YShell> hShl)
 \brief 向句柄指定的 Shell 对象转移线程控制权。
 */
 inline errno_t
-NowShellTo(GHandle<YShell> hShl)
+NowShellTo(const shared_ptr<YShell>& hShl)
 {
 	return -!Shells::Activate(hShl);
 }
@@ -137,10 +137,10 @@ NowShellToStored()
 \brief 通过主消息队列向指定 Shell 对象转移控制权。
 */
 inline void
-SetShellTo(GHandle<YShell> hShl, Messaging::Priority p = 0x80)
+SetShellTo(const shared_ptr<YShell>& hShl, Messaging::Priority p = 0x80)
 {
 	SendMessage(Shells::GetCurrentShellHandle(), SM_SET, p,
-		new Messaging::GHandleContext<GHandle<YShell>>(hShl));
+		new Messaging::Content(hShl));
 }
 
 /*!
@@ -205,17 +205,17 @@ ScrDraw(BitmapPtr buf, PPDRAW f)
 /*!
 \brief 新建屏幕图像。
 */
-inline GHandle<Image>
+inline shared_ptr<Image>
 NewScrImage(ConstBitmapPtr p)
 {
-	return new Image(p, Global::MainScreenWidth,
-		Global::MainScreenHeight);
+	return share_raw(new Image(p, Global::MainScreenWidth,
+		Global::MainScreenHeight));
 }
 
 /*!
 \brief 新建屏幕图像并指定绘图函数填充。
 */
-GHandle<Image>
+shared_ptr<Image>
 NewScrImage(PPDRAW f, BitmapPtr gbuf = nullptr);
 
 /*!

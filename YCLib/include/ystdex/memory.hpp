@@ -11,12 +11,12 @@
 /*!	\file memory.hpp
 \ingroup YCLib
 \brief 存储和智能指针特性。
-\version 0.1094;
+\version 0.1102;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-14 12:25:13 +0800; 
 \par 修改时间:
-	2011-05-14 19:05 +0800;
+	2011-05-15 21:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -112,11 +112,14 @@ namespace ystdex
 	//@}
 
 
-	/*!
+	/*!	\defgroup share_raw Get Shared Pointers
 	\brief 使用指定类型指针构造 std::shared_ptr 实例。
 	\param _type 被指向类型。
-	\param _pSrc 指定指针类型。
 	\note 不检查指针是否有效。
+	*/
+	//@{
+	/*!
+	\param _pSrc 指定指针类型。
 	*/
 	template<typename _type, typename _pSrc>
 	inline std::shared_ptr<_type>
@@ -125,10 +128,7 @@ namespace ystdex
 		return std::shared_ptr<_type>(p);
 	}
 	/*!
-	\brief 使用指定类型指针构造 std::shared_ptr 实例。
-	\param _type 被指向类型。
 	\param _pSrc 指定指针类型。
-	\note 不检查指针是否有效。
 	*/
 	template<typename _type, typename _pSrc>
 	inline std::shared_ptr<_type>
@@ -136,11 +136,6 @@ namespace ystdex
 	{
 		return std::shared_ptr<_type>(p);
 	}
-	/*!
-	\brief 使用内建指针构造 std::shared_ptr 实例。
-	\param _type 被指向类型。
-	\note 不检查指针是否有效。
-	*/
 	template<typename _type>
 	inline std::shared_ptr<_type>
 	share_raw(_type* p)
@@ -148,8 +143,7 @@ namespace ystdex
 		return std::shared_ptr<_type>(p);
 	}
 	/*!
-	\brief 使用空指针构造 std::shared_ptr 空实例。
-	\param _type 被指向类型。
+	\note 使用空指针构造 std::shared_ptr 空实例。
 	*/
 	template<typename _type>
 	inline std::shared_ptr<_type>

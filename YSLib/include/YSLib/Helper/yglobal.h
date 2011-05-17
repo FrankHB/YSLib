@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2159;
+\version 0.2180;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-05-10 15:28 +0800;
+	2011-05-17 08:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -67,19 +67,18 @@ public:
 	static const SDst MainScreenWidth, MainScreenHeight;
 
 private:
-	GHandle<YScreen> hScreenUp; //<! DS 上屏幕句柄。
-	GHandle<YScreen> hScreenDown; //<! DS 上屏幕句柄。
-	GHandle<Desktop> hDesktopUp; //<! DS 下屏幕默认桌面句柄。
-	GHandle<Desktop> hDesktopDown; //<! DS 下屏幕默认桌面句柄。
+	shared_ptr<YScreen> hScreenUp; //<! DS 上屏幕句柄。
+	shared_ptr<YScreen> hScreenDown; //<! DS 上屏幕句柄。
+	shared_ptr<Desktop> hDesktopUp; //<! DS 下屏幕默认桌面句柄。
+	shared_ptr<Desktop> hDesktopDown; //<! DS 下屏幕默认桌面句柄。
 
 	Global(); //!< 构造函数：非内联。
-	~Global(); //!< 析构函数：非内联。
 
 public:
-	DefGetter(const GHandle<YScreen>&, ScreenUpHandle, hScreenUp)
-	DefGetter(const GHandle<YScreen>&, ScreenDownHandle, hScreenDown)
-	DefGetter(const GHandle<Desktop>&, DesktopUpHandle, hDesktopUp)
-	DefGetter(const GHandle<Desktop>&, DesktopDownHandle, hDesktopDown)
+	DefGetter(const shared_ptr<YScreen>&, ScreenUpHandle, hScreenUp)
+	DefGetter(const shared_ptr<YScreen>&, ScreenDownHandle, hScreenDown)
+	DefGetter(const shared_ptr<Desktop>&, DesktopUpHandle, hDesktopUp)
+	DefGetter(const shared_ptr<Desktop>&, DesktopDownHandle, hDesktopDown)
 	/*!
 	\brief 取上屏幕。
 	\note 断言检查：句柄非空。
@@ -166,28 +165,28 @@ GetApp();
 	因为 YMainShell 的基类 YShell 的构造函数
 	调用了 YApplication 的非静态成员函数。
 */
-const GHandle<YShell>&
+const shared_ptr<YShell>&
 GetMainShellHandle();
 
 
 YSL_BEGIN_NAMESPACE(Messaging)
 
-//! \brief 输入消息上下文。
-class InputContext : implements IContext
+//! \brief 输入消息内容。
+class InputContent
 {
 public:
 	Runtime::KeysInfo Key;
 	Drawing::Point CursorLocation;
 
 	explicit
-	InputContext(Runtime::KeysInfo, const Drawing::Point&);
+	InputContent(Runtime::KeysInfo, const Drawing::Point&);
 
-	ImplI1(IContext) bool
-	operator==(const IContext&) const;
+	bool
+	operator==(const InputContent&) const;
 };
 
 inline
-InputContext::InputContext(Runtime::KeysInfo k, const Drawing::Point& pt)
+InputContent::InputContent(Runtime::KeysInfo k, const Drawing::Point& pt)
 	: Key(k), CursorLocation(pt)
 {}
 
@@ -210,12 +209,6 @@ InitConsole(YScreen&, Drawing::PixelType, Drawing::PixelType);
 */
 void
 Destroy_Static(YObject&, EventArgs&&);
-
-/*!
-\brief 公共消息处理函数。
-*/
-int
-ShlProc(GHandle<YShell>, const Message&);
 
 
 //全局函数。

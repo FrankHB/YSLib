@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面。
-\version 0.3774;
+\version 0.3783;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-05-14 20:51 +0800;
+	2011-05-17 08:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -310,11 +310,14 @@ YGUIShell::ShlProc(const Message& msg)
 	{
 	case SM_PAINT:
 		{
-			GHandleContext<GHandle<Desktop>>* const
-				p(CastMessage<SM_PAINT>(msg));
+			auto h(msg.GetContentHandle());
 
-			if(p && p->Handle)
-				p->Handle->Paint();
+			if(h)
+			{
+				auto hShl(h->GetObject<shared_ptr<Desktop>>());
+
+				hShl->Paint();
+			}
 		}
 		return 0;
 	default:
@@ -328,10 +331,10 @@ YSL_END_NAMESPACE(Shells)
 YGUIShell&
 FetchGUIShell()
 {
-	GHandle<YGUIShell> hShl(dynamic_pointer_cast<YGUIShell>(
+	shared_ptr<YGUIShell> hShl(dynamic_pointer_cast<YGUIShell>(
 		FetchShellHandle()));
 
-	YAssert(hShl, "Invalid handle found @ FetchGUIShell;");
+	YAssert(is_valid(hShl), "Invalid handle found @ FetchGUIShell;");
 
 	return *hShl;
 }

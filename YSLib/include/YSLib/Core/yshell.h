@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version 0.2842;
+\version 0.2858;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-04-26 16:26 +0800;
+	2011-05-17 02:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -101,7 +101,7 @@ public:
 \ingroup HelperFunction
 \brief 取当前应用程序活动 Shell 句柄。
 */
-GHandle<YShell>
+shared_ptr<YShell>
 GetCurrentShellHandle() ynothrow;
 
 /*!
@@ -109,34 +109,7 @@ GetCurrentShellHandle() ynothrow;
 \brief 激活 Shell 对象：ShlProc 控制权转移给此对象以维持单线程运行。
 */
 bool
-Activate(GHandle<YShell>);
-
-
-typedef int FSHLPROC(const Message&);
-typedef FSHLPROC* PFSHLPROC;
-
-
-// Shell 处理函数句柄。
-struct HShellProc : public GHBase<PFSHLPROC>
-{
-	/*!
-	\brief 构造：使用函数指针。
-	*/
-	HShellProc(const PFSHLPROC pf = nullptr)
-	: GHBase<PFSHLPROC>(pf)
-	{}
-
-	/*!
-	\brief 调用函数。
-	*/
-	int
-	operator()(const Message& msg) const
-	{
-		if(GetPtr())
-			return GetPtr()(msg);
-		return -1;
-	}
-};
+Activate(const shared_ptr<YShell>&);
 
 
 /*!
@@ -164,7 +137,8 @@ DefShellProc(const Message& msg)
 \param bRemoveMsg 确定取得的消息是否消息队列中清除。
 */
 int
-PeekMessage(Message& msg, GHandle<YShell> hShl = GetCurrentShellHandle(),
+PeekMessage(Message& msg,
+	const shared_ptr<YShell>& hShl = GetCurrentShellHandle(),
 	bool bRemoveMsg = false);
 
 /*!
@@ -172,7 +146,8 @@ PeekMessage(Message& msg, GHandle<YShell> hShl = GetCurrentShellHandle(),
 \note 若消息队列为空则调用 Idle() 等待消息。取得的消息从消息队列中清除。
 */
 int
-GetMessage(Message& msg, GHandle<YShell> hShl = GetCurrentShellHandle());
+GetMessage(Message& msg,
+	const shared_ptr<YShell>& hShl = GetCurrentShellHandle());
 
 /*!
 \brief 翻译消息：空实现。

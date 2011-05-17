@@ -1,4 +1,4 @@
-//v0.3132; *Build 209 r27;
+//v0.3132; *Build 210 r98;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -216,283 +216,283 @@ $using:
 
 $DONE:
 r1:
-/= test 0 ^ \conf release;
+/ \tr \impl @ \impl \u (DSReader & YFileSystem & YApplication & Shell_DS & YGUI)
+	^ is_valid;
 
-r2:
-/ \mg \lib CHRLib -> \dir CHRLib @ \lib YCLib;
-/ \tr makefile @ \lib YCLib;
-/ \tr @ \h YAdaptor;
-/ \tr makefile @ ARM9;
-
-r3:
-/= test 1 ^ \conf release;
-
-r4:
-/ \ac @ \inh public std::function<typename GSEventTypeSpace<_tSender,
-	_tEventArgs>::FuncType> @ \clt GHEvent -> protected ~ public @ \h YEvent;
+r2-r4:
+/ @ \clt GDependency @ \h YObject:
+	/ \impl @ \mf GetCopyOnWritePtr ^ (\exp \ctor & is_valid);
+	/ \de \param -> PointerType() ~ nullptr @ \ctor;
+/ \a !\exp \i \mf @ \clt (GHandle & GHWeak) -> \exp \i \mf;
 
 r5:
-/ @ \clt GEvent \h YEvent:
-	/= \impl @ \mf (Add & Remove);
-	/ \a \op+= -> AddUnique;
-	/ \mf Add => AddUnique;
-	/ protected \a unary \mf AddRaw -> public \op+=;
-	/ protected \a unary \mf AddRaw => public Add;
-	+ \mf \i bool Contains(const HandlerType&) const;
-	+ \mft<typename _type> \i bool Contains(_type) const;
+/= test 1 ^ \conf release;
 
-r6:
-/ \inc <platform.h> -> <ydef.h> @ \h CHRDefinition;
-/ namespace ystdex
-	{
-		typedef ::uint16_t uchar_t;
-		typedef ::uint32_t fchar_t;
-	} >> \h <ydef.h> ~ <platform.h>;
-/ @ \h <ydef.h>:
-	+ \inc \h <cstddef>;
-	+ \inc \h <cstdint>;
-	+ \inc \h <sys/types.h>
-	/ @ \ns ystdex:
-		+ {
-			typedef std::uint8_t	u8;
-			typedef std::uint16_t	u16;
-			typedef std::uint32_t	u32;
-			typedef std::uint64_t	u64;
-			typedef std::int8_t		s8;
-			typedef std::int16_t	s16;
-			typedef std::int32_t	s32;
-			typedef std::int64_t	s64;
-			typedef volatile u8		vu8;
-			typedef volatile u16	vu16;
-			typedef volatile u32	vu32;
-			typedef volatile u64	vu64;
-			typedef volatile s8		vs8;
-			typedef volatile s16	vs16;
-			typedef volatile s32	vs32;
-			typedef volatile s64	vs64;
-
-			typedef u8 byte;
-
-		//	typedef decltype(nullptr) nullptr_t;
-			// TODO: using std::nullptr_t;
-			using std::ptrdiff_t;
-			using std::size_t;
-			using ::ssize_t;
-		}
-	/ typedef ::uint16_t uchar_t -> typedef u16 uchar_t;
-	/ typedef ::uint32_t fchar_t -> typedef u32 fchar_t;
-/ @ \h CHRDefinition:
-	/ \tr typedef s32 uint_t -> typedef ystdex::s32 uint_t;
-- \inc \h <stdint.h> @ \h <platform.h>;
-/ \tr using @ \impl \u @ \lib CHRLib;
-/ @ \h YAdaptor:
-	*= using:
-		- namespace ystdex
-		{
-			using CHRLib::uchar_t;
-			using CHRLib::uint_t;
-		};
-	/ @ \ns YSLib:
-		+ {
-			using ystdex::u8;
-			using ystdex::u16;
-			using ystdex::u32;
-			using ystdex::u64;
-			using ystdex::s8;
-			using ystdex::s16;
-			using ystdex::s32;
-			using ystdex::s64;
-
-			using ystdex::errno_t;
-			using ystdex::nullptr_t;
-			using ystdex::ptrdiff_t;
-			using ystdex::size_t;
-			using ystdex::ssize_t;
-
-			using ystdex::noncopyable;
-		};
-		- using namespace ystdex;
-	/ \tr \n @ \h (YCoreUtilities & YFont & YEvent & YGDI & YWindow
-		& YUIContainer & YViewer);
-	+ using namespace ystdex @ \g \ns @ \impl \u (YFileSystem & Shells
-		& Scroll & YGDI & YStyle & YText);
-
-r7:
+r6-r11:
+/ \de \param @ \h (YWindow & Form):
+	* \de \param \def:
+		/ \a ynew -> new;
+	^ share_raw;
+/ \de \param @ \h (YLabel & YMenu & ListBox);
 /= test 2 ^ \conf release;
 
-r8:
-+ \mf void OnClick_btnMenuTest(TouchEventArgs&&) @ \cl ShlSetting::TFormTest
-	@ \u Shells;
-/ @ \h YGDIBase:
-	+ \i \f Rect operator+(const Rect&, const Vec&);
-	+ \i \f Rect operator-(const Rect&, const Vec&);
+r12:
+/= test 3;
 
-r9:
-/ \tr \impl @ \ctor @ \cl ShlSetting::TFormTest @ \impl \u Shells;
+r13:
+/ \impl @ \f \i NewScrImage ^ share_raw @ \h YShellHelper; 
+/ \impl @ \impl \u (YApplication & Shell_DS & YLabel) ^ share_raw;
 
-r10:
-* \impl @ \ctor @ \cl ShlSetting::TFormTest @ \impl \u Shells;
-
-r11-r14:
-* \impl @ \ctor @ \cl ShlSetting::TFormTest @ \impl \u Shells;
-
-r15:
-/ \impl @ \ctor @ \cl ShlSetting::TFormTest @ \impl \u Shells;
-
-r16:
-* \a 2 \mac PDefHOperator @ \h YFont => PDefHOperator1;
-+ \cl MenuHost @ \impl \u Shells;
-/ @ \h YAdaptor:
-	/ \inc <ft2build.h> & {
-		#include FT_FREETYPE_H
-		#include FT_CACHE_H
-		#include FT_BITMAP_H
-		#include FT_GLYPH_H
-	} >> \h YFont;
-
-r17:
-/ @ \lib YSLib:
-	/ \simp @ \cl MUIContainer:
-		/ \mg protected \mf bool RemoveWidget(IWidget*) -> public \mf
-			bool operator-=(IWidget*);
-		/ \tr \impl @ \mf bool MUIContainer::operator-=(IControl*);
-	/ \dir Shell => UI;
-	/ \u YGDI >> \dir Core ~ \dir Shell;
-	/ \tr \inc \h \ren @ (\h (YResource & Build & DSReader & YText
-		& YWidget & Scroll & YGDI & \impl \u (YDevice & YMessage & YGlobal));
-	/ \tr @ Makefile;
-
-r18:
-/= test 3 ^ \conf release;
-
-r19:
-/ \u YFont:
-	/ \a FTypes => FaceSet;
-	/ \a FTypesIndex => FaceMap;
-	/ \a FFiles => FileSet;
-	/ \a FFaces => FamilySet;
-	/ \a FFacesIndex => FamilyMap;
-	/ @ \cl FontFamily:
-		/ private \m FaceSet sTypes -> protected \m FaceSet sFaces;
-		/ private \m FaceMap mTypesIndex -> protected \m FaceMap mFaces;
-	/ \cl Typeface:
-		/ private \m FT_Long faceIndex => face_index;
-		/ private \m FT_Int cmapIndex => cmap_index;
-	/ private mutable \m FT_Long nFace @ \cl FontFile => face_num;
-	/ @ \cl YFontCache:
-		/ private \m {
-			FileSet sFiles;
-			FaceSet sTypes;
-			FamilySet sFaces;
-			FamilyMap mFacesIndex;
-
-			Typeface* pDefaultFace;
-		}
-		-> protected \m {
-			FileSet sFiles;
-			FaceSet sFaces;
-			FamilySet sFamilies;
-			FamilyMap mFamilies;
-
-			Typeface* pDefaultFace;
-		}
-		/ \inh YObject -> noncopyable;
-		/ \tr \impl @ \ctor;
-/ \cl \n YFontCache => FontCache;
-/ @ \u YUIContainer:
-	/ @ \cl MUIContainer:
-		/ \m typedef set<GMFocusResponser<IControl>*> FOCs => FocusContainerSet;
-		/ \m FocusContainerSet sFOCSet => sFocusContainers;
-		/ \m WGTs WidgetsList => sWidgets;
-		/ \m typedef list<ItemType> WGTs => WidgetList;
-/ @ \cl YTimer @ \u YTimer:
-	/ private typedef map<u32, YTimer*> TMRs
-		-> public typedef map<u32, YTimer*> TimerMap;
-	/ \a private \m -> protected;
-	/ \m static TimerMap Timers => mTimers;
-/ typedef set<ItemType> MNUs => MenuSet @ \ cl MenuHost @ \impl \u Shells;
-/ @ \clt GMFocusResponser @ \h YFocus:
-	/ \m typedef set<_type*> FOs => FocusObjectSet;
-	/ \m FocusObjectSet sFOs => sFocusObjects;
-/ \tr @ \impl @ \cl;
-
-r20:
-/ @ \cl MenuHost @ \impl \u Shells:
-	+ typedef size_t ID;
-	/ typedef set<ItemType> MenuSet -> typedef map<ID, ItemType> MenuMap;
-	/ \tr MenuSet sMenus -> MenuMap sMenus;
-	+ typedef MenuMap::value_type ValueType;
-	/ \param \tp @ \op+= -> const ValueType& ~ Menu*;
-	/ \param \tp @ \op-= -> ID ~ Menu*;
-	/ \tr \impl @ \dtor;
-*= @ \impl \u YFont:
-	+ using std::for_each;
-
-r21:
--= "yaslivsp.hpp" @ \dir Adaptor;
+r14:
 /= test 4 ^ \conf release;
 
-r22-r26:
-/ @ \dir ystdex @ lib YCLib:
-	+ @ \h Memory["memory.hpp"];
-	/ \h Utilities["util.hpp"] => ["utility.hpp"];
-	/ \tr \mac @ \h Utilities;
-/ @ \h YCommon:
-	- \inc "ystdex/cast.hpp";
-	- \inc "ystdex/iterator.hpp";
-	- \inc "ystdex/util.hpp" @ \impl \u;
-	* nullptr:
-		/ \a ystdex::nullptr -> nullptr;
-/ \tr \inc "ystdex/util.hpp" -> <ystdex/utility.hpp> @ \impl \u YStandardExtend;
-/ @ \h YReference:
-	+ \inc \h <ystdex/memory.hpp>
-	+ using ystdex::is_valid;
-	+ using ystdex::raw;
-	+ using ystdex::reset;
-	+ using ystdex::share_raw;
-	+ \ft<typename _type> \i bool operator==(const shared_ptr<_type>&, _type*);
-	+ \ft<typename _type> \i bool operator!=(const shared_ptr<_type>&, _type*);
-	+ \ft<typename _type> \i bool operator==(shared_ptr<_type>&&, _type*);
-	+ \ft<typename _type> \i bool operator!=(shared_ptr<_type>&&, _type*);
-	/ \a \ft (raw & reset) \exc \param \tp (GHandle | GHWeak)
-		>> \ns ystdex @ \h Memory @ \dir ystdex @ \lib YCLib;
-	- \tr 3 \ft raw;
-	- \tr 2 \ft reset;
-	- \mf (\op== & \op!=) @ \clt GHandle;
-/ \a \m initializers '(nullptr)' @ \ctor \impl -> '()';
-+ \inc \h (<ystdex/iterator.hpp> & <ystdex/cast.hpp>) @ \h YAdaptor;
-/ @ \impl \u Shells:
-	/ \simp \impl @ \mf OnDeactivated @ \cl (ShlSetting & ShlLoad & ShlExplorer)
-	^ reset;
-	/ \impl @ \f ReleaseShells ^ reset ~ \mf (reset @ \clt shared_ptr);
-	/ \a GetGlobalImageRef => GetGlobalImage;
-/ \impl @ \h YStatic;
-/= test 5 ^ \conf release;
-/ \impl @ \mf (YShell::DefShlProc & Global::ReleaseDevices):
-	^ reset_pointer ~ \mf (reset @ \clt shared_ptr);
-/ \a reset_pointer => reset;
-/ \impl @ \mf bool YShell::IsActive() const;
+r15:
+/ \de \param -> PointerType() ~ nullptr @ \ctor @ \clt GDependencyEvent
+	@ \h YEvent;
 
-r27:
+r16:
+/= test 5 ^ \conf release;
+
+r17:
+/ \impl @ \u Shells ^ \exp \de \ctor ~ nullptr;
+/ \impl @ \impl \u YShell ^ \exp \de \ctor ~ nullptr;
+
+r18:
 /= test 6 ^ \conf release;
+
+r19-r58:
+/= test 7-9 ^ \conf release;
+/ @ \h YReference:
+	- \mf (\op bool & \op!) \clt GHandle;
+	- \clt GHWeak;
+	- \tr \a \ft with \param \tp 'GHWeak';
+/= test 10;
+/= test 11 ^ \conf release;
+/= test 12;
+/ \rem @ \h Memory;
+/= test 13-16 ^ \conf release;
+/= test 17;
+/= test 18 ^ \conf release;
+/ \simp @ \h YFileSystem:
+	- \stt HFileNameFilter;
+	- typedef bool FNFILTER(const String&);
+	- typedef FNFILTER* PFNFILTER;	
+	- \inc \h "yfunc.hpp"
+/ \simp @ \h YShell:
+	- \stt HShellProc;
+	- typedef int FSHLPROC(const Message&);
+	- typedef FSHLPROC* PFSHLPROC;
+	- \inc \h "yfunc.hpp"
+/ \simp @ \h YFunc:
+	- \clt GHBase;
+	/ \rem \clt GHDynamicFunction;
+	/ \rem 2 \ft ConstructDynamicFunctionWith;
+/ @ \h Utilities:
+	+ \mac #define yforward(_expr) std::forward<typename \
+		std::remove_reference<decltype(_expr)>::type>(_expr);
+- \mac (CHRLIB_WCHAR_T_SIZE & UNICODE) @ \h Platform;
+- \mac UNICODE @ \h YCommon;
+/ \a 7 (^ std::forward) -> (^ yforward) @ \h YEvent;
+/ \a 4 (^ std::forward) -> (^ yforward) @ \h YFunc;
+
+r59:
+/= test 18 ^ \conf release;
+
+r60:
+/ \impl @ \smf Check @ \clt (GStaticCache & GLocalStaticCache) @ \h YStatic;
+- \a \c @ \tp shared_ptr<*> @ \param;
+
+r61:
+/= test 19 ^ \conf release;
+
+r62:
+/ @ \h YReference:
+	- \t \ctor @ \clt GHandle;
+	/ \i \ctor @ \clt GHandle -> SPT&& ~ const SPT @ \clt GHandle;
+/ \impl @ \f WaitForGUIInput @ \un \ns @ \impl \u YGlobal;
+
+r63:
+/= test 20 ^ \conf release;
+
+r64:
+- \de \param @ \ctor \i GHandle(nullptr_t = nullptr)
+	@ \clt GHandle @ \h YReference;
+
+r65-r78:
+/= test 21;
+
+r79:
+/ \impl @ \f void SendMessage(GHandle<YShell>, Messaging::ID,
+	Messaging::Priority, Messaging::IContext*) ynothrow ^ share_raw
+	@ \impl \u YApplication;
+/ \impl @ \mft GetEvent @ \clt EventMap @ \h YEvent;
+/ \impl @ \mf void ShlSetting::TFormTest::OnClick_btnMenuTest(TouchEventArgs&&)
+	@ \cl Shells;
+
+r80:
+/= test 22 ^ \conf release;
+
+r81:
+/ \a GHandle -> shared_ptr \exc \h YReference;
+/ @ \h YReference:
+	- \clt GHandle;
+	- \tr \a \ft with \param \tp 'GHandle';
+
+r82:
+/= test 23 ^ \conf release;
+
+r83-r85:
+/ @ \u YShellMessage:
+	/ @ \cl Message:
+		^ \exp \de @ copy \ctor;
+		+ move \cotr ^ \exp \de;
+		^ value \tp shared_ptr<*> -> \c lvalue \ref \param @ \ctor;
+		/ \a \m pContext => hContext;
+	/ @ \cl YMessageQueue:
+		- \dtor;
+		/ \ctor ^ \i \exp \de;
+
+r86:
+^ \a value \tp shared_ptr<*> -> \c lvalue \ref \param @ \ctor;
+/ \m pList => hList @ \cl FileList @ \u YFileSystem;
+/ \m spBgImage => hBgImage @ \cl MWindow @ \u YWindow;
+
+r87:
+/= test 24 ^ \conf release;
+
+r88:
+/ @ \u YGlobal:
+	- \dtor @ \cl Global;
+	- \f int ShlProc(const shared_ptr<YShell>&, const Message&);
+
+r89:
+/ \a IContext => IContent;
+/ \a InputContext => InputContent;
+/ \a GHandleContext => GHandleContent;
+/ \a GObjectContext => GObjectContent;
+/ @ \ns Messaging @ \u YShellMessage:
+	/ \mf GetContextPtr => GetContentHandle;
+	/ \m hContext => hContent;
+
+r90:
+/ @ \ns Messaging @ \u YShellMessage:
+	+ \cl Content;
+	/ @ \cl Message:
+		/ \m shared_ptr<IContent> hContent -> shared_ptr<Content> hContent;
+		/ \mf DefGetter(shared_ptr<IContent>, ContentHandle, hContent)
+			-> DefGetter(shared_ptr<IContent>, ContentHandle, \
+			hContent ? hContent->GetObject<shared_ptr<IContent>>() \
+			: shared_ptr<IContent>());
+		/ \tr \impl @ \ctor;
+
+r91:
+/ @ \cl Message @ \ns Messaging @ \u YShellMessage:
+	+ \ctor Message(const shared_ptr<YShell>& = shared_ptr<YShell>(), ID = 0,
+		Priority = 0, const shared_ptr<IContent>& = shared_ptr<IContent>())
+		-> Message(const shared_ptr<YShell>& = shared_ptr<YShell>(), ID = 0,
+		Priority = 0, const shared_ptr<Content>& = shared_ptr<Content>());
+	+ \ctor Message(const shared_ptr<YShell>&, ID, Priority,
+		const shared_ptr<IContent>&);
+	+ \mf shared_ptr<IContent> GetIContentHandle() const;
+	/ \mf DefGetter(shared_ptr<IContent>, ContentHandle, \
+		hContent ? hContent->GetObject<shared_ptr<IContent>>() \
+		: shared_ptr<IContent>())
+		-> DefGetter(shared_ptr<Content>, ContentHandle, hContent);
+/ \impl @ \h YShellMessageDefinition & \impl \u YShell;
+/ \impl @ \f YSDebug_MSG_Print @ \un \ns @ \u Main;
+
+r92:
+/ @ \impl \u YShell:
+	/ \impl @ \f PostQuitMessage ^ Content ~ GObjectContent;
+	/ \tr \impl @ \mf YShell::DefShlProc;
+/ @ \h YShellMessageDefinition:
+	- DefMessageTypeMapping(EStandard::Quit, GObjectContent<int>)
+	- \clt GObjectContent;
+/ @ \u YApplication:
+	/ \f void SendMessage(const shared_ptr<YShell>&, Messaging::ID,
+		Messaging::Priority, Messaging::IContent* = nullptr) ynothrow
+		-> \f void SendMessage(const shared_ptr<YShell>&, Messaging::ID,
+		Messaging::Priority, Messaging::Content* = nullptr) ynothrow;
+	+ \f void SendMessage(const shared_ptr<YShell>&, Messaging::ID,
+		Messaging::Priority, Messaging::IContent*) ynothrow;
+
+r93:
+/ \impl @ \f \i NowShellInsertDropMessage @ \Shell_DS ^ Messaging::Content
+	~ Messaging::GHandleContent;
+/ \impl @ \mf YApplication::SetShellHandle @ \impl \u YApplication
+	^ Messaging::Content ~ Messaging::GHandleContent;
+/ \impl @ \mf YGUIShell::ShlProc @ \impl \u YGUI ^ Messaging::Content
+	~ Messaging::GHandleContent;
+/ \impl @ (\mf YShell::ShlProc & \f PostQuitMessage) @ \impl \u YShell
+	^ Messaging::Content ~ Messaging::GHandleContent;
+
+r94:
+/ @ \h YShellMessageDefinition:
+	- DefMessageTypeMapping(EStandard::Set, GHandleContent<shared_ptr<YShell>>)
+	- DefMessageTypeMapping(EStandard::Drop, GHandleContent<shared_ptr<YShell>>)
+	- DefMessageTypeMapping(EStandard::Activated,
+		GHandleContent<shared_ptr<YShell>>)
+	- DefMessageTypeMapping(EStandard::Deactivated, GHandleContent< \
+		shared_ptr<YShell>>)
+	- DefMessageTypeMapping(EStandard::Paint,
+		GHandleContent<shared_ptr<Desktop>>)
+	- \clt GHandleContent;
+
+r95:
+^ \conf release;
+/= test 25;
+
+r96:
+/ \tr @ \u YGlobal:
+	/ @ \cl InputContent:
+		- \inh \impl IContent;
+		/ \mf ImplI1(IContent) bool operator==(const IContent&) const
+			-> !\vt bool operator==(const InputContent&) const;
+	/ \impl @ \f WaitForGUIInput \un \ns;
+/ \impl @ \f ResponseInput @ \impl \u Shell_DS;
+
+r97:
+^ \conf debug;
+/ @ \h YMessageDefinition:
+	- DefMessageTypeMapping(EStandard::Input, InputContent);
+	- 2 \ft CastMessage;
+	- \pre \decl class InputContent;
+	- DefMessageTypeMapping(EStandard::Null, IContent);
+	- \stt MessageTypeMapping;
+	- \mac DefMessageTypeMapping;
+	/ MessageID >> \ns Messaging ~ \st EStandard;
+	- \st EStandard;
+	/ \tr \decl @ \mac;
+- \f void SendMessage(const shared_ptr<YShell>&, Messaging::ID,
+	Messaging::Priority, Messaging::IContent*) ynothrow @ \u YApplication;
+/ @ \u YShellMessage:
+	/ \cl Message:
+		- \ctor Message(const shared_ptr<YShell>&, ID, Priority,
+			const shared_ptr<IContent>&);
+		- \mf shared_ptr<IContent> GetIContentHandle() const;
+	- \in IContent;
+
+r98:
+/= test 26 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-05-14:
--21.8d;
-//Mercurial rev1-rev79: r3928;
+2011-05-17:
+-20.5d;
+//Mercurial rev1-rev80: r3955;
 
 / ...
 
 
 $NEXT_TODO:
 
-b210-b324:
+b211-b324:
 + menus;
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
-	libstdc++ for known associative container operation bugs;
+	libstdc++ for known associative container operation bugs:
+	- \rem @ \impl @ \mft GetEvent @ \clt EventMap @ \h YEvent;
 * non-ASCII character path error in FAT16;
 + overlay for \a widgets;
 / fully \impl \u DSReader;
@@ -591,13 +591,30 @@ $ellipse_refactoring;
 
 $now
 (
+	+ "template %is_valid for checking pointers which cast bool explicitly",
+	/ "part of template %raw moved to namespace %ystdex",
+	- $design "some unused code",
+	+ "macro %yforward for simply using std::forward and argument \
+		type deduction",
+	/ "handles and smart pointers rearranged" $=
+	(
+
+		- "%GHWeak",
+		^ "%std::shared_ptr" ~ "%GHandle",
+		- "%GHandle"
+	),
+	/ "implementation of messages"
+),
+
+b209
+(
 	/ "library CHRLib moved and merged to library YCLib",
 	/ $design "protected function inheritance in class template %GHEvent",
 	/ "using directive of namespace %ystdex in YSLib",
 	+ "lost %Rect operations",
 	* "strict ISO C++2003 code compatibility" $=
 	(
-		^ "fixed parameter macros in \"yfont.h\""
+		^ "fixed macros in \"yfont.h\""
 	),
 	/ "renamed directory \"Shell\" to \"UI\" in YSLib",
 	/ "several memory utilities for std::shared_ptr and std::unique_ptr \
@@ -614,8 +631,7 @@ b208
 
 b207
 (
-	/ $design "event handler implementation ^ std::function \
-		instead of Loki::Function",
+	/ $design "event handler implementation ^ std::function" ~ "Loki::Function",
 	- "library AGG",
 	- "library Loki",
 	+ $design "union %no_copy_t and union %any_pod_t for supressing \
@@ -649,7 +665,7 @@ b206
 	(
 		/ $design ^ "C++2011 style nested template angle brackets",
 		/ $design ^ "keyword %auto",
-		/ ^ "C++2011 type_traits in namespace std instead of std::tr1"
+		/ ^ "C++2011 type_traits in namespace std" ~ "std::tr1"
 	),
 	- "Loki type operations",
 	/ ^ "namespace ystdex in namespace YSLib"
@@ -692,7 +708,7 @@ b203
 	+ "class %MTextList",
 	/ "class %YSimpleText List using class %MTextList inheritance",
 	/ "class %YSimpleText renamed to %YMenu",
-	/ "using std::tr1::shared_ptr instead of smart pointers in Loki"
+	/ "using std::tr1::shared_ptr" ~ "smart pointers in Loki"
 ),
 
 b202
@@ -746,7 +762,7 @@ b198
 	(
 		- "class %ShlGUI in unit Shell_DS"
 	),
-	/ $design "using pointers instead of references in parameters \
+	/ $design "using pointers" ~ "references in parameters \
 		of container methods",
 	/ "simplified GUI shell" $=
 	(

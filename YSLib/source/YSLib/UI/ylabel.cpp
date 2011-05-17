@@ -11,12 +11,12 @@
 /*!	\file ylabel.cpp
 \ingroup Shell
 \brief 样式无关的标签模块。
-\version 0.2063;
+\version 0.2069;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-05-14 20:38 +0800;
+	2011-05-17 02:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -111,16 +111,16 @@ Label::Paint()
 }
 
 
-MTextList::MTextList(GHandle<ListType> p, const Drawing::Font& f)
+MTextList::MTextList(const shared_ptr<ListType>& h, const Drawing::Font& f)
 	: MLabel(f),
-	pList(p), text_state(Font)
+	pList(h), text_state(Font)
 {}
 
 MTextList::ListType&
 MTextList::GetList() const
 {
 	if(!pList)
-		pList = new ListType();
+		pList = share_raw(new ListType());
 	return *pList;
 }
 MTextList::ItemType*

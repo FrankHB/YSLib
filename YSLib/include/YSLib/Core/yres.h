@@ -11,12 +11,12 @@
 /*!	\file yres.h
 \ingroup Core
 \brief 应用程序资源管理模块。
-\version 0.1507;
+\version 0.1509;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-05-13 12:41 +0800;
+	2011-05-16 20:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,10 +45,10 @@ EndDecl
 \note 线程空间内共享；全局资源初始化之后可调用。
 */
 template<class _type>
-inline GHandle<_type>
+inline shared_ptr<_type>
 GetGlobalResource()
 {
-	return GStaticCache<_type, GHandle<_type>>::GetPointer();
+	return GStaticCache<_type, shared_ptr<_type>>::GetPointer();
 }
 
 /*!
@@ -59,7 +59,7 @@ template<class _type>
 inline void
 ReleaseGlobalResource() ynothrow
 {
-	return GStaticCache<_type, GHandle<_type>>::Release();
+	return GStaticCache<_type, shared_ptr<_type>>::Release();
 }
 
 //应用程序资源类型定义。

@@ -11,12 +11,12 @@
 /*!	\file form.h
 \ingroup Shell
 \brief 样式无关的图形用户界面窗体。
-\version 0.1517;
+\version 0.1523;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-05-14 20:49 +0800;
+	2011-05-17 02:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,7 @@ public:
 	*/
 	explicit
 	Form(const Rect& = Rect::Empty,
-		const GHandle<Drawing::Image> = ynew Drawing::Image(),
+		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
 		IWindow* = nullptr);
 	/*!
 	\brief 析构。

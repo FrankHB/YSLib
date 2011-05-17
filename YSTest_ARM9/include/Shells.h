@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3239;
+\version 0.3241;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-05-12 23:14 +0800;
+	2011-05-16 20:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,7 @@ using namespace Runtime;
 using namespace DS;
 using namespace DS::Components;
 
-GHandle<Image>&
+shared_ptr<Image>&
 GetImage(int);
 
 class ShlLoad : public ShlDS
@@ -210,7 +210,7 @@ public:
 	MDualScreenReader Reader;
 	TextFile* pTextFile;
 
-	GHandle<Image> hUp, hDn;
+	shared_ptr<Image> hUp, hDn;
 	bool bgDirty;
 
 	ShlReader();

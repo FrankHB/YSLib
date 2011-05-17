@@ -11,12 +11,12 @@
 /*!	\file ylabel.h
 \ingroup Shell
 \brief 样式无关的标签模块。
-\version 0.2056;
+\version 0.2061;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-05-14 20:45 +0800;
+	2011-05-17 03:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -114,7 +114,7 @@ public:
 	typedef typename ListType::size_type IndexType; //!< 索引类型。
 
 protected:
-	mutable GHandle<ListType> pList; //!< 文本列表指针。
+	mutable shared_ptr<ListType> pList; //!< 文本列表句柄。
 
 private:
 	Drawing::TextState text_state; //!< 文本状态。
@@ -124,7 +124,7 @@ protected:
 	\brief 构造：使用指定文本列表和字体指针。
 	*/
 	explicit
-	MTextList(GHandle<ListType> = nullptr,
+	MTextList(const shared_ptr<ListType>& = shared_ptr<ListType>(),
 		const Drawing::Font& = Drawing::Font::GetDefault());
 
 	//void

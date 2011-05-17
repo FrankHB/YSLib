@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件。
-\version 0.3097;
+\version 0.3099;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2011-05-14 20:47 +0800;
+	2011-05-16 20:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,7 +73,7 @@ using Components::Widgets::IUIContainer;
 \ingroup HeplerFunction
 \brief 取当前线程空间中运行的 Shell 句柄。
 */
-inline GHandle<YShell>
+inline shared_ptr<YShell>
 FetchShellHandle()
 {
 	return GetApp().GetShellHandle();

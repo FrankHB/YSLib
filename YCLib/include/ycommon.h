@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2707;
+\version 0.2711;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 +0800; 
 \par 修改时间:
-	2011-05-14 13:02 +0800;
+	2011-05-16 04:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,10 +32,6 @@
 #define YCL_INC_YCOMMON_H_
 
 #include <platform.h>
-
-#ifndef UNICODE
-#define UNICODE
-#endif
 
 //平台无关部分。
 #include "ydef.h"

@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2307;
+\version 0.2310;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-05-14 20:46 +0800;
+	2011-05-17 02:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -47,7 +47,7 @@ public:
 	*/
 	explicit
 	Desktop(YScreen&, Color = 0,
-		GHandle<Drawing::Image> = GHandle<Drawing::Image>());
+		const shared_ptr<Drawing::Image>& = shared_ptr<Drawing::Image>());
 
 	DefGetter(const YScreen&, Screen, Screen) //!< 取屏幕对象。
 	DefGetter(BitmapPtr, BackgroundPtr, Screen.GetCheckedBufferPtr()) \

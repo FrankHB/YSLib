@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 抽象。
-\version 0.4140;
+\version 0.4152;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-05-14 20:35 +0800;
+	2011-05-17 02:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -117,10 +117,10 @@ namespace
 	int nCountInput;
 	char strCount[40];
 
-	GHandle<Image>&
+	shared_ptr<Image>&
 	GetGlobalImage(std::size_t i)
 	{
-		static GHandle<Image> spi[10];
+		static shared_ptr<Image> spi[10];
 
 		YAssert(IsInInterval(i, 10u), "Array index out of range"
 			" @ GetGlobalImage;");
@@ -241,7 +241,7 @@ namespace
 	}
 }
 
-GHandle<Image>&
+shared_ptr<Image>&
 GetImage(int i)
 {
 	switch(i)
@@ -387,9 +387,9 @@ ShlExplorer::OnActivated(const Message& msg)
 	btnOK.SetTransparent(false);
 /*
 	ReplaceHandle<IWindow*>(hWndUp,
-		new TFrmFileListMonitor(GHandle<YShell>(this)));
+		new TFrmFileListMonitor(shared_ptr<YShell>(this)));
 	ReplaceHandle<IWindow*>(hWndDown,
-		new TFrmFileListSelecter(GHandle<YShell>(this)));
+		new TFrmFileListSelecter(shared_ptr<YShell>(this)));
 */
 	//	dynamic_pointer_cast<TFrmFileListSelecter>(
 	//		hWndDown)->fbMain.RequestFocus(GetZeroElement<EventArgs>());
@@ -561,11 +561,11 @@ public:
 	typedef MenuMap::value_type ValueType;
 
 protected:
-	GHandle<Desktop> hDesktop; //!< 桌面句柄。
+	shared_ptr<Desktop> hDesktop; //!< 桌面句柄。
 	MenuMap sMenus;
 
 public:
-	MenuHost(GHandle<Desktop> = nullptr);
+	MenuHost(const shared_ptr<Desktop>& = shared_ptr<Desktop>());
 	virtual
 	~MenuHost();
 
@@ -581,11 +581,11 @@ public:
 	PDefHOperator1(bool, -=, ID id)
 		ImplRet(sMenus.erase(id) != 0)
 
-	DefGetter(GHandle<Desktop>, DesktopHandle, hDesktop);
+	DefGetter(shared_ptr<Desktop>, DesktopHandle, hDesktop);
 };
 
-MenuHost::MenuHost(GHandle<Desktop> h)
-	: hDesktop(h), sMenus()
+MenuHost::MenuHost(const shared_ptr<Desktop>& hDsk)
+	: hDesktop(hDsk), sMenus()
 {}
 MenuHost::~MenuHost()
 {
@@ -596,7 +596,7 @@ MenuHost::~MenuHost()
 
 
 ShlSetting::TFormTest::TFormTest()
-	: Form(Rect(10, 40, 228, 70), nullptr,
+	: Form(Rect(10, 40, 228, 70), shared_ptr<Image>(),
 		raw(GetGlobal().GetDesktopDownHandle())),
 	btnEnterTest(Rect(2, 5, 148, 22)), /*GetImage(6)*/
 	btnMenuTest(Rect(152, 5, 60, 22)),
@@ -658,7 +658,8 @@ ShlSetting::TFormTest::OnClick_btnMenuTest(TouchEventArgs&& /*e*/)
 		t = 0;
 		pMenu = new Menu(GetBoundsOf(btnMenuTest)
 			+ Vec(-btnMenuTest.GetWidth(), btnMenuTest.GetHeight()),
-			new Menu::ListType(), FetchGUIShell().Colors.GetPair(Styles::Panel,
+			share_raw(new Menu::ListType()),
+			FetchGUIShell().Colors.GetPair(Styles::Panel,
 			Styles::HighlightText));
 		pMenu->GetList().push_back(_ustr("xx"));
 		*this += pMenu;
@@ -697,7 +698,7 @@ ShlSetting::TFormTest::OnClick_btnShowWindow(TouchEventArgs&& /*e*/)
 }
 
 ShlSetting::TFormExtra::TFormExtra()
-	: Form(Rect(5, 60, 208, 120), nullptr, /*GetImage(7)*/
+	: Form(Rect(5, 60, 208, 120), shared_ptr<Image>(), /*GetImage(7)*/
 		raw(GetGlobal().GetDesktopDownHandle())),
 	btnDragTest(Rect(13, 15, 184, 22)),
 	btnTestEx(Rect(13, 52, 168, 22)),
@@ -853,12 +854,12 @@ ShlSetting::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 	class TestObj
 	{
 	public:
-		GHandle<Desktop> h;
+		shared_ptr<Desktop> h;
 		Color c;
 		Point l;
 		Size s;
 
-		TestObj(GHandle<Desktop> h_)
+		TestObj(const shared_ptr<Desktop>& h_)
 			: h(h_),
 			c(ColorSpace::White),
 			l(20, 32), s(120, 90)

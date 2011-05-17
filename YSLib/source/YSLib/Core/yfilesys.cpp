@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2163;
+\version 0.2167;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-05-12 18:11 +0800;
+	2011-05-17 01:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -352,14 +352,14 @@ ValidateDirectory(const string& pathstr)
 
 
 FileList::FileList(CPATH path)
-	: Directory((path && *path) ? path : FS_Root), pList(new ListType())
+	: Directory((path && *path) ? path : FS_Root), hList(new ListType())
 {}
 FileList::FileList(const string& path)
-	: Directory(path.empty() ? FS_Root : path.c_str()), pList(new ListType())
+	: Directory(path.empty() ? FS_Root : path.c_str()), hList(new ListType())
 {}
 FileList::FileList(const FileList::ItemType& path)
 	: Directory(path.empty() ? FS_Root : StringToMBCS(path).c_str()),
-	pList(new ListType())
+	hList(new ListType())
 {}
 
 bool
@@ -381,18 +381,19 @@ FileList::LoadSubItems()
 
 	if(dir.IsValid())
 	{
-		YAssert(pList, "Null strong pointer found @ FileList::LoadSubItems;");
+		YAssert(is_valid(hList),
+			"Null strong pointer found @ FileList::LoadSubItems;");
 
-		pList->clear();
+		hList->clear();
 
 		while((++dir).LastError == 0)
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
 				++n;
-		pList->reserve(n);
+		hList->reserve(n);
 		dir.Reset();
 		while((++dir).LastError == 0)
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
-				pList->push_back(std::strcmp(HDirectory::Name, FS_Parent)
+				hList->push_back(std::strcmp(HDirectory::Name, FS_Parent)
 					&& HDirectory::IsDirectory()
 					? MBCSToString(string(HDirectory::Name) + FS_Seperator)
 					: MBCSToString(HDirectory::Name));

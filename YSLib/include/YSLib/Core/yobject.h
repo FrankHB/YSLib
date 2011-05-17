@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version 0.3071;
+\version 0.3078;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-05-10 09:23 +0800;
+	2011-05-16 20:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -76,7 +76,7 @@ YCountableObject::YCountableObject()
 	否则出现无法释放资源导致内存泄漏或其它非预期行为。
 \todo 线程模型及安全性。
 */
-template<typename _type, class _tOwnerPointer = GHandle<_type>>
+template<typename _type, class _tOwnerPointer = shared_ptr<_type>>
 class GDependency
 {
 public:
@@ -87,7 +87,7 @@ private:
 	PointerType ptr;
 
 public:
-	GDependency(PointerType p = nullptr)
+	GDependency(PointerType p = PointerType())
 		: ptr(p)
 	{
 		GetCopyOnWritePtr();
@@ -107,11 +107,12 @@ public:
 	GetCopyOnWritePtr()
 	{
 		if(!ptr)
-			ptr = new T();
+			ptr = PointerType(new T());
 		else if(!ptr.unique())
-			ptr = new T(*ptr);
+			ptr = PointerType(new T(*ptr));
 
-		YAssert(ptr, "Null pointer found @ GDependency::GetCopyOnWritePtr;");
+		YAssert(is_valid(ptr),
+			"Null pointer found @ GDependency::GetCopyOnWritePtr;");
 
 		return ptr;
 	}

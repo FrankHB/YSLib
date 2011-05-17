@@ -11,12 +11,12 @@
 /*!	\file ymenu.cpp
 \ingroup Shell
 \brief 样式相关的菜单。
-\version 0.1211;
+\version 0.1214;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-05-14 20:38 +0800;
+	2011-05-17 02:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -51,8 +51,9 @@ Menu::Dependencies::Dependencies()
 	Confirmed.GetRef() += &Menu::OnConfirmed;
 }
 
-Menu::Menu(const Rect& r, GHandle<ListType> p, pair<Color, Color> hilight_pair)
-	: Control(r), MTextList(p),
+Menu::Menu(const Rect& r, const shared_ptr<ListType>& h,
+	pair<Color, Color> hilight_pair)
+	: Control(r), MTextList(h),
 	HilightBackColor(hilight_pair.first), HilightTextColor(hilight_pair.second),
 	viewer(GetList()), top_offset(0), Events(GetStaticRef<Dependencies>())
 {

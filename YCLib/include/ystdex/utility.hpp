@@ -11,12 +11,12 @@
 /*!	\file util.hpp
 \ingroup YCLib
 \brief 函数对象、算法和实用程序。
-\version 0.1654;
+\version 0.1658;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800; 
 \par 修改时间:
-	2011-05-14 12:31 +0800;
+	2011-05-16 04:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -139,6 +139,12 @@ namespace ystdex
 	}
 
 #endif
+
+
+	//根据参数类型使用 std::forward 传递对应参数，保持左值性和常量性。
+	#define yforward(_expr) std::forward<typename \
+		std::remove_reference<decltype(_expr)>::type>(_expr)
+
 
 	/*
 	\brief 任意非可复制构造的非聚集类型。

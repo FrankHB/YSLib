@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 样式无关的图形用户界面窗口。
-\version 0.4307;
+\version 0.4322;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-05-14 20:41 +0800;
+	2011-05-17 02:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -84,7 +84,7 @@ class MWindow : protected Widgets::MWindowObject
 {
 protected:
 	//基类中的 pWindow 为父窗口对象句柄，若为空则说明无父窗口。
-	mutable GHandle<Drawing::Image> spBgImage; //!< 背景图像指针。
+	mutable shared_ptr<Drawing::Image> hBgImage; //!< 背景图像句柄。
 	bool bRefresh; //!< 刷新属性：表示有新的绘制请求。
 	bool bUpdate; //!< 更新属性：表示绘制结束，缓冲区准备完毕。
 
@@ -93,13 +93,13 @@ public:
 	\brief 构造：使用指定背景图像、窗口指针和 Shell 。
 	*/
 	explicit
-	MWindow(const GHandle<Drawing::Image> = ynew Drawing::Image(),
+	MWindow(const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
 		IWindow* = nullptr);
 
 	DefPredicate(RefreshRequired, bRefresh)
 	DefPredicate(UpdateRequired, bUpdate)
 
-	DefGetter(GHandle<Drawing::Image>&, BackgroundImagePtr, spBgImage)
+	DefGetter(shared_ptr<Drawing::Image>&, BackgroundImagePtr, hBgImage)
 };
 
 
@@ -113,14 +113,14 @@ public:
 	*/
 	explicit
 	AWindow(const Rect& = Rect::Empty,
-		const GHandle<Drawing::Image> = ynew Drawing::Image(),
+		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
 		IWindow* = nullptr);
 
 	ImplI1(IWindow) DefPredicateBase(RefreshRequired, MWindow)
 	ImplI1(IWindow) DefPredicateBase(UpdateRequired, MWindow)
 
 	ImplI1(IWindow) DefGetterBase(IWindow*, WindowPtr, MWindow)
-	DefGetterBase(GHandle<Drawing::Image>&, BackgroundImagePtr, MWindow)
+	DefGetterBase(shared_ptr<Drawing::Image>&, BackgroundImagePtr, MWindow)
 	/*!
 	\brief 取位图背景指针。
 	*/
@@ -205,7 +205,7 @@ class AFrame : public AWindow, protected Widgets::MUIContainer
 public:
 	explicit
 	AFrame(const Rect& = Rect::Empty,
-		const GHandle<Drawing::Image> = ynew Drawing::Image(),
+		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
 		IWindow* = nullptr);
 
 	ImplI1(IWindow) void
@@ -274,7 +274,7 @@ public:
 	*/
 	explicit
 	Frame(const Rect& = Rect::Empty,
-		const GHandle<Drawing::Image> = ynew Drawing::Image(),
+		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
 		IWindow* = nullptr);
 	virtual
 	~Frame();

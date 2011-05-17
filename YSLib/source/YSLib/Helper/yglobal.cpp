@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3080;
+\version 0.3101;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-05-14 21:24 +0800;
+	2011-05-17 09:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -67,8 +67,6 @@ const SDst Global::MainScreenHeight(SCREEN_HEIGHT);
 
 Global::Global()
 	: hScreenUp(), hScreenDown(), hDesktopUp(), hDesktopDown()
-{}
-Global::~Global()
 {}
 
 YScreen&
@@ -156,12 +154,12 @@ GetApp()
 	return theApp;
 }
 
-const GHandle<YShell>&
+const shared_ptr<YShell>&
 GetMainShellHandle()
 {
 	GetApp();
 
-	static GHandle<YShell> hMainShell(new YMainShell());
+	static shared_ptr<YShell> hMainShell(new YMainShell());
 
 	return hMainShell;
 }
@@ -185,11 +183,9 @@ namespace
 YSL_BEGIN_NAMESPACE(Messaging)
 
 bool
-InputContext::operator==(const IContext& rhs) const
+InputContent::operator==(const InputContent& rhs) const
 {
-	const InputContext* p(dynamic_cast<const InputContext*>(&rhs));
-
-	return Key == p->Key && CursorLocation == p->CursorLocation;
+	return Key == rhs.Key && CursorLocation == rhs.CursorLocation;
 }
 
 YSL_END_NAMESPACE(Messaging)
@@ -213,7 +209,7 @@ namespace
 
 		static KeysInfo Key;
 		static CursorInfo TouchPos_Old, TouchPos;
-		static GHandle<InputContext> pContext;
+		static shared_ptr<InputContent> pContext;
 
 		if(Key.Held & KeySpace::Touch)
 			TouchPos_Old = TouchPos;
@@ -227,9 +223,9 @@ namespace
 			|| Key != pContext->Key || pt != pContext->CursorLocation)
 			&& pt != Point::FullScreen))
 		{
-			pContext = share_raw(new InputContext(Key, pt));
+			pContext = share_raw(new InputContent(Key, pt));
 			SendMessage(Message(Shells::GetCurrentShellHandle(), SM_INPUT, 0x40,
-				pContext));
+				shared_ptr<Content>(new Content(pContext))));
 		}
 	}
 }
@@ -258,12 +254,6 @@ InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 void
 Destroy_Static(YObject&, EventArgs&&)
 {
-}
-
-int
-ShlProc(GHandle<YShell> hShl, const Message& msg)
-{
-	return hShl->ShlProc(msg);
 }
 
 //非 yglobal.h 声明的平台相关函数。
@@ -455,7 +445,7 @@ main(int argc, char* argv[])
 			DispatchMessage(msg);
 		}
 
-		const int r(msg.GetContextPtr() ? 0 : -1);
+		const int r(msg.GetContentHandle() ? 0 : -1);
 
 		//释放 Shell 。
 

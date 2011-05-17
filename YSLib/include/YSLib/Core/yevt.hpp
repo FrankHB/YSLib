@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version 0.4405;
+\version 0.4417;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-05-12 18:07 +0800;
+	2011-05-16 20:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -98,7 +98,7 @@ public:
 	template<class _tFunc>
 	inline
 	GHEvent(_tFunc f)
-		: std::function<FuncType>(std::forward<_tFunc>(f)),
+		: std::function<FuncType>(yforward(f)),
 		comp_eq(GEquality<_tFunc>::AreEqual)
 	{}
 	/*!
@@ -213,7 +213,7 @@ private:
 	GEvent(_tHandler h)
 		: List()
 	{
-		Add(std::forward<_tHandler>(h));
+		Add(yforward(h));
 	}
 
 public:
@@ -261,7 +261,7 @@ public:
 	inline GEvent&
 	operator=(_type _arg)
 	{
-		return *this = HandlerType(std::forward<_type>(_arg));
+		return *this = HandlerType(yforward(_arg));
 	}
 
 	/*!
@@ -292,7 +292,7 @@ public:
 	inline GEvent&
 	operator+=(_type _arg)
 	{
-		return *this += HandlerType(std::forward<_type>(_arg));
+		return *this += HandlerType(yforward(_arg));
 	}
 
 	/*!
@@ -320,7 +320,7 @@ public:
 	inline GEvent&
 	operator-=(_type _arg)
 	{
-		return *this -= HandlerType(std::forward<_type>(_arg));
+		return *this -= HandlerType(yforward(_arg));
 	}
 
 	/*!
@@ -357,7 +357,7 @@ public:
 	inline GEvent&
 	AddUnique(_type _arg)
 	{
-		return this->AddUnique(HandlerType(std::forward<_type>(_arg)));
+		return this->AddUnique(HandlerType(yforward(_arg)));
 	}
 	/*!
 	\brief 添加事件响应：使用对象引用和成员函数指针。
@@ -395,7 +395,7 @@ public:
 	inline bool
 	Contains(_type _arg) const
 	{
-		return this->Contains(HandlerType(std::forward<_type>(_arg)));
+		return this->Contains(HandlerType(yforward(_arg)));
 	}
 
 	/*!
@@ -451,7 +451,7 @@ public:
 	typedef typename EventType::HandlerType HandlerType;
 	typedef typename EventType::SizeType SizeType;
 
-	GDependencyEvent(PointerType p = nullptr)
+	GDependencyEvent(PointerType p = PointerType())
 		: GDependency<_tEvent>(p)
 	{}
 
@@ -623,7 +623,7 @@ class GEventMap
 public:
 	typedef _tEventSpace ID;
 	typedef GIHEvent<YObject, EventArgs> ItemType;
-	typedef GHandle<ItemType> PointerType;
+	typedef shared_ptr<ItemType> PointerType;
 	typedef pair<ID, PointerType> PairType;
 	typedef map<ID, PointerType> MapType;
 
@@ -675,7 +675,7 @@ public:
 
 		if(pr.second)
 			pr.first = m_map.insert(pr.first, PairType(id,
-				new GEventWrapper<EventType>()));
+				PointerType(new GEventWrapper<EventType>())));
 		return dynamic_cast<EventType&>(*pr.first->second);
 	}
 

@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2304;
+\version 0.2326;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-05-14 20:52 +0800;
+	2011-05-17 09:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -135,7 +135,7 @@ YApplication::GetFontCache() const ythrow(LoggedEvent)
 }
 
 bool
-YApplication::SetShellHandle(GHandle<YShell> h)
+YApplication::SetShellHandle(const shared_ptr<YShell>& h)
 {
 	using namespace Messaging;
 
@@ -146,12 +146,12 @@ YApplication::SetShellHandle(GHandle<YShell> h)
 
 		if(hShell)
 			hShell->OnDeactivated(Message(h, SM_DEACTIVATED, 0xF0,
-				new GHandleContext<GHandle<YShell>>(hShell)));
+				shared_ptr<Content>(new Content(hShell))));
 		hShell = h;
 		h->OnActivated(Message(h, SM_ACTIVATED, 0xF0,
-			new GHandleContext<GHandle<YShell>>(h)));
+			shared_ptr<Content>(new Content(h))));
 	}
-	return h;
+	return is_valid(h);
 }
 
 void
@@ -204,12 +204,12 @@ SendMessage(const Message& msg) ynothrow
 	}
 }
 void
-SendMessage(GHandle<YShell> hShl, Messaging::ID id,
-	Messaging::Priority prior, Messaging::IContext* pContext) ynothrow
+SendMessage(const shared_ptr<YShell>& hShl, Messaging::ID id,
+	Messaging::Priority prior, Messaging::Content* pContext) ynothrow
 {
 	try
 	{
-		SendMessage(Message(hShl, id, prior, pContext));
+		SendMessage(Message(hShl, id, prior, share_raw(pContext)));
 	}
 	catch(...)
 	{

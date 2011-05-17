@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11076;
+\version r11087;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-05-12 18:28 +0800;
+	2011-05-16 04:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -107,13 +107,6 @@ $import typedef unsigned long u32;
 //主屏幕的宽与高。
 extern const u16 $SCREEN_WIDTH, $SCREEN_HEIGHT;
 
-//定义使用 Unicode 编码字符串。
-#ifndef UNICODE
-#	define UNICODE
-//宽字符支持。
-#	define CHRLIB_WCHAR_T_SIZE 4
-#endif
-
 
 // $ API （可分离于 <api.h> 中）定义示例：
 //$example:
@@ -135,10 +128,17 @@ $header Platform
 {
 YCL_YCOMMON_H
 YSL_YSBUILD_H
-UNICODE
-CHRLIB_WCHAR_T_SIZE
 }
 
+$dir YCLib
+{
+$dir ystdex
+{
+$header Utilities
+{
+yforward
+}
+} //$dir ystdex;
 $dir CHRLib
 {
 $header CHRLib
@@ -152,9 +152,6 @@ CHRLIB_END_NAMESPACE(s)
 _ustr(str)
 }
 } //$dir CHRLib;
-
-$dir YCLib
-{
 $header YDefinition
 {
 FALSE
@@ -166,7 +163,6 @@ MAX_UCSCHAR
 }
 $header YCommon
 {
-UNICODE
 YCL_MAX_FILENAME_LENGTH
 YCL_MAX_PATH_LENGTH
 DEF_PATH_ROOT

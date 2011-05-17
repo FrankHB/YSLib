@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1769;
+\version 0.1787;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-05-03 17:27 +0800;
+	2011-05-17 09:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,12 +58,13 @@ YSL_END_NAMESPACE(Shells)
 
 YSL_BEGIN_NAMESPACE(DS)
 
-ShlDS::ShlDS(GHandle<Desktop> h_dsk_up, GHandle<Desktop> h_dsk_down)
+ShlDS::ShlDS(const shared_ptr<Desktop>& h_dsk_up,
+	const shared_ptr<Desktop>& h_dsk_down)
 	: YGUIShell(),
-	hDskUp(h_dsk_up ? h_dsk_up : new Desktop(GetGlobal()
-		.GetScreenUp())),
-	hDskDown(h_dsk_down ? h_dsk_down : new Desktop(GetGlobal()
-		.GetScreenDown()))
+	hDskUp(h_dsk_up ? h_dsk_up : share_raw(new Desktop(GetGlobal()
+		.GetScreenUp()))),
+	hDskDown(h_dsk_down ? h_dsk_down : share_raw(new Desktop(GetGlobal()
+		.GetScreenDown())))
 {}
 
 int
@@ -83,8 +84,9 @@ ShlDS::ShlProc(const Message& msg)
 int
 ShlDS::OnActivated(const Message& /*msg*/)
 {
-	YAssert(hDskUp, "Null up desktop handle found @ ShlDS::ShlDS;");
-	YAssert(hDskDown, "Null down desktop handle found @ ShlDS::ShlDS;");
+	YAssert(is_valid(hDskUp), "Null up desktop handle found @ ShlDS::ShlDS;");
+	YAssert(is_valid(hDskDown),
+		"Null down desktop handle found @ ShlDS::ShlDS;");
 
 	ResetGUIStates();
 	return 0;
@@ -108,9 +110,9 @@ ShlDS::SendDrawingMessage()
 //	hDesktopDown->ClearContents();
 	DispatchWindows();
 	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<GHandle<Desktop>>(hDskUp));
+		new GHandleContext<shared_ptr<Desktop>>(hDskUp));
 	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<GHandle<Desktop>>(hDskDown));
+		new GHandleContext<shared_ptr<Desktop>>(hDskDown));
 }*/
 
 void
@@ -128,12 +130,17 @@ ResponseInput(const Message& msg)
 {
 	using namespace Messaging;
 
-	InputContext* const pContext(CastMessage<SM_INPUT>(msg));
+	auto h(msg.GetContentHandle());
 
-	if(!pContext)
+	if(!h)
 		return;
 
-	Runtime::KeysInfo& k(pContext->Key);
+	auto hContent(h->GetObject<shared_ptr<InputContent>>());
+
+	if(!hContent)
+		return;
+
+	Runtime::KeysInfo& k(hContent->Key);
 	YGUIShell& shl(FetchGUIShell());
 	Desktop& d(GetGlobal().GetTouchableDesktop());
 
@@ -142,7 +149,7 @@ ResponseInput(const Message& msg)
 
 	if(k.Up & Touch)
 	{
-		Components::Controls::TouchEventArgs e(pContext->CursorLocation);
+		Components::Controls::TouchEventArgs e(hContent->CursorLocation);
 
 		shl.ResponseTouch(d, e, TouchUp);
 	}
@@ -154,7 +161,7 @@ ResponseInput(const Message& msg)
 	}
 	if(k.Down & Touch)
 	{
-		Components::Controls::TouchEventArgs e(pContext->CursorLocation);
+		Components::Controls::TouchEventArgs e(hContent->CursorLocation);
 
 		shl.ResponseTouch(d, e, TouchDown);
 	}
@@ -166,7 +173,7 @@ ResponseInput(const Message& msg)
 	}
 	if(k.Held & Touch)
 	{
-		Components::Controls::TouchEventArgs e(pContext->CursorLocation);
+		Components::Controls::TouchEventArgs e(hContent->CursorLocation);
 
 		shl.ResponseTouch(d, e, TouchHeld);
 	}

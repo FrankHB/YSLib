@@ -11,12 +11,12 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version 0.3506;
+\version 0.3544;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-21 23:09:06 +0800;
 \par 修改时间:
-	2011-05-14 21:12 +0800;
+	2011-05-16 20:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,137 +49,6 @@ using ystdex::reset;
 using ystdex::share_raw;
 
 
-//! \brief 句柄：强指针。
-template<typename T, class SPT = shared_ptr<T>>
-class GHandle : public SPT
-{
-public:
-	typedef SPT PtrType;
-
-	/*!
-	\brief 无参数构造。
-	\note 得到空实例。
-	*/
-	GHandle(nullptr_t = nullptr)
-		: SPT()
-	{}
-
-	/*!
-	\brief 构造：使用内建指针。
-	*/
-	GHandle(T* p)
-		: SPT(p)
-	{}
-	/*!
-	\brief 构造：使用句柄引用。
-	*/
-	GHandle(const SPT& p)
-		: SPT(p)
-	{}
-	/*!
-	\brief 构造：使用其它类型句柄引用。
-	*/
-	template<typename C, class CS>
-	inline
-	GHandle(const GHandle<C, CS>& h)
-		: SPT(h)
-	{}
-
-	bool
-	operator!() const
-	{
-		return this->get() == nullptr;
-	}
-
-	operator bool() const
-	{
-		return !!*this;
-	}
-};
-
-
-//! \brief 弱句柄：弱指针。
-template<typename T, class SPT = weak_ptr<T>>
-class GHWeak : public SPT
-{
-public:
-	typedef SPT PtrType;
-	typedef GHandle<T, shared_ptr<T>> StrongPtrType;
-
-	/*!
-	\brief 无参数构造。
-	\note 得到空实例。
-	*/
-	GHWeak(nullptr_t = nullptr)
-		: SPT()
-	{}
-	/*!
-	\brief 构造：使用内建指针。
-	*/
-	GHWeak(T* p)
-		: SPT(StrongPtrType(p))
-	{}
-	/*!
-	\brief 构造：使用强指针引用。
-	*/
-	GHWeak(const StrongPtrType& p)
-		: SPT(p)
-	{}
-	/*!
-	\brief 构造：使用其它类型弱句柄引用。
-	*/
-	template<typename C, class CS>
-	inline
-	GHWeak(const GHWeak<C, CS>& h)
-		: SPT(h)
-	{}
-
-	bool
-	operator!() const
-	{
-		return this->expired();
-	}
-
-	typename std::add_lvalue_reference<T>::type
-	operator*() const
-	{
-		return std::move(*this->lock());
-	}
-
-	/*!
-	\brief 转换：强指针引用。
-	*/
-	operator const StrongPtrType&() const
-	{
-		return this->lock();
-	}
-
-	operator bool() const
-	{
-		return !!*this;
-	}
-};
-
-
-/*!	\defgroup raw Get Raw Pointers
-\brief 取内建指针。
-*/
-//@{
-template<typename _type>
-inline _type*
-raw(const GHandle<_type>& h)
-{
-	return h.get();
-}
-template<class _type>
-inline _type*
-raw(const GHWeak<_type>& h)
-{
-	return h.lock().get();
-}
-//@}
-
-
 /*!	\defGroup reset Reset Pointers
 \brief 安全删除指定引用的句柄指向的对象。
 \post 指定引用的句柄值等于 nullptr 。
@@ -193,27 +62,6 @@ reset(_type*& p) ynothrow
 
 	ydelete(p);
 	p = nullptr;
-	return b;
-}
-template<typename _type>
-inline bool
-reset(GHandle<_type>& p) ynothrow
-{
-	if(p.get())
-	{
-		p.reset();
-		return true;
-	}
-	return false;
-}
-template<typename _type>
-inline bool
-reset(GHWeak<_type>& h) ynothrow
-{
-	bool b(!h.expired());
-
-	if(b)
-		h = GHWeak<_type>();
 	return b;
 }
 //@}

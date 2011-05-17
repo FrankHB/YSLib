@@ -11,12 +11,12 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version 0.3119;
+\version 0.3121;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 +0800; 
 \par 修改时间:
-	2011-05-14 20:36 +0800;
+	2011-05-14 23:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -137,9 +137,9 @@ MDualScreenReader::UnloadText()
 void
 MDualScreenReader::PrintText(const Graphics& g_up, const Graphics& g_down)
 {
-	YAssert(pTextRegionUp,
+	YAssert(is_valid(pTextRegionUp),
 		"Null pointer found @ MDualScreenReader::PrintText;");
-	YAssert(pTextRegionDown,
+	YAssert(is_valid(pTextRegionDown),
 		"Null pointer found @ MDualScreenReader::PrintText;");
 
 	BlitTo(g_up, *pTextRegionUp, Point::Zero, Point::Zero, rot);

@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面窗口。
-\version 0.3715;
+\version 0.3730;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-05-14 20:37 +0800;
+	2011-05-17 02:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,20 +53,20 @@ Hide(IWindow& wnd)
 }
 
 
-MWindow::MWindow(const GHandle<Image> i, IWindow* pWnd)
+MWindow::MWindow(const shared_ptr<Image>& hImg, IWindow* pWnd)
 	: MWindowObject(pWnd),
-	spBgImage(i), bRefresh(true), bUpdate(false)
+	hBgImage(hImg), bRefresh(true), bUpdate(false)
 {}
 
 
-AWindow::AWindow(const Rect& r, const GHandle<Image> i, IWindow* pWnd)
-	: Control(r), MWindow(i, pWnd)
+AWindow::AWindow(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
+	: Control(r), MWindow(hImg, pWnd)
 {}
 
 BitmapPtr
 AWindow::GetBackgroundPtr() const
 {
-	return spBgImage ? spBgImage->GetImagePtr() : nullptr;
+	return hBgImage ? hBgImage->GetImagePtr() : nullptr;
 }
 
 void
@@ -81,7 +81,7 @@ AWindow::DrawBackgroundImage()
 {
 	YWindowAssert(this, Forms::AWindow, DrawBackgroundImage);
 
-	return spBgImage ? CopyTo(GetContext(), *spBgImage) : false;
+	return hBgImage ? CopyTo(GetContext(), *hBgImage) : false;
 }
 
 void
@@ -153,8 +153,8 @@ AWindow::UpdateToWindow() const
 }
 
 
-AFrame::AFrame(const Rect& r, const GHandle<Image> i, IWindow* pWnd)
-	: AWindow(r, i, pWnd), MUIContainer()
+AFrame::AFrame(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
+	: AWindow(r, hImg, pWnd), MUIContainer()
 {}
 
 void
@@ -229,8 +229,8 @@ AFrame::ClearFocusingPtr()
 }
 
 
-Frame::Frame(const Rect& r, const GHandle<Image> i, IWindow* pWnd)
-	: AFrame(r, i, pWnd),
+Frame::Frame(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
+	: AFrame(r, hImg, pWnd),
 	Buffer()
 {
 	Buffer.SetSize(GetSize().Width, GetSize().Height);

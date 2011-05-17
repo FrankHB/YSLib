@@ -11,12 +11,12 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数对象封装。
-\version 0.1722;
+\version 0.1742;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2011-05-10 15:43 +0800;
+	2011-05-16 05:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,50 +33,7 @@
 
 YSL_BEGIN
 
-//! \brief 函数对象基类。
-template<typename _tPointer>
-class GHBase
-{
-private:
-	mutable _tPointer _ptr; //!< 指针。
-
-protected:
-	/*!
-	\brief 构造：使用指针。
-	*/
-	inline explicit
-	GHBase(_tPointer pf = nullptr) : _ptr(pf)
-	{}
-	/*!
-	\brief 构造：使用其它 GHBase 对象。
-	*/
-	template<typename P>
-	inline explicit
-	GHBase(GHBase<P> pf) : _ptr(reinterpret_cast<_tPointer>(P(pf)))
-	{}
-
-public:
-	/*!
-	\brief 转换：指针。
-	*/
-	inline
-	operator _tPointer() const
-	{
-		return _ptr;
-	}
-
-	/*!
-	\brief 取指针。
-	*/
-	inline _tPointer
-	GetPtr() const
-	{
-		return _ptr;
-	}
-};
-
-
-//! \brief 调用时动态类型检查函数对象模板类。
+/* \brief 调用时动态类型检查函数对象模板类。
 template<typename _type, typename _tArg, typename _tRet>
 class GHDynamicFunction
 	: public std::binary_function<_type, _tArg, _tRet>
@@ -88,16 +45,16 @@ private:
 		_tRet (*_f_ptr)(_type&, _tArg);
 		_tRet (_type::*_mf_ptr)(_tArg) const;
 
-		/*!
+		/!
 		\brief 构造：使用指定函数引用。
-		*/
+		/
 		explicit
 		Pointer(_tRet (&_f_)(_type&, _tArg))
 			: _f_ptr(&_f_)
 		{}
-		/*!
+		/!
 		\brief 构造：使用指定非静态成员函数指针。
-		*/
+		/
 		explicit
 		Pointer(_tRet(_type::*_mf_ptr_)(_tArg) const)
 			: _mf_ptr(_mf_ptr_)
@@ -110,25 +67,25 @@ private:
 	} _state;
 
 public:
-	/*!
+	/!
 	\brief 构造：使用指定函数引用。
-	*/
+	/
 	explicit
 	GHDynamicFunction(_tRet(&_f)(_type&, _tArg))
 		: _m_ptr(_f), _state(_func)
 	{}
-	/*!
+	/!
 	\brief 构造：使用指定非静态成员函数指针。
-	*/
+	/
 	explicit
 	GHDynamicFunction(_tRet(_type::*_pf)(_tArg) const)
 		: _m_ptr(_pf), _state(_mem_func)
 	{}
 
-	/*!
+	/!
 	\brief 调用：使用 _type 类型参数。
 	\note 无 dynamic_cast 。
-	*/
+	/
 	_tRet
 	operator()(_type& _r, _tArg _x) const
 	{
@@ -138,10 +95,10 @@ public:
 		else if(_m_ptr._mf_ptr)
 			return (_r.*_m_ptr._mf_ptr)(_x);
 	}
-	/*!
+	/!
 	\brief 调用：使用非 _type 类型参数。
 	\note 有 dynamic_cast 。
-	*/
+	/
 	template<class _tNew>
 	_tRet
 	operator()(const _tNew& _r, _tArg _x) const
@@ -159,26 +116,26 @@ public:
 };
 
 
-/*!
+/!
 \brief 助手函数：使用指定函数引用构造
 	GHDynamicFunction<_type, _tArg, _tRet> 对象。。
-*/
+/
 template<typename _type, typename _tArg, typename _tRet>
 inline GHDynamicFunction<_type, _tArg, _tRet>
 ConstructDynamicFunctionWith(_tRet (&_f)(_type&, _tArg))
 {
 	return GHDynamicFunction<_type, _tArg, _tRet>(_f);
 }
-/*!
+/!
 \brief 助手函数：使用指定非静态成员函数指针构造
 	GHDynamicFunction<_type, _tArg, _tRet> 对象。
-*/
+/
 template<typename _tRet, typename _type, typename _tArg>
 inline GHDynamicFunction<_tRet, _type, _tArg>
 ConstructDynamicFunctionWith(_tRet (_type::*_f)(_tArg) const)
 {
 	return GHDynamicFunction<_tRet, _type, _tArg>(_f);
-}
+}*/
 
 
 //! \brief 函数对象类：替换非静态成员二元函数的第一个参数。
@@ -225,8 +182,7 @@ public:
 		if(_pm)
 			try
 			{
-				return (dynamic_cast<_type&>(o).*_pm)(
-					std::forward<_tPara>(arg));
+				return (dynamic_cast<_type&>(o).*_pm)(yforward(arg));
 			}
 			catch(std::bad_cast&)
 			{}
@@ -275,7 +231,7 @@ public:
 	operator()(_tN&, _tPara arg)
 	{
 		if(_po && _pm)
-			return (_po->*_pm)(std::forward<_tPara>(arg));
+			return (_po->*_pm)(yforward(arg));
 	}
 };
 
@@ -326,13 +282,13 @@ class GFunctor : public PolymorphicFunctorBase, public _tFunctor
 {
 public:
 	GFunctor(_tFunctor&& _f)
-		: PolymorphicFunctorBase(), _tFunctor(std::forward<_tFunctor>(_f))
+		: PolymorphicFunctorBase(), _tFunctor(yforward(_f))
 	{}
 
 	template<typename... _tArgs>
 	GFunctor(_tArgs... _args)
 		: PolymorphicFunctorBase(),
-		_tFunctor(std::forward<_tArgs>(_args)...)
+		_tFunctor(yforward(_args)...)
 	{}
 };*/
 
