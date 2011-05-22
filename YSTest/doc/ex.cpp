@@ -1,4 +1,4 @@
-//v0.3132; *Build 210 r98;
+//v0.3132; *Build 211 r47;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -216,279 +216,236 @@ $using:
 
 $DONE:
 r1:
-/ \tr \impl @ \impl \u (DSReader & YFileSystem & YApplication & Shell_DS & YGUI)
-	^ is_valid;
+/ \mf DefGetter(shared_ptr<Content>, ContentHandle, hContent) @ \cl Message
+	@ \h YShellMessage -> DefGetter(const Content&, Content, *hContent);
+/ \tr \impl @ \mf YShell::DefShlProc @ \impl \u YShell;
+/ \tr \impl @ \f ResponseInput @ \impl \u Shell_DS;
+* \tr \impl @ \mf YGUIShell::ShlProc @ \impl \u YGUI;
+/ \tr \impl @ \f @ \impl \u Main;
+/ \tr \impl @ \f main @ \impl \u YGlobal;
 
-r2-r4:
-/ @ \clt GDependency @ \h YObject:
-	/ \impl @ \mf GetCopyOnWritePtr ^ (\exp \ctor & is_valid);
-	/ \de \param -> PointerType() ~ nullptr @ \ctor;
-/ \a !\exp \i \mf @ \clt (GHandle & GHWeak) -> \exp \i \mf;
-
-r5:
+r2:
 /= test 1 ^ \conf release;
 
-r6-r11:
-/ \de \param @ \h (YWindow & Form):
-	* \de \param \def:
-		/ \a ynew -> new;
-	^ share_raw;
-/ \de \param @ \h (YLabel & YMenu & ListBox);
-/= test 2 ^ \conf release;
+r3-r11:
+/ @ \cl Content @ \u YShellMessage:
+	+ \i \de \ctor:
+	* \impl @ move \ctor Content(Content&&);
+	/ \impl @ \dtor;
+	* \impl @ \mf \op==;
+	* \impl @ copy \ctor Content(const Content&);
+/= test 2;
 
 r12:
-/= test 3;
+/ \ctor Message(const shared_ptr<YShell>& = shared_ptr<YShell>(), ID = 0,
+	Priority = 0, const shared_ptr<Content>& = shared_ptr<Content>())
+	@ \cl Message @ \u YShellMessage -> Message(const Content&,
+	const shared_ptr<YShell>& = shared_ptr<YShell>(), ID = 0, Priority = 0);
+/ @ \impl \u YApplication:
+	/ \tr \simp \impl @ \mf YApplication::SetShellHandle;
+	/ \f void SendMessage(const shared_ptr<YShell>&, Messaging::ID,
+		Messaging::Priority, Messaging::Content* = nullptr) ynothrow
+		-> void SendMessage(const shared_ptr<YShell>&, Messaging::ID,
+		Messaging::Priority, const Messaging::Content& = Messaging::Content())
+		ynothrow;
+/ \tr \impl @ \f WaitForGUIInput @ \impl \u YGlobal;
+/ \tr \impl @ \f \i NowShellInsertDropMessage(Messaging::Priority)
+	@ \h Shell_DS;
+/ \tr \impl @ \f \i void SetShellTo(const shared_ptr<YShell>&,
+	Messaging::Priority = 0x80) @ \h YShellHelper;
+/ \tr \impl @ \f void PostQuitMessage(int, Priority) @ \impl \u YShell;
 
 r13:
-/ \impl @ \f \i NewScrImage ^ share_raw @ \h YShellHelper; 
-/ \impl @ \impl \u (YApplication & Shell_DS & YLabel) ^ share_raw;
+/= test 3 ^ \conf release;
 
-r14:
-/= test 4 ^ \conf release;
+r14-r20:
+/= test 4;
+/ @ \u YShellMessage:
+	/ @ \cl Message:
+		/ \m shared_ptr<Content> hContent -> Content content;
+		/ \tr \mf DefGetter(const Content&, Content, hContent)
+			-> DefGetter(const Content&, Content, content);
+		/ \tr \impl @ \ctor;
+	/ \tr \simp \impl @ \f bool operator==(const Message&, const Message&);
 
-r15:
-/ \de \param -> PointerType() ~ nullptr @ \ctor @ \clt GDependencyEvent
-	@ \h YEvent;
+r21-r27:
+/= test 5;
 
-r16:
-/= test 5 ^ \conf release;
+r28:
+* @ \cl Content @ \u YShellMessage:
+	+ \mf Content& operator=(const Content&);
+	+ \mf Content& operator=(Content&&);
+	+ \mf void Clear();
+	+ \mf void Swap(Content&);
+	/ \tr \simp \impl @ \dtor;
 
-r17:
-/ \impl @ \u Shells ^ \exp \de \ctor ~ nullptr;
-/ \impl @ \impl \u YShell ^ \exp \de \ctor ~ nullptr;
-
-r18:
+r29:
 /= test 6 ^ \conf release;
 
-r19-r58:
-/= test 7-9 ^ \conf release;
-/ @ \h YReference:
-	- \mf (\op bool & \op!) \clt GHandle;
-	- \clt GHWeak;
-	- \tr \a \ft with \param \tp 'GHWeak';
-/= test 10;
-/= test 11 ^ \conf release;
-/= test 12;
-/ \rem @ \h Memory;
-/= test 13-16 ^ \conf release;
-/= test 17;
-/= test 18 ^ \conf release;
-/ \simp @ \h YFileSystem:
-	- \stt HFileNameFilter;
-	- typedef bool FNFILTER(const String&);
-	- typedef FNFILTER* PFNFILTER;	
-	- \inc \h "yfunc.hpp"
-/ \simp @ \h YShell:
-	- \stt HShellProc;
-	- typedef int FSHLPROC(const Message&);
-	- typedef FSHLPROC* PFSHLPROC;
-	- \inc \h "yfunc.hpp"
-/ \simp @ \h YFunc:
-	- \clt GHBase;
-	/ \rem \clt GHDynamicFunction;
-	/ \rem 2 \ft ConstructDynamicFunctionWith;
-/ @ \h Utilities:
-	+ \mac #define yforward(_expr) std::forward<typename \
-		std::remove_reference<decltype(_expr)>::type>(_expr);
-- \mac (CHRLIB_WCHAR_T_SIZE & UNICODE) @ \h Platform;
-- \mac UNICODE @ \h YCommon;
-/ \a 7 (^ std::forward) -> (^ yforward) @ \h YEvent;
-/ \a 4 (^ std::forward) -> (^ yforward) @ \h YFunc;
+r30:
+/ @ \cl Content @ \u YShellMessage:
+	/ !\i \dtor -> \i \dtor;
+	/ \a 2 !\i \mf \op= -> \i \mf; 
 
-r59:
-/= test 18 ^ \conf release;
+r31:
+/= test 7 ^ \conf release;
 
-r60:
-/ \impl @ \smf Check @ \clt (GStaticCache & GLocalStaticCache) @ \h YStatic;
-- \a \c @ \tp shared_ptr<*> @ \param;
-
-r61:
-/= test 19 ^ \conf release;
-
-r62:
-/ @ \h YReference:
-	- \t \ctor @ \clt GHandle;
-	/ \i \ctor @ \clt GHandle -> SPT&& ~ const SPT @ \clt GHandle;
-/ \impl @ \f WaitForGUIInput @ \un \ns @ \impl \u YGlobal;
-
-r63:
-/= test 20 ^ \conf release;
-
-r64:
-- \de \param @ \ctor \i GHandle(nullptr_t = nullptr)
-	@ \clt GHandle @ \h YReference;
-
-r65-r78:
-/= test 21;
-
-r79:
-/ \impl @ \f void SendMessage(GHandle<YShell>, Messaging::ID,
-	Messaging::Priority, Messaging::IContext*) ynothrow ^ share_raw
-	@ \impl \u YApplication;
-/ \impl @ \mft GetEvent @ \clt EventMap @ \h YEvent;
-/ \impl @ \mf void ShlSetting::TFormTest::OnClick_btnMenuTest(TouchEventArgs&&)
-	@ \cl Shells;
-
-r80:
-/= test 22 ^ \conf release;
-
-r81:
-/ \a GHandle -> shared_ptr \exc \h YReference;
-/ @ \h YReference:
-	- \clt GHandle;
-	- \tr \a \ft with \param \tp 'GHandle';
-
-r82:
-/= test 23 ^ \conf release;
-
-r83-r85:
-/ @ \u YShellMessage:
+r32:
+/ @ \h YShellMessage:
+	/ \impl @ \mft GetObject @ \cl Content;
 	/ @ \cl Message:
-		^ \exp \de @ copy \ctor;
-		+ move \cotr ^ \exp \de;
-		^ value \tp shared_ptr<*> -> \c lvalue \ref \param @ \ctor;
-		/ \a \m pContext => hContext;
-	/ @ \cl YMessageQueue:
-		- \dtor;
-		/ \ctor ^ \i \exp \de;
+		/ !\i \mf Message& \op=(const Message&) -> \i \mf;
+		+ \i \mf Message& \op=(Message&&);
+		+ \i \mf Message& \op=(const Content&);
+		+ \i \mf Message& \op=(Content&&);
 
-r86:
-^ \a value \tp shared_ptr<*> -> \c lvalue \ref \param @ \ctor;
-/ \m pList => hList @ \cl FileList @ \u YFileSystem;
-/ \m spBgImage => hBgImage @ \cl MWindow @ \u YWindow;
+r33:
+- \h "../Core/yobject.h" @ \h YComponent;
+- \h "yobject.h" @ \h YShell;
+/ @ \ns Messaging @ \h YShellMessageDefinition:
+	+ \stt<MessageID ID> SMessageMap;
+	+ \ft<MessageID ID> const typename SMessageMap<ID>::TargetType&
+		FetchTarget(const Message&);
+	+ \mac
+	{
+		DefMessageTarget(SM_NULL, void)
+		DefMessageTarget(SM_SET, shared_ptr<YShell>)
+		DefMessageTarget(SM_DROP, shared_ptr<YShell>)
+		DefMessageTarget(SM_ACTIVATED, shared_ptr<YShell>)
+		DefMessageTarget(SM_DEACTIVATED, shared_ptr<YShell>)
+		DefMessageTarget(SM_PAINT, shared_ptr<YShell>)
+		DefMessageTarget(SM_QUIT, int)
+	};
+/ @ \h YGlobal:
+	/ \inc \h YShellMessage -> \h YShellMessageDefiniton;
+	- \inc \h "../Core/ycutil.h";
+	+ \mac DefMessageTarget(SM_INPUT, shared_ptr<InputContent>) @ \ns Messaging;
+/ \tr \impl @ \mf YShell::DefShlProc @ \impl \u YShell ^ FetchTarget;
+/ @ \h YApplication:
+	+ \ft<Messaging::MessageID ID> \i void
+		SendMessage(const shared_ptr<YShell>&, Messaging::Priority,
+		const typename Messaging::SMessageMap<ID>::TargetType&) ynothrow;
+/ \tr \impl @ \f \i NowShellInsertDropMessage @ \h Shell_DS ^ \ft SendMessage;
+/ \tr \impl @ \f \i SetShellTo @ \h YShellHelper ^ \ft SendMessage;
+/ \tr \impl @ \f PostQuitMessage @ \impl \u YShell ^ \ft SendMessage;
+/ \tr (\rem & \impl @ \f ResponseInput) @ \impl \u Shell_DS ^ \ft SendMessage;
+/ \tr \impl @ \f WaitForGUIInput @ \un \ns @ \impl \u YGlobal ^ \ft SendMessage;
+/ \tr \impl @ \mf YGUIShell::ShlProc @ \impl \u YGUI ^ \ft SendMessage;
 
-r87:
-/= test 24 ^ \conf release;
-
-r88:
-/ @ \u YGlobal:
-	- \dtor @ \cl Global;
-	- \f int ShlProc(const shared_ptr<YShell>&, const Message&);
-
-r89:
-/ \a IContext => IContent;
-/ \a InputContext => InputContent;
-/ \a GHandleContext => GHandleContent;
-/ \a GObjectContext => GObjectContent;
-/ @ \ns Messaging @ \u YShellMessage:
-	/ \mf GetContextPtr => GetContentHandle;
-	/ \m hContext => hContent;
-
-r90:
-/ @ \ns Messaging @ \u YShellMessage:
-	+ \cl Content;
-	/ @ \cl Message:
-		/ \m shared_ptr<IContent> hContent -> shared_ptr<Content> hContent;
-		/ \mf DefGetter(shared_ptr<IContent>, ContentHandle, hContent)
-			-> DefGetter(shared_ptr<IContent>, ContentHandle, \
-			hContent ? hContent->GetObject<shared_ptr<IContent>>() \
-			: shared_ptr<IContent>());
-		/ \tr \impl @ \ctor;
-
-r91:
-/ @ \cl Message @ \ns Messaging @ \u YShellMessage:
-	+ \ctor Message(const shared_ptr<YShell>& = shared_ptr<YShell>(), ID = 0,
-		Priority = 0, const shared_ptr<IContent>& = shared_ptr<IContent>())
-		-> Message(const shared_ptr<YShell>& = shared_ptr<YShell>(), ID = 0,
-		Priority = 0, const shared_ptr<Content>& = shared_ptr<Content>());
-	+ \ctor Message(const shared_ptr<YShell>&, ID, Priority,
-		const shared_ptr<IContent>&);
-	+ \mf shared_ptr<IContent> GetIContentHandle() const;
-	/ \mf DefGetter(shared_ptr<IContent>, ContentHandle, \
-		hContent ? hContent->GetObject<shared_ptr<IContent>>() \
-		: shared_ptr<IContent>())
-		-> DefGetter(shared_ptr<Content>, ContentHandle, hContent);
-/ \impl @ \h YShellMessageDefinition & \impl \u YShell;
-/ \impl @ \f YSDebug_MSG_Print @ \un \ns @ \u Main;
-
-r92:
-/ @ \impl \u YShell:
-	/ \impl @ \f PostQuitMessage ^ Content ~ GObjectContent;
-	/ \tr \impl @ \mf YShell::DefShlProc;
-/ @ \h YShellMessageDefinition:
-	- DefMessageTypeMapping(EStandard::Quit, GObjectContent<int>)
-	- \clt GObjectContent;
-/ @ \u YApplication:
-	/ \f void SendMessage(const shared_ptr<YShell>&, Messaging::ID,
-		Messaging::Priority, Messaging::IContent* = nullptr) ynothrow
-		-> \f void SendMessage(const shared_ptr<YShell>&, Messaging::ID,
-		Messaging::Priority, Messaging::Content* = nullptr) ynothrow;
-	+ \f void SendMessage(const shared_ptr<YShell>&, Messaging::ID,
-		Messaging::Priority, Messaging::IContent*) ynothrow;
-
-r93:
-/ \impl @ \f \i NowShellInsertDropMessage @ \Shell_DS ^ Messaging::Content
-	~ Messaging::GHandleContent;
-/ \impl @ \mf YApplication::SetShellHandle @ \impl \u YApplication
-	^ Messaging::Content ~ Messaging::GHandleContent;
-/ \impl @ \mf YGUIShell::ShlProc @ \impl \u YGUI ^ Messaging::Content
-	~ Messaging::GHandleContent;
-/ \impl @ (\mf YShell::ShlProc & \f PostQuitMessage) @ \impl \u YShell
-	^ Messaging::Content ~ Messaging::GHandleContent;
-
-r94:
-/ @ \h YShellMessageDefinition:
-	- DefMessageTypeMapping(EStandard::Set, GHandleContent<shared_ptr<YShell>>)
-	- DefMessageTypeMapping(EStandard::Drop, GHandleContent<shared_ptr<YShell>>)
-	- DefMessageTypeMapping(EStandard::Activated,
-		GHandleContent<shared_ptr<YShell>>)
-	- DefMessageTypeMapping(EStandard::Deactivated, GHandleContent< \
-		shared_ptr<YShell>>)
-	- DefMessageTypeMapping(EStandard::Paint,
-		GHandleContent<shared_ptr<Desktop>>)
-	- \clt GHandleContent;
-
-r95:
+r34:
 ^ \conf release;
-/= test 25;
+/= test 8;
 
-r96:
-/ \tr @ \u YGlobal:
-	/ @ \cl InputContent:
-		- \inh \impl IContent;
-		/ \mf ImplI1(IContent) bool operator==(const IContent&) const
-			-> !\vt bool operator==(const InputContent&) const;
-	/ \impl @ \f WaitForGUIInput \un \ns;
-/ \impl @ \f ResponseInput @ \impl \u Shell_DS;
+r35:
+/ !\i \ft FetchTarget -> \i \ft @ \h YShellMessageDefinition;
 
-r97:
+r36:
 ^ \conf debug;
-/ @ \h YMessageDefinition:
-	- DefMessageTypeMapping(EStandard::Input, InputContent);
-	- 2 \ft CastMessage;
-	- \pre \decl class InputContent;
-	- DefMessageTypeMapping(EStandard::Null, IContent);
-	- \stt MessageTypeMapping;
-	- \mac DefMessageTypeMapping;
-	/ MessageID >> \ns Messaging ~ \st EStandard;
-	- \st EStandard;
-	/ \tr \decl @ \mac;
-- \f void SendMessage(const shared_ptr<YShell>&, Messaging::ID,
-	Messaging::Priority, Messaging::IContent*) ynothrow @ \u YApplication;
 / @ \u YShellMessage:
-	/ \cl Message:
-		- \ctor Message(const shared_ptr<YShell>&, ID, Priority,
-			const shared_ptr<IContent>&);
-		- \mf shared_ptr<IContent> GetIContentHandle() const;
-	- \in IContent;
+	/ @ \cl MessageQueue:
+		/ \inh public YObject -> public noncopyable;
+		+ \dtor \vt DefEmptyDtor(MessageQueue);
+/ \a MessageQueue => MessageQueue;
+/ @ \h YShellDefinition:
+	- \pre \decl \cl Messaging::MessageQueue;
+	/ using Messaging::MessageQueue >> \h YApplication;
 
-r98:
-/= test 26 ^ \conf release;
+r37:
+/ @ \cl Content @ \u YShellMessage:
+	/ \impl @ 2 \mf \op=;
+	* \impl @ \mf Content& operator=(Content&&) for self-assignment;
+	/ \mf \i Content& operator=(Content&&) -> !\i \mf;
+
+r38:
+/= test 9 ^ \conf release;
+
+r39:
+/ @ \impl \u Shells:
+	/ @ \un \ns:
+		+ \f shared_ptr<Menu::ListType> GenerateList();
+		+ \g \o MenuHost s_MenuHost;
+	/ @ \cl MenuHost:
+		+ \i \mf void Clear();
+		/ protected \m MenuMap sMenus => mMenus;
+		+ \i \mf ItemType operator[](ID);
+	/ \impl @ \mf (OnActivated & OnDeactivated & TFormTest::OnClick_btnMenuTest)
+		@ \cl ShlSetting;
++= \rem @ \amf GetContainerPtr @ \in IWidget @ \h YWidget;
+
+r40:
+/ \f PostQuitMessage @ \ns Shells @ \u YShell >> \ns YSLib @ \u YApplication;
+/ \a GetCurrentShellHandle => FetchCurrentShellHandle;
+/ \a GetMainShellHandle => FetchMainShellHandle;
+/ \a GetApp => FetchAppInstance;
+/ \a GetGlobal => FetchGlobalInstance;
+/ \a FetchCurrentShellHandle => FetchShellHandle;
+- \i \f FetchShellHandle @ \ns YSLib @ \h YComponent;
++ using (Activate & using FetchShellHandle) @ \ns YSLib @ \h YShell;
+/ \tr \impl @ \mf ShlSetting::TFormExtra @ \impl \u Shells;
+
+r41:
+/ \a GetMessage => FetchMessage;
+/ @ \u YShell:
+	/ @ \ns Shells:
+		/ \f (PeekMessage & FetchMessage & TranslateMessage & DispatchMessage
+			& BackupMessageQueue & RecoverMessageQueue) >> \ns YSLib
+			@ \u YApplication;
+		/ !\i \f (FetchShellHandle & Activate) >> \i \f @ \ns YSLib
+			@ \h YApplication;
+	- using (Activate & using FetchShellHandle) @ \ns YSLib @ \h;
+/ \decl @ \f FetchAppInstance @ \h YGlobal >> \h YApplication;
+/ \tr \impl @ \f \i (NowShellTo & SetShellTo) @ \h YShellHelper;
+/ \tr \impl @ \f \i NowShellInsertDropMessage @ \h Shell_DS;
+/ \tr \impl @ \f WaitForGUIInput @ \un \ns @ \impl \u YGlobal;
+
+r42:
+/= test 10 ^ \conf release;
+
+r43:
+/ @ \impl \u Shells:
+	/ @ \cl MenuHost:
+		+ \mf void ShowMenu();
+		+ \mf void HideMenu();
+	/ \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest;
+
+r44:
+/ @ \impl \u Shells:
+	/ \mf DefGetter(shared_ptr<Desktop>, DesktopHandle, hDesktop) @ \cl MenuHost
+		-> DefMutableGetter(shared_ptr<Desktop>&, DesktopHandle, hDesktop);
+	/ \impl @ \mf ShlSetting::OnActivated;
+
+r45:
+/ @ \impl \u Shells:
+	/ \simp @ \cl MenuHost:
+		- \mf DefMutableGetter(shared_ptr<Desktop>&, DesktopHandle, hDesktop);
+		/ @ protected \m shared_ptr<Desktop> hDesktop
+			-> public \m shared_ptr<Desktop> DesktopHandle;
+		/ \tr @ \ctor;
+	/ \tr \impl @ \mf ShlSetting::OnActivated;
+
+r46:
+/ @ \impl \u Shells:
+	/ \o MenuHost s_MenuHost -> MenuHost* s_pMenuHost;
+	/ \tr \impl @ \mf (OnActivated & OnDeactivated
+		& TFormTest::OnClick_btnMenuTest) @ \cl ShlSetting;
+
+r47:
+/= test 11 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-05-17:
--20.5d;
-//Mercurial rev1-rev80: r3955;
+2011-05-22:
+-21.1d;
+//Mercurial rev1-rev81: r4053;
 
 / ...
 
 
 $NEXT_TODO:
 
-b211-b324:
+b212-b324:
 + menus;
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
 	libstdc++ for known associative container operation bugs:
@@ -591,6 +548,15 @@ $ellipse_refactoring;
 
 $now
 (
+	/ "implemented messages with general object content holder"
+		^ "non-pointer member" ~ "%shared_ptr",
+	+ "message content mapping",
+	/ $design "messaging APIs moved to unit YApplication from YShell",
+	/ "test menu fixed on the desktop"
+),
+
+$b210
+(
 	+ "template %is_valid for checking pointers which cast bool explicitly",
 	/ "part of template %raw moved to namespace %ystdex",
 	- $design "some unused code",
@@ -603,7 +569,11 @@ $now
 		^ "%std::shared_ptr" ~ "%GHandle",
 		- "%GHandle"
 	),
-	/ "implementation of messages"
+	/ "implementation of messages" $=
+	(
+		/ "implementation of class %Message",
+		- "message ID mapping"
+	)
 ),
 
 b209

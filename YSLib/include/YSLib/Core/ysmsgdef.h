@@ -11,12 +11,12 @@
 /*!	\file ysmsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version 0.2842;
+\version 0.2894;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-08 12:05:26 +0800;
 \par 修改时间:
-	2011-05-17 09:27 +0800;
+	2011-05-20 04:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -60,6 +60,34 @@ typedef enum MessageSpace
 #define SM_QUIT					Messaging::Quit
 
 #define SM_INPUT				Messaging::Input
+
+
+template<MessageID _vID>
+struct SMessageMap
+{};
+
+#define DefMessageTarget(_id, _type) \
+	template<> \
+	struct SMessageMap<_id> \
+	{ \
+		typedef _type TargetType; \
+	};
+
+DefMessageTarget(SM_NULL, void)
+DefMessageTarget(SM_SET, shared_ptr<YShell>)
+DefMessageTarget(SM_DROP, shared_ptr<YShell>)
+DefMessageTarget(SM_ACTIVATED, shared_ptr<YShell>)
+DefMessageTarget(SM_DEACTIVATED, shared_ptr<YShell>)
+DefMessageTarget(SM_PAINT, shared_ptr<Desktop>)
+DefMessageTarget(SM_QUIT, int)
+
+
+template<MessageID _vID>
+inline const typename SMessageMap<_vID>::TargetType&
+FetchTarget(const Message& msg)
+{
+	return msg.GetContent().GetObject<typename SMessageMap<_vID>::TargetType>();
+}
 
 YSL_END_NAMESPACE(Messaging)
 

@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7253;
+\version 0.7255;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-05-14 20:35 +0800;
+	2011-05-21 23:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -223,7 +223,7 @@ const Typeface&
 FetchDefaultTypeface() ythrow(LoggedEvent)
 {
 	const Typeface* const pDefaultTypeface(
-		GetApp().GetFontCache().GetDefaultTypefacePtr());
+		FetchAppInstance().GetFontCache().GetDefaultTypefacePtr());
 
 	if(!pDefaultTypeface)
 		throw LoggedEvent("The default font face pointer is null"
@@ -356,7 +356,7 @@ FontCache::GetDefaultTypefacePtr() const ythrow(LoggedEvent)
 {
 	//默认字体缓存的默认字型指针由初始化保证为非空指针。
 	return pDefaultFace ? pDefaultFace
-		: GetApp().GetFontCache().GetDefaultTypefacePtr();
+		: FetchAppInstance().GetFontCache().GetDefaultTypefacePtr();
 }
 const Typeface*
 FontCache::GetTypefacePtr(const FontFamily::NameType& family_name,
@@ -379,7 +379,8 @@ FontCache::GetGlyph(fchar_t c)
 		GetTypefacePtr()->cmap_index, c));
 	FTC_SBit sbit;
 
-	FTC_SBitCache_LookupScaler(sbitCache, &scaler, flags, index, &sbit, nullptr);
+	FTC_SBitCache_LookupScaler(sbitCache, &scaler, flags, index, &sbit,
+		nullptr);
 	return sbit;
 }
 s8

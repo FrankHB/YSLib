@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 抽象。
-\version 0.4152;
+\version 0.4183;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-05-17 02:52 +0800;
+	2011-05-22 22:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -560,9 +560,10 @@ public:
 	typedef map<ID, ItemType> MenuMap; //!< 菜单组类型。
 	typedef MenuMap::value_type ValueType;
 
+	shared_ptr<Desktop> DesktopHandle; //!< 桌面句柄。
+
 protected:
-	shared_ptr<Desktop> hDesktop; //!< 桌面句柄。
-	MenuMap sMenus;
+	MenuMap mMenus;
 
 public:
 	MenuHost(const shared_ptr<Desktop>& = shared_ptr<Desktop>());
@@ -570,34 +571,74 @@ public:
 	~MenuHost();
 
 	/*!
-	\brief 向菜单组添加指针指定的菜单。
+	\brief 向菜单组添加标识和指针指定的菜单。
 	*/
 	PDefHOperator1(void, +=, const ValueType& v)
-		ImplRet(static_cast<void>(sMenus.insert(v)))
+		ImplRet(static_cast<void>(mMenus.insert(v)))
+
+	PDefHOperator1(ItemType, [], ID id)
+		ImplRet(mMenus[id])
 
 	/*!
-	\brief 从菜单组移除指针指定的菜单。
+	\brief 从菜单组移除标识指定的菜单。
 	*/
 	PDefHOperator1(bool, -=, ID id)
-		ImplRet(sMenus.erase(id) != 0)
+		ImplRet(mMenus.erase(id) != 0)
 
-	DefGetter(shared_ptr<Desktop>, DesktopHandle, hDesktop);
+	PDefH0(void, Clear)
+		ImplRet(mMenus.clear())
+
+	void
+	ShowMenu();
+	void
+	HideMenu();
 };
 
 MenuHost::MenuHost(const shared_ptr<Desktop>& hDsk)
-	: hDesktop(hDsk), sMenus()
+	: DesktopHandle(hDsk), mMenus()
 {}
 MenuHost::~MenuHost()
 {
-	for(auto i(sMenus.cbegin()); i != sMenus.cend(); ++i)
+	for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
 		ydelete(i->second);
-//	std::for_each(sMenus.begin(), sMenus.end(), delete_obj());
+}
+
+void
+MenuHost::ShowMenu()
+{
+	if(DesktopHandle)
+		for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
+			*DesktopHandle += i->second;
+}
+
+void
+MenuHost::HideMenu()
+{
+	if(DesktopHandle)
+		for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
+			*DesktopHandle -= i->second;
+}
+
+namespace
+{
+	shared_ptr<Menu::ListType>
+	GenerateList()
+	{
+		auto p(new Menu::ListType());
+		p->push_back(_ustr("xx"));
+		char str[80];
+		sprintf(str, "%p;", p);
+		p->push_back(str);
+		return share_raw(p);
+	}
+
+	MenuHost* s_pMenuHost;
 }
 
 
 ShlSetting::TFormTest::TFormTest()
 	: Form(Rect(10, 40, 228, 70), shared_ptr<Image>(),
-		raw(GetGlobal().GetDesktopDownHandle())),
+		raw(FetchGlobalInstance().GetDesktopDownHandle())),
 	btnEnterTest(Rect(2, 5, 148, 22)), /*GetImage(6)*/
 	btnMenuTest(Rect(152, 5, 60, 22)),
 	btnShowWindow(Rect(45, 35, 124, 22))
@@ -650,34 +691,42 @@ ShlSetting::TFormTest::OnLeave_btnEnterTest(IControl& sender,
 void
 ShlSetting::TFormTest::OnClick_btnMenuTest(TouchEventArgs&& /*e*/)
 {
-	static Menu* pMenu;
 	static int t;
 	
-	if(!pMenu)
+	YAssert(s_pMenuHost, "null %MenuHost ptr");
+
+	if(t == 0)
 	{
-		t = 0;
-		pMenu = new Menu(GetBoundsOf(btnMenuTest)
+		Menu* pMenu = (*s_pMenuHost)[1u];
+
+		YAssert(pMenu, "menu err;");
+
+		pMenu->GetList().push_back(_ustr("xx"));
+/*		pMenu = new Menu(GetBoundsOf(btnMenuTest)
 			+ Vec(-btnMenuTest.GetWidth(), btnMenuTest.GetHeight()),
 			share_raw(new Menu::ListType()),
 			FetchGUIShell().Colors.GetPair(Styles::Panel,
 			Styles::HighlightText));
-		pMenu->GetList().push_back(_ustr("xx"));
-		*this += pMenu;
+		pMenu->GetList().push_back(_ustr("xx"));*/
+	//	*this += pMenu;
+		s_pMenuHost->ShowMenu();
 	}
 	else if(t < 2)
 	{
 		char stra[4];
+		Menu* pMenu = (*s_pMenuHost)[1u];
 
-		sprintf(stra, "%d", ++t);
+		YAssert(pMenu, "mnu err;");
+		
+		std::sprintf(stra, "%d", ++t);
 		pMenu->GetList().push_back(stra);
 		pMenu->SetSize(Size(pMenu->GetWidth(),
 			btnMenuTest.GetHeight() * pMenu->GetList().size()));
 	}
 	else
 	{
-		*this -= pMenu;
-		delete pMenu;
-		pMenu = nullptr;
+		t = 0;
+		s_pMenuHost->HideMenu();
 	}
 	Refresh();
 }
@@ -699,7 +748,7 @@ ShlSetting::TFormTest::OnClick_btnShowWindow(TouchEventArgs&& /*e*/)
 
 ShlSetting::TFormExtra::TFormExtra()
 	: Form(Rect(5, 60, 208, 120), shared_ptr<Image>(), /*GetImage(7)*/
-		raw(GetGlobal().GetDesktopDownHandle())),
+		raw(FetchGlobalInstance().GetDesktopDownHandle())),
 	btnDragTest(Rect(13, 15, 184, 22)),
 	btnTestEx(Rect(13, 52, 168, 22)),
 	btnReturn(Rect(13, 82, 60, 22)),
@@ -763,7 +812,7 @@ ShlSetting::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs&& e)
 void
 ShlSetting::TFormExtra::OnClick_btnDragTest(TouchEventArgs&& /*e*/)
 {
-	static FontCache& fc(GetApp().GetFontCache());
+	static FontCache& fc(FetchAppInstance().GetFontCache());
 	static const int ffilen(fc.GetFilesN());
 	static const int ftypen(fc.GetTypesN());
 	static const int ffacen(fc.GetFacesN());
@@ -843,7 +892,7 @@ ShlSetting::TFormExtra::OnClick_btnReturn(TouchEventArgs&& /*e*/)
 void
 ShlSetting::TFormExtra::OnClick_btnExit(TouchEventArgs&& /*e*/)
 {
-	Shells::PostQuitMessage(0);
+	PostQuitMessage(0);
 }
 
 void
@@ -897,7 +946,7 @@ ShlSetting::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 	*/
 		String str(_ustr("Abc测试"));
 
-		TestObj t(GetGlobal().GetDesktopDownHandle());
+		TestObj t(FetchGlobalInstance().GetDesktopDownHandle());
 	//	const Graphics& g(t.h->GetContext());
 
 		TextRegion tr;
@@ -1074,6 +1123,15 @@ ShlSetting::OnActivated(const Message& msg)
 //	pWndTest->DrawContents();
 //	pWndExtra->DrawContents();
 
+	Button& btnMenuTest(static_cast<TFormTest*>(pWndTest.get())->btnMenuTest);
+
+	s_pMenuHost = new MenuHost();
+	s_pMenuHost->DesktopHandle = GetDesktopDownHandle();
+	(*s_pMenuHost) += make_pair(1u, new Menu(GetBoundsOf(btnMenuTest)
+			+ Vec(-btnMenuTest.GetWidth(), btnMenuTest.GetHeight()),
+			GenerateList(),
+			FetchGUIShell().Colors.GetPair(Styles::Panel,
+			Styles::HighlightText)));
 	ParentType::OnActivated(msg);
 	UpdateToScreen();
 	return 0;
@@ -1082,6 +1140,8 @@ ShlSetting::OnActivated(const Message& msg)
 int
 ShlSetting::OnDeactivated(const Message& msg)
 {
+	s_pMenuHost->Clear();
+	delete s_pMenuHost;
 	reset(GetDesktopUp().GetBackgroundImagePtr());
 	reset(GetDesktopDown().GetBackgroundImagePtr());
 	ParentType::OnDeactivated(msg);

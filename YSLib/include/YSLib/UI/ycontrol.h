@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 样式无关的控件。
-\version 0.4977;
+\version 0.4996;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-05-14 20:46 +0800;
+	2011-05-20 04:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -284,11 +284,11 @@ EndDecl
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则自动添加空事件。
 */
-template<VisualEvent id>
-inline typename EventT(typename EventTypeMapping<id>::HandlerType)&
+template<VisualEvent _vID>
+inline typename EventT(typename EventTypeMapping<_vID>::HandlerType)&
 FetchEvent(VisualEventMapType& m)
 {
-	return m.GetEvent<typename EventTypeMapping<id>::HandlerType>(id);
+	return m.GetEvent<typename EventTypeMapping<_vID>::HandlerType>(_vID);
 }
 /*!
 \ingroup HelperFunction
@@ -296,11 +296,11 @@ FetchEvent(VisualEventMapType& m)
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则自动添加空事件。
 */
-template<VisualEvent id>
-inline typename EventT(typename EventTypeMapping<id>::HandlerType)&
+template<VisualEvent _vID>
+inline typename EventT(typename EventTypeMapping<_vID>::HandlerType)&
 FetchEvent(IControl& c)
 {
-	return FetchEvent<id>(c.GetEventMap());
+	return FetchEvent<_vID>(c.GetEventMap());
 }
 
 /*!
@@ -309,13 +309,13 @@ FetchEvent(IControl& c)
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则忽略。
 */
-template<VisualEvent id>
+template<VisualEvent _vID>
 inline void
-CallEvent(VisualEventMapType& m, typename EventTypeMapping<id>
-	::HandlerType::SenderType& sender, typename EventTypeMapping<id>
+CallEvent(VisualEventMapType& m, typename EventTypeMapping<_vID>
+	::HandlerType::SenderType& sender, typename EventTypeMapping<_vID>
 	::HandlerType::EventArgsType& e)
 {
-	m.DoEvent<typename EventTypeMapping<id>::HandlerType>(id, sender,
+	m.DoEvent<typename EventTypeMapping<_vID>::HandlerType>(_vID, sender,
 		std::move(e));
 }
 /*!
@@ -324,13 +324,13 @@ CallEvent(VisualEventMapType& m, typename EventTypeMapping<id>
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则忽略。
 */
-template<VisualEvent id>
+template<VisualEvent _vID>
 inline void
-CallEvent(IControl& c, typename EventTypeMapping<id>
-	::HandlerType::SenderType& sender, typename EventTypeMapping<id>
+CallEvent(IControl& c, typename EventTypeMapping<_vID>
+	::HandlerType::SenderType& sender, typename EventTypeMapping<_vID>
 	::HandlerType::EventArgsType& e)
 {
-	CallEvent<id>(c.GetEventMap(), sender, e);
+	CallEvent<_vID>(c.GetEventMap(), sender, e);
 }
 /*!
 \ingroup HelperFunction
@@ -338,12 +338,12 @@ CallEvent(IControl& c, typename EventTypeMapping<id>
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则忽略。
 */
-template<VisualEvent id>
+template<VisualEvent _vID>
 inline void
-CallEvent(IControl& c, typename EventTypeMapping<id>
+CallEvent(IControl& c, typename EventTypeMapping<_vID>
 	::HandlerType::EventArgsType& e)
 {
-	CallEvent<id>(c.GetEventMap(), c, e);
+	CallEvent<_vID>(c.GetEventMap(), c, e);
 }
 
 

@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1947;
+\version 0.1960;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-05-17 08:05 +0800;
+	2011-05-22 00:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -94,8 +94,8 @@ public:
 	/*!
 	\brief 无参数构造。
 	*/
-	ShlDS(const shared_ptr<Desktop>& = GetGlobal().GetDesktopUpHandle(),
-		const shared_ptr<Desktop>& = GetGlobal().GetDesktopDownHandle());
+	ShlDS(const shared_ptr<Desktop>& = FetchGlobalInstance().GetDesktopUpHandle(),
+		const shared_ptr<Desktop>& = FetchGlobalInstance().GetDesktopDownHandle());
 
 	DefGetter(const shared_ptr<Desktop>&, DesktopUpHandle, hDskUp)
 	DefGetter(const shared_ptr<Desktop>&, DesktopDownHandle, hDskDown)
@@ -154,8 +154,7 @@ ResponseInput(const Message&);
 inline void
 NowShellInsertDropMessage(Messaging::Priority p = 0x80)
 {
-	SendMessage(Shells::GetCurrentShellHandle(), SM_DROP, p,
-		new Messaging::Content(FetchShellHandle()));
+	SendMessage<SM_DROP>(FetchShellHandle(), p, FetchShellHandle());
 }
 
 //@}

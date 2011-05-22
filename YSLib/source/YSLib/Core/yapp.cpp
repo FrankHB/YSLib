@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2326;
+\version 0.2354;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-05-17 09:31 +0800;
+	2011-05-22 00:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -72,8 +72,8 @@ YLog::FatalError(const string& s)
 
 YApplication::YApplication()
 	: YObject(),
-	Log(), pMessageQueue(new YMessageQueue()),
-	pMessageQueueBackup(new YMessageQueue()),
+	Log(), pMessageQueue(new MessageQueue()),
+	pMessageQueueBackup(new MessageQueue()),
 	hShell(), pFontCache()
 {
 	ApplicationExit += Destroy_Static;
@@ -109,7 +109,7 @@ YApplication::GetInstance() ynothrow
 			" the application instance pointer is null.");
 	}
 }
-YMessageQueue&
+MessageQueue&
 YApplication::GetDefaultMessageQueue() ythrow(LoggedEvent)
 {
 	if(!pMessageQueue)
@@ -117,7 +117,7 @@ YApplication::GetDefaultMessageQueue() ythrow(LoggedEvent)
 			" @ YApplication::GetDefaultMessageQueue;");
 	return *pMessageQueue;
 }
-YMessageQueue&
+MessageQueue&
 YApplication::GetBackupMessageQueue() ythrow(LoggedEvent)
 {
 	if(!pMessageQueueBackup)
@@ -146,10 +146,9 @@ YApplication::SetShellHandle(const shared_ptr<YShell>& h)
 
 		if(hShell)
 			hShell->OnDeactivated(Message(h, SM_DEACTIVATED, 0xF0,
-				shared_ptr<Content>(new Content(hShell))));
+				Content(hShell)));
 		hShell = h;
-		h->OnActivated(Message(h, SM_ACTIVATED, 0xF0,
-			shared_ptr<Content>(new Content(h))));
+		h->OnActivated(Message(h, SM_ACTIVATED, 0xF0, Content(h)));
 	}
 	return is_valid(h);
 }
@@ -157,7 +156,7 @@ YApplication::SetShellHandle(const shared_ptr<YShell>& h)
 void
 YApplication::ResetShellHandle() ynothrow
 {
-	if(!SetShellHandle(GetMainShellHandle()))
+	if(!SetShellHandle(FetchMainShellHandle()))
 		Log.FatalError("Error occured @ YApplication::ResetShellHandle;");
 }
 
@@ -183,12 +182,96 @@ YApplication::DestroyFontCache()
 }
 
 
+#if YSL_DEBUG_MSG & 2
+
+static int
+PeekMessage_(Message& msg, const shared_ptr<YShell>& hShl, bool bRemoveMsg);
+
+int
+PeekMessage(Message& msg, const shared_ptr<YShell>& hShl, bool bRemoveMsg)
+{
+	void YSDebug_MSG_Peek(Message&);
+	int t(PeekMessage_(msg, hShl, bRemoveMsg));
+
+	YSDebug_MSG_Peek(msg);
+	return t;
+}
+
+inline int
+PeekMessage_
+
+#else
+
+int
+PeekMessage
+
+#endif
+
+	(Message& msg, const shared_ptr<YShell>& hShl, bool bRemoveMsg)
+{
+	list<Message> mqt;
+	int r(-1);
+
+	while(!FetchAppInstance().GetDefaultMessageQueue().IsEmpty())
+	{
+		Message m(FetchAppInstance().GetDefaultMessageQueue().FetchMessage());
+
+		if(!hShl || !m.GetShellHandle() || hShl == m.GetShellHandle())
+		{
+			msg = m;
+			if(!bRemoveMsg)
+				FetchAppInstance().GetDefaultMessageQueue().Insert(m);
+			r = m.GetMessageID();
+			break;
+		}
+		else if(!bRemoveMsg)
+			mqt.push_back(m);
+	}
+	Merge(FetchAppInstance().GetDefaultMessageQueue(), mqt);
+	return r;
+}
+
+int
+FetchMessage(Message& msg, const shared_ptr<YShell>& hShl)
+{
+	if(FetchAppInstance().GetDefaultMessageQueue().IsEmpty())
+		Idle();
+	return PeekMessage(msg, hShl, true);
+}
+
+errno_t
+TranslateMessage(const Message& /*msg*/)
+{
+	// TODO: impl;
+	return 0;
+}
+
+int
+DispatchMessage(const Message& msg)
+{
+	return FetchAppInstance().GetShellHandle()->ShlProc(msg);
+}
+
+errno_t
+BackupMessageQueue(const Message& msg)
+{
+	return -!FetchAppInstance().GetBackupMessageQueue().Insert(msg);
+}
+
+void
+RecoverMessageQueue()
+{
+	Merge(FetchAppInstance().GetDefaultMessageQueue(),
+		FetchAppInstance().GetBackupMessageQueue());
+}
+
+
 void
 SendMessage(const Message& msg) ynothrow
 {
 	try
 	{
-		GetApp().GetDefaultMessageQueue().Insert(msg);
+		FetchAppInstance().GetDefaultMessageQueue().Insert(msg);
 
 #if YSL_DEBUG_MSG & 1
 
@@ -200,21 +283,28 @@ SendMessage(const Message& msg) ynothrow
 	}
 	catch(...)
 	{
-		GetApp().Log.FatalError("SendMessage #1;");
+		FetchAppInstance().Log.FatalError("SendMessage #1;");
 	}
 }
 void
 SendMessage(const shared_ptr<YShell>& hShl, Messaging::ID id,
-	Messaging::Priority prior, Messaging::Content* pContext) ynothrow
+	Messaging::Priority prior, const Messaging::Content& c) ynothrow
 {
 	try
 	{
-		SendMessage(Message(hShl, id, prior, share_raw(pContext)));
+		SendMessage(Message(hShl, id, prior, c));
 	}
 	catch(...)
 	{
-		GetApp().Log.FatalError("SendMessage #2;");
+		FetchAppInstance().Log.FatalError("SendMessage #2;");
 	}
+}
+
+void
+PostQuitMessage(int nExitCode, Messaging::Priority p)
+{
+	SendMessage<SM_SET>(shared_ptr<YShell>(), p, FetchMainShellHandle());
+	SendMessage<SM_QUIT>(shared_ptr<YShell>(), p, nExitCode);
 }
 
 YSL_END

@@ -1,11 +1,28 @@
-﻿// YSLib -> YSLib by Franksoft 2009 - 2011
-// CharSet = UTF-8;
-// CTime = 2009-12-02 05:14:30 +0800;
-// UTime = 2011-03-05 17:05 +0800;
-// Version = 0.2026;
+﻿/*
+	Copyright (C) by Franksoft 2009 - 2011.
 
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
 
-// YSLib ：YSLib说明。
+/*!	\file YSLib.txt
+\ingroup Documentation
+\brief YSLib说明。
+\version 0.2056;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-12-02 05:14:30 +0800;
+\par 修改时间:
+	2011-05-20 04:30 +0800;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	YSLib::Documentation::YSLib;
+*/
+
 
 // 方法和公共域定义与说明见 Definition.txt 。
 
@@ -17,33 +34,35 @@
 
 //空消息。参考优先级 0xFF 。
 //应被无条件忽略。
+//参数类型 void 。
 SM_NULL					0x0000
 
 // Shell 设置消息：指示线程控制权移交给目标 Shell 。参考优先级 0x80 。
-//参数是目标 Shell 句柄。
+//参数类型 shared_ptr<YShell> ，是目标 Shell 句柄。
 SM_SET					0x0003
 
 // Shell 预注销消息：指示取消指定 Shell 的线程控制权。参考优先级 0x80 。
-//参数是预注销的 Shell 句柄。
+//参数类型 shared_ptr<YShell> ，是预注销的 Shell 句柄。
 //线程控制权转移至主 Shell ，若成功则删除句柄指向的 Shell 对象。对主 Shell 作用无效。
 SM_DROP					0x0004
 
 // Shell 被激活消息：Shell 被激活后自动产生。参考优先级 0xF0 。
-//参数是被激活的 Shell 句柄。
+//参数类型 shared_ptr<YShell> ，是被激活的 Shell 句柄。
 SM_ACTIVATED			0x0005
 
 // Shell 被停用消息：Shell 被停用激活状态后自动产生。参考优先级 0xF0 。
-//参数是被停用的 Shell 句柄。
+//参数类型 shared_ptr<YShell> ，是被停用的 Shell 句柄。
 //转移线程控制权时，总在 SM_ACTIVATED 之前产生。应保持和 SM_ACTIVATED 具有相同的优先级，以保证该消息总在对应的 SM_ACTIVATED 之前被处理。
 SM_DEACTIVATED			0x0006
 
 // Shell 系统消息。
 //绘制 Shell 窗口组客户区。参考优先级 0xE0 。
-//参数是发起绘制的 Shell 对象句柄（实际会被忽略）。 lParam 是被绘制的窗口组所在屏幕的指针。
+//参数类型 shared_ptr<Desktop> ，是需要绘制的桌面句柄。
 SM_PAINT				0x000F
 
 //退出 Shell 及进程。参考优先级 0xFF 。
-//通过调用 PostQuitMessage 函数产生。参数被传递作为退出码。
+//通过调用 PostQuitMessage 函数产生。
+//参数类型 int ，被传递作为退出码。
 SM_QUIT					0x0012
 
 // Shell 通用交互消息。
@@ -51,7 +70,7 @@ SM_QUIT					0x0012
 // Shell 扩展消息。
 
 //输入消息：记录标准输入设备的输入事件。参考优先级 0x40 。
-//参数表示按键信息。
+//参数类型 InputContent ，表示按键信息。
 SM_INPUT				0x4001
 
 

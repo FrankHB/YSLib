@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1787;
+\version 0.1796;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-05-17 09:03 +0800;
+	2011-05-21 23:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -61,9 +61,9 @@ YSL_BEGIN_NAMESPACE(DS)
 ShlDS::ShlDS(const shared_ptr<Desktop>& h_dsk_up,
 	const shared_ptr<Desktop>& h_dsk_down)
 	: YGUIShell(),
-	hDskUp(h_dsk_up ? h_dsk_up : share_raw(new Desktop(GetGlobal()
+	hDskUp(h_dsk_up ? h_dsk_up : share_raw(new Desktop(FetchGlobalInstance()
 		.GetScreenUp()))),
-	hDskDown(h_dsk_down ? h_dsk_down : share_raw(new Desktop(GetGlobal()
+	hDskDown(h_dsk_down ? h_dsk_down : share_raw(new Desktop(FetchGlobalInstance()
 		.GetScreenDown())))
 {}
 
@@ -109,10 +109,8 @@ ShlDS::SendDrawingMessage()
 //	hDesktopUp->ClearContents();
 //	hDesktopDown->ClearContents();
 	DispatchWindows();
-	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<shared_ptr<Desktop>>(hDskUp));
-	SendMessage(GetCurrentShellHandle(), SM_PAINT, 0xE0,
-		new GHandleContext<shared_ptr<Desktop>>(hDskDown));
+	SendMessage<SM_PAINT>(FetchShellHandle(), 0xE0, hDskUp);
+	SendMessage<SM_PAINT>(FetchShellHandle(), 0xE0, hDskDown);
 }*/
 
 void
@@ -130,19 +128,14 @@ ResponseInput(const Message& msg)
 {
 	using namespace Messaging;
 
-	auto h(msg.GetContentHandle());
-
-	if(!h)
-		return;
-
-	auto hContent(h->GetObject<shared_ptr<InputContent>>());
+	auto hContent(FetchTarget<SM_INPUT>(msg));
 
 	if(!hContent)
 		return;
 
 	Runtime::KeysInfo& k(hContent->Key);
 	YGUIShell& shl(FetchGUIShell());
-	Desktop& d(GetGlobal().GetTouchableDesktop());
+	Desktop& d(FetchGlobalInstance().GetTouchableDesktop());
 
 	using namespace Runtime::KeySpace;
 	using namespace Components::Controls;

@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup Shell
 \brief 样式无关的图形用户界面部件。
-\version 0.5947;
+\version 0.5949;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-05-14 20:41 +0800;
+	2011-05-21 22:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,6 +65,10 @@ DeclInterface(IWidget)
 
 	DeclIEntry(const Point& GetLocation() const)
 	DeclIEntry(const Size& GetSize() const)
+	/*!
+	\brief 取容器指针的引用。
+	\warning 注意修改容器指针时，应保持和容器包含部件的状态同步。
+	*/
 	DeclIEntry(IUIBox*& GetContainerPtr() const)
 
 	DeclIEntry(void SetVisible(bool)) //!< 设置可见。

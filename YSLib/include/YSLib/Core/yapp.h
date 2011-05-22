@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2208;
+\version 0.2252;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-05-17 09:31 +0800;
+	2011-05-22 00:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,6 +35,10 @@
 #include "yexcept.h"
 
 YSL_BEGIN
+
+using Drawing::FontCache;
+
+using Messaging::MessageQueue;
 
 //! \brief 程序日志类。
 class YLog : public YObject
@@ -109,8 +113,8 @@ public:
 	YLog Log; //!< 默认程序日志。
 
 private:
-	YMessageQueue* pMessageQueue; //!< 主消息队列：在程序实例中实现以保证单线程。
-	YMessageQueue* pMessageQueueBackup; \
+	MessageQueue* pMessageQueue; //!< 主消息队列：在程序实例中实现以保证单线程。
+	MessageQueue* pMessageQueueBackup; \
 		//!< 备份消息队列：在程序实例中实现以保证单线程。
 	shared_ptr<YShell> hShell;
 		/*!<
@@ -150,14 +154,14 @@ public:
 	\throw LoggedEvent 记录异常事件。
 	\note 仅抛出以上异常。
 	*/
-	YMessageQueue&
+	MessageQueue&
 	GetDefaultMessageQueue() ythrow(LoggedEvent);
 	/*!
 	\brief 取备份消息队列。
 	\throw LoggedEvent 记录异常事件。
 	\note 仅抛出以上异常。
 	*/
-	YMessageQueue&
+	MessageQueue&
 	GetBackupMessageQueue() ythrow(LoggedEvent);
 	/*!
 	\brief 取字体缓存引用。
@@ -200,6 +204,87 @@ public:
 
 
 /*!
+\brief 取应用程序实例。
+\note 保证在平台相关的全局资源初始化之后初始化此实例。
+*/
+extern YApplication&
+FetchAppInstance();
+
+/*!
+\brief 取主 Shell 句柄。
+\note 需要保证主 Shell 句柄在应用程序实例初始化之后初始化，
+	因为 YMainShell 的基类 YShell 的构造函数
+	调用了 YApplication 的非静态成员函数。
+*/
+const shared_ptr<YShell>&
+FetchMainShellHandle();
+
+/*!
+\ingroup HelperFunction
+\brief 取当前应用程序线程空间中活动的 Shell 句柄。
+*/
+inline shared_ptr<YShell>
+FetchShellHandle() ynothrow
+{
+	return FetchAppInstance().GetShellHandle();
+}
+
+/*!
+\ingroup HelperFunction
+\brief 激活 Shell 对象：ShlProc 控制权转移给此对象以维持单线程运行。
+*/
+inline bool
+Activate(const shared_ptr<YShell>& h)
+{
+	return FetchAppInstance().SetShellHandle(h);
+}
+
+
+/*
+\brief 从全局消息队列中取消息。
+\param lpMsg 接收消息信息的 Message 结构指针。
+\param hShl：消息关联（发送目标）的 Shell 的句柄，
+	为 nullptr 时无限制（为全局消息）。
+\param bRemoveMsg 确定取得的消息是否消息队列中清除。
+*/
+int
+PeekMessage(Message& msg,
+	const shared_ptr<YShell>& hShl = FetchShellHandle(),
+	bool bRemoveMsg = false);
+
+/*!
+\brief 从全局消息队列中取消息。
+\note 若消息队列为空则调用 Idle() 等待消息。取得的消息从消息队列中清除。
+*/
+int
+FetchMessage(Message& msg, const shared_ptr<YShell>& hShl = FetchShellHandle());
+
+/*!
+\brief 翻译消息：空实现。
+*/
+errno_t
+TranslateMessage(const Message& msg);
+
+/*!
+\brief 分发消息。
+*/
+int
+DispatchMessage(const Message& msg);
+
+/*!
+\brief 备份主消息队列中的消息。
+*/
+errno_t
+BackupMessageQueue(const Message& msg);
+
+/*!
+\brief 从备份消息队列恢复所有消息。
+*/
+void
+RecoverMessageQueue();
+
+
+/*!
 \brief 全局默认队列消息发送函数。
 */
 //@{
@@ -207,8 +292,21 @@ void
 SendMessage(const Message&) ynothrow;
 void
 SendMessage(const shared_ptr<YShell>&, Messaging::ID, Messaging::Priority,
-	Messaging::Content* = nullptr) ynothrow;
+	const Messaging::Content& = Messaging::Content()) ynothrow;
+template<Messaging::MessageID _vID>
+inline void
+SendMessage(const shared_ptr<YShell>& hShl, Messaging::Priority prior,
+	const typename Messaging::SMessageMap<_vID>::TargetType& target) ynothrow
+{
+	SendMessage(hShl, _vID, prior, Messaging::Content(target));
+}
 //@}
+
+/*!
+\brief 以优先级 p 发起 Shell 终止请求，返回 nExitCode。
+*/
+void
+PostQuitMessage(int nExitCode, Messaging::Priority p = 0xF0);
 
 YSL_END
 

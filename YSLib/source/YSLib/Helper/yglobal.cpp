@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3101;
+\version 0.3118;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-05-17 09:12 +0800;
+	2011-05-22 00:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -137,7 +137,7 @@ Global::ReleaseDevices() ynothrow
 
 
 Global&
-GetGlobal() ynothrow
+FetchGlobalInstance() ynothrow
 {
 	static Global global_resource;
 
@@ -145,9 +145,9 @@ GetGlobal() ynothrow
 }
 
 YApplication&
-GetApp()
+FetchAppInstance()
 {
-	GetGlobal();
+	FetchGlobalInstance();
 
 	static YApplication& theApp(YApplication::GetInstance());
 
@@ -155,9 +155,9 @@ GetApp()
 }
 
 const shared_ptr<YShell>&
-GetMainShellHandle()
+FetchMainShellHandle()
 {
-	GetApp();
+	FetchAppInstance();
 
 	static shared_ptr<YShell> hMainShell(new YMainShell());
 
@@ -209,7 +209,7 @@ namespace
 
 		static KeysInfo Key;
 		static CursorInfo TouchPos_Old, TouchPos;
-		static shared_ptr<InputContent> pContext;
+		static shared_ptr<InputContent> pContent;
 
 		if(Key.Held & KeySpace::Touch)
 			TouchPos_Old = TouchPos;
@@ -219,13 +219,12 @@ namespace
 		const Point pt(ToSPoint(Key.Held & KeySpace::Touch
 			? TouchPos : TouchPos_Old));
 
-		if(!pContext || ((GetApp().GetDefaultMessageQueue().IsEmpty()
-			|| Key != pContext->Key || pt != pContext->CursorLocation)
+		if(!pContent || ((FetchAppInstance().GetDefaultMessageQueue().IsEmpty()
+			|| Key != pContent->Key || pt != pContent->CursorLocation)
 			&& pt != Point::FullScreen))
 		{
-			pContext = share_raw(new InputContent(Key, pt));
-			SendMessage(Message(Shells::GetCurrentShellHandle(), SM_INPUT, 0x40,
-				shared_ptr<Content>(new Content(pContext))));
+			pContent = share_raw(new InputContent(Key, pt));
+			SendMessage<SM_INPUT>(FetchShellHandle(), 0x40, pContent);
 		}
 	}
 }
@@ -242,9 +241,9 @@ InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 {
 	using namespace platform;
 
-	if(GetGlobal().GetScreenUpHandle() == &scr)
+	if(FetchGlobalInstance().GetScreenUpHandle() == &scr)
 		YConsoleInit(true, fc, bc);
-	else if(GetGlobal().GetScreenDownHandle() == &scr)
+	else if(FetchGlobalInstance().GetScreenDownHandle() == &scr)
 		YConsoleInit(false, fc, bc);
 	else
 		return false;
@@ -265,11 +264,11 @@ InitAllScreens()
 
 	InitVideo();
 
-	YScreen& up_scr(GetGlobal().GetScreenUp());
+	YScreen& up_scr(FetchGlobalInstance().GetScreenUp());
 
 	up_scr.pBuffer = DS::InitScrUp(up_scr.bg);
 
-	YScreen& down_scr(GetGlobal().GetScreenDown());
+	YScreen& down_scr(FetchGlobalInstance().GetScreenDown());
 
 	down_scr.pBuffer = DS::InitScrDown(down_scr.bg);
 	return true;
@@ -425,11 +424,11 @@ main(int argc, char* argv[])
 		InitializeSystemFontCache();
 
 		//初始化系统设备。
-		GetGlobal().InitializeDevices();
+		FetchGlobalInstance().InitializeDevices();
 
 		//注册全局应用程序对象。
-		GetApp().ResetShellHandle();
-		//GetApp().SetOutputPtr(hDesktopUp);
+		FetchAppInstance().ResetShellHandle();
+		//FetchAppInstance().SetOutputPtr(hDesktopUp);
 		//DefaultShellHandle->SetShlProc(ShlProc);
 
 		//主体。
@@ -439,13 +438,13 @@ main(int argc, char* argv[])
 		Message msg;
 
 		//消息循环。
-		while(GetMessage(msg) != SM_QUIT)
+		while(FetchMessage(msg) != SM_QUIT)
 		{
 			TranslateMessage(msg);
 			DispatchMessage(msg);
 		}
 
-		const int r(msg.GetContentHandle() ? 0 : -1);
+		const int r(0); // TODO: evaluate the main result properly;
 
 		//释放 Shell 。
 
@@ -454,10 +453,10 @@ main(int argc, char* argv[])
 		//释放全局非静态资源。
 
 		//释放默认字体资源。
-		GetApp().DestroyFontCache();
+		FetchAppInstance().DestroyFontCache();
 
 		//释放设备。
-		GetGlobal().ReleaseDevices();
+		FetchGlobalInstance().ReleaseDevices();
 
 	#ifdef YSL_USE_MEMORY_DEBUG
 		OnExit_DebugMemory();
@@ -466,11 +465,11 @@ main(int argc, char* argv[])
 	}
 	catch(std::exception& e)
 	{
-		YSL_ GetApp().Log.FatalError(e.what());
+		YSL_ FetchAppInstance().Log.FatalError(e.what());
 	}
 	catch(...)
 	{
-		YSL_ GetApp().Log.FatalError("Unhandled exception"
+		YSL_ FetchAppInstance().Log.FatalError("Unhandled exception"
 			" @ int main(int, char*[]);");
 	}
 }

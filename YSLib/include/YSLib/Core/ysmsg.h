@@ -11,12 +11,12 @@
 /*!	\file ysmsg.h
 \ingroup Core
 \brief 消息处理。
-\version 0.2236;
+\version 0.2308;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-05-17 09:30 +0800;
+	2011-05-21 23:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,6 +91,16 @@ private:
 	mutable void* obj_ptr;
 
 public:
+	/*!
+	\brief 无参数构造。
+	\note 得到空实例。
+	*/
+	Content();
+	/*!
+	\brief 构造：使用对象引用。
+	\note 对象需要是可复制构造的。
+	\note 得到包含指定对象的实例。
+	*/
 	template<typename _type>
 	Content(const _type& obj)
 		: manager(&GManager<_type>::Do), obj_ptr(new _type(obj))
@@ -99,32 +109,60 @@ public:
 	Content(Content&&);
 	~Content();
 
+	Content&
+	operator=(const Content&);
+	Content&
+	operator=(Content&&);
+
+	bool
+	operator==(const Content&) const;
+
 	template<typename _type>
 	const _type&
 	GetObject() const
 	{
 		YAssert(obj_ptr, "Null pointer found @ Messaging::Content::GetObject;");
-		YAssert(&GManager<_type>::Do == manager, "Invalid type"
+		YAssert(GManager<_type>::Do == manager, "Invalid type found"
 			" @ Messaging::Content::GetObject;");
 
 		return *static_cast<const _type*>(obj_ptr);
 	}
 
-	bool
-	operator==(const Content&) const;
+	void
+	Clear();
+
+	void
+	Swap(Content&);
 };
+
+inline
+Content::Content()
+	: manager(nullptr), obj_ptr(nullptr)
+{}
+inline
+Content::~Content()
+{
+	Clear();
+}
+
+inline Content&
+Content::operator=(const Content& c)
+{
+	Content(c).Swap(*this);
+	return *this;
+}
 
 
 //! \brief 消息类。
 class Message : public GMCounter<Message>
 {
-	friend class YMessageQueue;
+	friend class MessageQueue;
 
 private:
 	shared_ptr<YShell> hShl; //!< 目的 Shell 句柄。
 	ID id; //!< 消息标识。
 	Priority prior; //!< 消息优先级。
-	shared_ptr<Content> hContent; //消息内容句柄。
+	Content content; //消息内容句柄。
 
 public:
 	std::clock_t timestamp; //!< 消息时间戳：消息产生的进程时间。
@@ -134,11 +172,10 @@ private:
 
 public:
 	/*!
-	\brief 构造：
-		使用 Shell 句柄、消息标识、消息优先级、光标位置和消息内容指针。
+	\brief 构造：使用 Shell 句柄、消息标识、消息优先级和消息内容。
 	*/
 	Message(const shared_ptr<YShell>& = shared_ptr<YShell>(), ID = 0,
-		Priority = 0, const shared_ptr<Content>& = shared_ptr<Content>());
+		Priority = 0, const Content& = Content());
 
 	/*!
 	\brief 复制构造：默认实现。
@@ -154,6 +191,15 @@ public:
 	*/
 	Message&
 	operator=(const Message&);
+	/*
+	\brief 移动赋值。
+	*/
+	Message&
+	operator=(Message&&);
+	Message&
+	operator=(const Content&);
+	Message&
+	operator=(Content&&);
 
 	/*!
 	\brief 比较：相等关系。
@@ -168,8 +214,7 @@ public:
 	DefGetter(shared_ptr<YShell>, ShellHandle, hShl) //!< 取关联的 Shell 句柄。
 	DefGetter(ID, MessageID, id) //!< 取消息标识。
 	DefGetter(Priority, Priority, prior) //!< 取消息优先级。
-	DefGetter(shared_ptr<Content>, ContentHandle, hContent) \
-		//!< 取消息内容句柄。
+	DefGetter(const Content&, Content, content) //!< 取消息内容句柄。
 
 	/*
 	\brief 交换。
@@ -184,6 +229,38 @@ public:
 	UpdateTimestamp();
 };
 
+inline Message&
+Message::operator=(const Message& msg)
+{
+	Message tmp(msg);
+
+	tmp.Swap(*this);
+	return *this;
+}
+inline Message&
+Message::operator=(Message&& msg)
+{
+	hShl = std::move(msg.hShl);
+	id = std::move(msg.id);
+	prior = std::move(msg.prior);
+	content = std::move(msg.content);
+	timestamp = std::move(msg.timestamp);
+	timeout = std::move(msg.timeout);
+	return *this;
+}
+inline Message&
+Message::operator=(const Content& c)
+{
+	content = c;
+	return *this;
+}
+inline Message&
+Message::operator=(Content&& c)
+{
+	content = std::move(c);
+	return *this;
+}
+
 inline void
 Message::UpdateTimestamp()
 {
@@ -192,7 +269,7 @@ Message::UpdateTimestamp()
 
 
 //消息队列类。
-class YMessageQueue : public YObject
+class MessageQueue : public noncopyable
 {
 private:
 	//消息优先级比较函数对象。
@@ -228,7 +305,8 @@ public:
 	\brief 无参数构造：默认实现。
 	*/
 	inline
-	YMessageQueue() = default;
+	MessageQueue() = default;
+	virtual DefEmptyDtor(MessageQueue)
 
 	DefPredicate(Empty, q.empty()) //!< 判断消息队列是否为空。
 
@@ -238,7 +316,7 @@ public:
 	\note 不在消息队列中保留消息。
 	*/
 	Message
-	GetMessage();
+	FetchMessage();
 
 	/*!
 	\brief 从消息队列中取优先级最高的消息存至 msg 中。
@@ -271,12 +349,12 @@ public:
 \brief 合并 src 所有消息至 dst 中。
 */
 void
-Merge(YMessageQueue& dst, list<Message>& src);
+Merge(MessageQueue& dst, list<Message>& src);
 /*!
 \brief 合并 src 所有消息至 dst 中。
 */
 void
-Merge(YMessageQueue& dst, YMessageQueue& src);
+Merge(MessageQueue& dst, MessageQueue& src);
 
 YSL_END_NAMESPACE(Messaging)
 

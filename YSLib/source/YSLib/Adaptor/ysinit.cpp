@@ -11,12 +11,12 @@
 /*!	\file ysinit.cpp
 \ingroup Service
 \brief 程序启动时的通用初始化。
-\version 0.1788;
+\version 0.1790;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2011-05-13 21:29 +0800;
+	2011-05-21 23:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -150,9 +150,9 @@ void
 InitializeSystemFontCache()
 {
 	puts("Loading font files...");
-	GetApp().ResetFontCache(DEF_FONT_PATH);
+	FetchAppInstance().ResetFontCache(DEF_FONT_PATH);
 
-	FontCache& fc(GetApp().GetFontCache());
+	FontCache& fc(FetchAppInstance().GetFontCache());
 
 	if(DEF_FONT_PATH)
 	{
@@ -202,7 +202,7 @@ CheckSystemFontCache()
 {
 	try
 	{
-		if(GetApp().GetFontCache().GetTypesN() > 0)
+		if(FetchAppInstance().GetFontCache().GetTypesN() > 0)
 			return;
 	}
 	catch(...)

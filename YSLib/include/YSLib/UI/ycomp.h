@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件。
-\version 0.3099;
+\version 0.3109;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2011-05-16 20:33 +0800;
+	2011-05-21 23:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,7 +32,6 @@
 #ifndef YSL_INC_SHELL_YCOMP_H_
 #define YSL_INC_SHELL_YCOMP_H_
 
-#include "../Core/yobject.h"
 #include "../Core/yshell.h"
 #include "../Core/yapp.h"
 #include "../Helper/yglobal.h"
@@ -67,17 +66,6 @@ using Components::Forms::Frame;
 using Components::Widgets::IWidget;
 using Components::Widgets::IUIBox;
 using Components::Widgets::IUIContainer;
-
-
-/*!
-\ingroup HeplerFunction
-\brief 取当前线程空间中运行的 Shell 句柄。
-*/
-inline shared_ptr<YShell>
-FetchShellHandle()
-{
-	return GetApp().GetShellHandle();
-}
 
 YSL_END
 

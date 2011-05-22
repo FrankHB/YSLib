@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面。
-\version 0.3783;
+\version 0.3790;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-05-17 08:15 +0800;
+	2011-05-20 04:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -310,14 +310,10 @@ YGUIShell::ShlProc(const Message& msg)
 	{
 	case SM_PAINT:
 		{
-			auto h(msg.GetContentHandle());
+			auto h(FetchTarget<SM_PAINT>(msg));
 
 			if(h)
-			{
-				auto hShl(h->GetObject<shared_ptr<Desktop>>());
-
-				hShl->Paint();
-			}
+				h->Paint();
 		}
 		return 0;
 	default:

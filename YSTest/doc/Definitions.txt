@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11087;
+\version r11103;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-05-16 04:28 +0800;
+	2011-05-22 00:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -307,6 +307,7 @@ SM_DEACTIVATED
 SM_PAINT
 SM_QUIT
 SM_INPUT
+DefMessageTarget
 }
 } //$dir Core;
 $dir Shell
@@ -337,6 +338,11 @@ $header Core::YShell
 	extern int
 	MainShlProc(const Message&);
 } //$header Core::YShell;
+$header Core::YApplication
+{
+	extern YApplication&
+	FetchAppInstance();
+} //$header Core::YApplication;
 $header Core::YDevice
 {
 	extern bool
@@ -716,9 +722,7 @@ $header Core::YShellDefinition : Adaptor::YAdaptor
 
 	using Device::YScreen;
 
-	using Drawing::YFontCache;
-
-	using Messaging::YMessageQueue;
+	using Drawing::FontCache;
 	
 	using Shells::
 	{YMainShell, YShell};
@@ -733,16 +737,25 @@ $header Core::YCoreUtilities : Core::YShellDefinition
 
 $header Core::YShellMessage : Core::YShellDefinition
 {
-	using Drawing::Point;
-
 	using Messaging::Message;
 } //$header Core::YCoreUtilities;
 
-//$header Core::YResource : Shell::YGDI;
-
-$header Shell::YGDI
+$header Core::YShell : Core::YShellMessage
 {
-} //$header Shell::YGDI;
+	using Shells::Activate;
+	using Shells::FetchShellHandle;
+} //$header Core::YShell;
+
+$header Core::YApplication : Core::YShellMessage
+{
+	using Messaging::MessageQueue;
+} //$header Core::YApplication;
+
+$header Core::YGDI
+{
+} //$header Core::YGDI;
+
+//$header Core::YResource : Core::YGDI;
 
 $header Shell::YComponent : YShellMessage
 {

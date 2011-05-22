@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2142;
+\version 0.2150;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-05-17 08:05 +0800;
+	2011-05-22 00:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -101,7 +101,7 @@ ReleaseStored()
 inline bool
 IsNowShell(const shared_ptr<YShell>& hShl)
 {
-	return GetApp().GetShellHandle() == hShl;
+	return FetchAppInstance().GetShellHandle() == hShl;
 }
 
 /*!
@@ -110,7 +110,7 @@ IsNowShell(const shared_ptr<YShell>& hShl)
 inline errno_t
 NowShellTo(const shared_ptr<YShell>& hShl)
 {
-	return -!Shells::Activate(hShl);
+	return -!Activate(hShl);
 }
 
 /*!
@@ -139,8 +139,7 @@ NowShellToStored()
 inline void
 SetShellTo(const shared_ptr<YShell>& hShl, Messaging::Priority p = 0x80)
 {
-	SendMessage(Shells::GetCurrentShellHandle(), SM_SET, p,
-		new Messaging::Content(hShl));
+	SendMessage<SM_SET>(FetchShellHandle(), p, hShl);
 }
 
 /*!

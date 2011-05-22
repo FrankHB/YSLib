@@ -11,12 +11,12 @@
 /*!	\file yconsole.h
 \ingroup Shell
 \brief 平台无关的控制台。
-\version 0.1086;
+\version 0.1088;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 23:00:29 +0800;
 \par 修改时间:
-	2011-05-14 20:47 +0800;
+	2011-05-21 23:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,7 +44,7 @@ public:
 	\brief 构造：使用指定屏幕、有效性、前景色和背景色。
 	*/
 	explicit
-	Console(YScreen& = GetGlobal().GetDefaultScreen(), bool = true,
+	Console(YScreen& = FetchGlobalInstance().GetDefaultScreen(), bool = true,
 		Drawing::Color = Drawing::ColorSpace::White,
 		Drawing::Color = Drawing::ColorSpace::Black);
 	/*!
