@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 样式无关的图形用户界面容器。
-\version 0.2289;
+\version 0.2341;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-05-14 20:42 +0800;
+	2011-05-26 23:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,14 +82,14 @@ EndDecl
 
 //部件容器接口。
 DeclBasedInterface1(IUIContainer, IUIBox)
-	DeclIEntry(void operator+=(IWidget*)) //!< 向部件组添加部件指针。
-	DeclIEntry(void operator+=(IControl*)) //!< 向焦点对象组添加控件指针。
-	DeclIEntry(void operator+=(GMFocusResponser<IControl>*)) \
-		//!< 向焦点对象组添加子焦点对象容器指针。
-	DeclIEntry(bool operator-=(IWidget*)) //!< 从部件组移除部件指针。
-	DeclIEntry(bool operator-=(IControl*)) //!< 从焦点对象组移除控件指针。
-	DeclIEntry(bool operator-=(GMFocusResponser<IControl>*)) \
-		//!< 从焦点对象组移除子焦点对象容器指针。
+	DeclIEntry(void operator+=(IWidget&)) //!< 向部件组添加部件。
+	DeclIEntry(void operator+=(IControl&)) //!< 向焦点对象组添加控件。
+	DeclIEntry(void operator+=(GMFocusResponser<IControl>&)) \
+		//!< 向焦点对象组添加子焦点对象容器。
+	DeclIEntry(bool operator-=(IWidget&)) //!< 从部件组移除部件。
+	DeclIEntry(bool operator-=(IControl&)) //!< 从焦点对象组移除控件。
+	DeclIEntry(bool operator-=(GMFocusResponser<IControl>&)) \
+		//!< 从焦点对象组移除子焦点对象容器。
 EndDecl
 
 
@@ -235,17 +235,24 @@ void
 Fill(IWidget&, Color);
 
 
+typedef u8 ZOrderType; //!< Z 顺序类型：覆盖顺序，值越大表示越接近顶层。
+
+const ZOrderType DefaultZOrder(64); //!< 默认 Z 顺序值。
+
+
 //! \brief 部件容器模块。
 class MUIContainer : protected GMFocusResponser<IControl>
 {
 public:
-	typedef IWidget* ItemType; //!< 部件组项目类型：记录部件指针。
-	typedef list<ItemType> WidgetList; //!< 部件组类型。
+	typedef IWidget* ItemType; //!< 部件组项目类型：记录部件指针。	
+	typedef multimap<ZOrderType, ItemType> WidgetMap; \
+		//!< 部件组类型：映射 Z 顺序至部件。
 	typedef set<GMFocusResponser<IControl>*> FocusContainerSet; \
 		//!< 子焦点对象容器组类型。
+	typedef WidgetMap::value_type PairType;
 
 protected:
-	WidgetList sWidgets; //!< 部件对象组模块。
+	WidgetMap sWidgets; //!< 部件对象组。
 	FocusContainerSet sFocusContainers; //!< 子焦点对象容器组。
 
 public:
@@ -257,37 +264,37 @@ protected:
 	\brief 向部件组添加部件。
 	*/
 	void
-	operator+=(IWidget*);
+	operator+=(IWidget&);
 	/*!
 	\brief 向部件组添加控件。
 	
-	向焦点对象组添加焦点对象指针，同时向部件组添加部件指针。
+	向焦点对象组添加焦点对象，同时向部件组按默认 Z 顺序值添加部件。
 	*/
-	void
-	operator+=(IControl*);
+	PDefHOperator1(void, +=, IControl& ctl)
+		ImplRet(Add(ctl))
 	/*!
-	\brief 向子焦点对象容器组添加子焦点对象容器指针。
+	\brief 向子焦点对象容器组添加子焦点对象容器。
 	*/
-	void
-	operator+=(GMFocusResponser<IControl>*);
+	PDefHOperator1(void, +=, GMFocusResponser<IControl>& rsp)
+		ImplRet(static_cast<void>(sFocusContainers.insert(&rsp)))
 
 	/*!
 	\brief 从部件组移除部件。
 	*/
 	bool
-	operator-=(IWidget*);
+	operator-=(IWidget&);
 	/*!
 	\brief 从部件组移除控件。
 
-	从部件组移除部件指针，同时从焦点对象组移除焦点对象指针。
+	从部件组移除部件，同时从焦点对象组移除焦点对象。
 	*/
 	bool
-	operator-=(IControl*);
+	operator-=(IControl&);
 	/*!
 	\brief 从子焦点对象容器组移除子焦点对象容器。
 	*/
 	bool
-	operator-=(GMFocusResponser<IControl>*);
+	operator-=(GMFocusResponser<IControl>&);
 
 public:
 	/*!
@@ -307,6 +314,15 @@ public:
 	GetTopControlPtr(const Point&);
 
 	/*!
+	\brief 向部件组添加控件。
+
+	向焦点对象组添加焦点对象，同时向部件组按指定 Z 顺序值添加部件。
+	\note 检查指针为空时忽略。
+	*/
+	void
+	Add(IControl&, ZOrderType = DefaultZOrder);
+
+	/*!
 	\brief 响应焦点请求。
 	*/
 	bool
@@ -320,11 +336,11 @@ public:
 
 protected:
 	/*!
-	\brief 检查部件指针是否满足添加条件。
-	\return 若部件指针为空或已在部件组中则返回 false ，否则返回 true 。
+	\brief 检查部件是否满足添加条件。
+	\return 若部件已在部件组中则返回 false ，否则返回 true 。
 	*/
 	bool
-	CheckWidget(IWidget*);
+	CheckWidget(IWidget&);
 };
 
 
@@ -339,18 +355,20 @@ public:
 	explicit
 	UIContainer(const Rect& = Rect::Empty);
 
-	ImplI1(IUIContainer) PDefHOperator1(void, +=, IWidget* p)
-		ImplBodyBase1(MUIContainer, operator+=, p)
-	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IWidget* p)
-		ImplBodyBase1(MUIContainer, operator-=, p)
-	ImplI1(IUIContainer) PDefHOperator1(void, +=, IControl* p)
-		ImplBodyBase1(MUIContainer, operator+=, p)
-	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IControl* p)
-		ImplBodyBase1(MUIContainer, operator-=, p)
-	ImplI1(IUIContainer) PDefHOperator1(void, +=, GMFocusResponser<IControl>* p)
-		ImplBodyBase1(MUIContainer, operator+=, p)
-	ImplI1(IUIContainer) PDefHOperator1(bool, -=, GMFocusResponser<IControl>* p)
-		ImplBodyBase1(MUIContainer, operator-=, p)
+	ImplI1(IUIContainer) PDefHOperator1(void, +=, IWidget& wgt)
+		ImplBodyBase1(MUIContainer, operator+=, wgt)
+	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IWidget& wgt)
+		ImplBodyBase1(MUIContainer, operator-=, wgt)
+	ImplI1(IUIContainer) PDefHOperator1(void, +=, IControl& ctl)
+		ImplBodyBase1(MUIContainer, operator+=, ctl)
+	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IControl& ctl)
+		ImplBodyBase1(MUIContainer, operator-=, ctl)
+	ImplI1(IUIContainer) PDefHOperator1(void, +=,
+		GMFocusResponser<IControl>& rsp)
+		ImplBodyBase1(MUIContainer, operator+=, rsp)
+	ImplI1(IUIContainer) PDefHOperator1(bool, -=,
+		GMFocusResponser<IControl>& rsp)
+		ImplBodyBase1(MUIContainer, operator-=, rsp)
 
 	ImplI1(IUIContainer) DefMutableGetterBase(IControl*, FocusingPtr,
 		GMFocusResponser<IControl>)
@@ -362,11 +380,13 @@ public:
 	ImplI1(IUIContainer) PDefH0(void, ClearFocusingPtr)
 		ImplBodyBase0(MUIContainer, ClearFocusingPtr)
 
-	ImplI1(IUIContainer) PDefH1(bool, ResponseFocusRequest, AFocusRequester& w)
-		ImplBodyBase1(MUIContainer, ResponseFocusRequest, w)
+	ImplI1(IUIContainer) PDefH1(bool, ResponseFocusRequest,
+		AFocusRequester& req)
+		ImplBodyBase1(MUIContainer, ResponseFocusRequest, req)
 
-	ImplI1(IUIContainer) PDefH1(bool, ResponseFocusRelease, AFocusRequester& w)
-		ImplBodyBase1(MUIContainer, ResponseFocusRelease, w)
+	ImplI1(IUIContainer) PDefH1(bool, ResponseFocusRelease,
+		AFocusRequester& req)
+		ImplBodyBase1(MUIContainer, ResponseFocusRelease, req)
 };
 
 YSL_END_NAMESPACE(Widgets)

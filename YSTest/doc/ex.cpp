@@ -1,4 +1,4 @@
-//v0.3132; *Build 211 r47;
+//v0.3134; *Build 212 r41;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -165,7 +165,7 @@ $using:
 }
 \u YMenu
 {
-	\cl Menu;
+	\cl TextList;
 }
 \u YPanel
 {
@@ -216,248 +216,256 @@ $using:
 
 $DONE:
 r1:
-/ \mf DefGetter(shared_ptr<Content>, ContentHandle, hContent) @ \cl Message
-	@ \h YShellMessage -> DefGetter(const Content&, Content, *hContent);
-/ \tr \impl @ \mf YShell::DefShlProc @ \impl \u YShell;
-/ \tr \impl @ \f ResponseInput @ \impl \u Shell_DS;
-* \tr \impl @ \mf YGUIShell::ShlProc @ \impl \u YGUI;
-/ \tr \impl @ \f @ \impl \u Main;
-/ \tr \impl @ \f main @ \impl \u YGlobal;
+/ @ \cl ShlSetting @ \u Shells:
+	/ \m unique_ptr<IWindow> pWndTest -> unique_ptr<TFormTest> pWndTest;
+	/ \m unique_ptr<IWindow> pWndExtra -> unique_ptr<TFormExtra> pWndExtra;
+	/ \tr \simp \impl @ \mf OnActivated;
 
 r2:
++ 4 \ft \i unique_raw @ \h Memory @ \lib YCLib::YStandardExtend;
++ using ystdex::unique_raw @ \h YReference;
+/ \simp \impl @ \mf ShlSetting::OnActivated @ \impl \u Shells ^ unique_raw;
+/ \as @ \impl @ \mf (GetTopControlPtr & Paint & GetTrack)
+	@ \cl AScrollBar ^ is_valid ~ \mf get;
+/ \as \str @ \impl @ \mf MDualScreenReader::PrintText @ \impl \u DSReader;
+/ \as \str @ \impl @ \mf ShlDS::OnActivated @ \impl \u Shell_DS;
+/ \as \str @ \impl @ \mf FileList::LoadSubItems @ \impl \u YFileSystem;
+/ \as \str @ \impl @ \mf (GetScreenUp & GetScreenDown & GetDesktopUp
+	& GetDesktopDown) @ \cl Global @ \impl \u YGlobal;
+/ \as \str @ \impl @ \mf GetCopyOnWritePtr @ \clt GDependency @ \h YObject;
+/ \impl @ \mf FontCache::LoadFontFile @ \impl \u YFont ^ raw ~ \mf get;
+
+r3:
+/ !\i \mf (GetScreenUp & GetScreenDown & GetDesktopUp & GetDesktopDown)
+	@ \cl Global @ \u YGlobal -> \i \mf;
+
+r4:
 /= test 1 ^ \conf release;
 
-r3-r11:
-/ @ \cl Content @ \u YShellMessage:
-	+ \i \de \ctor:
-	* \impl @ move \ctor Content(Content&&);
-	/ \impl @ \dtor;
-	* \impl @ \mf \op==;
-	* \impl @ copy \ctor Content(const Content&);
+r5:
 /= test 2;
 
-r12:
-/ \ctor Message(const shared_ptr<YShell>& = shared_ptr<YShell>(), ID = 0,
-	Priority = 0, const shared_ptr<Content>& = shared_ptr<Content>())
-	@ \cl Message @ \u YShellMessage -> Message(const Content&,
-	const shared_ptr<YShell>& = shared_ptr<YShell>(), ID = 0, Priority = 0);
-/ @ \impl \u YApplication:
-	/ \tr \simp \impl @ \mf YApplication::SetShellHandle;
-	/ \f void SendMessage(const shared_ptr<YShell>&, Messaging::ID,
-		Messaging::Priority, Messaging::Content* = nullptr) ynothrow
-		-> void SendMessage(const shared_ptr<YShell>&, Messaging::ID,
-		Messaging::Priority, const Messaging::Content& = Messaging::Content())
-		ynothrow;
-/ \tr \impl @ \f WaitForGUIInput @ \impl \u YGlobal;
-/ \tr \impl @ \f \i NowShellInsertDropMessage(Messaging::Priority)
-	@ \h Shell_DS;
-/ \tr \impl @ \f \i void SetShellTo(const shared_ptr<YShell>&,
-	Messaging::Priority = 0x80) @ \h YShellHelper;
-/ \tr \impl @ \f void PostQuitMessage(int, Priority) @ \impl \u YShell;
+r6:
+/ \a \cl Menu => TextList;
+- \rem \param @ \a (\f & \t);
 
-r13:
+r7:
 /= test 3 ^ \conf release;
 
-r14-r20:
-/= test 4;
-/ @ \u YShellMessage:
-	/ @ \cl Message:
-		/ \m shared_ptr<Content> hContent -> Content content;
-		/ \tr \mf DefGetter(const Content&, Content, hContent)
-			-> DefGetter(const Content&, Content, content);
-		/ \tr \impl @ \ctor;
-	/ \tr \simp \impl @ \f bool operator==(const Message&, const Message&);
-
-r21-r27:
-/= test 5;
-
-r28:
-* @ \cl Content @ \u YShellMessage:
-	+ \mf Content& operator=(const Content&);
-	+ \mf Content& operator=(Content&&);
-	+ \mf void Clear();
-	+ \mf void Swap(Content&);
-	/ \tr \simp \impl @ \dtor;
-
-r29:
-/= test 6 ^ \conf release;
-
-r30:
-/ @ \cl Content @ \u YShellMessage:
-	/ !\i \dtor -> \i \dtor;
-	/ \a 2 !\i \mf \op= -> \i \mf; 
-
-r31:
-/= test 7 ^ \conf release;
-
-r32:
-/ @ \h YShellMessage:
-	/ \impl @ \mft GetObject @ \cl Content;
-	/ @ \cl Message:
-		/ !\i \mf Message& \op=(const Message&) -> \i \mf;
-		+ \i \mf Message& \op=(Message&&);
-		+ \i \mf Message& \op=(const Content&);
-		+ \i \mf Message& \op=(Content&&);
-
-r33:
-- \h "../Core/yobject.h" @ \h YComponent;
-- \h "yobject.h" @ \h YShell;
-/ @ \ns Messaging @ \h YShellMessageDefinition:
-	+ \stt<MessageID ID> SMessageMap;
-	+ \ft<MessageID ID> const typename SMessageMap<ID>::TargetType&
-		FetchTarget(const Message&);
-	+ \mac
-	{
-		DefMessageTarget(SM_NULL, void)
-		DefMessageTarget(SM_SET, shared_ptr<YShell>)
-		DefMessageTarget(SM_DROP, shared_ptr<YShell>)
-		DefMessageTarget(SM_ACTIVATED, shared_ptr<YShell>)
-		DefMessageTarget(SM_DEACTIVATED, shared_ptr<YShell>)
-		DefMessageTarget(SM_PAINT, shared_ptr<YShell>)
-		DefMessageTarget(SM_QUIT, int)
-	};
-/ @ \h YGlobal:
-	/ \inc \h YShellMessage -> \h YShellMessageDefiniton;
-	- \inc \h "../Core/ycutil.h";
-	+ \mac DefMessageTarget(SM_INPUT, shared_ptr<InputContent>) @ \ns Messaging;
-/ \tr \impl @ \mf YShell::DefShlProc @ \impl \u YShell ^ FetchTarget;
-/ @ \h YApplication:
-	+ \ft<Messaging::MessageID ID> \i void
-		SendMessage(const shared_ptr<YShell>&, Messaging::Priority,
-		const typename Messaging::SMessageMap<ID>::TargetType&) ynothrow;
-/ \tr \impl @ \f \i NowShellInsertDropMessage @ \h Shell_DS ^ \ft SendMessage;
-/ \tr \impl @ \f \i SetShellTo @ \h YShellHelper ^ \ft SendMessage;
-/ \tr \impl @ \f PostQuitMessage @ \impl \u YShell ^ \ft SendMessage;
-/ \tr (\rem & \impl @ \f ResponseInput) @ \impl \u Shell_DS ^ \ft SendMessage;
-/ \tr \impl @ \f WaitForGUIInput @ \un \ns @ \impl \u YGlobal ^ \ft SendMessage;
-/ \tr \impl @ \mf YGUIShell::ShlProc @ \impl \u YGUI ^ \ft SendMessage;
-
-r34:
-^ \conf release;
-/= test 8;
-
-r35:
-/ !\i \ft FetchTarget -> \i \ft @ \h YShellMessageDefinition;
-
-r36:
-^ \conf debug;
-/ @ \u YShellMessage:
-	/ @ \cl MessageQueue:
-		/ \inh public YObject -> public noncopyable;
-		+ \dtor \vt DefEmptyDtor(MessageQueue);
-/ \a MessageQueue => MessageQueue;
-/ @ \h YShellDefinition:
-	- \pre \decl \cl Messaging::MessageQueue;
-	/ using Messaging::MessageQueue >> \h YApplication;
-
-r37:
-/ @ \cl Content @ \u YShellMessage:
-	/ \impl @ 2 \mf \op=;
-	* \impl @ \mf Content& operator=(Content&&) for self-assignment;
-	/ \mf \i Content& operator=(Content&&) -> !\i \mf;
-
-r38:
-/= test 9 ^ \conf release;
-
-r39:
+r8:
+/= \tr \rem @ \h YMenu;
 / @ \impl \u Shells:
-	/ @ \un \ns:
-		+ \f shared_ptr<Menu::ListType> GenerateList();
-		+ \g \o MenuHost s_MenuHost;
+	+ \cl Menu \inh TextList;
 	/ @ \cl MenuHost:
-		+ \i \mf void Clear();
-		/ protected \m MenuMap sMenus => mMenus;
-		+ \i \mf ItemType operator[](ID);
-	/ \impl @ \mf (OnActivated & OnDeactivated & TFormTest::OnClick_btnMenuTest)
-		@ \cl ShlSetting;
-+= \rem @ \amf GetContainerPtr @ \in IWidget @ \h YWidget;
-
-r40:
-/ \f PostQuitMessage @ \ns Shells @ \u YShell >> \ns YSLib @ \u YApplication;
-/ \a GetCurrentShellHandle => FetchCurrentShellHandle;
-/ \a GetMainShellHandle => FetchMainShellHandle;
-/ \a GetApp => FetchAppInstance;
-/ \a GetGlobal => FetchGlobalInstance;
-/ \a FetchCurrentShellHandle => FetchShellHandle;
-- \i \f FetchShellHandle @ \ns YSLib @ \h YComponent;
-+ using (Activate & using FetchShellHandle) @ \ns YSLib @ \h YShell;
-/ \tr \impl @ \mf ShlSetting::TFormExtra @ \impl \u Shells;
-
-r41:
-/ \a GetMessage => FetchMessage;
-/ @ \u YShell:
-	/ @ \ns Shells:
-		/ \f (PeekMessage & FetchMessage & TranslateMessage & DispatchMessage
-			& BackupMessageQueue & RecoverMessageQueue) >> \ns YSLib
-			@ \u YApplication;
-		/ !\i \f (FetchShellHandle & Activate) >> \i \f @ \ns YSLib
-			@ \h YApplication;
-	- using (Activate & using FetchShellHandle) @ \ns YSLib @ \h;
-/ \decl @ \f FetchAppInstance @ \h YGlobal >> \h YApplication;
-/ \tr \impl @ \f \i (NowShellTo & SetShellTo) @ \h YShellHelper;
-/ \tr \impl @ \f \i NowShellInsertDropMessage @ \h Shell_DS;
-/ \tr \impl @ \f WaitForGUIInput @ \un \ns @ \impl \u YGlobal;
-
-r42:
-/= test 10 ^ \conf release;
-
-r43:
-/ @ \impl \u Shells:
-	/ @ \cl MenuHost:
-		+ \mf void ShowMenu();
-		+ \mf void HideMenu();
-	/ \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest;
-
-r44:
-/ @ \impl \u Shells:
-	/ \mf DefGetter(shared_ptr<Desktop>, DesktopHandle, hDesktop) @ \cl MenuHost
-		-> DefMutableGetter(shared_ptr<Desktop>&, DesktopHandle, hDesktop);
-	/ \impl @ \mf ShlSetting::OnActivated;
-
-r45:
-/ @ \impl \u Shells:
-	/ \simp @ \cl MenuHost:
-		- \mf DefMutableGetter(shared_ptr<Desktop>&, DesktopHandle, hDesktop);
-		/ @ protected \m shared_ptr<Desktop> hDesktop
-			-> public \m shared_ptr<Desktop> DesktopHandle;
+		/ typedef TextList* ItemType -> typedef Menu* ItemType;
+		/ \m shared_ptr<Desktop> DesktopHandle -> \m IPanel* PanelPointer;
 		/ \tr @ \ctor;
+		/ \tr \impl @ \mf (ShowMenu & HideMenu);
 	/ \tr \impl @ \mf ShlSetting::OnActivated;
 
-r46:
+r9:
 / @ \impl \u Shells:
-	/ \o MenuHost s_MenuHost -> MenuHost* s_pMenuHost;
-	/ \tr \impl @ \mf (OnActivated & OnDeactivated
-		& TFormTest::OnClick_btnMenuTest) @ \cl ShlSetting;
+	/ @ \cl Menu:
+		+ typedef size_t MenuID;
+		+ \m MenuID ID;
+		/ \ctor \exp Menu(const Rect& = Rect::Empty,
+			const shared_ptr<ListType>& = shared_ptr<ListType>(),
+			pair<Color, Color> = FetchGUIShell().Colors.GetPair(
+			Styles::Highlight, Styles::HighlightText))
+			-> \exp Menu(const Rect& = Rect::Empty,
+			const shared_ptr<ListType>& = shared_ptr<ListType>(), MenuID = 0);
+	/ \tr \impl \u @ \mf ShlSetting::OnActivated;
 
-r47:
-/= test 11 ^ \conf release;
+r10:
+/ @ \impl \u Shells:
+	+ \pre \decl \cl MenuHost before (\decl @ \cl Menu);
+	/ @ \cl Menu:
+		+ friend \decl \cl MenuHost;
+		+ private \m MenuHost* pMenuHost;
+	/ @ \cl MenuHost:
+		- \m typedef size_t ID;
+		/ \tr \a ID -> Menu::MenuID;
+		/ \i \mf \op+= -> !\i \mf;
+	/ \tr \simp \impl \u @ \mf ShlSetting::OnActivated;
+
+r11:
+/ @ \impl \u Shells:
+	/ @ \cl MenuHost:
+		/ \impl @ \mf void operator+=(const ValueType&);
+		+ \mf void operator+=(Menu&);
+	/ \tr \simp \impl \u @ \mf ShlSetting::OnActivated;
+
+r12:
+/ @ \impl \u Shells:
+	+ \f Color GenerateRandomColor() @ \un \ns;
+	/ \simp \impl @ \mf (ShlSetting::TFormExtra::OnClick_btnDragTest
+		& ShlSetting::OnTouchDown_FormExtra) ^ \f GenerateRandomColor;
+	/ \a 2 std::size_t -> size_t;
+
+r13:
+* \impl @ \f GenerateRandomColor @ \un \ns @ \impl \u Shells;
+
+r14:
+/ @ \ns platfrom @ \h YCommon:
+	+ using ::siprintf;
+	+ using ::viprintf;
+/ \a std::sprintf -> siprintf @ \impl \u Shells;
+
+r15:
+/= test 4 ^ \conf release;
+
+r16-r18:
+/= test 5;
+
+r19:
+/ \impl @ MUIContainer::CheckWidget;
+
+r20:
+/ \a \param _type -> _type* @ \h YWindow;
+
+r21:
+* \impl @ \ctor @ \cl YFrame;
+
+r22:
+/ @ \u YUIContainer:
+	/ \a \ptr -> \ref @ \tp @ \param @ \amf @ \in IUIContainer;
+	/ \tr @ \cl MUIContainer;
+	/ \tr @ \cl UIContainer;
+/ @ \u YWindow:
+	/ \tr @ \cl AFrame;
+	/ \tr \impl @ (\ctor & \dtor);
+/ \tr @ \cl Panel @ \u YPanel;
+/ \tr \impl @ \impl \u Shells;
+	/ \tr \impl @ \mf ShlLoad::OnActivated;
+	/ \tr \impl @ \mf ShlExplorer::OnActivated;
+	/ \impl @ \mf (ShowMenu & HideMenu) @ \cl MenuHost;
+	/ \tr @ \cl ShlSetting:
+		/ \tr \impl @ \ctor @ \st TFormTest;
+		/ \tr \impl @ \ctor @ \st TFormExtra;
+		/ \tr \impl @ \mf OnActivated;
+
+r23:
+/= test 6 ^ \conf release;
+
+r24:
+/= \a \n con => ctl @ \lib YSLib;
+/= \tr \rem \ren @ \impl \u Shells;
+/ @ \cl MUIContainer @ \h YUIContainer:
+	+ typedef u8 ZOrderType;
+	+ typedef multimap<ZOrderType, ItemType> WidgetMap;
+/ @ \h Container:
+	+ using std::multiset;
+	+ using std::multimap;
+	/= using order;
+
+r25:
+/ @ \u YUIContainer:
+	/ typedef u8 ZOrderType @ \cl MUIContainer
+		>> \ns YSLib::Components::Widgets;
+	/ @ \cl MUIContainer:
+		/ protected \m WidgetList sWidgets -> WidgetMap sWidgets;
+		- \m typedef list<ItemType> WidgetList;
+		/ \tr \impl @ \mf (2 \op += & bool \op-=(IWidget&) & CheckWidget
+			& GetTopWidgetPtr);
+	+ \c \o ZOrderType DefaultZOrder(64) @ \un \ns;
+/ \tr \impl @ \mf @ (GetTopVisibleDesktopObjectPtr & MoveToTop)
+	@ \cl Desktop @ \impl \u YDesktop;
+/ \tr \impl @ \mf Frame::DrawContents;
+
+r26:
+/ \impl @ \mf Desktop::MoveToTop;
+/ @ \cl MUIContainer:
+	+ typedef WidgetMap::value_type PairType;
+	+ \mf void Add(ZOrderType, IControl&);
+	/ \simp \impl @ \mf void operator+=(IControl&) ^ \mf Add;
+/ @ \cl MenuHost @ \impl \u Shells:
+	/ \impl @ \mf ShowMenu;
+	/ \m IPanel* PanelPointer -> AFrame* FramePointer;
+	/ \tr @ \ctor;
+	/ \tr \impl @ \mf (ShowMenu & HideMenu);
++ using MUIContainer::Add @ \cl AFrame;
+
+r27:
+* @ \cl AFrame:
+	/ using MUIContainer::Add -> void Add(Widgets::ZOrderType, IControl&);
+
+r28:
+/ @ \cl MUIContainer:
+	/ !\i \mf (void operator+=(IControl&)
+		& void operator+=(GMFocusResponser<IControl>&)) -> \i \mf
+		^ \mac (PDefHOperator1 & ImplRet);
+	/ @ \mf void Add(ZOrderType, IControl&)
+		-> void Add(IControl&, ZorderType = DefaultZOrder);
+/ @ \mf void Add(Widgets::ZOrderType, IControl&) @ \cl AFrame
+	-> void Add(IControl&, Widgets::ZorderType = Widgets::DefaultZOrder);
+/ @ \impl \u Shells:
+	+ \c \o ZOrderType DefaultMenuZOrder(224) @ \un \ns;
+	/ \tr \impl @ \mf ShowMenu @ \cl MenuHost;
+
+r29:
+/= test 7 ^ \conf release;
+
+r30-r31:
+* \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest @ \impl \u Shells;
+
+r32:
+/ @ \impl \u Shells:
+	/ \impl @ \f GenerateList @ \un \ns;
+	/ \impl @ \mf MenuHost::operator+=:
+		/ \a \param v => val;
+	/ \simp \impl @ \mf ShlSetting::OnActivated;
+
+r33:
+/ @ \mf ShlSetting::TFormExtra::OnClick_btnTestEx @ \impl \u Shells:
+	+ \mf void Test1(TextRegion&, Color) @ \cl TestObj ;
+	/ \simp \impl ^ Test1;
+
+r34:
+* \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest;
+
+r35-r36:
+/ \cl ShellSetting @ \impl \u Shells:
+	/ \impl @ \mf OnActivated;
+	/ \impl @ \mf TFormTest::OnClick_btnMenuTest;
+
+r37:
+* \impl @ \mf (ShowMenu & HideMenu) @ \cl MenuHost @ \impl \u Shells;
+
+r38:
+* \impl @ \mf bool MUIContainer::operator-=(IWidget&) @ \impl \u YUIContainer;
+
+r39-r40:
+/ \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest @ \impl \u Shells;
+
+r41:
+/= test 8 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-05-22:
--21.1d;
-//Mercurial rev1-rev81: r4053;
+2011-05-27:
+-20.7d;
+//Mercurial rev1-rev82: r4100;
 
 / ...
 
 
 $NEXT_TODO:
 
-b212-b324:
+b213-b384:
 + menus;
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
 	libstdc++ for known associative container operation bugs:
 	- \rem @ \impl @ \mft GetEvent @ \clt EventMap @ \h YEvent;
 * non-ASCII character path error in FAT16;
-+ overlay for \a widgets;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
-
-b325-b768:
-/ impl 'real' RTC;
++ \impl styles @ widgets;
 + data configuragion;
+
+b385-b768:
+/ impl 'real' RTC;
 / text alignment;
 + \impl pictures loading;
 / improve efficiency @ \ft polymorphic_crosscast @ \h YCast;
@@ -466,8 +474,7 @@ b325-b768:
 	+ \impl general Blit algorithm;
 + shared property: additional;
 + GDI brushes;
-/ user-defined bitmap buffer @ \cl YDesktop;
-+ \impl styles @ widgets;
+/ user-defined bitmap buffer @ \cl Desktop;
 
 
 $LOW_PRIOR_TODO:
@@ -547,6 +554,17 @@ $instead_of ~; //features replacing;
 $ellipse_refactoring;
 
 $now
+(
+	/ $design "assertion strings",
+	/ "menu constructor",
+	+ "redundant menu state member in class %Menu",
+	/ "container member APIs" ^ "reference parameter" ~ "pointer parameter",
+	* "constructor of class %Frame",
+	+ "Z order for widget overlaying in UI containers",
+	+ "menu laid at top level" ^ "Z order"
+),
+
+b211
 (
 	/ "implemented messages with general object content holder"
 		^ "non-pointer member" ~ "%shared_ptr",

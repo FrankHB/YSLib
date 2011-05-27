@@ -11,12 +11,12 @@
 /*!	\file ypanel.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面面板。
-\version 0.1119;
+\version 0.1133;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2011-05-14 20:38 +0800;
+	2011-05-26 09:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,41 +40,35 @@ Panel::~Panel()
 {}
 
 void
-Panel::operator+=(IWidget* p)
+Panel::operator+=(IWidget& wgt)
 {
-	if(p)
-	{
-		MUIContainer::operator+=(p);
-		p->GetContainerPtr() = this;
-	}
+	MUIContainer::operator+=(wgt);
+	wgt.GetContainerPtr() = this;
 }
 void
-Panel::operator+=(IControl* p)
+Panel::operator+=(IControl& ctl)
 {
-	if(p)
-	{
-		MUIContainer::operator+=(p);
-		p->GetContainerPtr() = this;
-	}
+	MUIContainer::operator+=(ctl);
+	ctl.GetContainerPtr() = this;
 }
 
 bool
-Panel::operator-=(IWidget* p)
+Panel::operator-=(IWidget& wgt)
 {
-	if(p && p->GetContainerPtr() == this)
+	if(wgt.GetContainerPtr() == this)
 	{
-		p->GetContainerPtr() = nullptr;
-		return MUIContainer::operator-=(p);
+		wgt.GetContainerPtr() = nullptr;
+		return MUIContainer::operator-=(wgt);
 	}
 	return false;
 }
 bool
-Panel::operator-=(IControl* p)
+Panel::operator-=(IControl& ctl)
 {
-	if(p && p->GetContainerPtr() == this)
+	if(ctl.GetContainerPtr() == this)
 	{
-		p->GetContainerPtr() = nullptr;
-		return MUIContainer::operator-=(p);
+		ctl.GetContainerPtr() = nullptr;
+		return MUIContainer::operator-=(ctl);
 	}
 	return false;
 }

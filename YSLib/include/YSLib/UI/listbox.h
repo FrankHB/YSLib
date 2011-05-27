@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3157;
+\version 0.3161;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-05-17 02:39 +0800;
+	2011-05-23 20:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,18 +42,16 @@ YSL_END_NAMESPACE(Widgets)
 YSL_BEGIN_NAMESPACE(Controls)
 
 /*!
-\brief 文本列表框。
-
-带滚动条的文本列表框。
+\brief 带滚动条的文本列表框。
 */
 class ListBox : public ScrollableContainer
 {
 public:
-	typedef Menu::ListType ListType;
-	typedef Menu::ViewerType ViewerType;
+	typedef TextList::ListType ListType;
+	typedef TextList::ViewerType ViewerType;
 
 private:
-	Menu TextListBox; //文本列表框。
+	TextList TextListBox; //文本列表框。
 
 public:
 	explicit

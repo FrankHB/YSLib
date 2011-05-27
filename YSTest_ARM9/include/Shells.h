@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3241;
+\version 0.3244;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-05-16 20:31 +0800;
+	2011-05-22 23:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -123,10 +123,6 @@ class ShlSetting : public ShlDS
 public:
 	typedef ShlDS ParentType;
 
-	unique_ptr<IWindow> pWndTest;
-	unique_ptr<IWindow> pWndExtra;
-	Label lblA, lblB;
-
 	struct TFormTest : public Form
 	{
 		Button btnEnterTest, btnMenuTest, btnShowWindow;
@@ -179,6 +175,10 @@ public:
 		void
 		OnClick_btnExit(TouchEventArgs&&);
 	};
+
+	unique_ptr<TFormTest> pWndTest;
+	unique_ptr<TFormExtra> pWndExtra;
+	Label lblA, lblB;
 
 	ShlSetting();
 

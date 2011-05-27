@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2290;
+\version 0.2303;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-05-17 02:40 +0800;
+	2011-05-26 22:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,13 +46,12 @@ Desktop::Desktop(YScreen& s, Color c, const shared_ptr<Image>& hImg)
 IControl*
 Desktop::GetTopVisibleDesktopObjectPtr(const Point& pt) const
 {
-	for(WidgetList::const_reverse_iterator i(sWidgets.rbegin());
-		i != sWidgets.rend(); ++i)
+	for(auto i(sWidgets.crbegin()); i != sWidgets.crend(); ++i)
 	{
 		try
 		{
-			if((*i)->IsVisible() && Contains(**i, pt))
-				return &dynamic_cast<IControl&>(**i);
+			if(i->second->IsVisible() && Contains(*i->second, pt))
+				return &dynamic_cast<IControl&>(*i->second);
 		}
 		catch(std::bad_cast&)
 		{}
@@ -61,13 +60,19 @@ Desktop::GetTopVisibleDesktopObjectPtr(const Point& pt) const
 }
 
 bool
-Desktop::MoveToTop(IControl& w)
+Desktop::MoveToTop(IControl& ctl)
 {
-	auto i(std::find(sWidgets.begin(), sWidgets.end(), &w));
+	auto i(std::find_if(sWidgets.begin(), sWidgets.end(),
+		[&](const WidgetMap::value_type& val){
+		return val.second == &ctl;
+	}));
 
 	if(i != sWidgets.end())
 	{
-		std::swap(*i, sWidgets.back());
+		const Widgets::ZOrderType z(i->first);
+
+		sWidgets.erase(i);
+		sWidgets.insert(make_pair(z, static_cast<IWidget*>(&ctl)));
 		bRefresh = true;
 		return true;
 	}

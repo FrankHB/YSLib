@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2354;
+\version 0.2355;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-05-22 00:03 +0800;
+	2011-05-23 20:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -240,7 +240,7 @@ FetchMessage(Message& msg, const shared_ptr<YShell>& hShl)
 }
 
 errno_t
-TranslateMessage(const Message& /*msg*/)
+TranslateMessage(const Message&)
 {
 	// TODO: impl;
 	return 0;

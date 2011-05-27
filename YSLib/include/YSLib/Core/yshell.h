@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version 0.2878;
+\version 0.2879;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-05-22 00:06 +0800;
+	2011-05-23 20:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -79,7 +79,7 @@ public:
 
 
 //! \brief 主 Shell 。
-class YMainShell : /*public GMCounter<YMainShell>*/ public YShell
+class YMainShell : public YShell
 {
 public:
 	/*!

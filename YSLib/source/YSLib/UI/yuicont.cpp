@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面容器。
-\version 0.2207;
+\version 0.2284;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-05-14 20:37 +0800;
+	2011-05-27 15:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -261,50 +261,39 @@ MUIContainer::MUIContainer()
 {}
 
 void
-MUIContainer::operator+=(IWidget* p)
+MUIContainer::operator+=(IWidget& wgt)
 {
-	if(CheckWidget(p))
-		sWidgets.push_back(p);
-}
-void
-MUIContainer::operator+=(IControl* p)
-{
-	if(CheckWidget(p))
-	{
-		sWidgets.push_back(p);
-		GMFocusResponser<IControl>::operator+=(*p);
-	}
-}
-void
-MUIContainer::operator+=(GMFocusResponser<IControl>* p)
-{
-	if(p)
-		sFocusContainers.insert(p);
+	if(CheckWidget(wgt))
+		sWidgets.insert(make_pair(DefaultZOrder, &wgt));
 }
 
 bool
-MUIContainer::operator-=(IWidget* p)
+MUIContainer::operator-=(IWidget& wgt)
 {
 	auto t(sWidgets.size());
 
-	sWidgets.remove(p);
+	for(auto i(sWidgets.begin()); i != sWidgets.end();)
+		if(i->second == &wgt)
+			sWidgets.erase(i++);
+		else
+			++i;
 	t -= sWidgets.size();
 
 	YAssert(t <= 1, "Duplicate desktop object pointer found"
-		" @ bool MUIContainer::operator-=(IWidget*);");
+		" @ bool MUIContainer::operator-=(IWidget&);");
 
 	return t != 0;
 }
 bool
-MUIContainer::operator-=(IControl* p)
+MUIContainer::operator-=(IControl& ctl)
 {
-	return p ? GMFocusResponser<IControl>::operator-=(*p)
-		&& (*this -= static_cast<IWidget*>(p)) : false;
+	return GMFocusResponser<IControl>::operator-=(ctl)
+		&& (*this -= static_cast<IWidget&>(ctl));
 }
 bool
-MUIContainer::operator-=(GMFocusResponser<IControl>* p)
+MUIContainer::operator-=(GMFocusResponser<IControl>& rsp)
 {
-	return sFocusContainers.erase(p) != 0;
+	return sFocusContainers.erase(&rsp) != 0;
 }
 
 IControl*
@@ -316,8 +305,8 @@ IWidget*
 MUIContainer::GetTopWidgetPtr(const Point& pt)
 {
 	for(auto i(sWidgets.cbegin()); i != sWidgets.cend(); ++i)
-		if((*i)->IsVisible() && Contains(**i, pt))
-			return *i;
+		if(i->second->IsVisible() && Contains(*i->second, pt))
+			return i->second;
 	return nullptr;
 }
 IControl*
@@ -329,23 +318,35 @@ MUIContainer::GetTopControlPtr(const Point& pt)
 	return nullptr;
 }
 
-bool
-MUIContainer::ResponseFocusRequest(AFocusRequester& w)
+void
+MUIContainer::Add(IControl& ctl, ZOrderType z)
 {
-	return w.RequestFocus<GMFocusResponser, IControl>(*this);
+	if(CheckWidget(ctl))
+	{
+		sWidgets.insert(make_pair(z, static_cast<ItemType>(&ctl)));
+		GMFocusResponser<IControl>::operator+=(ctl);
+	}
 }
 
 bool
-MUIContainer::ResponseFocusRelease(AFocusRequester& w)
+MUIContainer::ResponseFocusRequest(AFocusRequester& req)
 {
-	return w.ReleaseFocus<GMFocusResponser, IControl>(*this);
+	return req.RequestFocus<GMFocusResponser, IControl>(*this);
 }
 
 bool
-MUIContainer::CheckWidget(IWidget* p)
+MUIContainer::ResponseFocusRelease(AFocusRequester& req)
 {
-	return p ? std::find(sWidgets.begin(), sWidgets.end(), p)
-		== sWidgets.end() : false;
+	return req.ReleaseFocus<GMFocusResponser, IControl>(*this);
+}
+
+bool
+MUIContainer::CheckWidget(IWidget& wgt)
+{
+	return std::find_if(sWidgets.cbegin(), sWidgets.cend(),
+		[&](const WidgetMap::value_type& val){
+		return val.second == &wgt;
+	}) == sWidgets.end();
 }
 
 

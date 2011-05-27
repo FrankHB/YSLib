@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7255;
+\version 0.7257;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-05-21 23:35 +0800;
+	2011-05-23 20:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,7 +82,7 @@ FontStyle::GetName() const ynothrow
 */
 FT_Error
 simpleFaceRequester(FTC_FaceID face_id, FT_Library library,
-					FT_Pointer /*request_data*/, FT_Face* aface)
+					FT_Pointer, FT_Face* aface)
 {
 	Typeface* fontFace(static_cast<Typeface*>(face_id));
 	FT_Face& face(*aface);
@@ -603,7 +603,7 @@ FontCache::LoadFontFile(CPATH path)
 			unique_ptr<const FontFile> p(ynew FontFile(path));
 
 			p->ReloadFaces(library);
-			if(sFiles.find(p.get()) != sFiles.end())
+			if(sFiles.find(raw(p)) != sFiles.end())
 			{
 				ydelete(p.release());
 				return false;

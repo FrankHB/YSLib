@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 样式无关的图形用户界面窗口。
-\version 0.4322;
+\version 0.4349;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-05-17 02:59 +0800;
+	2011-05-26 23:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -209,39 +209,39 @@ public:
 		IWindow* = nullptr);
 
 	ImplI1(IWindow) void
-	operator+=(IWidget*);
+	operator+=(IWidget&);
 	ImplI1(IWindow) void
-	operator+=(IControl*);
-	ImplI1(IWindow) PDefHOperator1(void, +=, GMFocusResponser<IControl>* p)
-		ImplBodyBase1(MUIContainer, operator+=, p)
+	operator+=(IControl&);
+	ImplI1(IWindow) PDefHOperator1(void, +=, GMFocusResponser<IControl>& rsp)
+		ImplBodyBase1(MUIContainer, operator+=, rsp)
 	virtual void
-	operator+=(IWindow*);
+	operator+=(IWindow&);
 	template<class _type>
 	inline void
-	operator+=(_type p)
+	operator+=(_type& p)
 	{
 		return operator+=(static_cast<typename std::conditional<
-			std::is_convertible<_type, IWindow*>::value,
-			IWindow*, typename std::conditional<std::is_convertible<_type,
-			IControl*>::value, IControl*, IWidget*>::type>::type>(p));
+			std::is_convertible<_type&, IWindow&>::value,
+			IWindow&, typename std::conditional<std::is_convertible<_type&,
+			IControl&>::value, IControl&, IWidget&>::type>::type>(p));
 	}
 
 	ImplI1(IWindow) bool
-	operator-=(IWidget*);
+	operator-=(IWidget&);
 	ImplI1(IWindow) bool
-	operator-=(IControl*);
-	ImplI1(IWindow) PDefHOperator1(bool, -=, GMFocusResponser<IControl>* p)
-		ImplBodyBase1(MUIContainer, operator-=, p)
+	operator-=(IControl&);
+	ImplI1(IWindow) PDefHOperator1(bool, -=, GMFocusResponser<IControl>& rsp)
+		ImplBodyBase1(MUIContainer, operator-=, rsp)
 	virtual bool
-	operator-=(IWindow*);
+	operator-=(IWindow&);
 	template<class _type>
 	inline bool
-	operator-=(_type p)
+	operator-=(_type& p)
 	{
 		return operator-=(static_cast<typename std::conditional<
-			std::is_convertible<_type, IWindow*>::value,
-			IWindow*, typename std::conditional<std::is_convertible<_type,
-			IControl*>::value, IControl*, IWidget*>::type>::type>(p));
+			std::is_convertible<_type&, IWindow&>::value,
+			IWindow&, typename std::conditional<std::is_convertible<_type&,
+			IControl&>::value, IControl&, IWidget&>::type>::type>(p));
 	}
 
 	ImplI1(IWindow) PDefH0(IControl*, GetFocusingPtr)
@@ -251,14 +251,17 @@ public:
 	ImplI1(IWindow) PDefH1(IControl*, GetTopControlPtr, const Point& pt)
 		ImplBodyBase1(MUIContainer, GetTopControlPtr, pt)
 
+	void
+	Add(IControl&, Widgets::ZOrderType = Widgets::DefaultZOrder);
+
 	ImplI1(IWindow) void
 	ClearFocusingPtr();
 
-	ImplI1(IWindow) PDefH1(bool, ResponseFocusRequest, AFocusRequester& w)
-		ImplBodyBase1(MUIContainer, ResponseFocusRequest, w)
+	ImplI1(IWindow) PDefH1(bool, ResponseFocusRequest, AFocusRequester& req)
+		ImplBodyBase1(MUIContainer, ResponseFocusRequest, req)
 
-	ImplI1(IWindow) PDefH1(bool, ResponseFocusRelease, AFocusRequester& w)
-		ImplBodyBase1(MUIContainer, ResponseFocusRelease, w)
+	ImplI1(IWindow) PDefH1(bool, ResponseFocusRelease, AFocusRequester& req)
+		ImplBodyBase1(MUIContainer, ResponseFocusRelease, req)
 };
 
 

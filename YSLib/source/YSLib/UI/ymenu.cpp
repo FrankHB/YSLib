@@ -11,16 +11,16 @@
 /*!	\file ymenu.cpp
 \ingroup Shell
 \brief 样式相关的菜单。
-\version 0.1214;
+\version 0.1223;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-05-17 02:42 +0800;
+	2011-05-23 20:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::Menu
+	YSLib::UI::Menu;
 */
 
 
@@ -45,56 +45,56 @@ namespace
 }
 
 
-Menu::Dependencies::Dependencies()
+TextList::Dependencies::Dependencies()
 {
-	Selected.GetRef() += &Menu::OnSelected;
-	Confirmed.GetRef() += &Menu::OnConfirmed;
+	Selected.GetRef() += &TextList::OnSelected;
+	Confirmed.GetRef() += &TextList::OnConfirmed;
 }
 
-Menu::Menu(const Rect& r, const shared_ptr<ListType>& h,
+TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	pair<Color, Color> hilight_pair)
 	: Control(r), MTextList(h),
 	HilightBackColor(hilight_pair.first), HilightTextColor(hilight_pair.second),
 	viewer(GetList()), top_offset(0), Events(GetStaticRef<Dependencies>())
 {
 	SetAllTo(Margin, defMarginH, defMarginV);
-	FetchEvent<KeyDown>(*this) += &Menu::OnKeyDown;
+	FetchEvent<KeyDown>(*this) += &TextList::OnKeyDown;
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld;
-	FetchEvent<TouchDown>(*this) += &Menu::OnTouchDown;
-	FetchEvent<TouchMove>(*this) += &Menu::OnTouchMove;
-	FetchEvent<Click>(*this) += &Menu::OnClick;
+	FetchEvent<TouchDown>(*this) += &TextList::OnTouchDown;
+	FetchEvent<TouchMove>(*this) += &TextList::OnTouchMove;
+	FetchEvent<Click>(*this) += &TextList::OnClick;
 }
 
 SDst
-Menu::GetFullViewHeight() const
+TextList::GetFullViewHeight() const
 {
 	return GetItemHeight() * viewer.GetTotal();
 }
 Size
-Menu::GetFullViewSize() const
+TextList::GetFullViewSize() const
 {
 	return Size(GetWidth(), GetFullViewHeight());
 }
 SDst
-Menu::GetViewPosition() const
+TextList::GetViewPosition() const
 {
 	return GetItemHeight() * viewer.GetHeadIndex() + top_offset;
 }
 
 void
-Menu::SetSelected(Menu::ViewerType::IndexType i)
+TextList::SetSelected(TextList::ViewerType::IndexType i)
 {
 	if(viewer.Contains(i) && viewer.SetSelectedIndex(i))
 		CallSelected();
 }
 void
-Menu::SetSelected(SPos x, SPos y)
+TextList::SetSelected(SPos x, SPos y)
 {
 	SetSelected(CheckPoint(x, y));
 }
 
 SDst
-Menu::AdjustTopOffset()
+TextList::AdjustTopOffset()
 {
 	viewer.RestrictSelected();
 
@@ -105,7 +105,7 @@ Menu::AdjustTopOffset()
 }
 
 SDst
-Menu::AdjustBottomOffset()
+TextList::AdjustBottomOffset()
 {
 	if(GetFullViewHeight() <= GetHeight())
 		return 0;
@@ -118,15 +118,15 @@ Menu::AdjustBottomOffset()
 	return down_offset;
 }
 
-Menu::ViewerType::IndexType
-Menu::CheckPoint(SPos x, SPos y)
+TextList::ViewerType::IndexType
+TextList::CheckPoint(SPos x, SPos y)
 {
 	return Rect(Point::Zero, GetSize()).Contains(x, y)
 		? (y + top_offset) / GetItemHeight() + viewer.GetHeadIndex() : -1;
 }
 
 void
-Menu::PaintItems(const Graphics& g)
+TextList::PaintItems(const Graphics& g)
 {
 	const SDst h(GetHeight());
 
@@ -176,7 +176,7 @@ Menu::PaintItems(const Graphics& g)
 }
 
 void
-Menu::LocateViewPosition(SDst h)
+TextList::LocateViewPosition(SDst h)
 {
 	RestrictInInterval(h, 0, GetFullViewHeight());
 
@@ -190,9 +190,9 @@ Menu::LocateViewPosition(SDst h)
 }
 
 void
-Menu::Paint()
+TextList::Paint()
 {
-	YWidgetAssert(this, Controls::Menu, Paint);
+	YWidgetAssert(this, Controls::TextList, Paint);
 
 	IWindow* pWnd(FetchDirectWindowPtr(*this));
 
@@ -206,7 +206,7 @@ Menu::Paint()
 }
 
 void
-Menu::ResetView()
+TextList::ResetView()
 {
 	viewer.MoveViewerToBegin();
 	if(viewer.IsSelected())
@@ -216,27 +216,27 @@ Menu::ResetView()
 }
 
 void
-Menu::UpdateView()
+TextList::UpdateView()
 {
 	GetViewChanged()(*this, EventArgs());
 	Refresh();
 }
 
 void
-Menu::CallSelected()
+TextList::CallSelected()
 {
 	GetSelected()(*this, IndexEventArgs(*this, viewer.GetSelectedIndex()));
 }
 
 void
-Menu::CheckConfirmed(Menu::ViewerType::IndexType i)
+TextList::CheckConfirmed(TextList::ViewerType::IndexType i)
 {
 	if(viewer.IsSelected() && viewer.GetSelectedIndex() == i)
 		GetConfirmed()(*this, IndexEventArgs(*this, i));
 }
 
 void
-Menu::OnKeyDown(KeyEventArgs&& e)
+TextList::OnKeyDown(KeyEventArgs&& e)
 {
 	if(viewer.IsSelected())
 	{
@@ -292,33 +292,33 @@ Menu::OnKeyDown(KeyEventArgs&& e)
 }
 
 void
-Menu::OnTouchDown(TouchEventArgs&& e)
+TextList::OnTouchDown(TouchEventArgs&& e)
 {
 	SetSelected(e);
 	UpdateView();
 }
 
 void
-Menu::OnTouchMove(TouchEventArgs&& e)
+TextList::OnTouchMove(TouchEventArgs&& e)
 {
 	SetSelected(e);
 	UpdateView();
 }
 
 void
-Menu::OnClick(TouchEventArgs&& e)
+TextList::OnClick(TouchEventArgs&& e)
 {
 	CheckConfirmed(CheckPoint(e));
 }
 
 void
-Menu::OnSelected(IndexEventArgs&& /*e*/)
+TextList::OnSelected(IndexEventArgs&&)
 {
 	Refresh();
 }
 
 void
-Menu::OnConfirmed(IndexEventArgs&& e)
+TextList::OnConfirmed(IndexEventArgs&& e)
 {
 	OnSelected(std::move(e));
 }

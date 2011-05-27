@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11103;
+\version r11112;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-05-22 00:15 +0800;
+	2011-05-25 22:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -463,7 +463,7 @@ $header "ystdex/util.hpp"
 #ifndef YCL_HAS_BUILTIN_NULLPTR
 	using ystdex::nullptr;
 #endif
-} //$header "ystdex/util.hpp"
+} //$header "ystdex/util.hpp";
 
 // std 命名空间兼容性污染列表。
 
@@ -622,6 +622,17 @@ $header YStandardExtend
 	using ::memcmp;
 } //$header YStandardExtend;
 
+//既定 platform 命名空间污染列表。
+
+$header "ycommon.h"
+{
+	// using newlib;
+	using ::iprintf;
+	using ::siprintf;
+	using ::viprintf;
+} //$header "ycommon.h";
+
+
 //既定 YSLib 命名空间污染列表。
 
 $header Adaptor::YAdaptor
@@ -714,6 +725,11 @@ $header Adaptor::YReference
 	using std::static_pointer_cast;
 	using std::unique_ptr;
 	using std::weak_ptr;
+	using ystdex::is_valid;
+	using ystdex::raw;
+	using ystdex::reset;
+	using ystdex::share_raw;
+	using ystdex::unique_raw;
 } //$header Adaptor::YReference;
 
 $header Core::YShellDefinition : Adaptor::YAdaptor

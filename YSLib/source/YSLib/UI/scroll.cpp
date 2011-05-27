@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3602;
+\version 0.3605;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-05-14 20:39 +0800;
+	2011-05-23 20:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -361,7 +361,7 @@ ATrack::OnTouchDown(TouchEventArgs&& e)
 }
 
 void
-ATrack::OnThumbDrag(EventArgs&& /*e*/)
+ATrack::OnThumbDrag(EventArgs&&)
 {
 	ValueType old_value(value);
 	// TODO: get correct old value;
@@ -470,8 +470,8 @@ AScrollBar::GetTopControlPtr(const Point& p)
 	if(Contains(NextButton, p))
 		return &NextButton;
 
-	YAssert(pTrack.get(),
-		"Null widget pointer found @ AScrollBar::GetTopControlPtr;");
+	YAssert(is_valid(pTrack),
+		"Invalid widget pointer found @ AScrollBar::GetTopControlPtr;");
 
 	return pTrack.get();
 }
@@ -479,8 +479,8 @@ AScrollBar::GetTopControlPtr(const Point& p)
 void
 AScrollBar::Paint()
 {
-	YAssert(pTrack.get(),
-		"Null widget pointer found @ AScrollBar::Draw;");
+	YAssert(is_valid(pTrack),
+		"Invalid widget pointer found @ AScrollBar::Draw;");
 
 	YWidgetAssert(this, Controls::HorizontalScrollBar, Draw);
 

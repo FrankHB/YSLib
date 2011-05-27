@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面窗口。
-\version 0.3730;
+\version 0.3756;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-05-17 02:59 +0800;
+	2011-05-26 23:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -158,62 +158,60 @@ AFrame::AFrame(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
 {}
 
 void
-AFrame::operator+=(IWidget* p)
+AFrame::operator+=(IWidget& wgt)
 {
-	if(p)
-	{
-		MUIContainer::operator+=(p);
-		p->GetContainerPtr() = this;
-	}
+	MUIContainer::operator+=(wgt);
+	wgt.GetContainerPtr() = this;
 }
 void
-AFrame::operator+=(IControl* p)
+AFrame::operator+=(IControl& ctl)
 {
-	if(p)
-	{
-		MUIContainer::operator+=(p);
-		p->GetContainerPtr() = this;
-	}
+	MUIContainer::operator+=(ctl);
+	ctl.GetContainerPtr() = this;
 }
 void
-AFrame::operator+=(IWindow* p)
+AFrame::operator+=(IWindow& wnd)
 {
-	if(p)
-	{
-		MUIContainer::operator+=(p);
-		p->GetContainerPtr() = this;
-	}
+	MUIContainer::operator+=(wnd);
+	wnd.GetContainerPtr() = this;
 }
 
 bool
-AFrame::operator-=(IWidget* p)
+AFrame::operator-=(IWidget& wgt)
 {
-	if(p && p->GetContainerPtr() == this)
+	if(wgt.GetContainerPtr() == this)
 	{
-		p->GetContainerPtr() = nullptr;
-		return MUIContainer::operator-=(p);
+		wgt.GetContainerPtr() = nullptr;
+		return MUIContainer::operator-=(wgt);
 	}
 	return false;
 }
 bool
-AFrame::operator-=(IControl* p)
+AFrame::operator-=(IControl& ctl)
 {
-	if(p && p->GetContainerPtr() == this)
+	if(ctl.GetContainerPtr() == this)
 	{
-		p->GetContainerPtr() = nullptr;
-		return MUIContainer::operator-=(p);
+		ctl.GetContainerPtr() = nullptr;
+		return MUIContainer::operator-=(ctl);
 	}
 	return false;
 }
 bool
-AFrame::operator-=(IWindow* p)
+AFrame::operator-=(IWindow& wnd)
 {
-	if(p && p->GetContainerPtr() == this)
+	if(wnd.GetContainerPtr() == this)
 	{
-		p->GetContainerPtr() = nullptr;
-		return MUIContainer::operator-=(p);
+		wnd.GetContainerPtr() = nullptr;
+		return MUIContainer::operator-=(wnd);
 	}
 	return false;
+}
+
+void
+AFrame::Add(IControl& ctl, Widgets::ZOrderType z)
+{
+	MUIContainer::Add(ctl, z);
+	ctl.GetContainerPtr() = this;
 }
 
 void
@@ -238,14 +236,14 @@ Frame::Frame(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
 	Desktop* pDsk(FetchDirectDesktopPtr(*this));
 
 	if(pDsk)
-		*pDsk += static_cast<IControl*>(this);
+		*pDsk += *this;
 }
 Frame::~Frame()
 {
 	Desktop* pDsk(FetchDirectDesktopPtr(*this));
 
 	if(pDsk)
-		*pDsk -= this;
+		*pDsk -= *this;
 }
 
 bool
@@ -255,25 +253,22 @@ Frame::DrawContents()
 
 	bool result(bRefresh);
 
-	for(auto i(sWidgets.begin());
-		!result && i != sWidgets.end(); ++i)
+	for(auto i(sWidgets.begin()); !result && i != sWidgets.end(); ++i)
 	{
-		IWidget* const p(*i);
+		IWidget* const p(i->second);
 
 		YAssert(p, "Null widget pointer found @ Frame::DrawContents");
 
 		result |= p->IsVisible();
 	}
 	if(result)
-	{
 		for(auto i(sWidgets.begin()); i != sWidgets.end(); ++i)
 		{
-			IWidget& w(**i);
+			IWidget& w(*i->second);
 
 			if(w.IsVisible())
 				w.Paint();
 		}
-	}
 	return result;
 }
 

@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2202;
+\version 0.2210;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-05-22 00:10 +0800;
+	2011-05-22 23:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -141,6 +141,39 @@ public:
 	void
 	ReleaseDevices() ynothrow;
 };
+
+inline YScreen&
+Global::GetScreenUp() const ynothrow
+{
+	YAssert(is_valid(hScreenUp), "Fatal error:"
+		" invalid screen handle found @ Global::GetScreenUp;");
+
+	return *hScreenUp;
+}
+inline YScreen&
+Global::GetScreenDown() const ynothrow
+{
+	YAssert(is_valid(hScreenDown), "Fatal error:"
+		" invalid screen handle found @ Global::GetScreenDown;");
+
+	return *hScreenDown;
+}
+inline Desktop&
+Global::GetDesktopUp() const ynothrow
+{
+	YAssert(is_valid(hDesktopUp), "Fatal error:"
+		" invalid desktop handle found @ Global::GetDesktopUp;");
+
+	return *hDesktopUp;
+}
+inline Desktop&
+Global::GetDesktopDown() const ynothrow
+{
+	YAssert(is_valid(hDesktopDown), "Fatal error:"
+		" invalid desktop handle found @ Global::GetDesktopDown;");
+
+	return *hDesktopDown;
+}
 
 
 /*!

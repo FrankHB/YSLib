@@ -11,12 +11,12 @@
 /*!	\file ypanel.h
 \ingroup Shell
 \brief 样式无关的图形用户界面面板。
-\version 0.1159;
+\version 0.1178;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:40:51 +0800;
 \par 修改时间:
-	2011-05-14 20:44 +0800;
+	2011-05-26 00:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,31 +57,31 @@ public:
 	~Panel();
 
 	ImplI1(IPanel) void
-	operator+=(IWidget*);
+	operator+=(IWidget&);
 	ImplI1(IPanel) void
-	operator+=(IControl*);
-	ImplI1(IPanel) PDefHOperator1(void, +=, GMFocusResponser<IControl>* p)
-		ImplBodyBase1(MUIContainer, operator+=, p)
+	operator+=(IControl&);
+	ImplI1(IPanel) PDefHOperator1(void, +=, GMFocusResponser<IControl>& rsp)
+		ImplBodyBase1(MUIContainer, operator+=, rsp)
 	template<class _type>
 	inline void
-	operator+=(_type* p)
+	operator+=(_type& obj)
 	{
-		return operator+=(Design::MoreConvertible<_type*,
-			IControl*, IWidget*>::Cast(p));
+		return operator+=(Design::MoreConvertible<_type&,
+			IControl&, IWidget&>::Cast(obj));
 	}
 
 	ImplI1(IPanel) bool
-	operator-=(IWidget*);
+	operator-=(IWidget&);
 	ImplI1(IPanel) bool
-	operator-=(IControl*);
-	ImplI1(IPanel) PDefHOperator1(bool, -=, GMFocusResponser<IControl>* p)
-		ImplBodyBase1(MUIContainer, operator-=, p)
+	operator-=(IControl&);
+	ImplI1(IPanel) PDefHOperator1(bool, -=, GMFocusResponser<IControl>& rsp)
+		ImplBodyBase1(MUIContainer, operator-=, rsp)
 	template<class _type>
 	inline bool
-	operator-=(_type* p)
+	operator-=(_type& obj)
 	{
-		return operator-=(Design::MoreConvertible<_type*,
-			IControl*, IWidget*>::Cast(p));
+		return operator-=(Design::MoreConvertible<_type&,
+			IControl&, IWidget&>::Cast(obj));
 	}
 
 	ImplI1(IPanel) PDefH0(IControl*, GetFocusingPtr)
@@ -94,11 +94,11 @@ public:
 	ImplI1(IPanel) void
 	ClearFocusingPtr();
 
-	ImplI1(IPanel) PDefH1(bool, ResponseFocusRequest, AFocusRequester& w)
-		ImplBodyBase1(MUIContainer, ResponseFocusRequest, w)
+	ImplI1(IPanel) PDefH1(bool, ResponseFocusRequest, AFocusRequester& req)
+		ImplBodyBase1(MUIContainer, ResponseFocusRequest, req)
 
-	ImplI1(IPanel) PDefH1(bool, ResponseFocusRelease, AFocusRequester& w)
-		ImplBodyBase1(MUIContainer, ResponseFocusRelease, w)
+	ImplI1(IPanel) PDefH1(bool, ResponseFocusRelease, AFocusRequester& req)
+		ImplBodyBase1(MUIContainer, ResponseFocusRelease, req)
 
 	ImplI1(IPanel) PDefH0(void, Paint)
 		ImplBodyBase0(Control, Paint)

@@ -11,12 +11,12 @@
 /*!	\file form.h
 \ingroup Shell
 \brief 样式无关的图形用户界面窗体。
-\version 0.1523;
+\version 0.1525;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-05-17 02:38 +0800;
+	2011-05-27 13:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,11 +59,6 @@ public:
 
 /*	virtual void
 	SetSize(SDst, SDst);
-	virtual void
-	SetBounds(const Rect&);
-
-	virtual void
-	Paint();
 
 	virtual void
 	Paint();

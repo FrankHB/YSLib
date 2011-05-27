@@ -11,12 +11,12 @@
 /*!	\file chrmap.cpp
 \ingroup CHRLib
 \brief 字符映射。
-\version 0.1510;
+\version 0.1511;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 +0800; 
 \par 修改时间:
-	2011-05-12 17:32 +0800;
+	2011-05-23 20:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -214,14 +214,14 @@ codemap<CharSet::GBK>(ubyte_t& l, FILE* fp)
 
 template<>
 uchar_t
-codemap<CharSet::UTF_16BE>(ubyte_t& /*l*/, const char* c)
+codemap<CharSet::UTF_16BE>(ubyte_t&, const char* c)
 {
 	//l = 2;
 	return getword_BE(c);
 }
 template<>
 uchar_t
-codemap<CharSet::UTF_16BE>(ubyte_t& /*l*/, FILE* fp)
+codemap<CharSet::UTF_16BE>(ubyte_t&, FILE* fp)
 {
 	//l = 2;
 	return std::getc(fp) << 8 | std::getc(fp);
@@ -229,14 +229,14 @@ codemap<CharSet::UTF_16BE>(ubyte_t& /*l*/, FILE* fp)
 
 template<>
 uchar_t
-codemap<CharSet::UTF_16LE>(ubyte_t& /*l*/, const char* c)
+codemap<CharSet::UTF_16LE>(ubyte_t&, const char* c)
 {
 	//l = 2;
 	return getword_LE(c);
 }
 template<>
 uchar_t
-codemap<CharSet::UTF_16LE>(ubyte_t& /*l*/, FILE* fp)
+codemap<CharSet::UTF_16LE>(ubyte_t&, FILE* fp)
 {
 	//l = 2;
 	return std::getc(fp) | std::getc(fp) << 8;

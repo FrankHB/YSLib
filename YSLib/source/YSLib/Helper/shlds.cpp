@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1796;
+\version 0.1799;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-05-21 23:42 +0800;
+	2011-05-23 20:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,7 +46,7 @@ ShlCLI::OnDeactivated(const Message&)
 }
 
 int
-ShlCLI::ExecuteCommand(const uchar_t* /*s*/)
+ShlCLI::ExecuteCommand(const uchar_t*)
 {
 	// TODO: impl;
 	return 0;
@@ -82,18 +82,19 @@ ShlDS::ShlProc(const Message& msg)
 }
 
 int
-ShlDS::OnActivated(const Message& /*msg*/)
+ShlDS::OnActivated(const Message&)
 {
-	YAssert(is_valid(hDskUp), "Null up desktop handle found @ ShlDS::ShlDS;");
+	YAssert(is_valid(hDskUp),
+		"Invalid up desktop handle found @ ShlDS::ShlDS;");
 	YAssert(is_valid(hDskDown),
-		"Null down desktop handle found @ ShlDS::ShlDS;");
+		"Invalid down desktop handle found @ ShlDS::ShlDS;");
 
 	ResetGUIStates();
 	return 0;
 }
 
 int
-ShlDS::OnDeactivated(const Message& /*msg*/)
+ShlDS::OnDeactivated(const Message&)
 {
 	YAssert(&FetchGUIShell() == this,
 		"Invalid GUI shell found @ ShlDS::OnDeactivated");

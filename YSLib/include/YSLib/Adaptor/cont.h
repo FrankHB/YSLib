@@ -11,12 +11,12 @@
 /*!	\file cont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version 0.1598;
+\version 0.1604;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2011-05-03 14:50 +0800;
+	2011-05-26 15:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -95,12 +95,15 @@ using std::make_tuple;
 
 using std::list;
 using std::map;
+using std::multimap;
 using std::set;
+using std::multiset;
+using std::unordered_set;
+using std::unordered_map;
+
 using std::stack;
 using std::queue;
 using std::priority_queue;
-using std::unordered_map;
-using std::unordered_set;
 
 #ifdef YSL_USE_FLEX_STRING
 

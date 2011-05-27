@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3091;
+\version 0.3093;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-05-14 20:49 +0800;
+	2011-05-22 23:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -431,7 +431,7 @@ public:
 	GetTopControlPtr(const Point&);
 	/*!
 	\brief 取轨道引用。
-	\pre 断言检查： pTrack.get() 。
+	\pre 断言检查： is_valid(pTrack) 。
 	*/
 	ATrack&
 	GetTrack() const ynothrow;
@@ -468,8 +468,8 @@ private:
 inline ATrack&
 AScrollBar::GetTrack() const ynothrow
 {
-	YAssert(pTrack.get(),
-		"Null widget pointer found @ AScrollBar::GetTrack;");
+	YAssert(is_valid(pTrack),
+		"Invalid widget pointer found @ AScrollBar::GetTrack;");
 
 	return *pTrack;
 }

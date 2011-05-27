@@ -11,12 +11,12 @@
 /*!	\file memory.hpp
 \ingroup YCLib
 \brief 存储和智能指针特性。
-\version 0.1102;
+\version 0.1112;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-14 12:25:13 +0800; 
 \par 修改时间:
-	2011-05-15 21:49 +0800;
+	2011-05-22 23:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -112,7 +112,49 @@ namespace ystdex
 	//@}
 
 
-	/*!	\defgroup share_raw Get Shared Pointers
+	/*!	\defgroup unique_raw Get Unique Pointer
+	\brief 使用指定类型指针构造 std::unique_ptr 实例。
+	\param _type 被指向类型。
+	\note 不检查指针是否有效。
+	*/
+	//@{
+	/*!
+	\param _pSrc 指定指针类型。
+	*/
+	template<typename _type, typename _pSrc>
+	inline std::unique_ptr<_type>
+	unique_raw(const _pSrc& p)
+	{
+		return std::unique_ptr<_type>(p);
+	}
+	/*!
+	\param _pSrc 指定指针类型。
+	*/
+	template<typename _type, typename _pSrc>
+	inline std::unique_ptr<_type>
+	unique_raw(_pSrc&& p)
+	{
+		return std::unique_ptr<_type>(p);
+	}
+	template<typename _type>
+	inline std::unique_ptr<_type>
+	unique_raw(_type* p)
+	{
+		return std::unique_ptr<_type>(p);
+	}
+	/*!
+	\note 使用空指针构造空实例。
+	*/
+	template<typename _type>
+	inline std::unique_ptr<_type>
+	unique_raw(const nullptr_t& p)
+	{
+		return std::unique_ptr<_type>();
+	}
+	//@}
+
+
+	/*!	\defgroup share_raw Get Shared Pointer
 	\brief 使用指定类型指针构造 std::shared_ptr 实例。
 	\param _type 被指向类型。
 	\note 不检查指针是否有效。
@@ -143,7 +185,7 @@ namespace ystdex
 		return std::shared_ptr<_type>(p);
 	}
 	/*!
-	\note 使用空指针构造 std::shared_ptr 空实例。
+	\note 使用空指针构造空实例。
 	*/
 	template<typename _type>
 	inline std::shared_ptr<_type>

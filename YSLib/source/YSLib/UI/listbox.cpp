@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3621;
+\version 0.3622;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-05-17 02:47 +0800;
+	2011-05-23 02:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,7 +82,7 @@ ListBox::OnScroll_VerticalScrollBar(ScrollEventArgs&& e)
 }
 
 void
-ListBox::OnViewChanged_TextListBox(EventArgs&& /*e*/)
+ListBox::OnViewChanged_TextListBox(EventArgs&&)
 {
 	if(GetWidth() > defMinScrollBarWidth)
 	{

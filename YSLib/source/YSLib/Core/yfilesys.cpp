@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2167;
+\version 0.2170;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-05-17 01:47 +0800;
+	2011-05-23 20:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -120,7 +120,7 @@ Path::GetExtension() const
 }
 
 Path&
-Path::MakeAbsolute(const Path& /*base*/)
+Path::MakeAbsolute(const Path&)
 {
 	// TODO: impl;
 	return *this;
@@ -382,7 +382,7 @@ FileList::LoadSubItems()
 	if(dir.IsValid())
 	{
 		YAssert(is_valid(hList),
-			"Null strong pointer found @ FileList::LoadSubItems;");
+			"Invalid handle found @ FileList::LoadSubItems;");
 
 		hList->clear();
 

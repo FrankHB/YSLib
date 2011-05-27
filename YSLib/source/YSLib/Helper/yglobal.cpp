@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3118;
+\version 0.3126;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-05-22 00:17 +0800;
+	2011-05-22 23:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,39 +68,6 @@ const SDst Global::MainScreenHeight(SCREEN_HEIGHT);
 Global::Global()
 	: hScreenUp(), hScreenDown(), hDesktopUp(), hDesktopDown()
 {}
-
-YScreen&
-Global::GetScreenUp() const ynothrow
-{
-	YAssert(is_valid(hScreenUp), "Fatal error @ Global::GetScreenUp:"
-		" the up screen handle is null.");
-
-	return *hScreenUp;
-}
-YScreen&
-Global::GetScreenDown() const ynothrow
-{
-	YAssert(is_valid(hScreenDown), "Fatal error @ Global::GetScreenDown:"
-		" the down screen handle is null.");
-
-	return *hScreenDown;
-}
-Desktop&
-Global::GetDesktopUp() const ynothrow
-{
-	YAssert(is_valid(hDesktopUp), "Fatal error @ Global::GetDesktopUp:"
-		" the up desktop handle is null.");
-
-	return *hDesktopUp;
-}
-Desktop&
-Global::GetDesktopDown() const ynothrow
-{
-	YAssert(is_valid(hDesktopDown), "Fatal error @ Global::GetDesktopDown:"
-		" the down desktop handle is null.");
-
-	return *hDesktopDown;
-}
 
 void
 Global::InitializeDevices() ynothrow

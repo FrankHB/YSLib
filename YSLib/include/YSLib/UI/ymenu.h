@@ -11,16 +11,16 @@
 /*!	\file ymenu.h
 \ingroup Shell
 \brief 样式相关的菜单。
-\version 0.1252;
+\version 0.1265;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-05-17 02:42 +0800;
+	2011-05-24 23:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::Menu
+	YSLib::UI::Menu;
 */
 
 
@@ -37,8 +37,8 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
 
-//! \brief 文本菜单模块。
-class Menu : public Controls::Control, protected Widgets::MTextList
+//! \brief 文本列表。
+class TextList : public Controls::Control, protected Widgets::MTextList
 {
 public:
 	using MTextList::ItemType;
@@ -75,12 +75,11 @@ public:
 	\brief 构造：使用指定边界、文本列表和高亮背景色/文本色对。
 	*/
 	explicit
-	Menu(const Rect& = Rect::Empty,
+	TextList(const Rect& = Rect::Empty,
 		const shared_ptr<ListType>& = shared_ptr<ListType>(),
 		pair<Color, Color> = FetchGUIShell().Colors.GetPair(Styles::Highlight,
 		Styles::HighlightText));
 
-public:
 	DefPredicateMember(Selected, viewer)
 	PDefH1(bool, Contains, ViewerType::IndexType i)
 		ImplBodyMember1(viewer, Contains, i)
@@ -252,13 +251,13 @@ private:
 };
 
 inline void
-Menu::SetSelected(const Point& pt)
+TextList::SetSelected(const Point& pt)
 {
 	SetSelected(pt.X, pt.Y);
 }
 
-inline Menu::ViewerType::IndexType
-Menu::CheckPoint(const Point& p)
+inline TextList::ViewerType::IndexType
+TextList::CheckPoint(const Point& p)
 {
 	return CheckPoint(p.X, p.Y);
 }

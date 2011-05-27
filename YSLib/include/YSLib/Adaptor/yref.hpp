@@ -11,12 +11,12 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version 0.3544;
+\version 0.3546;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-21 23:09:06 +0800;
 \par 修改时间:
-	2011-05-16 20:31 +0800;
+	2011-05-22 23:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -47,6 +47,7 @@ using ystdex::is_valid;
 using ystdex::raw;
 using ystdex::reset;
 using ystdex::share_raw;
+using ystdex::unique_raw;
 
 
 /*!	\defGroup reset Reset Pointers
