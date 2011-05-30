@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6986;
+\version 0.6988;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-05-14 20:44 +0800;
+	2011-05-30 10:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -672,14 +672,14 @@ public:
 	\note n > 0 时下移， n < 0 时上移。
 	*/
 	void
-	Scroll(std::ptrdiff_t n);
+	Scroll(ptrdiff_t n);
 	/*!
 	\brief 缓冲区特效：整体移动 n 像素。
 	\note 从缓冲区顶端起高 h 的区域内，除上下边界区域。
 	\note n > 0 时下移， n < 0 时上移。
 	*/
 	void
-	Scroll(std::ptrdiff_t n, SDst h);
+	Scroll(ptrdiff_t n, SDst h);
 };
 
 inline TextRegion&

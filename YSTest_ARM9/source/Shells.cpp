@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 抽象。
-\version 0.4278;
+\version 0.4380;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-05-27 16:15 +0800;
+	2011-05-30 14:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -151,9 +151,9 @@ namespace
 				return;
 			}
 		//	memset(gbuf, 0xEC, sizeof(ScreenBufferType));
-			GetGlobalImage(1) = NewScrImage(dfa, gbuf);
+			GetGlobalImage(1) = CreateSharedScreenImage(dfa, gbuf);
 		//	memset(gbuf, 0xF2, sizeof(ScreenBufferType));
-			GetGlobalImage(2) = NewScrImage(dfap, gbuf);
+			GetGlobalImage(2) = CreateSharedScreenImage(dfap, gbuf);
 			ydelete_array(gbuf);
 		}
 	}
@@ -171,8 +171,8 @@ namespace
 			{
 				return;
 			}
-			GetGlobalImage(3) = NewScrImage(dfac1, gbuf);
-			GetGlobalImage(4) = NewScrImage(dfac1p, gbuf);
+			GetGlobalImage(3) = CreateSharedScreenImage(dfac1, gbuf);
+			GetGlobalImage(4) = CreateSharedScreenImage(dfac1p, gbuf);
 			ydelete_array(gbuf);
 		}
 	}
@@ -190,8 +190,8 @@ namespace
 			{
 				return;
 			}
-			GetGlobalImage(5) = NewScrImage(dfac2, gbuf);
-			GetGlobalImage(6) = NewScrImage(dfac2p, gbuf);
+			GetGlobalImage(5) = CreateSharedScreenImage(dfac2, gbuf);
+			GetGlobalImage(6) = CreateSharedScreenImage(dfac2p, gbuf);
 			ydelete_array(gbuf);
 		}
 	}
@@ -557,7 +557,9 @@ ShlSetting::ShlSetting()
 	lblB.SetTransparent(true);
 }
 
+
 class MenuHost;
+
 
 //! \brief 文本菜单。
 class Menu : public TextList
@@ -565,27 +567,35 @@ class Menu : public TextList
 	friend class MenuHost;
 
 public:
-	typedef size_t MenuID; //!< 菜单项标识类型。
+	typedef size_t ID; //!< 菜单项标识类型。
 
-	MenuID ID; //!< 菜单标识。
+	ID id; //!< 菜单标识。
 
-private:
-	MenuHost* pMenuHost;
+protected:
+	MenuHost* pHost; //!< 宿主指针。
+	Menu* pParent; //!< 父菜单指针。
 
 public:
 	explicit
 	Menu(const Rect& = Rect::Empty,
-		const shared_ptr<ListType>& = shared_ptr<ListType>(), MenuID = 0);
+		const shared_ptr<ListType>& = shared_ptr<ListType>(), ID = 0,
+		Menu* = nullptr);
+	DefGetter(ID, ID, id)
+
+private:
+	void
+	OnLostFocus(EventArgs&&);
 };
 
-Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, MenuID id)
-	: TextList(r, h, FetchGUIShell().Colors.GetPair(Styles::Panel,
+Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id, Menu* pMnuP)
+	: TextList(r, h, FetchGUIShell().Colors.GetPair(Styles::Highlight,
 		Styles::HighlightText)),
-	ID(id)
+	id(id), pParent(pMnuP)
 //	: Control(r), MTextList(h),
 //	HilightBackColor(hilight_pair.first), HilightTextColor(hilight_pair.second),
 //	viewer(GetList()), top_offset(0), Events(GetStaticRef<Dependencies>())
 {
+	BackColor = FetchGUIShell().Colors[Styles::Panel];
 /*
 	SetAllTo(Margin, defMarginH, defMarginV);
 	FetchEvent<KeyDown>(*this) += &TextList::OnKeyDown;
@@ -594,25 +604,34 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, MenuID id)
 	FetchEvent<TouchMove>(*this) += &TextList::OnTouchMove;
 	FetchEvent<Click>(*this) += &TextList::OnClick;
 */
+	FetchEvent<LostFocus>(*this) += &Menu::OnLostFocus;
 }
+
+
+void
+ResizeForContent(Menu& mnu)
+{
+	mnu.SetHeight(mnu.GetItemHeight() * mnu.GetList().size());
+}
+
 
 const ZOrderType DefaultMenuZOrder(224);
 
 //! \brief 菜单宿主。
-class MenuHost
+class MenuHost : noncopyable
 {
 public:
 	typedef Menu* ItemType; //!< 菜单组项目类型：记录菜单控件指针。
-	typedef map<Menu::MenuID, ItemType> MenuMap; //!< 菜单组类型。
+	typedef map<Menu::ID, ItemType> MenuMap; //!< 菜单组类型。
 	typedef MenuMap::value_type ValueType;
 
-	AFrame* FramePointer; //!< 面板指针。
+	AFrame& Frame; //!< 框架窗口指针。
 
 protected:
 	MenuMap mMenus;
 
 public:
-	MenuHost(AFrame* = nullptr);
+	MenuHost(AFrame&);
 	virtual
 	~MenuHost();
 
@@ -629,30 +648,70 @@ public:
 	void
 	operator+=(Menu&);
 
-	PDefHOperator1(ItemType, [], Menu::MenuID id)
-		ImplRet(mMenus[id])
+	/*!
+	\brief 访问 ID 指定的菜单。
+	\exception std::out_of_range 异常中立：由 at 抛出。
+	*/
+	PDefHOperator1(Menu&, [], Menu::ID id)
+		ImplRet(*mMenus.at(id))
 
 	/*!
 	\brief 从菜单组移除标识指定的菜单。
+	\note 同时置菜单宿主指针为空。
 	*/
-	PDefHOperator1(bool, -=, Menu::MenuID id)
-		ImplRet(mMenus.erase(id) != 0)
+	bool
+	operator-=(Menu::ID);
 
-	PDefH0(void, Clear)
-		ImplRet(mMenus.clear())
+	bool
+	IsShowing(Menu::ID);
 
+	/*
+	\brief 清除菜单组。
+	\note 同时置菜单宿主指针为空。
+	*/
 	void
-	ShowMenu();
+	Clear();
 
+	/*
+	\brief 显示菜单组中的所有菜单。
+	*/
 	void
-	HideMenu();
+	Show();
+	/*
+	\brief 按指定 Z 顺序显示菜单组中 ID 指定的菜单。
+	*/
+	void
+	Show(Menu::ID, ZOrderType = DefaultMenuZOrder);
+
+	/*
+	\brief 隐藏菜单组中的菜单。
+	*/
+	void
+	Hide();
+	/*
+	\brief 隐藏菜单组中 ID 指定的菜单。
+	*/
+	void
+	Hide(Menu::ID);
 };
 
-MenuHost::MenuHost(AFrame* pFrm)
-	: FramePointer(pFrm), mMenus()
+void
+Menu::OnLostFocus(EventArgs&&)
+{
+	if(pHost)
+	{
+		if(IsVisible())
+			Refresh();
+		pHost->Hide(id);
+	}
+}
+
+MenuHost::MenuHost(AFrame& frm)
+	: Frame(frm), mMenus()
 {}
 MenuHost::~MenuHost()
 {
+	Hide();
 	for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
 		ydelete(i->second);
 }
@@ -662,34 +721,99 @@ MenuHost::operator+=(const MenuHost::ValueType& val)
 {
 	YAssert(val.second, "Null pointer found @ Menu::operator+=;");
 
-	val.second->ID = val.first;
-	val.second->pMenuHost = this;
 	mMenus[val.first] = val.second;
+	val.second->id = val.first;
+	val.second->pHost = this;
 }
 
 void
 MenuHost::operator+=(Menu& mnu)
 {
-	mnu.pMenuHost = this;
-	mMenus[mnu.ID] = &mnu;
+	mMenus[mnu.id] = &mnu;
+	mnu.pHost = this;
+}
+
+bool
+MenuHost::operator-=(Menu::ID id)
+{
+	try
+	{
+		Menu& mnu((*this)[id]);
+
+		mnu.pHost = nullptr;
+		return mMenus.erase(id) != 0;
+	}
+	catch(std::out_of_range&)
+	{}
+	return false;
+}
+
+bool
+MenuHost::IsShowing(Menu::ID id)
+{
+	try
+	{
+		Menu& mnu((*this)[id]);
+
+		return Frame.Contains(mnu);
+	}
+	catch(std::out_of_range&)
+	{}
+	return false;
 }
 
 void
-MenuHost::ShowMenu()
+MenuHost::Clear()
 {
-	if(FramePointer)
-		for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
-			if(i->second)
-				FramePointer->Add(*i->second, DefaultMenuZOrder);
+	for(auto i(mMenus.begin()); i != mMenus.end(); ++i)
+	{
+		i->second->pHost = nullptr;
+	}
+	mMenus.clear();
 }
 
 void
-MenuHost::HideMenu()
+MenuHost::Show()
 {
-	if(FramePointer)
-		for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
-			if(i->second)
-				*FramePointer -= *i->second;
+	for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
+		if(i->second)
+			Frame.Add(*i->second, DefaultMenuZOrder);
+}
+void
+MenuHost::Show(Menu::ID id, ZOrderType z)
+{
+	try
+	{
+		Menu* pMenu(mMenus.at(id));
+
+		YAssert(pMenu, "Null pointer found @ MenuHost::Show #2;");
+
+		Frame.Add(*pMenu, z);		
+	}
+	catch(std::out_of_range&)
+	{}
+}
+
+void
+MenuHost::Hide()
+{
+	for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
+		if(i->second)
+			Frame -= *i->second;
+}
+void
+MenuHost::Hide(Menu::ID id)
+{
+	try
+	{
+		Menu* pMenu(mMenus.at(id));
+
+		YAssert(pMenu, "Null pointer found @ MenuHost::Hide #2;");
+
+		Frame -= *pMenu;
+	}
+	catch(std::out_of_range&)
+	{}
 }
 
 namespace
@@ -735,8 +859,7 @@ ShlSetting::TFormTest::TFormTest()
 	FetchEvent<Enter>(btnEnterTest) += OnEnter_btnEnterTest;
 	FetchEvent<Leave>(btnEnterTest) += OnLeave_btnEnterTest;
 	FetchEvent<Click>(btnMenuTest).Add(*this, &TFormTest::OnClick_btnMenuTest);
-	FetchEvent<Click>(btnShowWindow).Add(*this,
-		&TFormTest::OnClick_btnShowWindow);
+	FetchEvent<Click>(btnShowWindow) += OnClick_ShowWindow;
 //	FetchEvent<TouchMove>(btnShowWindow) += OnTouchMove_Dragging;
 //	FetchEvent<TouchDown>(btnShowWindow) += OnClick_btnDragTest;
 }
@@ -745,10 +868,12 @@ void
 ShlSetting::TFormTest::OnEnter_btnEnterTest(IControl& sender,
 	TouchEventArgs&& e)
 {
-	DefDynInitRef(Button, btn, sender)
 	char str[20];
 
 	siprintf(str, "Enter:(%d,%d)", e.Point::X, e.Point::Y);
+
+	auto& btn(dynamic_cast<Button&>(sender));
+
 	btn.Text = str;
 	btn.Refresh();
 }
@@ -756,10 +881,12 @@ void
 ShlSetting::TFormTest::OnLeave_btnEnterTest(IControl& sender,
 	TouchEventArgs&& e)
 {
-	DefDynInitRef(Button, btn, sender)
 	char str[20];
 
 	siprintf(str, "Leave:(%d,%d)", e.Point::X, e.Point::Y);
+
+	auto& btn(dynamic_cast<Button&>(sender));
+
 	btn.Text = str;
 	btn.Refresh();
 }
@@ -771,55 +898,31 @@ ShlSetting::TFormTest::OnClick_btnMenuTest(TouchEventArgs&&)
 	
 	YAssert(s_pMenuHost, "err: null menu host pointer found;");
 
-	TextList* pMenu = (*s_pMenuHost)[1u];
+	auto& mnu((*s_pMenuHost)[1u]);
+	auto& lst(mnu.GetList());
 
-	YAssert(pMenu, "err: null menu pointer found;");
-
-	auto& lst(pMenu->GetList());
-
-	if(t < 4)
+	if(s_pMenuHost->IsShowing(1u))
 	{
-		if(t == 0)
-		{
-			lst.push_back(_ustr("TestMenuItem1"));
-			s_pMenuHost->ShowMenu();
-		}
-		else
-		{
-			char stra[4];
+		if(lst.size() > 4)
+			lst.clear();
+
+		char stra[4];
 		
-			siprintf(stra, "%d", t);
-			lst.push_back(String((string("TMI") + stra).c_str()));
-		}
-		++t;
-		SetBoundsOf(*pMenu, Rect(btnMenuTest.GetLocation()
-			+ Vec(-btnMenuTest.GetWidth(), btnMenuTest.GetHeight()),
-			btnMenuTest.GetWidth() + 20,
-			btnMenuTest.GetHeight() * pMenu->GetList().size()));
-		pMenu->Refresh();
+		siprintf(stra, "%d", t);
+		lst.push_back(String((string("TMI") + stra).c_str()));
 	}
 	else
 	{
-		t = 0;
-		lst.clear();
-		pMenu->Refresh();
-		s_pMenuHost->HideMenu();
+		mnu.SetLocation(Point(
+			btnMenuTest.GetX() - btnMenuTest.GetWidth(),
+			btnMenuTest.GetY() + btnMenuTest.GetHeight()));
+		mnu.SetWidth(btnMenuTest.GetWidth() + 20);
+		lst.push_back(_ustr("TestMenuItem1"));
+		s_pMenuHost->Show(1u);
 	}
-}
-
-void
-ShlSetting::TFormTest::OnClick_btnShowWindow(TouchEventArgs&&)
-{
-	IWindow* pWnd(raw(dynamic_pointer_cast<ShlSetting>(
-		FetchShellHandle())->pWndExtra));
-
-	if(pWnd)
-	{
-		if(pWnd->IsVisible())
-			Hide(*pWnd);
-		else
-			Show(*pWnd);
-	}
+	ResizeForContent(mnu);
+	mnu.Refresh();
+	++t;
 }
 
 ShlSetting::TFormExtra::TFormExtra()
@@ -873,14 +976,14 @@ void
 ShlSetting::TFormExtra::OnTouchUp_btnDragTest(TouchEventArgs&& e)
 {
 	InputCounter(e);
-	dynamic_pointer_cast<ShlSetting>(FetchShellHandle())->ShowString(strCount);
+	FetchShell<ShlSetting>().ShowString(strCount);
 	btnDragTest.Refresh();
 }
 void
 ShlSetting::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs&& e)
 {
 	InputCounterAnother(e);
-	dynamic_pointer_cast<ShlSetting>(FetchShellHandle())->ShowString(strCount);
+	FetchShell<ShlSetting>().ShowString(strCount);
 //	btnDragTest.Refresh();
 }
 
@@ -929,12 +1032,10 @@ void
 ShlSetting::TFormExtra::OnKeyPress_btnDragTest(IControl& sender,
 	KeyEventArgs&& e)
 {
-	//测试程序。
-
 	u32 k(static_cast<KeyEventArgs::Key>(e));
 	char strt[100];
+	auto& lbl(dynamic_cast<Label&>(sender));
 
-	DefDynInitRef(Button, lbl, sender);
 //	Button& lbl(dynamic_cast<TFormUp&>(
 //		*(dynamic_cast<ShlSetting&>(*FetchShellHandle()).hWndUp)).lblB);
 	lbl.SetTransparent(!lbl.IsTransparent());
@@ -956,7 +1057,6 @@ ShlSetting::TFormExtra::OnClick_btnTestEx(TouchEventArgs&)
 {
 
 }*/
-
 
 void
 ShlSetting::TFormExtra::OnClick_btnReturn(TouchEventArgs&&)
@@ -1175,8 +1275,13 @@ ShlSetting::OnActivated(const Message& msg)
 //	pWndTest->DrawContents();
 //	pWndExtra->DrawContents();
 
-	s_pMenuHost = new MenuHost(raw(GetDesktopDownHandle()));
-	(*s_pMenuHost) += *new Menu(Rect::Empty, GenerateList(), 1u);
+	s_pMenuHost = new MenuHost(*GetDesktopDownHandle());
+
+	Menu& menu(*new Menu(Rect::Empty, GenerateList(), 1u));
+
+	FetchEvent<Click>(menu) += OnClick_ShowWindow;
+	*s_pMenuHost += menu;
+//	(*s_pMenuHost) += *new Menu(Rect::Empty, GenerateList(), 1u);
 	ParentType::OnActivated(msg);
 	UpdateToScreen();
 	return 0;
@@ -1205,6 +1310,20 @@ void
 ShlSetting::ShowString(const char* s)
 {
 	ShowString(String(s));
+}
+
+void
+ShlSetting::OnClick_ShowWindow(IControl&, TouchEventArgs&&)
+{
+	auto& pWnd(FetchShell<ShlSetting>().pWndExtra);
+
+	if(pWnd)
+	{
+		if(pWnd->IsVisible())
+			Hide(*pWnd);
+		else
+			Show(*pWnd);
+	}
 }
 
 void

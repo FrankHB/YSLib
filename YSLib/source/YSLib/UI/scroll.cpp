@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3605;
+\version 0.3607;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-05-23 20:20 +0800;
+	2011-05-27 20:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -480,9 +480,9 @@ void
 AScrollBar::Paint()
 {
 	YAssert(is_valid(pTrack),
-		"Invalid widget pointer found @ AScrollBar::Draw;");
+		"Invalid widget pointer found @ AScrollBar::Paint;");
 
-	YWidgetAssert(this, Controls::HorizontalScrollBar, Draw);
+	YWidgetAssert(this, Controls::HorizontalScrollBar, Paint);
 
 	Control::Paint();
 
@@ -561,7 +561,7 @@ ScrollableContainer::GetTopControlPtr(const Point& p)
 void
 ScrollableContainer::Paint()
 {
-	YWidgetAssert(this, Controls::ScrollableContainer, Draw);
+	YWidgetAssert(this, Controls::ScrollableContainer, Paint);
 
 	AUIBoxControl::Paint();
 	if(HorizontalScrollBar.IsVisible())

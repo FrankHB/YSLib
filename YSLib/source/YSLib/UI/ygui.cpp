@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面。
-\version 0.3792;
+\version 0.3794;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-05-22 23:39 +0800;
+	2011-05-28 00:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -260,7 +260,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 	bool r(false);
 
 	e.Strategy = Controls::RoutedEventArgs::Tunnel;
-	while((pCon = dynamic_cast<IUIBox*>(p)))
+	while(e -= p->GetLocation(), (pCon = dynamic_cast<IUIBox*>(p)))
 	{
 		if(!(p->IsVisible() && p->IsEnabled()))
 			return false;
@@ -271,7 +271,6 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 			RequestToTop(*p);
 			p->RequestFocus(EventArgs());
 		}
-		e -= p->GetLocation();
 
 		IControl* t;
 

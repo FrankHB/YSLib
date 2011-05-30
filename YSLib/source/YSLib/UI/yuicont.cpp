@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面容器。
-\version 0.2284;
+\version 0.2290;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-05-27 15:54 +0800;
+	2011-05-30 00:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -263,7 +263,7 @@ MUIContainer::MUIContainer()
 void
 MUIContainer::operator+=(IWidget& wgt)
 {
-	if(CheckWidget(wgt))
+	if(!Contains(wgt))
 		sWidgets.insert(make_pair(DefaultZOrder, &wgt));
 }
 
@@ -305,7 +305,7 @@ IWidget*
 MUIContainer::GetTopWidgetPtr(const Point& pt)
 {
 	for(auto i(sWidgets.cbegin()); i != sWidgets.cend(); ++i)
-		if(i->second->IsVisible() && Contains(*i->second, pt))
+		if(i->second->IsVisible() && Widgets::Contains(*i->second, pt))
 			return i->second;
 	return nullptr;
 }
@@ -313,7 +313,7 @@ IControl*
 MUIContainer::GetTopControlPtr(const Point& pt)
 {
 	for(auto i(sFocusObjects.cbegin()); i != sFocusObjects.cend(); ++i)
-		if((*i)->IsVisible() && Contains(**i, pt))
+		if((*i)->IsVisible() && Widgets::Contains(**i, pt))
 			return *i;
 	return nullptr;
 }
@@ -321,7 +321,7 @@ MUIContainer::GetTopControlPtr(const Point& pt)
 void
 MUIContainer::Add(IControl& ctl, ZOrderType z)
 {
-	if(CheckWidget(ctl))
+	if(!Contains(ctl))
 	{
 		sWidgets.insert(make_pair(z, static_cast<ItemType>(&ctl)));
 		GMFocusResponser<IControl>::operator+=(ctl);
@@ -341,12 +341,12 @@ MUIContainer::ResponseFocusRelease(AFocusRequester& req)
 }
 
 bool
-MUIContainer::CheckWidget(IWidget& wgt)
+MUIContainer::Contains(IWidget& wgt)
 {
 	return std::find_if(sWidgets.cbegin(), sWidgets.cend(),
 		[&](const WidgetMap::value_type& val){
 		return val.second == &wgt;
-	}) == sWidgets.end();
+	}) != sWidgets.end();
 }
 
 

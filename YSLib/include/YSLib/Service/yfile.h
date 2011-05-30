@@ -11,12 +11,12 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version 0.1794;
+\version 0.1795;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-05-03 19:32 +0800;
+	2011-05-30 10:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@ class File : public noncopyable
 {
 public:
 	typedef size_t SizeType; //!< 大小类型。
-	typedef std::ptrdiff_t OffsetType; //!< 偏移量类型。
+	typedef ptrdiff_t OffsetType; //!< 偏移量类型。
 
 protected:
 	FILE* fp; //!< 默认文件指针。

@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6650;
+\version 0.6652;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-05-14 20:37 +0800;
+	2011-05-30 10:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -332,13 +332,13 @@ TextRegion::ClearLine(u16 l, SDst n)
 }
 
 void
-TextRegion::Scroll(std::ptrdiff_t n)
+TextRegion::Scroll(ptrdiff_t n)
 {
 	if(GetHeight() > Margin.Bottom)
 		Scroll(n, GetHeight() - Margin.Bottom);
 }
 void
-TextRegion::Scroll(std::ptrdiff_t n, SDst h)
+TextRegion::Scroll(ptrdiff_t n, SDst h)
 {
 	if(pBuffer && pBufferAlpha)
 	{

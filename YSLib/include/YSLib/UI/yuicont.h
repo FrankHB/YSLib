@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 样式无关的图形用户界面容器。
-\version 0.2341;
+\version 0.2345;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-05-26 23:17 +0800;
+	2011-05-30 00:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -298,6 +298,12 @@ protected:
 
 public:
 	/*!
+	\brief 判断是否包含指定部件。
+	*/
+	bool
+	Contains(IWidget&);
+
+	/*!
 	\brief 取焦点控件指针。
 	*/
 	IControl*
@@ -333,14 +339,6 @@ public:
 	*/
 	bool
 	ResponseFocusRelease(AFocusRequester&);
-
-protected:
-	/*!
-	\brief 检查部件是否满足添加条件。
-	\return 若部件已在部件组中则返回 false ，否则返回 true 。
-	*/
-	bool
-	CheckWidget(IWidget&);
 };
 
 

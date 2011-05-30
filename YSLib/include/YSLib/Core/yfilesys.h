@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2120;
+\version 0.2121;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-05-17 03:01 +0800;
+	2011-05-29 23:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -607,7 +607,7 @@ public:
 	operator/=(const String&);
 
 	DefGetter(const Path&, Directory, Directory) //!< 取目录的完整路径。
-	DefGetter(shared_ptr<ListType>, ListPtr, hList); //!< 取项目列表句柄。
+	DefGetter(shared_ptr<ListType>, ListPtr, hList) //!< 取项目列表句柄。
 //	DefGetter(const ListType&, List, List) //!< 取项目列表。
 
 	/*!

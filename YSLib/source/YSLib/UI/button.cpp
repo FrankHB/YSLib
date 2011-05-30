@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件。
-\version 0.3495;
+\version 0.3496;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-05-14 20:41 +0800;
+	2011-05-14 20:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -72,7 +72,7 @@ Thumb::Thumb(const Rect& r)
 void
 Thumb::Paint()
 {
-	YWidgetAssert(this, Controls::Thumb, Draw);
+	YWidgetAssert(this, Controls::Thumb, Paint);
 
 	Control::Paint();
 
@@ -117,7 +117,7 @@ Button::Button(const Rect& r, const Drawing::Font& f)
 void
 Button::Paint()
 {
-	YWidgetAssert(this, Controls::Button, Draw);
+	YWidgetAssert(this, Controls::Button, Paint);
 
 	Thumb::Paint();
 	PaintText(*this, ForeColor, FetchContext(*this), LocateForWindow(*this));

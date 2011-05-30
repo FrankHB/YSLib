@@ -16,12 +16,12 @@
 /*!	\file ytmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4362;
+\version 0.4364;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-05-14 20:36 +0800;
+	2011-05-30 10:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -336,14 +336,14 @@ public:
 		\note 构造新迭代器进行迭代并返回。
 		*/
 		HText
-		operator+(std::ptrdiff_t);
+		operator+(ptrdiff_t);
 
 		/*!
 		\brief 迭代：重复循环向前遍历。
 		\note 构造新迭代器进行迭代并返回。
 		*/
 		HText
-		operator-(std::ptrdiff_t);
+		operator-(ptrdiff_t);
 
 		/*!
 		\brief 比较：相等关系。
@@ -385,13 +385,13 @@ public:
 		\brief 迭代：重复循环向后遍历。
 		*/
 		HText&
-		operator+=(std::ptrdiff_t);
+		operator+=(ptrdiff_t);
 
 		/*!
 		\brief 迭代：重复循环向前遍历。
 		*/
 		HText&
-		operator-=(std::ptrdiff_t);
+		operator-=(ptrdiff_t);
 
 		DefGetter(TextFileBuffer*, BufferPtr, pBuffer)
 		DefGetter(BlockSizeType, BlockN, blk)
@@ -480,13 +480,13 @@ operator>=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
 }
 
 inline TextFileBuffer::HText
-TextFileBuffer::HText::operator-(std::ptrdiff_t o)
+TextFileBuffer::HText::operator-(ptrdiff_t o)
 {
 	return *this + -o;
 }
 
 inline TextFileBuffer::HText&
-TextFileBuffer::HText::operator-=(std::ptrdiff_t o)
+TextFileBuffer::HText::operator-=(ptrdiff_t o)
 {
 	return *this += -o;
 }

@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup Shell
 \brief 样式无关的图形用户界面窗口。
-\version 0.4349;
+\version 0.4351;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-05-26 23:11 +0800;
+	2011-05-30 00:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -243,6 +243,8 @@ public:
 			IWindow&, typename std::conditional<std::is_convertible<_type&,
 			IControl&>::value, IControl&, IWidget&>::type>::type>(p));
 	}
+
+	using MUIContainer::Contains;
 
 	ImplI1(IWindow) PDefH0(IControl*, GetFocusingPtr)
 		ImplBodyBase0(GMFocusResponser<IControl>, GetFocusingPtr)

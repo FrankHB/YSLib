@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3622;
+\version 0.3624;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-05-23 02:20 +0800;
+	2011-05-27 20:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,7 +68,7 @@ ListBox::GetTopControlPtr(const Point& p)
 void
 ListBox::Paint()
 {
-	YWidgetAssert(this, Controls::ListBox, Draw);
+	YWidgetAssert(this, Controls::ListBox, Paint);
 
 	ScrollableContainer::Paint();
 	TextListBox.Paint();

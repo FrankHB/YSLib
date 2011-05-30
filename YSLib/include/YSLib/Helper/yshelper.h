@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2150;
+\version 0.2176;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-05-22 00:12 +0800;
+	2011-05-27 21:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,10 +37,6 @@ YSL_BEGIN
 
 //@{
 
-//定义并使用 dynamic_cast 初始化引用。
-#define DefDynInitRef(_type, _name, _expr) \
-	_type& _name(dynamic_cast<_type&>(_expr));
-
 //句柄语法糖。
 
 /*!
@@ -57,6 +53,17 @@ HandleToReference(_tHandle h) ythrow(std::bad_cast)
 	return *_tmp;
 }
 
+template<class _tShell>
+inline _tShell&
+FetchShell()
+{
+	auto hShl(FetchShellHandle());
+
+	YAssert(is_valid(hShl), "Invalid handle found @ FetchShell;");
+
+	return dynamic_cast<_tShell&>(*hShl);
+}
+
 
 //全局函数。
 
@@ -64,7 +71,7 @@ HandleToReference(_tHandle h) ythrow(std::bad_cast)
 \brief 从当前 Shell 新建指定类型窗体。
 */
 template<class _type>
-IWindow* NewWindow()
+IWindow* CreateWindow()
 {
 	IWindow* pWnd(new _type());
 
@@ -205,7 +212,7 @@ ScrDraw(BitmapPtr buf, PPDRAW f)
 \brief 新建屏幕图像。
 */
 inline shared_ptr<Image>
-NewScrImage(ConstBitmapPtr p)
+CreateSharedScreenImage(ConstBitmapPtr p)
 {
 	return share_raw(new Image(p, Global::MainScreenWidth,
 		Global::MainScreenHeight));
@@ -215,14 +222,14 @@ NewScrImage(ConstBitmapPtr p)
 \brief 新建屏幕图像并指定绘图函数填充。
 */
 shared_ptr<Image>
-NewScrImage(PPDRAW f, BitmapPtr gbuf = nullptr);
+CreateSharedScreenImage(PPDRAW f, BitmapPtr gbuf = nullptr);
 
 /*!
 \brief 使用 new 分配空间并复制无压缩位图。
 */
 template<typename _tPixel>
 _tPixel*
-NewBitmapRaw(const _tPixel* s, size_t n)
+CreateRawBitmap(const _tPixel* s, size_t n)
 {
 	if(s && n)
 	{

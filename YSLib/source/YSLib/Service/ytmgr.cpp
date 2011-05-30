@@ -11,12 +11,12 @@
 /*!	\file ytmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4085;
+\version 0.4087;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-05-03 16:04 +0800;
+	2011-05-30 10:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -210,7 +210,7 @@ TextFileBuffer::HText::operator*() ynothrow
 }
 
 TextFileBuffer::HText
-TextFileBuffer::HText::operator+(std::ptrdiff_t o)
+TextFileBuffer::HText::operator+(ptrdiff_t o)
 {
 	if(!pBuffer)
 		return HText();
@@ -244,7 +244,7 @@ operator<(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
 }
 
 TextFileBuffer::HText&
-TextFileBuffer::HText::operator+=(std::ptrdiff_t o)
+TextFileBuffer::HText::operator+=(ptrdiff_t o)
 {
 	if(pBuffer)
 	{

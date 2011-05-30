@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 样式无关的控件。
-\version 0.4996;
+\version 0.4998;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-05-20 04:37 +0800;
+	2011-05-30 10:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -132,7 +132,7 @@ TouchEventArgs::TouchEventArgs(const InputType& pt, RoutingStrategy s)
 //! \brief 控件事件参数类。
 struct IndexEventArgs : public EventArgs
 {
-	typedef std::ptrdiff_t IndexType;
+	typedef ssize_t IndexType;
 
 	IControl& Control;
 	IndexType Index;

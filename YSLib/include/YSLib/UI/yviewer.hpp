@@ -11,12 +11,12 @@
 /*!	\file yviewer.hpp
 \ingroup Shell
 \brief 样式无关的视图。
-\version 0.1085;
+\version 0.1087;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 23:00:28 +0800;
 \par 修改时间:
-	2011-05-14 20:42 +0800;
+	2011-05-30 10:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 //! \brief 序列视图类模板。
 template<class _tContainer, typename _tSize = typename _tContainer::size_type,
-		typename _tIndex = std::ptrdiff_t>
+		typename _tIndex = ssize_t>
 class GSequenceViewer
 {
 public:

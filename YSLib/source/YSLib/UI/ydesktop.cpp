@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2303;
+\version 0.2304;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-05-26 22:31 +0800;
+	2011-05-30 00:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,7 +50,7 @@ Desktop::GetTopVisibleDesktopObjectPtr(const Point& pt) const
 	{
 		try
 		{
-			if(i->second->IsVisible() && Contains(*i->second, pt))
+			if(i->second->IsVisible() && Widgets::Contains(*i->second, pt))
 				return &dynamic_cast<IControl&>(*i->second);
 		}
 		catch(std::bad_cast&)

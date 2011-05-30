@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7280;
+\version 0.7281;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-05-13 20:42 +0800;
+	2011-05-29 23:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -76,7 +76,7 @@ private:
 public:
 	FontStyle(Styles = Regular);
 
-	DefConverter(const Styles&, style);
+	DefConverter(const Styles&, style)
 	operator Styles&();
 
 	/*!

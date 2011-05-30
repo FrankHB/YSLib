@@ -11,12 +11,12 @@
 /*!	\file yshelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.1259;
+\version 0.1269;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-04 13:42:15 +0800;
 \par 修改时间:
-	2011-05-16 20:39 +0800;
+	2011-05-27 21:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Drawing)
 
 shared_ptr<Image>
-NewScrImage(PPDRAW f, BitmapPtr gbuf)
+CreateSharedScreenImage(PPDRAW f, BitmapPtr gbuf)
 {
 	bool s(!gbuf);
 
@@ -39,7 +39,7 @@ NewScrImage(PPDRAW f, BitmapPtr gbuf)
 		gbuf = ynew ScreenBufferType;
 	ScrDraw(gbuf, f);
 
-	shared_ptr<Image> pi(NewScrImage(gbuf));
+	shared_ptr<Image> pi(CreateSharedScreenImage(gbuf));
 
 	if(s)
 		safe_delete_obj()(gbuf);

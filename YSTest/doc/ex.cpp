@@ -1,4 +1,4 @@
-//v0.3134; *Build 212 r41;
+//v0.3134; *Build 213 r36;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -216,255 +216,199 @@ $using:
 
 $DONE:
 r1:
-/ @ \cl ShlSetting @ \u Shells:
-	/ \m unique_ptr<IWindow> pWndTest -> unique_ptr<TFormTest> pWndTest;
-	/ \m unique_ptr<IWindow> pWndExtra -> unique_ptr<TFormExtra> pWndExtra;
-	/ \tr \simp \impl @ \mf OnActivated;
+* \as \str @ 5 \mf Paint @ \impl \u (ListBox & Button & CheckBox & Scroll);
 
 r2:
-+ 4 \ft \i unique_raw @ \h Memory @ \lib YCLib::YStandardExtend;
-+ using ystdex::unique_raw @ \h YReference;
-/ \simp \impl @ \mf ShlSetting::OnActivated @ \impl \u Shells ^ unique_raw;
-/ \as @ \impl @ \mf (GetTopControlPtr & Paint & GetTrack)
-	@ \cl AScrollBar ^ is_valid ~ \mf get;
-/ \as \str @ \impl @ \mf MDualScreenReader::PrintText @ \impl \u DSReader;
-/ \as \str @ \impl @ \mf ShlDS::OnActivated @ \impl \u Shell_DS;
-/ \as \str @ \impl @ \mf FileList::LoadSubItems @ \impl \u YFileSystem;
-/ \as \str @ \impl @ \mf (GetScreenUp & GetScreenDown & GetDesktopUp
-	& GetDesktopDown) @ \cl Global @ \impl \u YGlobal;
-/ \as \str @ \impl @ \mf GetCopyOnWritePtr @ \clt GDependency @ \h YObject;
-/ \impl @ \mf FontCache::LoadFontFile @ \impl \u YFont ^ raw ~ \mf get;
+* \impl @ \ctor @ \cl Menu @ \impl \u Shells;
 
 r3:
-/ !\i \mf (GetScreenUp & GetScreenDown & GetDesktopUp & GetDesktopDown)
-	@ \cl Global @ \u YGlobal -> \i \mf;
+/ @ \cl ShlSetting::TFormTest @ \u Shells:
+	/ \mf void OnClick_btnShowWindow(TouchEventArgs&&)
+		-> \mf @ \cl ShlSetting;
+	/ \tr \impl @ \ctor;
 
 r4:
-/= test 1 ^ \conf release;
+/ @ \cl ShlSetting @ \u Shells:
+	/ \!s \mf void OnClick_btnShowWindow(TouchEventArgs&&)
+		-> \smf void OnClick_ShowWindow(IControl&, TouchEventArgs&&);
+	/ \tr \impl @ \ctor @ \cl TFormTest;
 
 r5:
-/= test 2;
+/ \a NewScrImage => CreateSharedScreenImage;
+/ \a NewBitmapRaw => CreateRawBitmap;
+/ \a NewWindow => CreateWindow;
+/ @ \h YShellHelper:
+	+ \ft FetchShell;
+	- \mac DefDynInitRef;
+/ @ \impl \u Shells:
+	/ \tr \impl @ 4 \mf ^ direct \decl ~ ^ \a \mac DefdynInitRef;
+	* \impl @ \mf ShlSetting::TFormExtra::OnKeyPress_btnDragTest;
+	/ \simp \impl @ \mf ShlSetting::OnClick_ShowWindow;
 
 r6:
-/ \a \cl Menu => TextList;
-- \rem \param @ \a (\f & \t);
+/= test 1 ^ \conf release;
 
 r7:
-/= test 3 ^ \conf release;
+/ \simp \impl @ \mf (OnTouchUp_btnDragTest & OnTouchDown_btnDragTest)
+	^ FetchShell ~ (FetchShellHandle & dynamic_pointer_cast)
+	@ \cl ShlSetting::TFormExtra @ \impl \u Shells;
 
 r8:
-/= \tr \rem @ \h YMenu;
-/ @ \impl \u Shells:
-	+ \cl Menu \inh TextList;
-	/ @ \cl MenuHost:
-		/ typedef TextList* ItemType -> typedef Menu* ItemType;
-		/ \m shared_ptr<Desktop> DesktopHandle -> \m IPanel* PanelPointer;
-		/ \tr @ \ctor;
-		/ \tr \impl @ \mf (ShowMenu & HideMenu);
-	/ \tr \impl @ \mf ShlSetting::OnActivated;
+/ \impl @ \mf ShlSetting::OnActivated @ \impl \u Shells;
 
 r9:
-/ @ \impl \u Shells:
-	/ @ \cl Menu:
-		+ typedef size_t MenuID;
-		+ \m MenuID ID;
-		/ \ctor \exp Menu(const Rect& = Rect::Empty,
-			const shared_ptr<ListType>& = shared_ptr<ListType>(),
-			pair<Color, Color> = FetchGUIShell().Colors.GetPair(
-			Styles::Highlight, Styles::HighlightText))
-			-> \exp Menu(const Rect& = Rect::Empty,
-			const shared_ptr<ListType>& = shared_ptr<ListType>(), MenuID = 0);
-	/ \tr \impl \u @ \mf ShlSetting::OnActivated;
+* \impl @ \mf YGUIShell::ResponseTouch @ \impl \u YGUI;
 
 r10:
-/ @ \impl \u Shells:
-	+ \pre \decl \cl MenuHost before (\decl @ \cl Menu);
-	/ @ \cl Menu:
-		+ friend \decl \cl MenuHost;
-		+ private \m MenuHost* pMenuHost;
-	/ @ \cl MenuHost:
-		- \m typedef size_t ID;
-		/ \tr \a ID -> Menu::MenuID;
-		/ \i \mf \op+= -> !\i \mf;
-	/ \tr \simp \impl \u @ \mf ShlSetting::OnActivated;
+/= test 2 ^ \conf release;
 
 r11:
 / @ \impl \u Shells:
-	/ @ \cl MenuHost:
-		/ \impl @ \mf void operator+=(const ValueType&);
-		+ \mf void operator+=(Menu&);
-	/ \tr \simp \impl \u @ \mf ShlSetting::OnActivated;
+	/ @ \cl Menu:
+		/ private \m MenuHost* pMenuHost -> Menu* pParent;
+		/ \exp \ctor Menu(const Rect& = Rect::Empty, const shared_ptr<ListType>&
+			= shared_ptr<ListType>(), MenuID = 0) -> \exp Menu(const Rect&
+			= Rect::Empty, const shared_ptr<ListType>& = shared_ptr<ListType>(),
+			MenuID = 0, Menu* = nullptr);
+		- \decl friend class MenuHost;
+	+ \f void ResizeForContent(Menu&);
+	* \impl \mf ShlSetting::TFormTest::OnClick_btnMenuTest ^ ResizeForContent;
+	/ \tr \impl @ 2 \mf \op+= @ \cl MenuHost;
+	- \pre \decl \cl MenuHost;
 
-r12:
-/ @ \impl \u Shells:
-	+ \f Color GenerateRandomColor() @ \un \ns;
-	/ \simp \impl @ \mf (ShlSetting::TFormExtra::OnClick_btnDragTest
-		& ShlSetting::OnTouchDown_FormExtra) ^ \f GenerateRandomColor;
-	/ \a 2 std::size_t -> size_t;
-
-r13:
-* \impl @ \f GenerateRandomColor @ \un \ns @ \impl \u Shells;
+r12-r13:
+* \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest @ \impl \u;
 
 r14:
-/ @ \ns platfrom @ \h YCommon:
-	+ using ::siprintf;
-	+ using ::viprintf;
-/ \a std::sprintf -> siprintf @ \impl \u Shells;
-
+/ @ \impl \u Shells:
+	/ @ \cl Menu:
+		+ \decl friend class MenuHost;
+		/ \ac @ private \m pMenu -> protected;
+		+ protected \m MenuHost* pHost;
+	+ \pre \decl \cl MenuHost;
+	/ @ \cl MenuHost;
+		/ \tr \impl @ 2 \mf \op+=;
+		/ \i \mf (\op-= & Clear) -> !\i \mf with \tr \impl;
+	
 r15:
-/= test 4 ^ \conf release;
+/ @ \impl \u Shells:
+	/ @ \cl Menu:
+		+ private \mf void OnLostFocus(EventArgs&&);
+		/ \tr \impl @ \ctor;
 
-r16-r18:
-/= test 5;
+r16:
+/ \impl @ \mf void Menu::OnLostFocus(EventArgs&&) @ \impl \u Shells;
 
-r19:
-/ \impl @ MUIContainer::CheckWidget;
-
-r20:
-/ \a \param _type -> _type* @ \h YWindow;
+r17-r20:
+/= test 3;
 
 r21:
-* \impl @ \ctor @ \cl YFrame;
+* \impl @ \mf void Menu::OnLostFocus(EventArgs&&) @ \impl \u Shells;
 
 r22:
-/ @ \u YUIContainer:
-	/ \a \ptr -> \ref @ \tp @ \param @ \amf @ \in IUIContainer;
-	/ \tr @ \cl MUIContainer;
-	/ \tr @ \cl UIContainer;
-/ @ \u YWindow:
-	/ \tr @ \cl AFrame;
-	/ \tr \impl @ (\ctor & \dtor);
-/ \tr @ \cl Panel @ \u YPanel;
-/ \tr \impl @ \impl \u Shells;
-	/ \tr \impl @ \mf ShlLoad::OnActivated;
-	/ \tr \impl @ \mf ShlExplorer::OnActivated;
-	/ \impl @ \mf (ShowMenu & HideMenu) @ \cl MenuHost;
-	/ \tr @ \cl ShlSetting:
-		/ \tr \impl @ \ctor @ \st TFormTest;
-		/ \tr \impl @ \ctor @ \st TFormExtra;
-		/ \tr \impl @ \mf OnActivated;
+/ @ \impl \u Shells:
+	+ \mf void HideMenu(Menu::MenuID) @ \cl MenuHost;
+	* \impl @ \mf void Menu::OnLostFocus(EventArgs&&);
 
 r23:
-/= test 6 ^ \conf release;
+/ @ \cl Menu @ \impl \u Shells:
+	/ public \m MenuID ID => id;
+	/ typedef size_t MenuID => ID;
+	+ DefGetter(ID, ID, id);
+-= \a semicolons after \mac 'DefGetter';
 
 r24:
-/= \a \n con => ctl @ \lib YSLib;
-/= \tr \rem \ren @ \impl \u Shells;
-/ @ \cl MUIContainer @ \h YUIContainer:
-	+ typedef u8 ZOrderType;
-	+ typedef multimap<ZOrderType, ItemType> WidgetMap;
-/ @ \h Container:
-	+ using std::multiset;
-	+ using std::multimap;
-	/= using order;
+/ @ \cl MUIContainer:
+	/ protected \mf bool CheckWidget(IWidget&)
+		-> public \mf bool Contains(IWidget&);
+	/ \tr \impl @ \mf (void perator+=(IWidget&)
+		& void Add(IControl&, ZOrderType));
+	/= \tr \impl @ \mf (GetTopWidgetPtr & GetTopControlPtr);
+/= \tr \impl @ \mf IControl* Desktop::GetTopVisibleDesktopObjectPtr();
 
 r25:
-/ @ \u YUIContainer:
-	/ typedef u8 ZOrderType @ \cl MUIContainer
-		>> \ns YSLib::Components::Widgets;
-	/ @ \cl MUIContainer:
-		/ protected \m WidgetList sWidgets -> WidgetMap sWidgets;
-		- \m typedef list<ItemType> WidgetList;
-		/ \tr \impl @ \mf (2 \op += & bool \op-=(IWidget&) & CheckWidget
-			& GetTopWidgetPtr);
-	+ \c \o ZOrderType DefaultZOrder(64) @ \un \ns;
-/ \tr \impl @ \mf @ (GetTopVisibleDesktopObjectPtr & MoveToTop)
-	@ \cl Desktop @ \impl \u YDesktop;
-/ \tr \impl @ \mf Frame::DrawContents;
+/ @ \impl \u Shells:
+	+ \mf bool IsShowing(Menu::ID) @ \cl MenuHost;
+	/ \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest
+		^ \mf MenuHost::IsShowing;
++ using MUIContainer::Contains @ \cl (Panel & AFrame);
 
 r26:
-/ \impl @ \mf Desktop::MoveToTop;
-/ @ \cl MUIContainer:
-	+ typedef WidgetMap::value_type PairType;
-	+ \mf void Add(ZOrderType, IControl&);
-	/ \simp \impl @ \mf void operator+=(IControl&) ^ \mf Add;
-/ @ \cl MenuHost @ \impl \u Shells:
-	/ \impl @ \mf ShowMenu;
-	/ \m IPanel* PanelPointer -> AFrame* FramePointer;
-	/ \tr @ \ctor;
-	/ \tr \impl @ \mf (ShowMenu & HideMenu);
-+ using MUIContainer::Add @ \cl AFrame;
+/= test 4 ^ \conf release;
 
 r27:
-* @ \cl AFrame:
-	/ using MUIContainer::Add -> void Add(Widgets::ZOrderType, IControl&);
+/ @ \cl MenuHost @ \impl \u Shells:
+	+ \mf void ShowMenu(Menu::ID, ZOrderType = DefaultMenuZOrder);
+	/ \impl @ \mf void HideMenu(Menu::ID);
+	* \impl @ \dtor;
+/ \a \mf ShowMenu => Show;
+/ \a \mf HideMenu => Hide;
 
 r28:
-/ @ \cl MUIContainer:
-	/ !\i \mf (void operator+=(IControl&)
-		& void operator+=(GMFocusResponser<IControl>&)) -> \i \mf
-		^ \mac (PDefHOperator1 & ImplRet);
-	/ @ \mf void Add(ZOrderType, IControl&)
-		-> void Add(IControl&, ZorderType = DefaultZOrder);
-/ @ \mf void Add(Widgets::ZOrderType, IControl&) @ \cl AFrame
-	-> void Add(IControl&, Widgets::ZorderType = Widgets::DefaultZOrder);
-/ @ \impl \u Shells:
-	+ \c \o ZOrderType DefaultMenuZOrder(224) @ \un \ns;
-	/ \tr \impl @ \mf ShowMenu @ \cl MenuHost;
+/ \impl @ \mf void IsShowing(Menu::ID) @ \cl MenuHost @ \impl \u Shells;
 
 r29:
-/= test 7 ^ \conf release;
-
-r30-r31:
-* \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest @ \impl \u Shells;
-
-r32:
 / @ \impl \u Shells:
-	/ \impl @ \f GenerateList @ \un \ns;
-	/ \impl @ \mf MenuHost::operator+=:
-		/ \a \param v => val;
-	/ \simp \impl @ \mf ShlSetting::OnActivated;
+	/ @ \cl MenuHost:
+		/ \m AFrame* FramePointer -> AFrame& Frame;
+		/ \tr \ctor MenuHost(AFrame* = nullptr) -> MenuHost(AFrame&);
+		+ \inh noncopyable;
+		/ \tr \simp \impl @ \mf (IsShowing & 2 Show & 2 Hide);
+	/ \tr \impl @ \mf ShlSetting::OnActivated;
 
-r33:
-/ @ \mf ShlSetting::TFormExtra::OnClick_btnTestEx @ \impl \u Shells:
-	+ \mf void Test1(TextRegion&, Color) @ \cl TestObj ;
-	/ \simp \impl ^ Test1;
-
-r34:
-* \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest;
-
-r35-r36:
-/ \cl ShellSetting @ \impl \u Shells:
-	/ \impl @ \mf OnActivated;
-	/ \impl @ \mf TFormTest::OnClick_btnMenuTest;
-
-r37:
-* \impl @ \mf (ShowMenu & HideMenu) @ \cl MenuHost @ \impl \u Shells;
-
-r38:
-* \impl @ \mf bool MUIContainer::operator-=(IWidget&) @ \impl \u YUIContainer;
-
-r39-r40:
+r30:
 / \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest @ \impl \u Shells;
 
-r41:
-/= test 8 ^ \conf release;
+r31:
+/ typedef std::ptrdiff_t IndexType -> typedef ssize_t IndexType
+	@ \st IndexEventArgs @ \h YControl;
+/ \a std::ptrdiff_t -> ssize_t @ \h YViewer;
+/= \a std::ptrdiff_t -> ptrdiff_t @ (\h YFile & \u (YTextManager & YText));
+
+r32:
+/= test 5 ^ \conf release;
+
+r33:
+* \impl @ \mf bool MenuHost::IsShowing(Menu::ID) @ \impl \u Shells;
+
+r34:
+/= test 6 ^ \conf release;
+
+r35:
+/ @ \impl \u Shells:
+	/ @ \cl MenuHost:
+		/ \ret \tp @ \i \mf ItemType operator[](Menu::ID) -> Menu&;
+		* \impl @ \mf op-=;
+		/ \tr \simp \impl @ \mf IsShowing;
+	/ \tr \simp \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest;
+
+r36:
+/= test 7 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-05-27:
--20.7d;
-//Mercurial rev1-rev82: r4100;
+2011-05-31:
+-21.7d;
+//Mercurial rev1-rev83: r4141;
 
 / ...
 
 
 $NEXT_TODO:
-
-b213-b384:
+b214-b256:
 + menus;
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
 	libstdc++ for known associative container operation bugs:
 	- \rem @ \impl @ \mft GetEvent @ \clt EventMap @ \h YEvent;
 * non-ASCII character path error in FAT16;
+
+b257-b768:
++ \impl styles @ widgets;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
-+ \impl styles @ widgets;
 + data configuragion;
-
-b385-b768:
 / impl 'real' RTC;
 / text alignment;
 + \impl pictures loading;
@@ -555,6 +499,19 @@ $ellipse_refactoring;
 
 $now
 (
+	* $design "UI assertion strings",
+	* "menu colors",
+	* "touch event coordinate error in contianer controls" $since b195,
+	+ "functions of menus" $=
+	(
+		+ "resizing for content",
+		+ "hiding when focus lost",
+	),
+	+ "predicator %Contains in UI container implementation"
+),
+
+b212
+(
 	/ $design "assertion strings",
 	/ "menu constructor",
 	+ "redundant menu state member in class %Menu",
@@ -573,7 +530,7 @@ b211
 	/ "test menu fixed on the desktop"
 ),
 
-$b210
+b210
 (
 	+ "template %is_valid for checking pointers which cast bool explicitly",
 	/ "part of template %raw moved to namespace %ystdex",
