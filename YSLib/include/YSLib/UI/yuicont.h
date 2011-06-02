@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 样式无关的图形用户界面容器。
-\version 0.2345;
+\version 0.2346;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-05-30 00:07 +0800;
+	2011-05-31 00:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -244,7 +244,7 @@ const ZOrderType DefaultZOrder(64); //!< 默认 Z 顺序值。
 class MUIContainer : protected GMFocusResponser<IControl>
 {
 public:
-	typedef IWidget* ItemType; //!< 部件组项目类型：记录部件指针。	
+	typedef IWidget* ItemType; //!< 部件组项目类型。	
 	typedef multimap<ZOrderType, ItemType> WidgetMap; \
 		//!< 部件组类型：映射 Z 顺序至部件。
 	typedef set<GMFocusResponser<IControl>*> FocusContainerSet; \
@@ -252,7 +252,7 @@ public:
 	typedef WidgetMap::value_type PairType;
 
 protected:
-	WidgetMap sWidgets; //!< 部件对象组。
+	WidgetMap sWidgets; //!< 部件对象组：存储非空部件指针。
 	FocusContainerSet sFocusContainers; //!< 子焦点对象容器组。
 
 public:

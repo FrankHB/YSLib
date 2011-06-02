@@ -11,12 +11,12 @@
 /*!	\file ylabel.cpp
 \ingroup Shell
 \brief 样式无关的标签模块。
-\version 0.2069;
+\version 0.2078;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-05-17 02:47 +0800;
+	2011-06-02 03:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,8 +35,8 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Widgets)
 
-MLabel::MLabel(const Drawing::Font& f, MLabel::TextAlignmentStyle a)
-	: Font(f), Margin(2, 2, 2, 2),
+MLabel::MLabel(const Drawing::Font& fnt, TextAlignmentStyle a)
+	: Font(fnt), Margin(2, 2, 2, 2),
 	HorizontalAlignment(a), VerticalAlignment(Center),
 	/*AutoSize(false), AutoEllipsis(false),*/ Text()
 {}
@@ -97,10 +97,6 @@ MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt)
 }
 
 
-Label::Label(const Rect& r, const Drawing::Font& f)
-	: Widget(r), MLabel(f)
-{}
-
 void
 Label::Paint()
 {
@@ -111,8 +107,8 @@ Label::Paint()
 }
 
 
-MTextList::MTextList(const shared_ptr<ListType>& h, const Drawing::Font& f)
-	: MLabel(f),
+MTextList::MTextList(const shared_ptr<ListType>& h, const Drawing::Font& fnt)
+	: MLabel(fnt),
 	pList(h), text_state(Font)
 {}
 
@@ -124,22 +120,11 @@ MTextList::GetList() const
 	return *pList;
 }
 MTextList::ItemType*
-MTextList::GetItemPtr(MTextList::IndexType i) const
+MTextList::GetItemPtr(IndexType idx) const
 {
-	ListType& list(GetList());
+	ListType& lst(GetList());
 
-	return IsInInterval<IndexType>(i, list.size())
-		? &list[i] : nullptr;
-}
-SDst
-MTextList::GetItemHeight() const
-{
-	return GetLnHeightExFrom(text_state);
-}
-Drawing::TextState&
-MTextList::GetTextState()
-{
-	return text_state;
+	return IsInInterval<IndexType>(idx, lst.size()) ? &lst[idx] : nullptr;
 }
 
 void

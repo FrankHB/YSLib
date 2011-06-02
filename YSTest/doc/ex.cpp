@@ -1,4 +1,4 @@
-//v0.3134; *Build 213 r36;
+//v0.3134; *Build 214 r33;
 /*
 $Record prefix and abbrevations:
 <statement> ::= statement;
@@ -216,188 +216,205 @@ $using:
 
 $DONE:
 r1:
-* \as \str @ 5 \mf Paint @ \impl \u (ListBox & Button & CheckBox & Scroll);
+/ @ \impl \u Shells:
+	/ @ \cl Menu:
+		+ typedef map<IndexType, Menu*> SubMap;
+		+ protected \m SubMap mSubMenus;
+		/ \tr \impl @ \ctor;
+		+ typedef SubMap::value_type ValueType;
+		+ \mf void operator+=(const ValueType&);
+		+ \mf bool operator-=(IndexType);
+	*= \mf \decl order @ \cl MenuHost;
 
 r2:
-* \impl @ \ctor @ \cl Menu @ \impl \u Shells;
+/= \simp \a qulified-id @ \tp @ \param @ \f \def -> less qulified-id;
 
 r3:
-/ @ \cl ShlSetting::TFormTest @ \u Shells:
-	/ \mf void OnClick_btnShowWindow(TouchEventArgs&&)
-		-> \mf @ \cl ShlSetting;
-	/ \tr \impl @ \ctor;
+/ @ \cl Menu @ \impl \u Shells:
+	+ \mf void OnConfirmed(IndexEventArgs&&);
+	/ \simp @ \ctor;
 
 r4:
-/ @ \cl ShlSetting @ \u Shells:
-	/ \!s \mf void OnClick_btnShowWindow(TouchEventArgs&&)
-		-> \smf void OnClick_ShowWindow(IControl&, TouchEventArgs&&);
-	/ \tr \impl @ \ctor @ \cl TFormTest;
+-= \inh <algorithm> @ \h YDesktop;
+/ @ \impl \u Shells:
+	/ @ \cl MenuHost:
+		+ \i \mf bool Contains(Menu::ID) ^ \mac (PDefH1 & ImplRet);
+		+ \mf bool Contains(Menu&);
+		+ \i \mf void Hide(Menu&) ^ \mf bool Contains(Menu&);
+	/ \simp \impl @ \mf Menu::OnConfirmed ^ \mf void MenuHost::Hide(Menu&);
+* \impl @ \mf YApplication& YApplication::GetInstance();
+* \impl @ \f void CopyBuffer(const Graphics&, const Graphics&) @ \impl \u YGDI;
 
 r5:
-/ \a NewScrImage => CreateSharedScreenImage;
-/ \a NewBitmapRaw => CreateRawBitmap;
-/ \a NewWindow => CreateWindow;
-/ @ \h YShellHelper:
-	+ \ft FetchShell;
-	- \mac DefDynInitRef;
-/ @ \impl \u Shells:
-	/ \tr \impl @ 4 \mf ^ direct \decl ~ ^ \a \mac DefdynInitRef;
-	* \impl @ \mf ShlSetting::TFormExtra::OnKeyPress_btnDragTest;
-	/ \simp \impl @ \mf ShlSetting::OnClick_ShowWindow;
+* @ \cl YApplication:
+	- \es @ \mf GetInstancePtr & GetInstance;
 
 r6:
 /= test 1 ^ \conf release;
 
 r7:
-/ \simp \impl @ \mf (OnTouchUp_btnDragTest & OnTouchDown_btnDragTest)
-	^ FetchShell ~ (FetchShellHandle & dynamic_pointer_cast)
-	@ \cl ShlSetting::TFormExtra @ \impl \u Shells;
+* Doxygen description:
+	* \a Doxygen \t \param description:
+		^ '\tparam' ~ '\param' @ \h (Memory & YGDI & YObject);
+	/ \a '\defGroup' -> 'defgroup' @ \h (Memory & YReference);
+* Doxygen \rem @ \h YNew;
+* Doxygen \rem @ \impl \u Shells;
+* Doxygen \rem @ \mf void ATrack::CheckScroll(ScrollEventSpace::ScrollEventType,
+	ValueType);
+/ \simp \exc @ Doxygen file;
+/ \a \ac @ private \inh noncopyable @ \h (YTextManager & YObject) -> public;
 
 r8:
-/ \impl @ \mf ShlSetting::OnActivated @ \impl \u Shells;
+/ @ \impl \u Shells:
+	/ @ \un \ns
+		\f shared_ptr<TextList::ListType> GenerateList()
+			-> shared_ptr<TextList::ListType> GenerateList(const String&);
+	/ \impl @ \mf ShlSetting::OnActivated;
+	/ @ \cl Menu:
+		+ \mf bool Show(ZOrderType = DefaultMenuZOrder);
+		+ \mf bool Hide();
+		/ \impl @ \mf OnConfirmed;
+		+ \i \mf Menu& operator[](size_t) ^ \mac PDefHOperator1;
 
 r9:
-* \impl @ \mf YGUIShell::ResponseTouch @ \impl \u YGUI;
+* \impl @ \mf bool Rect::Contains(int px, int py) const;
 
 r10:
-/= test 2 ^ \conf release;
+/ void ResizeForContent(Menu&) -> void ResizeForContent(TextList&);
+* \c @ \u YText:
+	/ \f SDst FetchCharWidth(Font&, fchar_t)
+		-> SDst FetchCharWidth(const Font&, fchar_t);
+	/ 1st \param \tp Font& -> const Font& @ 3 (\f & \ft) FetchStringWidth;
+	/ last \param \tp String& -> const String& @ 2 \f \i FetchStringWidth;
 
 r11:
-/ @ \impl \u Shells:
-	/ @ \cl Menu:
-		/ private \m MenuHost* pMenuHost -> Menu* pParent;
-		/ \exp \ctor Menu(const Rect& = Rect::Empty, const shared_ptr<ListType>&
-			= shared_ptr<ListType>(), MenuID = 0) -> \exp Menu(const Rect&
-			= Rect::Empty, const shared_ptr<ListType>& = shared_ptr<ListType>(),
-			MenuID = 0, Menu* = nullptr);
-		- \decl friend class MenuHost;
-	+ \f void ResizeForContent(Menu&);
-	* \impl \mf ShlSetting::TFormTest::OnClick_btnMenuTest ^ ResizeForContent;
-	/ \tr \impl @ 2 \mf \op+= @ \cl MenuHost;
-	- \pre \decl \cl MenuHost;
+* \impl @ \f void ResizeForContent(TextList&) @ \impl \u Shells;
 
-r12-r13:
-* \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest @ \impl \u;
+r12:
+/= test 2 ^ \conf release;
 
-r14:
-/ @ \impl \u Shells:
-	/ @ \cl Menu:
-		+ \decl friend class MenuHost;
-		/ \ac @ private \m pMenu -> protected;
-		+ protected \m MenuHost* pHost;
-	+ \pre \decl \cl MenuHost;
-	/ @ \cl MenuHost;
-		/ \tr \impl @ 2 \mf \op+=;
-		/ \i \mf (\op-= & Clear) -> !\i \mf with \tr \impl;
-	
-r15:
-/ @ \impl \u Shells:
-	/ @ \cl Menu:
-		+ private \mf void OnLostFocus(EventArgs&&);
-		/ \tr \impl @ \ctor;
+r13-r15:
+/ \impl @ \ctor @ \cl Menu @ \impl \u Shells;
 
 r16:
-/ \impl @ \mf void Menu::OnLostFocus(EventArgs&&) @ \impl \u Shells;
+/ @ \u YLabel:
+	/ !\i \mf (GetTextState & GetItemHeight) @ \cl MTextList -> \i \mf;
+	/ !\i \ctor @ \cl Label -> \i \ctor;
 
-r17-r20:
-/= test 3;
+r17:
+/ \impl @ \mf ShlSetting::OnActivated;
+
+r18:
+/ @ \cl MenuHost @ \impl \u Shells:
+	/ \mf void Show() -> void ShowAll(ZOrderType = DefaultMenuZOrder);
+	/ \mf void Hide() => void HideAll();
+	/ \mf \i void Hide(Menu&) -> void HideRaw(Menu&);
+	+ \mf !\i void ShowRaw(Menu&, ZOrderType = DefaultMenuZOrder);
+	/ \tr \impl @ \mf (Show & ShowAll & Hide & HideAll);
+		/ \tr @ \as \str;
+		^ \mf ShowRaw & HideRaw;
+
+r19:
+/= test 3 ^ \conf release;
+
+r20:
+/ @ \u YControl:
+	/ @ \in IControl:
+		/ \amf DeclIEntry(void RequestFocus(EventArgs&&))
+			-> DeclIEntry(void RequestFocus());
+		/ \amf DeclIEntry(void ReleaseFocus(EventArgs&&))
+			-> DeclIEntry(void ReleaseFocus());
+	/ \tr @ \cl Control:
+		/ \mf void RequestFocus(EventArgs&&) -> void ReleaseFocus();
+		/ \mf void ReleaseFocus(EventArgs&&) -> void ReleaseFocus();
+		/ \tr \simp \impl @ \dtor;
+		/ \tr \simp \impl @ \mf OnTouchDown;
+/ \tr \simp \impl @ (\f (RequestFocusCascade & ReleaseFocusCascade)
+	& \mf YGUIShell::ResponseTouch) @ \impl \u YGUI;
+/ \tr \simp \impl @ \mf SetFocusingPtr @ \clt GMFocusResponser @ \h YFocus;
+/ \tr \simp \impl @ \rem @ \impl \u YDesktop;
+/ \tr \simp \impl \mf MenuHost::ShowRaw @ \impl \u Shells;
 
 r21:
-* \impl @ \mf void Menu::OnLostFocus(EventArgs&&) @ \impl \u Shells;
-
-r22:
 / @ \impl \u Shells:
-	+ \mf void HideMenu(Menu::MenuID) @ \cl MenuHost;
-	* \impl @ \mf void Menu::OnLostFocus(EventArgs&&);
+	/ @ \cl MenuHost:
+		+ \m Menu* pLocked;
+		/ \tr \impl @ \ctor;
+		+ DefGetter(Menu*, LockedPtr, pLocked);
+		+ \mf \i void Lock(Menu&);
+		/ \mf !\i void ShowRaw(Menu&, ZOrderType = DefaultMenuZOrder)
+			-> \i void Show(Menu&, ZOrderType = DefaultMenuZOrder);
+		+ private !\i \mf void ShowRaw(Menu&, ZOrderType = DefaultMenuZOrder);
+		/ \mf void HideRaw(Menu&) -> void Hide(Menu&);
+		+ private !\i \mf void HideRaw(Menu&);
+		/ \impl @ \a \mf (Hide & HideAll) ^ \mf HideRaw;
+	/ \impl @ \mf Menu::OnConfirmed;
 
-r23:
-/ @ \cl Menu @ \impl \u Shells:
-	/ public \m MenuID ID => id;
-	/ typedef size_t MenuID => ID;
-	+ DefGetter(ID, ID, id);
--= \a semicolons after \mac 'DefGetter';
+r22-r25:
+/= test 4;
 
-r24:
-/ @ \cl MUIContainer:
-	/ protected \mf bool CheckWidget(IWidget&)
-		-> public \mf bool Contains(IWidget&);
-	/ \tr \impl @ \mf (void perator+=(IWidget&)
-		& void Add(IControl&, ZOrderType));
-	/= \tr \impl @ \mf (GetTopWidgetPtr & GetTopControlPtr);
-/= \tr \impl @ \mf IControl* Desktop::GetTopVisibleDesktopObjectPtr();
-
-r25:
+r26-r28:
 / @ \impl \u Shells:
-	+ \mf bool IsShowing(Menu::ID) @ \cl MenuHost;
-	/ \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest
-		^ \mf MenuHost::IsShowing;
-+ using MUIContainer::Contains @ \cl (Panel & AFrame);
-
-r26:
-/= test 4 ^ \conf release;
-
-r27:
-/ @ \cl MenuHost @ \impl \u Shells:
-	+ \mf void ShowMenu(Menu::ID, ZOrderType = DefaultMenuZOrder);
-	/ \impl @ \mf void HideMenu(Menu::ID);
-	* \impl @ \dtor;
-/ \a \mf ShowMenu => Show;
-/ \a \mf HideMenu => Hide;
-
-r28:
-/ \impl @ \mf void IsShowing(Menu::ID) @ \cl MenuHost @ \impl \u Shells;
+	/ @ \cl MenuHost:
+		- \mf DefGetter(Menu*, LockedPtr, pLocked);
+		/ protected \m Menu* pLock -> public Menu* \m SubMenuPointer;
+		/ \m order;
+		/ \tr \impl @ \ctor;
+		- \tr \mf Lock;
+		/ \tr \impl @ \mf HideRaw;
+	/ \impl @ \mf (OnConfirmed & OnLostFocus) @ \cl Menu;
 
 r29:
-/ @ \impl \u Shells:
-	/ @ \cl MenuHost:
-		/ \m AFrame* FramePointer -> AFrame& Frame;
-		/ \tr \ctor MenuHost(AFrame* = nullptr) -> MenuHost(AFrame&);
-		+ \inh noncopyable;
-		/ \tr \simp \impl @ \mf (IsShowing & 2 Show & 2 Hide);
-	/ \tr \impl @ \mf ShlSetting::OnActivated;
+/ @ \cl Menu @ \impl \u Shells:
+	* \impl @ \mf operator+=;
+	* \impl @ \mf operator-=;
+	+ \mf DefGetter(Menu*, ParentPtr, pParent);
 
 r30:
-/ \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest @ \impl \u Shells;
+* \impl @ \mf OnLostFocus @ \cl Menu @ \impl \u Shells;
 
 r31:
-/ typedef std::ptrdiff_t IndexType -> typedef ssize_t IndexType
-	@ \st IndexEventArgs @ \h YControl;
-/ \a std::ptrdiff_t -> ssize_t @ \h YViewer;
-/= \a std::ptrdiff_t -> ptrdiff_t @ (\h YFile & \u (YTextManager & YText));
-
-r32:
 /= test 5 ^ \conf release;
 
+r32:
+/ @ \dir UI:
+	/ \u YMenu -> TextList["textlist.h", "textlist.cpp"];
+	+ \u Menu["menu.h", "menu.cpp"];
+	/ (\cl (Menu & MenuHost) & \o DefaultMenuZOrder) @ \impl \u Shells
+		>> \ns Components::Controls @ \u Menu;
+	/ \f ResizeForConent @ \impl \u Shells >> \ns Components::Controls
+		@ \u TextList;
+/ \u YTextManager["ytmgr.h", "ytmgr.cpp"] @ \dir Service
+	=> TextManager["textmgr.h", "textmgr.cpp"];
+/ @ \h Build:
+	/ \tr \inc
+	- \inc \h YShellDefinition;
+	+ \inc \h Menu;
+	/= \inc order;
+/ \tr \inc @ \h (DSReader & ListBox);
+/ @ \h YComponent:
+	+ \pre \decl \cl (AWindow & AFrame) @ \ns Components::Forms;
+	- using Components::Forms::Frame @ \ns YSLib;
+-= \impl \u YComponent;
+/ \tr @ \decl @ \cl Desktop;
++ \inc \h YUIContainer @ \h Menu;
+
 r33:
-* \impl @ \mf bool MenuHost::IsShowing(Menu::ID) @ \impl \u Shells;
-
-r34:
 /= test 6 ^ \conf release;
-
-r35:
-/ @ \impl \u Shells:
-	/ @ \cl MenuHost:
-		/ \ret \tp @ \i \mf ItemType operator[](Menu::ID) -> Menu&;
-		* \impl @ \mf op-=;
-		/ \tr \simp \impl @ \mf IsShowing;
-	/ \tr \simp \impl @ \mf ShlSetting::TFormTest::OnClick_btnMenuTest;
-
-r36:
-/= test 7 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-05-31:
--21.7d;
-//Mercurial rev1-rev83: r4141;
+2011-06-02:
+-19.9d;
+//Mercurial rev1-rev84: r4177;
 
 / ...
 
 
 $NEXT_TODO:
-b214-b256:
+b215-b256:
 + menus;
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
 	libstdc++ for known associative container operation bugs:
@@ -405,6 +422,7 @@ b214-b256:
 * non-ASCII character path error in FAT16;
 
 b257-b768:
++ key accelerators;
 + \impl styles @ widgets;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
@@ -484,13 +502,14 @@ Design by contract: DbC for C/C++, GNU nana.
 
 $HISTORY:
 
-$design; //features changing only made sense to library developers;
-$add_features +; //features added;
-$fix_bugs *; //bugs fixed;
-$modify_features /; //features modified;
-$remove_features -; //features removed;
-$using ^; //using;
-$instead_of ~; //features replacing;
+$design; // features changing only made sense to library developers;
+$doc; // for documents target;
+$add_features +; // features added;
+$fix_bugs *; // bugs fixed;
+$modify_features /; // features modified;
+$remove_features -; // features removed;
+$using ^; // using;
+$instead_of ~; // features replacing;
 
 //$transform $list ($list_member $pattern $all($exclude $pattern \
 //	$string_literal "*")) +;
@@ -499,13 +518,44 @@ $ellipse_refactoring;
 
 $now
 (
+	/ "functions of menus" $=
+	(
+		+ "hiding on confirmed",
+		+ "resizing with width of text in list",
+		/ "margin of menus",
+		+ "submenus" $= 
+	),
+	* $design "exception specification in %YApplication",
+	/ $doc $= 
+	(
+		* "template parameter description" $since b189 $=
+		(
+			^ "\tparam" ~ "\param"
+		),
+		* "\defgroup description spell error" $since b209,
+		* $design "operator new & delete conmments" $since b203,
+		/ "simplified doxygen file excluded paths"
+	),
+	/ $design ^ "public %noncopyable inheritance"
+		~ "all private %noncopyable inheritance",
+	* "point containing test for zero width or height rectangle \
+		turned out asseration failure" $since b204,
+	* "constness of text width mersuring" $since b197,
+	/ "simplified focus operations interface" $=
+	(
+		- "unused parameter and argument"
+	)
+),
+
+b213
+(
 	* $design "UI assertion strings",
 	* "menu colors",
 	* "touch event coordinate error in contianer controls" $since b195,
 	+ "functions of menus" $=
 	(
 		+ "resizing for content",
-		+ "hiding when focus lost",
+		+ "hiding when focus lost"
 	),
 	+ "predicator %Contains in UI container implementation"
 ),
@@ -743,8 +793,8 @@ b195
 
 b170_b194
 (
-	+ "controls: track",
-	+ "controls: scroll bar",
+	+ "controls: tracks",
+	+ "controls: scroll bars",
 	+ "controls: scrollable container",
 	+ "controls: listbox"
 ),

@@ -11,12 +11,12 @@
 /*!	\file ylabel.h
 \ingroup Shell
 \brief 样式无关的标签模块。
-\version 0.2061;
+\version 0.2067;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-05-17 03:00 +0800;
+	2011-06-02 03:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -104,6 +104,11 @@ public:
 	Paint();
 };
 
+inline
+Label::Label(const Rect& r, const Drawing::Font& fnt)
+	: Widget(r), MLabel(fnt)
+{}
+
 
 //! \brief 文本列表模块。
 class MTextList : public MLabel
@@ -162,6 +167,17 @@ public:
 	void
 	RefreshTextState();
 };
+
+inline SDst
+MTextList::GetItemHeight() const
+{
+	return GetLnHeightExFrom(text_state);
+}
+inline Drawing::TextState&
+MTextList::GetTextState()
+{
+	return text_state;
+}
 
 YSL_END_NAMESPACE(Widgets)
 

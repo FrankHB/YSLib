@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3607;
+\version 0.3610;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-05-27 20:05 +0800;
+	2011-05-31 02:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -210,18 +210,18 @@ ATrack::SetMaxValue(ValueType m)
 	}
 }
 void
-ATrack::SetValue(ATrack::ValueType v)
+ATrack::SetValue(ValueType v)
 {
 	value = v;
 	// TODO: check ValueType incompatibility(perhaps overflow);
 	SetThumbPosition(v * GetTrackLength() / max_value);
 }
 void
-ATrack::SetLargeDelta(ATrack::ValueType ld)
+ATrack::SetLargeDelta(ValueType val)
 {
-	large_delta = ld;
+	large_delta = val;
 	// TODO: check ValueType incompatibility(perhaps overflow);
-	SetThumbLength(ld * GetTrackLength() / max_value);
+	SetThumbLength(val * GetTrackLength() / max_value);
 }
 
 void

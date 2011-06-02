@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口。
-\version 0.3471;
+\version 0.3479;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-05-14 20:35 +0800;
+	2011-05-31 04:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -276,8 +276,8 @@ CopyBuffer(const Graphics& dst, const Graphics& src)
 	YAssert(dst.GetSize() == src.GetSize(), "Source and destination sizes"
 		"are not same.");
 
-	mmbcpy(dst.GetBufferPtr(), src.GetBufferPtr(),
-		src.GetSizeOfBuffer());
+	if(dst.GetBufferPtr() != src.GetBufferPtr())
+		mmbcpy(dst.GetBufferPtr(), src.GetBufferPtr(), src.GetSizeOfBuffer());
 }
 
 void

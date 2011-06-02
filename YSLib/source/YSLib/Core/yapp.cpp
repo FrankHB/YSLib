@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2355;
+\version 0.2362;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-05-23 20:19 +0800;
+	2011-05-31 05:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -88,7 +88,7 @@ YApplication::~YApplication() ynothrow
 }
 
 YApplication*
-YApplication::GetInstancePtr() ynothrow
+YApplication::GetInstancePtr()
 {
 	//单例对象。
 	static YApplication* pInstance(new YApplication());
@@ -96,18 +96,14 @@ YApplication::GetInstancePtr() ynothrow
 	return pInstance;
 }
 YApplication&
-YApplication::GetInstance() ynothrow
+YApplication::GetInstance()
 {
-	try
-	{
-		YApplication* pInstance(GetInstancePtr());
-		return *pInstance;
-	}
-	catch(...)
-	{
-		YAssert(false, "Fatal error @ YApplication::GetInstance:"
-			" the application instance pointer is null.");
-	}
+	YApplication* pInstance(GetInstancePtr());
+
+	YAssert(pInstance, "Fatal error @ YApplication::GetInstance:"
+		" the application instance pointer is null.");
+
+	return *pInstance;
 }
 MessageQueue&
 YApplication::GetDefaultMessageQueue() ythrow(LoggedEvent)

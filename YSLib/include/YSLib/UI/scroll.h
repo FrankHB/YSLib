@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3093;
+\version 0.3099;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-05-22 23:43 +0800;
+	2011-05-31 12:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -203,7 +203,7 @@ public:
 protected:
 	/*!
 	\brief 检查轨道方向指定位置所在的区域。
-	\note 断言检查。
+	\note 内部断言检查。
 	*/
 	Area
 	CheckArea(SDst) const;
@@ -211,10 +211,11 @@ protected:
 public:
 	/*!
 	\brief 设置和调用滚动事件处理器。
-	\param 滚动事件和旧的滚动事件值。
+	\param t 滚动事件类型。
+	\param old_value 旧的滚动事件值。
 	*/
 	void
-	CheckScroll(ScrollEventSpace::ScrollEventType, ValueType);
+	CheckScroll(ScrollEventSpace::ScrollEventType t, ValueType old_value);
 
 	/*!
 	\brief 定位滑块。
@@ -312,9 +313,9 @@ private:
 };
 
 inline void
-ATrack::LocateThumb(ATrack::ValueType v)
+ATrack::LocateThumb(ValueType val)
 {
-	LocateThumb(ScrollEventSpace::ThumbPosition, v);
+	LocateThumb(ScrollEventSpace::ThumbPosition, val);
 }
 
 inline void
@@ -360,7 +361,7 @@ class HorizontalTrack : public ATrack
 public:
 	/*!
 	\brief 构造：使用指定边界和最小滑块长。
-	\note 断言检查：宽大于长的 2 倍。
+	\pre 断言：宽大于长的 2 倍。
 	*/
 	explicit
 	HorizontalTrack(const Rect& = Rect::Empty, SDst = 8);
@@ -383,7 +384,7 @@ class VerticalTrack : public ATrack
 public:
 	/*!
 	\brief 构造：使用指定边界和最小滑块长。
-	\note 断言检查：长大于宽的 2 倍。
+	\pre 断言：长大于宽的 2 倍。
 	*/
 	explicit
 	VerticalTrack(const Rect& = Rect::Empty, SDst = 8);
@@ -431,7 +432,7 @@ public:
 	GetTopControlPtr(const Point&);
 	/*!
 	\brief 取轨道引用。
-	\pre 断言检查： is_valid(pTrack) 。
+	\note 断言检查： is_valid(pTrack) 。
 	*/
 	ATrack&
 	GetTrack() const ynothrow;

@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup Shell
 \brief 平台无关的 Shell 组件。
-\version 0.3109;
+\version 0.3110;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2011-05-21 23:42 +0800;
+	2011-06-02 13:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -47,6 +47,8 @@ YSL_END_NAMESPACE(Controls)
 
 YSL_BEGIN_NAMESPACE(Forms)
 PDeclInterface(IWindow)
+class AWindow;
+class AFrame;
 class Frame;
 class Form;
 YSL_END_NAMESPACE(Forms)
@@ -62,7 +64,6 @@ YSL_END_NAMESPACE(Components)
 using Components::Controls::IControl;
 using Components::Controls::IPanel;
 using Components::Forms::IWindow;
-using Components::Forms::Frame;
 using Components::Widgets::IWidget;
 using Components::Widgets::IUIBox;
 using Components::Widgets::IUIContainer;

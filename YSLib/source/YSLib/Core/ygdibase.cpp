@@ -11,12 +11,12 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version 0.1327;
+\version 0.1329;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2011-05-03 07:48 +0800;
+	2011-05-31 23:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,7 +92,7 @@ const Rect Rect::FullScreen = Rect(Point::Zero,
 bool
 Rect::Contains(int px, int py) const
 {
-	return IsInInterval<int>(px - X, Width)
+	return Width > 0 && Height > 0 && IsInInterval<int>(px - X, Width)
 		&& IsInInterval<int>(py - Y, Height);
 }
 

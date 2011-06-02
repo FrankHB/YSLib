@@ -8,24 +8,24 @@
 	understand and accept it fully.
 */
 
-/*!	\file ymenu.h
+/*!	\file textlist.h
 \ingroup Shell
-\brief 样式相关的菜单。
-\version 0.1265;
+\brief 样式相关的文本列表。
+\version 0.1283;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-05-24 23:12 +0800;
+	2011-06-02 13:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::Menu;
+	YSLib::UI::TextList;
 */
 
 
-#ifndef YSL_INC_SHELL_YMENU_H_
-#define YSL_INC_SHELL_YMENU_H_
+#ifndef YSL_INC_SHELL_TEXTLIST_H_
+#define YSL_INC_SHELL_TEXTLIST_H_
 
 #include "ygui.h"
 #include "yviewer.hpp"
@@ -261,6 +261,13 @@ TextList::CheckPoint(const Point& p)
 {
 	return CheckPoint(p.X, p.Y);
 }
+
+
+/*!
+\brief 根据文本内容调整文本列表大小。
+*/
+void
+ResizeForContent(TextList&);
 
 YSL_END_NAMESPACE(Controls)
 

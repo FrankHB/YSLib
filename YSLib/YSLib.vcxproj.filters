@@ -38,10 +38,6 @@
       <UniqueIdentifier>{601e8484-d8c2-4306-bc57-a8d4bd31d7d4}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="源文件\YSLib\Helper">
-      <UniqueIdentifier>{77af520d-12d5-4756-aa39-7e64082a89f2}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="源文件\YSLib\Core">
       <UniqueIdentifier>{ff96e32d-5490-430c-8ca1-170ec27e1627}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
@@ -59,6 +55,10 @@
     <Filter Include="头文件\YSLib\Service">
       <UniqueIdentifier>{d887d565-3b62-45a1-8ea5-d5ef0a4ce41d}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="源文件\YSLib\Helper">
+      <UniqueIdentifier>{77af520d-12d5-4756-aa39-7e64082a89f2}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -140,9 +140,6 @@
     <ClInclude Include="include\YSLib\Service\ytimer.h">
       <Filter>头文件\YSLib\Service</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Service\ytmgr.h">
-      <Filter>头文件\YSLib\Service</Filter>
-    </ClInclude>
     <ClInclude Include="include\ysbuild.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -206,9 +203,6 @@
     <ClInclude Include="include\YSLib\UI\ylabel.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\UI\ymenu.h">
-      <Filter>头文件\YSLib\UI</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\UI\ypanel.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
@@ -228,6 +222,15 @@
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\ywindow.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Service\textmgr.h">
+      <Filter>头文件\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\menu.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\textlist.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
   </ItemGroup>
@@ -280,9 +283,6 @@
     <ClCompile Include="source\YSLib\Service\ytimer.cpp">
       <Filter>源文件\YSLib\Service</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\Service\ytmgr.cpp">
-      <Filter>源文件\YSLib\Service</Filter>
-    </ClCompile>
     <ClCompile Include="source\YSLib\Service\yfile.cpp">
       <Filter>源文件\YSLib\Service</Filter>
     </ClCompile>
@@ -311,9 +311,6 @@
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\uicontx.cpp">
-      <Filter>源文件\YSLib\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\UI\ycomp.cpp">
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\yconsole.cpp">
@@ -353,6 +350,15 @@
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\ywindow.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\textmgr.cpp">
+      <Filter>源文件\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\menu.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\textlist.cpp">
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
   </ItemGroup>

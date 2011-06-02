@@ -12,12 +12,12 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version 0.1404;
+\version 0.1405;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-05-13 00:00 +0800;
+	2011-05-31 04:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -658,7 +658,7 @@ public:
 
 	/*!
 	\brief 取指定行首元素指针。
-	\note 断言检查：缓冲区指针非空；参数不越界。
+	\pre 断言：缓冲区指针非空；参数不越界。
 	\note 无异常抛出。
 	*/
 	BitmapPtr

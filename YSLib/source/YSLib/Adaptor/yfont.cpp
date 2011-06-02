@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7257;
+\version 0.7260;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-05-23 20:18 +0800;
+	2011-06-01 08:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -125,7 +125,7 @@ simpleFaceRequester(FTC_FaceID face_id, FT_Library library,
 }
 
 
-FontFamily::FontFamily(FontCache& cache, const FontFamily::NameType& name)
+FontFamily::FontFamily(FontCache& cache, const NameType& name)
 	: Cache(cache), family_name(name), sFaces()
 {}
 
@@ -260,16 +260,16 @@ Font::SizeType Font::GetHeight() const
 }
 
 void
-Font::SetSize(Font::SizeType s)
+Font::SetSize(SizeType s)
 {
 	if(s >= MinimalSize && s <= MaximalSize)
 		Size = s;
 }
 
 void
-Font::SetFont(const Font& f)
+Font::SetFont(const Font& fnt)
 {
-	*this = f;
+	*this = fnt;
 	Update();
 }
 

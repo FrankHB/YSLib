@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2252;
+\version 0.2256;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-05-22 00:15 +0800;
+	2011-05-31 05:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -131,7 +131,7 @@ private:
 	\brief 静态单例构造：取自身实例指针。
 	*/
 	static YApplication*
-	GetInstancePtr() ynothrow;
+	GetInstancePtr();
 
 public:
 	/*!
@@ -146,7 +146,7 @@ public:
 	\note 断言检查：指针非空。
 	*/
 	static YApplication&
-	GetInstance() ynothrow;
+	GetInstance();
 	DefGetter(shared_ptr<YShell>, ShellHandle, hShell) \
 		//!< 取得线程空间中当前运行的 Shell 的句柄。
 	/*!

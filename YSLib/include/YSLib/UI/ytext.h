@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6988;
+\version 0.6996;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-05-30 10:08 +0800;
+	2011-06-01 08:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -476,7 +476,7 @@ PutString(_tRenderer& r, const String& str)
 \brief 取指定的字符在字体指定、无边界限制时的显示宽度。
 */
 SDst
-FetchCharWidth(Font&, fchar_t);
+FetchCharWidth(const Font&, fchar_t);
 
 
 /*!	\defgroup TextRenderers Text Renderers
@@ -702,12 +702,12 @@ TextRegion::operator()(fchar_t c)
 */
 template<typename _tIn>
 SDst
-FetchStringWidth(Font& f, _tIn s)
+FetchStringWidth(const Font& fnt, _tIn s)
 {
 	SDst w(0);
 
 	while(*s != '\0')
-		w += FetchCharWidth(f, *s++);
+		w += FetchCharWidth(fnt, *s++);
 	return w;
 }
 /*!
@@ -716,21 +716,21 @@ FetchStringWidth(Font& f, _tIn s)
 */
 template<typename _tIn, typename _tChar>
 SDst
-FetchStringWidth(Font& f, _tIn s, _tIn g, _tChar c = '\0')
+FetchStringWidth(const Font& fnt, _tIn s, _tIn g, _tChar c = '\0')
 {
 	SDst w(0);
 
 	while(s != g && *s != c)
-		w += FetchCharWidth(f, *s++);
+		w += FetchCharWidth(fnt, *s++);
 	return w;
 }
 /*!
 \brief 取单行字符串在字体指定、无边界限制时的显示宽度。
 */
 inline SDst
-FetchStringWidth(Font& f, String& str)
+FetchStringWidth(const Font& fnt, const String& str)
 {
-	return FetchStringWidth(f, str.c_str());
+	return FetchStringWidth(fnt, str.c_str());
 }
 /*!
 \brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。

@@ -8,15 +8,20 @@
 	understand and accept it fully.
 */
 
+/*!	\defgroup Service Service
+\ingroup YSLib
+\brief YSLib 服务模块。
+*/
+
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version 0.1666;
+\version 0.1668;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2011-05-13 21:30 +0800;
+	2011-06-02 12:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

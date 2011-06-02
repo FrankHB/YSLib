@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 抽象。
-\version 0.4380;
+\version 0.4484;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-05-30 14:35 +0800;
+	2011-06-02 13:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -558,277 +558,19 @@ ShlSetting::ShlSetting()
 }
 
 
-class MenuHost;
-
-
-//! \brief 文本菜单。
-class Menu : public TextList
-{
-	friend class MenuHost;
-
-public:
-	typedef size_t ID; //!< 菜单项标识类型。
-
-	ID id; //!< 菜单标识。
-
-protected:
-	MenuHost* pHost; //!< 宿主指针。
-	Menu* pParent; //!< 父菜单指针。
-
-public:
-	explicit
-	Menu(const Rect& = Rect::Empty,
-		const shared_ptr<ListType>& = shared_ptr<ListType>(), ID = 0,
-		Menu* = nullptr);
-	DefGetter(ID, ID, id)
-
-private:
-	void
-	OnLostFocus(EventArgs&&);
-};
-
-Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id, Menu* pMnuP)
-	: TextList(r, h, FetchGUIShell().Colors.GetPair(Styles::Highlight,
-		Styles::HighlightText)),
-	id(id), pParent(pMnuP)
-//	: Control(r), MTextList(h),
-//	HilightBackColor(hilight_pair.first), HilightTextColor(hilight_pair.second),
-//	viewer(GetList()), top_offset(0), Events(GetStaticRef<Dependencies>())
-{
-	BackColor = FetchGUIShell().Colors[Styles::Panel];
-/*
-	SetAllTo(Margin, defMarginH, defMarginV);
-	FetchEvent<KeyDown>(*this) += &TextList::OnKeyDown;
-	FetchEvent<KeyHeld>(*this) += OnKeyHeld;
-	FetchEvent<TouchDown>(*this) += &TextList::OnTouchDown;
-	FetchEvent<TouchMove>(*this) += &TextList::OnTouchMove;
-	FetchEvent<Click>(*this) += &TextList::OnClick;
-*/
-	FetchEvent<LostFocus>(*this) += &Menu::OnLostFocus;
-}
-
-
-void
-ResizeForContent(Menu& mnu)
-{
-	mnu.SetHeight(mnu.GetItemHeight() * mnu.GetList().size());
-}
-
-
-const ZOrderType DefaultMenuZOrder(224);
-
-//! \brief 菜单宿主。
-class MenuHost : noncopyable
-{
-public:
-	typedef Menu* ItemType; //!< 菜单组项目类型：记录菜单控件指针。
-	typedef map<Menu::ID, ItemType> MenuMap; //!< 菜单组类型。
-	typedef MenuMap::value_type ValueType;
-
-	AFrame& Frame; //!< 框架窗口指针。
-
-protected:
-	MenuMap mMenus;
-
-public:
-	MenuHost(AFrame&);
-	virtual
-	~MenuHost();
-
-	/*!
-	\brief 向菜单组添加标识和指针指定的菜单。
-	\note 覆盖菜单对象的菜单标识成员；若菜单项已存在则覆盖旧菜单项。
-	*/
-	void
-	operator+=(const ValueType&);
-	/*!
-	\brief 向菜单组添加引用指定的菜单。
-	\note 标识由菜单对象的菜单标识成员指定；若菜单项已存在则覆盖旧菜单项。
-	*/
-	void
-	operator+=(Menu&);
-
-	/*!
-	\brief 访问 ID 指定的菜单。
-	\exception std::out_of_range 异常中立：由 at 抛出。
-	*/
-	PDefHOperator1(Menu&, [], Menu::ID id)
-		ImplRet(*mMenus.at(id))
-
-	/*!
-	\brief 从菜单组移除标识指定的菜单。
-	\note 同时置菜单宿主指针为空。
-	*/
-	bool
-	operator-=(Menu::ID);
-
-	bool
-	IsShowing(Menu::ID);
-
-	/*
-	\brief 清除菜单组。
-	\note 同时置菜单宿主指针为空。
-	*/
-	void
-	Clear();
-
-	/*
-	\brief 显示菜单组中的所有菜单。
-	*/
-	void
-	Show();
-	/*
-	\brief 按指定 Z 顺序显示菜单组中 ID 指定的菜单。
-	*/
-	void
-	Show(Menu::ID, ZOrderType = DefaultMenuZOrder);
-
-	/*
-	\brief 隐藏菜单组中的菜单。
-	*/
-	void
-	Hide();
-	/*
-	\brief 隐藏菜单组中 ID 指定的菜单。
-	*/
-	void
-	Hide(Menu::ID);
-};
-
-void
-Menu::OnLostFocus(EventArgs&&)
-{
-	if(pHost)
-	{
-		if(IsVisible())
-			Refresh();
-		pHost->Hide(id);
-	}
-}
-
-MenuHost::MenuHost(AFrame& frm)
-	: Frame(frm), mMenus()
-{}
-MenuHost::~MenuHost()
-{
-	Hide();
-	for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
-		ydelete(i->second);
-}
-
-void
-MenuHost::operator+=(const MenuHost::ValueType& val)
-{
-	YAssert(val.second, "Null pointer found @ Menu::operator+=;");
-
-	mMenus[val.first] = val.second;
-	val.second->id = val.first;
-	val.second->pHost = this;
-}
-
-void
-MenuHost::operator+=(Menu& mnu)
-{
-	mMenus[mnu.id] = &mnu;
-	mnu.pHost = this;
-}
-
-bool
-MenuHost::operator-=(Menu::ID id)
-{
-	try
-	{
-		Menu& mnu((*this)[id]);
-
-		mnu.pHost = nullptr;
-		return mMenus.erase(id) != 0;
-	}
-	catch(std::out_of_range&)
-	{}
-	return false;
-}
-
-bool
-MenuHost::IsShowing(Menu::ID id)
-{
-	try
-	{
-		Menu& mnu((*this)[id]);
-
-		return Frame.Contains(mnu);
-	}
-	catch(std::out_of_range&)
-	{}
-	return false;
-}
-
-void
-MenuHost::Clear()
-{
-	for(auto i(mMenus.begin()); i != mMenus.end(); ++i)
-	{
-		i->second->pHost = nullptr;
-	}
-	mMenus.clear();
-}
-
-void
-MenuHost::Show()
-{
-	for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
-		if(i->second)
-			Frame.Add(*i->second, DefaultMenuZOrder);
-}
-void
-MenuHost::Show(Menu::ID id, ZOrderType z)
-{
-	try
-	{
-		Menu* pMenu(mMenus.at(id));
-
-		YAssert(pMenu, "Null pointer found @ MenuHost::Show #2;");
-
-		Frame.Add(*pMenu, z);		
-	}
-	catch(std::out_of_range&)
-	{}
-}
-
-void
-MenuHost::Hide()
-{
-	for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
-		if(i->second)
-			Frame -= *i->second;
-}
-void
-MenuHost::Hide(Menu::ID id)
-{
-	try
-	{
-		Menu* pMenu(mMenus.at(id));
-
-		YAssert(pMenu, "Null pointer found @ MenuHost::Hide #2;");
-
-		Frame -= *pMenu;
-	}
-	catch(std::out_of_range&)
-	{}
-}
-
 namespace
 {
 	shared_ptr<TextList::ListType>
-	GenerateList()
+	GenerateList(const String& str)
 	{
 		auto p(new TextList::ListType());
 
-		p->push_back(_ustr("TestMenuItem0"));
-
-		char str[80];
-
-		sprintf(str, "%p;", p);
 		p->push_back(str);
+
+		char cstr[80];
+
+		sprintf(cstr, "%p;", p);
+		p->push_back(cstr);
 		return share_raw(p);
 	}
 
@@ -1277,11 +1019,16 @@ ShlSetting::OnActivated(const Message& msg)
 
 	s_pMenuHost = new MenuHost(*GetDesktopDownHandle());
 
-	Menu& menu(*new Menu(Rect::Empty, GenerateList(), 1u));
+/*	Menu& mnu(*new Menu(Rect::Empty, GenerateList(_ustr("TestMenuItem0")), 1u));
 
-	FetchEvent<Click>(menu) += OnClick_ShowWindow;
-	*s_pMenuHost += menu;
-//	(*s_pMenuHost) += *new Menu(Rect::Empty, GenerateList(), 1u);
+	FetchEvent<Click>(mnu) += OnClick_ShowWindow;
+	*s_pMenuHost += mnu;*/
+	*s_pMenuHost
+		+= *new Menu(Rect::Empty, GenerateList(_ustr("ATestMenuItem")), 1u);
+	*s_pMenuHost
+		+= *new Menu(Rect::Empty, GenerateList(_ustr("BTestMenuItem")), 2u);
+	(*s_pMenuHost)[1u] += make_pair(1u, &(*s_pMenuHost)[2u]);
+	ResizeForContent((*s_pMenuHost)[2u]);
 	ParentType::OnActivated(msg);
 	UpdateToScreen();
 	return 0;

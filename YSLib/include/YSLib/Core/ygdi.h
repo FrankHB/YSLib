@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口。
-\version 0.4007;
+\version 0.4011;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-05-14 20:53 +0800;
+	2011-05-31 12:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -161,11 +161,11 @@ BlitScale<true, true>(const Point&, const Point&,
 \brief 贴图函数模板。
 
 对一块矩形区域的逐像素顺序批量操作（如复制或贴图）。
-\param _gBlitLoop 循环实现模板类。
-\param _bSwapLR 水平翻转镜像（关于水平中轴对称）。
-\param _bSwapUD 竖直翻转镜像（关于竖直中轴对称）。
-\param _tOut 输出迭代器类型。
-\param _tIn 输入迭代器类型。
+\tparam _gBlitLoop 循环实现模板类。
+\tparam _bSwapLR 水平翻转镜像（关于水平中轴对称）。
+\tparam _bSwapUD 竖直翻转镜像（关于竖直中轴对称）。
+\tparam _tOut 输出迭代器类型。
+\tparam _tIn 输入迭代器类型。
 \param dst 目标迭代器。
 \param ds 目标迭代器所在缓冲区大小。
 \param src 源迭代器。
@@ -652,7 +652,8 @@ TransformRect(const Graphics& g, const Rect& r, _fTransformPixel tp)
 
 /*!
 \brief 以第一个参数作为目标，复制第二个参数的缓冲区内容。
-\note 断言检查：指针有效；大小相等。
+\pre 断言：指针非空；大小相等。
+\note 缓冲区指针相等时忽略。
 */
 void
 CopyBuffer(const Graphics&, const Graphics&);

@@ -384,14 +384,17 @@ namespace Components
 	$unit Shell::Desktop;
 	namespace Controls
 	{
+		$unit Shell::YControl;
+		$unit Shell::YPanel;
 		$unit Shell::Button;
 		$unit Shell::CheckBox;
+		$unit Shell::TextList;
 		$unit Shell::ListBox;
-		$unit Shell::YControl;
+		$unit Shell::Menu;
 	} //namespace Controls;
 	namespace Forms
 	{
-		$unit Shell::Frame;
+		$unit Shell::Window;
 		$unit Shell::Form;
 	} //namespace Forms;
 	namespace Styles
@@ -400,7 +403,9 @@ namespace Components
 	} //namespace Styles;
 	namespace Widgets
 	{
-		$unit Shell::YWidgets;
+		$unit Shell::YWidget;
+		$unit Shell::YUIContainer;
+		$unit Shell::YLabel;
 	} //namespace Widgets;
 }
 
@@ -412,7 +417,7 @@ namespace Design
 
 namespace Device
 {
-	$unit Core::YGraphicDevice;
+	$unit Core::YDevice;
 } //namespace Device;
 
 namespace Drawing
@@ -777,7 +782,6 @@ $header Shell::YComponent : YShellMessage
 {
 	using Components::Controls::
 	{IControlableComponent, IControl};
-	using Components::Forms::Frame;
 	using Components::Widgets::
 	{IWidget, IUIBox, IUIContainer};
 

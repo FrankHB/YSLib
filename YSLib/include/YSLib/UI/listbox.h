@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup Shell
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3161;
+\version 0.3164;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-05-23 20:00 +0800;
+	2011-06-02 12:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,7 @@
 #ifndef YSL_INC_SHELL_LISTBOX_H_
 #define YSL_INC_SHELL_LISTBOX_H_
 
-#include "ymenu.h"
+#include "textlist.h"
 #include "scroll.h"
 //#include "ystyle.h"
 

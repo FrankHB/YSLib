@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup Shell
 \brief 平台无关的桌面抽象层。
-\version 0.2304;
+\version 0.2306;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-05-30 00:09 +0800;
+	2011-06-02 04:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,6 @@
 
 
 #include "ydesktop.h"
-#include <algorithm>
 
 YSL_BEGIN
 
@@ -84,7 +83,7 @@ Desktop::RemoveTopDesktopObject()
 {
 	if(!sDOs.empty())
 	{
-		sDOs.back()->ReleaseFocus(EventArgs());
+		sDOs.back()->ReleaseFocus();
 		sDOs.pop_back();
 		bRefresh = true;
 	}

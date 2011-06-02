@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup Shell
 \brief 样式无关的控件。
-\version 0.4998;
+\version 0.5009;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-05-30 10:05 +0800;
+	2011-06-02 04:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -60,8 +60,8 @@ public:
 };
 
 inline
-RoutedEventArgs::RoutedEventArgs(RoutedEventArgs::RoutingStrategy s)
-	: Strategy(s), Handled(false)
+RoutedEventArgs::RoutedEventArgs(RoutingStrategy strategy)
+	: Strategy(strategy), Handled(false)
 {}
 
 
@@ -271,10 +271,10 @@ DeclBasedInterface1(IControl, virtual IWidget)
 	DeclIEntry(void SetEnabled(bool)) //!< 设置有效性。
 
 	//! \brief 向部件容器请求获得焦点。
-	DeclIEntry(void RequestFocus(EventArgs&&))
+	DeclIEntry(void RequestFocus())
 
 	//! \brief 释放焦点。
-	DeclIEntry(void ReleaseFocus(EventArgs&&))
+	DeclIEntry(void ReleaseFocus())
 EndDecl
 
 
@@ -422,14 +422,14 @@ public:
 	\note 若成功则触发 GotFocus 事件。
 	*/
 	ImplI1(IControl) void
-	RequestFocus(EventArgs&&);
+	RequestFocus();
 
 	/*!
 	\brief 释放焦点。
 	\note 触发 LostFocus 事件。
 	*/
 	ImplI1(IControl) void
-	ReleaseFocus(EventArgs&&);
+	ReleaseFocus();
 
 private:
 	/*!

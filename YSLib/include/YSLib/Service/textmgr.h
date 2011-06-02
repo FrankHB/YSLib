@@ -8,29 +8,24 @@
 	understand and accept it fully.
 */
 
-/*!	\defgroup Service Service
-\ingroup YSLib
-\brief YSLib 服务模块。
-*/
-
-/*!	\file ytmgr.h
+/*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4364;
+\version 0.4370;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-05-30 10:08 +0800;
+	2011-06-02 12:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Service::YTextManager;
+	YSLib::Service::TextManager;
 */
 
 
-#ifndef YSL_INC_SERVICE_YTMGR_H_
-#define YSL_INC_SERVICE_YTMGR_H_
+#ifndef YSL_INC_SERVICE_TEXTMGR_H_
+#define YSL_INC_SERVICE_TEXTMGR_H_
 
 #include "../Core/ystring.h"
 #include "yftext.h"
@@ -41,7 +36,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Text)
 
 //文本缓冲区。
-class TextBuffer : private noncopyable
+class TextBuffer : public noncopyable
 {
 private:
 	const SizeType capacity; //!< 最大长度（字符数）。
@@ -66,7 +61,7 @@ protected:
 public:
 	/*!
 	\brief 返回指定下标的字符。
-	\note 断言检查。
+	\pre 断言：参数不越界。
 	\note 无运行期范围检查。
 	*/
 	uchar_t&

@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version 0.3080;
+\version 0.3083;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-05-22 23:39 +0800;
+	2011-05-31 13:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,7 +38,7 @@ YSL_BEGIN
 //基本对象定义。
 
 //! \brief 基本对象类：所有类名以 Y 作前缀的类的公共基类。
-class YObject : private noncopyable
+class YObject : public noncopyable
 {
 public:
 	/*!
@@ -70,8 +70,8 @@ YCountableObject::YCountableObject()
 \brief 依赖项类模板。
 
 基于被依赖的默认对象，可通过写时复制策略创建新对象。
-\param _type 被依赖的对象类型，需能被默认构造。
-\param _tOwnerPointer 依赖所有者指针类型。
+\tparam _type 被依赖的对象类型，需能被默认构造。
+\tparam _tOwnerPointer 依赖所有者指针类型。
 \warning 依赖所有者指针需要实现所有权语义，
 	否则出现无法释放资源导致内存泄漏或其它非预期行为。
 \todo 线程模型及安全性。

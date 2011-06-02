@@ -8,23 +8,23 @@
 	understand and accept it fully.
 */
 
-/*!	\file ytmgr.cpp
+/*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4087;
+\version 0.4090;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-05-30 10:07 +0800;
+	2011-06-02 13:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Service::YTextManager;
+	YSLib::Service::TextManager;
 */
 
 
-#include "ytmgr.h"
+#include "textmgr.h"
 
 YSL_BEGIN
 

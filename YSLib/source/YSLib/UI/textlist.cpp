@@ -8,23 +8,23 @@
 	understand and accept it fully.
 */
 
-/*!	\file ymenu.cpp
+/*!	\file textlist.cpp
 \ingroup Shell
-\brief 样式相关的菜单。
-\version 0.1223;
+\brief 样式相关的文本列表。
+\version 0.1258;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-05-23 20:20 +0800;
+	2011-06-02 13:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::Menu;
+	YSLib::UI::TextList;
 */
 
 
-#include "ymenu.h"
+#include "textlist.h"
 #include "ywindow.h"
 
 YSL_BEGIN
@@ -82,7 +82,7 @@ TextList::GetViewPosition() const
 }
 
 void
-TextList::SetSelected(TextList::ViewerType::IndexType i)
+TextList::SetSelected(ViewerType::IndexType i)
 {
 	if(viewer.Contains(i) && viewer.SetSelectedIndex(i))
 		CallSelected();
@@ -229,7 +229,7 @@ TextList::CallSelected()
 }
 
 void
-TextList::CheckConfirmed(TextList::ViewerType::IndexType i)
+TextList::CheckConfirmed(ViewerType::IndexType i)
 {
 	if(viewer.IsSelected() && viewer.GetSelectedIndex() == i)
 		GetConfirmed()(*this, IndexEventArgs(*this, i));
@@ -321,6 +321,23 @@ void
 TextList::OnConfirmed(IndexEventArgs&& e)
 {
 	OnSelected(std::move(e));
+}
+
+
+void
+ResizeForContent(TextList& tl)
+{
+	SDst max_width(0);
+
+	std::for_each(tl.GetList().cbegin(), tl.GetList().cend(),
+		[&](const TextList::ListType::value_type& str){
+			SDst ln_width(FetchStringWidth(tl.Font, str));
+
+			if(ln_width > max_width)
+				max_width = ln_width;
+	});
+	tl.SetSize(Size(max_width + GetHorizontalFrom(tl.Margin),
+		tl.GetItemHeight() * tl.GetList().size()));
 }
 
 YSL_END_NAMESPACE(Controls)

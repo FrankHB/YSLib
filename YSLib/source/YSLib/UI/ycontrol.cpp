@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup Shell
 \brief 样式无关的控件。
-\version 0.4153;
+\version 0.4159;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-05-14 20:38 +0800;
+	2011-06-02 04:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -99,7 +99,7 @@ Control::Control(const Rect& r)
 }
 Control::~Control()
 {
-	ReleaseFocus(EventArgs());
+	ReleaseFocus();
 }
 
 bool
@@ -126,21 +126,21 @@ Control::SetSize(const Size& s)
 }
 
 void
-Control::RequestFocus(EventArgs&& e)
+Control::RequestFocus()
 {
 	IUIBox* p(GetContainerPtr());
 
 	if(p && p->ResponseFocusRequest(*this))
-		EventMap.GetEvent<HVisualEvent>(GotFocus)(*this, std::move(e));
+		EventMap.GetEvent<HVisualEvent>(GotFocus)(*this, EventArgs());
 }
 
 void
-Control::ReleaseFocus(EventArgs&& e)
+Control::ReleaseFocus()
 {
 	IUIBox* p(GetContainerPtr());
 
 	if(p && p->ResponseFocusRelease(*this))
-		EventMap.GetEvent<HVisualEvent>(LostFocus)(*this, std::move(e));
+		EventMap.GetEvent<HVisualEvent>(LostFocus)(*this, EventArgs());
 }
 
 void
@@ -159,7 +159,7 @@ void
 Control::OnTouchDown(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
-		RequestFocus(std::move(e));
+		RequestFocus();
 }
 
 YSL_END_NAMESPACE(Controls)

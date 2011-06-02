@@ -11,12 +11,12 @@
 /*!	\file memory.hpp
 \ingroup YCLib
 \brief 存储和智能指针特性。
-\version 0.1112;
+\version 0.1117;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-14 12:25:13 +0800; 
 \par 修改时间:
-	2011-05-22 23:26 +0800;
+	2011-05-31 13:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,7 +82,7 @@ namespace ystdex
 	}
 	//@}
 
-	/*!	\defGroup reset Reset Pointers
+	/*!	\defgroup reset Reset Pointers
 	\brief 安全删除指定引用的指针指向的对象。
 	\post 指定引用指针的为空。
 	*/
@@ -114,12 +114,12 @@ namespace ystdex
 
 	/*!	\defgroup unique_raw Get Unique Pointer
 	\brief 使用指定类型指针构造 std::unique_ptr 实例。
-	\param _type 被指向类型。
+	\tparam _type 被指向类型。
 	\note 不检查指针是否有效。
 	*/
 	//@{
 	/*!
-	\param _pSrc 指定指针类型。
+	\tparam _pSrc 指定指针类型。
 	*/
 	template<typename _type, typename _pSrc>
 	inline std::unique_ptr<_type>
@@ -128,7 +128,7 @@ namespace ystdex
 		return std::unique_ptr<_type>(p);
 	}
 	/*!
-	\param _pSrc 指定指针类型。
+	\tparam _pSrc 指定指针类型。
 	*/
 	template<typename _type, typename _pSrc>
 	inline std::unique_ptr<_type>
@@ -156,12 +156,12 @@ namespace ystdex
 
 	/*!	\defgroup share_raw Get Shared Pointer
 	\brief 使用指定类型指针构造 std::shared_ptr 实例。
-	\param _type 被指向类型。
+	\tparam _type 被指向类型。
 	\note 不检查指针是否有效。
 	*/
 	//@{
 	/*!
-	\param _pSrc 指定指针类型。
+	\tparam _pSrc 指定指针类型。
 	*/
 	template<typename _type, typename _pSrc>
 	inline std::shared_ptr<_type>
@@ -170,7 +170,7 @@ namespace ystdex
 		return std::shared_ptr<_type>(p);
 	}
 	/*!
-	\param _pSrc 指定指针类型。
+	\tparam _pSrc 指定指针类型。
 	*/
 	template<typename _type, typename _pSrc>
 	inline std::shared_ptr<_type>

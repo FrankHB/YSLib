@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2121;
+\version 0.2123;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-05-29 23:47 +0800;
+	2011-05-31 02:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -275,7 +275,7 @@ Path::Path()
 	: u16string()
 {}
 inline
-Path::Path(const Path::ValueType* pathstr)
+Path::Path(const ValueType* pathstr)
 	: u16string(pathstr)
 {}
 inline

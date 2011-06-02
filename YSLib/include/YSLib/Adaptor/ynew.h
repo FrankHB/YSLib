@@ -16,7 +16,7 @@
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2011-05-03 17:28 +0800;
+	2011-05-31 12:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,8 +46,8 @@
 #include <ext/malloc_allocator.h> // for libg++ malloc allocator;
 
 
-//@{
-/*!	\defgroup YSLMemoryDebugFunctions YSLib Memory Debug Functions
+/*//@{*/
+/*	\defgroup YSLMemoryDebugFunctions YSLib Memory Debug Functions
 \brief 调试用重载 ::operator new 和 ::operator delete 。
 */
 /*
@@ -68,7 +68,7 @@ operator delete(void*, const std::nothrow_t&, const char*, int) throw();
 void
 operator delete[](void*, const std::nothrow_t&, const char*, int) throw();
 */
-//}@
+/*//}@*/
 
 
 YSL_BEGIN

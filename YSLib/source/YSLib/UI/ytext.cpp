@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Shell
 \brief 基础文本显示。
-\version 0.6652;
+\version 0.6655;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-05-30 10:07 +0800;
+	2011-06-01 08:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -221,9 +221,9 @@ FetchLastLineBasePosition(const TextState& ts, SDst h)
 
 
 SDst
-FetchCharWidth(Font& f, fchar_t c)
+FetchCharWidth(const Font& fnt, fchar_t c)
 {
-	FontCache& cache(f.GetCache());
+	FontCache& cache(fnt.GetCache());
 	CharBitmap sbit(cache.GetGlyph(c));
 
 	return cache.GetAdvance(c, sbit);
