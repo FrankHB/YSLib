@@ -11,12 +11,12 @@
 /*!	\file ystyle.h
 \ingroup Shell
 \brief 图形用户界面样式。
-\version 0.1222;
+\version 0.1253;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-08 13:21:10 +0800;
 \par 修改时间:
-	2011-05-14 20:44 +0800;
+	2011-06-04 17:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,13 +28,53 @@
 #define YSL_INC_SHELL_YSTYLE_H_
 
 #include "ycomp.h"
+#include "../Core/ygdi.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
+/*
+\brief 绘制部件边框用空心正则矩形。
+\note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
+*/
+bool
+DrawRectRoundCorner(const Graphics&, const Point&, const Size&, Color);
+
+
+/*!
+\brief 绘制窗口边框。
+*/
+void
+DrawWindowBounds(IWindow*, Color);
+
+/*!
+\brief 绘制部件边框。
+\note 限无缓冲区的部件。
+*/
+void
+DrawWidgetBounds(IWidget&, Color);
+
+/*!
+\brief 绘制部件边框。
+\note 和 DrawWidgetBounds 类似，但对于有缓冲区的部件，
+	在此部件所在窗口的图形上下文绘制。
+*/
+void
+DrawWidgetOutline(IWidget&, Color);
+
+
 void
 WndDrawFocus(IWindow*, const Size&);
+
+
+void
+RectDrawArrow(const Graphics&, const Point&, SDst, Rotation = RDeg0,
+	Color c = Drawing::ColorSpace::Black);
+
+void
+WndDrawArrow(const Graphics&, const Rect&, SDst, Rotation = RDeg0,
+	Color c = Drawing::ColorSpace::Black);
 
 
 template<Color::MonoType r, Color::MonoType g, Color::MonoType b>

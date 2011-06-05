@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version 0.4417;
+\version 0.4448;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-05-16 20:36 +0800;
+	2011-06-04 12:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,7 +45,7 @@ struct GSEventTypeSpace
 
 //! \brief 标准事件处理器类模板。
 template<class _tSender, class _tEventArgs>
-class GHEvent : public std::function<typename GSEventTypeSpace<
+class GHEvent : protected std::function<typename GSEventTypeSpace<
 	_tSender, _tEventArgs>::FuncType>
 {
 public:
@@ -71,8 +71,22 @@ private:
 					_tFunctor>::type>());
 
 				if(q)
-					return *p == *q;
+					return p == q || GEquality::are_equal(*p, *q);
 			}
+			return false;
+		}
+
+	private:
+		template<typename _type>
+		inline static bool
+		are_equal(_type& lhs, _type& rhs, decltype(lhs == rhs) = false)
+		{
+			return lhs == rhs;
+		}
+		template<typename _type>
+		inline static bool
+		are_equal(_type, ...)
+		{
 			return false;
 		}
 	};

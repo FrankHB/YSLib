@@ -11,12 +11,12 @@
 /*!	\file ystyle.cpp
 \ingroup Shell
 \brief 图形用户界面样式。
-\version 0.1389;
+\version 0.1452;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-05-14 20:38 +0800;
+	2011-06-04 18:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,6 @@
 
 
 #include "ystyle.h"
-#include "ygui.h"
 #include "ywindow.h"
 
 using namespace ystdex;
@@ -33,6 +32,69 @@ using namespace ystdex;
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
+
+bool
+DrawRectRoundCorner(const Graphics& g, const Point& pt, const Size& s, Color c)
+{
+	const SPos x1(pt.X + 1), y1(pt.Y + 1), x2(pt.X + s.Width - 1),
+		y2(pt.Y + s.Height - 1);
+
+	if(x1 <= x2 && y1 <= y2)
+	{
+		bool b(DrawVLineSeg(g, x1 - 1, y1, y2, c));
+
+		b |= DrawHLineSeg(g, y2, x1, x2, c);
+		b |= DrawVLineSeg(g, x2, y1, y2, c);
+		b |= DrawHLineSeg(g, y1 - 1, x1, x2, c);
+		if(s.Width > 4 && s.Height > 4)
+		{
+			DrawPoint(g, x1, y1, c);
+			DrawPoint(g, x1, y2 - 1, c);
+			DrawPoint(g, x2 - 1, y2 - 1, c);
+			DrawPoint(g, x2 - 1, y1, c);
+		}
+		return b;
+	}
+	return false;
+}
+
+namespace
+{
+	void
+	DrawWidgetBounds(IWindow& w, const Point& p, const Size& s, Color c)
+	{
+		DrawRect(w.GetContext(), p, s, c);
+	}
+}
+
+void
+DrawWindowBounds(IWindow* pWnd, Color c)
+{
+	YAssert(pWnd, "Window pointer is null.");
+
+	DrawWidgetBounds(*pWnd, Point::Zero, pWnd->GetSize(), c);
+}
+
+void
+DrawWidgetBounds(IWidget& w, Color c)
+{
+	IWindow* pWnd(FetchDirectWindowPtr(w));
+
+	if(pWnd)
+		DrawWidgetBounds(*pWnd, LocateOffset(&w, Point::Zero, pWnd),
+			w.GetSize(), c);
+}
+
+void
+DrawWidgetOutline(IWidget& w, Color c)
+{
+	IWindow* pWnd(FetchWindowPtr(w));
+
+	if(pWnd)
+		DrawWidgetBounds(*pWnd, LocateOffset(&w, Point::Zero, pWnd),
+			w.GetSize(), c);
+}
+
 
 void
 WndDrawFocus(IWindow* pWnd, const Size&)
@@ -46,6 +108,80 @@ WndDrawFocus(IWindow* pWnd, const Size&)
 	if(pWgt)
 		DrawWidgetBounds(*pWgt, ColorSpace::Aqua);
 }
+
+
+void
+RectDrawArrow(const Graphics& g, const Point& p, SDst half_size, Rotation rot,
+	Color c)
+{
+	YAssert(g.IsValid(), "Invalid graphics context found"
+		" @ Drawing::RectDrawArrow");
+
+	SDst x(p.X), y(p.Y);
+
+	switch(rot)
+	{
+	case RDeg0:
+		{
+			SDst t(p.Y);
+
+			for(SDst i(0); i < half_size; ++i)
+				DrawVLineSeg(g, x--, y--, t++, c);
+		}
+		break;
+	case RDeg90:
+		{
+			SDst t(p.X);
+
+			for(SDst i(0); i < half_size; ++i)
+				DrawHLineSeg(g, y++, x--, t++, c);
+		}
+		break;
+	case RDeg180:
+		{
+			SDst t(p.Y);
+
+			for(SDst i(0); i < half_size; ++i)
+				DrawVLineSeg(g, x++, y--, t++, c);
+		}
+		break;
+	case RDeg270:
+		{
+			SDst t(p.X);
+
+			for(SDst i(0); i < half_size; ++i)
+				DrawHLineSeg(g, y--, x--, t++, c);
+		}
+	default:
+		break;
+	}
+}
+
+void
+WndDrawArrow(const Graphics& g, const Rect& r, SDst half_size, Rotation rot,
+	Color c)
+{
+	SPos x(r.X), y(r.Y);
+
+	switch(rot)
+	{
+	case RDeg0:
+	case RDeg180:
+		x += (rot == RDeg180
+			? (r.Width - half_size) : (r.Width + half_size)) / 2;
+		y += (r.Height + 1) / 2;
+		break;
+	case RDeg90:
+	case RDeg270:
+		y += (rot == RDeg90
+			? (r.Height - half_size) : (r.Height + half_size)) / 2;
+		x += (r.Width + 1) / 2;
+	default:
+		break;
+	}
+	RectDrawArrow(g, Point(x, y), half_size, rot, c);
+}
+
 
 // 实现参照： http://130.113.54.154/~monger/hsl-rgb.html 。
 

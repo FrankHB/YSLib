@@ -11,12 +11,12 @@
 /*!	\file menu.h
 \ingroup Shell
 \brief 样式相关的菜单。
-\version 0.1634;
+\version 0.1643;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-06-02 13:43 +0800;
+	2011-06-03 17:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -103,6 +103,13 @@ public:
 	*/
 	bool
 	Hide();
+
+protected:
+	/*!
+	\brief 绘制菜单项。
+	*/
+	virtual void
+	PaintItem(const Graphics&, const Rect&, ListType::size_type);
 
 private:
 	/*!

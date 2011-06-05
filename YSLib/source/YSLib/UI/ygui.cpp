@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup Shell
 \brief 平台无关的图形用户界面。
-\version 0.3797;
+\version 0.3807;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-02 04:22 +0800;
+	2011-06-04 15:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -260,10 +260,13 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 	bool r(false);
 
 	e.Strategy = Controls::RoutedEventArgs::Tunnel;
-	while(e -= p->GetLocation(), (pCon = dynamic_cast<IUIBox*>(p)))
+	do
 	{
+		e -= p->GetLocation();
 		if(!(p->IsVisible() && p->IsEnabled()))
 			return false;
+		if(!(pCon = dynamic_cast<IUIBox*>(p)))
+			break;
 		if(e.Handled)
 			return true;
 		if(op == TouchDown)
@@ -282,7 +285,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 		}
 		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, std::move(e)) != 0;
 		p = t;
-	}
+	}while(true);
 
 	YAssert(p, "Null pointer found @ YGUIShell::ResponseTouch");
 
@@ -370,47 +373,6 @@ IsFocusedByShell(const IControl& c, const YGUIShell& shl)
 YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Drawing)
-
-namespace
-{
-	void
-	DrawWidgetBounds(IWindow& w, const Point& p, const Size& s, Color c)
-	{
-		DrawRect(w.GetContext(), p, s, c);
-	}
-}
-
-void
-DrawWindowBounds(IWindow* pWnd, Color c)
-{
-	YAssert(pWnd, "Window pointer is null.");
-
-	DrawWidgetBounds(*pWnd, Point::Zero, pWnd->GetSize(), c);
-}
-
-void
-DrawWidgetBounds(IWidget& w, Color c)
-{
-	IWindow* pWnd(FetchDirectWindowPtr(w));
-
-	if(pWnd)
-		DrawWidgetBounds(*pWnd, LocateOffset(&w, Point::Zero, pWnd),
-			w.GetSize(), c);
-}
-
-void
-DrawWidgetOutline(IWidget& w, Color c)
-{
-	IWindow* pWnd(FetchWindowPtr(w));
-
-	if(pWnd)
-		DrawWidgetBounds(*pWnd, LocateOffset(&w, Point::Zero, pWnd),
-			w.GetSize(), c);
-}
-
-YSL_END_NAMESPACE(Drawing)
 
 YSL_END
 

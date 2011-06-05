@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3248;
+\version 0.3252;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-05-27 20:52 +0800;
+	2011-06-03 07:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -100,6 +100,9 @@ private:
 
 	void
 	OnKeyPress_frm(KeyEventArgs&&);
+
+	void
+	OnClick_chkTest(TouchEventArgs&&);
 
 	void
 	OnClick_btnTest(TouchEventArgs&&);

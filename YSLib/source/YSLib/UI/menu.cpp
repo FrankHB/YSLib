@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup Shell
 \brief 样式相关的菜单。
-\version 0.1617;
+\version 0.1638;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-06-02 13:34 +0800;
+	2011-06-03 17:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,7 +45,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 	id(id), pParent(nullptr), mSubMenus()
 {
 	BackColor = FetchGUIShell().Colors[Styles::Panel];
-	SetAllTo(Margin, 6, 4);
+	SetAllTo(Margin, 6, 18, 4, 4);
 	FetchEvent<LostFocus>(*this) += &Menu::OnLostFocus;
 	GetConfirmed() += &Menu::OnConfirmed;
 	//刷新文本状态，防止第一次绘制前不确定文本间距，无法正确根据内容重设大小。
@@ -99,6 +99,19 @@ Menu::Hide()
 		return true;
 	}
 	return false;
+}
+
+void
+Menu::PaintItem(const Graphics& g, const Rect& r, ListType::size_type i)
+{
+	DrawText(g, GetTextState(), GetList()[i]);
+
+	if(r.Width > 16 && mSubMenus.find(i) != mSubMenus.end())
+	{
+		const Rect arrow_bounds(r.X + r.Width - 16, r.Y, 16, r.Height);
+
+		WndDrawArrow(g, arrow_bounds, 4, RDeg0, ForeColor);
+	}
 }
 
 void

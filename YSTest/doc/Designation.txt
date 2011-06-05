@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version 0.4954;
+\version 0.4963;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-05-31 04:36 +0800;
+	2011-06-03 15:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -1249,27 +1249,28 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 除了 "ysdef.h" 外都依赖于 "ysdef.h"；
  "yobject.h" 依赖于 "ycutil.h" 、 "yexcept.h" 和 "ycounter.hpp" ；
  "ystring.h" 、 "ysmsg.h" 和 "ygdi.h" 依赖于 "yobject.h" ；
+ "ygdi.h" 依赖于 "ygdibase.h" ；
  "ysmsgdef.h" 依赖于 "ysmsg.h" ；
  "yshell.h" 依赖于 "ysmsgdef.h" 。
-在整个 YSLib 包含指令中排除以下重复的依赖项（仅包含其中最近一组）：
+在整个 YSLib 包含指令中排除以下重复的依赖项（仅包含其中较靠后的一组）：
  "ysdef.h" ；
  "ycutil.h" 、 "yexcept.h" 和 "ycounter.hpp" ；
- "yobject.h" ；
+ "yobject.h" 和 "ygdibase.h" ；
  "ystring.h" 、 "ysmsg.h" 和 "ygdi.h" ；
  "ysmsgdef.h" ；
  "yshell.h" 。
 在 Shell 中，以下依赖关系对于头文件包含是确定的：
  "ycomp.h" 依赖于 Core 的 "yshell.h"；
- "ywidget.h" 依赖于 "ycomp.h" ；
+ "ystyle.h" 依赖于 Core 的 "ygdi.h" ；
+ "ystyle.h" 和 "ywidget.h" 依赖于 "ycomp.h" ；
  "ycontrol.h" 和 "yuicont.h" 依赖于 "ywidget.h" ；
  "ygui.h" 依赖于 "ycontrol.h" 和 "ystyle.h" ；
  "ymenu.h" 依赖于 "ygui.h" ；
  "ywindow.h" 和 "uicontx.h" 依赖于 "ycontrol.h" 和 "yuicont.h" 。
 在 Shell 包含指令中排除以下重复的依赖项（若需要包含以下头文件，尽可能只包含较靠后的）：
  "ycomp.h" ；
- "ywidget.h" ；
+ "ywidget.h" 和 "ystyle.h" ；
  "ycontrol.h" 和 "yuicont.h" ；
- "ystyle.h" ；
  "ygui.h" ；
  "ymenu.h" ；
  "ywindow.h" 和 "uicontx.h" 。

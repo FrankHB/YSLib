@@ -11,12 +11,12 @@
 /*!	\file ylabel.cpp
 \ingroup Shell
 \brief 样式无关的标签模块。
-\version 0.2078;
+\version 0.2086;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-06-02 03:35 +0800;
+	2011-06-04 16:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,6 @@
 #include "ylabel.h"
 #include "yuicont.h"
 #include "ywindow.h"
-#include "ygui.h"
 
 YSL_BEGIN
 
@@ -110,15 +109,11 @@ Label::Paint()
 MTextList::MTextList(const shared_ptr<ListType>& h, const Drawing::Font& fnt)
 	: MLabel(fnt),
 	pList(h), text_state(Font)
-{}
-
-MTextList::ListType&
-MTextList::GetList() const
 {
 	if(!pList)
 		pList = share_raw(new ListType());
-	return *pList;
 }
+
 MTextList::ItemType*
 MTextList::GetItemPtr(IndexType idx) const
 {

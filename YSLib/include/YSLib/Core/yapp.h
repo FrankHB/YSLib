@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2256;
+\version 0.2264;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-05-31 05:18 +0800;
+	2011-06-05 08:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -95,7 +95,7 @@ public:
 };
 
 
-//! \brief 程序实例类：通过单例实现进程唯一性语义。
+//! \brief 程序实例类。
 class YApplication : public YObject
 {
 public:
@@ -123,17 +123,12 @@ private:
 		*/
 	FontCache* pFontCache; //!< 默认字体缓存。
 
+public:
 	/*!
 	\brief 无参数构造。
 	*/
 	YApplication();
-	/*!
-	\brief 静态单例构造：取自身实例指针。
-	*/
-	static YApplication*
-	GetInstancePtr();
 
-public:
 	/*!
 	\brief 析构：释放 Shell 所有权和其它资源。
 	\note 无异常抛出。
@@ -141,12 +136,6 @@ public:
 	virtual
 	~YApplication() ynothrow;
 
-	/*!
-	\brief 取得自身实例引用。
-	\note 断言检查：指针非空。
-	*/
-	static YApplication&
-	GetInstance();
 	DefGetter(shared_ptr<YShell>, ShellHandle, hShell) \
 		//!< 取得线程空间中当前运行的 Shell 的句柄。
 	/*!

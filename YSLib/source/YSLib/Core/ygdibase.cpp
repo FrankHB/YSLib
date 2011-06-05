@@ -11,12 +11,12 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version 0.1329;
+\version 0.1335;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2011-05-31 23:32 +0800;
+	2011-06-05 08:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,17 +32,14 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Drawing)
 
 const Point Point::Zero = Point();
-const Point Point::FullScreen = Point(Global::MainScreenWidth,
-	Global::MainScreenHeight);
+const Point Point::FullScreen = Point(MainScreenWidth, MainScreenHeight);
 
 const Vec Vec::Zero = Vec();
-const Vec Vec::FullScreen = Vec(Global::MainScreenWidth,
-	Global::MainScreenHeight);
+const Vec Vec::FullScreen = Vec(MainScreenWidth, MainScreenHeight);
 
 
 const Size Size::Zero = Size();
-const Size Size::FullScreen = Size(Global::MainScreenWidth,
-	Global::MainScreenHeight);
+const Size Size::FullScreen = Size(MainScreenWidth, MainScreenHeight);
 
 
 SPos
@@ -87,7 +84,7 @@ UpdateTo(Size& s, SDst v, bool is_1st)
 
 const Rect Rect::Empty = Rect();
 const Rect Rect::FullScreen = Rect(Point::Zero,
-	Global::MainScreenWidth, Global::MainScreenHeight);
+	MainScreenWidth, MainScreenHeight);
 
 bool
 Rect::Contains(int px, int py) const

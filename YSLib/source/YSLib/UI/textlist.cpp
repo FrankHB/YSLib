@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup Shell
 \brief 样式相关的文本列表。
-\version 0.1258;
+\version 0.1287;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-06-02 13:01 +0800;
+	2011-06-03 17:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -126,56 +126,6 @@ TextList::CheckPoint(SPos x, SPos y)
 }
 
 void
-TextList::PaintItems(const Graphics& g)
-{
-	const SDst h(GetHeight());
-
-	if(h != 0)
-	{
-		RefreshTextState();
-
-		const SDst ln_w(GetWidth());
-		const SDst ln_h(GetItemHeight());
-
-		viewer.SetLength((GetHeight() + top_offset + ln_h - 1) / ln_h);
-		if(viewer.GetHeadIndex() >= 0)
-		{
-			const ViewerType::IndexType last(viewer.GetHeadIndex()
-				+ viewer.GetValid());
-			const ListType& list(GetList());
-			const Point pt(LocateForWindow(*this));
-			SPos y(-top_offset);
-
-			for(ViewerType::IndexType i(viewer.GetHeadIndex());
-				i < last; ++i)
-			{
-				int top(y), tmp(y + ln_h);
-
-				RestrictInInterval<int>(top, 0, h);
-				RestrictInInterval<int>(tmp, 0, h);
-				tmp -= top;
-				top += pt.Y;
-				if(viewer.IsSelected() && i == viewer.GetSelectedIndex())
-				{
-					GetTextState().Color = HilightTextColor;
-					FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
-						Rect(pt.X + 1, top + 1, ln_w - 2, tmp - 1),
-						HilightBackColor);
-				}
-				else
-					GetTextState().Color = ForeColor;
-				GetTextState().ResetForBounds(Rect(pt.X, top, ln_w, tmp),
-					g.GetSize(), Margin);
-				if(y < 0)
-					GetTextState().PenY -= top_offset;
-				DrawText(g, GetTextState(), list[i]);
-				y += ln_h;
-			}
-		}
-	}
-}
-
-void
 TextList::LocateViewPosition(SDst h)
 {
 	RestrictInInterval(h, 0, GetFullViewHeight());
@@ -202,6 +152,63 @@ TextList::Paint()
 		if(IsFocused())
 			WndDrawFocus(pWnd, GetSize());
 		PaintItems(pWnd->GetContext());
+	}
+}
+
+void
+TextList::PaintItem(const Graphics& g, const Rect&, ListType::size_type i)
+{
+	DrawText(g, GetTextState(), GetList()[i]);
+}
+
+void
+TextList::PaintItems(const Graphics& g)
+{
+	const SDst h(GetHeight());
+
+	if(h != 0)
+	{
+		RefreshTextState();
+
+		const SDst ln_w(GetWidth());
+		const SDst ln_h(GetItemHeight());
+
+		viewer.SetLength((GetHeight() + top_offset + ln_h - 1) / ln_h);
+		if(viewer.GetHeadIndex() >= 0)
+		{
+			const ViewerType::IndexType last(viewer.GetHeadIndex()
+				+ viewer.GetValid());
+			const Point pt(LocateForWindow(*this));
+			SPos y(-top_offset);
+
+			for(ViewerType::IndexType i(viewer.GetHeadIndex());
+				i < last; ++i)
+			{
+				int top(y), tmp(y + ln_h);
+
+				RestrictInInterval<int>(top, 0, h);
+				RestrictInInterval<int>(tmp, 0, h);
+				tmp -= top;
+				top += pt.Y;
+				if(viewer.IsSelected() && i == viewer.GetSelectedIndex())
+				{
+					GetTextState().Color = HilightTextColor;
+					FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
+						Rect(pt.X + 1, top + 1, ln_w - 2, tmp - 1),
+						HilightBackColor);
+				}
+				else
+					GetTextState().Color = ForeColor;
+
+				const Rect unit_bounds(pt.X, top, ln_w, tmp);
+
+				GetTextState().ResetForBounds(unit_bounds, g.GetSize(), Margin);
+				if(y < 0)
+					GetTextState().PenY -= top_offset;
+				PaintItem(g, unit_bounds, i);
+				y += ln_h;
+			}
+		}
 	}
 }
 

@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2176;
+\version 0.2180;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-05-27 21:20 +0800;
+	2011-06-05 08:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -203,8 +203,8 @@ typedef void (*PPDRAW)(BitmapPtr, SDst, SDst); //!< 简单屏幕绘图函数指�
 inline void
 ScrDraw(BitmapPtr buf, PPDRAW f)
 {
-	for(SDst y(0); y < Global::MainScreenHeight; ++y)
-		for(SDst x(0); x < Global::MainScreenWidth; ++x)
+	for(SDst y(0); y < MainScreenHeight; ++y)
+		for(SDst x(0); x < MainScreenWidth; ++x)
 			f(buf, x, y);
 }
 
@@ -214,8 +214,7 @@ ScrDraw(BitmapPtr buf, PPDRAW f)
 inline shared_ptr<Image>
 CreateSharedScreenImage(ConstBitmapPtr p)
 {
-	return share_raw(new Image(p, Global::MainScreenWidth,
-		Global::MainScreenHeight));
+	return share_raw(new Image(p, MainScreenWidth, MainScreenHeight));
 }
 
 /*!

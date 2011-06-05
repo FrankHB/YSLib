@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup Shell
 \brief 样式相关的文本列表。
-\version 0.1283;
+\version 0.1292;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-06-02 13:01 +0800;
+	2011-06-05 16:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,8 +28,8 @@
 #define YSL_INC_SHELL_TEXTLIST_H_
 
 #include "ygui.h"
-#include "yviewer.hpp"
 #include "ylabel.h"
+#include "yviewer.hpp"
 
 YSL_BEGIN
 
@@ -178,7 +178,13 @@ public:
 
 protected:
 	/*!
-	\brief 绘制菜单项。
+	\brief 绘制列表项。
+	*/
+	virtual void
+	PaintItem(const Graphics&, const Rect&, ListType::size_type);
+
+	/*!
+	\brief 绘制列表。
 	*/
 	virtual void
 	PaintItems(const Graphics&);

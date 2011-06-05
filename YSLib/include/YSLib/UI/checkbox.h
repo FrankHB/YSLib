@@ -16,7 +16,7 @@
 \par 创建时间:
 	2011-03-22 07:17:17 +0800;
 \par 修改时间:
-	2011-05-14 20:49 +0800;
+	2011-06-03 07:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,6 +49,8 @@ public:
 	*/
 	explicit
 	CheckBox(const Rect& = Rect::Empty);
+
+	DefPredicate(Ticked, bTicked)
 
 	/*!
 	\brief 绘制界面。

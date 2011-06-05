@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3610;
+\version 0.3614;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-05-31 02:25 +0800;
+	2011-06-03 16:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,6 @@
 
 #include "scroll.h"
 #include "ywindow.h"
-#include "../Core/ygdi.h"
 #include "ygui.h"
 
 using namespace ystdex;
@@ -39,77 +38,6 @@ YSL_BEGIN_NAMESPACE(Controls)
 
 namespace
 {
-	void
-	RectDrawArrow(const Graphics& g, const Point& p, SDst halfSize,
-		Rotation rot = RDeg0, Color c = Drawing::ColorSpace::Black)
-	{
-		YAssert(g.IsValid(), "err: graphics context is invalid.");
-
-		SDst x(p.X), y(p.Y);
-
-		switch(rot)
-		{
-		case RDeg0:
-			{
-				SDst t(p.Y);
-
-				for(SDst i(0); i < halfSize; ++i)
-					DrawVLineSeg(g, x--, y--, t++, c);
-			}
-			break;
-		case RDeg90:
-			{
-				SDst t(p.X);
-
-				for(SDst i(0); i < halfSize; ++i)
-					DrawHLineSeg(g, y++, x--, t++, c);
-			}
-			break;
-		case RDeg180:
-			{
-				SDst t(p.Y);
-
-				for(SDst i(0); i < halfSize; ++i)
-					DrawVLineSeg(g, x++, y--, t++, c);
-			}
-			break;
-		case RDeg270:
-			{
-				SDst t(p.X);
-
-				for(SDst i(0); i < halfSize; ++i)
-					DrawHLineSeg(g, y--, x--, t++, c);
-			}
-		default:
-			break;
-		}
-	}
-
-	void
-	WndDrawArrow(const Graphics& g, const Rect& r, SDst halfSize,
-		Rotation rot = RDeg0, Color c = Drawing::ColorSpace::Black)
-	{
-		SPos x(r.X), y(r.Y);
-
-		switch(rot)
-		{
-		case RDeg0:
-		case RDeg180:
-			x += (rot == RDeg180
-				? (r.Width - halfSize) : (r.Width + halfSize)) / 2;
-			y += (r.Height + 1) / 2;
-			break;
-		case RDeg90:
-		case RDeg270:
-			y += (rot == RDeg90
-				? (r.Height - halfSize) : (r.Height + halfSize)) / 2;
-			x += (r.Width + 1) / 2;
-		default:
-			break;
-		}
-		RectDrawArrow(g, Point(x, y), halfSize, rot, c);
-	}
-
 	pair<bool, bool>
 	FixScrollBarLayout(Size& d, const Size& s, SDst min_width, SDst min_height)
 	{
@@ -492,12 +420,10 @@ AScrollBar::Paint()
 	pTrack->Paint();
 	PrevButton.Paint();
 	NextButton.Paint();
-	WndDrawArrow(g, Rect(LocateForWindow(PrevButton),
-		PrevButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
-			? RDeg180 : RDeg90, ForeColor);
-	WndDrawArrow(g, Rect(LocateForWindow(NextButton),
-		NextButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
-			? RDeg0 : RDeg270, ForeColor);
+	WndDrawArrow(g, Rect(LocateForWindow(PrevButton), PrevButton.GetSize()), 4,
+		pTrack->GetOrientation() == Horizontal ? RDeg180 : RDeg90, ForeColor);
+	WndDrawArrow(g, Rect(LocateForWindow(NextButton), NextButton.GetSize()), 4,
+		pTrack->GetOrientation() == Horizontal ? RDeg0 : RDeg270, ForeColor);
 }
 
 void

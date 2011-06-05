@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2210;
+\version 0.2264;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-05-22 23:50 +0800;
+	2011-06-05 08:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,9 +32,8 @@
 #ifndef YSL_INC_HELPER_YGLOBAL_H_
 #define YSL_INC_HELPER_YGLOBAL_H_
 
-#include "../Core/ysmsgdef.h"
-#include "../Core/yexcept.h"
 #include "../Core/ygdibase.h"
+#include "../Core/yapp.h"
 
 YSL_BEGIN
 
@@ -43,6 +42,8 @@ YSL_BEGIN
 \brief 平台相关的全局常量。
 */
 //@{
+//! \brief 屏幕大小。
+const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
 //@}
 
 /*!	\defgroup CustomGlobalVariables Custom Global Variables
@@ -52,17 +53,15 @@ YSL_BEGIN
 //@{
 //@}
 
+
 /*!
-\brief 平台相关的全局资源类。
+\brief 平台相关的应用程序类。
 \note 含默认接口。
 */
-class Global : public noncopyable
+class YDSApplication : public YApplication
 {
-	friend Global& FetchGlobalInstance() ynothrow;
-
-public:
-	//! \brief 屏幕大小。
-	static const SDst MainScreenWidth, MainScreenHeight;
+	friend YDSApplication&
+	FetchGlobalInstance() ynothrow;
 
 private:
 	shared_ptr<YScreen> hScreenUp; //<! DS 上屏幕句柄。
@@ -70,7 +69,12 @@ private:
 	shared_ptr<Desktop> hDesktopUp; //<! DS 下屏幕默认桌面句柄。
 	shared_ptr<Desktop> hDesktopDown; //<! DS 下屏幕默认桌面句柄。
 
-	Global(); //!< 构造函数：非内联。
+	/*!
+	\brief 私有构造函数：非内联。
+
+	\note 通过友元单例实现进程唯一性语义
+	*/
+	YDSApplication();
 
 public:
 	DefGetter(const shared_ptr<YScreen>&, ScreenUpHandle, hScreenUp)
@@ -143,34 +147,34 @@ public:
 };
 
 inline YScreen&
-Global::GetScreenUp() const ynothrow
+YDSApplication::GetScreenUp() const ynothrow
 {
 	YAssert(is_valid(hScreenUp), "Fatal error:"
-		" invalid screen handle found @ Global::GetScreenUp;");
+		" invalid screen handle found @ YDSApplication::GetScreenUp;");
 
 	return *hScreenUp;
 }
 inline YScreen&
-Global::GetScreenDown() const ynothrow
+YDSApplication::GetScreenDown() const ynothrow
 {
 	YAssert(is_valid(hScreenDown), "Fatal error:"
-		" invalid screen handle found @ Global::GetScreenDown;");
+		" invalid screen handle found @ YDSApplication::GetScreenDown;");
 
 	return *hScreenDown;
 }
 inline Desktop&
-Global::GetDesktopUp() const ynothrow
+YDSApplication::GetDesktopUp() const ynothrow
 {
 	YAssert(is_valid(hDesktopUp), "Fatal error:"
-		" invalid desktop handle found @ Global::GetDesktopUp;");
+		" invalid desktop handle found @ YDSApplication::GetDesktopUp;");
 
 	return *hDesktopUp;
 }
 inline Desktop&
-Global::GetDesktopDown() const ynothrow
+YDSApplication::GetDesktopDown() const ynothrow
 {
 	YAssert(is_valid(hDesktopDown), "Fatal error:"
-		" invalid desktop handle found @ Global::GetDesktopDown;");
+		" invalid desktop handle found @ YDSApplication::GetDesktopDown;");
 
 	return *hDesktopDown;
 }
@@ -180,7 +184,7 @@ Global::GetDesktopDown() const ynothrow
 \brief 取平台相关的全局资源。
 \note 无异常抛出。
 */
-Global&
+YDSApplication&
 FetchGlobalInstance() ynothrow;
 
 YSL_BEGIN_NAMESPACE(Messaging)
@@ -231,16 +235,6 @@ Destroy_Static(YObject&, EventArgs&&);
 
 void
 ShowFatalError(const char*);
-
-#ifdef YSL_USE_MEMORY_DEBUG
-
-/*!
-\brief 内存调试退出函数。
-*/
-void
-OnExit_DebugMemory();
-
-#endif
 
 /*!
 \brief 全局 Shell 消息处理函数。

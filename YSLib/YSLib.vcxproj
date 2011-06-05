@@ -107,7 +107,6 @@
     <ClCompile Include="source\YSLib\UI\yfocus.cpp" />
     <ClCompile Include="source\YSLib\UI\ygui.cpp" />
     <ClCompile Include="source\YSLib\UI\ylabel.cpp" />
-    <ClCompile Include="source\YSLib\UI\ymenu.cpp" />
     <ClCompile Include="source\YSLib\UI\ypanel.cpp" />
     <ClCompile Include="source\YSLib\UI\ystyle.cpp" />
     <ClCompile Include="source\YSLib\UI\ytext.cpp" />

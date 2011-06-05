@@ -1,7 +1,37 @@
-//v0.3134; *Build 214 r33;
+//v0.3202; *Build 215 r32;
 /*
-$Record prefix and abbrevations:
-<statement> ::= statement;
+$META:
+//$configureation_for_custom_NPL_script_parser:
+$parser
+(
+	$eval($ignore_not_impl);
+	$eval($for_each $anything $in $.iterators $do_something) unfold;
+);
+$parser.$ __pstate;
+$parser.unfold __unfold;
+$parser.$.iterators __iterators;
+
+__unfold.$ctor $=
+(
+	__pstate.behavior.ignore $= $true;
+);
+__unfold.$dtor $=
+(
+	__pstate.behavior.ignore $= $false;
+);
+__unfold __iterators.for_labeled_paragraph
+(
+	$DONE,
+	$DOING,
+	$NEXT_TODO,
+	$LOW_PRIOR_TODO,
+	$KNOWN_ISSUE,
+	$TODO
+);
+
+$script_preprocessor_escapse:
+//$Record prefix and abbrevations:
+$parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 ; ::= statement termination
 = ::= equivalent
 + ::= added
@@ -104,6 +134,7 @@ $Record prefix and abbrevations:
 \simp ::= simplified
 \sm ::= static member
 \smf ::= static member functions
+\smft ::= static member function templates
 \snm ::= static non-member
 \spec ::= specifications
 \st ::= structs
@@ -122,299 +153,253 @@ $Record prefix and abbrevations:
 
 $using:
 \u YObject
-{
-	\cl YObject;
-	\cl YCountableObject;
-	\clt GDependence;
-}
+(
+	\cl YObject,
+	\cl YCountableObject,
+	\clt GDependence
+),
 \u YShell
-{
-	\cl YShell;
-}
+(
+	\cl YShell
+),
 \u YApplication
-{
-	\cl YLog;
-	\cl YApplication;
-}
+(
+	\cl YLog,
+	\cl YApplication
+),
 \u YConsole
-{
-	\cl Console;
-}
+(
+	\cl Console
+),
 \u YWidget
-{
-	\in IWidget;
-	\cl Visual;
-	\cl Widget;
-}
+(
+	\in IWidget,
+	\cl Visual,
+	\cl Widget
+),
 \u YLabel
-{
-	\cl MLabel;
-	\cl Label;
-	\cl MTextList;
-}
+(
+	\cl MLabel,
+	\cl Label,
+	\cl MTextList
+),
 \u YUIContainer
-{
-	\in IUIBox;
-	\in IUIContainer;
-	\cl UIContainer;
-}
+(
+	\in IUIBox,
+	\in IUIContainer,
+	\cl UIContainer
+),
 \u YControl
-{
-	\in IControl;
-	\cl Control;
-}
-\u YMenu
-{
-	\cl TextList;
-}
+(
+	\in IControl,
+	\cl Control
+),
 \u YPanel
-{
-	\in IPanel;
-	\cl Panel;
-}
-\u YUIContainerEx
-{
-	\cl AUIBoxControl;
-}
+(
+	\in IPanel,
+	\cl Panel
+)
 \u YWindow
-{
-	\in IWindow;
-	\cl MWindow;
-	\cl AWindow;
-	\cl AFrame;
-	\cl Frame;
-}
-\u YForm
-{
-	\cl Form;
-}
+(
+	\in IWindow,
+	\cl MWindow,
+	\cl AWindow,
+	\cl AFrame,
+	\cl Frame
+),
 \u YGUI
-{
-	\cl YGUIShell;
-}
+(
+	\cl YGUIShell,
+)
+\u UIContainerEx
+(
+	\cl AUIBoxControl,
+),
+\u Form
+(
+	\cl Form;
+),
 \u Button
-{
-	\cl Thumb;
-	\cl Button;
-}
+(
+	\cl Thumb,
+	\cl Button
+),
+\u CheckBox
+(
+	\cl CheckBox
+),
+\u TextList
+(
+	\cl TextList
+),
+\u Menu
+(
+	\u Menu
+),
 \u Scroll
-{
-	\cl ATrack;
-	\cl HorizontalTrack;
-	\cl VerticalTrack;
-	\cl MScrollBar;
-	\cl AScrollBar;
-	\cl HorizontalScrollBar;
-	\cl VerticalScrollBar;
-}
+(
+	\cl ATrack,
+	\cl HorizontalTrack,
+	\cl VerticalTrack,
+	\cl MScrollBar,
+	\cl AScrollBar,
+	\cl HorizontalScrollBar,
+	\cl VerticalScrollBar
+),
 \u ListBox
-{
-	\cl ListBox;
-	\cl FileBox;
-}
+(
+	\cl ListBox,
+	\cl FileBox,
+);
 
 
 $DONE:
 r1:
-/ @ \impl \u Shells:
-	/ @ \cl Menu:
-		+ typedef map<IndexType, Menu*> SubMap;
-		+ protected \m SubMap mSubMenus;
-		/ \tr \impl @ \ctor;
-		+ typedef SubMap::value_type ValueType;
-		+ \mf void operator+=(const ValueType&);
-		+ \mf bool operator-=(IndexType);
-	*= \mf \decl order @ \cl MenuHost;
+/ @ \impl \u Button:
+	/ \f RectDrawButton(const Graphics&, const Point&, const Size&,
+		bool = false, Color = Color(48, 216, 255)) @ \un \ns
+		-> RectDrawButton(const Graphics&, const Point&, const Size&,
+		bool = false, bool = true);
+	/ \impl @ \mf Thumb::Paint;
+	/ \impl @ \mf Button::Paint;
+	+ \inc \h YGUI;
 
 r2:
-/= \simp \a qulified-id @ \tp @ \param @ \f \def -> less qulified-id;
++ DefPredicate(Ticked, bTicked) @ \cl CheckBox @ \u CheckBox;
+/ @ \cl ShlExplorer @ \u Shells:
+	+ private \mf void OnClick_chkTest(TouchEventArgs&&);
+	/ \tr @ \impl @ \ctor;
 
 r3:
-/ @ \cl Menu @ \impl \u Shells:
-	+ \mf void OnConfirmed(IndexEventArgs&&);
-	/ \simp @ \ctor;
+* \impl @ \mf Thumb::Paint;
 
-r4:
--= \inh <algorithm> @ \h YDesktop;
-/ @ \impl \u Shells:
-	/ @ \cl MenuHost:
-		+ \i \mf bool Contains(Menu::ID) ^ \mac (PDefH1 & ImplRet);
-		+ \mf bool Contains(Menu&);
-		+ \i \mf void Hide(Menu&) ^ \mf bool Contains(Menu&);
-	/ \simp \impl @ \mf Menu::OnConfirmed ^ \mf void MenuHost::Hide(Menu&);
-* \impl @ \mf YApplication& YApplication::GetInstance();
-* \impl @ \f void CopyBuffer(const Graphics&, const Graphics&) @ \impl \u YGDI;
-
-r5:
-* @ \cl YApplication:
-	- \es @ \mf GetInstancePtr & GetInstance;
+r4-r5:
+* \impl @ \mf YGUIShell::ResponseTouch;
 
 r6:
-/= test 1 ^ \conf release;
+/ \impl @ \ctor @ \cl ShlSetting::TFormExtra @ \impl \u Shells;
+* list of YSLib project files;
 
 r7:
-* Doxygen description:
-	* \a Doxygen \t \param description:
-		^ '\tparam' ~ '\param' @ \h (Memory & YGDI & YObject);
-	/ \a '\defGroup' -> 'defgroup' @ \h (Memory & YReference);
-* Doxygen \rem @ \h YNew;
-* Doxygen \rem @ \impl \u Shells;
-* Doxygen \rem @ \mf void ATrack::CheckScroll(ScrollEventSpace::ScrollEventType,
-	ValueType);
-/ \simp \exc @ Doxygen file;
-/ \a \ac @ private \inh noncopyable @ \h (YTextManager & YObject) -> public;
+/= test 1 ^ \conf release;
 
 r8:
-/ @ \impl \u Shells:
-	/ @ \un \ns
-		\f shared_ptr<TextList::ListType> GenerateList()
-			-> shared_ptr<TextList::ListType> GenerateList(const String&);
-	/ \impl @ \mf ShlSetting::OnActivated;
-	/ @ \cl Menu:
-		+ \mf bool Show(ZOrderType = DefaultMenuZOrder);
-		+ \mf bool Hide();
-		/ \impl @ \mf OnConfirmed;
-		+ \i \mf Menu& operator[](size_t) ^ \mac PDefHOperator1;
+/ \f (RectDrawArrow & WndDrawArrow) @ \ns @ \impl \u Scroll
+	>> \ns Drawing @ \u YStyle;
+/ \as \str @ \f RectDrawArrow @ \impl \u YStyle;
++ \h YGDI @ \h YStyle;
 
 r9:
-* \impl @ \mf bool Rect::Contains(int px, int py) const;
+-= \h YGDI @ \impl \u Scroll;
+/ @ \cl TextList:
+	+ protected \mf \vt void
+		PaintItem(const Graphics&, const Rect&, ListType::size_type);
+	/ \impl @ \mf PaintItems ^ \mf PaintItem ~ DrawText;
+/ @ \cl Menu:
+	+ protected \mf \vt void
+		PaintItem(const Graphics&, const Rect&, ListType::size_type);
 
 r10:
-/ void ResizeForContent(Menu&) -> void ResizeForContent(TextList&);
-* \c @ \u YText:
-	/ \f SDst FetchCharWidth(Font&, fchar_t)
-		-> SDst FetchCharWidth(const Font&, fchar_t);
-	/ 1st \param \tp Font& -> const Font& @ 3 (\f & \ft) FetchStringWidth;
-	/ last \param \tp String& -> const String& @ 2 \f \i FetchStringWidth;
+* \impl @ \mf Menu::PaintItem;
 
-r11:
-* \impl @ \f void ResizeForContent(TextList&) @ \impl \u Shells;
+r11-r12:
+/ margin @ \impl @ ctor @ \cl Menu;
 
-r12:
+r13:
 /= test 2 ^ \conf release;
 
-r13-r15:
-/ \impl @ \ctor @ \cl Menu @ \impl \u Shells;
+r14:
+/ \simp @ \cl MTextList:
+	/ \impl @ \ctor;
+	/ !\i \mf GetList -> \i \mf ^ \mac DefGetter;
+
+r15:
+/ \impl @ \ctor @ ShlExplorer;
+/ @ \clt GHEvent @ \h YEvent:
+	* \ac @ \inh std::function<...>:
+		/ protected ~ public;
+	/ @ \stt GEquality:
+		+ 2 private \smft are_equal;
+		/ \impl @ \mf AreEqual;
 
 r16:
-/ @ \u YLabel:
-	/ !\i \mf (GetTextState & GetItemHeight) @ \cl MTextList -> \i \mf;
-	/ !\i \ctor @ \cl Label -> \i \ctor;
+* \impl @ \ctor @ ShlExplorer;
 
 r17:
-/ \impl @ \mf ShlSetting::OnActivated;
-
-r18:
-/ @ \cl MenuHost @ \impl \u Shells:
-	/ \mf void Show() -> void ShowAll(ZOrderType = DefaultMenuZOrder);
-	/ \mf void Hide() => void HideAll();
-	/ \mf \i void Hide(Menu&) -> void HideRaw(Menu&);
-	+ \mf !\i void ShowRaw(Menu&, ZOrderType = DefaultMenuZOrder);
-	/ \tr \impl @ \mf (Show & ShowAll & Hide & HideAll);
-		/ \tr @ \as \str;
-		^ \mf ShowRaw & HideRaw;
-
-r19:
 /= test 3 ^ \conf release;
 
-r20:
-/ @ \u YControl:
-	/ @ \in IControl:
-		/ \amf DeclIEntry(void RequestFocus(EventArgs&&))
-			-> DeclIEntry(void RequestFocus());
-		/ \amf DeclIEntry(void ReleaseFocus(EventArgs&&))
-			-> DeclIEntry(void ReleaseFocus());
-	/ \tr @ \cl Control:
-		/ \mf void RequestFocus(EventArgs&&) -> void ReleaseFocus();
-		/ \mf void ReleaseFocus(EventArgs&&) -> void ReleaseFocus();
-		/ \tr \simp \impl @ \dtor;
-		/ \tr \simp \impl @ \mf OnTouchDown;
-/ \tr \simp \impl @ (\f (RequestFocusCascade & ReleaseFocusCascade)
-	& \mf YGUIShell::ResponseTouch) @ \impl \u YGUI;
-/ \tr \simp \impl @ \mf SetFocusingPtr @ \clt GMFocusResponser @ \h YFocus;
-/ \tr \simp \impl @ \rem @ \impl \u YDesktop;
-/ \tr \simp \impl \mf MenuHost::ShowRaw @ \impl \u Shells;
+r18:
+/ @ \a \f @ \ns Drawing \u YGUI >> \u YStyle;
+- \h YGUI @ \impl \u YStyle;
 
-r21:
-/ @ \impl \u Shells:
-	/ @ \cl MenuHost:
-		+ \m Menu* pLocked;
-		/ \tr \impl @ \ctor;
-		+ DefGetter(Menu*, LockedPtr, pLocked);
-		+ \mf \i void Lock(Menu&);
-		/ \mf !\i void ShowRaw(Menu&, ZOrderType = DefaultMenuZOrder)
-			-> \i void Show(Menu&, ZOrderType = DefaultMenuZOrder);
-		+ private !\i \mf void ShowRaw(Menu&, ZOrderType = DefaultMenuZOrder);
-		/ \mf void HideRaw(Menu&) -> void Hide(Menu&);
-		+ private !\i \mf void HideRaw(Menu&);
-		/ \impl @ \a \mf (Hide & HideAll) ^ \mf HideRaw;
-	/ \impl @ \mf Menu::OnConfirmed;
+r19:
+- \h YGUI @ \impl \u YLabel;
+-= \h YStyle @ \impl \u Button;
++ \f bool DrawRectRoundCorner(const Graphics&, const Point&,
+	const Size&, Color) @ \ns Drawing @ \u YStyle;
+/= @ \impl \u YGDI;
+/ \impl @ \f RectDrawButton ^ DrawRectRoundCorner ~ DrawRect @ \un \ns
+	@ \impl \u Button;
+/= \inc \h order @ \h TextList;
 
-r22-r25:
-/= test 4;
+r20-r21:
+/ \f void RectDrawButton(const Graphics&, const Point&, const Size&,
+	bool = false, bool = true) @ \un \ns @ \impl \u Button -> void
+	RectDrawButton(const Graphics&, Point, Size, bool = false, bool = true);
 
-r26-r28:
-/ @ \impl \u Shells:
-	/ @ \cl MenuHost:
-		- \mf DefGetter(Menu*, LockedPtr, pLocked);
-		/ protected \m Menu* pLock -> public Menu* \m SubMenuPointer;
-		/ \m order;
-		/ \tr \impl @ \ctor;
-		- \tr \mf Lock;
-		/ \tr \impl @ \mf HideRaw;
-	/ \impl @ \mf (OnConfirmed & OnLostFocus) @ \cl Menu;
+r22:
+/= \ren \param with \tp (const Point& & Padding&) @ \u YGDI;
+/ \impl @ DrawRect @ \u YGDI;
+
+r23-r25:
+/ \impl @ \f DrawRectRoundCorner @ \impl \u YStyle;
+
+r26:
+/ \impl @ Thumb::Paint;
+
+r27:
+* \impl @ \f DrawRectRoundCorner @ \impl \u YStyle;
+
+r28:
+/= test 4 ^ \conf release;
 
 r29:
-/ @ \cl Menu @ \impl \u Shells:
-	* \impl @ \mf operator+=;
-	* \impl @ \mf operator-=;
-	+ \mf DefGetter(Menu*, ParentPtr, pParent);
+/ \f void OnExit_DebugMemory() >> \f @ \impl \u YGlobal;
 
 r30:
-* \impl @ \mf OnLostFocus @ \cl Menu @ \impl \u Shells;
+/ @ \u YGlobal:
+	+ \inh \h YApplication @ \h;
+	/ \cl Global => YDSApplication;
+	/ \inh noncopyable @ \cl YDSApplication -> \inh YApplication;
+	/ \tr \impl @ \f FetchAppInstance @ \impl \u;
+	/ \sm MainScreenWidth & MainScreenHeight @ \cl YDSApplication
+		>> \ns YSLib @ \h;
+/ \tr \ac @ (\mf GetInstancePtr & \ctor) @ \cl YApplication
+	-> protected ~ private;
 
 r31:
-/= test 5 ^ \conf release;
+/ @ \cl YApplication:
+	- protected \mf GetInstancePtr;
+	- \mf GetInstance;
+	/ \ac @ \ctor -> public ~ protected;
+-= \inc \h (YExcept & YShellMessageDifinition) @ \h YGlobal;
 
 r32:
-/ @ \dir UI:
-	/ \u YMenu -> TextList["textlist.h", "textlist.cpp"];
-	+ \u Menu["menu.h", "menu.cpp"];
-	/ (\cl (Menu & MenuHost) & \o DefaultMenuZOrder) @ \impl \u Shells
-		>> \ns Components::Controls @ \u Menu;
-	/ \f ResizeForConent @ \impl \u Shells >> \ns Components::Controls
-		@ \u TextList;
-/ \u YTextManager["ytmgr.h", "ytmgr.cpp"] @ \dir Service
-	=> TextManager["textmgr.h", "textmgr.cpp"];
-/ @ \h Build:
-	/ \tr \inc
-	- \inc \h YShellDefinition;
-	+ \inc \h Menu;
-	/= \inc order;
-/ \tr \inc @ \h (DSReader & ListBox);
-/ @ \h YComponent:
-	+ \pre \decl \cl (AWindow & AFrame) @ \ns Components::Forms;
-	- using Components::Forms::Frame @ \ns YSLib;
--= \impl \u YComponent;
-/ \tr @ \decl @ \cl Desktop;
-+ \inc \h YUIContainer @ \h Menu;
-
-r33:
-/= test 6 ^ \conf release;
+/= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-06-02:
--19.9d;
-//Mercurial rev1-rev84: r4177;
+2011-06-05:
+-20.9d;
+//Mercurial rev1-rev85: r4210;
 
 / ...
 
 
 $NEXT_TODO:
-b215-b256:
+b216-b256:
 + menus;
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
 	libstdc++ for known associative container operation bugs:
@@ -502,6 +487,7 @@ Design by contract: DbC for C/C++, GNU nana.
 
 $HISTORY:
 
+$parser.state.old_style $= $false;
 $design; // features changing only made sense to library developers;
 $doc; // for documents target;
 $add_features +; // features added;
@@ -509,7 +495,10 @@ $fix_bugs *; // bugs fixed;
 $modify_features /; // features modified;
 $remove_features -; // features removed;
 $using ^; // using;
-$instead_of ~; // features replacing;
+$source_from ~; // features replacing from;
+$belonged_to @;
+$moved_to >>;
+$renamed_to =>;
 
 //$transform $list ($list_member $pattern $all($exclude $pattern \
 //	$string_literal "*")) +;
@@ -518,6 +507,28 @@ $ellipse_refactoring;
 
 $now
 (
+	+ "disabled state style of control %Thumb",
+	* "disabled control touch event handling" $b199,
+	+ "checkbox and disabling test",
+	+ "visible arrow indicating multi-level menus",
+	/ "creating list" @ ("constructor of class %MTextList"
+		~ "member function %GetList"),
+	+ "event handler supporting for object without %operator== \
+		including closure types",
+	* $design "access of interitance of class std::function"
+		@ "class template %GHEvent" $since b207,
+	+ "disabled behavior test" @ "%ShlExplorer",
+	/ "thumb/button boundary style",
+	/ "global architecture" $=
+	(
+		/ "screen constant" >> "namespace scope" ~ "class %Global",
+		+ "class %YDSApplication" ~ "class %Global",
+		- "singleton mechanism" @ "class %YApplication" 
+	)
+),
+
+b214
+(
 	/ "functions of menus" $=
 	(
 		+ "hiding on confirmed",
@@ -525,7 +536,7 @@ $now
 		/ "margin of menus",
 		+ "submenus" $= 
 	),
-	* $design "exception specification in %YApplication",
+	* $design "exception specification" @ "unit %YApplication",
 	/ $doc $= 
 	(
 		* "template parameter description" $since b189 $=
@@ -551,23 +562,23 @@ b213
 (
 	* $design "UI assertion strings",
 	* "menu colors",
-	* "touch event coordinate error in contianer controls" $since b195,
+	* "touch event coordinate error" @ "contianer controls" $since b195,
 	+ "functions of menus" $=
 	(
 		+ "resizing for content",
 		+ "hiding when focus lost"
 	),
-	+ "predicator %Contains in UI container implementation"
+	+ "predicator %Contains" @ "UI container implementation"
 ),
 
 b212
 (
 	/ $design "assertion strings",
 	/ "menu constructor",
-	+ "redundant menu state member in class %Menu",
+	+ "redundant menu state member" @ "class %Menu",
 	/ "container member APIs" ^ "reference parameter" ~ "pointer parameter",
 	* "constructor of class %Frame",
-	+ "Z order for widget overlaying in UI containers",
+	+ "Z order for widget overlaying" @ " UI containers",
 	+ "menu laid at top level" ^ "Z order"
 ),
 
@@ -576,7 +587,7 @@ b211
 	/ "implemented messages with general object content holder"
 		^ "non-pointer member" ~ "%shared_ptr",
 	+ "message content mapping",
-	/ $design "messaging APIs moved to unit YApplication from YShell",
+	/ $design "messaging APIs" >> "unit YApplication" ~ "unit YShell",
 	/ "test menu fixed on the desktop"
 ),
 
@@ -603,25 +614,25 @@ b210
 
 b209
 (
-	/ "library CHRLib moved and merged to library YCLib",
-	/ $design "protected function inheritance in class template %GHEvent",
-	/ "using directive of namespace %ystdex in YSLib",
+	/ "merged library CHRLib" >> "library YCLib",
+	/ $design "protected function inheritance" @ "class template %GHEvent",
+	/ "using directive of namespace %ystdex" @ "library YSLib",
 	+ "lost %Rect operations",
 	* "strict ISO C++2003 code compatibility" $=
 	(
-		^ "fixed macros in \"yfont.h\""
+		^ "fixed macros" @ "header YFont"
 	),
-	/ "renamed directory \"Shell\" to \"UI\" in YSLib",
-	/ "several memory utilities for std::shared_ptr and std::unique_ptr \
-		moved to library YCLib::YStandardExtend"
+	/ "renamed directory %Shell to %UI @ "library YSLib",
+	/ "several memory utilities for std::shared_ptr and std::unique_ptr"
+		>> "library YCLib::YStandardExtend"
 ),
 
 b208
 (
 	^ "rvalue references as parameter types of event handlers",
 	/ "set default font size smaller",
-	+ "vertical alignment in labeled controls",
-	* "fatel error in direct UI drawing testing"
+	+ "vertical alignment" @ "labeled controls",
+	* "fatel error" @ "direct UI drawing testing"
 ),
 
 b207
@@ -633,12 +644,12 @@ b207
 		static type checking",
 	+ $design "polymorphic function object template and base class",
 	- "single-cast event class template",
-	^ "rvalue reference in event class",
+	^ "rvalue reference" @ "event class",
 	* "ystdex algorithms",
-	* "minor event handler parameter type mismatch in test code",
-	* "key events response(added as %KeyDown, but removed as %KeyPress) in \
-		YSTest_ARM9" $since b201,
-	* "tunnel and direct key and touch response repeated in %YGUIShell"
+	* "minor event handler parameter type mismatch" @ "test code",
+	* "key events response(added as %KeyDown, but removed as %KeyPress)"
+		@ "project YSTest_ARM9" $since b201,
+	* "tunnel and direct key and touch response repeated" @ "class %YGUIShell"
 		$since b198
 ),
 
@@ -648,22 +659,22 @@ b206
 	/ "file API",
 	* "strict ISO C++2003 code compatibility" $=
 	(
-		+ "function %memcmp declation in namespace %ystdex"
+		+ "function %memcmp declation" @ "namespace %ystdex"
 	),
 	* "strict ISO C++2011 code compatibility" $=
 	(
 		* "implicit narrowing conversion(N3242 8.5.4/6) \
 			in C++2011(N3242 5.17/9)" ^ "explicit static_cast",
-		/ "character types in \"platform.h\""
+		/ "character types" @ "header platform.h"
 	),
 	/ "coding using limited C++2011 features" $=
 	(
 		/ $design ^ "C++2011 style nested template angle brackets",
 		/ $design ^ "keyword %auto",
-		/ ^ "C++2011 type_traits in namespace std" ~ "std::tr1"
+		/ ^ "C++2011 type_traits" @ "namespace std" ~ "std::tr1"
 	),
 	- "Loki type operations",
-	/ ^ "namespace ystdex in namespace YSLib"
+	/ ^ "namespace %ystdex" @ "namespace %YSLib"
 ),
 
 b205
@@ -685,7 +696,7 @@ b204
 		^ "%IWindow*" ~ "%HWND"
 	),
 	* "track background painting ignored" $since b191,
-	+ "class %nullptr_t at namespace ystdex",
+	+ "class %nullptr_t" @ "namespace ystdex",
 	^ "nullptr at YSLib",
 	/ $design "widgets virtual member functions"
 ),
@@ -697,13 +708,13 @@ b203
 	(
 		+ "global instance function",
 		- "all global objects",
-		- "platform dependent global resource from class %YApplication",
-		- "global object in unit YNew"
+		- "platform dependent global resource" @ "class %YApplication",
+		- "global object" @ "unit YNew"
 	),
 	+ "class %MTextList",
 	/ "class %YSimpleText List using class %MTextList inheritance",
 	/ "class %YSimpleText renamed to %YMenu",
-	/ "using std::tr1::shared_ptr" ~ "smart pointers in Loki"
+	/ "using std::tr1::shared_ptr" ~ "smart pointers" @ "library Loki"
 ),
 
 b202
@@ -716,7 +727,7 @@ b202
 b201
 (
 	/ "focused button style",
-	+ "key helding response in %ShlReader",
+	+ "key helding response" @ "class %ShlReader",
 	+ "GDI API %BlitTo",
 	/ "widgets drawing",
 	/ $design "GDI API %CopyTo",
@@ -724,11 +735,11 @@ b201
 	/ $design "YCLib" $=
 	(
 		+ "partial version checking for compiler and library implementation",
-		+ "minor macros in YCLib",
+		+ "minor macros" @ "library YCLib",
 	),
 	+ "type conversion helper template",
 	+ $design "implicit member overloading by interface parameter with type \
-		%IControl and %IWidget in container class"
+		%IControl and %IWidget" @ "container classes"
 ),
 
 b200
@@ -755,7 +766,7 @@ b198
 	* "handle constructors",
 	/ $design "shells for DS" $=
 	(
-		- "class %ShlGUI in unit Shell_DS"
+		- "class %ShlGUI" @ "unit Shell_DS"
 	),
 	/ $design "using pointers" ~ "references in parameters \
 		of container methods",
@@ -767,8 +778,8 @@ b198
 	/ $design "simplified destructors",
 	/ "simplified window drawing",
 	+ "desktop capability of non-control widget container",
-	- "contianer pointer parameter from constructor of widgets",
-	/ "desktops as window in shells"
+	- "contianer pointer parameter" @ "constructor widgets",
+	/ "desktops as window" @ "shells"
 ),
 
 b197
@@ -781,7 +792,7 @@ b196
 (
 	+ "controls: checkbox",
 	* "platform color type",
-	+ "horizontal text alignment in class %MLabel"
+	+ "horizontal text alignment" @ "class %MLabel"
 ),
 
 b195
@@ -801,7 +812,7 @@ b170_b194
 
 b159_b169
 (
-	+ "controls: buttons": class ("%YThumb", "%YButton"),
+	+ "controls: buttons" @ "class (%YThumb, %YButton)",
 	+ "controls: listbox class",
 	+ "events"
 ),
@@ -815,7 +826,7 @@ b132_b158
 	+ "shells",
 	+ "base abbreviation macros",
 	+ "controls",
-	+ "virtual inheritance in control classes",
+	+ "virtual inheritance" @ "control classes",
 	+ "exceptions",
 	+ "debug macros & functions",
 	+ "color type",

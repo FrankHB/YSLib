@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3126;
+\version 0.3148;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-05-22 23:50 +0800;
+	2011-06-05 08:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,15 +62,12 @@ const String YApplication::ProductVersion(G_APP_VER);
 //@}
 
 
-const SDst Global::MainScreenWidth(SCREEN_WIDTH);
-const SDst Global::MainScreenHeight(SCREEN_HEIGHT);
-
-Global::Global()
+YDSApplication::YDSApplication()
 	: hScreenUp(), hScreenDown(), hDesktopUp(), hDesktopDown()
 {}
 
 void
-Global::InitializeDevices() ynothrow
+YDSApplication::InitializeDevices() ynothrow
 {
 	//初始化显示设备。
 	try
@@ -94,7 +91,7 @@ Global::InitializeDevices() ynothrow
 }
 
 void
-Global::ReleaseDevices() ynothrow
+YDSApplication::ReleaseDevices() ynothrow
 {
 	reset(hDesktopUp);
 	reset(hScreenUp);
@@ -103,22 +100,18 @@ Global::ReleaseDevices() ynothrow
 }
 
 
-Global&
+YDSApplication&
 FetchGlobalInstance() ynothrow
 {
-	static Global global_resource;
+	static YDSApplication theApp;
 
-	return global_resource;
+	return theApp;
 }
 
 YApplication&
 FetchAppInstance()
 {
-	FetchGlobalInstance();
-
-	static YApplication& theApp(YApplication::GetInstance());
-
-	return theApp;
+	return FetchGlobalInstance();
 }
 
 const shared_ptr<YShell>&
@@ -271,69 +264,72 @@ namespace
 		std::puts("Input to continue...");
 		WaitForInput();
 	}
-}
 
-void
-OnExit_DebugMemory()
-{
-	using namespace platform;
-
-	YDebugSetStatus();
-	YDebugBegin();
-	std::puts("Normal exit;");
-
-//	std::FILE* fp(std::freopen("memdbg.log", "w", stderr));
-	MemoryList& debug_memory_list(GetDebugMemoryList());
-	const typename MemoryList::MapType& Map(debug_memory_list.Blocks);
-//	MemoryList::MapType::size_type s(DebugMemory.GetSize());
-
-	if(!Map.empty())
+	/*!
+	\brief 内存调试退出函数。
+	*/
+	void
+	OnExit_DebugMemory()
 	{
-		std::fprintf(stderr, "%i memory leak(s) detected:\n", Map.size());
+		using namespace platform;
 
-		MemoryList::MapType::size_type n(0);
+		YDebugSetStatus();
+		YDebugBegin();
+		std::puts("Normal exit;");
 
-		for(auto i(Map.cbegin()); i != Map.cend(); ++i)
+	//	std::FILE* fp(std::freopen("memdbg.log", "w", stderr));
+		MemoryList& debug_memory_list(GetDebugMemoryList());
+		const typename MemoryList::MapType& Map(debug_memory_list.Blocks);
+	//	MemoryList::MapType::size_type s(DebugMemory.GetSize());
+
+		if(!Map.empty())
 		{
-			if(n++ < 4)
-				debug_memory_list.Print(i, stderr);
-			else
+			std::fprintf(stderr, "%i memory leak(s) detected:\n", Map.size());
+
+			MemoryList::MapType::size_type n(0);
+
+			for(auto i(Map.cbegin()); i != Map.cend(); ++i)
 			{
-				n = 0;
-				OnExit_DebugMemory_continue();
+				if(n++ < 4)
+					debug_memory_list.Print(i, stderr);
+				else
+				{
+					n = 0;
+					OnExit_DebugMemory_continue();
+				}
 			}
+		//	DebugMemory.PrintAll(stderr);
+		//	DebugMemory.PrintAll(fp);
+			OnExit_DebugMemory_continue();
 		}
-	//	DebugMemory.PrintAll(stderr);
-	//	DebugMemory.PrintAll(fp);
-		OnExit_DebugMemory_continue();
-	}
 
-	const typename MemoryList::ListType&
-		List(debug_memory_list.DuplicateDeletedBlocks);
+		const typename MemoryList::ListType&
+			List(debug_memory_list.DuplicateDeletedBlocks);
 
-	if(!List.empty())
-	{
-		std::fprintf(stderr, "%i duplicate memory deleting(s) detected:\n",
-			List.size());
-
-		MemoryList::ListType::size_type n(0);
-
-		for(auto i(List.cbegin()); i != List.cend(); ++i)
+		if(!List.empty())
 		{
-			if(n++ < 4)
-				debug_memory_list.Print(i, stderr);
-			else
+			std::fprintf(stderr, "%i duplicate memory deleting(s) detected:\n",
+				List.size());
+
+			MemoryList::ListType::size_type n(0);
+
+			for(auto i(List.cbegin()); i != List.cend(); ++i)
 			{
-				n = 0;
-				OnExit_DebugMemory_continue();
+				if(n++ < 4)
+					debug_memory_list.Print(i, stderr);
+				else
+				{
+					n = 0;
+					OnExit_DebugMemory_continue();
+				}
 			}
+		//	DebugMemory.PrintAllDuplicate(stderr);
+		//	DebugMemory.PrintAllDuplicate(fp);
 		}
-	//	DebugMemory.PrintAllDuplicate(stderr);
-	//	DebugMemory.PrintAllDuplicate(fp);
+	//	std::fclose(fp);
+		std::puts("Input to terminate...");
+		WaitForInput();
 	}
-//	std::fclose(fp);
-	std::puts("Input to terminate...");
-	WaitForInput();
 }
 
 #endif

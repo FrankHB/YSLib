@@ -11,12 +11,12 @@
 /*!	\file ylabel.h
 \ingroup Shell
 \brief 样式无关的标签模块。
-\version 0.2067;
+\version 0.2074;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-06-02 03:35 +0800;
+	2011-06-03 17:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -126,7 +126,8 @@ private:
 
 protected:
 	/*!
-	\brief 构造：使用指定文本列表和字体指针。
+	\brief 构造：使用文本列表句柄和字体指针。
+	\note 当文本列表指针为空时新建。
 	*/
 	explicit
 	MTextList(const shared_ptr<ListType>& = shared_ptr<ListType>(),
@@ -138,10 +139,8 @@ protected:
 public:
 	/*!
 	\brief 取文本列表。
-	\note 当文本列表指针为空时新建。
 	*/
-	ListType&
-	GetList() const;
+	DefGetter(ListType&, List, *pList)
 	/*!
 	\brief 取指定项目索引的项目指针。
 	*/

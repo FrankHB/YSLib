@@ -16,7 +16,7 @@
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-05-16 20:36 +0800;
+	2011-06-05 08:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -80,8 +80,7 @@ public:
 	DefGetter(BitmapPtr, ImagePtr, GetBufferPtr())
 
 	void
-	SetImage(ConstBitmapPtr, SDst = Global::MainScreenWidth,
-		SDst = Global::MainScreenHeight);
+	SetImage(ConstBitmapPtr, SDst = MainScreenWidth, SDst = MainScreenHeight);
 };
 
 YSL_END_NAMESPACE(Drawing)

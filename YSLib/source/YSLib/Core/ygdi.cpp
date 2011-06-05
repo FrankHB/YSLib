@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Shell
 \brief 平台无关的图形设备接口。
-\version 0.3479;
+\version 0.3482;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-05-31 04:56 +0800;
+	2011-06-04 17:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -240,29 +240,29 @@ DrawLineSeg(const Graphics& g, SPos x1, SPos y1, SPos x2, SPos y2, Color c)
 }
 
 bool
-DrawRect(const Graphics& g, const Point& p, const Size& s, Color c)
+DrawRect(const Graphics& g, const Point& pt, const Size& s, Color c)
 {
-	const SPos x1(p.X), y1(p.Y), x2(x1 + s.Width - 1), y2(y1 + s.Height - 1);
+	const SPos x1(pt.X), y1(pt.Y), x2(x1 + s.Width - 1), y2(y1 + s.Height - 1);
+
 	if(x1 < x2 && y1 < y2)
 	{
 		bool b(DrawVLineSeg(g, x1, y1, y2, c));
 
-		b |= DrawHLineSeg(g, y2, x1, x2, c);
-		b |= DrawVLineSeg(g, x2, y1, y2 + 1, c);
+		b |= DrawHLineSeg(g, y2, x1, x2 + 1, c);
+		b |= DrawVLineSeg(g, x2, y1, y2, c);
 		b |= DrawHLineSeg(g, y1, x1, x2, c);
-
 		return b;
 	}
 	return false;
 }
 
 bool
-FillRect(const Graphics& g, const Point& p, const Size& s, Color c)
+FillRect(const Graphics& g, const Point& pt, const Size& s, Color c)
 {
 	if(g.IsValid())
 	{
 		// TODO : 矩形跨立实验。
-		FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(), p, s, c);
+		FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(), pt, s, c);
 		return true;
 	}
 	return false;
@@ -321,21 +321,21 @@ operator+(const Padding& a, const Padding& b)
 
 
 u64
-GetAllFrom(Padding& p)
+GetAllFrom(Padding& m)
 {
-	u64 r = (p.Left << 16) | p.Right;
+	u64 r = (m.Left << 16) | m.Right;
 
-	r = (r << 32) | (p.Top << 16) | p.Bottom;
+	r = (r << 32) | (m.Top << 16) | m.Bottom;
 	return r;
 }
 
 void
-SetAllTo(Padding& p, SDst l, SDst r, SDst t, SDst b)
+SetAllTo(Padding& m, SDst left, SDst right, SDst top, SDst bottom)
 {
-	p.Left = l;
-	p.Right = r;
-	p.Top = t;
-	p.Bottom = b;
+	m.Left = left;
+	m.Right = right;
+	m.Top = top;
+	m.Bottom = bottom;
 }
 
 

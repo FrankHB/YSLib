@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup Shell
 \brief 平台无关的图形用户界面。
-\version 0.2586;
+\version 0.2589;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-05-14 20:45 +0800;
+	2011-06-04 15:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -183,31 +183,6 @@ IsFocusedByShell(const IControl&, const YGUIShell& = FetchGUIShell());
 YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Drawing)
-
-/*!
-\brief 绘制窗口边框。
-*/
-void
-DrawWindowBounds(IWindow*, Color);
-
-/*!
-\brief 绘制部件边框。
-\note 限无缓冲区的部件。
-*/
-void
-DrawWidgetBounds(IWidget&, Color);
-
-/*!
-\brief 绘制部件边框。
-\note 和 DrawWidgetBounds 类似，但对于有缓冲区的部件，
-	在此部件所在窗口的图形上下文绘制。
-*/
-void
-DrawWidgetOutline(IWidget&, Color);
-
-YSL_END_NAMESPACE(Drawing)
 
 YSL_END
 

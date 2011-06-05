@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup Shell
 \brief 样式相关的图形用户界面按钮控件。
-\version 0.3497;
+\version 0.3526;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-06-01 08:48 +0800;
+	2011-06-04 17:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,7 @@
 #include "button.h"
 #include "yuicont.h"
 #include "ywindow.h"
-#include "ystyle.h"
+#include "ygui.h"
 
 YSL_BEGIN
 
@@ -38,25 +38,39 @@ YSL_BEGIN_NAMESPACE(Controls)
 namespace
 {
 	void
-	RectDrawButton(const Graphics& g, const Point& p, const Size& s,
-		bool is_pressed = false, Color c = Color(48, 216, 255))
+	RectDrawButton(const Graphics& g, Point pt, Size s, bool is_pressed = false,
+		bool is_enabled = true)
 	{
 		YAssert(g.IsValid(), "err: @g is invalid.");
-
-		FillRect(g, p, s, c);
-		if(s.Width > 4 && s.Height > 4)
+		
+		DrawRectRoundCorner(g, pt, s, is_enabled ? Color(60, 127, 177)
+			: FetchGUIShell().Colors[Styles::Workspace]);
+		if(s.Width > 2 && s.Height > 2)
 		{
-			Size sz(s.Width - 4, (s.Height - 4) / 2);
-			Point sp(p.X + 2, p.Y + 2);
+			pt.X += 1;
+			pt.Y += 1;
+			s.Width -= 2;
+			s.Height -= 2;
+			FillRect(g, pt, s, is_enabled ? Color(48, 216, 255)
+				: Color(244, 244, 244));
+			if(is_enabled)
+			{
+				if(s.Width > 2 && s.Height > 2)
+				{
+					Size sz(s.Width - 2, (s.Height - 2) / 2);
+					Point sp(pt.X + 1, pt.Y + 1);
 
-			FillRect(g, sp, sz, Color(232, 240, 255));
-			sp.Y += sz.Height;
-			if(s.Height % 2 != 0)
-				++sz.Height;
-			FillRect(g, sp, sz, Color(192, 224, 255));
+					FillRect(g, sp, sz, Color(232, 240, 255));
+					sp.Y += sz.Height;
+					if(s.Height % 2 != 0)
+						++sz.Height;
+					FillRect(g, sp, sz, Color(192, 224, 255));
+				}
+				if(is_pressed)
+					TransformRect(g, pt, s,
+						Drawing::transform_pixel_ex<56, 24, 32>);
+			}
 		}
-		if(is_pressed)
-			TransformRect(g, p, s, Drawing::transform_pixel_ex<56, 24, 32>);
 	}
 }
 
@@ -74,13 +88,11 @@ Thumb::Paint()
 {
 	YWidgetAssert(this, Controls::Thumb, Paint);
 
-	Control::Paint();
-
 	IWindow* pWnd(FetchDirectWindowPtr(*this));
 
 	RectDrawButton(pWnd->GetContext(), LocateForWindow(*this),
-		GetSize(), bPressed);
-	if(IsFocused())
+		GetSize(), bPressed, IsEnabled());
+	if(IsEnabled() && IsFocused())
 	{
 		Size s(GetSize());
 
@@ -120,7 +132,9 @@ Button::Paint()
 	YWidgetAssert(this, Controls::Button, Paint);
 
 	Thumb::Paint();
-	PaintText(*this, ForeColor, FetchContext(*this), LocateForWindow(*this));
+	PaintText(*this, IsEnabled() ? ForeColor
+		: FetchGUIShell().Colors[Styles::Workspace],
+		FetchContext(*this), LocateForWindow(*this));
 }
 
 YSL_END_NAMESPACE(Controls)

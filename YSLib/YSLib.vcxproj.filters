@@ -26,10 +26,6 @@
       <UniqueIdentifier>{bd4a3a95-5fe7-4471-9093-a76228bc5a0c}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="头文件\YSLib\Helper">
-      <UniqueIdentifier>{23faab97-d24f-4e94-9fbb-b17430d9d973}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="源文件\YSLib">
       <UniqueIdentifier>{f3275f4a-7c35-4f37-9e01-2a72fdf5a481}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
@@ -59,6 +55,10 @@
     <Filter Include="源文件\YSLib\Helper">
       <UniqueIdentifier>{77af520d-12d5-4756-aa39-7e64082a89f2}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件\YSLib\Helper">
+      <UniqueIdentifier>{23faab97-d24f-4e94-9fbb-b17430d9d973}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -329,9 +329,6 @@
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\ylabel.cpp">
-      <Filter>源文件\YSLib\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\UI\ymenu.cpp">
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\ypanel.cpp">

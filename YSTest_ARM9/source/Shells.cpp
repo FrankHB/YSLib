@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 抽象。
-\version 0.4484;
+\version 0.4499;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-06-02 13:04 +0800;
+	2011-06-05 08:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -76,14 +76,14 @@ namespace
 	dfa(BitmapPtr buf, SDst x, SDst y)
 	{
 		//raz2GBR
-		buf[y * Global::MainScreenWidth + x] = ARGB16(1, ((y >> 2) + 15) & 31,
+		buf[y * MainScreenWidth + x] = ARGB16(1, ((y >> 2) + 15) & 31,
 			((~(x * y) >> 2) + 15) & 31, ((x >> 2) + 15) & 31);
 	}
 	void
 	dfap(BitmapPtr buf, SDst x, SDst y)
 	{
 		//bza1BRG
-		buf[y * Global::MainScreenWidth + x] = ARGB16(1,
+		buf[y * MainScreenWidth + x] = ARGB16(1,
 			((x << 4) / (y | 1)) & 31,
 			((x | y << 1) % (y + 2)) & 31, ((~y | x << 1) % 27 + 3) & 31);
 	}
@@ -91,31 +91,29 @@ namespace
 	dfac1(BitmapPtr buf, SDst x, SDst y)
 	{
 		//fl1RBG
-		buf[y * Global::MainScreenWidth + x] = ARGB16(1, (x + y * y) & 31,
+		buf[y * MainScreenWidth + x] = ARGB16(1, (x + y * y) & 31,
 			((x & y) ^ (x | y)) & 31, (x * x + y) & 31);
 	}
 	void
 	dfac1p(BitmapPtr buf, SDst x, SDst y)
 	{
 		//rz3GRB
-		buf[y * Global::MainScreenWidth + x] = ARGB16(1, ((x * y) | x) & 31,
+		buf[y * MainScreenWidth + x] = ARGB16(1, ((x * y) | x) & 31,
 			((x * y) | y) & 31, ((x ^ y) * (x ^ y)) & 31);
 	}
 	void
 	dfac2(BitmapPtr buf, SDst x, SDst y)
 	{
 		//v1BGR
-		buf[y * Global::MainScreenWidth + x] = ARGB16(1,
-			((x << 4) / (y & 1)) & 31,
+		buf[y * MainScreenWidth + x] = ARGB16(1, ((x << 4) / (y & 1)) & 31,
 			(~x % 101 + y) & 31,((x + y) % ((y - 2) & 1) + (x << 2)) & 31);
 	}
 	void
 	dfac2p(BitmapPtr buf, SDst x, SDst y)
 	{
 		//arz1
-		buf[y * Global::MainScreenWidth + x]
-			= ARGB16(1, ((x | y) % (y + 2)) & 31, ((~y | x) % 27 + 3) & 31,
-			((x << 6) / (y | 1)) & 31);
+		buf[y * MainScreenWidth + x] = ARGB16(1, ((x | y) % (y + 2)) & 31,
+			((~y | x) % 27 + 3) & 31, ((x << 6) / (y | 1)) & 31);
 	}
 
 	////
@@ -349,7 +347,12 @@ ShlExplorer::ShlExplorer()
 {
 	FetchEvent<KeyPress>(fbMain) += OnKeyPress_fbMain;
 	fbMain.GetViewChanged().Add(*this, &ShlExplorer::OnViewChanged_fbMain);
+	fbMain.GetSelected() += [this](IControl&, IndexEventArgs&&){
+		btnOK.SetEnabled(true);
+	};
 	fbMain.GetConfirmed() += OnConfirmed_fbMain;
+	btnOK.SetEnabled(false);
+	FetchEvent<Click>(chkTest).Add(*this, &ShlExplorer::OnClick_chkTest);
 	FetchEvent<Click>(btnTest).Add(*this, &ShlExplorer::OnClick_btnTest);
 	FetchEvent<Click>(btnOK).Add(*this, &ShlExplorer::OnClick_btnOK);
 }
@@ -477,6 +480,12 @@ ShlExplorer::OnKeyPress_frm(KeyEventArgs&& e)
 		return;
 	}
 	e.Handled = true;
+}
+
+void
+ShlExplorer::OnClick_chkTest(TouchEventArgs&&)
+{
+	btnTest.SetEnabled(chkTest.IsTicked());
 }
 
 void
@@ -683,7 +692,6 @@ ShlSetting::TFormExtra::TFormExtra()
 	btnDragTest.HorizontalAlignment = MLabel::Left;
 	btnTestEx.Text = _ustr("直接屏幕绘制测试");
 	btnReturn.Text = _ustr("返回");
-	btnReturn.SetEnabled(false);
 	btnExit.Text = _ustr("退出");
 	BackColor = ARGB16(1, 31, 15, 15);
 	FetchEvent<TouchDown>(*this) += OnTouchDown_FormExtra;

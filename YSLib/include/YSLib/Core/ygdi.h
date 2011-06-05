@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Shell
 \brief 平台无关的图形设备接口。
-\version 0.4011;
+\version 0.4015;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-05-31 12:40 +0800;
+	2011-06-04 17:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -100,7 +100,7 @@ struct SequenceTransformer
 	{
 		if(dst && n)
 		{
-			_tPixel* p = dst + n;
+			_tPixel* p(dst + n);
 
 			while(--p >= dst)
 				tp(p);
@@ -543,7 +543,7 @@ PutPixel(const Graphics& g, SPos x, SPos y, Color c)
 }
 
 /*!
-\brief 绘制点：p(x, y) 。
+\brief 绘制点：(x, y) 。
 */
 inline bool
 DrawPoint(const Graphics& g, SPos x, SPos y, Color c)
@@ -556,12 +556,12 @@ DrawPoint(const Graphics& g, SPos x, SPos y, Color c)
 	return false;
 }
 /*!
-\brief 绘制点：p 。
+\brief 绘制点：pt 。
 */
 inline bool
-DrawPoint(const Graphics& g, const Point& p, Color c)
+DrawPoint(const Graphics& g, const Point& pt, Color c)
 {
-	return DrawPoint(g, p.X, p.Y, c);
+	return DrawPoint(g, pt.X, pt.Y, c);
 }
 
 /*!
@@ -594,13 +594,13 @@ DrawLineSeg(const Graphics& g, const Point& p1, const Point& p2, Color c)
 
 /*!
 \brief 绘制空心正则矩形。
-\note 右下角顶点坐标 (p.X + s.Width - 1, p.Y + s.Height - 1) 。
+\note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
 */
 bool
-DrawRect(const Graphics& g, const Point& p, const Size& s, Color c);
+DrawRect(const Graphics& g, const Point& pt, const Size& s, Color c);
 /*!
 \brief 绘制空心正则矩形。
-\note 右下角顶点坐标 (p.X + s.Width - 1, p.Y + s.Height - 1) 。
+\note 右下角顶点坐标 (r.X + r.Width - 1, r.Y + r.Height - 1) 。
 */
 inline bool
 DrawRect(const Graphics& g, const Rect& r, Color c)
@@ -610,13 +610,13 @@ DrawRect(const Graphics& g, const Rect& r, Color c)
 
 /*!
 \brief 绘制实心正则矩形。
-\note 右下角顶点坐标 (p.X + s.Width - 1, p.Y + s.Height - 1) 。
+\note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
 */
 bool
-FillRect(const Graphics& g, const Point& p, const Size& s, Color c);
+FillRect(const Graphics& g, const Point& pt, const Size& s, Color c);
 /*!
 \brief 绘制实心正则矩形。
-\note 右下角顶点坐标 (p.X + s.Width - 1, p.Y + s.Height - 1) 。
+\note 右下角顶点坐标 (r.X + r.Width - 1, r.Y + r.Height - 1) 。
 */
 inline bool
 FillRect(const Graphics& g, const Rect& r, Color c)
@@ -629,12 +629,12 @@ FillRect(const Graphics& g, const Rect& r, Color c)
 */
 template<class _fTransformPixel>
 bool
-TransformRect(const Graphics& g, const Point& p, const Size& s,
+TransformRect(const Graphics& g, const Point& pt, const Size& s,
 	_fTransformPixel tp)
 {
 	if(g.IsValid())
 	{
-		RectTransfomer()(g.GetBufferPtr(), g.GetSize(), p, s, tp,
+		RectTransfomer()(g.GetBufferPtr(), g.GetSize(), pt, s, tp,
 			SequenceTransformer());
 		return true;
 	}
@@ -734,18 +734,18 @@ operator+(const Padding& a, const Padding& b);
 \brief 取水平边距和。
 */
 inline SDst
-GetHorizontalFrom(const Padding& p)
+GetHorizontalFrom(const Padding& m)
 {
-	return p.Left + p.Right;
+	return m.Left + m.Right;
 }
 
 /*!
 \brief 取竖直边距和。
 */
 inline SDst
-GetVerticalFrom(const Padding& p)
+GetVerticalFrom(const Padding& m)
 {
-	return p.Top + p.Bottom;
+	return m.Top + m.Bottom;
 }
 
 /*!
@@ -766,18 +766,18 @@ SetAllTo(Padding&, SDst, SDst, SDst, SDst);
 \note 64 位无符号整数形式。
 */
 inline void
-SetAllTo(Padding& p, u64 m)
+SetAllTo(Padding& m, u64 u)
 {
-	SetAllTo(p, m >> 48, (m >> 32) & 0xFFFF, (m >> 16) & 0xFFFF, m & 0xFFFF);
+	SetAllTo(m, u >> 48, (u >> 32) & 0xFFFF, (u >> 16) & 0xFFFF, u & 0xFFFF);
 }
 /*!
 \brief 设置边距。
 \note 2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
 */
 inline void
-SetAllTo(Padding& p, SDst h, SDst v)
+SetAllTo(Padding& m, SDst h, SDst v)
 {
-	SetAllTo(p, h, h, v, v);
+	SetAllTo(m, h, h, v, v);
 }
 
 
