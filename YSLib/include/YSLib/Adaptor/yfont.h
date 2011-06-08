@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7283;
+\version 0.7285;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-05-31 04:50 +0800;
+	2011-06-08 18:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -431,7 +431,7 @@ public:
 	\brief 构造：读取指定路径的字体文件并分配指定大小的缓存空间。
 	*/
 	explicit
-	FontCache(CPATH, u32 = GLYPH_CACHE_SIZE);
+	FontCache(const_path_t, u32 = GLYPH_CACHE_SIZE);
 	/*!
 	\brief 析构：释放空间。
 	*/
@@ -616,7 +616,7 @@ public:
 	\brief 按路径添加字体文件并载入字体信息。
 	*/
 	bool
-	LoadFontFile(CPATH);
+	LoadFontFile(const_path_t);
 
 	/*!
 	\brief 初始化默认字型。

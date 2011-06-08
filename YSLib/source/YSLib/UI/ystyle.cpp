@@ -11,12 +11,12 @@
 /*!	\file ystyle.cpp
 \ingroup Shell
 \brief 图形用户界面样式。
-\version 0.1452;
+\version 0.1473;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-06-04 18:03 +0800;
+	2011-06-05 15:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,21 +58,11 @@ DrawRectRoundCorner(const Graphics& g, const Point& pt, const Size& s, Color c)
 	return false;
 }
 
-namespace
-{
-	void
-	DrawWidgetBounds(IWindow& w, const Point& p, const Size& s, Color c)
-	{
-		DrawRect(w.GetContext(), p, s, c);
-	}
-}
 
 void
-DrawWindowBounds(IWindow* pWnd, Color c)
+DrawWindowBounds(IWindow& wnd, Color c)
 {
-	YAssert(pWnd, "Window pointer is null.");
-
-	DrawWidgetBounds(*pWnd, Point::Zero, pWnd->GetSize(), c);
+	DrawRect(wnd.GetContext(), Point::Zero, wnd.GetSize(), c);
 }
 
 void
@@ -81,32 +71,8 @@ DrawWidgetBounds(IWidget& w, Color c)
 	IWindow* pWnd(FetchDirectWindowPtr(w));
 
 	if(pWnd)
-		DrawWidgetBounds(*pWnd, LocateOffset(&w, Point::Zero, pWnd),
+		DrawRect(pWnd->GetContext(), LocateOffset(&w, Point::Zero, pWnd),
 			w.GetSize(), c);
-}
-
-void
-DrawWidgetOutline(IWidget& w, Color c)
-{
-	IWindow* pWnd(FetchWindowPtr(w));
-
-	if(pWnd)
-		DrawWidgetBounds(*pWnd, LocateOffset(&w, Point::Zero, pWnd),
-			w.GetSize(), c);
-}
-
-
-void
-WndDrawFocus(IWindow* pWnd, const Size&)
-{
-	YAssert(pWnd, "Window pointer is null.");
-
-	DrawWindowBounds(pWnd, ColorSpace::Fuchsia);
-
-	IWidget* pWgt(pWnd->GetFocusingPtr());
-
-	if(pWgt)
-		DrawWidgetBounds(*pWgt, ColorSpace::Aqua);
 }
 
 

@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3148;
+\version 0.3169;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-06-05 08:24 +0800;
+	2011-06-08 09:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -114,16 +114,6 @@ FetchAppInstance()
 	return FetchGlobalInstance();
 }
 
-const shared_ptr<YShell>&
-FetchMainShellHandle()
-{
-	FetchAppInstance();
-
-	static shared_ptr<YShell> hMainShell(new YMainShell());
-
-	return hMainShell;
-}
-
 
 namespace
 {
@@ -149,6 +139,27 @@ InputContent::operator==(const InputContent& rhs) const
 }
 
 YSL_END_NAMESPACE(Messaging)
+
+/*!
+\brief 主 Shell 处理函数。
+*/
+extern int
+MainShlProc(const Message&);
+
+YSL_BEGIN_NAMESPACE(Shells)
+
+YMainShell::YMainShell()
+	: YShell()
+{}
+
+int
+YMainShell::ShlProc(const Message& msg)
+{
+	return MainShlProc(msg);
+}
+
+YSL_END_NAMESPACE(Shells)
+
 
 namespace
 {
@@ -208,11 +219,6 @@ InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 	else
 		return false;
 	return true;
-}
-
-void
-Destroy_Static(YObject&, EventArgs&&)
-{
 }
 
 //非 yglobal.h 声明的平台相关函数。
@@ -401,7 +407,7 @@ main(int argc, char* argv[])
 		Message msg;
 
 		//消息循环。
-		while(FetchMessage(msg) != SM_QUIT)
+		while(FetchMessage(msg, 2) != SM_QUIT)
 		{
 			TranslateMessage(msg);
 			DispatchMessage(msg);

@@ -11,12 +11,12 @@
 /*!	\file ysmsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version 0.1805;
+\version 0.2006;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-05-21 23:59 +0800;
+	2011-06-06 23:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,6 @@
 
 
 #include "ysmsg.h"
-#include "../UI/ywindow.h" // for YWindow delete procedure;
 
 YSL_BEGIN
 
@@ -104,74 +103,52 @@ operator==(const Message& lhs, const Message& rhs)
 
 
 Message
-MessageQueue::FetchMessage()
+MessageQueue::GetMessage()
 {
-	Message m;
+	Message msg;
 
 	if(!q.empty())
 	{
-		if(q.top().IsValid())
-			m = q.top();
-		q.pop();
+		if(top().IsValid())
+			msg = top();
+		pop();
 	}
-	return m;
+	return msg;
 }
 
 void
-MessageQueue::PeekMessage(Message& msg) const
+MessageQueue::Merge(MessageQueue& mq)
 {
-	if(!q.empty())
-		if(q.top().IsValid())
-			msg = q.top();
+	for(auto i(mq.q.begin()); i != mq.q.end(); ++i)
+		if(i->IsValid())
+			q.insert(std::move(*i));
+	mq.q.clear();
 }
 
-MessageQueue::SizeType
-MessageQueue::Clear()
+int
+MessageQueue::PeekMessage(Message& msg, const shared_ptr<YShell>& hShl,
+	bool bRemoveMsg)
 {
-	SizeType n = 0;
-
-	while(!IsEmpty())
+	for(auto i(q.cbegin()); i != q.cend(); ++i)
 	{
-		q.pop();
-		++n;
+		const Message& m(*i);
+
+		if(!hShl || !m.GetShellHandle() || hShl == m.GetShellHandle())
+		{
+			msg = m;
+			if(bRemoveMsg)
+				q.erase(i);
+			return msg.GetMessageID();
+		}
 	}
-	return n;
+	return -1;
 }
+
 void
 MessageQueue::Update()
 {
-	if(!q.empty())
-	{
-		if(q.top().IsTimeOut())
-			q.pop();
-	}
-}
-
-bool
-MessageQueue::Insert(const Message& msg)
-{
-	if(msg.IsValid())
-		q.push(msg);
-	return msg.IsValid();
-}
-
-void
-Merge(MessageQueue& dst, list<Message>& src)
-{
-	while(!src.empty())
-	{
-		Message m(src.back());
-
-		dst.Insert(m);
-		src.pop_back();
-	}
-}
-void
-Merge(MessageQueue& dst, MessageQueue& src)
-{
-	// TODO: 处理异常安全事项。
-	while(!src.IsEmpty())
-		dst.Insert(src.FetchMessage());
+	if(!q.empty() && top().IsTimeOut());
+		pop();
 }
 
 YSL_END_NAMESPACE(Messaging)

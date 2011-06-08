@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2123;
+\version 0.2131;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-05-31 02:27 +0800;
+	2011-06-08 18:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,6 @@
 #define YSL_INC_CORE_YFILESYS_H_
 
 #include "ystring.h"
-#include "yshell.h" // for GHHandle<YShell> delete procedure;
 #include <iterator>
 
 YSL_BEGIN
@@ -36,10 +35,10 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(IO)
 
 //文件系统常量：前缀 FS 表示文件系统 (File System) 。
-extern const CPATH FS_Root;
-extern const CPATH FS_Seperator;
-extern const CPATH FS_Now;
-extern const CPATH FS_Parent;
+extern const const_path_t FS_Root;
+extern const const_path_t FS_Seperator;
+extern const const_path_t FS_Now;
+extern const const_path_t FS_Parent;
 
 
 typedef char NativePathCharType; \
@@ -438,7 +437,7 @@ swap(Path& lhs, Path& rhs)
 \brief 截取路径末尾的文件名。
 */
 const char*
-GetFileNameFrom(CPATH);
+GetFileNameFrom(const_path_t);
 /*!
 \brief 截取路径末尾的文件名。
 */
@@ -531,7 +530,7 @@ HaveSameExtendNames(const string&, const string&);
 \brief 切换路径。
 */
 inline int
-ChangeDirectory(CPATH path)
+ChangeDirectory(const_path_t path)
 {
 	return chdir(path);
 }
@@ -582,7 +581,7 @@ public:
 	\brief 构造：使用指定路径。
 	\note 参数为空或空字符串时为根目录。
 	*/
-	FileList(CPATH = nullptr);
+	FileList(const_path_t = nullptr);
 	/*!
 	\brief 构造：使用窄字符串。
 	\note 参数为空字符串时为根目录。

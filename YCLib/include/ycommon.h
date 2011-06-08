@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2715;
+\version 0.2724;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 +0800; 
 \par 修改时间:
-	2011-05-31 02:28 +0800;
+	2011-06-08 18:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,6 @@
 #include <platform.h>
 
 //平台无关部分。
-#include "ydef.h"
 #include <cstdio>
 #include <ystdex/utility.hpp> // for nullptr;
 
@@ -77,6 +76,10 @@ namespace platform
 	using ::siprintf;
 	using ::viprintf;
 
+	// using ystdex;
+	using ystdex::const_path_t;
+	using ystdex::path_t;
+
 	/*!
 	\brief 主内存块设置。
 
@@ -108,7 +111,7 @@ namespace platform
 	\brief 判断指定目录是否存在。
 	*/
 	bool
-	direxists(CPATH);
+	direxists(const_path_t);
 
 	using ::mkdir;
 	using ::chdir;
@@ -117,7 +120,7 @@ namespace platform
 	\brief 按路径新建一个或多个目录。
 	*/
 	bool
-	mkdirs(CPATH);
+	mkdirs(const_path_t);
 
 
 	/*!
@@ -443,7 +446,7 @@ namespace platform
 		\brief 构造：使用路径字符串。
 		*/
 		explicit
-		HDirectory(CPATH = nullptr);
+		HDirectory(const_path_t = nullptr);
 
 	private:
 		/*!
@@ -489,7 +492,7 @@ namespace platform
 		\brief 打开。
 		*/
 		void
-		Open(CPATH);
+		Open(const_path_t);
 
 		/*!
 		\brief 关闭。
@@ -505,7 +508,7 @@ namespace platform
 	};
 
 	inline
-	HDirectory::HDirectory(CPATH path)
+	HDirectory::HDirectory(const_path_t path)
 		: dir()
 	{
 		Open(path);
@@ -541,13 +544,13 @@ namespace platform
 	\brief 判断指定路径字符串是否表示一个绝对路径。
 	*/
 	bool
-	IsAbsolute(CPATH);
+	IsAbsolute(const_path_t);
 
 	/*!
 	\brief 取指定路径的文件系统根节点名称的长度。
 	*/
 	std::size_t
-	GetRootNameLength(CPATH);
+	GetRootNameLength(const_path_t);
 
 	/*!
 	\brief 快速刷新缓存映像到显示屏缓冲区。

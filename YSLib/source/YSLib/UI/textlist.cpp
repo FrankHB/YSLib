@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup Shell
 \brief 样式相关的文本列表。
-\version 0.1287;
+\version 0.1292;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-06-03 17:25 +0800;
+	2011-06-05 15:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -150,7 +150,7 @@ TextList::Paint()
 	{
 		Control::Paint();
 		if(IsFocused())
-			WndDrawFocus(pWnd, GetSize());
+			DrawWidgetBounds(*this, ColorSpace::Aqua);
 		PaintItems(pWnd->GetContext());
 	}
 }

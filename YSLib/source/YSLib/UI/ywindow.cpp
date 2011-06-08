@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup Shell
 \brief 样式无关的图形用户界面窗口。
-\version 0.3756;
+\version 0.3761;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-05-26 23:11 +0800;
+	2011-06-07 08:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -172,7 +172,7 @@ AFrame::operator+=(IControl& ctl)
 void
 AFrame::operator+=(IWindow& wnd)
 {
-	MUIContainer::operator+=(wnd);
+	MUIContainer::Add(wnd, DefaultWindowZOrder);
 	wnd.GetContainerPtr() = this;
 }
 

@@ -11,12 +11,12 @@
 /*!	\file ysinit.cpp
 \ingroup Service
 \brief 程序启动时的通用初始化。
-\version 0.1790;
+\version 0.1792;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2011-05-21 23:35 +0800;
+	2011-06-08 18:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -102,7 +102,8 @@ namespace
 	\brief 读取字体文件目录并载入目录下指定后缀名的字体文件。
 	*/
 	void
-	LoadFontFileDirectory(FontCache& fc, CPATH path/*, CPATH ext = "ttf"*/)
+	LoadFontFileDirectory(FontCache& fc,
+		const_path_t path/*, const_path_t ext = "ttf"*/)
 	{
 		HDirectory dir(path);
 

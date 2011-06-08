@@ -11,12 +11,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2379;
+\version 0.2381;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2011-05-14 12:42 +0800;
+	2011-06-08 18:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -191,7 +191,7 @@ namespace platform
 	}
 
 	bool
-	direxists(CPATH path)
+	direxists(const_path_t path)
 	{
 		DIR_ITER* dirState(::diropen(path));
 
@@ -200,7 +200,7 @@ namespace platform
 	}
 
 	bool
-	mkdirs(CPATH cpath)
+	mkdirs(const_path_t cpath)
 	{
 		PATHSTR path;
 
@@ -334,7 +334,7 @@ namespace platform
 	}
 
 	void
-	HDirectory::Open(CPATH path)
+	HDirectory::Open(const_path_t path)
 	{
 		dir = path ? ::diropen(path) : nullptr;
 	}
@@ -354,14 +354,14 @@ namespace platform
 
 
 	bool
-	IsAbsolute(CPATH path)
+	IsAbsolute(const_path_t path)
 	{
 		return std::strchr(path, '/') == path
 			|| std::strstr(path, "fat:/") == path;
 	}
 
 	std::size_t
-	GetRootNameLength(CPATH path)
+	GetRootNameLength(const_path_t path)
 	{
 		const char* p(std::strchr(path, ':'));
 

@@ -11,12 +11,12 @@
 /*!	\file ystyle.h
 \ingroup Shell
 \brief 图形用户界面样式。
-\version 0.1253;
+\version 0.1263;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-08 13:21:10 +0800;
 \par 修改时间:
-	2011-06-04 17:04 +0800;
+	2011-06-05 15:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,7 +46,7 @@ DrawRectRoundCorner(const Graphics&, const Point&, const Size&, Color);
 \brief 绘制窗口边框。
 */
 void
-DrawWindowBounds(IWindow*, Color);
+DrawWindowBounds(IWindow&, Color);
 
 /*!
 \brief 绘制部件边框。
@@ -54,18 +54,6 @@ DrawWindowBounds(IWindow*, Color);
 */
 void
 DrawWidgetBounds(IWidget&, Color);
-
-/*!
-\brief 绘制部件边框。
-\note 和 DrawWidgetBounds 类似，但对于有缓冲区的部件，
-	在此部件所在窗口的图形上下文绘制。
-*/
-void
-DrawWidgetOutline(IWidget&, Color);
-
-
-void
-WndDrawFocus(IWindow*, const Size&);
 
 
 void

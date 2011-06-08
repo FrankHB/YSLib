@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2368;
+\version 0.2400;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-06-05 08:23 +0800;
+	2011-06-08 18:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -75,9 +75,7 @@ YApplication::YApplication()
 	Log(), pMessageQueue(new MessageQueue()),
 	pMessageQueueBackup(new MessageQueue()),
 	hShell(), pFontCache()
-{
-	ApplicationExit += Destroy_Static;
-}
+{}
 YApplication::~YApplication() ynothrow
 {
 	//释放主 Shell 。
@@ -139,7 +137,7 @@ YApplication::ResetShellHandle() ynothrow
 }
 
 void
-YApplication::ResetFontCache(CPATH path) ythrow(LoggedEvent)
+YApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
 {
 	try
 	{
@@ -160,10 +158,24 @@ YApplication::DestroyFontCache()
 }
 
 
+const shared_ptr<YShell>&
+FetchMainShellHandle()
+{
+	FetchAppInstance();
+
+	static shared_ptr<YShell> hMainShell(new Shells::YMainShell());
+
+	return hMainShell;
+}
+
+
 #if YSL_DEBUG_MSG & 2
 
-static int
-PeekMessage_(Message& msg, const shared_ptr<YShell>& hShl, bool bRemoveMsg);
+namespace
+{
+	int
+	PeekMessage_(Message& msg, const shared_ptr<YShell>& hShl, bool bRemoveMsg);
+}
 
 int
 PeekMessage(Message& msg, const shared_ptr<YShell>& hShl, bool bRemoveMsg)
@@ -187,32 +199,15 @@ PeekMessage
 
 	(Message& msg, const shared_ptr<YShell>& hShl, bool bRemoveMsg)
 {
-	list<Message> mqt;
-	int r(-1);
-
-	while(!FetchAppInstance().GetDefaultMessageQueue().IsEmpty())
-	{
-		Message m(FetchAppInstance().GetDefaultMessageQueue().FetchMessage());
-
-		if(!hShl || !m.GetShellHandle() || hShl == m.GetShellHandle())
-		{
-			msg = m;
-			if(!bRemoveMsg)
-				FetchAppInstance().GetDefaultMessageQueue().Insert(m);
-			r = m.GetMessageID();
-			break;
-		}
-		else if(!bRemoveMsg)
-			mqt.push_back(m);
-	}
-	Merge(FetchAppInstance().GetDefaultMessageQueue(), mqt);
-	return r;
+	return FetchAppInstance().GetDefaultMessageQueue().PeekMessage(
+		msg, hShl, bRemoveMsg);
 }
 
 int
-FetchMessage(Message& msg, const shared_ptr<YShell>& hShl)
+FetchMessage(Message& msg, MessageQueue::SizeType idle_limit,
+	const shared_ptr<YShell>& hShl)
 {
-	if(FetchAppInstance().GetDefaultMessageQueue().IsEmpty())
+	if(FetchAppInstance().GetDefaultMessageQueue().GetSize() <= idle_limit)
 		Idle();
 	return PeekMessage(msg, hShl, true);
 }
@@ -233,13 +228,14 @@ DispatchMessage(const Message& msg)
 errno_t
 BackupMessageQueue(const Message& msg)
 {
-	return -!FetchAppInstance().GetBackupMessageQueue().Insert(msg);
+	FetchAppInstance().GetBackupMessageQueue().Push(msg);
+	return -!msg.IsValid();
 }
 
 void
 RecoverMessageQueue()
 {
-	Merge(FetchAppInstance().GetDefaultMessageQueue(),
+	FetchAppInstance().GetDefaultMessageQueue().Merge(
 		FetchAppInstance().GetBackupMessageQueue());
 }
 
@@ -249,7 +245,7 @@ SendMessage(const Message& msg) ynothrow
 {
 	try
 	{
-		FetchAppInstance().GetDefaultMessageQueue().Insert(msg);
+		FetchAppInstance().GetDefaultMessageQueue().Push(msg);
 
 #if YSL_DEBUG_MSG & 1
 

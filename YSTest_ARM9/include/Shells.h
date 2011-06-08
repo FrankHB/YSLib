@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 声明。
-\version 0.3252;
+\version 0.3275;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-06-03 07:11 +0800;
+	2011-06-08 10:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,7 +50,7 @@ using namespace DS;
 using namespace DS::Components;
 
 shared_ptr<Image>&
-GetImage(int);
+FetchImage(size_t);
 
 class ShlLoad : public ShlDS
 {
@@ -80,6 +80,60 @@ public:
 	Button btnTest, btnOK;
 	CheckBox chkTest;
 
+	struct TFormTest : public Form
+	{
+		Button btnEnterTest, btnMenuTest, btnShowWindow;
+
+		TFormTest();
+
+		static void
+		OnEnter_btnEnterTest(IControl& sender, TouchEventArgs&&);
+
+		static void
+		OnLeave_btnEnterTest(IControl& sender, TouchEventArgs&&);
+
+		void
+		OnClick_btnMenuTest(TouchEventArgs&&);
+	};
+
+	struct TFormExtra : public Form
+	{
+		Button btnDragTest;
+		Button btnTestEx;
+		Button btnClose;
+		Button btnExit;
+
+		TFormExtra();
+
+		void
+		OnMove_btnDragTest(EventArgs&&);
+
+		void
+		OnTouchUp_btnDragTest(TouchEventArgs&&);
+
+		void
+		OnTouchDown_btnDragTest(TouchEventArgs&&);
+
+		void
+		OnClick_btnDragTest(TouchEventArgs&&);
+
+		static void
+		OnKeyPress_btnDragTest(IControl& sender, KeyEventArgs&& e);
+
+		void
+		OnClick_btnTestEx(TouchEventArgs&&);
+
+		void
+		OnClick_btnClose(TouchEventArgs&&);
+
+		void
+		OnClick_btnExit(TouchEventArgs&&);
+	};
+
+	unique_ptr<TFormTest> pWndTest;
+	unique_ptr<TFormExtra> pWndExtra;
+	Label lblA, lblB;
+
 	ShlExplorer();
 
 	virtual int
@@ -92,6 +146,9 @@ public:
 	OnDeactivated(const Message&);
 
 private:
+	void ShowString(const String&);
+	void ShowString(const char*);
+
 	void
 	OnKeyUp_frm(KeyEventArgs&&);
 
@@ -118,82 +175,6 @@ private:
 
 	static void
 	OnConfirmed_fbMain(IControl&, IndexEventArgs&&);
-};
-
-
-class ShlSetting : public ShlDS
-{
-public:
-	typedef ShlDS ParentType;
-
-	struct TFormTest : public Form
-	{
-		Button btnEnterTest, btnMenuTest, btnShowWindow;
-
-		TFormTest();
-
-		static void
-		OnEnter_btnEnterTest(IControl& sender, TouchEventArgs&&);
-
-		static void
-		OnLeave_btnEnterTest(IControl& sender, TouchEventArgs&&);
-
-		void
-		OnClick_btnMenuTest(TouchEventArgs&&);
-	};
-
-	struct TFormExtra : public Form
-	{
-		Button btnDragTest;
-		Button btnTestEx;
-		Button btnReturn;
-		Button btnExit;
-
-		TFormExtra();
-
-		void
-		OnMove_btnDragTest(EventArgs&&);
-
-		void
-		OnTouchUp_btnDragTest(TouchEventArgs&&);
-
-		void
-		OnTouchDown_btnDragTest(TouchEventArgs&&);
-
-		void
-		OnClick_btnDragTest(TouchEventArgs&&);
-
-		static void
-		OnKeyPress_btnDragTest(IControl& sender, KeyEventArgs&& e);
-
-		void
-		OnClick_btnTestEx(TouchEventArgs&&);
-
-		void
-		OnClick_btnReturn(TouchEventArgs&&);
-
-		void
-		OnClick_btnExit(TouchEventArgs&&);
-	};
-
-	unique_ptr<TFormTest> pWndTest;
-	unique_ptr<TFormExtra> pWndExtra;
-	Label lblA, lblB;
-
-	ShlSetting();
-
-	virtual int
-	ShlProc(const Message&);
-
-	virtual int
-	OnActivated(const Message&);
-
-	virtual int
-	OnDeactivated(const Message&);
-
-private:
-	void ShowString(const String&);
-	void ShowString(const char*);
 
 	static void
 	OnClick_ShowWindow(IControl&, TouchEventArgs&&);

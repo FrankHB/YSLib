@@ -11,12 +11,12 @@
 /*!	\file ystdex.h
 \ingroup YCLib
 \brief YCLib C++ 标准库扩展。
-\version 0.2312;
+\version 0.2314;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:31:14 +0800; 
 \par 修改时间:
-	2011-05-03 14:31 +0800;
+	2011-06-08 18:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -270,7 +270,7 @@ namespace ystdex
 	\note 使用 C 标准函数库实现。
 	*/
 	bool
-	fexists(CPATH);
+	fexists(const_path_t);
 }
 
 #endif

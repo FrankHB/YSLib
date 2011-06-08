@@ -11,12 +11,12 @@
 /*!	\file ysinit.h
 \ingroup Service
 \brief 程序启动时的通用初始化。
-\version 0.1541;
+\version 0.1543;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2011-04-20 11:02 +0800;
+	2011-06-08 18:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,8 +39,8 @@ InitYSConsole();
 
 
 //默认字型路径和目录。
-extern CPATH DEF_FONT_PATH;
-extern CPATH DEF_FONT_DIRECTORY;
+extern const_path_t DEF_FONT_PATH;
+extern const_path_t DEF_FONT_DIRECTORY;
 
 /*!
 \brief 初始化系统字体缓存：

@@ -11,12 +11,12 @@
 /*!	\file yftext.cpp
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version 0.1794;
+\version 0.1795;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2011-05-03 19:27 +0800;
+	2011-06-08 18:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,7 @@ YSL_BEGIN
 
 using namespace Text;
 
-TextFile::TextFile(CPATH p)
+TextFile::TextFile(const_path_t p)
 	: File(p),
 	bl(0), cp(CharSet::Null)
 {

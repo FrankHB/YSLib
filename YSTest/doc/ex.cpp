@@ -1,4 +1,4 @@
-//v0.3202; *Build 215 r32;
+//v0.3202; *Build 216 r38;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -255,151 +255,205 @@ $using:
 
 $DONE:
 r1:
-/ @ \impl \u Button:
-	/ \f RectDrawButton(const Graphics&, const Point&, const Size&,
-		bool = false, Color = Color(48, 216, 255)) @ \un \ns
-		-> RectDrawButton(const Graphics&, const Point&, const Size&,
-		bool = false, bool = true);
-	/ \impl @ \mf Thumb::Paint;
-	/ \impl @ \mf Button::Paint;
-	+ \inc \h YGUI;
+- \f Destroy_Static @ \impl \u YGlobal;
+/ \tr \impl @ \ctor @ \cl YApplication;
 
 r2:
-+ DefPredicate(Ticked, bTicked) @ \cl CheckBox @ \u CheckBox;
-/ @ \cl ShlExplorer @ \u Shells:
-	+ private \mf void OnClick_chkTest(TouchEventArgs&&);
-	/ \tr @ \impl @ \ctor;
+/ \def @ \f FetchMainShellHandle >> \h YApplicatin -> \i \f ~ \impl \u YGlobal;
+-= \inc \h (YObject & YString & YShellMessage & YException) @ \h YApplication;
+-= \decl @ \f int MainShlProc(const Message&) @ \h YGlobal;
 
 r3:
-* \impl @ \mf Thumb::Paint;
+/ @ \u YStyle:
+	- \f DrawWidgetOutline;
+	/ \f void DrawWindowBounds(IWindow*, Color)
+		-> void DrawWindowBounds(IWindow&, Color);
+	/ \impl @ \f void DrawWidgetBounds(IWidget&, Color);
+	- \f DrawWidgetBounds @ \un \ns @ \impl \u;
+	/ \f void WndDrawFocus(IWindow&, const Size&)
+		-> void WndDrawFocus(IWindow&);
+/ \tr \impl @ \mf Paint @ (CheckBox & TextList);
 
-r4-r5:
-* \impl @ \mf YGUIShell::ResponseTouch;
-
-r6:
-/ \impl @ \ctor @ \cl ShlSetting::TFormExtra @ \impl \u Shells;
-* list of YSLib project files;
+r4-r6:
+/ \impl @ \f WndDrawFocus @ \impl \u YStyle;
 
 r7:
-/= test 1 ^ \conf release;
+- \f WndDrawFocus @ \impl \u YStyle;
+/ \tr \impl @ \mf Paint @ (CheckBox & TextList);
 
 r8:
-/ \f (RectDrawArrow & WndDrawArrow) @ \ns @ \impl \u Scroll
-	>> \ns Drawing @ \u YStyle;
-/ \as \str @ \f RectDrawArrow @ \impl \u YStyle;
-+ \h YGDI @ \h YStyle;
+/= test 1 ^ \conf release;
 
 r9:
--= \h YGDI @ \impl \u Scroll;
-/ @ \cl TextList:
-	+ protected \mf \vt void
-		PaintItem(const Graphics&, const Rect&, ListType::size_type);
-	/ \impl @ \mf PaintItems ^ \mf PaintItem ~ DrawText;
-/ @ \cl Menu:
-	+ protected \mf \vt void
-		PaintItem(const Graphics&, const Rect&, ListType::size_type);
+- \i \f DefShellProc @ \ns Shells @ \h YShell;
+/ \tr \a DefShellProc -> (YShell::DefShlProc | DefShlProc) @ \impl \u Shells;
 
 r10:
-* \impl @ \mf Menu::PaintItem;
+/ \cl YMainShell @ \ns Shells @ \u YShell >> \ns Shells @ \u YGlobal;
+/ \tr \i \f FetchMainShellHandle @ \u YApplication -> !\i \f;
+/ \decl extern \f int MainShlProc(const Message&) @ \ns YSLib
+	>> \impl \u YGlobal ~ \impl \u YShell;
+- using Shells::YMainShell @ \ns YSLib @ \h YShellDefinition;
 
 r11-r12:
-/ margin @ \impl @ ctor @ \cl Menu;
+/= test 2;
 
 r13:
-/= test 2 ^ \conf release;
+/ \simp @ \f (LoadL & LoadS & LoadA) @ \un \ns @ \u Shells:
+	- \a \tb;
 
 r14:
-/ \simp @ \cl MTextList:
-	/ \impl @ \ctor;
-	/ !\i \mf GetList -> \i \mf ^ \mac DefGetter;
-
-r15:
-/ \impl @ \ctor @ ShlExplorer;
-/ @ \clt GHEvent @ \h YEvent:
-	* \ac @ \inh std::function<...>:
-		/ protected ~ public;
-	/ @ \stt GEquality:
-		+ 2 private \smft are_equal;
-		/ \impl @ \mf AreEqual;
-
-r16:
-* \impl @ \ctor @ ShlExplorer;
-
-r17:
 /= test 3 ^ \conf release;
 
+r15:
+/ @ \cl MessageQueue:
+	/ \mf FetchMessage => GetMessage;
+	/ \impl @ \mf PeekMessage;
+	+ \i \mf void PopMessage();
+	/ !\i \mf PeekMessage -> \i \mf;
+/ \tr \impl @ \f PeekMessage @ \impl \u YApplication;
+
+r16:
+- \mac YSL_DEBUG_MSG @ \h Configuration;
++ \mf int PeekMessage(Message&, const shared_ptr<YShell>&, bool)
+	@ \cl MessageQueue;
+/ \tr \impl @ \f PeekMessage @ \impl \u YApplication;
+* \sf PeekMessage_ -> \un \ns;
+
+r17:
+/ @ \u YShellMessage;
+	/ @ \cl MessageQueue:
+		/ private \m priority_queue<Message, vector<Message>, cmp> q
+			-> multiset<Message, cmp> q;
+		- private \i \mf (pop & push & top);
+		/ typedef priority_queue<int, vector<int>, cmp>::size_type SizeType
+			-> typedef decltype(q.size()) SizeType;
+		/ \simp \impl @ \mf \op() @ private \cl cmp;
+		/ \tr \i \mf PeekMessage & PopMessage -> !\i \mf;
+		/ \tr \impl @ \mf (Insert & Clear & Update & GetMessage);
+	/ \tr \impl @ \f void Merge(MessageQueue&, list<Message>&);
+
 r18:
-/ @ \a \f @ \ns Drawing \u YGUI >> \u YStyle;
-- \h YGUI @ \impl \u YStyle;
-
-r19:
-- \h YGUI @ \impl \u YLabel;
--= \h YStyle @ \impl \u Button;
-+ \f bool DrawRectRoundCorner(const Graphics&, const Point&,
-	const Size&, Color) @ \ns Drawing @ \u YStyle;
-/= @ \impl \u YGDI;
-/ \impl @ \f RectDrawButton ^ DrawRectRoundCorner ~ DrawRect @ \un \ns
-	@ \impl \u Button;
-/= \inc \h order @ \h TextList;
-
-r20-r21:
-/ \f void RectDrawButton(const Graphics&, const Point&, const Size&,
-	bool = false, bool = true) @ \un \ns @ \impl \u Button -> void
-	RectDrawButton(const Graphics&, Point, Size, bool = false, bool = true);
-
-r22:
-/= \ren \param with \tp (const Point& & Padding&) @ \u YGDI;
-/ \impl @ DrawRect @ \u YGDI;
-
-r23-r25:
-/ \impl @ \f DrawRectRoundCorner @ \impl \u YStyle;
-
-r26:
-/ \impl @ Thumb::Paint;
-
-r27:
-* \impl @ \f DrawRectRoundCorner @ \impl \u YStyle;
-
-r28:
 /= test 4 ^ \conf release;
 
+r19:
+/ @ \cl MessageQueue:
+	+ private \i \mf (top & pop & push) ^ \mac ('PDefH?' & ImplRet);
+	/ \simp @ \impl @ \mf ^ \mf (top & pop & push);
+
+r20:
+/ @ \u YShellMessage:
+	/ @ \cl MessageQueue:
+		/= \mf order;
+		* \def @ \mf void PeekMessage(Message&) const:
+			- \i;
+		+ \mf void Merge(MessageQueue&);
+		/ \impl @ \mf int PeekMessage(Message&, const shared_ptr<YShell>&,
+			bool);
+	/ \impl @ \f void Merge(MessageQueue&, MessageQueue&)
+		^ \mf MessageQueue::Merge;
+	- \f void Merge(MessageQueue&, list<Message>&);
+
+r21:
+/ @ \impl \u YShellMessage:
+	- \f void Merge(MessageQueue&, MessageQueue&);
+	- \inc \h YWindow;
+/ \tr \impl @ \f void RecoverMessageQueue() @ \impl \u YApplication;
+
+r22:
+/ \inc \h YShell @ \h YFileSystem >> \h YApplication;
+
+r23:
+/= test 5 ^ \conf release;
+
+r24:
+/ \simp \impl @ \mf int MessageQueue::PeekMessage(Message&,
+	const shared_ptr<YShell>&, bool);
+
+r25:
+/ @ \cl MessageQueue:
+	/ !\i \mf bool Insert(const Message&) -> \i \mf void Push(const Message&);
+	/ !\i \mf SizeType Clear() -> \i \mf void Clear() ^ \mac (PDefH0 & ImplRet);
+	/ !\i \mf void PeekMessage(Message&) const -> \i \mf;
+	/ !\i \mf void PopMessage() -> \i \mf void Pop();
+/ \tr \impl @ \mf (BackupMessageQueue & SendMessage) @ \impl \u YApplication;
+
+r26:
+/ @ \u Shells:
+	/ \cl ShlSetting \mg -> \cl ShlExplorer;
+	/ @ \cl ShlExplorer:
+		/ @ \cl TFormExtra:
+			/ \tr \impl @ \mf OnClick_btnReturn;
+			/ \mf OnClick_btnReturn => OnClick_btnClose;
+			/ \m btnReturn => btnClose;
+	/ \tr \impl @ \mf OnClick_btnTest;
+
+r27:
+/ @ \cl ShlExplrer @ \impl \u Shells:
+	/ \impl @ \mf OnActivated;
+	+ \f void SwitchVisible(IWindow&) @ \un \ns;
+	/ \impl @ \mf OnClick_btnTest ^ SwitchVisible;
+	/ \simp \impl @ \mf OnClick_ShowWindow ^ SwitchVisible;
+
+r28:
++ \o \c ZOrderType DefaultContainerZOrder(128)
+	@ \ns Components::Widgets @ \h YUIContainer;
+/ \impl @ \mf void AFrame::operator+=(IWindow&);
+
 r29:
-/ \f void OnExit_DebugMemory() >> \f @ \impl \u YGlobal;
+/ \impl @ \ctor @ \cl ShlExplorer @ \impl \u Shells;
 
 r30:
-/ @ \u YGlobal:
-	+ \inh \h YApplication @ \h;
-	/ \cl Global => YDSApplication;
-	/ \inh noncopyable @ \cl YDSApplication -> \inh YApplication;
-	/ \tr \impl @ \f FetchAppInstance @ \impl \u;
-	/ \sm MainScreenWidth & MainScreenHeight @ \cl YDSApplication
-		>> \ns YSLib @ \h;
-/ \tr \ac @ (\mf GetInstancePtr & \ctor) @ \cl YApplication
-	-> protected ~ private;
+/= test 6 ^ \conf release;
 
 r31:
-/ @ \cl YApplication:
-	- protected \mf GetInstancePtr;
-	- \mf GetInstance;
-	/ \ac @ \ctor -> public ~ protected;
--= \inc \h (YExcept & YShellMessageDifinition) @ \h YGlobal;
+/ \f int FetchMessage(Message&, const shared_ptr<YShell>& = FetchShellHandle())
+	-> int FetchMessage(Message&, MessageQueue::SizeType,
+		const shared_ptr<YShell>& = FetchShellHandle());
+/ \impl @ \f main @ \impl \u YGlobal;
 
 r32:
-/= test 5 ^ \conf release;
+/ \impl @ \f main @ \impl \u YGlobal;
+
+r33-r34:
+/= test 7;
+
+r35:
+/ \simp \impl @ \mf ShlExplorer::OnDeactivated @ \impl \u Shells;
+
+r36:
+/ \f shared_ptr<Image>& GetImage(int) @ \u Shells
+	-> shared_ptr<Image>& FetchImage(size_t);
+/ \f GetGlobalImage => FetchGlobalImage @ \impl \u Shells;
+
+r37:
+- \inc \h YDefinition @ \h YCommon;
+/ \a PATH => path_t;
+/ \a CPATH => const_path_t;
+/ typedef path_t & const_path_t >> \ns ystdex @ \g \ns @ \h YDefinition;
+/ @ \ns platform @ \h YCommon:
+	+ using ystdex::const_path_t;
+	+ using ystdex::path_t;
+/ @ \ns \ns YSLib @ \h YAdaptor:
+	+ using ystdex::const_path_t;
+	+ using ystdex::path_t;
+
+r38:
+/= test 8 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-06-05:
+2011-06-08:
 -20.9d;
-//Mercurial rev1-rev85: r4210;
+//Mercurial rev1-rev86: r4242;
 
 / ...
 
 
 $NEXT_TODO:
-b216-b256:
+b217-b256:
 + menus;
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
 	libstdc++ for known associative container operation bugs:
@@ -506,6 +560,23 @@ $renamed_to =>;
 $ellipse_refactoring;
 
 $now
+(
+	/ $design "header file dependencies",
+	/ "focused boundary for controls",
+	* "strict ISO C++2011 code compatibility" $=
+	(
+		* "deprecated keyword static using in ISO C++2003 now removed but"
+			^ @ unit "YApplication when macro YSL_DEBUG_MSG defined"
+	),
+	/ "more efficient message queue implementation" ^ "%multiset"
+		~ %priority_queue",
+	/ "simplified shell example",
+	+ "default windows Z order",
+	+ "message fetching automatically calling %Idle \
+		when size less or equal than a user-specified limit"
+),
+
+b215
 (
 	+ "disabled state style of control %Thumb",
 	* "disabled control touch event handling" $b199,

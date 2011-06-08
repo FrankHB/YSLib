@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11112;
+\version r11135;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-05-25 22:05 +0800;
+	2011-06-08 18:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -331,13 +331,16 @@ DefDynInitRef(_type, _name, _expr)
 
 //非本体或 YGlobal 声明的对象列表。
 
+//非本体类列表。
+$header Core::YShellDefinition
+{
+	namespace Shells
+	{
+		/*extern*/ class YMainShell;
+	}
+} //$header Core::YShellDefinition;
 
 //非本体函数列表。
-$header Core::YShell
-{
-	extern int
-	MainShlProc(const Message&);
-} //$header Core::YShell;
 $header Core::YApplication
 {
 	extern YApplication&
@@ -351,6 +354,9 @@ $header Core::YDevice
 
 $unit Helper::YGlobal
 {
+	extern int
+	MainShlProc(const Message&);
+
 	extern void
 	ReleaseShells();
 } //$unit Helper::YGlobal;
@@ -635,6 +641,10 @@ $header "ycommon.h"
 	using ::iprintf;
 	using ::siprintf;
 	using ::viprintf;
+
+	// using ystdex;
+	using ystdex::const_path_t;
+	using ystdex::path_t;
 } //$header "ycommon.h";
 
 
@@ -664,6 +674,9 @@ $header Adaptor::YAdaptor
 	using ystdex::ssize_t;
 
 	using ystdex::noncopyable;
+
+	using platform::const_path_t;
+	using platform::path_t;
 
 	using platform::DEF_PATH_DELIMITER, platform::DEF_PATH_SEPERATOR,
 		platform::PATHSTR, platform::FILENAMESTR;

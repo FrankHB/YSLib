@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2264;
+\version 0.2283;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-06-05 08:23 +0800;
+	2011-06-08 18:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,12 +27,9 @@
 #ifndef YSL_INC_CORE_YAPP_H_
 #define YSL_INC_CORE_YAPP_H_
 
-#include "yobject.h"
 #include "yfilesys.h"
-#include "ystring.h"
+#include "yshell.h"
 #include "yevt.hpp"
-#include "ysmsg.h"
-#include "yexcept.h"
 
 YSL_BEGIN
 
@@ -178,7 +175,7 @@ public:
 	\note 仅抛出以上异常。
 	*/
 	void
-	ResetFontCache(CPATH) ythrow(LoggedEvent);
+	ResetFontCache(const_path_t) ythrow(LoggedEvent);
 
 	/*!
 	\brief 注销字体缓存。
@@ -231,10 +228,7 @@ Activate(const shared_ptr<YShell>& h)
 
 /*
 \brief 从全局消息队列中取消息。
-\param lpMsg 接收消息信息的 Message 结构指针。
-\param hShl：消息关联（发送目标）的 Shell 的句柄，
-	为 nullptr 时无限制（为全局消息）。
-\param bRemoveMsg 确定取得的消息是否消息队列中清除。
+\note 参数含义见 %MessageQueue::PeekMessage 。
 */
 int
 PeekMessage(Message& msg,
@@ -243,10 +237,12 @@ PeekMessage(Message& msg,
 
 /*!
 \brief 从全局消息队列中取消息。
-\note 若消息队列为空则调用 Idle() 等待消息。取得的消息从消息队列中清除。
+\note 若消息队列中消息数小于或等于给定阈值则调用 Idle() 等待消息。
+	取得的消息从消息队列中清除。
 */
 int
-FetchMessage(Message& msg, const shared_ptr<YShell>& hShl = FetchShellHandle());
+FetchMessage(Message& msg, MessageQueue::SizeType = 0,
+	const shared_ptr<YShell>& hShl = FetchShellHandle());
 
 /*!
 \brief 翻译消息：空实现。

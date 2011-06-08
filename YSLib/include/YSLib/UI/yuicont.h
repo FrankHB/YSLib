@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup Shell
 \brief 样式无关的图形用户界面容器。
-\version 0.2346;
+\version 0.2354;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-05-31 00:34 +0800;
+	2011-06-07 08:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -238,6 +238,7 @@ Fill(IWidget&, Color);
 typedef u8 ZOrderType; //!< Z 顺序类型：覆盖顺序，值越大表示越接近顶层。
 
 const ZOrderType DefaultZOrder(64); //!< 默认 Z 顺序值。
+const ZOrderType DefaultWindowZOrder(128); //!< 默认窗口 Z 顺序值。
 
 
 //! \brief 部件容器模块。
@@ -262,6 +263,7 @@ public:
 protected:
 	/*!
 	\brief 向部件组添加部件。
+	\note 部件已存在时忽略。
 	*/
 	void
 	operator+=(IWidget&);
@@ -269,6 +271,7 @@ protected:
 	\brief 向部件组添加控件。
 	
 	向焦点对象组添加焦点对象，同时向部件组按默认 Z 顺序值添加部件。
+	\note 控件已存在时忽略。
 	*/
 	PDefHOperator1(void, +=, IControl& ctl)
 		ImplRet(Add(ctl))
@@ -323,7 +326,7 @@ public:
 	\brief 向部件组添加控件。
 
 	向焦点对象组添加焦点对象，同时向部件组按指定 Z 顺序值添加部件。
-	\note 检查指针为空时忽略。
+	\note 控件已存在时忽略。
 	*/
 	void
 	Add(IControl&, ZOrderType = DefaultZOrder);

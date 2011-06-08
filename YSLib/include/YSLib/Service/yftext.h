@@ -11,12 +11,12 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version 0.1626;
+\version 0.1627;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-04-30 20:11 +0800;
+	2011-06-08 18:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,7 @@ public:
 	\brief 构造：使用指定文件路径初始化对象。
 	*/
 	explicit
-	TextFile(CPATH);
+	TextFile(const_path_t);
 
 	DefGetter(u8, BOMSize, bl) //!< 取 BOM 大小。
 	DefGetter(Text::CSID, CP, cp) //!< 取编码。

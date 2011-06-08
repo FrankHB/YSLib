@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2264;
+\version 0.2276;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-06-05 08:25 +0800;
+	2011-06-05 16:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -212,6 +212,28 @@ DefMessageTarget(SM_INPUT, shared_ptr<InputContent>)
 
 YSL_END_NAMESPACE(Messaging)
 
+YSL_BEGIN_NAMESPACE(Shells)
+
+//! \brief 主 Shell 。
+class YMainShell : public YShell
+{
+public:
+	/*!
+	\brief 无参数构造。
+	\note 向应用程序对象添加自身。
+	*/
+	YMainShell();
+
+	/*!
+	\brief Shell 处理函数。
+	*/
+	virtual int
+	ShlProc(const Message&);
+};
+
+YSL_END_NAMESPACE(Shells)
+
+
 /*!
 \brief 默认消息发生函数。
 */
@@ -224,23 +246,10 @@ Idle();
 bool
 InitConsole(YScreen&, Drawing::PixelType, Drawing::PixelType);
 
-/*!
-\brief 全局静态资源释放函数。
-*/
-void
-Destroy_Static(YObject&, EventArgs&&);
-
-
 //全局函数。
 
 void
 ShowFatalError(const char*);
-
-/*!
-\brief 全局 Shell 消息处理函数。
-*/
-int
-MainShlProc(const Message& msg);
 
 /*!	\defgroup HelperFunction Helper Function
 \brief 助手功能/函数。

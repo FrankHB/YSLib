@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version 0.4963;
+\version 0.4982;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-06-03 15:25 +0800;
+	2011-06-08 17:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -810,7 +810,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 根据平台特性增设全局对象的定义位于 "/Helper/YGlobal" 中。
 
 @2.1.3 依赖性：
-默认显式依赖于库 CHRLib 。具体由适配器系统(@2.9) 决定。
+默认显式依赖于库 YCLib 。具体由适配器系统(@2.9) 决定。
 
 @2.1.4 命名空间分配：
  YSLib::Components ：组件。
@@ -1178,7 +1178,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 位于 "/Adaptor" 。
 负责衔接和封装外部库，便于移植。
 除了 C++ 标准库以外，其它外部库的名称需要在此声明。
-直接使用除 C++ 标准库、 POSIX / GNU C 兼容函数库、 YCLib 库和 CHRLib 库之外的外部库原代码片段所在文件都从属于 Adaptor 。
+直接使用除 C++ 标准库、 POSIX / GNU C 兼容函数库、 YCLib 库之外的外部库原代码片段所在文件都从属于 Adaptor 。
 
 @2.9.1 内存调试设施：
 定义宏 YSL_USE_MEMORY_DEBUG 后（默认 debug 配置在 "config.h" 有此定义）可以使用 "ynew.h" 声明的宏和类进行内存调试。
@@ -1249,16 +1249,20 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 除了 "ysdef.h" 外都依赖于 "ysdef.h"；
  "yobject.h" 依赖于 "ycutil.h" 、 "yexcept.h" 和 "ycounter.hpp" ；
  "ystring.h" 、 "ysmsg.h" 和 "ygdi.h" 依赖于 "yobject.h" ；
+ "yevt.hpp" 依赖于 "yobject.h" 和 "yfunc.h" ；
  "ygdi.h" 依赖于 "ygdibase.h" ；
  "ysmsgdef.h" 依赖于 "ysmsg.h" ；
- "yshell.h" 依赖于 "ysmsgdef.h" 。
+ "yshell.h" 依赖于 "ysmsgdef.h" ；
+ "yfilesys.h" 依赖于 "ystring.h"；
+ "yapp.h" 依赖于 "yfilesys.h" 和 "yshell.h" 。
 在整个 YSLib 包含指令中排除以下重复的依赖项（仅包含其中较靠后的一组）：
  "ysdef.h" ；
  "ycutil.h" 、 "yexcept.h" 和 "ycounter.hpp" ；
  "yobject.h" 和 "ygdibase.h" ；
- "ystring.h" 、 "ysmsg.h" 和 "ygdi.h" ；
+ "ystring.h" 、 "ysmsg.h" 、 "ygdi.h" 和 "yevt.hpp" ；
  "ysmsgdef.h" ；
- "yshell.h" 。
+ "yshell.h" 和 "yfilesys.h" ；
+ "yapp.h" 。
 在 Shell 中，以下依赖关系对于头文件包含是确定的：
  "ycomp.h" 依赖于 Core 的 "yshell.h"；
  "ystyle.h" 依赖于 Core 的 "ygdi.h" ；
@@ -1314,7 +1318,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 @3.2 库文件基础结构：
 平台设置在 <platform.h> 中。
 任何 YSLib 头文件，除了 "/Adaptor/" 路径下的文件以及仅包含宏定义的文件外，都直接或间接地包含 "/Core/ysdef.h" 文件。
-所有外部链接库为静态库。除了 CHRLib （未找到替代品）和 YCLib 外，对外部库未经过封装的使用仅在 Adaptor 组件中。这样有利于库的移植。
+所有外部链接库为静态库。除了 YCLib 外，对外部库未经过封装的使用仅在 Adaptor 中。这样有利于以子库为单位的移植。
 
 @4 标识符命名规约(naming convention) ：
 以下是 YSLib 风格标识符的命名规则和约定。

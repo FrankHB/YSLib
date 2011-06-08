@@ -11,12 +11,12 @@
 /*!	\file ydef.h
 \ingroup YCLib
 \brief 系统环境和公用类型和宏的基础定义。
-\version 0.2479;
+\version 0.2487;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2011-05-12 18:06 +0800;
+	2011-06-08 18:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,11 +91,11 @@ namespace ystdex
 	using std::ptrdiff_t;
 	using std::size_t;
 	using ::ssize_t;
-}
 
-//路径类型定义。
-typedef char* PATH;
-typedef const char* CPATH;
+	//路径类型定义。
+	typedef char* path_t;
+	typedef const char* const_path_t;
+}
 
 #ifdef __cplusplus
 }

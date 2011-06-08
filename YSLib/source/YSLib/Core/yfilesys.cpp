@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2170;
+\version 0.2172;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-05-23 20:17 +0800;
+	2011-06-08 18:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,10 +34,10 @@ using namespace Text;
 
 YSL_BEGIN_NAMESPACE(IO)
 
-const CPATH FS_Root(DEF_PATH_ROOT);
-const CPATH FS_Seperator(DEF_PATH_SEPERATOR);
-const CPATH FS_Now(".");
-const CPATH FS_Parent("..");
+const const_path_t FS_Root(DEF_PATH_ROOT);
+const const_path_t FS_Seperator(DEF_PATH_SEPERATOR);
+const const_path_t FS_Now(".");
+const const_path_t FS_Parent("..");
 
 
 namespace
@@ -169,7 +169,7 @@ Path::iterator::operator*() const
 
 
 const char*
-GetFileNameFrom(CPATH path)
+GetFileNameFrom(const_path_t path)
 {
 	if(!path)
 		return nullptr;
@@ -351,7 +351,7 @@ ValidateDirectory(const string& pathstr)
 }
 
 
-FileList::FileList(CPATH path)
+FileList::FileList(const_path_t path)
 	: Directory((path && *path) ? path : FS_Root), hList(new ListType())
 {}
 FileList::FileList(const string& path)

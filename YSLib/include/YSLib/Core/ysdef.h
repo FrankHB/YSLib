@@ -16,12 +16,12 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version 0.2511;
+\version 0.2522;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-24 15:29:11 +0800;
 \par 修改时间:
-	2011-05-20 05:19 +0800;
+	2011-06-05 17:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -63,7 +63,7 @@ YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Shells)
 class YShell;
-class YMainShell;
+/*extern*/ class YMainShell;
 YSL_END_NAMESPACE(Shells)
 
 YSL_BEGIN_NAMESPACE(Text)
@@ -81,7 +81,6 @@ using Device::YScreen;
 
 using Drawing::FontCache;
 
-using Shells::YMainShell;
 using Shells::YShell;
 
 using Text::String;

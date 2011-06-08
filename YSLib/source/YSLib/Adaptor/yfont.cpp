@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7260;
+\version 0.7262;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-06-01 08:49 +0800;
+	2011-06-08 18:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -301,7 +301,7 @@ Font::UpdateSize()
 }
 
 
-FontCache::FontCache(CPATH defFontPath, u32 cacheSize)
+FontCache::FontCache(const_path_t default_font_path, u32 cache_size)
 {
 	scaler.face_id = nullptr;
 	scaler.width = 0;
@@ -313,12 +313,12 @@ FontCache::FontCache(CPATH defFontPath, u32 cacheSize)
 	FT_Error error;
 
 	if((error = FT_Init_FreeType(&library)) == 0
-		&& (error = FTC_Manager_New(library, 0, 0, cacheSize,
+		&& (error = FTC_Manager_New(library, 0, 0, cache_size,
 		&simpleFaceRequester, nullptr, &manager)) == 0
 		&& (error = FTC_SBitCache_New(manager, &sbitCache)) == 0
 		&& (error = FTC_CMapCache_New(manager, &cmapCache)) == 0)
 	{
-		if(LoadFontFile(defFontPath))
+		if(LoadFontFile(default_font_path))
 			LoadTypefaces();
 		InitializeDefaultTypeface();
 		if(pDefaultFace)
@@ -594,7 +594,7 @@ FontCache::LoadTypefaces(const FontFile& f)
 }
 
 bool
-FontCache::LoadFontFile(CPATH path)
+FontCache::LoadFontFile(const_path_t path)
 {
 	try
 	{

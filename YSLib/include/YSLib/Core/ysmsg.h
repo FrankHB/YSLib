@@ -11,12 +11,12 @@
 /*!	\file ysmsg.h
 \ingroup Core
 \brief 消息处理。
-\version 0.2308;
+\version 0.2394;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-05-21 23:59 +0800;
+	2011-06-06 23:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -279,27 +279,26 @@ private:
 		\brief 调用比较函数。
 		*/
 		bool
-		operator()(const Message& i, const Message& j)
+		operator()(const Message& a, const Message& b)
 		{
-			if(i.prior == j.prior)
-			//	return i.time > j.time;
-				return i.GetObjectID() > j.GetObjectID();
-			return i.prior < j.prior;
+		//	if(a.prior == b.prior)
+			//	return a.time > b.time;
+		//		return a.GetObjectID() < b.GetObjectID();
+			return a.prior > b.prior;
 		}
 	};
 
-	//消息优先队列。
-	priority_queue<Message, vector<Message>, cmp> q;
+	multiset<Message, cmp> q; //!< 消息优先队列：使用 multiset 模拟。
 
 	PDefH0(const Message&, top) const
-		ImplBodyMember0(q, top)
-	PDefH1(void, push, const Message& msg)
-		ImplBodyMember1(q, push, msg)
+		ImplRet(*q.begin())
 	PDefH0(void, pop)
-		ImplBodyMember0(q, pop)
+		ImplRet(static_cast<void>(q.erase(q.begin())))
+	PDefH1(void, push, const Message& msg)
+		ImplRet(static_cast<void>(q.insert(msg)))
 
 public:
-	typedef priority_queue<int, vector<int>, cmp>::size_type SizeType;
+	typedef decltype(q.size()) SizeType;
 
 	/*!
 	\brief 无参数构造：默认实现。
@@ -316,45 +315,78 @@ public:
 	\note 不在消息队列中保留消息。
 	*/
 	Message
-	FetchMessage();
+	GetMessage();
+
+	/*!
+	\brief 清除消息队列。
+	*/
+	PDefH0(void, Clear)
+		ImplRet(q.clear())
+
+	/*!
+	\brief 合并消息队列：移动指定消息队列中的所有消息至此消息队列中。
+	*/
+	void
+	Merge(MessageQueue&);
 
 	/*!
 	\brief 从消息队列中取优先级最高的消息存至 msg 中。
-	\note 在队列中保留消息。
+	\note 在队列中保留消息；不检查消息是否有效。
 	*/
 	void
 	PeekMessage(Message& msg) const;
+	/*
+	\brief 从消息队列中取消息。
+	\param lpMsg 接收消息信息的 Message 结构指针。
+	\param hShl 消息关联（发送目标）的 Shell 的句柄，
+		为 nullptr 时无限制（为全局消息）。
+	\param bRemoveMsg 确定取得的消息是否消息队列中清除。
+	*/
+	int
+	PeekMessage(Message& msg, const shared_ptr<YShell>& hShl,
+		bool bRemoveMsg = false);
 
 	/*!
-	\brief 清除消息队列，返回清除的消息数。
+	\brief 丢弃消息队列中优先级最高的消息。
+	\note 消息队列为空时忽略。
 	*/
-	SizeType
-	Clear();
+	void
+	Pop();
+
+	/*!
+	\brief 若消息 msg 有效，插入 msg 至消息队列中。
+	*/
+	void
+	Push(const Message& msg);
 
 	/*!
 	\brief 更新消息队列。
 	*/
 	void
 	Update();
-
-	/*!
-	\brief 若消息 msg 有效，插入 msg 至消息队列中。返回 msg 是否有效。
-	*/
-	bool
-	Insert(const Message& msg);
 };
 
+inline void
+MessageQueue::PeekMessage(Message& msg) const
+{
+	if(!q.empty())
+		msg = top();
+}
 
-/*!
-\brief 合并 src 所有消息至 dst 中。
-*/
-void
-Merge(MessageQueue& dst, list<Message>& src);
-/*!
-\brief 合并 src 所有消息至 dst 中。
-*/
-void
-Merge(MessageQueue& dst, MessageQueue& src);
+inline void
+MessageQueue::Push(const Message& msg)
+{
+	if(msg.IsValid())
+		push(msg);
+}
+
+inline void
+MessageQueue::Pop()
+{
+	if(!q.empty())
+		pop();
+}
+
 
 YSL_END_NAMESPACE(Messaging)
 

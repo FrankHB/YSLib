@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.3279;
+\version 0.3291;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-05-22 00:05 +0800;
+	2011-06-05 17:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,12 +29,6 @@
 #include "../Helper/yglobal.h"
 
 YSL_BEGIN
-
-/*!
-\brief 主 Shell 处理函数。
-*/
-extern int
-MainShlProc(const Message&);
 
 YSL_BEGIN_NAMESPACE(Shells)
 
@@ -110,17 +104,6 @@ YShell::OnDeactivated(const Message& msg)
 {
 	SendMessage(msg);
 	return 0;
-}
-
-
-YMainShell::YMainShell()
-	: YShell()
-{}
-
-int
-YMainShell::ShlProc(const Message& msg)
-{
-	return MainShlProc(msg);
 }
 
 YSL_END_NAMESPACE(Shells)
