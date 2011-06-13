@@ -9,14 +9,14 @@
 */
 
 /*!	\file ywidget.cpp
-\ingroup Shell
+\ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.4918;
+\version 0.4919;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-05-14 20:51 +0800;
+	2011-06-10 17:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

@@ -37,8 +37,8 @@
     <ClInclude Include="include\YSLib\Core\yres.h" />
     <ClInclude Include="include\YSLib\Core\ysdef.h" />
     <ClInclude Include="include\YSLib\Core\yshell.h" />
-    <ClInclude Include="include\YSLib\Core\ysmsg.h" />
-    <ClInclude Include="include\YSLib\Core\ysmsgdef.h" />
+    <ClInclude Include="include\YSLib\Core\ymsg.h" />
+    <ClInclude Include="include\YSLib\Core\ymsgdef.h" />
     <ClInclude Include="include\YSLib\Core\ystatic.hpp" />
     <ClInclude Include="include\YSLib\Core\ystring.h" />
     <ClInclude Include="include\YSLib\Helper\shlds.h" />
@@ -84,7 +84,7 @@
     <ClCompile Include="source\YSLib\Core\yobject.cpp" />
     <ClCompile Include="source\YSLib\Core\yres.cpp" />
     <ClCompile Include="source\YSLib\Core\yshell.cpp" />
-    <ClCompile Include="source\YSLib\Core\ysmsg.cpp" />
+    <ClCompile Include="source\YSLib\Core\ymsg.cpp" />
     <ClCompile Include="source\YSLib\Core\ystring.cpp" />
     <ClCompile Include="source\YSLib\Helper\shlds.cpp" />
     <ClCompile Include="source\YSLib\Helper\yglobal.cpp" />

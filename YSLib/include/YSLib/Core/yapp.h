@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2283;
+\version 0.2289;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-06-08 18:12 +0800;
+	2011-06-09 08:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -277,13 +277,13 @@ void
 SendMessage(const Message&) ynothrow;
 void
 SendMessage(const shared_ptr<YShell>&, Messaging::ID, Messaging::Priority,
-	const Messaging::Content& = Messaging::Content()) ynothrow;
+	const ValueObject& = ValueObject()) ynothrow;
 template<Messaging::MessageID _vID>
 inline void
 SendMessage(const shared_ptr<YShell>& hShl, Messaging::Priority prior,
 	const typename Messaging::SMessageMap<_vID>::TargetType& target) ynothrow
 {
-	SendMessage(hShl, _vID, prior, Messaging::Content(target));
+	SendMessage(hShl, _vID, prior, ValueObject(target));
 }
 //@}
 

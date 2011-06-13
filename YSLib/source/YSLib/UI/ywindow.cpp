@@ -9,14 +9,14 @@
 */
 
 /*!	\file ywindow.cpp
-\ingroup Shell
+\ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.3761;
+\version 0.3763;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-06-07 08:36 +0800;
+	2011-06-10 17:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

@@ -9,14 +9,14 @@
 */
 
 /*!	\file yuicont.h
-\ingroup Shell
+\ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2354;
+\version 0.2355;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-06-07 08:33 +0800;
+	2011-06-10 17:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

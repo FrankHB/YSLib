@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="YSTest" />
+		<Option makefile_is_custom="1" />
+		<Option pch_mode="2" />
+		<Option compiler="gnu_armeabi_gcc_compiler" />
+		<MakeCommands>
+			<Build command="$make -f $makefile -r BUILD=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
+			<CompileFile command="$make -f $makefile $file" />
+			<Clean command="$make -f $makefile -r BUILD=$target clean" />
+			<DistClean command="$make -f $makefile distclean$target" />
+			<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
+			<SilentBuild command="$make -s -f $makefile -r BUILD=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
+		</MakeCommands>
+		<Build>
+			<Target title="debug">
+				<Option type="4" />
+				<Option compiler="gnu_armeabi_gcc_compiler" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<MakeCommands>
+					<Build command="$make -f $makefile -r BUILD=$target" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile -r BUILD=$target clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
+					<SilentBuild command="$make -s -f $makefile -r BUILD=$target" />
+				</MakeCommands>
+			</Target>
+			<Target title="release">
+				<Option output="release\YSTest" prefix_auto="1" extension_auto="1" />
+				<Option object_output="release\" />
+				<Option type="1" />
+				<Option compiler="gnu_armeabi_gcc_compiler" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+				<MakeCommands>
+					<Build command="$make -f $makefile -r BUILD=$target" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile -r BUILD=$target clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
+					<SilentBuild command="$make -s -f $makefile -r BUILD=$target" />
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="Makefile" />
+		<Unit filename="data\logo.bmp" />
+		<Unit filename="data\logo_wifi.bmp" />
+		<Unit filename="doc\Definitions.txt" />
+		<Unit filename="doc\Designation.txt" />
+		<Unit filename="doc\YSLib.txt" />
+		<Unit filename="doc\ex.cpp" />
+		<Unit filename="doc\html\doxygen.css" />
+		<Unit filename="doc\html\search\search.css" />
+		<Unit filename="doc\html\tabs.css" />
+		<Unit filename="include\api.h" />
+		<Unit filename="include\freetype\config\ftconfig.h" />
+		<Unit filename="include\freetype\config\ftheader.h" />
+		<Unit filename="include\freetype\config\ftmodule.h" />
+		<Unit filename="include\freetype\config\ftoption.h" />
+		<Unit filename="include\freetype\config\ftstdlib.h" />
+		<Unit filename="include\freetype\freetype.h" />
+		<Unit filename="include\freetype\ftadvanc.h" />
+		<Unit filename="include\freetype\ftbbox.h" />
+		<Unit filename="include\freetype\ftbdf.h" />
+		<Unit filename="include\freetype\ftbitmap.h" />
+		<Unit filename="include\freetype\ftcache.h" />
+		<Unit filename="include\freetype\ftchapters.h" />
+		<Unit filename="include\freetype\ftcid.h" />
+		<Unit filename="include\freetype\fterrdef.h" />
+		<Unit filename="include\freetype\fterrors.h" />
+		<Unit filename="include\freetype\ftgasp.h" />
+		<Unit filename="include\freetype\ftglyph.h" />
+		<Unit filename="include\freetype\ftgxval.h" />
+		<Unit filename="include\freetype\ftgzip.h" />
+		<Unit filename="include\freetype\ftimage.h" />
+		<Unit filename="include\freetype\ftincrem.h" />
+		<Unit filename="include\freetype\ftlcdfil.h" />
+		<Unit filename="include\freetype\ftlist.h" />
+		<Unit filename="include\freetype\ftlzw.h" />
+		<Unit filename="include\freetype\ftmac.h" />
+		<Unit filename="include\freetype\ftmm.h" />
+		<Unit filename="include\freetype\ftmodapi.h" />
+		<Unit filename="include\freetype\ftmoderr.h" />
+		<Unit filename="include\freetype\ftotval.h" />
+		<Unit filename="include\freetype\ftoutln.h" />
+		<Unit filename="include\freetype\ftpfr.h" />
+		<Unit filename="include\freetype\ftrender.h" />
+		<Unit filename="include\freetype\ftsizes.h" />
+		<Unit filename="include\freetype\ftsnames.h" />
+		<Unit filename="include\freetype\ftstroke.h" />
+		<Unit filename="include\freetype\ftsynth.h" />
+		<Unit filename="include\freetype\ftsystem.h" />
+		<Unit filename="include\freetype\fttrigon.h" />
+		<Unit filename="include\freetype\fttypes.h" />
+		<Unit filename="include\freetype\ftwinfnt.h" />
+		<Unit filename="include\freetype\ftxf86.h" />
+		<Unit filename="include\freetype\internal\autohint.h" />
+		<Unit filename="include\freetype\internal\ftcalc.h" />
+		<Unit filename="include\freetype\internal\ftdebug.h" />
+		<Unit filename="include\freetype\internal\ftdriver.h" />
+		<Unit filename="include\freetype\internal\ftgloadr.h" />
+		<Unit filename="include\freetype\internal\ftmemory.h" />
+		<Unit filename="include\freetype\internal\ftobjs.h" />
+		<Unit filename="include\freetype\internal\ftpic.h" />
+		<Unit filename="include\freetype\internal\ftrfork.h" />
+		<Unit filename="include\freetype\internal\ftserv.h" />
+		<Unit filename="include\freetype\internal\ftstream.h" />
+		<Unit filename="include\freetype\internal\fttrace.h" />
+		<Unit filename="include\freetype\internal\ftvalid.h" />
+		<Unit filename="include\freetype\internal\internal.h" />
+		<Unit filename="include\freetype\internal\pcftypes.h" />
+		<Unit filename="include\freetype\internal\psaux.h" />
+		<Unit filename="include\freetype\internal\pshints.h" />
+		<Unit filename="include\freetype\internal\services\svbdf.h" />
+		<Unit filename="include\freetype\internal\services\svcid.h" />
+		<Unit filename="include\freetype\internal\services\svgldict.h" />
+		<Unit filename="include\freetype\internal\services\svgxval.h" />
+		<Unit filename="include\freetype\internal\services\svkern.h" />
+		<Unit filename="include\freetype\internal\services\svmm.h" />
+		<Unit filename="include\freetype\internal\services\svotval.h" />
+		<Unit filename="include\freetype\internal\services\svpfr.h" />
+		<Unit filename="include\freetype\internal\services\svpostnm.h" />
+		<Unit filename="include\freetype\internal\services\svpscmap.h" />
+		<Unit filename="include\freetype\internal\services\svpsinfo.h" />
+		<Unit filename="include\freetype\internal\services\svsfnt.h" />
+		<Unit filename="include\freetype\internal\services\svttcmap.h" />
+		<Unit filename="include\freetype\internal\services\svtteng.h" />
+		<Unit filename="include\freetype\internal\services\svttglyf.h" />
+		<Unit filename="include\freetype\internal\services\svwinfnt.h" />
+		<Unit filename="include\freetype\internal\services\svxf86nm.h" />
+		<Unit filename="include\freetype\internal\sfnt.h" />
+		<Unit filename="include\freetype\internal\t1types.h" />
+		<Unit filename="include\freetype\internal\tttypes.h" />
+		<Unit filename="include\freetype\t1tables.h" />
+		<Unit filename="include\freetype\ttnameid.h" />
+		<Unit filename="include\freetype\tttables.h" />
+		<Unit filename="include\freetype\tttags.h" />
+		<Unit filename="include\freetype\ttunpat.h" />
+		<Unit filename="include\ft2build.h" />
+		<Unit filename="include\platform.h" />
+		<Extensions>
+			<DoxyBlocks>
+				<comment_style block="1" line="1" />
+				<doxyfile_project />
+				<doxyfile_build />
+				<doxyfile_warnings />
+				<doxyfile_output />
+				<doxyfile_dot />
+				<general />
+			</DoxyBlocks>
+			<code_completion />
+			<envvars set="default" />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

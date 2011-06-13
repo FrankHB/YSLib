@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 抽象。
-\version 0.4563;
+\version 0.4582;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-06-08 18:10 +0800;
+	2011-06-10 15:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,14 +43,7 @@ MainShlProc(const Message& msg)
 	switch(msg.GetMessageID())
 	{
 	case SM_ACTIVATED:
-		try
-		{
-			NowShellToStored<ShlLoad>();
-		}
-		catch(...)
-		{
-			throw LoggedEvent("Run shell failed at end of ShlMain.");
-		}
+		NowShellToStored<ShlLoad>();
 		return 0;
 
 	default:
@@ -277,6 +270,7 @@ ShlLoad::ShlLoad()
 int
 ShlLoad::OnActivated(const Message& msg)
 {
+	ParentType::OnActivated(msg);
 	YDebugSetStatus(true);
 	GetDesktopUp() += lblTitle;
 	GetDesktopUp() += lblStatus;
@@ -289,17 +283,8 @@ ShlLoad::OnActivated(const Message& msg)
 	lblDetails.SetTransparent(true);
 //	lblTitle.Transparent = true;
 //	DrawContents();
-	ParentType::OnActivated(msg);
 	UpdateToScreen();
-	try
-	{
-		SetShellToStored<ShlExplorer>();
-	}
-	catch(...)
-	{
-		throw LoggedEvent("Run shell failed at end of ShlLoad.");
-		return -1;
-	}
+	SetShellToStored<ShlExplorer>();
 	return 0;
 }
 
@@ -329,8 +314,11 @@ ShlExplorer::ShlExplorer()
 		btnOK.SetEnabled(true);
 	};
 	fbMain.GetConfirmed() += OnConfirmed_fbMain;
+	btnTest.SetEnabled(false);
 	btnOK.SetEnabled(false);
-	FetchEvent<Click>(chkTest).Add(*this, &ShlExplorer::OnClick_chkTest);
+	FetchEvent<Click>(chkTest) += [this](IControl&, TouchEventArgs&&){
+		btnTest.SetEnabled(chkTest.IsTicked());
+	};
 	FetchEvent<Click>(btnTest).Add(*this, &ShlExplorer::OnClick_btnTest);
 	FetchEvent<Click>(btnOK).Add(*this, &ShlExplorer::OnClick_btnOK);
 	lblA.Text = YApplication::ProductName;
@@ -391,8 +379,6 @@ ShlExplorer::TFormTest::TFormTest()
 	FetchEvent<Leave>(btnEnterTest) += OnLeave_btnEnterTest;
 	FetchEvent<Click>(btnMenuTest).Add(*this, &TFormTest::OnClick_btnMenuTest);
 	FetchEvent<Click>(btnShowWindow) += OnClick_ShowWindow;
-//	FetchEvent<TouchMove>(btnShowWindow) += OnTouchMove_Dragging;
-//	FetchEvent<TouchDown>(btnShowWindow) += OnClick_btnDragTest;
 }
 
 void
@@ -426,7 +412,7 @@ void
 ShlExplorer::TFormTest::OnClick_btnMenuTest(TouchEventArgs&&)
 {
 	static int t;
-	
+
 	YAssert(s_pMenuHost, "err: null menu host pointer found;");
 
 	auto& mnu((*s_pMenuHost)[1u]);
@@ -438,7 +424,7 @@ ShlExplorer::TFormTest::OnClick_btnMenuTest(TouchEventArgs&&)
 			lst.clear();
 
 		char stra[4];
-		
+
 		siprintf(stra, "%d", t);
 		lst.push_back(String((string("TMI") + stra).c_str()));
 	}
@@ -488,7 +474,9 @@ ShlExplorer::TFormExtra::TFormExtra()
 //	btnDragTest.Enabled = false;
 	btnClose.BackColor = ARGB16(1, 22, 23, 24);
 	FetchEvent<Click>(btnClose).Add(*this, &TFormExtra::OnClick_btnClose);
-	FetchEvent<Click>(btnExit).Add(*this, &TFormExtra::OnClick_btnExit);
+	FetchEvent<Click>(btnExit) += [](IControl&, TouchEventArgs&&){
+		PostQuitMessage(0);
+	};
 }
 
 
@@ -595,12 +583,6 @@ ShlExplorer::TFormExtra::OnClick_btnClose(TouchEventArgs&&)
 }
 
 void
-ShlExplorer::TFormExtra::OnClick_btnExit(TouchEventArgs&&)
-{
-	PostQuitMessage(0);
-}
-
-void
 ShlExplorer::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 {
 	using namespace Drawing;
@@ -643,7 +625,7 @@ ShlExplorer::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 		void
 		Test1(TextRegion& tr, Color c)
 		{
-			Fill();				
+			Fill();
 			tr.ClearImage();
 			tr.ResetPen();
 			tr.Color = c;
@@ -791,6 +773,7 @@ ShlExplorer::ShlProc(const Message& msg)
 int
 ShlExplorer::OnActivated(const Message& msg)
 {
+	ParentType::OnActivated(msg);
 	GetDesktopUp() += lblTitle;
 	GetDesktopUp() += lblPath;
 	GetDesktopDown() += fbMain;
@@ -847,7 +830,6 @@ ShlExplorer::OnActivated(const Message& msg)
 		+= *new Menu(Rect::Empty, GenerateList(_ustr("B:MenuItem")), 2u);
 	(*s_pMenuHost)[1u] += make_pair(1u, &(*s_pMenuHost)[2u]);
 	ResizeForContent((*s_pMenuHost)[2u]);
-	ParentType::OnActivated(msg);
 	UpdateToScreen();
 	return 0;
 }
@@ -940,12 +922,6 @@ ShlExplorer::OnKeyPress_frm(KeyEventArgs&& e)
 		return;
 	}
 	e.Handled = true;
-}
-
-void
-ShlExplorer::OnClick_chkTest(TouchEventArgs&&)
-{
-	btnTest.SetEnabled(chkTest.IsTicked());
 }
 
 void
@@ -1068,6 +1044,7 @@ ShlReader::ShlProc(const Message& msg)
 int
 ShlReader::OnActivated(const Message& msg)
 {
+	ParentType::OnActivated(msg);
 	pTextFile = ynew TextFile(path.c_str());
 	Reader.LoadText(*pTextFile);
 	bgDirty = true;
@@ -1078,7 +1055,6 @@ ShlReader::OnActivated(const Message& msg)
 	FetchEvent<Click>(GetDesktopDown()).Add(*this, &ShlReader::OnClick);
 	FetchEvent<KeyDown>(GetDesktopDown()).Add(*this, &ShlReader::OnKeyDown);
 	FetchEvent<KeyHeld>(GetDesktopDown()) += OnKeyHeld;
-	ParentType::OnActivated(msg);
 	RequestFocusCascade(GetDesktopDown());
 	UpdateToScreen();
 	return 0;

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="YSTest 工作空间">
+		<Project filename="YCLib/YCLib.cbp" />
+		<Project filename="YSLib/YSLib.cbp">
+			<Depends filename="YCLib/YCLib.cbp" />
+		</Project>
+		<Project filename="YSTest/YSTest.cbp" active="1">
+			<Depends filename="YSTest_ARM7/YSTest_ARM7.cbp" />
+			<Depends filename="YSTest_ARM9/YSTest_ARM9.cbp" />
+		</Project>
+		<Project filename="YSTest_ARM7/YSTest_ARM7.cbp" />
+		<Project filename="YSTest_ARM9/YSTest_ARM9.cbp">
+			<Depends filename="YSLib/YSLib.cbp" />
+		</Project>
+	</Workspace>
+</CodeBlocks_workspace_file>

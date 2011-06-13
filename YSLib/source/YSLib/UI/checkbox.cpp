@@ -9,14 +9,14 @@
 */
 
 /*!	\file checkbox.cpp
-\ingroup Shell
+\ingroup UI
 \brief 样式相关的图形用户界面复选框控件。
-\version 0.1362;
+\version 0.1368;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2011-06-05 15:12 +0800;
+	2011-06-10 17:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -107,7 +107,9 @@ CheckBox::CheckBox(const Rect& r)
 	: Thumb(r),
 	bTicked(false)
 {
-	FetchEvent<Click>(*this) += &CheckBox::OnClick;
+	FetchEvent<Click>(*this) += [this](IControl&, TouchEventArgs&&){
+		bTicked ^= true;
+	};
 }
 
 void
@@ -126,12 +128,6 @@ CheckBox::Paint()
 		if(IsFocused())
 			DrawWidgetBounds(*this, ColorSpace::Aqua);
 	}
-}
-
-void
-CheckBox::OnClick(TouchEventArgs&&)
-{
-	bTicked ^= true;
 }
 
 YSL_END_NAMESPACE(Controls)

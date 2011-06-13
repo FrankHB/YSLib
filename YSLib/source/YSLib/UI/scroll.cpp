@@ -9,14 +9,14 @@
 */
 
 /*!	\file scroll.cpp
-\ingroup Shell
+\ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3614;
+\version 0.3684;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-06-03 16:56 +0800;
+	2011-06-12 00:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,6 +31,8 @@
 using namespace ystdex;
 
 YSL_BEGIN
+
+using namespace Runtime;
 
 YSL_BEGIN_NAMESPACE(Components)
 
@@ -96,7 +98,27 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 {
 	Thumb.GetContainerPtr() = this;
 	FetchEvent<TouchMove>(*this) += OnTouchMove;
-	FetchEvent<TouchDown>(*this) += &ATrack::OnTouchDown;
+	FetchEvent<TouchDown>(*this) += [this](IControl&, TouchEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct
+			&& Rect(Point::Zero, this->GetSize()).Contains(e))
+		{
+			using namespace ScrollEventSpace;
+
+			switch(CheckArea(SelectFrom(e, IsHorizontal())))
+			{
+			case OnPrev:
+				LocateThumbForLargeDecrement();
+				break;
+			case OnNext:
+				LocateThumbForLargeIncrement();
+				break;
+			case OnThumb:
+			default:
+				LocateThumb(EndScroll, value);
+				break;
+			}
+		}
+	};
 }
 
 IControl*
@@ -265,30 +287,6 @@ ATrack::UpdateValue()
 }
 
 void
-ATrack::OnTouchDown(TouchEventArgs&& e)
-{
-	if(e.Strategy == RoutedEventArgs::Direct
-		&& Rect(Point::Zero, GetSize()).Contains(e))
-	{
-		using namespace ScrollEventSpace;
-
-		switch(CheckArea(SelectFrom(e, IsHorizontal())))
-		{
-		case OnPrev:
-			LocateThumbForLargeDecrement();
-			break;
-		case OnNext:
-			LocateThumbForLargeIncrement();
-			break;
-		case OnThumb:
-		default:
-			LocateThumb(EndScroll, value);
-			break;
-		}
-	}
-}
-
-void
 ATrack::OnThumbDrag(EventArgs&&)
 {
 	ValueType old_value(value);
@@ -367,12 +365,17 @@ try	: AUIBoxControl(r),
 	pTrack->GetContainerPtr() = this;
 	PrevButton.GetContainerPtr() = this;
 	NextButton.GetContainerPtr() = this;
+	FetchEvent<KeyHeld>(*this) += OnKeyHeld;
 	FetchEvent<TouchMove>(PrevButton) += OnTouchMove;
-	FetchEvent<TouchDown>(PrevButton).Add(*this,
-		&AScrollBar::OnTouchDown_PrevButton);
+	FetchEvent<TouchDown>(PrevButton) += [this](IControl&, TouchEventArgs&& e){
+		PerformSmallDecrement();
+	};
 	FetchEvent<TouchMove>(NextButton) += OnTouchMove;
-	FetchEvent<TouchDown>(NextButton).Add(*this,
-		&AScrollBar::OnTouchDown_NextButton);
+	FetchEvent<TouchDown>(NextButton) += [this](IControl&, TouchEventArgs&& e){
+		PerformSmallIncrement();
+	};
+	FetchEvent<KeyUp>(*this) += &Control::OnKeyUp_Bound_TouchUpAndLeave;
+	FetchEvent<KeyDown>(*this) += &Control::OnKeyDown_Bound_EnterAndTouchDown;
 
 	Size s(GetSize());
 	const bool bHorizontal(o == Horizontal);
@@ -426,20 +429,6 @@ AScrollBar::Paint()
 		pTrack->GetOrientation() == Horizontal ? RDeg0 : RDeg270, ForeColor);
 }
 
-void
-AScrollBar::OnTouchDown_PrevButton(TouchEventArgs&& e)
-{
-	if(e.Strategy == RoutedEventArgs::Direct)
-		GetTrack().LocateThumbForSmallDecrement(small_delta);
-}
-
-void
-AScrollBar::OnTouchDown_NextButton(TouchEventArgs&& e)
-{
-	if(e.Strategy == RoutedEventArgs::Direct)
-		GetTrack().LocateThumbForSmallIncrement(small_delta);
-}
-
 
 HorizontalScrollBar::HorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
 	: AScrollBar(r, uMinThumbLength, Horizontal)
@@ -451,6 +440,16 @@ HorizontalScrollBar::HorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
 		"Width is not greater than twice of height.");
 }
 
+IControl*
+HorizontalScrollBar::GetBoundControlPtr(const Key& k)
+{
+	if(k == KeySpace::Left)
+		return &PrevButton;
+	if(k == KeySpace::Right)
+		return &NextButton;
+	return nullptr;
+}
+
 
 VerticalScrollBar::VerticalScrollBar(const Rect& r, SDst uMinThumbLength)
 	: AScrollBar(r, uMinThumbLength, Vertical)
@@ -460,6 +459,16 @@ VerticalScrollBar::VerticalScrollBar(const Rect& r, SDst uMinThumbLength)
 			"VerticalScrollBar::VerticalScrollBar"
 		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"height is not greater than twice of width.");
+}
+
+IControl*
+VerticalScrollBar::GetBoundControlPtr(const Key& k)
+{
+	if(k == KeySpace::Up)
+		return &PrevButton;
+	if(k == KeySpace::Down)
+		return &NextButton;
+	return nullptr;
 }
 
 

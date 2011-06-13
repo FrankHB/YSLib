@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version 0.3083;
+\version 0.3128;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-05-31 13:48 +0800;
+	2011-06-09 08:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,125 @@ YSL_BEGIN
 
 //基本对象定义。
 
-//! \brief 基本对象类：所有类名以 Y 作前缀的类的公共基类。
+/*!
+\brief 值类型对象类。
+\pre 满足 CopyConstructible 。
+\warning \c public 析构函数非虚实现。
+
+具有值语义和深复制语义的对象。
+*/
+class ValueObject
+{
+public:
+	typedef enum
+	{
+	//	Create = 0,
+		Destroy = 1,
+		Clone = 2,
+		Equality = 3
+	} OpType;
+	typedef bool (*ManagerType)(void*&, void*&, OpType);
+
+private:
+	template<typename _type>
+	struct GManager
+	{
+		static bool
+		Do(void*& lhs, void*& rhs, OpType op)
+		{
+			switch(op)
+			{
+		//	case Create:
+		//		lhs = new _type();
+		//		return false;
+			case Destroy:
+				delete static_cast<_type*>(lhs);
+				return false;
+			case Clone:
+				YAssert(rhs, "Null pointer found"
+					" @ ValueObject::GManager::Do#Clone;");
+
+				lhs = new _type(*static_cast<_type*>(rhs));
+				return false;
+			case Equality:
+				YAssert(lhs && rhs, "Null pointer found"
+					" @ ValueObject::GManager::Do#Equlitiy;");
+
+				return *static_cast<_type*>(lhs) == *static_cast<_type*>(rhs);
+			default:
+				return false;
+			}
+			return false;
+		}
+	};
+
+	ManagerType manager;
+	mutable void* obj_ptr;
+
+public:
+	/*!
+	\brief 无参数构造。
+	\note 得到空实例。
+	*/
+	ValueObject();
+	/*!
+	\brief 构造：使用对象引用。
+	\note 对象需要是可复制构造的。
+	\note 得到包含指定对象的实例。
+	*/
+	template<typename _type>
+	ValueObject(const _type& obj)
+		: manager(&GManager<_type>::Do), obj_ptr(new _type(obj))
+	{}
+	ValueObject(const ValueObject&);
+	ValueObject(ValueObject&&);
+	~ValueObject();
+
+	ValueObject&
+	operator=(const ValueObject&);
+	ValueObject&
+	operator=(ValueObject&&);
+
+	bool
+	operator==(const ValueObject&) const;
+
+	template<typename _type>
+	const _type&
+	GetObject() const
+	{
+		YAssert(obj_ptr, "Null pointer found @ ValueObject::GetObject;");
+		YAssert(GManager<_type>::Do == manager, "Invalid type found"
+			" @ ValueObject::GetObject;");
+
+		return *static_cast<const _type*>(obj_ptr);
+	}
+
+	void
+	Clear();
+
+	void
+	Swap(ValueObject&);
+};
+
+inline
+ValueObject::ValueObject()
+	: manager(nullptr), obj_ptr(nullptr)
+{}
+inline
+ValueObject::~ValueObject()
+{
+	Clear();
+}
+
+inline ValueObject&
+ValueObject::operator=(const ValueObject& c)
+{
+	ValueObject(c).Swap(*this);
+	return *this;
+}
+
+
+//! \brief 基本框架对象类：所有类名以 Y 作前缀的类的公共基类。
 class YObject : public noncopyable
 {
 public:
@@ -55,8 +173,7 @@ class YCountableObject : public GMCounter<YCountableObject>, public YObject
 {
 protected:
 	/*!
-	\brief 无参数构造。
-	\note 保护实现。
+	\brief \c protected 无参数构造。
 	*/
 	YCountableObject();
 };

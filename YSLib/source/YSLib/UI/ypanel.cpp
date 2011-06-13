@@ -9,14 +9,14 @@
 */
 
 /*!	\file ypanel.cpp
-\ingroup Shell
+\ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version 0.1133;
+\version 0.1134;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2011-05-26 09:34 +0800;
+	2011-06-10 17:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

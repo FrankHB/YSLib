@@ -9,14 +9,14 @@
 */
 
 /*!	\file ywidget.h
-\ingroup Shell
+\ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.5949;
+\version 0.5952;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-05-21 22:16 +0800;
+	2011-06-10 17:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -222,48 +222,48 @@ public:
 	DefSetter(bool, Transparent, transparent)
 	/*!
 	\brief 设置位置：横坐标。
-	\note 非虚公有实现。
+	\note 非虚 \c public 实现。
 	*/
 	PDefH1(void, SetX, SPos x)
 		ImplBodyBase1(Visual, SetLocation, Point(x, GetY()))
 	/*!
 	\brief 设置位置：纵坐标。
-	\note 非虚公有实现。
+	\note 非虚 \c public 实现。
 	*/
 	PDefH1(void, SetY, SPos y)
 		ImplBodyBase1(Visual, SetLocation, Point(GetX(), y))
 	/*!
 	\brief 设置大小：宽。
-	\note 非虚公有实现。
+	\note 非虚 \c public 实现。
 	*/
 	PDefH1(void, SetWidth, SDst w)
 		ImplBodyBase1(Visual, SetSize, Size(w, GetHeight()))
 	/*!
 	\brief 设置大小：高。
-	\note 非虚公有实现。
+	\note 非虚 \c public 实现。
 	*/
 	PDefH1(void, SetHeight, SDst h)
 		ImplBodyBase1(Visual, SetSize, Size(GetWidth(), h))
 	/*!
 	\brief 设置位置。
-	\note 虚公有实现。
+	\note 虚 \c public 实现。
 	*/
 	virtual DefSetter(const Point&, Location, location)
 	/*!
 	\brief 设置位置。
-	\note 非虚公有实现。
+	\note 非虚 \c public 实现。
 	*/
 	PDefH2(void, SetLocation, SPos x, SPos y)
 		ImplBodyBase1(Visual, SetLocation, Point(x, y))
 	/*!
 	\brief 设置大小。
-	\note 虚公有实现。
+	\note 虚 \c public 实现。
 	*/
 	virtual void
 	SetSize(const Size& s);
 	/*!
 	\brief 设置大小。
-	\note 非虚公有实现。
+	\note 非虚 \c public 实现。
 	*/
 	PDefH2(void, SetSize, SDst w, SDst h)
 		ImplBodyBase1(Visual, SetSize, Size(w, h))

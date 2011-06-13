@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2276;
+\version 0.2278;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-06-05 16:54 +0800;
+	2011-06-09 08:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,7 +70,7 @@ private:
 	shared_ptr<Desktop> hDesktopDown; //<! DS 下屏幕默认桌面句柄。
 
 	/*!
-	\brief 私有构造函数：非内联。
+	\brief \c private 构造函数：非内联。
 
 	\note 通过友元单例实现进程唯一性语义
 	*/

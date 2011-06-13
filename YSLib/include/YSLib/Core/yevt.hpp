@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version 0.4448;
+\version 0.4468;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-06-04 12:33 +0800;
+	2011-06-10 16:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,11 @@ struct GSEventTypeSpace
 };
 
 
-//! \brief 标准事件处理器类模板。
+/*!
+\brief 标准事件处理器类模板。
+\note 若使用函数对象，可以不满足 \c EqualityComparable 的接口，即
+	可使用返回 \c bool 的 \c operator== ，但此模板类无法检查其语义正确性。
+*/
 template<class _tSender, class _tEventArgs>
 class GHEvent : protected std::function<typename GSEventTypeSpace<
 	_tSender, _tEventArgs>::FuncType>
@@ -61,32 +65,18 @@ private:
 	struct GEquality
 	{
 		static bool
-		AreEqual(const GHEvent& lhs, const GHEvent& rhs)
+		AreEqual(const GHEvent& x, const GHEvent& y)
 		{
-			auto p(lhs.template target<typename std::decay<_tFunctor>::type>());
+			auto p(x.template target<typename std::decay<_tFunctor>::type>());
 
 			if(p)
 			{
-				auto q(rhs.template target<typename std::decay<
+				auto q(y.template target<typename std::decay<
 					_tFunctor>::type>());
 
 				if(q)
-					return p == q || GEquality::are_equal(*p, *q);
+					return p == q || *p == *q;
 			}
-			return false;
-		}
-
-	private:
-		template<typename _type>
-		inline static bool
-		are_equal(_type& lhs, _type& rhs, decltype(lhs == rhs) = false)
-		{
-			return lhs == rhs;
-		}
-		template<typename _type>
-		inline static bool
-		are_equal(_type, ...)
-		{
 			return false;
 		}
 	};
@@ -99,21 +89,21 @@ public:
 	inline
 	GHEvent(GHEvent&&) = default;
 	/*!
-	\brief 构造：使用函数引用。
+	\brief 构造：使用函数指针。
+	\note 匹配函数引用。
 	*/
 	inline
 	GHEvent(FuncType* f)
 		: std::function<FuncType>(f), comp_eq(GEquality<FuncType>::AreEqual)
 	{}
 	/*!
-	\brief 使用函数类型。
-	\note 函数引用除外（匹配以上非模板重载版本）。
+	\brief 使用函数对象类型。
 	*/
 	template<class _tFunc>
 	inline
 	GHEvent(_tFunc f)
 		: std::function<FuncType>(yforward(f)),
-		comp_eq(GEquality<_tFunc>::AreEqual)
+		comp_eq(GetComparer(f, f))
 	{}
 	/*!
 	\brief 构造：使用 _tSender 的成员函数指针。
@@ -169,15 +159,35 @@ public:
 //	operator=(GHEvent&&) = default;
 
 	inline bool
-	operator==(const GHEvent& rhs) const
+	operator==(const GHEvent& h) const
 	{
-		return this->comp_eq == rhs.comp_eq && (this->comp_eq(*this, rhs));
+		return this->comp_eq == h.comp_eq && (this->comp_eq(*this, h));
 	}
 
 	/*!
 	\brief 调用。
 	*/
 	using BaseType::operator();
+
+private:
+	template<typename _type>
+	inline static Comparer
+	GetComparer(_type& x, _type& y, decltype(x == y) = false)
+	{
+		return GEquality<_type>::AreEqual;
+	}
+	template<typename _type, typename _tUnused>
+	inline static Comparer
+	GetComparer(_type&, _tUnused&)
+	{
+		return GHEvent::AreAlwaysEqual;
+	}
+
+	inline static bool
+	AreAlwaysEqual(const GHEvent& x, const GHEvent& y)
+	{
+		return true;
+	}
 };
 
 
@@ -221,7 +231,7 @@ public:
 
 private:
 	/*!
-	\brief 私有构造：添加事件处理器。
+	\brief \c private 构造：添加事件处理器。
 	*/
 	template<typename _tHandler>
 	GEvent(_tHandler h)
@@ -235,9 +245,9 @@ public:
 	\brief 复制赋值：覆盖事件响应。
 	*/
 	inline GEvent&
-	operator=(const GEvent& rhs)
+	operator=(const GEvent& e)
 	{
-		this->List = rhs->List;
+		this->List = e->List;
 	}
 	/*!
 	\brief 移动赋值：默认实现。
@@ -247,9 +257,9 @@ public:
 //	inline GEvent&
 //	operator=(GEvent&&) = default;
 	inline GEvent&
-	operator=(GEvent&& rhs)
+	operator=(GEvent&& e)
 	{
-		this->List = std::move(rhs->List);
+		this->List = std::move(e->List);
 		return *this;
 	}
 	/*!
@@ -439,8 +449,8 @@ public:
 	/*
 	\brief 交换。
 	*/
-	inline PDefH1(void, Swap, GEvent& rhs) ynothrow
-		ImplRet(this->List.swap(rhs))
+	inline PDefH1(void, Swap, GEvent& e) ynothrow
+		ImplRet(this->List.swap(e))
 };
 
 
@@ -623,7 +633,7 @@ public:
 	{
 		SenderType* p(dynamic_cast<SenderType*>(&sender));
 
-		
+
 		return p ? EventType::operator()(*p,
 			static_cast<EventArgsType&&>(std::move(e))) : 0;
 	}

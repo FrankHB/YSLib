@@ -9,14 +9,14 @@
 */
 
 /*!	\file ycontrol.h
-\ingroup Shell
+\ingroup UI
 \brief 样式无关的控件。
-\version 0.5009;
+\version 0.5043;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-06-02 04:21 +0800;
+	2011-06-12 00:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -410,6 +410,8 @@ public:
 	IsFocused() const;
 
 	ImplI1(IControl) DefGetter(VisualEventMapType&, EventMap, EventMap)
+	virtual PDefH1(IControl*, GetBoundControlPtr, const Runtime::Key&)
+		ImplRet(nullptr)
 
 	ImplI1(IControl) void
 	SetLocation(const Point&);
@@ -431,24 +433,21 @@ public:
 	ImplI1(IControl) void
 	ReleaseFocus();
 
-private:
 	/*!
-	\brief 处理获得焦点事件。
+	\brief 处理键接触结束事件。
+
+	绑定触发 TouchUp 和 Leave 事件。
 	*/
 	void
-	OnGotFocus(EventArgs&&);
+	OnKeyUp_Bound_TouchUpAndLeave(KeyEventArgs&&);
 
 	/*!
-	\brief 处理失去焦点事件。
-	*/
-	void
-	OnLostFocus(EventArgs&&);
+	\brief 处理键接触开始事件。
 
-	/*!
-	\brief 处理屏幕接触开始事件。
+	绑定触发 Enter 和 TouchDown 事件。
 	*/
 	void
-	OnTouchDown(TouchEventArgs&&);
+	OnKeyDown_Bound_EnterAndTouchDown(KeyEventArgs&&);
 };
 
 

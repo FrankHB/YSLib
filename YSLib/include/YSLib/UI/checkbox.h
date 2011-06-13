@@ -9,14 +9,14 @@
 */
 
 /*!	\file checkbox.h
-\ingroup Shell
+\ingroup UI
 \brief 样式相关的图形用户界面复选框控件。
-\version 0.1160;
+\version 0.1164;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-22 07:17:17 +0800;
 \par 修改时间:
-	2011-06-03 07:06 +0800;
+	2011-06-10 17:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,13 +57,6 @@ public:
 	*/
 	virtual void
 	Paint();
-
-private:
-	/*!
-	\brief 处理屏幕点击事件。
-	*/
-	void
-	OnClick(TouchEventArgs&&);
 };
 
 YSL_END_NAMESPACE(Controls)

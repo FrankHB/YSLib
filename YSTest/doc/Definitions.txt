@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11135;
+\version r11139;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-06-08 18:20 +0800;
+	2011-06-09 17:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -297,7 +297,7 @@ DefMutableDepEventGetter(_tEventHandler, _name, _member)
 DefMutableDepEventGetterBase(_tEventHandler, _name, _base)
 DefMutableDepEventGetterMember(_tEventHandler, _name, _member)
 }
-$header YShellMessageDefinition
+$header YMessageDefinition
 {
 SM_NULL
 SM_SET
@@ -435,7 +435,7 @@ namespace Drawing
 
 namespace Messaging
 {
-	$unit Core::YShellMessage;
+	$unit Core::YMessage;
 } //namespace Messaging;
 
 namespace IO
@@ -769,18 +769,18 @@ $header Core::YCoreUtilities : Core::YShellDefinition
 	using Design::NonCopyable;
 }
 
-$header Core::YShellMessage : Core::YShellDefinition
+$header Core::YMessage : Core::YShellDefinition
 {
 	using Messaging::Message;
 } //$header Core::YCoreUtilities;
 
-$header Core::YShell : Core::YShellMessage
+$header Core::YShell : Core::YMessage
 {
 	using Shells::Activate;
 	using Shells::FetchShellHandle;
 } //$header Core::YShell;
 
-$header Core::YApplication : Core::YShellMessage
+$header Core::YApplication : Core::YMessage
 {
 	using Messaging::MessageQueue;
 } //$header Core::YApplication;
@@ -791,7 +791,7 @@ $header Core::YGDI
 
 //$header Core::YResource : Core::YGDI;
 
-$header Shell::YComponent : YShellMessage
+$header Shell::YComponent : YMessage
 {
 	using Components::Controls::
 	{IControlableComponent, IControl};

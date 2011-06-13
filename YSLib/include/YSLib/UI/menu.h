@@ -9,14 +9,14 @@
 */
 
 /*!	\file menu.h
-\ingroup Shell
+\ingroup UI
 \brief 样式相关的菜单。
-\version 0.1644;
+\version 0.1653;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-06-07 08:28 +0800;
+	2011-06-10 17:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -110,21 +110,6 @@ protected:
 	*/
 	virtual void
 	PaintItem(const Graphics&, const Rect&, ListType::size_type);
-
-private:
-	/*!
-	\brief 处理失去焦点事件。
-	\note 若菜单宿主有效则自动隐藏。
-	*/
-	void
-	OnLostFocus(EventArgs&&);
-
-	/*!
-	\brief 处理确认事件。
-	\note 若存在满足条件的子菜单则展开。
-	*/
-	void
-	OnConfirmed(IndexEventArgs&&);
 };
 
 

@@ -11,12 +11,12 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4370;
+\version 0.4373;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-06-02 12:30 +0800;
+	2011-06-09 08:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -47,14 +47,12 @@ protected:
 	SizeType len;
 
 	/*!
-	\brief 构造：使用指定最大长度。
-	\note 保护实现。
+	\brief \c protected 构造：使用指定最大长度。
 	*/
 	explicit
 	TextBuffer(SizeType);
 	/*!
-	\brief 析构：释放资源。
-	\note 保护实现。
+	\brief \c protected 析构：释放资源。
 	*/
 	~TextBuffer();
 

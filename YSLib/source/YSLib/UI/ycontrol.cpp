@@ -9,14 +9,14 @@
 */
 
 /*!	\file ycontrol.cpp
-\ingroup Shell
+\ingroup UI
 \brief 样式无关的控件。
-\version 0.4159;
+\version 0.4184;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-06-02 04:29 +0800;
+	2011-06-12 00:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,9 +92,16 @@ Control::Control(const Rect& r)
 	: Widget(r), AFocusRequester(),
 	enabled(true), EventMap()
 {
-	FetchEvent<GotFocus>(EventMap) += &Control::OnGotFocus;
-	FetchEvent<LostFocus>(EventMap) += &Control::OnLostFocus;
-	FetchEvent<TouchDown>(EventMap) += &Control::OnTouchDown;
+	FetchEvent<GotFocus>(EventMap) += [this](IControl&, EventArgs&&){
+		this->Refresh();
+	};
+	FetchEvent<LostFocus>(EventMap) += [this](IControl&, EventArgs&&){
+		this->Refresh();
+	};
+	FetchEvent<TouchDown>(EventMap) += [this](IControl&, TouchEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct)
+			RequestFocus();
+	};
 	FetchEvent<TouchHeld>(EventMap) += OnTouchHeld;
 }
 Control::~Control()
@@ -144,22 +151,33 @@ Control::ReleaseFocus()
 }
 
 void
-Control::OnGotFocus(EventArgs&&)
+Control::OnKeyUp_Bound_TouchUpAndLeave(KeyEventArgs&& e)
 {
-	Refresh();
+	IControl* pCtl(GetBoundControlPtr(e.GetKey()));
+
+	if(pCtl)
+	{
+		TouchEventArgs et(TouchEventArgs::FullScreen);
+
+		CallEvent<TouchUp>(*pCtl, et);
+		CallEvent<Leave>(*pCtl, et);
+		e.Handled = true;
+	}
 }
 
 void
-Control::OnLostFocus(EventArgs&&)
+Control::OnKeyDown_Bound_EnterAndTouchDown(KeyEventArgs&& e)
 {
-	Refresh();
-}
+	IControl* pCtl(GetBoundControlPtr(e.GetKey()));
 
-void
-Control::OnTouchDown(TouchEventArgs&& e)
-{
-	if(e.Strategy == RoutedEventArgs::Direct)
-		RequestFocus();
+	if(pCtl)
+	{
+		TouchEventArgs et(TouchEventArgs::FullScreen);
+
+		CallEvent<Enter>(*pCtl, et);
+		CallEvent<TouchDown>(*pCtl, et);
+		e.Handled = true;
+	}
 }
 
 YSL_END_NAMESPACE(Controls)

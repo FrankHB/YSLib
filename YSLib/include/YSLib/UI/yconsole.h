@@ -9,14 +9,14 @@
 */
 
 /*!	\file yconsole.h
-\ingroup Shell
+\ingroup UI
 \brief 平台无关的控制台。
-\version 0.1088;
+\version 0.1089;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 23:00:29 +0800;
 \par 修改时间:
-	2011-05-21 23:34 +0800;
+	2011-06-10 17:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

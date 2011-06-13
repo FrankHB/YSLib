@@ -9,14 +9,14 @@
 */
 
 /*!	\file ygdi.h
-\ingroup Shell
+\ingroup UI
 \brief 平台无关的图形设备接口。
-\version 0.4015;
+\version 0.4016;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-06-04 17:07 +0800;
+	2011-06-10 17:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

@@ -9,14 +9,14 @@
 */
 
 /*!	\file textlist.cpp
-\ingroup Shell
+\ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1292;
+\version 0.1308;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-06-05 15:12 +0800;
+	2011-06-10 17:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,11 +58,71 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	viewer(GetList()), top_offset(0), Events(GetStaticRef<Dependencies>())
 {
 	SetAllTo(Margin, defMarginH, defMarginV);
-	FetchEvent<KeyDown>(*this) += &TextList::OnKeyDown;
+	FetchEvent<KeyDown>(*this) += [this](IControl&, KeyEventArgs&& e){
+		if(viewer.IsSelected())
+		{
+			using namespace Runtime;
+
+			switch(e.GetKey())
+			{
+			case KeySpace::Enter:
+				CheckConfirmed(viewer.GetSelectedIndex());
+				break;
+			case KeySpace::ESC:
+				ClearSelected();
+				CallSelected();
+				break;
+			case KeySpace::Up:
+			case KeySpace::Down:
+			case KeySpace::PgUp:
+			case KeySpace::PgDn:
+				{
+					const ViewerType::IndexType nOld(viewer.GetSelectedIndex());
+
+					switch(e.GetKey())
+					{
+					case KeySpace::Up:
+						--viewer;
+						if(viewer.GetRelativeIndex() == 0)
+							AdjustTopOffset();
+						break;
+					case KeySpace::Down:
+						++viewer;
+						if(viewer.GetRelativeIndex()
+							== static_cast<int>(viewer.GetLength() - 1))
+							AdjustBottomOffset();
+						break;
+					case KeySpace::PgUp:
+						viewer.DecreaseSelected(viewer.GetLength());
+						AdjustTopOffset();
+						break;
+					case KeySpace::PgDn:
+						viewer.IncreaseSelected(viewer.GetLength());
+						AdjustBottomOffset();
+						break;
+					}
+					if(viewer.GetSelectedIndex() != nOld)
+						CallSelected();
+				}
+				break;
+			default:
+				return;
+			}
+			UpdateView();
+		}
+	};
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld;
-	FetchEvent<TouchDown>(*this) += &TextList::OnTouchDown;
-	FetchEvent<TouchMove>(*this) += &TextList::OnTouchMove;
-	FetchEvent<Click>(*this) += &TextList::OnClick;
+	FetchEvent<TouchDown>(*this) += [this](IControl&, TouchEventArgs&& e){
+		SetSelected(e);
+		UpdateView();
+	};
+	FetchEvent<TouchMove>(*this) += [this](IControl&, TouchEventArgs&& e){
+		SetSelected(e);
+		UpdateView();
+	};
+	FetchEvent<Click>(*this) += [this](IControl&, TouchEventArgs&& e){
+		CheckConfirmed(CheckPoint(e));
+	};
 }
 
 SDst
@@ -240,82 +300,6 @@ TextList::CheckConfirmed(ViewerType::IndexType i)
 {
 	if(viewer.IsSelected() && viewer.GetSelectedIndex() == i)
 		GetConfirmed()(*this, IndexEventArgs(*this, i));
-}
-
-void
-TextList::OnKeyDown(KeyEventArgs&& e)
-{
-	if(viewer.IsSelected())
-	{
-		using namespace Runtime;
-
-		switch(e.GetKey())
-		{
-		case KeySpace::Enter:
-			CheckConfirmed(viewer.GetSelectedIndex());
-			break;
-		case KeySpace::ESC:
-			ClearSelected();
-			CallSelected();
-			break;
-		case KeySpace::Up:
-		case KeySpace::Down:
-		case KeySpace::PgUp:
-		case KeySpace::PgDn:
-			{
-				const ViewerType::IndexType nOld(viewer.GetSelectedIndex());
-
-				switch(e.GetKey())
-				{
-				case KeySpace::Up:
-					--viewer;
-					if(viewer.GetRelativeIndex() == 0)
-						AdjustTopOffset();
-					break;
-				case KeySpace::Down:
-					++viewer;
-					if(viewer.GetRelativeIndex()
-						== static_cast<int>(viewer.GetLength() - 1))
-						AdjustBottomOffset();
-					break;
-				case KeySpace::PgUp:
-					viewer.DecreaseSelected(viewer.GetLength());
-					AdjustTopOffset();
-					break;
-				case KeySpace::PgDn:
-					viewer.IncreaseSelected(viewer.GetLength());
-					AdjustBottomOffset();
-					break;
-				}
-				if(viewer.GetSelectedIndex() != nOld)
-					CallSelected();
-			}
-			break;
-		default:
-			return;
-		}
-		UpdateView();
-	}
-}
-
-void
-TextList::OnTouchDown(TouchEventArgs&& e)
-{
-	SetSelected(e);
-	UpdateView();
-}
-
-void
-TextList::OnTouchMove(TouchEventArgs&& e)
-{
-	SetSelected(e);
-	UpdateView();
-}
-
-void
-TextList::OnClick(TouchEventArgs&& e)
-{
-	CheckConfirmed(CheckPoint(e));
 }
 
 void

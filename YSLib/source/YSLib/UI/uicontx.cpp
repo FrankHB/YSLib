@@ -9,14 +9,14 @@
 */
 
 /*!	\file uicontx.cpp
-\ingroup Shell
+\ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version 0.1051;
+\version 0.1052;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-02-21 09:01:13 +0800;
 \par 修改时间:
-	2011-05-14 20:39 +0800;
+	2011-06-10 17:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

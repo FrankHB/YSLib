@@ -9,14 +9,14 @@
 */
 
 /*!	\file menu.cpp
-\ingroup Shell
+\ingroup UI
 \brief 样式相关的菜单。
-\version 0.1638;
+\version 0.1658;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-06-03 17:32 +0800;
+	2011-06-10 17:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,8 +46,34 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 {
 	BackColor = FetchGUIShell().Colors[Styles::Panel];
 	SetAllTo(Margin, 6, 18, 4, 4);
-	FetchEvent<LostFocus>(*this) += &Menu::OnLostFocus;
-	GetConfirmed() += &Menu::OnConfirmed;
+	FetchEvent<LostFocus>(*this) += [this](IControl&, EventArgs&&){
+		if(pHost)
+		{
+			if(this->IsVisible())
+				this->Refresh();
+			if(!pHost->SubMenuPointer || pHost->SubMenuPointer->pParent != this)
+			{
+				pHost->HideAll();
+				pHost->SubMenuPointer = nullptr;
+			}
+		}
+	};
+	GetConfirmed() += [this](IControl&, IndexEventArgs&& e){
+		if(this->Contains(e) && pHost)
+		{
+			try
+			{
+				Menu& mnu((*this)[e.Index]);
+
+				pHost->SubMenuPointer = &mnu;
+				mnu.Show();
+			}
+			catch(std::out_of_range&)
+			{
+				pHost->Hide(this->id);
+			}
+		}
+	};
 	//刷新文本状态，防止第一次绘制前不确定文本间距，无法正确根据内容重设大小。
 	RefreshTextState();
 }
@@ -111,37 +137,6 @@ Menu::PaintItem(const Graphics& g, const Rect& r, ListType::size_type i)
 		const Rect arrow_bounds(r.X + r.Width - 16, r.Y, 16, r.Height);
 
 		WndDrawArrow(g, arrow_bounds, 4, RDeg0, ForeColor);
-	}
-}
-
-void
-Menu::OnLostFocus(EventArgs&&)
-{
-	if(pHost)
-	{
-		if(IsVisible())
-			Refresh();
-		if(!pHost->SubMenuPointer || pHost->SubMenuPointer->pParent != this)
-			pHost->HideAll();
-	}
-}
-
-void
-Menu::OnConfirmed(IndexEventArgs&& e)
-{
-	if(Contains(e) && pHost)
-	{
-		try
-		{
-			Menu& mnu((*this)[e.Index]);
-
-			pHost->SubMenuPointer = &mnu;
-			mnu.Show();
-		}
-		catch(std::out_of_range&)
-		{
-			pHost->Hide(id);
-		}
 	}
 }
 

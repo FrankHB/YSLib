@@ -8,20 +8,20 @@
 	understand and accept it fully.
 */
 
-/*!	\defgroup Shell Shell
+/*!	\defgroup UI UI
 \ingroup YSLib
-\brief YSLib Shell 模块。
+\brief YSLib UI 模块。
 */
 
 /*!	\file ycomp.h
-\ingroup Shell
+\ingroup UI
 \brief 平台无关的 Shell 组件。
-\version 0.3110;
+\version 0.3112;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2011-06-02 13:37 +0800;
+	2011-06-10 17:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

@@ -8,77 +8,30 @@
 	understand and accept it fully.
 */
 
-/*!	\file ysmsg.cpp
+/*!	\file ymsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version 0.2006;
+\version 0.2016;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-06-06 23:24 +0800;
+	2011-06-09 17:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Core::YShellMessage;
+	YSLib::Core::YMessage;
 */
 
 
-#include "ysmsg.h"
+#include "ymsg.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Messaging)
 
-Content::Content(const Content& c)
-	: manager(c.manager), obj_ptr(nullptr)
-{
-	if(manager && c.obj_ptr)
-		manager(obj_ptr, c.obj_ptr, Clone);
-}
-Content::Content(Content&& c)
-	: manager(c.manager), obj_ptr(c.obj_ptr)
-{
-	c.obj_ptr = nullptr;
-}
-
-bool
-Content::operator==(const Content& rhs) const
-{
-	return (!manager && !rhs.manager) || (manager && rhs.manager
-		&& manager == rhs.manager && obj_ptr && rhs.obj_ptr
-		&& manager(obj_ptr, rhs.obj_ptr, Equality));
-}
-
-Content&
-Content::operator=(Content&& c)
-{
-	if(&c != this)
-	{
-		Clear();
-		manager = c.manager;
-		std::swap(obj_ptr, c.obj_ptr);
-	}
-	return *this;
-}
-
-void
-Content::Clear()
-{
-	if(manager)
-		manager(obj_ptr, obj_ptr, Destroy);
-}
-
-void
-Content::Swap(Content& c)
-{
-	std::swap(manager, c.manager);
-	std::swap(obj_ptr, c.obj_ptr);
-}
-
-
 Message::Message(const shared_ptr<YShell>& h, ID m, Priority p,
-	const Content& c)
+	const ValueObject& c)
 	: hShl(h), id(m), prior(p), content(c), timestamp(std::clock()),
 	timeout(DefTimeout)
 {}

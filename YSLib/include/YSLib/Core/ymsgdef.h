@@ -8,26 +8,26 @@
 	understand and accept it fully.
 */
 
-/*!	\file ysmsgdef.h
+/*!	\file ymsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version 0.2894;
+\version 0.2898;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-08 12:05:26 +0800;
 \par 修改时间:
-	2011-05-20 04:54 +0800;
+	2011-06-09 17:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Core::YShellMessageDefinition;
+	YSLib::Core::YMessageDefinition;
 */
 
 
 #ifndef YSL_INC_CORE_YSMSGDEF_H_
 #define YSL_INC_CORE_YSMSGDEF_H_
 
-#include "ysmsg.h"
+#include "ymsg.h"
 
 YSL_BEGIN
 

@@ -9,14 +9,14 @@
 */
 
 /*!	\file ywindow.h
-\ingroup Shell
+\ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.4351;
+\version 0.4354;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-05-30 00:20 +0800;
+	2011-06-10 17:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -130,7 +130,7 @@ public:
 	ImplI1(IWindow) DefSetter(bool, Refresh, bRefresh)
 	/*!
 	\brief 设置大小。
-	\note 虚公有实现。
+	\note 虚 \c public 实现。
 	*/
 	virtual void
 	SetSize(const Size&);

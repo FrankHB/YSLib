@@ -9,14 +9,14 @@
 */
 
 /*!	\file ygui.h
-\ingroup Shell
+\ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.2589;
+\version 0.2590;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-04 15:59 +0800;
+	2011-06-10 17:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

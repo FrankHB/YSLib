@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3169;
+\version 0.3171;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-06-08 09:25 +0800;
+	2011-06-08 18:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -407,7 +407,7 @@ main(int argc, char* argv[])
 		Message msg;
 
 		//消息循环。
-		while(FetchMessage(msg, 2) != SM_QUIT)
+		while(FetchMessage(msg, 0) != SM_QUIT)
 		{
 			TranslateMessage(msg);
 			DispatchMessage(msg);

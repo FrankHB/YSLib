@@ -1,4 +1,4 @@
-//v0.3202; *Build 216 r38;
+//v0.3212; *Build 217 r75;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -72,6 +72,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \dep ::= dependencies
 \decl ::= declations
 \dir ::= directories
+\doc ::= documents
 \dtor ::= destructors
 \e ::= exceptions
 \em ::= empty
@@ -85,6 +86,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \exc ::= excluded
 \ext ::= extended
 \exp ::= explicit
+\expr ::= expressions
 \f ::= functions
 \fn ::= \f
 \ft ::= function templates
@@ -254,207 +256,211 @@ $using:
 
 
 $DONE:
-r1:
-- \f Destroy_Static @ \impl \u YGlobal;
-/ \tr \impl @ \ctor @ \cl YApplication;
-
-r2:
-/ \def @ \f FetchMainShellHandle >> \h YApplicatin -> \i \f ~ \impl \u YGlobal;
--= \inc \h (YObject & YString & YShellMessage & YException) @ \h YApplication;
--= \decl @ \f int MainShlProc(const Message&) @ \h YGlobal;
+r1-r2:
+/ \impl @ \f main @ \impl \u YGlobal;
 
 r3:
-/ @ \u YStyle:
-	- \f DrawWidgetOutline;
-	/ \f void DrawWindowBounds(IWindow*, Color)
-		-> void DrawWindowBounds(IWindow&, Color);
-	/ \impl @ \f void DrawWidgetBounds(IWidget&, Color);
-	- \f DrawWidgetBounds @ \un \ns @ \impl \u;
-	/ \f void WndDrawFocus(IWindow&, const Size&)
-		-> void WndDrawFocus(IWindow&);
-/ \tr \impl @ \mf Paint @ (CheckBox & TextList);
-
-r4-r6:
-/ \impl @ \f WndDrawFocus @ \impl \u YStyle;
-
-r7:
-- \f WndDrawFocus @ \impl \u YStyle;
-/ \tr \impl @ \mf Paint @ (CheckBox & TextList);
-
-r8:
 /= test 1 ^ \conf release;
 
+r4:
+* \impl @ \mf Menu::OnLostFocus;
+
+r5:
+/= test 2 ^ \conf release;
+
+r6:
+/ \simp \impl @ (\mf ShlLoad::OnActivated & \f MainShlProc) @ \impl \u Shells:
+	- \a \tb & \eh;
+
+r7:
+/ 'ParentType::OnActivated(msg);' >> as 1st statement
+	@ \a mf OnActivated @ \impl \u Shells;
+
+r8:
+/ @ \cl ShlExplorer @ \u Shells:
+	/ \impl @ \ctor ^ lambda \expr;
+	- \mf OnClick_chkTest;
+	/ @ \cl TFormExtra:
+		/ \impl @ \ctor ^ lambda \expr;
+		- \mf OnClick_btnExit;
+
 r9:
-- \i \f DefShellProc @ \ns Shells @ \h YShell;
-/ \tr \a DefShellProc -> (YShell::DefShlProc | DefShlProc) @ \impl \u Shells;
-
-r10:
-/ \cl YMainShell @ \ns Shells @ \u YShell >> \ns Shells @ \u YGlobal;
-/ \tr \i \f FetchMainShellHandle @ \u YApplication -> !\i \f;
-/ \decl extern \f int MainShlProc(const Message&) @ \ns YSLib
-	>> \impl \u YGlobal ~ \impl \u YShell;
-- using Shells::YMainShell @ \ns YSLib @ \h YShellDefinition;
-
-r11-r12:
-/= test 2;
-
-r13:
-/ \simp @ \f (LoadL & LoadS & LoadA) @ \un \ns @ \u Shells:
-	- \a \tb;
-
-r14:
 /= test 3 ^ \conf release;
 
-r15:
-/ @ \cl MessageQueue:
-	/ \mf FetchMessage => GetMessage;
-	/ \impl @ \mf PeekMessage;
-	+ \i \mf void PopMessage();
-	/ !\i \mf PeekMessage -> \i \mf;
-/ \tr \impl @ \f PeekMessage @ \impl \u YApplication;
+r10:
+/ \impl @ \ctor @ \cl (ShlExplorer & ShlExplorer::TFormExtra) @ \impl \u Shells;
 
-r16:
-- \mac YSL_DEBUG_MSG @ \h Configuration;
-+ \mf int PeekMessage(Message&, const shared_ptr<YShell>&, bool)
-	@ \cl MessageQueue;
-/ \tr \impl @ \f PeekMessage @ \impl \u YApplication;
-* \sf PeekMessage_ -> \un \ns;
+r11-r12:
+/ \ft<typename _type> \i \s bool are_equal(_type, ...)
+	-> \ft<typename _type, typename _tUnused> \i \s bool
+	are_equal(_type&, _tUnused&) @ \clt GEquality @ \clt GHEvent @ \h YEvent;
 
-r17:
-/ @ \u YShellMessage;
-	/ @ \cl MessageQueue:
-		/ private \m priority_queue<Message, vector<Message>, cmp> q
-			-> multiset<Message, cmp> q;
-		- private \i \mf (pop & push & top);
-		/ typedef priority_queue<int, vector<int>, cmp>::size_type SizeType
-			-> typedef decltype(q.size()) SizeType;
-		/ \simp \impl @ \mf \op() @ private \cl cmp;
-		/ \tr \i \mf PeekMessage & PopMessage -> !\i \mf;
-		/ \tr \impl @ \mf (Insert & Clear & Update & GetMessage);
-	/ \tr \impl @ \f void Merge(MessageQueue&, list<Message>&);
+r13:
+/ \a Content => ValueObject;
+/ \cl Content @ \ns Messaging @ \u YShellMessage >> \ns YSLib @ \u YObject;
+/ \tr @ \as \str @ \impl @ \smf GManager::Do @ \cl ValueObject;
+/ \tr \doc;
 
-r18:
+r14:
 /= test 4 ^ \conf release;
 
-r19:
-/ @ \cl MessageQueue:
-	+ private \i \mf (top & pop & push) ^ \mac ('PDefH?' & ImplRet);
-	/ \simp @ \impl @ \mf ^ \mf (top & pop & push);
+r15:
+/ @ \dir Core:
+	/ \u YShellMessage["ysmsg.h", "ysmsg.cpp"]
+		=> YMessage["ymsg.h", "ymsg.cpp"];
+	/ \h YShellMessageDefinition["ysmsgdef.h"]
+		=> YMessageDefinition["ymsgdef.h"];
+	/ \tr \inh \h;
 
-r20:
-/ @ \u YShellMessage:
-	/ @ \cl MessageQueue:
-		/= \mf order;
-		* \def @ \mf void PeekMessage(Message&) const:
-			- \i;
-		+ \mf void Merge(MessageQueue&);
-		/ \impl @ \mf int PeekMessage(Message&, const shared_ptr<YShell>&,
-			bool);
-	/ \impl @ \f void Merge(MessageQueue&, MessageQueue&)
-		^ \mf MessageQueue::Merge;
-	- \f void Merge(MessageQueue&, list<Message>&);
+r16:
++ Code::Blocks project \conf;
+/= test 5;
 
-r21:
-/ @ \impl \u YShellMessage:
-	- \f void Merge(MessageQueue&, MessageQueue&);
-	- \inc \h YWindow;
-/ \tr \impl @ \f void RecoverMessageQueue() @ \impl \u YApplication;
-
-r22:
-/ \inc \h YShell @ \h YFileSystem >> \h YApplication;
-
-r23:
-/= test 5 ^ \conf release;
-
-r24:
-/ \simp \impl @ \mf int MessageQueue::PeekMessage(Message&,
-	const shared_ptr<YShell>&, bool);
-
-r25:
-/ @ \cl MessageQueue:
-	/ !\i \mf bool Insert(const Message&) -> \i \mf void Push(const Message&);
-	/ !\i \mf SizeType Clear() -> \i \mf void Clear() ^ \mac (PDefH0 & ImplRet);
-	/ !\i \mf void PeekMessage(Message&) const -> \i \mf;
-	/ !\i \mf void PopMessage() -> \i \mf void Pop();
-/ \tr \impl @ \mf (BackupMessageQueue & SendMessage) @ \impl \u YApplication;
-
-r26:
-/ @ \u Shells:
-	/ \cl ShlSetting \mg -> \cl ShlExplorer;
-	/ @ \cl ShlExplorer:
-		/ @ \cl TFormExtra:
-			/ \tr \impl @ \mf OnClick_btnReturn;
-			/ \mf OnClick_btnReturn => OnClick_btnClose;
-			/ \m btnReturn => btnClose;
-	/ \tr \impl @ \mf OnClick_btnTest;
-
-r27:
-/ @ \cl ShlExplrer @ \impl \u Shells:
-	/ \impl @ \mf OnActivated;
-	+ \f void SwitchVisible(IWindow&) @ \un \ns;
-	/ \impl @ \mf OnClick_btnTest ^ SwitchVisible;
-	/ \simp \impl @ \mf OnClick_ShowWindow ^ SwitchVisible;
-
-r28:
-+ \o \c ZOrderType DefaultContainerZOrder(128)
-	@ \ns Components::Widgets @ \h YUIContainer;
-/ \impl @ \mf void AFrame::operator+=(IWindow&);
-
-r29:
-/ \impl @ \ctor @ \cl ShlExplorer @ \impl \u Shells;
-
-r30:
+r17:
 /= test 6 ^ \conf release;
 
+r18:
+/ @ \cl Thumb:
+	/ \impl @ \ctor;
+	- private \mf OnEnter;
+	- private \mf OnLeave;
+
+r19:
+/ @ \cl CheckBox:
+	/ \impl @ \ctor;
+	- private \mf OnClick;
+/ \impl @ \ctor @ \cl ShlExplorer ^ '[this]' ~ '[&]' @ \a lambda \expr;
+
+r20:
+/ @ \clt GHEvent @ \h YEvent:
+	+ private \ft<typename _type> \i \smf Comparer GetComparer(_type& x,
+		_type& y, decltype(x == y) = false);
+	+ private \ft<typename _type, typename _tUnused> \i \smf Comparer
+		GetComparer(_type&, _tUnused&);
+	+ private \i \smf bool AreAlwaysEqual(const GHEvent&, const GHEvent&);
+	/ \impl @ \ctor \t<class _tFunc> \i GHEvent(_tFunc) ^ \smf GetComparer;
+
+r21:
+/ \simp @ \clt GEquality @ \clt GHEvent @ \h YEvent:
+	/ \simp \impl @ \smf AreEqual;
+	- 2 private \smf \t are_equals;
+
+r22:
+/ @ \cl Menu:
+	/ \impl @ \ctor;
+	- private \mf OnLostFocus;
+	- private \mf OnConfirmed;
+/ @ \cl ATrack:
+	/ \impl @ \ctor;
+	- private \mf OnTouchDown;
+/ @ \cl TextList:
+	/ \impl @ \ctor;
+	- private \mf OnKeyDown;
+	- private \mf OnTouchDown;
+	- private \mf OnTouchMove;
+	- private \mf OnClick;
+
+r23:
+/ \doc @ \dir UI:
+	/ group 'Shell' => 'UI';
+/ @ \cl Control:
+	/ \impl @ \ctor;
+	- private \mf OnGotFocus;
+	- private \mf OnLostFocus;
+	- private \mf OnTouchDown;
+
+r24:
+/= test 7 ^ \conf release;
+
+r25:
+/ @ \cl AScrollBar:
+	+ \i \mf void PerformDecrement();
+	+ \i \mf void PerformIncrement();
+	- private \mf OnTouchDown_PrevButton;
+	- private \mf OnTouchDown_NextButton;
+	/ \impl @ \ctor;
+
+r26:
+/ @ \u Scroll:
+	/ @ \cl AScrollBar:
+		/ \i \mf PerformDecrement => PerformSmallDecrement;
+		/ \i \mf PerformIncrement => PerformSmallIncrement;
+	/ \impl @ \ctor @ \mf HorizontalScrollBar;
+	/ \impl @ \ctor @ \mf VerticalScrollBar;
+	+ using namespace Runtime @ \impl \u;
+
+r27-r29:
+* \impl @ \ctor @ \cl HorizontalScrollBar & VerticalScrollBar;
+
+r30:
+/ \impl @ \ctor @ \cl AScrollBar;
+
 r31:
-/ \f int FetchMessage(Message&, const shared_ptr<YShell>& = FetchShellHandle())
-	-> int FetchMessage(Message&, MessageQueue::SizeType,
-		const shared_ptr<YShell>& = FetchShellHandle());
-/ \impl @ \f main @ \impl \u YGlobal;
+* \impl @ \ctor @ \cl HorizontalScrollBar & VerticalScrollBar;
 
 r32:
-/ \impl @ \f main @ \impl \u YGlobal;
+/ \impl @ \ctor @ \cl AScrollBar;
 
-r33-r34:
-/= test 7;
+r33:
+/ \simp \impl @ \ctor @ \cl HorizontalScrollBar & VerticalScrollBar;
+
+r34:
+* \impl @ \ctor @ \cl AScrollBar;
 
 r35:
-/ \simp \impl @ \mf ShlExplorer::OnDeactivated @ \impl \u Shells;
+/= test 8 ^ \conf release;
 
 r36:
-/ \f shared_ptr<Image>& GetImage(int) @ \u Shells
-	-> shared_ptr<Image>& FetchImage(size_t);
-/ \f GetGlobalImage => FetchGlobalImage @ \impl \u Shells;
+/ @ \u Scroll:
+	/ @ \cl AScrollBar:
+		+ protected \mf void OnKeyUp_Bound_TouchUpAndLeave(KeyEventArgs&&);
+		+ protected \mf void OnKeyDown_Bound_EnterAndTouchDown(KeyEventArgs&&);
+		/ \impl @ \ctor;
+	/ @ \cl (HorizontalScrollBar & VerticalScrollBar):
+		+ protected \mf \vt GetBoundControlPtr(const Runtime::Key&);
+		/ \simp \impl @ \ctor;
 
 r37:
-- \inc \h YDefinition @ \h YCommon;
-/ \a PATH => path_t;
-/ \a CPATH => const_path_t;
-/ typedef path_t & const_path_t >> \ns ystdex @ \g \ns @ \h YDefinition;
-/ @ \ns platform @ \h YCommon:
-	+ using ystdex::const_path_t;
-	+ using ystdex::path_t;
-/ @ \ns \ns YSLib @ \h YAdaptor:
-	+ using ystdex::const_path_t;
-	+ using ystdex::path_t;
+/ @ \cl AScrollBar:
+	/ protected \mf (GetBoundControlPtr & OnKeyUp_Bound_TouchUpAndLeave
+		& OnKeyDown_Bound_EnterAndTouchDown(KeyEventArgs&&) >> \cl Control;
+	/ \tr \impl @ \ctor;
+/ @ \cl Control:
+	/ !\i \mf GetBoundControlPtr -> \i \mf ^ \mac (PDefH1 & ImplRet);
+	/ \ac @ \mf OnKeyUp_Bound_TouchUpAndLeave
+		& OnKeyDown_Bound_EnterAndTouchDown -> public ~ protected;
 
 r38:
-/= test 8 ^ \conf release;
+/= test 9 ^ \conf release;
+
+r39-r72:
+/= test 10;
+
+r73:
+* "wrong behavior" @ "track touch held event handler" $since b213:
+	* "wrong coordinate passed to touch focus captured control" $since b195:
+		* \impl @ \mf YGUIShell::ResponseTouchBase;
+
+r74:
+* \impl @ \mf YGUIShell::ResponseTouchBase;
+
+r75:
++ cscope file @ workspace;
+/= test 11 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-06-08:
--20.9d;
-//Mercurial rev1-rev86: r4242;
+2011-06-13:
+-22.6d;
+//Mercurial rev1-rev87: r4280;
 
 / ...
 
 
 $NEXT_TODO:
-b217-b256:
-+ menus;
+b218-b256:
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
 	libstdc++ for known associative container operation bugs:
 	- \rem @ \impl @ \mft GetEvent @ \clt EventMap @ \h YEvent;
@@ -561,6 +567,35 @@ $ellipse_refactoring;
 
 $now
 (
+	* "wrong lost focus behavior for menus \
+		which had popped submenu(s) previously" $since b214,
+	/ "improved compatibility" @ "class %GHEvent for types \
+		not met EqualityComparable requirement interface \
+		including closure types" $=
+	(
+		/ "result always true",
+		* "compile-error for non-trivally copy-assignable objects",
+		/ "optimized implementation to avoid bloat code instantialized"
+	),
+	+ $design "Code::Blocks project files" $=
+	(
+		+ "workspace file",
+		+ "project files"
+	),
+	/ $design ^ "lambda expression" ~ "several private member function \
+		as event handlers",
+	+ "%KeyDown and %KeyHeld handlers for scroll bars \
+		to perform mapped touch behaviors",
+	+ "key to touch event mapping methods" @ "class %Control",
+	* "wrong behavior" @ "track touch held event handler" $since b213 $=
+	(
+		* "wrong coordinate passed to touch focus captured control" $since b195;
+	),
+	+ $design "cscope file"
+),
+
+b216
+(
 	/ $design "header file dependencies",
 	/ "focused boundary for controls",
 	* "strict ISO C++2011 code compatibility" $=
@@ -584,8 +619,8 @@ b215
 	+ "visible arrow indicating multi-level menus",
 	/ "creating list" @ ("constructor of class %MTextList"
 		~ "member function %GetList"),
-	+ "event handler supporting for object without %operator== \
-		including closure types",
+	+ "event handler supporting for types not met EqualityComparable
+		requirement interface including closure types",
 	* $design "access of interitance of class std::function"
 		@ "class template %GHEvent" $since b207,
 	+ "disabled behavior test" @ "%ShlExplorer",
@@ -594,7 +629,7 @@ b215
 	(
 		/ "screen constant" >> "namespace scope" ~ "class %Global",
 		+ "class %YDSApplication" ~ "class %Global",
-		- "singleton mechanism" @ "class %YApplication" 
+		- "singleton mechanism" @ "class %YApplication"
 	)
 ),
 
@@ -605,10 +640,10 @@ b214
 		+ "hiding on confirmed",
 		+ "resizing with width of text in list",
 		/ "margin of menus",
-		+ "submenus" $= 
+		+ "submenus" $=
 	),
 	* $design "exception specification" @ "unit %YApplication",
-	/ $doc $= 
+	/ $doc $=
 	(
 		* "template parameter description" $since b189 $=
 		(

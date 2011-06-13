@@ -9,14 +9,14 @@
 */
 
 /*!	\file ygui.cpp
-\ingroup Shell
+\ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.3807;
+\version 0.3812;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-04 15:59 +0800;
+	2011-06-13 14:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -194,13 +194,14 @@ YGUIShell::ResponseTouchBase(IControl& c, TouchEventArgs& e,
 		}
 		else if(!control_entered)
 			TryEntering(c, e);
-	/*	if(p_TouchDown != &c)
-		{
-		ResetTouchHeldState();
-		return false;
-		}*/
 		if(!p_TouchDown)
 			return false;
+		if(p_TouchDown != &c)
+		{
+			e += LocateForWidget(*p_TouchDown, c);
+		/*	ResetTouchHeldState();
+			return false;*/
+		}
 		CallEvent<TouchHeld>(*p_TouchDown, e);
 		break;
 	default:

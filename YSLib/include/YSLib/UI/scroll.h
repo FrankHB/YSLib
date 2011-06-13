@@ -9,14 +9,14 @@
 */
 
 /*!	\file scroll.h
-\ingroup Shell
+\ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3099;
+\version 0.3124;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-05-31 12:50 +0800;
+	2011-06-12 00:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -212,7 +212,7 @@ public:
 	/*!
 	\brief 设置和调用滚动事件处理器。
 	\param t 滚动事件类型。
-	\param old_value 旧的滚动事件值。
+	\param old_value 旧的滚动事件关联值。
 	*/
 	void
 	CheckScroll(ScrollEventSpace::ScrollEventType t, ValueType old_value);
@@ -299,12 +299,6 @@ public:
 	UpdateValue();
 
 private:
-	/*!
-	\brief 处理屏幕接触开始事件。
-	*/
-	void
-	OnTouchDown(TouchEventArgs&&);
-
 	/*!
 	\brief 处理滑块移动事件。
 	*/
@@ -454,16 +448,16 @@ public:
 
 private:
 	/*!
-	\brief 处理减量按钮屏幕接触开始事件。
+	\brief 小距离减量滚动滑块。
 	*/
 	void
-	OnTouchDown_PrevButton(TouchEventArgs&&);
+	PerformSmallDecrement();
 
 	/*!
-	\brief 处理增量按钮屏幕接触开始事件。
+	\brief 小距离增量滚动滑块。
 	*/
 	void
-	OnTouchDown_NextButton(TouchEventArgs&&);
+	PerformSmallIncrement();
 };
 
 inline ATrack&
@@ -473,6 +467,18 @@ AScrollBar::GetTrack() const ynothrow
 		"Invalid widget pointer found @ AScrollBar::GetTrack;");
 
 	return *pTrack;
+}
+
+inline void
+AScrollBar::PerformSmallDecrement()
+{
+	GetTrack().LocateThumbForSmallDecrement(small_delta);
+}
+
+inline void
+AScrollBar::PerformSmallIncrement()
+{
+	GetTrack().LocateThumbForSmallIncrement(small_delta);
 }
 
 
@@ -486,6 +492,10 @@ public:
 public:
 	ImplI1(ATrack)
 	DefGetter(Orientation, Orientation, Horizontal)
+
+protected:
+	virtual IControl*
+	GetBoundControlPtr(const Runtime::Key&);
 };
 
 
@@ -499,6 +509,10 @@ public:
 public:
 	ImplI1(ATrack)
 	DefGetter(Orientation, Orientation, Vertical)
+
+protected:
+	virtual IControl*
+	GetBoundControlPtr(const Runtime::Key&);
 };
 
 

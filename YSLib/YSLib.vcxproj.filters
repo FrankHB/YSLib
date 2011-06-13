@@ -122,12 +122,6 @@
     <ClInclude Include="include\YSLib\Core\yshell.h">
       <Filter>头文件\YSLib\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Core\ysmsg.h">
-      <Filter>头文件\YSLib\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Core\ysmsgdef.h">
-      <Filter>头文件\YSLib\Core</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Core\ystring.h">
       <Filter>头文件\YSLib\Core</Filter>
     </ClInclude>
@@ -233,6 +227,12 @@
     <ClInclude Include="include\YSLib\UI\textlist.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Core\ymsgdef.h">
+      <Filter>头文件\YSLib\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Core\ymsg.h">
+      <Filter>头文件\YSLib\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\yfont.cpp">
@@ -263,9 +263,6 @@
       <Filter>源文件\YSLib\Core</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\yshell.cpp">
-      <Filter>源文件\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Core\ysmsg.cpp">
       <Filter>源文件\YSLib\Core</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\ystring.cpp">
@@ -357,6 +354,9 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\textlist.cpp">
       <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Core\ymsg.cpp">
+      <Filter>源文件\YSLib\Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

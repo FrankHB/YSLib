@@ -11,12 +11,12 @@
 /*!	\file util.hpp
 \ingroup YCLib
 \brief 函数对象、算法和实用程序。
-\version 0.1659;
+\version 0.1661;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800; 
 \par 修改时间:
-	2011-05-23 20:19 +0800;
+	2011-06-09 08:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,15 +40,15 @@ namespace ystdex
 	*/
 	class noncopyable
 	{
-	//保护非多态类。
 	protected:
 		/*!
-		\brief 保护构造：空实现。
+		\brief \c protected 构造：空实现。
+		\note 保护非多态类。
 		*/
 		noncopyable()
 		{}
 		/*!
-		\brief 保护析构：空实现。
+		\brief \c protected 析构：空实现。
 		*/
 		~noncopyable()
 		{}

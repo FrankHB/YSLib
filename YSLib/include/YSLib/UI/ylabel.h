@@ -9,14 +9,14 @@
 */
 
 /*!	\file ylabel.h
-\ingroup Shell
+\ingroup UI
 \brief 样式无关的标签模块。
-\version 0.2074;
+\version 0.2075;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-06-03 17:54 +0800;
+	2011-06-10 17:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

@@ -9,14 +9,14 @@
 */
 
 /*!	\file button.cpp
-\ingroup Shell
+\ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version 0.3526;
+\version 0.3535;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-06-04 17:58 +0800;
+	2011-06-10 17:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,7 +42,7 @@ namespace
 		bool is_enabled = true)
 	{
 		YAssert(g.IsValid(), "err: @g is invalid.");
-		
+
 		DrawRectRoundCorner(g, pt, s, is_enabled ? Color(60, 127, 177)
 			: FetchGUIShell().Colors[Styles::Workspace]);
 		if(s.Width > 2 && s.Height > 2)
@@ -79,8 +79,14 @@ Thumb::Thumb(const Rect& r)
 	: Control(r),
 	MButton()
 {
-	FetchEvent<Enter>(*this) += &Thumb::OnEnter;
-	FetchEvent<Leave>(*this) += &Thumb::OnLeave;
+	FetchEvent<Enter>(*this) += [this](IControl&, TouchEventArgs&&){
+		bPressed = true;
+		this->Refresh();
+	};
+	FetchEvent<Leave>(*this) += [this](IControl&, TouchEventArgs&&){
+		bPressed = false;
+		this->Refresh();
+	};
 }
 
 void
@@ -104,20 +110,6 @@ Thumb::Paint()
 				ColorSpace::Aqua);
 		}
 	}
-}
-
-void
-Thumb::OnEnter(TouchEventArgs&&)
-{
-	bPressed = true;
-	Refresh();
-}
-
-void
-Thumb::OnLeave(TouchEventArgs&&)
-{
-	bPressed = false;
-	Refresh();
 }
 
 

@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version 0.2897;
+\version 0.2898;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-06-05 17:25 +0800;
+	2011-06-09 17:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,7 @@
 #ifndef YSL_INC_CORE_YSHELL_H_
 #define YSL_INC_CORE_YSHELL_H_
 
-#include "ysmsgdef.h"
+#include "ymsgdef.h"
 #include "yfunc.hpp"
 
 YSL_BEGIN

@@ -9,14 +9,14 @@
 */
 
 /*!	\file textlist.h
-\ingroup Shell
+\ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1292;
+\version 0.1308;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-06-05 16:29 +0800;
+	2011-06-10 17:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -218,30 +218,6 @@ private:
 	*/
 	void
 	CheckConfirmed(ViewerType::IndexType);
-
-	/*!
-	\brief 处理键接触开始事件。
-	*/
-	void
-	OnKeyDown(KeyEventArgs&&);
-
-	/*!
-	\brief 处理屏幕接触开始事件。
-	*/
-	void
-	OnTouchDown(TouchEventArgs&&);
-
-	/*!
-	\brief 处理屏幕接触移动事件。
-	*/
-	void
-	OnTouchMove(TouchEventArgs&&);
-
-	/*!
-	\brief 处理屏幕点击事件。
-	*/
-	void
-	OnClick(TouchEventArgs&&);
 
 	/*!
 	\brief 处理选中事件。

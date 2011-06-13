@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2400;
+\version 0.2402;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-06-08 18:14 +0800;
+	2011-06-09 08:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -122,9 +122,9 @@ YApplication::SetShellHandle(const shared_ptr<YShell>& h)
 
 		if(hShell)
 			hShell->OnDeactivated(Message(h, SM_DEACTIVATED, 0xF0,
-				Content(hShell)));
+				ValueObject(hShell)));
 		hShell = h;
-		h->OnActivated(Message(h, SM_ACTIVATED, 0xF0, Content(h)));
+		h->OnActivated(Message(h, SM_ACTIVATED, 0xF0, ValueObject(h)));
 	}
 	return is_valid(h);
 }
@@ -262,7 +262,7 @@ SendMessage(const Message& msg) ynothrow
 }
 void
 SendMessage(const shared_ptr<YShell>& hShl, Messaging::ID id,
-	Messaging::Priority prior, const Messaging::Content& c) ynothrow
+	Messaging::Priority prior, const ValueObject& c) ynothrow
 {
 	try
 	{

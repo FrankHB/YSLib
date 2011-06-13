@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version 0.4982;
+\version 0.4986;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-06-08 17:46 +0800;
+	2011-06-09 17:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -999,7 +999,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 消息类型是 Message 类；
 消息主标识是唯一的，简称为消息标识，它的类型为 ID（本质上是无符号整数）；
 消息队列类型是 MessageQueue 类，是一个优先队列。
-库中的 "/Core/ysmsgdef.h" 文件预定义了一些消息标识。覆盖这些标识的最小连续区间称为系统消息标识区间。
+库中的 "/Core/ymsgdef.h" 文件预定义了一些消息标识。覆盖这些标识的最小连续区间称为系统消息标识区间。
 用户可自定义新的标识（用户自定义消息标识），但不应该和原有定义冲突。由于为宏定义实现，可以使多个标识名对应一个实际的标识，但反之无法实现。
 应尽可能保持所有用户自定义消息标识在系统消息标识区间之外。
 消息的处理的具体实现取决于用户。
@@ -1222,7 +1222,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 源文件(.cpp) 可能依赖于任何 YCLib 、 YSLib 或标准库头文件。
 
 @2.12.1.1 C 标准库的 C++ 标准库版本头文件依赖项：
- "ysmsg.h" 包含 <ctime> 。其余不在本体显式包含。
+ "ymsg.h" 包含 <ctime> 。其余不在本体显式包含。
 
 @2.12.1.2 不在本体中显式包含，需要在 "ycont.h" 包含或提供替代品的 C++ 标准库依赖项：
  <vector> 、 <list> 、 <set> 、 <map>、 <stack> 、 <queue> 和 <string> 。
@@ -1248,19 +1248,19 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 在 Core 中，以下依赖关系对于头文件包含是确定的：
 除了 "ysdef.h" 外都依赖于 "ysdef.h"；
  "yobject.h" 依赖于 "ycutil.h" 、 "yexcept.h" 和 "ycounter.hpp" ；
- "ystring.h" 、 "ysmsg.h" 和 "ygdi.h" 依赖于 "yobject.h" ；
+ "ystring.h" 、 "ymsg.h" 和 "ygdi.h" 依赖于 "yobject.h" ；
  "yevt.hpp" 依赖于 "yobject.h" 和 "yfunc.h" ；
  "ygdi.h" 依赖于 "ygdibase.h" ；
- "ysmsgdef.h" 依赖于 "ysmsg.h" ；
- "yshell.h" 依赖于 "ysmsgdef.h" ；
+ "ymsgdef.h" 依赖于 "ymsg.h" ；
+ "yshell.h" 依赖于 "ymsgdef.h" ；
  "yfilesys.h" 依赖于 "ystring.h"；
  "yapp.h" 依赖于 "yfilesys.h" 和 "yshell.h" 。
 在整个 YSLib 包含指令中排除以下重复的依赖项（仅包含其中较靠后的一组）：
  "ysdef.h" ；
  "ycutil.h" 、 "yexcept.h" 和 "ycounter.hpp" ；
  "yobject.h" 和 "ygdibase.h" ；
- "ystring.h" 、 "ysmsg.h" 、 "ygdi.h" 和 "yevt.hpp" ；
- "ysmsgdef.h" ；
+ "ystring.h" 、 "ymsg.h" 、 "ygdi.h" 和 "yevt.hpp" ；
+ "ymsgdef.h" ；
  "yshell.h" 和 "yfilesys.h" ；
  "yapp.h" 。
 在 Shell 中，以下依赖关系对于头文件包含是确定的：
