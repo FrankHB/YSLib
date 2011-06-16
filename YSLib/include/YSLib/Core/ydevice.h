@@ -11,12 +11,12 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version 0.2860;
+\version 0.2890;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:39:39 +0800;
 \par 修改时间:
-	2011-05-03 07:28 +0800;
+	2011-06-15 21:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,66 +32,33 @@
 
 YSL_BEGIN
 
-/*!
-\brief 默认屏幕初始化函数。
-*/
-extern bool
-InitAllScreens();
-
-YSL_BEGIN_NAMESPACE(Device)
+YSL_BEGIN_NAMESPACE(Devices)
 
 //图形设备。
-class YGraphicDevice : public YObject, public Drawing::Graphics
+class GraphicDevice : public YObject, public Drawing::Graphics
 {
 public:
 	/*!
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
-	YGraphicDevice(SDst, SDst, Drawing::BitmapPtr = nullptr);
+	GraphicDevice(SDst, SDst, Drawing::BitmapPtr = nullptr);
 };
 
 inline
-YGraphicDevice::YGraphicDevice(SDst w, SDst h, Drawing::BitmapPtr p)
+GraphicDevice::GraphicDevice(SDst w, SDst h, Drawing::BitmapPtr p)
 	: YObject(),
 	Graphics(p, Drawing::Size(w, h))
 {}
 
 
 //屏幕。
-class YScreen : public YGraphicDevice
+class Screen : public GraphicDevice
 {
-	friend bool
-	YSLib::InitAllScreens();
-
-public:
-	typedef int BGType;
-
-private:
-	static bool S_InitScr;
-
-	/*!
-	\brief 静态初始化。
-	*/
-	static void InitScreen();
-	/*!
-	\brief 状态检查。
-	*/
-	static void CheckInitialization();
-
-	BGType bg;
-
 public:
 	/*!
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
-	YScreen(SDst, SDst, Drawing::BitmapPtr = nullptr);
-
-	/*!
-	\brief 复位。
-	\note 无条件初始化。
-	*/
-	static void
-	Reset();
+	Screen(SDst, SDst, Drawing::BitmapPtr = nullptr);
 
 	/*!
 	\brief 取指针。
@@ -100,31 +67,16 @@ public:
 	*/
 	virtual Drawing::BitmapPtr
 	GetCheckedBufferPtr() const ynothrow;
-	DefGetter(const BGType&, BgID, bg)
-
-	DefSetter(const BGType&, BgID, bg)
 
 	/*!
 	\brief 更新。
 	\note 复制到屏幕。
 	*/
-	void
+	virtual void
 	Update(Drawing::BitmapPtr);
-	/*!
-	\brief 更新。
-	\note 以纯色填充屏幕。
-	*/
-	void
-	Update(Drawing::Color = 0);
 };
 
-inline void
-YScreen::InitScreen()
-{
-	S_InitScr = !InitAllScreens();
-}
-
-YSL_END_NAMESPACE(Device)
+YSL_END_NAMESPACE(Devices)
 
 YSL_END
 

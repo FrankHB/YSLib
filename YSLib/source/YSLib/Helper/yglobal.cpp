@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3171;
+\version 0.3228;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-06-08 18:56 +0800;
+	2011-06-16 14:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,10 +28,10 @@
 #include "../Core/yfilesys.h"
 #include "../Core/yapp.h"
 #include "../Core/yshell.h"
-#include "../Core/ydevice.h"
 #include "../Adaptor/yfont.h"
 #include "../Adaptor/ysinit.h"
 #include "../UI/ydesktop.h"
+#include "shlds.h"
 //#include <clocale>
 
 YSL_BEGIN
@@ -40,8 +40,8 @@ using namespace Drawing;
 using namespace Runtime;
 
 //全局常量。
-extern const char* DEF_DIRECTORY; //<! 默认目录。
-extern const char* G_COMP_NAME; //<! 制作组织名称。
+extern const char* DEF_DIRECTORY; //!< 默认目录。
+extern const char* G_COMP_NAME; //!< 制作组织名称。
 extern const char* G_APP_NAME; //!< 产品名称。
 extern const char* G_APP_VER; //!< 产品版本。
 const IO::Path YApplication::CommonAppDataPath(DEF_DIRECTORY);
@@ -62,6 +62,46 @@ const String YApplication::ProductVersion(G_APP_VER);
 //@}
 
 
+YSL_BEGIN_NAMESPACE(Devices)
+
+DSScreen::DSScreen(SDst w, SDst h, BitmapPtr p)
+	: Devices::Screen(w, h, p),
+	bg(-1)
+{}
+
+BitmapPtr
+DSScreen::GetCheckedBufferPtr() const ynothrow
+{
+	if(!GetBufferPtr())
+	{
+		InitVideo();
+
+		DSScreen& up_scr(FetchGlobalInstance().GetScreenUp());
+
+		up_scr.pBuffer = DS::InitScrUp(up_scr.bg);
+
+		DSScreen& down_scr(FetchGlobalInstance().GetScreenDown());
+
+		down_scr.pBuffer = DS::InitScrDown(down_scr.bg);
+	}
+
+	return Devices::Screen::GetCheckedBufferPtr();
+}
+
+void
+DSScreen::Update(BitmapPtr buf)
+{
+	platform::ScreenSynchronize(GetCheckedBufferPtr(), buf);
+}
+void
+DSScreen::Update(Color c)
+{
+	FillPixel<PixelType>(GetCheckedBufferPtr(), GetAreaFrom(GetSize()), c);
+}
+
+YSL_END_NAMESPACE(Devices)
+
+
 YDSApplication::YDSApplication()
 	: hScreenUp(), hScreenDown(), hDesktopUp(), hDesktopDown()
 {}
@@ -72,8 +112,9 @@ YDSApplication::InitializeDevices() ynothrow
 	//初始化显示设备。
 	try
 	{
-		hScreenUp = share_raw(new YScreen(MainScreenWidth, MainScreenHeight));
-		hScreenDown = share_raw(new YScreen(MainScreenWidth, MainScreenHeight));
+		hScreenUp = share_raw(new DSScreen(MainScreenWidth, MainScreenHeight));
+		hScreenDown = share_raw(new DSScreen(MainScreenWidth,
+			MainScreenHeight));
 	}
 	catch(...)
 	{
@@ -140,26 +181,6 @@ InputContent::operator==(const InputContent& rhs) const
 
 YSL_END_NAMESPACE(Messaging)
 
-/*!
-\brief 主 Shell 处理函数。
-*/
-extern int
-MainShlProc(const Message&);
-
-YSL_BEGIN_NAMESPACE(Shells)
-
-YMainShell::YMainShell()
-	: YShell()
-{}
-
-int
-YMainShell::ShlProc(const Message& msg)
-{
-	return MainShlProc(msg);
-}
-
-YSL_END_NAMESPACE(Shells)
-
 
 namespace
 {
@@ -208,13 +229,13 @@ Idle()
 }
 
 bool
-InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
+InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 {
 	using namespace platform;
 
-	if(FetchGlobalInstance().GetScreenUpHandle() == &scr)
+	if(raw(FetchGlobalInstance().GetScreenUpHandle()) == &scr)
 		YConsoleInit(true, fc, bc);
-	else if(FetchGlobalInstance().GetScreenDownHandle() == &scr)
+	else if(raw(FetchGlobalInstance().GetScreenDownHandle()) == &scr)
 		YConsoleInit(false, fc, bc);
 	else
 		return false;
@@ -222,23 +243,6 @@ InitConsole(YScreen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 }
 
 //非 yglobal.h 声明的平台相关函数。
-
-bool
-InitAllScreens()
-{
-	using namespace Runtime;
-
-	InitVideo();
-
-	YScreen& up_scr(FetchGlobalInstance().GetScreenUp());
-
-	up_scr.pBuffer = DS::InitScrUp(up_scr.bg);
-
-	YScreen& down_scr(FetchGlobalInstance().GetScreenDown());
-
-	down_scr.pBuffer = DS::InitScrDown(down_scr.bg);
-	return true;
-}
 
 
 /*!
@@ -396,9 +400,18 @@ main(int argc, char* argv[])
 		FetchGlobalInstance().InitializeDevices();
 
 		//注册全局应用程序对象。
-		FetchAppInstance().ResetShellHandle();
-		//FetchAppInstance().SetOutputPtr(hDesktopUp);
-		//DefaultShellHandle->SetShlProc(ShlProc);
+		FetchAppInstance();
+
+		/*
+		需要保证主 Shell 句柄在应用程序实例初始化之后初始化，
+		因为 YMainShell 的基类 YShell 的构造函数
+		调用了 YApplication 的非静态成员函数。
+		*/
+		static shared_ptr<YShell> hMainShell(new Shells::YMainShell());
+
+		if(!FetchAppInstance().SetShellHandle(hMainShell))
+			FetchAppInstance().Log.FatalError("Failed launching the"
+				" main shell @ main;");
 
 		//主体。
 
@@ -418,6 +431,7 @@ main(int argc, char* argv[])
 		//释放 Shell 。
 
 		YSL_ ReleaseShells();
+		reset(hMainShell);
 
 		//释放全局非静态资源。
 

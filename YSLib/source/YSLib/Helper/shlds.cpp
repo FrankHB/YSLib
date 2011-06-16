@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1799;
+\version 0.1801;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-05-23 20:19 +0800;
+	2011-06-16 14:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -61,10 +61,10 @@ YSL_BEGIN_NAMESPACE(DS)
 ShlDS::ShlDS(const shared_ptr<Desktop>& h_dsk_up,
 	const shared_ptr<Desktop>& h_dsk_down)
 	: YGUIShell(),
-	hDskUp(h_dsk_up ? h_dsk_up : share_raw(new Desktop(FetchGlobalInstance()
-		.GetScreenUp()))),
-	hDskDown(h_dsk_down ? h_dsk_down : share_raw(new Desktop(FetchGlobalInstance()
-		.GetScreenDown())))
+	hDskUp(h_dsk_up ? h_dsk_up : share_raw(new
+		Desktop(FetchGlobalInstance().GetScreenUp()))),
+	hDskDown(h_dsk_down ? h_dsk_down : share_raw(new
+		Desktop(FetchGlobalInstance().GetScreenDown())))
 {}
 
 int

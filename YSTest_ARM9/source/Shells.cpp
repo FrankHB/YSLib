@@ -10,13 +10,13 @@
 
 /*!	\file Shells.cpp
 \ingroup YReader
-\brief Shell 抽象。
-\version 0.4582;
+\brief Shell 框架逻辑。
+\version 0.4622;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-06-10 15:56 +0800;
+	2011-06-16 14:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,27 +37,13 @@ YSL_BEGIN
 using namespace Shells;
 using namespace Drawing::ColorSpace;
 
-int
-MainShlProc(const Message& msg)
-{
-	switch(msg.GetMessageID())
-	{
-	case SM_ACTIVATED:
-		NowShellToStored<ShlLoad>();
-		return 0;
-
-	default:
-		return YShell::DefShlProc(msg);
-	}
-}
-
 
 namespace
 {
 	Color
 	GenerateRandomColor()
 	{
-	//使用 std::time(0) 初始化随机数种子在模拟器上无效。
+	//使用 std::time(0) 初始化随机数种子在 DeSmuMe 上无效。
 	//	std::srand(std::time(0));
 		return Color(std::rand(), std::rand(), std::rand(), 1);
 	}
@@ -254,13 +240,13 @@ ReleaseShells()
 		FetchGlobalImage(i).reset();
 	ReleaseStored<ShlReader>();
 	ReleaseStored<ShlExplorer>();
-	ReleaseStored<ShlLoad>();
-	ReleaseGlobalResource<TextRegion>();
 }
 
 using namespace DS;
 
-ShlLoad::ShlLoad()
+YSL_BEGIN_NAMESPACE(Shells)
+
+YMainShell::YMainShell()
 	: ShlDS(),
 	lblTitle(Rect(50, 20, 100, 22)),
 	lblStatus(Rect(60, 80, 80, 22)),
@@ -268,7 +254,7 @@ ShlLoad::ShlLoad()
 {}
 
 int
-ShlLoad::OnActivated(const Message& msg)
+YMainShell::OnActivated(const Message& msg)
 {
 	ParentType::OnActivated(msg);
 	YDebugSetStatus(true);
@@ -289,13 +275,15 @@ ShlLoad::OnActivated(const Message& msg)
 }
 
 int
-ShlLoad::OnDeactivated(const Message& msg)
+YMainShell::OnDeactivated(const Message& msg)
 {
 	reset(GetDesktopUp().GetBackgroundImagePtr());
 	reset(GetDesktopDown().GetBackgroundImagePtr());
 	ParentType::OnDeactivated(msg);
 	return 0;
 }
+
+YSL_END_NAMESPACE(Shells)
 
 
 ShlExplorer::ShlExplorer()
@@ -306,7 +294,8 @@ ShlExplorer::ShlExplorer()
 	chkTest(Rect(45, 165, 16, 16)),
 	pWndTest(), pWndExtra(),
 	lblA(Rect(5, 20, 200, 22)),
-	lblB(Rect(5, 120, 72, 22))
+	lblB(Rect(5, 120, 72, 22)),
+	mhMain(*GetDesktopDownHandle())
 {
 	FetchEvent<KeyPress>(fbMain) += OnKeyPress_fbMain;
 	fbMain.GetViewChanged().Add(*this, &ShlExplorer::OnViewChanged_fbMain);
@@ -342,8 +331,6 @@ namespace
 		return share_raw(p);
 	}
 
-	MenuHost* s_pMenuHost;
-
 	void
 	SwitchVisible(IWindow& wnd)
 	{
@@ -356,15 +343,19 @@ namespace
 
 
 ShlExplorer::TFormTest::TFormTest()
-	: Form(Rect(10, 40, 228, 70), shared_ptr<Image>(),
+	: Form(Rect(10, 40, 228, 100), shared_ptr<Image>(),
 		raw(FetchGlobalInstance().GetDesktopDownHandle())),
 	btnEnterTest(Rect(2, 5, 148, 22)), /*FetchImage(6)*/
 	btnMenuTest(Rect(152, 5, 60, 22)),
-	btnShowWindow(Rect(45, 35, 124, 22))
+	btnShowWindow(Rect(45, 35, 124, 22)),
+	btnPrevBackground(Rect(45, 65, 30, 22)),
+	btnNextBackground(Rect(95, 65, 30, 22))
 {
 	*this += btnEnterTest;
 	*this += btnMenuTest;
 	*this += btnShowWindow;
+	*this += btnPrevBackground;
+	*this += btnNextBackground;
 	btnEnterTest.Text = _ustr("边界测试");
 	btnEnterTest.HorizontalAlignment = MLabel::Right;
 	btnEnterTest.VerticalAlignment = MLabel::Up;
@@ -372,13 +363,34 @@ ShlExplorer::TFormTest::TFormTest()
 	btnShowWindow.Text = _ustr("显示/隐藏窗口");
 	btnShowWindow.HorizontalAlignment = MLabel::Left;
 	btnShowWindow.VerticalAlignment = MLabel::Down;
+	btnPrevBackground.Text = "<<";
+	btnNextBackground.Text = ">>";
 	BackColor = ARGB16(1, 31, 31, 15);
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
-//	FetchEvent<TouchMove>(btnEnterTest) += &Control::OnTouchMove;
 	FetchEvent<Enter>(btnEnterTest) += OnEnter_btnEnterTest;
 	FetchEvent<Leave>(btnEnterTest) += OnLeave_btnEnterTest;
 	FetchEvent<Click>(btnMenuTest).Add(*this, &TFormTest::OnClick_btnMenuTest);
 	FetchEvent<Click>(btnShowWindow) += OnClick_ShowWindow;
+	FetchEvent<Click>(btnPrevBackground) += [this](IControl&, TouchEventArgs&&){
+		auto& shl(FetchShell<ShlExplorer>());
+		auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
+		auto& dsk_down_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
+
+		dsk_up_ptr = FetchImage(3);
+		dsk_down_ptr = FetchImage(4);
+		shl.GetDesktopUp().SetRefresh(true);
+		shl.GetDesktopDown().SetRefresh(true);;
+	};
+	FetchEvent<Click>(btnNextBackground) += [this](IControl&, TouchEventArgs&&){
+		auto& shl(FetchShell<ShlExplorer>());
+		auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
+		auto& dsk_down_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
+
+		dsk_up_ptr = FetchImage(5);
+		dsk_down_ptr = FetchImage(6);
+		shl.GetDesktopUp().SetRefresh(true);
+		shl.GetDesktopDown().SetRefresh(true);;
+	};
 }
 
 void
@@ -413,12 +425,11 @@ ShlExplorer::TFormTest::OnClick_btnMenuTest(TouchEventArgs&&)
 {
 	static int t;
 
-	YAssert(s_pMenuHost, "err: null menu host pointer found;");
-
-	auto& mnu((*s_pMenuHost)[1u]);
+	auto& mhMain(FetchShell<ShlExplorer>().mhMain);
+	auto& mnu(mhMain[1u]);
 	auto& lst(mnu.GetList());
 
-	if(s_pMenuHost->IsShowing(1u))
+	if(mhMain.IsShowing(1u))
 	{
 		if(lst.size() > 4)
 			lst.clear();
@@ -435,7 +446,7 @@ ShlExplorer::TFormTest::OnClick_btnMenuTest(TouchEventArgs&&)
 			btnMenuTest.GetY() + btnMenuTest.GetHeight()));
 		mnu.SetWidth(btnMenuTest.GetWidth() + 20);
 		lst.push_back(_ustr("TestMenuItem1"));
-		s_pMenuHost->Show(1u);
+		mhMain.Show(1u);
 	}
 	ResizeForContent(mnu);
 	mnu.Refresh();
@@ -647,7 +658,6 @@ ShlExplorer::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 
 		TextRegion tr;
 		tr.SetSize(t.s.Width, t.s.Height);
-		TextRegion& tr2(*GetGlobalResource<TextRegion>());
 
 		switch(e.X * 4 / btnTestEx.GetWidth())
 		{
@@ -673,26 +683,26 @@ ShlExplorer::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 			t.Pause();
 
 		case 1:
-			tr2.SetSize(t.s.Width, t.s.Height);
+			tr.SetSize(t.s.Width, t.s.Height);
 
 		//	t.Pause();
-		//	tr2.BeFilledWith(ColorSpace::Black);
-			t.Test1(tr2, ColorSpace::White);
-			PutLine(tr2, str);
-			t.Blit(tr2);
+		//	tr.BeFilledWith(ColorSpace::Black);
+			t.Test1(tr, ColorSpace::White);
+			PutLine(tr, str);
+			t.Blit(tr);
 			t.Pause();
 
-			t.Test1(tr2, ColorSpace::Black);
-			PutLine(tr2, str);
-			t.Blit(tr2);
+			t.Test1(tr, ColorSpace::Black);
+			PutLine(tr, str);
+			t.Blit(tr);
 			t.Pause();
 
-			t.Test1(tr2, ColorSpace::Red);
-			t.Blit(tr2);
-			PutLine(tr2, str);
+			t.Test1(tr, ColorSpace::Red);
+			t.Blit(tr);
+			PutLine(tr, str);
 			t.Pause();
 
-			t.Blit(tr2);
+			t.Blit(tr);
 			t.Pause();
 			break;
 
@@ -722,26 +732,26 @@ ShlExplorer::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 		case 3:
 			t.c = ColorSpace::Lime;
 
-			tr2.SetSize(t.s.Width, t.s.Height);
+			tr.SetSize(t.s.Width, t.s.Height);
 
 		//	t.Pause();
-		//	tr2.BeFilledWith(ColorSpace::Black);
-			t.Test1(tr2, ColorSpace::White);
-			PutLine(tr2, str);
-			t.Blit(tr2);
+		//	tr.BeFilledWith(ColorSpace::Black);
+			t.Test1(tr, ColorSpace::White);
+			PutLine(tr, str);
+			t.Blit(tr);
 			t.Pause();
 
-			t.Test1(tr2, ColorSpace::Black);
-			PutLine(tr2, str);
-			t.Blit(tr2);
+			t.Test1(tr, ColorSpace::Black);
+			PutLine(tr, str);
+			t.Blit(tr);
 			t.Pause();
 
-			t.Test1(tr2, ColorSpace::Red);
-			t.Blit(tr2);
-			PutLine(tr2, str);
+			t.Test1(tr, ColorSpace::Red);
+			t.Blit(tr);
+			PutLine(tr, str);
 			t.Pause();
 
-			t.Blit(tr2);
+			t.Blit(tr);
 			t.Pause();
 
 		default:
@@ -806,9 +816,7 @@ ShlExplorer::OnActivated(const Message& msg)
 	RequestFocusCascade(fbMain);
 	GetDesktopUp() += lblA;
 	GetDesktopUp() += lblB;
-//	GetDesktopUp().GetBackgroundImagePtr() = FetchImage(5);
 	GetDesktopDown().BackColor = ARGB16(1, 15, 15, 31);
-//	GetDesktopDown().GetBackgroundImagePtr() = FetchImage(6);
 	pWndTest = unique_raw(new TFormTest());
 	pWndExtra = unique_raw(new TFormExtra());
 	pWndTest->SetVisible(false);
@@ -818,18 +826,14 @@ ShlExplorer::OnActivated(const Message& msg)
 //	pWndTest->DrawContents();
 //	pWndExtra->DrawContents();
 
-	s_pMenuHost = new MenuHost(*GetDesktopDownHandle());
-
 /*	Menu& mnu(*new Menu(Rect::Empty, GenerateList(_ustr("TestMenuItem0")), 1u));
 
 	FetchEvent<Click>(mnu) += OnClick_ShowWindow;
-	*s_pMenuHost += mnu;*/
-	*s_pMenuHost
-		+= *new Menu(Rect::Empty, GenerateList(_ustr("A:MenuItem")), 1u);
-	*s_pMenuHost
-		+= *new Menu(Rect::Empty, GenerateList(_ustr("B:MenuItem")), 2u);
-	(*s_pMenuHost)[1u] += make_pair(1u, &(*s_pMenuHost)[2u]);
-	ResizeForContent((*s_pMenuHost)[2u]);
+	mhMain += mnu;*/
+	mhMain += *new Menu(Rect::Empty, GenerateList(_ustr("A:MenuItem")), 1u);
+	mhMain += *new Menu(Rect::Empty, GenerateList(_ustr("B:MenuItem")), 2u);
+	mhMain[1u] += make_pair(1u, &mhMain[2u]);
+	ResizeForContent(mhMain[2u]);
 	UpdateToScreen();
 	return 0;
 }
@@ -837,8 +841,6 @@ ShlExplorer::OnActivated(const Message& msg)
 int
 ShlExplorer::OnDeactivated(const Message& msg)
 {
-	s_pMenuHost->Clear();
-	delete s_pMenuHost;
 	reset(GetDesktopUp().GetBackgroundImagePtr());
 	reset(GetDesktopDown().GetBackgroundImagePtr());
 	FetchEvent<KeyUp>(GetDesktopDown()).Remove(*this,

@@ -1,4 +1,4 @@
-//v0.3212; *Build 217 r75;
+// v0.3212; *Build 218 r54;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -256,221 +256,200 @@ $using:
 
 
 $DONE:
-r1-r2:
-/ \impl @ \f main @ \impl \u YGlobal;
+r1:
+/ @ \cl MenuHost:
+	* \impl @ \mf Clear;
+	/ \tr \simp \impl @ \dtor;
+
+r2:
+/ \tr \simp \impl @ \mf ShlExplorer::OnDeactivated @ \impl \u Shells;
 
 r3:
-/= test 1 ^ \conf release;
+/ @ \u Shells:
+	/ \o MenuHost* s_pMenuHost @ \un \ns @ \impl \u -> \m MenuHost mhMain
+		@ \cl ShlExplorer;
+	/ @ \cl ShlExplorer:
+		/ \tr \impl @ \ctor;
+		/ \simp \impl @ \mf (TFormTest::OnClick_btnMenuTest & OnActivated
+			& OnDeactivated);
 
 r4:
-* \impl @ \mf Menu::OnLostFocus;
+/ @ \st TFormTest \cl ShlExplorer @ \u Shells:
+	+ \m Button btnPrevBackground;
+	+ \m Button btnNextBackground;
+	/ \tr \impl @ \ctor;
 
-r5:
-/= test 2 ^ \conf release;
-
-r6:
-/ \simp \impl @ (\mf ShlLoad::OnActivated & \f MainShlProc) @ \impl \u Shells:
-	- \a \tb & \eh;
+r5-r6:
+/ \ctor @ \impl @ \st TFormTest \cl ShlExplorer @ \u Shells;
 
 r7:
-/ 'ParentType::OnActivated(msg);' >> as 1st statement
-	@ \a mf OnActivated @ \impl \u Shells;
+/= test 1 ^ \conf release;
 
 r8:
-/ @ \cl ShlExplorer @ \u Shells:
-	/ \impl @ \ctor ^ lambda \expr;
-	- \mf OnClick_chkTest;
-	/ @ \cl TFormExtra:
-		/ \impl @ \ctor ^ lambda \expr;
-		- \mf OnClick_btnExit;
+/ @ \h Container:
+	+ \inc \h (<array> & <deque> & <forward_list>);
+	/ \inc order;
+	+ using std::array;
+	+ using std::deque;
+	+ using std::forward_list;
+	/ \decl order;
 
 r9:
-/= test 3 ^ \conf release;
+/ @ \h YObject:
+	+ \em \t<typename _type> \st OwnershipTag;
+	+ \em \t<class _tOwner, typename _type> HasOwnershipOf
+		\inh public std::integral_constant<bool, std::is_base_of<
+		OwnershipTag<_type>, _tOwner>>;
++ \inh public (OwnershipTag<Typeface> & OwnershipTag<FontFile>) @ \cl FontCache;
++ \inh public OwnershipTag<Menu> @ \cl MenuHost;
++ \inh public OwnershipTag<TextBlock> @ \cl TextMap @ \u TextManager;
 
 r10:
-/ \impl @ \ctor @ \cl (ShlExplorer & ShlExplorer::TFormExtra) @ \impl \u Shells;
+/ \a @ \ns YSLib::Storage >> \ns YSLib::Design;
+/ \a @ \ns YSLib::Design >> \ns YSLib;
+/ \tr @ \h (Container & YAdaptor & YPanel & YCoreUtilities);
 
-r11-r12:
-/ \ft<typename _type> \i \s bool are_equal(_type, ...)
-	-> \ft<typename _type, typename _tUnused> \i \s bool
-	are_equal(_type&, _tUnused&) @ \clt GEquality @ \clt GHEvent @ \h YEvent;
+r11:
+/ \simp \impl @ (\mf ShlExplorer::TFormExtra::OnClick_btnTestEx
+	& \f ReleaseShells) @ \impl \u Shells;
+- \ft GetGlobalResource & ReleaseGlobalResource @ \h YResource;
+
+r12:
+/ @ \cl YScreen:
+	- private \sm bool S_InitScr;
+	- private \smf InitScreen;
+	- private \smf CheckInitialization;
+	/ \tr \impl @ \mf GetCheckedBufferPtr;
 
 r13:
-/ \a Content => ValueObject;
-/ \cl Content @ \ns Messaging @ \u YShellMessage >> \ns YSLib @ \u YObject;
-/ \tr @ \as \str @ \impl @ \smf GManager::Do @ \cl ValueObject;
-/ \tr \doc;
+/ @ \cl YScreen @ \u YDevice -> YDSScreen @ \u YGlobal;
++ \cl YScreen @ \u YDevice;
+/ \inc \h YDevice >> (\h ~ \impl \u) YGlobal;
+/ @ \u YGlobal:
+	/ \a YScreen -> YDSScreen \exc @ \f InitConsole;
+	/ \cl YDSScreen:
+		/ \inh \cl YGraphicDevice -> YScreen;
+		/ \tr \impl @ \ctor;
+	/ \tr \impl @ \mf InitConsole;
+/ \cl YScreen @ \u YDevice;
+	- \smf Reset;
+	- \mf void Update(Color = 0);
+	/ \mf !\vt void Update(Drawing::BitmapPtr) -> \vt \mf;
 
-r14:
-/= test 4 ^ \conf release;
-
-r15:
-/ @ \dir Core:
-	/ \u YShellMessage["ysmsg.h", "ysmsg.cpp"]
-		=> YMessage["ymsg.h", "ymsg.cpp"];
-	/ \h YShellMessageDefinition["ysmsgdef.h"]
-		=> YMessageDefinition["ymsgdef.h"];
-	/ \tr \inh \h;
-
-r16:
-+ Code::Blocks project \conf;
-/= test 5;
-
-r17:
-/= test 6 ^ \conf release;
-
-r18:
-/ @ \cl Thumb:
-	/ \impl @ \ctor;
-	- private \mf OnEnter;
-	- private \mf OnLeave;
-
-r19:
-/ @ \cl CheckBox:
-	/ \impl @ \ctor;
-	- private \mf OnClick;
-/ \impl @ \ctor @ \cl ShlExplorer ^ '[this]' ~ '[&]' @ \a lambda \expr;
-
-r20:
-/ @ \clt GHEvent @ \h YEvent:
-	+ private \ft<typename _type> \i \smf Comparer GetComparer(_type& x,
-		_type& y, decltype(x == y) = false);
-	+ private \ft<typename _type, typename _tUnused> \i \smf Comparer
-		GetComparer(_type&, _tUnused&);
-	+ private \i \smf bool AreAlwaysEqual(const GHEvent&, const GHEvent&);
-	/ \impl @ \ctor \t<class _tFunc> \i GHEvent(_tFunc) ^ \smf GetComparer;
+r14-r20:
+/= test 2;
 
 r21:
-/ \simp @ \clt GEquality @ \clt GHEvent @ \h YEvent:
-	/ \simp \impl @ \smf AreEqual;
-	- 2 private \smf \t are_equals;
+/ \simp @ \mf YScreen::GetCheckedBufferPtr;
+- \decl @ \f InitAllScreens @ \h YDevice;
+/ @ \u YGlobal:
+	/ \mg \f InitAllScreens -> \mf YDSScreen::GetCheckedBufferPtr;
+	/ @ \cl YDSScreen:
+		- \decl @ friend bool YSLib::InitAllScreens();
+		- \mf DefSetter(const BGType&, BgID, bg);
 
 r22:
-/ @ \cl Menu:
-	/ \impl @ \ctor;
-	- private \mf OnLostFocus;
-	- private \mf OnConfirmed;
-/ @ \cl ATrack:
-	/ \impl @ \ctor;
-	- private \mf OnTouchDown;
-/ @ \cl TextList:
-	/ \impl @ \ctor;
-	- private \mf OnKeyDown;
-	- private \mf OnTouchDown;
-	- private \mf OnTouchMove;
-	- private \mf OnClick;
+/ \simp \impl @ \mf YDSScreen::GetCheckedBufferPtr @ \impl \u YGlobal
+	^ YScreen::GetCheckedBufferPtr;
+/ \a YScreen => Device::Screen @ (\u (YDesktop & YGlobal) & \h YConsole);
+/ @ \h YShellDefinition:
+	- \pre \decl @ \cl YScreen @ \ns Device;
+	- using Device::YScreen;
+/ \a YGraphicDevice => GraphicDevice;
+/ \a YScreen => Screen;
+/ \a YDSScreen => DSScreen;
 
 r23:
-/ \doc @ \dir UI:
-	/ group 'Shell' => 'UI';
-/ @ \cl Control:
-	/ \impl @ \ctor;
-	- private \mf OnGotFocus;
-	- private \mf OnLostFocus;
-	- private \mf OnTouchDown;
+/ \ns Device => Devices @ \ns YSLib;
+/ \cl DSScreen >> \ns YSLib::Devices;
++ using Devices::DSScreen @ \h YGlobal;
 
 r24:
-/= test 7 ^ \conf release;
+/= test 3 ^ \conf release;
 
-r25:
-/ @ \cl AScrollBar:
-	+ \i \mf void PerformDecrement();
-	+ \i \mf void PerformIncrement();
-	- private \mf OnTouchDown_PrevButton;
-	- private \mf OnTouchDown_NextButton;
-	/ \impl @ \ctor;
-
-r26:
-/ @ \u Scroll:
-	/ @ \cl AScrollBar:
-		/ \i \mf PerformDecrement => PerformSmallDecrement;
-		/ \i \mf PerformIncrement => PerformSmallIncrement;
-	/ \impl @ \ctor @ \mf HorizontalScrollBar;
-	/ \impl @ \ctor @ \mf VerticalScrollBar;
-	+ using namespace Runtime @ \impl \u;
-
-r27-r29:
-* \impl @ \ctor @ \cl HorizontalScrollBar & VerticalScrollBar;
-
-r30:
-/ \impl @ \ctor @ \cl AScrollBar;
+r25-r30:
+/= test 4;
 
 r31:
-* \impl @ \ctor @ \cl HorizontalScrollBar & VerticalScrollBar;
+/ @ \impl \u YApplication:
+	/ \impl @ \mf SetShellHandle @ \cl YApplication;
+	/ \tr \impl @ \f DispatchMessage:
+		+ \as;
 
 r32:
-/ \impl @ \ctor @ \cl AScrollBar;
+/ \impl @ \f void PostQuitMessage(int nExitCode, Messaging::Priority)
+	@ \impl \u YApplication;
+/ \impl @ \dtor @ \cl YShell;
 
 r33:
-/ \simp \impl @ \ctor @ \cl HorizontalScrollBar & VerticalScrollBar;
+/ \simp \impl @ \mf YShell::DefShlProc;
+/ \tr \impl @ \f main @ \impl \u YGlobal;
+- \mf ResetShellHandle @ \cl YApplication;
 
 r34:
-* \impl @ \ctor @ \cl AScrollBar;
+/ \f FetchMainShellHandle @ \u YApplication \mg -> \f main @ \impl \u YGlobal;
 
 r35:
-/= test 8 ^ \conf release;
+/ \impl @ \f main @ \impl \u YGlobal;
 
 r36:
-/ @ \u Scroll:
-	/ @ \cl AScrollBar:
-		+ protected \mf void OnKeyUp_Bound_TouchUpAndLeave(KeyEventArgs&&);
-		+ protected \mf void OnKeyDown_Bound_EnterAndTouchDown(KeyEventArgs&&);
-		/ \impl @ \ctor;
-	/ @ \cl (HorizontalScrollBar & VerticalScrollBar):
-		+ protected \mf \vt GetBoundControlPtr(const Runtime::Key&);
-		/ \simp \impl @ \ctor;
+/= test 5 ^ \conf release;
 
 r37:
-/ @ \cl AScrollBar:
-	/ protected \mf (GetBoundControlPtr & OnKeyUp_Bound_TouchUpAndLeave
-		& OnKeyDown_Bound_EnterAndTouchDown(KeyEventArgs&&) >> \cl Control;
-	/ \tr \impl @ \ctor;
-/ @ \cl Control:
-	/ !\i \mf GetBoundControlPtr -> \i \mf ^ \mac (PDefH1 & ImplRet);
-	/ \ac @ \mf OnKeyUp_Bound_TouchUpAndLeave
-		& OnKeyDown_Bound_EnterAndTouchDown -> public ~ protected;
+/ \def @ \i \ctor @ \cl BitmapBuffer ^ in-class \exp \de;
+/ \def @ !\i \ctor @ \cl YShell & YMainShell ^ in-class \exp \de;
+/ \def @ \i \ctor (Path() & \dtor) @ \cl Path @ \h YFileSystem
+	^ in-class \exp \de;
+/ \def @ \em !\i \dtor -> \i \dtor @ \cl (YObject & Form & Panel);
+/ \def @ protected \i \ctor @ \cl YCountableObject -> public \i \ctor
+	^ in-class \exp \de;
+/ \def @ \i \dtor @ \cl String ^ in-class \exp \de;
+/ @ \cl YLog:
+	/ \def @ !\i (\ctor & \dtor) @ \cl YLog ^ in-class \exp \de;
+	/ \def @ \em !\i \dtor -> \i \dtor;
+/ \def @ !\i \ctor @ \cl MUIContainer ^ in-class \exp \de;
 
-r38:
-/= test 9 ^ \conf release;
+r38-r52:
+- \pre \decl \cl YMainShell @ \h YShellDefinition;
+/= test 6;
 
-r39-r72:
-/= test 10;
+r53:
++ \inc \h Shell_DS @ \impl \u YGlobal;
+/ \impl @ \mf YMainShell::ShlProc;
+/ \def @ \mf YMainShell::ShlProc >> \impl \u (Shells ~ YGlobal);
+- \decl @ \f MainShlProc @ \impl \u YGlobal;
+- \impl @ \f MainShlProc @ \impl \u Shells;
+/ \cl YMainShell @ YGlobal \ns YSLib::Shells >> \h Shell_DS;
+/ \cl ShlLoad @ \u Shells \mg -> \cl YMainShell @ \u YGlobal;
+/ \tr \impl @ \f ReleaseShells @ \impl \u Shells;
+- \mf YMainShell::ShlProc @ (\h Shell_DS & \impl \u Shells);
 
-r73:
-* "wrong behavior" @ "track touch held event handler" $since b213:
-	* "wrong coordinate passed to touch focus captured control" $since b195:
-		* \impl @ \mf YGUIShell::ResponseTouchBase;
-
-r74:
-* \impl @ \mf YGUIShell::ResponseTouchBase;
-
-r75:
-+ cscope file @ workspace;
-/= test 11 ^ \conf release;
+r54:
+/= test 7 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-06-13:
--22.6d;
-//Mercurial rev1-rev87: r4280;
+2011-06-16:
+-19.6d;
+//Mercurial rev1-rev88: r4355;
 
 / ...
 
 
 $NEXT_TODO:
-b218-b256:
+b219-b324:
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
 	libstdc++ for known associative container operation bugs:
 	- \rem @ \impl @ \mft GetEvent @ \clt EventMap @ \h YEvent;
 * non-ASCII character path error in FAT16;
-
-b257-b768:
 + key accelerators;
 + \impl styles @ widgets;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
+
+b325-b768:
 + data configuragion;
 / impl 'real' RTC;
 / text alignment;
@@ -566,6 +545,16 @@ $renamed_to =>;
 $ellipse_refactoring;
 
 $now
+(
+	+ "desktop background switch test",
+	+ $design "ownership tag structure",
+	- $design "global resource helper functions",
+	+ "DS screen class",
+	^ "class %YMainShell for resource loading" ~ "class %ShlLoad",
+	- "class %ShlLoad"
+),
+
+b217
 (
 	* "wrong lost focus behavior for menus \
 		which had popped submenu(s) previously" $since b214,

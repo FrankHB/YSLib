@@ -11,12 +11,12 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version 0.1653;
+\version 0.1659;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-06-10 17:31 +0800;
+	2011-06-15 15:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -114,7 +114,8 @@ protected:
 
 
 //! \brief 菜单宿主。
-class MenuHost : noncopyable
+class MenuHost : public noncopyable,
+	public OwnershipTag<Menu>
 {
 public:
 	typedef Menu* ItemType; //!< 菜单组项目类型：记录菜单控件指针。
@@ -129,6 +130,10 @@ protected:
 
 public:
 	MenuHost(Forms::AFrame&);
+	/*!
+	\brief 析构。
+	\note 隐藏菜单组中的所有菜单并清理菜单组。
+	*/
 	virtual
 	~MenuHost();
 
@@ -176,40 +181,40 @@ public:
 	bool
 	Contains(Menu&);
 
-	/*
+	/*!
 	\brief 清除菜单组。
-	\note 同时置菜单的菜单宿主指针为空。
+	\note 释放所有的菜单对象。
 	*/
 	void
 	Clear();
 
-	/*
+	/*!
 	\brief 按指定 Z 顺序显示菜单组中菜单标识指定的菜单。
 	*/
 	void
 	Show(Menu::ID, Widgets::ZOrderType = DefaultMenuZOrder);
 	/*!
-	\brief 按指定 Z 顺序显示指定菜单 mnu。
+	\brief 按指定 Z 顺序显示指定菜单 mnu 。
 	\pre 断言： Contains(mnu) 。
 	*/
 	void
 	Show(Menu& mnu, Widgets::ZOrderType = DefaultMenuZOrder);
 
-	/*
+	/*!
 	\brief 按指定 Z 顺序显示菜单组中的所有菜单。
 	*/
 	void
 	ShowAll(Widgets::ZOrderType = DefaultMenuZOrder);
 
 private:
-	/*
-	\brief 按指定 Z 顺序显示指定菜单 mnu。
+	/*!
+	\brief 按指定 Z 顺序显示指定菜单 mnu 。
 	*/
 	void
 	ShowRaw(Menu& mnu, Widgets::ZOrderType = DefaultMenuZOrder);
 
 public:
-	/*
+	/*!
 	\brief 隐藏菜单组中菜单标识指定的菜单。
 	*/
 	void
@@ -221,7 +226,7 @@ public:
 	void
 	Hide(Menu& mnu);
 
-	/*
+	/*!
 	\brief 隐藏菜单组中的所有菜单。
 	*/
 	void

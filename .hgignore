@@ -1,0 +1,22 @@
+syntax: glob
+*.old
+*.orig*
+*.log
+*.user
+*.o
+*.d
+*.elf
+*.stackdump
+.map
+*/build*
+*/debug*
+*/release*
+*/doc/html/*
+*.ncb
+*.suo
+*.sdf
+*.layout
+UpgradeLog.XML
+*UpgradeReport*
+*/~AutoRecover*
+*.tmp

@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2600;
+\version 0.2604;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-05-14 20:20 +0800;
+	2011-05-15 16:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,8 +30,6 @@
 #include "ysdef.h"
 
 YSL_BEGIN
-
-YSL_BEGIN_NAMESPACE(Design)
 
 /*!
 \brief 转换类型选择。
@@ -64,7 +62,6 @@ struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
 		Result;
 };
 
-YSL_END_NAMESPACE(Design)
 
 /*!
 \brief 取整数类型的零元素。

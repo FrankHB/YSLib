@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2291;
+\version 0.2295;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-06-10 17:24 +0800;
+	2011-06-16 03:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -254,11 +254,6 @@ Fill(IWidget& w, Color c)
 	}
 }
 
-
-MUIContainer::MUIContainer()
-	: GMFocusResponser<IControl>(),
-	sWidgets(), sFocusContainers()
-{}
 
 void
 MUIContainer::operator+=(IWidget& wgt)

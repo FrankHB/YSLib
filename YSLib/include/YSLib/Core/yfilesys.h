@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2131;
+\version 0.2140;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-06-08 18:12 +0800;
+	2011-06-16 03:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,13 +65,13 @@ public:
 //	static const codecvt_type& codecvt();
 
 	//构造函数和析构函数。
-	Path();
+	Path() = default;
 	Path(const ValueType*);
 	Path(const NativePathCharType*);
 	Path(const NativeStringType&);
 	template<class _tString>
 	Path(const _tString&);
-	~Path();
+	~Path() = default;
 
 	//追加路径。
 	Path&
@@ -270,10 +270,6 @@ public:
 };
 
 inline
-Path::Path()
-	: u16string()
-{}
-inline
 Path::Path(const ValueType* pathstr)
 	: u16string(pathstr)
 {}
@@ -289,9 +285,6 @@ template<class _tString>
 inline
 Path::Path(const _tString& pathstr)
 	: u16string(pathstr)
-{}
-inline
-Path::~Path()
 {}
 
 inline bool

@@ -11,12 +11,12 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4373;
+\version 0.4379;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-06-09 08:42 +0800;
+	2011-06-15 15:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -212,7 +212,7 @@ TextBlock::TextBlock(BlockSizeType i, SizeType tlen)
 
 
 //文本缓冲区块映射。
-class TextMap
+class TextMap : public OwnershipTag<TextBlock>
 {
 public:
 	typedef TextBlock::BlockSizeType BlockSizeType;
@@ -247,6 +247,7 @@ public:
 
 	/*!
 	\brief 清理文本区块和映射。
+	\note 释放所有的 TextBlock 对象。
 	*/
 	void
 	Clear();

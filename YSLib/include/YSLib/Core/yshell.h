@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version 0.2898;
+\version 0.2900;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-06-09 17:29 +0800;
+	2011-06-16 02:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,7 +41,7 @@ public:
 	/*!
 	\brief 无参数构造。
 	*/
-	YShell();
+	YShell() = default;
 	/*!
 	\brief 析构。
 	*/

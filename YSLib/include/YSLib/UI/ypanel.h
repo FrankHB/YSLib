@@ -11,12 +11,12 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version 0.1181;
+\version 0.1187;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:40:51 +0800;
 \par 修改时间:
-	2011-06-10 17:29 +0800;
+	2011-06-16 03:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,9 +52,13 @@ public:
 	*/
 	explicit
 	Panel(const Rect& = Rect::Empty);
-	
+
+	/*!
+	\brief 析构：空实现。
+	*/
 	virtual
-	~Panel();
+	~Panel()
+	{}
 
 	ImplI1(IPanel) void
 	operator+=(IWidget&);
@@ -66,8 +70,8 @@ public:
 	inline void
 	operator+=(_type& obj)
 	{
-		return operator+=(Design::MoreConvertible<_type&,
-			IControl&, IWidget&>::Cast(obj));
+		return operator+=(MoreConvertible<_type&, IControl&,
+			IWidget&>::Cast(obj));
 	}
 
 	ImplI1(IPanel) bool
@@ -80,8 +84,8 @@ public:
 	inline bool
 	operator-=(_type& obj)
 	{
-		return operator-=(Design::MoreConvertible<_type&,
-			IControl&, IWidget&>::Cast(obj));
+		return operator-=(MoreConvertible<_type&, IControl&,
+			IWidget&>::Cast(obj));
 	}
 
 	using MUIContainer::Contains;

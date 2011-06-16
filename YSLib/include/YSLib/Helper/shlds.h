@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1960;
+\version 0.1995;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-05-22 00:12 +0800;
+	2011-06-16 14:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -94,8 +94,10 @@ public:
 	/*!
 	\brief 无参数构造。
 	*/
-	ShlDS(const shared_ptr<Desktop>& = FetchGlobalInstance().GetDesktopUpHandle(),
-		const shared_ptr<Desktop>& = FetchGlobalInstance().GetDesktopDownHandle());
+	ShlDS(const shared_ptr<Desktop>&
+		= FetchGlobalInstance().GetDesktopUpHandle(),
+		const shared_ptr<Desktop>&
+		= FetchGlobalInstance().GetDesktopDownHandle());
 
 	DefGetter(const shared_ptr<Desktop>&, DesktopUpHandle, hDskUp)
 	DefGetter(const shared_ptr<Desktop>&, DesktopDownHandle, hDskDown)
@@ -160,6 +162,36 @@ NowShellInsertDropMessage(Messaging::Priority p = 0x80)
 //@}
 
 YSL_END_NAMESPACE(DS)
+
+YSL_BEGIN_NAMESPACE(Shells)
+
+//! \brief 主 Shell 。
+class YMainShell : public DS::ShlDS
+{
+public:
+	typedef ShlDS ParentType;
+
+	Components::Widgets::Label lblTitle, lblStatus, lblDetails;
+
+	/*!
+	\brief 无参数构造。
+	*/
+	YMainShell();
+
+	/*!
+	\brief 处理激活消息。
+	*/
+	virtual int
+	OnActivated(const Message&);
+
+	/*!
+	\brief 处理停用消息。
+	*/
+	virtual int
+	OnDeactivated(const Message&);
+};
+
+YSL_END_NAMESPACE(Shells)
 
 YSL_END;
 

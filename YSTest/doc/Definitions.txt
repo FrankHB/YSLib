@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11139;
+\version r11171;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-06-09 17:30 +0800;
+	2011-06-16 14:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -335,9 +335,7 @@ DefDynInitRef(_type, _name, _expr)
 $header Core::YShellDefinition
 {
 	namespace Shells
-	{
-		/*extern*/ class YMainShell;
-	}
+	{}
 } //$header Core::YShellDefinition;
 
 //非本体函数列表。
@@ -346,29 +344,28 @@ $header Core::YApplication
 	extern YApplication&
 	FetchAppInstance();
 } //$header Core::YApplication;
-$header Core::YDevice
-{
-	extern bool
-	InitAllScreens();
-} //$header Core::YDevice;
 
 $unit Helper::YGlobal
 {
-	extern int
-	MainShlProc(const Message&);
-
 	extern void
 	ReleaseShells();
 } //$unit Helper::YGlobal;
 
+$unit Helper::Shell_DS
+{
+	namespace Shells
+	{
+		extern
+		YMainShell::YMainShell();
+		extern int
+		YMainShell::OnActivated(const Message&);
+		extern int
+		YMainShell::OnDeactivated(const Message&);
+	}
+} //$unit Helper::Shell_DS;
+
 
 //友元列表。
-class YScreen @ $header Core::YDevice
-{
-	friend bool
-	InitAllScreens();
-} //class YScreen;
-
 class PlatformResource @ $header Helper::YGlobal
 {
 	friend class YApplication;
@@ -415,16 +412,10 @@ namespace Components
 	} //namespace Widgets;
 }
 
-namespace Design
-{
-	$header Adaptor::YAdaptor;	
-	$unit Core::YCoreUtilities;
-} //namespace Design;
-
-namespace Device
+namespace Devices
 {
 	$unit Core::YDevice;
-} //namespace Device;
+} //namespace Devices;
 
 namespace Drawing
 {
@@ -656,7 +647,7 @@ $header Adaptor::YAdaptor
 	{
 		using namespace CHRLib;
 	} //namespace Text;
-	using Text::fchar_t, Text::uchar_t, Text::uint_t;	
+	using Text::fchar_t, Text::uchar_t, Text::uint_t;
 
 	using ystdex::u8;
 	using ystdex::u16;
@@ -704,20 +695,15 @@ $header Adaptor::YAdaptor
 
 	//库适配器。
 
-//! \brief 基础语言设施。
-YSL_BEGIN_NAMESPACE(Design)
-
 	// Function 。
-	using Loki::Function;
+	//using Loki::Function;
 
 //! \brief 设计模式。
 YSL_BEGIN_NAMESPACE(Pattern)
 YSL_END_NAMESPACE(Pattern)
 
-YSL_END_NAMESPACE(Design)
-
 	//使用 Loki 小对象。
-	using Loki::SmallObject;
+	//using Loki::SmallObject;
 
 } //$header Adaptor::YAdaptor;
 
@@ -754,20 +740,13 @@ $header Core::YShellDefinition : Adaptor::YAdaptor
 {
 	using Components::Desktop;
 
-	using Device::YScreen;
-
 	using Drawing::FontCache;
-	
+
 	using Shells::
 	{YMainShell, YShell};
 
 	using Text::String;
 } //$header Core::YShellDefinition;
-
-$header Core::YCoreUtilities : Core::YShellDefinition
-{
-	using Design::NonCopyable;
-}
 
 $header Core::YMessage : Core::YShellDefinition
 {
@@ -785,7 +764,10 @@ $header Core::YApplication : Core::YMessage
 	using Messaging::MessageQueue;
 } //$header Core::YApplication;
 
-$header Core::YGDI
+$header Core::YGDIBase
+{
+} //$header Core::YGDIBase;
+$header Core::YGDI : Core::YGDIBase
 {
 } //$header Core::YGDI;
 
@@ -819,6 +801,11 @@ $header Shell::YControl : Shell::YWidget
 		using namespace Drawing;
 	} //namespace Components;
 } //$header Shell::YControl;
+
+$header Helper::YGlobal : Core::YGDIBase
+{
+	using Devices::DSScreen;
+} //$header Helper::YGlobal;
 
 } //$code YSLib;
 

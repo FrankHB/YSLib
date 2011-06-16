@@ -11,12 +11,12 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version 0.2974;
+\version 0.2976;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-05 22:06:05 +0800;
 \par 修改时间:
-	2011-04-20 11:40 +0800;
+	2011-06-16 03:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,9 +42,9 @@ private:
 
 public:
 	/*!
-	\brief 无参数构造。
+	\brief 无参数构造：默认实现。
 	*/
-	String();
+	String() = default;
 	/*!
 	\brief 构造：使用标准字符指针表示的字符串。
 	*/
@@ -60,10 +60,6 @@ public:
 	String(const u16string&);
 };
 
-inline
-String::String()
-	: u16string()
-{}
 inline
 String::String(const uchar_t* s)
 	: u16string(s)

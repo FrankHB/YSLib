@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version 0.3291;
+\version 0.3301;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-06-05 17:28 +0800;
+	2011-06-16 02:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,15 +34,10 @@ YSL_BEGIN_NAMESPACE(Shells)
 
 using namespace Messaging;
 
-YShell::YShell()
-	: YObject()
-{}
 YShell::~YShell()
 {
-	if(FetchMainShellHandle() == this)
-		FetchAppInstance().Log.FatalError("Default shell destructed.");
 	if(FetchAppInstance().GetShellHandle() == this)
-		FetchAppInstance().ResetShellHandle();
+		FetchAppInstance().SetShellHandle(shared_ptr<YShell>());
 }
 
 bool
@@ -69,13 +64,11 @@ YShell::DefShlProc(const Message& msg)
 
 			case SM_DROP:
 				{
-					if(hShl == FetchMainShellHandle())
-						return 1;
-					else if(hShl->IsActive())
-						FetchAppInstance().SetShellHandle(FetchMainShellHandle());
+					if(hShl->IsActive())
+						FetchAppInstance().SetShellHandle(shared_ptr<YShell>());
 					if(hShl->IsActive())
 						return -1;
-					hShl.reset();
+					reset(hShl);
 				}
 			default:
 				break;

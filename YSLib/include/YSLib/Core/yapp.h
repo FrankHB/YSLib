@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2289;
+\version 0.2308;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-06-09 08:44 +0800;
+	2011-06-16 03:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,14 +42,15 @@ class YLog : public YObject
 {
 public:
 	/*!
-	\brief 构造。
+	\brief 无参数构造：默认实现。
 	*/
-	YLog();
+	YLog() = default;
 	/*!
-	\brief 析构。
+	\brief 析构：空实现。
 	*/
 	virtual
-	~YLog();
+	~YLog()
+	{}
 
 	/*!
 	\brief 输出 char 字符。
@@ -133,8 +134,10 @@ public:
 	virtual
 	~YApplication() ynothrow;
 
+	/*!
+	\brief 取得线程空间中当前运行的 Shell 的句柄。
+	*/
 	DefGetter(shared_ptr<YShell>, ShellHandle, hShell) \
-		//!< 取得线程空间中当前运行的 Shell 的句柄。
 	/*!
 	\brief 取主消息队列。
 	\throw LoggedEvent 记录异常事件。
@@ -155,19 +158,15 @@ public:
 	\note 仅抛出以上异常。
 	*/
 	FontCache&
-	GetFontCache() const ythrow(LoggedEvent); 
+	GetFontCache() const ythrow(LoggedEvent);
 
 	/*!
 	\brief 设置线程空间中当前运行的 Shell 的句柄。
+	\return 参数是否有效。
+	\warning 空句柄在此处是可接受的，但继续运行可能会导致断言失败。
 	*/
 	bool
 	SetShellHandle(const shared_ptr<YShell>&);
-
-	/*!
-	\brief 复位线程：设置当前运行的线程为主线程。
-	*/
-	void
-	ResetShellHandle() ynothrow;
 
 	/*!
 	\brief 复位默认字体缓存：使用指定路径。
@@ -195,15 +194,6 @@ public:
 */
 extern YApplication&
 FetchAppInstance();
-
-/*!
-\brief 取主 Shell 句柄。
-\note 需要保证主 Shell 句柄在应用程序实例初始化之后初始化，
-	因为 YMainShell 的基类 YShell 的构造函数
-	调用了 YApplication 的非静态成员函数。
-*/
-const shared_ptr<YShell>&
-FetchMainShellHandle();
 
 /*!
 \ingroup HelperFunction
@@ -252,6 +242,7 @@ TranslateMessage(const Message& msg);
 
 /*!
 \brief 分发消息。
+\note 断言检查：当前 Shell 句柄有效。
 */
 int
 DispatchMessage(const Message& msg);

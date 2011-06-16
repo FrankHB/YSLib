@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup UI
 \brief 平台无关的图形设备接口。
-\version 0.4016;
+\version 0.4018;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-06-10 17:31 +0800;
+	2011-06-16 13:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -793,10 +793,10 @@ class BitmapBuffer : public noncopyable, public Graphics
 {
 public:
 	/*!
-	\brief 无参数构造。
+	\brief 无参数构造：默认实现。
 	\note 零初始化。
 	*/
-	BitmapBuffer();
+	BitmapBuffer() = default;
 	/*!
 	\brief 构造：使用指定位图指针和大小。
 	*/
@@ -834,9 +834,6 @@ public:
 	BeFilledWith(Color) const;
 };
 
-inline BitmapBuffer::BitmapBuffer()
-	: Graphics()
-{}
 inline BitmapBuffer::~BitmapBuffer()
 {
 	ydelete_array(pBuffer);

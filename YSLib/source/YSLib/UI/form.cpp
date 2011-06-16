@@ -11,12 +11,12 @@
 /*!	\file form.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗体。
-\version 0.1527;
+\version 0.1529;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-06-10 17:27 +0800;
+	2011-06-16 03:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,8 +40,6 @@ Form::Form(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
 {
 //	SetSize(Size.Width, Size.Height);
 }
-Form::~Form()
-{}
 /*
 void
 Form::SetSize(SDst w, SDst h)

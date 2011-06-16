@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version 0.1658;
+\version 0.1664;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-06-10 17:03 +0800;
+	2011-06-14 01:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -147,8 +147,7 @@ MenuHost::MenuHost(AFrame& frm)
 MenuHost::~MenuHost()
 {
 	HideAll();
-	for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
-		ydelete(i->second);
+	Clear();
 }
 
 void
@@ -210,7 +209,7 @@ void
 MenuHost::Clear()
 {
 	for(auto i(mMenus.begin()); i != mMenus.end(); ++i)
-		i->second->pHost = nullptr;
+		delete(i->second);
 	mMenus.clear();
 }
 

@@ -11,12 +11,12 @@
 /*!	\file yconsole.h
 \ingroup UI
 \brief 平台无关的控制台。
-\version 0.1089;
+\version 0.1097;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 23:00:29 +0800;
 \par 修改时间:
-	2011-06-10 17:30 +0800;
+	2011-06-15 21:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,14 +38,14 @@ YSL_BEGIN_NAMESPACE(Components)
 class Console
 {
 public:
-	YScreen& Screen;
+	Devices::Screen& Screen;
 
 	/*!
 	\brief 构造：使用指定屏幕、有效性、前景色和背景色。
 	*/
 	explicit
-	Console(YScreen& = FetchGlobalInstance().GetDefaultScreen(), bool = true,
-		Drawing::Color = Drawing::ColorSpace::White,
+	Console(Devices::Screen& = FetchGlobalInstance().GetDefaultScreen(),
+		bool = true, Drawing::Color = Drawing::ColorSpace::White,
 		Drawing::Color = Drawing::ColorSpace::Black);
 	/*!
 	\brief 析构。
@@ -72,7 +72,7 @@ public:
 };
 
 inline
-Console::Console(YScreen& scr, bool a, Drawing::Color fc, Drawing::Color bc)
+Console::Console(Devices::Screen& scr, bool a, Drawing::Color fc, Drawing::Color bc)
 	: Screen(scr)
 {
 	if(a)

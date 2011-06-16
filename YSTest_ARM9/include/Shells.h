@@ -14,13 +14,13 @@
 
 /*!	\file Shells.h
 \ingroup YReader
-\brief Shell 声明。
-\version 0.3281;
+\brief Shell 框架逻辑。
+\version 0.3288;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-06-08 23:45 +0800;
+	2011-06-16 14:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,23 +52,6 @@ using namespace DS::Components;
 shared_ptr<Image>&
 FetchImage(size_t);
 
-class ShlLoad : public ShlDS
-{
-public:
-	typedef ShlDS ParentType;
-
-	Label lblTitle, lblStatus, lblDetails;
-
-	ShlLoad();
-
-	virtual int
-	OnActivated(const Message&);
-
-	virtual int
-	OnDeactivated(const Message&);
-	//	InitializeComponents();
-};
-
 
 class ShlExplorer : public ShlDS
 {
@@ -82,7 +65,8 @@ public:
 
 	struct TFormTest : public Form
 	{
-		Button btnEnterTest, btnMenuTest, btnShowWindow;
+		Button btnEnterTest, btnMenuTest, btnShowWindow,
+			btnPrevBackground, btnNextBackground;
 
 		TFormTest();
 
@@ -130,6 +114,7 @@ public:
 	unique_ptr<TFormTest> pWndTest;
 	unique_ptr<TFormExtra> pWndExtra;
 	Label lblA, lblB;
+	MenuHost mhMain;
 
 	ShlExplorer();
 

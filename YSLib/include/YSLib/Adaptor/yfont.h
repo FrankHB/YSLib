@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7285;
+\version 0.7289;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-06-08 18:13 +0800;
+	2011-06-15 15:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -397,7 +397,8 @@ CharBitmap::CharBitmap(const NativeType& b)
 
 
 //! \brief 字体缓存。
-class FontCache : public noncopyable
+class FontCache : public noncopyable,
+	public OwnershipTag<Typeface>, public OwnershipTag<FontFile>
 {
 	friend class Typeface;
 

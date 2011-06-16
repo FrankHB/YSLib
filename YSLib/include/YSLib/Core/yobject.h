@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version 0.3128;
+\version 0.3142;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-09 08:44 +0800;
+	2011-06-16 03:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,6 +34,23 @@
 #include "../Adaptor/cont.h"
 
 YSL_BEGIN
+
+//特征类策略：对象类型标签模版。
+
+/*!
+\brief 指定对于 _type 类型成员具有所有权的标签。
+*/
+template<typename _type>
+struct OwnershipTag
+{};
+
+//标签类型元运算。
+
+template<class _tOwner, typename _type>
+struct HasOwnershipOf : public std::integral_constant<bool,
+	std::is_base_of<OwnershipTag<_type>, _tOwner>::value>
+{};
+
 
 //基本对象定义。
 
@@ -160,7 +177,8 @@ class YObject : public noncopyable
 {
 public:
 	/*!
-	\brief 析构：空实现。必要的虚函数以构造多态基类。
+	\brief 析构：空实现。
+	\note 必要的虚函数以构造多态基类。
 	*/
 	virtual
 	~YObject()
@@ -171,16 +189,12 @@ public:
 //! \brief 基本可数对象类：所有可数的基本对象类的公共基类。
 class YCountableObject : public GMCounter<YCountableObject>, public YObject
 {
-protected:
+public:
 	/*!
-	\brief \c protected 无参数构造。
+	\brief 无参数构造：默认实现。
 	*/
-	YCountableObject();
+	YCountableObject() = default;
 };
-
-inline
-YCountableObject::YCountableObject()
-{}
 
 
 /*!

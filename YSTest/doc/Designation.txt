@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version 0.4986;
+\version 0.5016;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-06-09 17:30 +0800;
+	2011-06-15 21:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -149,7 +149,7 @@
  Defaulted and deleted functions(N2346) ；
  New function declaration syntax for deduced return types(N2541) ；
  Lambda expressions and closures(N2550) 。
-仅使用ISO/IEC C++ 2011 中头文件 <type_traits> 、 <tuple> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
+仅使用ISO/IEC C++ 2011 中头文件 <array> 、 <type_traits> 、 <tuple> 、 <forward_list> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
 
 @1.3.2.3
  YSLib 的源代码的本体(@2.12) 是平台中立的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
@@ -329,7 +329,7 @@
 
 @1.4.2.5.2 例外 2 ：
 执行顺序无关的多条短语句序列。
- 
+
 @1.4.2.6
 有源代码兼容性和可读性良好替代方案的情况下，尽可能不使用宏。
 
@@ -596,7 +596,7 @@
 
 @1.5.3.1 概述：
 对象所有权是对象组（对象的集合）之间的二元关系，简称所有权。
-拥有所有权的对象组称为所有者对象组（以下简称所有者，记作 O ），另一方称为被托管对象组（以下记作 P ），且满足 O 和 P 的交集为空集。
+具有所有权的对象组称为所有者对象组（以下简称所有者，记作 O ），另一方称为被托管对象组（以下记作 P ），且满足 O 和 P 的交集为空集。
 当 card(O) 或 card(P) 等于 1 时，约定可以使用其中的唯一元素指代集合本身。
  P 是空集的所有权是空所有权。以下若不另外注明，则“所有权”均指非空所有权。
 所有权是一对一或一对多的：所有者拥有的所有权是排他的，即任意被托管对象有且仅有一个所有者（集合）；但反之一个所有者可以拥有超过一个被托管对象组的所有权。
@@ -818,10 +818,9 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
  YSLib::Components::Forms ：窗体应用。
  YSLib::Components::Styles ：样式和界面定制。
  YSLib::Components::Widgets ：部件。
- YSLib::Design ：基础语言设施（类型操作等）。
- YSLib::Design::Patterns ：设计模式。
- YSLib::Design::TL ：类型列表(typelist) 操作。
- YSLib::Device ：设备抽象。
+ YSLib::Patterns ：设计模式。
+ YSLib::TL ：类型列表(typelist) 操作。
+ YSLib::Devices ：设备抽象。
  YSLib::Drawing ：图形处理。
  YSLib::Messaging ：消息机制。
  YSLib::IO ：输入/输出管理。
@@ -854,10 +853,12 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 为了克服前三个缺点，可以使用侵入式方案代替，但可能会引起额外的编码复杂度。最后一个缺点所在的场景一般不适合使用引用计数策略（尽管改用侵入式引用计数方案可能减小开销）。
 因此 YSLib 仅在必要时使用基于此类智能指针实现的句柄，如跨 Shell 资源传递（包括 Shell 类实例本身）。
 对于需要保持所有权但又要避免重复引用计数的开销的情况，使用 std::unique_ptr 。
-其它情况下，使用不含所有权的内建指针，以保持客户程序对资源管理的选择自由和灵活性。若没有在注释或文档注明所有权关系，均应视为由客户程序对象拥有指针参数指向对象的所有权。
-以下所有权关系中，被托管对象类包括派生类：
- Drawing::FontCache 具有 Drawing::Typeface 、 Drawing::FontFile 、 Drawing::FontFamily 的所有权。
+其它情况下，使用不含所有权的内建指针，以保持客户程序对资源管理的选择自由和灵活性。若没有在注释或文档注明所有权关系，均应视为由客户程序对象具有指针参数指向对象的所有权。
+以下所有权关系中，被托管对象类包括派生类。所有者（基类）中 public 继承了 OwnershipTag<_type> ，其中 _type 是被托管对象类型。实例包括：
+ Drawing::FontCache 具有 Drawing::Typeface 、 Drawing::FontFile 、 Drawing::FontFamily 的所有权；
+ Components::Controls::MenuHost 具有 Components::Controls::Menu 的所有权；
  Text::TextMap 及其派生类 Text::TextFileBuffer 具有 Text::TextBlock 的所有权。
+可以使用 HasOwnership<_tOwner, _type> 判断 _tOwner 是否具有 _type 成员的所有权。
 
 @2.3 语言特性扩展支持：
 
@@ -949,16 +950,18 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 文件类 File 等。
 
 @2.6.1 设备抽象：
-位于命名空间 Device 中。
-桌面是大小和对应输出屏幕相等的窗口（参见 @2.8.1.2.3 ），默认实现为 Desktop 类。
+位于命名空间 Devices 中。
 
-@2.6.1.1 物理设备：
- YGraphicDevice 是输出设备基类。
- YScreen 由 YGraphicDevice 派生，是二维屏幕的抽象。
+@2.6.1.1 设备基类：
+ GraphicDevice 是输出设备基类。
 
-@2.6.1.2 虚拟设备：
+@2.6.1.2 物理设备：
+ Screen 由 GraphicDevice 派生，是二维屏幕的抽象。
 
-@2.6.1.2.1 桌面：参见 @2.6.1 。
+@2.6.1.3 虚拟设备：
+
+@2.6.1.3.1 桌面：
+桌面是大小和对应输出屏幕相等的窗口（参见 @2.8.1.2.3 ），默认实现为 Components::Desktop 类。
 
 @2.6.2 通用字符串抽象。
 
@@ -1080,7 +1083,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 @2.8.2.1.1 视图变更事件：
 包括 Move 、 Resize 事件等。
 在试图变更视图时触发。
-需要注意，不包括必然的视图改变后置条件。即使设置控件视图操作的结果与未设置时相同，仍触发事件。 
+需要注意，不包括必然的视图改变后置条件。即使设置控件视图操作的结果与未设置时相同，仍触发事件。
 
 @2.8.2.1.2 图形用户界面输入事件：
 基本用户界面输入事件是图形用户界面输入直接引起的事件，分为基本按键输入事件和基本指针设备（屏幕光标定位设备）输入事件。
@@ -1183,7 +1186,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 @2.9.1 内存调试设施：
 定义宏 YSL_USE_MEMORY_DEBUG 后（默认 debug 配置在 "config.h" 有此定义）可以使用 "ynew.h" 声明的宏和类进行内存调试。
 重载全局 operator new 和 operator delete 可以用于用户程序调试（ YSLib 中默认并不使用）。
- MemoryList 用于跟踪记录已分配的内存块。 debug 配置下默认定义了一个函数内静态对象，用函数 GetDebugMemoryList 取此对象引用获得默认调试内存信息。 
+ MemoryList 用于跟踪记录已分配的内存块。 debug 配置下默认定义了一个函数内静态对象，用函数 GetDebugMemoryList 取此对象引用获得默认调试内存信息。
 可以用宏 ynew 代替 new/new[] ， ydelete 代替 delete ， ydelete_array 代替 delete[] ，配合 GetDebugMemoryList 检测内存泄露以及重复释放错误；但不适于智能指针，因为未使用 ydelete 和 ydelete_array 。
 
 @2.9.2 引用对象：
@@ -1225,7 +1228,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
  "ymsg.h" 包含 <ctime> 。其余不在本体显式包含。
 
 @2.12.1.2 不在本体中显式包含，需要在 "ycont.h" 包含或提供替代品的 C++ 标准库依赖项：
- <vector> 、 <list> 、 <set> 、 <map>、 <stack> 、 <queue> 和 <string> 。
+ <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 和  <vector>。
 例外：同时需要使用容器和限定标准库容器时，目前仅有一例：
  "yexcept.h" 包含 <string> （鉴于重用标准库异常需要的参数类型 std::string 不一定是 "ycont.h" 配置的类型）。
 
@@ -1240,7 +1243,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 <exception> 、 <functional> 、 <iterator> 、 <stdexcept> 和 <typeinfo> 。
 
 @2.12.1.6 本体的头文件中未限定（可能会在将来版本显式包含）的 C++ 标准库依赖项：
- <complex> 、 <deque> 、 <bitset> 、 <limits> 、 <numeric> 、 <memory> 和 <valarray> 。
+ <complex>  、 <bitset> 、 <limits> 、 <numeric> 、 <memory> 和 <valarray> 。
 
 @2.12.2 本体内部头文件依赖性：
  Core 的头文件仅包含 Adaptor 或 Core 的头文件，或 "yglobal.h" 。
@@ -1393,7 +1396,7 @@ $4.1.3.1.4 临时性例外：
 起始两个大写字母，之后紧接小写字母的类型（此上下文包含参数化类型，下同）标识符，第一个字符会被作为类型前缀。
 
 @4.1.3.5.5
-少数特例(@4.3.5.2) 中，出现在类型标识符起始则被视为既定的类型前缀组合。 
+少数特例(@4.3.5.2) 中，出现在类型标识符起始则被视为既定的类型前缀组合。
 一般应避免出现起始两个大写字母，之后紧接小写字母的非前缀标识符，以免混淆。
 
 @4.1.4

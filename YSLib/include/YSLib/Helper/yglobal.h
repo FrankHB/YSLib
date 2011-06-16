@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2278;
+\version 0.2362;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-06-09 08:43 +0800;
+	2011-06-16 14:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,6 +34,7 @@
 
 #include "../Core/ygdibase.h"
 #include "../Core/yapp.h"
+#include "../Core/ydevice.h"
 
 YSL_BEGIN
 
@@ -54,6 +55,59 @@ const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
 //@}
 
 
+YSL_BEGIN_NAMESPACE(Devices)
+
+// DS 屏幕。
+class DSScreen : public Screen
+{
+public:
+	typedef int BGType;
+
+private:
+	BGType bg;
+
+public:
+	/*!
+	\brief 构造：指定宽度和高度，从指定缓冲区指针。
+	*/
+	DSScreen(SDst, SDst, Drawing::BitmapPtr = nullptr);
+
+	/*!
+	\brief 复位。
+	\note 无条件初始化。
+	*/
+	static void
+	Reset();
+
+	/*!
+	\brief 取指针。
+	\note 无异常抛出。
+	\note 进行状态检查。
+	*/
+	virtual Drawing::BitmapPtr
+	GetCheckedBufferPtr() const ynothrow;
+	DefGetter(const BGType&, BgID, bg)
+
+	/*!
+	\brief 更新。
+	\note 复制到屏幕。
+	*/
+	void
+	Update(Drawing::BitmapPtr);
+	/*!
+	\brief 更新。
+	\note 以纯色填充屏幕。
+	*/
+	void
+	Update(Drawing::Color = 0);
+};
+
+YSL_END_NAMESPACE(Devices)
+
+
+using Devices::DSScreen;
+
+
 /*!
 \brief 平台相关的应用程序类。
 \note 含默认接口。
@@ -64,8 +118,8 @@ class YDSApplication : public YApplication
 	FetchGlobalInstance() ynothrow;
 
 private:
-	shared_ptr<YScreen> hScreenUp; //<! DS 上屏幕句柄。
-	shared_ptr<YScreen> hScreenDown; //<! DS 上屏幕句柄。
+	shared_ptr<DSScreen> hScreenUp; //<! DS 上屏幕句柄。
+	shared_ptr<DSScreen> hScreenDown; //<! DS 上屏幕句柄。
 	shared_ptr<Desktop> hDesktopUp; //<! DS 下屏幕默认桌面句柄。
 	shared_ptr<Desktop> hDesktopDown; //<! DS 下屏幕默认桌面句柄。
 
@@ -77,8 +131,8 @@ private:
 	YDSApplication();
 
 public:
-	DefGetter(const shared_ptr<YScreen>&, ScreenUpHandle, hScreenUp)
-	DefGetter(const shared_ptr<YScreen>&, ScreenDownHandle, hScreenDown)
+	DefGetter(const shared_ptr<DSScreen>&, ScreenUpHandle, hScreenUp)
+	DefGetter(const shared_ptr<DSScreen>&, ScreenDownHandle, hScreenDown)
 	DefGetter(const shared_ptr<Desktop>&, DesktopUpHandle, hDesktopUp)
 	DefGetter(const shared_ptr<Desktop>&, DesktopDownHandle, hDesktopDown)
 	/*!
@@ -86,14 +140,14 @@ public:
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
 	*/
-	YScreen&
+	DSScreen&
 	GetScreenUp() const ynothrow;
 	/*!
 	\brief 取下屏幕。
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
 	*/
-	YScreen&
+	DSScreen&
 	GetScreenDown() const ynothrow;
 	/*!
 	\brief 取上桌面。
@@ -113,7 +167,7 @@ public:
 	\brief 取默认屏幕。
 	\note 无异常抛出。
 	*/
-	PDefH0(YScreen&, GetDefaultScreen)
+	PDefH0(DSScreen&, GetDefaultScreen)
 		ImplRet(GetScreenUp())
 	/*!
 	\brief 取默认桌面。
@@ -146,7 +200,7 @@ public:
 	ReleaseDevices() ynothrow;
 };
 
-inline YScreen&
+inline DSScreen&
 YDSApplication::GetScreenUp() const ynothrow
 {
 	YAssert(is_valid(hScreenUp), "Fatal error:"
@@ -154,7 +208,7 @@ YDSApplication::GetScreenUp() const ynothrow
 
 	return *hScreenUp;
 }
-inline YScreen&
+inline DSScreen&
 YDSApplication::GetScreenDown() const ynothrow
 {
 	YAssert(is_valid(hScreenDown), "Fatal error:"
@@ -212,27 +266,6 @@ DefMessageTarget(SM_INPUT, shared_ptr<InputContent>)
 
 YSL_END_NAMESPACE(Messaging)
 
-YSL_BEGIN_NAMESPACE(Shells)
-
-//! \brief 主 Shell 。
-class YMainShell : public YShell
-{
-public:
-	/*!
-	\brief 无参数构造。
-	\note 向应用程序对象添加自身。
-	*/
-	YMainShell();
-
-	/*!
-	\brief Shell 处理函数。
-	*/
-	virtual int
-	ShlProc(const Message&);
-};
-
-YSL_END_NAMESPACE(Shells)
-
 
 /*!
 \brief 默认消息发生函数。
@@ -244,7 +277,7 @@ Idle();
 \brief 以指定前景色和背景色初始化指定屏幕的控制台。
 */
 bool
-InitConsole(YScreen&, Drawing::PixelType, Drawing::PixelType);
+InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
 //全局函数。
 

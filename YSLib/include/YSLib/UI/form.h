@@ -11,12 +11,12 @@
 /*!	\file form.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗体。
-\version 0.1526;
+\version 0.1530;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-06-10 17:31 +0800;
+	2011-06-16 03:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,10 +52,11 @@ public:
 		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
 		IWindow* = nullptr);
 	/*!
-	\brief 析构。
+	\brief 析构：空实现。
 	*/
 	virtual
-	~Form();
+	~Form()
+	{}
 
 /*	virtual void
 	SetSize(SDst, SDst);

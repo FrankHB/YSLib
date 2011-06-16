@@ -11,12 +11,12 @@
 /*!	\file yres.h
 \ingroup Core
 \brief 应用程序资源管理模块。
-\version 0.1509;
+\version 0.1511;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-06-05 08:18 +0800;
+	2011-06-15 17:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,29 +38,6 @@ YSL_BEGIN
 DeclInterface(IResource)
 EndDecl
 
-
-/*!
-\ingroup HelperFunction
-\brief 全局默认共享资源生成函数。
-\note 线程空间内共享；全局资源初始化之后可调用。
-*/
-template<class _type>
-inline shared_ptr<_type>
-GetGlobalResource()
-{
-	return GStaticCache<_type, shared_ptr<_type>>::GetPointer();
-}
-
-/*!
-\ingroup HelperFunction
-\brief 全局默认共享资源释放函数。
-*/
-template<class _type>
-inline void
-ReleaseGlobalResource() ynothrow
-{
-	return GStaticCache<_type, shared_ptr<_type>>::Release();
-}
 
 //应用程序资源类型定义。
 

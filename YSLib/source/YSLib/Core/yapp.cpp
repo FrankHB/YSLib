@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2402;
+\version 0.2423;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-06-09 08:37 +0800;
+	2011-06-16 03:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,11 +30,6 @@
 #include "../Adaptor/yfont.h"
 
 YSL_BEGIN
-
-YLog::YLog()
-{}
-YLog::~YLog()
-{}
 
 YLog& YLog::operator<<(char)
 {
@@ -115,25 +110,15 @@ YApplication::SetShellHandle(const shared_ptr<YShell>& h)
 {
 	using namespace Messaging;
 
-	if(h)
-	{
-		if(hShell == h)
-			return false;
-
-		if(hShell)
-			hShell->OnDeactivated(Message(h, SM_DEACTIVATED, 0xF0,
-				ValueObject(hShell)));
-		hShell = h;
+	if(hShell == h)
+		return false;
+	if(is_valid(hShell))
+		hShell->OnDeactivated(Message(h, SM_DEACTIVATED, 0xF0,
+			ValueObject(hShell)));
+	hShell = h;
+	if(is_valid(h))
 		h->OnActivated(Message(h, SM_ACTIVATED, 0xF0, ValueObject(h)));
-	}
 	return is_valid(h);
-}
-
-void
-YApplication::ResetShellHandle() ynothrow
-{
-	if(!SetShellHandle(FetchMainShellHandle()))
-		Log.FatalError("Error occured @ YApplication::ResetShellHandle;");
 }
 
 void
@@ -155,17 +140,6 @@ YApplication::DestroyFontCache()
 {
 	ydelete(pFontCache);
 	pFontCache = nullptr;
-}
-
-
-const shared_ptr<YShell>&
-FetchMainShellHandle()
-{
-	FetchAppInstance();
-
-	static shared_ptr<YShell> hMainShell(new Shells::YMainShell());
-
-	return hMainShell;
 }
 
 
@@ -222,6 +196,10 @@ TranslateMessage(const Message&)
 int
 DispatchMessage(const Message& msg)
 {
+	auto hShl(FetchAppInstance().GetShellHandle());
+
+	YAssert(is_valid(hShl), "Invalid shell handle found @ DispatchMessage;");
+
 	return FetchAppInstance().GetShellHandle()->ShlProc(msg);
 }
 
@@ -253,7 +231,7 @@ SendMessage(const Message& msg) ynothrow
 		YSDebug_MSG_Insert(msg);
 
 #endif
-		
+
 	}
 	catch(...)
 	{
@@ -277,7 +255,7 @@ SendMessage(const shared_ptr<YShell>& hShl, Messaging::ID id,
 void
 PostQuitMessage(int nExitCode, Messaging::Priority p)
 {
-	SendMessage<SM_SET>(shared_ptr<YShell>(), p, FetchMainShellHandle());
+	SendMessage<SM_SET>(shared_ptr<YShell>(), p, shared_ptr<YShell>());
 	SendMessage<SM_QUIT>(shared_ptr<YShell>(), p, nExitCode);
 }
 
