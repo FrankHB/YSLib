@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version 0.3142;
+\version 0.3152;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-16 03:30 +0800;
+	2011-06-16 18:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -247,6 +247,29 @@ public:
 
 		return ptr;
 	}
+};
+
+//! \brief 范围模块类。
+template<typename _type>
+class GMRange
+{
+public:
+	typedef _type ValueType;
+
+protected:
+	ValueType max_value; //!< 最大取值。
+	ValueType value; //!< 值。
+
+	/*!
+	\brief 构造：使用指定最大取值和值。
+	*/
+	GMRange(ValueType m, ValueType v)
+		: max_value(m), value(v)
+	{}
+
+public:
+	DefGetter(ValueType, MaxValue, max_value)
+	DefGetter(ValueType, Value, value)
 };
 
 YSL_END

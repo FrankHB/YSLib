@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2423;
+\version 0.2431;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-06-16 03:22 +0800;
+	2011-06-19 02:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,7 +69,7 @@ YApplication::YApplication()
 	: YObject(),
 	Log(), pMessageQueue(new MessageQueue()),
 	pMessageQueueBackup(new MessageQueue()),
-	hShell(), pFontCache()
+	hShell()
 {}
 YApplication::~YApplication() ynothrow
 {
@@ -96,14 +96,6 @@ YApplication::GetBackupMessageQueue() ythrow(LoggedEvent)
 			" @ YApplication::GetBackupMessageQueue;");
 	return *pMessageQueueBackup;
 }
-FontCache&
-YApplication::GetFontCache() const ythrow(LoggedEvent)
-{
-	if(!pFontCache)
-		throw LoggedEvent("Null font cache pointer found"
-			" @ YApplication::GetFontCache;");
-	return *pFontCache;
-}
 
 bool
 YApplication::SetShellHandle(const shared_ptr<YShell>& h)
@@ -119,27 +111,6 @@ YApplication::SetShellHandle(const shared_ptr<YShell>& h)
 	if(is_valid(h))
 		h->OnActivated(Message(h, SM_ACTIVATED, 0xF0, ValueObject(h)));
 	return is_valid(h);
-}
-
-void
-YApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
-{
-	try
-	{
-		ydelete(pFontCache);
-		pFontCache = ynew FontCache(path);
-	}
-	catch(...)
-	{
-		throw LoggedEvent("Error occured @ YApplication::ResetFontCache;");
-	}
-}
-
-void
-YApplication::DestroyFontCache()
-{
-	ydelete(pFontCache);
-	pFontCache = nullptr;
 }
 
 

@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.3812;
+\version 0.3822;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-13 14:57 +0800;
+	2011-06-16 23:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -63,7 +63,7 @@ YGUIShell::RepeatHeld(HeldStateType& s,
 		Activate(HeldTimer);
 		break;
 
-	case Pressed:		
+	case Pressed:
 	case Held:
 		if(HeldTimer.Refresh())
 		{
@@ -181,26 +181,18 @@ YGUIShell::ResponseTouchBase(IControl& c, TouchEventArgs& e,
 		CallEvent<TouchDown>(c, e);
 		break;
 	case TouchHeld:
-		if(p_TouchDown != &c)
-		{
-			if(p_TouchDown)
-			{
-				TouchEventArgs el(e);
-
-				el += LocateForWidget(c, *p_TouchDown);
-				if(control_entered)
-					TryLeaving(*p_TouchDown, el);
-			}
-		}
-		else if(!control_entered)
-			TryEntering(c, e);
 		if(!p_TouchDown)
 			return false;
-		if(p_TouchDown != &c)
+		if(p_TouchDown == &c)
+			TryEntering(c, e);
+		else
 		{
-			e += LocateForWidget(*p_TouchDown, c);
-		/*	ResetTouchHeldState();
-			return false;*/
+			const auto offset(LocateForWidget(c, *p_TouchDown));
+			auto el(e);
+
+			el -= offset;
+			TryLeaving(*p_TouchDown, el);
+			e += offset;
 		}
 		CallEvent<TouchHeld>(*p_TouchDown, e);
 		break;

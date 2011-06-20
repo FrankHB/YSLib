@@ -11,12 +11,12 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version 0.1659;
+\version 0.1661;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-06-15 15:43 +0800;
+	2011-06-16 19:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef YSL_INC_SHELL_MENU_H_
-#define YSL_INC_SHELL_MENU_H_
+#ifndef YSL_INC_UI_MENU_H_
+#define YSL_INC_UI_MENU_H_
 
 #include "textlist.h"
 #include "yuicont.h" //for Widgets::ZOrderType;

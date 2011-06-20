@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3228;
+\version 0.3243;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-06-16 14:10 +0800;
+	2011-06-19 03:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,6 +36,7 @@
 
 YSL_BEGIN
 
+using Devices::DSScreen;
 using namespace Drawing;
 using namespace Runtime;
 
@@ -103,8 +104,38 @@ YSL_END_NAMESPACE(Devices)
 
 
 YDSApplication::YDSApplication()
-	: hScreenUp(), hScreenDown(), hDesktopUp(), hDesktopDown()
+	: pFontCache(), hScreenUp(), hScreenDown(), hDesktopUp(), hDesktopDown()
 {}
+
+FontCache&
+YDSApplication::GetFontCache() const ythrow(LoggedEvent)
+{
+	if(!pFontCache)
+		throw LoggedEvent("Null font cache pointer found"
+			" @ YApplication::GetFontCache;");
+	return *pFontCache;
+}
+
+void
+YDSApplication::DestroyFontCache()
+{
+	ydelete(pFontCache);
+	pFontCache = nullptr;
+}
+
+void
+YDSApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
+{
+	try
+	{
+		ydelete(pFontCache);
+		pFontCache = ynew FontCache(path);
+	}
+	catch(...)
+	{
+		throw LoggedEvent("Error occured @ YApplication::ResetFontCache;");
+	}
+}
 
 void
 YDSApplication::InitializeDevices() ynothrow
@@ -436,7 +467,7 @@ main(int argc, char* argv[])
 		//释放全局非静态资源。
 
 		//释放默认字体资源。
-		FetchAppInstance().DestroyFontCache();
+		FetchGlobalInstance().DestroyFontCache();
 
 		//释放设备。
 		FetchGlobalInstance().ReleaseDevices();

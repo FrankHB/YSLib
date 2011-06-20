@@ -10,13 +10,13 @@
 
 /*!	\file ylabel.h
 \ingroup UI
-\brief 样式无关的标签模块。
-\version 0.2075;
+\brief 样式无关的用户界面标签。
+\version 0.2081;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-06-10 17:29 +0800;
+	2011-06-20 09:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,13 +24,13 @@
 */
 
 
-#ifndef YSL_INC_SHELL_LABEL_H_
-#define YSL_INC_SHELL_LABEL_H_
+#ifndef YSL_INC_UI_LABEL_H_
+#define YSL_INC_UI_LABEL_H_
 
 #include "ywidget.h"
 #include "../Adaptor/yfont.h"
 //#include "../Core/yres.h"
-#include "ytext.h"
+#include "../Service/ytext.h"
 
 YSL_BEGIN
 
@@ -119,7 +119,7 @@ public:
 	typedef typename ListType::size_type IndexType; //!< 索引类型。
 
 protected:
-	mutable shared_ptr<ListType> pList; //!< 文本列表句柄。
+	mutable shared_ptr<ListType> hList; //!< 文本列表句柄。
 
 private:
 	Drawing::TextState text_state; //!< 文本状态。
@@ -140,7 +140,7 @@ public:
 	/*!
 	\brief 取文本列表。
 	*/
-	DefGetter(ListType&, List, *pList)
+	DefGetter(ListType&, List, *hList)
 	/*!
 	\brief 取指定项目索引的项目指针。
 	*/

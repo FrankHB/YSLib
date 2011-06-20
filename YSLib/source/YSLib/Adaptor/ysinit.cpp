@@ -9,14 +9,14 @@
 */
 
 /*!	\file ysinit.cpp
-\ingroup Service
+\ingroup Adaptor
 \brief 程序启动时的通用初始化。
-\version 0.1792;
+\version 0.1805;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2011-06-08 18:14 +0800;
+	2011-06-19 03:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -151,9 +151,10 @@ void
 InitializeSystemFontCache()
 {
 	puts("Loading font files...");
-	FetchAppInstance().ResetFontCache(DEF_FONT_PATH);
+	FetchGlobalInstance().ResetFontCache(DEF_FONT_PATH);
+	// TODO: 使用不依赖于 YGlobal 未确定接口的实现。
 
-	FontCache& fc(FetchAppInstance().GetFontCache());
+	FontCache& fc(FetchDefaultFontCache());
 
 	if(DEF_FONT_PATH)
 	{
@@ -203,7 +204,7 @@ CheckSystemFontCache()
 {
 	try
 	{
-		if(FetchAppInstance().GetFontCache().GetTypesN() > 0)
+		if(FetchDefaultFontCache().GetTypesN() > 0)
 			return;
 	}
 	catch(...)

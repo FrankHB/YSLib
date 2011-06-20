@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7262;
+\version 0.7268;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-06-08 18:15 +0800;
+	2011-06-19 02:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -223,7 +223,7 @@ const Typeface&
 FetchDefaultTypeface() ythrow(LoggedEvent)
 {
 	const Typeface* const pDefaultTypeface(
-		FetchAppInstance().GetFontCache().GetDefaultTypefacePtr());
+		FetchDefaultFontCache().GetDefaultTypefacePtr());
 
 	if(!pDefaultTypeface)
 		throw LoggedEvent("The default font face pointer is null"
@@ -356,7 +356,7 @@ FontCache::GetDefaultTypefacePtr() const ythrow(LoggedEvent)
 {
 	//默认字体缓存的默认字型指针由初始化保证为非空指针。
 	return pDefaultFace ? pDefaultFace
-		: FetchAppInstance().GetFontCache().GetDefaultTypefacePtr();
+		: FetchDefaultFontCache().GetDefaultTypefacePtr();
 }
 const Typeface*
 FontCache::GetTypefacePtr(const FontFamily::NameType& family_name,
@@ -549,7 +549,7 @@ FontCache::LoadTypefaces(const FontFile& f)
 
 						//读取字型名称并构造名称映射。
 						FT_Face face(nullptr);
-						
+
 						FTC_Manager_LookupFace(manager, new_face_id, &face);
 						if(!face)
 							throw LoggedEvent("Face loading failed.", 2);

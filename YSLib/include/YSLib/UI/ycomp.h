@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup UI
 \brief 平台无关的 Shell 组件。
-\version 0.3112;
+\version 0.3114;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2011-06-10 17:23 +0800;
+	2011-06-16 19:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,8 +29,8 @@
 */
 
 
-#ifndef YSL_INC_SHELL_YCOMP_H_
-#define YSL_INC_SHELL_YCOMP_H_
+#ifndef YSL_INC_UI_YCOMP_H_
+#define YSL_INC_UI_YCOMP_H_
 
 #include "../Core/yshell.h"
 #include "../Core/yapp.h"

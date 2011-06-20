@@ -11,12 +11,12 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version 0.1264;
+\version 0.1270;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-08 13:21:10 +0800;
 \par 修改时间:
-	2011-06-10 17:28 +0800;
+	2011-06-16 20:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,11 +24,11 @@
 */
 
 
-#ifndef YSL_INC_SHELL_YSTYLE_H_
-#define YSL_INC_SHELL_YSTYLE_H_
+#ifndef YSL_INC_UI_YSTYLE_H_
+#define YSL_INC_UI_YSTYLE_H_
 
 #include "ycomp.h"
-#include "../Core/ygdi.h"
+#include "../Service/ydraw.h"
 
 YSL_BEGIN
 

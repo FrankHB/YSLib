@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2295;
+\version 0.2314;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-06-16 03:28 +0800;
+	2011-06-17 00:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -93,45 +93,21 @@ FetchContext(IWidget& w)
 }
 
 
-namespace
-{
-	void
-	GetContainersListFrom(IWidget& w, map<IUIBox*, Point>& m)
-	{
-		Point pt;
-		IUIBox* pCon(dynamic_cast<IUIBox*>(&w));
-
-		if(!pCon)
-		{
-			pCon = w.GetContainerPtr();
-			pt = w.GetLocation();
-		}
-		while(pCon != nullptr)
-		{
-			m.insert(make_pair(pCon, pt));
-			pt += pCon->GetLocation();
-			pCon = pCon->GetContainerPtr();
-		}
-	}
-}
-
 Point
-LocateOffset(const IWidget* pCon, Point p, const IWindow* pWnd)
+LocateOffset(const IWindow* pWnd, Point pt, const IWidget* pCon)
 {
 	while(pCon && dynamic_cast<const IWindow*>(pCon) != pWnd)
 	{
-		p += pCon->GetLocation();
+		pt += pCon->GetLocation();
 		pCon = dynamic_cast<const IWidget*>(pCon->GetContainerPtr());
 	}
-	return p;
+	return pt;
 }
 
 Point
 LocateForWidget(IWidget& a, IWidget& b)
 {
-	map<IUIBox*, Point> m;
-
-	GetContainersListFrom(b, m);
+	list<pair<IUIBox*, Point>> lst;
 
 	Point pt;
 	IUIBox* pCon(dynamic_cast<IUIBox*>(&a));
@@ -141,12 +117,27 @@ LocateForWidget(IWidget& a, IWidget& b)
 		pCon = a.GetContainerPtr();
 		pt = a.GetLocation();
 	}
-
-	while(pCon != nullptr)
+	while(pCon)
 	{
-		auto i(m.find(pCon));
+		lst.push_back(make_pair(pCon, pt));
+		pt += pCon->GetLocation();
+		pCon = pCon->GetContainerPtr();
+	}
+	if((pCon = dynamic_cast<IUIBox*>(&b)))
+		pt = Point::Zero;
+	else
+	{
+		pCon = b.GetContainerPtr();
+		pt = b.GetLocation();
+	}
+	while(pCon)
+	{
+		auto i(std::find_if(lst.begin(), lst.end(),
+			[&](const pair<IUIBox*, Point>& val){
+			return val.first == pCon;
+		}));
 
-		if(i != m.cend())
+		if(i != lst.cend())
 			return pt - i->second;
 		pt += pCon->GetLocation();
 		pCon = pCon->GetContainerPtr();
@@ -162,7 +153,7 @@ LocateForWindow(IWidget& w)
 
 	IWindow* const pWnd(FetchDirectWindowPtr(w));
 
-	return pWnd ? LocateOffset(&w, Point::Zero, pWnd) : Point::FullScreen;
+	return pWnd ? LocateOffset(pWnd, Point::Zero, &w) : Point::FullScreen;
 }
 
 Point
@@ -173,7 +164,7 @@ LocateForDesktop(IWidget& w)
 
 	Desktop* pDsk(FetchDirectDesktopPtr(w));
 
-	return pDsk ? LocateOffset(&w, Point::Zero, pDsk) : Point::FullScreen;
+	return pDsk ? LocateOffset(pDsk, Point::Zero, &w) : Point::FullScreen;
 }
 
 Point
@@ -250,7 +241,7 @@ Fill(IWidget& w, Color c)
 	{
 		const Graphics& g(pWnd->GetContext());
 
-		FillRect(g, LocateOffset(&w, Point::Zero, pWnd), w.GetSize(), c);
+		FillRect(g, LocateOffset(pWnd, Point::Zero, &w), w.GetSize(), c);
 	}
 }
 

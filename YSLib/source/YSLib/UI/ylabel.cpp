@@ -10,13 +10,13 @@
 
 /*!	\file ylabel.cpp
 \ingroup UI
-\brief 样式无关的标签模块。
-\version 0.2087;
+\brief 样式无关的用户界面标签。
+\version 0.2090;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-06-10 17:25 +0800;
+	2011-06-20 09:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -108,10 +108,10 @@ Label::Paint()
 
 MTextList::MTextList(const shared_ptr<ListType>& h, const Drawing::Font& fnt)
 	: MLabel(fnt),
-	pList(h), text_state(Font)
+	hList(h), text_state(Font)
 {
-	if(!pList)
-		pList = share_raw(new ListType());
+	if(!hList)
+		hList = share_raw(new ListType());
 }
 
 MTextList::ItemType*

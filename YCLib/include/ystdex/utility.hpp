@@ -11,12 +11,12 @@
 /*!	\file util.hpp
 \ingroup YCLib
 \brief 函数对象、算法和实用程序。
-\version 0.1661;
+\version 0.1664;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-05-23 06:10:59 +0800; 
+	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-06-09 08:42 +0800;
+	2011-06-19 03:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,7 +53,7 @@ namespace ystdex
 		~noncopyable()
 		{}
 
-	public: 
+	public:
 		/*!
 		\brief 禁止复制构造。
 		*/
@@ -214,6 +214,7 @@ namespace ystdex
 	\ingroup Functors
 	\brief 编译期选择自增/自减运算仿函数。
 	*/
+	//@{
 	template<bool, typename _tScalar>
 	struct xcrease_t
 	{
@@ -232,6 +233,7 @@ namespace ystdex
 			return --_x;
 		}
 	};
+	//@}
 
 	/*!
 	\ingroup Functors

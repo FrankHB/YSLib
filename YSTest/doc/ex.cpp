@@ -1,4 +1,4 @@
-// v0.3212; *Build 218 r54;
+// v0.3217; *Build 219 r71;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -55,6 +55,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \adtor ::= abstract destructor
 \amb ::= ambiguities
 \amf ::= abstract/pure virtual member function
+\arg ::= arguments
 \as ::= assertions
 \bg ::= background
 \c ::= const
@@ -257,189 +258,204 @@ $using:
 
 $DONE:
 r1:
-/ @ \cl MenuHost:
-	* \impl @ \mf Clear;
-	/ \tr \simp \impl @ \dtor;
+- \inc \h "../Core/yres.h" @ \h Form;
+- \inc \h "ygdi.h" @ \impl \u YDevice;
+/ \u (YResource & YGDI) >> \dir Service ~ \dir Core;
+/ \u YText >> \dir Service ~ \dir UI;
+/ \tr \inh \h @ (\h (YPanel & YStyle & YWidget & DSReader & YLabel)
+	& \impl \u ListBox);
+/ @ \h YGDI:
+	- \inc \h "../Core/ycutil.h";
+	+ \inh \h <ystdex/iterator.hpp>;
+/ @ \h YAdaptor:
+	- \inc \h <ystdex/iterator.hpp>;
+	- \inc \h <ystdex/cast.hpp>;
++ \inc \h <ystdex/cast.hpp> @ \h YUIComponent;
 
 r2:
-/ \tr \simp \impl @ \mf ShlExplorer::OnDeactivated @ \impl \u Shells;
+/ \clt GMRange @ \ns YSLib::Components::Controls @ \h YControl
+	>> \ns YSLib @ \h YObject;
 
 r3:
-/ @ \u Shells:
-	/ \o MenuHost* s_pMenuHost @ \un \ns @ \impl \u -> \m MenuHost mhMain
-		@ \cl ShlExplorer;
-	/ @ \cl ShlExplorer:
-		/ \tr \impl @ \ctor;
-		/ \simp \impl @ \mf (TFormTest::OnClick_btnMenuTest & OnActivated
-			& OnDeactivated);
+/ typedef \en (Rotation & Orientation) @ \h YGDI >> \h YGDIBase;
 
 r4:
-/ @ \st TFormTest \cl ShlExplorer @ \u Shells:
-	+ \m Button btnPrevBackground;
-	+ \m Button btnNextBackground;
-	/ \tr \impl @ \ctor;
+/ @ \dir Service:
+	+ \u YBlit["yblit.h", "yblit.cpp"];
+	+ \u YDraw["ydraw.h", "ydraw.cpp"];
+	/ (\a typedef & \stt (PixelFiller & SequenceTransformer
+		& VerticalLineTransfomer) & \a (\f & \t) 'Blit*' & \i \ft ClearPixel
+		& \a (\f & \t) 'Fill*' & \c \o 'BLT_*' & \a (\f & \t) 'blit*'
+		& \t TransformRect & \f CopyBuffer & \f ClearImage)
+		\exc ('BlitTo' & \f FillRect) @ \u YGDI >> \u YBlit;
+	/ \f \i PutPixel & \a \f 'Draw*' @ \u YGDI >> \u YDraw;
+	+ \inc \h YBlit @ \impl \u (YDraw & YGDI);
+	+ \inc \h YBlit @ \impl \u YText;
+	- \inc \h YFont @ \h (YText & YBlit & YDraw);
+* \tr \mac 'YSL_INC_*';
+- \h <ystdex/iterator.hpp> @ \h (YGDI & YDraw);
+/ \inc \h YGDI -> YDraw @ \h (YStyle & YWidget);
++ \inc \h YBlit @ \h YWindow;
 
-r5-r6:
-/ \ctor @ \impl @ \st TFormTest \cl ShlExplorer @ \u Shells;
-
-r7:
+r5:
 /= test 1 ^ \conf release;
 
+r6:
+/ @ \u YUIContainer:
+	/ \f Point LocateOffset(const IWidget*, Point, const IWindow*)
+		-> \f Point LocateOffset(const IWindow*, const IWidget*, Point);
+	/ \tr \impl @ \f (LocateWindowOffset & LocateForWindow & LocateForDesktop
+		& Fill);
+	/ swap \param @ \f LocateForWidget;
+/ \tr \impl @ \f DrawWidgetBounds @ \u YStyles;
+/ \tr \impl @ \mf YGUIShell::ResponseTouchBase;
+
+r7:
+/ \simp & optimized \impl @ \mf YGUIShell::ResponseTouchBase;
+
 r8:
-/ @ \h Container:
-	+ \inc \h (<array> & <deque> & <forward_list>);
-	/ \inc order;
-	+ using std::array;
-	+ using std::deque;
-	+ using std::forward_list;
-	/ \decl order;
+/ @ \impl \u YUIContainer:
+	/ \f GetContainersListFrom @ \un \ns \mg -> \f LocateForWidget;
+	/ optimized \impl @ \f LocateForWidget ^ list ~ map;
+/ \impl @ \mf MenuHost::Contains;
 
 r9:
-/ @ \h YObject:
-	+ \em \t<typename _type> \st OwnershipTag;
-	+ \em \t<class _tOwner, typename _type> HasOwnershipOf
-		\inh public std::integral_constant<bool, std::is_base_of<
-		OwnershipTag<_type>, _tOwner>>;
-+ \inh public (OwnershipTag<Typeface> & OwnershipTag<FontFile>) @ \cl FontCache;
-+ \inh public OwnershipTag<Menu> @ \cl MenuHost;
-+ \inh public OwnershipTag<TextBlock> @ \cl TextMap @ \u TextManager;
+/= test 2 ^ \conf release;
 
 r10:
-/ \a @ \ns YSLib::Storage >> \ns YSLib::Design;
-/ \a @ \ns YSLib::Design >> \ns YSLib;
-/ \tr @ \h (Container & YAdaptor & YPanel & YCoreUtilities);
+/ (\m FontCache* pFontCache & \mf (ResetFontCache & DestroyFontCache
+	& GetFontCache)) @ \cl YApplication @ \u YApplication
+	>> \cl YDSApplication @ \u YGlobal;
+/ \tr \impl @ \ctor @ \cl (YApplication & YDSApplication);
+/ \tr \impl @ (\f FetchDefaultTypeface & \mf FontCache::GetDefaultTypefacePtr)
+	@ \impl \u YFont;
+/ \tr \impl @ \f (InitializeSystemFontCache & CheckSystemFontCache)
+	@ \impl \u YShellInitialization;
+/ \tr \impl @ \f main \impl \u YGlobal;
+/ \tr @ \de \arg @ \decl @ \ctor @ \cl MDualScreenReader @ \h DSReader;
+/ \tr \impl @ \mf ShlExplorer::TFormExtra::OnClick_btnDragTest
+	@ \impl \u Shells;
 
 r11:
-/ \simp \impl @ (\mf ShlExplorer::TFormExtra::OnClick_btnTestEx
-	& \f ReleaseShells) @ \impl \u Shells;
-- \ft GetGlobalResource & ReleaseGlobalResource @ \h YResource;
+/ @ \h YGlobal:
+	+ \f \i Devices::Screen& FetchDefaultScreen();
+	+ \f \i FontCache& FetchDefaultFontCache();
+	- using Devices::DSScreen;
+/ \impl @ (\f FetchDefaultTypeface & \mf FontCache::GetDefaultTypefacePtr)
+	@ \impl \u YFont ^ FetchDefaultScreen;
+/ \de \arg @ \decl @ \ctor @ \cl Console ^ FetchDefaultScreen;
+/ \tr \impl @ \f (InitializeSystemFontCache & CheckSystemFontCache)
+	@ \impl \u YShellInitialization ^ FetchDefaultScreen;
+* \doc group @ \stt xcrease_t @ \h Utilities;
+/ \tr @ \impl \u YGlobal ^ using Devices::DSScreen;
 
 r12:
-/ @ \cl YScreen:
-	- private \sm bool S_InitScr;
-	- private \smf InitScreen;
-	- private \smf CheckInitialization;
-	/ \tr \impl @ \mf GetCheckedBufferPtr;
-
-r13:
-/ @ \cl YScreen @ \u YDevice -> YDSScreen @ \u YGlobal;
-+ \cl YScreen @ \u YDevice;
-/ \inc \h YDevice >> (\h ~ \impl \u) YGlobal;
-/ @ \u YGlobal:
-	/ \a YScreen -> YDSScreen \exc @ \f InitConsole;
-	/ \cl YDSScreen:
-		/ \inh \cl YGraphicDevice -> YScreen;
-		/ \tr \impl @ \ctor;
-	/ \tr \impl @ \mf InitConsole;
-/ \cl YScreen @ \u YDevice;
-	- \smf Reset;
-	- \mf void Update(Color = 0);
-	/ \mf !\vt void Update(Drawing::BitmapPtr) -> \vt \mf;
-
-r14-r20:
-/= test 2;
-
-r21:
-/ \simp @ \mf YScreen::GetCheckedBufferPtr;
-- \decl @ \f InitAllScreens @ \h YDevice;
-/ @ \u YGlobal:
-	/ \mg \f InitAllScreens -> \mf YDSScreen::GetCheckedBufferPtr;
-	/ @ \cl YDSScreen:
-		- \decl @ friend bool YSLib::InitAllScreens();
-		- \mf DefSetter(const BGType&, BgID, bg);
-
-r22:
-/ \simp \impl @ \mf YDSScreen::GetCheckedBufferPtr @ \impl \u YGlobal
-	^ YScreen::GetCheckedBufferPtr;
-/ \a YScreen => Device::Screen @ (\u (YDesktop & YGlobal) & \h YConsole);
-/ @ \h YShellDefinition:
-	- \pre \decl @ \cl YScreen @ \ns Device;
-	- using Device::YScreen;
-/ \a YGraphicDevice => GraphicDevice;
-/ \a YScreen => Screen;
-/ \a YDSScreen => DSScreen;
-
-r23:
-/ \ns Device => Devices @ \ns YSLib;
-/ \cl DSScreen >> \ns YSLib::Devices;
-+ using Devices::DSScreen @ \h YGlobal;
-
-r24:
 /= test 3 ^ \conf release;
 
-r25-r30:
+r13:
+/ optimized \impl @ \f CreateSharedScreenImage @ \impl \u YShellHelper
+	^ rvalue \ref;
+
+r14:
+/ \impl @ \f LoadL @ \un \ns @ \impl \u Shells;
+
+r15:
+/ @ \un \ns @ \impl \u Shells:
+	+ \f BitmapPtr FetchGlobalImageBuffer(size_t);
+	/ \impl @ \a \f 'Load?' ^ FetchGlobalImageBuffer;
+/ @ \cl MTextList:
+	/ \m mutable shared_ptr<ListType> pList => hList;
+	/ \tr @ \mf GetList;
+	/ \tr \impl @ \ctor;
+
+r16:
+/ @ \un \ns @ \impl \u Shells:
+	/ \a \f 'Load?' ^ FetchGlobalImageBuffer \mg -> \f FetchImage;
+	/ FetchGlobalImage
+	- unused \o BitmapPtr gbuf;
+
+r17:
+- \f CreateSharedScreenImage @ \u YShellHelper;
+
+r18-r19:
+/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
+
+r20-r22:
+/ \impl @ \ctor @ \cl ShlExplorer::TFormTest @ \impl \u Shells;
+
+r23:
+/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
+
+r24:
+/ \impl @ \mf OnActivated @ \cl (YMainShell & ShlExplorer) @ \impl \u Shells;
+
+r25-r26:
 /= test 4;
 
-r31:
-/ @ \impl \u YApplication:
-	/ \impl @ \mf SetShellHandle @ \cl YApplication;
-	/ \tr \impl @ \f DispatchMessage:
-		+ \as;
+r27:
+/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
 
-r32:
-/ \impl @ \f void PostQuitMessage(int nExitCode, Messaging::Priority)
-	@ \impl \u YApplication;
-/ \impl @ \dtor @ \cl YShell;
+r28-r49:
+/= test 5;
 
-r33:
-/ \simp \impl @ \mf YShell::DefShlProc;
-/ \tr \impl @ \f main @ \impl \u YGlobal;
-- \mf ResetShellHandle @ \cl YApplication;
+r50:
+/ \simp \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
 
-r34:
-/ \f FetchMainShellHandle @ \u YApplication \mg -> \f main @ \impl \u YGlobal;
+r51-r52:
+* "wrong default argument of desktop backgrond color" $since b160:
+	/ \ctor \exp Desktop(Devices::Screen&, Color = 0, const
+		shared_ptr<Drawing::Image>& = shared_ptr<Drawing::Image>()) -> \exp
+		Desktop(Devices::Screen&, Color = Drawing::ColorSpace::Black,
+		const shared_ptr<Drawing::Image>& = shared_ptr<Drawing::Image>());
 
-r35:
-/ \impl @ \f main @ \impl \u YGlobal;
+r53-r54:
+/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
 
-r36:
-/= test 5 ^ \conf release;
+r55:
+/= test 6 ^ \conf release;
 
-r37:
-/ \def @ \i \ctor @ \cl BitmapBuffer ^ in-class \exp \de;
-/ \def @ !\i \ctor @ \cl YShell & YMainShell ^ in-class \exp \de;
-/ \def @ \i \ctor (Path() & \dtor) @ \cl Path @ \h YFileSystem
-	^ in-class \exp \de;
-/ \def @ \em !\i \dtor -> \i \dtor @ \cl (YObject & Form & Panel);
-/ \def @ protected \i \ctor @ \cl YCountableObject -> public \i \ctor
-	^ in-class \exp \de;
-/ \def @ \i \dtor @ \cl String ^ in-class \exp \de;
-/ @ \cl YLog:
-	/ \def @ !\i (\ctor & \dtor) @ \cl YLog ^ in-class \exp \de;
-	/ \def @ \em !\i \dtor -> \i \dtor;
-/ \def @ !\i \ctor @ \cl MUIContainer ^ in-class \exp \de;
+r56:
+/ @ \impl \u Shells:
+	+ \cl ProgressBar @ \un \ns;
+	/ \impl @ \mf YMainShell::OnActivated;
 
-r38-r52:
-- \pre \decl \cl YMainShell @ \h YShellDefinition;
-/= test 6;
+r57:
+* \impl @ \mf ProgressBar::Paint @ \un \ns @ \impu \u Shells;
 
-r53:
-+ \inc \h Shell_DS @ \impl \u YGlobal;
-/ \impl @ \mf YMainShell::ShlProc;
-/ \def @ \mf YMainShell::ShlProc >> \impl \u (Shells ~ YGlobal);
-- \decl @ \f MainShlProc @ \impl \u YGlobal;
-- \impl @ \f MainShlProc @ \impl \u Shells;
-/ \cl YMainShell @ YGlobal \ns YSLib::Shells >> \h Shell_DS;
-/ \cl ShlLoad @ \u Shells \mg -> \cl YMainShell @ \u YGlobal;
-/ \tr \impl @ \f ReleaseShells @ \impl \u Shells;
-- \mf YMainShell::ShlProc @ (\h Shell_DS & \impl \u Shells);
+r58:
+/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
 
-r54:
-/= test 7 ^ \conf release;
+r59-r67:
+/ test 7;
+
+r68:
+* \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
+
+r69:
+/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
+
+r70:
++ \u Progress["progress.h", "progress.cpp"] @ \dir UI;
+/ \cl ProgressBar @ \un \ns @ \impl \u >> \ns Components::Widgets
+	@ \u Progress;
++ \inh \h <YSLib/UI/progress.h> @ \impl \u Shells;
+
+r71:
+/= test 8 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-06-16:
--19.6d;
-//Mercurial rev1-rev88: r4355;
+2011-06-20:
+-18.9d;
+//Mercurial rev1-rev89: r4409;
 
 / ...
 
 
 $NEXT_TODO:
-b219-b324:
+b220-b324:
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
 	libstdc++ for known associative container operation bugs:
 	- \rem @ \impl @ \mft GetEvent @ \clt EventMap @ \h YEvent;
@@ -545,6 +561,18 @@ $renamed_to =>;
 $ellipse_refactoring;
 
 $now
+(
+	/ $design "unit %YGUI decomposed for Blit and 2D API",
+	/ "optimized widget-to-widget locating",
+	/ $design "font cache moved to platform-dependent application class from
+		class %YApplication",
+	+ "several global helper functions as platform-independent interface",
+	+ "mutiple background switch test",
+	* "wrong default argument of desktop backgrond color" $since b160,
+	+ "widgets: progress bar" @ "class %ProgressBar"
+),
+
+b218
 (
 	+ "desktop background switch test",
 	+ $design "ownership tag structure",

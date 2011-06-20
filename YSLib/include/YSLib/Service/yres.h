@@ -9,26 +9,26 @@
 */
 
 /*!	\file yres.h
-\ingroup Core
+\ingroup Service
 \brief 应用程序资源管理模块。
-\version 0.1511;
+\version 0.1516;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-06-15 17:45 +0800;
+	2011-06-16 20:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Core::YResource;
+	YSLib::Service::YResource;
 */
 
 
 #ifndef YSL_INC_CORE_YRES_H_
 #define YSL_INC_CORE_YRES_H_
 
-#include "ycounter.hpp"
-#include "ystatic.hpp"
+#include "../Core/ycounter.hpp"
+#include "../Core/ystatic.hpp"
 #include "ygdi.h"
 #include "../Helper/yglobal.h"
 

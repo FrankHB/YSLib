@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2198;
+\version 0.2200;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2011-06-15 16:02 +0800;
+	2011-06-16 18:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,10 +35,8 @@
 //引入平台设置和存储调试设施。
 #include "ynew.h"
 
-//包含 YCLib 。
+//包含 YCLib 公用部分。
 #include <ycommon.h>
-#include <ystdex/cast.hpp>
-#include <ystdex/iterator.hpp>
 
 #include <CHRLib/chrlib.h> //包含 CHRLib 。
 

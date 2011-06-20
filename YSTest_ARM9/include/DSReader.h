@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version 0.2359;
+\version 0.2363;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-01-05 14:03:47 +0800; 
+	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-06-05 08:17 +0800;
+	2011-06-19 02:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,8 +30,8 @@
 #include <YSLib/Core/yapp.h>
 #include <YSLib/Service/yftext.h>
 #include <YSLib/UI/ydesktop.h>
-#include <YSLib/UI/ytext.h>
-#include <YSLib/Helper/yglobal.h> 
+#include <YSLib/Service/ytext.h>
+#include <YSLib/Helper/yglobal.h>
 #include <YSLib/Service/textmgr.h>
 
 YSL_BEGIN
@@ -73,9 +73,9 @@ public:
 	*/
 	MDualScreenReader(SDst w = MainScreenWidth, SDst h_up = MainScreenHeight,
 		SDst h_down = MainScreenHeight,
-		FontCache& fc_ = FetchAppInstance().GetFontCache());
+		FontCache& fc_ = FetchGlobalInstance().GetFontCache());
 
-	bool IsTextTop(); //!< 判断输出位置是否到文本顶端。	
+	bool IsTextTop(); //!< 判断输出位置是否到文本顶端。
 	bool IsTextBottom(); //!< 判断输出位置是否到文本底端。
 
 	DefGetter(u8, FontSize, fc.GetFontSize()) //!< 取字符区域的字体大小。

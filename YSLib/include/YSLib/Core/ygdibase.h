@@ -12,12 +12,12 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version 0.1405;
+\version 0.1412;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-05-31 04:57 +0800;
+	2011-06-16 20:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,6 +31,8 @@
 #include "yexcept.h"
 
 YSL_BEGIN
+
+// GDI 基本数据类型和宏定义。
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
@@ -691,6 +693,23 @@ inline
 Graphics::Graphics(const Graphics& g)
 	: pBuffer(g.pBuffer), size(g.size)
 {}
+
+
+//! \brief 逆时针旋转角度指示输出指向。
+typedef enum
+{
+	RDeg0 = 0,
+	RDeg90 = 1,
+	RDeg180 = 2,
+	RDeg270 = 3
+} Rotation;
+
+//! \brief 二元方向。
+typedef enum
+{
+	Horizontal = 0,
+	Vertical = 1
+} Orientation;
 
 YSL_END_NAMESPACE(Drawing)
 

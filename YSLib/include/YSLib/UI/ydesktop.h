@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version 0.2320;
+\version 0.2324;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-06-15 21:26 +0800;
+	2011-06-19 21:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef YSL_INC_SHELL_YDESKTOP_H_
-#define YSL_INC_SHELL_YDESKTOP_H_
+#ifndef YSL_INC_UI_YDESKTOP_H_
+#define YSL_INC_UI_YDESKTOP_H_
 
 #include "ywindow.h"
 #include "../Adaptor/cont.h"
@@ -46,7 +46,7 @@ public:
 	\brief 构造：使用指定屏幕对象引用、背景色和背景图像。
 	*/
 	explicit
-	Desktop(Devices::Screen&, Color = 0,
+	Desktop(Devices::Screen&, Color = Drawing::ColorSpace::Black,
 		const shared_ptr<Drawing::Image>& = shared_ptr<Drawing::Image>());
 
 	DefGetter(const Devices::Screen&, Screen, Screen) //!< 取屏幕对象。

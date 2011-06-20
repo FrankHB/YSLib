@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2362;
+\version 0.2389;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-06-16 14:10 +0800;
+	2011-06-19 03:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -105,9 +105,6 @@ public:
 YSL_END_NAMESPACE(Devices)
 
 
-using Devices::DSScreen;
-
-
 /*!
 \brief 平台相关的应用程序类。
 \note 含默认接口。
@@ -118,10 +115,11 @@ class YDSApplication : public YApplication
 	FetchGlobalInstance() ynothrow;
 
 private:
-	shared_ptr<DSScreen> hScreenUp; //<! DS 上屏幕句柄。
-	shared_ptr<DSScreen> hScreenDown; //<! DS 上屏幕句柄。
-	shared_ptr<Desktop> hDesktopUp; //<! DS 下屏幕默认桌面句柄。
-	shared_ptr<Desktop> hDesktopDown; //<! DS 下屏幕默认桌面句柄。
+	FontCache* pFontCache; //!< 默认字体缓存。
+	shared_ptr<Devices::DSScreen> hScreenUp; //!< DS 上屏幕句柄。
+	shared_ptr<Devices::DSScreen> hScreenDown; //!< DS 上屏幕句柄。
+	shared_ptr<Desktop> hDesktopUp; //!< DS 下屏幕默认桌面句柄。
+	shared_ptr<Desktop> hDesktopDown; //!< DS 下屏幕默认桌面句柄。
 
 	/*!
 	\brief \c private 构造函数：非内联。
@@ -131,23 +129,32 @@ private:
 	YDSApplication();
 
 public:
-	DefGetter(const shared_ptr<DSScreen>&, ScreenUpHandle, hScreenUp)
-	DefGetter(const shared_ptr<DSScreen>&, ScreenDownHandle, hScreenDown)
+	/*!
+	\brief 取字体缓存引用。
+	\throw LoggedEvent 记录异常事件。
+	\note 仅抛出以上异常。
+	*/
+	FontCache&
+	GetFontCache() const ythrow(LoggedEvent);
+	DefGetter(const shared_ptr<Devices::DSScreen>&, ScreenUpHandle, hScreenUp)
+	DefGetter(const shared_ptr<Devices::DSScreen>&, ScreenDownHandle,
+		hScreenDown)
 	DefGetter(const shared_ptr<Desktop>&, DesktopUpHandle, hDesktopUp)
 	DefGetter(const shared_ptr<Desktop>&, DesktopDownHandle, hDesktopDown)
+
 	/*!
 	\brief 取上屏幕。
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
 	*/
-	DSScreen&
+	Devices::DSScreen&
 	GetScreenUp() const ynothrow;
 	/*!
 	\brief 取下屏幕。
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
 	*/
-	DSScreen&
+	Devices::DSScreen&
 	GetScreenDown() const ynothrow;
 	/*!
 	\brief 取上桌面。
@@ -167,7 +174,7 @@ public:
 	\brief 取默认屏幕。
 	\note 无异常抛出。
 	*/
-	PDefH0(DSScreen&, GetDefaultScreen)
+	PDefH0(Devices::DSScreen&, GetDefaultScreen)
 		ImplRet(GetScreenUp())
 	/*!
 	\brief 取默认桌面。
@@ -186,6 +193,12 @@ public:
 		ImplRet(GetDesktopDown())
 
 	/*!
+	\brief 注销字体缓存。
+	*/
+	void
+	DestroyFontCache();
+
+	/*!
 	\brief 初始化设备。
 	\note 无异常抛出。
 	*/
@@ -198,9 +211,17 @@ public:
 	*/
 	void
 	ReleaseDevices() ynothrow;
+
+	/*!
+	\brief 复位默认字体缓存：使用指定路径。
+	\throw LoggedEvent 记录异常事件。
+	\note 仅抛出以上异常。
+	*/
+	void
+	ResetFontCache(const_path_t) ythrow(LoggedEvent);
 };
 
-inline DSScreen&
+inline Devices::DSScreen&
 YDSApplication::GetScreenUp() const ynothrow
 {
 	YAssert(is_valid(hScreenUp), "Fatal error:"
@@ -208,7 +229,7 @@ YDSApplication::GetScreenUp() const ynothrow
 
 	return *hScreenUp;
 }
-inline DSScreen&
+inline Devices::DSScreen&
 YDSApplication::GetScreenDown() const ynothrow
 {
 	YAssert(is_valid(hScreenDown), "Fatal error:"
@@ -233,13 +254,6 @@ YDSApplication::GetDesktopDown() const ynothrow
 	return *hDesktopDown;
 }
 
-
-/*!
-\brief 取平台相关的全局资源。
-\note 无异常抛出。
-*/
-YDSApplication&
-FetchGlobalInstance() ynothrow;
 
 YSL_BEGIN_NAMESPACE(Messaging)
 
@@ -267,6 +281,15 @@ DefMessageTarget(SM_INPUT, shared_ptr<InputContent>)
 YSL_END_NAMESPACE(Messaging)
 
 
+//全局函数。
+
+/*!
+\brief 取平台相关的全局资源。
+\note 无异常抛出。
+*/
+YDSApplication&
+FetchGlobalInstance() ynothrow;
+
 /*!
 \brief 默认消息发生函数。
 */
@@ -279,16 +302,29 @@ Idle();
 bool
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
-//全局函数。
-
 void
 ShowFatalError(const char*);
 
 /*!	\defgroup HelperFunction Helper Function
 \brief 助手功能/函数。
 
-仅帮助简化编码形式，并不包含编译期之后逻辑功能实现的代码设施。
+仅帮助简化编码形式或确定接口，并不包含编译期之后逻辑功能实现的代码设施。
 */
+//@{
+
+inline FontCache&
+FetchDefaultFontCache()
+{
+	return FetchGlobalInstance().GetFontCache();
+}
+
+inline Devices::Screen&
+FetchDefaultScreen()
+{
+	return FetchGlobalInstance().GetDefaultScreen();
+}
+
+//@}
 
 YSL_END
 

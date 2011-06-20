@@ -11,12 +11,12 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version 0.1474;
+\version 0.1476;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-06-10 17:25 +0800;
+	2011-06-16 22:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,7 +71,7 @@ DrawWidgetBounds(IWidget& w, Color c)
 	IWindow* pWnd(FetchDirectWindowPtr(w));
 
 	if(pWnd)
-		DrawRect(pWnd->GetContext(), LocateOffset(&w, Point::Zero, pWnd),
+		DrawRect(pWnd->GetContext(), LocateOffset(pWnd, Point::Zero, &w),
 			w.GetSize(), c);
 }
 
@@ -157,8 +157,8 @@ rgb2hsl(rgb_t c)
 	const u8 min_color(vmin(vmin(c.r, c.g), c.b)),
 		max_color(vmax(vmax(c.r, c.g), c.b));
 	u16 s(0), l;
-	s32 h(0); // 此处 h 的值每 0x60000 对应一个圆周。 
-	
+	s32 h(0); // 此处 h 的值每 0x60000 对应一个圆周。
+
 	if(min_color == max_color)
 		l = min_color << 8;
 	else
@@ -173,7 +173,7 @@ rgb2hsl(rgb_t c)
 
 		const u32 p((max_color + min_color) << 8);
 		const u16 q((max_color - min_color) << 8); // chroma;
-		
+
 		s = (q << 16) / (l < 0x8000 ? p : 0x20000 - p);
 		if(c.r == max_color)
 			h = ((c.g - c.b) << 24) / q;
@@ -202,7 +202,7 @@ hsl2rgb(hsl_t c)
 		u32 t2(c.l < 0x8000 ? (c.l >> 8) * (0x10000 + c.s)
 			: ((c.l + c.s) << 8) - (static_cast<u32>(c.l * c.s) >> 8)),
 			t1((c.l * 2 << 8) - t2); // t1 和 t2 为 8.24 定点数 。
-		u32 t3((c.h << 8) / 5); // t3 值 0x120000 对应一个圆周。 
+		u32 t3((c.h << 8) / 5); // t3 值 0x120000 对应一个圆周。
 		s32 temp3[3] = {t3 + 0x60000, t3, t3 - 0x60000}; \
 			// temp3 每个元素对应一个 RGB 分量，值 0x120000 对应一个圆周。
 
@@ -235,7 +235,7 @@ hsl2rgb(hsl_t c)
 }
 
 YSL_END_NAMESPACE(Drawing)
-	
+
 YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Styles)

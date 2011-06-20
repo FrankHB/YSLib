@@ -9,28 +9,27 @@
 */
 
 /*!	\file ytext.h
-\ingroup UI
+\ingroup Service
 \brief 基础文本显示。
-\version 0.6997;
+\version 0.7008;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-06-10 17:28 +0800;
+	2011-06-16 20:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::YText;
+	YSLib::Service::YText;
 */
 
 
-#ifndef YSL_INC_SHELL_TEXT_H_
-#define YSL_INC_SHELL_TEXT_H_
+#ifndef YSL_INC_SERVICE_YTEXT_H_
+#define YSL_INC_SERVICE_YTEXT_H_
 
-#include "../Core/ygdi.h"
-#include "../Adaptor/yfont.h"
+#include "ygdi.h"
 #include "../Core/ystring.h"
-#include "../Service/yftext.h"
+#include "yftext.h"
 #include <cwctype>
 
 YSL_BEGIN

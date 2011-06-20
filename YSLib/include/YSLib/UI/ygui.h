@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.2590;
+\version 0.2592;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-10 17:29 +0800;
+	2011-06-16 19:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef YSL_INC_SHELL_YGUI_H_
-#define YSL_INC_SHELL_YGUI_H_
+#ifndef YSL_INC_UI_YGUI_H_
+#define YSL_INC_UI_YGUI_H_
 
 #include "ycontrol.h"
 #include "../Core/yshell.h"
@@ -61,7 +61,7 @@ private:
 	IControl* p_KeyDown;
 	IControl* p_TouchDown;
 	bool control_entered; //!< 记录指针是否在控件内部。
-	
+
 public:
 	/*!
 	\brief 无参数构造。

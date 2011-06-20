@@ -11,12 +11,12 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version 0.3031;
+\version 0.3033;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-06-10 17:31 +0800;
+	2011-06-16 19:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef YSL_INC_SHELL_BUTTON_H_
-#define YSL_INC_SHELL_BUTTON_H_
+#ifndef YSL_INC_UI_BUTTON_H_
+#define YSL_INC_UI_BUTTON_H_
 
 #include "ycontrol.h"
 #include "ylabel.h"

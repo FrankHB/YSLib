@@ -11,12 +11,12 @@
 /*!	\file form.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗体。
-\version 0.1530;
+\version 0.1534;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-06-16 03:32 +0800;
+	2011-06-16 19:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,10 +24,9 @@
 */
 
 
-#ifndef YSL_INC_SHELL_FORM_H_
-#define YSL_INC_SHELL_FORM_H_
+#ifndef YSL_INC_UI_FORM_H_
+#define YSL_INC_UI_FORM_H_
 
-#include "../Core/yres.h"
 #include "ywindow.h"
 
 YSL_BEGIN

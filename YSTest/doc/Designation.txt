@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version 0.5016;
+\version 0.5045;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-06-15 21:39 +0800;
+	2011-06-19 03:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -1016,7 +1016,7 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 更基本的图形抽象、绘图/图像处理例程和图像资源管理则来自于 "/Core/YGDIBase" 、 "/Core/YGDI" 和 "/Core/YResource" 。
 
 @2.7.1 桌面：
-组件命名空间 Components 中的 Desktop 类是桌面的抽象，自带显示缓冲区，和 YScreen 关联，负责把窗体和其它桌面对象输出至屏幕。
+组件命名空间 Components 中的 Desktop 类是桌面的抽象，自带显示缓冲区，和 Screen 关联，负责把窗体和其它桌面对象输出至屏幕。
 
 @2.7.2 文本服务：
 通用的字符/字符串栅格化处理。字符串本身的逻辑处理在 "/Core/YString" 中，而不在此处。
@@ -1211,15 +1211,40 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 位于 "/Helper" 。
 与以上系统不同，这个系统是平台相关的，一般由库用户自行配置。
  YGlobal 是不可缺少的，它封装了 main 函数和必要的全局变量。
-除了 Helper 以外的头文件都不包含 Helper 的头文件，但实现的源文件可能包含 YGlobal 单元头文件 "yglobal.h" 。
+ Core 的头文件不包含 Helper 的头文件，但其它部分的头文件以及所有实现的源文件可能包含 YGlobal 单元头文件 "yglobal.h" 。
  "yhelper.h" 中含有可能被 YSLib 本体(@2.12) 使用的默认接口，包括类名 Global 和 InputContext ， 以及其中 Global 的若干成员方法。其它由平台实现定义。
+
+@2.11.1 YGlobal 单元：
+平台相关的全局对象和函数定义。除了以下接口，其它都是不确定的：
+const SDst MainScreenWidth, MainScreenHeight;
+
+unspecified_class_type&
+FetchGlobalInstance() ynothrow;
+
+void
+Idle();
+
+bool
+InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
+
+void
+ShowFatalError(const char*);
+
+FontCache&
+FetchDefaultFontCache();
+
+Devices::Screen&
+FetchDefaultScreen();
+
+这里 FetchGlobalInstance 返回类型为平台相关的应用程序类的引用。
+ YSLib 在 Helper 以外（本体和 Adaptor）不依赖这些接口以外的特性。
 
 @2.12 本体：
 以上 YSLib 构成单元中，除了 Adaptor 和 Helper 以外的部分的总称。
 其中 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元的重新编译。
 因此除非是用来实现基本功能的外部的库，新增的平台相关的部分应尽量放在 Helper 而不是 Adaptor 中。
-本体的文件只依赖于标准库头文件、 YSLib 本体或 Adaptor 的头文件。
- YSLib 非本体（即 Adaptor 和 Helper ）的头文件除以上外还可能依赖于 YCLib 或其它头文件。
+本体的文件只依赖于标准库头文件、 YCLib 或 YSLib 的头文件。
+ YSLib 非本体（即 Adaptor 和 Helper ）的头文件除以上外还可能依赖于其它头文件，例如支持环境的平台相关的运行时库。
 
 @2.12.1 Adaptor 和本体文件的源代码依赖性：
 源文件(.cpp) 可能依赖于任何 YCLib 、 YSLib 或标准库头文件。
@@ -1251,37 +1276,26 @@ YSLib 库的根命名空间为 YSLib ，一般应置于全局命名空间中，�
 在 Core 中，以下依赖关系对于头文件包含是确定的：
 除了 "ysdef.h" 外都依赖于 "ysdef.h"；
  "yobject.h" 依赖于 "ycutil.h" 、 "yexcept.h" 和 "ycounter.hpp" ；
- "ystring.h" 、 "ymsg.h" 和 "ygdi.h" 依赖于 "yobject.h" ；
+ "ystring.h" 、 "ymsg.h" 依赖于 "yobject.h" ；
  "yevt.hpp" 依赖于 "yobject.h" 和 "yfunc.h" ；
- "ygdi.h" 依赖于 "ygdibase.h" ；
  "ymsgdef.h" 依赖于 "ymsg.h" ；
  "yshell.h" 依赖于 "ymsgdef.h" ；
  "yfilesys.h" 依赖于 "ystring.h"；
  "yapp.h" 依赖于 "yfilesys.h" 和 "yshell.h" 。
-在整个 YSLib 包含指令中排除以下重复的依赖项（仅包含其中较靠后的一组）：
- "ysdef.h" ；
- "ycutil.h" 、 "yexcept.h" 和 "ycounter.hpp" ；
- "yobject.h" 和 "ygdibase.h" ；
- "ystring.h" 、 "ymsg.h" 、 "ygdi.h" 和 "yevt.hpp" ；
- "ymsgdef.h" ；
- "yshell.h" 和 "yfilesys.h" ；
- "yapp.h" 。
-在 Shell 中，以下依赖关系对于头文件包含是确定的：
+在 Service 中，以下依赖关系对于头文件包含是确定的：
+ "yblit.h" 、 "ydraw.h" 和 "ygdi.h" 依赖于 Core 的 "ygdibase.h" ；
+ "yblit.h" 依赖于 Core 的 "ycutil.h" ；
+ "ygdi.h" 依赖于 Adaptor 的 "yfont.h" ；
+ "ytext.h" 依赖于 "ygdi.h" 、 "yftext.h" 和 Core 的 "ystring.h" 。
+在 UI 中，以下依赖关系对于头文件包含是确定的：
  "ycomp.h" 依赖于 Core 的 "yshell.h"；
- "ystyle.h" 依赖于 Core 的 "ygdi.h" ；
+ "ystyle.h" 和 "ytext.h" 依赖于 Service 的 "ygdi.h" ；
  "ystyle.h" 和 "ywidget.h" 依赖于 "ycomp.h" ；
  "ycontrol.h" 和 "yuicont.h" 依赖于 "ywidget.h" ；
  "ygui.h" 依赖于 "ycontrol.h" 和 "ystyle.h" ；
  "ymenu.h" 依赖于 "ygui.h" ；
  "ywindow.h" 和 "uicontx.h" 依赖于 "ycontrol.h" 和 "yuicont.h" 。
-在 Shell 包含指令中排除以下重复的依赖项（若需要包含以下头文件，尽可能只包含较靠后的）：
- "ycomp.h" ；
- "ywidget.h" 和 "ystyle.h" ；
- "ycontrol.h" 和 "yuicont.h" ；
- "ygui.h" ；
- "ymenu.h" ；
- "ywindow.h" 和 "uicontx.h" 。
-在 Shell 包含指令中排除所有 Core 中重复的依赖项（不包含）。
+在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少的头文件。
 
 @3 程序部署和配置：
 

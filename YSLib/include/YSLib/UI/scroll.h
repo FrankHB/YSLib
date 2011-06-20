@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3124;
+\version 0.3127;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-06-12 00:04 +0800;
+	2011-06-20 08:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef YSL_INC_SHELL_SCROLL_H_
-#define YSL_INC_SHELL_SCROLL_H_
+#ifndef YSL_INC_UI_SCROLL_H_
+#define YSL_INC_UI_SCROLL_H_
 
 #include "uicontx.h"
 #include "button.h"
@@ -384,7 +384,7 @@ public:
 	VerticalTrack(const Rect& = Rect::Empty, SDst = 8);
 
 	ImplI1(ATrack)
-		DefGetter(Orientation, Orientation, Vertical)
+	DefGetter(Orientation, Orientation, Vertical)
 
 private:
 	/*!

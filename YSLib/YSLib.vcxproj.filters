@@ -113,9 +113,6 @@
     <ClInclude Include="include\YSLib\Core\yobject.h">
       <Filter>头文件\YSLib\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Core\yres.h">
-      <Filter>头文件\YSLib\Core</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Core\ysdef.h">
       <Filter>头文件\YSLib\Core</Filter>
     </ClInclude>
@@ -154,9 +151,6 @@
     </ClInclude>
     <ClInclude Include="include\YSLib\Helper\yshelper.h">
       <Filter>头文件\YSLib\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Core\ygdi.h">
-      <Filter>头文件\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\button.h">
       <Filter>头文件\YSLib\UI</Filter>
@@ -203,9 +197,6 @@
     <ClInclude Include="include\YSLib\UI\ystyle.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\UI\ytext.h">
-      <Filter>头文件\YSLib\UI</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\UI\yuicont.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
@@ -233,6 +224,24 @@
     <ClInclude Include="include\YSLib\Core\ymsg.h">
       <Filter>头文件\YSLib\Core</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Service\ygdi.h">
+      <Filter>头文件\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Service\yres.h">
+      <Filter>头文件\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Service\ytext.h">
+      <Filter>头文件\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Service\yblit.h">
+      <Filter>头文件\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Service\ydraw.h">
+      <Filter>头文件\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\progress.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\yfont.cpp">
@@ -257,9 +266,6 @@
       <Filter>源文件\YSLib\Core</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\yobject.cpp">
-      <Filter>源文件\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Core\yres.cpp">
       <Filter>源文件\YSLib\Core</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\yshell.cpp">
@@ -287,9 +293,6 @@
       <Filter>源文件\YSLib\Service</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\ygdibase.cpp">
-      <Filter>源文件\YSLib\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Core\ygdi.cpp">
       <Filter>源文件\YSLib\Core</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\button.cpp">
@@ -334,9 +337,6 @@
     <ClCompile Include="source\YSLib\UI\ystyle.cpp">
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\UI\ytext.cpp">
-      <Filter>源文件\YSLib\UI</Filter>
-    </ClCompile>
     <ClCompile Include="source\YSLib\UI\yuicont.cpp">
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
@@ -357,6 +357,24 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\ymsg.cpp">
       <Filter>源文件\YSLib\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\ygdi.cpp">
+      <Filter>源文件\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\yres.cpp">
+      <Filter>源文件\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\ytext.cpp">
+      <Filter>源文件\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\yblit.cpp">
+      <Filter>源文件\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\ydraw.cpp">
+      <Filter>源文件\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\progress.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

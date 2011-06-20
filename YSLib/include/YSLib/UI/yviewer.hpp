@@ -11,12 +11,12 @@
 /*!	\file yviewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version 0.1088;
+\version 0.1090;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 23:00:28 +0800;
 \par 修改时间:
-	2011-06-10 17:28 +0800;
+	2011-06-16 19:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef YSL_INC_SHELL_YVIEWER_HPP_
-#define YSL_INC_SHELL_YVIEWER_HPP_
+#ifndef YSL_INC_UI_YVIEWER_HPP_
+#define YSL_INC_UI_YVIEWER_HPP_
 
 #include "ycomp.h"
 

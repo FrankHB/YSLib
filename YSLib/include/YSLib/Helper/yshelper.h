@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2180;
+\version 0.2182;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-06-05 08:18 +0800;
+	2011-06-19 06:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -216,12 +216,6 @@ CreateSharedScreenImage(ConstBitmapPtr p)
 {
 	return share_raw(new Image(p, MainScreenWidth, MainScreenHeight));
 }
-
-/*!
-\brief 新建屏幕图像并指定绘图函数填充。
-*/
-shared_ptr<Image>
-CreateSharedScreenImage(PPDRAW f, BitmapPtr gbuf = nullptr);
 
 /*!
 \brief 使用 new 分配空间并复制无压缩位图。

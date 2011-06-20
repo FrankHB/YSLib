@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version 0.4622;
+\version 0.4659;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-06-16 14:11 +0800;
+	2011-06-20 09:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,6 +25,7 @@
 
 
 #include <Shells.h>
+#include <YSLib/UI/progress.h>
 
 ////////
 //测试用声明：全局资源定义。
@@ -98,7 +99,6 @@ namespace
 	////
 
 	//测试用变量。
-	BitmapPtr gbuf;
 	int nCountInput;
 	char strCount[40];
 
@@ -113,43 +113,15 @@ namespace
 		return spi[i];
 	}
 
-	void
-	LoadL()
+	BitmapPtr
+	FetchGlobalImageBuffer(size_t i)
 	{
-		//色块覆盖测试用程序段。
-		if(!FetchGlobalImage(1))
-		{
-			gbuf = ynew ScreenBufferType;
-		//	memset(gbuf, 0xEC, sizeof(ScreenBufferType));
-			FetchGlobalImage(1) = CreateSharedScreenImage(dfa, gbuf);
-		//	memset(gbuf, 0xF2, sizeof(ScreenBufferType));
-			FetchGlobalImage(2) = CreateSharedScreenImage(dfap, gbuf);
-			ydelete_array(gbuf);
-		}
-	}
+		auto& h(FetchGlobalImage(i));
 
-	void
-	LoadS()
-	{
-		if(!FetchGlobalImage(3))
-		{
-			gbuf = ynew ScreenBufferType;
-			FetchGlobalImage(3) = CreateSharedScreenImage(dfac1, gbuf);
-			FetchGlobalImage(4) = CreateSharedScreenImage(dfac1p, gbuf);
-			ydelete_array(gbuf);
-		}
-	}
-
-	void
-	LoadA()
-	{
-		if(!FetchGlobalImage(5))
-		{
-			gbuf = ynew ScreenBufferType;
-			FetchGlobalImage(5) = CreateSharedScreenImage(dfac2, gbuf);
-			FetchGlobalImage(6) = CreateSharedScreenImage(dfac2p, gbuf);
-			ydelete_array(gbuf);
-		}
+		if(!h)
+			h = share_raw(new Image(nullptr, MainScreenWidth,
+				MainScreenHeight));
+		return h->GetBufferPtr();
 	}
 
 	void
@@ -212,16 +184,34 @@ FetchImage(size_t i)
 	{
 	case 1:
 	case 2:
-		LoadL();
+		//色块覆盖测试用程序段。
+		if(!FetchGlobalImage(1))
+		{
+			/*
+			gbuf = ynew ScreenBufferType;
+			memset(gbuf, 0xEC, sizeof(ScreenBufferType)); //0xF2
+			ydelete_array(gbuf);
+			*/
+			ScrDraw(FetchGlobalImageBuffer(1), dfa);
+			ScrDraw(FetchGlobalImageBuffer(2), dfap);
+		}
 		break;
 	case 3:
 	case 4:
-		LoadS();
+		if(!FetchGlobalImage(3))
+		{
+			ScrDraw(FetchGlobalImageBuffer(3), dfac1);
+			ScrDraw(FetchGlobalImageBuffer(4), dfac1p);
+		}
 		break;
 	case 5:
 	case 6:
 	case 7:
-		LoadA();
+		if(!FetchGlobalImage(5))
+		{
+			ScrDraw(FetchGlobalImageBuffer(5), dfac2);
+			ScrDraw(FetchGlobalImageBuffer(6), dfac2p);
+		}
 		break;
 	case 8:
 	case 9:
@@ -261,15 +251,38 @@ YMainShell::OnActivated(const Message& msg)
 	GetDesktopUp() += lblTitle;
 	GetDesktopUp() += lblStatus;
 	GetDesktopDown() += lblDetails;
-	GetDesktopUp().GetBackgroundImagePtr() = FetchImage(1);
-	GetDesktopDown().GetBackgroundImagePtr() = FetchImage(2);
+//	GetDesktopUp().GetBackgroundImagePtr() = FetchImage(1);
+	GetDesktopUp().BackColor = ARGB16(1, 30, 27, 24);
+//	GetDesktopDown().BackColor = ARGB16(1, 24, 27, 30);
+	GetDesktopDown().BackColor = FetchGUIShell().Colors[Styles::Desktop];
 	lblTitle.Text = YApplication::ProductName;
 	lblStatus.Text = "Loading...";
 	lblDetails.Text = _ustr("初始化中，请稍后……");
+	lblDetails.ForeColor = ColorSpace::White;
 	lblDetails.SetTransparent(true);
-//	lblTitle.Transparent = true;
 //	DrawContents();
 	UpdateToScreen();
+	//初始化所有图像资源。
+
+	auto& pb(*new ProgressBar(Rect(8, 168, 240, 16), 10));
+
+	GetDesktopUp() += pb;
+	for(size_t i(0); i < 10; ++i)
+	{
+		pb.SetValue(i);
+		pb.Refresh();
+		GetDesktopUp().BackColor = Color(255 - i * 255 / 10, 216, 192);
+	//	UpdateToScreen();
+		GetDesktopUp().Refresh();
+		GetDesktopUp().Update();
+		FetchImage(i);
+	}
+	pb.SetValue(10);
+	pb.Refresh();
+	GetDesktopUp().Refresh();
+	GetDesktopUp().Update();
+	GetDesktopUp() -= pb;
+	delete &pb;
 	SetShellToStored<ShlExplorer>();
 	return 0;
 }
@@ -369,27 +382,45 @@ ShlExplorer::TFormTest::TFormTest()
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 	FetchEvent<Enter>(btnEnterTest) += OnEnter_btnEnterTest;
 	FetchEvent<Leave>(btnEnterTest) += OnLeave_btnEnterTest;
+
+	static int up_i(1);
+
 	FetchEvent<Click>(btnMenuTest).Add(*this, &TFormTest::OnClick_btnMenuTest);
 	FetchEvent<Click>(btnShowWindow) += OnClick_ShowWindow;
+	btnPrevBackground.SetEnabled(false);
 	FetchEvent<Click>(btnPrevBackground) += [this](IControl&, TouchEventArgs&&){
 		auto& shl(FetchShell<ShlExplorer>());
 		auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
 		auto& dsk_down_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
 
-		dsk_up_ptr = FetchImage(3);
-		dsk_down_ptr = FetchImage(4);
+		if(up_i > 1)
+		{
+			--up_i;
+			btnNextBackground.SetEnabled(true);
+		}
+		if(up_i == 1)
+			btnPrevBackground.SetEnabled(false);
+		dsk_up_ptr = FetchImage(up_i);
+		dsk_down_ptr = FetchImage(up_i + 1);
 		shl.GetDesktopUp().SetRefresh(true);
-		shl.GetDesktopDown().SetRefresh(true);;
+		shl.GetDesktopDown().SetRefresh(true);
 	};
 	FetchEvent<Click>(btnNextBackground) += [this](IControl&, TouchEventArgs&&){
 		auto& shl(FetchShell<ShlExplorer>());
 		auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
 		auto& dsk_down_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
 
-		dsk_up_ptr = FetchImage(5);
-		dsk_down_ptr = FetchImage(6);
+		if(up_i < 5)
+		{
+			++up_i;
+			btnPrevBackground.SetEnabled(true);
+		}
+		if(up_i == 5)
+			btnNextBackground.SetEnabled(false);
+		dsk_up_ptr = FetchImage(up_i);
+		dsk_down_ptr = FetchImage(up_i + 1);
 		shl.GetDesktopUp().SetRefresh(true);
-		shl.GetDesktopDown().SetRefresh(true);;
+		shl.GetDesktopDown().SetRefresh(true);
 	};
 }
 
@@ -519,7 +550,7 @@ ShlExplorer::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs&& e)
 void
 ShlExplorer::TFormExtra::OnClick_btnDragTest(TouchEventArgs&&)
 {
-	static FontCache& fc(FetchAppInstance().GetFontCache());
+	static FontCache& fc(FetchGlobalInstance().GetFontCache());
 	static const int ffilen(fc.GetFilesN());
 	static const int ftypen(fc.GetTypesN());
 	static const int ffacen(fc.GetFacesN());
@@ -790,8 +821,8 @@ ShlExplorer::OnActivated(const Message& msg)
 	GetDesktopDown() += btnTest;
 	GetDesktopDown() += btnOK;
 	GetDesktopDown() += chkTest;
-	GetDesktopUp().GetBackgroundImagePtr() = FetchImage(3);
-	GetDesktopDown().GetBackgroundImagePtr() = FetchImage(4);
+	GetDesktopUp().GetBackgroundImagePtr() = FetchImage(1);
+	GetDesktopDown().GetBackgroundImagePtr() = FetchImage(2);
 	lblTitle.Text = "文件列表：请选择一个文件。";
 	lblPath.Text = "/";
 //	lblTitle.Transparent = true;

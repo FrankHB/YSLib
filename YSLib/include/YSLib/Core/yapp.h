@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2308;
+\version 0.2316;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-06-16 03:30 +0800;
+	2011-06-19 02:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -119,7 +119,6 @@ private:
 		当前 Shell 句柄：指示当前线程空间中运行的 Shell ；
 		全局单线程，生存期与进程相同。
 		*/
-	FontCache* pFontCache; //!< 默认字体缓存。
 
 public:
 	/*!
@@ -152,13 +151,6 @@ public:
 	*/
 	MessageQueue&
 	GetBackupMessageQueue() ythrow(LoggedEvent);
-	/*!
-	\brief 取字体缓存引用。
-	\throw LoggedEvent 记录异常事件。
-	\note 仅抛出以上异常。
-	*/
-	FontCache&
-	GetFontCache() const ythrow(LoggedEvent);
 
 	/*!
 	\brief 设置线程空间中当前运行的 Shell 的句柄。
@@ -167,20 +159,6 @@ public:
 	*/
 	bool
 	SetShellHandle(const shared_ptr<YShell>&);
-
-	/*!
-	\brief 复位默认字体缓存：使用指定路径。
-	\throw LoggedEvent 记录异常事件。
-	\note 仅抛出以上异常。
-	*/
-	void
-	ResetFontCache(const_path_t) ythrow(LoggedEvent);
-
-	/*!
-	\brief 注销字体缓存。
-	*/
-	void
-	DestroyFontCache();
 
 	//启动线程消息循环。
 //	void

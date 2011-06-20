@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2358;
+\version 0.2367;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-06-16 03:28 +0800;
+	2011-06-16 22:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,11 +24,12 @@
 */
 
 
-#ifndef YSL_INC_SHELL_YUICONT_H_
-#define YSL_INC_SHELL_YUICONT_H_
+#ifndef YSL_INC_UI_YUICONT_H_
+#define YSL_INC_UI_YUICONT_H_
 
 #include "ywidget.h"
 #include "yfocus.h"
+#include <ystdex/cast.hpp>
 
 YSL_BEGIN
 
@@ -144,7 +145,7 @@ FetchContext(IWidget&);
 \brief 取指定的点（相对此部件的坐标）相对于指定指针指向的父窗口的偏移坐标。
 */
 Point
-LocateOffset(const IWidget*, Point, const IWindow*);
+LocateOffset(const IWindow*, Point, const IWidget*);
 
 /*!
 \brief 取指定的点 pt （相对部件 w 的坐标）相对于 w 的容器的偏移坐标。
@@ -161,11 +162,11 @@ LocateContainerOffset(const IWidget& w, const Point& pt)
 inline Point
 LocateWindowOffset(const IWidget& w, const Point& pt)
 {
-	return LocateOffset(&w, pt, FetchWindowPtr(w));
+	return LocateOffset(FetchWindowPtr(w), pt, &w);
 }
 
 /*!
-\brief 取指定部件 a 相对于部件 b 的偏移坐标。
+\brief 取指定部件 b 相对于部件 a 的偏移坐标。
 */
 Point
 LocateForWidget(IWidget& a, IWidget& b);

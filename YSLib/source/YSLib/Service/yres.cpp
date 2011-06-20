@@ -9,18 +9,18 @@
 */
 
 /*!	\file yres.cpp
-\ingroup Core
+\ingroup Service
 \brief 应用程序资源管理模块。
-\version 0.1232;
+\version 0.1234;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-04-26 15:55 +0800;
+	2011-06-16 20:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Core::YResource;
+	YSLib::Service::YResource;
 */
 
 

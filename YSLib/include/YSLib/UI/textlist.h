@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1308;
+\version 0.1310;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-06-10 17:12 +0800;
+	2011-06-16 19:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef YSL_INC_SHELL_TEXTLIST_H_
-#define YSL_INC_SHELL_TEXTLIST_H_
+#ifndef YSL_INC_UI_TEXTLIST_H_
+#define YSL_INC_UI_TEXTLIST_H_
 
 #include "ygui.h"
 #include "ylabel.h"

@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.5043;
+\version 0.5047;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-06-12 00:11 +0800;
+	2011-06-16 19:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef YSL_INC_SHELL_YCONTROL_H_
-#define YSL_INC_SHELL_YCONTROL_H_
+#ifndef YSL_INC_UI_YCONTROL_H_
+#define YSL_INC_UI_YCONTROL_H_
 
 #include "ywidget.h"
 #include "../Core/yevt.hpp"
@@ -448,30 +448,6 @@ public:
 	*/
 	void
 	OnKeyDown_Bound_EnterAndTouchDown(KeyEventArgs&&);
-};
-
-
-//! \brief 范围模块类。
-template<typename _type>
-class GMRange
-{
-public:
-	typedef _type ValueType;
-
-protected:
-	ValueType max_value; //!< 最大取值。
-	ValueType value; //!< 值。
-
-	/*!
-	\brief 构造：使用指定最大取值和值。
-	*/
-	GMRange(ValueType m, ValueType v)
-		: max_value(m), value(v)
-	{}
-
-public:
-	DefGetter(ValueType, MaxValue, max_value)
-	DefGetter(ValueType, Value, value)
 };
 
 YSL_END_NAMESPACE(Controls)
