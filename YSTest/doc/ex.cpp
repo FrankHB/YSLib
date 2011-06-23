@@ -1,4 +1,4 @@
-// v0.3217; *Build 219 r71;
+// v0.3217; *Build 220 r42;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -258,204 +258,106 @@ $using:
 
 $DONE:
 r1:
-- \inc \h "../Core/yres.h" @ \h Form;
-- \inc \h "ygdi.h" @ \impl \u YDevice;
-/ \u (YResource & YGDI) >> \dir Service ~ \dir Core;
-/ \u YText >> \dir Service ~ \dir UI;
-/ \tr \inh \h @ (\h (YPanel & YStyle & YWidget & DSReader & YLabel)
-	& \impl \u ListBox);
-/ @ \h YGDI:
-	- \inc \h "../Core/ycutil.h";
-	+ \inh \h <ystdex/iterator.hpp>;
-/ @ \h YAdaptor:
-	- \inc \h <ystdex/iterator.hpp>;
-	- \inc \h <ystdex/cast.hpp>;
-+ \inc \h <ystdex/cast.hpp> @ \h YUIComponent;
+/ \impl @ \mf TextList::Paint();
 
-r2:
-/ \clt GMRange @ \ns YSLib::Components::Controls @ \h YControl
-	>> \ns YSLib @ \h YObject;
-
-r3:
-/ typedef \en (Rotation & Orientation) @ \h YGDI >> \h YGDIBase;
-
-r4:
-/ @ \dir Service:
-	+ \u YBlit["yblit.h", "yblit.cpp"];
-	+ \u YDraw["ydraw.h", "ydraw.cpp"];
-	/ (\a typedef & \stt (PixelFiller & SequenceTransformer
-		& VerticalLineTransfomer) & \a (\f & \t) 'Blit*' & \i \ft ClearPixel
-		& \a (\f & \t) 'Fill*' & \c \o 'BLT_*' & \a (\f & \t) 'blit*'
-		& \t TransformRect & \f CopyBuffer & \f ClearImage)
-		\exc ('BlitTo' & \f FillRect) @ \u YGDI >> \u YBlit;
-	/ \f \i PutPixel & \a \f 'Draw*' @ \u YGDI >> \u YDraw;
-	+ \inc \h YBlit @ \impl \u (YDraw & YGDI);
-	+ \inc \h YBlit @ \impl \u YText;
-	- \inc \h YFont @ \h (YText & YBlit & YDraw);
-* \tr \mac 'YSL_INC_*';
-- \h <ystdex/iterator.hpp> @ \h (YGDI & YDraw);
-/ \inc \h YGDI -> YDraw @ \h (YStyle & YWidget);
-+ \inc \h YBlit @ \h YWindow;
-
-r5:
-/= test 1 ^ \conf release;
-
-r6:
-/ @ \u YUIContainer:
-	/ \f Point LocateOffset(const IWidget*, Point, const IWindow*)
-		-> \f Point LocateOffset(const IWindow*, const IWidget*, Point);
-	/ \tr \impl @ \f (LocateWindowOffset & LocateForWindow & LocateForDesktop
-		& Fill);
-	/ swap \param @ \f LocateForWidget;
-/ \tr \impl @ \f DrawWidgetBounds @ \u YStyles;
-/ \tr \impl @ \mf YGUIShell::ResponseTouchBase;
-
-r7:
-/ \simp & optimized \impl @ \mf YGUIShell::ResponseTouchBase;
+r2-r7:
+/= test 1;
 
 r8:
-/ @ \impl \u YUIContainer:
-	/ \f GetContainersListFrom @ \un \ns \mg -> \f LocateForWidget;
-	/ optimized \impl @ \f LocateForWidget ^ list ~ map;
-/ \impl @ \mf MenuHost::Contains;
+/ \impl @ \mf TextList::Paint();
 
 r9:
-/= test 2 ^ \conf release;
+/ @ \u Menu:
+	+ void HideUnrelated() @ \cl MenuHost;
+	/ \tr \impl @ \ctor @ \cl Menu;
 
 r10:
-/ (\m FontCache* pFontCache & \mf (ResetFontCache & DestroyFontCache
-	& GetFontCache)) @ \cl YApplication @ \u YApplication
-	>> \cl YDSApplication @ \u YGlobal;
-/ \tr \impl @ \ctor @ \cl (YApplication & YDSApplication);
-/ \tr \impl @ (\f FetchDefaultTypeface & \mf FontCache::GetDefaultTypefacePtr)
-	@ \impl \u YFont;
-/ \tr \impl @ \f (InitializeSystemFontCache & CheckSystemFontCache)
-	@ \impl \u YShellInitialization;
-/ \tr \impl @ \f main \impl \u YGlobal;
-/ \tr @ \de \arg @ \decl @ \ctor @ \cl MDualScreenReader @ \h DSReader;
-/ \tr \impl @ \mf ShlExplorer::TFormExtra::OnClick_btnDragTest
-	@ \impl \u Shells;
+/ @ \u Menu:
+	/ \impl @ \mf MenuHost::HideUnrelated;
+	* @ \cl Menu:
+		/ \ac @ \m id -> private ~ public;
+	^ auto ~ Menu* @ \decl @ \impl @ \a \mf;
+	^ auto& ~ Menu& @ \decl @ \impl @ \a \mf;
 
 r11:
-/ @ \h YGlobal:
-	+ \f \i Devices::Screen& FetchDefaultScreen();
-	+ \f \i FontCache& FetchDefaultFontCache();
-	- using Devices::DSScreen;
-/ \impl @ (\f FetchDefaultTypeface & \mf FontCache::GetDefaultTypefacePtr)
-	@ \impl \u YFont ^ FetchDefaultScreen;
-/ \de \arg @ \decl @ \ctor @ \cl Console ^ FetchDefaultScreen;
-/ \tr \impl @ \f (InitializeSystemFontCache & CheckSystemFontCache)
-	@ \impl \u YShellInitialization ^ FetchDefaultScreen;
-* \doc group @ \stt xcrease_t @ \h Utilities;
-/ \tr @ \impl \u YGlobal ^ using Devices::DSScreen;
+* \impl @ \ctor @ \cl Menu;
 
-r12:
-/= test 3 ^ \conf release;
+r12-r19:
+/= test 2;
 
-r13:
-/ optimized \impl @ \f CreateSharedScreenImage @ \impl \u YShellHelper
-	^ rvalue \ref;
+r20:
+/ \impl @ \mf MenuHost::ShowRaw @ \impl \u Menu;
 
-r14:
-/ \impl @ \f LoadL @ \un \ns @ \impl \u Shells;
+r21:
+/= \impl @ \mft<template<class> class _tResponser, class _type> bool
+	AFocusRequester::RequestFocus(_tResponser<_type>&) @ \h YFocus;
 
-r15:
-/ @ \un \ns @ \impl \u Shells:
-	+ \f BitmapPtr FetchGlobalImageBuffer(size_t);
-	/ \impl @ \a \f 'Load?' ^ FetchGlobalImageBuffer;
-/ @ \cl MTextList:
-	/ \m mutable shared_ptr<ListType> pList => hList;
-	/ \tr @ \mf GetList;
-	/ \tr \impl @ \ctor;
-
-r16:
-/ @ \un \ns @ \impl \u Shells:
-	/ \a \f 'Load?' ^ FetchGlobalImageBuffer \mg -> \f FetchImage;
-	/ FetchGlobalImage
-	- unused \o BitmapPtr gbuf;
-
-r17:
-- \f CreateSharedScreenImage @ \u YShellHelper;
-
-r18-r19:
-/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
-
-r20-r22:
-/ \impl @ \ctor @ \cl ShlExplorer::TFormTest @ \impl \u Shells;
+r22:
+/ @ (\cl Control & \in IControl):
+	/ \mf void RequestFocus() -> void RequestFocus(IControl&)
+	/ \mf void ReleaseFocus() -> void ReleaseFocusFrom(IControl&);
+/ \tr \impl @ \mf SetFocusingPtr @ \clt GMFocusResponser @ \h YFocus;
+/ \tr \impl @ \mf MenuHost::HideRaw;
+/ \tr \impl @ (\ctor & \dtor) @ \cl Control;
+/ \impl @ \f (RequestFocusCascade & ReleaseFocusCascade)
+	& \mf YGUIShell::ResponseTouch @ \impl \u YGUI;
 
 r23:
-/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
+/ \impl @ \mf MenuHost::ShowRaw;
 
 r24:
-/ \impl @ \mf OnActivated @ \cl (YMainShell & ShlExplorer) @ \impl \u Shells;
+/ \mf void HideUnrelated(Menu&) -> void HideUnrelated(Menu&, Menu&)
+	@ \cl MenuHost;
+/ \impl @ \ctor @ \cl Menu;
 
-r25-r26:
-/= test 4;
+r25:
+/ @ \cl MenuHost:
+	/ \impl @ \mf HideUnrelated;
+	- \m SubMenuPointer;
+	/ \tr \impl @ \ctor;
+/ \tr \simp \impl @ \ctor @ \cl Menu;
 
-r27:
-/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
+r26:
+/ \impl @ \ctor @ \cl Menu;
 
-r28-r49:
+r27-r31:
+/= test 3;
+
+r32-r33:
+/ \impl @ \ctor @ \cl Menu;
+
+r34:
+/= test 4 ^ \conf release;
+
+r35:
+/ \impl @ \ctor @ \cl Menu;
+
+r36-r39:
 /= test 5;
 
-r50:
-/ \simp \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
+r40:
++ \f Rect operator+(const Rect&, const Padding&) @ \u YGDI;
+/ \impl @ \mf TextState::ResetForBounds @ \impl \u YText;
 
-r51-r52:
-* "wrong default argument of desktop backgrond color" $since b160:
-	/ \ctor \exp Desktop(Devices::Screen&, Color = 0, const
-		shared_ptr<Drawing::Image>& = shared_ptr<Drawing::Image>()) -> \exp
-		Desktop(Devices::Screen&, Color = Drawing::ColorSpace::Black,
-		const shared_ptr<Drawing::Image>& = shared_ptr<Drawing::Image>());
+r41:
+* \impl @ \mf TextState::ResetForBounds @ \impl \u YText;
 
-r53-r54:
-/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
-
-r55:
+r42:
 /= test 6 ^ \conf release;
-
-r56:
-/ @ \impl \u Shells:
-	+ \cl ProgressBar @ \un \ns;
-	/ \impl @ \mf YMainShell::OnActivated;
-
-r57:
-* \impl @ \mf ProgressBar::Paint @ \un \ns @ \impu \u Shells;
-
-r58:
-/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
-
-r59-r67:
-/ test 7;
-
-r68:
-* \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
-
-r69:
-/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
-
-r70:
-+ \u Progress["progress.h", "progress.cpp"] @ \dir UI;
-/ \cl ProgressBar @ \un \ns @ \impl \u >> \ns Components::Widgets
-	@ \u Progress;
-+ \inh \h <YSLib/UI/progress.h> @ \impl \u Shells;
-
-r71:
-/= test 8 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-06-20:
--18.9d;
-//Mercurial rev1-rev89: r4409;
+2011-06-23:
+-19.7d;
+//Mercurial rev1-rev90: r4480;
 
 / ...
 
 
 $NEXT_TODO:
-b220-b324:
+b221-b324:
 ^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
 	libstdc++ for known associative container operation bugs:
 	- \rem @ \impl @ \mft GetEvent @ \clt EventMap @ \h YEvent;
@@ -562,6 +464,22 @@ $ellipse_refactoring;
 
 $now
 (
+	+ "non-focused textlist border",
+	/ "control focus interfaces" $=
+	(
+		+ "specified %IControl reference as sender parameter"
+	),
+	/ "menus functionality" $=
+	(
+		* "menu hiding when submenu shown and focus lost" $since b214,
+		+ "automatically locating submenu when shown",
+	),
+	* "wrong text margin of widgets not entirely shown in the window"
+		$since b190
+),
+
+b219
+(
 	/ $design "unit %YGUI decomposed for Blit and 2D API",
 	/ "optimized widget-to-widget locating",
 	/ $design "font cache moved to platform-dependent application class from
@@ -657,7 +575,7 @@ b214
 		+ "hiding on confirmed",
 		+ "resizing with width of text in list",
 		/ "margin of menus",
-		+ "submenus" $=
+		+ "submenus"
 	),
 	* $design "exception specification" @ "unit %YApplication",
 	/ $doc $=

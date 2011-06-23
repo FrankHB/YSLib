@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.5047;
+\version 0.5059;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-06-16 19:52 +0800;
+	2011-06-22 13:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -270,11 +270,11 @@ DeclBasedInterface1(IControl, virtual IWidget)
 
 	DeclIEntry(void SetEnabled(bool)) //!< 设置有效性。
 
-	//! \brief 向部件容器请求获得焦点。
-	DeclIEntry(void RequestFocus())
+	//! \brief 向部件容器请求获得焦点，并指定 GotFocus 事件发送控件。
+	DeclIEntry(void RequestFocusFrom(IControl&))
 
-	//! \brief 释放焦点。
-	DeclIEntry(void ReleaseFocus())
+	//! \brief 释放焦点，并指定 LostFocus 事件发送控件。
+	DeclIEntry(void ReleaseFocusFrom(IControl&))
 EndDecl
 
 
@@ -421,17 +421,17 @@ public:
 
 	/*!
 	\brief 向部件容器请求获得焦点。
-	\note 若成功则触发 GotFocus 事件。
+	\note 若成功则触发指定控件发送的 GotFocus 事件。
 	*/
 	ImplI1(IControl) void
-	RequestFocus();
+	RequestFocusFrom(IControl&);
 
 	/*!
 	\brief 释放焦点。
-	\note 触发 LostFocus 事件。
+	\note 触发指定控件发送的 LostFocus 事件。
 	*/
 	ImplI1(IControl) void
-	ReleaseFocus();
+	ReleaseFocusFrom(IControl&);
 
 	/*!
 	\brief 处理键接触结束事件。

@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version 0.4032;
+\version 0.4036;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-06-16 20:24 +0800;
+	2011-06-23 09:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -90,7 +90,13 @@ struct Padding
 \brief 加法：对应分量调用 operator+ 。
 */
 Padding
-operator+(const Padding& a, const Padding& b);
+operator+(const Padding&, const Padding&);
+/*!
+\brief 加法：缩小屏幕正则矩形，相对位置由指定边距决定。
+\note 若边距过大，则矩形的宽或高可能为 0 。
+*/
+Rect
+operator+(const Rect&, const Padding&);
 
 
 /*!

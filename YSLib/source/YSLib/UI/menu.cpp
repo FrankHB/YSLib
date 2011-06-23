@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version 0.1666;
+\version 0.1709;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-06-16 23:47 +0800;
+	2011-06-22 23:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,16 +46,21 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 {
 	BackColor = FetchGUIShell().Colors[Styles::Panel];
 	SetAllTo(Margin, 6, 18, 4, 4);
-	FetchEvent<LostFocus>(*this) += [this](IControl&, EventArgs&&){
+	FetchEvent<LostFocus>(*this) += [this](IControl& c, EventArgs&&){
 		if(pHost)
 		{
 			if(this->IsVisible())
 				this->Refresh();
-			if(!pHost->SubMenuPointer || pHost->SubMenuPointer->pParent != this)
+
+			auto pMnu(dynamic_cast<Menu*>(&c));
+
+			if(pMnu)
 			{
-				pHost->HideAll();
-				pHost->SubMenuPointer = nullptr;
+				if(pMnu->GetParentPtr() != this)
+					pHost->HideUnrelated(*this, *pMnu);
 			}
+			else
+				pHost->HideAll();
 		}
 	};
 	GetConfirmed() += [this](IControl&, IndexEventArgs&& e){
@@ -63,14 +68,15 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		{
 			try
 			{
-				Menu& mnu((*this)[e.Index]);
+				auto& mnu((*this)[e.Index]);
 
-				pHost->SubMenuPointer = &mnu;
+				mnu.SetLocation(Point(this->GetLocation().X + this->GetWidth(),
+					this->GetLocation().Y + this->GetItemHeight() * e.Index));
 				mnu.Show();
 			}
 			catch(std::out_of_range&)
 			{
-				pHost->Hide(this->id);
+				pHost->HideAll();
 			}
 		}
 	};
@@ -142,7 +148,7 @@ Menu::PaintItem(const Graphics& g, const Rect& r, ListType::size_type i)
 
 
 MenuHost::MenuHost(AFrame& frm)
-	: Frame(frm), SubMenuPointer(), mMenus()
+	: Frame(frm), mMenus()
 {}
 MenuHost::~MenuHost()
 {
@@ -172,7 +178,7 @@ MenuHost::operator-=(Menu::ID id)
 {
 	try
 	{
-		Menu& mnu((*this)[id]);
+		auto& mnu((*this)[id]);
 
 		mnu.pHost = nullptr;
 		return mMenus.erase(id) != 0;
@@ -187,7 +193,7 @@ MenuHost::IsShowing(Menu::ID id)
 {
 	try
 	{
-		Menu& mnu((*this)[id]);
+		auto& mnu((*this)[id]);
 
 		return Frame.Contains(mnu);
 	}
@@ -217,7 +223,7 @@ MenuHost::Show(Menu::ID id, ZOrderType z)
 {
 	try
 	{
-		Menu* pMenu(mMenus.at(id));
+		auto pMenu(mMenus.at(id));
 
 		YAssert(pMenu, "Null pointer found @ MenuHost::Show;");
 
@@ -239,7 +245,7 @@ void
 MenuHost::ShowRaw(Menu& mnu, ZOrderType z)
 {
 	Frame.Add(mnu, z);
-	mnu.RequestFocus();
+	mnu.RequestFocusFrom(mnu);
 }
 
 void
@@ -247,7 +253,7 @@ MenuHost::Hide(Menu::ID id)
 {
 	try
 	{
-		Menu* pMenu(mMenus.at(id));
+		auto pMenu(mMenus.at(id));
 
 		YAssert(pMenu, "Null pointer found @ MenuHost::Hide;");
 
@@ -268,8 +274,36 @@ MenuHost::HideAll()
 void
 MenuHost::HideRaw(Menu& mnu)
 {
-	mnu.ReleaseFocus();
+	mnu.ReleaseFocusFrom(mnu);
 	Frame -= mnu;
+}
+
+void
+MenuHost::HideUnrelated(Menu& mnu, Menu& mnuParent)
+{
+	if(Contains(mnuParent))
+	{
+		auto pMnu(&mnu);
+
+		while(pMnu && pMnu != &mnuParent)
+		{
+			try
+			{
+				auto pMenu(mMenus.at(pMnu->GetID()));
+
+				YAssert(pMenu, "Null pointer found @ MenuHost::HideUnrelated;");
+
+				HideRaw(*pMenu);
+			}
+			catch(std::out_of_range&)
+			{}
+			pMnu = pMnu->GetParentPtr();
+		}
+	}
+	else
+	{
+		HideAll();
+	}
 }
 
 YSL_END_NAMESPACE(Controls)

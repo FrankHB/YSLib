@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version 0.6661;
+\version 0.6668;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-06-16 20:29 +0800;
+	2011-06-23 09:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,8 +74,8 @@ TextState::ResetPen()
 void
 TextState::ResetForBounds(const Rect& r, const Size& s, const Padding& m)
 {
-	Margin = FetchMargin(r, s) + m;
-	PenX = r.X + m.Left;	
+	Margin = FetchMargin(r + m, s);
+	PenX = r.X + m.Left;
 	PenY = r.Y + GetCache().GetAscender() + m.Top;
 }
 

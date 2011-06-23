@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.4184;
+\version 0.4193;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-06-12 00:03 +0800;
+	2011-06-22 13:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -100,13 +100,13 @@ Control::Control(const Rect& r)
 	};
 	FetchEvent<TouchDown>(EventMap) += [this](IControl&, TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
-			RequestFocus();
+			RequestFocusFrom(*this);
 	};
 	FetchEvent<TouchHeld>(EventMap) += OnTouchHeld;
 }
 Control::~Control()
 {
-	ReleaseFocus();
+	ReleaseFocusFrom(*this);
 }
 
 bool
@@ -133,21 +133,21 @@ Control::SetSize(const Size& s)
 }
 
 void
-Control::RequestFocus()
+Control::RequestFocusFrom(IControl& c)
 {
 	IUIBox* p(GetContainerPtr());
 
 	if(p && p->ResponseFocusRequest(*this))
-		EventMap.GetEvent<HVisualEvent>(GotFocus)(*this, EventArgs());
+		EventMap.GetEvent<HVisualEvent>(GotFocus)(c, EventArgs());
 }
 
 void
-Control::ReleaseFocus()
+Control::ReleaseFocusFrom(IControl& c)
 {
 	IUIBox* p(GetContainerPtr());
 
 	if(p && p->ResponseFocusRelease(*this))
-		EventMap.GetEvent<HVisualEvent>(LostFocus)(*this, EventArgs());
+		EventMap.GetEvent<HVisualEvent>(LostFocus)(c, EventArgs());
 }
 
 void

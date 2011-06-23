@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version 0.3494;
+\version 0.3501;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-06-16 20:28 +0800;
+	2011-06-23 09:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,6 +58,13 @@ operator+(const Padding& a, const Padding& b)
 	return Padding(a.Left + b.Left, a.Right + b.Right,
 		a.Top + b.Top, a.Bottom + b.Bottom);
 }
+Rect
+operator+(const Rect& r, const Padding& m)
+{
+	return Rect(r.X + m.Left, r.Y + m.Top,
+		vmax<int>(0, r.Width - GetHorizontalFrom(m)),
+		vmax<int>(0, r.Height - GetVerticalFrom(m)));
+}
 
 
 u64
@@ -89,7 +96,7 @@ FetchMargin(const Rect& r, const Size& s)
 
 BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDst w, SDst h)
 	: Graphics()
-	//不能提前初始化 size ，否则指针非空和面积非零状态不一致。 
+	//不能提前初始化 size ，否则指针非空和面积非零状态不一致。
 {
 	SetSize(w, h);
 	if(i)

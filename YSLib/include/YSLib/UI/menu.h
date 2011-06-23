@@ -11,12 +11,12 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version 0.1661;
+\version 0.1675;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-06-16 19:53 +0800;
+	2011-06-22 14:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -51,6 +51,7 @@ public:
 	typedef map<IndexType, Menu*> SubMap; //!< 子菜单映射表类型。
 	typedef SubMap::value_type ValueType; //!< 子菜单映射表项目类型。
 
+private:
 	ID id; //!< 菜单标识。
 
 protected:
@@ -123,7 +124,6 @@ public:
 	typedef MenuMap::value_type ValueType;
 
 	Forms::AFrame& Frame; //!< 框架窗口。
-	Menu* SubMenuPointer; //!< 锁定子菜单指针：指定当前处理的子菜单。
 
 protected:
 	MenuMap mMenus; //!< 菜单组：存储非空菜单指针。
@@ -238,6 +238,15 @@ private:
 	*/
 	void
 	HideRaw(Menu& mnu);
+
+public:
+	/*!
+	\brief 隐藏从 mnu 起向上层遍历菜单树的过程中不相关的菜单。
+	\note 若 <tt>!Contains(mnuParent)</tt> 则隐藏所有菜单。
+	\note 相关菜单指 mnuParent 指定的菜单及其直接或间接父菜单。
+	*/
+	void
+	HideUnrelated(Menu& mnu, Menu& mnuParent);
 };
 
 inline void

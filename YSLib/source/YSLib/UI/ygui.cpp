@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.3822;
+\version 0.3828;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-16 23:25 +0800;
+	2011-06-22 13:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -265,7 +265,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 		if(op == TouchDown)
 		{
 			RequestToTop(*p);
-			p->RequestFocus();
+			p->RequestFocusFrom(*p);
 		}
 
 		IControl* t;
@@ -341,7 +341,7 @@ RequestFocusCascade(IControl& c)
 
 	do
 	{
-		p->RequestFocus();
+		p->RequestFocusFrom(*p);
 	}while((p = dynamic_cast<IControl*>(p->GetContainerPtr())));
 }
 
@@ -352,7 +352,7 @@ ReleaseFocusCascade(IControl& c)
 
 	do
 	{
-		p->ReleaseFocus();
+		p->ReleaseFocusFrom(*p);
 	}while((p = dynamic_cast<IControl*>(p->GetContainerPtr())));
 }
 
