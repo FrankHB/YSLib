@@ -11,12 +11,12 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version 0.1683;
+\version 0.1698;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-09 20:43:52 +0800;
 \par 修改时间:
-	2011-04-20 10:32 +0800;
+	2011-06-24 20:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,7 +45,7 @@ public:
 	\note 实例生成计数和实例计数自增。
 	*/
 	GMCounter()
-	: nID(nCount++)
+		: nID(nCount++)
 	{
 		++nTotal;
 	}
@@ -53,11 +53,18 @@ public:
 	\brief 复制构造。
 	\note 实例生成计数和实例计数自增。
 	*/
+	inline
 	GMCounter(const GMCounter&)
-	: nID(nCount++)
+		: nID(nCount++)
 	{
 		++nTotal;
 	}
+	/*!
+	\brief 移动构造。
+	\brief 移动构造：默认实现。
+	*/
+	inline
+	GMCounter(GMCounter&&) = default;
 
 protected:
 	/*!

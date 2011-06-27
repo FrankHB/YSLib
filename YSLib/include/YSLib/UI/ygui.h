@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.2592;
+\version 0.2594;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-16 19:51 +0800;
+	2011-06-23 23:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -87,7 +87,7 @@ public:
 	ResetHeldState(HeldStateType&);
 
 	/*!
-	\brief 复位 GUI 状态。
+	\brief 复位图形用户界面状态。
 	\note 需要在没有销毁时自动释放焦点的相关控件对象被销毁后立即调用，
 		以避免处理无效指针。
 	*/
@@ -149,7 +149,7 @@ YSL_END_NAMESPACE(Shells)
 using Shells::YGUIShell;
 
 /*!
-\brief 取当前线程空间中运行的 GUI Shell 句柄。
+\brief 取当前线程空间中运行的图形用户界面 Shell 句柄。
 \todo 线程模型和安全性。
 \note 不能简单兼容多线程模型。
 */

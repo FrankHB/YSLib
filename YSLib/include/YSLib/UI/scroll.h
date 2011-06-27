@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3127;
+\version 0.3131;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-06-20 08:12 +0800;
+	2011-06-25 21:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -495,7 +495,7 @@ public:
 
 protected:
 	virtual IControl*
-	GetBoundControlPtr(const Runtime::Key&);
+	GetBoundControlPtr(const KeyCode&);
 };
 
 
@@ -512,7 +512,7 @@ public:
 
 protected:
 	virtual IControl*
-	GetBoundControlPtr(const Runtime::Key&);
+	GetBoundControlPtr(const KeyCode&);
 };
 
 

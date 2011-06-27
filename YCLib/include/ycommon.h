@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2724;
+\version 0.2730;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 +0800; 
 \par 修改时间:
-	2011-06-08 18:20 +0800;
+	2011-06-25 21:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -292,8 +292,8 @@ namespace platform
 	}
 
 
-	//! \brief 本机按键对象。
-	class Key
+	//! \brief 本机按键代码。
+	class KeyCode
 	{
 	public:
 		typedef u32 InputType; //!< 本机按键输入类型。
@@ -305,7 +305,7 @@ namespace platform
 		/*!
 		\brief 构造：使用本机按键输入对象。
 		*/
-		Key(InputType = 0);
+		KeyCode(InputType = 0);
 
 		/*!
 		\brief 转换：本机按键输入对象。
@@ -314,12 +314,12 @@ namespace platform
 	};
 
 	inline
-	Key::Key(InputType i)
+	KeyCode::KeyCode(InputType i)
 	: _value(i)
 	{}
 
 	inline
-	Key::operator Key::InputType() const
+	KeyCode::operator KeyCode::InputType() const
 	{
 		return _value;
 	}
@@ -328,7 +328,7 @@ namespace platform
 	//! \brief 按键信息。
 	typedef struct KeysInfo
 	{
-		Key Up, Down, Held;
+		KeyCode Up, Down, Held;
 	} KeysInfo;
 
 
@@ -432,7 +432,7 @@ namespace platform
 	class HDirectory
 	{
 	public:
-		typedef ::DIR_ITER* IteratorType; //!< 本机迭代器类型。
+		typedef ::DIR* IteratorType; //!< 本机迭代器类型。
 
 		static PATHSTR Name; //!< 节点名称。
 		static struct ::stat Stat; //!< 节点状态信息。

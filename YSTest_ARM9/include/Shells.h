@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version 0.3288;
+\version 0.3305;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-06-16 14:11 +0800;
+	2011-06-25 21:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,7 +44,6 @@ using namespace Components::Widgets;
 using namespace Components::Controls;
 using namespace Components::Forms;
 using namespace Drawing;
-using namespace Runtime;
 
 using namespace DS;
 using namespace DS::Components;
@@ -128,17 +127,13 @@ public:
 	OnDeactivated(const Message&);
 
 private:
-	void ShowString(const String&);
-	void ShowString(const char*);
+	IControl*
+	GetBoundControlPtr(const KeyCode&);
 
 	void
-	OnKeyUp_frm(KeyEventArgs&&);
-
+	ShowString(const String&);
 	void
-	OnKeyDown_frm(KeyEventArgs&&);
-
-	void
-	OnKeyPress_frm(KeyEventArgs&&);
+	ShowString(const char*);
 
 	void
 	OnClick_btnTest(TouchEventArgs&&);
@@ -148,9 +143,6 @@ private:
 
 	void
 	OnViewChanged_fbMain(EventArgs&&);
-
-	static void
-	OnKeyPress_fbMain(IControl&, KeyEventArgs&&);
 
 	static void
 	OnConfirmed_fbMain(IControl&, IndexEventArgs&&);

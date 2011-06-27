@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2389;
+\version 0.2399;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-06-19 03:13 +0800;
+	2011-06-25 21:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -261,19 +261,19 @@ YSL_BEGIN_NAMESPACE(Messaging)
 class InputContent
 {
 public:
-	Runtime::KeysInfo Key;
+	KeysInfo Keys;
 	Drawing::Point CursorLocation;
 
 	explicit
-	InputContent(Runtime::KeysInfo, const Drawing::Point&);
+	InputContent(KeysInfo, const Drawing::Point&);
 
 	bool
 	operator==(const InputContent&) const;
 };
 
 inline
-InputContent::InputContent(Runtime::KeysInfo k, const Drawing::Point& pt)
-	: Key(k), CursorLocation(pt)
+InputContent::InputContent(KeysInfo k, const Drawing::Point& pt)
+	: Keys(k), CursorLocation(pt)
 {}
 
 DefMessageTarget(SM_INPUT, shared_ptr<InputContent>)

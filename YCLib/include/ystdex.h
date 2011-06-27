@@ -11,12 +11,12 @@
 /*!	\file ystdex.h
 \ingroup YCLib
 \brief YCLib C++ 标准库扩展。
-\version 0.2314;
+\version 0.2322;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:31:14 +0800; 
 \par 修改时间:
-	2011-06-08 18:15 +0800;
+	2011-06-24 19:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,8 @@
 #		define YCL_IMPL_MSCPP _MSC_VER
 #	elif defined(__GNUC__)
 #		undef YCL_IMPL_GNUCPP
-#		define YCL_IMPL_GNUCPP 1
+#		define YCL_IMPL_GNUCPP (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 \
+			+ __GNUC_PATCHLEVEL__)
 #	endif
 #else
 #	error This header is only for C++!
@@ -49,7 +50,8 @@
 #include <cstring>
 #include <type_traits>
 
-#if YCL_IMPL_CPP >= 201103L || YCL_IMPL_MSCPP >= 1600
+#if YCL_IMPL_CPP >= 201103L || YCL_IMPL_MSCPP >= 1600 \
+	|| YCL_IMPL_GNUCPP >= 40600
 //#	include <type_traits>
 #	define YCL_HAS_BUILTIN_NULLPTR
 #else

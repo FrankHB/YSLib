@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11171;
+\version r11180;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-06-16 14:14 +0800;
+	2011-06-25 21:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -434,13 +434,6 @@ namespace IO
 	$unit Core::YFile;
 } //namespace IO;
 
-namespace Runtime
-{
-	$header Core::YEvent;
-	$unit Shell::YControl;
-	$unit Shell::YGUI;
-} //namespace Runtime;
-
 namespace Shells
 {
 	$unit Core::YShell;
@@ -500,8 +493,6 @@ $header YDefinition
 	typedef u32 fchar_t;
 
 	typedef int errno_t;
-//	typedef decltype(nullptr) nullptr_t;
-	// TODO: using std::nullptr_t;
 	using std::ptrdiff_t;
 	using std::size_t;
 	using ::ssize_t;
@@ -643,11 +634,6 @@ $header "ycommon.h"
 
 $header Adaptor::YAdaptor
 {
-	namespace Text
-	{
-		using namespace CHRLib;
-	} //namespace Text;
-	using Text::fchar_t, Text::uchar_t, Text::uint_t;
 
 	using ystdex::u8;
 	using ystdex::u16;
@@ -680,18 +666,28 @@ $header Adaptor::YAdaptor
 	using platform::WaitForInput;
 	using platform::GetRTC, platform::ResetRTC;
 	using platform::InitVideo;
+
+	namespace KeySpace = platform::KeySpace;
+	using platform::Key, platform::KeysInfo, CursorInfo;
+
 	namespace Drawing
 	{
 		using platform::BitmapPtr, ConstBitmapPtr;
 		using platform::Color;
 		namespace ColorSpace = platform::ColorSpace;
 	} //namespace Drawing;
-	namespace Runtime
+
+	namespace Text
 	{
-		namespace KeySpace = platform::KeySpace;
-		using platform::Key, platform::KeysInfo, CursorInfo;
-	} //namespace Runtime;
-	using namespace platform, platform_ex;
+		using namespace CHRLib;
+	} //namespace Text;
+	using Text::fchar_t, Text::uchar_t, Text::uint_t;
+
+	//! \brief 运行时平台。
+	namespace DS
+	{
+		using namespace platform, platform_ex;
+	} //namespace DS;
 
 	//库适配器。
 

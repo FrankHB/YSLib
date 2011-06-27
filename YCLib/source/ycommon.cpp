@@ -11,12 +11,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2381;
+\version 0.2392;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2011-06-08 18:16 +0800;
+	2011-06-24 21:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -193,9 +193,9 @@ namespace platform
 	bool
 	direxists(const_path_t path)
 	{
-		DIR_ITER* dirState(::diropen(path));
+		auto dirState(::opendir(path));
 
-		::dirclose(dirState);
+		::closedir(dirState);
 		return dirState;
 	}
 
@@ -208,11 +208,12 @@ namespace platform
 		for(char* slash = path; (slash = strchr(slash, '/')); ++slash)
 		{
 			*slash = '\0';
-			::mkdir(path, S_IRWXU|S_IRWXG|S_IRWXO);
+			::mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO);
 			*slash = '/';
 		}
 		//新建目录成功或目标路径已存在时返回 true 。
-		return ::mkdir(path, S_IRWXU|S_IRWXG|S_IRWXO) == 0 || errno == EEXIST;
+		return ::mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) == 0
+			|| errno == EEXIST;
 	}
 
 
@@ -323,7 +324,18 @@ namespace platform
 	HDirectory&
 	HDirectory::operator++()
 	{
-		LastError = ::dirnext(dir, Name, &Stat);
+		LastError = 0;
+		if(IsValid())
+		{
+			auto dp(::readdir(dir));
+
+			if(dp)
+				std::strcpy(Name, dp->d_name);
+			else
+				LastError = 2;
+		}
+		else
+			LastError = 1;
 		return *this;
 	}
 
@@ -336,20 +348,19 @@ namespace platform
 	void
 	HDirectory::Open(const_path_t path)
 	{
-		dir = path ? ::diropen(path) : nullptr;
+		dir = path ? ::opendir(path) : nullptr;
 	}
 
 	void
 	HDirectory::Close()
 	{
-		if(IsValid())
-			LastError = ::dirclose(dir);
+		LastError = IsValid() ? ::closedir(dir) : 1;
 	}
 
 	void
 	HDirectory::Reset()
 	{
-		LastError = ::dirreset(dir);
+		::rewinddir(dir);
 	}
 
 

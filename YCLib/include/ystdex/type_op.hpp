@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YCLib
 \brief C++ 类型操作模板类。
-\version 0.1126;
+\version 0.1140;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800; 
 \par 修改时间:
-	2011-04-20 10:46 +0800;
+	2011-06-24 21:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,14 +70,17 @@ namespace ystdex
 		};
 
 #ifdef __GNUC__
-//#pragma GCC diagnostic push
-#pragma GCC system_header
+#	if YCL_IMPL_GNUCPP >= 40600
+#		pragma GCC diagnostic push
+#		pragma GCC diagnostic ignored "-Wextra"
+#	else
+#		pragma GCC system_header
 //临时处理：关闭所有警告。
-//#pragma GCC diagnostic ignored "-Wextra"
 /*
 关闭编译警告：(C++ only) Ambiguous virtual bases. ，
 参见 http://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html 。
 */
+#	endif
 #endif
 
 		struct B
@@ -93,10 +96,9 @@ namespace ystdex
 			{}
 		};
 
-#ifdef __GNUC__
-// TODO: GCC push/pop with GCC 4.6+;
-//#pragma GCC diagnostic warning "-Wextra"
-//#pragma GCC diagnostic pop
+#if defined(YCL_IMPL_GNUCPP) && YCL_IMPL_GNUCPP >= 40600
+//#	pragma GCC diagnostic warning "-Wextra"
+#	pragma GCC diagnostic pop
 #endif
 
 		enum

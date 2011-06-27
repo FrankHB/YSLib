@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version 0.4659;
+\version 0.4705;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-06-20 09:08 +0800;
+	2011-06-26 02:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -310,7 +310,10 @@ ShlExplorer::ShlExplorer()
 	lblB(Rect(5, 120, 72, 22)),
 	mhMain(*GetDesktopDownHandle())
 {
-	FetchEvent<KeyPress>(fbMain) += OnKeyPress_fbMain;
+	FetchEvent<KeyPress>(fbMain) += [](IControl&, KeyEventArgs&& e){
+		if(e.GetKeyCode() & KeySpace::L)
+			switchShl1();
+	};
 	fbMain.GetViewChanged().Add(*this, &ShlExplorer::OnViewChanged_fbMain);
 	fbMain.GetSelected() += [this](IControl&, IndexEventArgs&&){
 		btnOK.SetEnabled(true);
@@ -352,6 +355,90 @@ namespace
 		else
 			Show(wnd);
 	}
+
+
+	class TestObj
+	{
+	public:
+		shared_ptr<Desktop> h;
+		Color c;
+		Point l;
+		Size s;
+		String str;
+		TextRegion tr;
+
+	public:
+		TestObj(const shared_ptr<Desktop>&);
+
+		void
+		Fill();
+
+		static void
+		Pause()
+		{
+			WaitForInput();
+		}
+
+		void
+		Blit() const;
+
+		void
+		Test1(Color);
+
+		void
+		Test2();
+
+		void
+		Test3(Color);
+	};
+
+	TestObj::TestObj(const shared_ptr<Desktop>& h_)
+		: h(h_),
+		c(ColorSpace::White),
+		l(20, 32), s(120, 90)
+	{
+		tr.SetSize(s.Width, s.Height);
+	}
+
+	void
+	TestObj::Fill()
+	{
+		Graphics g(h->GetScreen());
+
+		FillRect(g, l, s, c);
+	}
+
+	void
+	TestObj::Blit() const
+	{
+		BlitTo(h->GetScreen().GetBufferPtr(), tr,
+			h->GetScreen().GetSize(), l, Point::Zero, tr.GetSize());
+	}
+
+	void
+	TestObj::Test1(Color c)
+	{
+		Fill();
+		tr.ClearImage();
+		tr.ResetPen();
+		tr.Color = c;
+	}
+
+	void
+	TestObj::Test2()
+	{
+		PutLine(tr, str);
+		Blit();
+		Pause();
+	}
+
+	void
+	TestObj::Test3(Color c)
+	{
+		Test1(c);
+		Test2();
+	}
+
 }
 
 
@@ -592,7 +679,7 @@ void
 ShlExplorer::TFormExtra::OnKeyPress_btnDragTest(IControl& sender,
 	KeyEventArgs&& e)
 {
-	u32 k(static_cast<KeyEventArgs::Key>(e));
+	u32 k(static_cast<KeyEventArgs::InputType>(e));
 	char strt[100];
 	auto& lbl(dynamic_cast<Label&>(sender));
 
@@ -612,12 +699,6 @@ ShlExplorer::TFormExtra::OnKeyPress_btnDragTest(IControl& sender,
 */
 }
 
-/*void
-ShlExplorer::TFormExtra::OnClick_btnTestEx(TouchEventArgs&)
-{
-
-}*/
-
 void
 ShlExplorer::TFormExtra::OnClick_btnClose(TouchEventArgs&&)
 {
@@ -628,166 +709,51 @@ void
 ShlExplorer::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 {
 	using namespace Drawing;
+/*
+	uchar_t* tstr(Text::ucsdup("Abc测试", Text::CS_Local));
+	String str(tstr);
 
-	class TestObj
+	std::free(tstr);
+*/
+	TestObj t(FetchGlobalInstance().GetDesktopDownHandle());
+//	const Graphics& g(t.h->GetContext());
+
+	t.str = String(_ustr("Abc测试"));
+	switch(e.X * 4 / btnTestEx.GetWidth())
 	{
-	public:
-		shared_ptr<Desktop> h;
-		Color c;
-		Point l;
-		Size s;
-
-		TestObj(const shared_ptr<Desktop>& h_)
-			: h(h_),
-			c(ColorSpace::White),
-			l(20, 32), s(120, 90)
-		{}
-
-		void
-		Fill()
-		{
-			Graphics g(h->GetScreen().GetBufferPtr(), h->GetSize());
-
-			FillRect(g, l, s, c);
-		}
-
-		void
-		Pause()
-		{
-			WaitForInput();
-		}
-
-		void
-		Blit(const TextRegion& tr)
-		{
-			BlitTo(h->GetScreen().GetBufferPtr(), tr,
-				h->GetScreen().GetSize(), l, Point::Zero, tr.GetSize());
-		}
-
-		void
-		Test1(TextRegion& tr, Color c)
-		{
-			Fill();
-			tr.ClearImage();
-			tr.ResetPen();
-			tr.Color = c;
-		}
-	};
-
-//	static int test_state = 0;
-	{
-	/*
-		uchar_t* tstr(Text::ucsdup("Abc测试", Text::CS_Local));
-		String str(tstr);
-
-		std::free(tstr);
-	*/
-		String str(_ustr("Abc测试"));
-
-		TestObj t(FetchGlobalInstance().GetDesktopDownHandle());
-	//	const Graphics& g(t.h->GetContext());
-
-		TextRegion tr;
-		tr.SetSize(t.s.Width, t.s.Height);
-
-		switch(e.X * 4 / btnTestEx.GetWidth())
-		{
-		case 0:
-			t.Fill();
-			t.Pause();
-
-		//	tr.BeFilledWith(ColorSpace::Black);
-			PutLine(tr, str);
-			t.Blit(tr);
-			t.Pause();
-
-			t.Test1(tr, ColorSpace::Black);
-			PutLine(tr, str);
-			t.Blit(tr);
-			t.Pause();
-
-			t.Test1(tr, ColorSpace::Blue);
-			PutLine(tr, str);
-			t.Pause();
-
-			t.Blit(tr);
-			t.Pause();
-
-		case 1:
-			tr.SetSize(t.s.Width, t.s.Height);
-
-		//	t.Pause();
-		//	tr.BeFilledWith(ColorSpace::Black);
-			t.Test1(tr, ColorSpace::White);
-			PutLine(tr, str);
-			t.Blit(tr);
-			t.Pause();
-
-			t.Test1(tr, ColorSpace::Black);
-			PutLine(tr, str);
-			t.Blit(tr);
-			t.Pause();
-
-			t.Test1(tr, ColorSpace::Red);
-			t.Blit(tr);
-			PutLine(tr, str);
-			t.Pause();
-
-			t.Blit(tr);
-			t.Pause();
-			break;
-
-		case 2:
-			t.c = ColorSpace::Lime;
-
-			t.Fill();
-			t.Pause();
-
-		//	tr.BeFilledWith(ColorSpace::Black);
-			PutLine(tr, str);
-			t.Blit(tr);
-			t.Pause();
-
-			t.Test1(tr, ColorSpace::Black);
-			PutLine(tr, str);
-			t.Blit(tr);
-			t.Pause();
-
-			t.Test1(tr, ColorSpace::Blue);
-			PutLine(tr, str);
-			t.Pause();
-
-			t.Blit(tr);
-			t.Pause();
-
-		case 3:
-			t.c = ColorSpace::Lime;
-
-			tr.SetSize(t.s.Width, t.s.Height);
-
-		//	t.Pause();
-		//	tr.BeFilledWith(ColorSpace::Black);
-			t.Test1(tr, ColorSpace::White);
-			PutLine(tr, str);
-			t.Blit(tr);
-			t.Pause();
-
-			t.Test1(tr, ColorSpace::Black);
-			PutLine(tr, str);
-			t.Blit(tr);
-			t.Pause();
-
-			t.Test1(tr, ColorSpace::Red);
-			t.Blit(tr);
-			PutLine(tr, str);
-			t.Pause();
-
-			t.Blit(tr);
-			t.Pause();
-
-		default:
-			break;
-		}
+	case 0:
+		t.Fill();
+		t.Pause();
+	//	tr.BeFilledWith(ColorSpace::Black);
+		t.Test2();
+		t.Test3(ColorSpace::Black);
+		t.Test3(ColorSpace::Blue);
+	case 1:
+		t.tr.SetSize(t.s.Width, t.s.Height);
+	//	t.Pause();
+	//	tr.BeFilledWith(ColorSpace::Black);
+		t.Test3(ColorSpace::White);
+		t.Test3(ColorSpace::Black);
+		t.Test3(ColorSpace::Red);
+		break;
+	case 2:
+		t.c = ColorSpace::Lime;
+		t.Fill();
+		t.Pause();
+	//	tr.BeFilledWith(ColorSpace::Black);
+		t.Test2();
+		t.Test3(ColorSpace::Black);
+		t.Test3(ColorSpace::Blue);
+	case 3:
+		t.c = ColorSpace::Lime;
+		t.tr.SetSize(t.s.Width, t.s.Height);
+	//	t.Pause();
+	//	t.tr.BeFilledWith(ColorSpace::Black);
+		t.Test3(ColorSpace::White);
+		t.Test3(ColorSpace::Black);
+		t.Test3(ColorSpace::Red);
+	default:
+		break;
 	}
 }
 
@@ -815,25 +781,30 @@ int
 ShlExplorer::OnActivated(const Message& msg)
 {
 	ParentType::OnActivated(msg);
-	GetDesktopUp() += lblTitle;
-	GetDesktopUp() += lblPath;
-	GetDesktopDown() += fbMain;
-	GetDesktopDown() += btnTest;
-	GetDesktopDown() += btnOK;
-	GetDesktopDown() += chkTest;
-	GetDesktopUp().GetBackgroundImagePtr() = FetchImage(1);
-	GetDesktopDown().GetBackgroundImagePtr() = FetchImage(2);
+
+	auto& dsk_up(GetDesktopUp());
+	auto& dsk_dn(GetDesktopDown());
+
+	dsk_up += lblTitle;
+	dsk_up += lblPath;
+	dsk_dn += fbMain;
+	dsk_dn += btnTest;
+	dsk_dn += btnOK;
+	dsk_dn += chkTest;
+	dsk_up.GetBackgroundImagePtr() = FetchImage(1);
+	dsk_dn.GetBackgroundImagePtr() = FetchImage(2);
 	lblTitle.Text = "文件列表：请选择一个文件。";
 	lblPath.Text = "/";
 //	lblTitle.Transparent = true;
 //	lblPath.Transparent = true;
 	btnTest.Text = _ustr("测试(X)");
-	btnOK.Text = _ustr("确定(R)");
-	FetchEvent<KeyUp>(GetDesktopDown()).Add(*this, &ShlExplorer::OnKeyUp_frm);
-	FetchEvent<KeyDown>(GetDesktopDown()).Add(*this,
-		&ShlExplorer::OnKeyDown_frm);
-	FetchEvent<KeyPress>(GetDesktopDown()).Add(*this,
-		&ShlExplorer::OnKeyPress_frm);
+	btnOK.Text = _ustr("确定(A)");
+	dsk_dn.BoundControlPtr = std::bind(
+		std::mem_fn(&ShlExplorer::GetBoundControlPtr), this,
+		std::placeholders::_1);
+	FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave;
+	FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown;
+	FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click;
 	btnOK.SetTransparent(false);
 /*
 	ReplaceHandle<IWindow*>(hWndUp,
@@ -845,15 +816,15 @@ ShlExplorer::OnActivated(const Message& msg)
 	//		hWndDown)->fbMain.RequestFocus(GetZeroElement<EventArgs>());
 	//	hWndDown->RequestFocus(GetZeroElement<EventArgs>());
 	RequestFocusCascade(fbMain);
-	GetDesktopUp() += lblA;
-	GetDesktopUp() += lblB;
-	GetDesktopDown().BackColor = ARGB16(1, 15, 15, 31);
+	dsk_up += lblA;
+	dsk_up += lblB;
+	dsk_dn.BackColor = ARGB16(1, 15, 15, 31);
 	pWndTest = unique_raw(new TFormTest());
 	pWndExtra = unique_raw(new TFormExtra());
 	pWndTest->SetVisible(false);
 	pWndExtra->SetVisible(false);
-	GetDesktopDown() += *pWndTest;
-	GetDesktopDown() += *pWndExtra;
+	dsk_dn += *pWndTest;
+	dsk_dn += *pWndExtra;
 //	pWndTest->DrawContents();
 //	pWndExtra->DrawContents();
 
@@ -872,20 +843,33 @@ ShlExplorer::OnActivated(const Message& msg)
 int
 ShlExplorer::OnDeactivated(const Message& msg)
 {
-	reset(GetDesktopUp().GetBackgroundImagePtr());
-	reset(GetDesktopDown().GetBackgroundImagePtr());
-	FetchEvent<KeyUp>(GetDesktopDown()).Remove(*this,
-		&ShlExplorer::OnKeyUp_frm);
-	FetchEvent<KeyDown>(GetDesktopDown()).Remove(*this,
-		&ShlExplorer::OnKeyDown_frm);
-	FetchEvent<KeyPress>(GetDesktopDown()).Remove(*this,
-		&ShlExplorer::OnKeyPress_frm);
+	auto& dsk_up(GetDesktopUp());
+	auto& dsk_dn(GetDesktopDown());
+
+	reset(dsk_up.GetBackgroundImagePtr());
+	reset(dsk_dn.GetBackgroundImagePtr());
+	dsk_dn.BoundControlPtr = std::bind(
+		std::mem_fn(&Control::GetBoundControlPtr), &dsk_dn,
+		std::placeholders::_1);
+	FetchEvent<KeyUp>(dsk_dn) -= OnKey_Bound_TouchUpAndLeave;
+	FetchEvent<KeyDown>(dsk_dn) -= OnKey_Bound_EnterAndTouchDown;
+	FetchEvent<KeyPress>(dsk_dn) -= OnKey_Bound_Click;
 	reset(pWndTest);
 	reset(pWndExtra);
-	reset(GetDesktopUp().GetBackgroundImagePtr());
-	reset(GetDesktopDown().GetBackgroundImagePtr());
+	reset(dsk_up.GetBackgroundImagePtr());
+	reset(dsk_dn.GetBackgroundImagePtr());
 	ParentType::OnDeactivated(msg);
 	return 0;
+}
+
+IControl*
+ShlExplorer::GetBoundControlPtr(const KeyCode& k)
+{
+	if(k == KeySpace::X)
+		return &btnTest;
+	if(k == KeySpace::A)
+		return &btnOK;
+	return nullptr;
 }
 
 void
@@ -898,63 +882,6 @@ void
 ShlExplorer::ShowString(const char* s)
 {
 	ShowString(String(s));
-}
-
-void
-ShlExplorer::OnKeyUp_frm(KeyEventArgs&& e)
-{
-	TouchEventArgs et(TouchEventArgs::FullScreen);
-
-	switch(e.GetKey())
-	{
-	case KeySpace::X:
-		CallEvent<Leave>(btnTest, et);
-		break;
-	case KeySpace::R:
-		CallEvent<Leave>(btnOK, et);
-		break;
-	default:
-		return;
-	}
-	e.Handled = true;
-}
-
-void
-ShlExplorer::OnKeyDown_frm(KeyEventArgs&& e)
-{
-	TouchEventArgs et(TouchEventArgs::FullScreen);
-
-	switch(e.GetKey())
-	{
-	case KeySpace::X:
-		CallEvent<Enter>(btnTest, et);
-		break;
-	case KeySpace::R:
-		CallEvent<Enter>(btnOK, et);
-		break;
-	default:
-		return;
-	}
-	e.Handled = true;
-}
-
-void
-ShlExplorer::OnKeyPress_frm(KeyEventArgs&& e)
-{
-	TouchEventArgs et(TouchEventArgs::FullScreen);
-
-	switch(e.GetKey())
-	{
-	case KeySpace::X:
-		CallEvent<Click>(btnTest, et);
-		break;
-	case KeySpace::R:
-		CallEvent<Click>(btnOK, et);
-		break;
-	default:
-		return;
-	}
-	e.Handled = true;
 }
 
 void
@@ -1008,15 +935,6 @@ ShlExplorer::OnViewChanged_fbMain(EventArgs&&)
 {
 	lblPath.Text = fbMain.GetPath();
 	lblPath.Refresh();
-}
-
-void
-ShlExplorer::OnKeyPress_fbMain(IControl&, KeyEventArgs&& e)
-{
-	Key x(e);
-
-	if(x & KeySpace::L)
-		switchShl1();
 }
 
 void
@@ -1135,7 +1053,7 @@ ShlReader::OnClick(TouchEventArgs&&)
 void
 ShlReader::OnKeyDown(KeyEventArgs&& e)
 {
-	u32 k(static_cast<KeyEventArgs::Key>(e));
+	u32 k(static_cast<KeyEventArgs::InputType>(e));
 
 	bgDirty = true;
 	switch(k)

@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2367;
+\version 0.2369;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-06-16 22:55 +0800;
+	2011-06-23 23:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,14 +35,14 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-// GUI 断言。
+//图形用户界面断言。
 
 #undef YWidgetAssert
 
 #ifdef YCL_USE_YASSERT
 
 /*!
-\brief 断言：判断所给表达式，如果为假给出指定错误信息。
+\brief 断言函数：判断所给表达式，如果为假给出指定错误信息。
 */
 void
 yassert(bool, const char*, int, const char*, const char*, const char*);

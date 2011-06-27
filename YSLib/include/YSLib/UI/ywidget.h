@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.5958;
+\version 0.5959;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-16 20:13 +0800;
+	2011-06-23 23:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,7 +56,6 @@ PDeclInterface(IUIBox)
 PDeclInterface(IUIContainer)
 class Widget;
 
-// GUI 接口和部件定义。
 
 //! \brief 部件接口。
 DeclInterface(IWidget)

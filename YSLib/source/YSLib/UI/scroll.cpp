@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3684;
+\version 0.3692;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-06-12 00:11 +0800;
+	2011-06-26 02:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,8 +31,6 @@
 using namespace ystdex;
 
 YSL_BEGIN
-
-using namespace Runtime;
 
 YSL_BEGIN_NAMESPACE(Components)
 
@@ -374,8 +372,8 @@ try	: AUIBoxControl(r),
 	FetchEvent<TouchDown>(NextButton) += [this](IControl&, TouchEventArgs&& e){
 		PerformSmallIncrement();
 	};
-	FetchEvent<KeyUp>(*this) += &Control::OnKeyUp_Bound_TouchUpAndLeave;
-	FetchEvent<KeyDown>(*this) += &Control::OnKeyDown_Bound_EnterAndTouchDown;
+	FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUpAndLeave;
+	FetchEvent<KeyDown>(*this) += OnKey_Bound_EnterAndTouchDown;
 
 	Size s(GetSize());
 	const bool bHorizontal(o == Horizontal);
@@ -441,7 +439,7 @@ HorizontalScrollBar::HorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
 }
 
 IControl*
-HorizontalScrollBar::GetBoundControlPtr(const Key& k)
+HorizontalScrollBar::GetBoundControlPtr(const KeyCode& k)
 {
 	if(k == KeySpace::Left)
 		return &PrevButton;
@@ -462,7 +460,7 @@ VerticalScrollBar::VerticalScrollBar(const Rect& r, SDst uMinThumbLength)
 }
 
 IControl*
-VerticalScrollBar::GetBoundControlPtr(const Key& k)
+VerticalScrollBar::GetBoundControlPtr(const KeyCode& k)
 {
 	if(k == KeySpace::Up)
 		return &PrevButton;

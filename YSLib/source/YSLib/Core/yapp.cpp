@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2431;
+\version 0.2433;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-06-19 02:21 +0800;
+	2011-06-24 20:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,7 +71,7 @@ YApplication::YApplication()
 	pMessageQueueBackup(new MessageQueue()),
 	hShell()
 {}
-YApplication::~YApplication() ynothrow
+YApplication::~YApplication()
 {
 	//释放主 Shell 。
 //	YReset(DefaultShellHandle);

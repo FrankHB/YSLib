@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3243;
+\version 0.3249;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-06-19 03:15 +0800;
+	2011-06-25 21:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,7 +38,6 @@ YSL_BEGIN
 
 using Devices::DSScreen;
 using namespace Drawing;
-using namespace Runtime;
 
 //全局常量。
 extern const char* DEF_DIRECTORY; //!< 默认目录。
@@ -207,7 +206,7 @@ YSL_BEGIN_NAMESPACE(Messaging)
 bool
 InputContent::operator==(const InputContent& rhs) const
 {
-	return Key == rhs.Key && CursorLocation == rhs.CursorLocation;
+	return Keys == rhs.Keys && CursorLocation == rhs.CursorLocation;
 }
 
 YSL_END_NAMESPACE(Messaging)
@@ -219,7 +218,7 @@ namespace
 	\note 转换指针设备光标位置为屏幕点。
 	*/
 	inline Point
-	ToSPoint(const Runtime::CursorInfo& c)
+	ToSPoint(const CursorInfo& c)
 	{
 		return Point(c.GetX(), c.GetY());
 	}
@@ -230,23 +229,23 @@ namespace
 	{
 		using namespace Messaging;
 
-		static KeysInfo Key;
+		static KeysInfo keys;
 		static CursorInfo TouchPos_Old, TouchPos;
 		static shared_ptr<InputContent> pContent;
 
-		if(Key.Held & KeySpace::Touch)
+		if(keys.Held & KeySpace::Touch)
 			TouchPos_Old = TouchPos;
 		scanKeys();
-		WriteKeysInfo(Key, TouchPos);
+		WriteKeysInfo(keys, TouchPos);
 
-		const Point pt(ToSPoint(Key.Held & KeySpace::Touch
+		const Point pt(ToSPoint(keys.Held & KeySpace::Touch
 			? TouchPos : TouchPos_Old));
 
 		if(!pContent || ((FetchAppInstance().GetDefaultMessageQueue().IsEmpty()
-			|| Key != pContent->Key || pt != pContent->CursorLocation)
+			|| keys != pContent->Keys || pt != pContent->CursorLocation)
 			&& pt != Point::FullScreen))
 		{
-			pContent = share_raw(new InputContent(Key, pt));
+			pContent = share_raw(new InputContent(keys, pt));
 			SendMessage<SM_INPUT>(FetchShellHandle(), 0x40, pContent);
 		}
 	}

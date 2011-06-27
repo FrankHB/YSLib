@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version 0.4468;
+\version 0.4506;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-06-10 16:34 +0800;
+	2011-06-25 21:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,8 +31,6 @@
 #include "yfunc.hpp"
 
 YSL_BEGIN
-
-YSL_BEGIN_NAMESPACE(Runtime)
 
 //! \brief 公用事件模板命名空间。
 template<class _tSender = YObject, class _tEventArgs = EventArgs>
@@ -152,11 +150,9 @@ public:
 	operator=(const GHEvent&) = default;
 	/*!
 	\brief 移动赋值：默认实现。
-	\note GCC 4.5.2 编译错误，疑似编译器 bug 。
-	\todo 取消注释。
 	*/
-//	inline GHEvent&
-//	operator=(GHEvent&&) = default;
+	inline GHEvent&
+	operator=(GHEvent&&) = default;
 
 	inline bool
 	operator==(const GHEvent& h) const
@@ -251,17 +247,9 @@ public:
 	}
 	/*!
 	\brief 移动赋值：默认实现。
-	\note GCC 4.5.2 编译错误，疑似编译器 bug 。
-	\todo 取消注释，使用隐式的默认定义。
 	*/
-//	inline GEvent&
-//	operator=(GEvent&&) = default;
 	inline GEvent&
-	operator=(GEvent&& e)
-	{
-		this->List = std::move(e->List);
-		return *this;
-	}
+	operator=(GEvent&&) = default;
 	/*!
 	\brief 赋值：覆盖事件响应：使用事件处理器。
 	*/
@@ -456,7 +444,7 @@ public:
 
 //! \brief 定义事件处理器委托类型。
 #define DefDelegate(_name, _tSender, _tEventArgs) \
-	typedef Runtime::GHEvent<_tSender, _tEventArgs> _name;
+	typedef GHEvent<_tSender, _tEventArgs> _name;
 
 
 /*!
@@ -548,17 +536,17 @@ typedef GEvent<> Event;
 template<class _tEventHandler>
 struct GSEvent
 {
-	typedef Runtime::GEvent<typename _tEventHandler::SenderType,
+	typedef GEvent<typename _tEventHandler::SenderType,
 		typename _tEventHandler::EventArgsType> EventType;
-	typedef Runtime::GDependencyEvent<EventType> DependencyType;
+	typedef GDependencyEvent<EventType> DependencyType;
 };
 
 
 //! \brief 事件类型宏。
 #define EventT(_tEventHandler) \
-	Runtime::GSEvent<_tEventHandler>::EventType
+	GSEvent<_tEventHandler>::EventType
 #define DepEventT(_tEventHandler) \
-	Runtime::GSEvent<_tEventHandler>::DependencyType
+	GSEvent<_tEventHandler>::DependencyType
 
 //! \brief 声明事件。
 #define DeclEvent(_tEventHandler, _name) \
@@ -617,7 +605,7 @@ EndDecl
 //! \brief 事件处理器包装类模板。
 template<class _tEvent = Event>
 class GEventWrapper : public _tEvent,
-	implements GIHEvent<YObject, EventArgs>
+	implements GIHEvent<typename _tEvent::SenderType, EventArgs>
 {
 public:
 	typedef _tEvent EventType;
@@ -628,26 +616,23 @@ public:
 	\brief 委托调用。
 	\warning 需要确保 EventArgs&& 引用的对象能够转换至 EventArgsType&& 引用。
 	*/
-	size_t
-	operator()(YObject& sender, EventArgs&& e) const
+	inline size_t
+	operator()(SenderType& sender, EventArgs&& e) const
 	{
-		SenderType* p(dynamic_cast<SenderType*>(&sender));
-
-
-		return p ? EventType::operator()(*p,
-			static_cast<EventArgsType&&>(std::move(e))) : 0;
+		return EventType::operator()(sender,
+			static_cast<EventArgsType&&>(std::move(e)));
 	}
 };
 
 
 //! \brief 事件映射表模板。
-template<typename _tEventSpace>
+template<typename _tSender, typename _tEventSpace>
 class GEventMap
 {
 public:
 	typedef _tEventSpace ID;
-	typedef GIHEvent<YObject, EventArgs> ItemType;
-	typedef shared_ptr<ItemType> PointerType;
+	typedef GIHEvent<_tSender, EventArgs> ItemType;
+	typedef unique_ptr<ItemType> PointerType;
 	typedef pair<ID, PointerType> PairType;
 	typedef map<ID, PointerType> MapType;
 
@@ -671,20 +656,9 @@ public:
 	\throw 参数越界。
 	\note 仅抛出以上异常。
 	*/
-	inline PointerType&
-	at(const ID& k) const ythrow(std::out_of_range)
-	{
-		return m_map.at(k);
-	}
+	inline PDefH1(PointerType&, at, const ID& k) const ythrow(std::out_of_range)
+		ImplRet(this->m_map.at(k))
 
-private:
-	InternalPairType
-	GetSerachResult(const ID& id) const
-	{
-		return search_map(m_map, id);
-	}
-
-public:
 	/*!
 	\brief 取指定 id 对应的 _tEventHandler 类型事件。
 	*/
@@ -692,13 +666,13 @@ public:
 	typename EventT(_tEventHandler)&
 	GetEvent(const ID& id) const
 	{
-		InternalPairType pr(GetSerachResult(id));
-
-		typedef typename Runtime::GSEvent<_tEventHandler>::EventType
+		typedef typename GSEvent<_tEventHandler>::EventType
 			EventType;
 
+		auto pr(Search(id));
+
 		if(pr.second)
-			pr.first = m_map.insert(pr.first, PairType(id,
+			pr.first = this->m_map.insert(pr.first, PairType(id,
 				PointerType(new GEventWrapper<EventType>())));
 		return dynamic_cast<EventType&>(*pr.first->second);
 	}
@@ -708,13 +682,22 @@ public:
 	DoEvent(const ID& id, typename _tEventHandler::SenderType& sender,
 		typename _tEventHandler::EventArgsType&& e) const
 	{
-		InternalPairType pr(GetSerachResult(id));
-
-		typedef typename Runtime::GSEvent<_tEventHandler>::EventType
+		typedef typename GSEvent<_tEventHandler>::EventType
 			EventType;
+
+		auto pr(Search(id));
 
 		return pr.second ? 0
 			: dynamic_cast<EventType&>(*pr.first->second)(sender, std::move(e));
+	}
+
+	/*!
+	\brief 清除映射表。
+	*/
+	inline void
+	Clear()
+	{
+		m_map.clear();
 	}
 
 	/*!
@@ -727,17 +710,10 @@ public:
 		return m_map.insert(PairType(id, p)).second;
 	}
 
-	/*!
-	\brief 清除映射表。
-	*/
-	inline void
-	Clear()
-	{
-		m_map.clear();
-	}
+private:
+	inline PDefH1(InternalPairType, Search, const ID& k) const
+		ImplRet(ystdex::search_map(this->m_map, k))
 };
-
-YSL_END_NAMESPACE(Runtime)
 
 //! \brief 标准事件处理器委托。
 DefDelegate(HEvent, YObject, EventArgs)

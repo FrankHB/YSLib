@@ -11,12 +11,12 @@
 /*!	\file yviewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version 0.1090;
+\version 0.1148;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 23:00:28 +0800;
 \par 修改时间:
-	2011-06-16 19:51 +0800;
+	2011-06-27 22:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,17 +35,17 @@ YSL_BEGIN_NAMESPACE(Components)
 
 //! \brief 序列视图类模板。
 template<class _tContainer, typename _tSize = typename _tContainer::size_type,
-		typename _tIndex = ssize_t>
+		typename _tDifference = typename _tContainer::difference_type>
 class GSequenceViewer
 {
 public:
 	typedef _tSize SizeType; //!< 项目下标类型。
-	typedef _tIndex IndexType; //!< 项目索引类型。
+	typedef _tDifference DifferenceType; //!< 项目索引差值类型。
 
 private:
 	_tContainer& c; //!< 序列容器引用。
-	IndexType head, //!< 视图中首个项目下标，若不存在则为 -1 。
-		selected; //!< 选中项目下标，大于等于 GetTotal() 时无效。
+	SizeType head; //!< 视图中首个项目下标，大于等于 GetTotal() 时无效。
+	SizeType selected; //!< 选中项目下标，大于等于 GetTotal() 时无效。
 	SizeType length; //!< 视图长度：最大可视项目数。
 	bool is_selected; //!< 选中状态。
 
@@ -55,7 +55,7 @@ public:
 	*/
 	explicit
 	GSequenceViewer(_tContainer& c_)
-		: c(c_), head(0), selected(0), length(0), is_selected(false)
+		: c(c_), head(0), selected(0), length(1), is_selected(false)
 	{}
 
 	inline PDefHOperator0(GSequenceViewer&, ++) //!< 选中项目下标自增。
@@ -78,19 +78,19 @@ public:
 	\brief 判断是否在有效范围内包含指定项目索引。
 	*/
 	bool
-	Contains(IndexType i) const
+	Contains(SizeType i) const
 	{
-		return i < head ? false
-			: IsInInterval<IndexType>(i - GetHeadIndex(), GetLength());
+		return GetTotal() != 0 && GetLength() != 0
+			&& IsInInterval<SizeType>(i - GetHeadIndex(), GetLength());
 	}
 
 	DefGetter(SizeType, Total, c.size()) //!< 取容器中项目个数。
 	DefGetter(SizeType, Length, length)
-	DefGetter(IndexType, HeadIndex, head)
-	DefGetter(IndexType, SelectedIndex, selected)
-	DefGetter(IndexType, RelativeIndex, IsSelected()
+	DefGetter(SizeType, HeadIndex, head)
+	DefGetter(SizeType, SelectedIndex, selected)
+	DefGetter(DifferenceType, Offset, IsSelected()
 		? GetSelectedIndex() - GetHeadIndex() : -1) \
-		//!< 取选中的项目相对于视图中首个项目的下标偏移。
+		//!< 取选中的项目相对于视图中首个项目的下标偏移（未选中时为 -1 ）。
 	DefGetter(SizeType, Valid, ystdex::vmin(GetTotal() - GetHeadIndex(),
 		GetLength())) //!< 取当前视图中有效项目个数。
 
@@ -98,12 +98,11 @@ public:
 	\brief 设置项目索引。
 	*/
 	bool
-	SetHeadIndex(IndexType t)
+	SetHeadIndex(SizeType t)
 	{
-		if(GetTotal() && IsInInterval<IndexType>(t, GetTotal())
-			&& t != head)
+		if(t < GetTotal() && t != head)
 		{
-			if(!t)
+			if(t == 0)
 				MoveViewerToBegin();
 			else if(length + t > GetTotal())
 				MoveViewerToEnd();
@@ -130,10 +129,9 @@ public:
 	\brief 设置选中项目下标。
 	*/
 	bool
-	SetSelectedIndex(IndexType t)
+	SetSelectedIndex(SizeType t)
 	{
-		if(GetTotal() && IsInInterval<IndexType>(t, GetTotal())
-			&& !(t == selected && is_selected))
+		if(t < GetTotal() && !(t == selected && is_selected))
 		{
 			selected = t;
 			RestrictView();
@@ -146,42 +144,43 @@ public:
 	/*!
 	\brief 取消选中状态。
 	*/
-	bool
+	inline void
 	ClearSelected()
 	{
-		if(IsSelected())
-		{
-			is_selected = false;
-			return true;
-		}
-		return false;
+		is_selected = false;
 	}
 
-	inline PDefH1(GSequenceViewer&, DecreaseHead, IndexType d) \
+	inline PDefH1(GSequenceViewer&, DecreaseHead, DifferenceType d) \
 		//!< 视图中首个项目下标减少 d 。
 		ImplRet(IncreaseHead(-d))
 
-	inline PDefH1(GSequenceViewer&, DecreaseSelected, IndexType d) \
+	inline PDefH1(GSequenceViewer&, DecreaseSelected, DifferenceType d) \
 		//!< 选中项目下标减少 d 。
 		ImplRet(IncreaseSelected(-d))
 
 	/*!
 	\brief 视图中首个项目下标增加 d 。
 	*/
-	inline GSequenceViewer&
-	IncreaseHead(IndexType d)
+	GSequenceViewer&
+	IncreaseHead(DifferenceType d)
 	{
-		SetHeadIndex(head + d);
+		int t(head + d);
+
+		RestrictInInterval(t, 0, static_cast<int>(GetTotal()));
+		SetHeadIndex(t);
 		return *this;
 	}
 
 	/*!
 	\brief 选中项目下标增加 d 。
 	*/
-	inline GSequenceViewer&
-	IncreaseSelected(IndexType d)
+	GSequenceViewer&
+	IncreaseSelected(DifferenceType d)
 	{
-		SetSelectedIndex(selected + d);
+		int t(selected + d);
+
+		RestrictInInterval(t, 0, static_cast<int>(GetTotal()));
+		SetSelectedIndex(t);
 		return *this;
 	}
 
@@ -219,11 +218,11 @@ public:
 	bool
 	RestrictSelected()
 	{
-		if(head < 0)
+		if(GetTotal() == 0)
 			return false;
 		if(selected < head)
 			selected = head;
-		else if(selected >= head + static_cast<IndexType>(length))
+		else if(selected >= head + length)
 			selected = head + length - 1;
 		else
 			return false;
@@ -236,11 +235,11 @@ public:
 	bool
 	RestrictView()
 	{
-		if(head < 0)
+		if(GetTotal() == 0)
 			return false;
 		if(selected < head)
 			head = selected;
-		else if(selected >= head + static_cast<IndexType>(length))
+		else if(selected >= head + length)
 			head = selected + 1 - length;
 		else
 			return false;

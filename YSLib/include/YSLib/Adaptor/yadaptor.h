@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version 0.2200;
+\version 0.2210;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2011-06-16 18:13 +0800;
+	2011-06-25 21:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -93,6 +93,11 @@ YSL_BEGIN
 
 	using platform::InitVideo;
 
+	namespace KeySpace = platform::KeySpace;
+	using platform::KeyCode;
+	using platform::KeysInfo;
+	using platform::CursorInfo;
+
 //! \brief 设计模式。
 YSL_BEGIN_NAMESPACE(Pattern)
 YSL_END_NAMESPACE(Pattern)
@@ -108,16 +113,6 @@ YSL_BEGIN_NAMESPACE(Drawing)
 	namespace ColorSpace = platform::ColorSpace;
 
 YSL_END_NAMESPACE(Drawing)
-
-//! \brief 运行时对象。
-YSL_BEGIN_NAMESPACE(Runtime)
-
-	namespace KeySpace = platform::KeySpace;
-	using platform::Key;
-	using platform::KeysInfo;
-	using platform::CursorInfo;
-
-YSL_END_NAMESPACE(Runtime)
 
 YSL_BEGIN_NAMESPACE(Text)
 
@@ -137,7 +132,6 @@ YSL_END_NAMESPACE(Text)
 	}
 
 YSL_END
-
 
 #endif
 

@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.4193;
+\version 0.4278;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-06-22 13:33 +0800;
+	2011-06-26 02:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,54 +36,118 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Controls)
 
 void
-OnKeyHeld(IControl& c, KeyEventArgs&& e)
+OnKeyHeld(IControl& ctl, KeyEventArgs&& e)
 {
-	YGUIShell& shl(FetchGUIShell());
+	auto& shl(FetchGUIShell());
 
 	if(shl.RepeatHeld(shl.KeyHeldState, 240, 120))
-		FetchEvent<KeyDown>(c)(c, std::move(e));
+		FetchEvent<KeyDown>(ctl)(ctl, std::move(e));
 }
 
 void
-OnTouchHeld(IControl& c, TouchEventArgs&& e)
+OnTouchHeld(IControl& ctl, TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		YGUIShell& shl(FetchGUIShell());
+		auto& shl(FetchGUIShell());
 
 		if(shl.DraggingOffset == Vec::FullScreen)
-			shl.DraggingOffset = c.GetLocation() - shl.ControlLocation;
+			shl.DraggingOffset = ctl.GetLocation() - shl.ControlLocation;
 		else
-			FetchEvent<TouchMove>(c)(c, std::move(e));
+			FetchEvent<TouchMove>(ctl)(ctl, std::move(e));
 		shl.LastControlLocation = shl.ControlLocation;
 	}
 }
 
 void
-OnTouchMove(IControl& c, TouchEventArgs&& e)
+OnTouchMove(IControl& ctl, TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		YGUIShell& shl(FetchGUIShell());
+		auto& shl(FetchGUIShell());
 
 		if(shl.RepeatHeld(shl.TouchHeldState, 240, 60))
-			CallEvent<TouchDown>(c, e);
+			CallEvent<TouchDown>(ctl, e);
 	}
 }
 
 void
-OnTouchMove_Dragging(IControl& c, TouchEventArgs&& e)
+OnTouchMove_Dragging(IControl& ctl, TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		YGUIShell& shl(FetchGUIShell());
+		auto& shl(FetchGUIShell());
 
 	// TODO: analysis buffered coordinate delayed painting bug;
 	//	if(hShl->LastControlLocation != hShl->ControlLocation)
 	//	{
-			c.SetLocation(shl.LastControlLocation + shl.DraggingOffset);
-			c.Refresh();
+			ctl.SetLocation(shl.LastControlLocation + shl.DraggingOffset);
+			ctl.Refresh();
 	//	}
+	}
+}
+
+namespace
+{
+	IControl*
+	FetchEnabledBoundControlPtr(IControl& ctl, KeyEventArgs&& e)
+	{
+		try
+		{
+			auto pCtl(dynamic_cast<Control&>(ctl)
+				.BoundControlPtr(e.GetKeyCode()));
+
+			return pCtl && pCtl->IsEnabled() ? pCtl : nullptr;
+		}
+		catch(std::bad_function_call&)
+		{}
+		catch(std::bad_cast&)
+		{}
+		return nullptr;
+	}
+}
+
+void
+OnKey_Bound_TouchUpAndLeave(IControl& ctl, KeyEventArgs&& e)
+{
+	auto pCtl(FetchEnabledBoundControlPtr(ctl, std::move(e)));
+
+	if(pCtl)
+	{
+		TouchEventArgs et(TouchEventArgs::FullScreen);
+
+		CallEvent<TouchUp>(*pCtl, et);
+		CallEvent<Leave>(*pCtl, et);
+		e.Handled = true;
+	}
+}
+
+void
+OnKey_Bound_EnterAndTouchDown(IControl& ctl, KeyEventArgs&& e)
+{
+	auto pCtl(FetchEnabledBoundControlPtr(ctl, std::move(e)));
+
+	if(pCtl)
+	{
+		TouchEventArgs et(TouchEventArgs::FullScreen);
+
+		CallEvent<Enter>(*pCtl, et);
+		CallEvent<TouchDown>(*pCtl, et);
+		e.Handled = true;
+	}
+}
+
+void
+OnKey_Bound_Click(IControl& ctl, KeyEventArgs&& e)
+{
+	auto pCtl(FetchEnabledBoundControlPtr(ctl, std::move(e)));
+
+	if(pCtl)
+	{
+		TouchEventArgs et(TouchEventArgs::FullScreen);
+
+		CallEvent<Click>(*pCtl, et);
+		e.Handled = true;
 	}
 }
 
@@ -103,6 +167,8 @@ Control::Control(const Rect& r)
 			RequestFocusFrom(*this);
 	};
 	FetchEvent<TouchHeld>(EventMap) += OnTouchHeld;
+	BoundControlPtr = std::bind(std::mem_fn(&Control::GetBoundControlPtr), this,
+		std::placeholders::_1);
 }
 Control::~Control()
 {
@@ -112,7 +178,7 @@ Control::~Control()
 bool
 Control::IsFocused() const
 {
-	IUIBox* p(GetContainerPtr());
+	auto p(GetContainerPtr());
 
 	return p ? p->GetFocusingPtr() == this : false;
 }
@@ -135,7 +201,7 @@ Control::SetSize(const Size& s)
 void
 Control::RequestFocusFrom(IControl& c)
 {
-	IUIBox* p(GetContainerPtr());
+	auto p(GetContainerPtr());
 
 	if(p && p->ResponseFocusRequest(*this))
 		EventMap.GetEvent<HVisualEvent>(GotFocus)(c, EventArgs());
@@ -144,40 +210,10 @@ Control::RequestFocusFrom(IControl& c)
 void
 Control::ReleaseFocusFrom(IControl& c)
 {
-	IUIBox* p(GetContainerPtr());
+	auto p(GetContainerPtr());
 
 	if(p && p->ResponseFocusRelease(*this))
 		EventMap.GetEvent<HVisualEvent>(LostFocus)(c, EventArgs());
-}
-
-void
-Control::OnKeyUp_Bound_TouchUpAndLeave(KeyEventArgs&& e)
-{
-	IControl* pCtl(GetBoundControlPtr(e.GetKey()));
-
-	if(pCtl)
-	{
-		TouchEventArgs et(TouchEventArgs::FullScreen);
-
-		CallEvent<TouchUp>(*pCtl, et);
-		CallEvent<Leave>(*pCtl, et);
-		e.Handled = true;
-	}
-}
-
-void
-Control::OnKeyDown_Bound_EnterAndTouchDown(KeyEventArgs&& e)
-{
-	IControl* pCtl(GetBoundControlPtr(e.GetKey()));
-
-	if(pCtl)
-	{
-		TouchEventArgs et(TouchEventArgs::FullScreen);
-
-		CallEvent<Enter>(*pCtl, et);
-		CallEvent<TouchDown>(*pCtl, et);
-		e.Handled = true;
-	}
 }
 
 YSL_END_NAMESPACE(Controls)

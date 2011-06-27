@@ -1,4 +1,4 @@
-// v0.3217; *Build 220 r42;
+// v0.3217; *Build 221 r50;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -258,116 +258,299 @@ $using:
 
 $DONE:
 r1:
-/ \impl @ \mf TextList::Paint();
+/= \rem @ \h (YWidget & YUIContainer & YGUI);
+/ \impl @ \mf ShlExplorer::TFormExtra::OnClick_btnTestEx @ \impl \u Shells;
+/ @ \cl String @ \h YString:
+	+ \exp \de copy \ctor;
+	+ \exp \de move \ctor;
+	+ \exp \i @ \exp \de \ctor;
+	+ \exp \de !\vt \dtor;
+/ @ \cl Path @ \h YFileSystem:
+	+ \exp \de copy \ctor;
+	+ \exp \de move \ctor;
+	+ \exp \i @ \exp \de (\ctor & !\vt \dtor);
 
-r2-r7:
-/= test 1;
+r2:
+/ @ \impl \u Shells:
+	/ \cl TestObj @ \mf ShlExplorer::TFormExtra::OnClick_btnTestEx >> \un \ns;
+	/ \a !\s \mf @ \cl TestObj -> !\i \f;
 
-r8:
-/ \impl @ \mf TextList::Paint();
+r3:
+/ @ \cl ShlExplorer @ \u Shells:
+	- \smf OnKeyPress_fbMain;
+	/ \tr \impl @ \ctor ^ lambda \expr;
+
+r4:
+/ keypad operation test:
+	/ @ \cl ShlExplorer @ \impl \u Shells:
+		/ \impl @ \mf OnActivated & OnKeyDown_frm & OnKeyUp_frm;
+
+r5:
+/ @ \h YEvent:
+	/ @ \clt GEventWrapper:
+		/ \inh \in GIHEvent<YObject, EventArgs>
+			-> \in GIHEvent<typename _tEvent::SenderType, EventArgs>;
+		/ !(\exp \i) \mf size_t operator()(SenderType&, EventArgs&&) const
+			-> \exp \i \mf size_t operator()(SenderType&, EventArgs&&) const;
+	/ @ \clt GEventMap:
+	/ \clt<typename _tEventSpace> GEventMap
+		-> \clt<typename _tSender, typename _tEventSpace> GEventMap;
+	/ @ \clt GEventMap:
+		/ typedef GIHEvent<YObject, EventArgs> ItemType
+			-> typedef GIHEvent<_tSender, EventArgs> ItemType;
+		* \impl @ GetSerachResult ^ \exp \n ystdex;
+/ \tr @ \h YControl:
+	/ typedef Runtime::GEventMap<VisualEvent> VisualEventMapType
+		-> typedef Runtime::GEventMap<IControl, VisualEvent> VisualEventMapType;
+
+r6:
+/= test 1 ^ \conf release;
+
+r7-r8:
+^ devkitARM release 33;
+/ \tr \mac for GCC 4.6 @ \YStandardExtend;
+/ @ \ns platform @ \u YCommon:
+	/ \tr \a diropen => opendir;
+	/ \tr \a dirclose => closedir;
+	/ \tr \impl @ \f direxists;
+	/ \tr \impl @ \f mkdirs;
+	/ \tr @ \cl HDirectory:
+		/ typedef ::DIR_ITER* IteratorType -> typedef ::DIR* IteratorType;
+		/ \impl @ \mf Reset;
+		/ \impl @ \mf operator++();
+	- \tr \es @ \cl YApplication;
+/ \tr header search directory setting @ \a projects;
+* @ \clt GMCounter:
+	+ \i \exp \de move \ctor;
+/ !\rem GCC diagnostic pragma @ \h YCLib::YStandardExtend::TypeOperation;
+/ @ \h YEvent:
+	/ !\rem @ \i \exp \de \mf GHEvent& operator=(GHEvent&&) @ \clt GHEvent;
+	/ @ \clt GEvent:
+		- \mf \i GEvent& operator=(GEvent&&);
+		/ !\rem @ \i \exp \de \mf GEvent& operator=(GEvent&&);
+	^ unique_ptr ~ shared_ptr @ \clt GEventMap @ \h YEvent avoiding patching
+		libstdc++ for known associative container operation bugs:
+		/ typedef shared_ptr<ItemType> PointerType
+			-> typedef unique_ptr<ItemType> PointerType;
 
 r9:
-/ @ \u Menu:
-	+ void HideUnrelated() @ \cl MenuHost;
-	/ \tr \impl @ \ctor @ \cl Menu;
+/ @ \cl HDirectory @ \impl \u YCommon:
+	* \impl @ \mf operator++ $since r7;
+	* \impl @ \mf Close;
 
 r10:
-/ @ \u Menu:
-	/ \impl @ \mf MenuHost::HideUnrelated;
-	* @ \cl Menu:
-		/ \ac @ \m id -> private ~ public;
-	^ auto ~ Menu* @ \decl @ \impl @ \a \mf;
-	^ auto& ~ Menu& @ \decl @ \impl @ \a \mf;
+/= test 2 ^ \conf release;
 
-r11:
-* \impl @ \ctor @ \cl Menu;
-
-r12-r19:
-/= test 2;
-
-r20:
-/ \impl @ \mf MenuHost::ShowRaw @ \impl \u Menu;
-
-r21:
-/= \impl @ \mft<template<class> class _tResponser, class _type> bool
-	AFocusRequester::RequestFocus(_tResponser<_type>&) @ \h YFocus;
-
-r22:
-/ @ (\cl Control & \in IControl):
-	/ \mf void RequestFocus() -> void RequestFocus(IControl&)
-	/ \mf void ReleaseFocus() -> void ReleaseFocusFrom(IControl&);
-/ \tr \impl @ \mf SetFocusingPtr @ \clt GMFocusResponser @ \h YFocus;
-/ \tr \impl @ \mf MenuHost::HideRaw;
-/ \tr \impl @ (\ctor & \dtor) @ \cl Control;
-/ \impl @ \f (RequestFocusCascade & ReleaseFocusCascade)
-	& \mf YGUIShell::ResponseTouch @ \impl \u YGUI;
-
-r23:
-/ \impl @ \mf MenuHost::ShowRaw;
-
-r24:
-/ \mf void HideUnrelated(Menu&) -> void HideUnrelated(Menu&, Menu&)
-	@ \cl MenuHost;
-/ \impl @ \ctor @ \cl Menu;
-
-r25:
-/ @ \cl MenuHost:
-	/ \impl @ \mf HideUnrelated;
-	- \m SubMenuPointer;
-	/ \tr \impl @ \ctor;
-/ \tr \simp \impl @ \ctor @ \cl Menu;
-
-r26:
-/ \impl @ \ctor @ \cl Menu;
-
-r27-r31:
+r11-r12:
 /= test 3;
 
-r32-r33:
-/ \impl @ \ctor @ \cl Menu;
+r13:
+/ \simp @ \mf @ \clt GEventMap @ \h YEvent
+	/ \simp \impl ^ %auto & \mac PDefH1;
+	/ !(\exp \i) private \mf GetSearchResult => \exp \i private \mf Search;
 
-r34:
+r14:
+/ @ \cl Control:
+	+ public \m std::function<IControl*(const Runtime::Key&)> BoundControlPtr;
+	/ \tr \impl @ \mf (OnKeyUp_Bound_TouchUpAndLeave
+		& OnKeyDown_Bound_EnterAndTouchDown)
+		^ BoundControlPtr ~ GetBoundControlPtr;
+	/ \tr \impl @ \ctor;
+
+r15:
+/ \simp @ \cl ShlExplorer @ \u Shells:
+	+ private \mf IControl* GetBoundControlPtr(const Runtime::Key&);
+	- private \mf (OnKeyUp_frm & OnKeyDown_frm & OnKeyPress_frm);
+	/ \impl @ \mf (OnActivated & OnDeactivated);
+
+r16:
+/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \u Shells;
+
+r17:
+/ @ \impl \u YControl:
+	^ \ref \decl ^ auto& @ \a !\m \f;
+	^ \obj \exc \tp TouchEventArgs \decl ^ auto @ \a \mf;
+
+r18:
++ \f IControl* FetchBoundControlPtr(Control&, KeyEventArgs&&) @ \un ns
+	@ \impl \u YControl;
+/ @ \cl Control:
+	+ \mf void OnKeyPress_Bound_Click(KeyEventArgs&&);
+	/ \simp \impl @ \mf (OnKeyUp_Bound_TouchUpAndLeave
+		& OnKeyDown_Bound_EnterAndTouchDown & OnKeyPress_Bound_Click)
+		^ FetchBoundControlPtr ~ BoundControlPtr;
+/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \u Shells;
+
+r18:
+* @ \impl \u Control:
+	/ \f FetchBoundControlPtr @ \un \ns -> FetchEnabledBoundControlPtr;
+	/ \tr \impl @ \mf (OnKeyUp_Bound_TouchUpAndLeave
+		& OnKeyDown_Bound_EnterAndTouchDown & OnKeyPress_Bound_Click)
+		@ \cl Control;
+
+r19:
 /= test 4 ^ \conf release;
 
-r35:
-/ \impl @ \ctor @ \cl Menu;
+r20:
+/ \a Key => KeyCode @ \ns (Runtime & platform);
 
-r36-r39:
+r21:
+/ @ \u YControl:
+	/ @ \cl InputEventArgs:
+		/ typedef Runtime::KeyCode Key;
+		/ \m Key key -> Runtime::KeyCode Key;
+		/ \tr @ \mf;
+		/ \mf GetKey => GetKeyCode;
+		/ \ctor InputEventArgs(const Runtime::KeyCode& = 0,
+			RoutingStrategy = Direct);
+			-> InputEventArgs(Runtime::KeyCode = 0, RoutingStrategy = Direct);
+	/ @ \cl KeyEventArgs:
+		/ typedef Key InputType -> typedef Runtime::KeyCode InputType;
+/ @ \u YGlobal:
+	/= \impl @ \f @ \un \ns @ \impl \u;
+	/ @ \cl InputContent @ \ns Messaging:
+		/ \m Runtime::KeysInfo Key => Keys;
+/ \tr \impl @ \f ((ResponseInput @ \impl \u Shell_DS)
+	& (FetchEnabledBoundControlPtr @ \un \ns @ \impl \u YControl) & ();
+/ \tr \impl @ \ctor @ \cl TextList;
+/ \tr \impl @ \impl \u Shells;
+
+r22:
+/ \a @ \ns YSLib::Runtime >> \ns YSLib;
+- \ns Runtime;
+
+r23:
+* \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \impl \u Shells
+	$since r18;
+
+r24:
+/ @ \u Control:
+	/ \mf void Control::OnKeyUp_Bound_TouchUpAndLeave(KeyEventArgs&&)
+		-> !\m \f OnKey_Bound_TouchUpAndLeave(IControl&, KeyEventArgs&&);
+	/ \mf void Control::OnKeyDown_Bound_EnterAndTouchDown(KeyEventArgs&&)
+		-> !\m \f OnKey_Bound_EnterAndTouchDown(IControl&, KeyEventArgs&&);
+	/ \mf void Control::OnKeyPress_Bound_Click(KeyEventArgs&&)
+		-> !\m \f OnKey_Bound_Click(IControl&, KeyEventArgs&&);
+	/= \impl @ 4 \f 'On*';
+	/ \f IControl* FetchEnabledBoundControlPtr(Control&, KeyEventArgs&&)
+		-> IControl* FetchEnabledBoundControlPtr(IControl&, KeyEventArgs&&)
+		^ \eh (std::bad_function_call & std::bad_cast) @ \un \ns @ \impl \u;
+/ \tr \impl @ \ctor @ \cl AScrollBar;
+/ \tr \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer
+	@ \impl \u Shells;
+
+r25-r27:
 /= test 5;
 
-r40:
-+ \f Rect operator+(const Rect&, const Padding&) @ \u YGDI;
-/ \impl @ \mf TextState::ResetForBounds @ \impl \u YText;
-
-r41:
-* \impl @ \mf TextState::ResetForBounds @ \impl \u YText;
-
-r42:
+r28:
 /= test 6 ^ \conf release;
+
+r29-r31:
+/= test 7;
+
+r32:
+* \impl @ \mf ResponseTouch @ \cl YGUIShell $since b213;
+
+r33:
+/= test 8;
+
+r34:
+/ \impl @ \mf ResponseKey & ResponseTouch @ \cl YGUIShell:
+	* \impl @ \mf ResponseKey $since b199;
+
+r35:
+/= test 9 ^ \conf release;
+
+r36:
+/ \impl @ \ctor @ \cl Menu;
+
+r37:
+/ @ \u Menu:
+	+ \f void LocateMenu(Menu&, const Menu&, Menu::IndexType);
+	/ @ \cl Menu:
+		/ \tp @ \mf \op[] -> IndexType ~ size_t;
+		/ \simp \impl @ \ctor ^ \f LocateMenu;
+
+r38:
+/ \mf bool ClearSelected() @ \clt GSequenceViewer @ \h YViewer
+	-> \exp \i \mf void ClearSelected();
+/ \tr \simp \impl \mf ClearSelected @ \cl TextList ^ \mac ImplBodyMember0
+	~ \mac ImplRet;
+
+r39:
+/ @ \clt GSequenceViewer @ \h YViewer:
+	/ typedef _tDifference IndexType -> typedef _tSize IndexType;
+	/ \tp \param typename _tIndex = ssize_t
+		-> typename _tDifference = typename _tContainer::difference_type;
+	+ typedef _tDifference DifferenceType;
+	/ \tr \impl @ \mf (Contains & RestrictSelected & RestrictView);
+	- \tr \mf IndexType GetRelativeIndex() -> DifferenceType GetOffset();
+/ \tr @ \cl TextList;
+	/ \tr \impl @ \ctor ^ auto;
+	/ \tr \impl @ \mf PaintItems ^ auto;
+	/ \tr \impl @ \mf ViewerType::IndexType CheckPoint(SPos, SPos);
+/ \tr \simp \impl @ \ctor @ \cl Menu;
+
+r40:
+* \impl @ \mf TextList::PaintItems;
+/ \simp @ \clt GSequenceViewer @ \h YViewer:
+	- typedef _tSize IndexType;
+	/ \a IndexType -> SizeType;
+/ \tr @ \h ListBox & \u TextList;
+
+r41-r43:
+/ @ \clt GSequenceViewer @ \h YViewer:
+	/ \tp @ \param @ 2 \mf 'Increase*' & 2 \mf 'Decrease*' -> DefferenceType
+	`	~ SizeType;
+	/ \mf (IncreaseHead & IncreaseSelected) -> !\exp \i \mf;
+
+r44:
+/= test 10 ^ \conf release;
+
+r45:
+/ @ \cl Menu:
+	+ \mf bool ShowSub(IndexType, Widgets::ZOrderType = DefaultMenuZOrder);
+	/ \simp \impl @ \ctor ^ ShowSub;
+
+r46:
+/ \impl @ \mf Menu::ShowSub;
+
+r47:
+/ \de viewer length -> 1 ~ 0 @ \impl @ \ctor @ \clt GSequenceViewer;
+
+r48:
+* \impl @ \mf Contains @ \clt GSequenceViewer $since b171;
+
+r49:
+/ @ \cl Menu:
+	/ \mf bool ShowSub(IndexType, Widgets::ZOrderType = DefaultMenuZOrder)
+		-> Menu* ShowSub(IndexType, Widgets::ZOrderType = DefaultMenuZOrder);
+	/ \impl @ \ctor;
+
+r50:
+/= test 11 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-06-23:
--19.7d;
-//Mercurial rev1-rev90: r4480;
+2011-06-27:
+-18.6d;
+//Mercurial rev1-rev91: r4522;
 
 / ...
 
 
 $NEXT_TODO:
-b221-b324:
-^ unique_ptr ~ GHandle @ \clt GEventMap @ \h YEvent avoiding patching
-	libstdc++ for known associative container operation bugs:
-	- \rem @ \impl @ \mft GetEvent @ \clt EventMap @ \h YEvent;
+b222-b288:
 * non-ASCII character path error in FAT16;
 + key accelerators;
-+ \impl styles @ widgets;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
 
-b325-b768:
+b289-b768:
++ \impl styles @ widgets;
+/ fully \cl Path;
 + data configuragion;
 / impl 'real' RTC;
 / text alignment;
@@ -464,6 +647,62 @@ $ellipse_refactoring;
 
 $now
 (
+	/ "shells test example" $=
+	(
+	`	/ "simplified direct-painting test",
+		/ "simplified key-to-touch event mapping implementation"
+			@ "class %Control"
+	),
+	^ "devkitARM release 33" ~ "devkitARM release 32",
+	/ $design "header search path of VS2010 projects",
+	/ "event map interfaces" $=
+	(
+		+ "sender type as template parameter type",
+		/ "simplified sender argument forwarding"
+		/ "more efficient implimentation"^ "%unique_ptr" ~ "%shared_ptr",
+			// NOTE: old version of libstdc++ might fail in compiling
+			// due to members with parameter of rvalue-reference type
+			// are not supported.
+	),
+	* "move constructor lost" @ "class template %GMCounter" $since b210,
+	/ "class %HDirectory" ^ "POSIX dirent API" ~ "libnds-specific API",
+	+ $design "diagnostic pragma for GCC 4.6.0 and newer"
+		@ "header type_op.hpp",
+	* "class %HDirectory state not restored during operations" $since b175,
+	/ "controls key-to-touch event mapping" @ "class %Control" $=
+	(
+		/ "custom handler" ^ "std::function" ~ "member function",
+		+ "%KeyPress to %Click event mapping methods" @ "class %Control",
+		* "calling mapped to disabled control" $since b217
+	),
+	/ "GUI input response" $=
+	(
+		* "%YShell::ResponseTouch wrong behavior for container not locating \
+			at (0, 0)" $since b213,
+		* "%YShell::ResponceKey wrong behavior for tunnel event for container"
+			$since b199
+	),
+	/ "menus functionality" $=
+	(
+		+ "key events for submenu showing and hiding" $=
+		(
+			+ "%TouchDown %KeySpace::Left for hiding",
+			+ "%TouchDown %KeySpace::Right for showing"
+		),
+		+ "automatically selecting when submenu shown using keypad"
+	),
+	/ "sequence viewer" $=
+	(
+		/ $design "default argument" ^ "unsigned integral type"
+			~ "signed integral type" @ "class template %GSequenceViewer",
+		+ "restricted value setting",
+		* "assertion failed in containing test when the length is zero"
+			$since b171
+	)
+),
+
+b220
+(
 	+ "non-focused textlist border",
 	/ "control focus interfaces" $=
 	(
@@ -485,14 +724,20 @@ b219
 	/ $design "font cache moved to platform-dependent application class from
 		class %YApplication",
 	+ "several global helper functions as platform-independent interface",
-	+ "mutiple background switch test",
+	/ "shells test example" $=
+	(
+		+ "mutiple background switch test"
+	),
 	* "wrong default argument of desktop backgrond color" $since b160,
 	+ "widgets: progress bar" @ "class %ProgressBar"
 ),
 
 b218
 (
-	+ "desktop background switch test",
+	/ "shells test example" $=
+	(
+		+ "desktop background switch test"
+	),
 	+ $design "ownership tag structure",
 	- $design "global resource helper functions",
 	+ "DS screen class",
@@ -521,7 +766,7 @@ b217
 		as event handlers",
 	+ "%KeyDown and %KeyHeld handlers for scroll bars \
 		to perform mapped touch behaviors",
-	+ "key to touch event mapping methods" @ "class %Control",
+	+ "key-to-touch event mapping methods" @ "class %Control",
 	* "wrong behavior" @ "track touch held event handler" $since b213 $=
 	(
 		* "wrong coordinate passed to touch focus captured control" $since b195;
@@ -550,7 +795,10 @@ b215
 (
 	+ "disabled state style of control %Thumb",
 	* "disabled control touch event handling" $b199,
-	+ "checkbox and disabling test",
+	/ "shells test example" $=
+	(
+		+ "checkbox and disabling test"
+	),
 	+ "visible arrow indicating multi-level menus",
 	/ "creating list" @ ("constructor of class %MTextList"
 		~ "member function %GetList"),
@@ -558,7 +806,10 @@ b215
 		requirement interface including closure types",
 	* $design "access of interitance of class std::function"
 		@ "class template %GHEvent" $since b207,
-	+ "disabled behavior test" @ "%ShlExplorer",
+	/ "shells test example" $=
+	(
+		+ "disabled behavior test" @ "%ShlExplorer"
+	),
 	/ "thumb/button boundary style",
 	/ "global architecture" $=
 	(
@@ -661,7 +912,7 @@ b209
 	+ "lost %Rect operations",
 	* "strict ISO C++2003 code compatibility" $=
 	(
-		^ "fixed macros" @ "header YFont"
+		^ "fixed macros" ~ "variadic macros" @ "header YFont"
 	),
 	/ "renamed directory %Shell to %UI @ "library YSLib",
 	/ "several memory utilities for std::shared_ptr and std::unique_ptr"
@@ -687,7 +938,10 @@ b207
 	- "single-cast event class template",
 	^ "rvalue reference" @ "event class",
 	* "ystdex algorithms",
-	* "minor event handler parameter type mismatch" @ "test code",
+	/ "shells test example" $=
+	(
+		* "minor event handler parameter type mismatch"
+	),
 	* "key events response(added as %KeyDown, but removed as %KeyPress)"
 		@ "project YSTest_ARM9" $since b201,
 	* "tunnel and direct key and touch response repeated" @ "class %YGUIShell"
@@ -843,7 +1097,123 @@ b195
 	+ "simple events routing"
 ),
 
-b170_b194
+b194
+(
+	/ "global architecture",
+	/ "GUI shell class architecture" @ "unit %YGUI",
+	/ "default control event handlers implementation",
+	/ "implementation" @ "unit YInitialization",
+	/ "controls always visual",
+	- "class %IVisualControl",
+	- "class %VisualControl",
+	/ "container focus" @ "class %(AUIBoxControl, AWindow)"
+),
+
+b193
+(
+	/ "scroll controls implementation",
+	/ "core utilities"
+	/ "empty event arguments" $=
+	(
+		- "empty constant of event arguments",
+		+ "inline function template GetStaticRef",
+		/ "all event empty arguments" ^ "GetStaticRef"
+	),
+	/ "scroll controls and listbox implementation"
+),
+
+b192
+(
+	+ "empty constant of event arguments",
+	/ "event interfaces",
+	/ $design "header including",
+	+ "unit %YUIContainerEx" @ "directory Shell",
+	+ "class %AUIBoxControl" @ "unit YUIContainerEx",
+	+ "controls: class %YScrollableContainer" @ "unit YGUIComponent",
+	/ $design "function %FetchWindowPtr as non-inline" @ "unit YUIContainer",
+	/ "class %IWindow as non-virtual inheritance" @ "class AWindow"
+		@ "class YWindow",
+	/ "arm9 makefile",
+	/ "scroll controls implementation"
+),
+
+b191
+(
+	/ "listbox APIs implementation",
+	/ "class template %GSequenceViewer" $=
+	(
+		* $design "declaration of member function %Contains" @ $since b171,
+		/ "interfaces"
+	),
+	* "implememtation of function %GetTouchedVisualControlPtr" @ "unit %YGUI"
+		$since b167,
+	/ "simplified focus implementation"
+),
+
+b190
+(
+	* "strict ISO C++2003 code compatibility" $=
+	(
+		/ "fixed macros" ~ "variadic macros"
+	),
+	/ "text region and renderers APIs implementation",
+	/ "widget, label and listbox APIs implementation"
+),
+
+b189
+(
+	+ "class %pair_iterator" @ "YCLib",
+	/ "GDI blit and transformer implementations"
+),
+
+b188
+(
+	/ "shells test example",
+	/ "GDI blit implementations",
+	- "DLDI patch commands" @ "makefile",
+	* "invalid listbox input when the list not beginning from the top"
+		$since b171
+),
+
+b187
+(
+	/ "solution configuration" $=
+	(
+		"header files and source files put in seperated directories"
+	),
+	^ "-O3 & arm specified options compiled library libloki.a"
+		@ "project YSTest",
+	+ "minor templates" @ "YCLib",
+	/ "GDI blit implementations"
+),
+
+b186
+(
+	/ "solution configuration",
+	* "makefiles",
+	/ $design "file including",
+	* "some wrong Doxygen remarks"
+),
+
+b185
+(
+	^ "updated freetype 2.4.4" ~ "freetype 2.3.12",
+	- "DMA implentation" $=
+	(
+		/ "remarked",
+		^ "normal %memcpy and %memset"
+	)
+	/ "desktop window refreshing logic",
+	/ $design "MDualScreenReader constructor" ^ "%ynew" ~ "%new"
+),
+
+b184
+(
+	* $design "some spell errors",
+	/ "DMA implementation"
+),
+
+b170_b183
 (
 	+ "controls: tracks",
 	+ "controls: scroll bars",
@@ -855,17 +1225,18 @@ b159_b169
 (
 	+ "controls: buttons" @ "class (%YThumb, %YButton)",
 	+ "controls: listbox class",
-	+ "events"
+	+ "event mapping"
 ),
 
-b132_b158
+b134_b158
 (
 	+ $design "core utility templates",
-	+ "smart pointers using Loki",
-	+ "Anti-Grain Geometry test",
+	/ "smart pointers",
 	+ "GUI focus",
-	+ "shells",
-	+ "base abbreviation macros",
+	/ "shells test example" $=
+	(
+		+ "some shells"
+	)
 	+ "controls",
 	+ "virtual inheritance" @ "control classes",
 	+ "exceptions",
@@ -875,14 +1246,33 @@ b132_b158
 	+ "timer class"
 ),
 
+b133
+(
+	/ $design "simplified primary types definition",
+	/ "event interfaces",
+	+ "several except classes",
+	/ "exception handling" @ "some functions"
+),
+
+b132
+(
+	/ "log interfaces",
+	+ "backup message queue object" @ "the application class",
+	/ "automatically clearing screen windows when deactivating class %ShlGUI",
+	/ "shells test example" $=
+	(
+		+ "background image indexing"
+	)
+),
+
 b1_b131
 (
 	+ "initial test with PALib & libnds",
 	+ "shell classes",
-	+ "the application class",
 	+ "CHRLib: character set management",
 	+ "fonts management using freetype 2",
 	+ "YCLib: platform independence",
+	+ "the application class",
 	+ "basic objects & counting",
 	+ "global objects",
 	+ "string class",
@@ -893,6 +1283,10 @@ b1_b131
 	+ "program initialization",
 	+ "simple GUI: widgets & windows",
 	+ "simple GDI",
+	+ "base abbreviation macros",
+	+ "events",
+	+ "smart pointers using Loki",
+	+ "Anti-Grain Geometry test",
 	+ "simple resource classes"
 );
 

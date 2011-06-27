@@ -11,12 +11,12 @@
 /*!	\file ydef.h
 \ingroup YCLib
 \brief 系统环境和公用类型和宏的基础定义。
-\version 0.2487;
+\version 0.2489;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2011-06-08 18:22 +0800;
+	2011-06-24 21:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -86,8 +86,6 @@ namespace ystdex
 	typedef u32 fchar_t;
 
 	typedef int errno_t;
-//	typedef decltype(nullptr) nullptr_t;
-	// TODO: using std::nullptr_t;
 	using std::ptrdiff_t;
 	using std::size_t;
 	using ::ssize_t;

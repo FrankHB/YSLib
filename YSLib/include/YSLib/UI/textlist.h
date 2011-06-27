@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1310;
+\version 0.1321;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-06-16 19:53 +0800;
+	2011-06-27 05:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -81,7 +81,7 @@ public:
 		Styles::HighlightText));
 
 	DefPredicateMember(Selected, viewer)
-	PDefH1(bool, Contains, ViewerType::IndexType i)
+	PDefH1(bool, Contains, ViewerType::SizeType i)
 		ImplBodyMember1(viewer, Contains, i)
 
 	DefMutableDepEventGetter(HVisualEvent, ViewChanged, Events.ViewChanged) \
@@ -94,8 +94,8 @@ public:
 	using MTextList::GetList;
 	using MTextList::GetItemPtr;
 	using MTextList::GetItemHeight;
-	DefGetterMember(ViewerType::IndexType, HeadIndex, viewer)
-	DefGetterMember(ViewerType::IndexType, SelectedIndex, viewer)
+	DefGetterMember(ViewerType::SizeType, HeadIndex, viewer)
+	DefGetterMember(ViewerType::SizeType, SelectedIndex, viewer)
 
 	/*!
 	\brief 取完整视图高。
@@ -120,7 +120,7 @@ public:
 	\brief 按指定项目索引设置选中项目。
 	*/
 	void
-	SetSelected(ViewerType::IndexType);
+	SetSelected(ViewerType::SizeType);
 	/*!
 	\brief 按接触点设置选中项目。
 	*/
@@ -151,18 +151,18 @@ protected:
 	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
 	\return 选择的项目索引。
 	*/
-	ViewerType::IndexType
+	ViewerType::SizeType
 	CheckPoint(SPos, SPos);
 	/*!
 	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
-	\return 选择的项目索引。
+	\return 选择的项目索引，若无效则为 static_cast<Viewer::IndexType>(-1) 。
 	*/
-	ViewerType::IndexType
+	ViewerType::SizeType
 	CheckPoint(const Point&);
 
 public:
 	PDefH0(void, ClearSelected)
-		ImplRet(static_cast<void>(viewer.ClearSelected()))
+		ImplBodyMember0(viewer, ClearSelected)
 
 	/*!
 	\brief 定位视图顶端至指定垂直位置。
@@ -217,7 +217,7 @@ private:
 	\brief 检查和调用确认事件处理器。
 	*/
 	void
-	CheckConfirmed(ViewerType::IndexType);
+	CheckConfirmed(ViewerType::SizeType);
 
 	/*!
 	\brief 处理选中事件。
@@ -238,7 +238,7 @@ TextList::SetSelected(const Point& pt)
 	SetSelected(pt.X, pt.Y);
 }
 
-inline TextList::ViewerType::IndexType
+inline TextList::ViewerType::SizeType
 TextList::CheckPoint(const Point& p)
 {
 	return CheckPoint(p.X, p.Y);

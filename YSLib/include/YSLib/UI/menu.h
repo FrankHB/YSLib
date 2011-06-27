@@ -11,12 +11,12 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version 0.1675;
+\version 0.1687;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-06-22 14:19 +0800;
+	2011-06-27 22:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -94,9 +94,18 @@ public:
 	/*!
 	\brief 按指定 Z 顺序显示菜单。
 	\note 菜单宿主指针为空时忽略。
+	\return 菜单宿主指针非空。
 	*/
 	bool
 	Show(Widgets::ZOrderType = DefaultMenuZOrder);
+
+	/*!
+	\brief 按指定 Z 顺序显示索引指定的子菜单。
+	\note 菜单宿主指针为空时忽略。
+	\return 菜单宿主指针非空且索引指定的子菜单存在时为子菜单指针，否则为空指针。
+	*/
+	Menu*
+	ShowSub(IndexType, Widgets::ZOrderType = DefaultMenuZOrder);
 
 	/*!
 	\brief 隐藏菜单。
@@ -112,6 +121,13 @@ protected:
 	virtual void
 	PaintItem(const Graphics&, const Rect&, ListType::size_type);
 };
+
+
+/*!
+\brief 定位菜单：以第二个参数作为参考父菜单，按指定参考偏移索引定位菜单。
+*/
+void
+LocateMenu(Menu&, const Menu&, Menu::IndexType);
 
 
 //! \brief 菜单宿主。

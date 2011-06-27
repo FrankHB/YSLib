@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2140;
+\version 0.2149;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-06-16 03:17 +0800;
+	2011-06-25 19:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -64,13 +64,27 @@ public:
 //	static std::locale imbue(const std::locale&);
 //	static const codecvt_type& codecvt();
 
-	//构造函数和析构函数。
+	/*!
+	\brief 无参数构造：默认实现。
+	*/
+	inline
 	Path() = default;
+	/*!
+	\brief 复制构造：默认实现。
+	*/
+	inline
+	Path(const Path&) = default;
+	/*!
+	\brief 移动构造：默认实现。
+	*/
+	inline
+	Path(Path&&) = default;
 	Path(const ValueType*);
 	Path(const NativePathCharType*);
 	Path(const NativeStringType&);
 	template<class _tString>
 	Path(const _tString&);
+	inline
 	~Path() = default;
 
 	//追加路径。
@@ -207,7 +221,6 @@ public:
 		iterator(const iterator&);
 
 		/*!
-
 		\brief 迭代：向后遍历。
 		*/
 		iterator&
@@ -220,7 +233,6 @@ public:
 		operator++(int);
 
 		/*!
-
 		\brief 迭代：向前遍历。
 		*/
 		iterator&

@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1801;
+\version 0.1807;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-06-16 14:07 +0800;
+	2011-06-25 21:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -134,11 +134,11 @@ ResponseInput(const Message& msg)
 	if(!hContent)
 		return;
 
-	Runtime::KeysInfo& k(hContent->Key);
+	KeysInfo& k(hContent->Keys);
 	YGUIShell& shl(FetchGUIShell());
 	Desktop& d(FetchGlobalInstance().GetTouchableDesktop());
 
-	using namespace Runtime::KeySpace;
+	using namespace KeySpace;
 	using namespace Components::Controls;
 
 	if(k.Up & Touch)

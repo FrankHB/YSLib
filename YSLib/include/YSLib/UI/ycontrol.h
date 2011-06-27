@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.5059;
+\version 0.5135;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-06-22 13:30 +0800;
+	2011-06-26 02:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,7 +65,7 @@ RoutedEventArgs::RoutedEventArgs(RoutingStrategy strategy)
 {}
 
 
-//! \brief 屏幕事件参数模块类。
+//! \brief 屏幕（指针设备）输入事件参数模块类。
 typedef Drawing::Point MScreenPositionEventArgs;
 
 
@@ -73,31 +73,29 @@ typedef Drawing::Point MScreenPositionEventArgs;
 struct InputEventArgs : public RoutedEventArgs
 {
 public:
-	typedef Runtime::Key Key;
-
-	Key key;
+	KeyCode Key;
 
 	/*!
 	\brief 构造：使用本机键按下对象和路由事件类型。
 	*/
-	InputEventArgs(const Key& = 0, RoutingStrategy = Direct);
+	InputEventArgs(KeyCode = 0, RoutingStrategy = Direct);
 
-	DefConverter(Key, key)
+	DefConverter(KeyCode, Key)
 
-	DefGetter(Key, Key, key)
+	DefGetter(KeyCode, KeyCode, Key)
 };
 
 inline
-InputEventArgs::InputEventArgs(const Key& k, RoutingStrategy s)
-	: RoutedEventArgs(s), key(k)
+InputEventArgs::InputEventArgs(KeyCode k, RoutingStrategy s)
+	: RoutedEventArgs(s), Key(k)
 {}
 
 
-//! \brief 键盘输入事件参数类。
+//! \brief 按键输入事件参数类。
 struct KeyEventArgs : public InputEventArgs
 {
 public:
-	typedef Key InputType; //!< 输入类型。
+	typedef KeyCode InputType; //!< 输入类型。
 
 	/*!
 	\brief 构造：使用输入类型对象和路由事件类型。
@@ -120,7 +118,8 @@ public:
 	/*!
 	\brief 构造：使用输入类型对象和路由事件类型。
 	*/
-	TouchEventArgs(const InputType& = InputType::Zero, RoutingStrategy = Direct);
+	TouchEventArgs(const InputType& = InputType::Zero,
+		RoutingStrategy = Direct);
 };
 
 inline
@@ -258,7 +257,7 @@ DefEventTypeMapping(LostFocus, HVisualEvent)
 
 
 //! \brief 控件事件映射表类型。
-typedef Runtime::GEventMap<VisualEvent> VisualEventMapType;
+typedef GEventMap<IControl, VisualEvent> VisualEventMapType;
 
 
 //! \brief 控件接口。
@@ -376,6 +375,30 @@ OnTouchMove(IControl&, TouchEventArgs&&);
 void
 OnTouchMove_Dragging(IControl&, TouchEventArgs&&);
 
+/*!
+\brief 处理按键事件：按键-指针设备接触结束。
+
+绑定触发 TouchUp 和 Leave 事件。
+*/
+void
+OnKey_Bound_TouchUpAndLeave(IControl&, KeyEventArgs&&);
+
+/*!
+\brief 处理按键事件：按键-指针设备接触开始。
+
+绑定触发 Enter 和 TouchDown 事件。
+*/
+void
+OnKey_Bound_EnterAndTouchDown(IControl&, KeyEventArgs&&);
+
+/*!
+\brief 处理按键事件：按键-指针设备按下。
+
+绑定触发 Click 事件。
+*/
+void
+OnKey_Bound_Click(IControl&, KeyEventArgs&&);
+
 
 //! \brief 控件。
 class Control : public Widgets::Widget, public AFocusRequester,
@@ -393,6 +416,14 @@ public:
 	//扩展控件事件。
 //	DeclEvent(HPointEvent, Move) //!< 控件移动。
 //	DeclEvent(HSizeEvent, Resize) //!< 控件大小调整。
+	//事件组映射。
+	/*!
+	\brief 按键-指针设备输入事件组映射。
+	\note 默认为 Control::GetBoundControlPtr 。
+
+	转换按键输入事件为指定控件的指针设备输入事件。
+	*/
+	std::function<IControl*(const KeyCode&)> BoundControlPtr;
 
 	/*!
 	\brief 构造：使用指定边界。
@@ -410,7 +441,10 @@ public:
 	IsFocused() const;
 
 	ImplI1(IControl) DefGetter(VisualEventMapType&, EventMap, EventMap)
-	virtual PDefH1(IControl*, GetBoundControlPtr, const Runtime::Key&)
+	/*!
+	\brief 取按键-指针设备输入默认事件组映射。
+	*/
+	virtual PDefH1(IControl*, GetBoundControlPtr, const KeyCode&)
 		ImplRet(nullptr)
 
 	ImplI1(IControl) void
@@ -432,22 +466,6 @@ public:
 	*/
 	ImplI1(IControl) void
 	ReleaseFocusFrom(IControl&);
-
-	/*!
-	\brief 处理键接触结束事件。
-
-	绑定触发 TouchUp 和 Leave 事件。
-	*/
-	void
-	OnKeyUp_Bound_TouchUpAndLeave(KeyEventArgs&&);
-
-	/*!
-	\brief 处理键接触开始事件。
-
-	绑定触发 Enter 和 TouchDown 事件。
-	*/
-	void
-	OnKeyDown_Bound_EnterAndTouchDown(KeyEventArgs&&);
 };
 
 YSL_END_NAMESPACE(Controls)

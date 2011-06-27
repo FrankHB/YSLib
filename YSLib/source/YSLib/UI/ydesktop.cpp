@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version 0.2313;
+\version 0.2315;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-06-15 21:26 +0800;
+	2011-06-25 21:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,6 @@
 YSL_BEGIN
 
 using namespace Drawing;
-using namespace Runtime;
 
 YSL_BEGIN_NAMESPACE(Components)
 

@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1312;
+\version 0.1346;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-06-21 01:30 +0800;
+	2011-06-27 05:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,6 @@
 YSL_BEGIN
 
 using namespace Drawing;
-using namespace Runtime;
 
 YSL_BEGIN_NAMESPACE(Components)
 
@@ -61,9 +60,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	FetchEvent<KeyDown>(*this) += [this](IControl&, KeyEventArgs&& e){
 		if(viewer.IsSelected())
 		{
-			using namespace Runtime;
-
-			switch(e.GetKey())
+			switch(e.GetKeyCode())
 			{
 			case KeySpace::Enter:
 				CheckConfirmed(viewer.GetSelectedIndex());
@@ -77,19 +74,19 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 			case KeySpace::PgUp:
 			case KeySpace::PgDn:
 				{
-					const ViewerType::IndexType nOld(viewer.GetSelectedIndex());
+					const auto nOld(viewer.GetSelectedIndex());
 
-					switch(e.GetKey())
+					switch(e.GetKeyCode())
 					{
 					case KeySpace::Up:
 						--viewer;
-						if(viewer.GetRelativeIndex() == 0)
+						if(viewer.GetOffset() == 0)
 							AdjustTopOffset();
 						break;
 					case KeySpace::Down:
 						++viewer;
-						if(viewer.GetRelativeIndex()
-							== static_cast<int>(viewer.GetLength() - 1))
+						if(viewer.GetOffset() == static_cast<
+							ViewerType::DifferenceType>(viewer.GetLength() - 1))
 							AdjustBottomOffset();
 						break;
 					case KeySpace::PgUp:
@@ -142,7 +139,7 @@ TextList::GetViewPosition() const
 }
 
 void
-TextList::SetSelected(ViewerType::IndexType i)
+TextList::SetSelected(ViewerType::SizeType i)
 {
 	if(viewer.Contains(i) && viewer.SetSelectedIndex(i))
 		CallSelected();
@@ -178,11 +175,12 @@ TextList::AdjustBottomOffset()
 	return down_offset;
 }
 
-TextList::ViewerType::IndexType
+TextList::ViewerType::SizeType
 TextList::CheckPoint(SPos x, SPos y)
 {
 	return Rect(Point::Zero, GetSize()).Contains(x, y)
-		? (y + top_offset) / GetItemHeight() + viewer.GetHeadIndex() : -1;
+		? (y + top_offset) / GetItemHeight() + viewer.GetHeadIndex()
+		: static_cast<ViewerType::SizeType>(-1);
 }
 
 void
@@ -234,15 +232,14 @@ TextList::PaintItems(const Graphics& g)
 		const SDst ln_h(GetItemHeight());
 
 		viewer.SetLength((GetHeight() + top_offset + ln_h - 1) / ln_h);
-		if(viewer.GetHeadIndex() >= 0)
+		if(viewer.GetTotal() != 0)
 		{
-			const ViewerType::IndexType last(viewer.GetHeadIndex()
+			const auto last(viewer.GetHeadIndex()
 				+ viewer.GetValid());
-			const Point pt(LocateForWindow(*this));
+			const auto pt(LocateForWindow(*this));
 			SPos y(-top_offset);
 
-			for(ViewerType::IndexType i(viewer.GetHeadIndex());
-				i < last; ++i)
+			for(auto i(viewer.GetHeadIndex()); i < last; ++i)
 			{
 				int top(y), tmp(y + ln_h);
 
@@ -296,7 +293,7 @@ TextList::CallSelected()
 }
 
 void
-TextList::CheckConfirmed(ViewerType::IndexType i)
+TextList::CheckConfirmed(ViewerType::SizeType i)
 {
 	if(viewer.IsSelected() && viewer.GetSelectedIndex() == i)
 		GetConfirmed()(*this, IndexEventArgs(*this, i));

@@ -1,22 +1,23 @@
 syntax: glob
 *.old
+*.tmp
 *.orig*
 *.log
 *.user
+*.stackdump
+.map
 *.o
 *.d
 *.elf
-*.stackdump
-.map
 */build*
 */debug*
 */release*
-*/doc/html/*
 *.ncb
 *.suo
 *.sdf
+*.opensdf
 *.layout
 UpgradeLog.XML
 *UpgradeReport*
 */~AutoRecover*
-*.tmp
+*/doc/html/*

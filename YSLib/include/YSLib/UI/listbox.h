@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3167;
+\version 0.3169;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-06-16 19:53 +0800;
+	2011-06-27 05:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,7 +59,7 @@ public:
 		const shared_ptr<ListType>& = shared_ptr<ListType>());
 
 	DefPredicateMember(Selected, TextListBox)
-	PDefH1(bool, Contains, ViewerType::IndexType i)
+	PDefH1(bool, Contains, ViewerType::SizeType i)
 		ImplBodyMember1(TextListBox, Contains, i)
 
 	/*!
@@ -67,8 +67,8 @@ public:
 	*/
 	virtual IControl*
 	GetTopControlPtr(const Point&);
-	DefGetterMember(ViewerType::IndexType, HeadIndex, TextListBox)
-	DefGetterMember(ViewerType::IndexType, SelectedIndex, TextListBox)
+	DefGetterMember(ViewerType::SizeType, HeadIndex, TextListBox)
+	DefGetterMember(ViewerType::SizeType, SelectedIndex, TextListBox)
 	DefGetterMember(ListType&, List, TextListBox)
 	DefMutableDepEventGetterMember(HVisualEvent, ViewChanged, TextListBox) \
 		//!< 视图变更事件。

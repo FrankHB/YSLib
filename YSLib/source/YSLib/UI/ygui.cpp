@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.3828;
+\version 0.3836;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-22 13:31 +0800;
+	2011-06-26 16:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -212,12 +212,14 @@ YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e,
 	bool r(false);
 
 	e.Strategy = Controls::RoutedEventArgs::Tunnel;
-	while((pCon = dynamic_cast<IUIBox*>(p)))
+	while(true)
 	{
 		if(!(p->IsVisible() && p->IsEnabled()))
 			return false;
 		if(e.Handled)
 			return true;
+		if(!(pCon = dynamic_cast<IUIBox*>(p)))
+			break;
 
 		IControl* t(pCon->GetFocusingPtr());
 
@@ -253,24 +255,23 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 	bool r(false);
 
 	e.Strategy = Controls::RoutedEventArgs::Tunnel;
-	do
+	while(true)
 	{
-		e -= p->GetLocation();
 		if(!(p->IsVisible() && p->IsEnabled()))
 			return false;
-		if(!(pCon = dynamic_cast<IUIBox*>(p)))
-			break;
 		if(e.Handled)
 			return true;
+		if(!(pCon = dynamic_cast<IUIBox*>(p)))
+			break;
 		if(op == TouchDown)
 		{
 			RequestToTop(*p);
 			p->RequestFocusFrom(*p);
 		}
 
-		IControl* t;
+		IControl* t(pCon->GetTopControlPtr(e));
 
-		if(!(t = pCon->GetTopControlPtr(e)))
+		if(!t)
 		{
 			if(pCon && op == TouchDown)
 				pCon->ClearFocusingPtr();
@@ -278,7 +279,8 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 		}
 		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, std::move(e)) != 0;
 		p = t;
-	}while(true);
+		e -= p->GetLocation();
+	};
 
 	YAssert(p, "Null pointer found @ YGUIShell::ResponseTouch");
 

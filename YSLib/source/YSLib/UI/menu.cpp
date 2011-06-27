@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version 0.1709;
+\version 0.1764;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-06-22 23:18 +0800;
+	2011-06-27 22:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,6 @@
 YSL_BEGIN
 
 using namespace Drawing;
-using namespace Runtime;
 
 YSL_BEGIN_NAMESPACE(Components)
 
@@ -46,6 +45,30 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 {
 	BackColor = FetchGUIShell().Colors[Styles::Panel];
 	SetAllTo(Margin, 6, 18, 4, 4);
+	FetchEvent<KeyDown>(*this) += [this](IControl&, KeyEventArgs&& e){
+		if(pHost && IsSelected())
+			switch(e.GetKeyCode())
+			{
+			case KeySpace::Right:
+				{
+					auto pMnu(ShowSub(GetSelectedIndex()));
+
+					if(pMnu)
+						pMnu->SetSelected(0);
+				}
+				break;
+			case KeySpace::Left:
+				{
+					auto pMnu(GetParentPtr());
+
+					if(pMnu)
+						pMnu->RequestFocusFrom(*pMnu);
+				}
+				break;
+			default:
+				break;
+			}
+	};
 	FetchEvent<LostFocus>(*this) += [this](IControl& c, EventArgs&&){
 		if(pHost)
 		{
@@ -64,21 +87,8 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		}
 	};
 	GetConfirmed() += [this](IControl&, IndexEventArgs&& e){
-		if(this->Contains(e) && pHost)
-		{
-			try
-			{
-				auto& mnu((*this)[e.Index]);
-
-				mnu.SetLocation(Point(this->GetLocation().X + this->GetWidth(),
-					this->GetLocation().Y + this->GetItemHeight() * e.Index));
-				mnu.Show();
-			}
-			catch(std::out_of_range&)
-			{
-				pHost->HideAll();
-			}
-		}
+		if(this->Contains(e) && pHost && !ShowSub(e.Index))
+			pHost->HideAll();
 	};
 	//刷新文本状态，防止第一次绘制前不确定文本间距，无法正确根据内容重设大小。
 	RefreshTextState();
@@ -122,6 +132,25 @@ Menu::Show(ZOrderType z)
 	return false;
 }
 
+Menu*
+Menu::ShowSub(IndexType idx, ZOrderType z)
+{
+	if(pHost)
+	{
+		try
+		{
+			auto& mnu((*this)[idx]);
+
+			LocateMenu(mnu, *this, idx);
+			mnu.Show();
+			return &mnu;
+		}
+		catch(std::out_of_range&)
+		{}
+	}
+	return nullptr;
+}
+
 bool
 Menu::Hide()
 {
@@ -144,6 +173,14 @@ Menu::PaintItem(const Graphics& g, const Rect& r, ListType::size_type i)
 
 		WndDrawArrow(g, arrow_bounds, 4, RDeg0, ForeColor);
 	}
+}
+
+
+void
+LocateMenu(Menu& d, const Menu& s, Menu::IndexType idx)
+{
+	d.SetLocation(Point(s.GetLocation().X
+		+ s.GetWidth(), s.GetLocation().Y + s.GetItemHeight() * idx));
 }
 
 
