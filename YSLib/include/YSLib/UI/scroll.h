@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3131;
+\version 0.3142;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-06-25 21:53 +0800;
+	2011-06-29 08:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -195,10 +195,10 @@ public:
 	SetLargeDelta(ValueType);
 
 	/*!
-	\brief 绘制界面。
+	\brief 绘制控件界面。
 	*/
 	virtual void
-	Paint();
+	DrawControl();
 
 protected:
 	/*!
@@ -426,7 +426,7 @@ public:
 	GetTopControlPtr(const Point&);
 	/*!
 	\brief 取轨道引用。
-	\note 断言检查： is_valid(pTrack) 。
+	\note 断言检查： is_null(pTrack) 。
 	*/
 	ATrack&
 	GetTrack() const ynothrow;
@@ -441,10 +441,10 @@ public:
 	DefSetter(ValueType, SmallDelta, small_delta)
 
 	/*!
-	\brief 绘制界面。
+	\brief 绘制控件界面。
 	*/
 	virtual void
-	Paint();
+	DrawControl();
 
 private:
 	/*!
@@ -463,8 +463,8 @@ private:
 inline ATrack&
 AScrollBar::GetTrack() const ynothrow
 {
-	YAssert(is_valid(pTrack),
-		"Invalid widget pointer found @ AScrollBar::GetTrack;");
+	YAssert(is_null(pTrack),
+		"Null widget pointer found @ AScrollBar::GetTrack;");
 
 	return *pTrack;
 }
@@ -534,10 +534,10 @@ public:
 	GetTopControlPtr(const Point&);
 
 	/*!
-	\brief 绘制界面。
+	\brief 绘制控件界面。
 	*/
 	virtual void
-	Paint();
+	DrawControl();
 
 protected:
 	/*!

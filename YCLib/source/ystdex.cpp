@@ -14,9 +14,9 @@
 \version 0.2036;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-27 17:31:20 +0800; 
+	2009-12-27 17:31:20 +0800;
 \par 修改时间:
-	2011-06-08 18:16 +0800;
+	2011-06-28 17:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -86,7 +86,8 @@ namespace ystdex
 	bool
 	fexists(const_path_t path)
 	{
-		FILE* file = fopen(path, "rb");
+		FILE* file(std::fopen(path, "rb"));
+
 		if(file)
 		{
 			std::fclose(file);

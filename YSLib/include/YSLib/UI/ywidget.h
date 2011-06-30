@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.5959;
+\version 0.5963;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-23 23:47 +0800;
+	2011-06-28 21:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -81,7 +81,7 @@ DeclInterface(IWidget)
 	\brief 绘制界面。
 	\warning 可能不检查缓冲区指针是否为空。
 	*/
-	DeclIEntry(void Paint())
+	DeclIEntry(void Draw())
 
 	//! \brief 刷新至窗口缓冲区。
 	DeclIEntry(void Refresh())
@@ -297,7 +297,7 @@ public:
 	\brief 绘制界面。
 	*/
 	ImplI1(IWidget) void
-	Paint();
+	Draw();
 
 	/*!
 	\brief 刷新至窗口缓冲区。

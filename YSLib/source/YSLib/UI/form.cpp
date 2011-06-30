@@ -11,12 +11,12 @@
 /*!	\file form.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗体。
-\version 0.1529;
+\version 0.1533;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-06-16 03:24 +0800;
+	2011-06-28 21:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,16 +57,11 @@ Form::SetBounds(const Rect& r)
 }
 
 void
-Form::Paint()
+Form::Draw()
 {
-	Frame::Paint();
-//	Client.Paint();
+	Frame::Draw();
+//	Client.Draw();
 
-}
-void
-Form::Paint()
-{
-	Frame::Paint();
 }
 */
 YSL_END_NAMESPACE(Forms)

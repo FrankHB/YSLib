@@ -11,12 +11,12 @@
 /*!	\file checkbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面复选框控件。
-\version 0.1368;
+\version 0.1374;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2011-06-10 17:27 +0800;
+	2011-06-29 08:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -113,11 +113,11 @@ CheckBox::CheckBox(const Rect& r)
 }
 
 void
-CheckBox::Paint()
+CheckBox::DrawControl()
 {
-	YWidgetAssert(this, Controls::CheckBox, Paint);
+	YWidgetAssert(this, Controls::CheckBox, DrawControl);
 
-	Control::Paint();
+	Widget::Draw();
 
 	IWindow* pWnd(FetchDirectWindowPtr(*this));
 

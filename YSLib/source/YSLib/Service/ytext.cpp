@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version 0.6668;
+\version 0.6676;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-06-23 09:50 +0800;
+	2011-06-30 20:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,16 +59,16 @@ void
 TextState::PutNewline()
 {
 	PenX = Margin.Left;
-	PenY += GetLnHeightExFrom(*this);
+	PenY += GetTextLineHeightExFrom(*this);
 }
 
 void
 TextState::ResetPen()
 {
 	PenX = Margin.Left;
-	//	PenY = Margin.Top + GetLnHeightExFrom(*this);
+	//	PenY = Margin.Top + GetTextLineHeightExFrom(*this);
 	//	PenY = Margin.Top + pCache->GetAscender();
-	SetLnNNowTo(*this, 0);
+	SetCurrentTextLineNTo(*this, 0);
 }
 
 void
@@ -81,10 +81,10 @@ TextState::ResetForBounds(const Rect& r, const Size& s, const Padding& m)
 
 
 void
-SetLnNNowTo(TextState& s, u16 n)
+SetCurrentTextLineNTo(TextState& s, u16 n)
 {
 	s.PenY = s.Margin.Top + s.GetCache().GetAscender()
-		+ GetLnHeightExFrom(s) * n;
+		+ GetTextLineHeightExFrom(s) * n;
 }
 
 void
@@ -199,7 +199,7 @@ RenderChar(BitmapBufferEx& buf, TextState& ts, fchar_t c)
 SDst
 FetchResizedMargin(const TextState& ts, SDst h)
 {
-	const u8 t(GetLnHeightExFrom(ts));
+	const u8 t(GetTextLineHeightExFrom(ts));
 
 	return t ? ts.Margin.Bottom + (h + ts.LineGap - GetVerticalFrom(ts.Margin))
 		% t : 0;
@@ -208,7 +208,7 @@ FetchResizedMargin(const TextState& ts, SDst h)
 SDst
 FetchResizedBufferHeight(const TextState& ts, SDst h)
 {
-	const u8 t(GetLnHeightExFrom(ts));
+	const u8 t(GetTextLineHeightExFrom(ts));
 
 	return t ? ts.Margin.Top + (h + ts.LineGap - GetVerticalFrom(ts.Margin))
 		/ t * t : h;
@@ -237,7 +237,7 @@ ATextRenderer::GetLnN() const
 	const TextState& ts(GetTextState());
 
 	return (GetContext().GetHeight() - GetVerticalFrom(ts.Margin))
-		/ GetLnHeightExFrom(ts);
+		/ GetTextLineHeightExFrom(ts);
 }
 u16
 ATextRenderer::GetLnNEx() const
@@ -245,7 +245,7 @@ ATextRenderer::GetLnNEx() const
 	const TextState& ts(GetTextState());
 
 	return (GetContext().GetHeight() - GetVerticalFrom(ts.Margin)
-		+ ts.LineGap) / GetLnHeightExFrom(ts);
+		+ ts.LineGap) / GetTextLineHeightExFrom(ts);
 }
 
 void
@@ -254,7 +254,7 @@ ATextRenderer::SetLnLast()
 	const u16 n(GetLnN());
 
 	if(n)
-		SetLnNNowTo(GetTextState(), n - 1);
+		SetCurrentTextLineNTo(GetTextState(), n - 1);
 }
 
 void
@@ -272,9 +272,9 @@ ATextRenderer::ClearLine(u16 l, SDst n)
 }
 
 void
-ATextRenderer::ClearLn(u16 l)
+ATextRenderer::ClearTextLine(u16 l)
 {
-	SDst h(GetLnHeightExFrom(GetTextState()));
+	SDst h(GetTextLineHeightExFrom(GetTextState()));
 
 	ClearLine(GetTextState().Margin.Top + h * l, h);
 }
@@ -283,7 +283,7 @@ void
 ATextRenderer::ClearLnLast()
 {
 	TextState ts(GetTextState());
-	SDst h(GetLnHeightExFrom(ts));
+	SDst h(GetTextLineHeightExFrom(ts));
 
 	ClearLine(GetContext().GetHeight() - ts.Margin.Bottom - h, h);
 }
@@ -387,8 +387,7 @@ DrawText(TextRegion& tr, const Graphics& g, const Point& pt, const Size& s,
 	const String& str)
 {
 	PutLine(tr, str);
-	BlitTo(g.GetBufferPtr(), tr, g.GetSize(), Point::Zero,
-		pt, s);
+	BlitTo(g.GetBufferPtr(), tr, g.GetSize(), Point::Zero, pt, s);
 }
 
 YSL_END_NAMESPACE(Drawing)

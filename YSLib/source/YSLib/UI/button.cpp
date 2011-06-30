@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version 0.3535;
+\version 0.3545;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-06-10 17:27 +0800;
+	2011-06-29 08:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -90,9 +90,9 @@ Thumb::Thumb(const Rect& r)
 }
 
 void
-Thumb::Paint()
+Thumb::DrawControl()
 {
-	YWidgetAssert(this, Controls::Thumb, Paint);
+	YWidgetAssert(this, Controls::Thumb, DrawControl);
 
 	IWindow* pWnd(FetchDirectWindowPtr(*this));
 
@@ -119,11 +119,9 @@ Button::Button(const Rect& r, const Drawing::Font& fnt)
 {}
 
 void
-Button::Paint()
+Button::DrawControl()
 {
-	YWidgetAssert(this, Controls::Button, Paint);
-
-	Thumb::Paint();
+	Thumb::DrawControl();
 	PaintText(*this, IsEnabled() ? ForeColor
 		: FetchGUIShell().Colors[Styles::Workspace],
 		FetchContext(*this), LocateForWindow(*this));

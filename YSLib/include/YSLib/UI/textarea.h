@@ -8,28 +8,29 @@
 	understand and accept it fully.
 */
 
-/*!	\file progress.h
+/*!	\file textarea.h
 \ingroup UI
-\brief 样式相关的图形用户界面进度部件。
-\version 0.1221;
+\brief 样式无关的用户界面文本区域部件。
+\version 0.1287;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2011-06-20 08:57:48 +0800;
+	2011-06-30 20:09:23 +0800;
 \par 修改时间:
-	2011-06-30 21:03 +0800;
+	2011-07-01 00:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::Progress;
+	YSLib::UI::TextArea;
 */
 
 
-#ifndef YSL_INC_UI_PROGRESS_H_
-#define YSL_INC_UI_PROGRESS_H_
+#ifndef YSL_INC_UI_TEXTAREA_H_
+#define YSL_INC_UI_TEXTAREA_H_
 
 #include "ywidget.h"
+//#include "../Adaptor/yfont.h"
 //#include "../Core/yres.h"
-//#include "ystyle.h"
+#include "../Service/ytext.h"
 
 YSL_BEGIN
 
@@ -37,21 +38,22 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Widgets)
 
-//! \brief 进度条。
-class ProgressBar : public Widget, public GMRange<u16>
+//! \brief 文本区域。
+class TextArea : public Widget, public Drawing::TextRegion
 {
 public:
-	Color BorderColor; //!< 边框颜色。
+	Drawing::Rotation Rotation; //!< 屏幕指向。
 
 	explicit
-	ProgressBar(const Rect& = Rect::Empty, u16 = 0xFF);
+	TextArea(const Drawing::Rect& = Drawing::Rect::Empty,
+		FontCache& = FetchGlobalInstance().GetFontCache());
 
-	DefSetter(ValueType, MaxValue, max_value)
-	DefSetter(ValueType, Value, value)
+	using Widget::GetSize;
+	using Widget::GetWidth;
+	using Widget::GetHeight;
 
-	/*!
-	\brief 绘制界面。
-	*/
+	using Widget::SetSize;
+
 	virtual void
 	Draw();
 };

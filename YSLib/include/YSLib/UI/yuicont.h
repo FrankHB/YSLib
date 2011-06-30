@@ -11,16 +11,16 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2369;
+\version 0.2370;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-06-23 23:49 +0800;
+	2011-06-28 04:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::UIContainer;
+	YSLib::UI::YUIContainer;
 */
 
 

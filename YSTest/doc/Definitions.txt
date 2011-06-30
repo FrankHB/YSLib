@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11180;
+\version r11181;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-06-25 21:56 +0800;
+	2011-06-28 16:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -725,7 +725,7 @@ $header Adaptor::YReference
 	using std::static_pointer_cast;
 	using std::unique_ptr;
 	using std::weak_ptr;
-	using ystdex::is_valid;
+	using ystdex::is_null;
 	using ystdex::raw;
 	using ystdex::reset;
 	using ystdex::share_raw;

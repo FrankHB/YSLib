@@ -1,4 +1,4 @@
-// v0.3217; *Build 221 r50;
+// v0.3227; *Build 222 r44;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -180,12 +180,6 @@ $using:
 	\cl Visual,
 	\cl Widget
 ),
-\u YLabel
-(
-	\cl MLabel,
-	\cl Label,
-	\cl MTextList
-),
 \u YUIContainer
 (
 	\in IUIBox,
@@ -214,6 +208,20 @@ $using:
 (
 	\cl YGUIShell,
 )
+\u Label
+(
+	\cl MLabel,
+	\cl Label,
+	\cl MTextList
+),
+\u TextArea
+(
+	\cl TextArea
+),
+\u Progress
+(
+	\cl ProgressBar
+),
 \u UIContainerEx
 (
 	\cl AUIBoxControl,
@@ -257,292 +265,211 @@ $using:
 
 
 $DONE:
-r1:
-/= \rem @ \h (YWidget & YUIContainer & YGUI);
-/ \impl @ \mf ShlExplorer::TFormExtra::OnClick_btnTestEx @ \impl \u Shells;
-/ @ \cl String @ \h YString:
-	+ \exp \de copy \ctor;
-	+ \exp \de move \ctor;
-	+ \exp \i @ \exp \de \ctor;
-	+ \exp \de !\vt \dtor;
-/ @ \cl Path @ \h YFileSystem:
-	+ \exp \de copy \ctor;
-	+ \exp \de move \ctor;
-	+ \exp \i @ \exp \de (\ctor & !\vt \dtor);
-
-r2:
-/ @ \impl \u Shells:
-	/ \cl TestObj @ \mf ShlExplorer::TFormExtra::OnClick_btnTestEx >> \un \ns;
-	/ \a !\s \mf @ \cl TestObj -> !\i \f;
+r1-r2:
+/= test 1;
 
 r3:
-/ @ \cl ShlExplorer @ \u Shells:
-	- \smf OnKeyPress_fbMain;
-	/ \tr \impl @ \ctor ^ lambda \expr;
+/ \a is_valid => is_null;
+/ \tr @ \a \as matches '*valid*';
 
 r4:
-/ keypad operation test:
-	/ @ \cl ShlExplorer @ \impl \u Shells:
-		/ \impl @ \mf OnActivated & OnKeyDown_frm & OnKeyUp_frm;
+* minor faults dectected by CppCheck:
+	/ \simp \impl @ \mf YGUIShell::ResponseTouch $since b195;
+	*= \impl @ \f fexists @ \ns ystdex @ \impl \u YStandardExtend $since b151;
 
 r5:
-/ @ \h YEvent:
-	/ @ \clt GEventWrapper:
-		/ \inh \in GIHEvent<YObject, EventArgs>
-			-> \in GIHEvent<typename _tEvent::SenderType, EventArgs>;
-		/ !(\exp \i) \mf size_t operator()(SenderType&, EventArgs&&) const
-			-> \exp \i \mf size_t operator()(SenderType&, EventArgs&&) const;
-	/ @ \clt GEventMap:
-	/ \clt<typename _tEventSpace> GEventMap
-		-> \clt<typename _tSender, typename _tEventSpace> GEventMap;
-	/ @ \clt GEventMap:
-		/ typedef GIHEvent<YObject, EventArgs> ItemType
-			-> typedef GIHEvent<_tSender, EventArgs> ItemType;
-		* \impl @ GetSerachResult ^ \exp \n ystdex;
-/ \tr @ \h YControl:
-	/ typedef Runtime::GEventMap<VisualEvent> VisualEventMapType
-		-> typedef Runtime::GEventMap<IControl, VisualEvent> VisualEventMapType;
-
-r6:
-/= test 1 ^ \conf release;
-
-r7-r8:
-^ devkitARM release 33;
-/ \tr \mac for GCC 4.6 @ \YStandardExtend;
-/ @ \ns platform @ \u YCommon:
-	/ \tr \a diropen => opendir;
-	/ \tr \a dirclose => closedir;
-	/ \tr \impl @ \f direxists;
-	/ \tr \impl @ \f mkdirs;
-	/ \tr @ \cl HDirectory:
-		/ typedef ::DIR_ITER* IteratorType -> typedef ::DIR* IteratorType;
-		/ \impl @ \mf Reset;
-		/ \impl @ \mf operator++();
-	- \tr \es @ \cl YApplication;
-/ \tr header search directory setting @ \a projects;
-* @ \clt GMCounter:
-	+ \i \exp \de move \ctor;
-/ !\rem GCC diagnostic pragma @ \h YCLib::YStandardExtend::TypeOperation;
-/ @ \h YEvent:
-	/ !\rem @ \i \exp \de \mf GHEvent& operator=(GHEvent&&) @ \clt GHEvent;
-	/ @ \clt GEvent:
-		- \mf \i GEvent& operator=(GEvent&&);
-		/ !\rem @ \i \exp \de \mf GEvent& operator=(GEvent&&);
-	^ unique_ptr ~ shared_ptr @ \clt GEventMap @ \h YEvent avoiding patching
-		libstdc++ for known associative container operation bugs:
-		/ typedef shared_ptr<ItemType> PointerType
-			-> typedef unique_ptr<ItemType> PointerType;
-
-r9:
-/ @ \cl HDirectory @ \impl \u YCommon:
-	* \impl @ \mf operator++ $since r7;
-	* \impl @ \mf Close;
-
-r10:
 /= test 2 ^ \conf release;
 
-r11-r12:
-/= test 3;
-
-r13:
-/ \simp @ \mf @ \clt GEventMap @ \h YEvent
-	/ \simp \impl ^ %auto & \mac PDefH1;
-	/ !(\exp \i) private \mf GetSearchResult => \exp \i private \mf Search;
-
-r14:
-/ @ \cl Control:
-	+ public \m std::function<IControl*(const Runtime::Key&)> BoundControlPtr;
-	/ \tr \impl @ \mf (OnKeyUp_Bound_TouchUpAndLeave
-		& OnKeyDown_Bound_EnterAndTouchDown)
-		^ BoundControlPtr ~ GetBoundControlPtr;
-	/ \tr \impl @ \ctor;
-
-r15:
-/ \simp @ \cl ShlExplorer @ \u Shells:
-	+ private \mf IControl* GetBoundControlPtr(const Runtime::Key&);
-	- private \mf (OnKeyUp_frm & OnKeyDown_frm & OnKeyPress_frm);
-	/ \impl @ \mf (OnActivated & OnDeactivated);
-
-r16:
-/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \u Shells;
-
-r17:
-/ @ \impl \u YControl:
-	^ \ref \decl ^ auto& @ \a !\m \f;
-	^ \obj \exc \tp TouchEventArgs \decl ^ auto @ \a \mf;
-
-r18:
-+ \f IControl* FetchBoundControlPtr(Control&, KeyEventArgs&&) @ \un ns
-	@ \impl \u YControl;
-/ @ \cl Control:
-	+ \mf void OnKeyPress_Bound_Click(KeyEventArgs&&);
-	/ \simp \impl @ \mf (OnKeyUp_Bound_TouchUpAndLeave
-		& OnKeyDown_Bound_EnterAndTouchDown & OnKeyPress_Bound_Click)
-		^ FetchBoundControlPtr ~ BoundControlPtr;
-/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \u Shells;
-
-r18:
-* @ \impl \u Control:
-	/ \f FetchBoundControlPtr @ \un \ns -> FetchEnabledBoundControlPtr;
-	/ \tr \impl @ \mf (OnKeyUp_Bound_TouchUpAndLeave
-		& OnKeyDown_Bound_EnterAndTouchDown & OnKeyPress_Bound_Click)
-		@ \cl Control;
-
-r19:
-/= test 4 ^ \conf release;
-
-r20:
-/ \a Key => KeyCode @ \ns (Runtime & platform);
-
-r21:
+r6:
+/ \a \mf Draw @ \cl AWindow => DrawRaw;
 / @ \u YControl:
-	/ @ \cl InputEventArgs:
-		/ typedef Runtime::KeyCode Key;
-		/ \m Key key -> Runtime::KeyCode Key;
-		/ \tr @ \mf;
-		/ \mf GetKey => GetKeyCode;
-		/ \ctor InputEventArgs(const Runtime::KeyCode& = 0,
-			RoutingStrategy = Direct);
-			-> InputEventArgs(Runtime::KeyCode = 0, RoutingStrategy = Direct);
-	/ @ \cl KeyEventArgs:
-		/ typedef Key InputType -> typedef Runtime::KeyCode InputType;
-/ @ \u YGlobal:
-	/= \impl @ \f @ \un \ns @ \impl \u;
-	/ @ \cl InputContent @ \ns Messaging:
-		/ \m Runtime::KeysInfo Key => Keys;
-/ \tr \impl @ \f ((ResponseInput @ \impl \u Shell_DS)
-	& (FetchEnabledBoundControlPtr @ \un \ns @ \impl \u YControl) & ();
-/ \tr \impl @ \ctor @ \cl TextList;
-/ \tr \impl @ \impl \u Shells;
+	+ \m Paint @ typedef \en VisualEvent;
+	+ DefEventTypeMapping(Paint, HVisualEvent);
+/ \amf Paint => Draw @ \in IWidget;
+/ \tr \a \mf Draw => Paint;
+/ \impl @ \mf YGUIShell::ShlProc;
+/ \impl @ \ctor @ \cl Control;
+/ \impl @ \mf Frame::DrawContents;
 
-r22:
-/ \a @ \ns YSLib::Runtime >> \ns YSLib;
-- \ns Runtime;
-
-r23:
-* \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \impl \u Shells
-	$since r18;
-
-r24:
-/ @ \u Control:
-	/ \mf void Control::OnKeyUp_Bound_TouchUpAndLeave(KeyEventArgs&&)
-		-> !\m \f OnKey_Bound_TouchUpAndLeave(IControl&, KeyEventArgs&&);
-	/ \mf void Control::OnKeyDown_Bound_EnterAndTouchDown(KeyEventArgs&&)
-		-> !\m \f OnKey_Bound_EnterAndTouchDown(IControl&, KeyEventArgs&&);
-	/ \mf void Control::OnKeyPress_Bound_Click(KeyEventArgs&&)
-		-> !\m \f OnKey_Bound_Click(IControl&, KeyEventArgs&&);
-	/= \impl @ 4 \f 'On*';
-	/ \f IControl* FetchEnabledBoundControlPtr(Control&, KeyEventArgs&&)
-		-> IControl* FetchEnabledBoundControlPtr(IControl&, KeyEventArgs&&)
-		^ \eh (std::bad_function_call & std::bad_cast) @ \un \ns @ \impl \u;
-/ \tr \impl @ \ctor @ \cl AScrollBar;
-/ \tr \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer
-	@ \impl \u Shells;
-
-r25-r27:
-/= test 5;
-
-r28:
-/= test 6 ^ \conf release;
-
-r29-r31:
-/= test 7;
-
-r32:
-* \impl @ \mf ResponseTouch @ \cl YGUIShell $since b213;
-
-r33:
-/= test 8;
-
-r34:
-/ \impl @ \mf ResponseKey & ResponseTouch @ \cl YGUIShell:
-	* \impl @ \mf ResponseKey $since b199;
-
-r35:
-/= test 9 ^ \conf release;
-
-r36:
-/ \impl @ \ctor @ \cl Menu;
-
-r37:
-/ @ \u Menu:
-	+ \f void LocateMenu(Menu&, const Menu&, Menu::IndexType);
-	/ @ \cl Menu:
-		/ \tp @ \mf \op[] -> IndexType ~ size_t;
-		/ \simp \impl @ \ctor ^ \f LocateMenu;
-
-r38:
-/ \mf bool ClearSelected() @ \clt GSequenceViewer @ \h YViewer
-	-> \exp \i \mf void ClearSelected();
-/ \tr \simp \impl \mf ClearSelected @ \cl TextList ^ \mac ImplBodyMember0
-	~ \mac ImplRet;
-
-r39:
-/ @ \clt GSequenceViewer @ \h YViewer:
-	/ typedef _tDifference IndexType -> typedef _tSize IndexType;
-	/ \tp \param typename _tIndex = ssize_t
-		-> typename _tDifference = typename _tContainer::difference_type;
-	+ typedef _tDifference DifferenceType;
-	/ \tr \impl @ \mf (Contains & RestrictSelected & RestrictView);
-	- \tr \mf IndexType GetRelativeIndex() -> DifferenceType GetOffset();
-/ \tr @ \cl TextList;
-	/ \tr \impl @ \ctor ^ auto;
-	/ \tr \impl @ \mf PaintItems ^ auto;
-	/ \tr \impl @ \mf ViewerType::IndexType CheckPoint(SPos, SPos);
-/ \tr \simp \impl @ \ctor @ \cl Menu;
-
-r40:
-* \impl @ \mf TextList::PaintItems;
-/ \simp @ \clt GSequenceViewer @ \h YViewer:
-	- typedef _tSize IndexType;
-	/ \a IndexType -> SizeType;
-/ \tr @ \h ListBox & \u TextList;
-
-r41-r43:
-/ @ \clt GSequenceViewer @ \h YViewer:
-	/ \tp @ \param @ 2 \mf 'Increase*' & 2 \mf 'Decrease*' -> DefferenceType
-	`	~ SizeType;
-	/ \mf (IncreaseHead & IncreaseSelected) -> !\exp \i \mf;
-
-r44:
-/= test 10 ^ \conf release;
-
-r45:
-/ @ \cl Menu:
-	+ \mf bool ShowSub(IndexType, Widgets::ZOrderType = DefaultMenuZOrder);
-	/ \simp \impl @ \ctor ^ ShowSub;
-
-r46:
-/ \impl @ \mf Menu::ShowSub;
-
-r47:
-/ \de viewer length -> 1 ~ 0 @ \impl @ \ctor @ \clt GSequenceViewer;
-
-r48:
-* \impl @ \mf Contains @ \clt GSequenceViewer $since b171;
-
-r49:
-/ @ \cl Menu:
-	/ \mf bool ShowSub(IndexType, Widgets::ZOrderType = DefaultMenuZOrder)
-		-> Menu* ShowSub(IndexType, Widgets::ZOrderType = DefaultMenuZOrder);
+r7:
+/ @ \cl TextList:
+	- \mf OnConfirmed;
+	/ \tr \impl @ \ctor @ \cl Dependencies;
+	+ \m bool CyclicTraverse;
 	/ \impl @ \ctor;
 
-r50:
+r8:
+/ \impl @ \ctor @ \cl Menu;
+
+r9:
+/= test 3 ^ \conf release;
+
+r10:
+/ @ \cl Control:
+	/ \simp \impl @ \ctor;
+	+ \vt \mf Draw;
+	/ \simp \impl @ \mf SetLocation & SetSize;
+	+ \vt \mf DrawControl;
+/ \simp \impl @ \mf AFrame::DrawContents;
+/ \mf Draw => DrawControl @ \cl (CheckBox & TextList & ATrack & AScrollBar
+	& AScrollBarControl & Thumb & Button & ListBox & ProgressBar);
+/ \tr \impl @ \mf DrawControl @ \cl (CheckBox & TextList & ATrack & AScrollBar
+	& AScrollBarControl & Thumb & Button & ListBox & ProgressBar);
+/ \impl @ \mf AWindow::Draw;
+
+r11-r12:
+/= test 4;
+
+r13:
+* @ \cl ProgressBar:
+	/ \mf DrawControl => Draw;
+	/ \impl @ \mf Draw;
+
+r14:
+/= test 5 ^ \conf release;
+
+r15:
+/ \impl @ \ctor @ \cl TextList;
+
+r16:
+/ @ \cl TextList:
+	/ \ac @ \mf 'Adjust*' & CheckPoint -> public ~ protected;
+	+ \mf void SelectTop();
+	+ \mf void SelectBottom();
+	/ \simp \impl @ \ctor ^ (SelectFirst & SelectLast);
+/ \simp \impl @ \ctor @ \cl Menu ^ ((SelectFirst & SelectLast) @ \cl TextList);
+
+r17:
+/ @ \cl ShlReader @ \u Shells:
+	+ \m MenuHost mhMain;
+	/ \tr \impl @ \ctor;
+
+r18:
+/ \impl @ \mf (OnActivated & OnDeactivated) @ ShlExplorer @ \impl \u Shells;
+
+r19:
+/ @ \impl \u Shells:
+	/ \simp \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer;
+	/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlReader;
+
+r20-r21:
+/ \impl @ \mf ShlReader::OnClick @ \impl \u Shells;
+
+r22-r25:
+/= test 6;
+
+r26:
+/= test 7 ^ \conf release;
+
+r27:
+/ \impl @ \mf YGUIShell::ShlProc;
+
+r28:
+* \impl @ \cl AWindow $since r10:
+	/ \impl @ \mf Draw;
+	/ \impl @ \mf DrawRaw;
+
+r29-r31:
+/= test 8;
+
+r32:
+/ @ \cl ShlReader @ \u Shells:
+	+ \mf void OnPaint(EventArgs&&);
+	/ \impl @ \mf (OnActivated & OnDeactivated);
+	/ \impl @ \mf \vt void UpdateToScreen();
+
+r33:
+/ \impl @ \mf AWindow::DrawRaw;
+/ @ \cl MDualScreenReader @ \u DSReader:
+	+ \mf PrintTextUp(const Drawing::Graphics&);
+	+ \mf PrintTextDown(const Drawing::Graphics&);
+	- \mf PrintText;
+/ @ \cl ShlReader @ \u Shells:
+	/ \mf void OnPaint(EventArgs&&) -> void OnPaint_Up(EventArgs&&);
+	+ \mf void OnPaint_Down(EventArgs&&);
+	/ \impl @ \mf (OnActivated & OnDeactivated);
+
+r34:
+/= test 9 ^ \conf release;
+
+r35:
+/= \impl @ 1 \f DrawText @ \impl \u YText;
+/ @ \cl MDualScreenReader @ \u DSReader:
+	/ private \m shared_ptr<Drawing::TextRegion> pTextRegionUp
+		-> public \m Drawing::TextRegion TextRegionUp;
+	/ private \m shared_ptr<Drawing::TextRegion> pTextRegionDown
+		-> public \m Drawing::TextRegion TextRegionDown;
+	/ \tr \impl @ \ctor;
+	- \i \mf (GetUp & GetDn);
+	- private \mf Clear & Reset & FillText;
+	/ \tr \impl @ \mf Reset & Update;
+
+r36:
+/ \a ClearLn => ClearTextLine;
+
+r37:
+/ @ \u DSReader:
+	/ @ \ns Components::Widgets:
+		+ \cl TextArea;
+	/ @ \ns DS::Components
+		/ \simp \cl MDualScreenReader ^ TextArea:
+			/ \m Drawing::TextRegion TextRegionUp
+				-> TextArea AreaUp;
+			/ \m Drawing::TextRegion TextRegionDown
+				-> TextArea AreaDown;
+			/ \tr \impl @ \ctor;
+
+r38:
+/ \a SetLnNNowTo => SetCurrentTextLineNTo;
+/ @ \dir UI:
+	/ \h YViewer["yviewer.hpp"] => Viewer["viewer.hpp"];
+	/ \u YLabel["ylabel.h", "ylabel.cpp"] => Label["label.h", "label.cpp"];
+	+ \u TextArea["textarea.h", "textarea.cpp"];
+	/ \tr \inh @ \h Button & TextList;
+/ \cl TextArea @ \u DSReader >> \u TextArea;
+/ \a GetLnHeightFrom => GetTextLineHeightFrom;
+/ \a GetLnNNowFrom => GetCurrentTextLineNFrom;
+/ \a GetLnHeightExFrom => GetTextLineHeightExFrom;
++ \inc \h TextArea @ \h DSReader;
+
+r39:
+/= test 10 ^ \conf release;
+
+r40:
+/ @ \cl ProgressBar:
+	+ Color BorderColor;
+	/ \impl @ \ctor;
+	/ \impl @ \mf Draw;
+
+r41:
+/ \ctor	\exp TextArea(const Drawing::Rect& = Drawing::Rect::Empty)
+	@ \cl TextArea -> \exp TextArea(const Drawing::Rect& = Drawing::Rect::Empty,
+	FontCache& = FetchGlobalInstance().GetFontCache());
+/ \tr \impl @ \ctor @ \cl MDualScreenReader @ \impl \u DSReader;
+
+r42:
+/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlReader @ \impl \u Shells;
+
+r43:
+/ \rem @ \mf (OnPaint_Up & OnPaint_Down) @ \cl ShlReader @ \u Shells;
+/ \impl @ \ctor @ \cl MDualScreenReader @ \impl \u DSReader;
+
+r44:
 /= test 11 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-06-27:
+2011-07-01:
 -18.6d;
-//Mercurial rev1-rev91: r4522;
+//Mercurial rev1-rev92: r4572;
 
 / ...
 
 
 $NEXT_TODO:
-b222-b288:
+b223-b288:
 * non-ASCII character path error in FAT16;
 + key accelerators;
 / fully \impl \u DSReader;
@@ -647,6 +574,35 @@ $ellipse_refactoring;
 
 $now
 (
+	* $design "minor faults dectected by CppCheck" $=
+	(
+		/ "simplified implementation" @ "%YGUIShell::ResponseTouch" $since b195,
+		* "implementation" @ "%ystdex::fexists" $since b151
+	),
+	+ "default GUI event %Paint",
+	/ "controls drawing" ^ "event Paint" ~ "member function Draw"
+		@ "class (%Frame, %YGUIShell)",
+	/ "GUI controls inhancement" $=
+	(
+		+ "key events for text list controls including menu" $=
+		(
+			+ "state-based cyclic traversing" @ "class %TextList",
+			+ "%TouchDown %KeySpace::Up and %TouchDown %KeySpace::Down \
+				of cyclic traversing",
+			+ "%TouchDown %KeySpace::Up and %TouchDown %KeySpace::Down \
+				of initializing selection when unselected"
+		)
+	),
+	/ "shells test example" $=
+	(
+		+ "menu" @ "class %ShlReader",
+		^ "widget drawing" ^ "direct desktop background drawing"
+	),
+	+ "controls: buffered text area"
+),
+
+b221
+(
 	/ "shells test example" $=
 	(
 	`	/ "simplified direct-painting test",
@@ -684,7 +640,7 @@ $now
 	),
 	/ "menus functionality" $=
 	(
-		+ "key events for submenu showing and hiding" $=
+		+ "key events for submenus" $=
 		(
 			+ "%TouchDown %KeySpace::Left for hiding",
 			+ "%TouchDown %KeySpace::Right for showing"

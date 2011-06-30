@@ -8,15 +8,15 @@
 	understand and accept it fully.
 */
 
-/*!	\file ylabel.cpp
+/*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version 0.2090;
+\version 0.2099;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-06-20 09:06 +0800;
+	2011-06-30 20:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,7 +24,7 @@
 */
 
 
-#include "ylabel.h"
+#include "label.h"
 #include "yuicont.h"
 #include "ywindow.h"
 
@@ -78,7 +78,7 @@ MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt)
 	case Down:
 		{
 			SPos vertical_offset(r.Height - GetHorizontalFrom(Margin)
-				- GetLnHeightFrom(ts));
+				- GetTextLineHeightFrom(ts));
 
 			if(vertical_offset > 0)
 			{
@@ -97,11 +97,11 @@ MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt)
 
 
 void
-Label::Paint()
+Label::Draw()
 {
-	YWidgetAssert(this, Widgets::Label, Paint);
+	YWidgetAssert(this, Widgets::Label, Draw);
 
-	Widget::Paint();
+	Widget::Draw();
 	PaintText(*this, ForeColor, FetchContext(*this), LocateForWindow(*this));
 }
 

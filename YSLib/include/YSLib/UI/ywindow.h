@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.4359;
+\version 0.4363;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-06-16 20:26 +0800;
+	2011-06-28 21:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -155,16 +155,16 @@ protected:
 
 public:
 	/*!
-	\brief 绘制界面（不检查刷新状态）。
-	*/
-	virtual void
-	Draw();
-
-	/*!
 	\brief 绘制界面。
 	*/
 	ImplI1(IWindow) void
-	Paint();
+	Draw();
+
+	/*!
+	\brief 绘制界面（不检查刷新状态）。
+	*/
+	virtual void
+	DrawRaw();
 
 	/*!
 	\brief 刷新至窗口缓冲区。

@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version 0.3305;
+\version 0.3317;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-06-25 21:51 +0800;
+	2011-07-01 00:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,11 +56,6 @@ class ShlExplorer : public ShlDS
 {
 public:
 	typedef ShlDS ParentType;
-
-	Label lblTitle, lblPath;
-	FileBox fbMain;
-	Button btnTest, btnOK;
-	CheckBox chkTest;
 
 	struct TFormTest : public Form
 	{
@@ -110,6 +105,10 @@ public:
 		OnClick_btnClose(TouchEventArgs&&);
 	};
 
+	Label lblTitle, lblPath;
+	FileBox fbMain;
+	Button btnTest, btnOK;
+	CheckBox chkTest;
 	unique_ptr<TFormTest> pWndTest;
 	unique_ptr<TFormExtra> pWndExtra;
 	Label lblA, lblB;
@@ -164,9 +163,9 @@ public:
 
 	MDualScreenReader Reader;
 	TextFile* pTextFile;
-
 	shared_ptr<Image> hUp, hDn;
 	bool bgDirty;
+	MenuHost mhMain;
 
 	ShlReader();
 
@@ -188,6 +187,13 @@ private:
 
 	void
 	OnKeyDown(KeyEventArgs&&);
+/*
+	void
+	OnPaint_Up(EventArgs&&);
+
+	void
+	OnPaint_Down(EventArgs&&);
+*/
 };
 
 YSL_END;

@@ -152,7 +152,7 @@
 		<Unit filename="include\platform.h" />
 		<Extensions>
 			<DoxyBlocks>
-				<comment_style block="1" line="1" />
+				<comment_style block="3" line="1" />
 				<doxyfile_project />
 				<doxyfile_build />
 				<doxyfile_warnings />

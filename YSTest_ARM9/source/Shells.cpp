@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version 0.4705;
+\version 0.4748;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-06-26 02:08 +0800;
+	2011-07-01 00:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -785,27 +785,33 @@ ShlExplorer::OnActivated(const Message& msg)
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
+	// parent-init-seg 0;
 	dsk_up += lblTitle;
 	dsk_up += lblPath;
 	dsk_dn += fbMain;
 	dsk_dn += btnTest;
 	dsk_dn += btnOK;
 	dsk_dn += chkTest;
+	dsk_up += lblA;
+	dsk_up += lblB;
+	// init-seg 1;
 	dsk_up.GetBackgroundImagePtr() = FetchImage(1);
 	dsk_dn.GetBackgroundImagePtr() = FetchImage(2);
+	// init-seg 2;
 	lblTitle.Text = "文件列表：请选择一个文件。";
 	lblPath.Text = "/";
 //	lblTitle.Transparent = true;
 //	lblPath.Transparent = true;
+	btnOK.SetTransparent(false);
 	btnTest.Text = _ustr("测试(X)");
 	btnOK.Text = _ustr("确定(A)");
+	// init-seg 3;
 	dsk_dn.BoundControlPtr = std::bind(
 		std::mem_fn(&ShlExplorer::GetBoundControlPtr), this,
 		std::placeholders::_1);
 	FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave;
 	FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown;
 	FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click;
-	btnOK.SetTransparent(false);
 /*
 	ReplaceHandle<IWindow*>(hWndUp,
 		new TFrmFileListMonitor(shared_ptr<YShell>(this)));
@@ -816,8 +822,7 @@ ShlExplorer::OnActivated(const Message& msg)
 	//		hWndDown)->fbMain.RequestFocus(GetZeroElement<EventArgs>());
 	//	hWndDown->RequestFocus(GetZeroElement<EventArgs>());
 	RequestFocusCascade(fbMain);
-	dsk_up += lblA;
-	dsk_up += lblB;
+	// init-seg 4;
 	dsk_dn.BackColor = ARGB16(1, 15, 15, 31);
 	pWndTest = unique_raw(new TFormTest());
 	pWndExtra = unique_raw(new TFormExtra());
@@ -827,7 +832,7 @@ ShlExplorer::OnActivated(const Message& msg)
 	dsk_dn += *pWndExtra;
 //	pWndTest->DrawContents();
 //	pWndExtra->DrawContents();
-
+	// init-seg 5;
 /*	Menu& mnu(*new Menu(Rect::Empty, GenerateList(_ustr("TestMenuItem0")), 1u));
 
 	FetchEvent<Click>(mnu) += OnClick_ShowWindow;
@@ -846,18 +851,22 @@ ShlExplorer::OnDeactivated(const Message& msg)
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
+	// uninit-seg 1;
 	reset(dsk_up.GetBackgroundImagePtr());
 	reset(dsk_dn.GetBackgroundImagePtr());
+	// uninit-seg 3;
 	dsk_dn.BoundControlPtr = std::bind(
 		std::mem_fn(&Control::GetBoundControlPtr), &dsk_dn,
 		std::placeholders::_1);
 	FetchEvent<KeyUp>(dsk_dn) -= OnKey_Bound_TouchUpAndLeave;
 	FetchEvent<KeyDown>(dsk_dn) -= OnKey_Bound_EnterAndTouchDown;
 	FetchEvent<KeyPress>(dsk_dn) -= OnKey_Bound_Click;
+	// uninit-seg 4;
 	reset(pWndTest);
 	reset(pWndExtra);
-	reset(dsk_up.GetBackgroundImagePtr());
-	reset(dsk_dn.GetBackgroundImagePtr());
+	// uninit-seg 5;
+	mhMain.Clear();
+	// parent-uninit-seg 0;
 	ParentType::OnDeactivated(msg);
 	return 0;
 }
@@ -887,7 +896,7 @@ ShlExplorer::ShowString(const char* s)
 void
 ShlExplorer::OnClick_btnTest(TouchEventArgs&&)
 {
-	YAssert(is_valid(pWndTest), "err: pWndTest is invalid;");
+	YAssert(is_null(pWndTest), "err: pWndTest is null;");
 
 	SwitchVisible(*pWndTest);
 /*	if(fbMain.IsSelected())
@@ -949,7 +958,7 @@ ShlExplorer::OnClick_ShowWindow(IControl&, TouchEventArgs&&)
 {
 	auto& pWnd(FetchShell<ShlExplorer>().pWndExtra);
 
-	YAssert(is_valid(pWnd), "err: pWndExtra is invalid;");
+	YAssert(is_null(pWnd), "err: pWndExtra is null;");
 
 	SwitchVisible(*pWnd);
 }
@@ -973,7 +982,8 @@ string ShlReader::path;
 
 ShlReader::ShlReader()
 	: ShlDS(),
-	Reader(), pTextFile(), hUp(), hDn(), bgDirty(false)
+	Reader(), pTextFile(), hUp(), hDn(), bgDirty(false),
+	mhMain(*GetDesktopDownHandle())
 {}
 
 int
@@ -999,30 +1009,74 @@ ShlReader::OnActivated(const Message& msg)
 	pTextFile = ynew TextFile(path.c_str());
 	Reader.LoadText(*pTextFile);
 	bgDirty = true;
-	std::swap(hUp, GetDesktopUp().GetBackgroundImagePtr());
-	std::swap(hDn, GetDesktopDown().GetBackgroundImagePtr());
-	GetDesktopUp().BackColor = ARGB16(1, 30, 27, 24);
-	GetDesktopDown().BackColor = ARGB16(1, 24, 27, 30);
-	FetchEvent<Click>(GetDesktopDown()).Add(*this, &ShlReader::OnClick);
-	FetchEvent<KeyDown>(GetDesktopDown()).Add(*this, &ShlReader::OnKeyDown);
-	FetchEvent<KeyHeld>(GetDesktopDown()) += OnKeyHeld;
-	RequestFocusCascade(GetDesktopDown());
+
+	auto& dsk_up(GetDesktopUp());
+	auto& dsk_down(GetDesktopDown());
+
+	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
+	std::swap(hDn, dsk_down.GetBackgroundImagePtr());
+	dsk_up.BackColor = ARGB16(1, 30, 27, 24);
+	dsk_down.BackColor = ARGB16(1, 24, 27, 30);
+	FetchEvent<Click>(dsk_down).Add(*this, &ShlReader::OnClick);
+	FetchEvent<KeyDown>(dsk_down).Add(*this, &ShlReader::OnKeyDown);
+	FetchEvent<KeyHeld>(dsk_down) += OnKeyHeld;
+//	FetchEvent<Paint>(dsk_up).Add(*this, &ShlReader::OnPaint_Up);
+//	FetchEvent<Paint>(dsk_down).Add(*this, &ShlReader::OnPaint_Down);
+	dsk_up += Reader.AreaUp;
+	dsk_down += Reader.AreaDown;
+
+	{
+		auto hList(share_raw(new Menu::ListType));
+		auto& lst(*hList);
+
+		lst.push_back("返回");
+		lst.push_back(_ustr("2"));
+		lst.push_back("3");
+
+		Menu& mnu(*new Menu(Rect::Empty, std::move(hList), 1u));
+
+		mnu.GetConfirmed() += [this](IControl&, IndexEventArgs&& e)
+		{
+			if(e.Index == 0)
+				CallStored<ShlExplorer>();
+		};
+		mhMain += mnu;
+		/*
+		mhMain += *new Menu(Rect::Empty, GenerateList("返回"), 1u);
+		mhMain += *new Menu(Rect::Empty, GenerateList("向上一行"), 2u);
+		mhMain += *new Menu(Rect::Empty, GenerateList("向下一行"), 3u);
+		mhMain += *new Menu(Rect::Empty, GenerateList("ll"), 4u);
+		mhMain[1u] += make_pair(1u, &mhMain[2u]);
+		mhMain[1u] += make_pair(2u, &mhMain[3u]);
+		mhMain[1u] += make_pair(3u, &mhMain[4u]);
+		*/
+	}
+	ResizeForContent(mhMain[1u]);
+	RequestFocusCascade(dsk_down);
 	UpdateToScreen();
 	return 0;
 }
 
 int
-ShlReader::OnDeactivated(const Message&)
+ShlReader::OnDeactivated(const Message& msg)
 {
-	GetDesktopUp().ClearContents();
-	GetDesktopDown().ClearContents();
-	FetchEvent<Click>(GetDesktopDown()).Remove(*this, &ShlReader::OnClick);
-	FetchEvent<KeyDown>(GetDesktopDown()).Remove(*this, &ShlReader::OnKeyDown);
-	FetchEvent<KeyHeld>(GetDesktopDown()) -= OnKeyHeld;
-	std::swap(hUp, GetDesktopUp().GetBackgroundImagePtr());
-	std::swap(hDn, GetDesktopDown().GetBackgroundImagePtr());
+	mhMain.Clear();
+
+	auto& dsk_up(GetDesktopUp());
+	auto& dsk_down(GetDesktopDown());
+
+	FetchEvent<Click>(dsk_down).Remove(*this, &ShlReader::OnClick);
+	FetchEvent<KeyDown>(dsk_down).Remove(*this, &ShlReader::OnKeyDown);
+	FetchEvent<KeyHeld>(dsk_down) -= OnKeyHeld;
+//	FetchEvent<Paint>(dsk_up).Remove(*this, &ShlReader::OnPaint_Up);
+//	FetchEvent<Paint>(dsk_down).Remove(*this, &ShlReader::OnPaint_Down);
+	dsk_up -= Reader.AreaUp;
+	dsk_down -= Reader.AreaDown;
+	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
+	std::swap(hDn, dsk_down.GetBackgroundImagePtr());
 	Reader.UnloadText();
 	safe_delete_obj()(pTextFile);
+	ParentType::OnDeactivated(msg);
 	return 0;
 }
 
@@ -1035,19 +1089,15 @@ ShlReader::UpdateToScreen()
 		//强制刷新背景。
 		GetDesktopUp().SetRefresh(true);
 		GetDesktopDown().SetRefresh(true);
-		GetDesktopUp().Refresh();
-		GetDesktopDown().Refresh();
-		Reader.PrintText(GetDesktopUp().GetContext(),
-			GetDesktopDown().GetContext());
-		GetDesktopUp().Update();
-		GetDesktopDown().Update();
 	}
+	ParentType::UpdateToScreen();
 }
 
 void
-ShlReader::OnClick(TouchEventArgs&&)
+ShlReader::OnClick(TouchEventArgs&& e)
 {
-	CallStored<ShlExplorer>();
+	mhMain[1u].SetLocation(e);
+	mhMain.Show(1u);
 }
 
 void
@@ -1122,6 +1172,18 @@ ShlReader::OnKeyDown(KeyEventArgs&& e)
 		return;
 	}
 }
+
+/*
+void ShlReader::OnPaint_Up(EventArgs&&)
+{
+	Reader.PrintTextUp(GetDesktopUp().GetContext());
+}
+
+void ShlReader::OnPaint_Down(EventArgs&&)
+{
+	Reader.PrintTextDown(GetDesktopDown().GetContext());
+}
+*/
 
 YSL_END
 

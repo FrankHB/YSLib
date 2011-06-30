@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2172;
+\version 0.2174;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-06-08 18:13 +0800;
+	2011-06-28 16:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -381,8 +381,8 @@ FileList::LoadSubItems()
 
 	if(dir.IsValid())
 	{
-		YAssert(is_valid(hList),
-			"Invalid handle found @ FileList::LoadSubItems;");
+		YAssert(is_null(hList),
+			"Null handle found @ FileList::LoadSubItems;");
 
 		hList->clear();
 

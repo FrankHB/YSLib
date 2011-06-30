@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version 0.2363;
+\version 0.2419;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-06-19 02:30 +0800;
+	2011-06-30 20:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include <YSLib/UI/ydesktop.h>
 #include <YSLib/Service/ytext.h>
 #include <YSLib/Helper/yglobal.h>
+#include <YSLib/UI/textarea.h>
 #include <YSLib/Service/textmgr.h>
 
 YSL_BEGIN
@@ -56,14 +57,15 @@ class MDualScreenReader
 private:
 	BlockedText* pText; //!< 文本资源。
 	FontCache& fc; //!< 字体缓存。
-	shared_ptr<Drawing::TextRegion> pTextRegionUp; //!< 上屏幕对应字符区域。
-	shared_ptr<Drawing::TextRegion> pTextRegionDown; //!< 下屏幕对应字符区域。
 	Drawing::Rotation rot; //!< 屏幕指向。
 	Text::TextFileBuffer::HText itUp; //!< 字符区域读取文本缓存迭代器。
 	Text::TextFileBuffer::HText itDn; //!< 字符区域读取文本缓存迭代器。
 	u8 lnHeight; //!< 行高。
 
 public:
+	YSLib::Components::Widgets::TextArea AreaUp; //!< 上屏幕对应字符区域。
+	YSLib::Components::Widgets::TextArea AreaDown; //!< 下屏幕对应字符区域。
+
 	/*!
 	\brief 构造。
 	\param w 字符区域宽。
@@ -71,36 +73,32 @@ public:
 	\param h_down 下字符区域高。
 	\param fc_ 字体缓存对象。
 	*/
-	MDualScreenReader(SDst w = MainScreenWidth, SDst h_up = MainScreenHeight,
-		SDst h_down = MainScreenHeight,
+	MDualScreenReader(SDst w = MainScreenWidth,
+		SDst h_up = MainScreenHeight, SDst h_down = MainScreenHeight,
 		FontCache& fc_ = FetchGlobalInstance().GetFontCache());
 
 	bool IsTextTop(); //!< 判断输出位置是否到文本顶端。
 	bool IsTextBottom(); //!< 判断输出位置是否到文本底端。
 
 	DefGetter(u8, FontSize, fc.GetFontSize()) //!< 取字符区域的字体大小。
-	DefGetter(Drawing::TextRegion&, Up, *pTextRegionUp) \
-		//!< 取上字符区域的引用。
-	DefGetter(Drawing::TextRegion&, Dn, *pTextRegionDown) \
-		//!< 取下字符区域的引用。
-	DefGetter(Color, ColorUp, pTextRegionUp->Color) \
+	DefGetter(Color, ColorUp, AreaUp.Color) \
 		//!< 取上字符区域的字体颜色。
-	DefGetter(Color, ColorDown, pTextRegionDown->Color) \
+	DefGetter(Color, ColorDown, AreaDown.Color) \
 		//!< 取下字符区域的字体颜色。
-	DefGetter(u8, LineGapUp, pTextRegionUp->LineGap) //!< 取上字符区域的行距。
-	DefGetter(u8, LineGapDown, pTextRegionDown->LineGap) \
+	DefGetter(u8, LineGapUp, AreaUp.LineGap) //!< 取上字符区域的行距。
+	DefGetter(u8, LineGapDown, AreaDown.LineGap) \
 		//!< 取下字符区域的行距。
 	DefGetter(Color, Color, GetColorUp()) //!< 取字符区域的字体颜色。
 	DefGetter(u8, LineGap, GetLineGapUp()) //!< 取字符区域的行距。
 
 private:
-	DefSetterDe(PixelType, ColorUp, pTextRegionUp->Color, 0) \
+	DefSetterDe(PixelType, ColorUp, AreaUp.Color, 0) \
 		//!< 设置上字符区域的字体颜色。
-	DefSetterDe(PixelType, ColorDown, pTextRegionDown->Color, 0) \
+	DefSetterDe(PixelType, ColorDown, AreaDown.Color, 0) \
 		//!< 设置下字符区域的字体颜色。
-	DefSetterDe(u8, LineGapUp, pTextRegionUp->LineGap, 0) \
+	DefSetterDe(u8, LineGapUp, AreaUp.LineGap, 0) \
 		//!< 设置上字符区域的行距。
-	DefSetterDe(u8, LineGapDown, pTextRegionDown->LineGap, 0) \
+	DefSetterDe(u8, LineGapDown, AreaDown.LineGap, 0) \
 		//!< 设置下字符区域的行距。
 
 public:
@@ -114,27 +112,8 @@ public:
 
 	//设置笔的行位置。
 	//void
-	//SetLnNNowTo(u8);
+	//SetCurrentTextLineNTo(u8);
 
-private:
-	//! \brief 清除字符区域缓冲区。
-	void Clear()
-	{
-		pTextRegionUp->ClearImage();
-		pTextRegionDown->ClearImage();
-	}
-
-	//! \brief 复位缓存区域写入位置。
-	void ResetPen()
-	{
-		pTextRegionUp->ResetPen();
-		pTextRegionDown->ResetPen();
-	}
-
-	//! \brief 文本填充：输出文本缓冲区字符串，并返回填充字符数。
-	void FillText();
-
-public:
 	//! \brief 复位输出状态。
 	void
 	Reset();
@@ -147,9 +126,13 @@ public:
 	void
 	UnloadText();
 
-	//! \brief 绘制文本。
+	//! \brief 绘制上屏文本。
 	void
-	PrintText(const Drawing::Graphics&, const Drawing::Graphics&);
+	PrintTextUp(const Drawing::Graphics&);
+
+	//! \brief 绘制下屏文本。
+	void
+	PrintTextDown(const Drawing::Graphics&);
 
 	//! \brief 更新缓冲区文本。
 	void

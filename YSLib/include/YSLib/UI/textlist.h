@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1321;
+\version 0.1338;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-06-27 05:35 +0800;
+	2011-06-30 20:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,8 +28,8 @@
 #define YSL_INC_UI_TEXTLIST_H_
 
 #include "ygui.h"
-#include "ylabel.h"
-#include "yviewer.hpp"
+#include "label.h"
+#include "viewer.hpp"
 
 YSL_BEGIN
 
@@ -54,6 +54,8 @@ public:
 	using MTextList::Text;
 	Color HilightBackColor; //!< 高亮背景色。
 	Color HilightTextColor; //!< 高亮文本色。
+
+	bool CyclicTraverse; //!< 循环选择遍历。
 
 private:
 	ViewerType viewer; //!< 列表视图。
@@ -132,7 +134,6 @@ public:
 	void
 	SetSelected(const Point&);
 
-protected:
 	/*!
 	\brief 调整列表视图首项目超出上边界的垂直偏移量为零。
 	\return 返回调整前的偏移量值。
@@ -160,7 +161,12 @@ protected:
 	ViewerType::SizeType
 	CheckPoint(const Point&);
 
-public:
+	/*!
+	\brief 绘制控件界面。
+	*/
+	virtual void
+	DrawControl();
+
 	PDefH0(void, ClearSelected)
 		ImplBodyMember0(viewer, ClearSelected)
 
@@ -169,12 +175,6 @@ public:
 	*/
 	void
 	LocateViewPosition(SDst);
-
-	/*!
-	\brief 绘制界面。
-	*/
-	virtual void
-	Paint();
 
 protected:
 	/*!
@@ -200,12 +200,25 @@ public:
 	ResetView();
 
 	/*!
+	\brief 选择第一个项目。
+	\note 仅操作 viewer ，不更新视图。
+	*/
+	void
+	SelectFirst();
+
+	/*!
+	\brief 选择最后一个项目。
+	\note 仅操作 viewer ，不更新视图。
+	*/
+	void
+	SelectLast();
+
+	/*!
 	\brief 更新视图。
 	\note 调用视图变更事件。
 	*/
 	void
 	UpdateView();
-
 private:
 	/*!
 	\brief 调用选中事件处理器。
@@ -220,16 +233,10 @@ private:
 	CheckConfirmed(ViewerType::SizeType);
 
 	/*!
-	\brief 处理选中事件。
+	\brief 处理选中和确认事件。
 	*/
 	void
 	OnSelected(IndexEventArgs&&);
-
-	/*!
-	\brief 处理确认事件。
-	*/
-	void
-	OnConfirmed(IndexEventArgs&&);
 };
 
 inline void

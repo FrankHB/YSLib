@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1346;
+\version 0.1378;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-06-27 05:35 +0800;
+	2011-06-29 17:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -47,66 +47,101 @@ namespace
 TextList::Dependencies::Dependencies()
 {
 	Selected.GetRef() += &TextList::OnSelected;
-	Confirmed.GetRef() += &TextList::OnConfirmed;
+	Confirmed.GetRef() += &TextList::OnSelected;
 }
 
 TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	pair<Color, Color> hilight_pair)
 	: Control(r), MTextList(h),
 	HilightBackColor(hilight_pair.first), HilightTextColor(hilight_pair.second),
+	CyclicTraverse(false),
 	viewer(GetList()), top_offset(0), Events(GetStaticRef<Dependencies>())
 {
 	SetAllTo(Margin, defMarginH, defMarginV);
 	FetchEvent<KeyDown>(*this) += [this](IControl&, KeyEventArgs&& e){
-		if(viewer.IsSelected())
+		if(viewer.GetTotal() != 0)
 		{
-			switch(e.GetKeyCode())
+			if(viewer.IsSelected())
 			{
-			case KeySpace::Enter:
-				CheckConfirmed(viewer.GetSelectedIndex());
-				break;
-			case KeySpace::ESC:
-				ClearSelected();
-				CallSelected();
-				break;
-			case KeySpace::Up:
-			case KeySpace::Down:
-			case KeySpace::PgUp:
-			case KeySpace::PgDn:
+				switch(e.GetKeyCode())
 				{
-					const auto nOld(viewer.GetSelectedIndex());
-
-					switch(e.GetKeyCode())
+				case KeySpace::Enter:
+					CheckConfirmed(viewer.GetSelectedIndex());
+					break;
+				case KeySpace::ESC:
+					ClearSelected();
+					CallSelected();
+					break;
+				case KeySpace::Up:
+				case KeySpace::Down:
+				case KeySpace::PgUp:
+				case KeySpace::PgDn:
 					{
-					case KeySpace::Up:
-						--viewer;
-						if(viewer.GetOffset() == 0)
+						const auto nOld(viewer.GetSelectedIndex());
+
+						switch(e.GetKeyCode())
+						{
+						case KeySpace::Up:
+							if(GetSelectedIndex() == 0)
+							{
+								if(CyclicTraverse)
+									SelectLast();
+							}
+							else
+							{
+								--viewer;
+								if(viewer.GetOffset() == 0)
+									AdjustTopOffset();
+							}
+							break;
+						case KeySpace::Down:
+							if(GetSelectedIndex() == GetList().size() - 1)
+							{
+								if(CyclicTraverse)
+									SelectFirst();
+							}
+							else
+							{
+								++viewer;
+								if(viewer.GetOffset()
+									== static_cast<ViewerType::DifferenceType>(
+									viewer.GetLength() - 1))
+									AdjustBottomOffset();
+							}
+							break;
+						case KeySpace::PgUp:
+							viewer.DecreaseSelected(viewer.GetLength());
 							AdjustTopOffset();
-						break;
-					case KeySpace::Down:
-						++viewer;
-						if(viewer.GetOffset() == static_cast<
-							ViewerType::DifferenceType>(viewer.GetLength() - 1))
+							break;
+						case KeySpace::PgDn:
+							viewer.IncreaseSelected(viewer.GetLength());
 							AdjustBottomOffset();
-						break;
-					case KeySpace::PgUp:
-						viewer.DecreaseSelected(viewer.GetLength());
-						AdjustTopOffset();
-						break;
-					case KeySpace::PgDn:
-						viewer.IncreaseSelected(viewer.GetLength());
-						AdjustBottomOffset();
-						break;
+							break;
+						}
+						if(viewer.GetSelectedIndex() != nOld)
+							CallSelected();
 					}
-					if(viewer.GetSelectedIndex() != nOld)
-						CallSelected();
+					break;
+				default:
+					return;
 				}
-				break;
-			default:
-				return;
 			}
-			UpdateView();
+			else
+				switch(e.GetKeyCode())
+				{
+				case KeySpace::Up:
+				case KeySpace::PgUp:
+					SelectLast();
+					break;
+				case KeySpace::Down:
+				case KeySpace::PgDn:
+					SelectFirst();
+					break;
+				default:
+					return;
+				}
 		}
+		UpdateView();
 	};
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld;
 	FetchEvent<TouchDown>(*this) += [this](IControl&, TouchEventArgs&& e){
@@ -184,6 +219,22 @@ TextList::CheckPoint(SPos x, SPos y)
 }
 
 void
+TextList::DrawControl()
+{
+	YWidgetAssert(this, Controls::TextList, Draw);
+
+	IWindow* pWnd(FetchDirectWindowPtr(*this));
+
+	if(pWnd)
+	{
+		Widget::Draw();
+		DrawWidgetBounds(*this, IsFocused() ? ColorSpace::Aqua
+			: FetchGUIShell().Colors[Styles::ActiveBorder]);
+		PaintItems(pWnd->GetContext());
+	}
+}
+
+void
 TextList::LocateViewPosition(SDst h)
 {
 	RestrictInInterval(h, 0, GetFullViewHeight());
@@ -194,22 +245,6 @@ TextList::LocateViewPosition(SDst h)
 
 		viewer.SetHeadIndex(h / item_height);
 		top_offset = h % item_height;
-	}
-}
-
-void
-TextList::Paint()
-{
-	YWidgetAssert(this, Controls::TextList, Paint);
-
-	IWindow* pWnd(FetchDirectWindowPtr(*this));
-
-	if(pWnd)
-	{
-		Control::Paint();
-		DrawWidgetBounds(*this, IsFocused() ? ColorSpace::Aqua
-			: FetchGUIShell().Colors[Styles::ActiveBorder]);
-		PaintItems(pWnd->GetContext());
 	}
 }
 
@@ -280,6 +315,20 @@ TextList::ResetView()
 }
 
 void
+TextList::SelectFirst()
+{
+	viewer.SetSelectedIndex(0);
+	AdjustTopOffset();
+}
+
+void
+TextList::SelectLast()
+{
+	viewer.SetSelectedIndex(GetList().size() - 1);
+	AdjustBottomOffset();
+}
+
+void
 TextList::UpdateView()
 {
 	GetViewChanged()(*this, EventArgs());
@@ -303,12 +352,6 @@ void
 TextList::OnSelected(IndexEventArgs&&)
 {
 	Refresh();
-}
-
-void
-TextList::OnConfirmed(IndexEventArgs&& e)
-{
-	OnSelected(std::move(e));
 }
 
 

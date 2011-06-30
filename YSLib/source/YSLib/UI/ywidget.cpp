@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.4919;
+\version 0.4921;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-10 17:24 +0800;
+	2011-06-28 21:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,9 +92,9 @@ Widget::Widget(const Rect& r, Color b, Color f)
 {}
 
 void
-Widget::Paint()
+Widget::Draw()
 {
-	YWidgetAssert(this, Widgets::Widget, Paint);
+	YWidgetAssert(this, Widgets::Widget, Draw);
 
 	if(!IsTransparent())
 		Fill(*this, BackColor);

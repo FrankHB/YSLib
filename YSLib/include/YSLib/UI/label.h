@@ -8,15 +8,15 @@
 	understand and accept it fully.
 */
 
-/*!	\file ylabel.h
+/*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version 0.2081;
+\version 0.2091;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-06-20 09:06 +0800;
+	2011-06-30 20:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,7 +38,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Widgets)
 
-//标签模块。
+//! \brief 标签模块。
 class MLabel : public noncopyable
 {
 public:
@@ -76,7 +76,7 @@ protected:
 };
 
 
-//标签。
+//! \brief 标签。
 class Label : public Widget, protected MLabel
 {
 public:
@@ -101,7 +101,7 @@ public:
 	\brief 绘制界面。
 	*/
 	virtual void
-	Paint();
+	Draw();
 };
 
 inline
@@ -170,7 +170,7 @@ public:
 inline SDst
 MTextList::GetItemHeight() const
 {
-	return GetLnHeightExFrom(text_state);
+	return GetTextLineHeightExFrom(text_state);
 }
 inline Drawing::TextState&
 MTextList::GetTextState()

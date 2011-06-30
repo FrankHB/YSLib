@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2433;
+\version 0.2436;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-06-24 20:35 +0800;
+	2011-06-28 16:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -104,13 +104,13 @@ YApplication::SetShellHandle(const shared_ptr<YShell>& h)
 
 	if(hShell == h)
 		return false;
-	if(is_valid(hShell))
+	if(is_null(hShell))
 		hShell->OnDeactivated(Message(h, SM_DEACTIVATED, 0xF0,
 			ValueObject(hShell)));
 	hShell = h;
-	if(is_valid(h))
+	if(is_null(h))
 		h->OnActivated(Message(h, SM_ACTIVATED, 0xF0, ValueObject(h)));
-	return is_valid(h);
+	return is_null(h);
 }
 
 
@@ -169,7 +169,7 @@ DispatchMessage(const Message& msg)
 {
 	auto hShl(FetchAppInstance().GetShellHandle());
 
-	YAssert(is_valid(hShl), "Invalid shell handle found @ DispatchMessage;");
+	YAssert(is_null(hShl), "Null shell handle found @ DispatchMessage;");
 
 	return FetchAppInstance().GetShellHandle()->ShlProc(msg);
 }

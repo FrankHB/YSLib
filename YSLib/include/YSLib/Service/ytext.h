@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version 0.7008;
+\version 0.7020;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-06-16 20:32 +0800;
+	2011-06-30 20:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -119,7 +119,7 @@ TextState::operator=(const Padding& ms)
 \brief 在指定文本状态中取当前字体设置对应的行高。
 */
 inline SDst
-GetLnHeightFrom(const TextState& s)
+GetTextLineHeightFrom(const TextState& s)
 {
 	return s.GetCache().GetHeight();
 }
@@ -128,7 +128,7 @@ GetLnHeightFrom(const TextState& s)
 \brief 在指定文本状态中取当前字体设置对应的行高与行距之和。
 */
 inline SDst
-GetLnHeightExFrom(const TextState& s)
+GetTextLineHeightExFrom(const TextState& s)
 {
 	return s.GetCache().GetHeight() + s.LineGap;
 }
@@ -137,9 +137,9 @@ GetLnHeightExFrom(const TextState& s)
 \brief 取笔所在的当前行数。
 */
 inline u16
-GetLnNNowFrom(const TextState& s)
+GetCurrentTextLineNFrom(const TextState& s)
 {
-	return (s.PenY - s.Margin.Top) / GetLnHeightExFrom(s);
+	return (s.PenY - s.Margin.Top) / GetTextLineHeightExFrom(s);
 }
 
 /*!
@@ -187,7 +187,7 @@ SetMarginsTo(TextState& s, SDst h, SDst v)
 \brief 设置笔的行位置。
 */
 void
-SetLnNNowTo(TextState&, u16);
+SetCurrentTextLineNTo(TextState&, u16);
 
 /*!
 \brief 按字符跨距移动笔。
@@ -557,13 +557,12 @@ public:
 	virtual void
 	ClearLine(u16 l, SDst n);
 
-	//清除缓冲区第 l 个文本行。
 	/*!
-	\brief 清除缓冲区中的第 l 个文本行。
-	\note l 为 0 表示首行。
+	\brief 清除缓冲区中的指定行号的文本行。
+	\note 参数为 0 表示首行。
 	*/
 	void
-	ClearLn(u16 l);
+	ClearTextLine(u16);
 
 	//
 	/*!

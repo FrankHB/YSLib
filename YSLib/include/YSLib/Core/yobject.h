@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version 0.3153;
+\version 0.3155;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-25 02:37 +0800;
+	2011-06-28 16:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -241,8 +241,8 @@ public:
 		else if(!ptr.unique())
 			ptr = PointerType(new T(*ptr));
 
-		YAssert(is_valid(ptr),
-			"Invalid pointer found @ GDependency::GetCopyOnWritePtr;");
+		YAssert(is_null(ptr),
+			"Null pointer found @ GDependency::GetCopyOnWritePtr;");
 
 		return ptr;
 	}

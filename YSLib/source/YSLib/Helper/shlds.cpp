@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1807;
+\version 0.1811;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-06-25 21:52 +0800;
+	2011-06-28 16:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -84,10 +84,10 @@ ShlDS::ShlProc(const Message& msg)
 int
 ShlDS::OnActivated(const Message&)
 {
-	YAssert(is_valid(hDskUp),
-		"Invalid up desktop handle found @ ShlDS::ShlDS;");
-	YAssert(is_valid(hDskDown),
-		"Invalid down desktop handle found @ ShlDS::ShlDS;");
+	YAssert(is_null(hDskUp),
+		"Null up desktop handle found @ ShlDS::ShlDS;");
+	YAssert(is_null(hDskDown),
+		"Null down desktop handle found @ ShlDS::ShlDS;");
 
 	ResetGUIStates();
 	return 0;

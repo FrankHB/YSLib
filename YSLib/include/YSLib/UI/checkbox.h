@@ -11,12 +11,12 @@
 /*!	\file checkbox.h
 \ingroup UI
 \brief 样式相关的图形用户界面复选框控件。
-\version 0.1166;
+\version 0.1170;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-22 07:17:17 +0800;
 \par 修改时间:
-	2011-06-16 19:53 +0800;
+	2011-06-29 08:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,10 +53,10 @@ public:
 	DefPredicate(Ticked, bTicked)
 
 	/*!
-	\brief 绘制界面。
+	\brief 绘制控件界面。
 	*/
 	virtual void
-	Paint();
+	DrawControl();
 };
 
 YSL_END_NAMESPACE(Controls)

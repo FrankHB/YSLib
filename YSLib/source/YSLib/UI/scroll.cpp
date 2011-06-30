@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3692;
+\version 0.3709;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-06-26 02:07 +0800;
+	2011-06-29 08:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -173,11 +173,11 @@ ATrack::SetLargeDelta(ValueType val)
 }
 
 void
-ATrack::Paint()
+ATrack::DrawControl()
 {
-	YWidgetAssert(this, Controls::ATrack, Paint);
+	YWidgetAssert(this, Controls::ATrack, Draw);
 
-	Control::Paint();
+	Widget::Draw();
 	if(!IsTransparent())
 	{
 		const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
@@ -201,7 +201,7 @@ ATrack::Paint()
 			DrawVLineSeg(g, xr, loc.Y, yr, c);
 		}
 	}
-	Thumb.Paint();
+	Thumb.DrawControl();
 }
 
 ATrack::Area
@@ -399,28 +399,28 @@ AScrollBar::GetTopControlPtr(const Point& p)
 	if(Contains(NextButton, p))
 		return &NextButton;
 
-	YAssert(is_valid(pTrack),
-		"Invalid widget pointer found @ AScrollBar::GetTopControlPtr;");
+	YAssert(is_null(pTrack),
+		"Null widget pointer found @ AScrollBar::GetTopControlPtr;");
 
 	return pTrack.get();
 }
 
 void
-AScrollBar::Paint()
+AScrollBar::DrawControl()
 {
-	YAssert(is_valid(pTrack),
-		"Invalid widget pointer found @ AScrollBar::Paint;");
+	YAssert(is_null(pTrack),
+		"Null widget pointer found @ AScrollBar::Draw;");
 
-	YWidgetAssert(this, Controls::HorizontalScrollBar, Paint);
+	YWidgetAssert(this, Controls::HorizontalScrollBar, Draw);
 
-	Control::Paint();
+	Widget::Draw();
 
 	const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
 	const Point b(LocateForWindow(*this));
 
-	pTrack->Paint();
-	PrevButton.Paint();
-	NextButton.Paint();
+	pTrack->DrawControl();
+	PrevButton.DrawControl();
+	NextButton.DrawControl();
 	WndDrawArrow(g, Rect(LocateForWindow(PrevButton), PrevButton.GetSize()), 4,
 		pTrack->GetOrientation() == Horizontal ? RDeg180 : RDeg90, ForeColor);
 	WndDrawArrow(g, Rect(LocateForWindow(NextButton), NextButton.GetSize()), 4,
@@ -492,15 +492,15 @@ ScrollableContainer::GetTopControlPtr(const Point& p)
 }
 
 void
-ScrollableContainer::Paint()
+ScrollableContainer::DrawControl()
 {
-	YWidgetAssert(this, Controls::ScrollableContainer, Paint);
+	YWidgetAssert(this, Controls::ScrollableContainer, Draw);
 
-	AUIBoxControl::Paint();
+	AUIBoxControl::DrawControl();
 	if(HorizontalScrollBar.IsVisible())
-		HorizontalScrollBar.Paint();
+		HorizontalScrollBar.Draw();
 	if(VerticalScrollBar.IsVisible())
-		VerticalScrollBar.Paint();
+		VerticalScrollBar.Draw();
 }
 
 Size

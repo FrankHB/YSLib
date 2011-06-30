@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.4278;
+\version 0.4294;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-06-26 02:23 +0800;
+	2011-06-29 08:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -156,17 +156,17 @@ Control::Control(const Rect& r)
 	: Widget(r), AFocusRequester(),
 	enabled(true), EventMap()
 {
+	FetchEvent<TouchDown>(EventMap) += [this](IControl&, TouchEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct)
+			RequestFocusFrom(*this);
+	};
+	FetchEvent<TouchHeld>(EventMap) += OnTouchHeld;
 	FetchEvent<GotFocus>(EventMap) += [this](IControl&, EventArgs&&){
 		this->Refresh();
 	};
 	FetchEvent<LostFocus>(EventMap) += [this](IControl&, EventArgs&&){
 		this->Refresh();
 	};
-	FetchEvent<TouchDown>(EventMap) += [this](IControl&, TouchEventArgs&& e){
-		if(e.Strategy == RoutedEventArgs::Direct)
-			RequestFocusFrom(*this);
-	};
-	FetchEvent<TouchHeld>(EventMap) += OnTouchHeld;
 	BoundControlPtr = std::bind(std::mem_fn(&Control::GetBoundControlPtr), this,
 		std::placeholders::_1);
 }
@@ -187,15 +187,26 @@ void
 Control::SetLocation(const Point& pt)
 {
 	Widget::SetLocation(pt);
-	GetEventMap().DoEvent<EventTypeMapping<Move>::HandlerType>(Move,
-		*this, EventArgs());
+	GetEventMap().DoEvent<HVisualEvent>(Move, *this, EventArgs());
 }
 void
 Control::SetSize(const Size& s)
 {
 	Widget::SetSize(s);
-	GetEventMap().DoEvent<EventTypeMapping<Resize>::HandlerType>(Resize,
-		*this, EventArgs());
+	GetEventMap().DoEvent<HVisualEvent>(Resize, *this, EventArgs());
+}
+
+void
+Control::Draw()
+{
+	DrawControl();
+	GetEventMap().DoEvent<HVisualEvent>(Paint, *this, EventArgs());
+}
+
+void
+Control::DrawControl()
+{
+	Widget::Draw();
 }
 
 void

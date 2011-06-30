@@ -11,12 +11,12 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version 0.1476;
+\version 0.1478;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-06-16 22:56 +0800;
+	2011-06-28 16:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

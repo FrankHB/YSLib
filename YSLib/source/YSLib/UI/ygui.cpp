@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.3836;
+\version 0.3847;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-26 16:00 +0800;
+	2011-06-29 20:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -154,7 +154,7 @@ YGUIShell::ResponseKeyBase(IControl& c, KeyEventArgs& e,
 		CallEvent<KeyHeld>(c, e);
 		break;
 	default:
-		YAssert(false, "Invalid function @ YGUIShell::ResponseKeyBase;");
+		YAssert(false, "Invalid operation found @ YGUIShell::ResponseKeyBase;");
 	}
 	return true;
 }
@@ -273,7 +273,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 
 		if(!t)
 		{
-			if(pCon && op == TouchDown)
+			if(op == TouchDown)
 				pCon->ClearFocusingPtr();
 			break;
 		}
@@ -308,9 +308,9 @@ YGUIShell::ShlProc(const Message& msg)
 	case SM_PAINT:
 		{
 			auto h(FetchTarget<SM_PAINT>(msg));
-
+			
 			if(h)
-				h->Paint();
+				h->Draw();
 		}
 		return 0;
 	default:
@@ -327,7 +327,7 @@ FetchGUIShell()
 	shared_ptr<YGUIShell> hShl(dynamic_pointer_cast<YGUIShell>(
 		FetchShellHandle()));
 
-	YAssert(is_valid(hShl), "Invalid handle found @ FetchGUIShell;");
+	YAssert(is_null(hShl), "Null handle found @ FetchGUIShell;");
 
 	return *hShl;
 }
