@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2174;
+\version 0.2190;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-06-28 16:50 +0800;
+	2011-07-02 04:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -109,7 +109,7 @@ Path::GetFilename() const
 	return empty() ? Path() : *--end();
 }
 Path
-Path::GetStemFrom() const
+Path::GetStem() const
 {
 	return Path();
 }
@@ -240,7 +240,7 @@ IsStemOf(const string& str, const string& name)
 bool
 HaveSameStems(const char* a, const char* b)
 {
-	const char *pea(GetExtendNameFrom(a)), *peb(GetExtendNameFrom(b));
+	const char *pea(GetExtensionFrom(a)), *peb(GetExtensionFrom(b));
 
 	if(pea - a != peb - b)
 		return false;
@@ -260,7 +260,7 @@ HaveSameStems(const string& a, const string& b)
 }
 
 const char*
-GetExtendNameFrom(const char* name)
+GetExtensionFrom(const char* name)
 {
 	if(!name)
 		return nullptr;
@@ -270,7 +270,7 @@ GetExtendNameFrom(const char* name)
 	return p && *++p ? p : nullptr;
 }
 string
-GetExtendNameFrom(const string& name)
+GetExtensionFrom(const string& name)
 {
 	const string::size_type p(name.rfind('.'));
 
@@ -278,38 +278,38 @@ GetExtendNameFrom(const string& name)
 }
 
 bool
-IsExtendNameOf(const char* str, const char* name)
+IsExtensionOf(const char* str, const char* name)
 {
-	const char* p(GetExtendNameFrom(name));
+	const char* p(GetExtensionFrom(name));
 
 	if(!p)
 		return false;
 	return !stricmp(str, p);
 }
 bool
-IsExtendNameOf(const string& str, const string& name)
+IsExtensionOf(const string& str, const string& name)
 {
 	if(str.length() > name.length())
 		return false;
-	return GetExtendNameFrom(name) == str;
+	return GetExtensionFrom(name) == str;
 }
 
 bool
-HaveSameExtendNames(const char* a, const char* b)
+HaveSameExtensions(const char* a, const char* b)
 {
 	if(!(a && b))
 		return false;
 
-	const char *pa(GetExtendNameFrom(a)), *pb(GetExtendNameFrom(b));
+	const char *pa(GetExtensionFrom(a)), *pb(GetExtensionFrom(b));
 
 	if(!(pa && pb))
 		return false;
 	return stricmp_n(pa, pb) != 0;
 }
 bool
-HaveSameExtendNames(const string& a, const string& b)
+HaveSameExtensions(const string& a, const string& b)
 {
-	string ea(GetExtendNameFrom(a)), eb(GetExtendNameFrom(b));
+	string ea(GetExtensionFrom(a)), eb(GetExtensionFrom(b));
 
 	return stricmp_n(ea.c_str(), eb.c_str()) != 0;
 //	return ucsicmp(ea.c_str(), eb.c_str());

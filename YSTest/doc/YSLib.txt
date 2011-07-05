@@ -11,12 +11,12 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib说明。
-\version 0.2056;
+\version 0.2063;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-05-20 04:30 +0800;
+	2011-07-01 06:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,18 +46,20 @@ SM_SET					0x0003
 //线程控制权转移至主 Shell ，若成功则删除句柄指向的 Shell 对象。对主 Shell 作用无效。
 SM_DROP					0x0004
 
-// Shell 被激活消息：Shell 被激活后自动产生。参考优先级 0xF0 。
+// Shell 激活消息：Shell 被激活后自动产生。参考优先级 0xF0 。
 //参数类型 shared_ptr<YShell> ，是被激活的 Shell 句柄。
 SM_ACTIVATED			0x0005
 
-// Shell 被停用消息：Shell 被停用激活状态后自动产生。参考优先级 0xF0 。
+// Shell 停用消息：Shell 被停用激活状态后自动产生。参考优先级 0xF0 。
 //参数类型 shared_ptr<YShell> ，是被停用的 Shell 句柄。
 //转移线程控制权时，总在 SM_ACTIVATED 之前产生。应保持和 SM_ACTIVATED 具有相同的优先级，以保证该消息总在对应的 SM_ACTIVATED 之前被处理。
 SM_DEACTIVATED			0x0006
 
 // Shell 系统消息。
+
 //绘制 Shell 窗口组客户区。参考优先级 0xE0 。
 //参数类型 shared_ptr<Desktop> ，是需要绘制的桌面句柄。
+//若参数为空，则默认 YGUIShell 不做处理，行为由派生类定义（例如对于多个桌面，默认实现会导致不同步刷新）。
 SM_PAINT				0x000F
 
 //退出 Shell 及进程。参考优先级 0xFF 。

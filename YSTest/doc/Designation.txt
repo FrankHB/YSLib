@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version 0.5139;
+\version 0.5165;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-06-30 08:31 +0800;
+	2011-07-03 10:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -928,7 +928,7 @@
 
 @2.4.9 无前缀类名的类：
 一般类。
-不属于以上有前缀类的类。无其它限制和特性。
+不属于以上有前缀类的类。无其它限制和特性保证。
 
 @2.4.10.1 事件参数基类 EventArgs ：
 即 EmptyType 。
@@ -1019,7 +1019,7 @@
 发送事件的实体成为事件源。接收事件的实体称为订阅者。触发事件的实体称为事件的触发器。
 注册事件处理器称为事件订阅。
 
-@2.5.9.1.1 单播版本（自 b204 起被移除）：
+@2.5.9.1.1 单播版本（自 build 204 起被移除）：
 添加事件订阅和移除事件订阅复杂度为 O(1) ，同普通的函数指针赋值。调用事件处理器复杂度为 O(1) ，同普通的函数指针调用。
 
 @2.5.9.1.2 多播版本：
@@ -1046,7 +1046,7 @@
 使用多重集作为消息队列的内部容器实现。
 第一优先级为 unsigned char 型变量。
 
-@2.5.10.2.1 自 b216 起过时的特性：
+@2.5.10.2.1 自 build 216 起过时的特性：
 为了适应不支持 std::clock() 的平台，用消息实例构造时的计数标识代替产生时间作为第二优先级。
 
 @2.5.11 标准 Shell 消息列表 YMessageDefinition
@@ -1065,20 +1065,35 @@
 除了 C++ 标准库以外，其它外部库的名称需要在此声明。
 直接使用除 C++ 标准库、 POSIX / GNU C 兼容函数库、 YCLib 库之外的外部库原代码片段所在文件都从属于 Adaptor 。
 
-@2.6.1 内存调试设施 YNew ：
+@2.6.1 外部库关联 YAdaptor ：
+默认行为如下：
+包含 "ynew.h" ，引入平台设置和存储调试设施(@2.6.2) 。
+包含 <ycommon.h> ， YCLib 公用部分(@3.1.1) 。
+包含 <CHRLib/chrlib.h> ， CHRLib (@3.1.3.1)。
+在 YSLib 命名空间 using 引用必要的名称。
+
+@2.6.2 通用基础设施 YBase ：
+不依赖于其它任何头文件。
+定义了各种基础平台无关的宏，用于简化代码等。
+
+@2.6.3 内存调试设施 YNew ：
+默认包含编译配置、平台支持文件 <platform.h>(@3.2.1) 和通用基础设施(@2.6.2) 。
 定义宏 YSL_USE_MEMORY_DEBUG 后（默认 debug 配置在 "config.h" 有此定义）可以使用 "ynew.h" 声明的宏和类进行内存调试。
 重载全局 operator new 和 operator delete 可以用于用户程序调试（ YSLib 中默认并不使用）。
  MemoryList 用于跟踪记录已分配的内存块。 debug 配置下默认定义了一个函数内静态对象，用函数 GetDebugMemoryList 取此对象引用获得默认调试内存信息。
 可以用宏 ynew 代替 new/new[] ， ydelete 代替 delete ， ydelete_array 代替 delete[] ，配合 GetDebugMemoryList 检测内存泄露以及重复释放错误；但不适于智能指针，因为未使用 ydelete 和 ydelete_array 。
 
-@2.6.2 引用对象 YReference ：
+@2.6.4 引用对象 YReference ：
 在 "yref.hpp" 中声明智能指针等引用对象类型。
 可以包装 Loki 或 std::tr1 指针智能等实现。
  YSLib 早期包装 Loki 指针实现句柄；
- Build 208 起包装 C++2011 标准库智能指针实现；
- Build 210 开始直接使用 C++2011 标准库智能指针作为句柄。
+ build 208 起包装 C++2011 标准库智能指针实现；
+ build 210 开始直接使用 C++2011 标准库智能指针作为句柄。
 
-@2.6.3 初始化逻辑的实现 YShellInitialization
+@2.6.5 初始化逻辑的实现 YShellInitialization
+
+@2.6.6 平台无关的字体缓存库 YFont ：
+基本接口平台无关，但可能提供平台相关的扩展接口，实现也是平台相关的，因此在 Adaptor 中。
 
 @2.7 组件和界面系统：
 位于 "/UI" 。
@@ -1445,7 +1460,7 @@ FetchDefaultScreen();
 平台隔离用库 YCLib 。
 包含平台相关的 API 包装和若干平台无关的独立子库（按头文件路径划分，参见 @3.1.3.1 ）。
 
-@3.1.1.1 命名空间（全局）：
+@3.1.1.1 全局命名空间：
  ystdex ：从 std 直接扩充的平台无关的实用程序。
  platform ：平台中立：接口平台无关但实现平台相关的实用程序。
  platform_ex ：接口和实现都平台相关的实用程序。
@@ -1454,7 +1469,7 @@ FetchDefaultScreen();
 @3.1.2 通用库：
 
 @3.1.2.1
- Build 207 前使用 Loki 库的智能指针实现句柄。
+ build 207 前使用 Loki 库的智能指针实现句柄。
 
 @3.1.3 专用库：
 
@@ -1464,15 +1479,45 @@ FetchDefaultScreen();
 @3.1.3.2
 字体输出使用 FreeType2 实现矢量字体光栅化支持。
 
-@3.1.3.2.1
+@3.1.3.2.1 FreeType2 库版本：
+ build 185 前：
 头文件版本：2.3.12 ；
 库文件版本：在 VNDS 源代码中提取的 2.3.6 。
+ build 185 起：
+头文件版本：2.4.4 ；
+库文件版本：使用 devkitPro 自行编译的对应版本， modules.cfg 配置包含以下行：
+FONT_MODULES += truetype
+FONT_MODULES += sfnt
+HINTING_MODULES += autofit
+HINTING_MODULES += pshinter
+RASTER_MODULES += smooth
+RASTER_MODULES += smooth
+AUX_MODULES += psnames
+BASE_EXTENSIONS += ftbitmap.c
+BASE_EXTENSIONS += ftglyph.c
+并使用 -O3 优化。
+ build 186 rev 31 起：
+头文件版本 2.4.5 ；
+库文件版本：使用 devkitPro 自行编译的对应版本， modules.cfg 配置追加行：
+BASE_EXTENSIONS += ftbbox.c
+BASE_EXTENSIONS += ftstroke.c
+BASE_EXTENSIONS += ftsynth.c
+其它配置不变。
 
 @3.1.3.3
 图形库：修正的 Anti-Grain Geometry 库 V2.4 。
 
-@3.2 库文件基础结构：
-平台设置在 <platform.h> 中。
+@3.2 平台文件：
+引入平台相关特性。
+
+@3.2.1 <platform.h> ：
+定义了必要的平台支持。
+
+@3.2.2 <api.h> ：
+定义了扩展的平台 API 。
+
+@3.3 库文件基础结构：
+平台设置在 <platform.h>(@3.2.1) 中。
 任何 YSLib 头文件，除了 "/Adaptor/" 路径下的文件以及仅包含宏定义的文件外，都直接或间接地包含 "/Core/ysdef.h" 文件。
 所有外部链接库为静态库。除了 YCLib 外，对外部库未经过封装的使用仅在 Adaptor 中。这样有利于以子库为单位的移植。
 

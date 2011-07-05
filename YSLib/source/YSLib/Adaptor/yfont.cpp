@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7268;
+\version 0.7271;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-06-19 02:55 +0800;
+	2011-07-05 08:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,6 @@
 
 using namespace ystdex;
 using namespace platform;
-using std::for_each;
 
 YSL_BEGIN
 
@@ -78,6 +77,7 @@ FontStyle::GetName() const ynothrow
 
 /*!
 \brief 供 FreeType 使用的客户端字体查询函数。
+
 从由 face_id 提供的参数对应的字体文件中读取字体，写入 aface 。
 */
 FT_Error
@@ -226,7 +226,7 @@ FetchDefaultTypeface() ythrow(LoggedEvent)
 		FetchDefaultFontCache().GetDefaultTypefacePtr());
 
 	if(!pDefaultTypeface)
-		throw LoggedEvent("The default font face pointer is null"
+		throw LoggedEvent("Null default font face pointer found"
 			" @ FetchDefaultTypeface.");
 	return *pDefaultTypeface;
 }
@@ -238,7 +238,7 @@ FetchDefaultFontFamily() ythrow(LoggedEvent)
 		FetchDefaultTypeface().GetFontFamilyPtr());
 
 	if(!pFontFamily)
-		throw LoggedEvent("The default font family pointer is null"
+		throw LoggedEvent("Null default font family pointer found"
 			" @ FetchDefaultFontFamily.");
 	return *pFontFamily;
 }
@@ -489,14 +489,14 @@ FontCache::ClearCache()
 void
 FontCache::ClearFontFiles()
 {
-	for_each(sFiles.begin(), sFiles.end(), delete_obj());
+	std::for_each(sFiles.begin(), sFiles.end(), delete_obj());
 	sFiles.clear();
 }
 
 void
 FontCache::ClearTypefaces()
 {
-	for_each(sFaces.begin(), sFaces.end(), delete_obj());
+	std::for_each(sFaces.begin(), sFaces.end(), delete_obj());
 	sFaces.clear();
 }
 

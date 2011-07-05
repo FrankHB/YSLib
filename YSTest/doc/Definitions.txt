@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11181;
+\version r11246;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-06-28 16:50 +0800;
+	2011-07-01 23:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -329,7 +329,8 @@ DefDynInitRef(_type, _name, _expr)
 } //$dir Helper;
 } //$dir YSLib;
 
-//非本体或 YGlobal 声明的对象列表。
+
+//非本体或 YGlobal 定义列表。
 
 //非本体类列表。
 $header Core::YShellDefinition
@@ -370,6 +371,196 @@ class PlatformResource @ $header Helper::YGlobal
 {
 	friend class YApplication;
 } //class PlatformResource;
+
+
+//非 YGlobal 的命名空间作用域对象和类静态对象列表。
+
+$dir YCLib
+{
+
+$unit YCommon
+{
+	namespace platform
+	{
+		class HDirectory
+		{
+			static PATHSTR Name; //!< 节点名称。
+			static struct ::stat Stat; //!< 节点状态信息。
+			static int LastError; //!< 上一次操作结果，0 为无错误。
+		};
+
+$unit.impl:
+		static bool bDebugStatus;
+		static bool bUninitializedTimers;
+	}
+}
+
+$dir CHRLib
+{
+
+$unit CharacterMapping
+{
+	namespace CHRLib
+	{
+		namespace CharSet
+		{
+		//别名。
+		const CSID
+			iso_ir_6(US_ASCII), ISO646_US(US_ASCII), ASCII(US_ASCII), us(US_ASCII),
+				IBM367(US_ASCII), cp367(US_ASCII), csASCII(US_ASCII),
+			MS_Kanji(SHIFT_JIS), csShiftJIS(SHIFT_JIS), windows_932_(SHIFT_JIS),
+			iso_ir_149(KS_C_5601_1987), KS_C_5601_1989(KS_C_5601_1987),
+				KSC_5601(KS_C_5601_1987), korean(KS_C_5601_1987),
+				csKSC56011987(KS_C_5601_1987), windows_949_(KS_C_5601_1987),
+			windows_65001_(UTF_8),
+			CP936(GBK), MS936(GBK), windows_936(GBK),
+			windows_54936_(GB18030),
+
+			csUnicode(ISO_10646_UCS_2),
+			csUCS4(ISO_10646_UCS_4),
+			csUnicodeASCII(ISO_10646_UCS_Basic),
+			windows_1201_(UTF_16BE),
+			windows_1200_(UTF_16LE),
+
+			csGB2312(GB2312), EUC_CN_(GB2312), windows_51936_(GB2312),
+			windows_950_(Big5);
+		}
+
+		//默认字符集。
+		const CSID CS_Default = CharSet::UTF_8;
+		const CSID CS_Local = CharSet::GBK;
+
+		//编码转换表。
+		const ubyte_t cp17[] = {0};
+		extern "C"
+		{
+			extern const ubyte_t cp113[];
+			//extern const ubyte_t cp2026[13658];
+		}
+		const ubyte_t cp2026[] = {0};
+	}
+}
+
+} //$dir CHRLib;
+
+} //$dir YCLib;
+
+$dir Adaptor
+{
+
+$namespace.using YSLib:
+
+$unit YFont
+{
+	class Font
+	{
+		static Font* pDefFont; //!< 默认 Shell 字体。
+	};
+}
+
+} //$dir Adaptor;
+
+$dir Core
+{
+
+$header YCounter
+{
+	class template GMCounter
+	{
+		static count_t nCount, nTotal; //!< 实例生成计数和实例计数。
+	};
+}
+
+$unit YGDIBase
+{
+	namespace Drawing
+	{
+		class Point
+		{
+			static const Point Zero; //!< 无参数构造参数构造的原点对象。
+			static const Point FullScreen; \
+				//!< 无参数构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
+		};
+
+		class Vec
+		{
+			static const Vec Zero; //!< 无参数构造参数构造的零向量对象。
+			static const Vec FullScreen;
+				//无参数构造参数构造的由屏幕坐标系原点
+				//到屏幕右下角边界（不在屏幕坐标系中）对象。
+		};
+
+		class Size
+		{
+			static const Size Zero; //!< 无参数构造参数构造的零元素对象。
+			static const Size FullScreen; //!< 无参数构造参数构造的全屏幕对象。
+		};
+
+		class Rect
+		{
+			static const Rect Empty; //!< 无参数构造参数构造的空矩形对象。
+			static const Rect FullScreen; //!< 无参数构造参数构造的全屏幕矩形对象。
+		};
+	}
+}
+
+$unit YString
+{
+	class String
+	{
+		static uchar_t* s_str; //!< 内码转换生成字符串临时指针。
+	};
+}
+
+$unit YFileSystem
+{
+	namespace IO
+	{
+		class Path
+		{
+			static const ValueType Slash;
+			static const Path Now;
+			static const Path Parent;
+		};
+	}
+}
+
+$unit YApplication
+{
+	class YApplication
+	{
+		//全局常量。
+		static const IO::Path CommonAppDataPath; //!< 程序默认路径。
+		static const String CompanyName; //!< 制作组织名称。
+		static const String ProductName; //!< 产品名称。
+		static const String ProductVersion; //!< 产品版本。
+	};
+}
+
+$header YStatic
+{
+	//略。
+}
+
+} //$dir Core;
+
+$dir Service
+{
+
+$unit YTimer
+{
+	namespace Timers
+	{
+		class YTimer
+		{
+			static bool NotInitialized;
+			static vu32 SystemTick;
+			static TimerMap mTimers;
+		};
+	}
+}
+
+} //$dir Service;
 
 
 // std 命名空间扩展。

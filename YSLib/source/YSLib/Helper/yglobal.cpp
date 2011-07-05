@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3249;
+\version 0.3252;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-06-25 21:52 +0800;
+	2011-07-01 07:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -458,8 +458,11 @@ main(int argc, char* argv[])
 
 		const int r(0); // TODO: evaluate the main result properly;
 
-		//释放 Shell 。
+		//清理消息队列。
+		FetchAppInstance().GetDefaultMessageQueue().Clear();
+		FetchAppInstance().GetBackupMessageQueue().Clear();
 
+		//释放 Shell 。
 		YSL_ ReleaseShells();
 		reset(hMainShell);
 

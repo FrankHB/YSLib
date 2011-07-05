@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2149;
+\version 0.2164;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-06-25 19:46 +0800;
+	2011-07-02 04:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -170,13 +170,14 @@ public:
 	\brief 取主文件名。
 	*/
 	Path
-	GetStemFrom() const;
+	GetStem() const;
 	/*!
 	\brief 取扩展名。
 	*/
 	Path
 	GetExtension() const;
-	DefGetter(NativeStringType, NativeString, Text::StringToMBCS(*this)) //!< 取本地格式和编码的字符串。
+	DefGetter(NativeStringType, NativeString, Text::StringToMBCS(*this)) \
+		//!< 取本地格式和编码的字符串。
 
 	//修改函数。
 
@@ -332,7 +333,7 @@ Path::HasFilename() const
 inline bool
 Path::HasStem() const
 {
-	return !GetStemFrom().empty();
+	return !GetStem().empty();
 }
 inline bool
 Path::HasExtension() const
@@ -467,7 +468,7 @@ SplitPath(const string&, string&, string&);
 \note 贪婪匹配。
 */
 string
-GetStemFrom(const string&, const string&);
+GetStemFrom(const string&);
 
 /*!
 \brief 对于两个字符串，判断前者是否是后者的主文件名。
@@ -498,37 +499,37 @@ HaveSameStems(const string&, const string&);
 \note 非贪婪匹配。
 */
 const char*
-GetExtendNameFrom(const char*);
+GetExtensionFrom(const char*);
 /*!
 \brief 截取文件名末尾的扩展名。
 \note 非贪婪匹配。
 */
 string
-GetExtendNameFrom(const string&);
+GetExtensionFrom(const string&);
 
 /*!
 \brief 对于两个字符串，判断前者是否是后者的扩展名。
 */
 bool
-IsExtendNameOf(const char*, const char*);
+IsExtensionOf(const char*, const char*);
 /*!
 \brief 对于两个字符串，判断前者是否是后者的扩展名。
 */
 bool
-IsExtendNameOf(const string&, const string&);
+IsExtensionOf(const string&, const string&);
 
 /*!
 \brief 判断指定两个文件名的扩展名是否相同。
 \note 忽略大小写；非贪婪匹配。
 */
 bool
-HaveSameExtendNames(const char*, const char*);
+HaveSameExtensions(const char*, const char*);
 /*!
 \brief 判断指定两个文件名的扩展名是否相同。
 \note 忽略大小写；非贪婪匹配。
 */
 bool
-HaveSameExtendNames(const string&, const string&);
+HaveSameExtensions(const string&, const string&);
 
 
 /*!

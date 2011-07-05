@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1811;
+\version 0.1827;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-06-28 16:50 +0800;
+	2011-07-01 07:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -72,13 +72,24 @@ ShlDS::ShlProc(const Message& msg)
 {
 	switch(msg.GetMessageID())
 	{
+	case SM_PAINT:
+		{
+			auto h(Messaging::FetchTarget<SM_PAINT>(msg));
+
+			if(!h)
+			{
+				UpdateToScreen();
+				return 0;
+			}
+		}
+		break;
 	case SM_INPUT:
 		ResponseInput(msg);
 		return 0;
-
 	default:
-		return YGUIShell::ShlProc(msg);
+		break;
 	}
+	return YGUIShell::ShlProc(msg);
 }
 
 int
@@ -104,15 +115,11 @@ ShlDS::OnDeactivated(const Message&)
 	return 0;
 }
 
-/*void
-ShlDS::SendDrawingMessage()
+void
+ShlDS::SendPaintMessage()
 {
-//	hDesktopUp->ClearContents();
-//	hDesktopDown->ClearContents();
-	DispatchWindows();
-	SendMessage<SM_PAINT>(FetchShellHandle(), 0xE0, hDskUp);
-	SendMessage<SM_PAINT>(FetchShellHandle(), 0xE0, hDskDown);
-}*/
+	SendMessage<SM_PAINT>(FetchShellHandle(), 0xE0, nullptr);
+}
 
 void
 ShlDS::UpdateToScreen()

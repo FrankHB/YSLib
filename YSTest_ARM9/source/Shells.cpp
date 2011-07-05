@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version 0.4748;
+\version 0.4785;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-07-01 00:49 +0800;
+	2011-07-02 04:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -316,7 +316,9 @@ ShlExplorer::ShlExplorer()
 	};
 	fbMain.GetViewChanged().Add(*this, &ShlExplorer::OnViewChanged_fbMain);
 	fbMain.GetSelected() += [this](IControl&, IndexEventArgs&&){
-		btnOK.SetEnabled(true);
+		btnOK.SetEnabled(fbMain.IsSelected() && IO::GetExtensionFrom(
+			Text::StringToMBCS(fbMain.GetList()[fbMain.GetSelectedIndex()]))
+			== "txt");
 	};
 	fbMain.GetConfirmed() += OnConfirmed_fbMain;
 	btnTest.SetEnabled(false);
@@ -439,6 +441,41 @@ namespace
 		Test2();
 	}
 
+	class FPSCounter
+	{
+	private:
+		Timers::TimeSpan last_tick;
+		Timers::TimeSpan now_tick;
+
+	public:
+		FPSCounter();
+
+		DefGetter(Timers::TimeSpan, LastTick, last_tick)
+		DefGetter(Timers::TimeSpan, NowTick, now_tick)
+
+		/*!
+		\brief 刷新计数器。
+		\return 每秒毫帧数。
+		*/
+		u32
+		Refresh();
+	};
+
+	inline
+	FPSCounter::FPSCounter()
+		: last_tick(0), now_tick(0)
+	{}
+
+	u32
+	FPSCounter::Refresh()
+	{
+		if(last_tick != GetRTC())
+		{
+			last_tick = now_tick;
+			now_tick = GetRTC();
+		}
+		return now_tick == last_tick ? 0 : 1000000 / (now_tick - last_tick);
+	}
 }
 
 
@@ -478,7 +515,7 @@ ShlExplorer::TFormTest::TFormTest()
 	FetchEvent<Click>(btnPrevBackground) += [this](IControl&, TouchEventArgs&&){
 		auto& shl(FetchShell<ShlExplorer>());
 		auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
-		auto& dsk_down_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
+		auto& dsk_dn_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
 
 		if(up_i > 1)
 		{
@@ -488,14 +525,14 @@ ShlExplorer::TFormTest::TFormTest()
 		if(up_i == 1)
 			btnPrevBackground.SetEnabled(false);
 		dsk_up_ptr = FetchImage(up_i);
-		dsk_down_ptr = FetchImage(up_i + 1);
+		dsk_dn_ptr = FetchImage(up_i + 1);
 		shl.GetDesktopUp().SetRefresh(true);
 		shl.GetDesktopDown().SetRefresh(true);
 	};
 	FetchEvent<Click>(btnNextBackground) += [this](IControl&, TouchEventArgs&&){
 		auto& shl(FetchShell<ShlExplorer>());
 		auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
-		auto& dsk_down_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
+		auto& dsk_dn_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
 
 		if(up_i < 5)
 		{
@@ -505,7 +542,7 @@ ShlExplorer::TFormTest::TFormTest()
 		if(up_i == 5)
 			btnNextBackground.SetEnabled(false);
 		dsk_up_ptr = FetchImage(up_i);
-		dsk_down_ptr = FetchImage(up_i + 1);
+		dsk_dn_ptr = FetchImage(up_i + 1);
 		shl.GetDesktopUp().SetRefresh(true);
 		shl.GetDesktopDown().SetRefresh(true);
 	};
@@ -769,12 +806,12 @@ ShlExplorer::ShlProc(const Message& msg)
 	{
 	case SM_INPUT:
 		ResponseInput(msg);
-		UpdateToScreen();
+		SendPaintMessage();
 		return 0;
-
 	default:
-		return ShlDS::ShlProc(msg);
+		break;
 	}
+	return ShlDS::ShlProc(msg);
 }
 
 int
@@ -812,6 +849,17 @@ ShlExplorer::OnActivated(const Message& msg)
 	FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave;
 	FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown;
 	FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click;
+
+	static FPSCounter fps_counter;
+
+	FetchEvent<Paint>(dsk_dn) += [&](IControl&, EventArgs&&){
+		char strfps[20];
+		u32 t(fps_counter.Refresh());
+
+		siprintf(strfps, "%u.%03u", t/1000, t%1000);
+		DrawText(dsk_dn.GetContext(), Rect(0, 172, 60, 20), strfps, Padding(),
+			ColorSpace::White);
+	};
 /*
 	ReplaceHandle<IWindow*>(hWndUp,
 		new TFrmFileListMonitor(shared_ptr<YShell>(this)));
@@ -861,6 +909,7 @@ ShlExplorer::OnDeactivated(const Message& msg)
 	FetchEvent<KeyUp>(dsk_dn) -= OnKey_Bound_TouchUpAndLeave;
 	FetchEvent<KeyDown>(dsk_dn) -= OnKey_Bound_EnterAndTouchDown;
 	FetchEvent<KeyPress>(dsk_dn) -= OnKey_Bound_Click;
+	FetchEvent<Paint>(dsk_dn).Clear();
 	// uninit-seg 4;
 	reset(pWndTest);
 	reset(pWndExtra);
@@ -993,13 +1042,12 @@ ShlReader::ShlProc(const Message& msg)
 	{
 	case SM_INPUT:
 		ResponseInput(msg);
-		UpdateToScreen();
+		SendPaintMessage();
 		return 0;
-
 	default:
 		break;
 	}
-	return DefShlProc(msg);
+	return ShlDS::ShlProc(msg);
 }
 
 int
@@ -1011,19 +1059,19 @@ ShlReader::OnActivated(const Message& msg)
 	bgDirty = true;
 
 	auto& dsk_up(GetDesktopUp());
-	auto& dsk_down(GetDesktopDown());
+	auto& dsk_dn(GetDesktopDown());
 
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
-	std::swap(hDn, dsk_down.GetBackgroundImagePtr());
+	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
 	dsk_up.BackColor = ARGB16(1, 30, 27, 24);
-	dsk_down.BackColor = ARGB16(1, 24, 27, 30);
-	FetchEvent<Click>(dsk_down).Add(*this, &ShlReader::OnClick);
-	FetchEvent<KeyDown>(dsk_down).Add(*this, &ShlReader::OnKeyDown);
-	FetchEvent<KeyHeld>(dsk_down) += OnKeyHeld;
+	dsk_dn.BackColor = ARGB16(1, 24, 27, 30);
+	FetchEvent<Click>(dsk_dn).Add(*this, &ShlReader::OnClick);
+	FetchEvent<KeyDown>(dsk_dn).Add(*this, &ShlReader::OnKeyDown);
+	FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld;
 //	FetchEvent<Paint>(dsk_up).Add(*this, &ShlReader::OnPaint_Up);
-//	FetchEvent<Paint>(dsk_down).Add(*this, &ShlReader::OnPaint_Down);
+//	FetchEvent<Paint>(dsk_dn).Add(*this, &ShlReader::OnPaint_Down);
 	dsk_up += Reader.AreaUp;
-	dsk_down += Reader.AreaDown;
+	dsk_dn += Reader.AreaDown;
 
 	{
 		auto hList(share_raw(new Menu::ListType));
@@ -1052,7 +1100,7 @@ ShlReader::OnActivated(const Message& msg)
 		*/
 	}
 	ResizeForContent(mhMain[1u]);
-	RequestFocusCascade(dsk_down);
+	RequestFocusCascade(dsk_dn);
 	UpdateToScreen();
 	return 0;
 }
@@ -1063,17 +1111,17 @@ ShlReader::OnDeactivated(const Message& msg)
 	mhMain.Clear();
 
 	auto& dsk_up(GetDesktopUp());
-	auto& dsk_down(GetDesktopDown());
+	auto& dsk_dn(GetDesktopDown());
 
-	FetchEvent<Click>(dsk_down).Remove(*this, &ShlReader::OnClick);
-	FetchEvent<KeyDown>(dsk_down).Remove(*this, &ShlReader::OnKeyDown);
-	FetchEvent<KeyHeld>(dsk_down) -= OnKeyHeld;
+	FetchEvent<Click>(dsk_dn).Remove(*this, &ShlReader::OnClick);
+	FetchEvent<KeyDown>(dsk_dn).Remove(*this, &ShlReader::OnKeyDown);
+	FetchEvent<KeyHeld>(dsk_dn) -= OnKeyHeld;
 //	FetchEvent<Paint>(dsk_up).Remove(*this, &ShlReader::OnPaint_Up);
-//	FetchEvent<Paint>(dsk_down).Remove(*this, &ShlReader::OnPaint_Down);
+//	FetchEvent<Paint>(dsk_dn).Remove(*this, &ShlReader::OnPaint_Down);
 	dsk_up -= Reader.AreaUp;
-	dsk_down -= Reader.AreaDown;
+	dsk_dn -= Reader.AreaDown;
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
-	std::swap(hDn, dsk_down.GetBackgroundImagePtr());
+	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
 	Reader.UnloadText();
 	safe_delete_obj()(pTextFile);
 	ParentType::OnDeactivated(msg);

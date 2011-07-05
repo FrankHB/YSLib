@@ -1,4 +1,4 @@
-// v0.3227; *Build 222 r44;
+// v0.3229; *build 223 rev 41;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -265,223 +265,138 @@ $using:
 
 
 $DONE:
-r1-r2:
+r1:
+/ @ \cl ShlDS @ \u Shell_DS:
+	/ !\rem \mf SendDrawingMessage;
+	/ \mf SendDrawingMessage => SendPaintMessage;
+	/ \impl @ \mf ShlProc;
+/ @ \impl \u Shells:
+	/ \a dsk_down => dsk_dn;
+	^ SendPaintMessage ~ UpdateToScreen
+		@ \mf ShlProc @ \cl (ShlExplorer & ShlReader);
+
+r2-r12:
 /= test 1;
 
-r3:
-/ \a is_valid => is_null;
-/ \tr @ \a \as matches '*valid*';
-
-r4:
-* minor faults dectected by CppCheck:
-	/ \simp \impl @ \mf YGUIShell::ResponseTouch $since b195;
-	*= \impl @ \f fexists @ \ns ystdex @ \impl \u YStandardExtend $since b151;
-
-r5:
-/= test 2 ^ \conf release;
-
-r6:
-/ \a \mf Draw @ \cl AWindow => DrawRaw;
-/ @ \u YControl:
-	+ \m Paint @ typedef \en VisualEvent;
-	+ DefEventTypeMapping(Paint, HVisualEvent);
-/ \amf Paint => Draw @ \in IWidget;
-/ \tr \a \mf Draw => Paint;
-/ \impl @ \mf YGUIShell::ShlProc;
-/ \impl @ \ctor @ \cl Control;
-/ \impl @ \mf Frame::DrawContents;
-
-r7:
-/ @ \cl TextList:
-	- \mf OnConfirmed;
-	/ \tr \impl @ \ctor @ \cl Dependencies;
-	+ \m bool CyclicTraverse;
-	/ \impl @ \ctor;
-
-r8:
-/ \impl @ \ctor @ \cl Menu;
-
-r9:
-/= test 3 ^ \conf release;
-
-r10:
-/ @ \cl Control:
-	/ \simp \impl @ \ctor;
-	+ \vt \mf Draw;
-	/ \simp \impl @ \mf SetLocation & SetSize;
-	+ \vt \mf DrawControl;
-/ \simp \impl @ \mf AFrame::DrawContents;
-/ \mf Draw => DrawControl @ \cl (CheckBox & TextList & ATrack & AScrollBar
-	& AScrollBarControl & Thumb & Button & ListBox & ProgressBar);
-/ \tr \impl @ \mf DrawControl @ \cl (CheckBox & TextList & ATrack & AScrollBar
-	& AScrollBarControl & Thumb & Button & ListBox & ProgressBar);
-/ \impl @ \mf AWindow::Draw;
-
-r11-r12:
-/= test 4;
-
 r13:
-* @ \cl ProgressBar:
-	/ \mf DrawControl => Draw;
-	/ \impl @ \mf Draw;
+* \impl @ \mf ShlDS::ShlProc @ \impl \u Shell_DS $since r1;
 
 r14:
-/= test 5 ^ \conf release;
+/ \impl @ \mf ShlProc @ \cl (ShlExplore & ShlReader);
 
 r15:
-/ \impl @ \ctor @ \cl TextList;
+* \impl @ \mf ShlDS::ShlProc @ \impl \u Shell_DS $since r13;
 
-r16:
-/ @ \cl TextList:
-	/ \ac @ \mf 'Adjust*' & CheckPoint -> public ~ protected;
-	+ \mf void SelectTop();
-	+ \mf void SelectBottom();
-	/ \simp \impl @ \ctor ^ (SelectFirst & SelectLast);
-/ \simp \impl @ \ctor @ \cl Menu ^ ((SelectFirst & SelectLast) @ \cl TextList);
-
-r17:
-/ @ \cl ShlReader @ \u Shells:
-	+ \m MenuHost mhMain;
-	/ \tr \impl @ \ctor;
+r16-r17:
+/= test 2;
 
 r18:
-/ \impl @ \mf (OnActivated & OnDeactivated) @ ShlExplorer @ \impl \u Shells;
+* \impl @ \f main @ \impl \u YGlobal $since b174;
 
 r19:
+/= test 3 ^ \conf release;
+
+r20:
 / @ \impl \u Shells:
-	/ \simp \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer;
-	/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlReader;
+	+ \cl FPSCounter @ \un \ns;
+	/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer;
 
-r20-r21:
-/ \impl @ \mf ShlReader::OnClick @ \impl \u Shells;
+r21-r22:
+/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \impl \u Shells;
 
-r22-r25:
-/= test 6;
+r23:
+/= test 4 ^ \conf release;
+
+r24:
+/ @ \cl ShlExplorer @ \impl \u Shells:
+	/ \impl @ \mf OnViewChanged_fbMain;
+	/ \simp \impl @ \ctor;
+* \decl @ \f GetStemFrom @ \ns IO @ \h YFileSystem $since b161:
+	/ string GetStemFrom(const string&, const string&)
+		-> string GetStemFrom(const string&);
+
+r25:
+/ @ \cl ShlExplorer @ \impl \u Shells:
+	/ \impl @ \mf OnViewChanged_fbMain;
+	/ \simp \impl @ \ctor;
 
 r26:
-/= test 7 ^ \conf release;
+/ @ \ns IO @ \u YFileSystem:
+	/ \mf GetStemFrom => GetStem @ \cl Path;
+	/ \a GetExtendNameFrom => GetExtensionFrom;
+	/ \a IsExtendNameOf => IsExtesionOf;
+	/ \a HaveSameExtendNames => HaveSameExtensions;
+* @ \ctor @ \cl ShlExplorer @ \impl \u Shells $since r24;
 
-r27:
-/ \impl @ \mf YGUIShell::ShlProc;
+r27-30:
+/= test 5;
 
-r28:
-* \impl @ \cl AWindow $since r10:
-	/ \impl @ \mf Draw;
-	/ \impl @ \mf DrawRaw;
+r31:
+/ updated freetype:
+	^ "updated freetype 2.4.5" ~ "freetype 2.3.4",
+	+ exact bounding box calculation;
+	+ path stroker;
+	+ support for synthetic embolding and slanting of fonts;
+	- obselete \h "/freetype/internal/pcftypes.h" $since b185;
 
-r29-r31:
-/= test 8;
-
-r32:
-/ @ \cl ShlReader @ \u Shells:
-	+ \mf void OnPaint(EventArgs&&);
-	/ \impl @ \mf (OnActivated & OnDeactivated);
-	/ \impl @ \mf \vt void UpdateToScreen();
-
-r33:
-/ \impl @ \mf AWindow::DrawRaw;
-/ @ \cl MDualScreenReader @ \u DSReader:
-	+ \mf PrintTextUp(const Drawing::Graphics&);
-	+ \mf PrintTextDown(const Drawing::Graphics&);
-	- \mf PrintText;
-/ @ \cl ShlReader @ \u Shells:
-	/ \mf void OnPaint(EventArgs&&) -> void OnPaint_Up(EventArgs&&);
-	+ \mf void OnPaint_Down(EventArgs&&);
-	/ \impl @ \mf (OnActivated & OnDeactivated);
+r32-r33:
+/= test 6;
 
 r34:
-/= test 9 ^ \conf release;
+/= \impl @ \impl \u YFont:
+	- using std::for_each;
+	/ \tr \a 2 for_each -> std::for_each;
 
 r35:
-/= \impl @ 1 \f DrawText @ \impl \u YText;
-/ @ \cl MDualScreenReader @ \u DSReader:
-	/ private \m shared_ptr<Drawing::TextRegion> pTextRegionUp
-		-> public \m Drawing::TextRegion TextRegionUp;
-	/ private \m shared_ptr<Drawing::TextRegion> pTextRegionDown
-		-> public \m Drawing::TextRegion TextRegionDown;
-	/ \tr \impl @ \ctor;
-	- \i \mf (GetUp & GetDn);
-	- private \mf Clear & Reset & FillText;
-	/ \tr \impl @ \mf Reset & Update;
+/= test 7 ^ \conf release;
 
 r36:
-/ \a ClearLn => ClearTextLine;
+^ updated (libnds 1.5.1 with recompiled default arm7 0.5.21)
+	~ (libnds 1.5.0 with default arm7 0.5.20);
+/ \as \str @ \f FetchDefaultTypeface & FetchDefaultFontFamily
+	@ \impl \u YFont;
 
 r37:
-/ @ \u DSReader:
-	/ @ \ns Components::Widgets:
-		+ \cl TextArea;
-	/ @ \ns DS::Components
-		/ \simp \cl MDualScreenReader ^ TextArea:
-			/ \m Drawing::TextRegion TextRegionUp
-				-> TextArea AreaUp;
-			/ \m Drawing::TextRegion TextRegionDown
-				-> TextArea AreaDown;
-			/ \tr \impl @ \ctor;
+/= test 8 ^ \conf release;
 
-r38:
-/ \a SetLnNNowTo => SetCurrentTextLineNTo;
-/ @ \dir UI:
-	/ \h YViewer["yviewer.hpp"] => Viewer["viewer.hpp"];
-	/ \u YLabel["ylabel.h", "ylabel.cpp"] => Label["label.h", "label.cpp"];
-	+ \u TextArea["textarea.h", "textarea.cpp"];
-	/ \tr \inh @ \h Button & TextList;
-/ \cl TextArea @ \u DSReader >> \u TextArea;
-/ \a GetLnHeightFrom => GetTextLineHeightFrom;
-/ \a GetLnNNowFrom => GetCurrentTextLineNFrom;
-/ \a GetLnHeightExFrom => GetTextLineHeightExFrom;
-+ \inc \h TextArea @ \h DSReader;
-
-r39:
-/= test 10 ^ \conf release;
+r38-r39:
+^ updated devkitARM r34 ~ devkitARM r33;
+/= test 9 ^ \conf release;
+* wrong vertical length moved in performing PgDn first time for font
+	"simsun.ttc" @ \conf release $since r35;
 
 r40:
-/ @ \cl ProgressBar:
-	+ Color BorderColor;
-	/ \impl @ \ctor;
-	/ \impl @ \mf Draw;
+^ updated recompiled freetype 2.4.5 ^ arm-eabi-g++ (4.6.1 ~ 4.6.0);
 
 r41:
-/ \ctor	\exp TextArea(const Drawing::Rect& = Drawing::Rect::Empty)
-	@ \cl TextArea -> \exp TextArea(const Drawing::Rect& = Drawing::Rect::Empty,
-	FontCache& = FetchGlobalInstance().GetFontCache());
-/ \tr \impl @ \ctor @ \cl MDualScreenReader @ \impl \u DSReader;
-
-r42:
-/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlReader @ \impl \u Shells;
-
-r43:
-/ \rem @ \mf (OnPaint_Up & OnPaint_Down) @ \cl ShlReader @ \u Shells;
-/ \impl @ \ctor @ \cl MDualScreenReader @ \impl \u DSReader;
-
-r44:
-/= test 11 ^ \conf release;
+/= test 10 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-07-01:
--18.6d;
-//Mercurial rev1-rev92: r4572;
+2011-07-05:
+-21.5d;
+//Mercurial rev1-rev93: r4616;
 
 / ...
 
 
 $NEXT_TODO:
-b223-b288:
+b224-b256:
 * non-ASCII character path error in FAT16;
-+ key accelerators;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
 
-b289-b768:
+b257-b768:
++ key accelerators;
 + \impl styles @ widgets;
 / fully \cl Path;
-+ data configuragion;
 / impl 'real' RTC;
-/ text alignment;
++ data configuragion;
 + \impl pictures loading;
+/ text alignment;
++ clipping areas;
 / improve efficiency @ \ft polymorphic_crosscast @ \h YCast;
 + correct DMA (copy & fill);
 * platform-independence @ alpha blending:
@@ -499,32 +414,6 @@ b769-b1536:
 	+ serialization;
 	+ designer;
 + database interface;
-
-
-$KNOWN_ISSUE:
-* fatal \err @ b16x:
-[
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
-	-e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02055838
-	ftc_snode_weight
-	ftcsbits.c:271
-]
-* fatal \err @ since b177 when opening closed lid @ real DS:
-[
-b185:
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 02037F04
-guruMeditationDump
-gurumeditation.c:229
-b186 r17[realease]:
-pc: 09529334, addr: 09529334;
-b187 r18[debug]:
-pc: 020227C8, addr: 0380FDA4;
-F:\Programing\GadgetLib>F:\devkitPro\devkitARM\bin\arm-eabi-addr2line.exe -f -C
--e F:\Programing\NDS\YSTest\YSTest\arm9\YSTest.arm9.elf -s -i 020227C8
-guruMeditationDump
-gurumeditation.c:254
-]
 
 
 $TODO:
@@ -552,6 +441,12 @@ Other stuff to be considered to append:
 Design by contract: DbC for C/C++, GNU nana.
 
 
+$KNOWN_ISSUE:
+// obselete all resolved;
+* corrupted embedded bitmap glyph loading $since b185;
+* fatal error occured using "simson.ttc";
+
+
 $HISTORY:
 
 $parser.state.old_style $= $false;
@@ -573,6 +468,34 @@ $renamed_to =>;
 $ellipse_refactoring;
 
 $now
+(
+	/ "UI implementation" $=
+	(
+		/ "DS painting" ^ "message %SM_PAINT"
+			~ "directly calling of %ShlDS::UpdateToScreen"
+	),
+	* "uncleared application message queues on program exit" $since b174,
+		// NOTE: this might cause memory leak.
+	/ "shells test example" $=
+	(
+		+ "frame-per-second counter",
+		/ "button enabling" ^ "file extension matching in the file box"
+	),
+	* "declaration of function %GetStemFrom" @ "header yfilesys.h" $since b161,
+	/ "updated freetype" $=
+	(
+		^ "updated freetype 2.4.5" ~ "freetype 2.3.4",
+		+ "exact bounding box calculation",
+		+ "path stroker",
+		+ "support for synthetic embolding and slanting of fonts",
+		- "obselete header /freetype/internal/pcftypes.h" $since b185
+	),
+	^ "updated libnds 1.5.1 with default arm7 0.5.21"
+		~ "libnds 1.5.0 with default arm 7 0.5.20",
+	^ "updated devkitARM release 34" ~ devkitARM release 33"
+),
+
+b222
 (
 	* $design "minor faults dectected by CppCheck" $=
 	(
