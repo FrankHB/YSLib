@@ -11,12 +11,12 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version 0.2091;
+\version 0.2093;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-06-30 20:18 +0800;
+	2011-07-07 21:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -98,10 +98,10 @@ public:
 		const Drawing::Font& = Drawing::Font::GetDefault());
 
 	/*!
-	\brief 绘制界面。
+	\brief 刷新：绘制界面。
 	*/
 	virtual void
-	Draw();
+	Refresh();
 };
 
 inline

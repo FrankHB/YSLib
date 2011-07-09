@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version 0.3545;
+\version 0.3549;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-06-29 08:23 +0800;
+	2011-07-08 21:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -81,11 +81,11 @@ Thumb::Thumb(const Rect& r)
 {
 	FetchEvent<Enter>(*this) += [this](IControl&, TouchEventArgs&&){
 		bPressed = true;
-		this->Refresh();
+		Widgets::Invalidate(*this);
 	};
 	FetchEvent<Leave>(*this) += [this](IControl&, TouchEventArgs&&){
 		bPressed = false;
-		this->Refresh();
+		Widgets::Invalidate(*this);
 	};
 }
 

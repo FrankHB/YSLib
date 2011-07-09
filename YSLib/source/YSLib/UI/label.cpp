@@ -11,12 +11,12 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version 0.2099;
+\version 0.2101;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-06-30 20:16 +0800;
+	2011-07-07 21:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -97,11 +97,11 @@ MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt)
 
 
 void
-Label::Draw()
+Label::Refresh()
 {
-	YWidgetAssert(this, Widgets::Label, Draw);
+	YWidgetAssert(this, Widgets::Label, Refresh);
 
-	Widget::Draw();
+	Widget::Refresh();
 	PaintText(*this, ForeColor, FetchContext(*this), LocateForWindow(*this));
 }
 

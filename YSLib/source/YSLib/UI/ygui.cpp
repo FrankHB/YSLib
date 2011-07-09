@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.3847;
+\version 0.3848;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-29 20:14 +0800;
+	2011-07-07 21:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -310,7 +310,7 @@ YGUIShell::ShlProc(const Message& msg)
 			auto h(FetchTarget<SM_PAINT>(msg));
 			
 			if(h)
-				h->Draw();
+				h->Refresh();
 		}
 		return 0;
 	default:

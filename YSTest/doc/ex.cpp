@@ -1,4 +1,4 @@
-// v0.3229; *build 223 rev 41;
+// v0.3229; *build 224 rev 81;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -266,124 +266,148 @@ $using:
 
 $DONE:
 r1:
-/ @ \cl ShlDS @ \u Shell_DS:
-	/ !\rem \mf SendDrawingMessage;
-	/ \mf SendDrawingMessage => SendPaintMessage;
-	/ \impl @ \mf ShlProc;
-/ @ \impl \u Shells:
-	/ \a dsk_down => dsk_dn;
-	^ SendPaintMessage ~ UpdateToScreen
-		@ \mf ShlProc @ \cl (ShlExplorer & ShlReader);
+/ \simp \impl @ \mf bool Font::Update();
 
-r2-r12:
+r2-r42:
 /= test 1;
 
-r13:
-* \impl @ \mf ShlDS::ShlProc @ \impl \u Shell_DS $since r1;
+r43:
+* wrong ascending when switching font size $since b224:
+	^ freetype 2.4.4 cache system ~ freetype 2.4.5 cache system;
 
-r14:
-/ \impl @ \mf ShlProc @ \cl (ShlExplore & ShlReader);
+r44:
+/= test 2 ^ \conf release;
 
-r15:
-* \impl @ \mf ShlDS::ShlProc @ \impl \u Shell_DS $since r13;
+r45:
+/ \amf Refresh => Invalidate @ \in IWidget;
+/ \tr \a \mf Refresh @ \cl \inh IWidget => Invalidate;
+/ \amf SetRefresh => SetInvalidate @ \in IWindow;
+/ \tr \a \mf SetRefresh @ \cl \inh IWindow => SetInvalidate;
 
-r16-r17:
-/= test 2;
+r46:
+/ \m bRefresh => bInvalidated @ \cl MWindow;
 
-r18:
-* \impl @ \f main @ \impl \u YGlobal $since b174;
+r47:
+/ \amf Draw => Refresh @ \in IWidget;
+/ \tr \a \mf Draw @ \cl \inh IWidget => Refresh;
+* \as \str @ \mf DrawControl @ \cl (TextList & ATrack) $since b222;
 
-r19:
+r48:
+/ \a bInvalidated => bInvalidation;
+/ @ \in IWindow:
+	/ \amf IsRefreshRequired => RequiresInvalidation;
+	/ \amf IsUpdateRequired => RequiresUpdate;
+/ \tr @ \cl MWindow & AWindow & Desktop:
+	/ \mf IsRefreshRequired => RequiresInvalidation;
+	/ \mf IsUpdateRequired => RequiresUpdate;
+
+r49:
 /= test 3 ^ \conf release;
 
-r20:
-/ @ \impl \u Shells:
-	+ \cl FPSCounter @ \un \ns;
-	/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer;
+r50:
+/ \a SetInvalidate => SetInvalidation;
 
-r21-r22:
-/ \impl @ \mf (OnActivated & OnDeactivated) @ \cl ShlExplorer @ \impl \u Shells;
+r51:
+/ \amf void Invalidate() -> void Invalidate(const Rect&) @ \in IWidget;
+/ \tr \a \mf void Invalidate() -> void Invalidate(const Rect&);
++ !\m \f void Invalidate(IWidget&) @ \u YWidget;
+/ \tr \impl @ \impl \u (Menu & Shell_DS & Button & ListBox & TextList
+	& YControl & YWindow & Scroll & Shells) & \h YPanel;
 
-r23:
-/= test 4 ^ \conf release;
+r52:
+/ @ \cl Rect @ \u YGDIBase:
+	+ \mf bool Contains(const Rect&) const;
+	+ \mf bool ContainsStrict(const Rect&) const;
 
-r24:
-/ @ \cl ShlExplorer @ \impl \u Shells:
-	/ \impl @ \mf OnViewChanged_fbMain;
-	/ \simp \impl @ \ctor;
-* \decl @ \f GetStemFrom @ \ns IO @ \h YFileSystem $since b161:
-	/ string GetStemFrom(const string&, const string&)
-		-> string GetStemFrom(const string&);
+r53:
+/ \simp \impl @ \mf Invalidate @ \cl Widget;
 
-r25:
-/ @ \cl ShlExplorer @ \impl \u Shells:
-	/ \impl @ \mf OnViewChanged_fbMain;
-	/ \simp \impl @ \ctor;
+r54-r56:
++ \ft<class _tNode> _tNode* FetchWidgetDirectNodePtr(IWidget*, Point&)
+	@ \h YUIContainer;
 
-r26:
-/ @ \ns IO @ \u YFileSystem:
-	/ \mf GetStemFrom => GetStem @ \cl Path;
-	/ \a GetExtendNameFrom => GetExtensionFrom;
-	/ \a IsExtendNameOf => IsExtesionOf;
-	/ \a HaveSameExtendNames => HaveSameExtensions;
-* @ \ctor @ \cl ShlExplorer @ \impl \u Shells $since r24;
+r57-r60:
+/= test 4;
++ WinGDB settings @ main project file;
 
-r27-30:
-/= test 5;
+r61:
+/= test 5 ^ \conf release;
 
-r31:
-/ updated freetype:
-	^ "updated freetype 2.4.5" ~ "freetype 2.3.4",
-	+ exact bounding box calculation;
-	+ path stroker;
-	+ support for synthetic embolding and slanting of fonts;
-	- obselete \h "/freetype/internal/pcftypes.h" $since b185;
+r62:
+/ @ \u YWindow:
+	+ \f bool RequiresInvalidation(const IWindow&);
+	+ \f void SetInvalidationOf(IWindow&, bool);
+	/ @ \cl AWindow:
+		/ \impl @ \mf Invalidate;
+		/ \impl @ \mf Update;
+		/\i \mf bool RequiresInvalidation() const
+			-> const Rect& GetInvalidatedArea() const ^ \mac DefGetter;
+		/ \i \mf void SetInvalidation(bool);
+			-> !\i \mf void CommitInvalidatedArea(const Rect&);
+		/ \impl @ \ctor;
+	/ \tr \impl @ \mf Frame::DrawContents;
+	/ \tr \impl @ \f Show & Hide ^ SetInvalidationOf ~ \mf SetInvalidation;
+	/ @ \in IWindow:
+		/ \amf bool RequiresInvalidation() const
+			-> const Rect& GetInvalidatedArea() const;
+		/ \amf void SetInvalidation(bool)
+			-> void CommitInvalidatedArea(const Rect&);
+	/ @ \cl MWindow:
+		/ protected \m bool bInvalidation -> Rect rInvalidated;
+		/ \i \mf bool RequiresInvalidation() const
+			-> const Rect& GetInvalidatedArea() const;
+		/ \tr \impl @ \ctor;
+/ @ \cl Desktop @ \impl \u YDesktop:
+	/ \tr \impl @ \mf MoveToTop;
+	/ \tr \impl @ \mf ClearContent;
+	/ \tr \impl @ \mf Update;
+/ \tr \impl @ \mf Invalidate @ \cl Widget;
+/ \tr @ \impl \u Shells:
+	/ \impl @ \ctor @ \cl ShlExplorer::TFormTest;
+	/ \impl @ \mf ShlReader::UpdateToScreen;
 
-r32-r33:
+r63-r64:
+/ \impl @ \mf Invalidate @ \cl Widget;
+
+r65:
+/ \impl @ \mf AWindow::CommitInvalidatedArea;
+
+r66-r77:
 /= test 6;
 
-r34:
-/= \impl @ \impl \u YFont:
-	- using std::for_each;
-	/ \tr \a 2 for_each -> std::for_each;
+r78:
+* \impl @ \mf Widget::Invalidate $since r64;
 
-r35:
+r79:
+* \simp \impl @ \mf AWindow::Invalidate $since r66;
+
+r80:
+/ @ \u YWindow:
+	/ \f void SetInvalidationOf(IWindow&, bool)
+		-> void SetInvalidationOf(IWindow&);
+	/ \f RequiresInvalidation => RequiresRefresh;
+	/ \tr \impl @ \f (Show & Hide);
+/ \tr \impl @ \impl \u Shells:
+	/ \tr \impl @ \mf ShlReader::UpdateToScreen;
+	/ \tr \impl @ \ctor @ \cl ShlExplorer::TFormTest;
+/ \tr \impl @ \mf (Update & MoveToTop & ClearContents) @ \cl Desktop;
+
+r81:
 /= test 7 ^ \conf release;
-
-r36:
-^ updated (libnds 1.5.1 with recompiled default arm7 0.5.21)
-	~ (libnds 1.5.0 with default arm7 0.5.20);
-/ \as \str @ \f FetchDefaultTypeface & FetchDefaultFontFamily
-	@ \impl \u YFont;
-
-r37:
-/= test 8 ^ \conf release;
-
-r38-r39:
-^ updated devkitARM r34 ~ devkitARM r33;
-/= test 9 ^ \conf release;
-* wrong vertical length moved in performing PgDn first time for font
-	"simsun.ttc" @ \conf release $since r35;
-
-r40:
-^ updated recompiled freetype 2.4.5 ^ arm-eabi-g++ (4.6.1 ~ 4.6.0);
-
-r41:
-/= test 10 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-07-05:
--21.5d;
-//Mercurial rev1-rev93: r4616;
+2011-07-09:
+-22.6d;
+//Mercurial rev1-rev94: r4657;
 
 / ...
 
 
 $NEXT_TODO:
-b224-b256:
+b225-b256:
 * non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
@@ -466,8 +490,21 @@ $renamed_to =>;
 //	$string_literal "*")) +;
 
 $ellipse_refactoring;
+$ellipse_debug_assertion;
 
 $now
+(
+	* "wrong ascending when switching font size" $since b224 $=
+	(
+		^ "freetype 2.4.4 cache system" ~ "freetype 2.4.5 cache system"
+			// NOTE: it seems a new bug in freetype 2.4.5 cache system.
+	),
+	+ "containing test" @ "class %Rect",
+	+ "WinGDB settings" @ "main project file",
+	+ "windows partial invalidation support"
+),
+
+b223
 (
 	/ "UI implementation" $=
 	(

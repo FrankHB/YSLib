@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version 0.4785;
+\version 0.4817;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-07-02 04:31 +0800;
+	2011-07-09 17:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -270,16 +270,16 @@ YMainShell::OnActivated(const Message& msg)
 	for(size_t i(0); i < 10; ++i)
 	{
 		pb.SetValue(i);
-		pb.Refresh();
+		Invalidate(pb);
 		GetDesktopUp().BackColor = Color(255 - i * 255 / 10, 216, 192);
 	//	UpdateToScreen();
-		GetDesktopUp().Refresh();
+		Invalidate(GetDesktopUp());
 		GetDesktopUp().Update();
 		FetchImage(i);
 	}
 	pb.SetValue(10);
-	pb.Refresh();
-	GetDesktopUp().Refresh();
+	Invalidate(pb);
+	Invalidate(GetDesktopUp());
 	GetDesktopUp().Update();
 	GetDesktopUp() -= pb;
 	delete &pb;
@@ -526,8 +526,8 @@ ShlExplorer::TFormTest::TFormTest()
 			btnPrevBackground.SetEnabled(false);
 		dsk_up_ptr = FetchImage(up_i);
 		dsk_dn_ptr = FetchImage(up_i + 1);
-		shl.GetDesktopUp().SetRefresh(true);
-		shl.GetDesktopDown().SetRefresh(true);
+		SetInvalidationOf(shl.GetDesktopUp());
+		SetInvalidationOf(shl.GetDesktopDown());
 	};
 	FetchEvent<Click>(btnNextBackground) += [this](IControl&, TouchEventArgs&&){
 		auto& shl(FetchShell<ShlExplorer>());
@@ -543,8 +543,8 @@ ShlExplorer::TFormTest::TFormTest()
 			btnNextBackground.SetEnabled(false);
 		dsk_up_ptr = FetchImage(up_i);
 		dsk_dn_ptr = FetchImage(up_i + 1);
-		shl.GetDesktopUp().SetRefresh(true);
-		shl.GetDesktopDown().SetRefresh(true);
+		SetInvalidationOf(shl.GetDesktopUp());
+		SetInvalidationOf(shl.GetDesktopDown());
 	};
 }
 
@@ -559,7 +559,7 @@ ShlExplorer::TFormTest::OnEnter_btnEnterTest(IControl& sender,
 	auto& btn(dynamic_cast<Button&>(sender));
 
 	btn.Text = str;
-	btn.Refresh();
+	Widgets::Invalidate(btn);
 }
 void
 ShlExplorer::TFormTest::OnLeave_btnEnterTest(IControl& sender,
@@ -572,7 +572,7 @@ ShlExplorer::TFormTest::OnLeave_btnEnterTest(IControl& sender,
 	auto& btn(dynamic_cast<Button&>(sender));
 
 	btn.Text = str;
-	btn.Refresh();
+	Widgets::Invalidate(btn);
 }
 
 void
@@ -604,7 +604,7 @@ ShlExplorer::TFormTest::OnClick_btnMenuTest(TouchEventArgs&&)
 		mhMain.Show(1u);
 	}
 	ResizeForContent(mnu);
-	mnu.Refresh();
+	Widgets::Invalidate(mnu);
 	++t;
 }
 
@@ -653,7 +653,7 @@ ShlExplorer::TFormExtra::OnMove_btnDragTest(EventArgs&&)
 
 	siprintf(sloc, "(%d, %d);", btnDragTest.GetX(), btnDragTest.GetY());
 	btnDragTest.Text = sloc;
-	btnDragTest.Refresh();
+	Widgets::Invalidate(btnDragTest);
 }
 
 void
@@ -661,7 +661,7 @@ ShlExplorer::TFormExtra::OnTouchUp_btnDragTest(TouchEventArgs&& e)
 {
 	InputCounter(e);
 	FetchShell<ShlExplorer>().ShowString(strCount);
-	btnDragTest.Refresh();
+	Widgets::Invalidate(btnDragTest);
 }
 void
 ShlExplorer::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs&& e)
@@ -689,11 +689,10 @@ ShlExplorer::TFormExtra::OnClick_btnDragTest(TouchEventArgs&&)
 		++itype %= ftypen;
 		if(++it == fc.GetTypes().end())
 			it = fc.GetTypes().begin();
-		btnDragTest.Font = Font(*(*it)->GetFontFamilyPtr(), 16 - (itype << 1),
-			FontStyle::Regular);
+		btnDragTest.Font = Font(*(*it)->GetFontFamilyPtr(),
+			16 - (itype << 1), FontStyle::Regular);
 	//	btnDragTest.Font = Font(*(*it)->GetFontFamilyPtr(),
-	//	GetDefaultFontFamily(),
-	//		16 - (itype << 1), FontStyle::Regular);
+	//	GetDefaultFontFamily(), 16 - (itype << 1), FontStyle::Regular);
 		siprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n",
 			btnDragTest.Font.GetSize(), ffilen, ftypen, ffacen);
 		btnDragTest.Text = strtf;
@@ -727,7 +726,7 @@ ShlExplorer::TFormExtra::OnKeyPress_btnDragTest(IControl& sender,
 //	--lbl.BackColor;
 	siprintf(strt, "%d;\n", k);
 	lbl.Text = strt;
-	lbl.Refresh();
+	Widgets::Invalidate(lbl);
 /*
 	Button& lbl(static_cast<Button&>(sender));
 
@@ -857,8 +856,8 @@ ShlExplorer::OnActivated(const Message& msg)
 		u32 t(fps_counter.Refresh());
 
 		siprintf(strfps, "%u.%03u", t/1000, t%1000);
-		DrawText(dsk_dn.GetContext(), Rect(0, 172, 60, 20), strfps, Padding(),
-			ColorSpace::White);
+		DrawText(dsk_dn.GetContext(), Rect(0, 172, 60, 20), strfps,
+			Padding(), ColorSpace::White);
 	};
 /*
 	ReplaceHandle<IWindow*>(hWndUp,
@@ -934,7 +933,7 @@ void
 ShlExplorer::ShowString(const String& s)
 {
 	lblA.Text = s;
-	lblA.Refresh();
+	Invalidate(lblA);
 }
 void
 ShlExplorer::ShowString(const char* s)
@@ -992,7 +991,7 @@ void
 ShlExplorer::OnViewChanged_fbMain(EventArgs&&)
 {
 	lblPath.Text = fbMain.GetPath();
-	lblPath.Refresh();
+	Invalidate(lblPath);
 }
 
 void
@@ -1020,7 +1019,7 @@ ShlExplorer::OnTouchDown_FormExtra(IControl& sender, TouchEventArgs&&)
 		TFormExtra& frm(dynamic_cast<TFormExtra&>(sender));
 
 		frm.BackColor = GenerateRandomColor();
-		frm.Refresh();
+		Invalidate(frm);
 	}
 	catch(std::bad_cast&)
 	{}
@@ -1135,8 +1134,8 @@ ShlReader::UpdateToScreen()
 	{
 		bgDirty = false;
 		//强制刷新背景。
-		GetDesktopUp().SetRefresh(true);
-		GetDesktopDown().SetRefresh(true);
+		SetInvalidationOf(GetDesktopUp());
+		SetInvalidationOf(GetDesktopDown());
 	}
 	ParentType::UpdateToScreen();
 }
@@ -1208,7 +1207,8 @@ ShlReader::OnKeyDown(KeyEventArgs&& e)
 
 	case KeySpace::Right:
 		//PixelType cc(Reader.GetColor());
-		//Reader.SetColor(ARGB16(1,(cc&(15<<5))>>5,cc&29,(cc&(31<<10))>>10));
+		//Reader.SetColor(ARGB16(1, (cc&(15<<5))>>5, cc&29,
+		//	(cc&(31<<10))>>10));
 		if(Reader.GetLineGap() != 12)
 		{
 			Reader.SetLineGap(Reader.GetLineGap() + 1);

@@ -11,12 +11,12 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version 0.1246;
+\version 0.1248;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-20 08:59:56 +0800;
 \par 修改时间:
-	2011-06-30 21:04 +0800;
+	2011-06-30 21:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,9 +45,9 @@ ProgressBar::ProgressBar(const Rect& r, u16 m)
 }
 
 void
-ProgressBar::Draw()
+ProgressBar::Refresh()
 {
-	YWidgetAssert(this, Widgets::ProgressBar, Draw);
+	YWidgetAssert(this, Widgets::ProgressBar, Refresh);
 
 	const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
 	const Point loc(LocateForWindow(*this));

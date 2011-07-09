@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version 0.1768;
+\version 0.1771;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-06-29 17:44 +0800;
+	2011-07-09 21:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,7 +74,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		if(pHost)
 		{
 			if(this->IsVisible())
-				this->Refresh();
+				Widgets::Invalidate(*this);
 
 			auto pMnu(dynamic_cast<Menu*>(&c));
 

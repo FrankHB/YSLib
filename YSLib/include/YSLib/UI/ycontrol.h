@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.5151;
+\version 0.5153;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-06-29 08:18 +0800;
+	2011-07-07 21:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -456,18 +456,18 @@ public:
 	ImplI1(IControl) DefSetter(bool, Enabled, enabled)
 
 	/*!
-	\brief 绘制界面。
-	\note 调用 DrawControl 后调用 Paint 事件。
-	*/
-	virtual void
-	Draw();
-
-	/*!
 	\brief 绘制控件界面。
 	\note 实现 Widget 的界面绘制。
 	*/
 	virtual void
 	DrawControl();
+
+	/*!
+	\brief 刷新：绘制界面。
+	\note 调用 DrawControl 后调用 Paint 事件。
+	*/
+	virtual void
+	Refresh();
 
 	/*!
 	\brief 向部件容器请求获得焦点。

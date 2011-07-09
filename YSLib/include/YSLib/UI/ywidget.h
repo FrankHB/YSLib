@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.5963;
+\version 0.5708;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-28 21:38 +0800;
+	2011-07-09 09:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -77,13 +77,13 @@ DeclInterface(IWidget)
 	DeclIEntry(void SetSize(const Size&)) \
 		//!< 设置大小。
 
+	//! \brief 使相对于部件的指定区域在窗口缓冲区中无效。
+	DeclIEntry(void Invalidate(const Rect&))
+
 	/*!
-	\brief 绘制界面。
+	\brief 刷新：绘制界面。
 	\warning 可能不检查缓冲区指针是否为空。
 	*/
-	DeclIEntry(void Draw())
-
-	//! \brief 刷新至窗口缓冲区。
 	DeclIEntry(void Refresh())
 EndDecl
 
@@ -141,6 +141,13 @@ GetBoundsOf(const IWidget& w)
 */
 void
 SetBoundsOf(IWidget&, const Rect& r);
+
+
+/*!
+\brief 使部件区域在窗口缓冲区中无效。
+*/
+void
+Invalidate(IWidget&);
 
 
 //! \brief 方向模块。
@@ -294,13 +301,13 @@ public:
 	ImplI1(IWidget) DefSetterBase(const Size&, Size, Visual)
 
 	/*!
-	\brief 绘制界面。
+	\brief 使部件区域在窗口缓冲区中无效。
 	*/
 	ImplI1(IWidget) void
-	Draw();
+	Invalidate(const Rect&);
 
 	/*!
-	\brief 刷新至窗口缓冲区。
+	\brief 刷新：绘制界面。
 	*/
 	ImplI1(IWidget) void
 	Refresh();

@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.4921;
+\version 0.4944;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-28 21:45 +0800;
+	2011-07-09 17:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,6 +73,13 @@ SetBoundsOf(IWidget& w, const Rect& r)
 }
 
 
+void
+Invalidate(IWidget& wgt)
+{
+	wgt.Invalidate(Rect(Point::Zero, wgt.GetSize()));
+}
+
+
 Visual::Visual(const Rect& r, Color b, Color f)
 	: visible(true), transparent(false),
 	location(r.GetPoint()), size(r.Width, r.Height),
@@ -92,24 +99,28 @@ Widget::Widget(const Rect& r, Color b, Color f)
 {}
 
 void
-Widget::Draw()
+Widget::Invalidate(const Rect& r)
 {
-	YWidgetAssert(this, Widgets::Widget, Draw);
+	IWidget* pWgt(this);
+	IWindow* pWnd;
+	Rect rect(r);
 
-	if(!IsTransparent())
-		Fill(*this, BackColor);
+	while((pWnd = FetchWidgetDirectNodePtr<IWindow>(
+		pWgt->GetContainerPtr(), rect += pWgt->GetLocation())))
+	{
+		pWnd->CommitInvalidatedArea(rect);
+		rect = pWnd->GetInvalidatedArea();
+		pWgt = pWnd;
+	}
 }
 
 void
 Widget::Refresh()
 {
-	IWindow* pWnd(FetchWindowPtr(*this));
+	YWidgetAssert(this, Widgets::Widget, Refresh);
 
-	while(pWnd && !pWnd->IsRefreshRequired())
-	{
-		pWnd->SetRefresh(true);
-		pWnd = FetchWindowPtr(*pWnd);
-	}
+	if(!IsTransparent())
+		Fill(*this, BackColor);
 }
 
 YSL_END_NAMESPACE(Widgets)

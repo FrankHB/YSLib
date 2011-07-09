@@ -12,12 +12,12 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version 0.1412;
+\version 0.1420;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-06-16 20:23 +0800;
+	2011-07-08 23:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -545,10 +545,15 @@ public:
 	bool
 	Contains(int px, int py) const;
 	/*!
-	\brief 判断点是否在矩形内或边上。
+	\brief 判断点 pt 是否在矩形内或边上。
 	*/
 	PDefH1(bool, Contains, const Point& pt) const
 		ImplRet(Contains(pt.X, pt.Y))
+	/*!
+	\brief 判断矩形 r 是否在矩形内或边上。
+	*/
+	bool
+	Contains(const Rect& r) const;
 
 	/*!
 	\brief 判断点 (px, py) 是否在矩形内。
@@ -556,10 +561,15 @@ public:
 	bool
 	ContainsStrict(int px, int py) const;
 	/*!
-	\brief 判断点是否在矩形内。
+	\brief 判断点 pt 是否在矩形内。
 	*/
 	PDefH1(bool, ContainsStrict, const Point& pt) const
 		ImplRet(ContainsStrict(pt.X, pt.Y))
+	/*!
+	\brief 判断矩形 r 是否在矩形内或边上。
+	*/
+	bool
+	ContainsStrict(const Rect& r) const;
 
 	/*!
 	\brief 取左上角位置。

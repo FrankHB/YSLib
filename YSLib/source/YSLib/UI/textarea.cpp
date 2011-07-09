@@ -11,12 +11,12 @@
 /*!	\file textarea.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version 0.1307;
+\version 0.1309;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-30 20:10:27 +0800;
 \par 修改时间:
-	2011-07-01 00:30 +0800;
+	2011-07-07 21:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,11 +43,11 @@ TextArea::TextArea(const Rect& r, FontCache& fc)
 }
 
 void
-TextArea::Draw()
+TextArea::Refresh()
 {
-	YWidgetAssert(this, Widgets::TextArea, Draw);
+	YWidgetAssert(this, Widgets::TextArea, Refresh);
 
-	Widget::Draw();
+	Widget::Refresh();
 	BlitTo(FetchDirectWindowPtr(*this)->GetContext(), *this, Point::Zero,
 		Point::Zero, Rotation);
 }

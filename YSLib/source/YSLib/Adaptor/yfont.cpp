@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7271;
+\version 0.7274;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-07-05 08:48 +0800;
+	2011-07-07 04:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -278,20 +278,16 @@ Font::Update()
 {
 	Typeface* t(pFontFamily->GetTypefacePtr(Style));
 
-	if(!t)
-		return false;
-	if(t != GetCache().GetTypefacePtr())
+	if(t)
 	{
-		if(GetCache().SetTypeface(t))
+		if(t != GetCache().GetTypefacePtr())
+			if(!GetCache().SetTypeface(t))
+				return false;
+		if(GetCache().GetFontSize() != Size)
 			UpdateSize();
-		else
-			return false;
+		return true;
 	}
-	else if(GetCache().GetFontSize() != Size)
-		UpdateSize();
-	else
-		return false;
-	return true;
+	return false;
 }
 
 void

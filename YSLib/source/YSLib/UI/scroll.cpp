@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3709;
+\version 0.3716;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-06-29 08:22 +0800;
+	2011-07-08 21:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -134,7 +134,7 @@ ATrack::SetThumbLength(SDst l)
 
 	UpdateTo(s, l, IsHorizontal());
 	Thumb.SetSize(s);
-	Refresh();
+	Widgets::Invalidate(*this);
 }
 void
 ATrack::SetThumbPosition(SPos pos)
@@ -145,7 +145,7 @@ ATrack::SetThumbPosition(SPos pos)
 
 	UpdateTo(p, pos, IsHorizontal());
 	Thumb.SetLocation(p);
-	Refresh();
+	Widgets::Invalidate(*this);
 }
 void
 ATrack::SetMaxValue(ValueType m)
@@ -175,9 +175,9 @@ ATrack::SetLargeDelta(ValueType val)
 void
 ATrack::DrawControl()
 {
-	YWidgetAssert(this, Controls::ATrack, Draw);
+	YWidgetAssert(this, Controls::ATrack, DrawControl);
 
-	Widget::Draw();
+	Widget::Refresh();
 	if(!IsTransparent())
 	{
 		const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
@@ -291,7 +291,7 @@ ATrack::OnThumbDrag(EventArgs&&)
 	// TODO: get correct old value;
 	UpdateValue();
 	CheckScroll(ScrollEventSpace::ThumbTrack, old_value);
-	Refresh();
+	Widgets::Invalidate(*this);
 }
 
 
@@ -411,9 +411,9 @@ AScrollBar::DrawControl()
 	YAssert(is_null(pTrack),
 		"Null widget pointer found @ AScrollBar::Draw;");
 
-	YWidgetAssert(this, Controls::HorizontalScrollBar, Draw);
+	YWidgetAssert(this, Controls::HorizontalScrollBar, Refresh);
 
-	Widget::Draw();
+	Widget::Refresh();
 
 	const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
 	const Point b(LocateForWindow(*this));
@@ -494,13 +494,13 @@ ScrollableContainer::GetTopControlPtr(const Point& p)
 void
 ScrollableContainer::DrawControl()
 {
-	YWidgetAssert(this, Controls::ScrollableContainer, Draw);
+	YWidgetAssert(this, Controls::ScrollableContainer, Refresh);
 
 	AUIBoxControl::DrawControl();
 	if(HorizontalScrollBar.IsVisible())
-		HorizontalScrollBar.Draw();
+		HorizontalScrollBar.Refresh();
 	if(VerticalScrollBar.IsVisible())
-		VerticalScrollBar.Draw();
+		VerticalScrollBar.Refresh();
 }
 
 Size

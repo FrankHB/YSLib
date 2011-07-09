@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.4294;
+\version 0.4302;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-06-29 08:13 +0800;
+	2011-07-08 21:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,7 +82,7 @@ OnTouchMove_Dragging(IControl& ctl, TouchEventArgs&& e)
 	//	if(hShl->LastControlLocation != hShl->ControlLocation)
 	//	{
 			ctl.SetLocation(shl.LastControlLocation + shl.DraggingOffset);
-			ctl.Refresh();
+			Widgets::Invalidate(ctl);
 	//	}
 	}
 }
@@ -162,10 +162,10 @@ Control::Control(const Rect& r)
 	};
 	FetchEvent<TouchHeld>(EventMap) += OnTouchHeld;
 	FetchEvent<GotFocus>(EventMap) += [this](IControl&, EventArgs&&){
-		this->Refresh();
+		Widgets::Invalidate(*this);
 	};
 	FetchEvent<LostFocus>(EventMap) += [this](IControl&, EventArgs&&){
-		this->Refresh();
+		Widgets::Invalidate(*this);
 	};
 	BoundControlPtr = std::bind(std::mem_fn(&Control::GetBoundControlPtr), this,
 		std::placeholders::_1);
@@ -197,16 +197,16 @@ Control::SetSize(const Size& s)
 }
 
 void
-Control::Draw()
+Control::DrawControl()
 {
-	DrawControl();
-	GetEventMap().DoEvent<HVisualEvent>(Paint, *this, EventArgs());
+	Widget::Refresh();
 }
 
 void
-Control::DrawControl()
+Control::Refresh()
 {
-	Widget::Draw();
+	DrawControl();
+	GetEventMap().DoEvent<HVisualEvent>(Paint, *this, EventArgs());
 }
 
 void

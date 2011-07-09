@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1378;
+\version 0.1385;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-06-29 17:44 +0800;
+	2011-07-08 21:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -221,13 +221,13 @@ TextList::CheckPoint(SPos x, SPos y)
 void
 TextList::DrawControl()
 {
-	YWidgetAssert(this, Controls::TextList, Draw);
+	YWidgetAssert(this, Controls::TextList, DrawControl);
 
 	IWindow* pWnd(FetchDirectWindowPtr(*this));
 
 	if(pWnd)
 	{
-		Widget::Draw();
+		Widget::Refresh();
 		DrawWidgetBounds(*this, IsFocused() ? ColorSpace::Aqua
 			: FetchGUIShell().Colors[Styles::ActiveBorder]);
 		PaintItems(pWnd->GetContext());
@@ -294,7 +294,8 @@ TextList::PaintItems(const Graphics& g)
 
 				const Rect unit_bounds(pt.X, top, ln_w, tmp);
 
-				GetTextState().ResetForBounds(unit_bounds, g.GetSize(), Margin);
+				GetTextState().ResetForBounds(unit_bounds, g.GetSize(),
+					Margin);
 				if(y < 0)
 					GetTextState().PenY -= top_offset;
 				PaintItem(g, unit_bounds, i);
@@ -332,7 +333,7 @@ void
 TextList::UpdateView()
 {
 	GetViewChanged()(*this, EventArgs());
-	Refresh();
+	Widgets::Invalidate(*this);
 }
 
 void
@@ -351,7 +352,7 @@ TextList::CheckConfirmed(ViewerType::SizeType i)
 void
 TextList::OnSelected(IndexEventArgs&&)
 {
-	Refresh();
+	Widgets::Invalidate(*this);
 }
 
 

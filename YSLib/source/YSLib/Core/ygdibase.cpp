@@ -11,12 +11,12 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version 0.1335;
+\version 0.1343;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2011-06-05 08:19 +0800;
+	2011-07-08 23:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,12 +92,23 @@ Rect::Contains(int px, int py) const
 	return Width > 0 && Height > 0 && IsInInterval<int>(px - X, Width)
 		&& IsInInterval<int>(py - Y, Height);
 }
+bool
+Rect::Contains(const Rect& r) const
+{
+	return Contains(r.GetPoint()) && Contains(r.GetPoint() + r.GetSize());
+}
 
 bool
 Rect::ContainsStrict(int px, int py) const
 {
-	return Width > 1 && Height > 1 && IsInOpenInterval<int>(px - X, Width - 1)
-		&& IsInOpenInterval<int>(py - Y, Height - 1);
+	return Width > 1 && Height > 1 && IsInOpenInterval<int>(px - X,
+		Width - 1) && IsInOpenInterval<int>(py - Y, Height - 1);
+}
+bool
+Rect::ContainsStrict(const Rect& r) const
+{
+	return ContainsStrict(r.GetPoint())
+		&& ContainsStrict(r.GetPoint() + r.GetSize());
 }
 
 

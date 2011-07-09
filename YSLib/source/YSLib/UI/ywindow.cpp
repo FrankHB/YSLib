@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.3785;
+\version 0.3822;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-06-29 21:05 +0800;
+	2011-07-09 17:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,35 +37,67 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Forms)
 
+bool
+RequiresRefresh(const IWindow& wnd)
+{
+	return wnd.GetInvalidatedArea().Width != 0
+		&& wnd.GetInvalidatedArea().Height != 0;
+}
+
+void
+SetInvalidationOf(IWindow& wnd)
+{
+	wnd.CommitInvalidatedArea(Rect(Point::Zero, wnd.GetSize()));
+}
+
+
 void
 Show(IWindow& wnd)
 {
 	wnd.SetVisible(true);
-	wnd.SetRefresh(true);
+	SetInvalidationOf(wnd);
 }
 
 void
 Hide(IWindow& wnd)
 {
 	wnd.SetVisible(false);
-	wnd.SetRefresh(false);
+//	SetInvalidationOf(wnd);
 }
 
 
 MWindow::MWindow(const shared_ptr<Image>& hImg, IWindow* pWnd)
 	: MWindowObject(pWnd),
-	hBgImage(hImg), bRefresh(true), bUpdate(false)
+	hBgImage(hImg), rInvalidated(), bUpdate(false)
 {}
 
 
-AWindow::AWindow(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
+AWindow::AWindow(const Rect& r, const shared_ptr<Image>& hImg,
+	IWindow* pWnd)
 	: Control(r), MWindow(hImg, pWnd)
-{}
+{
+	static_cast<Size&>(rInvalidated) = r;
+}
 
 BitmapPtr
 AWindow::GetBackgroundPtr() const
 {
 	return hBgImage ? hBgImage->GetImagePtr() : nullptr;
+}
+
+void
+AWindow::CommitInvalidatedArea(const Rect& r)
+{
+	using namespace ystdex;
+
+	SPos x(rInvalidated.X), y(rInvalidated.Y),
+		xm(rInvalidated.X + rInvalidated.Width),
+		ym(rInvalidated.Y + rInvalidated.Height);
+
+	rInvalidated.X = vmin(x, r.X);
+	rInvalidated.Y = vmin(y, r.Y);
+	rInvalidated.Width = vmax<SPos>(xm, r.X + r.Width) - rInvalidated.X;
+	rInvalidated.Height = vmax<SPos>(ym, r.Y + r.Height) - rInvalidated.Y;
 }
 
 void
@@ -100,28 +132,28 @@ AWindow::DrawRaw()
 }
 
 void
-AWindow::Draw()
+AWindow::Invalidate(const Rect& r)
 {
-	Refresh();
-	Update();
+	if(Forms::RequiresRefresh(*this))
+	{
+		DrawRaw();
+		rInvalidated.Width = 0;
+	}
+	if(GetContainerPtr())
+		Widget::Invalidate(r);
 }
 
 void
 AWindow::Refresh()
 {
-	if(bRefresh)
-	{
-		DrawRaw();
-		bRefresh = false;
-	}
-	if(GetContainerPtr())
-		Widget::Refresh();
+	Widgets::Invalidate(*this);
+	Update();
 }
 
 void
 AWindow::Update()
 {
-	if(bRefresh)
+	if(Forms::RequiresRefresh(*this))
 		bUpdate = false;
 	if(bUpdate)
 		UpdateToWindow();
@@ -251,7 +283,7 @@ Frame::DrawContents()
 {
 	YWindowAssert(this, Forms::Frame, DrawContents);
 
-	bool result(bRefresh);
+	bool result(Forms::RequiresRefresh(*this));
 
 	for(auto i(sWidgets.begin()); !result && i != sWidgets.end(); ++i)
 	{
@@ -267,7 +299,7 @@ Frame::DrawContents()
 			IWidget& w(*i->second);
 
 			if(w.IsVisible())
-				w.Draw();
+				w.Refresh();
 		}
 	return result;
 }
