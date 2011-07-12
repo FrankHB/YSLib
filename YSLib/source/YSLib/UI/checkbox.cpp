@@ -11,12 +11,12 @@
 /*!	\file checkbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面复选框控件。
-\version 0.1375;
+\version 0.1383;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2011-07-07 21:25 +0800;
+	2011-07-11 10:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,7 @@
 
 
 #include "checkbox.h"
-#include "ywindow.h"
+#include "../Service/yblit.h"
 #include "ygui.h"
 
 YSL_BEGIN
@@ -113,21 +113,14 @@ CheckBox::CheckBox(const Rect& r)
 }
 
 void
-CheckBox::DrawControl()
+CheckBox::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 {
-	YWidgetAssert(this, Controls::CheckBox, DrawControl);
+	Widget::Refresh(g, pt, r);
 
-	Widget::Refresh();
-
-	IWindow* pWnd(FetchDirectWindowPtr(*this));
-
-	if(pWnd)
-	{
-		RectDrawCheckBox(pWnd->GetContext(), Rect(LocateForWindow(*this),
-			GetSize()), bPressed, IsFocusedByShell(*this), bTicked);
-		if(IsFocused())
-			DrawWidgetBounds(*this, ColorSpace::Aqua);
-	}
+	RectDrawCheckBox(g, Rect(pt, GetSize()), bPressed, IsFocusedByShell(*this),
+		bTicked);
+	if(IsFocused())
+		DrawWidgetBounds(*this, ColorSpace::Aqua);
 }
 
 YSL_END_NAMESPACE(Controls)

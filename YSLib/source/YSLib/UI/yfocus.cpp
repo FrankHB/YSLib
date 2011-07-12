@@ -11,12 +11,12 @@
 /*!	\file yfocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version 0.1389;
+\version 0.1391;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-06-10 17:25 +0800;
+	2011-07-11 10:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,6 @@
 
 #include "yfocus.h"
 #include "ycontrol.h"
-#include "ywindow.h"
 
 YSL_BEGIN
 

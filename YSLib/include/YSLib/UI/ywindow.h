@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.4385;
+\version 0.4422;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-07-09 17:54 +0800;
+	2011-07-12 21:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,20 +53,27 @@ YSL_BEGIN_NAMESPACE(Forms)
 
 //! \brief 窗口接口。
 DeclBasedInterface(IWindow, IPanel)
-	DeclIEntry(bool RequiresUpdate() const)
-
 	DeclIEntry(const Graphics& GetContext() const) //!< 取图形接口上下文。
 	DeclIEntry(IWindow* GetWindowPtr() const)
-	DeclIEntry(const Rect& GetInvalidatedArea() const)
-
-	DeclIEntry(void CommitInvalidatedArea(const Rect&))
+	DeclIEntry(Rect& GetInvalidatedAreaRef() const)
 
 	DeclIEntry(void Update()) //!< 按需更新（以父窗口、屏幕优先顺序）。
 EndDecl
 
 
 /*!
-\brief 是否需要刷新。
+\ingroup HelperFunction
+\brief 取窗口的无效区域。
+\note 使用此函数确保返回值传递的常量引用语义。
+*/
+inline const Rect&
+FetchInvalidatedArea(const IWindow& wnd)
+{
+	return wnd.GetInvalidatedAreaRef();
+}
+
+/*!
+\brief 判断是否需要刷新。
 \note 若无效区域长宽都不为零，则需要刷新。
 */
 bool
@@ -78,6 +85,31 @@ RequiresRefresh(const IWindow&);
 void
 SetInvalidationOf(IWindow&);
 
+/*!
+\brief 在父窗口设置指定窗口无效区域。
+\note 若父窗口不存在则忽略。
+*/
+void
+SetInvalidateonToParent(IWindow&);
+
+/*!
+\brief 向指定窗口提交无效区域。
+\note 合并至现有无效区域中。
+\note 由于无效区域的形状限制，结果可能会包含部分有效区域。
+*/
+void
+CommitInvalidatedAreaTo(IWindow&, const Rect&);
+
+/*!
+\brief 复位窗口无效区域。
+\note 通过设置大小为 Size::Zero 使无效区域被忽略。
+*/
+inline void
+ResetInvalidatedAreaOf(IWindow& wnd)
+{
+	//只设置一个分量为零可能会使 CommitInvalidatedAreaTo 结果错误。
+	static_cast<Size&>(wnd.GetInvalidatedAreaRef()) = Size::Zero;
+}
 
 /*!
 \brief 显示窗口。
@@ -100,9 +132,8 @@ class MWindow : protected Widgets::MWindowObject
 protected:
 	//基类中的 pWindow 为父窗口对象句柄，若为空则说明无父窗口。
 	mutable shared_ptr<Drawing::Image> hBgImage; //!< 背景图像句柄。
-	Rect rInvalidated; \
+	mutable Rect rInvalidated; \
 		//!< 无效区域：包含所有新绘制请求的区域（不一定是最小的）。
-	bool bUpdate; //!< 更新属性：表示绘制结束，缓冲区准备完毕。
 
 public:
 	/*!
@@ -111,9 +142,6 @@ public:
 	explicit
 	MWindow(const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
 		IWindow* = nullptr);
-
-	PDefH0(bool, RequiresUpdate) const
-		ImplRet(bUpdate);
 
 	DefGetter(shared_ptr<Drawing::Image>&, BackgroundImagePtr, hBgImage)
 };
@@ -132,11 +160,8 @@ public:
 		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
 		IWindow* = nullptr);
 
-	ImplI1(IWindow) PDefH0(bool, RequiresUpdate) const
-		ImplBodyBase0(MWindow, RequiresUpdate)
-
 	ImplI1(IWindow) DefGetterBase(IWindow*, WindowPtr, MWindow)
-	ImplI1(IWindow) DefGetter(const Rect&, InvalidatedArea, rInvalidated)
+	ImplI1(IWindow) DefGetter(Rect&, InvalidatedAreaRef, rInvalidated)
 	DefGetterBase(shared_ptr<Drawing::Image>&, BackgroundImagePtr, MWindow)
 	/*!
 	\brief 取位图背景指针。
@@ -155,9 +180,6 @@ public:
 	PDefH1(void, BeFilledWith, PixelType c) const
 		ImplRet(Drawing::Fill(GetContext(), c)) \
 		//!< 以纯色填充显示缓冲区。
-
-	void
-	CommitInvalidatedArea(const Rect&);
 
 	PDefH0(void, ClearBackground) const //!< 清除背景。
 		ImplRet(ClearImage(GetContext()))
@@ -179,16 +201,10 @@ public:
 	DrawRaw();
 
 	/*!
-	\brief 使相对于部件的指定区域在窗口缓冲区中无效。
+	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	ImplI1(IWindow) void
-	Invalidate(const Rect&);
-
-	/*!
-	\brief 刷新：绘制界面。
-	*/
-	ImplI1(IWindow) void
-	Refresh();
+	Refresh(const Graphics&, const Point&, const Rect&);
 
 	/*!
 	\brief 按需更新。
@@ -215,6 +231,12 @@ public:
 	*/
 	virtual void
 	UpdateToWindow() const;
+
+	/*!
+	\brief 验证部件在窗口缓冲区中的有效区域。
+	*/
+	void
+	Validate();
 };
 
 

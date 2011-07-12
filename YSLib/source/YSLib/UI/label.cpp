@@ -11,12 +11,12 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version 0.2101;
+\version 0.2110;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-07-07 21:25 +0800;
+	2011-07-11 10:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,6 @@
 
 
 #include "label.h"
-#include "yuicont.h"
-#include "ywindow.h"
 
 YSL_BEGIN
 
@@ -97,12 +95,10 @@ MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt)
 
 
 void
-Label::Refresh()
+Label::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 {
-	YWidgetAssert(this, Widgets::Label, Refresh);
-
-	Widget::Refresh();
-	PaintText(*this, ForeColor, FetchContext(*this), LocateForWindow(*this));
+	Widget::Refresh(g, pt, r);
+	PaintText(*this, ForeColor, g, pt);
 }
 
 

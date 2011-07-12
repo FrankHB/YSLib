@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2376;
+\version 0.2389;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-07-09 05:53 +0800;
+	2011-07-11 10:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,31 +34,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-//图形用户界面断言。
-
-#undef YWidgetAssert
-
-#ifdef YCL_USE_YASSERT
-
-/*!
-\brief 断言函数：判断所给表达式，如果为假给出指定错误信息。
-*/
-void
-yassert(bool, const char*, int, const char*, const char*, const char*);
-
-#	define YWidgetAssert(ptr, comp, func) \
-	Components::yassert((ptr) && FetchDirectWindowPtr( \
-		ystdex::general_cast<IWidget&>(*(ptr))), \
-		"The direct window pointer is null.", __LINE__, __FILE__, #comp, #func)
-
-#else
-
-#	define YWidgetAssert(ptr, comp, func) \
-	assert((ptr) && FetchDirectWindowPtr( \
-		ystdex::general_cast<IWidget&>(*(ptr))))
-
-#endif
 
 YSL_BEGIN_NAMESPACE(Widgets)
 
@@ -103,7 +78,7 @@ _tNode* FetchWidgetDirectNodePtr(IWidget* pWgt)
 	_tNode* pNode(nullptr);
 
 	while(pWgt && !(pNode = dynamic_cast<_tNode*>(pWgt)))
-		pWgt = pWgt->GetContainerPtr();
+		pWgt = FetchContainerPtr(*pWgt);
 	return pNode;
 }
 /*!
@@ -118,7 +93,7 @@ _tNode* FetchWidgetDirectNodePtr(IWidget* pWgt, Point& pt)
 	while(pWgt && !(pNode = dynamic_cast<_tNode*>(pWgt)))
 	{
 		pt += pWgt->GetLocation();
-		pWgt = pWgt->GetContainerPtr();
+		pWgt = FetchContainerPtr(*pWgt);
 	}
 	return pNode;
 }
@@ -217,39 +192,32 @@ LocateForParentWindow(const IWidget&);
 
 
 /*!
-\brief 移动部件至容器左端。
-\pre 断言：w.GetContainerPtr()。
+\brief 移动部件 wgt 至容器左端。
+\pre 断言： FetchContainerPtr(wgt) 。
 */
 void
-MoveToLeft(IWidget&);
+MoveToLeft(IWidget& wgt);
 
 /*!
-\brief 移动部件至容器右端。
-\pre 断言：w.GetContainerPtr()。
+\brief 移动部件 wgt 至容器右端。
+\pre 断言： FetchContainerPtr(wgt) 。
 */
 void
-MoveToRight(IWidget&);
+MoveToRight(IWidget& wgt);
 
 /*!
-\brief 移动部件至容器上端。
-\pre 断言：w.GetContainerPtr()。
+\brief 移动部件 wgt 至容器上端。
+\pre 断言： FetchContainerPtr(wgt) 。
 */
 void
-MoveToTop(IWidget&);
+MoveToTop(IWidget& wgt);
 
 /*!
-\brief 移动部件至容器下端。
-\pre 断言：w.GetContainerPtr()。
+\brief 移动部件 wgt 至容器下端。
+\pre 断言： FetchContainerPtr(wgt) 。
 */
 void
-MoveToBottom(IWidget&);
-
-
-/*!
-\brief 以纯色填充部件所在窗口的对应显示缓冲区。
-*/
-void
-Fill(IWidget&, Color);
+MoveToBottom(IWidget& wgt);
 
 
 typedef u8 ZOrderType; //!< Z 顺序类型：覆盖顺序，值越大表示越接近顶层。

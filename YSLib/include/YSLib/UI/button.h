@@ -11,12 +11,12 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version 0.3041;
+\version 0.3045;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-06-30 20:13 +0800;
+	2011-07-11 08:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,7 +74,7 @@ public:
 	\brief 绘制控件界面。
 	*/
 	virtual void
-	DrawControl();
+	DrawControl(const Graphics&, const Point&, const Rect&);
 };
 
 
@@ -104,7 +104,7 @@ public:
 	\brief 绘制控件界面。
 	*/
 	virtual void
-	DrawControl();
+	DrawControl(const Graphics&, const Point&, const Rect&);
 };
 
 YSL_END_NAMESPACE(Controls)

@@ -11,12 +11,12 @@
 /*!	\file textarea.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version 0.1309;
+\version 0.1316;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-30 20:10:27 +0800;
 \par 修改时间:
-	2011-07-07 21:24 +0800;
+	2011-07-11 10:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,6 @@
 
 
 #include "textarea.h"
-#include "yuicont.h"
-#include "ywindow.h"
 
 YSL_BEGIN
 
@@ -43,13 +41,10 @@ TextArea::TextArea(const Rect& r, FontCache& fc)
 }
 
 void
-TextArea::Refresh()
+TextArea::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 {
-	YWidgetAssert(this, Widgets::TextArea, Refresh);
-
-	Widget::Refresh();
-	BlitTo(FetchDirectWindowPtr(*this)->GetContext(), *this, Point::Zero,
-		Point::Zero, Rotation);
+	Widget::Refresh(g, pt, r);
+	BlitTo(g, *this, Point::Zero, Point::Zero, Rotation);
 }
 
 YSL_END_NAMESPACE(Widgets)

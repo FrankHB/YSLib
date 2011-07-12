@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2315;
+\version 0.2344;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-06-28 04:15 +0800;
+	2011-07-11 10:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,69 +26,48 @@
 
 #include "yuicont.h"
 #include "yconsole.h"
-#include "ywindow.h"
 #include "ydesktop.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-#ifdef YCL_USE_YASSERT
-
-void
-yassert(bool exp, const char* msg, int line, const char* file,
-	const char* comp, const char* func)
-{
-	if(!exp)
-	{
-		Console dbg;
-
-		iprintf(
-			"At line %i in file %s: \n"
-			"An error occured in precedure %s of \n"
-			"Components::%s:\n"
-			"%s", line, file, func, comp, msg);
-		dbg.Pause();
-	}
-}
-
-#endif
-
 YSL_BEGIN_NAMESPACE(Widgets)
 
 IWindow*
-FetchWindowPtr(const IWidget& w)
+FetchWindowPtr(const IWidget& wgt)
 {
-	return FetchWidgetDirectNodePtr<IWindow>(w.GetContainerPtr());
+	return FetchWidgetDirectNodePtr<IWindow>(FetchContainerPtr(wgt));
 }
 
 IUIBox*
-FetchDirectContainerPtr(IWidget& w)
+FetchDirectContainerPtr(IWidget& wgt)
 {
-	IUIBox* const pCon(dynamic_cast<IUIBox*>(&w));
+	IUIBox* const pCon(dynamic_cast<IUIBox*>(&wgt));
 
-	return pCon ? pCon : w.GetContainerPtr();
+	return pCon ? pCon : FetchContainerPtr(wgt);
 }
 
 IWindow*
-FetchDirectWindowPtr(IWidget& w)
+FetchDirectWindowPtr(IWidget& wgt)
 {
-	return FetchWidgetDirectNodePtr<IWindow>(FetchDirectContainerPtr(w));
+	return FetchWidgetDirectNodePtr<IWindow>(FetchDirectContainerPtr(wgt));
 }
 
 Desktop*
-FetchDirectDesktopPtr(IWidget& w)
+FetchDirectDesktopPtr(IWidget& wgt)
 {
-	return FetchWidgetDirectNodePtr<Desktop>(FetchDirectContainerPtr(w));
+	return FetchWidgetDirectNodePtr<Desktop>(FetchDirectContainerPtr(wgt));
 }
 
 const Graphics&
-FetchContext(IWidget& w)
+FetchContext(IWidget& wgt)
 {
-	IWindow* const pWnd(FetchDirectWindowPtr(w));
+	IWindow* const pWnd(FetchDirectWindowPtr(wgt));
 
 	if(!pWnd)
-		throw GeneralEvent("Null direct window pointer found @ FetchContext");
+		throw GeneralEvent("Null direct window pointer found"
+			" @ FetchContext");
 	return pWnd->GetContext();
 }
 
@@ -99,7 +78,7 @@ LocateOffset(const IWindow* pWnd, Point pt, const IWidget* pCon)
 	while(pCon && dynamic_cast<const IWindow*>(pCon) != pWnd)
 	{
 		pt += pCon->GetLocation();
-		pCon = dynamic_cast<const IWidget*>(pCon->GetContainerPtr());
+		pCon = dynamic_cast<const IWidget*>(FetchContainerPtr(*pCon));
 	}
 	return pt;
 }
@@ -114,20 +93,20 @@ LocateForWidget(IWidget& a, IWidget& b)
 
 	if(!pCon)
 	{
-		pCon = a.GetContainerPtr();
+		pCon = FetchContainerPtr(a);
 		pt = a.GetLocation();
 	}
 	while(pCon)
 	{
 		lst.push_back(make_pair(pCon, pt));
 		pt += pCon->GetLocation();
-		pCon = pCon->GetContainerPtr();
+		pCon = FetchContainerPtr(*pCon);
 	}
 	if((pCon = dynamic_cast<IUIBox*>(&b)))
 		pt = Point::Zero;
 	else
 	{
-		pCon = b.GetContainerPtr();
+		pCon = FetchContainerPtr(b);
 		pt = b.GetLocation();
 	}
 	while(pCon)
@@ -140,7 +119,7 @@ LocateForWidget(IWidget& a, IWidget& b)
 		if(i != lst.cend())
 			return pt - i->second;
 		pt += pCon->GetLocation();
-		pCon = pCon->GetContainerPtr();
+		pCon = FetchContainerPtr(*pCon);
 	}
 	return Point::FullScreen;
 }
@@ -170,8 +149,8 @@ LocateForDesktop(IWidget& w)
 Point
 LocateForParentContainer(const IWidget& w)
 {
-	return w.GetContainerPtr()
-		? LocateContainerOffset(*w.GetContainerPtr(),
+	return FetchContainerPtr(w)
+		? LocateContainerOffset(*FetchContainerPtr(w),
 		w.GetLocation()) : Point::FullScreen;
 }
 
@@ -186,63 +165,49 @@ LocateForParentWindow(const IWidget& w)
 
 
 void
-MoveToLeft(IWidget& w)
+MoveToLeft(IWidget& wgt)
 {
-	YAssert(w.GetContainerPtr(),
+	YAssert(FetchContainerPtr(wgt),
 		"In function \"void\n"
 		"ATrack::MoveToLeft(IWidget& w)\": \n"
 		"Container pointer of the widget is null.");
 
-	w.SetLocation(Point(0, w.GetLocation().Y));
+	wgt.SetLocation(Point(0, wgt.GetLocation().Y));
 }
 
 void
-MoveToRight(IWidget& w)
+MoveToRight(IWidget& wgt)
 {
-	YAssert(w.GetContainerPtr(),
+	YAssert(FetchContainerPtr(wgt),
 		"In function \"void\n"
 		"ATrack::MoveToLeft(IWidget& w)\": \n"
 		"Container pointer of the widget is null.");
 
-	w.SetLocation(Point(w.GetContainerPtr()->GetSize().Width
-		- w.GetSize().Width, w.GetLocation().Y));
+	wgt.SetLocation(Point(FetchContainerPtr(wgt)->GetSize().Width
+		- wgt.GetSize().Width, wgt.GetLocation().Y));
 }
 
 void
-MoveToTop(IWidget& w)
+MoveToTop(IWidget& wgt)
 {
-	YAssert(w.GetContainerPtr(),
+	YAssert(FetchContainerPtr(wgt),
 		"In function \"void\n"
 		"ATrack::MoveToLeft(IWidget& w)\": \n"
 		"Container pointer of the widget is null.");
 
-	w.SetLocation(Point(w.GetLocation().X, 0));
+	wgt.SetLocation(Point(wgt.GetLocation().X, 0));
 }
 
 void
-MoveToBottom(IWidget& w)
+MoveToBottom(IWidget& wgt)
 {
-	YAssert(w.GetContainerPtr(),
+	YAssert(FetchContainerPtr(wgt),
 		"In function \"void\n"
 		"ATrack::MoveToLeft(IWidget& w)\": \n"
 		"Container pointer of the widget is null.");
 
-	w.SetLocation(Point(w.GetLocation().X,
-		w.GetContainerPtr()->GetSize().Height - w.GetSize().Height));
-}
-
-
-void
-Fill(IWidget& w, Color c)
-{
-	IWindow* pWnd(FetchDirectWindowPtr(w));
-
-	if(pWnd)
-	{
-		const Graphics& g(pWnd->GetContext());
-
-		FillRect(g, LocateOffset(pWnd, Point::Zero, &w), w.GetSize(), c);
-	}
+	wgt.SetLocation(Point(wgt.GetLocation().X,
+		FetchContainerPtr(wgt)->GetSize().Height - wgt.GetSize().Height));
 }
 
 

@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3716;
+\version 0.3753;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-07-08 21:24 +0800;
+	2011-07-11 10:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,6 @@
 
 
 #include "scroll.h"
-#include "ywindow.h"
 #include "ygui.h"
 
 using namespace ystdex;
@@ -94,7 +93,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length),
 	Events(GetStaticRef<Dependencies>())
 {
-	Thumb.GetContainerPtr() = this;
+	Thumb.GetContainerPtrRef() = this;
 	FetchEvent<TouchMove>(*this) += OnTouchMove;
 	FetchEvent<TouchDown>(*this) += [this](IControl&, TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct
@@ -134,7 +133,7 @@ ATrack::SetThumbLength(SDst l)
 
 	UpdateTo(s, l, IsHorizontal());
 	Thumb.SetSize(s);
-	Widgets::Invalidate(*this);
+	Invalidate(*this);
 }
 void
 ATrack::SetThumbPosition(SPos pos)
@@ -145,7 +144,7 @@ ATrack::SetThumbPosition(SPos pos)
 
 	UpdateTo(p, pos, IsHorizontal());
 	Thumb.SetLocation(p);
-	Widgets::Invalidate(*this);
+	Invalidate(*this);
 }
 void
 ATrack::SetMaxValue(ValueType m)
@@ -173,35 +172,31 @@ ATrack::SetLargeDelta(ValueType val)
 }
 
 void
-ATrack::DrawControl()
+ATrack::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 {
-	YWidgetAssert(this, Controls::ATrack, DrawControl);
-
-	Widget::Refresh();
+	Widget::Refresh(g, pt, r);
 	if(!IsTransparent())
 	{
-		const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
-		const Point loc(LocateForWindow(*this));
 		Styles::Palette& pal(FetchGUIShell().Colors);
 
-		FillRect(g, loc, GetSize(), pal[Styles::Track]);
+		FillRect(g, pt, GetSize(), pal[Styles::Track]);
 
-		const SPos xr(loc.X + GetWidth() - 1);
-		const SPos yr(loc.Y + GetHeight() - 1);
+		const SPos xr(pt.X + GetWidth() - 1);
+		const SPos yr(pt.Y + GetHeight() - 1);
 		const Color& c(pal[Styles::Light]);
 
 		if(IsHorizontal())
 		{
-			DrawHLineSeg(g, loc.Y, loc.X, xr, c);
-			DrawHLineSeg(g, yr, loc.X, xr, c);
+			DrawHLineSeg(g, pt.Y, pt.X, xr, c);
+			DrawHLineSeg(g, yr, pt.X, xr, c);
 		}
 		else
 		{
-			DrawVLineSeg(g, loc.X, loc.Y, yr, c);
-			DrawVLineSeg(g, xr, loc.Y, yr, c);
+			DrawVLineSeg(g, pt.X, pt.Y, yr, c);
+			DrawVLineSeg(g, xr, pt.Y, yr, c);
 		}
 	}
-	Thumb.DrawControl();
+	DrawSubControl(Thumb, g, pt, r);
 }
 
 ATrack::Area
@@ -291,7 +286,7 @@ ATrack::OnThumbDrag(EventArgs&&)
 	// TODO: get correct old value;
 	UpdateValue();
 	CheckScroll(ScrollEventSpace::ThumbTrack, old_value);
-	Widgets::Invalidate(*this);
+	Invalidate(*this);
 }
 
 
@@ -360,9 +355,9 @@ try	: AUIBoxControl(r),
 			Rect(0, r.Width, r.Width, r.Height - r.Width * 2), uMinThumbSize))),
 	PrevButton(Rect()), NextButton(Rect()), small_delta(2)
 {
-	pTrack->GetContainerPtr() = this;
-	PrevButton.GetContainerPtr() = this;
-	NextButton.GetContainerPtr() = this;
+	pTrack->GetContainerPtrRef() = this;
+	PrevButton.GetContainerPtrRef() = this;
+	NextButton.GetContainerPtrRef() = this;
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld;
 	FetchEvent<TouchMove>(PrevButton) += OnTouchMove;
 	FetchEvent<TouchDown>(PrevButton) += [this](IControl&, TouchEventArgs&& e){
@@ -406,25 +401,22 @@ AScrollBar::GetTopControlPtr(const Point& p)
 }
 
 void
-AScrollBar::DrawControl()
+AScrollBar::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 {
 	YAssert(is_null(pTrack),
 		"Null widget pointer found @ AScrollBar::Draw;");
 
-	YWidgetAssert(this, Controls::HorizontalScrollBar, Refresh);
+	Widget::Refresh(g, pt, r);
 
-	Widget::Refresh();
-
-	const Graphics& g(FetchDirectWindowPtr(*this)->GetContext());
-	const Point b(LocateForWindow(*this));
-
-	pTrack->DrawControl();
-	PrevButton.DrawControl();
-	NextButton.DrawControl();
-	WndDrawArrow(g, Rect(LocateForWindow(PrevButton), PrevButton.GetSize()), 4,
-		pTrack->GetOrientation() == Horizontal ? RDeg180 : RDeg90, ForeColor);
-	WndDrawArrow(g, Rect(LocateForWindow(NextButton), NextButton.GetSize()), 4,
-		pTrack->GetOrientation() == Horizontal ? RDeg0 : RDeg270, ForeColor);
+	DrawSubControl(*pTrack, g, pt, r);
+	DrawSubControl(PrevButton, g, pt, r);
+	DrawSubControl(NextButton, g, pt, r);
+	WndDrawArrow(g, Rect(pt + PrevButton.GetLocation(), PrevButton.GetSize()),
+		4, pTrack->GetOrientation() == Horizontal ? RDeg180
+		: RDeg90, ForeColor);
+	WndDrawArrow(g, Rect(pt + NextButton.GetLocation(), NextButton.GetSize()),
+		4, pTrack->GetOrientation() == Horizontal ? RDeg0
+		: RDeg270, ForeColor);
 }
 
 
@@ -475,8 +467,8 @@ ScrollableContainer::ScrollableContainer(const Rect& r)
 	HorizontalScrollBar(Rect(Point::Zero, r.Width, defMinScrollBarHeight)),
 	VerticalScrollBar(Rect(Point::Zero, defMinScrollBarWidth, r.Height))
 {
-	HorizontalScrollBar.GetContainerPtr() = this;
-	VerticalScrollBar.GetContainerPtr() = this;
+	HorizontalScrollBar.GetContainerPtrRef() = this;
+	VerticalScrollBar.GetContainerPtrRef() = this;
 	MoveToBottom(HorizontalScrollBar);
 	MoveToRight(VerticalScrollBar);
 }
@@ -492,15 +484,14 @@ ScrollableContainer::GetTopControlPtr(const Point& p)
 }
 
 void
-ScrollableContainer::DrawControl()
+ScrollableContainer::DrawControl(const Graphics& g, const Point& pt,
+	const Rect& r)
 {
-	YWidgetAssert(this, Controls::ScrollableContainer, Refresh);
-
-	AUIBoxControl::DrawControl();
+	AUIBoxControl::DrawControl(g, pt, r);
 	if(HorizontalScrollBar.IsVisible())
-		HorizontalScrollBar.Refresh();
+		RefreshSub(HorizontalScrollBar, g, pt, r);
 	if(VerticalScrollBar.IsVisible())
-		VerticalScrollBar.Refresh();
+		RefreshSub(VerticalScrollBar, g, pt, r);
 }
 
 Size

@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.3848;
+\version 0.3859;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-07-07 21:30 +0800;
+	2011-07-11 10:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,6 @@
 
 
 #include "ygui.h"
-#include "ywindow.h"
 #include "ydesktop.h"
 
 YSL_BEGIN
@@ -234,7 +233,7 @@ YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e,
 	e.Strategy = Controls::RoutedEventArgs::Direct;
 	r |= ResponseKeyBase(*p, e, op);
 	e.Strategy = Controls::RoutedEventArgs::Bubble;
-	while(!e.Handled && (pCon = p->GetContainerPtr()))
+	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
 		p = dynamic_cast<IControl*>(pCon);
 		if(!p)
@@ -287,7 +286,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 	e.Strategy = Controls::RoutedEventArgs::Direct;
 	r |= ResponseTouchBase(*p, e, op);
 	e.Strategy = Controls::RoutedEventArgs::Bubble;
-	while(!e.Handled && (pCon = p->GetContainerPtr()))
+	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
 		e += p->GetLocation();
 		p = dynamic_cast<IControl*>(pCon);
@@ -310,7 +309,8 @@ YGUIShell::ShlProc(const Message& msg)
 			auto h(FetchTarget<SM_PAINT>(msg));
 			
 			if(h)
-				h->Refresh();
+				h->Refresh(h->GetContext(), Point::Zero, Rect(Point::Zero,
+					h->GetSize()));
 		}
 		return 0;
 	default:
@@ -344,7 +344,7 @@ RequestFocusCascade(IControl& c)
 	do
 	{
 		p->RequestFocusFrom(*p);
-	}while((p = dynamic_cast<IControl*>(p->GetContainerPtr())));
+	}while((p = dynamic_cast<IControl*>(FetchContainerPtr(*p))));
 }
 
 void
@@ -355,7 +355,7 @@ ReleaseFocusCascade(IControl& c)
 	do
 	{
 		p->ReleaseFocusFrom(*p);
-	}while((p = dynamic_cast<IControl*>(p->GetContainerPtr())));
+	}while((p = dynamic_cast<IControl*>(FetchContainerPtr(*p))));
 }
 
 

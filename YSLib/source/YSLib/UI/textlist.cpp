@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1385;
+\version 0.1391;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-07-08 21:19 +0800;
+	2011-07-11 08:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -219,19 +219,12 @@ TextList::CheckPoint(SPos x, SPos y)
 }
 
 void
-TextList::DrawControl()
+TextList::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 {
-	YWidgetAssert(this, Controls::TextList, DrawControl);
-
-	IWindow* pWnd(FetchDirectWindowPtr(*this));
-
-	if(pWnd)
-	{
-		Widget::Refresh();
-		DrawWidgetBounds(*this, IsFocused() ? ColorSpace::Aqua
-			: FetchGUIShell().Colors[Styles::ActiveBorder]);
-		PaintItems(pWnd->GetContext());
-	}
+	Widget::Refresh(g, pt, r);
+	DrawWidgetBounds(*this, IsFocused() ? ColorSpace::Aqua
+		: FetchGUIShell().Colors[Styles::ActiveBorder]);
+	PaintItems(g);
 }
 
 void
@@ -333,7 +326,7 @@ void
 TextList::UpdateView()
 {
 	GetViewChanged()(*this, EventArgs());
-	Widgets::Invalidate(*this);
+	Invalidate(*this);
 }
 
 void
@@ -352,7 +345,7 @@ TextList::CheckConfirmed(ViewerType::SizeType i)
 void
 TextList::OnSelected(IndexEventArgs&&)
 {
-	Widgets::Invalidate(*this);
+	Invalidate(*this);
 }
 
 

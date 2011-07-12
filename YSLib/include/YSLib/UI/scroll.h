@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3142;
+\version 0.3152;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-06-29 08:22 +0800;
+	2011-07-11 08:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -198,7 +198,7 @@ public:
 	\brief 绘制控件界面。
 	*/
 	virtual void
-	DrawControl();
+	DrawControl(const Graphics&, const Point&, const Rect&);
 
 protected:
 	/*!
@@ -444,7 +444,7 @@ public:
 	\brief 绘制控件界面。
 	*/
 	virtual void
-	DrawControl();
+	DrawControl(const Graphics&, const Point&, const Rect&);
 
 private:
 	/*!
@@ -537,7 +537,7 @@ public:
 	\brief 绘制控件界面。
 	*/
 	virtual void
-	DrawControl();
+	DrawControl(const Graphics&, const Point&, const Rect&);
 
 protected:
 	/*!

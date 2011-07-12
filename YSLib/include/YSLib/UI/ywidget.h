@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.5708;
+\version 0.5745;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-07-09 09:24 +0800;
+	2011-07-12 21:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,7 +68,7 @@ DeclInterface(IWidget)
 	\brief 取容器指针的引用。
 	\warning 注意修改容器指针时，应保持和容器包含部件的状态同步。
 	*/
-	DeclIEntry(IUIBox*& GetContainerPtr() const)
+	DeclIEntry(IUIBox*& GetContainerPtrRef() const)
 
 	DeclIEntry(void SetVisible(bool)) //!< 设置可见。
 	DeclIEntry(void SetTransparent(bool)) //!< 设置透明。
@@ -77,15 +77,34 @@ DeclInterface(IWidget)
 	DeclIEntry(void SetSize(const Size&)) \
 		//!< 设置大小。
 
-	//! \brief 使相对于部件的指定区域在窗口缓冲区中无效。
-	DeclIEntry(void Invalidate(const Rect&))
-
 	/*!
-	\brief 刷新：绘制界面。
-	\warning 可能不检查缓冲区指针是否为空。
+	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	\note 边界仅为暗示，允许实现忽略，但可以保证边界内的区域被绘制。
 	*/
-	DeclIEntry(void Refresh())
+	DeclIEntry(void Refresh(const Graphics&, const Point&, const Rect&))
 EndDecl
+
+
+/*!
+\ingroup HelperFunction
+\brief 取部件的容器指针。
+\note 使用此函数确保返回值传递的值语义。
+*/
+inline IUIBox*
+FetchContainerPtr(const IWidget& wgt)
+{
+	return wgt.GetContainerPtrRef();
+}
+
+/*
+\ingroup HelperFunction
+\brief 刷新子部件。
+*/
+inline void
+RefreshSub(IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
+{
+	wgt.Refresh(g, pt + wgt.GetLocation(), r);
+}
 
 
 /*!
@@ -148,6 +167,11 @@ SetBoundsOf(IWidget&, const Rect& r);
 */
 void
 Invalidate(IWidget&);
+/*!
+\brief 使相对于部件的指定区域在窗口缓冲区中无效。
+*/
+void
+Invalidate(IWidget&, const Rect&);
 
 
 //! \brief 方向模块。
@@ -293,7 +317,7 @@ public:
 
 	ImplI1(IWidget) DefGetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefGetterBase(const Size&, Size, Visual)
-	ImplI1(IWidget) DefGetter(IUIBox*&, ContainerPtr, pContainer)
+	ImplI1(IWidget) DefGetter(IUIBox*&, ContainerPtrRef, pContainer)
 
 	ImplI1(IWidget) DefSetterBase(bool, Visible, Visual)
 	ImplI1(IWidget) DefSetterBase(bool, Transparent, Visual)
@@ -301,16 +325,10 @@ public:
 	ImplI1(IWidget) DefSetterBase(const Size&, Size, Visual)
 
 	/*!
-	\brief 使部件区域在窗口缓冲区中无效。
+	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	ImplI1(IWidget) void
-	Invalidate(const Rect&);
-
-	/*!
-	\brief 刷新：绘制界面。
-	*/
-	ImplI1(IWidget) void
-	Refresh();
+	Refresh(const Graphics&, const Point&, const Rect&);
 };
 
 YSL_END_NAMESPACE(Widgets)

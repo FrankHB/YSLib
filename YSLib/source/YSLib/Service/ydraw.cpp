@@ -10,13 +10,13 @@
 
 /*!	\file ydraw.cpp
 \ingroup Service
-\brief 平台无关的图形设备接口。
-\version 0.1698;
+\brief 平台无关的二维图形光栅化。
+\version 0.1699;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:45:33 +0800;
 \par 修改时间:
-	2011-06-16 20:20 +0800;
+	2011-07-11 11:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

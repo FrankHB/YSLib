@@ -11,12 +11,12 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version 0.1343;
+\version 0.1386;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2011-07-08 23:16 +0800;
+	2011-07-12 12:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -109,6 +109,61 @@ Rect::ContainsStrict(const Rect& r) const
 {
 	return ContainsStrict(r.GetPoint())
 		&& ContainsStrict(r.GetPoint() + r.GetSize());
+}
+
+
+Rect
+Intersect(const Rect& a, const Rect& b)
+{
+	using namespace ystdex;
+
+	const SPos xmin(vmin(a.X, b.X)), ymin(vmin(a.Y, b.Y)),
+		xmax(vmax(a.X + a.Width, b.X + b.Width)),
+		ymax(vmax(a.Y + a.Height, b.Y + b.Height));
+	const SDst dx(xmax - xmin), dy(ymax - ymin);
+
+	//相交。
+	if(dx < a.Width + b.Width && dy < a.Height + b.Height)
+	{
+		//优化：包含情况。
+		const bool a_width_is_less = a.Width < b.Width;
+
+		if(dx == (a_width_is_less ? b.Width : a.Width)
+			&& dy == vmax(a.Height, b.Height))
+			return a_width_is_less ? a : b;
+	}
+	else
+		return Rect::Empty;
+
+	int x_array[4] = {a.X, b.X, a.X + a.Width, b.X + b.Width},
+		y_array[4] = {a.Y, b.Y, a.Y + a.Height, b.Y + b.Height};
+
+	for(size_t i = 0; i < 3; ++i)
+		for(size_t j = i + 1; j < 4; ++j)
+			if(x_array[j] < x_array[i])
+				std::swap(x_array[i], x_array[j]);
+	for(size_t i = 0; i < 3; ++i)
+		for(size_t j = i + 1; j < 4; ++j)
+			if(y_array[j] < y_array[i])
+				std::swap(y_array[i], y_array[j]);
+	return Rect(x_array[1], y_array[1], x_array[2] - x_array[1],
+		y_array[2] - y_array[1]);
+}
+
+Rect
+Unite(const Rect& a, const Rect& b)
+{
+	using namespace ystdex;
+
+	if(a.IsEmpty())
+		return b;
+	if(b.IsEmpty())
+		return a;
+
+	auto mx(vmin(a.X, b.X)), my(vmin(a.Y, b.Y));
+
+	return Rect(mx, my, vmax<SPos>(a.X + a.Width, b.X + b.Width) - mx,
+		vmax<SPos>(a.Y + a.Height, b.Y + b.Height) - my);
 }
 
 

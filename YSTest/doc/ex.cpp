@@ -1,4 +1,4 @@
-// v0.3229; *build 224 rev 81;
+// v0.3229; *build 225 rev 96;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -266,148 +266,300 @@ $using:
 
 $DONE:
 r1:
-/ \simp \impl @ \mf bool Font::Update();
+/ @ \h YWidget:
+	/ \amf GetContainerPtr => GetContainerPtrRef @ \in IWidget;
+	+ \i \f IUIBox* FetchContainerPtr(const IWidget&);
+	/ \tr @ \cl Widget;
+/ \tr \impl @ 2 \ft FetchWidgetDirectNodePtr @ \h YUIContainer;
+/ \tr \impl @ \impl \u (YUIContainer & Scroll & ListBox & YControl
+	& YGUI & YPanel & YWidget & YWindow);
 
-r2-r42:
-/= test 1;
+r2:
+/ @ \h YWindow:
+	/ \amf const Rect& GetInvalidatedArea() const
+		-> Rect& GetInvalidatedAreaRef() const;
+	/ \m Rect rInvalidated -> mutable Rect rInvalidated @ \cl MWindow;
+	+ \i \f const Rect& FetchInvalidatedArea(const IWindow&);
+	/ \tr @ \cl AWindow;
+/ \tr \impl @ \impl \u (YWindow & YWidget);
 
-r43:
-* wrong ascending when switching font size $since b224:
-	^ freetype 2.4.4 cache system ~ freetype 2.4.5 cache system;
+r3:
+/ @ \u YWindow:
+	- \amf CommitInvalidatedArea;
+	/ \mf void CommitInvalidatedArea(const Rect&) @ \cl AWindow
+		-> !\m \f void CommitInvalidatedAreaTo(IWindow&, const Rect&);
+/ \tr \impl @ \mf Widgets::Invalidate @ \impl \u YWidget;
 
-r44:
-/= test 2 ^ \conf release;
+r4:
+/ @ \cl Rect @ \h YGDIBase:
+	+ \exp \de Rect& operator=(const Rect&);
+	+ \mf Rect& operator(const Point&);
+	+ \mf Rect& operator(const Size&);
+/ @ \u YWindow:
+	+ \i \f void ResetInvalidatedAreaOf(IWindow&);
+	/ \impl @ \mf AWindow::Invalidate ^ \f ResetInvalidatedAreaOf;
+	+ \f void SetInvalidateonToParent(IWindow&);
+	/ \impl @ \f (Show & Hide) ^ \f SetInvalidateonToParent;
+	/ \simp \impl @ \ctor @ \cl AWindow;
 
-r45:
-/ \amf Refresh => Invalidate @ \in IWidget;
-/ \tr \a \mf Refresh @ \cl \inh IWidget => Invalidate;
-/ \amf SetRefresh => SetInvalidate @ \in IWindow;
-/ \tr \a \mf SetRefresh @ \cl \inh IWindow => SetInvalidate;
+r5:
+/= test 1 ^ \conf release;
 
-r46:
-/ \m bRefresh => bInvalidated @ \cl MWindow;
+r6-r8:
+/= test 2;
 
-r47:
-/ \amf Draw => Refresh @ \in IWidget;
-/ \tr \a \mf Draw @ \cl \inh IWidget => Refresh;
-* \as \str @ \mf DrawControl @ \cl (TextList & ATrack) $since b222;
+r9:
+/ @ \u YWidget:
+	/ \amf void Invalidate(const Rect&) @ \in IWidget
+		-> \amf void Validate();
+	+ !\m \f Invalidate(IWidget&, const Rect&);
+	/ \tr @ \cl Widget:
+		/ \mf Invalidate \mg -> !\m \f void Invalidate(IWidget&, const Rect&);
+		+ \em \mf void Validate();
+	/ \impl @ !\m \f void Invalidate(IWidget&);
+/ \tr @ \cl AWindow @ \u YWindow:
+	/ \mf Invalidate -> Validate;
+/ \tr @ \cl Panel @ \h YPanel;
+/= \a 'Widgets::Invalidate' -> 'Invalidate';
 
-r48:
-/ \a bInvalidated => bInvalidation;
-/ @ \in IWindow:
-	/ \amf IsRefreshRequired => RequiresInvalidation;
-	/ \amf IsUpdateRequired => RequiresUpdate;
-/ \tr @ \cl MWindow & AWindow & Desktop:
-	/ \mf IsRefreshRequired => RequiresInvalidation;
-	/ \mf IsUpdateRequired => RequiresUpdate;
-
-r49:
+r10:
 /= test 3 ^ \conf release;
 
-r50:
-/ \a SetInvalidate => SetInvalidation;
+r11:
+/ @ \u YWidget:
+	/ \amf void Refresh() -> void Refresh(const Graphics&, const Point&,
+		const Rect&);
+	/ \tr @ \cl Widget;
+/ \impl @ \mf Frame::DrawContents @ \impl \u YWindow;
+/ \a \mf void DrawControl() -> void DrawControl(const Graphics&,
+	const Point&, const Rect&);
+/ \tr @ \u (Label & Progress & TextArea & YControl & YWindow & Scroll
+	& TextList & Button & CheckBox & ListBox);
+/ \tr \impl @ \mf YGUIShell::ShlProc;
+/ \tr \impl @ \cl Panel @ \h YPanel;
 
-r51:
-/ \amf void Invalidate() -> void Invalidate(const Rect&) @ \in IWidget;
-/ \tr \a \mf void Invalidate() -> void Invalidate(const Rect&);
-+ !\m \f void Invalidate(IWidget&) @ \u YWidget;
-/ \tr \impl @ \impl \u (Menu & Shell_DS & Button & ListBox & TextList
-	& YControl & YWindow & Scroll & Shells) & \h YPanel;
+r12-r13:
+/= test 4:
 
-r52:
-/ @ \cl Rect @ \u YGDIBase:
-	+ \mf bool Contains(const Rect&) const;
-	+ \mf bool ContainsStrict(const Rect&) const;
+r14:
+/ @ \impl \u Scroll:
+	/ \simp \mf ScrollableContainer::DrawControl;
+	* \impl @ \mf ScrollableContainer::DrawControl $since r11;
+	* \impl @ \mf ATrack::DrawControl $since r11;
 
-r53:
-/ \simp \impl @ \mf Invalidate @ \cl Widget;
+r15:
+* \impl @ \mf ATrack::DrawControl @ \impl \u Scroll $since r11;
 
-r54-r56:
-+ \ft<class _tNode> _tNode* FetchWidgetDirectNodePtr(IWidget*, Point&)
-	@ \h YUIContainer;
+r16:
++ \f \i void DrawSubControl(Control&, const Graphics&, const Point&,
+	const Rect&) @ \h YControl;
++ \f \i void RefreshSub(IWidget&, const Graphics&, const Point&, const Rect&)
+	@ \h YWidget;
+/ \simp \impl @ \impl \u Scroll ^ \f DrawSubControl ^ \RefreshSub;
+/ \impl @ \mf AScrollBar::DrawControl;
 
-r57-r60:
-/= test 4;
-+ WinGDB settings @ main project file;
+r17:
+/ \simp \impl @ \mf Widget::Refresh;
+/ @ \u YUIContainer:
+	- \f void Fill(IWidget&, Color);
+	- \mac YWidgetAssert;
+	- \f Components::yassert;
+- \inc \h "yuicont.h" @ \impl \u (YWidget & Button & Label & TextArea);
+- \inc \h "ywindow.h" @ \impl \u (Button & Label & TextArea & YControl
+	& CheckBox & ListBox & Progress & Scroll & UIContainerEx
+	& YFocus & YPanel & YGUI & YUIContainer & YWidget);
++ \inc \h "../Service/yblit.h" @ \impl \u (Button & CheckBox);
+- \a 3 window \as \str @ \impl \u YWindow;
 
-r61:
+r18:
 /= test 5 ^ \conf release;
 
-r62:
-/ @ \u YWindow:
-	+ \f bool RequiresInvalidation(const IWindow&);
-	+ \f void SetInvalidationOf(IWindow&, bool);
-	/ @ \cl AWindow:
-		/ \impl @ \mf Invalidate;
-		/ \impl @ \mf Update;
-		/\i \mf bool RequiresInvalidation() const
-			-> const Rect& GetInvalidatedArea() const ^ \mac DefGetter;
-		/ \i \mf void SetInvalidation(bool);
-			-> !\i \mf void CommitInvalidatedArea(const Rect&);
-		/ \impl @ \ctor;
-	/ \tr \impl @ \mf Frame::DrawContents;
-	/ \tr \impl @ \f Show & Hide ^ SetInvalidationOf ~ \mf SetInvalidation;
-	/ @ \in IWindow:
-		/ \amf bool RequiresInvalidation() const
-			-> const Rect& GetInvalidatedArea() const;
-		/ \amf void SetInvalidation(bool)
-			-> void CommitInvalidatedArea(const Rect&);
-	/ @ \cl MWindow:
-		/ protected \m bool bInvalidation -> Rect rInvalidated;
-		/ \i \mf bool RequiresInvalidation() const
-			-> const Rect& GetInvalidatedArea() const;
-		/ \tr \impl @ \ctor;
-/ @ \cl Desktop @ \impl \u YDesktop:
-	/ \tr \impl @ \mf MoveToTop;
-	/ \tr \impl @ \mf ClearContent;
-	/ \tr \impl @ \mf Update;
-/ \tr \impl @ \mf Invalidate @ \cl Widget;
-/ \tr @ \impl \u Shells:
-	/ \impl @ \ctor @ \cl ShlExplorer::TFormTest;
-	/ \impl @ \mf ShlReader::UpdateToScreen;
+r19:
+/ \impl @ \mf Frame::DrawContents:
+	+ valid graphics test;
 
-r63-r64:
-/ \impl @ \mf Invalidate @ \cl Widget;
+r20:
++ Rect Intersection(const Rect&, const Rect&) @ \u YGDIBase;
++ \inc \h <algorithm> @ \impl \u YGDIBase;
+/ \impl @ \mf Frame::DrawContents ^ \f Intersect;
 
-r65:
-/ \impl @ \mf AWindow::CommitInvalidatedArea;
+r21:
+/ \impl @ \mf AWindow::DrawBackgroundImage;
 
-r66-r77:
+r22:
+/ @ \cl AWindow:
+	/ \impl @ \mf DrawRaw;
+	/ \simp \impl @ \mf DrawBackgroundImage;
+
+r23:
+/= \impl @ \mf (TextRegion::ClearLine & ATextRenderer::ClearLine)
+	@ \impl \u YText;
+/= \rem @ \mf ShlExplorer::TFormExtra::OnClick_btnTestEx @ \impl \u Shells;
+
+r24-r27:
 /= test 6;
 
+r28:
+* \impl @ \ctor @ \cl AWindow $since r4;
+
+r29:
+/ \impl @ \f CommitInvalidatedAreaTo @ \impl \u YWindow;
+
+r30:
+/ \simp \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
+
+r31-r39:
+/= test 7;
+
+r40:
+/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
+
+r41:
+/ \simp \impl @ \mf ShlDS::UpdateToScreen ^ \mf Validate ~ \f Invalidate;
+
+r42-r43:
+/ \impl @ \mf ShlExplorer::OnActivated @ \impl \u Shells;
+
+r44:
+/ @ \impl \u Shells:
+	/ @ \cl ShlExplorer:
+		/ \impl @ \ctor @ \cl TFormTest;
+		/ \impl @ \ctor @ \cl TFormExtra;
+		/ \impl @ \mf OnActivated;
+		/ \impl @ \mf OnTouchDown_FormExtra;
+	/ \impl @ \mf ShlReader::OnActivated;
+
+r45:
+/= test 8;
+
+r46:
+/ \impl @ \f void Invalidate(IWidget&, const Rect&) @ \impl \u YWidget;
+/ \impl @ \mf AWindow::Refresh;
+
+r47-r50:
+/= test 9;
+
+r51:
+/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
+
+r52:
+/ \impl @ \mf AWindow::DrawBackgroundImage;
+
+r53:
+/ \impl @ \mf Frame::DrawContents;
+
+r54:
+/ @ \impl \u YGDIBase:
+	* \impl @ \f Intersect $since r20;
+	- \inh \h <algorithm>;
+
+r55:
+/ \impl @ \f Intersect @ \impl \u YGDIBase;
+
+r56-r59:
+/= test 10;
+
+r60:
+* \impl @ \f Intersect @ \impl \u YGDI $since r20;
+
+r61:
++ \f \i void SetEnabledOf(IControl&, bool = true);
+/ @ \impl \u Shells ^ \f SetEnabledOf ~ \mf SetEnabled;
+
+r62:
+/ @ \impl \u Shells ^ \a \f SetEnabledOf ~ \mf SetEnabled;
+
+r63:
+/= test 11 ^ \conf release;
+
+r64-r65:
+/ \simp \impl @ \f Invalidate(IWidget&, const Rect&) @ \impl \u YWidget;
+
+r66-r74:
+/= test 12;
+
+r75:
+/ \impl @ \f Invalidate(IWidget&, const Rect&) @ \impl \u YWidget;
+
+r76-r77:
+/= test 13;
+
 r78:
-* \impl @ \mf Widget::Invalidate $since r64;
+/ \impl @ \mf OnTouchMove_Dragging @ \impl \u YControl;
 
 r79:
-* \simp \impl @ \mf AWindow::Invalidate $since r66;
+/ @ \u YGDIBase:
+	/= \st Size -> \cl Size with (\ac public @ \a \m);
+	+ \i \mf bool IsOrigin() const @ \cl Point ^ \mac DefPredicate;
+	/ @ \cl Size:
+		+ \i \mf bool IsEmpty() const;
+		/ \simp \mf \op Vec ^ \mac DefConverter;
+	/ \simp \mf \op Point @ \cl Vec ^ \mac DefConverter;
+	+ \f Rect Unite(const Rect&, const Rect&);
+	/ \simp @ \f Intersect;
+/ @ \impl \u YWindow:
+	/ \simp \impl @ \f CommitInvalidatedAreaTo ^ \f Unite;
+	/ \simp \impl @ \f RequiresRefresh ^ \mf Size::IsEmpty;
 
 r80:
-/ @ \u YWindow:
-	/ \f void SetInvalidationOf(IWindow&, bool)
-		-> void SetInvalidationOf(IWindow&);
-	/ \f RequiresInvalidation => RequiresRefresh;
-	/ \tr \impl @ \f (Show & Hide);
-/ \tr \impl @ \impl \u Shells:
-	/ \tr \impl @ \mf ShlReader::UpdateToScreen;
-	/ \tr \impl @ \ctor @ \cl ShlExplorer::TFormTest;
-/ \tr \impl @ \mf (Update & MoveToTop & ClearContents) @ \cl Desktop;
+/ \simp \impl @ \f CommitInvalidatedAreaTo @ \impl \u YWindow;
+* \impl @ \f Unite @ \impl \u YGDIBase $since r79;
 
 r81:
-/= test 7 ^ \conf release;
+/= test 14 ^ \conf release;
+
+r82-r86:
+/ @ \cl ShlExplorer @ \impl \u Shells
+	/ \impl @ \ctor;
+	/ \impl @ \mf OnActivated;
+
+r87:
+* \impl @ \mf OnActivated @ \impl \u Shells $since r85;
+
+r88-r90:
+* \impl @ \mf Frame::DrawContents @ \impl \u YWindow $since r53;
+
+r91:
+/= test 15 ^ \conf release;
+
+r92:
+/ @ \u YWindow:
+	/ @ \cl AWindow:
+		/ \simp \impl @ \mf Update;
+		/ \simp \impl @ \mf DrawRaw;
+	/ @ \cl MWindow:
+		- protected \m bool bUpdate;
+		/ \tr \simp \impl @ \ctor;
+	- \tr \m RequiresUpdate @ \cl (MWindow & AWindow) & \in IWindow;
+/ \tr \impl @ \mf Desktop::Update;
+
+r93:
+/ @ \u YWidget:
+	- \amf Validate @ \in IWidget;
+	- \mf Validate @ \cl Widget;
+- \mf Validate @ \cl Panel;
+- \vt @ \mf Validate @ \cl AWindow;
+
+r94-r95:
+/= test 16;
+
+r96:
+/= test 17 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-07-09:
--22.6d;
-//Mercurial rev1-rev94: r4657;
+2011-07-13:
+-18.0d;
+//Mercurial rev1-rev95: r4738;
 
 / ...
 
 
 $NEXT_TODO:
-b225-b256:
+b226-b256:
++ TextList invalidation support;
 * non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
 	* moved text after setting lnGap;
@@ -494,6 +646,37 @@ $ellipse_debug_assertion;
 
 $now
 (
+	/ "windows partial invalidation support" $=
+	(
+		/ "windows partial invalidation committing for class %IWindow"
+			~ "class %AWindow",
+		+ "widget validation abstract member function" @ "class %IWidget",
+		/ "widget invalidation interface as non-member function"
+			~ ("abstract member function" @ "class %IWindow")
+	),
+	+ "assignment operators" @ "class %Rect",
+	/ "widget rendering efficiency improvement" $=
+	(
+		+ "parameters for member function %Refresh" @ "widgets",
+		/ "background refreshing" ^ "invalidation" @ "class %AWindow",
+		/ "invalidating of windows" $=
+		(
+			/ "without validating old invalidated areas"
+		),
+		+ "partial invalidation" @ "control default %TouchMove event handler \
+			%OnTouchMove_Dragging"
+	),
+	+ "intersection and union calculation for class %Rect",
+	/ "shells test example" $=
+	(
+		+ "opaque background" @ "pseudo-frame-per-second counter",
+		/ "controls layout" @ "shell class %ShlExplorer",
+		- "windows update state"
+	)
+),
+
+b224
+(
 	* "wrong ascending when switching font size" $since b224 $=
 	(
 		^ "freetype 2.4.4 cache system" ~ "freetype 2.4.5 cache system"
@@ -501,7 +684,11 @@ $now
 	),
 	+ "containing test" @ "class %Rect",
 	+ "WinGDB settings" @ "main project file",
-	+ "windows partial invalidation support"
+	+ "windows partial invalidation support" $=
+	(
+		/ "invalidation interface",
+		+ "windows partial invalidation committing for class %AWindow"
+	)
 ),
 
 b223
@@ -515,7 +702,7 @@ b223
 		// NOTE: this might cause memory leak.
 	/ "shells test example" $=
 	(
-		+ "frame-per-second counter",
+		+ "pseudo-frame-per-second counter",
 		/ "button enabling" ^ "file extension matching in the file box"
 	),
 	* "declaration of function %GetStemFrom" @ "header yfilesys.h" $since b161,

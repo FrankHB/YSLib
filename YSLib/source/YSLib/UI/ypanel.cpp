@@ -11,12 +11,12 @@
 /*!	\file ypanel.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version 0.1136;
+\version 0.1144;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2011-06-16 03:26 +0800;
+	2011-07-11 10:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,6 @@
 
 
 #include "ypanel.h"
-#include "ywindow.h"
 
 YSL_BEGIN
 
@@ -41,21 +40,21 @@ void
 Panel::operator+=(IWidget& wgt)
 {
 	MUIContainer::operator+=(wgt);
-	wgt.GetContainerPtr() = this;
+	wgt.GetContainerPtrRef() = this;
 }
 void
 Panel::operator+=(IControl& ctl)
 {
 	MUIContainer::operator+=(ctl);
-	ctl.GetContainerPtr() = this;
+	ctl.GetContainerPtrRef() = this;
 }
 
 bool
 Panel::operator-=(IWidget& wgt)
 {
-	if(wgt.GetContainerPtr() == this)
+	if(wgt.GetContainerPtrRef() == this)
 	{
-		wgt.GetContainerPtr() = nullptr;
+		wgt.GetContainerPtrRef() = nullptr;
 		return MUIContainer::operator-=(wgt);
 	}
 	return false;
@@ -63,9 +62,9 @@ Panel::operator-=(IWidget& wgt)
 bool
 Panel::operator-=(IControl& ctl)
 {
-	if(ctl.GetContainerPtr() == this)
+	if(ctl.GetContainerPtrRef() == this)
 	{
-		ctl.GetContainerPtr() = nullptr;
+		ctl.GetContainerPtrRef() = nullptr;
 		return MUIContainer::operator-=(ctl);
 	}
 	return false;

@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version 0.6676;
+\version 0.6678;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-06-30 20:16 +0800;
+	2011-07-11 18:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -260,7 +260,7 @@ ATextRenderer::SetLnLast()
 void
 ATextRenderer::ClearLine(u16 l, SDst n)
 {
-	const Graphics& g(GetContext());
+	const auto& g(GetContext());
 
 	if(l > g.GetHeight())
 		return;
@@ -316,7 +316,7 @@ TextRegion::InitializeFont()
 void
 TextRegion::ClearLine(u16 l, SDst n)
 {
-	const Graphics& g(GetContext());
+	const auto& g(GetContext());
 
 	if(l > g.GetHeight())
 		return;

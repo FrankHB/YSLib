@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version 0.2324;
+\version 0.2326;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-07-09 17:56 +0800;
+	2011-07-09 21:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -100,9 +100,7 @@ Desktop::ClearContents()
 void
 Desktop::Update()
 {
-	if(Forms::RequiresRefresh(*this))
-		bUpdate = false;
-	if(bUpdate)
+	if(!Forms::RequiresRefresh(*this))
 		Screen.Update(GetContext().GetBufferPtr());
 }
 

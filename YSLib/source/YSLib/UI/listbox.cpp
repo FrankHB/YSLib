@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3637;
+\version 0.3646;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-07-08 21:14 +0800;
+	2011-07-11 10:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,6 @@
 
 
 #include "listbox.h"
-#include "ywindow.h"
 #include "ystyle.h"
 #include "../Service/ytext.h"
 
@@ -46,7 +45,7 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 	: ScrollableContainer(r),
 	TextListBox(Rect(Point::Zero, r), h)
 {
-	TextListBox.GetContainerPtr() = this;
+	TextListBox.GetContainerPtrRef() = this;
 	VerticalScrollBar.GetTrack().GetScroll().Add(*this,
 		&ListBox::OnScroll_VerticalScrollBar);
 	TextListBox.GetViewChanged().Add(*this,
@@ -66,17 +65,17 @@ ListBox::GetTopControlPtr(const Point& p)
 }
 
 void
-ListBox::DrawControl()
+ListBox::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 {
-	ScrollableContainer::DrawControl();
-	TextListBox.DrawControl();
+	ScrollableContainer::DrawControl(g, pt, r);
+	TextListBox.DrawControl(g, pt, r);
 }
 
 void
 ListBox::OnScroll_VerticalScrollBar(ScrollEventArgs&& e)
 {
 	TextListBox.LocateViewPosition(e.Value);
-	Widgets::Invalidate(*this);
+	Invalidate(*this);
 }
 
 void

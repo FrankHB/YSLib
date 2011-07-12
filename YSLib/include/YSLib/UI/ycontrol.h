@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.5153;
+\version 0.5169;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-07-07 21:21 +0800;
+	2011-07-12 08:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -347,6 +347,16 @@ CallEvent(IControl& c, typename EventTypeMapping<_vID>
 	CallEvent<_vID>(c.GetEventMap(), c, e);
 }
 
+/*!
+\brief 设置控件有效性并使部件区域在窗口缓冲区中无效。
+*/
+inline void
+SetEnabledOf(IControl& ctl, bool b = true)
+{
+	ctl.SetEnabled(b);
+	Invalidate(ctl);
+}
+
 
 /*!
 \brief 处理键接触保持事件。
@@ -460,14 +470,14 @@ public:
 	\note 实现 Widget 的界面绘制。
 	*/
 	virtual void
-	DrawControl();
+	DrawControl(const Graphics&, const Point&, const Rect&);
 
 	/*!
-	\brief 刷新：绘制界面。
+	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	\note 调用 DrawControl 后调用 Paint 事件。
 	*/
 	virtual void
-	Refresh();
+	Refresh(const Graphics&, const Point&, const Rect&);
 
 	/*!
 	\brief 向部件容器请求获得焦点。
@@ -483,6 +493,17 @@ public:
 	ImplI1(IControl) void
 	ReleaseFocusFrom(IControl&);
 };
+
+
+/*
+\ingroup HelperFunction
+\brief 绘制子控件。
+*/
+inline void
+DrawSubControl(Control& ctl, const Graphics& g, const Point& pt, const Rect& r)
+{
+	ctl.DrawControl(g, pt + ctl.GetLocation(), r);
+}
 
 YSL_END_NAMESPACE(Controls)
 

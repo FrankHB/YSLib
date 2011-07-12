@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version 0.3549;
+\version 0.3560;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-07-08 21:14 +0800;
+	2011-07-11 10:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,7 @@
 
 
 #include "button.h"
-#include "yuicont.h"
-#include "ywindow.h"
+#include "../Service/yblit.h"
 #include "ygui.h"
 
 YSL_BEGIN
@@ -81,23 +80,18 @@ Thumb::Thumb(const Rect& r)
 {
 	FetchEvent<Enter>(*this) += [this](IControl&, TouchEventArgs&&){
 		bPressed = true;
-		Widgets::Invalidate(*this);
+		Invalidate(*this);
 	};
 	FetchEvent<Leave>(*this) += [this](IControl&, TouchEventArgs&&){
 		bPressed = false;
-		Widgets::Invalidate(*this);
+		Invalidate(*this);
 	};
 }
 
 void
-Thumb::DrawControl()
+Thumb::DrawControl(const Graphics& g, const Point& pt, const Rect&)
 {
-	YWidgetAssert(this, Controls::Thumb, DrawControl);
-
-	IWindow* pWnd(FetchDirectWindowPtr(*this));
-
-	RectDrawButton(pWnd->GetContext(), LocateForWindow(*this),
-		GetSize(), bPressed, IsEnabled());
+	RectDrawButton(g, pt, GetSize(), bPressed, IsEnabled());
 	if(IsEnabled() && IsFocused())
 	{
 		Size s(GetSize());
@@ -106,8 +100,7 @@ Thumb::DrawControl()
 		{
 			s.Width -= 6;
 			s.Height -= 6;
-			DrawRect(pWnd->GetContext(), LocateForWindow(*this) + Vec(3, 3), s,
-				ColorSpace::Aqua);
+			DrawRect(g, pt + Vec(3, 3), s, ColorSpace::Aqua);
 		}
 	}
 }
@@ -119,12 +112,11 @@ Button::Button(const Rect& r, const Drawing::Font& fnt)
 {}
 
 void
-Button::DrawControl()
+Button::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 {
-	Thumb::DrawControl();
+	Thumb::DrawControl(g, pt, r);
 	PaintText(*this, IsEnabled() ? ForeColor
-		: FetchGUIShell().Colors[Styles::Workspace],
-		FetchContext(*this), LocateForWindow(*this));
+		: FetchGUIShell().Colors[Styles::Workspace], g, pt);
 }
 
 YSL_END_NAMESPACE(Controls)

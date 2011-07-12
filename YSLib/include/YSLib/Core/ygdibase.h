@@ -12,12 +12,12 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version 0.1420;
+\version 0.1458;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-07-08 23:14 +0800;
+	2011-07-12 12:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -185,6 +185,11 @@ public:
 	*/
 	Point&
 	operator-=(const Vec&);
+
+	/*!
+	\biref 判断是否位于原点。
+	*/
+	DefPredicate(Origin, X == 0 && Y == 0)
 };
 
 inline
@@ -240,10 +245,7 @@ public:
 	/*!
 	\brief 转换：屏幕二维点。
 	*/
-	operator Point() const
-	{
-		return Point(X, Y);
-	}
+	DefConverter(Point, Point(X, Y))
 
 	/*!
 	\brief 负运算：返回加法逆元。
@@ -356,8 +358,9 @@ operator-(const Vec& a, const Vec& b)
 }
 
 
-struct Size //!< 屏幕区域大小。
+class Size //!< 屏幕区域大小。
 {
+public:
 	SDst Width, Height; //!< 宽和高。
 
 	static const Size Zero; //!< 无参数构造参数构造的零元素对象。
@@ -392,10 +395,12 @@ struct Size //!< 屏幕区域大小。
 	\brief 转换：屏幕二维向量。
 	\note 以Width 和 Height 分量作为结果的 X 和 Y分量。
 	*/
-	operator Vec() const
-	{
-		return Vec(Width, Height);
-	}
+	DefConverter(Vec, Vec(Width, Height))
+
+	/*!
+	\brief 判断是否为空。
+	*/
+	DefPredicate(Empty, Width == 0 && Height == 0)
 };
 
 inline
@@ -539,6 +544,13 @@ public:
 	*/
 	Rect(SPos, SPos, SDst, SDst);
 
+	inline Rect&
+	operator=(const Rect&) = default;
+	Rect&
+	operator=(const Point&);
+	Rect&
+	operator=(const Size&);
+
 	/*!
 	\brief 判断点 (px, py) 是否在矩形内或边上。
 	*/
@@ -614,6 +626,21 @@ Rect::Rect(SPos x, SPos y, SDst w, SDst h)
 	: Point(x, y), Size(w, h)
 {}
 
+inline Rect&
+Rect::operator=(const Point& pt)
+{
+	X = pt.X;
+	Y = pt.Y;
+	return *this;
+}
+inline Rect&
+Rect::operator=(const Size& s)
+{
+	Width = s.Width;
+	Height = s.Height;
+	return *this;
+}
+
 inline bool
 operator==(const Rect& a, const Rect& b)
 {
@@ -644,6 +671,21 @@ operator-(const Rect& r, const Vec& v)
 {
 	return Rect(r.GetPoint() - v, r.GetSize());
 }
+
+
+/*!
+\brief 求两个屏幕正则矩形的交。
+\return 若相离为 Rect::Empty ，否则为包含于两个参数中的最大矩形。
+*/
+Rect
+Intersect(const Rect&, const Rect&);
+
+/*!
+\brief 求两个屏幕正则矩形的并。
+\return 包含两个参数中的最小矩形。
+*/
+Rect
+Unite(const Rect&, const Rect&);
 
 
 //! \brief 二维图形接口上下文。

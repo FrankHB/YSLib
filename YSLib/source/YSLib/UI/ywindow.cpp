@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.3822;
+\version 0.3920;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-07-09 17:54 +0800;
+	2011-07-12 21:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,14 +40,29 @@ YSL_BEGIN_NAMESPACE(Forms)
 bool
 RequiresRefresh(const IWindow& wnd)
 {
-	return wnd.GetInvalidatedArea().Width != 0
-		&& wnd.GetInvalidatedArea().Height != 0;
+	return !FetchInvalidatedArea(wnd).IsEmpty();
 }
 
 void
 SetInvalidationOf(IWindow& wnd)
 {
-	wnd.CommitInvalidatedArea(Rect(Point::Zero, wnd.GetSize()));
+	CommitInvalidatedAreaTo(wnd, Rect(Point::Zero, wnd.GetSize()));
+}
+
+void
+SetInvalidateonToParent(IWindow& wnd)
+{
+	if(wnd.GetWindowPtr())
+	{
+		CommitInvalidatedAreaTo(*wnd.GetWindowPtr(),
+			Rect(LocateForParentWindow(wnd), wnd.GetSize()));
+	}
+}
+
+void
+CommitInvalidatedAreaTo(IWindow& wnd, const Rect& r)
+{
+	wnd.GetInvalidatedAreaRef() = Unite(FetchInvalidatedArea(wnd), r);
 }
 
 
@@ -55,20 +70,20 @@ void
 Show(IWindow& wnd)
 {
 	wnd.SetVisible(true);
-	SetInvalidationOf(wnd);
+	SetInvalidateonToParent(wnd);
 }
 
 void
 Hide(IWindow& wnd)
 {
 	wnd.SetVisible(false);
-//	SetInvalidationOf(wnd);
+	SetInvalidateonToParent(wnd);
 }
 
 
 MWindow::MWindow(const shared_ptr<Image>& hImg, IWindow* pWnd)
 	: MWindowObject(pWnd),
-	hBgImage(hImg), rInvalidated(), bUpdate(false)
+	hBgImage(hImg), rInvalidated()
 {}
 
 
@@ -86,21 +101,6 @@ AWindow::GetBackgroundPtr() const
 }
 
 void
-AWindow::CommitInvalidatedArea(const Rect& r)
-{
-	using namespace ystdex;
-
-	SPos x(rInvalidated.X), y(rInvalidated.Y),
-		xm(rInvalidated.X + rInvalidated.Width),
-		ym(rInvalidated.Y + rInvalidated.Height);
-
-	rInvalidated.X = vmin(x, r.X);
-	rInvalidated.Y = vmin(y, r.Y);
-	rInvalidated.Width = vmax<SPos>(xm, r.X + r.Width) - rInvalidated.X;
-	rInvalidated.Height = vmax<SPos>(ym, r.Y + r.Height) - rInvalidated.Y;
-}
-
-void
 AWindow::SetSize(const Size& s)
 {
 	SetBufferSize(s);
@@ -110,9 +110,14 @@ AWindow::SetSize(const Size& s)
 bool
 AWindow::DrawBackgroundImage()
 {
-	YWindowAssert(this, Forms::AWindow, DrawBackgroundImage);
+	if(hBgImage)
+	{
+		const auto& g(GetContext());
+		const auto& r(FetchInvalidatedArea(*this));
 
-	return hBgImage ? CopyTo(GetContext(), *hBgImage) : false;
+		return CopyTo(g.GetBufferPtr(), *hBgImage, g.GetSize(), r, r, r);
+	}
+	return false;
 }
 
 void
@@ -121,41 +126,23 @@ AWindow::DrawRaw()
 	if(!IsTransparent())
 	{
 		if(!DrawBackgroundImage())
-			BeFilledWith(BackColor);
+			FillRect(GetContext(), FetchInvalidatedArea(*this), BackColor);
 	}
-
-	YWindowAssert(this, Forms::AWindow, DrawRaw);
-
 	DrawContents();
 	GetEventMap().DoEvent<HVisualEvent>(Paint, *this, EventArgs());
-	bUpdate = true;
 }
 
 void
-AWindow::Invalidate(const Rect& r)
+AWindow::Refresh(const Graphics&, const Point&, const Rect&)
 {
-	if(Forms::RequiresRefresh(*this))
-	{
-		DrawRaw();
-		rInvalidated.Width = 0;
-	}
-	if(GetContainerPtr())
-		Widget::Invalidate(r);
-}
-
-void
-AWindow::Refresh()
-{
-	Widgets::Invalidate(*this);
+	Validate();
 	Update();
 }
 
 void
 AWindow::Update()
 {
-	if(Forms::RequiresRefresh(*this))
-		bUpdate = false;
-	if(bUpdate)
+	if(!Forms::RequiresRefresh(*this))
 		UpdateToWindow();
 }
 
@@ -184,6 +171,16 @@ AWindow::UpdateToWindow() const
 		UpdateTo(pWnd->GetContext(), LocateForParentWindow(*this));
 }
 
+void
+AWindow::Validate()
+{
+	if(Forms::RequiresRefresh(*this))
+	{
+		DrawRaw();
+		ResetInvalidatedAreaOf(*this);
+	}
+}
+
 
 AFrame::AFrame(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
 	: AWindow(r, hImg, pWnd), MUIContainer()
@@ -193,27 +190,27 @@ void
 AFrame::operator+=(IWidget& wgt)
 {
 	MUIContainer::operator+=(wgt);
-	wgt.GetContainerPtr() = this;
+	wgt.GetContainerPtrRef() = this;
 }
 void
 AFrame::operator+=(IControl& ctl)
 {
 	MUIContainer::operator+=(ctl);
-	ctl.GetContainerPtr() = this;
+	ctl.GetContainerPtrRef() = this;
 }
 void
 AFrame::operator+=(IWindow& wnd)
 {
 	MUIContainer::Add(wnd, DefaultWindowZOrder);
-	wnd.GetContainerPtr() = this;
+	wnd.GetContainerPtrRef() = this;
 }
 
 bool
 AFrame::operator-=(IWidget& wgt)
 {
-	if(wgt.GetContainerPtr() == this)
+	if(wgt.GetContainerPtrRef() == this)
 	{
-		wgt.GetContainerPtr() = nullptr;
+		wgt.GetContainerPtrRef() = nullptr;
 		return MUIContainer::operator-=(wgt);
 	}
 	return false;
@@ -221,9 +218,9 @@ AFrame::operator-=(IWidget& wgt)
 bool
 AFrame::operator-=(IControl& ctl)
 {
-	if(ctl.GetContainerPtr() == this)
+	if(ctl.GetContainerPtrRef() == this)
 	{
-		ctl.GetContainerPtr() = nullptr;
+		ctl.GetContainerPtrRef() = nullptr;
 		return MUIContainer::operator-=(ctl);
 	}
 	return false;
@@ -231,9 +228,9 @@ AFrame::operator-=(IControl& ctl)
 bool
 AFrame::operator-=(IWindow& wnd)
 {
-	if(wnd.GetContainerPtr() == this)
+	if(wnd.GetContainerPtrRef() == this)
 	{
-		wnd.GetContainerPtr() = nullptr;
+		wnd.GetContainerPtrRef() = nullptr;
 		return MUIContainer::operator-=(wnd);
 	}
 	return false;
@@ -243,7 +240,7 @@ void
 AFrame::Add(IControl& ctl, Widgets::ZOrderType z)
 {
 	MUIContainer::Add(ctl, z);
-	ctl.GetContainerPtr() = this;
+	ctl.GetContainerPtrRef() = this;
 }
 
 void
@@ -281,7 +278,8 @@ Frame::~Frame()
 bool
 Frame::DrawContents()
 {
-	YWindowAssert(this, Forms::Frame, DrawContents);
+	if(!GetContext().IsValid())
+		return false;
 
 	bool result(Forms::RequiresRefresh(*this));
 
@@ -299,7 +297,28 @@ Frame::DrawContents()
 			IWidget& w(*i->second);
 
 			if(w.IsVisible())
-				w.Refresh();
+			{
+				auto pWnd(dynamic_cast<IWindow*>(&w));
+				Point pt, pt_p;
+
+				if(pWnd)
+					pt_p = w.GetLocation();
+				else
+				{
+					pt = LocateOffset(this, Point::Zero, &w);
+					pt_p = pt;
+				}
+
+				Rect r(Intersect(Rect(pt_p, w.GetSize()),
+					FetchInvalidatedArea(*this)));
+
+				if(pWnd || r != Rect::Empty)
+				{
+					// Update 不接受部分无效化，因此对于窗口绘制全部区域。
+					static_cast<Point&>(r) -= pt;
+					w.Refresh(GetContext(), pt, r);
+				}
+			}
 		}
 	return result;
 }

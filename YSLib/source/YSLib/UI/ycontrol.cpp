@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.4302;
+\version 0.4320;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-07-08 21:18 +0800;
+	2011-07-12 11:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,6 @@
 #include "ycontrol.h"
 #include "ygui.h"
 #include "yuicont.h"
-#include "ywindow.h"
 
 YSL_BEGIN
 
@@ -81,8 +80,10 @@ OnTouchMove_Dragging(IControl& ctl, TouchEventArgs&& e)
 	// TODO: analysis buffered coordinate delayed painting bug;
 	//	if(hShl->LastControlLocation != hShl->ControlLocation)
 	//	{
-			ctl.SetLocation(shl.LastControlLocation + shl.DraggingOffset);
-			Widgets::Invalidate(ctl);
+	// TODO: merge state to make a more efficient implementation;
+		Invalidate(ctl);
+		ctl.SetLocation(shl.LastControlLocation + shl.DraggingOffset);
+		Invalidate(ctl);
 	//	}
 	}
 }
@@ -162,10 +163,10 @@ Control::Control(const Rect& r)
 	};
 	FetchEvent<TouchHeld>(EventMap) += OnTouchHeld;
 	FetchEvent<GotFocus>(EventMap) += [this](IControl&, EventArgs&&){
-		Widgets::Invalidate(*this);
+		Invalidate(*this);
 	};
 	FetchEvent<LostFocus>(EventMap) += [this](IControl&, EventArgs&&){
-		Widgets::Invalidate(*this);
+		Invalidate(*this);
 	};
 	BoundControlPtr = std::bind(std::mem_fn(&Control::GetBoundControlPtr), this,
 		std::placeholders::_1);
@@ -178,7 +179,7 @@ Control::~Control()
 bool
 Control::IsFocused() const
 {
-	auto p(GetContainerPtr());
+	auto p(FetchContainerPtr(*this));
 
 	return p ? p->GetFocusingPtr() == this : false;
 }
@@ -197,22 +198,22 @@ Control::SetSize(const Size& s)
 }
 
 void
-Control::DrawControl()
+Control::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 {
-	Widget::Refresh();
+	Widget::Refresh(g, pt, r);
 }
 
 void
-Control::Refresh()
+Control::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 {
-	DrawControl();
+	DrawControl(g, pt, r);
 	GetEventMap().DoEvent<HVisualEvent>(Paint, *this, EventArgs());
 }
 
 void
 Control::RequestFocusFrom(IControl& c)
 {
-	auto p(GetContainerPtr());
+	auto p(FetchContainerPtr(*this));
 
 	if(p && p->ResponseFocusRequest(*this))
 		EventMap.GetEvent<HVisualEvent>(GotFocus)(c, EventArgs());
@@ -221,7 +222,7 @@ Control::RequestFocusFrom(IControl& c)
 void
 Control::ReleaseFocusFrom(IControl& c)
 {
-	auto p(GetContainerPtr());
+	auto p(FetchContainerPtr(*this));
 
 	if(p && p->ResponseFocusRelease(*this))
 		EventMap.GetEvent<HVisualEvent>(LostFocus)(c, EventArgs());
