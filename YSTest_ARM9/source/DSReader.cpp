@@ -11,12 +11,12 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version 0.3189;
+\version 0.3191;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-07-01 00:48 +0800;
+	2011-07-13 11:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -200,8 +200,8 @@ MDualScreenReader::LineDown()
 	std::memcpy(&AreaUp.GetBufferAlphaPtr()[d],
 		&AreaDown.GetBufferAlphaPtr()[s], t * sizeof(u8));
 	AreaDown.Scroll(-hx);
-	AreaDown.ClearLnLast();
-	AreaDown.SetLnLast();
+	AreaDown.ClearTextLineLast();
+	AreaDown.SetTextLineLast();
 	itDn = PutLine(AreaDown, itDn);
 	itUp = FetchNextLineIterator(AreaUp, itUp, pText->Blocks.end());
 	return true;
@@ -213,7 +213,7 @@ MDualScreenReader::ScreenUp()
 	if(IsTextTop())
 		return false;
 	itUp = FetchPreviousLineIterator(AreaUp, itUp, pText->Blocks.begin(),
-		AreaUp.GetLnN() + AreaDown.GetLnN());
+		AreaUp.GetTextLineN() + AreaDown.GetTextLineN());
 	Update();
 	return true;
 }
@@ -223,7 +223,7 @@ MDualScreenReader::ScreenDown()
 	if(IsTextBottom())
 		return false;
 
-	int t(AreaUp.GetLnN() + AreaDown.GetLnN());
+	int t(AreaUp.GetTextLineN() + AreaDown.GetTextLineN());
 
 	while(t-- && itDn != pText->Blocks.end())
 	{

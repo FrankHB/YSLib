@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.5745;
+\version 0.5764;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-07-12 21:31 +0800;
+	2011-07-18 06:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -79,32 +79,15 @@ DeclInterface(IWidget)
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
-	\note 边界仅为暗示，允许实现忽略，但可以保证边界内的区域被绘制。
+	\param g 图形接口上下文。
+	\param pt 相对图形接口上下文的偏移坐标，指定部件左上角的位置。
+	\param r 相对于图形接口上下文的正则矩形，指定需要保证被刷新的边界区域。
+	\return 实际被绘制的界面区域。
+	\note 边界仅为暗示，允许实现忽略，但可以保证边界内的区域保持最新显示状态。
+	\note 若部件的内部状态能够保证显示状态最新，则返回的区域可能比参数 r 更小。
 	*/
-	DeclIEntry(void Refresh(const Graphics&, const Point&, const Rect&))
+	DeclIEntry(Rect Refresh(const Graphics& g, const Point& pt, const Rect& r))
 EndDecl
-
-
-/*!
-\ingroup HelperFunction
-\brief 取部件的容器指针。
-\note 使用此函数确保返回值传递的值语义。
-*/
-inline IUIBox*
-FetchContainerPtr(const IWidget& wgt)
-{
-	return wgt.GetContainerPtrRef();
-}
-
-/*
-\ingroup HelperFunction
-\brief 刷新子部件。
-*/
-inline void
-RefreshSub(IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
-{
-	wgt.Refresh(g, pt + wgt.GetLocation(), r);
-}
 
 
 /*!
@@ -135,16 +118,16 @@ ContainsVisible(const IWidget& w, const Point& p)
 	return ContainsVisible(w, p.X, p.Y);
 }
 
-
 /*!
-\brief 请求提升至容器顶端。
-
-\todo 完全实现提升 IWidget 至容器顶端（目前仅实现 IControl 且
-	父容器为 Desktop 的情形）。
+\ingroup HelperFunction
+\brief 取部件的容器指针。
+\note 使用此函数确保返回值传递的值语义。
 */
-void
-RequestToTop(IWidget&);
-
+inline IUIBox*
+FetchContainerPtr(const IWidget& wgt)
+{
+	return wgt.GetContainerPtrRef();
+}
 
 /*!
 \brief 取部件边界。
@@ -161,17 +144,32 @@ GetBoundsOf(const IWidget& w)
 void
 SetBoundsOf(IWidget&, const Rect& r);
 
-
 /*!
-\brief 使部件区域在窗口缓冲区中无效。
+\brief 无效化：使部件区域在窗口缓冲区中无效。
 */
 void
 Invalidate(IWidget&);
+
 /*!
-\brief 使相对于部件的指定区域在窗口缓冲区中无效。
+\brief 级联无效化：使相对于部件的指定区域在直接和简洁的窗口缓冲区中无效。
 */
 void
-Invalidate(IWidget&, const Rect&);
+InvalidateCascade(IWidget&, const Rect&);
+
+/*
+\brief 刷新子部件。
+*/
+void
+RefreshChild(IWidget&, const Graphics&, const Point&, const Rect&);
+
+/*!
+\brief 请求提升至容器顶端。
+
+\todo 完全实现提升 IWidget 至容器顶端（目前仅实现 IControl 且
+	父容器为 Desktop 的情形）。
+*/
+void
+RequestToTop(IWidget&);
 
 
 //! \brief 方向模块。
@@ -327,7 +325,7 @@ public:
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
-	ImplI1(IWidget) void
+	ImplI1(IWidget) Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
 };
 

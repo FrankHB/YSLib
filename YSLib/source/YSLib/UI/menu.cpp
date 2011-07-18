@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version 0.1773;
+\version 0.1777;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-07-11 00:54 +0800;
+	2011-07-18 18:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -169,11 +169,8 @@ Menu::PaintItem(const Graphics& g, const Rect& r, ListType::size_type i)
 	DrawText(g, GetTextState(), GetList()[i]);
 
 	if(r.Width > 16 && mSubMenus.find(i) != mSubMenus.end())
-	{
-		const Rect arrow_bounds(r.X + r.Width - 16, r.Y, 16, r.Height);
-
-		WndDrawArrow(g, arrow_bounds, 4, RDeg0, ForeColor);
-	}
+		WndDrawArrow(g, Rect(r.X + r.Width - 16, r.Y, 16, r.Height), 4, RDeg0,
+			ForeColor);
 }
 
 
@@ -283,6 +280,7 @@ void
 MenuHost::ShowRaw(Menu& mnu, ZOrderType z)
 {
 	Frame.Add(mnu, z);
+	Invalidate(Frame);
 	mnu.RequestFocusFrom(mnu);
 }
 

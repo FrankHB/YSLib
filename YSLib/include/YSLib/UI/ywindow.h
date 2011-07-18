@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.4422;
+\version 0.4424;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-07-12 21:31 +0800;
+	2011-07-14 19:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -203,7 +203,7 @@ public:
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
-	ImplI1(IWindow) void
+	ImplI1(IWindow) Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
 
 	/*!

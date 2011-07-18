@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1342;
+\version 0.1345;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-07-11 08:35 +0800;
+	2011-07-18 06:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -185,9 +185,10 @@ protected:
 
 	/*!
 	\brief 绘制列表。
+	\note 参数意义同 Refresh 。
 	*/
 	virtual void
-	PaintItems(const Graphics&);
+	PaintItems(const Graphics&, const Point&, const Rect&);
 
 public:
 	using MTextList::RefreshTextState;

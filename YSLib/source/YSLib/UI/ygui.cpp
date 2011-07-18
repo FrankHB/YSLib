@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.3859;
+\version 0.3860;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-07-11 10:33 +0800;
+	2011-07-15 10:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

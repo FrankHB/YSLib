@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version 0.7020;
+\version 0.7022;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-06-30 20:16 +0800;
+	2011-07-13 11:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -537,18 +537,18 @@ public:
 	\brief 取按当前行高和行距所能显示的最大行数。
 	*/
 	u16
-	GetLnN() const;
+	GetTextLineN() const;
 	/*!
 	\brief 取按当前行高和行距（行间距数小于行数 1 ）所能显示的最大行数。
 	*/
 	u16
-	GetLnNEx() const;
+	GetTextLineNEx() const;
 
 	/*!
 	\brief 设置笔的行位置为最底行。
 	*/
 	void
-	SetLnLast();
+	SetTextLineLast();
 
 	/*!
 	\brief 清除缓冲区第 l 行起始的 n 行像素。
@@ -569,7 +569,7 @@ public:
 	\brief 清除缓冲区中的最后一个文本行。
 	*/
 	void
-	ClearLnLast();
+	ClearTextLineLast();
 };
 
 

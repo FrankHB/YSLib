@@ -11,12 +11,12 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version 0.1291;
+\version 0.1293;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-30 20:09:23 +0800;
 \par 修改时间:
-	2011-07-11 08:20 +0800;
+	2011-07-14 19:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -54,7 +54,7 @@ public:
 
 	using Widget::SetSize;
 
-	virtual void
+	virtual Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
 };
 

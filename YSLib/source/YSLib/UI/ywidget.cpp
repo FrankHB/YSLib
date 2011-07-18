@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.4976;
+\version 0.4998;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-07-12 10:28 +0800;
+	2011-07-18 06:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,48 +36,33 @@ YSL_BEGIN_NAMESPACE(Widgets)
 using Controls::Control;
 
 bool
-Contains(const IWidget& w, SPos x, SPos y)
+Contains(const IWidget& wgt, SPos x, SPos y)
 {
-	return Rect(w.GetLocation(), w.GetSize()).Contains(x, y);
+	return Rect(wgt.GetLocation(), wgt.GetSize()).Contains(x, y);
 }
 
 bool
-ContainsVisible(const IWidget& w, SPos x, SPos y)
+ContainsVisible(const IWidget& wgt, SPos x, SPos y)
 {
-	return w.IsVisible() && Contains(w, x, y);
+	return wgt.IsVisible() && Contains(wgt, x, y);
 }
 
 
 void
-RequestToTop(IWidget& w)
+SetBoundsOf(IWidget& wgt, const Rect& r)
 {
-	Desktop* pDsk(FetchDirectDesktopPtr(w));
-
-	if(pDsk && pDsk == FetchContainerPtr(w))
-	{
-		IControl* pCon(dynamic_cast<IControl*>(&w));
-
-		if(pCon)
-			pDsk->MoveToTop(*pCon);
-	}
+	wgt.SetLocation(r.GetPoint());
+	wgt.SetSize(r.GetSize());
 }
-
-
-void
-SetBoundsOf(IWidget& w, const Rect& r)
-{
-	w.SetLocation(r.GetPoint());
-	w.SetSize(r.GetSize());
-}
-
 
 void
 Invalidate(IWidget& wgt)
 {
-	Invalidate(wgt, Rect(Point::Zero, wgt.GetSize()));
+	InvalidateCascade(wgt, Rect(Point::Zero, wgt.GetSize()));
 }
+
 void
-Invalidate(IWidget& wgt, const Rect& r)
+InvalidateCascade(IWidget& wgt, const Rect& r)
 {
 	auto pWgt(&wgt);
 	IWindow* pWnd;
@@ -88,6 +73,29 @@ Invalidate(IWidget& wgt, const Rect& r)
 		CommitInvalidatedAreaTo(*pWnd, rect);
 		rect = FetchInvalidatedArea(*pWnd) + pWgt->GetLocation();
 		pWgt = FetchContainerPtr(*pWnd);
+	}
+}
+
+void
+RefreshChild(IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
+{
+	const auto& rect(Intersect(Rect(pt + wgt.GetLocation(), wgt.GetSize()), r));
+
+	if(rect != Rect::Empty)
+		wgt.Refresh(g, pt + wgt.GetLocation(), rect);
+}
+
+void
+RequestToTop(IWidget& wgt)
+{
+	Desktop* pDsk(FetchDirectDesktopPtr(wgt));
+
+	if(pDsk && pDsk == FetchContainerPtr(wgt))
+	{
+		IControl* pCon(dynamic_cast<IControl*>(&wgt));
+
+		if(pCon)
+			pDsk->MoveToTop(*pCon);
 	}
 }
 
@@ -110,11 +118,12 @@ Widget::Widget(const Rect& r, Color b, Color f)
 	pContainer()
 {}
 
-void
-Widget::Refresh(const Graphics& g, const Point& pt, const Rect&)
+Rect
+Widget::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 {
 	if(!IsTransparent())
-		FillRect(g, pt, GetSize(), BackColor);
+		Drawing::FillRect(g, r, BackColor);
+	return GetBoundsOf(*this);
 }
 
 YSL_END_NAMESPACE(Widgets)

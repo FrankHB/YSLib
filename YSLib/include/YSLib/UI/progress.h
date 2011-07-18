@@ -11,12 +11,12 @@
 /*!	\file progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version 0.1225;
+\version 0.1227;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-20 08:57:48 +0800;
 \par 修改时间:
-	2011-07-11 08:20 +0800;
+	2011-07-14 19:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,7 +52,7 @@ public:
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
-	virtual void
+	virtual Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
 };
 

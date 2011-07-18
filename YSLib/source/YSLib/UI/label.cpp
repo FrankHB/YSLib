@@ -11,12 +11,12 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version 0.2110;
+\version 0.2119;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-07-11 10:18 +0800;
+	2011-07-15 12:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,13 +39,14 @@ MLabel::MLabel(const Drawing::Font& fnt, TextAlignmentStyle a)
 {}
 
 void
-MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt)
+MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt,
+	const Rect& r)
 {
 	Drawing::TextState ts;
-	const Rect& r(GetBoundsOf(w));
+	const Rect& bounds(GetBoundsOf(w));
 
 	ts.Font.SetFont(Font);
-	ts.ResetForBounds(r, g.GetSize(), Margin);
+	ts.ResetForBounds(bounds, g.GetSize(), Margin);
 	ts.Color = c;
 
 	switch(HorizontalAlignment)
@@ -53,7 +54,7 @@ MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt)
 	case Center:
 	case Right:
 		{
-			SPos horizontal_offset(r.Width - GetHorizontalFrom(Margin)
+			SPos horizontal_offset(bounds.Width - GetHorizontalFrom(Margin)
 				- FetchStringWidth(ts.Font, Text));
 
 			if(horizontal_offset > 0)
@@ -75,7 +76,7 @@ MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt)
 	case Center:
 	case Down:
 		{
-			SPos vertical_offset(r.Height - GetHorizontalFrom(Margin)
+			SPos vertical_offset(bounds.Height - GetHorizontalFrom(Margin)
 				- GetTextLineHeightFrom(ts));
 
 			if(vertical_offset > 0)
@@ -90,15 +91,17 @@ MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt)
 		break;
 	}
 	ts.PenY += vertical_offset;
+//	ts.Margin = FetchMargin(r + Margin, g.GetSize());
 	DrawText(g, ts, Text);
 }
 
 
-void
+Rect
 Label::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 {
 	Widget::Refresh(g, pt, r);
-	PaintText(*this, ForeColor, g, pt);
+	PaintText(*this, ForeColor, g, pt, r);
+	return GetBoundsOf(*this);
 }
 
 

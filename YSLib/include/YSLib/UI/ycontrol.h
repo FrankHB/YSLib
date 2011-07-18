@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.5169;
+\version 0.5178;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-07-12 08:08 +0800;
+	2011-07-18 05:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -476,7 +476,7 @@ public:
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	\note 调用 DrawControl 后调用 Paint 事件。
 	*/
-	virtual void
+	virtual Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
 
 	/*!
@@ -493,17 +493,6 @@ public:
 	ImplI1(IControl) void
 	ReleaseFocusFrom(IControl&);
 };
-
-
-/*
-\ingroup HelperFunction
-\brief 绘制子控件。
-*/
-inline void
-DrawSubControl(Control& ctl, const Graphics& g, const Point& pt, const Rect& r)
-{
-	ctl.DrawControl(g, pt + ctl.GetLocation(), r);
-}
 
 YSL_END_NAMESPACE(Controls)
 

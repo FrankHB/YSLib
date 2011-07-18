@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.3920;
+\version 0.3930;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-07-12 21:22 +0800;
+	2011-07-15 23:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -132,11 +132,12 @@ AWindow::DrawRaw()
 	GetEventMap().DoEvent<HVisualEvent>(Paint, *this, EventArgs());
 }
 
-void
-AWindow::Refresh(const Graphics&, const Point&, const Rect&)
+Rect
+AWindow::Refresh(const Graphics&, const Point&, const Rect& r)
 {
 	Validate();
 	Update();
+	return GetBoundsOf(*this);
 }
 
 void
@@ -309,15 +310,12 @@ Frame::DrawContents()
 					pt_p = pt;
 				}
 
-				Rect r(Intersect(Rect(pt_p, w.GetSize()),
+				const Rect& r(Intersect(Rect(pt_p, w.GetSize()),
 					FetchInvalidatedArea(*this)));
 
-				if(pWnd || r != Rect::Empty)
-				{
-					// Update 不接受部分无效化，因此对于窗口绘制全部区域。
-					static_cast<Point&>(r) -= pt;
-					w.Refresh(GetContext(), pt, r);
-				}
+				if(r != Rect::Empty)
+					CommitInvalidatedAreaTo(*this,
+						w.Refresh(GetContext(), pt, r));
 			}
 		}
 	return result;

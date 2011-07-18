@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1391;
+\version 0.1400;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-07-11 08:27 +0800;
+	2011-07-18 07:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -221,10 +221,10 @@ TextList::CheckPoint(SPos x, SPos y)
 void
 TextList::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 {
-	Widget::Refresh(g, pt, r);
+//	Widget::Refresh(g, pt, r);
+	PaintItems(g, pt, r);
 	DrawWidgetBounds(*this, IsFocused() ? ColorSpace::Aqua
 		: FetchGUIShell().Colors[Styles::ActiveBorder]);
-	PaintItems(g);
 }
 
 void
@@ -248,13 +248,16 @@ TextList::PaintItem(const Graphics& g, const Rect&, ListType::size_type i)
 }
 
 void
-TextList::PaintItems(const Graphics& g)
+TextList::PaintItems(const Graphics& g, const Point& pt, const Rect&)
 {
 	const SDst h(GetHeight());
 
 	if(h != 0)
 	{
 		RefreshTextState();
+
+		// TODO: refresh for rect properly;
+		Widget::Refresh(g, pt, Rect(pt, GetSize()));
 
 		const SDst ln_w(GetWidth());
 		const SDst ln_h(GetItemHeight());

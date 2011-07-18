@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3753;
+\version 0.3757;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-07-11 10:21 +0800;
+	2011-07-18 07:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -180,6 +180,7 @@ ATrack::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 		Styles::Palette& pal(FetchGUIShell().Colors);
 
 		FillRect(g, pt, GetSize(), pal[Styles::Track]);
+	//	FillRect(g, r, pal[Styles::Track]);
 
 		const SPos xr(pt.X + GetWidth() - 1);
 		const SPos yr(pt.Y + GetHeight() - 1);
@@ -196,7 +197,10 @@ ATrack::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 			DrawVLineSeg(g, xr, pt.Y, yr, c);
 		}
 	}
-	DrawSubControl(Thumb, g, pt, r);
+	RefreshChild(Thumb, g, pt, r);
+	Thumb.Refresh(g, pt + Thumb.GetLocation(),
+		Rect(pt + Thumb.GetLocation(), Thumb.GetSize()));
+//	RefreshChild(Thumb, g, pt, r);
 }
 
 ATrack::Area
@@ -408,9 +412,9 @@ AScrollBar::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 
 	Widget::Refresh(g, pt, r);
 
-	DrawSubControl(*pTrack, g, pt, r);
-	DrawSubControl(PrevButton, g, pt, r);
-	DrawSubControl(NextButton, g, pt, r);
+	RefreshChild(*pTrack, g, pt, r);
+	RefreshChild(PrevButton, g, pt, r);
+	RefreshChild(NextButton, g, pt, r);
 	WndDrawArrow(g, Rect(pt + PrevButton.GetLocation(), PrevButton.GetSize()),
 		4, pTrack->GetOrientation() == Horizontal ? RDeg180
 		: RDeg90, ForeColor);
@@ -489,9 +493,9 @@ ScrollableContainer::DrawControl(const Graphics& g, const Point& pt,
 {
 	AUIBoxControl::DrawControl(g, pt, r);
 	if(HorizontalScrollBar.IsVisible())
-		RefreshSub(HorizontalScrollBar, g, pt, r);
+		RefreshChild(HorizontalScrollBar, g, pt, r);
 	if(VerticalScrollBar.IsVisible())
-		RefreshSub(VerticalScrollBar, g, pt, r);
+		RefreshChild(VerticalScrollBar, g, pt, r);
 }
 
 Size

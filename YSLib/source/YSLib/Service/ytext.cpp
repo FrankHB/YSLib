@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version 0.6678;
+\version 0.6680;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-07-11 18:06 +0800;
+	2011-07-13 11:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -232,7 +232,7 @@ FetchCharWidth(const Font& fnt, fchar_t c)
 
 
 u16
-ATextRenderer::GetLnN() const
+ATextRenderer::GetTextLineN() const
 {
 	const TextState& ts(GetTextState());
 
@@ -240,7 +240,7 @@ ATextRenderer::GetLnN() const
 		/ GetTextLineHeightExFrom(ts);
 }
 u16
-ATextRenderer::GetLnNEx() const
+ATextRenderer::GetTextLineNEx() const
 {
 	const TextState& ts(GetTextState());
 
@@ -249,9 +249,9 @@ ATextRenderer::GetLnNEx() const
 }
 
 void
-ATextRenderer::SetLnLast()
+ATextRenderer::SetTextLineLast()
 {
-	const u16 n(GetLnN());
+	const u16 n(GetTextLineN());
 
 	if(n)
 		SetCurrentTextLineNTo(GetTextState(), n - 1);
@@ -280,7 +280,7 @@ ATextRenderer::ClearTextLine(u16 l)
 }
 
 void
-ATextRenderer::ClearLnLast()
+ATextRenderer::ClearTextLineLast()
 {
 	TextState ts(GetTextState());
 	SDst h(GetTextLineHeightExFrom(ts));

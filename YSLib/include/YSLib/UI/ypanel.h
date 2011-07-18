@@ -11,12 +11,12 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version 0.1216;
+\version 0.1217;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:40:51 +0800;
 \par 修改时间:
-	2011-07-12 21:32 +0800;
+	2011-07-14 19:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -106,7 +106,7 @@ public:
 	ImplI1(IPanel) PDefH1(bool, ResponseFocusRelease, AFocusRequester& req)
 		ImplBodyBase1(MUIContainer, ResponseFocusRelease, req)
 
-	ImplI1(IPanel) PDefH3(void, Refresh, const Graphics& g, const Point& pt,
+	ImplI1(IPanel) PDefH3(Rect, Refresh, const Graphics& g, const Point& pt,
 		const Rect& r)
 		ImplBodyBase3(Control, Refresh, g, pt, r)
 };

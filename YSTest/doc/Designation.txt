@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version 0.5200;
+\version 0.5203;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-07-12 21:25 +0800;
+	2011-07-18 18:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -1268,7 +1268,7 @@ AWindow 类会在绘制完毕，设置更新状态之前调用 Paint 事件。
 使用视图的方法对缓冲区进行渲染。具体内容由视图的实现决定。
 
 @2.7.5.3 默认图形用户界面刷新逻辑：
-成员方法 DrawContents() 作为一般的缓冲区图形内容绘制接口（可能调用子对象的 Refresh() ）。
+成员方法 DrawContents() 作为一般的缓冲区图形内容绘制接口（可能调用子对象的 Refresh 方法）。
 成员方法 DrawControl() 是控件的默认绘制接口。
 
 @2.7.5.3.1 无效化(invalidation) ：
@@ -1282,8 +1282,8 @@ AWindow 类会在绘制完毕，设置更新状态之前调用 Paint 事件。
 带缓冲区的部件（包括窗口和桌面）实例存储刷新状态。
 刷新状态通过重绘区域 Rect 保持。
 重绘区域长或宽为零时表示重绘已经结束且无新的绘制请求，无需再次重绘。
- Invalidate(IWidget&, const Rect&) 通过调用 Validate() 保证向本层和上层缓冲区（若存在）传递相对于部件的正则矩形区域无效状态，以便被重绘。
- Invalidate(IWidget&) 是使用部件自身区域为参数调用 Invalidate 的人本接口。
+ InvalidateCascade(IWidget&, const Rect&) 通过调用 Validate() 向本层和上层缓冲区（若存在）传递相对于部件的正则矩形区域无效状态，以便被重绘。
+ Invalidate(IWidget&) 是使用部件自身区域为参数调用 InvalidateCascade 的人本接口。
 成员方法 Refresh(const Graphics&, const Point&, const Rect&) 是部件的状态无关的刷新接口，对于部件即绘制接口；对于自带缓冲区的控件，检查刷新状态后，直接或间接调用 Invalidate() 在缓冲区无效化自身区域，调用 DrawControl(const Graphics&, const Point&, const Rect&) 直接绘制控件界面。 
 
 @2.7.5.3.3 更新(updating) ：
@@ -1467,7 +1467,7 @@ FetchDefaultScreen();
  "ycontrol.h" 和 "yuicont.h" 依赖于 "ywidget.h" ；
  "ygui.h" 依赖于 "ycontrol.h" 和 "ystyle.h" ；
  "ymenu.h" 依赖于 "ygui.h" ；
- "ywindow.h" 和 "uicontx.h" 依赖于 "ycontrol.h" 和 "yuicont.h" ；
+ "ywindow.h" 和 "uicontx.h" 依赖于 "ycontrol.h" 、 "yuicont.h" 和 Service 的 "yblit.h" ；
  "ydesktop.h" 依赖于 "ywindow.h" 。
 在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少的头文件。
 

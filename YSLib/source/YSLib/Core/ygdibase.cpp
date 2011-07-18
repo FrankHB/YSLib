@@ -11,12 +11,12 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version 0.1386;
+\version 0.1390;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2011-07-12 12:42 +0800;
+	2011-07-18 06:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -126,11 +126,12 @@ Intersect(const Rect& a, const Rect& b)
 	if(dx < a.Width + b.Width && dy < a.Height + b.Height)
 	{
 		//优化：包含情况。
-		const bool a_width_is_less = a.Width < b.Width;
+		const bool a_is_contained(a.Width < b.Width
+			|| (a.Width == b.Width && a.Height < b.Height));
 
-		if(dx == (a_width_is_less ? b.Width : a.Width)
+		if(dx == (a_is_contained ? b.Width : a.Width)
 			&& dy == vmax(a.Height, b.Height))
-			return a_width_is_less ? a : b;
+			return a_is_contained ? a : b;
 	}
 	else
 		return Rect::Empty;

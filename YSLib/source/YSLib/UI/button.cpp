@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version 0.3560;
+\version 0.3561;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-07-11 10:24 +0800;
+	2011-07-15 00:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -116,7 +116,7 @@ Button::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 {
 	Thumb::DrawControl(g, pt, r);
 	PaintText(*this, IsEnabled() ? ForeColor
-		: FetchGUIShell().Colors[Styles::Workspace], g, pt);
+		: FetchGUIShell().Colors[Styles::Workspace], g, pt, r);
 }
 
 YSL_END_NAMESPACE(Controls)

@@ -1,4 +1,4 @@
-// v0.3229; *build 225 rev 96;
+// v0.3229; *build 226 rev 88;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -266,292 +266,149 @@ $using:
 
 $DONE:
 r1:
-/ @ \h YWidget:
-	/ \amf GetContainerPtr => GetContainerPtrRef @ \in IWidget;
-	+ \i \f IUIBox* FetchContainerPtr(const IWidget&);
-	/ \tr @ \cl Widget;
-/ \tr \impl @ 2 \ft FetchWidgetDirectNodePtr @ \h YUIContainer;
-/ \tr \impl @ \impl \u (YUIContainer & Scroll & ListBox & YControl
-	& YGUI & YPanel & YWidget & YWindow);
+/= test 0;
 
 r2:
-/ @ \h YWindow:
-	/ \amf const Rect& GetInvalidatedArea() const
-		-> Rect& GetInvalidatedAreaRef() const;
-	/ \m Rect rInvalidated -> mutable Rect rInvalidated @ \cl MWindow;
-	+ \i \f const Rect& FetchInvalidatedArea(const IWindow&);
-	/ \tr @ \cl AWindow;
-/ \tr \impl @ \impl \u (YWindow & YWidget);
+/ \a SetLnLast => SetTextLineLast;
+/ \a ClearLnLast => ClearTextLineLast;
+/ \a GetLnN => GetTextLineN;
+/ \a GetLnNEx => GetTextLineNEx;
 
 r3:
-/ @ \u YWindow:
-	- \amf CommitInvalidatedArea;
-	/ \mf void CommitInvalidatedArea(const Rect&) @ \cl AWindow
-		-> !\m \f void CommitInvalidatedAreaTo(IWindow&, const Rect&);
-/ \tr \impl @ \mf Widgets::Invalidate @ \impl \u YWidget;
+/ \ret \tp @ \amf void Refresh(const Graphics&, const Point&, const Rect&)
+	-> Rect ~ void @ \in IWidget;
+/ \tr \a \mf void Refresh(const Graphics&, const Point&, const Rect&)
+	-> Rect Refresh(const Graphics&, const Point&, const Rect&);
 
 r4:
-/ @ \cl Rect @ \h YGDIBase:
-	+ \exp \de Rect& operator=(const Rect&);
-	+ \mf Rect& operator(const Point&);
-	+ \mf Rect& operator(const Size&);
-/ @ \u YWindow:
-	+ \i \f void ResetInvalidatedAreaOf(IWindow&);
-	/ \impl @ \mf AWindow::Invalidate ^ \f ResetInvalidatedAreaOf;
-	+ \f void SetInvalidateonToParent(IWindow&);
-	/ \impl @ \f (Show & Hide) ^ \f SetInvalidateonToParent;
-	/ \simp \impl @ \ctor @ \cl AWindow;
+/ \impl @ \mf Frame::DrawContents;
 
 r5:
 /= test 1 ^ \conf release;
 
-r6-r8:
+r6-r12:
 /= test 2;
 
-r9:
-/ @ \u YWidget:
-	/ \amf void Invalidate(const Rect&) @ \in IWidget
-		-> \amf void Validate();
-	+ !\m \f Invalidate(IWidget&, const Rect&);
-	/ \tr @ \cl Widget:
-		/ \mf Invalidate \mg -> !\m \f void Invalidate(IWidget&, const Rect&);
-		+ \em \mf void Validate();
-	/ \impl @ !\m \f void Invalidate(IWidget&);
-/ \tr @ \cl AWindow @ \u YWindow:
-	/ \mf Invalidate -> Validate;
-/ \tr @ \cl Panel @ \h YPanel;
-/= \a 'Widgets::Invalidate' -> 'Invalidate';
-
-r10:
-/= test 3 ^ \conf release;
-
-r11:
-/ @ \u YWidget:
-	/ \amf void Refresh() -> void Refresh(const Graphics&, const Point&,
-		const Rect&);
-	/ \tr @ \cl Widget;
-/ \impl @ \mf Frame::DrawContents @ \impl \u YWindow;
-/ \a \mf void DrawControl() -> void DrawControl(const Graphics&,
-	const Point&, const Rect&);
-/ \tr @ \u (Label & Progress & TextArea & YControl & YWindow & Scroll
-	& TextList & Button & CheckBox & ListBox);
-/ \tr \impl @ \mf YGUIShell::ShlProc;
-/ \tr \impl @ \cl Panel @ \h YPanel;
-
-r12-r13:
-/= test 4:
+r13:
+/ \simp \impl @ \mf Frame::DrawContents;
 
 r14:
-/ @ \impl \u Scroll:
-	/ \simp \mf ScrollableContainer::DrawControl;
-	* \impl @ \mf ScrollableContainer::DrawControl $since r11;
-	* \impl @ \mf ATrack::DrawControl $since r11;
+/ @ \cl MLabel:
+	/ \mf void PaintText(IWidget&, Color, const Graphics&, const Point&)
+		-> void PaintText(IWidget&, Color, const Graphics&, const Point&,
+		const Rect&);
+	/ \impl @ \mf Refresh;
+/ \tr \impl @ \mf Button::DrawControl;
 
-r15:
-* \impl @ \mf ATrack::DrawControl @ \impl \u Scroll $since r11;
-
-r16:
-+ \f \i void DrawSubControl(Control&, const Graphics&, const Point&,
-	const Rect&) @ \h YControl;
-+ \f \i void RefreshSub(IWidget&, const Graphics&, const Point&, const Rect&)
-	@ \h YWidget;
-/ \simp \impl @ \impl \u Scroll ^ \f DrawSubControl ^ \RefreshSub;
-/ \impl @ \mf AScrollBar::DrawControl;
+r15-r16:
+/= test 3;
 
 r17:
-/ \simp \impl @ \mf Widget::Refresh;
-/ @ \u YUIContainer:
-	- \f void Fill(IWidget&, Color);
-	- \mac YWidgetAssert;
-	- \f Components::yassert;
-- \inc \h "yuicont.h" @ \impl \u (YWidget & Button & Label & TextArea);
-- \inc \h "ywindow.h" @ \impl \u (Button & Label & TextArea & YControl
-	& CheckBox & ListBox & Progress & Scroll & UIContainerEx
-	& YFocus & YPanel & YGUI & YUIContainer & YWidget);
-+ \inc \h "../Service/yblit.h" @ \impl \u (Button & CheckBox);
-- \a 3 window \as \str @ \impl \u YWindow;
+* \a \ret \v @ \mf Refresh $since r3;
 
-r18:
+r18-r26:
+/ \impl @ \mf Label::Refresh;
+/= test 4;
+
+r27:
 /= test 5 ^ \conf release;
 
-r19:
-/ \impl @ \mf Frame::DrawContents:
-	+ valid graphics test;
-
-r20:
-+ Rect Intersection(const Rect&, const Rect&) @ \u YGDIBase;
-+ \inc \h <algorithm> @ \impl \u YGDIBase;
-/ \impl @ \mf Frame::DrawContents ^ \f Intersect;
-
-r21:
-/ \impl @ \mf AWindow::DrawBackgroundImage;
-
-r22:
-/ @ \cl AWindow:
-	/ \impl @ \mf DrawRaw;
-	/ \simp \impl @ \mf DrawBackgroundImage;
-
-r23:
-/= \impl @ \mf (TextRegion::ClearLine & ATextRenderer::ClearLine)
-	@ \impl \u YText;
-/= \rem @ \mf ShlExplorer::TFormExtra::OnClick_btnTestEx @ \impl \u Shells;
-
-r24-r27:
-/= test 6;
-
 r28:
-* \impl @ \ctor @ \cl AWindow $since r4;
+/ \impl @ \mf Widget::Refresh;
 
 r29:
-/ \impl @ \f CommitInvalidatedAreaTo @ \impl \u YWindow;
++ \f Rect IntersectWidgetBounds(IWidget&, const Point&, const Rect&)
+	@ \u YWidget;
+/ \impl @ \f DrawSubControl @ \h YControl ^ \f IntersectWidgetBounds;
+/= \a \param \n 'w' -> 'wgt' @ \impl \u YWidget;
 
 r30:
-/ \simp \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
+/ \i \f DrawSubControl -> !\i \f @ \u YControl;
+/ @ \cl ListBox @ \impl \u ListBox:
+	/ \impl @ \mf ListBox::DrawControl ^ \f IntersectWidgetBounds;
+	/= \param \n 'p' @ \mf GetTopControlPtr -> 'pt';
 
-r31-r39:
+r31:
+/ \impl @ auto \o @ \mf Frame::DrawContents ^ 'const Rect&' ~ 'Rect';
+/ \impl @ \f DrawSubControl @ \impl \u YControl;
+/ \simp \impl @ \mf Menu::PaintItem;
+
+r32-r34:
+/= test 6;
+
+r35:
+/ \f void Invalidate(IWidget&, const Rect&) @ \u YWidget => InvalidateCascade;
+
+r36-r41:
 /= test 7;
 
-r40:
-/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
+r42:
+* \impl @ \f Intersect @ \u YGDIBase $since b225;
 
-r41:
-/ \simp \impl @ \mf ShlDS::UpdateToScreen ^ \mf Validate ~ \f Invalidate;
-
-r42-r43:
-/ \impl @ \mf ShlExplorer::OnActivated @ \impl \u Shells;
-
-r44:
-/ @ \impl \u Shells:
-	/ @ \cl ShlExplorer:
-		/ \impl @ \ctor @ \cl TFormTest;
-		/ \impl @ \ctor @ \cl TFormExtra;
-		/ \impl @ \mf OnActivated;
-		/ \impl @ \mf OnTouchDown_FormExtra;
-	/ \impl @ \mf ShlReader::OnActivated;
-
-r45:
+r43-r50:
 /= test 8;
 
-r46:
-/ \impl @ \f void Invalidate(IWidget&, const Rect&) @ \impl \u YWidget;
-/ \impl @ \mf AWindow::Refresh;
-
-r47-r50:
-/= test 9;
-
 r51:
-/ \impl @ \mf YMainShell::OnActivated @ \impl \u Shells;
+/ \impl @ \mf Widget::Refresh;
 
 r52:
-/ \impl @ \mf AWindow::DrawBackgroundImage;
+/= test 9 ^ \conf release;
 
 r53:
-/ \impl @ \mf Frame::DrawContents;
+- \i @ \f RefreshSub @ \u YWidget;
 
 r54:
-/ @ \impl \u YGDIBase:
-	* \impl @ \f Intersect $since r20;
-	- \inh \h <algorithm>;
+/ \impl @ \f RefreshSub @ \u YWidget;
 
-r55:
-/ \impl @ \f Intersect @ \impl \u YGDIBase;
-
-r56-r59:
+r55-r61:
 /= test 10;
 
-r60:
-* \impl @ \f Intersect @ \impl \u YGDI $since r20;
-
-r61:
-+ \f \i void SetEnabledOf(IControl&, bool = true);
-/ @ \impl \u Shells ^ \f SetEnabledOf ~ \mf SetEnabled;
-
 r62:
-/ @ \impl \u Shells ^ \a \f SetEnabledOf ~ \mf SetEnabled;
+* \impl @ \f IntersectWidgetBounds @ \u YWidget $since r29;
 
 r63:
+- \f DrawSubControl @ \u YControl;
+/ \a DrawSubControl -> RefreshSub;
+
+r64:
+/ \a RefreshSub => RefreshChild;
+/ \mg \impl @ \f IntersectWidgetBounds -> \f RefreshChild @ \u YWidget;
+/= \impl @ \f Intersect @ \impl \u YGDIBase to eliminate warning;
+
+r65:
 /= test 11 ^ \conf release;
 
-r64-r65:
-/ \simp \impl @ \f Invalidate(IWidget&, const Rect&) @ \impl \u YWidget;
+r66:
+/ \impl @ \mf Widget::Refresh;
 
-r66-r74:
+r67-r72:
 /= test 12;
-
-r75:
-/ \impl @ \f Invalidate(IWidget&, const Rect&) @ \impl \u YWidget;
-
-r76-r77:
+/ @ \cl TextList:
+	/ \mf void PaintItems(const Graphics&)
+		-> void PaintItems(const Graphics&, const Point&, const Rect&);
+	/ \impl @ \mf DrawControl;
 /= test 13;
 
-r78:
-/ \impl @ \mf OnTouchMove_Dragging @ \impl \u YControl;
+r73-r74:
+/ \impl @ \mf ATrack::DrawControl;
 
-r79:
-/ @ \u YGDIBase:
-	/= \st Size -> \cl Size with (\ac public @ \a \m);
-	+ \i \mf bool IsOrigin() const @ \cl Point ^ \mac DefPredicate;
-	/ @ \cl Size:
-		+ \i \mf bool IsEmpty() const;
-		/ \simp \mf \op Vec ^ \mac DefConverter;
-	/ \simp \mf \op Point @ \cl Vec ^ \mac DefConverter;
-	+ \f Rect Unite(const Rect&, const Rect&);
-	/ \simp @ \f Intersect;
-/ @ \impl \u YWindow:
-	/ \simp \impl @ \f CommitInvalidatedAreaTo ^ \f Unite;
-	/ \simp \impl @ \f RequiresRefresh ^ \mf Size::IsEmpty;
+r75:
+/= test 12 ^ \conf release;
 
-r80:
-/ \simp \impl @ \f CommitInvalidatedAreaTo @ \impl \u YWindow;
-* \impl @ \f Unite @ \impl \u YGDIBase $since r79;
-
-r81:
-/= test 14 ^ \conf release;
-
-r82-r86:
-/ @ \cl ShlExplorer @ \impl \u Shells
-	/ \impl @ \ctor;
-	/ \impl @ \mf OnActivated;
+r76-r86:
 
 r87:
-* \impl @ \mf OnActivated @ \impl \u Shells $since r85;
+/ \impl @ \mf MenuHost::ShowRaw;
 
-r88-r90:
-* \impl @ \mf Frame::DrawContents @ \impl \u YWindow $since r53;
-
-r91:
-/= test 15 ^ \conf release;
-
-r92:
-/ @ \u YWindow:
-	/ @ \cl AWindow:
-		/ \simp \impl @ \mf Update;
-		/ \simp \impl @ \mf DrawRaw;
-	/ @ \cl MWindow:
-		- protected \m bool bUpdate;
-		/ \tr \simp \impl @ \ctor;
-	- \tr \m RequiresUpdate @ \cl (MWindow & AWindow) & \in IWindow;
-/ \tr \impl @ \mf Desktop::Update;
-
-r93:
-/ @ \u YWidget:
-	- \amf Validate @ \in IWidget;
-	- \mf Validate @ \cl Widget;
-- \mf Validate @ \cl Panel;
-- \vt @ \mf Validate @ \cl AWindow;
-
-r94-r95:
-/= test 16;
-
-r96:
-/= test 17 ^ \conf release;
+r88:
+/= test 13 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-07-13:
--18.0d;
+2011-07-18:
+-19.2d;
 //Mercurial rev1-rev95: r4738;
 
 / ...
@@ -646,6 +503,23 @@ $ellipse_debug_assertion;
 
 $now
 (
+	/ "widget rendering efficiency improvement" $=
+	(
+		+ "return value of actually drew area for member function %Refresh"
+			@ "widgets",
+		/ "refreshing of windows" $=
+		(
+			- "unnecessary drawing of overlaid windows"
+		),
+		+ "partial refreshing optimization" @ "class %Widget"
+	),
+	* "wrong result when height of arguments are equal"
+		@ "intersection calculation for class %Rect" $since "b225",
+	+ "child widget intersection comfirming"
+),
+
+b225
+(
 	/ "windows partial invalidation support" $=
 	(
 		/ "windows partial invalidation committing for class %IWindow"
@@ -708,7 +582,7 @@ b223
 	* "declaration of function %GetStemFrom" @ "header yfilesys.h" $since b161,
 	/ "updated freetype" $=
 	(
-		^ "updated freetype 2.4.5" ~ "freetype 2.3.4",
+		^ "updated freetype 2.4.5" ~ "freetype 2.4.4",
 		+ "exact bounding box calculation",
 		+ "path stroker",
 		+ "support for synthetic embolding and slanting of fonts",

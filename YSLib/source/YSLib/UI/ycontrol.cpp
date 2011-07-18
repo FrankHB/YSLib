@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.4320;
+\version 0.4331;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-07-12 11:56 +0800;
+	2011-07-18 05:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -203,11 +203,12 @@ Control::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 	Widget::Refresh(g, pt, r);
 }
 
-void
+Rect
 Control::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 {
 	DrawControl(g, pt, r);
 	GetEventMap().DoEvent<HVisualEvent>(Paint, *this, EventArgs());
+	return GetBoundsOf(*this);
 }
 
 void
