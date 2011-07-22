@@ -11,12 +11,12 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version 0.1217;
+\version 0.1252;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:40:51 +0800;
 \par 修改时间:
-	2011-07-14 19:06 +0800;
+	2011-07-21 12:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,14 +37,8 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
 
-//! \brief 面板接口。
-DeclBasedInterface(IPanel, IUIContainer, virtual IControl)
-EndDecl
-
-
 //! \brief 面板。
-class Panel : public Control, protected Widgets::MUIContainer,
-	implements IPanel
+class Panel : public Control, protected Widgets::MUIContainer
 {
 public:
 	/*!
@@ -60,11 +54,11 @@ public:
 	~Panel()
 	{}
 
-	ImplI1(IPanel) void
+	virtual void
 	operator+=(IWidget&);
-	ImplI1(IPanel) void
+	virtual void
 	operator+=(IControl&);
-	ImplI1(IPanel) PDefHOperator1(void, +=, GMFocusResponser<IControl>& rsp)
+	virtual PDefHOperator1(void, +=, GMFocusResponser<IControl>& rsp)
 		ImplBodyBase1(MUIContainer, operator+=, rsp)
 	template<class _type>
 	inline void
@@ -74,11 +68,11 @@ public:
 			IWidget&>::Cast(obj));
 	}
 
-	ImplI1(IPanel) bool
+	virtual bool
 	operator-=(IWidget&);
-	ImplI1(IPanel) bool
+	virtual bool
 	operator-=(IControl&);
-	ImplI1(IPanel) PDefHOperator1(bool, -=, GMFocusResponser<IControl>& rsp)
+	virtual PDefHOperator1(bool, -=, GMFocusResponser<IControl>& rsp)
 		ImplBodyBase1(MUIContainer, operator-=, rsp)
 	template<class _type>
 	inline bool
@@ -90,23 +84,23 @@ public:
 
 	using MUIContainer::Contains;
 
-	ImplI1(IPanel) PDefH0(IControl*, GetFocusingPtr)
+	virtual PDefH0(IControl*, GetFocusingPtr)
 		ImplBodyBase0(GMFocusResponser<IControl>, GetFocusingPtr)
-	ImplI1(IPanel) PDefH1(IWidget*, GetTopWidgetPtr, const Point& pt)
+	virtual PDefH1(IWidget*, GetTopWidgetPtr, const Point& pt)
 		ImplBodyBase1(MUIContainer, GetTopWidgetPtr, pt)
-	ImplI1(IPanel) PDefH1(IControl*, GetTopControlPtr, const Point& pt)
+	virtual PDefH1(IControl*, GetTopControlPtr, const Point& pt)
 		ImplBodyBase1(MUIContainer, GetTopControlPtr, pt)
 
-	ImplI1(IPanel) void
+	virtual void
 	ClearFocusingPtr();
 
-	ImplI1(IPanel) PDefH1(bool, ResponseFocusRequest, AFocusRequester& req)
+	virtual PDefH1(bool, ResponseFocusRequest, AFocusRequester& req)
 		ImplBodyBase1(MUIContainer, ResponseFocusRequest, req)
 
-	ImplI1(IPanel) PDefH1(bool, ResponseFocusRelease, AFocusRequester& req)
+	virtual PDefH1(bool, ResponseFocusRelease, AFocusRequester& req)
 		ImplBodyBase1(MUIContainer, ResponseFocusRelease, req)
 
-	ImplI1(IPanel) PDefH3(Rect, Refresh, const Graphics& g, const Point& pt,
+	virtual PDefH3(Rect, Refresh, const Graphics& g, const Point& pt,
 		const Rect& r)
 		ImplBodyBase3(Control, Refresh, g, pt, r)
 };

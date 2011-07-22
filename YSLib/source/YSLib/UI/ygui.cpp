@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.3860;
+\version 0.3864;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-07-15 10:57 +0800;
+	2011-07-21 10:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -207,7 +207,7 @@ YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e,
 	Components::Controls::VisualEvent op)
 {
 	IControl* p(&c);
-	IUIBox* pCon;
+	IWidget* pCon;
 	bool r(false);
 
 	e.Strategy = Controls::RoutedEventArgs::Tunnel;
@@ -217,8 +217,9 @@ YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e,
 			return false;
 		if(e.Handled)
 			return true;
-		if(!(pCon = dynamic_cast<IUIBox*>(p)))
+		if(!p)
 			break;
+		pCon = p;
 
 		IControl* t(pCon->GetFocusingPtr());
 
@@ -235,8 +236,7 @@ YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e,
 	e.Strategy = Controls::RoutedEventArgs::Bubble;
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
-		p = dynamic_cast<IControl*>(pCon);
-		if(!p)
+		if(!(p = dynamic_cast<IControl*>(pCon)))
 			break;
 		r |= ResponseKeyBase(*p, e, op);
 	}
@@ -250,7 +250,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 	ControlLocation = e;
 
 	IControl* p(&c);
-	IUIBox* pCon;
+	IWidget* pCon;
 	bool r(false);
 
 	e.Strategy = Controls::RoutedEventArgs::Tunnel;
@@ -260,8 +260,9 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 			return false;
 		if(e.Handled)
 			return true;
-		if(!(pCon = dynamic_cast<IUIBox*>(p)))
+		if(!p)
 			break;
+		pCon = p;
 		if(op == TouchDown)
 		{
 			RequestToTop(*p);
@@ -289,8 +290,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
 		e += p->GetLocation();
-		p = dynamic_cast<IControl*>(pCon);
-		if(!p)
+		if(!(p = dynamic_cast<IControl*>(pCon)))
 			break;
 		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, std::move(e)) != 0;
 	}

@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.3930;
+\version 0.3932;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-07-15 23:03 +0800;
+	2011-07-22 10:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -157,7 +157,7 @@ AWindow::UpdateTo(const Graphics& g, const Point& p) const
 void
 AWindow::UpdateToDesktop()
 {
-	Desktop* const pDsk(FetchDirectDesktopPtr(*this));
+	Desktop* const pDsk(FetchDesktopPtr(*this));
 
 	if(pDsk)
 		UpdateTo(pDsk->GetContext(), LocateForDesktop(*this));
@@ -263,14 +263,14 @@ Frame::Frame(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
 {
 	Buffer.SetSize(GetSize().Width, GetSize().Height);
 
-	Desktop* pDsk(FetchDirectDesktopPtr(*this));
+	Desktop* pDsk(FetchDesktopPtr(*this));
 
 	if(pDsk)
 		*pDsk += *this;
 }
 Frame::~Frame()
 {
-	Desktop* pDsk(FetchDirectDesktopPtr(*this));
+	Desktop* pDsk(FetchDesktopPtr(*this));
 
 	if(pDsk)
 		*pDsk -= *this;

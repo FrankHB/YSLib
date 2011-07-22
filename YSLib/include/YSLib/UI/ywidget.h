@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.5764;
+\version 0.5793;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-07-18 06:07 +0800;
+	2011-07-21 12:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,6 +28,7 @@
 #define YSL_INC_UI_YWIDGET_H_
 
 #include "ycomp.h"
+#include "yfocus.h"
 #include "../Service/ydraw.h"
 
 YSL_BEGIN
@@ -52,9 +53,7 @@ using Drawing::Graphics;
 YSL_BEGIN_NAMESPACE(Widgets)
 
 //前向声明。
-PDeclInterface(IUIBox)
-PDeclInterface(IUIContainer)
-class Widget;
+// ...
 
 
 //! \brief 部件接口。
@@ -68,7 +67,13 @@ DeclInterface(IWidget)
 	\brief 取容器指针的引用。
 	\warning 注意修改容器指针时，应保持和容器包含部件的状态同步。
 	*/
-	DeclIEntry(IUIBox*& GetContainerPtrRef() const)
+	DeclIEntry(IWidget*& GetContainerPtrRef() const)
+	DeclIEntry(IControl* GetFocusingPtr()) \
+		//!< 取焦点对象指针（若非容器则为 nullptr ）。
+	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&)) \
+		//!< 取指定的点（屏幕坐标）所在的可见部件的指针（若非容器则为 nullptr ）。
+	DeclIEntry(IControl* GetTopControlPtr(const Point&)) \
+		//!< 取指定的点（屏幕坐标）所在的可见控件的指针（若非容器则为 nullptr ）。
 
 	DeclIEntry(void SetVisible(bool)) //!< 设置可见。
 	DeclIEntry(void SetTransparent(bool)) //!< 设置透明。
@@ -76,6 +81,9 @@ DeclInterface(IWidget)
 		//!< 设置左上角所在位置（相对于容器的偏移坐标）。
 	DeclIEntry(void SetSize(const Size&)) \
 		//!< 设置大小。
+
+	//! \brief 清除焦点指针。
+	DeclIEntry(void ClearFocusingPtr())
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
@@ -87,6 +95,13 @@ DeclInterface(IWidget)
 	\note 若部件的内部状态能够保证显示状态最新，则返回的区域可能比参数 r 更小。
 	*/
 	DeclIEntry(Rect Refresh(const Graphics& g, const Point& pt, const Rect& r))
+
+
+	//! \brief 响应焦点请求。
+	DeclIEntry(bool ResponseFocusRequest(AFocusRequester&))
+
+	//! \brief 响应焦点释放。
+	DeclIEntry(bool ResponseFocusRelease(AFocusRequester&))
 EndDecl
 
 
@@ -123,7 +138,7 @@ ContainsVisible(const IWidget& w, const Point& p)
 \brief 取部件的容器指针。
 \note 使用此函数确保返回值传递的值语义。
 */
-inline IUIBox*
+inline IWidget*
 FetchContainerPtr(const IWidget& wgt)
 {
 	return wgt.GetContainerPtrRef();
@@ -303,7 +318,7 @@ class Widget : public Visual,
 	virtual implements IWidget
 {
 private:
-	mutable IUIBox* pContainer; //!< 从属的部件容器的指针。
+	mutable IWidget* pContainer; //!< 从属的部件容器的指针。
 
 public:
 	explicit
@@ -315,18 +330,33 @@ public:
 
 	ImplI1(IWidget) DefGetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefGetterBase(const Size&, Size, Visual)
-	ImplI1(IWidget) DefGetter(IUIBox*&, ContainerPtrRef, pContainer)
+	ImplI1(IWidget) DefGetter(IWidget*&, ContainerPtrRef, pContainer)
+	ImplI1(IWidget) PDefH0(IControl*, GetFocusingPtr)
+		ImplRet(nullptr)
+	ImplI1(IWidget) PDefH1(IWidget*, GetTopWidgetPtr, const Point&)
+		ImplRet(nullptr)
+	ImplI1(IWidget) PDefH1(IControl*, GetTopControlPtr, const Point&)
+		ImplRet(nullptr)
 
 	ImplI1(IWidget) DefSetterBase(bool, Visible, Visual)
 	ImplI1(IWidget) DefSetterBase(bool, Transparent, Visual)
 	ImplI1(IWidget) DefSetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefSetterBase(const Size&, Size, Visual)
 
+	ImplI1(IWidget) PDefH0(void, ClearFocusingPtr)
+		ImplRet(static_cast<void>(this))
+
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	ImplI1(IWidget) Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
+
+	ImplI1(IWidget) PDefH1(bool, ResponseFocusRequest, AFocusRequester&)
+		ImplRet(false)
+
+	ImplI1(IWidget) PDefH1(bool, ResponseFocusRelease, AFocusRequester&)
+		ImplRet(false)
 };
 
 YSL_END_NAMESPACE(Widgets)

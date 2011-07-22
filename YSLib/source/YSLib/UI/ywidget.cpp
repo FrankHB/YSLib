@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.4998;
+\version 0.5000;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-07-18 06:28 +0800;
+	2011-07-22 10:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,7 +68,7 @@ InvalidateCascade(IWidget& wgt, const Rect& r)
 	IWindow* pWnd;
 	Rect rect(r);
 
-	while((pWnd = FetchWidgetDirectNodePtr<IWindow>(pWgt, rect)))
+	while((pWnd = FetchWidgetNodePtr<IWindow>(pWgt, rect)))
 	{
 		CommitInvalidatedAreaTo(*pWnd, rect);
 		rect = FetchInvalidatedArea(*pWnd) + pWgt->GetLocation();
@@ -88,7 +88,7 @@ RefreshChild(IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
 void
 RequestToTop(IWidget& wgt)
 {
-	Desktop* pDsk(FetchDirectDesktopPtr(wgt));
+	Desktop* pDsk(FetchDesktopPtr(wgt));
 
 	if(pDsk && pDsk == FetchContainerPtr(wgt))
 	{

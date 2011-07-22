@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2389;
+\version 0.2474;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-07-11 10:13 +0800;
+	2011-07-22 11:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,6 @@
 #define YSL_INC_UI_YUICONT_H_
 
 #include "ywidget.h"
-#include "yfocus.h"
 #include <ystdex/cast.hpp>
 
 YSL_BEGIN
@@ -37,43 +36,12 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Widgets)
 
-//! \brief 固定部件容器接口。
-DeclBasedInterface1(IUIBox, virtual IWidget)
-	DeclIEntry(IControl* GetFocusingPtr()) //!< 取焦点对象指针。
-	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&)) \
-		//!< 取指定的点（屏幕坐标）所在的可见部件的指针。
-	DeclIEntry(IControl* GetTopControlPtr(const Point&)) \
-		//!< 取指定的点（屏幕坐标）所在的可见控件的指针。
-
-	//! \brief 清除焦点指针。
-	DeclIEntry(void ClearFocusingPtr())
-
-	//! \brief 响应焦点请求。
-	DeclIEntry(bool ResponseFocusRequest(AFocusRequester&))
-
-	//! \brief 响应焦点释放。
-	DeclIEntry(bool ResponseFocusRelease(AFocusRequester&))
-EndDecl
-
-
-//部件容器接口。
-DeclBasedInterface1(IUIContainer, IUIBox)
-	DeclIEntry(void operator+=(IWidget&)) //!< 向部件组添加部件。
-	DeclIEntry(void operator+=(IControl&)) //!< 向焦点对象组添加控件。
-	DeclIEntry(void operator+=(GMFocusResponser<IControl>&)) \
-		//!< 向焦点对象组添加子焦点对象容器。
-	DeclIEntry(bool operator-=(IWidget&)) //!< 从部件组移除部件。
-	DeclIEntry(bool operator-=(IControl&)) //!< 从焦点对象组移除控件。
-	DeclIEntry(bool operator-=(GMFocusResponser<IControl>&)) \
-		//!< 从焦点对象组移除子焦点对象容器。
-EndDecl
-
-
 /*!
-\brief 取指针指定的部件在视图树中的直接节点指针。
+\brief 取指针指定的部件在视图树中的节点指针。
+\tparam _Node 节点类型。
 */
 template<class _tNode>
-_tNode* FetchWidgetDirectNodePtr(IWidget* pWgt)
+_tNode* FetchWidgetNodePtr(IWidget* pWgt)
 {
 	_tNode* pNode(nullptr);
 
@@ -83,10 +51,11 @@ _tNode* FetchWidgetDirectNodePtr(IWidget* pWgt)
 }
 /*!
 \brief 取指针指定的部件在视图树中的直接节点指针，同时j变换偏移坐标。
+\tparam _Node 节点类型。
 \note 原始坐标相对于指定的部件，会被转换为相对于最终节点的坐标。
 */
 template<class _tNode>
-_tNode* FetchWidgetDirectNodePtr(IWidget* pWgt, Point& pt)
+_tNode* FetchWidgetNodePtr(IWidget* pWgt, Point& pt)
 {
 	_tNode* pNode(nullptr);
 
@@ -102,34 +71,21 @@ _tNode* FetchWidgetDirectNodePtr(IWidget* pWgt, Point& pt)
 \brief 取指定部件的窗口指针。
 */
 IWindow*
-FetchWindowPtr(const IWidget&);
+FetchParentWindowPtr(const IWidget&);
 
 /*!
-\brief 取指定部件的直接容器指针。
-*/
-IUIBox*
-FetchDirectContainerPtr(IWidget&);
-
-/*!
-\brief 取指定部件的直接窗口指针。
-\note 加入容器指针判断。
+\brief 取指定部件的父窗口指针。
+\note 加入容器指针判断；包括部件自身。
 */
 IWindow*
-FetchDirectWindowPtr(IWidget&);
+FetchWindowPtr(IWidget&);
 
 /*!
-\brief 取指定部件的直接桌面句柄。
-\note 加入容器指针判断。
+\brief 取指定部件的桌面句柄。
+\note 加入容器指针判断；包括部件自身。
 */
 Desktop*
-FetchDirectDesktopPtr(IWidget&);
-
-/*!
-\brief 取指定部件的直接窗口的图形接口上下文。
-\throw GeneralEvent 无法找到有效的直接窗口。
-*/
-const Graphics&
-FetchContext(IWidget&);
+FetchDesktopPtr(IWidget&);
 
 
 /*!
@@ -153,7 +109,7 @@ LocateContainerOffset(const IWidget& w, const Point& pt)
 inline Point
 LocateWindowOffset(const IWidget& w, const Point& pt)
 {
-	return LocateOffset(FetchWindowPtr(w), pt, &w);
+	return LocateOffset(FetchParentWindowPtr(w), pt, &w);
 }
 
 /*!
@@ -163,7 +119,24 @@ Point
 LocateForWidget(IWidget& a, IWidget& b);
 
 /*!
-\brief 取指定部件相对于直接窗口的偏移坐标。
+\brief 取指定部件相对于视图树中的直接节点指针的偏移坐标。
+\tparam _Node 节点类型。
+\tparam _fFetcher 节点访问器类型。
+*/
+template<class _tWidget, typename _fFetcher>
+Point
+LocateForWidgetNode(IWidget& wgt, _fFetcher fetch_ptr)
+{
+	if(dynamic_cast<_tWidget*>(&wgt))
+		return Point::Zero;
+
+	_tWidget* const pNode(fetch_ptr(wgt));
+
+	return pNode ? LocateOffset(pNode, Point::Zero, &wgt) : Point::FullScreen;
+}
+
+/*!
+\brief 取指定部件相对于窗口的偏移坐标。
 \note 若自身是窗口则返回 Zero ；若无容器或窗口则返回 FullScreen 。
 */
 Point
@@ -334,8 +307,7 @@ public:
 
 
 //部件容器。
-class UIContainer : public Widget, protected MUIContainer,
-	implements IUIContainer
+class UIContainer : public Widget, protected MUIContainer
 {
 public:
 	/*!
@@ -344,36 +316,42 @@ public:
 	explicit
 	UIContainer(const Rect& = Rect::Empty);
 
-	ImplI1(IUIContainer) PDefHOperator1(void, +=, IWidget& wgt)
+	// \brief 向部件组添加部件。
+	virtual PDefHOperator1(void, +=, IWidget& wgt)
 		ImplBodyBase1(MUIContainer, operator+=, wgt)
-	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IWidget& wgt)
+	// \brief 向部件组和焦点对象组添加部件。
+	virtual PDefHOperator1(bool, -=, IWidget& wgt)
 		ImplBodyBase1(MUIContainer, operator-=, wgt)
-	ImplI1(IUIContainer) PDefHOperator1(void, +=, IControl& ctl)
+	// \brief 向焦点对象组添加子焦点对象容器。
+	virtual PDefHOperator1(void, +=, IControl& ctl)
 		ImplBodyBase1(MUIContainer, operator+=, ctl)
-	ImplI1(IUIContainer) PDefHOperator1(bool, -=, IControl& ctl)
+	// \brief 从部件组移除部件。
+	virtual PDefHOperator1(bool, -=, IControl& ctl)
 		ImplBodyBase1(MUIContainer, operator-=, ctl)
-	ImplI1(IUIContainer) PDefHOperator1(void, +=,
+	// \brief 从部件组和焦点对象组移除控件。
+	virtual PDefHOperator1(void, +=,
 		GMFocusResponser<IControl>& rsp)
 		ImplBodyBase1(MUIContainer, operator+=, rsp)
-	ImplI1(IUIContainer) PDefHOperator1(bool, -=,
+	// \brief 从焦点对象组移除子焦点对象容器。
+	virtual PDefHOperator1(bool, -=,
 		GMFocusResponser<IControl>& rsp)
 		ImplBodyBase1(MUIContainer, operator-=, rsp)
 
-	ImplI1(IUIContainer) DefMutableGetterBase(IControl*, FocusingPtr,
+	ImplI1(IWidget) DefMutableGetterBase(IControl*, FocusingPtr,
 		GMFocusResponser<IControl>)
-	ImplI1(IUIContainer) PDefH1(IWidget*, GetTopWidgetPtr, const Point& pt)
+	ImplI1(IWidget) PDefH1(IWidget*, GetTopWidgetPtr, const Point& pt)
 		ImplBodyBase1(MUIContainer, GetTopWidgetPtr, pt)
-	ImplI1(IUIContainer) PDefH1(IControl*, GetTopControlPtr, const Point& pt)
+	ImplI1(IWidget) PDefH1(IControl*, GetTopControlPtr, const Point& pt)
 		ImplBodyBase1(MUIContainer, GetTopControlPtr, pt)
 
-	ImplI1(IUIContainer) PDefH0(void, ClearFocusingPtr)
+	ImplI1(IWidget) PDefH0(void, ClearFocusingPtr)
 		ImplBodyBase0(MUIContainer, ClearFocusingPtr)
 
-	ImplI1(IUIContainer) PDefH1(bool, ResponseFocusRequest,
+	ImplI1(IWidget) PDefH1(bool, ResponseFocusRequest,
 		AFocusRequester& req)
 		ImplBodyBase1(MUIContainer, ResponseFocusRequest, req)
 
-	ImplI1(IUIContainer) PDefH1(bool, ResponseFocusRelease,
+	ImplI1(IWidget) PDefH1(bool, ResponseFocusRelease,
 		AFocusRequester& req)
 		ImplBodyBase1(MUIContainer, ResponseFocusRelease, req)
 };

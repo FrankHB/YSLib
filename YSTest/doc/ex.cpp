@@ -1,4 +1,4 @@
-// v0.3229; *build 226 rev 88;
+// v0.3229; *build 227 rev 36;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -265,157 +265,117 @@ $using:
 
 
 $DONE:
-r1:
-/= test 0;
-
-r2:
-/ \a SetLnLast => SetTextLineLast;
-/ \a ClearLnLast => ClearTextLineLast;
-/ \a GetLnN => GetTextLineN;
-/ \a GetLnNEx => GetTextLineNEx;
-
-r3:
-/ \ret \tp @ \amf void Refresh(const Graphics&, const Point&, const Rect&)
-	-> Rect ~ void @ \in IWidget;
-/ \tr \a \mf void Refresh(const Graphics&, const Point&, const Rect&)
-	-> Rect Refresh(const Graphics&, const Point&, const Rect&);
-
-r4:
-/ \impl @ \mf Frame::DrawContents;
-
-r5:
-/= test 1 ^ \conf release;
-
-r6-r12:
-/= test 2;
-
-r13:
-/ \simp \impl @ \mf Frame::DrawContents;
-
-r14:
-/ @ \cl MLabel:
-	/ \mf void PaintText(IWidget&, Color, const Graphics&, const Point&)
-		-> void PaintText(IWidget&, Color, const Graphics&, const Point&,
-		const Rect&);
-	/ \impl @ \mf Refresh;
-/ \tr \impl @ \mf Button::DrawControl;
-
-r15-r16:
-/= test 3;
+r1-r16:
+/= test 1;
 
 r17:
-* \a \ret \v @ \mf Refresh $since r3;
+* \impl @ \f Intersect @ \impl \u YGDIBase $since b226;
 
-r18-r26:
-/ \impl @ \mf Label::Refresh;
-/= test 4;
+r18-r19:
+/ \simp \impl @ \mf ScrollableContainer::DrawControl;
 
-r27:
-/= test 5 ^ \conf release;
+r20:
+/= test 2 ^ \conf release;
 
-r28:
-/ \impl @ \mf Widget::Refresh;
+r21:
+/ \rem \a 6 \amf @ \in IUIContainer @ \h YUIContainer;
+
+r22:
+/ @ \h YUIContainer:
+	-= \a \rem \amf @ \in YUIContainer;
+	/= \a 6 'ImplI1(IUIContainer)' -> 'virtual' @ \op \decl
+		@ \cl UIContainer;
+
+r23:
+/ \amf @ \in IUIBox @ \h YUIContainer >> \in IWidget @ \h YWidget;
++ \vt \mf 'ImplI1(IWidget)' \i (GetFocusingPtr & GetTopWidgetPtr
+	& GetTopControlPtr & ClearFocusingPtr & ResponseFocusRequest
+	& ResponseFocusRelease) @ \cl Widget @ \h YWidget;
++ \vt \mf \i GetTopControlPtr @ \cl Control @ \h YControl;
+/ \inh \h YFocus @ \h YUIContainer >> \h YWidget;
+
+r25:
+/= \a 'ImplI1(IUIBox)' -> 'virtual';
+* \mac 'YSL_INC_UI_YUICONTX_H_' @ \h UIContainerEx $since b203;
+/= \a 'ImplA1(IUIBox)' -> 'ImplA1(IWidget)'
+
+r26:
+/ \impl @ \mf GetTopWidgetPtr @ \cl Widget;
+- \mf GetTopControlPtr @ \cl Control;
+
+r27-r28:
+/= test 3;
 
 r29:
-+ \f Rect IntersectWidgetBounds(IWidget&, const Point&, const Rect&)
-	@ \u YWidget;
-/ \impl @ \f DrawSubControl @ \h YControl ^ \f IntersectWidgetBounds;
-/= \a \param \n 'w' -> 'wgt' @ \impl \u YWidget;
+/ @ \impl \u YUIContainer:
+	/ \simp \impl @ \f FetchDirectWindowPtr;
+	/ \simp \impl @ \f FetchDirectDesktopPtr;
 
 r30:
-/ \i \f DrawSubControl -> !\i \f @ \u YControl;
-/ @ \cl ListBox @ \impl \u ListBox:
-	/ \impl @ \mf ListBox::DrawControl ^ \f IntersectWidgetBounds;
-	/= \param \n 'p' @ \mf GetTopControlPtr -> 'pt';
+/ @ \u YUIContainer:
+	- \f FetchDirectContainerPtr;
+	/ \simp \impl @ \f LocateForWidget;
+/ @ \cl YGUIShell @ \impl \u YGUI:
+	/ \impl @ mf ResponseKey;
+	/ \impl @ mf ResponseTouch;
 
 r31:
-/ \impl @ auto \o @ \mf Frame::DrawContents ^ 'const Rect&' ~ 'Rect';
-/ \impl @ \f DrawSubControl @ \impl \u YControl;
-/ \simp \impl @ \mf Menu::PaintItem;
+- \pre \decl & using \in (IUIBox & IUIContainer) @ \h YComponent;
+- \pre \decl \in (IUIBox & IUIContainer) @ \h YWidget;
+/ @ \h YUIContainer:
+	- \in (IUIBox & IUIContainer) @ \h YUIContainer;
+	- \inh \in IWidget @ UIContainer; 
+/ \a IUIBox -> IWidget;
+/ \a IUIContainer -> IWidget;
+- \inh \in IWidget @ \in IPanel @ \h YPanel;
+- \inh \in IWidget @ \cl AUIBoxControl @ \h UIContainerEx;
 
-r32-r34:
-/= test 6;
+r32:
+*  \a ^ \mac DeclBasedInterface -> DeclBasedInterface1 @ \h (YPanel & YWindow)
+	$since b190;
+- \pre \decl \cl Widget @ \h YWidget;
+/ @ \h YPanel:
+	- \inh \in IPanel @ \cl Panel;
+	- \in IPanel;
+	/ \a 13 'ImplI1(IPanel)' -> 'virtual';
+- \pre \decl & using \in (IUIBox & IUIContainer) @ \h YComponent;
+/ \tr !\vt \inh IPanel -> \vt \inh Control @ \in IWindow @ \h YWindow;
+
+r33:
+/= test 4 ^ \conf release;
+
+r34:
+/ @ \u YUIContainer:
+	/ \ft FetchWidgetDirectNodePtr => FetchWidgetNodePtr;
+	/ \f FetchWindowPtr => FetchParentWindowPtr;
+	/ \f FetchDirectWindowPtr => FetchWindowPtr;
+	/ \f FetchDirectDesktopPtr => FetchDesktopPtr;
+	- \f FetchContext;
+/ \tr @ \impl \u (YWindow & YStyle & YWidget);
 
 r35:
-/ \f void Invalidate(IWidget&, const Rect&) @ \u YWidget => InvalidateCascade;
+/ @ \u YUIContainer:
+	+ \ft<class _tWidget, typename _fFetcher> Point
+		LocateForWidgetNode(IWidget&, _fFetcher);
+	/ \simp \impl @ \f (LocateForWindow & LocateForDesktop)
+		^ LocateForWidgetNode;
 
-r36-r41:
-/= test 7;
-
-r42:
-* \impl @ \f Intersect @ \u YGDIBase $since b225;
-
-r43-r50:
-/= test 8;
-
-r51:
-/ \impl @ \mf Widget::Refresh;
-
-r52:
-/= test 9 ^ \conf release;
-
-r53:
-- \i @ \f RefreshSub @ \u YWidget;
-
-r54:
-/ \impl @ \f RefreshSub @ \u YWidget;
-
-r55-r61:
-/= test 10;
-
-r62:
-* \impl @ \f IntersectWidgetBounds @ \u YWidget $since r29;
-
-r63:
-- \f DrawSubControl @ \u YControl;
-/ \a DrawSubControl -> RefreshSub;
-
-r64:
-/ \a RefreshSub => RefreshChild;
-/ \mg \impl @ \f IntersectWidgetBounds -> \f RefreshChild @ \u YWidget;
-/= \impl @ \f Intersect @ \impl \u YGDIBase to eliminate warning;
-
-r65:
-/= test 11 ^ \conf release;
-
-r66:
-/ \impl @ \mf Widget::Refresh;
-
-r67-r72:
-/= test 12;
-/ @ \cl TextList:
-	/ \mf void PaintItems(const Graphics&)
-		-> void PaintItems(const Graphics&, const Point&, const Rect&);
-	/ \impl @ \mf DrawControl;
-/= test 13;
-
-r73-r74:
-/ \impl @ \mf ATrack::DrawControl;
-
-r75:
-/= test 12 ^ \conf release;
-
-r76-r86:
-
-r87:
-/ \impl @ \mf MenuHost::ShowRaw;
-
-r88:
-/= test 13 ^ \conf release;
+r36:
+/= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-07-18:
--19.2d;
-//Mercurial rev1-rev95: r4738;
+2011-07-22:
+-21.2d;
+//Mercurial rev1-rev98: r4922;
 
 / ...
 
 
 $NEXT_TODO:
-b226-b256:
+b228-b256:
 + TextList invalidation support;
 * non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
@@ -503,6 +463,34 @@ $ellipse_debug_assertion;
 
 $now
 (
+	* "invalidation area error" $since b226 $=
+	(
+		* "wrong result when one argument actually contained by another"
+			@ "intersection calculation for class %Rect" $since b226
+	),
+	/ "widget rendering efficiency improvement" $=
+	(
+		/ "simplified background rendering" @ "class %ScrollableContainer",
+
+	),
+	* $design "guard macro" @ "header UIContainerEx" $since b203,
+	/ "simplified UI class inheritance" $=
+	(
+		/ $design "implementation" ^ "class %IWidget" ~ "class %IUIBox",
+		- "class %IUIBox",
+		- "class %IUIContainer",
+		/ $design "implementation" ^ "class %IControl" ~ "class %IPanel",
+		- "class %IPanel"
+	),
+	* "strict ISO C++2003 code compatibility" $since b190 $=
+	(
+		^ "fixed macros" ~ "variadic macros" @ "header (YPanel, YWindow)"
+	),
+	/ "simplified widget fetcher and locating interfaces"
+),
+
+b226
+(
 	/ "widget rendering efficiency improvement" $=
 	(
 		+ "return value of actually drew area for member function %Refresh"
@@ -514,7 +502,7 @@ $now
 		+ "partial refreshing optimization" @ "class %Widget"
 	),
 	* "wrong result when height of arguments are equal"
-		@ "intersection calculation for class %Rect" $since "b225",
+		@ "intersection calculation for class %Rect" $since b225,
 	+ "child widget intersection comfirming"
 ),
 
@@ -528,7 +516,7 @@ b225
 		/ "widget invalidation interface as non-member function"
 			~ ("abstract member function" @ "class %IWindow")
 	),
-	+ "assignment operators" @ "class %Rect",
+	+ $design "assignment operators" @ "class %Rect",
 	/ "widget rendering efficiency improvement" $=
 	(
 		+ "parameters for member function %Refresh" @ "widgets",
@@ -557,7 +545,7 @@ b224
 			// NOTE: it seems a new bug in freetype 2.4.5 cache system.
 	),
 	+ "containing test" @ "class %Rect",
-	+ "WinGDB settings" @ "main project file",
+	+ $design "WinGDB settings" @ "main project file",
 	+ "windows partial invalidation support" $=
 	(
 		/ "invalidation interface",
@@ -887,7 +875,7 @@ b209
 	/ $design "protected function inheritance" @ "class template %GHEvent",
 	/ "using directive of namespace %ystdex" @ "library YSLib",
 	+ "lost %Rect operations",
-	* "strict ISO C++2003 code compatibility" $=
+	* "strict ISO C++2003 code compatibility" $since b190 $=
 	(
 		^ "fixed macros" ~ "variadic macros" @ "header YFont"
 	),

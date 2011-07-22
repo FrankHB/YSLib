@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2344;
+\version 0.2361;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-07-11 10:35 +0800;
+	2011-07-22 11:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,40 +35,21 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Widgets)
 
 IWindow*
-FetchWindowPtr(const IWidget& wgt)
+FetchParentWindowPtr(const IWidget& wgt)
 {
-	return FetchWidgetDirectNodePtr<IWindow>(FetchContainerPtr(wgt));
-}
-
-IUIBox*
-FetchDirectContainerPtr(IWidget& wgt)
-{
-	IUIBox* const pCon(dynamic_cast<IUIBox*>(&wgt));
-
-	return pCon ? pCon : FetchContainerPtr(wgt);
+	return FetchWidgetNodePtr<IWindow>(FetchContainerPtr(wgt));
 }
 
 IWindow*
-FetchDirectWindowPtr(IWidget& wgt)
+FetchWindowPtr(IWidget& wgt)
 {
-	return FetchWidgetDirectNodePtr<IWindow>(FetchDirectContainerPtr(wgt));
+	return FetchWidgetNodePtr<IWindow>(&wgt);
 }
 
 Desktop*
-FetchDirectDesktopPtr(IWidget& wgt)
+FetchDesktopPtr(IWidget& wgt)
 {
-	return FetchWidgetDirectNodePtr<Desktop>(FetchDirectContainerPtr(wgt));
-}
-
-const Graphics&
-FetchContext(IWidget& wgt)
-{
-	IWindow* const pWnd(FetchDirectWindowPtr(wgt));
-
-	if(!pWnd)
-		throw GeneralEvent("Null direct window pointer found"
-			" @ FetchContext");
-	return pWnd->GetContext();
+	return FetchWidgetNodePtr<Desktop>(&wgt);
 }
 
 
@@ -86,33 +67,23 @@ LocateOffset(const IWindow* pWnd, Point pt, const IWidget* pCon)
 Point
 LocateForWidget(IWidget& a, IWidget& b)
 {
-	list<pair<IUIBox*, Point>> lst;
+	list<pair<IWidget*, Point>> lst;
 
 	Point pt;
-	IUIBox* pCon(dynamic_cast<IUIBox*>(&a));
+	IWidget* pCon(&a);
 
-	if(!pCon)
-	{
-		pCon = FetchContainerPtr(a);
-		pt = a.GetLocation();
-	}
 	while(pCon)
 	{
 		lst.push_back(make_pair(pCon, pt));
 		pt += pCon->GetLocation();
 		pCon = FetchContainerPtr(*pCon);
 	}
-	if((pCon = dynamic_cast<IUIBox*>(&b)))
-		pt = Point::Zero;
-	else
-	{
-		pCon = FetchContainerPtr(b);
-		pt = b.GetLocation();
-	}
+	pCon = &b;
+	pt = Point::Zero;
 	while(pCon)
 	{
 		auto i(std::find_if(lst.begin(), lst.end(),
-			[&](const pair<IUIBox*, Point>& val){
+			[&](const pair<IWidget*, Point>& val){
 			return val.first == pCon;
 		}));
 
@@ -127,23 +98,13 @@ LocateForWidget(IWidget& a, IWidget& b)
 Point
 LocateForWindow(IWidget& w)
 {
-	if(dynamic_cast<IWindow*>(&w))
-		return Point::Zero;
-
-	IWindow* const pWnd(FetchDirectWindowPtr(w));
-
-	return pWnd ? LocateOffset(pWnd, Point::Zero, &w) : Point::FullScreen;
+	return LocateForWidgetNode<IWindow>(w, FetchWindowPtr);
 }
 
 Point
 LocateForDesktop(IWidget& w)
 {
-	if(dynamic_cast<Desktop*>(&w))
-		return Point::Zero;
-
-	Desktop* pDsk(FetchDirectDesktopPtr(w));
-
-	return pDsk ? LocateOffset(pDsk, Point::Zero, &w) : Point::FullScreen;
+	return LocateForWidgetNode<Desktop>(w, FetchDesktopPtr);
 }
 
 Point
@@ -157,7 +118,7 @@ LocateForParentContainer(const IWidget& w)
 Point
 LocateForParentWindow(const IWidget& w)
 {
-	const IWindow* const pWnd(FetchWindowPtr(w));
+	const IWindow* const pWnd(FetchParentWindowPtr(w));
 
 	return pWnd ? LocateWindowOffset(*pWnd, w.GetLocation())
 		: Point::FullScreen;

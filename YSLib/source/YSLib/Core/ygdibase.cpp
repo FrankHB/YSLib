@@ -11,12 +11,12 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version 0.1390;
+\version 0.1394;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2011-07-18 06:13 +0800;
+	2011-07-19 02:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -122,19 +122,15 @@ Intersect(const Rect& a, const Rect& b)
 		ymax(vmax(a.Y + a.Height, b.Y + b.Height));
 	const SDst dx(xmax - xmin), dy(ymax - ymin);
 
-	//相交。
-	if(dx < a.Width + b.Width && dy < a.Height + b.Height)
-	{
-		//优化：包含情况。
-		const bool a_is_contained(a.Width < b.Width
-			|| (a.Width == b.Width && a.Height < b.Height));
-
-		if(dx == (a_is_contained ? b.Width : a.Width)
-			&& dy == vmax(a.Height, b.Height))
-			return a_is_contained ? a : b;
-	}
-	else
+	//相离。
+	if(a.Width + b.Width < dx || a.Height + b.Height < dy)
 		return Rect::Empty;
+
+	//优化：包含情况。
+	if(dx == a.Width && dy == a.Height)
+		return b;
+	if(dx == b.Width && dy == a.Height)
+		return a;
 
 	int x_array[4] = {a.X, b.X, a.X + a.Width, b.X + b.Width},
 		y_array[4] = {a.Y, b.Y, a.Y + a.Height, b.Y + b.Height};

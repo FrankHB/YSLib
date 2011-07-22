@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.4424;
+\version 0.4428;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-07-14 19:02 +0800;
+	2011-07-21 12:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,7 +52,7 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Forms)
 
 //! \brief 窗口接口。
-DeclBasedInterface(IWindow, IPanel)
+DeclBasedInterface1(IWindow, virtual IControl)
 	DeclIEntry(const Graphics& GetContext() const) //!< 取图形接口上下文。
 	DeclIEntry(IWindow* GetWindowPtr() const)
 	DeclIEntry(Rect& GetInvalidatedAreaRef() const)
