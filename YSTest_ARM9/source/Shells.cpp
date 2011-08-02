@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version 0.4847;
+\version 0.4868;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-07-12 13:47 +0800;
+	2011-08-02 10:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -265,7 +265,7 @@ YMainShell::OnActivated(const Message& msg)
 	lblDetails.Text = _ustr("初始化中，请稍后……");
 	lblDetails.ForeColor = ColorSpace::White;
 	lblDetails.SetTransparent(true);
-	SetInvalidationOf(dsk_up);
+	dsk_up.SetInvalidation();
 	UpdateToScreen();
 	//初始化所有图像资源。
 
@@ -277,17 +277,17 @@ YMainShell::OnActivated(const Message& msg)
 		pb.SetValue(i);
 //		Invalidate(pb);
 		dsk_up.BackColor = Color(255 - i * 255 / 10, 216, 192);
-		SetInvalidationOf(dsk_up);
+		dsk_up.SetInvalidation();
 		Invalidate(dsk_up);
-		dsk_up.Validate();
+		Validate(dsk_up);
 		dsk_up.Update();
-//		dsk_up.Refresh(dsk_up.GetContext(), Point::Zero,
+//		dsk_up.Refresh(FetchContext(dsk_up), Point::Zero,
 //			Rect(Point::Zero, dsk_up.GetSize()));
 		FetchImage(i);
 	}
 	pb.SetValue(10);
 	Invalidate(dsk_up);
-	dsk_up.Validate();
+	Validate(dsk_up);
 	dsk_up.Update();
 	dsk_up -= pb;
 	delete &pb;
@@ -511,7 +511,7 @@ ShlExplorer::TFormTest::TFormTest()
 	btnPrevBackground.Text = "<<";
 	btnNextBackground.Text = ">>";
 	BackColor = ARGB16(1, 31, 31, 15);
-	SetInvalidationOf(*this);
+	SetInvalidation();
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 	FetchEvent<Enter>(btnEnterTest) += OnEnter_btnEnterTest;
 	FetchEvent<Leave>(btnEnterTest) += OnLeave_btnEnterTest;
@@ -535,8 +535,8 @@ ShlExplorer::TFormTest::TFormTest()
 			SetEnabledOf(btnPrevBackground, false);
 		dsk_up_ptr = FetchImage(up_i);
 		dsk_dn_ptr = FetchImage(up_i + 1);
-		SetInvalidationOf(shl.GetDesktopUp());
-		SetInvalidationOf(shl.GetDesktopDown());
+		shl.GetDesktopUp().SetInvalidation();
+		shl.GetDesktopDown().SetInvalidation();
 	};
 	FetchEvent<Click>(btnNextBackground) += [this](IControl&, TouchEventArgs&&){
 		auto& shl(FetchShell<ShlExplorer>());
@@ -552,8 +552,8 @@ ShlExplorer::TFormTest::TFormTest()
 			SetEnabledOf(btnNextBackground, false);
 		dsk_up_ptr = FetchImage(up_i);
 		dsk_dn_ptr = FetchImage(up_i + 1);
-		SetInvalidationOf(shl.GetDesktopUp());
-		SetInvalidationOf(shl.GetDesktopDown());
+		shl.GetDesktopUp().SetInvalidation();
+		shl.GetDesktopDown().SetInvalidation();
 	};
 }
 
@@ -635,7 +635,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 	btnClose.Text = _ustr("关闭");
 	btnExit.Text = _ustr("退出");
 	BackColor = ARGB16(1, 31, 15, 15);
-	SetInvalidationOf(*this);
+	SetInvalidation();
 	FetchEvent<TouchDown>(*this) += OnTouchDown_FormExtra;
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 	FetchEvent<Move>(btnDragTest).Add(*this, &TFormExtra::OnMove_btnDragTest);
@@ -762,7 +762,7 @@ ShlExplorer::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 	std::free(tstr);
 */
 	TestObj t(FetchGlobalInstance().GetDesktopDownHandle());
-//	const auto& g(t.h->GetContext());
+//	const auto& g(FetchContext(*t.h));
 
 	t.str = String(_ustr("Abc测试"));
 	switch(e.X * 4 / btnTestEx.GetWidth())
@@ -863,7 +863,7 @@ ShlExplorer::OnActivated(const Message& msg)
 
 	FetchEvent<Paint>(dsk_dn) += [&](IControl&, EventArgs&&){
 		char strt[60];
-		auto& g(dsk_dn.GetContext());
+		auto& g(FetchContext(dsk_dn));
 		using namespace ColorSpace;
 
 		{
@@ -876,8 +876,9 @@ ShlExplorer::OnActivated(const Message& msg)
 		}
 		{
 			const Rect r(4, 144, 120, 20);
-			const Rect& ri(FetchInvalidatedArea(dsk_dn));
+			Rect ri;
 
+			dsk_dn.GetRenderer().GetInvalidatedArea(ri);
 			siprintf(strt, "(%d, %d, %u, %u)",
 				ri.X, ri.Y, ri.Width, ri.Height);
 			FillRect(g, r, Green);
@@ -896,7 +897,7 @@ ShlExplorer::OnActivated(const Message& msg)
 	RequestFocusCascade(fbMain);
 	// init-seg 4;
 	dsk_dn.BackColor = ARGB16(1, 15, 15, 31);
-	SetInvalidationOf(dsk_dn);
+	dsk_dn.SetInvalidation();
 	pWndTest = unique_raw(new TFormTest());
 	pWndExtra = unique_raw(new TFormExtra());
 	pWndTest->SetVisible(false);
@@ -1045,7 +1046,7 @@ ShlExplorer::OnTouchDown_FormExtra(IControl& sender, TouchEventArgs&&)
 		TFormExtra& frm(dynamic_cast<TFormExtra&>(sender));
 
 		frm.BackColor = GenerateRandomColor();
-		SetInvalidationOf(frm);
+		frm.SetInvalidation();
 	}
 	catch(std::bad_cast&)
 	{}
@@ -1090,8 +1091,8 @@ ShlReader::OnActivated(const Message& msg)
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
 	dsk_up.BackColor = ARGB16(1, 30, 27, 24);
 	dsk_dn.BackColor = ARGB16(1, 24, 27, 30);
-	SetInvalidationOf(dsk_up);
-	SetInvalidationOf(dsk_dn);
+	dsk_up.SetInvalidation();
+	dsk_dn.SetInvalidation();
 	FetchEvent<Click>(dsk_dn).Add(*this, &ShlReader::OnClick);
 	FetchEvent<KeyDown>(dsk_dn).Add(*this, &ShlReader::OnKeyDown);
 	FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld;
@@ -1162,8 +1163,8 @@ ShlReader::UpdateToScreen()
 	{
 		bgDirty = false;
 		//强制刷新背景。
-		SetInvalidationOf(GetDesktopUp());
-		SetInvalidationOf(GetDesktopDown());
+		GetDesktopUp().SetInvalidation();
+		GetDesktopDown().SetInvalidation();
 	}
 	ParentType::UpdateToScreen();
 }
@@ -1252,12 +1253,12 @@ ShlReader::OnKeyDown(KeyEventArgs&& e)
 /*
 void ShlReader::OnPaint_Up(EventArgs&&)
 {
-	Reader.PrintTextUp(GetDesktopUp().GetContext());
+	Reader.PrintTextUp(FetchContext(GetDesktopUp()));
 }
 
 void ShlReader::OnPaint_Down(EventArgs&&)
 {
-	Reader.PrintTextDown(GetDesktopDown().GetContext());
+	Reader.PrintTextDown(FetchContext(GetDesktopDown()));
 }
 */
 

@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2474;
+\version 0.2477;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-07-22 11:17 +0800;
+	2011-07-28 04:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,20 +68,20 @@ _tNode* FetchWidgetNodePtr(IWidget* pWgt, Point& pt)
 }
 
 /*!
-\brief 取指定部件的窗口指针。
+\brief 取指定部件的父窗口指针。
 */
 IWindow*
 FetchParentWindowPtr(const IWidget&);
 
 /*!
-\brief 取指定部件的父窗口指针。
+\brief 取指定部件的窗口指针。
 \note 加入容器指针判断；包括部件自身。
 */
 IWindow*
 FetchWindowPtr(IWidget&);
 
 /*!
-\brief 取指定部件的桌面句柄。
+\brief 取指定部件的桌面指针。
 \note 加入容器指针判断；包括部件自身。
 */
 Desktop*

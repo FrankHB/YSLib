@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11246;
+\version r11250;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-07-01 23:25 +0800;
+	2011-07-26 22:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -579,12 +579,12 @@ namespace Components
 	namespace Controls
 	{
 		$unit Shell::YControl;
-		$unit Shell::YPanel;
 		$unit Shell::Button;
 		$unit Shell::CheckBox;
-		$unit Shell::TextList;
+		$unit Shell::Panel;
 		$unit Shell::ListBox;
 		$unit Shell::Menu;
+		$unit Shell::TextList;
 	} //namespace Controls;
 	namespace Forms
 	{

@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version 0.2326;
+\version 0.2336;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-07-09 21:25 +0800;
+	2011-08-02 02:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,7 +71,7 @@ Desktop::MoveToTop(IControl& ctl)
 
 		sWidgets.erase(i);
 		sWidgets.insert(make_pair(z, static_cast<IWidget*>(&ctl)));
-		SetInvalidationOf(*this);
+		SetInvalidation();
 		return true;
 	}
 	return false;
@@ -94,14 +94,14 @@ Desktop::ClearContents()
 	ClearFocusingPtr();
 	sWidgets.clear();
 	sFocusContainers.clear();
-	SetInvalidationOf(*this);
+	SetInvalidation();
 }
 
 void
 Desktop::Update()
 {
-	if(!Forms::RequiresRefresh(*this))
-		Screen.Update(GetContext().GetBufferPtr());
+	if(!GetRenderer().RequiresRefresh())
+		Screen.Update(FetchContext(*this).GetBufferPtr());
 }
 
 YSL_END_NAMESPACE(Components)

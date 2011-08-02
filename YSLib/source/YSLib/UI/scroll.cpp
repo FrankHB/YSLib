@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3759;
+\version 0.3761;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-07-19 02:26 +0800;
+	2011-07-31 20:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -197,7 +197,7 @@ ATrack::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 			DrawVLineSeg(g, xr, pt.Y, yr, c);
 		}
 	}
-	RefreshChild(Thumb, g, pt, r);
+	RenderChild(Thumb, g, pt, r);
 	Thumb.Refresh(g, pt + Thumb.GetLocation(),
 		Rect(pt + Thumb.GetLocation(), Thumb.GetSize()));
 //	RefreshChild(Thumb, g, pt, r);
@@ -412,9 +412,9 @@ AScrollBar::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 
 	Widget::Refresh(g, pt, r);
 
-	RefreshChild(*pTrack, g, pt, r);
-	RefreshChild(PrevButton, g, pt, r);
-	RefreshChild(NextButton, g, pt, r);
+	RenderChild(*pTrack, g, pt, r);
+	RenderChild(PrevButton, g, pt, r);
+	RenderChild(NextButton, g, pt, r);
 	WndDrawArrow(g, Rect(pt + PrevButton.GetLocation(), PrevButton.GetSize()),
 		4, pTrack->GetOrientation() == Horizontal ? RDeg180
 		: RDeg90, ForeColor);
@@ -493,9 +493,9 @@ ScrollableContainer::DrawControl(const Graphics& g, const Point& pt,
 {
 //	AUIBoxControl::DrawControl(g, pt, r);
 	if(HorizontalScrollBar.IsVisible())
-		RefreshChild(HorizontalScrollBar, g, pt, r);
+		RenderChild(HorizontalScrollBar, g, pt, r);
 	if(VerticalScrollBar.IsVisible())
-		RefreshChild(VerticalScrollBar, g, pt, r);
+		RenderChild(VerticalScrollBar, g, pt, r);
 }
 
 Size

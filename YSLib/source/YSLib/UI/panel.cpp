@@ -8,23 +8,23 @@
 	understand and accept it fully.
 */
 
-/*!	\file ypanel.cpp
+/*!	\file panel.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version 0.1144;
+\version 0.1146;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2011-07-11 10:26 +0800;
+	2011-07-26 22:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::YPanel;
+	YSLib::UI::Panel;
 */
 
 
-#include "ypanel.h"
+#include "panel.h"
 
 YSL_BEGIN
 

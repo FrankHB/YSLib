@@ -69,7 +69,7 @@
     <ClInclude Include="include\YSLib\UI\ydesktop.h" />
     <ClInclude Include="include\YSLib\UI\yfocus.h" />
     <ClInclude Include="include\YSLib\UI\ygui.h" />
-    <ClInclude Include="include\YSLib\UI\ypanel.h" />
+    <ClInclude Include="include\YSLib\UI\panel.h" />
     <ClInclude Include="include\YSLib\UI\ystyle.h" />
     <ClInclude Include="include\YSLib\UI\yuicont.h" />
     <ClInclude Include="include\YSLib\UI\ywidget.h" />
@@ -116,7 +116,7 @@
     <ClCompile Include="source\YSLib\UI\ydesktop.cpp" />
     <ClCompile Include="source\YSLib\UI\yfocus.cpp" />
     <ClCompile Include="source\YSLib\UI\ygui.cpp" />
-    <ClCompile Include="source\YSLib\UI\ypanel.cpp" />
+    <ClCompile Include="source\YSLib\UI\panel.cpp" />
     <ClCompile Include="source\YSLib\UI\ystyle.cpp" />
     <ClCompile Include="source\YSLib\UI\yuicont.cpp" />
     <ClCompile Include="source\YSLib\UI\ywidget.cpp" />

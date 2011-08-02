@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.3864;
+\version 0.3868;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-07-21 10:59 +0800;
+	2011-08-02 02:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -309,8 +309,8 @@ YGUIShell::ShlProc(const Message& msg)
 			auto h(FetchTarget<SM_PAINT>(msg));
 			
 			if(h)
-				h->Refresh(h->GetContext(), Point::Zero, Rect(Point::Zero,
-					h->GetSize()));
+				h->Refresh(FetchContext(*h),
+					Point::Zero, Rect(Point::Zero, h->GetSize()));
 		}
 		return 0;
 	default:

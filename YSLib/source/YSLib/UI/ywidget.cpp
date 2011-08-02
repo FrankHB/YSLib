@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.5000;
+\version 0.5055;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-07-22 10:32 +0800;
+	2011-08-02 10:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,50 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
+
+bool
+BufferedWidgetRenderer::RequiresRefresh() const
+{
+	return !rInvalidated.IsEmpty();
+}
+
+void
+BufferedWidgetRenderer::GetInvalidatedArea(Rect& r) const
+{
+	r = rInvalidated;
+}
+
+void
+BufferedWidgetRenderer::SetSize(const Size& s)
+{
+	Buffer.SetSize(s.Width, s.Height);
+	static_cast<Size&>(rInvalidated) = s;
+}
+
+void
+BufferedWidgetRenderer::ClearInvalidation()
+{
+	//只设置一个分量为零可能会使 CommitInvalidation 结果错误。
+	static_cast<Size&>(rInvalidated) = Size::Zero;
+}
+
+void
+BufferedWidgetRenderer::CommitInvalidation(const Rect& r)
+{
+	rInvalidated = Unite(rInvalidated, r);
+}
+
+void
+BufferedWidgetRenderer::FillInvalidation(Color c)
+{
+	FillRect(Buffer, rInvalidated, c);
+}
+
+void
+BufferedWidgetRenderer::UpdateTo(const Graphics& g, const Point& pt) const
+{
+	CopyTo(g, GetContext(), pt);
+}
 
 YSL_BEGIN_NAMESPACE(Widgets)
 
@@ -65,24 +109,41 @@ void
 InvalidateCascade(IWidget& wgt, const Rect& r)
 {
 	auto pWgt(&wgt);
-	IWindow* pWnd;
 	Rect rect(r);
 
-	while((pWnd = FetchWidgetNodePtr<IWindow>(pWgt, rect)))
+	do
 	{
-		CommitInvalidatedAreaTo(*pWnd, rect);
-		rect = FetchInvalidatedArea(*pWnd) + pWgt->GetLocation();
-		pWgt = FetchContainerPtr(*pWnd);
+		pWgt->GetRenderer().CommitInvalidation(rect);
+		pWgt->GetRenderer().GetInvalidatedArea(rect);
+		rect += pWgt->GetLocation();
+	}while((pWgt = FetchContainerPtr(*pWgt)));
+}
+
+Rect
+Render(IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
+{
+	Rect rect;
+
+	if(wgt.GetRenderer().RequiresRefresh())
+	{
+		const auto& g_buf(FetchContext(wgt));
+
+		rect = g_buf.IsValid() ? wgt.Refresh(g_buf, Point::Zero,
+			Rect(r.GetPoint() - wgt.GetLocation(), r)) : wgt.Refresh(g, pt, r);
+		wgt.GetRenderer().ClearInvalidation();
 	}
+	Update(wgt, g, pt);
+	// TODO: use 'Update(wgt, g, pt, r)';
+	return rect;
 }
 
 void
-RefreshChild(IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
+RenderChild(IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
 {
 	const auto& rect(Intersect(Rect(pt + wgt.GetLocation(), wgt.GetSize()), r));
 
 	if(rect != Rect::Empty)
-		wgt.Refresh(g, pt + wgt.GetLocation(), rect);
+		Render(wgt, g, pt + wgt.GetLocation(), rect);
 }
 
 void
@@ -97,6 +158,27 @@ RequestToTop(IWidget& wgt)
 		if(pCon)
 			pDsk->MoveToTop(*pCon);
 	}
+}
+
+void
+Update(const IWidget& wgt, const Graphics& g, const Point& pt)
+{
+	if(wgt.IsVisible())
+		wgt.GetRenderer().UpdateTo(g, pt);
+}
+
+Rect
+Validate(IWidget& wgt)
+{
+	Rect rect;
+
+	if(wgt.GetRenderer().RequiresRefresh() && FetchContext(wgt).IsValid())
+	{
+		rect = wgt.Refresh(FetchContext(wgt), Point::Zero,
+			Rect(Point::Zero, wgt.GetSize()));
+		wgt.GetRenderer().ClearInvalidation();
+	}
+	return rect;
 }
 
 
@@ -115,8 +197,15 @@ Visual::SetSize(const Size& s)
 
 Widget::Widget(const Rect& r, Color b, Color f)
 	: Visual(r, b, f),
-	pContainer()
+	pContainer(), pRenderer(new WidgetRenderer())
 {}
+
+void
+Widget::SetRenderer(unique_ptr<WidgetRenderer>&& p)
+{
+	pRenderer = p ? std::move(p)
+		: unique_ptr<WidgetRenderer>(new WidgetRenderer());
+}
 
 Rect
 Widget::Refresh(const Graphics& g, const Point& pt, const Rect& r)

@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3654;
+\version 0.3656;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-07-18 06:08 +0800;
+	2011-07-31 20:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,7 +68,7 @@ void
 ListBox::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 {
 	ScrollableContainer::DrawControl(g, pt, r);
-	RefreshChild(TextListBox, g, pt, r);
+	RenderChild(TextListBox, g, pt, r);
 }
 
 void

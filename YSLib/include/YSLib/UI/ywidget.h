@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.5793;
+\version 0.5891;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-07-21 12:17 +0800;
+	2011-08-02 10:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,7 @@
 #include "ycomp.h"
 #include "yfocus.h"
 #include "../Service/ydraw.h"
+#include "../Service/ygdi.h"
 
 YSL_BEGIN
 
@@ -50,11 +51,151 @@ using Drawing::Rect;
 using Drawing::Graphics;
 
 
+/*!
+\brief 部件渲染器。
+*/
+class WidgetRenderer : public noncopyable
+{
+private:
+	const Graphics g;
+
+public:
+	virtual DefEmptyDtor(WidgetRenderer)
+
+	/*!
+	\brief 判断是否需要刷新。
+	\note 总是需要刷新。
+	*/
+	virtual PDefH0(bool, RequiresRefresh) const
+		ImplRet(true)
+
+	/*!
+	\brief 取无效区域。
+	\note 空实现。
+	*/
+	virtual void
+	GetInvalidatedArea(Rect&) const
+	{}
+	/*!
+	\brief 取图形接口上下文。
+	\note 返回无效图形接口上下文。
+	*/
+	virtual DefGetter(const Graphics&, Context, g)
+
+	/*!
+	\brief 设置缓冲区大小。
+	\note 空实现。
+	*/
+	virtual void
+	SetSize(const Size&)
+	{}
+
+	/*!
+	\brief 清除无效区域。
+	\note 空实现。
+	*/
+	virtual void
+	ClearInvalidation()
+	{}
+
+	/*!
+	\brief 提交无效区域。
+	\note 空实现。
+	*/
+	virtual void
+	CommitInvalidation(const Rect&)
+	{}
+
+	/*
+	\brief 以纯色填充无效区域。
+	\note 空实现。
+	*/
+	virtual void
+	FillInvalidation(Color)
+	{}
+
+	/*!
+	\brief 更新至指定图形设备上下文的指定点。
+	\note 以相对于容器的坐标作为相对于图形设备上下文的偏移。
+	\note 空实现。
+	*/
+	virtual void
+	UpdateTo(const Graphics&, const Point&) const
+	{}
+};
+
+
+/*!
+\brief 带缓冲的部件渲染器。
+*/
+class BufferedWidgetRenderer : public WidgetRenderer
+{
+protected:
+	mutable Rect rInvalidated; \
+		//!< 无效区域：包含所有新绘制请求的区域（不一定是最小的）。
+
+public:
+	Drawing::BitmapBuffer Buffer; //!< 显示缓冲区。
+
+	/*!
+	\brief 判断是否需要刷新。
+	\note 若无效区域长宽都不为零，则需要刷新。
+	*/
+	virtual bool
+	RequiresRefresh() const;
+
+	/*!
+	\brief 取无效区域。
+	*/
+	DefGetter(const Rect&, InvalidatedArea, rInvalidated)
+	/*!
+	\brief 取无效区域。
+	\note 通过参数返回。
+	*/
+	virtual void
+	GetInvalidatedArea(Rect&) const;
+	/*!
+	\brief 取图形接口上下文。
+	\return 缓冲区图形接口上下文。
+	*/
+	virtual DefGetter(const Graphics&, Context, Buffer)
+
+	/*!
+	\brief 设置缓冲区大小。
+	*/
+	virtual void
+	SetSize(const Size&);
+
+	/*!
+	\brief 清除无效区域。
+	\note 通过设置大小为 Size::Zero 使无效区域被忽略。
+	*/
+	virtual void
+	ClearInvalidation();
+
+	/*!
+	\brief 提交无效区域。
+	\note 合并至现有无效区域中。
+	\note 由于无效区域的形状限制，结果可能会包含部分有效区域。
+	*/
+	virtual void
+	CommitInvalidation(const Rect&);
+
+	/*
+	\brief 以纯色填充无效区域。
+	*/
+	virtual void
+	FillInvalidation(Color);
+
+	/*!
+	\brief 更新至指定图形设备上下文的指定点。
+	\note 以相对于容器的坐标作为相对于图形设备上下文的偏移。
+	*/
+	virtual void
+	UpdateTo(const Graphics&, const Point&) const;
+};
+
 YSL_BEGIN_NAMESPACE(Widgets)
-
-//前向声明。
-// ...
-
 
 //! \brief 部件接口。
 DeclInterface(IWidget)
@@ -68,21 +209,39 @@ DeclInterface(IWidget)
 	\warning 注意修改容器指针时，应保持和容器包含部件的状态同步。
 	*/
 	DeclIEntry(IWidget*& GetContainerPtrRef() const)
+	/*!
+	\brief 取渲染器。
+	*/
+	DeclIEntry(WidgetRenderer& GetRenderer() const)
+	/*!
+	\brief 取焦点对象指针。
+	\return 若非容器则为 nullptr ，否则为指向子部件中的焦点对象的指针，。
+	*/
 	DeclIEntry(IControl* GetFocusingPtr()) \
-		//!< 取焦点对象指针（若非容器则为 nullptr ）。
+	/*!
+	\brief 取指定的点所在的可见部件的指针。
+	\return 若非容器则为 nullptr ，否则为指向子部件中的可见部件的指针，。
+	\note 使用部件坐标。
+	*/
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&)) \
-		//!< 取指定的点（屏幕坐标）所在的可见部件的指针（若非容器则为 nullptr ）。
+	/*!
+	\brief 取指定的点所在的可见控件的指针。
+	\return 若非容器则为 nullptr ，否则为指向子部件中的可见控件的指针，。
+	\note 使用部件坐标。
+	*/
 	DeclIEntry(IControl* GetTopControlPtr(const Point&)) \
-		//!< 取指定的点（屏幕坐标）所在的可见控件的指针（若非容器则为 nullptr ）。
 
 	DeclIEntry(void SetVisible(bool)) //!< 设置可见。
 	DeclIEntry(void SetTransparent(bool)) //!< 设置透明。
 	DeclIEntry(void SetLocation(const Point&)) \
-		//!< 设置左上角所在位置（相对于容器的偏移坐标）。
+		//!< 设置左上角所在位置（相对于父容器的偏移坐标）。
 	DeclIEntry(void SetSize(const Size&)) \
 		//!< 设置大小。
 
-	//! \brief 清除焦点指针。
+	/*!
+	\brief 清除焦点指针。
+	\note 若此部件非容器则无效。
+	*/
 	DeclIEntry(void ClearFocusingPtr())
 
 	/*!
@@ -96,11 +255,16 @@ DeclInterface(IWidget)
 	*/
 	DeclIEntry(Rect Refresh(const Graphics& g, const Point& pt, const Rect& r))
 
-
-	//! \brief 响应焦点请求。
+	/*!
+	\brief 响应焦点请求。
+	\note 若此部件非容器则无效。
+	*/
 	DeclIEntry(bool ResponseFocusRequest(AFocusRequester&))
 
-	//! \brief 响应焦点释放。
+	/*!
+	\brief 响应焦点释放。
+	\note 若此部件非容器则无效。
+	*/
 	DeclIEntry(bool ResponseFocusRelease(AFocusRequester&))
 EndDecl
 
@@ -144,6 +308,16 @@ FetchContainerPtr(const IWidget& wgt)
 	return wgt.GetContainerPtrRef();
 }
 
+/*
+\ingroup HelperFunction
+\brief 取指定部件的图形接口上下文。
+*/
+inline const Graphics&
+FetchContext(const IWidget& wgt)
+{
+	return wgt.GetRenderer().GetContext();
+}
+
 /*!
 \brief 取部件边界。
 */
@@ -172,10 +346,16 @@ void
 InvalidateCascade(IWidget&, const Rect&);
 
 /*
-\brief 刷新子部件。
+\brief 渲染：若缓冲存储不可用则刷新指定部件。
+*/
+Rect
+Render(IWidget&, const Graphics&, const Point&, const Rect&);
+
+/*
+\brief 渲染子部件。
 */
 void
-RefreshChild(IWidget&, const Graphics&, const Point&, const Rect&);
+RenderChild(IWidget&, const Graphics&, const Point&, const Rect&);
 
 /*!
 \brief 请求提升至容器顶端。
@@ -185,6 +365,20 @@ RefreshChild(IWidget&, const Graphics&, const Point&, const Rect&);
 */
 void
 RequestToTop(IWidget&);
+
+/*!
+\brief 更新部件至指定图形设备上下文的指定点。
+\note 以相对于容器的坐标作为相对于图形接口上下文的偏移。
+*/
+void
+Update(const IWidget&, const Graphics&, const Point& = Point::Zero);
+
+/*!
+\brief 验证：若部件的缓冲区存在，绘制缓冲区使之有效。
+\return 实际绘制的区域，意义同 IWidget::Refresh 。
+*/
+Rect
+Validate(IWidget&);
 
 
 //! \brief 方向模块。
@@ -319,6 +513,7 @@ class Widget : public Visual,
 {
 private:
 	mutable IWidget* pContainer; //!< 从属的部件容器的指针。
+	unique_ptr<WidgetRenderer> pRenderer; //!< 渲染器指针。
 
 public:
 	explicit
@@ -331,6 +526,7 @@ public:
 	ImplI1(IWidget) DefGetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefGetterBase(const Size&, Size, Visual)
 	ImplI1(IWidget) DefGetter(IWidget*&, ContainerPtrRef, pContainer)
+	ImplI1(IWidget) DefGetter(WidgetRenderer&, Renderer, *pRenderer)
 	ImplI1(IWidget) PDefH0(IControl*, GetFocusingPtr)
 		ImplRet(nullptr)
 	ImplI1(IWidget) PDefH1(IWidget*, GetTopWidgetPtr, const Point&)
@@ -342,6 +538,13 @@ public:
 	ImplI1(IWidget) DefSetterBase(bool, Transparent, Visual)
 	ImplI1(IWidget) DefSetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefSetterBase(const Size&, Size, Visual)
+	/*!
+	\brief 设置渲染器为指定指针指向的对象。
+	\note 若指针为空，则使用新建的 WidgetRenderer 对象。
+	\note 取得指定对象的所有权。
+	*/
+	void
+	SetRenderer(unique_ptr<WidgetRenderer>&&);
 
 	ImplI1(IWidget) PDefH0(void, ClearFocusingPtr)
 		ImplRet(static_cast<void>(this))

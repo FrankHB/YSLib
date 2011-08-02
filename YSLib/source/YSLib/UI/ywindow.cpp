@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.3932;
+\version 0.4082;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-07-22 10:31 +0800;
+	2011-08-02 11:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,74 +37,61 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Forms)
 
-bool
-RequiresRefresh(const IWindow& wnd)
-{
-	return !FetchInvalidatedArea(wnd).IsEmpty();
-}
-
-void
-SetInvalidationOf(IWindow& wnd)
-{
-	CommitInvalidatedAreaTo(wnd, Rect(Point::Zero, wnd.GetSize()));
-}
-
-void
-SetInvalidateonToParent(IWindow& wnd)
-{
-	if(wnd.GetWindowPtr())
-	{
-		CommitInvalidatedAreaTo(*wnd.GetWindowPtr(),
-			Rect(LocateForParentWindow(wnd), wnd.GetSize()));
-	}
-}
-
-void
-CommitInvalidatedAreaTo(IWindow& wnd, const Rect& r)
-{
-	wnd.GetInvalidatedAreaRef() = Unite(FetchInvalidatedArea(wnd), r);
-}
-
-
 void
 Show(IWindow& wnd)
 {
 	wnd.SetVisible(true);
-	SetInvalidateonToParent(wnd);
+	SetInvalidationToParent(wnd);
 }
 
 void
 Hide(IWindow& wnd)
 {
 	wnd.SetVisible(false);
-	SetInvalidateonToParent(wnd);
+	SetInvalidationToParent(wnd);
+}
+
+void
+SetInvalidationToParent(IWindow& wnd)
+{
+	auto pWnd(wnd.GetWindowPtr());
+
+	if(pWnd)
+		pWnd->GetRenderer().CommitInvalidation(Rect(LocateForParentWindow(wnd),
+			wnd.GetSize()));
 }
 
 
-MWindow::MWindow(const shared_ptr<Image>& hImg, IWindow* pWnd)
+MWindow::MWindow(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
 	: MWindowObject(pWnd),
-	hBgImage(hImg), rInvalidated()
+	hBgImage(hImg)
 {}
 
-
-AWindow::AWindow(const Rect& r, const shared_ptr<Image>& hImg,
-	IWindow* pWnd)
-	: Control(r), MWindow(hImg, pWnd)
-{
-	static_cast<Size&>(rInvalidated) = r;
-}
-
 BitmapPtr
-AWindow::GetBackgroundPtr() const
+MWindow::GetBackgroundPtr() const
 {
 	return hBgImage ? hBgImage->GetImagePtr() : nullptr;
+}
+
+
+AWindow::AWindow(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
+	: Control(r), MWindow(r, hImg, pWnd)
+{
+	SetRenderer(unique_raw(new BufferedWidgetRenderer()));
+	GetRenderer().SetSize(r);
 }
 
 void
 AWindow::SetSize(const Size& s)
 {
-	SetBufferSize(s);
+	GetRenderer().SetSize(s);
 	Control::SetSize(s);
+}
+
+void
+AWindow::SetInvalidation()
+{
+	GetRenderer().CommitInvalidation(Rect(Point::Zero, GetSize()));
 }
 
 bool
@@ -112,73 +99,39 @@ AWindow::DrawBackgroundImage()
 {
 	if(hBgImage)
 	{
-		const auto& g(GetContext());
-		const auto& r(FetchInvalidatedArea(*this));
+		const auto& g(GetRenderer().GetContext());
 
-		return CopyTo(g.GetBufferPtr(), *hBgImage, g.GetSize(), r, r, r);
+		if(g.IsValid())
+		{
+			Rect r(Point::Zero, g.GetSize());
+
+			GetRenderer().GetInvalidatedArea(r);
+			return CopyTo(g.GetBufferPtr(), *hBgImage, g.GetSize(), r, r, r);
+		}
 	}
 	return false;
 }
 
-void
-AWindow::DrawRaw()
+Rect
+AWindow::Refresh(const Graphics&, const Point&, const Rect&)
 {
-	if(!IsTransparent())
-	{
-		if(!DrawBackgroundImage())
-			FillRect(GetContext(), FetchInvalidatedArea(*this), BackColor);
-	}
+	if(!(IsTransparent() || DrawBackgroundImage()))
+		GetRenderer().FillInvalidation(BackColor);
 	DrawContents();
 	GetEventMap().DoEvent<HVisualEvent>(Paint, *this, EventArgs());
-}
-
-Rect
-AWindow::Refresh(const Graphics&, const Point&, const Rect& r)
-{
-	Validate();
-	Update();
 	return GetBoundsOf(*this);
 }
 
 void
 AWindow::Update()
 {
-	if(!Forms::RequiresRefresh(*this))
-		UpdateToWindow();
-}
-
-void
-AWindow::UpdateTo(const Graphics& g, const Point& p) const
-{
-	if(IsVisible())
-		CopyTo(g, GetContext(), p);
-}
-
-void
-AWindow::UpdateToDesktop()
-{
-	Desktop* const pDsk(FetchDesktopPtr(*this));
-
-	if(pDsk)
-		UpdateTo(pDsk->GetContext(), LocateForDesktop(*this));
-}
-
-void
-AWindow::UpdateToWindow() const
-{
-	IWindow* const pWnd(GetWindowPtr());
-
-	if(pWnd)
-		UpdateTo(pWnd->GetContext(), LocateForParentWindow(*this));
-}
-
-void
-AWindow::Validate()
-{
-	if(Forms::RequiresRefresh(*this))
+	if(!GetRenderer().RequiresRefresh())
 	{
-		DrawRaw();
-		ResetInvalidatedAreaOf(*this);
+		IWindow* const pWnd(GetWindowPtr());
+
+		if(pWnd)
+			Widgets::Update(*this, FetchContext(*pWnd),
+				LocateForParentWindow(*this));
 	}
 }
 
@@ -258,19 +211,16 @@ AFrame::ClearFocusingPtr()
 
 
 Frame::Frame(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
-	: AFrame(r, hImg, pWnd),
-	Buffer()
+	: AFrame(r, hImg, pWnd)
 {
-	Buffer.SetSize(GetSize().Width, GetSize().Height);
-
-	Desktop* pDsk(FetchDesktopPtr(*this));
+	auto pDsk(FetchDesktopPtr(*this));
 
 	if(pDsk)
 		*pDsk += *this;
 }
 Frame::~Frame()
 {
-	Desktop* pDsk(FetchDesktopPtr(*this));
+	auto pDsk(FetchDesktopPtr(*this));
 
 	if(pDsk)
 		*pDsk -= *this;
@@ -279,10 +229,10 @@ Frame::~Frame()
 bool
 Frame::DrawContents()
 {
-	if(!GetContext().IsValid())
+	if(!FetchContext(*this).IsValid())
 		return false;
 
-	bool result(Forms::RequiresRefresh(*this));
+	bool result(GetRenderer().RequiresRefresh());
 
 	for(auto i(sWidgets.begin()); !result && i != sWidgets.end(); ++i)
 	{
@@ -299,23 +249,15 @@ Frame::DrawContents()
 
 			if(w.IsVisible())
 			{
-				auto pWnd(dynamic_cast<IWindow*>(&w));
-				Point pt, pt_p;
+				//	pt = LocateOffset(this, Point::Zero, &w);
+				Point pt(w.GetLocation());
+				Rect r;
 
-				if(pWnd)
-					pt_p = w.GetLocation();
-				else
-				{
-					pt = LocateOffset(this, Point::Zero, &w);
-					pt_p = pt;
-				}
-
-				const Rect& r(Intersect(Rect(pt_p, w.GetSize()),
-					FetchInvalidatedArea(*this)));
-
+				GetRenderer().GetInvalidatedArea(r);
+				r = Intersect(Rect(pt, w.GetSize()), r);
 				if(r != Rect::Empty)
-					CommitInvalidatedAreaTo(*this,
-						w.Refresh(GetContext(), pt, r));
+					GetRenderer().CommitInvalidation(Render(w,
+						FetchContext(*this), pt, r));
 			}
 		}
 	return result;

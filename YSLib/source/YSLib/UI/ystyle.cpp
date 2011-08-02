@@ -11,12 +11,12 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version 0.1480;
+\version 0.1489;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-07-22 10:31 +0800;
+	2011-08-02 02:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,7 +62,8 @@ DrawRectRoundCorner(const Graphics& g, const Point& pt, const Size& s, Color c)
 void
 DrawWindowBounds(IWindow& wnd, Color c)
 {
-	DrawRect(wnd.GetContext(), Point::Zero, wnd.GetSize(), c);
+	DrawRect(FetchContext(wnd), Point::Zero,
+		wnd.GetSize(), c);
 }
 
 void
@@ -71,8 +72,8 @@ DrawWidgetBounds(IWidget& w, Color c)
 	IWindow* pWnd(FetchWindowPtr(w));
 
 	if(pWnd)
-		DrawRect(pWnd->GetContext(), LocateOffset(pWnd, Point::Zero, &w),
-			w.GetSize(), c);
+		DrawRect(FetchContext(*pWnd),
+			LocateOffset(pWnd, Point::Zero, &w), w.GetSize(), c);
 }
 
 
