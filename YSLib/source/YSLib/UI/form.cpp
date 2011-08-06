@@ -11,12 +11,12 @@
 /*!	\file form.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗体。
-\version 0.1533;
+\version 0.1535;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-06-28 21:47 +0800;
+	2011-08-02 21:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,8 +34,8 @@ YSL_BEGIN_NAMESPACE(Forms)
 
 using namespace Controls;
 
-Form::Form(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
-	: Frame(r, hImg, pWnd)//,
+Form::Form(const Rect& r, const shared_ptr<Image>& hImg, IWidget* pCon)
+	: Frame(r, hImg, pCon)//,
 //	Client(this, Rect::Empty/*r*/)
 {
 //	SetSize(Size.Width, Size.Height);

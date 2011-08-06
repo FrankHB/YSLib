@@ -1,4 +1,4 @@
-// v0.3229; *build 228 rev 72;
+// v0.3229; *build 229 rev 22;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -265,357 +265,118 @@ $using:
 
 $DONE:
 r1:
-/= test 0;
+- \ft CreateWindow @ \h YShellHelper;
+/ \f SetInvalidationToParent(IWindow&) @ \ns Forms @ \u YWindow
+	-> SetInvalidationToParent(IWidget&) @ \ns Widgets @ \u YWidget
+	^ (FetchContainerPtr & GetLocation)
+	~ (GetWindowPtr & LocateForParentWindow);
 
 r2:
-/= \rem @ \in IWidget;
+/ \simp \mf AWindow::Update ^ (FetchContainerPtr & GetLocation)
+	~ (GetWindowPtr & LocateForParentWindow);
+- \amf GetWindow @ \in IWindow;
 
 r3:
-/ \inc \h YPanel -> (YControl & YResource & YUIContainer) @ \h YWindow;
-/ \u YPanel["ypanel.h", "ypanel.cpp"] => Panel["panel.h", "panel.cpp"]
-	@ \dir UI;
+/ @ \u YWinidow:
+	/ @ \cl MWindow:
+		/ \inh protected Widgets::MWindowObject -> public noncopyable;
+		/ \tr @ \ctor;
+	/ @ \cl AWindow:
+		- \mf \vt GetWindowPtr;
+		/ \tr @ \ctor;
+	/ \tr @ \ctor @ \cl AFrame;
+	/ @ \cl Frame:
+		/ \tr @ \ctor;
+		/ \tr \impl @ \dtor;
 
 r4:
-/= test 1 ^ \conf release;
+- \pre \decl @ \cl Form @ \ns Components @ \h YComponent;
+/ @ \cl Form @ \u Form:
+	/ \tr \ctor;
+	* \rem @ \ctor $since b175;
+- \cl MWindowObject @ \h YWidget;
 
 r5:
-*= \rem @ \f (FetchParentWindowPtr & FetchWindowPtr & FetchDesktopPtr)
-	@ \h YUIContainer $since b227;
+/= test 1 ^ \conf release;
 
 r6:
-/ \impl @ \f InvalidateCascade @ \impl \u YWidget !^ FetchWidgetNodePtr;
+- \f (LocateForParentWindow & LocateWindowOffset & FetchParentWindowPtr)
+	@ \u YUIContainer;
 
 r7:
-* \impl @ \f InvalidateCascade @ \impl \u YWidget $since r6;
+/ \simp \impl @ \mf TextList::PaintItems @ \impl \u TextList;
+- \f (LocateForWindow & LocateForDesktop) @ \u YUIContainer;
 
 r8:
-+ \amf void UpdateInvalidation(Rect&) @ \in IWidget;
-+ \mf ImplI1(IWidget) void UpdateInvalidation(Rect&) @ \cl Widget;
-+ \mf ImplI1(IWindow) void UpdateInvalidation(Rect&) @ \cl AWindow;
-/ \simp \impl @ \f InvalidateCascade @ \impl \u YWidget ^ \mf UpdateInvalidate
-	~ \f (CommitInvalidatedAreaTo & FetchInvalidatedArea);
+- \f DrawWidgetBounds @ \u YStyle;
+/ \tr \impl @ \mf DrawControl @ \cl (CheckBox & TextList);
+- \f FetchWindowPtr @ \u YUIContainer;
 
 r9:
-/ @ \u YWindow:
-	/ \f (SetInvalidationOf & SetInvalidationToParent & CommitInvalidatedAreaTo)
-		-> \mf @ \cl AWindow;
-	+ \amf void SetInvalidationToParent() @ \in IWindow;
-	+ ImplI(IWindow) @ \mf SetInvalidationToParent @ \cl AWindow;
-	/ \tr \impl @ \impl \u;
-	* spell error $since b:
-		/ \a SetInvalidateonToParent => SetInvalidationToParent;
-/ \tr \impl @ \impl \u (Shells & YDesktop);
-/ \a SetInvalidationOf => SetInvalidation;
-/ \simp \impl @ \f InvalidateCascade @ \impl \u YWidget;
-
-r10:
 /= test 2 ^ \conf release;
 
-r11-r14:
-/= test 3;
+r10:
+/ \f Point LocateOffset(const IWindow*, Point, const IWidget*) @ \u YContainer
+	-> Point LocateOffset(const IWidget*, Point, const IWidget*);
+
+r11:
+- \f DrawWindowBounds @ \u YStyle;
+/ \f void Show(IWindow&) @ \ns \Forms @ \u YWindow -> void Show(IWidget&)
+	@ \ns Widgets @ \u YWidget;
+/ \f void Hide(IWindow&) @ \ns \Forms @ \u YWindow -> void Hide(IWidget&)
+	@ \ns Widgets @ \u YWidget;
+/ \f void SwitchVisible(IWindow&) -> void SwitchVisible(IWidget&) @ \un \ns
+	@ \impl \u Shells;
+
+r12:
+/ @ \u YWindow:
+	/ @ \cl AFrame:
+	/ \a 'IWindow' -> 'AWindow' @ \mft (\op+= & \op-=);
+	/ \param \tp @ \mf \vt (void \op+=(IWindow&) & bool \op-=(IWindow&))
+		-> AWindow&;
+	- \inh \in IWindow @ \cl AWindow;
+	- \in IWindow;
+/ @ \h YComponent:
+	- using Components::Forms::IWindow;
+	- \pre \decl @ \in IWindow @ \ns Components::Forms;
+/ \a 'ImplI1(IWindow)' -> 'virtual';
+
+r13:
+/= test 3 ^ \conf release;
+
+r14:
+/ pirvate \m \c Graphics g -> protected \s \c Graphics InvalidGraphics
+	@ \cl WidgetRenderer @ \u YWidget;
 
 r15:
-/ @ \cl AWindow:
-	/ \mf CommitInvalidatedAreaTo => CommitInvalidation;
-	/ \tr \impl;
-	
-r16:
-/ @ \u YWindow:
-	+ \amf void CommitInvalidation(const Rect&) @ \in IWindow;
-	/ @ \cl AWindow:
-		/ \mf !\vt CommitInvalidation(const Rect&) @ \cl
-			-> ImplI1(IWindow) CommitInvalidation(const Rect&);
-		/ \simp \impl @ \mf SetInvalidationToParent;
+-= \inh \h YWidget @ \impl \u (YWidget & YUIContainer & YWindow);
 
-r17:
+r16:
+/ \impl @ \ctor @ \cl ShlExplorer @ \impl \u Shells;
+
+r17-r20:
 /= test 4;
 
-r18:
-/ @ \u YWindow:
-	+ \cl BufferedWidgetRenderer;
-	/ @ \cl MWindow:
-		/ \m mutable Rect rInvalidated
-			-> \m unique_ptr<BufferedWidgetRenderer> pRenderer;
-		/ \tr @ \impl @ \ctor;
-	/ @ \cl AWindow:
-		/ \tr \impl @ \ctor;
-		/ \tr \impl @ \mf GetInvalidatedAreaRef ^ \mac DefGetterMember
-			~ \mac DefGetter;
-		/ \mf void SetInvalidationToParent()
-			-> !\m \f void SetInvalidationToParent(IWindow&);
-		/ \tr \impl @ \mf \i (FetchInvalidatedArea & ResetInvalidatedAreaOf);
-	- \amf void SetInvalidationToParent() @ \in IWindow;
-	/ \tr \impl @ \f (Show & Hide);
-
-r19:
-/ @ \u YWindow:
-	/ @ \in IWindow:
-		- \amf void CommitInvalidation(const Rect&);
-		+ \amf BufferedWidgetRenderer& GetRenderer() const;
-		- \amf Rect& GetInvalidatedAreaRef() const;
-	+ \mf \vt void CommitInvalidation(const Rect&) @ \cl BufferedWidgetRenderer;
-	/ @ \cl AWindow:
-		- \mf \vt CommitInvalidation;
-		/ \tr \impl @ \mf SetInvalidation ^ GetRenderer;
-		+ \mf ImplI1(IWindow) BufferedWidgetRenderer& GetRenderer() const;
-		- \mf InvalidatedAreaRef;
-	/ \tr \impl @ \f SetInvalidationToParent;
-	/ \tr \impl @ \f UpdateInvalidation;
-	/ \tr \impl @ \f DrawContents;
-
-r20:
-/ @ \u YWindow:
-	- \f \i ResetInvalidation;
-	/ @ \cl BufferedWidgetRenderer:
-		+ \mf void ResetInvalidation;
-		/ \tr \impl @ \mf Validate;
-
 r21:
-/ @ \u YWindow:
-	/ \mf ResetInvalidation => ClearInvalidation @ \cl BufferedWidgetRenderer;
-	/ \tr \impl @ \mf AWindow::Validate;
+/ \impl @ \mf Widget::SetRenderer;
+/ \simp \impl @ \ctor @ \cl AWindow;
 
 r22:
-/ @ \u YWindow:
-	/ \m protected Drawing::BitmapBuffer Buffer & \mf \i (GetContext
-		& SetBufferSize) >> \cl AWindow ~ \cl Frame;
-	/ \tr \impl @ \ctor @ \cl (AWindow & AFrame);
-	/ @ \cl AWindow:
-		- \tr \amf SetBufferSize;
-		/= \tr \a ImplI1(AWindow) -> ImplI1(IWindow);
-		- \vt @ \mf SetBufferSize;
-
-r23:
-/ @ \u YWindow:
-	/ \m protected Drawing::BitmapBuffer Buffer & \mf \i SetBufferSize
-		>> \cl MWindow ~ \cl AWindow;
-	/ \tr @ \ctor @ \cl (MWindow & AWindow);
-	* \rem @ \ctor @ \cl AWindow $since b175;
-
-r24:
-/ @ \u YWindow:
-	/ @ \cl MWindow:
-		- \mf SetBufferSize;
-		/ \m protected Drawing::BitmapBuffer Buffer 
-			-> public @ \cl BufferedWidgetRenderer;
-		/ \tr \impl @ \ctor;
-	+ \mf \vt void SetSize(const Size&) @ \cl BufferedWidgetRenderer;
-	/ \tr \impl @ \mf (GetContext & SetSize) @ \cl AWindow;
-
-r25:
-/ @ \h YWindow:
-	/ \mf Rect& GetInvalidatedAreaRef() const @ \cl BufferedWidgetRenderer
-		-> const Rect& GetInvalidatedArea() const ^ \mac DefGetter;
-	/ \tr @ \f \i FetchInvalidatedArea;
-
-r26:
-/ @ \u YWindow:
-	+ \mf \vt const Graphics& GetContext() const ^ \mac DefGetter
-		@ \cl BufferedWidgetRenderer;
-	/ \tr \simp \impl @ \mf GetContext @ \cl AWindow ^ \mac DefGetterMember
-		~ \mac DefGetter;
-
-r27:
-/ @ \u YWindow:
-	/ (protected \mf DrawBackgroundImage & public \mf GetBackgroundPtr)
-		@ \cl AWindow >> \cl MWindow;
-	- \mf (BeFilledWith & ClearBackground) @ \cl AWindow;
-	/ \tr \impl @ \mf DrawBackgroundImage @ \cl MWindow;
-
-r28:
-/ @ \u YWindow:
-	/ @ \cl MWindow:
-		+ \mf GetRenderer ^ \mac DefGetter;
-		/ \ac @ \m pRenderer -> private ~ protected;
-	/ @ \cl AWindow:
-		/ \tr \impl @ \mf SetSize
-		/ \tr \impl @ \mf GetRenderer ^ \mac DefGetterBase ~ \mac DefGetter;
-		/ \tr \impl @ \mf GetContext;
-		- \mf GetBackgroundImagePtr;
-		+ using MWindow::GetBackgroundImagePtr;
-		+ using MWindow::GetBackgroundPtr;
-
-r29:
-/ @ \u YWindow:
-	+ protected \mf void FillInvalidation(Color) @ \cl MWindow;
-	/ \simp \impl @ \mf DrawRaw ^ \mf FillInvalidation @ \cl AWindow;
-	+ \mf \vt bool RequiresRefresh() const @ \cl BufferedWidgetRenderer;
-	- \f bool RequiresRefresh(const IWindow&);
-	/ \tr \impl @ \mf (Update & Validate) @ \cl AWindow;
-	/ \tr \impl @ Frame::DrawContents;
-/ \tr \impl @ \mf Desktop::Update;
-
-r30-r31:
-/= test 5;
-
-r32:
-/ @ \u YWindow:
-	+ \mf \vt void GetInvalidatedArea(Rect&) const @ \cl BufferedWidgetRenderer;
-	- \f FetchInvalidatedArea;
-	/ \tr \impl @ \mf UpdateInvalidation @ \cl AWindow;
-	/ \tr \impl @ \mf Frame::DrawContents;
-/ \tr \impl @ \impl \u Shells;
-
-r33:
-/ @ \h YWindow:
-	- \amf GetContext @ \in IWindow;
-	+ \f \i const Graphics& GetContextFrom(const IWindow&);
-	- \mf GetContext @ \cl AWindow;
-/ \tr \impl @ \impl \u (YWindow & YDesktop & YGUI & YStyle & Shells);
-
-r34:
-/= test 6 ^ \conf release;
-
-r35-r36:
-/ @ \h YWidget:
-	+ \f Rect Render(IWidget&, const Graphics&, const Point&, const Rect&);
-	/ \f RefreshChild -> RenderChile;
-/ \impl @ \mf Frame::DrawContents ^ \f Render ~ \mf Refresh;
-/ \tr \impl @ \impl \u (Scroll & ListBox);
-
-r37:
-/ \cl BufferedWidgetRenderer @ \ns Components::Forms @ \u YWindow
-	>> \ns Components @ \u YWidget;
-+ \cl WidgetRenderer @ \ns Components @ \u YWidget;
-+ \inc \h YGDI @ \h YWidget;
-
-r38:
-/= test 7 ^ \conf release;
-
-r39:
-+ \mf \vt void FillInvalidation(Color) @ \cl (WidgetRenderer
-	& BufferedWidgetRenderer) @ \u YWidget;
-/ @ \u YWindow:
-	- \tr \mf FillInvalidation @ \cl MWindow;
-	/ \tr \impl @ \mf AWindow::DrawRaw;
-
-r40:
-/ @ \h YWindow:
-	/ @ \cl MWindow:
-		/ \m private unique_ptr<BufferedWidgetRenderer> pRenderer 
-			-> unique_ptr<WidgetRenderer> pRenderer;
-		/ \mf DefGetter(BufferedWidgetRenderer&, Renderer, *pRenderer)
-			-> DefGetter(WidgetRenderer&, Renderer, *pRenderer);
-		/ \tr \impl @ \mf DrawBackgroundImage;
-	/ \amf BufferedWidgetRenderer& GetRenderer() const @ \in IWindow
-		-> WidgetRenderer& GetRenderer() const;
-	/ \tr \ret \tp @ \mf GetRenderer @ \cl AWindow;
-/ @ \h YWidget;
-	+ (\vt \dtor & \inh noncopyable) @ \cl WidgetRenderer;
-	+ \inh WidgetRenderer @ \cl BufferedWidgetRenderer;
-
-r41:
-/= test 8 ^ \conf release;
-
-r42:
-/ @ \u YWindow:
-	/ (\m private unique_ptr<WidgetRenderer> pRenderer & \mf GetRenderer)
-		@ MWindow >> \cl Widget @ \u YWidget;
-	/ \amf GetRenderer @ \in IWindow >> \in IWidget @ \h YWidget;
-	/ \tr \impl @ \ctor @ \cl (MWindow & AWindow);
-	/ \mf DrawBackgroundImage @ \cl MWindow >> \cl AWindow;
-/ @ \cl Widget:
-	+ \mf void SetRenderer(unique_ptr<WidgetRenderer>&&);
-	+ 'ImplI1(IWidget)' @ \mf !\vt GetRenderer;
-	/ \tr \impl @ \ctor;
-
-r43:
-/= test 9 ^ \conf release;
-
-r44:
-/ \f const Graphics& GetContextFrom(const IWindow&) @ \ns Forms @ \h YWindow
-	>> \f const Graphics& FetchContext(const IWidget&) @ \ns Components
-	@ \h YWidget;
-/ \tr \a 'Forms::GetContextFrom' -> 'Widgets::FetchContext';
-
-r45:
-/ @ \u YWidget:
-	/ \impl @ \f InvalidateCascade @ \impl \u;
-	- \amf UpdateInvalidation @ \in IWidget;
-	- \mf UpdateInvalidation @ \cl Widget;
-- \mf UpdateInvalidation @ \cl AWindow;
-
-r46:
-/ \a 'Components::Widgets::FetchContext' -> 'FetchContext';
-/ \a 'Widgets::FetchContext' -> 'FetchContext';
-/= \simp \impl @ (\ctor & \dtor) @ \cl Frame ^ "auto" ~ "Desktop*";
-
-r47:
-/= test 10 ^ \conf release;
-
-r48-52:
-/= test 11;
-
-r53:
-/ @ \u YWidget:
-	+ \em \mf \vt void UpdateTo(const Graphics&, const Point&) const
-		@ \cl WidgetRenderer;
-	+ \mf \vt void UpdateTo(const Graphics&, const Point&) const
-		@ \cl BufferedWidgetRenderer;
-/ \impl @ \mf AWindow::UpdateTo;
-
-r54:
-/ @ \cl AWindow:
-	- \mf UpdateToDesktop;
-	- \amf Update @ \in IWindow;
-	/= 'ImplI1' -> 'virtual' @ \mf Update @ \cl AWindow;
-
-r55:
-/ @ \cl AWindow:
-	/ \mf !\vt UpdateTo -> \f void Update(const IWidget&, const Graphics&,
-		const Point& = Point::Zero) @ \ns Widgets @ \u YWidget;
-	/ \mg \mf UpdateToWindow -> \mf Update;
-
-r56:
-/= test 12 ^ \conf release;
-
-r57-r61:
-/ @ \impl \u YWindow:
-	/ \impl @ \mf AWindow::Refresh;
-	/ \simp \impl @ \mf Frame::DrawContent;
-
-r62:
-/ \impl @ \f Render @ \impl \u YWidget;
-
-r63:
-* \impl @ \f Render @ \impl \u YWidget $since r62;
-
-r64:
-+ \f void Validate(IWidget&) @ \u YWidget;
-- \mf Validate @ \cl AWindow;
-/ \tr \impl @ \impl \u (Shell_DS & Shells);
-
-r65:
-* \impl @ \f Validate @ \impl \u YWidget $since r64;
-
-r66-r68:
-/= test 13;
-
-r69:
-/ \simp \impl @ \mf Frame::DrawContents;
-
-r70:
-/= test 14 ^ \conf release;
-
-r71:
-/ \mf DrawRaw \mg -> \mf Refresh @ \cl AWindow;
-
-r72:
-/= test 15 ^ \conf release;
+/= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-08-02:
--21.2d;
-//Mercurial rev1-rev99: r4958;
+2011-08-06:
+-22.7d;
+//Mercurial rev1-rev100: r5030;
 
 / ...
 
 
 $NEXT_TODO:
-b229-b256:
+b230-b256:
 + TextList invalidation support;
 * non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
@@ -702,6 +463,29 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ "GUI" $=
+	(
+		/ "simplified controls rendering implementation" $=
+		(
+			- "widget boundary drawing APIs",
+			/ "control drawing" @ "class (%TextList, %CheckBox)"
+		),
+		/ "simplified APIs" $=
+		(
+			- "locating functions concerned with interface %IWindow",
+			- "interface %IWindow inheritance" @ "class %AWindow",
+			- "interface %IWindow"
+		),
+		+ "dynamic renderer switching"
+	)
+	/ "shells test example" $=
+	(
+		+ "buffered renderer for listbox"
+	)
+),
+
+b228
 (
 	/ "GUI" $=
 	(

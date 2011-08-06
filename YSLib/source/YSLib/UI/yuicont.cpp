@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2361;
+\version 0.2380;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-07-22 11:17 +0800;
+	2011-08-06 14:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,27 +24,14 @@
 */
 
 
-#include "yuicont.h"
-#include "yconsole.h"
 #include "ydesktop.h"
+#include "yconsole.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Widgets)
-
-IWindow*
-FetchParentWindowPtr(const IWidget& wgt)
-{
-	return FetchWidgetNodePtr<IWindow>(FetchContainerPtr(wgt));
-}
-
-IWindow*
-FetchWindowPtr(IWidget& wgt)
-{
-	return FetchWidgetNodePtr<IWindow>(&wgt);
-}
 
 Desktop*
 FetchDesktopPtr(IWidget& wgt)
@@ -54,12 +41,12 @@ FetchDesktopPtr(IWidget& wgt)
 
 
 Point
-LocateOffset(const IWindow* pWnd, Point pt, const IWidget* pCon)
+LocateOffset(const IWidget* pEnd, Point pt, const IWidget* pWgt)
 {
-	while(pCon && dynamic_cast<const IWindow*>(pCon) != pWnd)
+	while(pWgt && pWgt != pEnd)
 	{
-		pt += pCon->GetLocation();
-		pCon = dynamic_cast<const IWidget*>(FetchContainerPtr(*pCon));
+		pt += pWgt->GetLocation();
+		pWgt = FetchContainerPtr(*pWgt);
 	}
 	return pt;
 }
@@ -96,32 +83,11 @@ LocateForWidget(IWidget& a, IWidget& b)
 }
 
 Point
-LocateForWindow(IWidget& w)
-{
-	return LocateForWidgetNode<IWindow>(w, FetchWindowPtr);
-}
-
-Point
-LocateForDesktop(IWidget& w)
-{
-	return LocateForWidgetNode<Desktop>(w, FetchDesktopPtr);
-}
-
-Point
 LocateForParentContainer(const IWidget& w)
 {
 	return FetchContainerPtr(w)
 		? LocateContainerOffset(*FetchContainerPtr(w),
 		w.GetLocation()) : Point::FullScreen;
-}
-
-Point
-LocateForParentWindow(const IWidget& w)
-{
-	const IWindow* const pWnd(FetchParentWindowPtr(w));
-
-	return pWnd ? LocateWindowOffset(*pWnd, w.GetLocation())
-		: Point::FullScreen;
 }
 
 

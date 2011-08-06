@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.5055;
+\version 0.5068;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-08-02 10:41 +0800;
+	2011-08-06 15:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,12 +24,14 @@
 */
 
 
-#include "ywidget.h"
 #include "ydesktop.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
+
+const Graphics WidgetRenderer::InvalidGraphics;
+
 
 bool
 BufferedWidgetRenderer::RequiresRefresh() const
@@ -97,6 +99,16 @@ SetBoundsOf(IWidget& wgt, const Rect& r)
 {
 	wgt.SetLocation(r.GetPoint());
 	wgt.SetSize(r.GetSize());
+}
+
+void
+SetInvalidationToParent(IWidget& wgt)
+{
+	auto pCon(FetchContainerPtr(wgt));
+
+	if(pCon)
+		pCon->GetRenderer().CommitInvalidation(Rect(wgt.GetLocation(),
+			wgt.GetSize()));
 }
 
 void
@@ -182,6 +194,21 @@ Validate(IWidget& wgt)
 }
 
 
+void
+Show(IWidget& wgt)
+{
+	wgt.SetVisible(true);
+	SetInvalidationToParent(wgt);
+}
+
+void
+Hide(IWidget& wgt)
+{
+	wgt.SetVisible(false);
+	SetInvalidationToParent(wgt);
+}
+
+
 Visual::Visual(const Rect& r, Color b, Color f)
 	: visible(true), transparent(false),
 	location(r.GetPoint()), size(r.Width, r.Height),
@@ -205,6 +232,7 @@ Widget::SetRenderer(unique_ptr<WidgetRenderer>&& p)
 {
 	pRenderer = p ? std::move(p)
 		: unique_ptr<WidgetRenderer>(new WidgetRenderer());
+	pRenderer->SetSize(GetSize());
 }
 
 Rect

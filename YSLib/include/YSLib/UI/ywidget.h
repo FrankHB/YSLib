@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.5891;
+\version 0.5904;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-08-02 10:20 +0800;
+	2011-08-06 13:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,8 +56,8 @@ using Drawing::Graphics;
 */
 class WidgetRenderer : public noncopyable
 {
-private:
-	const Graphics g;
+protected:
+	static const Graphics InvalidGraphics; //!< 无效图形接口上下文。
 
 public:
 	virtual DefEmptyDtor(WidgetRenderer)
@@ -80,7 +80,7 @@ public:
 	\brief 取图形接口上下文。
 	\note 返回无效图形接口上下文。
 	*/
-	virtual DefGetter(const Graphics&, Context, g)
+	virtual DefGetter(const Graphics&, Context, InvalidGraphics)
 
 	/*!
 	\brief 设置缓冲区大小。
@@ -334,6 +334,13 @@ void
 SetBoundsOf(IWidget&, const Rect& r);
 
 /*!
+\brief 在容器设置无效区域。
+\note 若容器不存在则忽略。
+*/
+void
+SetInvalidationToParent(IWidget&);
+
+/*!
 \brief 无效化：使部件区域在窗口缓冲区中无效。
 */
 void
@@ -381,6 +388,21 @@ Rect
 Validate(IWidget&);
 
 
+/*!
+\brief 显示部件。
+\note 设置可见性和容器（若存在）背景重绘状态并设置自身刷新状态。
+*/
+void
+Show(IWidget&);
+
+/*!
+\brief 隐藏部件。
+\note 设置不可见性和容器（若存在）背景重绘状态并取消自身刷新状态。
+*/
+void
+Hide(IWidget&);
+
+
 //! \brief 方向模块。
 class MOriented
 {
@@ -396,31 +418,6 @@ protected:
 inline
 MOriented::MOriented(Drawing::Orientation o)
 	: Orientation(o)
-{}
-
-
-//! \brief 窗口对象模块。
-class MWindowObject
-{
-private:
-	IWindow* pWindow; //!< 从属的窗口指针。
-
-protected:
-	MWindowObject(IWindow*);
-
-public:
-	/*!
-	\brief 判断是否属于窗口指针指定的窗口。
-	*/
-	PDefH1(bool, BelongsTo, IWindow* pWnd) const
-		ImplRet(pWindow == pWnd)
-
-	DefGetter(IWindow*, WindowPtr, pWindow)
-};
-
-inline
-MWindowObject::MWindowObject(IWindow* pWnd)
-	: pWindow(pWnd)
 {}
 
 

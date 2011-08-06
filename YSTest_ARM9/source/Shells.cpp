@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version 0.4868;
+\version 0.4872;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-08-02 10:22 +0800;
+	2011-08-06 15:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -318,6 +318,8 @@ ShlExplorer::ShlExplorer()
 	lblB(Rect(5, 120, 72, 22)),
 	mhMain(*GetDesktopDownHandle())
 {
+	//对 fbMain 启用缓存。
+	fbMain.SetRenderer(unique_raw(new BufferedWidgetRenderer()));
 	FetchEvent<KeyPress>(fbMain) += [](IControl&, KeyEventArgs&& e){
 		if(e.GetKeyCode() & KeySpace::L)
 			switchShl1();
@@ -358,12 +360,12 @@ namespace
 	}
 
 	void
-	SwitchVisible(IWindow& wnd)
+	SwitchVisible(IWidget& wgt)
 	{
-		if(wnd.IsVisible())
-			Hide(wnd);
+		if(wgt.IsVisible())
+			Hide(wgt);
 		else
-			Show(wnd);
+			Show(wgt);
 	}
 
 

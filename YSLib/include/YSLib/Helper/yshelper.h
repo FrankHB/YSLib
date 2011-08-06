@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2184;
+\version 0.2187;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-06-28 16:49 +0800;
+	2011-08-02 22:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,20 +66,6 @@ FetchShell()
 
 
 //全局函数。
-
-/*!
-\brief 从当前 Shell 新建指定类型窗体。
-*/
-template<class _type>
-IWindow* CreateWindow()
-{
-	IWindow* pWnd(new _type());
-
-	YAssert(pWnd, "Window pointer is null.");
-
-	return pWnd;
-}
-
 
 /*!
 \brief 取全局 Shell 句柄。

@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version 0.5290;
+\version 0.5299;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-08-02 10:59 +0800;
+	2011-08-06 14:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -1014,8 +1014,11 @@
 
 @2.5.7.1 基本屏幕对象：
 用于实现二维输出设备参考坐标系(@1.8.1) 。
- YSLib 默认使用整数分量坐标，类型为 SPos ，绝对值类型为 SDst 。
+ YSLib 默认使用整数分量坐标，类型为 SPos （平台相关的有符号整数类型），绝对值类型为 SDst （宽度与 SPos 相同的无符号整数类型）。
 以此为基础进一步定义了 Point 、 Vec 、 Size 和 Rect 等基本屏幕对象类。
+ Point 和 Vec 为 SPos 二元组，具有不同的相关运算集。
+ Size 为 SDst 二元组。
+ Rect 为正则矩形(canonical rectangle) ，即边和屏幕坐标系共线，以 Point 表示左上角， Size 表示长和宽的矩形。
 
 @2.5.8 平台无关的设备抽象层 YDevice ：
 位于命名空间 Devices 中。
@@ -1154,7 +1157,6 @@
 @2.7.1.2.1 接口：
  IWidget ：部件接口，包括返回焦点的虚成员方法，可以在容器中重载实现。
  IControl ：控件接口。
- IWindow ：窗口接口。
 功能说明和其它描述参见 @2.7 、 @2.7.1.1 、 @2.7.1.3 。
 
 @2.7.1.2.2 继承：
@@ -1166,7 +1168,7 @@
 组件容器是能够以引用方式在逻辑上包含其它组件的组件。
 部件容器是包含子部件的部件，是一般化的组件容器，它能以可视化方式处理其包含的部件（例如顺序显示）。应该重写其中对于焦点判断的成员方法以便保证视图树节点遍历的正确行为。
 控件是实现了 IControl 接口（继承 IWidget 接口和 GIFocusRequester<GMFocusResponser> 接口）的类（标准基类为 Control ），是具有事件响应特性的可视组件，同时也是部件。
-窗口是实现了 IWindow 接口（虚继承 IControl 接口）的类（标准模块基类为 AWindow 抽象类），是作为一种能在桌面显示的自带缓冲区的部件容器，同时是焦点响应类和焦点请求类。
+窗口是继承 AWindow 抽象类并实现的具体类，是作为一种能在桌面显示的自带缓冲区的部件容器，同时是焦点响应类和焦点请求类。
 标准窗口（基类为 Frame ）是具有一般化的部件容器功能的窗口。
 窗体（基类为 Form ）是增加了客户区布局管理的标准窗口。
 默认组件中，除继承自窗口的组件（基类为 Frame ，缓冲区继承自类 BitmapBuffer ）外，所有部件默认不带显示缓冲区。实际使用时可以用其它类型成员（如 TextRegion ）提供显示缓冲区。
@@ -1366,8 +1368,7 @@ AWindow 类会在绘制完毕，设置更新状态之前调用 Paint 事件。
 
 @2.7.9.2 样式无关的图形用户界面窗口 YWindow ：
 主要类型：
- IWindow 接口；
- AWindow 类；
+ AWindow 抽象类；
  AFrame 类；
  Frame 类。
 
@@ -1503,7 +1504,7 @@ FetchDefaultScreen();
  "ywidget.h" 依赖于 Service 的 "ygdi.h" ；
  "ycontrol.h" 和 "yuicont.h" 依赖于 "ywidget.h" ；
  "ygui.h" 依赖于 "ycontrol.h" 和 "ystyle.h" ；
- "ywindow.h" 和 "uicontx.h" 依赖于 "ycontrol.h" 、 "yuicont.h" 和 Service 的 "yblit.h" ；
+ "ywindow.h" 依赖于 "ycontrol.h" 、 "yuicont.h" 和 Service 的 "yblit.h" ；
  "ywindow.h" 依赖于 Service 的 "yres.h" ；
  "ydesktop.h" 依赖于 "ywindow.h" 。
 在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少的头文件。

@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2477;
+\version 0.2489;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-07-28 04:05 +0800;
+	2011-08-03 06:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,19 +68,6 @@ _tNode* FetchWidgetNodePtr(IWidget* pWgt, Point& pt)
 }
 
 /*!
-\brief 取指定部件的父窗口指针。
-*/
-IWindow*
-FetchParentWindowPtr(const IWidget&);
-
-/*!
-\brief 取指定部件的窗口指针。
-\note 加入容器指针判断；包括部件自身。
-*/
-IWindow*
-FetchWindowPtr(IWidget&);
-
-/*!
 \brief 取指定部件的桌面指针。
 \note 加入容器指针判断；包括部件自身。
 */
@@ -89,27 +76,18 @@ FetchDesktopPtr(IWidget&);
 
 
 /*!
-\brief 取指定的点（相对此部件的坐标）相对于指定指针指向的父窗口的偏移坐标。
+\brief 取相对于 pWgt 指向的部件的点 pt 相对于 pEnd 指向的容器的偏移坐标。
 */
 Point
-LocateOffset(const IWindow*, Point, const IWidget*);
+LocateOffset(const IWidget* pEnd, Point, const IWidget* pWgt);
 
 /*!
-\brief 取指定的点 pt （相对部件 w 的坐标）相对于 w 的容器的偏移坐标。
+\brief 取相对部件 w 的点 pt 相对于 w 的容器的偏移坐标。
 */
 inline Point
 LocateContainerOffset(const IWidget& w, const Point& pt)
 {
 	return pt + w.GetLocation();
-}
-
-/*!
-\brief 取指定的点 pt （相对部件 w 的坐标）相对于 w 的窗口的偏移坐标。
-*/
-inline Point
-LocateWindowOffset(const IWidget& w, const Point& pt)
-{
-	return LocateOffset(FetchParentWindowPtr(w), pt, &w);
 }
 
 /*!
@@ -136,32 +114,11 @@ LocateForWidgetNode(IWidget& wgt, _fFetcher fetch_ptr)
 }
 
 /*!
-\brief 取指定部件相对于窗口的偏移坐标。
-\note 若自身是窗口则返回 Zero ；若无容器或窗口则返回 FullScreen 。
-*/
-Point
-LocateForWindow(IWidget&);
-
-/*!
-\brief 取指定部件相对于桌面的偏移坐标。
-\note 若自身是桌面则返回 Zero ；若无窗口或窗口不在桌面上则返回 FullScreen 。
-*/
-Point
-LocateForDesktop(IWidget&);
-
-/*!
 \brief 取指定部件相对于容器的父容器的偏移坐标。
 \note 若无容器则返回 FullScreen 。
 */
 Point
 LocateForParentContainer(const IWidget&);
-
-/*!
-\brief 取指定部件相对于窗口的父窗口的偏移坐标。
-\note 若无容器则返回 FullScreen 。
-*/
-Point
-LocateForParentWindow(const IWidget&);
 
 
 /*!

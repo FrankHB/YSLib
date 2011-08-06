@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.4082;
+\version 0.4100;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-08-02 11:45 +0800;
+	2011-08-06 15:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,7 +24,6 @@
 */
 
 
-#include "ywindow.h"
 #include "ydesktop.h"
 
 YSL_BEGIN
@@ -37,34 +36,8 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Forms)
 
-void
-Show(IWindow& wnd)
-{
-	wnd.SetVisible(true);
-	SetInvalidationToParent(wnd);
-}
-
-void
-Hide(IWindow& wnd)
-{
-	wnd.SetVisible(false);
-	SetInvalidationToParent(wnd);
-}
-
-void
-SetInvalidationToParent(IWindow& wnd)
-{
-	auto pWnd(wnd.GetWindowPtr());
-
-	if(pWnd)
-		pWnd->GetRenderer().CommitInvalidation(Rect(LocateForParentWindow(wnd),
-			wnd.GetSize()));
-}
-
-
-MWindow::MWindow(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
-	: MWindowObject(pWnd),
-	hBgImage(hImg)
+MWindow::MWindow(const Rect& r, const shared_ptr<Image>& hImg)
+	: hBgImage(hImg)
 {}
 
 BitmapPtr
@@ -74,11 +47,10 @@ MWindow::GetBackgroundPtr() const
 }
 
 
-AWindow::AWindow(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
-	: Control(r), MWindow(r, hImg, pWnd)
+AWindow::AWindow(const Rect& r, const shared_ptr<Image>& hImg)
+	: Control(r), MWindow(r, hImg)
 {
 	SetRenderer(unique_raw(new BufferedWidgetRenderer()));
-	GetRenderer().SetSize(r);
 }
 
 void
@@ -127,17 +99,16 @@ AWindow::Update()
 {
 	if(!GetRenderer().RequiresRefresh())
 	{
-		IWindow* const pWnd(GetWindowPtr());
+		const auto pCon(FetchContainerPtr(*this));
 
-		if(pWnd)
-			Widgets::Update(*this, FetchContext(*pWnd),
-				LocateForParentWindow(*this));
+		if(pCon)
+			Widgets::Update(*this, FetchContext(*pCon), GetLocation());
 	}
 }
 
 
-AFrame::AFrame(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
-	: AWindow(r, hImg, pWnd), MUIContainer()
+AFrame::AFrame(const Rect& r, const shared_ptr<Image>& hImg)
+	: AWindow(r, hImg), MUIContainer()
 {}
 
 void
@@ -153,7 +124,7 @@ AFrame::operator+=(IControl& ctl)
 	ctl.GetContainerPtrRef() = this;
 }
 void
-AFrame::operator+=(IWindow& wnd)
+AFrame::operator+=(AWindow& wnd)
 {
 	MUIContainer::Add(wnd, DefaultWindowZOrder);
 	wnd.GetContainerPtrRef() = this;
@@ -180,7 +151,7 @@ AFrame::operator-=(IControl& ctl)
 	return false;
 }
 bool
-AFrame::operator-=(IWindow& wnd)
+AFrame::operator-=(AWindow& wnd)
 {
 	if(wnd.GetContainerPtrRef() == this)
 	{
@@ -210,13 +181,18 @@ AFrame::ClearFocusingPtr()
 }
 
 
-Frame::Frame(const Rect& r, const shared_ptr<Image>& hImg, IWindow* pWnd)
-	: AFrame(r, hImg, pWnd)
+Frame::Frame(const Rect& r, const shared_ptr<Image>& hImg, IWidget* pCon)
+	: AFrame(r, hImg)
 {
 	auto pDsk(FetchDesktopPtr(*this));
 
 	if(pDsk)
 		*pDsk += *this;
+	// TODO: use non-desktop container;
+/*
+	if(pCon)
+		*pCon += *this;
+*/
 }
 Frame::~Frame()
 {
@@ -224,6 +200,13 @@ Frame::~Frame()
 
 	if(pDsk)
 		*pDsk -= *this;
+	// TODO: use non-desktop container;
+/*
+	auto pCon(FetchContainerPtr(*this));
+
+	if(pCon)
+		*pCon -= *this;
+*/
 }
 
 bool

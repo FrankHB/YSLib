@@ -11,12 +11,12 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version 0.1270;
+\version 0.1275;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-08 13:21:10 +0800;
 \par 修改时间:
-	2011-06-16 20:13 +0800;
+	2011-08-03 07:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,20 +40,6 @@ YSL_BEGIN_NAMESPACE(Drawing)
 */
 bool
 DrawRectRoundCorner(const Graphics&, const Point&, const Size&, Color);
-
-
-/*!
-\brief 绘制窗口边框。
-*/
-void
-DrawWindowBounds(IWindow&, Color);
-
-/*!
-\brief 绘制部件边框。
-\note 限无缓冲区的部件。
-*/
-void
-DrawWidgetBounds(IWidget&, Color);
 
 
 void

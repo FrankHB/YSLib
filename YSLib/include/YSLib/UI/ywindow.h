@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.4569;
+\version 0.4606;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-08-02 11:45 +0800;
+	2011-08-05 04:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,49 +53,19 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Forms)
 
-//! \brief 窗口接口。
-DeclBasedInterface1(IWindow, virtual IControl)
-	DeclIEntry(IWindow* GetWindowPtr() const)
-EndDecl
-
-
-/*!
-\brief 显示窗口。
-\note 设置可见性和容器（若存在）背景重绘状态并设置自身刷新状态。
-*/
-void
-Show(IWindow&);
-
-/*!
-\brief 隐藏窗口。
-\note 设置不可见性和容器（若存在）背景重绘状态并取消自身刷新状态。
-*/
-void
-Hide(IWindow&);
-
-/*!
-\brief 在父窗口设置无效区域。
-\note 若父窗口不存在则忽略。
-*/
-void
-SetInvalidationToParent(IWindow&);
-
-
 //! \brief 窗口模块。
-class MWindow : protected Widgets::MWindowObject
+class MWindow : public noncopyable
 {
 protected:
-	//基类中的 pWindow 为父窗口对象句柄，若为空则说明无父窗口。
 	mutable shared_ptr<Drawing::Image> hBgImage; //!< 背景图像句柄。
 
 public:
 	/*!
-	\brief 构造：使用指定边界、背景图像和窗口指针。
+	\brief 构造：使用指定边界和背景图像。
 	*/
 	explicit
 	MWindow(const Rect& = Rect::Empty,
-		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
-		IWindow* = nullptr);
+		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()));
 
 	DefGetter(shared_ptr<Drawing::Image>&, BackgroundImagePtr, hBgImage)
 	/*!
@@ -107,19 +77,16 @@ public:
 
 
 //! \brief 抽象窗口。
-class AWindow : public Controls::Control, protected MWindow,
-	implements IWindow
+class AWindow : public Controls::Control, protected MWindow
 {
 public:
 	/*!
-	\brief 构造：使用指定边界、背景图像和窗口指针。
+	\brief 构造：使用指定边界和背景图像。
 	*/
 	explicit
 	AWindow(const Rect& = Rect::Empty,
-		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
-		IWindow* = nullptr);
+		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()));
 
-	ImplI1(IWindow) DefGetterBase(IWindow*, WindowPtr, MWindow)
 	using MWindow::GetBackgroundImagePtr;
 	using MWindow::GetBackgroundPtr;
 
@@ -149,7 +116,7 @@ public:
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
-	ImplI1(IWindow) Rect
+	virtual Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
 
 	/*!
@@ -167,64 +134,63 @@ class AFrame : public AWindow, protected Widgets::MUIContainer
 public:
 	explicit
 	AFrame(const Rect& = Rect::Empty,
-		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
-		IWindow* = nullptr);
+		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()));
 
-	ImplI1(IWindow) void
+	virtual void
 	operator+=(IWidget&);
-	ImplI1(IWindow) void
+	virtual void
 	operator+=(IControl&);
-	ImplI1(IWindow) PDefHOperator1(void, +=, GMFocusResponser<IControl>& rsp)
+	virtual PDefHOperator1(void, +=, GMFocusResponser<IControl>& rsp)
 		ImplBodyBase1(MUIContainer, operator+=, rsp)
 	virtual void
-	operator+=(IWindow&);
+	operator+=(AWindow&);
 	template<class _type>
 	inline void
 	operator+=(_type& p)
 	{
 		return operator+=(static_cast<typename std::conditional<
-			std::is_convertible<_type&, IWindow&>::value,
-			IWindow&, typename std::conditional<std::is_convertible<_type&,
+			std::is_convertible<_type&, AWindow&>::value,
+			AWindow&, typename std::conditional<std::is_convertible<_type&,
 			IControl&>::value, IControl&, IWidget&>::type>::type>(p));
 	}
 
-	ImplI1(IWindow) bool
+	virtual bool
 	operator-=(IWidget&);
-	ImplI1(IWindow) bool
+	virtual bool
 	operator-=(IControl&);
-	ImplI1(IWindow) PDefHOperator1(bool, -=, GMFocusResponser<IControl>& rsp)
+	virtual PDefHOperator1(bool, -=, GMFocusResponser<IControl>& rsp)
 		ImplBodyBase1(MUIContainer, operator-=, rsp)
 	virtual bool
-	operator-=(IWindow&);
+	operator-=(AWindow&);
 	template<class _type>
 	inline bool
 	operator-=(_type& p)
 	{
 		return operator-=(static_cast<typename std::conditional<
-			std::is_convertible<_type&, IWindow&>::value,
-			IWindow&, typename std::conditional<std::is_convertible<_type&,
+			std::is_convertible<_type&, AWindow&>::value,
+			AWindow&, typename std::conditional<std::is_convertible<_type&,
 			IControl&>::value, IControl&, IWidget&>::type>::type>(p));
 	}
 
 	using MUIContainer::Contains;
 
-	ImplI1(IWindow) PDefH0(IControl*, GetFocusingPtr)
+	virtual PDefH0(IControl*, GetFocusingPtr)
 		ImplBodyBase0(GMFocusResponser<IControl>, GetFocusingPtr)
-	ImplI1(IWindow) PDefH1(IWidget*, GetTopWidgetPtr, const Point& pt)
+	virtual PDefH1(IWidget*, GetTopWidgetPtr, const Point& pt)
 		ImplBodyBase1(MUIContainer, GetTopWidgetPtr, pt)
-	ImplI1(IWindow) PDefH1(IControl*, GetTopControlPtr, const Point& pt)
+	virtual PDefH1(IControl*, GetTopControlPtr, const Point& pt)
 		ImplBodyBase1(MUIContainer, GetTopControlPtr, pt)
 
 	void
 	Add(IControl&, Widgets::ZOrderType = Widgets::DefaultZOrder);
 
-	ImplI1(IWindow) void
+	virtual void
 	ClearFocusingPtr();
 
-	ImplI1(IWindow) PDefH1(bool, ResponseFocusRequest, AFocusRequester& req)
+	virtual PDefH1(bool, ResponseFocusRequest, AFocusRequester& req)
 		ImplBodyBase1(MUIContainer, ResponseFocusRequest, req)
 
-	ImplI1(IWindow) PDefH1(bool, ResponseFocusRelease, AFocusRequester& req)
+	virtual PDefH1(bool, ResponseFocusRelease, AFocusRequester& req)
 		ImplBodyBase1(MUIContainer, ResponseFocusRelease, req)
 };
 
@@ -234,12 +200,12 @@ class Frame : public AFrame
 {
 public:
 	/*!
-	\brief 构造：使用指定边界、背景图像和窗口指针。
+	\brief 构造：使用指定边界、背景图像和容器指针。
 	*/
 	explicit
 	Frame(const Rect& = Rect::Empty,
 		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
-		IWindow* = nullptr);
+		IWidget* = nullptr);
 	virtual
 	~Frame();
 
