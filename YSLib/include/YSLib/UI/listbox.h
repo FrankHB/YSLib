@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version 0.3177;
+\version 0.3179;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-07-11 08:54 +0800;
+	2011-08-08 09:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -78,10 +78,10 @@ public:
 		//!< 项目选中确定事件。
 
 	/*!
-	\brief 绘制控件界面。
+	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
-	virtual void
-	DrawControl(const Graphics&, const Point&, const Rect&);
+	virtual Rect
+	Refresh(const Graphics&, const Point&, const Rect&);
 
 	PDefH0(void, ResetView)
 		ImplBodyMember0(TextListBox, ResetView)

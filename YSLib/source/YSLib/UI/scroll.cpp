@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3761;
+\version 0.3770;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-07-31 20:41 +0800;
+	2011-08-08 09:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -171,10 +171,11 @@ ATrack::SetLargeDelta(ValueType val)
 	SetThumbLength(val * GetTrackLength() / max_value);
 }
 
-void
-ATrack::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
+Rect
+ATrack::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 {
-	Widget::Refresh(g, pt, r);
+	auto rect(Widget::Refresh(g, pt, r));
+
 	if(!IsTransparent())
 	{
 		Styles::Palette& pal(FetchGUIShell().Colors);
@@ -201,6 +202,7 @@ ATrack::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 	Thumb.Refresh(g, pt + Thumb.GetLocation(),
 		Rect(pt + Thumb.GetLocation(), Thumb.GetSize()));
 //	RefreshChild(Thumb, g, pt, r);
+	return rect;
 }
 
 ATrack::Area
@@ -404,13 +406,13 @@ AScrollBar::GetTopControlPtr(const Point& p)
 	return pTrack.get();
 }
 
-void
-AScrollBar::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
+Rect
+AScrollBar::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 {
 	YAssert(is_null(pTrack),
 		"Null widget pointer found @ AScrollBar::Draw;");
 
-	Widget::Refresh(g, pt, r);
+	auto rect(Widget::Refresh(g, pt, r));
 
 	RenderChild(*pTrack, g, pt, r);
 	RenderChild(PrevButton, g, pt, r);
@@ -421,6 +423,7 @@ AScrollBar::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
 	WndDrawArrow(g, Rect(pt + NextButton.GetLocation(), NextButton.GetSize()),
 		4, pTrack->GetOrientation() == Horizontal ? RDeg0
 		: RDeg270, ForeColor);
+	return rect;
 }
 
 
@@ -487,15 +490,16 @@ ScrollableContainer::GetTopControlPtr(const Point& p)
 	return this;
 }
 
-void
-ScrollableContainer::DrawControl(const Graphics& g, const Point& pt,
+Rect
+ScrollableContainer::Refresh(const Graphics& g, const Point& pt,
 	const Rect& r)
 {
-//	AUIBoxControl::DrawControl(g, pt, r);
+//	AUIBoxControl::Refresh(g, pt, r);
 	if(HorizontalScrollBar.IsVisible())
 		RenderChild(HorizontalScrollBar, g, pt, r);
 	if(VerticalScrollBar.IsVisible())
 		RenderChild(VerticalScrollBar, g, pt, r);
+	return Rect(pt, GetSize());
 }
 
 Size

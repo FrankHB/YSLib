@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11250;
+\version r11251;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-07-26 22:07 +0800;
+	2011-08-11 10:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -877,7 +877,7 @@ $header Adaptor::YAdaptor
 	//! \brief 运行时平台。
 	namespace DS
 	{
-		using namespace platform, platform_ex;
+		using namespace platform_ex;
 	} //namespace DS;
 
 	//库适配器。

@@ -1,4 +1,4 @@
-// v0.3229; *build 229 rev 22;
+// v0.3229; *build 230 rev 24;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -265,112 +265,108 @@ $using:
 
 $DONE:
 r1:
-- \ft CreateWindow @ \h YShellHelper;
-/ \f SetInvalidationToParent(IWindow&) @ \ns Forms @ \u YWindow
-	-> SetInvalidationToParent(IWidget&) @ \ns Widgets @ \u YWidget
-	^ (FetchContainerPtr & GetLocation)
-	~ (GetWindowPtr & LocateForParentWindow);
+/ test 1:
+	/ @ \h YBlit:
+		/ !\rem \mac YSL_FAST_BLIT;
+		/ test functions for defined \mac YSL_FAST_BLIT;
 
 r2:
-/ \simp \mf AWindow::Update ^ (FetchContainerPtr & GetLocation)
-	~ (GetWindowPtr & LocateForParentWindow);
-- \amf GetWindow @ \in IWindow;
+/ test 2:
+	/ \rem \mac YSL_FAST_BLIT @ \h YBlit;
 
 r3:
-/ @ \u YWinidow:
-	/ @ \cl MWindow:
-		/ \inh protected Widgets::MWindowObject -> public noncopyable;
-		/ \tr @ \ctor;
-	/ @ \cl AWindow:
-		- \mf \vt GetWindowPtr;
-		/ \tr @ \ctor;
-	/ \tr @ \ctor @ \cl AFrame;
-	/ @ \cl Frame:
-		/ \tr @ \ctor;
-		/ \tr \impl @ \dtor;
+- \a keyword 'register' for ISO C++0x compatibility @ \h YBlit;
 
 r4:
-- \pre \decl @ \cl Form @ \ns Components @ \h YComponent;
-/ @ \cl Form @ \u Form:
-	/ \tr \ctor;
-	* \rem @ \ctor $since b175;
-- \cl MWindowObject @ \h YWidget;
+/ @ \ns ystdex @ \h Iterator @ \dir YStandardExtend @ \lib YCLib:
+	/ @ \clt pseudo_iterator:
+		/ copy \ctor -> \exp (\i & \de);
+		+ \exp (\i & \de) (move \ctor & copy \op= & move \op=);
+	/ @ \clt pair_iterator:
+		/ copy \ctor -> \exp (\i & \de);
+		+ \exp (\i & \de) (copy \op= & move \op=);
+		+ \i move \ctor;
 
-r5:
-/= test 1 ^ \conf release;
-
-r6:
-- \f (LocateForParentWindow & LocateWindowOffset & FetchParentWindowPtr)
-	@ \u YUIContainer;
-
-r7:
-/ \simp \impl @ \mf TextList::PaintItems @ \impl \u TextList;
-- \f (LocateForWindow & LocateForDesktop) @ \u YUIContainer;
-
-r8:
-- \f DrawWidgetBounds @ \u YStyle;
-/ \tr \impl @ \mf DrawControl @ \cl (CheckBox & TextList);
-- \f FetchWindowPtr @ \u YUIContainer;
-
-r9:
-/= test 2 ^ \conf release;
-
-r10:
-/ \f Point LocateOffset(const IWindow*, Point, const IWidget*) @ \u YContainer
-	-> Point LocateOffset(const IWidget*, Point, const IWidget*);
-
-r11:
-- \f DrawWindowBounds @ \u YStyle;
-/ \f void Show(IWindow&) @ \ns \Forms @ \u YWindow -> void Show(IWidget&)
-	@ \ns Widgets @ \u YWidget;
-/ \f void Hide(IWindow&) @ \ns \Forms @ \u YWindow -> void Hide(IWidget&)
-	@ \ns Widgets @ \u YWidget;
-/ \f void SwitchVisible(IWindow&) -> void SwitchVisible(IWidget&) @ \un \ns
-	@ \impl \u Shells;
-
-r12:
-/ @ \u YWindow:
-	/ @ \cl AFrame:
-	/ \a 'IWindow' -> 'AWindow' @ \mft (\op+= & \op-=);
-	/ \param \tp @ \mf \vt (void \op+=(IWindow&) & bool \op-=(IWindow&))
-		-> AWindow&;
-	- \inh \in IWindow @ \cl AWindow;
-	- \in IWindow;
-/ @ \h YComponent:
-	- using Components::Forms::IWindow;
-	- \pre \decl @ \in IWindow @ \ns Components::Forms;
-/ \a 'ImplI1(IWindow)' -> 'virtual';
+r5-r12:
+/= test 3 ~ test 6;
 
 r13:
-/= test 3 ^ \conf release;
+/= test 7 ^ \conf release;
 
 r14:
-/ pirvate \m \c Graphics g -> protected \s \c Graphics InvalidGraphics
-	@ \cl WidgetRenderer @ \u YWidget;
+/ @ \impl \u Shells:
+	+ \f void ScrDrawG(size_t, PPDRAW) @ \un \ns;
+	/ \impl @ \f FetchImage ^ \f (ScrDrawG ~ ScrDraw);
 
 r15:
--= \inh \h YWidget @ \impl \u (YWidget & YUIContainer & YWindow);
+* \impl @ \f ScrDrawG @ \un \ns @ \u Shells;
 
 r16:
-/ \impl @ \ctor @ \cl ShlExplorer @ \impl \u Shells;
+/ @ \u Shells:
+	/ \cl FPSCounter \ex !\i \mf @ \un \ns @ \impl \u >> \h;
+	/ @ \cl ShlExplorer:
+		/ \s \o FPSCounter fps_counter @ \mf OnActivated
+			-> \m FPSCounter fpsCounter;
+		+ \mf \vt void UpdateToScreen();
+		/ \simp \impl @ \mf OnActivated;
 
-r17-r20:
-/= test 4;
+r17:
+/ @ \h YControl:
+	- Paint @ typedef \en VisualEvent;
+	- DefEventTypeMapping(Paint, HVisualEvent);
+/ \tr \simp \impl @ \mf (ShlExplorer::OnDeactivated & Control::Refresh
+	& AWindow::Refresh);
+
+r18:
+- \mf DrawControl @ \cl YControl;
+/ \a \mf DrawControl -> Refresh;
+
+r19:
+/= test 8 ^ \conf release;
+
+r20:
+/= test 9;
 
 r21:
-/ \impl @ \mf Widget::SetRenderer;
-/ \simp \impl @ \ctor @ \cl AWindow;
+* \impl @ \mf ShlExplorer::UpdateToScreen @ \impl \u Shells $ since b16;
+/ \m private Devices::Screen& Screen => screen @ \cl Desktop;
+/ @ \cl GraphicDevice @ \h YDevice;
+	/ \inh YObject -> noncopyable;
+	/ \tr \impl @ \i \ctor;
 
 r22:
-/= test 5 ^ \conf release;
+/ \impl @ \mf ShlExplorer::UpdateToScreen @ \impl \u Shells;
+
+r23:
+/ @ \u Shells:
+	/ \g \ns YSLib => YReader;
+	/ \cl YMainShell >> \g \ns (YSLib::Shells ~ YReader) @ \impl \u;
+	/ \tr \impl @ \mf YMainShell::OnActivated;
+	+ using \ns YSLib @ \ns YReader @ \h;
+	+ using \ns platform & (\ns (Components & Components::Widgets & Drawing)
+		@ \ns YSLib) @ \impl \u;
+	-= using \ns DS @ \impl \u;
+	+ using platform::YDebugSetStatus @ \h;
+	/ (\f ReleaseShells & \un \ns) >> \g \ns YSLib ~ YReader @ \impl \u;
+	/ \tr \impl @ \cl YMainShell;
+	/ \tr \impl @ \f ReleaseShells;
+	+ using \ns YReader @ \un \ns;
+- using \ns platform @ \ns DS @ \h YAdaptor;
+/ \tr @ \h DSReader:
+	/ @ \ns DS::Components:
+		+ using Drawing::Color;
+		+ using Drawing::PixelType;
+
+r24:
+/= test 10 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-08-06:
--22.7d;
-//Mercurial rev1-rev100: r5030;
+2011-08-11:
+-24.4d;
+//Mercurial rev1-rev101: r5052;
 
 / ...
 
@@ -463,6 +459,28 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	+ $design "move constructors and move assigment operators"
+		@ "class template (%pseudo_iterator, %pair_iterator)"
+		@ "header YCLib::YStandardExtend::Iterator",
+	/ $design "simplified GUI" $=
+	(
+		- "paint event for controls",
+		- "DrawControl methods"
+	),
+	/ "shells test example" $=
+	(
+		/ "class %FPSCounter declared as external linkage in header",
+		/ "updating FPS" $=
+		(
+			+ "when not getting input",
+			/ $design "implementation" ^ "shell method %UpdateToScreen"
+				~ "%OnActivated"
+		)
+	)
+),
+
+b229
 (
 	/ "GUI" $=
 	(

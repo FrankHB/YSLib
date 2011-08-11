@@ -11,12 +11,12 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version 0.2890;
+\version 0.2893;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:39:39 +0800;
 \par 修改时间:
-	2011-06-15 21:25 +0800;
+	2011-08-11 06:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Devices)
 
 //图形设备。
-class GraphicDevice : public YObject, public Drawing::Graphics
+class GraphicDevice : public noncopyable, public Drawing::Graphics
 {
 public:
 	/*!
@@ -46,8 +46,7 @@ public:
 
 inline
 GraphicDevice::GraphicDevice(SDst w, SDst h, Drawing::BitmapPtr p)
-	: YObject(),
-	Graphics(p, Drawing::Size(w, h))
+	: Graphics(p, Drawing::Size(w, h))
 {}
 
 

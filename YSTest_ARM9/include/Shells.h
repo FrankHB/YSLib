@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version 0.3317;
+\version r3330;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-07-01 00:49 +0800;
+	2011-08-11 10:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,10 +34,12 @@
 #include <YSLib/Helper/shlds.h>
 #include "DSReader.h"
 
-YSL_BEGIN
+YSL_BEGIN_NAMESPACE(YReader)
 
 //全局常量。
 //extern CPATH DEF_DIRECTORY;
+
+using namespace YSLib;
 
 using namespace Components;
 using namespace Components::Widgets;
@@ -48,8 +50,40 @@ using namespace Drawing;
 using namespace DS;
 using namespace DS::Components;
 
+using platform::YDebugSetStatus;
+
+
 shared_ptr<Image>&
 FetchImage(size_t);
+
+
+/*!
+\brief FPS 计数器。
+*/
+class FPSCounter
+{
+private:
+	Timers::TimeSpan last_tick;
+	Timers::TimeSpan now_tick;
+
+public:
+	FPSCounter();
+
+	DefGetter(Timers::TimeSpan, LastTick, last_tick)
+	DefGetter(Timers::TimeSpan, NowTick, now_tick)
+
+	/*!
+	\brief 刷新计数器。
+	\return 每秒毫帧数。
+	*/
+	u32
+	Refresh();
+};
+
+inline
+FPSCounter::FPSCounter()
+	: last_tick(), now_tick()
+{}
 
 
 class ShlExplorer : public ShlDS
@@ -113,6 +147,7 @@ public:
 	unique_ptr<TFormExtra> pWndExtra;
 	Label lblA, lblB;
 	MenuHost mhMain;
+	FPSCounter fpsCounter;
 
 	ShlExplorer();
 
@@ -124,6 +159,9 @@ public:
 
 	virtual int
 	OnDeactivated(const Message&);
+
+	virtual void
+	UpdateToScreen();
 
 private:
 	IControl*
@@ -196,7 +234,7 @@ private:
 */
 };
 
-YSL_END;
+YSL_END_NAMESPACE(YReader)
 
 #endif
 

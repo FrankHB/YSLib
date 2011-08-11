@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.4100;
+\version 0.4101;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-08-06 15:12 +0800;
+	2011-08-08 09:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -90,7 +90,6 @@ AWindow::Refresh(const Graphics&, const Point&, const Rect&)
 	if(!(IsTransparent() || DrawBackgroundImage()))
 		GetRenderer().FillInvalidation(BackColor);
 	DrawContents();
-	GetEventMap().DoEvent<HVisualEvent>(Paint, *this, EventArgs());
 	return GetBoundsOf(*this);
 }
 

@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version 0.2324;
+\version 0.2326;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-06-19 21:09 +0800;
+	2011-08-11 06:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,7 +39,7 @@ YSL_BEGIN_NAMESPACE(Components)
 class Desktop : public Forms::Frame
 {
 private:
-	Devices::Screen& Screen; //!< 屏幕对象。
+	Devices::Screen& screen; //!< 屏幕对象。
 
 public:
 	/*!
@@ -49,8 +49,8 @@ public:
 	Desktop(Devices::Screen&, Color = Drawing::ColorSpace::Black,
 		const shared_ptr<Drawing::Image>& = shared_ptr<Drawing::Image>());
 
-	DefGetter(const Devices::Screen&, Screen, Screen) //!< 取屏幕对象。
-	DefGetter(BitmapPtr, BackgroundPtr, Screen.GetCheckedBufferPtr()) \
+	DefGetter(const Devices::Screen&, Screen, screen) //!< 取屏幕对象。
+	DefGetter(BitmapPtr, BackgroundPtr, screen.GetCheckedBufferPtr()) \
 		//!< 取屏幕背景指针。
 
 	virtual PDefH1(IControl*, GetTopControlPtr, const Point& p)

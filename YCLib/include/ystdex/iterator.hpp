@@ -11,12 +11,12 @@
 /*!	\file iterator.hpp
 \ingroup YCLib
 \brief C++ 标准库迭代器扩展。
-\version 0.1232;
+\version 0.1252;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-27 23:01:00 +0800; 
 \par 修改时间:
-	2011-05-03 12:36 +0800;
+	2011-08-07 13:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -54,9 +54,15 @@ namespace ystdex
 		pseudo_iterator(value_type v)
 			: value(v)
 		{}
-		pseudo_iterator(const pseudo_iterator& r)
-			: value(r.value)
-		{}
+		inline
+		pseudo_iterator(const pseudo_iterator&) = default;
+		inline
+		pseudo_iterator(pseudo_iterator&&) = default;
+
+		inline pseudo_iterator&
+		operator=(const pseudo_iterator&) = default;
+		inline pseudo_iterator&
+		operator=(pseudo_iterator&&) = default;
 
 		//前向迭代器需求。
 		reference
@@ -156,9 +162,17 @@ namespace ystdex
 		pair_iterator(const _tMaster& _i, const _tSlave& _s)
 			: std::pair<_tMaster, _tSlave>(_i, _s)
 		{}
-		pair_iterator(const pair_iterator& _r)
-			: std::pair<_tMaster, _tSlave>(_r)
+		inline
+		pair_iterator(const pair_iterator&) = default;
+		inline
+		pair_iterator(pair_iterator&& _r)
+			: std::pair<_tMaster, _tSlave>(std::move(_r))
 		{}
+
+		inline pair_iterator&
+		operator=(const pair_iterator&) = default;
+		inline pair_iterator&
+		operator=(pair_iterator&&) = default;
 		// TODO: Allow iterator to const_iterator conversion;
 /*		template<typename _tIter>
 		pair_iterator(const pair_iterator<_Iter,

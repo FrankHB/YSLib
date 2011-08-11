@@ -11,12 +11,12 @@
 /*!	\file checkbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面复选框控件。
-\version 0.1385;
+\version 0.1387;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2011-08-03 00:08 +0800;
+	2011-08-08 09:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -112,15 +112,16 @@ CheckBox::CheckBox(const Rect& r)
 	};
 }
 
-void
-CheckBox::DrawControl(const Graphics& g, const Point& pt, const Rect& r)
+Rect
+CheckBox::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 {
-	Widget::Refresh(g, pt, r);
+	auto rect(Widget::Refresh(g, pt, r));
 
 	RectDrawCheckBox(g, Rect(pt, GetSize()), bPressed, IsFocusedByShell(*this),
 		bTicked);
 	if(IsFocused())
 		DrawRect(g, pt, GetSize(), ColorSpace::Aqua);
+	return rect;
 }
 
 YSL_END_NAMESPACE(Controls)

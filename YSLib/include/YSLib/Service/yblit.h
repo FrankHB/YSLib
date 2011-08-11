@@ -11,12 +11,12 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version 0.2141;
+\version 0.2170;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:43:24 +0800;
 \par 修改时间:
-	2011-06-16 20:35 +0800;
+	2011-08-07 19:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,12 +35,12 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
+//! \brief Alpha 光栅化源迭代器对。
+typedef ystdex::pair_iterator<ConstBitmapPtr, const u8*> IteratorPair;
+
 //! \brief Alpha 单色光栅化源迭代器对。
 typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
 	const u8*> MonoIteratorPair;
-
-//! \brief Alpha 光栅化源迭代器对。
-typedef ystdex::pair_iterator<ConstBitmapPtr, const u8*> IteratorPair;
 
 
 //基本函数对象。
@@ -403,8 +403,20 @@ const u8 BLT_THRESHOLD2(128);
 #ifdef YSL_FAST_BLIT
 
 //测试用，不使用 Alpha 混合的快速算法。
+
+template<typename _tOut, typename _tIn>
+void
+biltAlphaPoint(_tOut dst_iter, _tIn src_iter);
+template<>
 inline void
-biltAlphaPoint(BitmapPtr dst_iter, IteratorPair src_iter)
+biltAlphaPoint(PixelType* dst_iter, IteratorPair src_iter)
+{
+	if(*src_iter.base().second >= BLT_THRESHOLD2)
+		*dst_iter = *src_iter | BITALPHA;
+}
+template<>
+inline void
+biltAlphaPoint(PixelType* dst_iter, MonoIteratorPair src_iter)
 {
 	if(*src_iter.base().second >= BLT_THRESHOLD2)
 		*dst_iter = *src_iter | BITALPHA;
@@ -435,7 +447,7 @@ blitAlphaBlend(u32 d, u32 s, u8 a)
 	*/
 	if(d & BITALPHA && a <= BLT_MAX_ALPHA - BLT_THRESHOLD)
 	{
-		register u32 dbr((d & 0x1F) | (d << 6 & 0x1F0000)), dg(d & 0x3E0);
+		u32 dbr((d & 0x1F) | (d << 6 & 0x1F0000)), dg(d & 0x3E0);
 
 		dbr = (dbr + (((((s & 0x1F) | (s << 6 & 0x1F0000)) - dbr)
 			* a + BLT_ROUND) >> BLT_ALPHA_BITS));
@@ -454,18 +466,18 @@ void
 biltAlphaPoint(_tOut dst_iter, _tIn src_iter);
 template<>
 inline void
-biltAlphaPoint(PixelType* dst_iter, MonoIteratorPair src_iter)
+biltAlphaPoint(PixelType* dst_iter, IteratorPair src_iter)
 {
-	register u8 a(*src_iter.base().second);
+	const u8 a(*src_iter.base().second);
 
 	if(a >= BLT_THRESHOLD)
 		*dst_iter = blitAlphaBlend(*dst_iter, *src_iter, a);
 }
 template<>
 inline void
-biltAlphaPoint(PixelType* dst_iter, IteratorPair src_iter)
+biltAlphaPoint(PixelType* dst_iter, MonoIteratorPair src_iter)
 {
-	register u8 a(*src_iter.base().second);
+	const u8 a(*src_iter.base().second);
 
 	if(a >= BLT_THRESHOLD)
 		*dst_iter = blitAlphaBlend(*dst_iter, *src_iter, a);

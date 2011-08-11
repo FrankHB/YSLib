@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version 0.4872;
+\version r4902;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-08-06 15:00 +0800;
+	2011-08-11 10:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,14 +33,10 @@
 
 using namespace ystdex;
 
-YSL_BEGIN
-
-using namespace Shells;
-using namespace Drawing::ColorSpace;
-
-
 namespace
 {
+	using namespace YReader;
+
 	Color
 	GenerateRandomColor()
 	{
@@ -175,64 +171,19 @@ namespace
 			t.fordblks,
 			t.keepcost);
 	}
-}
 
-shared_ptr<Image>&
-FetchImage(size_t i)
-{
-	switch(i)
+	void
+	ScrDrawG(size_t i, PPDRAW f)
 	{
-	case 1:
-	case 2:
-		//色块覆盖测试用程序段。
-		if(!FetchGlobalImage(1))
-		{
-			/*
-			gbuf = ynew ScreenBufferType;
-			memset(gbuf, 0xEC, sizeof(ScreenBufferType)); //0xF2
-			ydelete_array(gbuf);
-			*/
-			ScrDraw(FetchGlobalImageBuffer(1), dfa);
-			ScrDraw(FetchGlobalImageBuffer(2), dfap);
-		}
-		break;
-	case 3:
-	case 4:
-		if(!FetchGlobalImage(3))
-		{
-			ScrDraw(FetchGlobalImageBuffer(3), dfac1);
-			ScrDraw(FetchGlobalImageBuffer(4), dfac1p);
-		}
-		break;
-	case 5:
-	case 6:
-	case 7:
-		if(!FetchGlobalImage(5))
-		{
-			ScrDraw(FetchGlobalImageBuffer(5), dfac2);
-			ScrDraw(FetchGlobalImageBuffer(6), dfac2p);
-		}
-		break;
-	case 8:
-	case 9:
-	//	LoadR();
-		break;
-	default:
-		i = 0;
+		ScrDraw(FetchGlobalImageBuffer(i), f);
 	}
-	return FetchGlobalImage(i);
 }
 
-void
-ReleaseShells()
-{
-	for(size_t i(0); i != 10; ++i)
-		FetchGlobalImage(i).reset();
-	ReleaseStored<ShlReader>();
-	ReleaseStored<ShlExplorer>();
-}
+YSL_BEGIN
 
-using namespace DS;
+using namespace Components;
+using namespace Components::Widgets;
+using namespace Drawing;
 
 YSL_BEGIN_NAMESPACE(Shells)
 
@@ -251,7 +202,7 @@ YMainShell::OnActivated(const Message& msg)
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	YDebugSetStatus(true);
+	platform::YDebugSetStatus(true);
 
 	dsk_up += lblTitle;
 	dsk_up += lblStatus;
@@ -283,7 +234,7 @@ YMainShell::OnActivated(const Message& msg)
 		dsk_up.Update();
 //		dsk_up.Refresh(FetchContext(dsk_up), Point::Zero,
 //			Rect(Point::Zero, dsk_up.GetSize()));
-		FetchImage(i);
+		YReader::FetchImage(i);
 	}
 	pb.SetValue(10);
 	Invalidate(dsk_up);
@@ -291,7 +242,7 @@ YMainShell::OnActivated(const Message& msg)
 	dsk_up.Update();
 	dsk_up -= pb;
 	delete &pb;
-	SetShellToStored<ShlExplorer>();
+	YReader::SetShellToStored<YReader::ShlExplorer>();
 	return 0;
 }
 
@@ -305,6 +256,71 @@ YMainShell::OnDeactivated(const Message& msg)
 }
 
 YSL_END_NAMESPACE(Shells)
+
+void
+ReleaseShells()
+{
+	using namespace YReader;
+
+	for(size_t i(0); i != 10; ++i)
+		FetchGlobalImage(i).reset();
+	ReleaseStored<ShlReader>();
+	ReleaseStored<ShlExplorer>();
+}
+
+YSL_END
+
+
+YSL_BEGIN_NAMESPACE(YReader)
+
+using namespace Shells;
+using namespace Drawing::ColorSpace;
+
+shared_ptr<Image>&
+FetchImage(size_t i)
+{
+	switch(i)
+	{
+	case 1:
+	case 2:
+		//色块覆盖测试用程序段。
+		if(!FetchGlobalImage(1))
+		{
+			/*
+			gbuf = ynew ScreenBufferType;
+			memset(gbuf, 0xEC, sizeof(ScreenBufferType)); //0xF2
+			ydelete_array(gbuf);
+			*/
+			ScrDrawG(1, dfa);
+			ScrDrawG(2, dfap);
+		}
+		break;
+	case 3:
+	case 4:
+		if(!FetchGlobalImage(3))
+		{
+			ScrDrawG(3, dfac1);
+			ScrDrawG(4, dfac1p);
+		}
+		break;
+	case 5:
+	case 6:
+	case 7:
+		if(!FetchGlobalImage(5))
+		{
+			ScrDrawG(5, dfac2);
+			ScrDrawG(6, dfac2p);
+		}
+		break;
+	case 8:
+	case 9:
+	//	LoadR();
+		break;
+	default:
+		i = 0;
+	}
+	return FetchGlobalImage(i);
+}
 
 
 ShlExplorer::ShlExplorer()
@@ -450,42 +466,18 @@ namespace
 		Test1(c);
 		Test2();
 	}
+}
 
-	class FPSCounter
+
+u32
+FPSCounter::Refresh()
+{
+	if(last_tick != GetRTC())
 	{
-	private:
-		Timers::TimeSpan last_tick;
-		Timers::TimeSpan now_tick;
-
-	public:
-		FPSCounter();
-
-		DefGetter(Timers::TimeSpan, LastTick, last_tick)
-		DefGetter(Timers::TimeSpan, NowTick, now_tick)
-
-		/*!
-		\brief 刷新计数器。
-		\return 每秒毫帧数。
-		*/
-		u32
-		Refresh();
-	};
-
-	inline
-	FPSCounter::FPSCounter()
-		: last_tick(0), now_tick(0)
-	{}
-
-	u32
-	FPSCounter::Refresh()
-	{
-		if(last_tick != GetRTC())
-		{
-			last_tick = now_tick;
-			now_tick = GetRTC();
-		}
-		return now_tick == last_tick ? 0 : 1000000 / (now_tick - last_tick);
+		last_tick = now_tick;
+		now_tick = GetRTC();
 	}
+	return now_tick == last_tick ? 0 : 1000000 / (now_tick - last_tick);
 }
 
 
@@ -861,32 +853,6 @@ ShlExplorer::OnActivated(const Message& msg)
 	FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown;
 	FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click;
 
-	static FPSCounter fps_counter;
-
-	FetchEvent<Paint>(dsk_dn) += [&](IControl&, EventArgs&&){
-		char strt[60];
-		auto& g(FetchContext(dsk_dn));
-		using namespace ColorSpace;
-
-		{
-			const Rect r(0, 172, 72, 20);
-			u32 t(fps_counter.Refresh());
-
-			siprintf(strt, "FPS: %u.%03u", t/1000, t%1000);
-			FillRect(g, r, Blue);
-			DrawText(g, r, strt, Padding(), White);
-		}
-		{
-			const Rect r(4, 144, 120, 20);
-			Rect ri;
-
-			dsk_dn.GetRenderer().GetInvalidatedArea(ri);
-			siprintf(strt, "(%d, %d, %u, %u)",
-				ri.X, ri.Y, ri.Width, ri.Height);
-			FillRect(g, r, Green);
-			DrawText(g, r, strt, Padding(), Yellow);
-		}
-	};
 /*
 	ReplaceHandle<IWindow*>(hWndUp,
 		new TFrmFileListMonitor(shared_ptr<YShell>(this)));
@@ -937,7 +903,6 @@ ShlExplorer::OnDeactivated(const Message& msg)
 	FetchEvent<KeyUp>(dsk_dn) -= OnKey_Bound_TouchUpAndLeave;
 	FetchEvent<KeyDown>(dsk_dn) -= OnKey_Bound_EnterAndTouchDown;
 	FetchEvent<KeyPress>(dsk_dn) -= OnKey_Bound_Click;
-	FetchEvent<Paint>(dsk_dn).Clear();
 	// uninit-seg 4;
 	reset(pWndTest);
 	reset(pWndExtra);
@@ -946,6 +911,42 @@ ShlExplorer::OnDeactivated(const Message& msg)
 	// parent-uninit-seg 0;
 	ParentType::OnDeactivated(msg);
 	return 0;
+}
+
+void
+ShlExplorer::UpdateToScreen()
+{
+	auto& dsk_up(GetDesktopUp());
+	auto& dsk_dn(GetDesktopDown());
+
+	Validate(dsk_up);
+	Validate(dsk_dn);
+
+	char strt[60];
+	auto& g(FetchContext(dsk_dn));
+//	auto& g(dsk_dn.GetScreen());
+	using namespace ColorSpace;
+
+	{
+		const Rect r(0, 172, 72, 20);
+		u32 t(fpsCounter.Refresh());
+
+		siprintf(strt, "FPS: %u.%03u", t/1000, t%1000);
+		FillRect(g, r, Blue);
+		DrawText(g, r, strt, Padding(), White);
+	}
+	{
+		const Rect r(4, 144, 120, 20);
+		Rect ri;
+
+		dsk_dn.GetRenderer().GetInvalidatedArea(ri);
+		siprintf(strt, "(%d, %d, %u, %u)",
+			ri.X, ri.Y, ri.Width, ri.Height);
+		FillRect(g, r, Green);
+		DrawText(g, r, strt, Padding(), Yellow);
+	}
+	dsk_up.Update();
+	dsk_dn.Update();
 }
 
 IControl*
@@ -1264,5 +1265,5 @@ void ShlReader::OnPaint_Down(EventArgs&&)
 }
 */
 
-YSL_END
+YSL_END_NAMESPACE(YReader)
 

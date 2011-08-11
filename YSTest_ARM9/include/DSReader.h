@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version 0.2419;
+\version 0.2421;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-06-30 20:20 +0800;
+	2011-08-11 10:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,6 +40,9 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(DS)
 
 YSL_BEGIN_NAMESPACE(Components)
+
+using Drawing::Color;
+using Drawing::PixelType;
 
 class BlockedText
 {

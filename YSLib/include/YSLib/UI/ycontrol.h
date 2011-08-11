@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.5178;
+\version 0.5187;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-07-18 05:41 +0800;
+	2011-08-08 09:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -205,7 +205,6 @@ typedef enum
 	//视图变更事件。
 	Move, //!< 移动：位置调整。
 	Resize, //!< 大小调整。
-	Paint, //!< 界面绘制。
 
 	//图形用户界面输入事件。
 	KeyUp, //!< 键接触结束。
@@ -240,7 +239,6 @@ struct EventTypeMapping
 
 DefEventTypeMapping(Move, HVisualEvent)
 DefEventTypeMapping(Resize, HVisualEvent)
-DefEventTypeMapping(Paint, HVisualEvent)
 
 DefEventTypeMapping(KeyUp, HKeyEvent)
 DefEventTypeMapping(KeyDown, HKeyEvent)
@@ -466,15 +464,7 @@ public:
 	ImplI1(IControl) DefSetter(bool, Enabled, enabled)
 
 	/*!
-	\brief 绘制控件界面。
-	\note 实现 Widget 的界面绘制。
-	*/
-	virtual void
-	DrawControl(const Graphics&, const Point&, const Rect&);
-
-	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
-	\note 调用 DrawControl 后调用 Paint 事件。
 	*/
 	virtual Rect
 	Refresh(const Graphics&, const Point&, const Rect&);

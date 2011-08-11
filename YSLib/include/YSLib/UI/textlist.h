@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1345;
+\version 0.1348;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-07-18 06:53 +0800;
+	2011-08-08 09:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -162,10 +162,10 @@ public:
 	CheckPoint(const Point&);
 
 	/*!
-	\brief 绘制控件界面。
+	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
-	virtual void
-	DrawControl(const Graphics&, const Point&, const Rect&);
+	virtual Rect
+	Refresh(const Graphics&, const Point&, const Rect&);
 
 	PDefH0(void, ClearSelected)
 		ImplBodyMember0(viewer, ClearSelected)
