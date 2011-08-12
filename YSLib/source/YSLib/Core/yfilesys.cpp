@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2190;
+\version r2196;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-07-02 04:31 +0800;
+	2011-08-13 06:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -169,7 +169,7 @@ Path::iterator::operator*() const
 
 
 const char*
-GetFileNameFrom(const_path_t path)
+GetFileNameOf(const_path_t path)
 {
 	if(!path)
 		return nullptr;
@@ -179,7 +179,7 @@ GetFileNameFrom(const_path_t path)
 	return p ? (*++p ? p : nullptr) : path;
 }
 string
-GetFileNameFrom(const string& path)
+GetFileNameOf(const string& path)
 {
 	const string::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
@@ -187,7 +187,7 @@ GetFileNameFrom(const string& path)
 }
 
 string
-GetDirectoryNameFrom(const string& path)
+GetDirectoryNameOf(const string& path)
 {
 	const string::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
@@ -213,7 +213,7 @@ SplitPath(const string& path, string& directory, string& file)
 }
 
 string
-GetStemFrom(const string& name)
+GetStemOf(const string& name)
 {
 	const string::size_type p(name.rfind('.'));
 
@@ -240,7 +240,7 @@ IsStemOf(const string& str, const string& name)
 bool
 HaveSameStems(const char* a, const char* b)
 {
-	const char *pea(GetExtensionFrom(a)), *peb(GetExtensionFrom(b));
+	const char *pea(GetExtensionOf(a)), *peb(GetExtensionOf(b));
 
 	if(pea - a != peb - b)
 		return false;
@@ -256,11 +256,11 @@ HaveSameStems(const char* a, const char* b)
 bool
 HaveSameStems(const string& a, const string& b)
 {
-	return GetStemFrom(a) == GetStemFrom(b);
+	return GetStemOf(a) == GetStemOf(b);
 }
 
 const char*
-GetExtensionFrom(const char* name)
+GetExtensionOf(const char* name)
 {
 	if(!name)
 		return nullptr;
@@ -270,7 +270,7 @@ GetExtensionFrom(const char* name)
 	return p && *++p ? p : nullptr;
 }
 string
-GetExtensionFrom(const string& name)
+GetExtensionOf(const string& name)
 {
 	const string::size_type p(name.rfind('.'));
 
@@ -280,7 +280,7 @@ GetExtensionFrom(const string& name)
 bool
 IsExtensionOf(const char* str, const char* name)
 {
-	const char* p(GetExtensionFrom(name));
+	const char* p(GetExtensionOf(name));
 
 	if(!p)
 		return false;
@@ -291,7 +291,7 @@ IsExtensionOf(const string& str, const string& name)
 {
 	if(str.length() > name.length())
 		return false;
-	return GetExtensionFrom(name) == str;
+	return GetExtensionOf(name) == str;
 }
 
 bool
@@ -300,7 +300,7 @@ HaveSameExtensions(const char* a, const char* b)
 	if(!(a && b))
 		return false;
 
-	const char *pa(GetExtensionFrom(a)), *pb(GetExtensionFrom(b));
+	const char *pa(GetExtensionOf(a)), *pb(GetExtensionOf(b));
 
 	if(!(pa && pb))
 		return false;
@@ -309,7 +309,7 @@ HaveSameExtensions(const char* a, const char* b)
 bool
 HaveSameExtensions(const string& a, const string& b)
 {
-	string ea(GetExtensionFrom(a)), eb(GetExtensionFrom(b));
+	string ea(GetExtensionOf(a)), eb(GetExtensionOf(b));
 
 	return stricmp_n(ea.c_str(), eb.c_str()) != 0;
 //	return ucsicmp(ea.c_str(), eb.c_str());

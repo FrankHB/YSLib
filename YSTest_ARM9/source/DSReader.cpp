@@ -11,12 +11,12 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version 0.3191;
+\version r3192;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-07-13 11:19 +0800;
+	2011-08-13 06:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -88,10 +88,10 @@ MDualScreenReader::SetFontSize(Font::SizeType fz)
 	lnHeight = fc.GetHeight();
 }
 /*
-void MDualScreenReader::SetCurrentTextLineNTo(u8 n)
+void MDualScreenReader::SetCurrentTextLineNOf(u8 n)
 {
 	if(n >= 0)
-		AreaUp.SetCurrentTextLineNTo(n);
+		AreaUp.SetCurrentTextLineNOf(n);
 }
 */
 
@@ -170,7 +170,7 @@ MDualScreenReader::LineUp()
 	AreaUp.Scroll(hx, FetchResizedBufferHeight(AreaUp,
 		AreaUp.GetHeight()));
 	AreaUp.ClearTextLine(0);
-	SetCurrentTextLineNTo(AreaUp, 0);
+	SetCurrentTextLineNOf(AreaUp, 0);
 
 	TextFileBuffer::HText itUpOld(itUp);
 

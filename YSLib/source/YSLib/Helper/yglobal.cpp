@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.3252;
+\version r3253;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-07-01 07:44 +0800;
+	2011-08-13 06:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -96,7 +96,7 @@ DSScreen::Update(BitmapPtr buf)
 void
 DSScreen::Update(Color c)
 {
-	FillPixel<PixelType>(GetCheckedBufferPtr(), GetAreaFrom(GetSize()), c);
+	FillPixel<PixelType>(GetCheckedBufferPtr(), GetAreaOf(GetSize()), c);
 }
 
 YSL_END_NAMESPACE(Devices)

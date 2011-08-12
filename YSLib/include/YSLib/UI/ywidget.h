@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.5904;
+\version r5913;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-08-06 13:47 +0800;
+	2011-08-13 06:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -116,11 +116,11 @@ public:
 
 	/*!
 	\brief 更新至指定图形设备上下文的指定点。
-	\note 以相对于容器的坐标作为相对于图形设备上下文的偏移。
+	\param 意义同 IWidget::Refresh 。
 	\note 空实现。
 	*/
 	virtual void
-	UpdateTo(const Graphics&, const Point&) const
+	UpdateTo(const Graphics&, const Point&, const Rect&) const
 	{}
 };
 
@@ -189,10 +189,10 @@ public:
 
 	/*!
 	\brief 更新至指定图形设备上下文的指定点。
-	\note 以相对于容器的坐标作为相对于图形设备上下文的偏移。
+	\param 意义同 IWidget::Refresh 。
 	*/
 	virtual void
-	UpdateTo(const Graphics&, const Point&) const;
+	UpdateTo(const Graphics&, const Point&, const Rect&) const;
 };
 
 YSL_BEGIN_NAMESPACE(Widgets)
@@ -334,7 +334,13 @@ void
 SetBoundsOf(IWidget&, const Rect& r);
 
 /*!
-\brief 在容器设置无效区域。
+\brief 设置部件的无效区域。
+*/
+void
+SetInvalidationOf(IWidget&);
+
+/*!
+\brief 在容器设置部件的无效区域。
 \note 若容器不存在则忽略。
 */
 void
@@ -375,10 +381,10 @@ RequestToTop(IWidget&);
 
 /*!
 \brief 更新部件至指定图形设备上下文的指定点。
-\note 以相对于容器的坐标作为相对于图形接口上下文的偏移。
+\note 后三个参数意义同 IWidget::Refresh 。
 */
 void
-Update(const IWidget&, const Graphics&, const Point& = Point::Zero);
+Update(const IWidget&, const Graphics&, const Point&, const Rect&);
 
 /*!
 \brief 验证：若部件的缓冲区存在，绘制缓冲区使之有效。

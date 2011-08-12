@@ -11,12 +11,12 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version 0.2102;
+\version r2104;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-07-15 00:53 +0800;
+	2011-08-13 06:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -171,7 +171,7 @@ public:
 inline SDst
 MTextList::GetItemHeight() const
 {
-	return GetTextLineHeightExFrom(text_state);
+	return GetTextLineHeightExOf(text_state);
 }
 inline Drawing::TextState&
 MTextList::GetTextState()

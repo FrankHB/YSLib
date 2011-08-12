@@ -11,12 +11,12 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version 0.1912;
+\version r1914;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:45:32 +0800;
 \par 修改时间:
-	2011-06-16 20:24 +0800;
+	2011-08-13 06:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -132,13 +132,13 @@ CopyBuffer(const Graphics& dst, const Graphics& src)
 void
 ClearImage(const Graphics& g)
 {
-	ClearPixel(g.GetBufferPtr(), GetAreaFrom(g.GetSize()));
+	ClearPixel(g.GetBufferPtr(), GetAreaOf(g.GetSize()));
 }
 
 void
 Fill(const Graphics& g, Color c)
 {
-	FillPixel<PixelType>(g.GetBufferPtr(), GetAreaFrom(g.GetSize()), c);
+	FillPixel<PixelType>(g.GetBufferPtr(), GetAreaOf(g.GetSize()), c);
 }
 
 YSL_END_NAMESPACE(Drawing)

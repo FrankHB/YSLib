@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1406;
+\version r1409;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-08-08 09:49 +0800;
+	2011-08-13 06:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,7 +57,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	CyclicTraverse(false),
 	viewer(GetList()), top_offset(0), Events(GetStaticRef<Dependencies>())
 {
-	SetAllTo(Margin, defMarginH, defMarginV);
+	SetAllOf(Margin, defMarginH, defMarginV);
 	FetchEvent<KeyDown>(*this) += [this](IControl&, KeyEventArgs&& e){
 		if(viewer.GetTotal() != 0)
 		{
@@ -365,7 +365,7 @@ ResizeForContent(TextList& tl)
 			if(ln_width > max_width)
 				max_width = ln_width;
 	});
-	tl.SetSize(Size(max_width + GetHorizontalFrom(tl.Margin),
+	tl.SetSize(Size(max_width + GetHorizontalOf(tl.Margin),
 		tl.GetItemHeight() * tl.GetList().size()));
 }
 

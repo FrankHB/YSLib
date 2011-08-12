@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.4101;
+\version r4106;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-08-08 09:05 +0800;
+	2011-08-14 06:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -60,12 +60,6 @@ AWindow::SetSize(const Size& s)
 	Control::SetSize(s);
 }
 
-void
-AWindow::SetInvalidation()
-{
-	GetRenderer().CommitInvalidation(Rect(Point::Zero, GetSize()));
-}
-
 bool
 AWindow::DrawBackgroundImage()
 {
@@ -101,7 +95,8 @@ AWindow::Update()
 		const auto pCon(FetchContainerPtr(*this));
 
 		if(pCon)
-			Widgets::Update(*this, FetchContext(*pCon), GetLocation());
+			Widgets::Update(*this, FetchContext(*pCon), GetLocation(),
+				GetBoundsOf(*this));
 	}
 }
 

@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version 0.4606;
+\version r4608;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-08-05 04:20 +0800;
+	2011-08-13 06:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -96,12 +96,6 @@ public:
 	*/
 	virtual void
 	SetSize(const Size&);
-
-	/*!
-	\brief 设置无效区域。
-	*/
-	void
-	SetInvalidation();
 
 protected:
 	/*!

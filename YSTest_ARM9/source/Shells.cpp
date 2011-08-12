@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r4902;
+\version r4910;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-08-11 10:53 +0800;
+	2011-08-13 06:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -216,7 +216,7 @@ YMainShell::OnActivated(const Message& msg)
 	lblDetails.Text = _ustr("初始化中，请稍后……");
 	lblDetails.ForeColor = ColorSpace::White;
 	lblDetails.SetTransparent(true);
-	dsk_up.SetInvalidation();
+	SetInvalidationOf(dsk_up);
 	UpdateToScreen();
 	//初始化所有图像资源。
 
@@ -228,7 +228,7 @@ YMainShell::OnActivated(const Message& msg)
 		pb.SetValue(i);
 //		Invalidate(pb);
 		dsk_up.BackColor = Color(255 - i * 255 / 10, 216, 192);
-		dsk_up.SetInvalidation();
+		SetInvalidationOf(dsk_up);
 		Invalidate(dsk_up);
 		Validate(dsk_up);
 		dsk_up.Update();
@@ -342,7 +342,7 @@ ShlExplorer::ShlExplorer()
 	};
 	fbMain.GetViewChanged().Add(*this, &ShlExplorer::OnViewChanged_fbMain);
 	fbMain.GetSelected() += [this](IControl&, IndexEventArgs&&){
-		SetEnabledOf(btnOK, fbMain.IsSelected() && IO::GetExtensionFrom(
+		SetEnabledOf(btnOK, fbMain.IsSelected() && IO::GetExtensionOf(
 			Text::StringToMBCS(fbMain.GetList()[fbMain.GetSelectedIndex()]))
 			== "txt");
 	};
@@ -505,7 +505,7 @@ ShlExplorer::TFormTest::TFormTest()
 	btnPrevBackground.Text = "<<";
 	btnNextBackground.Text = ">>";
 	BackColor = ARGB16(1, 31, 31, 15);
-	SetInvalidation();
+	SetInvalidationOf(*this);
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 	FetchEvent<Enter>(btnEnterTest) += OnEnter_btnEnterTest;
 	FetchEvent<Leave>(btnEnterTest) += OnLeave_btnEnterTest;
@@ -529,8 +529,8 @@ ShlExplorer::TFormTest::TFormTest()
 			SetEnabledOf(btnPrevBackground, false);
 		dsk_up_ptr = FetchImage(up_i);
 		dsk_dn_ptr = FetchImage(up_i + 1);
-		shl.GetDesktopUp().SetInvalidation();
-		shl.GetDesktopDown().SetInvalidation();
+		SetInvalidationOf(shl.GetDesktopUp());
+		SetInvalidationOf(shl.GetDesktopDown());
 	};
 	FetchEvent<Click>(btnNextBackground) += [this](IControl&, TouchEventArgs&&){
 		auto& shl(FetchShell<ShlExplorer>());
@@ -546,8 +546,8 @@ ShlExplorer::TFormTest::TFormTest()
 			SetEnabledOf(btnNextBackground, false);
 		dsk_up_ptr = FetchImage(up_i);
 		dsk_dn_ptr = FetchImage(up_i + 1);
-		shl.GetDesktopUp().SetInvalidation();
-		shl.GetDesktopDown().SetInvalidation();
+		SetInvalidationOf(shl.GetDesktopUp());
+		SetInvalidationOf(shl.GetDesktopDown());
 	};
 }
 
@@ -629,7 +629,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 	btnClose.Text = _ustr("关闭");
 	btnExit.Text = _ustr("退出");
 	BackColor = ARGB16(1, 31, 15, 15);
-	SetInvalidation();
+	SetInvalidationOf(*this);
 	FetchEvent<TouchDown>(*this) += OnTouchDown_FormExtra;
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 	FetchEvent<Move>(btnDragTest).Add(*this, &TFormExtra::OnMove_btnDragTest);
@@ -865,7 +865,7 @@ ShlExplorer::OnActivated(const Message& msg)
 	RequestFocusCascade(fbMain);
 	// init-seg 4;
 	dsk_dn.BackColor = ARGB16(1, 15, 15, 31);
-	dsk_dn.SetInvalidation();
+	SetInvalidationOf(dsk_dn);
 	pWndTest = unique_raw(new TFormTest());
 	pWndExtra = unique_raw(new TFormExtra());
 	pWndTest->SetVisible(false);
@@ -1049,7 +1049,7 @@ ShlExplorer::OnTouchDown_FormExtra(IControl& sender, TouchEventArgs&&)
 		TFormExtra& frm(dynamic_cast<TFormExtra&>(sender));
 
 		frm.BackColor = GenerateRandomColor();
-		frm.SetInvalidation();
+		SetInvalidationOf(frm);
 	}
 	catch(std::bad_cast&)
 	{}
@@ -1094,8 +1094,8 @@ ShlReader::OnActivated(const Message& msg)
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
 	dsk_up.BackColor = ARGB16(1, 30, 27, 24);
 	dsk_dn.BackColor = ARGB16(1, 24, 27, 30);
-	dsk_up.SetInvalidation();
-	dsk_dn.SetInvalidation();
+	SetInvalidationOf(dsk_up);
+	SetInvalidationOf(dsk_dn);
 	FetchEvent<Click>(dsk_dn).Add(*this, &ShlReader::OnClick);
 	FetchEvent<KeyDown>(dsk_dn).Add(*this, &ShlReader::OnKeyDown);
 	FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld;
@@ -1166,8 +1166,8 @@ ShlReader::UpdateToScreen()
 	{
 		bgDirty = false;
 		//强制刷新背景。
-		GetDesktopUp().SetInvalidation();
-		GetDesktopDown().SetInvalidation();
+		SetInvalidationOf(GetDesktopUp());
+		SetInvalidationOf(GetDesktopDown());
 	}
 	ParentType::UpdateToScreen();
 }

@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version 0.2164;
+\version r2170;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-07-02 04:30 +0800;
+	2011-08-13 06:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -443,18 +443,18 @@ swap(Path& lhs, Path& rhs)
 \brief 截取路径末尾的文件名。
 */
 const char*
-GetFileNameFrom(const_path_t);
+GetFileNameOf(const_path_t);
 /*!
 \brief 截取路径末尾的文件名。
 */
 string
-GetFileNameFrom(const string&);
+GetFileNameOf(const string&);
 
 /*!
 \brief 截取路径中的目录名并返回字符串。
 */
 string
-GetDirectoryNameFrom(const string&);
+GetDirectoryNameOf(const string&);
 
 /*!
 \brief 截取路径中的目录名和文件名保存至字符串，并返回最后一个目录分隔符的位置。
@@ -468,7 +468,7 @@ SplitPath(const string&, string&, string&);
 \note 贪婪匹配。
 */
 string
-GetStemFrom(const string&);
+GetStemOf(const string&);
 
 /*!
 \brief 对于两个字符串，判断前者是否是后者的主文件名。
@@ -499,13 +499,13 @@ HaveSameStems(const string&, const string&);
 \note 非贪婪匹配。
 */
 const char*
-GetExtensionFrom(const char*);
+GetExtensionOf(const char*);
 /*!
 \brief 截取文件名末尾的扩展名。
 \note 非贪婪匹配。
 */
 string
-GetExtensionFrom(const string&);
+GetExtensionOf(const string&);
 
 /*!
 \brief 对于两个字符串，判断前者是否是后者的扩展名。

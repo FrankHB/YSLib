@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7274;
+\version r7275;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-07-07 04:25 +0800;
+	2011-08-13 06:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -594,7 +594,7 @@ FontCache::LoadFontFile(const_path_t path)
 {
 	try
 	{
-		if(GetFileNameFrom(path) && fexists(path))
+		if(GetFileNameOf(path) && fexists(path))
 		{
 			unique_ptr<const FontFile> p(ynew FontFile(path));
 

@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version 0.1777;
+\version r1778;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-07-18 18:05 +0800;
+	2011-08-13 06:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,7 +44,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 	id(id), pParent(nullptr), mSubMenus()
 {
 	BackColor = FetchGUIShell().Colors[Styles::Panel];
-	SetAllTo(Margin, 6, 18, 4, 4);
+	SetAllOf(Margin, 6, 18, 4, 4);
 	CyclicTraverse = true;
 	FetchEvent<KeyDown>(*this) += [this](IControl&, KeyEventArgs&& e){
 		if(pHost && IsSelected())

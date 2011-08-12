@@ -12,12 +12,12 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version 0.1458;
+\version r1459;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-07-12 12:23 +0800;
+	2011-08-13 06:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -492,7 +492,7 @@ Transpose(_tBinary& o)
 \brief 取面积。
 */
 inline u32
-GetAreaFrom(const Size& s)
+GetAreaOf(const Size& s)
 {
 	return s.Width * s.Height;
 }
@@ -725,7 +725,7 @@ public:
 	DefGetter(SDst, Width, size.Width)
 	DefGetter(SDst, Height, size.Height)
 	DefGetter(size_t, SizeOfBuffer,
-		sizeof(PixelType) * GetAreaFrom(size)) //!< 取缓冲区占用空间。
+		sizeof(PixelType) * GetAreaOf(size)) //!< 取缓冲区占用空间。
 
 	/*!
 	\brief 取指定行首元素指针。

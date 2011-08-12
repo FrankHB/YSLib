@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version 0.7022;
+\version r7034;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-07-13 11:20 +0800;
+	2011-08-13 06:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -116,19 +116,19 @@ TextState::operator=(const Padding& ms)
 
 
 /*!
-\brief 在指定文本状态中取当前字体设置对应的行高。
+\brief 取当前指定文本状态的字体设置对应的行高。
 */
 inline SDst
-GetTextLineHeightFrom(const TextState& s)
+GetTextLineHeightOf(const TextState& s)
 {
 	return s.GetCache().GetHeight();
 }
 
 /*!
-\brief 在指定文本状态中取当前字体设置对应的行高与行距之和。
+\brief 取当前指定文本状态的字体设置对应的行高与行距之和。
 */
 inline SDst
-GetTextLineHeightExFrom(const TextState& s)
+GetTextLineHeightExOf(const TextState& s)
 {
 	return s.GetCache().GetHeight() + s.LineGap;
 }
@@ -137,16 +137,16 @@ GetTextLineHeightExFrom(const TextState& s)
 \brief 取笔所在的当前行数。
 */
 inline u16
-GetCurrentTextLineNFrom(const TextState& s)
+GetCurrentTextLineNOf(const TextState& s)
 {
-	return (s.PenY - s.Margin.Top) / GetTextLineHeightExFrom(s);
+	return (s.PenY - s.Margin.Top) / GetTextLineHeightExOf(s);
 }
 
 /*!
 \brief 设置笔位置。
 */
 inline void
-SetPenTo(TextState& s, SPos x, SPos y)
+SetPenOf(TextState& s, SPos x, SPos y)
 {
 	s.PenX = x;
 	s.PenY = y;
@@ -157,9 +157,9 @@ SetPenTo(TextState& s, SPos x, SPos y)
 \note 4 个 16 位无符号整数形式。
 */
 inline void
-SetMarginsTo(TextState& s, SDst l, SDst r, SDst t, SDst b)
+SetMarginsOf(TextState& s, SDst l, SDst r, SDst t, SDst b)
 {
-	SetAllTo(s.Margin, l, r, t, b);
+	SetAllOf(s.Margin, l, r, t, b);
 	s.ResetPen();
 }
 /*!
@@ -167,9 +167,9 @@ SetMarginsTo(TextState& s, SDst l, SDst r, SDst t, SDst b)
 \note 64 位无符号整数形式。
 */
 inline void
-SetMarginsTo(TextState& s, u64 m)
+SetMarginsOf(TextState& s, u64 m)
 {
-	SetAllTo(s.Margin, m);
+	SetAllOf(s.Margin, m);
 	s.ResetPen();
 }
 /*!
@@ -177,9 +177,9 @@ SetMarginsTo(TextState& s, u64 m)
 \note 2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
 */
 inline void
-SetMarginsTo(TextState& s, SDst h, SDst v)
+SetMarginsOf(TextState& s, SDst h, SDst v)
 {
-	SetAllTo(s.Margin, h, v);
+	SetAllOf(s.Margin, h, v);
 	s.ResetPen();
 }
 
@@ -187,7 +187,7 @@ SetMarginsTo(TextState& s, SDst h, SDst v)
 \brief 设置笔的行位置。
 */
 void
-SetCurrentTextLineNTo(TextState&, u16);
+SetCurrentTextLineNOf(TextState&, u16);
 
 /*!
 \brief 按字符跨距移动笔。
@@ -830,7 +830,7 @@ FetchPreviousLineIterator(const Drawing::TextRegion& r, _tIn p, _tIn g,
 		if(p != g)
 		{
 			p = rfind<_tIn, uchar_t>(r.GetCache(),
-				r.GetHeight() - GetVerticalFrom(r.Margin), p, g, '\n');
+				r.GetHeight() - GetVerticalOf(r.Margin), p, g, '\n');
 			if(p != g)
 				++p;
 		}
@@ -850,7 +850,7 @@ FetchNextLineIterator(const Drawing::TextRegion& r, _tIn p, _tIn g)
 		return p;
 
 	FontCache& cache(r.GetCache());
-	SDst nw(r.GetHeight() - GetVerticalFrom(r.Margin));
+	SDst nw(r.GetHeight() - GetVerticalOf(r.Margin));
 	SDst w(r.PenX - r.Margin.Left);
 
 	while(p != g)

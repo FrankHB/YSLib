@@ -1,4 +1,4 @@
-// v0.3229; *build 230 rev 24;
+// v0.3229; *build 231 rev 13;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -265,114 +265,62 @@ $using:
 
 $DONE:
 r1:
-/ test 1:
-	/ @ \h YBlit:
-		/ !\rem \mac YSL_FAST_BLIT;
-		/ test functions for defined \mac YSL_FAST_BLIT;
+/ @ \u YWidget:
+	/ \mf void UpdateTo(const Graphics&, const Point&) const
+		-> void UpdateTo(const Graphics&, const Point&, const Rect&) const
+		@ \cl (WidgetRenderer & BufferedWidgetRend);
+	/ \tr \f void Update(const IWidget&, const Graphics&, const Point&
+		= Point::Zero) -> void Update(const IWidget&, const Graphics&,
+		const Point&, const Rect&);
+	/ \tr \impl @ \f Render;
+/ \tr \impl @ \mf AWindow::Update;
 
-r2:
-/ test 2:
-	/ \rem \mac YSL_FAST_BLIT @ \h YBlit;
+r2-r9:
+/= test 1;
 
-r3:
-- \a keyword 'register' for ISO C++0x compatibility @ \h YBlit;
+r10:
+* \impl @ BufferedWidgetRenderer::UpdateTo $since r1;
 
-r4:
-/ @ \ns ystdex @ \h Iterator @ \dir YStandardExtend @ \lib YCLib:
-	/ @ \clt pseudo_iterator:
-		/ copy \ctor -> \exp (\i & \de);
-		+ \exp (\i & \de) (move \ctor & copy \op= & move \op=);
-	/ @ \clt pair_iterator:
-		/ copy \ctor -> \exp (\i & \de);
-		+ \exp (\i & \de) (copy \op= & move \op=);
-		+ \i move \ctor;
+r11:
+/= test 2 ^ \conf release;
 
-r5-r12:
-/= test 3 ~ test 6;
+r12:
+/ \mf void AWindow::SetInvalidation() @ \u YWindow
+	-> !\m \f SetInvalidationOf(IWidget&) @ \ns Widgets @ \u YWidget;
+/ \a GetFileNameFrom => GetFileNameOf;
+/ \a GetDirectoryNameFrom => GetDirectoryNameOf;
+/ \a GetStemFrom => GetStemOf;
+/ \a GetExtensionFrom => GetExtensionOf;
+/ \a GetAreaFrom => GetAreaOf;
+/ \a GetTextLineHeightFrom => GetTextLineHeightOf;
+/ \a GetTextLineHeightExFrom => GetTextLineHeightExOf;
+/ \a GetCurrentTextLineNFrom => GetCurrentTextLineNOf;
+/ \a GetVerticalFrom => GetVerticalOf;
+/ \a GetHorizontalFrom => GetHorizontalOf;
+/ \a GetAllFrom => GetAllOf;
+/ \a SetAllTo => SetAllOf;
+/ \a SetMarginsTo => SetMarginsOf;
+/ \a SetCurrentTextLineNTo => SetCurrentTextLineNOf;
+/ \a SetPenTo => SetPenOf;
+/ \tr \impl @ \u (YDesktop & Shells & YFileSystem & YFont & YGDIBase & YGDI
+	& YBlit & YGlobal & YText & Label & TextList & Menu & DSReader);
 
 r13:
-/= test 7 ^ \conf release;
-
-r14:
-/ @ \impl \u Shells:
-	+ \f void ScrDrawG(size_t, PPDRAW) @ \un \ns;
-	/ \impl @ \f FetchImage ^ \f (ScrDrawG ~ ScrDraw);
-
-r15:
-* \impl @ \f ScrDrawG @ \un \ns @ \u Shells;
-
-r16:
-/ @ \u Shells:
-	/ \cl FPSCounter \ex !\i \mf @ \un \ns @ \impl \u >> \h;
-	/ @ \cl ShlExplorer:
-		/ \s \o FPSCounter fps_counter @ \mf OnActivated
-			-> \m FPSCounter fpsCounter;
-		+ \mf \vt void UpdateToScreen();
-		/ \simp \impl @ \mf OnActivated;
-
-r17:
-/ @ \h YControl:
-	- Paint @ typedef \en VisualEvent;
-	- DefEventTypeMapping(Paint, HVisualEvent);
-/ \tr \simp \impl @ \mf (ShlExplorer::OnDeactivated & Control::Refresh
-	& AWindow::Refresh);
-
-r18:
-- \mf DrawControl @ \cl YControl;
-/ \a \mf DrawControl -> Refresh;
-
-r19:
-/= test 8 ^ \conf release;
-
-r20:
-/= test 9;
-
-r21:
-* \impl @ \mf ShlExplorer::UpdateToScreen @ \impl \u Shells $ since b16;
-/ \m private Devices::Screen& Screen => screen @ \cl Desktop;
-/ @ \cl GraphicDevice @ \h YDevice;
-	/ \inh YObject -> noncopyable;
-	/ \tr \impl @ \i \ctor;
-
-r22:
-/ \impl @ \mf ShlExplorer::UpdateToScreen @ \impl \u Shells;
-
-r23:
-/ @ \u Shells:
-	/ \g \ns YSLib => YReader;
-	/ \cl YMainShell >> \g \ns (YSLib::Shells ~ YReader) @ \impl \u;
-	/ \tr \impl @ \mf YMainShell::OnActivated;
-	+ using \ns YSLib @ \ns YReader @ \h;
-	+ using \ns platform & (\ns (Components & Components::Widgets & Drawing)
-		@ \ns YSLib) @ \impl \u;
-	-= using \ns DS @ \impl \u;
-	+ using platform::YDebugSetStatus @ \h;
-	/ (\f ReleaseShells & \un \ns) >> \g \ns YSLib ~ YReader @ \impl \u;
-	/ \tr \impl @ \cl YMainShell;
-	/ \tr \impl @ \f ReleaseShells;
-	+ using \ns YReader @ \un \ns;
-- using \ns platform @ \ns DS @ \h YAdaptor;
-/ \tr @ \h DSReader:
-	/ @ \ns DS::Components:
-		+ using Drawing::Color;
-		+ using Drawing::PixelType;
-
-r24:
-/= test 10 ^ \conf release;
+/= test 3 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-08-11:
--24.4d;
-//Mercurial rev1-rev101: r5052;
+2011-08-13:
+-24.8d;
+//Mercurial rev1-rev102: r5076;
 
 / ...
 
 
 $NEXT_TODO:
-b230-b256:
+b232-b256:
 + TextList invalidation support;
 * non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
@@ -460,6 +408,26 @@ $ellipse_debug_assertion;
 
 $now
 (
+	/ "GUI" $=
+	(
+		+ "updating with limited area" $=
+		(
+			+ "updating with invalidated area"
+				@ "class %BufferedWidgetRenderer",
+			+ "empty implemented updating with invalidated area"
+				@ "class %WidgetRenderer",
+			+ "updating with limited area" @ "function %Widgets::Update",
+			* "wrong updating for (at least 3) buffered widgets overlaying"
+				$since b228
+		),
+		+ "free function %SetInvalidationOf for class %IWidget"
+			~ "member function AWindow::SetInvalidation"
+	),
+	/ $design "style of free setters/getters naming"
+),
+
+b230
+(
 	+ $design "move constructors and move assigment operators"
 		@ "class template (%pseudo_iterator, %pair_iterator)"
 		@ "header YCLib::YStandardExtend::Iterator",
@@ -499,8 +467,10 @@ b229
 	)
 	/ "shells test example" $=
 	(
-		+ "buffered renderer for listbox"
-	)
+		+ "buffered renderer for listbox",
+		^ "namespace %::YReader" ~ "namespace ::YSLib"
+	),
+	- "using namespace %platform" @ "namespace DS" @ "header yadaptor.h"
 ),
 
 b228

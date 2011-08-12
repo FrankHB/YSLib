@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version 0.4036;
+\version r4045;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-06-23 09:17 +0800;
+	2011-08-13 06:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -103,7 +103,7 @@ operator+(const Rect&, const Padding&);
 \brief 取水平边距和。
 */
 inline SDst
-GetHorizontalFrom(const Padding& m)
+GetHorizontalOf(const Padding& m)
 {
 	return m.Left + m.Right;
 }
@@ -112,7 +112,7 @@ GetHorizontalFrom(const Padding& m)
 \brief 取竖直边距和。
 */
 inline SDst
-GetVerticalFrom(const Padding& m)
+GetVerticalOf(const Padding& m)
 {
 	return m.Top + m.Bottom;
 }
@@ -122,31 +122,31 @@ GetVerticalFrom(const Padding& m)
 \note 64 位无符号整数形式。
 */
 u64
-GetAllFrom(const Padding&);
+GetAllOf(const Padding&);
 
 /*!
 \brief 设置边距。
 \note 4 个 16 位无符号整数形式。
 */
 void
-SetAllTo(Padding&, SDst, SDst, SDst, SDst);
+SetAllOf(Padding&, SDst, SDst, SDst, SDst);
 /*!
 \brief 设置边距。
 \note 64 位无符号整数形式。
 */
 inline void
-SetAllTo(Padding& m, u64 u)
+SetAllOf(Padding& m, u64 u)
 {
-	SetAllTo(m, u >> 48, (u >> 32) & 0xFFFF, (u >> 16) & 0xFFFF, u & 0xFFFF);
+	SetAllOf(m, u >> 48, (u >> 32) & 0xFFFF, (u >> 16) & 0xFFFF, u & 0xFFFF);
 }
 /*!
 \brief 设置边距。
 \note 2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
 */
 inline void
-SetAllTo(Padding& m, SDst h, SDst v)
+SetAllOf(Padding& m, SDst h, SDst v)
 {
-	SetAllTo(m, h, h, v, v);
+	SetAllOf(m, h, h, v, v);
 }
 
 
@@ -233,7 +233,7 @@ public:
 
 	DefGetter(u8*, BufferAlphaPtr, pBufferAlpha) //!< 取 Alpha 缓冲区的指针。
 	DefGetter(size_t, SizeOfBufferAlpha,
-		sizeof(u8) * GetAreaFrom(GetSize())) \
+		sizeof(u8) * GetAreaOf(GetSize())) \
 		//!< 取 Alpha 缓冲区占用空间。
 
 	/*!

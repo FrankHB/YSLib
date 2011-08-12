@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version 0.5068;
+\version r5078;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-08-06 15:11 +0800;
+	2011-08-13 06:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -72,9 +72,11 @@ BufferedWidgetRenderer::FillInvalidation(Color c)
 }
 
 void
-BufferedWidgetRenderer::UpdateTo(const Graphics& g, const Point& pt) const
+BufferedWidgetRenderer::UpdateTo(const Graphics& g, const Point& pt,
+	const Rect& r) const
 {
-	CopyTo(g, GetContext(), pt);
+	CopyTo(g.GetBufferPtr(), GetContext(), g.GetSize(),
+		r, static_cast<const Point&>(r) - pt, r);
 }
 
 YSL_BEGIN_NAMESPACE(Widgets)
@@ -99,6 +101,12 @@ SetBoundsOf(IWidget& wgt, const Rect& r)
 {
 	wgt.SetLocation(r.GetPoint());
 	wgt.SetSize(r.GetSize());
+}
+
+void
+SetInvalidationOf(IWidget& wgt)
+{
+	wgt.GetRenderer().CommitInvalidation(Rect(Point::Zero, wgt.GetSize()));
 }
 
 void
@@ -144,8 +152,7 @@ Render(IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
 			Rect(r.GetPoint() - wgt.GetLocation(), r)) : wgt.Refresh(g, pt, r);
 		wgt.GetRenderer().ClearInvalidation();
 	}
-	Update(wgt, g, pt);
-	// TODO: use 'Update(wgt, g, pt, r)';
+	Update(wgt, g, pt, r);
 	return rect;
 }
 
@@ -173,10 +180,10 @@ RequestToTop(IWidget& wgt)
 }
 
 void
-Update(const IWidget& wgt, const Graphics& g, const Point& pt)
+Update(const IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
 {
 	if(wgt.IsVisible())
-		wgt.GetRenderer().UpdateTo(g, pt);
+		wgt.GetRenderer().UpdateTo(g, pt, r);
 }
 
 Rect

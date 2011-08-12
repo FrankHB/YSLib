@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version 0.3501;
+\version r3505;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-06-23 09:27 +0800;
+	2011-08-13 06:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,13 +62,13 @@ Rect
 operator+(const Rect& r, const Padding& m)
 {
 	return Rect(r.X + m.Left, r.Y + m.Top,
-		vmax<int>(0, r.Width - GetHorizontalFrom(m)),
-		vmax<int>(0, r.Height - GetVerticalFrom(m)));
+		vmax<int>(0, r.Width - GetHorizontalOf(m)),
+		vmax<int>(0, r.Height - GetVerticalOf(m)));
 }
 
 
 u64
-GetAllFrom(Padding& m)
+GetAllOf(Padding& m)
 {
 	u64 r = (m.Left << 16) | m.Right;
 
@@ -77,7 +77,7 @@ GetAllFrom(Padding& m)
 }
 
 void
-SetAllTo(Padding& m, SDst left, SDst right, SDst top, SDst bottom)
+SetAllOf(Padding& m, SDst left, SDst right, SDst top, SDst bottom)
 {
 	m.Left = left;
 	m.Right = right;
@@ -113,7 +113,7 @@ BitmapBuffer::SetSize(SDst w, SDst h)
 		ydelete_array(pBuffer);
 		pBuffer = nullptr;
 	}
-	else if(GetAreaFrom(GetSize()) < s)
+	else if(GetAreaOf(GetSize()) < s)
 		try
 		{
 			BitmapPtr pBufferNew(ynew PixelType[s]);
@@ -173,7 +173,7 @@ BitmapBufferEx::SetSize(SDst w, SDst h)
 		ydelete_array(pBufferAlpha);
 		pBufferAlpha = nullptr;
 	}
-	else if(GetAreaFrom(size) < s)
+	else if(GetAreaOf(size) < s)
 	{
 		BitmapPtr pBufferNew(nullptr);
 
@@ -209,7 +209,7 @@ BitmapBufferEx::SetSize(SDst w, SDst h)
 void
 BitmapBufferEx::ClearImage() const
 {
-	const u32 t = GetAreaFrom(size);
+	const u32 t = GetAreaOf(size);
 
 	ClearPixel(pBuffer, t);
 	ClearPixel(pBufferAlpha, t);

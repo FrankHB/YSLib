@@ -11,12 +11,12 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version 0.2119;
+\version r2123;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-07-15 12:41 +0800;
+	2011-08-13 06:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -54,7 +54,7 @@ MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt,
 	case Center:
 	case Right:
 		{
-			SPos horizontal_offset(bounds.Width - GetHorizontalFrom(Margin)
+			SPos horizontal_offset(bounds.Width - GetHorizontalOf(Margin)
 				- FetchStringWidth(ts.Font, Text));
 
 			if(horizontal_offset > 0)
@@ -76,8 +76,8 @@ MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt,
 	case Center:
 	case Down:
 		{
-			SPos vertical_offset(bounds.Height - GetHorizontalFrom(Margin)
-				- GetTextLineHeightFrom(ts));
+			SPos vertical_offset(bounds.Height - GetHorizontalOf(Margin)
+				- GetTextLineHeightOf(ts));
 
 			if(vertical_offset > 0)
 			{
@@ -124,7 +124,7 @@ MTextList::GetItemPtr(IndexType idx) const
 void
 MTextList::RefreshTextState()
 {
-	text_state.LineGap = GetVerticalFrom(Margin);
+	text_state.LineGap = GetVerticalOf(Margin);
 	text_state.Font.SetFont(Font);
 }
 
