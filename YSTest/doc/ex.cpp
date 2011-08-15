@@ -1,4 +1,4 @@
-// v0.3229; *build 231 rev 13;
+// v0.3229; *build 232 rev 40;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -265,71 +265,91 @@ $using:
 
 $DONE:
 r1:
-/ @ \u YWidget:
-	/ \mf void UpdateTo(const Graphics&, const Point&) const
-		-> void UpdateTo(const Graphics&, const Point&, const Rect&) const
-		@ \cl (WidgetRenderer & BufferedWidgetRend);
-	/ \tr \f void Update(const IWidget&, const Graphics&, const Point&
-		= Point::Zero) -> void Update(const IWidget&, const Graphics&,
-		const Point&, const Rect&);
-	/ \tr \impl @ \f Render;
-/ \tr \impl @ \mf AWindow::Update;
+/ \impl @ \impl u Shells ^ \ctor @ \cl Color ~ \mac ARGB16;
 
-r2-r9:
+r2-r8:
 /= test 1;
 
-r10:
-* \impl @ BufferedWidgetRenderer::UpdateTo $since r1;
+r9:
+/ \impl @ \mf ShlReader::UpdateToScreen;
 
-r11:
-/= test 2 ^ \conf release;
+r10-r14:
+/= test 2;
 
-r12:
-/ \mf void AWindow::SetInvalidation() @ \u YWindow
-	-> !\m \f SetInvalidationOf(IWidget&) @ \ns Widgets @ \u YWidget;
-/ \a GetFileNameFrom => GetFileNameOf;
-/ \a GetDirectoryNameFrom => GetDirectoryNameOf;
-/ \a GetStemFrom => GetStemOf;
-/ \a GetExtensionFrom => GetExtensionOf;
-/ \a GetAreaFrom => GetAreaOf;
-/ \a GetTextLineHeightFrom => GetTextLineHeightOf;
-/ \a GetTextLineHeightExFrom => GetTextLineHeightExOf;
-/ \a GetCurrentTextLineNFrom => GetCurrentTextLineNOf;
-/ \a GetVerticalFrom => GetVerticalOf;
-/ \a GetHorizontalFrom => GetHorizontalOf;
-/ \a GetAllFrom => GetAllOf;
-/ \a SetAllTo => SetAllOf;
-/ \a SetMarginsTo => SetMarginsOf;
-/ \a SetCurrentTextLineNTo => SetCurrentTextLineNOf;
-/ \a SetPenTo => SetPenOf;
-/ \tr \impl @ \u (YDesktop & Shells & YFileSystem & YFont & YGDIBase & YGDI
-	& YBlit & YGlobal & YText & Label & TextList & Menu & DSReader);
+r15:
+* invalid parent menu displayed on confirming submenus $since b231:
+	/ @ \u Menu:
+		/ \impl @ \mf MenuHost::HideRaw;
+		/ \impl @ \ctor @ \cl Menu
 
-r13:
+r16:
 /= test 3 ^ \conf release;
+
+r17-r19:
+/= test 4;
+
+r20:
+/ @ \cl ShlReader @ \u Shells:
+	- \m bool bgDirty;
+	- \mf \vt UpdateToScreen;
+	+ private \mf void UpdateReader();
+	/ \tr \impl @ \ctor;
+	/ \tr \impl @ \mf OnActivated & OnKeyDown & 
+
+r21:
+/ \tr order @ \mf @ \cl ShlReader @ \u Shells;
+
+r22:
+/ @ \cl ShlDS:
+	/ \impl @ \mf ShlProc;
+	- \mf SendPaintMessage;
+- \mf ShlProc @ \cl (ShlExplorer & ShlReader) @ \u Shells;
+
+r23:
+/= test 5 ^ \conf release;
+
+r24-r27:
+/= test 6;
+
+r28:
+/ \impl @ \mf MenuHost::HideUnrelated;
+
+r29-r35:
+/= test 7;
+
+r36-r38:
+* \impl @ \mf AFrame::ClearFocusingPtr $since b194;
+/= test 8;
+
+r39:
+* \impl @ \mf Panel::ClearFocusingPtr $since b201;
+* \impl @ \mf AUIBoxControl::ClearFocusingPtr $since b194;
+
+r40:
+/= test 9 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-08-13:
--24.8d;
-//Mercurial rev1-rev102: r5076;
+2011-08-16:
+-26.4d;
+//Mercurial rev1-rev103: r5089;
 
 / ...
 
 
 $NEXT_TODO:
-b232-b256:
-+ TextList invalidation support;
+b233-b256:
++ %TextList invalidation support;
 * non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
-	* moved text after setting lnGap;
+	* moved text after setting %lnGap;
 
 b257-b768:
 + key accelerators;
-+ \impl styles @ widgets;
-/ fully \cl Path;
++ fully \impl styles @ widgets;
+/ fully \impl @ \cl Path;
 / \impl 'real' RTC;
 + data configuragion;
 + \impl pictures loading;
@@ -407,6 +427,34 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ "shells test example" $=
+	(
+		/ "background images" @ "class %ShlExplorer",
+		/ $design "simplified reader refreshing implementation",
+		- $design "member function ShlProc" @ "class (%ShlExplorer, ShlReader)",
+
+	),
+	* "invalid parent menu displayed on confirming submenus" $since b231,
+	/ $design "simplified shell classes" $=
+	(
+		/ "implementation" @ "member function %ShlDS::ShlProc"
+			^ "default sending of %SM_PAINT message when processing %SM_INPUT"
+	),
+	/ "menus functionality" $=
+	(
+		+ "hinding unrelated non-parent menus"
+	),
+	* "GUI class member function %ClearFocusingPtr implementation"
+		$since b194 $=
+	(
+		@ "class AFrame" $since b194,
+		@ "class Panel" $since b201,
+		@ "class AUIBoxControl" $since b194
+	)
+),
+
+b231
 (
 	/ "GUI" $=
 	(
@@ -871,7 +919,10 @@ b211
 		^ "non-pointer member" ~ "%shared_ptr",
 	+ "message content mapping",
 	/ $design "messaging APIs" >> "unit YApplication" ~ "unit YShell",
-	/ "test menu fixed on the desktop"
+	/ "shells test example" $=
+	(
+		/ "test menu fixed on the desktop"
+	)
 ),
 
 b210

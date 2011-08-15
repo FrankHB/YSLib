@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version 0.1835;
+\version r1838;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-08-02 10:22 +0800;
+	2011-08-15 16:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -85,6 +85,7 @@ ShlDS::ShlProc(const Message& msg)
 		break;
 	case SM_INPUT:
 		ResponseInput(msg);
+		SendMessage<SM_PAINT>(FetchShellHandle(), 0xE0, nullptr);
 		return 0;
 	default:
 		break;
@@ -113,12 +114,6 @@ ShlDS::OnDeactivated(const Message&)
 	hDskUp->ClearContents();
 	hDskDown->ClearContents();
 	return 0;
-}
-
-void
-ShlDS::SendPaintMessage()
-{
-	SendMessage<SM_PAINT>(FetchShellHandle(), 0xE0, nullptr);
 }
 
 void

@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r4910;
+\version r4928;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-08-13 06:41 +0800;
+	2011-08-15 16:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -51,45 +51,62 @@ namespace
 	void
 	dfa(BitmapPtr buf, SDst x, SDst y)
 	{
-		//raz2GBR
-		buf[y * MainScreenWidth + x] = ARGB16(1, ((y >> 2) + 15) & 31,
-			((~(x * y) >> 2) + 15) & 31, ((x >> 2) + 15) & 31);
+		//hypY1
+		buf[y * MainScreenWidth + x] = Color(
+			(~(x * y) >> 2),
+			(x | y | 128),
+			(240 - ((x & y) >> 1))
+			);
 	}
 	void
 	dfap(BitmapPtr buf, SDst x, SDst y)
 	{
-		//bza1BRG
-		buf[y * MainScreenWidth + x] = ARGB16(1,
-			((x << 4) / (y | 1)) & 31,
-			((x | y << 1) % (y + 2)) & 31, ((~y | x << 1) % 27 + 3) & 31);
+		//bza1BRGx
+		buf[y * MainScreenWidth + x] = Color(
+			((x << 4) / (y | 1)),
+			((x | y << 1) % (y + 2)),
+			((~y | x << 1) % 27 + 3)
+			);
 	}
 	void
 	dfac1(BitmapPtr buf, SDst x, SDst y)
 	{
-		//fl1RBG
-		buf[y * MainScreenWidth + x] = ARGB16(1, (x + y * y) & 31,
-			((x & y) ^ (x | y)) & 31, (x * x + y) & 31);
+		//fl1RBGx
+		buf[y * MainScreenWidth + x] = Color(
+			(x + y * y),
+			((x & y) ^ (x | y)),
+			(x * x + y)
+			);
 	}
 	void
 	dfac1p(BitmapPtr buf, SDst x, SDst y)
 	{
-		//rz3GRB
-		buf[y * MainScreenWidth + x] = ARGB16(1, ((x * y) | x) & 31,
-			((x * y) | y) & 31, ((x ^ y) * (x ^ y)) & 31);
+		//rz3GRBx
+		buf[y * MainScreenWidth + x] = Color(
+			((x * y) | x),
+			((x * y) | y),
+			((x ^ y) * (x ^ y))
+			);
 	}
 	void
 	dfac2(BitmapPtr buf, SDst x, SDst y)
 	{
-		//v1BGR
-		buf[y * MainScreenWidth + x] = ARGB16(1, ((x << 4) / (y & 1)) & 31,
-			(~x % 101 + y) & 31,((x + y) % ((y - 2) & 1) + (x << 2)) & 31);
+		//v1BGRx
+		buf[y * MainScreenWidth + x] = Color(
+			((x << 4) / (y & 1)),
+			(~x % 101 + y),
+			((x + y) % ((y - 2) & 1) + (x << 2))
+			);
 	}
 	void
 	dfac2p(BitmapPtr buf, SDst x, SDst y)
 	{
-		//arz1
-		buf[y * MainScreenWidth + x] = ARGB16(1, ((x | y) % (y + 2)) & 31,
-			((~y | x) % 27 + 3) & 31, ((x << 6) / (y | 1)) & 31);
+		//arz1x
+		buf[y * MainScreenWidth + x] = Color(
+			((x | y) % (y + 2)),
+			((~y | x) % 27 + 3),
+			((x << 6) / (y | 1))
+			);
 	}
 
 	////
@@ -208,8 +225,8 @@ YMainShell::OnActivated(const Message& msg)
 	dsk_up += lblStatus;
 	dsk_dn += lblDetails;
 //	dsk_up.GetBackgroundImagePtr() = FetchImage(1);
-	dsk_up.BackColor = ARGB16(1, 30, 27, 24);
-//	dsk_dn.BackColor = ARGB16(1, 24, 27, 30);
+	dsk_up.BackColor = Color(240, 216, 192);
+//	dsk_dn.BackColor = Color(240, 216, 240);
 	dsk_dn.BackColor = FetchGUIShell().Colors[Styles::Desktop];
 	lblTitle.Text = YApplication::ProductName;
 	lblStatus.Text = "Loading...";
@@ -504,7 +521,7 @@ ShlExplorer::TFormTest::TFormTest()
 	btnShowWindow.VerticalAlignment = MLabel::Down;
 	btnPrevBackground.Text = "<<";
 	btnNextBackground.Text = ">>";
-	BackColor = ARGB16(1, 31, 31, 15);
+	BackColor = Color(248, 248, 120);
 	SetInvalidationOf(*this);
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 	FetchEvent<Enter>(btnEnterTest) += OnEnter_btnEnterTest;
@@ -628,7 +645,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 	btnTestEx.Text = _ustr("直接屏幕绘制测试");
 	btnClose.Text = _ustr("关闭");
 	btnExit.Text = _ustr("退出");
-	BackColor = ARGB16(1, 31, 15, 15);
+	BackColor = Color(248, 120, 120);
 	SetInvalidationOf(*this);
 	FetchEvent<TouchDown>(*this) += OnTouchDown_FormExtra;
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
@@ -642,7 +659,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 	FetchEvent<Click>(btnTestEx).Add(*this, &TFormExtra::OnClick_btnTestEx);
 	FetchEvent<KeyPress>(btnDragTest) += OnKeyPress_btnDragTest;
 //	btnDragTest.Enabled = false;
-	btnClose.BackColor = ARGB16(1, 22, 23, 24);
+	btnClose.BackColor = Color(176, 184, 192);
 	FetchEvent<Click>(btnClose).Add(*this, &TFormExtra::OnClick_btnClose);
 	FetchEvent<Click>(btnExit) += [](IControl&, TouchEventArgs&&){
 		PostQuitMessage(0);
@@ -799,25 +816,6 @@ ShlExplorer::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 
 
 int
-ShlExplorer::ShlProc(const Message& msg)
-{
-//	ClearDefaultMessageQueue();
-
-//	UpdateToScreen();
-
-	switch(msg.GetMessageID())
-	{
-	case SM_INPUT:
-		ResponseInput(msg);
-		SendPaintMessage();
-		return 0;
-	default:
-		break;
-	}
-	return ShlDS::ShlProc(msg);
-}
-
-int
 ShlExplorer::OnActivated(const Message& msg)
 {
 	ParentType::OnActivated(msg);
@@ -864,7 +862,7 @@ ShlExplorer::OnActivated(const Message& msg)
 	//	hWndDown->RequestFocus(GetZeroElement<EventArgs>());
 	RequestFocusCascade(fbMain);
 	// init-seg 4;
-	dsk_dn.BackColor = ARGB16(1, 15, 15, 31);
+	dsk_dn.BackColor = Color(120, 120, 248);
 	SetInvalidationOf(dsk_dn);
 	pWndTest = unique_raw(new TFormTest());
 	pWndExtra = unique_raw(new TFormExtra());
@@ -1060,24 +1058,8 @@ string ShlReader::path;
 
 ShlReader::ShlReader()
 	: ShlDS(),
-	Reader(), pTextFile(), hUp(), hDn(), bgDirty(false),
-	mhMain(*GetDesktopDownHandle())
+	Reader(), pTextFile(), hUp(), hDn(), mhMain(*GetDesktopDownHandle())
 {}
-
-int
-ShlReader::ShlProc(const Message& msg)
-{
-	switch(msg.GetMessageID())
-	{
-	case SM_INPUT:
-		ResponseInput(msg);
-		SendPaintMessage();
-		return 0;
-	default:
-		break;
-	}
-	return ShlDS::ShlProc(msg);
-}
 
 int
 ShlReader::OnActivated(const Message& msg)
@@ -1085,15 +1067,14 @@ ShlReader::OnActivated(const Message& msg)
 	ParentType::OnActivated(msg);
 	pTextFile = ynew TextFile(path.c_str());
 	Reader.LoadText(*pTextFile);
-	bgDirty = true;
 
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
-	dsk_up.BackColor = ARGB16(1, 30, 27, 24);
-	dsk_dn.BackColor = ARGB16(1, 24, 27, 30);
+	dsk_up.BackColor = Color(240, 216, 192);
+	dsk_dn.BackColor = Color(192, 216, 240);
 	SetInvalidationOf(dsk_up);
 	SetInvalidationOf(dsk_dn);
 	FetchEvent<Click>(dsk_dn).Add(*this, &ShlReader::OnClick);
@@ -1160,21 +1141,19 @@ ShlReader::OnDeactivated(const Message& msg)
 }
 
 void
-ShlReader::UpdateToScreen()
+ShlReader::UpdateReader()
 {
-	if(bgDirty)
-	{
-		bgDirty = false;
-		//强制刷新背景。
-		SetInvalidationOf(GetDesktopUp());
-		SetInvalidationOf(GetDesktopDown());
-	}
-	ParentType::UpdateToScreen();
+	//强制刷新背景。
+//	SetInvalidationOf(GetDesktopUp());
+//	SetInvalidationOf(GetDesktopDown());
+	Invalidate(Reader.AreaUp);
+	Invalidate(Reader.AreaDown);
 }
 
 void
 ShlReader::OnClick(TouchEventArgs&& e)
 {
+//	UpdateReader();
 	mhMain[1u].SetLocation(e);
 	mhMain.Show(1u);
 }
@@ -1184,7 +1163,7 @@ ShlReader::OnKeyDown(KeyEventArgs&& e)
 {
 	u32 k(static_cast<KeyEventArgs::InputType>(e));
 
-	bgDirty = true;
+	UpdateReader();
 	switch(k)
 	{
 	case KeySpace::Enter:
@@ -1239,8 +1218,8 @@ ShlReader::OnKeyDown(KeyEventArgs&& e)
 
 	case KeySpace::Right:
 		//PixelType cc(Reader.GetColor());
-		//Reader.SetColor(ARGB16(1, (cc&(15<<5))>>5, cc&29,
-		//	(cc&(31<<10))>>10));
+		//Reader.SetColor(Color((cc & (15 << 5)) >> 2, (cc & 29) << 3,
+		//	(cc&(31 << 10)) >> 7));
 		if(Reader.GetLineGap() != 12)
 		{
 			Reader.SetLineGap(Reader.GetLineGap() + 1);

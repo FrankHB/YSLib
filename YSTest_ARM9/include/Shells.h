@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3330;
+\version r3338;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-08-11 10:43 +0800;
+	2011-08-15 16:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -152,9 +152,6 @@ public:
 	ShlExplorer();
 
 	virtual int
-	ShlProc(const Message&);
-
-	virtual int
 	OnActivated(const Message&);
 
 	virtual int
@@ -202,13 +199,9 @@ public:
 	MDualScreenReader Reader;
 	TextFile* pTextFile;
 	shared_ptr<Image> hUp, hDn;
-	bool bgDirty;
 	MenuHost mhMain;
 
 	ShlReader();
-
-	virtual int
-	ShlProc(const Message&);
 
 	virtual int
 	OnActivated(const Message&);
@@ -216,22 +209,15 @@ public:
 	virtual int
 	OnDeactivated(const Message&);
 
-	virtual void
-	UpdateToScreen();
-
 private:
+	void
+	UpdateReader();
+
 	void
 	OnClick(TouchEventArgs&&);
 
 	void
 	OnKeyDown(KeyEventArgs&&);
-/*
-	void
-	OnPaint_Up(EventArgs&&);
-
-	void
-	OnPaint_Down(EventArgs&&);
-*/
 };
 
 YSL_END_NAMESPACE(YReader)

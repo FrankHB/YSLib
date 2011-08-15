@@ -11,12 +11,12 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version 0.1687;
+\version r1690;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-06-27 22:13 +0800;
+	2011-08-16 05:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -258,8 +258,9 @@ private:
 public:
 	/*!
 	\brief 隐藏从 mnu 起向上层遍历菜单树的过程中不相关的菜单。
-	\note 若 <tt>!Contains(mnuParent)</tt> 则隐藏所有菜单。
-	\note 相关菜单指 mnuParent 指定的菜单及其直接或间接父菜单。
+	\note 相关菜单指 mnu 的父菜单中的 mnuParent 及其直接或间接父菜单。
+	\note 若 <tt>!Contains(mnuParent)</tt>
+		或 mnuParent 不是 mnu 的直接或间接父菜单，则隐藏所有菜单。
 	*/
 	void
 	HideUnrelated(Menu& mnu, Menu& mnuParent);
