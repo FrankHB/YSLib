@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2005;
+\version r2008;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-08-15 16:35 +0800;
+	2011-08-18 14:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -105,12 +105,6 @@ public:
 	DefGetter(Desktop&, DesktopDown, *hDskDown)
 
 	/*!
-	\brief Shell 处理函数。
-	*/
-	virtual int
-	ShlProc(const Message&);
-
-	/*!
 	\brief 处理激活消息。
 	*/
 	virtual int
@@ -121,6 +115,12 @@ public:
 	*/
 	virtual int
 	OnDeactivated(const Message&);
+
+	/*!
+	\brief 消息处理函数。
+	*/
+	virtual int
+	OnGotMessage(const Message&);
 
 	/*!
 	\brief 更新到屏幕。

@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version 0.2900;
+\version r2904;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-06-16 02:56 +0800;
+	2011-08-18 14:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,10 +62,6 @@ public:
 	static int
 	DefShlProc(const Message&);
 
-	// Shell 处理函数：响应线程的直接调用。
-	virtual PDefH1(int, ShlProc, const Message& msg)
-		ImplRet(DefShlProc(msg))
-
 	/*!
 	\brief 处理线程的激活。
 	*/
@@ -77,6 +73,12 @@ public:
 	*/
 	virtual int
 	OnDeactivated(const Message&);
+
+	/*!
+	\brief 消息处理函数：响应线程的直接调用。
+	*/
+	virtual PDefH1(int, OnGotMessage, const Message& msg)
+		ImplRet(DefShlProc(msg))
 };
 
 YSL_END_NAMESPACE(Shells)

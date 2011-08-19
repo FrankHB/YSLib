@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2730;
+\version r2731;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 +0800; 
 \par 修改时间:
-	2011-06-25 21:18 +0800;
+	2011-08-18 13:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -286,7 +286,7 @@ namespace platform
 		//按键别名。
 		const KeySet
 			Enter = A,
-			ESC = B,
+			Esc = B,
 			PgUp = L,
 			PgDn = R;
 	}

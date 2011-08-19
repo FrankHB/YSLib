@@ -11,12 +11,12 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3192;
+\version r3206;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-08-13 06:52 +0800;
+	2011-08-18 22:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,35 +58,6 @@ catch(LoggedEvent&)
 	throw;
 }
 
-bool
-MDualScreenReader::IsTextTop()
-{
-	return itUp == pText->Blocks.begin();
-}
-bool
-MDualScreenReader::IsTextBottom()
-{
-	return itDn == pText->Blocks.end();
-}
-
-void
-MDualScreenReader::SetColor(Color c)
-{
-	AreaUp.Color = c;
-	AreaDown.Color = c;
-}
-void
-MDualScreenReader::SetLineGap(u8 g)
-{
-	AreaUp.LineGap = g;
-	AreaDown.LineGap = g;
-}
-void
-MDualScreenReader::SetFontSize(Font::SizeType fz)
-{
-	fc.SetFontSize(fz);
-	lnHeight = fc.GetHeight();
-}
 /*
 void MDualScreenReader::SetCurrentTextLineNOf(u8 n)
 {
@@ -96,56 +67,13 @@ void MDualScreenReader::SetCurrentTextLineNOf(u8 n)
 */
 
 void
-MDualScreenReader::Reset()
+MDualScreenReader::Invalidate()
 {
-	//清除字符区域缓冲区。
-	AreaUp.ClearImage();
-	AreaDown.ClearImage();
-	//复位缓存区域写入位置。
-	AreaUp.ResetPen();
-	AreaDown.ResetPen();
-}
+	using YSLib::Components::Widgets::Invalidate;
 
-void
-MDualScreenReader::LoadText(TextFile& file)
-{
-	if(file.IsValid())
-	{
-		pText = ynew BlockedText(file);
-		itUp = pText->Blocks.begin();
-		itDn = pText->Blocks.end();
-		Update();
-	}
-	else
-		PutString(AreaUp, L"文件打开失败！\n");
-}
-
-void
-MDualScreenReader::UnloadText()
-{
-	itUp = Text::TextFileBuffer::HText();
-	itDn = Text::TextFileBuffer::HText();
-	safe_delete_obj()(pText);
-}
-
-void
-MDualScreenReader::PrintTextUp(const Graphics& g_up)
-{
-	BlitTo(g_up, AreaUp, Point::Zero, Point::Zero, rot);
-}
-
-void
-MDualScreenReader::PrintTextDown(const Graphics& g_down)
-{
-	BlitTo(g_down, AreaDown, Point::Zero, Point::Zero, rot);
-}
-
-void
-MDualScreenReader::Update()
-{
-	Reset();
-	//文本填充：输出文本缓冲区字符串，并返回填充字符数。
-	itDn = PutString(AreaDown, PutString(AreaUp, itUp));
+	//强制刷新背景。
+	Invalidate(AreaUp);
+	Invalidate(AreaDown);
 }
 
 bool
@@ -179,8 +107,10 @@ MDualScreenReader::LineUp()
 	PutLine<TextFileBuffer::HText, uchar_t>(AreaUp, itUp, itUpOld);
 	itDn = FetchPreviousLineIterator(AreaUp, itDn,
 		pText->Blocks.begin());
+	Invalidate();
 	return true;
 }
+
 bool
 MDualScreenReader::LineDown()
 {
@@ -204,7 +134,45 @@ MDualScreenReader::LineDown()
 	AreaDown.SetTextLineLast();
 	itDn = PutLine(AreaDown, itDn);
 	itUp = FetchNextLineIterator(AreaUp, itUp, pText->Blocks.end());
+	Invalidate();
 	return true;
+}
+
+void
+MDualScreenReader::LoadText(TextFile& file)
+{
+	if(file.IsValid())
+	{
+		pText = ynew BlockedText(file);
+		itUp = pText->Blocks.begin();
+		itDn = pText->Blocks.end();
+		Update();
+	}
+	else
+		PutString(AreaUp, L"文件打开失败！\n");
+}
+
+void
+MDualScreenReader::PrintTextUp(const Graphics& g_up)
+{
+	BlitTo(g_up, AreaUp, Point::Zero, Point::Zero, rot);
+}
+
+void
+MDualScreenReader::PrintTextDown(const Graphics& g_down)
+{
+	BlitTo(g_down, AreaDown, Point::Zero, Point::Zero, rot);
+}
+
+void
+MDualScreenReader::Reset()
+{
+	//清除字符区域缓冲区。
+	AreaUp.ClearImage();
+	AreaDown.ClearImage();
+	//复位缓存区域写入位置。
+	AreaUp.ResetPen();
+	AreaDown.ResetPen();
 }
 
 bool
@@ -240,6 +208,23 @@ MDualScreenReader::ScreenDown()
 MDualScreenReader::Scroll(Function<void()> pCheck)
 {
 }*/
+
+void
+MDualScreenReader::UnloadText()
+{
+	itUp = Text::TextFileBuffer::HText();
+	itDn = Text::TextFileBuffer::HText();
+	safe_delete_obj()(pText);
+}
+
+void
+MDualScreenReader::Update()
+{
+	Reset();
+	//文本填充：输出文本缓冲区字符串，并返回填充字符数。
+	itDn = PutString(AreaDown, PutString(AreaUp, itUp));
+	Invalidate();
+}
 
 YSL_END_NAMESPACE(Components)
 

@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1838;
+\version r1840;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-08-15 16:35 +0800;
+	2011-08-18 14:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,7 +68,30 @@ ShlDS::ShlDS(const shared_ptr<Desktop>& h_dsk_up,
 {}
 
 int
-ShlDS::ShlProc(const Message& msg)
+ShlDS::OnActivated(const Message&)
+{
+	YAssert(is_null(hDskUp),
+		"Null up desktop handle found @ ShlDS::ShlDS;");
+	YAssert(is_null(hDskDown),
+		"Null down desktop handle found @ ShlDS::ShlDS;");
+
+	ResetGUIStates();
+	return 0;
+}
+
+int
+ShlDS::OnDeactivated(const Message&)
+{
+	YAssert(&FetchGUIShell() == this,
+		"Invalid GUI shell found @ ShlDS::OnDeactivated");
+
+	hDskUp->ClearContents();
+	hDskDown->ClearContents();
+	return 0;
+}
+
+int
+ShlDS::OnGotMessage(const Message& msg)
 {
 	switch(msg.GetMessageID())
 	{
@@ -90,30 +113,7 @@ ShlDS::ShlProc(const Message& msg)
 	default:
 		break;
 	}
-	return YGUIShell::ShlProc(msg);
-}
-
-int
-ShlDS::OnActivated(const Message&)
-{
-	YAssert(is_null(hDskUp),
-		"Null up desktop handle found @ ShlDS::ShlDS;");
-	YAssert(is_null(hDskDown),
-		"Null down desktop handle found @ ShlDS::ShlDS;");
-
-	ResetGUIStates();
-	return 0;
-}
-
-int
-ShlDS::OnDeactivated(const Message&)
-{
-	YAssert(&FetchGUIShell() == this,
-		"Invalid GUI shell found @ ShlDS::OnDeactivated");
-
-	hDskUp->ClearContents();
-	hDskDown->ClearContents();
-	return 0;
+	return YGUIShell::OnGotMessage(msg);
 }
 
 void

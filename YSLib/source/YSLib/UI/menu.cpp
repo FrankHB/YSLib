@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1785;
+\version r1786;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-08-16 05:37 +0800;
+	2011-08-16 10:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -277,7 +277,7 @@ void
 MenuHost::ShowRaw(Menu& mnu, ZOrderType z)
 {
 	Frame.Add(mnu, z);
-	Invalidate(Frame);
+	Invalidate(mnu);
 	mnu.RequestFocusFrom(mnu);
 }
 

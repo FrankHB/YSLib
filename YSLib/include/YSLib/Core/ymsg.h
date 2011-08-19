@@ -11,12 +11,12 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version 0.2404;
+\version r2405;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-06-09 17:30 +0800;
+	2011-08-18 16:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,9 +39,6 @@ typedef u32 ID;
 typedef u8 Priority;
 
 const std::time_t DefTimeout(0);
-
-
-
 
 
 //! \brief 消息类。

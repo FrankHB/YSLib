@@ -1,4 +1,4 @@
-// v0.3229; *build 232 rev 40;
+// v0.3229; *build 233 rev 35;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -265,82 +265,111 @@ $using:
 
 $DONE:
 r1:
-/ \impl @ \impl u Shells ^ \ctor @ \cl Color ~ \mac ARGB16;
+/ \impl @ \mf ShowRaw @ \cl MenuHost;
 
-r2-r8:
+r2-r3:
 /= test 1;
 
-r9:
-/ \impl @ \mf ShlReader::UpdateToScreen;
+r4:
+/ \impl @ \mf ShlReader::OnKeyDown @ \impl \u Shells
+	^ direct routing strategy;
 
-r10-r14:
+r5-r17:
 /= test 2;
 
-r15:
-* invalid parent menu displayed on confirming submenus $since b231:
-	/ @ \u Menu:
-		/ \impl @ \mf MenuHost::HideRaw;
-		/ \impl @ \ctor @ \cl Menu
+r18:
+/ \impl @ \mf Desktop::MoveToTop;
 
-r16:
+r19:
 /= test 3 ^ \conf release;
 
-r17-r19:
-/= test 4;
-
 r20:
-/ @ \cl ShlReader @ \u Shells:
-	- \m bool bgDirty;
-	- \mf \vt UpdateToScreen;
-	+ private \mf void UpdateReader();
-	/ \tr \impl @ \ctor;
-	/ \tr \impl @ \mf OnActivated & OnKeyDown & 
+/ \impl @ \mf TextArea::Refresh;
 
 r21:
-/ \tr order @ \mf @ \cl ShlReader @ \u Shells;
+/ @ \impl \u Shells:
+	/ \impl @ \mf ShlReader::OnActivated;
+	/= \simp \impl @ ShlExplorer::TFormExtra::OnClick_btnTestEx
+		^ using \ns ColorSpace;
 
 r22:
-/ @ \cl ShlDS:
-	/ \impl @ \mf ShlProc;
-	- \mf SendPaintMessage;
-- \mf ShlProc @ \cl (ShlExplorer & ShlReader) @ \u Shells;
+/ @ \cl MDualScreenReader @ \u DSReader:
+	+ \i @ \f !\i (IsTextTop & IsTextBottom & SetColor
+		& SetLineGap & SetFontSize)
+	+ \f \i void Invalidate();
+/ @ \cl ShlReader @ \u Shells:
+	- private \mf UpdateReader;
+	/ \tr \impl @ \mf OnKeyDown;
 
 r23:
-/= test 5 ^ \conf release;
+/ \n ESC => Esc @ \ns platform::KeySpace @ \h YCommon;
+/ \tr @ \impl \u (TextList & Shells);
+/ \a ShlProc => OnMessaging;
 
-r24-r27:
-/= test 6;
+r24:
+/ @ \cl ShlReader @ \u Shells:
+	+ private \mf void ShowMenu(Menu::SizeType, const Point&);
+	/ \impl @ \mf OnClick ^ \mf ShowMenu;
+
+r25:
+-= some empty lines @ \h YMessage;
+/ @ \ns YSLib @ \h Shells:
+	+ typedef decltype(__LINE__) ResourceIndex;
+	+ typedef map<ResourceIndex, ValueObject> ResourceMap;
+	+ \mac \def DeclResource(_name) const ResourceIndex _name(__LINE__);
+/ @ \impl \u Shells:
+	/ @ \ns YReader:
+		+ \ns \o ResourceMap GlobalResourceMap @ \un \ns;
+		+ DeclResource(GR_BGs);
+	/ \un \ns \mg -> \ns YReader;
+
+r26:
+/ @ \cl ValueObject @ \u YObject:
+	+ \mft<typename _type> _type& GetObject();
+	+ DefPredicate(Empty, !obj_ptr);
+/ \impl @ \f shared_ptr<Image>& FetchGlobalImage(size_t) @ \un \ns @ \ns YReader
+	@ \impl \u Shells ^ \o GlobalResourceMap;
+
+r27:
+/ @ \u YObject:
+	/ @ \cl ValueObject:
+		+ \em \st PointerConstructTag;
+		+ \ctor \t<typename _type> ValueObject(_type*, PointerConstructTag);
+	+ \ft \i \t<typename _type> ValueObject MakeValueObjectByPtr(_type*);
+* \impl @ \f shared_ptr<Image>& FetchGlobalImage(size_t) @ \un \ns @ \ns YReader
+	@ \impl \u Shells $since r26;
 
 r28:
-/ \impl @ \mf MenuHost::HideUnrelated;
+/= test 4 ^ \conf release;
 
-r29-r35:
-/= test 7;
+r29:
+/ @ \cl MDualScreenReader @ \u DSReader:
+	- \i @ \mf Invalidate;
+	/ \impl @ \mf (LineUp & LineDown & Update) ^ Invalidate;
+/ \impl @ \mf ShlReader::OnKeyDown @ \impl \u Shells;
 
-r36-r38:
-* \impl @ \mf AFrame::ClearFocusingPtr $since b194;
-/= test 8;
+r30-r31:
+/ \impl @ \mf ShlReader::OnActivated @ \impl \u Shells;
 
-r39:
-* \impl @ \mf Panel::ClearFocusingPtr $since b201;
-* \impl @ \mf AUIBoxControl::ClearFocusingPtr $since b194;
+r32-r34:
+/= test 5;
 
-r40:
-/= test 9 ^ \conf release;
+r35:
+/= test 6 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-08-16:
--26.4d;
-//Mercurial rev1-rev103: r5089;
+2011-08-19:
+-26.1d;
+//Mercurial rev1-rev104: r5129;
 
 / ...
 
 
 $NEXT_TODO:
-b233-b256:
+b234-b256:
 + %TextList invalidation support;
 * non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
@@ -428,29 +457,54 @@ $ellipse_debug_assertion;
 
 $now
 (
+	/ "GUI" $=
+	(
+		/ "partial invalidation for hosted menus",
+		/ "partial invalidation for member function %Desktop::MoveToTop",
+		/ "partial invalidation for class %TextArea"
+	),
+	/ "shells test example" $=
+	(
+		/ "key input response" ^ "direct routing strategy"
+			~ "all routing strategy",
+		/ "menu of reader",
+		+ "mapped global resouce manegement"
+	),
+	/ "enhancement" @ "class %ValueObject"
+	(
+		+ "mutable access",
+		+ "empty predicate",
+		+ "constructing by pointers"
+	)
+),
+
+b232
+(
 	/ "shells test example" $=
 	(
 		/ "background images" @ "class %ShlExplorer",
 		/ $design "simplified reader refreshing implementation",
 		- $design "member function ShlProc" @ "class (%ShlExplorer, ShlReader)",
-
 	),
-	* "invalid parent menu displayed on confirming submenus" $since b231,
+	/ "GUI" $=
+	(
+		* "invalid parent menu displayed on confirming submenus" $since b231,
+		/ "menus functionality" $=
+		(
+			+ "hinding unrelated non-parent menus"
+		),
+		* "GUI class member function %ClearFocusingPtr implementation"
+			$since b194 $=
+		(
+			@ "class AFrame" $since b194,
+			@ "class Panel" $since b201,
+			@ "class AUIBoxControl" $since b194
+		)
+	),
 	/ $design "simplified shell classes" $=
 	(
-		/ "implementation" @ "member function %ShlDS::ShlProc"
+		/ "implementation" @ "shell message processing" @ "class %ShlDS"
 			^ "default sending of %SM_PAINT message when processing %SM_INPUT"
-	),
-	/ "menus functionality" $=
-	(
-		+ "hinding unrelated non-parent menus"
-	),
-	* "GUI class member function %ClearFocusingPtr implementation"
-		$since b194 $=
-	(
-		@ "class AFrame" $since b194,
-		@ "class Panel" $since b201,
-		@ "class AUIBoxControl" $since b194
 	)
 ),
 
@@ -703,40 +757,43 @@ b221
 			// due to members with parameter of rvalue-reference type
 			// are not supported.
 	),
-	* "move constructor lost" @ "class template %GMCounter" $since b210,
+	* "lost move constructor" @ "class template %GMCounter" $since b210,
 	/ "class %HDirectory" ^ "POSIX dirent API" ~ "libnds-specific API",
 	+ $design "diagnostic pragma for GCC 4.6.0 and newer"
 		@ "header type_op.hpp",
 	* "class %HDirectory state not restored during operations" $since b175,
-	/ "controls key-to-touch event mapping" @ "class %Control" $=
+	/ "GUI" $=
 	(
-		/ "custom handler" ^ "std::function" ~ "member function",
-		+ "%KeyPress to %Click event mapping methods" @ "class %Control",
-		* "calling mapped to disabled control" $since b217
-	),
-	/ "GUI input response" $=
-	(
-		* "%YShell::ResponseTouch wrong behavior for container not locating \
-			at (0, 0)" $since b213,
-		* "%YShell::ResponceKey wrong behavior for tunnel event for container"
-			$since b199
-	),
-	/ "menus functionality" $=
-	(
-		+ "key events for submenus" $=
+		/ "controls key-to-touch event mapping" @ "class %Control" $=
 		(
-			+ "%TouchDown %KeySpace::Left for hiding",
-			+ "%TouchDown %KeySpace::Right for showing"
+			/ "custom handler" ^ "std::function" ~ "member function",
+			+ "%KeyPress to %Click event mapping methods" @ "class %Control",
+			* "calling mapped to disabled control" $since b217
 		),
-		+ "automatically selecting when submenu shown using keypad"
-	),
-	/ "sequence viewer" $=
-	(
-		/ $design "default argument" ^ "unsigned integral type"
-			~ "signed integral type" @ "class template %GSequenceViewer",
-		+ "restricted value setting",
-		* "assertion failed in containing test when the length is zero"
-			$since b171
+		/ "input response" $=
+		(
+			* "%YShell::ResponseTouch wrong behavior for container not \
+				locating at (0, 0)" $since b213,
+			* "%YShell::ResponceKey wrong behavior for tunnel event for \
+				container" $since b199
+		),
+		/ "menus functionality" $=
+		(
+			+ "key events for submenus" $=
+			(
+				+ "%TouchDown %KeySpace::Left for hiding",
+				+ "%TouchDown %KeySpace::Right for showing"
+			),
+			+ "automatically selecting when submenu shown using keypad"
+		),
+		/ "sequence viewer" $=
+		(
+			/ $design "default argument" ^ "unsigned integral type"
+				~ "signed integral type" @ "class template %GSequenceViewer",
+			+ "restricted value setting",
+			* "assertion failed in containing test when the length is zero"
+				$since b171
+		)
 	)
 ),
 

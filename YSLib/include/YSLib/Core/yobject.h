@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version 0.3155;
+\version r3179;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-28 16:50 +0800;
+	2011-08-18 17:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,6 +73,10 @@ public:
 	} OpType;
 	typedef bool (*ManagerType)(void*&, void*&, OpType);
 
+	//! \brief 指示指针构造的标签类型。
+	struct PointerConstructTag
+	{};
+
 private:
 	template<typename _type>
 	struct GManager
@@ -116,13 +120,21 @@ public:
 	*/
 	ValueObject();
 	/*!
-	\brief 构造：使用对象引用。
+	\brief 构造：使用对象左值引用。
 	\note 对象需要是可复制构造的。
 	\note 得到包含指定对象的实例。
 	*/
 	template<typename _type>
 	ValueObject(const _type& obj)
 		: manager(&GManager<_type>::Do), obj_ptr(new _type(obj))
+	{}
+	/*!
+	\brief 构造：使用对象指针。
+	\note 得到包含指针指向的指定对象的实例，并获得所有权。
+	*/
+	template<typename _type>
+	ValueObject(_type* p, PointerConstructTag)
+		: manager(&GManager<_type>::Do), obj_ptr(p)
 	{}
 	ValueObject(const ValueObject&);
 	ValueObject(ValueObject&&);
@@ -136,6 +148,8 @@ public:
 	bool
 	operator==(const ValueObject&) const;
 
+	DefPredicate(Empty, !obj_ptr)
+
 	template<typename _type>
 	const _type&
 	GetObject() const
@@ -145,6 +159,16 @@ public:
 			" @ ValueObject::GetObject;");
 
 		return *static_cast<const _type*>(obj_ptr);
+	}
+	template<typename _type>
+	_type&
+	GetObject()
+	{
+		YAssert(obj_ptr, "Null pointer found @ ValueObject::GetObject;");
+		YAssert(GManager<_type>::Do == manager, "Invalid type found"
+			" @ ValueObject::GetObject;");
+
+		return *static_cast<_type*>(obj_ptr);
 	}
 
 	void
@@ -169,6 +193,18 @@ ValueObject::operator=(const ValueObject& c)
 {
 	ValueObject(c).Swap(*this);
 	return *this;
+}
+
+
+/*!
+\ingroup HelperFunction
+\brief 使用指针构造 ValueObject 实例。
+*/
+template<typename _type>
+inline ValueObject
+MakeValueObjectByPtr(_type* p)
+{
+	return ValueObject(p, ValueObject::PointerConstructTag());
 }
 
 

@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r4928;
+\version r4968;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-08-15 16:34 +0800;
+	2011-08-18 22:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,6 +32,15 @@
 //extern char gstr[128];
 
 using namespace ystdex;
+
+YSL_BEGIN_NAMESPACE(YReader)
+
+namespace
+{
+	ResourceMap GlobalResourceMap;
+}
+
+DeclResource(GR_BGs)
 
 namespace
 {
@@ -118,7 +127,15 @@ namespace
 	shared_ptr<Image>&
 	FetchGlobalImage(size_t i)
 	{
-		static shared_ptr<Image> spi[10];
+		typedef array<shared_ptr<Image>, 10> TargetType;
+
+		auto& value(GlobalResourceMap[GR_BGs]);
+
+		if(value.IsEmpty())
+			GlobalResourceMap[GR_BGs] = MakeValueObjectByPtr(new TargetType());
+
+		auto& spi(GlobalResourceMap[GR_BGs].GetObject<TargetType>());
+	//	static shared_ptr<Image> spi[10];
 
 		YAssert(IsInInterval(i, 10u), "Array index out of range"
 			" @ FetchGlobalImage;");
@@ -195,6 +212,9 @@ namespace
 		ScrDraw(FetchGlobalImageBuffer(i), f);
 	}
 }
+
+YSL_END_NAMESPACE(YReader)
+
 
 YSL_BEGIN
 
@@ -775,6 +795,8 @@ ShlExplorer::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 	TestObj t(FetchGlobalInstance().GetDesktopDownHandle());
 //	const auto& g(FetchContext(*t.h));
 
+	using namespace ColorSpace;
+
 	t.str = String(_ustr("Abc测试"));
 	switch(e.X * 4 / btnTestEx.GetWidth())
 	{
@@ -783,32 +805,32 @@ ShlExplorer::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 		t.Pause();
 	//	tr.BeFilledWith(ColorSpace::Black);
 		t.Test2();
-		t.Test3(ColorSpace::Black);
-		t.Test3(ColorSpace::Blue);
+		t.Test3(Black);
+		t.Test3(Blue);
 	case 1:
 		t.tr.SetSize(t.s.Width, t.s.Height);
 	//	t.Pause();
 	//	tr.BeFilledWith(ColorSpace::Black);
-		t.Test3(ColorSpace::White);
-		t.Test3(ColorSpace::Black);
-		t.Test3(ColorSpace::Red);
+		t.Test3(White);
+		t.Test3(Black);
+		t.Test3(Red);
 		break;
 	case 2:
-		t.c = ColorSpace::Lime;
+		t.c = Lime;
 		t.Fill();
 		t.Pause();
 	//	tr.BeFilledWith(ColorSpace::Black);
 		t.Test2();
-		t.Test3(ColorSpace::Black);
-		t.Test3(ColorSpace::Blue);
+		t.Test3(Black);
+		t.Test3(Blue);
 	case 3:
-		t.c = ColorSpace::Lime;
+		t.c = Lime;
 		t.tr.SetSize(t.s.Width, t.s.Height);
 	//	t.Pause();
 	//	t.tr.BeFilledWith(ColorSpace::Black);
-		t.Test3(ColorSpace::White);
-		t.Test3(ColorSpace::Black);
-		t.Test3(ColorSpace::Red);
+		t.Test3(White);
+		t.Test3(Black);
+		t.Test3(Red);
 	default:
 		break;
 	}
@@ -1080,8 +1102,6 @@ ShlReader::OnActivated(const Message& msg)
 	FetchEvent<Click>(dsk_dn).Add(*this, &ShlReader::OnClick);
 	FetchEvent<KeyDown>(dsk_dn).Add(*this, &ShlReader::OnKeyDown);
 	FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld;
-//	FetchEvent<Paint>(dsk_up).Add(*this, &ShlReader::OnPaint_Up);
-//	FetchEvent<Paint>(dsk_dn).Add(*this, &ShlReader::OnPaint_Down);
 	dsk_up += Reader.AreaUp;
 	dsk_dn += Reader.AreaDown;
 
@@ -1090,25 +1110,58 @@ ShlReader::OnActivated(const Message& msg)
 		auto& lst(*hList);
 
 		lst.push_back("返回");
-		lst.push_back(_ustr("2"));
-		lst.push_back("3");
+		lst.push_back("显示面板");
+		lst.push_back("向上一行");
+		lst.push_back("向下一行");
+		lst.push_back("向上一屏");
+		lst.push_back("向下一屏");
+	//	lst.push_back(_ustr("2"));
 
 		Menu& mnu(*new Menu(Rect::Empty, std::move(hList), 1u));
 
-		mnu.GetConfirmed() += [this](IControl&, IndexEventArgs&& e)
-		{
-			if(e.Index == 0)
+		mnu.GetConfirmed() += [this](IControl&, IndexEventArgs&& e){
+			switch(e.Index)
+			{
+			case 0:
 				CallStored<ShlExplorer>();
+				break;
+			case 2:
+				Reader.LineUp();
+				break;
+			case 3:
+				Reader.LineDown();
+				break;
+			case 4:
+				Reader.ScreenUp();
+				break;
+			case 5:
+				Reader.ScreenDown();
+				break;
+			}
 		};
+		/*
+		FetchEvent<TouchDown>(mnu) += [&, this](IControl&, TouchEventArgs&&){
+			char strt[60];
+			auto& dsk(this->GetDesktopDown());
+			auto& g(dsk.GetScreen());
+			using namespace ColorSpace;
+			{
+				const Rect r(0, 172, 72, 20);
+				auto& evt(FetchEvent<TouchDown>(mnu));
+				u32 t(evt.GetSize());
+
+				siprintf(strt, "n=%u", t);
+				FillRect(g, r, Blue);
+				DrawText(g, r, strt, Padding(), White);
+			}
+			WaitForInput();
+		};
+		*/
 		mhMain += mnu;
 		/*
-		mhMain += *new Menu(Rect::Empty, GenerateList("返回"), 1u);
-		mhMain += *new Menu(Rect::Empty, GenerateList("向上一行"), 2u);
-		mhMain += *new Menu(Rect::Empty, GenerateList("向下一行"), 3u);
-		mhMain += *new Menu(Rect::Empty, GenerateList("ll"), 4u);
+		mhMain += *new Menu(Rect::Empty, GenerateList("a"), 1u);
+		mhMain += *new Menu(Rect::Empty, GenerateList("b"), 2u);
 		mhMain[1u] += make_pair(1u, &mhMain[2u]);
-		mhMain[1u] += make_pair(2u, &mhMain[3u]);
-		mhMain[1u] += make_pair(3u, &mhMain[4u]);
 		*/
 	}
 	ResizeForContent(mhMain[1u]);
@@ -1128,8 +1181,6 @@ ShlReader::OnDeactivated(const Message& msg)
 	FetchEvent<Click>(dsk_dn).Remove(*this, &ShlReader::OnClick);
 	FetchEvent<KeyDown>(dsk_dn).Remove(*this, &ShlReader::OnKeyDown);
 	FetchEvent<KeyHeld>(dsk_dn) -= OnKeyHeld;
-//	FetchEvent<Paint>(dsk_up).Remove(*this, &ShlReader::OnPaint_Up);
-//	FetchEvent<Paint>(dsk_dn).Remove(*this, &ShlReader::OnPaint_Down);
 	dsk_up -= Reader.AreaUp;
 	dsk_dn -= Reader.AreaDown;
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
@@ -1141,105 +1192,99 @@ ShlReader::OnDeactivated(const Message& msg)
 }
 
 void
-ShlReader::UpdateReader()
+ShlReader::ShowMenu(Menu::ID id, const Point& pt)
 {
-	//强制刷新背景。
-//	SetInvalidationOf(GetDesktopUp());
-//	SetInvalidationOf(GetDesktopDown());
-	Invalidate(Reader.AreaUp);
-	Invalidate(Reader.AreaDown);
+	mhMain[id].SetLocation(pt);
+	mhMain.Show(id);
 }
 
 void
 ShlReader::OnClick(TouchEventArgs&& e)
 {
-//	UpdateReader();
-	mhMain[1u].SetLocation(e);
-	mhMain.Show(1u);
+	ShowMenu(1u, e);
 }
 
 void
 ShlReader::OnKeyDown(KeyEventArgs&& e)
 {
-	u32 k(static_cast<KeyEventArgs::InputType>(e));
-
-	UpdateReader();
-	switch(k)
+	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-	case KeySpace::Enter:
-		Reader.Update();
-		break;
+		u32 k(static_cast<KeyEventArgs::InputType>(e));
 
-	case KeySpace::ESC:
-		CallStored<ShlExplorer>();
-		break;
-
-	case KeySpace::Up:
-	case KeySpace::Down:
-	case KeySpace::PgUp:
-	case KeySpace::PgDn:
+		switch(k)
 		{
-			switch(k)
+		case KeySpace::Enter:
+			//Reader.Invalidate();
+			Reader.Update();
+			break;
+
+		case KeySpace::Esc:
+			CallStored<ShlExplorer>();
+			break;
+
+		case KeySpace::Up:
+		case KeySpace::Down:
+		case KeySpace::PgUp:
+		case KeySpace::PgDn:
 			{
-			case KeySpace::Up:
-				Reader.LineUp();
-				break;
-			case KeySpace::Down:
-				Reader.LineDown();
-				break;
-			case KeySpace::PgUp:
-				Reader.ScreenUp();
-				break;
-			case KeySpace::PgDn:
-				Reader.ScreenDown();
-				break;
+				switch(k)
+				{
+				case KeySpace::Up:
+					Reader.LineUp();
+					break;
+				case KeySpace::Down:
+					Reader.LineDown();
+					break;
+				case KeySpace::PgUp:
+					Reader.ScreenUp();
+					break;
+				case KeySpace::PgDn:
+					Reader.ScreenDown();
+					break;
+				}
 			}
-		}
-		break;
+			break;
 
-	case KeySpace::X:
-		Reader.SetLineGap(5);
-		Reader.Update();
-		break;
-
-	case KeySpace::Y:
-		Reader.SetLineGap(8);
-		Reader.Update();
-		break;
-
-	case KeySpace::Left:
-		//Reader.SetFontSize(Reader.GetFontSize()+1);
-		if(Reader.GetLineGap() != 0)
-		{
-			Reader.SetLineGap(Reader.GetLineGap() - 1);
+		case KeySpace::X:
+			Reader.SetLineGap(5);
 			Reader.Update();
-		}
-		break;
+			break;
 
-	case KeySpace::Right:
-		//PixelType cc(Reader.GetColor());
-		//Reader.SetColor(Color((cc & (15 << 5)) >> 2, (cc & 29) << 3,
-		//	(cc&(31 << 10)) >> 7));
-		if(Reader.GetLineGap() != 12)
-		{
-			Reader.SetLineGap(Reader.GetLineGap() + 1);
+		case KeySpace::Y:
+			Reader.SetLineGap(8);
 			Reader.Update();
-		}
-		break;
+			break;
 
-	default:
-		return;
+		case KeySpace::Left:
+			//Reader.SetFontSize(Reader.GetFontSize()+1);
+			if(Reader.GetLineGap() != 0)
+			{
+				Reader.SetLineGap(Reader.GetLineGap() - 1);
+				Reader.Update();
+			}
+			break;
+
+		case KeySpace::Right:
+			//PixelType cc(Reader.GetColor());
+			//Reader.SetColor(Color((cc & (15 << 5)) >> 2, (cc & 29) << 3,
+			//	(cc&(31 << 10)) >> 7));
+			if(Reader.GetLineGap() != 12)
+			{
+				Reader.SetLineGap(Reader.GetLineGap() + 1);
+				Reader.Update();
+			}
+			break;
+
+		default:
+			return;
+		}
 	}
 }
 
 /*
-void ShlReader::OnPaint_Up(EventArgs&&)
+void ShlReader::OnPaint(EventArgs&&)
 {
 	Reader.PrintTextUp(FetchContext(GetDesktopUp()));
-}
-
-void ShlReader::OnPaint_Down(EventArgs&&)
-{
 	Reader.PrintTextDown(FetchContext(GetDesktopDown()));
 }
 */

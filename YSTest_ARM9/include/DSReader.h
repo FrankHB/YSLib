@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version 0.2421;
+\version r2441;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-08-11 10:38 +0800;
+	2011-08-18 22:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -106,10 +106,10 @@ private:
 
 public:
 	void
+	SetColor(Color = Drawing::ColorSpace::Black); //!< 设置字符颜色。
+	void
 	SetFontSize(Drawing::Font::SizeType = Drawing::Font::DefaultSize); \
 		//!< 设置字符区域字体大小。
-	void
-	SetColor(Color = Drawing::ColorSpace::Black); //!< 设置字符颜色。
 	void
 	SetLineGap(u8 = 0); //!< 设置行距。
 
@@ -117,17 +117,21 @@ public:
 	//void
 	//SetCurrentTextLineNTo(u8);
 
-	//! \brief 复位输出状态。
+	//! \brief 无效化文本区域。
 	void
-	Reset();
+	Invalidate();
+
+	//! \brief 上移一行。
+	bool
+	LineUp();
+
+	//! \brief 下移一行。
+	bool
+	LineDown();
 
 	//! \brief 载入文本。
 	void
 	LoadText(TextFile&);
-
-	//! \brief 卸载文本。
-	void
-	UnloadText();
 
 	//! \brief 绘制上屏文本。
 	void
@@ -137,17 +141,9 @@ public:
 	void
 	PrintTextDown(const Drawing::Graphics&);
 
-	//! \brief 更新缓冲区文本。
+	//! \brief 复位输出状态。
 	void
-	Update();
-
-	//! \brief 上移一行。
-	bool
-	LineUp();
-
-	//! \brief 下移一行。
-	bool
-	LineDown();
+	Reset();
 
 	//! \brief 上移一屏。
 	bool
@@ -163,7 +159,45 @@ public:
 	*/
 	//void
 	//Scroll(Function<void()> pCheck);
+
+	//! \brief 卸载文本。
+	void
+	UnloadText();
+
+	//! \brief 更新缓冲区文本。
+	void
+	Update();
 };
+
+inline bool
+MDualScreenReader::IsTextTop()
+{
+	return itUp == pText->Blocks.begin();
+}
+inline bool
+MDualScreenReader::IsTextBottom()
+{
+	return itDn == pText->Blocks.end();
+}
+
+inline void
+MDualScreenReader::SetColor(Color c)
+{
+	AreaUp.Color = c;
+	AreaDown.Color = c;
+}
+inline void
+MDualScreenReader::SetFontSize(Drawing::Font::SizeType fz)
+{
+	fc.SetFontSize(fz);
+	lnHeight = fc.GetHeight();
+}
+inline void
+MDualScreenReader::SetLineGap(u8 g)
+{
+	AreaUp.LineGap = g;
+	AreaDown.LineGap = g;
+}
 
 YSL_END_NAMESPACE(Components)
 

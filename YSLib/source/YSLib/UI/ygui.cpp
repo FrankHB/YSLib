@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.3868;
+\version r3870;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-08-02 02:44 +0800;
+	2011-08-18 14:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,6 +44,28 @@ YGUIShell::YGUIShell()
 	LastControlLocation(Point::FullScreen), Colors(),
 	p_KeyDown(), p_TouchDown(), control_entered(false)
 {}
+
+int
+YGUIShell::OnGotMessage(const Message& msg)
+{
+	using namespace Messaging;
+
+	switch(msg.GetMessageID())
+	{
+	case SM_PAINT:
+		{
+			auto h(FetchTarget<SM_PAINT>(msg));
+			
+			if(h)
+				h->Refresh(FetchContext(*h),
+					Point::Zero, Rect(Point::Zero, h->GetSize()));
+		}
+		return 0;
+	default:
+		break;
+	}
+	return YShell::OnGotMessage(msg);
+}
 
 bool
 YGUIShell::RepeatHeld(HeldStateType& s,
@@ -295,28 +317,6 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, std::move(e)) != 0;
 	}
 	return r;
-}
-
-int
-YGUIShell::ShlProc(const Message& msg)
-{
-	using namespace Messaging;
-
-	switch(msg.GetMessageID())
-	{
-	case SM_PAINT:
-		{
-			auto h(FetchTarget<SM_PAINT>(msg));
-			
-			if(h)
-				h->Refresh(FetchContext(*h),
-					Point::Zero, Rect(Point::Zero, h->GetSize()));
-		}
-		return 0;
-	default:
-		break;
-	}
-	return YShell::ShlProc(msg);
 }
 
 YSL_END_NAMESPACE(Shells)

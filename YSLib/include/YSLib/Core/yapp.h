@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version 0.2318;
+\version r2320;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-06-24 20:34 +0800;
+	2011-08-18 14:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -184,7 +184,7 @@ FetchShellHandle() ynothrow
 
 /*!
 \ingroup HelperFunction
-\brief 激活 Shell 对象：ShlProc 控制权转移给此对象以维持单线程运行。
+\brief 激活 Shell 对象：控制权转移给此对象以维持单线程运行。
 */
 inline bool
 Activate(const shared_ptr<YShell>& h)

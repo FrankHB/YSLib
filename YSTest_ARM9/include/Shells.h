@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3338;
+\version r3355;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-08-15 16:34 +0800;
+	2011-08-18 16:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,6 +33,16 @@
 
 #include <YSLib/Helper/shlds.h>
 #include "DSReader.h"
+
+YSL_BEGIN
+
+typedef decltype(__LINE__) ResourceIndex;
+typedef map<ResourceIndex, ValueObject> ResourceMap;
+
+#define DeclResource(_name) const ResourceIndex _name(__LINE__);
+
+YSL_END
+
 
 YSL_BEGIN_NAMESPACE(YReader)
 
@@ -211,7 +221,7 @@ public:
 
 private:
 	void
-	UpdateReader();
+	ShowMenu(Menu::ID, const Point&);
 
 	void
 	OnClick(TouchEventArgs&&);

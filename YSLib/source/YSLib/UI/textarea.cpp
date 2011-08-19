@@ -11,12 +11,12 @@
 /*!	\file textarea.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version 0.1320;
+\version r1322;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-30 20:10:27 +0800;
 \par 修改时间:
-	2011-07-15 10:58 +0800;
+	2011-08-16 19:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,7 +44,8 @@ Rect
 TextArea::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 {
 	Widget::Refresh(g, pt, r);
-	BlitTo(g, *this, Point::Zero, Point::Zero, Rotation);
+	BlitTo(g.GetBufferPtr(), *this, g.GetSize(),
+		r, static_cast<const Point&>(r) - pt, r, Rotation);
 	return GetBoundsOf(*this);
 }
 

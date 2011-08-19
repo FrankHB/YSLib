@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version 0.2594;
+\version r2597;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-23 23:50 +0800;
+	2011-08-18 14:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,6 +73,12 @@ public:
 
 	DefGetter(IControl*, KeyDownPtr, p_KeyDown) //独立键焦点指针。
 	DefGetter(IControl*, TouchDownPtr, p_TouchDown) //独立屏幕焦点指针。
+
+	/*!
+	\brief 消息处理函数。
+	*/
+	virtual int
+	OnGotMessage(const Message&);
 
 	/*!
 	\brief 重复检测输入接触保持事件。
@@ -136,12 +142,6 @@ public:
 	bool
 	ResponseTouch(IControl&, Components::Controls::TouchEventArgs&,
 		Components::Controls::VisualEvent);
-
-	/*!
-	\brief Shell 处理函数。
-	*/
-	virtual int
-	ShlProc(const Message&);
 };
 
 YSL_END_NAMESPACE(Shells)
