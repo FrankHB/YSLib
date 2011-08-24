@@ -1,4 +1,4 @@
-// v0.3229; *build 233 rev 35;
+// v0.3249; *build 234 rev 32;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -11,14 +11,10 @@ $parser.$ __pstate;
 $parser.unfold __unfold;
 $parser.$.iterators __iterators;
 
-__unfold.$ctor $=
-(
-	__pstate.behavior.ignore $= $true;
-);
-__unfold.$dtor $=
-(
-	__pstate.behavior.ignore $= $false;
-);
+$match_each m;
+
+__unfold.(m($ctor, $dtor)) $= __pstate.behavior.ignore
+	$= m($true, $false);
 __unfold __iterators.for_labeled_paragraph
 (
 	$DONE,
@@ -32,7 +28,11 @@ __unfold __iterators.for_labeled_paragraph
 $script_preprocessor_escapse:
 //$Record prefix and abbrevations:
 $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
-; ::= statement termination
+// $evaluating.structure;
+// semi-colon is used for remarking eval-order-sensitive expressions;
+, ::= non-sequenced seperater
+; ::= sequenced seperater(statement termination)
+// $evaluating.content;
 = ::= equivalent
 + ::= added
 - ::= removed
@@ -265,111 +265,138 @@ $using:
 
 $DONE:
 r1:
-/ \impl @ \mf ShowRaw @ \cl MenuHost;
+/ @ \u Shells $=
+(
+	/ @ \cl ShlExplorer $=
+	(
+		+ \m CheckBox chkFPS,
+		/ \impl @ \ctor,
+		/ \impl @ \mf UpdateToScreen,
+		/ \impl @ \mf OnActivated
+	),
+	/ \impl @ \mf ShlReader::OnActivated
+);
 
-r2-r3:
-/= test 1;
+r2:
+/ @ \cl Menu $=
+(
+	+ protected \m vector<bool> vDisabled,
+	+ \mf bool IsItemEnabled(ListType::size_type),
+	/ \impl @ \mf PaintItem,
+	/ \impl @ \ctor,
+	+ \mf void SetItemEnabled(ListType::size_type, bool = true),
+	+ protected \mf void AdjustSize()
+);
+
+r3:
+/= 4 \rem @ \impl @ \f @ \impl \u Scroll,
+/ @ \h YCoreUtilities $=
+(
+	/ \rem of assertion '\pre' ^ ('\c' & '<tt>' & '<\tt>'),
+	/ \simp \as \str
+);
 
 r4:
-/ \impl @ \mf ShlReader::OnKeyDown @ \impl \u Shells
-	^ direct routing strategy;
+/ @ \cl TextList $=
+(
+	// inserting item enable predicate polymorphic layer;
+	(
+		/ \mf CheckConfirmed => InvokeConfirmed;
+		+ \mf \vt bool CheckConfirmed(ViewerType::SizeType) const
+	);
+	/ \impl \mf InvokeConfirmed ^ \mf CheckConfirmed,
+	+ \c @ \mf (IsItemEnabled & AdjustSize),
+	+ mutable @ \m vDisabled
+);
++ overwritten \mf \vt CheckConfirmed @ \cl Menu;
 
-r5-r17:
+r5:
+/ @ \impl \u Shells $=
+(
+	+ \c Menu::IndexType MR_Return(0u),
+		MR_Hyphen(1u),
+		MR_LineUp(2u),
+		MR_LineDown(3u),
+		MR_ScreenUp(4u),
+		MR_ScreenDown(5u) @ \un \ns;
+	/ @ \cl ShlReader $=
+	(
+		/ \impl @ \mf OnActivated,
+		/ \impl @ \mf ShowMenu
+	)
+);
+
+r6-r7:
+/ \impl @ \mf ShlReader::ShowMenu @ \impl \u Shells;
+
+r8:
+* \impl @ \mf Menu::SetItemEnabled $since r2;
+
+r9:
+/= \test 1 ^ \conf release;
+
+r10:
+/= \rem @ \h (YControl & Menu & Shell_DS);
+
+r11:
+/ @ \cl ShlExplorer @ \u Shells $=
+(
+	- \m chkTest,
+	/ \tr \impl @ \ctor,
+	/ \tr \impl @ \mf OnActivated
+);
+
+r12:
+* \impl @ \ctor @ \cl ShlExplorer @ \impl \u Shells $since r11;
+
+r13:
+* \impl @ \f ReleaseShells @ \impl \u Shells $since b233;
+
+r14:
+/ @ \cl ShlReader @ \u Shells $=
+(
+	+ \m Controls::Panel Panel,
+	/ \impl @ \ctor,
+	/ \impl @ \mf OnActivated
+),
++ \inc \h Panel @ \h Build;
+
+r15:
+/ @ \impl \u Shells $=
+(
+	/ \impl @ \mf ShlReader::OnActivated,
+	/ \a 'MR_Hyphen' => 'MR_Panel'
+);
+
+r16-r17:
+/ \impl \mf ShlReader::OnActivated @ \u Shells;
+
+r18-r30:
 /= test 2;
 
-r18:
-/ \impl @ \mf Desktop::MoveToTop;
+r31:
+* @ \mf Refresh @ \cl Control $=
+(
+	*= \decl @ $since b224,
+	* \impl @ $since b230
+);
 
-r19:
-/= test 3 ^ \conf release;
-
-r20:
-/ \impl @ \mf TextArea::Refresh;
-
-r21:
-/ @ \impl \u Shells:
-	/ \impl @ \mf ShlReader::OnActivated;
-	/= \simp \impl @ ShlExplorer::TFormExtra::OnClick_btnTestEx
-		^ using \ns ColorSpace;
-
-r22:
-/ @ \cl MDualScreenReader @ \u DSReader:
-	+ \i @ \f !\i (IsTextTop & IsTextBottom & SetColor
-		& SetLineGap & SetFontSize)
-	+ \f \i void Invalidate();
-/ @ \cl ShlReader @ \u Shells:
-	- private \mf UpdateReader;
-	/ \tr \impl @ \mf OnKeyDown;
-
-r23:
-/ \n ESC => Esc @ \ns platform::KeySpace @ \h YCommon;
-/ \tr @ \impl \u (TextList & Shells);
-/ \a ShlProc => OnMessaging;
-
-r24:
-/ @ \cl ShlReader @ \u Shells:
-	+ private \mf void ShowMenu(Menu::SizeType, const Point&);
-	/ \impl @ \mf OnClick ^ \mf ShowMenu;
-
-r25:
--= some empty lines @ \h YMessage;
-/ @ \ns YSLib @ \h Shells:
-	+ typedef decltype(__LINE__) ResourceIndex;
-	+ typedef map<ResourceIndex, ValueObject> ResourceMap;
-	+ \mac \def DeclResource(_name) const ResourceIndex _name(__LINE__);
-/ @ \impl \u Shells:
-	/ @ \ns YReader:
-		+ \ns \o ResourceMap GlobalResourceMap @ \un \ns;
-		+ DeclResource(GR_BGs);
-	/ \un \ns \mg -> \ns YReader;
-
-r26:
-/ @ \cl ValueObject @ \u YObject:
-	+ \mft<typename _type> _type& GetObject();
-	+ DefPredicate(Empty, !obj_ptr);
-/ \impl @ \f shared_ptr<Image>& FetchGlobalImage(size_t) @ \un \ns @ \ns YReader
-	@ \impl \u Shells ^ \o GlobalResourceMap;
-
-r27:
-/ @ \u YObject:
-	/ @ \cl ValueObject:
-		+ \em \st PointerConstructTag;
-		+ \ctor \t<typename _type> ValueObject(_type*, PointerConstructTag);
-	+ \ft \i \t<typename _type> ValueObject MakeValueObjectByPtr(_type*);
-* \impl @ \f shared_ptr<Image>& FetchGlobalImage(size_t) @ \un \ns @ \ns YReader
-	@ \impl \u Shells $since r26;
-
-r28:
-/= test 4 ^ \conf release;
-
-r29:
-/ @ \cl MDualScreenReader @ \u DSReader:
-	- \i @ \mf Invalidate;
-	/ \impl @ \mf (LineUp & LineDown & Update) ^ Invalidate;
-/ \impl @ \mf ShlReader::OnKeyDown @ \impl \u Shells;
-
-r30-r31:
-/ \impl @ \mf ShlReader::OnActivated @ \impl \u Shells;
-
-r32-r34:
-/= test 5;
-
-r35:
-/= test 6 ^ \conf release;
+r32:
+/= \test 3 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-08-19:
--26.1d;
-//Mercurial rev1-rev104: r5129;
+2011-08-24:
+-28.4d;
+//Mercurial rev1-rev105: r5164;
 
 / ...
 
 
 $NEXT_TODO:
-b234-b256:
+b235-b256:
 + %TextList invalidation support;
 * non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
@@ -459,6 +486,24 @@ $now
 (
 	/ "GUI" $=
 	(
+		/ "overwritable item enablity policy support" @ "class %TextList",
+		/ "item enablity support" @ "class %Menu",
+		* $design "reculsively self call" @ "Control::Refresh"
+			$since b230
+	),
+	/ "shells test example" $=
+	(
+		+ "checkbox to switch FPS visibility",
+		- "checkbox to switch enablity of button",
+		* "lost mapped global resouce release call" $since b233,
+		+ "empty panel test"
+	)
+),
+
+b233
+(
+	/ "GUI" $=
+	(
 		/ "partial invalidation for hosted menus",
 		/ "partial invalidation for member function %Desktop::MoveToTop",
 		/ "partial invalidation for class %TextArea"
@@ -470,7 +515,7 @@ $now
 		/ "menu of reader",
 		+ "mapped global resouce manegement"
 	),
-	/ "enhancement" @ "class %ValueObject"
+	/ $design "enhancement" @ "class %ValueObject"
 	(
 		+ "mutable access",
 		+ "empty predicate",
@@ -491,7 +536,7 @@ b232
 		* "invalid parent menu displayed on confirming submenus" $since b231,
 		/ "menus functionality" $=
 		(
-			+ "hinding unrelated non-parent menus"
+			+ "hiding unrelated non-parent menus"
 		),
 		* "GUI class member function %ClearFocusingPtr implementation"
 			$since b194 $=

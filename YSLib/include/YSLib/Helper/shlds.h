@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2008;
+\version r2009;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-08-18 14:12 +0800;
+	2011-08-23 20:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -88,7 +88,7 @@ class ShlDS : public Shells::YGUIShell
 {
 private:
 	shared_ptr<Desktop> hDskUp, hDskDown; \
-		//正常状态下应该总是指向有效的桌面对象。
+		//正常状态下应该总是指向可用的桌面对象。
 
 public:
 	/*!

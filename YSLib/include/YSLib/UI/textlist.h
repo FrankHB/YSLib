@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version 0.1348;
+\version r1356;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-08-08 09:44 +0800;
+	2011-08-20 20:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -149,6 +149,13 @@ public:
 	AdjustBottomOffset();
 
 	/*!
+	\brief 检查列表中的指定项是否有效。
+	\note 当且仅当有效时响应 Confirmed 事件。
+	*/
+	virtual bool
+	CheckConfirmed(ViewerType::SizeType) const;
+
+	/*!
 	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
 	\return 选择的项目索引。
 	*/
@@ -231,7 +238,7 @@ private:
 	\brief 检查和调用确认事件处理器。
 	*/
 	void
-	CheckConfirmed(ViewerType::SizeType);
+	InvokeConfirmed(ViewerType::SizeType);
 
 	/*!
 	\brief 处理选中和确认事件。

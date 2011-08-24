@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version 0.2604;
+\version r2662;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-05-15 16:03 +0800;
+	2011-08-20 12:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,8 @@ YSL_BEGIN
 /*!
 \brief 转换类型选择。
 
-若 _type 能隐式转换为 _tStrict 则 Result 为 _tStrict，否则 Result 为 _tWeak 。
+若 \c _type 能隐式转换为 \c _tStrict 则 \c Result 为 \c _tStrict，
+	否则 \c Result 为 \c _tWeak 。
 */
 template<typename _type, typename _tStrict, typename _tWeak>
 struct MoreConvertible
@@ -53,7 +54,8 @@ struct MoreConvertible
 /*!
 \brief 转换类型选择。
 
-若 _type 能隐式转换为 _tStrict 则 Result 为 _tStrict，否则 Result 为 _type 。
+若 \c _type 能隐式转换为 \c _tStrict 则 \c Result 为 \c _tStrict，
+	否则 \c Result 为 \c _type 。
 */
 template<typename _type, typename _tStrict>
 struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
@@ -83,7 +85,7 @@ GetZeroElement()
 
 /*!
 \brief 整数类型符号函数。
-\note 当 a < b 时返回 -1 ，否则当 a = b 时返回 0 ，否则返回 1 。
+\note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
 */
 inline s8
 sgn(int a, int b = 0)
@@ -92,7 +94,7 @@ sgn(int a, int b = 0)
 }
 /*!
 \brief 符号函数。
-\note 当 a < b 时返回 -1 ，否则当 a = b 时返回 0 ，否则返回 1 。
+\note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
 */
 template<typename _type>
 s8
@@ -128,97 +130,79 @@ sgnInterval(const _type& d, const _type& a, const _type& b)
 }
 
 /*!
-\brief 判断 i 是否在左闭右开区间 [GetZeroElement<_type>(), b) 中。
-\pre 断言：GetZeroElement<_type>() < b 。
+\brief 判断 i 是否在左闭右开区间 [<tt>GetZeroElement<_type>()</tt>, b) 中。
+\pre 断言： <tt>GetZeroElement<_type>() < b</tt> 。
 */
 template<typename _type>
 inline bool
 IsInInterval(_type i, _type b)
 {
 	YAssert(GetZeroElement<_type>() < b,
-		"In function \"template<typename _type>\n"
-		"inline bool\n"
-		"IsInInterval(_type i, _type b)\":\n"
-		"Zero element as lower bound is not less than upper bound.");
+		"Zero element as lower bound is not less than upper bound"
+		" @ IsInterval<_type>(_type, _type);");
 
 	return !(i < GetZeroElement<_type>()) && i < b;
 }
 /*!
 \brief 判断 i 是否在左闭右开区间 [a, b) 中。
-\pre 断言：a < b 。
+\pre 断言： <tt>a < b</tt> 。
 */
 template<typename _type>
 inline bool
 IsInInterval(_type i, _type a, _type b)
 {
-	YAssert(a < b,
-		"In function \"template<typename _type>\n"
-		"inline bool\n"
-		"IsInInterval(_type i, _type a, _type b)\":\n"
-		"Lower bound is not less than upper bound.");
+	YAssert(a < b, "Lower bound is not less than upper bound"
+		" @ IsInInterval<_type>(_type, _type, _type);");
 
 	return !(i < a) && i < b;
 }
 
 /*!
 \brief 判断 i 是否在开区间 (GetZeroElement<_type>(), b) 内。
-\pre 断言：GetZeroElement<_type>() < b 。
+\pre 断言： <tt>GetZeroElement<_type>() < b</tt> 。
 */
 template<typename _type>
 inline bool
 IsInOpenInterval(_type i, _type b)
 {
 	YAssert(GetZeroElement<_type>() < b,
-		"In function \"template<typename _type>\n"
-		"inline bool\n"
-		"IsInOpenInterval(_type i, _type b)\":\n"
-		"Zero element as lower bound is not less than upper bound.");
+		"Zero element as lower bound is not less than upper bound"
+		" @ IsInOpenInterval<_type>(_type, _type);");
 
 	return i > GetZeroElement<_type>() && i < b;
 }
 /*!
 \brief 判断 i 是否在开区间 (a, b) 内。
-\pre 断言：a < b 。
+\pre 断言： <tt>a < b</tt> 。
 */
 template<typename _type>
 inline bool
 IsInOpenInterval(_type i, _type a, _type b)
 {
 	YAssert(a < b,
-		"In function \"template<typename _type>\n"
-		"inline bool\n"
-		"IsInOpenInterval(_type i, _type a, _type b)\":\n"
-		"Lower bound is not less than upper bound.");
+		"Lower bound is not less than upper bound"
+		" @ IsInOpenInterval<_type>(_type, type, _type);");
 
 	return i > a && i < b;
 }
 
 /*!
-\brief 计算满足指定的值 v 在区间 [a[i], a[i + 1]) 内的最小的 i 。
-\pre 断言：a 。
-\pre 断言：n != 0 。
-\pre 断言：!(v < *a) 。
+\brief 计算满足指定的值 v 在区间 [<tt>a[i]</tt>, <tt>a[i + 1]</tt>) 内最小的 i 。
+\pre 断言： <tt>a</tt> 。
+\pre 断言： <tt>n != 0</tt> 。
+\pre 断言： <tt>!(v < *a)</tt> 。
 
 */
 template<typename _type>
 size_t
 SwitchInterval(_type v, const _type* a, size_t n)
 {
-	YAssert(a,
-		"In function \"template<typename _type>\n"
-		"size_t\n"
-		"SwitchInterval(_type v, const _type* a, size_t n)\":\n"
-		"The array pointer is null.");
-	YAssert(n != 0,
-		"In function \"template<typename _type>\n"
-		"size_t\n"
-		"SwitchInterval(_type v, const _type* a, size_t n)\":\n"
-		"The length of array is zero.");
-	YAssert(!(v < *a),
-		"In function \"template<typename _type>\n"
-		"size_t\n"
-		"SwitchInterval(_type v, const _type* a, size_t n)\":\n"
-		"The value is less than lower bound.");
+	YAssert(a, "Null array pointer found"
+		" @ SwitchInterval<_type>(_type, const _type*, size_t);");
+	YAssert(n != 0, "Zero length of array found"
+		" @ SwitchInterval<_type>(_type, const _type*, size_t);");
+	YAssert(!(v < *a), "Value less than lower bound found"
+		" @ SwitchInterval<_type>(_type, const _type*, size_t);");
 
 	size_t i(0);
 
@@ -228,31 +212,22 @@ SwitchInterval(_type v, const _type* a, size_t n)
 }
 
 /*!
-\brief 计算满足指定的值 v 在区间 [b[i], b[i + 1]) 内的最小的 i ；
-			其中 b[i] 是 a[i] 前 i 项的和。
-\pre 断言：a 。
-\pre 断言：n != 0 。
-\pre 断言：!(v < *a) 。
+\brief 计算满足指定的值 v 在区间 [b(i), b(i + 1)) 内的最小的 i ；
+			其中 b(i) 是 <tt>a[i]</tt> 前 i 项的和。
+\pre 断言： <tt>a</tt> 。
+\pre 断言： <tt>n != 0</tt> 。
+\pre 断言： <tt>!(v < *a)</tt> 。
 */
 template<typename _type>
 size_t
 SwitchAddedInterval(_type v, const _type* a, size_t n)
 {
-	YAssert(a,
-		"In function \"template<typename _type>\n"
-		"size_t\n"
-		"SwitchAddedInterval(_type v, const _type* a, size_t n)\":\n"
-		"The array pointer is null.");
-	YAssert(n != 0,
-		"In function \"template<typename _type>\n"
-		"size_t\n"
-		"SwitchAddedInterval(_type v, const _type* a, size_t n)\":\n"
-		"Length of array is zero.");
-	YAssert(!(v < *a),
-		"In function \"template<typename _type>\n"
-		"size_t\n"
-		"SwitchAddedInterval(_type v, const _type* a, size_t n)\":\n"
-		"Value is less than lower bound.");
+	YAssert(a, "Null array pointer found"
+		" @ SwitchAddedInterval<_type>(_type, const _type*, size_t);");
+	YAssert(n != 0, "Zero length of array found"
+		" @ SwitchAddedInterval<_type>(_type, const _type*, size_t);");
+	YAssert(!(v < *a), "Value less than lower bound found"
+		" @ SwitchAddedInterval<_type>(_type, const _type*, size_t);");
 
 	_type s(*a);
 	size_t i(0);
@@ -264,18 +239,15 @@ SwitchAddedInterval(_type v, const _type* a, size_t n)
 
 /*!
 \brief 约束整数 i 在闭区间 [a, b] 中。
-\pre 断言：!(b < a) 。
-\post !(i < a || b < i) 。
+\pre 断言： <tt>!(b < a)</tt> 。
+\post <tt>!(i < a || b < i)</tt> 。
 */
 template<typename _type>
 void
 RestrictInClosedInterval(_type& i, int a, int b)
 {
-	YAssert(!(b < a),
-		"In function \"template<typename _type>\n"
-		"void\n"
-		"RestrictInClosedInterval(_type& i, int a, int b)\":\n"
-		"Upper bound is less than lower bound.");
+	YAssert(!(b < a), "Upper bound is less than lower bound"
+		" @ estrictInClosedInterval<_type>(_type&, int, int);");
 
 	if(i < a)
 		i = a;
@@ -285,18 +257,15 @@ RestrictInClosedInterval(_type& i, int a, int b)
 
 /*!
 \brief 约束整数 i 在左闭右开区间 [a, b) 中。
-\pre 断言：a < b 。
-\post !(i < a) && i < b 。
+\pre 断言： <tt>a < b</tt> 。
+\post <tt>!(i < a) && i < b</tt> 。
 */
 template<typename _type>
 void
 RestrictInInterval(_type& i, int a, int b)
 {
-	YAssert(a < b,
-		"In function \"template<typename _type>\n"
-		"void\n"
-		"RestrictInInterval(_type& i, int a, int b)\":\n"
-		"Lower bound is not less than upper bound.");
+	YAssert(a < b, "Lower bound is not less than upper bound"
+		" @ RestrictInInterval<_type>(_type&, int, int);");
 
 	if(i < a)
 		i = a;
@@ -306,7 +275,7 @@ RestrictInInterval(_type& i, int a, int b)
 
 /*!
 \brief 约束无符号整数 u 在区间上界 b 内。
-\post !(b < u)。
+\post <tt>!(b < u)</tt>。
 */
 template<typename _type>
 void
@@ -318,18 +287,15 @@ RestrictUnsignedStrict(_type& u, unsigned b)
 
 /*!
 \brief 约束无符号整数 u 在左闭右开区间 [0, b) 中。
-\pre 断言：b != GetZeroElement<_type>() 。
-\post !(u < GetZeroElement<_type>()) && u < b 。
+\pre 断言： <tt>b != GetZeroElement<_type>()</tt> 。
+\post <tt>!(u < GetZeroElement<_type>()) && u < b</tt> 。
 */
 template<typename _type>
 void
 RestrictUnsigned(_type& u, unsigned b)
 {
-	YAssert(b != GetZeroElement<_type>(),
-		"In function \"template<typename _type>\n"
-		"void\n"
-		"RestrictUnsigned(_type& u, unsigned b)\":\n"
-		"Upper bound is zero.");
+	YAssert(b != GetZeroElement<_type>(), "Zero upper bound found"
+		" @ RestrictUnsigned<_type>(_type& u, unsigned b);");
 
 	if(!(u < b))
 		u = b - 1;
@@ -337,7 +303,7 @@ RestrictUnsigned(_type& u, unsigned b)
 
 /*!
 \brief 约束关系：a ≤ b 。
-\post a <= b 。
+\post <tt>a <= b</tt> 。
 */
 template<typename _type>
 inline void
@@ -350,6 +316,7 @@ RestrictLessEqual(_type& a, _type& b)
 
 /*!
 \brief 清除指定的连续区域。
+\note 忽略空指针和零长度。
 */
 template<typename _type>
 void

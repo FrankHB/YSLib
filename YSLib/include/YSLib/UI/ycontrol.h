@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version 0.5187;
+\version r5189;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-08-08 09:15 +0800;
+	2011-08-23 18:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -262,12 +262,12 @@ typedef GEventMap<IControl, VisualEvent> VisualEventMapType;
 
 //! \brief 控件接口。
 DeclBasedInterface1(IControl, virtual IWidget)
-	DeclIEntry(bool IsEnabled() const) //!< 判断是否有效。
+	DeclIEntry(bool IsEnabled() const) //!< 判断是否可用。
 	DeclIEntry(bool IsFocused() const) //!< 判断是否取得焦点。
 
 	DeclIEntry(VisualEventMapType& GetEventMap() const) //!< 取事件映射表。
 
-	DeclIEntry(void SetEnabled(bool)) //!< 设置有效性。
+	DeclIEntry(void SetEnabled(bool)) //!< 设置可用性。
 
 	//! \brief 向部件容器请求获得焦点，并指定 GotFocus 事件发送控件。
 	DeclIEntry(void RequestFocusFrom(IControl&))
@@ -346,7 +346,7 @@ CallEvent(IControl& c, typename EventTypeMapping<_vID>
 }
 
 /*!
-\brief 设置控件有效性并使部件区域在窗口缓冲区中无效。
+\brief 设置控件可用性并使部件区域在窗口缓冲区中无效。
 */
 inline void
 SetEnabledOf(IControl& ctl, bool b = true)
@@ -415,7 +415,7 @@ class Control : public Widgets::Widget, public AFocusRequester,
 	virtual implements IControl
 {
 private:
-	bool enabled; //!< 控件有效性。
+	bool enabled; //!< 控件可用性。
 
 protected:
 	mutable VisualEventMapType EventMap; //!< 事件映射表。
@@ -466,7 +466,7 @@ public:
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
-	virtual Rect
+	ImplI1(IControl) Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
 
 	/*!

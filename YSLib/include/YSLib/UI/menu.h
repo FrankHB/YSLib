@@ -11,12 +11,12 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1690;
+\version r1723;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-08-16 05:38 +0800;
+	2011-08-23 20:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,6 +58,7 @@ protected:
 	MenuHost* pHost; //!< 宿主指针。
 	Menu* pParent; //!< 父菜单指针。
 	SubMap mSubMenus; //!< 子菜单映射表：存储非空子菜单指针。
+	mutable vector<bool> vDisabled; //!< 未启用菜单项。
 
 public:
 	/*!
@@ -66,7 +67,6 @@ public:
 	explicit
 	Menu(const Rect& = Rect::Empty,
 		const shared_ptr<ListType>& = shared_ptr<ListType>(), ID = 0);
-	DefGetter(ID, ID, id)
 
 	/*!
 	\brief 访问索引指定的子菜单。
@@ -89,7 +89,41 @@ public:
 	bool
 	operator-=(IndexType);
 
+	/*!
+	\brief 判断菜单项是否有效。
+	\断言： <tt>IsInInterval(idx, GetList().size())</tt> 。
+	\post <tt>vDisabled.size() == GetList().size()</tt> 。
+	*/
+	bool
+	IsItemEnabled(ListType::size_type) const;
+
+	DefGetter(ID, ID, id)
 	DefGetter(Menu*, ParentPtr, pParent)
+
+	/*!
+	\brief 设置 idx 指定的菜单项的可用性。
+	\断言： <tt>IsInInterval(idx, GetList().size())</tt> 。
+	\post <tt>vDisabled.size() == GetList().size()</tt> ；
+		IsItemEnabled(idx) 。
+	*/
+	void
+	SetItemEnabled(ListType::size_type idx, bool = true);
+
+protected:
+	/*!
+	\brief 调整 vDisabled 大小。
+	\post <tt>vDisabled.size() == GetList().size()</tt> 。
+	*/
+	void
+	AdjustSize() const;
+
+public:
+	/*!
+	\brief 检查列表中的指定项是否可用。
+	\note 当且仅当可用时响应 Confirmed 事件。
+	*/
+	virtual bool
+	CheckConfirmed(ViewerType::SizeType) const;
 
 	/*!
 	\brief 按指定 Z 顺序显示菜单。

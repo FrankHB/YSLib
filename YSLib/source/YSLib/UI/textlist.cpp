@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1410;
+\version r1419;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-08-18 13:55 +0800;
+	2011-08-20 20:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,7 +66,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 				switch(e.GetKeyCode())
 				{
 				case KeySpace::Enter:
-					CheckConfirmed(viewer.GetSelectedIndex());
+					InvokeConfirmed(viewer.GetSelectedIndex());
 					break;
 				case KeySpace::Esc:
 					ClearSelected();
@@ -153,7 +153,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 		UpdateView();
 	};
 	FetchEvent<Click>(*this) += [this](IControl&, TouchEventArgs&& e){
-		CheckConfirmed(CheckPoint(e));
+		InvokeConfirmed(CheckPoint(e));
 	};
 }
 
@@ -208,6 +208,12 @@ TextList::AdjustBottomOffset()
 
 	top_offset = item_height - down_offset;
 	return down_offset;
+}
+
+bool
+TextList::CheckConfirmed(TextList::ViewerType::SizeType idx) const
+{
+	return viewer.IsSelected() && viewer.GetSelectedIndex() == idx;
 }
 
 TextList::ViewerType::SizeType
@@ -340,10 +346,10 @@ TextList::CallSelected()
 }
 
 void
-TextList::CheckConfirmed(ViewerType::SizeType i)
+TextList::InvokeConfirmed(ViewerType::SizeType idx)
 {
-	if(viewer.IsSelected() && viewer.GetSelectedIndex() == i)
-		GetConfirmed()(*this, IndexEventArgs(*this, i));
+	if(CheckConfirmed(idx))
+		GetConfirmed()(*this, IndexEventArgs(*this, idx));
 }
 
 void

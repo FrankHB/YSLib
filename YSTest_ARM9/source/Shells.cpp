@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r4968;
+\version r5001;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-08-18 22:53 +0800;
+	2011-08-24 10:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -301,6 +301,7 @@ ReleaseShells()
 
 	for(size_t i(0); i != 10; ++i)
 		FetchGlobalImage(i).reset();
+	GlobalResourceMap.clear();
 	ReleaseStored<ShlReader>();
 	ReleaseStored<ShlExplorer>();
 }
@@ -365,7 +366,7 @@ ShlExplorer::ShlExplorer()
 	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(12, 80, 240, 22)),
 	fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
-	chkTest(Rect(232, 144, 16, 16)),
+	chkFPS(Rect(232, 144, 16, 16)),
 	pWndTest(), pWndExtra(),
 	lblA(Rect(5, 20, 200, 22)),
 	lblB(Rect(5, 120, 72, 22)),
@@ -384,11 +385,8 @@ ShlExplorer::ShlExplorer()
 			== "txt");
 	};
 	fbMain.GetConfirmed() += OnConfirmed_fbMain;
-	SetEnabledOf(btnTest, false);
+	SetEnabledOf(btnTest, true);
 	SetEnabledOf(btnOK, false);
-	FetchEvent<Click>(chkTest) += [this](IControl&, TouchEventArgs&&){
-		SetEnabledOf(btnTest, chkTest.IsTicked());
-	};
 	FetchEvent<Click>(btnTest).Add(*this, &ShlExplorer::OnClick_btnTest);
 	FetchEvent<Click>(btnOK).Add(*this, &ShlExplorer::OnClick_btnOK);
 	lblA.Text = YApplication::ProductName;
@@ -851,7 +849,7 @@ ShlExplorer::OnActivated(const Message& msg)
 	dsk_dn += fbMain;
 	dsk_dn += btnTest;
 	dsk_dn += btnOK;
-	dsk_dn += chkTest;
+	dsk_dn += chkFPS;
 	dsk_up += lblA;
 	dsk_up += lblB;
 	// init-seg 1;
@@ -942,28 +940,31 @@ ShlExplorer::UpdateToScreen()
 	Validate(dsk_up);
 	Validate(dsk_dn);
 
-	char strt[60];
-	auto& g(FetchContext(dsk_dn));
-//	auto& g(dsk_dn.GetScreen());
-	using namespace ColorSpace;
-
+	if(chkFPS.IsTicked())
 	{
-		const Rect r(0, 172, 72, 20);
-		u32 t(fpsCounter.Refresh());
+		char strt[60];
+		auto& g(FetchContext(dsk_dn));
+	//	auto& g(dsk_dn.GetScreen());
+		using namespace ColorSpace;
 
-		siprintf(strt, "FPS: %u.%03u", t/1000, t%1000);
-		FillRect(g, r, Blue);
-		DrawText(g, r, strt, Padding(), White);
-	}
-	{
-		const Rect r(4, 144, 120, 20);
-		Rect ri;
+		{
+			const Rect r(0, 172, 72, 20);
+			u32 t(fpsCounter.Refresh());
 
-		dsk_dn.GetRenderer().GetInvalidatedArea(ri);
-		siprintf(strt, "(%d, %d, %u, %u)",
-			ri.X, ri.Y, ri.Width, ri.Height);
-		FillRect(g, r, Green);
-		DrawText(g, r, strt, Padding(), Yellow);
+			siprintf(strt, "FPS: %u.%03u", t/1000, t%1000);
+			FillRect(g, r, Blue);
+			DrawText(g, r, strt, Padding(), White);
+		}
+		{
+			const Rect r(4, 144, 120, 20);
+			Rect ri;
+
+			dsk_dn.GetRenderer().GetInvalidatedArea(ri);
+			siprintf(strt, "(%d, %d, %u, %u)",
+				ri.X, ri.Y, ri.Width, ri.Height);
+			FillRect(g, r, Green);
+			DrawText(g, r, strt, Padding(), Yellow);
+		}
 	}
 	dsk_up.Update();
 	dsk_dn.Update();
@@ -1080,8 +1081,20 @@ string ShlReader::path;
 
 ShlReader::ShlReader()
 	: ShlDS(),
-	Reader(), pTextFile(), hUp(), hDn(), mhMain(*GetDesktopDownHandle())
+	Reader(), Panel(Rect(0, 160, 256, 32)),
+	pTextFile(), hUp(), hDn(), mhMain(*GetDesktopDownHandle())
 {}
+
+namespace
+{
+	// MR -> MNU_READER;
+	const Menu::IndexType MR_Return(0u),
+		MR_Panel(1u),
+		MR_LineUp(2u),
+		MR_LineDown(3u),
+		MR_ScreenUp(4u),
+		MR_ScreenDown(5u);
+}
 
 int
 ShlReader::OnActivated(const Message& msg)
@@ -1104,37 +1117,42 @@ ShlReader::OnActivated(const Message& msg)
 	FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld;
 	dsk_up += Reader.AreaUp;
 	dsk_dn += Reader.AreaDown;
+	dsk_dn += Panel;
+	Panel.SetVisible(false);
 
 	{
 		auto hList(share_raw(new Menu::ListType));
 		auto& lst(*hList);
 
+		lst.reserve(6u);
 		lst.push_back("返回");
 		lst.push_back("显示面板");
 		lst.push_back("向上一行");
 		lst.push_back("向下一行");
 		lst.push_back("向上一屏");
 		lst.push_back("向下一屏");
-	//	lst.push_back(_ustr("2"));
 
 		Menu& mnu(*new Menu(Rect::Empty, std::move(hList), 1u));
 
 		mnu.GetConfirmed() += [this](IControl&, IndexEventArgs&& e){
 			switch(e.Index)
 			{
-			case 0:
+			case MR_Return:
 				CallStored<ShlExplorer>();
 				break;
-			case 2:
+			case MR_Panel:
+				Show(Panel);
+				break;
+			case MR_LineUp:
 				Reader.LineUp();
 				break;
-			case 3:
+			case MR_LineDown:
 				Reader.LineDown();
 				break;
-			case 4:
+			case MR_ScreenUp:
 				Reader.ScreenUp();
 				break;
-			case 5:
+			case MR_ScreenDown:
 				Reader.ScreenDown();
 				break;
 			}
@@ -1183,6 +1201,7 @@ ShlReader::OnDeactivated(const Message& msg)
 	FetchEvent<KeyHeld>(dsk_dn) -= OnKeyHeld;
 	dsk_up -= Reader.AreaUp;
 	dsk_dn -= Reader.AreaDown;
+	dsk_up -= Panel;
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
 	Reader.UnloadText();
@@ -1194,7 +1213,17 @@ ShlReader::OnDeactivated(const Message& msg)
 void
 ShlReader::ShowMenu(Menu::ID id, const Point& pt)
 {
-	mhMain[id].SetLocation(pt);
+	auto& mnu(mhMain[id]);
+
+	mnu.SetLocation(pt);
+	switch(id)
+	{
+	case 1u:
+		mnu.SetItemEnabled(MR_LineUp, !Reader.IsTextTop());
+		mnu.SetItemEnabled(MR_LineDown, !Reader.IsTextBottom());
+		mnu.SetItemEnabled(MR_ScreenUp, !Reader.IsTextTop());
+		mnu.SetItemEnabled(MR_ScreenDown, !Reader.IsTextBottom());
+	}
 	mhMain.Show(id);
 }
 

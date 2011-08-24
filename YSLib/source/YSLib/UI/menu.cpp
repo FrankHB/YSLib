@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1786;
+\version r1825;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-08-16 10:24 +0800;
+	2011-08-20 21:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,11 +41,13 @@ YSL_BEGIN_NAMESPACE(Controls)
 Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 	: TextList(r, h, FetchGUIShell().Colors.GetPair(Styles::Highlight,
 		Styles::HighlightText)),
-	id(id), pParent(nullptr), mSubMenus()
+	id(id), pParent(nullptr), mSubMenus(), vDisabled()
 {
 	BackColor = FetchGUIShell().Colors[Styles::Panel];
 	SetAllOf(Margin, 6, 18, 4, 4);
 	CyclicTraverse = true;
+	if(h)
+		vDisabled.resize(h->size());
 	FetchEvent<KeyDown>(*this) += [this](IControl&, KeyEventArgs&& e){
 		if(pHost && IsSelected())
 			switch(e.GetKeyCode())
@@ -120,6 +122,41 @@ Menu::operator-=(IndexType idx)
 }
 
 bool
+Menu::IsItemEnabled(Menu::ListType::size_type idx) const
+{
+	YAssert(IsInInterval(idx, GetList().size()),
+		"Index out of range found @ Menu::IsItemEnabled;");
+
+	AdjustSize();
+	return !vDisabled[idx];
+}
+
+void
+Menu::SetItemEnabled(Menu::ListType::size_type idx, bool b)
+{
+	YAssert(IsInInterval(idx, GetList().size()),
+		"Index out of range found @ Menu::SetItemEnabled;");
+
+	AdjustSize();
+	vDisabled[idx] = !b;
+}
+
+void
+Menu::AdjustSize() const
+{
+	const auto list_size(GetList().size());
+
+	if(vDisabled.size() != list_size)
+		vDisabled.resize(list_size);
+}
+
+bool
+Menu::CheckConfirmed(Menu::ViewerType::SizeType idx) const
+{
+	return TextList::CheckConfirmed(idx) && IsItemEnabled(idx);
+}
+
+bool
 Menu::Show(ZOrderType z)
 {
 	if(pHost)
@@ -163,8 +200,14 @@ Menu::Hide()
 void
 Menu::PaintItem(const Graphics& g, const Rect& r, ListType::size_type i)
 {
-	DrawText(g, GetTextState(), GetList()[i]);
+	Color t(GetTextState().Color);
 
+	// TODO: handle highlight text color;
+
+	if(!IsItemEnabled(i))
+		GetTextState().Color = FetchGUIShell().Colors[Styles::GrayText];
+	DrawText(g, GetTextState(), GetList()[i]);
+	GetTextState().Color = t;
 	if(r.Width > 16 && mSubMenus.find(i) != mSubMenus.end())
 		WndDrawArrow(g, Rect(r.X + r.Width - 16, r.Y, 16, r.Height), 4, RDeg0,
 			ForeColor);

@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3355;
+\version r3360;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-08-18 16:22 +0800;
+	2011-08-24 10:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -152,7 +152,7 @@ public:
 	Label lblTitle, lblPath;
 	FileBox fbMain;
 	Button btnTest, btnOK;
-	CheckBox chkTest;
+	CheckBox chkFPS;
 	unique_ptr<TFormTest> pWndTest;
 	unique_ptr<TFormExtra> pWndExtra;
 	Label lblA, lblB;
@@ -207,6 +207,7 @@ public:
 	static string path;
 
 	MDualScreenReader Reader;
+	Controls::Panel Panel;
 	TextFile* pTextFile;
 	shared_ptr<Image> hUp, hDn;
 	MenuHost mhMain;

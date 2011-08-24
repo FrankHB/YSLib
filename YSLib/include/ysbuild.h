@@ -15,12 +15,12 @@
 /*!	\file ysbuild.h
 \ingroup YSLib
 \brief YSLib 库配置文件。
-\version 0.1692;
+\version r1694;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 21:53:55 +0800;
 \par 修改时间:
-	2011-06-02 13:03 +0800;
+	2011-08-23 10:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,6 +41,7 @@
 #include <YSLib/UI/form.h>
 #include <YSLib/UI/listbox.h>
 #include <YSLib/UI/menu.h>
+#include <YSLib/UI/panel.h>
 
 #endif
 
