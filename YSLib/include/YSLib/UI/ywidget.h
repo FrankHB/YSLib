@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5913;
+\version r5918;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-08-13 06:28 +0800;
+	2011-08-25 13:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -215,18 +215,18 @@ DeclInterface(IWidget)
 	DeclIEntry(WidgetRenderer& GetRenderer() const)
 	/*!
 	\brief 取焦点对象指针。
-	\return 若非容器则为 nullptr ，否则为指向子部件中的焦点对象的指针，。
+	\return 若为容器且存在子部件中的焦点对象则返回指针，否则返回 \c nullptr 。
 	*/
 	DeclIEntry(IControl* GetFocusingPtr()) \
 	/*!
 	\brief 取指定的点所在的可见部件的指针。
-	\return 若非容器则为 nullptr ，否则为指向子部件中的可见部件的指针，。
+	\return 若为容器且存在子部件中的可见部件则返回指针，否则返回 \c nullptr 。
 	\note 使用部件坐标。
 	*/
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&)) \
 	/*!
 	\brief 取指定的点所在的可见控件的指针。
-	\return 若非容器则为 nullptr ，否则为指向子部件中的可见控件的指针，。
+	\return 若为容器且存在子部件中的可见控则返回指针，否则返回 \c nullptr 。
 	\note 使用部件坐标。
 	*/
 	DeclIEntry(IControl* GetTopControlPtr(const Point&)) \

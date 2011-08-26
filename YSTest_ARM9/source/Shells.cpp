@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5001;
+\version r5054;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-08-24 10:40 +0800;
+	2011-08-26 14:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,7 +65,7 @@ namespace
 			(~(x * y) >> 2),
 			(x | y | 128),
 			(240 - ((x & y) >> 1))
-			);
+		);
 	}
 	void
 	dfap(BitmapPtr buf, SDst x, SDst y)
@@ -75,7 +75,7 @@ namespace
 			((x << 4) / (y | 1)),
 			((x | y << 1) % (y + 2)),
 			((~y | x << 1) % 27 + 3)
-			);
+		);
 	}
 	void
 	dfac1(BitmapPtr buf, SDst x, SDst y)
@@ -85,7 +85,7 @@ namespace
 			(x + y * y),
 			((x & y) ^ (x | y)),
 			(x * x + y)
-			);
+		);
 	}
 	void
 	dfac1p(BitmapPtr buf, SDst x, SDst y)
@@ -95,7 +95,7 @@ namespace
 			((x * y) | x),
 			((x * y) | y),
 			((x ^ y) * (x ^ y))
-			);
+		);
 	}
 	void
 	dfac2(BitmapPtr buf, SDst x, SDst y)
@@ -105,7 +105,7 @@ namespace
 			((x << 4) / (y & 1)),
 			(~x % 101 + y),
 			((x + y) % ((y - 2) & 1) + (x << 2))
-			);
+		);
 	}
 	void
 	dfac2p(BitmapPtr buf, SDst x, SDst y)
@@ -115,7 +115,7 @@ namespace
 			((x | y) % (y + 2)),
 			((~y | x) % 27 + 3),
 			((x << 6) / (y | 1))
-			);
+		);
 	}
 
 	////
@@ -124,34 +124,23 @@ namespace
 	int nCountInput;
 	char strCount[40];
 
+	template<typename _tTarget>
+	_tTarget&
+	FetchGlobalResource(ResourceIndex idx)
+	{
+		if(GlobalResourceMap[idx].IsEmpty())
+			GlobalResourceMap[idx] = MakeValueObjectByPtr(new _tTarget());
+		return GlobalResourceMap[GR_BGs].GetObject<_tTarget>();
+	}
+
 	shared_ptr<Image>&
 	FetchGlobalImage(size_t i)
 	{
-		typedef array<shared_ptr<Image>, 10> TargetType;
-
-		auto& value(GlobalResourceMap[GR_BGs]);
-
-		if(value.IsEmpty())
-			GlobalResourceMap[GR_BGs] = MakeValueObjectByPtr(new TargetType());
-
-		auto& spi(GlobalResourceMap[GR_BGs].GetObject<TargetType>());
-	//	static shared_ptr<Image> spi[10];
+		auto& spi(FetchGlobalResource<array<shared_ptr<Image>, 10>>(GR_BGs));
 
 		YAssert(IsInInterval(i, 10u), "Array index out of range"
 			" @ FetchGlobalImage;");
-
 		return spi[i];
-	}
-
-	BitmapPtr
-	FetchGlobalImageBuffer(size_t i)
-	{
-		auto& h(FetchGlobalImage(i));
-
-		if(!h)
-			h = share_raw(new Image(nullptr, MainScreenWidth,
-				MainScreenHeight));
-		return h->GetBufferPtr();
 	}
 
 	void
@@ -204,12 +193,6 @@ namespace
 			t.uordblks,
 			t.fordblks,
 			t.keepcost);
-	}
-
-	void
-	ScrDrawG(size_t i, PPDRAW f)
-	{
-		ScrDraw(FetchGlobalImageBuffer(i), f);
 	}
 }
 
@@ -317,47 +300,24 @@ using namespace Drawing::ColorSpace;
 shared_ptr<Image>&
 FetchImage(size_t i)
 {
-	switch(i)
+	//色块覆盖测试用程序段。
+	const PPDRAW p_bg[10] = {nullptr, dfa, dfap, dfac1, dfac1p, dfac2, dfac2p};
+
+	if(!FetchGlobalImage(i) && p_bg[i])
 	{
-	case 1:
-	case 2:
-		//色块覆盖测试用程序段。
-		if(!FetchGlobalImage(1))
-		{
-			/*
-			gbuf = ynew ScreenBufferType;
-			memset(gbuf, 0xEC, sizeof(ScreenBufferType)); //0xF2
-			ydelete_array(gbuf);
-			*/
-			ScrDrawG(1, dfa);
-			ScrDrawG(2, dfap);
-		}
-		break;
-	case 3:
-	case 4:
-		if(!FetchGlobalImage(3))
-		{
-			ScrDrawG(3, dfac1);
-			ScrDrawG(4, dfac1p);
-		}
-		break;
-	case 5:
-	case 6:
-	case 7:
-		if(!FetchGlobalImage(5))
-		{
-			ScrDrawG(5, dfac2);
-			ScrDrawG(6, dfac2p);
-		}
-		break;
-	case 8:
-	case 9:
-	//	LoadR();
-		break;
-	default:
-		i = 0;
+		auto& h(FetchGlobalImage(i));
+
+		if(!h)
+			h = share_raw(new Image(nullptr, MainScreenWidth,
+				MainScreenHeight));
+		ScrDraw(h->GetBufferPtr(), p_bg[i]);
 	}
 	return FetchGlobalImage(i);
+	/*
+	gbuf = ynew ScreenBufferType;
+	memset(gbuf, 0xEC, sizeof(ScreenBufferType)); //0xF2
+	ydelete_array(gbuf);
+	*/
 }
 
 
@@ -599,6 +559,7 @@ ShlExplorer::TFormTest::OnEnter_btnEnterTest(IControl& sender,
 	btn.Text = str;
 	Invalidate(btn);
 }
+
 void
 ShlExplorer::TFormTest::OnLeave_btnEnterTest(IControl& sender,
 	TouchEventArgs&& e)
@@ -1077,14 +1038,6 @@ ShlExplorer::OnTouchDown_FormExtra(IControl& sender, TouchEventArgs&&)
 }
 
 
-string ShlReader::path;
-
-ShlReader::ShlReader()
-	: ShlDS(),
-	Reader(), Panel(Rect(0, 160, 256, 32)),
-	pTextFile(), hUp(), hDn(), mhMain(*GetDesktopDownHandle())
-{}
-
 namespace
 {
 	// MR -> MNU_READER;
@@ -1095,6 +1048,91 @@ namespace
 		MR_ScreenUp(4u),
 		MR_ScreenDown(5u);
 }
+
+
+ShlReader::ReaderPanel::ReaderPanel(const Rect& r, ShlReader& shl)
+	: AUIBoxControl(r),
+	Shell(shl), btnClose(Rect(232, 8, 24, 24)),
+	btnUp(Rect(184, 0, 24, 24)), btnDown(Rect(184, 24, 24, 24)),
+	btnLeft(Rect(160, 24, 24, 24)), btnRight(Rect(208, 24, 24, 24))
+{
+	btnClose.GetContainerPtrRef() = this;
+	btnUp.GetContainerPtrRef() = this;
+	btnDown.GetContainerPtrRef() = this;
+	btnLeft.GetContainerPtrRef() = this;
+	btnRight.GetContainerPtrRef() = this;
+	btnClose.Text = "×";
+	btnUp.Text = "↑";
+	btnDown.Text = "↓";
+	btnLeft.Text = "←";
+	btnRight.Text = "→";
+	FetchEvent<Click>(btnClose) += [this](IControl&, TouchEventArgs&&){
+		Hide(*this);
+	};
+	FetchEvent<TouchDown>(btnUp) += [this](IControl&, TouchEventArgs&&){
+		Shell.ExcuteReadingCommand(MR_LineUp);
+		UpdateEnablilty();
+	};
+	FetchEvent<TouchDown>(btnDown) += [this](IControl&, TouchEventArgs&&){
+		Shell.ExcuteReadingCommand(MR_LineDown);
+		UpdateEnablilty();
+	};
+	FetchEvent<TouchDown>(btnLeft) += [this](IControl&, TouchEventArgs&&){
+		Shell.ExcuteReadingCommand(MR_ScreenUp);
+		UpdateEnablilty();
+	};
+	FetchEvent<TouchDown>(btnRight) += [this](IControl&, TouchEventArgs&&){
+		Shell.ExcuteReadingCommand(MR_ScreenDown);
+		UpdateEnablilty();
+	};
+}
+
+IControl*
+ShlReader::ReaderPanel::GetTopControlPtr(const Point& pt)
+{
+	if(Contains(btnClose, pt))
+		return &btnClose;
+	if(Contains(btnUp, pt))
+		return &btnUp;
+	if(Contains(btnDown, pt))
+		return &btnDown;
+	if(Contains(btnLeft, pt))
+		return &btnLeft;
+	if(Contains(btnRight, pt))
+		return &btnRight;
+	return nullptr;
+}
+
+Rect
+ShlReader::ReaderPanel::Refresh(const Graphics& g, const Point& pt,
+	const Rect& r)
+{
+	auto rect(Widget::Refresh(g, pt, r));
+
+	RenderChild(btnClose, g, pt, r);
+	RenderChild(btnUp, g, pt, r);
+	RenderChild(btnDown, g, pt, r);
+	RenderChild(btnLeft, g, pt, r);
+	RenderChild(btnRight, g, pt, r);
+	return GetBoundsOf(*this);
+}
+
+void
+ShlReader::ReaderPanel::UpdateEnablilty()
+{
+	SetEnabledOf(btnUp, !Shell.Reader.IsTextTop());
+	SetEnabledOf(btnDown, !Shell.Reader.IsTextBottom());
+	SetEnabledOf(btnLeft, !Shell.Reader.IsTextTop());
+	SetEnabledOf(btnRight, !Shell.Reader.IsTextBottom());
+}
+
+string ShlReader::path;
+
+ShlReader::ShlReader()
+	: ShlDS(),
+	Reader(), Panel(Rect(0, 144, 256, 48), *this),
+	pTextFile(), hUp(), hDn(), mhMain(*GetDesktopDownHandle())
+{}
 
 int
 ShlReader::OnActivated(const Message& msg)
@@ -1135,27 +1173,7 @@ ShlReader::OnActivated(const Message& msg)
 		Menu& mnu(*new Menu(Rect::Empty, std::move(hList), 1u));
 
 		mnu.GetConfirmed() += [this](IControl&, IndexEventArgs&& e){
-			switch(e.Index)
-			{
-			case MR_Return:
-				CallStored<ShlExplorer>();
-				break;
-			case MR_Panel:
-				Show(Panel);
-				break;
-			case MR_LineUp:
-				Reader.LineUp();
-				break;
-			case MR_LineDown:
-				Reader.LineDown();
-				break;
-			case MR_ScreenUp:
-				Reader.ScreenUp();
-				break;
-			case MR_ScreenDown:
-				Reader.ScreenDown();
-				break;
-			}
+			ExcuteReadingCommand(e.Index);
 		};
 		/*
 		FetchEvent<TouchDown>(mnu) += [&, this](IControl&, TouchEventArgs&&){
@@ -1208,6 +1226,33 @@ ShlReader::OnDeactivated(const Message& msg)
 	safe_delete_obj()(pTextFile);
 	ParentType::OnDeactivated(msg);
 	return 0;
+}
+
+void
+ShlReader::ExcuteReadingCommand(IndexEventArgs::IndexType idx)
+{
+	switch(idx)
+	{
+	case MR_Return:
+		CallStored<ShlExplorer>();
+		break;
+	case MR_Panel:
+		Panel.UpdateEnablilty();
+		Show(Panel);
+		break;
+	case MR_LineUp:
+		Reader.LineUp();
+		break;
+	case MR_LineDown:
+		Reader.LineDown();
+		break;
+	case MR_ScreenUp:
+		Reader.ScreenUp();
+		break;
+	case MR_ScreenDown:
+		Reader.ScreenDown();
+		break;
+	}
 }
 
 void

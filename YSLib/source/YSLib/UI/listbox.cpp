@@ -57,11 +57,9 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 IControl*
 ListBox::GetTopControlPtr(const Point& pt)
 {
-	IControl* pCon(ScrollableContainer::GetTopControlPtr(pt));
+	IControl* pCtl(ScrollableContainer::GetTopControlPtr(pt));
 
-	if(pCon == this)
-		return &TextListBox;
-	return pCon;
+	return pCtl ? pCtl : &TextListBox;
 }
 
 Rect

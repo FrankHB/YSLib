@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3870;
+\version r3878;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-08-18 14:12 +0800;
+	2011-08-25 12:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -124,7 +124,7 @@ YGUIShell::ResetGUIStates()
 void
 YGUIShell::TryEntering(IControl& c, TouchEventArgs& e)
 {
-	if(!control_entered && p_TouchDown == &c)
+	if(!control_entered)
 	{
 		CallEvent<Enter>(c, e);
 		control_entered = true;
@@ -133,7 +133,7 @@ YGUIShell::TryEntering(IControl& c, TouchEventArgs& e)
 void
 YGUIShell::TryLeaving(IControl& c, TouchEventArgs& e)
 {
-	if(control_entered && p_TouchDown == &c)
+	if(control_entered)
 	{
 		CallEvent<Leave>(c, e);
 		control_entered = false;
@@ -189,7 +189,8 @@ YGUIShell::ResponseTouchBase(IControl& c, TouchEventArgs& e,
 	case TouchUp:
 		ResetTouchHeldState();
 		CallEvent<TouchUp>(c, e);
-		TryLeaving(c, e);
+		if(p_TouchDown)
+			TryLeaving(*p_TouchDown, e);
 		if(p_TouchDown == &c)
 		{
 			CallEvent<Click>(c, e);
@@ -239,13 +240,11 @@ YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e,
 			return false;
 		if(e.Handled)
 			return true;
-		if(!p)
-			break;
 		pCon = p;
 
 		IControl* t(pCon->GetFocusingPtr());
 
-		if(!t)
+		if(!t || t == pCon)
 			break;
 		r |= ResponseKeyBase(*p, e, op);
 		p = t;
@@ -282,8 +281,6 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 			return false;
 		if(e.Handled)
 			return true;
-		if(!p)
-			break;
 		pCon = p;
 		if(op == TouchDown)
 		{
@@ -293,7 +290,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 
 		IControl* t(pCon->GetTopControlPtr(e));
 
-		if(!t)
+		if(!t || t == pCon)
 		{
 			if(op == TouchDown)
 				pCon->ClearFocusingPtr();

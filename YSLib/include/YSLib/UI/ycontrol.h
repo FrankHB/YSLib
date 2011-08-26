@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5189;
+\version r5193;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-08-23 18:15 +0800;
+	2011-08-26 13:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -346,14 +346,10 @@ CallEvent(IControl& c, typename EventTypeMapping<_vID>
 }
 
 /*!
-\brief 设置控件可用性并使部件区域在窗口缓冲区中无效。
+\brief 设置控件可用性，且当可用性改变时无效化部件区域。
 */
-inline void
-SetEnabledOf(IControl& ctl, bool b = true)
-{
-	ctl.SetEnabled(b);
-	Invalidate(ctl);
-}
+void
+SetEnabledOf(IControl&, bool = true);
 
 
 /*!

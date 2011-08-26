@@ -1,4 +1,4 @@
-// v0.3249; *build 234 rev 32;
+// v0.3249; *build 235 rev 43;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -265,138 +265,141 @@ $using:
 
 $DONE:
 r1:
-/ @ \u Shells $=
+/ @ \impl \u Shells $=
 (
-	/ @ \cl ShlExplorer $=
-	(
-		+ \m CheckBox chkFPS,
-		/ \impl @ \ctor,
-		/ \impl @ \mf UpdateToScreen,
-		/ \impl @ \mf OnActivated
-	),
-	/ \impl @ \mf ShlReader::OnActivated
+	- \f ScrDrawG @ \un \ns,
+	/ \impl @ \f FetchImage
 );
 
 r2:
-/ @ \cl Menu $=
+/ @ \un \ns @ \impl \u Shells $=
 (
-	+ protected \m vector<bool> vDisabled,
-	+ \mf bool IsItemEnabled(ListType::size_type),
-	/ \impl @ \mf PaintItem,
-	/ \impl @ \ctor,
-	+ \mf void SetItemEnabled(ListType::size_type, bool = true),
-	+ protected \mf void AdjustSize()
+	+ \ft<typename _tTarget> _tTarget& FetchGlobalResource(ResourceIndex);
+	/ \simp \impl @ \f FetchGlobalImage ^ FetchGlobalResource
 );
 
 r3:
-/= 4 \rem @ \impl @ \f @ \impl \u Scroll,
-/ @ \h YCoreUtilities $=
-(
-	/ \rem of assertion '\pre' ^ ('\c' & '<tt>' & '<\tt>'),
-	/ \simp \as \str
-);
+/ \mg \f FetchGlobalImageBuffer @ \un \ns -> \f FetchImage
+	@ \impl \u Shells;
 
 r4:
-/ @ \cl TextList $=
-(
-	// inserting item enable predicate polymorphic layer;
-	(
-		/ \mf CheckConfirmed => InvokeConfirmed;
-		+ \mf \vt bool CheckConfirmed(ViewerType::SizeType) const
-	);
-	/ \impl \mf InvokeConfirmed ^ \mf CheckConfirmed,
-	+ \c @ \mf (IsItemEnabled & AdjustSize),
-	+ mutable @ \m vDisabled
-);
-+ overwritten \mf \vt CheckConfirmed @ \cl Menu;
+/= test 1 ^ \conf release;
 
 r5:
-/ @ \impl \u Shells $=
-(
-	+ \c Menu::IndexType MR_Return(0u),
-		MR_Hyphen(1u),
-		MR_LineUp(2u),
-		MR_LineDown(3u),
-		MR_ScreenUp(4u),
-		MR_ScreenDown(5u) @ \un \ns;
-	/ @ \cl ShlReader $=
-	(
-		/ \impl @ \mf OnActivated,
-		/ \impl @ \mf ShowMenu
-	)
-);
-
-r6-r7:
-/ \impl @ \mf ShlReader::ShowMenu @ \impl \u Shells;
-
-r8:
-* \impl @ \mf Menu::SetItemEnabled $since r2;
-
-r9:
-/= \test 1 ^ \conf release;
-
-r10:
-/= \rem @ \h (YControl & Menu & Shell_DS);
-
-r11:
-/ @ \cl ShlExplorer @ \u Shells $=
-(
-	- \m chkTest,
-	/ \tr \impl @ \ctor,
-	/ \tr \impl @ \mf OnActivated
-);
-
-r12:
-* \impl @ \ctor @ \cl ShlExplorer @ \impl \u Shells $since r11;
-
-r13:
-* \impl @ \f ReleaseShells @ \impl \u Shells $since b233;
-
-r14:
 / @ \cl ShlReader @ \u Shells $=
 (
-	+ \m Controls::Panel Panel,
-	/ \impl @ \ctor,
-	/ \impl @ \mf OnActivated
+	+ \cl ReaderPanel $=
+	(
+		+ \cl \def;
+		+ public \inh AUIBoxControl,
+		+ \m Button btnClose, btnUp, btnDown, btnLeft, btnRight;
+		+ \exp \ctor ReaderPanel(const Rect&),
+		+ \mf ImplI1(AUIBoxControl) IControl* GetTopControlPtr(const Point&)
+	);
+	/ \m Controls::Panel Panel -> ReaderPanel Panel,
+	/ \tr \impl @ \ctor
 ),
-+ \inc \h Panel @ \h Build;
+*= \rem @ \in IWidget $since b228;
 
-r15:
-/ @ \impl \u Shells $=
-(
-	/ \impl @ \mf ShlReader::OnActivated,
-	/ \a 'MR_Hyphen' => 'MR_Panel'
-);
+r6-r7:
++ \mf \vt Rect Refresh(cosnt Graphics&, const Point&, const Rect&)
+	@ \cl ShlReader::ReaderPanel @ \u Shells;
 
-r16-r17:
-/ \impl \mf ShlReader::OnActivated @ \u Shells;
+r8-r9:
+/ \simp \impl @ \mf ATrack::Refresh;
 
-r18-r30:
+r10:
 /= test 2;
 
-r31:
-* @ \mf Refresh @ \cl Control $=
+r11:
+/ \simp \impl @ \mf (ResponseKey & ResponseTouch) @ \cl YGUIShell;
+
+r12-r16:
+/= test 3;
+
+r17:
+/ \impl @ \mf YGUIShell::ResponseTouchBase;
+
+r18:
+/ @ \cl YGUIShell @ \impl \u YGUI $=
 (
-	*= \decl @ $since b224,
-	* \impl @ $since b230
+	/ \simp \impl @ \mf TryEntering,
+	/ \simp \impl @ \mf TryLeaving
+);
+
+r19-r24:
+/= test 4;
+
+r25:
+/ \impl @ \mf (ResponseKey & ResponseTouch) @ \cl YGUIShell;
+
+r26-r31:
+/ test 5 $=
+(
+	/ \impl @ \mf GetTopControlPtr @ \cl (ScrollableContainer & ListBox),
+	/ \impl @ \mf ShlReader::ReaderPanel::GetTopControlPtr @ \impl \u Shells
 );
 
 r32:
-/= \test 3 ^ \conf release;
+/= \amf \rem @ \in IWidget;
+
+r33:
+/= test 6 ^ \conf release;
+
+r34-r37:
+/= test 7;
+
+r38:
+* \impl @ \ctor @ \cl ShlReader::ReaderPanel @ \impl \u Shells $since r5;
+
+r39:
+/ \impl @ \mf MLabel::PaintText;
+
+r40:
+/ @ \cl ShlReader @ \u Shells $=
+(
+	/ \impl @ \ctor @ \cl ReaderPanel,
+	+ private \mf void ExcuteReadingCommand(IndexEventArgs::IndexType);
+	/ \simp \impl @ \mf OnActivated ^ \mf ExcuteReadingCommand
+);
+
+r41:
+/ @ \cl ShlReader @ \u Shells $=
+(
+	/ \impl @ \mf ExcuteReadingCommand,
+	/ @ \cl ReaderPanel $=
+	(
+		+ \m ShlReader& Shell;
+		/ \tr \exp \ctor ReaderPanel(const Rect&)
+			-> \ctor ReaderPanel(const Rect&, ShlReader&)
+	);
+	/ \tr \impl @ \ctor
+);
+
+r42:
+/ @ \cl ShlReader @ \u Shells $=
+(
+	+ \mf void UpdateEnablilty() @ \cl ReaderPanel;
+	/ \simp \impl @ \mf ExcuteReadingCommand ^ \ReaderPanel::UpdateEnablilty
+),
+/ \f \i void SetEnabledOf(IControl& bool = true) -> \f !\i @ \u YControl;
+
+r43:
+/= test 8 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-08-24:
--28.4d;
-//Mercurial rev1-rev105: r5164;
+2011-08-26:
+-26.5d;
+//Mercurial rev1-rev106: r5196;
 
 / ...
 
 
 $NEXT_TODO:
-b235-b256:
+b236-b256:
 + %TextList invalidation support;
 * non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
@@ -483,6 +486,36 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ "shells test example" $=
+	(
+		/ "simplified background images loading",
+		+ "reader panel" $=
+		(
+			+ "close button",
+			+ "direct reading command controls"
+		)
+	),
+	/ "GUI" $=
+	(
+		/ "efficiency improved" @ "member function %ATrack::Refresh" $=
+		(
+			- $design "redundant refreshing" $since b226
+		),
+		/ "GUI shell" $=
+		(
+			/ "a little improvement of efficiency"
+				@ "entering and leaving events handling"
+		),
+		/ "non-null pointers of top elements returned accepted \
+			as non-container pointers",
+		+ "label text display supporting for non-direct contained widgets",
+		/ "invalidating canceled when enablity not changed"
+			@ "function %SetEnableOf" @ "unit %YControl"
+	)
+),
+
+b234
 (
 	/ "GUI" $=
 	(
@@ -1207,12 +1240,15 @@ b198
 	(
 		- "class %ShlGUI" @ "unit Shell_DS"
 	),
-	/ $design "using pointers" ~ "references in parameters \
-		of container methods",
-	/ "simplified GUI shell" $=
+	/ "GUI" $=
 	(
-		/ "input points matching",
-		- "windows list"
+		/ $design "using pointers" ~ "references in parameters \
+			of container methods",
+		/ "simplified GUI shell" $=
+		(
+			/ "input points matching",
+			- "windows list"
+		)
 	),
 	/ $design "simplified destructors",
 	/ "simplified window drawing",

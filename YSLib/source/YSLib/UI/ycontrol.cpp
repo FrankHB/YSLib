@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4337;
+\version r4341;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-08-24 18:23 +0800;
+	2011-08-26 14:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,6 +33,17 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Controls)
+
+void
+SetEnabledOf(IControl& ctl, bool b)
+{
+	auto need_invalidate(ctl.IsEnabled() != b);
+
+	ctl.SetEnabled(b);
+	if(need_invalidate)
+		Invalidate(ctl);
+}
+
 
 void
 OnKeyHeld(IControl& ctl, KeyEventArgs&& e)
