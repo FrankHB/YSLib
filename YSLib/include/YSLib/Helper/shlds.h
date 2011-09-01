@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2009;
+\version r2010;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-08-23 20:37 +0800;
+	2011-09-01 02:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -165,7 +165,7 @@ class YMainShell : public DS::ShlDS
 public:
 	typedef ShlDS ParentType;
 
-	Components::Widgets::Label lblTitle, lblStatus, lblDetails;
+	Components::Label lblTitle, lblStatus, lblDetails;
 
 	/*!
 	\brief 无参数构造。

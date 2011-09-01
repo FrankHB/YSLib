@@ -11,12 +11,12 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version 0.1121;
+\version r1127;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-02-21 08:59:34 +0800;
 \par 修改时间:
-	2011-07-21 11:24 +0800;
+	2011-09-01 21:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,8 +34,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Controls)
 
 //! \brief 固定容器抽象实现类。
 class AUIBoxControl : public Control, protected MSimpleFocusResponser
@@ -69,17 +67,15 @@ public:
 	/*!
 	\brief 响应焦点请求。
 	*/
-	virtual PDefH1(bool, ResponseFocusRequest, AFocusRequester& w)
-		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRequest, w)
+	virtual PDefH1(bool, ResponseFocusRequest, IControl& ctl)
+		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRequest, ctl)
 
 	/*!
 	\brief 响应焦点释放。
 	*/
-	virtual PDefH1(bool, ResponseFocusRelease, AFocusRequester& w)
-		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRelease, w)
+	virtual PDefH1(bool, ResponseFocusRelease, IControl& ctl)
+		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRelease, ctl)
 };
-
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 

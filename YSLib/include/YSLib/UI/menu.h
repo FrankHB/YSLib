@@ -11,12 +11,12 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1723;
+\version r1728;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-08-23 20:38 +0800;
+	2011-09-01 01:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,17 +28,15 @@
 #define YSL_INC_UI_MENU_H_
 
 #include "textlist.h"
-#include "yuicont.h" //for Widgets::ZOrderType;
+#include "yuicont.h" //for Components::ZOrderType;
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-YSL_BEGIN_NAMESPACE(Controls)
-
 class MenuHost;
 
-const Widgets::ZOrderType DefaultMenuZOrder(224); //!< 默认菜单 Z 顺序值。
+const ZOrderType DefaultMenuZOrder(224); //!< 默认菜单 Z 顺序值。
 
 
 //! \brief 文本菜单。
@@ -131,7 +129,7 @@ public:
 	\return 菜单宿主指针非空。
 	*/
 	bool
-	Show(Widgets::ZOrderType = DefaultMenuZOrder);
+	Show(ZOrderType = DefaultMenuZOrder);
 
 	/*!
 	\brief 按指定 Z 顺序显示索引指定的子菜单。
@@ -139,7 +137,7 @@ public:
 	\return 菜单宿主指针非空且索引指定的子菜单存在时为子菜单指针，否则为空指针。
 	*/
 	Menu*
-	ShowSub(IndexType, Widgets::ZOrderType = DefaultMenuZOrder);
+	ShowSub(IndexType, ZOrderType = DefaultMenuZOrder);
 
 	/*!
 	\brief 隐藏菜单。
@@ -173,13 +171,13 @@ public:
 	typedef map<Menu::ID, ItemType> MenuMap; //!< 菜单组类型。
 	typedef MenuMap::value_type ValueType;
 
-	Forms::AFrame& Frame; //!< 框架窗口。
+	AFrame& Frame; //!< 框架窗口。
 
 protected:
 	MenuMap mMenus; //!< 菜单组：存储非空菜单指针。
 
 public:
-	MenuHost(Forms::AFrame&);
+	MenuHost(AFrame&);
 	/*!
 	\brief 析构。
 	\note 隐藏菜单组中的所有菜单并清理菜单组。
@@ -242,26 +240,26 @@ public:
 	\brief 按指定 Z 顺序显示菜单组中菜单标识指定的菜单。
 	*/
 	void
-	Show(Menu::ID, Widgets::ZOrderType = DefaultMenuZOrder);
+	Show(Menu::ID, ZOrderType = DefaultMenuZOrder);
 	/*!
 	\brief 按指定 Z 顺序显示指定菜单 mnu 。
 	\pre 断言： Contains(mnu) 。
 	*/
 	void
-	Show(Menu& mnu, Widgets::ZOrderType = DefaultMenuZOrder);
+	Show(Menu& mnu, ZOrderType = DefaultMenuZOrder);
 
 	/*!
 	\brief 按指定 Z 顺序显示菜单组中的所有菜单。
 	*/
 	void
-	ShowAll(Widgets::ZOrderType = DefaultMenuZOrder);
+	ShowAll(ZOrderType = DefaultMenuZOrder);
 
 private:
 	/*!
 	\brief 按指定 Z 顺序显示指定菜单 mnu 。
 	*/
 	void
-	ShowRaw(Menu& mnu, Widgets::ZOrderType = DefaultMenuZOrder);
+	ShowRaw(Menu& mnu, ZOrderType = DefaultMenuZOrder);
 
 public:
 	/*!
@@ -301,7 +299,7 @@ public:
 };
 
 inline void
-MenuHost::Show(Menu& mnu, Widgets::ZOrderType z)
+MenuHost::Show(Menu& mnu, ZOrderType z)
 {
 	YAssert(Contains(mnu), "Menu is not contained @ MenuHost::Show;");
 
@@ -315,8 +313,6 @@ MenuHost::Hide(Menu& mnu)
 
 	HideRaw(mnu);
 }
-
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 

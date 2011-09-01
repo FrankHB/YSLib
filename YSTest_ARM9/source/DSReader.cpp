@@ -11,12 +11,12 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3206;
+\version r3207;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-08-18 22:45 +0800;
+	2011-09-01 01:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,7 +69,7 @@ void MDualScreenReader::SetCurrentTextLineNOf(u8 n)
 void
 MDualScreenReader::Invalidate()
 {
-	using YSLib::Components::Widgets::Invalidate;
+	using YSLib::Components::Invalidate;
 
 	//强制刷新背景。
 	Invalidate(AreaUp);

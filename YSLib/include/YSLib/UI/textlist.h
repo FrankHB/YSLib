@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1356;
+\version r1361;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-08-20 20:34 +0800;
+	2011-09-01 01:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,10 +35,8 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-YSL_BEGIN_NAMESPACE(Controls)
-
 //! \brief 文本列表。
-class TextList : public Controls::Control, protected Widgets::MTextList
+class TextList : public Control, protected MTextList
 {
 public:
 	using MTextList::ItemType;
@@ -265,8 +263,6 @@ TextList::CheckPoint(const Point& p)
 */
 void
 ResizeForContent(TextList&);
-
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 

@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version 0.2355;
+\version r2402;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-06-22 13:31 +0800;
+	2011-09-01 21:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,8 +33,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-class AFocusRequester;
 
 //! \brief 简单焦点响应器。
 class MSimpleFocusResponser : public noncopyable
@@ -59,13 +57,13 @@ public:
 	\brief 响应焦点请求。
 	*/
 	bool
-	ResponseFocusRequest(AFocusRequester&);
+	ResponseFocusRequest(IControl&);
 
 	/*!
 	\brief 响应焦点释放。
 	*/
 	bool
-	ResponseFocusRelease(AFocusRequester&);
+	ResponseFocusRelease(IControl&);
 };
 
 inline MSimpleFocusResponser::MSimpleFocusResponser()
@@ -129,8 +127,8 @@ public:
 			return false;
 		if(pFocusing != p)
 		{
-			if(pFocusing && pFocusing->IsFocused())
-				pFocusing->ReleaseFocusFrom(*p);
+			if(pFocusing && IsFocused(*pFocusing))
+				ReleaseFocusFrom(*pFocusing, *p);
 			pFocusing = p;
 		}
 		return pFocusing;
@@ -142,56 +140,35 @@ public:
 };
 
 
-//! \brief 焦点申请器。
-class AFocusRequester
-{
-public:
-	DeclIEntry(~AFocusRequester())
-
-	/*!
-	\brief 判断是否已在指定响应器中获得焦点。
-	*/
-	template<template<class> class _tResponser, class _type>
-	bool
-	IsFocusOfContainer(_tResponser<_type>&) const;
-
-	/*!
-	\brief 向指定响应器对应的容器申请获得焦点。
-	*/
-	template<template<class> class _tResponser, class _type>
-	bool
-	RequestFocus(_tResponser<_type>&);
-
-	/*!
-	\brief 释放焦点。
-	*/
-	template<template<class> class _tResponser, class _type>
-	bool
-	ReleaseFocus(_tResponser<_type>&);
-};
-
-ImplEmptyDtor(AFocusRequester)
-
+/*!
+\brief 判断是否已在指定响应器中获得焦点。
+*/
 template<template<class> class _tResponser, class _type>
 inline bool
-AFocusRequester::IsFocusOfContainer(_tResponser<_type>& c) const
+IsFocusOfContainer(const _type& obj, _tResponser<_type>& rsp)
 {
-	return c.GetFocusingPtr() == dynamic_cast<const _type*>(this);
+	return rsp.GetFocusingPtr() == static_cast<const _type*>(&obj);
 }
 
+/*!
+\brief 向指定响应器对应的容器申请获得焦点。
+*/
 template<template<class> class _tResponser, class _type>
 bool
-AFocusRequester::RequestFocus(_tResponser<_type>& c)
+RequestFocusOf(_type& obj, _tResponser<_type>& rsp)
 {
-	return !IsFocusOfContainer(c)
-		&& c.SetFocusingPtr(dynamic_cast<_type*>(this));
+	return !IsFocusOfContainer(obj, rsp)
+		&& rsp.SetFocusingPtr(static_cast<_type*>(&obj));
 }
 
+/*!
+\brief 释放焦点。
+*/
 template<template<class> class _tResponser, class _type>
 bool
-AFocusRequester::ReleaseFocus(_tResponser<_type>& c)
+ReleaseFocusOf(_type& obj, _tResponser<_type>& rsp)
 {
-	return IsFocusOfContainer(c) && !(c.SetFocusingPtr(nullptr));
+	return IsFocusOfContainer(obj, rsp) && !(rsp.SetFocusingPtr(nullptr));
 }
 
 YSL_END_NAMESPACE(Components)

@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4341;
+\version r4405;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-08-26 14:11 +0800;
+	2011-09-01 22:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,16 +32,39 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-YSL_BEGIN_NAMESPACE(Controls)
-
 void
-SetEnabledOf(IControl& ctl, bool b)
+Enable(IControl& ctl, bool b)
 {
-	auto need_invalidate(ctl.IsEnabled() != b);
+	const auto need_invalidate(IsEnabled(ctl) != b);
 
-	ctl.SetEnabled(b);
+	SetEnabledOf(ctl, b);
 	if(need_invalidate)
 		Invalidate(ctl);
+}
+
+
+bool
+IsFocused(const IWidget& wgt)
+{
+	const auto p(FetchContainerPtr(wgt));
+
+	return p ? p->GetFocusingPtr() == &wgt : false;
+}
+
+void
+RequestFocusFrom(IControl& ctl, IControl& ctlSrc)
+{
+	if(auto p = FetchContainerPtr(ctl))
+		if(p->ResponseFocusRequest(ctl))
+			CallEvent<GotFocus>(ctl, ctlSrc, EventArgs());
+}
+
+void
+ReleaseFocusFrom(IControl& ctl, IControl& ctlSrc)
+{
+	if(auto p = FetchContainerPtr(ctl))
+		if(p->ResponseFocusRelease(ctl))
+			CallEvent<LostFocus>(ctl, ctlSrc, EventArgs());
 }
 
 
@@ -109,7 +132,7 @@ namespace
 			auto pCtl(dynamic_cast<Control&>(ctl)
 				.BoundControlPtr(e.GetKeyCode()));
 
-			return pCtl && pCtl->IsEnabled() ? pCtl : nullptr;
+			return pCtl && IsEnabled(*pCtl) ? pCtl : nullptr;
 		}
 		catch(std::bad_function_call&)
 		{}
@@ -165,18 +188,18 @@ OnKey_Bound_Click(IControl& ctl, KeyEventArgs&& e)
 
 
 Control::Control(const Rect& r)
-	: Widget(r), AFocusRequester(),
-	enabled(true), EventMap()
+	: Widget(r),
+	controller(true)
 {
-	FetchEvent<TouchDown>(EventMap) += [this](IControl&, TouchEventArgs&& e){
+	FetchEvent<TouchDown>(*this) += [this](IControl&, TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
-			RequestFocusFrom(*this);
+			RequestFocus(*this);
 	};
-	FetchEvent<TouchHeld>(EventMap) += OnTouchHeld;
-	FetchEvent<GotFocus>(EventMap) += [this](IControl&, EventArgs&&){
+	FetchEvent<TouchHeld>(*this) += OnTouchHeld;
+	FetchEvent<GotFocus>(*this) += [this](IControl&, EventArgs&&){
 		Invalidate(*this);
 	};
-	FetchEvent<LostFocus>(EventMap) += [this](IControl&, EventArgs&&){
+	FetchEvent<LostFocus>(*this) += [this](IControl&, EventArgs&&){
 		Invalidate(*this);
 	};
 	BoundControlPtr = std::bind(std::mem_fn(&Control::GetBoundControlPtr), this,
@@ -184,28 +207,20 @@ Control::Control(const Rect& r)
 }
 Control::~Control()
 {
-	ReleaseFocusFrom(*this);
-}
-
-bool
-Control::IsFocused() const
-{
-	auto p(FetchContainerPtr(*this));
-
-	return p ? p->GetFocusingPtr() == this : false;
+	ReleaseFocus(*this);
 }
 
 void
 Control::SetLocation(const Point& pt)
 {
 	Widget::SetLocation(pt);
-	GetEventMap().DoEvent<HVisualEvent>(Move, *this, EventArgs());
+	CallEvent<Move>(*this, EventArgs());
 }
 void
 Control::SetSize(const Size& s)
 {
 	Widget::SetSize(s);
-	GetEventMap().DoEvent<HVisualEvent>(Resize, *this, EventArgs());
+	CallEvent<Resize>(*this, EventArgs());
 }
 
 Rect
@@ -214,26 +229,6 @@ Control::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 	Widget::Refresh(g, pt, r);
 	return GetBoundsOf(*this);
 }
-
-void
-Control::RequestFocusFrom(IControl& c)
-{
-	auto p(FetchContainerPtr(*this));
-
-	if(p && p->ResponseFocusRequest(*this))
-		EventMap.GetEvent<HVisualEvent>(GotFocus)(c, EventArgs());
-}
-
-void
-Control::ReleaseFocusFrom(IControl& c)
-{
-	auto p(FetchContainerPtr(*this));
-
-	if(p && p->ResponseFocusRelease(*this))
-		EventMap.GetEvent<HVisualEvent>(LostFocus)(c, EventArgs());
-}
-
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 

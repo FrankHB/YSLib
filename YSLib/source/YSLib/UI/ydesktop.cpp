@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r2342;
+\version r2348;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-08-16 17:08 +0800;
+	2011-09-01 02:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,8 +32,6 @@ using namespace Drawing;
 
 YSL_BEGIN_NAMESPACE(Components)
 
-using namespace Controls;
-
 Desktop::Desktop(Devices::Screen& s, Color c, const shared_ptr<Image>& hImg)
 	: Frame(Rect::FullScreen, hImg),
 	screen(s)
@@ -48,7 +46,7 @@ Desktop::GetTopVisibleDesktopObjectPtr(const Point& pt) const
 	{
 		try
 		{
-			if(i->second->IsVisible() && Widgets::Contains(*i->second, pt))
+			if(i->second->IsVisible() && Components::Contains(*i->second, pt))
 				return &dynamic_cast<IControl&>(*i->second);
 		}
 		catch(std::bad_cast&)
@@ -67,7 +65,7 @@ Desktop::MoveToTop(IControl& ctl)
 
 	if(i != sWidgets.end())
 	{
-		const Widgets::ZOrderType z(i->first);
+		const ZOrderType z(i->first);
 
 		sWidgets.erase(i);
 		sWidgets.insert(make_pair(z, static_cast<IWidget*>(&ctl)));

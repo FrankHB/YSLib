@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version 0.4506;
+\version r4509;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-06-25 21:52 +0800;
+	2011-08-31 18:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -677,6 +677,13 @@ public:
 		return dynamic_cast<EventType&>(*pr.first->second);
 	}
 
+	template<class _tEventHandler>
+	inline size_t
+	DoEvent(const ID& id, typename _tEventHandler::SenderType& sender,
+		typename _tEventHandler::EventArgsType& e) const
+	{
+		return DoEvent(id, sender, std::move(e));
+	}
 	template<class _tEventHandler>
 	size_t
 	DoEvent(const ID& id, typename _tEventHandler::SenderType& sender,

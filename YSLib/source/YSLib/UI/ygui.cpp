@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3878;
+\version r3895;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-08-25 12:34 +0800;
+	2011-09-01 01:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,8 +31,6 @@ YSL_BEGIN
 
 using namespace Drawing;
 using namespace Components;
-using namespace Components::Controls;
-using namespace Components::Widgets;
 
 YSL_BEGIN_NAMESPACE(Shells)
 
@@ -149,7 +147,7 @@ YGUIShell::ResetTouchHeldState()
 
 bool
 YGUIShell::ResponseKeyBase(IControl& c, KeyEventArgs& e,
-	Components::Controls::VisualEvent op)
+	Components::VisualEvent op)
 {
 	switch(op)
 	{
@@ -182,7 +180,7 @@ YGUIShell::ResponseKeyBase(IControl& c, KeyEventArgs& e,
 
 bool
 YGUIShell::ResponseTouchBase(IControl& c, TouchEventArgs& e,
-	Components::Controls::VisualEvent op)
+	Components::VisualEvent op)
 {
 	switch(op)
 	{
@@ -226,17 +224,16 @@ YGUIShell::ResponseTouchBase(IControl& c, TouchEventArgs& e,
 }
 
 bool
-YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e,
-	Components::Controls::VisualEvent op)
+YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e, Components::VisualEvent op)
 {
 	IControl* p(&c);
 	IWidget* pCon;
 	bool r(false);
 
-	e.Strategy = Controls::RoutedEventArgs::Tunnel;
+	e.Strategy = Components::RoutedEventArgs::Tunnel;
 	while(true)
 	{
-		if(!(p->IsVisible() && p->IsEnabled()))
+		if(!(p->IsVisible() && IsEnabled(*p)))
 			return false;
 		if(e.Handled)
 			return true;
@@ -252,9 +249,9 @@ YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e,
 
 	YAssert(p, "Null pointer found @ YGUIShell::ResponseKey");
 
-	e.Strategy = Controls::RoutedEventArgs::Direct;
+	e.Strategy = Components::RoutedEventArgs::Direct;
 	r |= ResponseKeyBase(*p, e, op);
-	e.Strategy = Controls::RoutedEventArgs::Bubble;
+	e.Strategy = Components::RoutedEventArgs::Bubble;
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
 		if(!(p = dynamic_cast<IControl*>(pCon)))
@@ -265,8 +262,7 @@ YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e,
 }
 
 bool
-YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
-	Components::Controls::VisualEvent op)
+YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e, Components::VisualEvent op)
 {
 	ControlLocation = e;
 
@@ -274,10 +270,10 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 	IWidget* pCon;
 	bool r(false);
 
-	e.Strategy = Controls::RoutedEventArgs::Tunnel;
+	e.Strategy = Components::RoutedEventArgs::Tunnel;
 	while(true)
 	{
-		if(!(p->IsVisible() && p->IsEnabled()))
+		if(!(p->IsVisible() && IsEnabled(*p)))
 			return false;
 		if(e.Handled)
 			return true;
@@ -285,7 +281,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 		if(op == TouchDown)
 		{
 			RequestToTop(*p);
-			p->RequestFocusFrom(*p);
+			RequestFocus(*p);
 		}
 
 		IControl* t(pCon->GetTopControlPtr(e));
@@ -296,22 +292,24 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e,
 				pCon->ClearFocusingPtr();
 			break;
 		}
-		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, std::move(e)) != 0;
+		r |= p->GetController().GetEventMap().DoEvent<HTouchEvent>(op, *p,
+			std::move(e)) != 0;
 		p = t;
 		e -= p->GetLocation();
 	};
 
 	YAssert(p, "Null pointer found @ YGUIShell::ResponseTouch");
 
-	e.Strategy = Controls::RoutedEventArgs::Direct;
+	e.Strategy = Components::RoutedEventArgs::Direct;
 	r |= ResponseTouchBase(*p, e, op);
-	e.Strategy = Controls::RoutedEventArgs::Bubble;
+	e.Strategy = Components::RoutedEventArgs::Bubble;
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
 		e += p->GetLocation();
 		if(!(p = dynamic_cast<IControl*>(pCon)))
 			break;
-		r |= p->GetEventMap().DoEvent<HTouchEvent>(op, *p, std::move(e)) != 0;
+		r |= p->GetController().GetEventMap().DoEvent<HTouchEvent>(op, *p,
+			std::move(e)) != 0;
 	}
 	return r;
 }
@@ -331,8 +329,6 @@ FetchGUIShell()
 
 YSL_BEGIN_NAMESPACE(Components)
 
-YSL_BEGIN_NAMESPACE(Controls)
-
 void
 RequestFocusCascade(IControl& c)
 {
@@ -340,7 +336,7 @@ RequestFocusCascade(IControl& c)
 
 	do
 	{
-		p->RequestFocusFrom(*p);
+		RequestFocus(*p);
 	}while((p = dynamic_cast<IControl*>(FetchContainerPtr(*p))));
 }
 
@@ -351,7 +347,7 @@ ReleaseFocusCascade(IControl& c)
 
 	do
 	{
-		p->ReleaseFocusFrom(*p);
+		ReleaseFocus(*p);
 	}while((p = dynamic_cast<IControl*>(FetchContainerPtr(*p))));
 }
 
@@ -361,8 +357,6 @@ IsFocusedByShell(const IControl& c, const YGUIShell& shl)
 {
 	return shl.GetTouchDownPtr() == &c;
 }
-
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 

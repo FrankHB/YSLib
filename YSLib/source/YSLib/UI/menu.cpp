@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1825;
+\version r1837;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-08-20 21:08 +0800;
+	2011-09-01 01:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,11 +32,6 @@ YSL_BEGIN
 using namespace Drawing;
 
 YSL_BEGIN_NAMESPACE(Components)
-
-using namespace Forms;
-using namespace Widgets;
-
-YSL_BEGIN_NAMESPACE(Controls)
 
 Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 	: TextList(r, h, FetchGUIShell().Colors.GetPair(Styles::Highlight,
@@ -65,7 +60,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 					auto pMnu(GetParentPtr());
 
 					if(pMnu)
-						pMnu->RequestFocusFrom(*pMnu);
+						RequestFocus(*pMnu);
 				}
 				break;
 			default:
@@ -321,7 +316,7 @@ MenuHost::ShowRaw(Menu& mnu, ZOrderType z)
 {
 	Frame.Add(mnu, z);
 	Invalidate(mnu);
-	mnu.RequestFocusFrom(mnu);
+	RequestFocus(mnu);
 }
 
 void
@@ -350,7 +345,7 @@ MenuHost::HideAll()
 void
 MenuHost::HideRaw(Menu& mnu)
 {
-	mnu.ReleaseFocusFrom(mnu);
+	ReleaseFocus(mnu);
 	if(mnu.IsVisible())
 		Invalidate(mnu);
 	Frame -= mnu;
@@ -386,7 +381,6 @@ MenuHost::HideUnrelated(Menu& mnu, Menu& mnuParent)
 	}
 }
 
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 

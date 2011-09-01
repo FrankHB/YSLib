@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5918;
+\version r5940;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-08-25 13:32 +0800;
+	2011-09-01 20:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -195,7 +195,10 @@ public:
 	UpdateTo(const Graphics&, const Point&, const Rect&) const;
 };
 
-YSL_BEGIN_NAMESPACE(Widgets)
+
+struct BadControl
+{};
+
 
 //! \brief 部件接口。
 DeclInterface(IWidget)
@@ -214,22 +217,27 @@ DeclInterface(IWidget)
 	*/
 	DeclIEntry(WidgetRenderer& GetRenderer() const)
 	/*!
-	\brief 取焦点对象指针。
-	\return 若为容器且存在子部件中的焦点对象则返回指针，否则返回 \c nullptr 。
+	\brief 取控制器。
 	*/
-	DeclIEntry(IControl* GetFocusingPtr()) \
+	DeclIEntry(WidgetController& GetController() const)
+
+	/*!
+	\brief 取焦点对象指针。
+	\return 若为保存了子部件中的焦点对象的容器则返回指针，否则返回 \c nullptr 。
+	*/
+	DeclIEntry(IControl* GetFocusingPtr())
 	/*!
 	\brief 取指定的点所在的可见部件的指针。
-	\return 若为容器且存在子部件中的可见部件则返回指针，否则返回 \c nullptr 。
+	\return 若为保存了子部件中的可见部件的容器则返回指针，否则返回 \c nullptr 。
 	\note 使用部件坐标。
 	*/
-	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&)) \
+	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&))
 	/*!
 	\brief 取指定的点所在的可见控件的指针。
-	\return 若为容器且存在子部件中的可见控则返回指针，否则返回 \c nullptr 。
+	\return 若为保存了子部件中的可见控件的容器则返回指针，否则返回 \c nullptr 。
 	\note 使用部件坐标。
 	*/
-	DeclIEntry(IControl* GetTopControlPtr(const Point&)) \
+	DeclIEntry(IControl* GetTopControlPtr(const Point&))
 
 	DeclIEntry(void SetVisible(bool)) //!< 设置可见。
 	DeclIEntry(void SetTransparent(bool)) //!< 设置透明。
@@ -259,13 +267,13 @@ DeclInterface(IWidget)
 	\brief 响应焦点请求。
 	\note 若此部件非容器则无效。
 	*/
-	DeclIEntry(bool ResponseFocusRequest(AFocusRequester&))
+	DeclIEntry(bool ResponseFocusRequest(IControl&))
 
 	/*!
 	\brief 响应焦点释放。
 	\note 若此部件非容器则无效。
 	*/
-	DeclIEntry(bool ResponseFocusRelease(AFocusRequester&))
+	DeclIEntry(bool ResponseFocusRelease(IControl&))
 EndDecl
 
 
@@ -530,6 +538,8 @@ public:
 	ImplI1(IWidget) DefGetterBase(const Size&, Size, Visual)
 	ImplI1(IWidget) DefGetter(IWidget*&, ContainerPtrRef, pContainer)
 	ImplI1(IWidget) DefGetter(WidgetRenderer&, Renderer, *pRenderer)
+	ImplI1(IWidget) WidgetController&
+	GetController() const;
 	ImplI1(IWidget) PDefH0(IControl*, GetFocusingPtr)
 		ImplRet(nullptr)
 	ImplI1(IWidget) PDefH1(IWidget*, GetTopWidgetPtr, const Point&)
@@ -558,14 +568,19 @@ public:
 	ImplI1(IWidget) Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
 
-	ImplI1(IWidget) PDefH1(bool, ResponseFocusRequest, AFocusRequester&)
+	ImplI1(IWidget) PDefH1(bool, ResponseFocusRequest, IControl&)
 		ImplRet(false)
 
-	ImplI1(IWidget) PDefH1(bool, ResponseFocusRelease, AFocusRequester&)
+	ImplI1(IWidget) PDefH1(bool, ResponseFocusRelease, IControl&)
 		ImplRet(false)
 };
 
-YSL_END_NAMESPACE(Widgets)
+inline WidgetController&
+Widget::GetController() const
+{
+//	throw GeneralEvent("Bad control found @ Widget::GetController;");
+	throw BadControl();
+}
 
 YSL_END_NAMESPACE(Components)
 

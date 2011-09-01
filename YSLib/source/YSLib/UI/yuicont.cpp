@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2380;
+\version r2389;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-08-06 14:25 +0800;
+	2011-09-01 21:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,8 +30,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Widgets)
 
 Desktop*
 FetchDesktopPtr(IWidget& wgt)
@@ -183,7 +181,7 @@ IWidget*
 MUIContainer::GetTopWidgetPtr(const Point& pt)
 {
 	for(auto i(sWidgets.cbegin()); i != sWidgets.cend(); ++i)
-		if(i->second->IsVisible() && Widgets::Contains(*i->second, pt))
+		if(i->second->IsVisible() && Components::Contains(*i->second, pt))
 			return i->second;
 	return nullptr;
 }
@@ -191,7 +189,7 @@ IControl*
 MUIContainer::GetTopControlPtr(const Point& pt)
 {
 	for(auto i(sFocusObjects.cbegin()); i != sFocusObjects.cend(); ++i)
-		if((*i)->IsVisible() && Widgets::Contains(**i, pt))
+		if((*i)->IsVisible() && Components::Contains(**i, pt))
 			return *i;
 	return nullptr;
 }
@@ -207,15 +205,15 @@ MUIContainer::Add(IControl& ctl, ZOrderType z)
 }
 
 bool
-MUIContainer::ResponseFocusRequest(AFocusRequester& req)
+MUIContainer::ResponseFocusRequest(IControl& ctl)
 {
-	return req.RequestFocus<GMFocusResponser, IControl>(*this);
+	return RequestFocusOf<GMFocusResponser, IControl>(ctl, *this);
 }
 
 bool
-MUIContainer::ResponseFocusRelease(AFocusRequester& req)
+MUIContainer::ResponseFocusRelease(IControl& ctl)
 {
-	return req.ReleaseFocus<GMFocusResponser, IControl>(*this);
+	return ReleaseFocusOf<GMFocusResponser, IControl>(ctl, *this);
 }
 
 bool
@@ -231,8 +229,6 @@ MUIContainer::Contains(IWidget& wgt)
 UIContainer::UIContainer(const Rect& r)
 	: Widget(r), MUIContainer()
 {}
-
-YSL_END_NAMESPACE(Widgets)
 
 YSL_END_NAMESPACE(Components)
 

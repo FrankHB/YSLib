@@ -11,12 +11,12 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2125;
+\version r2127;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-08-26 13:14 +0800;
+	2011-09-01 02:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,8 +29,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Widgets)
 
 MLabel::MLabel(const Drawing::Font& fnt, TextAlignmentStyle a)
 	: Font(fnt), Margin(2, 2, 2, 2),
@@ -146,8 +144,6 @@ MTextList::PaintTextList(Widget& w, const Point& pt)
 		wpTextRegion->SetSize(0, 0);
 	}
 }*/
-
-YSL_END_NAMESPACE(Widgets)
 
 YSL_END_NAMESPACE(Components)
 

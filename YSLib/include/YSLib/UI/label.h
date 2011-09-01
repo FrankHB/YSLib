@@ -11,12 +11,12 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2104;
+\version r2106;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-08-13 06:39 +0800;
+	2011-09-01 02:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,8 +35,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Widgets)
 
 //! \brief 标签模块。
 class MLabel : public noncopyable
@@ -178,8 +176,6 @@ MTextList::GetTextState()
 {
 	return text_state;
 }
-
-YSL_END_NAMESPACE(Widgets)
 
 YSL_END_NAMESPACE(Components)
 

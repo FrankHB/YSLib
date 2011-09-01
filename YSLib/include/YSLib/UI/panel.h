@@ -11,12 +11,12 @@
 /*!	\file panel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version 0.1256;
+\version r1262;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:40:51 +0800;
 \par 修改时间:
-	2011-07-26 22:04 +0800;
+	2011-09-01 21:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,10 +35,8 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-YSL_BEGIN_NAMESPACE(Controls)
-
 //! \brief 面板。
-class Panel : public Control, protected Widgets::MUIContainer
+class Panel : public Control, protected MUIContainer
 {
 public:
 	/*!
@@ -94,18 +92,16 @@ public:
 	virtual void
 	ClearFocusingPtr();
 
-	virtual PDefH1(bool, ResponseFocusRequest, AFocusRequester& req)
-		ImplBodyBase1(MUIContainer, ResponseFocusRequest, req)
+	virtual PDefH1(bool, ResponseFocusRequest, IControl& ctl)
+		ImplBodyBase1(MUIContainer, ResponseFocusRequest, ctl)
 
-	virtual PDefH1(bool, ResponseFocusRelease, AFocusRequester& req)
-		ImplBodyBase1(MUIContainer, ResponseFocusRelease, req)
+	virtual PDefH1(bool, ResponseFocusRelease, IControl& ctl)
+		ImplBodyBase1(MUIContainer, ResponseFocusRelease, ctl)
 
 	virtual PDefH3(Rect, Refresh, const Graphics& g, const Point& pt,
 		const Rect& r)
 		ImplBodyBase3(Control, Refresh, g, pt, r)
 };
-
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 

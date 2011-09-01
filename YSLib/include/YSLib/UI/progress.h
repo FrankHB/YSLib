@@ -11,12 +11,12 @@
 /*!	\file progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version 0.1227;
+\version r1229;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-20 08:57:48 +0800;
 \par 修改时间:
-	2011-07-14 19:00 +0800;
+	2011-09-01 02:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,8 +34,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Widgets)
 
 //! \brief 进度条。
 class ProgressBar : public Widget, public GMRange<u16>
@@ -55,8 +53,6 @@ public:
 	virtual Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
 };
-
-YSL_END_NAMESPACE(Widgets)
 
 YSL_END_NAMESPACE(Components)
 

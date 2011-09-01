@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1419;
+\version r1423;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-08-20 20:45 +0800;
+	2011-09-01 02:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,8 +32,6 @@ YSL_BEGIN
 using namespace Drawing;
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Controls)
 
 namespace
 {
@@ -230,7 +228,7 @@ TextList::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 //	Widget::Refresh(g, pt, r);
 	PaintItems(g, pt, r);
 
-	DrawRect(g, pt, GetSize(), IsFocused() ? ColorSpace::Aqua
+	DrawRect(g, pt, GetSize(), IsFocused(*this) ? ColorSpace::Aqua
 		: FetchGUIShell().Colors[Styles::ActiveBorder]);
 	return Rect(pt, GetSize());
 }
@@ -374,8 +372,6 @@ ResizeForContent(TextList& tl)
 	tl.SetSize(Size(max_width + GetHorizontalOf(tl.Margin),
 		tl.GetItemHeight() * tl.GetList().size()));
 }
-
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 

@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version 0.2489;
+\version r2497;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-08-03 06:58 +0800;
+	2011-09-01 20:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,8 +33,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Widgets)
 
 /*!
 \brief 取指针指定的部件在视图树中的节点指针。
@@ -253,13 +251,13 @@ public:
 	\brief 响应焦点请求。
 	*/
 	bool
-	ResponseFocusRequest(AFocusRequester&);
+	ResponseFocusRequest(IControl&);
 
 	/*!
 	\brief 响应焦点释放。
 	*/
 	bool
-	ResponseFocusRelease(AFocusRequester&);
+	ResponseFocusRelease(IControl&);
 };
 
 
@@ -304,16 +302,12 @@ public:
 	ImplI1(IWidget) PDefH0(void, ClearFocusingPtr)
 		ImplBodyBase0(MUIContainer, ClearFocusingPtr)
 
-	ImplI1(IWidget) PDefH1(bool, ResponseFocusRequest,
-		AFocusRequester& req)
-		ImplBodyBase1(MUIContainer, ResponseFocusRequest, req)
+	ImplI1(IWidget) PDefH1(bool, ResponseFocusRequest, IControl& ctl)
+		ImplBodyBase1(MUIContainer, ResponseFocusRequest, ctl)
 
-	ImplI1(IWidget) PDefH1(bool, ResponseFocusRelease,
-		AFocusRequester& req)
-		ImplBodyBase1(MUIContainer, ResponseFocusRelease, req)
+	ImplI1(IWidget) PDefH1(bool, ResponseFocusRelease, IControl& ctl)
+		ImplBodyBase1(MUIContainer, ResponseFocusRelease, ctl)
 };
-
-YSL_END_NAMESPACE(Widgets)
 
 YSL_END_NAMESPACE(Components)
 

@@ -1,4 +1,4 @@
-// v0.3249; *build 235 rev 43;
+// v0.3249; *build 236 rev 27;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -265,135 +265,193 @@ $using:
 
 $DONE:
 r1:
-/ @ \impl \u Shells $=
-(
-	- \f ScrDrawG @ \un \ns,
-	/ \impl @ \f FetchImage
-);
+^ "updated libnds 1.5.3 with default arm7 0.5.22"
+	~ "libnds 1.5.4 with default arm 7 0.5.23";
 
 r2:
-/ @ \un \ns @ \impl \u Shells $=
+/ @ \u YControl $=
 (
-	+ \ft<typename _tTarget> _tTarget& FetchGlobalResource(ResourceIndex);
-	/ \simp \impl @ \f FetchGlobalImage ^ FetchGlobalResource
+	+ \em \st BadControl,
+	+ \cl WidgetController;
+	/ \a data \m & \inh AFocusRequester >> \cl WidgetController;
+	/ @ \cl Control $=
+	(
+		+ \inh \cl WidgetController @ \cl Control;
+		/ \impl @ \ctor,
+		/ \tr \impl @ \mf (IsEnabled & SetEnabled & GetEventMap)
+	)
 );
 
 r3:
-/ \mg \f FetchGlobalImageBuffer @ \un \ns -> \f FetchImage
-	@ \impl \u Shells;
+/ @ \u YControl $=
+(
+	- \amf IsFocused @ \cl IControl,
+	/ \mf Control::IsFocused -> !\m \f bool IsFocused(const IControl&)
+);
+/ \tr \impl @ (\impl \u (Button & CheckBox & TextList) & \h YFocus);
 
 r4:
-/= test 1 ^ \conf release;
+/ @ \u YControl $=
+(
+	- \amf (RequestFocusFrom & ReleaseFocusFrom) @ \cl IControl,
+	/ \mf Control::RequestFocusFrom
+		-> !\m \f void RequestFocusFrom(IControl&, IControl&),
+	/ \mf Control::ReleaseFocusFrom
+		-> !\m \f void ReleaseFocusFrom(IControl&, IControl&);
+	+ \f \i void RequestFocus(IControl&),
+	+ \f \i void ReleaseFocus(IControl&);
+	+ \amf WidgetController& GetController() @ \in IControl,
+	/ @ \cl Control $=
+	(
+		/ \tr \impl @ \ctor @ \cl Control,
+		+ \mf ImplI1(IControl) DefMutableGetter(WidgetController&, Controller,
+			*this)
+	)
+);
+/ @ \cl AFocusRequester $=
+(
+	/ \mft RequestFocus => RequestFocusFrom,
+	/ \mft ReleaseFocus => ReleaseFocusFrom
+)
+/ \tr \impl @ (\impl \u (Menu & YGUI & YUIContainer) & \h YFocus);
 
 r5:
-/ @ \cl ShlReader @ \u Shells $=
+/ @ \h YControl $=
 (
-	+ \cl ReaderPanel $=
-	(
-		+ \cl \def;
-		+ public \inh AUIBoxControl,
-		+ \m Button btnClose, btnUp, btnDown, btnLeft, btnRight;
-		+ \exp \ctor ReaderPanel(const Rect&),
-		+ \mf ImplI1(AUIBoxControl) IControl* GetTopControlPtr(const Point&)
-	);
-	/ \m Controls::Panel Panel -> ReaderPanel Panel,
-	/ \tr \impl @ \ctor
-),
-*= \rem @ \in IWidget $since b228;
+	- \mf GetEventMap @ \cl Control,
+	- \amf GetEventMap @ \in IControl;
+	/ \tr \impl @ \ft (FetchEvent & CallEvent)
+);
+/ \tr \impl @ \cl (SetLocation & SetSize) @ \cl Control @ \impl \u Control,
+/ \tr \impl @ \mf ClearFocusingPtr @ \cl (Panel & AUIBoxControl & AFrame),
+/ \tr \impl @ \mf YGUIShell::ResponseTouch;
 
-r6-r7:
-+ \mf \vt Rect Refresh(cosnt Graphics&, const Point&, const Rect&)
-	@ \cl ShlReader::ReaderPanel @ \u Shells;
+r6:
+/= test 1 ^ \conf release;
 
-r8-r9:
-/ \simp \impl @ \mf ATrack::Refresh;
+r7:
+/ @ \u YControl $=
+(
+	+ \ft<VisualEvent _vID> \i void
+		CallEvent(WidgetController&, typename EventTypeMapping<_vID>
+		::HandlerType::SenderType&, typename EventTypeMapping<_vID>
+		::HandlerType::EventArgsType&),
+	+ 4 \ft CallEvent with rvalue \ref \tp \param to event type;
+	/ \simp \impl @ \f (RequestFocusFrom & ReleaseFocusFrom) ^ \ft CallEvent;
+);
+
+r8:
++ \mft<class _tEventHandler> \i size_t DoEvent(const ID&, typename
+	_tEventHandler::SenderType&, typename _tEventHandler::EventArgsType&)
+	@ \clt GEventMap @ \h YEvent;
+/ \simp overloaded \ft @ \h YControl ^ \mac yforward;
+
+r9:
+/ \simp \impl @ \mf ClearFocusingPtr @ \cl (ClearFocusingPtr & AUIBoxControl
+	& AFrame) ^ \ft CallEvent,
+/ \a \ret \tp @ \ft CallEvent @ \h YControl -> size_t ~ void;
 
 r10:
-/= test 2;
+/ \simp \impl @ \mf (SetLocation & SetSize) @ \cl Control ^ \ft CallEvent;
 
 r11:
-/ \simp \impl @ \mf (ResponseKey & ResponseTouch) @ \cl YGUIShell;
+/= test 2 ^ \conf release;
 
-r12-r16:
+r12:
+/ @ \u YControl $=
+(
+	/ \f SetEnabledOf -> Enable;
+	/ @ \in IControl $=
+	(
+		- \amf IsEnabled,
+		- \amf SetEnabled,
+		+ \c @ \amf GetController
+	),
+	+ \f \i bool IsEnabled(const IControl&),
+	+ \f \i void SetEnabledOf(IControl&, bool),
+	/ @ \cl Control $=
+	(
+		+ \c @ \mf GetController,
+		- \mf IsEnabled,
+		- \mf SetEnabled,
+		/ \inh \cl WidgetController -> private mutable \m
+			WidgetController controller;
+		/ \tr \impl @ \ctor
+	)
+);
+/ \tr \impl @ \impl \u (Button & YGUI);
+
+r13:
+/ @ \h YComponent $=
+(
+	+ \pre \decl \cl WidgetController @ \ns Controls,
+	+ using Controls::WidgetController @ \ns YSLib
+);
+/ \amf GetController >> \in IWidget ~ \in IControl;
++ \mf ImplI1(IWidget) \i GetController @ \cl Widget,
+
+r14:
+/ \a \n @ \ns (Widgets & Controls & Forms) @ \ns Components >> \ns Components;
+
+r15:
+/ \st BadControl >> \h YWidget ~ \h YControl;
+/ \impl @ \mf Widget::GetController ^ BadControl ~ GeneralEvent;
+
+r16-r21:
 /= test 3;
 
-r17:
-/ \impl @ \mf YGUIShell::ResponseTouchBase;
-
-r18:
-/ @ \cl YGUIShell @ \impl \u YGUI $=
+r22:
+/ @ \u YControl $=
 (
-	/ \simp \impl @ \mf TryEntering,
-	/ \simp \impl @ \mf TryLeaving
+	/ \inh \cl public AFocusRequester @ \cl WidgetController >> Control;
+	/ \tr \impl @ \ctor @ \cl Control;
+	/ \tr \impl @ \mf (RequestFocusFrom & ReleaseFocusFrom),
+	- 1 \ft with 1st \param \tp WidgetController&
 );
 
-r19-r24:
-/= test 4;
-
-r25:
-/ \impl @ \mf (ResponseKey & ResponseTouch) @ \cl YGUIShell;
-
-r26-r31:
-/ test 5 $=
+r23:
+/ \a \mft @ \cl AFocusRequester >> \cl IControl,
+/ @ \cl Control $=
 (
-	/ \impl @ \mf GetTopControlPtr @ \cl (ScrollableContainer & ListBox),
-	/ \impl @ \mf ShlReader::ReaderPanel::GetTopControlPtr @ \impl \u Shells
-);
-
-r32:
-/= \amf \rem @ \in IWidget;
-
-r33:
-/= test 6 ^ \conf release;
-
-r34-r37:
-/= test 7;
-
-r38:
-* \impl @ \ctor @ \cl ShlReader::ReaderPanel @ \impl \u Shells $since r5;
-
-r39:
-/ \impl @ \mf MLabel::PaintText;
-
-r40:
-/ @ \cl ShlReader @ \u Shells $=
-(
-	/ \impl @ \ctor @ \cl ReaderPanel,
-	+ private \mf void ExcuteReadingCommand(IndexEventArgs::IndexType);
-	/ \simp \impl @ \mf OnActivated ^ \mf ExcuteReadingCommand
-);
-
-r41:
-/ @ \cl ShlReader @ \u Shells $=
-(
-	/ \impl @ \mf ExcuteReadingCommand,
-	/ @ \cl ReaderPanel $=
-	(
-		+ \m ShlReader& Shell;
-		/ \tr \exp \ctor ReaderPanel(const Rect&)
-			-> \ctor ReaderPanel(const Rect&, ShlReader&)
-	);
+	- \inh AFocusRequester;
 	/ \tr \impl @ \ctor
 );
-
-r42:
-/ @ \cl ShlReader @ \u Shells $=
+/ \a \tp AFocusRequester -> IControl @ \amf @ \in IWidget;
+/ \tr \simp \impl @ \f (RequestFocusFrom & ReleaseFocusFrom) @ \impl \u Control;
+/ @ \h YControl $=
 (
-	+ \mf void UpdateEnablilty() @ \cl ReaderPanel;
-	/ \simp \impl @ \mf ExcuteReadingCommand ^ \ReaderPanel::UpdateEnablilty
-),
-/ \f \i void SetEnabledOf(IControl& bool = true) -> \f !\i @ \u YControl;
+	/ \mft IsFocusOfContainer @ \in IControl -> !\m \ft,
+	/ \mft RequestFocusFrom @ \in IControl -> !\m \ft RequestFocusOf,
+	/ \mft ReleaseFocusFrom @ \in IControl -> !\m \ft ReleaseFocusOf
+);
+/ \tr \impl @ \mf (ResponseFocusRequest & ResponseFocusRelease) @ \cl (Widget
+	& MUIControl & UIContainer & Panel & AUIBoxControl & AFrame
+	& MSimpleFocusResponser);
+- \cl AFocusRequester;
 
-r43:
-/= test 8 ^ \conf release;
+r24:
+/= test 4 ^ \conf release;
+
+r25:
+/ \tp IControl @ \param @ 3 \ft<_type, *> @ \h YControl -> _type;
+/ \a 3 \ft @ \h YControl >> \h YFocus;
+
+r26:
+/ \impl @ \mf ClearFocusingPtr @ \cl (Panel & AUIBoxControl & AFrame) ^ 'auto',
+/ \f bool IsFocused(const IControl&) @ \u YControl
+	-> bool IsFocused(const IWidget&),
+/ \simp \impl @ \f (RequestFocusFrom & ReleaseFocusFrom) @ \impl \u YControl;
+
+r27:
+/= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-08-26:
--26.5d;
-//Mercurial rev1-rev106: r5196;
+2011-09-01:
+-24.5d;
+//Mercurial rev1-rev107: r5239;
 
 / ...
 
@@ -486,6 +544,27 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	^ "updated libnds 1.5.3 with default arm7 0.5.22"
+		~ "libnds 1.5.4 with default arm 7 0.5.23",
+	/ "GUI" $=
+	(
+		+ "controllers",
+		/ "simplified %IControl interface",
+		+ $design "rvalue forwarding and return value support"
+			@ "function template %CallEvent",
+		+ "limited focusing interfaces" @ "class %IWidget"
+		/ "simplified implementation and improved efficiency \
+			in focus requesting" $=
+		(
+			^ $design "class %IControl" ~ "class %AFocusRequester"
+				@ "member functions" @ "controls",
+			- $design "class %AFocusRequester"
+		)
+	)
+),
+
+b235
 (
 	/ "shells test example" $=
 	(

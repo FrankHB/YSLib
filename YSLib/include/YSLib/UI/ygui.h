@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2597;
+\version r2609;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-08-18 14:10 +0800;
+	2011-09-01 02:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -102,10 +102,10 @@ public:
 
 private:
 	void
-	TryEntering(IControl&, Components::Controls::TouchEventArgs&);
+	TryEntering(IControl&, Components::TouchEventArgs&);
 
 	void
-	TryLeaving(IControl&, Components::Controls::TouchEventArgs&);
+	TryLeaving(IControl&, Components::TouchEventArgs&);
 
 	void
 	ResetTouchHeldState();
@@ -116,32 +116,32 @@ public:
 	\note 无视事件路由，直接响应。
 	*/
 	bool
-	ResponseKeyBase(IControl&, Components::Controls::KeyEventArgs&,
-		Components::Controls::VisualEvent);
+	ResponseKeyBase(IControl&, Components::KeyEventArgs&,
+		Components::VisualEvent);
 
 	/*!
 	\brief 响应标准按键状态。
 	\note 无视事件路由，直接响应。
 	*/
 	bool
-	ResponseTouchBase(IControl&, Components::Controls::TouchEventArgs&,
-		Components::Controls::VisualEvent);
+	ResponseTouchBase(IControl&, Components::TouchEventArgs&,
+		Components::VisualEvent);
 
 	/*!
 	\brief 响应标准按键状态。
 	\return 已被响应时为 true 。
 	*/
 	bool
-	ResponseKey(IControl&, Components::Controls::KeyEventArgs&,
-		Components::Controls::VisualEvent);
+	ResponseKey(IControl&, Components::KeyEventArgs&,
+		Components::VisualEvent);
 
 	/*!
 	\brief 响应屏幕接触状态。
 	\return 已被响应时为 true 。
 	*/
 	bool
-	ResponseTouch(IControl&, Components::Controls::TouchEventArgs&,
-		Components::Controls::VisualEvent);
+	ResponseTouch(IControl&, Components::TouchEventArgs&,
+		Components::VisualEvent);
 };
 
 YSL_END_NAMESPACE(Shells)
@@ -158,7 +158,6 @@ FetchGUIShell();
 
 YSL_BEGIN_NAMESPACE(Components)
 
-YSL_BEGIN_NAMESPACE(Controls)
 
 /*!
 \brief 级联请求控件及上层容器焦点。
@@ -180,7 +179,6 @@ ReleaseFocusCascade(IControl&);
 bool
 IsFocusedByShell(const IControl&, const YGUIShell& = FetchGUIShell());
 
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 

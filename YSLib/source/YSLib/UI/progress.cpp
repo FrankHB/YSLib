@@ -11,12 +11,12 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version 0.1260;
+\version r1262;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-20 08:59:56 +0800;
 \par 修改时间:
-	2011-07-15 10:58 +0800;
+	2011-09-01 02:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,8 +30,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Widgets)
 
 ProgressBar::ProgressBar(const Rect& r, u16 m)
 	: Widget(r), GMRange<u16>(m, 0)
@@ -57,8 +55,6 @@ ProgressBar::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 			ForeColor);
 	return GetBoundsOf(*this);
 }
-
-YSL_END_NAMESPACE(Widgets)
 
 YSL_END_NAMESPACE(Components)
 

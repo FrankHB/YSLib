@@ -11,12 +11,12 @@
 /*!	\file panel.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r1148;
+\version r1155;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2011-08-16 06:06 +0800;
+	2011-09-01 22:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,8 +29,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Controls)
 
 Panel::Panel(const Rect& r)
 	: Control(r), MUIContainer()
@@ -73,16 +71,12 @@ Panel::operator-=(IControl& ctl)
 void
 Panel::ClearFocusingPtr()
 {
-	IControl* const p(GetFocusingPtr());
-
-	if(p)
+	if(const auto p = GetFocusingPtr())
 	{
 		MUIContainer::ClearFocusingPtr();
-		p->GetEventMap().GetEvent<HVisualEvent>(LostFocus)(*this, EventArgs());
+		CallEvent<LostFocus>(*p, *this, EventArgs());
 	}
 }
-
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 

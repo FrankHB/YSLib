@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5193;
+\version r5322;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-08-26 13:59 +0800;
+	2011-09-01 22:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,8 +34,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Controls)
 
 using namespace Drawing;
 
@@ -260,21 +258,105 @@ DefEventTypeMapping(LostFocus, HVisualEvent)
 typedef GEventMap<IControl, VisualEvent> VisualEventMapType;
 
 
+//!< 部件控制器。
+class WidgetController
+{
+private:
+	bool enabled; //!< 控件可用性。
+
+protected:
+	mutable VisualEventMapType EventMap; //!< 事件映射表。
+
+public:
+	explicit
+	WidgetController(bool);
+
+	DefPredicate(Enabled, enabled)
+
+	DefGetter(VisualEventMapType&, EventMap, EventMap) //!< 取事件映射表。
+
+	DefSetter(bool, Enabled, enabled)
+};
+
+inline
+WidgetController::WidgetController(bool b)
+	: enabled(b), EventMap()
+{}
+
+
 //! \brief 控件接口。
 DeclBasedInterface1(IControl, virtual IWidget)
-	DeclIEntry(bool IsEnabled() const) //!< 判断是否可用。
-	DeclIEntry(bool IsFocused() const) //!< 判断是否取得焦点。
-
-	DeclIEntry(VisualEventMapType& GetEventMap() const) //!< 取事件映射表。
-
-	DeclIEntry(void SetEnabled(bool)) //!< 设置可用性。
-
-	//! \brief 向部件容器请求获得焦点，并指定 GotFocus 事件发送控件。
-	DeclIEntry(void RequestFocusFrom(IControl&))
-
-	//! \brief 释放焦点，并指定 LostFocus 事件发送控件。
-	DeclIEntry(void ReleaseFocusFrom(IControl&))
 EndDecl
+
+
+/*!
+\brief 判断控件是否可用。
+*/
+inline bool
+IsEnabled(const IControl& ctl)
+{
+	return ctl.GetController().IsEnabled();
+}
+
+/*!
+\brief 设置控件可用性。
+*/
+inline void
+SetEnabledOf(IControl& ctl, bool b)
+{
+	ctl.GetController().SetEnabled(b);
+}
+
+/*!
+\brief 设置控件可用性，且当可用性改变时无效化部件区域。
+*/
+void
+Enable(IControl&, bool = true);
+
+
+/*!
+\brief 判断部件是否取得焦点。
+*/
+bool
+IsFocused(const IWidget&);
+
+/*!
+\brief 向部件容器请求获得焦点，并指定 GotFocus 事件发送控件。
+\param ctl 事件目标。
+\param ctlSrc 事件源。
+\note 若成功则在 ctl 上触发 ctlSrc 发送的 GotFocus 事件。
+*/
+void
+RequestFocusFrom(IControl& ctl, IControl& ctlSrc);
+
+/*!
+\brief 释放焦点，并指定 LostFocus 事件发送控件。
+\param ctl 事件目标。
+\param ctlSrc 事件源。
+\note 若成功则在 ctl 上触发 ctlSrc 发送的 LostFocus 事件。
+*/
+void
+ReleaseFocusFrom(IControl& ctl, IControl& ctlSrc);
+
+/*!
+\ingroup HelperFunction
+\brief 向部件容器释放获得焦点，成功后向自身发送 GotFocus 事件。
+*/
+inline void
+RequestFocus(IControl& ctl)
+{
+	RequestFocusFrom(ctl, ctl);
+}
+
+/*!
+\ingroup HelperFunction
+\brief 释放焦点，成功后向自身发送 LostFocus 事件。
+*/
+inline void
+ReleaseFocus(IControl& ctl)
+{
+	ReleaseFocusFrom(ctl, ctl);
+}
 
 
 /*!
@@ -297,25 +379,28 @@ FetchEvent(VisualEventMapType& m)
 */
 template<VisualEvent _vID>
 inline typename EventT(typename EventTypeMapping<_vID>::HandlerType)&
-FetchEvent(IControl& c)
+FetchEvent(IControl& ctl)
 {
-	return FetchEvent<_vID>(c.GetEventMap());
+	return FetchEvent<_vID>(ctl.GetController().GetEventMap());
 }
 
 /*!
 \ingroup HelperFunction
-\brief 调用控件事件。
+\brief 调用时间映射表中的控件事件。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则忽略。
 */
-template<VisualEvent _vID>
-inline void
+template<VisualEvent _vID, typename _tEventArgs>
+inline size_t
 CallEvent(VisualEventMapType& m, typename EventTypeMapping<_vID>
-	::HandlerType::SenderType& sender, typename EventTypeMapping<_vID>
-	::HandlerType::EventArgsType& e)
+	::HandlerType::SenderType& sender, _tEventArgs&& e)
 {
-	m.DoEvent<typename EventTypeMapping<_vID>::HandlerType>(_vID, sender,
-		std::move(e));
+	static_assert(std::is_same<typename std::remove_reference<_tEventArgs>
+		::type, typename EventTypeMapping<_vID>::HandlerType::EventArgsType>
+		::value, "Invalid event argument type found @ CallEvent #1;");
+
+	return m.DoEvent<typename EventTypeMapping<_vID>::HandlerType>(_vID, sender,
+		yforward(e));
 }
 /*!
 \ingroup HelperFunction
@@ -323,13 +408,13 @@ CallEvent(VisualEventMapType& m, typename EventTypeMapping<_vID>
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则忽略。
 */
-template<VisualEvent _vID>
-inline void
-CallEvent(IControl& c, typename EventTypeMapping<_vID>
-	::HandlerType::SenderType& sender, typename EventTypeMapping<_vID>
-	::HandlerType::EventArgsType& e)
+template<VisualEvent _vID, typename _tEventArgs>
+inline size_t
+CallEvent(IControl& ctl, typename EventTypeMapping<_vID>
+	::HandlerType::SenderType& sender, _tEventArgs&& e)
 {
-	CallEvent<_vID>(c.GetEventMap(), sender, e);
+	return CallEvent<_vID>(ctl.GetController().GetEventMap(), sender,
+		yforward(e));
 }
 /*!
 \ingroup HelperFunction
@@ -337,19 +422,12 @@ CallEvent(IControl& c, typename EventTypeMapping<_vID>
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则忽略。
 */
-template<VisualEvent _vID>
-inline void
-CallEvent(IControl& c, typename EventTypeMapping<_vID>
-	::HandlerType::EventArgsType& e)
+template<VisualEvent _vID, typename _tEventArgs>
+inline size_t
+CallEvent(IControl& ctl, _tEventArgs&& e)
 {
-	CallEvent<_vID>(c.GetEventMap(), c, e);
+	return CallEvent<_vID>(ctl.GetController().GetEventMap(), ctl, yforward(e));
 }
-
-/*!
-\brief 设置控件可用性，且当可用性改变时无效化部件区域。
-*/
-void
-SetEnabledOf(IControl&, bool = true);
 
 
 /*!
@@ -407,14 +485,11 @@ OnKey_Bound_Click(IControl&, KeyEventArgs&&);
 
 
 //! \brief 控件。
-class Control : public Widgets::Widget, public AFocusRequester,
+class Control : public Widget,
 	virtual implements IControl
 {
 private:
-	bool enabled; //!< 控件可用性。
-
-protected:
-	mutable VisualEventMapType EventMap; //!< 事件映射表。
+	mutable WidgetController controller;
 
 public:
 	//标准控件事件见 VisualEvent 。
@@ -442,11 +517,7 @@ public:
 	virtual
 	~Control();
 
-	ImplI1(IControl) DefPredicate(Enabled, enabled)
-	ImplI1(IControl) bool
-	IsFocused() const;
-
-	ImplI1(IControl) DefGetter(VisualEventMapType&, EventMap, EventMap)
+	ImplI1(IControl) DefGetter(WidgetController&, Controller, controller)
 	/*!
 	\brief 取按键-指针设备输入默认事件组映射。
 	*/
@@ -457,30 +528,13 @@ public:
 	SetLocation(const Point&);
 	ImplI1(IControl) void
 	SetSize(const Size&);
-	ImplI1(IControl) DefSetter(bool, Enabled, enabled)
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	ImplI1(IControl) Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
-
-	/*!
-	\brief 向部件容器请求获得焦点。
-	\note 若成功则触发指定控件发送的 GotFocus 事件。
-	*/
-	ImplI1(IControl) void
-	RequestFocusFrom(IControl&);
-
-	/*!
-	\brief 释放焦点。
-	\note 触发指定控件发送的 LostFocus 事件。
-	*/
-	ImplI1(IControl) void
-	ReleaseFocusFrom(IControl&);
 };
-
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 

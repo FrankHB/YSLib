@@ -11,12 +11,12 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version 0.3048;
+\version r3050;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-08-08 09:52 +0800;
+	2011-09-01 01:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,8 +34,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Controls)
 
 //! \brief 按钮模块。
 class MButton
@@ -79,7 +77,7 @@ public:
 
 
 //! \brief 按钮。
-class Button : public Thumb, protected Widgets::MLabel
+class Button : public Thumb, protected Components::MLabel
 {
 public:
 	using MLabel::TextAlignmentStyle;
@@ -106,8 +104,6 @@ public:
 	virtual Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
 };
-
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 

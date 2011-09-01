@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2441;
+\version r2443;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-08-18 22:42 +0800;
+	2011-09-01 01:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,8 +66,8 @@ private:
 	u8 lnHeight; //!< 行高。
 
 public:
-	YSLib::Components::Widgets::TextArea AreaUp; //!< 上屏幕对应字符区域。
-	YSLib::Components::Widgets::TextArea AreaDown; //!< 下屏幕对应字符区域。
+	YSLib::Components::TextArea AreaUp; //!< 上屏幕对应字符区域。
+	YSLib::Components::TextArea AreaDown; //!< 下屏幕对应字符区域。
 
 	/*!
 	\brief 构造。

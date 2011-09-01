@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version 0.3160;
+\version r3162;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-08-08 09:43 +0800;
+	2011-09-01 01:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,8 +36,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Controls)
 
 //! \brief 滚动事件类型空间。
 namespace ScrollEventSpace
@@ -110,7 +108,7 @@ public:
 	typedef u16 ValueType; //!< 值类型。
 
 protected:
-	Controls::Thumb Thumb; //!< 滑块：轨道区域上的滚动框。
+	Components::Thumb Thumb; //!< 滑块：轨道区域上的滚动框。
 
 private:
 	SDst min_thumb_length; //!< 最小滑块长度。
@@ -520,8 +518,8 @@ protected:
 class ScrollableContainer : public AUIBoxControl
 {
 protected:
-	Controls::HorizontalScrollBar HorizontalScrollBar;
-	Controls::VerticalScrollBar VerticalScrollBar;
+	Components::HorizontalScrollBar HorizontalScrollBar;
+	Components::VerticalScrollBar VerticalScrollBar;
 
 public:
 	explicit
@@ -547,8 +545,6 @@ protected:
 	Size
 	FixLayout(const Size&);
 };
-
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 

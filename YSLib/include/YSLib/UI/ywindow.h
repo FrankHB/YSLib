@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4608;
+\version r4616;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-08-13 06:43 +0800;
+	2011-09-01 21:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -51,7 +51,6 @@ YSL_BEGIN_NAMESPACE(Components)
 
 #endif
 
-YSL_BEGIN_NAMESPACE(Forms)
 
 //! \brief 窗口模块。
 class MWindow : public noncopyable
@@ -77,7 +76,7 @@ public:
 
 
 //! \brief 抽象窗口。
-class AWindow : public Controls::Control, protected MWindow
+class AWindow : public Control, protected MWindow
 {
 public:
 	/*!
@@ -123,7 +122,7 @@ public:
 
 
 //! \brief 抽象框架窗口。
-class AFrame : public AWindow, protected Widgets::MUIContainer
+class AFrame : public AWindow, protected MUIContainer
 {
 public:
 	explicit
@@ -176,16 +175,16 @@ public:
 		ImplBodyBase1(MUIContainer, GetTopControlPtr, pt)
 
 	void
-	Add(IControl&, Widgets::ZOrderType = Widgets::DefaultZOrder);
+	Add(IControl&, ZOrderType = DefaultZOrder);
 
 	virtual void
 	ClearFocusingPtr();
 
-	virtual PDefH1(bool, ResponseFocusRequest, AFocusRequester& req)
-		ImplBodyBase1(MUIContainer, ResponseFocusRequest, req)
+	virtual PDefH1(bool, ResponseFocusRequest, IControl& ctl)
+		ImplBodyBase1(MUIContainer, ResponseFocusRequest, ctl)
 
-	virtual PDefH1(bool, ResponseFocusRelease, AFocusRequester& req)
-		ImplBodyBase1(MUIContainer, ResponseFocusRelease, req)
+	virtual PDefH1(bool, ResponseFocusRelease, IControl& ctl)
+		ImplBodyBase1(MUIContainer, ResponseFocusRelease, ctl)
 };
 
 
@@ -211,8 +210,6 @@ protected:
 	ImplI1(AWindow) bool
 	DrawContents();
 };
-
-YSL_END_NAMESPACE(Forms)
 
 YSL_END_NAMESPACE(Components)
 

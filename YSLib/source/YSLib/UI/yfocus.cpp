@@ -11,12 +11,12 @@
 /*!	\file yfocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version 0.1391;
+\version r1397;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-07-11 10:23 +0800;
+	2011-09-01 21:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,16 +38,16 @@ MSimpleFocusResponser::ClearFocusingPtr()
 }
 
 bool
-MSimpleFocusResponser::ResponseFocusRequest(AFocusRequester& w)
+MSimpleFocusResponser::ResponseFocusRequest(IControl& ctl)
 {
-	pFocusing = dynamic_cast<IControl*>(&w);
+	pFocusing = &ctl;
 	return pFocusing;
 }
 
 bool
-MSimpleFocusResponser::ResponseFocusRelease(AFocusRequester& w)
+MSimpleFocusResponser::ResponseFocusRelease(IControl& ctl)
 {
-	if(pFocusing == dynamic_cast<IControl*>(&w))
+	if(pFocusing == &ctl)
 	{
 		pFocusing = nullptr;
 	//	w.ReleaseFocusRaw();

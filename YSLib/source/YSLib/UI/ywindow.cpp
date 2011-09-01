@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4109;
+\version r4117;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-08-16 06:02 +0800;
+	2011-09-01 22:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,13 +28,9 @@
 
 YSL_BEGIN
 
-using namespace Components::Controls;
-using namespace Components::Widgets;
 using namespace Drawing;
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Forms)
 
 MWindow::MWindow(const Rect& r, const shared_ptr<Image>& hImg)
 	: hBgImage(hImg)
@@ -95,7 +91,7 @@ AWindow::Update()
 		const auto pCon(FetchContainerPtr(*this));
 
 		if(pCon)
-			Widgets::Update(*this, FetchContext(*pCon), GetLocation(),
+			Components::Update(*this, FetchContext(*pCon), GetLocation(),
 				GetBoundsOf(*this));
 	}
 }
@@ -156,7 +152,7 @@ AFrame::operator-=(AWindow& wnd)
 }
 
 void
-AFrame::Add(IControl& ctl, Widgets::ZOrderType z)
+AFrame::Add(IControl& ctl, ZOrderType z)
 {
 	MUIContainer::Add(ctl, z);
 	ctl.GetContainerPtrRef() = this;
@@ -165,12 +161,10 @@ AFrame::Add(IControl& ctl, Widgets::ZOrderType z)
 void
 AFrame::ClearFocusingPtr()
 {
-	IControl* const p(GetFocusingPtr());
-
-	if(p)
+	if(const auto p = GetFocusingPtr())
 	{
 		MUIContainer::ClearFocusingPtr();
-		p->GetEventMap().GetEvent<HVisualEvent>(LostFocus)(*this, EventArgs());
+		CallEvent<LostFocus>(*p, *this, EventArgs());
 	}
 }
 
@@ -239,8 +233,6 @@ Frame::DrawContents()
 		}
 	return result;
 }
-
-YSL_END_NAMESPACE(Forms)
 
 YSL_END_NAMESPACE(Components)
 

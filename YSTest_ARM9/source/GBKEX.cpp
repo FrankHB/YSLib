@@ -11,12 +11,12 @@
 /*!	\file GBKEX.cpp
 \ingroup YReader
 \brief 测试文件。
-\version 0.3084; *Build 216 r37;
+\version r3088; *Build 236 r14;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11;
 \par 修改时间:
-	2011-06-08 18:11 +0800;
+	2011-09-01 01:49 +0800;
 \par 字符集:
 	ANSI / GBK;
 \par 模块名称:
@@ -39,8 +39,6 @@ namespace YSLib
 	const_path_t DEF_FONT_DIRECTORY = "/Font/";
 	/*
 	using namespace Components;
-	using namespace Widgets;
-	using namespace Controls;
 	*/
 }
 

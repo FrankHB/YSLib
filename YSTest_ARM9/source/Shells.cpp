@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5054;
+\version r5055;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-08-26 14:00 +0800;
+	2011-09-01 01:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -202,7 +202,6 @@ YSL_END_NAMESPACE(YReader)
 YSL_BEGIN
 
 using namespace Components;
-using namespace Components::Widgets;
 using namespace Drawing;
 
 YSL_BEGIN_NAMESPACE(Shells)
@@ -340,13 +339,13 @@ ShlExplorer::ShlExplorer()
 	};
 	fbMain.GetViewChanged().Add(*this, &ShlExplorer::OnViewChanged_fbMain);
 	fbMain.GetSelected() += [this](IControl&, IndexEventArgs&&){
-		SetEnabledOf(btnOK, fbMain.IsSelected() && IO::GetExtensionOf(
+		Enable(btnOK, fbMain.IsSelected() && IO::GetExtensionOf(
 			Text::StringToMBCS(fbMain.GetList()[fbMain.GetSelectedIndex()]))
 			== "txt");
 	};
 	fbMain.GetConfirmed() += OnConfirmed_fbMain;
-	SetEnabledOf(btnTest, true);
-	SetEnabledOf(btnOK, false);
+	Enable(btnTest, true);
+	Enable(btnOK, false);
 	FetchEvent<Click>(btnTest).Add(*this, &ShlExplorer::OnClick_btnTest);
 	FetchEvent<Click>(btnOK).Add(*this, &ShlExplorer::OnClick_btnOK);
 	lblA.Text = YApplication::ProductName;
@@ -509,7 +508,7 @@ ShlExplorer::TFormTest::TFormTest()
 
 	FetchEvent<Click>(btnMenuTest).Add(*this, &TFormTest::OnClick_btnMenuTest);
 	FetchEvent<Click>(btnShowWindow) += OnClick_ShowWindow;
-	SetEnabledOf(btnPrevBackground, false);
+	Enable(btnPrevBackground, false);
 	FetchEvent<Click>(btnPrevBackground) += [this](IControl&, TouchEventArgs&&){
 		auto& shl(FetchShell<ShlExplorer>());
 		auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
@@ -518,10 +517,10 @@ ShlExplorer::TFormTest::TFormTest()
 		if(up_i > 1)
 		{
 			--up_i;
-			SetEnabledOf(btnNextBackground);
+			Enable(btnNextBackground);
 		}
 		if(up_i == 1)
-			SetEnabledOf(btnPrevBackground, false);
+			Enable(btnPrevBackground, false);
 		dsk_up_ptr = FetchImage(up_i);
 		dsk_dn_ptr = FetchImage(up_i + 1);
 		SetInvalidationOf(shl.GetDesktopUp());
@@ -535,10 +534,10 @@ ShlExplorer::TFormTest::TFormTest()
 		if(up_i < 5)
 		{
 			++up_i;
-			SetEnabledOf(btnPrevBackground);
+			Enable(btnPrevBackground);
 		}
 		if(up_i == 5)
-			SetEnabledOf(btnNextBackground, false);
+			Enable(btnNextBackground, false);
 		dsk_up_ptr = FetchImage(up_i);
 		dsk_dn_ptr = FetchImage(up_i + 1);
 		SetInvalidationOf(shl.GetDesktopUp());
@@ -698,7 +697,7 @@ ShlExplorer::TFormExtra::OnClick_btnDragTest(TouchEventArgs&&)
 		btnDragTest.Text = strtf;
 		btnDragTest.ForeColor = GenerateRandomColor();
 		btnClose.ForeColor = GenerateRandomColor();
-		SetEnabledOf(btnClose);
+		Enable(btnClose);
 	}
 	else
 	{
@@ -1120,10 +1119,10 @@ ShlReader::ReaderPanel::Refresh(const Graphics& g, const Point& pt,
 void
 ShlReader::ReaderPanel::UpdateEnablilty()
 {
-	SetEnabledOf(btnUp, !Shell.Reader.IsTextTop());
-	SetEnabledOf(btnDown, !Shell.Reader.IsTextBottom());
-	SetEnabledOf(btnLeft, !Shell.Reader.IsTextTop());
-	SetEnabledOf(btnRight, !Shell.Reader.IsTextBottom());
+	Enable(btnUp, !Shell.Reader.IsTextTop());
+	Enable(btnDown, !Shell.Reader.IsTextBottom());
+	Enable(btnLeft, !Shell.Reader.IsTextTop());
+	Enable(btnRight, !Shell.Reader.IsTextBottom());
 }
 
 string ShlReader::path;

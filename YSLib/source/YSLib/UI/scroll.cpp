@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3780;
+\version r3786;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-08-25 13:16 +0800;
+	2011-09-01 01:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,8 +32,6 @@ using namespace ystdex;
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-YSL_BEGIN_NAMESPACE(Controls)
 
 namespace
 {
@@ -211,8 +209,8 @@ ATrack::CheckArea(SDst q) const
 	size_t n(SwitchInterval(q, a, 3));
 
 	YAssert(n < 3,
-		"In function \"Components::Controls::ATrack::Area\n"
-		"Components::Controls::ATrack::CheckArea(SPos q) const\": \n"
+		"In function \"Components::ATrack::Area\n"
+		"Components::ATrack::CheckArea(SPos q) const\": \n"
 		"Array index is out of bound.");
 
 	return lst[n];
@@ -297,7 +295,7 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 	: ATrack(r, uMinThumbLength)
 {
 	YAssert(GetWidth() > GetHeight(),
-		"In constructor Components::Controls::\n"
+		"In constructor Components::\n"
 			"HorizontalTrack::HorizontalTrack"
 		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"Width is not greater than height.");
@@ -325,7 +323,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 	: ATrack(r, uMinThumbLength)
 {
 	YAssert(GetHeight() > GetWidth(),
-		"In constructor Components::Controls::\n"
+		"In constructor Components::\n"
 			"HorizontalTrack::HorizontalTrack"
 		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"height is not greater than width.");
@@ -381,8 +379,8 @@ try	: AUIBoxControl(r),
 	PrevButton.SetSize(s);
 	NextButton.SetSize(s);
 //	PrevButton.SetLocation(Point::Zero);
-	Widgets::MoveToBottom(NextButton);
-	Widgets::MoveToRight(NextButton);
+	MoveToBottom(NextButton);
+	MoveToRight(NextButton);
 }
 catch(...)
 {
@@ -428,7 +426,7 @@ HorizontalScrollBar::HorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
 	: AScrollBar(r, uMinThumbLength, Horizontal)
 {
 	YAssert(GetWidth() > GetHeight() * 2,
-		"In constructor Components::Controls::\n"
+		"In constructor Components::\n"
 			"HorizontalScrollBar::HorizontalScrollBar"
 		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"Width is not greater than twice of height.");
@@ -449,7 +447,7 @@ VerticalScrollBar::VerticalScrollBar(const Rect& r, SDst uMinThumbLength)
 	: AScrollBar(r, uMinThumbLength, Vertical)
 {
 	YAssert(GetHeight() > GetWidth() * 2,
-		"In constructor Components::Controls::\n"
+		"In constructor Components::\n"
 			"VerticalScrollBar::VerticalScrollBar"
 		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"height is not greater than twice of width.");
@@ -532,8 +530,6 @@ ScrollableContainer::FixLayout(const Size& s)
 	{}
 	return arena;
 }
-
-YSL_END_NAMESPACE(Controls)
 
 YSL_END_NAMESPACE(Components)
 
