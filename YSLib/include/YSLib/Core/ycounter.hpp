@@ -11,12 +11,12 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version 0.1698;
+\version r1699;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-09 20:43:52 +0800;
 \par 修改时间:
-	2011-06-24 20:44 +0800;
+	2011-09-04 21:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -60,8 +60,8 @@ public:
 		++nTotal;
 	}
 	/*!
-	\brief 移动构造。
-	\brief 移动构造：默认实现。
+	\brief 转移构造。
+	\brief 转移构造：默认实现。
 	*/
 	inline
 	GMCounter(GMCounter&&) = default;

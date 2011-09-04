@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5322;
+\version r5376;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-09-01 22:10 +0800;
+	2011-09-04 23:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -131,19 +131,21 @@ struct IndexEventArgs : public EventArgs
 {
 	typedef ssize_t IndexType;
 
-	IControl& Control;
+	IWidget& Widget;
 	IndexType Index;
 
 	/*!
 	\brief 构造：使用控件引用和索引值。
 	*/
-	IndexEventArgs(IControl& c, IndexType i)
-		: EventArgs(),
-		Control(c), Index(i)
-	{}
-
+	IndexEventArgs(IWidget&, IndexType);
 	DefConverter(IndexType, Index)
 };
+
+inline
+IndexEventArgs::IndexEventArgs(IWidget& wgt, IndexEventArgs::IndexType idx)
+	: EventArgs(),
+	Widget(wgt), Index(idx)
+{}
 
 
 //! \brief 值类型参数类模块模板。
@@ -171,13 +173,13 @@ public:
 
 
 //事件处理器类型。
-DefDelegate(HVisualEvent, IControl, EventArgs)
-DefDelegate(HInputEvent, IControl, InputEventArgs)
-DefDelegate(HKeyEvent, IControl, KeyEventArgs)
-DefDelegate(HTouchEvent, IControl, TouchEventArgs)
-DefDelegate(HIndexEvent, IControl, IndexEventArgs)
-//DefDelegate(HPointEvent, IControl, Drawing::Point)
-//DefDelegate(HSizeEvent, IControl, Size)
+DefDelegate(HVisualEvent, IWidget, EventArgs)
+DefDelegate(HInputEvent, IWidget, InputEventArgs)
+DefDelegate(HKeyEvent, IWidget, KeyEventArgs)
+DefDelegate(HTouchEvent, IWidget, TouchEventArgs)
+DefDelegate(HIndexEvent, IWidget, IndexEventArgs)
+//DefDelegate(HPointEvent, IWidget, Drawing::Point)
+//DefDelegate(HSizeEvent, IWidget, Size)
 
 
 #define DefEventTypeMapping(_name, _tEventHandler) \
@@ -255,7 +257,7 @@ DefEventTypeMapping(LostFocus, HVisualEvent)
 
 
 //! \brief 控件事件映射表类型。
-typedef GEventMap<IControl, VisualEvent> VisualEventMapType;
+typedef GEventMap<IWidget, VisualEvent> VisualEventMapType;
 
 
 //!< 部件控制器。
@@ -284,34 +286,49 @@ WidgetController::WidgetController(bool b)
 {}
 
 
-//! \brief 控件接口。
-DeclBasedInterface1(IControl, virtual IWidget)
-EndDecl
-
-
 /*!
-\brief 判断控件是否可用。
+\brief 判断部件是否为可用的控件。
 */
 inline bool
-IsEnabled(const IControl& ctl)
+IsEnabled(const IWidget& wgt)
 {
-	return ctl.GetController().IsEnabled();
+	try
+	{
+		return wgt.GetController().IsEnabled();
+	}
+	catch(BadControl&)
+	{}
+	return false;
 }
 
 /*!
-\brief 设置控件可用性。
+\brief 判断部件是否为可用且可见的控件。
+*/
+inline bool
+IsEnabledAndVisible(const IWidget& wgt)
+{
+	return IsEnabled(wgt) && wgt.IsVisible();
+}
+
+/*!
+\brief 设置部件可用性。
 */
 inline void
-SetEnabledOf(IControl& ctl, bool b)
+SetEnabledOf(IWidget& wgt, bool b)
 {
-	ctl.GetController().SetEnabled(b);
+	try
+	{
+		wgt.GetController().SetEnabled(b);
+	}
+	catch(BadControl&)
+	{}
 }
 
 /*!
-\brief 设置控件可用性，且当可用性改变时无效化部件区域。
+\brief 设置部件可用性，且当可用性改变时无效化部件区域。
 */
 void
-Enable(IControl&, bool = true);
+Enable(IWidget&, bool = true);
 
 
 /*!
@@ -322,30 +339,30 @@ IsFocused(const IWidget&);
 
 /*!
 \brief 向部件容器请求获得焦点，并指定 GotFocus 事件发送控件。
-\param ctl 事件目标。
-\param ctlSrc 事件源。
-\note 若成功则在 ctl 上触发 ctlSrc 发送的 GotFocus 事件。
+\param dst 事件目标。
+\param src 事件源。
+\note 若成功则在 dst 上触发 src 发送的 GotFocus 事件。
 */
 void
-RequestFocusFrom(IControl& ctl, IControl& ctlSrc);
+RequestFocusFrom(IWidget& dst, IWidget& src);
 
 /*!
 \brief 释放焦点，并指定 LostFocus 事件发送控件。
-\param ctl 事件目标。
-\param ctlSrc 事件源。
-\note 若成功则在 ctl 上触发 ctlSrc 发送的 LostFocus 事件。
+\param dst 事件目标。
+\param src 事件源。
+\note 若成功则在 dst 上触发 src 发送的 LostFocus 事件。
 */
 void
-ReleaseFocusFrom(IControl& ctl, IControl& ctlSrc);
+ReleaseFocusFrom(IWidget& dst, IWidget& src);
 
 /*!
 \ingroup HelperFunction
 \brief 向部件容器释放获得焦点，成功后向自身发送 GotFocus 事件。
 */
 inline void
-RequestFocus(IControl& ctl)
+RequestFocus(IWidget& wgt)
 {
-	RequestFocusFrom(ctl, ctl);
+	RequestFocusFrom(wgt, wgt);
 }
 
 /*!
@@ -353,9 +370,9 @@ RequestFocus(IControl& ctl)
 \brief 释放焦点，成功后向自身发送 LostFocus 事件。
 */
 inline void
-ReleaseFocus(IControl& ctl)
+ReleaseFocus(IWidget& wgt)
 {
-	ReleaseFocusFrom(ctl, ctl);
+	ReleaseFocusFrom(wgt, wgt);
 }
 
 
@@ -373,15 +390,16 @@ FetchEvent(VisualEventMapType& m)
 }
 /*!
 \ingroup HelperFunction
-\brief 取控件事件。
+\brief 取部件事件。
+\exception BadControl 异常中立：无事件映射表：由 GetController 抛出。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则自动添加空事件。
 */
 template<VisualEvent _vID>
 inline typename EventT(typename EventTypeMapping<_vID>::HandlerType)&
-FetchEvent(IControl& ctl)
+FetchEvent(IWidget& wgt)
 {
-	return FetchEvent<_vID>(ctl.GetController().GetEventMap());
+	return FetchEvent<_vID>(wgt.GetController().GetEventMap());
 }
 
 /*!
@@ -404,17 +422,23 @@ CallEvent(VisualEventMapType& m, typename EventTypeMapping<_vID>
 }
 /*!
 \ingroup HelperFunction
-\brief 调用控件事件。
+\brief 调用部件事件。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则忽略。
 */
 template<VisualEvent _vID, typename _tEventArgs>
 inline size_t
-CallEvent(IControl& ctl, typename EventTypeMapping<_vID>
+CallEvent(IWidget& wgt, typename EventTypeMapping<_vID>
 	::HandlerType::SenderType& sender, _tEventArgs&& e)
 {
-	return CallEvent<_vID>(ctl.GetController().GetEventMap(), sender,
-		yforward(e));
+	try
+	{
+		return CallEvent<_vID>(wgt.GetController().GetEventMap(), sender,
+			yforward(e));		
+	}
+	catch(BadControl&)
+	{}
+	return 0;
 }
 /*!
 \ingroup HelperFunction
@@ -424,9 +448,9 @@ CallEvent(IControl& ctl, typename EventTypeMapping<_vID>
 */
 template<VisualEvent _vID, typename _tEventArgs>
 inline size_t
-CallEvent(IControl& ctl, _tEventArgs&& e)
+CallEvent(IWidget& wgt, _tEventArgs&& e)
 {
-	return CallEvent<_vID>(ctl.GetController().GetEventMap(), ctl, yforward(e));
+	return CallEvent<_vID>(wgt, wgt, yforward(e));
 }
 
 
@@ -434,7 +458,7 @@ CallEvent(IControl& ctl, _tEventArgs&& e)
 \brief 处理键接触保持事件。
 */
 void
-OnKeyHeld(IControl&, KeyEventArgs&&);
+OnKeyHeld(IWidget&, KeyEventArgs&&);
 
 /*!
 \brief 处理屏幕接触保持事件。
@@ -443,21 +467,21 @@ OnKeyHeld(IControl&, KeyEventArgs&&);
 实现记录坐标偏移（用于拖放）或触发 TouchMove 事件。
 */
 void
-OnTouchHeld(IControl&, TouchEventArgs&&);
+OnTouchHeld(IWidget&, TouchEventArgs&&);
 
 /*!
 \brief 处理屏幕接触移动事件。
 \note 重复触发 TouchDown 事件。
 */
 void
-OnTouchMove(IControl&, TouchEventArgs&&);
+OnTouchMove(IWidget&, TouchEventArgs&&);
 
 /*!
 \brief 处理屏幕接触移动事件。
 \note 使用拖放。
 */
 void
-OnTouchMove_Dragging(IControl&, TouchEventArgs&&);
+OnTouchMove_Dragging(IWidget&, TouchEventArgs&&);
 
 /*!
 \brief 处理按键事件：按键-指针设备接触结束。
@@ -465,7 +489,7 @@ OnTouchMove_Dragging(IControl&, TouchEventArgs&&);
 绑定触发 TouchUp 和 Leave 事件。
 */
 void
-OnKey_Bound_TouchUpAndLeave(IControl&, KeyEventArgs&&);
+OnKey_Bound_TouchUpAndLeave(IWidget&, KeyEventArgs&&);
 
 /*!
 \brief 处理按键事件：按键-指针设备接触开始。
@@ -473,7 +497,7 @@ OnKey_Bound_TouchUpAndLeave(IControl&, KeyEventArgs&&);
 绑定触发 Enter 和 TouchDown 事件。
 */
 void
-OnKey_Bound_EnterAndTouchDown(IControl&, KeyEventArgs&&);
+OnKey_Bound_EnterAndTouchDown(IWidget&, KeyEventArgs&&);
 
 /*!
 \brief 处理按键事件：按键-指针设备按下。
@@ -481,12 +505,11 @@ OnKey_Bound_EnterAndTouchDown(IControl&, KeyEventArgs&&);
 绑定触发 Click 事件。
 */
 void
-OnKey_Bound_Click(IControl&, KeyEventArgs&&);
+OnKey_Bound_Click(IWidget&, KeyEventArgs&&);
 
 
 //! \brief 控件。
-class Control : public Widget,
-	virtual implements IControl
+class Control : public Widget
 {
 private:
 	mutable WidgetController controller;
@@ -502,9 +525,9 @@ public:
 	\brief 按键-指针设备输入事件组映射。
 	\note 默认为 Control::GetBoundControlPtr 。
 
-	转换按键输入事件为指定控件的指针设备输入事件。
+	转换按键输入事件为指定部件的指针设备输入事件。
 	*/
-	std::function<IControl*(const KeyCode&)> BoundControlPtr;
+	std::function<IWidget*(const KeyCode&)> BoundControlPtr;
 
 	/*!
 	\brief 构造：使用指定边界。
@@ -517,22 +540,22 @@ public:
 	virtual
 	~Control();
 
-	ImplI1(IControl) DefGetter(WidgetController&, Controller, controller)
+	virtual DefGetter(WidgetController&, Controller, controller)
 	/*!
 	\brief 取按键-指针设备输入默认事件组映射。
 	*/
-	virtual PDefH1(IControl*, GetBoundControlPtr, const KeyCode&)
+	virtual PDefH1(IWidget*, GetBoundControlPtr, const KeyCode&)
 		ImplRet(nullptr)
 
-	ImplI1(IControl) void
+	virtual void
 	SetLocation(const Point&);
-	ImplI1(IControl) void
+	virtual void
 	SetSize(const Size&);
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
-	ImplI1(IControl) Rect
+	virtual Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
 };
 

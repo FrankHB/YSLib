@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1423;
+\version r1425;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-09-01 02:01 +0800;
+	2011-09-02 20:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,7 +56,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	viewer(GetList()), top_offset(0), Events(GetStaticRef<Dependencies>())
 {
 	SetAllOf(Margin, defMarginH, defMarginV);
-	FetchEvent<KeyDown>(*this) += [this](IControl&, KeyEventArgs&& e){
+	FetchEvent<KeyDown>(*this) += [this](IWidget&, KeyEventArgs&& e){
 		if(viewer.GetTotal() != 0)
 		{
 			if(viewer.IsSelected())
@@ -142,15 +142,15 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 		UpdateView();
 	};
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld;
-	FetchEvent<TouchDown>(*this) += [this](IControl&, TouchEventArgs&& e){
+	FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&& e){
 		SetSelected(e);
 		UpdateView();
 	};
-	FetchEvent<TouchMove>(*this) += [this](IControl&, TouchEventArgs&& e){
+	FetchEvent<TouchMove>(*this) += [this](IWidget&, TouchEventArgs&& e){
 		SetSelected(e);
 		UpdateView();
 	};
-	FetchEvent<Click>(*this) += [this](IControl&, TouchEventArgs&& e){
+	FetchEvent<Click>(*this) += [this](IWidget&, TouchEventArgs&& e){
 		InvokeConfirmed(CheckPoint(e));
 	};
 }

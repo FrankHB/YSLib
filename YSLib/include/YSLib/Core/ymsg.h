@@ -11,12 +11,12 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2405;
+\version r2406;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-08-18 16:06 +0800;
+	2011-09-04 21:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,7 +70,7 @@ public:
 	*/
 	Message(const Message&) = default;
 	/*!
-	\brief 移动构造：默认实现。
+	\brief 转移构造：默认实现。
 	*/
 	Message(Message&&) = default;
 

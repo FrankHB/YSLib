@@ -11,12 +11,12 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version 0.2982;
+\version r2983;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-05 22:06:05 +0800;
 \par 修改时间:
-	2011-06-24 02:04 +0800;
+	2011-09-04 21:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,7 +52,7 @@ public:
 	inline
 	String(const String&) = default;
 	/*!
-	\brief 移动构造：默认实现。
+	\brief 转移构造：默认实现。
 	*/
 	inline
 	String(String&&) = default;

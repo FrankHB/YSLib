@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5940;
+\version r5960;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-01 20:51 +0800;
+	2011-09-04 23:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,7 @@
 #define YSL_INC_UI_YWIDGET_H_
 
 #include "ycomp.h"
-#include "yfocus.h"
+#include "yrender.h"
 #include "../Service/ydraw.h"
 #include "../Service/ygdi.h"
 
@@ -49,151 +49,6 @@ using Drawing::Size;
 using Drawing::Rect;
 
 using Drawing::Graphics;
-
-
-/*!
-\brief 部件渲染器。
-*/
-class WidgetRenderer : public noncopyable
-{
-protected:
-	static const Graphics InvalidGraphics; //!< 无效图形接口上下文。
-
-public:
-	virtual DefEmptyDtor(WidgetRenderer)
-
-	/*!
-	\brief 判断是否需要刷新。
-	\note 总是需要刷新。
-	*/
-	virtual PDefH0(bool, RequiresRefresh) const
-		ImplRet(true)
-
-	/*!
-	\brief 取无效区域。
-	\note 空实现。
-	*/
-	virtual void
-	GetInvalidatedArea(Rect&) const
-	{}
-	/*!
-	\brief 取图形接口上下文。
-	\note 返回无效图形接口上下文。
-	*/
-	virtual DefGetter(const Graphics&, Context, InvalidGraphics)
-
-	/*!
-	\brief 设置缓冲区大小。
-	\note 空实现。
-	*/
-	virtual void
-	SetSize(const Size&)
-	{}
-
-	/*!
-	\brief 清除无效区域。
-	\note 空实现。
-	*/
-	virtual void
-	ClearInvalidation()
-	{}
-
-	/*!
-	\brief 提交无效区域。
-	\note 空实现。
-	*/
-	virtual void
-	CommitInvalidation(const Rect&)
-	{}
-
-	/*
-	\brief 以纯色填充无效区域。
-	\note 空实现。
-	*/
-	virtual void
-	FillInvalidation(Color)
-	{}
-
-	/*!
-	\brief 更新至指定图形设备上下文的指定点。
-	\param 意义同 IWidget::Refresh 。
-	\note 空实现。
-	*/
-	virtual void
-	UpdateTo(const Graphics&, const Point&, const Rect&) const
-	{}
-};
-
-
-/*!
-\brief 带缓冲的部件渲染器。
-*/
-class BufferedWidgetRenderer : public WidgetRenderer
-{
-protected:
-	mutable Rect rInvalidated; \
-		//!< 无效区域：包含所有新绘制请求的区域（不一定是最小的）。
-
-public:
-	Drawing::BitmapBuffer Buffer; //!< 显示缓冲区。
-
-	/*!
-	\brief 判断是否需要刷新。
-	\note 若无效区域长宽都不为零，则需要刷新。
-	*/
-	virtual bool
-	RequiresRefresh() const;
-
-	/*!
-	\brief 取无效区域。
-	*/
-	DefGetter(const Rect&, InvalidatedArea, rInvalidated)
-	/*!
-	\brief 取无效区域。
-	\note 通过参数返回。
-	*/
-	virtual void
-	GetInvalidatedArea(Rect&) const;
-	/*!
-	\brief 取图形接口上下文。
-	\return 缓冲区图形接口上下文。
-	*/
-	virtual DefGetter(const Graphics&, Context, Buffer)
-
-	/*!
-	\brief 设置缓冲区大小。
-	*/
-	virtual void
-	SetSize(const Size&);
-
-	/*!
-	\brief 清除无效区域。
-	\note 通过设置大小为 Size::Zero 使无效区域被忽略。
-	*/
-	virtual void
-	ClearInvalidation();
-
-	/*!
-	\brief 提交无效区域。
-	\note 合并至现有无效区域中。
-	\note 由于无效区域的形状限制，结果可能会包含部分有效区域。
-	*/
-	virtual void
-	CommitInvalidation(const Rect&);
-
-	/*
-	\brief 以纯色填充无效区域。
-	*/
-	virtual void
-	FillInvalidation(Color);
-
-	/*!
-	\brief 更新至指定图形设备上下文的指定点。
-	\param 意义同 IWidget::Refresh 。
-	*/
-	virtual void
-	UpdateTo(const Graphics&, const Point&, const Rect&) const;
-};
 
 
 struct BadControl
@@ -225,19 +80,13 @@ DeclInterface(IWidget)
 	\brief 取焦点对象指针。
 	\return 若为保存了子部件中的焦点对象的容器则返回指针，否则返回 \c nullptr 。
 	*/
-	DeclIEntry(IControl* GetFocusingPtr())
+	DeclIEntry(IWidget* GetFocusingPtr())
 	/*!
-	\brief 取指定的点所在的可见部件的指针。
+	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。。
 	\return 若为保存了子部件中的可见部件的容器则返回指针，否则返回 \c nullptr 。
 	\note 使用部件坐标。
 	*/
-	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&))
-	/*!
-	\brief 取指定的点所在的可见控件的指针。
-	\return 若为保存了子部件中的可见控件的容器则返回指针，否则返回 \c nullptr 。
-	\note 使用部件坐标。
-	*/
-	DeclIEntry(IControl* GetTopControlPtr(const Point&))
+	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)))
 
 	DeclIEntry(void SetVisible(bool)) //!< 设置可见。
 	DeclIEntry(void SetTransparent(bool)) //!< 设置透明。
@@ -267,13 +116,13 @@ DeclInterface(IWidget)
 	\brief 响应焦点请求。
 	\note 若此部件非容器则无效。
 	*/
-	DeclIEntry(bool ResponseFocusRequest(IControl&))
+	DeclIEntry(bool ResponseFocusRequest(IWidget&))
 
 	/*!
 	\brief 响应焦点释放。
 	\note 若此部件非容器则无效。
 	*/
-	DeclIEntry(bool ResponseFocusRelease(IControl&))
+	DeclIEntry(bool ResponseFocusRelease(IWidget&))
 EndDecl
 
 
@@ -381,8 +230,7 @@ RenderChild(IWidget&, const Graphics&, const Point&, const Rect&);
 /*!
 \brief 请求提升至容器顶端。
 
-\todo 完全实现提升 IWidget 至容器顶端（目前仅实现 IControl 且
-	父容器为 Desktop 的情形）。
+\todo 完全实现提升 IWidget 至容器顶端（目前仅实现父容器为 AFrame 的情形）。
 */
 void
 RequestToTop(IWidget&);
@@ -540,11 +388,10 @@ public:
 	ImplI1(IWidget) DefGetter(WidgetRenderer&, Renderer, *pRenderer)
 	ImplI1(IWidget) WidgetController&
 	GetController() const;
-	ImplI1(IWidget) PDefH0(IControl*, GetFocusingPtr)
+	ImplI1(IWidget) PDefH0(IWidget*, GetFocusingPtr)
 		ImplRet(nullptr)
-	ImplI1(IWidget) PDefH1(IWidget*, GetTopWidgetPtr, const Point&)
-		ImplRet(nullptr)
-	ImplI1(IWidget) PDefH1(IControl*, GetTopControlPtr, const Point&)
+	ImplI1(IWidget) PDefH2(IWidget*, GetTopWidgetPtr, const Point&,
+		bool(&)(const IWidget&))
 		ImplRet(nullptr)
 
 	ImplI1(IWidget) DefSetterBase(bool, Visible, Visual)
@@ -568,10 +415,10 @@ public:
 	ImplI1(IWidget) Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
 
-	ImplI1(IWidget) PDefH1(bool, ResponseFocusRequest, IControl&)
+	ImplI1(IWidget) PDefH1(bool, ResponseFocusRequest, IWidget&)
 		ImplRet(false)
 
-	ImplI1(IWidget) PDefH1(bool, ResponseFocusRelease, IControl&)
+	ImplI1(IWidget) PDefH1(bool, ResponseFocusRelease, IWidget&)
 		ImplRet(false)
 };
 

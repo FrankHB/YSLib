@@ -953,10 +953,7 @@ $header Core::YGDI : Core::YGDIBase
 
 $header Shell::YComponent : YMessage
 {
-	using Components::
-	{IControl, IWidget};
-
-	using Shells::YGUIShell;
+	using Components::IWidget;
 } //$header Shell::YComponent;
 
 $header Shell::YWidget : Shell::YComponent, Core::YResource

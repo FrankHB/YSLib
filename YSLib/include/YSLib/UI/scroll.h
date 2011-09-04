@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3162;
+\version r3180;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-09-01 01:51 +0800;
+	2011-09-04 23:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -89,7 +89,7 @@ ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
 {}
 
 
-DefDelegate(HScrollEvent, IControl, ScrollEventArgs)
+DefDelegate(HScrollEvent, IWidget, ScrollEventArgs)
 
 
 //! \brief 轨道。
@@ -140,14 +140,14 @@ public:
 	/*!
 	\brief 取焦点指针。
 	*/
-	virtual DefMutableGetterBase(IControl*, FocusingPtr,
+	virtual DefMutableGetterBase(IWidget*, FocusingPtr,
 		MSimpleFocusResponser)
 	/*!
-	\brief 取顶端控件指针。
+	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	\note 仅滑块。
 	*/
-	ImplI1(AUIBoxControl) IControl*
-	GetTopControlPtr(const Point&);
+	ImplI1(AUIBoxControl) IWidget*
+	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 	DefMutableDepEventGetter(HVisualEvent, ThumbDrag, Events.ThumbDrag) \
 		//!< 滑块拖动事件。
 	DefMutableDepEventGetter(HScrollEvent, Scroll, Events.Scroll) \
@@ -417,11 +417,11 @@ public:
 	AScrollBar(const Rect& = Rect::Empty, SDst = 8, Orientation = Horizontal);
 
 	/*!
-	\brief 取顶端控件指针。
+	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	\note 仅滑块和滚动条按钮。
 	*/
-	ImplI1(AUIBoxControl) IControl*
-	GetTopControlPtr(const Point&);
+	ImplI1(AUIBoxControl) IWidget*
+	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 	/*!
 	\brief 取轨道引用。
 	\note 断言检查： is_null(pTrack) 。
@@ -492,7 +492,7 @@ public:
 	DefGetter(Orientation, Orientation, Horizontal)
 
 protected:
-	virtual IControl*
+	virtual IWidget*
 	GetBoundControlPtr(const KeyCode&);
 };
 
@@ -509,7 +509,7 @@ public:
 	DefGetter(Orientation, Orientation, Vertical)
 
 protected:
-	virtual IControl*
+	virtual IWidget*
 	GetBoundControlPtr(const KeyCode&);
 };
 
@@ -526,10 +526,10 @@ public:
 	ScrollableContainer(const Rect& = Rect::Empty);
 
 	/*!
-	\brief 取顶端控件指针。
+	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	*/
-	ImplI1(AUIBoxControl) IControl*
-	GetTopControlPtr(const Point&);
+	ImplI1(AUIBoxControl) IWidget*
+	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。

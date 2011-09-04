@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3895;
+\version r3930;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-01 01:55 +0800;
+	2011-09-04 23:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -120,20 +120,20 @@ YGUIShell::ResetGUIStates()
 }
 
 void
-YGUIShell::TryEntering(IControl& c, TouchEventArgs& e)
+YGUIShell::TryEntering(IWidget& wgt, TouchEventArgs& e)
 {
 	if(!control_entered)
 	{
-		CallEvent<Enter>(c, e);
+		CallEvent<Enter>(wgt, e);
 		control_entered = true;
 	}
 }
 void
-YGUIShell::TryLeaving(IControl& c, TouchEventArgs& e)
+YGUIShell::TryLeaving(IWidget& wgt, TouchEventArgs& e)
 {
 	if(control_entered)
 	{
-		CallEvent<Leave>(c, e);
+		CallEvent<Leave>(wgt, e);
 		control_entered = false;
 	}
 }
@@ -146,23 +146,23 @@ YGUIShell::ResetTouchHeldState()
 }
 
 bool
-YGUIShell::ResponseKeyBase(IControl& c, KeyEventArgs& e,
+YGUIShell::ResponseKeyBase(IWidget& wgt, KeyEventArgs& e,
 	Components::VisualEvent op)
 {
 	switch(op)
 	{
 	case KeyUp:
 		ResetHeldState(KeyHeldState);
-		CallEvent<KeyUp>(c, e);
-		if(p_KeyDown == &c)
+		CallEvent<KeyUp>(wgt, e);
+		if(p_KeyDown == &wgt)
 		{
-			CallEvent<KeyPress>(c, e);
+			CallEvent<KeyPress>(wgt, e);
 			p_KeyDown = nullptr;
 		}
 		break;
 	case KeyDown:
-		p_KeyDown = &c;
-		CallEvent<KeyDown>(c, e);
+		p_KeyDown = &wgt;
+		CallEvent<KeyDown>(wgt, e);
 		break;
 	case KeyHeld:
 	/*	if(e.Strategy == RoutedEventArgs::Direct && p_KeyDown != &c)
@@ -170,7 +170,7 @@ YGUIShell::ResponseKeyBase(IControl& c, KeyEventArgs& e,
 			ResetHeldState(KeyHeldState);
 			return false;
 		}*/
-		CallEvent<KeyHeld>(c, e);
+		CallEvent<KeyHeld>(wgt, e);
 		break;
 	default:
 		YAssert(false, "Invalid operation found @ YGUIShell::ResponseKeyBase;");
@@ -179,35 +179,35 @@ YGUIShell::ResponseKeyBase(IControl& c, KeyEventArgs& e,
 }
 
 bool
-YGUIShell::ResponseTouchBase(IControl& c, TouchEventArgs& e,
+YGUIShell::ResponseTouchBase(IWidget& wgt, TouchEventArgs& e,
 	Components::VisualEvent op)
 {
 	switch(op)
 	{
 	case TouchUp:
 		ResetTouchHeldState();
-		CallEvent<TouchUp>(c, e);
+		CallEvent<TouchUp>(wgt, e);
 		if(p_TouchDown)
 			TryLeaving(*p_TouchDown, e);
-		if(p_TouchDown == &c)
+		if(p_TouchDown == &wgt)
 		{
-			CallEvent<Click>(c, e);
+			CallEvent<Click>(wgt, e);
 			p_TouchDown = nullptr;
 		}
 		break;
 	case TouchDown:
-		p_TouchDown = &c;
-		TryEntering(c, e);
-		CallEvent<TouchDown>(c, e);
+		p_TouchDown = &wgt;
+		TryEntering(wgt, e);
+		CallEvent<TouchDown>(wgt, e);
 		break;
 	case TouchHeld:
 		if(!p_TouchDown)
 			return false;
-		if(p_TouchDown == &c)
-			TryEntering(c, e);
+		if(p_TouchDown == &wgt)
+			TryEntering(wgt, e);
 		else
 		{
-			const auto offset(LocateForWidget(c, *p_TouchDown));
+			const auto offset(LocateForWidget(wgt, *p_TouchDown));
 			auto el(e);
 
 			el -= offset;
@@ -224,9 +224,10 @@ YGUIShell::ResponseTouchBase(IControl& c, TouchEventArgs& e,
 }
 
 bool
-YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e, Components::VisualEvent op)
+YGUIShell::ResponseKey(IWidget& wgt, KeyEventArgs& e,
+	Components::VisualEvent op)
 {
-	IControl* p(&c);
+	auto p(&wgt);
 	IWidget* pCon;
 	bool r(false);
 
@@ -239,7 +240,7 @@ YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e, Components::VisualEvent op)
 			return true;
 		pCon = p;
 
-		IControl* t(pCon->GetFocusingPtr());
+		auto t(pCon->GetFocusingPtr());
 
 		if(!t || t == pCon)
 			break;
@@ -254,19 +255,19 @@ YGUIShell::ResponseKey(IControl& c, KeyEventArgs& e, Components::VisualEvent op)
 	e.Strategy = Components::RoutedEventArgs::Bubble;
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
-		if(!(p = dynamic_cast<IControl*>(pCon)))
-			break;
+		p = pCon;
 		r |= ResponseKeyBase(*p, e, op);
 	}
 	return r;
 }
 
 bool
-YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e, Components::VisualEvent op)
+YGUIShell::ResponseTouch(IWidget& wgt, TouchEventArgs& e,
+	Components::VisualEvent op)
 {
 	ControlLocation = e;
 
-	IControl* p(&c);
+	auto p(&wgt);
 	IWidget* pCon;
 	bool r(false);
 
@@ -284,7 +285,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e, Components::VisualEvent
 			RequestFocus(*p);
 		}
 
-		IControl* t(pCon->GetTopControlPtr(e));
+		auto t(pCon->GetTopWidgetPtr(e, IsEnabledAndVisible));
 
 		if(!t || t == pCon)
 		{
@@ -306,8 +307,7 @@ YGUIShell::ResponseTouch(IControl& c, TouchEventArgs& e, Components::VisualEvent
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
 		e += p->GetLocation();
-		if(!(p = dynamic_cast<IControl*>(pCon)))
-			break;
+		p = pCon;
 		r |= p->GetController().GetEventMap().DoEvent<HTouchEvent>(op, *p,
 			std::move(e)) != 0;
 	}
@@ -330,32 +330,32 @@ FetchGUIShell()
 YSL_BEGIN_NAMESPACE(Components)
 
 void
-RequestFocusCascade(IControl& c)
+RequestFocusCascade(IWidget& wgt)
 {
-	IControl* p(&c);
+	auto p(&wgt);
 
 	do
 	{
 		RequestFocus(*p);
-	}while((p = dynamic_cast<IControl*>(FetchContainerPtr(*p))));
+	}while((p = FetchContainerPtr(*p)));
 }
 
 void
-ReleaseFocusCascade(IControl& c)
+ReleaseFocusCascade(IWidget& wgt)
 {
-	IControl* p(&c);
+	auto p(&wgt);
 
 	do
 	{
 		ReleaseFocus(*p);
-	}while((p = dynamic_cast<IControl*>(FetchContainerPtr(*p))));
+	}while((p = FetchContainerPtr(*p)));
 }
 
 
 bool
-IsFocusedByShell(const IControl& c, const YGUIShell& shl)
+IsFocusedByShell(const IWidget& wgt, const YGUIShell& shl)
 {
-	return shl.GetTouchDownPtr() == &c;
+	return shl.GetTouchDownPtr() == &wgt;
 }
 
 YSL_END_NAMESPACE(Components)

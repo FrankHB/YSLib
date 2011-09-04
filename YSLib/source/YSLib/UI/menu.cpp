@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1837;
+\version r1840;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-09-01 01:50 +0800;
+	2011-09-02 20:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 	CyclicTraverse = true;
 	if(h)
 		vDisabled.resize(h->size());
-	FetchEvent<KeyDown>(*this) += [this](IControl&, KeyEventArgs&& e){
+	FetchEvent<KeyDown>(*this) += [this](IWidget&, KeyEventArgs&& e){
 		if(pHost && IsSelected())
 			switch(e.GetKeyCode())
 			{
@@ -67,7 +67,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 				break;
 			}
 	};
-	FetchEvent<LostFocus>(*this) += [this](IControl& c, EventArgs&&){
+	FetchEvent<LostFocus>(*this) += [this](IWidget& c, EventArgs&&){
 		if(pHost)
 		{
 			auto pMnu(dynamic_cast<Menu*>(&c));
@@ -81,7 +81,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 				pHost->HideAll();
 		}
 	};
-	GetConfirmed() += [this](IControl&, IndexEventArgs&& e){
+	GetConfirmed() += [this](IWidget&, IndexEventArgs&& e){
 		if(this->Contains(e) && pHost && !ShowSub(e.Index))
 			pHost->HideAll();
 	};

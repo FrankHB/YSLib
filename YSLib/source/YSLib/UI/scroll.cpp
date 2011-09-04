@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3786;
+\version r3806;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-09-01 01:55 +0800;
+	2011-09-04 23:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 #include "scroll.h"
 #include "ygui.h"
+#include "../Core/ystatic.hpp"
 
 using namespace ystdex;
 
@@ -93,7 +94,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 {
 	Thumb.GetContainerPtrRef() = this;
 	FetchEvent<TouchMove>(*this) += OnTouchMove;
-	FetchEvent<TouchDown>(*this) += [this](IControl&, TouchEventArgs&& e){
+	FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct
 			&& Rect(Point::Zero, this->GetSize()).Contains(e))
 		{
@@ -116,10 +117,10 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	};
 }
 
-IControl*
-ATrack::GetTopControlPtr(const Point& p)
+IWidget*
+ATrack::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	return Contains(Thumb, p) ? &Thumb : nullptr;
+	return Contains(Thumb, pt) && f(Thumb) ? &Thumb : nullptr;
 }
 
 void
@@ -361,11 +362,11 @@ try	: AUIBoxControl(r),
 	NextButton.GetContainerPtrRef() = this;
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld;
 	FetchEvent<TouchMove>(PrevButton) += OnTouchMove;
-	FetchEvent<TouchDown>(PrevButton) += [this](IControl&, TouchEventArgs&& e){
+	FetchEvent<TouchDown>(PrevButton) += [this](IWidget&, TouchEventArgs&& e){
 		PerformSmallDecrement();
 	};
 	FetchEvent<TouchMove>(NextButton) += OnTouchMove;
-	FetchEvent<TouchDown>(NextButton) += [this](IControl&, TouchEventArgs&& e){
+	FetchEvent<TouchDown>(NextButton) += [this](IWidget&, TouchEventArgs&& e){
 		PerformSmallIncrement();
 	};
 	FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUpAndLeave;
@@ -387,18 +388,18 @@ catch(...)
 	throw LoggedEvent("Error occured @ constructor of AScrollBar;");
 }
 
-IControl*
-AScrollBar::GetTopControlPtr(const Point& p)
+IWidget*
+AScrollBar::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	if(Contains(PrevButton, p))
-		return &PrevButton;
-	if(Contains(NextButton, p))
-		return &NextButton;
+	if(Contains(PrevButton, pt))
+		return f(PrevButton) ? &PrevButton : nullptr;
+	if(Contains(NextButton, pt))
+		return f(NextButton) ? &NextButton : nullptr;
 
 	YAssert(is_null(pTrack),
-		"Null widget pointer found @ AScrollBar::GetTopControlPtr;");
+		"Null widget pointer found @ AScrollBar::GetTopWidgetPtr;");
 
-	return pTrack.get();
+	return f(*pTrack.get()) ? pTrack.get() : nullptr;
 }
 
 Rect
@@ -432,7 +433,7 @@ HorizontalScrollBar::HorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
 		"Width is not greater than twice of height.");
 }
 
-IControl*
+IWidget*
 HorizontalScrollBar::GetBoundControlPtr(const KeyCode& k)
 {
 	if(k == KeySpace::Left)
@@ -453,7 +454,7 @@ VerticalScrollBar::VerticalScrollBar(const Rect& r, SDst uMinThumbLength)
 		"height is not greater than twice of width.");
 }
 
-IControl*
+IWidget*
 VerticalScrollBar::GetBoundControlPtr(const KeyCode& k)
 {
 	if(k == KeySpace::Up)
@@ -475,13 +476,13 @@ ScrollableContainer::ScrollableContainer(const Rect& r)
 	MoveToRight(VerticalScrollBar);
 }
 
-IControl*
-ScrollableContainer::GetTopControlPtr(const Point& p)
+IWidget*
+ScrollableContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	if(ContainsVisible(HorizontalScrollBar, p))
-		return &HorizontalScrollBar;
-	if(ContainsVisible(VerticalScrollBar, p))
-		return &VerticalScrollBar;
+	if(ContainsVisible(HorizontalScrollBar, pt))
+		return f(HorizontalScrollBar) ? &HorizontalScrollBar : nullptr;
+	if(ContainsVisible(VerticalScrollBar, pt))
+		return f(VerticalScrollBar) ? &VerticalScrollBar : nullptr;
 	return nullptr;
 }
 

@@ -11,12 +11,12 @@
 /*!	\file checkbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面复选框控件。
-\version r1393;
+\version r1394;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2011-09-01 02:02 +0800;
+	2011-09-02 20:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -105,7 +105,7 @@ CheckBox::CheckBox(const Rect& r)
 	: Thumb(r),
 	bTicked(false)
 {
-	FetchEvent<Click>(*this) += [this](IControl&, TouchEventArgs&&){
+	FetchEvent<Click>(*this) += [this](IWidget&, TouchEventArgs&&){
 		bTicked ^= true;
 	};
 }

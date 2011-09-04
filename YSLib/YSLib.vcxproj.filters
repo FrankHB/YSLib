@@ -245,6 +245,9 @@
     <ClInclude Include="include\YSLib\UI\panel.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\UI\yrender.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\yfont.cpp">
@@ -380,6 +383,9 @@
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\panel.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\yrender.cpp">
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
   </ItemGroup>

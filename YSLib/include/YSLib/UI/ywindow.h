@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4616;
+\version r4640;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-09-01 21:05 +0800;
+	2011-09-04 23:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -132,10 +132,6 @@ public:
 	virtual void
 	operator+=(IWidget&);
 	virtual void
-	operator+=(IControl&);
-	virtual PDefHOperator1(void, +=, GMFocusResponser<IControl>& rsp)
-		ImplBodyBase1(MUIContainer, operator+=, rsp)
-	virtual void
 	operator+=(AWindow&);
 	template<class _type>
 	inline void
@@ -143,16 +139,11 @@ public:
 	{
 		return operator+=(static_cast<typename std::conditional<
 			std::is_convertible<_type&, AWindow&>::value,
-			AWindow&, typename std::conditional<std::is_convertible<_type&,
-			IControl&>::value, IControl&, IWidget&>::type>::type>(p));
+			AWindow&, IWidget&>::type>(p));
 	}
 
 	virtual bool
 	operator-=(IWidget&);
-	virtual bool
-	operator-=(IControl&);
-	virtual PDefHOperator1(bool, -=, GMFocusResponser<IControl>& rsp)
-		ImplBodyBase1(MUIContainer, operator-=, rsp)
 	virtual bool
 	operator-=(AWindow&);
 	template<class _type>
@@ -161,30 +152,36 @@ public:
 	{
 		return operator-=(static_cast<typename std::conditional<
 			std::is_convertible<_type&, AWindow&>::value,
-			AWindow&, typename std::conditional<std::is_convertible<_type&,
-			IControl&>::value, IControl&, IWidget&>::type>::type>(p));
+			AWindow&, IWidget&>::type>(p));
 	}
 
 	using MUIContainer::Contains;
 
-	virtual PDefH0(IControl*, GetFocusingPtr)
-		ImplBodyBase0(GMFocusResponser<IControl>, GetFocusingPtr)
-	virtual PDefH1(IWidget*, GetTopWidgetPtr, const Point& pt)
-		ImplBodyBase1(MUIContainer, GetTopWidgetPtr, pt)
-	virtual PDefH1(IControl*, GetTopControlPtr, const Point& pt)
-		ImplBodyBase1(MUIContainer, GetTopControlPtr, pt)
+	virtual PDefH0(IWidget*, GetFocusingPtr)
+		ImplBodyBase0(GMFocusResponser<IWidget>, GetFocusingPtr)
+	virtual PDefH2(IWidget*, GetTopWidgetPtr, const Point& pt,
+		bool(&f)(const IWidget&))
+		ImplBodyBase2(MUIContainer, GetTopWidgetPtr, pt, f)
 
-	void
-	Add(IControl&, ZOrderType = DefaultZOrder);
+	virtual void
+	Add(IWidget&, ZOrderType = DefaultZOrder);
 
 	virtual void
 	ClearFocusingPtr();
 
-	virtual PDefH1(bool, ResponseFocusRequest, IControl& ctl)
-		ImplBodyBase1(MUIContainer, ResponseFocusRequest, ctl)
+	/*!
+	\brief 提升部件至顶端。
 
-	virtual PDefH1(bool, ResponseFocusRelease, IControl& ctl)
-		ImplBodyBase1(MUIContainer, ResponseFocusRelease, ctl)
+	子部件组中查找指定部件并重新插入至顶端。
+	*/
+	bool
+	MoveToTop(IWidget&);
+
+	virtual PDefH1(bool, ResponseFocusRequest, IWidget& wgt)
+		ImplBodyBase1(MUIContainer, ResponseFocusRequest, wgt)
+
+	virtual PDefH1(bool, ResponseFocusRelease, IWidget& wgt)
+		ImplBodyBase1(MUIContainer, ResponseFocusRelease, wgt)
 };
 
 

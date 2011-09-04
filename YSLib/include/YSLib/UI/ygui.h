@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2609;
+\version r2630;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-01 02:04 +0800;
+	2011-09-04 00:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,8 +58,8 @@ public:
 
 private:
 	//独立焦点指针：自由状态时即时输入（按下）状态捕获的控件指针。
-	IControl* p_KeyDown;
-	IControl* p_TouchDown;
+	Components::IWidget* p_KeyDown;
+	Components::IWidget* p_TouchDown;
 	bool control_entered; //!< 记录指针是否在控件内部。
 
 public:
@@ -71,8 +71,9 @@ public:
 
 	DefPredicate(ControlEntered, control_entered)
 
-	DefGetter(IControl*, KeyDownPtr, p_KeyDown) //独立键焦点指针。
-	DefGetter(IControl*, TouchDownPtr, p_TouchDown) //独立屏幕焦点指针。
+	DefGetter(Components::IWidget*, KeyDownPtr, p_KeyDown) //独立键焦点指针。
+	DefGetter(Components::IWidget*, TouchDownPtr, p_TouchDown) \
+		//独立屏幕焦点指针。
 
 	/*!
 	\brief 消息处理函数。
@@ -102,10 +103,10 @@ public:
 
 private:
 	void
-	TryEntering(IControl&, Components::TouchEventArgs&);
+	TryEntering(Components::IWidget&, Components::TouchEventArgs&);
 
 	void
-	TryLeaving(IControl&, Components::TouchEventArgs&);
+	TryLeaving(Components::IWidget&, Components::TouchEventArgs&);
 
 	void
 	ResetTouchHeldState();
@@ -116,7 +117,7 @@ public:
 	\note 无视事件路由，直接响应。
 	*/
 	bool
-	ResponseKeyBase(IControl&, Components::KeyEventArgs&,
+	ResponseKeyBase(Components::IWidget&, Components::KeyEventArgs&,
 		Components::VisualEvent);
 
 	/*!
@@ -124,7 +125,7 @@ public:
 	\note 无视事件路由，直接响应。
 	*/
 	bool
-	ResponseTouchBase(IControl&, Components::TouchEventArgs&,
+	ResponseTouchBase(Components::IWidget&, Components::TouchEventArgs&,
 		Components::VisualEvent);
 
 	/*!
@@ -132,7 +133,7 @@ public:
 	\return 已被响应时为 true 。
 	*/
 	bool
-	ResponseKey(IControl&, Components::KeyEventArgs&,
+	ResponseKey(Components::IWidget&, Components::KeyEventArgs&,
 		Components::VisualEvent);
 
 	/*!
@@ -140,7 +141,7 @@ public:
 	\return 已被响应时为 true 。
 	*/
 	bool
-	ResponseTouch(IControl&, Components::TouchEventArgs&,
+	ResponseTouch(Components::IWidget&, Components::TouchEventArgs&,
 		Components::VisualEvent);
 };
 
@@ -160,24 +161,24 @@ YSL_BEGIN_NAMESPACE(Components)
 
 
 /*!
-\brief 级联请求控件及上层容器焦点。
+\brief 级联请求部件及上层容器焦点。
 */
 void
-RequestFocusCascade(IControl&);
+RequestFocusCascade(IWidget&);
 
 /*!
-\brief 级联释放控件及上层容器焦点。
+\brief 级联释放部件及上层容器焦点。
 */
 void
-ReleaseFocusCascade(IControl&);
+ReleaseFocusCascade(IWidget&);
 
 
 /*
-\brief 判断指定控件是否被句柄指定的图形用户界面 Shell 锁定为独立焦点。
+\brief 判断指定部件是否被句柄指定的图形用户界面 Shell 锁定为独立焦点。
 \throw GeneralEvent 图形用户界面 Shell 句柄为空。
 */
 bool
-IsFocusedByShell(const IControl&, const YGUIShell& = FetchGUIShell());
+IsFocusedByShell(const IWidget&, const YGUIShell& = FetchGUIShell());
 
 
 YSL_END_NAMESPACE(Components)

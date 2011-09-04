@@ -110,6 +110,7 @@
 		<Unit filename="include\YSLib\UI\ydesktop.h" />
 		<Unit filename="include\YSLib\UI\yfocus.h" />
 		<Unit filename="include\YSLib\UI\ygui.h" />
+		<Unit filename="include\YSLib\UI\yrender.h" />
 		<Unit filename="include\YSLib\UI\ystyle.h" />
 		<Unit filename="include\YSLib\UI\yuicont.h" />
 		<Unit filename="include\YSLib\UI\ywidget.h" />
@@ -156,6 +157,7 @@
 		<Unit filename="source\YSLib\UI\ydesktop.cpp" />
 		<Unit filename="source\YSLib\UI\yfocus.cpp" />
 		<Unit filename="source\YSLib\UI\ygui.cpp" />
+		<Unit filename="source\YSLib\UI\yrender.cpp" />
 		<Unit filename="source\YSLib\UI\ystyle.cpp" />
 		<Unit filename="source\YSLib\UI\yuicont.cpp" />
 		<Unit filename="source\YSLib\UI\ywidget.cpp" />

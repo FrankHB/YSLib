@@ -11,12 +11,12 @@
 /*!	\file panel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r1262;
+\version r1285;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:40:51 +0800;
 \par 修改时间:
-	2011-09-01 21:03 +0800;
+	2011-09-04 23:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -54,49 +54,26 @@ public:
 
 	virtual void
 	operator+=(IWidget&);
-	virtual void
-	operator+=(IControl&);
-	virtual PDefHOperator1(void, +=, GMFocusResponser<IControl>& rsp)
-		ImplBodyBase1(MUIContainer, operator+=, rsp)
-	template<class _type>
-	inline void
-	operator+=(_type& obj)
-	{
-		return operator+=(MoreConvertible<_type&, IControl&,
-			IWidget&>::Cast(obj));
-	}
 
 	virtual bool
 	operator-=(IWidget&);
-	virtual bool
-	operator-=(IControl&);
-	virtual PDefHOperator1(bool, -=, GMFocusResponser<IControl>& rsp)
-		ImplBodyBase1(MUIContainer, operator-=, rsp)
-	template<class _type>
-	inline bool
-	operator-=(_type& obj)
-	{
-		return operator-=(MoreConvertible<_type&, IControl&,
-			IWidget&>::Cast(obj));
-	}
 
 	using MUIContainer::Contains;
 
-	virtual PDefH0(IControl*, GetFocusingPtr)
-		ImplBodyBase0(GMFocusResponser<IControl>, GetFocusingPtr)
-	virtual PDefH1(IWidget*, GetTopWidgetPtr, const Point& pt)
-		ImplBodyBase1(MUIContainer, GetTopWidgetPtr, pt)
-	virtual PDefH1(IControl*, GetTopControlPtr, const Point& pt)
-		ImplBodyBase1(MUIContainer, GetTopControlPtr, pt)
+	virtual PDefH0(IWidget*, GetFocusingPtr)
+		ImplBodyBase0(GMFocusResponser<IWidget>, GetFocusingPtr)
+	virtual PDefH2(IWidget*, GetTopWidgetPtr, const Point& pt,
+		bool(&f)(const IWidget&))
+		ImplBodyBase2(MUIContainer, GetTopWidgetPtr, pt, f)
 
 	virtual void
 	ClearFocusingPtr();
 
-	virtual PDefH1(bool, ResponseFocusRequest, IControl& ctl)
-		ImplBodyBase1(MUIContainer, ResponseFocusRequest, ctl)
+	virtual PDefH1(bool, ResponseFocusRequest, IWidget& wgt)
+		ImplBodyBase1(MUIContainer, ResponseFocusRequest, wgt)
 
-	virtual PDefH1(bool, ResponseFocusRelease, IControl& ctl)
-		ImplBodyBase1(MUIContainer, ResponseFocusRelease, ctl)
+	virtual PDefH1(bool, ResponseFocusRelease, IWidget& wgt)
+		ImplBodyBase1(MUIContainer, ResponseFocusRelease, wgt)
 
 	virtual PDefH3(Rect, Refresh, const Graphics& g, const Point& pt,
 		const Rect& r)

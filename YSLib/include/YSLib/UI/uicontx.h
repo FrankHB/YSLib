@@ -11,12 +11,12 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1127;
+\version r1140;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-02-21 08:59:34 +0800;
 \par 修改时间:
-	2011-09-01 21:04 +0800;
+	2011-09-04 23:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,19 +44,12 @@ public:
 	/*!
 	\brief 取焦点指针。
 	*/
-	virtual DefMutableGetterBase(IControl*, FocusingPtr,
-		MSimpleFocusResponser)
+	virtual DefMutableGetterBase(IWidget*, FocusingPtr, MSimpleFocusResponser)
 	/*!
-	\brief 取顶端部件指针。
-	\note 由顶端控件指针转换。
-	*/
-	virtual PDefH1(IWidget*, GetTopWidgetPtr, const Point& p)
-		ImplRet(GetTopControlPtr(p))
-	/*!
-	\brief 取顶端控件指针。
+	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	*/
 	ImplA1(IWidget)
-	DeclIEntry(IControl* GetTopControlPtr(const Point&));
+	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)));
 
 	/*!
 	\brief 清除焦点指针。
@@ -67,14 +60,14 @@ public:
 	/*!
 	\brief 响应焦点请求。
 	*/
-	virtual PDefH1(bool, ResponseFocusRequest, IControl& ctl)
-		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRequest, ctl)
+	virtual PDefH1(bool, ResponseFocusRequest, IWidget& wgt)
+		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRequest, wgt)
 
 	/*!
 	\brief 响应焦点释放。
 	*/
-	virtual PDefH1(bool, ResponseFocusRelease, IControl& ctl)
-		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRelease, ctl)
+	virtual PDefH1(bool, ResponseFocusRelease, IWidget& wgt)
+		ImplBodyBase1(MSimpleFocusResponser, ResponseFocusRelease, wgt)
 };
 
 YSL_END_NAMESPACE(Components)

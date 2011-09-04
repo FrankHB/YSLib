@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2170;
+\version r2171;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-08-13 06:42 +0800;
+	2011-09-04 21:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -75,7 +75,7 @@ public:
 	inline
 	Path(const Path&) = default;
 	/*!
-	\brief 移动构造：默认实现。
+	\brief 转移构造：默认实现。
 	*/
 	inline
 	Path(Path&&) = default;

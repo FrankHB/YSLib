@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3572;
+\version r3576;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-09-01 02:03 +0800;
+	2011-09-05 00:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -76,11 +76,11 @@ Thumb::Thumb(const Rect& r)
 	: Control(r),
 	MButton()
 {
-	FetchEvent<Enter>(*this) += [this](IControl&, TouchEventArgs&&){
+	FetchEvent<Enter>(*this) += [this](IWidget&, TouchEventArgs&&){
 		bPressed = true;
 		Invalidate(*this);
 	};
-	FetchEvent<Leave>(*this) += [this](IControl&, TouchEventArgs&&){
+	FetchEvent<Leave>(*this) += [this](IWidget&, TouchEventArgs&&){
 		bPressed = false;
 		Invalidate(*this);
 	};
@@ -89,8 +89,12 @@ Thumb::Thumb(const Rect& r)
 Rect
 Thumb::Refresh(const Graphics& g, const Point& pt, const Rect&)
 {
-	RectDrawButton(g, pt, GetSize(), bPressed, IsEnabled(*this));
-	if(IsEnabled(*this) && IsFocused(*this))
+	auto enabled(IsEnabled(*this));
+
+	if(!enabled)
+		bPressed = false;
+	RectDrawButton(g, pt, GetSize(), bPressed, enabled);
+	if(enabled && IsFocused(*this))
 	{
 		Size s(GetSize());
 

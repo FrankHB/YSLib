@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3397;
+\version r3408;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-01 01:54 +0800;
+	2011-09-04 23:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -106,10 +106,10 @@ public:
 		TFormTest();
 
 		static void
-		OnEnter_btnEnterTest(IControl& sender, TouchEventArgs&&);
+		OnEnter_btnEnterTest(IWidget&, TouchEventArgs&&);
 
 		static void
-		OnLeave_btnEnterTest(IControl& sender, TouchEventArgs&&);
+		OnLeave_btnEnterTest(IWidget&, TouchEventArgs&&);
 
 		void
 		OnClick_btnMenuTest(TouchEventArgs&&);
@@ -137,7 +137,7 @@ public:
 		OnClick_btnDragTest(TouchEventArgs&&);
 
 		static void
-		OnKeyPress_btnDragTest(IControl& sender, KeyEventArgs&& e);
+		OnKeyPress_btnDragTest(IWidget& sender, KeyEventArgs&& e);
 
 		void
 		OnClick_btnTestEx(TouchEventArgs&&);
@@ -168,7 +168,7 @@ public:
 	UpdateToScreen();
 
 private:
-	IControl*
+	IWidget*
 	GetBoundControlPtr(const KeyCode&);
 
 	void
@@ -186,13 +186,13 @@ private:
 	OnViewChanged_fbMain(EventArgs&&);
 
 	static void
-	OnConfirmed_fbMain(IControl&, IndexEventArgs&&);
+	OnConfirmed_fbMain(IWidget&, IndexEventArgs&&);
 
 	static void
-	OnClick_ShowWindow(IControl&, TouchEventArgs&&);
+	OnClick_ShowWindow(IWidget&, TouchEventArgs&&);
 
 	static void
-	OnTouchDown_FormExtra(IControl&, TouchEventArgs&&);
+	OnTouchDown_FormExtra(IWidget&, TouchEventArgs&&);
 };
 
 
@@ -209,8 +209,8 @@ public:
 
 		ReaderPanel(const Rect&, ShlReader&);
 
-		ImplI1(AUIBoxControl) IControl*
-		GetTopControlPtr(const Point&);
+		ImplI1(AUIBoxControl) IWidget*
+		GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 		virtual Rect
 		Refresh(const Graphics&, const Point&, const Rect&);

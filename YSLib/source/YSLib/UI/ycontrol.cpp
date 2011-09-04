@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4405;
+\version r4431;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-09-01 22:12 +0800;
+	2011-09-03 15:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,7 +24,6 @@
 */
 
 
-#include "ycontrol.h"
 #include "ygui.h"
 #include "yuicont.h"
 
@@ -33,13 +32,13 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 void
-Enable(IControl& ctl, bool b)
+Enable(IWidget& wgt, bool b)
 {
-	const auto need_invalidate(IsEnabled(ctl) != b);
+	const auto need_invalidate(IsEnabled(wgt) != b);
 
-	SetEnabledOf(ctl, b);
+	SetEnabledOf(wgt, b);
 	if(need_invalidate)
-		Invalidate(ctl);
+		Invalidate(wgt);
 }
 
 
@@ -52,60 +51,60 @@ IsFocused(const IWidget& wgt)
 }
 
 void
-RequestFocusFrom(IControl& ctl, IControl& ctlSrc)
+RequestFocusFrom(IWidget& dst, IWidget& src)
 {
-	if(auto p = FetchContainerPtr(ctl))
-		if(p->ResponseFocusRequest(ctl))
-			CallEvent<GotFocus>(ctl, ctlSrc, EventArgs());
+	if(auto p = FetchContainerPtr(dst))
+		if(p->ResponseFocusRequest(dst))
+			CallEvent<GotFocus>(dst, src, EventArgs());
 }
 
 void
-ReleaseFocusFrom(IControl& ctl, IControl& ctlSrc)
+ReleaseFocusFrom(IWidget& dst, IWidget& src)
 {
-	if(auto p = FetchContainerPtr(ctl))
-		if(p->ResponseFocusRelease(ctl))
-			CallEvent<LostFocus>(ctl, ctlSrc, EventArgs());
+	if(auto p = FetchContainerPtr(dst))
+		if(p->ResponseFocusRelease(dst))
+			CallEvent<LostFocus>(dst, src, EventArgs());
 }
 
 
 void
-OnKeyHeld(IControl& ctl, KeyEventArgs&& e)
+OnKeyHeld(IWidget& wgt, KeyEventArgs&& e)
 {
 	auto& shl(FetchGUIShell());
 
 	if(shl.RepeatHeld(shl.KeyHeldState, 240, 120))
-		FetchEvent<KeyDown>(ctl)(ctl, std::move(e));
+		FetchEvent<KeyDown>(wgt)(wgt, std::move(e));
 }
 
 void
-OnTouchHeld(IControl& ctl, TouchEventArgs&& e)
+OnTouchHeld(IWidget& wgt, TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
 		auto& shl(FetchGUIShell());
 
 		if(shl.DraggingOffset == Vec::FullScreen)
-			shl.DraggingOffset = ctl.GetLocation() - shl.ControlLocation;
+			shl.DraggingOffset = wgt.GetLocation() - shl.ControlLocation;
 		else
-			FetchEvent<TouchMove>(ctl)(ctl, std::move(e));
+			FetchEvent<TouchMove>(wgt)(wgt, std::move(e));
 		shl.LastControlLocation = shl.ControlLocation;
 	}
 }
 
 void
-OnTouchMove(IControl& ctl, TouchEventArgs&& e)
+OnTouchMove(IWidget& wgt, TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
 		auto& shl(FetchGUIShell());
 
 		if(shl.RepeatHeld(shl.TouchHeldState, 240, 60))
-			CallEvent<TouchDown>(ctl, e);
+			CallEvent<TouchDown>(wgt, e);
 	}
 }
 
 void
-OnTouchMove_Dragging(IControl& ctl, TouchEventArgs&& e)
+OnTouchMove_Dragging(IWidget& wgt, TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
@@ -115,21 +114,21 @@ OnTouchMove_Dragging(IControl& ctl, TouchEventArgs&& e)
 	//	if(hShl->LastControlLocation != hShl->ControlLocation)
 	//	{
 	// TODO: merge state to make a more efficient implementation;
-		Invalidate(ctl);
-		ctl.SetLocation(shl.LastControlLocation + shl.DraggingOffset);
-		Invalidate(ctl);
+		Invalidate(wgt);
+		wgt.SetLocation(shl.LastControlLocation + shl.DraggingOffset);
+		Invalidate(wgt);
 	//	}
 	}
 }
 
 namespace
 {
-	IControl*
-	FetchEnabledBoundControlPtr(IControl& ctl, KeyEventArgs&& e)
+	IWidget*
+	FetchEnabledBoundControlPtr(IWidget& wgt, KeyEventArgs&& e)
 	{
 		try
 		{
-			auto pCtl(dynamic_cast<Control&>(ctl)
+			auto pCtl(dynamic_cast<Control&>(wgt)
 				.BoundControlPtr(e.GetKeyCode()));
 
 			return pCtl && IsEnabled(*pCtl) ? pCtl : nullptr;
@@ -143,9 +142,9 @@ namespace
 }
 
 void
-OnKey_Bound_TouchUpAndLeave(IControl& ctl, KeyEventArgs&& e)
+OnKey_Bound_TouchUpAndLeave(IWidget& wgt, KeyEventArgs&& e)
 {
-	auto pCtl(FetchEnabledBoundControlPtr(ctl, std::move(e)));
+	auto pCtl(FetchEnabledBoundControlPtr(wgt, std::move(e)));
 
 	if(pCtl)
 	{
@@ -158,9 +157,9 @@ OnKey_Bound_TouchUpAndLeave(IControl& ctl, KeyEventArgs&& e)
 }
 
 void
-OnKey_Bound_EnterAndTouchDown(IControl& ctl, KeyEventArgs&& e)
+OnKey_Bound_EnterAndTouchDown(IWidget& wgt, KeyEventArgs&& e)
 {
-	auto pCtl(FetchEnabledBoundControlPtr(ctl, std::move(e)));
+	auto pCtl(FetchEnabledBoundControlPtr(wgt, std::move(e)));
 
 	if(pCtl)
 	{
@@ -173,9 +172,9 @@ OnKey_Bound_EnterAndTouchDown(IControl& ctl, KeyEventArgs&& e)
 }
 
 void
-OnKey_Bound_Click(IControl& ctl, KeyEventArgs&& e)
+OnKey_Bound_Click(IWidget& wgt, KeyEventArgs&& e)
 {
-	auto pCtl(FetchEnabledBoundControlPtr(ctl, std::move(e)));
+	auto pCtl(FetchEnabledBoundControlPtr(wgt, std::move(e)));
 
 	if(pCtl)
 	{
@@ -191,15 +190,15 @@ Control::Control(const Rect& r)
 	: Widget(r),
 	controller(true)
 {
-	FetchEvent<TouchDown>(*this) += [this](IControl&, TouchEventArgs&& e){
+	FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 			RequestFocus(*this);
 	};
 	FetchEvent<TouchHeld>(*this) += OnTouchHeld;
-	FetchEvent<GotFocus>(*this) += [this](IControl&, EventArgs&&){
+	FetchEvent<GotFocus>(*this) += [this](IWidget&, EventArgs&&){
 		Invalidate(*this);
 	};
-	FetchEvent<LostFocus>(*this) += [this](IControl&, EventArgs&&){
+	FetchEvent<LostFocus>(*this) += [this](IWidget&, EventArgs&&){
 		Invalidate(*this);
 	};
 	BoundControlPtr = std::bind(std::mem_fn(&Control::GetBoundControlPtr), this,

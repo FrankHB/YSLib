@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5055;
+\version r5071;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-01 01:53 +0800;
+	2011-09-03 23:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -333,12 +333,12 @@ ShlExplorer::ShlExplorer()
 {
 	//对 fbMain 启用缓存。
 	fbMain.SetRenderer(unique_raw(new BufferedWidgetRenderer()));
-	FetchEvent<KeyPress>(fbMain) += [](IControl&, KeyEventArgs&& e){
+	FetchEvent<KeyPress>(fbMain) += [](IWidget&, KeyEventArgs&& e){
 		if(e.GetKeyCode() & KeySpace::L)
 			switchShl1();
 	};
 	fbMain.GetViewChanged().Add(*this, &ShlExplorer::OnViewChanged_fbMain);
-	fbMain.GetSelected() += [this](IControl&, IndexEventArgs&&){
+	fbMain.GetSelected() += [this](IWidget&, IndexEventArgs&&){
 		Enable(btnOK, fbMain.IsSelected() && IO::GetExtensionOf(
 			Text::StringToMBCS(fbMain.GetList()[fbMain.GetSelectedIndex()]))
 			== "txt");
@@ -509,7 +509,7 @@ ShlExplorer::TFormTest::TFormTest()
 	FetchEvent<Click>(btnMenuTest).Add(*this, &TFormTest::OnClick_btnMenuTest);
 	FetchEvent<Click>(btnShowWindow) += OnClick_ShowWindow;
 	Enable(btnPrevBackground, false);
-	FetchEvent<Click>(btnPrevBackground) += [this](IControl&, TouchEventArgs&&){
+	FetchEvent<Click>(btnPrevBackground) += [this](IWidget&, TouchEventArgs&&){
 		auto& shl(FetchShell<ShlExplorer>());
 		auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
 		auto& dsk_dn_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
@@ -526,7 +526,7 @@ ShlExplorer::TFormTest::TFormTest()
 		SetInvalidationOf(shl.GetDesktopUp());
 		SetInvalidationOf(shl.GetDesktopDown());
 	};
-	FetchEvent<Click>(btnNextBackground) += [this](IControl&, TouchEventArgs&&){
+	FetchEvent<Click>(btnNextBackground) += [this](IWidget&, TouchEventArgs&&){
 		auto& shl(FetchShell<ShlExplorer>());
 		auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
 		auto& dsk_dn_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
@@ -546,7 +546,7 @@ ShlExplorer::TFormTest::TFormTest()
 }
 
 void
-ShlExplorer::TFormTest::OnEnter_btnEnterTest(IControl& sender,
+ShlExplorer::TFormTest::OnEnter_btnEnterTest(IWidget& sender,
 	TouchEventArgs&& e)
 {
 	char str[20];
@@ -560,7 +560,7 @@ ShlExplorer::TFormTest::OnEnter_btnEnterTest(IControl& sender,
 }
 
 void
-ShlExplorer::TFormTest::OnLeave_btnEnterTest(IControl& sender,
+ShlExplorer::TFormTest::OnLeave_btnEnterTest(IWidget& sender,
 	TouchEventArgs&& e)
 {
 	char str[20];
@@ -639,7 +639,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 //	btnDragTest.Enabled = false;
 	btnClose.BackColor = Color(176, 184, 192);
 	FetchEvent<Click>(btnClose).Add(*this, &TFormExtra::OnClick_btnClose);
-	FetchEvent<Click>(btnExit) += [](IControl&, TouchEventArgs&&){
+	FetchEvent<Click>(btnExit) += [](IWidget&, TouchEventArgs&&){
 		PostQuitMessage(0);
 	};
 }
@@ -711,7 +711,7 @@ ShlExplorer::TFormExtra::OnClick_btnDragTest(TouchEventArgs&&)
 }
 
 void
-ShlExplorer::TFormExtra::OnKeyPress_btnDragTest(IControl& sender,
+ShlExplorer::TFormExtra::OnKeyPress_btnDragTest(IWidget& sender,
 	KeyEventArgs&& e)
 {
 	u32 k(static_cast<KeyEventArgs::InputType>(e));
@@ -930,7 +930,7 @@ ShlExplorer::UpdateToScreen()
 	dsk_dn.Update();
 }
 
-IControl*
+IWidget*
 ShlExplorer::GetBoundControlPtr(const KeyCode& k)
 {
 	if(k == KeySpace::X)
@@ -1006,14 +1006,14 @@ ShlExplorer::OnViewChanged_fbMain(EventArgs&&)
 }
 
 void
-ShlExplorer::OnConfirmed_fbMain(IControl&, IndexEventArgs&&)
+ShlExplorer::OnConfirmed_fbMain(IWidget&, IndexEventArgs&&)
 {
 //	if(e.Index == 2)
 //		switchShl1();
 }
 
 void
-ShlExplorer::OnClick_ShowWindow(IControl&, TouchEventArgs&&)
+ShlExplorer::OnClick_ShowWindow(IWidget&, TouchEventArgs&&)
 {
 	auto& pWnd(FetchShell<ShlExplorer>().pWndExtra);
 
@@ -1023,7 +1023,7 @@ ShlExplorer::OnClick_ShowWindow(IControl&, TouchEventArgs&&)
 }
 
 void
-ShlExplorer::OnTouchDown_FormExtra(IControl& sender, TouchEventArgs&&)
+ShlExplorer::OnTouchDown_FormExtra(IWidget& sender, TouchEventArgs&&)
 {
 	try
 	{
@@ -1065,40 +1065,40 @@ ShlReader::ReaderPanel::ReaderPanel(const Rect& r, ShlReader& shl)
 	btnDown.Text = "↓";
 	btnLeft.Text = "←";
 	btnRight.Text = "→";
-	FetchEvent<Click>(btnClose) += [this](IControl&, TouchEventArgs&&){
+	FetchEvent<Click>(btnClose) += [this](IWidget&, TouchEventArgs&&){
 		Hide(*this);
 	};
-	FetchEvent<TouchDown>(btnUp) += [this](IControl&, TouchEventArgs&&){
+	FetchEvent<TouchDown>(btnUp) += [this](IWidget&, TouchEventArgs&&){
 		Shell.ExcuteReadingCommand(MR_LineUp);
 		UpdateEnablilty();
 	};
-	FetchEvent<TouchDown>(btnDown) += [this](IControl&, TouchEventArgs&&){
+	FetchEvent<TouchDown>(btnDown) += [this](IWidget&, TouchEventArgs&&){
 		Shell.ExcuteReadingCommand(MR_LineDown);
 		UpdateEnablilty();
 	};
-	FetchEvent<TouchDown>(btnLeft) += [this](IControl&, TouchEventArgs&&){
+	FetchEvent<TouchDown>(btnLeft) += [this](IWidget&, TouchEventArgs&&){
 		Shell.ExcuteReadingCommand(MR_ScreenUp);
 		UpdateEnablilty();
 	};
-	FetchEvent<TouchDown>(btnRight) += [this](IControl&, TouchEventArgs&&){
+	FetchEvent<TouchDown>(btnRight) += [this](IWidget&, TouchEventArgs&&){
 		Shell.ExcuteReadingCommand(MR_ScreenDown);
 		UpdateEnablilty();
 	};
 }
 
-IControl*
-ShlReader::ReaderPanel::GetTopControlPtr(const Point& pt)
+IWidget*
+ShlReader::ReaderPanel::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
 	if(Contains(btnClose, pt))
-		return &btnClose;
+		return f(btnClose) ? &btnClose : nullptr;
 	if(Contains(btnUp, pt))
-		return &btnUp;
+		return f(btnUp) ? &btnUp : nullptr;
 	if(Contains(btnDown, pt))
-		return &btnDown;
+		return f(btnDown) ? &btnDown : nullptr;
 	if(Contains(btnLeft, pt))
-		return &btnLeft;
+		return f(btnLeft) ? &btnLeft : nullptr;
 	if(Contains(btnRight, pt))
-		return &btnRight;
+		return f(btnRight) ? &btnRight : nullptr;
 	return nullptr;
 }
 
@@ -1171,11 +1171,11 @@ ShlReader::OnActivated(const Message& msg)
 
 		Menu& mnu(*new Menu(Rect::Empty, std::move(hList), 1u));
 
-		mnu.GetConfirmed() += [this](IControl&, IndexEventArgs&& e){
+		mnu.GetConfirmed() += [this](IWidget&, IndexEventArgs&& e){
 			ExcuteReadingCommand(e.Index);
 		};
 		/*
-		FetchEvent<TouchDown>(mnu) += [&, this](IControl&, TouchEventArgs&&){
+		FetchEvent<TouchDown>(mnu) += [&, this](IWidget&, TouchEventArgs&&){
 			char strt[60];
 			auto& dsk(this->GetDesktopDown());
 			auto& g(dsk.GetScreen());

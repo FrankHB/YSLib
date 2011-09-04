@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4117;
+\version r4125;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-09-01 22:08 +0800;
+	2011-09-03 14:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -108,12 +108,6 @@ AFrame::operator+=(IWidget& wgt)
 	wgt.GetContainerPtrRef() = this;
 }
 void
-AFrame::operator+=(IControl& ctl)
-{
-	MUIContainer::operator+=(ctl);
-	ctl.GetContainerPtrRef() = this;
-}
-void
 AFrame::operator+=(AWindow& wnd)
 {
 	MUIContainer::Add(wnd, DefaultWindowZOrder);
@@ -131,16 +125,6 @@ AFrame::operator-=(IWidget& wgt)
 	return false;
 }
 bool
-AFrame::operator-=(IControl& ctl)
-{
-	if(ctl.GetContainerPtrRef() == this)
-	{
-		ctl.GetContainerPtrRef() = nullptr;
-		return MUIContainer::operator-=(ctl);
-	}
-	return false;
-}
-bool
 AFrame::operator-=(AWindow& wnd)
 {
 	if(wnd.GetContainerPtrRef() == this)
@@ -152,10 +136,10 @@ AFrame::operator-=(AWindow& wnd)
 }
 
 void
-AFrame::Add(IControl& ctl, ZOrderType z)
+AFrame::Add(IWidget& wgt, ZOrderType z)
 {
-	MUIContainer::Add(ctl, z);
-	ctl.GetContainerPtrRef() = this;
+	MUIContainer::Add(wgt, z);
+	wgt.GetContainerPtrRef() = this;
 }
 
 void
@@ -166,6 +150,26 @@ AFrame::ClearFocusingPtr()
 		MUIContainer::ClearFocusingPtr();
 		CallEvent<LostFocus>(*p, *this, EventArgs());
 	}
+}
+
+bool
+AFrame::MoveToTop(IWidget& wgt)
+{
+	auto i(std::find_if(sWidgets.begin(), sWidgets.end(),
+		[&](const WidgetMap::value_type& val){
+		return val.second == &wgt;
+	}));
+
+	if(i != sWidgets.end())
+	{
+		const ZOrderType z(i->first);
+
+		sWidgets.erase(i);
+		sWidgets.insert(make_pair(z, static_cast<IWidget*>(&wgt)));
+		Invalidate(wgt);
+		return true;
+	}
+	return false;
 }
 
 

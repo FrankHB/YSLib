@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2389;
+\version r2434;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-09-01 21:01 +0800;
+	2011-09-04 23:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -136,16 +136,11 @@ MoveToBottom(IWidget& wgt)
 }
 
 
-void
-MUIContainer::operator+=(IWidget& wgt)
-{
-	if(!Contains(wgt))
-		sWidgets.insert(make_pair(DefaultZOrder, &wgt));
-}
-
 bool
 MUIContainer::operator-=(IWidget& wgt)
 {
+	GMFocusResponser<IWidget>::operator-=(wgt);
+
 	auto t(sWidgets.size());
 
 	for(auto i(sWidgets.begin()); i != sWidgets.end();)
@@ -160,60 +155,40 @@ MUIContainer::operator-=(IWidget& wgt)
 
 	return t != 0;
 }
-bool
-MUIContainer::operator-=(IControl& ctl)
-{
-	return GMFocusResponser<IControl>::operator-=(ctl)
-		&& (*this -= static_cast<IWidget&>(ctl));
-}
-bool
-MUIContainer::operator-=(GMFocusResponser<IControl>& rsp)
-{
-	return sFocusContainers.erase(&rsp) != 0;
-}
 
-IControl*
-MUIContainer::GetFocusingPtr() const
-{
-	return GMFocusResponser<IControl>::GetFocusingPtr();
-}
 IWidget*
-MUIContainer::GetTopWidgetPtr(const Point& pt)
+MUIContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	for(auto i(sWidgets.cbegin()); i != sWidgets.cend(); ++i)
-		if(i->second->IsVisible() && Components::Contains(*i->second, pt))
-			return i->second;
-	return nullptr;
-}
-IControl*
-MUIContainer::GetTopControlPtr(const Point& pt)
-{
-	for(auto i(sFocusObjects.cbegin()); i != sFocusObjects.cend(); ++i)
-		if((*i)->IsVisible() && Components::Contains(**i, pt))
-			return *i;
-	return nullptr;
+	const auto i(std::find_if(sWidgets.rbegin(), sWidgets.rend(),
+		[&](const PairType& val){
+		YAssert(val.second, "Null widget pointer found @"
+			" MUIContainer::GetTopWidgetPtr;");
+
+		return Components::Contains(*val.second, pt) && f(*val.second);
+	}));
+	return i == sWidgets.rend() ? nullptr : i->second;
 }
 
 void
-MUIContainer::Add(IControl& ctl, ZOrderType z)
+MUIContainer::Add(IWidget& wgt, ZOrderType z)
 {
-	if(!Contains(ctl))
+	if(!Contains(wgt))
 	{
-		sWidgets.insert(make_pair(z, static_cast<ItemType>(&ctl)));
-		GMFocusResponser<IControl>::operator+=(ctl);
+		sWidgets.insert(make_pair(z, static_cast<ItemType>(&wgt)));
+		GMFocusResponser<IWidget>::operator+=(wgt);
 	}
 }
 
 bool
-MUIContainer::ResponseFocusRequest(IControl& ctl)
+MUIContainer::ResponseFocusRequest(IWidget& wgt)
 {
-	return RequestFocusOf<GMFocusResponser, IControl>(ctl, *this);
+	return RequestFocusOf<GMFocusResponser, IWidget>(wgt, *this);
 }
 
 bool
-MUIContainer::ResponseFocusRelease(IControl& ctl)
+MUIContainer::ResponseFocusRelease(IWidget& wgt)
 {
-	return ReleaseFocusOf<GMFocusResponser, IControl>(ctl, *this);
+	return ReleaseFocusOf<GMFocusResponser, IWidget>(wgt, *this);
 }
 
 bool

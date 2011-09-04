@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5315;
+\version r5332;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-09-01 21:08 +0800;
+	2011-09-04 21:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -577,7 +577,7 @@
 重载右值引用参数的 operator= 会引起重载歧义，即无法重载优化移动赋值；
 无条件复制，无法根据被复制的对象的状态进行优化。
 因此，除非被复制的对象具有完全的（所有子对象均满足）值语义，不重载非引用参数的 operator= ，而分别重载 const 左值引用参数和非 const 右值引用参数的版本（也可能不需要移动赋值，仅重载前者）。
-若移动赋值是必要的，应确保存在可访问的移动构造函数。
+若移动赋值是必要的，应确保存在可访问的转移构造函数。
 对于保存存储状态的不完全值语义对象（例如容器），使用最小赋值：在 operator= 的实现中判断状态，以避免分配不必要的存储空间。
 对于其它不完全值语义对象，若移动赋值是必要的，使用以下实现：
 具有明确的 clear 操作回复值的状态时，使用判断自赋值的 clear-and-swap 实现，可以期望比 copy-and-swap 具有更好的性能（因为通常不需要大量 clear 操作）；
@@ -1140,12 +1140,12 @@
 组件 (Component) 是具有一定相互联系的功能集合单元。
 组件类是非抽象类，默认基类为 YComponent ，继承自 YCountableObject，可以引用方式作为参数传递。
 组件对图形用户界面对象进行直接支持。包含部件和控件类：
-具有基本屏幕输出效果，实现了部件接口 IWidget 的类，称为部件 (Widget) 类；
-具有基本屏幕输出效果和公共事件响应能力，实现了接口 IControl 的类，称为控件(Control) 类。
+具有基本屏幕输出效果，实现了部件接口 IWidget 的类，称为部件(Widget) 类；
+具有基本屏幕输出效果和公共事件响应能力的部件类，称为控件(Control) 类。
 部件仅仅负责 Shell 直接和 UI 相关的部分，默认不包含任何消息处理。
 消息应被其从属的 YShell 消息处理过程截获并进行处理。
 控件行为由事件机制(@2.7.2) 控制（在运行期加载函数）。其它组件行为原则上直接由 YShell 消息处理过程控制，以避免消息转发带来的开销。
-在 YControl 单元中提供最常用的控件实现。
+在 YControl 单元中提供控件基类实现。
 
 @2.7.1 用于图形用户界面的对象特性：
 
@@ -1156,9 +1156,8 @@
 @2.7.1.2 类组织：
 
 @2.7.1.2.1 接口：
- IWidget ：部件接口，包括返回焦点的虚成员方法，可以在容器中重载实现。
- IControl ：控件接口。
-功能说明和其它描述参见 @2.7 、 @2.7.1.1 、 @2.7.1.3 。
+ IWidget ：部件接口，包括返回渲染器、控制器等的虚成员方法，可以在容器中重载实现。
+功能说明和其它描述参见 @2.7 、 @2.7.1.1 、 @2.7.1.2.3 。
 
 @2.7.1.2.2 继承：
 所有公共图形用户界面元素类继承自 Components::Visual 基类。
@@ -1168,9 +1167,9 @@
 部件是实现了 IWidget 接口的类，是基本的图形用户界面对象类。
 组件容器是能够以引用方式在逻辑上包含其它组件的组件。
 部件容器是包含子部件的部件，是一般化的组件容器，它能以可视化方式处理其包含的部件（例如顺序显示）。应该重写其中对于焦点判断的成员方法以便保证视图树节点遍历的正确行为。
-控件是实现了 IControl 接口（继承 IWidget 接口和 GIFocusRequester<GMFocusResponser> 接口）的类（标准基类为 Control ），是具有事件响应特性的可视组件，同时也是部件。
+控件是使用非空控制器的具有事件响应特性的部件，默认继承 Control 类实现。
 窗口是继承 AWindow 抽象类并实现的具体类，是作为一种能在桌面显示的自带缓冲区的部件容器，同时是焦点响应类和焦点请求类。
-标准窗口（基类为 Frame ）是具有一般化的部件容器功能的窗口。
+框架窗口（基类为 Frame ）是具有一般化的部件容器功能的窗口。
 窗体（基类为 Form ）是增加了客户区布局管理的标准窗口。
 默认组件中，除继承自窗口的组件（基类为 Frame ，缓冲区继承自类 BitmapBuffer ）外，所有部件默认不带显示缓冲区。实际使用时可以用其它类型成员（如 TextRegion ）提供显示缓冲区。
 
@@ -1191,7 +1190,7 @@
 
 @2.7.2.1.1 视图变更事件：
 包括 Move 、 Resize 事件等。
-事件发送对象类型 IControl ，参数类型 EventArgs ，事件类型为 HVisualEvent 。
+事件发送对象类型 IWidget ，参数类型 EventArgs ，事件类型为 HVisualEvent 。
 在试图变更视图时触发。
 需要注意，不包括必然的视图改变后置条件。即使设置控件视图操作的结果与未设置时相同，仍触发事件。
 
@@ -1260,7 +1259,7 @@
 
 @2.7.4.2 焦点请求链：
 在排除 @2.7.4.1 中叙述的副作用的情况下，可以认为不同对象的 RequestFocus(...) 的调用是顺序无关的，可以任意调度。
-使用 YGUI 单元声明的函数 void RequestFocusCascade(Components::IControl&) 可以实现由 IControl 对象自下向上的嵌套容器焦点申请。注意，会以相同的顺序触发 GotFocus 事件。
+使用 YGUI 单元声明的函数 void RequestFocusCascade(Components::IWidget&) 可以实现由 IWidget 对象自下向上的嵌套容器焦点申请。注意，会以相同的顺序触发 GotFocus 事件。
 
 @2.7.4.3 默认实现相关的定义：
 具有焦点响应能力（即储存了关于集中焦点于特定的子对象的状态）的类称为焦点响应类。
@@ -1274,8 +1273,8 @@
 为了支持拖放操作，指针索引控件时，按位置判断作用的控件并根据上述独立焦点指针和状态变量判断附加操作，而不通过上述的通用焦点。
 
 @2.7.4.5 实例：
- Desktop 是 IControl 的焦点响应类。
- Frame 和 Form 同时是 IControl 的焦点响应类和对于 Desktop 焦点请求类。
+ Desktop 是 IWidget 的焦点响应类。
+ Frame 和 Form 同时是 IWidget 的焦点响应类和对于 Desktop 焦点请求类。
 
 @2.7.5 默认图形用户界面响应流程：
 
@@ -1356,7 +1355,6 @@
 
 @2.7.9.1 样式无关的控件 YControl ：
 主要类型：
- IControl 接口；
  Control 类。
 
 @2.7.9.2 样式无关的图形用户界面窗口 YWindow ：
@@ -1492,9 +1490,10 @@ FetchDefaultScreen();
  "ytext.h" 依赖于 "ygdi.h" 、 "yftext.h" 和 Core 的 "ystring.h" 。
 在 UI 中，以下依赖关系对于头文件包含是确定的：
  "ycomp.h" 依赖于 Core 的 "yshell.h"；
- "ystyle.h" 和 "ytext.h" 依赖于 Service 的 "ygdi.h" ；
- "ystyle.h" 和 "ywidget.h" 依赖于 "ycomp.h" 和 Service 的 "ydraw.h"；
- "ywidget.h" 依赖于 Service 的 "ygdi.h" ；
+ "yfocus.h" 、 "ystyle.h" 和 "ywidget.h" 依赖于 "ycomp.h" ；
+ "yrender.h" 、 "ystyle.h" 、 "ytext.h" 和 "ywidget.h"依赖于 Service 的 "ygdi.h" ；
+ "ystyle.h" 和 "ywidget.h" 依赖于 Service 的 "ydraw.h"；
+ "ycontrol.h" 依赖于 "yfocus.h" ；
  "ycontrol.h" 和 "yuicont.h" 依赖于 "ywidget.h" ；
  "ygui.h" 依赖于 "ycontrol.h" 和 "ystyle.h" ；
  "ywindow.h" 依赖于 "ycontrol.h" 、 "yuicont.h" 和 Service 的 "yblit.h" ；

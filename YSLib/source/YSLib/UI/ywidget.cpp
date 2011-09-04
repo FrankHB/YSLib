@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5081;
+\version r5088;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-01 01:59 +0800;
+	2011-09-03 23:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,56 +29,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-const Graphics WidgetRenderer::InvalidGraphics;
-
-
-bool
-BufferedWidgetRenderer::RequiresRefresh() const
-{
-	return !rInvalidated.IsEmpty();
-}
-
-void
-BufferedWidgetRenderer::GetInvalidatedArea(Rect& r) const
-{
-	r = rInvalidated;
-}
-
-void
-BufferedWidgetRenderer::SetSize(const Size& s)
-{
-	Buffer.SetSize(s.Width, s.Height);
-	static_cast<Size&>(rInvalidated) = s;
-}
-
-void
-BufferedWidgetRenderer::ClearInvalidation()
-{
-	//只设置一个分量为零可能会使 CommitInvalidation 结果错误。
-	static_cast<Size&>(rInvalidated) = Size::Zero;
-}
-
-void
-BufferedWidgetRenderer::CommitInvalidation(const Rect& r)
-{
-	rInvalidated = Unite(rInvalidated, r);
-}
-
-void
-BufferedWidgetRenderer::FillInvalidation(Color c)
-{
-	FillRect(Buffer, rInvalidated, c);
-}
-
-void
-BufferedWidgetRenderer::UpdateTo(const Graphics& g, const Point& pt,
-	const Rect& r) const
-{
-	CopyTo(g.GetBufferPtr(), GetContext(), g.GetSize(),
-		r, static_cast<const Point&>(r) - pt, r);
-}
-
 
 bool
 Contains(const IWidget& wgt, SPos x, SPos y)
@@ -165,15 +115,8 @@ RenderChild(IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
 void
 RequestToTop(IWidget& wgt)
 {
-	Desktop* pDsk(FetchDesktopPtr(wgt));
-
-	if(pDsk && pDsk == FetchContainerPtr(wgt))
-	{
-		IControl* pCon(dynamic_cast<IControl*>(&wgt));
-
-		if(pCon)
-			pDsk->MoveToTop(*pCon);
-	}
+	if(auto pFrm = dynamic_cast<AFrame*>(FetchContainerPtr(wgt)))
+		pFrm->MoveToTop(wgt);
 }
 
 void

@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3181;
+\version r3188;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-09-01 01:52 +0800;
+	2011-09-04 23:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,10 +57,10 @@ public:
 		ImplBodyMember1(TextListBox, Contains, i)
 
 	/*!
-	\brief 取顶端控件指针。
+	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	*/
-	virtual IControl*
-	GetTopControlPtr(const Point&);
+	virtual IWidget*
+	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 	DefGetterMember(ViewerType::SizeType, HeadIndex, TextListBox)
 	DefGetterMember(ViewerType::SizeType, SelectedIndex, TextListBox)
 	DefGetterMember(ListType&, List, TextListBox)
