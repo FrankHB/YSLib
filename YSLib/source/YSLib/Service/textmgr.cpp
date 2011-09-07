@@ -11,12 +11,12 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4090;
+\version r4101;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-06-02 13:32 +0800;
+	2011-09-06 00:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,14 +41,14 @@ catch(...)
 }
 
 uchar_t&
-TextBuffer::operator[](SizeType i) ynothrow
+TextBuffer::operator[](SizeType idx) ynothrow
 {
-	YAssert(i < capacity,
+	YAssert(idx < capacity,
 		"In function \"uchar_t\n"
-		"TextBuffer::operator[](SizeType i)\":\n"
+		"TextBuffer::operator[](SizeType)\":\n"
 		"Subscript is not less than the length.");
 
-	return text[i];
+	return text[idx];
 }
 
 SizeType
@@ -67,11 +67,11 @@ TextBuffer::GetNextChar(SizeType o, uchar_t c)
 }
 
 uchar_t&
-TextBuffer::at(SizeType i) ythrow(std::out_of_range)
+TextBuffer::at(SizeType idx) ythrow(std::out_of_range)
 {
-	if(i >= capacity)
+	if(idx >= capacity)
 		throw std::out_of_range("YSLib::Text::TextBuffer");
-	return text[i];
+	return text[idx];
 }
 
 bool
@@ -93,12 +93,12 @@ TextBuffer::Load(TextFile& f, SizeType n)
 
 	if(f.IsValid())
 	{
-		SizeType i(0), t;
+		SizeType idx(0), t;
 		uchar_t cb(len == 0 ? 0 : text[len - 1]), c;
 		FILE* const fp(f.GetPtr());
 		const CSID cp(f.GetCP());
 
-		while(++i < n && (t = ToUTF(fp, c, cp)) != 0)
+		while(++idx < n && (t = ToUTF(fp, c, cp)) != 0)
 		{
 			if(c == '\n' && cb == '\r')
 				--len;
@@ -119,12 +119,12 @@ TextBuffer::LoadN(TextFile& f, SizeType n)
 
 	if(f.IsValid())
 	{
-		SizeType i(0), t;
+		SizeType idx(0), t;
 		uchar_t cb(len == 0 ? 0 : text[len - 1]), c;
 		FILE* const fp(f.GetPtr());
 		const CSID cp(f.GetCP());
 
-		while(i < n && (t = ToUTF(fp, c, cp)) != 0 && (i += t) < n)
+		while(idx < n && (t = ToUTF(fp, c, cp)) != 0 && (idx += t) < n)
 		{
 			if(c == '\n' && cb == '\r')
 				--len;
@@ -157,9 +157,9 @@ TextMap::Clear()
 }
 
 
-TextFileBuffer::HText::HText(TextFileBuffer* pBuf, BlockSizeType b, SizeType i)
+TextFileBuffer::HText::HText(TextFileBuffer* pBuf, BlockSizeType b, SizeType idx)
 	ynothrow
-	: pBuffer(pBuf), blk(b), idx(i)
+	: pBuffer(pBuf), block(b), index(idx)
 {
 //	assert(buf.GetTextSize() >= 1);
 }
@@ -170,12 +170,12 @@ TextFileBuffer::HText::operator++() ynothrow
 	if(pBuffer)
 	{
 	//	assert(GetBlockLength() >= 1);
-		if(blk <= (pBuffer->GetTextSize() - 1) / nBlockSize)
+		if(block <= (pBuffer->GetTextSize() - 1) / nBlockSize)
 		{
-			if(++idx == GetBlockLength())
+			if(++index == GetBlockLength())
 			{
-				++blk;
-				idx = 0;
+				++block;
+				index = 0;
 			}
 		}
 		else
@@ -190,10 +190,10 @@ TextFileBuffer::HText::operator--() ynothrow
 	if(pBuffer)
 	{
 	//	assert(GetBlockLength() >= 1);
-		if(blk != 0 || idx != 0)
+		if(block != 0 || index != 0)
 		{
-			if(idx-- == 0)
-				idx = GetBlockLength(--blk);
+			if(index-- == 0)
+				index = GetBlockLength(--block);
 		}
 		else
 			*this = pBuffer->end();
@@ -225,7 +225,7 @@ operator==(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
 	ynothrow
 {
 	return lhs.pBuffer == rhs.pBuffer
-		&& lhs.blk == rhs.blk && lhs.idx == rhs.idx;
+		&& lhs.block == rhs.block && lhs.index == rhs.index;
 }
 
 bool
@@ -236,11 +236,11 @@ operator<(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
 		return true;
 	if(lhs.pBuffer != rhs.pBuffer)
 		return false;
-	if(lhs.blk < rhs.blk)
+	if(lhs.block < rhs.block)
 		return true;
-	if(lhs.blk != rhs.blk)
+	if(lhs.block != rhs.block)
 		return false;
-	return lhs.idx < rhs.idx;
+	return lhs.index < rhs.index;
 }
 
 TextFileBuffer::HText&
@@ -267,7 +267,7 @@ TextFileBuffer::HText::GetTextPtr() const ynothrow
 	{
 		try
 		{
-			p = &(*pBuffer)[blk].at(idx);
+			p = &(*pBuffer)[block].at(index);
 		}
 		catch(...)
 		{
@@ -278,7 +278,7 @@ TextFileBuffer::HText::GetTextPtr() const ynothrow
 }
 
 SizeType
-TextFileBuffer::HText::GetBlockLength(BlockSizeType i) const ynothrow
+TextFileBuffer::HText::GetBlockLength(BlockSizeType idx) const ynothrow
 {
 	if(!pBuffer)
 		return 0;
@@ -286,7 +286,7 @@ TextFileBuffer::HText::GetBlockLength(BlockSizeType i) const ynothrow
 	{
 		try
 		{
-			return (*pBuffer)[i].GetLength();
+			return (*pBuffer)[idx].GetLength();
 		}
 		catch(LoggedEvent&)
 		{
@@ -308,20 +308,20 @@ TextFileBuffer::TextFileBuffer(TextFile& file)
 {}
 
 TextBlock&
-TextFileBuffer::operator[](const BlockSizeType& i)
+TextFileBuffer::operator[](const BlockSizeType& idx)
 {
 	try
 	{
-		if(i * nBlockSize > File.GetSize())
+		if(idx * nBlockSize > File.GetSize())
 			throw std::out_of_range("YSLib::Text::TextBlock");
 
-		auto it(Map.find(i));
-		TextBlock& block(*(it == Map.cend()
-			? ynew TextBlock(i, nBlockSize) : it->second));
+		auto i(Map.find(idx));
+		TextBlock& block(*(i == Map.cend()
+			? ynew TextBlock(idx, nBlockSize) : i->second));
 
-		if(it == Map.end())
+		if(i == Map.end())
 		{
-			File.SetPosition(i * nBlockSize + File.GetBOMSize(), SEEK_SET);
+			File.SetPosition(idx * nBlockSize + File.GetBOMSize(), SEEK_SET);
 			block.LoadN(File, nBlockSize);
 			*this += block;
 		}

@@ -11,12 +11,12 @@
 /*!	\file iterator.hpp
 \ingroup YCLib
 \brief C++ 标准库迭代器扩展。
-\version 0.1252;
+\version r1254;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-27 23:01:00 +0800; 
 \par 修改时间:
-	2011-08-07 13:01 +0800;
+	2011-09-06 00:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -207,7 +207,7 @@ namespace ystdex
 		pair_iterator
 		operator++(int)
 		{
-			pair_iterator it(*this);
+			const auto it(*this);
 
 			++*this;
 			return it;
@@ -225,7 +225,7 @@ namespace ystdex
 		pair_iterator
 		operator--(int)
 		{
-			pair_iterator it(*this);
+			const auto it(*this);
 
 			--*this;
 			return it;

@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4431;
+\version r4437;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-09-03 15:47 +0800;
+	2011-09-06 23:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,7 +73,7 @@ OnKeyHeld(IWidget& wgt, KeyEventArgs&& e)
 	auto& shl(FetchGUIShell());
 
 	if(shl.RepeatHeld(shl.KeyHeldState, 240, 120))
-		FetchEvent<KeyDown>(wgt)(wgt, std::move(e));
+		CallEvent<KeyDown>(wgt, e);
 }
 
 void
@@ -86,7 +86,7 @@ OnTouchHeld(IWidget& wgt, TouchEventArgs&& e)
 		if(shl.DraggingOffset == Vec::FullScreen)
 			shl.DraggingOffset = wgt.GetLocation() - shl.ControlLocation;
 		else
-			FetchEvent<TouchMove>(wgt)(wgt, std::move(e));
+			CallEvent<TouchMove>(wgt, e);
 		shl.LastControlLocation = shl.ControlLocation;
 	}
 }
@@ -187,9 +187,9 @@ OnKey_Bound_Click(IWidget& wgt, KeyEventArgs&& e)
 
 
 Control::Control(const Rect& r)
-	: Widget(r),
-	controller(true)
+	: Widget(r)
 {
+	pController = unique_raw(new WidgetController(true));
 	FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 			RequestFocus(*this);

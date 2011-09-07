@@ -11,12 +11,12 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1268;
+\version r1275;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-09-04 00:04 +0800;
+	2011-09-06 23:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,12 +35,11 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 /*!
 \brief 部件渲染器。
+
+无缓冲渲染策略：不保存部件渲染状态和有效的图形接口上下文。
 */
 class WidgetRenderer : public noncopyable
 {
-protected:
-	static const Graphics InvalidGraphics; //!< 无效图形接口上下文。
-
 public:
 	virtual DefEmptyDtor(WidgetRenderer)
 
@@ -62,7 +61,7 @@ public:
 	\brief 取图形接口上下文。
 	\note 返回无效图形接口上下文。
 	*/
-	virtual DefGetter(const Graphics&, Context, InvalidGraphics)
+	virtual DefGetter(const Graphics&, Context, Graphics::Invalid)
 
 	/*!
 	\brief 设置缓冲区大小。
@@ -110,6 +109,8 @@ public:
 
 /*!
 \brief 带缓冲的部件渲染器。
+
+缓冲渲染策略：保存部件渲染状态和有效的图形接口上下文。
 */
 class BufferedWidgetRenderer : public WidgetRenderer
 {

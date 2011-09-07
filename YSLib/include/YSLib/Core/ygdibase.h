@@ -12,12 +12,12 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1459;
+\version r1462;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-08-13 06:43 +0800;
+	2011-09-06 23:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -691,6 +691,9 @@ Unite(const Rect&, const Rect&);
 //! \brief 二维图形接口上下文。
 class Graphics
 {
+public:
+	static const Graphics Invalid; //!< 无效图形接口上下文。
+
 protected:
 	BitmapPtr pBuffer; //!< 显示缓冲区指针。
 	Size size; //!< 缓冲区大小。

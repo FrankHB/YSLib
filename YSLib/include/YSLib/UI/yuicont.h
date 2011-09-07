@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2530;
+\version r2537;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-09-04 23:29 +0800;
+	2011-09-07 17:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -155,7 +155,7 @@ const ZOrderType DefaultWindowZOrder(128); //!< 默认窗口 Z 顺序值。
 
 
 //! \brief 部件容器模块。
-class MUIContainer : protected GMFocusResponser<IWidget>
+class MUIContainer : protected CheckedFocusResponser
 {
 public:
 	typedef IWidget* ItemType; //!< 部件组项目类型。
@@ -202,7 +202,7 @@ public:
 	/*!
 	\brief 取焦点控件指针。
 	*/
-	using GMFocusResponser<IWidget>::GetFocusingPtr;
+	using CheckedFocusResponser::GetFocusingPtr;
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	*/
@@ -217,18 +217,6 @@ public:
 	*/
 	virtual void
 	Add(IWidget&, ZOrderType = DefaultZOrder);
-
-	/*!
-	\brief 响应焦点请求。
-	*/
-	bool
-	ResponseFocusRequest(IWidget&);
-
-	/*!
-	\brief 响应焦点释放。
-	*/
-	bool
-	ResponseFocusRelease(IWidget&);
 };
 
 
@@ -250,7 +238,7 @@ public:
 		ImplBodyBase1(MUIContainer, operator-=, wgt)
 
 	ImplI1(IWidget) DefMutableGetterBase(IWidget*, FocusingPtr,
-		GMFocusResponser<IWidget>)
+		CheckedFocusResponser)
 	ImplI1(IWidget) PDefH2(IWidget*, GetTopWidgetPtr, const Point& pt,
 		bool(&f)(const IWidget&))
 		ImplBodyBase2(MUIContainer, GetTopWidgetPtr, pt, f)

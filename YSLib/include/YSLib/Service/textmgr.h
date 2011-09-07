@@ -11,12 +11,12 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version 0.4379;
+\version r4382;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-06-15 15:53 +0800;
+	2011-09-06 00:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -205,9 +205,9 @@ public:
 };
 
 inline
-TextBlock::TextBlock(BlockSizeType i, SizeType tlen)
+TextBlock::TextBlock(BlockSizeType idx, SizeType tlen)
 	: TextBuffer(tlen),
-	Index(i)
+	Index(idx)
 {}
 
 
@@ -271,9 +271,9 @@ TextMap::operator+=(TextBlock& item)
 	Map.insert(make_pair(item.Index, &item));
 }
 inline bool
-TextMap::operator-=(const BlockSizeType& i)
+TextMap::operator-=(const BlockSizeType& idx)
 {
-	return Map.erase(i) != 0;
+	return Map.erase(idx) != 0;
 }
 
 
@@ -297,8 +297,8 @@ public:
 	private:
 		TextFileBuffer* pBuffer;
 		//文本读取位置。
-		BlockSizeType blk;
-		SizeType idx;
+		BlockSizeType block;
+		SizeType index;
 
 	public:
 		/*!
@@ -388,12 +388,12 @@ public:
 		operator-=(ptrdiff_t);
 
 		DefGetter(TextFileBuffer*, BufferPtr, pBuffer)
-		DefGetter(BlockSizeType, BlockN, blk)
+		DefGetter(BlockSizeType, BlockN, block)
 		/*!
 		\brief 取文字缓冲区指针。
 		\note 无异常抛出。
 		*/
-		DefGetter(SizeType, IndexN, idx)
+		DefGetter(SizeType, IndexN, index)
 		const uchar_t*
 		GetTextPtr() const ynothrow;
 		/*!
@@ -488,7 +488,7 @@ TextFileBuffer::HText::operator-=(ptrdiff_t o)
 inline SizeType
 TextFileBuffer::HText::GetBlockLength() const ynothrow
 {
-	return GetBlockLength(blk);
+	return GetBlockLength(block);
 }
 
 YSL_END_NAMESPACE(Text)

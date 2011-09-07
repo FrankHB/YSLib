@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5088;
+\version r5094;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-03 23:55 +0800;
+	2011-09-06 23:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,11 +59,8 @@ SetInvalidationOf(IWidget& wgt)
 void
 SetInvalidationToParent(IWidget& wgt)
 {
-	auto pCon(FetchContainerPtr(wgt));
-
-	if(pCon)
-		pCon->GetRenderer().CommitInvalidation(Rect(wgt.GetLocation(),
-			wgt.GetSize()));
+	if(const auto pCon = FetchContainerPtr(wgt))
+		pCon->GetRenderer().CommitInvalidation(GetBoundsOf(wgt));
 }
 
 void
@@ -171,8 +168,11 @@ Visual::SetSize(const Size& s)
 
 Widget::Widget(const Rect& r, Color b, Color f)
 	: Visual(r, b, f),
-	pContainer(), pRenderer(new WidgetRenderer())
+	pContainer(), pRenderer(new WidgetRenderer()), pController()
 {}
+Widget::~Widget()
+{}
+
 
 void
 Widget::SetRenderer(unique_ptr<WidgetRenderer>&& p)

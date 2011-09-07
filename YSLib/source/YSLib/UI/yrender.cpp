@@ -11,12 +11,12 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1226;
+\version r1229;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2011-09-04 00:10 +0800;
+	2011-09-06 23:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,9 +30,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
-
-const Graphics WidgetRenderer::InvalidGraphics;
-
 
 bool
 BufferedWidgetRenderer::RequiresRefresh() const

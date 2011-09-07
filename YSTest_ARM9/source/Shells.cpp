@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5071;
+\version r5073;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-03 23:30 +0800;
+	2011-09-05 23:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -134,13 +134,13 @@ namespace
 	}
 
 	shared_ptr<Image>&
-	FetchGlobalImage(size_t i)
+	FetchGlobalImage(size_t idx)
 	{
 		auto& spi(FetchGlobalResource<array<shared_ptr<Image>, 10>>(GR_BGs));
 
-		YAssert(IsInInterval(i, 10u), "Array index out of range"
+		YAssert(IsInInterval(idx, 10u), "Array index out of range"
 			" @ FetchGlobalImage;");
-		return spi[i];
+		return spi[idx];
 	}
 
 	void
@@ -673,12 +673,12 @@ ShlExplorer::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs&& e)
 void
 ShlExplorer::TFormExtra::OnClick_btnDragTest(TouchEventArgs&&)
 {
-	static FontCache& fc(FetchGlobalInstance().GetFontCache());
+	static auto& fc(FetchGlobalInstance().GetFontCache());
 	static const int ffilen(fc.GetFilesN());
 	static const int ftypen(fc.GetTypesN());
 	static const int ffacen(fc.GetFacesN());
 	static int itype;
-	static FontCache::FaceSet::const_iterator it(fc.GetTypes().begin());
+	static auto i(fc.GetTypes().cbegin());
 	static char strtf[0x400];
 
 	//	btnDragTest.Transparent ^= 1;
@@ -686,9 +686,9 @@ ShlExplorer::TFormExtra::OnClick_btnDragTest(TouchEventArgs&&)
 	{
 		//	btnDragTest.Visible ^= 1;
 		++itype %= ftypen;
-		if(++it == fc.GetTypes().end())
-			it = fc.GetTypes().begin();
-		btnDragTest.Font = Font(*(*it)->GetFontFamilyPtr(),
+		if(++i == fc.GetTypes().end())
+			i = fc.GetTypes().begin();
+		btnDragTest.Font = Font(*(*i)->GetFontFamilyPtr(),
 			16 - (itype << 1), FontStyle::Regular);
 	//	btnDragTest.Font = Font(*(*it)->GetFontFamilyPtr(),
 	//	GetDefaultFontFamily(), 16 - (itype << 1), FontStyle::Regular);
@@ -702,7 +702,7 @@ ShlExplorer::TFormExtra::OnClick_btnDragTest(TouchEventArgs&&)
 	else
 	{
 		siprintf(strtf, "%d/%d;%s:%s;", itype + 1, ftypen,
-			(*it)->GetFamilyName().c_str(), (*it)->GetStyleName().c_str());
+			(*i)->GetFamilyName().c_str(), (*i)->GetStyleName().c_str());
 		//	sprintf(strtf, "B%p\n",
 		//		fc.GetTypefacePtr("FZYaoti", "Regular"));
 		btnDragTest.Text = strtf;

@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2434;
+\version r2444;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-09-04 23:29 +0800;
+	2011-09-07 21:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -139,7 +139,8 @@ MoveToBottom(IWidget& wgt)
 bool
 MUIContainer::operator-=(IWidget& wgt)
 {
-	GMFocusResponser<IWidget>::operator-=(wgt);
+	if(IsFocusing(&wgt))
+		ClearFocusingPtr();
 
 	auto t(sWidgets.size());
 
@@ -173,22 +174,7 @@ void
 MUIContainer::Add(IWidget& wgt, ZOrderType z)
 {
 	if(!Contains(wgt))
-	{
 		sWidgets.insert(make_pair(z, static_cast<ItemType>(&wgt)));
-		GMFocusResponser<IWidget>::operator+=(wgt);
-	}
-}
-
-bool
-MUIContainer::ResponseFocusRequest(IWidget& wgt)
-{
-	return RequestFocusOf<GMFocusResponser, IWidget>(wgt, *this);
-}
-
-bool
-MUIContainer::ResponseFocusRelease(IWidget& wgt)
-{
-	return ReleaseFocusOf<GMFocusResponser, IWidget>(wgt, *this);
 }
 
 bool

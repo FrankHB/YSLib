@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5960;
+\version r5972;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-04 23:28 +0800;
+	2011-09-07 02:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,7 +58,6 @@ struct BadControl
 //! \brief 部件接口。
 DeclInterface(IWidget)
 	DeclIEntry(bool IsVisible() const) //!< 判断是否可见。
-	DeclIEntry(bool IsTransparent() const) //!< 判断是否透明。
 
 	DeclIEntry(const Point& GetLocation() const)
 	DeclIEntry(const Size& GetSize() const)
@@ -82,14 +81,13 @@ DeclInterface(IWidget)
 	*/
 	DeclIEntry(IWidget* GetFocusingPtr())
 	/*!
-	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。。
+	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	\return 若为保存了子部件中的可见部件的容器则返回指针，否则返回 \c nullptr 。
 	\note 使用部件坐标。
 	*/
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)))
 
 	DeclIEntry(void SetVisible(bool)) //!< 设置可见。
-	DeclIEntry(void SetTransparent(bool)) //!< 设置透明。
 	DeclIEntry(void SetLocation(const Point&)) \
 		//!< 设置左上角所在位置（相对于父容器的偏移坐标）。
 	DeclIEntry(void SetSize(const Size&)) \
@@ -188,7 +186,7 @@ GetBoundsOf(const IWidget& w)
 \brief 设置部件边界。
 */
 void
-SetBoundsOf(IWidget&, const Rect& r);
+SetBoundsOf(IWidget&, const Rect&);
 
 /*!
 \brief 设置部件的无效区域。
@@ -305,7 +303,7 @@ public:
 	virtual DefEmptyDtor(Visual)
 
 	DefPredicate(Visible, visible)
-	DefPredicate(Transparent, transparent)
+	DefPredicate(Transparent, transparent) //!< 判断是否透明。
 
 	DefGetter(SPos, X, GetLocation().X)
 	DefGetter(SPos, Y, GetLocation().Y)
@@ -315,7 +313,7 @@ public:
 	DefGetter(const Size&, Size, size)
 
 	DefSetter(bool, Visible, visible)
-	DefSetter(bool, Transparent, transparent)
+	DefSetter(bool, Transparent, transparent) //!< 设置透明性。
 	/*!
 	\brief 设置位置：横坐标。
 	\note 非虚 \c public 实现。
@@ -375,12 +373,15 @@ private:
 	unique_ptr<WidgetRenderer> pRenderer; //!< 渲染器指针。
 
 public:
+	unique_ptr<WidgetController> pController; //!< 控制器指针。
+
 	explicit
 	Widget(const Rect& = Rect::Empty,
 		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
+	virtual
+	~Widget();
 
 	ImplI1(IWidget) DefPredicateBase(Visible, Visual)
-	ImplI1(IWidget) DefPredicateBase(Transparent, Visual)
 
 	ImplI1(IWidget) DefGetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefGetterBase(const Size&, Size, Visual)
@@ -395,7 +396,6 @@ public:
 		ImplRet(nullptr)
 
 	ImplI1(IWidget) DefSetterBase(bool, Visible, Visual)
-	ImplI1(IWidget) DefSetterBase(bool, Transparent, Visual)
 	ImplI1(IWidget) DefSetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefSetterBase(const Size&, Size, Visual)
 	/*!
@@ -425,8 +425,9 @@ public:
 inline WidgetController&
 Widget::GetController() const
 {
-//	throw GeneralEvent("Bad control found @ Widget::GetController;");
-	throw BadControl();
+	if(!pController)
+		throw BadControl();
+	return *pController;
 }
 
 YSL_END_NAMESPACE(Components)

@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r2408;
+\version r2474;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-09-04 00:13 +0800;
+	2011-09-07 20:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,108 +34,57 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 //! \brief 简单焦点响应器。
-class MSimpleFocusResponser : public noncopyable
+template<typename _type>
+class GFocusResponser : public noncopyable
 {
 protected:
-	IWidget* pFocusing; //!< 焦点指针。
+	_type* pFocusing; //!< 焦点对象指针。
 
-	MSimpleFocusResponser();
+	GFocusResponser() = default;
 
 public:
+	//! \brief 判断指定指针是否和焦点对象指针相等。
+	inline PDefH1(bool, IsFocusing, _type* p) const
+		ImplRet(pFocusing == p)
+
 	/*!
 	\brief 取焦点指针。
 	*/
-	DefGetter(IWidget*, FocusingPtr, pFocusing)
+	DefGetter(_type*, FocusingPtr, pFocusing)
+
 	/*!
 	\brief 清除焦点指针。
 	*/
 	void
-	ClearFocusingPtr();
+	ClearFocusingPtr()
+	{
+		pFocusing = nullptr;
+	}
 
 	/*!
 	\brief 响应焦点请求。
 	*/
 	bool
-	ResponseFocusRequest(IWidget&);
+	ResponseFocusRequest(_type& obj)
+	{
+		pFocusing = &obj;
+		return pFocusing;
+	}
 
 	/*!
 	\brief 响应焦点释放。
 	*/
 	bool
-	ResponseFocusRelease(IWidget&);
-};
-
-inline MSimpleFocusResponser::MSimpleFocusResponser()
-	: pFocusing()
-{}
-
-
-//! \brief 焦点响应器模板。
-template<class _type>
-class GMFocusResponser : public noncopyable
-{
-public:
-	typedef set<_type*> FocusObjectSet; //!< 焦点对象组类型。
-
-protected:
-	_type* pFocusing; //!< 焦点对象指针。
-	FocusObjectSet sFocusObjects; //!< 焦点对象组。
-
-	/*!
-	\brief 无参数构造。
-	*/
-	inline
-	GMFocusResponser()
-		: pFocusing(), sFocusObjects()
-	{}
-
-public:
-	//! \brief 向焦点对象组添加焦点对象。
-	inline PDefHOperator1(void, +=, _type& c)
-		ImplRet(static_cast<void>(sFocusObjects.insert(&c)))
-
-	/*!
-	\brief 从焦点对象组移除焦点对象。
-	\note 若为当前焦点，则先清除。
-	*/
-	bool operator-=(_type& c)
+	ResponseFocusRelease(_type& obj)
 	{
-		if(&c == pFocusing)
-			ClearFocusingPtr();
-		return sFocusObjects.erase(&c) != 0;
-	}
-
-	//! \brief 判断指定指针是否和焦点对象指针相等。
-	inline PDefH1(bool, IsFocusing, _type* p) const
-		ImplRet(pFocusing == p)
-
-	//! \brief 取焦点对象指针。
-	inline DefGetter(_type*, FocusingPtr, pFocusing)
-	//! \brief 取焦点对象组（只读）。
-	inline DefGetter(const FocusObjectSet&, FocusingSet, sFocusObjects)
-
-	/*!
-	\brief 设置焦点对象指针。
-	*/
-	bool
-	SetFocusingPtr(_type* p)
-	{
-		if(!p)
-			return (pFocusing = nullptr);
-		if(sFocusObjects.find(p) == sFocusObjects.end())
-			return false;
-		if(pFocusing != p)
+		if(pFocusing == &obj)
 		{
-			if(pFocusing && IsFocused(*pFocusing))
-				ReleaseFocusFrom(*pFocusing, *p);
-			pFocusing = p;
+			pFocusing = nullptr;
+		//	w.ReleaseFocusRaw();
+			return true;
 		}
-		return pFocusing;
+		return false;
 	}
-
-	//! \brief 清空焦点指针。
-	inline PDefH0(void, ClearFocusingPtr)
-		ImplRet(static_cast<void>(SetFocusingPtr(nullptr)))
 };
 
 
@@ -169,6 +118,59 @@ ReleaseFocusOf(_type& obj, _tResponser<_type>& rsp)
 {
 	return IsFocusOfContainer(obj, rsp) && !(rsp.SetFocusingPtr(nullptr));
 }
+
+
+//! \brief 焦点响应器模板。
+template<class _type>
+class GCheckedFocusResponser : public GFocusResponser<_type>
+{
+protected:
+	using GFocusResponser<_type>::pFocusing;
+
+	/*!
+	\brief 无参数构造。
+	*/
+	GCheckedFocusResponser() = default;
+
+public:
+	/*!
+	\brief 设置焦点对象指针。
+	*/
+	bool
+	SetFocusingPtr(_type* p)
+	{
+		if(!p)
+			return (pFocusing = nullptr);
+		if(pFocusing != p)
+		{
+			if(pFocusing && IsFocused(*pFocusing))
+				ReleaseFocusFrom(*pFocusing, *p);
+			pFocusing = p;
+		}
+		return pFocusing;
+	}
+
+	/*!
+	\brief 响应焦点请求。
+	*/
+	bool
+	ResponseFocusRequest(IWidget& wgt)
+	{
+		return RequestFocusOf<GCheckedFocusResponser, IWidget>(wgt, *this);
+	}
+
+	/*!
+	\brief 响应焦点释放。
+	*/
+	bool
+	ResponseFocusRelease(IWidget& wgt)
+	{
+		return ReleaseFocusOf<GCheckedFocusResponser, IWidget>(wgt, *this);
+	}
+};
+
+typedef GFocusResponser<IWidget> FocusResponser;
+typedef GCheckedFocusResponser<IWidget> CheckedFocusResponser;
 
 YSL_END_NAMESPACE(Components)
 

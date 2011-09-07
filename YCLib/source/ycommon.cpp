@@ -11,12 +11,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version 0.2392;
+\version r2393;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2011-06-24 21:57 +0800;
+	2011-09-05 23:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -205,7 +205,7 @@ namespace platform
 		PATHSTR path;
 
 		std::strcpy(path, cpath);
-		for(char* slash = path; (slash = strchr(slash, '/')); ++slash)
+		for(char* slash(path); (slash = strchr(slash, '/')); ++slash)
 		{
 			*slash = '\0';
 			::mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO);

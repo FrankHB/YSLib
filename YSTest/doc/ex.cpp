@@ -1,4 +1,4 @@
-// v0.3276; *build 237 rev 48;
+// v0.3282; *build 238 rev 27;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -105,6 +105,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \k ::= keywords
 \lib ::= library
 \ln ::= lines
+\loc ::= local
 \m ::= members
 \mac ::= macros
 \mem ::= memory
@@ -259,259 +260,137 @@ $using:
 \u ListBox
 (
 	\cl ListBox,
-	\cl FileBox,
+	\cl FileBox
 ),
 \u Form
 (
-	\cl Form;
+	\cl Form
 );
 
 
 $DONE:
-r1:
-/ @ \cl YControl $=
+r1-r7:
+/ test 1 $=
 (
-	/ \a event handler \def ^ IWidget ~ IControl,
-	/ typedef GEventMap<IControl, VisualEvent> VisualEventMapType
-		-> typedef GEventMap<IWidget, VisualEvent> VisualEventMapType,
-	/ \a \tp IControl -> IWidget @ \a \ft (FetchEvent & CallEvent)
+	/= @ \impl \impl \u Shells $=
+	(
+		/= \rem @ \loc \o @ \f FetchGlobalImage @ \un \ns,
+		/= \impl @ \mf ShlExplorer::TFormExtra::OnClick_btnDragTest ^ 'auto'
+	);
+	/= \impl @ \f platform::mkdirs @ \impl \u YCommon,
 );
-/ \tr \a event handler \def ^ IWidget ~ IControl @ \impl \u (Button & CheckBox
-	& Menu & TextList & Scroll & Control);
-
-r2:
-/= test 1 ^ \conf release;
-
-r3:
-/ @ \cl MSimpleFocusResponser @ \u YFocus $=
-(
-	/ \m IWidget* -> IWidget* pFocusing;
-	/ \a \tp 'IControl' @ \param @ \mf -> 'IWidget'
-),
-/ \a 'GMFocusResponser<IControl>' -> 'GMFocusResponser<IWidget>';
-/ \impl @ \f (RequestFocusFrom & ReleaseFocusFrom) @ \u YControl,
-/ \tp @ \a \mf GetFocusingPtr -> IWidget* ~ IControl*,
-/ \tr \impl @ \mf YGUIShell::ResponseKey,
-/ \tr \impl @ \mf (ResponseFocusRequest & ResponseFocusRelease
-	& GetTopControlPtr) @ \cl MUIContainer,
-/ \tr \impl @ \cl (Panel & AUIBoxControl & AFrame);
-
-r4:
-/= test 2 ^ \conf release;
-
-r5:
-/ @ \cl MUIContainer $=
-(
-	/ \mf GetFocusingPtr -> using GMFocusResponser<IWidget>::GetFocusingPtr,
-	/ \mf !\vt void Add(IControl&, ZOrderType)
-		-> \vt void Add(IWidget&, ZOrderType);
-	/ \impl @ \mf \op+=(IWidget&),
-	/ \impl @ \mf \op-=(IWidget&);
-	- \mf \op+=(IControl&),
-	- \mf \op-=(IControl&)
-);
-/ \tr \impl @ \cl (UIContainer & Panel & AFrame);
-/ \mf !\vt void Add(IControl&, ZOrderType) @ \cl AFrame
-	-> \vt void Add(IWidget&, ZOrderType);
-
-r6:
-/ \impl @ \mf Desktop::ClearContents;
-/ @ \cl MUIContainer $=
-(
-	- \mf bool operator-=(GMFocusResponser<IWidget>&),
-	- \mf void operator+=(GMFocusResponser<IWidget>&);
-	- protected \m FocusContainerSet sFocusContainers;
-	- typedef set<GMFocusResponser<IWidget>*> FocusContainerSet
-);
-/ \tr \impl @ \cl (UIContainer & Panel & AFrame);
-
-r7:
-/= test 3 ^ \conf release;
 
 r8:
-/ @ \cl YGUIShell $=
+/ @ \cl TextFileBuffer $=
 (
-	/ \impl @ \mf ResponseTouch,
-	/ \mf bool ResponseTouchBase(IControl&, TouchEventArgs&,
-		Components::VisualEvent) -> bool ResponseTouchBase(IWidget&,
-		TouchEventArgs&, Components::VisualEvent),
-	/ \mf bool ResponseTouchBase(IControl&, TouchEventArgs&,
-		Components::VisualEvent) -> bool ResponseTouchBase(IWidget&,
-		TouchEventArgs&, Components::VisualEvent)
-),
-/ @ \h YControl $=
-(
-	/ \f \i void RequestFocus(IControl&) -> void RequestFocus(IWidget&);
-	/ \f \i bool IsEnabled(const IControl&) -> bool IsEnabled(IWidget&),
+	/ @ \cl HText $=
 	(
-		/ private \m IControl* p_KeyDown -> IWidget* p_KeyDown,
-		/ private \m IControl* p_TouchDown -> IWidget* p_TouchDown;
-		/ \tr \impl @ \mf (GetKeyDownPtr() & GetTouchDownPtr())
+		/ private \m BlockSizeType blk => block,
+		/ private \m SizeType idx => index
 	),
-	(
-		/ private \mf void TryEntering(IControl&, Components::TouchEventArgs&)
-			-> void TryEntering(IWidget&, Components::TouchEventArgs&),
-		/ private \mf void TryLeaving(IControl&, Components::TouchEventArgs&)
-			-> void TryLeaving(IWidget&, Components::TouchEventArgs&)
-	)
+	/ as \str @ \mf operator[];
+	/= \a \loc \exc (@ \mf TextMap::Clear & TextFileBuffer::HText::operator+)
+		'i' => 'idx'
+	/= \a \loc 'it' => 'i'
 );
-/ \a \mf GetTopControlPtr \mg -> \mf GetTopWidgetPtr;
 
 r9:
-/= test 4 ^ \conf release;
+/ \simp \impl @ \f SetInvalidationToParent @ \impl \u YWidget,
+/ \simp \impl @ \f (OnKeyHeld & OnTouchHeld)
+	@ \impl \u YControl ^ CallEvent ~ FetchEvent;
 
 r10:
-/ @ \cl Desktop $=
+/= \decl @ \f void SetBoundsOf(IWidget&, const Rect&) @ \h YWidget,
+/ @ \h YControl $=
 (
-	- \mf GetTopVisibleDesktopObjectPtr,
-	- \mf GetTopWidgetPtr
+	*= \rem @ \ft CallEvent #1 @ \h YControl $since b236,
+	/ \rem @ \ft CallEvent #3
 );
 
 r11:
-/ \impl @ MUIContainer::GetTopWidgetPtr;
+/= test 2 ^ \conf release;
 
 r12:
-/ DefDelegate(HScrollEvent, IControl, ScrollEventArgs) @ \h Scroll
-	-> DefDelegate(HScrollEvent, IWidget, ScrollEventArgs);
+/= \rem @ \h YRenderer,
+/ private \m mutable WidgetController controller @ \cl YControl
+	-> public \m unique_ptr<WidgetController> pController @ \cl YWidget;
+/ \tr \impl @ \ctor @ \cl (YControl & YWidget),
+/ \impl @ \mf Widget::GetController,
+- \mf Control::GetController,
++ !\i \em \vt \dtor @ \cl Widget for incomplete types,
+/ protected \s \c \m Graphics InvalidGraphics @ \cl WidgetRenderer
+	-> public \s \c \m Graphics Invalid @ \cl Graphics;
 
 r13:
-/ bool Desktop::MoveToTop(IControl&) -> bool AFrame::MoveToTop(IWidget&);
-/ \impl @ \mf Widget::RequestToTop;
+/ @ \h YWidget $=
+(
+	- \amf (IsTransparent & SetTransparent) @ \in IWidget;
+	- mf (IsTransparent & SetTransparent) @ \cl Widget
+);
 
 r14:
-/ @ \cl YGUIShell $=
+/ \simp @ \clt GMFocusResponser @ \h YFocus $=
 (
-	/ bool ResponseKey(IControl&, KeyEventArgs&, Components::VisualEvent)
-		-> bool ResponseKey(IWidget&, KeyEventArgs&, Components::VisualEvent),
-	/ bool ResponseKeyBase(IControl&, KeyEventArgs&, Components::VisualEvent)
-		-> bool ResponseKeyBase(IWidget&, KeyEventArgs&,
-		Components::VisualEvent),
-	/ bool ResponseTouch(IControl&, TouchEventArgs&, Components::VisualEvent)
-		-> bool ResponseTouch(IWidget&, TouchEventArgs&,
-		Components::VisualEvent)
+	- protected \m FocusObjectSet sFocusObjects,
+	- \mf (\op+= & \op-= & GetFocusingSet);
+	/ \tr \simp \impl @ (\ctor & \mf SetFocusingPtr)
 );
+/ \tr \simp \impl @ \mf (\op-= & Add) @ \cl MUIContainer;
 
 r15:
-/ @ \h YControl
-(
-	/ \param \tp IControl& @ \f \i ReleaseFocus -> IWidget&,
-	/= \a 'ImplI1(IControl)' @ \h YControl -> 'virtual',
-	(
-		/ \f \i void SetEnabledOf(IControl&, bool)
-			-> void SetEnabledOf(IWidget&, bool);
-		/ \f void Enable(IControl&, bool = true) -> void Enable(IWidget&,
-			bool = true);
-	)
-);
-/ @ \u YGUI $=
-(
-	/ \f void RequestFocusCascade(IControl&)
-		-> void RequestFocusCascade(IWidget&),
-	/ \f void ReleaseFocusCascade(IControl&)
-		-> void ReleaseFocusCascade(IWidget&),
-	/ \f bool IsFocusedByShell(const IControl&, const YGUIShell&
-		= FetchGUIShell()) -> bool IsFocusedByShell(const IWidget&,
-		const YGUIShell& = FetchGUIShell())
-);
+/ \mf (ResponseFocusRequest & ReleaseFocusRequest) @ \cl MUIContainer
+	>> \clt GMFocusResponser @ \h YFocus;
 
 r16:
--= \inc \h YControl @ \impl \u YControl,
-/ @ \st IndexEventArgs @ \h YControl $=
-(
-	/ \m IControl& Control -> IWidget& Widget;
-	/ \tr @ \ctor
-);
+/= test 3 ^ \conf release;
 
 r17:
-/= test 5 ^ \conf release;
+/ @ \h YFocus $=
+(
+	/ \simp \impl @ \mf ClearFocusingPtr @ \clt GMFocusResponser,
+	- \cl MSimpleFocusResponser;
+	+ \clt GMSimpleFocusResponser;
+	/ \clt GMFocusResponser $=
+	(
+		- typedef set<_type*> FocusObjectSet,
+		/ public \inh noncopyable -> GMSimpleFocusResponser<_type>;
+		/ protected \m _type* pFocusing
+			-> using GMSimpleFocusResponser<_type>::pFocusing;
+		- \mf ClearFocusingPtr,
+		- \mf GetFocusingPtr,
+		/ \mf IsFocusing >> \clt GMSimpleFocusResponser,
+		/ \ctor ^ \exp \de
+	)
+	+ typedef GMSimpleFocusResponser<IWidget> MSimpleFocusResponser,
+	+ typedef GMFocusResponser<IWidget> MFocusResponser
+);
 
 r18:
-/ \m std::function<IControl*(const KeyCode&)> BoundControlPtr @ \cl Control
-	-> std::function<IWidget*(const KeyCode&)> BoundControlPtr,
-/ \ret \tp @ (\a \mf GetBoundControlPtr & (\f FetchEnabledBoundControlPtr
-	@ \un \ns @ \impl \u YControl)) -> 'IWidget*' ~ 'IControl*';
+/ \a 'GMFocusResponser<IWidget>' -> 'MFocusResponser' @ \exc \h YFocus;
+/ \a GMFocusResponser => GCheckedFocusResponser;
+/ \a MFocusResponser => CheckedFocusResponser;
+/ \a GMSimpleFocusResponser => GFocusResponser;
+/ \a MSimpleFocusResponser => FocusResponser;
 
 r19:
-- \vt \inh IControl @ \cl Control;
-/ @ \h YComponent $=
-(
-	- using Components::IControl @ \ns YSLib;
-	- \pre \decl \in IControl
-);
-- \in IControl;
+/= test 4 ^ \conf release;
 
-r20:
-- using Components::WidgetController @ \ns YSLib @ \h YComponent;
+r20-r25:
+/= test 5;
 
-r21:
+r26:
+* \impl @ \mf MUIContainer::operator-= $since r14;
+
+r27:
 /= test 6 ^ \conf release;
-
-r22-r38:
-/= test 7;
-
-r39:
-+ \u YRenderer["yrender.h", "yrender.cpp"] @ \dir UI;
-/ \cl (WidgetRenderer & BufferedWidgetRenderer) @ \u YWidget >> \u YRenderer;
-/ \a @ \u YRenderer @ \ns Components >> \ns Drawing;
-/ @ \h YComponent $=
-(
-	(
-		+ \pre \decl @ \cl WidgetRenderer @ \ns Drawing;
-		+ using Drawing::WidgetRenderer @ \ns Components;
-	),
-	(
-		+ \pre \decl @ \cl BufferedWidgetRenderer @ \ns Drawing;
-		+ using Drawing::BufferedWidgetRenderer @ \ns Components,
-	);
-	- using Components::IWidget @ \ns YSLib;
-);
-/ \tr @ \h YGUIShell,
-- \inc \h "../Core/ystatic.hpp" @ \h YFocus;
-+ \inc \h "../Core/ystatic.hpp" @ \impl \u Scroll;
-
-r40:
-/ "Code::Blocks workspace and projects files";
-/= test 8 ^ \conf release;
-
-r41:
-/= \rem @ move \ctor @ \h (YString & YMessage & YFileSystem & YEvent
-	& YCounter),
-/ \impl @ \mf MUIContainer::GetTopWidgetPtr $=
-(
-	^ std::find_if,
-	+ \as;
-);
-
-r42:
-* \impl @ \mf MUIContainer::GetTopWidgetPtr $since r41;
-
-r43:
-/ \amf IWidget* GetTopWidgetPtr(const Point&) @ \in IWidget
-	-> IWidget* GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
-/ \a \mf IWidget* GetTopWidgetPtr(const Point&) @ \in IWidget
-	-> IWidget* GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
-/ \tr \impl @ \mf YGUIShell::ResponseTouch;
-
-r44:
-+ \f \i bool IsEnabledAndVisible(const IWidget&) @ \h YControl;
-/ \impl @ \mf YGUIShell::ResponseTouch ^ IsEnabledAndlVisible ~ IsEnabled;
-
-r45:
-/= test 9 ^ \conf release;
-
-r46-r47:
-/ \impl @ \mf Thumb::Refresh;
-
-r48:
-/= test 10 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-09-05:
--22.6d;
-//Mercurial rev1-rev108: r5266;
+2011-09-07:
+-22.4d;
+//Mercurial rev1-rev109: r5314;
 
 / ...
 
@@ -523,8 +402,9 @@ b238-b256:
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 
-b257-b768:
+b257-b1023:
 + key accelerators;
++ dynamic widget prototypes;
 + fully \impl styles @ widgets;
 / fully \impl @ \cl Path;
 / \impl 'real' RTC;
@@ -542,7 +422,7 @@ b257-b768:
 
 
 $LOW_PRIOR_TODO:
-b769-b1536:
+b1024-b1800:
 + (compressing & decompressing) @ gfx copying;
 + Microsoft Windows port;
 + general component operations:
@@ -607,6 +487,17 @@ $now
 (
 	/ "GUI" $=
 	(
+		/ "simplified" @ "class %IWidget",
+		/ $design "controller pointer" @ "class %Control" >> "class %Widget",
+		/ "simplified" @ "class %Control",
+		/ "simplified implementation" @ "focus responsers"
+	)
+),
+
+b237
+(
+	/ "GUI" $=
+	(
 		/ "control functionality for widgets" ~ "for controls" $=
 		(
 			/ "support of events",
@@ -625,7 +516,7 @@ $now
 	)
 ),
 
-b237
+b236
 (
 	^ "updated libnds 1.5.3 with default arm7 0.5.22"
 		~ "libnds 1.5.4 with default arm 7 0.5.23",

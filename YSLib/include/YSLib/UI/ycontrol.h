@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5376;
+\version r5382;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-09-04 23:42 +0800;
+	2011-09-06 23:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -260,7 +260,11 @@ DefEventTypeMapping(LostFocus, HVisualEvent)
 typedef GEventMap<IWidget, VisualEvent> VisualEventMapType;
 
 
-//!< 部件控制器。
+/*!
+\brief 部件控制器。
+
+保存部件的事件响应策略和状态。
+*/
 class WidgetController
 {
 private:
@@ -404,7 +408,7 @@ FetchEvent(IWidget& wgt)
 
 /*!
 \ingroup HelperFunction
-\brief 调用时间映射表中的控件事件。
+\brief 调用事件映射表中的控件事件。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则忽略。
 */
@@ -421,8 +425,7 @@ CallEvent(VisualEventMapType& m, typename EventTypeMapping<_vID>
 		yforward(e));
 }
 /*!
-\ingroup HelperFunction
-\brief 调用部件事件。
+\brief 调用部件事件，并忽略 BadControl 异常。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则忽略。
 */
@@ -511,9 +514,6 @@ OnKey_Bound_Click(IWidget&, KeyEventArgs&&);
 //! \brief 控件。
 class Control : public Widget
 {
-private:
-	mutable WidgetController controller;
-
 public:
 	//标准控件事件见 VisualEvent 。
 
@@ -540,7 +540,6 @@ public:
 	virtual
 	~Control();
 
-	virtual DefGetter(WidgetController&, Controller, controller)
 	/*!
 	\brief 取按键-指针设备输入默认事件组映射。
 	*/
