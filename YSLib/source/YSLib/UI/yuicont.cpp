@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2444;
+\version r2450;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-09-07 21:42 +0800;
+	2011-09-08 01:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -139,9 +139,6 @@ MoveToBottom(IWidget& wgt)
 bool
 MUIContainer::operator-=(IWidget& wgt)
 {
-	if(IsFocusing(&wgt))
-		ClearFocusingPtr();
-
 	auto t(sWidgets.size());
 
 	for(auto i(sWidgets.begin()); i != sWidgets.end();)
@@ -185,11 +182,6 @@ MUIContainer::Contains(IWidget& wgt)
 		return val.second == &wgt;
 	}) != sWidgets.end();
 }
-
-
-UIContainer::UIContainer(const Rect& r)
-	: Widget(r), MUIContainer()
-{}
 
 YSL_END_NAMESPACE(Components)
 

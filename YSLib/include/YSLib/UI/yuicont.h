@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2537;
+\version r2557;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-09-07 17:13 +0800;
+	2011-09-08 01:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -155,7 +155,7 @@ const ZOrderType DefaultWindowZOrder(128); //!< 默认窗口 Z 顺序值。
 
 
 //! \brief 部件容器模块。
-class MUIContainer : protected CheckedFocusResponser
+class MUIContainer
 {
 public:
 	typedef IWidget* ItemType; //!< 部件组项目类型。
@@ -166,14 +166,11 @@ public:
 protected:
 	WidgetMap sWidgets; //!< 部件对象组：存储非空部件指针。
 
-public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
 	MUIContainer() = default;
-	virtual DefEmptyDtor(MUIContainer)
 
-protected:
 	/*!
 	\brief 向部件组添加部件。
 
@@ -200,10 +197,6 @@ public:
 	Contains(IWidget&);
 
 	/*!
-	\brief 取焦点控件指针。
-	*/
-	using CheckedFocusResponser::GetFocusingPtr;
-	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	*/
 	IWidget*
@@ -217,40 +210,6 @@ public:
 	*/
 	virtual void
 	Add(IWidget&, ZOrderType = DefaultZOrder);
-};
-
-
-//部件容器。
-class UIContainer : public Widget, protected MUIContainer
-{
-public:
-	/*!
-	\brief 构造：使用指定边界。
-	*/
-	explicit
-	UIContainer(const Rect& = Rect::Empty);
-
-	// \brief 向部件组添加部件。
-	virtual PDefHOperator1(void, +=, IWidget& wgt)
-		ImplBodyBase1(MUIContainer, operator+=, wgt)
-	// \brief 从部件组移除部件。
-	virtual PDefHOperator1(bool, -=, IWidget& wgt)
-		ImplBodyBase1(MUIContainer, operator-=, wgt)
-
-	ImplI1(IWidget) DefMutableGetterBase(IWidget*, FocusingPtr,
-		CheckedFocusResponser)
-	ImplI1(IWidget) PDefH2(IWidget*, GetTopWidgetPtr, const Point& pt,
-		bool(&f)(const IWidget&))
-		ImplBodyBase2(MUIContainer, GetTopWidgetPtr, pt, f)
-
-	ImplI1(IWidget) PDefH0(void, ClearFocusingPtr)
-		ImplBodyBase0(MUIContainer, ClearFocusingPtr)
-
-	ImplI1(IWidget) PDefH1(bool, ResponseFocusRequest, IWidget& wgt)
-		ImplBodyBase1(MUIContainer, ResponseFocusRequest, wgt)
-
-	ImplI1(IWidget) PDefH1(bool, ResponseFocusRelease, IWidget& wgt)
-		ImplBodyBase1(MUIContainer, ResponseFocusRelease, wgt)
 };
 
 YSL_END_NAMESPACE(Components)

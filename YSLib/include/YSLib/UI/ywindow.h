@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4643;
+\version r4661;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-09-07 17:13 +0800;
+	2011-09-08 02:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -157,17 +157,12 @@ public:
 
 	using MUIContainer::Contains;
 
-	virtual PDefH0(IWidget*, GetFocusingPtr)
-		ImplBodyBase0(CheckedFocusResponser, GetFocusingPtr)
 	virtual PDefH2(IWidget*, GetTopWidgetPtr, const Point& pt,
 		bool(&f)(const IWidget&))
 		ImplBodyBase2(MUIContainer, GetTopWidgetPtr, pt, f)
 
 	virtual void
 	Add(IWidget&, ZOrderType = DefaultZOrder);
-
-	virtual void
-	ClearFocusingPtr();
 
 	/*!
 	\brief 提升部件至顶端。
@@ -176,12 +171,6 @@ public:
 	*/
 	bool
 	MoveToTop(IWidget&);
-
-	virtual PDefH1(bool, ResponseFocusRequest, IWidget& wgt)
-		ImplBodyBase1(MUIContainer, ResponseFocusRequest, wgt)
-
-	virtual PDefH1(bool, ResponseFocusRelease, IWidget& wgt)
-		ImplBodyBase1(MUIContainer, ResponseFocusRelease, wgt)
 };
 
 

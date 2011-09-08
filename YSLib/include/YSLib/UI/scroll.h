@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3183;
+\version r3188;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-09-04 17:13 +0800;
+	2011-09-08 01:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -137,11 +137,6 @@ public:
 	DefPredicate(Horizontal, GetOrientation() == Horizontal)
 	DefPredicate(Vertical, GetOrientation() == Vertical)
 
-	/*!
-	\brief 取焦点指针。
-	*/
-	virtual DefMutableGetterBase(IWidget*, FocusingPtr,
-		FocusResponser)
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	\note 仅滑块。

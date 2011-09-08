@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5336;
+\version r5346;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-09-07 17:12 +0800;
+	2011-09-08 02:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -1156,7 +1156,7 @@
 @2.7.1.2 类组织：
 
 @2.7.1.2.1 接口：
- IWidget ：部件接口，包括返回渲染器、控制器等的虚成员方法，可以在容器中重载实现。
+ IWidget ：部件接口，包括返回渲染器、焦点响应器、控制器等的虚成员方法，可以在容器中重载实现。
 功能说明和其它描述参见 @2.7 、 @2.7.1.1 、 @2.7.1.2.3 。
 
 @2.7.1.2.2 继承：
@@ -1166,9 +1166,9 @@
 @2.7.1.2.3 主要图形用户界面元素的具体类：
 部件是实现了 IWidget 接口的类，是基本的图形用户界面对象类。
 组件容器是能够以引用方式在逻辑上包含其它组件的组件。
-部件容器是包含子部件的部件，是一般化的组件容器，它能以可视化方式处理其包含的部件（例如顺序显示）。应该重写其中对于焦点判断的成员方法以便保证视图树节点遍历的正确行为。
+部件容器是包含子部件的部件，是一般化的组件容器，它能以可视化方式处理其包含的部件（例如顺序显示）。应该重写成员方法 GetTopWidgetPtr 以便保证视图树节点遍历的正确行为。
 控件是使用非空控制器的具有事件响应特性的部件，默认继承 Control 类实现。
-窗口是继承 AWindow 抽象类并实现的具体类，是作为一种能在桌面显示的自带缓冲区的部件容器，同时是焦点响应类和焦点请求类。
+窗口是继承 AWindow 抽象类并实现的具体类，是作为一种能在桌面显示的自带缓冲区的部件容器。
 框架窗口（基类为 Frame ）是具有一般化的部件容器功能的窗口。
 窗体（基类为 Form ）是增加了客户区布局管理的标准窗口。
 默认组件中，除继承自窗口的组件（基类为 Frame ，缓冲区继承自类 BitmapBuffer ）外，所有部件默认不带显示缓冲区。实际使用时可以用其它类型成员（如 TextRegion ）提供显示缓冲区。
@@ -1211,7 +1211,7 @@
 当用户按键时，触发 KeyDown 事件；持续时触发 KeyHeld 事件；结束时依次触发 KeyPress 和 KeyUp 事件。
 当用户使用指针设备（包括触摸屏）输入时，触发 TouchDown 事件；持续时触发 TouchHeld 事件；持续且移动时可触发 TouchMove 事件；结束时依次触发 Click 和 TouchUp 事件。
 在 YControl 单元及其中的控件类 Control 中定义了主要处理程序。
- Control 默认使用成员函数处理 TouchDown 事件，调用本类成员函数 RequestFocus(...) 向容器请求焦点。若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
+ Control 默认使用成员函数处理 TouchDown 事件，调用焦点响应器的成员方法 RequestFocus(...) 向容器请求焦点。若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
 指针设备相关事件中，参数包含了相对于控件的坐标。
 最近操作的全局（相对于屏幕的）坐标保存于全局变量 ControlLocation 中。
 拖放操作依赖的最近全局坐标保存于全局变量 LastControlLocation 中。
@@ -1263,18 +1263,15 @@
 
 @2.7.4.3 默认实现相关的定义：
 具有焦点响应能力（即储存了关于集中焦点于特定的子对象的状态）的类称为焦点响应类。
-实现 GIFocusRequester 模板接口的类具有焦点请求能力（即能够从焦点响应类中获取焦点），称为焦点请求类。
 
 @2.7.4.4 默认实现综述：
-默认通过继承 GFocusResponser 或 GCheckedFocusResponser 类模板实例实现焦点响应类。
+默认通过组合 GFocusResponser 或 GCheckedFocusResponser 类模板实例（焦点响应器）的指针实现焦点响应类。
 部件容器需要实现明确的响应焦点的请求和释放操作。
-典型的实现方式是控件类以通过继承 GCheckedFocusResponser 类模板的实例成为焦点响应类。这种方式会储存一个子焦点容器指针的集合，对于具有确定的子对象的控件而言效率较低，因此图形用户界面默认实现中并不都采用此方法。
-在图形用户界面实现中独立保存额外的控件独立焦点指针，捕获自由状态的控件指针并判断是否能够据此调用 KeyPress 或 Click 事件。
-为了支持拖放操作，指针索引控件时，按位置判断作用的控件并根据上述独立焦点指针和状态变量判断附加操作，而不通过上述的通用焦点。
+在图形用户界面 Shell 实现中独立保存额外的控件独立焦点指针，捕获自由状态的控件指针并判断是否能够据此调用 KeyPress 或 Click 事件。
+为了支持拖放操作，索引控件时，按位置判断作用的控件并根据上述 Shell 中的独立焦点指针和状态变量判断附加操作，而不通过上述的通用焦点。
 
 @2.7.4.5 实例：
- Desktop 是 IWidget 的焦点响应类。
- Frame 和 Form 同时是 IWidget 的焦点响应类和对于 Desktop 焦点请求类。
+ Desktop 、 Frame 和 Form 是 IWidget 的焦点响应类。
 
 @2.7.5 默认图形用户界面响应流程：
 
@@ -1493,7 +1490,7 @@ FetchDefaultScreen();
  "yfocus.h" 、 "ystyle.h" 和 "ywidget.h" 依赖于 "ycomp.h" ；
  "yrender.h" 、 "ystyle.h" 、 "ytext.h" 和 "ywidget.h"依赖于 Service 的 "ygdi.h" ；
  "ystyle.h" 和 "ywidget.h" 依赖于 Service 的 "ydraw.h"；
- "ycontrol.h" 依赖于 "yfocus.h" ；
+ "ywidget.h" 依赖于 "yrender.h" 和 "yfocus.h" ；
  "ycontrol.h" 和 "yuicont.h" 依赖于 "ywidget.h" ；
  "ygui.h" 依赖于 "ycontrol.h" 和 "ystyle.h" ；
  "ywindow.h" 依赖于 "ycontrol.h" 、 "yuicont.h" 和 Service 的 "yblit.h" ；

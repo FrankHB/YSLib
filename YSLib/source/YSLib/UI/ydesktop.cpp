@@ -11,12 +11,12 @@
 /*!	\file ydesktop.cpp
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r2355;
+\version r2356;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-09-03 14:53 +0800;
+	2011-09-08 02:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,7 +53,7 @@ Desktop::RemoveTopDesktopObject()
 void
 Desktop::ClearContents()
 {
-	ClearFocusingPtr();
+	ClearFocusingPtrOf(*this);
 	sWidgets.clear();
 	SetInvalidationOf(*this);
 }

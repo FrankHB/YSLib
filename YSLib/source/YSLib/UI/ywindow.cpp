@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4125;
+\version r4133;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-09-03 14:53 +0800;
+	2011-09-08 02:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -99,7 +99,9 @@ AWindow::Update()
 
 AFrame::AFrame(const Rect& r, const shared_ptr<Image>& hImg)
 	: AWindow(r, hImg), MUIContainer()
-{}
+{
+	SetFocusResponser(unique_raw(new CheckedFocusResponser()));
+}
 
 void
 AFrame::operator+=(IWidget& wgt)
@@ -120,6 +122,8 @@ AFrame::operator-=(IWidget& wgt)
 	if(wgt.GetContainerPtrRef() == this)
 	{
 		wgt.GetContainerPtrRef() = nullptr;
+		if(GetFocusResponser().IsFocusing(&wgt))
+			GetFocusResponser().ClearFocusingPtr();
 		return MUIContainer::operator-=(wgt);
 	}
 	return false;
@@ -130,6 +134,8 @@ AFrame::operator-=(AWindow& wnd)
 	if(wnd.GetContainerPtrRef() == this)
 	{
 		wnd.GetContainerPtrRef() = nullptr;
+		if(GetFocusResponser().IsFocusing(&wnd))
+			GetFocusResponser().ClearFocusingPtr();
 		return MUIContainer::operator-=(wnd);
 	}
 	return false;
@@ -140,16 +146,6 @@ AFrame::Add(IWidget& wgt, ZOrderType z)
 {
 	MUIContainer::Add(wgt, z);
 	wgt.GetContainerPtrRef() = this;
-}
-
-void
-AFrame::ClearFocusingPtr()
-{
-	if(const auto p = GetFocusingPtr())
-	{
-		MUIContainer::ClearFocusingPtr();
-		CallEvent<LostFocus>(*p, *this, EventArgs());
-	}
 }
 
 bool

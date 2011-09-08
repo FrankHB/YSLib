@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5094;
+\version r5105;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-06 23:40 +0800;
+	2011-09-08 02:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -61,6 +61,16 @@ SetInvalidationToParent(IWidget& wgt)
 {
 	if(const auto pCon = FetchContainerPtr(wgt))
 		pCon->GetRenderer().CommitInvalidation(GetBoundsOf(wgt));
+}
+
+void
+ClearFocusingPtrOf(IWidget& wgt)
+{
+	if(const auto p = FetchFocusingPtr(wgt))
+	{
+		wgt.GetFocusResponser().ClearFocusingPtr();
+		CallEvent<LostFocus>(*p, wgt, EventArgs());
+	}
 }
 
 void
@@ -168,12 +178,20 @@ Visual::SetSize(const Size& s)
 
 Widget::Widget(const Rect& r, Color b, Color f)
 	: Visual(r, b, f),
-	pContainer(), pRenderer(new WidgetRenderer()), pController()
+	pContainer(), pRenderer(new WidgetRenderer()),
+	pFocusResponser(new FocusResponser()), pController()
 {}
 Widget::~Widget()
 {}
 
 
+void
+Widget::SetFocusResponser(unique_ptr<FocusResponser>&& p)
+{
+	pFocusResponser = p ? std::move(p)
+		: unique_ptr<FocusResponser>(new FocusResponser());
+	pFocusResponser->ClearFocusingPtr();
+}
 void
 Widget::SetRenderer(unique_ptr<WidgetRenderer>&& p)
 {

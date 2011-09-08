@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5972;
+\version r5997;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-07 02:29 +0800;
+	2011-09-08 02:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,6 +29,7 @@
 
 #include "ycomp.h"
 #include "yrender.h"
+#include "yfocus.h"
 #include "../Service/ydraw.h"
 #include "../Service/ygdi.h"
 
@@ -71,15 +72,14 @@ DeclInterface(IWidget)
 	*/
 	DeclIEntry(WidgetRenderer& GetRenderer() const)
 	/*!
+	\brief 取焦点响应器。
+	*/
+	DeclIEntry(FocusResponser& GetFocusResponser() const)
+	/*!
 	\brief 取控制器。
 	*/
 	DeclIEntry(WidgetController& GetController() const)
 
-	/*!
-	\brief 取焦点对象指针。
-	\return 若为保存了子部件中的焦点对象的容器则返回指针，否则返回 \c nullptr 。
-	*/
-	DeclIEntry(IWidget* GetFocusingPtr())
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	\return 若为保存了子部件中的可见部件的容器则返回指针，否则返回 \c nullptr 。
@@ -94,12 +94,6 @@ DeclInterface(IWidget)
 		//!< 设置大小。
 
 	/*!
-	\brief 清除焦点指针。
-	\note 若此部件非容器则无效。
-	*/
-	DeclIEntry(void ClearFocusingPtr())
-
-	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	\param g 图形接口上下文。
 	\param pt 相对图形接口上下文的偏移坐标，指定部件左上角的位置。
@@ -109,18 +103,6 @@ DeclInterface(IWidget)
 	\note 若部件的内部状态能够保证显示状态最新，则返回的区域可能比参数 r 更小。
 	*/
 	DeclIEntry(Rect Refresh(const Graphics& g, const Point& pt, const Rect& r))
-
-	/*!
-	\brief 响应焦点请求。
-	\note 若此部件非容器则无效。
-	*/
-	DeclIEntry(bool ResponseFocusRequest(IWidget&))
-
-	/*!
-	\brief 响应焦点释放。
-	\note 若此部件非容器则无效。
-	*/
-	DeclIEntry(bool ResponseFocusRelease(IWidget&))
 EndDecl
 
 
@@ -174,6 +156,17 @@ FetchContext(const IWidget& wgt)
 }
 
 /*!
+\ingroup HelperFunction
+\brief 取焦点对象指针。
+\return 若为保存了子部件中的焦点对象的容器则返回指针，否则返回 \c nullptr 。
+*/
+inline IWidget*
+FetchFocusingPtr(IWidget& wgt)
+{
+	return wgt.GetFocusResponser().GetFocusingPtr();
+}
+
+/*!
 \brief 取部件边界。
 */
 inline Rect
@@ -200,6 +193,13 @@ SetInvalidationOf(IWidget&);
 */
 void
 SetInvalidationToParent(IWidget&);
+
+/*!
+\brief 清除焦点指针，同时以此部件作为事件源，调用被清除焦点部件的 LostFocus 事件。
+\note 若此部件非容器则无效。
+*/
+void
+ClearFocusingPtrOf(IWidget&);
 
 /*!
 \brief 无效化：使部件区域在窗口缓冲区中无效。
@@ -366,11 +366,12 @@ public:
 
 //! \brief 部件。
 class Widget : public Visual,
-	virtual implements IWidget
+	implements IWidget
 {
 private:
 	mutable IWidget* pContainer; //!< 从属的部件容器的指针。
 	unique_ptr<WidgetRenderer> pRenderer; //!< 渲染器指针。
+	unique_ptr<FocusResponser> pFocusResponser; //!< 焦点响应器指针。
 
 public:
 	unique_ptr<WidgetController> pController; //!< 控制器指针。
@@ -387,10 +388,9 @@ public:
 	ImplI1(IWidget) DefGetterBase(const Size&, Size, Visual)
 	ImplI1(IWidget) DefGetter(IWidget*&, ContainerPtrRef, pContainer)
 	ImplI1(IWidget) DefGetter(WidgetRenderer&, Renderer, *pRenderer)
+	ImplI1(IWidget) DefGetter(FocusResponser&, FocusResponser, *pFocusResponser)
 	ImplI1(IWidget) WidgetController&
 	GetController() const;
-	ImplI1(IWidget) PDefH0(IWidget*, GetFocusingPtr)
-		ImplRet(nullptr)
 	ImplI1(IWidget) PDefH2(IWidget*, GetTopWidgetPtr, const Point&,
 		bool(&)(const IWidget&))
 		ImplRet(nullptr)
@@ -399,27 +399,25 @@ public:
 	ImplI1(IWidget) DefSetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefSetterBase(const Size&, Size, Visual)
 	/*!
-	\brief 设置渲染器为指定指针指向的对象。
+	\brief 设置渲染器为指定指针指向的对象，同时更新渲染器状态。
 	\note 若指针为空，则使用新建的 WidgetRenderer 对象。
 	\note 取得指定对象的所有权。
 	*/
 	void
 	SetRenderer(unique_ptr<WidgetRenderer>&&);
-
-	ImplI1(IWidget) PDefH0(void, ClearFocusingPtr)
-		ImplRet(static_cast<void>(this))
+	/*!
+	\brief 设置焦点响应器为指定指针指向的对象，同时清除焦点指针。
+	\note 若指针为空，则使用新建的 FocusResponser 对象。
+	\note 取得指定对象的所有权。
+	*/
+	void
+	SetFocusResponser(unique_ptr<FocusResponser>&&);
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	ImplI1(IWidget) Rect
 	Refresh(const Graphics&, const Point&, const Rect&);
-
-	ImplI1(IWidget) PDefH1(bool, ResponseFocusRequest, IWidget&)
-		ImplRet(false)
-
-	ImplI1(IWidget) PDefH1(bool, ResponseFocusRelease, IWidget&)
-		ImplRet(false)
 };
 
 inline WidgetController&

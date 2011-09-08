@@ -1,4 +1,4 @@
-// v0.3282; *build 238 rev 27;
+// v0.3294; *build 239 rev 32;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -189,9 +189,7 @@ $using:
 ),
 \u YUIContainer
 (
-	\in IUIBox,
-	\in IUIContainer,
-	\cl UIContainer
+	\cl MUIContainer
 ),
 \u YControl
 (
@@ -269,142 +267,130 @@ $using:
 
 
 $DONE:
-r1-r7:
-/ test 1 $=
-(
-	/= @ \impl \impl \u Shells $=
-	(
-		/= \rem @ \loc \o @ \f FetchGlobalImage @ \un \ns,
-		/= \impl @ \mf ShlExplorer::TFormExtra::OnClick_btnDragTest ^ 'auto'
-	);
-	/= \impl @ \f platform::mkdirs @ \impl \u YCommon,
-);
+r1:
+- \vt @ \inh IWidget @ \cl Widget;
 
-r8:
-/ @ \cl TextFileBuffer $=
-(
-	/ @ \cl HText $=
-	(
-		/ private \m BlockSizeType blk => block,
-		/ private \m SizeType idx => index
-	),
-	/ as \str @ \mf operator[];
-	/= \a \loc \exc (@ \mf TextMap::Clear & TextFileBuffer::HText::operator+)
-		'i' => 'idx'
-	/= \a \loc 'it' => 'i'
-);
-
-r9:
-/ \simp \impl @ \f SetInvalidationToParent @ \impl \u YWidget,
-/ \simp \impl @ \f (OnKeyHeld & OnTouchHeld)
-	@ \impl \u YControl ^ CallEvent ~ FetchEvent;
-
-r10:
-/= \decl @ \f void SetBoundsOf(IWidget&, const Rect&) @ \h YWidget,
-/ @ \h YControl $=
-(
-	*= \rem @ \ft CallEvent #1 @ \h YControl $since b236,
-	/ \rem @ \ft CallEvent #3
-);
-
-r11:
-/= test 2 ^ \conf release;
-
-r12:
-/= \rem @ \h YRenderer,
-/ private \m mutable WidgetController controller @ \cl YControl
-	-> public \m unique_ptr<WidgetController> pController @ \cl YWidget;
-/ \tr \impl @ \ctor @ \cl (YControl & YWidget),
-/ \impl @ \mf Widget::GetController,
-- \mf Control::GetController,
-+ !\i \em \vt \dtor @ \cl Widget for incomplete types,
-/ protected \s \c \m Graphics InvalidGraphics @ \cl WidgetRenderer
-	-> public \s \c \m Graphics Invalid @ \cl Graphics;
-
-r13:
-/ @ \h YWidget $=
-(
-	- \amf (IsTransparent & SetTransparent) @ \in IWidget;
-	- mf (IsTransparent & SetTransparent) @ \cl Widget
-);
-
-r14:
-/ \simp @ \clt GMFocusResponser @ \h YFocus $=
-(
-	- protected \m FocusObjectSet sFocusObjects,
-	- \mf (\op+= & \op-= & GetFocusingSet);
-	/ \tr \simp \impl @ (\ctor & \mf SetFocusingPtr)
-);
-/ \tr \simp \impl @ \mf (\op-= & Add) @ \cl MUIContainer;
-
-r15:
-/ \mf (ResponseFocusRequest & ReleaseFocusRequest) @ \cl MUIContainer
-	>> \clt GMFocusResponser @ \h YFocus;
-
-r16:
-/= test 3 ^ \conf release;
-
-r17:
+r2:
 / @ \h YFocus $=
 (
-	/ \simp \impl @ \mf ClearFocusingPtr @ \clt GMFocusResponser,
-	- \cl MSimpleFocusResponser;
-	+ \clt GMSimpleFocusResponser;
-	/ \clt GMFocusResponser $=
+	/ @ \clt GFocusResponser $=
 	(
-		- typedef set<_type*> FocusObjectSet,
-		/ public \inh noncopyable -> GMSimpleFocusResponser<_type>;
-		/ protected \m _type* pFocusing
-			-> using GMSimpleFocusResponser<_type>::pFocusing;
-		- \mf ClearFocusingPtr,
-		- \mf GetFocusingPtr,
-		/ \mf IsFocusing >> \clt GMSimpleFocusResponser,
-		/ \ctor ^ \exp \de
+		- \ctor,
+		+ \em \vt \dtor,
+		+ \vt @ \mf (ResponseFocusRequest & ReleaseFocusRequest)
+	),
+	/ @ \clt GCheckedFocusResponser $=
+	(
+		- \ctor,
+		+ \vt @ \mf (ResponseFocusRequest & ReleaseFocusRequest)
 	)
-	+ typedef GMSimpleFocusResponser<IWidget> MSimpleFocusResponser,
-	+ typedef GMFocusResponser<IWidget> MFocusResponser
 );
 
-r18:
-/ \a 'GMFocusResponser<IWidget>' -> 'MFocusResponser' @ \exc \h YFocus;
-/ \a GMFocusResponser => GCheckedFocusResponser;
-/ \a MFocusResponser => CheckedFocusResponser;
-/ \a GMSimpleFocusResponser => GFocusResponser;
-/ \a MSimpleFocusResponser => FocusResponser;
+r3:
++ \amf FocusResponser& GetFocusResponser() const;
+/ @ \cl Widget $=
+(
+	+ private \m unique_ptr<FocusResponser> pFocusResponser;
+	+ \mf ImplI1(IWidget) GetFocusResponser,
+	+ \mf SetFocusResponser,
+	/ \tr \impl @ \ctor
+),
+/ \inc \h YFocus @ \h YControl >> \h YWidget;
 
-r19:
-/= test 4 ^ \conf release;
+r4-r5:
+/= test 1;
+- \cl UIContainer;
 
-r20-r25:
-/= test 5;
+r6-r13:
+/= test 2;
+
+r14:
+/ @ \cl MUIContainer $=
+(
+	/ \ac @ \ctor -> protected ~ public,
+	- \dtor
+);
+
+r15:
+/= test 3 ^ \conf release;
+
+r16-r22:
+/= test 4;
+
+r23:
+/ \impl @ (\ctor & \mf \vt (ClearFocusingPtr & ResponseFocusRequest
+	& ResponseFocusRelease & GetFocusingPtr & \a \op-=)) @ \cl (Panel & AFrame);
+
+r24:
+/ @ \cl MUIContainer $=
+(
+	/ protected \inh CheckedFocusResponser -> public \inh noncopyable,
+	- using CheckedFocusResponser::GetFocusingPtr,
+	/ \tr \simp \impl @ \mf \op-=
+);
+
+r25:
+/ @ \cl AUIBoxControl $=
+(
+	- protected \inh FocusResponser,
+	/ \tr \impl @ \ctor;
+	/ \impl @ \mf \vt (ClearFocusingPtr & ResponseFocusRequest
+		& ResponseFocusRelease & GetFocusingPtr)
+);
+/ \tr \impl @ \mf ATrack::GetFocusingPtr;
 
 r26:
-* \impl @ \mf MUIContainer::operator-= $since r14;
+-= \mf ATrack::GetFocusingPtr;
 
 r27:
+/ \impl @ \f (RequestFocusFrom & ReleaseFocusFrom) @ \impl \u YControl;
+
+r28:
+- \a \mf (ResponseFocusRequest & ResponseFocusRelease) @ \cl (\inh
+	\in IWidget);
+- \amf (ResponseFocusRequest & ResponseFocusRelease) @ \in IWidget;
+
+r29:
+/= test 5 ^ \conf release;
+
+r30:
++ \f void ClearFocusingPtrOf(IWidget&) @ \u YWidget;
+- \a \mf ClearFocusingPtr @ \cl (\inh \in IWidget);
+- & \amf ClearFocusingPtr @ \in IWidget;
+/ \tr \impl @ \mf (Desktop::ClearContents & YGUIShell::ResponseTouch);
+
+r31:
++ \f void FetchFocusingPtr(IWidget&) @ \u YWidget;
+- \a \mf GetFocusingPtr @ \cl (\inh \in IWidget),
+- & \amf GetFocusingPtr @ \in IWidget;
+/ \tr \impl @ \f bool IsFocused(const IWidget&) @ \impl \u YControl,
+/ \tr \impl @ \f YGUIShell::ResponseKey @ \impl \u YGUI,
+/ \tr \impl @ \f ClearFocusingPtr @ \impl \u YWidget;
+
+r32:
 /= test 6 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-09-07:
--22.4d;
-//Mercurial rev1-rev109: r5314;
+2011-09-08:
+-21.2d;
+//Mercurial rev1-rev110: r5341;
 
 / ...
 
 
 $NEXT_TODO:
-b238-b256:
+b240-b324:
 + %TextList invalidation support;
 * non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
-
-b257-b1023:
 + key accelerators;
 + dynamic widget prototypes;
+
+b325-b1023:
 + fully \impl styles @ widgets;
 / fully \impl @ \cl Path;
 / \impl 'real' RTC;
@@ -484,6 +470,21 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ "GUI" $=
+	(
+		+ "dynamic focus responser switching",
+		/ "simplified" @ "class %IWidget and derived classes",
+		+ "common focus APIs shared by class %IWidget"
+			~ "class (%Panel, %AFrame, %AUIBoxControl)" $=
+		(
+			+ "function %ClearFocusingPtrOf",
+			+ "function %FetchFocusingPtr"
+		)
+	)
+),
+
+b238
 (
 	/ "GUI" $=
 	(

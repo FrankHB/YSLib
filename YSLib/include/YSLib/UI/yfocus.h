@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r2474;
+\version r2482;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-09-07 20:02 +0800;
+	2011-09-07 23:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,9 +40,9 @@ class GFocusResponser : public noncopyable
 protected:
 	_type* pFocusing; //!< 焦点对象指针。
 
-	GFocusResponser() = default;
-
 public:
+	virtual DefEmptyDtor(GFocusResponser)
+
 	//! \brief 判断指定指针是否和焦点对象指针相等。
 	inline PDefH1(bool, IsFocusing, _type* p) const
 		ImplRet(pFocusing == p)
@@ -64,7 +64,7 @@ public:
 	/*!
 	\brief 响应焦点请求。
 	*/
-	bool
+	virtual bool
 	ResponseFocusRequest(_type& obj)
 	{
 		pFocusing = &obj;
@@ -74,7 +74,7 @@ public:
 	/*!
 	\brief 响应焦点释放。
 	*/
-	bool
+	virtual bool
 	ResponseFocusRelease(_type& obj)
 	{
 		if(pFocusing == &obj)
@@ -127,11 +127,6 @@ class GCheckedFocusResponser : public GFocusResponser<_type>
 protected:
 	using GFocusResponser<_type>::pFocusing;
 
-	/*!
-	\brief 无参数构造。
-	*/
-	GCheckedFocusResponser() = default;
-
 public:
 	/*!
 	\brief 设置焦点对象指针。
@@ -153,7 +148,7 @@ public:
 	/*!
 	\brief 响应焦点请求。
 	*/
-	bool
+	virtual bool
 	ResponseFocusRequest(IWidget& wgt)
 	{
 		return RequestFocusOf<GCheckedFocusResponser, IWidget>(wgt, *this);
@@ -162,7 +157,7 @@ public:
 	/*!
 	\brief 响应焦点释放。
 	*/
-	bool
+	virtual bool
 	ResponseFocusRelease(IWidget& wgt)
 	{
 		return ReleaseFocusOf<GCheckedFocusResponser, IWidget>(wgt, *this);

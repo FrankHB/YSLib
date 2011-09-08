@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4437;
+\version r4440;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-09-06 23:42 +0800;
+	2011-09-08 02:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -47,14 +47,14 @@ IsFocused(const IWidget& wgt)
 {
 	const auto p(FetchContainerPtr(wgt));
 
-	return p ? p->GetFocusingPtr() == &wgt : false;
+	return p ? FetchFocusingPtr(*p) == &wgt : false;
 }
 
 void
 RequestFocusFrom(IWidget& dst, IWidget& src)
 {
 	if(auto p = FetchContainerPtr(dst))
-		if(p->ResponseFocusRequest(dst))
+		if(p->GetFocusResponser().ResponseFocusRequest(dst))
 			CallEvent<GotFocus>(dst, src, EventArgs());
 }
 
@@ -62,7 +62,7 @@ void
 ReleaseFocusFrom(IWidget& dst, IWidget& src)
 {
 	if(auto p = FetchContainerPtr(dst))
-		if(p->ResponseFocusRelease(dst))
+		if(p->GetFocusResponser().ResponseFocusRelease(dst))
 			CallEvent<LostFocus>(dst, src, EventArgs());
 }
 
