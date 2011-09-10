@@ -12,12 +12,12 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1462;
+\version r1470;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-09-06 23:48 +0800;
+	2011-09-08 12:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,7 +68,7 @@ public:
 	/*!
 	\brief 构造：使用二维向量。
 	*/
-	template<typename _tVec>
+	PDefTH1(_tVec)
 	inline explicit
 	BinaryGroup(const _tVec& v)
 	: X(v.X), Y(v.Y)
@@ -76,7 +76,7 @@ public:
 	/*!
 	\brief 构造：使用两个标量。
 	*/
-	template<typename _tScalar1, typename _tScalar2>
+	PDefTH2(_tScalar1, _tScalar2)
 	inline
 	BinaryGroup(_tScalar1 x, _tScalar2 y)
 	: X(x), Y(y)
@@ -147,7 +147,7 @@ public:
 	/*!
 	\brief 构造：使用二维向量。
 	*/
-	template<typename _tVec>
+	PDefTH1(_tVec)
 	inline explicit
 	Point(const _tVec& v)
 		: BinaryGroup(v.X, v.Y)
@@ -155,9 +155,9 @@ public:
 	/*!
 	\brief 构造：使用两个标量。
 	*/
-	template<typename _tScalar1, typename tScalar2>
+	PDefTH2(_tScalar1, _tScalar2)
 	inline
-	Point(_tScalar1 x, tScalar2 y)
+	Point(_tScalar1 x, _tScalar2 y)
 		: BinaryGroup(x, y)
 	{}
 
@@ -228,7 +228,7 @@ public:
 	/*!
 	\brief 构造：使用二维向量。
 	*/
-	template<typename _tVec>
+	PDefTH1(_tVec)
 	inline explicit
 	Vec(const _tVec& v)
 		: BinaryGroup(v.X, v.Y)
@@ -236,7 +236,7 @@ public:
 	/*!
 	\brief 构造：使用两个标量。
 	*/
-	template<typename _tScalar1, typename _tScalar2>
+	PDefTH2(_tScalar1, _tScalar2)
 	inline
 	Vec(_tScalar1 x, _tScalar2 y)
 		: BinaryGroup(x, y)
@@ -385,7 +385,7 @@ public:
 	/*!
 	\brief 构造：使用两个标量。
 	*/
-	template<typename _tScalar1, typename _tScalar2>
+	PDefTH2(_tScalar1, _tScalar2)
 	inline
 	Size(_tScalar1 w, _tScalar2 h)
 		: Width(w), Height(h)

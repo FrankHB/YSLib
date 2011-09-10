@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4510;
+\version r4548;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-09-04 21:31 +0800;
+	2011-09-10 03:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -149,7 +149,7 @@ public:
 	inline GHEvent&
 	operator=(const GHEvent&) = default;
 	/*!
-	\brief 移动赋值：默认实现。
+	\brief 转移赋值：默认实现。
 	*/
 	inline GHEvent&
 	operator=(GHEvent&&) = default;
@@ -166,7 +166,7 @@ public:
 	using BaseType::operator();
 
 private:
-	template<typename _type>
+	PDefTH1(_type)
 	inline static Comparer
 	GetComparer(_type& x, _type& y, decltype(x == y) = false)
 	{
@@ -229,7 +229,7 @@ private:
 	/*!
 	\brief \c private 构造：添加事件处理器。
 	*/
-	template<typename _tHandler>
+	PDefTH1(_tHandler)
 	GEvent(_tHandler h)
 		: List()
 	{
@@ -246,7 +246,7 @@ public:
 		this->List = e->List;
 	}
 	/*!
-	\brief 移动赋值：默认实现。
+	\brief 转移赋值：默认实现。
 	*/
 	inline GEvent&
 	operator=(GEvent&&) = default;
@@ -269,7 +269,7 @@ public:
 	/*!
 	\brief 赋值：覆盖事件响应：使用单一构造参数指定的指定事件处理器。
 	*/
-	template<typename _type>
+	PDefTH1(_type)
 	inline GEvent&
 	operator=(_type _arg)
 	{
@@ -300,7 +300,7 @@ public:
 	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
 	\note 不检查是否已经在列表中。
 	*/
-	template<typename _type>
+	PDefTH1(_type)
 	inline GEvent&
 	operator+=(_type _arg)
 	{
@@ -328,7 +328,7 @@ public:
 	/*!
 	\brief 移除事件响应：目标为单一构造参数指定的指定事件处理器。
 	*/
-	template<typename _type>
+	PDefTH1(_type)
 	inline GEvent&
 	operator-=(_type _arg)
 	{
@@ -365,7 +365,7 @@ public:
 	/*!
 	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
 	*/
-	template<typename _type>
+	PDefTH1(_type)
 	inline GEvent&
 	AddUnique(_type _arg)
 	{
@@ -403,7 +403,7 @@ public:
 	/*!
 	\brief 判断是否包含单一构造参数指定的事件响应。
 	*/
-	template<typename _type>
+	PDefTH1(_type)
 	inline bool
 	Contains(_type _arg) const
 	{
@@ -470,7 +470,7 @@ public:
 	/*!
 	\brief 添加事件响应。
 	*/
-	template<typename _type>
+	PDefTH1(_type)
 	inline EventType&
 	operator+=(_type _arg)
 	{
@@ -480,7 +480,7 @@ public:
 	/*!
 	\brief 移除事件响应。
 	*/
-	template<typename _type>
+	PDefTH1(_type)
 	inline EventType&
 	operator-=(_type _arg)
 	{
@@ -599,6 +599,7 @@ struct GSEvent
 template<class _tSender = YObject, class _tEventArgs = EventArgs>
 DeclInterface(GIHEvent)
 	DeclIEntry(size_t operator()(_tSender&, _tEventArgs&&) const)
+	DeclIEntry(GIHEvent* Clone() const)
 EndDecl
 
 
@@ -612,11 +613,13 @@ public:
 	typedef typename EventType::SenderType SenderType;
 	typedef typename EventType::EventArgsType EventArgsType;
 
-	/*!
+	inline virtual DefClone(GEventWrapper, Clone)
+
+		/*!
 	\brief 委托调用。
 	\warning 需要确保 EventArgs&& 引用的对象能够转换至 EventArgsType&& 引用。
 	*/
-	inline size_t
+	inline virtual size_t
 	operator()(SenderType& sender, EventArgs&& e) const
 	{
 		return EventType::operator()(sender,
@@ -650,6 +653,23 @@ public:
 	GEventMap()
 		: m_map()
 	{}
+	GEventMap(const GEventMap& m)
+		: m_map()
+	{
+		for(auto i(m.m_map.cbegin()); i != m.m_map.cend(); ++i)
+			Insert(i->first, unique_raw(ClonePolymorphic(i->second)));
+	}
+	/*!
+	\brief 转移构造：默认实现。
+	*/
+	inline
+	GEventMap(GEventMap&&) = default;
+
+	/*!
+	\brief 转移赋值：默认实现。
+	*/
+	inline GEventMap&
+	operator=(GEventMap&&) = default;
 
 	/*!
 	\brief 访问映射表数据。
@@ -712,15 +732,20 @@ public:
 	\return 是否插入成功。
 	*/
 	bool
-	Insert(const ID& id, PointerType p)
+	Insert(const ID& id, PointerType&& p)
 	{
-		return m_map.insert(PairType(id, p)).second;
+		return m_map.insert(PairType(id, std::move(p))).second;
 	}
 
 private:
 	inline PDefH1(InternalPairType, Search, const ID& k) const
 		ImplRet(ystdex::search_map(this->m_map, k))
 };
+
+//! \brief 定义扩展事件类。
+#define DefExtendEventMap(_n, _b) \
+	DefExtendClass1(_n, _b, public)
+
 
 //! \brief 标准事件处理器委托。
 DefDelegate(HEvent, YObject, EventArgs)

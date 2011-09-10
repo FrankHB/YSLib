@@ -11,12 +11,12 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数对象封装。
-\version 0.1742;
+\version r1744;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2011-05-16 05:17 +0800;
+	2011-09-08 12:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,7 @@
 YSL_BEGIN
 
 /* \brief 调用时动态类型检查函数对象模板类。
-template<typename _type, typename _tArg, typename _tRet>
+PDefTH3(_type, _tArg, _tRet)
 class GHDynamicFunction
 	: public std::binary_function<_type, _tArg, _tRet>
 {
@@ -120,7 +120,7 @@ public:
 \brief 助手函数：使用指定函数引用构造
 	GHDynamicFunction<_type, _tArg, _tRet> 对象。。
 /
-template<typename _type, typename _tArg, typename _tRet>
+PDefTH3(_type, _tArg, _tRet)
 inline GHDynamicFunction<_type, _tArg, _tRet>
 ConstructDynamicFunctionWith(_tRet (&_f)(_type&, _tArg))
 {

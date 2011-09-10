@@ -12,12 +12,12 @@
 /*!	\file ystatic.hpp
 \ingroup Core
 \brief 全局静态类型存储管理。
-\version 0.1346;
+\version r1347;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-14 20:17:34 +0800;
 \par 修改时间:
-	2011-05-16 09:33 +0800;
+	2011-09-08 12:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,9 +35,21 @@ YSL_BEGIN
 /*!
 \brief 取指定类型的静态默认对象。
 */
-template<typename _type>
+PDefTH1(_type)
 inline _type&
-GetStaticRef()
+FetchStaticRef()
+{
+	static _type _obj;
+
+	return _obj;
+}
+
+/*!
+\brief 取指定类型的静态原型对象。
+*/
+PDefTH1(_type)
+inline const _type&
+FetchPrototype()
 {
 	static _type _obj;
 

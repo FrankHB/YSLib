@@ -11,12 +11,12 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version 0.3549;
+\version r3554;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-21 23:09:06 +0800;
 \par 修改时间:
-	2011-06-28 16:48 +0800;
+	2011-09-08 12:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -55,7 +55,7 @@ using ystdex::unique_raw;
 \post 指定引用的句柄值等于 nullptr 。
 */
 //@{
-template<typename _type>
+PDefTH1(_type)
 inline bool
 reset(_type*& p) ynothrow
 {
@@ -67,26 +67,26 @@ reset(_type*& p) ynothrow
 }
 //@}
 
-template<typename _type>
+PDefTH1(_type)
 bool
 operator==(const shared_ptr<_type>& sp, _type* p)
 {
 	return sp.get() == p;
 }
-template<typename _type>
+PDefTH1(_type)
 bool
 operator==(shared_ptr<_type>&& sp, _type* p)
 {
 	return sp.get() == p;
 }
 
-template<typename _type>
+PDefTH1(_type)
 bool
 operator!=(const shared_ptr<_type>& sp, _type* p)
 {
 	return sp.get() != p;
 }
-template<typename _type>
+PDefTH1(_type)
 bool
 operator!=(shared_ptr<_type>&& sp, _type* p)
 {

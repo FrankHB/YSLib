@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5383;
+\version r5436;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-09-07 23:39 +0800;
+	2011-09-10 20:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -148,7 +148,7 @@ IndexEventArgs::IndexEventArgs(IWidget& wgt, IndexEventArgs::IndexType idx)
 
 
 //! \brief 值类型参数类模块模板。
-template<typename _type>
+PDefTH1(_type)
 struct GMValueEventArgs
 {
 public:
@@ -256,7 +256,7 @@ DefEventTypeMapping(LostFocus, HVisualEvent)
 
 
 //! \brief 控件事件映射表类型。
-typedef GEventMap<IWidget, VisualEvent> VisualEventMapType;
+typedef GEventMap<IWidget, VisualEvent> VisualEventMap;
 
 
 /*!
@@ -270,15 +270,17 @@ private:
 	bool enabled; //!< 控件可用性。
 
 protected:
-	mutable VisualEventMapType EventMap; //!< 事件映射表。
+	mutable VisualEventMap EventMap; //!< 事件映射表。
 
 public:
 	explicit
 	WidgetController(bool);
+	WidgetController(bool, const VisualEventMap&);
+	WidgetController(bool, VisualEventMap&&);
 
 	DefPredicate(Enabled, enabled)
 
-	DefGetter(VisualEventMapType&, EventMap, EventMap) //!< 取事件映射表。
+	DefGetter(VisualEventMap&, EventMap, EventMap) //!< 取事件映射表。
 
 	DefSetter(bool, Enabled, enabled)
 };
@@ -286,6 +288,14 @@ public:
 inline
 WidgetController::WidgetController(bool b)
 	: enabled(b), EventMap()
+{}
+inline
+WidgetController::WidgetController(bool b, const VisualEventMap& m)
+	: enabled(b), EventMap(m)
+{}
+inline
+WidgetController::WidgetController(bool b, VisualEventMap&& m)
+	: enabled(b), EventMap(std::move(m))
 {}
 
 
@@ -387,7 +397,7 @@ ReleaseFocus(IWidget& wgt)
 */
 template<VisualEvent _vID>
 inline typename EventT(typename EventTypeMapping<_vID>::HandlerType)&
-FetchEvent(VisualEventMapType& m)
+FetchEvent(VisualEventMap& m)
 {
 	return m.GetEvent<typename EventTypeMapping<_vID>::HandlerType>(_vID);
 }
@@ -413,7 +423,7 @@ FetchEvent(IWidget& wgt)
 */
 template<VisualEvent _vID, typename _tEventArgs>
 inline size_t
-CallEvent(VisualEventMapType& m, typename EventTypeMapping<_vID>
+CallEvent(VisualEventMap& m, typename EventTypeMapping<_vID>
 	::HandlerType::SenderType& sender, _tEventArgs&& e)
 {
 	static_assert(std::is_same<typename std::remove_reference<_tEventArgs>
@@ -456,6 +466,8 @@ CallEvent(IWidget& wgt, _tEventArgs&& e)
 }
 
 
+//公共事件处理器。
+
 /*!
 \brief 处理键接触保持事件。
 */
@@ -486,9 +498,23 @@ void
 OnTouchMove_Dragging(IWidget&, TouchEventArgs&&);
 
 /*!
+\brief 处理部件事件：引起无效化。
+*/
+PDefTH1(_tEventArgs)
+void
+OnWidget_Invalidate(IWidget& wgt, _tEventArgs&&)
+{
+	Invalidate(wgt);
+}
+
+
+// Control 事件处理器。
+
+/*!
 \brief 处理按键事件：按键-指针设备接触结束。
 
 绑定触发 TouchUp 和 Leave 事件。
+\note 仅对 Control 及其派生类有效。
 */
 void
 OnKey_Bound_TouchUpAndLeave(IWidget&, KeyEventArgs&&);
@@ -497,6 +523,7 @@ OnKey_Bound_TouchUpAndLeave(IWidget&, KeyEventArgs&&);
 \brief 处理按键事件：按键-指针设备接触开始。
 
 绑定触发 Enter 和 TouchDown 事件。
+\note 仅对 Control 及其派生类有效。
 */
 void
 OnKey_Bound_EnterAndTouchDown(IWidget&, KeyEventArgs&&);
@@ -505,6 +532,7 @@ OnKey_Bound_EnterAndTouchDown(IWidget&, KeyEventArgs&&);
 \brief 处理按键事件：按键-指针设备按下。
 
 绑定触发 Click 事件。
+\note 仅对 Control 及其派生类有效。
 */
 void
 OnKey_Bound_Click(IWidget&, KeyEventArgs&&);
@@ -513,12 +541,16 @@ OnKey_Bound_Click(IWidget&, KeyEventArgs&&);
 //! \brief 控件。
 class Control : public Widget
 {
+protected:
+	DefExtendEventMap(ControlEventMap, VisualEventMap)
+
 public:
 	//标准控件事件见 VisualEvent 。
 
-	//扩展控件事件。
-//	DeclEvent(HPointEvent, Move) //!< 控件移动。
-//	DeclEvent(HSizeEvent, Resize) //!< 控件大小调整。
+	//扩展控件事件示例。
+//	DeclEvent(H1Event, Ext1) //!< 扩展事件 1 。
+//	DeclEvent(H2Event, Ext2) //!< 扩展事件 2 。
+
 	//事件组映射。
 	/*!
 	\brief 按键-指针设备输入事件组映射。
@@ -534,10 +566,10 @@ public:
 	explicit
 	Control(const Rect& = Rect::Empty);
 	/*!
-	\brief 析构。
+	\brief 复制构造：除容器为空外深复制。
 	*/
-	virtual
-	~Control();
+	Control(const Control&);
+	Control(Control&&) = default;
 
 	/*!
 	\brief 取按键-指针设备输入默认事件组映射。

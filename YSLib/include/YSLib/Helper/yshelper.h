@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.2187;
+\version r2188;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-08-02 22:17 +0800;
+	2011-09-08 12:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -206,7 +206,7 @@ CreateSharedScreenImage(ConstBitmapPtr p)
 /*!
 \brief 使用 new 分配空间并复制无压缩位图。
 */
-template<typename _tPixel>
+PDefTH1(_tPixel)
 _tPixel*
 CreateRawBitmap(const _tPixel* s, size_t n)
 {

@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2662;
+\version r2694;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-08-20 12:29 +0800;
+	2011-09-10 03:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -76,7 +76,7 @@ GetZeroElement()
 /*!
 \brief 取指定类型的零元素。
 */
-template<typename _type>
+PDefTH1(_type)
 inline _type
 GetZeroElement()
 {
@@ -96,7 +96,7 @@ sgn(int a, int b = 0)
 \brief 符号函数。
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
 */
-template<typename _type>
+PDefTH1(_type)
 s8
 sgn(const _type& a, const _type& b = GetZeroElement<_type>())
 {
@@ -122,7 +122,7 @@ sgnInterval(int d, int a, int b)
 \return > 0 ：d 在区间内。
 \note 无精度修正。
 */
-template<typename _type>
+PDefTH1(_type)
 int
 sgnInterval(const _type& d, const _type& a, const _type& b)
 {
@@ -133,7 +133,7 @@ sgnInterval(const _type& d, const _type& a, const _type& b)
 \brief 判断 i 是否在左闭右开区间 [<tt>GetZeroElement<_type>()</tt>, b) 中。
 \pre 断言： <tt>GetZeroElement<_type>() < b</tt> 。
 */
-template<typename _type>
+PDefTH1(_type)
 inline bool
 IsInInterval(_type i, _type b)
 {
@@ -147,7 +147,7 @@ IsInInterval(_type i, _type b)
 \brief 判断 i 是否在左闭右开区间 [a, b) 中。
 \pre 断言： <tt>a < b</tt> 。
 */
-template<typename _type>
+PDefTH1(_type)
 inline bool
 IsInInterval(_type i, _type a, _type b)
 {
@@ -161,7 +161,7 @@ IsInInterval(_type i, _type a, _type b)
 \brief 判断 i 是否在开区间 (GetZeroElement<_type>(), b) 内。
 \pre 断言： <tt>GetZeroElement<_type>() < b</tt> 。
 */
-template<typename _type>
+PDefTH1(_type)
 inline bool
 IsInOpenInterval(_type i, _type b)
 {
@@ -175,7 +175,7 @@ IsInOpenInterval(_type i, _type b)
 \brief 判断 i 是否在开区间 (a, b) 内。
 \pre 断言： <tt>a < b</tt> 。
 */
-template<typename _type>
+PDefTH1(_type)
 inline bool
 IsInOpenInterval(_type i, _type a, _type b)
 {
@@ -193,7 +193,7 @@ IsInOpenInterval(_type i, _type a, _type b)
 \pre 断言： <tt>!(v < *a)</tt> 。
 
 */
-template<typename _type>
+PDefTH1(_type)
 size_t
 SwitchInterval(_type v, const _type* a, size_t n)
 {
@@ -218,7 +218,7 @@ SwitchInterval(_type v, const _type* a, size_t n)
 \pre 断言： <tt>n != 0</tt> 。
 \pre 断言： <tt>!(v < *a)</tt> 。
 */
-template<typename _type>
+PDefTH1(_type)
 size_t
 SwitchAddedInterval(_type v, const _type* a, size_t n)
 {
@@ -242,7 +242,7 @@ SwitchAddedInterval(_type v, const _type* a, size_t n)
 \pre 断言： <tt>!(b < a)</tt> 。
 \post <tt>!(i < a || b < i)</tt> 。
 */
-template<typename _type>
+PDefTH1(_type)
 void
 RestrictInClosedInterval(_type& i, int a, int b)
 {
@@ -260,7 +260,7 @@ RestrictInClosedInterval(_type& i, int a, int b)
 \pre 断言： <tt>a < b</tt> 。
 \post <tt>!(i < a) && i < b</tt> 。
 */
-template<typename _type>
+PDefTH1(_type)
 void
 RestrictInInterval(_type& i, int a, int b)
 {
@@ -277,7 +277,7 @@ RestrictInInterval(_type& i, int a, int b)
 \brief 约束无符号整数 u 在区间上界 b 内。
 \post <tt>!(b < u)</tt>。
 */
-template<typename _type>
+PDefTH1(_type)
 void
 RestrictUnsignedStrict(_type& u, unsigned b)
 {
@@ -290,7 +290,7 @@ RestrictUnsignedStrict(_type& u, unsigned b)
 \pre 断言： <tt>b != GetZeroElement<_type>()</tt> 。
 \post <tt>!(u < GetZeroElement<_type>()) && u < b</tt> 。
 */
-template<typename _type>
+PDefTH1(_type)
 void
 RestrictUnsigned(_type& u, unsigned b)
 {
@@ -305,7 +305,7 @@ RestrictUnsigned(_type& u, unsigned b)
 \brief 约束关系：a ≤ b 。
 \post <tt>a <= b</tt> 。
 */
-template<typename _type>
+PDefTH1(_type)
 inline void
 RestrictLessEqual(_type& a, _type& b)
 {
@@ -318,7 +318,7 @@ RestrictLessEqual(_type& a, _type& b)
 \brief 清除指定的连续区域。
 \note 忽略空指针和零长度。
 */
-template<typename _type>
+PDefTH1(_type)
 void
 ClearSequence(_type* dst, size_t n)
 {
@@ -333,7 +333,7 @@ struct delete_obj_ndebug
 	/*!
 	\brief 删除指针指向的对象。
 	*/
-	template<typename _type>
+	PDefTH1(_type)
 	inline void
 	operator()(_type* _ptr) ynothrow
 	{
@@ -350,7 +350,7 @@ struct delete_obj_debug
 	/*!
 	\brief 删除指针指向的对象。
 	*/
-	template<typename _type>
+	PDefTH1(_type)
 	inline void
 	operator()(_type* _ptr) ynothrow
 	{
@@ -372,13 +372,39 @@ struct safe_delete_obj
 	/*!
 	\brief 删除指针指向的对象，并置指针为空值。
 	*/
-	template<typename _tPointer>
+	PDefTH1(_tPointer)
 	inline void
 	operator()(_tPointer& _ptr) ynothrow
 	{
 		reset(_ptr);
 	}
 };
+
+
+/*!
+\brief 使用 new 复制指定指针指向的对象。
+*/
+PDefTH1(_type)
+auto
+CloneNonpolymorphic(const _type& p) -> decltype(&*p)
+{
+	return new typename std::remove_reference<decltype(*p)>::type(*p);
+}
+
+/*!
+\brief 使用 Clone 成员函数复制指定指针指向的多态类类型对象。
+\pre 断言： std::is_polymorphic<decltype(*p)>::value 。
+*/
+template<class _type>
+auto
+ClonePolymorphic(const _type& p) -> decltype(&*p)
+{
+	static_assert(std::is_polymorphic<typename
+		std::remove_reference<decltype(*p)>::type>::value,
+		"Non-polymorphic class type found @ ClonePolymorphic;");
+
+	return p->Clone();
+}
 
 YSL_END
 

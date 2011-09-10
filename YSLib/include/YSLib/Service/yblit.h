@@ -11,12 +11,12 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version 0.2170;
+\version r2177;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:43:24 +0800;
 \par 修改时间:
-	2011-08-07 19:17 +0800;
+	2011-09-08 12:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,7 +46,7 @@ typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
 //基本函数对象。
 
 //! \brief 像素填充器。
-template<typename _tPixel>
+PDefTH1(_tPixel)
 struct PixelFiller
 {
 	_tPixel Color;
@@ -237,7 +237,7 @@ struct RectTransfomer
 /*!
 \brief 清除指定位置的 n 个连续像素。
 */
-template<typename _tPixel>
+PDefTH1(_tPixel)
 inline void
 ClearPixel(_tPixel* dst, size_t n)
 {
@@ -247,7 +247,7 @@ ClearPixel(_tPixel* dst, size_t n)
 /*!
 \brief 使用 n 个指定像素连续填充指定位置。
 */
-template<typename _tPixel>
+PDefTH1(_tPixel)
 inline void
 FillPixel(_tPixel* dst, size_t n, _tPixel c)
 {
@@ -257,7 +257,7 @@ FillPixel(_tPixel* dst, size_t n, _tPixel c)
 /*!
 \brief 使用 n 个指定像素竖直填充指定位置。
 */
-template<typename _tPixel>
+PDefTH1(_tPixel)
 inline void
 FillVerticalLine(_tPixel* dst, size_t n, SDst dw, _tPixel c)
 {
@@ -267,7 +267,7 @@ FillVerticalLine(_tPixel* dst, size_t n, SDst dw, _tPixel c)
 /*!
 \brief 使用指定像素填充指定的正则矩形区域。
 */
-template<typename _tPixel>
+PDefTH1(_tPixel)
 inline void
 FillRect(_tPixel* dst, const Size& ds, const Point& sp, const Size& ss,
 	_tPixel c)
@@ -278,7 +278,7 @@ FillRect(_tPixel* dst, const Size& ds, const Point& sp, const Size& ss,
 /*!
 \brief 使用指定像素填充指定的正则矩形区域。
 */
-template<typename _tPixel>
+PDefTH1(_tPixel)
 inline void
 FillRect(_tPixel* dst, const Size& ds, const Rect& rSrc, _tPixel c)
 {
@@ -288,7 +288,7 @@ FillRect(_tPixel* dst, const Size& ds, const Rect& rSrc, _tPixel c)
 /*!
 \brief 使用指定像素填充指定的正则矩形区域。
 */
-template<typename _tPixel>
+PDefTH1(_tPixel)
 inline void
 FillRect(_tPixel* dst, SDst dw, SDst dh, SPos sx, SPos sy, SDst sw, SDst sh,
 	_tPixel c)
@@ -404,7 +404,7 @@ const u8 BLT_THRESHOLD2(128);
 
 //测试用，不使用 Alpha 混合的快速算法。
 
-template<typename _tOut, typename _tIn>
+PDefTH2(_tOut, _tIn)
 void
 biltAlphaPoint(_tOut dst_iter, _tIn src_iter);
 template<>
@@ -461,7 +461,7 @@ blitAlphaBlend(u32 d, u32 s, u8 a)
 	return d;
 }
 
-template<typename _tOut, typename _tIn>
+PDefTH2(_tOut, _tIn)
 void
 biltAlphaPoint(_tOut dst_iter, _tIn src_iter);
 template<>

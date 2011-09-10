@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3806;
+\version r3808;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-09-04 23:30 +0800;
+	2011-09-10 02:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -90,7 +90,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	GMRange<u16>(0xFF, 0),
 	Thumb(Rect(0, 0, defMinScrollBarWidth, defMinScrollBarHeight)),
 	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length),
-	Events(GetStaticRef<Dependencies>())
+	Events(FetchPrototype<Dependencies>())
 {
 	Thumb.GetContainerPtrRef() = this;
 	FetchEvent<TouchMove>(*this) += OnTouchMove;

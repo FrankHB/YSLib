@@ -1,4 +1,4 @@
-// v0.3294; *build 239 rev 32;
+// v0.3294; *build 240 rev 38;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -268,121 +268,199 @@ $using:
 
 $DONE:
 r1:
-- \vt @ \inh IWidget @ \cl Widget;
+/ @ \h YBase $=
+(
+	/= \simp \mac \param \n;
+	+ 4 \mac 'PDefTH(?)';
+	+ 4 \mac 'DefForwardCtorT(?)'
+);
 
 r2:
-/ @ \h YFocus $=
+* \impl @ \mac DefForwardCtorT4 @ \h YBase $since r1,
+/ @ \cl Visual $=
 (
-	/ @ \clt GFocusResponser $=
-	(
-		- \ctor,
-		+ \em \vt \dtor,
-		+ \vt @ \mf (ResponseFocusRequest & ReleaseFocusRequest)
-	),
-	/ @ \clt GCheckedFocusResponser $=
-	(
-		- \ctor,
-		+ \vt @ \mf (ResponseFocusRequest & ReleaseFocusRequest)
-	)
+	- \inh noncopyable;
+	+ \exp \de copy \ctor,
+	+ \exp \de move \ctor
 );
++ DefForwardCtorT4(Widget, _tVisual, Visual, _tRenderer, pRenderer,
+	_tFocusResponser, pFocusResponser, _tController, pController) @ \cl Widget;
 
 r3:
-+ \amf FocusResponser& GetFocusResponser() const;
 / @ \cl Widget $=
 (
-	+ private \m unique_ptr<FocusResponser> pFocusResponser;
-	+ \mf ImplI1(IWidget) GetFocusResponser,
-	+ \mf SetFocusResponser,
-	/ \tr \impl @ \ctor
+	+ \exp \de move \ctor @ \cl Widget,
+	/ DefForwardCtorT4(Widget, _tVisual, Visual, _tRenderer, pRenderer,
+		_tFocusResponser, pFocusResponser, _tController, pController)
+		-> \ctor \t<_tRenderer, _tFocusResponser, _tController>
+		Widget(_tRenderer&& pRenderer_ = WidgetRenderer(),
+		_tFocusResponser&& pFocusResponser_ = FocusResponser(),
+		_tController pController_ = nullptr);
+);
+
+r4:
+/= @ \lib YSLib \exc \h YBase $=
+(
+	/ \a 'template<typename _type>' -> 'PDefTH1(_type)' ,
+	/ \a 'template<typename _tVec>' -> 'PDefTH1(_tVec)',
+	/ \a 'template<typename _tPixel>' -> 'PDefTH1(_tPixel)',
+	/ \a 'template<typename _tScalar1, typename _tScalar2>'
+		-> 'PDefTH2(_tScalar1, _tScalar2)',
+	/ \a 'template<typename _tOut, typename _tIn>'
+		-> 'PDefTH2(_tOut, _tIn)',
+	/ \a 'template<typename _tPointer>' -> 'PDefTH1(_tPointer)',
+	/ \a 'template<typename _tHandler>' -> 'PDefTH1(_tHandler)',
+	/ \a 'template<typename _type, typename _tArg, typename _tRet>'
+		-> 'PDefTH3(_type, _tArg, _tRet)'
+);
+
+r5:
+/ \ctor \t<_tRenderer, _tFocusResponser, _tController>
+	Widget(_tRenderer&& pRenderer_ = WidgetRenderer(),
+	_tFocusResponser&& pFocusResponser_ = FocusResponser(),
+	_tController pController_ = nullptr) @ \cl Widget
+	-> \ctor \t<_tRenderer, _tFocusResponser, _tController>
+	\i Widget(const Rect& = Rect::Empty,
+	_tRenderer&& pRenderer_ = new WidgetRenderer(),
+	_tFocusResponser&& pFocusResponser_ = new FocusResponser(),
+	_tController pController_ = nullptr);
+/ \impl @ \ctor @ \cl Control;
+
+r6:
+/ @ \u Control $=
+(
+	+ \ft<_tEventArgs> OnFocus_Invalidate(IWidget&, _tEventArgs&&);
+	/ \impl @ \ctor @ \cl Control ^ OnFocus_Invalidate ~ lambda \expr;
+);
+
+r7:
+/= test 1 ^ \conf release;
+
+r8:
+/= \rem @ \h (YMessage & YEvent);
+/ \a VisualEventMap => VisualEvent;
+
+r9:
+(
+	+ \mac \def DefExtendClass1 @ \h YBase;
+	+ \mac \def DefExtendEventMap @ \h YEvent
 ),
-/ \inc \h YFocus @ \h YControl >> \h YWidget;
++ \exp \de \i (move \ctor & move \op=) @ \clt GEventMap @ \h YEvent;
+/ @ \u YControl $=
+(
+	+ \ctor WidgetController(bool, const VisualEventMap&)
+		@ \cl WidgetController;
+	+ protected \cl ControlEventMap @ \cl Control ^ \mac DefExtendEventMap,
+	/ \simp \impl @ \ctor Control
+);
 
-r4-r5:
-/= test 1;
-- \cl UIContainer;
-
-r6-r13:
+r10-r11:
 /= test 2;
 
-r14:
-/ @ \cl MUIContainer $=
+r12-r13:
+/ @ \cl ValueObject @ \h YObject $=
 (
-	/ \ac @ \ctor -> protected ~ public,
-	- \dtor
+	+ private \mft \i \s PDefTH1(_type) bool
+		AreEqual(_type& x, _type& y, decltype(x == y) = false),
+	+ private \mft PDefTH2(_type, _tUnused) \i \s bool
+		AreEqual(_type&, _tUnused&);
+	/ \impl @ \smf Do @ private \clt GManager
 );
 
-r15:
-/= test 3 ^ \conf release;
+r14-r15:
+/= test 3;
 
-r16-r22:
-/= test 4;
+r16:
+/= test 4 ^ \conf release;
 
-r23:
-/ \impl @ (\ctor & \mf \vt (ClearFocusingPtr & ResponseFocusRequest
-	& ResponseFocusRelease & GetFocusingPtr & \a \op-=)) @ \cl (Panel & AFrame);
-
-r24:
-/ @ \cl MUIContainer $=
+r17:
+/ @ \h YEvent $=
 (
-	/ protected \inh CheckedFocusResponser -> public \inh noncopyable,
-	- using CheckedFocusResponser::GetFocusingPtr,
-	/ \tr \simp \impl @ \mf \op-=
+	+ \amf GIHEvent* Clone() const @ \in \t GIHEvent;
+	+ \mf \vt GEventWrapper* Clone() const @ \clt GEventWrapper;
+	+ copy \ctor @ \clt GEventMap
 );
 
-r25:
-/ @ \cl AUIBoxControl $=
+r18:
+/ @ \h YStatic $=
 (
-	- protected \inh FocusResponser,
-	/ \tr \impl @ \ctor;
-	/ \impl @ \mf \vt (ClearFocusingPtr & ResponseFocusRequest
-		& ResponseFocusRelease & GetFocusingPtr)
+	+ \ft<_type> const _type* FetchPrototype()
+),
+* \mf Insert \clt GEventMap $since b221,
+/ \a GetStaticRef => FetchStaticRef,
++ \inc \h YStatic @ \impl \u YControl;
+/ \impl @ \ctor @ \cl Control::ControlEventMap,
+/ \a FetchStaticRef \exc \h YStatic -> FetchPrototype;
+
+r19:
+(
+	- \inh noncopyable @ \cl BitmapBuffer;
+	/ @ \cl (BitmapBuffer & BitmapBufferEx) $=
+	(
+		+ \exp \de move \ctor,
+		+ copy \ctor;
+		+ \mf Clone
+	)
+),
+/ @ \clt GFocusResponser @ \h YFocus $=
+(
+	- \inh noncopyable,
+	*+ \i \de \ctor $since b239,
+	+ \i copy \ctor,
+	+ \i \exp \de move ctor
+),
+- \inh noncopyable @ \cl WidgetRenderer;
++ \exp \de \i (\de & copy & move) \ctor @ \cl WidgetRenderer,
++ \exp \de !\i (\de & copy & move) \ctor @ \cl BufferedWidgetRenderer,
++ \mac \def DefClone(_t, _n) @ \h YBase;
++ virtual DefClone(WidgetRenderer, Clone) @ \cl WidgetRenderer,
++ virtual DefClone(WidgetRenderer, Clone) @ \cl BufferedWidgetRenderer,
++ virtual DefClone(GCheckedFocusResponser, Clone) @ \clt GCheckedFocusResponser,
+/ @ \h YCoreUtilities $=
+(
+	+ \ft<_type> auto CloneNonpolymorphic(const _type&) -> decltype(&*p),
+	+ \ft<_type> auto ClonePolymorphic(const _type&) -> decltype(&*p)
 );
-/ \tr \impl @ \mf ATrack::GetFocusingPtr;
++ copy \ctor @ \cl Widget;
 
-r26:
--= \mf ATrack::GetFocusingPtr;
+r20-r32:
+/= test 5;
 
-r27:
-/ \impl @ \f (RequestFocusFrom & ReleaseFocusFrom) @ \impl \u YControl;
+r33:
+* \impl @ \ctor \t @ \cl Widget $since r6,
++ \ctor WidgetController(bool, const VisualEventMap&) @ \cl WidgetController;
 
-r28:
-- \a \mf (ResponseFocusRequest & ResponseFocusRelease) @ \cl (\inh
-	\in IWidget);
-- \amf (ResponseFocusRequest & ResponseFocusRelease) @ \in IWidget;
+r34-r35:
+/= test 6;
 
-r29:
-/= test 5 ^ \conf release;
+r36:
+/= test 7 ^ \conf release;
 
-r30:
-+ \f void ClearFocusingPtrOf(IWidget&) @ \u YWidget;
-- \a \mf ClearFocusingPtr @ \cl (\inh \in IWidget);
-- & \amf ClearFocusingPtr @ \in IWidget;
-/ \tr \impl @ \mf (Desktop::ClearContents & YGUIShell::ResponseTouch);
+r37:
+/ \impl @ \dtor @ \cl Widget,
+/ @ \cl Control $=
+(
+	- \dtor,
+	+ \exp \de move \ctor,
+	+ copy \ctor
+);
 
-r31:
-+ \f void FetchFocusingPtr(IWidget&) @ \u YWidget;
-- \a \mf GetFocusingPtr @ \cl (\inh \in IWidget),
-- & \amf GetFocusingPtr @ \in IWidget;
-/ \tr \impl @ \f bool IsFocused(const IWidget&) @ \impl \u YControl,
-/ \tr \impl @ \f YGUIShell::ResponseKey @ \impl \u YGUI,
-/ \tr \impl @ \f ClearFocusingPtr @ \impl \u YWidget;
-
-r32:
-/= test 6 ^ \conf release;
+r38:
+/= test 8 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-09-08:
--21.2d;
-//Mercurial rev1-rev110: r5341;
+2011-09-10:
+-20.3d;
+//Mercurial rev1-rev110: r5373;
 
 / ...
 
 
 $NEXT_TODO:
-b240-b324:
+b241-b324:
 + %TextList invalidation support;
 * non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
@@ -471,12 +549,55 @@ $ellipse_debug_assertion;
 
 $now
 (
+	/ "macros" @ "header ybase.h" $=
+	(
+		/ $design "simplified marco parameter names",
+		+ "new macros for template declartions and forwarding constructor \
+			templates",
+		+ "macro %DefClone(_t, _n) for define member function for cloning"
+	),
+	+ "support for types are not %EqualityComparable" @ "class %ValueObject"
+		^ "always-be-equal strategy",
+	+ $design "copy constructor" @ "class template %GEventMap",
+	+ $design "const static reference getter function %GetPrototype"
+		@ "header ystatic.hpp",
+	* $design "member function %Insert unavailable for %unique_ptr"
+		@ "class template %GEventMap" $since b221,
+	+ $design "%CopyConstructible, %MoveConstructible support"
+		@ "class template %GEventMap",
+	+ $design "%CopyConstructible and %MoveConstructible support"
+		@ "class %(BitmapBuffer, BitmapBufferEx)";
+	/ "GUI" $=
+	(
+		* @ "class template %GFocusResponser" $=
+		(
+			+ "default constructor" $since b239
+		),
+		+ "virtual member function %Clone" @ "renderers, focus responsers \
+			and widget classes",
+		+ $design "prototype constructing of widgets" $=
+		(
+			+ $design "%(CopyConstructible, MoveConstructible) and clone \
+				support" @ "class %(WidgetRenderer, BufferedWidgetRenderer)",
+			+ $design "%(CopyConstructible, MoveConstructible) and clone \
+				support" @ "class template %(GFocusResponser, \
+				GCheckedFocusResponser)",
+			+ $design "%(CopyConstructible, MoveConstructible) and clone \
+				support" @ "class WidgetController";
+			+ $design "%CopyConstructible and %MoveConstructible support"
+				@ "class %(Widget; Control)"
+		)
+	)
+),
+
+b239
+(
 	/ "GUI" $=
 	(
 		+ "dynamic focus responser switching",
 		/ "simplified" @ "class %IWidget and derived classes",
 		+ "common focus APIs shared by class %IWidget"
-			~ "class (%Panel, %AFrame, %AUIBoxControl)" $=
+			~ "class %(Panel, AFrame, AUIBoxControl)" $=
 		(
 			+ "function %ClearFocusingPtrOf",
 			+ "function %FetchFocusingPtr"
@@ -528,7 +649,7 @@ b236
 		+ $design "rvalue forwarding and return value support"
 			@ "function template %CallEvent",
 		+ "limited focusing interfaces" @ "class %IWidget",
-		/ "namespace (%Widgets, %Controls, %Forms) merged to parent \
+		/ "namespace %(Widgets, Controls, Forms) merged to parent \
 			namespace %YSLib::Components",
 		/ "simplified implementation and improved efficiency \
 			in focus requesting" $=
@@ -664,7 +785,7 @@ b231
 b230
 (
 	+ $design "move constructors and move assigment operators"
-		@ "class template (%pseudo_iterator, %pair_iterator)"
+		@ "class template %(pseudo_iterator, pair_iterator)"
 		@ "header YCLib::YStandardExtend::Iterator",
 	/ $design "simplified GUI" $=
 	(
@@ -690,7 +811,7 @@ b229
 		/ "simplified controls rendering implementation" $=
 		(
 			- "widget boundary drawing APIs",
-			/ "control drawing" @ "class (%TextList, %CheckBox)"
+			/ "control drawing" @ "class %(TextList, CheckBox)"
 		),
 		/ "simplified APIs" $=
 		(
@@ -714,7 +835,7 @@ b228
 	(
 		+ "runtime buffering control" $=
 		(
-			+ "renderer class (%BufferedWidgetRenderer, %WidgetRenderer)",
+			+ "renderer class %(BufferedWidgetRenderer, WidgetRenderer)",
 			/ "window buffering control moved to renderer" ~ "class %Frame"
 		),
 		/ "buffering-concerned methods" @ "class %IWindow"
@@ -851,7 +972,7 @@ b222
 	),
 	+ "default GUI event %Paint",
 	/ "controls drawing" ^ "event Paint" ~ "member function Draw"
-		@ "class (%Frame, %YGUIShell)",
+		@ "class %(Frame, YGUIShell)",
 	/ "GUI controls inhancement" $=
 	(
 		+ "key events for text list controls including menu" $=
@@ -1279,7 +1400,7 @@ b200
 
 b199
 (
-	+ "event routing for %KeyUp, %KeyDown and %KeyHeld",
+	+ "event routing for %(KeyUp, KeyDown, KeyHeld)",
 	* "event behavior with optimizing" $since b195,
 	+ "keypad shortcut for file selecter",
 	+ $design "returning number of called handles in event calling"
@@ -1458,7 +1579,7 @@ b170_b183
 
 b159_b169
 (
-	+ "controls: buttons" @ "class (%YThumb, %YButton)",
+	+ "controls: buttons" @ "class %(YThumb, YButton)",
 	+ "controls: listbox class",
 	+ "event mapping"
 ),

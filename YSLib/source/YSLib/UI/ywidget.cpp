@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5105;
+\version r5113;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-08 02:23 +0800;
+	2011-09-10 20:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -181,8 +181,16 @@ Widget::Widget(const Rect& r, Color b, Color f)
 	pContainer(), pRenderer(new WidgetRenderer()),
 	pFocusResponser(new FocusResponser()), pController()
 {}
-Widget::~Widget()
+Widget::Widget(const Widget& wgt)
+	: Visual(wgt),
+	pContainer(), pRenderer(wgt.pRenderer->Clone()),
+	pFocusResponser(ClonePolymorphic(wgt.pFocusResponser)),
+	pController(CloneNonpolymorphic(wgt.pController))
 {}
+Widget::~Widget()
+{
+	ReleaseFocus(*this);
+}
 
 
 void

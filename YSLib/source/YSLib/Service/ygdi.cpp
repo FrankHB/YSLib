@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3505;
+\version r3521;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-08-13 06:48 +0800;
+	2011-09-10 03:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -102,6 +102,13 @@ BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDst w, SDst h)
 	if(i)
 		mmbcpy(pBuffer, i, GetSizeOfBuffer());
 }
+BitmapBuffer::BitmapBuffer(const BitmapBuffer& buf)
+	: Graphics()
+{
+	SetSize(buf.GetWidth(), buf.GetHeight());
+	if(auto p = buf.GetBufferPtr())
+		mmbcpy(pBuffer, p, GetSizeOfBuffer());
+}
 
 void
 BitmapBuffer::SetSize(SDst w, SDst h)
@@ -159,6 +166,16 @@ BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDst w, SDst h)
 	SetSize(w, h);
 	if(i)
 		mmbcpy(pBuffer, i, GetSizeOfBuffer());
+}
+BitmapBufferEx::BitmapBufferEx(const BitmapBufferEx& buf)
+	: BitmapBuffer(), pBufferAlpha()
+{
+	SetSize(buf.GetWidth(), buf.GetHeight());
+	if(auto p = buf.GetBufferPtr())
+	{
+		mmbcpy(pBuffer, p, GetSizeOfBuffer());
+		mmbcpy(pBufferAlpha, buf.GetBufferAlphaPtr(), GetSizeOfBufferAlpha());
+	}
 }
 
 void

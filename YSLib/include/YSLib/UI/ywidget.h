@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5997;
+\version r6021;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-08 02:24 +0800;
+	2011-09-10 20:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -282,7 +282,7 @@ MOriented::MOriented(Drawing::Orientation o)
 
 
 //! \brief 可视样式。
-class Visual : public noncopyable
+class Visual
 {
 private:
 	bool visible; //!< 可见性。
@@ -300,6 +300,8 @@ public:
 	explicit
 	Visual(const Rect& = Rect::Empty,
 		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
+	Visual(const Visual&) = default;
+	Visual(Visual&&) = default;
 	virtual DefEmptyDtor(Visual)
 
 	DefPredicate(Visible, visible)
@@ -379,6 +381,26 @@ public:
 	explicit
 	Widget(const Rect& = Rect::Empty,
 		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
+	PDefTH3(_tRenderer, _tFocusResponser, _tController)
+	inline Widget(const Rect& r = Rect::Empty,
+		_tRenderer&& pRenderer_ = unique_raw(new WidgetRenderer()),
+		_tFocusResponser&& pFocusResponser_ = unique_raw(new FocusResponser()),
+		_tController pController_ = nullptr)
+		: Visual(r), pContainer(), pRenderer(yforward(pRenderer_)),
+		pFocusResponser(yforward(pFocusResponser_)),
+		pController(yforward(pController_))
+	{}
+	/*!
+	\brief 复制构造：除容器指针为空外深复制。
+	*/
+	Widget(const Widget&);
+	Widget(Widget&&) = default;
+	/*!
+	\brief 析构：虚实现。
+
+	自动释放焦点后释放部件资源。
+	\note 由于不完整类型 WidgetController 的依赖性无法使用 inline 实现。
+	*/
 	virtual
 	~Widget();
 

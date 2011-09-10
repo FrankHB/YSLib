@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r4045;
+\version r4060;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-08-13 06:48 +0800;
+	2011-09-10 03:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -158,7 +158,7 @@ FetchMargin(const Rect&, const Size&);
 
 
 //! \brief 正则矩形位图缓冲区。
-class BitmapBuffer : public noncopyable, public Graphics
+class BitmapBuffer : public Graphics
 {
 public:
 	/*!
@@ -173,6 +173,9 @@ public:
 	/*!
 	\brief 析构：释放资源。
 	*/
+	BitmapBuffer(const BitmapBuffer&);
+	BitmapBuffer(BitmapBuffer&&) = default;
+	virtual DefClone(BitmapBuffer, Clone)
 	virtual
 	~BitmapBuffer();
 
@@ -228,12 +231,14 @@ public:
 	/*!
 	\brief 析构：释放资源。
 	*/
+	BitmapBufferEx(const BitmapBufferEx&);
+	BitmapBufferEx(BitmapBufferEx&&) = default;
+	virtual DefClone(BitmapBufferEx, Clone)
 	virtual
 	~BitmapBufferEx();
 
 	DefGetter(u8*, BufferAlphaPtr, pBufferAlpha) //!< 取 Alpha 缓冲区的指针。
-	DefGetter(size_t, SizeOfBufferAlpha,
-		sizeof(u8) * GetAreaOf(GetSize())) \
+	DefGetter(size_t, SizeOfBufferAlpha, sizeof(u8) * GetAreaOf(GetSize())) \
 		//!< 取 Alpha 缓冲区占用空间。
 
 	/*!

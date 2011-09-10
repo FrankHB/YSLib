@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r2482;
+\version r2502;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-09-07 23:29 +0800;
+	2011-09-10 04:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,13 +34,24 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 //! \brief 简单焦点响应器。
-template<typename _type>
-class GFocusResponser : public noncopyable
+PDefTH1(_type)
+class GFocusResponser
 {
 protected:
 	_type* pFocusing; //!< 焦点对象指针。
 
 public:
+	inline
+	GFocusResponser()
+		: pFocusing()
+	{}
+	inline
+	GFocusResponser(const GFocusResponser&)
+		: pFocusing()
+	{}
+	inline
+	GFocusResponser(GFocusResponser&&) = default;
+	virtual DefClone(GFocusResponser, Clone)
 	virtual DefEmptyDtor(GFocusResponser)
 
 	//! \brief 判断指定指针是否和焦点对象指针相等。
@@ -128,6 +139,8 @@ protected:
 	using GFocusResponser<_type>::pFocusing;
 
 public:
+	virtual DefClone(GCheckedFocusResponser, Clone)
+
 	/*!
 	\brief 设置焦点对象指针。
 	*/

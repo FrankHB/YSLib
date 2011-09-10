@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4440;
+\version r4480;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-09-08 02:23 +0800;
+	2011-09-10 20:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 #include "ygui.h"
 #include "yuicont.h"
+#include "../Core/ystatic.hpp"
 
 YSL_BEGIN
 
@@ -186,28 +187,27 @@ OnKey_Bound_Click(IWidget& wgt, KeyEventArgs&& e)
 }
 
 
-Control::Control(const Rect& r)
-	: Widget(r)
+Control::ControlEventMap::ControlEventMap()
 {
-	pController = unique_raw(new WidgetController(true));
-	FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&& e){
+	FetchEvent<TouchDown>(*this) += [](IWidget& wgt, TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
-			RequestFocus(*this);
+			RequestFocus(wgt);
 	};
 	FetchEvent<TouchHeld>(*this) += OnTouchHeld;
-	FetchEvent<GotFocus>(*this) += [this](IWidget&, EventArgs&&){
-		Invalidate(*this);
-	};
-	FetchEvent<LostFocus>(*this) += [this](IWidget&, EventArgs&&){
-		Invalidate(*this);
-	};
+	FetchEvent<GotFocus>(*this) += OnWidget_Invalidate<EventArgs>;
+	FetchEvent<LostFocus>(*this) += OnWidget_Invalidate<EventArgs>;
+}
+
+Control::Control(const Rect& r)
+	: Widget(r, new WidgetRenderer(), new FocusResponser(),
+	new WidgetController(true, FetchPrototype<ControlEventMap>()))
+{
 	BoundControlPtr = std::bind(std::mem_fn(&Control::GetBoundControlPtr), this,
 		std::placeholders::_1);
 }
-Control::~Control()
-{
-	ReleaseFocus(*this);
-}
+Control::Control(const Control& ctl)
+	: Widget(ctl), BoundControlPtr(ctl.BoundControlPtr)
+{}
 
 void
 Control::SetLocation(const Point& pt)

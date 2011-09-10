@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3179;
+\version r3214;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-08-18 17:19 +0800;
+	2011-09-09 17:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,7 +40,7 @@ YSL_BEGIN
 /*!
 \brief 指定对于 _type 类型成员具有所有权的标签。
 */
-template<typename _type>
+PDefTH1(_type)
 struct OwnershipTag
 {};
 
@@ -78,11 +78,11 @@ public:
 	{};
 
 private:
-	template<typename _type>
+	PDefTH1(_type)
 	struct GManager
 	{
 		static bool
-		Do(void*& lhs, void*& rhs, OpType op)
+		Do(void*& x, void*& y, OpType op)
 		{
 			switch(op)
 			{
@@ -90,20 +90,20 @@ private:
 		//		lhs = new _type();
 		//		return false;
 			case Destroy:
-				delete static_cast<_type*>(lhs);
+				delete static_cast<_type*>(x);
 				return false;
 			case Clone:
-				YAssert(rhs, "Null pointer found"
+				YAssert(y, "Null pointer found"
 					" @ ValueObject::GManager::Do#Clone;");
 
-				lhs = new _type(*static_cast<_type*>(rhs));
+				x = new _type(*static_cast<_type*>(y));
 				return false;
 			case Equality:
-				YAssert(lhs && rhs, "Null pointer found"
+				YAssert(x && y, "Null pointer found"
 					" @ ValueObject::GManager::Do#Equlitiy;");
 
-				return *static_cast<_type*>(lhs) == *static_cast<_type*>(rhs);
-			default:
+				return AreEqual(*static_cast<_type*>(x),
+					*static_cast<_type*>(y));
 				return false;
 			}
 			return false;
@@ -124,7 +124,7 @@ public:
 	\note 对象需要是可复制构造的。
 	\note 得到包含指定对象的实例。
 	*/
-	template<typename _type>
+	PDefTH1(_type)
 	ValueObject(const _type& obj)
 		: manager(&GManager<_type>::Do), obj_ptr(new _type(obj))
 	{}
@@ -132,7 +132,7 @@ public:
 	\brief 构造：使用对象指针。
 	\note 得到包含指针指向的指定对象的实例，并获得所有权。
 	*/
-	template<typename _type>
+	PDefTH1(_type)
 	ValueObject(_type* p, PointerConstructTag)
 		: manager(&GManager<_type>::Do), obj_ptr(p)
 	{}
@@ -150,7 +150,7 @@ public:
 
 	DefPredicate(Empty, !obj_ptr)
 
-	template<typename _type>
+	PDefTH1(_type)
 	const _type&
 	GetObject() const
 	{
@@ -160,7 +160,7 @@ public:
 
 		return *static_cast<const _type*>(obj_ptr);
 	}
-	template<typename _type>
+	PDefTH1(_type)
 	_type&
 	GetObject()
 	{
@@ -171,6 +171,21 @@ public:
 		return *static_cast<_type*>(obj_ptr);
 	}
 
+private:
+	PDefTH1(_type)
+	inline static bool
+	AreEqual(_type& x, _type& y, decltype(x == y) = false)
+	{
+		return x == y;
+	}
+	PDefTH2(_type, _tUnused)
+	inline static bool
+	AreEqual(_type&, _tUnused&)
+	{
+		return true;
+	}
+
+public:
 	void
 	Clear();
 
@@ -200,7 +215,7 @@ ValueObject::operator=(const ValueObject& c)
 \ingroup HelperFunction
 \brief 使用指针构造 ValueObject 实例。
 */
-template<typename _type>
+PDefTH1(_type)
 inline ValueObject
 MakeValueObjectByPtr(_type* p)
 {
@@ -285,7 +300,7 @@ public:
 };
 
 //! \brief 范围模块类。
-template<typename _type>
+PDefTH1(_type)
 class GMRange
 {
 public:

@@ -11,12 +11,12 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1275;
+\version r1292;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-09-06 23:50 +0800;
+	2011-09-10 03:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,9 +38,16 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 无缓冲渲染策略：不保存部件渲染状态和有效的图形接口上下文。
 */
-class WidgetRenderer : public noncopyable
+class WidgetRenderer
 {
 public:
+	inline
+	WidgetRenderer() = default;
+	inline
+	WidgetRenderer(const WidgetRenderer&) = default;
+	inline
+	WidgetRenderer(WidgetRenderer&&) = default;
+	virtual DefClone(WidgetRenderer, Clone)
 	virtual DefEmptyDtor(WidgetRenderer)
 
 	/*!
@@ -120,6 +127,11 @@ protected:
 
 public:
 	BitmapBuffer Buffer; //!< 显示缓冲区。
+
+	BufferedWidgetRenderer() = default;
+	BufferedWidgetRenderer(const BufferedWidgetRenderer&) = default;
+	BufferedWidgetRenderer(BufferedWidgetRenderer&&) = default;
+	virtual DefClone(BufferedWidgetRenderer, Clone)
 
 	/*!
 	\brief 判断是否需要刷新。
