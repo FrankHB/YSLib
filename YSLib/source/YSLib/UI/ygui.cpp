@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3932;
+\version r3939;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-08 02:23 +0800;
+	2011-09-12 23:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -293,8 +293,8 @@ YGUIShell::ResponseTouch(IWidget& wgt, TouchEventArgs& e,
 				ClearFocusingPtrOf(*pCon);
 			break;
 		}
-		r |= p->GetController().GetEventMap().DoEvent<HTouchEvent>(op, *p,
-			std::move(e)) != 0;
+		r |= DoEvent<HTouchEvent>(p->GetController(), op, *p, e)
+			!= 0;
 		p = t;
 		e -= p->GetLocation();
 	};
@@ -308,8 +308,8 @@ YGUIShell::ResponseTouch(IWidget& wgt, TouchEventArgs& e,
 	{
 		e += p->GetLocation();
 		p = pCon;
-		r |= p->GetController().GetEventMap().DoEvent<HTouchEvent>(op, *p,
-			std::move(e)) != 0;
+		r |= DoEvent<HTouchEvent>(p->GetController(), op, *p, e)
+			!= 0;
 	}
 	return r;
 }
@@ -322,7 +322,7 @@ FetchGUIShell()
 	shared_ptr<YGUIShell> hShl(dynamic_pointer_cast<YGUIShell>(
 		FetchShellHandle()));
 
-	YAssert(is_null(hShl), "Null handle found @ FetchGUIShell;");
+	YAssert(is_not_null(hShl), "Null handle found @ FetchGUIShell;");
 
 	return *hShl;
 }

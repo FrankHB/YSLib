@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5350;
+\version r5353;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-09-09 14:48 +0800;
+	2011-09-13 23:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -1311,7 +1311,7 @@
 重绘区域长或宽为零时表示重绘已经结束且无新的绘制请求，无需再次重绘。
  InvalidateCascade(IWidget&, const Rect&) 通过调用 Validate() 向本层和上层缓冲区（若存在）传递相对于部件的正则矩形区域无效状态，以便被重绘。
  Invalidate(IWidget&) 是使用部件自身区域为参数调用 InvalidateCascade 的人本接口。
-成员方法 Refresh(const Graphics&, const Point&, const Rect&) 是部件的状态无关的刷新接口，即直接绘制部件界面。 
+成员方法 Refresh(const Graphics&, const Point&, const Rect&) 是部件的状态无关的刷新接口，即直接绘制部件界面。
 
 @2.7.5.3.4 更新(updating) ：
 缓冲区内的图形信息复制到其它缓冲区的过程。
@@ -1487,10 +1487,10 @@ FetchDefaultScreen();
  "ytext.h" 依赖于 "ygdi.h" 、 "yftext.h" 和 Core 的 "ystring.h" 。
 在 UI 中，以下依赖关系对于头文件包含是确定的：
  "ycomp.h" 依赖于 Core 的 "yshell.h"；
- "yfocus.h" 、 "ystyle.h" 和 "ywidget.h" 依赖于 "ycomp.h" ；
+ "yfocus.hpp" 、 "ystyle.h" 和 "ywidget.h" 依赖于 "ycomp.h" ；
  "yrender.h" 、 "ystyle.h" 、 "ytext.h" 和 "ywidget.h"依赖于 Service 的 "ygdi.h" ；
  "ystyle.h" 和 "ywidget.h" 依赖于 Service 的 "ydraw.h"；
- "ywidget.h" 依赖于 "yrender.h" 和 "yfocus.h" ；
+ "ywidget.h" 依赖于 "yrender.h" 和 "yfocus.hpp" ；
  "ycontrol.h" 和 "yuicont.h" 依赖于 "ywidget.h" ；
  "ygui.h" 依赖于 "ycontrol.h" 和 "ystyle.h" ；
  "ywindow.h" 依赖于 "ycontrol.h" 、 "yuicont.h" 和 Service 的 "yblit.h" ；

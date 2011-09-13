@@ -77,7 +77,7 @@
 		<Unit filename="include\YSLib\Core\yobject.h" />
 		<Unit filename="include\YSLib\Core\ysdef.h" />
 		<Unit filename="include\YSLib\Core\yshell.h" />
-		<Unit filename="include\YSLib\Core\ystatic.hpp" />
+		<Unit filename="include\YSLib\Core\ystorage.hpp" />
 		<Unit filename="include\YSLib\Core\ystring.h" />
 		<Unit filename="include\YSLib\Helper\shlds.h" />
 		<Unit filename="include\YSLib\Helper\yglobal.h" />
@@ -108,11 +108,12 @@
 		<Unit filename="include\YSLib\UI\yconsole.h" />
 		<Unit filename="include\YSLib\UI\ycontrol.h" />
 		<Unit filename="include\YSLib\UI\ydesktop.h" />
-		<Unit filename="include\YSLib\UI\yfocus.h" />
+		<Unit filename="include\YSLib\UI\yfocus.hpp" />
 		<Unit filename="include\YSLib\UI\ygui.h" />
 		<Unit filename="include\YSLib\UI\yrender.h" />
 		<Unit filename="include\YSLib\UI\ystyle.h" />
 		<Unit filename="include\YSLib\UI\yuicont.h" />
+		<Unit filename="include\YSLib\UI\ywgtevt.h" />
 		<Unit filename="include\YSLib\UI\ywidget.h" />
 		<Unit filename="include\YSLib\UI\ywindow.h" />
 		<Unit filename="include\ysbuild.h" />
@@ -155,7 +156,6 @@
 		<Unit filename="source\YSLib\UI\yconsole.cpp" />
 		<Unit filename="source\YSLib\UI\ycontrol.cpp" />
 		<Unit filename="source\YSLib\UI\ydesktop.cpp" />
-		<Unit filename="source\YSLib\UI\yfocus.cpp" />
 		<Unit filename="source\YSLib\UI\ygui.cpp" />
 		<Unit filename="source\YSLib\UI\yrender.cpp" />
 		<Unit filename="source\YSLib\UI\ystyle.cpp" />

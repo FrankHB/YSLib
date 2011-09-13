@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2188;
+\version r2189;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-09-08 12:51 +0800;
+	2011-09-12 23:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,7 +59,7 @@ FetchShell()
 {
 	auto hShl(FetchShellHandle());
 
-	YAssert(is_null(hShl), "Null handle found @ FetchShell;");
+	YAssert(is_not_null(hShl), "Null handle found @ FetchShell;");
 
 	return dynamic_cast<_tShell&>(*hShl);
 }

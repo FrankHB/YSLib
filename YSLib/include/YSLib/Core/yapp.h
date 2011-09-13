@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2320;
+\version r2322;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-08-18 14:08 +0800;
+	2011-09-11 21:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,7 +44,7 @@ public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
-	YLog() = default;
+	DefDeCtor(YLog)
 	/*!
 	\brief 析构：空实现。
 	*/

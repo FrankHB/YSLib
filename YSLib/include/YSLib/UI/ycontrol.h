@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5436;
+\version r5489;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-09-10 20:55 +0800;
+	2011-09-14 01:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,7 @@
 #define YSL_INC_UI_YCONTROL_H_
 
 #include "ywidget.h"
-#include "../Core/yevt.hpp"
+#include "ywgtevt.h"
 
 YSL_BEGIN
 
@@ -36,235 +36,12 @@ YSL_BEGIN_NAMESPACE(Components)
 
 using namespace Drawing;
 
-
-//! \brief 路由事件基类。
-struct RoutedEventArgs : public EventArgs
-{
-public:
-	//! 事件路由策略枚举。
-	typedef enum
-	{
-		Bubble = 0, //!< 气泡事件：向上遍历视图树时触发。
-		Tunnel = 1, //!< 隧道事件：向下遍历视图树时触发。
-		Direct = 2 //!< 直接事件：仅当遍历至目标控件时触发。
-	} RoutingStrategy;
-
-	RoutingStrategy Strategy; //!< 事件路由策略。
-	bool Handled; //!< 事件已经被处理。
-
-	explicit
-	RoutedEventArgs(RoutingStrategy = Direct);
-};
-
-inline
-RoutedEventArgs::RoutedEventArgs(RoutingStrategy strategy)
-	: Strategy(strategy), Handled(false)
-{}
-
-
-//! \brief 屏幕（指针设备）输入事件参数模块类。
-typedef Drawing::Point MScreenPositionEventArgs;
-
-
-//! \brief 输入事件参数类。
-struct InputEventArgs : public RoutedEventArgs
-{
-public:
-	KeyCode Key;
-
-	/*!
-	\brief 构造：使用本机键按下对象和路由事件类型。
-	*/
-	InputEventArgs(KeyCode = 0, RoutingStrategy = Direct);
-
-	DefConverter(KeyCode, Key)
-
-	DefGetter(KeyCode, KeyCode, Key)
-};
-
-inline
-InputEventArgs::InputEventArgs(KeyCode k, RoutingStrategy s)
-	: RoutedEventArgs(s), Key(k)
-{}
-
-
-//! \brief 按键输入事件参数类。
-struct KeyEventArgs : public InputEventArgs
-{
-public:
-	typedef KeyCode InputType; //!< 输入类型。
-
-	/*!
-	\brief 构造：使用输入类型对象和路由事件类型。
-	*/
-	KeyEventArgs(const InputType& = 0, RoutingStrategy = Direct);
-};
-
-inline
-KeyEventArgs::KeyEventArgs(const InputType& k, RoutingStrategy s)
-	: InputEventArgs(k, s)
-{}
-
-
-//! \brief 指针设备输入事件参数类。
-struct TouchEventArgs : public InputEventArgs, public MScreenPositionEventArgs
-{
-public:
-	typedef Drawing::Point InputType; //!< 输入类型。
-
-	/*!
-	\brief 构造：使用输入类型对象和路由事件类型。
-	*/
-	TouchEventArgs(const InputType& = InputType::Zero,
-		RoutingStrategy = Direct);
-};
-
-inline
-TouchEventArgs::TouchEventArgs(const InputType& pt, RoutingStrategy s)
-	: InputEventArgs(s), MScreenPositionEventArgs(pt)
-{}
-
-
-//! \brief 控件事件参数类。
-struct IndexEventArgs : public EventArgs
-{
-	typedef ssize_t IndexType;
-
-	IWidget& Widget;
-	IndexType Index;
-
-	/*!
-	\brief 构造：使用控件引用和索引值。
-	*/
-	IndexEventArgs(IWidget&, IndexType);
-	DefConverter(IndexType, Index)
-};
-
-inline
-IndexEventArgs::IndexEventArgs(IWidget& wgt, IndexEventArgs::IndexType idx)
-	: EventArgs(),
-	Widget(wgt), Index(idx)
-{}
-
-
-//! \brief 值类型参数类模块模板。
-PDefTH1(_type)
-struct GMValueEventArgs
-{
-public:
-	typedef _type ValueType; //值类型。
-	_type Value, OldValue; //值和旧值。
-
-	/*!
-	\brief 构造：使用指定值。
-	\note 值等于旧值。
-	*/
-	GMValueEventArgs(ValueType v)
-		: Value(v), OldValue(v)
-	{}
-	/*!
-	\brief 构造：使用指定值和旧值。
-	*/
-	GMValueEventArgs(ValueType v, ValueType old_value)
-		: Value(v), OldValue(old_value)
-	{}
-};
-
-
-//事件处理器类型。
-DefDelegate(HVisualEvent, IWidget, EventArgs)
-DefDelegate(HInputEvent, IWidget, InputEventArgs)
-DefDelegate(HKeyEvent, IWidget, KeyEventArgs)
-DefDelegate(HTouchEvent, IWidget, TouchEventArgs)
-DefDelegate(HIndexEvent, IWidget, IndexEventArgs)
-//DefDelegate(HPointEvent, IWidget, Drawing::Point)
-//DefDelegate(HSizeEvent, IWidget, Size)
-
-
-#define DefEventTypeMapping(_name, _tEventHandler) \
-	template<> \
-	struct EventTypeMapping<_name> \
-	{ \
-		typedef _tEventHandler HandlerType; \
-	};
-
-
-//! \brief 标准控件事件空间。
-typedef enum
-{
-//	AutoSizeChanged,
-//	BackColorChanged,
-//	ForeColorChanged,
-//	LocationChanged,
-//	MarginChanged,
-//	VisibleChanged,
-
-//	EnabledChanged,
-
-	//视图变更事件。
-	Move, //!< 移动：位置调整。
-	Resize, //!< 大小调整。
-
-	//图形用户界面输入事件。
-	KeyUp, //!< 键接触结束。
-	KeyDown, //!< 键接触开始。
-	KeyHeld, //!< 键接触保持。
-	KeyPress, //!< 键按下。
-	TouchUp, //!< 屏幕接触结束。
-	TouchDown, //!< 屏幕接触开始。
-	TouchHeld, //!< 屏幕接触保持。
-	TouchMove, //!< 屏幕接触移动。
-	Click, //!< 屏幕点击。
-	Enter, //!< 控件进入。
-	Leave, //!< 控件离开。
-
-	//焦点事件。
-	GotFocus, //!< 焦点获得。
-	LostFocus //!< 焦点失去。
-
-//	TextChanged,
-//	FontChanged,
-//	FontColorChanged,
-//	FontSizeChanged,
-} VisualEvent;
-
-
-template<VisualEvent>
-struct EventTypeMapping
-{
-	//定义 HandlerType 的默认值可能会导致运行期 dynamic_cast 失败。
-//	typedef HEvent HandlerType;
-};
-
-DefEventTypeMapping(Move, HVisualEvent)
-DefEventTypeMapping(Resize, HVisualEvent)
-
-DefEventTypeMapping(KeyUp, HKeyEvent)
-DefEventTypeMapping(KeyDown, HKeyEvent)
-DefEventTypeMapping(KeyHeld, HKeyEvent)
-DefEventTypeMapping(KeyPress, HKeyEvent)
-DefEventTypeMapping(TouchUp, HTouchEvent)
-DefEventTypeMapping(TouchDown, HTouchEvent)
-DefEventTypeMapping(TouchHeld, HTouchEvent)
-DefEventTypeMapping(TouchMove, HTouchEvent)
-DefEventTypeMapping(Click, HTouchEvent)
-DefEventTypeMapping(Enter, HTouchEvent)
-DefEventTypeMapping(Leave, HTouchEvent)
-
-DefEventTypeMapping(GotFocus, HVisualEvent)
-DefEventTypeMapping(LostFocus, HVisualEvent)
-
-
-//! \brief 控件事件映射表类型。
-typedef GEventMap<IWidget, VisualEvent> VisualEventMap;
-
-
 /*!
 \brief 部件控制器。
 
 保存部件的事件响应策略和状态。
 */
-class WidgetController
+class WidgetController : implements IController
 {
 private:
 	bool enabled; //!< 控件可用性。
@@ -280,6 +57,11 @@ public:
 
 	DefPredicate(Enabled, enabled)
 
+	ImplI1(IController) PDefH1(VisualEventMap::ItemType&, GetItemRef,
+		const VisualEvent& id)
+		ImplRet(EventMap.at(id))
+	ImplI1(IController) VisualEventMap::ItemType& GetItemRef(const VisualEvent&,
+		VisualEventMap::PointerType(&)());
 	DefGetter(VisualEventMap&, EventMap, EventMap) //!< 取事件映射表。
 
 	DefSetter(bool, Enabled, enabled)
@@ -309,7 +91,7 @@ IsEnabled(const IWidget& wgt)
 	{
 		return wgt.GetController().IsEnabled();
 	}
-	catch(BadControl&)
+	catch(BadEvent&)
 	{}
 	return false;
 }
@@ -333,7 +115,7 @@ SetEnabledOf(IWidget& wgt, bool b)
 	{
 		wgt.GetController().SetEnabled(b);
 	}
-	catch(BadControl&)
+	catch(BadEvent&)
 	{}
 }
 
@@ -390,16 +172,49 @@ ReleaseFocus(IWidget& wgt)
 
 
 /*!
+\brief 构造指针指向的 VisualEvent 指定的事件对象。
+*/
+template<VisualEvent _vID>
+VisualEventMap::PointerType
+NewEvent()
+{
+	return VisualEventMap::PointerType(new GEventWrapper<typename
+		GSEvent<typename EventTypeMapping<_vID>::HandlerType>::EventType>());
+}
+
+/*!
+\brief 在事件映射表中取指定 id 对应的事件。
+*/
+VisualEventMap::ItemType&
+GetEvent(VisualEventMap&, const VisualEvent&, VisualEventMap::PointerType(&)());
+
+/*!
 \ingroup HelperFunction
 \brief 取控件事件。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则自动添加空事件。
 */
 template<VisualEvent _vID>
-inline typename EventT(typename EventTypeMapping<_vID>::HandlerType)&
+typename EventT(typename EventTypeMapping<_vID>::HandlerType)&
 FetchEvent(VisualEventMap& m)
 {
-	return m.GetEvent<typename EventTypeMapping<_vID>::HandlerType>(_vID);
+	return dynamic_cast<typename GSEvent<typename EventTypeMapping<_vID>
+		::HandlerType>::EventType&>(GetEvent(m, _vID, NewEvent<_vID>));
+}
+/*!
+\ingroup HelperFunction
+\brief 取部件事件。
+\exception BadControl 异常中立：无事件映射表：由 GetController 抛出。
+\note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
+\note 若控件事件不存在则自动添加空事件。
+*/
+template<VisualEvent _vID>
+typename EventT(typename EventTypeMapping<_vID>::HandlerType)&
+FetchEvent(IController& controller)
+{
+	return dynamic_cast<typename GSEvent<typename EventTypeMapping<_vID>
+		::HandlerType>::EventType&>(controller.GetItemRef(_vID,
+		NewEvent<_vID>));
 }
 /*!
 \ingroup HelperFunction
@@ -412,27 +227,9 @@ template<VisualEvent _vID>
 inline typename EventT(typename EventTypeMapping<_vID>::HandlerType)&
 FetchEvent(IWidget& wgt)
 {
-	return FetchEvent<_vID>(wgt.GetController().GetEventMap());
+	return FetchEvent<_vID>(wgt.GetController());
 }
 
-/*!
-\ingroup HelperFunction
-\brief 调用事件映射表中的控件事件。
-\note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
-\note 若控件事件不存在则忽略。
-*/
-template<VisualEvent _vID, typename _tEventArgs>
-inline size_t
-CallEvent(VisualEventMap& m, typename EventTypeMapping<_vID>
-	::HandlerType::SenderType& sender, _tEventArgs&& e)
-{
-	static_assert(std::is_same<typename std::remove_reference<_tEventArgs>
-		::type, typename EventTypeMapping<_vID>::HandlerType::EventArgsType>
-		::value, "Invalid event argument type found @ CallEvent #1;");
-
-	return m.DoEvent<typename EventTypeMapping<_vID>::HandlerType>(_vID, sender,
-		yforward(e));
-}
 /*!
 \brief 调用部件事件，并忽略 BadControl 异常。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
@@ -443,12 +240,16 @@ inline size_t
 CallEvent(IWidget& wgt, typename EventTypeMapping<_vID>
 	::HandlerType::SenderType& sender, _tEventArgs&& e)
 {
+	static_assert(std::is_same<typename std::remove_reference<_tEventArgs>
+		::type, typename EventTypeMapping<_vID>::HandlerType::EventArgsType>
+		::value, "Invalid event argument type found @ CallEvent #1;");
+
 	try
 	{
-		return CallEvent<_vID>(wgt.GetController().GetEventMap(), sender,
-			yforward(e));		
+		return DoEvent<typename EventTypeMapping<_vID>::HandlerType>(
+			wgt.GetController(), _vID, sender, yforward(e));
 	}
-	catch(BadControl&)
+	catch(BadEvent&)
 	{}
 	return 0;
 }
@@ -569,7 +370,7 @@ public:
 	\brief 复制构造：除容器为空外深复制。
 	*/
 	Control(const Control&);
-	Control(Control&&) = default;
+	DefDeMoveCtor(Control)
 
 	/*!
 	\brief 取按键-指针设备输入默认事件组映射。

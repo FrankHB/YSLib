@@ -11,12 +11,12 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1292;
+\version r1304;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-09-10 03:42 +0800;
+	2011-09-11 21:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,12 +41,9 @@ YSL_BEGIN_NAMESPACE(Drawing)
 class WidgetRenderer
 {
 public:
-	inline
-	WidgetRenderer() = default;
-	inline
-	WidgetRenderer(const WidgetRenderer&) = default;
-	inline
-	WidgetRenderer(WidgetRenderer&&) = default;
+	inline DefDeCtor(WidgetRenderer)
+	inline DefDeCopyCtor(WidgetRenderer)
+	inline DefDeMoveCtor(WidgetRenderer)
 	virtual DefClone(WidgetRenderer, Clone)
 	virtual DefEmptyDtor(WidgetRenderer)
 
@@ -128,9 +125,9 @@ protected:
 public:
 	BitmapBuffer Buffer; //!< 显示缓冲区。
 
-	BufferedWidgetRenderer() = default;
-	BufferedWidgetRenderer(const BufferedWidgetRenderer&) = default;
-	BufferedWidgetRenderer(BufferedWidgetRenderer&&) = default;
+	DefDeCtor(BufferedWidgetRenderer)
+	DefDeCopyCtor(BufferedWidgetRenderer)
+	DefDeMoveCtor(BufferedWidgetRenderer)
 	virtual DefClone(BufferedWidgetRenderer, Clone)
 
 	/*!

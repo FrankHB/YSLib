@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6021;
+\version r6033;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-10 20:53 +0800;
+	2011-09-13 23:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,8 @@
 
 #include "ycomp.h"
 #include "yrender.h"
-#include "yfocus.h"
+#include "yfocus.hpp"
+#include "ywgtevt.h"
 #include "../Service/ydraw.h"
 #include "../Service/ygdi.h"
 
@@ -50,10 +51,6 @@ using Drawing::Size;
 using Drawing::Rect;
 
 using Drawing::Graphics;
-
-
-struct BadControl
-{};
 
 
 //! \brief 部件接口。
@@ -300,8 +297,8 @@ public:
 	explicit
 	Visual(const Rect& = Rect::Empty,
 		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
-	Visual(const Visual&) = default;
-	Visual(Visual&&) = default;
+	DefDeCopyCtor(Visual)
+	DefDeMoveCtor(Visual)
 	virtual DefEmptyDtor(Visual)
 
 	DefPredicate(Visible, visible)
@@ -394,7 +391,7 @@ public:
 	\brief 复制构造：除容器指针为空外深复制。
 	*/
 	Widget(const Widget&);
-	Widget(Widget&&) = default;
+	DefDeMoveCtor(Widget)
 	/*!
 	\brief 析构：虚实现。
 
@@ -446,7 +443,7 @@ inline WidgetController&
 Widget::GetController() const
 {
 	if(!pController)
-		throw BadControl();
+		throw BadEvent();
 	return *pController;
 }
 

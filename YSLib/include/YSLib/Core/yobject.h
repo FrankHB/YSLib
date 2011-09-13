@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3214;
+\version r3219;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-09 17:55 +0800;
+	2011-09-11 23:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -244,7 +244,7 @@ public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
-	YCountableObject() = default;
+	DefDeCtor(YCountableObject)
 };
 
 
@@ -252,7 +252,7 @@ public:
 \brief 依赖项类模板。
 
 基于被依赖的默认对象，可通过写时复制策略创建新对象。
-\tparam _type 被依赖的对象类型，需能被默认构造。
+\tparam _type 被依赖的对象类型，需能被无参数构造。
 \tparam _tOwnerPointer 依赖所有者指针类型。
 \warning 依赖所有者指针需要实现所有权语义，
 	否则出现无法释放资源导致内存泄漏或其它非预期行为。
@@ -274,8 +274,8 @@ public:
 	{
 		GetCopyOnWritePtr();
 	}
-	GDependency(const GDependency&) = default;
-	GDependency(GDependency&&) = default;
+	DefDeCopyAssignment(GDependency)
+	DefDeMoveAssignment(GDependency)
 
 	DefConverter(const T&, *ptr)
 	DefMutableConverter(T&, *ptr)
@@ -292,7 +292,7 @@ public:
 		else if(!ptr.unique())
 			ptr = PointerType(new T(*ptr));
 
-		YAssert(is_null(ptr),
+		YAssert(is_not_null(ptr),
 			"Null pointer found @ GDependency::GetCopyOnWritePtr;");
 
 		return ptr;

@@ -8,15 +8,15 @@
 	understand and accept it fully.
 */
 
-/*!	\file yfocus.h
+/*!	\file yfocus.hpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r2502;
+\version r2509;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-09-10 04:04 +0800;
+	2011-09-13 23:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef YSL_INC_UI_YFOCUS_H_
-#define YSL_INC_UI_YFOCUS_H_
+#ifndef YSL_INC_UI_YFOCUS_HPP_
+#define YSL_INC_UI_YFOCUS_HPP_
 
 #include "ycomp.h"
 
@@ -49,8 +49,7 @@ public:
 	GFocusResponser(const GFocusResponser&)
 		: pFocusing()
 	{}
-	inline
-	GFocusResponser(GFocusResponser&&) = default;
+	inline DefDeMoveCtor(GFocusResponser)
 	virtual DefClone(GFocusResponser, Clone)
 	virtual DefEmptyDtor(GFocusResponser)
 

@@ -12,12 +12,12 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1470;
+\version r1472;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-09-08 12:55 +0800;
+	2011-09-13 23:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -171,7 +171,7 @@ public:
 	\brief 负运算：取与原点对称的元素。
 	*/
 	Point
-	operator-() 
+	operator-()
 	{
 		return Point(-X, -Y);
 	}
@@ -544,8 +544,7 @@ public:
 	*/
 	Rect(SPos, SPos, SDst, SDst);
 
-	inline Rect&
-	operator=(const Rect&) = default;
+	inline DefDeCopyAssignment(Rect)
 	Rect&
 	operator=(const Point&);
 	Rect&

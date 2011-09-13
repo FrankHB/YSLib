@@ -11,12 +11,12 @@
 /*!	\file cast.hpp
 \ingroup YCLib
 \brief C++ 转换模板类。
-\version 0.1634;
+\version r1635;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-12-15 08:13:18 +0800; 
+	2010-12-15 08:13:18 +0800;
 \par 修改时间:
-	2011-05-03 15:06 +0800;
+	2011-09-13 23:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

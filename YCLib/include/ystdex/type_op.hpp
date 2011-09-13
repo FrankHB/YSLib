@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YCLib
 \brief C++ 类型操作模板类。
-\version 0.1140;
+\version r1141;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2011-04-14 08:54:25 +0800; 
+	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2011-06-24 21:06 +0800;
+	2011-09-13 23:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

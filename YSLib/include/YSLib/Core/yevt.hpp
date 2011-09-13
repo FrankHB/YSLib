@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4548;
+\version r4584;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-09-10 03:08 +0800;
+	2011-09-14 00:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,10 +82,8 @@ private:
 	Comparer comp_eq; //!< 比较函数：相等关系。
 
 public:
-	inline
-	GHEvent(const GHEvent&) = default;
-	inline
-	GHEvent(GHEvent&&) = default;
+	inline DefDeCopyCtor(GHEvent)
+	inline DefDeMoveCtor(GHEvent)
 	/*!
 	\brief 构造：使用函数指针。
 	\note 匹配函数引用。
@@ -146,13 +144,11 @@ public:
 			_type, void, _tEventArgs&&, _tSender>>::AreEqual)
 	{}
 
-	inline GHEvent&
-	operator=(const GHEvent&) = default;
+	inline DefDeCopyAssignment(GHEvent)
 	/*!
 	\brief 转移赋值：默认实现。
 	*/
-	inline GHEvent&
-	operator=(GHEvent&&) = default;
+	inline DefDeMoveAssignment(GHEvent)
 
 	inline bool
 	operator==(const GHEvent& h) const
@@ -211,19 +207,16 @@ public:
 	\brief 无参数构造：默认实现。
 	\note 得到空实例。
 	*/
-	inline
-	GEvent() = default;
+	inline DefDeCtor(GEvent)
 	/*!
 	\brief 复制构造：默认实现。
 	\note 深复制。
 	*/
-	inline
-	GEvent(const GEvent&) = default;
+	inline DefDeCopyCtor(GEvent);
 	/*!
 	\brief 转移构造：默认实现。
 	*/
-	inline
-	GEvent(GEvent&&) = default;
+	inline DefDeMoveCtor(GEvent);
 
 private:
 	/*!
@@ -248,8 +241,7 @@ public:
 	/*!
 	\brief 转移赋值：默认实现。
 	*/
-	inline GEvent&
-	operator=(GEvent&&) = default;
+	inline DefDeMoveAssignment(GEvent)
 	/*!
 	\brief 赋值：覆盖事件响应：使用事件处理器。
 	*/
@@ -635,15 +627,14 @@ class GEventMap
 public:
 	typedef _tEventSpace ID;
 	typedef GIHEvent<_tSender, EventArgs> ItemType;
-	typedef unique_ptr<ItemType> PointerType;
+	typedef unique_ptr<ItemType> PointerType; //!< 指针类型。
 	typedef pair<ID, PointerType> PairType;
-	typedef map<ID, PointerType> MapType;
-
-private:
-	typedef pair<typename MapType::iterator, bool> InternalPairType; \
+	typedef map<ID, PointerType> MapType; //!< 映射表类型。
+	typedef pair<typename MapType::iterator, bool> SearchResult; \
 		//!< 搜索表结果类型。
 
-	mutable MapType m_map; //!< 映射表。
+private:
+	MapType m_map; //!< 映射表，其中的所有指针值应保证非空。
 
 public:
 	/*!
@@ -662,60 +653,26 @@ public:
 	/*!
 	\brief 转移构造：默认实现。
 	*/
-	inline
-	GEventMap(GEventMap&&) = default;
+	inline DefDeMoveCtor(GEventMap)
 
 	/*!
 	\brief 转移赋值：默认实现。
 	*/
-	inline GEventMap&
-	operator=(GEventMap&&) = default;
+	inline DefDeMoveAssignment(GEventMap)
 
 	/*!
-	\brief 访问映射表数据。
-	\throw 参数越界。
+	\brief 访问映射表的映射项。
+	\throw std::out_of_range 参数越界。
 	\note 仅抛出以上异常。
 	*/
-	inline PDefH1(PointerType&, at, const ID& k) const ythrow(std::out_of_range)
-		ImplRet(this->m_map.at(k))
-
-	/*!
-	\brief 取指定 id 对应的 _tEventHandler 类型事件。
-	*/
-	template<class _tEventHandler>
-	typename EventT(_tEventHandler)&
-	GetEvent(const ID& id) const
+	inline ItemType&
+	at(const ID& id) const ythrow(std::out_of_range)
 	{
-		typedef typename GSEvent<_tEventHandler>::EventType
-			EventType;
+		const auto& p(this->m_map.at(id));
 
-		auto pr(Search(id));
+		YAssert(is_not_null(p), "Null pointer found @ GEventMap::at;");
 
-		if(pr.second)
-			pr.first = this->m_map.insert(pr.first, PairType(id,
-				PointerType(new GEventWrapper<EventType>())));
-		return dynamic_cast<EventType&>(*pr.first->second);
-	}
-
-	template<class _tEventHandler>
-	inline size_t
-	DoEvent(const ID& id, typename _tEventHandler::SenderType& sender,
-		typename _tEventHandler::EventArgsType& e) const
-	{
-		return DoEvent(id, sender, std::move(e));
-	}
-	template<class _tEventHandler>
-	size_t
-	DoEvent(const ID& id, typename _tEventHandler::SenderType& sender,
-		typename _tEventHandler::EventArgsType&& e) const
-	{
-		typedef typename GSEvent<_tEventHandler>::EventType
-			EventType;
-
-		auto pr(Search(id));
-
-		return pr.second ? 0
-			: dynamic_cast<EventType&>(*pr.first->second)(sender, std::move(e));
+		return *p;
 	}
 
 	/*!
@@ -729,17 +686,26 @@ public:
 
 	/*!
 	\brief 插入映射项。
+	\note 参数为空指针时忽略。
 	\return 是否插入成功。
 	*/
 	bool
 	Insert(const ID& id, PointerType&& p)
 	{
-		return m_map.insert(PairType(id, std::move(p))).second;
+		return p ? m_map.insert(PairType(id, std::move(p))).second : false;
+	}
+	/*!
+	\brief 插入映射项。
+	\warning 不检查参数有效性。
+	*/
+	inline typename MapType::iterator
+	Insert(typename MapType::iterator i, PairType&& pr)
+	{
+		return m_map.insert(i, std::move(pr));
 	}
 
-private:
-	inline PDefH1(InternalPairType, Search, const ID& k) const
-		ImplRet(ystdex::search_map(this->m_map, k))
+	inline PDefH1(SearchResult, Search, const ID& id)
+		ImplRet(ystdex::search_map(this->m_map, id))
 };
 
 //! \brief 定义扩展事件类。

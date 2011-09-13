@@ -15,12 +15,12 @@
 /*!	\file chrlib.h
 \ingroup CHRLib
 \brief CHRLib 库配置文件。
-\version 0.1439;
+\version r1440;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-17 17:52:35 +0800; 
+	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-04-20 10:49 +0800;
+	2011-09-13 23:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

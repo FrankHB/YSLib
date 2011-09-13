@@ -11,12 +11,12 @@
 /*!	\file ybase.h
 \ingroup Adaptor
 \brief 通用基础设施。
-\version r2847;
+\version r2904;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-09-10 02:51 +0800;
+	2011-09-11 21:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -296,9 +296,38 @@ _t type
 #define DefEmptyDtor(_t) \
 	~_t() \
 	{}
-
 #define ImplEmptyDtor(_t) \
 	inline _t::DefEmptyDtor(_t)
+
+#define DefDeCtor(_t) \
+	_t() = default;
+#define DefDelCtor(_t) \
+	_t() = delete;
+
+#define DefDeCopyCtor(_t) \
+	_t(const _t&) = default;
+#define DefDelCopyCtor(_t) \
+	_t(const _t&) = delete;
+
+#define DefDeMoveCtor(_t) \
+	_t(_t&&) = default;
+#define DefDelMoveCtor(_t) \
+	_t(_t&&) = delete;
+
+#define DefDeDtor(_t) \
+	~_t() = default;
+#define DefDelDtor(_t) \
+	~_t() = delete;
+
+#define DefDeCopyAssignment(_t) \
+	_t& operator=(const _t&) = default;
+#define DefDelCopyAssignment(_t) \
+	_t& operator=(const _t&) = delete;
+
+#define DefDeMoveAssignment(_t) \
+	_t& operator=(_t&&) = default;
+#define DefDelMoveAssignment(_t) \
+	_t& operator=(_t&&) = delete;
 
 #define DefConverter(_t, _e) \
 	operator _t() const ynothrow \

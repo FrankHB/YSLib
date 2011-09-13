@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5073;
+\version r5079;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-05 23:16 +0800;
+	2011-09-12 23:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,6 @@
 
 
 #include <Shells.h>
-#include <YSLib/UI/progress.h>
 
 ////////
 //测试用声明：全局资源定义。
@@ -200,81 +199,6 @@ YSL_END_NAMESPACE(YReader)
 
 
 YSL_BEGIN
-
-using namespace Components;
-using namespace Drawing;
-
-YSL_BEGIN_NAMESPACE(Shells)
-
-YMainShell::YMainShell()
-	: ShlDS(),
-	lblTitle(Rect(50, 20, 100, 22)),
-	lblStatus(Rect(60, 80, 80, 22)),
-	lblDetails(Rect(30, 20, 160, 22))
-{}
-
-int
-YMainShell::OnActivated(const Message& msg)
-{
-	ParentType::OnActivated(msg);
-
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
-
-	platform::YDebugSetStatus(true);
-
-	dsk_up += lblTitle;
-	dsk_up += lblStatus;
-	dsk_dn += lblDetails;
-//	dsk_up.GetBackgroundImagePtr() = FetchImage(1);
-	dsk_up.BackColor = Color(240, 216, 192);
-//	dsk_dn.BackColor = Color(240, 216, 240);
-	dsk_dn.BackColor = FetchGUIShell().Colors[Styles::Desktop];
-	lblTitle.Text = YApplication::ProductName;
-	lblStatus.Text = "Loading...";
-	lblDetails.Text = _ustr("初始化中，请稍后……");
-	lblDetails.ForeColor = ColorSpace::White;
-	lblDetails.SetTransparent(true);
-	SetInvalidationOf(dsk_up);
-	UpdateToScreen();
-	//初始化所有图像资源。
-
-	auto& pb(*new ProgressBar(Rect(8, 168, 240, 16), 10));
-
-	dsk_up += pb;
-	for(size_t i(0); i < 10; ++i)
-	{
-		pb.SetValue(i);
-//		Invalidate(pb);
-		dsk_up.BackColor = Color(255 - i * 255 / 10, 216, 192);
-		SetInvalidationOf(dsk_up);
-		Invalidate(dsk_up);
-		Validate(dsk_up);
-		dsk_up.Update();
-//		dsk_up.Refresh(FetchContext(dsk_up), Point::Zero,
-//			Rect(Point::Zero, dsk_up.GetSize()));
-		YReader::FetchImage(i);
-	}
-	pb.SetValue(10);
-	Invalidate(dsk_up);
-	Validate(dsk_up);
-	dsk_up.Update();
-	dsk_up -= pb;
-	delete &pb;
-	YReader::SetShellToStored<YReader::ShlExplorer>();
-	return 0;
-}
-
-int
-YMainShell::OnDeactivated(const Message& msg)
-{
-	reset(GetDesktopUp().GetBackgroundImagePtr());
-	reset(GetDesktopDown().GetBackgroundImagePtr());
-	ParentType::OnDeactivated(msg);
-	return 0;
-}
-
-YSL_END_NAMESPACE(Shells)
 
 void
 ReleaseShells()
@@ -955,7 +879,7 @@ ShlExplorer::ShowString(const char* s)
 void
 ShlExplorer::OnClick_btnTest(TouchEventArgs&&)
 {
-	YAssert(is_null(pWndTest), "err: pWndTest is null;");
+	YAssert(is_not_null(pWndTest), "err: pWndTest is null;");
 
 	SwitchVisible(*pWndTest);
 /*	if(fbMain.IsSelected())
@@ -1017,7 +941,7 @@ ShlExplorer::OnClick_ShowWindow(IWidget&, TouchEventArgs&&)
 {
 	auto& pWnd(FetchShell<ShlExplorer>().pWndExtra);
 
-	YAssert(is_null(pWnd), "err: pWndExtra is null;");
+	YAssert(is_not_null(pWnd), "err: pWndExtra is null;");
 
 	SwitchVisible(*pWnd);
 }

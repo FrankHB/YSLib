@@ -11,12 +11,12 @@
 /*!	\file progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r1229;
+\version r1231;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-20 08:57:48 +0800;
 \par 修改时间:
-	2011-09-01 02:07 +0800;
+	2011-09-11 22:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,6 +43,7 @@ public:
 
 	explicit
 	ProgressBar(const Rect& = Rect::Empty, u16 = 0xFF);
+	inline DefDeMoveCtor(ProgressBar)
 
 	DefSetter(ValueType, MaxValue, max_value)
 	DefSetter(ValueType, Value, value)

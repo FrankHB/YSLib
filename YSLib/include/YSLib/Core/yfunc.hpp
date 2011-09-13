@@ -11,12 +11,12 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数对象封装。
-\version r1744;
+\version r1748;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2011-09-08 12:50 +0800;
+	2011-09-13 23:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -107,7 +107,7 @@ public:
 		{
 			try
 			{
-				return dynamic_cast<_type&>(_r).*_m_ptr._mf_ptr(_x);				
+				return dynamic_cast<_type&>(_r).*_m_ptr._mf_ptr(_x);
 			}
 			catch(std::bad_cast&)
 			{}
@@ -269,7 +269,7 @@ struct InversedCurrying
 /* \brief 多态函数对象基类。
 struct PolymorphicFunctorBase
 {
-	DefEmptyDtor(PolymorphicFunctorBase)
+	DefDeDtor(PolymorphicFunctorBase)
 };*/
 
 

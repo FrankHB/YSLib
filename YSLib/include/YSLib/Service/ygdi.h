@@ -11,12 +11,12 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r4060;
+\version r4063;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-09-10 03:36 +0800;
+	2011-09-11 21:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -165,7 +165,7 @@ public:
 	\brief 无参数构造：默认实现。
 	\note 零初始化。
 	*/
-	BitmapBuffer() = default;
+	DefDeCtor(BitmapBuffer)
 	/*!
 	\brief 构造：使用指定位图指针和大小。
 	*/
@@ -174,7 +174,7 @@ public:
 	\brief 析构：释放资源。
 	*/
 	BitmapBuffer(const BitmapBuffer&);
-	BitmapBuffer(BitmapBuffer&&) = default;
+	DefDeMoveCtor(BitmapBuffer)
 	virtual DefClone(BitmapBuffer, Clone)
 	virtual
 	~BitmapBuffer();
@@ -232,7 +232,7 @@ public:
 	\brief 析构：释放资源。
 	*/
 	BitmapBufferEx(const BitmapBufferEx&);
-	BitmapBufferEx(BitmapBufferEx&&) = default;
+	DefDeMoveCtor(BitmapBufferEx)
 	virtual DefClone(BitmapBufferEx, Clone)
 	virtual
 	~BitmapBufferEx();

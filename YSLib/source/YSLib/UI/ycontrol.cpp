@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4480;
+\version r4493;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-09-10 20:59 +0800;
+	2011-09-14 01:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,11 +26,31 @@
 
 #include "ygui.h"
 #include "yuicont.h"
-#include "../Core/ystatic.hpp"
+#include "../Core/ystorage.hpp"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
+
+VisualEventMap::ItemType&
+GetEvent(VisualEventMap& m, const VisualEvent& id,
+	VisualEventMap::PointerType(&f)())
+{
+	auto pr(m.Search(id));
+
+	if(pr.second)
+		pr.first = m.Insert(pr.first, VisualEventMap::PairType(id, f()));
+	return *pr.first->second;
+}
+
+
+VisualEventMap::ItemType&
+WidgetController::GetItemRef(const VisualEvent& id,
+	VisualEventMap::PointerType(&f)())
+{
+	return GetEvent(EventMap, id, f);
+}
+
 
 void
 Enable(IWidget& wgt, bool b)

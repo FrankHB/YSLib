@@ -11,12 +11,12 @@
 /*!	\file panel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r1306;
+\version r1310;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:40:51 +0800;
 \par 修改时间:
-	2011-09-08 02:24 +0800;
+	2011-09-11 22:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,13 +44,7 @@ public:
 	*/
 	explicit
 	Panel(const Rect& = Rect::Empty);
-
-	/*!
-	\brief 析构：空实现。
-	*/
-	virtual
-	~Panel()
-	{}
+	inline DefDeMoveCtor(Panel)
 
 	virtual void
 	operator+=(IWidget&);

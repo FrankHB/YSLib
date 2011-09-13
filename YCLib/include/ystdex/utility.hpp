@@ -8,15 +8,15 @@
 	understand and accept it fully.
 */
 
-/*!	\file util.hpp
+/*!	\file utility.hpp
 \ingroup YCLib
 \brief 函数对象、算法和实用程序。
-\version 0.1664;
+\version r1668;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-06-19 03:06 +0800;
+	2011-09-12 08:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -449,9 +449,9 @@ namespace ystdex
 	/*!
 	\ingroup Algorithms
 	\brief 按指定键值搜索指定映射。
-	\return 一个用于表示结果的 std::pair 对象，其 first 成员为迭代器，
-		second 成员表示是否需要插入。
-	\note 行为同 std::map::operator[] 。
+	\return 一个用于表示结果的 std::pair 对象，其成员 first 为迭代器，
+		second 表示是否不存在而需要插入。
+	\note 行为类似 std::map::operator[] 。
 	*/
 	template<class _tMap>
 	std::pair<typename _tMap::iterator, bool>

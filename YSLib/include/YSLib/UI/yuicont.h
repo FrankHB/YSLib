@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2557;
+\version r2561;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-09-08 01:28 +0800;
+	2011-09-11 22:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -169,7 +169,8 @@ protected:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
-	MUIContainer() = default;
+	DefDeCtor(MUIContainer)
+	inline DefDeMoveCtor(MUIContainer)
 
 	/*!
 	\brief 向部件组添加部件。

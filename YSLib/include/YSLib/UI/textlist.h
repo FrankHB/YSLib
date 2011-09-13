@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1361;
+\version r1363;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-09-01 01:51 +0800;
+	2011-09-11 22:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -79,6 +79,7 @@ public:
 		const shared_ptr<ListType>& = shared_ptr<ListType>(),
 		pair<Color, Color> = FetchGUIShell().Colors.GetPair(Styles::Highlight,
 		Styles::HighlightText));
+	inline DefDeMoveCtor(TextList)
 
 	DefPredicateMember(Selected, viewer)
 	PDefH1(bool, Contains, ViewerType::SizeType i)

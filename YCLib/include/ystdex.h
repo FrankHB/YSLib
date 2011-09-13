@@ -11,12 +11,12 @@
 /*!	\file ystdex.h
 \ingroup YCLib
 \brief YCLib C++ 标准库扩展。
-\version 0.2322;
+\version r2323;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-12-27 17:31:14 +0800; 
+	2009-12-27 17:31:14 +0800;
 \par 修改时间:
-	2011-06-24 19:45 +0800;
+	2011-09-13 23:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

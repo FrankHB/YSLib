@@ -11,12 +11,12 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2407;
+\version r2410;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-09-09 14:47 +0800;
+	2011-09-11 21:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,11 +68,11 @@ public:
 	/*!
 	\brief 复制构造：默认实现。
 	*/
-	Message(const Message&) = default;
+	DefDeCopyCtor(Message)
 	/*!
 	\brief 转移构造：默认实现。
 	*/
-	Message(Message&&) = default;
+	DefDeMoveCtor(Message)
 
 	/*
 	\brief 复制赋值。
@@ -191,8 +191,7 @@ public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
-	inline
-	MessageQueue() = default;
+	inline DefDeCtor(MessageQueue)
 	virtual DefEmptyDtor(MessageQueue)
 
 	DefPredicate(Empty, q.empty()) //!< 判断消息队列是否为空。

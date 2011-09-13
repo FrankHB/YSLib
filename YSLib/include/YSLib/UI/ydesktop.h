@@ -11,12 +11,12 @@
 /*!	\file ydesktop.h
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r2335;
+\version r2337;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-09-03 14:53 +0800;
+	2011-09-11 22:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -48,6 +48,7 @@ public:
 	explicit
 	Desktop(Devices::Screen&, Color = Drawing::ColorSpace::Black,
 		const shared_ptr<Drawing::Image>& = shared_ptr<Drawing::Image>());
+	inline DefDeMoveCtor(Desktop)
 
 	DefGetter(const Devices::Screen&, Screen, screen) //!< 取屏幕对象。
 	DefGetter(BitmapPtr, BackgroundPtr, screen.GetCheckedBufferPtr()) \

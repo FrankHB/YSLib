@@ -11,12 +11,12 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2983;
+\version r2987;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-05 22:06:05 +0800;
 \par 修改时间:
-	2011-09-04 21:30 +0800;
+	2011-09-11 21:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,18 +44,15 @@ public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
-	inline
-	String() = default;
+	inline DefDeCtor(String)
 	/*!
 	\brief 复制构造：默认实现。
 	*/
-	inline
-	String(const String&) = default;
+	inline DefDeCopyCtor(String)
 	/*!
 	\brief 转移构造：默认实现。
 	*/
-	inline
-	String(String&&) = default;
+	inline DefDeMoveCtor(String)
 	/*!
 	\brief 构造：使用标准字符指针表示的字符串。
 	*/
@@ -69,8 +66,7 @@ public:
 	\brief 构造：使用 YSLib 基本字符串。
 	*/
 	String(const u16string&);
-	inline
-	~String() = default;
+	inline DefDeDtor(String)
 };
 
 inline

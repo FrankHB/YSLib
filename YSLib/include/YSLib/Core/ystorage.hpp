@@ -9,28 +9,38 @@
 	understand and accept it fully.
 */
 
-/*!	\file ystatic.hpp
+/*!	\file ystorage.hpp
 \ingroup Core
-\brief 全局静态类型存储管理。
-\version r1347;
+\brief 全局公用存储管理。
+\version r1352;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-14 20:17:34 +0800;
 \par 修改时间:
-	2011-09-08 12:49 +0800;
+	2011-09-13 23:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Core::YStatic;
+	YSLib::Core::YStorage;
 */
 
 
-#ifndef INCLUDED_CORE_YSTATIC_HPP_
-#define INCLUDED_CORE_YSTATIC_HPP_
+#ifndef INCLUDED_CORE_YSTORAGE_HPP_
+#define INCLUDED_CORE_YSTORAGE_HPP_
 
 #include "ycutil.h"
 
 YSL_BEGIN
+
+/*!
+\brief 取指定类型的默认构造的对象。
+*/
+PDefTH1(_type)
+inline _type
+FetchInstance()
+{
+	return _type();
+}
 
 /*!
 \brief 取指定类型的静态默认对象。

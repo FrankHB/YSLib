@@ -11,12 +11,12 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1728;
+\version r1730;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-09-01 01:52 +0800;
+	2011-09-11 22:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,6 +65,7 @@ public:
 	explicit
 	Menu(const Rect& = Rect::Empty,
 		const shared_ptr<ListType>& = shared_ptr<ListType>(), ID = 0);
+	inline DefDeMoveCtor(Menu)
 
 	/*!
 	\brief 访问索引指定的子菜单。

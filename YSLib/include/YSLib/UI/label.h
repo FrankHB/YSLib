@@ -11,12 +11,12 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2106;
+\version r2109;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-09-01 02:07 +0800;
+	2011-09-11 21:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,6 +65,7 @@ protected:
 	explicit
 	MLabel(const Drawing::Font& = Drawing::Font::GetDefault(),
 		TextAlignmentStyle = Left);
+	inline DefDeMoveCtor(MLabel)
 
 	/*!
 	\brief 绘制文本。
@@ -95,6 +96,7 @@ public:
 	explicit
 	Label(const Rect& = Rect::Empty,
 		const Drawing::Font& = Drawing::Font::GetDefault());
+	inline DefDeMoveCtor(Label)
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
@@ -131,6 +133,7 @@ protected:
 	explicit
 	MTextList(const shared_ptr<ListType>& = shared_ptr<ListType>(),
 		const Drawing::Font& = Drawing::Font::GetDefault());
+	inline DefDeMoveCtor(MTextList)
 
 	//void
 	//PaintTextList(Widget&, const Point&);

@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2731;
+\version r2732;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-12 22:14:28 +0800; 
+	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2011-08-18 13:56 +0800;
+	2011-09-13 23:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -480,7 +480,7 @@ namespace platform
 		\brief 判断文件系统节点有效性。
 		*/
 		bool
-		IsValid() const; 
+		IsValid() const;
 		/*!
 
 		\brief 从节点状态信息判断是否为目录。

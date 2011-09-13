@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1845;
+\version r1847;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-09-01 01:50 +0800;
+	2011-09-12 23:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,9 +70,9 @@ ShlDS::ShlDS(const shared_ptr<Desktop>& h_dsk_up,
 int
 ShlDS::OnActivated(const Message&)
 {
-	YAssert(is_null(hDskUp),
+	YAssert(is_not_null(hDskUp),
 		"Null up desktop handle found @ ShlDS::ShlDS;");
-	YAssert(is_null(hDskDown),
+	YAssert(is_not_null(hDskDown),
 		"Null down desktop handle found @ ShlDS::ShlDS;");
 
 	ResetGUIStates();

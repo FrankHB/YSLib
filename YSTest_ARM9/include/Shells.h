@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3408;
+\version r3412;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-04 23:30 +0800;
+	2011-09-04 20:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,6 +32,7 @@
 #define INCLUDED_SHELLS_H_
 
 #include <YSLib/Helper/shlds.h>
+#include <YSLib/UI/progress.h>
 #include "DSReader.h"
 
 YSL_BEGIN

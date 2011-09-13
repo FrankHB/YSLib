@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11319;
+\version r11365;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-09-10 02:05 +0800;
+	2011-09-12 23:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -248,6 +248,19 @@ ImplBodyMember2(_m, _n, _a1, _a2)
 ImplBodyMember3(_m, _n, _a1, _a2, _a3)
 ImplBodyMember4(_m, _n, _a1, _a2, _a3, _a4)
 DefEmptyDtor(_t)
+ImplEmptyDtor(_t)
+DefDeCtor(_t)
+DefDelCtor(_t)
+DefDeCopyCtor(_t)
+DefDelCopyCtor(_t)
+DefDeMoveCtor(_t)
+DefDelMoveCtor(_t)
+DefDeDtor(_t)
+DefDelDtor(_t)
+DefDeCopyAssignment(_t),
+DefDelCopyAssignment(_t),
+DefDeMoveAssignment(_t),
+DefDelMoveAssignment(_t)
 DefConverter(_t, _e)
 DefConverterBase(_t, _b)
 DefConverterMember(_t, _m)
@@ -630,7 +643,7 @@ namespace IO
 namespace Shells
 {
 	$unit Core::YShell;
-	$unit Shell::YComponent;
+	$unit UI::YComponent;
 } //namespace Shells;
 
 namespace Timers
@@ -918,6 +931,7 @@ $header Adaptor::YReference
 	using std::static_pointer_cast;
 	using std::unique_ptr;
 	using std::weak_ptr;
+	using ystdex::is_not_null;
 	using ystdex::is_null;
 	using ystdex::raw;
 	using ystdex::reset;
@@ -962,12 +976,16 @@ $header Core::YGDI : Core::YGDIBase
 
 //$header Core::YResource : Core::YGDI;
 
-$header Shell::YComponent : YMessage
+$header UI::YComponent : YMessage
 {
 	using Components::IWidget;
-} //$header Shell::YComponent;
+} //$header UI::YComponent;
 
-$header Shell::YWidget : Shell::YComponent, Core::YResource
+$header UI::YWidgetEvent : UI::YComponent
+{
+} //$header UI::YWidgetEvent;
+
+$header UI::YWidget : UI::YComponent, Core::YResource, UI::YWidgetEvent
 {
 	namespace Components
 	{
@@ -976,15 +994,15 @@ $header Shell::YWidget : Shell::YComponent, Core::YResource
 		using Drawing::Point, Drawing::Vec, Drawing::Size, Drawing::Rect;
 		using Drawing::Graphics;
 	} //namespace Components;
-} //$header Shell::YWidget;
+} //$header UI::YWidget;
 
-$header Shell::YControl : Shell::YWidget
+$header UI::YControl : UI::YWidgetEvent
 {
 	namespace Components
 	{
 		using namespace Drawing;
 	} //namespace Components;
-} //$header Shell::YControl;
+} //$header UI::YControl;
 
 $header Helper::YGlobal : Core::YGDIBase
 {

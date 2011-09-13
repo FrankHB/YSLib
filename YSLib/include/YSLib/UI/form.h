@@ -11,12 +11,12 @@
 /*!	\file form.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗体。
-\version r1543;
+\version r1546;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-09-01 01:53 +0800;
+	2011-09-11 21:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,12 +46,7 @@ public:
 	Form(const Rect& = Rect::Empty,
 		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
 		IWidget* = nullptr);
-	/*!
-	\brief 析构：空实现。
-	*/
-	virtual
-	~Form()
-	{}
+	inline DefDeMoveCtor(Form)
 
 /*	virtual void
 	SetSize(SDst, SDst);

@@ -16,12 +16,12 @@
 /*!	\file ycomp.h
 \ingroup UI
 \brief 平台无关的 Shell 组件。
-\version r3172;
+\version r3178;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2011-09-04 00:09 +0800;
+	2011-09-12 19:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -47,13 +47,13 @@ YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Components)
 
-class WidgetController;
-
+PDeclInterface(IController)
 PDeclInterface(IWidget)
 
 class AWindow;
 class AFrame;
 class Frame;
+class WidgetController;
 
 using Drawing::BufferedWidgetRenderer;
 using Drawing::WidgetRenderer;

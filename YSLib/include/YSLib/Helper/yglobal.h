@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2403;
+\version 0.2407;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-06-28 16:49 +0800;
+	2011-09-12 23:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -224,7 +224,7 @@ public:
 inline Devices::DSScreen&
 YDSApplication::GetScreenUp() const ynothrow
 {
-	YAssert(is_null(hScreenUp), "Fatal error:"
+	YAssert(is_not_null(hScreenUp), "Fatal error:"
 		" null screen handle found @ YDSApplication::GetScreenUp;");
 
 	return *hScreenUp;
@@ -232,7 +232,7 @@ YDSApplication::GetScreenUp() const ynothrow
 inline Devices::DSScreen&
 YDSApplication::GetScreenDown() const ynothrow
 {
-	YAssert(is_null(hScreenDown), "Fatal error:"
+	YAssert(is_not_null(hScreenDown), "Fatal error:"
 		" null screen handle found @ YDSApplication::GetScreenDown;");
 
 	return *hScreenDown;
@@ -240,7 +240,7 @@ YDSApplication::GetScreenDown() const ynothrow
 inline Desktop&
 YDSApplication::GetDesktopUp() const ynothrow
 {
-	YAssert(is_null(hDesktopUp), "Fatal error:"
+	YAssert(is_not_null(hDesktopUp), "Fatal error:"
 		" null desktop handle found @ YDSApplication::GetDesktopUp;");
 
 	return *hDesktopUp;
@@ -248,7 +248,7 @@ YDSApplication::GetDesktopUp() const ynothrow
 inline Desktop&
 YDSApplication::GetDesktopDown() const ynothrow
 {
-	YAssert(is_null(hDesktopDown), "Fatal error:"
+	YAssert(is_not_null(hDesktopDown), "Fatal error:"
 		" null desktop handle found @ YDSApplication::GetDesktopDown;");
 
 	return *hDesktopDown;

@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4661;
+\version r4665;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-09-08 02:24 +0800;
+	2011-09-11 22:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -85,6 +85,7 @@ public:
 	explicit
 	AWindow(const Rect& = Rect::Empty,
 		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()));
+	inline DefDeMoveCtor(AWindow)
 
 	using MWindow::GetBackgroundImagePtr;
 	using MWindow::GetBackgroundPtr;
@@ -128,6 +129,7 @@ public:
 	explicit
 	AFrame(const Rect& = Rect::Empty,
 		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()));
+	inline DefDeMoveCtor(AFrame)
 
 	virtual void
 	operator+=(IWidget&);

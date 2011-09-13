@@ -11,12 +11,12 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2171;
+\version r2174;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-09-04 21:31 +0800;
+	2011-09-11 21:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -67,25 +67,21 @@ public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
-	inline
-	Path() = default;
+	inline DefDeCtor(Path)
 	/*!
 	\brief 复制构造：默认实现。
 	*/
-	inline
-	Path(const Path&) = default;
+	inline DefDeCopyCtor(Path)
 	/*!
 	\brief 转移构造：默认实现。
 	*/
-	inline
-	Path(Path&&) = default;
+	inline DefDeMoveCtor(Path)
 	Path(const ValueType*);
 	Path(const NativePathCharType*);
 	Path(const NativeStringType&);
 	template<class _tString>
 	Path(const _tString&);
-	inline
-	~Path() = default;
+	inline DefDeDtor(Path)
 
 	//追加路径。
 	Path&

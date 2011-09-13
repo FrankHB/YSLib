@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3188;
+\version r3208;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-09-08 01:41 +0800;
+	2011-09-13 23:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,7 @@
 
 #include "uicontx.h"
 #include "button.h"
-#include "yfocus.h"
+#include "yfocus.hpp"
 //#include "../Core/yres.h"
 //#include "ystyle.h"
 
@@ -133,6 +133,7 @@ public:
 	*/
 	explicit
 	ATrack(const Rect& = Rect::Empty, SDst = 8);
+	inline DefDeMoveCtor(ATrack)
 
 	DefPredicate(Horizontal, GetOrientation() == Horizontal)
 	DefPredicate(Vertical, GetOrientation() == Vertical)
@@ -352,6 +353,7 @@ public:
 	*/
 	explicit
 	HorizontalTrack(const Rect& = Rect::Empty, SDst = 8);
+	inline DefDeMoveCtor(HorizontalTrack)
 
 	ImplI1(ATrack)
 	DefGetter(Orientation, Orientation, Horizontal)
@@ -375,6 +377,7 @@ public:
 	*/
 	explicit
 	VerticalTrack(const Rect& = Rect::Empty, SDst = 8);
+	inline DefDeMoveCtor(VerticalTrack)
 
 	ImplI1(ATrack)
 	DefGetter(Orientation, Orientation, Vertical)
@@ -410,6 +413,7 @@ public:
 	*/
 	explicit
 	AScrollBar(const Rect& = Rect::Empty, SDst = 8, Orientation = Horizontal);
+	inline DefDeMoveCtor(AScrollBar)
 
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
@@ -419,7 +423,7 @@ public:
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 	/*!
 	\brief 取轨道引用。
-	\note 断言检查： is_null(pTrack) 。
+	\note 断言检查： is_not_null(pTrack) 。
 	*/
 	ATrack&
 	GetTrack() const ynothrow;
@@ -456,7 +460,7 @@ private:
 inline ATrack&
 AScrollBar::GetTrack() const ynothrow
 {
-	YAssert(is_null(pTrack),
+	YAssert(is_not_null(pTrack),
 		"Null widget pointer found @ AScrollBar::GetTrack;");
 
 	return *pTrack;
@@ -481,6 +485,7 @@ class HorizontalScrollBar : public AScrollBar
 public:
 	explicit
 	HorizontalScrollBar(const Rect& = Rect::Empty, SDst = 8);
+	inline DefDeMoveCtor(HorizontalScrollBar)
 
 public:
 	ImplI1(ATrack)
@@ -498,6 +503,7 @@ class VerticalScrollBar : public AScrollBar
 public:
 	explicit
 	VerticalScrollBar(const Rect& = Rect::Empty, SDst = 8);
+	inline DefDeMoveCtor(VerticalScrollBar)
 
 public:
 	ImplI1(ATrack)
@@ -519,6 +525,7 @@ protected:
 public:
 	explicit
 	ScrollableContainer(const Rect& = Rect::Empty);
+	inline DefDeMoveCtor(ScrollableContainer)
 
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。

@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version r7034;
+\version r7035;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-08-13 06:52 +0800;
+	2011-09-13 23:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -200,12 +200,12 @@ MovePen(TextState&, fchar_t);
 \brief 打印单个字符。
 */
 void
-RenderChar(const Graphics&, TextState&, fchar_t); 
+RenderChar(const Graphics&, TextState&, fchar_t);
 /*!
 \brief 打印单个字符。
 */
 void
-RenderChar(BitmapBufferEx&, TextState&, fchar_t); 
+RenderChar(BitmapBufferEx&, TextState&, fchar_t);
 
 
 /*!

@@ -11,12 +11,12 @@
 /*!	\file memory.hpp
 \ingroup YCLib
 \brief 存储和智能指针特性。
-\version 0.1122;
+\version r1146;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2011-05-14 12:25:13 +0800; 
+	2011-05-14 12:25:13 +0800;
 \par 修改时间:
-	2011-06-28 16:48 +0800;
+	2011-09-13 23:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,21 +38,42 @@ namespace ystdex
 	*/
 	//@{
 
-	/*!	\defgroup is_null Is Valid Pointer
+	/*!	\defgroup is_null Is Null Pointer
 	\brief 判断指针实例是否为空指针。
 	\tparam _tPointer 指针类型。
-	\pre _tPointer 能够转换为 bool 类型，当且仅当非空时为 true 。
+	\pre _tPointer 能转换为 bool 类型，当且仅当非空时为 true 。
 	*/
 	//@{
 	template<typename _tPointer>
 	inline bool
 	is_null(const _tPointer& p)
 	{
-		return static_cast<bool>(p);
+		return !static_cast<bool>(p);
 	}
 	template<typename _tPointer>
 	inline bool
 	is_null(_tPointer&& p)
+	{
+		return !static_cast<bool>(p);
+	}
+	//@}
+
+
+	/*!	\defgroup is_not_null Is Not Null Pointer
+	\brief 判断指针实例是否为空指针。
+	\tparam _tPointer 指针类型。
+	\pre _tPointer 能转换为 bool 类型，当且仅当空时为 true 。
+	*/
+	//@{
+	template<typename _tPointer>
+	inline bool
+	is_not_null(const _tPointer& p)
+	{
+		return static_cast<bool>(p);
+	}
+	template<typename _tPointer>
+	inline bool
+	is_not_null(_tPointer&& p)
 	{
 		return static_cast<bool>(p);
 	}
