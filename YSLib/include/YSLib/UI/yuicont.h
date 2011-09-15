@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2561;
+\version r2564;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-09-11 22:09 +0800;
+	2011-09-16 01:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -108,7 +108,7 @@ LocateForWidgetNode(IWidget& wgt, _fFetcher fetch_ptr)
 
 	_tWidget* const pNode(fetch_ptr(wgt));
 
-	return pNode ? LocateOffset(pNode, Point::Zero, &wgt) : Point::FullScreen;
+	return pNode ? LocateOffset(pNode, Point::Zero, &wgt) : Point::Invalid;
 }
 
 /*!

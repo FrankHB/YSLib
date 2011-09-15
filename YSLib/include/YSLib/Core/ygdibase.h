@@ -12,12 +12,12 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1472;
+\version r1584;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-09-13 23:12 +0800;
+	2011-09-16 02:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YSL_INC_CORE_YGDIBASE_H_
 
 #include "yexcept.h"
+#include <limits>
 
 YSL_BEGIN
 
@@ -38,324 +39,155 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 //前向声明。
 
-class BinaryGroup;
-class Point;
-class Vec;
 class Size;
 class Rect;
 
 
 //! \brief 屏幕二元组。
-class BinaryGroup
+PDefTH1(_type)
+class GBinaryGroup
 {
 public:
-	SPos X, Y; //!< 分量。
+	static const GBinaryGroup Zero; //!< 无参数构造参数构造的原点对象。
+	static const GBinaryGroup Invalid; //!< 无效（不在屏幕坐标系中）对象。
+
+	_type X, Y; //!< 分量。
 
 	/*!
 	\brief 无参数构造。
 	\note 零初始化。
 	*/
-	BinaryGroup();
+	inline
+	GBinaryGroup()
+		: X(0), Y(0)
+	{}
 	/*!
-	\brief 复制构造。
+	\brief 复制构造：默认实现。
 	*/
-	BinaryGroup(const BinaryGroup&);
+	DefDeCopyCtor(GBinaryGroup)
 	/*!
 	\brief 构造：使用 Size 对象。
 	*/
 	explicit
-	BinaryGroup(const Size&);
-	/*!
-	\brief 构造：使用二维向量。
-	*/
-	PDefTH1(_tVec)
-	inline explicit
-	BinaryGroup(const _tVec& v)
-	: X(v.X), Y(v.Y)
-	{}
+	GBinaryGroup(const Size&);
 	/*!
 	\brief 构造：使用两个标量。
 	*/
 	PDefTH2(_tScalar1, _tScalar2)
 	inline
-	BinaryGroup(_tScalar1 x, _tScalar2 y)
-	: X(x), Y(y)
+	GBinaryGroup(_tScalar1 x, _tScalar2 y)
+		: X(x), Y(y)
 	{}
 
 	/*!
 	\brief 负运算：取加法逆元。
 	*/
-	BinaryGroup
+	GBinaryGroup
 	operator-()
 	{
-		return BinaryGroup(-X, -Y);
+		return GBinaryGroup(-X, -Y);
 	}
 
-	DefGetter(SPos, X, X)
-	DefGetter(SPos, Y, Y)
-};
-
-inline
-BinaryGroup::BinaryGroup()
-	: X(0), Y(0)
-{}
-inline
-BinaryGroup::BinaryGroup(const BinaryGroup& b)
-	: X(b.X), Y(b.Y)
-{}
-
-/*!
-\brief 比较：相等关系。
-*/
-inline bool
-operator==(const BinaryGroup& a, const BinaryGroup& b)
-{
-	return a.X == b.X && a.Y == b.Y;
-}
-/*!
-\brief 比较：不等关系。
-*/
-inline bool
-operator!=(const BinaryGroup& a, const BinaryGroup& b)
-{
-	return !(a == b);
-}
-
-
-//! \brief 屏幕二维点（直角坐标表示）。
-class Point : public BinaryGroup
-{
-public:
-	static const Point Zero; //!< 无参数构造参数构造的原点对象。
-	static const Point FullScreen; \
-		//!< 无参数构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
-
-	/*!
-	\brief 无参数构造。
-	\note 零初始化。
-	*/
-	Point();
-	/*!
-	\brief 复制构造。
-	*/
-	Point(const Point&);
-	/*!
-	\brief 构造：使用 Size 对象。
-	*/
-	explicit
-	Point(const Size&);
-	/*!
-	\brief 构造：使用二维向量。
-	*/
-	PDefTH1(_tVec)
-	inline explicit
-	Point(const _tVec& v)
-		: BinaryGroup(v.X, v.Y)
-	{}
-	/*!
-	\brief 构造：使用两个标量。
-	*/
-	PDefTH2(_tScalar1, _tScalar2)
-	inline
-	Point(_tScalar1 x, _tScalar2 y)
-		: BinaryGroup(x, y)
-	{}
-
-	/*!
-	\brief 转换：屏幕二维向量。
-	\note 结果以原点为起点，该点为终点。
-	*/
-	operator Vec() const;
-
-	/*!
-	\brief 负运算：取与原点对称的元素。
-	*/
-	Point
-	operator-()
-	{
-		return Point(-X, -Y);
-	}
-	/*!
-	\brief 加法赋值：按屏幕二维向量平移。
-	*/
-	Point&
-	operator+=(const Vec&);
-	/*!
-	\brief 减法赋值：按屏幕二维向量的加法逆元平移。
-	*/
-	Point&
-	operator-=(const Vec&);
-
-	/*!
-	\biref 判断是否位于原点。
-	*/
-	DefPredicate(Origin, X == 0 && Y == 0)
-};
-
-inline
-Point::Point()
-	: BinaryGroup()
-{}
-inline
-Point::Point(const Point& p)
-	: BinaryGroup(p)
-{}
-
-
-//! \brief 屏幕二维向量（直角坐标表示）。
-class Vec : public BinaryGroup
-{
-public:
-	static const Vec Zero; //!< 无参数构造参数构造的零向量对象。
-	static const Vec FullScreen;
-		//无参数构造参数构造的由屏幕坐标系原点
-		//到屏幕右下角边界（不在屏幕坐标系中）对象。
-
-	/*!
-	\brief 无参数构造。
-	\note 零初始化。
-	*/
-	Vec();
-	/*!
-	\brief 复制构造。
-	*/
-	Vec(const Vec&);
-	/*!
-	\brief 构造：使用 Size 对象。
-	*/
-	explicit
-	Vec(const Size&);
-	/*!
-	\brief 构造：使用二维向量。
-	*/
-	PDefTH1(_tVec)
-	inline explicit
-	Vec(const _tVec& v)
-		: BinaryGroup(v.X, v.Y)
-	{}
-	/*!
-	\brief 构造：使用两个标量。
-	*/
-	PDefTH2(_tScalar1, _tScalar2)
-	inline
-	Vec(_tScalar1 x, _tScalar2 y)
-		: BinaryGroup(x, y)
-	{}
-
-	/*!
-	\brief 转换：屏幕二维点。
-	*/
-	DefConverter(Point, Point(X, Y))
-
-	/*!
-	\brief 负运算：返回加法逆元。
-	*/
-	Vec
-	operator-()
-	{
-		return Vec(-X, -Y);
-	}
 	/*!
 	\brief 加法赋值。
 	*/
-	Vec&
-	operator+=(const Vec& v)
+	GBinaryGroup&
+	operator+=(const GBinaryGroup& val)
 	{
-		X += v.X;
-		Y += v.Y;
+		X += val.X;
+		Y += val.Y;
 		return *this;
 	}
 	/*!
 	\brief 减法赋值。
 	*/
-	Vec&
-	operator-=(const Vec& v)
+	GBinaryGroup&
+	operator-=(const GBinaryGroup& val)
 	{
-		X -= v.X;
-		Y -= v.Y;
+		X -= val.X;
+		Y -= val.Y;
 		return *this;
 	}
+
+	DefGetter(_type, X, X)
+	DefGetter(_type, Y, Y)
+
+	DefSetter(_type, X, X)
+	DefSetter(_type, Y, Y)
+
+	/*!
+	\biref 判断是否是零元素。
+	*/
+	DefPredicate(Zero, X == 0 && Y == 0)
 };
 
-inline
-Vec::Vec()
-	: BinaryGroup()
-{}
-
-inline
-Vec::Vec(const Vec& v)
-	: BinaryGroup(v)
-{}
+PDefTH1(_type)
+const GBinaryGroup<_type> GBinaryGroup<_type>::Zero = GBinaryGroup<_type>();
+PDefTH1(_type)
+const GBinaryGroup<_type> GBinaryGroup<_type>::Invalid
+	= GBinaryGroup<_type>(std::numeric_limits<_type>::lowest(),
+		std::numeric_limits<_type>::lowest());
 
 
-inline
-Point::operator Vec() const
-{
-	return Vec(X, Y);
-}
-
-inline Point&
-Point::operator+=(const Vec& v)
-{
-	X += v.X;
-	Y += v.Y;
-	return *this;
-}
-inline Point&
-Point::operator-=(const Vec& v)
-{
-	X -= v.X;
-	Y -= v.Y;
-	return *this;
-}
-
-
-//屏幕点和二维向量二元运算。
+//屏幕二元组二元运算。
 
 /*!
-\brief 构造屏幕二维向量：使用起点 a 和终点 b 。
+\brief 比较：相等关系。
 */
-inline Vec
-operator-(const Point& a, const Point& b)
+PDefTH1(_type)
+inline bool
+operator==(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 {
-	return Vec(a.X - b.X, a.Y - b.Y);
+	return a.X == b.X && a.Y == b.Y;
 }
 
 /*!
-\brief 构造屏幕点：使用点 p 和偏移向量 d 。
+\brief 比较：不等关系。
 */
-inline Point
-operator+(const Point& p, const Vec& d)
+PDefTH1(_type)
+inline bool
+operator!=(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 {
-	return Point(p.X + d.X, p.Y + d.Y);
+	return !(a == b);
 }
 
 /*!
-\brief 构造屏幕点：使用点 p 和偏移向量的加法逆元 v 。
+\brief 加法。
 */
-inline Point
-operator-(const Point& p, const Vec& v)
+PDefTH1(_type)
+inline GBinaryGroup<_type>
+operator+(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 {
-	return Point(p.X - v.X, v.Y - v.Y);
+	return GBinaryGroup<_type>(a.X + b.X, a.Y + b.Y);
 }
 
 /*!
-\brief 屏幕二维向量加法。
+\brief 减法。
 */
-inline Vec
-operator+(const Vec& a, const Vec& b)
+PDefTH1(_type)
+inline GBinaryGroup<_type>
+operator-(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 {
-	return Vec(a.X + b.X, a.Y + b.Y);
+	return GBinaryGroup<_type>(a.X - b.X, a.Y - b.Y);
 }
 
 /*!
-\brief 屏幕二维向量减法。
+\brief 数乘。
 */
-inline Vec
-operator-(const Vec& a, const Vec& b)
+PDefTH2(_type, _tScalar)
+inline GBinaryGroup<_type>
+operator*(const GBinaryGroup<_type>& val, _tScalar l)
 {
-	return Vec(a.X - b.X, a.Y - b.Y);
+	return GBinaryGroup<_type>(val.X * l, val.Y * l);
 }
+
+
+//! \brief 屏幕二维点（直角坐标表示）。
+typedef GBinaryGroup<SPos> Point;
+
+
+//! \brief 屏幕二维向量（直角坐标表示）。
+typedef GBinaryGroup<SPos> Vec;
 
 
 class Size //!< 屏幕区域大小。
@@ -376,11 +208,12 @@ public:
 	*/
 	Size(const Size&);
 	/*!
-	\brief 构造：使用屏幕二维向量。
+	\brief 构造：使用屏幕二元组。
 	*/
+	PDefTH1(_type)
 	inline explicit
-	Size(const Vec& v)
-		: Width(v.X), Height(v.Y)
+	Size(const GBinaryGroup<_type>& val)
+		: Width(val.X), Height(val.Y)
 	{}
 	/*!
 	\brief 构造：使用两个标量。
@@ -424,27 +257,24 @@ operator!=(const Size& a, const Size& b)
 }
 
 
-inline
-BinaryGroup::BinaryGroup(const Size& s)
-	: X(s.Width), Y(s.Height)
-{}
+PDefTH1(_type)
+inline GBinaryGroup<_type>
+operator+(GBinaryGroup<_type> val, const Size& s)
+{
+	return GBinaryGroup<_type>(val.X + s.Width, val.Y + s.Height);
+}
 
-inline
-Point::Point(const Size& s)
-	: BinaryGroup(s.Width, s.Height)
-{}
-
-inline
-Vec::Vec(const Size& s)
-	: BinaryGroup(s.Width, s.Height)
-{}
 
 /*!
 \brief 选择分量。
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
 */
+PDefTH1(_type)
 SPos
-SelectFrom(const BinaryGroup&, bool = true);
+SelectFrom(const GBinaryGroup<_type>& obj, bool is_1st)
+{
+	return is_1st ? obj.X : obj.Y;
+}
 /*!
 \brief 选择分量。
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
@@ -456,8 +286,12 @@ SelectFrom(const Size&, bool = true);
 \brief 选择分量引用。
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
 */
-SPos&
-SelectRefFrom(BinaryGroup&, bool = true);
+PDefTH1(_type)
+_type&
+SelectRefFrom(GBinaryGroup<_type>& obj, bool is_1st = true)
+{
+	return is_1st ? obj.X : obj.Y;
+}
 /*!
 \brief 选择分量引用。
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
@@ -469,8 +303,15 @@ SelectRefFrom(Size&, bool = true);
 \brief 更新：其中的一个分量。
 \note 第三参数为 true 时更新第一分量，否则更新第二分量。
 */
+PDefTH1(_type)
 void
-UpdateTo(BinaryGroup&, SPos, bool = true);
+UpdateTo(GBinaryGroup<_type>& obj, SPos val, bool is_1st = true)
+{
+	if(is_1st)
+		obj.X = val;
+	else
+		obj.Y = val;
+}
 /*!
 \brief 更新：其中的一个分量。
 \note 第三参数为 true 时更新第一分量，否则更新第二分量。
@@ -483,13 +324,14 @@ UpdateTo(Size&, SDst, bool = true);
 */
 template<class _tBinary>
 inline _tBinary
-Transpose(_tBinary& o)
+Transpose(_tBinary& obj)
 {
-	return _tBinary(o.Y, o.X);
+	return _tBinary(obj.Y, obj.X);
 }
 
 /*!
 \brief 取面积。
+\todo 确定任意精度的返回值类型。
 */
 inline u32
 GetAreaOf(const Size& s)
@@ -514,9 +356,9 @@ public:
 	*/
 	Rect();
 	/*!
-	\brief 复制构造。
+	\brief 复制构造：默认实现。
 	*/
-	Rect(const Rect&);
+	DefDeCopyCtor(Rect)
 	/*!
 	\brief 构造：使用屏幕二维点。
 	*/
@@ -585,11 +427,11 @@ public:
 	/*!
 	\brief 取左上角位置。
 	*/
-	DefGetter(Point, Point, Point(X, Y))
+	DefGetter(const Point&, Point, static_cast<const Point&>(*this))
 	/*!
 	\brief 取大小。
 	*/
-	DefGetter(Size, Size, Size(Width, Height))
+	DefGetter(const Size&, Size, static_cast<const Size&>(*this))
 };
 
 inline
@@ -597,24 +439,20 @@ Rect::Rect()
 	: Point(), Size()
 {}
 inline
-Rect::Rect(const Rect& r)
-	: Point(r), Size(r)
-{}
-inline
-Rect::Rect(const Point& p)
-	: Point(p), Size()
+Rect::Rect(const Point& pt)
+	: Point(pt), Size()
 {}
 inline
 Rect::Rect(const Size& s)
 	: Point(), Size(s)
 {}
 inline
-Rect::Rect(const Point& p, const Size& s)
-	: Point(p), Size(s)
+Rect::Rect(const Point& pt, const Size& s)
+	: Point(pt), Size(s)
 {}
 inline
-Rect::Rect(const Point& p, SDst w, SDst h)
-	: Point(p.X, p.Y), Size(w, h)
+Rect::Rect(const Point& pt, SDst w, SDst h)
+	: Point(pt.X, pt.Y), Size(w, h)
 {}
 inline
 Rect::Rect(SPos x, SPos y, const Size& s)
@@ -643,8 +481,7 @@ Rect::operator=(const Size& s)
 inline bool
 operator==(const Rect& a, const Rect& b)
 {
-	return static_cast<Point>(a) == static_cast<Point>(b)
-		&& static_cast<Size>(a) == static_cast<Size>(b);
+	return a.GetPoint() == b.GetPoint() && a.GetSize() == b.GetSize();
 }
 inline bool
 operator!=(const Rect& a, const Rect& b)

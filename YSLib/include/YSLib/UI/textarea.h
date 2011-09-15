@@ -11,12 +11,12 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r1297;
+\version r1298;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-30 20:09:23 +0800;
 \par 修改时间:
-	2011-09-11 22:06 +0800;
+	2011-09-14 08:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -54,7 +54,7 @@ public:
 	using Widget::SetSize;
 
 	virtual Rect
-	Refresh(const Graphics&, const Point&, const Rect&);
+	Refresh(const PaintEventArgs&);
 };
 
 YSL_END_NAMESPACE(Components)

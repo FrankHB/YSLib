@@ -11,12 +11,12 @@
 /*!	\file yfocus.hpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r2509;
+\version r2515;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-09-13 23:45 +0800;
+	2011-09-14 23:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,23 +35,23 @@ YSL_BEGIN_NAMESPACE(Components)
 
 //! \brief 简单焦点响应器。
 PDefTH1(_type)
-class GFocusResponser
+class GFocusResponder
 {
 protected:
 	_type* pFocusing; //!< 焦点对象指针。
 
 public:
 	inline
-	GFocusResponser()
+	GFocusResponder()
 		: pFocusing()
 	{}
 	inline
-	GFocusResponser(const GFocusResponser&)
+	GFocusResponder(const GFocusResponder&)
 		: pFocusing()
 	{}
-	inline DefDeMoveCtor(GFocusResponser)
-	virtual DefClone(GFocusResponser, Clone)
-	virtual DefEmptyDtor(GFocusResponser)
+	inline DefDeMoveCtor(GFocusResponder)
+	virtual DefClone(GFocusResponder, Clone)
+	virtual DefEmptyDtor(GFocusResponder)
 
 	//! \brief 判断指定指针是否和焦点对象指针相等。
 	inline PDefH1(bool, IsFocusing, _type* p) const
@@ -132,13 +132,13 @@ ReleaseFocusOf(_type& obj, _tResponser<_type>& rsp)
 
 //! \brief 焦点响应器模板。
 template<class _type>
-class GCheckedFocusResponser : public GFocusResponser<_type>
+class GCheckedFocusResponder : public GFocusResponder<_type>
 {
 protected:
-	using GFocusResponser<_type>::pFocusing;
+	using GFocusResponder<_type>::pFocusing;
 
 public:
-	virtual DefClone(GCheckedFocusResponser, Clone)
+	virtual DefClone(GCheckedFocusResponder, Clone)
 
 	/*!
 	\brief 设置焦点对象指针。
@@ -163,7 +163,7 @@ public:
 	virtual bool
 	ResponseFocusRequest(IWidget& wgt)
 	{
-		return RequestFocusOf<GCheckedFocusResponser, IWidget>(wgt, *this);
+		return RequestFocusOf<GCheckedFocusResponder, IWidget>(wgt, *this);
 	}
 
 	/*!
@@ -172,12 +172,12 @@ public:
 	virtual bool
 	ResponseFocusRelease(IWidget& wgt)
 	{
-		return ReleaseFocusOf<GCheckedFocusResponser, IWidget>(wgt, *this);
+		return ReleaseFocusOf<GCheckedFocusResponder, IWidget>(wgt, *this);
 	}
 };
 
-typedef GFocusResponser<IWidget> FocusResponser;
-typedef GCheckedFocusResponser<IWidget> CheckedFocusResponser;
+typedef GFocusResponder<IWidget> FocusResponder;
+typedef GCheckedFocusResponder<IWidget> CheckedFocusResponder;
 
 YSL_END_NAMESPACE(Components)
 

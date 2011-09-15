@@ -11,12 +11,12 @@
 /*!	\file iterator.hpp
 \ingroup YCLib
 \brief C++ 标准库迭代器扩展。
-\version r1255;
+\version r1256;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2011-09-13 23:16 +0800;
+	2011-09-15 11:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,7 +33,7 @@
 
 namespace ystdex
 {
-	//! \brief 伪迭代器：总是返回单一值的迭代器。
+	//! \brief 伪迭代器：总是返回单一值的迭代器适配器。
 	template<typename _type, typename _tIterator = _type*>
 	struct pseudo_iterator
 	{

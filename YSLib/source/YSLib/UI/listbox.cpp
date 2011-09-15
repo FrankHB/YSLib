@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3675;
+\version r3678;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-09-04 23:28 +0800;
+	2011-09-14 08:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,12 +62,12 @@ ListBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 }
 
 Rect
-ListBox::Refresh(const Graphics& g, const Point& pt, const Rect& r)
+ListBox::Refresh(const PaintEventArgs& e)
 {
-	auto rect(ScrollableContainer::Refresh(g, pt, r));
+	auto r(ScrollableContainer::Refresh(e));
 
-	RenderChild(TextListBox, g, pt, r);
-	return rect;
+	RenderChild(TextListBox, e);
+	return r;
 }
 
 void

@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6033;
+\version r6051;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-13 23:47 +0800;
+	2011-09-14 23:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,21 +38,6 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//名称引用。
-using Drawing::PixelType;
-using Drawing::BitmapPtr;
-using Drawing::ConstBitmapPtr;
-using Drawing::ScreenBufferType;
-using Drawing::Color;
-
-using Drawing::Point;
-using Drawing::Vec;
-using Drawing::Size;
-using Drawing::Rect;
-
-using Drawing::Graphics;
-
-
 //! \brief 部件接口。
 DeclInterface(IWidget)
 	DeclIEntry(bool IsVisible() const) //!< 判断是否可见。
@@ -67,15 +52,15 @@ DeclInterface(IWidget)
 	/*!
 	\brief 取渲染器。
 	*/
-	DeclIEntry(WidgetRenderer& GetRenderer() const)
+	DeclIEntry(Renderer& GetRenderer() const)
 	/*!
 	\brief 取焦点响应器。
 	*/
-	DeclIEntry(FocusResponser& GetFocusResponser() const)
+	DeclIEntry(FocusResponder& GetFocusResponder() const)
 	/*!
 	\brief 取控制器。
 	*/
-	DeclIEntry(WidgetController& GetController() const)
+	DeclIEntry(Controller& GetController() const)
 
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
@@ -92,14 +77,11 @@ DeclInterface(IWidget)
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
-	\param g 图形接口上下文。
-	\param pt 相对图形接口上下文的偏移坐标，指定部件左上角的位置。
-	\param r 相对于图形接口上下文的正则矩形，指定需要保证被刷新的边界区域。
 	\return 实际被绘制的界面区域。
 	\note 边界仅为暗示，允许实现忽略，但可以保证边界内的区域保持最新显示状态。
 	\note 若部件的内部状态能够保证显示状态最新，则返回的区域可能比参数 r 更小。
 	*/
-	DeclIEntry(Rect Refresh(const Graphics& g, const Point& pt, const Rect& r))
+	DeclIEntry(Rect Refresh(const PaintEventArgs& e))
 EndDecl
 
 
@@ -160,7 +142,7 @@ FetchContext(const IWidget& wgt)
 inline IWidget*
 FetchFocusingPtr(IWidget& wgt)
 {
-	return wgt.GetFocusResponser().GetFocusingPtr();
+	return wgt.GetFocusResponder().GetFocusingPtr();
 }
 
 /*!
@@ -214,13 +196,13 @@ InvalidateCascade(IWidget&, const Rect&);
 \brief 渲染：若缓冲存储不可用则刷新指定部件。
 */
 Rect
-Render(IWidget&, const Graphics&, const Point&, const Rect&);
+Render(IWidget&, const PaintEventArgs&);
 
 /*
 \brief 渲染子部件。
 */
 void
-RenderChild(IWidget&, const Graphics&, const Point&, const Rect&);
+RenderChild(IWidget&, const PaintEventArgs&);
 
 /*!
 \brief 请求提升至容器顶端。
@@ -369,19 +351,19 @@ class Widget : public Visual,
 {
 private:
 	mutable IWidget* pContainer; //!< 从属的部件容器的指针。
-	unique_ptr<WidgetRenderer> pRenderer; //!< 渲染器指针。
-	unique_ptr<FocusResponser> pFocusResponser; //!< 焦点响应器指针。
+	unique_ptr<Renderer> pRenderer; //!< 渲染器指针。
+	unique_ptr<FocusResponder> pFocusResponser; //!< 焦点响应器指针。
 
 public:
-	unique_ptr<WidgetController> pController; //!< 控制器指针。
+	unique_ptr<Controller> pController; //!< 控制器指针。
 
 	explicit
 	Widget(const Rect& = Rect::Empty,
 		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
 	PDefTH3(_tRenderer, _tFocusResponser, _tController)
 	inline Widget(const Rect& r = Rect::Empty,
-		_tRenderer&& pRenderer_ = unique_raw(new WidgetRenderer()),
-		_tFocusResponser&& pFocusResponser_ = unique_raw(new FocusResponser()),
+		_tRenderer&& pRenderer_ = unique_raw(new Renderer()),
+		_tFocusResponser&& pFocusResponser_ = unique_raw(new FocusResponder()),
 		_tController pController_ = nullptr)
 		: Visual(r), pContainer(), pRenderer(yforward(pRenderer_)),
 		pFocusResponser(yforward(pFocusResponser_)),
@@ -406,9 +388,9 @@ public:
 	ImplI1(IWidget) DefGetterBase(const Point&, Location, Visual)
 	ImplI1(IWidget) DefGetterBase(const Size&, Size, Visual)
 	ImplI1(IWidget) DefGetter(IWidget*&, ContainerPtrRef, pContainer)
-	ImplI1(IWidget) DefGetter(WidgetRenderer&, Renderer, *pRenderer)
-	ImplI1(IWidget) DefGetter(FocusResponser&, FocusResponser, *pFocusResponser)
-	ImplI1(IWidget) WidgetController&
+	ImplI1(IWidget) DefGetter(Renderer&, Renderer, *pRenderer)
+	ImplI1(IWidget) DefGetter(FocusResponder&, FocusResponder, *pFocusResponser)
+	ImplI1(IWidget) Controller&
 	GetController() const;
 	ImplI1(IWidget) PDefH2(IWidget*, GetTopWidgetPtr, const Point&,
 		bool(&)(const IWidget&))
@@ -423,23 +405,23 @@ public:
 	\note 取得指定对象的所有权。
 	*/
 	void
-	SetRenderer(unique_ptr<WidgetRenderer>&&);
+	SetRenderer(unique_ptr<Renderer>&&);
 	/*!
 	\brief 设置焦点响应器为指定指针指向的对象，同时清除焦点指针。
-	\note 若指针为空，则使用新建的 FocusResponser 对象。
+	\note 若指针为空，则使用新建的 FocusResponder 对象。
 	\note 取得指定对象的所有权。
 	*/
 	void
-	SetFocusResponser(unique_ptr<FocusResponser>&&);
+	SetFocusResponser(unique_ptr<FocusResponder>&&);
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	ImplI1(IWidget) Rect
-	Refresh(const Graphics&, const Point&, const Rect&);
+	Refresh(const PaintEventArgs&);
 };
 
-inline WidgetController&
+inline Controller&
 Widget::GetController() const
 {
 	if(!pController)

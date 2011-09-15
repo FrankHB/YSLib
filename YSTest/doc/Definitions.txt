@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11365;
+\version r11369;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-09-12 23:42 +0800;
+	2011-09-14 23:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -985,7 +985,7 @@ $header UI::YWidgetEvent : UI::YComponent
 {
 } //$header UI::YWidgetEvent;
 
-$header UI::YWidget : UI::YComponent, Core::YResource, UI::YWidgetEvent
+$header UI::YRenderer
 {
 	namespace Components
 	{
@@ -994,6 +994,10 @@ $header UI::YWidget : UI::YComponent, Core::YResource, UI::YWidgetEvent
 		using Drawing::Point, Drawing::Vec, Drawing::Size, Drawing::Rect;
 		using Drawing::Graphics;
 	} //namespace Components;
+} //$header UI::YRenderer;
+
+$header UI::YWidget : UI::YComponent, UI::YRenderer, UI::YFocus, Core::YResource, UI::YWidgetEvent
+{
 } //$header UI::YWidget;
 
 $header UI::YControl : UI::YWidgetEvent

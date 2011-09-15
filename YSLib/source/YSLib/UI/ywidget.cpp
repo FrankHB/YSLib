@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5113;
+\version r5131;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-10 20:54 +0800;
+	2011-09-14 23:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,7 +68,7 @@ ClearFocusingPtrOf(IWidget& wgt)
 {
 	if(const auto p = FetchFocusingPtr(wgt))
 	{
-		wgt.GetFocusResponser().ClearFocusingPtr();
+		wgt.GetFocusResponder().ClearFocusingPtr();
 		CallEvent<LostFocus>(*p, wgt, EventArgs());
 	}
 }
@@ -80,43 +80,47 @@ Invalidate(IWidget& wgt)
 }
 
 void
-InvalidateCascade(IWidget& wgt, const Rect& r)
+InvalidateCascade(IWidget& wgt, const Rect& bounds)
 {
 	auto pWgt(&wgt);
-	Rect rect(r);
+	Rect r(bounds);
 
 	do
 	{
-		pWgt->GetRenderer().CommitInvalidation(rect);
-		pWgt->GetRenderer().GetInvalidatedArea(rect);
-		rect += pWgt->GetLocation();
+		pWgt->GetRenderer().CommitInvalidation(r);
+		pWgt->GetRenderer().GetInvalidatedArea(r);
+		r += pWgt->GetLocation();
 	}while((pWgt = FetchContainerPtr(*pWgt)));
 }
 
 Rect
-Render(IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
+Render(IWidget& wgt, const PaintEventArgs& e)
 {
-	Rect rect;
+	Rect r;
 
 	if(wgt.GetRenderer().RequiresRefresh())
 	{
 		const auto& g_buf(FetchContext(wgt));
 
-		rect = g_buf.IsValid() ? wgt.Refresh(g_buf, Point::Zero,
-			Rect(r.GetPoint() - wgt.GetLocation(), r)) : wgt.Refresh(g, pt, r);
+		r = g_buf.IsValid() ? wgt.Refresh(PaintEventArgs(g_buf, Point::Zero,
+			Rect(e.ClipArea.GetPoint() - wgt.GetLocation(), e.ClipArea)))
+			: wgt.Refresh(e);
 		wgt.GetRenderer().ClearInvalidation();
 	}
-	Update(wgt, g, pt, r);
-	return rect;
+//	Update(wgt, e);
+	Update(wgt, e.Target, e.Location, e.ClipArea);
+	return r;
 }
 
 void
-RenderChild(IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
+RenderChild(IWidget& wgt, const PaintEventArgs& e)
 {
-	const auto& rect(Intersect(Rect(pt + wgt.GetLocation(), wgt.GetSize()), r));
+	const auto& r(Intersect(Rect(e.Location + wgt.GetLocation(),
+		wgt.GetSize()), e.ClipArea));
 
-	if(rect != Rect::Empty)
-		Render(wgt, g, pt + wgt.GetLocation(), rect);
+	if(r != Rect::Empty)
+		Render(wgt, PaintEventArgs(e.Target, e.Location + wgt.GetLocation(),
+			r));
 }
 
 void
@@ -136,15 +140,15 @@ Update(const IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
 Rect
 Validate(IWidget& wgt)
 {
-	Rect rect;
+	Rect r;
 
 	if(wgt.GetRenderer().RequiresRefresh() && FetchContext(wgt).IsValid())
 	{
-		rect = wgt.Refresh(FetchContext(wgt), Point::Zero,
-			Rect(Point::Zero, wgt.GetSize()));
+		r = wgt.Refresh(PaintEventArgs(FetchContext(wgt), Point::Zero,
+			Rect(Point::Zero, wgt.GetSize())));
 		wgt.GetRenderer().ClearInvalidation();
 	}
-	return rect;
+	return r;
 }
 
 
@@ -178,8 +182,8 @@ Visual::SetSize(const Size& s)
 
 Widget::Widget(const Rect& r, Color b, Color f)
 	: Visual(r, b, f),
-	pContainer(), pRenderer(new WidgetRenderer()),
-	pFocusResponser(new FocusResponser()), pController()
+	pContainer(), pRenderer(new Renderer()),
+	pFocusResponser(new FocusResponder()), pController()
 {}
 Widget::Widget(const Widget& wgt)
 	: Visual(wgt),
@@ -194,25 +198,25 @@ Widget::~Widget()
 
 
 void
-Widget::SetFocusResponser(unique_ptr<FocusResponser>&& p)
+Widget::SetFocusResponser(unique_ptr<FocusResponder>&& p)
 {
 	pFocusResponser = p ? std::move(p)
-		: unique_ptr<FocusResponser>(new FocusResponser());
+		: unique_ptr<FocusResponder>(new FocusResponder());
 	pFocusResponser->ClearFocusingPtr();
 }
 void
-Widget::SetRenderer(unique_ptr<WidgetRenderer>&& p)
+Widget::SetRenderer(unique_ptr<Renderer>&& p)
 {
 	pRenderer = p ? std::move(p)
-		: unique_ptr<WidgetRenderer>(new WidgetRenderer());
+		: unique_ptr<Renderer>(new Renderer());
 	pRenderer->SetSize(GetSize());
 }
 
 Rect
-Widget::Refresh(const Graphics& g, const Point& pt, const Rect& r)
+Widget::Refresh(const PaintEventArgs& e)
 {
 	if(!IsTransparent())
-		Drawing::FillRect(g, r, BackColor);
+		Drawing::FillRect(e.Target, e.ClipArea, BackColor);
 	return GetBoundsOf(*this);
 }
 

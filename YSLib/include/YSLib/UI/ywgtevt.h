@@ -11,12 +11,12 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1853;
+\version r1876;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2011-09-14 01:58 +0800;
+	2011-09-14 21:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -144,6 +144,25 @@ IndexEventArgs::IndexEventArgs(IWidget& wgt, IndexEventArgs::IndexType idx)
 {}
 
 
+struct PaintEventArgs : public EventArgs
+{
+	Drawing::Graphics Target; //!< 渲染目标：图形接口上下文。
+	Drawing::Point Location; //!< 相对渲染目标的偏移坐标，指定部件左上角的位置。
+	Drawing::Rect ClipArea; //!< 相对于图形接口上下文的正则矩形，
+		//指定需要保证被刷新的边界区域。
+
+	inline DefDeCtor(PaintEventArgs)
+	PaintEventArgs(const Drawing::Graphics&, const Drawing::Point&,
+		const Drawing::Rect&);
+};
+
+inline
+PaintEventArgs::PaintEventArgs(const Drawing::Graphics& g,
+	const Drawing::Point& pt, const Drawing::Rect& r)
+	: Target(g), Location(pt), ClipArea(r)
+{}
+
+
 //! \brief 值类型参数类模块模板。
 PDefTH1(_type)
 struct GMValueEventArgs
@@ -252,8 +271,19 @@ DefEventTypeMapping(GotFocus, HVisualEvent)
 DefEventTypeMapping(LostFocus, HVisualEvent)
 
 
-//! \brief 控件事件映射表类型。
-typedef GEventMap<IWidget, VisualEvent> VisualEventMap;
+//! \brief 事件映射命名空间。
+YSL_BEGIN_NAMESPACE(EventMapping)
+
+typedef GIHEvent<IWidget, EventArgs> ItemType;
+typedef GEventPointerWrapper<IWidget, EventArgs> MappedType; //!< 映射项类型。
+typedef pair<VisualEvent, MappedType> PairType;
+typedef map<VisualEvent, MappedType> MapType; //!< 映射表类型。
+typedef pair<typename MapType::iterator, bool> SearchResult; \
+	//!< 搜索表结果类型。
+
+YSL_END_NAMESPACE(EventMapping)
+
+typedef EventMapping::MapType VisualEventMap;
 
 
 //! \brief 错误或不存在的部件事件异常。
@@ -266,14 +296,14 @@ DeclInterface(IController)
 	/*!
 	\brief 取事件项。
 	*/
-	DeclIEntry(VisualEventMap::ItemType& GetItemRef(const VisualEvent&))
+	DeclIEntry(EventMapping::ItemType& GetItemRef(const VisualEvent&))
 
 	/*!
 	\brief 取事件项，若不存在则用指定函数指针添加。
 	\note 允许派生类实现拒绝加入任何事件项，此时抛出 std::out_of_range 异常。
 	*/
-	DeclIEntry(VisualEventMap::ItemType& GetItemRef(const VisualEvent&,
-		VisualEventMap::PointerType(&)()))
+	DeclIEntry(EventMapping::ItemType& GetItemRef(const VisualEvent&,
+		EventMapping::MappedType(&)()))
 EndDecl
 
 

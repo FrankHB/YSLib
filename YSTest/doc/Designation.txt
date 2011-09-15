@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5353;
+\version r5357;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-09-13 23:47 +0800;
+	2011-09-15 14:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -1265,7 +1265,7 @@
 具有焦点响应能力（即储存了关于集中焦点于特定的子对象的状态）的类称为焦点响应类。
 
 @2.7.4.4 默认实现综述：
-默认通过组合 GFocusResponser 或 GCheckedFocusResponser 类模板实例（焦点响应器）的指针实现焦点响应类。
+默认通过组合 GFocusResponder 或 GCheckedFocusResponder 类模板实例（焦点响应器）的指针实现焦点响应类。
 部件容器需要实现明确的响应焦点的请求和释放操作。
 在图形用户界面 Shell 实现中独立保存额外的控件独立焦点指针，捕获自由状态的控件指针并判断是否能够据此调用 KeyPress 或 Click 事件。
 为了支持拖放操作，索引控件时，按位置判断作用的控件并根据上述 Shell 中的独立焦点指针和状态变量判断附加操作，而不通过上述的通用焦点。
@@ -1286,8 +1286,8 @@
 使用视图的方法对缓冲区进行渲染。具体内容由视图的实现决定。
 
 @2.7.5.2.1 渲染器(renderer) ：
-用于存储渲染状态的类，基类为 WidgetRenderer 。
-此外，提供带有缓冲区的渲染器类 BufferedWidgetRenderer ，默认仅供窗口使用。
+用于存储渲染状态的类，基类为 Componenets::Renderer 。
+此外，提供带有缓冲区的渲染器类 Componenets::BufferedRenderer ，默认仅供窗口使用。
 
 @2.7.5.2.2 部件的渲染(rendering) ：
 默认使用 Components::Render ，包含验证(@2.7.5.3.2) 效果。
@@ -1311,7 +1311,7 @@
 重绘区域长或宽为零时表示重绘已经结束且无新的绘制请求，无需再次重绘。
  InvalidateCascade(IWidget&, const Rect&) 通过调用 Validate() 向本层和上层缓冲区（若存在）传递相对于部件的正则矩形区域无效状态，以便被重绘。
  Invalidate(IWidget&) 是使用部件自身区域为参数调用 InvalidateCascade 的人本接口。
-成员方法 Refresh(const Graphics&, const Point&, const Rect&) 是部件的状态无关的刷新接口，即直接绘制部件界面。
+成员方法 Refresh(const PaintEventArgs&) 是部件的状态无关的刷新接口，即直接绘制部件界面。
 
 @2.7.5.3.4 更新(updating) ：
 缓冲区内的图形信息复制到其它缓冲区的过程。
@@ -1338,8 +1338,8 @@
 
 @2.7.8.1 样式无关的图形用户界面部件 YWidget ：
 主要类型：
- WidgetRenderer 类；
- BufferedWidgetRenderer 类；
+ Renderer 类；
+ BufferedRenderer 类；
  IWidget 接口；
  Visual 类；
  Widget 类。

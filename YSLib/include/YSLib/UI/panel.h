@@ -11,12 +11,12 @@
 /*!	\file panel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r1310;
+\version r1313;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:40:51 +0800;
 \par 修改时间:
-	2011-09-11 22:05 +0800;
+	2011-09-14 08:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,10 +57,6 @@ public:
 	virtual PDefH2(IWidget*, GetTopWidgetPtr, const Point& pt,
 		bool(&f)(const IWidget&))
 		ImplBodyBase2(MUIContainer, GetTopWidgetPtr, pt, f)
-
-	virtual PDefH3(Rect, Refresh, const Graphics& g, const Point& pt,
-		const Rect& r)
-		ImplBodyBase3(Control, Refresh, g, pt, r)
 };
 
 YSL_END_NAMESPACE(Components)

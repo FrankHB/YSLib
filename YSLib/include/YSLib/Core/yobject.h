@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3219;
+\version r3245;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-11 23:34 +0800;
+	2011-09-14 17:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -251,7 +251,7 @@ public:
 /*!
 \brief 依赖项类模板。
 
-基于被依赖的默认对象，可通过写时复制策略创建新对象。
+基于被依赖的默认对象，可通过写时复制策略创建新对象；可能为空。
 \tparam _type 被依赖的对象类型，需能被无参数构造。
 \tparam _tOwnerPointer 依赖所有者指针类型。
 \warning 依赖所有者指针需要实现所有权语义，
@@ -262,40 +262,50 @@ template<typename _type, class _tOwnerPointer = shared_ptr<_type>>
 class GDependency
 {
 public:
-	typedef _type T;
+	typedef _type DependentType;
 	typedef _tOwnerPointer PointerType;
+	typedef decltype(*PointerType()) ConstReferenceType;
+	typedef typename std::remove_const<typename std::remove_reference<
+		ConstReferenceType>::type>::type ReferentType;
+	typedef ReferentType& ReferenceType;
 
 private:
 	PointerType ptr;
 
 public:
+	inline
 	GDependency(PointerType p = PointerType())
 		: ptr(p)
-	{
-		GetCopyOnWritePtr();
-	}
+	{}
 	DefDeCopyAssignment(GDependency)
 	DefDeMoveAssignment(GDependency)
 
-	DefConverter(const T&, *ptr)
-	DefMutableConverter(T&, *ptr)
+	DefConverter(ConstReferenceType, *ptr)
+	DefMutableConverter(ReferenceType, *ptr)
+	DefConverter(bool, static_cast<bool>(ptr))
 
-	DefGetter(const T&, Ref, operator const T&())
-	DefMutableGetter(T&, Ref, operator T&())
-	DefMutableGetter(T&, NewRef, *GetCopyOnWritePtr())
+	DefGetter(ConstReferenceType, Ref, operator ConstReferenceType())
+	DefMutableGetter(ReferenceType, Ref, operator ReferenceType())
+	DefMutableGetter(ReferenceType, NewRef, *GetCopyOnWritePtr())
 
 	PointerType
 	GetCopyOnWritePtr()
 	{
 		if(!ptr)
-			ptr = PointerType(new T());
+			ptr = PointerType(new DependentType());
 		else if(!ptr.unique())
-			ptr = PointerType(new T(*ptr));
+			ptr = PointerType(CloneNonpolymorphic(ptr));
 
 		YAssert(is_not_null(ptr),
 			"Null pointer found @ GDependency::GetCopyOnWritePtr;");
 
 		return ptr;
+	}
+
+	inline
+	void Reset()
+	{
+		reset(ptr);
 	}
 };
 

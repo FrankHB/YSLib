@@ -11,12 +11,12 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2109;
+\version r2112;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-09-11 21:55 +0800;
+	2011-09-14 08:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,10 +69,9 @@ protected:
 
 	/*!
 	\brief 绘制文本。
-	\note 后三个参数意义同 IWidget::Refresh 。
 	*/
 	void
-	PaintText(IWidget&, Color, const Graphics&, const Point&, const Rect&);
+	PaintText(IWidget&, Color, const PaintEventArgs&);
 };
 
 
@@ -102,7 +101,7 @@ public:
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	virtual Rect
-	Refresh(const Graphics&, const Point&, const Rect&);
+	Refresh(const PaintEventArgs&);
 };
 
 inline

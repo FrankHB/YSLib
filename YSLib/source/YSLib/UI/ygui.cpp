@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3939;
+\version r3946;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-12 23:52 +0800;
+	2011-09-16 02:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,9 +37,9 @@ YSL_BEGIN_NAMESPACE(Shells)
 YGUIShell::YGUIShell()
 	: YShell(),
 	KeyHeldState(Free), TouchHeldState(Free),
-	DraggingOffset(Vec::FullScreen), HeldTimer(1000, false),
-	ControlLocation(Point::FullScreen),
-	LastControlLocation(Point::FullScreen), Colors(),
+	DraggingOffset(Vec::Invalid), HeldTimer(1000, false),
+	ControlLocation(Point::Invalid),
+	LastControlLocation(Point::Invalid), Colors(),
 	p_KeyDown(), p_TouchDown(), control_entered(false)
 {}
 
@@ -55,8 +55,8 @@ YGUIShell::OnGotMessage(const Message& msg)
 			auto h(FetchTarget<SM_PAINT>(msg));
 			
 			if(h)
-				h->Refresh(FetchContext(*h),
-					Point::Zero, Rect(Point::Zero, h->GetSize()));
+				h->Refresh(PaintEventArgs(FetchContext(*h),
+					Point::Zero, Rect(Point::Zero, h->GetSize())));
 		}
 		return 0;
 	default:
@@ -110,11 +110,11 @@ YGUIShell::ResetGUIStates()
 {
 	KeyHeldState = Free;
 	TouchHeldState = Free;
-	DraggingOffset = Vec::FullScreen;
+	DraggingOffset = Vec::Invalid;
 	HeldTimer.SetInterval(1000);
 	Deactivate(HeldTimer);
-	ControlLocation = Point::FullScreen;
-	LastControlLocation = Point::FullScreen;
+	ControlLocation = Point::Invalid;
+	LastControlLocation = Point::Invalid;
 	p_TouchDown = nullptr;
 	p_KeyDown = nullptr;
 }
@@ -142,7 +142,7 @@ void
 YGUIShell::ResetTouchHeldState()
 {
 	ResetHeldState(TouchHeldState);
-	DraggingOffset = Vec::FullScreen;
+	DraggingOffset = Vec::Invalid;
 }
 
 bool

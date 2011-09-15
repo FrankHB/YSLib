@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3253;
+\version r3256;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-08-13 06:40 +0800;
+	2011-08-16 01:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -243,7 +243,7 @@ namespace
 
 		if(!pContent || ((FetchAppInstance().GetDefaultMessageQueue().IsEmpty()
 			|| keys != pContent->Keys || pt != pContent->CursorLocation)
-			&& pt != Point::FullScreen))
+			&& pt != Point::Invalid))
 		{
 			pContent = share_raw(new InputContent(keys, pt));
 			SendMessage<SM_INPUT>(FetchShellHandle(), 0x40, pContent);

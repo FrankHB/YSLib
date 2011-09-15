@@ -11,12 +11,12 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2127;
+\version r2133;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-09-01 02:06 +0800;
+	2011-09-14 08:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,14 +37,13 @@ MLabel::MLabel(const Drawing::Font& fnt, TextAlignmentStyle a)
 {}
 
 void
-MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt,
-	const Rect& r)
+MLabel::PaintText(IWidget& w, Color c, const PaintEventArgs& e)
 {
 	Drawing::TextState ts;
-	const auto& bounds(Rect(pt, w.GetSize()));
+	const auto& bounds(Rect(e.Location, w.GetSize()));
 
 	ts.Font.SetFont(Font);
-	ts.ResetForBounds(bounds, g.GetSize(), Margin);
+	ts.ResetForBounds(bounds, e.Target.GetSize(), Margin);
 	ts.Color = c;
 
 	switch(HorizontalAlignment)
@@ -89,16 +88,16 @@ MLabel::PaintText(IWidget& w, Color c, const Graphics& g, const Point& pt,
 		break;
 	}
 	ts.PenY += vertical_offset;
-//	ts.Margin = FetchMargin(r + Margin, g.GetSize());
-	DrawText(g, ts, Text);
+//	ts.Margin = FetchMargin(e.ClipArea + Margin, e.Target.GetSize());
+	DrawText(e.Target, ts, Text);
 }
 
 
 Rect
-Label::Refresh(const Graphics& g, const Point& pt, const Rect& r)
+Label::Refresh(const PaintEventArgs& e)
 {
-	Widget::Refresh(g, pt, r);
-	PaintText(*this, ForeColor, g, pt, r);
+	Widget::Refresh(e);
+	PaintText(*this, ForeColor, e);
 	return GetBoundsOf(*this);
 }
 

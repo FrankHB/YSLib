@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3812;
+\version r3829;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-09-13 23:48 +0800;
+	2011-09-14 09:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -171,12 +171,14 @@ ATrack::SetLargeDelta(ValueType val)
 }
 
 Rect
-ATrack::Refresh(const Graphics& g, const Point& pt, const Rect& r)
+ATrack::Refresh(const PaintEventArgs& e)
 {
-	auto rect(Widget::Refresh(g, pt, r));
+	auto r(Widget::Refresh(e));
 
 	if(!IsTransparent())
 	{
+		const auto& g(e.Target);
+		const auto& pt(e.Location);
 		Styles::Palette& pal(FetchGUIShell().Colors);
 
 		FillRect(g, pt, GetSize(), pal[Styles::Track]);
@@ -197,8 +199,8 @@ ATrack::Refresh(const Graphics& g, const Point& pt, const Rect& r)
 			DrawVLineSeg(g, xr, pt.Y, yr, c);
 		}
 	}
-	RenderChild(Thumb, g, pt, r);
-	return rect;
+	RenderChild(Thumb, e);
+	return r;
 }
 
 ATrack::Area
@@ -403,23 +405,23 @@ AScrollBar::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 }
 
 Rect
-AScrollBar::Refresh(const Graphics& g, const Point& pt, const Rect& r)
+AScrollBar::Refresh(const PaintEventArgs& e)
 {
 	YAssert(is_not_null(pTrack),
 		"Null widget pointer found @ AScrollBar::Draw;");
 
-	auto rect(Widget::Refresh(g, pt, r));
+	auto r(Widget::Refresh(e));
 
-	RenderChild(*pTrack, g, pt, r);
-	RenderChild(PrevButton, g, pt, r);
-	RenderChild(NextButton, g, pt, r);
-	WndDrawArrow(g, Rect(pt + PrevButton.GetLocation(), PrevButton.GetSize()),
-		4, pTrack->GetOrientation() == Horizontal ? RDeg180
-		: RDeg90, ForeColor);
-	WndDrawArrow(g, Rect(pt + NextButton.GetLocation(), NextButton.GetSize()),
-		4, pTrack->GetOrientation() == Horizontal ? RDeg0
-		: RDeg270, ForeColor);
-	return rect;
+	RenderChild(*pTrack, e);
+	RenderChild(PrevButton, e);
+	RenderChild(NextButton, e);
+	WndDrawArrow(e.Target, Rect(e.Location + PrevButton.GetLocation(),
+		PrevButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
+		? RDeg180 : RDeg90, ForeColor);
+	WndDrawArrow(e.Target, Rect(e.Location + NextButton.GetLocation(),
+		NextButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
+		? RDeg0 : RDeg270, ForeColor);
+	return r;
 }
 
 
@@ -487,15 +489,14 @@ ScrollableContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 }
 
 Rect
-ScrollableContainer::Refresh(const Graphics& g, const Point& pt,
-	const Rect& r)
+ScrollableContainer::Refresh(const PaintEventArgs& e)
 {
-//	AUIBoxControl::Refresh(g, pt, r);
+//	AUIBoxControl::Refresh(e);
 	if(HorizontalScrollBar.IsVisible())
-		RenderChild(HorizontalScrollBar, g, pt, r);
+		RenderChild(HorizontalScrollBar, e);
 	if(VerticalScrollBar.IsVisible())
-		RenderChild(VerticalScrollBar, g, pt, r);
-	return Rect(pt, GetSize());
+		RenderChild(VerticalScrollBar, e);
+	return Rect(e.Location, GetSize());
 }
 
 Size

@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3576;
+\version r3582;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-09-05 00:06 +0800;
+	2011-09-14 08:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -87,9 +87,11 @@ Thumb::Thumb(const Rect& r)
 }
 
 Rect
-Thumb::Refresh(const Graphics& g, const Point& pt, const Rect&)
+Thumb::Refresh(const PaintEventArgs& e)
 {
 	auto enabled(IsEnabled(*this));
+	const auto& g(e.Target);
+	const auto& pt(e.Location);
 
 	if(!enabled)
 		bPressed = false;
@@ -115,12 +117,13 @@ Button::Button(const Rect& r, const Drawing::Font& fnt)
 {}
 
 Rect
-Button::Refresh(const Graphics& g, const Point& pt, const Rect& r)
+Button::Refresh(const PaintEventArgs& e)
 {
-	auto rect(Thumb::Refresh(g, pt, r));
+	auto r(Thumb::Refresh(e));
+
 	PaintText(*this, IsEnabled(*this) ? ForeColor
-		: FetchGUIShell().Colors[Styles::Workspace], g, pt, r);
-	return rect;
+		: FetchGUIShell().Colors[Styles::Workspace], e);
+	return r;
 }
 
 YSL_END_NAMESPACE(Components)

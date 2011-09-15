@@ -248,6 +248,9 @@
     <ClInclude Include="include\YSLib\Core\ystorage.hpp">
       <Filter>头文件\YSLib\Core</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\UI\yfocus.hpp">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\yfont.cpp">

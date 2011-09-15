@@ -11,12 +11,12 @@
 /*!	\file panel.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r1168;
+\version r1173;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2011-09-08 02:11 +0800;
+	2011-09-14 23:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,7 +33,7 @@ YSL_BEGIN_NAMESPACE(Components)
 Panel::Panel(const Rect& r)
 	: Control(r), MUIContainer()
 {
-	SetFocusResponser(unique_raw(new CheckedFocusResponser()));
+	SetFocusResponser(unique_raw(new CheckedFocusResponder()));
 }
 
 void
@@ -49,8 +49,8 @@ Panel::operator-=(IWidget& wgt)
 	if(wgt.GetContainerPtrRef() == this)
 	{
 		wgt.GetContainerPtrRef() = nullptr;
-		if(GetFocusResponser().IsFocusing(&wgt))
-			GetFocusResponser().ClearFocusingPtr();
+		if(GetFocusResponder().IsFocusing(&wgt))
+			GetFocusResponder().ClearFocusingPtr();
 		return MUIContainer::operator-=(wgt);
 	}
 	return false;

@@ -11,12 +11,12 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1229;
+\version r1237;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2011-09-06 23:46 +0800;
+	2011-09-14 23:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,55 +29,55 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Drawing)
+YSL_BEGIN_NAMESPACE(Components)
 
 bool
-BufferedWidgetRenderer::RequiresRefresh() const
+BufferedRenderer::RequiresRefresh() const
 {
 	return !rInvalidated.IsEmpty();
 }
 
 void
-BufferedWidgetRenderer::GetInvalidatedArea(Rect& r) const
+BufferedRenderer::GetInvalidatedArea(Rect& r) const
 {
 	r = rInvalidated;
 }
 
 void
-BufferedWidgetRenderer::SetSize(const Size& s)
+BufferedRenderer::SetSize(const Size& s)
 {
 	Buffer.SetSize(s.Width, s.Height);
 	static_cast<Size&>(rInvalidated) = s;
 }
 
 void
-BufferedWidgetRenderer::ClearInvalidation()
+BufferedRenderer::ClearInvalidation()
 {
 	//只设置一个分量为零可能会使 CommitInvalidation 结果错误。
 	static_cast<Size&>(rInvalidated) = Size::Zero;
 }
 
 void
-BufferedWidgetRenderer::CommitInvalidation(const Rect& r)
+BufferedRenderer::CommitInvalidation(const Rect& r)
 {
 	rInvalidated = Unite(rInvalidated, r);
 }
 
 void
-BufferedWidgetRenderer::FillInvalidation(Color c)
+BufferedRenderer::FillInvalidation(Color c)
 {
 	FillRect(Buffer, rInvalidated, c);
 }
 
 void
-BufferedWidgetRenderer::UpdateTo(const Graphics& g, const Point& pt,
+BufferedRenderer::UpdateTo(const Graphics& g, const Point& pt,
 	const Rect& r) const
 {
 	CopyTo(g.GetBufferPtr(), GetContext(), g.GetSize(),
 		r, static_cast<const Point&>(r) - pt, r);
 }
 
-YSL_END_NAMESPACE(Drawing)
+YSL_END_NAMESPACE(Components)
 
 YSL_END
 

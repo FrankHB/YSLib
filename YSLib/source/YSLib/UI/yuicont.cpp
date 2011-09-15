@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2450;
+\version r2454;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-09-08 01:29 +0800;
+	2011-09-16 01:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -77,7 +77,7 @@ LocateForWidget(IWidget& a, IWidget& b)
 		pt += pCon->GetLocation();
 		pCon = FetchContainerPtr(*pCon);
 	}
-	return Point::FullScreen;
+	return Point::Invalid;
 }
 
 Point
@@ -85,7 +85,7 @@ LocateForParentContainer(const IWidget& w)
 {
 	return FetchContainerPtr(w)
 		? LocateContainerOffset(*FetchContainerPtr(w),
-		w.GetLocation()) : Point::FullScreen;
+		w.GetLocation()) : Point::Invalid;
 }
 
 

@@ -1,4 +1,4 @@
-// v0.3308; *build 241 rev 38;
+// v0.3308; *build 242 rev 23;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -273,209 +273,265 @@ $using:
 
 $DONE:
 r1:
-/ \inc <YSLib/UI/progress.h> @ \impl \u Shells >> \h;
-+ \inc "Shells.h" @ \impl \u Platform::DS::Main;
-/ \impl @ \cl YMainShell @ \ns Shells >> \ns Shells
-	@ \impl \u Platform::DS::Main;
++ \st PaintEventArgs @ \h YWidgetEvent;
+/ @ \u YWidget $=
+(
+	/ void Render(IWidget&, const Graphics&, const Point&, const Rect&)
+		-> void Render(const PaintEventArgs&),
+	/ void RenderChild(IWidget&, const Graphics&, const Point&, const Rect&)
+		-> void RenderChild(const PaintEventArgs&)
+);
+/ \tr \impl @ \mf Frame::DrawContents,
+/ \tr \impl @ \mf Refresh @ \cl (ListBox & ATrack & AScrollBar
+	& ScrollableContainer),
+/ \tr \impl @ \mf ShlReader::ReaderPanel::Refresh @ \impl \u Shells;
 
 r2:
-/ @ \h YBase $=
-(
-	+ \mac \def DefDeCtor(_t),
-	+ \mac \def DefDelCtor(_t),
-	+ \mac \def DefDeCopyCtor(_t),
-	+ \mac \def DefDelCopyCtor(_t),
-	+ \mac \def DefDeMoveCtor(_t),
-	+ \mac \def DefDelMoveCtor(_t),
-	+ \mac \def DefDeDtor(_t),
-	+ \mac \def DefDelDtor(_t),
-	+ \mac \def DefDeCopyAssignment(_t),
-	+ \mac \def DefDelCopyAssignment(_t),
-	+ \mac \def DefDeMoveAssignment(_t),
-	+ \mac \def DefDelMoveAssignment(_t)
-);
-/ \a (!\vt \dtor \def ^ DefEmptyDtor) -> DefDeDtor \exc @ \h YBase,
-/ \a defaulted \ctor @ \lib YSLib ^ \mac (DefDeCtor | DefDeCopyCtor
-	| DefDeMoveCtor);
+/ \amf Rect Refresh(const PaintEventArgs&)
+	-> Rect Refresh(const PaintEventArgs&) @ \in IWidget;
+/ \mf void PaintText(IWidget&, Color c, const Graphics&,
+	const Point&, const Rect&) @ \cl MLabel -> void PaintText(IWidget&, Color,
+	PaintEventArgs&);
+/ \a \mf Rect Refresh(const PaintEventArgs&)
+	-> Rect Refresh(const PaintEventArgs&);
+/ \tr \impl @ \f Render @ \impl \u YWidget,
+/ \tr \impl @ \mf TextList::PaintItems,
+/ \tr \impl @ \mf YGUIShell::OnGotMessage,
+/ \tr \impl @ \f Validate @ \impl \u YWidget,
+- \mf Refresh @ \cl Panel;
 
 r3:
-+ (public | protected) \i \exp \de move \ctor ^ \mac DefDeMoveCtor
-	@ \cl (MButton & Button & Thumb & MLabel & Label & MTextList & Form
-	& CheckBox & AUIBoxControl & ATrack & HorizontalTrack & VerticalTrack
-	& AScrollBar & HorizontalScrollBar & VerticalScrollBar & ScrollableContainer
-	& ListBox & FileBox & TextList & Menu & Panel & ProgressBar & TextArea
-	& Desktop & MUIContainer & AWindow & AFrame),
-- \em \dtor @ \cl (Form & Panel);
-
-r4:
 /= test 1 ^ \conf release;
 
+r4:
+/ \impl @ \mf GetCopyOnWritePointer @ \clt GDependency @ \h YObject
+	^ CloneNonpolymorphic;
+
 r5:
-/ @ \clt GEventMap @ \h YEvent $=
+/ @ \clt GDependency @ \h YObject $=
 (
-	/ \impl @ \mf bool Insert(const ID&, PointerType&&),
-	/ \mf \i PointerType& at(const ID&) const ythrow(std::out_of_range)
-		-> ItemType& at(const ID&) const ythrow(std::out_of_range),
-),
-/= \rem @ \h YCLib::YStandardExtend::Utilities;
+	/ \impl @ \ctor as \i \ctor,
+	+ \mf DefConverter(bool, static_cast<bool>(ptr)),
+	+ \i \mf void Reset()
+);
 
 r6:
-+ \as \str @ \mf at @ \clt GEventMap,
+/ @ \clt GDependency @ \h YObject $=
 (
-	+ \h YWidgetEvent["ywgtevt.h"] @ \dir UI;
-	/ \a \decl before \decl @ \cl WidgetController @ \h YControl
-		>> \h YWidgetEvent
+	(
+		+ typedef decltype(*PointerType()) ConstReferenceType;
+		+ typedef typename std::remove_const<typename std::remove_reference<
+			ConstReferenceType>::type>::type ReferentType;
+		+ typedef ReferentType& ReferenceType;
+		/ \a 'const T&' -> ConstReferenceType;
+		/ \a 'T&' -> ReferenceType;
+		/ \a 'T' -> DependentType
+	),
+	/ \m typedef _type T => DependentType
 );
-/ using \ns Drawing @ \ns Components @ \h YWidgetEvent >> \h YControl,
-+ \inc \h YWidgetEvent @ \h YWidget;
-- \inc \h "../Core/yevt.hpp" @ \h YControl,
-/ \em \st BadControl @ \h YWidget -> \st BadEvent @ \h YWidgetEvent;
 
 r7:
-+ \in IController @ \h YWidgetEvent,
-+ PDeclInterface(IController) @ \h YComponent;
-/ @ \cl WidgetController @ \h YControl $=
+/ @ \h YEvent $=
 (
-+ \inh IController @ \cl WidgetController @ \h YControl;
-+ \mf ImplI1(IController) VisualEventMap::ItemType&
-	GetItemRef(const VisualEvent&)
+	/ \clt<class _tEvent> GDependencyEvent -> \clt<class _tEvent,
+		class _tOwnerPointer = shared_ptr<_tEvent>> GDependencyEvent,
+	/ @ \clt GDependencyEvent @ \h YEvent $=
+	(
+		+ typedef typename GDependency<_tEvent>::DependentType DependentType,
+		/ typedef typename GDependency<_tEvent>::PointerType PointerType
+			-> typedef typename GDependency<_tEvent>::PointerType PointerType,
+		+ typedef typename GDependency<_tEvent>::ConstReferenceType
+			ConstReferenceType,
+		+ typedef typename GDependency<_tEvent>::ReferentType ReferentType,
+		+ typedef typename GDependency<_tEvent>::ReferenceType ReferenceType,
+		/ typedef _tEvent EventType -> typedef DependentType EventType;
+		/ \a \ret \tp 'EventType&' -> ReferenceType
+	)
 );
 
-r8-r15:
-/= test 2;
+r8:
+/= test 2 ^ \conf release;
 
-r16:
-* \impl @ \mft DoEvent @ \clt GEventMap $since b236;
-/ \simp \impl @ \mf YGUIShell::ResponseTouch;
-
-r17:
-/= test 3 ^ \conf release;
-
-r18:
-/ @ \clt GEventMap $=
+r9:
+/ @ \h YEvent $=
 (
-	/ private \m InternalPairType => public SearchResult;
-	/ \ac @ private \mf Serach -> public ~ private;
+	/= \decl @ \clt<typename _tSender, typename _tEventSpace> GEventMap
+		^ PDefTH2,
+	+ \clt PDefTH2(_tSender, _tEventSpace) GEventItem;
+	/ \impl @ \clt GEventMap $=
+	(
+		/ typedef unique_ptr<ItemType> PointerType -> typedef GEventItem<
+			_tSender, EventArgs> MappedType;
+		/ \tr typedef pair<ID, PointerType> PairType
+			-> typedef pair<ID, MappedType> PairType,
+		/ \tr typedef map<ID, PointerType> MapType
+			-> typedef map<ID, MappedType> MapType,
+		/ copy \ctor ^ \mac DefDeCopyCtor,
+		/ \de \ctor ^ \mac DefDeCtor,
+		+ typedef MappedType PointerType,
+		- \tr \simp \impl @ \mf at
+		/ \mf \i ItemType& at(const ID&) const ythrow(std::out_of_range)
+			-> \i ItemType& at(const ID&) ythrow(std::out_of_range);
+		+ \mf \i const ItemType& at(const ID&) const ythrow(std::out_of_range)
+			-> \i ItemType& at(const ID&) ythrow(std::out_of_range);
+	)
 );
+/ \tr \impl @ \f GetEvent @ \impl \u YControl;
 
-r19:
-/ 2 \mft DoEvent @ \clt GEventMap -> 2 !\m \ft @ \h YWidgetEvent
-	with 1st \param \tp const VisualEventMap;
-/ \tr \impl @ \f CallEvent#1 @ \h YControl,
-/ \tr \impl @ \mf YGUIShell::ResponseTouch;
-
-r20-r21:
-/= test 4;
-
-r22:
-/ \impl @ \ft DoEvent#1 @ \h YWidgetEvent,
-* contradict semantics of \mft is_null @ \h Memory @ \lib YCLib $since b222 $=
+r10:
+/ \simp @ \clt GEventMap @ \h YEvent $=
 (
-	/ \a 'is_null' @ \lib (YCLib & YSLib) -> 'is_not_null';
-	+ 2 \mft is_null @ \h Memory
+	- \de \ctor.
+	- move \ctor,
+	- copy \ctor,
+	- move \op=,
+	/ private \m m_map -> public \m Map,
+	- \mf Clear,
+	- 2 \mf at,
+	- \mf Search,
+	- typedef MappedType PointerType;
+	/ \tr \decl @ \mf Insert#1
 );
-+ using ystdex::is_not_null @ \ns YSLib @ \h YReference;
+/ \tr @ \ft NewEvent @ \h YControl,
+/ \tr @ \f GetEvent @ \u YControl,
+/ \tr @ \amf GetItemRef#2 @ \in IController,
+/ \tr @ \mf GetItemRef @ \cl WidgetController;
 
-r23:
-/ @ 2 \mft DoEvent @ \h YWidgetEvent;
-/ \tr @ \h YControl $=
-(
-	/ \tr \impl @ \ft CallEvent#2,
-	- \ft CallEvent#1
-);
-/ \tr \simp \impl @ \mf YGUIShell::ResponseTouch;
-
-r24:
-* wrong \as $since r22 $=
-(
-	/ \a 'is_null' @ \lib (YCLib & YSLib) -> 'is_not_null' @ \impl \u Shells
-);
-
-r25:
-/= test 5 ^ \conf release;
-
-r26:
--= \a ('\t' & ' ') at end of lines @ \lib (YCLib & YSLib);
-
-r27:
-+ \ft<_type> \i _type FetchInstance() @ \h YStatic;
-/ \h YStatic["ystatic.hpp"] => YStorage["ystorage.hpp"],
-(
-/ \h YFocus["yfocus.h"] => YFocus["yfocus.hpp"],
-- \impl \u YFocus["yfocus.hpp"]
-);
-/ \tr \inc @ \h (YResource & Scroll & YWidget & UIContainerEx)
-	& \impl \u (Scroll & YApplication & YControl);
-
-r28:
-/ @ \clt GEventMap $=
-(
-	+ \mf \i typename MapType::iterator Insert(typename MapType::iterator,
-		PairType&&);
-	/ \simp \mft GetEvent ^ Insert,
-	+ \c @ \a \mf Insert
-);
-+ \amf VisualEventMap::ItemType& GetEventRef(const VisualEvent&,
-	VisualEventMap::ItemType(&)()) @ \in IController;
-+ \mf ImplI1(IController) VisualEventMap::ItemType& GetEventRef(const
-	VisualEvent&, VisualEventMap::ItemType(&)()) @ \cl WidgetController;
-
-r29:
-/ @ \clt GEventMap $=
-(
-	- mutable @ \m m_map,
-	- \c @ (\a \mf Insert & \mft GetEvent & \mf Search)
-);
-
-r30:
-/ \mft GetEvent @ \clt GEventMap -> !\m \ft @ \h YWidgetEvent;
-/ \tr \impl @ \mft FetchEvent#1 @ \h YControl;
-
-r31:
-/= test 6 ^ \conf release;
-
-r32:
+r11:
 / @ \h YWidgetEvent $=
 (
-	+ \ft<VisualEvent _vID> VisualEventMap::PointerType NewEvent(),
-	/ \ft<class _tEventHandler> typename EventT(_tEventHandler)&
-		GetEvent(VisualEventMap&, const VisualEvent&)
-		-> \f \i VisualEventMap::ItemType&
-		GetEvent(VisualEventMap&, const VisualEvent&,
-		VisualEventMap::PointerType(&)())
-);
-/ \tr \impl @ \ft FetchEvent#1 @ \h YControl;
-
-r33:
-/ \simp \impl @ \mf WidgetController::GetItemRef ^ \f GetEvent,
-/ \decl @ (\ft NewEvent & \f GetEvent) >> \h YControl ~ \h YWidgetEvent,
-/ @ \h YControl $=
+	/ typedef GEventMap<IWidget, VisualEvent> VisualEventMap
+		-> \ns VisualEventMap
+),
+/ \tr @ \cl WidgetController $=
 (
-	+ \ft<VisualEvent _vID> typename EventT(typename
-		EventTypeMapping<_vID>::HandlerType)& FetchEvent(IController&);
-	/ \impl @ \ft<VisualEvent _vID> typename EventT(typename
-		EventTypeMapping<_vID>::HandlerType)& FetchEvent(IWidget&);
+	/ \m mutable VisualEventMap EventMap 
+		-> mutable VisualEventMap::MapType EventMap,
+	/ \impl @ \mf GetItemRef#1,
+	/ \decl @ \mf GetEventMap,
+	/ @ \ctor#2,
+	/ @ \ctor#3
+),
+/ \tr \impl @ \f GetEvent @ \u YControl;
+/ \a VisualEventMap => EventMapping;
++ typedef EventMapping::MapTeyp VisualEventMap @ \h YWidgetEvent,
+/ EventMapping::ItemType => EventMapping::IHEvent;
+/ EventMapping::MappedType => EventMapping::ItemType;
+/ \simp \decl @ \u YControl,
+/ \a GEventItem => GEventPointerWrapper,
+- \clt GEventMap @ \h YEvent;
+
+r12:
+/= test 3 ^ \conf release;
+
+r13:
+/ \a WidgetRenderer => Renderer,
+/ \a FocusResponser => FocusResponder,
+/ \a WidgetController => Controller,
+/ \a BufferedWidgetRenderer => BufferedRenderer,
+/ \a CheckedFocusResponser => CheckedFocusResponder,
+/ \a GFocusResponser => GFocusResponder,
+/ \a GCheckedFocusResponser => GCheckedFocusResponder,
+/ \a GetFocusResponser => GetFocusResponder,
+/ \cl (Renderer & BufferedRenderer) @ \ns Drawing >> \ns Componentsl;
+/ \tr @ \h YComponent,
+/ $lang"C++" (
+		using Drawing::PixelType;
+		using Drawing::BitmapPtr;
+		using Drawing::ConstBitmapPtr;
+		using Drawing::ScreenBufferType;
+		using Drawing::Color;
+
+		using Drawing::Point;
+		using Drawing::Vec;
+		using Drawing::Size;
+		using Drawing::Rect;
+
+		using Drawing::Graphics;
+	) @ \ns Components @ \h YWidget >> \h YRenderer;
+
+r14:
+/ \a GetZeroElement => FetchZero;
+/ @ \cl ShlExplorer @ \u Shells $=
+(
+	- private \smf void OnTouchDown_FormExtra(IWidget&, TouchEventArgs&&),
+	/ \tr \impl @ \ctor @ \cl TFormExtra
 );
 
-r34-r37:
-/= test 7;
+r15:
+/ \impl @ ShlExplorer::OnDeactivated @ \u Shells;
 
-r38:
-/= test 8 ^ \conf release;
+r16:
+/ \simp @ \cl Frame $=
+(
+	/ \simp \impl @ \ctor,
+	- \dtor
+);
+
+r17:
+/ \simp \impl @ \u Shells $=
+(
+	- \f (switchShl2 & switchShl1) @ \un \ns,
+	/ \tr \impl @ \mf ShlExplorer::OnClick_btnOK,
+	/ \tr \impl @ \ctor @ \cl ShlExploerer
+);
+
+r18:
+/= test 4 ^ \conf release;
+
+r19:
+/ @ \cl ShlExplorer @ \impl \u Shells $=
+(
+	- private \mf OnViewChanged_fbMain,
+	- private \mf OnClick_btnOK,
+	- private \mf OnClick_btnTest,
+	/ \tr \impl @ \ctor
+);
+
+r20:
+/ @ \cl ShlExplorer::TFormExtra @ \impl \u Shells $=
+(
+	- private \mf OnTouchUp_btnDragTest,
+	- private \mf OnTouchDown_btnDragTest,
+	- private \mf OnMove_btnDragTest,
+	- private \mf OnClick_btnClose,
+	/ \tr \impl @ \ctor
+);
+
+r21:
+/= test 5 ^ \conf release;
+
+r22:
+/ @ \u YGDIBase $=
+(
+	- \cl BinaryGroup, 
+	- \cl Point,
+	- \cl Vec,
+	+ \inc \h <limits>,
+	+ \clt PDefTH1(_type) GBinaryGroup;
+	+ typedef GBinaryGroup<SPos> Point,
+	+ typedef GBinaryGroup<SPos> Vec,
+	/ \tr @ \cl Size
+);
+/ \a 'Point::FullScreen' -> 'Point::Invalid',
+/ \a 'Point::FullScreen' -> 'Vec::Invalid';
+
+r23:
+/= test 6 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-09-14:
--19.3d;
-//Mercurial rev1-rev112: r5411;
+2011-09-16:
+-17.0d;
+//Mercurial rev1-rev113: r5449;
 
 / ...
 
 
 $NEXT_TODO:
-b242-b324:
+b243-b324:
 + %TextList invalidation support;
 * non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
@@ -563,6 +619,37 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ "GUI" $=
+	(
+		+ "class %PaintEventArgs",
+		/ $design "simplified painting parameters" ^ "class %PaintEventArgs",
+		- "automatic lifetime binding to containers" @ "class %Frame"
+	),
+	+ "nullable features" @ "class template %GDependency",
+	/ "simplified event mapping" $=
+	(
+		+ "class template %GEventPointerWrapper",
+		^ "non-member algorithm implementation" ~ ("member function"
+			@ "class template %GEventMap");
+		- "class template %GEventMap"
+	),
+	/ "shells test example" $=
+	(
+		/ $design ^ "lambda expressions" ~ "most of member function handlers"
+	),
+	/ "simplified screen object interface and implementation" $=
+	(
+		/ "class template %GBinaryGroup" ~ "class %(BinaryGroup, Point, Vec)",
+		/ ("memberfunction %(GetPoint, GetSize) return const references"
+			~ "object type values") @ "class %Rect";
+		/ ("platform independent const static member %Invalid"
+			@ "(class template %GBinaryGroup, class %Size)")
+			~ ("platform dependent %FullScreen" @ "class %(Point, Vec, Size)"
+	)
+),
+
+b241
 (
 	/ "macros" @ "header ybase.h" $=
 	(

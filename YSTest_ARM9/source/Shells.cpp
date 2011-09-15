@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5079;
+\version r5116;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-12 23:58 +0800;
+	2011-09-15 15:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -143,19 +143,6 @@ namespace
 	}
 
 	void
-	switchShl1()
-	{
-		CallStored<ShlExplorer>();
-	}
-
-	void
-	switchShl2(const_path_t pth)
-	{
-		ShlReader::path = pth;
-		CallStored<ShlReader>();
-	}
-
-	void
 	InputCounter(const Point& pt)
 	{
 		siprintf(strCount, "%d,%d,%d;Count = %d, Pos = (%d, %d);",
@@ -243,39 +230,6 @@ FetchImage(size_t i)
 	*/
 }
 
-
-ShlExplorer::ShlExplorer()
-	: ShlDS(),
-	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(12, 80, 240, 22)),
-	fbMain(Rect(4, 6, 248, 128)),
-	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
-	chkFPS(Rect(232, 144, 16, 16)),
-	pWndTest(), pWndExtra(),
-	lblA(Rect(5, 20, 200, 22)),
-	lblB(Rect(5, 120, 72, 22)),
-	mhMain(*GetDesktopDownHandle())
-{
-	//对 fbMain 启用缓存。
-	fbMain.SetRenderer(unique_raw(new BufferedWidgetRenderer()));
-	FetchEvent<KeyPress>(fbMain) += [](IWidget&, KeyEventArgs&& e){
-		if(e.GetKeyCode() & KeySpace::L)
-			switchShl1();
-	};
-	fbMain.GetViewChanged().Add(*this, &ShlExplorer::OnViewChanged_fbMain);
-	fbMain.GetSelected() += [this](IWidget&, IndexEventArgs&&){
-		Enable(btnOK, fbMain.IsSelected() && IO::GetExtensionOf(
-			Text::StringToMBCS(fbMain.GetList()[fbMain.GetSelectedIndex()]))
-			== "txt");
-	};
-	fbMain.GetConfirmed() += OnConfirmed_fbMain;
-	Enable(btnTest, true);
-	Enable(btnOK, false);
-	FetchEvent<Click>(btnTest).Add(*this, &ShlExplorer::OnClick_btnTest);
-	FetchEvent<Click>(btnOK).Add(*this, &ShlExplorer::OnClick_btnOK);
-	lblA.Text = YApplication::ProductName;
-	lblB.Text = "程序测试";
-	lblB.SetTransparent(true);
-}
 
 namespace
 {
@@ -396,6 +350,85 @@ FPSCounter::Refresh()
 		now_tick = GetRTC();
 	}
 	return now_tick == last_tick ? 0 : 1000000 / (now_tick - last_tick);
+}
+
+
+ShlExplorer::ShlExplorer()
+	: ShlDS(),
+	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(12, 80, 240, 22)),
+	fbMain(Rect(4, 6, 248, 128)),
+	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
+	chkFPS(Rect(232, 144, 16, 16)),
+	pWndTest(), pWndExtra(),
+	lblA(Rect(5, 20, 200, 22)),
+	lblB(Rect(5, 120, 72, 22)),
+	mhMain(*GetDesktopDownHandle())
+{
+	//对 fbMain 启用缓存。
+	fbMain.SetRenderer(unique_raw(new BufferedRenderer()));
+	FetchEvent<KeyPress>(fbMain) += [](IWidget&, KeyEventArgs&& e){
+		if(e.GetKeyCode() & KeySpace::L)
+			CallStored<ShlExplorer>();
+	};
+	fbMain.GetViewChanged() += [this](IWidget&, EventArgs&&){
+		lblPath.Text = fbMain.GetPath();
+		Invalidate(lblPath);
+	};
+	fbMain.GetSelected() += [this](IWidget&, IndexEventArgs&&){
+		Enable(btnOK, fbMain.IsSelected() && IO::GetExtensionOf(
+			Text::StringToMBCS(fbMain.GetList()[fbMain.GetSelectedIndex()]))
+			== "txt");
+	};
+	fbMain.GetConfirmed() += OnConfirmed_fbMain;
+	Enable(btnTest, true);
+	Enable(btnOK, false);
+	FetchEvent<Click>(btnTest) += [this](IWidget&, TouchEventArgs&&){
+		YAssert(is_not_null(pWndTest), "err: pWndTest is null;");
+
+		SwitchVisible(*pWndTest);
+	/*	if(fbMain.IsSelected())
+		{
+			YConsole console(*hScreenUp);
+
+			Activate(console, Color::Silver);
+
+			iprintf("Current Working Directory:\n%s\n",
+				IO::GetNowDirectory().c_str());
+			iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
+		//	std::fprintf(stderr, "err");
+			WaitForInput();
+		}
+		else
+		{
+			YConsole console(*hScreenDown);
+			Activate(console, Color::Yellow, ColorSpace::Green);
+			iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
+			puts("OK");
+			WaitForInput();
+		}*/
+	};
+	FetchEvent<Click>(btnOK) += [this](IWidget&, TouchEventArgs&&){
+		if(fbMain.IsSelected())
+		{
+			const string& s(fbMain.GetPath().GetNativeString());
+		/*	YConsole console;
+			Activate(console);
+			iprintf("%s\n%s\n%s\n%d,%d\n", fbMain.GetDirectory().c_str(),
+				StringToMBCS(fbMain.YListBox::GetList()[fbMain.GetSelected()])
+				.c_str(), s.c_str(), IO::ValidateDirectory(s),
+				fexists(s.c_str()));
+			WaitForABXY();
+			Deactivate(console);*/
+			if(!IO::ValidateDirectory(s) && fexists(s.c_str()))
+			{
+				ShlReader::path = s;
+				CallStored<ShlReader>();
+			}
+		}
+	};
+	lblA.Text = YApplication::ProductName;
+	lblB.Text = "程序测试";
+	lblB.SetTransparent(true);
 }
 
 
@@ -549,50 +582,42 @@ ShlExplorer::TFormExtra::TFormExtra()
 	btnExit.Text = _ustr("退出");
 	BackColor = Color(248, 120, 120);
 	SetInvalidationOf(*this);
-	FetchEvent<TouchDown>(*this) += OnTouchDown_FormExtra;
+	FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&&){
+		BackColor = GenerateRandomColor();
+		SetInvalidationOf(*this);
+	};
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
-	FetchEvent<Move>(btnDragTest).Add(*this, &TFormExtra::OnMove_btnDragTest);
-	FetchEvent<TouchUp>(btnDragTest).Add(*this,
-		&TFormExtra::OnTouchUp_btnDragTest);
-	FetchEvent<TouchDown>(btnDragTest).Add(*this,
-		&TFormExtra::OnTouchDown_btnDragTest);
+	FetchEvent<Move>(btnDragTest) += [this](IWidget&, EventArgs&&){
+		char sloc[20];
+
+		siprintf(sloc, "(%d, %d);", btnDragTest.GetX(), btnDragTest.GetY());
+		btnDragTest.Text = sloc;
+		Invalidate(btnDragTest);
+	};
+	FetchEvent<TouchUp>(btnDragTest) += [this](IWidget&, TouchEventArgs&& e){
+		InputCounter(e);
+		FetchShell<ShlExplorer>().ShowString(strCount);
+		Invalidate(btnDragTest);
+	};
+	FetchEvent<TouchDown>(btnDragTest) += [this](IWidget&, TouchEventArgs&& e){
+		InputCounterAnother(e);
+		FetchShell<ShlExplorer>().ShowString(strCount);
+	//	btnDragTest.Refresh();
+	};
 	FetchEvent<TouchMove>(btnDragTest) += OnTouchMove_Dragging;
 	FetchEvent<Click>(btnDragTest).Add(*this, &TFormExtra::OnClick_btnDragTest);
 	FetchEvent<Click>(btnTestEx).Add(*this, &TFormExtra::OnClick_btnTestEx);
 	FetchEvent<KeyPress>(btnDragTest) += OnKeyPress_btnDragTest;
 //	btnDragTest.Enabled = false;
 	btnClose.BackColor = Color(176, 184, 192);
-	FetchEvent<Click>(btnClose).Add(*this, &TFormExtra::OnClick_btnClose);
+	FetchEvent<Click>(btnClose) += [this](IWidget&, TouchEventArgs&&){
+		Hide(*this);
+	};
 	FetchEvent<Click>(btnExit) += [](IWidget&, TouchEventArgs&&){
 		PostQuitMessage(0);
 	};
 }
 
-
-void
-ShlExplorer::TFormExtra::OnMove_btnDragTest(EventArgs&&)
-{
-	static char sloc[20];
-
-	siprintf(sloc, "(%d, %d);", btnDragTest.GetX(), btnDragTest.GetY());
-	btnDragTest.Text = sloc;
-	Invalidate(btnDragTest);
-}
-
-void
-ShlExplorer::TFormExtra::OnTouchUp_btnDragTest(TouchEventArgs&& e)
-{
-	InputCounter(e);
-	FetchShell<ShlExplorer>().ShowString(strCount);
-	Invalidate(btnDragTest);
-}
-void
-ShlExplorer::TFormExtra::OnTouchDown_btnDragTest(TouchEventArgs&& e)
-{
-	InputCounterAnother(e);
-	FetchShell<ShlExplorer>().ShowString(strCount);
-//	btnDragTest.Refresh();
-}
 
 void
 ShlExplorer::TFormExtra::OnClick_btnDragTest(TouchEventArgs&&)
@@ -656,12 +681,6 @@ ShlExplorer::TFormExtra::OnKeyPress_btnDragTest(IWidget& sender,
 	if(nCountInput & 1)
 		lbl.Text = _ustr("测试键盘...");
 */
-}
-
-void
-ShlExplorer::TFormExtra::OnClick_btnClose(TouchEventArgs&&)
-{
-	Hide(*this);
 }
 
 void
@@ -754,16 +773,6 @@ ShlExplorer::OnActivated(const Message& msg)
 	FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave;
 	FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown;
 	FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click;
-
-/*
-	ReplaceHandle<IWindow*>(hWndUp,
-		new TFrmFileListMonitor(shared_ptr<YShell>(this)));
-	ReplaceHandle<IWindow*>(hWndDown,
-		new TFrmFileListSelecter(shared_ptr<YShell>(this)));
-*/
-	//	dynamic_pointer_cast<TFrmFileListSelecter>(
-	//		hWndDown)->fbMain.RequestFocus(GetZeroElement<EventArgs>());
-	//	hWndDown->RequestFocus(GetZeroElement<EventArgs>());
 	RequestFocusCascade(fbMain);
 	// init-seg 4;
 	dsk_dn.BackColor = Color(120, 120, 248);
@@ -806,6 +815,8 @@ ShlExplorer::OnDeactivated(const Message& msg)
 	FetchEvent<KeyDown>(dsk_dn) -= OnKey_Bound_EnterAndTouchDown;
 	FetchEvent<KeyPress>(dsk_dn) -= OnKey_Bound_Click;
 	// uninit-seg 4;
+	dsk_dn -= *pWndTest;
+	dsk_dn -= *pWndExtra;
 	reset(pWndTest);
 	reset(pWndExtra);
 	// uninit-seg 5;
@@ -877,63 +888,10 @@ ShlExplorer::ShowString(const char* s)
 }
 
 void
-ShlExplorer::OnClick_btnTest(TouchEventArgs&&)
-{
-	YAssert(is_not_null(pWndTest), "err: pWndTest is null;");
-
-	SwitchVisible(*pWndTest);
-/*	if(fbMain.IsSelected())
-	{
-		YConsole console(*hScreenUp);
-
-		Activate(console, Color::Silver);
-
-		iprintf("Current Working Directory:\n%s\n",
-			IO::GetNowDirectory().c_str());
-		iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
-	//	std::fprintf(stderr, "err");
-		WaitForInput();
-	}
-	else
-	{
-		YConsole console(*hScreenDown);
-		Activate(console, Color::Yellow, ColorSpace::Green);
-		iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
-		puts("OK");
-		WaitForInput();
-	}*/
-}
-
-void
-ShlExplorer::OnClick_btnOK(TouchEventArgs&&)
-{
-	if(fbMain.IsSelected())
-	{
-		const string& s(fbMain.GetPath().GetNativeString());
-/*	YConsole console;
-	Activate(console);
-	iprintf("%s\n%s\n%s\n%d,%d\n",fbMain.GetDirectory().c_str(),
-		StringToMBCS(fbMain.YListBox::GetList()[fbMain.GetSelected()]).c_str(),
-		s.c_str(),IO::ValidateDirectory(s), fexists(s.c_str()));
-	WaitForABXY();
-	Deactivate(console);*/
-		if(!IO::ValidateDirectory(s) && fexists(s.c_str()))
-			switchShl2(s.c_str());
-	}
-}
-
-void
-ShlExplorer::OnViewChanged_fbMain(EventArgs&&)
-{
-	lblPath.Text = fbMain.GetPath();
-	Invalidate(lblPath);
-}
-
-void
 ShlExplorer::OnConfirmed_fbMain(IWidget&, IndexEventArgs&&)
 {
 //	if(e.Index == 2)
-//		switchShl1();
+//		CallStored<ShlExplorer>();
 }
 
 void
@@ -944,20 +902,6 @@ ShlExplorer::OnClick_ShowWindow(IWidget&, TouchEventArgs&&)
 	YAssert(is_not_null(pWnd), "err: pWndExtra is null;");
 
 	SwitchVisible(*pWnd);
-}
-
-void
-ShlExplorer::OnTouchDown_FormExtra(IWidget& sender, TouchEventArgs&&)
-{
-	try
-	{
-		TFormExtra& frm(dynamic_cast<TFormExtra&>(sender));
-
-		frm.BackColor = GenerateRandomColor();
-		SetInvalidationOf(frm);
-	}
-	catch(std::bad_cast&)
-	{}
 }
 
 
@@ -1027,16 +971,15 @@ ShlReader::ReaderPanel::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&
 }
 
 Rect
-ShlReader::ReaderPanel::Refresh(const Graphics& g, const Point& pt,
-	const Rect& r)
+ShlReader::ReaderPanel::Refresh(const PaintEventArgs& e)
 {
-	auto rect(Widget::Refresh(g, pt, r));
+	auto rect(Widget::Refresh(e));
 
-	RenderChild(btnClose, g, pt, r);
-	RenderChild(btnUp, g, pt, r);
-	RenderChild(btnDown, g, pt, r);
-	RenderChild(btnLeft, g, pt, r);
-	RenderChild(btnRight, g, pt, r);
+	RenderChild(btnClose, e);
+	RenderChild(btnUp, e);
+	RenderChild(btnDown, e);
+	RenderChild(btnLeft, e);
+	RenderChild(btnRight, e);
 	return GetBoundsOf(*this);
 }
 

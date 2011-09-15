@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5489;
+\version r5507;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-09-14 01:57 +0800;
+	2011-09-14 23:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,42 +41,42 @@ using namespace Drawing;
 
 保存部件的事件响应策略和状态。
 */
-class WidgetController : implements IController
+class Controller : implements IController
 {
 private:
 	bool enabled; //!< 控件可用性。
 
 protected:
-	mutable VisualEventMap EventMap; //!< 事件映射表。
+	mutable EventMapping::MapType EventMap; //!< 事件映射表。
 
 public:
 	explicit
-	WidgetController(bool);
-	WidgetController(bool, const VisualEventMap&);
-	WidgetController(bool, VisualEventMap&&);
+	Controller(bool);
+	Controller(bool, const EventMapping::MapType&);
+	Controller(bool, EventMapping::MapType&&);
 
 	DefPredicate(Enabled, enabled)
 
-	ImplI1(IController) PDefH1(VisualEventMap::ItemType&, GetItemRef,
+	ImplI1(IController) PDefH1(EventMapping::ItemType&, GetItemRef,
 		const VisualEvent& id)
 		ImplRet(EventMap.at(id))
-	ImplI1(IController) VisualEventMap::ItemType& GetItemRef(const VisualEvent&,
-		VisualEventMap::PointerType(&)());
-	DefGetter(VisualEventMap&, EventMap, EventMap) //!< 取事件映射表。
+	ImplI1(IController) EventMapping::ItemType& GetItemRef(const VisualEvent&,
+		EventMapping::MappedType(&)());
+	DefGetter(EventMapping::MapType&, EventMap, EventMap) //!< 取事件映射表。
 
 	DefSetter(bool, Enabled, enabled)
 };
 
 inline
-WidgetController::WidgetController(bool b)
+Controller::Controller(bool b)
 	: enabled(b), EventMap()
 {}
 inline
-WidgetController::WidgetController(bool b, const VisualEventMap& m)
+Controller::Controller(bool b, const EventMapping::MapType& m)
 	: enabled(b), EventMap(m)
 {}
 inline
-WidgetController::WidgetController(bool b, VisualEventMap&& m)
+Controller::Controller(bool b, EventMapping::MapType&& m)
 	: enabled(b), EventMap(std::move(m))
 {}
 
@@ -175,18 +175,19 @@ ReleaseFocus(IWidget& wgt)
 \brief 构造指针指向的 VisualEvent 指定的事件对象。
 */
 template<VisualEvent _vID>
-VisualEventMap::PointerType
+EventMapping::MappedType
 NewEvent()
 {
-	return VisualEventMap::PointerType(new GEventWrapper<typename
+	return EventMapping::MappedType(new GEventWrapper<typename
 		GSEvent<typename EventTypeMapping<_vID>::HandlerType>::EventType>());
 }
 
 /*!
 \brief 在事件映射表中取指定 id 对应的事件。
 */
-VisualEventMap::ItemType&
-GetEvent(VisualEventMap&, const VisualEvent&, VisualEventMap::PointerType(&)());
+EventMapping::ItemType&
+GetEvent(EventMapping::MapType&, const VisualEvent&,
+	EventMapping::MappedType(&)());
 
 /*!
 \ingroup HelperFunction
@@ -387,7 +388,7 @@ public:
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	virtual Rect
-	Refresh(const Graphics&, const Point&, const Rect&);
+	Refresh(const PaintEventArgs&);
 };
 
 YSL_END_NAMESPACE(Components)

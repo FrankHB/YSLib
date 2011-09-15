@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2694;
+\version r2700;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-09-10 03:22 +0800;
+	2011-09-15 13:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,7 +69,7 @@ struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
 \brief 取整数类型的零元素。
 */
 inline int
-GetZeroElement()
+FetchZero()
 {
 	return 0;
 }
@@ -78,7 +78,7 @@ GetZeroElement()
 */
 PDefTH1(_type)
 inline _type
-GetZeroElement()
+FetchZero()
 {
 	return _type(0);
 }
@@ -98,7 +98,7 @@ sgn(int a, int b = 0)
 */
 PDefTH1(_type)
 s8
-sgn(const _type& a, const _type& b = GetZeroElement<_type>())
+sgn(const _type& a, const _type& b = FetchZero<_type>())
 {
 	return a < b ? -1 : !(a == b);
 }
@@ -130,18 +130,18 @@ sgnInterval(const _type& d, const _type& a, const _type& b)
 }
 
 /*!
-\brief 判断 i 是否在左闭右开区间 [<tt>GetZeroElement<_type>()</tt>, b) 中。
-\pre 断言： <tt>GetZeroElement<_type>() < b</tt> 。
+\brief 判断 i 是否在左闭右开区间 [<tt>FetchZero<_type>()</tt>, b) 中。
+\pre 断言： <tt>FetchZero<_type>() < b</tt> 。
 */
 PDefTH1(_type)
 inline bool
 IsInInterval(_type i, _type b)
 {
-	YAssert(GetZeroElement<_type>() < b,
+	YAssert(FetchZero<_type>() < b,
 		"Zero element as lower bound is not less than upper bound"
 		" @ IsInterval<_type>(_type, _type);");
 
-	return !(i < GetZeroElement<_type>()) && i < b;
+	return !(i < FetchZero<_type>()) && i < b;
 }
 /*!
 \brief 判断 i 是否在左闭右开区间 [a, b) 中。
@@ -158,18 +158,18 @@ IsInInterval(_type i, _type a, _type b)
 }
 
 /*!
-\brief 判断 i 是否在开区间 (GetZeroElement<_type>(), b) 内。
-\pre 断言： <tt>GetZeroElement<_type>() < b</tt> 。
+\brief 判断 i 是否在开区间 (FetchZero<_type>(), b) 内。
+\pre 断言： <tt>FetchZero<_type>() < b</tt> 。
 */
 PDefTH1(_type)
 inline bool
 IsInOpenInterval(_type i, _type b)
 {
-	YAssert(GetZeroElement<_type>() < b,
+	YAssert(FetchZero<_type>() < b,
 		"Zero element as lower bound is not less than upper bound"
 		" @ IsInOpenInterval<_type>(_type, _type);");
 
-	return i > GetZeroElement<_type>() && i < b;
+	return i > FetchZero<_type>() && i < b;
 }
 /*!
 \brief 判断 i 是否在开区间 (a, b) 内。
@@ -287,14 +287,14 @@ RestrictUnsignedStrict(_type& u, unsigned b)
 
 /*!
 \brief 约束无符号整数 u 在左闭右开区间 [0, b) 中。
-\pre 断言： <tt>b != GetZeroElement<_type>()</tt> 。
-\post <tt>!(u < GetZeroElement<_type>()) && u < b</tt> 。
+\pre 断言： <tt>b != FetchZero<_type>()</tt> 。
+\post <tt>!(u < FetchZero<_type>()) && u < b</tt> 。
 */
 PDefTH1(_type)
 void
 RestrictUnsigned(_type& u, unsigned b)
 {
-	YAssert(b != GetZeroElement<_type>(), "Zero upper bound found"
+	YAssert(b != FetchZero<_type>(), "Zero upper bound found"
 		" @ RestrictUnsigned<_type>(_type& u, unsigned b);");
 
 	if(!(u < b))

@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1363;
+\version r1364;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-09-11 22:03 +0800;
+	2011-09-14 08:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -171,7 +171,7 @@ public:
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	virtual Rect
-	Refresh(const Graphics&, const Point&, const Rect&);
+	Refresh(const PaintEventArgs&);
 
 	PDefH0(void, ClearSelected)
 		ImplBodyMember0(viewer, ClearSelected)

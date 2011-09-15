@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4493;
+\version r4516;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-09-14 01:59 +0800;
+	2011-09-16 02:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,21 +32,20 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-VisualEventMap::ItemType&
-GetEvent(VisualEventMap& m, const VisualEvent& id,
-	VisualEventMap::PointerType(&f)())
+EventMapping::ItemType&
+GetEvent(EventMapping::MapType& m, const VisualEvent& id,
+	EventMapping::MappedType(&f)())
 {
-	auto pr(m.Search(id));
+	auto pr(ystdex::search_map(m, id));
 
 	if(pr.second)
-		pr.first = m.Insert(pr.first, VisualEventMap::PairType(id, f()));
-	return *pr.first->second;
+		pr.first = m.insert(pr.first, EventMapping::PairType(id, f()));
+	return pr.first->second;
 }
 
 
-VisualEventMap::ItemType&
-WidgetController::GetItemRef(const VisualEvent& id,
-	VisualEventMap::PointerType(&f)())
+EventMapping::ItemType&
+Controller::GetItemRef(const VisualEvent& id, EventMapping::MappedType(&f)())
 {
 	return GetEvent(EventMap, id, f);
 }
@@ -75,7 +74,7 @@ void
 RequestFocusFrom(IWidget& dst, IWidget& src)
 {
 	if(auto p = FetchContainerPtr(dst))
-		if(p->GetFocusResponser().ResponseFocusRequest(dst))
+		if(p->GetFocusResponder().ResponseFocusRequest(dst))
 			CallEvent<GotFocus>(dst, src, EventArgs());
 }
 
@@ -83,7 +82,7 @@ void
 ReleaseFocusFrom(IWidget& dst, IWidget& src)
 {
 	if(auto p = FetchContainerPtr(dst))
-		if(p->GetFocusResponser().ResponseFocusRelease(dst))
+		if(p->GetFocusResponder().ResponseFocusRelease(dst))
 			CallEvent<LostFocus>(dst, src, EventArgs());
 }
 
@@ -104,7 +103,7 @@ OnTouchHeld(IWidget& wgt, TouchEventArgs&& e)
 	{
 		auto& shl(FetchGUIShell());
 
-		if(shl.DraggingOffset == Vec::FullScreen)
+		if(shl.DraggingOffset == Vec::Invalid)
 			shl.DraggingOffset = wgt.GetLocation() - shl.ControlLocation;
 		else
 			CallEvent<TouchMove>(wgt, e);
@@ -169,7 +168,7 @@ OnKey_Bound_TouchUpAndLeave(IWidget& wgt, KeyEventArgs&& e)
 
 	if(pCtl)
 	{
-		TouchEventArgs et(TouchEventArgs::FullScreen);
+		TouchEventArgs et(TouchEventArgs::Invalid);
 
 		CallEvent<TouchUp>(*pCtl, et);
 		CallEvent<Leave>(*pCtl, et);
@@ -184,7 +183,7 @@ OnKey_Bound_EnterAndTouchDown(IWidget& wgt, KeyEventArgs&& e)
 
 	if(pCtl)
 	{
-		TouchEventArgs et(TouchEventArgs::FullScreen);
+		TouchEventArgs et(TouchEventArgs::Invalid);
 
 		CallEvent<Enter>(*pCtl, et);
 		CallEvent<TouchDown>(*pCtl, et);
@@ -199,7 +198,7 @@ OnKey_Bound_Click(IWidget& wgt, KeyEventArgs&& e)
 
 	if(pCtl)
 	{
-		TouchEventArgs et(TouchEventArgs::FullScreen);
+		TouchEventArgs et(TouchEventArgs::Invalid);
 
 		CallEvent<Click>(*pCtl, et);
 		e.Handled = true;
@@ -219,8 +218,8 @@ Control::ControlEventMap::ControlEventMap()
 }
 
 Control::Control(const Rect& r)
-	: Widget(r, new WidgetRenderer(), new FocusResponser(),
-	new WidgetController(true, FetchPrototype<ControlEventMap>()))
+	: Widget(r, new Renderer(), new FocusResponder(), new Controller(true,
+	FetchPrototype<ControlEventMap>()))
 {
 	BoundControlPtr = std::bind(std::mem_fn(&Control::GetBoundControlPtr), this,
 		std::placeholders::_1);
@@ -243,9 +242,9 @@ Control::SetSize(const Size& s)
 }
 
 Rect
-Control::Refresh(const Graphics& g, const Point& pt, const Rect& r)
+Control::Refresh(const PaintEventArgs& e)
 {
-	Widget::Refresh(g, pt, r);
+	Widget::Refresh(e);
 	return GetBoundsOf(*this);
 }
 

@@ -11,12 +11,12 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1396;
+\version r1446;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2011-08-06 23:46 +0800;
+	2011-08-16 02:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,33 +31,16 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-const Point Point::Zero = Point();
-const Point Point::FullScreen = Point(MainScreenWidth, MainScreenHeight);
-
-const Vec Vec::Zero = Vec();
-const Vec Vec::FullScreen = Vec(MainScreenWidth, MainScreenHeight);
-
-
 const Size Size::Zero = Size();
 const Size Size::FullScreen = Size(MainScreenWidth, MainScreenHeight);
 
 
-SPos
-SelectFrom(const BinaryGroup& o, bool is_1st)
-{
-	return is_1st ? o.X : o.Y;
-}
 SDst
 SelectFrom(const Size& s, bool is_1st)
 {
 	return is_1st ? s.Width : s.Height;
 }
 
-SPos&
-SelectRefFrom(BinaryGroup& o, bool is_1st)
-{
-	return is_1st ? o.X : o.Y;
-}
 SDst&
 SelectRefFrom(Size& s, bool is_1st)
 {
@@ -65,20 +48,12 @@ SelectRefFrom(Size& s, bool is_1st)
 }
 
 void
-UpdateTo(BinaryGroup& o, SPos v, bool is_1st)
+UpdateTo(Size& s, SDst val, bool is_1st)
 {
 	if(is_1st)
-		o.X = v;
+		s.Width = val;
 	else
-		o.Y = v;
-}
-void
-UpdateTo(Size& s, SDst v, bool is_1st)
-{
-	if(is_1st)
-		s.Width = v;
-	else
-		s.Height = v;
+		s.Height = val;
 }
 
 

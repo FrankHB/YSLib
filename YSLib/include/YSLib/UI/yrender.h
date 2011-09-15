@@ -11,12 +11,12 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1304;
+\version r1320;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-09-11 21:31 +0800;
+	2011-09-14 23:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,21 +31,36 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Drawing)
+YSL_BEGIN_NAMESPACE(Components)
+
+//名称引用。
+using Drawing::PixelType;
+using Drawing::BitmapPtr;
+using Drawing::ConstBitmapPtr;
+using Drawing::ScreenBufferType;
+using Drawing::Color;
+
+using Drawing::Point;
+using Drawing::Vec;
+using Drawing::Size;
+using Drawing::Rect;
+
+using Drawing::Graphics;
+
 
 /*!
 \brief 部件渲染器。
 
 无缓冲渲染策略：不保存部件渲染状态和有效的图形接口上下文。
 */
-class WidgetRenderer
+class Renderer
 {
 public:
-	inline DefDeCtor(WidgetRenderer)
-	inline DefDeCopyCtor(WidgetRenderer)
-	inline DefDeMoveCtor(WidgetRenderer)
-	virtual DefClone(WidgetRenderer, Clone)
-	virtual DefEmptyDtor(WidgetRenderer)
+	inline DefDeCtor(Renderer)
+	inline DefDeCopyCtor(Renderer)
+	inline DefDeMoveCtor(Renderer)
+	virtual DefClone(Renderer, Clone)
+	virtual DefEmptyDtor(Renderer)
 
 	/*!
 	\brief 判断是否需要刷新。
@@ -116,19 +131,19 @@ public:
 
 缓冲渲染策略：保存部件渲染状态和有效的图形接口上下文。
 */
-class BufferedWidgetRenderer : public WidgetRenderer
+class BufferedRenderer : public Renderer
 {
 protected:
 	mutable Rect rInvalidated; \
 		//!< 无效区域：包含所有新绘制请求的区域（不一定是最小的）。
 
 public:
-	BitmapBuffer Buffer; //!< 显示缓冲区。
+	Drawing::BitmapBuffer Buffer; //!< 显示缓冲区。
 
-	DefDeCtor(BufferedWidgetRenderer)
-	DefDeCopyCtor(BufferedWidgetRenderer)
-	DefDeMoveCtor(BufferedWidgetRenderer)
-	virtual DefClone(BufferedWidgetRenderer, Clone)
+	DefDeCtor(BufferedRenderer)
+	DefDeCopyCtor(BufferedRenderer)
+	DefDeMoveCtor(BufferedRenderer)
+	virtual DefClone(BufferedRenderer, Clone)
 
 	/*!
 	\brief 判断是否需要刷新。
@@ -188,7 +203,7 @@ public:
 	UpdateTo(const Graphics&, const Point&, const Rect&) const;
 };
 
-YSL_END_NAMESPACE(Drawing)
+YSL_END_NAMESPACE(Components)
 
 YSL_END
 

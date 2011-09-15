@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3412;
+\version r3430;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-04 20:40 +0800;
+	2011-09-15 15:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -126,15 +126,6 @@ public:
 		TFormExtra();
 
 		void
-		OnMove_btnDragTest(EventArgs&&);
-
-		void
-		OnTouchUp_btnDragTest(TouchEventArgs&&);
-
-		void
-		OnTouchDown_btnDragTest(TouchEventArgs&&);
-
-		void
 		OnClick_btnDragTest(TouchEventArgs&&);
 
 		static void
@@ -142,9 +133,6 @@ public:
 
 		void
 		OnClick_btnTestEx(TouchEventArgs&&);
-
-		void
-		OnClick_btnClose(TouchEventArgs&&);
 	};
 
 	Label lblTitle, lblPath;
@@ -177,23 +165,11 @@ private:
 	void
 	ShowString(const char*);
 
-	void
-	OnClick_btnTest(TouchEventArgs&&);
-
-	void
-	OnClick_btnOK(TouchEventArgs&&);
-
-	void
-	OnViewChanged_fbMain(EventArgs&&);
-
 	static void
 	OnConfirmed_fbMain(IWidget&, IndexEventArgs&&);
 
 	static void
 	OnClick_ShowWindow(IWidget&, TouchEventArgs&&);
-
-	static void
-	OnTouchDown_FormExtra(IWidget&, TouchEventArgs&&);
 };
 
 
@@ -214,7 +190,7 @@ public:
 		GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 		virtual Rect
-		Refresh(const Graphics&, const Point&, const Rect&);
+		Refresh(const PaintEventArgs&);
 
 		void
 		UpdateEnablilty();

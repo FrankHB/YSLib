@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4584;
+\version r4646;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-09-14 00:57 +0800;
+	2011-09-15 11:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -442,12 +442,17 @@ public:
 /*!
 \brief 依赖事件项类模板。
 */
-template<class _tEvent>
-class GDependencyEvent : public GDependency<_tEvent>
+template<class _tEvent, class _tOwnerPointer = shared_ptr<_tEvent>>
+class GDependencyEvent : public GDependency<_tEvent, _tOwnerPointer>
 {
 public:
+	typedef typename GDependency<_tEvent>::DependentType DependentType;
 	typedef typename GDependency<_tEvent>::PointerType PointerType;
-	typedef _tEvent EventType;
+	typedef typename GDependency<_tEvent>::ConstReferenceType
+		ConstReferenceType;
+	typedef typename GDependency<_tEvent>::ReferentType ReferentType;
+	typedef typename GDependency<_tEvent>::ReferenceType ReferenceType;
+	typedef DependentType EventType;
 	typedef typename EventType::SenderType SenderType;
 	typedef typename EventType::EventArgsType EventArgsType;
 	typedef typename EventType::SEventType SEventType;
@@ -463,7 +468,7 @@ public:
 	\brief 添加事件响应。
 	*/
 	PDefTH1(_type)
-	inline EventType&
+	inline ReferenceType
 	operator+=(_type _arg)
 	{
 		return this->GetNewRef().operator+=(_arg);
@@ -473,7 +478,7 @@ public:
 	\brief 移除事件响应。
 	*/
 	PDefTH1(_type)
-	inline EventType&
+	inline ReferenceType
 	operator-=(_type _arg)
 	{
 		return this->GetNewRef().operator-=(_arg);
@@ -483,7 +488,7 @@ public:
 	\brief 添加事件响应：使用对象引用和成员函数指针。
 	*/
 	template<class _type>
-	inline EventType&
+	inline ReferenceType
 	Add(_type& obj, void(_type::*pm)(EventArgsType&&))
 	{
 		return this->GetNewRef().Add(obj, pm);
@@ -493,7 +498,7 @@ public:
 	\brief 移除事件响应：目标为指定对象引用和成员函数指针。
 	*/
 	template<class _type>
-	inline EventType&
+	inline ReferenceType
 	Remove(_type& obj, void(_type::*pm)(EventArgsType&&))
 	{
 		return this->GetNewRef().Remove(obj, pm);
@@ -607,7 +612,7 @@ public:
 
 	inline virtual DefClone(GEventWrapper, Clone)
 
-		/*!
+	/*!
 	\brief 委托调用。
 	\warning 需要确保 EventArgs&& 引用的对象能够转换至 EventArgsType&& 引用。
 	*/
@@ -620,93 +625,40 @@ public:
 };
 
 
-//! \brief 事件映射表模板。
-template<typename _tSender, typename _tEventSpace>
-class GEventMap
+/*!
+\brief 事件项类型。
+\warning 非虚析构。
+*/
+PDefTH2(_tSender, _tEventSpace)
+class GEventPointerWrapper
 {
 public:
-	typedef _tEventSpace ID;
 	typedef GIHEvent<_tSender, EventArgs> ItemType;
-	typedef unique_ptr<ItemType> PointerType; //!< 指针类型。
-	typedef pair<ID, PointerType> PairType;
-	typedef map<ID, PointerType> MapType; //!< 映射表类型。
-	typedef pair<typename MapType::iterator, bool> SearchResult; \
-		//!< 搜索表结果类型。
+	typedef unique_ptr<ItemType> PointerType;
 
 private:
-	MapType m_map; //!< 映射表，其中的所有指针值应保证非空。
+	PointerType ptr;
 
 public:
+	template<typename _type>
+	inline GEventPointerWrapper(_type&& p)
+		: ptr(yforward(p))
+	{
+		YAssert(is_not_null(p), "Null pointer found @ GEventItem::GEventItem;");
+	}
 	/*!
-	\brief 无参数构造。
-	\note 得到空实例。
+	\brief 复制构造：深复制。
 	*/
-	GEventMap()
-		: m_map()
+	GEventPointerWrapper(const GEventPointerWrapper& item)
+		: ptr(ClonePolymorphic(item.ptr))
 	{}
-	GEventMap(const GEventMap& m)
-		: m_map()
-	{
-		for(auto i(m.m_map.cbegin()); i != m.m_map.cend(); ++i)
-			Insert(i->first, unique_raw(ClonePolymorphic(i->second)));
-	}
-	/*!
-	\brief 转移构造：默认实现。
-	*/
-	inline DefDeMoveCtor(GEventMap)
+	DefDeMoveCtor(GEventPointerWrapper)
 
-	/*!
-	\brief 转移赋值：默认实现。
-	*/
-	inline DefDeMoveAssignment(GEventMap)
 
-	/*!
-	\brief 访问映射表的映射项。
-	\throw std::out_of_range 参数越界。
-	\note 仅抛出以上异常。
-	*/
-	inline ItemType&
-	at(const ID& id) const ythrow(std::out_of_range)
-	{
-		const auto& p(this->m_map.at(id));
-
-		YAssert(is_not_null(p), "Null pointer found @ GEventMap::at;");
-
-		return *p;
-	}
-
-	/*!
-	\brief 清除映射表。
-	*/
-	inline void
-	Clear()
-	{
-		m_map.clear();
-	}
-
-	/*!
-	\brief 插入映射项。
-	\note 参数为空指针时忽略。
-	\return 是否插入成功。
-	*/
-	bool
-	Insert(const ID& id, PointerType&& p)
-	{
-		return p ? m_map.insert(PairType(id, std::move(p))).second : false;
-	}
-	/*!
-	\brief 插入映射项。
-	\warning 不检查参数有效性。
-	*/
-	inline typename MapType::iterator
-	Insert(typename MapType::iterator i, PairType&& pr)
-	{
-		return m_map.insert(i, std::move(pr));
-	}
-
-	inline PDefH1(SearchResult, Search, const ID& id)
-		ImplRet(ystdex::search_map(this->m_map, id))
+	DefConverter(const ItemType&, *ptr)
+	DefMutableConverter(ItemType&, *ptr)
 };
+
 
 //! \brief 定义扩展事件类。
 #define DefExtendEventMap(_n, _b) \
