@@ -11,12 +11,12 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2112;
+\version r2114;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-09-14 08:44 +0800;
+	2011-09-17 23:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,7 +71,7 @@ protected:
 	\brief 绘制文本。
 	*/
 	void
-	PaintText(IWidget&, Color, const PaintEventArgs&);
+	PaintText(const Size&, Color, const PaintEventArgs&);
 };
 
 

@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version r2905;
+\version r2909;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-09-11 21:25 +0800;
+	2011-09-16 02:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,19 +34,19 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Shells)
 
-//! \brief 外壳程序：实现线程语义。
-class YShell : public YObject
+//! \brief 外壳程序：实现运行期控制流映像语义。
+class Shell : public noncopyable
 {
 public:
 	/*!
 	\brief 无参数构造。
 	*/
-	DefDeCtor(YShell)
+	DefDeCtor(Shell)
 	/*!
 	\brief 析构。
 	*/
 	virtual
-	~YShell();
+	~Shell();
 
 	/*!
 	\brief 判断 Shell 是否处于激活状态。

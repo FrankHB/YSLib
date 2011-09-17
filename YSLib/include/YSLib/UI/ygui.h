@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2630;
+\version r2636;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-04 00:12 +0800;
+	2011-09-16 03:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,7 +38,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Shells)
 
 //! \brief 默认图形用户界面 Shell 。
-class YGUIShell : public YShell
+class GUIShell : public Shell
 {
 public:
 	//! \brief 输入保持状态。
@@ -51,7 +51,7 @@ public:
 
 	HeldStateType KeyHeldState, TouchHeldState; //!< 输入接触状态。
 	Drawing::Vec DraggingOffset; //!< 拖放偏移量。
-	Timers::YTimer HeldTimer; //!< 输入接触保持计时器。
+	Timers::Timer HeldTimer; //!< 输入接触保持计时器。
 	Drawing::Point ControlLocation, LastControlLocation; \
 		//!< 最近两次的指针设备操作时的控件全局位置（屏幕坐标）。
 	Components::Styles::Palette Colors; //!< 调色板。
@@ -67,7 +67,7 @@ public:
 	\brief 无参数构造。
 	\note 向应用程序对象添加自身。
 	*/
-	YGUIShell();
+	GUIShell();
 
 	DefPredicate(ControlEntered, control_entered)
 
@@ -147,14 +147,14 @@ public:
 
 YSL_END_NAMESPACE(Shells)
 
-using Shells::YGUIShell;
+using Shells::GUIShell;
 
 /*!
 \brief 取当前线程空间中运行的图形用户界面 Shell 句柄。
 \todo 线程模型和安全性。
 \note 不能简单兼容多线程模型。
 */
-YGUIShell&
+GUIShell&
 FetchGUIShell();
 
 YSL_BEGIN_NAMESPACE(Components)
@@ -178,7 +178,7 @@ ReleaseFocusCascade(IWidget&);
 \throw GeneralEvent 图形用户界面 Shell 句柄为空。
 */
 bool
-IsFocusedByShell(const IWidget&, const YGUIShell& = FetchGUIShell());
+IsFocusedByShell(const IWidget&, const GUIShell& = FetchGUIShell());
 
 
 YSL_END_NAMESPACE(Components)

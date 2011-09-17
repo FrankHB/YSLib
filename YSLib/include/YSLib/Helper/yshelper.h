@@ -11,12 +11,12 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2189;
+\version r2195;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-09-12 23:34 +0800;
+	2011-09-16 02:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,10 +71,10 @@ FetchShell()
 \brief 取全局 Shell 句柄。
 */
 template<class _tShl>
-inline shared_ptr<YShell>
+inline shared_ptr<Shell>
 FetchStored()
 {
-	return GLocalStaticCache<_tShl, shared_ptr<YShell>>::GetPointer();
+	return GLocalStaticCache<_tShl, shared_ptr<Shell>>::GetPointer();
 }
 
 /*!
@@ -84,7 +84,7 @@ template<class _tShl>
 inline void
 ReleaseStored()
 {
-	GLocalStaticCache<_tShl, shared_ptr<YShell>>::Release();
+	GLocalStaticCache<_tShl, shared_ptr<Shell>>::Release();
 }
 
 
@@ -92,7 +92,7 @@ ReleaseStored()
 \brief 判断句柄指定的 Shell 是否为当前线程空间中运行的 Shell 。
 */
 inline bool
-IsNowShell(const shared_ptr<YShell>& hShl)
+IsNowShell(const shared_ptr<Shell>& hShl)
 {
 	return FetchAppInstance().GetShellHandle() == hShl;
 }
@@ -101,7 +101,7 @@ IsNowShell(const shared_ptr<YShell>& hShl)
 \brief 向句柄指定的 Shell 对象转移线程控制权。
 */
 inline errno_t
-NowShellTo(const shared_ptr<YShell>& hShl)
+NowShellTo(const shared_ptr<Shell>& hShl)
 {
 	return -!Activate(hShl);
 }
@@ -130,7 +130,7 @@ NowShellToStored()
 \brief 通过主消息队列向指定 Shell 对象转移控制权。
 */
 inline void
-SetShellTo(const shared_ptr<YShell>& hShl, Messaging::Priority p = 0x80)
+SetShellTo(const shared_ptr<Shell>& hShl, Messaging::Priority p = 0x80)
 {
 	SendMessage<SM_SET>(FetchShellHandle(), p, hShl);
 }

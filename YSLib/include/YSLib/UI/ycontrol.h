@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5507;
+\version r5517;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-09-14 23:10 +0800;
+	2011-09-18 01:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,11 +41,8 @@ using namespace Drawing;
 
 保存部件的事件响应策略和状态。
 */
-class Controller : implements IController
+class Controller : public AController
 {
-private:
-	bool enabled; //!< 控件可用性。
-
 protected:
 	mutable EventMapping::MapType EventMap; //!< 事件映射表。
 
@@ -55,29 +52,27 @@ public:
 	Controller(bool, const EventMapping::MapType&);
 	Controller(bool, EventMapping::MapType&&);
 
-	DefPredicate(Enabled, enabled)
-
-	ImplI1(IController) PDefH1(EventMapping::ItemType&, GetItemRef,
+	ImplI1(AController) PDefH1(EventMapping::ItemType&, GetItemRef,
 		const VisualEvent& id)
 		ImplRet(EventMap.at(id))
-	ImplI1(IController) EventMapping::ItemType& GetItemRef(const VisualEvent&,
-		EventMapping::MappedType(&)());
+	virtual EventMapping::ItemType&
+	GetItemRef(const VisualEvent&, EventMapping::MappedType(&)());
 	DefGetter(EventMapping::MapType&, EventMap, EventMap) //!< 取事件映射表。
 
-	DefSetter(bool, Enabled, enabled)
+	ImplI1(AController) DefClone(Controller, Clone)
 };
 
 inline
 Controller::Controller(bool b)
-	: enabled(b), EventMap()
+	: AController(b), EventMap()
 {}
 inline
 Controller::Controller(bool b, const EventMapping::MapType& m)
-	: enabled(b), EventMap(m)
+	: AController(b), EventMap(m)
 {}
 inline
 Controller::Controller(bool b, EventMapping::MapType&& m)
-	: enabled(b), EventMap(std::move(m))
+	: AController(b), EventMap(std::move(m))
 {}
 
 
@@ -211,7 +206,7 @@ FetchEvent(VisualEventMap& m)
 */
 template<VisualEvent _vID>
 typename EventT(typename EventTypeMapping<_vID>::HandlerType)&
-FetchEvent(IController& controller)
+FetchEvent(AController& controller)
 {
 	return dynamic_cast<typename GSEvent<typename EventTypeMapping<_vID>
 		::HandlerType>::EventType&>(controller.GetItemRef(_vID,

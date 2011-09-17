@@ -11,12 +11,12 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version r1700;
+\version r1701;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-09 20:43:52 +0800;
 \par 修改时间:
-	2011-09-11 21:20 +0800;
+	2011-09-16 04:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

@@ -11,12 +11,12 @@
 /*!	\file ysinit.cpp
 \ingroup Adaptor
 \brief 程序启动时的通用初始化。
-\version 0.1805;
+\version r1806;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2011-06-19 03:01 +0800;
+	2011-09-16 03:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -191,7 +191,7 @@ void
 CheckInstall()
 {
 	puts("Checking installation...");
-	if(!direxists(Text::StringToMBCS(YApplication::CommonAppDataPath).c_str()))
+	if(!direxists(Text::StringToMBCS(Application::CommonAppDataPath).c_str()))
 		installFail("Default data directory");
 	if(!(fexists(DEF_FONT_PATH)
 		|| direxists(DEF_FONT_DIRECTORY)))

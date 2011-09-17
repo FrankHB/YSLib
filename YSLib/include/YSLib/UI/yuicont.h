@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2564;
+\version r2566;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-09-16 01:51 +0800;
+	2011-09-17 23:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -80,12 +80,12 @@ Point
 LocateOffset(const IWidget* pEnd, Point, const IWidget* pWgt);
 
 /*!
-\brief 取相对部件 w 的点 pt 相对于 w 的容器的偏移坐标。
+\brief 取相对部件 wgt 的点 pt 相对于 wgt 的容器的偏移坐标。
 */
 inline Point
-LocateContainerOffset(const IWidget& w, const Point& pt)
+LocateContainerOffset(const IWidget& wgt, const Point& pt)
 {
-	return pt + w.GetLocation();
+	return pt + wgt.GetLocation();
 }
 
 /*!

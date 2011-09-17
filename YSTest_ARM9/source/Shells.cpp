@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5116;
+\version r5119;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-15 15:16 +0800;
+	2011-09-16 03:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -154,8 +154,8 @@ namespace
 	InputCounterAnother(const Point&)
 	{
 	//	nCountInput++;
-	//	siprintf(strCount, "%d,%d,%d,%d,",sizeof(Form),sizeof(YShell),
-	//		sizeof(YApplication),sizeof(YWindow));
+	//	siprintf(strCount, "%d,%d,%d,%d,",sizeof(Form),sizeof(Shell),
+	//		sizeof(Application),sizeof(YWindow));
 		struct mallinfo t(mallinfo());
 
 	/*	siprintf(strCount, "%d,%d,%d,%d,%d;",
@@ -426,7 +426,7 @@ ShlExplorer::ShlExplorer()
 			}
 		}
 	};
-	lblA.Text = YApplication::ProductName;
+	lblA.Text = Application::ProductName;
 	lblB.Text = "程序测试";
 	lblB.SetTransparent(true);
 }

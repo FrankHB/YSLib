@@ -11,12 +11,12 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1876;
+\version r1910;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2011-09-14 21:51 +0800;
+	2011-09-18 01:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -193,6 +193,7 @@ DefDelegate(HInputEvent, IWidget, InputEventArgs)
 DefDelegate(HKeyEvent, IWidget, KeyEventArgs)
 DefDelegate(HTouchEvent, IWidget, TouchEventArgs)
 DefDelegate(HIndexEvent, IWidget, IndexEventArgs)
+DefDelegate(HPaintEvent, IWidget, PaintEventArgs)
 //DefDelegate(HPointEvent, IWidget, Drawing::Point)
 //DefDelegate(HSizeEvent, IWidget, Size)
 
@@ -231,13 +232,17 @@ typedef enum
 	TouchHeld, //!< 屏幕接触保持。
 	TouchMove, //!< 屏幕接触移动。
 	Click, //!< 屏幕点击。
-	Enter, //!< 控件进入。
-	Leave, //!< 控件离开。
+
+	//图形用户界面输出事件。
+	Paint, //!< 界面绘制。
 
 	//焦点事件。
 	GotFocus, //!< 焦点获得。
-	LostFocus //!< 焦点失去。
+	LostFocus, //!< 焦点失去。
 
+	//边界事件。
+	Enter, //!< 控件进入。
+	Leave //!< 控件离开。
 //	TextChanged,
 //	FontChanged,
 //	FontColorChanged,
@@ -264,11 +269,14 @@ DefEventTypeMapping(TouchDown, HTouchEvent)
 DefEventTypeMapping(TouchHeld, HTouchEvent)
 DefEventTypeMapping(TouchMove, HTouchEvent)
 DefEventTypeMapping(Click, HTouchEvent)
-DefEventTypeMapping(Enter, HTouchEvent)
-DefEventTypeMapping(Leave, HTouchEvent)
+
+DefEventTypeMapping(Paint, HPaintEvent)
 
 DefEventTypeMapping(GotFocus, HVisualEvent)
 DefEventTypeMapping(LostFocus, HVisualEvent)
+
+DefEventTypeMapping(Enter, HTouchEvent)
+DefEventTypeMapping(Leave, HTouchEvent)
 
 
 //! \brief 事件映射命名空间。
@@ -291,8 +299,17 @@ struct BadEvent
 {};
 
 
-//! \brief 控制器接口。
-DeclInterface(IController)
+//! \brief 控制器抽象类。
+class AController
+{
+private:
+	bool enabled; //!< 控件可用性。
+
+public:
+	AController(bool);
+
+	DefPredicate(Enabled, enabled)
+
 	/*!
 	\brief 取事件项。
 	*/
@@ -300,16 +317,45 @@ DeclInterface(IController)
 
 	/*!
 	\brief 取事件项，若不存在则用指定函数指针添加。
-	\note 允许派生类实现拒绝加入任何事件项，此时抛出 std::out_of_range 异常。
+	\throw std::out_of_range 拒绝加入任何事件项。
 	*/
-	DeclIEntry(EventMapping::ItemType& GetItemRef(const VisualEvent&,
-		EventMapping::MappedType(&)()))
-EndDecl
+	virtual EventMapping::ItemType&
+	GetItemRef(const VisualEvent&, EventMapping::MappedType(&)());
+
+	DefSetter(bool, Enabled, enabled)
+
+	/*
+	\brief 复制实例。
+	\note 应为抽象方法，但无法使用协变返回类型，所以使用非抽象实现。
+	\warning 断言：禁止直接使用。
+	*/
+	virtual AController*
+	Clone();
+};
+
+inline
+AController::AController(bool b)
+	: enabled(b)
+{}
+
+inline AController*
+AController::Clone()
+{
+	YAssert(false, "Invalid call @ AController::Clone;");
+
+	return nullptr;
+}
+
+inline EventMapping::ItemType&
+AController::GetItemRef(const VisualEvent&, EventMapping::MappedType(&)())
+{
+	throw std::out_of_range("AController::GetItemRef;");
+}
 
 
 template<class _tEventHandler>
 size_t
-DoEvent(IController& controller, const VisualEvent& id,
+DoEvent(AController& controller, const VisualEvent& id,
 	typename _tEventHandler::SenderType& sender,
 	typename _tEventHandler::EventArgsType&& e)
 {
@@ -326,7 +372,7 @@ DoEvent(IController& controller, const VisualEvent& id,
 }
 template<class _tEventHandler>
 inline size_t
-DoEvent(IController& controller, const VisualEvent& id,
+DoEvent(AController& controller, const VisualEvent& id,
 	typename _tEventHandler::SenderType& sender,
 	typename _tEventHandler::EventArgsType& e)
 {

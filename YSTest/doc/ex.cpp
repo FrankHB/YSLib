@@ -1,4 +1,4 @@
-// v0.3308; *build 242 rev 23;
+// v0.3319; *build 243 rev 17;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -31,6 +31,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 // $evaluating.structure;
 // semi-colon is used for remarking eval-order-sensitive expressions;
 , ::= non-sequenced seperater
+... ::= ellipse
 ; ::= sequenced seperater(statement termination)
 // $evaluating.content;
 = ::= equivalent
@@ -165,11 +166,11 @@ $using:
 ),
 \u YShell
 (
-	\cl YShell
+	\cl Shell
 ),
 \u YApplication
 (
-	\cl YLog,
+	\cl Log,
 	\cl YApplication
 ),
 \u YConsole
@@ -184,7 +185,7 @@ $using:
 \h YWidgetEvent
 (
 	\cl BadEvent,
-	\in IController
+	\cl AController
 ),
 \u YWidget
 (
@@ -198,7 +199,7 @@ $using:
 ),
 \u YControl
 (
-	\cl WidgetController,
+	\cl Controller,
 	\cl Control
 ),
 \u YWindow
@@ -209,7 +210,7 @@ $using:
 ),
 \u YGUI
 (
-	\cl YGUIShell,
+	\cl GUIShell,
 )
 \u Label
 (
@@ -273,265 +274,186 @@ $using:
 
 $DONE:
 r1:
-+ \st PaintEventArgs @ \h YWidgetEvent;
-/ @ \u YWidget $=
-(
-	/ void Render(IWidget&, const Graphics&, const Point&, const Rect&)
-		-> void Render(const PaintEventArgs&),
-	/ void RenderChild(IWidget&, const Graphics&, const Point&, const Rect&)
-		-> void RenderChild(const PaintEventArgs&)
-);
-/ \tr \impl @ \mf Frame::DrawContents,
-/ \tr \impl @ \mf Refresh @ \cl (ListBox & ATrack & AScrollBar
-	& ScrollableContainer),
-/ \tr \impl @ \mf ShlReader::ReaderPanel::Refresh @ \impl \u Shells;
+/ \cl YShell => Shell,
+/ \cl YGUIShell => GUIShell,
+/ \cl YMainShell => MainShell,
+/ \cl YLog => Log;
+/ \inh \cl YObject -> noncopyable @ \cl (Shell & Log);
+/= \em \vt \dtor @ \cl Log ^ \mac DefEmptyDtor;
 
 r2:
-/ \amf Rect Refresh(const PaintEventArgs&)
-	-> Rect Refresh(const PaintEventArgs&) @ \in IWidget;
-/ \mf void PaintText(IWidget&, Color c, const Graphics&,
-	const Point&, const Rect&) @ \cl MLabel -> void PaintText(IWidget&, Color,
-	PaintEventArgs&);
-/ \a \mf Rect Refresh(const PaintEventArgs&)
-	-> Rect Refresh(const PaintEventArgs&);
-/ \tr \impl @ \f Render @ \impl \u YWidget,
-/ \tr \impl @ \mf TextList::PaintItems,
-/ \tr \impl @ \mf YGUIShell::OnGotMessage,
-/ \tr \impl @ \f Validate @ \impl \u YWidget,
-- \mf Refresh @ \cl Panel;
+/ \cl YApplication => Application,
+/ \cl YDSApplication => DSApplication,
+/ \cl YTimer @ \u Service::YTimer => Timer;
+/ \inh \cl YCountableObject -> (noncopyable & GMCounter<Timer>) @ \cl Timer,
+/ \simp @ \cl Application $=
+(
+	/ \inh \cl YObject -> noncopyable;
+	/ \tr \impl @ \ctor,
+	(
+		/ DeclEvent(HEvent, ApplicationExit)
+			-> std::function<void()> ApplicationExit,
+		/ DeclEvent(HEvent, Idle) -> std::function<void()> Idle;
+		/ \tr \impl @ \dtor
+	)
+);
+- \h YEvent @ \h YApplication,
+/ @ \h YEvent $=
+(
+	- typedef GEvent<> Event;
+	- \a \de \t \param,
+	- DefDelegate(HEvent, YObject, EventArgs)
+),
+- \pre \decl @ \cl YObject @ \h YShellDefinition;
+/ @ \h YObject $=
+(
+	- \cl YCountableObject;
+	- \cl YObject;
+);
 
 r3:
 /= test 1 ^ \conf release;
 
 r4:
-/ \impl @ \mf GetCopyOnWritePointer @ \clt GDependency @ \h YObject
-	^ CloneNonpolymorphic;
+- \inh public GMCounter<Message> @ \cl Message;
+/ \tr \impl @ \f YSDebug_MSG_Print @ \impl \u Main,
+- \inc \h YCounter @ \h (YObject & YResource);
++ \inc \h YCounter @ \h YTimer;
 
 r5:
-/ @ \clt GDependency @ \h YObject $=
-(
-	/ \impl @ \ctor as \i \ctor,
-	+ \mf DefConverter(bool, static_cast<bool>(ptr)),
-	+ \i \mf void Reset()
-);
+/= test 2 ^ \conf release;
 
 r6:
-/ @ \clt GDependency @ \h YObject $=
+/ @ \lib YCLib $=
 (
+	/ \rem ('defgroup' & 'ingroup') @ \h Utilities,
+	/ @ \h Iterator $=
 	(
-		+ typedef decltype(*PointerType()) ConstReferenceType;
-		+ typedef typename std::remove_const<typename std::remove_reference<
-			ConstReferenceType>::type>::type ReferentType;
-		+ typedef ReferentType& ReferenceType;
-		/ \a 'const T&' -> ConstReferenceType;
-		/ \a 'T&' -> ReferenceType;
-		/ \a 'T' -> DependentType
-	),
-	/ \m typedef _type T => DependentType
+		/ \rem ('defgroup' & 'ingroup'),
+		/ \t<typename _type, typename _tIterator = _type*> \st pseudo_iterator
+			-> \t<typename _type, typename _tIterator = _type*,
+			typename _tTraits = std::iterator_traits<_tIterator>>
+			\cl pseudo_iterator,
+		/ \t<typename _type, typename _tIterator = _type*> \st pair_iterator
+			-> \t<typename _type, typename _tIterator = _type*,
+			typename _tTraits = std::iterator_traits<_tIterator>>
+			\st pair_iterator;
+		+ \inh std::iterator<'...'> @ \clt (pseudo_iterator & pair_iterator);
+	);
 );
 
 r7:
-/ @ \h YEvent $=
-(
-	/ \clt<class _tEvent> GDependencyEvent -> \clt<class _tEvent,
-		class _tOwnerPointer = shared_ptr<_tEvent>> GDependencyEvent,
-	/ @ \clt GDependencyEvent @ \h YEvent $=
-	(
-		+ typedef typename GDependency<_tEvent>::DependentType DependentType,
-		/ typedef typename GDependency<_tEvent>::PointerType PointerType
-			-> typedef typename GDependency<_tEvent>::PointerType PointerType,
-		+ typedef typename GDependency<_tEvent>::ConstReferenceType
-			ConstReferenceType,
-		+ typedef typename GDependency<_tEvent>::ReferentType ReferentType,
-		+ typedef typename GDependency<_tEvent>::ReferenceType ReferenceType,
-		/ typedef _tEvent EventType -> typedef DependentType EventType;
-		/ \a \ret \tp 'EventType&' -> ReferenceType
-	)
-);
+/ \simp \impl @ \f Contains @ \u YWidget ^ \f GetBoundsOf,
+/ \as \str @ 4 \impl @ \f 'MoveTo*' @ \impl \u YUIContainer,
+/ \n @ \tp ('IWidget&' & 'Point&' & 'const Point&');
 
 r8:
-/= test 2 ^ \conf release;
+/ \mf void PaintText(IWidget&, Color, const PaintEventArgs&) @ \cl MLabel
+	-> void PaintText(const Size&, Color, const PaintEventArgs&);
+/ \tr \impl @ \mf Refresh @ \cl (Label & Button);
 
 r9:
-/ @ \h YEvent $=
-(
-	/= \decl @ \clt<typename _tSender, typename _tEventSpace> GEventMap
-		^ PDefTH2,
-	+ \clt PDefTH2(_tSender, _tEventSpace) GEventItem;
-	/ \impl @ \clt GEventMap $=
-	(
-		/ typedef unique_ptr<ItemType> PointerType -> typedef GEventItem<
-			_tSender, EventArgs> MappedType;
-		/ \tr typedef pair<ID, PointerType> PairType
-			-> typedef pair<ID, MappedType> PairType,
-		/ \tr typedef map<ID, PointerType> MapType
-			-> typedef map<ID, MappedType> MapType,
-		/ copy \ctor ^ \mac DefDeCopyCtor,
-		/ \de \ctor ^ \mac DefDeCtor,
-		+ typedef MappedType PointerType,
-		- \tr \simp \impl @ \mf at
-		/ \mf \i ItemType& at(const ID&) const ythrow(std::out_of_range)
-			-> \i ItemType& at(const ID&) ythrow(std::out_of_range);
-		+ \mf \i const ItemType& at(const ID&) const ythrow(std::out_of_range)
-			-> \i ItemType& at(const ID&) ythrow(std::out_of_range);
-	)
-);
-/ \tr \impl @ \f GetEvent @ \impl \u YControl;
-
-r10:
-/ \simp @ \clt GEventMap @ \h YEvent $=
-(
-	- \de \ctor.
-	- move \ctor,
-	- copy \ctor,
-	- move \op=,
-	/ private \m m_map -> public \m Map,
-	- \mf Clear,
-	- 2 \mf at,
-	- \mf Search,
-	- typedef MappedType PointerType;
-	/ \tr \decl @ \mf Insert#1
-);
-/ \tr @ \ft NewEvent @ \h YControl,
-/ \tr @ \f GetEvent @ \u YControl,
-/ \tr @ \amf GetItemRef#2 @ \in IController,
-/ \tr @ \mf GetItemRef @ \cl WidgetController;
-
-r11:
-/ @ \h YWidgetEvent $=
-(
-	/ typedef GEventMap<IWidget, VisualEvent> VisualEventMap
-		-> \ns VisualEventMap
-),
-/ \tr @ \cl WidgetController $=
-(
-	/ \m mutable VisualEventMap EventMap 
-		-> mutable VisualEventMap::MapType EventMap,
-	/ \impl @ \mf GetItemRef#1,
-	/ \decl @ \mf GetEventMap,
-	/ @ \ctor#2,
-	/ @ \ctor#3
-),
-/ \tr \impl @ \f GetEvent @ \u YControl;
-/ \a VisualEventMap => EventMapping;
-+ typedef EventMapping::MapTeyp VisualEventMap @ \h YWidgetEvent,
-/ EventMapping::ItemType => EventMapping::IHEvent;
-/ EventMapping::MappedType => EventMapping::ItemType;
-/ \simp \decl @ \u YControl,
-/ \a GEventItem => GEventPointerWrapper,
-- \clt GEventMap @ \h YEvent;
-
-r12:
 /= test 3 ^ \conf release;
 
-r13:
-/ \a WidgetRenderer => Renderer,
-/ \a FocusResponser => FocusResponder,
-/ \a WidgetController => Controller,
-/ \a BufferedWidgetRenderer => BufferedRenderer,
-/ \a CheckedFocusResponser => CheckedFocusResponder,
-/ \a GFocusResponser => GFocusResponder,
-/ \a GCheckedFocusResponser => GCheckedFocusResponder,
-/ \a GetFocusResponser => GetFocusResponder,
-/ \cl (Renderer & BufferedRenderer) @ \ns Drawing >> \ns Componentsl;
-/ \tr @ \h YComponent,
-/ $lang"C++" (
-		using Drawing::PixelType;
-		using Drawing::BitmapPtr;
-		using Drawing::ConstBitmapPtr;
-		using Drawing::ScreenBufferType;
-		using Drawing::Color;
-
-		using Drawing::Point;
-		using Drawing::Vec;
-		using Drawing::Size;
-		using Drawing::Rect;
-
-		using Drawing::Graphics;
-	) @ \ns Components @ \h YWidget >> \h YRenderer;
-
-r14:
-/ \a GetZeroElement => FetchZero;
-/ @ \cl ShlExplorer @ \u Shells $=
+r10:
+/ @ \h YWidgetEvent $=
 (
-	- private \smf void OnTouchDown_FormExtra(IWidget&, TouchEventArgs&&),
-	/ \tr \impl @ \ctor @ \cl TFormExtra
+	/ \in IController -> abstract \cl AController;
+	/ \tr \a 'IController' -> 'AController';
+	/ \m bool enabled & \mf (bool IsEnabled() const & void SetEnabled(bool))
+		@ \cl Controller >> \cl AController;
+	+ \ctor AController(bool) @ \cl AController;
+);
+/ \tr \impl @ \ctor @ \cl Controller;
+
+r11:
++ \mf \vt AController* Clone() @ \cl AController;
++ \mf \vt Controller* Clone() @ \cl Controller ^ \mac DefClone;
+/ @ \h Widget $=
+(
+	/ \amf @ \ret \tp @ Controller& GetController() const @ \in IWidget
+		-> AController&;
+	/ @ \cl Widget $=
+	(
+		/ \m unique_ptr<Controller> pController
+			-> unique_ptr<AController> pController;
+		/ \tr \ret \tp @ \mf GetController -> AController& ~ Controller;
+		/ \tr \impl @ \ctor#2
+	)
 );
 
+r12:
+/ @ \h YWidgetEvent $=
+(
+	/ @ typedef \en VisualEvent $=
+	(
+		+ \m Paint @ VisualEvent,
+		/ \m order
+	),
+	+ DefDelegate(HPaintEvent, IWidget, PaintEventArgs);
+	+ DefEventTypeMapping(Paint, HPaintEvent),
+	/ \amf GetItemRef#2 @ \cl AController -> !abstract \mf;
+);
++ \cl WidgetController @ \u YWidget,
+- \pre \decl @ \cl (Controller & Renderer & BufferedRenderer & Frame)
+	@ \h YComponent;
+
+r13:
+(
+	/ \impl @ \ctor @ \cl WidgetController;
+	/ \impl @ \ctor @ \cl Widget
+),
+/ \impl @ \ctor @ \cl Control::ControlEventMap,
+/ @ \u YWidget $=
+(
+	/ Rect Render(IWidget&, const PaintEventArgs&)
+		-> void Render(IWidget&, PaintEventArgs&&),
+	/ \tr \f void RenderChild(IWidget&, const PaintEventArgs&)
+		-> void RenderChild(IWidget&, PaintEventArgs&&),
+	+ \tr \f \i void RenderChild(IWidget&, const PaintEventArgs&)
+),
+/ \impl @ \mf Frame::DrawContents();
+
+r14:
+/= test 4 ^ \conf release;
+
 r15:
-/ \impl @ ShlExplorer::OnDeactivated @ \u Shells;
++ \pre \decl @ \cl PaintEventArgs @ \h YRenderer,
++ \inc \h YWidgetEvent @ \impl \u YRenderer,
+/ \mf void UpdateTo(const Graphics&, const Point&, const Rect&)
+	-> void UpdateTo(const PaintEventArgs&) @ \cl (Renderer & BufferedRenderer);
+/ @ \u YWidget $=
+(
+	/ \tr \f void Update(const IWidget&, const Graphics&, const Point&,
+		const Rect&) -> void Update(const IWidget&, const PaintEventArgs&);
+	/ \tr \simp \impl @ \f Render;
+),
+/ \tr \impl @ \mf AWindow::Update;
 
 r16:
-/ \simp @ \cl Frame $=
+/ @ \u TextList $=
 (
-	/ \simp \impl @ \ctor,
-	- \dtor
+	/ \mf void PaintItems(const Graphics&, const Point&, const Rect&)
+		-> \mf void PaintItems(const PaintEventArgs&);
+	/ \tr \simp \impl @ \mf Refresh
 );
 
 r17:
-/ \simp \impl @ \u Shells $=
-(
-	- \f (switchShl2 & switchShl1) @ \un \ns,
-	/ \tr \impl @ \mf ShlExplorer::OnClick_btnOK,
-	/ \tr \impl @ \ctor @ \cl ShlExploerer
-);
-
-r18:
-/= test 4 ^ \conf release;
-
-r19:
-/ @ \cl ShlExplorer @ \impl \u Shells $=
-(
-	- private \mf OnViewChanged_fbMain,
-	- private \mf OnClick_btnOK,
-	- private \mf OnClick_btnTest,
-	/ \tr \impl @ \ctor
-);
-
-r20:
-/ @ \cl ShlExplorer::TFormExtra @ \impl \u Shells $=
-(
-	- private \mf OnTouchUp_btnDragTest,
-	- private \mf OnTouchDown_btnDragTest,
-	- private \mf OnMove_btnDragTest,
-	- private \mf OnClick_btnClose,
-	/ \tr \impl @ \ctor
-);
-
-r21:
 /= test 5 ^ \conf release;
-
-r22:
-/ @ \u YGDIBase $=
-(
-	- \cl BinaryGroup, 
-	- \cl Point,
-	- \cl Vec,
-	+ \inc \h <limits>,
-	+ \clt PDefTH1(_type) GBinaryGroup;
-	+ typedef GBinaryGroup<SPos> Point,
-	+ typedef GBinaryGroup<SPos> Vec,
-	/ \tr @ \cl Size
-);
-/ \a 'Point::FullScreen' -> 'Point::Invalid',
-/ \a 'Point::FullScreen' -> 'Vec::Invalid';
-
-r23:
-/= test 6 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-09-16:
--17.0d;
-//Mercurial rev1-rev113: r5449;
+2011-09-18:
+-14.8d;
+//Mercurial rev1-rev114: r5472;
 
 / ...
 
 
 $NEXT_TODO:
-b243-b324:
+b244-b324:
 + %TextList invalidation support;
 * non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
@@ -619,6 +541,26 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ $design "simplified class inheritance" @ "shell and application classes";
+	- $design "inheritance GMCounter<Message>" @ "class %Message";
+	- "class (YCountableObject; YObject)";
+	/ "GUI" $=
+	(
+		+ "default GUI event %Paint for all widgets",
+		+ "controller class %WidgetController for widgets \
+			which %Paint is the only event permitted to call";
+		/ "rendering of funtion %Render" ^ "mutable rvalue reference parameter \
+			to store the result" ~ "returning";
+		/ "constructor" @ "%WidgetControlle add event handler %Render";
+		/ "rendering logic" @ "member function %Frame::DrawContents"
+			^ "event %Paint" ~ "directly call function %Render";
+		/ $design "simplfied updating" @ "renderer classes",
+		/ $design "simplified refreshing of class %TextList"
+	)
+),
+
+b242
 (
 	/ "GUI" $=
 	(
@@ -1063,7 +1005,7 @@ b224
 
 b223
 (
-	/ "UI implementation" $=
+	/ "GUI" $=
 	(
 		/ "DS painting" ^ "message %SM_PAINT"
 			~ "directly calling of %ShlDS::UpdateToScreen"
@@ -1777,7 +1719,7 @@ b1_b131
 //---- temp code;
 /*
 
-	static YTimer Timer(1250);
+	static Timers::Timer Timer(1250);
 
 	if(Timer.Refresh())
 	{

@@ -11,12 +11,12 @@
 /*!	\file iterator.hpp
 \ingroup YCLib
 \brief C++ 标准库迭代器扩展。
-\version r1256;
+\version r1288;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2011-09-15 11:49 +0800;
+	2011-09-16 22:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,12 +33,35 @@
 
 namespace ystdex
 {
-	//! \brief 伪迭代器：总是返回单一值的迭代器适配器。
-	template<typename _type, typename _tIterator = _type*>
-	struct pseudo_iterator
+	/*!	\defgroup iterators Iterators
+	\brief 迭代器。
+	*/
+
+	/*!	\defgroup iterator_adaptors Iterator Adaptors
+	\ingroup iterators
+	\brief 迭代器适配器。
+	*/
+
+	/*!
+	\ingroup iterator_adaptors
+	\brief 伪迭代器。
+
+	总是返回单一值的迭代器适配器。
+	*/
+	template<typename _type, typename _tIterator = _type*,
+		typename _tTraits = std::iterator_traits<_tIterator>>
+	class pseudo_iterator : public std::iterator<
+		typename _tTraits::iterator_category,
+		typename _tTraits::value_type,
+		typename _tTraits::difference_type,
+		typename _tTraits::pointer,
+		typename _tTraits::reference>
 	{
+	protected:
+		typedef _tTraits traits_type;
+
+	public:
 		typedef _tIterator iterator_type;
-		typedef typename std::iterator_traits<iterator_type> traits_type;
 		typedef typename traits_type::iterator_category iterator_category;
 		typedef typename traits_type::value_type value_type;
 		typedef typename traits_type::difference_type difference_type;
@@ -135,10 +158,21 @@ namespace ystdex
 	};
 
 
-	//! \brief 成对迭代器：拼接两个迭代器对得到的迭代器，以第一个为主迭代器。
+	/*!
+	\ingroup iterator_adaptors
+	\brief 成对迭代器。
+
+	拼接两个迭代器对得到的迭代器适配器，以第一个为主迭代器的迭代器适配器。
+	*/
 	template<typename _tMaster, typename _tSlave,
 		class _tTraits = std::iterator_traits<_tMaster>>
-	class pair_iterator : protected std::pair<_tMaster, _tSlave>
+	class pair_iterator : std::iterator<
+		typename _tTraits::iterator_category,
+		typename _tTraits::value_type,
+		typename _tTraits::difference_type,
+		typename _tTraits::pointer,
+		typename _tTraits::reference>,
+		protected std::pair<_tMaster, _tSlave>
 	{
 	protected:
 		typedef _tTraits traits_type;
@@ -272,6 +306,8 @@ namespace ystdex
 			return *this;
 		}
 	};
+
+
 }
 
 #endif

@@ -11,12 +11,12 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2133;
+\version r2138;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-09-14 08:44 +0800;
+	2011-09-17 23:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,10 +37,10 @@ MLabel::MLabel(const Drawing::Font& fnt, TextAlignmentStyle a)
 {}
 
 void
-MLabel::PaintText(IWidget& w, Color c, const PaintEventArgs& e)
+MLabel::PaintText(const Size& s, Color c, const PaintEventArgs& e)
 {
 	Drawing::TextState ts;
-	const auto& bounds(Rect(e.Location, w.GetSize()));
+	const auto& bounds(Rect(e.Location, s));
 
 	ts.Font.SetFont(Font);
 	ts.ResetForBounds(bounds, e.Target.GetSize(), Margin);
@@ -97,7 +97,7 @@ Rect
 Label::Refresh(const PaintEventArgs& e)
 {
 	Widget::Refresh(e);
-	PaintText(*this, ForeColor, e);
+	PaintText(GetSize(), ForeColor, e);
 	return GetBoundsOf(*this);
 }
 
@@ -126,18 +126,18 @@ MTextList::RefreshTextState()
 }
 
 /*void
-MTextList::PaintTextList(Widget& w, const Point& pt)
+MTextList::PaintTextList(Widget& wgt, const Point& pt)
 {
 	IWindow* pWnd(FetchDirectWindowPtr(
-		polymorphic_crosscast<IWidget&>(w)));
+		polymorphic_crosscast<IWidget&>(wgt)));
 
 	if(pWnd && wpTextRegion)
 	{
 		wpTextRegion->Font = Font;
 		wpTextRegion->Font.Update();
 		wpTextRegion->ResetPen();
-		wpTextRegion->Color = w.ForeColor;
-		wpTextRegion->SetSize(w.GetWidth(), w.GetHeight());
+		wpTextRegion->Color = wgt.ForeColor;
+		wpTextRegion->SetSize(wgt.GetWidth(), wgt.GetHeight());
 		SetMarginsTo(*wpTextRegion, 2, 2, 2, 2);
 		DrawText(pWnd->GetContext(), pt);
 		wpTextRegion->SetSize(0, 0);

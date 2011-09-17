@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2442;
+\version r2466;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-09-13 23:48 +0800;
+	2011-09-16 03:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,74 +31,73 @@
 
 YSL_BEGIN
 
-YLog& YLog::operator<<(char)
+Log& Log::operator<<(char)
 {
 	return *this;
 }
-YLog& YLog::operator<<(const char*)
+Log& Log::operator<<(const char*)
 {
 	return *this;
 }
-YLog& YLog::operator<<(const string& s)
+Log& Log::operator<<(const string& s)
 {
 	return operator<<(s);
 }
 
 void
-YLog::Error(const char*)
+Log::Error(const char*)
 {}
 void
-YLog::Error(const string& s)
+Log::Error(const string& s)
 {
 	Error(s.c_str());
 }
 
 void
-YLog::FatalError(const char* s)
+Log::FatalError(const char* s)
 {
 	ShowFatalError(s);
 }
 void
-YLog::FatalError(const string& s)
+Log::FatalError(const string& s)
 {
 	FatalError(s.c_str());
 }
 
 
-YApplication::YApplication()
-	: YObject(),
-	Log(), pMessageQueue(new MessageQueue()),
+Application::Application()
+	: Log(), pMessageQueue(new MessageQueue()),
 	pMessageQueueBackup(new MessageQueue()),
 	hShell()
 {}
-YApplication::~YApplication()
+Application::~Application()
 {
 	//释放主 Shell 。
 //	YReset(DefaultShellHandle);
-	ApplicationExit(*this, EventArgs());
+	ApplicationExit();
 	delete pMessageQueueBackup;
 	delete pMessageQueue;
 }
 
 MessageQueue&
-YApplication::GetDefaultMessageQueue() ythrow(LoggedEvent)
+Application::GetDefaultMessageQueue() ythrow(LoggedEvent)
 {
 	if(!pMessageQueue)
 		throw LoggedEvent("Null default message queue pointer found"
-			" @ YApplication::GetDefaultMessageQueue;");
+			" @ Application::GetDefaultMessageQueue;");
 	return *pMessageQueue;
 }
 MessageQueue&
-YApplication::GetBackupMessageQueue() ythrow(LoggedEvent)
+Application::GetBackupMessageQueue() ythrow(LoggedEvent)
 {
 	if(!pMessageQueueBackup)
 		throw LoggedEvent("Null backup message queue pointer found"
-			" @ YApplication::GetBackupMessageQueue;");
+			" @ Application::GetBackupMessageQueue;");
 	return *pMessageQueueBackup;
 }
 
 bool
-YApplication::SetShellHandle(const shared_ptr<YShell>& h)
+Application::SetShellHandle(const shared_ptr<Shell>& h)
 {
 	using namespace Messaging;
 
@@ -119,11 +118,11 @@ YApplication::SetShellHandle(const shared_ptr<YShell>& h)
 namespace
 {
 	int
-	PeekMessage_(Message& msg, const shared_ptr<YShell>& hShl, bool bRemoveMsg);
+	PeekMessage_(Message& msg, const shared_ptr<Shell>& hShl, bool bRemoveMsg);
 }
 
 int
-PeekMessage(Message& msg, const shared_ptr<YShell>& hShl, bool bRemoveMsg)
+PeekMessage(Message& msg, const shared_ptr<Shell>& hShl, bool bRemoveMsg)
 {
 	void YSDebug_MSG_Peek(Message&);
 	int t(PeekMessage_(msg, hShl, bRemoveMsg));
@@ -142,7 +141,7 @@ PeekMessage
 
 #endif
 
-	(Message& msg, const shared_ptr<YShell>& hShl, bool bRemoveMsg)
+	(Message& msg, const shared_ptr<Shell>& hShl, bool bRemoveMsg)
 {
 	return FetchAppInstance().GetDefaultMessageQueue().PeekMessage(
 		msg, hShl, bRemoveMsg);
@@ -150,7 +149,7 @@ PeekMessage
 
 int
 FetchMessage(Message& msg, MessageQueue::SizeType idle_limit,
-	const shared_ptr<YShell>& hShl)
+	const shared_ptr<Shell>& hShl)
 {
 	if(FetchAppInstance().GetDefaultMessageQueue().GetSize() <= idle_limit)
 		Idle();
@@ -210,7 +209,7 @@ SendMessage(const Message& msg) ynothrow
 	}
 }
 void
-SendMessage(const shared_ptr<YShell>& hShl, Messaging::ID id,
+SendMessage(const shared_ptr<Shell>& hShl, Messaging::ID id,
 	Messaging::Priority prior, const ValueObject& c) ynothrow
 {
 	try
@@ -226,8 +225,8 @@ SendMessage(const shared_ptr<YShell>& hShl, Messaging::ID id,
 void
 PostQuitMessage(int nExitCode, Messaging::Priority p)
 {
-	SendMessage<SM_SET>(shared_ptr<YShell>(), p, shared_ptr<YShell>());
-	SendMessage<SM_QUIT>(shared_ptr<YShell>(), p, nExitCode);
+	SendMessage<SM_SET>(shared_ptr<Shell>(), p, shared_ptr<Shell>());
+	SendMessage<SM_QUIT>(shared_ptr<Shell>(), p, nExitCode);
 }
 
 YSL_END

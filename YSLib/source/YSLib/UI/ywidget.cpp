@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5131;
+\version r5149;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-14 23:27 +0800;
+	2011-09-18 02:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,7 +33,7 @@ YSL_BEGIN_NAMESPACE(Components)
 bool
 Contains(const IWidget& wgt, SPos x, SPos y)
 {
-	return Rect(wgt.GetLocation(), wgt.GetSize()).Contains(x, y);
+	return GetBoundsOf(wgt).Contains(x, y);
 }
 
 bool
@@ -93,8 +93,8 @@ InvalidateCascade(IWidget& wgt, const Rect& bounds)
 	}while((pWgt = FetchContainerPtr(*pWgt)));
 }
 
-Rect
-Render(IWidget& wgt, const PaintEventArgs& e)
+void
+Render(IWidget& wgt, PaintEventArgs&& e)
 {
 	Rect r;
 
@@ -107,13 +107,12 @@ Render(IWidget& wgt, const PaintEventArgs& e)
 			: wgt.Refresh(e);
 		wgt.GetRenderer().ClearInvalidation();
 	}
-//	Update(wgt, e);
-	Update(wgt, e.Target, e.Location, e.ClipArea);
-	return r;
+	Update(wgt, e);
+	e.ClipArea = r;
 }
 
 void
-RenderChild(IWidget& wgt, const PaintEventArgs& e)
+RenderChild(IWidget& wgt, PaintEventArgs&& e)
 {
 	const auto& r(Intersect(Rect(e.Location + wgt.GetLocation(),
 		wgt.GetSize()), e.ClipArea));
@@ -131,10 +130,10 @@ RequestToTop(IWidget& wgt)
 }
 
 void
-Update(const IWidget& wgt, const Graphics& g, const Point& pt, const Rect& r)
+Update(const IWidget& wgt, const PaintEventArgs& e)
 {
 	if(wgt.IsVisible())
-		wgt.GetRenderer().UpdateTo(g, pt, r);
+		wgt.GetRenderer().UpdateTo(e);
 }
 
 Rect
@@ -167,6 +166,23 @@ Hide(IWidget& wgt)
 }
 
 
+inline
+WidgetController::WidgetController(bool b)
+	: AController(b),
+	Paint()
+{
+	Paint += Render;
+}
+
+EventMapping::ItemType&
+WidgetController::GetItemRef(const VisualEvent& id)
+{
+	if(id == Components::Paint)
+		return Paint;
+	throw BadEvent();
+}
+
+
 Visual::Visual(const Rect& r, Color b, Color f)
 	: visible(true), transparent(false),
 	location(r.GetPoint()), size(r.Width, r.Height),
@@ -183,13 +199,14 @@ Visual::SetSize(const Size& s)
 Widget::Widget(const Rect& r, Color b, Color f)
 	: Visual(r, b, f),
 	pContainer(), pRenderer(new Renderer()),
-	pFocusResponser(new FocusResponder()), pController()
+	pFocusResponser(new FocusResponder()),
+	pController(new WidgetController(false))
 {}
 Widget::Widget(const Widget& wgt)
 	: Visual(wgt),
 	pContainer(), pRenderer(wgt.pRenderer->Clone()),
 	pFocusResponser(ClonePolymorphic(wgt.pFocusResponser)),
-	pController(CloneNonpolymorphic(wgt.pController))
+	pController(ClonePolymorphic(wgt.pController))
 {}
 Widget::~Widget()
 {

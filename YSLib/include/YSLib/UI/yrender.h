@@ -11,12 +11,12 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1320;
+\version r1326;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-09-14 23:20 +0800;
+	2011-09-18 02:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,6 +46,10 @@ using Drawing::Size;
 using Drawing::Rect;
 
 using Drawing::Graphics;
+
+
+//前向声明。
+class PaintEventArgs;
 
 
 /*!
@@ -120,8 +124,7 @@ public:
 	\note 空实现。
 	*/
 	virtual void
-	UpdateTo(const Graphics&, const Point&,
-		const Rect&) const
+	UpdateTo(const PaintEventArgs&) const
 	{}
 };
 
@@ -197,10 +200,9 @@ public:
 
 	/*!
 	\brief 更新至指定图形设备上下文的指定点。
-	\param 意义同 IWidget::Refresh 。
 	*/
 	virtual void
-	UpdateTo(const Graphics&, const Point&, const Rect&) const;
+	UpdateTo(const PaintEventArgs&) const;
 };
 
 YSL_END_NAMESPACE(Components)

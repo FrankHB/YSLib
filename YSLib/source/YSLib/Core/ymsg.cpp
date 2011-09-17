@@ -11,12 +11,12 @@
 /*!	\file ymsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version 0.2016;
+\version r2017;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-06-09 17:30 +0800;
+	2011-09-16 02:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,7 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Messaging)
 
-Message::Message(const shared_ptr<YShell>& h, ID m, Priority p,
+Message::Message(const shared_ptr<Shell>& h, ID m, Priority p,
 	const ValueObject& c)
 	: hShl(h), id(m), prior(p), content(c), timestamp(std::clock()),
 	timeout(DefTimeout)
@@ -79,7 +79,7 @@ MessageQueue::Merge(MessageQueue& mq)
 }
 
 int
-MessageQueue::PeekMessage(Message& msg, const shared_ptr<YShell>& hShl,
+MessageQueue::PeekMessage(Message& msg, const shared_ptr<Shell>& hShl,
 	bool bRemoveMsg)
 {
 	for(auto i(q.cbegin()); i != q.cend(); ++i)

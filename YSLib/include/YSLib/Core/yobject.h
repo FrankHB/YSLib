@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3245;
+\version r3259;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-14 17:11 +0800;
+	2011-09-16 03:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,6 @@
 
 #include "ycutil.h"
 #include "yexcept.h"
-#include "ycounter.hpp"
 #include "../Adaptor/cont.h"
 
 YSL_BEGIN
@@ -221,31 +220,6 @@ MakeValueObjectByPtr(_type* p)
 {
 	return ValueObject(p, ValueObject::PointerConstructTag());
 }
-
-
-//! \brief 基本框架对象类：所有类名以 Y 作前缀的类的公共基类。
-class YObject : public noncopyable
-{
-public:
-	/*!
-	\brief 析构：空实现。
-	\note 必要的虚函数以构造多态基类。
-	*/
-	virtual
-	~YObject()
-	{}
-};
-
-
-//! \brief 基本可数对象类：所有可数的基本对象类的公共基类。
-class YCountableObject : public GMCounter<YCountableObject>, public YObject
-{
-public:
-	/*!
-	\brief 无参数构造：默认实现。
-	*/
-	DefDeCtor(YCountableObject)
-};
 
 
 /*!

@@ -11,12 +11,12 @@
 /*!	\file cast.hpp
 \ingroup YCLib
 \brief C++ 转换模板类。
-\version r1635;
+\version r1641;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-15 08:13:18 +0800;
 \par 修改时间:
-	2011-09-13 23:16 +0800;
+	2011-09-16 21:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,6 +34,10 @@
 
 namespace ystdex
 {
+	/*!	\defgroup cast Cast
+	\brief 显式类型转换。
+	*/
+
 	/*!
 	\brief 自动指针转换：包装一个对象为一个整数。
 	*/
@@ -183,7 +187,7 @@ namespace ystdex
 	}
 
 	/*!
-	\defgroup GeneralCast
+	\ingroup cast
 	\brief 一般类型转换。
 	
 	能确保安全隐式转换时使用 static_cast ；

@@ -11,12 +11,12 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2322;
+\version r2352;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-09-11 21:20 +0800;
+	2011-09-16 03:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,6 @@
 
 #include "yfilesys.h"
 #include "yshell.h"
-#include "yevt.hpp"
 
 YSL_BEGIN
 
@@ -38,34 +37,32 @@ using Drawing::FontCache;
 using Messaging::MessageQueue;
 
 //! \brief 程序日志类。
-class YLog : public YObject
+class Log : public noncopyable
 {
 public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
-	DefDeCtor(YLog)
+	DefDeCtor(Log)
 	/*!
 	\brief 析构：空实现。
 	*/
-	virtual
-	~YLog()
-	{}
+	virtual DefEmptyDtor(Log)
 
 	/*!
 	\brief 输出 char 字符。
 	*/
-	YLog&
+	Log&
 	operator<<(char);
 	/*!
 	\brief 输出字符指针表示的字符串。
 	*/
-	YLog&
+	Log&
 	operator<<(const char*);
 	/*!
 	\brief 输出字符串。
 	*/
-	YLog&
+	Log&
 	operator<<(const string&);
 
 	/*!
@@ -94,7 +91,7 @@ public:
 
 
 //! \brief 程序实例类。
-class YApplication : public YObject
+class Application : public noncopyable
 {
 public:
 	//全局常量。
@@ -104,17 +101,17 @@ public:
 	static const String ProductVersion; //!< 产品版本。
 
 	//标准程序实例事件。
-	DeclEvent(HEvent, ApplicationExit) //!< 资源释放函数。
-	DeclEvent(HEvent, Idle)
+	std::function<void()> ApplicationExit; //!< 资源释放函数。
+	std::function<void()> Idle;
 
 	//全局资源。
-	YLog Log; //!< 默认程序日志。
+	YSLib::Log Log; //!< 默认程序日志。
 
 private:
 	MessageQueue* pMessageQueue; //!< 主消息队列：在程序实例中实现以保证单线程。
 	MessageQueue* pMessageQueueBackup; \
 		//!< 备份消息队列：在程序实例中实现以保证单线程。
-	shared_ptr<YShell> hShell;
+	shared_ptr<Shell> hShell;
 		/*!<
 		当前 Shell 句柄：指示当前线程空间中运行的 Shell ；
 		全局单线程，生存期与进程相同。
@@ -124,18 +121,18 @@ public:
 	/*!
 	\brief 无参数构造。
 	*/
-	YApplication();
+	Application();
 
 	/*!
 	\brief 析构：释放 Shell 所有权和其它资源。
 	*/
 	virtual
-	~YApplication();
+	~Application();
 
 	/*!
 	\brief 取得线程空间中当前运行的 Shell 的句柄。
 	*/
-	DefGetter(shared_ptr<YShell>, ShellHandle, hShell) \
+	DefGetter(shared_ptr<Shell>, ShellHandle, hShell) \
 	/*!
 	\brief 取主消息队列。
 	\throw LoggedEvent 记录异常事件。
@@ -157,11 +154,11 @@ public:
 	\warning 空句柄在此处是可接受的，但继续运行可能会导致断言失败。
 	*/
 	bool
-	SetShellHandle(const shared_ptr<YShell>&);
+	SetShellHandle(const shared_ptr<Shell>&);
 
 	//启动线程消息循环。
 //	void
-//	Run(shared_ptr<YShell>);
+//	Run(shared_ptr<Shell>);
 };
 
 
@@ -169,14 +166,14 @@ public:
 \brief 取应用程序实例。
 \note 保证在平台相关的全局资源初始化之后初始化此实例。
 */
-extern YApplication&
+extern Application&
 FetchAppInstance();
 
 /*!
 \ingroup HelperFunction
 \brief 取当前应用程序线程空间中活动的 Shell 句柄。
 */
-inline shared_ptr<YShell>
+inline shared_ptr<Shell>
 FetchShellHandle() ynothrow
 {
 	return FetchAppInstance().GetShellHandle();
@@ -187,7 +184,7 @@ FetchShellHandle() ynothrow
 \brief 激活 Shell 对象：控制权转移给此对象以维持单线程运行。
 */
 inline bool
-Activate(const shared_ptr<YShell>& h)
+Activate(const shared_ptr<Shell>& h)
 {
 	return FetchAppInstance().SetShellHandle(h);
 }
@@ -199,7 +196,7 @@ Activate(const shared_ptr<YShell>& h)
 */
 int
 PeekMessage(Message& msg,
-	const shared_ptr<YShell>& hShl = FetchShellHandle(),
+	const shared_ptr<Shell>& hShl = FetchShellHandle(),
 	bool bRemoveMsg = false);
 
 /*!
@@ -209,7 +206,7 @@ PeekMessage(Message& msg,
 */
 int
 FetchMessage(Message& msg, MessageQueue::SizeType = 0,
-	const shared_ptr<YShell>& hShl = FetchShellHandle());
+	const shared_ptr<Shell>& hShl = FetchShellHandle());
 
 /*!
 \brief 翻译消息：空实现。
@@ -244,11 +241,11 @@ RecoverMessageQueue();
 void
 SendMessage(const Message&) ynothrow;
 void
-SendMessage(const shared_ptr<YShell>&, Messaging::ID, Messaging::Priority,
+SendMessage(const shared_ptr<Shell>&, Messaging::ID, Messaging::Priority,
 	const ValueObject& = ValueObject()) ynothrow;
 template<Messaging::MessageID _vID>
 inline void
-SendMessage(const shared_ptr<YShell>& hShl, Messaging::Priority prior,
+SendMessage(const shared_ptr<Shell>& hShl, Messaging::Priority prior,
 	const typename Messaging::SMessageMap<_vID>::TargetType& target) ynothrow
 {
 	SendMessage(hShl, _vID, prior, ValueObject(target));

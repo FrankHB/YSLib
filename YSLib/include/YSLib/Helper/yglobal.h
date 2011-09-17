@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version 0.2407;
+\version r2413;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-09-12 23:34 +0800;
+	2011-09-16 03:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -109,9 +109,9 @@ YSL_END_NAMESPACE(Devices)
 \brief 平台相关的应用程序类。
 \note 含默认接口。
 */
-class YDSApplication : public YApplication
+class DSApplication : public Application
 {
-	friend YDSApplication&
+	friend DSApplication&
 	FetchGlobalInstance() ynothrow;
 
 private:
@@ -126,7 +126,7 @@ private:
 
 	\note 通过友元单例实现进程唯一性语义
 	*/
-	YDSApplication();
+	DSApplication();
 
 public:
 	/*!
@@ -222,34 +222,34 @@ public:
 };
 
 inline Devices::DSScreen&
-YDSApplication::GetScreenUp() const ynothrow
+DSApplication::GetScreenUp() const ynothrow
 {
 	YAssert(is_not_null(hScreenUp), "Fatal error:"
-		" null screen handle found @ YDSApplication::GetScreenUp;");
+		" null screen handle found @ DSApplication::GetScreenUp;");
 
 	return *hScreenUp;
 }
 inline Devices::DSScreen&
-YDSApplication::GetScreenDown() const ynothrow
+DSApplication::GetScreenDown() const ynothrow
 {
 	YAssert(is_not_null(hScreenDown), "Fatal error:"
-		" null screen handle found @ YDSApplication::GetScreenDown;");
+		" null screen handle found @ DSApplication::GetScreenDown;");
 
 	return *hScreenDown;
 }
 inline Desktop&
-YDSApplication::GetDesktopUp() const ynothrow
+DSApplication::GetDesktopUp() const ynothrow
 {
 	YAssert(is_not_null(hDesktopUp), "Fatal error:"
-		" null desktop handle found @ YDSApplication::GetDesktopUp;");
+		" null desktop handle found @ DSApplication::GetDesktopUp;");
 
 	return *hDesktopUp;
 }
 inline Desktop&
-YDSApplication::GetDesktopDown() const ynothrow
+DSApplication::GetDesktopDown() const ynothrow
 {
 	YAssert(is_not_null(hDesktopDown), "Fatal error:"
-		" null desktop handle found @ YDSApplication::GetDesktopDown;");
+		" null desktop handle found @ DSApplication::GetDesktopDown;");
 
 	return *hDesktopDown;
 }
@@ -287,7 +287,7 @@ YSL_END_NAMESPACE(Messaging)
 \brief 取平台相关的全局资源。
 \note 无异常抛出。
 */
-YDSApplication&
+DSApplication&
 FetchGlobalInstance() ynothrow;
 
 /*!

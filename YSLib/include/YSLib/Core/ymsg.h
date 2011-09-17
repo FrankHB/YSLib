@@ -11,12 +11,12 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2410;
+\version r2415;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-09-11 21:24 +0800;
+	2011-09-16 03:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,13 +41,16 @@ typedef u8 Priority;
 const std::time_t DefTimeout(0);
 
 
-//! \brief 消息类。
-class Message : public GMCounter<Message>
+/*
+! \brief 消息类。
+\warning 非虚析构。
+*/
+class Message
 {
 	friend class MessageQueue;
 
 private:
-	shared_ptr<YShell> hShl; //!< 目的 Shell 句柄。
+	shared_ptr<Shell> hShl; //!< 目的 Shell 句柄。
 	ID id; //!< 消息标识。
 	Priority prior; //!< 消息优先级。
 	ValueObject content; //消息内容句柄。
@@ -62,7 +65,7 @@ public:
 	/*!
 	\brief 构造：使用 Shell 句柄、消息标识、消息优先级和消息内容。
 	*/
-	Message(const shared_ptr<YShell>& = shared_ptr<YShell>(), ID = 0,
+	Message(const shared_ptr<Shell>& = shared_ptr<Shell>(), ID = 0,
 		Priority = 0, const ValueObject& = ValueObject());
 
 	/*!
@@ -99,7 +102,7 @@ public:
 		//!< 判断消息是否过期。
 	DefPredicate(Valid, id) //!< 判断消息是否有效。
 
-	DefGetter(shared_ptr<YShell>, ShellHandle, hShl) //!< 取关联的 Shell 句柄。
+	DefGetter(shared_ptr<Shell>, ShellHandle, hShl) //!< 取关联的 Shell 句柄。
 	DefGetter(ID, MessageID, id) //!< 取消息标识。
 	DefGetter(Priority, Priority, prior) //!< 取消息优先级。
 	DefGetter(const ValueObject&, Content, content) //!< 取消息内容句柄。
@@ -230,7 +233,7 @@ public:
 	\param bRemoveMsg 确定取得的消息是否消息队列中清除。
 	*/
 	int
-	PeekMessage(Message& msg, const shared_ptr<YShell>& hShl,
+	PeekMessage(Message& msg, const shared_ptr<Shell>& hShl,
 		bool bRemoveMsg = false);
 
 	/*!

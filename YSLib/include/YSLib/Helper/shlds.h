@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2010;
+\version r2015;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-09-01 02:00 +0800;
+	2011-09-16 02:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Shells)
 
 //标准命令行界面 Shell 。
-class ShlCLI : public YShell
+class ShlCLI : public Shell
 {
 public:
 	/*!
@@ -69,7 +69,7 @@ public:
 
 inline
 ShlCLI::ShlCLI()
-	: YShell()
+	: Shell()
 {}
 
 inline int
@@ -84,7 +84,7 @@ YSL_END_NAMESPACE(Shells)
 YSL_BEGIN_NAMESPACE(DS)
 
 //双屏全屏窗口 Shell 。
-class ShlDS : public Shells::YGUIShell
+class ShlDS : public Shells::GUIShell
 {
 private:
 	shared_ptr<Desktop> hDskUp, hDskDown; \
@@ -160,7 +160,7 @@ YSL_END_NAMESPACE(DS)
 YSL_BEGIN_NAMESPACE(Shells)
 
 //! \brief 主 Shell 。
-class YMainShell : public DS::ShlDS
+class MainShell : public DS::ShlDS
 {
 public:
 	typedef ShlDS ParentType;
@@ -170,7 +170,7 @@ public:
 	/*!
 	\brief 无参数构造。
 	*/
-	YMainShell();
+	MainShell();
 
 	/*!
 	\brief 处理激活消息。

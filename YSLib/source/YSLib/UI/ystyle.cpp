@@ -11,12 +11,12 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version 0.1494;
+\version r1496;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-08-03 07:22 +0800;
+	2011-09-17 23:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -60,19 +60,19 @@ DrawRectRoundCorner(const Graphics& g, const Point& pt, const Size& s, Color c)
 
 
 void
-RectDrawArrow(const Graphics& g, const Point& p, SDst half_size, Rotation rot,
+RectDrawArrow(const Graphics& g, const Point& pt, SDst half_size, Rotation rot,
 	Color c)
 {
 	YAssert(g.IsValid(), "Invalid graphics context found"
 		" @ Drawing::RectDrawArrow");
 
-	SDst x(p.X), y(p.Y);
+	SDst x(pt.X), y(pt.Y);
 
 	switch(rot)
 	{
 	case RDeg0:
 		{
-			SDst t(p.Y);
+			SDst t(pt.Y);
 
 			for(SDst i(0); i < half_size; ++i)
 				DrawVLineSeg(g, x--, y--, t++, c);
@@ -80,7 +80,7 @@ RectDrawArrow(const Graphics& g, const Point& p, SDst half_size, Rotation rot,
 		break;
 	case RDeg90:
 		{
-			SDst t(p.X);
+			SDst t(pt.X);
 
 			for(SDst i(0); i < half_size; ++i)
 				DrawHLineSeg(g, y++, x--, t++, c);
@@ -88,7 +88,7 @@ RectDrawArrow(const Graphics& g, const Point& p, SDst half_size, Rotation rot,
 		break;
 	case RDeg180:
 		{
-			SDst t(p.Y);
+			SDst t(pt.Y);
 
 			for(SDst i(0); i < half_size; ++i)
 				DrawVLineSeg(g, x++, y--, t++, c);
@@ -96,7 +96,7 @@ RectDrawArrow(const Graphics& g, const Point& p, SDst half_size, Rotation rot,
 		break;
 	case RDeg270:
 		{
-			SDst t(p.X);
+			SDst t(pt.X);
 
 			for(SDst i(0); i < half_size; ++i)
 				DrawHLineSeg(g, y--, x--, t++, c);

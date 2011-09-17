@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2454;
+\version r2461;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-09-16 01:52 +0800;
+	2011-09-17 23:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -81,11 +81,11 @@ LocateForWidget(IWidget& a, IWidget& b)
 }
 
 Point
-LocateForParentContainer(const IWidget& w)
+LocateForParentContainer(const IWidget& wgt)
 {
-	return FetchContainerPtr(w)
-		? LocateContainerOffset(*FetchContainerPtr(w),
-		w.GetLocation()) : Point::Invalid;
+	return FetchContainerPtr(wgt)
+		? LocateContainerOffset(*FetchContainerPtr(wgt),
+		wgt.GetLocation()) : Point::Invalid;
 }
 
 
@@ -94,7 +94,7 @@ MoveToLeft(IWidget& wgt)
 {
 	YAssert(FetchContainerPtr(wgt),
 		"In function \"void\n"
-		"ATrack::MoveToLeft(IWidget& w)\": \n"
+		"ATrack::MoveToLeft(IWidget&)\": \n"
 		"Container pointer of the widget is null.");
 
 	wgt.SetLocation(Point(0, wgt.GetLocation().Y));
@@ -105,7 +105,7 @@ MoveToRight(IWidget& wgt)
 {
 	YAssert(FetchContainerPtr(wgt),
 		"In function \"void\n"
-		"ATrack::MoveToLeft(IWidget& w)\": \n"
+		"ATrack::MoveToLeft(IWidget&)\": \n"
 		"Container pointer of the widget is null.");
 
 	wgt.SetLocation(Point(FetchContainerPtr(wgt)->GetSize().Width
@@ -117,7 +117,7 @@ MoveToTop(IWidget& wgt)
 {
 	YAssert(FetchContainerPtr(wgt),
 		"In function \"void\n"
-		"ATrack::MoveToLeft(IWidget& w)\": \n"
+		"ATrack::MoveToLeft(IWidget&)\": \n"
 		"Container pointer of the widget is null.");
 
 	wgt.SetLocation(Point(wgt.GetLocation().X, 0));
@@ -128,7 +128,7 @@ MoveToBottom(IWidget& wgt)
 {
 	YAssert(FetchContainerPtr(wgt),
 		"In function \"void\n"
-		"ATrack::MoveToLeft(IWidget& w)\": \n"
+		"ATrack::MoveToLeft(IWidget&)\": \n"
 		"Container pointer of the widget is null.");
 
 	wgt.SetLocation(Point(wgt.GetLocation().X,

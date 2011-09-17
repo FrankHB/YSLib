@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4144;
+\version r4152;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-09-15 14:20 +0800;
+	2011-09-18 02:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,8 +91,8 @@ AWindow::Update()
 		const auto pCon(FetchContainerPtr(*this));
 
 		if(pCon)
-			Components::Update(*this, FetchContext(*pCon), GetLocation(),
-				GetBoundsOf(*this));
+			Components::Update(*this, PaintEventArgs(FetchContext(*pCon),
+				GetLocation(), GetBoundsOf(*this)));
 	}
 }
 
@@ -192,19 +192,23 @@ Frame::DrawContents()
 	if(result)
 		for(auto i(sWidgets.begin()); i != sWidgets.end(); ++i)
 		{
-			IWidget& w(*i->second);
+			IWidget& wgt(*i->second);
 
-			if(w.IsVisible())
+			if(wgt.IsVisible())
 			{
 				//	pt = LocateOffset(this, Point::Zero, &w);
-				Point pt(w.GetLocation());
+				Point pt(wgt.GetLocation());
 				Rect r;
 
 				GetRenderer().GetInvalidatedArea(r);
-				r = Intersect(Rect(pt, w.GetSize()), r);
+				r = Intersect(Rect(pt, wgt.GetSize()), r);
 				if(r != Rect::Empty)
-					GetRenderer().CommitInvalidation(Render(w,
-						PaintEventArgs(FetchContext(*this), pt, r)));
+				{
+					PaintEventArgs e(FetchContext(*this), pt, r);
+
+					CallEvent<Paint>(wgt, e);
+					GetRenderer().CommitInvalidation(e.ClipArea);
+				}
 			}
 		}
 	return result;

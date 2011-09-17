@@ -16,12 +16,12 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version 0.1668;
+\version r1679;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2011-06-02 12:30 +0800;
+	2011-09-16 04:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,6 +34,7 @@
 
 #include "../Core/yobject.h"
 #include "../Adaptor/cont.h"
+#include "../Core/ycounter.hpp"
 
 YSL_BEGIN
 
@@ -41,11 +42,14 @@ YSL_BEGIN_NAMESPACE(Timers)
 
 typedef u32 TimeSpan;
 
-//! \brief 计时器。
-class YTimer : public YCountableObject
+/*!
+\brief 计时器。
+\warning 非虚析构。
+*/
+class Timer : public noncopyable, public GMCounter<Timer>
 {
 public:
-	typedef map<u32, YTimer*> TimerMap; //!< 计时器组。
+	typedef map<u32, Timer*> TimerMap; //!< 计时器组。
 
 protected:
 	static bool NotInitialized;
@@ -60,7 +64,7 @@ public:
 	\brief 构造：使用时间间隔和有效性。
 	*/
 	explicit
-	YTimer(TimeSpan = 1000, bool = true);
+	Timer(TimeSpan = 1000, bool = true);
 
 	static DefMutableGetter(TimeSpan, SystemTick, SystemTick)
 	DefGetter(TimeSpan, Interval, nInterval)
@@ -134,23 +138,23 @@ public:
 	\brief 激活。
 	*/
 	friend void
-	Activate(YTimer&);
+	Activate(Timer&);
 
 	/*!
 	\brief 停用。
 	*/
 	friend void
-	Deactivate(YTimer&);
+	Deactivate(Timer&);
 };
 
 inline void
-YTimer::Synchronize()
+Timer::Synchronize()
 {
 	SystemTick = GetRTC();
 }
 
 inline void
-YTimer::Reset()
+Timer::Reset()
 {
 	nBase = 0;
 }

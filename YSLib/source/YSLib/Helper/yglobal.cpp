@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3256;
+\version r3264;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-08-16 01:52 +0800;
+	2011-09-16 03:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,10 +44,10 @@ extern const char* DEF_DIRECTORY; //!< 默认目录。
 extern const char* G_COMP_NAME; //!< 制作组织名称。
 extern const char* G_APP_NAME; //!< 产品名称。
 extern const char* G_APP_VER; //!< 产品版本。
-const IO::Path YApplication::CommonAppDataPath(DEF_DIRECTORY);
-const String YApplication::CompanyName(G_COMP_NAME);
-const String YApplication::ProductName(G_APP_NAME);
-const String YApplication::ProductVersion(G_APP_VER);
+const IO::Path Application::CommonAppDataPath(DEF_DIRECTORY);
+const String Application::CompanyName(G_COMP_NAME);
+const String Application::ProductName(G_APP_NAME);
+const String Application::ProductVersion(G_APP_VER);
 
 //全局变量。
 #ifdef YSL_USE_MEMORY_DEBUG
@@ -102,28 +102,28 @@ DSScreen::Update(Color c)
 YSL_END_NAMESPACE(Devices)
 
 
-YDSApplication::YDSApplication()
+DSApplication::DSApplication()
 	: pFontCache(), hScreenUp(), hScreenDown(), hDesktopUp(), hDesktopDown()
 {}
 
 FontCache&
-YDSApplication::GetFontCache() const ythrow(LoggedEvent)
+DSApplication::GetFontCache() const ythrow(LoggedEvent)
 {
 	if(!pFontCache)
 		throw LoggedEvent("Null font cache pointer found"
-			" @ YApplication::GetFontCache;");
+			" @ Application::GetFontCache;");
 	return *pFontCache;
 }
 
 void
-YDSApplication::DestroyFontCache()
+DSApplication::DestroyFontCache()
 {
 	ydelete(pFontCache);
 	pFontCache = nullptr;
 }
 
 void
-YDSApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
+DSApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
 {
 	try
 	{
@@ -137,7 +137,7 @@ YDSApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
 }
 
 void
-YDSApplication::InitializeDevices() ynothrow
+DSApplication::InitializeDevices() ynothrow
 {
 	//初始化显示设备。
 	try
@@ -162,7 +162,7 @@ YDSApplication::InitializeDevices() ynothrow
 }
 
 void
-YDSApplication::ReleaseDevices() ynothrow
+DSApplication::ReleaseDevices() ynothrow
 {
 	reset(hDesktopUp);
 	reset(hScreenUp);
@@ -171,15 +171,15 @@ YDSApplication::ReleaseDevices() ynothrow
 }
 
 
-YDSApplication&
+DSApplication&
 FetchGlobalInstance() ynothrow
 {
-	static YDSApplication theApp;
+	static DSApplication theApp;
 
 	return theApp;
 }
 
-YApplication&
+Application&
 FetchAppInstance()
 {
 	return FetchGlobalInstance();
@@ -415,7 +415,7 @@ main(int argc, char* argv[])
 			if(!fatInitDefault())
 				LibfatFail();
 			IO::ChangeDirectory(Text::StringToMBCS(
-				YApplication::CommonAppDataPath));
+				Application::CommonAppDataPath));
 	#ifdef USE_EFS
 		}
 	#endif
@@ -434,10 +434,10 @@ main(int argc, char* argv[])
 
 		/*
 		需要保证主 Shell 句柄在应用程序实例初始化之后初始化，
-		因为 YMainShell 的基类 YShell 的构造函数
-		调用了 YApplication 的非静态成员函数。
+		因为 MainShell 的基类 Shell 的构造函数
+		调用了 Application 的非静态成员函数。
 		*/
-		static shared_ptr<YShell> hMainShell(new Shells::YMainShell());
+		static shared_ptr<Shell> hMainShell(new Shells::MainShell());
 
 		if(!FetchAppInstance().SetShellHandle(hMainShell))
 			FetchAppInstance().Log.FatalError("Failed launching the"

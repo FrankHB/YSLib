@@ -11,12 +11,12 @@
 /*!	\file yres.h
 \ingroup Service
 \brief 应用程序资源管理模块。
-\version r1518;
+\version r1520;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-09-13 23:48 +0800;
+	2011-09-16 03:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,6 @@
 #ifndef YSL_INC_CORE_YRES_H_
 #define YSL_INC_CORE_YRES_H_
 
-#include "../Core/ycounter.hpp"
 #include "../Core/ystorage.hpp"
 #include "ygdi.h"
 #include "../Helper/yglobal.h"

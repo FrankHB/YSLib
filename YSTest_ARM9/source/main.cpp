@@ -11,12 +11,12 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version 0.2151;
+\version r2156;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2011-09-11 20:41 +0800;
+	2011-09-16 04:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,9 +70,9 @@ namespace
 
 		auto c(msg.GetContent());
 
-		iprintf("Message : 0x%04X;\n""Prior : 0x%02X;\nObject ID : %d\n"
-			"Context pointer: %p\n",
-			msg.GetMessageID(), msg.GetPriority(), msg.GetObjectID(), &c);
+		iprintf("Message : 0x%04X;\n""Prior : 0x%02X;\nContext pointer: %p\n",
+			msg.GetMessageID(), msg.GetPriority(), &c);
+	//	iprintf("Object ID : %d\n", msg.GetObjectID(), &c);
 		//	"W : %u;\nL : %lx;\n";
 		WaitForInput();
 		StartTicks();
@@ -100,7 +100,7 @@ using namespace Drawing;
 
 YSL_BEGIN_NAMESPACE(Shells)
 
-YMainShell::YMainShell()
+MainShell::MainShell()
 	: ShlDS(),
 	lblTitle(Rect(50, 20, 100, 22)),
 	lblStatus(Rect(60, 80, 80, 22)),
@@ -108,7 +108,7 @@ YMainShell::YMainShell()
 {}
 
 int
-YMainShell::OnActivated(const Message& msg)
+MainShell::OnActivated(const Message& msg)
 {
 	ParentType::OnActivated(msg);
 
@@ -124,7 +124,7 @@ YMainShell::OnActivated(const Message& msg)
 	dsk_up.BackColor = Color(240, 216, 192);
 //	dsk_dn.BackColor = Color(240, 216, 240);
 	dsk_dn.BackColor = FetchGUIShell().Colors[Styles::Desktop];
-	lblTitle.Text = YApplication::ProductName;
+	lblTitle.Text = Application::ProductName;
 	lblStatus.Text = "Loading...";
 	lblDetails.Text = _ustr("初始化中，请稍后……");
 	lblDetails.ForeColor = ColorSpace::White;
@@ -160,7 +160,7 @@ YMainShell::OnActivated(const Message& msg)
 }
 
 int
-YMainShell::OnDeactivated(const Message& msg)
+MainShell::OnDeactivated(const Message& msg)
 {
 	reset(GetDesktopUp().GetBackgroundImagePtr());
 	reset(GetDesktopDown().GetBackgroundImagePtr());

@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6051;
+\version r6076;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-14 23:29 +0800;
+	2011-09-18 02:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -60,7 +60,7 @@ DeclInterface(IWidget)
 	/*!
 	\brief 取控制器。
 	*/
-	DeclIEntry(Controller& GetController() const)
+	DeclIEntry(AController& GetController() const)
 
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
@@ -94,23 +94,23 @@ Contains(const IWidget&, SPos, SPos);
 \brief 判断点是否在部件的可视区域内。
 */
 inline bool
-Contains(const IWidget& w, const Point& p)
+Contains(const IWidget& wgt, const Point& pt)
 {
-	return Contains(w, p.X, p.Y);
+	return Contains(wgt, pt.X, pt.Y);
 }
 
 /*!
 \brief 判断点是否在可见部件的可视区域内。
 */
 bool
-ContainsVisible(const IWidget& w, SPos x, SPos y);
+ContainsVisible(const IWidget& wgt, SPos x, SPos y);
 /*!
 \brief 判断点是否在可见部件的可视区域内。
 */
 inline bool
-ContainsVisible(const IWidget& w, const Point& p)
+ContainsVisible(const IWidget& wgt, const Point& pt)
 {
-	return ContainsVisible(w, p.X, p.Y);
+	return ContainsVisible(wgt, pt.X, pt.Y);
 }
 
 /*!
@@ -149,9 +149,9 @@ FetchFocusingPtr(IWidget& wgt)
 \brief 取部件边界。
 */
 inline Rect
-GetBoundsOf(const IWidget& w)
+GetBoundsOf(const IWidget& wgt)
 {
-	return Rect(w.GetLocation(), w.GetSize());
+	return Rect(wgt.GetLocation(), wgt.GetSize());
 }
 
 /*!
@@ -193,16 +193,25 @@ void
 InvalidateCascade(IWidget&, const Rect&);
 
 /*
-\brief 渲染：若缓冲存储不可用则刷新指定部件。
+\brief 渲染：若缓冲存储不可用则刷新 wgt 。
+\note 无条件更新实际渲染的区域至 e.ClipArea 。
 */
-Rect
-Render(IWidget&, const PaintEventArgs&);
+void
+Render(IWidget& wgt, PaintEventArgs&& e);
 
 /*
 \brief 渲染子部件。
 */
 void
-RenderChild(IWidget&, const PaintEventArgs&);
+RenderChild(IWidget&, PaintEventArgs&&);
+/*
+\brief 渲染子部件。
+*/
+inline void
+RenderChild(IWidget& wgt, const PaintEventArgs& e)
+{
+	return RenderChild(wgt, PaintEventArgs(e));
+}
 
 /*!
 \brief 请求提升至容器顶端。
@@ -214,10 +223,9 @@ RequestToTop(IWidget&);
 
 /*!
 \brief 更新部件至指定图形设备上下文的指定点。
-\note 后三个参数意义同 IWidget::Refresh 。
 */
 void
-Update(const IWidget&, const Graphics&, const Point&, const Rect&);
+Update(const IWidget&, const PaintEventArgs&);
 
 /*!
 \brief 验证：若部件的缓冲区存在，绘制缓冲区使之有效。
@@ -260,7 +268,27 @@ MOriented::MOriented(Drawing::Orientation o)
 {}
 
 
-//! \brief 可视样式。
+/*!
+\brief 部件控制器。
+*/
+class WidgetController : public AController
+{
+public:
+	GEventWrapper<EventT(HPaintEvent)> Paint;
+
+	explicit
+	WidgetController(bool);
+
+	ImplI1(AController) EventMapping::ItemType&
+	GetItemRef(const VisualEvent&);
+
+	ImplI1(AController) DefClone(WidgetController, Clone)
+};
+
+
+/*!
+\brief 可视样式。
+*/
 class Visual
 {
 private:
@@ -355,7 +383,7 @@ private:
 	unique_ptr<FocusResponder> pFocusResponser; //!< 焦点响应器指针。
 
 public:
-	unique_ptr<Controller> pController; //!< 控制器指针。
+	unique_ptr<AController> pController; //!< 控制器指针。
 
 	explicit
 	Widget(const Rect& = Rect::Empty,
@@ -390,7 +418,7 @@ public:
 	ImplI1(IWidget) DefGetter(IWidget*&, ContainerPtrRef, pContainer)
 	ImplI1(IWidget) DefGetter(Renderer&, Renderer, *pRenderer)
 	ImplI1(IWidget) DefGetter(FocusResponder&, FocusResponder, *pFocusResponser)
-	ImplI1(IWidget) Controller&
+	ImplI1(IWidget) AController&
 	GetController() const;
 	ImplI1(IWidget) PDefH2(IWidget*, GetTopWidgetPtr, const Point&,
 		bool(&)(const IWidget&))
@@ -421,7 +449,7 @@ public:
 	Refresh(const PaintEventArgs&);
 };
 
-inline Controller&
+inline AController&
 Widget::GetController() const
 {
 	if(!pController)

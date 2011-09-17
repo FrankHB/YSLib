@@ -11,12 +11,12 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version 0.1549;
+\version r1563;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2011-05-13 21:36 +0800;
+	2011-09-16 04:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,13 +30,12 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Timers)
 
-bool YTimer::NotInitialized(true);
-vu32 YTimer::SystemTick(0);
-YTimer::TimerMap YTimer::mTimers;
+bool Timer::NotInitialized(true);
+vu32 Timer::SystemTick(0);
+Timer::TimerMap Timer::mTimers;
 
-YTimer::YTimer(TimeSpan i, bool a)
-	: YCountableObject(),
-	nInterval(i), nBase(0)
+Timer::Timer(TimeSpan i, bool a)
+	: nInterval(i), nBase(0)
 {
 	InitializeSystemTimer();
 	if(a)
@@ -44,7 +43,7 @@ YTimer::YTimer(TimeSpan i, bool a)
 }
 
 void
-YTimer::SetInterval(TimeSpan i)
+Timer::SetInterval(TimeSpan i)
 {
 	nInterval = i;
 	if(!nInterval)
@@ -52,21 +51,21 @@ YTimer::SetInterval(TimeSpan i)
 }
 
 void
-YTimer::InitializeSystemTimer()
+Timer::InitializeSystemTimer()
 {
 	if(NotInitialized)
 		ResetRTC();
 }
 
 void
-YTimer::ResetSystemTimer()
+Timer::ResetSystemTimer()
 {
 	NotInitialized = true;
 	InitializeSystemTimer();
 }
 
 bool
-YTimer::RefreshRaw()
+Timer::RefreshRaw()
 {
 	if(SystemTick < nBase + nInterval)
 		return false;
@@ -75,14 +74,14 @@ YTimer::RefreshRaw()
 }
 
 bool
-YTimer::Refresh()
+Timer::Refresh()
 {
 	Synchronize();
 	return RefreshRaw();
 }
 
 bool
-YTimer::RefreshAll()
+Timer::RefreshAll()
 {
 	bool t(false);
 	Synchronize();
@@ -93,7 +92,7 @@ YTimer::RefreshAll()
 }
 
 void
-YTimer::ResetAll()
+Timer::ResetAll()
 {
 	for(auto i(mTimers.begin()); i != mTimers.end(); ++i)
 		if(i->second)
@@ -101,11 +100,11 @@ YTimer::ResetAll()
 }
 
 void
-YTimer::ResetYTimer()
+Timer::ResetYTimer()
 {
 	for(auto i(mTimers.begin()); i != mTimers.end(); ++i)
 	{
-		YTimer* const p(i->second);
+		Timer* const p(i->second);
 		if(p)
 		{
 			p->SetInterval(0);
@@ -117,20 +116,20 @@ YTimer::ResetYTimer()
 }
 
 void
-Activate(YTimer& t)
+Activate(Timer& t)
 {
 	if(t.nInterval != 0)
 	{
-		YTimer::mTimers[t.GetObjectID()] = &t;
+		Timer::mTimers[t.GetObjectID()] = &t;
 		t.Synchronize();
-		t.nBase = YTimer::SystemTick;
+		t.nBase = Timer::SystemTick;
 	}
 }
 
 void
-Deactivate(YTimer& t)
+Deactivate(Timer& t)
 {
-	YTimer::mTimers[t.GetObjectID()] = nullptr;
+	Timer::mTimers[t.GetObjectID()] = nullptr;
 }
 
 YSL_END_NAMESPACE(Timers)

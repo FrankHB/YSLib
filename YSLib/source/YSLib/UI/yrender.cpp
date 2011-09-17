@@ -11,12 +11,12 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1237;
+\version r1243;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2011-09-14 23:34 +0800;
+	2011-09-18 02:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,6 +25,7 @@
 
 
 #include "yrender.h"
+#include "ywgtevt.h"
 #include "../Service/ydraw.h"
 
 YSL_BEGIN
@@ -70,11 +71,13 @@ BufferedRenderer::FillInvalidation(Color c)
 }
 
 void
-BufferedRenderer::UpdateTo(const Graphics& g, const Point& pt,
-	const Rect& r) const
+BufferedRenderer::UpdateTo(const PaintEventArgs& e) const
 {
-	CopyTo(g.GetBufferPtr(), GetContext(), g.GetSize(),
-		r, static_cast<const Point&>(r) - pt, r);
+	const auto& g(e.Target);
+	const auto& r(e.ClipArea);
+
+	CopyTo(g.GetBufferPtr(), GetContext(), g.GetSize(), r,
+		r.GetPoint() - e.Location, r);
 }
 
 YSL_END_NAMESPACE(Components)

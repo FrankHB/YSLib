@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1847;
+\version r1850;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-09-12 23:35 +0800;
+	2011-09-16 02:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -60,7 +60,7 @@ YSL_BEGIN_NAMESPACE(DS)
 
 ShlDS::ShlDS(const shared_ptr<Desktop>& h_dsk_up,
 	const shared_ptr<Desktop>& h_dsk_down)
-	: YGUIShell(),
+	: GUIShell(),
 	hDskUp(h_dsk_up ? h_dsk_up : share_raw(new
 		Desktop(FetchGlobalInstance().GetScreenUp()))),
 	hDskDown(h_dsk_down ? h_dsk_down : share_raw(new
@@ -113,7 +113,7 @@ ShlDS::OnGotMessage(const Message& msg)
 	default:
 		break;
 	}
-	return YGUIShell::OnGotMessage(msg);
+	return GUIShell::OnGotMessage(msg);
 }
 
 void
@@ -137,7 +137,7 @@ ResponseInput(const Message& msg)
 		return;
 
 	KeysInfo& k(hContent->Keys);
-	YGUIShell& shl(FetchGUIShell());
+	GUIShell& shl(FetchGUIShell());
 	Desktop& d(FetchGlobalInstance().GetTouchableDesktop());
 
 	using namespace KeySpace;

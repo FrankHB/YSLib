@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11369;
+\version r11376;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-09-14 23:19 +0800;
+	2011-09-16 04:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -366,7 +366,7 @@ $header Core::YShellDefinition
 //非本体函数列表。
 $header Core::YApplication
 {
-	extern YApplication&
+	extern Application&
 	FetchAppInstance();
 } //$header Core::YApplication;
 
@@ -393,7 +393,7 @@ $unit Helper::Shell_DS
 //友元列表。
 class PlatformResource @ $header Helper::YGlobal
 {
-	friend class YApplication;
+	friend class Application;
 } //class PlatformResource;
 
 
@@ -551,7 +551,7 @@ $unit YFileSystem
 
 $unit YApplication
 {
-	class YApplication
+	class Application
 	{
 		//全局常量。
 		static const IO::Path CommonAppDataPath; //!< 程序默认路径。
@@ -561,7 +561,7 @@ $unit YApplication
 	};
 }
 
-$header YStatic
+$header YStorage
 {
 	//略。
 }
@@ -575,7 +575,7 @@ $unit YTimer
 {
 	namespace Timers
 	{
-		class YTimer
+		class Timer
 		{
 			static bool NotInitialized;
 			static vu32 SystemTick;
@@ -946,7 +946,7 @@ $header Core::YShellDefinition : Adaptor::YAdaptor
 	using Drawing::FontCache;
 
 	using Shells::
-	{YMainShell, YShell};
+	{MainShell, Shell};
 
 	using Text::String;
 } //$header Core::YShellDefinition;

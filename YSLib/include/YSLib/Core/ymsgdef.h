@@ -11,12 +11,12 @@
 /*!	\file ymsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version 0.2898;
+\version r2902;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-08 12:05:26 +0800;
 \par 修改时间:
-	2011-06-09 17:30 +0800;
+	2011-09-16 02:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,10 +74,10 @@ struct SMessageMap
 	};
 
 DefMessageTarget(SM_NULL, void)
-DefMessageTarget(SM_SET, shared_ptr<YShell>)
-DefMessageTarget(SM_DROP, shared_ptr<YShell>)
-DefMessageTarget(SM_ACTIVATED, shared_ptr<YShell>)
-DefMessageTarget(SM_DEACTIVATED, shared_ptr<YShell>)
+DefMessageTarget(SM_SET, shared_ptr<Shell>)
+DefMessageTarget(SM_DROP, shared_ptr<Shell>)
+DefMessageTarget(SM_ACTIVATED, shared_ptr<Shell>)
+DefMessageTarget(SM_DEACTIVATED, shared_ptr<Shell>)
 DefMessageTarget(SM_PAINT, shared_ptr<Desktop>)
 DefMessageTarget(SM_QUIT, int)
 

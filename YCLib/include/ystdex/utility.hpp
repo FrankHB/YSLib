@@ -11,12 +11,12 @@
 /*!	\file utility.hpp
 \ingroup YCLib
 \brief 函数对象、算法和实用程序。
-\version r1668;
+\version r1681;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-09-12 08:14 +0800;
+	2011-09-16 21:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,6 +35,10 @@
 
 namespace ystdex
 {
+	/*!	\defgroup helper_functions Helper Functions
+	\brief 助手功能。
+	*/
+
 	/*
 	\brief 不可复制对象：禁止继承此类的对象调用复制构造函数和复制赋值操作符。
 	*/
@@ -192,12 +196,12 @@ namespace ystdex
 	};
 
 
-	/*!	\defgroup Functors General Functors
+	/*!	\defgroup functors General Functors
 	\brief 算法。
 	*/
 
 	/*!
-	\ingroup Functors
+	\ingroup functors
 	\brief 引用相等关系仿函数。
 	*/
 	template<typename _type>
@@ -211,7 +215,7 @@ namespace ystdex
 	};
 
 	/*!
-	\ingroup Functors
+	\ingroup functors
 	\brief 编译期选择自增/自减运算仿函数。
 	*/
 	//@{
@@ -236,7 +240,7 @@ namespace ystdex
 	//@}
 
 	/*!
-	\ingroup Functors
+	\ingroup functors
 	\brief 编译期选择加法/减法复合赋值运算仿函数。
 	*/
 	//@{
@@ -261,7 +265,7 @@ namespace ystdex
 	//@}
 
 	/*!
-	\ingroup HelperFunction
+	\ingroup helper_function
 	\brief 编译期选择自增/自减运算。
 	*/
 	template<bool _bIsPositive, typename _tScalar>
@@ -364,12 +368,12 @@ namespace ystdex
 	};
 
 
-	/*!	\defgroup Algorithms Gerneral Algorithms
+	/*!	\defgroup algorithms Gerneral Algorithms
 	\brief 算法。
 	*/
 
 	/*!
-	\ingroup Algorithms
+	\ingroup algorithms
 	\brief 取值类型最小值。
 	*/
 	template<typename _type>
@@ -379,7 +383,7 @@ namespace ystdex
 		return b < a ? b : a;
 	}
 	/*!
-	\ingroup Algorithms
+	\ingroup algorithms
 	\brief 取值类型最小值。
 	\note 使用指定判断操作。
 	*/
@@ -391,7 +395,7 @@ namespace ystdex
 	}
 
 	/*!
-	\ingroup Algorithms
+	\ingroup algorithms
 	\brief 取值类型最大值。
 	*/
 	template<typename _type>
@@ -401,7 +405,7 @@ namespace ystdex
 		return a < b ? b : a;
 	}
 	/*!
-	\ingroup Algorithms
+	\ingroup algorithms
 	\brief 取值类型最大值。
 	\note 使用指定判断操作。
 	*/
@@ -414,7 +418,7 @@ namespace ystdex
 
 
 	/*!
-	\ingroup Algorithms
+	\ingroup algorithms
 	\brief 删除指定标准容器中所有相同元素。
 	*/
 	template<typename _tContainer>
@@ -431,7 +435,7 @@ namespace ystdex
 	}
 
 	/*!
-	\ingroup Algorithms
+	\ingroup algorithms
 	\brief 删除指定标准容器中所有满足条件元素。
 	*/
 	template<typename _tContainer, typename _fPredicate>
@@ -447,7 +451,7 @@ namespace ystdex
 	}
 
 	/*!
-	\ingroup Algorithms
+	\ingroup algorithms
 	\brief 按指定键值搜索指定映射。
 	\return 一个用于表示结果的 std::pair 对象，其成员 first 为迭代器，
 		second 表示是否不存在而需要插入。

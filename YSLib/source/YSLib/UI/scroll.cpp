@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3829;
+\version r3831;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-09-14 09:06 +0800;
+	2011-09-16 02:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -312,7 +312,7 @@ HorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		YGUIShell& shl(FetchGUIShell());
+		GUIShell& shl(FetchGUIShell());
 		SPos x(shl.LastControlLocation.X + shl.DraggingOffset.X);
 
 		RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
@@ -340,7 +340,7 @@ VerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		YGUIShell& shl(FetchGUIShell());
+		GUIShell& shl(FetchGUIShell());
 		SPos y(shl.LastControlLocation.Y + shl.DraggingOffset.Y);
 
 		RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());

@@ -16,12 +16,12 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version 0.2528;
+\version r2534;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-24 15:29:11 +0800;
 \par 修改时间:
-	2011-06-16 12:20 +0800;
+	2011-09-16 03:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,7 +46,6 @@ YSL_BEGIN
 struct EmptyType
 {};
 
-class YObject;
 typedef EmptyType EventArgs; //!< 事件参数基类。
 
 YSL_BEGIN_NAMESPACE(Components)
@@ -58,7 +57,7 @@ class FontCache;
 YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Shells)
-class YShell;
+class Shell;
 YSL_END_NAMESPACE(Shells)
 
 YSL_BEGIN_NAMESPACE(Text)
@@ -67,14 +66,14 @@ typedef usize_t IndexType; //!< 字符索引类型。
 class String;
 YSL_END_NAMESPACE(Text)
 
-class YApplication;
-class YLog;
+class Application;
+class Log;
 
 using Components::Desktop;
 
 using Drawing::FontCache;
 
-using Shells::YShell;
+using Shells::Shell;
 
 using Text::String;
 

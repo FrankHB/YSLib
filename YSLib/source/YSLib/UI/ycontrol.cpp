@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4516;
+\version r4520;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-09-16 02:07 +0800;
+	2011-09-18 01:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -208,6 +208,7 @@ OnKey_Bound_Click(IWidget& wgt, KeyEventArgs&& e)
 
 Control::ControlEventMap::ControlEventMap()
 {
+	FetchEvent<Paint>(*this) += Render;
 	FetchEvent<TouchDown>(*this) += [](IWidget& wgt, TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 			RequestFocus(wgt);

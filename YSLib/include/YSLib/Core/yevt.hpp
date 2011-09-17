@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4646;
+\version r4654;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-09-15 11:34 +0800;
+	2011-09-16 03:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,7 +33,7 @@
 YSL_BEGIN
 
 //! \brief 公用事件模板命名空间。
-template<class _tSender = YObject, class _tEventArgs = EventArgs>
+template<class _tSender, class _tEventArgs>
 struct GSEventTypeSpace
 {
 	typedef void FuncType(_tSender&, _tEventArgs&&);
@@ -187,7 +187,7 @@ private:
 \brief 事件类模板。
 \note 支持顺序多播。
 */
-template<class _tSender = YObject, class _tEventArgs = EventArgs>
+template<class _tSender, class _tEventArgs>
 class GEvent
 {
 public:
@@ -526,9 +526,6 @@ public:
 };
 
 
-//! \brief 标准多播事件类。
-typedef GEvent<> Event;
-
 //! \brief 多播事件类型。
 template<class _tEventHandler>
 struct GSEvent
@@ -593,7 +590,7 @@ struct GSEvent
 
 
 //! \brief 事件处理器接口模板。
-template<class _tSender = YObject, class _tEventArgs = EventArgs>
+template<class _tSender, class _tEventArgs>
 DeclInterface(GIHEvent)
 	DeclIEntry(size_t operator()(_tSender&, _tEventArgs&&) const)
 	DeclIEntry(GIHEvent* Clone() const)
@@ -601,7 +598,7 @@ EndDecl
 
 
 //! \brief 事件处理器包装类模板。
-template<class _tEvent = Event>
+template<class _tEvent>
 class GEventWrapper : public _tEvent,
 	implements GIHEvent<typename _tEvent::SenderType, EventArgs>
 {
@@ -663,10 +660,6 @@ public:
 //! \brief 定义扩展事件类。
 #define DefExtendEventMap(_n, _b) \
 	DefExtendClass1(_n, _b, public)
-
-
-//! \brief 标准事件处理器委托。
-DefDelegate(HEvent, YObject, EventArgs)
 
 YSL_END
 
