@@ -1,4 +1,4 @@
-// v0.3319; *build 243 rev 17;
+// v0.3319; *build 244 rev 34;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -274,188 +274,84 @@ $using:
 
 $DONE:
 r1:
-/ \cl YShell => Shell,
-/ \cl YGUIShell => GUIShell,
-/ \cl YMainShell => MainShell,
-/ \cl YLog => Log;
-/ \inh \cl YObject -> noncopyable @ \cl (Shell & Log);
-/= \em \vt \dtor @ \cl Log ^ \mac DefEmptyDtor;
-
-r2:
-/ \cl YApplication => Application,
-/ \cl YDSApplication => DSApplication,
-/ \cl YTimer @ \u Service::YTimer => Timer;
-/ \inh \cl YCountableObject -> (noncopyable & GMCounter<Timer>) @ \cl Timer,
-/ \simp @ \cl Application $=
+/ @ \cl ShlReader @ \u Shells $=
 (
-	/ \inh \cl YObject -> noncopyable;
-	/ \tr \impl @ \ctor,
+	/ @ \cl ReaderPanel $=
 	(
-		/ DeclEvent(HEvent, ApplicationExit)
-			-> std::function<void()> ApplicationExit,
-		/ DeclEvent(HEvent, Idle) -> std::function<void()> Idle;
-		/ \tr \impl @ \dtor
-	)
-);
-- \h YEvent @ \h YApplication,
-/ @ \h YEvent $=
-(
-	- typedef GEvent<> Event;
-	- \a \de \t \param,
-	- DefDelegate(HEvent, YObject, EventArgs)
-),
-- \pre \decl @ \cl YObject @ \h YShellDefinition;
-/ @ \h YObject $=
-(
-	- \cl YCountableObject;
-	- \cl YObject;
+		- \mf UpdateEnablilty,
+		- \m Button btnUp, btnDown, btnLeft, btnRight,
+		+ \m HorizontalTrack ReaderTrack;
+		/ \tr \impl @ (\ctor & \mf (Refresh & GetTopWidgetPtr))
+	);
+	/ \tr \impl @ \mf ShlReader::ExcuteReadingCommand
 );
 
-r3:
-/= test 1 ^ \conf release;
+r2-r21:
+/= test 1;
 
-r4:
-- \inh public GMCounter<Message> @ \cl Message;
-/ \tr \impl @ \f YSDebug_MSG_Print @ \impl \u Main,
-- \inc \h YCounter @ \h (YObject & YResource);
-+ \inc \h YCounter @ \h YTimer;
+r22:
+* unsafe nullable dependency $since b242 $=
+(
+	/ \impl @ \ctor @ \clt GDependency
+);
 
-r5:
+r23:
 /= test 2 ^ \conf release;
 
-r6:
-/ @ \lib YCLib $=
+r24-r30:
+/ @ \cl ShlReader $=
 (
-	/ \rem ('defgroup' & 'ingroup') @ \h Utilities,
-	/ @ \h Iterator $=
+	/ \m ReaderPanel Panel => pnlReader;
+	/ \tr \impl @ \ctor @ \cl ShlReader,
+	/ @ \cl ReaderPanel $=
 	(
-		/ \rem ('defgroup' & 'ingroup'),
-		/ \t<typename _type, typename _tIterator = _type*> \st pseudo_iterator
-			-> \t<typename _type, typename _tIterator = _type*,
-			typename _tTraits = std::iterator_traits<_tIterator>>
-			\cl pseudo_iterator,
-		/ \t<typename _type, typename _tIterator = _type*> \st pair_iterator
-			-> \t<typename _type, typename _tIterator = _type*,
-			typename _tTraits = std::iterator_traits<_tIterator>>
-			\st pair_iterator;
-		+ \inh std::iterator<'...'> @ \clt (pseudo_iterator & pair_iterator);
+		+ \m Label lblProgress @ \cl ReaderPanel,
+		/ \impl @ \ctor @ \cl ReaderPanel @ for panel visual layout,
+		/ \impl @ \mf GetTopWidgetPtr,
+		/ \impl @ \mf Refresh
 	);
 );
 
-r7:
-/ \simp \impl @ \f Contains @ \u YWidget ^ \f GetBoundsOf,
-/ \as \str @ 4 \impl @ \f 'MoveTo*' @ \impl \u YUIContainer,
-/ \n @ \tp ('IWidget&' & 'Point&' & 'const Point&');
+r31:
+/= \rem @ \h CHRLib::CharacterProcessing,
+* path with non-ASCII characters displaying error $since b141 $=
+(
+	* \impl @ \mf FileList::LoadSubItems @ \impl \u YFileSystem
+);
 
-r8:
-/ \mf void PaintText(IWidget&, Color, const PaintEventArgs&) @ \cl MLabel
-	-> void PaintText(const Size&, Color, const PaintEventArgs&);
-/ \tr \impl @ \mf Refresh @ \cl (Label & Button);
+r32:
+/ @ \impl \u YFile_(Text) $=
+(
+	+ using std::memcmp,
+	/ \a const char[] 'BOM_*' @ \mf TextFile::CheckBOM >> \h
+),
+/ @ \impl \u Shells $=
+(
+	+ \f bool ReaderPathFilter(const string&) @ \un \ns;
+	/ \impl @ \ctor @ \cl ShlExplorer
+),
+* \v @ FS_Parent_X \impl \u YFileSystem $since b156;
 
-r9:
+r33:
+* \impl @ \f ReaderPathFilter @ \un \ns @ \impl \u Shells $since r32;
+
+r34:
 /= test 3 ^ \conf release;
-
-r10:
-/ @ \h YWidgetEvent $=
-(
-	/ \in IController -> abstract \cl AController;
-	/ \tr \a 'IController' -> 'AController';
-	/ \m bool enabled & \mf (bool IsEnabled() const & void SetEnabled(bool))
-		@ \cl Controller >> \cl AController;
-	+ \ctor AController(bool) @ \cl AController;
-);
-/ \tr \impl @ \ctor @ \cl Controller;
-
-r11:
-+ \mf \vt AController* Clone() @ \cl AController;
-+ \mf \vt Controller* Clone() @ \cl Controller ^ \mac DefClone;
-/ @ \h Widget $=
-(
-	/ \amf @ \ret \tp @ Controller& GetController() const @ \in IWidget
-		-> AController&;
-	/ @ \cl Widget $=
-	(
-		/ \m unique_ptr<Controller> pController
-			-> unique_ptr<AController> pController;
-		/ \tr \ret \tp @ \mf GetController -> AController& ~ Controller;
-		/ \tr \impl @ \ctor#2
-	)
-);
-
-r12:
-/ @ \h YWidgetEvent $=
-(
-	/ @ typedef \en VisualEvent $=
-	(
-		+ \m Paint @ VisualEvent,
-		/ \m order
-	),
-	+ DefDelegate(HPaintEvent, IWidget, PaintEventArgs);
-	+ DefEventTypeMapping(Paint, HPaintEvent),
-	/ \amf GetItemRef#2 @ \cl AController -> !abstract \mf;
-);
-+ \cl WidgetController @ \u YWidget,
-- \pre \decl @ \cl (Controller & Renderer & BufferedRenderer & Frame)
-	@ \h YComponent;
-
-r13:
-(
-	/ \impl @ \ctor @ \cl WidgetController;
-	/ \impl @ \ctor @ \cl Widget
-),
-/ \impl @ \ctor @ \cl Control::ControlEventMap,
-/ @ \u YWidget $=
-(
-	/ Rect Render(IWidget&, const PaintEventArgs&)
-		-> void Render(IWidget&, PaintEventArgs&&),
-	/ \tr \f void RenderChild(IWidget&, const PaintEventArgs&)
-		-> void RenderChild(IWidget&, PaintEventArgs&&),
-	+ \tr \f \i void RenderChild(IWidget&, const PaintEventArgs&)
-),
-/ \impl @ \mf Frame::DrawContents();
-
-r14:
-/= test 4 ^ \conf release;
-
-r15:
-+ \pre \decl @ \cl PaintEventArgs @ \h YRenderer,
-+ \inc \h YWidgetEvent @ \impl \u YRenderer,
-/ \mf void UpdateTo(const Graphics&, const Point&, const Rect&)
-	-> void UpdateTo(const PaintEventArgs&) @ \cl (Renderer & BufferedRenderer);
-/ @ \u YWidget $=
-(
-	/ \tr \f void Update(const IWidget&, const Graphics&, const Point&,
-		const Rect&) -> void Update(const IWidget&, const PaintEventArgs&);
-	/ \tr \simp \impl @ \f Render;
-),
-/ \tr \impl @ \mf AWindow::Update;
-
-r16:
-/ @ \u TextList $=
-(
-	/ \mf void PaintItems(const Graphics&, const Point&, const Rect&)
-		-> \mf void PaintItems(const PaintEventArgs&);
-	/ \tr \simp \impl @ \mf Refresh
-);
-
-r17:
-/= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-09-18:
--14.8d;
-//Mercurial rev1-rev114: r5472;
+2011-09-19:
+-14.7d;
+//Mercurial rev1-rev115: r5489;
 
 / ...
 
 
 $NEXT_TODO:
-b244-b324:
+b245-b324:
 + %TextList invalidation support;
-* non-ASCII character path error in FAT16;
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 + key accelerators;
@@ -541,6 +437,22 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ "shells test example" $=
+	(
+		/ "reader panel functionality",
+		/ "more text file extensions supported"
+	),
+	* "unsafe nullable dependency object" $since b242 $=
+	(
+		- "nullable features" @ "class template %GDependency"
+	),
+	* "path with non-ASCII characters displaying error" $since b141,
+	* "wrong value of unnamed namespace constant member FS_Parent_X"
+		@ "file yfilesys.cpp" $since b156
+),
+
+b243
 (
 	/ $design "simplified class inheritance" @ "shell and application classes";
 	- $design "inheritance GMCounter<Message>" @ "class %Message";

@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5119;
+\version r5148;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-16 03:11 +0800;
+	2011-09-19 06:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -353,6 +353,24 @@ FPSCounter::Refresh()
 }
 
 
+namespace
+{
+	bool
+	ReaderPathFilter(const string& path)
+	{
+		const auto ext(IO::GetExtensionOf(path).c_str());
+		
+		return !strcasecmp(ext, "txt")
+			|| !strcasecmp(ext, "c")
+			|| !strcasecmp(ext, "cpp")
+			|| !strcasecmp(ext, "h")
+			|| !strcasecmp(ext, "hpp")
+			|| !strcasecmp(ext, "ini")
+			|| !strcasecmp(ext, "xml");
+	}
+}
+
+
 ShlExplorer::ShlExplorer()
 	: ShlDS(),
 	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(12, 80, 240, 22)),
@@ -375,9 +393,8 @@ ShlExplorer::ShlExplorer()
 		Invalidate(lblPath);
 	};
 	fbMain.GetSelected() += [this](IWidget&, IndexEventArgs&&){
-		Enable(btnOK, fbMain.IsSelected() && IO::GetExtensionOf(
-			Text::StringToMBCS(fbMain.GetList()[fbMain.GetSelectedIndex()]))
-			== "txt");
+		Enable(btnOK, fbMain.IsSelected() && ReaderPathFilter(
+			Text::StringToMBCS(fbMain.GetList()[fbMain.GetSelectedIndex()])));
 	};
 	fbMain.GetConfirmed() += OnConfirmed_fbMain;
 	Enable(btnTest, true);
@@ -919,54 +936,31 @@ namespace
 
 ShlReader::ReaderPanel::ReaderPanel(const Rect& r, ShlReader& shl)
 	: AUIBoxControl(r),
-	Shell(shl), btnClose(Rect(232, 8, 24, 24)),
-	btnUp(Rect(184, 0, 24, 24)), btnDown(Rect(184, 24, 24, 24)),
-	btnLeft(Rect(160, 24, 24, 24)), btnRight(Rect(208, 24, 24, 24))
+	Shell(shl), btnClose(Rect(232, 4, 16, 16)),
+	trReader(Rect(8, 4, 192, 16)), lblProgress(Rect(204, 4, 24, 16))
 {
 	btnClose.GetContainerPtrRef() = this;
-	btnUp.GetContainerPtrRef() = this;
-	btnDown.GetContainerPtrRef() = this;
-	btnLeft.GetContainerPtrRef() = this;
-	btnRight.GetContainerPtrRef() = this;
+	trReader.GetContainerPtrRef() = this;
+	lblProgress.GetContainerPtrRef() = this;
 	btnClose.Text = "×";
-	btnUp.Text = "↑";
-	btnDown.Text = "↓";
-	btnLeft.Text = "←";
-	btnRight.Text = "→";
+	lblProgress.Text = "0%";
+	lblProgress.ForeColor = ColorSpace::Fuchsia;
+	lblProgress.Font.SetSize(12);
 	FetchEvent<Click>(btnClose) += [this](IWidget&, TouchEventArgs&&){
 		Hide(*this);
-	};
-	FetchEvent<TouchDown>(btnUp) += [this](IWidget&, TouchEventArgs&&){
-		Shell.ExcuteReadingCommand(MR_LineUp);
-		UpdateEnablilty();
-	};
-	FetchEvent<TouchDown>(btnDown) += [this](IWidget&, TouchEventArgs&&){
-		Shell.ExcuteReadingCommand(MR_LineDown);
-		UpdateEnablilty();
-	};
-	FetchEvent<TouchDown>(btnLeft) += [this](IWidget&, TouchEventArgs&&){
-		Shell.ExcuteReadingCommand(MR_ScreenUp);
-		UpdateEnablilty();
-	};
-	FetchEvent<TouchDown>(btnRight) += [this](IWidget&, TouchEventArgs&&){
-		Shell.ExcuteReadingCommand(MR_ScreenDown);
-		UpdateEnablilty();
 	};
 }
 
 IWidget*
-ShlReader::ReaderPanel::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
+ShlReader::ReaderPanel::GetTopWidgetPtr(const Point& pt,
+	bool(&f)(const IWidget&))
 {
-	if(Contains(btnClose, pt))
-		return f(btnClose) ? &btnClose : nullptr;
-	if(Contains(btnUp, pt))
-		return f(btnUp) ? &btnUp : nullptr;
-	if(Contains(btnDown, pt))
-		return f(btnDown) ? &btnDown : nullptr;
-	if(Contains(btnLeft, pt))
-		return f(btnLeft) ? &btnLeft : nullptr;
-	if(Contains(btnRight, pt))
-		return f(btnRight) ? &btnRight : nullptr;
+	if(Contains(btnClose, pt) && f(btnClose))
+		return &btnClose;
+	if(Contains(trReader, pt) && f(trReader))
+		return &trReader;
+	if(Contains(lblProgress, pt) && f(lblProgress))
+		return &lblProgress;
 	return nullptr;
 }
 
@@ -976,27 +970,16 @@ ShlReader::ReaderPanel::Refresh(const PaintEventArgs& e)
 	auto rect(Widget::Refresh(e));
 
 	RenderChild(btnClose, e);
-	RenderChild(btnUp, e);
-	RenderChild(btnDown, e);
-	RenderChild(btnLeft, e);
-	RenderChild(btnRight, e);
+	RenderChild(trReader, e);
+	RenderChild(lblProgress, e);
 	return GetBoundsOf(*this);
-}
-
-void
-ShlReader::ReaderPanel::UpdateEnablilty()
-{
-	Enable(btnUp, !Shell.Reader.IsTextTop());
-	Enable(btnDown, !Shell.Reader.IsTextBottom());
-	Enable(btnLeft, !Shell.Reader.IsTextTop());
-	Enable(btnRight, !Shell.Reader.IsTextBottom());
 }
 
 string ShlReader::path;
 
 ShlReader::ShlReader()
 	: ShlDS(),
-	Reader(), Panel(Rect(0, 144, 256, 48), *this),
+	Reader(), pnlReader(Rect(0, 168, 256, 24), *this),
 	pTextFile(), hUp(), hDn(), mhMain(*GetDesktopDownHandle())
 {}
 
@@ -1021,8 +1004,8 @@ ShlReader::OnActivated(const Message& msg)
 	FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld;
 	dsk_up += Reader.AreaUp;
 	dsk_dn += Reader.AreaDown;
-	dsk_dn += Panel;
-	Panel.SetVisible(false);
+	dsk_dn += pnlReader;
+	pnlReader.SetVisible(false);
 
 	{
 		auto hList(share_raw(new Menu::ListType));
@@ -1085,7 +1068,7 @@ ShlReader::OnDeactivated(const Message& msg)
 	FetchEvent<KeyHeld>(dsk_dn) -= OnKeyHeld;
 	dsk_up -= Reader.AreaUp;
 	dsk_dn -= Reader.AreaDown;
-	dsk_up -= Panel;
+	dsk_up -= pnlReader;
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
 	Reader.UnloadText();
@@ -1103,8 +1086,7 @@ ShlReader::ExcuteReadingCommand(IndexEventArgs::IndexType idx)
 		CallStored<ShlExplorer>();
 		break;
 	case MR_Panel:
-		Panel.UpdateEnablilty();
-		Show(Panel);
+		Show(pnlReader);
 		break;
 	case MR_LineUp:
 		Reader.LineUp();

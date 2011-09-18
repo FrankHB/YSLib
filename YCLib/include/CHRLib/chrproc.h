@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1498;
+\version r1503;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-09-13 23:16 +0800;
+	2011-09-19 04:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -142,32 +142,32 @@ char*
 sdup(const char*, char = ' ');
 /*!
 \brief 复制 UCS-2 字符串为 ANSI 字符串（非 ANSI 字符替换为第二参数）。
-\note 空间由 free() 释放。
+\note 空间由 std::free 释放。
 */
 char*
 sdup(const uchar_t*, char = ' ');
 /*!
 \brief 复制 UCS-4 字符串为 ANSI 字符串（非 ANSI 字符替换为第二参数）。
-\note 空间由 free() 释放。
+\note 空间由 std::free 释放。
 */
 char*
 sdup(const fchar_t*, char = ' ');
 
 /*!
 \brief 复制 MBCS 字符串为 UCS-2/UTF-16LE 字符串。
-\note 空间由 free() 释放。
+\note 空间由 std::free 释放。
 */
 uchar_t*
 ucsdup(const char*, const CSID& = CS_Default);
 /*!
 \brief 复制 UCS-2 字符串。
-\note 空间由 free() 释放。
+\note 空间由 std::free 释放。
 */
 uchar_t*
 ucsdup(const uchar_t*);
 /*!
 \brief 复制 UCS-4 字符串为 UCS-2 字符串。
-\note 空间由 free() 释放。
+\note 空间由 std::free 释放。
 */
 uchar_t*
 ucsdup(const fchar_t*);

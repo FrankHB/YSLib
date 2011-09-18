@@ -11,12 +11,12 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version 0.1627;
+\version r1650;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-06-08 18:11 +0800;
+	2011-08-19 06:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,14 @@
 #include "yfile.h"
 
 YSL_BEGIN
+
+// BOM（byte-order mark ，字节顺序标记）常量；零宽无间断空格字符的单字节编码。
+const char BOM_UTF_16LE[2] = {0xFF, 0xFE};
+const char BOM_UTF_16BE[2] = {0xFE, 0xFF};
+const char BOM_UTF_8[3] = {0xEF, 0xBB, 0xBF};
+const char BOM_UTF_32LE[4] = {0xFF, 0xFE, 0x00, 0x00};
+const char BOM_UTF_32BE[4] = {0x00, 0x00, 0xFE, 0xFF};
+
 
 //! \brief 文本文件类。
 class TextFile : public File

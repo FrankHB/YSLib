@@ -11,12 +11,12 @@
 /*!	\file yftext.cpp
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version 0.1795;
+\version r1805;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2011-06-08 18:13 +0800;
+	2011-09-19 06:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,6 +29,7 @@
 YSL_BEGIN
 
 using namespace Text;
+using std::memcmp;
 
 TextFile::TextFile(const_path_t p)
 	: File(p),
@@ -53,40 +54,26 @@ TextFile::CheckBOM(CSID& cp)
 	char tmp[4];
 	Read(tmp, 1, 4);
 
-	static const char BOM_UTF_16LE[2] = {0xFF, 0xFE};
-
 	if(!memcmp(tmp, BOM_UTF_16LE, 2))
 	{
 		cp = CharSet::UTF_16LE;
 		return 2;
 	}
-
-	const char BOM_UTF_16BE[2] = {0xFE, 0xFF};
-
 	if(!memcmp(tmp, BOM_UTF_16BE, 2))
 	{
 		cp = CharSet::UTF_16BE;
 		return 2;
 	}
-
-	static const char BOM_UTF_8[3] = {0xEF, 0xBB, 0xBF};
-
 	if(!memcmp(tmp, BOM_UTF_8, 3))
 	{
 		cp = CharSet::UTF_8;
 		return 3;
 	}
-
-	static const char BOM_UTF_32LE[4] = {0xFF, 0xFE, 0x00, 0x00};
-
 	if(!memcmp(tmp, BOM_UTF_32LE, 4))
 	{
 		cp = CharSet::UTF_32LE;
 		return 4;
 	}
-
-	static const char BOM_UTF_32BE[4] = {0x00, 0x00, 0xFE, 0xFF};
-
 	if(!memcmp(tmp, BOM_UTF_32BE, 4))
 	{
 		cp = CharSet::UTF_32BE;

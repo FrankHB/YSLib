@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2197;
+\version r2203;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-09-12 23:36 +0800;
+	2011-09-19 06:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,7 @@ const const_path_t FS_Parent("..");
 namespace
 {
 	const uchar_t FS_Now_X[] = {'.', 0};
-	const uchar_t FS_Parent_X[] = {'.', ',', 0};
+	const uchar_t FS_Parent_X[] = {'.', '.', 0};
 }
 
 const Path::ValueType Path::Slash(DEF_PATH_DELIMITER);
@@ -385,7 +385,6 @@ FileList::LoadSubItems()
 			"Null handle found @ FileList::LoadSubItems;");
 
 		hList->clear();
-
 		while((++dir).LastError == 0)
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
 				++n;
@@ -394,9 +393,10 @@ FileList::LoadSubItems()
 		while((++dir).LastError == 0)
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
 				hList->push_back(std::strcmp(HDirectory::Name, FS_Parent)
-					&& HDirectory::IsDirectory()
-					? MBCSToString(string(HDirectory::Name) + FS_Seperator)
-					: MBCSToString(HDirectory::Name));
+					&& HDirectory::IsDirectory() ? MBCSToString(
+					string(HDirectory::Name) + FS_Seperator, CS_Default)
+					: MBCSToString(HDirectory::Name, CS_Default));
+		// TODO: platform-dependent name converting;
 	}
 	return n;
 }

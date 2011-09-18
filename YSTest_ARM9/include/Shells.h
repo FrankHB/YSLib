@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3430;
+\version r3440;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-15 15:15 +0800;
+	2011-09-18 21:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -182,7 +182,9 @@ public:
 	{
 	public:
 		ShlReader& Shell;
-		Button btnClose, btnUp, btnDown, btnLeft, btnRight;
+		Button btnClose;
+		HorizontalTrack trReader;
+		Label lblProgress;
 
 		ReaderPanel(const Rect&, ShlReader&);
 
@@ -191,15 +193,12 @@ public:
 
 		virtual Rect
 		Refresh(const PaintEventArgs&);
-
-		void
-		UpdateEnablilty();
 	};
 
 	static string path;
 
 	MDualScreenReader Reader;
-	ReaderPanel Panel;
+	ReaderPanel pnlReader;
 	TextFile* pTextFile;
 	shared_ptr<Image> hUp, hDn;
 	MenuHost mhMain;
