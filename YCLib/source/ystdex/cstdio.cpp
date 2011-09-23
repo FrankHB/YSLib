@@ -8,25 +8,37 @@
 	understand and accept it fully.
 */
 
-/*!	\file chrmap.cpp
-\ingroup CHRLib
-\brief 字符映射。
-\version r1721;
+/*!	\file cstdio.cpp
+\ingroup YCLib
+\brief YCLib C++ 标准库扩展。
+\version r1051;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2009-11-17 17:53:21 +0800;
+	2011-09-21 08:38:51 +0800;
 \par 修改时间:
-	2011-09-22 00:20 +0800;
+	2011-09-21 14:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	CHRLib::CharacterMapping;
+	YCLib::YStandardExtend::CStandardIO;
 */
 
 
-#include "chrmap.h"
+#include "ystdex/cstdio.h"
 
-CHRLIB_BEGIN
+namespace ystdex
+{
+	bool
+	fexists(const_path_t path)
+	{
+		std::FILE* file(std::fopen(path, "rb"));
 
-CHRLIB_END
+		if(file)
+		{
+			std::fclose(file);
+			return true;
+		}
+		return false;
+	}
+}
 

@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2443;
+\version r2445;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-09-01 01:59 +0800;
+	2011-09-22 08:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -61,8 +61,8 @@ private:
 	BlockedText* pText; //!< 文本资源。
 	FontCache& fc; //!< 字体缓存。
 	Drawing::Rotation rot; //!< 屏幕指向。
-	Text::TextFileBuffer::HText itUp; //!< 字符区域读取文本缓存迭代器。
-	Text::TextFileBuffer::HText itDn; //!< 字符区域读取文本缓存迭代器。
+	Text::TextFileBuffer::Iterator itUp; //!< 字符区域读取文本缓存迭代器。
+	Text::TextFileBuffer::Iterator itDn; //!< 字符区域读取文本缓存迭代器。
 	u8 lnHeight; //!< 行高。
 
 public:

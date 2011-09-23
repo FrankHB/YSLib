@@ -11,12 +11,12 @@
 /*!	\file ystring.cpp
 \ingroup Core
 \brief 基础字符串管理。
-\version 0.2681;
+\version r2694;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-05 22:44:04 +0800;
 \par 修改时间:
-	2011-05-14 20:52 +0800;
+	2011-09-23 11:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,13 +30,13 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Text)
 
-uchar_t* String::s_str;
+ucs2_t* String::s_str;
 
 
 String
-MBCSToString(const char* s, const CSID& cp)
+MBCSToString(const char* s, const Encoding& cp)
 {
-	uchar_t* t(ucsdup(s, cp));
+	ucs2_t* t(ucsdup(s, cp));
 	String str(t);
 
 	std::free(t);
@@ -44,12 +44,12 @@ MBCSToString(const char* s, const CSID& cp)
 }
 
 string
-StringToMBCS(const u16string& s, const CSID& cp)
+StringToMBCS(const ucs2string& s, const Encoding& cp)
 {
-	char* t(static_cast<char*>(std::malloc((s.length() + 1) << 2)));
+	const auto t(static_cast<char*>(std::malloc((s.length() << 2) + 1)));
 
 	if(t)
-		UTF16LEToMBCS(t, s.c_str(), cp);
+		UCS2ToMBCS(t, s.c_str(), cp);
 
 	string str(t);
 

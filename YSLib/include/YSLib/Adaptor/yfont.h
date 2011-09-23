@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version 0.7289;
+\version r7292;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-06-15 15:40 +0800;
+	2011-09-21 15:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -172,8 +172,8 @@ public:
 class Typeface : public noncopyable
 {
 	friend class FontCache;
-	friend FT_Error simpleFaceRequester(FTC_FaceID,
-		FT_Library, FT_Pointer, FT_Face*);
+	friend FT_Error
+	simpleFaceRequester(FTC_FaceID, FT_Library, FT_Pointer, FT_Face*);
 
 //	static const FT_Matrix MNormal, MOblique;
 public:
@@ -488,12 +488,12 @@ public:
 	\brief 取当前字型和大小渲染的指定字符的字形。
 	*/
 	CharBitmap
-	GetGlyph(fchar_t);
+	GetGlyph(ucs4_t);
 	/*!
 	\brief 取跨距。
 	*/
 	s8
-	GetAdvance(fchar_t, FTC_SBit = nullptr);
+	GetAdvance(ucs4_t, FTC_SBit = nullptr);
 	/*!
 	\brief 取行高。
 	*/

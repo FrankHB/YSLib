@@ -11,12 +11,12 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3207;
+\version r3212;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-09-01 01:59 +0800;
+	2011-09-01 08:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -100,11 +100,11 @@ MDualScreenReader::LineUp()
 	AreaUp.ClearTextLine(0);
 	SetCurrentTextLineNOf(AreaUp, 0);
 
-	TextFileBuffer::HText itUpOld(itUp);
+	TextFileBuffer::Iterator itUpOld(itUp);
 
 	itUp = FetchPreviousLineIterator(AreaUp, itUp,
 		pText->Blocks.begin());
-	PutLine<TextFileBuffer::HText, uchar_t>(AreaUp, itUp, itUpOld);
+	PutLine<TextFileBuffer::Iterator, ucs2_t>(AreaUp, itUp, itUpOld);
 	itDn = FetchPreviousLineIterator(AreaUp, itDn,
 		pText->Blocks.begin());
 	Invalidate();
@@ -212,8 +212,8 @@ MDualScreenReader::Scroll(Function<void()> pCheck)
 void
 MDualScreenReader::UnloadText()
 {
-	itUp = Text::TextFileBuffer::HText();
-	itDn = Text::TextFileBuffer::HText();
+	itUp = Text::TextFileBuffer::Iterator();
+	itDn = Text::TextFileBuffer::Iterator();
 	safe_delete_obj()(pText);
 }
 

@@ -11,12 +11,12 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4101;
+\version r4135;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-09-06 00:20 +0800;
+	2011-09-22 15:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Text)
 
 TextBuffer::TextBuffer(SizeType tlen)
-try : capacity(tlen), text(ynew uchar_t[capacity]), len(0)
+try : capacity(tlen), text(ynew ucs2_t[capacity]), len(0)
 {
 	ClearText();
 }
@@ -40,11 +40,11 @@ catch(...)
 	throw LoggedEvent("Error occured @ TextBuffer::TextBuffer;");
 }
 
-uchar_t&
+ucs2_t&
 TextBuffer::operator[](SizeType idx) ynothrow
 {
 	YAssert(idx < capacity,
-		"In function \"uchar_t\n"
+		"In function \"ucs2_t\n"
 		"TextBuffer::operator[](SizeType)\":\n"
 		"Subscript is not less than the length.");
 
@@ -52,21 +52,21 @@ TextBuffer::operator[](SizeType idx) ynothrow
 }
 
 SizeType
-TextBuffer::GetPrevChar(SizeType o, uchar_t c)
+TextBuffer::GetPrevChar(SizeType o, ucs2_t c)
 {
 	while(o-- && text[o] != c)
 		;
 	return ++o;
 }
 SizeType
-TextBuffer::GetNextChar(SizeType o, uchar_t c)
+TextBuffer::GetNextChar(SizeType o, ucs2_t c)
 {
 	while(o < capacity && text[o++] != c)
 		;
 	return o;
 }
 
-uchar_t&
+ucs2_t&
 TextBuffer::at(SizeType idx) ythrow(std::out_of_range)
 {
 	if(idx >= capacity)
@@ -75,11 +75,11 @@ TextBuffer::at(SizeType idx) ythrow(std::out_of_range)
 }
 
 bool
-TextBuffer::Load(const uchar_t* s, SizeType n)
+TextBuffer::Load(const ucs2_t* s, SizeType n)
 {
 	if(n > capacity)
 		return false;
-	mmbcpy(text, s, sizeof(uchar_t) * n);
+	mmbcpy(text, s, sizeof(ucs2_t) * n);
 	len = n;
 	return true;
 }
@@ -94,11 +94,11 @@ TextBuffer::Load(TextFile& f, SizeType n)
 	if(f.IsValid())
 	{
 		SizeType idx(0), t;
-		uchar_t cb(len == 0 ? 0 : text[len - 1]), c;
-		FILE* const fp(f.GetPtr());
-		const CSID cp(f.GetCP());
+		ucs2_t cb(len == 0 ? 0 : text[len - 1]), c;
+		std::FILE* const fp(f.GetPtr());
+		const Encoding cp(f.GetCP());
 
-		while(++idx < n && (t = ToUTF(fp, c, cp)) != 0)
+		while(++idx < n && (t = MBCToUC(c, fp, cp)) != 0)
 		{
 			if(c == '\n' && cb == '\r')
 				--len;
@@ -120,11 +120,11 @@ TextBuffer::LoadN(TextFile& f, SizeType n)
 	if(f.IsValid())
 	{
 		SizeType idx(0), t;
-		uchar_t cb(len == 0 ? 0 : text[len - 1]), c;
-		FILE* const fp(f.GetPtr());
-		const CSID cp(f.GetCP());
+		ucs2_t cb(len == 0 ? 0 : text[len - 1]), c;
+		std::FILE* const fp(f.GetPtr());
+		const Encoding cp(f.GetCP());
 
-		while(idx < n && (t = ToUTF(fp, c, cp)) != 0 && (idx += t) < n)
+		while(idx < n && (t = MBCToUC(c, fp, cp)) != 0 && (idx += t) < n)
 		{
 			if(c == '\n' && cb == '\r')
 				--len;
@@ -139,11 +139,11 @@ TextBuffer::LoadN(TextFile& f, SizeType n)
 }
 
 bool
-TextBuffer::TextBuffer::Output(uchar_t* d, SizeType p, SizeType n) const
+TextBuffer::TextBuffer::Output(ucs2_t* d, SizeType p, SizeType n) const
 {
 	if(p + n > capacity)
 		return false;
-	mmbcpy(d, &text[p], sizeof(uchar_t) * n);
+	mmbcpy(d, &text[p], sizeof(ucs2_t) * n);
 	return true;
 }
 
@@ -157,15 +157,15 @@ TextMap::Clear()
 }
 
 
-TextFileBuffer::HText::HText(TextFileBuffer* pBuf, BlockSizeType b, SizeType idx)
-	ynothrow
+TextFileBuffer::Iterator::Iterator(TextFileBuffer* pBuf, BlockSizeType b,
+	SizeType idx) ynothrow
 	: pBuffer(pBuf), block(b), index(idx)
 {
 //	assert(buf.GetTextSize() >= 1);
 }
 
-TextFileBuffer::HText&
-TextFileBuffer::HText::operator++() ynothrow
+TextFileBuffer::Iterator&
+TextFileBuffer::Iterator::operator++() ynothrow
 {
 	if(pBuffer)
 	{
@@ -184,8 +184,8 @@ TextFileBuffer::HText::operator++() ynothrow
 	return *this;
 }
 
-TextFileBuffer::HText&
-TextFileBuffer::HText::operator--() ynothrow
+TextFileBuffer::Iterator&
+TextFileBuffer::Iterator::operator--() ynothrow
 {
 	if(pBuffer)
 	{
@@ -201,50 +201,49 @@ TextFileBuffer::HText::operator--() ynothrow
 	return *this;
 }
 
-uchar_t
-TextFileBuffer::HText::operator*() ynothrow
+ucs2_t
+TextFileBuffer::Iterator::operator*() ynothrow
 {
-	const uchar_t* p(GetTextPtr());
+	const ucs2_t* p(GetTextPtr());
 
 	return p ? *p : 0;
 }
 
-TextFileBuffer::HText
-TextFileBuffer::HText::operator+(ptrdiff_t o)
+TextFileBuffer::Iterator
+TextFileBuffer::Iterator::operator+(ptrdiff_t o)
 {
 	if(!pBuffer)
-		return HText();
+		return Iterator();
 
-	HText i(*this);
+	Iterator i(*this);
 
 	return i += o;
 }
 
 bool
-operator==(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
+operator==(const TextFileBuffer::Iterator& x, const TextFileBuffer::Iterator& y)
 	ynothrow
 {
-	return lhs.pBuffer == rhs.pBuffer
-		&& lhs.block == rhs.block && lhs.index == rhs.index;
+	return x.pBuffer == y.pBuffer && x.block == y.block && x.index == y.index;
 }
 
 bool
-operator<(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
+operator<(const TextFileBuffer::Iterator& x, const TextFileBuffer::Iterator& y)
 	ynothrow
 {
-	if(lhs.pBuffer < rhs.pBuffer)
+	if(x.pBuffer < y.pBuffer)
 		return true;
-	if(lhs.pBuffer != rhs.pBuffer)
+	if(x.pBuffer != y.pBuffer)
 		return false;
-	if(lhs.block < rhs.block)
+	if(x.block < y.block)
 		return true;
-	if(lhs.block != rhs.block)
+	if(x.block != y.block)
 		return false;
-	return lhs.index < rhs.index;
+	return x.index < y.index;
 }
 
-TextFileBuffer::HText&
-TextFileBuffer::HText::operator+=(ptrdiff_t o)
+TextFileBuffer::Iterator&
+TextFileBuffer::Iterator::operator+=(ptrdiff_t o)
 {
 	if(pBuffer)
 	{
@@ -258,10 +257,10 @@ TextFileBuffer::HText::operator+=(ptrdiff_t o)
 	return *this;
 }
 
-const uchar_t*
-TextFileBuffer::HText::GetTextPtr() const ynothrow
+const ucs2_t*
+TextFileBuffer::Iterator::GetTextPtr() const ynothrow
 {
-	const uchar_t* p(nullptr);
+	const ucs2_t* p(nullptr);
 
 	if(pBuffer)
 	{
@@ -278,7 +277,7 @@ TextFileBuffer::HText::GetTextPtr() const ynothrow
 }
 
 SizeType
-TextFileBuffer::HText::GetBlockLength(BlockSizeType idx) const ynothrow
+TextFileBuffer::Iterator::GetBlockLength(BlockSizeType idx) const ynothrow
 {
 	if(!pBuffer)
 		return 0;
@@ -338,16 +337,16 @@ TextFileBuffer::operator[](const BlockSizeType& idx)
 	}
 }
 
-TextFileBuffer::HText
+TextFileBuffer::Iterator
 TextFileBuffer::begin() ynothrow
 {
-	return TextFileBuffer::HText(this);
+	return TextFileBuffer::Iterator(this);
 }
 
-TextFileBuffer::HText
+TextFileBuffer::Iterator
 TextFileBuffer::end() ynothrow
 {
-	return TextFileBuffer::HText(this,
+	return TextFileBuffer::Iterator(this,
 		(nTextSize + nBlockSize - 1) / nBlockSize);
 }
 

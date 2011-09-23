@@ -11,12 +11,12 @@
 /*!	\file ydef.h
 \ingroup YCLib
 \brief 系统环境和公用类型和宏的基础定义。
-\version 0.2489;
+\version r2634;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2011-06-24 21:10 +0800;
+	2011-09-22 09:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,72 +32,150 @@
 #endif
 
 #ifdef __cplusplus
-extern "C" {
-#endif
-
-#if defined __GNUC__ \
-	|| (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L)
-
-#	include <stddef.h>
-#	include <stdint.h>
-
+#	define YCL_IMPL_CPP __cplusplus
+#	define YCL_IMPL_MSCPP 0
+#	define YCL_IMPL_GNUCPP 0
+#	ifdef _MSC_VER
+#		undef YCL_IMPL_MSCPP
+#		define YCL_IMPL_MSCPP _MSC_VER
+#	elif defined(__GNUC__)
+#		undef YCL_IMPL_GNUCPP
+#		define YCL_IMPL_GNUCPP (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 \
+			+ __GNUC_PATCHLEVEL__)
+#	endif
 #else
-
-typedef int intptr_t;
-typedef unsigned int uintptr_t;
-
+#	error This header is only for C++!
 #endif
 
-// UCS(Universal Character Set) 字符类型定义。
-
-typedef unsigned long UCSCHAR;
-
-#define UCSCHAR_INVALID_CHARACTER (0xFFFFFFFF)
-#define MIN_UCSCHAR (0)
-#define MAX_UCSCHAR (0x0010FFFF)
-
-//补充类型。
 #include <cstddef>
+#include <climits>
+#include <cassert>
 #include <cstdint>
+#include <cwchar>
 #include <sys/types.h>
+
+#if YCL_IMPL_CPP >= 201103L || YCL_IMPL_MSCPP >= 1600 \
+	|| YCL_IMPL_GNUCPP >= 40600
+//#	include <type_traits>
+#	define YCL_HAS_BUILTIN_NULLPTR
+#else
+// TODO: complete version checking for compiler and library implementation;
+//#ifdef __GNUC__
+//#	include <tr1/type_traits>
+#endif
+
+#ifndef YCL_CHAR_BIT
+#define YCL_CHAR_BIT CHAR_BIT
+#endif
+
+#ifndef YCL_UNUSED
+#	define YCL_UNUSED(arg) ((arg) = (arg))
+#endif
+
+#ifndef YCL_VOID
+#	define YCL_VOID(arg) ((void)(arg))
+#endif
+
+#ifndef YCL_VOIDX
+#	define YCL_VOIDX(arg) (static_cast<void>(arg))
+#endif
 
 namespace ystdex
 {
-	typedef std::uint8_t	u8;
-	typedef std::uint16_t	u16;
-	typedef std::uint32_t	u32;
-	typedef std::uint64_t	u64;
-	typedef std::int8_t		s8;
-	typedef std::int16_t	s16;
-	typedef std::int32_t	s32;
-	typedef std::int64_t	s64;
-	typedef volatile u8		vu8;
-	typedef volatile u16	vu16;
-	typedef volatile u32	vu32;
-	typedef volatile u64	vu64;
-	typedef volatile s8		vs8;
-	typedef volatile s16	vs16;
-	typedef volatile s32	vs32;
-	typedef volatile s64	vs64;
-
-	typedef u8 byte;
-
-	typedef u16 uchar_t;
-	typedef u32 fchar_t;
+	/*!
+	\brief 字节类型。
+	\note ISO C++ 仅允许 char 和 unsigned char 类型的
+		不确定值(indeterminate value) 的使用，
+		而不引起未定义行为(undefined behavior) 。
+	*/
+	typedef unsigned char byte;
 
 	typedef int errno_t;
 	using std::ptrdiff_t;
 	using std::size_t;
+	using std::wint_t;
 	using ::ssize_t;
 
-	//路径类型定义。
-	typedef char* path_t;
-	typedef const char* const_path_t;
-}
+#ifdef YCL_HAS_BUILTIN_NULLPTR
 
-#ifdef __cplusplus
-}
+	using std::nullptr_t;
+
+#else
+
+	/*!
+	\brief 空指针类。
+	\note 代码参考：
+	http://topic.csdn.net/u/20100924/17/ \
+		BE0C26F8-5127-46CD-9136-C9A96AAFDA76.html 。
+	*/
+	const class nullptr_t
+	{
+	public:
+		/*
+		\brief 转换任意类型至空非成员或静态成员指针。
+		*/
+		template<typename T>
+		inline operator T*() const
+		{
+			return 0;
+		}
+
+		/*
+		\brief 转换任意类型至空非静态成员指针。
+		*/
+		template<typename C, typename T>
+		inline operator T C::*() const
+		{
+			return 0;
+		}
+		/*
+		\brief 支持关系运算符重载。
+		*/
+		template<typename T> bool
+		equals(T const& rhs) const
+		{
+			return rhs == 0;
+		}
+
+		/*
+		\brief 禁止取 nullptr 的指针。
+		*/
+		void operator&() const = delete;
+	} nullptr = {};
+
+	template<typename T>
+	inline bool
+	operator==(const nullptr_t& lhs, T const& rhs)
+	{
+		return lhs.equals(rhs);
+	}
+	template<typename T>
+	inline bool
+	operator==(T const& lhs, const nullptr_t& rhs)
+	{
+		return rhs.equals(lhs);
+	}
+
+	template<typename T>
+	inline bool
+	operator!=(const nullptr_t& lhs, T const& rhs)
+	{
+		return !lhs.equals(rhs);
+	}
+	template<typename T>
+	inline bool
+	operator!=(T const& lhs, const nullptr_t& rhs)
+	{
+		return !rhs.equals(lhs);
+	}
+
 #endif
+
+
+	//根据参数类型使用 std::forward 传递对应参数，保持左值性和常量性。
+	#define yforward(_expr) std::forward<typename \
+		std::remove_reference<decltype(_expr)>::type>(_expr)
+}
 
 #endif
 

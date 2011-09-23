@@ -11,12 +11,12 @@
 /*!	\file yftext.cpp
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1805;
+\version r1811;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2011-09-19 06:38 +0800;
+	2011-09-22 15:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,11 +42,11 @@ TextFile::TextFile(const_path_t p)
 		Rewind();
 	}
 	if(bl == 0)
-		cp = CS_Local;
+		cp = CP_Local;
 }
 
 u8
-TextFile::CheckBOM(CSID& cp)
+TextFile::CheckBOM(Encoding& cp)
 {
 	Rewind();
 	if(fsize < 2)
@@ -110,7 +110,7 @@ TextFile::Read(void* s, u32 n) const
 }
 
 TextFile::SizeType
-TextFile::ReadS(uchar_t* s, u32 n) const
+TextFile::ReadS(ucs2_t* s, u32 n) const
 {
 	u32 l(0);
 
@@ -122,7 +122,7 @@ TextFile::ReadS(uchar_t* s, u32 n) const
 		{
 			if(CheckEOF())
 				break;
-			i += ToUTF(fp, s[l++], cp);
+			i += MBCToUC(s[l++], fp, cp);
 		}
 	}
 	return l;

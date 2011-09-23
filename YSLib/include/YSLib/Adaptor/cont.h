@@ -11,12 +11,12 @@
 /*!	\file cont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version 0.1623;
+\version r1624;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2011-06-15 15:57 +0800;
+	2011-09-20 06:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -148,7 +148,7 @@ struct GSStringTemplate
 typedef GSStringTemplate<char>::basic_string string;
 
 // YSLib 基本字符串（使用 UTF-16LE ）。
-typedef GSStringTemplate<uchar_t>::basic_string u16string;
+typedef GSStringTemplate<ucs2_t>::basic_string ucs2string;
 
 YSL_END
 

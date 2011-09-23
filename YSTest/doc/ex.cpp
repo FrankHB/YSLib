@@ -1,4 +1,4 @@
-// v0.3319; *build 244 rev 34;
+// v0.3331; *build 245 rev 55;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -160,9 +160,12 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 $using:
 \u YObject
 (
-	\cl YObject,
-	\cl YCountableObject,
+	\cl ValueObject,
 	\clt GDependence
+),
+\u YFileSystem
+(
+	\cl Path
 ),
 \u YShell
 (
@@ -274,83 +277,321 @@ $using:
 
 $DONE:
 r1:
-/ @ \cl ShlReader @ \u Shells $=
+/ \a CSID => Encoding,
+/ \a MBCSToUTF16LE => MBCSToUCS2,
+/ \a MBCSToUCS => MBCSToUCS4,
+/ \a UTF16LEToMBCS => UCS2ToMBCS,
+/ \a ToUTF => MBCToUC,
+/ @ \lib CHRLib $=
 (
-	/ @ \cl ReaderPanel $=
+	/ @ \h CharacterMapping $=
 	(
-		- \mf UpdateEnablilty,
-		- \m Button btnUp, btnDown, btnLeft, btnRight,
-		+ \m HorizontalTrack ReaderTrack;
-		/ \tr \impl @ (\ctor & \mf (Refresh & GetTopWidgetPtr))
-	);
-	/ \tr \impl @ \mf ShlReader::ExcuteReadingCommand
+		/ \tp CMF => CharMapper,
+		/ \tp CMF_File => StreamMapper,
+	),
+	/ \ft codemap => UCS2Mapper
 );
 
-r2-r21:
-/= test 1;
-
-r22:
-* unsafe nullable dependency $since b242 $=
+r2:
+/ @ \lib CHRLib $=
 (
-	/ \impl @ \ctor @ \clt GDependency
+	/ @ \u CharacterMapping $=
+	(
+		/ typedef uchar_t CharMapper(ubyte_t&, const char*)
+			-> ubyte_t CharMapper(uchar_t&, const char*),
+		/ typedef uchar_t StreamMapper(ubyte_t&, FILE*)
+			-> ubyte_t StreamMapper(uchar_t&, std::FILE*);
+		/ \tr @ UCS2Mapper
+	);
+	/ \tr \impl @ 2 \f MBCToUC @ CharacterProcessing
 );
 
-r23:
+r3:
+/= test 1 ^ \conf release;
+
+r4:
+/ @ \h YDefinition $=
+(
+	(
+		/ \a typedef ('u*', 's*', 'vu*', 'vs*') >> \h YAdaptor;
+		/ \tr typedef u8 byte -> typedef unsigned char byte,
+		/ \tr typedef u16 uchar_t -> typedef std::uint16_t uchar_t,
+		/ \tr typedef u32 fchar_t -> typedef std::uint32_t fchar_t
+	),
+	- extern "C",
+	- \inc <stdint.h>,
+	- \inc <cstddef>,
+	- typedef int intptr_t,
+	- typedef unsigned int uintptr_t,
+	- typedef unsigned long UCSCHAR,
+	- \mac UCSCHAR_INVALID_CHARACTER,
+	- \mac MIN_UCSCHAR,
+	- \mac MAX_UCSCHAR,
+	/ typedef std::uint16_t uchar_t >> \h CHRDefinition,
+	/ typedef std::uint32_t fchar_t >> \h CHRDefinition
+);
+/ \tr @ \h YAdaptor $=
+(
+	- \a 'using ystdex::u*',
+	- \a 'using ystdex::s*'
+),
+/ \tr @ \h CHRDefinition $=
+(
+	/ \a uint_t => ucsint_t;
+	/ typedef ystdex::s32 ucsint_t -> typedef std::int_least32_t ucsint_t,
+	- using ystdex::uchar_t,
+	- using ystdex::fchar_t
+),
+/ \tr @ \impl \u CharacterMapping $=
+(
+	/ using ystdex::u16 -> using std::uint_least16_t;
+	/ \a 'u16' -> 'uint_least16_t'
+),
+/ \a uchar_t => ucs2_t,
+/ \a fchar_t => ucs4_t,
+/ \a u16string => ucs2string;
+
+r5:
++ \inc \h (<cassert>, <climits>) @ \h YDefinition;
+/ \impl @ \f (getword_LE, getword_BE) @ \h CharacterMapping $=
+(
+	+ \as,
+	+ support for platforms where (CHAR_BIT != 8)
+);
+/ \a getword_LE => FetchBiCharLE,
+/ \a getword_BE => FetchBiCharBE;
+
+r6:
+/ @ \u CharacterProcessing $=
+(
+	- \f (MBCSToANSI, UCS2ToANSI, UCS4ToANSI);
+	- \ft StrToASCII @ \un \ns @ \impl \u,
+	- 3 \f sdup;
+	- \f wcslen @ \un \ns @ \impl \u;
+	+ \f ucslen -> \ft<_tChar> usize_t FetchNTMBSLength(const _tChar*);
+	* \impl @ \f ('ucs2_t* ucsdup(const ucs2_t*)',
+		'ucs2_t* ucsdup(const ucs4_t*)') $since $before
+		b10x(with timestamp 2010-05-30, $rev("chrproc.cpp") = r1525),
+);
+
+r7:
+* \impl @ \f ucs2_t* ucsdup(const ucs4_t*) @ \impl \u CharacterProcessing
+	$since r6;
+
+r8:
 /= test 2 ^ \conf release;
 
-r24-r30:
-/ @ \cl ShlReader $=
-(
-	/ \m ReaderPanel Panel => pnlReader;
-	/ \tr \impl @ \ctor @ \cl ShlReader,
-	/ @ \cl ReaderPanel $=
-	(
-		+ \m Label lblProgress @ \cl ReaderPanel,
-		/ \impl @ \ctor @ \cl ReaderPanel @ for panel visual layout,
-		/ \impl @ \mf GetTopWidgetPtr,
-		/ \impl @ \mf Refresh
-	);
-);
+r9:
++ using ystdex::byte @ \h CHRDefinition,
+/ \a 'CS_Default' => 'CP_Default',
+/ \a 'CS_Local' => 'CP_Local';
 
-r31:
-/= \rem @ \h CHRLib::CharacterProcessing,
-* path with non-ASCII characters displaying error $since b141 $=
+r10:
++ \u CStandardIO["cstdio.h", "cstdio.cpp"] @ \dir ystdex @ \lib YCLib;
+/ \decl @ (path_t, const_path_t) @ \h YDefinition >> \h CStandardIO,
+/ \f fexists @ \u YStandardExtend >> \u CStandardIO,
+- \rem @ \decl using std::(result_of, is_literal_type) @ \h YStandardExtend;
+/ @ \h YCommon $=
 (
-	* \impl @ \mf FileList::LoadSubItems @ \impl \u YFileSystem
-);
-
-r32:
-/ @ \impl \u YFile_(Text) $=
-(
-	+ using std::memcmp,
-	/ \a const char[] 'BOM_*' @ \mf TextFile::CheckBOM >> \h
+	/ \inc \h <cstdio> -> <ystdex/cstdio.h>,
+	+ \inc \h <ystdex.h>
 ),
-/ @ \impl \u Shells $=
+/ @ \h YStandardExtend $=
 (
-	+ \f bool ReaderPathFilter(const string&) @ \un \ns;
-	/ \impl @ \ctor @ \cl ShlExplorer
+	/ \a 'using *' >> \h TypeOperation,
+	- using ::memcmp
 ),
-* \v @ FS_Parent_X \impl \u YFileSystem $since b156;
+/ \tr @ Makefile @ \lib YCLib,
+/ \tr \simp @ Makefile @ \lib YSLib,
+* linked library YCLib/YSLib order @ Makefile @ ARM9 $since b187;
+/ \u YCLib::YStandardExtend["ystdex.h", "ystdex.cpp"]
+	-> \u YCLib::YStandardExtend::Main["ystdexm.h", "ystdexm.cpp"]
+	@ \dir ystdex;
+/ \tr @ \inc \h @ \h (YCommon, \a @ \dir "include/ystdex");
 
-r33:
-* \impl @ \f ReaderPathFilter @ \un \ns @ \impl \u Shells $since r32;
-
-r34:
+r11:
 /= test 3 ^ \conf release;
+
+r12-r13:
++ \cl ifile_iterator @ \h CStandardIO;
+
+r14:
+* unspecified subexpression evaluation order
+	@ \ft<>(ubyte_t UCS2Mapper<CharSet::UTF_16BE>(ucs2_t&, FILE*),
+	UCS2Mapper<CharSet::UTF_16LE>(ucs2_t&, FILE*)) $since before
+	~b4x(with timestamp 2009-11-22, $rev("chrproc.cpp") = r1319);
+
+r15-r17:
+/= test 4,
+/ @ \h CharacterMapping $=
+(
+	/ \inc \h <cstdio> -> <ystdex/cstdio.h>;
+	/ \simp \impl @ mapper funtions as \smf @ \clt
+);
+
+r18:
+/= test 5 ^ \conf release;
+
+r19:
+/ \a HText => Iterator;
+
+r20:
+/ @ \u CharacterProcessing $=
+(
+	/ \ft<_tChar> usize_t FetchNTMBSLength(const _tChar*)
+		-> size_t sntctslen(const _Char*),
+	/ \f ucsint_t ucscmp(const ucs2_t*, const ucs2_t*) -> \ft<_tChar>
+		wint_t sntctscmp(const _tChar*, const _tChar*),
+	/ \f ucsint_t ucscmp(const ucs2_t*, const ucs2_t*) -> \ft<_tChar>
+		wint_t sntctsicmp(const _tChar*, const _tChar*)
+);
+/ @ \h YStandardExtendMain $=
+(
+	/ \a '#ifdef $...' >> \h YDefinition,
+	+ \inc \h <cctype>,
+	- \inc \h <cassert>,
+	- \inc \h <cstddef>
+),
+/ @ \h YDefinition $=
+(
+	+ \inc \h <cwchar>;
+	+ using std::wint_t
+),
+/ \def @ (nullptr_t, yforward) @ \h YCLib::YStandardExtend::Utilities
+	>> \h YDefinition;
+/ \ft (sntctslen, sntctscmp, sntctsicmp) >> \ns ystdex @ \h YStandardExtendMain;
+/ \u YCLib::YStandardExtend::Main["ystdexm.h", "ystdexm.cpp"]
+	-> \u YCLib::YStandardExtend::CString["cstring.h", "cstring.cpp"]
+	@ \dir ystdex @ \lib YCLib;
+/ \tr @ \inc \h @ (\lib YCLib::YStandardExtend, \h YCommon, \h YAdaptor),
+/ \tr @ \impl \u CharacterProcessing $=
+(
+	+ \inh \h <ystdex/cstring.h>;
+	+ using ystdex::sntctslen;
+),
+/ \a 'CHAR_BIT' -> 'YSL_CHAR_BIT' @ \h CharacterMapping,
++ using ystdex::wint_t @ \h YAdaptor;
+
+r21:
+/= test 6 ^ \conf release;
+
+r22:
+/ @ \u CharacterProcessing $=
+(
+	/ \f ubyte_t MBCToUC(const char*, ucs2_t&, const Encoding&)
+		-> ubyte_t MBCToUC(ucs2_t&, const char*, const Encoding&),
+	/ \f ubyte_t MBCToUC(FILE*, ucs2_t&, const Encoding&)
+		-> ubyte_t MBCToUC(ucs2_t&, std::FILE*, const Encoding&);
+	/ \tr \impl @ \f MBCSToUCS2,
+	/ \tr \impl @ \f MBCSToUCS4
+);
+/ \tr \impl @ \mf TextBuffer::LoadN,
+/ \tr \impl @ \mf TextFile::ReadS,
+/ \tr \impl @ \f ReadX @ \impl \u YText;
+
+r23:
+/ @ \h CharacterMapping $=
+(
+	- typedef CharMapper,
+	- typedef StreamMapper
+);
+/ \tr \impl @ 2 \f MBCToUC @ \impl \u CharacterProcessing;
+
+r24-r27:
+/ @ \h CharacterMapping $=
+(
+	+ \mft<typename _tIn> \s ubyte_t InverseMap(char*, const ucs2_t&)
+		@ \stt<> GUCS2Mapper<CharSet::UTF_8>;
+	+ \ft<Encoding cp> ubyte_t
+		UCS2Mapper(char*, const ucs2_t&),
+	+ \as @ template<Encoding cp> ubyte_t
+		UCS2Mapper(ucs2_t&, const char*);
+	+ undeclared function 'Map' & 'InverseMap' @ \clt GUCS2Mapper<>
+		support for \ft UCS2Mapper;
+	/ \ft UCS2Mapper >> \un \ns @ \impl \u CharacterProcessing
+);
+/ @ \u CharacterProcessing $=
+(
+	+ \f ubyte_t UCToMBC(char*, const ucs2_t&, const Encoding&),
+	/ \a GetCodeMapFuncPtr => FetchMapperPtr;
+	/ \simp \impl @ \ft FetchMapperPtr
+);
+/= test 7;
+
+r28:
+/= test 8 ^ \conf release;
+
+r29-r35:
+/ \impl @ \f StringToMBCS @ \ns Text @ \impl \u YString;
+/= test 9 ^ \conf release;
+/= test 10;
+
+
+r36:
+* \impl @ \mf GUCS2Mapper<'*'>::Map for platforms where
+	\tp char is signed $since before
+	~b4x(with timestamp 2009-11-22, $rev("chrproc.cpp") = r1319);
+
+r37:
+/ \a 'byte' -> 'int' @ \h CStdandardIO;
+
+r38:
+/= test 11 ^ \conf release;
+
+r39:
+* \impl @ \f StringToMBCS @ \ns Text @ \impl \u YString $since r29;
+
+r40:
+/= test 12 ^ \conf release;
+
+r41:
+/ \impl @ \mf UCS2ToMBCS @ \impl \u CharacterProcessing;
+
+r42:
+/ \impl @ \f CheckInstall @ \impl \u YShellInitialization;
+
+r43-r52:
+/= test 13;
+
+r53:
+/ \impl @ \f CheckInstall @ \impl \u YShellInitialization;
+
+r54:
+/ @ \u YFileSystem $=
+(
+	+ auto CP_Path(Text::CP_Default);
+	/ @ \cl Path $=
+	(
+		/ \impl @ \mf GetNativeString,
+		/ \impl @ \mf \op/=,
+		/ \impl @ \ctor #(2, 3)
+	),
+	/ @ \cl FileList $=
+	(
+		/ \impl @ \ctor,
+		/ \impl @ \mf LoadSubItems
+	)
+);
+/ \simp \impl @ \f CheckInstall @ \impl \u YShellInitialization,
+/ \simp \impl @ \f main @ \impl \u YGlobal,
+/ \impl @ \ctor @ \cl ShlExplorer;
+
+r55:
+/= test 14 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-09-19:
--14.7d;
-//Mercurial rev1-rev115: r5489;
+2011-09-23:
+-14.3d;
+//Mercurial rev1-rev116: r5523;
 
 / ...
 
 
 $NEXT_TODO:
-b245-b324:
+b246-b324:
 + %TextList invalidation support;
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
@@ -358,6 +599,7 @@ b245-b324:
 + dynamic widget prototypes;
 
 b325-b1023:
++ EOF handling for \h CharacterMapping;
 + fully \impl styles @ widgets;
 / fully \impl @ \cl Path;
 / \impl 'real' RTC;
@@ -437,6 +679,30 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ $design "interfaces" @ "library %CHRMap",
+	/ $design "integer type definitions and string utilities"
+		@ "library %(YCLib)",
+	* "C-style string allocation" @ "library CHRMap" $since
+		$before '~b10x'(with timestamp 2010-05-30, $rev("chrproc.cpp") = r1525),
+	* $design "order of YCLib/YSLib in library linking command"
+		@ "ARM9 makefile" $since b187;
+	* "CHRLib mapping functionality implementation" $=
+	(
+		* "unspecified subexpression evaluation order"
+			@ "implementation unit chrmap.cpp",
+		* "wrong behavior of mapping functions for platforms where char \
+			is a signed type"
+	) $since before '~b4x'(with timestamp 2009-11-22, $rev("chrproc.cpp")
+		= r1319),
+	+ "encoding conversion from UTF-8 to UCS-2" @ "library CHRLib";
+	/ "shells test example" $=
+	(
+		* "path with non-ASCII characters cannot send to reader" $since b141
+	)
+),
+
+b244
 (
 	/ "shells test example" $=
 	(

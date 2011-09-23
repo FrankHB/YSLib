@@ -11,12 +11,12 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1650;
+\version r1654;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-08-19 06:09 +0800;
+	2011-09-20 06:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,7 +44,7 @@ class TextFile : public File
 {
 private:
 	SizeType bl; //!<  BOM 大小。
-	Text::CSID cp; //!< 编码。
+	Text::Encoding cp; //!< 编码。
 
 public:
 	/*!
@@ -54,7 +54,7 @@ public:
 	TextFile(const_path_t);
 
 	DefGetter(u8, BOMSize, bl) //!< 取 BOM 大小。
-	DefGetter(Text::CSID, CP, cp) //!< 取编码。
+	DefGetter(Text::Encoding, CP, cp) //!< 取编码。
 	DefGetter(SizeType, TextSize, GetSize() - GetBOMSize()) \
 		//!< 取文本区段大小。
 	DefGetter(SizeType, TextPosition, GetPosition() - bl) \
@@ -65,7 +65,7 @@ public:
 		返回 BOM 的长度。
 	*/
 	u8
-	CheckBOM(Text::CSID&);
+	CheckBOM(Text::Encoding&);
 
 	/*!
 	\brief 设置文件读位置为文本区段头。
@@ -98,7 +98,7 @@ public:
 	\note 按默认编码转化为 UTF-16LE 。
 	*/
 	SizeType
-	ReadS(uchar_t* s, SizeType n) const;
+	ReadS(ucs2_t* s, SizeType n) const;
 };
 
 YSL_END

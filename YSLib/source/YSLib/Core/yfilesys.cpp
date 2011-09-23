@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2203;
+\version r2214;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-09-19 06:19 +0800;
+	2011-09-23 12:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,8 +42,8 @@ const const_path_t FS_Parent("..");
 
 namespace
 {
-	const uchar_t FS_Now_X[] = {'.', 0};
-	const uchar_t FS_Parent_X[] = {'.', '.', 0};
+	const ucs2_t FS_Now_X[] = {'.', 0};
+	const ucs2_t FS_Parent_X[] = {'.', '.', 0};
 }
 
 const Path::ValueType Path::Slash(DEF_PATH_DELIMITER);
@@ -331,7 +331,7 @@ ChangeDirectory(const Path& path)
 
 	PATHSTR p;
 
-	UTF16LEToMBCS(p, path.c_str());
+	UCS2ToMBCS(p, path.c_str());
 	return ChangeDirectory(p);
 }*/
 
@@ -358,7 +358,7 @@ FileList::FileList(const string& path)
 	: Directory(path.empty() ? FS_Root : path.c_str()), hList(new ListType())
 {}
 FileList::FileList(const FileList::ItemType& path)
-	: Directory(path.empty() ? FS_Root : StringToMBCS(path).c_str()),
+	: Directory(path.empty() ? FS_Root : StringToMBCS(path, CP_Path).c_str()),
 	hList(new ListType())
 {}
 
@@ -394,8 +394,8 @@ FileList::LoadSubItems()
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
 				hList->push_back(std::strcmp(HDirectory::Name, FS_Parent)
 					&& HDirectory::IsDirectory() ? MBCSToString(
-					string(HDirectory::Name) + FS_Seperator, CS_Default)
-					: MBCSToString(HDirectory::Name, CS_Default));
+					string(HDirectory::Name) + FS_Seperator, CP_Path)
+					: MBCSToString(HDirectory::Name, CP_Path));
 		// TODO: platform-dependent name converting;
 	}
 	return n;

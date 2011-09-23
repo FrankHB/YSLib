@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2015;
+\version r2016;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-09-16 02:55 +0800;
+	2011-09-20 06:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,7 +59,7 @@ public:
 	\brief 执行命令行。
 	*/
 	int
-	ExecuteCommand(const uchar_t*);
+	ExecuteCommand(const ucs2_t*);
 	/*!
 	\brief 执行命令行。
 	*/

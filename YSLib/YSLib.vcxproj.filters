@@ -40,6 +40,7 @@
     </Filter>
     <Filter Include="源文件\YSLib\UI">
       <UniqueIdentifier>{f7dc25e0-202c-4b9e-81d7-9c65aec7ed34}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="源文件\YSLib\Service">
       <UniqueIdentifier>{b96801fe-820c-41af-aace-65b79a972730}</UniqueIdentifier>
@@ -47,6 +48,7 @@
     </Filter>
     <Filter Include="头文件\YSLib\UI">
       <UniqueIdentifier>{96f99953-d257-4ce9-8830-18e0a9ef269e}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\YSLib\Service">
       <UniqueIdentifier>{d887d565-3b62-45a1-8ea5-d5ef0a4ce41d}</UniqueIdentifier>

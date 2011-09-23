@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1731;
+\version r1874;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-09-13 23:14 +0800;
+	2011-09-23 11:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cwchar>
+#include <ystdex/cstring.h>
 
 CHRLIB_BEGIN
 
@@ -38,183 +39,166 @@ using std::tolower;
 using std::malloc;
 using std::strlen;
 using std::memcpy;
-
-usize_t
-ucslen(const uchar_t* s)
-{
-	const uchar_t* p(s);
-
-	while(*p)
-		++p;
-	return p - s;
-}
-
-uint_t
-ucscmp(const uchar_t* s1, const uchar_t* s2)
-{
-	uint_t d(0);
-
-	while(!(d = *s1 - *s2))
-	{
-		++s1;
-		++s2;
-	}
-	return d;
-}
-
-uint_t
-ucsicmp(const uchar_t* s1, const uchar_t* s2)
-{
-	uint_t d(0);
-
-	while(!(d = tolower(*s1) - tolower(*s2)))
-	{
-		++s1;
-		++s2;
-	}
-	return d;
-}
+using ystdex::sntctslen;
 
 namespace
 {
+	template<Encoding cp, typename _tDst, typename _tSrc>
+	inline ubyte_t
+	UCS2Mapper_Map(_tDst, _tSrc)
+	{
+		return 0;
+	}
+	template<Encoding cp, typename _tSrc>
+	inline ubyte_t
+	UCS2Mapper_Map(ucs2_t& d, _tSrc s,
+		decltype(&GUCS2Mapper<cp>::template Map<_tSrc>) = nullptr)
+	{
+		return GUCS2Mapper<cp>::Map(d, s);
+	}
+
+	template<Encoding cp, typename _tDst, typename _tSrc>
+	inline ubyte_t
+	UCS2Mapper_InverseMap(_tDst, _tSrc)
+	{
+		return 0;
+	}
+	template<Encoding cp, typename _tDst>
+	inline ubyte_t
+	UCS2Mapper_InverseMap(_tDst d, const ucs2_t& s,
+		decltype(&GUCS2Mapper<cp>::template InverseMap<_tDst>) = nullptr)
+	{
+		return GUCS2Mapper<cp>::InverseMap(d, s);
+	}
+
+
+	template<Encoding cp>
+	ubyte_t
+	UCS2Mapper(ucs2_t& uc, const char* c)
+	{
+		assert(c);
+
+		return UCS2Mapper_Map<cp>(uc, c);
+	}
+	template<Encoding cp>
+	ubyte_t
+	UCS2Mapper(ucs2_t& uc, std::FILE* fp)
+	{
+		assert(fp);
+
+		return UCS2Mapper_Map<cp>(uc, ++ystdex::ifile_iterator(*fp));
+	}
+	template<Encoding cp>
+	ubyte_t
+	UCS2Mapper(char* d, const ucs2_t& s)
+	{
+		assert(d);
+
+		return UCS2Mapper_InverseMap<cp>(d, s);
+	}
+
 	template<typename _fCodemapTransform>
 	_fCodemapTransform*
-	GetCodeMapFuncPtr(const CSID& cp)
+	FetchMapperPtr(const Encoding& cp)
 	{
 		using namespace CharSet;
-		_fCodemapTransform* pfun(NULL);
+
+#define CHR_MapItem(cp) \
+	case cp: \
+		return UCS2Mapper<cp>;
 
 		switch(cp)
 		{
-		case SHIFT_JIS:
-			pfun = &codemap<SHIFT_JIS>;
-			break;
-		case UTF_8:
-			pfun = &codemap<UTF_8>;
-			break;
-		case GBK:
-			pfun = &codemap<GBK>;
-			break;
-		case UTF_16BE:
-			pfun = &codemap<UTF_16BE>;
-			break;
-		case UTF_16LE:
-			pfun = &codemap<UTF_16LE>;
-			break;
-		case Big5:
-			pfun = &codemap<Big5>;
-			break;
+		CHR_MapItem(SHIFT_JIS)
+		CHR_MapItem(UTF_8)
+		CHR_MapItem(GBK)
+		CHR_MapItem(UTF_16BE)
+		CHR_MapItem(UTF_16LE)
+		CHR_MapItem(Big5)
 		default:
 			break;
 		}
-		return pfun;
+
+#undef CHR_MapItem
+
+		return nullptr;
 	}
 }
 
 ubyte_t
-ToUTF(const char* chr, uchar_t& uchr, const CSID& cp)
+MBCToUC(ucs2_t& uchr, const char* chr, const Encoding& cp)
 {
-	ubyte_t len(2);
-	CMF* pfun(GetCodeMapFuncPtr<CMF>(cp));
+	ubyte_t l(0);
+	const auto pfun(FetchMapperPtr<ubyte_t(ucs2_t&, const char*)>(cp));
 
 	if(pfun)
-		uchr = pfun(len, chr);
-	return len;
+		l = pfun(uchr, chr);
+	return l;
 }
 ubyte_t
-ToUTF(FILE* fp, uchar_t& uchr, const CSID& cp)
+MBCToUC(ucs2_t& uchr, std::FILE* fp, const Encoding& cp)
 {
-	ubyte_t len(2);
-	CMF_File* pfun(GetCodeMapFuncPtr<CMF_File>(cp));
+	ubyte_t l(0);
+	const auto pfun(FetchMapperPtr<ubyte_t(ucs2_t&, std::FILE*)>(cp));
 
 	if(pfun)
-		uchr = pfun(len, fp);
-	return feof(fp) ? 0 : len;
+		l = pfun(uchr, fp);
+	return feof(fp) ? 0 : l;
 }
 
-namespace
+ubyte_t
+UCToMBC(char* d, const ucs2_t& s, const Encoding& cp)
 {
-	template<typename _tChar>
-	usize_t
-	StrToANSI(char* d, const _tChar* s, char c = ' ')
-	{
-		char* const p(d);
+	ubyte_t l(0);
+	const auto pfun(FetchMapperPtr<ubyte_t(char*, const ucs2_t&)>(cp));
 
-		if(c)
-			while(*s)
-			{
-				*d++ = IsASCII(*s) ? *s : c;
-				++s;
-			}
-		else
-			while(*s)
-				*d++ = ToASCII(*s++);
-		*d = 0;
-		return d - p;
-	}
+	if(pfun)
+		l = pfun(d, s);
+	return l;
 }
+
 
 usize_t
-MBCSToANSI(char* d, const char* s, char c)
+MBCSToUCS2(ucs2_t* d, const char* s, const Encoding& cp)
 {
-	return StrToANSI(d, s, c);
-}
-
-usize_t
-UCS2ToANSI(char* d, const uchar_t* s, char c)
-{
-	return StrToANSI(d, s, c);
-}
-
-usize_t
-UCS4ToANSI(char* d, const fchar_t* s, char c)
-{
-	return StrToANSI(d, s, c);
-}
-
-usize_t
-MBCSToUTF16LE(uchar_t* d, const char* s, const CSID& cp)
-{
-	uchar_t* const p(d);
+	ucs2_t* const p(d);
 
 	while(*s)
-		s += ToUTF(s, *d++, cp);
+		s += MBCToUC(*d++, s, cp);
 	*d = 0;
 	return d - p;
 }
+
 usize_t
-MBCSToUCS(fchar_t* d, const char* s, const CSID& cp)
+MBCSToUCS4(ucs4_t* d, const char* s, const Encoding& cp)
 {
-	fchar_t* const p(d);
-	uchar_t t(0);
+	ucs4_t* const p(d);
+	ucs2_t t(0);
 
 	while(*s)
 	{
-		s += ToUTF(s, t, cp);
+		s += MBCToUC(t, s, cp);
 		*d++ = t;
 	}
 	*d = 0;
 	return d - p;
 }
+
 usize_t
-UTF16LEToMBCS(char* d, const uchar_t* s, const CSID&)
+UCS2ToMBCS(char* d, const ucs2_t* s, const Encoding& cp)
 {
-	// TODO: impl;
 	char* const p(d);
-//	char t;
 
 	while(*s)
-	{
-	//	d += ToMBCS(*s++, d, cp);
-		*d++ = *s++ & 0x7F;
-	}
+		d += UCToMBC(d, *s++, cp);
 	*d = 0;
 	return d - p;
 }
+
 usize_t
-UCS4ToUCS2(uchar_t* d, const fchar_t* s)
+UCS4ToUCS2(ucs2_t* d, const ucs4_t* s)
 {
-	uchar_t* const p(d);
+	ucs2_t* const p(d);
 
 	while(*s)
 		*d++ = *s++;
@@ -222,227 +206,36 @@ UCS4ToUCS2(uchar_t* d, const fchar_t* s)
 	return d - p;
 }
 
-namespace
-{
-	std::size_t
-	wcslen(const fchar_t* s)
-	{
-		return std::wcslen(reinterpret_cast<const wchar_t*>(s));
-	}
-}
 
-char*
-sdup(const char* s, char c)
+ucs2_t*
+ucsdup(const char* s, const Encoding& cp)
 {
-	char* p(static_cast<char*>(malloc((strlen(s) + 1))));
+	ucs2_t* const p(static_cast<ucs2_t*>(malloc((strlen(s) + 1) << 1)));
 
 	if(p)
-		MBCSToANSI(p, s, c);
+		MBCSToUCS2(p, s, cp);
 	return p;
 }
-char*
-sdup(const uchar_t* s, char c)
+ucs2_t*
+ucsdup(const ucs2_t* str)
 {
-	char* p(static_cast<char*>(malloc(((ucslen(s) >> 1) + 1))));
+	const size_t n(sntctslen(str) * sizeof(ucs2_t));
+	ucs2_t* const p(static_cast<ucs2_t*>(malloc(n + sizeof(ucs2_t))));
 
 	if(p)
-		UCS2ToANSI(p, s, c);
+		memcpy(p, str, n);
 	return p;
 }
-char*
-sdup(const fchar_t* s, char c)
+ucs2_t*
+ucsdup(const ucs4_t* s)
 {
-	char* p(static_cast<char*>(malloc(((wcslen(s) >> 2) + 1))));
-
-	if(p)
-		UCS4ToANSI(p, s, c);
-	return p;
-}
-
-uchar_t*
-ucsdup(const char* s, const CSID& cp)
-{
-	uchar_t* p(static_cast<uchar_t*>(malloc((strlen(s) + 1) << 1)));
-
-	if(p)
-		MBCSToUTF16LE(p, s, cp);
-	return p;
-}
-uchar_t*
-ucsdup(const uchar_t* s)
-{
-	const size_t n(ucslen(s) * sizeof(uchar_t));
-	uchar_t* p(static_cast<uchar_t*>(malloc(n + 1)));
-
-	if(p)
-		memcpy(p, s, n);
-	return p;
-}
-uchar_t*
-ucsdup(const fchar_t* s)
-{
-	uchar_t* p(static_cast<uchar_t*>(malloc((wcslen(s) + 1) << 1)));
+	ucs2_t* const p(static_cast<ucs2_t*>(malloc((sntctslen(s) + 1)
+		* sizeof(ucs2_t))));
 
 	if(p)
 		UCS4ToUCS2(p, s);
 	return p;
 }
-
-/*
-unsigned short
-WordWidth(char* word, CHRSTAT *cStat, CSID cp)
-{
-	uchar_t* ptrW(static_cast<uchar_t*>(word));
-	ubyte_t* ptr(static_cast<ubyte_t*>(word));
-	unsigned short Width(0);
-
-	switch(cp)
-	{
-	case UCS2_LE :
-		while(*ptrW)
-		{
-			if(*ptrW < 128)
-				Width += (cStat->Font->sWidth + cStat->WSpc);
-			else
-				Width += (cStat->Font->Width + cStat->WSpc);
-			ptrW++;
-		}
-		break;
-	case UTF8 :
-		while(*ptr)
-		{
-			if(*ptr < 128)
-			{
-				Width += (cStat->Font->sWidth + cStat->WSpc);
-				ptr++;
-			}
-			else
-			{
-				if(*ptr > 0xE0)
-				{
-					Width += (cStat->Font->Width + cStat->WSpc);
-					ptr += 3;
-				}
-				else
-				{
-					Width += (cStat->Font->Width + cStat->WSpc);
-					ptr += 2;
-				}
-			}
-		}
-		break;
-	case Big5 :
-	case GBK :
-	case JIS :
-		while(*ptr)
-		{
-			if(*ptr < 128)
-			{
-				Width += (cStat->Font->sWidth + cStat->WSpc);
-				++ptr;
-			}
-			else
-			{
-				Width += (cStat->Font->Width + cStat->WSpc);
-				ptr += 2;
-			}
-		}
-		break;
-	}
-	return Width;
-}
-
-usize_t
-UTF16toUTF8(ubyte_t* Utf, const u16* Uni)
-{
-	usize_t l(0); //len
-	usize_t i(0);
-
-	while(Uni[l])
-	{
-		if((Uni[l] > 0) && (Uni[l] <= 0x7F))
-		{
-			Utf[i++] =  Uni[l++];
-		}
-		else if((Uni[l] > 0x7F) && (Uni[l] <= 0x7FF))
-		{
-			Utf[i++] =  (Uni[l  ] >> 6 )         | 0xC0;
-			Utf[i++] =  (Uni[l++]       & 0x3F)  | 0x80;
-		}
-		else
-		{
-			Utf[i++] =  (Uni[l  ] >> 12)         | 0xE0;
-			Utf[i++] = ((Uni[l  ] >> 6 ) & 0x3F) | 0x80;
-			Utf[i++] = ( Uni[l++]       & 0x3F)  | 0x80;
-		}
-	}
-	Utf[i] = 0;
-	Utf[i + 1] = 0;
-	return l;
-}
-
-usize_t
-UTF8toUTF16(uchar_t* U, const char* U8)
-{
-	usize_t i(0), l(0);
-
-	while(U8[i])
-		i += ToUTF(static_cast<char*>(&U8[i]), &U[l++], UTF8);
-	U[l] = 0;
-	return l;
-}
-
-ubyte_t STR[16];
-
-bool
-strComp(char* tgr, char* s)
-{
-	u16 tl(0); //len(tgr);
-	u16 sl(0); //len(s);
-	u16 t;
-	if(tl == sl)
-	{
-		for(t = 0;t < tl; ++t)
-			if(tgr[t] != s[t])
-				return false;
-	}
-	else
-		return false;
-	return true;
-}
-
-ubyte_t*
-ValueStr(unsigned long v)
-{
-	ubyte_t t(15);
-	STR[t] = 0;
-	while(v)
-	{
-		STR[--t] = (v % 10) + 48;
-		v /= 10;
-	}
-	return &STR[t];
-}
-
-usize_t
-ustrlen(char* s)
-{
-	usize_t l(0); //length
-	ubyte_t b(1); //below
-	while(*s && b)
-	{
-		++l;
-		++s;
-		if(l == 0x10000)
-			b = 0;
-	}
-	return l;
-}
-ubyte_t
-IsFullChar(char* s)
-////
-{}
-*/
 
 CHRLIB_END
 

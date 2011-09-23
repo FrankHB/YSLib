@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2211;
+\version r2242;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2011-08-11 10:29 +0800;
+	2011-09-22 09:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,26 +37,39 @@
 
 //包含 YCLib 公用部分。
 #include <ycommon.h>
+#include <ystdex/cstdio.h>
+#include <ystdex/cstring.h>
+#include <ystdex/utility.hpp>
+
 
 #include <CHRLib/chrlib.h> //包含 CHRLib 。
 
 // !\brief YSLib 命名空间。
 YSL_BEGIN
 
-	using ystdex::u8;
-	using ystdex::u16;
-	using ystdex::u32;
-	using ystdex::u64;
-	using ystdex::s8;
-	using ystdex::s16;
-	using ystdex::s32;
-	using ystdex::s64;
+	typedef std::uint8_t	u8;
+	typedef std::uint16_t	u16;
+	typedef std::uint32_t	u32;
+	typedef std::uint64_t	u64;
+	typedef std::int8_t		s8;
+	typedef std::int16_t	s16;
+	typedef std::int32_t	s32;
+	typedef std::int64_t	s64;
+	typedef volatile u8		vu8;
+	typedef volatile u16	vu16;
+	typedef volatile u32	vu32;
+	typedef volatile u64	vu64;
+	typedef volatile s8		vs8;
+	typedef volatile s16	vs16;
+	typedef volatile s32	vs32;
+	typedef volatile s64	vs64;
 
 	using ystdex::errno_t;
 	using ystdex::nullptr_t;
 	using ystdex::ptrdiff_t;
 	using ystdex::size_t;
 	using ystdex::ssize_t;
+	using ystdex::wint_t;
 
 	using ystdex::noncopyable;
 
@@ -120,9 +133,9 @@ YSL_BEGIN_NAMESPACE(Text)
 
 YSL_END_NAMESPACE(Text)
 
-	using Text::fchar_t;
-	using Text::uchar_t;
-	using Text::uint_t;
+	using Text::ucs4_t;
+	using Text::ucs2_t;
+	using Text::ucsint_t;
 
 	//! \brief 运行时平台。
 	namespace DS

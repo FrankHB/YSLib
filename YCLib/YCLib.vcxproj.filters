@@ -16,12 +16,19 @@
     </Filter>
     <Filter Include="头文件\ystdex">
       <UniqueIdentifier>{cbbbb3e5-cc2e-4e3c-a4ae-fbe2fac7370a}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\CHRLib">
       <UniqueIdentifier>{f35d38c0-12b7-4eeb-8065-2bdd0f4f7fb2}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="源文件\CHRLib">
       <UniqueIdentifier>{f6edf058-57c4-4652-98db-f6ffa462208b}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="源文件\ystdex">
+      <UniqueIdentifier>{3eefbce0-b4c1-411d-9af0-b0d663b526db}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -35,9 +42,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="include\ydef.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ystdex.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\cast.hpp">
@@ -67,12 +71,15 @@
     <ClInclude Include="include\ystdex\utility.hpp">
       <Filter>头文件\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\cstdio.h">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\cstring.h">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ycommon.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ystdex.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="source\CHRLib\chrmap.cpp">
@@ -80,6 +87,12 @@
     </ClCompile>
     <ClCompile Include="source\CHRLib\chrproc.cpp">
       <Filter>源文件\CHRLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ystdex\cstdio.cpp">
+      <Filter>源文件\ystdex</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ystdex\cstring.cpp">
+      <Filter>源文件\ystdex</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

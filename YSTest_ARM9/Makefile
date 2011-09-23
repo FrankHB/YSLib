@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-05-12 10:13 +0800;
-# Version = 0.3350;
+# UTime = 2011-09-21 09:55 +0800;
+# Version = r3352;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -231,7 +231,7 @@ $(ARM9BIN)	:	$(ARM9ELF)
 
 $(ARM9ELF)	:	$(OFILES)
 	@echo Linking $(notdir $@) ...
-	$(LD) $(LDFLAGS) $(OFILES) $(YCLIB_A) $(YSLIB_A) $(LIBPATHS) $(LIBS) $(LIBPATHEX) $(LIBEX) -o $@
+	$(LD) $(LDFLAGS) $(OFILES) $(YSLIB_A) $(YCLIB_A) $(LIBPATHS) $(LIBS) $(LIBPATHEX) $(LIBEX) -o $@
 # IMPORTANT: the order of files is significant.
 
 #--------------------------------------------------------------------------------

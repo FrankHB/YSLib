@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version r6687;
+\version r6694;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-08-13 06:52 +0800;
+	2011-09-22 15:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -88,7 +88,7 @@ SetCurrentTextLineNOf(TextState& s, u16 n)
 }
 
 void
-MovePen(TextState& ts, fchar_t c)
+MovePen(TextState& ts, ucs4_t c)
 {
 	FontCache& cache(ts.GetCache());
 	CharBitmap sbit(cache.GetGlyph(c));
@@ -98,7 +98,7 @@ MovePen(TextState& ts, fchar_t c)
 
 
 void
-RenderChar(const Graphics& g, TextState& ts, fchar_t c)
+RenderChar(const Graphics& g, TextState& ts, ucs4_t c)
 {
 	if(!g.GetBufferPtr())
 		//无缓冲区时无法绘图。
@@ -162,7 +162,7 @@ namespace
 }
 
 void
-RenderChar(BitmapBufferEx& buf, TextState& ts, fchar_t c)
+RenderChar(BitmapBufferEx& buf, TextState& ts, ucs4_t c)
 {
 	if(!buf.GetBufferPtr())
 		//无缓冲区时无法绘图。
@@ -222,7 +222,7 @@ FetchLastLineBasePosition(const TextState& ts, SDst h)
 
 
 SDst
-FetchCharWidth(const Font& fnt, fchar_t c)
+FetchCharWidth(const Font& fnt, ucs4_t c)
 {
 	FontCache& cache(fnt.GetCache());
 	CharBitmap sbit(cache.GetGlyph(c));
@@ -403,10 +403,10 @@ ReadX(TextFile& f, TextRegion& tr, u32 n)
 	{
 		u32 i(0), t;
 		FILE* const fp(f.GetPtr());
-		const CSID cp(f.GetCP());
-		uchar_t c;
+		const Encoding cp(f.GetCP());
+		ucs2_t c;
 
-		while(i < n && (t = ToUTF(fp, c, cp)))
+		while(i < n && (t = MBCToUC(c, fp, cp)))
 		{
 			i += t;
 			PutChar(tr, c);

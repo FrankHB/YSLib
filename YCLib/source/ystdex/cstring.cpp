@@ -8,26 +8,24 @@
 	understand and accept it fully.
 */
 
-/*!	\file ystdex.cpp
+/*!	\file cstring.cpp
 \ingroup YCLib
-\brief YCLib C++ 标准库扩展。
-\version 0.2036;
+\brief YCLib ISO C 标准字符串扩展。
+\version r2053;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:31:20 +0800;
 \par 修改时间:
-	2011-06-28 17:41 +0800;
+	2011-09-22 09:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YCLib::YStandardExtend;
+	YCLib::YStandardExtend::CString;
 */
 
 
-#include "ystdex.h"
+#include "ystdex/cstring.h"
 #include <cstdio>
-#include <cstring>
-#include <ystdex/utility.hpp> // for nullptr;
 
 namespace ystdex
 {
@@ -80,20 +78,6 @@ namespace ystdex
 			fun((strlen(s1) + strlen(s2) + 1) * sizeof(char))));
 
 		return strcpycat(d, s1, s2);
-	}
-
-
-	bool
-	fexists(const_path_t path)
-	{
-		FILE* file(std::fopen(path, "rb"));
-
-		if(file)
-		{
-			std::fclose(file);
-			return true;
-		}
-		return false;
 	}
 }
 

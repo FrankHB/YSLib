@@ -11,12 +11,12 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version r4382;
+\version r4417;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-09-06 00:20 +0800;
+	2011-09-22 08:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,7 @@ private:
 
 protected:
 	//文本缓冲区的首地址和长度。
-	uchar_t* const text;
+	ucs2_t* const text;
 	SizeType len;
 
 	/*!
@@ -62,19 +62,20 @@ public:
 	\pre 断言：参数不越界。
 	\note 无运行期范围检查。
 	*/
-	uchar_t&
+	ucs2_t&
 	operator[](SizeType) ynothrow;
 
 	DefGetter(SizeType, Capacity, capacity) //!< 取最大文本长度。
-	DefGetter(SizeType, SizeOfBuffer, sizeof(uchar_t) * capacity) //!< 取文本缓冲区的大小。
-	DefGetter(uchar_t*, Ptr, text) //!< 取文本缓冲区的指针。
+	DefGetter(SizeType, SizeOfBuffer, sizeof(ucs2_t) * capacity)
+		//!< 取文本缓冲区的大小。
+	DefGetter(ucs2_t*, Ptr, text) //!< 取文本缓冲区的指针。
 	DefGetter(SizeType, Length, len) //!< 取文本缓冲区的长度。
 	/*!
 	\brief 文本缓冲区下标 o （不含）起逆序查找字符 c 。
 	\note 从返回结果的直接后继下标；查找失败时返回 0 。
 	*/
 	SizeType
-	GetPrevChar(SizeType o, uchar_t c);
+	GetPrevChar(SizeType o, ucs2_t c);
 	/*!
 	\brief 从文本缓冲区下标 o （含）起顺序查找字符 c 。
 	\note 返回结果的下标：
@@ -82,7 +83,7 @@ public:
 	\li 或 o 原值（大于等于缓冲区长度时）。
 	*/
 	SizeType
-	GetNextChar(SizeType o, uchar_t c);
+	GetNextChar(SizeType o, ucs2_t c);
 	/*!
 	\brief 从文本缓冲区下标 o （不含）起逆序查找换行符。
 	\note 返回结果的直接后继下标；查找失败时返回 0 。
@@ -103,7 +104,7 @@ ythrow(std::out_of_range)
 	\brief 返回指定下标的字符。
 	\note 当越界时抛出 std::out_of_range 异常。
 	*/
-	uchar_t&
+	ucs2_t&
 	at(SizeType) ythrow(std::out_of_range);
 
 	/*!
@@ -113,16 +114,16 @@ ythrow(std::out_of_range)
 	ClearText();
 
 	/*!
-	\brief 从起始地址中读取连续的 capacity 个 uchar_t 字符。
+	\brief 从起始地址中读取连续的 capacity 个 ucs2_t 字符。
 	*/
 	bool
-	Load(const uchar_t* s);
+	Load(const ucs2_t* s);
 	/*!
-	\brief 从起始地址中读取连续的 n 个 uchar_t 字符。
+	\brief 从起始地址中读取连续的 n 个 ucs2_t 字符。
 	\note 超过最大长度则放弃读取。
 	*/
 	bool
-	Load(const uchar_t* s, SizeType n);
+	Load(const ucs2_t* s, SizeType n);
 	/*!
 	\brief 从文本文件中读取连续的 capacity 个字符，
 		并返回成功读取的字符数。
@@ -131,7 +132,7 @@ ythrow(std::out_of_range)
 	SizeType
 	Load(TextFile&);
 	/*!
-	\brief 从文本文件中读取连续的 n 个 uchar_t 字符，
+	\brief 从文本文件中读取连续的 n 个 ucs2_t 字符，
 		并返回成功读取的字符数。
 	\note 超过最大长度则放弃读取。
 	\note 自动校验换行并转换为 Unix / Linux 格式。
@@ -146,10 +147,10 @@ ythrow(std::out_of_range)
 	LoadN(TextFile& f, SizeType n);
 
 	/*!
-	\brief 从偏移 p 个字符起输出 n 个 uchar_t 字符到 d 。
+	\brief 从偏移 p 个字符起输出 n 个 ucs2_t 字符到 d 。
 	*/
 	bool
-	Output(uchar_t* d, SizeType p, SizeType n) const;
+	Output(ucs2_t* d, SizeType p, SizeType n) const;
 };
 
 inline
@@ -175,7 +176,7 @@ TextBuffer::ClearText()
 	mmbset(text, 0, GetSizeOfBuffer());
 }
 inline bool
-TextBuffer::Load(const uchar_t* s)
+TextBuffer::Load(const ucs2_t* s)
 {
 	return Load(s, capacity);
 }
@@ -286,7 +287,7 @@ public:
 	static const SizeType nBlockSize = 0x2000; //!< 文本区块容量。
 
 	//只读文本循环迭代器类。
-	class HText
+	class Iterator
 	{
 		friend class TextFileBuffer;
 
@@ -305,86 +306,86 @@ public:
 		\brief 构造：指定文本读取位置。
 		\note 无异常抛出。
 		*/
-		HText(TextFileBuffer* = nullptr, BlockSizeType = 0, SizeType = 0)
+		Iterator(TextFileBuffer* = nullptr, BlockSizeType = 0, SizeType = 0)
 			ynothrow;
 
 		/*!
 		\brief 迭代：循环向后遍历。
 		\note 无异常抛出。
 		*/
-		HText&
+		Iterator&
 		operator++() ynothrow;
 
 		/*!
 		\brief 迭代：循环向前遍历。
 		\note 无异常抛出。
 		*/
-		HText&
+		Iterator&
 		operator--() ynothrow;
 
-		uchar_t
+		ucs2_t
 		operator*() ynothrow;
 
 		/*!
 		\brief 迭代：重复循环向后遍历。
 		\note 构造新迭代器进行迭代并返回。
 		*/
-		HText
+		Iterator
 		operator+(ptrdiff_t);
 
 		/*!
 		\brief 迭代：重复循环向前遍历。
 		\note 构造新迭代器进行迭代并返回。
 		*/
-		HText
+		Iterator
 		operator-(ptrdiff_t);
 
 		/*!
 		\brief 比较：相等关系。
 		*/
 		friend bool
-		operator==(const HText&, const HText&) ynothrow;
+		operator==(const Iterator&, const Iterator&) ynothrow;
 
 		/*!
 		\brief 比较：不等关系。
 		*/
 		friend bool
-		operator!=(const HText&, const HText&) ynothrow;
+		operator!=(const Iterator&, const Iterator&) ynothrow;
 
 		/*!
 		\brief 比较：严格偏序递增关系。
 		*/
 		friend bool
-		operator<(const HText&, const HText&) ynothrow;
+		operator<(const Iterator&, const Iterator&) ynothrow;
 
 		/*!
 		\brief 比较：严格偏序递减关系。
 		*/
 		friend bool
-		operator>(const HText&, const HText&) ynothrow;
+		operator>(const Iterator&, const Iterator&) ynothrow;
 
 		/*!
 		\brief 比较：非严格偏序递增关系。
 		*/
 		friend bool
-		operator<=(const HText&, const HText&) ynothrow;
+		operator<=(const Iterator&, const Iterator&) ynothrow;
 
 		/*!
 		\brief 比较：非严格偏序递减关系。
 		*/
 		friend bool
-		operator>=(const HText&, const HText&) ynothrow;
+		operator>=(const Iterator&, const Iterator&) ynothrow;
 
 		/*!
 		\brief 迭代：重复循环向后遍历。
 		*/
-		HText&
+		Iterator&
 		operator+=(ptrdiff_t);
 
 		/*!
 		\brief 迭代：重复循环向前遍历。
 		*/
-		HText&
+		Iterator&
 		operator-=(ptrdiff_t);
 
 		DefGetter(TextFileBuffer*, BufferPtr, pBuffer)
@@ -394,7 +395,7 @@ public:
 		\note 无异常抛出。
 		*/
 		DefGetter(SizeType, IndexN, index)
-		const uchar_t*
+		const ucs2_t*
 		GetTextPtr() const ynothrow;
 		/*!
 		\brief 取当前区块的长度。
@@ -435,58 +436,58 @@ public:
 	\brief 取起始迭代器。
 	\note 无异常抛出。
 	*/
-	HText
+	Iterator
 	begin() ynothrow;
 
 	/*!
 	\brief 取终止迭代器。
 	\note 无异常抛出。
 	*/
-	HText
+	Iterator
 	end() ynothrow;
 };
 
 inline bool
-operator!=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
+operator!=(const TextFileBuffer::Iterator& lhs, const TextFileBuffer::Iterator& rhs)
 	ynothrow
 {
 	return !(lhs == rhs);
 }
 
 inline bool
-operator>(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
+operator>(const TextFileBuffer::Iterator& lhs, const TextFileBuffer::Iterator& rhs)
 	ynothrow
 {
 	return rhs < lhs;
 }
 inline bool
-operator<=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
+operator<=(const TextFileBuffer::Iterator& lhs, const TextFileBuffer::Iterator& rhs)
 	ynothrow
 {
 	return !(rhs < lhs);
 }
 
 inline bool
-operator>=(const TextFileBuffer::HText& lhs, const TextFileBuffer::HText& rhs)
+operator>=(const TextFileBuffer::Iterator& x, const TextFileBuffer::Iterator& y)
 	ynothrow
 {
-	return !(lhs < rhs);
+	return !(x < y);
 }
 
-inline TextFileBuffer::HText
-TextFileBuffer::HText::operator-(ptrdiff_t o)
+inline TextFileBuffer::Iterator
+TextFileBuffer::Iterator::operator-(ptrdiff_t o)
 {
 	return *this + -o;
 }
 
-inline TextFileBuffer::HText&
-TextFileBuffer::HText::operator-=(ptrdiff_t o)
+inline TextFileBuffer::Iterator&
+TextFileBuffer::Iterator::operator-=(ptrdiff_t o)
 {
 	return *this += -o;
 }
 
 inline SizeType
-TextFileBuffer::HText::GetBlockLength() const ynothrow
+TextFileBuffer::Iterator::GetBlockLength() const ynothrow
 {
 	return GetBlockLength(block);
 }

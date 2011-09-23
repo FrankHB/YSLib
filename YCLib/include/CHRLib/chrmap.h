@@ -11,12 +11,12 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1667;
+\version r2038;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-09-13 23:16 +0800;
+	2011-09-23 10:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,7 @@
 #define CHRLIB_INC_CHRMAP_H_
 
 #include "chrdef.h"
-#include <cstdio>
+#include <ystdex/cstdio.h>
 
 CHRLIB_BEGIN
 
@@ -75,10 +75,10 @@ typedef enum
 	HZ_GB_2312 = 52396, //!<  Chinese Simplified (HZ)，GB2312 的另一种实现。
 	MIK, //!<  Supports Bulgarian and Russian as well
 	*/
-} CSID; //!< 字符集标识。
+} Encoding; //!< 字符流编码标识。
 
 //别名。
-const CSID
+const Encoding
 	iso_ir_6(US_ASCII), ISO646_US(US_ASCII), ASCII(US_ASCII), us(US_ASCII),
 		IBM367(US_ASCII), cp367(US_ASCII), csASCII(US_ASCII),
 	MS_Kanji(SHIFT_JIS), csShiftJIS(SHIFT_JIS), windows_932_(SHIFT_JIS),
@@ -100,12 +100,12 @@ const CSID
 
 CHRLIB_END_NAMESPACE(CharSet)
 
-using CharSet::CSID;
+using CharSet::Encoding;
 
 
 //默认字符集。
-const CSID CS_Default = CharSet::UTF_8;
-const CSID CS_Local = CharSet::GBK;
+const Encoding CP_Default = CharSet::UTF_8;
+const Encoding CP_Local = CharSet::GBK;
 
 
 //编码转换表。
@@ -119,78 +119,263 @@ const ubyte_t cp2026[] = {0};
 
 
 /*!
-\brief 取小端序双字节字符。
+\brief 取 c_ptr 指向的大端序双字节字符。
+\pre 断言： \c c_ptr 。
 */
-inline uchar_t
-getword_LE(const char* c)
+inline ucs2_t
+FetchBiCharBE(const char* c_ptr)
 {
-	return (c[1] << 8) | *c;
+	assert(c_ptr);
+
+	return (*c_ptr << YCL_CHAR_BIT) | c_ptr[1];
 }
 
 /*!
-\brief 取大端序双字节字符。
+\brief 取 c_ptr 指向的小端序双字节字符。
+\pre 断言： \c c_ptr 。
 */
-inline uchar_t
-getword_BE(const char* c)
+inline ucs2_t
+FetchBiCharLE(const char* c_ptr)
 {
-	return (*c << 8) | c[1];
+	assert(c_ptr);
+
+	return (c_ptr[1] << YCL_CHAR_BIT) | *c_ptr;
 }
 
 
-//编码映射函数类型定义。
-typedef uchar_t CMF(ubyte_t&, const char*);
-typedef uchar_t CMF_File(ubyte_t&, FILE*);
-
-
 //未实现的编码映射函数模板原型。
-template<CSID>
-CMF codemap;
-template<CSID>
-CMF_File codemap;
+template<Encoding>
+class GUCS2Mapper
+{};
 
 //编码映射函数模板特化版本。
+template<>
+struct GUCS2Mapper<CharSet::SHIFT_JIS>
+{
+	template<typename _tIn>
+	static ubyte_t
+	Map(ucs2_t& uc, _tIn it)
+	{
+		uint_least16_t row(0), col(0), ln(188); // (7E-40 + 1 + FC-80 + 1)
+		const unsigned c(*it);
+
+		if((c >= 0xA1) && (c <= 0xC6))
+		{
+			const unsigned d(*++it);
+
+			row = c - 0xA1 ;
+			if(d >= 0x40 && d <= 0x7E)
+				col = d - 0x40 ;
+			else if(d >= 0xA1 && d <= 0xFE)
+				col = d - 0x62;
+			uc = cp17[row * ln + col];
+		}
+		else if(c >= 0xC9 && c <= 0xF9)
+		{
+			const unsigned d(*++it);
+
+			row = c - 0xA3;
+			if(d >= 0x40 && d <= 0x7E)
+				col = d - 0x40 ;
+			else if(d >= 0xA1 && d <= 0xFE)
+				col = d - 0x62;
+			uc = cp17[row * ln + col];
+		}
+		else if(c < 0x80)
+		{
+			uc = c;
+			return 1;
+		}
+		else
+			uc = 0xFFFE;
+		return 2;
+	}
+};
 
 template<>
-uchar_t
-codemap<CharSet::SHIFT_JIS>(ubyte_t&, const char*);
-template<>
-uchar_t
-codemap<CharSet::SHIFT_JIS>(ubyte_t&, FILE*);
+struct GUCS2Mapper<CharSet::UTF_8>
+{
+	template<typename _tIn>
+	static ubyte_t
+	Map(ucs2_t& uc, _tIn it)
+	{
+		const unsigned c(*it);
+
+		if(c < 0x80)
+		{
+			uc = c;
+			return 1;
+		}
+		else
+		{
+			const unsigned d(*++it);
+
+			if(c & 0x20)
+			{
+				uc = (((c & 0x0F) << 4
+					| (d & 0x3C) >> 2) << 8)
+					| ((d & 0x3) << 6)
+					| (*++it & 0x3F);
+				return 3;
+			}
+			else
+			{
+				uc = ((c & 0x1C) >> 2 << 8) | ((c & 0x03) << 6) | (d & 0x3F);
+				return 2;
+			}
+		}
+		/*
+		else if(c0 >= 0xC2 && c0 <= 0xDF)
+		{
+			if(c0 == '\0' || c[1] == '\0')
+			{
+				uc = 0xFFFE;
+				return 0;
+			}
+			uc = ((c0 - 192) << 6) | (c[1] - 128);
+			return 2;
+		}
+		else if(c0 >= 0xE0 && c0 <= 0xEF)
+		{
+			if(c0 == '\0' || c[1] == '\0' || c[2] == '\0')
+			{
+				uc = 0;
+				return 0;
+			}
+			uc = ((c0 - 224) << 12) | ((c[1] - 128) << 6) | (c[2] - 128);
+			return 3;
+		}
+		else if(c0 >= 0xF0 && c0 <= 0xF4)
+		{
+			if(c0 == '\0' || c[1] == '\0' || c[2] == '\0' || c[3] == '\0')
+			{
+				uc = 0;
+				return 0;
+			}
+			uc = ((c0 - 240) << 18)
+				| ((c[1] - 128) << 12)
+				| ((c[2] - 128) << 6)
+				| (c[3] - 128);
+			return 4;
+		}
+		*/
+	}
+
+	template<typename _tOut>
+	static ubyte_t
+	InverseMap(_tOut d, const ucs2_t& s)
+	{
+		usize_t l(0);
+
+		if(s < 0x80)
+		{
+			*d = s;
+			return 1;
+		}
+		if(s < 0x800)
+			l = 2;
+		else
+		{
+			*d = 0xE0 | s >> 12;
+			++d;
+			l = 3;
+		}
+		*d = 0x80 | (s >> 6 & 0x3F);
+		*++d = 0x80 | (s & 0x3F);
+		return l;
+	}
+};
 
 template<>
-uchar_t
-codemap<CharSet::UTF_8>(ubyte_t&, const char*);
-template<>
-uchar_t
-codemap<CharSet::UTF_8>(ubyte_t&, FILE*);
+struct GUCS2Mapper<CharSet::GBK>
+{
+	template<typename _tIn>
+	static ubyte_t
+	Map(ucs2_t& uc, _tIn it)
+	{
+		int c(*it);
+
+		if(static_cast<ubyte_t>(c))
+		{
+			uc = c;
+			return 1;
+		}
+		uc = reinterpret_cast<const ucs2_t*>(cp113 + 0x0100)
+			[(c << 8 | *++it)];
+		return 2;
+	}
+};
 
 template<>
-uchar_t
-codemap<CharSet::GBK>(ubyte_t&, const char*);
-template<>
-uchar_t
-codemap<CharSet::GBK>(ubyte_t&, FILE*);
+struct GUCS2Mapper<CharSet::UTF_16BE>
+{
+	template<typename _tIn>
+	static ubyte_t
+	Map(ucs2_t& uc, _tIn it)
+	{
+		uc = *it << YCL_CHAR_BIT;
+		uc |= *++it;
+		return 2;
+	}
+};
 
 template<>
-uchar_t
-codemap<CharSet::UTF_16BE>(ubyte_t&, const char*);
-template<>
-uchar_t
-codemap<CharSet::UTF_16BE>(ubyte_t&, FILE*);
+struct GUCS2Mapper<CharSet::UTF_16LE>
+{
+	template<typename _tIn>
+	static ubyte_t
+	Map(ucs2_t& uc, _tIn it)
+	{
+		uc = *it;
+		uc |= *++it << YCL_CHAR_BIT;
+		return 2;
+	}
+};
 
 template<>
-uchar_t
-codemap<CharSet::UTF_16LE>(ubyte_t&, const char*);
-template<>
-uchar_t
-codemap<CharSet::UTF_16LE>(ubyte_t&, FILE*);
+struct GUCS2Mapper<CharSet::Big5>
+{
+	template<typename _tIn>
+	static ubyte_t
+	Map(ucs2_t& uc, _tIn it)
+	{
+		uint_least16_t row(0), col(0), ln(157); // (7E-40 + FE-A1)
+		const unsigned c(*it);
 
-template<>
-uchar_t
-codemap<CharSet::Big5>(ubyte_t&, const char*);
-template<>
-uchar_t
-codemap<CharSet::Big5>(ubyte_t&, FILE*);
+		if(c >= 0xA1 && c <= 0xC6)
+		{
+			const unsigned d(*++it);
+
+			row = c - 0xA1;
+			if(d >= 0x40 && d <= 0x7E)
+				col = d - 0x40;
+			else if(d >= 0xA1 && d <= 0xFE)
+				col = d - 0x62;
+			uc = cp2026[row * ln + col];
+			return 2;
+		}
+		else if(c >= 0xC9 && c <= 0xF9)
+		{
+			const unsigned d(*++it);
+
+			row = c - 0xA3;
+			if(d >= 0x40 && d <= 0x7E)
+				col = c - 0x40;
+			else if(d >= 0xA1 && d <= 0xFE)
+				col = d - 0x62;
+			uc = cp2026[row * ln + col];
+			return 2;
+		}
+		else if(c < 0x80)
+		{
+			uc = c;
+			return 1;
+		}
+		else
+			uc = 0xFFFE;
+		return 2;
+	}
+};
 
 CHRLIB_END
 

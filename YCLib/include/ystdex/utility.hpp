@@ -11,12 +11,12 @@
 /*!	\file utility.hpp
 \ingroup YCLib
 \brief 函数对象、算法和实用程序。
-\version r1681;
+\version r1689;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-09-16 21:19 +0800;
+	2011-09-22 09:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,7 @@
 #ifndef YCL_INC_YSTDEX_UTILITY_HPP_
 #define YCL_INC_YSTDEX_UTILITY_HPP_
 
-#include "../ystdex.h"
+#include "../ydef.h"
 #include <cstring>
 #include <utility>
 #include <functional>
@@ -68,86 +68,6 @@ namespace ystdex
 		*/
 		noncopyable& operator=(const noncopyable&) = delete;
 	};
-
-#ifdef YCL_HAS_BUILTIN_NULLPTR
-
-	using std::nullptr_t;
-
-#else
-
-	/*!
-	\brief 空指针类。
-	\note 代码参考：
-	http://topic.csdn.net/u/20100924/17/ \
-		BE0C26F8-5127-46CD-9136-C9A96AAFDA76.html 。
-	*/
-	const class nullptr_t
-	{
-	public:
-		/*
-		\brief 转换任意类型至空非成员或静态成员指针。
-		*/
-		template<typename T>
-		inline operator T*() const
-		{
-			return 0;
-		}
-
-		/*
-		\brief 转换任意类型至空非静态成员指针。
-		*/
-		template<typename C, typename T>
-		inline operator T C::*() const
-		{
-			return 0;
-		}
-		/*
-		\brief 支持关系运算符重载。
-		*/
-		template<typename T> bool
-		equals(T const& rhs) const
-		{
-			return rhs == 0;
-		}
-
-		/*
-		\brief 禁止取 nullptr 的指针。
-		*/
-		void operator&() const = delete;
-	} nullptr = {};
-
-	template<typename T>
-	inline bool
-	operator==(const nullptr_t& lhs, T const& rhs)
-	{
-		return lhs.equals(rhs);
-	}
-	template<typename T>
-	inline bool
-	operator==(T const& lhs, const nullptr_t& rhs)
-	{
-		return rhs.equals(lhs);
-	}
-
-	template<typename T>
-	inline bool
-	operator!=(const nullptr_t& lhs, T const& rhs)
-	{
-		return !lhs.equals(rhs);
-	}
-	template<typename T>
-	inline bool
-	operator!=(T const& lhs, const nullptr_t& rhs)
-	{
-		return !rhs.equals(lhs);
-	}
-
-#endif
-
-
-	//根据参数类型使用 std::forward 传递对应参数，保持左值性和常量性。
-	#define yforward(_expr) std::forward<typename \
-		std::remove_reference<decltype(_expr)>::type>(_expr)
 
 
 	/*

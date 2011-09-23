@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5148;
+\version r5151;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-19 06:24 +0800;
+	2011-09-23 12:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -394,7 +394,8 @@ ShlExplorer::ShlExplorer()
 	};
 	fbMain.GetSelected() += [this](IWidget&, IndexEventArgs&&){
 		Enable(btnOK, fbMain.IsSelected() && ReaderPathFilter(
-			Text::StringToMBCS(fbMain.GetList()[fbMain.GetSelectedIndex()])));
+			Text::StringToMBCS(fbMain.GetList()[fbMain.GetSelectedIndex()],
+			IO::CP_Path)));
 	};
 	fbMain.GetConfirmed() += OnConfirmed_fbMain;
 	Enable(btnTest, true);
@@ -431,8 +432,8 @@ ShlExplorer::ShlExplorer()
 		/*	YConsole console;
 			Activate(console);
 			iprintf("%s\n%s\n%s\n%d,%d\n", fbMain.GetDirectory().c_str(),
-				StringToMBCS(fbMain.YListBox::GetList()[fbMain.GetSelected()])
-				.c_str(), s.c_str(), IO::ValidateDirectory(s),
+				StringToMBCS(fbMain.YListBox::GetList()[fbMain.GetSelected()],
+				IO::CP_Path).c_str(), s.c_str(), IO::ValidateDirectory(s),
 				fexists(s.c_str()));
 			WaitForABXY();
 			Deactivate(console);*/
@@ -705,7 +706,7 @@ ShlExplorer::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
 {
 	using namespace Drawing;
 /*
-	uchar_t* tstr(Text::ucsdup("Abc测试", Text::CS_Local));
+	ucs2_t* tstr(Text::ucsdup("Abc测试", Text::CS_Local));
 	String str(tstr);
 
 	std::free(tstr);

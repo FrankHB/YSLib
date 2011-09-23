@@ -11,12 +11,12 @@
 /*!	\file iterator.hpp
 \ingroup YCLib
 \brief C++ 标准库迭代器扩展。
-\version r1288;
+\version r1292;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2011-09-16 22:00 +0800;
+	2011-09-22 14:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,7 @@
 #ifndef YCL_INC_YSTDEX_ITERATOR_HPP_
 #define YCL_INC_YSTDEX_ITERATOR_HPP_
 
-#include "../ystdex.h"
+#include "../ydef.h"
 #include <iterator>
 #include <utility>
 
@@ -241,10 +241,10 @@ namespace ystdex
 		pair_iterator
 		operator++(int)
 		{
-			const auto it(*this);
+			const auto i(*this);
 
 			++*this;
-			return it;
+			return i;
 		}
 
 		//双向迭代器需求。
@@ -259,10 +259,10 @@ namespace ystdex
 		pair_iterator
 		operator--(int)
 		{
-			const auto it(*this);
+			const auto i(*this);
 
 			--*this;
-			return it;
+			return i;
 		}
 
 		//随机访问迭代器需求。

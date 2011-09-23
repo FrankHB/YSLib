@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version r7035;
+\version r7042;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-09-13 23:12 +0800;
+	2011-09-20 06:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -193,19 +193,19 @@ SetCurrentTextLineNOf(TextState&, u16);
 \brief 按字符跨距移动笔。
 */
 void
-MovePen(TextState&, fchar_t);
+MovePen(TextState&, ucs4_t);
 
 
 /*!
 \brief 打印单个字符。
 */
 void
-RenderChar(const Graphics&, TextState&, fchar_t);
+RenderChar(const Graphics&, TextState&, ucs4_t);
 /*!
 \brief 打印单个字符。
 */
 void
-RenderChar(BitmapBufferEx&, TextState&, fchar_t);
+RenderChar(BitmapBufferEx&, TextState&, ucs4_t);
 
 
 /*!
@@ -234,7 +234,7 @@ FetchLastLineBasePosition(const TextState&, SDst);
 */
 template<class _tRenderer>
 u8
-PrintChar(_tRenderer& r, fchar_t c)
+PrintChar(_tRenderer& r, ucs4_t c)
 {
 	if(c == '\n')
 	{
@@ -253,7 +253,7 @@ PrintChar(_tRenderer& r, fchar_t c)
 */
 template<class _tRenderer>
 u8
-PutChar(_tRenderer& r, fchar_t c)
+PutChar(_tRenderer& r, ucs4_t c)
 {
 	TextState& ts(r);
 
@@ -475,7 +475,7 @@ PutString(_tRenderer& r, const String& str)
 \brief 取指定的字符在字体指定、无边界限制时的显示宽度。
 */
 SDst
-FetchCharWidth(const Font&, fchar_t);
+FetchCharWidth(const Font&, ucs4_t);
 
 
 /*!	\defgroup TextRenderers Text Renderers
@@ -498,7 +498,7 @@ public:
 	\brief 渲染单个字符：仅移动笔，不绘制。
 	*/
 	void
-	operator()(fchar_t);
+	operator()(ucs4_t);
 
 	DefGetter(const TextState&, TextState, State)
 	DefMutableGetter(TextState&, TextState, State)
@@ -511,7 +511,7 @@ EmptyTextRenderer::EmptyTextRenderer(TextState& ts, SDst h)
 {}
 
 inline void
-EmptyTextRenderer::operator()(fchar_t c)
+EmptyTextRenderer::operator()(ucs4_t c)
 {
 	MovePen(State, c);
 }
@@ -591,7 +591,7 @@ public:
 	\brief 渲染单个字符。
 	*/
 	void
-	operator()(fchar_t);
+	operator()(ucs4_t);
 
 	ImplI1(ATextRenderer) DefGetter(const TextState&, TextState, State)
 	ImplI1(ATextRenderer) DefMutableGetter(TextState&, TextState, State)
@@ -604,7 +604,7 @@ TextRenderer::TextRenderer(TextState& ts, const Graphics& g)
 {}
 
 inline void
-TextRenderer::operator()(fchar_t c)
+TextRenderer::operator()(ucs4_t c)
 {
 	RenderChar(GetContext(), GetTextState(), c);
 }
@@ -644,7 +644,7 @@ public:
 	\brief 渲染单个字符。
 	*/
 	void
-	operator()(fchar_t);
+	operator()(ucs4_t);
 
 	ImplI1(ATextRenderer) DefGetter(const TextState&, TextState, *this)
 	ImplI1(ATextRenderer) DefMutableGetter(TextState&, TextState, *this)
@@ -688,7 +688,7 @@ TextRegion::operator=(const TextState& ts)
 }
 
 inline void
-TextRegion::operator()(fchar_t c)
+TextRegion::operator()(ucs4_t c)
 {
 	RenderChar(*this, *this, c);
 }
@@ -825,11 +825,11 @@ FetchPreviousLineIterator(const Drawing::TextRegion& r, _tIn p, _tIn g,
 {
 	while(l-- != 0 && p != g)
 	{
-		p = rfind<_tIn, uchar_t>(r.GetCache(), r.PenX - r.Margin.Left, p, g,
+		p = rfind<_tIn, ucs2_t>(r.GetCache(), r.PenX - r.Margin.Left, p, g,
 			'\n');
 		if(p != g)
 		{
-			p = rfind<_tIn, uchar_t>(r.GetCache(),
+			p = rfind<_tIn, ucs2_t>(r.GetCache(),
 				r.GetHeight() - GetVerticalOf(r.Margin), p, g, '\n');
 			if(p != g)
 				++p;
@@ -855,7 +855,7 @@ FetchNextLineIterator(const Drawing::TextRegion& r, _tIn p, _tIn g)
 
 	while(p != g)
 	{
-		uchar_t c(*p);
+		ucs2_t c(*p);
 		++p;
 		if(c == '\n' || (std::iswprint(c) && (w += cache.GetAdvance(c)) > nw))
 			break;

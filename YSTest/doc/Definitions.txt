@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11376;
+\version r11415;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-09-16 04:00 +0800;
+	2011-09-22 09:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -429,7 +429,7 @@ $unit CharacterMapping
 		namespace CharSet
 		{
 		//别名。
-		const CSID
+		const Encoding
 			iso_ir_6(US_ASCII), ISO646_US(US_ASCII), ASCII(US_ASCII), us(US_ASCII),
 				IBM367(US_ASCII), cp367(US_ASCII), csASCII(US_ASCII),
 			MS_Kanji(SHIFT_JIS), csShiftJIS(SHIFT_JIS), windows_932_(SHIFT_JIS),
@@ -451,8 +451,8 @@ $unit CharacterMapping
 		}
 
 		//默认字符集。
-		const CSID CS_Default = CharSet::UTF_8;
-		const CSID CS_Local = CharSet::GBK;
+		const Encoding CP_Default = CharSet::UTF_8;
+		const Encoding CP_Local = CharSet::GBK;
 
 		//编码转换表。
 		const ubyte_t cp17[] = {0};
@@ -532,7 +532,7 @@ $unit YString
 {
 	class String
 	{
-		static uchar_t* s_str; //!< 内码转换生成字符串临时指针。
+		static ucs2_t* s_str; //!< 内码转换生成字符串临时指针。
 	};
 }
 
@@ -676,35 +676,18 @@ $header <platform.h>
 
 $header YDefinition
 {
-	typedef std::uint8_t	u8;
-	typedef std::uint16_t	u16;
-	typedef std::uint32_t	u32;
-	typedef std::uint64_t	u64;
-	typedef std::int8_t		s8;
-	typedef std::int16_t	s16;
-	typedef std::int32_t	s32;
-	typedef std::int64_t	s64;
-	typedef volatile u8		vu8;
-	typedef volatile u16	vu16;
-	typedef volatile u32	vu32;
-	typedef volatile u64	vu64;
-	typedef volatile s8		vs8;
-	typedef volatile s16	vs16;
-	typedef volatile s32	vs32;
-	typedef volatile s64	vs64;
-
-	typedef u8 byte;
-
-	typedef u16 uchar_t;
-	typedef u32 fchar_t;
-
-	typedef int errno_t;
 	using std::ptrdiff_t;
 	using std::size_t;
+	using std::wint_t;
 	using ::ssize_t;
 } //$header YDefinition;
 
 $header YStandardExtend
+{
+	//
+} //$header YStandardExtend;
+
+$header YStandardExtend::TypeOperation : header YStandardExtend
 {
 	using std::integral_constant;
 	using std::true_t;
@@ -738,7 +721,7 @@ $header YStandardExtend
 //	using std::is_trivially_copyable;
 	using std::is_standard_layout;
 	using std::is_pod;
-//	using std::is_literal_t;
+	using std::is_literal_type;
 	using std::is_empty;
 	using std::is_polymorphic;
 	using std::is_abstract;
@@ -815,11 +798,8 @@ $header YStandardExtend
 	using std::conditional;
 	using std::common_t;
 //	using std::underlying_t;
-//	using std::result_of;
-
-
-	using ::memcmp;
-} //$header YStandardExtend;
+	using std::result_of;
+} //$header YStandardExtend::TypeOperation;
 
 //既定 platform 命名空间污染列表。
 
@@ -840,21 +820,12 @@ $header "ycommon.h"
 
 $header Adaptor::YAdaptor
 {
-
-	using ystdex::u8;
-	using ystdex::u16;
-	using ystdex::u32;
-	using ystdex::u64;
-	using ystdex::s8;
-	using ystdex::s16;
-	using ystdex::s32;
-	using ystdex::s64;
-
 	using ystdex::errno_t;
 	using ystdex::nullptr_t;
 	using ystdex::ptrdiff_t;
 	using ystdex::size_t;
 	using ystdex::ssize_t;
+	using ystdex::wint_t;
 
 	using ystdex::noncopyable;
 
@@ -887,7 +858,7 @@ $header Adaptor::YAdaptor
 	{
 		using namespace CHRLib;
 	} //namespace Text;
-	using Text::fchar_t, Text::uchar_t, Text::uint_t;
+	using Text::ucs4_t, Text::ucs2_t, Text::ucsint_t;
 
 	//! \brief 运行时平台。
 	namespace DS

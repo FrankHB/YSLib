@@ -21,8 +21,9 @@
     <ClInclude Include="include\CHRLib\chrproc.h" />
     <ClInclude Include="include\ycommon.h" />
     <ClInclude Include="include\ydef.h" />
-    <ClInclude Include="include\ystdex.h" />
     <ClInclude Include="include\ystdex\cast.hpp" />
+    <ClInclude Include="include\ystdex\cstdio.h" />
+    <ClInclude Include="include\ystdex\cstring.h" />
     <ClInclude Include="include\ystdex\iterator.hpp" />
     <ClInclude Include="include\ystdex\memory.hpp" />
     <ClInclude Include="include\ystdex\type_op.hpp" />
@@ -32,7 +33,8 @@
     <ClCompile Include="source\CHRLib\chrmap.cpp" />
     <ClCompile Include="source\CHRLib\chrproc.cpp" />
     <ClCompile Include="source\ycommon.cpp" />
-    <ClCompile Include="source\ystdex.cpp" />
+    <ClCompile Include="source\ystdex\cstdio.cpp" />
+    <ClCompile Include="source\ystdex\cstring.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0D1961C7-0E8F-47CD-A2FB-D7920A469E51}</ProjectGuid>
