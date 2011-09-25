@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7277;
+\version r7283;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-09-20 06:25 +0800;
+	2011-09-23 18:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -243,16 +243,6 @@ FetchDefaultFontFamily() ythrow(LoggedEvent)
 	return *pFontFamily;
 }
 
-
-const Font::SizeType
-Font::DefaultSize(12),
-Font::MinimalSize(4),
-Font::MaximalSize(96);
-Font* Font::pDefFont;
-
-Font::Font(const FontFamily& family, const SizeType size, FontStyle style)
-	: pFontFamily(&family), Style(style), Size(size)
-{}
 
 Font::SizeType Font::GetHeight() const
 {

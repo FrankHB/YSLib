@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YCLib
 \brief C++ 类型操作模板类。
-\version r1166;
+\version r1172;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2011-09-22 09:09 +0800;
+	2011-09-23 15:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -159,20 +159,17 @@ namespace ystdex
 	template<class _type>
 	struct has_nonempty_virtual_base
 	{
-		struct A
-			: _type
+		struct A : _type
 		{
 			~A() throw()
 			{}
 		};
-		struct B
-			: _type
+		struct B : _type
 		{
 			~B() throw()
 			{}
 		};
-		struct C
-			: A, B
+		struct C : A, B
 		{
 			~C() throw()
 			{}
@@ -187,8 +184,7 @@ namespace ystdex
 	template<class _type1, class _type2>
 	struct has_common_nonempty_virtual_base
 	{
-		struct A
-			: virtual _type1
+		struct A : virtual _type1
 		{
 			~A() throw()
 			{}
@@ -208,14 +204,12 @@ namespace ystdex
 #	endif
 #endif
 
-		struct B
-			: virtual _type2
+		struct B : virtual _type2
 		{
 			~B() throw()
 			{}
 		};
-		struct C
-			: A, B
+		struct C : A, B
 		{
 			~C() throw()
 			{}

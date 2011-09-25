@@ -11,12 +11,12 @@
 /*!	\file yftext.cpp
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1811;
+\version r1812;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2011-09-22 15:45 +0800;
+	2011-09-24 20:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,7 +32,7 @@ using namespace Text;
 using std::memcmp;
 
 TextFile::TextFile(const_path_t p)
-	: File(p),
+	: File(p, true),
 	bl(0), cp(CharSet::Null)
 {
 	if(IsValid())

@@ -11,12 +11,12 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r2038;
+\version r2052;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-09-23 10:19 +0800;
+	2011-09-25 20:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -78,7 +78,7 @@ typedef enum
 } Encoding; //!< 字符流编码标识。
 
 //别名。
-const Encoding
+yconstexpr Encoding
 	iso_ir_6(US_ASCII), ISO646_US(US_ASCII), ASCII(US_ASCII), us(US_ASCII),
 		IBM367(US_ASCII), cp367(US_ASCII), csASCII(US_ASCII),
 	MS_Kanji(SHIFT_JIS), csShiftJIS(SHIFT_JIS), windows_932_(SHIFT_JIS),
@@ -104,18 +104,18 @@ using CharSet::Encoding;
 
 
 //默认字符集。
-const Encoding CP_Default = CharSet::UTF_8;
-const Encoding CP_Local = CharSet::GBK;
+yconstexpr Encoding CP_Default = CharSet::UTF_8;
+yconstexpr Encoding CP_Local = CharSet::GBK;
 
 
 //编码转换表。
-const ubyte_t cp17[] = {0};
+yconstexpr ubyte_t cp17[] = {0};
 extern "C"
 {
 	extern const ubyte_t cp113[];
 	//extern const ubyte_t cp2026[13658];
 }
-const ubyte_t cp2026[] = {0};
+yconstexpr ubyte_t cp2026[] = {0};
 
 
 /*!
@@ -154,14 +154,14 @@ struct GUCS2Mapper<CharSet::SHIFT_JIS>
 {
 	template<typename _tIn>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn it)
+	Map(ucs2_t& uc, _tIn i)
 	{
 		uint_least16_t row(0), col(0), ln(188); // (7E-40 + 1 + FC-80 + 1)
-		const unsigned c(*it);
+		const unsigned c(*i);
 
 		if((c >= 0xA1) && (c <= 0xC6))
 		{
-			const unsigned d(*++it);
+			const unsigned d(*++i);
 
 			row = c - 0xA1 ;
 			if(d >= 0x40 && d <= 0x7E)
@@ -172,7 +172,7 @@ struct GUCS2Mapper<CharSet::SHIFT_JIS>
 		}
 		else if(c >= 0xC9 && c <= 0xF9)
 		{
-			const unsigned d(*++it);
+			const unsigned d(*++i);
 
 			row = c - 0xA3;
 			if(d >= 0x40 && d <= 0x7E)
@@ -197,9 +197,9 @@ struct GUCS2Mapper<CharSet::UTF_8>
 {
 	template<typename _tIn>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn it)
+	Map(ucs2_t& uc, _tIn i)
 	{
-		const unsigned c(*it);
+		const unsigned c(*i);
 
 		if(c < 0x80)
 		{
@@ -208,14 +208,14 @@ struct GUCS2Mapper<CharSet::UTF_8>
 		}
 		else
 		{
-			const unsigned d(*++it);
+			const unsigned d(*++i);
 
 			if(c & 0x20)
 			{
 				uc = (((c & 0x0F) << 4
 					| (d & 0x3C) >> 2) << 8)
 					| ((d & 0x3) << 6)
-					| (*++it & 0x3F);
+					| (*++i & 0x3F);
 				return 3;
 			}
 			else
@@ -291,17 +291,21 @@ struct GUCS2Mapper<CharSet::GBK>
 {
 	template<typename _tIn>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn it)
+	Map(ucs2_t& uc, _tIn i)
 	{
-		int c(*it);
+		const std::uint_fast8_t c(*i & 0xFF);
 
-		if(static_cast<ubyte_t>(c))
+		if(cp113[c] != 0)
 		{
 			uc = c;
 			return 1;
 		}
-		uc = reinterpret_cast<const ucs2_t*>(cp113 + 0x0100)
-			[(c << 8 | *++it)];
+
+		const std::uint_fast8_t d(*++i & 0xFF);
+
+		// assert((c << 8 | d) < 0xFF7E);
+
+		uc = reinterpret_cast<const ucs2_t*>(cp113 + 0x0100)[c << 8 | d];
 		return 2;
 	}
 };
@@ -311,10 +315,10 @@ struct GUCS2Mapper<CharSet::UTF_16BE>
 {
 	template<typename _tIn>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn it)
+	Map(ucs2_t& uc, _tIn i)
 	{
-		uc = *it << YCL_CHAR_BIT;
-		uc |= *++it;
+		uc = *i << YCL_CHAR_BIT;
+		uc |= *++i;
 		return 2;
 	}
 };
@@ -324,10 +328,10 @@ struct GUCS2Mapper<CharSet::UTF_16LE>
 {
 	template<typename _tIn>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn it)
+	Map(ucs2_t& uc, _tIn i)
 	{
-		uc = *it;
-		uc |= *++it << YCL_CHAR_BIT;
+		uc = *i;
+		uc |= *++i << YCL_CHAR_BIT;
 		return 2;
 	}
 };
@@ -337,14 +341,14 @@ struct GUCS2Mapper<CharSet::Big5>
 {
 	template<typename _tIn>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn it)
+	Map(ucs2_t& uc, _tIn i)
 	{
 		uint_least16_t row(0), col(0), ln(157); // (7E-40 + FE-A1)
-		const unsigned c(*it);
+		const unsigned c(*i);
 
 		if(c >= 0xA1 && c <= 0xC6)
 		{
-			const unsigned d(*++it);
+			const unsigned d(*++i);
 
 			row = c - 0xA1;
 			if(d >= 0x40 && d <= 0x7E)
@@ -356,7 +360,7 @@ struct GUCS2Mapper<CharSet::Big5>
 		}
 		else if(c >= 0xC9 && c <= 0xF9)
 		{
-			const unsigned d(*++it);
+			const unsigned d(*++i);
 
 			row = c - 0xA3;
 			if(d >= 0x40 && d <= 0x7E)

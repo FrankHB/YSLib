@@ -11,12 +11,12 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2700;
+\version r2707;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-09-15 13:56 +0800;
+	2011-09-23 17:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,7 +68,7 @@ struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
 /*!
 \brief 取整数类型的零元素。
 */
-inline int
+yconstexprf int
 FetchZero()
 {
 	return 0;
@@ -77,7 +77,7 @@ FetchZero()
 \brief 取指定类型的零元素。
 */
 PDefTH1(_type)
-inline _type
+yconstexprf _type
 FetchZero()
 {
 	return _type(0);
@@ -87,7 +87,7 @@ FetchZero()
 \brief 整数类型符号函数。
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
 */
-inline s8
+yconstexprf s8
 sgn(int a, int b = 0)
 {
 	return a < b ? -1 : !(a == b);
@@ -97,7 +97,7 @@ sgn(int a, int b = 0)
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
 */
 PDefTH1(_type)
-s8
+yconstexprf s8
 sgn(const _type& a, const _type& b = FetchZero<_type>())
 {
 	return a < b ? -1 : !(a == b);
@@ -110,7 +110,7 @@ sgn(const _type& a, const _type& b = FetchZero<_type>())
 \return > 0 ：d 在区间内。
 \note 无精度修正。
 */
-inline int
+yconstexprf int
 sgnInterval(int d, int a, int b)
 {
 	return sgn(a, d) * sgn(d, b);
@@ -123,7 +123,7 @@ sgnInterval(int d, int a, int b)
 \note 无精度修正。
 */
 PDefTH1(_type)
-int
+yconstexprf int
 sgnInterval(const _type& d, const _type& a, const _type& b)
 {
 	return sgn(a, d) * sgn(d, b);
@@ -385,7 +385,7 @@ struct safe_delete_obj
 \brief 使用 new 复制指定指针指向的对象。
 */
 PDefTH1(_type)
-auto
+yconstexprf auto
 CloneNonpolymorphic(const _type& p) -> decltype(&*p)
 {
 	return new typename std::remove_reference<decltype(*p)>::type(*p);

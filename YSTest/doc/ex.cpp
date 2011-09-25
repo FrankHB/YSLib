@@ -1,4 +1,4 @@
-// v0.3331; *build 245 rev 55;
+// v0.3338; *build 246 rev 47;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -272,326 +272,270 @@ $using:
 \u Form
 (
 	\cl Form
+),
+\u TextManager
+(
+	\cl TextBuffer,
+	\cl TextBlock,
+	\cl TextMap,
+	\cl TextFileBuffer
 );
 
 
 $DONE:
 r1:
-/ \a CSID => Encoding,
-/ \a MBCSToUTF16LE => MBCSToUCS2,
-/ \a MBCSToUCS => MBCSToUCS4,
-/ \a UTF16LEToMBCS => UCS2ToMBCS,
-/ \a ToUTF => MBCToUC,
-/ @ \lib CHRLib $=
-(
-	/ @ \h CharacterMapping $=
-	(
-		/ \tp CMF => CharMapper,
-		/ \tp CMF_File => StreamMapper,
-	),
-	/ \ft codemap => UCS2Mapper
-);
++ \mac (YCL_HAS_CONSTEXPR, yconstexpr, yconstexprf)
+	for generalized constant expressions @ \h YDefinition;
+/ trying ^ (yconstexpr, yconstexprf) @ \a (\decl, \def) @ \lib YCLib;
 
 r2:
-/ @ \lib CHRLib $=
-(
-	/ @ \u CharacterMapping $=
-	(
-		/ typedef uchar_t CharMapper(ubyte_t&, const char*)
-			-> ubyte_t CharMapper(uchar_t&, const char*),
-		/ typedef uchar_t StreamMapper(ubyte_t&, FILE*)
-			-> ubyte_t StreamMapper(uchar_t&, std::FILE*);
-		/ \tr @ UCS2Mapper
-	);
-	/ \tr \impl @ 2 \f MBCToUC @ CharacterProcessing
-);
++ \inc \h <ydef.h> @ \h YNew;
+/ trying ^ (yconstexpr, yconstexprf) @ \a (\decl, \def) @ \dir (Adaptor, Core)
+	@ \lib YSLib;
+/= \a 'yconstexprf explicit' -> 'explicit yconstexprf',
+/= \a 'inline explicit' -> 'explicit inline',
+/= \a 'yconstexprf static' -> 'static yconstexprf',
+/= \a 'inline static' -> 'static inline';
 
 r3:
-/= test 1 ^ \conf release;
-
-r4:
-/ @ \h YDefinition $=
+/ @ \h Ynew $=
 (
+	+ \inc \h <ystdex/utility.hpp>;
+	/ \cl @ MemoryList::NewRecorder $=
 	(
-		/ \a typedef ('u*', 's*', 'vu*', 'vs*') >> \h YAdaptor;
-		/ \tr typedef u8 byte -> typedef unsigned char byte,
-		/ \tr typedef u16 uchar_t -> typedef std::uint16_t uchar_t,
-		/ \tr typedef u32 fchar_t -> typedef std::uint32_t fchar_t
-	),
-	- extern "C",
-	- \inc <stdint.h>,
-	- \inc <cstddef>,
-	- typedef int intptr_t,
-	- typedef unsigned int uintptr_t,
-	- typedef unsigned long UCSCHAR,
-	- \mac UCSCHAR_INVALID_CHARACTER,
-	- \mac MIN_UCSCHAR,
-	- \mac MAX_UCSCHAR,
-	/ typedef std::uint16_t uchar_t >> \h CHRDefinition,
-	/ typedef std::uint32_t fchar_t >> \h CHRDefinition
-);
-/ \tr @ \h YAdaptor $=
-(
-	- \a 'using ystdex::u*',
-	- \a 'using ystdex::s*'
-),
-/ \tr @ \h CHRDefinition $=
-(
-	/ \a uint_t => ucsint_t;
-	/ typedef ystdex::s32 ucsint_t -> typedef std::int_least32_t ucsint_t,
-	- using ystdex::uchar_t,
-	- using ystdex::fchar_t
-),
-/ \tr @ \impl \u CharacterMapping $=
-(
-	/ using ystdex::u16 -> using std::uint_least16_t;
-	/ \a 'u16' -> 'uint_least16_t'
-),
-/ \a uchar_t => ucs2_t,
-/ \a fchar_t => ucs4_t,
-/ \a u16string => ucs2string;
-
-r5:
-+ \inc \h (<cassert>, <climits>) @ \h YDefinition;
-/ \impl @ \f (getword_LE, getword_BE) @ \h CharacterMapping $=
-(
-	+ \as,
-	+ support for platforms where (CHAR_BIT != 8)
-);
-/ \a getword_LE => FetchBiCharLE,
-/ \a getword_BE => FetchBiCharBE;
-
-r6:
-/ @ \u CharacterProcessing $=
-(
-	- \f (MBCSToANSI, UCS2ToANSI, UCS4ToANSI);
-	- \ft StrToASCII @ \un \ns @ \impl \u,
-	- 3 \f sdup;
-	- \f wcslen @ \un \ns @ \impl \u;
-	+ \f ucslen -> \ft<_tChar> usize_t FetchNTMBSLength(const _tChar*);
-	* \impl @ \f ('ucs2_t* ucsdup(const ucs2_t*)',
-		'ucs2_t* ucsdup(const ucs4_t*)') $since $before
-		b10x(with timestamp 2010-05-30, $rev("chrproc.cpp") = r1525),
-);
-
-r7:
-* \impl @ \f ucs2_t* ucsdup(const ucs4_t*) @ \impl \u CharacterProcessing
-	$since r6;
-
-r8:
-/= test 2 ^ \conf release;
-
-r9:
-+ using ystdex::byte @ \h CHRDefinition,
-/ \a 'CS_Default' => 'CP_Default',
-/ \a 'CS_Local' => 'CP_Local';
-
-r10:
-+ \u CStandardIO["cstdio.h", "cstdio.cpp"] @ \dir ystdex @ \lib YCLib;
-/ \decl @ (path_t, const_path_t) @ \h YDefinition >> \h CStandardIO,
-/ \f fexists @ \u YStandardExtend >> \u CStandardIO,
-- \rem @ \decl using std::(result_of, is_literal_type) @ \h YStandardExtend;
-/ @ \h YCommon $=
-(
-	/ \inc \h <cstdio> -> <ystdex/cstdio.h>,
-	+ \inc \h <ystdex.h>
-),
-/ @ \h YStandardExtend $=
-(
-	/ \a 'using *' >> \h TypeOperation,
-	- using ::memcmp
-),
-/ \tr @ Makefile @ \lib YCLib,
-/ \tr \simp @ Makefile @ \lib YSLib,
-* linked library YCLib/YSLib order @ Makefile @ ARM9 $since b187;
-/ \u YCLib::YStandardExtend["ystdex.h", "ystdex.cpp"]
-	-> \u YCLib::YStandardExtend::Main["ystdexm.h", "ystdexm.cpp"]
-	@ \dir ystdex;
-/ \tr @ \inc \h @ \h (YCommon, \a @ \dir "include/ystdex");
-
-r11:
-/= test 3 ^ \conf release;
-
-r12-r13:
-+ \cl ifile_iterator @ \h CStandardIO;
-
-r14:
-* unspecified subexpression evaluation order
-	@ \ft<>(ubyte_t UCS2Mapper<CharSet::UTF_16BE>(ucs2_t&, FILE*),
-	UCS2Mapper<CharSet::UTF_16LE>(ucs2_t&, FILE*)) $since before
-	~b4x(with timestamp 2009-11-22, $rev("chrproc.cpp") = r1319);
-
-r15-r17:
-/= test 4,
-/ @ \h CharacterMapping $=
-(
-	/ \inc \h <cstdio> -> <ystdex/cstdio.h>;
-	/ \simp \impl @ mapper funtions as \smf @ \clt
-);
-
-r18:
-/= test 5 ^ \conf release;
-
-r19:
-/ \a HText => Iterator;
-
-r20:
-/ @ \u CharacterProcessing $=
-(
-	/ \ft<_tChar> usize_t FetchNTMBSLength(const _tChar*)
-		-> size_t sntctslen(const _Char*),
-	/ \f ucsint_t ucscmp(const ucs2_t*, const ucs2_t*) -> \ft<_tChar>
-		wint_t sntctscmp(const _tChar*, const _tChar*),
-	/ \f ucsint_t ucscmp(const ucs2_t*, const ucs2_t*) -> \ft<_tChar>
-		wint_t sntctsicmp(const _tChar*, const _tChar*)
-);
-/ @ \h YStandardExtendMain $=
-(
-	/ \a '#ifdef $...' >> \h YDefinition,
-	+ \inc \h <cctype>,
-	- \inc \h <cassert>,
-	- \inc \h <cstddef>
-),
-/ @ \h YDefinition $=
-(
-	+ \inc \h <cwchar>;
-	+ using std::wint_t
-),
-/ \def @ (nullptr_t, yforward) @ \h YCLib::YStandardExtend::Utilities
-	>> \h YDefinition;
-/ \ft (sntctslen, sntctscmp, sntctsicmp) >> \ns ystdex @ \h YStandardExtendMain;
-/ \u YCLib::YStandardExtend::Main["ystdexm.h", "ystdexm.cpp"]
-	-> \u YCLib::YStandardExtend::CString["cstring.h", "cstring.cpp"]
-	@ \dir ystdex @ \lib YCLib;
-/ \tr @ \inc \h @ (\lib YCLib::YStandardExtend, \h YCommon, \h YAdaptor),
-/ \tr @ \impl \u CharacterProcessing $=
-(
-	+ \inh \h <ystdex/cstring.h>;
-	+ using ystdex::sntctslen;
-),
-/ \a 'CHAR_BIT' -> 'YSL_CHAR_BIT' @ \h CharacterMapping,
-+ using ystdex::wint_t @ \h YAdaptor;
-
-r21:
-/= test 6 ^ \conf release;
-
-r22:
-/ @ \u CharacterProcessing $=
-(
-	/ \f ubyte_t MBCToUC(const char*, ucs2_t&, const Encoding&)
-		-> ubyte_t MBCToUC(ucs2_t&, const char*, const Encoding&),
-	/ \f ubyte_t MBCToUC(FILE*, ucs2_t&, const Encoding&)
-		-> ubyte_t MBCToUC(ucs2_t&, std::FILE*, const Encoding&);
-	/ \tr \impl @ \f MBCSToUCS2,
-	/ \tr \impl @ \f MBCSToUCS4
-);
-/ \tr \impl @ \mf TextBuffer::LoadN,
-/ \tr \impl @ \mf TextFile::ReadS,
-/ \tr \impl @ \f ReadX @ \impl \u YText;
-
-r23:
-/ @ \h CharacterMapping $=
-(
-	- typedef CharMapper,
-	- typedef StreamMapper
-);
-/ \tr \impl @ 2 \f MBCToUC @ \impl \u CharacterProcessing;
-
-r24-r27:
-/ @ \h CharacterMapping $=
-(
-	+ \mft<typename _tIn> \s ubyte_t InverseMap(char*, const ucs2_t&)
-		@ \stt<> GUCS2Mapper<CharSet::UTF_8>;
-	+ \ft<Encoding cp> ubyte_t
-		UCS2Mapper(char*, const ucs2_t&),
-	+ \as @ template<Encoding cp> ubyte_t
-		UCS2Mapper(ucs2_t&, const char*);
-	+ undeclared function 'Map' & 'InverseMap' @ \clt GUCS2Mapper<>
-		support for \ft UCS2Mapper;
-	/ \ft UCS2Mapper >> \un \ns @ \impl \u CharacterProcessing
-);
-/ @ \u CharacterProcessing $=
-(
-	+ \f ubyte_t UCToMBC(char*, const ucs2_t&, const Encoding&),
-	/ \a GetCodeMapFuncPtr => FetchMapperPtr;
-	/ \simp \impl @ \ft FetchMapperPtr
-);
-/= test 7;
-
-r28:
-/= test 8 ^ \conf release;
-
-r29-r35:
-/ \impl @ \f StringToMBCS @ \ns Text @ \impl \u YString;
-/= test 9 ^ \conf release;
-/= test 10;
-
-
-r36:
-* \impl @ \mf GUCS2Mapper<'*'>::Map for platforms where
-	\tp char is signed $since before
-	~b4x(with timestamp 2009-11-22, $rev("chrproc.cpp") = r1319);
-
-r37:
-/ \a 'byte' -> 'int' @ \h CStdandardIO;
-
-r38:
-/= test 11 ^ \conf release;
-
-r39:
-* \impl @ \f StringToMBCS @ \ns Text @ \impl \u YString $since r29;
-
-r40:
-/= test 12 ^ \conf release;
-
-r41:
-/ \impl @ \mf UCS2ToMBCS @ \impl \u CharacterProcessing;
-
-r42:
-/ \impl @ \f CheckInstall @ \impl \u YShellInitialization;
-
-r43-r52:
-/= test 13;
-
-r53:
-/ \impl @ \f CheckInstall @ \impl \u YShellInitialization;
-
-r54:
-/ @ \u YFileSystem $=
-(
-	+ auto CP_Path(Text::CP_Default);
-	/ @ \cl Path $=
-	(
-		/ \impl @ \mf GetNativeString,
-		/ \impl @ \mf \op/=,
-		/ \impl @ \ctor #(2, 3)
-	),
-	/ @ \cl FileList $=
-	(
-		/ \impl @ \ctor,
-		/ \impl @ \mf LoadSubItems
+		+ \inh \cl ystdex::noncopyable,
+		- \decl @ private copy \ctor,
+		- \decl @ private copy \op=
 	)
 );
-/ \simp \impl @ \f CheckInstall @ \impl \u YShellInitialization,
-/ \simp \impl @ \f main @ \impl \u YGlobal,
-/ \impl @ \ctor @ \cl ShlExplorer;
 
-r55:
-/= test 14 ^ \conf release;
+r4:
+/ trying ^ (yconstexpr, yconstexprf) @ \a (\decl, \def) @ \dir ((Helper, Service)
+	@ \lib YSLib, \u Shells),
+/ \ctor @ \cl ShlCLI @ \h Shell_DS ^ \mac DefDeCtor,
+/ \ctor @ \cl InputContent @ \h YGlobal;
+
+r5:
+/= test 1 ^ \conf release;
+
+r6-r9:
+/ @ \cl TextBuffer $=
+(
+	- \mf GetPtr,
+	- \tb @ \impl @ \ctor,
+	/ \mf ClearText => Clear,
+	- \mf Output
+);
+
+r10:
+/ \impl @ \mf \i (GetPrevNewLine, GetNextNewline, clear, Load with 1 \param)
+	^ \mac (PDefH1, ImplRet) @ \cl TextBuffer @ \h TextManager;
+
+r11:
+/ @ \cl TextBuffer $=
+(
+	- \mf SizeType Load(TextFile&);
+	- \mf SizeType TextBuffer::Load(TextFile&, SizeType)
+);
+
+r12:
+/ @ \cl File @ \u YFile $=
+(
+	/ \mf bool Open(const_path_t) -> bool Open(const_path_t, bool = false);
+	/ \exp \ctor File(const_path_t) -> File(const_path_t, bool = false),
+	+ \ctor File(),
+	- \inh \cl noncopyable,
+);
+/ \impl @ \ctor TextFile @ \cl TextFile @ \u YFile_(Text);
+
+r13:
+/ \simp \impl @ \mf SizeType TextBuffer::LoadN(TextFile&, SizeType);
+
+r14:
+/= test 2 ^ \conf release;
+
+r15:
+/ @ \cl TextBuffer @ \u TextManager $=
+(
+	/ \inh \cl public noncopyable -> public vector<ucs2_t>;
+	- protected \m ucs2_t* const text,
+	- protected \m SizeType len,
+	- private \m const SizeType capacity;
+	- \tr \dtor,
+	/ \tr \simp \impl @ \ctor,
+	/ \mf \op[] -> using vector<ucs2_t>::operator[],
+	/ \mf at -> using vector<ucs2_t>::at,
+	/ \mf clear -> using vector<ucs2_t>::clear,
+	+ typedef vector<ucs2_t>::const_iterator const_iterator,
+	+ typedef vector<ucs2_t>::iterator iterator,
+	/ \tr \impl @ \mf GetSizeOfBuffer,
+	/ \tr \impl @ \mf GetLength,
+	/ \tr \impl @ \mf GetCapacity;
+	/ \tr \impl @ \a \mf,
+	/ \tr \impl @ \a \mf GetPrevChar,
+	/ \tr \impl @ \a \mf GetNextChar,
+	+ using vector<ucs2_t>::at,
+	+ using vector<ucs2_t>::clear,
+);
+
+r16:
+/ @ \u TextManager $=
+(
+	/ \cl TextBuffer \mg -> \cl TextBlock;
+	/ @ \cl TextBlock $=
+	(
+		/ \mf GetLength -> using vector<ucs2_t>::size,
+		/ \impl @ \mf \i bool Load(const ucs2_t*);
+		/ \mf GetCapacity -> using vector<ucs2_t>::capacity,
+		- \mf GetSizeOfBuffer,
+		+ using vector<ucs2_t>::begin,
+		+ using vector<ucs2_t>::end,
+		+ using vector<ucs2_t>::cbegin,
+		+ using vector<ucs2_t>::cend
+	);
+	/ \tr \impl @ \mf TextFileBuffer::Iterator::GetBlockLength
+);
+
+r17-r18:
+/= test 3;
+
+r19:
+/ \simp @ \cl TextBlock $=
+(
+	(
+		- \mf (GetPrevNewLine, GetNextNewline);
+		- \mf (GetPrevChar, GetNextChar),
+	),
+	(
+		- \mf bool Load(const ucs2_t*, SizeType);
+		- \mf bool Load(const ucs2_t*)
+	)
+);
+
+r20:
+/ @ \u TextManager $=
+(
+	+ using vector<ucs2_t>::resize @ \cl TextBlock;
+	/ \mf SizeType TextBlock::LoadN(TextFile&, SizeType)
+		-> !\m \f SizeType LoadText(TextBlock&, TextFile&, SizeType),
+	/ @ \cl TextMap $=
+	(
+		typedef map<BlockSizeType, TextBlock*> MapType
+			-> typedef map<BlockSizeType, unique_ptr<TextBlock>> MapType;
+		/ \tr \impl @ \dtor ^ \mac DefEmptyDtor,
+		/ \tr \impl @ \mf Clear,
+		/ \tr @ \mf \op[]
+	);
+	/ \tr \impl @ \mf TextFileBuffer::operator[]
+);
+
+r21:
+/= test 4 ^ \conf release;
+
+r22:
+/ @ \u TextManager $=
+(
+	+ \f \i bool \op==(const TextBlock&, const TextBlock&),
+	+ \f \i bool \op<(const TextBlock&, const TextBlock&);
+);
+
+r23:
+/ \simp \impl @ \mf (GetTextPtr, GetBlockLength) @ \cl TextFileBuffer::Iterator;
+
+r24:
+/ @ \cl TExtFileBuffer $=
+(
+	/ \simp \impl @ \mf operator[];
+	/ \mf \op[] => at;
+	/ \tr \impl @ \mf 
+);
+
+r25:
+/ static const SizeType nBlockSize = 0x2000 @ \cl TextFileBuffer
+	-> static yconstexpr SizeType nBlockSize = 0x2000;
+
+r26:
+/= test 5 ^ \conf release;
+
+r27:
+/ const Encoding '*' \decl ^ \mac yconstexpr @ \h CharacterMapping;
+
+r28:
+/ \a GetCP => GetEncoding,
+/ @ \cl MDualScreenReader @ \u DSReader $=
+(
+	+ private \m Text::Encoding cp;
+	+ \mf Text::Encoding GetEncoding() const,
+	/ \tr \impl @ \ctor,
+	/ \impl @ \mf LoadText
+);
+
+r29:
+/ @ \impl \u Shells $=
+(
+	/ \simp \impl @ \f InputCounter @ \un \ns,
+	+ add menu item MR_FileInfo;
+	/ \tr menus item 'MR_*' value;
+	/ @ \cl ShlReader $=
+	(
+		+ \cl FileInfoPanel;
+		+ \m FileInfoPanel pnlFileInfo;
+		/ \tr \impl @ \ctor,
+		/ \impl @ \mf ExcuteReadingCommand,
+		/ \impl @ \mf OnActivated,
+		/ \tr \impl @ \mf ReaderPanel::Refresh
+	)
+);
+
+r30:
+/ \impl @ \mf (OnActivated, OnDeactivated) @ \cl ShlReader @ \impl \u Shells;
+
+r31:
+/ @ \cl ShlReader @ \impl \u Shells $=
+(
+	/ @ \cl FileInfoPanel $=
+	(
+		+ \mf void UpdateData(),
+		/ \impl @ \ctor
+	);
+	/ \tr \impl @ \mf ExcuteReadingCommand
+);
+
+r32:
+/= test 6 ^ \conf release;
+
+r33-r34:
+/ \impl @ \ctor @ \cl ShlReader::FileInfoPanel @ \impl \u Shells;
+
+r35-r36:
+* initialization order @ \cl MDualScreenReader $since r28;
+
+r37-r44:
+/= test 7;
+
+r45-r46:
+/ @ \h CharacterMapping $=
+(
+	* \impl @ \mf GUCS2Mapper<CharSet::GBK>::Map $since b245,
+	/ \a 'it' => 'i'
+);
+
+r47:
+/= test 8 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-09-23:
--14.3d;
-//Mercurial rev1-rev116: r5523;
+2011-09-26:
+-15.8d;
+//Mercurial rev1-rev117: r5578;
 
 / ...
 
 
 $NEXT_TODO:
-b246-b324:
+b247-b324:
 + %TextList invalidation support;
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
@@ -680,6 +624,26 @@ $ellipse_debug_assertion;
 
 $now
 (
+	+ $design ^ "selectable C++11 generalized constant expressions features",
+	/ "file classes" $=
+	(
+		+ "mode selecting at opening files",
+		/ "opening files" ^ "binary mode as default" @ "class %File";
+		/ "initializing text files" ^ "text mode" @ "class %TextFile"
+	),
+	/ "simplified text file buffering" $=
+	(
+		- "automatic Unix style newline conversion at loading files",
+	),
+	/ "shells test example" $=
+	(
+		+ "file infomation panel"
+	),
+	* "character mapping for GBK" @ "library %CHRLib" $since b245
+),
+
+b245
+(
 	/ $design "interfaces" @ "library %CHRMap",
 	/ $design "integer type definitions and string utilities"
 		@ "library %(YCLib)",
@@ -687,7 +651,7 @@ $now
 		$before '~b10x'(with timestamp 2010-05-30, $rev("chrproc.cpp") = r1525),
 	* $design "order of YCLib/YSLib in library linking command"
 		@ "ARM9 makefile" $since b187;
-	* "CHRLib mapping functionality implementation" $=
+	* "character mapping functionality implementation" @ "library %CHRLib"$=
 	(
 		* "unspecified subexpression evaluation order"
 			@ "implementation unit chrmap.cpp",
@@ -713,7 +677,7 @@ b244
 	(
 		- "nullable features" @ "class template %GDependency"
 	),
-	* "path with non-ASCII characters displaying error" $since b141,
+	* "path with non-ASCII characters wrongly displayed" $since b141,
 	* "wrong value of unnamed namespace constant member FS_Parent_X"
 		@ "file yfilesys.cpp" $since b156
 ),
@@ -1555,15 +1519,15 @@ b206
 	(
 		+ "function %memcmp declation" @ "namespace %ystdex"
 	),
-	* "strict ISO C++2011 code compatibility" $=
+	* "strict ISO C++0x code compatibility" $=
 	(
-		* "implicit narrowing conversion(N3242 8.5.4/6) \
-			in C++2011(N3242 5.17/9)" ^ "explicit static_cast",
+		* "implicit narrowing conversion(N3242 8.5.4/6)"
+			@ "ISO C++0x(N3242 5.17/9)" ^ "explicit static_cast",
 		/ "character types" @ "header platform.h"
 	),
-	/ "coding using limited C++2011 features" $=
+	/ "coding using limited C++0x features" $=
 	(
-		/ $design ^ "C++2011 style nested template angle brackets",
+		/ $design ^ "C++0x style nested template angle brackets",
 		/ $design ^ "keyword %auto",
 		/ ^ "C++2011 type_traits" @ "namespace std" ~ "std::tr1"
 	),

@@ -11,12 +11,12 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4135;
+\version r4208;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-09-22 15:47 +0800;
+	2011-09-25 15:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,130 +30,32 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Text)
 
-TextBuffer::TextBuffer(SizeType tlen)
-try : capacity(tlen), text(ynew ucs2_t[capacity]), len(0)
+TextBlock::TextBlock(BlockSizeType idx, SizeType tlen)
+	: vector<ucs2_t>(), Index(idx)
 {
-	ClearText();
-}
-catch(...)
-{
-	throw LoggedEvent("Error occured @ TextBuffer::TextBuffer;");
+	reserve(tlen);
 }
 
-ucs2_t&
-TextBuffer::operator[](SizeType idx) ynothrow
-{
-	YAssert(idx < capacity,
-		"In function \"ucs2_t\n"
-		"TextBuffer::operator[](SizeType)\":\n"
-		"Subscript is not less than the length.");
-
-	return text[idx];
-}
 
 SizeType
-TextBuffer::GetPrevChar(SizeType o, ucs2_t c)
+LoadText(TextBlock& b, TextFile& f, SizeType n)
 {
-	while(o-- && text[o] != c)
-		;
-	return ++o;
-}
-SizeType
-TextBuffer::GetNextChar(SizeType o, ucs2_t c)
-{
-	while(o < capacity && text[o++] != c)
-		;
-	return o;
-}
-
-ucs2_t&
-TextBuffer::at(SizeType idx) ythrow(std::out_of_range)
-{
-	if(idx >= capacity)
-		throw std::out_of_range("YSLib::Text::TextBuffer");
-	return text[idx];
-}
-
-bool
-TextBuffer::Load(const ucs2_t* s, SizeType n)
-{
-	if(n > capacity)
-		return false;
-	mmbcpy(text, s, sizeof(ucs2_t) * n);
-	len = n;
-	return true;
-}
-SizeType
-TextBuffer::Load(TextFile& f, SizeType n)
-{
-	if(n > capacity)
+	if(n > b.capacity())
 		return 0;
-
-	SizeType l(0);
-
 	if(f.IsValid())
 	{
+		const auto fp(f.GetPtr());
+		const auto cp(f.GetEncoding());
 		SizeType idx(0), t;
-		ucs2_t cb(len == 0 ? 0 : text[len - 1]), c;
-		std::FILE* const fp(f.GetPtr());
-		const Encoding cp(f.GetCP());
+		ucs2_t c;
+		auto l(b.size()), l_old(l);
 
-		while(++idx < n && (t = MBCToUC(c, fp, cp)) != 0)
-		{
-			if(c == '\n' && cb == '\r')
-				--len;
-			else if(cb == '\r' && len != 0)
-				text[len - 1] = '\n';
-			cb = c;
-			text[len++] = c;
-			++l;
-		}
-	}
-	return l;
-}
-
-SizeType
-TextBuffer::LoadN(TextFile& f, SizeType n)
-{
-	SizeType l(0);
-
-	if(f.IsValid())
-	{
-		SizeType idx(0), t;
-		ucs2_t cb(len == 0 ? 0 : text[len - 1]), c;
-		std::FILE* const fp(f.GetPtr());
-		const Encoding cp(f.GetCP());
-
+		b.resize(l + n);
 		while(idx < n && (t = MBCToUC(c, fp, cp)) != 0 && (idx += t) < n)
-		{
-			if(c == '\n' && cb == '\r')
-				--len;
-			else if(cb == '\r' && len != 0)
-				text[len - 1] = '\n';
-			cb = c;
-			text[len++] = c;
-			++l;
-		}
+			b[l++] = c;
+		return l - l_old;
 	}
-	return l;
-}
-
-bool
-TextBuffer::TextBuffer::Output(ucs2_t* d, SizeType p, SizeType n) const
-{
-	if(p + n > capacity)
-		return false;
-	mmbcpy(d, &text[p], sizeof(ucs2_t) * n);
-	return true;
-}
-
-
-void
-TextMap::Clear()
-{
-	for(auto i(Map.cbegin()); i != Map.cend(); ++i)
-		ydelete(i->second);
-	Map.clear();
+	return 0;
 }
 
 
@@ -263,40 +165,26 @@ TextFileBuffer::Iterator::GetTextPtr() const ynothrow
 	const ucs2_t* p(nullptr);
 
 	if(pBuffer)
-	{
 		try
 		{
-			p = &(*pBuffer)[block].at(index);
+			p = &pBuffer->at(block).at(index);
 		}
 		catch(...)
-		{
-			return nullptr;
-		}
-	}
+		{}
 	return p;
 }
 
 SizeType
 TextFileBuffer::Iterator::GetBlockLength(BlockSizeType idx) const ynothrow
 {
-	if(!pBuffer)
-		return 0;
-	try
-	{
+	if(pBuffer)
 		try
 		{
-			return (*pBuffer)[idx].GetLength();
+			return pBuffer->at(idx).size();
 		}
-		catch(LoggedEvent&)
-		{
-			// TODO: 日志记录。
-			throw;
-		}
-	}
-	catch(...)
-	{
-		return 0;
-	}
+		catch(...)
+		{}
+	return 0;
 }
 
 
@@ -307,34 +195,20 @@ TextFileBuffer::TextFileBuffer(TextFile& file)
 {}
 
 TextBlock&
-TextFileBuffer::operator[](const BlockSizeType& idx)
+TextFileBuffer::at(const BlockSizeType& idx)
 {
-	try
-	{
-		if(idx * nBlockSize > File.GetSize())
-			throw std::out_of_range("YSLib::Text::TextBlock");
+	if(idx * nBlockSize > File.GetSize())
+		throw std::out_of_range("YSLib::Text::TextBlock");
 
-		auto i(Map.find(idx));
-		TextBlock& block(*(i == Map.cend()
-			? ynew TextBlock(idx, nBlockSize) : i->second));
+	auto& p((*this)[idx]);
 
-		if(i == Map.end())
-		{
-			File.SetPosition(idx * nBlockSize + File.GetBOMSize(), SEEK_SET);
-			block.LoadN(File, nBlockSize);
-			*this += block;
-		}
-		return block;
-	}
-	catch(std::out_of_range&)
+	if(is_null(p))
 	{
-		throw LoggedEvent("Wrong range of file @ TextFileBuffer::operator[];",
-			3);
+		p = unique_raw(new TextBlock(idx, nBlockSize));
+		File.SetPosition(idx * nBlockSize + File.GetBOMSize(), SEEK_SET);
+		LoadText(*p, File, nBlockSize);
 	}
-	catch(std::bad_alloc&)
-	{
-		throw LoggedEvent("Allocation failed @ TextFileBuffer::operator[];", 2);
-	}
+	return *p;
 }
 
 TextFileBuffer::Iterator

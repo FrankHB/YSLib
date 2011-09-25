@@ -11,12 +11,12 @@
 /*!	\file utility.hpp
 \ingroup YCLib
 \brief 函数对象、算法和实用程序。
-\version r1689;
+\version r1700;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-09-22 09:16 +0800;
+	2011-09-23 15:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,6 +49,7 @@ namespace ystdex
 		\brief \c protected 构造：空实现。
 		\note 保护非多态类。
 		*/
+		yconstexprf
 		noncopyable()
 		{}
 		/*!
@@ -61,12 +62,14 @@ namespace ystdex
 		/*!
 		\brief 禁止复制构造。
 		*/
+		yconstexprf
 		noncopyable(const noncopyable&) = delete;
 
 		/*!
 		\brief 禁止赋值复制。
 		*/
-		noncopyable& operator=(const noncopyable&) = delete;
+		noncopyable&
+		operator=(const noncopyable&) = delete;
 	};
 
 
@@ -96,7 +99,7 @@ namespace ystdex
 		{
 			return &plain_old_data[0];
 		}
-		const void*
+		yconstexprf const void*
 		access() const
 		{
 			return &plain_old_data[0];
@@ -108,7 +111,7 @@ namespace ystdex
 			return *static_cast<_type*>(access());
 		}
 		template<typename _type>
-		const _type&
+		yconstexprf const _type&
 		access() const
 		{
 			return *static_cast<const _type*>(access());
@@ -127,7 +130,7 @@ namespace ystdex
 	template<typename _type>
 	struct ref_eq : public std::binary_function<_type, _type, bool>
 	{
-		inline bool
+		yconstexprf bool
 		operator()(const _type& _x, const _type& _y) const
 		{
 			return &_x == &_y;
@@ -167,7 +170,7 @@ namespace ystdex
 	template<bool, typename _tScalar1, typename _tScalar2>
 	struct delta_assignment_t
 	{
-		inline _tScalar1&
+		yconstexprf _tScalar1&
 		operator()(_tScalar1& x, _tScalar2 y)
 		{
 			return x += y;
@@ -176,7 +179,7 @@ namespace ystdex
 	template<typename _tScalar1, typename _tScalar2>
 	struct delta_assignment_t<false, _tScalar1, _tScalar2>
 	{
-		inline _tScalar1&
+		yconstexprf _tScalar1&
 		operator()(_tScalar1& x, _tScalar2 y)
 		{
 			return x -= y;
@@ -189,7 +192,7 @@ namespace ystdex
 	\brief 编译期选择自增/自减运算。
 	*/
 	template<bool _bIsPositive, typename _tScalar>
-	_tScalar&
+	yconstexprf _tScalar&
 	xcrease(_tScalar& _x)
 	{
 		return xcrease_t<_bIsPositive, _tScalar>()(_x);
@@ -200,7 +203,7 @@ namespace ystdex
 	\brief 编译期选择加法/减法复合赋值运算。
 	*/
 	template<bool _bIsPositive, typename _tScalar1, typename _tScalar2>
-	_tScalar1&
+	yconstexprf _tScalar1&
 	delta_assignment(_tScalar1& _x, _tScalar2& _y)
 	{
 		return delta_assignment_t<_bIsPositive, _tScalar1, _tScalar2>()(_x, _y);
@@ -217,7 +220,7 @@ namespace ystdex
 		/*!
 		\brief 对指定对象使用 operator& 并返回结果。
 		*/
-		inline _type*
+		yconstexprf _type*
 		operator()(_type& _x) const
 		{
 			return &_x;

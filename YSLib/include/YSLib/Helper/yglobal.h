@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2413;
+\version r2415;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-09-16 03:08 +0800;
+	2011-09-23 19:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -264,15 +264,15 @@ public:
 	KeysInfo Keys;
 	Drawing::Point CursorLocation;
 
-	explicit
-	InputContent(KeysInfo, const Drawing::Point&);
+	explicit yconstexprf
+	InputContent(const KeysInfo&, const Drawing::Point&);
 
 	bool
 	operator==(const InputContent&) const;
 };
 
-inline
-InputContent::InputContent(KeysInfo k, const Drawing::Point& pt)
+inline yconstexprf
+InputContent::InputContent(const KeysInfo& k, const Drawing::Point& pt)
 	: Keys(k), CursorLocation(pt)
 {}
 

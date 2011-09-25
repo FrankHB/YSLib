@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1572;
+\version r1574;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-09-22 16:21 +0800;
+	2011-09-23 15:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,7 +46,7 @@ ubyte_t*		str_value(usize_t v);
 \note 截取低 7 位。
 */
 template<typename _tChar>
-inline bool
+yconstexprf bool
 IsASCII(_tChar c)
 {
 	return !(c & ~0x7F);
@@ -57,7 +57,7 @@ IsASCII(_tChar c)
 \note 截取低 7 位。
 */
 template<typename _tChar>
-inline char
+yconstexprf char
 ToASCII(_tChar c)
 {
 	return c & 0x7F;

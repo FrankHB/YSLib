@@ -11,12 +11,12 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version 0.1797;
+\version r1826;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-06-08 18:12 +0800;
+	2011-09-24 20:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,7 +32,7 @@
 YSL_BEGIN
 
 //! \brief 文件基类。
-class File : public noncopyable
+class File
 {
 public:
 	typedef size_t SizeType; //!< 大小类型。
@@ -44,10 +44,17 @@ protected:
 
 public:
 	/*!
+	\brief 构造。
+	\note 得到空对象。
+	*/
+	File();
+	/*!
 	\brief 构造：使用指定文件路径初始化对象。
+	\note 自动打开文件。
+	\param is_text 文本方式。
 	*/
 	explicit
-	File(const_path_t);
+	File(const_path_t, bool is_text = false);
 	/*!
 	\brief 析构。
 	\note 自动关闭文件。
@@ -87,10 +94,11 @@ public:
 	Close();
 
 	/*!
-	\brief 打开指定路径的文件。
+	\brief 以指定方式打开指定路径的文件。
+	\param is_text 文本方式。
 	*/
 	bool
-	Open(const_path_t);
+	Open(const_path_t, bool is_text = false);
 
 	/*!
 	\brief 连续读 nmemb 个大小为 size 文件块到 ptr 中。

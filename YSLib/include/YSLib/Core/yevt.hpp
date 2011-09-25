@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4654;
+\version r4672;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-09-16 03:23 +0800;
+	2011-09-23 18:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,13 +82,13 @@ private:
 	Comparer comp_eq; //!< 比较函数：相等关系。
 
 public:
-	inline DefDeCopyCtor(GHEvent)
-	inline DefDeMoveCtor(GHEvent)
+	yconstexprf DefDeCopyCtor(GHEvent)
+	yconstexprf DefDeMoveCtor(GHEvent)
 	/*!
 	\brief 构造：使用函数指针。
 	\note 匹配函数引用。
 	*/
-	inline
+	yconstexprf
 	GHEvent(FuncType* f)
 		: std::function<FuncType>(f), comp_eq(GEquality<FuncType>::AreEqual)
 	{}
@@ -96,7 +96,7 @@ public:
 	\brief 使用函数对象类型。
 	*/
 	template<class _tFunc>
-	inline
+	yconstexprf
 	GHEvent(_tFunc f)
 		: std::function<FuncType>(yforward(f)),
 		comp_eq(GetComparer(f, f))
@@ -104,7 +104,7 @@ public:
 	/*!
 	\brief 构造：使用 _tSender 的成员函数指针。
 	*/
-	inline
+	yconstexprf
 	GHEvent(void(_tSender::*pm)(_tEventArgs&&))
 		: std::function<FuncType>(ExpandMemberFirst<
 			_tSender, void, _tEventArgs&&>(pm)),
@@ -115,7 +115,7 @@ public:
 	\brief 构造：使用成员函数指针。
 	*/
 	template<class _type>
-	inline
+	yconstexprf
 	GHEvent(void(_type::*pm)(_tEventArgs&&))
 		: std::function<FuncType>(ExpandMemberFirst<
 			_type, void, _tEventArgs&&, _tSender>(pm)),
@@ -125,7 +125,7 @@ public:
 	/*!
 	\brief 构造：使用 _tSender 类型对象引用和成员函数指针。
 	*/
-	inline
+	yconstexprf
 	GHEvent(_tSender& obj, void(_tSender::*pm)(_tEventArgs&&))
 		: std::function<FuncType>(ExpandMemberFirstBinder<
 			_tSender, void, _tEventArgs&&>(obj, pm)),
@@ -136,7 +136,7 @@ public:
 	\brief 构造：使用对象引用和成员函数指针。
 	*/
 	template<class _type>
-	inline
+	yconstexprf
 	GHEvent(_type& obj, void(_type::*pm)(_tEventArgs&&))
 		: std::function<FuncType>(ExpandMemberFirstBinder<
 			_type, void, _tEventArgs&&, _tSender>(obj, pm)),
@@ -144,13 +144,13 @@ public:
 			_type, void, _tEventArgs&&, _tSender>>::AreEqual)
 	{}
 
-	inline DefDeCopyAssignment(GHEvent)
+	DefDeCopyAssignment(GHEvent)
 	/*!
 	\brief 转移赋值：默认实现。
 	*/
-	inline DefDeMoveAssignment(GHEvent)
+	DefDeMoveAssignment(GHEvent)
 
-	inline bool
+	yconstexprf bool
 	operator==(const GHEvent& h) const
 	{
 		return this->comp_eq == h.comp_eq && (this->comp_eq(*this, h));
@@ -163,19 +163,19 @@ public:
 
 private:
 	PDefTH1(_type)
-	inline static Comparer
+	static yconstexprf Comparer
 	GetComparer(_type& x, _type& y, decltype(x == y) = false)
 	{
 		return GEquality<_type>::AreEqual;
 	}
 	template<typename _type, typename _tUnused>
-	inline static Comparer
+	static yconstexprf Comparer
 	GetComparer(_type&, _tUnused&)
 	{
 		return GHEvent::AreAlwaysEqual;
 	}
 
-	inline static bool
+	static yconstexprf bool
 	AreAlwaysEqual(const GHEvent& x, const GHEvent& y)
 	{
 		return true;
@@ -207,16 +207,16 @@ public:
 	\brief 无参数构造：默认实现。
 	\note 得到空实例。
 	*/
-	inline DefDeCtor(GEvent)
+	yconstexprf DefDeCtor(GEvent)
 	/*!
 	\brief 复制构造：默认实现。
 	\note 深复制。
 	*/
-	inline DefDeCopyCtor(GEvent);
+	yconstexprf DefDeCopyCtor(GEvent);
 	/*!
 	\brief 转移构造：默认实现。
 	*/
-	inline DefDeMoveCtor(GEvent);
+	yconstexprf DefDeMoveCtor(GEvent);
 
 private:
 	/*!
@@ -241,7 +241,7 @@ public:
 	/*!
 	\brief 转移赋值：默认实现。
 	*/
-	inline DefDeMoveAssignment(GEvent)
+	DefDeMoveAssignment(GEvent)
 	/*!
 	\brief 赋值：覆盖事件响应：使用事件处理器。
 	*/
@@ -652,8 +652,8 @@ public:
 	DefDeMoveCtor(GEventPointerWrapper)
 
 
-	DefConverter(const ItemType&, *ptr)
-	DefMutableConverter(ItemType&, *ptr)
+	yconstexprf DefConverter(const ItemType&, *ptr)
+	yconstexprf DefMutableConverter(ItemType&, *ptr)
 };
 
 

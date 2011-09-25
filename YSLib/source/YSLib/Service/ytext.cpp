@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version r6694;
+\version r6696;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-09-22 15:45 +0800;
+	2011-09-25 15:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -402,8 +402,8 @@ ReadX(TextFile& f, TextRegion& tr, u32 n)
 	if(f.IsValid())
 	{
 		u32 i(0), t;
-		FILE* const fp(f.GetPtr());
-		const Encoding cp(f.GetCP());
+		const auto fp(f.GetPtr());
+		const auto cp(f.GetEncoding());
 		ucs2_t c;
 
 		while(i < n && (t = MBCToUC(c, fp, cp)))

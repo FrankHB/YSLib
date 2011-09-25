@@ -36,6 +36,9 @@
     <None Include="data\default_font.bin">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="data\cp113.bin">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ycommon.h">

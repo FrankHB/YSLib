@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5151;
+\version r5175;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-23 12:29 +0800;
+	2011-09-25 17:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -145,17 +145,13 @@ namespace
 	void
 	InputCounter(const Point& pt)
 	{
-		siprintf(strCount, "%d,%d,%d;Count = %d, Pos = (%d, %d);",
-			sizeof(AWindow), sizeof(Frame), sizeof(Form),
+		siprintf(strCount, "Count = %d, Pos = (%d, %d);",
 			nCountInput++, pt.X, pt.Y);
 	}
 
 	void
 	InputCounterAnother(const Point&)
 	{
-	//	nCountInput++;
-	//	siprintf(strCount, "%d,%d,%d,%d,",sizeof(Form),sizeof(Shell),
-	//		sizeof(Application),sizeof(YWindow));
 		struct mallinfo t(mallinfo());
 
 	/*	siprintf(strCount, "%d,%d,%d,%d,%d;",
@@ -223,11 +219,6 @@ FetchImage(size_t i)
 		ScrDraw(h->GetBufferPtr(), p_bg[i]);
 	}
 	return FetchGlobalImage(i);
-	/*
-	gbuf = ynew ScreenBufferType;
-	memset(gbuf, 0xEC, sizeof(ScreenBufferType)); //0xF2
-	ydelete_array(gbuf);
-	*/
 }
 
 
@@ -404,39 +395,12 @@ ShlExplorer::ShlExplorer()
 		YAssert(is_not_null(pWndTest), "err: pWndTest is null;");
 
 		SwitchVisible(*pWndTest);
-	/*	if(fbMain.IsSelected())
-		{
-			YConsole console(*hScreenUp);
-
-			Activate(console, Color::Silver);
-
-			iprintf("Current Working Directory:\n%s\n",
-				IO::GetNowDirectory().c_str());
-			iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
-		//	std::fprintf(stderr, "err");
-			WaitForInput();
-		}
-		else
-		{
-			YConsole console(*hScreenDown);
-			Activate(console, Color::Yellow, ColorSpace::Green);
-			iprintf("FileBox Path:\n%s\n", fbMain.GetPath().c_str());
-			puts("OK");
-			WaitForInput();
-		}*/
 	};
 	FetchEvent<Click>(btnOK) += [this](IWidget&, TouchEventArgs&&){
 		if(fbMain.IsSelected())
 		{
 			const string& s(fbMain.GetPath().GetNativeString());
-		/*	YConsole console;
-			Activate(console);
-			iprintf("%s\n%s\n%s\n%d,%d\n", fbMain.GetDirectory().c_str(),
-				StringToMBCS(fbMain.YListBox::GetList()[fbMain.GetSelected()],
-				IO::CP_Path).c_str(), s.c_str(), IO::ValidateDirectory(s),
-				fexists(s.c_str()));
-			WaitForABXY();
-			Deactivate(console);*/
+
 			if(!IO::ValidateDirectory(s) && fexists(s.c_str()))
 			{
 				ShlReader::path = s;
@@ -685,11 +649,7 @@ ShlExplorer::TFormExtra::OnKeyPress_btnDragTest(IWidget& sender,
 	char strt[100];
 	auto& lbl(dynamic_cast<Label&>(sender));
 
-//	Button& lbl(dynamic_cast<TFormUp&>(
-//		*(dynamic_cast<ShlExplorer&>(*FetchShellHandle()).hWndUp)).lblB);
 	lbl.SetTransparent(!lbl.IsTransparent());
-//	++lbl.ForeColor;
-//	--lbl.BackColor;
 	siprintf(strt, "%d;\n", k);
 	lbl.Text = strt;
 	Invalidate(lbl);
@@ -926,12 +886,13 @@ ShlExplorer::OnClick_ShowWindow(IWidget&, TouchEventArgs&&)
 namespace
 {
 	// MR -> MNU_READER;
-	const Menu::IndexType MR_Return(0u),
-		MR_Panel(1u),
-		MR_LineUp(2u),
-		MR_LineDown(3u),
-		MR_ScreenUp(4u),
-		MR_ScreenDown(5u);
+	yconstexpr Menu::IndexType MR_Return(0),
+		MR_Panel(1),
+		MR_FileInfo(2),
+		MR_LineUp(3),
+		MR_LineDown(4),
+		MR_ScreenUp(5),
+		MR_ScreenDown(6);
 }
 
 
@@ -968,12 +929,54 @@ ShlReader::ReaderPanel::GetTopWidgetPtr(const Point& pt,
 Rect
 ShlReader::ReaderPanel::Refresh(const PaintEventArgs& e)
 {
-	auto rect(Widget::Refresh(e));
-
+	Widget::Refresh(e);
 	RenderChild(btnClose, e);
 	RenderChild(trReader, e);
 	RenderChild(lblProgress, e);
 	return GetBoundsOf(*this);
+}
+
+ShlReader::FileInfoPanel::FileInfoPanel(const Rect& r, ShlReader& shl)
+	: AUIBoxControl(r),
+	Shell(shl), btnClose(Rect(GetWidth() - 20, 4, 16, 16)),
+	lblInfo(Rect(4, 20, GetWidth() - 8, GetHeight() - 24))
+{
+	btnClose.GetContainerPtrRef() = this;
+	lblInfo.GetContainerPtrRef() = this;
+	btnClose.Text = "×";
+	FetchEvent<Click>(btnClose) += [this](IWidget&, TouchEventArgs&&){
+		Hide(*this);
+	};
+	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
+}
+
+IWidget*
+ShlReader::FileInfoPanel::GetTopWidgetPtr(const Point& pt,
+	bool(&f)(const IWidget&))
+{
+	if(Contains(btnClose, pt) && f(btnClose))
+		return &btnClose;
+	if(Contains(lblInfo, pt) && f(lblInfo))
+		return &lblInfo;
+	return nullptr;
+}
+
+Rect
+ShlReader::FileInfoPanel::Refresh(const PaintEventArgs& e)
+{
+	Widget::Refresh(e);
+	RenderChild(btnClose, e);
+	RenderChild(lblInfo, e);
+	return GetBoundsOf(*this);
+}
+
+void
+ShlReader::FileInfoPanel::UpdateData()
+{
+	char str[80];
+
+	siprintf(str, "Encoding: %d;", Shell.Reader.GetEncoding());
+	lblInfo.Text = str;
 }
 
 string ShlReader::path;
@@ -981,6 +984,7 @@ string ShlReader::path;
 ShlReader::ShlReader()
 	: ShlDS(),
 	Reader(), pnlReader(Rect(0, 168, 256, 24), *this),
+	pnlFileInfo(Rect(32, 32, 128, 64), *this),
 	pTextFile(), hUp(), hDn(), mhMain(*GetDesktopDownHandle())
 {}
 
@@ -1006,15 +1010,18 @@ ShlReader::OnActivated(const Message& msg)
 	dsk_up += Reader.AreaUp;
 	dsk_dn += Reader.AreaDown;
 	dsk_dn += pnlReader;
+	dsk_dn += pnlFileInfo;
 	pnlReader.SetVisible(false);
+	pnlFileInfo.SetVisible(false);
 
 	{
 		auto hList(share_raw(new Menu::ListType));
 		auto& lst(*hList);
 
-		lst.reserve(6u);
+		lst.reserve(7);
 		lst.push_back("返回");
 		lst.push_back("显示面板");
+		lst.push_back("文件信息...");
 		lst.push_back("向上一行");
 		lst.push_back("向下一行");
 		lst.push_back("向上一屏");
@@ -1046,7 +1053,6 @@ ShlReader::OnActivated(const Message& msg)
 		mhMain += mnu;
 		/*
 		mhMain += *new Menu(Rect::Empty, GenerateList("a"), 1u);
-		mhMain += *new Menu(Rect::Empty, GenerateList("b"), 2u);
 		mhMain[1u] += make_pair(1u, &mhMain[2u]);
 		*/
 	}
@@ -1070,6 +1076,7 @@ ShlReader::OnDeactivated(const Message& msg)
 	dsk_up -= Reader.AreaUp;
 	dsk_dn -= Reader.AreaDown;
 	dsk_up -= pnlReader;
+	dsk_dn -= pnlFileInfo;
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
 	Reader.UnloadText();
@@ -1088,6 +1095,10 @@ ShlReader::ExcuteReadingCommand(IndexEventArgs::IndexType idx)
 		break;
 	case MR_Panel:
 		Show(pnlReader);
+		break;
+	case MR_FileInfo:
+		pnlFileInfo.UpdateData();
+		Show(pnlFileInfo);
 		break;
 	case MR_LineUp:
 		Reader.LineUp();

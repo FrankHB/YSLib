@@ -11,12 +11,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2393;
+\version r2395;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2011-09-05 23:20 +0800;
+	2011-09-23 15:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +35,7 @@ namespace platform
 	namespace
 	{
 		//! \brief 检查 32 位地址是否在 DMA 操作有效范围之外。
-		inline bool
+		yconstexprf bool
 		dma_out_of_range(u32 addr)
 		{
 			// 检查 TCM 和 BIOS (0x01000000, 0x0B000000, 0xFFFF0000) 。
@@ -45,7 +45,7 @@ namespace platform
 		}
 
 		//! \brief 检查 32 位地址是否在主内存中。
-		inline bool
+		yconstexprf bool
 		is_in_main_RAM(u32 addr)
 		{
 			return addr >> 24 == 0x02;

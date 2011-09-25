@@ -11,12 +11,12 @@
 /*!	\file memory.hpp
 \ingroup YCLib
 \brief 存储和智能指针特性。
-\version r1150;
+\version r1164;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-14 12:25:13 +0800;
 \par 修改时间:
-	2011-09-21 09:14 +0800;
+	2011-09-23 15:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,13 +44,13 @@ namespace ystdex
 	*/
 	//@{
 	template<typename _tPointer>
-	inline bool
+	yconstexprf bool
 	is_null(const _tPointer& p)
 	{
 		return !static_cast<bool>(p);
 	}
 	template<typename _tPointer>
-	inline bool
+	yconstexprf bool
 	is_null(_tPointer&& p)
 	{
 		return !static_cast<bool>(p);
@@ -65,13 +65,13 @@ namespace ystdex
 	*/
 	//@{
 	template<typename _tPointer>
-	inline bool
+	yconstexprf bool
 	is_not_null(const _tPointer& p)
 	{
 		return static_cast<bool>(p);
 	}
 	template<typename _tPointer>
-	inline bool
+	yconstexprf bool
 	is_not_null(_tPointer&& p)
 	{
 		return static_cast<bool>(p);
@@ -84,19 +84,19 @@ namespace ystdex
 	*/
 	//@{
 	template<typename _type>
-	inline _type*
+	yconstexprf _type*
 	raw(_type* const& p)
 	{
 		return p;
 	}
 	template<typename _type>
-	inline _type*
+	yconstexprf _type*
 	raw(const std::unique_ptr<_type>& p)
 	{
 		return p.get();
 	}
 	template<typename _type>
-	inline _type*
+	yconstexprf _type*
 	raw(const std::shared_ptr<_type>& p)
 	{
 		return p.get();
@@ -143,7 +143,7 @@ namespace ystdex
 	\tparam _pSrc 指定指针类型。
 	*/
 	template<typename _type, typename _pSrc>
-	inline std::unique_ptr<_type>
+	yconstexprf std::unique_ptr<_type>
 	unique_raw(const _pSrc& p)
 	{
 		return std::unique_ptr<_type>(p);
@@ -152,7 +152,7 @@ namespace ystdex
 	\tparam _pSrc 指定指针类型。
 	*/
 	template<typename _type, typename _pSrc>
-	inline std::unique_ptr<_type>
+	yconstexprf std::unique_ptr<_type>
 	unique_raw(_pSrc&& p)
 	{
 		return std::unique_ptr<_type>(p);
@@ -167,7 +167,7 @@ namespace ystdex
 	\note 使用空指针构造空实例。
 	*/
 	template<typename _type>
-	inline std::unique_ptr<_type>
+	yconstexprf std::unique_ptr<_type>
 	unique_raw(const nullptr_t& p)
 	{
 		return std::unique_ptr<_type>();
@@ -185,7 +185,7 @@ namespace ystdex
 	\tparam _pSrc 指定指针类型。
 	*/
 	template<typename _type, typename _pSrc>
-	inline std::shared_ptr<_type>
+	yconstexprf std::shared_ptr<_type>
 	share_raw(const _pSrc& p)
 	{
 		return std::shared_ptr<_type>(p);
@@ -194,13 +194,13 @@ namespace ystdex
 	\tparam _pSrc 指定指针类型。
 	*/
 	template<typename _type, typename _pSrc>
-	inline std::shared_ptr<_type>
+	yconstexprf std::shared_ptr<_type>
 	share_raw(_pSrc&& p)
 	{
 		return std::shared_ptr<_type>(p);
 	}
 	template<typename _type>
-	inline std::shared_ptr<_type>
+	yconstexprf std::shared_ptr<_type>
 	share_raw(_type* p)
 	{
 		return std::shared_ptr<_type>(p);
@@ -209,7 +209,7 @@ namespace ystdex
 	\note 使用空指针构造空实例。
 	*/
 	template<typename _type>
-	inline std::shared_ptr<_type>
+	yconstexprf std::shared_ptr<_type>
 	share_raw(const nullptr_t& p)
 	{
 		return std::shared_ptr<_type>();

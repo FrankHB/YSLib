@@ -11,12 +11,12 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r2177;
+\version r2178;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:43:24 +0800;
 \par 修改时间:
-	2011-09-08 12:51 +0800;
+	2011-09-23 17:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -54,7 +54,7 @@ struct PixelFiller
 	/*!
 	\brief 构造：使用指定颜色。
 	*/
-	inline explicit
+	explicit inline
 	PixelFiller(_tPixel c)
 		: Color(c)
 	{}

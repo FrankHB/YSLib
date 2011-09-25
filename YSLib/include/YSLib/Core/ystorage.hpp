@@ -12,12 +12,12 @@
 /*!	\file ystorage.hpp
 \ingroup Core
 \brief 全局公用存储管理。
-\version r1352;
+\version r1354;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-14 20:17:34 +0800;
 \par 修改时间:
-	2011-09-13 23:43 +0800;
+	2011-09-23 19:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,7 +33,7 @@
 YSL_BEGIN
 
 /*!
-\brief 取指定类型的默认构造的对象。
+\brief 取指定类型的无参数构造的对象。
 */
 PDefTH1(_type)
 inline _type
@@ -113,7 +113,7 @@ public:
 	/*!
 	\brief 删除对象并置指针为空值。
 	*/
-	inline static void
+	static inline void
 	Release()
 	{
 		safe_delete_obj()(_ptr);
@@ -140,7 +140,7 @@ private:
 	/*!
 	\brief 取静态指针引用。
 	*/
-	inline static PointerType&
+	static inline PointerType&
 	GetStaticPtrRef()
 	{
 		static PointerType ptr;
@@ -184,7 +184,7 @@ public:
 	/*!
 	\brief 删除对象并置指针为空值。
 	*/
-	inline static void
+	static inline void
 	Release()
 	{
 		safe_delete_obj()(GetStaticPtrRef());

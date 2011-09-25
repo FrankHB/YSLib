@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7292;
+\version r7323;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-09-21 15:47 +0800;
+	2011-09-21 18:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,10 +74,11 @@ private:
 	Styles style;
 
 public:
+	yconstexprf
 	FontStyle(Styles = Regular);
 
-	DefConverter(const Styles&, style)
-	operator Styles&();
+	yconstexprf DefConverter(const Styles&, style)
+	DefMutableConverter(Styles&, style)
 
 	/*!
 	\brief 取样式名称。
@@ -88,16 +89,10 @@ public:
 	GetName() const ynothrow;
 };
 
-inline
+yconstexprf
 FontStyle::FontStyle(Styles s)
 	: style(s)
 {}
-
-inline
-FontStyle::operator Styles&()
-{
-	return style;
-}
 
 
 //! \brief 字型家族 (Typeface Family) 标识。
@@ -285,7 +280,8 @@ class Font
 public:
 	typedef u8 SizeType;
 
-	static const SizeType DefaultSize, MinimalSize, MaximalSize;
+	static yconstexpr SizeType DefaultSize = 12,
+		MinimalSize = 4, MaximalSize = 96;
 
 private:
 	static Font* pDefFont; //!< 默认 Shell 字体。
@@ -298,14 +294,14 @@ public:
 	/*!
 	\brief 构造指定字型家族、大小和样式的字体对象。
 	*/
-	explicit
+	explicit yconstexprf
 	Font(const FontFamily& = FetchDefaultFontFamily(), SizeType = DefaultSize,
 		FontStyle = FontStyle::Regular);
 
-	DefPredicate(Bold, Style | FontStyle::Bold)
-	DefPredicate(Italic, Style | FontStyle::Italic)
-	DefPredicate(Underline, Style | FontStyle::Underline)
-	DefPredicate(Strikeout, Style | FontStyle::Strikeout)
+	yconstexprf DefPredicate(Bold, Style | FontStyle::Bold)
+	yconstexprf DefPredicate(Italic, Style | FontStyle::Italic)
+	yconstexprf DefPredicate(Underline, Style | FontStyle::Underline)
+	yconstexprf DefPredicate(Strikeout, Style | FontStyle::Strikeout)
 
 	/*!
 	\brief 取默认实例。
@@ -313,8 +309,8 @@ public:
 	static const Font&
 	GetDefault();
 	DefGetter(const FontFamily&, FontFamily, *pFontFamily)
-	DefGetter(FontStyle, Style, Style)
-	DefGetter(SizeType, Size, Size)
+	yconstexprf DefGetter(FontStyle, Style, Style)
+	yconstexprf DefGetter(SizeType, Size, Size)
 	DefGetter(FontCache&, Cache, GetFontFamily().Cache)
 	DefGetterMember(const FontFamily::NameType&, FamilyName, GetFontFamily())
 	DefGetter(Typeface::NameType, StyleName, Style.GetName())
@@ -351,6 +347,11 @@ public:
 	UpdateSize();
 };
 
+yconstexprf
+Font::Font(const FontFamily& family, const SizeType size, FontStyle style)
+	: pFontFamily(&family), Style(style), Size(size)
+{}
+
 inline
 const Font&
 Font::GetDefault()
@@ -377,20 +378,21 @@ public:
 	/*!
 	\brief 使用本机类型对象构造字符位图对象。
 	*/
+	yconstexprf
 	CharBitmap(const NativeType&);
 
-	DefConverter(NativeType, bitmap)
+	yconstexprf DefConverter(NativeType, bitmap)
 
-	DefGetter(BufferType, Buffer, bitmap->buffer)
-	DefGetter(ScaleType, Width, bitmap->width)
-	DefGetter(ScaleType, Height, bitmap->height)
-	DefGetter(SignedScaleType, Left, bitmap->left)
-	DefGetter(SignedScaleType, Top, bitmap->top)
-	DefGetter(SignedScaleType, XAdvance, bitmap->xadvance)
-	DefGetter(SignedScaleType, YAdvance, bitmap->yadvance)
+	yconstexprf DefGetter(BufferType, Buffer, bitmap->buffer)
+	yconstexprf DefGetter(ScaleType, Width, bitmap->width)
+	yconstexprf DefGetter(ScaleType, Height, bitmap->height)
+	yconstexprf DefGetter(SignedScaleType, Left, bitmap->left)
+	yconstexprf DefGetter(SignedScaleType, Top, bitmap->top)
+	yconstexprf DefGetter(SignedScaleType, XAdvance, bitmap->xadvance)
+	yconstexprf DefGetter(SignedScaleType, YAdvance, bitmap->yadvance)
 };
 
-inline
+yconstexprf
 CharBitmap::CharBitmap(const NativeType& b)
 	: bitmap(b)
 {}

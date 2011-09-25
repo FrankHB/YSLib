@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2445;
+\version r2447;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-09-22 08:09 +0800;
+	2011-09-22 15:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -64,6 +64,7 @@ private:
 	Text::TextFileBuffer::Iterator itUp; //!< 字符区域读取文本缓存迭代器。
 	Text::TextFileBuffer::Iterator itDn; //!< 字符区域读取文本缓存迭代器。
 	u8 lnHeight; //!< 行高。
+	Text::Encoding cp; //!< 编码。
 
 public:
 	YSLib::Components::TextArea AreaUp; //!< 上屏幕对应字符区域。
@@ -93,6 +94,7 @@ public:
 		//!< 取下字符区域的行距。
 	DefGetter(Color, Color, GetColorUp()) //!< 取字符区域的字体颜色。
 	DefGetter(u8, LineGap, GetLineGapUp()) //!< 取字符区域的行距。
+	DefGetter(Text::Encoding, Encoding, cp) //!< 取编码。
 
 private:
 	DefSetterDe(PixelType, ColorUp, AreaUp.Color, 0) \

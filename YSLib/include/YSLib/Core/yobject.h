@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3262;
+\version r3263;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-18 13:18 +0800;
+	2011-09-23 17:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -172,13 +172,13 @@ public:
 
 private:
 	PDefTH1(_type)
-	inline static bool
+	static inline bool
 	AreEqual(_type& x, _type& y, decltype(x == y) = false)
 	{
 		return x == y;
 	}
 	PDefTH2(_type, _tUnused)
-	inline static bool
+	static inline bool
 	AreEqual(_type&, _tUnused&)
 	{
 		return true;

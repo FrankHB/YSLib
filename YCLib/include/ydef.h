@@ -11,12 +11,12 @@
 /*!	\file ydef.h
 \ingroup YCLib
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2634;
+\version r2642;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2011-09-22 09:14 +0800;
+	2011-09-23 14:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,10 +58,19 @@
 	|| YCL_IMPL_GNUCPP >= 40600
 //#	include <type_traits>
 #	define YCL_HAS_BUILTIN_NULLPTR
+#	define YCL_HAS_CONSTEXPR
 #else
 // TODO: complete version checking for compiler and library implementation;
 //#ifdef __GNUC__
 //#	include <tr1/type_traits>
+#endif
+
+#ifdef YCL_HAS_CONSTEXPR
+#define yconstexpr constexpr
+#define yconstexprf constexpr
+#else
+#define yconstexpr const
+#define yconstexprf inline
 #endif
 
 #ifndef YCL_CHAR_BIT

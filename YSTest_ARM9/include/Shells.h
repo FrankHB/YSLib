@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3440;
+\version r3456;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-18 21:33 +0800;
+	2011-09-25 16:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -195,10 +195,30 @@ public:
 		Refresh(const PaintEventArgs&);
 	};
 
+	class FileInfoPanel : public AUIBoxControl
+	{
+	public:
+		ShlReader& Shell;
+		Button btnClose;
+		Label lblInfo;
+
+		FileInfoPanel(const Rect&, ShlReader&);
+
+		ImplI1(AUIBoxControl) IWidget*
+		GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
+
+		virtual Rect
+		Refresh(const PaintEventArgs&);
+
+		void
+		UpdateData();
+	};
+
 	static string path;
 
 	MDualScreenReader Reader;
 	ReaderPanel pnlReader;
+	FileInfoPanel pnlFileInfo;
 	TextFile* pTextFile;
 	shared_ptr<Image> hUp, hDn;
 	MenuHost mhMain;

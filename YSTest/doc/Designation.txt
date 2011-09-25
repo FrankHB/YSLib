@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5437;
+\version r5444;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-09-22 08:04 +0800;
+	2011-09-22 15:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -160,7 +160,7 @@
 基于标准 ISO C++03 环境（ISO/IEC 14882:2003 定义的基本语言特性和库函数以及以下扩展）和基本的系统调用（由 YCLib 支持）。
 
 @1.3.2.2.1 允许使用的非 ISO C++03 扩展：
-定义于 ISO C99（ISO/IEC 9899:1999）和 ISO C++0x（ISO/IEC N3242）中，且有一个以上完整的语言实现。
+定义于 ISO C99（ISO/IEC 9899:1999）和 ISO C++11（ISO/IEC 14882:2011）中，且有一个以上完整的语言实现。
  Static assertions(N1720) ；
  long long(N1811) ；
  Right angle brackets(N1757) ；
@@ -168,6 +168,7 @@
  auto-typed variables(N1984) ；
  Extern templates(N1987) ；
  Rvalue references(N2118) ；
+ Generalized constant expressions(N2235) ；
  Declared type of an expression(N2343) ；
  Defaulted and deleted functions(N2346) ；
  New function declaration syntax for deduced return types(N2541) ；
@@ -416,7 +417,7 @@
 
 @1.4.5.1
 不使用表示存储类的关键字 auto ，使用编译器的隐式实现。
-显式使用会使和 ISO C++0x 代码的共用出现问题。
+显式使用会使和 ISO C++11 代码的共用出现问题。
 
 @1.4.5.2
 尽量避免使用存储类关键字 register ，参见 @1.4.1.4 。
@@ -469,7 +470,7 @@
 
 @1.4.5.7 友元：
 必要时使用友元突破类的封装性限制(@1.3.6.2) 。除此之外尽可能少使用友元。
-禁止在类定义中定义友元函数（在 ISO C++03 中合法，参见 ISO/IEC 14882:2003 11.4/5 ；在 ISO C++0x 中非法，参见 ISO/IEC N3242 11.3/2）。
+禁止在类定义中定义友元函数（在 ISO C++03 中合法，参见 ISO/IEC 14882:2003 11.4/5 ；在 ISO C++11 中非法，参见 ISO/IEC 14882:2011 11.3/2）。
 
 @1.4.6 const 和 volatile 修饰符(cv-qulifier) ：
 
@@ -934,7 +935,7 @@
 多线程程序中，禁止使用非 const 全局对象。
 
 @2.2.2 对象引用和所有权管理：
-注意基于非透明引用计数实现的非侵入式智能指针（如 boost::shared_ptr/std::tr1::shared_ptr 以及 C++0x 的 std::shared_ptr ）具有以下固有的缺点：
+注意基于非透明引用计数实现的非侵入式智能指针（如 boost::shared_ptr/std::tr1::shared_ptr 以及 C++11 的 std::shared_ptr ）具有以下固有的缺点：
 无法修改引用计数并直接转移所有权，资源实例的生存期依赖于至少一个具体智能指针对象的生存期；
 资源实例对智能指针对象的上述依赖性导致智能指针类型入侵用户程序接口；
 并非完全的非侵入式实现（例如可能依赖于 enable_shared_from_this 等），可能入侵客户资源实现，导致耦合扩散；

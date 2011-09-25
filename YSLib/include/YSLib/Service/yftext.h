@@ -11,12 +11,12 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1654;
+\version r1660;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-09-20 06:29 +0800;
+	2011-09-25 15:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,11 +32,11 @@
 YSL_BEGIN
 
 // BOM（byte-order mark ，字节顺序标记）常量；零宽无间断空格字符的单字节编码。
-const char BOM_UTF_16LE[2] = {0xFF, 0xFE};
-const char BOM_UTF_16BE[2] = {0xFE, 0xFF};
-const char BOM_UTF_8[3] = {0xEF, 0xBB, 0xBF};
-const char BOM_UTF_32LE[4] = {0xFF, 0xFE, 0x00, 0x00};
-const char BOM_UTF_32BE[4] = {0x00, 0x00, 0xFE, 0xFF};
+yconstexpr char BOM_UTF_16LE[2] = {0xFF, 0xFE};
+yconstexpr char BOM_UTF_16BE[2] = {0xFE, 0xFF};
+yconstexpr char BOM_UTF_8[3] = {0xEF, 0xBB, 0xBF};
+yconstexpr char BOM_UTF_32LE[4] = {0xFF, 0xFE, 0x00, 0x00};
+yconstexpr char BOM_UTF_32BE[4] = {0x00, 0x00, 0xFE, 0xFF};
 
 
 //! \brief 文本文件类。
@@ -54,7 +54,7 @@ public:
 	TextFile(const_path_t);
 
 	DefGetter(u8, BOMSize, bl) //!< 取 BOM 大小。
-	DefGetter(Text::Encoding, CP, cp) //!< 取编码。
+	DefGetter(Text::Encoding, Encoding, cp) //!< 取编码。
 	DefGetter(SizeType, TextSize, GetSize() - GetBOMSize()) \
 		//!< 取文本区段大小。
 	DefGetter(SizeType, TextPosition, GetPosition() - bl) \

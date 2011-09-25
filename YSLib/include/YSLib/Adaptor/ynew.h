@@ -11,12 +11,12 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version 0.2052;
+\version r2060;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2011-05-31 12:46 +0800;
+	2011-09-23 19:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,6 +33,9 @@
 //包含平台文件。
 #include <platform.h>
 
+//包含 YCLib 配置。
+#include <ydef.h>
+
 //引入 YSLib 命名空间宏。
 #include "ybase.h"
 
@@ -44,6 +47,7 @@
 #include <map>
 #include <cstdio>
 #include <ext/malloc_allocator.h> // for libg++ malloc allocator;
+#include <ystdex/utility.hpp> // for ystdex::noncopyable;
 
 
 /*//@{*/
@@ -100,7 +104,7 @@ public:
 	/*
 	\brief new 表达式分配记录器。
 	*/
-	class NewRecorder
+	class NewRecorder : public ystdex::noncopyable
 	{
 	private:
 		MemoryList& blocks;
@@ -108,12 +112,8 @@ public:
 		const int line;
 
 	public:
-		explicit
+		explicit yconstexprf
 		NewRecorder(const char*, int, MemoryList& = GetDebugMemoryList());
-
-	private:
-		NewRecorder(const NewRecorder&);
-		NewRecorder& operator=(const NewRecorder&);
 
 	public:
 		/*!
@@ -169,7 +169,7 @@ MemoryList::BlockInfo::BlockInfo(std::size_t s, const char* f, int l)
 	: size(s), file(f), line(l)
 {}
 
-inline
+yconstexprf
 MemoryList::NewRecorder::NewRecorder(const char* f, int l, MemoryList& b)
 	: blocks(b), file(f), line(l)
 {}

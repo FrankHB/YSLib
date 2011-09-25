@@ -11,12 +11,12 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数对象封装。
-\version r1748;
+\version r1753;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2011-09-13 23:17 +0800;
+	2011-09-23 18:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -149,6 +149,7 @@ public:
 	/*!
 	\brief 构造：使用函数指针。
 	*/
+	yconstexprf
 	ExpandMemberFirst(_tRet(_type::*p)(_tPara))
 		: _pm(p)
 	{}
@@ -156,7 +157,7 @@ public:
 	/*!
 	\brief 比较：相等关系。
 	*/
-	bool
+	yconstexprf bool
 	operator==(const ExpandMemberFirst& rhs) const
 	{
 		return _pm == rhs._pm;
@@ -202,6 +203,7 @@ public:
 	/*!
 	\brief 构造：使用对象引用和成员函数指针。
 	*/
+	yconstexprf
 	ExpandMemberFirstBinder(_type& obj, _tRet(_type::*p)(_tPara))
 		: _po(&obj), _pm(p)
 	{}
@@ -209,6 +211,7 @@ public:
 	\brief 构造：使用非 _type 类型对象引用和成员函数指针。
 	\note 使用 dynamic_cast 测试类型。
 	*/
+	yconstexprf
 	ExpandMemberFirstBinder(_tNew& obj, _tRet(_type::*p)(_tPara))
 		: _po(dynamic_cast<_type*>(&obj)), _pm(p)
 	{}
@@ -216,7 +219,7 @@ public:
 	/*!
 	\brief 比较：相等关系。
 	*/
-	bool
+	yconstexprf bool
 	operator==(const ExpandMemberFirstBinder& rhs) const
 	{
 		return _po == rhs._po && _pm == rhs._pm;

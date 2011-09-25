@@ -11,12 +11,12 @@
 /*!	\file cast.hpp
 \ingroup YCLib
 \brief C++ 转换模板类。
-\version r1644;
+\version r1657;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-15 08:13:18 +0800;
 \par 修改时间:
-	2011-09-22 09:09 +0800;
+	2011-09-23 17:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,7 +41,7 @@ namespace ystdex
 	\brief 自动指针转换：包装一个对象为一个整数。
 	*/
 	template<class _type, typename _tIntegral>
-	_tIntegral
+	yconstexprf _tIntegral
 	auto_integral_cast(_type h)
 	{
 		return reinterpret_cast<_tIntegral>(
@@ -83,7 +83,7 @@ namespace ystdex
 		return static_cast<_tDst>(x);
 	}
 	template <class _tDst, class _tSrc>
-	inline _tDst&
+	yconstexprf _tDst&
 	polymorphic_downcast(_tSrc& x)
 	{
 		return *polymorphic_downcast<typename remove_reference<_tDst>
@@ -100,7 +100,7 @@ namespace ystdex
 		return p;
 	}
 	template <class _tDst, class _tSrc>
-	inline _tDst&
+	yconstexprf _tDst&
 	polymorphic_crosscast(_tSrc& x)
 	{
 		return *polymorphic_crosscast<typename remove_reference<_tDst>
@@ -121,7 +121,7 @@ namespace ystdex
 		template<typename _tFrom, typename _tTo, bool _bNonVirtualDownCast>
 		struct _general_polymorphic_cast_helper
 		{
-			inline static _tTo
+			static yconstexprf _tTo
 			cast(_tFrom x)
 			{
 				return polymorphic_downcast<_tTo>(x);
@@ -130,7 +130,7 @@ namespace ystdex
 		template<typename _tFrom, typename _tTo>
 		struct _general_polymorphic_cast_helper<_tFrom, _tTo, false>
 		{
-			inline static _tTo
+			static yconstexprf _tTo
 			cast(_tFrom x)
 			{
 				return dynamic_cast<_tTo>(x);
@@ -140,7 +140,7 @@ namespace ystdex
 		template<typename _tFrom, typename _tTo, bool _bUseStaticCast>
 		struct _general_cast_helper
 		{
-			inline static _tTo
+			static yconstexprf _tTo
 			cast(_tFrom x)
 			{
 				return static_cast<_tTo>(x);
@@ -149,7 +149,7 @@ namespace ystdex
 		template<typename _tFrom, typename _tTo>
 		struct _general_cast_helper<_tFrom, _tTo, false>
 		{
-			inline static _tTo
+			static yconstexprf _tTo
 			cast(_tFrom x)
 			{
 				return _general_polymorphic_cast_helper<_tFrom, _tTo,
@@ -162,7 +162,7 @@ namespace ystdex
 		template<typename _type>
 		struct _general_cast_helper<_type, _type, true>
 		{
-			inline static _type
+			static inline _type
 			cast(_type x)
 			{
 				return x;
@@ -171,7 +171,7 @@ namespace ystdex
 		template<typename _type>
 		struct _general_cast_helper<_type, _type, false>
 		{
-			inline static _type
+			static yconstexprf _type
 			cast(_type x)
 			{
 				return x;
@@ -195,21 +195,21 @@ namespace ystdex
 	*/
 	//@{
 	template<typename _tDst, typename _tSrc>
-	inline _tDst
+	yconstexprf _tDst
 	general_cast(_tSrc* x)
 	{
 		return _impl::_general_cast_helper<_tSrc*, _tDst,
 			_impl::_general_cast_type_helper<_tSrc*, _tDst>::value>::cast(x);
 	}
 	template<typename _tDst, typename _tSrc>
-	inline _tDst
+	yconstexprf _tDst
 	general_cast(_tSrc& x)
 	{
 		return _impl::_general_cast_helper<_tSrc&, _tDst,
 			_impl::_general_cast_type_helper<_tSrc&, _tDst>::value>::cast(x);
 	}
 	template<typename _tDst, typename _tSrc>
-	inline const _tDst
+	yconstexprf const _tDst
 	general_cast(const _tSrc& x)
 	{
 		return _impl::_general_cast_helper<const _tSrc&, _tDst,

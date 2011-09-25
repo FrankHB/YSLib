@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <None Include="data\cp113.bin" />
     <None Include="data\default_font.bin" />
     <None Include="Makefile" />
   </ItemGroup>

@@ -11,12 +11,12 @@
 /*!	\file cstdio.h
 \ingroup YCLib
 \brief ISO C 标准输入/输出扩展。
-\version r1187;
+\version r1199;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-21 08:30:08 +0800;
 \par 修改时间:
-	2011-09-23 10:25 +0800;
+	2011-09-23 15:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -75,22 +75,24 @@ namespace ystdex
 		构造空流迭代器。
 		\post <tt>stream == nullptr</tt> 。
 		*/
+		yconstexprf
 		ifile_iterator();
 		/*!
 		\brief 构造：使用流指针。
 		\post <tt>stream == &s</tt> 。
 		*/
+		yconstexprf
 		ifile_iterator(istream_type& s);
 		/*!
 		\brief 复制构造：默认实现。
 		*/
+		yconstexprf
 		ifile_iterator(const ifile_iterator&) = default;
-		ifile_iterator(istream_type*);
 		~ifile_iterator() = default;
 		
-		reference
+		yconstexprf reference
 		operator*() const;
-		pointer
+		yconstexprf pointer
 		operator->() const;
 
 		/*
@@ -112,26 +114,26 @@ namespace ystdex
 		ifile_iterator
 		operator++(int);
 
-		friend bool
+		friend yconstexprf bool
 		operator==(const ifile_iterator&, const ifile_iterator&);
 	};
 
-	inline
+	yconstexprf
 	ifile_iterator::ifile_iterator()
 		: stream(), value()
 	{}
-	inline
+	yconstexprf
 	ifile_iterator::ifile_iterator(istream_type& s)
 		: stream(&s), value()
 	{}
 
-	inline ifile_iterator::reference
+	yconstexprf ifile_iterator::reference
 	ifile_iterator::operator*() const
 	{
 		return value;
 	}
 
-	inline ifile_iterator::pointer
+	yconstexprf ifile_iterator::pointer
 	ifile_iterator::operator->() const
 	{
 		return &**this;
@@ -155,12 +157,12 @@ namespace ystdex
 		return i;
 	}
 
-	inline bool
+	yconstexprf bool
 	operator==(const ifile_iterator& x, const ifile_iterator& y)
 	{
 		return x.stream == y.stream;
 	}
-	inline bool
+	yconstexprf bool
 	operator!=(const ifile_iterator& x, const ifile_iterator& y)
 	{
 		return !(x == y);
