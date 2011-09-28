@@ -11,16 +11,16 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6076;
+\version r6079;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-18 02:46 +0800;
+	2011-09-26 09:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::Widget;
+	YSLib::UI::YWidget;
 */
 
 
@@ -172,6 +172,13 @@ SetInvalidationOf(IWidget&);
 */
 void
 SetInvalidationToParent(IWidget&);
+
+/*!
+\brief 检查指定部件是否满足 Contains(wgt, pt) && f(wgt) 。
+\return 若满足则返回部件指针，否则为 nullptr 。
+*/
+IWidget*
+CheckWidget(IWidget& wgt, const Point& pt, bool(&f)(const IWidget&));
 
 /*!
 \brief 清除焦点指针，同时以此部件作为事件源，调用被清除焦点部件的 LostFocus 事件。

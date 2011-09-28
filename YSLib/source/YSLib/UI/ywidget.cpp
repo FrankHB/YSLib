@@ -11,16 +11,16 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5149;
+\version r5156;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-18 02:50 +0800;
+	2011-09-26 08:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::Widget;
+	YSLib::UI::YWidget;
 */
 
 
@@ -71,6 +71,12 @@ ClearFocusingPtrOf(IWidget& wgt)
 		wgt.GetFocusResponder().ClearFocusingPtr();
 		CallEvent<LostFocus>(*p, wgt, EventArgs());
 	}
+}
+
+IWidget*
+CheckWidget(IWidget& wgt, const Point& pt, bool(&f)(const IWidget&))
+{
+	return Contains(wgt, pt) && f(wgt) ? &wgt : nullptr;
 }
 
 void

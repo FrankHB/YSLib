@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5175;
+\version r5185;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-25 17:26 +0800;
+	2011-09-26 08:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -917,12 +917,11 @@ IWidget*
 ShlReader::ReaderPanel::GetTopWidgetPtr(const Point& pt,
 	bool(&f)(const IWidget&))
 {
-	if(Contains(btnClose, pt) && f(btnClose))
-		return &btnClose;
-	if(Contains(trReader, pt) && f(trReader))
-		return &trReader;
-	if(Contains(lblProgress, pt) && f(lblProgress))
-		return &lblProgress;
+	IWidget* const pWidgets[] = {&btnClose, &trReader, &lblProgress};
+
+	for(int i(0); i < 3; ++i)
+		if(auto p = CheckWidget(*pWidgets[i], pt, f))
+			return p;
 	return nullptr;
 }
 
@@ -930,9 +929,11 @@ Rect
 ShlReader::ReaderPanel::Refresh(const PaintEventArgs& e)
 {
 	Widget::Refresh(e);
-	RenderChild(btnClose, e);
-	RenderChild(trReader, e);
-	RenderChild(lblProgress, e);
+
+	IWidget* const pWidgets[] = {&btnClose, &trReader, &lblProgress};
+
+	for(int i(0); i < 3; ++i)
+		RenderChild(*pWidgets[i], e);
 	return GetBoundsOf(*this);
 }
 
@@ -954,10 +955,11 @@ IWidget*
 ShlReader::FileInfoPanel::GetTopWidgetPtr(const Point& pt,
 	bool(&f)(const IWidget&))
 {
-	if(Contains(btnClose, pt) && f(btnClose))
-		return &btnClose;
-	if(Contains(lblInfo, pt) && f(lblInfo))
-		return &lblInfo;
+	IWidget* const pWidgets[] = {&btnClose, &lblInfo};
+
+	for(int i(0); i < 2; ++i)
+		if(auto p = CheckWidget(*pWidgets[i], pt, f))
+			return p;
 	return nullptr;
 }
 
@@ -965,8 +967,10 @@ Rect
 ShlReader::FileInfoPanel::Refresh(const PaintEventArgs& e)
 {
 	Widget::Refresh(e);
-	RenderChild(btnClose, e);
-	RenderChild(lblInfo, e);
+	IWidget* const pWidgets[] = {&btnClose, &lblInfo};
+
+	for(int i(0); i < 2; ++i)
+		RenderChild(*pWidgets[i], e);
 	return GetBoundsOf(*this);
 }
 

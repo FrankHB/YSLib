@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YCLib
 \brief C++ 类型操作模板类。
-\version r1172;
+\version r1176;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2011-09-23 15:41 +0800;
+	2011-09-27 21:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,6 @@
 #define YCL_INC_YSTDEX_TYPEOP_HPP_
 
 #include "../ydef.h"
-#include <type_traits>
 
 namespace ystdex
 {

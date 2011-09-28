@@ -20,8 +20,10 @@
     <ClInclude Include="include\CHRLib\chrlib.h" />
     <ClInclude Include="include\CHRLib\chrmap.h" />
     <ClInclude Include="include\CHRLib\chrproc.h" />
+    <ClInclude Include="include\CHRLib\smap.hpp" />
     <ClInclude Include="include\ycommon.h" />
     <ClInclude Include="include\ydef.h" />
+    <ClInclude Include="include\ystdex\any.h" />
     <ClInclude Include="include\ystdex\cast.hpp" />
     <ClInclude Include="include\ystdex\cstdio.h" />
     <ClInclude Include="include\ystdex\cstring.h" />

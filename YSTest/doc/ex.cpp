@@ -1,4 +1,4 @@
-// v0.3338; *build 246 rev 47;
+// v0.3338; *build 247 rev 16;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -284,258 +284,124 @@ $using:
 
 $DONE:
 r1:
-+ \mac (YCL_HAS_CONSTEXPR, yconstexpr, yconstexprf)
-	for generalized constant expressions @ \h YDefinition;
-/ trying ^ (yconstexpr, yconstexprf) @ \a (\decl, \def) @ \lib YCLib;
+/ @ \impl \u Shells $=
+(
+	+ \f IWidget* CheckWidget(IWidget&, const Point&, bool(&)(const IWidget&)))
+		@ \un \ns;
+	/ \impl @ \mf (ShlReader::ReaderPanel::GetTopWidgetPtr,
+		ShlReader::ReaderPanel::Refresh) ^ CheckWidget
+);
 
 r2:
-+ \inc \h <ydef.h> @ \h YNew;
-/ trying ^ (yconstexpr, yconstexprf) @ \a (\decl, \def) @ \dir (Adaptor, Core)
-	@ \lib YSLib;
-/= \a 'yconstexprf explicit' -> 'explicit yconstexprf',
-/= \a 'inline explicit' -> 'explicit inline',
-/= \a 'yconstexprf static' -> 'static yconstexprf',
-/= \a 'inline static' -> 'static inline';
+/= test 1;
 
 r3:
-/ @ \h Ynew $=
-(
-	+ \inc \h <ystdex/utility.hpp>;
-	/ \cl @ MemoryList::NewRecorder $=
-	(
-		+ \inh \cl ystdex::noncopyable,
-		- \decl @ private copy \ctor,
-		- \decl @ private copy \op=
-	)
-);
+/ \f CheckWidget @ \un \ns @ \u Shells >> \u YWidget;
+/ \simp \impl @ \mf GetTopWidgetPtr @ \cl (ATrack, AScrollBar,
+	ScrollableContainer) ^ \f CheckWidget;
 
 r4:
-/ trying ^ (yconstexpr, yconstexprf) @ \a (\decl, \def) @ \dir ((Helper, Service)
-	@ \lib YSLib, \u Shells),
-/ \ctor @ \cl ShlCLI @ \h Shell_DS ^ \mac DefDeCtor,
-/ \ctor @ \cl InputContent @ \h YGlobal;
+/= test 2 ^ \conf release;
 
-r5:
-/= test 1 ^ \conf release;
-
-r6-r9:
-/ @ \cl TextBuffer $=
+r5-r6:
+/ @ \lib YCLib $=
 (
-	- \mf GetPtr,
-	- \tb @ \impl @ \ctor,
-	/ \mf ClearText => Clear,
-	- \mf Output
+	+ \h StaticMapping["smap.hpp"];
+	/ \a \clt GUCS2Mapper >> \h StaticMappin,
+	/ @ \impl \u CharacterProcessing $=
+	(
+		+ \inc \h StaticMapping,
+		-= \h CHRLib,
+		-= \h <cstring>,
+		+ \inc \h <ystdex/cstdio.h>
+	),
+	+ \inc \h <cstdio> @ \h CharacterProcessing,
+	- \inc \h <ystdex/cstdio.h> @ \h CharacterMapping
+);
+/ \a code mapping table @ \h CharacterMapping >> \h StaticMapping @ \lib CHRLib;
+
+r7:
++ \h Any["any.h"] @ \lib YCLib::YStandardExtend;
+/ union (no_copy_t, any_pod_t) @ \h YCLib::YStandardExtend::Utilities
+	>> \h Any,
++ \cl void_ref @ \h Any;
+/ @ \h Iterator $=
+(
+	/ \inc \h "../ydef.h" >> "any.h",
+	+ \inc \h <memory>; 
+	+ \stt iterator_operations;
+	+ \cl input_monomorphic_iterator;
 );
 
+r8:
+/ @ \cl void_ref @ \h Any $=
+(
+	* \impl @ \mft<typename _type> \op _type&() $since r7,
+	+ \mf \op& const
+),
+/ \inc \h <type_traits> @ \h "type_op.hpp" >> \h YDefinition;
+/ @ \h Iterator $=
+(
+	+ typedef void_ref common_iterator;
+	/ @ \stt iterator_operations,
+	/ \ctor @ \cl input_monomorphic_iterator,
+);
+
+r9:
+/ \impl @ \cl ifile_iterator $=
+(
+	/ \m int value -> char_type value;
+	/ \a int -> byte,
+	+ \mf yconstexprf istream_type* get_stream() const;
+),
+/ \impl @ \mf GUCS2Mapper<CharSet::UTF_8>::Map @ \h StaticMaping;
+
 r10:
-/ \impl @ \mf \i (GetPrevNewLine, GetNextNewline, clear, Load with 1 \param)
-	^ \mac (PDefH1, ImplRet) @ \cl TextBuffer @ \h TextManager;
+/ \h @ \StaticMapping $=
+(
+	/ \impl @ \a \mf GUCS2Mapper<'*'>::Map assuming
+		^ std::is_convertible<decltype(*i), const byte&>::value
+);
 
 r11:
-/ @ \cl TextBuffer $=
+/ @ \h StaticMapping $=
 (
-	- \mf SizeType Load(TextFile&);
-	- \mf SizeType TextBuffer::Load(TextFile&, SizeType)
+	/ \a is_convertible -> is_explicitly_convertible,
+	/ \a 'const byte&&' -> 'const byte'
 );
 
 r12:
-/ @ \cl File @ \u YFile $=
-(
-	/ \mf bool Open(const_path_t) -> bool Open(const_path_t, bool = false);
-	/ \exp \ctor File(const_path_t) -> File(const_path_t, bool = false),
-	+ \ctor File(),
-	- \inh \cl noncopyable,
-);
-/ \impl @ \ctor TextFile @ \cl TextFile @ \u YFile_(Text);
+/= test 3 ^ \conf release;
 
 r13:
-/ \simp \impl @ \mf SizeType TextBuffer::LoadN(TextFile&, SizeType);
-
-r14:
-/= test 2 ^ \conf release;
-
-r15:
-/ @ \cl TextBuffer @ \u TextManager $=
+/ @ \cl void_ref @ \h Any $=
 (
-	/ \inh \cl public noncopyable -> public vector<ucs2_t>;
-	- protected \m ucs2_t* const text,
-	- protected \m SizeType len,
-	- private \m const SizeType capacity;
-	- \tr \dtor,
-	/ \tr \simp \impl @ \ctor,
-	/ \mf \op[] -> using vector<ucs2_t>::operator[],
-	/ \mf at -> using vector<ucs2_t>::at,
-	/ \mf clear -> using vector<ucs2_t>::clear,
-	+ typedef vector<ucs2_t>::const_iterator const_iterator,
-	+ typedef vector<ucs2_t>::iterator iterator,
-	/ \tr \impl @ \mf GetSizeOfBuffer,
-	/ \tr \impl @ \mf GetLength,
-	/ \tr \impl @ \mf GetCapacity;
-	/ \tr \impl @ \a \mf,
-	/ \tr \impl @ \a \mf GetPrevChar,
-	/ \tr \impl @ \a \mf GetNextChar,
-	+ using vector<ucs2_t>::at,
-	+ using vector<ucs2_t>::clear,
+	/ \m void* ptr -> const volatile void* ptr;
+	/ \impl @ \mf \op&;
+	/ \tr \impl @ \mft \op _type&,
+	+ 'yconstexprf' @ \a \mft
 );
+
+r14-r15:
+/ \simp \impl @ \impl \u CharacterProcessing ^ input_monomorphic_iterator
+	for less template initializations;
 
 r16:
-/ @ \u TextManager $=
-(
-	/ \cl TextBuffer \mg -> \cl TextBlock;
-	/ @ \cl TextBlock $=
-	(
-		/ \mf GetLength -> using vector<ucs2_t>::size,
-		/ \impl @ \mf \i bool Load(const ucs2_t*);
-		/ \mf GetCapacity -> using vector<ucs2_t>::capacity,
-		- \mf GetSizeOfBuffer,
-		+ using vector<ucs2_t>::begin,
-		+ using vector<ucs2_t>::end,
-		+ using vector<ucs2_t>::cbegin,
-		+ using vector<ucs2_t>::cend
-	);
-	/ \tr \impl @ \mf TextFileBuffer::Iterator::GetBlockLength
-);
-
-r17-r18:
-/= test 3;
-
-r19:
-/ \simp @ \cl TextBlock $=
-(
-	(
-		- \mf (GetPrevNewLine, GetNextNewline);
-		- \mf (GetPrevChar, GetNextChar),
-	),
-	(
-		- \mf bool Load(const ucs2_t*, SizeType);
-		- \mf bool Load(const ucs2_t*)
-	)
-);
-
-r20:
-/ @ \u TextManager $=
-(
-	+ using vector<ucs2_t>::resize @ \cl TextBlock;
-	/ \mf SizeType TextBlock::LoadN(TextFile&, SizeType)
-		-> !\m \f SizeType LoadText(TextBlock&, TextFile&, SizeType),
-	/ @ \cl TextMap $=
-	(
-		typedef map<BlockSizeType, TextBlock*> MapType
-			-> typedef map<BlockSizeType, unique_ptr<TextBlock>> MapType;
-		/ \tr \impl @ \dtor ^ \mac DefEmptyDtor,
-		/ \tr \impl @ \mf Clear,
-		/ \tr @ \mf \op[]
-	);
-	/ \tr \impl @ \mf TextFileBuffer::operator[]
-);
-
-r21:
 /= test 4 ^ \conf release;
-
-r22:
-/ @ \u TextManager $=
-(
-	+ \f \i bool \op==(const TextBlock&, const TextBlock&),
-	+ \f \i bool \op<(const TextBlock&, const TextBlock&);
-);
-
-r23:
-/ \simp \impl @ \mf (GetTextPtr, GetBlockLength) @ \cl TextFileBuffer::Iterator;
-
-r24:
-/ @ \cl TExtFileBuffer $=
-(
-	/ \simp \impl @ \mf operator[];
-	/ \mf \op[] => at;
-	/ \tr \impl @ \mf 
-);
-
-r25:
-/ static const SizeType nBlockSize = 0x2000 @ \cl TextFileBuffer
-	-> static yconstexpr SizeType nBlockSize = 0x2000;
-
-r26:
-/= test 5 ^ \conf release;
-
-r27:
-/ const Encoding '*' \decl ^ \mac yconstexpr @ \h CharacterMapping;
-
-r28:
-/ \a GetCP => GetEncoding,
-/ @ \cl MDualScreenReader @ \u DSReader $=
-(
-	+ private \m Text::Encoding cp;
-	+ \mf Text::Encoding GetEncoding() const,
-	/ \tr \impl @ \ctor,
-	/ \impl @ \mf LoadText
-);
-
-r29:
-/ @ \impl \u Shells $=
-(
-	/ \simp \impl @ \f InputCounter @ \un \ns,
-	+ add menu item MR_FileInfo;
-	/ \tr menus item 'MR_*' value;
-	/ @ \cl ShlReader $=
-	(
-		+ \cl FileInfoPanel;
-		+ \m FileInfoPanel pnlFileInfo;
-		/ \tr \impl @ \ctor,
-		/ \impl @ \mf ExcuteReadingCommand,
-		/ \impl @ \mf OnActivated,
-		/ \tr \impl @ \mf ReaderPanel::Refresh
-	)
-);
-
-r30:
-/ \impl @ \mf (OnActivated, OnDeactivated) @ \cl ShlReader @ \impl \u Shells;
-
-r31:
-/ @ \cl ShlReader @ \impl \u Shells $=
-(
-	/ @ \cl FileInfoPanel $=
-	(
-		+ \mf void UpdateData(),
-		/ \impl @ \ctor
-	);
-	/ \tr \impl @ \mf ExcuteReadingCommand
-);
-
-r32:
-/= test 6 ^ \conf release;
-
-r33-r34:
-/ \impl @ \ctor @ \cl ShlReader::FileInfoPanel @ \impl \u Shells;
-
-r35-r36:
-* initialization order @ \cl MDualScreenReader $since r28;
-
-r37-r44:
-/= test 7;
-
-r45-r46:
-/ @ \h CharacterMapping $=
-(
-	* \impl @ \mf GUCS2Mapper<CharSet::GBK>::Map $since b245,
-	/ \a 'it' => 'i'
-);
-
-r47:
-/= test 8 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-09-26:
--15.8d;
-//Mercurial rev1-rev117: r5578;
+2011-09-28:
+-15.9d;
+//Mercurial rev1-rev118: r5625;
 
 / ...
 
 
 $NEXT_TODO:
-b247-b324:
+b248-b324:
 + %TextList invalidation support;
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
@@ -623,6 +489,20 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ "GUI" $=
+	(
+		+ $design "common widget member operation function %CheckWidget";
+		/ $design "simplified scrolling widget implementation"
+			^ "function %CheckWidget"
+	),
+	+ "statically-typed object proxy class %void_ref";
+	+ "input iterator adaptor class %monomorphic_input_iterator";
+	^ $design "simplified isomorphic character converter prototypes"
+		^ "class %monomorphic_input_iterator"
+),
+
+b246
 (
 	+ $design ^ "selectable C++11 generalized constant expressions features",
 	/ "file classes" $=

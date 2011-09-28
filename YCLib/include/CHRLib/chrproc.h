@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1574;
+\version r1575;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-09-23 15:03 +0800;
+	2011-09-26 15:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,6 +29,7 @@
 
 #include "chrdef.h"
 #include "chrmap.h"
+#include <cstdio>
 
 CHRLIB_BEGIN
 

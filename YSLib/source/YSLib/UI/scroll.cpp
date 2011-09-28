@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3831;
+\version r3838;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-09-16 02:58 +0800;
+	2011-09-26 09:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -120,7 +120,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 IWidget*
 ATrack::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	return Contains(Thumb, pt) && f(Thumb) ? &Thumb : nullptr;
+	return CheckWidget(Thumb, pt, f);
 }
 
 void
@@ -393,10 +393,10 @@ catch(...)
 IWidget*
 AScrollBar::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	if(Contains(PrevButton, pt))
-		return f(PrevButton) ? &PrevButton : nullptr;
-	if(Contains(NextButton, pt))
-		return f(NextButton) ? &NextButton : nullptr;
+	if(auto p = CheckWidget(PrevButton, pt, f))
+		return p;
+	if(auto p = CheckWidget(NextButton, pt, f))
+		return p;
 
 	YAssert(is_not_null(pTrack),
 		"Null widget pointer found @ AScrollBar::GetTopWidgetPtr;");
@@ -481,10 +481,10 @@ ScrollableContainer::ScrollableContainer(const Rect& r)
 IWidget*
 ScrollableContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	if(ContainsVisible(HorizontalScrollBar, pt))
-		return f(HorizontalScrollBar) ? &HorizontalScrollBar : nullptr;
-	if(ContainsVisible(VerticalScrollBar, pt))
-		return f(VerticalScrollBar) ? &VerticalScrollBar : nullptr;
+	if(auto p = CheckWidget(HorizontalScrollBar, pt, f))
+		return p;
+	if(auto p = CheckWidget(VerticalScrollBar, pt, f))
+		return p;
 	return nullptr;
 }
 

@@ -80,6 +80,12 @@
     <ClInclude Include="include\ystdex\cstring.h">
       <Filter>头文件\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\CHRLib\smap.hpp">
+      <Filter>头文件\CHRLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\any.h">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ycommon.cpp">

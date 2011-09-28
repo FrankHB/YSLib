@@ -11,12 +11,12 @@
 /*!	\file cstdio.h
 \ingroup YCLib
 \brief ISO C 标准输入/输出扩展。
-\version r1199;
+\version r1207;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-21 08:30:08 +0800;
 \par 修改时间:
-	2011-09-23 15:31 +0800;
+	2011-09-28 07:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -54,19 +54,19 @@ namespace ystdex
 	\brief ISO C 标准流只读迭代器。
 	*/
 	class ifile_iterator : public std::iterator<std::input_iterator_tag,
-		int, ptrdiff_t, const int*, const int&>
+		byte, ptrdiff_t, const byte*, const byte&>
 	{
 	protected:
 		typedef std::iterator<std::input_iterator_tag,
-			int, ptrdiff_t, const int*, const int&> traits_type;
+			byte, ptrdiff_t, const byte*, const byte&> traits_type;
 
 	public:
-		typedef int char_type;
+		typedef byte char_type;
 		typedef std::FILE istream_type;
 
 	private:
 		istream_type* stream; //!< 流指针。
-		int value;
+		char_type value;
 
 	public:
 		/*!
@@ -116,6 +116,9 @@ namespace ystdex
 
 		friend yconstexprf bool
 		operator==(const ifile_iterator&, const ifile_iterator&);
+
+		yconstexprf istream_type*
+		get_stream() const;
 	};
 
 	yconstexprf
@@ -144,7 +147,7 @@ namespace ystdex
 	{
 		assert(stream);
 
-		value = fgetc(stream);
+		value = static_cast<unsigned>(fgetc(stream));
 		return *this;
 	}
 
@@ -155,6 +158,12 @@ namespace ystdex
 
 		++*this;
 		return i;
+	}
+
+	yconstexprf ifile_iterator::istream_type*
+	ifile_iterator::get_stream() const
+	{
+		return stream;
 	}
 
 	yconstexprf bool

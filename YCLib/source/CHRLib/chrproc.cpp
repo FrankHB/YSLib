@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1878;
+\version r1921;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-09-23 15:10 +0800;
+	2011-09-28 09:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,12 +25,13 @@
 
 
 #include "chrproc.h"
-#include "chrlib.h"
+#include "smap.hpp"
 #include <cctype>
 #include <cstdlib>
-#include <cstring>
 #include <cwchar>
+#include <ystdex/cstdio.h>
 #include <ystdex/cstring.h>
+#include <ystdex/iterator.hpp>
 
 CHRLIB_BEGIN
 
@@ -40,6 +41,7 @@ using std::malloc;
 using std::strlen;
 using std::memcpy;
 using ystdex::sntctslen;
+using ystdex::input_monomorphic_iterator;
 
 namespace
 {
@@ -73,20 +75,10 @@ namespace
 
 
 	template<Encoding cp>
-	ubyte_t
-	UCS2Mapper(ucs2_t& uc, const char* c)
+	yconstexpr ubyte_t
+	UCS2Mapper(ucs2_t& uc, const input_monomorphic_iterator& i)
 	{
-		assert(c);
-
-		return UCS2Mapper_Map<cp>(uc, c);
-	}
-	template<Encoding cp>
-	ubyte_t
-	UCS2Mapper(ucs2_t& uc, std::FILE* fp)
-	{
-		assert(fp);
-
-		return UCS2Mapper_Map<cp>(uc, ++ystdex::ifile_iterator(*fp));
+		return UCS2Mapper_Map<cp>(uc, i);
 	}
 	template<Encoding cp>
 	ubyte_t
@@ -128,8 +120,9 @@ namespace
 ubyte_t
 MBCToUC(ucs2_t& uchr, const char* chr, const Encoding& cp)
 {
+	const auto pfun(FetchMapperPtr<ubyte_t(ucs2_t&,
+		const input_monomorphic_iterator&)>(cp));
 	ubyte_t l(0);
-	const auto pfun(FetchMapperPtr<ubyte_t(ucs2_t&, const char*)>(cp));
 
 	if(pfun)
 		l = pfun(uchr, chr);
@@ -138,12 +131,14 @@ MBCToUC(ucs2_t& uchr, const char* chr, const Encoding& cp)
 ubyte_t
 MBCToUC(ucs2_t& uchr, std::FILE* fp, const Encoding& cp)
 {
+	const auto pfun(FetchMapperPtr<ubyte_t(ucs2_t&,
+		const input_monomorphic_iterator&)>(cp));
 	ubyte_t l(0);
-	const auto pfun(FetchMapperPtr<ubyte_t(ucs2_t&, std::FILE*)>(cp));
 
 	if(pfun)
-		l = pfun(uchr, fp);
-	return feof(fp) ? 0 : l;
+		l = pfun(uchr, input_monomorphic_iterator(
+			++ystdex::ifile_iterator(*fp)));
+	return std::feof(fp) ? 0 : l;
 }
 
 ubyte_t

@@ -11,12 +11,12 @@
 /*!	\file iterator.hpp
 \ingroup YCLib
 \brief C++ 标准库迭代器扩展。
-\version r1321;
+\version r1363;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2011-09-23 18:51 +0800;
+	2011-09-23 18:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,9 +27,10 @@
 #ifndef YCL_INC_YSTDEX_ITERATOR_HPP_
 #define YCL_INC_YSTDEX_ITERATOR_HPP_
 
-#include "../ydef.h"
+#include "any.h"
 #include <iterator>
 #include <utility>
+#include <memory> // for std::addressof;
 
 namespace ystdex
 {
@@ -307,6 +308,91 @@ namespace ystdex
 		base() const
 		{
 			return *this;
+		}
+	};
+
+
+	//公共迭代器类型。
+	typedef void_ref common_iterator;
+
+
+	/*!
+	\brief 迭代器操作静态模版。
+	*/
+	template<typename _tIterator>
+	struct iterator_operations
+	{
+		typedef _tIterator iterator_type;
+		typedef void_ref value_type;
+		typedef void* pointer;
+		typedef void_ref reference;
+
+		static void
+		increase(iterator_type& i)
+		{
+			++i;
+		}
+		static void
+		increase(common_iterator i)
+		{
+			++i.operator iterator_type&();
+		}
+
+		static reference
+		dereference(iterator_type& i)
+		{
+			return *i;
+		}
+		static reference
+		dereference(common_iterator i)
+		{
+			return *i.operator iterator_type&();
+		}
+	};
+
+
+	/*!
+	\ingroup iterator_adaptors
+	\brief 单态输入迭代器。
+
+	非多态输入迭代器适配器。
+	*/
+	class input_monomorphic_iterator : std::iterator<
+		std::input_iterator_tag, void_ref, std::ptrdiff_t,
+		void*, void_ref>
+	{
+	private:
+		common_iterator obj;
+		void(*inc)(common_iterator);
+		reference(*deref)(common_iterator);
+
+	public:
+		input_monomorphic_iterator() = delete;
+		template<typename _tIterator>
+		input_monomorphic_iterator(_tIterator&& i)
+			: obj(i), inc(iterator_operations<typename
+			std::remove_reference<_tIterator>::type>::increase),
+			deref(iterator_operations<typename
+			std::remove_reference<_tIterator>::type>::dereference)
+		{}
+
+		input_monomorphic_iterator&
+		operator++()
+		{
+			inc(obj);
+			return *this;
+		}
+
+		reference
+		operator*()
+		{
+			return deref(obj);
+		}
+
+		pointer
+		operator->()
+		{
+			return &deref(obj);
 		}
 	};
 }

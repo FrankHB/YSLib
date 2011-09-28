@@ -11,12 +11,12 @@
 /*!	\file ydef.h
 \ingroup YCLib
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2642;
+\version r2644;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2011-09-23 14:55 +0800;
+	2011-09-27 21:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,6 +52,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cwchar>
+#include <type_traits>
 #include <sys/types.h>
 
 #if YCL_IMPL_CPP >= 201103L || YCL_IMPL_MSCPP >= 1600 \
