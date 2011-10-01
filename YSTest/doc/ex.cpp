@@ -1,4 +1,4 @@
-// v0.3338; *build 247 rev 16;
+// v0.3338; *build 248 rev 57;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -284,124 +284,134 @@ $using:
 
 $DONE:
 r1:
-/ @ \impl \u Shells $=
++ \c @ \mf (\op->, \op*) @ \cl input_monomorphic_iterator @ \h Iterator;
+/ @ \h StaticMapping @ \lib CHRLib $=
 (
-	+ \f IWidget* CheckWidget(IWidget&, const Point&, bool(&)(const IWidget&)))
-		@ \un \ns;
-	/ \impl @ \mf (ShlReader::ReaderPanel::GetTopWidgetPtr,
-		ShlReader::ReaderPanel::Refresh) ^ CheckWidget
+	+ \ft GetByteOf;
+	/ \simp \impl \a \smf Map @ \clt<'*'> ^ GetByteOf
 );
 
 r2:
-/= test 1;
+- \f MBCSToUCS4 @ \u CharacterProcessing;
 
 r3:
-/ \f CheckWidget @ \un \ns @ \u Shells >> \u YWidget;
-/ \simp \impl @ \mf GetTopWidgetPtr @ \cl (ATrack, AScrollBar,
-	ScrollableContainer) ^ \f CheckWidget;
-
-r4:
-/= test 2 ^ \conf release;
-
-r5-r6:
-/ @ \lib YCLib $=
+/ @ \u CharacterProcessing $=
 (
-	+ \h StaticMapping["smap.hpp"];
-	/ \a \clt GUCS2Mapper >> \h StaticMappin,
-	/ @ \impl \u CharacterProcessing $=
-	(
-		+ \inc \h StaticMapping,
-		-= \h CHRLib,
-		-= \h <cstring>,
-		+ \inc \h <ystdex/cstdio.h>
-	),
-	+ \inc \h <cstdio> @ \h CharacterProcessing,
-	- \inc \h <ystdex/cstdio.h> @ \h CharacterMapping
-);
-/ \a code mapping table @ \h CharacterMapping >> \h StaticMapping @ \lib CHRLib;
-
-r7:
-+ \h Any["any.h"] @ \lib YCLib::YStandardExtend;
-/ union (no_copy_t, any_pod_t) @ \h YCLib::YStandardExtend::Utilities
-	>> \h Any,
-+ \cl void_ref @ \h Any;
-/ @ \h Iterator $=
-(
-	/ \inc \h "../ydef.h" >> "any.h",
-	+ \inc \h <memory>; 
-	+ \stt iterator_operations;
-	+ \cl input_monomorphic_iterator;
-);
-
-r8:
-/ @ \cl void_ref @ \h Any $=
-(
-	* \impl @ \mft<typename _type> \op _type&() $since r7,
-	+ \mf \op& const
+	/ \f ubyte_t MBCToUC(ucs2_t&, const char*, const Encoding&)
+		-> ubyte_t MBCToUC(ucs2_t&, const char*&, const Encoding&);
+	/ \tr \simp @ \f MBCSToUCS2;
 ),
-/ \inc \h <type_traits> @ \h "type_op.hpp" >> \h YDefinition;
-/ @ \h Iterator $=
-(
-	+ typedef void_ref common_iterator;
-	/ @ \stt iterator_operations,
-	/ \ctor @ \cl input_monomorphic_iterator,
-);
+- \mf TextFile::ReadS,
+- \f ReadX @ \ns Text @ \u YText;
+
+r4-r5:
++ \mf (\op++(int), common_iterator get() const) @ \cl input_monomorphic_iterator
+	@ \h Iterator;
+
+r6-r8:
+/= test 1;
 
 r9:
-/ \impl @ \cl ifile_iterator $=
+/ @ \impl \u CharacterProcessing $=
 (
-	/ \m int value -> char_type value;
-	/ \a int -> byte,
-	+ \mf yconstexprf istream_type* get_stream() const;
-),
-/ \impl @ \mf GUCS2Mapper<CharSet::UTF_8>::Map @ \h StaticMaping;
-
-r10:
-/ \h @ \StaticMapping $=
-(
-	/ \impl @ \a \mf GUCS2Mapper<'*'>::Map assuming
-		^ std::is_convertible<decltype(*i), const byte&>::value
+	/ \a \tp 'const input_monomorphic_iterator&' @ \param
+		-> 'input_monomorphic_iterator&&',
+	/ \ft<Encoding cp, typename _tSrc> UCS2Mapper_Map(ucs2_t&, _tSrc, decltype(
+		&GUCS2Mapper<cp>::template Map<_tSrc>) = nullptr)
+		->\ft<Encoding cp, typename _tSrc> UCS2Mapper_Map(ucs2_t&, _tSrc&&,
+		decltype(&GUCS2Mapper<cp>::template Map<_tSrc>) = nullptr)
 );
 
-r11:
-/ @ \h StaticMapping $=
-(
-	/ \a is_convertible -> is_explicitly_convertible,
-	/ \a 'const byte&&' -> 'const byte'
-);
-
-r12:
-/= test 3 ^ \conf release;
+r10-r12:
+/= test 2;
 
 r13:
-/ @ \cl void_ref @ \h Any $=
+/ \a \tp '_tIn' @ \param -> _tIn&& @ \h StaticMapping @ \lib CHRLib;
+
+r14-r22:
+/= test 3;
+
+r23:
+/ @ \cl input_monomorphic_iterator @ \h Iterator $=
 (
-	/ \m void* ptr -> const volatile void* ptr;
-	/ \impl @ \mf \op&;
-	/ \tr \impl @ \mft \op _type&,
-	+ 'yconstexprf' @ \a \mft
+	- \mf \op++(int);
+	+ \exp \del copy \ctor
 );
 
-r14-r15:
-/ \simp \impl @ \impl \u CharacterProcessing ^ input_monomorphic_iterator
-	for less template initializations;
+r24:
+/ @ \h StaticMapping @ \lib CHRLib $=
+(
+	/ \ft<typename _tIn> \i byte GetByteOf(const _tIn&)
+		->\ft<typename _tIn> \i byte GetByteOf(_tIn&),
+	/ \impl \a \smf Map @ \clt<'*'> $=
+	(
+		/ \a 9 'GetByteOf(++i)' -> 'GetByteOf(++i)'
+	)
+);
+/ @ \impl \u CharacterProcessing $=
+(
+	/ \tr \simp \impl @ \f (ubyte_t MBCToUC(ucs2_t&, std::FILE*,
+		const Encoding&), ubyte_t MBCToUC(ucs2_t&, const char*&,
+		const Encoding&)),
+);
 
-r16:
-/= test 4 ^ \conf release;
+r25-r26:
+/= test 4;
+
+r27:
+* \impl @ \f ubyte_t MBCToUC(ucs2_t&, std::FILE*, const Encoding&) $since r24;
+
+r28:
+/= test 5 ^ \conf release;
+
+r29:
+*= \rem @ \f InvalidateCascade @ \impl \u YWidget $since b226;
+
+r30:
+/= test 6;
+
+r31-r32:
+* \ret \v @ \mf Refresh @ \cl (Widget, Label, Progress, TextArea, Control,
+	AWindow) $since b226;
+
+r33:
+- \mf Control::Refresh,
+/ @ \cl ShlReader @ \impl \u Shells $=
+(
+	* \ret \v @ \mf Refresh @ \cl ReaderPanel $since b246,
+	* \ret \v @ \mf Refresh @ \cl FileInfoPanel $since b235
+);
+
+r34:
+/= test 7 ^ \conf release;
+
+r35-r55:
+/= test 8;
+
+r56:
++ \mf yconstexprf DefPredicate(EmptyStrict, Width == 0 || Height == 0)
+	@ \cl Size @ \h YGDIBase;
+* wrong overlapping condition @ (\f RenderChild, \mf Frame::DrawContents)
+	$since b226;
+* wrong invalidation on thumb of tracks after performing small increase/decrease
+	$since b240;
+
+r57:
+/= test 9 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-09-28:
--15.9d;
-//Mercurial rev1-rev118: r5625;
+2011-10-01:
+-17.6d;
+//Mercurial rev1-rev119: r5641;
 
 / ...
 
 
 $NEXT_TODO:
-b248-b324:
+b249-b324:
 + %TextList invalidation support;
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
@@ -445,7 +455,7 @@ Make "UpdateFont()" more efficienct.
 More efficient %YTextRegion output:
 Use in-buffer background color rendering and function %CopyToScreen()
 	to inplements %YTextRegion background;
-Use pre-refershing to make font changing.
+Use pre-refreshing to make font changing.
 
 Consider to simplify the general window class: @YForm.
 
@@ -464,7 +474,7 @@ Design by contract: DbC for C/C++, GNU nana.
 $KNOWN_ISSUE:
 // obselete all resolved;
 * corrupted embedded bitmap glyph loading $since b185;
-* fatal error occured using "simson.ttc";
+* fatal error occurred using "simson.ttc";
 
 
 $HISTORY:
@@ -489,6 +499,21 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ $design "deleted copy constructor" @ "class %input_monomorphic_iterator \
+		for safety",
+	/ "GUI" $=
+	(
+		* "wrong return value" @ "member function %Refresh" @ "class %(Widget,
+			Label, Progress, TextArea, Control, AWindow)" $since b226,
+		* wrong overlapping condition @ (function %RenderChild,
+			member function %Frame::DrawContents) $since b226;
+		* "wrong invalidation on thumb of tracks after performing small \
+			increase/decrease" $since b240
+	)
+),
+
+r247
 (
 	/ "GUI" $=
 	(
@@ -572,7 +597,7 @@ b243
 		+ "default GUI event %Paint for all widgets",
 		+ "controller class %WidgetController for widgets \
 			which %Paint is the only event permitted to call";
-		/ "rendering of funtion %Render" ^ "mutable rvalue reference parameter \
+		/ "rendering of function %Render" ^ "mutable rvalue reference parameter \
 			to store the result" ~ "returning";
 		/ "constructor" @ "%WidgetControlle add event handler %Render";
 		/ "rendering logic" @ "member function %Frame::DrawContents"
@@ -605,7 +630,7 @@ b242
 	/ "simplified screen object interface and implementation" $=
 	(
 		/ "class template %GBinaryGroup" ~ "class %(BinaryGroup, Point, Vec)",
-		/ ("memberfunction %(GetPoint, GetSize) return const references"
+		/ ("member function %(GetPoint, GetSize) return const references"
 			~ "object type values") @ "class %Rect";
 		/ ("platform independent const static member %Invalid"
 			@ "(class template %GBinaryGroup, class %Size)")
@@ -641,8 +666,8 @@ b240
 (
 	/ "macros" @ "header ybase.h" $=
 	(
-		/ $design "simplified marco parameter names",
-		+ "new macros for template declartions and forwarding constructor \
+		/ $design "simplified macro parameter names",
+		+ "new macros for template declarations and forwarding constructor \
 			templates",
 		+ "macro %DefClone(_t, _n) for define member function for cloning"
 	),
@@ -659,9 +684,9 @@ b240
 		@ "class %(BitmapBuffer, BitmapBufferEx)";
 	/ "GUI" $=
 	(
-		* @ "class template %GFocusResponser" $=
+		* @ "class template %GFocusResponser" $since b239 $=
 		(
-			+ "default constructor" $since b239
+			+ "default constructor"
 		),
 		+ "virtual member function %Clone" @ "renderers, focus responsers \
 			and widget classes",
@@ -787,14 +812,14 @@ b234
 	(
 		/ "overwritable item enablity policy support" @ "class %TextList",
 		/ "item enablity support" @ "class %Menu",
-		* $design "reculsively self call" @ "Control::Refresh"
+		* $design "recursively self call" @ "Control::Refresh"
 			$since b230
 	),
 	/ "shells test example" $=
 	(
 		+ "checkbox to switch FPS visibility",
 		- "checkbox to switch enablity of button",
-		* "lost mapped global resouce release call" $since b233,
+		* "lost mapped global resource release call" $since b233,
 		+ "empty panel test"
 	)
 ),
@@ -812,7 +837,7 @@ b233
 		/ "key input response" ^ "direct routing strategy"
 			~ "all routing strategy",
 		/ "menu of reader",
-		+ "mapped global resouce manegement"
+		+ "mapped global resource management"
 	),
 	/ $design "enhancement" @ "class %ValueObject"
 	(
@@ -863,7 +888,7 @@ b231
 			+ "empty implemented updating with invalidated area"
 				@ "class %WidgetRenderer",
 			+ "updating with limited area" @ "function %Widgets::Update",
-			* "wrong updating for (at least 3) buffered widgets overlaying"
+			* "wrong updating for (at least 3) buffered widgets overlapping"
 				$since b228
 		),
 		+ "free function %SetInvalidationOf for class %IWidget"
@@ -874,7 +899,7 @@ b231
 
 b230
 (
-	+ $design "move constructors and move assigment operators"
+	+ $design "move constructors and move assignment operators"
 		@ "class template %(pseudo_iterator, pair_iterator)"
 		@ "header YCLib::YStandardExtend::Iterator",
 	/ $design "simplified GUI" $=
@@ -975,7 +1000,7 @@ b226
 	),
 	* "wrong result when height of arguments are equal"
 		@ "intersection calculation for class %Rect" $since b225,
-	+ "child widget intersection comfirming"
+	+ "child widget intersection confirming"
 ),
 
 b225
@@ -1045,8 +1070,8 @@ b223
 		^ "updated freetype 2.4.5" ~ "freetype 2.4.4",
 		+ "exact bounding box calculation",
 		+ "path stroker",
-		+ "support for synthetic embolding and slanting of fonts",
-		- "obselete header /freetype/internal/pcftypes.h" $since b185
+		+ "support for synthetic emboldening and slanting of fonts",
+		- "obsolete header /freetype/internal/pcftypes.h" $since b185
 	),
 	^ "updated libnds 1.5.1 with default arm7 0.5.21"
 		~ "libnds 1.5.0 with default arm 7 0.5.20",
@@ -1055,7 +1080,7 @@ b223
 
 b222
 (
-	* $design "minor faults dectected by CppCheck" $=
+	* $design "minor faults detected by CppCheck" $=
 	(
 		/ "simplified implementation" @ "%YGUIShell::ResponseTouch" $since b195,
 		* "implementation" @ "%ystdex::fexists" $since b151
@@ -1063,7 +1088,7 @@ b222
 	+ "default GUI event %Paint",
 	/ "controls drawing" ^ "event Paint" ~ "member function Draw"
 		@ "class %(Frame, YGUIShell)",
-	/ "GUI controls inhancement" $=
+	/ "GUI controls enhancement" $=
 	(
 		+ "key events for text list controls including menu" $=
 		(
@@ -1096,7 +1121,7 @@ b221
 	(
 		+ "sender type as template parameter type",
 		/ "simplified sender argument forwarding"
-		/ "more efficient implimentation"^ "%unique_ptr" ~ "%shared_ptr",
+		/ "more efficient implementation"^ "%unique_ptr" ~ "%shared_ptr",
 			// NOTE: old version of libstdc++ might fail in compiling
 			// due to members with parameter of rvalue-reference type
 			// are not supported.
@@ -1166,9 +1191,9 @@ b219
 	+ "several global helper functions as platform-independent interface",
 	/ "shells test example" $=
 	(
-		+ "mutiple background switch test"
+		+ "multiple background switch test"
 	),
-	* "wrong default argument of desktop backgrond color" $since b160,
+	* "wrong default argument of desktop background color" $since b160,
 	+ "widgets: progress bar" @ "class %ProgressBar"
 ),
 
@@ -1194,8 +1219,8 @@ b217
 		including closure types" $=
 	(
 		/ "result always true",
-		* "compile-error for non-trivally copy-assignable objects",
-		/ "optimized implementation to avoid bloat code instantialized"
+		* "compile-error for non-trivially copy-assignable objects",
+		/ "optimized implementation to avoid bloat code instantiated"
 	),
 	+ $design "Code::Blocks project files" $=
 	(
@@ -1276,14 +1301,14 @@ b214
 			^ "\tparam" ~ "\param"
 		),
 		* "\defgroup description spell error" $since b209,
-		* $design "operator new & delete conmments" $since b203,
+		* $design "operator new & delete comments" $since b203,
 		/ "simplified doxygen file excluded paths"
 	),
 	/ $design ^ "public %noncopyable inheritance"
 		~ "all private %noncopyable inheritance",
 	* "point containing test for zero width or height rectangle \
-		turned out asseration failure" $since b204,
-	* "constness of text width mersuring" $since b197,
+		turned out assertion failure" $since b204,
+	* "constness of text width measuring" $since b197,
 	/ "simplified focus operations interface" $=
 	(
 		- "unused parameter and argument"
@@ -1294,7 +1319,7 @@ b213
 (
 	* $design "UI assertion strings",
 	* "menu colors",
-	* "touch event coordinate error" @ "contianer controls" $since b195,
+	* "touch event coordinate error" @ "container controls" $since b195,
 	+ "functions of menus" $=
 	(
 		+ "resizing for content",
@@ -1310,7 +1335,7 @@ b212
 	+ "redundant menu state member" @ "class %Menu",
 	/ "container member APIs" ^ "reference parameter" ~ "pointer parameter",
 	* "constructor of class %Frame",
-	+ "Z order for widget overlaying" @ " UI containers",
+	+ "Z order for widget overlapping" @ " UI containers",
 	+ "menu laid at top level" ^ "Z order"
 ),
 
@@ -1375,7 +1400,7 @@ b207
 	/ $design "event handler implementation ^ std::function" ~ "Loki::Function",
 	- "library AGG",
 	- "library Loki",
-	+ $design "union %no_copy_t and union %any_pod_t for supressing \
+	+ $design "union %no_copy_t and union %any_pod_t for suppressing \
 		static type checking",
 	+ $design "polymorphic function object template and base class",
 	- "single-cast event class template",
@@ -1397,7 +1422,7 @@ b206
 	/ "file API",
 	* "strict ISO C++2003 code compatibility" $=
 	(
-		+ "function %memcmp declation" @ "namespace %ystdex"
+		+ "function %memcmp declaration" @ "namespace %ystdex"
 	),
 	* "strict ISO C++0x code compatibility" $=
 	(
@@ -1458,14 +1483,14 @@ b203
 b202
 (
 	/ $design "unit renaming",
-	/ "improvoed windows painting efficiency",
+	/ "improved windows painting efficiency",
 	* "buffered coordinate delayed in painting dragged control" $since b169
 ),
 
 b201
 (
 	/ "focused button style",
-	+ "key helding response" @ "class %ShlReader",
+	+ "key holding response" @ "class %ShlReader",
 	+ "GDI API %BlitTo",
 	/ "widgets drawing",
 	/ $design "GDI API %CopyTo",
@@ -1492,7 +1517,7 @@ b199
 (
 	+ "event routing for %(KeyUp, KeyDown, KeyHeld)",
 	* "event behavior with optimizing" $since b195,
-	+ "keypad shortcut for file selecter",
+	+ "keypad shortcut for file selector",
 	+ $design "returning number of called handles in event calling"
 ),
 
@@ -1519,7 +1544,7 @@ b198
 	/ $design "simplified destructors",
 	/ "simplified window drawing",
 	+ "desktop capability of non-control widget container",
-	- "contianer pointer parameter" @ "constructor widgets",
+	- "container pointer parameter" @ "constructor widgets",
 	/ "desktops as window" @ "shells"
 ),
 
@@ -1591,7 +1616,7 @@ b191
 		* $design "declaration of member function %Contains" @ $since b171,
 		/ "interfaces"
 	),
-	* "implememtation of function %GetTouchedVisualControlPtr" @ "unit %YGUI"
+	* "implementation of function %GetTouchedVisualControlPtr" @ "unit %YGUI"
 		$since b167,
 	/ "simplified focus implementation"
 ),
@@ -1625,7 +1650,7 @@ b187
 (
 	/ "solution configuration" $=
 	(
-		"header files and source files put in seperated directories"
+		"header files and source files put in separated directories"
 	),
 	^ "-O3 & arm specified options compiled library libloki.a"
 		@ "project YSTest",
@@ -1644,7 +1669,7 @@ b186
 b185
 (
 	^ "updated freetype 2.4.4" ~ "freetype 2.3.12",
-	- "DMA implentation" $=
+	- "DMA implantation" $=
 	(
 		/ "remarked",
 		^ "normal %memcpy and %memset"

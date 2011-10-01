@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5156;
+\version r5159;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-26 08:57 +0800;
+	2011-10-01 18:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -123,7 +123,7 @@ RenderChild(IWidget& wgt, PaintEventArgs&& e)
 	const auto& r(Intersect(Rect(e.Location + wgt.GetLocation(),
 		wgt.GetSize()), e.ClipArea));
 
-	if(r != Rect::Empty)
+	if(!r.IsEmptyStrict())
 		Render(wgt, PaintEventArgs(e.Target, e.Location + wgt.GetLocation(),
 			r));
 }
@@ -240,7 +240,7 @@ Widget::Refresh(const PaintEventArgs& e)
 {
 	if(!IsTransparent())
 		Drawing::FillRect(e.Target, e.ClipArea, BackColor);
-	return GetBoundsOf(*this);
+	return Rect(e.Location, GetSize());
 }
 
 YSL_END_NAMESPACE(Components)

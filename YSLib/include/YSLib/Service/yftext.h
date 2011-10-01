@@ -11,12 +11,12 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1660;
+\version r1663;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-09-25 15:07 +0800;
+	2011-09-30 19:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,13 +92,6 @@ public:
 	*/
 	SizeType
 	Read(void* s, SizeType n) const;
-
-	/*!
-	\brief 从文件读 n 字节到 s 中。
-	\note 按默认编码转化为 UTF-16LE 。
-	*/
-	SizeType
-	ReadS(ucs2_t* s, SizeType n) const;
 };
 
 YSL_END

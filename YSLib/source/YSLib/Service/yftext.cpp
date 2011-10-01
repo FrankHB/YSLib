@@ -11,12 +11,12 @@
 /*!	\file yftext.cpp
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1812;
+\version r1815;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2011-09-24 20:19 +0800;
+	2011-09-30 19:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -107,25 +107,6 @@ TextFile::SizeType
 TextFile::Read(void* s, u32 n) const
 {
 	return Read(s, n, 1);
-}
-
-TextFile::SizeType
-TextFile::ReadS(ucs2_t* s, u32 n) const
-{
-	u32 l(0);
-
-	if(IsValid())
-	{
-		u32 i(0);
-
-		while(i < n)
-		{
-			if(CheckEOF())
-				break;
-			i += MBCToUC(s[l++], fp, cp);
-		}
-	}
-	return l;
 }
 
 YSL_END

@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5517;
+\version r5520;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-09-18 01:19 +0800;
+	2011-10-01 13:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -378,12 +378,6 @@ public:
 	SetLocation(const Point&);
 	virtual void
 	SetSize(const Size&);
-
-	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
-	*/
-	virtual Rect
-	Refresh(const PaintEventArgs&);
 };
 
 YSL_END_NAMESPACE(Components)

@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version r6696;
+\version r6699;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-09-25 15:06 +0800;
+	2011-09-30 19:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -393,28 +393,6 @@ DrawText(TextRegion& tr, const Graphics& g, const Point& pt, const Size& s,
 YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Text)
-
-u32
-ReadX(TextFile& f, TextRegion& tr, u32 n)
-{
-	u32 l(0);
-
-	if(f.IsValid())
-	{
-		u32 i(0), t;
-		const auto fp(f.GetPtr());
-		const auto cp(f.GetEncoding());
-		ucs2_t c;
-
-		while(i < n && (t = MBCToUC(c, fp, cp)))
-		{
-			i += t;
-			PutChar(tr, c);
-			++l;
-		}
-	}
-	return l;
-}
 
 YSL_END_NAMESPACE(Text)
 

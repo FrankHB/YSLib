@@ -12,12 +12,12 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1639;
+\version r1644;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-09-23 18:42 +0800;
+	2011-10-01 18:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -236,6 +236,10 @@ public:
 	\brief 判断是否为空。
 	*/
 	yconstexprf DefPredicate(Empty, Width == 0 && Height == 0)
+	/*!
+	\brief 判断是否为空。
+	*/
+	yconstexprf DefPredicate(EmptyStrict, Width == 0 || Height == 0)
 };
 
 yconstexprf

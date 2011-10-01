@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5185;
+\version r5189;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-09-26 08:58 +0800;
+	2011-10-01 13:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -934,7 +934,7 @@ ShlReader::ReaderPanel::Refresh(const PaintEventArgs& e)
 
 	for(int i(0); i < 3; ++i)
 		RenderChild(*pWidgets[i], e);
-	return GetBoundsOf(*this);
+	return Rect(e.Location, GetSize());
 }
 
 ShlReader::FileInfoPanel::FileInfoPanel(const Rect& r, ShlReader& shl)
@@ -971,7 +971,7 @@ ShlReader::FileInfoPanel::Refresh(const PaintEventArgs& e)
 
 	for(int i(0); i < 2; ++i)
 		RenderChild(*pWidgets[i], e);
-	return GetBoundsOf(*this);
+	return Rect(e.Location, GetSize());
 }
 
 void

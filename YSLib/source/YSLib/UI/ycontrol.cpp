@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4520;
+\version r4525;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-09-18 01:37 +0800;
+	2011-10-01 13:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -240,13 +240,6 @@ Control::SetSize(const Size& s)
 {
 	Widget::SetSize(s);
 	CallEvent<Resize>(*this, EventArgs());
-}
-
-Rect
-Control::Refresh(const PaintEventArgs& e)
-{
-	Widget::Refresh(e);
-	return GetBoundsOf(*this);
 }
 
 YSL_END_NAMESPACE(Components)

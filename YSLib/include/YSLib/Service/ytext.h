@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version r7042;
+\version r7045;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-09-20 06:29 +0800;
+	2011-09-30 19:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -862,14 +862,6 @@ FetchNextLineIterator(const Drawing::TextRegion& r, _tIn p, _tIn g)
 	}
 	return p;
 }
-
-
-/*!
-\brief 从文本文件中读取 n 字节到 tr 中。
-\note 无文本缓冲方式；按默认编码转换为 UTF-16LE 。
-*/
-u32
-ReadX(TextFile&, Drawing::TextRegion& tr, u32 n);
 
 YSL_END_NAMESPACE(Text)
 

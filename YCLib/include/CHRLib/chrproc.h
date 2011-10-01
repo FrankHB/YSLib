@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1575;
+\version r1579;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-09-26 15:31 +0800;
+	2011-09-30 19:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,7 +69,7 @@ ToASCII(_tChar c)
 \brief 按指定编码转换字符串中字符为 UCS-2 字符，返回转换的字节数。
 */
 ubyte_t
-MBCToUC(ucs2_t&, const char*, const Encoding&);
+MBCToUC(ucs2_t&, const char*&, const Encoding&);
 /*!
 \brief 按指定编码转换字符流中字符为 UCS-2 字符，返回转换的字节数。
 */
@@ -88,12 +88,6 @@ UCToMBC(char*, const ucs2_t&, const Encoding&);
 */
 usize_t
 MBCSToUCS2(ucs2_t*, const char*, const Encoding& = CP_Default);
-
-/*!
-\brief 按指定编码转换 MBCS 字符串为 UCS-4 字符串，返回转换的串长。
-*/
-usize_t
-MBCSToUCS4(ucs4_t*, const char*, const Encoding& = CP_Default);
 
 /*!
 \brief 按指定编码转换 UTF-16LE 字符串为 MBCS 字符串，返回转换的串长。

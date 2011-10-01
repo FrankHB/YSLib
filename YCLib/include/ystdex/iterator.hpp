@@ -11,12 +11,12 @@
 /*!	\file iterator.hpp
 \ingroup YCLib
 \brief C++ 标准库迭代器扩展。
-\version r1363;
+\version r1376;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2011-09-23 18:50 +0800;
+	2011-09-30 21:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -375,6 +375,7 @@ namespace ystdex
 			deref(iterator_operations<typename
 			std::remove_reference<_tIterator>::type>::dereference)
 		{}
+		input_monomorphic_iterator(const input_monomorphic_iterator&) = delete;
 
 		input_monomorphic_iterator&
 		operator++()
@@ -384,15 +385,21 @@ namespace ystdex
 		}
 
 		reference
-		operator*()
+		operator*() const
 		{
 			return deref(obj);
 		}
 
 		pointer
-		operator->()
+		operator->() const
 		{
 			return &deref(obj);
+		}
+
+		common_iterator
+		get() const
+		{
+			return obj;
 		}
 	};
 }

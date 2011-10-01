@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6079;
+\version r6081;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-26 09:07 +0800;
+	2011-10-01 13:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -194,13 +194,13 @@ void
 Invalidate(IWidget&);
 
 /*!
-\brief 级联无效化：使相对于部件的指定区域在直接和简洁的窗口缓冲区中无效。
+\brief 级联无效化：使相对于部件的指定区域在直接和间接的窗口缓冲区中无效。
 */
 void
 InvalidateCascade(IWidget&, const Rect&);
 
 /*
-\brief 渲染：若缓冲存储不可用则刷新 wgt 。
+\brief 渲染：更新，若缓冲存储不可用则在更新前刷新 wgt 。
 \note 无条件更新实际渲染的区域至 e.ClipArea 。
 */
 void

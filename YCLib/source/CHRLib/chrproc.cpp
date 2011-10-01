@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1921;
+\version r1941;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-09-28 09:18 +0800;
+	2011-09-30 23:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,7 +53,7 @@ namespace
 	}
 	template<Encoding cp, typename _tSrc>
 	yconstexprf ubyte_t
-	UCS2Mapper_Map(ucs2_t& d, _tSrc s,
+	UCS2Mapper_Map(ucs2_t& d, _tSrc&& s,
 		decltype(&GUCS2Mapper<cp>::template Map<_tSrc>) = nullptr)
 	{
 		return GUCS2Mapper<cp>::Map(d, s);
@@ -76,7 +76,7 @@ namespace
 
 	template<Encoding cp>
 	yconstexpr ubyte_t
-	UCS2Mapper(ucs2_t& uc, const input_monomorphic_iterator& i)
+	UCS2Mapper(ucs2_t& uc, input_monomorphic_iterator&& i)
 	{
 		return UCS2Mapper_Map<cp>(uc, i);
 	}
@@ -118,10 +118,10 @@ namespace
 }
 
 ubyte_t
-MBCToUC(ucs2_t& uchr, const char* chr, const Encoding& cp)
+MBCToUC(ucs2_t& uchr, const char*& chr, const Encoding& cp)
 {
 	const auto pfun(FetchMapperPtr<ubyte_t(ucs2_t&,
-		const input_monomorphic_iterator&)>(cp));
+		input_monomorphic_iterator&&)>(cp));
 	ubyte_t l(0);
 
 	if(pfun)
@@ -132,13 +132,18 @@ ubyte_t
 MBCToUC(ucs2_t& uchr, std::FILE* fp, const Encoding& cp)
 {
 	const auto pfun(FetchMapperPtr<ubyte_t(ucs2_t&,
-		const input_monomorphic_iterator&)>(cp));
+		input_monomorphic_iterator&&)>(cp));
 	ubyte_t l(0);
 
 	if(pfun)
-		l = pfun(uchr, input_monomorphic_iterator(
-			++ystdex::ifile_iterator(*fp)));
-	return std::feof(fp) ? 0 : l;
+	{
+		ystdex::ifile_iterator i(*fp);
+
+		l = pfun(uchr, input_monomorphic_iterator(++i));
+		if(!std::feof(fp))
+			std::ungetc(*i, fp);
+	}
+	return l;
 }
 
 ubyte_t
@@ -159,22 +164,7 @@ MBCSToUCS2(ucs2_t* d, const char* s, const Encoding& cp)
 	ucs2_t* const p(d);
 
 	while(*s)
-		s += MBCToUC(*d++, s, cp);
-	*d = 0;
-	return d - p;
-}
-
-usize_t
-MBCSToUCS4(ucs4_t* d, const char* s, const Encoding& cp)
-{
-	ucs4_t* const p(d);
-	ucs2_t t(0);
-
-	while(*s)
-	{
-		s += MBCToUC(t, s, cp);
-		*d++ = t;
-	}
+		MBCToUC(*d++, s, cp);
 	*d = 0;
 	return d - p;
 }

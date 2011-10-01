@@ -11,12 +11,12 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 字符映射静态函数。
-\version r2197;
+\version r2245;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-09-28 08:03 +0800;
+	2011-09-30 21:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,6 +42,20 @@ extern "C"
 yconstexpr ubyte_t cp2026[] = {0};
 
 
+template<typename _tIn>
+inline byte
+GetByteOf(_tIn& i)
+{
+	static_assert(std::is_explicitly_convertible<decltype(*i), byte>::value,
+		"Invalid mapping source type found @ CHRLib::GetByteOf;");
+
+	auto r(static_cast<byte>(*i));
+
+	++i;
+	return r;
+}
+
+
 //静态编码映射函数模板原型。
 template<Encoding>
 class GUCS2Mapper
@@ -53,17 +67,14 @@ struct GUCS2Mapper<CharSet::SHIFT_JIS>
 {
 	template<typename _tIn>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn i)
+	Map(ucs2_t& uc, _tIn&& i)
 	{
-		static_assert(std::is_explicitly_convertible<decltype(*i),
-			const byte>::value, "Invalid mapping source type found;");
-
 		uint_least16_t row(0), col(0), ln(188); // (7E-40 + 1 + FC-80 + 1)
-		const byte c(*i);
+		const auto c(GetByteOf(i));
 
 		if((c >= 0xA1) && (c <= 0xC6))
 		{
-			const byte d(*++i);
+			const auto d(GetByteOf(i));
 
 			row = c - 0xA1 ;
 			if(d >= 0x40 && d <= 0x7E)
@@ -74,7 +85,7 @@ struct GUCS2Mapper<CharSet::SHIFT_JIS>
 		}
 		else if(c >= 0xC9 && c <= 0xF9)
 		{
-			const byte d(*++i);
+			const auto d(GetByteOf(i));
 
 			row = c - 0xA3;
 			if(d >= 0x40 && d <= 0x7E)
@@ -99,12 +110,9 @@ struct GUCS2Mapper<CharSet::UTF_8>
 {
 	template<typename _tIn>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn i)
+	Map(ucs2_t& uc, _tIn&& i)
 	{
-		static_assert(std::is_explicitly_convertible<decltype(*i),
-			const byte>::value, "Invalid mapping source type found;");
-
-		const byte c(*i);
+		const auto c(GetByteOf(i));
 
 		if(c < 0x80)
 		{
@@ -113,14 +121,14 @@ struct GUCS2Mapper<CharSet::UTF_8>
 		}
 		else
 		{
-			const byte d(*++i);
+			const auto d(GetByteOf(i));
 
 			if(c & 0x20)
 			{
 				uc = (((c & 0x0F) << 4
 					| (d & 0x3C) >> 2) << 8)
 					| ((d & 0x3) << 6)
-					| (static_cast<const byte>(*++i) & 0x3F);
+					| (GetByteOf(i) & 0x3F);
 				return 3;
 			}
 			else
@@ -129,41 +137,6 @@ struct GUCS2Mapper<CharSet::UTF_8>
 				return 2;
 			}
 		}
-		/*
-		else if(c0 >= 0xC2 && c0 <= 0xDF)
-		{
-			if(c0 == '\0' || c[1] == '\0')
-			{
-				uc = 0xFFFE;
-				return 0;
-			}
-			uc = ((c0 - 192) << 6) | (c[1] - 128);
-			return 2;
-		}
-		else if(c0 >= 0xE0 && c0 <= 0xEF)
-		{
-			if(c0 == '\0' || c[1] == '\0' || c[2] == '\0')
-			{
-				uc = 0;
-				return 0;
-			}
-			uc = ((c0 - 224) << 12) | ((c[1] - 128) << 6) | (c[2] - 128);
-			return 3;
-		}
-		else if(c0 >= 0xF0 && c0 <= 0xF4)
-		{
-			if(c0 == '\0' || c[1] == '\0' || c[2] == '\0' || c[3] == '\0')
-			{
-				uc = 0;
-				return 0;
-			}
-			uc = ((c0 - 240) << 18)
-				| ((c[1] - 128) << 12)
-				| ((c[2] - 128) << 6)
-				| (c[3] - 128);
-			return 4;
-		}
-		*/
 	}
 
 	template<typename _tOut>
@@ -196,12 +169,9 @@ struct GUCS2Mapper<CharSet::GBK>
 {
 	template<typename _tIn>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn i)
+	Map(ucs2_t& uc, _tIn&& i)
 	{
-		static_assert(std::is_explicitly_convertible<decltype(*i),
-			const byte>::value, "Invalid mapping source type found;");
-
-		const std::uint_fast8_t c(static_cast<const byte>(*i));
+		const std::uint_fast8_t c(GetByteOf(i));
 
 		if(cp113[c] != 0)
 		{
@@ -209,7 +179,7 @@ struct GUCS2Mapper<CharSet::GBK>
 			return 1;
 		}
 
-		const std::uint_fast8_t d(static_cast<const byte>(*++i));
+		const std::uint_fast8_t d(GetByteOf(i));
 
 		// assert((c << 8 | d) < 0xFF7E);
 
@@ -223,13 +193,10 @@ struct GUCS2Mapper<CharSet::UTF_16BE>
 {
 	template<typename _tIn>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn i)
+	Map(ucs2_t& uc, _tIn&& i)
 	{
-		static_assert(std::is_explicitly_convertible<decltype(*i),
-			const byte>::value, "Invalid mapping source type found;");
-
-		uc = static_cast<const byte>(*i) << YCL_CHAR_BIT;
-		uc |= static_cast<const byte>(*++i);
+		uc = GetByteOf(i) << YCL_CHAR_BIT;
+		uc |= GetByteOf(i);
 		return 2;
 	}
 };
@@ -239,13 +206,10 @@ struct GUCS2Mapper<CharSet::UTF_16LE>
 {
 	template<typename _tIn>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn i)
+	Map(ucs2_t& uc, _tIn&& i)
 	{
-		static_assert(std::is_explicitly_convertible<decltype(*i),
-			const byte>::value, "Invalid mapping source type found;");
-
-		uc = static_cast<const byte>(*i);
-		uc |= static_cast<const byte>(*++i) << YCL_CHAR_BIT;
+		uc = GetByteOf(i);
+		uc |= GetByteOf(i) << YCL_CHAR_BIT;
 		return 2;
 	}
 };
@@ -255,17 +219,14 @@ struct GUCS2Mapper<CharSet::Big5>
 {
 	template<typename _tIn>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn i)
+	Map(ucs2_t& uc, _tIn&& i)
 	{
-		static_assert(std::is_explicitly_convertible<decltype(*i),
-			const byte>::value, "Invalid mapping source type found;");
-
 		uint_least16_t row(0), col(0), ln(157); // (7E-40 + FE-A1)
-		const byte c(*i);
+		const auto c(GetByteOf(i));
 
 		if(c >= 0xA1 && c <= 0xC6)
 		{
-			const byte d(*++i);
+			const auto d(GetByteOf(i));
 
 			row = c - 0xA1;
 			if(d >= 0x40 && d <= 0x7E)
@@ -277,7 +238,7 @@ struct GUCS2Mapper<CharSet::Big5>
 		}
 		else if(c >= 0xC9 && c <= 0xF9)
 		{
-			const byte d(*++i);
+			const auto d(GetByteOf(i));
 
 			row = c - 0xA3;
 			if(d >= 0x40 && d <= 0x7E)
