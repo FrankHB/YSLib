@@ -11,12 +11,12 @@
 /*!	\file ydef.h
 \ingroup YCLib
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2644;
+\version r2662;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2011-09-27 21:26 +0800;
+	2011-10-05 17:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,6 +65,20 @@
 //#ifdef __GNUC__
 //#	include <tr1/type_traits>
 #endif
+
+//异常规范宏。
+
+#define YCL_USE_EXCEPTION_SPECIFICATION //!< 使用 YSLib 异常规范。
+
+// ythrow = "yielded throwing";
+#ifdef YCL_USE_EXCEPTION_SPECIFICATION
+#	define ythrow throw
+#else
+#	define ythrow(...)
+#endif
+
+#define ynothrow ythrow()
+
 
 #ifdef YCL_HAS_CONSTEXPR
 #define yconstexpr constexpr

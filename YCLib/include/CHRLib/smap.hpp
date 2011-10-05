@@ -11,12 +11,12 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 字符映射静态函数。
-\version r2245;
+\version r2307;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-09-30 21:59 +0800;
+	2011-10-05 18:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,17 +42,24 @@ extern "C"
 yconstexpr ubyte_t cp2026[] = {0};
 
 
-template<typename _tIn>
+template<typename _tIn, typename _tState>
 inline byte
-GetByteOf(_tIn& i)
+FillByte(_tIn& i, _tState& st)
 {
 	static_assert(std::is_explicitly_convertible<decltype(*i), byte>::value,
 		"Invalid mapping source type found @ CHRLib::GetByteOf;");
 
+	// TODO: runtime dereferencable checking;
+/*	if(!is_dereferencable(i))
+	{
+		GetCountOf(st) = -1;
+		return 0;
+	}*/
+
 	auto r(static_cast<byte>(*i));
 
 	++i;
-	return r;
+	return GetSequenceOf(st)[GetCountOf(st)++] = r;
 }
 
 
@@ -65,16 +72,16 @@ class GUCS2Mapper
 template<>
 struct GUCS2Mapper<CharSet::SHIFT_JIS>
 {
-	template<typename _tIn>
+	template<typename _tIn, typename _tState>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn&& i)
+	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
 		uint_least16_t row(0), col(0), ln(188); // (7E-40 + 1 + FC-80 + 1)
-		const auto c(GetByteOf(i));
+		const auto c(FillByte(i, st));
 
 		if((c >= 0xA1) && (c <= 0xC6))
 		{
-			const auto d(GetByteOf(i));
+			const auto d(FillByte(i, st));
 
 			row = c - 0xA1 ;
 			if(d >= 0x40 && d <= 0x7E)
@@ -85,7 +92,7 @@ struct GUCS2Mapper<CharSet::SHIFT_JIS>
 		}
 		else if(c >= 0xC9 && c <= 0xF9)
 		{
-			const auto d(GetByteOf(i));
+			const auto d(FillByte(i, st));
 
 			row = c - 0xA3;
 			if(d >= 0x40 && d <= 0x7E)
@@ -108,11 +115,11 @@ struct GUCS2Mapper<CharSet::SHIFT_JIS>
 template<>
 struct GUCS2Mapper<CharSet::UTF_8>
 {
-	template<typename _tIn>
+	template<typename _tIn, typename _tState>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn&& i)
+	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
-		const auto c(GetByteOf(i));
+		const auto c(FillByte(i, st));
 
 		if(c < 0x80)
 		{
@@ -121,14 +128,14 @@ struct GUCS2Mapper<CharSet::UTF_8>
 		}
 		else
 		{
-			const auto d(GetByteOf(i));
+			const auto d(FillByte(i, st));
 
 			if(c & 0x20)
 			{
 				uc = (((c & 0x0F) << 4
 					| (d & 0x3C) >> 2) << 8)
 					| ((d & 0x3) << 6)
-					| (GetByteOf(i) & 0x3F);
+					| (FillByte(i, st) & 0x3F);
 				return 3;
 			}
 			else
@@ -167,36 +174,55 @@ struct GUCS2Mapper<CharSet::UTF_8>
 template<>
 struct GUCS2Mapper<CharSet::GBK>
 {
-	template<typename _tIn>
+	template<typename _tIn, typename _tState>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn&& i)
+	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
-		const std::uint_fast8_t c(GetByteOf(i));
+		auto& cnt(GetCountOf(st));
 
-		if(cp113[c] != 0)
+		if(cnt < 0)
+			cnt = -1;
+		else
 		{
-			uc = c;
-			return 1;
+			const auto seq(GetSequenceOf(st));
+
+			switch(cnt)
+			{
+			case 0:
+				FillByte(i, st);
+				if(cp113[seq[0]] != 0)
+				{
+					uc = seq[0];
+					return 1;
+				}
+			case 1:
+				FillByte(i, st);
+				{
+					const auto idx(seq[0] << 8 | seq[1]);
+
+					if(idx < 0xFF7E)
+					{
+						uc = reinterpret_cast<const ucs2_t*>(cp113 + 0x0100)[
+							idx];
+						return 2;
+					}
+				}
+				cnt = -2;
+			}
 		}
-
-		const std::uint_fast8_t d(GetByteOf(i));
-
-		// assert((c << 8 | d) < 0xFF7E);
-
-		uc = reinterpret_cast<const ucs2_t*>(cp113 + 0x0100)[c << 8 | d];
-		return 2;
+		return 0;
 	}
 };
 
 template<>
 struct GUCS2Mapper<CharSet::UTF_16BE>
 {
-	template<typename _tIn>
+	template<typename _tIn, typename _tState>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn&& i)
+	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
-		uc = GetByteOf(i) << YCL_CHAR_BIT;
-		uc |= GetByteOf(i);
+		uc = FillByte(i, st) << YCL_CHAR_BIT;
+		uc |= FillByte(i, st);
 		return 2;
 	}
 };
@@ -204,12 +230,12 @@ struct GUCS2Mapper<CharSet::UTF_16BE>
 template<>
 struct GUCS2Mapper<CharSet::UTF_16LE>
 {
-	template<typename _tIn>
+	template<typename _tIn, typename _tState>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn&& i)
+	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
-		uc = GetByteOf(i);
-		uc |= GetByteOf(i) << YCL_CHAR_BIT;
+		uc = FillByte(i, st);
+		uc |= FillByte(i, st) << YCL_CHAR_BIT;
 		return 2;
 	}
 };
@@ -217,16 +243,16 @@ struct GUCS2Mapper<CharSet::UTF_16LE>
 template<>
 struct GUCS2Mapper<CharSet::Big5>
 {
-	template<typename _tIn>
+	template<typename _tIn, typename _tState>
 	static ubyte_t
-	Map(ucs2_t& uc, _tIn&& i)
+	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
 		uint_least16_t row(0), col(0), ln(157); // (7E-40 + FE-A1)
-		const auto c(GetByteOf(i));
+		const auto c(FillByte(i, st));
 
 		if(c >= 0xA1 && c <= 0xC6)
 		{
-			const auto d(GetByteOf(i));
+			const auto d(FillByte(i, st));
 
 			row = c - 0xA1;
 			if(d >= 0x40 && d <= 0x7E)
@@ -238,7 +264,7 @@ struct GUCS2Mapper<CharSet::Big5>
 		}
 		else if(c >= 0xC9 && c <= 0xF9)
 		{
-			const auto d(GetByteOf(i));
+			const auto d(FillByte(i, st));
 
 			row = c - 0xA3;
 			if(d >= 0x40 && d <= 0x7E)

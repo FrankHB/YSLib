@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1941;
+\version r1966;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-09-30 23:17 +0800;
+	2011-10-05 17:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,18 +45,18 @@ using ystdex::input_monomorphic_iterator;
 
 namespace
 {
-	template<Encoding cp, typename _tDst, typename _tSrc>
+	template<Encoding, typename _tDst, typename _tSrc, typename _tState>
 	yconstexprf ubyte_t
-	UCS2Mapper_Map(_tDst, _tSrc)
+	UCS2Mapper_Map(_tDst, _tSrc, _tState)
 	{
 		return 0;
 	}
-	template<Encoding cp, typename _tSrc>
+	template<Encoding cp, typename _tSrc, typename _tState>
 	yconstexprf ubyte_t
-	UCS2Mapper_Map(ucs2_t& d, _tSrc&& s,
-		decltype(&GUCS2Mapper<cp>::template Map<_tSrc>) = nullptr)
+	UCS2Mapper_Map(ucs2_t& d, _tSrc&& s, _tState&& st,
+		decltype(&GUCS2Mapper<cp>::template Map<_tSrc, _tState>) = nullptr)
 	{
-		return GUCS2Mapper<cp>::Map(d, s);
+		return GUCS2Mapper<cp>::Map(d, s, yforward(st));
 	}
 
 	template<Encoding cp, typename _tDst, typename _tSrc>
@@ -76,9 +76,9 @@ namespace
 
 	template<Encoding cp>
 	yconstexpr ubyte_t
-	UCS2Mapper(ucs2_t& uc, input_monomorphic_iterator&& i)
+	UCS2Mapper(ucs2_t& uc, input_monomorphic_iterator&& i, ConversionState&& st)
 	{
-		return UCS2Mapper_Map<cp>(uc, i);
+		return UCS2Mapper_Map<cp>(uc, i, std::move(st));
 	}
 	template<Encoding cp>
 	ubyte_t
@@ -118,30 +118,33 @@ namespace
 }
 
 ubyte_t
-MBCToUC(ucs2_t& uchr, const char*& chr, const Encoding& cp)
+MBCToUC(ucs2_t& uc, const char*& c, const Encoding& cp, ConversionState&& st)
 {
 	const auto pfun(FetchMapperPtr<ubyte_t(ucs2_t&,
-		input_monomorphic_iterator&&)>(cp));
+		input_monomorphic_iterator&&, ConversionState&&)>(cp));
 	ubyte_t l(0);
 
 	if(pfun)
-		l = pfun(uchr, chr);
+		l = pfun(uc, c, std::move(st));
 	return l;
 }
 ubyte_t
-MBCToUC(ucs2_t& uchr, std::FILE* fp, const Encoding& cp)
+MBCToUC(ucs2_t& uc, std::FILE* fp, const Encoding& cp, ConversionState&& st)
 {
 	const auto pfun(FetchMapperPtr<ubyte_t(ucs2_t&,
-		input_monomorphic_iterator&&)>(cp));
+		input_monomorphic_iterator&&, ConversionState&&)>(cp));
 	ubyte_t l(0);
 
 	if(pfun)
 	{
 		ystdex::ifile_iterator i(*fp);
 
-		l = pfun(uchr, input_monomorphic_iterator(++i));
+		l = pfun(uc, input_monomorphic_iterator(++i), std::move(st));
 		if(!std::feof(fp))
+		{
 			std::ungetc(*i, fp);
+			--GetCountOf(st);
+		}
 	}
 	return l;
 }

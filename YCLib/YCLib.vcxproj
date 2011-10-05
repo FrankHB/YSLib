@@ -17,9 +17,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\CHRLib\chrdef.h" />
-    <ClInclude Include="include\CHRLib\chrlib.h" />
     <ClInclude Include="include\CHRLib\chrmap.h" />
     <ClInclude Include="include\CHRLib\chrproc.h" />
+    <ClInclude Include="include\CHRLib\encoding.h" />
     <ClInclude Include="include\CHRLib\smap.hpp" />
     <ClInclude Include="include\ycommon.h" />
     <ClInclude Include="include\ydef.h" />

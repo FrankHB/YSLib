@@ -11,12 +11,12 @@
 /*!	\file memory.hpp
 \ingroup YCLib
 \brief 存储和智能指针特性。
-\version r1164;
+\version r1180;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-14 12:25:13 +0800;
 \par 修改时间:
-	2011-09-23 15:37 +0800;
+	2011-10-05 18:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -75,6 +75,25 @@ namespace ystdex
 	is_not_null(_tPointer&& p)
 	{
 		return static_cast<bool>(p);
+	}
+	//@}
+
+
+
+	/*!	\defgroup is_dereferencable Is Dereferencable Iterator
+	\brief 判断迭代器实例是否为可解引用。
+	\tparam _tIterator 迭代器类型。
+	\note 默认实现使用 is_not_null 。
+	*/
+	//@{
+	template<typename _tIterator>
+	bool
+	is_dereferencable(const _tIterator& i);
+	template<typename _type>
+	yconstexprf bool
+	is_dereferencable(_type* p)
+	{
+		return is_not_null(p);
 	}
 	//@}
 

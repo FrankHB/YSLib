@@ -11,12 +11,12 @@
 /*!	\file cstdio.h
 \ingroup YCLib
 \brief ISO C 标准输入/输出扩展。
-\version r1207;
+\version r1222;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-21 08:30:08 +0800;
 \par 修改时间:
-	2011-09-28 07:25 +0800;
+	2011-10-05 18:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include <cstdio>
 #include <iterator>
 #include <utility>
+#include "memory.hpp"
 
 namespace ystdex
 {
@@ -175,6 +176,17 @@ namespace ystdex
 	operator!=(const ifile_iterator& x, const ifile_iterator& y)
 	{
 		return !(x == y);
+	}
+
+	/*!
+	\ingroup is_dereferencable
+	\brief 判断 ifile_iterator 实例是否为可解引用。
+	*/
+	template<>
+	yconstexprf bool
+	is_dereferencable(const ifile_iterator& i)
+	{
+		return !std::feof(i.get_stream());
 	}
 }
 

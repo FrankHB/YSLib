@@ -65,9 +65,6 @@
     <ClInclude Include="include\CHRLib\chrproc.h">
       <Filter>头文件\CHRLib</Filter>
     </ClInclude>
-    <ClInclude Include="include\CHRLib\chrlib.h">
-      <Filter>头文件\CHRLib</Filter>
-    </ClInclude>
     <ClInclude Include="include\ystdex\memory.hpp">
       <Filter>头文件\ystdex</Filter>
     </ClInclude>
@@ -85,6 +82,9 @@
     </ClInclude>
     <ClInclude Include="include\ystdex\any.h">
       <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\CHRLib\encoding.h">
+      <Filter>头文件\CHRLib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

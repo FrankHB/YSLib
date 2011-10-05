@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1579;
+\version r1596;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-09-30 19:42 +0800;
+	2011-10-04 22:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,9 +27,9 @@
 #ifndef CHRLIB_INC_CHRPROC_H_
 #define CHRLIB_INC_CHRPROC_H_
 
-#include "chrdef.h"
 #include "chrmap.h"
 #include <cstdio>
+#include <memory> // for std::move;
 
 CHRLIB_BEGIN
 
@@ -66,15 +66,31 @@ ToASCII(_tChar c)
 
 
 /*!
-\brief 按指定编码转换字符串中字符为 UCS-2 字符，返回转换的字节数。
+\brief 按指定编码和转换状态转换字符串中字符为 UCS-2 字符，返回转换的字节数。
 */
+//@{
 ubyte_t
-MBCToUC(ucs2_t&, const char*&, const Encoding&);
+MBCToUC(ucs2_t&, const char*&, const Encoding&,
+	ConversionState&& = ConversionState());
+inline ubyte_t
+MBCToUC(ucs2_t& uc, const char*& c, const Encoding& cp, ConversionState& st)
+{
+	return MBCToUC(uc, c, cp, std::move(st));
+}
+//@}
 /*!
-\brief 按指定编码转换字符流中字符为 UCS-2 字符，返回转换的字节数。
+\brief 按指定编码和转换状态转换字符流中字符为 UCS-2 字符，返回转换的字节数。
 */
+//@{
 ubyte_t
-MBCToUC(ucs2_t&, std::FILE*, const Encoding&);
+MBCToUC(ucs2_t&, std::FILE*, const Encoding&,
+	ConversionState&& = ConversionState());
+inline ubyte_t
+MBCToUC(ucs2_t& uc, std::FILE* fp, const Encoding& cp, ConversionState& st)
+{
+	return MBCToUC(uc, fp, cp, std::move(st));
+}
+//@}
 
 /*!
 \brief 按指定编码转换 UCS-2 字符中字符为字符串表示的多字节字符，返回转换的字节数。

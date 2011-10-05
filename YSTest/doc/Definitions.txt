@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11416;
+\version r11428;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-09-23 14:59 +0800;
+	2011-10-05 17:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -136,7 +136,6 @@ $dir ystdex
 {
 $header Utilities
 {
-yforward
 }
 } //$dir ystdex;
 $dir CHRLib
@@ -154,12 +153,21 @@ _ustr(str)
 } //$dir CHRLib;
 $header YDefinition
 {
-FALSE
-TRUE
-BASETYPES
-UCSCHAR_INVALID_CHARACTER
-MIN_UCSCHAR
-MAX_UCSCHAR
+YCL_USE_YASSERT
+YCL_IMPL_CPP
+YCL_IMPL_MSCPP
+YCL_IMPL_GNUCPP
+YCL_HAS_BUILTIN_NULLPTR
+YCL_HAS_CONSTEXPR
+YSL_USE_EXCEPTION_SPECIFICATION
+ythrow(*)?
+yconstexpr
+yconstexprf
+YCL_CHAR_BIT
+YCL_UNUSED(arg)
+YCL_VOID(arg)
+YCL_VOIDX(arg)
+yforward(_expr)
 }
 $header YCommon
 {
@@ -177,7 +185,6 @@ $header Config
 {
 YCL_USE_YASSERT
 YSL_USE_MEMORY_DEBUG
-YSL_USE_EXCEPTION_SPECIFICATION
 YSL_MULTITHREAD
 YSL_USE_COPY_ON_WRITE
 YSL_USE_YASLI_VECTOR
@@ -194,7 +201,6 @@ YSL_
 YSL
 YSL_BEGIN_NAMESPACE(s)
 YSL_END_NAMESPACE(s)
-ythrow(*)?
 _yInterface
 _yInterfaceHead(_n)
 PDeclInterface(_n)

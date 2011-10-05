@@ -1,4 +1,4 @@
-// v0.3338; *build 248 rev 57;
+// v0.3338; *build 249 rev 24;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -284,134 +284,145 @@ $using:
 
 $DONE:
 r1:
-+ \c @ \mf (\op->, \op*) @ \cl input_monomorphic_iterator @ \h Iterator;
-/ @ \h StaticMapping @ \lib CHRLib $=
+/ @ \ns CharSet @ \h CharacterMapping $=
 (
-	+ \ft GetByteOf;
-	/ \simp \impl \a \smf Map @ \clt<'*'> ^ GetByteOf
+	/ @ typedef \en enum $=
+	(
+		/ \rem,
+		/ \m Reserved_1 >> other,
+		/ \m Reserved_2 >> unknown,
+		/ \a \m \n of which value greater than 2 >> 'cs*',
+		+ values from URL 'http://www.iana.org/assignments/ianacharset-mib'
+	);
+	/ \tr aliases encoding \n
 );
 
 r2:
-- \f MBCSToUCS4 @ \u CharacterProcessing;
+/ @ \lib CHRLib $=
+(
+	- \h CHRLib["chrlib.h"],
+	+ \h Encoding["encoding.h"];
+	/ \ns CharSet @ \h CharacterMapping >> \h Encoding;
+	+ \inc \h Encoding @ \h CharacterMapping,
+	-= \inc \h CharacterMapping @ \h CharacterProcessing
+);
+/ \tr \inc @ \h YAdaptor;
 
 r3:
+/= test 1 ^ \conf release;
+
+r4-r8:
+/ @ \h CharacterMapping $=
+(
+	+ \st ConversionState;
+	+ \f \i (GetCountOf, GetWideOf, GetSequenceOf)
+);
 / @ \u CharacterProcessing $=
 (
-	/ \f ubyte_t MBCToUC(ucs2_t&, const char*, const Encoding&)
-		-> ubyte_t MBCToUC(ucs2_t&, const char*&, const Encoding&);
-	/ \tr \simp @ \f MBCSToUCS2;
-),
-- \mf TextFile::ReadS,
-- \f ReadX @ \ns Text @ \u YText;
-
-r4-r5:
-+ \mf (\op++(int), common_iterator get() const) @ \cl input_monomorphic_iterator
-	@ \h Iterator;
-
-r6-r8:
-/= test 1;
-
-r9:
-/ @ \impl \u CharacterProcessing $=
-(
-	/ \a \tp 'const input_monomorphic_iterator&' @ \param
-		-> 'input_monomorphic_iterator&&',
-	/ \ft<Encoding cp, typename _tSrc> UCS2Mapper_Map(ucs2_t&, _tSrc, decltype(
-		&GUCS2Mapper<cp>::template Map<_tSrc>) = nullptr)
-		->\ft<Encoding cp, typename _tSrc> UCS2Mapper_Map(ucs2_t&, _tSrc&&,
-		decltype(&GUCS2Mapper<cp>::template Map<_tSrc>) = nullptr)
+	+ \inc \h <memory> @ \h,
+	/ \f ubyte_t MBCToUC(ucs2_t&, const char*&, const Encoding&)
+		-> ubyte_t MBCToUC(ucs2_t&, const char*&, const Encoding&,
+		ConversionState&& = ConversionState()),
+	/ \f ubyte_t MBCToUC(ucs2_t&, std::FILE*, const Encoding&)
+		-> ubyte_t MBCToUC(ucs2_t&, std::FILE*, const Encoding&,
+		ConversionState&& = ConversionState());
+	+ \f \i ubyte_t MBCToUC(ucs2_t&, const char*&, const Encoding&,
+		ConversionState&) @ \h,
+	+ \f \i ubyte_t MBCToUC(ucs2_t&, std::FILE*, const Encoding&,
+		ConversionState&) @ \h
 );
 
-r10-r12:
+r9-r12:
 /= test 2;
 
-r13:
-/ \a \tp '_tIn' @ \param -> _tIn&& @ \h StaticMapping @ \lib CHRLib;
+r13-r16:
+/ \a \smft<typename _tIn> ubyte_t Map(ucs2_t&, _tIn&&) @ \clt GUCS2Mapper
+	@ \h StaticMap -> \smft<typename _tIn, typename _tState>
+	ubyte_t Map(ucs2_t&, _tIn&&, _tState&&);
+/ \u CharacterProcessing $=
+(
+	/ \ft<Encoding cp, typename _tSrc> yconstexprf ubyte_t UCS2Mapper_Map(
+		ucs2_t& d, _tSrc&& s, decltype(&GUCS2Mapper<cp>::template Map<_tSrc>)
+		= nullptr) -> \ft<Encoding cp, typename _tSrc, typename _tState>
+		yconstexprf ubyte_t UCS2Mapper_Map(ucs2_t& d, _tSrc&& s, _tState&&,
+		decltype(&GUCS2Mapper<cp>::template Map<_tSrc, _tState>) = nullptr),
+	/ \ft<Encoding, typename _tDst, typename _tSrc> yconstexprf ubyte_t
+		UCS2Mapper_Map(_tDst, _tSrc) -> \ft<Encoding, typename _tDst,
+		typename _tSrc, typename _tState> yconstexprf ubyte_t
+		UCS2Mapper_Map(_tDst, _tSrc, _tState);
+	/ \ft<Encoding cp> yconstexpr ubyte_t UCS2Mapper(ucs2_t&,
+		input_monomorphic_iterator&&) -> \ft<Encoding cp>
+		yconstexpr ubyte_t UCS2Mapper(ucs2_t&, input_monomorphic_iterator&&,
+		_tState&&)
+);
 
-r14-r22:
-/= test 3;
+r17:
+/= test 3 ^ \conf release;
+
+r18-r19:
+/ @ \h CharacterMapping $=
+(
+	/ \m usize_t Count @ \st ConversionState
+		-> std::int_fast8_t Count,
+	/ \tr \i usize_t& GetCountOf(ConversionState&)
+		-> \i std::int_fast8_t& GetCountOf(ConversionState&)
+);
+/ \impl @ \mf GUCS2Mapper<CharSet::GBK>::Map @ \h StaticMapping;
+/ \tr \impl @ \f MBCToUC#2 @ \impl \u CharacterProcessing;
+
+r20:
+/= test 3 ^ \conf release;
+
+r21:
+/ @ \h StaticMapping $=
+(
+	/ \ft<typename _tIn> \i byte GetByteOf(_tIn&)
+		-> \ft<typename _tIn, typename _tState> byte FillByte(_tIn&, _tState&);
+	/ \tr @ \a \mf Map @ \mft GUCS2Mapper
+);
+
+r22:
+/ \es \mac $=
+(
+	/ \def @ \mac (ythrow, ynothrow) >> \h YDefinition
+		~ \h YSLib::Adaptor::YBase,
+	/ \def @ \mac YSL_USE_EXCEPTION_SPECIFICATION >> \h YDefinition
+		~ \h YSLib::Adaptor::Configuration;
+	* \mac (ythrow, ynothrow) used without definition @ \lib YStandardExtend
+		$since b209,
+	/ \a YSL_USE_EXCEPTION_SPECIFICATION => YCL_USE_EXCEPTION_SPECIFICATION
+);
+/ \impl @ \f MBCToUC#2 @ \lib CHRLib;
 
 r23:
-/ @ \cl input_monomorphic_iterator @ \h Iterator $=
+/ @ \lib YCLib::YStandardExtend $=
 (
-	- \mf \op++(int);
-	+ \exp \del copy \ctor
+	+ \decl @ \ft<typename _tIterator> bool
+		is_dereferencable(const _tIterator&),
+	+ \ft<typename _type> yconstexprf bool is_dereferencable(_type*);
+	/ @ \h CStandardIO $=
+	(
+		+ \inc \h "memory.hpp";
+		+ \ft<> yconstexprf bool is_dereferencable(const ifile_iterator&)
+	)
 );
 
 r24:
-/ @ \h StaticMapping @ \lib CHRLib $=
-(
-	/ \ft<typename _tIn> \i byte GetByteOf(const _tIn&)
-		->\ft<typename _tIn> \i byte GetByteOf(_tIn&),
-	/ \impl \a \smf Map @ \clt<'*'> $=
-	(
-		/ \a 9 'GetByteOf(++i)' -> 'GetByteOf(++i)'
-	)
-);
-/ @ \impl \u CharacterProcessing $=
-(
-	/ \tr \simp \impl @ \f (ubyte_t MBCToUC(ucs2_t&, std::FILE*,
-		const Encoding&), ubyte_t MBCToUC(ucs2_t&, const char*&,
-		const Encoding&)),
-);
-
-r25-r26:
-/= test 4;
-
-r27:
-* \impl @ \f ubyte_t MBCToUC(ucs2_t&, std::FILE*, const Encoding&) $since r24;
-
-r28:
-/= test 5 ^ \conf release;
-
-r29:
-*= \rem @ \f InvalidateCascade @ \impl \u YWidget $since b226;
-
-r30:
-/= test 6;
-
-r31-r32:
-* \ret \v @ \mf Refresh @ \cl (Widget, Label, Progress, TextArea, Control,
-	AWindow) $since b226;
-
-r33:
-- \mf Control::Refresh,
-/ @ \cl ShlReader @ \impl \u Shells $=
-(
-	* \ret \v @ \mf Refresh @ \cl ReaderPanel $since b246,
-	* \ret \v @ \mf Refresh @ \cl FileInfoPanel $since b235
-);
-
-r34:
-/= test 7 ^ \conf release;
-
-r35-r55:
-/= test 8;
-
-r56:
-+ \mf yconstexprf DefPredicate(EmptyStrict, Width == 0 || Height == 0)
-	@ \cl Size @ \h YGDIBase;
-* wrong overlapping condition @ (\f RenderChild, \mf Frame::DrawContents)
-	$since b226;
-* wrong invalidation on thumb of tracks after performing small increase/decrease
-	$since b240;
-
-r57:
-/= test 9 ^ \conf release;
+/= test 4 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-10-01:
--17.6d;
-//Mercurial rev1-rev119: r5641;
+2011-10-05:
+-18.3d;
+//Mercurial rev1-rev120: r5698;
 
 / ...
 
 
 $NEXT_TODO:
-b249-b324:
+b250-b324:
 + %TextList invalidation support;
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
@@ -499,6 +510,30 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ @ "library CHRLib" $=
+	(
+		/ "encoding item names with MIB enums from IANA" @  $=
+		(
+			+ "more enum items",
+			/ "aliases"
+		),
+		+ "conversion state formal parameter support for multibyte-to-Unicode \
+			conversion functions";
+		+ "conversion state support for %CharSet::GBK to %CharSet::UCS2 \
+			mapping function"
+	),
+	/ $design "exception macros" $=
+	(
+		/ $design "exception specification macro" @ ("header config.h"
+			@ "library YSLib::Adaptor") >> ("header ydef.h"
+			@ "library YCLib::YStandardExtend");
+		* $design "macro (ythrow, ynothrow) used without definition"
+			@ "library %YStandardExtend" $since b209;
+	)
+),
+
+b248
 (
 	/ $design "deleted copy constructor" @ "class %input_monomorphic_iterator \
 		for safety",

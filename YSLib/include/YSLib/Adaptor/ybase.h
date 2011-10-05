@@ -11,12 +11,12 @@
 /*!	\file ybase.h
 \ingroup Adaptor
 \brief 通用基础设施。
-\version r2904;
+\version r2910;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-09-11 21:34 +0800;
+	2011-10-05 17:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -48,18 +48,6 @@
 
 #define YSL_BEGIN_NAMESPACE(s)	namespace s {
 #define YSL_END_NAMESPACE(s)	}
-
-
-//异常规范宏。
-
-// ythrow = "yielded throwing";
-#ifdef YSL_USE_EXCEPTION_SPECIFICATION
-#	define ythrow throw
-#else
-#	define ythrow(...)
-#endif
-
-#define ynothrow ythrow()
 
 
 /*

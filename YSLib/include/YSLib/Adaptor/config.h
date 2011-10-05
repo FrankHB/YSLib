@@ -11,12 +11,12 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief 库编译配置。
-\version 0.1576;
+\version r1581;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2011-05-05 19:50 +0800;
+	2011-10-05 17:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,8 +44,6 @@
 #endif
 
 // YSLib 选项。
-
-#define YSL_USE_EXCEPTION_SPECIFICATION //!< 使用 YSLib 异常规范。
 
 //#define YSL_MULTITHREAD //!< 多线程。
 
