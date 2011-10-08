@@ -11,12 +11,12 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4208;
+\version r4214;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-09-25 15:06 +0800;
+	2011-10-08 16:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,14 +44,19 @@ LoadText(TextBlock& b, TextFile& f, SizeType n)
 		return 0;
 	if(f.IsValid())
 	{
+		auto l(b.size());
+
+		b.resize(l + n);
+
+		const auto l_old(l);
 		const auto fp(f.GetPtr());
 		const auto cp(f.GetEncoding());
 		SizeType idx(0), t;
 		ucs2_t c;
-		auto l(b.size()), l_old(l);
+		ConversionState st;
 
-		b.resize(l + n);
-		while(idx < n && (t = MBCToUC(c, fp, cp)) != 0 && (idx += t) < n)
+		while(idx < n && (t = MBCToUC(c, fp, cp, st)) != 0
+			&& GetCountOf(st) >= 0 && (idx += t) < n)
 			b[l++] = c;
 		return l - l_old;
 	}

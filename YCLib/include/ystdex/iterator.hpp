@@ -11,12 +11,12 @@
 /*!	\file iterator.hpp
 \ingroup YCLib
 \brief C++ 标准库迭代器扩展。
-\version r1376;
+\version r1503;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2011-09-30 21:52 +0800;
+	2011-10-08 15:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include <iterator>
 #include <utility>
 #include <memory> // for std::addressof;
+#include <tuple>
 
 namespace ystdex
 {
@@ -312,20 +313,54 @@ namespace ystdex
 	};
 
 
-	//公共迭代器类型。
-	typedef void_ref common_iterator;
+	/*!
+	\brief 公共迭代器特征类。
+	*/
+	struct common_iterator_base
+	{
+		/*!
+		\brief 公共迭代器类型。
+		*/
+		typedef void_ref common_iterator;
+		typedef void_ref value_type;
+		typedef void* pointer;
+		typedef void_ref reference;
+		typedef enum
+		{
+			deref = 0,
+			is_deref = 1,
+			is_underef = 2,
+			inc = 3
+		} operation_t;
+		/*
+		\brief 迭代器操作类型。
+		\note 模版实参 0 ：类型 reference(*)(common_iterator) ，解引用；
+			模版实参 1 ：类型 bool(*)(common_iterator) ，判断是否确定可解引用；
+			模版实参 2 ：类型 bool(*)(common_iterator) ，判断是否确定不可解引用；
+			模版实参 3 ：类型 void(*)(common_iterator) ，自增。
+		*/
+		typedef std::tuple<
+			reference(*)(common_iterator),
+			bool(*)(common_iterator),
+			bool(*)(common_iterator),
+			void(*)(common_iterator)
+		> operation_list;
+	};
 
 
 	/*!
 	\brief 迭代器操作静态模版。
 	*/
 	template<typename _tIterator>
-	struct iterator_operations
+	struct iterator_operations : public common_iterator_base
 	{
 		typedef _tIterator iterator_type;
-		typedef void_ref value_type;
-		typedef void* pointer;
-		typedef void_ref reference;
+
+		/*
+		\brief 迭代器操作。
+		\todo 使用新版本编译器以支持 constexpr brace-initializer 。
+		*/
+		static const operation_list operations;
 
 		static void
 		increase(iterator_type& i)
@@ -336,6 +371,18 @@ namespace ystdex
 		increase(common_iterator i)
 		{
 			++i.operator iterator_type&();
+		}
+
+		static yconstexprf bool
+		is_dereferencable(common_iterator i)
+		{
+			return ystdex::is_dereferencable(i.operator iterator_type&());
+		}
+
+		static yconstexprf bool
+		is_undereferencable(common_iterator i)
+		{
+			return ystdex::is_undereferencable(i.operator iterator_type&());
 		}
 
 		static reference
@@ -350,6 +397,11 @@ namespace ystdex
 		}
 	};
 
+	template<typename _tIterator>
+	const typename common_iterator_base::operation_list
+		iterator_operations<_tIterator>::operations(dereference,
+		is_dereferencable, is_undereferencable, increase);
+
 
 	/*!
 	\ingroup iterator_adaptors
@@ -357,43 +409,48 @@ namespace ystdex
 
 	非多态输入迭代器适配器。
 	*/
-	class input_monomorphic_iterator : std::iterator<
+	class input_monomorphic_iterator : public std::iterator<
 		std::input_iterator_tag, void_ref, std::ptrdiff_t,
 		void*, void_ref>
 	{
+	public:
+		typedef common_iterator_base::common_iterator common_iterator;
+		typedef common_iterator_base::operation_list operations_type;
+
 	private:
 		common_iterator obj;
-		void(*inc)(common_iterator);
-		reference(*deref)(common_iterator);
+		const operations_type* operations_ptr;
 
 	public:
 		input_monomorphic_iterator() = delete;
+		/*!
+		\brief 构造：使用现有迭代器。
+		\post operations_ptr != nullptr 。
+		*/
 		template<typename _tIterator>
 		input_monomorphic_iterator(_tIterator&& i)
-			: obj(i), inc(iterator_operations<typename
-			std::remove_reference<_tIterator>::type>::increase),
-			deref(iterator_operations<typename
-			std::remove_reference<_tIterator>::type>::dereference)
+			: obj(i), operations_ptr(&iterator_operations<typename
+			std::remove_reference<_tIterator>::type>::operations)
 		{}
 		input_monomorphic_iterator(const input_monomorphic_iterator&) = delete;
 
 		input_monomorphic_iterator&
 		operator++()
 		{
-			inc(obj);
+			std::get<common_iterator_base::inc>(*operations_ptr)(obj);
 			return *this;
 		}
 
 		reference
 		operator*() const
 		{
-			return deref(obj);
+			return std::get<common_iterator_base::deref>(*operations_ptr)(obj);
 		}
 
 		pointer
 		operator->() const
 		{
-			return &deref(obj);
+			return &**this;
 		}
 
 		common_iterator
@@ -401,7 +458,26 @@ namespace ystdex
 		{
 			return obj;
 		}
+		const operations_type&
+		get_operations() const
+		{
+			return *operations_ptr;
+		}
 	};
+
+	inline bool
+	is_dereferencable(const input_monomorphic_iterator& i)
+	{
+		return std::get<common_iterator_base::is_deref>(i.get_operations())(
+			i.get());
+	}
+
+	inline bool
+	is_undereferencable(const input_monomorphic_iterator& i)
+	{
+		return std::get<common_iterator_base::is_underef>(i.get_operations())(
+			i.get());
+	}
 }
 
 #endif

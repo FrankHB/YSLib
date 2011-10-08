@@ -11,12 +11,12 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1966;
+\version r1969;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-10-05 17:25 +0800;
+	2011-10-06 05:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -143,7 +143,8 @@ MBCToUC(ucs2_t& uc, std::FILE* fp, const Encoding& cp, ConversionState&& st)
 		if(!std::feof(fp))
 		{
 			std::ungetc(*i, fp);
-			--GetCountOf(st);
+			if(GetCountOf(st) > 0)
+				--GetCountOf(st);
 		}
 	}
 	return l;

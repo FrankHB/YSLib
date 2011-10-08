@@ -1,4 +1,4 @@
-// v0.3338; *build 249 rev 24;
+// v0.3338; *build 250 rev 21;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -283,146 +283,163 @@ $using:
 
 
 $DONE:
-r1:
-/ @ \ns CharSet @ \h CharacterMapping $=
-(
-	/ @ typedef \en enum $=
-	(
-		/ \rem,
-		/ \m Reserved_1 >> other,
-		/ \m Reserved_2 >> unknown,
-		/ \a \m \n of which value greater than 2 >> 'cs*',
-		+ values from URL 'http://www.iana.org/assignments/ianacharset-mib'
-	);
-	/ \tr aliases encoding \n
-);
-
-r2:
-/ @ \lib CHRLib $=
-(
-	- \h CHRLib["chrlib.h"],
-	+ \h Encoding["encoding.h"];
-	/ \ns CharSet @ \h CharacterMapping >> \h Encoding;
-	+ \inc \h Encoding @ \h CharacterMapping,
-	-= \inc \h CharacterMapping @ \h CharacterProcessing
-);
-/ \tr \inc @ \h YAdaptor;
+r1-r2:
+/= test 0;
 
 r3:
+/ @ \lib CHRLib $=
+(
+	/ \impl @ \mf Map @ \stt<> GUCS2Mapper<CharSet::GBK> @ \h StaticMapping,
+	/ \impl @ \f MBCToUC#2 @ \impl \u CharacterProcessing
+);
+
+r4:
+/ \impl @ \mf GUCS2Mapper<CharSet::UTF_8>::Map @ \h StaticMapping @ \lib CHRLib;
+
+r5:
 /= test 1 ^ \conf release;
 
-r4-r8:
-/ @ \h CharacterMapping $=
+r6:
+/ \impl @ \mf Map @ \cl (GUCS2Mapper<CharSet::UTF_8>,
+	GUCS2Mapper<CharSet::GBK>) @ \h StaticMapping @ \lib CHRLib;
+
+r7:
+* \impl @ \mf GUCS2Mapper<CharSet::GBK>::Map $since r6;
+
+r8-r9:
+/ @ \h Iterator $=
 (
-	+ \st ConversionState;
-	+ \f \i (GetCountOf, GetWideOf, GetSequenceOf)
-);
-/ @ \u CharacterProcessing $=
-(
-	+ \inc \h <memory> @ \h,
-	/ \f ubyte_t MBCToUC(ucs2_t&, const char*&, const Encoding&)
-		-> ubyte_t MBCToUC(ucs2_t&, const char*&, const Encoding&,
-		ConversionState&& = ConversionState()),
-	/ \f ubyte_t MBCToUC(ucs2_t&, std::FILE*, const Encoding&)
-		-> ubyte_t MBCToUC(ucs2_t&, std::FILE*, const Encoding&,
-		ConversionState&& = ConversionState());
-	+ \f \i ubyte_t MBCToUC(ucs2_t&, const char*&, const Encoding&,
-		ConversionState&) @ \h,
-	+ \f \i ubyte_t MBCToUC(ucs2_t&, std::FILE*, const Encoding&,
-		ConversionState&) @ \h
-);
-
-r9-r12:
-/= test 2;
-
-r13-r16:
-/ \a \smft<typename _tIn> ubyte_t Map(ucs2_t&, _tIn&&) @ \clt GUCS2Mapper
-	@ \h StaticMap -> \smft<typename _tIn, typename _tState>
-	ubyte_t Map(ucs2_t&, _tIn&&, _tState&&);
-/ \u CharacterProcessing $=
-(
-	/ \ft<Encoding cp, typename _tSrc> yconstexprf ubyte_t UCS2Mapper_Map(
-		ucs2_t& d, _tSrc&& s, decltype(&GUCS2Mapper<cp>::template Map<_tSrc>)
-		= nullptr) -> \ft<Encoding cp, typename _tSrc, typename _tState>
-		yconstexprf ubyte_t UCS2Mapper_Map(ucs2_t& d, _tSrc&& s, _tState&&,
-		decltype(&GUCS2Mapper<cp>::template Map<_tSrc, _tState>) = nullptr),
-	/ \ft<Encoding, typename _tDst, typename _tSrc> yconstexprf ubyte_t
-		UCS2Mapper_Map(_tDst, _tSrc) -> \ft<Encoding, typename _tDst,
-		typename _tSrc, typename _tState> yconstexprf ubyte_t
-		UCS2Mapper_Map(_tDst, _tSrc, _tState);
-	/ \ft<Encoding cp> yconstexpr ubyte_t UCS2Mapper(ucs2_t&,
-		input_monomorphic_iterator&&) -> \ft<Encoding cp>
-		yconstexpr ubyte_t UCS2Mapper(ucs2_t&, input_monomorphic_iterator&&,
-		_tState&&)
-);
-
-r17:
-/= test 3 ^ \conf release;
-
-r18-r19:
-/ @ \h CharacterMapping $=
-(
-	/ \m usize_t Count @ \st ConversionState
-		-> std::int_fast8_t Count,
-	/ \tr \i usize_t& GetCountOf(ConversionState&)
-		-> \i std::int_fast8_t& GetCountOf(ConversionState&)
-);
-/ \impl @ \mf GUCS2Mapper<CharSet::GBK>::Map @ \h StaticMapping;
-/ \tr \impl @ \f MBCToUC#2 @ \impl \u CharacterProcessing;
-
-r20:
-/= test 3 ^ \conf release;
-
-r21:
-/ @ \h StaticMapping $=
-(
-	/ \ft<typename _tIn> \i byte GetByteOf(_tIn&)
-		-> \ft<typename _tIn, typename _tState> byte FillByte(_tIn&, _tState&);
-	/ \tr @ \a \mf Map @ \mft GUCS2Mapper
-);
-
-r22:
-/ \es \mac $=
-(
-	/ \def @ \mac (ythrow, ynothrow) >> \h YDefinition
-		~ \h YSLib::Adaptor::YBase,
-	/ \def @ \mac YSL_USE_EXCEPTION_SPECIFICATION >> \h YDefinition
-		~ \h YSLib::Adaptor::Configuration;
-	* \mac (ythrow, ynothrow) used without definition @ \lib YStandardExtend
-		$since b209,
-	/ \a YSL_USE_EXCEPTION_SPECIFICATION => YCL_USE_EXCEPTION_SPECIFICATION
-);
-/ \impl @ \f MBCToUC#2 @ \lib CHRLib;
-
-r23:
-/ @ \lib YCLib::YStandardExtend $=
-(
-	+ \decl @ \ft<typename _tIterator> bool
-		is_dereferencable(const _tIterator&),
-	+ \ft<typename _type> yconstexprf bool is_dereferencable(_type*);
-	/ @ \h CStandardIO $=
+	+ \inc \h <tuple>;
+	+ \ns common_iterator_traits $=
 	(
-		+ \inc \h "memory.hpp";
-		+ \ft<> yconstexprf bool is_dereferencable(const ifile_iterator&)
+		+ typedef std::tuple<reference(*)(common_iterator),
+			void(*)(common_iterator)> operations_type
+	);
+	/ typedef void_ref common_iterator >> \st common_iterator_traits;
+	/ @ \stt iterator_operations $=
+	(
+		+ \inh \st common_iterator_traits,
+		/ (typedef void_ref value_type, typedef void* pointer,
+			typedef void_ref reference) >> \st common_iterator_traits,
+		+ typedef std::tuple<reference(*)(common_iterator),
+			void(*)(common_iterator)> operations_type;
+		+ \scm operations_type operations
+	);
+	/ @ \cl input_monomorphic_iterator $=
+	(
+		+ \tr typedef common_iterator_traits::common_iterator common_iterator,
+		/ \impl @ \ctor
+	);
+);
+
+r10:
+/ \simp @ \cl input_monomorphic_iterator @ \h Iterator $=
+(
+	- private \m void(*inc)(common_iterator),
+	- private \m reference(*deref)(common_iterator),
+	(
+		+ \tr typedef common_iterator_traits::operations_type operations_type;
+		+ private \m const operations_type* operations_ptr;
+	)
+	/ \simp \impl @ \ctor,
+	/ \impl @ \mf \op++,
+	/ \impl @ \mf \op*;
+	/ \tr \impl @ \mf \op->
+);
+
+r11:
+/= test 2 ^ \conf release;
+
+r12:
+/ @ \h Memory $=
+(
+	/ \def @ \ft<_tIterator> bool is_dereferencable(const _tIterator&),
+	+ \ft<_tIterator> is_dereferencable;
+	+ \ft<_type> is_undereferencable(_type*);
+);
+/ @ \h Iterator $=
+(
+	/ @ \st common_iterator_traits $=
+	(
+		/ typedef std::tuple<reference(*)(common_iterator),
+			void(*)(common_iterator)> operations_type -> typedef std::tuple<
+			reference(*)(common_iterator), bool(*)(common_iterator),
+			bool(*)(common_iterator), void(*)(common_iterator)> operations_type;
+		+ \smf is_deferencable;
+		+ \smf is_undeferencable;
+	);
+	/ @ \cl input_monomorphic_iterator $=
+	(
+		/ \tr \impl @ \op++,
+		+ \mf const operations_type& get_operations() const
+	);
+	+ \mf \i bool is_dereferencable(const input_monomorphic_iterator&),
+	+ \mf \i bool is_undereferencable(const input_monomorphic_iterator&)
+);
+
+r13:
+/ @ \h Iterator $=
+(
+	/ \a common_iterator_traits => common_iterator_base,
+	/ \a operations_type => operation_list;
+	/ @ \st iter_base $=
+	(
+		+ typedef \en operation_t
+	);
+	/ \tr \impl @ \cl input_monomorphic_iterator,
+	+ \tr \impl @ \mf \i bool is_dereferencable(const
+		input_monomorphic_iterator&),
+	+ \tr \impl @ \mf \i bool is_undereferencable(const
+		input_monomorphic_iterator&)
+);
+
+r14:
+/= test 3 ^ \conf release;
+
+r15-r18:
+* EOF cannot be recognized by conversion routines $since b248 $=
+(
+	/ @ \h StaticMapping $=
+	(
+		/ \impl @ \ft FillByte;
+		/ \impl @ \mf Map @ \stt<> GUCS2Mapper<CharSet::UTF_8>,
+		/ \impl @ \mf Map @ \stt<> GUCS2Mapper<CharSet::GBK>
+	),
+	/ \impl @ \mf LoadText @ \impl \u TextManaget,
+	/ @ \h CStandardIO
+	(
+		/ @ \ft<> yconstexprf bool is_dereferencable(const ifile_iterator&)
+			-> \f \i bool is_dereferencable(const ifile_iterator&),
+		+ \f \i bool is_undereferencable(const ifile_iterator&)
 	)
 );
 
-r24:
+r19:
 /= test 4 ^ \conf release;
+
+r20:
+/ @ \h StaticMapping $=
+(
+	/ \impl @ \mf Map @ \stt<> GUCS2Mapper<CharSet::UTF_16BE>,
+	/ \impl @ \mf Map @ \stt<> GUCS2Mapper<CharSet::UTF_16LE>
+);
+
+r21:
+/= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-10-05:
--18.3d;
-//Mercurial rev1-rev120: r5698;
+2011-10-08:
+-18.6d;
+//Mercurial rev1-rev121: r5722;
 
 / ...
 
 
 $NEXT_TODO:
-b250-b324:
+b251-b324:
 + %TextList invalidation support;
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
@@ -511,6 +528,21 @@ $ellipse_debug_assertion;
 
 $now
 (
+	+ $design "iterator checking operations" @ "library YCLib";
+	/ @ "library CHRLib" $=
+	(
+		+ "valid conversion state support for %CharSet::UTF_8 \
+			to %CharSet::UCS2 mapping function",
+		+ "invalid conversion state support for %(CharSet::UTF_8, \
+			CharSet::GBK) to %CharSet::UCS2 mapping function",
+		+ "conversion state support for %(CharSet::UTF_16LE, \
+			CharSet::UTF_16BE) to %CharSet::UCS2 mapping function"
+	);
+	* "EOF cannot be recognized by conversion routines" $since b248
+),
+
+b249
+(
 	/ @ "library CHRLib" $=
 	(
 		/ "encoding item names with MIB enums from IANA" @  $=
@@ -520,7 +552,7 @@ $now
 		),
 		+ "conversion state formal parameter support for multibyte-to-Unicode \
 			conversion functions";
-		+ "conversion state support for %CharSet::GBK to %CharSet::UCS2 \
+		+ "valid conversion state support for %CharSet::GBK to %CharSet::UCS2 \
 			mapping function"
 	),
 	/ $design "exception macros" $=

@@ -11,12 +11,12 @@
 /*!	\file cstdio.h
 \ingroup YCLib
 \brief ISO C 标准输入/输出扩展。
-\version r1222;
+\version r1227;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-21 08:30:08 +0800;
 \par 修改时间:
-	2011-10-05 18:02 +0800;
+	2011-10-08 16:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -180,13 +180,22 @@ namespace ystdex
 
 	/*!
 	\ingroup is_dereferencable
-	\brief 判断 ifile_iterator 实例是否为可解引用。
+	\brief 判断 ifile_iterator 实例是否确定为可解引用。
 	*/
-	template<>
-	yconstexprf bool
+	inline bool
 	is_dereferencable(const ifile_iterator& i)
 	{
 		return !std::feof(i.get_stream());
+	}
+
+	/*!
+	\ingroup is_undereferencable
+	\brief 判断 ifile_iterator 实例是否确定为不可解引用。
+	*/
+	inline bool
+	is_undereferencable(const ifile_iterator& i)
+	{
+		return std::feof(i.get_stream());
 	}
 }
 

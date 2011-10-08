@@ -11,12 +11,12 @@
 /*!	\file memory.hpp
 \ingroup YCLib
 \brief 存储和智能指针特性。
-\version r1180;
+\version r1198;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-14 12:25:13 +0800;
 \par 修改时间:
-	2011-10-05 18:03 +0800;
+	2011-10-08 14:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -81,19 +81,45 @@ namespace ystdex
 
 
 	/*!	\defgroup is_dereferencable Is Dereferencable Iterator
-	\brief 判断迭代器实例是否为可解引用。
+	\brief 判断迭代器实例是否确定可解引用。
 	\tparam _tIterator 迭代器类型。
-	\note 默认实现使用 is_not_null 。
+	\note 注意返回 \c false 不表示参数实际不可解引用。
+	\note 默认实现对指针使用 \c is_not_null 。
 	*/
 	//@{
 	template<typename _tIterator>
-	bool
-	is_dereferencable(const _tIterator& i);
+	yconstexprf bool
+	is_dereferencable(const _tIterator&)
+	{
+		return false;
+	}
 	template<typename _type>
 	yconstexprf bool
 	is_dereferencable(_type* p)
 	{
 		return is_not_null(p);
+	}
+	//@}
+
+
+	/*!	\defgroup is_undereferencable Is Undereferencable Iterator
+	\brief 判断迭代器实例是否为可解引用。
+	\tparam _tIterator 迭代器类型。
+	\note 注意返回 \c false 不表示参数实际可解引用。
+	\note 默认实现对指针使用 \c is_null 。
+	*/
+	//@{
+	template<typename _tIterator>
+	yconstexprf bool
+	is_undereferencable(const _tIterator&)
+	{
+		return false;
+	}
+	template<typename _type>
+	yconstexprf bool
+	is_undereferencable(_type* p)
+	{
+		return is_null(p);
 	}
 	//@}
 

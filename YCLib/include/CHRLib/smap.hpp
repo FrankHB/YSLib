@@ -11,12 +11,12 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 字符映射静态函数。
-\version r2307;
+\version r2348;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-10-05 18:20 +0800;
+	2011-10-08 16:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,12 +49,11 @@ FillByte(_tIn& i, _tState& st)
 	static_assert(std::is_explicitly_convertible<decltype(*i), byte>::value,
 		"Invalid mapping source type found @ CHRLib::GetByteOf;");
 
-	// TODO: runtime dereferencable checking;
-/*	if(!is_dereferencable(i))
+	if(is_undereferencable(i))
 	{
 		GetCountOf(st) = -1;
 		return 0;
-	}*/
+	}
 
 	auto r(static_cast<byte>(*i));
 
@@ -119,31 +118,56 @@ struct GUCS2Mapper<CharSet::UTF_8>
 	static ubyte_t
 	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
-		const auto c(FillByte(i, st));
+		auto& cnt(GetCountOf(st));
 
-		if(c < 0x80)
+		if(cnt < 0 || cnt > 3)
 		{
-			uc = c;
-			return 1;
+			cnt = -1;
+			return 0;
 		}
-		else
-		{
-			const auto d(FillByte(i, st));
 
-			if(c & 0x20)
+		const auto seq(GetSequenceOf(st));
+
+		switch(cnt)
+		{
+		case 0:
+			FillByte(i, st);
+			if(cnt < 0)
+				return 0;
+			if(seq[0] < 0x80)
 			{
-				uc = (((c & 0x0F) << 4
-					| (d & 0x3C) >> 2) << 8)
-					| ((d & 0x3) << 6)
-					| (FillByte(i, st) & 0x3F);
-				return 3;
+				uc = seq[0];
+				break;
 			}
-			else
+		case 1:
+			FillByte(i, st);
+			if(cnt < 0)
+				return 0;
+			if((seq[0] & 0x20) == 0)
 			{
-				uc = ((c & 0x1C) >> 2 << 8) | ((c & 0x03) << 6) | (d & 0x3F);
-				return 2;
+				uc = ((seq[0] & 0x1C) >> 2 << 8)
+					| ((seq[0] & 0x03) << 6)
+					| (seq[1] & 0x3F);
+				break;
 			}
+		case 2:
+			FillByte(i, st);
+			if(cnt < 0)
+				return 0;
+			uc = (((seq[0] & 0x0F) << 4
+				| (seq[1] & 0x3C) >> 2) << 8)
+				| ((seq[1] & 0x3) << 6)
+				| (seq[2] & 0x3F);
+			break;
+		default:
+			cnt = -2;
+			return 0;
 		}
+
+		auto r(cnt);
+
+		cnt = 0;
+		return r;
 	}
 
 	template<typename _tOut>
@@ -180,37 +204,44 @@ struct GUCS2Mapper<CharSet::GBK>
 	{
 		auto& cnt(GetCountOf(st));
 
-		if(cnt < 0)
-			cnt = -1;
-		else
+		if(cnt < 0 || cnt > 1)
 		{
-			const auto seq(GetSequenceOf(st));
-
-			switch(cnt)
-			{
-			case 0:
-				FillByte(i, st);
-				if(cp113[seq[0]] != 0)
-				{
-					uc = seq[0];
-					return 1;
-				}
-			case 1:
-				FillByte(i, st);
-				{
-					const auto idx(seq[0] << 8 | seq[1]);
-
-					if(idx < 0xFF7E)
-					{
-						uc = reinterpret_cast<const ucs2_t*>(cp113 + 0x0100)[
-							idx];
-						return 2;
-					}
-				}
-				cnt = -2;
-			}
+			cnt = -1;
+			return 0;
 		}
-		return 0;
+
+		const auto seq(GetSequenceOf(st));
+
+		switch(cnt)
+		{
+		case 0:
+			FillByte(i, st);
+			if(cnt < 0)
+				return 0;
+			if(cp113[seq[0]] != 0)
+			{
+				uc = seq[0];
+				break;
+			}
+		case 1:
+			FillByte(i, st);
+			if(cnt < 0)
+				return 0;
+			if((seq[0] << 8 | seq[1]) < 0xFF7E)
+			{
+				uc = reinterpret_cast<const ucs2_t*>(cp113 + 0x0100)[
+					seq[0] << 8 | seq[1]];
+				break;
+			}
+		default:
+			cnt = -2;
+			return 0;
+		}
+
+		auto r(cnt);
+
+		cnt = 0;
+		return r;
 	}
 };
 
@@ -221,9 +252,37 @@ struct GUCS2Mapper<CharSet::UTF_16BE>
 	static ubyte_t
 	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
-		uc = FillByte(i, st) << YCL_CHAR_BIT;
-		uc |= FillByte(i, st);
-		return 2;
+		auto& cnt(GetCountOf(st));
+
+		if(cnt < 0 || cnt > 1)
+		{
+			cnt = -1;
+			return 0;
+		}
+
+		const auto seq(GetSequenceOf(st));
+
+		switch(cnt)
+		{
+		case 0:
+			FillByte(i, st);
+			if(cnt < 0)
+				return 0;
+		case 1:
+			FillByte(i, st);
+			if(cnt < 0)
+				return 0;
+			uc = seq[0] << 8 | seq[1];
+			break;
+		default:
+			cnt = -2;
+			return 0;
+		}
+
+		auto r(cnt);
+
+		cnt = 0;
+		return r;
 	}
 };
 
@@ -234,9 +293,37 @@ struct GUCS2Mapper<CharSet::UTF_16LE>
 	static ubyte_t
 	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
-		uc = FillByte(i, st);
-		uc |= FillByte(i, st) << YCL_CHAR_BIT;
-		return 2;
+		auto& cnt(GetCountOf(st));
+
+		if(cnt < 0 || cnt > 1)
+		{
+			cnt = -1;
+			return 0;
+		}
+
+		const auto seq(GetSequenceOf(st));
+
+		switch(cnt)
+		{
+		case 0:
+			FillByte(i, st);
+			if(cnt < 0)
+				return 0;
+		case 1:
+			FillByte(i, st);
+			if(cnt < 0)
+				return 0;
+			uc = seq[0] | seq[1] << 8;
+			break;
+		default:
+			cnt = -2;
+			return 0;
+		}
+
+		auto r(cnt);
+
+		cnt = 0;
+		return r;
 	}
 };
 
