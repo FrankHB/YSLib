@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1851;
+\version r1855;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-09-20 06:28 +0800;
+	2011-10-08 23:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -119,8 +119,7 @@ ShlDS::OnGotMessage(const Message& msg)
 void
 ShlDS::UpdateToScreen()
 {
-	Validate(*hDskUp);
-	Validate(*hDskDown);
+	yunsequenced((Validate(*hDskUp), Validate(*hDskDown)));
 	hDskUp->Update();
 	hDskDown->Update();
 }

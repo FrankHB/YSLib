@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3965;
+\version r3972;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-16 02:54 +0800;
+	2011-10-08 23:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -108,15 +108,13 @@ GUIShell::ResetHeldState(HeldStateType& s)
 void
 GUIShell::ResetGUIStates()
 {
-	KeyHeldState = Free;
-	TouchHeldState = Free;
-	DraggingOffset = Vec::Invalid;
+	yunsequenced(KeyHeldState = Free, TouchHeldState = Free,
+		DraggingOffset = Vec::Invalid);
 	HeldTimer.SetInterval(1000);
 	Deactivate(HeldTimer);
-	ControlLocation = Point::Invalid;
-	LastControlLocation = Point::Invalid;
-	p_TouchDown = nullptr;
-	p_KeyDown = nullptr;
+	yunsequenced(ControlLocation = Point::Invalid,
+		LastControlLocation = Point::Invalid,
+		p_TouchDown = nullptr, p_KeyDown = nullptr);
 }
 
 void

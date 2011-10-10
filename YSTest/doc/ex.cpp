@@ -1,4 +1,4 @@
-// v0.3338; *build 250 rev 21;
+// v0.3352; *build 251 rev 39;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -273,173 +273,231 @@ $using:
 (
 	\cl Form
 ),
+\u YText
+(
+	\cl TextState,
+	\cl EmptyTextRenderer,
+	\cl ATextRenderer,
+	\cl TextRegion
+),
 \u TextManager
 (
-	\cl TextBuffer,
-	\cl TextBlock,
-	\cl TextMap,
 	\cl TextFileBuffer
 );
 
 
 $DONE:
-r1-r2:
-/= test 0;
+r1:
+/ @ \h YDefinition $=
+(
+	+ \ft<typename... _type> void unsequenced(_type&&...) @ \ns ystdex;
+	+ \mac yunsequenced
+);
+^ \mac yunsequenced @ \lib (YCLib, CHRLib);
+
+r2:
++ 'ynothrow' @ \ft unsequenced @ \ns ystdex @ \h YDefinition;
++ 'ynothrow' @ 2 (\op++, \op+=) @ \clt pair_iterator @ \h Iterator,
+^ \mac yunsequenced @ \lib YSLib;
++ 'ynothrow' @ (\op+=, \op-=) @ \cl GBinaryGroup @ \h YGDIBase;
 
 r3:
-/ @ \lib CHRLib $=
-(
-	/ \impl @ \mf Map @ \stt<> GUCS2Mapper<CharSet::GBK> @ \h StaticMapping,
-	/ \impl @ \f MBCToUC#2 @ \impl \u CharacterProcessing
-);
-
-r4:
-/ \impl @ \mf GUCS2Mapper<CharSet::UTF_8>::Map @ \h StaticMapping @ \lib CHRLib;
-
-r5:
 /= test 1 ^ \conf release;
 
+r4:
+/ @ \u DSReader $=
+(
+	- @ \cl BlockedText;
+	/ \simp @ \cl MDualScreenReader $=
+	(
+		/ \m BlockedText* pText -> Text::TextFileBuffer* pText;
+		/ \tr \impl @ \mf (LineUp, LineDown, ScreenUp, ScreenDown, LoadText,
+			IsTextTop, IsTextBottom)
+	)
+);
+/ @ \cl MDualScreenReader @ \u DSReader $=
+(
+	/ \tr \impl @ \mf GetEncoding,
+
+);
+
+r5:
+/ \simp @ \cl MDualScreenReader @ \u DSReader $=
+(
+	/ \impl @ \mf GetEncoding,
+	/ \impl @ \mf (LoadText, UnloadText);
+	- private \m Text::Encoding cp,
+	/ \tr \impl @ \ctor
+);
+
 r6:
-/ \impl @ \mf Map @ \cl (GUCS2Mapper<CharSet::UTF_8>,
-	GUCS2Mapper<CharSet::GBK>) @ \h StaticMapping @ \lib CHRLib;
+/ \simp @ \cl TextFileBuffer @ \u TextManager $=
+(
+	- \m typedef TextMap::BlockSizeType BlockSizeType,
+	- \sm yconstexpr SizeType nBlockSize = 0x2000,
+	- private \m \c SizeType nTextSize,
+	- private \m \c BlockSizeType nBlock;
+	/ \inh \cl TextMap -> \cl TextBlock,
+	/ \m TextFile& File -> \inh TextFile;
+	/ \cl Iteartor -> typedef TextBlock::const_iterator Iterator;
+	/ \tr \impl @ \ctor,
+	- \tr \mf (GetTextSize, at, begin, end)
+);
+/ @ \cl MDualScreenReader @ \u DSReader $=
+(
+	/ \tr \impl @ \mf GetEncoding, LineUp, LineDown, ScreenUp, ScreenDown
+);
 
 r7:
-* \impl @ \mf GUCS2Mapper<CharSet::GBK>::Map $since r6;
-
-r8-r9:
-/ @ \h Iterator $=
+/ \simp @ \u TextManager $=
 (
-	+ \inc \h <tuple>;
-	+ \ns common_iterator_traits $=
+	- \cl TextMap,
+	/ \simp @ \cl TextBlock $=
 	(
-		+ typedef std::tuple<reference(*)(common_iterator),
-			void(*)(common_iterator)> operations_type
+		- \m typedef u16 BlockSizeType,
+		- \m BlockSizeType Index;
+		/ \tr \ctor TextBlock(BlockSizeType, SizeType) -> TextBlock(SizeType),
+		- \tr (\op==, \op<)
 	);
-	/ typedef void_ref common_iterator >> \st common_iterator_traits;
-	/ @ \stt iterator_operations $=
+	/ \tr \simp \impl @ \ctor @ \cl TextFileBuffer
+);
+
+r8:
+/ \simp @ \u TextManager $=
+(
+	/ !\m \f SizeType LoadText(TextBlock&, TextFile&, SizeType)
+		-> protected \mf @ SizeType LoadText(SizeType) @ \cl TextFileBuffer;
+	/ \a (\inh, \m) \exc (\ctor, \dtor) @ \cl TextBlock >> \cl TextFileBuffer;
+	/ \tr @ \cl TextFileBuffer $=
 	(
-		+ \inh \st common_iterator_traits,
-		/ (typedef void_ref value_type, typedef void* pointer,
-			typedef void_ref reference) >> \st common_iterator_traits,
-		+ typedef std::tuple<reference(*)(common_iterator),
-			void(*)(common_iterator)> operations_type;
-		+ \scm operations_type operations
-	);
-	/ @ \cl input_monomorphic_iterator $=
-	(
-		+ \tr typedef common_iterator_traits::common_iterator common_iterator,
+		- \inh TextBlock @ \cl TextFileBuffer,
+		/ typedef TextBlock::const_iterator Iterator
+			-> typedef const_iterator Iterator,
+		+ \vt DefEmptyDtor(TextFileBuffer),
 		/ \impl @ \ctor
 	);
+	- \cl TextBlock
 );
 
-r10:
-/ \simp @ \cl input_monomorphic_iterator @ \h Iterator $=
-(
-	- private \m void(*inc)(common_iterator),
-	- private \m reference(*deref)(common_iterator),
-	(
-		+ \tr typedef common_iterator_traits::operations_type operations_type;
-		+ private \m const operations_type* operations_ptr;
-	)
-	/ \simp \impl @ \ctor,
-	/ \impl @ \mf \op++,
-	/ \impl @ \mf \op*;
-	/ \tr \impl @ \mf \op->
-);
-
-r11:
+r9:
 /= test 2 ^ \conf release;
 
-r12:
-/ @ \h Memory $=
+r10:
+/ \impl @ \ctor @ \cl TextFileBuffer;
+
+r11-r12:
+* wrong ending of text checking @ text buffer $since b246
 (
-	/ \def @ \ft<_tIterator> bool is_dereferencable(const _tIterator&),
-	+ \ft<_tIterator> is_dereferencable;
-	+ \ft<_type> is_undereferencable(_type*);
-);
-/ @ \h Iterator $=
-(
-	/ @ \st common_iterator_traits $=
-	(
-		/ typedef std::tuple<reference(*)(common_iterator),
-			void(*)(common_iterator)> operations_type -> typedef std::tuple<
-			reference(*)(common_iterator), bool(*)(common_iterator),
-			bool(*)(common_iterator), void(*)(common_iterator)> operations_type;
-		+ \smf is_deferencable;
-		+ \smf is_undeferencable;
-	);
-	/ @ \cl input_monomorphic_iterator $=
-	(
-		/ \tr \impl @ \op++,
-		+ \mf const operations_type& get_operations() const
-	);
-	+ \mf \i bool is_dereferencable(const input_monomorphic_iterator&),
-	+ \mf \i bool is_undereferencable(const input_monomorphic_iterator&)
+	/ \impl @ \mf TextFileBuffer::LoadText
 );
 
 r13:
-/ @ \h Iterator $=
-(
-	/ \a common_iterator_traits => common_iterator_base,
-	/ \a operations_type => operation_list;
-	/ @ \st iter_base $=
-	(
-		+ typedef \en operation_t
-	);
-	/ \tr \impl @ \cl input_monomorphic_iterator,
-	+ \tr \impl @ \mf \i bool is_dereferencable(const
-		input_monomorphic_iterator&),
-	+ \tr \impl @ \mf \i bool is_undereferencable(const
-		input_monomorphic_iterator&)
-);
-
-r14:
 /= test 3 ^ \conf release;
 
-r15-r18:
-* EOF cannot be recognized by conversion routines $since b248 $=
+r14:
+- \ctor \tb @ \cl MDualScreenReader @ \impl \u DSReader;
+/ \a MDualScreenReader => DualScreenReader;
+
+r15:
+/ (\rem, \impl) @ \mf ATextRenderer::ClearLine;
+
+r16:
+/ \simp @ \h YText $=
 (
-	/ @ \h StaticMapping $=
-	(
-		/ \impl @ \ft FillByte;
-		/ \impl @ \mf Map @ \stt<> GUCS2Mapper<CharSet::UTF_8>,
-		/ \impl @ \mf Map @ \stt<> GUCS2Mapper<CharSet::GBK>
-	),
-	/ \impl @ \mf LoadText @ \impl \u TextManaget,
-	/ @ \h CStandardIO
-	(
-		/ @ \ft<> yconstexprf bool is_dereferencable(const ifile_iterator&)
-			-> \f \i bool is_dereferencable(const ifile_iterator&),
-		+ \f \i bool is_undereferencable(const ifile_iterator&)
-	)
+	/ \ft<typename _tIn, typename _tChar> _tIn rfind(FontCache&, SDst,
+		_tIn, _tIn, _tChar) -> \ft<typename _tIn> _tIn ReverseFind(FontCache&,
+		SDst, _tIn, _tIn, ucs4_t);
+	/ \tr \impl @ \ft FetchPreviousLineIterator
 );
 
-r19:
-/= test 4 ^ \conf release;
-
-r20:
-/ @ \h StaticMapping $=
+r17:
+/ \simp @ \h YText $=
 (
-	/ \impl @ \mf Map @ \stt<> GUCS2Mapper<CharSet::UTF_16BE>,
-	/ \impl @ \mf Map @ \stt<> GUCS2Mapper<CharSet::UTF_16LE>
+	/ \ft<typename _tIn, typename _tChar, class _tRenderer> _tIn
+		PrintLine(_tRenderer&, _tIn, _tIn, _tChar = '\0')
+		-> \ft<typename _tIn, class _tRenderer> _tIn
+		PrintLine(_tRenderer&, _tIn, _tIn, ucs4_t c = '\0'),
+	/ \ft<typename _tIn, typename _tChar, class _tRenderer> _tIn
+		PutLine(_tRenderer&, _tIn, _tIn, _tChar = '\0')
+		-> \ft<typename _tIn, class _tRenderer> _tIn
+		PutLine(_tRenderer&, _tIn, _tIn, ucs4_t c = '\0'),
+	/ \ft<typename _tIn, typename _tChar, class _tRenderer> _tIn
+		PrintString(_tRenderer&, _tIn, _tIn, _tChar = '\0')
+		-> \ft<typename _tIn, class _tRenderer> _tIn
+		PrintString(_tRenderer&, _tIn, _tIn, ucs4_t c = '\0'),
+	/ \ft<typename _tIn, typename _tChar, class _tRenderer> _tIn
+		PutString(_tRenderer&, _tIn, _tIn, _tChar = '\0')
+		-> \ft<typename _tIn, class _tRenderer> _tIn
+		PutString(_tRenderer&, _tIn, _tIn, ucs4_t c = '\0'),
+	/ \ft<typename _tIn, typename _tChar> SDst FetchStringWidth(const Font&,
+		_tIn, _tIn, _tChar = '\0') -> \ft<typename _tIn> SDst
+		FetchStringWidth(const Font&, _tIn, _tIn, ucs4_t = '\0'),
+	/ \ft<typename _tIn, typename _tChar> SDst FetchStringWidth(TextState&,
+		SDst, _tIn, _tIn, _tChar = '\0') -> \ft<typename _tIn> SDst
+		FetchStringWidth(TextState&, SDst, _tIn, _tIn, ucs4_t = '\0'),
 );
+/ \tr \impl @ \mf DualScreenReader::LineUp @ \impl \u DSReader;
+
+r18:
+/ @ \h YText $=
+(
+	/ \ft<typename _tIn> _tIn FetchPreviousLineIterator(
+		const Drawing::TextRegion&, _tIn, _tIn, u16 = 1)
+		-> \ft<typename _tIn> _tIn FindPrevious(const Drawing::TextRegion&,
+		_tIn, _tIn, ucs4_t = '\n', u16 = 1),
+	/ \ft<typename _tIn> _tIn FetchNextLineIterator(const Drawing::TextRegion&,
+		_tIn, _tIn) -> \ft<typename _tIn> _tIn FindNext(
+		const Drawing::TextRegion&, _tIn, _tIn, ucs4_t = '\n')
+);
+/ \tr \impl @ \mf (LineUp, LineDown, ScreenUp, ScreenDown)
+	@ \cl DualScreenReader @ \impl \u DSReader;
+
+r19-r20:
+/= test 4;
 
 r21:
+* \impl @ \mf TextFileBuffer::LoadText $since r12;
+
+r22:
+/ \simp \impl @ \mf TextFileBuffer::LoadText;
+
+r23:
 /= test 5 ^ \conf release;
+
+r24:
+/ @ \h StaticMapping $=
+(
+	/ \rem \mf Map @ \st (GUCS2Mapper<CharSet::SHIFT_JIS>,
+		GUCS2Mapper<CharSet::Big5>);
+	/ \ft<typename _tIn, typename _tState> \i byte
+		FillByte(_tIn&, _tState&)
+		-> \ft<typename _tIn, typename _tState> \i bool
+		FillByte(_tIn&, _tState&);
+	/ \tr \impl @ \a !\rem \mf GUCS2Mapper::Map
+);
+
+r25-r37:
+/= test 6 ^ \conf release;
+
+r38:
+* \impl @ \a !\rem \mf GUCS2Mapper::Map $since r24;
+
+r39
+/= test 7 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-10-08:
--18.6d;
-//Mercurial rev1-rev121: r5722;
+2011-10-10:
+-18.3d;
+//Mercurial rev1-rev122: r5743;
 
 / ...
 
 
 $NEXT_TODO:
-b251-b324:
+b252-b324:
 + %TextList invalidation support;
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
@@ -527,6 +585,19 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	+ $design "unordered evaluated expressions optimization",
+	- "buffered text blocks",
+	* "wrong ending of text checking @ text buffer" $since b246,
+	/ @ "library CHRLib" $=
+	(
+		/ "undereferencable conversion error treated as conversion faliure",
+		/ "conversion functions returns non-zero if non-zero bytes read \
+			when a conversion failure occured"
+	)
+),
+
+b250
 (
 	+ $design "iterator checking operations" @ "library YCLib";
 	/ @ "library CHRLib" $=
@@ -1142,7 +1213,7 @@ b223
 	),
 	^ "updated libnds 1.5.1 with default arm7 0.5.21"
 		~ "libnds 1.5.0 with default arm 7 0.5.20",
-	^ "updated devkitARM release 34" ~ devkitARM release 33"
+	^ "updated devkitARM release 34" ~ "devkitARM release 33"
 ),
 
 b222

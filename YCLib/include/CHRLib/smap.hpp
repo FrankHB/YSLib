@@ -11,12 +11,12 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 字符映射静态函数。
-\version r2348;
+\version r2389;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-10-08 16:56 +0800;
+	2011-10-10 12:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,15 +50,13 @@ FillByte(_tIn& i, _tState& st)
 		"Invalid mapping source type found @ CHRLib::GetByteOf;");
 
 	if(is_undereferencable(i))
-	{
-		GetCountOf(st) = -1;
-		return 0;
-	}
+		return false;
 
 	auto r(static_cast<byte>(*i));
 
 	++i;
-	return GetSequenceOf(st)[GetCountOf(st)++] = r;
+	GetSequenceOf(st)[GetCountOf(st)++] = r;
+	return true;
 }
 
 
@@ -71,7 +69,7 @@ class GUCS2Mapper
 template<>
 struct GUCS2Mapper<CharSet::SHIFT_JIS>
 {
-	template<typename _tIn, typename _tState>
+/*	template<typename _tIn, typename _tState>
 	static ubyte_t
 	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
@@ -108,7 +106,7 @@ struct GUCS2Mapper<CharSet::SHIFT_JIS>
 		else
 			uc = 0xFFFE;
 		return 2;
-	}
+	}*/
 };
 
 template<>
@@ -127,22 +125,21 @@ struct GUCS2Mapper<CharSet::UTF_8>
 		}
 
 		const auto seq(GetSequenceOf(st));
+		bool b(true);
 
 		switch(cnt)
 		{
 		case 0:
-			FillByte(i, st);
-			if(cnt < 0)
-				return 0;
+			if(!(b = FillByte(i, st)))
+				break;
 			if(seq[0] < 0x80)
 			{
 				uc = seq[0];
 				break;
 			}
 		case 1:
-			FillByte(i, st);
-			if(cnt < 0)
-				return 0;
+			if(!(b = FillByte(i, st)))
+				break;
 			if((seq[0] & 0x20) == 0)
 			{
 				uc = ((seq[0] & 0x1C) >> 2 << 8)
@@ -151,22 +148,20 @@ struct GUCS2Mapper<CharSet::UTF_8>
 				break;
 			}
 		case 2:
-			FillByte(i, st);
-			if(cnt < 0)
-				return 0;
+			if(!(b = FillByte(i, st)))
+				break;
 			uc = (((seq[0] & 0x0F) << 4
 				| (seq[1] & 0x3C) >> 2) << 8)
 				| ((seq[1] & 0x3) << 6)
 				| (seq[2] & 0x3F);
 			break;
 		default:
-			cnt = -2;
-			return 0;
+			b = false;
 		}
 
-		auto r(cnt);
+		const auto r(cnt + !b);
 
-		cnt = 0;
+		cnt = b ? 0 : -2;
 		return r;
 	}
 
@@ -211,22 +206,21 @@ struct GUCS2Mapper<CharSet::GBK>
 		}
 
 		const auto seq(GetSequenceOf(st));
+		bool b(true);
 
 		switch(cnt)
 		{
 		case 0:
-			FillByte(i, st);
-			if(cnt < 0)
-				return 0;
+			if(!(b = FillByte(i, st)))
+				break;
 			if(cp113[seq[0]] != 0)
 			{
 				uc = seq[0];
 				break;
 			}
 		case 1:
-			FillByte(i, st);
-			if(cnt < 0)
-				return 0;
+			if(!(b = FillByte(i, st)))
+				break;
 			if((seq[0] << 8 | seq[1]) < 0xFF7E)
 			{
 				uc = reinterpret_cast<const ucs2_t*>(cp113 + 0x0100)[
@@ -234,13 +228,12 @@ struct GUCS2Mapper<CharSet::GBK>
 				break;
 			}
 		default:
-			cnt = -2;
-			return 0;
+			b = false;
 		}
 
-		auto r(cnt);
+		const auto r(cnt + !b);
 
-		cnt = 0;
+		cnt = b ? 0 : -2;
 		return r;
 	}
 };
@@ -261,27 +254,25 @@ struct GUCS2Mapper<CharSet::UTF_16BE>
 		}
 
 		const auto seq(GetSequenceOf(st));
+		bool b(true);
 
 		switch(cnt)
 		{
 		case 0:
-			FillByte(i, st);
-			if(cnt < 0)
-				return 0;
+			if(!(b = FillByte(i, st)))
+				break;
 		case 1:
-			FillByte(i, st);
-			if(cnt < 0)
-				return 0;
+			if(!(b = FillByte(i, st)))
+				break;
 			uc = seq[0] << 8 | seq[1];
 			break;
 		default:
-			cnt = -2;
-			return 0;
+			b = false;
 		}
 
-		auto r(cnt);
+		const auto r(cnt + !b);
 
-		cnt = 0;
+		cnt = b ? 0 : -2;
 		return r;
 	}
 };
@@ -302,27 +293,25 @@ struct GUCS2Mapper<CharSet::UTF_16LE>
 		}
 
 		const auto seq(GetSequenceOf(st));
+		bool b(true);
 
 		switch(cnt)
 		{
 		case 0:
-			FillByte(i, st);
-			if(cnt < 0)
-				return 0;
+			if(!(b = FillByte(i, st)))
+				break;
 		case 1:
-			FillByte(i, st);
-			if(cnt < 0)
-				return 0;
+			if(!(b = FillByte(i, st)))
+				break;
 			uc = seq[0] | seq[1] << 8;
 			break;
 		default:
-			cnt = -2;
-			return 0;
+			b = false;
 		}
 
-		auto r(cnt);
+		const auto r(cnt + !b);
 
-		cnt = 0;
+		cnt = b ? 0 : -2;
 		return r;
 	}
 };
@@ -330,7 +319,7 @@ struct GUCS2Mapper<CharSet::UTF_16LE>
 template<>
 struct GUCS2Mapper<CharSet::Big5>
 {
-	template<typename _tIn, typename _tState>
+/*	template<typename _tIn, typename _tState>
 	static ubyte_t
 	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
@@ -369,7 +358,7 @@ struct GUCS2Mapper<CharSet::Big5>
 		else
 			uc = 0xFFFE;
 		return 2;
-	}
+	}*/
 };
 
 CHRLIB_END

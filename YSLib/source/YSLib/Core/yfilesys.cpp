@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2214;
+\version r2220;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-09-23 12:26 +0800;
+	2011-10-08 23:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -200,15 +200,10 @@ SplitPath(const string& path, string& directory, string& file)
 	const string::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
 	if(p == string::npos)
-	{
-		directory = "";
-		file = path;
-	}
+		yunsequenced((directory = "", file = path));
 	else
-	{
-		directory = path.substr(0, p + 1);
-		file = path.substr(p + 1);
-	}
+		yunsequenced((directory = path.substr(0, p + 1),
+			file = path.substr(p + 1)));
 	return p;
 }
 
@@ -248,8 +243,7 @@ HaveSameStems(const char* a, const char* b)
 	{
 		if(*a != *b)
 			return false;
-		++a;
-		++b;
+		yunsequenced(++a, ++b);
 	}
 	return true;
 }

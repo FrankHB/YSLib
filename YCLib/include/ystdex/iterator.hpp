@@ -11,12 +11,12 @@
 /*!	\file iterator.hpp
 \ingroup YCLib
 \brief C++ 标准库迭代器扩展。
-\version r1503;
+\version r1514;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2011-10-08 15:35 +0800;
+	2011-10-08 23:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -238,8 +238,7 @@ namespace ystdex
 		pair_iterator&
 		operator++()
 		{
-			++this->first;
-			++this->second;
+			yunsequenced(++this->first, ++this->second);
 			return *this;
 		}
 
@@ -254,15 +253,14 @@ namespace ystdex
 
 		//双向迭代器需求。
 		pair_iterator&
-		operator--()
+		operator--() ynothrow
 		{
-			--this->second;
-			--this->first;
+			yunsequenced(--this->first, --this->second);
 			return *this;
 		}
 
 		pair_iterator
-		operator--(int)
+		operator--(int) ynothrow
 		{
 			const auto i(*this);
 
@@ -278,10 +276,9 @@ namespace ystdex
 		}
 
 		pair_iterator&
-		operator+=(const difference_type& _n)
+		operator+=(const difference_type& _n) ynothrow
 		{
-			this->first += _n;
-			this->second += _n;
+			yunsequenced(this->first += _n, this->second += _n);
 			return *this;
 		}
 
@@ -294,8 +291,7 @@ namespace ystdex
 		pair_iterator&
 		operator-=(const difference_type& _n)
 		{
-			this->second -= _n;
-			this->first -= _n;
+			yunsequenced(this->first -= _n, this->second -= _n);
 			return *this;
 		}
 

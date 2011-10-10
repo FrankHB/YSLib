@@ -11,12 +11,12 @@
 /*!	\file ydef.h
 \ingroup YCLib
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2662;
+\version r2678;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2011-10-05 17:41 +0800;
+	2011-10-09 00:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -196,9 +196,26 @@ namespace ystdex
 #endif
 
 
-	//根据参数类型使用 std::forward 传递对应参数，保持左值性和常量性。
+	//! \brief 根据参数类型使用 std::forward 传递对应参数，保持左值性和常量性。
 	#define yforward(_expr) std::forward<typename \
 		std::remove_reference<decltype(_expr)>::type>(_expr)
+
+	/*!
+	\brief 无序列依赖表达式组求值实现。
+	\note 无异常抛出。
+	*/
+	template<typename... _type>
+	inline void
+	unsequenced(_type&&...) ynothrow
+	{}
+
+	/*!
+	\brief 无序列依赖表达式组求值。
+	\note 由于实现限制，不适用于 void 类型表达式组。
+	\warning 非一元形式不适用于产生副作用的表达式，包括所有可能抛出异常的表达式。
+	\note 使用一元形式 %yunsequenced((_expr)) 的形式标记表达式组但不取消序列关系。
+	*/
+	#define yunsequenced ystdex::unsequenced
 }
 
 #endif

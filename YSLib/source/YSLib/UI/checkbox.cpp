@@ -11,12 +11,12 @@
 /*!	\file checkbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面复选框控件。
-\version r1398;
+\version r1401;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2011-09-14 08:45 +0800;
+	2011-10-08 23:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,10 +39,8 @@ namespace
 	{
 		YAssert(r.Width > 2 && r.Height > 2, "err: @r is too small.");
 
-		r.X += off1;
-		r.Y += off1;
-		r.Width -= off2;
-		r.Height -= off2;
+		yunsequenced(r.X += off1, r.Y += off1,
+			r.Width -= off2, r.Height -= off2);
 	}
 
 	using namespace Drawing;

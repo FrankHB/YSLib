@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version r6699;
+\version r6711;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-09-30 19:42 +0800;
+	2011-10-09 14:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -75,8 +75,8 @@ void
 TextState::ResetForBounds(const Rect& r, const Size& s, const Padding& m)
 {
 	Margin = FetchMargin(r + m, s);
-	PenX = r.X + m.Left;
-	PenY = r.Y + GetCache().GetAscender() + m.Top;
+	yunsequenced(PenX = r.X + m.Left,
+		PenY = r.Y + GetCache().GetAscender() + m.Top);
 }
 
 
@@ -261,14 +261,14 @@ void
 ATextRenderer::ClearLine(u16 l, SDst n)
 {
 	const auto& g(GetContext());
+	const auto h(g.GetHeight());
 
-	if(l > g.GetHeight())
-		return;
-	if(!n)
-		--n;
-	if(g.IsValid())
-		mmbset(g[l], 0, ((l + n > g.GetHeight() ? g.GetHeight() - l : n)
-			* g.GetWidth()) * sizeof(PixelType));
+	if(g.IsValid() && l < h)
+	{
+		if(n == 0 || l + n > h)
+			n = h - l;
+		mmbset(g[l], 0, g.GetWidth() * n * sizeof(PixelType));
+	}
 }
 
 void
@@ -327,8 +327,8 @@ TextRegion::ClearLine(u16 l, SDst n)
 		const u32 t((l + n > g.GetHeight() ? g.GetHeight() - l : n)
 			* g.GetWidth());
 
-		mmbset(g[l], 0, t * sizeof(PixelType));
-		mmbset(&pBufferAlpha[l * g.GetWidth()], 0, t * sizeof(u8));
+		yunsequenced(mmbset(g[l], 0, t * sizeof(PixelType)),
+			mmbset(&pBufferAlpha[l * g.GetWidth()], 0, t * sizeof(u8)));
 	}
 }
 
@@ -355,8 +355,7 @@ TextRegion::Scroll(ptrdiff_t n, SDst h)
 				d += n;
 			else
 				s -= n;
-			s *= GetWidth();
-			d *= GetWidth();
+			yunsequenced(s *= GetWidth(), d *= GetWidth());
 			std::memmove(&pBuffer[d], &pBuffer[s], t * sizeof(PixelType));
 			std::memmove(&pBufferAlpha[d], &pBufferAlpha[s], t * sizeof(u8));
 		}

@@ -12,12 +12,12 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1644;
+\version r1654;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-10-01 18:51 +0800;
+	2011-10-08 23:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,20 +92,18 @@ public:
 	\brief 加法赋值。
 	*/
 	GBinaryGroup&
-	operator+=(const GBinaryGroup& val)
+	operator+=(const GBinaryGroup& val) ynothrow
 	{
-		X += val.X;
-		Y += val.Y;
+		yunsequenced(X += val.X, Y += val.Y);
 		return *this;
 	}
 	/*!
 	\brief 减法赋值。
 	*/
 	GBinaryGroup&
-	operator-=(const GBinaryGroup& val)
+	operator-=(const GBinaryGroup& val) ynothrow
 	{
-		X -= val.X;
-		Y -= val.Y;
+		yunsequenced(X -= val.X, Y -= val.Y);
 		return *this;
 	}
 
@@ -477,15 +475,13 @@ Rect::Rect(SPos x, SPos y, SDst w, SDst h)
 inline Rect&
 Rect::operator=(const Point& pt)
 {
-	X = pt.X;
-	Y = pt.Y;
+	yunsequenced(X = pt.X, Y = pt.Y);
 	return *this;
 }
 inline Rect&
 Rect::operator=(const Size& s)
 {
-	Width = s.Width;
-	Height = s.Height;
+	yunsequenced(Width = s.Width, Height = s.Height);
 	return *this;
 }
 

@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1840;
+\version r1843;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-09-02 20:21 +0800;
+	2011-10-08 23:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -231,9 +231,8 @@ MenuHost::operator+=(const ValueType& val)
 {
 	YAssert(val.second, "Null pointer found @ Menu::operator+=;");
 
-	mMenus[val.first] = val.second;
-	val.second->id = val.first;
-	val.second->pHost = this;
+	yunsequenced(mMenus[val.first] = val.second,
+		val.second->id = val.first, val.second->pHost = this);
 }
 
 void

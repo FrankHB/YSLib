@@ -11,12 +11,12 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1496;
+\version r1500;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-09-17 23:27 +0800;
+	2011-09-17 23:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -210,9 +210,8 @@ hsl2rgb(hsl_t c)
 					dc[i] += ((t2 - t1) >> 8) * (((0xC0000 - temp3[i]) / 3)
 						>> 8);
 			}
-			r.r = dc[0] >> 16;
-			r.g = dc[1] >> 16;
-			r.b = dc[2] >> 16;
+			yunsequenced(r.r = dc[0] >> 16, r.g = dc[1] >> 16,
+				r.b = dc[2] >> 16);
 	}
 	return r;
 }
@@ -228,6 +227,7 @@ Palette::Palette()
 {
 	using Drawing::Color;
 
+	// TODO: using initializer-list;
 	colors[Null] = Color(0, 0, 0);
 	colors[Desktop] = Color(10, 59, 118);
 	colors[Window] = Color(255, 255, 255);

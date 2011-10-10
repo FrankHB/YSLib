@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11428;
+\version r11429;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-10-05 17:54 +0800;
+	2011-10-08 23:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -168,6 +168,7 @@ YCL_UNUSED(arg)
 YCL_VOID(arg)
 YCL_VOIDX(arg)
 yforward(_expr)
+yunsequenced
 }
 $header YCommon
 {

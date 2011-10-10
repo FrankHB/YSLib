@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2447;
+\version r2472;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-09-22 15:10 +0800;
+	2011-10-09 13:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,27 +44,15 @@ YSL_BEGIN_NAMESPACE(Components)
 using Drawing::Color;
 using Drawing::PixelType;
 
-class BlockedText
-{
-public:
-	TextFile& File; //!< 文本文件对象。
-	Text::TextFileBuffer Blocks; //!< 文本缓存映射。
-
-	explicit
-	BlockedText(TextFile&);
-};
-
-
-class MDualScreenReader
+class DualScreenReader
 {
 private:
-	BlockedText* pText; //!< 文本资源。
+	Text::TextFileBuffer* pText; //!< 文本资源。
 	FontCache& fc; //!< 字体缓存。
 	Drawing::Rotation rot; //!< 屏幕指向。
 	Text::TextFileBuffer::Iterator itUp; //!< 字符区域读取文本缓存迭代器。
 	Text::TextFileBuffer::Iterator itDn; //!< 字符区域读取文本缓存迭代器。
 	u8 lnHeight; //!< 行高。
-	Text::Encoding cp; //!< 编码。
 
 public:
 	YSLib::Components::TextArea AreaUp; //!< 上屏幕对应字符区域。
@@ -77,7 +65,7 @@ public:
 	\param h_down 下字符区域高。
 	\param fc_ 字体缓存对象。
 	*/
-	MDualScreenReader(SDst w = MainScreenWidth,
+	DualScreenReader(SDst w = MainScreenWidth,
 		SDst h_up = MainScreenHeight, SDst h_down = MainScreenHeight,
 		FontCache& fc_ = FetchGlobalInstance().GetFontCache());
 
@@ -94,7 +82,8 @@ public:
 		//!< 取下字符区域的行距。
 	DefGetter(Color, Color, GetColorUp()) //!< 取字符区域的字体颜色。
 	DefGetter(u8, LineGap, GetLineGapUp()) //!< 取字符区域的行距。
-	DefGetter(Text::Encoding, Encoding, cp) //!< 取编码。
+	DefGetter(Text::Encoding, Encoding, pText ? pText->GetEncoding()
+		: Text::CharSet::Null) //!< 取编码。
 
 private:
 	DefSetterDe(PixelType, ColorUp, AreaUp.Color, 0) \
@@ -172,30 +161,30 @@ public:
 };
 
 inline bool
-MDualScreenReader::IsTextTop()
+DualScreenReader::IsTextTop()
 {
-	return itUp == pText->Blocks.begin();
+	return itUp == pText->begin();
 }
 inline bool
-MDualScreenReader::IsTextBottom()
+DualScreenReader::IsTextBottom()
 {
-	return itDn == pText->Blocks.end();
+	return itDn == pText->end();
 }
 
 inline void
-MDualScreenReader::SetColor(Color c)
+DualScreenReader::SetColor(Color c)
 {
 	AreaUp.Color = c;
 	AreaDown.Color = c;
 }
 inline void
-MDualScreenReader::SetFontSize(Drawing::Font::SizeType fz)
+DualScreenReader::SetFontSize(Drawing::Font::SizeType fz)
 {
 	fc.SetFontSize(fz);
 	lnHeight = fc.GetHeight();
 }
 inline void
-MDualScreenReader::SetLineGap(u8 g)
+DualScreenReader::SetLineGap(u8 g)
 {
 	AreaUp.LineGap = g;
 	AreaDown.LineGap = g;

@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version r7045;
+\version r7074;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-09-30 19:42 +0800;
+	2011-10-09 16:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -303,9 +303,9 @@ PrintLine(_tRenderer& r, _tIn s)
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \return 指向结束位置的迭代器。
 */
-template<typename _tIn, typename _tChar, class _tRenderer>
+template<typename _tIn, class _tRenderer>
 _tIn
-PrintLine(_tRenderer& r, _tIn s, _tIn g, _tChar c = '\0')
+PrintLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 {
 	TextState& ts(r.GetTextState());
 	const SPos fpy(ts.PenY);
@@ -351,9 +351,9 @@ PutLine(_tRenderer& r, _tIn s)
 \note 当行内无法容纳完整字符时换行。
 \return 指向结束位置的迭代器。
 */
-template<typename _tIn, typename _tChar, class _tRenderer>
+template<typename _tIn, class _tRenderer>
 _tIn
-PutLine(_tRenderer& r, _tIn s, _tIn g, _tChar c = '\0')
+PutLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 {
 	TextState& ts(r.GetTextState());
 	const SPos fpy(ts.PenY);
@@ -398,9 +398,9 @@ PrintString(_tRenderer& r, _tIn s)
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \return 指向结束位置的迭代器。
 */
-template<typename _tIn, typename _tChar, class _tRenderer>
+template<typename _tIn, class _tRenderer>
 _tIn
-PrintString(_tRenderer& r, _tIn s, _tIn g, _tChar c = '\0')
+PrintString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 {
 	TextState& ts(r.GetTextState());
 	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
@@ -446,9 +446,9 @@ PutString(_tRenderer& r, _tIn s)
 \note 当行内无法容纳完整字符时换行。
 \return 指向结束位置的迭代器。
 */
-template<typename _tIn, typename _tChar, class _tRenderer>
+template<typename _tIn, class _tRenderer>
 _tIn
-PutString(_tRenderer& r, _tIn s, _tIn g, _tChar c = '\0')
+PutString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 {
 	TextState& ts(r.GetTextState());
 	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
@@ -552,6 +552,8 @@ public:
 
 	/*!
 	\brief 清除缓冲区第 l 行起始的 n 行像素。
+	\note 图形接口上下文不可用或 l 越界时忽略。
+	\note n 被限制为不越界。
 	\note n 为 0 时清除之后的所有行。
 	*/
 	virtual void
@@ -712,9 +714,9 @@ FetchStringWidth(const Font& fnt, _tIn s)
 \brief 取迭代器指定的单行字符串在字体指定、无边界限制时的显示宽度。
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 */
-template<typename _tIn, typename _tChar>
+template<typename _tIn>
 SDst
-FetchStringWidth(const Font& fnt, _tIn s, _tIn g, _tChar c = '\0')
+FetchStringWidth(const Font& fnt, _tIn s, _tIn g, ucs4_t c = '\0')
 {
 	SDst w(0);
 
@@ -750,9 +752,9 @@ FetchStringWidth(TextState& ts, SDst h, _tIn s)
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \note 字体由文本状态指定。
 */
-template<typename _tIn, typename _tChar>
+template<typename _tIn>
 SDst
-FetchStringWidth(TextState& ts, SDst h, _tIn s, _tIn g, _tChar c = '\0')
+FetchStringWidth(TextState& ts, SDst h, _tIn s, _tIn g, ucs4_t c = '\0')
 {
 	const SPos x(ts.PenX);
 	EmptyTextRenderer r(ts, h);
@@ -798,14 +800,14 @@ YSL_BEGIN_NAMESPACE(Text)
 	从当前文本迭代器 p 开始逆向查找字符 f 。
 \note 不含 p ；满足 p != --g 。
 */
-template<typename _tIn, typename _tChar>
+template<typename _tIn>
 _tIn
-rfind(FontCache& cache, SDst width, _tIn p, _tIn g, _tChar f)
+ReverseFind(FontCache& cache, SDst width, _tIn p, _tIn g, ucs4_t f)
 {
 	if(p != g)
 	{
 		SDst w(0);
-		_tChar c(0);
+		ucs4_t c(0);
 
 		while(--p != g && (c = *p, c != f && !(std::iswprint(c)
 			&& (w += cache.GetAdvance(c)) > width)))
@@ -820,17 +822,16 @@ rfind(FontCache& cache, SDst width, _tIn p, _tIn g, _tChar f)
 */
 template<typename _tIn>
 _tIn
-FetchPreviousLineIterator(const Drawing::TextRegion& r, _tIn p, _tIn g,
+FindPrevious(const Drawing::TextRegion& r, _tIn p, _tIn g, ucs4_t c = '\n',
 	u16 l = 1)
 {
 	while(l-- != 0 && p != g)
 	{
-		p = rfind<_tIn, ucs2_t>(r.GetCache(), r.PenX - r.Margin.Left, p, g,
-			'\n');
+		p = ReverseFind(r.GetCache(), r.PenX - r.Margin.Left, p, g, c);
 		if(p != g)
 		{
-			p = rfind<_tIn, ucs2_t>(r.GetCache(),
-				r.GetHeight() - GetVerticalOf(r.Margin), p, g, '\n');
+			p = ReverseFind(r.GetCache(),
+				r.GetHeight() - GetVerticalOf(r.Margin), p, g, c);
 			if(p != g)
 				++p;
 		}
@@ -844,7 +845,7 @@ FetchPreviousLineIterator(const Drawing::TextRegion& r, _tIn p, _tIn g,
 */
 template<typename _tIn>
 _tIn
-FetchNextLineIterator(const Drawing::TextRegion& r, _tIn p, _tIn g)
+FindNext(const Drawing::TextRegion& r, _tIn p, _tIn g, ucs4_t c = '\n')
 {
 	if(p == g)
 		return p;
@@ -855,9 +856,10 @@ FetchNextLineIterator(const Drawing::TextRegion& r, _tIn p, _tIn g)
 
 	while(p != g)
 	{
-		ucs2_t c(*p);
+		ucs2_t chr(*p);
 		++p;
-		if(c == '\n' || (std::iswprint(c) && (w += cache.GetAdvance(c)) > nw))
+		if(chr == c || (std::iswprint(chr)
+			&& (w += cache.GetAdvance(chr)) > nw))
 			break;
 	}
 	return p;

@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3583;
+\version r3587;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-09-17 23:37 +0800;
+	2011-10-08 23:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,10 +44,7 @@ namespace
 			: FetchGUIShell().Colors[Styles::Workspace]);
 		if(s.Width > 2 && s.Height > 2)
 		{
-			pt.X += 1;
-			pt.Y += 1;
-			s.Width -= 2;
-			s.Height -= 2;
+			yunsequenced(pt.X += 1, pt.Y += 1, s.Width -= 2, s.Height -= 2);
 			FillRect(g, pt, s, is_enabled ? Color(48, 216, 255)
 				: Color(244, 244, 244));
 			if(is_enabled)
@@ -102,8 +99,7 @@ Thumb::Refresh(const PaintEventArgs& e)
 
 		if(s.Width > 6 && s.Height > 6)
 		{
-			s.Width -= 6;
-			s.Height -= 6;
+			yunsequenced(s.Width -= 6, s.Height -= 6);
 			DrawRect(g, pt + Vec(3, 3), s, ColorSpace::Aqua);
 		}
 	}
