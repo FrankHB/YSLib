@@ -11,12 +11,12 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3258;
+\version r3291;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-10-09 16:21 +0800;
+	2011-10-14 14:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,7 +38,7 @@ YSL_BEGIN_NAMESPACE(Components)
 DualScreenReader::DualScreenReader(SDst w, SDst h_up, SDst h_down,
 	FontCache& fc_)
 	: pText(), fc(fc_),
-	rot(RDeg0), itUp(), itDn(),
+	rot(RDeg0), iTop(), iBottom(),
 	AreaUp(Rect(Point::Zero, w, h_up), fc),
 	AreaDown(Rect(Point::Zero, w, h_down), fc)
 {
@@ -73,29 +73,28 @@ DualScreenReader::LineUp()
 	if(IsTextTop())
 		return false;
 
-	const u8 h = lnHeight, hx = h + GetLineGapDown();
-	const SDst w = AreaUp.GetWidth();
-	const u32 t = w * h,
-		s = (AreaUp.GetHeight() - FetchResizedMargin(AreaUp,
-			AreaUp.GetHeight()) - h) * w,
-		d = AreaDown.Margin.Top * w;
+	const u8 h(fc.GetHeight()), hx(h + GetLineGapDown());
+	const auto w(AreaUp.GetWidth());
 
-	AreaDown.Scroll(hx, FetchResizedBufferHeight(AreaDown,
-		AreaDown.GetHeight()));
-	std::memcpy(&AreaDown.GetBufferPtr()[d],
-		&AreaUp.GetBufferPtr()[s], t * sizeof(PixelType));
-	std::memcpy(&AreaDown.GetBufferAlphaPtr()[d],
-		&AreaUp.GetBufferAlphaPtr()[s], t * sizeof(u8));
-	AreaUp.Scroll(hx, FetchResizedBufferHeight(AreaUp,
-		AreaUp.GetHeight()));
+	yunsequenced(AdjustBottomMarginOf(AreaUp), AdjustBottomMarginOf(AreaDown));
+
+	const u32 t(w * h),
+		s((AreaUp.GetHeight() - AreaUp.Margin.Bottom - h) * w),
+		d(AreaDown.Margin.Top * w);
+
+	AreaDown.Scroll(hx);
+	yunsequenced(ystdex::pod_copy_n(&AreaUp.GetBufferPtr()[s], t,
+		&AreaDown.GetBufferPtr()[d]), ystdex::pod_copy_n(
+		&AreaUp.GetBufferAlphaPtr()[s], t, &AreaDown.GetBufferAlphaPtr()[d]));
+	AreaUp.Scroll(hx);
 	AreaUp.ClearTextLine(0);
 	SetCurrentTextLineNOf(AreaUp, 0);
 
-	const auto itUpOld(itUp);
+	const auto itUpOld(iTop);
 
-	itUp = FindPrevious(AreaUp, itUp, pText->cbegin());
-	PutLine(AreaUp, itUp, itUpOld);
-	itDn = FindPrevious(AreaUp, itDn, pText->cbegin());
+	iTop = FindPrevious(AreaUp, iTop, pText->cbegin());
+	PutLine(AreaUp, iTop, itUpOld);
+	iBottom = FindPrevious(AreaUp, iBottom, pText->cbegin());
 	Invalidate();
 	return true;
 }
@@ -106,23 +105,21 @@ DualScreenReader::LineDown()
 	if(IsTextBottom())
 		return false;
 
-	const u8 h = lnHeight, hx = h + GetLineGapUp();
-	const SDst w = AreaUp.GetWidth();
-	const u32 t = w * h,
-		s = AreaUp.Margin.Top * w,
-		d = (AreaUp.GetHeight() - FetchResizedMargin(AreaUp,
-			AreaUp.GetHeight()) - h) * w;
+	const u8 h(fc.GetHeight()), hx(h + GetLineGapUp());
+	const auto w(AreaUp.GetWidth());
+	const u32 t(w * h),
+		s(AreaUp.Margin.Top * w),
+		d((AreaUp.GetHeight() - FetchResizedBottomMargin(AreaUp) - h) * w);
 
 	AreaUp.Scroll(-hx);
-	std::memcpy(&AreaUp.GetBufferPtr()[d],
-		&AreaDown.GetBufferPtr()[s], t * sizeof(PixelType));
-	std::memcpy(&AreaUp.GetBufferAlphaPtr()[d],
-		&AreaDown.GetBufferAlphaPtr()[s], t * sizeof(u8));
+	yunsequenced(ystdex::pod_copy_n(&AreaDown.GetBufferPtr()[s], t,
+		&AreaUp.GetBufferPtr()[d]), ystdex::pod_copy_n(
+		&AreaDown.GetBufferAlphaPtr()[s], t, &AreaUp.GetBufferAlphaPtr()[d]));
 	AreaDown.Scroll(-hx);
 	AreaDown.ClearTextLineLast();
 	AreaDown.SetTextLineLast();
-	itDn = PutLine(AreaDown, itDn);
-	itUp = FindNext(AreaUp, itUp, pText->cend());
+	iBottom = PutLine(AreaDown, iBottom);
+	iTop = FindNext(AreaUp, iTop, pText->cend());
 	Invalidate();
 	return true;
 }
@@ -133,8 +130,8 @@ DualScreenReader::LoadText(TextFile& file)
 	if(file.IsValid())
 	{
 		pText = ynew Text::TextFileBuffer(file);
-		itUp = pText->begin();
-		itDn = pText->end();
+		iTop = pText->begin();
+		iBottom = pText->end();
 		Update();
 	}
 	else
@@ -169,7 +166,7 @@ DualScreenReader::ScreenUp()
 {
 	if(IsTextTop())
 		return false;
-	itUp = FindPrevious(AreaUp, itUp, pText->cbegin(),
+	iTop = FindPrevious(AreaUp, iTop, pText->cbegin(),
 		AreaUp.GetTextLineN() + AreaDown.GetTextLineN());
 	Update();
 	return true;
@@ -182,9 +179,9 @@ DualScreenReader::ScreenDown()
 
 	int t(AreaUp.GetTextLineN() + AreaDown.GetTextLineN());
 
-	while(t-- && itDn != pText->end())
-		yunsequenced((itUp = FindNext(AreaUp, itUp, pText->cend()),
-			itDn = FindNext(AreaDown, itDn, pText->cend())));
+	while(t-- && iBottom != pText->end())
+		yunsequenced((iTop = FindNext(AreaUp, iTop, pText->cend()),
+			iBottom = FindNext(AreaDown, iBottom, pText->cend())));
 //	itUp = itDn;
 	Update();
 	return true;
@@ -198,8 +195,8 @@ MDualScreenReader::Scroll(Function<void()> pCheck)
 void
 DualScreenReader::UnloadText()
 {
-	itUp = Text::TextFileBuffer::Iterator();
-	itDn = Text::TextFileBuffer::Iterator();
+	iTop = Text::TextFileBuffer::Iterator();
+	iBottom = Text::TextFileBuffer::Iterator();
 	safe_delete_obj()(pText);
 }
 
@@ -208,7 +205,7 @@ DualScreenReader::Update()
 {
 	Reset();
 	//文本填充：输出文本缓冲区字符串，并返回填充字符数。
-	itDn = PutString(AreaDown, PutString(AreaUp, itUp));
+	iBottom = PutString(AreaDown, PutString(AreaUp, iTop));
 	Invalidate();
 }
 

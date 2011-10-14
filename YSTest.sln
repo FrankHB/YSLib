@@ -7,9 +7,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YSTest", "YSTest\YSTest.vcx
 		{501944E8-ADCC-40E6-87F0-08816CFAA343} = {501944E8-ADCC-40E6-87F0-08816CFAA343}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YCLib", "YCLib\YCLib.vcxproj", "{0D1961C7-0E8F-47CD-A2FB-D7920A469E51}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YBase", "YBase\YBase.vcxproj", "{0D1961C7-0E8F-47CD-A2FB-D7920A469E51}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YSLib", "YSLib\YSLib.vcxproj", "{305D480F-C3DC-4A3D-915A-88E9D2224742}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YFramework", "YFramework\YFramework.vcxproj", "{305D480F-C3DC-4A3D-915A-88E9D2224742}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0D1961C7-0E8F-47CD-A2FB-D7920A469E51} = {0D1961C7-0E8F-47CD-A2FB-D7920A469E51}
 	EndProjectSection
@@ -31,7 +31,7 @@ Global
 		release|DS = release|DS
 		release|Mixed Platforms = release|Mixed Platforms
 		release|Win32 = release|Win32
-		Description = YSLib Test
+		Description = YFramework Test
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{2843D63B-952F-4EB3-9620-D1B97301898F}.debug|Any CPU.ActiveCfg = debug|Win32

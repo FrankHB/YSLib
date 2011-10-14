@@ -1,8 +1,8 @@
-# DS Makefile for YSTest -> ARM9 by Franksoft 2009 - 2011
+# DS Makefile for YBase -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-10-10 20:11 +0800;
-# Version = r3364;
+# UTime = 2011-10-12 15:16 +0800;
+# Version = r3868;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -29,11 +29,9 @@ export TOPDIR		?=	$(CURDIR)
 export TARGET		:= $(shell basename $(CURDIR))
 export BUILD		?= release
 export RELEASE		= $(BUILD)
-export SOURCES		:= source data
-export INCLUDES		:= include data ../YSTest/include ../YBase/include ../YFramework/include
+export SOURCES		:= source source/ystdex data
+export INCLUDES		:= include data
 export DATA			:= data
-#export GRAPHICS	:= gfx
-#export MUSIC		:= music
 
 #--------------------------------------------------------------------------------
 # options for code generation
@@ -51,7 +49,7 @@ CFLAGS	:=	-Wall \
 			-ffast-math \
 			$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM9
+CFLAGS	+=	$(INCLUDE) -pedantic -DARM9
 LDFLAGS :=	-specs=ds_arm9.specs $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
 
 ifneq ($(BUILD),debug)
@@ -64,28 +62,10 @@ endif
 
 CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=gnu++0x
 
-#CFLAGS	:=	-g -Wformat=2 -Winline -Wall \
-#		-mcpu=arm946e-s -mtune=arm946e-s -fomit-frame-pointer \
-#		-ffast-math \
-#		$(ARCH)
-#CFLAGS	+=	$(INCLUDE) -I$(PAPATH)/include/nds
-#CXXFLAGS	:=	$(CFLAGS) -frepo -fno-threadsafe-statics -fno-rtti -fno-exceptions
-#CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=gnu++0x
-#	-Weffc++ -Wold-style-cast -Woverloaded-virtual -pedantic
-#	-Wextra -Winit-self -Wmissing-include-dirs -Wsign-promo
-
-#LDFLAGS	:=	-specs=ds_arm9.specs -g $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
-#LDFLAGS=	-specs=ds_arm9.specs -g $(ARCH) -L$(PAPATH)/lib -Wl,-Map,$(notdir $*.map)
-
 #--------------------------------------------------------------------------------
 # path to tools - this can be deleted if you set the path in windows
 #--------------------------------------------------------------------------------
 # export PATH		:=	/d/dev/ds/devkitARM_r11/bin:/bin
-
-#--------------------------------------------------------------------------------
-# PATH to ndslib - just make a system variable called NDSLIBPATH and be done with it
-#--------------------------------------------------------------------------------
-# NDSLIBPATH	:=	/d/dev/ds/ndslib/
 
 #--------------------------------------------------------------------------------
 # the prefix on the compiler executables
@@ -95,25 +75,13 @@ PREFIX			:=	arm-eabi-
 #--------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #--------------------------------------------------------------------------------
-LIBS	:=	-lfat -lnds9
-
-#---- User defined libraries.
-
-LIBPATHEX	:= -L$(TOPDIR)/../YSTest/lib
-LIBEX		:= -lfreetype
-#LIBEX		:= -lfreetype -lagg -lloki
-
-YBASE_A := $(TOPDIR)/../YBase/$(RELEASE)/libYBase.a
-YFRAMEWORK_A := $(TOPDIR)/../YFramework/$(RELEASE)/libYFramework.a
-
-#----
+LIBS	:=	#-lnds9 -lfat
 
 #--------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #--------------------------------------------------------------------------------
-LIBDIRS	:=	$(LIBNDS)
-#LIBDIRPA	:=	$(PAPATH)
+LIBDIRS	:=	#$(LIBNDS)
 
 #--------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -122,14 +90,12 @@ LIBDIRS	:=	$(LIBNDS)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #--------------------------------------------------------------------------------
 
-export ARM9BIN	:=	$(CURDIR)/$(RELEASE)/$(TARGET).arm9
-export ARM9ELF	:=	$(CURDIR)/$(BUILD)/$(TARGET).arm9.elf
+export OUTPUT	:=	$(CURDIR)/$(RELEASE)/lib$(TARGET).a
+
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
-
-#export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir))
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
@@ -179,38 +145,31 @@ endif
 #export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 #					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
-export OFILES	:=	$(MAPFILES:.map=.o) $(RAWFILES:.raw=.o) $(PALFILES:.pal=.o) $(BINFILES:.bin=.o) $(PNGFILES:.png=.o) $(PCXFILES:.pcx=.o) $(JPEGFILES:.jpg=.o) $(MODFILES:.mod=.o) $(GIFFILES:.gif=.o) $(BMPFILES:.bmp=.o) $(MP3FILES:.mp3=.o) \
+export OFILES	:=	$(MAPFILES:.map=.o) $(RAWFILES:.raw=.o) $(PALFILES:.pal=.o) $(BINFILES:.bin=.o) $(PNGFILES:.png=.o) $(PCXFILES:.pcx=.o) $(JPEGFILES:.jpg=.o) $(MODFILES:.mod=.o) $(GIFFILES:.gif=.o) $(BMPFILES:.bmp=.o) $(MP3FILES:.mp3=.o)\
 					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
-
-#export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
-#			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-#			-I$(CURDIR)/$(BUILD)
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include/nds) \
-				#	-I$(PAPATH)/include/nds \
 					-I$(CURDIR)/$(BUILD)
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) rebuild clean
+.PHONY: $(BUILD) clean
 
 #--------------------------------------------------------------------------------
-$(BUILD):
 $(BUILD):
 	@echo Building configuration: $(notdir $@) ...
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	@echo Built configuration: $(notdir $@) .
+	@echo Built configuration: $(notdir $@).
 
 #--------------------------------------------------------------------------------
 clean:
-	@echo Cleaning $(TARGET) ...
-	@rm -f $(BUILD)/.map
+	@echo Cleaning $(TARGET) - ARM9 ...
 	@rm -f $(BUILD)/*.d
 	@rm -f $(BUILD)/*.o
-	@rm -f $(ARM9BIN)
-	@rm -f $(ARM9ELF)
+	@rm -f $(OUTPUT)
+	@echo Cleaned.
 
 rebuild: all
 
@@ -225,14 +184,10 @@ DEPENDS	:= $(OFILES:.o=.d)
 # main targets
 #--------------------------------------------------------------------------------
 
-$(ARM9BIN)	:	$(ARM9ELF)
-	@$(OBJCOPY) -O binary $< $@
-	@echo Built $(notdir $@) .
-
-$(ARM9ELF)	:	$(OFILES)
+$(OUTPUT)	:	$(OFILES)
+	@rm -f "$(OUTPUT)"
 	@echo Linking $(notdir $@) ...
-	$(LD) $(LDFLAGS) $(OFILES) $(YFRAMEWORK_A) $(YBASE_A) $(LIBPATHS) $(LIBS) $(LIBPATHEX) $(LIBEX) -o $@
-# IMPORTANT: the order of files is significant.
+	@$(AR) rcs "$(OUTPUT)" $(OFILES)
 
 #--------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data

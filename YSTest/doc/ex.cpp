@@ -1,4 +1,4 @@
-// v0.3352; *build 251 rev 39;
+// v0.3352; *build 252 rev 36;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -288,223 +288,183 @@ $using:
 
 $DONE:
 r1:
-/ @ \h YDefinition $=
-(
-	+ \ft<typename... _type> void unsequenced(_type&&...) @ \ns ystdex;
-	+ \mac yunsequenced
-);
-^ \mac yunsequenced @ \lib (YCLib, CHRLib);
+/ \proj YSLib["/YSLib"] => YFramework["/YFramework"];
+/ \lib CHRLib >> \proj YFramework ~ \proj YCLib;
+/ \lib YStandardExtend @ \lib YCLib -> \lib YStandardEx @ \proj \YCLib,
+/ \lib YCLib >> \proj YFramework ~ \proj YCLib;
+/ \proj YCLib => YBase;
+/ \tr @ makefiles,
+/ \tr @ \h YAdaptor @ \dir Adaptor @ \lib YSLib;
 
 r2:
-+ 'ynothrow' @ \ft unsequenced @ \ns ystdex @ \h YDefinition;
-+ 'ynothrow' @ 2 (\op++, \op+=) @ \clt pair_iterator @ \h Iterator,
-^ \mac yunsequenced @ \lib YSLib;
-+ 'ynothrow' @ (\op+=, \op-=) @ \cl GBinaryGroup @ \h YGDIBase;
+/ @ \dir Adaptor @ \lib YSLib $=
+(
+	/ \h YBase["ybase.h"] => \h YBaseMacro["ybasemac.h"];
+	/ \tr \inc @ \h YNew;
+);
 
 r3:
 /= test 1 ^ \conf release;
 
 r4:
-/ @ \u DSReader $=
-(
-	- @ \cl BlockedText;
-	/ \simp @ \cl MDualScreenReader $=
-	(
-		/ \m BlockedText* pText -> Text::TextFileBuffer* pText;
-		/ \tr \impl @ \mf (LineUp, LineDown, ScreenUp, ScreenDown, LoadText,
-			IsTextTop, IsTextBottom)
-	)
-);
-/ @ \cl MDualScreenReader @ \u DSReader $=
-(
-	/ \tr \impl @ \mf GetEncoding,
-
-);
+/ \impl @ \f DrawText#2 @ \impl \u YText,
+/ \impl @ \mf MLabel::PaintText,
+/ \impl @ \mf MTextList::RefreshTextState;
+- \mf SetFont @ \cl Font @ \u YFont @ \dir Adaptor;
 
 r5:
-/ \simp @ \cl MDualScreenReader @ \u DSReader $=
+/ Makefile @ \lib YBase $=
 (
-	/ \impl @ \mf GetEncoding,
-	/ \impl @ \mf (LoadText, UnloadText);
-	- private \m Text::Encoding cp,
-	/ \tr \impl @ \ctor
-);
+	- redundant macros,
+	- '-lnds9',
+	+ '-pedantic' @ \mac CFLAGS
+),
+- \a 3 GNU extensions @ \mac #ifdef @ \h YBaseMacro for compatibility
+	(such as GCC with '-pedantic');
 
 r6:
-/ \simp @ \cl TextFileBuffer @ \u TextManager $=
+/ @ \h YCoreUtilities $=
 (
-	- \m typedef TextMap::BlockSizeType BlockSizeType,
-	- \sm yconstexpr SizeType nBlockSize = 0x2000,
-	- private \m \c SizeType nTextSize,
-	- private \m \c BlockSizeType nBlock;
-	/ \inh \cl TextMap -> \cl TextBlock,
-	/ \m TextFile& File -> \inh TextFile;
-	/ \cl Iteartor -> typedef TextBlock::const_iterator Iterator;
-	/ \tr \impl @ \ctor,
-	- \tr \mf (GetTextSize, at, begin, end)
-);
-/ @ \cl MDualScreenReader @ \u DSReader $=
-(
-	/ \tr \impl @ \mf GetEncoding, LineUp, LineDown, ScreenUp, ScreenDown
-);
+	+ \i @ \ft ClearSequence,
+	/ \ft<_tPixel> \i void ClearPixel(_tPixel* dst, size_t),
+		-> \ft<_tPixel> \i _tPixel* ClearPixel(_tPixel* dst, size_t)
+),
+/ \impl @ \mf ClearLine @ \cl (ATextRenderer, TextRegion) @ \impl \u YText,
+/ \a 'std::memcpy' -> 'mmbcpy' @ \impl \u DSReader;
 
 r7:
-/ \simp @ \u TextManager $=
-(
-	- \cl TextMap,
-	/ \simp @ \cl TextBlock $=
-	(
-		- \m typedef u16 BlockSizeType,
-		- \m BlockSizeType Index;
-		/ \tr \ctor TextBlock(BlockSizeType, SizeType) -> TextBlock(SizeType),
-		- \tr (\op==, \op<)
-	);
-	/ \tr \simp \impl @ \ctor @ \cl TextFileBuffer
-);
-
-r8:
-/ \simp @ \u TextManager $=
-(
-	/ !\m \f SizeType LoadText(TextBlock&, TextFile&, SizeType)
-		-> protected \mf @ SizeType LoadText(SizeType) @ \cl TextFileBuffer;
-	/ \a (\inh, \m) \exc (\ctor, \dtor) @ \cl TextBlock >> \cl TextFileBuffer;
-	/ \tr @ \cl TextFileBuffer $=
-	(
-		- \inh TextBlock @ \cl TextFileBuffer,
-		/ typedef TextBlock::const_iterator Iterator
-			-> typedef const_iterator Iterator,
-		+ \vt DefEmptyDtor(TextFileBuffer),
-		/ \impl @ \ctor
-	);
-	- \cl TextBlock
-);
-
-r9:
 /= test 2 ^ \conf release;
 
-r10:
-/ \impl @ \ctor @ \cl TextFileBuffer;
-
-r11-r12:
-* wrong ending of text checking @ text buffer $since b246
+r8:
+/ \a 'HelperFunction' -> 'HelperFunctions',
 (
-	/ \impl @ \mf TextFileBuffer::LoadText
+	/ @ \h Memory @ \lib YBase $=
+	(
+		+ \inc \h <cstring>;
+		+ \ft (pod_fill, pod_copy_n, pod_copy, pod_move_n, pod_move)
+	);
+	/ \impl @ \impl \u DSReader ^ ystdex::pod_copy_n ~ std::memcpy
 );
+/ Doxygen file;
 
-r13:
+r9:
+* \impl @ \impl \u DSReader $since r8;
+
+r10:
 /= test 3 ^ \conf release;
 
-r14:
-- \ctor \tb @ \cl MDualScreenReader @ \impl \u DSReader;
-/ \a MDualScreenReader => DualScreenReader;
+r11:
+/ \impl @ \mf TextRegion::Scroll#2 ^ (yunsequenced, pod_move_n) ~ std::memmove;
 
-r15:
-/ (\rem, \impl) @ \mf ATextRenderer::ClearLine;
-
-r16:
-/ \simp @ \h YText $=
-(
-	/ \ft<typename _tIn, typename _tChar> _tIn rfind(FontCache&, SDst,
-		_tIn, _tIn, _tChar) -> \ft<typename _tIn> _tIn ReverseFind(FontCache&,
-		SDst, _tIn, _tIn, ucs4_t);
-	/ \tr \impl @ \ft FetchPreviousLineIterator
-);
-
-r17:
-/ \simp @ \h YText $=
-(
-	/ \ft<typename _tIn, typename _tChar, class _tRenderer> _tIn
-		PrintLine(_tRenderer&, _tIn, _tIn, _tChar = '\0')
-		-> \ft<typename _tIn, class _tRenderer> _tIn
-		PrintLine(_tRenderer&, _tIn, _tIn, ucs4_t c = '\0'),
-	/ \ft<typename _tIn, typename _tChar, class _tRenderer> _tIn
-		PutLine(_tRenderer&, _tIn, _tIn, _tChar = '\0')
-		-> \ft<typename _tIn, class _tRenderer> _tIn
-		PutLine(_tRenderer&, _tIn, _tIn, ucs4_t c = '\0'),
-	/ \ft<typename _tIn, typename _tChar, class _tRenderer> _tIn
-		PrintString(_tRenderer&, _tIn, _tIn, _tChar = '\0')
-		-> \ft<typename _tIn, class _tRenderer> _tIn
-		PrintString(_tRenderer&, _tIn, _tIn, ucs4_t c = '\0'),
-	/ \ft<typename _tIn, typename _tChar, class _tRenderer> _tIn
-		PutString(_tRenderer&, _tIn, _tIn, _tChar = '\0')
-		-> \ft<typename _tIn, class _tRenderer> _tIn
-		PutString(_tRenderer&, _tIn, _tIn, ucs4_t c = '\0'),
-	/ \ft<typename _tIn, typename _tChar> SDst FetchStringWidth(const Font&,
-		_tIn, _tIn, _tChar = '\0') -> \ft<typename _tIn> SDst
-		FetchStringWidth(const Font&, _tIn, _tIn, ucs4_t = '\0'),
-	/ \ft<typename _tIn, typename _tChar> SDst FetchStringWidth(TextState&,
-		SDst, _tIn, _tIn, _tChar = '\0') -> \ft<typename _tIn> SDst
-		FetchStringWidth(TextState&, SDst, _tIn, _tIn, ucs4_t = '\0'),
-);
-/ \tr \impl @ \mf DualScreenReader::LineUp @ \impl \u DSReader;
-
-r18:
-/ @ \h YText $=
-(
-	/ \ft<typename _tIn> _tIn FetchPreviousLineIterator(
-		const Drawing::TextRegion&, _tIn, _tIn, u16 = 1)
-		-> \ft<typename _tIn> _tIn FindPrevious(const Drawing::TextRegion&,
-		_tIn, _tIn, ucs4_t = '\n', u16 = 1),
-	/ \ft<typename _tIn> _tIn FetchNextLineIterator(const Drawing::TextRegion&,
-		_tIn, _tIn) -> \ft<typename _tIn> _tIn FindNext(
-		const Drawing::TextRegion&, _tIn, _tIn, ucs4_t = '\n')
-);
-/ \tr \impl @ \mf (LineUp, LineDown, ScreenUp, ScreenDown)
-	@ \cl DualScreenReader @ \impl \u DSReader;
-
-r19-r20:
+r12:
 /= test 4;
 
-r21:
-* \impl @ \mf TextFileBuffer::LoadText $since r12;
+r13:
+* \impl @ \impl \u DSReader $since r8;
 
-r22:
-/ \simp \impl @ \mf TextFileBuffer::LoadText;
-
-r23:
-/= test 5 ^ \conf release;
-
-r24:
-/ @ \h StaticMapping $=
+r14:
+/ @ \h YText $=
 (
-	/ \rem \mf Map @ \st (GUCS2Mapper<CharSet::SHIFT_JIS>,
-		GUCS2Mapper<CharSet::Big5>);
-	/ \ft<typename _tIn, typename _tState> \i byte
-		FillByte(_tIn&, _tState&)
-		-> \ft<typename _tIn, typename _tState> \i bool
-		FillByte(_tIn&, _tState&);
-	/ \tr \impl @ \a !\rem \mf GUCS2Mapper::Map
+	/ \rem @ (\cl TextState, \f FetchResizedBufferHeight),
+	+ \f \i SDst FetchResizedBufferHeight(const TextRegion&)
+);
+/ \simp \impl @ \mf DualScreenReader::LineUp
+	@\impl \u DSReader ^ \f \i FetchResizedBufferHeight;
+
+r15-r17:
+/= test 5;
+
+r18:
+/ \simp \impl @ \mf DualScreenReader::LineUp;
+/ @ \u Text $=
+(
+	- \f \i FetchResizedBufferHeight,
+	- \f !\i SDst FetchResizedBufferHeight(const TextState&, SDst),
+	+ \f u16 FetchResizedLineN(const TextState& ts, SDst);
+	/ \simp \mf (GetTextLineN, GetTextLineNEx) @ \cl ATextRenderer
 );
 
-r25-r37:
+r19:
 /= test 6 ^ \conf release;
 
-r38:
-* \impl @ \a !\rem \mf GUCS2Mapper::Map $since r24;
+r20:
+/ \simp @ \cl DualScreenReader @ \impl \u DSReamder $=
+(
+	- \m u8 lnHeight;
+	/ \tr \impl @ \mf (SetFontSize, LineUp, LineDown)
+);
 
-r39
-/= test 7 ^ \conf release;
+r21:
+/ @ \h YText $=
+(
+	+ \f \i SDSt FetchResizedBottomMargin(const TextRegion&);
+	+ \f \i SDst AdjustBottomMarginOf(TextRegion&)
+);
+/ @ \cl DualScreenReader @ \impl \u DSReader $=
+(
+	/ \simp \impl @ \mf LineUp ^ AdjustBottomMarginOf,
+	/ \simp \impl @ \mf LineDown ^ FetchResizedBottomMargin
+),
+/ \a FetchResizedMargin => FetchResizedBottomMargin;
+
+r22:
+/ \simp @ \cl DualScreenReader @ \h DSReader $=
+(
+	/ \impl @ \mf (SetColor, SetFontSize, SetLineGap) ^ \mac (PDefH1, ImplRet),
+	/ \mf bool IsTextTop() -> bool IsTextTop() const,
+	/ \mf bool IsTextBottom() -> bool IsTextBottom() const,
+	- private \mf (SetColorUp, SetColorDown, SetLineGapUp, SetLineGapDown)
+);
+
+r23:
+(
+	/ \f \i void unsequenced(_type&&...) ynothrow @ \ns ystdex @ \h YDefinition
+		-> \f yconstexprf int unsequenced(_type&&...) ynothrow;
+	/ \tr \impl @ \mf (SetColor, SetLineGap) @ \cl DualScreenReader
+		@ \h DSReader
+),
+^ "updated devkitARM release 34" ~ "devkitARM release 33";
+	
+r24-r28:
+/= test 7;
+
+r29:
+* \impl @ \f CheckInstall $since b245;
+
+r30-r34:
+/= test 8;
+
+r35:
+/ @ \cl DualScreenReader $=
+(
+	/ \mf IsTextBottom $since r22;
+	/ \m itUp => iTop,
+	/ \m itDn => iBottom
+);
+
+r36:
+/= test 8 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-10-10:
--18.3d;
-//Mercurial rev1-rev122: r5743;
+2011-10-14:
+-19.7d;
+//Mercurial rev1-rev123: r5782;
 
 / ...
 
 
 $NEXT_TODO:
-b252-b324:
+b253-b384:
 + %TextList invalidation support;
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 + key accelerators;
 + dynamic widget prototypes;
 
-b325-b1023:
+b385-b1089:
 + EOF handling for \h CharacterMapping;
 + fully \impl styles @ widgets;
 / fully \impl @ \cl Path;
@@ -586,7 +546,27 @@ $ellipse_debug_assertion;
 
 $now
 (
-	+ $design "unordered evaluated expressions optimization",
+	/ "libraries structure" $=
+	(
+		/ "project %YSLib" >> "%YFramework";
+		/ "platform dependent library %YCLib" >> "%YFramework",
+		/ "library %CHRLib" >> "%YFramework";
+		/ "project %YCLib" >> "%YBase",
+		/ "library %YStandardExtend" >> "%YStandardEx"
+	);
+	+ "POD type operations" @ "library %YStandardEx",
+	/ "Doxygen file",
+	+ $design "nested-use support" @ "macro %yunsequenced implementation",
+	^ "updated devkitARM release 34" ~ "devkitARM release 33",
+	* "implementation" @ "installation checking" $since b245
+),
+
+b251
+(
+	(
+		+ $design "unsequenced evaluation macro %yunsequenced";
+		+ $design "unsequenced evaluated expressions optimization"
+	),
 	- "buffered text blocks",
 	* "wrong ending of text checking @ text buffer" $since b246,
 	/ @ "library CHRLib" $=
@@ -1440,7 +1420,7 @@ b214
 		),
 		* "\defgroup description spell error" $since b209,
 		* $design "operator new & delete comments" $since b203,
-		/ "simplified doxygen file excluded paths"
+		/ "simplified Doxygen file excluded paths"
 	),
 	/ $design ^ "public %noncopyable inheritance"
 		~ "all private %noncopyable inheritance",

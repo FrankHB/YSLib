@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2472;
+\version r2485;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-10-09 13:09 +0800;
+	2011-10-14 14:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,9 +50,8 @@ private:
 	Text::TextFileBuffer* pText; //!< 文本资源。
 	FontCache& fc; //!< 字体缓存。
 	Drawing::Rotation rot; //!< 屏幕指向。
-	Text::TextFileBuffer::Iterator itUp; //!< 字符区域读取文本缓存迭代器。
-	Text::TextFileBuffer::Iterator itDn; //!< 字符区域读取文本缓存迭代器。
-	u8 lnHeight; //!< 行高。
+	Text::TextFileBuffer::Iterator iTop; //!< 字符区域顶端文本缓存输入迭代器。
+	Text::TextFileBuffer::Iterator iBottom; //!< 字符区域底端文本缓存输入迭代器。
 
 public:
 	YSLib::Components::TextArea AreaUp; //!< 上屏幕对应字符区域。
@@ -69,8 +68,10 @@ public:
 		SDst h_up = MainScreenHeight, SDst h_down = MainScreenHeight,
 		FontCache& fc_ = FetchGlobalInstance().GetFontCache());
 
-	bool IsTextTop(); //!< 判断输出位置是否到文本顶端。
-	bool IsTextBottom(); //!< 判断输出位置是否到文本底端。
+	DefPredicate(TextTop, iTop == pText->cbegin()) \
+		//!< 判断输出位置是否到文本顶端。
+	DefPredicate(TextBottom, iBottom == pText->cend()) \
+		//!< 判断输出位置是否到文本底端。
 
 	DefGetter(u8, FontSize, fc.GetFontSize()) //!< 取字符区域的字体大小。
 	DefGetter(Color, ColorUp, AreaUp.Color) \
@@ -85,24 +86,16 @@ public:
 	DefGetter(Text::Encoding, Encoding, pText ? pText->GetEncoding()
 		: Text::CharSet::Null) //!< 取编码。
 
-private:
-	DefSetterDe(PixelType, ColorUp, AreaUp.Color, 0) \
-		//!< 设置上字符区域的字体颜色。
-	DefSetterDe(PixelType, ColorDown, AreaDown.Color, 0) \
-		//!< 设置下字符区域的字体颜色。
-	DefSetterDe(u8, LineGapUp, AreaUp.LineGap, 0) \
-		//!< 设置上字符区域的行距。
-	DefSetterDe(u8, LineGapDown, AreaDown.LineGap, 0) \
-		//!< 设置下字符区域的行距。
-
-public:
-	void
-	SetColor(Color = Drawing::ColorSpace::Black); //!< 设置字符颜色。
-	void
-	SetFontSize(Drawing::Font::SizeType = Drawing::Font::DefaultSize); \
+	PDefH1(void, SetColor, Color c = Drawing::ColorSpace::Black)
+		ImplRet(static_cast<void>(yunsequenced(AreaUp.Color = c,
+		AreaDown.Color = c))) //!< 设置字符颜色。
+	PDefH1(void, SetFontSize, Drawing::Font::SizeType s
+		= Drawing::Font::DefaultSize)
+		ImplRet(static_cast<void>(fc.SetFontSize(s))) \
 		//!< 设置字符区域字体大小。
-	void
-	SetLineGap(u8 = 0); //!< 设置行距。
+	PDefH1(void, SetLineGap, u8 g = 0)
+		ImplRet(static_cast<void>(yunsequenced(AreaUp.LineGap = g,
+		AreaDown.LineGap = g))) //!< 设置行距。
 
 	//设置笔的行位置。
 	//void
@@ -159,36 +152,6 @@ public:
 	void
 	Update();
 };
-
-inline bool
-DualScreenReader::IsTextTop()
-{
-	return itUp == pText->begin();
-}
-inline bool
-DualScreenReader::IsTextBottom()
-{
-	return itDn == pText->end();
-}
-
-inline void
-DualScreenReader::SetColor(Color c)
-{
-	AreaUp.Color = c;
-	AreaDown.Color = c;
-}
-inline void
-DualScreenReader::SetFontSize(Drawing::Font::SizeType fz)
-{
-	fc.SetFontSize(fz);
-	lnHeight = fc.GetHeight();
-}
-inline void
-DualScreenReader::SetLineGap(u8 g)
-{
-	AreaUp.LineGap = g;
-	AreaDown.LineGap = g;
-}
 
 YSL_END_NAMESPACE(Components)
 
