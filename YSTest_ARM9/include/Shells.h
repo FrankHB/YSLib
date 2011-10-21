@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3457;
+\version r3472;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-10-09 13:09 +0800;
+	2011-10-22 05:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,6 +34,7 @@
 #include <YSLib/Helper/shlds.h>
 #include <YSLib/UI/progress.h>
 #include "DSReader.h"
+#include "HexBrowser.h"
 
 YSL_BEGIN
 
@@ -111,9 +112,6 @@ public:
 
 		static void
 		OnLeave_btnEnterTest(IWidget&, TouchEventArgs&&);
-
-		void
-		OnClick_btnMenuTest(TouchEventArgs&&);
 	};
 
 	struct TFormExtra : public Form
@@ -125,20 +123,14 @@ public:
 
 		TFormExtra();
 
-		void
-		OnClick_btnDragTest(TouchEventArgs&&);
-
 		static void
 		OnKeyPress_btnDragTest(IWidget& sender, KeyEventArgs&& e);
-
-		void
-		OnClick_btnTestEx(TouchEventArgs&&);
 	};
 
 	Label lblTitle, lblPath;
 	FileBox fbMain;
 	Button btnTest, btnOK;
-	CheckBox chkFPS;
+	CheckBox chkFPS, chkHex;
 	unique_ptr<TFormTest> pWndTest;
 	unique_ptr<TFormExtra> pWndExtra;
 	Label lblA, lblB;
@@ -215,6 +207,7 @@ public:
 	};
 
 	static string path;
+	static bool is_text;
 
 	DualScreenReader Reader;
 	ReaderPanel pnlReader;
@@ -222,6 +215,7 @@ public:
 	TextFile* pTextFile;
 	shared_ptr<Image> hUp, hDn;
 	MenuHost mhMain;
+	HexViewArea HexArea;
 
 	ShlReader();
 

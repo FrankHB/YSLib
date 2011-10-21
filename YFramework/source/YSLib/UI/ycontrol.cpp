@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4525;
+\version r4530;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-10-01 13:19 +0800;
+	2011-10-15 20:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -214,14 +214,25 @@ Control::ControlEventMap::ControlEventMap()
 			RequestFocus(wgt);
 	};
 	FetchEvent<TouchHeld>(*this) += OnTouchHeld;
-	FetchEvent<GotFocus>(*this) += OnWidget_Invalidate<EventArgs>;
-	FetchEvent<LostFocus>(*this) += OnWidget_Invalidate<EventArgs>;
 }
 
 Control::Control(const Rect& r)
 	: Widget(r, new Renderer(), new FocusResponder(), new Controller(true,
 	FetchPrototype<ControlEventMap>()))
 {
+//	const auto& h([this](IWidget&, EventArgs&&){
+//		Invalidate(*this);
+//	});
+// FIXME: code above causes g++ 4.6 internal compiler error: 
+//	 in gimple_expand_cfg, at cfgexpand.c:4063
+	yunsequenced(
+		FetchEvent<GotFocus>(*this) += [this](IWidget&, EventArgs&&){
+			Invalidate(*this);
+		},
+		FetchEvent<LostFocus>(*this) += [this](IWidget&, EventArgs&&){
+			Invalidate(*this);
+		}
+	);
 	BoundControlPtr = std::bind(std::mem_fn(&Control::GetBoundControlPtr), this,
 		std::placeholders::_1);
 }

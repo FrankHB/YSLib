@@ -56,9 +56,11 @@
 		</Compiler>
 		<Unit filename="Makefile" />
 		<Unit filename="include\DSReader.h" />
+		<Unit filename="include\HexBrowser.h" />
 		<Unit filename="include\Shells.h" />
 		<Unit filename="source\DSReader.cpp" />
 		<Unit filename="source\GBKEX.cpp" />
+		<Unit filename="source\HexBrowser.cpp" />
 		<Unit filename="source\Shells.cpp" />
 		<Unit filename="source\main.cpp" />
 		<Extensions>

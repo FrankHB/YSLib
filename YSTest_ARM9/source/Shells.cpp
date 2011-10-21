@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5189;
+\version r5277;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-10-01 13:19 +0800;
+	2011-10-22 05:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -346,6 +346,19 @@ FPSCounter::Refresh()
 
 namespace
 {
+	namespace EnrtySpace
+	{
+		typedef enum
+		{
+			Empty,
+			Now,
+			Parent,
+			Directory,
+			Text,
+			Hex
+		} EntryType;
+	}
+
 	bool
 	ReaderPathFilter(const string& path)
 	{
@@ -359,6 +372,53 @@ namespace
 			|| !strcasecmp(ext, "ini")
 			|| !strcasecmp(ext, "xml");
 	}
+
+	EnrtySpace::EntryType
+	GetEntryType(const string& path)
+	{
+		using namespace EnrtySpace;
+
+		if(path.length() == 0)
+			return Empty;
+		if(path == IO::FS_Now)
+			return Now;
+		if(path == IO::FS_Parent)
+			return Parent;
+		if(*path.rbegin() == '/')
+			return Directory;
+		if(ReaderPathFilter(path))
+			return Text;
+		return Hex;
+	}
+
+	bool
+	ReaderPathFilter(const IO::Path& path)
+	{
+		return ReaderPathFilter(path.GetNativeString());
+	}
+
+	bool
+	CheckReaderEnability(FileBox& fb, CheckBox& hex)
+	{
+		if(fb.IsSelected())
+		{
+			const auto& path(Text::StringToMBCS(fb.GetList()[
+				fb.GetSelectedIndex()], IO::CP_Path));
+
+			using namespace EnrtySpace;
+
+			switch(GetEntryType(path))
+			{
+			case Text:
+				return true;
+			case Hex:
+				return hex.IsTicked();
+			default:
+				;
+			}
+		}
+		return false;
+	}
 }
 
 
@@ -367,7 +427,7 @@ ShlExplorer::ShlExplorer()
 	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(12, 80, 240, 22)),
 	fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
-	chkFPS(Rect(232, 144, 16, 16)),
+	chkFPS(Rect(208, 144, 16, 16)), chkHex(Rect(232, 144, 16, 16)),
 	pWndTest(), pWndExtra(),
 	lblA(Rect(5, 20, 200, 22)),
 	lblB(Rect(5, 120, 72, 22)),
@@ -375,42 +435,51 @@ ShlExplorer::ShlExplorer()
 {
 	//对 fbMain 启用缓存。
 	fbMain.SetRenderer(unique_raw(new BufferedRenderer()));
-	FetchEvent<KeyPress>(fbMain) += [](IWidget&, KeyEventArgs&& e){
-		if(e.GetKeyCode() & KeySpace::L)
-			CallStored<ShlExplorer>();
-	};
-	fbMain.GetViewChanged() += [this](IWidget&, EventArgs&&){
-		lblPath.Text = fbMain.GetPath();
-		Invalidate(lblPath);
-	};
-	fbMain.GetSelected() += [this](IWidget&, IndexEventArgs&&){
-		Enable(btnOK, fbMain.IsSelected() && ReaderPathFilter(
-			Text::StringToMBCS(fbMain.GetList()[fbMain.GetSelectedIndex()],
-			IO::CP_Path)));
-	};
-	fbMain.GetConfirmed() += OnConfirmed_fbMain;
-	Enable(btnTest, true);
-	Enable(btnOK, false);
-	FetchEvent<Click>(btnTest) += [this](IWidget&, TouchEventArgs&&){
-		YAssert(is_not_null(pWndTest), "err: pWndTest is null;");
+	yunsequenced(
+		FetchEvent<KeyPress>(fbMain) += [](IWidget&, KeyEventArgs&& e){
+			if(e.GetKeyCode() & KeySpace::L)
+				CallStored<ShlExplorer>();
+		},
+		fbMain.GetViewChanged() += [this](IWidget&, EventArgs&&){
+			lblPath.Text = fbMain.GetPath();
+			Invalidate(lblPath);
+		},
+		fbMain.GetSelected() += [this](IWidget&, IndexEventArgs&&){
+			Enable(btnOK, CheckReaderEnability(fbMain, chkHex));
+		},
+		fbMain.GetConfirmed() += OnConfirmed_fbMain,
+		FetchEvent<Click>(btnTest) += [this](IWidget&, TouchEventArgs&&){
+			YAssert(is_not_null(pWndTest), "err: pWndTest is null;");
 
-		SwitchVisible(*pWndTest);
-	};
-	FetchEvent<Click>(btnOK) += [this](IWidget&, TouchEventArgs&&){
-		if(fbMain.IsSelected())
-		{
-			const string& s(fbMain.GetPath().GetNativeString());
-
-			if(!IO::ValidateDirectory(s) && fexists(s.c_str()))
+			SwitchVisible(*pWndTest);
+		},
+		FetchEvent<Click>(btnOK) += [this](IWidget&, TouchEventArgs&&){
+			if(fbMain.IsSelected())
 			{
-				ShlReader::path = s;
-				CallStored<ShlReader>();
+				const string& s(fbMain.GetPath().GetNativeString());
+
+				if(!IO::ValidateDirectory(s) && fexists(s.c_str()))
+				{
+					ShlReader::path = s;
+					ShlReader::is_text = GetEntryType(s) == EnrtySpace::Text
+						&& !chkHex.IsTicked();
+					CallStored<ShlReader>();
+				}
 			}
-		}
-	};
-	lblA.Text = Application::ProductName;
-	lblB.Text = "程序测试";
+		},
+		FetchEvent<Click>(chkFPS) += [this](IWidget&, TouchEventArgs&&){
+			SetInvalidationOf(GetDesktopDown());
+		},
+		FetchEvent<Click>(chkHex) += [this](IWidget&, TouchEventArgs&&){
+			Enable(btnOK, CheckReaderEnability(fbMain, chkHex));
+			SetInvalidationOf(GetDesktopDown());
+		},
+		lblA.Text = Application::ProductName,
+		lblB.Text = "程序测试"
+	);
 	lblB.SetTransparent(true);
+	Enable(btnTest, true),
+	Enable(btnOK, false);
 }
 
 
@@ -423,65 +492,100 @@ ShlExplorer::TFormTest::TFormTest()
 	btnPrevBackground(Rect(45, 65, 30, 22)),
 	btnNextBackground(Rect(95, 65, 30, 22))
 {
-	*this += btnEnterTest;
-	*this += btnMenuTest;
-	*this += btnShowWindow;
-	*this += btnPrevBackground;
+	*this += btnEnterTest,
+	*this += btnMenuTest,
+	*this += btnShowWindow,
+	*this += btnPrevBackground,
 	*this += btnNextBackground;
-	btnEnterTest.Text = _ustr("边界测试");
-	btnEnterTest.HorizontalAlignment = MLabel::Right;
-	btnEnterTest.VerticalAlignment = MLabel::Up;
-	btnMenuTest.Text = _ustr("菜单测试");
-	btnShowWindow.Text = _ustr("显示/隐藏窗口");
-	btnShowWindow.HorizontalAlignment = MLabel::Left;
-	btnShowWindow.VerticalAlignment = MLabel::Down;
-	btnPrevBackground.Text = "<<";
-	btnNextBackground.Text = ">>";
-	BackColor = Color(248, 248, 120);
+	yunsequenced(
+		btnEnterTest.Text = u"边界测试",
+		btnEnterTest.HorizontalAlignment = MLabel::Right,
+		btnEnterTest.VerticalAlignment = MLabel::Up,
+		btnMenuTest.Text = u"菜单测试",
+		btnShowWindow.Text = u"显示/隐藏窗口",
+		btnShowWindow.HorizontalAlignment = MLabel::Left,
+		btnShowWindow.VerticalAlignment = MLabel::Down,
+		btnPrevBackground.Text = "<<",
+		btnNextBackground.Text = ">>",
+		BackColor = Color(248, 248, 120)
+	);
 	SetInvalidationOf(*this);
-	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
-	FetchEvent<Enter>(btnEnterTest) += OnEnter_btnEnterTest;
-	FetchEvent<Leave>(btnEnterTest) += OnLeave_btnEnterTest;
 
 	static int up_i(1);
 
-	FetchEvent<Click>(btnMenuTest).Add(*this, &TFormTest::OnClick_btnMenuTest);
-	FetchEvent<Click>(btnShowWindow) += OnClick_ShowWindow;
+	yunsequenced(
+		FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging,
+		FetchEvent<Enter>(btnEnterTest) += OnEnter_btnEnterTest,
+		FetchEvent<Leave>(btnEnterTest) += OnLeave_btnEnterTest,
+		FetchEvent<Click>(btnMenuTest) +=[this](IWidget&, TouchEventArgs&&){
+			static int t;
+
+			auto& mhMain(FetchShell<ShlExplorer>().mhMain);
+			auto& mnu(mhMain[1u]);
+			auto& lst(mnu.GetList());
+
+			if(mhMain.IsShowing(1u))
+			{
+				if(lst.size() > 4)
+					lst.clear();
+
+				char stra[4];
+
+				siprintf(stra, "%d", t);
+				lst.push_back(String((string("TMI") + stra).c_str()));
+			}
+			else
+			{
+				mnu.SetLocation(Point(
+					btnMenuTest.GetX() - btnMenuTest.GetWidth(),
+					btnMenuTest.GetY() + btnMenuTest.GetHeight()));
+				mnu.SetWidth(btnMenuTest.GetWidth() + 20);
+				lst.push_back(u"TestMenuItem1");
+				mhMain.Show(1u);
+			}
+			ResizeForContent(mnu);
+			Invalidate(mnu);
+			++t;
+		},
+		FetchEvent<Click>(btnShowWindow) += OnClick_ShowWindow,
+		FetchEvent<Click>(btnPrevBackground) += [this](IWidget&,
+			TouchEventArgs&&){
+			auto& shl(FetchShell<ShlExplorer>());
+			auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
+			auto& dsk_dn_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
+
+			if(up_i > 1)
+			{
+				--up_i;
+				Enable(btnNextBackground);
+			}
+			if(up_i == 1)
+				Enable(btnPrevBackground, false);
+			dsk_up_ptr = FetchImage(up_i);
+			dsk_dn_ptr = FetchImage(up_i + 1);
+			SetInvalidationOf(shl.GetDesktopUp());
+			SetInvalidationOf(shl.GetDesktopDown());
+		},
+		FetchEvent<Click>(btnNextBackground) += [this](IWidget&,
+			TouchEventArgs&&){
+			auto& shl(FetchShell<ShlExplorer>());
+			auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
+			auto& dsk_dn_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
+
+			if(up_i < 5)
+			{
+				++up_i;
+				Enable(btnPrevBackground);
+			}
+			if(up_i == 5)
+				Enable(btnNextBackground, false);
+			dsk_up_ptr = FetchImage(up_i);
+			dsk_dn_ptr = FetchImage(up_i + 1);
+			SetInvalidationOf(shl.GetDesktopUp());
+			SetInvalidationOf(shl.GetDesktopDown());
+		}
+	);
 	Enable(btnPrevBackground, false);
-	FetchEvent<Click>(btnPrevBackground) += [this](IWidget&, TouchEventArgs&&){
-		auto& shl(FetchShell<ShlExplorer>());
-		auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
-		auto& dsk_dn_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
-
-		if(up_i > 1)
-		{
-			--up_i;
-			Enable(btnNextBackground);
-		}
-		if(up_i == 1)
-			Enable(btnPrevBackground, false);
-		dsk_up_ptr = FetchImage(up_i);
-		dsk_dn_ptr = FetchImage(up_i + 1);
-		SetInvalidationOf(shl.GetDesktopUp());
-		SetInvalidationOf(shl.GetDesktopDown());
-	};
-	FetchEvent<Click>(btnNextBackground) += [this](IWidget&, TouchEventArgs&&){
-		auto& shl(FetchShell<ShlExplorer>());
-		auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
-		auto& dsk_dn_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
-
-		if(up_i < 5)
-		{
-			++up_i;
-			Enable(btnPrevBackground);
-		}
-		if(up_i == 5)
-			Enable(btnNextBackground, false);
-		dsk_up_ptr = FetchImage(up_i);
-		dsk_dn_ptr = FetchImage(up_i + 1);
-		SetInvalidationOf(shl.GetDesktopUp());
-		SetInvalidationOf(shl.GetDesktopDown());
-	};
 }
 
 void
@@ -512,39 +616,6 @@ ShlExplorer::TFormTest::OnLeave_btnEnterTest(IWidget& sender,
 	Invalidate(btn);
 }
 
-void
-ShlExplorer::TFormTest::OnClick_btnMenuTest(TouchEventArgs&&)
-{
-	static int t;
-
-	auto& mhMain(FetchShell<ShlExplorer>().mhMain);
-	auto& mnu(mhMain[1u]);
-	auto& lst(mnu.GetList());
-
-	if(mhMain.IsShowing(1u))
-	{
-		if(lst.size() > 4)
-			lst.clear();
-
-		char stra[4];
-
-		siprintf(stra, "%d", t);
-		lst.push_back(String((string("TMI") + stra).c_str()));
-	}
-	else
-	{
-		mnu.SetLocation(Point(
-			btnMenuTest.GetX() - btnMenuTest.GetWidth(),
-			btnMenuTest.GetY() + btnMenuTest.GetHeight()));
-		mnu.SetWidth(btnMenuTest.GetWidth() + 20);
-		lst.push_back(_ustr("TestMenuItem1"));
-		mhMain.Show(1u);
-	}
-	ResizeForContent(mnu);
-	Invalidate(mnu);
-	++t;
-}
-
 ShlExplorer::TFormExtra::TFormExtra()
 	: Form(Rect(5, 60, 208, 120), shared_ptr<Image>(), /*FetchImage(7)*/
 		raw(FetchGlobalInstance().GetDesktopDownHandle())),
@@ -553,93 +624,148 @@ ShlExplorer::TFormExtra::TFormExtra()
 	btnClose(Rect(13, 82, 60, 22)),
 	btnExit(Rect(83, 82, 60, 22))
 {
-	*this += btnDragTest;
-	*this += btnTestEx;
-	*this += btnClose;
+	*this += btnDragTest,
+	*this += btnTestEx,
+	*this += btnClose,
 	*this += btnExit;
-	btnDragTest.Text = _ustr("测试拖放控件");
-	btnDragTest.HorizontalAlignment = MLabel::Left;
-	btnTestEx.Text = _ustr("直接屏幕绘制测试");
-	btnClose.Text = _ustr("关闭");
-	btnExit.Text = _ustr("退出");
-	BackColor = Color(248, 120, 120);
+	yunsequenced(
+		btnDragTest.Text = u"测试拖放控件",
+		btnDragTest.HorizontalAlignment = MLabel::Left,
+		btnTestEx.Text = u"直接屏幕绘制测试",
+		btnClose.Text = u"关闭",
+		btnExit.Text = u"退出",
+		BackColor = Color(248, 120, 120),
+		//	btnDragTest.Enabled = false,
+		btnClose.BackColor = Color(176, 184, 192)
+	);
 	SetInvalidationOf(*this);
-	FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&&){
-		BackColor = GenerateRandomColor();
-		SetInvalidationOf(*this);
-	};
-	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
-	FetchEvent<Move>(btnDragTest) += [this](IWidget&, EventArgs&&){
-		char sloc[20];
+	yunsequenced(
+		FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&&){
+			BackColor = GenerateRandomColor();
+			SetInvalidationOf(*this);
+		},
+		FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging,
+		FetchEvent<Move>(btnDragTest) += [this](IWidget&, EventArgs&&){
+			char sloc[20];
 
-		siprintf(sloc, "(%d, %d);", btnDragTest.GetX(), btnDragTest.GetY());
-		btnDragTest.Text = sloc;
-		Invalidate(btnDragTest);
-	};
-	FetchEvent<TouchUp>(btnDragTest) += [this](IWidget&, TouchEventArgs&& e){
-		InputCounter(e);
-		FetchShell<ShlExplorer>().ShowString(strCount);
-		Invalidate(btnDragTest);
-	};
-	FetchEvent<TouchDown>(btnDragTest) += [this](IWidget&, TouchEventArgs&& e){
-		InputCounterAnother(e);
-		FetchShell<ShlExplorer>().ShowString(strCount);
-	//	btnDragTest.Refresh();
-	};
-	FetchEvent<TouchMove>(btnDragTest) += OnTouchMove_Dragging;
-	FetchEvent<Click>(btnDragTest).Add(*this, &TFormExtra::OnClick_btnDragTest);
-	FetchEvent<Click>(btnTestEx).Add(*this, &TFormExtra::OnClick_btnTestEx);
-	FetchEvent<KeyPress>(btnDragTest) += OnKeyPress_btnDragTest;
-//	btnDragTest.Enabled = false;
-	btnClose.BackColor = Color(176, 184, 192);
-	FetchEvent<Click>(btnClose) += [this](IWidget&, TouchEventArgs&&){
-		Hide(*this);
-	};
-	FetchEvent<Click>(btnExit) += [](IWidget&, TouchEventArgs&&){
-		PostQuitMessage(0);
-	};
+			siprintf(sloc, "(%d, %d);", btnDragTest.GetX(), btnDragTest.GetY());
+			btnDragTest.Text = sloc;
+			Invalidate(btnDragTest);
+		},
+		FetchEvent<TouchUp>(btnDragTest) += [this](IWidget&,
+			TouchEventArgs&& e){
+			InputCounter(e);
+			FetchShell<ShlExplorer>().ShowString(strCount);
+			Invalidate(btnDragTest);
+		},
+		FetchEvent<TouchDown>(btnDragTest) += [this](IWidget&,
+			TouchEventArgs&& e){
+			InputCounterAnother(e);
+			FetchShell<ShlExplorer>().ShowString(strCount);
+		//	btnDragTest.Refresh();
+		},
+		FetchEvent<TouchMove>(btnDragTest) += OnTouchMove_Dragging,
+		FetchEvent<Click>(btnDragTest) += [this](IWidget&, TouchEventArgs&&){
+			static auto& fc(FetchGlobalInstance().GetFontCache());
+			static const int ffilen(fc.GetFilesN());
+			static const int ftypen(fc.GetTypesN());
+			static const int ffacen(fc.GetFacesN());
+			static int itype;
+			static auto i(fc.GetTypes().cbegin());
+			static char strtf[0x400];
+
+			//	btnDragTest.Transparent ^= 1;
+			if(nCountInput & 1)
+			{
+				//	btnDragTest.Visible ^= 1;
+				++itype %= ftypen;
+				if(++i == fc.GetTypes().end())
+					i = fc.GetTypes().begin();
+				btnDragTest.Font = Font(*(*i)->GetFontFamilyPtr(),
+					16 - (itype << 1), FontStyle::Regular);
+			//	btnDragTest.Font = Font(*(*it)->GetFontFamilyPtr(),
+			//	GetDefaultFontFamily(), 16 - (itype << 1), FontStyle::Regular);
+				siprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n",
+					btnDragTest.Font.GetSize(), ffilen, ftypen, ffacen);
+				yunsequenced(
+					btnDragTest.Text = strtf,
+					btnDragTest.ForeColor = GenerateRandomColor(),
+					btnClose.ForeColor = GenerateRandomColor()
+				);
+				Enable(btnClose);
+			}
+			else
+			{
+				siprintf(strtf, "%d/%d;%s:%s;", itype + 1, ftypen,
+					(*i)->GetFamilyName().c_str(),
+					(*i)->GetStyleName().c_str());
+				//	sprintf(strtf, "B%p\n",
+				//		fc.GetTypefacePtr("FZYaoti", "Regular"));
+				btnDragTest.Text = strtf;
+			}
+			//	btnDragTest.Refresh();
+		},
+		FetchEvent<Click>(btnTestEx) += [this](IWidget&, TouchEventArgs&& e){
+			using namespace Drawing;
+		/*
+			ucs2_t* tstr(Text::ucsdup("Abc测试", Text::CS_Local));
+			String str(tstr);
+
+			std::free(tstr);
+		*/
+			TestObj t(FetchGlobalInstance().GetDesktopDownHandle());
+		//	const auto& g(FetchContext(*t.h));
+
+			using namespace ColorSpace;
+
+			t.str = String(u"Abc测试");
+			switch(e.X * 4 / btnTestEx.GetWidth())
+			{
+			case 0:
+				t.Fill();
+				t.Pause();
+			//	tr.BeFilledWith(ColorSpace::Black);
+				t.Test2();
+				t.Test3(Black);
+				t.Test3(Blue);
+			case 1:
+				t.tr.SetSize(t.s.Width, t.s.Height);
+			//	t.Pause();
+			//	tr.BeFilledWith(ColorSpace::Black);
+				t.Test3(White);
+				t.Test3(Black);
+				t.Test3(Red);
+				break;
+			case 2:
+				t.c = Lime;
+				t.Fill();
+				t.Pause();
+			//	tr.BeFilledWith(ColorSpace::Black);
+				t.Test2();
+				t.Test3(Black);
+				t.Test3(Blue);
+			case 3:
+				t.c = Lime;
+				t.tr.SetSize(t.s.Width, t.s.Height);
+			//	t.Pause();
+			//	t.tr.BeFilledWith(ColorSpace::Black);
+				t.Test3(White);
+				t.Test3(Black);
+				t.Test3(Red);
+			default:
+				break;
+			}
+		},
+		FetchEvent<KeyPress>(btnDragTest) += OnKeyPress_btnDragTest,
+		FetchEvent<Click>(btnClose) += [this](IWidget&, TouchEventArgs&&){
+			Hide(*this);
+		},
+		FetchEvent<Click>(btnExit) += [](IWidget&, TouchEventArgs&&){
+			PostQuitMessage(0);
+		}
+	);
 }
 
-
-void
-ShlExplorer::TFormExtra::OnClick_btnDragTest(TouchEventArgs&&)
-{
-	static auto& fc(FetchGlobalInstance().GetFontCache());
-	static const int ffilen(fc.GetFilesN());
-	static const int ftypen(fc.GetTypesN());
-	static const int ffacen(fc.GetFacesN());
-	static int itype;
-	static auto i(fc.GetTypes().cbegin());
-	static char strtf[0x400];
-
-	//	btnDragTest.Transparent ^= 1;
-	if(nCountInput & 1)
-	{
-		//	btnDragTest.Visible ^= 1;
-		++itype %= ftypen;
-		if(++i == fc.GetTypes().end())
-			i = fc.GetTypes().begin();
-		btnDragTest.Font = Font(*(*i)->GetFontFamilyPtr(),
-			16 - (itype << 1), FontStyle::Regular);
-	//	btnDragTest.Font = Font(*(*it)->GetFontFamilyPtr(),
-	//	GetDefaultFontFamily(), 16 - (itype << 1), FontStyle::Regular);
-		siprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n",
-			btnDragTest.Font.GetSize(), ffilen, ftypen, ffacen);
-		btnDragTest.Text = strtf;
-		btnDragTest.ForeColor = GenerateRandomColor();
-		btnClose.ForeColor = GenerateRandomColor();
-		Enable(btnClose);
-	}
-	else
-	{
-		siprintf(strtf, "%d/%d;%s:%s;", itype + 1, ftypen,
-			(*i)->GetFamilyName().c_str(), (*i)->GetStyleName().c_str());
-		//	sprintf(strtf, "B%p\n",
-		//		fc.GetTypefacePtr("FZYaoti", "Regular"));
-		btnDragTest.Text = strtf;
-	}
-	//	btnDragTest.Refresh();
-}
 
 void
 ShlExplorer::TFormExtra::OnKeyPress_btnDragTest(IWidget& sender,
@@ -657,62 +783,8 @@ ShlExplorer::TFormExtra::OnKeyPress_btnDragTest(IWidget& sender,
 	Button& lbl(static_cast<Button&>(sender));
 
 	if(nCountInput & 1)
-		lbl.Text = _ustr("测试键盘...");
+		lbl.Text = u"测试键盘...";
 */
-}
-
-void
-ShlExplorer::TFormExtra::OnClick_btnTestEx(TouchEventArgs&& e)
-{
-	using namespace Drawing;
-/*
-	ucs2_t* tstr(Text::ucsdup("Abc测试", Text::CS_Local));
-	String str(tstr);
-
-	std::free(tstr);
-*/
-	TestObj t(FetchGlobalInstance().GetDesktopDownHandle());
-//	const auto& g(FetchContext(*t.h));
-
-	using namespace ColorSpace;
-
-	t.str = String(_ustr("Abc测试"));
-	switch(e.X * 4 / btnTestEx.GetWidth())
-	{
-	case 0:
-		t.Fill();
-		t.Pause();
-	//	tr.BeFilledWith(ColorSpace::Black);
-		t.Test2();
-		t.Test3(Black);
-		t.Test3(Blue);
-	case 1:
-		t.tr.SetSize(t.s.Width, t.s.Height);
-	//	t.Pause();
-	//	tr.BeFilledWith(ColorSpace::Black);
-		t.Test3(White);
-		t.Test3(Black);
-		t.Test3(Red);
-		break;
-	case 2:
-		t.c = Lime;
-		t.Fill();
-		t.Pause();
-	//	tr.BeFilledWith(ColorSpace::Black);
-		t.Test2();
-		t.Test3(Black);
-		t.Test3(Blue);
-	case 3:
-		t.c = Lime;
-		t.tr.SetSize(t.s.Width, t.s.Height);
-	//	t.Pause();
-	//	t.tr.BeFilledWith(ColorSpace::Black);
-		t.Test3(White);
-		t.Test3(Black);
-		t.Test3(Red);
-	default:
-		break;
-	}
 }
 
 
@@ -725,51 +797,58 @@ ShlExplorer::OnActivated(const Message& msg)
 	auto& dsk_dn(GetDesktopDown());
 
 	// parent-init-seg 0;
-	dsk_up += lblTitle;
+	dsk_up += lblTitle,
 	dsk_up += lblPath;
-	dsk_dn += fbMain;
-	dsk_dn += btnTest;
-	dsk_dn += btnOK;
-	dsk_dn += chkFPS;
-	dsk_up += lblA;
+	dsk_dn += fbMain,
+	dsk_dn += btnTest,
+	dsk_dn += btnOK,
+	dsk_dn += chkFPS,
+	dsk_dn += chkHex;
+	dsk_up += lblA,
 	dsk_up += lblB;
 	// init-seg 1;
-	dsk_up.GetBackgroundImagePtr() = FetchImage(1);
-	dsk_dn.GetBackgroundImagePtr() = FetchImage(2);
+	yunsequenced(
+		dsk_up.GetBackgroundImagePtr() = FetchImage(1),
+		dsk_dn.GetBackgroundImagePtr() = FetchImage(2),
 	// init-seg 2;
-	lblTitle.Text = "文件列表：请选择一个文件。";
-	lblPath.Text = "/";
-//	lblTitle.Transparent = true;
-//	lblPath.Transparent = true;
+		lblTitle.Text = "文件列表：请选择一个文件。",
+		lblPath.Text = "/",
+	//	lblTitle.Transparent = true,
+	//	lblPath.Transparent = true;
+		btnTest.Text = u"测试(X)",
+		btnOK.Text = u"确定(A)"
+	);
 	btnOK.SetTransparent(false);
-	btnTest.Text = _ustr("测试(X)");
-	btnOK.Text = _ustr("确定(A)");
 	// init-seg 3;
-	dsk_dn.BoundControlPtr = std::bind(
-		std::mem_fn(&ShlExplorer::GetBoundControlPtr), this,
-		std::placeholders::_1);
-	FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave;
-	FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown;
-	FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click;
+	yunsequenced(
+		dsk_dn.BoundControlPtr = std::bind(
+			std::mem_fn(&ShlExplorer::GetBoundControlPtr), this,
+			std::placeholders::_1),
+		FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave,
+		FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown,
+		FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click
+	);
 	RequestFocusCascade(fbMain);
 	// init-seg 4;
-	dsk_dn.BackColor = Color(120, 120, 248);
-	SetInvalidationOf(dsk_dn);
-	pWndTest = unique_raw(new TFormTest());
-	pWndExtra = unique_raw(new TFormExtra());
-	pWndTest->SetVisible(false);
+	yunsequenced(
+		dsk_dn.BackColor = Color(120, 120, 248),
+		pWndTest = unique_raw(new TFormTest()),
+		pWndExtra = unique_raw(new TFormExtra())
+	);
+	pWndTest->SetVisible(false),
 	pWndExtra->SetVisible(false);
-	dsk_dn += *pWndTest;
+	dsk_dn += *pWndTest,
 	dsk_dn += *pWndExtra;
+	SetInvalidationOf(dsk_dn);
 //	pWndTest->DrawContents();
 //	pWndExtra->DrawContents();
 	// init-seg 5;
-/*	Menu& mnu(*new Menu(Rect::Empty, GenerateList(_ustr("TestMenuItem0")), 1u));
+/*	Menu& mnu(*new Menu(Rect::Empty, GenerateList(u"TestMenuItem0"), 1u));
 
 	FetchEvent<Click>(mnu) += OnClick_ShowWindow;
 	mhMain += mnu;*/
-	mhMain += *new Menu(Rect::Empty, GenerateList(_ustr("A:MenuItem")), 1u);
-	mhMain += *new Menu(Rect::Empty, GenerateList(_ustr("B:MenuItem")), 2u);
+	mhMain += *new Menu(Rect::Empty, GenerateList(u"A:MenuItem"), 1u),
+	mhMain += *new Menu(Rect::Empty, GenerateList(u"B:MenuItem"), 2u);
 	mhMain[1u] += make_pair(1u, &mhMain[2u]);
 	ResizeForContent(mhMain[2u]);
 	UpdateToScreen();
@@ -783,20 +862,24 @@ ShlExplorer::OnDeactivated(const Message& msg)
 	auto& dsk_dn(GetDesktopDown());
 
 	// uninit-seg 1;
-	reset(dsk_up.GetBackgroundImagePtr());
-	reset(dsk_dn.GetBackgroundImagePtr());
+	yunsequenced(
+		reset(dsk_up.GetBackgroundImagePtr()),
+		reset(dsk_dn.GetBackgroundImagePtr()),
 	// uninit-seg 3;
 	dsk_dn.BoundControlPtr = std::bind(
 		std::mem_fn(&Control::GetBoundControlPtr), &dsk_dn,
-		std::placeholders::_1);
-	FetchEvent<KeyUp>(dsk_dn) -= OnKey_Bound_TouchUpAndLeave;
-	FetchEvent<KeyDown>(dsk_dn) -= OnKey_Bound_EnterAndTouchDown;
-	FetchEvent<KeyPress>(dsk_dn) -= OnKey_Bound_Click;
+		std::placeholders::_1),
+		FetchEvent<KeyUp>(dsk_dn) -= OnKey_Bound_TouchUpAndLeave,
+		FetchEvent<KeyDown>(dsk_dn) -= OnKey_Bound_EnterAndTouchDown,
+		FetchEvent<KeyPress>(dsk_dn) -= OnKey_Bound_Click
+	);
 	// uninit-seg 4;
-	dsk_dn -= *pWndTest;
+	dsk_dn -= *pWndTest,
 	dsk_dn -= *pWndExtra;
-	reset(pWndTest);
-	reset(pWndExtra);
+	yunsequenced(
+		reset(pWndTest),
+		reset(pWndExtra)
+	);
 	// uninit-seg 5;
 	mhMain.Clear();
 	// parent-uninit-seg 0;
@@ -810,7 +893,7 @@ ShlExplorer::UpdateToScreen()
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	Validate(dsk_up);
+	Validate(dsk_up),
 	Validate(dsk_dn);
 
 	if(chkFPS.IsTicked())
@@ -839,7 +922,7 @@ ShlExplorer::UpdateToScreen()
 			DrawText(g, r, strt, Padding(), Yellow);
 		}
 	}
-	dsk_up.Update();
+	dsk_up.Update(),
 	dsk_dn.Update();
 }
 
@@ -984,83 +1067,101 @@ ShlReader::FileInfoPanel::UpdateData()
 }
 
 string ShlReader::path;
+bool ShlReader::is_text(false);
 
 ShlReader::ShlReader()
 	: ShlDS(),
 	Reader(), pnlReader(Rect(0, 168, 256, 24), *this),
 	pnlFileInfo(Rect(32, 32, 128, 64), *this),
-	pTextFile(), hUp(), hDn(), mhMain(*GetDesktopDownHandle())
-{}
+	pTextFile(), hUp(), hDn(), mhMain(*GetDesktopDownHandle()),
+	HexArea(Rect::FullScreen)
+{
+	FetchEvent<Click>(HexArea) += [](IWidget&, TouchEventArgs&&){
+		CallStored<ShlExplorer>();
+	};
+}
 
 int
 ShlReader::OnActivated(const Message& msg)
 {
 	ParentType::OnActivated(msg);
-	pTextFile = ynew TextFile(path.c_str());
-	Reader.LoadText(*pTextFile);
 
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
-	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
-	dsk_up.BackColor = Color(240, 216, 192);
-	dsk_dn.BackColor = Color(192, 216, 240);
+	if(is_text)
+	{
+		std::swap(hUp, dsk_up.GetBackgroundImagePtr());
+		std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
+		yunsequenced(
+			dsk_up.BackColor = Color(240, 216, 192),
+			dsk_dn.BackColor = Color(192, 216, 240)
+		);
+		yunsequenced(
+			FetchEvent<Click>(dsk_dn).Add(*this, &ShlReader::OnClick),
+			FetchEvent<KeyDown>(dsk_dn).Add(*this, &ShlReader::OnKeyDown),
+			FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld
+		);
+		dsk_up += Reader.AreaUp,
+		dsk_dn += Reader.AreaDown,
+		dsk_dn += pnlReader,
+		dsk_dn += pnlFileInfo;
+		pnlReader.SetVisible(false);
+		pnlFileInfo.SetVisible(false);
+		{
+			auto hList(share_raw(new Menu::ListType));
+			auto& lst(*hList);
+
+			lst.reserve(7);
+			lst.push_back("返回");
+			lst.push_back("显示面板");
+			lst.push_back("文件信息...");
+			lst.push_back("向上一行");
+			lst.push_back("向下一行");
+			lst.push_back("向上一屏");
+			lst.push_back("向下一屏");
+
+			Menu& mnu(*new Menu(Rect::Empty, std::move(hList), 1u));
+
+			mnu.GetConfirmed() += [this](IWidget&, IndexEventArgs&& e){
+				ExcuteReadingCommand(e.Index);
+			};
+			/*
+			FetchEvent<TouchDown>(mnu) += [&, this](IWidget&, TouchEventArgs&&){
+				char strt[60];
+				auto& dsk(this->GetDesktopDown());
+				auto& g(dsk.GetScreen());
+				using namespace ColorSpace;
+				{
+					const Rect r(0, 172, 72, 20);
+					auto& evt(FetchEvent<TouchDown>(mnu));
+					u32 t(evt.GetSize());
+
+					siprintf(strt, "n=%u", t);
+					FillRect(g, r, Blue);
+					DrawText(g, r, strt, Padding(), White);
+				}
+				WaitForInput();
+			};
+			*/
+			mhMain += mnu;
+			/*
+			mhMain += *new Menu(Rect::Empty, GenerateList("a"), 1u);
+			mhMain[1u] += make_pair(1u, &mhMain[2u]);
+			*/
+		}
+		ResizeForContent(mhMain[1u]);
+		pTextFile = ynew TextFile(path.c_str());
+		Reader.LoadText(*pTextFile);
+	}
+	else
+	{
+		HexArea.Source.Open(path.c_str());
+		HexArea.UpdateData(0);
+		dsk_dn += HexArea;
+	}
 	SetInvalidationOf(dsk_up);
 	SetInvalidationOf(dsk_dn);
-	FetchEvent<Click>(dsk_dn).Add(*this, &ShlReader::OnClick);
-	FetchEvent<KeyDown>(dsk_dn).Add(*this, &ShlReader::OnKeyDown);
-	FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld;
-	dsk_up += Reader.AreaUp;
-	dsk_dn += Reader.AreaDown;
-	dsk_dn += pnlReader;
-	dsk_dn += pnlFileInfo;
-	pnlReader.SetVisible(false);
-	pnlFileInfo.SetVisible(false);
-
-	{
-		auto hList(share_raw(new Menu::ListType));
-		auto& lst(*hList);
-
-		lst.reserve(7);
-		lst.push_back("返回");
-		lst.push_back("显示面板");
-		lst.push_back("文件信息...");
-		lst.push_back("向上一行");
-		lst.push_back("向下一行");
-		lst.push_back("向上一屏");
-		lst.push_back("向下一屏");
-
-		Menu& mnu(*new Menu(Rect::Empty, std::move(hList), 1u));
-
-		mnu.GetConfirmed() += [this](IWidget&, IndexEventArgs&& e){
-			ExcuteReadingCommand(e.Index);
-		};
-		/*
-		FetchEvent<TouchDown>(mnu) += [&, this](IWidget&, TouchEventArgs&&){
-			char strt[60];
-			auto& dsk(this->GetDesktopDown());
-			auto& g(dsk.GetScreen());
-			using namespace ColorSpace;
-			{
-				const Rect r(0, 172, 72, 20);
-				auto& evt(FetchEvent<TouchDown>(mnu));
-				u32 t(evt.GetSize());
-
-				siprintf(strt, "n=%u", t);
-				FillRect(g, r, Blue);
-				DrawText(g, r, strt, Padding(), White);
-			}
-			WaitForInput();
-		};
-		*/
-		mhMain += mnu;
-		/*
-		mhMain += *new Menu(Rect::Empty, GenerateList("a"), 1u);
-		mhMain[1u] += make_pair(1u, &mhMain[2u]);
-		*/
-	}
-	ResizeForContent(mhMain[1u]);
 	RequestFocusCascade(dsk_dn);
 	UpdateToScreen();
 	return 0;
@@ -1069,22 +1170,33 @@ ShlReader::OnActivated(const Message& msg)
 int
 ShlReader::OnDeactivated(const Message& msg)
 {
-	mhMain.Clear();
-
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	FetchEvent<Click>(dsk_dn).Remove(*this, &ShlReader::OnClick);
-	FetchEvent<KeyDown>(dsk_dn).Remove(*this, &ShlReader::OnKeyDown);
-	FetchEvent<KeyHeld>(dsk_dn) -= OnKeyHeld;
-	dsk_up -= Reader.AreaUp;
-	dsk_dn -= Reader.AreaDown;
-	dsk_up -= pnlReader;
-	dsk_dn -= pnlFileInfo;
-	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
-	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
-	Reader.UnloadText();
-	safe_delete_obj()(pTextFile);
+	if(is_text)
+	{
+		Reader.UnloadText();
+		safe_delete_obj()(pTextFile);
+		mhMain.Clear();
+		yunsequenced(
+			FetchEvent<Click>(dsk_dn).Remove(*this, &ShlReader::OnClick),
+			FetchEvent<KeyDown>(dsk_dn).Remove(*this, &ShlReader::OnKeyDown),
+			FetchEvent<KeyHeld>(dsk_dn) -= OnKeyHeld
+		);
+		yunsequenced(
+			dsk_up -= Reader.AreaUp,
+			dsk_dn -= Reader.AreaDown,
+			dsk_up -= pnlReader,
+			dsk_dn -= pnlFileInfo
+		);
+		std::swap(hUp, dsk_up.GetBackgroundImagePtr());
+		std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
+	}
+	else
+	{
+		HexArea.Reset();
+		dsk_dn -= HexArea;
+	}
 	ParentType::OnDeactivated(msg);
 	return 0;
 }

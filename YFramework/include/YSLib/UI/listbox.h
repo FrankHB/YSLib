@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3193;
+\version r3203;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-09-14 08:32 +0800;
+	2011-10-22 05:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,19 +82,6 @@ public:
 		ImplBodyMember0(TextListBox, ResetView)
 	PDefH0(void, UpdateView)
 		ImplBodyMember0(TextListBox, UpdateView)
-
-private:
-	/*!
-	\brief 处理垂直滚动条滚动事件。
-	*/
-	void
-	OnScroll_VerticalScrollBar(ScrollEventArgs&&);
-
-	/*!
-	\brief 处理文本列表框视图变更事件。
-	*/
-	void
-	OnViewChanged_TextListBox(EventArgs&&);
 };
 
 
@@ -111,13 +98,6 @@ public:
 	*/
 	IO::Path
 	GetPath() const;
-
-private:
-	/*!
-	\brief 处理确认事件。
-	*/
-	void
-	OnConfirmed(IndexEventArgs&&);
 };
 
 YSL_END_NAMESPACE(Components)

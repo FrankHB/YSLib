@@ -11,12 +11,12 @@
 /*!	\file textarea.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r1330;
+\version r1381;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-30 20:10:27 +0800;
 \par 修改时间:
-	2011-10-01 13:06 +0800;
+	2011-10-14 22:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,6 +31,12 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 TextArea::TextArea(const Rect& r, FontCache& fc)
+	: Widget(r), TextState(fc), TextRenderer(*this),
+	Rotation(Drawing::RDeg0)
+{}
+
+
+BufferedTextArea::BufferedTextArea(const Rect& r, FontCache& fc)
 	: Widget(r), TextRegion(fc),
 	Rotation(Drawing::RDeg0)
 {
@@ -39,7 +45,7 @@ TextArea::TextArea(const Rect& r, FontCache& fc)
 }
 
 Rect
-TextArea::Refresh(const PaintEventArgs& e)
+BufferedTextArea::Refresh(const PaintEventArgs& e)
 {
 	Widget::Refresh(e);
 

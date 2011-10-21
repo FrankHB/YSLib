@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3211;
+\version r3217;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-09-14 08:31 +0800;
+	2011-10-22 05:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -357,13 +357,6 @@ public:
 
 	ImplI1(ATrack)
 	DefGetter(Orientation, Orientation, Horizontal)
-
-private:
-	/*!
-	\brief 处理水平滑块移动事件。
-	*/
-	void
-	OnTouchMove_Thumb_Horizontal(TouchEventArgs&&);
 };
 
 
@@ -381,13 +374,6 @@ public:
 
 	ImplI1(ATrack)
 	DefGetter(Orientation, Orientation, Vertical)
-
-private:
-	/*!
-	\brief 处理垂直滑块移动事件。
-	*/
-	void
-	OnTouchMove_Thumb_Vertical(TouchEventArgs&&);
 };
 
 

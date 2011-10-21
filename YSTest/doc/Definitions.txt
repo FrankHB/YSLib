@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11430;
+\version r11432;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-10-08 20:25 +0800;
+	2011-10-18 15:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -148,7 +148,6 @@ CHRLIB_
 CHRLIB
 CHRLIB_BEGIN_NAMESPACE(s)
 CHRLIB_END_NAMESPACE(s)
-_ustr(str)
 }
 } //$dir CHRLib;
 $header YDefinition

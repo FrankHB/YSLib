@@ -11,12 +11,12 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2156;
+\version r2158;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2011-09-16 04:13 +0800;
+	2011-10-18 15:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -126,7 +126,7 @@ MainShell::OnActivated(const Message& msg)
 	dsk_dn.BackColor = FetchGUIShell().Colors[Styles::Desktop];
 	lblTitle.Text = Application::ProductName;
 	lblStatus.Text = "Loading...";
-	lblDetails.Text = _ustr("初始化中，请稍后……");
+	lblDetails.Text = u"初始化中，请稍后……";
 	lblDetails.ForeColor = ColorSpace::White;
 	lblDetails.SetTransparent(true);
 	SetInvalidationOf(dsk_up);

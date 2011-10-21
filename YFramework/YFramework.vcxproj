@@ -167,7 +167,7 @@
     <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
     <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
-    <IncludePath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)..\YCLib\include;$(ProjectDir)..\YSLib\include;$(ProjectDir)include\YSLib\Core;$(ProjectDir)include\YSLib\Adaptor;$(ProjectDir)include\YSLib\UI;$(ProjectDir)include\YSLib\Helper;$(ProjectDir)include\YSLib\Service;$(NMakeIncludeSearchPath)</IncludePath>
+    <IncludePath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1\arm-eabi;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(NMakeIncludeSearchPath)</IncludePath>
     <ReferencePath>$(ReferencePath)</ReferencePath>
     <ExcludePath>$(ExcludePath)</ExcludePath>
     <NMakeBuildCommandLine>make -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
@@ -183,7 +183,7 @@
     <NMakeBuildCommandLine>make -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>make -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
-    <IncludePath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)..\YCLib\include;$(ProjectDir)..\YSLib\include;$(ProjectDir)include\YSLib\Core;$(ProjectDir)include\YSLib\Adaptor;$(ProjectDir)include\YSLib\UI;$(ProjectDir)include\YSLib\Helper;$(ProjectDir)include\YSLib\Service;$(NMakeIncludeSearchPath)</IncludePath>
+    <IncludePath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1\arm-eabi;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(NMakeIncludeSearchPath)</IncludePath>
     <ReferencePath>$(ReferencePath)</ReferencePath>
     <ExcludePath>$(ExcludePath)</ExcludePath>
   </PropertyGroup>

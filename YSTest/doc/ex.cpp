@@ -1,4 +1,4 @@
-// v0.3352; *build 252 rev 36;
+// v0.3352; *build 253 rev 78;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -223,7 +223,8 @@ $using:
 ),
 \u TextArea
 (
-	\cl TextArea
+	\cl TextArea,
+	\cl BufferedTextArea
 ),
 \u Progress
 (
@@ -288,176 +289,269 @@ $using:
 
 $DONE:
 r1:
-/ \proj YSLib["/YSLib"] => YFramework["/YFramework"];
-/ \lib CHRLib >> \proj YFramework ~ \proj YCLib;
-/ \lib YStandardExtend @ \lib YCLib -> \lib YStandardEx @ \proj \YCLib,
-/ \lib YCLib >> \proj YFramework ~ \proj YCLib;
-/ \proj YCLib => YBase;
-/ \tr @ makefiles,
-/ \tr @ \h YAdaptor @ \dir Adaptor @ \lib YSLib;
+/ @ \u TextArea $=
+(
+	/ \cl TextArea => BufferedTextArea;
+	+ \cl TextArea
+);
 
 r2:
-/ @ \dir Adaptor @ \lib YSLib $=
++ \mf operator Text&() @ \cl TextRenderer @ \h YText;
++ \u HexBrowser @ \proj YSTest_ARM9 $=
 (
-	/ \h YBase["ybase.h"] => \h YBaseMacro["ybasemac.h"];
-	/ \tr \inc @ \h YNew;
+	+ \inc \h (YWidget, TextArea) @ \h,
+	+ \f ConvertByte @ \un \ns @ \impl \u;
+	+ \cl HexViewArea
 );
 
-r3:
-/= test 1 ^ \conf release;
-
-r4:
-/ \impl @ \f DrawText#2 @ \impl \u YText,
-/ \impl @ \mf MLabel::PaintText,
-/ \impl @ \mf MTextList::RefreshTextState;
-- \mf SetFont @ \cl Font @ \u YFont @ \dir Adaptor;
+r3-r4:
+/ @ \cl ShlExplorer @ \u Shells $=
+(
+	+ \m CheckBox chkHex;
+	/ \tr \impl @ \ctor,
+	/ \tr \impl @ \mf (OnActivated, OnDeactivated, UpdateToScreen),
+	/ \impl @ \ctor @ \cl (TFormTest, TFormExtra),
+	/ \impl @ \mf TFormExtra::OnClick_btnDragTest
+);
 
 r5:
-/ Makefile @ \lib YBase $=
-(
-	- redundant macros,
-	- '-lnds9',
-	+ '-pedantic' @ \mac CFLAGS
-),
-- \a 3 GNU extensions @ \mac #ifdef @ \h YBaseMacro for compatibility
-	(such as GCC with '-pedantic');
+/= test 1 ^ \conf release;
 
-r6:
-/ @ \h YCoreUtilities $=
-(
-	+ \i @ \ft ClearSequence,
-	/ \ft<_tPixel> \i void ClearPixel(_tPixel* dst, size_t),
-		-> \ft<_tPixel> \i _tPixel* ClearPixel(_tPixel* dst, size_t)
-),
-/ \impl @ \mf ClearLine @ \cl (ATextRenderer, TextRegion) @ \impl \u YText,
-/ \a 'std::memcpy' -> 'mmbcpy' @ \impl \u DSReader;
-
-r7:
-/= test 2 ^ \conf release;
-
-r8:
-/ \a 'HelperFunction' -> 'HelperFunctions',
-(
-	/ @ \h Memory @ \lib YBase $=
-	(
-		+ \inc \h <cstring>;
-		+ \ft (pod_fill, pod_copy_n, pod_copy, pod_move_n, pod_move)
-	);
-	/ \impl @ \impl \u DSReader ^ ystdex::pod_copy_n ~ std::memcpy
-);
-/ Doxygen file;
-
-r9:
-* \impl @ \impl \u DSReader $since r8;
-
-r10:
-/= test 3 ^ \conf release;
-
-r11:
-/ \impl @ \mf TextRegion::Scroll#2 ^ (yunsequenced, pod_move_n) ~ std::memmove;
+r6-r11:
+/= test 2;
 
 r12:
-/= test 4;
+* wrong control %OnLostFocus behavior $since b240 $=
+(
+	/ @ \cl Control $=
+	(
+		/ \impl @ \ctor @ \cl ControlEventMap,
+		/ \impl @ \ctor
+	);
+);
 
 r13:
-* \impl @ \impl \u DSReader $since r8;
+/= test 3 ^ \conf release;
 
 r14:
-/ @ \h YText $=
+/ @ \impl \u Shells $=
 (
-	/ \rem @ (\cl TextState, \f FetchResizedBufferHeight),
-	+ \f \i SDst FetchResizedBufferHeight(const TextRegion&)
+	/ @ \un \ns $=
+	(
+		+ \f bool ReaderPathFilter(const Path&),
+		+ \f bool CheckReaderEnability(FileBox&, CheckBox&)
+	);
+	/ \simp \impl @ \mf ShlExplorer::OnActivated ^ CheckReaderEnability
 );
-/ \simp \impl @ \mf DualScreenReader::LineUp
-	@\impl \u DSReader ^ \f \i FetchResizedBufferHeight;
 
 r15-r17:
-/= test 5;
+/ @ \un \ns @ \impl \u Shells $=
+(
+	+ \ns EnrtySpace $=
+	(
+		+ typedef enum EntryType
+	);
+	+ \f EnrtySpace::EntryType GetEntryType(const string&);
+	/ \impl @ \f CheckReaderEnability
+);
 
 r18:
-/ \simp \impl @ \mf DualScreenReader::LineUp;
-/ @ \u Text $=
 (
-	- \f \i FetchResizedBufferHeight,
-	- \f !\i SDst FetchResizedBufferHeight(const TextState&, SDst),
-	+ \f u16 FetchResizedLineN(const TextState& ts, SDst);
-	/ \simp \mf (GetTextLineN, GetTextLineNEx) @ \cl ATextRenderer
+	/ @ \h CHRDefinition $=
+	(
+		+ \inc <string>,
+		/ typedef std::uint16_t ucs2_t -> typedef char16_t ucs2_t,
+		/ typedef std::uint32_t ucs4_t -> typedef char32_t ucs4_t;
+		/ typedef std::int_least32_t ucsint_t -> std::char_traits<ucs4_t>::int_type
+			ucsint_t,
+		- \mac \def _ustr
+	);
+	/ \tr \a '_ustr' -> 'u'
 );
++ typedef GSStringTemplate<ucs4_t>::basic_string ucs4string @ \h Container
+	@ \dir Adaptor;
 
 r19:
-/= test 6 ^ \conf release;
+/= test 4 ^ \conf release;
 
-r20:
-/ \simp @ \cl DualScreenReader @ \impl \u DSReamder $=
+r20-r21:
+/ @ \cl ShlReader @ \u ShellDS
 (
-	- \m u8 lnHeight;
-	/ \tr \impl @ \mf (SetFontSize, LineUp, LineDown)
+	+ \sm bool is_text,
+	(
+		+ \inc \h "HexBrowser.h",
+		+ \m HexViewArea HexArea
+	);
+	/ \tr \impl @ \ctor,
 );
 
-r21:
-/ @ \h YText $=
+r22-r26:
+/ @ \impl \u DSReader $=
 (
-	+ \f \i SDSt FetchResizedBottomMargin(const TextRegion&);
-	+ \f \i SDst AdjustBottomMarginOf(TextRegion&)
-);
-/ @ \cl DualScreenReader @ \impl \u DSReader $=
-(
-	/ \simp \impl @ \mf LineUp ^ AdjustBottomMarginOf,
-	/ \simp \impl @ \mf LineDown ^ FetchResizedBottomMargin
-),
-/ \a FetchResizedMargin => FetchResizedBottomMargin;
-
-r22:
-/ \simp @ \cl DualScreenReader @ \h DSReader $=
-(
-	/ \impl @ \mf (SetColor, SetFontSize, SetLineGap) ^ \mac (PDefH1, ImplRet),
-	/ \mf bool IsTextTop() -> bool IsTextTop() const,
-	/ \mf bool IsTextBottom() -> bool IsTextBottom() const,
-	- private \mf (SetColorUp, SetColorDown, SetLineGapUp, SetLineGapDown)
+	/ \impl @ \mf (OnActivated, OnDeactivated) @ \cl ShlReader,
+	/ \impl @ \ctor @ \cl ShlExplorer
 );
 
-r23:
-(
-	/ \f \i void unsequenced(_type&&...) ynothrow @ \ns ystdex @ \h YDefinition
-		-> \f yconstexprf int unsequenced(_type&&...) ynothrow;
-	/ \tr \impl @ \mf (SetColor, SetLineGap) @ \cl DualScreenReader
-		@ \h DSReader
-),
-^ "updated devkitARM release 34" ~ "devkitARM release 33";
-	
-r24-r28:
-/= test 7;
+r27-r28:
+/= test 5;
 
 r29:
-* \impl @ \f CheckInstall $since b245;
-
-r30-r34:
-/= test 8;
-
-r35:
-/ @ \cl DualScreenReader $=
+* size not refreshed when opening file \exc \ctor @ \cl File $since $before
+	'~b1x'(with timestamp 2009-12-01, $rev("yfile.cpp") = r221),
 (
-	/ \mf IsTextBottom $since r22;
-	/ \m itUp => iTop,
-	/ \m itDn => iBottom
+	/ \impl @ \ctor,
+	/ \impl @ \f Open
 );
 
-r36:
+r30:
+/= test 6;
+
+r31-r36:
+* \impl @ \mf HexViewArea::UpdateData @ \impl \u HexBrowser $since r2;
+
+r37-r48:
+/= test 7;
+
+r49:
+* \impl @ \h YText $since r2 $=
+(
+	- \mf \op TextState& @ \cl TextRenderer,
+	/ \impl @ \ft PutChar @ \h YText
+);
+
+r50:
 /= test 8 ^ \conf release;
+
+r51-r53:
+* \impl @ \mf HexViewArea::Refresh @ \impl \u HexBrowser $since r2;
+
+r54:
+/= test 9;
+
+r55:
+/ \impl @ \ctor @ \cl HexViewArea @ \impl \u HexBrowser;
+
+r56-r61:
+/ \impl \u HexBrowser $=
+(
+	/ \impl @ \mf HexViewArea::Refresh,
+	* \impl @ \f ConvertByte @ \un \ns @ \impl \u HexBrowser $since r2
+);
+
+r62:
+/= test 10 ^ \conf release;
+
+r63-r64:
+/ @ \impl \u HexBrowser $=
+(
+	/ \simp \impl @ \mf HexViewArea::Refresh,
+	/ \f void ConvertByte(ucs2_t(&)[3], byte) @ \un \ns
+		-> \f void ConvertByte(char(&)[3], byte)
+);
+
+r65-r66:
+/ @ \cl HexViewArea @ \u HexBrowser $=
+(
+	(
+		+ private \m u32 position;
+		/ \tr \impl @ \ctor,
+	),
+	/ \mf void UpdateData(File::OffsetType) -> void UpdateData(u32);
+	+ \m yconstexpr size_t ItemPerLine(32);
+	/ typedef array<byte, 8> LineType
+		-> typedef array<byte, ItemPerLine> LineType;
+	/ \impl @ \mf Refresh,
+);
+
+r67:
+/ @ \u HexBrowser $=
+(
+	/ \inh \h YWidget @ \h -> \h Scroll;
+	/ @ \cl HexViewArea @ \u HexBrowser $=
+	(
+		/ public \inh Widget -> ScrollableContainer;
+		/ \tr \impl @ \ctor,
+		+ \exp @ \decl @ \ctor
+	)
+);
+
+r68:
++ \vt \mf IWidget* GetTopWidgetPtr(const Point&, bool(&)(const IWidget&))
+	@ \cl HexViewArea @ \u HexBrowser;
+
+r69-r71:
+/= test 11;
+
+r72:
++ \mf void Reset() @ \cl HexViewArea @ \u HexBrowser;
+/ \impl @ (\ctor, \mf (OnActivated, OnDeactivated)) @ \cl ShlReader
+	@ \impl \u Shells;
+
+r73:
+/= test 12 ^ \conf release;
+
+r74:
+/ \simp @ \cl ListBox $=
+(
+	/ \impl @ \ctor;
+	- private \mf OnScroll_VerticalScrollBar,
+	- private \mf OnViewChanged_TextListBox
+);
+
+r75:
+/ @ \u Scroll $=
+(
+	/ \simp @ \cl HorizontalTrack $=
+	(
+		/ \impl @ \ctor,
+		- private \mf OnTouchMove_Thumb_Horizontal
+	),
+	/ \simp @ \cl VerticalTrack $=
+	(
+		/ \impl @ \ctor,
+		- private \mf OnTouchMove_Thumb_Vertical
+	)
+);
+
+r76:
+/ \simp @ \cl FileBox $=
+(
+	/ \impl @ \ctor;
+	- private \mf OnConfirmed
+);
+
+r77:
+/ @ \cl ShlExplorer @ \u Shells $=
+(
+	/ \simp @ \cl TFormTest $=
+	(
+		/ \impl @ \ctor;
+		- \mf OnClick_btnMenuTest
+	),
+	/ \simp @ \cl TFormExtra $=
+	(
+		/ \impl @ \ctor;
+		- \mf OnClick_btnDragTest,
+		- \mf OnClick_btnTestEx
+	)
+);
+
+r78:
+/= test 12 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-10-14:
--19.7d;
-//Mercurial rev1-rev123: r5782;
+2011-10-22:
+-20.9d;
+//Mercurial rev1-rev124: r5818;
 
 / ...
 
 
 $NEXT_TODO:
-b253-b384:
+b254-b384:
 + %TextList invalidation support;
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
@@ -546,6 +640,31 @@ $ellipse_debug_assertion;
 
 $now
 (
+	/ "shells test example" $=
+	(
+		+ "hexadecimal browser",
+		+ $design "unsequenced evaluated expressions optimization"
+			@ "unit Shells",
+		+ "automatic desktop invalidation when checkbox unticked",
+
+	),
+	/ "GUI" $=
+	(
+		* "wrong control %OnLostFocus behavior $since b240"
+	),
+	^ "new character types" $=
+	(
+		^ "fundamental types %(char16_t, char32_t) ~ %(std::uint16_t,
+			std::uint32_t) as basic types" @ "library %CHRLib",
+		^ "literal syntax prefix u" ~ "macro _ustr"
+	),
+	* "size not refreshed when opening file excluded using constructor"
+		@ "class File" $since $before '~b1x'(with timestamp 2009-12-01,
+		$rev("yfile.cpp") = r221)
+),
+
+b252
+(
 	/ "libraries structure" $=
 	(
 		/ "project %YSLib" >> "%YFramework";
@@ -557,7 +676,7 @@ $now
 	+ "POD type operations" @ "library %YStandardEx",
 	/ "Doxygen file",
 	+ $design "nested-use support" @ "macro %yunsequenced implementation",
-	^ "updated devkitARM release 34" ~ "devkitARM release 33",
+	^ "updated devkitARM release 35" ~ "devkitARM release 34",
 	* "implementation" @ "installation checking" $since b245
 ),
 
@@ -565,7 +684,8 @@ b251
 (
 	(
 		+ $design "unsequenced evaluation macro %yunsequenced";
-		+ $design "unsequenced evaluated expressions optimization"
+		+ $design "unsequenced evaluated expressions optimization" @ "library \
+			%(CHRLib, YCLib, YSLib)"
 	),
 	- "buffered text blocks",
 	* "wrong ending of text checking @ text buffer" $since b246,
@@ -818,7 +938,8 @@ b240
 			+ $design "%(CopyConstructible, MoveConstructible) and clone \
 				support" @ "class WidgetController";
 			+ $design "%CopyConstructible and %MoveConstructible support"
-				@ "class %(Widget; Control)"
+				@ "class %(Widget; Control)",
+			+ "class %ControlEventMap" @ "class %Control"
 		)
 	)
 ),
@@ -916,8 +1037,8 @@ b235
 			/ "a little improvement of efficiency"
 				@ "entering and leaving events handling"
 		),
-		/ "non-null pointers of top elements returned accepted \
-			as non-container pointers",
+		/ "pointer to containers as top elements returned accepted \
+			and treated as null pointers",
 		+ "label text display supporting for non-direct contained widgets",
 		/ "invalidating canceled when enablity not changed"
 			@ "function %SetEnableOf" @ "unit %YControl"

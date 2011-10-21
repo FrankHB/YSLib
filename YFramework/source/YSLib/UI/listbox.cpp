@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3678;
+\version r3693;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-09-14 08:46 +0800;
+	2011-10-22 05:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,10 +44,24 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 	TextListBox(Rect(Point::Zero, r), h)
 {
 	TextListBox.GetContainerPtrRef() = this;
-	VerticalScrollBar.GetTrack().GetScroll().Add(*this,
-		&ListBox::OnScroll_VerticalScrollBar);
-	TextListBox.GetViewChanged().Add(*this,
-		&ListBox::OnViewChanged_TextListBox);
+	VerticalScrollBar.GetTrack().GetScroll() += [this](IWidget&,
+		ScrollEventArgs&& e){
+		TextListBox.LocateViewPosition(e.Value);
+		Invalidate(*this);
+	};
+	TextListBox.GetViewChanged() += [this](IWidget&, EventArgs&&){
+		if(GetWidth() > defMinScrollBarWidth)
+		{
+			Size view_arena(TextListBox.GetFullViewSize());
+
+			view_arena.Width = GetWidth() - defMinScrollBarWidth;
+			TextListBox.SetSize(FixLayout(view_arena));
+			VerticalScrollBar.SetSmallDelta(TextListBox.GetItemHeight());
+			VerticalScrollBar.SetMaxValue(view_arena.Height);
+			VerticalScrollBar.SetLargeDelta(TextListBox.GetHeight());
+			VerticalScrollBar.SetValue(TextListBox.GetViewPosition());
+		}
+	};
 	//刷新文本状态，防止第一次绘制时无法正确决定是否需要滚动条。
 	TextListBox.RefreshTextState();
 }
@@ -70,34 +84,17 @@ ListBox::Refresh(const PaintEventArgs& e)
 	return r;
 }
 
-void
-ListBox::OnScroll_VerticalScrollBar(ScrollEventArgs&& e)
-{
-	TextListBox.LocateViewPosition(e.Value);
-	Invalidate(*this);
-}
-
-void
-ListBox::OnViewChanged_TextListBox(EventArgs&&)
-{
-	if(GetWidth() > defMinScrollBarWidth)
-	{
-		Size view_arena(TextListBox.GetFullViewSize());
-
-		view_arena.Width = GetWidth() - defMinScrollBarWidth;
-		TextListBox.SetSize(FixLayout(view_arena));
-		VerticalScrollBar.SetSmallDelta(TextListBox.GetItemHeight());
-		VerticalScrollBar.SetMaxValue(view_arena.Height);
-		VerticalScrollBar.SetLargeDelta(TextListBox.GetHeight());
-		VerticalScrollBar.SetValue(TextListBox.GetViewPosition());
-	}
-}
-
 
 FileBox::FileBox(const Rect& r)
 	: FileList(), ListBox(r, GetListPtr())
 {
-	GetConfirmed().Add(*this, &FileBox::OnConfirmed);
+	GetConfirmed() += [this](IWidget&, IndexEventArgs&& e){
+		if(Contains(e) && static_cast<bool>(*this /= GetList()[e.Index]))
+		{
+			ListItems();
+			ResetView();
+		}
+	};
 	ListItems();
 	UpdateView();
 }
@@ -108,16 +105,6 @@ FileBox::GetPath() const
 	if(IsSelected() && GetSelectedIndex() >= 0)
 		return Directory / (GetList()[GetSelectedIndex()]);
 	return Directory;
-}
-
-void
-FileBox::OnConfirmed(IndexEventArgs&& e)
-{
-	if(Contains(e) && static_cast<bool>(*this /= GetList()[e.Index]))
-	{
-		ListItems();
-		ResetView();
-	}
 }
 
 YSL_END_NAMESPACE(Components)

@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version r7091;
+\version r7093;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-10-13 16:46 +0800;
+	2011-10-21 03:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -257,7 +257,7 @@ template<class _tRenderer>
 u8
 PutChar(_tRenderer& r, ucs4_t c)
 {
-	TextState& ts(r);
+	TextState& ts(r.GetTextState());
 
 	if(c == '\n')
 	{

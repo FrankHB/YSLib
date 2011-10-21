@@ -11,12 +11,12 @@
 /*!	\file yfile.cpp
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version r1376;
+\version r1386;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2011-09-24 20:15 +0800;
+	2011-10-21 01:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,7 +58,12 @@ bool
 File::Open(const_path_t p, bool is_text)
 {
 	Close();
-	fp = std::fopen(p, is_text ? "r" : "rb");
+	if((fp = std::fopen(p, is_text ? "r" : "rb")))
+	{
+		SetPosition(0, SEEK_END);
+		fsize = GetPosition();
+		Rewind();
+	}
 	return IsValid();
 }
 

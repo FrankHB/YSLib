@@ -11,12 +11,12 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r1298;
+\version r1368;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-30 20:09:23 +0800;
 \par 修改时间:
-	2011-09-14 08:31 +0800;
+	2011-10-14 22:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,8 +36,11 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//! \brief 文本区域。
-class TextArea : public Widget, public Drawing::TextRegion
+/*!
+\brief 文本区域。
+*/
+class TextArea : public Widget,
+	public Drawing::TextState, public Drawing::TextRenderer
 {
 public:
 	Drawing::Rotation Rotation; //!< 屏幕指向。
@@ -46,6 +49,27 @@ public:
 	TextArea(const Drawing::Rect& = Drawing::Rect::Empty,
 		FontCache& = FetchGlobalInstance().GetFontCache());
 	inline DefDeMoveCtor(TextArea)
+
+	using Widget::GetSize;
+	using Widget::GetWidth;
+	using Widget::GetHeight;
+
+	using Widget::SetSize;
+};
+
+
+/*!
+\brief 缓冲文本区域。
+*/
+class BufferedTextArea : public Widget, public Drawing::TextRegion
+{
+public:
+	Drawing::Rotation Rotation; //!< 屏幕指向。
+
+	explicit
+	BufferedTextArea(const Drawing::Rect& = Drawing::Rect::Empty,
+		FontCache& = FetchGlobalInstance().GetFontCache());
+	inline DefDeMoveCtor(BufferedTextArea)
 
 	using Widget::GetSize;
 	using Widget::GetWidth;

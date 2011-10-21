@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3838;
+\version r3844;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-09-26 09:06 +0800;
+	2011-10-22 05:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -303,22 +303,17 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"Width is not greater than height.");
 
-	FetchEvent<TouchMove>(Thumb).Add(*this,
-		&HorizontalTrack::OnTouchMove_Thumb_Horizontal);
-}
+	FetchEvent<TouchMove>(Thumb) +=[this](IWidget&, TouchEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct)
+		{
+			GUIShell& shl(FetchGUIShell());
+			SPos x(shl.LastControlLocation.X + shl.DraggingOffset.X);
 
-void
-HorizontalTrack::OnTouchMove_Thumb_Horizontal(TouchEventArgs&& e)
-{
-	if(e.Strategy == RoutedEventArgs::Direct)
-	{
-		GUIShell& shl(FetchGUIShell());
-		SPos x(shl.LastControlLocation.X + shl.DraggingOffset.X);
-
-		RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
-		Thumb.SetLocation(Point(x, Thumb.GetLocation().Y));
-		GetThumbDrag()(*this, EventArgs());
-	}
+			RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
+			Thumb.SetLocation(Point(x, Thumb.GetLocation().Y));
+			GetThumbDrag()(*this, EventArgs());
+		}
+	};
 }
 
 
@@ -331,22 +326,17 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"height is not greater than width.");
 
-	FetchEvent<TouchMove>(Thumb).Add(*this,
-		&VerticalTrack::OnTouchMove_Thumb_Vertical);
-}
+	FetchEvent<TouchMove>(Thumb) += [this](IWidget&, TouchEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct)
+		{
+			GUIShell& shl(FetchGUIShell());
+			SPos y(shl.LastControlLocation.Y + shl.DraggingOffset.Y);
 
-void
-VerticalTrack::OnTouchMove_Thumb_Vertical(TouchEventArgs&& e)
-{
-	if(e.Strategy == RoutedEventArgs::Direct)
-	{
-		GUIShell& shl(FetchGUIShell());
-		SPos y(shl.LastControlLocation.Y + shl.DraggingOffset.Y);
-
-		RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
-		Thumb.SetLocation(Point(Thumb.GetLocation().X, y));
-		GetThumbDrag()(*this, EventArgs());
-	}
+			RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
+			Thumb.SetLocation(Point(Thumb.GetLocation().X, y));
+			GetThumbDrag()(*this, EventArgs());
+		}
+	};
 }
 
 
