@@ -11,12 +11,12 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1158;
+\version r1184;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-10-14 18:13:04 +0800;
 \par 修改时间:
-	2011-10-22 01:48 +0800;
+	2011-10-26 08:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -48,22 +48,36 @@ public:
 	typedef list<LineType> ListType; //!< 列表数据类型。
 
 private:
-	Drawing::TextState state; //!< 文本状态。
+	Drawing::TextState text_state; //!< 文本状态。
+	u16 item_num; //!< 行数。
 	ListType lines; //!< 行数据。
-	u32 position; //!< 读取位置。
+	File source; //!< 文件数据源。
 
 public:
-	File Source; //!< 文件数据源。
-
 	explicit
 	HexViewArea(const Drawing::Rect& = Drawing::Rect::Empty,
 		FontCache& = FetchGlobalInstance().GetFontCache());
 
 	/*!
+	\brief 取项目行高。
+	*/
+	SDst
+	GetItemHeight() const;
+	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	*/
 	virtual IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
+	DefGetter(const File&, source, source)
+
+	void
+	Load(const_path_t);
+
+	/*!
+	\brief 定位视图顶端至指定竖直位置。
+	*/
+	void
+	LocateViewPosition(SDst);
 
 	virtual Rect
 	Refresh(const PaintEventArgs&);
@@ -74,6 +88,12 @@ public:
 	void
 	UpdateData(u32);
 };
+
+inline SDst
+HexViewArea::GetItemHeight() const
+{
+	return GetTextLineHeightExOf(text_state);
+}
 
 YSL_END_NAMESPACE(Components)
 

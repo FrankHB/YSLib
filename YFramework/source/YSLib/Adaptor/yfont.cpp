@@ -11,12 +11,12 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7287;
+\version r7289;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-10-13 16:11 +0800;
+	2011-10-25 12:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include "../Core/yexcept.h"
 #include "../Core/yfilesys.h"
 #include "../Helper/yglobal.h"
+#include <algorithm> // for std::for_each;
 //#include FT_OUTLINE_H
 //#include FT_SYNTHESIS_H
 

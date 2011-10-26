@@ -11,12 +11,12 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2114;
+\version r2115;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-09-17 23:37 +0800;
+	2011-10-25 21:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,7 +53,7 @@ public:
 	Drawing::Font Font; //!< 字体。
 	Drawing::Padding Margin; //!< 文本和容器的间距。
 	TextAlignmentStyle HorizontalAlignment, VerticalAlignment; \
-		//!< 文本水平和垂直对齐属性（只在可完整显示时有效）。
+		//!< 文本水平和竖直对齐属性（只在可完整显示时有效）。
 //	bool AutoSize; //!< 启用根据字号自动调整大小。
 //	bool AutoEllipsis; //!< 启用对超出标签宽度的文本调整大小。
 	String Text; //!< 标签文本。

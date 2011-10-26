@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1435;
+\version r1442;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-09-18 03:04 +0800;
+	2011-10-26 07:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@ YSL_BEGIN_NAMESPACE(Components)
 namespace
 {
 	const SDst defMarginH(2); //!< 默认水平边距。
-	const SDst defMarginV(1); //!< 默认垂直边距。
+	const SDst defMarginV(1); //!< 默认竖直边距。
 	const SDst defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
 //	const SDst defMinScrollBarHeight(16); //!< 默认最小滚动条高。
 }
@@ -44,8 +44,10 @@ namespace
 
 TextList::Dependencies::Dependencies()
 {
-	Selected.GetRef() += &TextList::OnSelected;
-	Confirmed.GetRef() += &TextList::OnSelected;
+	yunsequenced(
+		Selected.GetRef() += &TextList::OnSelected,
+		Confirmed.GetRef() += &TextList::OnSelected
+	);
 }
 
 TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
@@ -56,103 +58,105 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	viewer(GetList()), top_offset(0), Events(FetchPrototype<Dependencies>())
 {
 	SetAllOf(Margin, defMarginH, defMarginV);
-	FetchEvent<KeyDown>(*this) += [this](IWidget&, KeyEventArgs&& e){
-		if(viewer.GetTotal() != 0)
-		{
-			if(viewer.IsSelected())
+	yunsequenced(
+		FetchEvent<KeyDown>(*this) += [this](IWidget&, KeyEventArgs&& e){
+			if(viewer.GetTotal() != 0)
 			{
-				switch(e.GetKeyCode())
+				if(viewer.IsSelected())
 				{
-				case KeySpace::Enter:
-					InvokeConfirmed(viewer.GetSelectedIndex());
-					break;
-				case KeySpace::Esc:
-					ClearSelected();
-					CallSelected();
-					break;
-				case KeySpace::Up:
-				case KeySpace::Down:
-				case KeySpace::PgUp:
-				case KeySpace::PgDn:
+					switch(e.GetKeyCode())
 					{
-						const auto nOld(viewer.GetSelectedIndex());
-
-						switch(e.GetKeyCode())
+					case KeySpace::Enter:
+						InvokeConfirmed(viewer.GetSelectedIndex());
+						break;
+					case KeySpace::Esc:
+						ClearSelected();
+						CallSelected();
+						break;
+					case KeySpace::Up:
+					case KeySpace::Down:
+					case KeySpace::PgUp:
+					case KeySpace::PgDn:
 						{
-						case KeySpace::Up:
-							if(GetSelectedIndex() == 0)
+							const auto nOld(viewer.GetSelectedIndex());
+
+							switch(e.GetKeyCode())
 							{
-								if(CyclicTraverse)
-									SelectLast();
+							case KeySpace::Up:
+								if(GetSelectedIndex() == 0)
+								{
+									if(CyclicTraverse)
+										SelectLast();
+								}
+								else
+								{
+									--viewer;
+									if(viewer.GetOffset() == 0)
+										AdjustTopOffset();
+								}
+								break;
+							case KeySpace::Down:
+								if(GetSelectedIndex() == GetList().size() - 1)
+								{
+									if(CyclicTraverse)
+										SelectFirst();
+								}
+								else
+								{
+									++viewer;
+									if(viewer.GetOffset() == static_cast<
+										ViewerType::DifferenceType>(
+										viewer.GetLength() - 1))
+										AdjustBottomOffset();
+								}
+								break;
+							case KeySpace::PgUp:
+								viewer.DecreaseSelected(viewer.GetLength());
+								AdjustTopOffset();
+								break;
+							case KeySpace::PgDn:
+								viewer.IncreaseSelected(viewer.GetLength());
+								AdjustBottomOffset();
+								break;
 							}
-							else
-							{
-								--viewer;
-								if(viewer.GetOffset() == 0)
-									AdjustTopOffset();
-							}
-							break;
-						case KeySpace::Down:
-							if(GetSelectedIndex() == GetList().size() - 1)
-							{
-								if(CyclicTraverse)
-									SelectFirst();
-							}
-							else
-							{
-								++viewer;
-								if(viewer.GetOffset()
-									== static_cast<ViewerType::DifferenceType>(
-									viewer.GetLength() - 1))
-									AdjustBottomOffset();
-							}
-							break;
-						case KeySpace::PgUp:
-							viewer.DecreaseSelected(viewer.GetLength());
-							AdjustTopOffset();
-							break;
-						case KeySpace::PgDn:
-							viewer.IncreaseSelected(viewer.GetLength());
-							AdjustBottomOffset();
-							break;
+							if(viewer.GetSelectedIndex() != nOld)
+								CallSelected();
 						}
-						if(viewer.GetSelectedIndex() != nOld)
-							CallSelected();
+						break;
+					default:
+						return;
 					}
-					break;
-				default:
-					return;
 				}
+				else
+					switch(e.GetKeyCode())
+					{
+					case KeySpace::Up:
+					case KeySpace::PgUp:
+						SelectLast();
+						break;
+					case KeySpace::Down:
+					case KeySpace::PgDn:
+						SelectFirst();
+						break;
+					default:
+						return;
+					}
 			}
-			else
-				switch(e.GetKeyCode())
-				{
-				case KeySpace::Up:
-				case KeySpace::PgUp:
-					SelectLast();
-					break;
-				case KeySpace::Down:
-				case KeySpace::PgDn:
-					SelectFirst();
-					break;
-				default:
-					return;
-				}
+			UpdateView();
+		},
+		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
+		FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&& e){
+			SetSelected(e);
+			UpdateView();
+		},
+		FetchEvent<TouchMove>(*this) += [this](IWidget&, TouchEventArgs&& e){
+			SetSelected(e);
+			UpdateView();
+		},
+		FetchEvent<Click>(*this) += [this](IWidget&, TouchEventArgs&& e){
+			InvokeConfirmed(CheckPoint(e));
 		}
-		UpdateView();
-	};
-	FetchEvent<KeyHeld>(*this) += OnKeyHeld;
-	FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&& e){
-		SetSelected(e);
-		UpdateView();
-	};
-	FetchEvent<TouchMove>(*this) += [this](IWidget&, TouchEventArgs&& e){
-		SetSelected(e);
-		UpdateView();
-	};
-	FetchEvent<Click>(*this) += [this](IWidget&, TouchEventArgs&& e){
-		InvokeConfirmed(CheckPoint(e));
-	};
+	);
 }
 
 SDst

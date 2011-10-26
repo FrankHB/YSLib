@@ -11,12 +11,12 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r2061;
+\version r2063;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2011-10-10 20:17 +0800;
+	2011-10-25 12:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,7 @@
 #include <ydef.h>
 
 //引入 YSLib 命名空间宏。
-#include "ybasemac.h"
+#include "../Core/ybasemac.h"
 
 #ifdef YSL_USE_MEMORY_DEBUG
 

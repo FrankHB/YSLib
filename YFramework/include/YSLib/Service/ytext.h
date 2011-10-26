@@ -11,12 +11,12 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version r7093;
+\version r7101;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-10-21 03:35 +0800;
+	2011-10-25 20:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -201,12 +201,7 @@ MovePen(TextState&, ucs4_t);
 \brief 打印单个字符。
 */
 void
-RenderChar(const Graphics&, TextState&, ucs4_t);
-/*!
-\brief 打印单个字符。
-*/
-void
-RenderChar(BitmapBufferEx&, TextState&, ucs4_t);
+RenderChar(ucs4_t, TextState&, const Graphics&, u8*);
 
 
 /*!
@@ -610,7 +605,7 @@ TextRenderer::TextRenderer(TextState& ts, const Graphics& g)
 inline void
 TextRenderer::operator()(ucs4_t c)
 {
-	RenderChar(GetContext(), GetTextState(), c);
+	RenderChar(c, GetTextState(), GetContext(), nullptr);
 }
 
 
@@ -695,7 +690,7 @@ TextRegion::operator=(const TextState& ts)
 inline void
 TextRegion::operator()(ucs4_t c)
 {
-	RenderChar(*this, *this, c);
+	RenderChar(c, *this, *this, GetBufferAlphaPtr());
 }
 
 /*!

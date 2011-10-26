@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3217;
+\version r3218;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-10-22 05:16 +0800;
+	2011-10-25 21:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -360,7 +360,7 @@ public:
 };
 
 
-//! \brief 垂直轨道。
+//! \brief 竖直轨道。
 class VerticalTrack : public ATrack
 {
 public:
@@ -483,7 +483,7 @@ protected:
 };
 
 
-//! \brief 垂直滚动条。
+//! \brief 竖直滚动条。
 class VerticalScrollBar : public AScrollBar
 {
 public:

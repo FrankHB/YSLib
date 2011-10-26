@@ -11,12 +11,12 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief C++ 标准库迭代器扩展。
-\version r1516;
+\version r1518;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2011-10-10 19:27 +0800;
+	2011-10-25 18:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,7 +52,7 @@ namespace ystdex
 	*/
 	template<typename _type, typename _tIterator = _type*,
 		typename _tTraits = std::iterator_traits<_tIterator>>
-	class pseudo_iterator : public std::iterator<
+	class pseudo_iterator : std::iterator<
 		typename _tTraits::iterator_category,
 		typename _tTraits::value_type,
 		typename _tTraits::difference_type,
@@ -405,7 +405,7 @@ namespace ystdex
 
 	非多态输入迭代器适配器。
 	*/
-	class input_monomorphic_iterator : public std::iterator<
+	class input_monomorphic_iterator : std::iterator<
 		std::input_iterator_tag, void_ref, std::ptrdiff_t,
 		void*, void_ref>
 	{

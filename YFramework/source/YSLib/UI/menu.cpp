@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1843;
+\version r1846;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-10-08 23:44 +0800;
+	2011-10-26 07:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,48 +43,50 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 	CyclicTraverse = true;
 	if(h)
 		vDisabled.resize(h->size());
-	FetchEvent<KeyDown>(*this) += [this](IWidget&, KeyEventArgs&& e){
-		if(pHost && IsSelected())
-			switch(e.GetKeyCode())
-			{
-			case KeySpace::Right:
+	yunsequenced(
+		FetchEvent<KeyDown>(*this) += [this](IWidget&, KeyEventArgs&& e){
+			if(pHost && IsSelected())
+				switch(e.GetKeyCode())
 				{
-					auto pMnu(ShowSub(GetSelectedIndex()));
+				case KeySpace::Right:
+					{
+						auto pMnu(ShowSub(GetSelectedIndex()));
 
-					if(pMnu)
-						pMnu->SelectFirst();
+						if(pMnu)
+							pMnu->SelectFirst();
+					}
+					break;
+				case KeySpace::Left:
+					{
+						auto pMnu(GetParentPtr());
+
+						if(pMnu)
+							RequestFocus(*pMnu);
+					}
+					break;
+				default:
+					break;
 				}
-				break;
-			case KeySpace::Left:
-				{
-					auto pMnu(GetParentPtr());
-
-					if(pMnu)
-						RequestFocus(*pMnu);
-				}
-				break;
-			default:
-				break;
-			}
-	};
-	FetchEvent<LostFocus>(*this) += [this](IWidget& c, EventArgs&&){
-		if(pHost)
-		{
-			auto pMnu(dynamic_cast<Menu*>(&c));
-
-			if(pMnu)
+		},
+		FetchEvent<LostFocus>(*this) += [this](IWidget& c, EventArgs&&){
+			if(pHost)
 			{
-				if(pMnu->GetParentPtr() != this)
-					pHost->HideUnrelated(*this, *pMnu);
+				auto pMnu(dynamic_cast<Menu*>(&c));
+
+				if(pMnu)
+				{
+					if(pMnu->GetParentPtr() != this)
+						pHost->HideUnrelated(*this, *pMnu);
+				}
+				else
+					pHost->HideAll();
 			}
-			else
+		},
+		GetConfirmed() += [this](IWidget&, IndexEventArgs&& e){
+			if(this->Contains(e) && pHost && !ShowSub(e.Index))
 				pHost->HideAll();
 		}
-	};
-	GetConfirmed() += [this](IWidget&, IndexEventArgs&& e){
-		if(this->Contains(e) && pHost && !ShowSub(e.Index))
-			pHost->HideAll();
-	};
+	);
 	//刷新文本状态，防止第一次绘制前不确定文本间距，无法正确根据内容重设大小。
 	RefreshTextState();
 }

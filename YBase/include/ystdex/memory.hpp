@@ -11,12 +11,12 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1277;
+\version r1283;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-14 12:25:13 +0800;
 \par 修改时间:
-	2011-10-12 18:16 +0800;
+	2011-10-25 12:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -261,79 +261,6 @@ namespace ystdex
 		return std::shared_ptr<_type>();
 	}
 	//@}
-
-
-	/*!	\defgroup pod_operations POD Type Operations
-	\brief POD 类型操作。
-	\tparam _type 指定对象类型。
-	\pre 静态断言： <tt>std::is_pod<typename std::remove_reference<_type>::type>
-		::value</tt> 。
-	\note 不检查指针是否有效。
-	*/
-	//@{
-	template <class _type>
-	inline _type*
-	pod_fill(_type* first, _type* last, _type&& value)
-	{
-		static_assert(std::is_pod<typename std::remove_reference<_type>::type>
-			::value, "Non-POD type found @ pod_fill;");
-
-		switch((last - first) & 7)
-		{
-		case 0:
-			while(first != last)
-			{
-				*first = value; ++first;
-		case 7: *first = value; ++first;
-		case 6: *first = value; ++first;
-		case 5: *first = value; ++first;
-		case 4: *first = value; ++first;
-		case 3: *first = value; ++first;
-		case 2: *first = value; ++first;
-		case 1: *first = value; ++first;
-			}
-		}
-		return last;
-	}
-
-	template <class _type>
-	inline _type*
-	pod_copy_n(const _type* first, std::size_t n, _type* result)
-	{
-		static_assert(std::is_pod<typename std::remove_reference<_type>::type>
-			::value, "Non-POD type found @ pod_copy_n;");
-
-		std::memcpy(result, first, sizeof(*first) * n);
-		return result + n;
-	}
-
-	template <class _type>
-	inline _type*
-	pod_copy(const _type* first, const _type* last, _type* result)
-	{
-		return pod_copy_n(first, last - first, result);
-	}
-
-	template <class _type>
-	inline _type*
-	pod_move_n(const _type* first, std::size_t n, _type* result)
-	{
-		static_assert(std::is_pod<typename std::remove_reference<_type>::type>
-			::value, "Non-POD type found @ pod_move_n;");
-
-		std::memmove(result, first, sizeof(*first) * n);
-		return result + n;
-	}
-
-	template <class _type>
-	inline _type*
-	pod_move(const _type* first, const _type* last, _type* result)
-	{
-		return pod_move_n(first, last - first, result);
-	}
-
-	//@}
-
 }
 
 #endif

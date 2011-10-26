@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5277;
+\version r5279;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-10-22 05:36 +0800;
+	2011-10-26 07:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -1156,7 +1156,7 @@ ShlReader::OnActivated(const Message& msg)
 	}
 	else
 	{
-		HexArea.Source.Open(path.c_str());
+		HexArea.Load(path.c_str());
 		HexArea.UpdateData(0);
 		dsk_dn += HexArea;
 	}

@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3844;
+\version r3857;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-10-22 05:18 +0800;
+	2011-10-26 07:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,7 @@
 #include "scroll.h"
 #include "ygui.h"
 #include "../Core/ystorage.hpp"
+#include <ystdex/algorithm.hpp>
 
 using namespace ystdex;
 
@@ -93,28 +94,30 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	Events(FetchPrototype<Dependencies>())
 {
 	Thumb.GetContainerPtrRef() = this;
-	FetchEvent<TouchMove>(*this) += OnTouchMove;
-	FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&& e){
-		if(e.Strategy == RoutedEventArgs::Direct
-			&& Rect(Point::Zero, this->GetSize()).Contains(e))
-		{
-			using namespace ScrollEventSpace;
-
-			switch(CheckArea(SelectFrom(e, IsHorizontal())))
+	yunsequenced(
+		FetchEvent<TouchMove>(*this) += OnTouchMove,
+		FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&& e){
+			if(e.Strategy == RoutedEventArgs::Direct
+				&& Rect(Point::Zero, this->GetSize()).Contains(e))
 			{
-			case OnPrev:
-				LocateThumbForLargeDecrement();
-				break;
-			case OnNext:
-				LocateThumbForLargeIncrement();
-				break;
-			case OnThumb:
-			default:
-				LocateThumb(EndScroll, value);
-				break;
+				using namespace ScrollEventSpace;
+
+				switch(CheckArea(SelectFrom(e, IsHorizontal())))
+				{
+				case OnPrev:
+					LocateThumbForLargeDecrement();
+					break;
+				case OnNext:
+					LocateThumbForLargeIncrement();
+					break;
+				case OnThumb:
+				default:
+					LocateThumb(EndScroll, value);
+					break;
+				}
 			}
 		}
-	};
+	);
 }
 
 IWidget*
@@ -190,12 +193,12 @@ ATrack::Refresh(const PaintEventArgs& e)
 
 		if(IsHorizontal())
 		{
-			DrawHLineSeg(g, pt.Y, pt.X, xr, c);
+			DrawHLineSeg(g, pt.Y, pt.X, xr, c),
 			DrawHLineSeg(g, yr, pt.X, xr, c);
 		}
 		else
 		{
-			DrawVLineSeg(g, pt.X, pt.Y, yr, c);
+			DrawVLineSeg(g, pt.X, pt.Y, yr, c),
 			DrawVLineSeg(g, xr, pt.Y, yr, c);
 		}
 	}
@@ -349,20 +352,26 @@ try	: AUIBoxControl(r),
 			Rect(0, r.Width, r.Width, r.Height - r.Width * 2), uMinThumbSize))),
 	PrevButton(Rect()), NextButton(Rect()), small_delta(2)
 {
-	pTrack->GetContainerPtrRef() = this;
-	PrevButton.GetContainerPtrRef() = this;
-	NextButton.GetContainerPtrRef() = this;
-	FetchEvent<KeyHeld>(*this) += OnKeyHeld;
-	FetchEvent<TouchMove>(PrevButton) += OnTouchMove;
-	FetchEvent<TouchDown>(PrevButton) += [this](IWidget&, TouchEventArgs&& e){
-		PerformSmallDecrement();
-	};
-	FetchEvent<TouchMove>(NextButton) += OnTouchMove;
-	FetchEvent<TouchDown>(NextButton) += [this](IWidget&, TouchEventArgs&& e){
-		PerformSmallIncrement();
-	};
-	FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUpAndLeave;
-	FetchEvent<KeyDown>(*this) += OnKey_Bound_EnterAndTouchDown;
+	yunsequenced(
+		pTrack->GetContainerPtrRef() = this,
+		PrevButton.GetContainerPtrRef() = this,
+		NextButton.GetContainerPtrRef() = this
+	);
+	yunsequenced(
+		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
+		FetchEvent<TouchMove>(PrevButton) += OnTouchMove,
+		FetchEvent<TouchDown>(PrevButton) += [this](IWidget&,
+			TouchEventArgs&& e){
+			PerformSmallDecrement();
+		},
+		FetchEvent<TouchMove>(NextButton) += OnTouchMove,
+		FetchEvent<TouchDown>(NextButton) += [this](IWidget&,
+			TouchEventArgs&& e){
+			PerformSmallIncrement();
+		},
+		FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUpAndLeave,
+		FetchEvent<KeyDown>(*this) += OnKey_Bound_EnterAndTouchDown
+	);
 
 	Size s(GetSize());
 	const bool bHorizontal(o == Horizontal);
@@ -402,12 +411,12 @@ AScrollBar::Refresh(const PaintEventArgs& e)
 
 	auto r(Widget::Refresh(e));
 
-	RenderChild(*pTrack, e);
-	RenderChild(PrevButton, e);
+	RenderChild(*pTrack, e),
+	RenderChild(PrevButton, e),
 	RenderChild(NextButton, e);
 	WndDrawArrow(e.Target, Rect(e.Location + PrevButton.GetLocation(),
 		PrevButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
-		? RDeg180 : RDeg90, ForeColor);
+		? RDeg180 : RDeg90, ForeColor),
 	WndDrawArrow(e.Target, Rect(e.Location + NextButton.GetLocation(),
 		NextButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
 		? RDeg0 : RDeg270, ForeColor);
@@ -462,8 +471,10 @@ ScrollableContainer::ScrollableContainer(const Rect& r)
 	HorizontalScrollBar(Rect(Point::Zero, r.Width, defMinScrollBarHeight)),
 	VerticalScrollBar(Rect(Point::Zero, defMinScrollBarWidth, r.Height))
 {
-	HorizontalScrollBar.GetContainerPtrRef() = this;
-	VerticalScrollBar.GetContainerPtrRef() = this;
+	yunsequenced(
+		HorizontalScrollBar.GetContainerPtrRef() = this,
+		VerticalScrollBar.GetContainerPtrRef() = this
+	);
 	MoveToBottom(HorizontalScrollBar);
 	MoveToRight(VerticalScrollBar);
 }

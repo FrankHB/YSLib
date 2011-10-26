@@ -11,12 +11,12 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象、算法和实用程序。
-\version r1709;
+\version r1717;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-10-12 17:35 +0800;
+	2011-10-25 12:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,6 @@
 #include <cstring>
 #include <utility>
 #include <functional>
-#include <algorithm>
 
 namespace ystdex
 {
@@ -243,105 +242,6 @@ namespace ystdex
 			return _x && _y && _gfCompare::operator()(_lexi_cmp(_x, _y), 0);
 		}
 	};
-
-
-	/*!	\defgroup algorithms Gerneral Algorithms
-	\brief 算法。
-	*/
-
-	/*!
-	\ingroup algorithms
-	\brief 取值类型最小值。
-	*/
-	template<typename _type>
-	inline _type
-	vmin(_type a, _type b)
-	{
-		return b < a ? b : a;
-	}
-	/*!
-	\ingroup algorithms
-	\brief 取值类型最小值。
-	\note 使用指定判断操作。
-	*/
-	template<typename _type, typename _fCompare>
-	inline _type
-	vmin(_type a, _type b, _fCompare _comp)
-	{
-		return _comp(b, a) ? b : a;
-	}
-
-	/*!
-	\ingroup algorithms
-	\brief 取值类型最大值。
-	*/
-	template<typename _type>
-	inline _type
-	vmax(_type a, _type b)
-	{
-		return a < b ? b : a;
-	}
-	/*!
-	\ingroup algorithms
-	\brief 取值类型最大值。
-	\note 使用指定判断操作。
-	*/
-	template<typename _type, typename _fCompare>
-	inline _type
-	vmax(_type a, _type b, _fCompare _comp)
-	{
-		return _comp(a, b) ? b : a;
-	}
-
-
-	/*!
-	\ingroup algorithms
-	\brief 删除指定标准容器中所有相同元素。
-	*/
-	template<typename _tContainer>
-	typename _tContainer::size_type
-	erase_all(_tContainer& _container,
-		const typename _tContainer::value_type& _value)
-	{
-		const auto s(_container.size());
-
-		_container.erase(std::remove(_container.begin(), _container.end(),
-			_value), _container.end());
-
-		return s - _container.size();
-	}
-
-	/*!
-	\ingroup algorithms
-	\brief 删除指定标准容器中所有满足条件元素。
-	*/
-	template<typename _tContainer, typename _fPredicate>
-	typename _tContainer::size_type
-	erase_all_if(_tContainer& _container, _fPredicate _pred)
-	{
-		const auto s(_container.size());
-
-		_container.erase(std::remove_if(_container.begin(), _container.end(),
-			_pred), _container.end());
-
-		return s - _container.size();
-	}
-
-	/*!
-	\ingroup algorithms
-	\brief 按指定键值搜索指定映射。
-	\return 一个用于表示结果的 std::pair 对象，其成员 first 为迭代器，
-		second 表示是否不存在而需要插入。
-	\note 行为类似 std::map::operator[] 。
-	*/
-	template<class _tMap>
-	std::pair<typename _tMap::iterator, bool>
-	search_map(_tMap& m, const typename _tMap::key_type& k)
-	{
-		auto i(m.lower_bound(k));
-
-		return std::make_pair(i, (i == m.end() || m.key_comp()(k, i->first)));
-	}
 }
 
 #ifndef YCL_HAS_BUILTIN_NULLPTR

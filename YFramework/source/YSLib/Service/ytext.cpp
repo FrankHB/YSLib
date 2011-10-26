@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version r6733;
+\version r6783;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-10-13 16:34 +0800;
+	2011-10-25 20:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -97,38 +97,6 @@ MovePen(TextState& ts, ucs4_t c)
 }
 
 
-void
-RenderChar(const Graphics& g, TextState& ts, ucs4_t c)
-{
-	if(!g.GetBufferPtr())
-		//无缓冲区时无法绘图。
-		return;
-
-	FontCache& cache(ts.GetCache());
-	CharBitmap sbit(cache.GetGlyph(c));
-	const int tx(ts.PenX + cache.GetAdvance(c, sbit));
-
-	if(std::iswgraph(c) && sbit.GetBuffer())
-	{
-		const int dx(ts.PenX + sbit.GetLeft()),
-			dy(ts.PenY - sbit.GetTop()),
-			xmin(vmax<int>(0, ts.Margin.Left - dx)),
-			ymin(vmax<int>(0, ts.Margin.Top - dy));
-
-		Blit<BlitBlendLoop, false, false>(g.GetBufferPtr(), g.GetSize(),
-			MonoIteratorPair(pseudo_iterator<const PixelType>(
-			ts.Color | BITALPHA), sbit.GetBuffer()),
-			Size(sbit.GetWidth(), sbit.GetHeight()),
-			Point(vmax<int>(ts.Margin.Left, dx), vmax<int>(ts.Margin.Top, dy)),
-			Point(xmin, ymin),
-			Size(vmax<int>(vmin<int>(g.GetWidth() - ts.Margin.Right - dx,
-				sbit.GetWidth()) - xmin, 0), vmax<int>(vmin<int>(g.GetHeight()
-				- ts.Margin.Bottom - dy, sbit.GetHeight()) - ymin, 0)));
-	}
-	//移动笔。
-	ts.PenX = tx;
-}
-
 namespace
 {
 	const u8 BLT_TEXT_ALPHA_THRESHOLD(16);
@@ -161,38 +129,52 @@ namespace
 	};
 }
 
+
 void
-RenderChar(BitmapBufferEx& buf, TextState& ts, ucs4_t c)
+RenderChar(ucs4_t c, TextState& ts, const Graphics& g, u8* alpha)
 {
-	if(!buf.GetBufferPtr())
-		//无缓冲区时无法绘图。
-		return;
-
-	FontCache& cache(ts.GetCache());
-	CharBitmap sbit(cache.GetGlyph(c));
-	const int tx(ts.PenX + cache.GetAdvance(c, sbit));
-
-	if(std::iswgraph(c) && sbit.GetBuffer())
+	//无缓冲区时无法绘图。
+	if(g.IsValid())
 	{
-		char_color = ts.Color | BITALPHA;
+		using namespace ystdex;
 
-		const int dx(ts.PenX + sbit.GetLeft()),
-			dy(ts.PenY - sbit.GetTop()),
-			xmin(vmax<int>(0, ts.Margin.Left - dx)),
-			ymin(vmax<int>(0, ts.Margin.Top - dy));
+		FontCache& cache(ts.GetCache());
+		CharBitmap sbit(cache.GetGlyph(c));
+		const int tx(ts.PenX + cache.GetAdvance(c, sbit));
 
-		Blit<BlitTextLoop, false, false>(pair_iterator<BitmapPtr, u8*>(
-			buf.GetBufferPtr(), buf.GetBufferAlphaPtr()),
-			buf.GetSize(), sbit.GetBuffer(),
-			Size(sbit.GetWidth(), sbit.GetHeight()),
-			Point(vmax<int>(ts.Margin.Left, dx), vmax<int>(ts.Margin.Top, dy)),
-			Point(xmin, ymin),
-			Size(vmax<int>(vmin<int>(buf.GetWidth() - ts.Margin.Right - dx,
-				sbit.GetWidth()) - xmin, 0), vmax<int>(vmin<int>(buf.GetHeight()
-				- ts.Margin.Bottom - dy, sbit.GetHeight()) - ymin, 0)));
+		if(std::iswgraph(c) && sbit.GetBuffer())
+		{
+			const auto& left(ts.Margin.Left);
+			const auto& top(ts.Margin.Top);
+			const auto& sbw(sbit.GetWidth());
+			const auto& sbh(sbit.GetHeight());
+			const auto dx(ts.PenX + sbit.GetLeft()),
+				dy(ts.PenY - sbit.GetTop()),
+				xmin(vmax<int>(0, left - dx)),
+				ymin(vmax<int>(0, top - dy));
+			const Size& ds(g.GetSize());
+			const Size ss(sbw, sbh);
+			const Point dp(vmax<int>(left, dx), vmax<int>(top, dy));
+			const Point sp(xmin, ymin);
+			const Size sc(vmax<int>(vmin<int>(g.GetWidth() - ts.Margin.Right
+				- dx, sbw) - xmin, 0), vmax<int>(vmin<int>(g.GetHeight()
+				- ts.Margin.Bottom - dy, sbh) - ymin, 0));
+
+			if(alpha)
+			{
+				char_color = ts.Color | BITALPHA;
+				Blit<BlitTextLoop, false, false>(pair_iterator<BitmapPtr,
+					u8*>(g.GetBufferPtr(), alpha), ds, sbit.GetBuffer(), ss,
+					dp, sp, sc);
+			}
+			else
+				Blit<BlitBlendLoop, false, false>(g.GetBufferPtr(), ds,
+					MonoIteratorPair(pseudo_iterator<const PixelType>(
+					ts.Color | BITALPHA), sbit.GetBuffer()), ss, dp, sp, sc);
+		}
+		//移动笔。
+		ts.PenX = tx;
 	}
-	//移动笔。
-	ts.PenX = tx;
 }
 
 

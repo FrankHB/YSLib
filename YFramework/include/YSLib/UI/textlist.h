@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1369;
+\version r1370;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-09-18 03:03 +0800;
+	2011-10-25 21:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,7 +57,7 @@ public:
 
 private:
 	ViewerType viewer; //!< 列表视图。
-	SDst top_offset; //!< 列表视图首项目超出上边界的垂直偏移量。
+	SDst top_offset; //!< 列表视图首项目超出上边界的竖直偏移量。
 
 	//! \brief 事件依赖项。
 	class Dependencies
@@ -110,7 +110,7 @@ public:
 	Size
 	GetFullViewSize() const;
 	/*!
-	\brief 取视图顶端垂直位置。
+	\brief 取视图顶端竖直位置。
 	\note 依赖于 GetItemHeight 方法的结果。
 	*/
 	SDst
@@ -134,13 +134,13 @@ public:
 	SetSelected(const Point&);
 
 	/*!
-	\brief 调整列表视图首项目超出上边界的垂直偏移量为零。
+	\brief 调整列表视图首项目超出上边界的竖直偏移量为零。
 	\return 返回调整前的偏移量值。
 	*/
 	SDst
 	AdjustTopOffset();
 	/*!
-	\brief 调整列表视图底项目超出上边界的垂直偏移量为零。
+	\brief 调整列表视图底项目超出上边界的竖直偏移量为零。
 	\return 返回调整前的偏移量值。
 	\note 若没有底项目则不调整，返回 0 。
 	*/
@@ -177,7 +177,7 @@ public:
 		ImplBodyMember0(viewer, ClearSelected)
 
 	/*!
-	\brief 定位视图顶端至指定垂直位置。
+	\brief 定位视图顶端至指定竖直位置。
 	*/
 	void
 	LocateViewPosition(SDst);

@@ -11,12 +11,12 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1446;
+\version r1448;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2011-08-16 02:05 +0800;
+	2011-10-25 12:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 #include "ygdibase.h"
 #include "../Helper/yglobal.h"
+#include <ystdex/algorithm.hpp>
 
 YSL_BEGIN
 

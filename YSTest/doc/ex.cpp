@@ -1,4 +1,4 @@
-// v0.3352; *build 253 rev 78;
+// r3352; *build 254 rev 34;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -289,272 +289,158 @@ $using:
 
 $DONE:
 r1:
-/ @ \u TextArea $=
+/ @ \lib YStandardEx $=
 (
-	/ \cl TextArea => BufferedTextArea;
-	+ \cl TextArea
+	+ \h Algorithms["algorithm.hpp"] @ \dir ystdex;
+	/ \ft 'pod_*' @ \h Memory >> \h Algorithms,
+	/ @ \h Utilities $=
+	(
+		/ \ft (vmin, vmax, erase_all, search_map) >> \h Algorithms;
+		- \inc \h <algorithm>
+	)
 );
++ \inc \h <ystdex/algorithm.hpp> @ \h YAdaptor;
 
 r2:
-+ \mf operator Text&() @ \cl TextRenderer @ \h YText;
-+ \u HexBrowser @ \proj YSTest_ARM9 $=
-(
-	+ \inc \h (YWidget, TextArea) @ \h,
-	+ \f ConvertByte @ \un \ns @ \impl \u;
-	+ \cl HexViewArea
-);
+/ \h YBaseMacro @ \dir Adaptor >> \dir Core;
+/ \tr \inc \h @ \h YNew @ \dir Adaptor,
+- \a \inc \h '<ystdex/*>' @ \h YAdaptor;
++ \tr \inc \h @ \impl \u (Adaptor::YFont, Core::YFileSystem, Core::YGDIBase,
+	UI::Viewer, UI::Scroll, UI::YControl);
++ \tr \inc \h @ \h Service::YBlit;
 
 r3-r4:
-/ @ \cl ShlExplorer @ \u Shells $=
-(
-	+ \m CheckBox chkHex;
-	/ \tr \impl @ \ctor,
-	/ \tr \impl @ \mf (OnActivated, OnDeactivated, UpdateToScreen),
-	/ \impl @ \ctor @ \cl (TFormTest, TFormExtra),
-	/ \impl @ \mf TFormExtra::OnClick_btnDragTest
-);
+/= test 1;
 
 r5:
+* 'ystdex::noncopyable' !\decl @ \conf release $since r2 $=
+(
+	+ \inc \h <ystdex/utility.hpp> @ \h YAdaptor
+);
+
+r6:
 /= test 1 ^ \conf release;
 
-r6-r11:
-/= test 2;
+r7:
+/ reverse \a \param order @ \f RenderChar @ \u YText;
+/ \tr \impl @ \cl TextRegion;
+
+r8:
+/ \impl @ 2 \f RenderChar @ \impl \u YText;
+
+r9:
+/ @ \impl \u YText $=
+(
+	+ \f void RenderCharImpl(ucs4_t, TextState&, const Graphics&, u8*)
+		@ \un \ns;
+	/ \simp \impl 2 \f RenderChar ^ RenderCharImpl;
+);
+
+r10:
+/ @ \u YText $=
+(
+	/ 2 \f RenderChar => void RenderCharImpl(ucs4_t, TextState&,
+		const Graphics&, u8*);
+	(
+		/ \f RenderCharImpl @ \impl \u \mg -> \f RenderChar,
+		/ \tr @ \op() @ \cl (TextRenderer, TextRegion) @ \h
+	)
+);
+
+r11:
+/ \impl @ \f RenderChar @ \impl \u YText;
 
 r12:
-* wrong control %OnLostFocus behavior $since b240 $=
-(
-	/ @ \cl Control $=
-	(
-		/ \impl @ \ctor @ \cl ControlEventMap,
-		/ \impl @ \ctor
-	);
-);
+/= test 2 ^ \conf release;
 
 r13:
-/= test 3 ^ \conf release;
-
-r14:
-/ @ \impl \u Shells $=
-(
-	/ @ \un \ns $=
-	(
-		+ \f bool ReaderPathFilter(const Path&),
-		+ \f bool CheckReaderEnability(FileBox&, CheckBox&)
-	);
-	/ \simp \impl @ \mf ShlExplorer::OnActivated ^ CheckReaderEnability
-);
-
-r15-r17:
-/ @ \un \ns @ \impl \u Shells $=
-(
-	+ \ns EnrtySpace $=
-	(
-		+ typedef enum EntryType
-	);
-	+ \f EnrtySpace::EntryType GetEntryType(const string&);
-	/ \impl @ \f CheckReaderEnability
-);
-
-r18:
-(
-	/ @ \h CHRDefinition $=
-	(
-		+ \inc <string>,
-		/ typedef std::uint16_t ucs2_t -> typedef char16_t ucs2_t,
-		/ typedef std::uint32_t ucs4_t -> typedef char32_t ucs4_t;
-		/ typedef std::int_least32_t ucsint_t -> std::char_traits<ucs4_t>::int_type
-			ucsint_t,
-		- \mac \def _ustr
-	);
-	/ \tr \a '_ustr' -> 'u'
-);
-+ typedef GSStringTemplate<ucs4_t>::basic_string ucs4string @ \h Container
-	@ \dir Adaptor;
-
-r19:
-/= test 4 ^ \conf release;
-
-r20-r21:
-/ @ \cl ShlReader @ \u ShellDS
-(
-	+ \sm bool is_text,
-	(
-		+ \inc \h "HexBrowser.h",
-		+ \m HexViewArea HexArea
-	);
-	/ \tr \impl @ \ctor,
-);
-
-r22-r26:
-/ @ \impl \u DSReader $=
-(
-	/ \impl @ \mf (OnActivated, OnDeactivated) @ \cl ShlReader,
-	/ \impl @ \ctor @ \cl ShlExplorer
-);
-
-r27-r28:
-/= test 5;
-
-r29:
-* size not refreshed when opening file \exc \ctor @ \cl File $since $before
-	'~b1x'(with timestamp 2009-12-01, $rev("yfile.cpp") = r221),
-(
-	/ \impl @ \ctor,
-	/ \impl @ \f Open
-);
-
-r30:
-/= test 6;
-
-r31-r36:
-* \impl @ \mf HexViewArea::UpdateData @ \impl \u HexBrowser $since r2;
-
-r37-r48:
-/= test 7;
-
-r49:
-* \impl @ \h YText $since r2 $=
-(
-	- \mf \op TextState& @ \cl TextRenderer,
-	/ \impl @ \ft PutChar @ \h YText
-);
-
-r50:
-/= test 8 ^ \conf release;
-
-r51-r53:
-* \impl @ \mf HexViewArea::Refresh @ \impl \u HexBrowser $since r2;
-
-r54:
-/= test 9;
-
-r55:
-/ \impl @ \ctor @ \cl HexViewArea @ \impl \u HexBrowser;
-
-r56-r61:
-/ \impl \u HexBrowser $=
-(
-	/ \impl @ \mf HexViewArea::Refresh,
-	* \impl @ \f ConvertByte @ \un \ns @ \impl \u HexBrowser $since r2
-);
-
-r62:
-/= test 10 ^ \conf release;
-
-r63-r64:
-/ @ \impl \u HexBrowser $=
-(
-	/ \simp \impl @ \mf HexViewArea::Refresh,
-	/ \f void ConvertByte(ucs2_t(&)[3], byte) @ \un \ns
-		-> \f void ConvertByte(char(&)[3], byte)
-);
-
-r65-r66:
 / @ \cl HexViewArea @ \u HexBrowser $=
 (
-	(
-		+ private \m u32 position;
-		/ \tr \impl @ \ctor,
-	),
-	/ \mf void UpdateData(File::OffsetType) -> void UpdateData(u32);
-	+ \m yconstexpr size_t ItemPerLine(32);
-	/ typedef array<byte, 8> LineType
-		-> typedef array<byte, ItemPerLine> LineType;
-	/ \impl @ \mf Refresh,
+	/ \m state => text_state,
+	+ \mf \i SDst GetItemHeight() const;
+	+ \mf void LocateViewPosition(SDst);
+	/ \impl @ \mf UpdateData,
+	/ \impl @ \ctor
 );
 
-r67:
-/ @ \u HexBrowser $=
+r14:
+* \impl @ \mf HexViewArea::UpdateData @ \impl \u HexBrowser $since r13;
+
+r15-r16:
+/= test 3;
+
+r17-r18:
+/ \impl @ \mf (GetTopWidgetPtr, Refresh) @ \cl HexViewArea
+	@ \impl \u HexBrowser;
+
+r19:
+/ \impl @ \ctor @ \cl HexViewArea @ \impl \u HexBrowser;
+
+r20-r21:
+/ \impl @ \mf HexViewArea::Refresh @ \impl \u HexBrowser;
+
+r22-r23:
+/= test 4,
+* \impl @ \mf HexViewArea::Refresh @ \impl \u HexBrowser $since r21;
+
+r24:
+/ \impl @ \mf HexViewArea::UpdateData @ \impl \u HexBrowser;
+
+r25:
+/ \impl \ctor @ \dir YSLib::UI for unsequenced evaluated expressions"
+	^ \mac yunsequenced;
+
+r26:
+/ \impl @ \mf HexViewArea::UpdateData @ \impl \u HexBrowser;
+
+r27:
+/ \impl @ \cl HexViewArea @ \u HexBrowser $=
 (
-	/ \inh \h YWidget @ \h -> \h Scroll;
-	/ @ \cl HexViewArea @ \u HexBrowser $=
+	+ \dtor,
 	(
-		/ public \inh Widget -> ScrollableContainer;
-		/ \tr \impl @ \ctor,
-		+ \exp @ \decl @ \ctor
-	)
-);
-
-r68:
-+ \vt \mf IWidget* GetTopWidgetPtr(const Point&, bool(&)(const IWidget&))
-	@ \cl HexViewArea @ \u HexBrowser;
-
-r69-r71:
-/= test 11;
-
-r72:
-+ \mf void Reset() @ \cl HexViewArea @ \u HexBrowser;
-/ \impl @ (\ctor, \mf (OnActivated, OnDeactivated)) @ \cl ShlReader
-	@ \impl \u Shells;
-
-r73:
-/= test 12 ^ \conf release;
-
-r74:
-/ \simp @ \cl ListBox $=
-(
-	/ \impl @ \ctor;
-	- private \mf OnScroll_VerticalScrollBar,
-	- private \mf OnViewChanged_TextListBox
-);
-
-r75:
-/ @ \u Scroll $=
-(
-	/ \simp @ \cl HorizontalTrack $=
-	(
+		/ public \m Source -> private \m source,
+		+ private \m u16 item_num;
 		/ \impl @ \ctor,
-		- private \mf OnTouchMove_Thumb_Horizontal
-	),
-	/ \simp @ \cl VerticalTrack $=
-	(
-		/ \impl @ \ctor,
-		- private \mf OnTouchMove_Thumb_Vertical
+		/ \impl @ \mf (Reset, Refresh)
 	)
+	+ \mf void Load(const_path_t),
+	+ \mf void const File& GetSource() const
 );
+/ \tr \impl @ \mf ShlReader::OnActivated @ \impl \u Shells;
 
-r76:
-/ \simp @ \cl FileBox $=
+r28-r31:
+/= test 5;
+
+r32:
+/ \impl @ \mf (Load, Refresh) @ \cl HexViewArea @ \u HexBrowser;
+
+r33:
+/ \simp @ \cl HexViewArea @ \u HexBrowser $=
 (
-	/ \impl @ \ctor;
-	- private \mf OnConfirmed
+	- \m position;
+	/ \tr \impl @ \ctor,
+	/ \tr \impl @ \mf (Refresh, Reset, UpdateData)
 );
 
-r77:
-/ @ \cl ShlExplorer @ \u Shells $=
-(
-	/ \simp @ \cl TFormTest $=
-	(
-		/ \impl @ \ctor;
-		- \mf OnClick_btnMenuTest
-	),
-	/ \simp @ \cl TFormExtra $=
-	(
-		/ \impl @ \ctor;
-		- \mf OnClick_btnDragTest,
-		- \mf OnClick_btnTestEx
-	)
-);
-
-r78:
-/= test 12 ^ \conf release;
+r34:
+/= test 2 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-10-22:
--20.9d;
-//Mercurial rev1-rev124: r5818;
+2011-10-26:
+-21.1d;
+//Mercurial rev1-rev125: r5896;
 
 / ...
 
 
 $NEXT_TODO:
-b254-b384:
-+ %TextList invalidation support;
+b255-b384:
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
++ partial invalidation support @ %(TextList::PrintItems, HexViewArea::Refresh);
 + key accelerators;
 + dynamic widget prototypes;
 
@@ -640,6 +526,24 @@ $ellipse_debug_assertion;
 
 $now
 (
+	/ $design "header dependencies",
+	/ "shells test example" $=
+	(
+		/ "hexadecimal browser" $=,
+		(
+			+ "vertical scroll bar",
+			+ "updating data for non-zero offset"
+		)
+	),
+	/ "GUI" $=
+	(
+		+ $design "unsequenced evaluated expressions optimization"
+			@ "widget class constructors" @ "directory %YSLib::UI"
+	)
+),
+
+b253
+(
 	/ "shells test example" $=
 	(
 		+ "hexadecimal browser",
@@ -650,7 +554,7 @@ $now
 	),
 	/ "GUI" $=
 	(
-		* "wrong control %OnLostFocus behavior $since b240"
+		* "wrong control %OnLostFocus behavior" $since b240
 	),
 	^ "new character types" $=
 	(

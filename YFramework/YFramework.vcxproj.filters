@@ -290,8 +290,8 @@
     <ClInclude Include="include\YCLib\ycommon.h">
       <Filter>头文件\YCLib</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Adaptor\ybasemac.h">
-      <Filter>头文件\YSLib\Adaptor</Filter>
+    <ClInclude Include="include\YSLib\Core\ybasemac.h">
+      <Filter>头文件\YSLib\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

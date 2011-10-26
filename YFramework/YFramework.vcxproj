@@ -26,12 +26,12 @@
     <ClInclude Include="include\YSLib\Adaptor\config.h" />
     <ClInclude Include="include\YSLib\Adaptor\cont.h" />
     <ClInclude Include="include\YSLib\Adaptor\yadaptor.h" />
-    <ClInclude Include="include\YSLib\Adaptor\ybasemac.h" />
     <ClInclude Include="include\YSLib\Adaptor\yfont.h" />
     <ClInclude Include="include\YSLib\Adaptor\ynew.h" />
     <ClInclude Include="include\YSLib\Adaptor\yref.hpp" />
     <ClInclude Include="include\YSLib\Adaptor\ysinit.h" />
     <ClInclude Include="include\YSLib\Core\yapp.h" />
+    <ClInclude Include="include\YSLib\Core\ybasemac.h" />
     <ClInclude Include="include\YSLib\Core\ycounter.hpp" />
     <ClInclude Include="include\YSLib\Core\ycutil.h" />
     <ClInclude Include="include\YSLib\Core\ydevice.h" />

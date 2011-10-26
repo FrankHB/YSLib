@@ -66,12 +66,12 @@
 		<Unit filename="include\YSLib\Adaptor\config.h" />
 		<Unit filename="include\YSLib\Adaptor\cont.h" />
 		<Unit filename="include\YSLib\Adaptor\yadaptor.h" />
-		<Unit filename="include\YSLib\Adaptor\ybasemac.h" />
 		<Unit filename="include\YSLib\Adaptor\yfont.h" />
 		<Unit filename="include\YSLib\Adaptor\ynew.h" />
 		<Unit filename="include\YSLib\Adaptor\yref.hpp" />
 		<Unit filename="include\YSLib\Adaptor\ysinit.h" />
 		<Unit filename="include\YSLib\Core\yapp.h" />
+		<Unit filename="include\YSLib\Core\ybasemac.h" />
 		<Unit filename="include\YSLib\Core\ycounter.hpp" />
 		<Unit filename="include\YSLib\Core\ycutil.h" />
 		<Unit filename="include\YSLib\Core\ydevice.h" />

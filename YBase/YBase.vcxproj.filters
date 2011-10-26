@@ -54,6 +54,9 @@
     <ClInclude Include="include\ystdex\any.h">
       <Filter>头文件\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\algorithm.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">

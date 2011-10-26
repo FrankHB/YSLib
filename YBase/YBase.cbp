@@ -56,6 +56,7 @@
 		</Compiler>
 		<Unit filename="Makefile" />
 		<Unit filename="include\ydef.h" />
+		<Unit filename="include\ystdex\algorithm.hpp" />
 		<Unit filename="include\ystdex\any.h" />
 		<Unit filename="include\ystdex\cast.hpp" />
 		<Unit filename="include\ystdex\cstdio.h" />

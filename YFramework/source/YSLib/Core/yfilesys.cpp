@@ -11,12 +11,12 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2220;
+\version r2222;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-10-08 23:57 +0800;
+	2011-10-25 12:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,6 +25,7 @@
 
 
 #include "yfilesys.h"
+#include <ystdex/cstring.h>
 
 using namespace ystdex;
 
