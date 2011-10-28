@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6082;
+\version r6077;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-10-12 17:34 +0800;
+	2011-10-28 14:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -81,7 +81,7 @@ DeclInterface(IWidget)
 	\note 边界仅为暗示，允许实现忽略，但可以保证边界内的区域保持最新显示状态。
 	\note 若部件的内部状态能够保证显示状态最新，则返回的区域可能比参数 r 更小。
 	*/
-	DeclIEntry(Rect Refresh(const PaintEventArgs& e))
+	DeclIEntry(Rect Refresh(const PaintContext&))
 EndDecl
 
 
@@ -201,24 +201,35 @@ InvalidateCascade(IWidget&, const Rect&);
 
 /*
 \brief 渲染：更新，若缓冲存储不可用则在更新前刷新 wgt 。
-\note 无条件更新实际渲染的区域至 e.ClipArea 。
+\note 无条件更新实际渲染的区域至 pc.ClipArea 。
 */
 void
-Render(IWidget& wgt, PaintEventArgs&& e);
+Render(IWidget& wgt, PaintContext&& pc);
+inline void
+Render(IWidget& wgt, PaintEventArgs&& e)
+{
+	return Render(wgt, static_cast<PaintContext&&>(e));
+}
 
 /*
 \brief 渲染子部件。
 */
 void
-RenderChild(IWidget&, PaintEventArgs&&);
+RenderChild(IWidget&, PaintContext&&);
 /*
 \brief 渲染子部件。
 */
 inline void
-RenderChild(IWidget& wgt, const PaintEventArgs& e)
+RenderChild(IWidget& wgt, const PaintContext& e)
 {
-	return RenderChild(wgt, PaintEventArgs(e));
+	return RenderChild(wgt, PaintContext(e));
 }
+inline void
+RenderChild(IWidget& wgt, PaintEventArgs&& e)
+{
+	return RenderChild(wgt, static_cast<PaintContext&&>(e));
+}
+
 
 /*!
 \brief 请求提升至容器顶端。
@@ -232,7 +243,7 @@ RequestToTop(IWidget&);
 \brief 更新部件至指定图形设备上下文的指定点。
 */
 void
-Update(const IWidget&, const PaintEventArgs&);
+Update(const IWidget&, const PaintContext&);
 
 /*!
 \brief 验证：若部件的缓冲区存在，绘制缓冲区使之有效。
@@ -281,7 +292,7 @@ MOriented::MOriented(Drawing::Orientation o)
 class WidgetController : public AController
 {
 public:
-	GEventWrapper<EventT(HPaintEvent)> Paint;
+	GEventWrapper<EventT(HPaintEvent), UIEventArgs> Paint;
 
 	explicit
 	WidgetController(bool);
@@ -453,7 +464,7 @@ public:
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	ImplI1(IWidget) Rect
-	Refresh(const PaintEventArgs&);
+	Refresh(const PaintContext&);
 };
 
 inline AController&

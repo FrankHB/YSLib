@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3218;
+\version r3228;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-10-25 21:44 +0800;
+	2011-10-28 17:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,7 +57,7 @@ namespace ScrollEventSpace
 
 
 //! \brief 滚动事件参数类。
-struct ScrollEventArgs : public EventArgs,
+struct ScrollEventArgs : public UIEventArgs,
 	public GMValueEventArgs<SDst>
 {
 public:
@@ -80,12 +80,14 @@ public:
 inline
 ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
 	ScrollEventArgs::ValueType v)
-	: GMValueEventArgs<SDst>(v), Type(t)
+	: UIEventArgs(), GMValueEventArgs<SDst>(v),
+	Type(t)
 {}
 inline
 ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
 	ScrollEventArgs::ValueType v, ScrollEventArgs::ValueType old_value)
-	: GMValueEventArgs<SDst>(v, old_value), Type(t)
+	: UIEventArgs(), GMValueEventArgs<SDst>(v, old_value),
+	Type(t)
 {}
 
 
@@ -121,7 +123,7 @@ private:
 	class Dependencies
 	{
 	public:
-		DeclDepEvent(HVisualEvent, ThumbDrag) //!< 滑块拖动事件。
+		DeclDepEvent(HUIEvent, ThumbDrag) //!< 滑块拖动事件。
 		DeclDepEvent(HScrollEvent, Scroll) //!< 滚动事件。
 
 		Dependencies();
@@ -144,7 +146,7 @@ public:
 	*/
 	ImplI1(AUIBoxControl) IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
-	DefMutableDepEventGetter(HVisualEvent, ThumbDrag, Events.ThumbDrag) \
+	DefMutableDepEventGetter(HUIEvent, ThumbDrag, Events.ThumbDrag) \
 		//!< 滑块拖动事件。
 	DefMutableDepEventGetter(HScrollEvent, Scroll, Events.Scroll) \
 		//!< 滚动事件。
@@ -192,7 +194,7 @@ public:
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	virtual Rect
-	Refresh(const PaintEventArgs&);
+	Refresh(const PaintContext&);
 
 protected:
 	/*!
@@ -297,7 +299,7 @@ private:
 	\brief 处理滑块移动事件。
 	*/
 	void
-	OnThumbDrag(EventArgs&&);
+	OnThumbDrag(UIEventArgs&&);
 };
 
 inline void
@@ -427,7 +429,7 @@ public:
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	virtual Rect
-	Refresh(const PaintEventArgs&);
+	Refresh(const PaintContext&);
 
 private:
 	/*!
@@ -523,7 +525,7 @@ public:
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	virtual Rect
-	Refresh(const PaintEventArgs&);
+	Refresh(const PaintContext&);
 
 protected:
 	/*!

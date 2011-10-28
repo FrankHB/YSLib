@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3972;
+\version r3974;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-10-08 23:48 +0800;
+	2011-10-28 13:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -55,7 +55,7 @@ GUIShell::OnGotMessage(const Message& msg)
 			auto h(FetchTarget<SM_PAINT>(msg));
 			
 			if(h)
-				h->Refresh(PaintEventArgs(FetchContext(*h),
+				h->Refresh(PaintContext(FetchContext(*h),
 					Point::Zero, Rect(Point::Zero, h->GetSize())));
 		}
 		return 0;

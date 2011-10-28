@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4532;
+\version r4536;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-10-25 13:03 +0800;
+	2011-10-27 22:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -76,7 +76,7 @@ RequestFocusFrom(IWidget& dst, IWidget& src)
 {
 	if(auto p = FetchContainerPtr(dst))
 		if(p->GetFocusResponder().ResponseFocusRequest(dst))
-			CallEvent<GotFocus>(dst, src, EventArgs());
+			CallEvent<GotFocus>(dst, src, UIEventArgs());
 }
 
 void
@@ -84,7 +84,7 @@ ReleaseFocusFrom(IWidget& dst, IWidget& src)
 {
 	if(auto p = FetchContainerPtr(dst))
 		if(p->GetFocusResponder().ResponseFocusRelease(dst))
-			CallEvent<LostFocus>(dst, src, EventArgs());
+			CallEvent<LostFocus>(dst, src, UIEventArgs());
 }
 
 
@@ -227,10 +227,10 @@ Control::Control(const Rect& r)
 // FIXME: code above causes g++ 4.6 internal compiler error: 
 //	 in gimple_expand_cfg, at cfgexpand.c:4063
 	yunsequenced(
-		FetchEvent<GotFocus>(*this) += [this](IWidget&, EventArgs&&){
+		FetchEvent<GotFocus>(*this) += [this](IWidget&, UIEventArgs&&){
 			Invalidate(*this);
 		},
-		FetchEvent<LostFocus>(*this) += [this](IWidget&, EventArgs&&){
+		FetchEvent<LostFocus>(*this) += [this](IWidget&, UIEventArgs&&){
 			Invalidate(*this);
 		}
 	);
@@ -245,13 +245,13 @@ void
 Control::SetLocation(const Point& pt)
 {
 	Widget::SetLocation(pt);
-	CallEvent<Move>(*this, EventArgs());
+	CallEvent<Move>(*this, UIEventArgs());
 }
 void
 Control::SetSize(const Size& s)
 {
 	Widget::SetSize(s);
-	CallEvent<Resize>(*this, EventArgs());
+	CallEvent<Resize>(*this, UIEventArgs());
 }
 
 YSL_END_NAMESPACE(Components)

@@ -11,12 +11,12 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2115;
+\version r2117;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-10-25 21:44 +0800;
+	2011-10-28 13:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,7 +71,7 @@ protected:
 	\brief 绘制文本。
 	*/
 	void
-	PaintText(const Size&, Color, const PaintEventArgs&);
+	PaintText(const Size&, Color, const PaintContext&);
 };
 
 
@@ -101,7 +101,7 @@ public:
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	virtual Rect
-	Refresh(const PaintEventArgs&);
+	Refresh(const PaintContext&);
 };
 
 inline

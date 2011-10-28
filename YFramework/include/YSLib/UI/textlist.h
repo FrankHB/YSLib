@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1370;
+\version r1376;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-10-25 21:44 +0800;
+	2011-10-28 13:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -63,7 +63,7 @@ private:
 	class Dependencies
 	{
 	public:
-		DeclDepEvent(HVisualEvent, ViewChanged) //!< 视图变更事件。
+		DeclDepEvent(HUIEvent, ViewChanged) //!< 视图变更事件。
 		DeclDepEvent(HIndexEvent, Selected) //!< 项目选择状态变更事件。
 		DeclDepEvent(HIndexEvent, Confirmed) //!< 项目选中确定事件。
 
@@ -85,7 +85,7 @@ public:
 	PDefH1(bool, Contains, ViewerType::SizeType i)
 		ImplBodyMember1(viewer, Contains, i)
 
-	DefMutableDepEventGetter(HVisualEvent, ViewChanged, Events.ViewChanged) \
+	DefMutableDepEventGetter(HUIEvent, ViewChanged, Events.ViewChanged) \
 		//!< 视图变更事件。
 	DefMutableDepEventGetter(HIndexEvent, Selected, Events.Selected) \
 		//!< 项目选择状态变更事件。
@@ -171,7 +171,7 @@ public:
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	virtual Rect
-	Refresh(const PaintEventArgs&);
+	Refresh(const PaintContext&);
 
 	PDefH0(void, ClearSelected)
 		ImplBodyMember0(viewer, ClearSelected)
@@ -193,7 +193,7 @@ protected:
 	\brief 绘制列表。
 	*/
 	virtual void
-	PaintItems(const PaintEventArgs&);
+	PaintItems(const PaintContext&);
 
 public:
 	using MTextList::RefreshTextState;

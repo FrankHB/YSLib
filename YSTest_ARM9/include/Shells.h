@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3472;
+\version r3474;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-10-22 05:34 +0800;
+	2011-10-28 13:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -184,7 +184,7 @@ public:
 		GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 		virtual Rect
-		Refresh(const PaintEventArgs&);
+		Refresh(const PaintContext&);
 	};
 
 	class FileInfoPanel : public AUIBoxControl
@@ -200,7 +200,7 @@ public:
 		GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 		virtual Rect
-		Refresh(const PaintEventArgs&);
+		Refresh(const PaintContext&);
 
 		void
 		UpdateData();

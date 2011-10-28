@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4156;
+\version r4162;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-10-01 18:52 +0800;
+	2011-10-28 13:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -75,7 +75,7 @@ AWindow::DrawBackgroundImage()
 }
 
 Rect
-AWindow::Refresh(const PaintEventArgs& e)
+AWindow::Refresh(const PaintContext& e)
 {
 	if(!(IsTransparent() || DrawBackgroundImage()))
 		GetRenderer().FillInvalidation(BackColor);
@@ -91,7 +91,7 @@ AWindow::Update()
 		const auto pCon(FetchContainerPtr(*this));
 
 		if(pCon)
-			Components::Update(*this, PaintEventArgs(FetchContext(*pCon),
+			Components::Update(*this, PaintContext(FetchContext(*pCon),
 				GetLocation(), GetBoundsOf(*this)));
 	}
 }

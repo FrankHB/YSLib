@@ -1,4 +1,4 @@
-// r3352; *build 254 rev 34;
+// r3352; *build 255 rev 25;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -289,176 +289,92 @@ $using:
 
 $DONE:
 r1:
-/ @ \lib YStandardEx $=
-(
-	+ \h Algorithms["algorithm.hpp"] @ \dir ystdex;
-	/ \ft 'pod_*' @ \h Memory >> \h Algorithms,
-	/ @ \h Utilities $=
-	(
-		/ \ft (vmin, vmax, erase_all, search_map) >> \h Algorithms;
-		- \inc \h <algorithm>
-	)
-);
-+ \inc \h <ystdex/algorithm.hpp> @ \h YAdaptor;
-
-r2:
-/ \h YBaseMacro @ \dir Adaptor >> \dir Core;
-/ \tr \inc \h @ \h YNew @ \dir Adaptor,
-- \a \inc \h '<ystdex/*>' @ \h YAdaptor;
-+ \tr \inc \h @ \impl \u (Adaptor::YFont, Core::YFileSystem, Core::YGDIBase,
-	UI::Viewer, UI::Scroll, UI::YControl);
-+ \tr \inc \h @ \h Service::YBlit;
-
-r3-r4:
-/= test 1;
-
-r5:
-* 'ystdex::noncopyable' !\decl @ \conf release $since r2 $=
-(
-	+ \inc \h <ystdex/utility.hpp> @ \h YAdaptor
-);
-
-r6:
-/= test 1 ^ \conf release;
-
-r7:
-/ reverse \a \param order @ \f RenderChar @ \u YText;
-/ \tr \impl @ \cl TextRegion;
-
-r8:
-/ \impl @ 2 \f RenderChar @ \impl \u YText;
-
-r9:
-/ @ \impl \u YText $=
-(
-	+ \f void RenderCharImpl(ucs4_t, TextState&, const Graphics&, u8*)
-		@ \un \ns;
-	/ \simp \impl 2 \f RenderChar ^ RenderCharImpl;
-);
-
-r10:
-/ @ \u YText $=
-(
-	/ 2 \f RenderChar => void RenderCharImpl(ucs4_t, TextState&,
-		const Graphics&, u8*);
-	(
-		/ \f RenderCharImpl @ \impl \u \mg -> \f RenderChar,
-		/ \tr @ \op() @ \cl (TextRenderer, TextRegion) @ \h
-	)
-);
-
-r11:
-/ \impl @ \f RenderChar @ \impl \u YText;
-
-r12:
-/= test 2 ^ \conf release;
-
-r13:
-/ @ \cl HexViewArea @ \u HexBrowser $=
-(
-	/ \m state => text_state,
-	+ \mf \i SDst GetItemHeight() const;
-	+ \mf void LocateViewPosition(SDst);
-	/ \impl @ \mf UpdateData,
-	/ \impl @ \ctor
-);
-
-r14:
-* \impl @ \mf HexViewArea::UpdateData @ \impl \u HexBrowser $since r13;
-
-r15-r16:
-/= test 3;
-
-r17-r18:
-/ \impl @ \mf (GetTopWidgetPtr, Refresh) @ \cl HexViewArea
-	@ \impl \u HexBrowser;
-
-r19:
-/ \impl @ \ctor @ \cl HexViewArea @ \impl \u HexBrowser;
-
-r20-r21:
 / \impl @ \mf HexViewArea::Refresh @ \impl \u HexBrowser;
 
-r22-r23:
-/= test 4,
-* \impl @ \mf HexViewArea::Refresh @ \impl \u HexBrowser $since r21;
+r2:
+/ \impl @ \mf HexViewArea::Load @ \impl \u HexBrowser;
+
+r3-r6:
+/ \impl @ \mf HexViewArea::Refresh @ \impl \u HexBrowser;
+
+r7:
+/= test 1 ^ \conf release;
+
+r8:
+/ @ \h YEvent $=
+(
+	/ \clt GEventWrapper<class _tEvent>
+		-> \clt GEventWrapper<class _tEvent, typename _tBaseArgs>,
+	/ \clt PDefTH2(_tSender, _tEventSpace) GEventPointerWrapper
+		-> PDefTH2(_tSender, _tBaseArgs) GEventPointerWrapper;
+);
+/ typedef EmptyType EventArgs @ \ns YSLib @ \h YShellDefinition
+	-> typedef EmptyType VisualEventArgs @ \ns Components @ \h YWidgetEvent;
+/ \tr @ \h (YWidget, YControl);
+/ \a EventArgs => UIEventArgs;
+/ \a HVisualEvent => HUIEvent;
+
+r9:
+/ \a 'PaintEventArgs' -> 'PaintContext' \exc @ \h YWidgetEvent;
++ \st PaintContext @ \h YWidgetEvent;
+/ \tr @ \impl @ \mf Frame::DrawContents,
+/ \tr @ \h YWidget $=
+(
+	+ \f \i void Render(IWidget&, PaintEventArgs&&),
+	+ \f \i void RenderChild(IWidget&, PaintEventArgs&&)
+);
+/ \tr @ \u YWidget;
+
+r10-r23:
+/= test 2;
 
 r24:
-/ \impl @ \mf HexViewArea::UpdateData @ \impl \u HexBrowser;
+* \impl @ \ctor @ \mf @ \st TouchEventArgs @ \h YWidgetEvent $since b195,
+/ @ \st IndexEventArgs $=
+(
+	- \m IWidget& Widget;
+	/ \ctor IndexEventArgs(IWidget&, IndexType)
+		-> \ctor IndexEventArgs(IndexType);
+);
+/ \tr \impl @ \mf (CallSelected, InvokeConfirmed) @ \cl TextList;
 
 r25:
-/ \impl \ctor @ \dir YSLib::UI for unsequenced evaluated expressions"
-	^ \mac yunsequenced;
-
-r26:
-/ \impl @ \mf HexViewArea::UpdateData @ \impl \u HexBrowser;
-
-r27:
-/ \impl @ \cl HexViewArea @ \u HexBrowser $=
-(
-	+ \dtor,
-	(
-		/ public \m Source -> private \m source,
-		+ private \m u16 item_num;
-		/ \impl @ \ctor,
-		/ \impl @ \mf (Reset, Refresh)
-	)
-	+ \mf void Load(const_path_t),
-	+ \mf void const File& GetSource() const
-);
-/ \tr \impl @ \mf ShlReader::OnActivated @ \impl \u Shells;
-
-r28-r31:
-/= test 5;
-
-r32:
-/ \impl @ \mf (Load, Refresh) @ \cl HexViewArea @ \u HexBrowser;
-
-r33:
-/ \simp @ \cl HexViewArea @ \u HexBrowser $=
-(
-	- \m position;
-	/ \tr \impl @ \ctor,
-	/ \tr \impl @ \mf (Refresh, Reset, UpdateData)
-);
-
-r34:
-/= test 2 ^ \conf release;
+/= test 3 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-10-26:
--21.1d;
-//Mercurial rev1-rev125: r5896;
+2011-10-28:
+-21.3d;
+//Mercurial rev1-rev126: r5930;
 
 / ...
 
 
 $NEXT_TODO:
-b255-b384:
+b256-b384:
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 + partial invalidation support @ %(TextList::PrintItems, HexViewArea::Refresh);
-+ key accelerators;
-+ dynamic widget prototypes;
++ dynamic character mapper loader for \u CharacterMapping;
 
 b385-b1089:
-+ EOF handling for \h CharacterMapping;
-+ fully \impl styles @ widgets;
++ key accelerators;
 / fully \impl @ \cl Path;
-/ \impl 'real' RTC;
-+ data configuragion;
-+ \impl pictures loading;
-/ text alignment;
 + clipping areas;
++ fully \impl styles @ widgets;
+/ \impl 'real' RTC;
+/ text alignment;
++ data configuragion;
++ GDI brushes;
++ dynamic widget prototypes;
++ \impl pictures loading;
 / improve efficiency @ \ft polymorphic_crosscast @ \h YCast;
 + correct DMA (copy & fill);
 * platform-independence @ alpha blending:
 	+ \impl general Blit algorithm;
 + shared property: additional;
-+ GDI brushes;
 / user-defined bitmap buffer @ \cl Desktop;
 
 
@@ -525,6 +441,22 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ "shells test example" $=
+	(
+		/ "hexadecimal browser" $=,
+		(
+			* "displaying of tail bytes less than one line" $since b253,
+			+ "horizontal alignment controlling in displaying"
+		)
+	),
+	/ "GUI" $=
+	(
+		* "wrong value construction" @ "class %TouchEventArgs" $since b195
+	)
+),
+
+b254
 (
 	/ $design "header dependencies",
 	/ "shells test example" $=

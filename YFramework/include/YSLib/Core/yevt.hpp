@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4672;
+\version r4681;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-09-23 18:45 +0800;
+	2011-10-28 17:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -598,12 +598,13 @@ EndDecl
 
 
 //! \brief 事件处理器包装类模板。
-template<class _tEvent>
+template<class _tEvent, typename _tBaseArgs>
 class GEventWrapper : public _tEvent,
-	implements GIHEvent<typename _tEvent::SenderType, EventArgs>
+	implements GIHEvent<typename _tEvent::SenderType, _tBaseArgs>
 {
 public:
 	typedef _tEvent EventType;
+	typedef _tBaseArgs BaseArgsType;
 	typedef typename EventType::SenderType SenderType;
 	typedef typename EventType::EventArgsType EventArgsType;
 
@@ -611,10 +612,10 @@ public:
 
 	/*!
 	\brief 委托调用。
-	\warning 需要确保 EventArgs&& 引用的对象能够转换至 EventArgsType&& 引用。
+	\warning 需要确保 BaseArgsType&& 引用的对象能够转换至 EventArgsType&& 引用。
 	*/
 	inline virtual size_t
-	operator()(SenderType& sender, EventArgs&& e) const
+	operator()(SenderType& sender, BaseArgsType&& e) const
 	{
 		return EventType::operator()(sender,
 			static_cast<EventArgsType&&>(std::move(e)));
@@ -626,11 +627,11 @@ public:
 \brief 事件项类型。
 \warning 非虚析构。
 */
-PDefTH2(_tSender, _tEventSpace)
+PDefTH2(_tSender, _tBaseArgs)
 class GEventPointerWrapper
 {
 public:
-	typedef GIHEvent<_tSender, EventArgs> ItemType;
+	typedef GIHEvent<_tSender, _tBaseArgs> ItemType;
 	typedef unique_ptr<ItemType> PointerType;
 
 private:
@@ -650,7 +651,6 @@ public:
 		: ptr(ClonePolymorphic(item.ptr))
 	{}
 	DefDeMoveCtor(GEventPointerWrapper)
-
 
 	yconstexprf DefConverter(const ItemType&, *ptr)
 	yconstexprf DefMutableConverter(ItemType&, *ptr)

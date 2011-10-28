@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4668;
+\version r4670;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-09-15 14:19 +0800;
+	2011-10-28 13:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -111,7 +111,7 @@ public:
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	virtual Rect
-	Refresh(const PaintEventArgs&);
+	Refresh(const PaintContext&);
 
 	/*!
 	\brief 按需更新。

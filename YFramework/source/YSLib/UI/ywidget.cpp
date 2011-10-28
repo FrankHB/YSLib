@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5159;
+\version r5167;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-10-01 18:52 +0800;
+	2011-10-28 14:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,7 +69,7 @@ ClearFocusingPtrOf(IWidget& wgt)
 	if(const auto p = FetchFocusingPtr(wgt))
 	{
 		wgt.GetFocusResponder().ClearFocusingPtr();
-		CallEvent<LostFocus>(*p, wgt, EventArgs());
+		CallEvent<LostFocus>(*p, wgt, UIEventArgs());
 	}
 }
 
@@ -100,7 +100,7 @@ InvalidateCascade(IWidget& wgt, const Rect& bounds)
 }
 
 void
-Render(IWidget& wgt, PaintEventArgs&& e)
+Render(IWidget& wgt, PaintContext&& e)
 {
 	Rect r;
 
@@ -108,7 +108,7 @@ Render(IWidget& wgt, PaintEventArgs&& e)
 	{
 		const auto& g_buf(FetchContext(wgt));
 
-		r = g_buf.IsValid() ? wgt.Refresh(PaintEventArgs(g_buf, Point::Zero,
+		r = g_buf.IsValid() ? wgt.Refresh(PaintContext(g_buf, Point::Zero,
 			Rect(e.ClipArea.GetPoint() - wgt.GetLocation(), e.ClipArea)))
 			: wgt.Refresh(e);
 		wgt.GetRenderer().ClearInvalidation();
@@ -118,13 +118,13 @@ Render(IWidget& wgt, PaintEventArgs&& e)
 }
 
 void
-RenderChild(IWidget& wgt, PaintEventArgs&& e)
+RenderChild(IWidget& wgt, PaintContext&& e)
 {
 	const auto& r(Intersect(Rect(e.Location + wgt.GetLocation(),
 		wgt.GetSize()), e.ClipArea));
 
 	if(!r.IsEmptyStrict())
-		Render(wgt, PaintEventArgs(e.Target, e.Location + wgt.GetLocation(),
+		Render(wgt, PaintContext(e.Target, e.Location + wgt.GetLocation(),
 			r));
 }
 
@@ -136,7 +136,7 @@ RequestToTop(IWidget& wgt)
 }
 
 void
-Update(const IWidget& wgt, const PaintEventArgs& e)
+Update(const IWidget& wgt, const PaintContext& e)
 {
 	if(wgt.IsVisible())
 		wgt.GetRenderer().UpdateTo(e);
@@ -149,7 +149,7 @@ Validate(IWidget& wgt)
 
 	if(wgt.GetRenderer().RequiresRefresh() && FetchContext(wgt).IsValid())
 	{
-		r = wgt.Refresh(PaintEventArgs(FetchContext(wgt), Point::Zero,
+		r = wgt.Refresh(PaintContext(FetchContext(wgt), Point::Zero,
 			Rect(Point::Zero, wgt.GetSize())));
 		wgt.GetRenderer().ClearInvalidation();
 	}
@@ -236,7 +236,7 @@ Widget::SetRenderer(unique_ptr<Renderer>&& p)
 }
 
 Rect
-Widget::Refresh(const PaintEventArgs& e)
+Widget::Refresh(const PaintContext& e)
 {
 	if(!IsTransparent())
 		Drawing::FillRect(e.Target, e.ClipArea, BackColor);

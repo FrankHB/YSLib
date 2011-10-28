@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3693;
+\version r3699;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-10-22 05:21 +0800;
+	2011-10-28 13:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,7 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 		TextListBox.LocateViewPosition(e.Value);
 		Invalidate(*this);
 	};
-	TextListBox.GetViewChanged() += [this](IWidget&, EventArgs&&){
+	TextListBox.GetViewChanged() += [this](IWidget&, UIEventArgs&&){
 		if(GetWidth() > defMinScrollBarWidth)
 		{
 			Size view_arena(TextListBox.GetFullViewSize());
@@ -76,7 +76,7 @@ ListBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 }
 
 Rect
-ListBox::Refresh(const PaintEventArgs& e)
+ListBox::Refresh(const PaintContext& e)
 {
 	auto r(ScrollableContainer::Refresh(e));
 

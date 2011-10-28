@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5279;
+\version r5287;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-10-26 07:48 +0800;
+	2011-10-28 13:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -440,7 +440,7 @@ ShlExplorer::ShlExplorer()
 			if(e.GetKeyCode() & KeySpace::L)
 				CallStored<ShlExplorer>();
 		},
-		fbMain.GetViewChanged() += [this](IWidget&, EventArgs&&){
+		fbMain.GetViewChanged() += [this](IWidget&, UIEventArgs&&){
 			lblPath.Text = fbMain.GetPath();
 			Invalidate(lblPath);
 		},
@@ -645,7 +645,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 			SetInvalidationOf(*this);
 		},
 		FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging,
-		FetchEvent<Move>(btnDragTest) += [this](IWidget&, EventArgs&&){
+		FetchEvent<Move>(btnDragTest) += [this](IWidget&, UIEventArgs&&){
 			char sloc[20];
 
 			siprintf(sloc, "(%d, %d);", btnDragTest.GetX(), btnDragTest.GetY());
@@ -1009,7 +1009,7 @@ ShlReader::ReaderPanel::GetTopWidgetPtr(const Point& pt,
 }
 
 Rect
-ShlReader::ReaderPanel::Refresh(const PaintEventArgs& e)
+ShlReader::ReaderPanel::Refresh(const PaintContext& e)
 {
 	Widget::Refresh(e);
 
@@ -1047,7 +1047,7 @@ ShlReader::FileInfoPanel::GetTopWidgetPtr(const Point& pt,
 }
 
 Rect
-ShlReader::FileInfoPanel::Refresh(const PaintEventArgs& e)
+ShlReader::FileInfoPanel::Refresh(const PaintContext& e)
 {
 	Widget::Refresh(e);
 	IWidget* const pWidgets[] = {&btnClose, &lblInfo};

@@ -11,12 +11,12 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1326;
+\version r1329;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-09-18 02:52 +0800;
+	2011-10-28 13:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,7 @@ using Drawing::Graphics;
 
 
 //前向声明。
-class PaintEventArgs;
+struct PaintContext;
 
 
 /*!
@@ -124,7 +124,7 @@ public:
 	\note 空实现。
 	*/
 	virtual void
-	UpdateTo(const PaintEventArgs&) const
+	UpdateTo(const PaintContext&) const
 	{}
 };
 
@@ -202,7 +202,7 @@ public:
 	\brief 更新至指定图形设备上下文的指定点。
 	*/
 	virtual void
-	UpdateTo(const PaintEventArgs&) const;
+	UpdateTo(const PaintContext&) const;
 };
 
 YSL_END_NAMESPACE(Components)

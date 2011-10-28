@@ -11,12 +11,12 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1266;
+\version r1289;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2011-10-26 08:17 +0800;
+	2011-10-28 13:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -78,7 +78,9 @@ HexViewArea::Load(const_path_t path)
 {
 	Reset();
 	source.Open(path);
-	VerticalScrollBar.SetMaxValue(source.GetSize() / ItemPerLine);
+	// FIXME: overflow;
+	VerticalScrollBar.SetMaxValue((source.GetSize() + ItemPerLine - 1)
+		/ ItemPerLine);
 	VerticalScrollBar.SetLargeDelta(item_num);
 }
 
@@ -89,43 +91,54 @@ HexViewArea::LocateViewPosition(SDst h)
 }
 
 Rect
-HexViewArea::Refresh(const PaintEventArgs& e)
+HexViewArea::Refresh(const PaintContext& e)
 {
 	using namespace Text;
 
 	// TODO: refresh for 'rect' properly;
-	Widget::Refresh(PaintEventArgs(e.Target, e.Location, Rect(e.Location,
+	Widget::Refresh(PaintContext(e.Target, e.Location, Rect(e.Location,
 		GetWidth() - VerticalScrollBar.GetWidth(), GetHeight())));
 //	Widget::Refresh(e);
 	ScrollableContainer::Refresh(e);
 
 	const auto lh(GetTextLineHeightOf(text_state));
 	const SPos h(GetHeight());
+	const int fsize(source.GetSize());
 	TextRenderer tr(text_state, e.Target);
 	auto i_line(lines.cbegin());
 	auto pos(source.GetPosition());
+	yconstexpr auto ItemPerLine(HexViewArea::ItemPerLine); // TODO: fix linkage;
 
 	text_state.ResetPen();
 
 	auto& y(text_state.PenY);
+	const SDst w_all(GetWidth() - VerticalScrollBar.GetWidth()
+		- GetHorizontalOf(text_state.Margin)),
+		w_blank(w_all / (10 + ItemPerLine * 3)),
+		w_ch((w_all - w_blank * (1 + ItemPerLine)) / (8 + ItemPerLine * 2)),
+		w_addr(w_ch * 8 + w_blank),
+		w_item(w_ch * 2 + w_blank);
 
-	while(y < h && i_line != lines.cend())
+	while(y < h && pos < fsize && i_line != lines.cend())
 	{
 		const auto& line(*i_line);
 		auto& x(text_state.PenX);
+		auto x_t(x);
 		char straddr[(32 >> 2) + 1];
+		const auto n(std::min<LineType::size_type>(fsize - pos, ItemPerLine));
 
-		x = text_state.Margin.Left;
+		x_t = x = text_state.Margin.Left;
 		std::sprintf(straddr, "%08X", pos);
 		PutLine(tr, straddr);
-		x += 10;
-		for(LineType::size_type i(0); i < ItemPerLine; ++i)
+		x_t += w_addr;
+		for(LineType::size_type i(0); i < n; ++i)
 		{
 			char str[3];
 	
 			ConvertByte(str, line[i]);
+			x = x_t;
 			PutLine(tr, str);
-			x += 8;
+			x_t += w_item;
 		}
 		yunsequenced(y += lh + text_state.LineGap, ++i_line);
 		pos += ItemPerLine;

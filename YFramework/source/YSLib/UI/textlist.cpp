@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1442;
+\version r1450;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-10-26 07:30 +0800;
+	2011-10-28 17:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -227,7 +227,7 @@ TextList::CheckPoint(SPos x, SPos y)
 }
 
 Rect
-TextList::Refresh(const PaintEventArgs& e)
+TextList::Refresh(const PaintContext& e)
 {
 //	Widget::Refresh(e);
 
@@ -260,7 +260,7 @@ TextList::PaintItem(const Graphics& g, const Rect&, ListType::size_type i)
 }
 
 void
-TextList::PaintItems(const PaintEventArgs& e)
+TextList::PaintItems(const PaintContext& e)
 {
 	const auto& g(e.Target);
 	const auto& pt(e.Location);
@@ -271,7 +271,7 @@ TextList::PaintItems(const PaintEventArgs& e)
 		RefreshTextState();
 
 		// TODO: refresh for 'rect' properly;
-		Widget::Refresh(PaintEventArgs(g, pt, Rect(pt, GetSize())));
+		Widget::Refresh(PaintContext(g, pt, Rect(pt, GetSize())));
 
 		const SDst ln_w(GetWidth());
 		const SDst ln_h(GetItemHeight());
@@ -341,21 +341,21 @@ TextList::SelectLast()
 void
 TextList::UpdateView()
 {
-	GetViewChanged()(*this, EventArgs());
+	GetViewChanged()(*this, UIEventArgs());
 	Invalidate(*this);
 }
 
 void
 TextList::CallSelected()
 {
-	GetSelected()(*this, IndexEventArgs(*this, viewer.GetSelectedIndex()));
+	GetSelected()(*this, IndexEventArgs(viewer.GetSelectedIndex()));
 }
 
 void
 TextList::InvokeConfirmed(ViewerType::SizeType idx)
 {
 	if(CheckConfirmed(idx))
-		GetConfirmed()(*this, IndexEventArgs(*this, idx));
+		GetConfirmed()(*this, IndexEventArgs(idx));
 }
 
 void

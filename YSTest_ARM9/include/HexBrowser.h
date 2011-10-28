@@ -11,12 +11,12 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1184;
+\version r1186;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-10-14 18:13:04 +0800;
 \par 修改时间:
-	2011-10-26 08:17 +0800;
+	2011-10-28 13:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -80,7 +80,7 @@ public:
 	LocateViewPosition(SDst);
 
 	virtual Rect
-	Refresh(const PaintEventArgs&);
+	Refresh(const PaintContext&);
 
 	void
 	Reset();

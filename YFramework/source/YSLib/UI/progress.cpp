@@ -11,12 +11,12 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r1270;
+\version r1272;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-20 08:59:56 +0800;
 \par 修改时间:
-	2011-10-08 23:45 +0800;
+	2011-10-28 13:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,7 +42,7 @@ ProgressBar::ProgressBar(const Rect& r, u16 m)
 }
 
 Rect
-ProgressBar::Refresh(const PaintEventArgs& e)
+ProgressBar::Refresh(const PaintContext& e)
 {
 	const auto& g(e.Target);
 	const auto& pt(e.Location);

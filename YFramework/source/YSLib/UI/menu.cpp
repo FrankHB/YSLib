@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1846;
+\version r1850;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-10-26 07:26 +0800;
+	2011-10-27 22:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,7 +68,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 					break;
 				}
 		},
-		FetchEvent<LostFocus>(*this) += [this](IWidget& c, EventArgs&&){
+		FetchEvent<LostFocus>(*this) += [this](IWidget& c, UIEventArgs&&){
 			if(pHost)
 			{
 				auto pMnu(dynamic_cast<Menu*>(&c));

@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5521;
+\version r5529;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-10-12 17:34 +0800;
+	2011-10-27 22:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -174,7 +174,8 @@ EventMapping::MappedType
 NewEvent()
 {
 	return EventMapping::MappedType(new GEventWrapper<typename
-		GSEvent<typename EventTypeMapping<_vID>::HandlerType>::EventType>());
+		GSEvent<typename EventTypeMapping<_vID>::HandlerType>::EventType,
+		UIEventArgs>());
 }
 
 /*!

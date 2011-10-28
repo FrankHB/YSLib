@@ -16,12 +16,12 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version r2534;
+\version r2538;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-24 15:29:11 +0800;
 \par 修改时间:
-	2011-09-16 03:18 +0800;
+	2011-10-27 22:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,8 +45,6 @@ YSL_BEGIN
 //空结构体类型。
 struct EmptyType
 {};
-
-typedef EmptyType EventArgs; //!< 事件参数基类。
 
 YSL_BEGIN_NAMESPACE(Components)
 class Desktop;

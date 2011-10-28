@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5526;
+\version r5532;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-10-25 13:04 +0800;
+	2011-10-27 22:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -1038,9 +1038,6 @@
 一般类。
 不属于以上有前缀类的类。无其它限制和特性保证。
 
-@2.4.9.1 事件参数基类 EventArgs ：
-即 EmptyType 。
-
 @2.4.10 异常类总览：
 专用于被 C++ 异常机制捕获的类称为异常类。
 异常类不在特定的命名空间中定义。
@@ -1110,13 +1107,12 @@
 
 @2.5.9 事件回调 YEvent ：
 实现事件。
-传递事件参数的参数基类是 EventArgs ，可从这个类派生自定义参数类。
+用户界面事件参数基类 UIEventArgs ，可从这个类派生自定义参数类。
 除此之外，默认提供以下参数类：
  ScreenPositionEventArgs ，屏幕事件参数类。
  InputEventArgs ，输入事件参数模块类。
  TouchEventArgs ，指针设备输入事件参数类。
  KeyEventArgs ，键盘输入事件参数类。
-为了实现和派生上的便利性，包括 EventArgs 以上类实际为结构体类型。
 以下用模板定义用于事件处理机制的接口和实现类：
 事件处理器接口模板 GIHEvent ，提供两个参数的 operator() 抽象方法。
 事件处理器模板 GHEvent ，标准版 HEvent ；基于 Function 和 list 实现。
@@ -1256,7 +1252,7 @@
 
 @2.7.2.1 默认 GUI 事件：
 即 YControl 单元中定义的标准控件事件。
-事件依赖项仅对非映射事件使用。相关类参见 @2.5.8 。
+事件依赖项仅对非映射事件使用。相关类参见 @2.5.9 。
 默认 GUI 事件使用 Core::YEvent 等单元实现，和 YControl 单元和 YGUI 单元相关。
 在 YControl 单元中的枚举类型 typedef 名称 VisualEvent 定义了标准控件事件空间，其中定义了标准控件事件，包含视图变更事件、 GUI 输入/输出事件和焦点事件。
  GUI 输入事件包含基本 GUI 输入事件和扩展 GUI 输入事件，参见 @2.7.2.1.2 。。
@@ -1265,7 +1261,7 @@
 
 @2.7.2.1.1 视图变更事件：
 包括 Move 、 Resize 事件等。
-事件发送对象类型 IWidget ，参数类型 EventArgs ，事件类型为 HVisualEvent 。
+事件发送对象类型 IWidget ，参数类型 UIEventArgs ，事件类型为 HUIEvent 。
 在试图变更视图时触发。
 需要注意，不包括必然的视图改变后置条件。即使设置控件视图操作的结果与未设置时相同，仍触发事件。
 

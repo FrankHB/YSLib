@@ -11,12 +11,12 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1243;
+\version r1245;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2011-09-18 02:56 +0800;
+	2011-10-28 13:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,7 +71,7 @@ BufferedRenderer::FillInvalidation(Color c)
 }
 
 void
-BufferedRenderer::UpdateTo(const PaintEventArgs& e) const
+BufferedRenderer::UpdateTo(const PaintContext& e) const
 {
 	const auto& g(e.Target);
 	const auto& r(e.ClipArea);

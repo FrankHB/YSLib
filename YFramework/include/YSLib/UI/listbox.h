@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3203;
+\version r3209;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-10-22 05:21 +0800;
+	2011-10-28 13:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,7 +65,7 @@ public:
 	DefGetterMember(ViewerType::SizeType, HeadIndex, TextListBox)
 	DefGetterMember(ViewerType::SizeType, SelectedIndex, TextListBox)
 	DefGetterMember(ListType&, List, TextListBox)
-	DefMutableDepEventGetterMember(HVisualEvent, ViewChanged, TextListBox) \
+	DefMutableDepEventGetterMember(HUIEvent, ViewChanged, TextListBox) \
 		//!< 视图变更事件。
 	DefMutableDepEventGetterMember(HIndexEvent, Selected, TextListBox) \
 		//!< 项目选择状态变更事件。
@@ -76,7 +76,7 @@ public:
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	virtual Rect
-	Refresh(const PaintEventArgs&);
+	Refresh(const PaintContext&);
 
 	PDefH0(void, ResetView)
 		ImplBodyMember0(TextListBox, ResetView)

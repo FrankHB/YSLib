@@ -11,12 +11,12 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1910;
+\version r1962;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2011-09-18 01:26 +0800;
+	2011-10-28 17:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,8 +34,11 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//! \brief 路由事件基类。
-struct RoutedEventArgs : public EventArgs
+typedef EmptyType UIEventArgs; //!< 用户界面事件参数基类。
+
+
+//! \brief 路由事件参数基类。
+struct RoutedEventArgs : public UIEventArgs
 {
 public:
 	//! 事件路由策略枚举。
@@ -118,48 +121,72 @@ public:
 
 inline
 TouchEventArgs::TouchEventArgs(const InputType& pt, RoutingStrategy s)
-	: InputEventArgs(s), MScreenPositionEventArgs(pt)
+	: InputEventArgs(0, s), MScreenPositionEventArgs(pt)
 {}
 
 
 //! \brief 控件事件参数类。
-struct IndexEventArgs : public EventArgs
+struct IndexEventArgs : public UIEventArgs
 {
 	typedef ssize_t IndexType;
 
-	IWidget& Widget;
 	IndexType Index;
 
 	/*!
 	\brief 构造：使用控件引用和索引值。
 	*/
-	IndexEventArgs(IWidget&, IndexType);
+	IndexEventArgs(IndexType);
 	DefConverter(IndexType, Index)
 };
 
 inline
-IndexEventArgs::IndexEventArgs(IWidget& wgt, IndexEventArgs::IndexType idx)
-	: EventArgs(),
-	Widget(wgt), Index(idx)
+IndexEventArgs::IndexEventArgs(IndexEventArgs::IndexType idx)
+	: UIEventArgs(),
+	Index(idx)
 {}
 
 
-struct PaintEventArgs : public EventArgs
+struct PaintContext
 {
 	Drawing::Graphics Target; //!< 渲染目标：图形接口上下文。
 	Drawing::Point Location; //!< 相对渲染目标的偏移坐标，指定部件左上角的位置。
 	Drawing::Rect ClipArea; //!< 相对于图形接口上下文的正则矩形，
 		//指定需要保证被刷新的边界区域。
 
-	inline DefDeCtor(PaintEventArgs)
+	inline DefDeCtor(PaintContext)
+	PaintContext(const Drawing::Graphics&, const Drawing::Point&,
+		const Drawing::Rect&);
+};
+
+inline
+PaintContext::PaintContext(const Drawing::Graphics& g,
+	const Drawing::Point& pt, const Drawing::Rect& r)
+	: Target(g), Location(pt), ClipArea(r)
+{}
+
+
+struct PaintEventArgs : public UIEventArgs, public PaintContext
+{
+	PaintEventArgs();
+	PaintEventArgs(const PaintContext&);
 	PaintEventArgs(const Drawing::Graphics&, const Drawing::Point&,
 		const Drawing::Rect&);
 };
 
 inline
+PaintEventArgs::PaintEventArgs()
+	: PaintContext()
+{}
+
+inline
+PaintEventArgs::PaintEventArgs(const PaintContext& pc)
+	: PaintContext(pc)
+{}
+
+inline
 PaintEventArgs::PaintEventArgs(const Drawing::Graphics& g,
 	const Drawing::Point& pt, const Drawing::Rect& r)
-	: Target(g), Location(pt), ClipArea(r)
+	: PaintContext(g, pt, r)
 {}
 
 
@@ -188,7 +215,7 @@ public:
 
 
 //事件处理器类型。
-DefDelegate(HVisualEvent, IWidget, EventArgs)
+DefDelegate(HUIEvent, IWidget, UIEventArgs)
 DefDelegate(HInputEvent, IWidget, InputEventArgs)
 DefDelegate(HKeyEvent, IWidget, KeyEventArgs)
 DefDelegate(HTouchEvent, IWidget, TouchEventArgs)
@@ -257,8 +284,8 @@ struct EventTypeMapping
 //	typedef HEvent HandlerType;
 };
 
-DefEventTypeMapping(Move, HVisualEvent)
-DefEventTypeMapping(Resize, HVisualEvent)
+DefEventTypeMapping(Move, HUIEvent)
+DefEventTypeMapping(Resize, HUIEvent)
 
 DefEventTypeMapping(KeyUp, HKeyEvent)
 DefEventTypeMapping(KeyDown, HKeyEvent)
@@ -272,8 +299,8 @@ DefEventTypeMapping(Click, HTouchEvent)
 
 DefEventTypeMapping(Paint, HPaintEvent)
 
-DefEventTypeMapping(GotFocus, HVisualEvent)
-DefEventTypeMapping(LostFocus, HVisualEvent)
+DefEventTypeMapping(GotFocus, HUIEvent)
+DefEventTypeMapping(LostFocus, HUIEvent)
 
 DefEventTypeMapping(Enter, HTouchEvent)
 DefEventTypeMapping(Leave, HTouchEvent)
@@ -282,8 +309,8 @@ DefEventTypeMapping(Leave, HTouchEvent)
 //! \brief 事件映射命名空间。
 YSL_BEGIN_NAMESPACE(EventMapping)
 
-typedef GIHEvent<IWidget, EventArgs> ItemType;
-typedef GEventPointerWrapper<IWidget, EventArgs> MappedType; //!< 映射项类型。
+typedef GIHEvent<IWidget, UIEventArgs> ItemType;
+typedef GEventPointerWrapper<IWidget, UIEventArgs> MappedType; //!< 映射项类型。
 typedef pair<VisualEvent, MappedType> PairType;
 typedef map<VisualEvent, MappedType> MapType; //!< 映射表类型。
 typedef pair<typename MapType::iterator, bool> SearchResult; \

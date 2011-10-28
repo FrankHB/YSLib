@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3857;
+\version r3863;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-10-26 07:34 +0800;
+	2011-10-28 13:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -174,7 +174,7 @@ ATrack::SetLargeDelta(ValueType val)
 }
 
 Rect
-ATrack::Refresh(const PaintEventArgs& e)
+ATrack::Refresh(const PaintContext& e)
 {
 	auto r(Widget::Refresh(e));
 
@@ -287,7 +287,7 @@ ATrack::UpdateValue()
 }
 
 void
-ATrack::OnThumbDrag(EventArgs&&)
+ATrack::OnThumbDrag(UIEventArgs&&)
 {
 	ValueType old_value(value);
 	// FIXME: get correct old value;
@@ -314,7 +314,7 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 
 			RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
 			Thumb.SetLocation(Point(x, Thumb.GetLocation().Y));
-			GetThumbDrag()(*this, EventArgs());
+			GetThumbDrag()(*this, UIEventArgs());
 		}
 	};
 }
@@ -337,7 +337,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 
 			RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
 			Thumb.SetLocation(Point(Thumb.GetLocation().X, y));
-			GetThumbDrag()(*this, EventArgs());
+			GetThumbDrag()(*this, UIEventArgs());
 		}
 	};
 }
@@ -404,7 +404,7 @@ AScrollBar::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 }
 
 Rect
-AScrollBar::Refresh(const PaintEventArgs& e)
+AScrollBar::Refresh(const PaintContext& e)
 {
 	YAssert(is_not_null(pTrack),
 		"Null widget pointer found @ AScrollBar::Draw;");
@@ -490,7 +490,7 @@ ScrollableContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 }
 
 Rect
-ScrollableContainer::Refresh(const PaintEventArgs& e)
+ScrollableContainer::Refresh(const PaintContext& e)
 {
 //	AUIBoxControl::Refresh(e);
 	if(HorizontalScrollBar.IsVisible())
