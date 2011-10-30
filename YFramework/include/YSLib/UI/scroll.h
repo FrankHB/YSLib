@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3228;
+\version r3235;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-10-28 17:40 +0800;
+	2011-10-30 15:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -67,31 +67,33 @@ public:
 	ScrollEventSpace::ScrollEventType Type; //滚动事件类型。
 
 	/*!
-	\brief 构造：使用指定滚动事件类型和值。
+	\brief 构造：使用指定事件源、滚动事件类型和值。
 	\note 值等于旧值。
 	*/
-	ScrollEventArgs(ScrollEventSpace::ScrollEventType, ValueType);
+	ScrollEventArgs(IWidget&, ScrollEventSpace::ScrollEventType, ValueType);
 	/*!
-	\brief 构造：使用指定滚动事件类型、值和旧值。
+	\brief 构造：使用指定事件源、滚动事件类型、值和旧值。
 	*/
-	ScrollEventArgs(ScrollEventSpace::ScrollEventType, ValueType, ValueType);
+	ScrollEventArgs(IWidget&, ScrollEventSpace::ScrollEventType, ValueType,
+		ValueType);
 };
 
 inline
-ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
-	ScrollEventArgs::ValueType v)
-	: UIEventArgs(), GMValueEventArgs<SDst>(v),
+ScrollEventArgs::ScrollEventArgs(IWidget& wgt,
+	ScrollEventSpace::ScrollEventType t, ScrollEventArgs::ValueType v)
+	: UIEventArgs(wgt), GMValueEventArgs<SDst>(v),
 	Type(t)
 {}
 inline
-ScrollEventArgs::ScrollEventArgs(ScrollEventSpace::ScrollEventType t,
+ScrollEventArgs::ScrollEventArgs(IWidget& wgt,
+	ScrollEventSpace::ScrollEventType t,
 	ScrollEventArgs::ValueType v, ScrollEventArgs::ValueType old_value)
-	: UIEventArgs(), GMValueEventArgs<SDst>(v, old_value),
+	: UIEventArgs(wgt), GMValueEventArgs<SDst>(v, old_value),
 	Type(t)
 {}
 
 
-DefDelegate(HScrollEvent, IWidget, ScrollEventArgs)
+DefDelegate(HScrollEvent, ScrollEventArgs)
 
 
 //! \brief 轨道。

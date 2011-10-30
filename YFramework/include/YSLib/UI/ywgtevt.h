@@ -11,12 +11,12 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1962;
+\version r1996;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2011-10-28 17:47 +0800;
+	2011-10-30 15:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,24 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-typedef EmptyType UIEventArgs; //!< 用户界面事件参数基类。
+//!< 用户界面事件参数基类。
+struct UIEventArgs
+{
+private:
+	IWidget* pSender;
+
+public:
+	explicit
+	UIEventArgs(IWidget&);
+	DefGetter(IWidget&, Sender, *pSender)
+	PDefH1(void, SetSender, IWidget& wgt)
+		ImplRet(static_cast<void>(pSender = &wgt))
+};
+
+inline
+UIEventArgs::UIEventArgs(IWidget& wgt)
+	: pSender(&wgt)
+{}
 
 
 //! \brief 路由事件参数基类。
@@ -52,13 +69,13 @@ public:
 	RoutingStrategy Strategy; //!< 事件路由策略。
 	bool Handled; //!< 事件已经被处理。
 
-	explicit
-	RoutedEventArgs(RoutingStrategy = Direct);
+	RoutedEventArgs(IWidget&, RoutingStrategy = Direct);
 };
 
 inline
-RoutedEventArgs::RoutedEventArgs(RoutingStrategy strategy)
-	: Strategy(strategy), Handled(false)
+RoutedEventArgs::RoutedEventArgs(IWidget& wgt, RoutingStrategy strategy)
+	: UIEventArgs(wgt),
+	Strategy(strategy), Handled(false)
 {}
 
 
@@ -75,7 +92,7 @@ public:
 	/*!
 	\brief 构造：使用本机键按下对象和路由事件类型。
 	*/
-	InputEventArgs(KeyCode = 0, RoutingStrategy = Direct);
+	InputEventArgs(IWidget&, KeyCode = 0, RoutingStrategy = Direct);
 
 	DefConverter(KeyCode, Key)
 
@@ -83,8 +100,8 @@ public:
 };
 
 inline
-InputEventArgs::InputEventArgs(KeyCode k, RoutingStrategy s)
-	: RoutedEventArgs(s), Key(k)
+InputEventArgs::InputEventArgs(IWidget& wgt, KeyCode k, RoutingStrategy s)
+	: RoutedEventArgs(wgt, s), Key(k)
 {}
 
 
@@ -97,12 +114,12 @@ public:
 	/*!
 	\brief 构造：使用输入类型对象和路由事件类型。
 	*/
-	KeyEventArgs(const InputType& = 0, RoutingStrategy = Direct);
+	KeyEventArgs(IWidget&, const InputType& = 0, RoutingStrategy = Direct);
 };
 
 inline
-KeyEventArgs::KeyEventArgs(const InputType& k, RoutingStrategy s)
-	: InputEventArgs(k, s)
+KeyEventArgs::KeyEventArgs(IWidget& wgt, const InputType& k, RoutingStrategy s)
+	: InputEventArgs(wgt, k, s)
 {}
 
 
@@ -115,13 +132,14 @@ public:
 	/*!
 	\brief 构造：使用输入类型对象和路由事件类型。
 	*/
-	TouchEventArgs(const InputType& = InputType::Zero,
+	TouchEventArgs(IWidget&, const InputType& = InputType::Zero,
 		RoutingStrategy = Direct);
 };
 
 inline
-TouchEventArgs::TouchEventArgs(const InputType& pt, RoutingStrategy s)
-	: InputEventArgs(0, s), MScreenPositionEventArgs(pt)
+TouchEventArgs::TouchEventArgs(IWidget& wgt, const InputType& pt,
+	RoutingStrategy s)
+	: InputEventArgs(wgt, 0, s), MScreenPositionEventArgs(pt)
 {}
 
 
@@ -130,19 +148,20 @@ struct IndexEventArgs : public UIEventArgs
 {
 	typedef ssize_t IndexType;
 
+	IWidget& Widget;
 	IndexType Index;
 
 	/*!
 	\brief 构造：使用控件引用和索引值。
 	*/
-	IndexEventArgs(IndexType);
+	IndexEventArgs(IWidget&, IndexType);
 	DefConverter(IndexType, Index)
 };
 
 inline
-IndexEventArgs::IndexEventArgs(IndexEventArgs::IndexType idx)
-	: UIEventArgs(),
-	Index(idx)
+IndexEventArgs::IndexEventArgs(IWidget& wgt, IndexEventArgs::IndexType idx)
+	: UIEventArgs(wgt),
+	Widget(wgt), Index(idx)
 {}
 
 
@@ -167,26 +186,26 @@ PaintContext::PaintContext(const Drawing::Graphics& g,
 
 struct PaintEventArgs : public UIEventArgs, public PaintContext
 {
-	PaintEventArgs();
-	PaintEventArgs(const PaintContext&);
-	PaintEventArgs(const Drawing::Graphics&, const Drawing::Point&,
+	PaintEventArgs(IWidget&);
+	PaintEventArgs(IWidget&, const PaintContext&);
+	PaintEventArgs(IWidget&, const Drawing::Graphics&, const Drawing::Point&,
 		const Drawing::Rect&);
 };
 
 inline
-PaintEventArgs::PaintEventArgs()
-	: PaintContext()
+PaintEventArgs::PaintEventArgs(IWidget& wgt)
+	: UIEventArgs(wgt), PaintContext()
 {}
 
 inline
-PaintEventArgs::PaintEventArgs(const PaintContext& pc)
-	: PaintContext(pc)
+PaintEventArgs::PaintEventArgs(IWidget& wgt, const PaintContext& pc)
+	: UIEventArgs(wgt), PaintContext(pc)
 {}
 
 inline
-PaintEventArgs::PaintEventArgs(const Drawing::Graphics& g,
+PaintEventArgs::PaintEventArgs(IWidget& wgt, const Drawing::Graphics& g,
 	const Drawing::Point& pt, const Drawing::Rect& r)
-	: PaintContext(g, pt, r)
+	: UIEventArgs(wgt), PaintContext(g, pt, r)
 {}
 
 
@@ -215,14 +234,14 @@ public:
 
 
 //事件处理器类型。
-DefDelegate(HUIEvent, IWidget, UIEventArgs)
-DefDelegate(HInputEvent, IWidget, InputEventArgs)
-DefDelegate(HKeyEvent, IWidget, KeyEventArgs)
-DefDelegate(HTouchEvent, IWidget, TouchEventArgs)
-DefDelegate(HIndexEvent, IWidget, IndexEventArgs)
-DefDelegate(HPaintEvent, IWidget, PaintEventArgs)
-//DefDelegate(HPointEvent, IWidget, Drawing::Point)
-//DefDelegate(HSizeEvent, IWidget, Size)
+DefDelegate(HUIEvent, UIEventArgs)
+DefDelegate(HInputEvent, InputEventArgs)
+DefDelegate(HKeyEvent, KeyEventArgs)
+DefDelegate(HTouchEvent, TouchEventArgs)
+DefDelegate(HIndexEvent, IndexEventArgs)
+DefDelegate(HPaintEvent, PaintEventArgs)
+//DefDelegate(HPointEvent, Drawing::Point)
+//DefDelegate(HSizeEvent, Size)
 
 
 #define DefEventTypeMapping(_name, _tEventHandler) \
@@ -309,8 +328,8 @@ DefEventTypeMapping(Leave, HTouchEvent)
 //! \brief 事件映射命名空间。
 YSL_BEGIN_NAMESPACE(EventMapping)
 
-typedef GIHEvent<IWidget, UIEventArgs> ItemType;
-typedef GEventPointerWrapper<IWidget, UIEventArgs> MappedType; //!< 映射项类型。
+typedef GEventPointerWrapper<UIEventArgs> MappedType; //!< 映射项类型。
+typedef GIHEvent<UIEventArgs> ItemType;
 typedef pair<VisualEvent, MappedType> PairType;
 typedef map<VisualEvent, MappedType> MapType; //!< 映射表类型。
 typedef pair<typename MapType::iterator, bool> SearchResult; \
@@ -383,13 +402,12 @@ AController::GetItemRef(const VisualEvent&, EventMapping::MappedType(&)())
 template<class _tEventHandler>
 size_t
 DoEvent(AController& controller, const VisualEvent& id,
-	typename _tEventHandler::SenderType& sender,
 	typename _tEventHandler::EventArgsType&& e)
 {
 	try
 	{
 		return dynamic_cast<typename GSEvent<_tEventHandler>::EventType&>(
-			controller.GetItemRef(id))(sender, std::move(e));
+			controller.GetItemRef(id))(std::move(e));
 	}
 	catch(std::out_of_range&)
 	{}
@@ -400,10 +418,9 @@ DoEvent(AController& controller, const VisualEvent& id,
 template<class _tEventHandler>
 inline size_t
 DoEvent(AController& controller, const VisualEvent& id,
-	typename _tEventHandler::SenderType& sender,
 	typename _tEventHandler::EventArgsType& e)
 {
-	return DoEvent<_tEventHandler>(controller, id, sender, std::move(e));
+	return DoEvent<_tEventHandler>(controller, id, std::move(e));
 }
 
 YSL_END_NAMESPACE(Components)

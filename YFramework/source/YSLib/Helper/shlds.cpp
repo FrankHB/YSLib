@@ -12,12 +12,12 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1855;
+\version r1867;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-10-08 23:58 +0800;
+	2011-10-29 23:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -144,39 +144,39 @@ ResponseInput(const Message& msg)
 
 	if(k.Up & Touch)
 	{
-		Components::TouchEventArgs e(hContent->CursorLocation);
+		Components::TouchEventArgs e(d, hContent->CursorLocation);
 
-		shl.ResponseTouch(d, e, TouchUp);
+		shl.ResponseTouch(e, TouchUp);
 	}
 	else if(k.Up)
 	{
-		Components::KeyEventArgs e(k.Up);
+		Components::KeyEventArgs e(d, k.Up);
 
-		shl.ResponseKey(d, e, KeyUp);
+		shl.ResponseKey(e, KeyUp);
 	}
 	if(k.Down & Touch)
 	{
-		Components::TouchEventArgs e(hContent->CursorLocation);
+		Components::TouchEventArgs e(d, hContent->CursorLocation);
 
-		shl.ResponseTouch(d, e, TouchDown);
+		shl.ResponseTouch(e, TouchDown);
 	}
 	else if(k.Down)
 	{
-		Components::KeyEventArgs e(k.Down);
+		Components::KeyEventArgs e(d, k.Down);
 
-		shl.ResponseKey(d, e, KeyDown);
+		shl.ResponseKey(e, KeyDown);
 	}
 	if(k.Held & Touch)
 	{
-		Components::TouchEventArgs e(hContent->CursorLocation);
+		Components::TouchEventArgs e(d, hContent->CursorLocation);
 
-		shl.ResponseTouch(d, e, TouchHeld);
+		shl.ResponseTouch(e, TouchHeld);
 	}
 	else if(k.Held)
 	{
-		Components::KeyEventArgs e(k.Held);
+		Components::KeyEventArgs e(d, k.Held);
 
-		shl.ResponseKey(d, e, KeyHeld);
+		shl.ResponseKey(e, KeyHeld);
 	}
 }
 

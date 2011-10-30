@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5529;
+\version r5546;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-10-27 22:24 +0800;
+	2011-10-30 13:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -234,8 +234,7 @@ FetchEvent(IWidget& wgt)
 */
 template<VisualEvent _vID, typename _tEventArgs>
 inline size_t
-CallEvent(IWidget& wgt, typename EventTypeMapping<_vID>
-	::HandlerType::SenderType& sender, _tEventArgs&& e)
+CallEvent(IWidget& wgt, _tEventArgs&& e)
 {
 	static_assert(std::is_same<typename std::remove_reference<_tEventArgs>
 		::type, typename EventTypeMapping<_vID>::HandlerType::EventArgsType>
@@ -244,23 +243,11 @@ CallEvent(IWidget& wgt, typename EventTypeMapping<_vID>
 	try
 	{
 		return DoEvent<typename EventTypeMapping<_vID>::HandlerType>(
-			wgt.GetController(), _vID, sender, yforward(e));
+			wgt.GetController(), _vID, yforward(e));
 	}
 	catch(BadEvent&)
 	{}
 	return 0;
-}
-/*!
-\ingroup HelperFunctions
-\brief 调用控件自身事件。
-\note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
-\note 若控件事件不存在则忽略。
-*/
-template<VisualEvent _vID, typename _tEventArgs>
-inline size_t
-CallEvent(IWidget& wgt, _tEventArgs&& e)
-{
-	return CallEvent<_vID>(wgt, wgt, yforward(e));
 }
 
 
@@ -270,7 +257,7 @@ CallEvent(IWidget& wgt, _tEventArgs&& e)
 \brief 处理键接触保持事件。
 */
 void
-OnKeyHeld(IWidget&, KeyEventArgs&&);
+OnKeyHeld(KeyEventArgs&&);
 
 /*!
 \brief 处理屏幕接触保持事件。
@@ -279,31 +266,21 @@ OnKeyHeld(IWidget&, KeyEventArgs&&);
 实现记录坐标偏移（用于拖放）或触发 TouchMove 事件。
 */
 void
-OnTouchHeld(IWidget&, TouchEventArgs&&);
+OnTouchHeld(TouchEventArgs&&);
 
 /*!
 \brief 处理屏幕接触移动事件。
 \note 重复触发 TouchDown 事件。
 */
 void
-OnTouchMove(IWidget&, TouchEventArgs&&);
+OnTouchMove(TouchEventArgs&&);
 
 /*!
 \brief 处理屏幕接触移动事件。
 \note 使用拖放。
 */
 void
-OnTouchMove_Dragging(IWidget&, TouchEventArgs&&);
-
-/*!
-\brief 处理部件事件：引起无效化。
-*/
-PDefTH1(_tEventArgs)
-void
-OnWidget_Invalidate(IWidget& wgt, _tEventArgs&&)
-{
-	Invalidate(wgt);
-}
+OnTouchMove_Dragging(TouchEventArgs&&);
 
 
 // Control 事件处理器。
@@ -315,7 +292,7 @@ OnWidget_Invalidate(IWidget& wgt, _tEventArgs&&)
 \note 仅对 Control 及其派生类有效。
 */
 void
-OnKey_Bound_TouchUpAndLeave(IWidget&, KeyEventArgs&&);
+OnKey_Bound_TouchUpAndLeave(KeyEventArgs&&);
 
 /*!
 \brief 处理按键事件：按键-指针设备接触开始。
@@ -324,7 +301,7 @@ OnKey_Bound_TouchUpAndLeave(IWidget&, KeyEventArgs&&);
 \note 仅对 Control 及其派生类有效。
 */
 void
-OnKey_Bound_EnterAndTouchDown(IWidget&, KeyEventArgs&&);
+OnKey_Bound_EnterAndTouchDown(KeyEventArgs&&);
 
 /*!
 \brief 处理按键事件：按键-指针设备按下。
@@ -333,7 +310,7 @@ OnKey_Bound_EnterAndTouchDown(IWidget&, KeyEventArgs&&);
 \note 仅对 Control 及其派生类有效。
 */
 void
-OnKey_Bound_Click(IWidget&, KeyEventArgs&&);
+OnKey_Bound_Click(KeyEventArgs&&);
 
 
 //! \brief 控件。

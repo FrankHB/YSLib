@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3699;
+\version r3702;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-10-28 13:59 +0800;
+	2011-10-30 13:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,12 +44,11 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 	TextListBox(Rect(Point::Zero, r), h)
 {
 	TextListBox.GetContainerPtrRef() = this;
-	VerticalScrollBar.GetTrack().GetScroll() += [this](IWidget&,
-		ScrollEventArgs&& e){
+	VerticalScrollBar.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
 		TextListBox.LocateViewPosition(e.Value);
 		Invalidate(*this);
 	};
-	TextListBox.GetViewChanged() += [this](IWidget&, UIEventArgs&&){
+	TextListBox.GetViewChanged() += [this](UIEventArgs&&){
 		if(GetWidth() > defMinScrollBarWidth)
 		{
 			Size view_arena(TextListBox.GetFullViewSize());
@@ -88,7 +87,7 @@ ListBox::Refresh(const PaintContext& e)
 FileBox::FileBox(const Rect& r)
 	: FileList(), ListBox(r, GetListPtr())
 {
-	GetConfirmed() += [this](IWidget&, IndexEventArgs&& e){
+	GetConfirmed() += [this](IndexEventArgs&& e){
 		if(Contains(e) && static_cast<bool>(*this /= GetList()[e.Index]))
 		{
 			ListItems();

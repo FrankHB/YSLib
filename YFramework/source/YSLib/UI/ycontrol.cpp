@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4536;
+\version r4568;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-10-27 22:25 +0800;
+	2011-10-30 14:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -76,7 +76,7 @@ RequestFocusFrom(IWidget& dst, IWidget& src)
 {
 	if(auto p = FetchContainerPtr(dst))
 		if(p->GetFocusResponder().ResponseFocusRequest(dst))
-			CallEvent<GotFocus>(dst, src, UIEventArgs());
+			CallEvent<GotFocus>(dst, UIEventArgs(src));
 }
 
 void
@@ -84,52 +84,54 @@ ReleaseFocusFrom(IWidget& dst, IWidget& src)
 {
 	if(auto p = FetchContainerPtr(dst))
 		if(p->GetFocusResponder().ResponseFocusRelease(dst))
-			CallEvent<LostFocus>(dst, src, UIEventArgs());
+			CallEvent<LostFocus>(dst, UIEventArgs(src));
 }
 
 
 void
-OnKeyHeld(IWidget& wgt, KeyEventArgs&& e)
+OnKeyHeld(KeyEventArgs&& e)
 {
 	auto& shl(FetchGUIShell());
 
 	if(shl.RepeatHeld(shl.KeyHeldState, 240, 120))
-		CallEvent<KeyDown>(wgt, e);
+		CallEvent<KeyDown>(e.GetSender(), e);
 }
 
 void
-OnTouchHeld(IWidget& wgt, TouchEventArgs&& e)
+OnTouchHeld(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
 		auto& shl(FetchGUIShell());
 
 		if(shl.DraggingOffset == Vec::Invalid)
-			shl.DraggingOffset = wgt.GetLocation() - shl.ControlLocation;
+			shl.DraggingOffset = e.GetSender().GetLocation()
+				- shl.ControlLocation;
 		else
-			CallEvent<TouchMove>(wgt, e);
+			CallEvent<TouchMove>(e.GetSender(), e);
 		shl.LastControlLocation = shl.ControlLocation;
 	}
 }
 
 void
-OnTouchMove(IWidget& wgt, TouchEventArgs&& e)
+OnTouchMove(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
 		auto& shl(FetchGUIShell());
 
 		if(shl.RepeatHeld(shl.TouchHeldState, 240, 60))
-			CallEvent<TouchDown>(wgt, e);
+			CallEvent<TouchDown>(e.GetSender(), e);
 	}
 }
 
 void
-OnTouchMove_Dragging(IWidget& wgt, TouchEventArgs&& e)
+OnTouchMove_Dragging(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
 		auto& shl(FetchGUIShell());
+		auto& wgt(e.GetSender());
 
 	// TODO: analysis buffered coordinate delayed painting bug;
 	//	if(hShl->LastControlLocation != hShl->ControlLocation)
@@ -145,11 +147,11 @@ OnTouchMove_Dragging(IWidget& wgt, TouchEventArgs&& e)
 namespace
 {
 	IWidget*
-	FetchEnabledBoundControlPtr(IWidget& wgt, KeyEventArgs&& e)
+	FetchEnabledBoundControlPtr(KeyEventArgs&& e)
 	{
 		try
 		{
-			auto pCtl(dynamic_cast<Control&>(wgt)
+			auto pCtl(dynamic_cast<Control&>(e.GetSender())
 				.BoundControlPtr(e.GetKeyCode()));
 
 			return pCtl && IsEnabled(*pCtl) ? pCtl : nullptr;
@@ -163,13 +165,13 @@ namespace
 }
 
 void
-OnKey_Bound_TouchUpAndLeave(IWidget& wgt, KeyEventArgs&& e)
+OnKey_Bound_TouchUpAndLeave(KeyEventArgs&& e)
 {
-	auto pCtl(FetchEnabledBoundControlPtr(wgt, std::move(e)));
+	auto pCtl(FetchEnabledBoundControlPtr(std::move(e)));
 
 	if(pCtl)
 	{
-		TouchEventArgs et(TouchEventArgs::Invalid);
+		TouchEventArgs et(*pCtl, TouchEventArgs::Invalid);
 
 		CallEvent<TouchUp>(*pCtl, et);
 		CallEvent<Leave>(*pCtl, et);
@@ -178,13 +180,13 @@ OnKey_Bound_TouchUpAndLeave(IWidget& wgt, KeyEventArgs&& e)
 }
 
 void
-OnKey_Bound_EnterAndTouchDown(IWidget& wgt, KeyEventArgs&& e)
+OnKey_Bound_EnterAndTouchDown(KeyEventArgs&& e)
 {
-	auto pCtl(FetchEnabledBoundControlPtr(wgt, std::move(e)));
+	auto pCtl(FetchEnabledBoundControlPtr(std::move(e)));
 
 	if(pCtl)
 	{
-		TouchEventArgs et(TouchEventArgs::Invalid);
+		TouchEventArgs et(*pCtl, TouchEventArgs::Invalid);
 
 		CallEvent<Enter>(*pCtl, et);
 		CallEvent<TouchDown>(*pCtl, et);
@@ -193,13 +195,13 @@ OnKey_Bound_EnterAndTouchDown(IWidget& wgt, KeyEventArgs&& e)
 }
 
 void
-OnKey_Bound_Click(IWidget& wgt, KeyEventArgs&& e)
+OnKey_Bound_Click(KeyEventArgs&& e)
 {
-	auto pCtl(FetchEnabledBoundControlPtr(wgt, std::move(e)));
+	auto pCtl(FetchEnabledBoundControlPtr(std::move(e)));
 
 	if(pCtl)
 	{
-		TouchEventArgs et(TouchEventArgs::Invalid);
+		TouchEventArgs et(*pCtl, TouchEventArgs::Invalid);
 
 		CallEvent<Click>(*pCtl, et);
 		e.Handled = true;
@@ -210,9 +212,9 @@ OnKey_Bound_Click(IWidget& wgt, KeyEventArgs&& e)
 Control::ControlEventMap::ControlEventMap()
 {
 	FetchEvent<Paint>(*this) += Render;
-	FetchEvent<TouchDown>(*this) += [](IWidget& wgt, TouchEventArgs&& e){
+	FetchEvent<TouchDown>(*this) += [](TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
-			RequestFocus(wgt);
+			RequestFocus(e.GetSender());
 	};
 	FetchEvent<TouchHeld>(*this) += OnTouchHeld;
 }
@@ -221,16 +223,16 @@ Control::Control(const Rect& r)
 	: Widget(r, new Renderer(), new FocusResponder(), new Controller(true,
 	FetchPrototype<ControlEventMap>()))
 {
-//	const auto& h([this](IWidget&, EventArgs&&){
+//	const auto& h([this](EventArgs&&){
 //		Invalidate(*this);
 //	});
 // FIXME: code above causes g++ 4.6 internal compiler error: 
 //	 in gimple_expand_cfg, at cfgexpand.c:4063
 	yunsequenced(
-		FetchEvent<GotFocus>(*this) += [this](IWidget&, UIEventArgs&&){
+		FetchEvent<GotFocus>(*this) += [this](UIEventArgs&&){
 			Invalidate(*this);
 		},
-		FetchEvent<LostFocus>(*this) += [this](IWidget&, UIEventArgs&&){
+		FetchEvent<LostFocus>(*this) += [this](UIEventArgs&&){
 			Invalidate(*this);
 		}
 	);
@@ -245,13 +247,13 @@ void
 Control::SetLocation(const Point& pt)
 {
 	Widget::SetLocation(pt);
-	CallEvent<Move>(*this, UIEventArgs());
+	CallEvent<Move>(*this, UIEventArgs(*this));
 }
 void
 Control::SetSize(const Size& s)
 {
 	Widget::SetSize(s);
-	CallEvent<Resize>(*this, UIEventArgs());
+	CallEvent<Resize>(*this, UIEventArgs(*this));
 }
 
 YSL_END_NAMESPACE(Components)

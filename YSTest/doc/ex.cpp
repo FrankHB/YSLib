@@ -1,4 +1,4 @@
-// r3352; *build 255 rev 25;
+// r3352; *build 256 rev 75;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -288,72 +288,154 @@ $using:
 
 
 $DONE:
-r1:
-/ \impl @ \mf HexViewArea::Refresh @ \impl \u HexBrowser;
+r1-r13:
+/= test 1;
 
-r2:
-/ \impl @ \mf HexViewArea::Load @ \impl \u HexBrowser;
+r14:
+/ typedef GIHEvent<IWidget, UIEventArgs> ItemType @ \ns EventMapping
+	@ \h YWidgetEvent -> typedef MappedType::ItemType ItemType;
 
-r3-r6:
-/ \impl @ \mf HexViewArea::Refresh @ \impl \u HexBrowser;
-
-r7:
-/= test 1 ^ \conf release;
-
-r8:
-/ @ \h YEvent $=
-(
-	/ \clt GEventWrapper<class _tEvent>
-		-> \clt GEventWrapper<class _tEvent, typename _tBaseArgs>,
-	/ \clt PDefTH2(_tSender, _tEventSpace) GEventPointerWrapper
-		-> PDefTH2(_tSender, _tBaseArgs) GEventPointerWrapper;
-);
-/ typedef EmptyType EventArgs @ \ns YSLib @ \h YShellDefinition
-	-> typedef EmptyType VisualEventArgs @ \ns Components @ \h YWidgetEvent;
-/ \tr @ \h (YWidget, YControl);
-/ \a EventArgs => UIEventArgs;
-/ \a HVisualEvent => HUIEvent;
-
-r9:
-/ \a 'PaintEventArgs' -> 'PaintContext' \exc @ \h YWidgetEvent;
-+ \st PaintContext @ \h YWidgetEvent;
-/ \tr @ \impl @ \mf Frame::DrawContents,
-/ \tr @ \h YWidget $=
-(
-	+ \f \i void Render(IWidget&, PaintEventArgs&&),
-	+ \f \i void RenderChild(IWidget&, PaintEventArgs&&)
-);
-/ \tr @ \u YWidget;
-
-r10-r23:
+r15-r56:
 /= test 2;
 
-r24:
-* \impl @ \ctor @ \mf @ \st TouchEventArgs @ \h YWidgetEvent $since b195,
-/ @ \st IndexEventArgs $=
-(
-	- \m IWidget& Widget;
-	/ \ctor IndexEventArgs(IWidget&, IndexType)
-		-> \ctor IndexEventArgs(IndexType);
-);
-/ \tr \impl @ \mf (CallSelected, InvokeConfirmed) @ \cl TextList;
+r57:
+* \impl @ \f \i void Render(IWidget&, PaintEventArgs&&) @ \h YWidget
+	$since b255;
 
-r25:
-/= test 3 ^ \conf release;
+r58:
+/ \decl @ UIEventArgs @ \h YWidgetEvent;
++ 1st \param @ \a \ctor @ \evt \arg \st 'Args' @ \h (YWidgetEvent, Scroll);
+/ \tr \impl @ \f ResponseInput @ \impl \u Shell_DS,
+/ \tr \impl @ \mf (ATrack::CheckScroll, TextList::UpdateView,
+	TextList::CallSelected, TextList::InvokeConfirmed,
+	Control::SetLocation, Control::SetSize, Frame::DrawContents),
+/ \tr \impl @ \ctor @ \cl (HorizontalTrack, VerticalTrack),
+/ \tr \impl @ \f (RequestFocusFrom, ReleaseFocusFrom,
+	OnKey_Bound_TouchUpAndLeave, OnKey_Bound_EnterAndTouchDown,
+	OnKey_Bound_Click) @ \impl \u YControl,
+/ \tr \impl @ \f ClearFocusingPtrOf @ \impl \u YWidget;
+
+r59:
+/= test 3;
+
+r60:
+/ \tr @ \cl GUIShell $=
+(
+	/ \mf bool ResponseTouch(IWidget&, TouchEventArgs&,
+		Components::VisualEvent) -> bool
+		ResponseTouch(TouchEventArgs&, Components::VisualEvent),
+	/ \mf bool ResponseKey(IWidget&, KeyEventArgs&,
+		Components::VisualEvent) -> bool
+		ResponseTouch(KeyEventArgs&, Components::VisualEvent)
+),
+/ \tr \impl @ \f ResponseInput @ \impl \u Shell_DS;
+
+r61:
+/= test 4 ^ \conf release;
+
+r62:
+/ @ \h YControl $=
+(
+	- \ft<VisualEvent _vID, typename _tEventArgs> size_t
+		CallEvent(IWidget&, _tEventArgs&&);
+	/ \ft<VisualEvent _vID, typename _tEventArgs> size_t
+		CallEvent(IWidget&, typename EventTypeMapping<_vID>
+		::HandlerType::SenderType&, _tEventArgs&&)
+		-> \ft<'*'> CallEvent(IWidget&, _tEventArgs&&);
+);
+/ \tr \impl @ \f (RequestFocusFrom, ReleaseFocusFrom) @ \impl \u YControl,
+/ \tr \impl @ \f ClearFocusingPtrOf @ \impl \u YWidget;
+
+r63:
+/ \tr \impl @ \ctor @ \cl (Menu, Control::ControlEventMap),
+/ \tr \impl @ \f (OnKeyHeld, OnTouchHeld, OnTouchMove, OnTouchMove_Dragging,
+	(FetchEnabledBoundControlPtr @ \un \ns), OnKey_Bound_TouchUpAndLeave,
+	OnKey_Bound_EnterAndTouchDown, OnKey_Bound_Click) @ \impl \u YControl;
+
+r64:
+/ \tr @ \cl GUIShell $=
+(
+	(
+		/ \mf bool ResponseKeyBase(IWidget&, KeyEventArgs&,
+			Components::VisualEvent) -> bool
+			ResponseKeyBase(KeyEventArgs&, Components::VisualEvent)
+		/ \tr \impl @ \mf ResponseKey
+	),
+	(
+		/ \mf bool ResponseTouchBase(IWidget&, TouchEventArgs&,
+			Components::VisualEvent) -> bool
+			ResponseTouchBase(TouchEventArgs&, Components::VisualEvent)
+		/ \tr \impl @ \mf ResponseTouch
+	)
+);
+
+r65:
+/ \impl @ \mf (TFormTest::OnEnter_btnEnterTest, TFormTest::OnLeave_btnEnterTest,
+	TFormExtra::OnKeyPress_btnDragTest) @ \cl ShlExplorer @ \impl \u Shells;
+
+r66-r67:
+- sender \param @ 2 \ft DoEvent @ \h YWidgetEvent;
+/ \tr \impl @ \ft CallEvent @ \h YControl,
+/ \tr \impl @ \mf GUIShell::(ResponseTouch, TryEntering, TryLeaving);
+
+r68:
+/= test 5 ^ \conf release;
+
+r69:
+/ \impl @ \f \i Render @ \h YWidget;
+
+r70:
+/ (\decl, \impl) @ \a \mf \op() @ \h YEvent;
+
+r71:
++ \mf _tRet operator()(_tPara) @ \stt ExpandMemberFirstBinder @ \h YFunc;
+
+r72:
+- \ft OnWidget_Invalidate @ \h YControl;
+
+r73:
+/ @ \h YEvent $=
+(
+	/ typedef void FuncType(_tSender&, _tEventArgs&&) @ \stt GSEventTypeSpace
+		-> typedef void FuncType(_tEventArgs&&);
+	/ \tr \impl @ \clt (GHEvent, GEvent)
+);
+/ \tr \impl @ \h YWidgetEvent;
+/ \tr \impl @ \u (YWidget, YControl, Button, CheckBox, Scroll, TextList, Menu,
+	ListBox, Shells, HexBrowser);
+
+r74:
+* \stt @ \stt ExpandMemberFirstBinder @ \h YFunc $since b171;
+/ @ \h YEvent $=
+(
+	/ \stt<class _tSender, class _tEventArgs> GSEventTypeSpace
+		-> \stt<class _tEventArgs> GSEventTypeSpace;
+	/ \stt<class _tSender, class _tEventArgs> GHEvent
+		-> \stt<class _tEventArgs> GHEvent;
+	/ \stt<class _tSender, class _tEventArgs> GEvent
+		-> \stt<class _tEventArgs> GEvent;
+	/ \mac DefDelegate,
+	/ \in \t GIHEvent;
+	/ \clt GEventPointerWrapper
+);
+/ \tr @ \h (YWidgetEvent, Scroll);
+
+r75:
+/= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-10-28:
--21.3d;
-//Mercurial rev1-rev126: r5930;
+2011-10-30:
+-19.6d;
+//Mercurial rev1-rev127: r5955;
 
 / ...
 
 
 $NEXT_TODO:
-b256-b384:
+b257-b384:
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 + partial invalidation support @ %(TextList::PrintItems, HexViewArea::Refresh);
@@ -379,7 +461,7 @@ b385-b1089:
 
 
 $LOW_PRIOR_TODO:
-b1024-b1800:
+b1090-b1800:
 + (compressing & decompressing) @ gfx copying;
 + Microsoft Windows port;
 + general component operations:
@@ -441,6 +523,18 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ "GUI" $=
+	(
+		* $design "undefined behavior when event arguments class not empty"
+			$since b255
+	),
+	/ "first parameter for event handling emitted",
+	* "overloading error when using default template argument"
+		@ "class template ExpandMemberFirstBinder" $since b171
+),
+
+b255
 (
 	/ "shells test example" $=
 	(

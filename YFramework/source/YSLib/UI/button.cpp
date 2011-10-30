@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3591;
+\version r3593;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-10-28 13:59 +0800;
+	2011-10-30 13:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,11 +74,11 @@ Thumb::Thumb(const Rect& r)
 	MButton()
 {
 	yunsequenced(
-		FetchEvent<Enter>(*this) += [this](IWidget&, TouchEventArgs&&){
+		FetchEvent<Enter>(*this) += [this](TouchEventArgs&&){
 			bPressed = true;
 			Invalidate(*this);
 		},
-		FetchEvent<Leave>(*this) += [this](IWidget&, TouchEventArgs&&){
+		FetchEvent<Leave>(*this) += [this](TouchEventArgs&&){
 			bPressed = false;
 			Invalidate(*this);
 		}

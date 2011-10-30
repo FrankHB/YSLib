@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5167;
+\version r5171;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-10-28 14:09 +0800;
+	2011-10-30 09:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,7 +69,7 @@ ClearFocusingPtrOf(IWidget& wgt)
 	if(const auto p = FetchFocusingPtr(wgt))
 	{
 		wgt.GetFocusResponder().ClearFocusingPtr();
-		CallEvent<LostFocus>(*p, wgt, UIEventArgs());
+		CallEvent<LostFocus>(*p, UIEventArgs(wgt));
 	}
 }
 

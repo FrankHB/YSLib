@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4162;
+\version r4164;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-10-28 13:53 +0800;
+	2011-10-29 23:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -204,7 +204,7 @@ Frame::DrawContents()
 				r = Intersect(Rect(pt, wgt.GetSize()), r);
 				if(!r.IsEmptyStrict())
 				{
-					PaintEventArgs e(FetchContext(*this), pt, r);
+					PaintEventArgs e(wgt, FetchContext(*this), pt, r);
 
 					CallEvent<Paint>(wgt, e);
 					GetRenderer().CommitInvalidation(e.ClipArea);

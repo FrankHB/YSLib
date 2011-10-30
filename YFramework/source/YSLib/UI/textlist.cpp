@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1450;
+\version r1465;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-10-28 17:49 +0800;
+	2011-10-30 14:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,12 +43,7 @@ namespace
 
 
 TextList::Dependencies::Dependencies()
-{
-	yunsequenced(
-		Selected.GetRef() += &TextList::OnSelected,
-		Confirmed.GetRef() += &TextList::OnSelected
-	);
-}
+{}
 
 TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	pair<Color, Color> hilight_pair)
@@ -59,7 +54,9 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 {
 	SetAllOf(Margin, defMarginH, defMarginV);
 	yunsequenced(
-		FetchEvent<KeyDown>(*this) += [this](IWidget&, KeyEventArgs&& e){
+		GetSelected().Add(*this, &TextList::OnSelected),
+		GetConfirmed().Add(*this, &TextList::OnSelected),
+		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 			if(viewer.GetTotal() != 0)
 			{
 				if(viewer.IsSelected())
@@ -145,15 +142,15 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 			UpdateView();
 		},
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
-		FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&& e){
+		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
 			SetSelected(e);
 			UpdateView();
 		},
-		FetchEvent<TouchMove>(*this) += [this](IWidget&, TouchEventArgs&& e){
+		FetchEvent<TouchMove>(*this) += [this](TouchEventArgs&& e){
 			SetSelected(e);
 			UpdateView();
 		},
-		FetchEvent<Click>(*this) += [this](IWidget&, TouchEventArgs&& e){
+		FetchEvent<Click>(*this) += [this](TouchEventArgs&& e){
 			InvokeConfirmed(CheckPoint(e));
 		}
 	);
@@ -341,21 +338,21 @@ TextList::SelectLast()
 void
 TextList::UpdateView()
 {
-	GetViewChanged()(*this, UIEventArgs());
+	GetViewChanged()(UIEventArgs(*this));
 	Invalidate(*this);
 }
 
 void
 TextList::CallSelected()
 {
-	GetSelected()(*this, IndexEventArgs(viewer.GetSelectedIndex()));
+	GetSelected()(IndexEventArgs(*this, viewer.GetSelectedIndex()));
 }
 
 void
 TextList::InvokeConfirmed(ViewerType::SizeType idx)
 {
 	if(CheckConfirmed(idx))
-		GetConfirmed()(*this, IndexEventArgs(idx));
+		GetConfirmed()(IndexEventArgs(*this, idx));
 }
 
 void

@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2636;
+\version r2642;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-09-16 03:06 +0800;
+	2011-10-30 11:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -117,32 +117,28 @@ public:
 	\note 无视事件路由，直接响应。
 	*/
 	bool
-	ResponseKeyBase(Components::IWidget&, Components::KeyEventArgs&,
-		Components::VisualEvent);
+	ResponseKeyBase(Components::KeyEventArgs&, Components::VisualEvent);
 
 	/*!
 	\brief 响应标准按键状态。
 	\note 无视事件路由，直接响应。
 	*/
 	bool
-	ResponseTouchBase(Components::IWidget&, Components::TouchEventArgs&,
-		Components::VisualEvent);
+	ResponseTouchBase(Components::TouchEventArgs&, Components::VisualEvent);
 
 	/*!
 	\brief 响应标准按键状态。
 	\return 已被响应时为 true 。
 	*/
 	bool
-	ResponseKey(Components::IWidget&, Components::KeyEventArgs&,
-		Components::VisualEvent);
+	ResponseKey(Components::KeyEventArgs&, Components::VisualEvent);
 
 	/*!
 	\brief 响应屏幕接触状态。
 	\return 已被响应时为 true 。
 	*/
 	bool
-	ResponseTouch(Components::IWidget&, Components::TouchEventArgs&,
-		Components::VisualEvent);
+	ResponseTouch(Components::TouchEventArgs&, Components::VisualEvent);
 };
 
 YSL_END_NAMESPACE(Shells)

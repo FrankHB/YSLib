@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1850;
+\version r1855;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-10-27 22:25 +0800;
+	2011-10-30 13:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,7 +44,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 	if(h)
 		vDisabled.resize(h->size());
 	yunsequenced(
-		FetchEvent<KeyDown>(*this) += [this](IWidget&, KeyEventArgs&& e){
+		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 			if(pHost && IsSelected())
 				switch(e.GetKeyCode())
 				{
@@ -68,10 +68,10 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 					break;
 				}
 		},
-		FetchEvent<LostFocus>(*this) += [this](IWidget& c, UIEventArgs&&){
+		FetchEvent<LostFocus>(*this) += [this](UIEventArgs&& e){
 			if(pHost)
 			{
-				auto pMnu(dynamic_cast<Menu*>(&c));
+				auto pMnu(dynamic_cast<Menu*>(&e.GetSender()));
 
 				if(pMnu)
 				{
@@ -82,7 +82,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 					pHost->HideAll();
 			}
 		},
-		GetConfirmed() += [this](IWidget&, IndexEventArgs&& e){
+		GetConfirmed() += [this](IndexEventArgs&& e){
 			if(this->Contains(e) && pHost && !ShowSub(e.Index))
 				pHost->HideAll();
 		}

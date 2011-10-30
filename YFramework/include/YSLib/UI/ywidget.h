@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6077;
+\version r6081;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-10-28 14:02 +0800;
+	2011-10-30 14:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -206,9 +206,9 @@ InvalidateCascade(IWidget&, const Rect&);
 void
 Render(IWidget& wgt, PaintContext&& pc);
 inline void
-Render(IWidget& wgt, PaintEventArgs&& e)
+Render(PaintEventArgs&& e)
 {
-	return Render(wgt, static_cast<PaintContext&&>(e));
+	return Render(e.GetSender(), std::move(static_cast<PaintContext&>(e)));
 }
 
 /*

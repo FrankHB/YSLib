@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4681;
+\version r4752;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-10-28 17:42 +0800;
+	2011-10-30 15:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,10 +33,10 @@
 YSL_BEGIN
 
 //! \brief 公用事件模板命名空间。
-template<class _tSender, class _tEventArgs>
+template<class _tEventArgs>
 struct GSEventTypeSpace
 {
-	typedef void FuncType(_tSender&, _tEventArgs&&);
+	typedef void FuncType(_tEventArgs&&);
 	typedef FuncType* FuncPtrType;
 };
 
@@ -46,14 +46,13 @@ struct GSEventTypeSpace
 \note 若使用函数对象，可以不满足 \c EqualityComparable 的接口，即
 	可使用返回 \c bool 的 \c operator== ，但此模板类无法检查其语义正确性。
 */
-template<class _tSender, class _tEventArgs>
+template<class _tEventArgs>
 class GHEvent : protected std::function<typename GSEventTypeSpace<
-	_tSender, _tEventArgs>::FuncType>
+	_tEventArgs>::FuncType>
 {
 public:
-	typedef _tSender SenderType;
 	typedef _tEventArgs EventArgsType;
-	typedef GSEventTypeSpace<_tSender, _tEventArgs> SEventType;
+	typedef GSEventTypeSpace<_tEventArgs> SEventType;
 	typedef typename SEventType::FuncType FuncType;
 	typedef std::function<FuncType> BaseType;
 
@@ -102,46 +101,15 @@ public:
 		comp_eq(GetComparer(f, f))
 	{}
 	/*!
-	\brief 构造：使用 _tSender 的成员函数指针。
-	*/
-	yconstexprf
-	GHEvent(void(_tSender::*pm)(_tEventArgs&&))
-		: std::function<FuncType>(ExpandMemberFirst<
-			_tSender, void, _tEventArgs&&>(pm)),
-		comp_eq(GEquality<ExpandMemberFirst<
-			_tSender, void, _tEventArgs&&>>::AreEqual)
-	{}
-	/*!
-	\brief 构造：使用成员函数指针。
-	*/
-	template<class _type>
-	yconstexprf
-	GHEvent(void(_type::*pm)(_tEventArgs&&))
-		: std::function<FuncType>(ExpandMemberFirst<
-			_type, void, _tEventArgs&&, _tSender>(pm)),
-		comp_eq(GEquality<ExpandMemberFirst<
-			_type, void, _tEventArgs&&, _tSender>>::AreEqual)
-	{}
-	/*!
-	\brief 构造：使用 _tSender 类型对象引用和成员函数指针。
-	*/
-	yconstexprf
-	GHEvent(_tSender& obj, void(_tSender::*pm)(_tEventArgs&&))
-		: std::function<FuncType>(ExpandMemberFirstBinder<
-			_tSender, void, _tEventArgs&&>(obj, pm)),
-		comp_eq(GEquality<ExpandMemberFirstBinder<
-			_tSender, void, _tEventArgs&&>>::AreEqual)
-	{}
-	/*!
 	\brief 构造：使用对象引用和成员函数指针。
 	*/
 	template<class _type>
 	yconstexprf
 	GHEvent(_type& obj, void(_type::*pm)(_tEventArgs&&))
 		: std::function<FuncType>(ExpandMemberFirstBinder<
-			_type, void, _tEventArgs&&, _tSender>(obj, pm)),
+			_type, void, _tEventArgs&&>(obj, pm)),
 		comp_eq(GEquality<ExpandMemberFirstBinder<
-			_type, void, _tEventArgs&&, _tSender>>::AreEqual)
+			_type, void, _tEventArgs&&>>::AreEqual)
 	{}
 
 	DefDeCopyAssignment(GHEvent)
@@ -187,15 +155,14 @@ private:
 \brief 事件类模板。
 \note 支持顺序多播。
 */
-template<class _tSender, class _tEventArgs>
+template<class _tEventArgs>
 class GEvent
 {
 public:
-	typedef _tSender SenderType;
 	typedef _tEventArgs EventArgsType;
-	typedef GSEventTypeSpace<_tSender, _tEventArgs> SEventType;
+	typedef GSEventTypeSpace<_tEventArgs> SEventType;
 	typedef typename SEventType::FuncType FuncType;
-	typedef GHEvent<_tSender, _tEventArgs> HandlerType;
+	typedef GHEvent<_tEventArgs> HandlerType;
 	typedef list<HandlerType> ListType;
 	typedef typename ListType::size_type SizeType;
 
@@ -406,12 +373,12 @@ public:
 	\brief 调用函数。
 	*/
 	SizeType
-	operator()(_tSender& sender, _tEventArgs&& e) const
+	operator()(_tEventArgs&& e) const
 	{
 		SizeType n(0);
 
 		for(auto i(this->List.cbegin()); i != this->List.cend(); ++i, ++n)
-			(*i)(sender, std::move(e));
+			(*i)(std::move(e));
 		return n;
 	}
 
@@ -435,8 +402,7 @@ public:
 
 
 //! \brief 定义事件处理器委托类型。
-#define DefDelegate(_name, _tSender, _tEventArgs) \
-	typedef GHEvent<_tSender, _tEventArgs> _name;
+#define DefDelegate(_name, _tEventArgs) typedef GHEvent<_tEventArgs> _name;
 
 
 /*!
@@ -453,7 +419,6 @@ public:
 	typedef typename GDependency<_tEvent>::ReferentType ReferentType;
 	typedef typename GDependency<_tEvent>::ReferenceType ReferenceType;
 	typedef DependentType EventType;
-	typedef typename EventType::SenderType SenderType;
 	typedef typename EventType::EventArgsType EventArgsType;
 	typedef typename EventType::SEventType SEventType;
 	typedef typename EventType::FuncType FuncType;
@@ -508,9 +473,9 @@ public:
 	\brief 调用函数。
 	*/
 	inline SizeType
-	operator()(SenderType& sender, EventArgsType&& e) const
+	operator()(EventArgsType&& e) const
 	{
-		return this->GetRef().operator()(sender, std::move(e));
+		return this->GetRef().operator()(std::move(e));
 	}
 
 	/*!
@@ -530,8 +495,7 @@ public:
 template<class _tEventHandler>
 struct GSEvent
 {
-	typedef GEvent<typename _tEventHandler::SenderType,
-		typename _tEventHandler::EventArgsType> EventType;
+	typedef GEvent<typename _tEventHandler::EventArgsType> EventType;
 	typedef GDependencyEvent<EventType> DependencyType;
 };
 
@@ -590,9 +554,9 @@ struct GSEvent
 
 
 //! \brief 事件处理器接口模板。
-template<class _tSender, class _tEventArgs>
+template<class _tEventArgs>
 DeclInterface(GIHEvent)
-	DeclIEntry(size_t operator()(_tSender&, _tEventArgs&&) const)
+	DeclIEntry(size_t operator()(_tEventArgs&&) const)
 	DeclIEntry(GIHEvent* Clone() const)
 EndDecl
 
@@ -600,12 +564,11 @@ EndDecl
 //! \brief 事件处理器包装类模板。
 template<class _tEvent, typename _tBaseArgs>
 class GEventWrapper : public _tEvent,
-	implements GIHEvent<typename _tEvent::SenderType, _tBaseArgs>
+	implements GIHEvent<_tBaseArgs>
 {
 public:
 	typedef _tEvent EventType;
 	typedef _tBaseArgs BaseArgsType;
-	typedef typename EventType::SenderType SenderType;
 	typedef typename EventType::EventArgsType EventArgsType;
 
 	inline virtual DefClone(GEventWrapper, Clone)
@@ -615,10 +578,10 @@ public:
 	\warning 需要确保 BaseArgsType&& 引用的对象能够转换至 EventArgsType&& 引用。
 	*/
 	inline virtual size_t
-	operator()(SenderType& sender, BaseArgsType&& e) const
+	operator()(BaseArgsType&& e) const
 	{
-		return EventType::operator()(sender,
-			static_cast<EventArgsType&&>(std::move(e)));
+		return EventType::operator()(static_cast<EventArgsType&&>(
+			std::move(e)));
 	}
 };
 
@@ -627,11 +590,11 @@ public:
 \brief 事件项类型。
 \warning 非虚析构。
 */
-PDefTH2(_tSender, _tBaseArgs)
+PDefTH1(_tBaseArgs)
 class GEventPointerWrapper
 {
 public:
-	typedef GIHEvent<_tSender, _tBaseArgs> ItemType;
+	typedef GIHEvent<_tBaseArgs> ItemType;
 	typedef unique_ptr<ItemType> PointerType;
 
 private:

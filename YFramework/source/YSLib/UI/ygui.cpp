@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3974;
+\version r3991;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-10-28 13:58 +0800;
+	2011-10-30 11:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -122,7 +122,11 @@ GUIShell::TryEntering(IWidget& wgt, TouchEventArgs& e)
 {
 	if(!control_entered)
 	{
+		auto& w(e.GetSender());
+
+		e.SetSender(wgt);
 		CallEvent<Enter>(wgt, e);
+		e.SetSender(w);
 		control_entered = true;
 	}
 }
@@ -131,7 +135,11 @@ GUIShell::TryLeaving(IWidget& wgt, TouchEventArgs& e)
 {
 	if(control_entered)
 	{
+		auto& w(e.GetSender());
+
+		e.SetSender(wgt);
 		CallEvent<Leave>(wgt, e);
+		e.SetSender(w);
 		control_entered = false;
 	}
 }
@@ -144,9 +152,10 @@ GUIShell::ResetTouchHeldState()
 }
 
 bool
-GUIShell::ResponseKeyBase(IWidget& wgt, KeyEventArgs& e,
-	Components::VisualEvent op)
+GUIShell::ResponseKeyBase(KeyEventArgs& e, Components::VisualEvent op)
 {
+	auto& wgt(e.GetSender());
+
 	switch(op)
 	{
 	case KeyUp:
@@ -177,9 +186,10 @@ GUIShell::ResponseKeyBase(IWidget& wgt, KeyEventArgs& e,
 }
 
 bool
-GUIShell::ResponseTouchBase(IWidget& wgt, TouchEventArgs& e,
-	Components::VisualEvent op)
+GUIShell::ResponseTouchBase(TouchEventArgs& e, Components::VisualEvent op)
 {
+	auto& wgt(e.GetSender());
+
 	switch(op)
 	{
 	case TouchUp:
@@ -212,6 +222,7 @@ GUIShell::ResponseTouchBase(IWidget& wgt, TouchEventArgs& e,
 			TryLeaving(*p_TouchDown, el);
 			e += offset;
 		}
+		e.SetSender(*p_TouchDown);
 		CallEvent<TouchHeld>(*p_TouchDown, e);
 		break;
 	default:
@@ -222,10 +233,9 @@ GUIShell::ResponseTouchBase(IWidget& wgt, TouchEventArgs& e,
 }
 
 bool
-GUIShell::ResponseKey(IWidget& wgt, KeyEventArgs& e,
-	Components::VisualEvent op)
+GUIShell::ResponseKey(KeyEventArgs& e, Components::VisualEvent op)
 {
-	auto p(&wgt);
+	auto p(&e.GetSender());
 	IWidget* pCon;
 	bool r(false);
 
@@ -242,30 +252,32 @@ GUIShell::ResponseKey(IWidget& wgt, KeyEventArgs& e,
 
 		if(!t || t == pCon)
 			break;
-		r |= ResponseKeyBase(*p, e, op);
+		e.SetSender(*p);
+		r |= ResponseKeyBase(e, op);
 		p = t;
 	}
 
 	YAssert(p, "Null pointer found @ GUIShell::ResponseKey");
 
 	e.Strategy = Components::RoutedEventArgs::Direct;
-	r |= ResponseKeyBase(*p, e, op);
+	e.SetSender(*p);
+	r |= ResponseKeyBase(e, op);
 	e.Strategy = Components::RoutedEventArgs::Bubble;
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
 		p = pCon;
-		r |= ResponseKeyBase(*p, e, op);
+		e.SetSender(*p);
+		r |= ResponseKeyBase(e, op);
 	}
 	return r;
 }
 
 bool
-GUIShell::ResponseTouch(IWidget& wgt, TouchEventArgs& e,
-	Components::VisualEvent op)
+GUIShell::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 {
 	ControlLocation = e;
 
-	auto p(&wgt);
+	auto p(&e.GetSender());
 	IWidget* pCon;
 	bool r(false);
 
@@ -291,7 +303,8 @@ GUIShell::ResponseTouch(IWidget& wgt, TouchEventArgs& e,
 				ClearFocusingPtrOf(*pCon);
 			break;
 		}
-		r |= DoEvent<HTouchEvent>(p->GetController(), op, *p, e)
+		e.SetSender(*p);
+		r |= DoEvent<HTouchEvent>(p->GetController(), op, e)
 			!= 0;
 		p = t;
 		e -= p->GetLocation();
@@ -300,13 +313,15 @@ GUIShell::ResponseTouch(IWidget& wgt, TouchEventArgs& e,
 	YAssert(p, "Null pointer found @ GUIShell::ResponseTouch");
 
 	e.Strategy = Components::RoutedEventArgs::Direct;
-	r |= ResponseTouchBase(*p, e, op);
+	e.SetSender(*p);
+	r |= ResponseTouchBase(e, op);
 	e.Strategy = Components::RoutedEventArgs::Bubble;
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
 		e += p->GetLocation();
 		p = pCon;
-		r |= DoEvent<HTouchEvent>(p->GetController(), op, *p, e)
+		e.SetSender(*p);
+		r |= DoEvent<HTouchEvent>(p->GetController(), op, e)
 			!= 0;
 	}
 	return r;

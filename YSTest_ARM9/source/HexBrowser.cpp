@@ -11,12 +11,12 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1289;
+\version r1290;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2011-10-28 13:55 +0800;
+	2011-10-30 13:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -55,8 +55,7 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 	HorizontalScrollBar.SetVisible(false);
 	VerticalScrollBar.SetVisible(true);
 	VerticalScrollBar.SetSmallDelta(1);
-	VerticalScrollBar.GetTrack().GetScroll() += [this](IWidget&,
-		ScrollEventArgs&& e){
+	VerticalScrollBar.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
 		LocateViewPosition(e.Value);
 		Invalidate(*this);
 	};

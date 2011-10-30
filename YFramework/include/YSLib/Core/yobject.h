@@ -12,12 +12,12 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3264;
+\version r3265;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-10-12 17:34 +0800;
+	2011-10-28 19:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -120,8 +120,8 @@ public:
 	ValueObject();
 	/*!
 	\brief 构造：使用对象左值引用。
-	\note 对象需要是可复制构造的。
-	\note 得到包含指定对象的实例。
+	\pre obj 可被复制构造。
+	\note 得到包含指定对象副本的实例。
 	*/
 	PDefTH1(_type)
 	ValueObject(const _type& obj)

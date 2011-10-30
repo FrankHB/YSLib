@@ -15,12 +15,12 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3474;
+\version r3480;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-10-28 13:55 +0800;
+	2011-10-30 13:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -108,10 +108,10 @@ public:
 		TFormTest();
 
 		static void
-		OnEnter_btnEnterTest(IWidget&, TouchEventArgs&&);
+		OnEnter_btnEnterTest(TouchEventArgs&&);
 
 		static void
-		OnLeave_btnEnterTest(IWidget&, TouchEventArgs&&);
+		OnLeave_btnEnterTest(TouchEventArgs&&);
 	};
 
 	struct TFormExtra : public Form
@@ -124,7 +124,7 @@ public:
 		TFormExtra();
 
 		static void
-		OnKeyPress_btnDragTest(IWidget& sender, KeyEventArgs&& e);
+		OnKeyPress_btnDragTest(KeyEventArgs&&);
 	};
 
 	Label lblTitle, lblPath;
@@ -158,10 +158,10 @@ private:
 	ShowString(const char*);
 
 	static void
-	OnConfirmed_fbMain(IWidget&, IndexEventArgs&&);
+	OnConfirmed_fbMain(IndexEventArgs&&);
 
 	static void
-	OnClick_ShowWindow(IWidget&, TouchEventArgs&&);
+	OnClick_ShowWindow(TouchEventArgs&&);
 };
 
 

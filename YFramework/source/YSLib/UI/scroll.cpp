@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3863;
+\version r3881;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-10-28 13:58 +0800;
+	2011-10-30 14:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -80,9 +80,7 @@ namespace
 
 
 ATrack::Dependencies::Dependencies()
-{
-	ThumbDrag.GetRef() += &ATrack::OnThumbDrag;
-}
+{}
 
 ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	: AUIBoxControl(Rect(r.GetPoint(),
@@ -95,8 +93,9 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 {
 	Thumb.GetContainerPtrRef() = this;
 	yunsequenced(
+		GetThumbDrag().Add(*this, &ATrack::OnThumbDrag),
 		FetchEvent<TouchMove>(*this) += OnTouchMove,
-		FetchEvent<TouchDown>(*this) += [this](IWidget&, TouchEventArgs&& e){
+		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
 			if(e.Strategy == RoutedEventArgs::Direct
 				&& Rect(Point::Zero, this->GetSize()).Contains(e))
 			{
@@ -225,9 +224,7 @@ ATrack::CheckArea(SDst q) const
 void
 ATrack::CheckScroll(ScrollEventSpace::ScrollEventType t, ValueType old_value)
 {
-	ScrollEventArgs e(t, value, old_value);
-
-	GetScroll()(*this, std::move(e));
+	GetScroll()(ScrollEventArgs(*this, t, value, old_value));
 }
 
 void
@@ -306,7 +303,7 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"Width is not greater than height.");
 
-	FetchEvent<TouchMove>(Thumb) +=[this](IWidget&, TouchEventArgs&& e){
+	FetchEvent<TouchMove>(Thumb) +=[this](TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
 			GUIShell& shl(FetchGUIShell());
@@ -314,7 +311,7 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 
 			RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
 			Thumb.SetLocation(Point(x, Thumb.GetLocation().Y));
-			GetThumbDrag()(*this, UIEventArgs());
+			GetThumbDrag()(UIEventArgs(*this));
 		}
 	};
 }
@@ -329,7 +326,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 		"(const Rect& r, SDst uMinThumbLength) const\": \n"
 		"height is not greater than width.");
 
-	FetchEvent<TouchMove>(Thumb) += [this](IWidget&, TouchEventArgs&& e){
+	FetchEvent<TouchMove>(Thumb) += [this](TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
 			GUIShell& shl(FetchGUIShell());
@@ -337,7 +334,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 
 			RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
 			Thumb.SetLocation(Point(Thumb.GetLocation().X, y));
-			GetThumbDrag()(*this, UIEventArgs());
+			GetThumbDrag()(UIEventArgs(*this));
 		}
 	};
 }
@@ -360,13 +357,11 @@ try	: AUIBoxControl(r),
 	yunsequenced(
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 		FetchEvent<TouchMove>(PrevButton) += OnTouchMove,
-		FetchEvent<TouchDown>(PrevButton) += [this](IWidget&,
-			TouchEventArgs&& e){
+		FetchEvent<TouchDown>(PrevButton) += [this](TouchEventArgs&& e){
 			PerformSmallDecrement();
 		},
 		FetchEvent<TouchMove>(NextButton) += OnTouchMove,
-		FetchEvent<TouchDown>(NextButton) += [this](IWidget&,
-			TouchEventArgs&& e){
+		FetchEvent<TouchDown>(NextButton) += [this](TouchEventArgs&& e){
 			PerformSmallIncrement();
 		},
 		FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUpAndLeave,

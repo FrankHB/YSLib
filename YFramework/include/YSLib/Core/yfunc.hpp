@@ -11,12 +11,12 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数对象封装。
-\version r1753;
+\version r1767;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2011-09-23 18:02 +0800;
+	2011-10-30 16:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -201,13 +201,6 @@ private:
 
 public:
 	/*!
-	\brief 构造：使用对象引用和成员函数指针。
-	*/
-	yconstexprf
-	ExpandMemberFirstBinder(_type& obj, _tRet(_type::*p)(_tPara))
-		: _po(&obj), _pm(p)
-	{}
-	/*!
 	\brief 构造：使用非 _type 类型对象引用和成员函数指针。
 	\note 使用 dynamic_cast 测试类型。
 	*/
@@ -225,6 +218,16 @@ public:
 		return _po == rhs._po && _pm == rhs._pm;
 	}
 
+	/*!
+	\brief 调用：使用替换对象引用和参数。
+	\note 检测空指针。
+	*/
+	_tRet
+	operator()(_tPara arg)
+	{
+		if(_po && _pm)
+			return (_po->*_pm)(yforward(arg));
+	}
 	/*!
 	\brief 调用：使用替换对象引用和参数。
 	\note 检测空指针。
