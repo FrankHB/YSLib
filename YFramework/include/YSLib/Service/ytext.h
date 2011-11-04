@@ -592,9 +592,9 @@ public:
 	void
 	operator()(ucs4_t);
 
-	ImplI1(ATextRenderer) DefGetter(const TextState&, TextState, State)
-	ImplI1(ATextRenderer) DefMutableGetter(TextState&, TextState, State)
-	ImplI1(ATextRenderer) DefGetter(const Graphics&, Context, Buffer)
+	ImplI(ATextRenderer) DefGetter(const TextState&, TextState, State)
+	ImplI(ATextRenderer) DefMutableGetter(TextState&, TextState, State)
+	ImplI(ATextRenderer) DefGetter(const Graphics&, Context, Buffer)
 };
 
 inline
@@ -645,9 +645,9 @@ public:
 	void
 	operator()(ucs4_t);
 
-	ImplI1(ATextRenderer) DefGetter(const TextState&, TextState, *this)
-	ImplI1(ATextRenderer) DefMutableGetter(TextState&, TextState, *this)
-	ImplI1(ATextRenderer) DefGetter(const Graphics&, Context, *this)
+	ImplI(ATextRenderer) DefGetter(const TextState&, TextState, *this)
+	ImplI(ATextRenderer) DefMutableGetter(TextState&, TextState, *this)
+	ImplI(ATextRenderer) DefGetter(const Graphics&, Context, *this)
 
 protected:
 	/*!

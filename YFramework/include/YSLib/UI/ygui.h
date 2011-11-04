@@ -11,12 +11,12 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2642;
+\version r2646;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-10-30 11:25 +0800;
+	2011-10-31 17:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -103,10 +103,10 @@ public:
 
 private:
 	void
-	TryEntering(Components::IWidget&, Components::TouchEventArgs&);
+	TryEntering(Components::TouchEventArgs&&);
 
 	void
-	TryLeaving(Components::IWidget&, Components::TouchEventArgs&);
+	TryLeaving(Components::TouchEventArgs&&);
 
 	void
 	ResetTouchHeldState();

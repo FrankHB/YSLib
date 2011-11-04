@@ -11,12 +11,12 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1290;
+\version r1366;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2011-10-30 13:26 +0800;
+	2011-11-04 18:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,24 +33,15 @@ using namespace Text;
 
 YSL_BEGIN_NAMESPACE(Components)
 
-namespace
+HexView::HexView(FontCache& fc)
+	: TextState(fc), item_num(0), data()
 {
-	void
-	ConvertByte(char(&dst)[3], byte data)
-	{
-		yunsequenced(dst[0] = (data >> 4 & 0x0F) + '0',
-			dst[1] = (data & 0x0F) + '0');
-		if(dst[0] > '9')
-			dst[0] += 'A' - '9' - 1;
-		if(dst[1] > '9')
-			dst[1] += 'A' - '9' - 1;
-		dst[2] = 0;
-	}
+	TextState.Color = ColorSpace::Black;
 }
 
+
 HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
-	: ScrollableContainer(r),
-	text_state(fc), item_num(0), lines(), source()
+	: ScrollableContainer(r), HexModel(), HexView(fc)
 {
 	HorizontalScrollBar.SetVisible(false);
 	VerticalScrollBar.SetVisible(true);
@@ -59,7 +50,6 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 		LocateViewPosition(e.Value);
 		Invalidate(*this);
 	};
-	text_state.Color = ColorSpace::Black;
 	Reset();
 }
 
@@ -76,11 +66,11 @@ void
 HexViewArea::Load(const_path_t path)
 {
 	Reset();
-	source.Open(path);
+	Source.Open(path);
 	// FIXME: overflow;
-	VerticalScrollBar.SetMaxValue((source.GetSize() + ItemPerLine - 1)
+	VerticalScrollBar.SetMaxValue((Source.GetSize() + ItemPerLine - 1)
 		/ ItemPerLine);
-	VerticalScrollBar.SetLargeDelta(item_num);
+	VerticalScrollBar.SetLargeDelta(GetItemNum());
 }
 
 void
@@ -99,48 +89,47 @@ HexViewArea::Refresh(const PaintContext& e)
 		GetWidth() - VerticalScrollBar.GetWidth(), GetHeight())));
 //	Widget::Refresh(e);
 	ScrollableContainer::Refresh(e);
+	TextState.ResetPen();
 
-	const auto lh(GetTextLineHeightOf(text_state));
-	const SPos h(GetHeight());
-	const int fsize(source.GetSize());
-	TextRenderer tr(text_state, e.Target);
-	auto i_line(lines.cbegin());
-	auto pos(source.GetPosition());
 	yconstexpr auto ItemPerLine(HexViewArea::ItemPerLine); // TODO: fix linkage;
-
-	text_state.ResetPen();
-
-	auto& y(text_state.PenY);
-	const SDst w_all(GetWidth() - VerticalScrollBar.GetWidth()
-		- GetHorizontalOf(text_state.Margin)),
+	auto& y(TextState.PenY);
+	const SDst lh(GetTextLineHeightOf(TextState)), h(GetHeight()),
+		w_all(GetWidth() - VerticalScrollBar.GetWidth()
+			- GetHorizontalOf(TextState.Margin)),
 		w_blank(w_all / (10 + ItemPerLine * 3)),
 		w_ch((w_all - w_blank * (1 + ItemPerLine)) / (8 + ItemPerLine * 2)),
 		w_addr(w_ch * 8 + w_blank),
 		w_item(w_ch * 2 + w_blank);
+	const int fsize(Source.GetSize());
+	auto& pen_x(TextState.PenX);
+	TextRenderer tr(TextState, e.Target);
+	auto pos(Source.GetPosition());
+	auto i_data(GetBegin());
 
-	while(y < h && pos < fsize && i_line != lines.cend())
+	while(y < h && pos < fsize && i_data < GetEnd())
 	{
-		const auto& line(*i_line);
-		auto& x(text_state.PenX);
-		auto x_t(x);
-		char straddr[(32 >> 2) + 1];
-		const auto n(std::min<LineType::size_type>(fsize - pos, ItemPerLine));
+		pen_x = TextState.Margin.Left;
 
-		x_t = x = text_state.Margin.Left;
-		std::sprintf(straddr, "%08X", pos);
-		PutLine(tr, straddr);
-		x_t += w_addr;
-		for(LineType::size_type i(0); i < n; ++i)
+		auto x(pen_x);
+
 		{
-			char str[3];
-	
-			ConvertByte(str, line[i]);
-			x = x_t;
-			PutLine(tr, str);
-			x_t += w_item;
+			char straddr[(32 >> 2) + 1];
+
+			std::sprintf(straddr, "%08X", pos);
+			PutLine(tr, straddr);
 		}
-		yunsequenced(y += lh + text_state.LineGap, ++i_line);
-		pos += ItemPerLine;
+		x += w_addr;
+
+		const auto n(std::min<IndexType>(fsize - pos, ItemPerLine));
+
+		for(IndexType j(0); j < n; ++j)
+		{
+			pen_x = x;
+			PutLine(tr, &*i_data, &*i_data + 2);
+			i_data += 2;
+			x += w_item;
+		}
+		yunsequenced(y += lh + TextState.LineGap, pos += ItemPerLine);
 	}
 	return Rect(e.Location, GetSize());
 }
@@ -148,29 +137,35 @@ HexViewArea::Refresh(const PaintContext& e)
 void
 HexViewArea::Reset()
 {
-	lines.clear();
-	item_num = FetchResizedLineN(text_state, GetHeight());
-	source.Close();
+	VerticalScrollBar.SetValue(0);
+	ClearData();
+	UpdateItemNum(GetHeight());
+	Source.Close();
 	Invalidate(*this);
 }
 
 void
 HexViewArea::UpdateData(u32 pos)
 {
-	if(source.IsValid() && pos < source.GetSize())
+	if(Source.IsValid() && pos < Source.GetSize())
 	{
-		source.SetPosition(pos, SEEK_SET);
+		const DataType::size_type n(ItemPerLine * GetItemNum() * 2);
+		DataType::size_type i(0);
 
-		lines.clear();
-		while(!source.CheckEOF() && lines.size() < item_num)
+		Source.SetPosition(pos, SEEK_SET);
+		ResizeData(n);
+		while(!Source.CheckEOF() && i < n)
 		{
-			LineType line;
+			byte b(std::fgetc(Source.GetPtr()));
+			char h, l;
 
-			source.Read(&line[0], 1, ItemPerLine);
-			lines.push_back(std::move(line));
+			yunsequenced(h = (b >> 4 & 0x0F) + '0', l = (b & 0x0F) + '0');
+			(*this)[i++] = h > '9' ? h + 'A' - '9' - 1 : h;
+			(*this)[i++] = l > '9' ? l + 'A' - '9' - 1 : l;
 		}
 	//	VerticalScrollBar.SetValue(pos / ItemPerLine);
-		source.SetPosition(pos, SEEK_SET);
+		ResizeData(i);
+		Source.SetPosition(pos, SEEK_SET); // Refresh 需要据此判断接近文件结尾。
 		Invalidate(*this);
 	}
 }

@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3235;
+\version r3245;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-10-30 15:21 +0800;
+	2011-10-31 18:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -120,16 +120,8 @@ private:
 	ValueType large_delta; \
 		//!< 大距离滚动偏移量：滚动事件关联的滑块位置变化绝对值。
 	// MRange::value 实际最大取值为 MRange::max_value - large_delta 。
-
-	//! \brief 事件依赖项。
-	class Dependencies
-	{
-	public:
-		DeclDepEvent(HUIEvent, ThumbDrag) //!< 滑块拖动事件。
-		DeclDepEvent(HScrollEvent, Scroll) //!< 滚动事件。
-
-		Dependencies();
-	} Events;
+	DeclEvent(HUIEvent, ThumbDrag) //!< 滑块拖动事件。
+	DeclEvent(HScrollEvent, Scroll) //!< 滚动事件。
 
 public:
 	/*!
@@ -146,12 +138,10 @@ public:
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	\note 仅滑块。
 	*/
-	ImplI1(AUIBoxControl) IWidget*
+	ImplI(AUIBoxControl) IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
-	DefMutableDepEventGetter(HUIEvent, ThumbDrag, Events.ThumbDrag) \
-		//!< 滑块拖动事件。
-	DefMutableDepEventGetter(HScrollEvent, Scroll, Events.Scroll) \
-		//!< 滚动事件。
+	DefMutableEventGetter(HUIEvent, ThumbDrag, ThumbDrag) //!< 滑块拖动事件。
+	DefMutableEventGetter(HScrollEvent, Scroll, Scroll) //!< 滚动事件。
 	DefGetter(SDst, MinThumbLength, min_thumb_length)
 	DeclIEntry(Orientation GetOrientation() const) //!< 取轨道方向。
 	DefGetter(SDst, ThumbLength, SelectFrom(Thumb.GetSize(),
@@ -295,13 +285,6 @@ public:
 	*/
 	void
 	UpdateValue();
-
-private:
-	/*!
-	\brief 处理滑块移动事件。
-	*/
-	void
-	OnThumbDrag(UIEventArgs&&);
 };
 
 inline void
@@ -359,7 +342,7 @@ public:
 	HorizontalTrack(const Rect& = Rect::Empty, SDst = 8);
 	inline DefDeMoveCtor(HorizontalTrack)
 
-	ImplI1(ATrack)
+	ImplI(ATrack)
 	DefGetter(Orientation, Orientation, Horizontal)
 };
 
@@ -376,7 +359,7 @@ public:
 	VerticalTrack(const Rect& = Rect::Empty, SDst = 8);
 	inline DefDeMoveCtor(VerticalTrack)
 
-	ImplI1(ATrack)
+	ImplI(ATrack)
 	DefGetter(Orientation, Orientation, Vertical)
 };
 
@@ -409,7 +392,7 @@ public:
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	\note 仅滑块和滚动条按钮。
 	*/
-	ImplI1(AUIBoxControl) IWidget*
+	ImplI(AUIBoxControl) IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 	/*!
 	\brief 取轨道引用。
@@ -478,7 +461,7 @@ public:
 	inline DefDeMoveCtor(HorizontalScrollBar)
 
 public:
-	ImplI1(ATrack)
+	ImplI(ATrack)
 	DefGetter(Orientation, Orientation, Horizontal)
 
 protected:
@@ -496,7 +479,7 @@ public:
 	inline DefDeMoveCtor(VerticalScrollBar)
 
 public:
-	ImplI1(ATrack)
+	ImplI(ATrack)
 	DefGetter(Orientation, Orientation, Vertical)
 
 protected:
@@ -520,7 +503,7 @@ public:
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	*/
-	ImplI1(AUIBoxControl) IWidget*
+	ImplI(AUIBoxControl) IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 	/*!

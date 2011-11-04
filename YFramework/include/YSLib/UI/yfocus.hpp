@@ -11,12 +11,12 @@
 /*!	\file yfocus.hpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r2515;
+\version r2516;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-09-14 23:31 +0800;
+	2011-11-04 19:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -54,7 +54,7 @@ public:
 	virtual DefEmptyDtor(GFocusResponder)
 
 	//! \brief 判断指定指针是否和焦点对象指针相等。
-	inline PDefH1(bool, IsFocusing, _type* p) const
+	inline PDefH(bool, IsFocusing, _type* p) const
 		ImplRet(pFocusing == p)
 
 	/*!

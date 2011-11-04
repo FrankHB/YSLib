@@ -45,7 +45,7 @@ public:
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	*/
-	ImplA1(IWidget)
+	ImplA(IWidget)
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)));
 };
 

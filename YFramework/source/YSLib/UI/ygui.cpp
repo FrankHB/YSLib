@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3991;
+\version r3998;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-10-30 11:53 +0800;
+	2011-10-31 17:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -118,28 +118,20 @@ GUIShell::ResetGUIStates()
 }
 
 void
-GUIShell::TryEntering(IWidget& wgt, TouchEventArgs& e)
+GUIShell::TryEntering(TouchEventArgs&& e)
 {
 	if(!control_entered)
 	{
-		auto& w(e.GetSender());
-
-		e.SetSender(wgt);
-		CallEvent<Enter>(wgt, e);
-		e.SetSender(w);
+		CallEvent<Enter>(e.GetSender(), e);
 		control_entered = true;
 	}
 }
 void
-GUIShell::TryLeaving(IWidget& wgt, TouchEventArgs& e)
+GUIShell::TryLeaving(TouchEventArgs&& e)
 {
 	if(control_entered)
 	{
-		auto& w(e.GetSender());
-
-		e.SetSender(wgt);
-		CallEvent<Leave>(wgt, e);
-		e.SetSender(w);
+		CallEvent<Leave>(e.GetSender(), e);
 		control_entered = false;
 	}
 }
@@ -196,7 +188,11 @@ GUIShell::ResponseTouchBase(TouchEventArgs& e, Components::VisualEvent op)
 		ResetTouchHeldState();
 		CallEvent<TouchUp>(wgt, e);
 		if(p_TouchDown)
-			TryLeaving(*p_TouchDown, e);
+		{
+			e.SetSender(*p_TouchDown);
+			TryLeaving(std::move(e));
+			e.SetSender(wgt);
+		}
 		if(p_TouchDown == &wgt)
 		{
 			CallEvent<Click>(wgt, e);
@@ -205,21 +201,19 @@ GUIShell::ResponseTouchBase(TouchEventArgs& e, Components::VisualEvent op)
 		break;
 	case TouchDown:
 		p_TouchDown = &wgt;
-		TryEntering(wgt, e);
+		TryEntering(std::move(e));
 		CallEvent<TouchDown>(wgt, e);
 		break;
 	case TouchHeld:
 		if(!p_TouchDown)
 			return false;
 		if(p_TouchDown == &wgt)
-			TryEntering(wgt, e);
+			TryEntering(std::move(e));
 		else
 		{
 			const auto offset(LocateForWidget(wgt, *p_TouchDown));
-			auto el(e);
 
-			el -= offset;
-			TryLeaving(*p_TouchDown, el);
+			TryLeaving(TouchEventArgs(*p_TouchDown, e - offset));
 			e += offset;
 		}
 		e.SetSender(*p_TouchDown);
@@ -304,8 +298,7 @@ GUIShell::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 			break;
 		}
 		e.SetSender(*p);
-		r |= DoEvent<HTouchEvent>(p->GetController(), op, e)
-			!= 0;
+		r |= DoEvent<HTouchEvent>(p->GetController(), op, e) != 0;
 		p = t;
 		e -= p->GetLocation();
 	};
@@ -321,8 +314,7 @@ GUIShell::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 		e += p->GetLocation();
 		p = pCon;
 		e.SetSender(*p);
-		r |= DoEvent<HTouchEvent>(p->GetController(), op, e)
-			!= 0;
+		r |= DoEvent<HTouchEvent>(p->GetController(), op, e) != 0;
 	}
 	return r;
 }

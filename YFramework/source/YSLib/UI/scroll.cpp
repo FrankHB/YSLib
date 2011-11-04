@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3881;
+\version r3890;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-10-30 14:46 +0800;
+	2011-10-31 18:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -79,21 +79,23 @@ namespace
 }
 
 
-ATrack::Dependencies::Dependencies()
-{}
-
 ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	: AUIBoxControl(Rect(r.GetPoint(),
 		vmax<SDst>(defMinScrollBarWidth, r.Width),
 		vmax<SDst>(defMinScrollBarHeight, r.Height))),
 	GMRange<u16>(0xFF, 0),
 	Thumb(Rect(0, 0, defMinScrollBarWidth, defMinScrollBarHeight)),
-	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length),
-	Events(FetchPrototype<Dependencies>())
+	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length)
 {
 	Thumb.GetContainerPtrRef() = this;
 	yunsequenced(
-		GetThumbDrag().Add(*this, &ATrack::OnThumbDrag),
+		GetThumbDrag() += [this](UIEventArgs&&){
+			ValueType old_value(value);
+			// FIXME: get correct old value;
+			UpdateValue();
+			CheckScroll(ScrollEventSpace::ThumbTrack, old_value);
+			Invalidate(*this);
+		},
 		FetchEvent<TouchMove>(*this) += OnTouchMove,
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
 			if(e.Strategy == RoutedEventArgs::Direct
@@ -281,16 +283,6 @@ ATrack::UpdateValue()
 {
 	// FIXME: check ValueType incompatibility(perhaps overflow);
 	value = GetThumbPosition() * max_value / GetTrackLength();
-}
-
-void
-ATrack::OnThumbDrag(UIEventArgs&&)
-{
-	ValueType old_value(value);
-	// FIXME: get correct old value;
-	UpdateValue();
-	CheckScroll(ScrollEventSpace::ThumbTrack, old_value);
-	Invalidate(*this);
 }
 
 

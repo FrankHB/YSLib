@@ -11,12 +11,12 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2921;
+\version r2961;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-10-25 12:40 +0800;
+	2011-11-04 19:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,6 +26,8 @@
 
 #ifndef YSL_INC_ADAPTOR_YBASEMAC_H_
 #define YSL_INC_ADAPTOR_YBASEMAC_H_
+
+//! \todo 检查语言实现的必要支持：可变参数宏。
 
 /*
  ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
@@ -84,20 +86,11 @@ _t type
 // ImplI = Implements Interface;
 //抽象实现：保留接口供派生类实现（可以提供接口函数的默认实现）。
 // ImplA = Implements Abstractly;
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-#	define DeclBasedInterface(_n, _b, ...) \
+#define DeclBasedInterface(_n, _b, ...) \
 	_yInterface _n : _b, __VA_ARGS__ \
 	_yInterfaceHead(_n)
-#	define ImplI(_i, ...) virtual
-#	define ImplA(_i, ...)
-#else
-//注意 ISO/IEC C++ 不支持宏的可变参数列表，因此无法实现接口多继承。
-#	define DeclBasedInterface(_n, _b) \
-	_yInterface _n : _b \
-	_yInterfaceHead(_n)
-#	define ImplI(_i) virtual
-#	define ImplA(_i)
-#endif
+#define ImplI(...) virtual
+#define ImplA(...)
 
 #define DeclBasedInterface1(_n, _b1) \
 	_yInterface _n : _b1 \
@@ -111,14 +104,6 @@ _t type
 #define DeclBasedInterface4(_n, _b1, _b2, _b3, _b4) \
 	_yInterface _n : _b1, _b2, _b3, _b4 \
 	_yInterfaceHead(_n)
-#	define ImplI1(_i1) virtual
-#	define ImplI2(_i1, _i2) virtual
-#	define ImplI3(_i1, _i2, _i3) virtual
-#	define ImplI4(_i1, _i2, _i3, _i4) virtual
-#	define ImplA1(_i1)
-#	define ImplA2(_i1, _i2)
-#	define ImplA3(_i1, _i2, _i3)
-#	define ImplA4(_i1, _i2, _i3, _i4)
 
 //"DeclIEntry" = Declare Interface Entry;
 #define DeclIEntry(_sig) virtual _sig = 0;
@@ -144,37 +129,10 @@ _t type
 //prefix "PDef" = Partially Define;
 //prefix "PDefH" = prefix "PDef" Head;
 //prefix "PDefTH" = prefix "PDef" Template Head;
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-#	define PDefH(_t, _n, _plist, ...) \
-	_t _n(_plist, __VA_ARGS__)
-#	define PDefHOperator(_t, _op, _plist, ...) \
-	_t operator _op(_plist, __VA_ARGS__)
-#else
-#	define PDefH(_t, _n, _plist) \
-	_t _n(_plist)
-#	define PDefHOperator(_t, _op, _plist) \
-	_t operator _op(_plist)
-#endif
-#define PDefH0(_t, _n) \
-	_t _n()
-#define PDefH1(_t, _n, _p1) \
-	_t _n(_p1)
-#define PDefH2(_t, _n, _p1, _p2) \
-	_t _n(_p1, _p2)
-#define PDefH3(_t, _n, _p1, _p2, _p3) \
-	_t _n(_p1, _p2, _p3)
-#define PDefH4(_t, _n, _p1, _p2, _p3, _p4) \
-	_t _n(_p1, _p2, _p3, _p4)
-#define PDefHOperator0(_t, _op) \
-	_t operator _op()
-#define PDefHOperator1(_t, _op, _p1) \
-	_t operator _op(_p1)
-#define PDefHOperator2(_t, _op, _p1, _p2) \
-	_t operator _op(_p1, _p2)
-#define PDefHOperator3(_t, _op, _p1, _p2, _p3) \
-	_t operator _op(_p1, _p2, _p3)
-#define PDefHOperator4(_t, _op, _p1, _p2, _p3, _p4) \
-	_t operator _op(_p1, _p2, _p3, _p4)
+#define PDefH(_t, _n, ...) \
+	_t _n(__VA_ARGS__)
+#define PDefHOperator(_t, _op, ...) \
+	_t operator _op(__VA_ARGS__)
 
 #define PDefConverter(_t) \
 	operator _t()
@@ -190,72 +148,29 @@ _t type
 
 
 //简单通用函数实现。
-//prefix "Impl" = Implement;
+//prefix "Impl" = Implementation;
+#define ImplExpr(_e) \
+	{ \
+		static_cast<void>(_e); \
+	}
 #define ImplRet(_e) \
 	{ \
 		return _e; \
 	}
+#define ImplUnsequenced(...) \
+	{ \
+		static_cast<void>(yunsequenced(__VA_ARGS__)); \
+	}
 
 //基类同名函数映射和成员同名函数映射实现。
 //prefix "Impl" = Implement;
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-#	define ImplBodyBase(_b, _n, _alist, ...) \
+#define ImplBodyBase(_b, _n, ...) \
 	{ \
-		return _b::_n(_alist, __VA_ARGS__); \
+		return _b::_n(__VA_ARGS__); \
 	}
-#	define ImplBodyMember(_m, _n, _alist...) \
+#define ImplBodyMember(_m, _n, ...) \
 	{ \
-		return (_m)._n(_alist); \
-	}
-#else
-#	define ImplBodyBase(_b, _n, _alist) \
-	{ \
-		return _b::_n(_alist); \
-	}
-#	define ImplBodyMember(_m, _n, _alist) \
-	{ \
-		return (_m)._n(_alist); \
-	}
-#endif
-#define ImplBodyBase0(_b, _n) \
-	{ \
-		return _b::_n(); \
-	}
-#define ImplBodyBase1(_b, _n, _a1) \
-	{ \
-		return _b::_n(_a1); \
-	}
-#define ImplBodyBase2(_b, _n, _a1, _a2) \
-	{ \
-		return _b::_n(_a1, _a2); \
-	}
-#define ImplBodyBase3(_b, _n, _a1, _a2, _a3) \
-	{ \
-		return _b::_n(_a1, _a2, _a3); \
-	}
-#define ImplBodyBase4(_b, _n, _a1, _a2, _a3, _a4) \
-	{ \
-		return _b::_n(_a1, _a2, _a3, _a4); \
-	}
-#define ImplBodyMember0(_m, _n) \
-	{ \
-		return (_m)._n(); \
-	}
-#define ImplBodyMember1(_m, _n, _a1) \
-	{ \
-		return (_m)._n(_a1); \
-	}
-#define ImplBodyMember2(_m, _n, _a1, _a2) \
-	{ \
-		return (_m)._n(_a1, _a2); \
-	}
-#define ImplBodyMember3(_m, _n, _a1, _a2, _a3) \
-	{ \
-		return (_m)._n(_a1, _a2, _a3); \
-	}
-#define ImplBodyMember4(_m, _n, _a1, _a2, _a3, _a4) \
-	{ \
-		return (_m)._n(_a1, _a2, _a3, _a4); \
+		return (_m)._n(__VA_ARGS__); \
 	}
 
 

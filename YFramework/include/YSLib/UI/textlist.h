@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1376;
+\version r1388;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-10-28 13:56 +0800;
+	2011-11-04 19:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,17 +58,9 @@ public:
 private:
 	ViewerType viewer; //!< 列表视图。
 	SDst top_offset; //!< 列表视图首项目超出上边界的竖直偏移量。
-
-	//! \brief 事件依赖项。
-	class Dependencies
-	{
-	public:
-		DeclDepEvent(HUIEvent, ViewChanged) //!< 视图变更事件。
-		DeclDepEvent(HIndexEvent, Selected) //!< 项目选择状态变更事件。
-		DeclDepEvent(HIndexEvent, Confirmed) //!< 项目选中确定事件。
-
-		Dependencies();
-	} Events;
+	DeclEvent(HUIEvent, ViewChanged) //!< 视图变更事件。
+	DeclEvent(HIndexEvent, Selected) //!< 项目选择状态变更事件。
+	DeclEvent(HIndexEvent, Confirmed) //!< 项目选中确定事件。
 
 public:
 	/*!
@@ -82,14 +74,13 @@ public:
 	inline DefDeMoveCtor(TextList)
 
 	DefPredicateMember(Selected, viewer)
-	PDefH1(bool, Contains, ViewerType::SizeType i)
-		ImplBodyMember1(viewer, Contains, i)
+	PDefH(bool, Contains, ViewerType::SizeType i)
+		ImplBodyMember(viewer, Contains, i)
 
-	DefMutableDepEventGetter(HUIEvent, ViewChanged, Events.ViewChanged) \
-		//!< 视图变更事件。
-	DefMutableDepEventGetter(HIndexEvent, Selected, Events.Selected) \
+	DefMutableEventGetter(HUIEvent, ViewChanged, ViewChanged) //!< 视图变更事件。
+	DefMutableEventGetter(HIndexEvent, Selected, Selected) \
 		//!< 项目选择状态变更事件。
-	DefMutableDepEventGetter(HIndexEvent, Confirmed, Events.Confirmed) \
+	DefMutableEventGetter(HIndexEvent, Confirmed, Confirmed) \
 		//!< 项目选中确定事件。
 
 	using MTextList::GetList;
@@ -173,8 +164,8 @@ public:
 	virtual Rect
 	Refresh(const PaintContext&);
 
-	PDefH0(void, ClearSelected)
-		ImplBodyMember0(viewer, ClearSelected)
+	PDefH(void, ClearSelected)
+		ImplBodyMember(viewer, ClearSelected)
 
 	/*!
 	\brief 定位视图顶端至指定竖直位置。
@@ -225,6 +216,7 @@ public:
 	*/
 	void
 	UpdateView();
+
 private:
 	/*!
 	\brief 调用选中事件处理器。
@@ -237,12 +229,6 @@ private:
 	*/
 	void
 	InvokeConfirmed(ViewerType::SizeType);
-
-	/*!
-	\brief 处理选中和确认事件。
-	*/
-	void
-	OnSelected(IndexEventArgs&&);
 };
 
 inline void

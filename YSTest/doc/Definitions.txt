@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11432;
+\version r11451;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-10-18 15:05 +0800;
+	2011-11-04 19:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -205,54 +205,24 @@ _yInterface
 _yInterfaceHead(_n)
 PDeclInterface(_n)
 DeclInterface(_n)
-DeclBasedInterface(_n, *)
-ImplI(_i, *)
-ImplA(_i, *)
-DeclBasedInterface1(_n, _b1)
-DeclBasedInterface2(_n, _b1, _b2)
-DeclBasedInterface3(_n, _b1, _b2, _b3)
-DeclBasedInterface4(_n, _b1, _b2, _b3, _b4)
-ImplI1(_i, _b1)
-ImplI2(_i, _b1, _b2)
-ImplI3(_i, _b1, _b2, _b3)
-ImplI4(_i, _b1, _b2, _b3, _b4)
-ImplA1(_i, _b1)
-ImplA2(_i, _b1, _b2)
-ImplA3(_i, _b1, _b2, _b3)
-ImplA4(_i, _b1, _b2, _b3, _b4)
+DeclBasedInterface(_n, ...)
+ImplI(...)
+ImplA(...)
 DeclIEntry(_signature)
 EndDecl
 DefExtendClass1(_n, _b, _a)
-PDefH(_t, _n, *)
-PDefHOperator(_t, _op, *)
-PDefH0(_t, _n)
-PDefH1(_t, _n, _p1)
-PDefH2(_t, _n, _p1, _p2)
-PDefH3(_t, _n, _p1, _p2, _p3)
-PDefH4(_t, _n, _p1, _p2, _p3, _p4)
-PDefHOperator0(_t, _op)
-PDefHOperator1(_t, _op, _p1)
-PDefHOperator2(_t, _op, _p1, _p2)
-PDefHOperator3(_t, _op, _p1, _p2, _p3)
-PDefHOperator4(_t, _op, _p1, _p2, _p3, _p4)
+PDefH(_t, _n, ...)
+PDefHOperator(_t, _op, ...)
 PDefConverter(_t)
 PDefTH1(_t1)
 PDefTH2(_t1, _t2)
 PDefTH3(_t1, _t2, _t3)
 PDefTH4(_t1, _t2, _t3, _t4)
+ImplExpr(_e)
 ImplRet(_e)
-ImplBodyBase(_b, _n, _alist, *)
-ImplBodyMember(_m, _n, _alist, *)
-ImplBodyBase0(_b, _n)
-ImplBodyBase1(_b, _n, _a1)
-ImplBodyBase2(_b, _n, _a1, _a2)
-ImplBodyBase3(_b, _n, _a1, _a2, _a3)
-ImplBodyBase4(_b, _n, _a1, _a2, _a3, _a4)
-ImplBodyMember0(_m, _n)
-ImplBodyMember1(_m, _n, _a1)
-ImplBodyMember2(_m, _n, _a1, _a2)
-ImplBodyMember3(_m, _n, _a1, _a2, _a3)
-ImplBodyMember4(_m, _n, _a1, _a2, _a3, _a4)
+ImplUnsequenced(_e)
+ImplBodyBase(_b, _n, ...)
+ImplBodyMember(_m, _n, ...)
 DefEmptyDtor(_t)
 ImplEmptyDtor(_t)
 DefDeCtor(_t)

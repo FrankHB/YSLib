@@ -11,12 +11,12 @@
 /*!	\file yviewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r1152;
+\version r1158;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 23:00:28 +0800;
 \par 修改时间:
-	2011-10-25 12:57 +0800;
+	2011-11-04 19:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,14 +59,14 @@ public:
 		: c(c_), head(0), selected(0), length(1), is_selected(false)
 	{}
 
-	inline PDefHOperator0(GSequenceViewer&, ++) //!< 选中项目下标自增。
+	inline PDefHOperator(GSequenceViewer&, ++) //!< 选中项目下标自增。
 		ImplRet(IncreaseSelected(1))
-	inline PDefHOperator0(GSequenceViewer&, --) //!< 选中项目下标自减。
+	inline PDefHOperator(GSequenceViewer&, --) //!< 选中项目下标自减。
 		ImplRet(IncreaseSelected(-1))
-	inline PDefHOperator1(GSequenceViewer&, ++, int) \
+	inline PDefHOperator(GSequenceViewer&, ++, int) \
 		//!< 视图中首个项目下标自增。
 		ImplRet(IncreaseHead(1))
-	inline PDefHOperator1(GSequenceViewer&, --, int) \
+	inline PDefHOperator(GSequenceViewer&, --, int) \
 		//!< 视图中首个项目下标自减。
 		ImplRet(IncreaseHead(-1))
 
@@ -151,11 +151,11 @@ public:
 		is_selected = false;
 	}
 
-	inline PDefH1(GSequenceViewer&, DecreaseHead, DifferenceType d) \
+	inline PDefH(GSequenceViewer&, DecreaseHead, DifferenceType d) \
 		//!< 视图中首个项目下标减少 d 。
 		ImplRet(IncreaseHead(-d))
 
-	inline PDefH1(GSequenceViewer&, DecreaseSelected, DifferenceType d) \
+	inline PDefH(GSequenceViewer&, DecreaseSelected, DifferenceType d) \
 		//!< 选中项目下标减少 d 。
 		ImplRet(IncreaseSelected(-d))
 

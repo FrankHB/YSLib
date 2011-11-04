@@ -180,7 +180,7 @@ public:
 
 		ReaderPanel(const Rect&, ShlReader&);
 
-		ImplI1(AUIBoxControl) IWidget*
+		ImplI(AUIBoxControl) IWidget*
 		GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 		virtual Rect
@@ -196,7 +196,7 @@ public:
 
 		FileInfoPanel(const Rect&, ShlReader&);
 
-		ImplI1(AUIBoxControl) IWidget*
+		ImplI(AUIBoxControl) IWidget*
 		GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 		virtual Rect

@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5546;
+\version r5547;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-10-30 13:26 +0800;
+	2011-11-04 19:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,14 +52,14 @@ public:
 	Controller(bool, const EventMapping::MapType&);
 	Controller(bool, EventMapping::MapType&&);
 
-	ImplI1(AController) PDefH1(EventMapping::ItemType&, GetItemRef,
+	ImplI(AController) PDefH(EventMapping::ItemType&, GetItemRef,
 		const VisualEvent& id)
 		ImplRet(EventMap.at(id))
 	virtual EventMapping::ItemType&
 	GetItemRef(const VisualEvent&, EventMapping::MappedType(&)());
 	DefGetter(EventMapping::MapType&, EventMap, EventMap) //!< 取事件映射表。
 
-	ImplI1(AController) DefClone(Controller, Clone)
+	ImplI(AController) DefClone(Controller, Clone)
 };
 
 inline
@@ -349,7 +349,7 @@ public:
 	/*!
 	\brief 取按键-指针设备输入默认事件组映射。
 	*/
-	virtual PDefH1(IWidget*, GetBoundControlPtr, const KeyCode&)
+	virtual PDefH(IWidget*, GetBoundControlPtr, const KeyCode&)
 		ImplRet(nullptr)
 
 	virtual void

@@ -258,7 +258,7 @@ struct InversedCurrying
 		: f(f_)
 	{}
 
-	PDefHOperator1(bool, ==, const InversedCurrying& r) const
+	PDefHOperator(bool, ==, const InversedCurrying& r) const
 		ImplRet(f == r.f)
 
 	/!

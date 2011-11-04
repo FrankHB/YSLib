@@ -11,12 +11,12 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2415;
+\version r2421;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-09-16 03:51 +0800;
+	2011-11-04 19:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -181,12 +181,12 @@ private:
 
 	multiset<Message, cmp> q; //!< 消息优先队列：使用 multiset 模拟。
 
-	PDefH0(const Message&, top) const
+	PDefH(const Message&, top) const
 		ImplRet(*q.begin())
-	PDefH0(void, pop)
-		ImplRet(static_cast<void>(q.erase(q.begin())))
-	PDefH1(void, push, const Message& msg)
-		ImplRet(static_cast<void>(q.insert(msg)))
+	PDefH(void, pop)
+		ImplExpr(q.erase(q.begin()))
+	PDefH(void, push, const Message& msg)
+		ImplExpr(q.insert(msg))
 
 public:
 	typedef decltype(q.size()) SizeType;
@@ -210,7 +210,7 @@ public:
 	/*!
 	\brief 清除消息队列。
 	*/
-	PDefH0(void, Clear)
+	PDefH(void, Clear)
 		ImplRet(q.clear())
 
 	/*!

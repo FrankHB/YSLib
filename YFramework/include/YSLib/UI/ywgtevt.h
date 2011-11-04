@@ -11,12 +11,12 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1996;
+\version r1998;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2011-10-30 15:22 +0800;
+	2011-11-04 19:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,7 +44,7 @@ public:
 	explicit
 	UIEventArgs(IWidget&);
 	DefGetter(IWidget&, Sender, *pSender)
-	PDefH1(void, SetSender, IWidget& wgt)
+	PDefH(void, SetSender, IWidget& wgt)
 		ImplRet(static_cast<void>(pSender = &wgt))
 };
 

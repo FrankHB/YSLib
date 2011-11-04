@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5532;
+\version r5545;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-10-27 22:29 +0800;
+	2011-11-04 19:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -163,6 +163,7 @@
 
 @1.3.2.2.1 允许使用的非 ISO C++03 扩展：
 定义于 ISO C99（ISO/IEC 9899:1999）和 ISO C++11（ISO/IEC 14882:2011）中，且有一个以上完整的语言实现。
+ C99 preprocessor(N1653) ；
  Static assertions(N1720) ；
  long long(N1811) ；
  Right angle brackets(N1757) ；
@@ -854,7 +855,7 @@
 
 @1.9.2 GUI（Graphic UI ，图形用户界面）设计概述：
 界面实现使用称为 Shell-Widget 的模式，是精简的主动模型-视图-控制器模式的变体，参照窗体-控件模式。但架构模式无本质变化。
-界面实现结局的三个问题：安排状态(state) 、逻辑(logic) 和同步(synchronization) ，都可以在运行期配置。
+界面实现解决的三个问题：安排状态(state) 、逻辑(logic) 和同步(synchronization) ，都可以在运行期配置。
 为了方便重用，这些属性有如下分类：
 根据是否依赖于具体的 Widget 实例分为公共的和实例的；
 根据是否被所有 Widget 类共用分为公用的和专用的。
@@ -868,7 +869,7 @@
 模型和其它部分是适当分离的，模型不被依赖，或仅被专用视图或控制器依赖。
 
 @1.9.2.2 视图(view) ：
-视图用于向用户呈现数据。输入逻辑依赖于控制器(@1.7.2.3) 。
+视图用于向用户呈现数据，保持用户界面状态。
 视图在 GUI 响应(@1.7.2.5) 中不会修改模型，但可以向控制器提交状态。
 部件类实现了基本的视图。通过派生或修饰这些类可以得到扩展的视图。
 
@@ -878,8 +879,8 @@
 一旦存在环路，对视图的某些操作可能导致未定义行为。
 
 @1.9.2.3 控制器(controller) ：
-控制器包含了根据用户在视图中的行为更新模型的逻辑。
-模型和视图不能直接修改控制器的状态，但可以提交状态等待控制器自行更新。
+控制器完成界面状态和模型状态的同步，保持根据用户在视图中的行为更新模型的逻辑。
+若有必要，控制器可以保持状态。模型和视图不能直接修改控制器的状态，但可以提交状态等待控制器自行更新。
 
 @1.9.2.3.1 公用控制器：
 公用控制器用于实现公用输入逻辑，并储存了相关状态，是 UI Shell(@1.9.1) 的重要组成部分。
@@ -1297,7 +1298,8 @@
 
 @2.7.2.1.5 边界事件：
 包括 Enter 和 Leave 事件。
-指针设备作用于 Control 派生的控件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
+指针设备作用于部件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
+边界事件的事件源是被作用的边界对应的部件，且参数坐标相对于此部件。
 
 @2.7.2.2 公用和扩展事件处理程序：
  YControl 单元中定义了部分非成员函数公用事件处理器。
@@ -1532,12 +1534,12 @@ FetchDefaultScreen();
  "ydaptor.h" 需要保证 <cstddef> 、 <cstdint> 、 <cstdint> 和 <climits> 被包含。
 
 @2.10.1.2 不在本体中显式包含，需要在 "ycont.h" 包含或提供替代品的 C++ 标准库依赖项：
- <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 和  <vector>。
+ <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <utility> 和  <vector>。
 例外：同时需要使用容器和限定标准库容器时，目前仅有一例：
  "yexcept.h" 包含 <string> （鉴于重用标准库异常需要的参数类型 std::string 不一定是 "ycont.h" 配置的类型）。
 
 @2.10.1.3 不在本体的头文件中显式包含，需要在除了 "ycont.h" 的 Adaptor 的头文件直接或间接包含的 C++ 标准库依赖项：
- <algorithm> 、 <new> 和 <utility> 。
+ <new> 。
 
 @2.10.1.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性或其它因素考虑，Adaptor 和本体不直接使用以下头文件（但 Adaptor 可能会间接依赖）：
@@ -1547,7 +1549,7 @@ FetchDefaultScreen();
 <exception> 、 <functional> 、 <iterator> 、 <stdexcept> 和 <typeinfo> 。
 
 @2.10.1.6 本体的头文件中未限定（可能会在将来版本显式包含）的 C++ 标准库依赖项：
- <complex>  、 <bitset> 、 <limits> 、 <numeric> 、 <memory> 和 <valarray> 。
+ <algorithm> 、 <bitset> 、 <complex> 、 <limits> 、 <numeric> 、 <memory> 和 <valarray> 。
 
 @2.10.2 本体头文件对 YBase 依赖性：
  "yblit.h" 包含 <ystdex/algorithm.hpp> 和 <ystdex/iterator.hpp> 。

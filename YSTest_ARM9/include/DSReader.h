@@ -11,12 +11,12 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2489;
+\version r2497;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-10-14 22:36 +0800;
+	2011-11-04 19:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -86,16 +86,16 @@ public:
 	DefGetter(Text::Encoding, Encoding, pText ? pText->GetEncoding()
 		: Text::CharSet::Null) //!< 取编码。
 
-	PDefH1(void, SetColor, Color c = Drawing::ColorSpace::Black)
-		ImplRet(static_cast<void>(yunsequenced(AreaUp.Color = c,
-		AreaDown.Color = c))) //!< 设置字符颜色。
-	PDefH1(void, SetFontSize, Drawing::Font::SizeType s
+	PDefH(void, SetColor, Color c = Drawing::ColorSpace::Black)
+		ImplUnsequenced(AreaUp.Color = c, AreaDown.Color = c) \
+		//!< 设置字符颜色。
+	PDefH(void, SetFontSize, Drawing::Font::SizeType s
 		= Drawing::Font::DefaultSize)
-		ImplRet(static_cast<void>(fc.SetFontSize(s))) \
+		ImplExpr(fc.SetFontSize(s)) \
 		//!< 设置字符区域字体大小。
-	PDefH1(void, SetLineGap, u8 g = 0)
-		ImplRet(static_cast<void>(yunsequenced(AreaUp.LineGap = g,
-		AreaDown.LineGap = g))) //!< 设置行距。
+	PDefH(void, SetLineGap, u8 g = 0)
+		ImplUnsequenced(AreaUp.LineGap = g, AreaDown.LineGap = g) \
+		//!< 设置行距。
 
 	//设置笔的行位置。
 	//void

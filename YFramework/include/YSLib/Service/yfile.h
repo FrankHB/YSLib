@@ -11,12 +11,12 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version r1826;
+\version r1831;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-09-24 20:17 +0800;
+	2011-11-04 19:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,21 +69,21 @@ public:
 	/*!
 	\brief 取文件指针的位置，返回值语义同 std::ftell 。
 	*/
-	PDefH0(OffsetType, GetPosition) const
+	PDefH(OffsetType, GetPosition) const
 		ImplRet(std::ftell(fp))
 
 	/*!
 	\brief 设置文件指针位置。
 	\note 参数和返回值语义同 std::fseek 。
 	*/
-	PDefH2(int, SetPosition, OffsetType offset, int whence) const
+	PDefH(int, SetPosition, OffsetType offset, int whence) const
 		ImplRet(std::fseek(fp, offset, whence))
 
 	/*!
 	\brief 检测文件结束符。
 	\note 参数和返回值语义同 std::feof() 。
 	*/
-	PDefH0(int, CheckEOF) const
+	PDefH(int, CheckEOF) const
 		ImplRet(std::feof(fp))
 
 	/*!
@@ -104,13 +104,13 @@ public:
 	\brief 连续读 nmemb 个大小为 size 文件块到 ptr 中。
 	\return 返回成功读取的文件块数。
 	*/
-	PDefH3(SizeType, Read, void* ptr, SizeType size, SizeType nmemb) const
+	PDefH(SizeType, Read, void* ptr, SizeType size, SizeType nmemb) const
 		ImplRet(std::fread(ptr, size, nmemb, fp))
 
 	/*!
 	\brief 文件指针返回到文件头，语义同 std::rewind 。
 	*/
-	PDefH0(void, Rewind) const
+	PDefH(void, Rewind) const
 		ImplRet(std::rewind(fp))
 };
 

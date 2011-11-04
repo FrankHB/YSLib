@@ -1,4 +1,4 @@
-// r3352; *build 256 rev 75;
+// r3357; *build 257 rev 61;
 /*
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -132,6 +132,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \ren ::= renamed
 \ref ::= references
 \refact ::= refactorings
+\reg ::= regular
 \res ::= resources
 \ret ::= return
 \s ::= static
@@ -288,154 +289,145 @@ $using:
 
 
 $DONE:
-r1-r13:
-/= test 1;
+r1:
+/ \simp @ \cl GUIShell $=
+(
+	/ \mf void TryEntering(IWidget&, TouchEventArgs&)
+		-> void TryEntering(TouchEventArgs&),
+	/ \mf void TryLeaving(IWidget&, TouchEventArgs&)
+		-> void TryLeaving(TouchEventArgs&);
+	/ \tr \impl @ \mf ResponseTouchBase
+);
 
-r14:
-/ typedef GIHEvent<IWidget, UIEventArgs> ItemType @ \ns EventMapping
-	@ \h YWidgetEvent -> typedef MappedType::ItemType ItemType;
+r2:
+/ @ \cl TextList %=
+(
+	- \mf OnSelected;
+	/ \tr \impl @ \ctor,
+	- \ctor @ \cl Dependencies
+),
+/ @ \cl ATrack %=
+(
+	- \mf OnThumbDrag;
+	/ \tr \impl @ \ctor,
+	- \ctor @ \cl Dependencies
+);
 
-r15-r56:
+r3:
+/ @ \cl (ATrack, TextList) $=
+(
+	/ \mg \a \m @ \cl Dependencies as non-dependencies;
+	/ \tr @ event getters;
+	- \cl Dependencies;
+	/ \tr \impl @ \ctor
+);
+/ \tr \decl @ \cl ListBox;
+
+r4:
+/= test 1 ^ \conf release;
+
+r5:
+/ @ \impl \u HexBrowser $=
+(
+	/ \impl @ \f ConvertByte @ \un \ns;
+	/ \impl @ \mf HexViewArea::Refresh;
+);
+
+r6:
++ \inc \h <algorithm> @ \impl \u HexBrowser;
+/ @ \impl \u HexBrowser $=
+(
+	/ \m typedef array<byte, ItemPerLine> LineType @ \cl HexViewArea
+		-> typedef array<char, ItemPerLine * 2> LineType;
+	/ \impl @ \f ConvertByte @ \un \ns \mg -> \mf HexViewArea::UpdateData;
+	/ \tr \impl @ \mf HexViewArea::Refresh;
+);
+
+r7:
+/ @ \cl HexViewArea @ \u HexBrowser
+(
+	/ typedef list<LineType> ListType
+		-> typedef forward_list<LineType> ListType;
+	/ \tr \impl @ \mf UpdateData
+);
+
+r8-r9:
 /= test 2;
 
-r57:
-* \impl @ \f \i void Render(IWidget&, PaintEventArgs&&) @ \h YWidget
-	$since b255;
+r10:
+* \impl @ \mf HexViewArea::UpdateData $since r7;
 
-r58:
-/ \decl @ UIEventArgs @ \h YWidgetEvent;
-+ 1st \param @ \a \ctor @ \evt \arg \st 'Args' @ \h (YWidgetEvent, Scroll);
-/ \tr \impl @ \f ResponseInput @ \impl \u Shell_DS,
-/ \tr \impl @ \mf (ATrack::CheckScroll, TextList::UpdateView,
-	TextList::CallSelected, TextList::InvokeConfirmed,
-	Control::SetLocation, Control::SetSize, Frame::DrawContents),
-/ \tr \impl @ \ctor @ \cl (HorizontalTrack, VerticalTrack),
-/ \tr \impl @ \f (RequestFocusFrom, ReleaseFocusFrom,
-	OnKey_Bound_TouchUpAndLeave, OnKey_Bound_EnterAndTouchDown,
-	OnKey_Bound_Click) @ \impl \u YControl,
-/ \tr \impl @ \f ClearFocusingPtrOf @ \impl \u YWidget;
-
-r59:
-/= test 3;
-
-r60:
-/ \tr @ \cl GUIShell $=
+r11:
+* value of vertical scroll bar value not reset @ \cl HexViewArea @ \u HexBrowser
+	when file reloaded $since b254 $=
 (
-	/ \mf bool ResponseTouch(IWidget&, TouchEventArgs&,
-		Components::VisualEvent) -> bool
-		ResponseTouch(TouchEventArgs&, Components::VisualEvent),
-	/ \mf bool ResponseKey(IWidget&, KeyEventArgs&,
-		Components::VisualEvent) -> bool
-		ResponseTouch(KeyEventArgs&, Components::VisualEvent)
-),
-/ \tr \impl @ \f ResponseInput @ \impl \u Shell_DS;
+	/ \impl @ \mf HexViewArea::Reset
+);
 
-r61:
+r12-r26:
+/= test 3;
+/ @ \cl HexViewArea @ \u HexBrowser $=
+(
+	/ \a \m lines => data,
+	/ \a \m ListType => DataType
+);
+
+r27:
 /= test 4 ^ \conf release;
 
-r62:
-/ @ \h YControl $=
+r28-r46:
+/= test 5;
+/ \impl @ \mf (UpdateData, Refresh) @ \cl HexViewArea @ \u HexBrowser;
+
+r47-r57:
+/= test 6;
+/ @ \cl HexViewArea @ \u HexBrowser $=
 (
-	- \ft<VisualEvent _vID, typename _tEventArgs> size_t
-		CallEvent(IWidget&, _tEventArgs&&);
-	/ \ft<VisualEvent _vID, typename _tEventArgs> size_t
-		CallEvent(IWidget&, typename EventTypeMapping<_vID>
-		::HandlerType::SenderType&, _tEventArgs&&)
-		-> \ft<'*'> CallEvent(IWidget&, _tEventArgs&&);
+	- typedef array<char, ItemPerLine * 2> LineType;
+	/ forward_list<LineType> DataType -> typedef vector<char> DataType;
+	/ \tr \impl @ \mf (UpdateData, Refresh)
 );
-/ \tr \impl @ \f (RequestFocusFrom, ReleaseFocusFrom) @ \impl \u YControl,
-/ \tr \impl @ \f ClearFocusingPtrOf @ \impl \u YWidget;
+- \inc \h <algorithm> @ \impl \u HexBrowser;
 
-r63:
-/ \tr \impl @ \ctor @ \cl (Menu, Control::ControlEventMap),
-/ \tr \impl @ \f (OnKeyHeld, OnTouchHeld, OnTouchMove, OnTouchMove_Dragging,
-	(FetchEnabledBoundControlPtr @ \un \ns), OnKey_Bound_TouchUpAndLeave,
-	OnKey_Bound_EnterAndTouchDown, OnKey_Bound_Click) @ \impl \u YControl;
+r58:
+/= test 7 ^ \conf release;
 
-r64:
-/ \tr @ \cl GUIShell $=
+r59:
+/ @ \u HexBrowser $=
 (
-	(
-		/ \mf bool ResponseKeyBase(IWidget&, KeyEventArgs&,
-			Components::VisualEvent) -> bool
-			ResponseKeyBase(KeyEventArgs&, Components::VisualEvent)
-		/ \tr \impl @ \mf ResponseKey
-	),
-	(
-		/ \mf bool ResponseTouchBase(IWidget&, TouchEventArgs&,
-			Components::VisualEvent) -> bool
-			ResponseTouchBase(TouchEventArgs&, Components::VisualEvent)
-		/ \tr \impl @ \mf ResponseTouch
-	)
+	+ \cl HexModel,
+	+ \cl HexView;
+	/ \tr @ \cl HexViewArea ^ \cl (HexModel, HexViewArea)
 );
 
-r65:
-/ \impl @ \mf (TFormTest::OnEnter_btnEnterTest, TFormTest::OnLeave_btnEnterTest,
-	TFormExtra::OnKeyPress_btnDragTest) @ \cl ShlExplorer @ \impl \u Shells;
-
-r66-r67:
-- sender \param @ 2 \ft DoEvent @ \h YWidgetEvent;
-/ \tr \impl @ \ft CallEvent @ \h YControl,
-/ \tr \impl @ \mf GUIShell::(ResponseTouch, TryEntering, TryLeaving);
-
-r68:
-/= test 5 ^ \conf release;
-
-r69:
-/ \impl @ \f \i Render @ \h YWidget;
-
-r70:
-/ (\decl, \impl) @ \a \mf \op() @ \h YEvent;
-
-r71:
-+ \mf _tRet operator()(_tPara) @ \stt ExpandMemberFirstBinder @ \h YFunc;
-
-r72:
-- \ft OnWidget_Invalidate @ \h YControl;
-
-r73:
-/ @ \h YEvent $=
+r60:
+/ @ \h YBaseMacro $=
 (
-	/ typedef void FuncType(_tSender&, _tEventArgs&&) @ \stt GSEventTypeSpace
-		-> typedef void FuncType(_tEventArgs&&);
-	/ \tr \impl @ \clt (GHEvent, GEvent)
+	- support for language implementation without variadic macro,
+	- \mac with \n $= \reg \expr pattern '*\d'
+		\exc ('PDefTH*', 'DefForwardCtorT*', 'DefExtendClass1');
+	+ \mac (ImplExpr, ImplUnsequenced)
 );
-/ \tr \impl @ \h YWidgetEvent;
-/ \tr \impl @ \u (YWidget, YControl, Button, CheckBox, Scroll, TextList, Menu,
-	ListBox, Shells, HexBrowser);
+/ \simp \impl ^ \mac ImplExpr @ \a \lib YSLib,
+/ \simp \impl ^ \mac ImplExpr @ \h HexBrowser,
+/ \simp \impl ^ \mac (ImplExpr, ImplUnsequenced) @ \h DSReader;
 
-r74:
-* \stt @ \stt ExpandMemberFirstBinder @ \h YFunc $since b171;
-/ @ \h YEvent $=
-(
-	/ \stt<class _tSender, class _tEventArgs> GSEventTypeSpace
-		-> \stt<class _tEventArgs> GSEventTypeSpace;
-	/ \stt<class _tSender, class _tEventArgs> GHEvent
-		-> \stt<class _tEventArgs> GHEvent;
-	/ \stt<class _tSender, class _tEventArgs> GEvent
-		-> \stt<class _tEventArgs> GEvent;
-	/ \mac DefDelegate,
-	/ \in \t GIHEvent;
-	/ \clt GEventPointerWrapper
-);
-/ \tr @ \h (YWidgetEvent, Scroll);
-
-r75:
-/= test 5 ^ \conf release;
+r61:
+/= test 8 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-10-30:
--19.6d;
-//Mercurial rev1-rev127: r5955;
+2011-11-04:
+-21.4d;
+//Mercurial rev1-rev128: r6030;
 
 / ...
 
 
 $NEXT_TODO:
-b257-b384:
+b258-b384:
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 + partial invalidation support @ %(TextList::PrintItems, HexViewArea::Refresh);
@@ -526,12 +518,35 @@ $now
 (
 	/ "GUI" $=
 	(
+		/ $design "simplified entering/leaving event implementation",
+		- $design "dependency events" @ "class %(ATrack, TextList)"
+	),
+	/ "shells test example" $=
+	(
+		/ "hexadecimal browser" $=,
+		(
+			* "value of vertical scroll bar" @ "class %HexViewArea \
+				not reset when file reloaded" $since b254,
+			+ $design "individual model class and view class"
+		)
+	),
+	- $design suppout for language implementation without variadic macro;
+	+ $design void expression macros for function implementation
+),
+
+b256
+(
+	/ "GUI" $=
+	(
 		* $design "undefined behavior when event arguments class not empty"
 			$since b255
 	),
-	/ "first parameter for event handling emitted",
 	* "overloading error when using default template argument"
 		@ "class template ExpandMemberFirstBinder" $since b171
+	/ "event handling" $=
+	(
+		/ "first parameter for merged to second parameter",
+	)
 ),
 
 b255

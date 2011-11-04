@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6081;
+\version r6108;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-10-30 14:55 +0800;
+	2011-11-04 19:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -297,10 +297,10 @@ public:
 	explicit
 	WidgetController(bool);
 
-	ImplI1(AController) EventMapping::ItemType&
+	ImplI(AController) EventMapping::ItemType&
 	GetItemRef(const VisualEvent&);
 
-	ImplI1(AController) DefClone(WidgetController, Clone)
+	ImplI(AController) DefClone(WidgetController, Clone)
 };
 
 
@@ -345,26 +345,26 @@ public:
 	\brief 设置位置：横坐标。
 	\note 非虚 \c public 实现。
 	*/
-	PDefH1(void, SetX, SPos x)
-		ImplBodyBase1(Visual, SetLocation, Point(x, GetY()))
+	PDefH(void, SetX, SPos x)
+		ImplBodyBase(Visual, SetLocation, Point(x, GetY()))
 	/*!
 	\brief 设置位置：纵坐标。
 	\note 非虚 \c public 实现。
 	*/
-	PDefH1(void, SetY, SPos y)
-		ImplBodyBase1(Visual, SetLocation, Point(GetX(), y))
+	PDefH(void, SetY, SPos y)
+		ImplBodyBase(Visual, SetLocation, Point(GetX(), y))
 	/*!
 	\brief 设置大小：宽。
 	\note 非虚 \c public 实现。
 	*/
-	PDefH1(void, SetWidth, SDst w)
-		ImplBodyBase1(Visual, SetSize, Size(w, GetHeight()))
+	PDefH(void, SetWidth, SDst w)
+		ImplBodyBase(Visual, SetSize, Size(w, GetHeight()))
 	/*!
 	\brief 设置大小：高。
 	\note 非虚 \c public 实现。
 	*/
-	PDefH1(void, SetHeight, SDst h)
-		ImplBodyBase1(Visual, SetSize, Size(GetWidth(), h))
+	PDefH(void, SetHeight, SDst h)
+		ImplBodyBase(Visual, SetSize, Size(GetWidth(), h))
 	/*!
 	\brief 设置位置。
 	\note 虚 \c public 实现。
@@ -374,8 +374,8 @@ public:
 	\brief 设置位置。
 	\note 非虚 \c public 实现。
 	*/
-	PDefH2(void, SetLocation, SPos x, SPos y)
-		ImplBodyBase1(Visual, SetLocation, Point(x, y))
+	PDefH(void, SetLocation, SPos x, SPos y)
+		ImplBodyBase(Visual, SetLocation, Point(x, y))
 	/*!
 	\brief 设置大小。
 	\note 虚 \c public 实现。
@@ -386,8 +386,8 @@ public:
 	\brief 设置大小。
 	\note 非虚 \c public 实现。
 	*/
-	PDefH2(void, SetSize, SDst w, SDst h)
-		ImplBodyBase1(Visual, SetSize, Size(w, h))
+	PDefH(void, SetSize, SDst w, SDst h)
+		ImplBodyBase(Visual, SetSize, Size(w, h))
 };
 
 
@@ -429,22 +429,22 @@ public:
 	virtual
 	~Widget();
 
-	ImplI1(IWidget) DefPredicateBase(Visible, Visual)
+	ImplI(IWidget) DefPredicateBase(Visible, Visual)
 
-	ImplI1(IWidget) DefGetterBase(const Point&, Location, Visual)
-	ImplI1(IWidget) DefGetterBase(const Size&, Size, Visual)
-	ImplI1(IWidget) DefGetter(IWidget*&, ContainerPtrRef, pContainer)
-	ImplI1(IWidget) DefGetter(Renderer&, Renderer, *pRenderer)
-	ImplI1(IWidget) DefGetter(FocusResponder&, FocusResponder, *pFocusResponser)
-	ImplI1(IWidget) AController&
+	ImplI(IWidget) DefGetterBase(const Point&, Location, Visual)
+	ImplI(IWidget) DefGetterBase(const Size&, Size, Visual)
+	ImplI(IWidget) DefGetter(IWidget*&, ContainerPtrRef, pContainer)
+	ImplI(IWidget) DefGetter(Renderer&, Renderer, *pRenderer)
+	ImplI(IWidget) DefGetter(FocusResponder&, FocusResponder, *pFocusResponser)
+	ImplI(IWidget) AController&
 	GetController() const;
-	ImplI1(IWidget) PDefH2(IWidget*, GetTopWidgetPtr, const Point&,
+	ImplI(IWidget) PDefH(IWidget*, GetTopWidgetPtr, const Point&,
 		bool(&)(const IWidget&))
 		ImplRet(nullptr)
 
-	ImplI1(IWidget) DefSetterBase(bool, Visible, Visual)
-	ImplI1(IWidget) DefSetterBase(const Point&, Location, Visual)
-	ImplI1(IWidget) DefSetterBase(const Size&, Size, Visual)
+	ImplI(IWidget) DefSetterBase(bool, Visible, Visual)
+	ImplI(IWidget) DefSetterBase(const Point&, Location, Visual)
+	ImplI(IWidget) DefSetterBase(const Size&, Size, Visual)
 	/*!
 	\brief 设置渲染器为指定指针指向的对象，同时更新渲染器状态。
 	\note 若指针为空，则使用新建的 WidgetRenderer 对象。
@@ -463,7 +463,7 @@ public:
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
-	ImplI1(IWidget) Rect
+	ImplI(IWidget) Rect
 	Refresh(const PaintContext&);
 };
 

@@ -11,12 +11,12 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1329;
+\version r1330;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-10-28 13:53 +0800;
+	2011-11-04 19:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,7 +70,7 @@ public:
 	\brief 判断是否需要刷新。
 	\note 总是需要刷新。
 	*/
-	virtual PDefH0(bool, RequiresRefresh) const
+	virtual PDefH(bool, RequiresRefresh) const
 		ImplRet(true)
 
 	/*!

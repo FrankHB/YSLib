@@ -16,12 +16,12 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2416;
+\version r2420;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-10-12 17:35 +0800;
+	2011-11-04 19:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -174,14 +174,14 @@ public:
 	\brief 取默认屏幕。
 	\note 无异常抛出。
 	*/
-	PDefH0(Devices::DSScreen&, GetDefaultScreen)
+	PDefH(Devices::DSScreen&, GetDefaultScreen)
 		ImplRet(GetScreenUp())
 	/*!
 	\brief 取默认桌面。
 	\note 默认接口：可能会被 YSLib 本体使用。
 	\note 无异常抛出。
 	*/
-	PDefH0(Desktop&, GetDefaultDesktop)
+	PDefH(Desktop&, GetDefaultDesktop)
 		ImplRet(GetDesktopUp())
 	/*!
 	\brief 取触摸屏所在桌面。
@@ -189,7 +189,7 @@ public:
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
 	*/
-	PDefH0(Desktop&, GetTouchableDesktop)
+	PDefH(Desktop&, GetTouchableDesktop)
 		ImplRet(GetDesktopDown())
 
 	/*!

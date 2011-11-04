@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3209;
+\version r3218;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-10-28 13:57 +0800;
+	2011-11-04 19:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -54,8 +54,8 @@ public:
 	inline DefDeMoveCtor(ListBox)
 
 	DefPredicateMember(Selected, TextListBox)
-	PDefH1(bool, Contains, ViewerType::SizeType i)
-		ImplBodyMember1(TextListBox, Contains, i)
+	PDefH(bool, Contains, ViewerType::SizeType i)
+		ImplBodyMember(TextListBox, Contains, i)
 
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
@@ -65,11 +65,11 @@ public:
 	DefGetterMember(ViewerType::SizeType, HeadIndex, TextListBox)
 	DefGetterMember(ViewerType::SizeType, SelectedIndex, TextListBox)
 	DefGetterMember(ListType&, List, TextListBox)
-	DefMutableDepEventGetterMember(HUIEvent, ViewChanged, TextListBox) \
+	DefMutableEventGetterMember(HUIEvent, ViewChanged, TextListBox) \
 		//!< 视图变更事件。
-	DefMutableDepEventGetterMember(HIndexEvent, Selected, TextListBox) \
+	DefMutableEventGetterMember(HIndexEvent, Selected, TextListBox) \
 		//!< 项目选择状态变更事件。
-	DefMutableDepEventGetterMember(HIndexEvent, Confirmed, TextListBox) \
+	DefMutableEventGetterMember(HIndexEvent, Confirmed, TextListBox) \
 		//!< 项目选中确定事件。
 
 	/*!
@@ -78,10 +78,10 @@ public:
 	virtual Rect
 	Refresh(const PaintContext&);
 
-	PDefH0(void, ResetView)
-		ImplBodyMember0(TextListBox, ResetView)
-	PDefH0(void, UpdateView)
-		ImplBodyMember0(TextListBox, UpdateView)
+	PDefH(void, ResetView)
+		ImplBodyMember(TextListBox, ResetView)
+	PDefH(void, UpdateView)
+		ImplBodyMember(TextListBox, UpdateView)
 };
 
 

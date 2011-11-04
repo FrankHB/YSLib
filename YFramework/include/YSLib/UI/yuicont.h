@@ -178,7 +178,7 @@ protected:
 	向焦点对象组添加焦点对象，同时向部件组按默认 Z 顺序值添加部件。
 	\note 部件已存在时忽略。
 	*/
-	PDefHOperator1(void, +=, IWidget& wgt)
+	PDefHOperator(void, +=, IWidget& wgt)
 		ImplRet(Add(wgt))
 
 	/*!

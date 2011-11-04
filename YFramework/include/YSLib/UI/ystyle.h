@@ -158,7 +158,7 @@ public:
 	/*!
 	\brief 取颜色引用。
 	*/
-	PDefHOperator1(Drawing::Color&, [], size_t s)
+	PDefHOperator(Drawing::Color&, [], size_t s)
 		ImplRet(colors[s])
 
 	DefGetter(const ColorListType&, List, colors)

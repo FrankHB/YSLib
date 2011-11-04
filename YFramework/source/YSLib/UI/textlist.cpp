@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1465;
+\version r1475;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-10-30 14:53 +0800;
+	2011-10-31 18:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,20 +42,21 @@ namespace
 }
 
 
-TextList::Dependencies::Dependencies()
-{}
-
 TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	pair<Color, Color> hilight_pair)
 	: Control(r), MTextList(h),
 	HilightBackColor(hilight_pair.first), HilightTextColor(hilight_pair.second),
 	CyclicTraverse(false),
-	viewer(GetList()), top_offset(0), Events(FetchPrototype<Dependencies>())
+	viewer(GetList()), top_offset(0)
 {
 	SetAllOf(Margin, defMarginH, defMarginV);
+
+	static auto on_selected = [this](IndexEventArgs&&){
+		Invalidate(*this);
+	};
 	yunsequenced(
-		GetSelected().Add(*this, &TextList::OnSelected),
-		GetConfirmed().Add(*this, &TextList::OnSelected),
+		GetSelected() += on_selected,
+		GetConfirmed() += on_selected,
 		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 			if(viewer.GetTotal() != 0)
 			{
@@ -353,12 +354,6 @@ TextList::InvokeConfirmed(ViewerType::SizeType idx)
 {
 	if(CheckConfirmed(idx))
 		GetConfirmed()(IndexEventArgs(*this, idx));
-}
-
-void
-TextList::OnSelected(IndexEventArgs&&)
-{
-	Invalidate(*this);
 }
 
 

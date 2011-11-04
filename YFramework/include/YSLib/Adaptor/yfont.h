@@ -11,12 +11,12 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7328;
+\version r7330;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-10-25 13:13 +0800;
+	2011-11-04 19:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -238,13 +238,13 @@ public:
 	/*!
 	\brief 比较：相等关系。
 	*/
-	PDefHOperator1(bool, ==, const FontFile& rhs) const
+	PDefHOperator(bool, ==, const FontFile& rhs) const
 		ImplRet(path == rhs.path);
 
 	/*!
 	\brief 比较：严格递增偏序关系。
 	*/
-	PDefHOperator1(bool, <, const FontFile& rhs) const
+	PDefHOperator(bool, <, const FontFile& rhs) const
 		ImplRet(path < rhs.path);
 
 	DefGetter(PathType, Path, path)
@@ -626,7 +626,7 @@ public:
 	/*
 	!\brief 清除字形缓存。
 	*/
-	PDefH0(void, ResetGlyphCache)
+	PDefH(void, ResetGlyphCache)
 		ImplRet(FTC_Manager_Reset(manager))
 };
 

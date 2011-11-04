@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4670;
+\version r4673;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-10-28 13:56 +0800;
+	2011-11-04 19:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -159,9 +159,9 @@ public:
 
 	using MUIContainer::Contains;
 
-	virtual PDefH2(IWidget*, GetTopWidgetPtr, const Point& pt,
+	virtual PDefH(IWidget*, GetTopWidgetPtr, const Point& pt,
 		bool(&f)(const IWidget&))
-		ImplBodyBase2(MUIContainer, GetTopWidgetPtr, pt, f)
+		ImplBodyBase(MUIContainer, GetTopWidgetPtr, pt, f)
 
 	virtual void
 	Add(IWidget&, ZOrderType = DefaultZOrder);
@@ -193,7 +193,7 @@ protected:
 	\brief 绘制内容。
 	\note 绘制部件。
 	*/
-	ImplI1(AWindow) bool
+	ImplI(AWindow) bool
 	DrawContents();
 };
 

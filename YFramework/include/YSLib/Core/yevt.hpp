@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4752;
+\version r4754;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-10-30 15:28 +0800;
+	2011-11-04 19:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -390,13 +390,13 @@ public:
 	/*!
 	\brief 清除：移除所有事件响应。
 	*/
-	inline PDefH0(void, Clear)
+	inline PDefH(void, Clear)
 		ImplRet(this->List.clear())
 
 	/*
 	\brief 交换。
 	*/
-	inline PDefH1(void, Swap, GEvent& e) ynothrow
+	inline PDefH(void, Swap, GEvent& e) ynothrow
 		ImplRet(this->List.swap(e))
 };
 
@@ -486,8 +486,8 @@ public:
 	/*!
 	\brief 清除：移除所有事件响应。
 	*/
-	inline PDefH0(void, Clear)
-		ImplBodyMember0(this->GetNewRef(), Clear)
+	inline PDefH(void, Clear)
+		ImplBodyMember(this->GetNewRef(), Clear)
 };
 
 

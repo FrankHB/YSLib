@@ -11,12 +11,12 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1730;
+\version r1732;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-09-11 22:04 +0800;
+	2011-11-04 19:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,7 +71,7 @@ public:
 	\brief 访问索引指定的子菜单。
 	\exception std::out_of_range 异常中立：指定子菜单越界或不存在：由 at 抛出。
 	*/
-	PDefHOperator1(Menu&, [], size_t idx)
+	PDefHOperator(Menu&, [], size_t idx)
 		ImplRet(*mSubMenus.at(idx))
 
 	/*!
@@ -210,7 +210,7 @@ public:
 	\brief 访问菜单标识指定的菜单。
 	\exception std::out_of_range 异常中立：由 at 抛出。
 	*/
-	PDefHOperator1(Menu&, [], Menu::ID id)
+	PDefHOperator(Menu&, [], Menu::ID id)
 		ImplRet(*mMenus.at(id))
 
 	/*!
@@ -222,7 +222,7 @@ public:
 	/*!
 	\brief 判断菜单组中是否存在菜单标识指定的菜单。
 	*/
-	PDefH1(bool, Contains, Menu::ID id)
+	PDefH(bool, Contains, Menu::ID id)
 		ImplRet(mMenus.find(id) != mMenus.end())
 	/*!
 	\brief 判断菜单组中是否存在指定的菜单。

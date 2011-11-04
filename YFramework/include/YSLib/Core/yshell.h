@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version r2909;
+\version r2910;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-09-16 02:52 +0800;
+	2011-11-04 19:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -77,7 +77,7 @@ public:
 	/*!
 	\brief 消息处理函数：响应线程的直接调用。
 	*/
-	virtual PDefH1(int, OnGotMessage, const Message& msg)
+	virtual PDefH(int, OnGotMessage, const Message& msg)
 		ImplRet(DefShlProc(msg))
 };
 
