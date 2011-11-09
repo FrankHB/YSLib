@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3998;
+\version r4003;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-10-31 17:19 +0800;
+	2011-11-07 14:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#include "ygui.h"
-#include "ydesktop.h"
+#include "YSLib/UI/ygui.h"
+#include "YSLib/UI/ydesktop.h"
 
 YSL_BEGIN
 
@@ -294,7 +294,7 @@ GUIShell::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 		if(!t || t == pCon)
 		{
 			if(op == TouchDown)
-				ClearFocusingPtrOf(*pCon);
+				ClearFocusingOf(*pCon);
 			break;
 		}
 		e.SetSender(*p);

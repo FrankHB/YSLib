@@ -11,12 +11,12 @@
 /*!	\file yftext.cpp
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1815;
+\version r1817;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2011-09-30 19:42 +0800;
+	2011-11-05 11:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,7 +24,7 @@
 */
 
 
-#include "yftext.h"
+#include "YSLib/Service/yftext.h"
 
 YSL_BEGIN
 

@@ -16,12 +16,12 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1679;
+\version r1681;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2011-09-16 04:10 +0800;
+	2011-11-05 10:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,7 +33,7 @@
 #define YSL_INC_SERVICE_YTIMER_H_
 
 #include "../Core/yobject.h"
-#include "../Adaptor/cont.h"
+#include "../Adaptor/ycont.h"
 #include "../Core/ycounter.hpp"
 
 YSL_BEGIN

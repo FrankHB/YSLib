@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4164;
+\version r4185;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-10-29 23:14 +0800;
+	2011-11-09 14:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,7 +24,7 @@
 */
 
 
-#include "ydesktop.h"
+#include "YSLib/UI/ydesktop.h"
 
 YSL_BEGIN
 
@@ -99,9 +99,7 @@ AWindow::Update()
 
 AFrame::AFrame(const Rect& r, const shared_ptr<Image>& hImg)
 	: AWindow(r, hImg), MUIContainer()
-{
-	SetFocusResponser(unique_raw(new CheckedFocusResponder()));
-}
+{}
 
 void
 AFrame::operator+=(IWidget& wgt)
@@ -119,11 +117,11 @@ AFrame::operator+=(AWindow& wnd)
 bool
 AFrame::operator-=(IWidget& wgt)
 {
-	if(wgt.GetContainerPtrRef() == this)
+	if(FetchContainerPtr(wgt) == this)
 	{
 		wgt.GetContainerPtrRef() = nullptr;
-		if(GetFocusResponder().IsFocusing(&wgt))
-			GetFocusResponder().ClearFocusingPtr();
+		if(FetchFocusingPtr(*this) == &wgt)
+			GetContainerPtrRef() = nullptr;
 		return MUIContainer::operator-=(wgt);
 	}
 	return false;
@@ -131,11 +129,11 @@ AFrame::operator-=(IWidget& wgt)
 bool
 AFrame::operator-=(AWindow& wnd)
 {
-	if(wnd.GetContainerPtrRef() == this)
+	if(FetchContainerPtr(wnd) == this)
 	{
 		wnd.GetContainerPtrRef() = nullptr;
-		if(GetFocusResponder().IsFocusing(&wnd))
-			GetFocusResponder().ClearFocusingPtr();
+		if(FetchFocusingPtr(*this) == &wnd)
+			GetContainerPtrRef() = nullptr;
 		return MUIContainer::operator-=(wnd);
 	}
 	return false;

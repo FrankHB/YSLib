@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5547;
+\version r5570;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-11-04 19:16 +0800;
+	2011-11-07 22:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,6 @@
 #define YSL_INC_UI_YCONTROL_H_
 
 #include "ywidget.h"
-#include "ywgtevt.h"
 
 YSL_BEGIN
 
@@ -122,60 +121,14 @@ Enable(IWidget&, bool = true);
 
 
 /*!
-\brief 判断部件是否取得焦点。
-*/
-bool
-IsFocused(const IWidget&);
-
-/*!
-\brief 向部件容器请求获得焦点，并指定 GotFocus 事件发送控件。
-\param dst 事件目标。
-\param src 事件源。
-\note 若成功则在 dst 上触发 src 发送的 GotFocus 事件。
-*/
-void
-RequestFocusFrom(IWidget& dst, IWidget& src);
-
-/*!
-\brief 释放焦点，并指定 LostFocus 事件发送控件。
-\param dst 事件目标。
-\param src 事件源。
-\note 若成功则在 dst 上触发 src 发送的 LostFocus 事件。
-*/
-void
-ReleaseFocusFrom(IWidget& dst, IWidget& src);
-
-/*!
-\ingroup HelperFunctions
-\brief 向部件容器释放获得焦点，成功后向自身发送 GotFocus 事件。
-*/
-inline void
-RequestFocus(IWidget& wgt)
-{
-	RequestFocusFrom(wgt, wgt);
-}
-
-/*!
-\ingroup HelperFunctions
-\brief 释放焦点，成功后向自身发送 LostFocus 事件。
-*/
-inline void
-ReleaseFocus(IWidget& wgt)
-{
-	ReleaseFocusFrom(wgt, wgt);
-}
-
-
-/*!
 \brief 构造指针指向的 VisualEvent 指定的事件对象。
 */
 template<VisualEvent _vID>
 EventMapping::MappedType
 NewEvent()
 {
-	return EventMapping::MappedType(new GEventWrapper<typename
-		GSEvent<typename EventTypeMapping<_vID>::HandlerType>::EventType,
-		UIEventArgs>());
+	return EventMapping::MappedType(new GEventWrapper<EventT(typename
+		EventTypeMapping<_vID>::HandlerType), UIEventArgs>());
 }
 
 /*!
@@ -192,11 +145,11 @@ GetEvent(EventMapping::MapType&, const VisualEvent&,
 \note 若控件事件不存在则自动添加空事件。
 */
 template<VisualEvent _vID>
-typename EventT(typename EventTypeMapping<_vID>::HandlerType)&
+EventT(typename EventTypeMapping<_vID>::HandlerType)&
 FetchEvent(VisualEventMap& m)
 {
-	return dynamic_cast<typename GSEvent<typename EventTypeMapping<_vID>
-		::HandlerType>::EventType&>(GetEvent(m, _vID, NewEvent<_vID>));
+	return dynamic_cast<EventT(typename EventTypeMapping<_vID>::HandlerType)&>(
+		GetEvent(m, _vID, NewEvent<_vID>));
 }
 /*!
 \ingroup HelperFunctions
@@ -206,12 +159,11 @@ FetchEvent(VisualEventMap& m)
 \note 若控件事件不存在则自动添加空事件。
 */
 template<VisualEvent _vID>
-typename EventT(typename EventTypeMapping<_vID>::HandlerType)&
+EventT(typename EventTypeMapping<_vID>::HandlerType)&
 FetchEvent(AController& controller)
 {
-	return dynamic_cast<typename GSEvent<typename EventTypeMapping<_vID>
-		::HandlerType>::EventType&>(controller.GetItemRef(_vID,
-		NewEvent<_vID>));
+	return dynamic_cast<EventT(typename EventTypeMapping<_vID>::HandlerType)&>(
+		controller.GetItemRef(_vID, NewEvent<_vID>));
 }
 /*!
 \ingroup HelperFunctions
@@ -221,7 +173,7 @@ FetchEvent(AController& controller)
 \note 若控件事件不存在则自动添加空事件。
 */
 template<VisualEvent _vID>
-inline typename EventT(typename EventTypeMapping<_vID>::HandlerType)&
+inline EventT(typename EventTypeMapping<_vID>::HandlerType)&
 FetchEvent(IWidget& wgt)
 {
 	return FetchEvent<_vID>(wgt.GetController());

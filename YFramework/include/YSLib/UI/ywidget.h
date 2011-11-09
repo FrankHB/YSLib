@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6108;
+\version r6166;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-11-04 19:32 +0800;
+	2011-11-09 15:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,10 +29,9 @@
 
 #include "ycomp.h"
 #include "yrender.h"
-#include "yfocus.hpp"
+#include "yfocus.h"
 #include "ywgtevt.h"
-#include "../Service/ydraw.h"
-#include "../Service/ygdi.h"
+#include "ywgtview.h"
 
 YSL_BEGIN
 
@@ -54,9 +53,10 @@ DeclInterface(IWidget)
 	*/
 	DeclIEntry(Renderer& GetRenderer() const)
 	/*!
-	\brief 取焦点响应器。
+	\brief 取焦点指针的引用。
+	\warning 注意修改容器指针时，应保持和容器包含部件的状态同步。
 	*/
-	DeclIEntry(FocusResponder& GetFocusResponder() const)
+	DeclIEntry(IWidget*& GetFocusingPtrRef() const)
 	/*!
 	\brief 取控制器。
 	*/
@@ -142,7 +142,7 @@ FetchContext(const IWidget& wgt)
 inline IWidget*
 FetchFocusingPtr(IWidget& wgt)
 {
-	return wgt.GetFocusResponder().GetFocusingPtr();
+	return wgt.GetFocusingPtrRef();
 }
 
 /*!
@@ -185,7 +185,7 @@ CheckWidget(IWidget& wgt, const Point& pt, bool(&f)(const IWidget&));
 \note 若此部件非容器则无效。
 */
 void
-ClearFocusingPtrOf(IWidget&);
+ClearFocusingOf(IWidget&);
 
 /*!
 \brief 无效化：使部件区域在窗口缓冲区中无效。
@@ -230,7 +230,6 @@ RenderChild(IWidget& wgt, PaintEventArgs&& e)
 	return RenderChild(wgt, static_cast<PaintContext&&>(e));
 }
 
-
 /*!
 \brief 请求提升至容器顶端。
 
@@ -268,24 +267,6 @@ void
 Hide(IWidget&);
 
 
-//! \brief 方向模块。
-class MOriented
-{
-protected:
-	Drawing::Orientation Orientation;
-
-	explicit
-	MOriented(Drawing::Orientation);
-
-	DefGetter(Drawing::Orientation, Orientation, Orientation)
-};
-
-inline
-MOriented::MOriented(Drawing::Orientation o)
-	: Orientation(o)
-{}
-
-
 /*!
 \brief 部件控制器。
 */
@@ -304,116 +285,29 @@ public:
 };
 
 
-/*!
-\brief 可视样式。
-*/
-class Visual
-{
-private:
-	bool visible; //!< 可见性。
-	bool transparent; //!< 透明性。
-	Point location; //!< 左上角所在位置（相对于容器的偏移坐标）。
-	Size size; //!< 部件大小。
-
-public:
-	Color BackColor; //!< 默认背景色。
-	Color ForeColor; //!< 默认前景色。
-
-	/*!
-	\brief 构造：使用指定边界、前景色和背景色。
-	*/
-	explicit
-	Visual(const Rect& = Rect::Empty,
-		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
-	DefDeCopyCtor(Visual)
-	DefDeMoveCtor(Visual)
-	virtual DefEmptyDtor(Visual)
-
-	DefPredicate(Visible, visible)
-	DefPredicate(Transparent, transparent) //!< 判断是否透明。
-
-	DefGetter(SPos, X, GetLocation().X)
-	DefGetter(SPos, Y, GetLocation().Y)
-	DefGetter(SDst, Width, GetSize().Width)
-	DefGetter(SDst, Height, GetSize().Height)
-	DefGetter(const Point&, Location, location)
-	DefGetter(const Size&, Size, size)
-
-	DefSetter(bool, Visible, visible)
-	DefSetter(bool, Transparent, transparent) //!< 设置透明性。
-	/*!
-	\brief 设置位置：横坐标。
-	\note 非虚 \c public 实现。
-	*/
-	PDefH(void, SetX, SPos x)
-		ImplBodyBase(Visual, SetLocation, Point(x, GetY()))
-	/*!
-	\brief 设置位置：纵坐标。
-	\note 非虚 \c public 实现。
-	*/
-	PDefH(void, SetY, SPos y)
-		ImplBodyBase(Visual, SetLocation, Point(GetX(), y))
-	/*!
-	\brief 设置大小：宽。
-	\note 非虚 \c public 实现。
-	*/
-	PDefH(void, SetWidth, SDst w)
-		ImplBodyBase(Visual, SetSize, Size(w, GetHeight()))
-	/*!
-	\brief 设置大小：高。
-	\note 非虚 \c public 实现。
-	*/
-	PDefH(void, SetHeight, SDst h)
-		ImplBodyBase(Visual, SetSize, Size(GetWidth(), h))
-	/*!
-	\brief 设置位置。
-	\note 虚 \c public 实现。
-	*/
-	virtual DefSetter(const Point&, Location, location)
-	/*!
-	\brief 设置位置。
-	\note 非虚 \c public 实现。
-	*/
-	PDefH(void, SetLocation, SPos x, SPos y)
-		ImplBodyBase(Visual, SetLocation, Point(x, y))
-	/*!
-	\brief 设置大小。
-	\note 虚 \c public 实现。
-	*/
-	virtual void
-	SetSize(const Size& s);
-	/*!
-	\brief 设置大小。
-	\note 非虚 \c public 实现。
-	*/
-	PDefH(void, SetSize, SDst w, SDst h)
-		ImplBodyBase(Visual, SetSize, Size(w, h))
-};
-
-
 //! \brief 部件。
-class Widget : public Visual,
+class Widget : protected WidgetView,
 	implements IWidget
 {
 private:
-	mutable IWidget* pContainer; //!< 从属的部件容器的指针。
 	unique_ptr<Renderer> pRenderer; //!< 渲染器指针。
-	unique_ptr<FocusResponder> pFocusResponser; //!< 焦点响应器指针。
 
 public:
 	unique_ptr<AController> pController; //!< 控制器指针。
+	Color BackColor; //!< 默认背景色。
+	Color ForeColor; //!< 默认前景色。
 
 	explicit
 	Widget(const Rect& = Rect::Empty,
 		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
-	PDefTH3(_tRenderer, _tFocusResponser, _tController)
+	PDefTH2(_tRenderer, _tController)
 	inline Widget(const Rect& r = Rect::Empty,
 		_tRenderer&& pRenderer_ = unique_raw(new Renderer()),
-		_tFocusResponser&& pFocusResponser_ = unique_raw(new FocusResponder()),
 		_tController pController_ = nullptr)
-		: Visual(r), pContainer(), pRenderer(yforward(pRenderer_)),
-		pFocusResponser(yforward(pFocusResponser_)),
-		pController(yforward(pController_))
+		: WidgetView(r), pRenderer(yforward(pRenderer_)),
+		pController(yforward(pController_)),
+		BackColor(Drawing::ColorSpace::White),
+		ForeColor(Drawing::ColorSpace::Black)
 	{}
 	/*!
 	\brief 复制构造：除容器指针为空外深复制。
@@ -429,22 +323,32 @@ public:
 	virtual
 	~Widget();
 
-	ImplI(IWidget) DefPredicateBase(Visible, Visual)
+	ImplI(IWidget) DefPredicateBase(Visible, WidgetView)
+	using WidgetView::IsTransparent;
 
-	ImplI(IWidget) DefGetterBase(const Point&, Location, Visual)
-	ImplI(IWidget) DefGetterBase(const Size&, Size, Visual)
-	ImplI(IWidget) DefGetter(IWidget*&, ContainerPtrRef, pContainer)
+	using WidgetView::GetX;
+	using WidgetView::GetY;
+	using WidgetView::GetWidth;
+	using WidgetView::GetHeight;
+	ImplI(IWidget) DefGetterBase(const Point&, Location, WidgetView)
+	ImplI(IWidget) DefGetterBase(const Size&, Size, WidgetView)
+	ImplI(IWidget) DefGetterBase(IWidget*&, ContainerPtrRef, WidgetView)
 	ImplI(IWidget) DefGetter(Renderer&, Renderer, *pRenderer)
-	ImplI(IWidget) DefGetter(FocusResponder&, FocusResponder, *pFocusResponser)
+	ImplI(IWidget) DefGetter(IWidget*&, FocusingPtrRef, pFocusing)
 	ImplI(IWidget) AController&
 	GetController() const;
 	ImplI(IWidget) PDefH(IWidget*, GetTopWidgetPtr, const Point&,
 		bool(&)(const IWidget&))
 		ImplRet(nullptr)
 
-	ImplI(IWidget) DefSetterBase(bool, Visible, Visual)
-	ImplI(IWidget) DefSetterBase(const Point&, Location, Visual)
-	ImplI(IWidget) DefSetterBase(const Size&, Size, Visual)
+	ImplI(IWidget) DefSetterBase(bool, Visible, WidgetView)
+	using WidgetView::SetTransparent;
+	using WidgetView::SetX;
+	using WidgetView::SetY;
+	using WidgetView::SetWidth;
+	using WidgetView::SetHeight;
+	ImplI(IWidget) DefSetterBase(const Point&, Location, WidgetView)
+	ImplI(IWidget) DefSetterBase(const Size&, Size, WidgetView)
 	/*!
 	\brief 设置渲染器为指定指针指向的对象，同时更新渲染器状态。
 	\note 若指针为空，则使用新建的 WidgetRenderer 对象。
@@ -452,13 +356,6 @@ public:
 	*/
 	void
 	SetRenderer(unique_ptr<Renderer>&&);
-	/*!
-	\brief 设置焦点响应器为指定指针指向的对象，同时清除焦点指针。
-	\note 若指针为空，则使用新建的 FocusResponder 对象。
-	\note 取得指定对象的所有权。
-	*/
-	void
-	SetFocusResponser(unique_ptr<FocusResponder>&&);
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。

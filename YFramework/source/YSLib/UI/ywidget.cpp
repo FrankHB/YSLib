@@ -11,12 +11,12 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5171;
+\version r5211;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-10-30 09:44 +0800;
+	2011-11-09 14:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,7 +24,8 @@
 */
 
 
-#include "ydesktop.h"
+#include "YSLib/UI/ydesktop.h"
+#include "YSLib/Service/ydraw.h"
 
 YSL_BEGIN
 
@@ -64,11 +65,11 @@ SetInvalidationToParent(IWidget& wgt)
 }
 
 void
-ClearFocusingPtrOf(IWidget& wgt)
+ClearFocusingOf(IWidget& wgt)
 {
 	if(const auto p = FetchFocusingPtr(wgt))
 	{
-		wgt.GetFocusResponder().ClearFocusingPtr();
+		wgt.GetFocusingPtrRef() = nullptr;
 		CallEvent<LostFocus>(*p, UIEventArgs(wgt));
 	}
 }
@@ -172,7 +173,6 @@ Hide(IWidget& wgt)
 }
 
 
-inline
 WidgetController::WidgetController(bool b)
 	: AController(b),
 	Paint()
@@ -189,30 +189,17 @@ WidgetController::GetItemRef(const VisualEvent& id)
 }
 
 
-Visual::Visual(const Rect& r, Color b, Color f)
-	: visible(true), transparent(false),
-	location(r.GetPoint()), size(r.Width, r.Height),
+Widget::Widget(const Rect& r, Color b, Color f)
+	: WidgetView(r),
+	pRenderer(new Renderer()),
+	pController(new WidgetController(false)),
 	BackColor(b), ForeColor(f)
 {}
-
-void
-Visual::SetSize(const Size& s)
-{
-	size = s;
-}
-
-
-Widget::Widget(const Rect& r, Color b, Color f)
-	: Visual(r, b, f),
-	pContainer(), pRenderer(new Renderer()),
-	pFocusResponser(new FocusResponder()),
-	pController(new WidgetController(false))
-{}
 Widget::Widget(const Widget& wgt)
-	: Visual(wgt),
-	pContainer(), pRenderer(wgt.pRenderer->Clone()),
-	pFocusResponser(ClonePolymorphic(wgt.pFocusResponser)),
-	pController(ClonePolymorphic(wgt.pController))
+	: WidgetView(wgt),
+	pRenderer(wgt.pRenderer->Clone()),
+	pController(ClonePolymorphic(wgt.pController)),
+	BackColor(wgt.BackColor), ForeColor(wgt.ForeColor)
 {}
 Widget::~Widget()
 {
@@ -220,13 +207,6 @@ Widget::~Widget()
 }
 
 
-void
-Widget::SetFocusResponser(unique_ptr<FocusResponder>&& p)
-{
-	pFocusResponser = p ? std::move(p)
-		: unique_ptr<FocusResponder>(new FocusResponder());
-	pFocusResponser->ClearFocusingPtr();
-}
 void
 Widget::SetRenderer(unique_ptr<Renderer>&& p)
 {

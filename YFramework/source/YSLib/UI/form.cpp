@@ -11,12 +11,12 @@
 /*!	\file form.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗体。
-\version r1540;
+\version r1542;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-09-01 01:51 +0800;
+	2011-11-05 11:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,7 +24,7 @@
 */
 
 
-#include "form.h"
+#include "YSLib/UI/form.h"
 
 YSL_BEGIN
 

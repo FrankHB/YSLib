@@ -11,12 +11,12 @@
 /*!	\file yshelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version 0.1275;
+\version r1277;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-04 13:42:15 +0800;
 \par 修改时间:
-	2011-06-19 06:11 +0800;
+	2011-11-05 11:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,7 +24,7 @@
 */
 
 
-#include "yshelper.h"
+#include "YSLib/Helper/yshelper.h"
 
 YSL_BEGIN
 

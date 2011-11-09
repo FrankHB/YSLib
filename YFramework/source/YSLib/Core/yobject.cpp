@@ -11,12 +11,12 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version 0.1576;
+\version r1578;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-06-09 08:36 +0800;
+	2011-11-05 11:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,7 +24,7 @@
 */
 
 
-#include "yobject.h"
+#include "YSLib/Core/yobject.h"
 
 YSL_BEGIN
 

@@ -11,12 +11,12 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r1370;
+\version r1374;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-30 20:09:23 +0800;
 \par 修改时间:
-	2011-10-28 13:56 +0800;
+	2011-11-05 10:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,6 +31,7 @@
 //#include "../Adaptor/yfont.h"
 //#include "../Core/yres.h"
 #include "../Service/ytext.h"
+#include "../Helper/yglobal.h"
 
 YSL_BEGIN
 

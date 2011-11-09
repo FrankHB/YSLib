@@ -11,12 +11,12 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r3002;
+\version r3005;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-05 22:06:05 +0800;
 \par 修改时间:
-	2011-09-21 07:43 +0800;
+	2011-11-05 10:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,7 @@
 #define YSL_INC_CORE_YSTRING_H_
 
 #include "yobject.h"
-#include "../Adaptor/cont.h"
+#include "../Adaptor/ycont.h"
 
 YSL_BEGIN
 

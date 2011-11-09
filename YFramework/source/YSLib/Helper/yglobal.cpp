@@ -11,12 +11,12 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3266;
+\version r3271;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-09-23 12:23 +0800;
+	2011-11-05 11:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,14 +24,14 @@
 */
 
 
-#include "yglobal.h"
-#include "../Core/yfilesys.h"
-#include "../Core/yapp.h"
-#include "../Core/yshell.h"
-#include "../Adaptor/yfont.h"
-#include "../Adaptor/ysinit.h"
-#include "../UI/ydesktop.h"
-#include "shlds.h"
+#include "YSLib/Helper/yglobal.h"
+#include "YSLib/Core/yfilesys.h"
+#include "YSLib/Core/yapp.h"
+#include "YSLib/Core/yshell.h"
+#include "YSLib/Adaptor/yfont.h"
+#include "YSLib/Adaptor/ysinit.h"
+#include "YSLib/UI/ydesktop.h"
+#include "YSLib/Helper/shlds.h"
 //#include <clocale>
 
 YSL_BEGIN

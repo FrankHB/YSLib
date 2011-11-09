@@ -11,12 +11,12 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2395;
+\version r2397;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2011-09-23 15:28 +0800;
+	2011-11-05 11:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,7 +24,7 @@
 */
 
 
-#include "ycommon.h"
+#include "YCLib/ycommon.h"
 #include <cstdarg>
 #include <cstring>
 #include <cerrno>

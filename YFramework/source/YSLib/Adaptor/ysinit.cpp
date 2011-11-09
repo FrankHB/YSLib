@@ -11,12 +11,12 @@
 /*!	\file ysinit.cpp
 \ingroup Adaptor
 \brief 程序启动时的通用初始化。
-\version r1816;
+\version r1819;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2011-10-14 11:56 +0800;
+	2011-11-05 11:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,10 +24,10 @@
 */
 
 
-#include "ysinit.h"
-#include "yfont.h"
-#include "../Core/yapp.h"
-#include "../Helper/yglobal.h"
+#include "YSLib/Adaptor/ysinit.h"
+#include "YSLib/Adaptor/yfont.h"
+#include "YSLib/Core/yapp.h"
+#include "YSLib/Helper/yglobal.h"
 
 using namespace ystdex;
 using namespace platform;

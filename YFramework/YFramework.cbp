@@ -64,8 +64,8 @@
 		<Unit filename="include\CHRLib\smap.hpp" />
 		<Unit filename="include\YCLib\ycommon.h" />
 		<Unit filename="include\YSLib\Adaptor\config.h" />
-		<Unit filename="include\YSLib\Adaptor\cont.h" />
 		<Unit filename="include\YSLib\Adaptor\yadaptor.h" />
+		<Unit filename="include\YSLib\Adaptor\ycont.h" />
 		<Unit filename="include\YSLib\Adaptor\yfont.h" />
 		<Unit filename="include\YSLib\Adaptor\ynew.h" />
 		<Unit filename="include\YSLib\Adaptor\yref.hpp" />
@@ -116,12 +116,13 @@
 		<Unit filename="include\YSLib\UI\yconsole.h" />
 		<Unit filename="include\YSLib\UI\ycontrol.h" />
 		<Unit filename="include\YSLib\UI\ydesktop.h" />
-		<Unit filename="include\YSLib\UI\yfocus.hpp" />
+		<Unit filename="include\YSLib\UI\yfocus.h" />
 		<Unit filename="include\YSLib\UI\ygui.h" />
 		<Unit filename="include\YSLib\UI\yrender.h" />
 		<Unit filename="include\YSLib\UI\ystyle.h" />
 		<Unit filename="include\YSLib\UI\yuicont.h" />
 		<Unit filename="include\YSLib\UI\ywgtevt.h" />
+		<Unit filename="include\YSLib\UI\ywgtview.h" />
 		<Unit filename="include\YSLib\UI\ywidget.h" />
 		<Unit filename="include\YSLib\UI\ywindow.h" />
 		<Unit filename="include\ysbuild.h" />
@@ -167,10 +168,12 @@
 		<Unit filename="source\YSLib\UI\yconsole.cpp" />
 		<Unit filename="source\YSLib\UI\ycontrol.cpp" />
 		<Unit filename="source\YSLib\UI\ydesktop.cpp" />
+		<Unit filename="source\YSLib\UI\yfocus.cpp" />
 		<Unit filename="source\YSLib\UI\ygui.cpp" />
 		<Unit filename="source\YSLib\UI\yrender.cpp" />
 		<Unit filename="source\YSLib\UI\ystyle.cpp" />
 		<Unit filename="source\YSLib\UI\yuicont.cpp" />
+		<Unit filename="source\YSLib\UI\ywgtview.cpp" />
 		<Unit filename="source\YSLib\UI\ywidget.cpp" />
 		<Unit filename="source\YSLib\UI\ywindow.cpp" />
 		<Extensions>

@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2461;
+\version r2465;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-09-17 23:24 +0800;
+	2011-11-05 11:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#include "ydesktop.h"
-#include "yconsole.h"
+#include "YSLib/UI/ydesktop.h"
+#include "YSLib/UI/yconsole.h"
 
 YSL_BEGIN
 

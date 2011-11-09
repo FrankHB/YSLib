@@ -11,12 +11,12 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2961;
+\version r2967;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-11-04 19:30 +0800;
+	2011-11-04 18:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -338,12 +338,12 @@ _t type
 	{ \
 		(_m)._yJOIN(Set, _n)(_tempArgName); \
 	}
-#define DefSetterEx(_t, _n, _m, _tempArgName, _e) \
+#define DefSetterEx(_t, _n, _m, _e) \
 	void _yJOIN(Set, _n)(_t _tempArgName) \
 	{ \
 		(_m) = (_e); \
 	}
-#define DefSetterDeEx(_t, _n, _m, _defv, _tempArgName, _e) \
+#define DefSetterDeEx(_t, _n, _m, _defv, _e) \
 	void _yJOIN(Set, _n)(_t _tempArgName = _defv) \
 	{ \
 		(_m) = (_e); \

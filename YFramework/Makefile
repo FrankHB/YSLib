@@ -1,8 +1,8 @@
 # DS Makefile for YFramework -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-10-10 19:58 +0800;
-# Version = r3928;
+# UTime = 2011-11-05 11:36 +0800;
+# Version = r3936;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -30,8 +30,8 @@ export TARGET		:= $(shell basename $(CURDIR))
 export BUILD		?= release
 export RELEASE		= $(BUILD)
 export SOURCES		:= source source/CHRLib source/YCLib source/YSLib source/YSLib/Adaptor source/YSLib/Core source/YSLib/Helper source/YSLib/Service Source/YSLib/UI data
-export INCLUDES	:= include ../YBase/include include/CHRLib include/YCLib ../YSTest/include ../YCLib/include include/YSLib include/YSLib/Adaptor include/YSLib/Core include/YSLib/Helper include/YSLib/Service include/YSLib/UI data
-export DATA		:= data
+export INCLUDES		:= include ../YBase/include include/CHRLib include/YCLib ../YSTest/include ../YCLib/include include/YSLib data
+export DATA			:= data
 #export GRAPHICS	:= gfx
 #export MUSIC		:= music
 

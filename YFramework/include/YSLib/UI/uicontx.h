@@ -11,12 +11,12 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1169;
+\version r1171;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-02-21 08:59:34 +0800;
 \par 修改时间:
-	2011-09-13 23:51 +0800;
+	2011-11-07 22:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,6 @@
 #define YSL_INC_UI_UICONTX_H_
 
 #include "ycontrol.h"
-#include "yfocus.hpp"
 #include "yuicont.h"
 
 YSL_BEGIN

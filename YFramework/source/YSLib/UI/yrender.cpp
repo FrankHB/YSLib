@@ -11,12 +11,12 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1245;
+\version r1251;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2011-10-28 13:58 +0800;
+	2011-11-05 11:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,9 +24,9 @@
 */
 
 
-#include "yrender.h"
-#include "ywgtevt.h"
-#include "../Service/ydraw.h"
+#include "YSLib/UI/yrender.h"
+#include "YSLib/UI/ywgtevt.h"
+#include "YSLib/Service/ydraw.h"
 
 YSL_BEGIN
 

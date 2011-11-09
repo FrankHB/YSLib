@@ -11,12 +11,12 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2466;
+\version r2469;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2011-09-16 03:26 +0800;
+	2011-11-05 11:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,10 +24,10 @@
 */
 
 
-#include "yapp.h"
-#include "../Helper/yglobal.h"
-#include "ystorage.hpp"
-#include "../Adaptor/yfont.h"
+#include "YSLib/Core/yapp.h"
+#include "YSLib/Helper/yglobal.h"
+#include "YSLib/Core/ystorage.hpp"
+#include "YSLib/Adaptor/yfont.h"
 
 YSL_BEGIN
 

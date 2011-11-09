@@ -11,12 +11,12 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1998;
+\version r2000;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2011-11-04 19:15 +0800;
+	2011-11-07 17:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -406,7 +406,7 @@ DoEvent(AController& controller, const VisualEvent& id,
 {
 	try
 	{
-		return dynamic_cast<typename GSEvent<_tEventHandler>::EventType&>(
+		return dynamic_cast<EventT(typename _tEventHandler)&>(
 			controller.GetItemRef(id))(std::move(e));
 	}
 	catch(std::out_of_range&)

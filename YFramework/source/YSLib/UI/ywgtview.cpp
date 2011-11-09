@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2009 - 2011.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,36 +8,34 @@
 	understand and accept it fully.
 */
 
-/*!	\file yexcept.cpp
-\ingroup Core
-\brief 异常处理模块。
-\version r1248;
+/*!	\file ywgtview.cpp
+\ingroup UI
+\brief 样式无关的图形用户界面部件。
+\version r1089;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
-	2010-06-15 20:30:14 +0800;
+	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-11-05 11:17 +0800;
+	2011-11-05 18:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Core::YException;
+	YSLib::UI::YWidgetView;
 */
 
 
-#include "YSLib/Core/yexcept.h"
+#include "YSLib/UI/ywgtview.h"
 
 YSL_BEGIN
 
-LoggedEvent::LoggedEvent(const std::string& s, u8 l)
-	: GeneralEvent(s),
-	level(l)
+YSL_BEGIN_NAMESPACE(Components)
+
+Visual::Visual(const Rect& r)
+	: visible(true), transparent(false),
+	location(r.GetPoint()), size(r.Width, r.Height)
 {}
-LoggedEvent::LoggedEvent(const GeneralEvent& e, u8 l)
-	: GeneralEvent(e),
-	level(l)
-{}
-LoggedEvent::~LoggedEvent() throw()
-{}
+
+YSL_END_NAMESPACE(Components)
 
 YSL_END
 

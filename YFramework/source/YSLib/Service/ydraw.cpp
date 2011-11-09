@@ -11,12 +11,12 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version 0.1699;
+\version r1703;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:45:33 +0800;
 \par 修改时间:
-	2011-07-11 11:24 +0800;
+	2011-11-05 11:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#include "ydraw.h"
-#include "yblit.h"
+#include "YSLib/Service/ydraw.h"
+#include "YSLib/Service/yblit.h"
 
 YSL_BEGIN
 

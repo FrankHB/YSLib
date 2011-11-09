@@ -1,5 +1,37 @@
-// r3357; *build 257 rev 61;
 /*
+	Copyright (C) by Franksoft 2009 - 2011.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file Designation.txt
+\ingroup Documentation
+\brief 设计规则指定和说明。
+\version r3384; *build 258 rev 24;
+\author FrankHB<frankhb1989@gmail.com>
+\par 创建时间:
+	2009-12-02 05:14:30 +0800;
+\par 修改时间:
+	2011-11-09 15:29 +0800;
+\par 字符集:
+	UTF-8;
+\par 模块名称:
+	Documentation::Designation;
+*/
+
+/*
+	NOTE: this is NOT a source file. The base name of this file is named
+	intentionally to activate syntax highlight and other functions in an IDE
+	(specially, Visual Studio). The content is mainly about log of the
+	process of development, conformed with a set of virtual set of syntax rules
+	which constitutes an informal pseudo-code-based language.
+	This file shall be safe of deletion when building the projects.
+/*
+
 $META:
 //$configureation_for_custom_NPL_script_parser:
 $parser
@@ -186,6 +218,11 @@ $using:
 	\cl WidgetRenderer,
 	\cl BufferedWidgetRenderer
 ),
+\h YWidgetView
+(
+	\cl Visual,
+	\cl WidgetView
+),
 \h YWidgetEvent
 (
 	\cl BadEvent,
@@ -194,7 +231,6 @@ $using:
 \u YWidget
 (
 	\in IWidget,
-	\cl Visual,
 	\cl Widget
 ),
 \u YUIContainer
@@ -290,144 +326,225 @@ $using:
 
 $DONE:
 r1:
-/ \simp @ \cl GUIShell $=
-(
-	/ \mf void TryEntering(IWidget&, TouchEventArgs&)
-		-> void TryEntering(TouchEventArgs&),
-	/ \mf void TryLeaving(IWidget&, TouchEventArgs&)
-		-> void TryLeaving(TouchEventArgs&);
-	/ \tr \impl @ \mf ResponseTouchBase
-);
+/ \h Container["cont.h"] @ \dir Adaptor @ \lib YSLib @ \proj YFramwork
+	=> YContainer["ycont.h"];
+/ \inc \h (YShell, YApplication, YGlobal) -> (YGDIBase, YContainer)
+	@ \h YComponent;
+- \tr \inc \h YContainer @ \h YDesktop,
+- \inc \h YWidgetEvent @ \h YControl;
+- \inc \h (YDraw, YGDI) @ \h YWidget,
++ \tr \inc \h YBlit @ \h YWidget;
+/ \a 'using::*' @ \ns Components @ \h YRenderer >> \h YComponent,
++ \tr \inc \h YComponent @ \h YRenderer;
++ \u YWidgetView["ywgtview.h", "ywgtview.cpp"] @ \dir UI @ \lib YSLib
+	@ \proj YFramework;
+/ \cl (MOriented, Visual) @ \u YWidget >> \u YWidgetView,
++ \tr \inc \h YWidgetView @ \h YWidget,
++ \tr \inc \h YFileSystem @ \h ListBox,
++ \tr \inc \h YGlobal @ \h (TextArea, HexBrowser);
+/ \a relative \inc \h path @ (\a \impl \u) @ \proj YFramework -> absolute path;
+/ \simp Makefile @ \proj YFramework;
 
 r2:
-/ @ \cl TextList %=
-(
-	- \mf OnSelected;
-	/ \tr \impl @ \ctor,
-	- \ctor @ \cl Dependencies
-),
-/ @ \cl ATrack %=
-(
-	- \mf OnThumbDrag;
-	/ \tr \impl @ \ctor,
-	- \ctor @ \cl Dependencies
-);
-
-r3:
-/ @ \cl (ATrack, TextList) $=
-(
-	/ \mg \a \m @ \cl Dependencies as non-dependencies;
-	/ \tr @ event getters;
-	- \cl Dependencies;
-	/ \tr \impl @ \ctor
-);
-/ \tr \decl @ \cl ListBox;
-
-r4:
 /= test 1 ^ \conf release;
 
-r5:
-/ @ \impl \u HexBrowser $=
+r3:
 (
-	/ \impl @ \f ConvertByte @ \un \ns;
-	/ \impl @ \mf HexViewArea::Refresh;
-);
-
-r6:
-+ \inc \h <algorithm> @ \impl \u HexBrowser;
-/ @ \impl \u HexBrowser $=
-(
-	/ \m typedef array<byte, ItemPerLine> LineType @ \cl HexViewArea
-		-> typedef array<char, ItemPerLine * 2> LineType;
-	/ \impl @ \f ConvertByte @ \un \ns \mg -> \mf HexViewArea::UpdateData;
-	/ \tr \impl @ \mf HexViewArea::Refresh;
-);
-
-r7:
-/ @ \cl HexViewArea @ \u HexBrowser
-(
-	/ typedef list<LineType> ListType
-		-> typedef forward_list<LineType> ListType;
-	/ \tr \impl @ \mf UpdateData
-);
-
-r8-r9:
-/= test 2;
-
-r10:
-* \impl @ \mf HexViewArea::UpdateData $since r7;
-
-r11:
-* value of vertical scroll bar value not reset @ \cl HexViewArea @ \u HexBrowser
-	when file reloaded $since b254 $=
-(
-	/ \impl @ \mf HexViewArea::Reset
-);
-
-r12-r26:
-/= test 3;
-/ @ \cl HexViewArea @ \u HexBrowser $=
-(
-	/ \a \m lines => data,
-	/ \a \m ListType => DataType
-);
-
-r27:
-/= test 4 ^ \conf release;
-
-r28-r46:
-/= test 5;
-/ \impl @ \mf (UpdateData, Refresh) @ \cl HexViewArea @ \u HexBrowser;
-
-r47-r57:
-/= test 6;
-/ @ \cl HexViewArea @ \u HexBrowser $=
-(
-	- typedef array<char, ItemPerLine * 2> LineType;
-	/ forward_list<LineType> DataType -> typedef vector<char> DataType;
-	/ \tr \impl @ \mf (UpdateData, Refresh)
-);
-- \inc \h <algorithm> @ \impl \u HexBrowser;
-
-r58:
-/= test 7 ^ \conf release;
-
-r59:
-/ @ \u HexBrowser $=
-(
-	+ \cl HexModel,
-	+ \cl HexView;
-	/ \tr @ \cl HexViewArea ^ \cl (HexModel, HexViewArea)
-);
-
-r60:
+	/ @ \u YWidgetView $=
+	(
+		/ @ \cl Visual $=
+		(
+			- \vt \dtor,
+			- copy \ctor,
+			- move \ctor,
+			- \m Color BackColor,
+			- \m Color ForeColor;
+			/ @ \de \ctor
+		),
+		+ \cl WidgetView;
+	);
+	/ \tr @ \YWidget $=
+	(
+		/ \inh public \cl Visual -> protected \cl WidgetView,
+		- \m mutable IWidget* pContainer;
+		/ \tr \impl @ \ctor
+	)
+),
 / @ \h YBaseMacro $=
 (
-	- support for language implementation without variadic macro,
-	- \mac with \n $= \reg \expr pattern '*\d'
-		\exc ('PDefTH*', 'DefForwardCtorT*', 'DefExtendClass1');
-	+ \mac (ImplExpr, ImplUnsequenced)
+	/ \mac DefSetterEx(_t, _n, _m, _tempArgName, _e)
+		-> DefSetterEx(_t, _n, _m, _e),
+	/ \mac DefSetterDeEx(_t, _n, _m, _defv, _tempArgName, _e)
+		-> DefSetterDeEx(_t, _n, _m, _defv, _e)
 );
-/ \simp \impl ^ \mac ImplExpr @ \a \lib YSLib,
-/ \simp \impl ^ \mac ImplExpr @ \h HexBrowser,
-/ \simp \impl ^ \mac (ImplExpr, ImplUnsequenced) @ \h DSReader;
 
-r61:
-/= test 8 ^ \conf release;
+r4:
+/ @ \h YFocus $=
+(
+	/ \clt GCheckedFocusResponder \mg -> \clt GFocusResponder;
+	(
+		/ @ \clt GFocusResponder $=
+		(
+			- \vt \dtor,
+			- \vt \mf Clone;
+			- \vt @ \a \mf
+		),
+		/ \tr @ typedef
+	),
+	+ \i @ \ft ReleaseFocusOf
+);
+/ \tr \simp \impl @ \ctor @ \cl (Panel, AWindow);
+/ @ \cl Widget $=
+(
+	- \mf SetFocusResponser @ \cl Widget;
+	/ private \m unique_ptr<FocusResponder> pFocusResponser;
+		-> private \m mutable Components::FocusResponder FocusResponder;
+	/ \tr \simp \impl @ 2 \ctor,
+	/ \tr \impl @ \mf GetFocusResponder
+);
+/ \tr \simp \impl @ \ctor @ \cl Control;
+
+r5:
+/= test 2 ^ \conf release;
+
+r6:
+/ \simp @ \h YFocus $=
+(
+	/ \ft (RequestFocusOf, ReleaseFocusOf) \mg -> \clt GFocusResponder;
+	- \ft IsFocusOfContainer;
+);
+/ \a FocusResponder => FocusProvider,
+/ \a GFocusResponder => GFocusProvider;
+
+r7-r8:
+/ @ \clt GFocusProvider @ \h YFocus $=
+(
+	/ \mf bool SetFocusingPtr(_type*) -> bool SetFocusing(_type&),
+	/ \mf ClearFocusingPtr => ClearFocusing;
+	/ \tr \impl @ \mf (ResponseFocusRequest, ResponseFocusRelease)
+);
+/ \f ClearFocusingPtrOf -> ClearFocusingPtr @ \u YWidget;
+/ \tr \impl @ \impl \u (YWindow, Panel, YDesktop, YGUI);
+
+r9:
+/ @ \h YEvent $=
+(
+	/ \mft PDefTH1(_type) GEvent& operator+=(_type&&)
+		-> PDefTH1(_type) GEvent& operator+=(_type&&) @ \clt GEvent,
+	(
+		- \stt GSEventTypeSpace;
+		/ \tr \decl @ \clt (GHEvent, GEvent, GDependencyEvent),
+	),
+	(
+		/ \impl @ \mac (EventT, DepEventT);
+		- \stt GSEvent
+	)
+);
+/ \tr \impl @ \h (YControl, YWidgetEvent);
+
+r10:
+/ \impl @ \f (RequestFocusFrom, ReleaseFocusFrom) @ \impl \u YControl;
+- \mf (ResponseFocusRequest, ReleaseFocusRequest) @ \clt GFocusProvider
+	@ \h YFocus;
+
+r11:
+/ @ \clt GFocusProvider @ \h YFocus $=
+(
+	/ \impl @ move \ctor,
+	+ \i copy \ctor
+);
+-= \h YFocus @ \h (Scroll, UIContainerEx);
+/ \h YFocus["yfocus.hpp"] -> \u YFocus["yfocus.h", "yfocus.cpp"];
+/ \tr \inc \h @ \h YWidget;
+/ \f (IsFocused, RequestFocusFrom, ReleaseFocusFrom, RequestFocus, ReleaseFocus)
+	@ \u YControl >> \u YFocus;
+
+r12:
+/= test 3 ^ \conf release;
+
+r13:
+/ @ \u YFocus $=
+(
+	/ \impl @ \mf SetFocusing @ \clt GFocusProvider;
+	/ \tr \impl @ \f RequestFocusFrom;
+);
+
+r14:
+/ @ \u YFocus $=
+(
+	/ @ \clt GFocusProvider $=
+	(
+		/ \ac @ \m pFocusing -> public ~ protected,
+		- \mf (SetFocusingPtr, GetFocusingPtr),
+		- \mf ClearFocusingPtr,
+		- \mf IsFocusing
+	)
+);
+/ \tr \impl @ \f \i FetchFocusingPtr @ \h YWidget,
+/ \tr \impl @ \f ClearFocusingOf @ \impl \u YWidget;
+/ \tr \impl @ \impl \u (YFocus, YWindow, Panel);
+
+r15-r16:
+/= test 4;
+
+r17:
+/ \a (^ @ \mf (GetContainerPtrRef @ \in IWidget) with \op==) -> (^ @ !\m \f
+	FetchContainerPtr);
+
+r18:
+/ \a (^ @ \mf (GetFocusResponder @ \in IWidget) with \op==) -> (^ @ !\m \f
+	FetchFocusingPtr);
+
+r19:
+/ \amf FocusProvider& GetFocusResponder() const @ \in IWidget
+	-> IWidget*& GetFocusingPtrRef() const,
+/ \tr \impl @ \f \i FetchFocusingPtr @ \h YWidget,
+/ \tr \mf GetFocusResponder -> GetFocusingPtrRef,
+/ \tr \impl @ \f ClearFocusingOf @ \impl \u YWidget;
+/ \tr \impl @ \impl \u (YFocus, YWindow, Panel),
+/ \tr \impl @ \f (RequestFocusFrom, ReleaseFocusFrom) @ \impl \u YFocus;
+
+r20:
+/= test 5 ^ \conf release;
+
+r21:
+/ @ \cl WidgetView $=
+(
+	+ \m pFocusing @ \cl WidgetView;
+	/ \tr \impl @ 3 \ctor
+);
+/ \tr @ \cl YWidget $=
+(
+	- private \m mutable Components::FocusingResponder FocusingResponder,
+	/ \tr \impl @ \mf GetFocusingPtrRef
+);
+
+r22:
+* \impl @ 1st \ctor @ \cl WidgetView $since r21;
+
+r23:
+/ \simp @ \h YFocus $=
+(
+	- typedef FocusProvider;
+	- \clt GFocusProvider
+);
+
+r24:
+/= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-11-04:
--21.4d;
-//Mercurial rev1-rev128: r6030;
+2011-11-09:
+-20.8d;
+//Mercurial rev1-rev129: r6091;
 
 / ...
 
 
 $NEXT_TODO:
-b258-b384:
+b259-b384:
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 + partial invalidation support @ %(TextList::PrintItems, HexViewArea::Refresh);
@@ -515,6 +632,17 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ "GUI" $=
+	(
+		- "focus responder runtime substituting capability",
+		+ "widget view class %WidgetView";
+		/ "unified focus requesting interface"
+		/ "focusing state stored" @ "class %WidgetView"
+	)
+),
+
+b257
 (
 	/ "GUI" $=
 	(

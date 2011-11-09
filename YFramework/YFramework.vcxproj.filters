@@ -92,9 +92,6 @@
     <ClInclude Include="include\YSLib\Adaptor\config.h">
       <Filter>头文件\YSLib\Adaptor</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Adaptor\cont.h">
-      <Filter>头文件\YSLib\Adaptor</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Adaptor\yadaptor.h">
       <Filter>头文件\YSLib\Adaptor</Filter>
     </ClInclude>
@@ -269,9 +266,6 @@
     <ClInclude Include="include\YSLib\Core\ystorage.hpp">
       <Filter>头文件\YSLib\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\UI\yfocus.hpp">
-      <Filter>头文件\YSLib\UI</Filter>
-    </ClInclude>
     <ClInclude Include="include\CHRLib\chrdef.h">
       <Filter>头文件\CHRLib</Filter>
     </ClInclude>
@@ -292,6 +286,15 @@
     </ClInclude>
     <ClInclude Include="include\YSLib\Core\ybasemac.h">
       <Filter>头文件\YSLib\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ywgtview.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Adaptor\ycont.h">
+      <Filter>头文件\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\yfocus.h">
+      <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -438,6 +441,12 @@
     </ClCompile>
     <ClCompile Include="source\CHRLib\chrproc.cpp">
       <Filter>源文件\CHRLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ywgtview.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\yfocus.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

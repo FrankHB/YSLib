@@ -11,12 +11,12 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1260;
+\version r1262;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-10-14 18:13:04 +0800;
 \par 修改时间:
-	2011-11-04 19:23 +0800;
+	2011-11-05 10:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,7 @@
 #include <YSLib/UI/scroll.h>
 #include <YSLib/Service/yfile.h>
 #include <YSLib/Service/ytext.h>
+#include <YSLib/Helper/yglobal.h>
 
 YSL_BEGIN
 

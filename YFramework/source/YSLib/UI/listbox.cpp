@@ -11,12 +11,12 @@
 /*!	\file listbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3702;
+\version r3708;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-10-30 13:33 +0800;
+	2011-11-05 11:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,9 +24,9 @@
 */
 
 
-#include "listbox.h"
-#include "ystyle.h"
-#include "../Service/ytext.h"
+#include "YSLib/UI/listbox.h"
+#include "YSLib/UI/ystyle.h"
+#include "YSLib/Service/ytext.h"
 
 YSL_BEGIN
 

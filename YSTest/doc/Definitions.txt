@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11451;
+\version r11459;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-11-04 19:31 +0800;
+	2011-11-05 18:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -261,8 +261,8 @@ DefSetterBase(_t, _n, _b)
 DefSetterBaseDe(_t, _n, _b, _defv)
 DefSetterMember(_t, _n, _m)
 DefSetterMemberDe(_t, _n, _m, _defv)
-DefSetterEx(_t, _n, _m, _tempArgName, _e)
-DefSetterDeEx(_t, _n, _m, _defv, _tempArgName, _e)
+DefSetterEx(_t, _n, _m, _e)
+DefSetterDeEx(_t, _n, _m, _defv, _e)
 DefClone(_t, _n)
 DefForwardCtorT1(_tClass, _t1, _p1)
 DefForwardCtorT2(_tClass, _t1, _p1, _t2, _p2)
@@ -575,19 +575,23 @@ namespace std
 namespace Components
 {
 	$unit UI::YComponents;
-	$unit UI::Desktop;
+	$unit UI::YRenderer;
+	$unit UI::YWidgetEvent;
+	$unit UI::YWidgetView;
+	$unit UI::YWidget;
 	$unit UI::YControl;
+	$unit UI::YUIContainer;
+	$unit UI::YWindow;
+	$unit UI::YDesktop;
+	$unit UI::Label;
 	$unit UI::Button;
 	$unit UI::CheckBox;
+	$unit UI::UIContainerEx;
 	$unit UI::Panel;
-	$unit UI::ListBox;
-	$unit UI::Menu;
 	$unit UI::TextList;
-	$unit UI::Window;
+	$unit UI::Menu;
+	$unit UI::ListBox;
 	$unit UI::Form;
-	$unit UI::YWidget;
-	$unit UI::YUIContainer;
-	$unit UI::YLabel;
 	namespace Styles
 	{
 		$unit UI::YStyle;
@@ -925,15 +929,6 @@ $header Core::YGDI : Core::YGDIBase
 
 $header UI::YComponent : YMessage
 {
-	using Components::IWidget;
-} //$header UI::YComponent;
-
-$header UI::YWidgetEvent : UI::YComponent
-{
-} //$header UI::YWidgetEvent;
-
-$header UI::YRenderer
-{
 	namespace Components
 	{
 		using Drawing::PixelType, Drawing::BitmapPtr, Drawing::ConstBitmapPtr, Drawing::ScreenBufferType, Drawing::Color;
@@ -941,7 +936,7 @@ $header UI::YRenderer
 		using Drawing::Point, Drawing::Vec, Drawing::Size, Drawing::Rect;
 		using Drawing::Graphics;
 	} //namespace Components;
-} //$header UI::YRenderer;
+} //$header UI::YComponent;
 
 $header UI::YWidget : UI::YComponent, UI::YRenderer, UI::YFocus, Core::YResource, UI::YWidgetEvent
 {

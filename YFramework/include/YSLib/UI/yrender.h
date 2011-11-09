@@ -11,12 +11,12 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1330;
+\version r1334;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-11-04 19:15 +0800;
+	2011-11-05 10:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,26 +27,12 @@
 #ifndef YSL_INC_UI_YRENDER_H_
 #define YSL_INC_UI_YRENDER_H_
 
+#include "ycomp.h"
 #include "../Service/ygdi.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-//名称引用。
-using Drawing::PixelType;
-using Drawing::BitmapPtr;
-using Drawing::ConstBitmapPtr;
-using Drawing::ScreenBufferType;
-using Drawing::Color;
-
-using Drawing::Point;
-using Drawing::Vec;
-using Drawing::Size;
-using Drawing::Rect;
-
-using Drawing::Graphics;
-
 
 //前向声明。
 struct PaintContext;

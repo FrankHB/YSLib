@@ -11,12 +11,12 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4754;
+\version r4770;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-11-04 19:31 +0800;
+	2011-11-07 17:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,28 +32,17 @@
 
 YSL_BEGIN
 
-//! \brief 公用事件模板命名空间。
-template<class _tEventArgs>
-struct GSEventTypeSpace
-{
-	typedef void FuncType(_tEventArgs&&);
-	typedef FuncType* FuncPtrType;
-};
-
-
 /*!
 \brief 标准事件处理器类模板。
 \note 若使用函数对象，可以不满足 \c EqualityComparable 的接口，即
 	可使用返回 \c bool 的 \c operator== ，但此模板类无法检查其语义正确性。
 */
 template<class _tEventArgs>
-class GHEvent : protected std::function<typename GSEventTypeSpace<
-	_tEventArgs>::FuncType>
+class GHEvent : protected std::function<void(_tEventArgs&&)>
 {
 public:
 	typedef _tEventArgs EventArgsType;
-	typedef GSEventTypeSpace<_tEventArgs> SEventType;
-	typedef typename SEventType::FuncType FuncType;
+	typedef void FuncType(_tEventArgs&&);
 	typedef std::function<FuncType> BaseType;
 
 private:
@@ -160,8 +149,7 @@ class GEvent
 {
 public:
 	typedef _tEventArgs EventArgsType;
-	typedef GSEventTypeSpace<_tEventArgs> SEventType;
-	typedef typename SEventType::FuncType FuncType;
+	typedef void FuncType(_tEventArgs&&);
 	typedef GHEvent<_tEventArgs> HandlerType;
 	typedef list<HandlerType> ListType;
 	typedef typename ListType::size_type SizeType;
@@ -261,7 +249,7 @@ public:
 	*/
 	PDefTH1(_type)
 	inline GEvent&
-	operator+=(_type _arg)
+	operator+=(_type&& _arg)
 	{
 		return *this += HandlerType(yforward(_arg));
 	}
@@ -491,20 +479,11 @@ public:
 };
 
 
-//! \brief 多播事件类型。
-template<class _tEventHandler>
-struct GSEvent
-{
-	typedef GEvent<typename _tEventHandler::EventArgsType> EventType;
-	typedef GDependencyEvent<EventType> DependencyType;
-};
-
-
 //! \brief 事件类型宏。
 #define EventT(_tEventHandler) \
-	GSEvent<_tEventHandler>::EventType
+	GEvent<_tEventHandler::EventArgsType>
 #define DepEventT(_tEventHandler) \
-	GSEvent<_tEventHandler>::DependencyType
+	typename GDependencyEvent(EventT(_tEventHandler))
 
 //! \brief 声明事件。
 #define DeclEvent(_tEventHandler, _name) \

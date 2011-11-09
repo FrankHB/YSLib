@@ -11,12 +11,12 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version r6783;
+\version r6787;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-10-25 20:57 +0800;
+	2011-11-05 11:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#include "ytext.h"
-#include "yblit.h"
+#include "YSLib/Service/ytext.h"
+#include "YSLib/Service/yblit.h"
 
 using namespace ystdex;
 

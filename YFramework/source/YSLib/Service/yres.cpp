@@ -11,12 +11,12 @@
 /*!	\file yres.cpp
 \ingroup Service
 \brief 应用程序资源管理模块。
-\version 0.1234;
+\version r1238;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-06-16 20:16 +0800;
+	2011-11-05 11:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#include "yres.h"
-#include "yshell.h"
+#include "YSLib/Service/yres.h"
+#include "YSLib/Core/yshell.h"
 
 YSL_BEGIN
 

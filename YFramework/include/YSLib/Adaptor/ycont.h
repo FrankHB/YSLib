@@ -8,24 +8,24 @@
 	understand and accept it fully.
 */
 
-/*!	\file cont.h
+/*!	\file ycont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version r1626;
+\version r1631;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2011-10-18 15:07 +0800;
+	2011-11-05 10:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::Adaptor::Container;
+	YSLib::Adaptor::YContainer;
 */
 
 
-#ifndef YSL_INC_ADAPTOR_CONT_H_
-#define YSL_INC_ADAPTOR_CONT_H_
+#ifndef YSL_INC_ADAPTOR_YCONT_H_
+#define YSL_INC_ADAPTOR_YCONT_H_
 
 #include "yadaptor.h"
 #include <utility>

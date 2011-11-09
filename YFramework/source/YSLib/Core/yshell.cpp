@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version r3304;
+\version r3307;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-09-16 02:57 +0800;
+	2011-11-05 11:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,9 +24,9 @@
 */
 
 
-#include "yshell.h"
-#include "yapp.h"
-#include "../Helper/yglobal.h"
+#include "YSLib/Core/yshell.h"
+#include "YSLib/Core/yapp.h"
+#include "YSLib/Helper/yglobal.h"
 
 YSL_BEGIN
 

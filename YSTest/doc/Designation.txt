@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5545;
+\version r5564;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-11-04 19:35 +0800;
+	2011-11-09 15:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -853,7 +853,7 @@
 用于实现 UI 的 Shell 一般也包括实现相关消息处理。
 和 Shell 相对的 Core 不直接参与实现 UI 。
 
-@1.9.2 GUI（Graphic UI ，图形用户界面）设计概述：
+@1.9.2 GUI（Graphical UI ，图形用户界面）设计概述：
 界面实现使用称为 Shell-Widget 的模式，是精简的主动模型-视图-控制器模式的变体，参照窗体-控件模式。但架构模式无本质变化。
 界面实现解决的三个问题：安排状态(state) 、逻辑(logic) 和同步(synchronization) ，都可以在运行期配置。
 为了方便重用，这些属性有如下分类：
@@ -1228,7 +1228,7 @@
 @2.7.1.2 类组织：
 
 @2.7.1.2.1 接口：
- IWidget ：部件接口，包括返回渲染器、焦点响应器、控制器等的虚成员方法，可以在容器中重载实现。
+ IWidget ：部件接口，包括返回容器指针引用、渲染器、焦点指针引用、控制器等的虚成员方法，可以在容器中重载实现。
 功能说明和其它描述参见 @2.7 、 @2.7.1.1 、 @2.7.1.2.3 。
 
 @2.7.1.2.2 继承：
@@ -1283,7 +1283,7 @@
 当用户按键时，触发 KeyDown 事件；持续时触发 KeyHeld 事件；结束时依次触发 KeyPress 和 KeyUp 事件。
 当用户使用指针设备（包括触摸屏）输入时，触发 TouchDown 事件；持续时触发 TouchHeld 事件；持续且移动时可触发 TouchMove 事件；结束时依次触发 Click 和 TouchUp 事件。
 在 YControl 单元及其中的控件类 Control 中定义了主要处理程序。
- Control 默认使用成员函数处理 TouchDown 事件，调用焦点响应器的成员方法 RequestFocus(...) 向容器请求焦点。若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
+ Control 默认使用成员函数处理 TouchDown 事件，调用函数 RequestFocus 向容器请求焦点。若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
 指针设备相关事件中，参数包含了相对于控件的坐标。
 最近操作的全局（相对于屏幕的）坐标保存于全局变量 ControlLocation 中。
 拖放操作依赖的最近全局坐标保存于全局变量 LastControlLocation 中。
@@ -1330,23 +1330,21 @@
 概述：参见 @1.9.2.7 。
 
 @2.7.4.1 焦点污染：
-焦点默认和请求/响应双方相关，而和其它对象无关。即 RequestFocus(...) 函数应该只改变主调对象及其响应对象中描述焦点的状态域，而不产生副作用。
+焦点默认和请求/响应双方相关，而和其它对象无关。即 RequestFocus 函数应该只改变主调对象及其响应对象中描述焦点的状态域，而不产生副作用。
 可以在 GotFocus 和 LostFocus 的响应函数中添加相关代码改变这一特性，但会使主调对象和其它对象产生额外的关联。这种关联不符合焦点本身的语义，且难以调试，如非必要，应该避免。
 
 @2.7.4.2 焦点请求链：
-在排除 @2.7.4.1 中叙述的副作用的情况下，可以认为不同对象的 RequestFocus(...) 的调用是顺序无关的，可以任意调度。
+在排除 @2.7.4.1 中叙述的副作用的情况下，可以认为不同对象的 RequestFocus 的调用是顺序无关的，可以任意调度。
 使用 YGUI 单元声明的函数 void RequestFocusCascade(Components::IWidget&) 可以实现由 IWidget 对象自下向上的嵌套容器焦点申请。注意，会以相同的顺序触发 GotFocus 事件。
 
-@2.7.4.3 默认实现相关的定义：
+@2.7.4.3 默认实现综述：
 具有焦点响应能力（即储存了关于集中焦点于特定的子对象的状态）的类称为焦点响应类。
-
-@2.7.4.4 默认实现综述：
-默认通过组合 GFocusResponder 或 GCheckedFocusResponder 类模板实例（焦点响应器）的指针实现焦点响应类。
+默认通过组合 WidgetView 保存的部件焦点指针实现焦点响应类。
 部件容器需要实现明确的响应焦点的请求和释放操作。
 在 GUI Shell 实现中独立保存额外的控件独立焦点指针，捕获自由状态的控件指针并判断是否能够据此调用 KeyPress 或 Click 事件。
 为了支持拖放操作，索引控件时，按位置判断作用的控件并根据上述 Shell 中的独立焦点指针和状态变量判断附加操作，而不通过上述的通用焦点。
 
-@2.7.4.5 实例：
+@2.7.4.3.1 实例：
  Desktop 、 Frame 和 Form 是 IWidget 的焦点响应类。
 
 @2.7.5 默认 GUI 响应流程：
@@ -1575,13 +1573,14 @@ FetchDefaultScreen();
  "ygdi.h" 依赖于 Adaptor 的 "yfont.h" ；
  "ytext.h" 依赖于 "ygdi.h" 、 "yftext.h" 和 Core 的 "ystring.h" 。
 在 UI 中，以下依赖关系对于头文件包含是确定的：
- "ycomp.h" 依赖于 Core 的 "yshell.h"；
- "yfocus.hpp" 、 "ystyle.h" 和 "ywidget.h" 依赖于 "ycomp.h" ；
- "yrender.h" 、 "ystyle.h" 、 "ytext.h" 和 "ywidget.h"依赖于 Service 的 "ygdi.h" ；
- "ystyle.h" 和 "ywidget.h" 依赖于 Service 的 "ydraw.h"；
- "ywidget.h" 依赖于 "yrender.h" 和 "yfocus.hpp" ；
+ "ycomp.h" 依赖于 Core 的 "ygdibase.h"；
+ "yfocus.hpp" 和 "ywgtview.h" 依赖于 "ycomp.h" ；
+ "yrender.h" 依赖于 "ycomp.h" 和 Service 的 "ygdi.h" ；
+ "ystyle.h" 依赖于 "ycomp.h" 和 Service 的 "ydraw.h"；
+ "ywgtevt.h" 依赖于 "ycomp.h" 和 Core 的 "yevt.hpp" ；
+ "ywidget.h" 依赖于 "yrender.h" 、 "yfocus.hpp" 、 "ywgtevt.h" 和 "ywgtview.h" ；
  "ycontrol.h" 和 "yuicont.h" 依赖于 "ywidget.h" ；
- "ygui.h" 依赖于 "ycontrol.h" 和 "ystyle.h" ；
+ "ygui.h" 依赖于 "ycontrol.h" 、 "ystyle.h" 和 Core 的 "yshell.h" ；
  "ywindow.h" 依赖于 "ycontrol.h" 、 "yuicont.h" 和 Service 的 "yblit.h" ；
  "ywindow.h" 依赖于 Service 的 "yres.h" ；
  "ydesktop.h" 依赖于 "ywindow.h" 。
@@ -1802,10 +1801,14 @@ $4.1.3.1.4 临时性例外：
  *Ref ：引用（类型为非 const 引用类型）。
  *To ：操作名称起始，第一参数指定目标的函数。
  Be*With ：* 为操作名称过去分词（被动语态）；按参数完成特定操作达成特定状态。
- Get* ： * 为目标名称；取特定目标；包括成员读访问器：取对应名称的成员。
+ Get* ： * 为目标名称；取特定目标；包括成员读访问器：取对应名称的对象（通常是成员）。
  Is* ： * 为目标名称；谓词：计算目标状态，返回类型为 bool 的结果。
  Set* ： * 为目标名称；取特定目标；包括成员写访问器：设置对应名称的成员的值。
  On* ： * 为描述事件及事件响应目标的名称；事件处理器。
+
+@4.1.7.3 YFramework 约定：
+除了 YSLib 中非本体部分，不位于类作用域的自由函数 Fetch* ：语义近似于 Get*，但受到以下限制：
+除了特例 FetchMessage 外，返回类型对 * 以 Ref 结尾的或非 POD 目标类型（包括泛型类型）为其引用或 const 引用类型，否则为目标类型本身。
 
 @4.2
 宏名:
@@ -1889,7 +1892,7 @@ $4.1.3.1.4 临时性例外：
 除 @4.5.1 限制外， public 函数首字母须大写。
 
 @4.5.2.1
- "Get" 和 "Set" 起始的成员一定是成员函数；不一定为类的访问器，但须符合访问器的一般语义。
+ "Get" 和 "Set" 起始的类的成员一定是成员函数；不一定为类的访问器，但须符合访问器的一般语义。
 
 @4.5.2.2
 一般不使用缩写，除非有特殊含义。

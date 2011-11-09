@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4568;
+\version r4588;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-10-30 14:55 +0800;
+	2011-11-07 22:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,9 +24,9 @@
 */
 
 
-#include "ygui.h"
-#include "yuicont.h"
-#include "../Core/ystorage.hpp"
+#include "YSLib/UI/ygui.h"
+#include "YSLib/UI/yuicont.h"
+#include "YSLib/Core/ystorage.hpp"
 #include <ystdex/algorithm.hpp>
 
 YSL_BEGIN
@@ -60,31 +60,6 @@ Enable(IWidget& wgt, bool b)
 	SetEnabledOf(wgt, b);
 	if(need_invalidate)
 		Invalidate(wgt);
-}
-
-
-bool
-IsFocused(const IWidget& wgt)
-{
-	const auto p(FetchContainerPtr(wgt));
-
-	return p ? FetchFocusingPtr(*p) == &wgt : false;
-}
-
-void
-RequestFocusFrom(IWidget& dst, IWidget& src)
-{
-	if(auto p = FetchContainerPtr(dst))
-		if(p->GetFocusResponder().ResponseFocusRequest(dst))
-			CallEvent<GotFocus>(dst, UIEventArgs(src));
-}
-
-void
-ReleaseFocusFrom(IWidget& dst, IWidget& src)
-{
-	if(auto p = FetchContainerPtr(dst))
-		if(p->GetFocusResponder().ResponseFocusRelease(dst))
-			CallEvent<LostFocus>(dst, UIEventArgs(src));
 }
 
 
@@ -220,8 +195,8 @@ Control::ControlEventMap::ControlEventMap()
 }
 
 Control::Control(const Rect& r)
-	: Widget(r, new Renderer(), new FocusResponder(), new Controller(true,
-	FetchPrototype<ControlEventMap>()))
+	: Widget(r, new Renderer(),
+	new Controller(true, FetchPrototype<ControlEventMap>()))
 {
 //	const auto& h([this](EventArgs&&){
 //		Invalidate(*this);
