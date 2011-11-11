@@ -11,12 +11,12 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6166;
+\version r6254;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-11-09 15:00 +0800;
+	2011-11-11 13:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,41 +39,25 @@ YSL_BEGIN_NAMESPACE(Components)
 
 //! \brief 部件接口。
 DeclInterface(IWidget)
-	DeclIEntry(bool IsVisible() const) //!< 判断是否可见。
-
-	DeclIEntry(const Point& GetLocation() const)
-	DeclIEntry(const Size& GetSize() const)
-	/*!
-	\brief 取容器指针的引用。
-	\warning 注意修改容器指针时，应保持和容器包含部件的状态同步。
-	*/
-	DeclIEntry(IWidget*& GetContainerPtrRef() const)
 	/*!
 	\brief 取渲染器。
 	*/
 	DeclIEntry(Renderer& GetRenderer() const)
 	/*!
-	\brief 取焦点指针的引用。
-	\warning 注意修改容器指针时，应保持和容器包含部件的状态同步。
+	\brief 取部件视图。
+	\warning 注意修改容器指针或焦点指针时，应保持和容器包含部件的状态同步。
 	*/
-	DeclIEntry(IWidget*& GetFocusingPtrRef() const)
+	DeclIEntry(View& GetView() const)
 	/*!
 	\brief 取控制器。
 	*/
 	DeclIEntry(AController& GetController() const)
-
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	\return 若为保存了子部件中的可见部件的容器则返回指针，否则返回 \c nullptr 。
 	\note 使用部件坐标。
 	*/
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)))
-
-	DeclIEntry(void SetVisible(bool)) //!< 设置可见。
-	DeclIEntry(void SetLocation(const Point&)) \
-		//!< 设置左上角所在位置（相对于父容器的偏移坐标）。
-	DeclIEntry(void SetSize(const Size&)) \
-		//!< 设置大小。
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
@@ -84,6 +68,15 @@ DeclInterface(IWidget)
 	DeclIEntry(Rect Refresh(const PaintContext&))
 EndDecl
 
+
+/*!
+\brief 判断部件是否可见。
+*/
+inline bool
+IsVisible(const IWidget& wgt)
+{
+	return wgt.GetView().IsVisible();
+}
 
 /*!
 \brief 判断点是否在部件的可视区域内。
@@ -113,6 +106,7 @@ ContainsVisible(const IWidget& wgt, const Point& pt)
 	return ContainsVisible(wgt, pt.X, pt.Y);
 }
 
+
 /*!
 \ingroup HelperFunctions
 \brief 取部件的容器指针。
@@ -121,7 +115,7 @@ ContainsVisible(const IWidget& wgt, const Point& pt)
 inline IWidget*
 FetchContainerPtr(const IWidget& wgt)
 {
-	return wgt.GetContainerPtrRef();
+	return wgt.GetView().pContainer;
 }
 
 /*
@@ -142,7 +136,19 @@ FetchContext(const IWidget& wgt)
 inline IWidget*
 FetchFocusingPtr(IWidget& wgt)
 {
-	return wgt.GetFocusingPtrRef();
+	return wgt.GetView().pFocusing;
+}
+
+inline const Point&
+GetLocationOf(const IWidget& wgt)
+{
+	return wgt.GetView().GetLocation();
+}
+
+inline const Size&
+GetSizeOf(const IWidget& wgt)
+{
+	return wgt.GetView().GetSize();
 }
 
 /*!
@@ -151,7 +157,7 @@ FetchFocusingPtr(IWidget& wgt)
 inline Rect
 GetBoundsOf(const IWidget& wgt)
 {
-	return Rect(wgt.GetLocation(), wgt.GetSize());
+	return Rect(GetLocationOf(wgt), GetSizeOf(wgt));
 }
 
 /*!
@@ -159,6 +165,18 @@ GetBoundsOf(const IWidget& wgt)
 */
 void
 SetBoundsOf(IWidget&, const Rect&);
+
+/*!
+\brief 设置部件左上角所在位置（相对于容器的偏移坐标）。
+*/
+void
+SetLocationOf(IWidget&, const Point&);
+
+/*
+\brief 设置部件大小。
+*/
+void
+SetSizeOf(IWidget&, const Size&);
 
 /*!
 \brief 设置部件的无效区域。
@@ -172,6 +190,16 @@ SetInvalidationOf(IWidget&);
 */
 void
 SetInvalidationToParent(IWidget&);
+
+/*!
+\brief 设置部件可见性。
+*/
+inline void
+SetVisibleOf(IWidget& wgt, bool b)
+{
+	wgt.GetView().SetVisible(b);
+}
+
 
 /*!
 \brief 检查指定部件是否满足 Contains(wgt, pt) && f(wgt) 。
@@ -275,8 +303,11 @@ class WidgetController : public AController
 public:
 	GEventWrapper<EventT(HPaintEvent), UIEventArgs> Paint;
 
+	/*!
+	\brief 构造：使用指定可用性。
+	*/
 	explicit
-	WidgetController(bool);
+	WidgetController(bool = false);
 
 	ImplI(AController) EventMapping::ItemType&
 	GetItemRef(const VisualEvent&);
@@ -286,10 +317,10 @@ public:
 
 
 //! \brief 部件。
-class Widget : protected WidgetView,
-	implements IWidget
+class Widget : implements IWidget
 {
 private:
+	unique_ptr<View> pView; //!< 部件视图指针。
 	unique_ptr<Renderer> pRenderer; //!< 渲染器指针。
 
 public:
@@ -300,15 +331,25 @@ public:
 	explicit
 	Widget(const Rect& = Rect::Empty,
 		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
-	PDefTH2(_tRenderer, _tController)
-	inline Widget(const Rect& r = Rect::Empty,
+	/*!
+	\brief 构造：使用视图指针、渲染器指针和控制器指针。
+	\param pView_ 视图指针。
+	\param pRenderer_ 渲染器指针。
+	\param pController_ 控制器指针。
+	\pre <tt>is_not_null(pView_) && is_not_null(pRenderer_)</tt> 。
+	*/
+	PDefTH3(_tView, _tRenderer, _tController)
+	inline Widget(_tView&& pView_ = unique_raw(new View()),
 		_tRenderer&& pRenderer_ = unique_raw(new Renderer()),
 		_tController pController_ = nullptr)
-		: WidgetView(r), pRenderer(yforward(pRenderer_)),
+		: pView(yforward(pView_)), pRenderer(yforward(pRenderer_)),
 		pController(yforward(pController_)),
 		BackColor(Drawing::ColorSpace::White),
 		ForeColor(Drawing::ColorSpace::Black)
-	{}
+	{
+		YAssert(is_not_null(pView) && is_not_null(pRenderer),
+			"Null pointer(s) found @ Widget::Widget#2;");
+	}
 	/*!
 	\brief 复制构造：除容器指针为空外深复制。
 	*/
@@ -323,39 +364,39 @@ public:
 	virtual
 	~Widget();
 
-	ImplI(IWidget) DefPredicateBase(Visible, WidgetView)
-	using WidgetView::IsTransparent;
+	DefPredicateMember(Transparent, GetView())
 
-	using WidgetView::GetX;
-	using WidgetView::GetY;
-	using WidgetView::GetWidth;
-	using WidgetView::GetHeight;
-	ImplI(IWidget) DefGetterBase(const Point&, Location, WidgetView)
-	ImplI(IWidget) DefGetterBase(const Size&, Size, WidgetView)
-	ImplI(IWidget) DefGetterBase(IWidget*&, ContainerPtrRef, WidgetView)
+	DefGetterMember(SPos, X, GetView())
+	DefGetterMember(SPos, Y, GetView())
+	DefGetterMember(SDst, Width, GetView())
+	DefGetterMember(SDst, Height, GetView())
 	ImplI(IWidget) DefGetter(Renderer&, Renderer, *pRenderer)
-	ImplI(IWidget) DefGetter(IWidget*&, FocusingPtrRef, pFocusing)
+	ImplI(IWidget) DefGetter(View&, View, *pView)
 	ImplI(IWidget) AController&
 	GetController() const;
 	ImplI(IWidget) PDefH(IWidget*, GetTopWidgetPtr, const Point&,
 		bool(&)(const IWidget&))
 		ImplRet(nullptr)
 
-	ImplI(IWidget) DefSetterBase(bool, Visible, WidgetView)
-	using WidgetView::SetTransparent;
-	using WidgetView::SetX;
-	using WidgetView::SetY;
-	using WidgetView::SetWidth;
-	using WidgetView::SetHeight;
-	ImplI(IWidget) DefSetterBase(const Point&, Location, WidgetView)
-	ImplI(IWidget) DefSetterBase(const Size&, Size, WidgetView)
+	DefSetterMember(bool, Transparent, GetView())
+	DefSetterMember(SDst, X, GetView())
+	DefSetterMember(SDst, Y, GetView())
+	DefSetterMember(SDst, Width, GetView())
+	DefSetterMember(SDst, Height, GetView())
 	/*!
 	\brief 设置渲染器为指定指针指向的对象，同时更新渲染器状态。
-	\note 若指针为空，则使用新建的 WidgetRenderer 对象。
+	\note 若指针为空，则使用以当前部件边界新建的 Renderer 对象。
 	\note 取得指定对象的所有权。
 	*/
 	void
 	SetRenderer(unique_ptr<Renderer>&&);
+	/*!
+	\brief 设置渲染器为指定指针指向的对象，同时更新渲染器状态。
+	\note 若指针为空，则使用以当前部件边界新建的 View 对象。
+	\note 取得指定对象的所有权。
+	*/
+	void
+	SetView(unique_ptr<View>&&);
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。

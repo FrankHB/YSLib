@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3599;
+\version r3604;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-11-05 11:25 +0800;
+	2011-11-11 12:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -94,10 +94,10 @@ Thumb::Refresh(const PaintContext& e)
 
 	if(!enabled)
 		bPressed = false;
-	RectDrawButton(g, pt, GetSize(), bPressed, enabled);
+	RectDrawButton(g, pt, GetSizeOf(*this), bPressed, enabled);
 	if(enabled && IsFocused(*this))
 	{
-		Size s(GetSize());
+		Size s(GetSizeOf(*this));
 
 		if(s.Width > 6 && s.Height > 6)
 		{
@@ -105,7 +105,7 @@ Thumb::Refresh(const PaintContext& e)
 			DrawRect(g, pt + Vec(3, 3), s, ColorSpace::Aqua);
 		}
 	}
-	return Rect(pt, GetSize());
+	return Rect(pt, GetSizeOf(*this));
 }
 
 
@@ -119,7 +119,7 @@ Button::Refresh(const PaintContext& e)
 {
 	auto r(Thumb::Refresh(e));
 
-	PaintText(GetSize(), IsEnabled(*this) ? ForeColor
+	PaintText(GetSizeOf(*this), IsEnabled(*this) ? ForeColor
 		: FetchGUIShell().Colors[Styles::Workspace], e);
 	return r;
 }

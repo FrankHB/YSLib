@@ -11,12 +11,12 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2146;
+\version r2148;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-11-05 11:33 +0800;
+	2011-11-11 12:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -97,8 +97,8 @@ Rect
 Label::Refresh(const PaintContext& e)
 {
 	Widget::Refresh(e);
-	PaintText(GetSize(), ForeColor, e);
-	return Rect(e.Location, GetSize());
+	PaintText(GetSizeOf(*this), ForeColor, e);
+	return Rect(e.Location, GetSizeOf(*this));
 }
 
 

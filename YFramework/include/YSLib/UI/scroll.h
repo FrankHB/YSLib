@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3247;
+\version r3250;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-11-07 22:28 +0800;
+	2011-11-11 12:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -143,12 +143,13 @@ public:
 	DefMutableEventGetter(HScrollEvent, Scroll, Scroll) //!< 滚动事件。
 	DefGetter(SDst, MinThumbLength, min_thumb_length)
 	DeclIEntry(Orientation GetOrientation() const) //!< 取轨道方向。
-	DefGetter(SDst, ThumbLength, SelectFrom(Thumb.GetSize(),
+	DefGetter(SDst, ThumbLength, SelectFrom(GetSizeOf(Thumb),
 		IsHorizontal())) //!< 取轨道方向上的滑块长度。
 	DefGetter(SDst, ThumbPosition,
-		SelectFrom(Thumb.GetLocation(), IsHorizontal())) //!< 取滑块位置。
+		SelectFrom(GetLocationOf(Thumb), IsHorizontal())) //!< 取滑块位置。
 	virtual DefGetter(SDst, TrackLength,
-		SelectFrom(GetSize(), IsHorizontal())) //!< 取轨道方向上的轨道长度。
+		SelectFrom(GetSizeOf(*this), IsHorizontal())) \
+		//!< 取轨道方向上的轨道长度。
 	DefGetter(ValueType, LargeDelta, large_delta)
 
 	/*!

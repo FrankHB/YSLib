@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4185;
+\version r4202;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-11-09 14:28 +0800;
+	2011-11-11 12:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,13 +49,6 @@ AWindow::AWindow(const Rect& r, const shared_ptr<Image>& hImg)
 	SetRenderer(unique_raw(new BufferedRenderer()));
 }
 
-void
-AWindow::SetSize(const Size& s)
-{
-	GetRenderer().SetSize(s);
-	Control::SetSize(s);
-}
-
 bool
 AWindow::DrawBackgroundImage()
 {
@@ -80,7 +73,7 @@ AWindow::Refresh(const PaintContext& e)
 	if(!(IsTransparent() || DrawBackgroundImage()))
 		GetRenderer().FillInvalidation(BackColor);
 	DrawContents();
-	return Rect(e.Location, GetSize());
+	return Rect(e.Location, GetSizeOf(*this));
 }
 
 void
@@ -92,7 +85,7 @@ AWindow::Update()
 
 		if(pCon)
 			Components::Update(*this, PaintContext(FetchContext(*pCon),
-				GetLocation(), GetBoundsOf(*this)));
+				GetLocationOf(*this), GetBoundsOf(*this)));
 	}
 }
 
@@ -105,13 +98,13 @@ void
 AFrame::operator+=(IWidget& wgt)
 {
 	MUIContainer::operator+=(wgt);
-	wgt.GetContainerPtrRef() = this;
+	wgt.GetView().pContainer = this;
 }
 void
 AFrame::operator+=(AWindow& wnd)
 {
 	MUIContainer::Add(wnd, DefaultWindowZOrder);
-	wnd.GetContainerPtrRef() = this;
+	wnd.GetView().pContainer = this;
 }
 
 bool
@@ -119,9 +112,9 @@ AFrame::operator-=(IWidget& wgt)
 {
 	if(FetchContainerPtr(wgt) == this)
 	{
-		wgt.GetContainerPtrRef() = nullptr;
+		wgt.GetView().pContainer = nullptr;
 		if(FetchFocusingPtr(*this) == &wgt)
-			GetContainerPtrRef() = nullptr;
+			GetView().pFocusing = nullptr;
 		return MUIContainer::operator-=(wgt);
 	}
 	return false;
@@ -131,9 +124,9 @@ AFrame::operator-=(AWindow& wnd)
 {
 	if(FetchContainerPtr(wnd) == this)
 	{
-		wnd.GetContainerPtrRef() = nullptr;
+		wnd.GetView().pContainer = nullptr;
 		if(FetchFocusingPtr(*this) == &wnd)
-			GetContainerPtrRef() = nullptr;
+			GetView().pFocusing = nullptr;
 		return MUIContainer::operator-=(wnd);
 	}
 	return false;
@@ -143,7 +136,7 @@ void
 AFrame::Add(IWidget& wgt, ZOrderType z)
 {
 	MUIContainer::Add(wgt, z);
-	wgt.GetContainerPtrRef() = this;
+	wgt.GetView().pContainer = this;
 }
 
 bool
@@ -185,21 +178,21 @@ Frame::DrawContents()
 
 		YAssert(p, "Null widget pointer found @ Frame::DrawContents");
 
-		result |= p->IsVisible();
+		result |= Components::IsVisible(*p);
 	}
 	if(result)
 		for(auto i(sWidgets.begin()); i != sWidgets.end(); ++i)
 		{
 			IWidget& wgt(*i->second);
 
-			if(wgt.IsVisible())
+			if(Components::IsVisible(wgt))
 			{
 				//	pt = LocateOffset(this, Point::Zero, &w);
-				Point pt(wgt.GetLocation());
+				Point pt(GetLocationOf(wgt));
 				Rect r;
 
 				GetRenderer().GetInvalidatedArea(r);
-				r = Intersect(Rect(pt, wgt.GetSize()), r);
+				r = Intersect(Rect(pt, GetSizeOf(wgt)), r);
 				if(!r.IsEmptyStrict())
 				{
 					PaintEventArgs e(wgt, FetchContext(*this), pt, r);

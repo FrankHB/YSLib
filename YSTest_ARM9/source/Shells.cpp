@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5322;
+\version r5336;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-10-30 13:34 +0800;
+	2011-11-11 12:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -241,7 +241,7 @@ namespace
 	void
 	SwitchVisible(IWidget& wgt)
 	{
-		if(wgt.IsVisible())
+		if(IsVisible(wgt))
 			Hide(wgt);
 		else
 			Show(wgt);
@@ -536,7 +536,7 @@ ShlExplorer::TFormTest::TFormTest()
 			}
 			else
 			{
-				mnu.SetLocation(Point(
+				SetLocationOf(mnu, Point(
 					btnMenuTest.GetX() - btnMenuTest.GetWidth(),
 					btnMenuTest.GetY() + btnMenuTest.GetHeight()));
 				mnu.SetWidth(btnMenuTest.GetWidth() + 20);
@@ -828,8 +828,8 @@ ShlExplorer::OnActivated(const Message& msg)
 		pWndTest = unique_raw(new TFormTest()),
 		pWndExtra = unique_raw(new TFormExtra())
 	);
-	pWndTest->SetVisible(false),
-	pWndExtra->SetVisible(false);
+	SetVisibleOf(*pWndTest, false),
+	SetVisibleOf(*pWndExtra, false);
 	dsk_dn += *pWndTest,
 	dsk_dn += *pWndExtra;
 	SetInvalidationOf(dsk_dn);
@@ -977,9 +977,9 @@ ShlReader::ReaderPanel::ReaderPanel(const Rect& r, ShlReader& shl)
 	Shell(shl), btnClose(Rect(232, 4, 16, 16)),
 	trReader(Rect(8, 4, 192, 16)), lblProgress(Rect(204, 4, 24, 16))
 {
-	btnClose.GetContainerPtrRef() = this;
-	trReader.GetContainerPtrRef() = this;
-	lblProgress.GetContainerPtrRef() = this;
+	btnClose.GetView().pContainer = this;
+	trReader.GetView().pContainer = this;
+	lblProgress.GetView().pContainer = this;
 	btnClose.Text = "×";
 	lblProgress.Text = "0%";
 	lblProgress.ForeColor = ColorSpace::Fuchsia;
@@ -1010,7 +1010,7 @@ ShlReader::ReaderPanel::Refresh(const PaintContext& e)
 
 	for(int i(0); i < 3; ++i)
 		RenderChild(*pWidgets[i], e);
-	return Rect(e.Location, GetSize());
+	return Rect(e.Location, GetSizeOf(*this));
 }
 
 ShlReader::FileInfoPanel::FileInfoPanel(const Rect& r, ShlReader& shl)
@@ -1018,8 +1018,8 @@ ShlReader::FileInfoPanel::FileInfoPanel(const Rect& r, ShlReader& shl)
 	Shell(shl), btnClose(Rect(GetWidth() - 20, 4, 16, 16)),
 	lblInfo(Rect(4, 20, GetWidth() - 8, GetHeight() - 24))
 {
-	btnClose.GetContainerPtrRef() = this;
-	lblInfo.GetContainerPtrRef() = this;
+	btnClose.GetView().pContainer = this;
+	lblInfo.GetView().pContainer = this;
 	btnClose.Text = "×";
 	FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
 		Hide(*this);
@@ -1047,7 +1047,7 @@ ShlReader::FileInfoPanel::Refresh(const PaintContext& e)
 
 	for(int i(0); i < 2; ++i)
 		RenderChild(*pWidgets[i], e);
-	return Rect(e.Location, GetSize());
+	return Rect(e.Location, GetSizeOf(*this));
 }
 
 void
@@ -1099,8 +1099,8 @@ ShlReader::OnActivated(const Message& msg)
 		dsk_dn += Reader.AreaDown,
 		dsk_dn += pnlReader,
 		dsk_dn += pnlFileInfo;
-		pnlReader.SetVisible(false);
-		pnlFileInfo.SetVisible(false);
+		SetVisibleOf(pnlReader, false);
+		SetVisibleOf(pnlFileInfo, false);
 		{
 			auto hList(share_raw(new Menu::ListType));
 			auto& lst(*hList);
@@ -1229,7 +1229,7 @@ ShlReader::ShowMenu(Menu::ID id, const Point& pt)
 {
 	auto& mnu(mhMain[id]);
 
-	mnu.SetLocation(pt);
+	SetLocationOf(mnu, pt);
 	switch(id)
 	{
 	case 1u:

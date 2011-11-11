@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3896;
+\version r3929;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-11-05 11:30 +0800;
+	2011-11-11 12:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -87,7 +87,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	Thumb(Rect(0, 0, defMinScrollBarWidth, defMinScrollBarHeight)),
 	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length)
 {
-	Thumb.GetContainerPtrRef() = this;
+	Thumb.GetView().pContainer = this;
 	yunsequenced(
 		GetThumbDrag() += [this](UIEventArgs&&){
 			ValueType old_value(value);
@@ -99,7 +99,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 		FetchEvent<TouchMove>(*this) += OnTouchMove,
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
 			if(e.Strategy == RoutedEventArgs::Direct
-				&& Rect(Point::Zero, this->GetSize()).Contains(e))
+				&& Rect(Point::Zero, GetSizeOf(*this)).Contains(e))
 			{
 				using namespace ScrollEventSpace;
 
@@ -132,10 +132,10 @@ ATrack::SetThumbLength(SDst l)
 {
 	RestrictInClosedInterval(l, min_thumb_length, GetTrackLength());
 
-	Size s(Thumb.GetSize());
+	Size s(GetSizeOf(Thumb));
 
 	UpdateTo(s, l, IsHorizontal());
-	Thumb.SetSize(s);
+	SetSizeOf(Thumb, s);
 	Invalidate(*this);
 }
 void
@@ -143,10 +143,10 @@ ATrack::SetThumbPosition(SPos pos)
 {
 	RestrictInClosedInterval(pos, 0, GetTrackLength() - GetThumbLength());
 
-	Point p(Thumb.GetLocation());
+	Point p(GetLocationOf(Thumb));
 
 	UpdateTo(p, pos, IsHorizontal());
-	Thumb.SetLocation(p);
+	SetLocationOf(Thumb, p);
 	Invalidate(*this);
 }
 void
@@ -185,7 +185,7 @@ ATrack::Refresh(const PaintContext& e)
 		const auto& pt(e.Location);
 		Styles::Palette& pal(FetchGUIShell().Colors);
 
-		FillRect(g, pt, GetSize(), pal[Styles::Track]);
+		FillRect(g, pt, GetSizeOf(*this), pal[Styles::Track]);
 	//	FillRect(g, r, pal[Styles::Track]);
 
 		const SPos xr(pt.X + GetWidth() - 1);
@@ -302,7 +302,7 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 			SPos x(shl.LastControlLocation.X + shl.DraggingOffset.X);
 
 			RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
-			Thumb.SetLocation(Point(x, Thumb.GetLocation().Y));
+			SetLocationOf(Thumb, Point(x, GetLocationOf(Thumb).Y));
 			GetThumbDrag()(UIEventArgs(*this));
 		}
 	};
@@ -325,7 +325,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 			SPos y(shl.LastControlLocation.Y + shl.DraggingOffset.Y);
 
 			RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
-			Thumb.SetLocation(Point(Thumb.GetLocation().X, y));
+			SetLocationOf(Thumb, Point(GetLocationOf(Thumb).X, y));
 			GetThumbDrag()(UIEventArgs(*this));
 		}
 	};
@@ -342,9 +342,9 @@ try	: AUIBoxControl(r),
 	PrevButton(Rect()), NextButton(Rect()), small_delta(2)
 {
 	yunsequenced(
-		pTrack->GetContainerPtrRef() = this,
-		PrevButton.GetContainerPtrRef() = this,
-		NextButton.GetContainerPtrRef() = this
+		pTrack->GetView().pContainer = this,
+		PrevButton.GetView().pContainer = this,
+		NextButton.GetView().pContainer = this
 	);
 	yunsequenced(
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
@@ -360,14 +360,14 @@ try	: AUIBoxControl(r),
 		FetchEvent<KeyDown>(*this) += OnKey_Bound_EnterAndTouchDown
 	);
 
-	Size s(GetSize());
+	Size s(GetSizeOf(*this));
 	const bool bHorizontal(o == Horizontal);
 	const SDst l(SelectFrom(s, !bHorizontal));
 
 	UpdateTo(s, l, bHorizontal);
-	PrevButton.SetSize(s);
-	NextButton.SetSize(s);
-//	PrevButton.SetLocation(Point::Zero);
+	SetSizeOf(PrevButton, s);
+	SetSizeOf(NextButton, s);
+//	Button.SetLocationOf(PrevButton, Point::Zero);
 	MoveToBottom(NextButton);
 	MoveToRight(NextButton);
 }
@@ -401,11 +401,11 @@ AScrollBar::Refresh(const PaintContext& e)
 	RenderChild(*pTrack, e),
 	RenderChild(PrevButton, e),
 	RenderChild(NextButton, e);
-	WndDrawArrow(e.Target, Rect(e.Location + PrevButton.GetLocation(),
-		PrevButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
+	WndDrawArrow(e.Target, Rect(e.Location + GetLocationOf(PrevButton),
+		GetSizeOf(PrevButton)), 4, pTrack->GetOrientation() == Horizontal
 		? RDeg180 : RDeg90, ForeColor),
-	WndDrawArrow(e.Target, Rect(e.Location + NextButton.GetLocation(),
-		NextButton.GetSize()), 4, pTrack->GetOrientation() == Horizontal
+	WndDrawArrow(e.Target, Rect(e.Location + GetLocationOf(NextButton),
+		GetSizeOf(NextButton)), 4, pTrack->GetOrientation() == Horizontal
 		? RDeg0 : RDeg270, ForeColor);
 	return r;
 }
@@ -459,8 +459,8 @@ ScrollableContainer::ScrollableContainer(const Rect& r)
 	VerticalScrollBar(Rect(Point::Zero, defMinScrollBarWidth, r.Height))
 {
 	yunsequenced(
-		HorizontalScrollBar.GetContainerPtrRef() = this,
-		VerticalScrollBar.GetContainerPtrRef() = this
+		HorizontalScrollBar.GetView().pContainer = this,
+		VerticalScrollBar.GetView().pContainer = this
 	);
 	MoveToBottom(HorizontalScrollBar);
 	MoveToRight(VerticalScrollBar);
@@ -480,17 +480,17 @@ Rect
 ScrollableContainer::Refresh(const PaintContext& e)
 {
 //	AUIBoxControl::Refresh(e);
-	if(HorizontalScrollBar.IsVisible())
+	if(IsVisible(HorizontalScrollBar))
 		RenderChild(HorizontalScrollBar, e);
-	if(VerticalScrollBar.IsVisible())
+	if(IsVisible(VerticalScrollBar))
 		RenderChild(VerticalScrollBar, e);
-	return Rect(e.Location, GetSize());
+	return Rect(e.Location, GetSizeOf(*this));
 }
 
 Size
 ScrollableContainer::FixLayout(const Size& s)
 {
-	Size arena(GetSize());
+	Size arena(GetSizeOf(*this));
 
 	try
 	{
@@ -513,8 +513,8 @@ ScrollableContainer::FixLayout(const Size& s)
 			VerticalScrollBar.SetHeight(GetHeight());
 			MoveToRight(VerticalScrollBar);
 		}
-		HorizontalScrollBar.SetVisible(p.first);
-		VerticalScrollBar.SetVisible(p.second);
+		SetVisibleOf(HorizontalScrollBar, p.first);
+		SetVisibleOf(VerticalScrollBar, p.second);
 	}
 	catch(GeneralEvent&)
 	{}

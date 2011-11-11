@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1479;
+\version r1485;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-11-05 11:30 +0800;
+	2011-11-11 12:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -219,7 +219,7 @@ TextList::CheckConfirmed(TextList::ViewerType::SizeType idx) const
 TextList::ViewerType::SizeType
 TextList::CheckPoint(SPos x, SPos y)
 {
-	return Rect(Point::Zero, GetSize()).Contains(x, y)
+	return Rect(Point::Zero, GetSizeOf(*this)).Contains(x, y)
 		? (y + top_offset) / GetItemHeight() + viewer.GetHeadIndex()
 		: static_cast<ViewerType::SizeType>(-1);
 }
@@ -232,9 +232,9 @@ TextList::Refresh(const PaintContext& e)
 	const auto& pt(e.Location);
 
 	PaintItems(e);
-	DrawRect(e.Target, pt, GetSize(), IsFocused(*this) ? ColorSpace::Aqua
+	DrawRect(e.Target, pt, GetSizeOf(*this), IsFocused(*this) ? ColorSpace::Aqua
 		: FetchGUIShell().Colors[Styles::ActiveBorder]);
-	return Rect(pt, GetSize());
+	return Rect(pt, GetSizeOf(*this));
 }
 
 void
@@ -269,7 +269,7 @@ TextList::PaintItems(const PaintContext& e)
 		RefreshTextState();
 
 		// TODO: refresh for 'rect' properly;
-		Widget::Refresh(PaintContext(g, pt, Rect(pt, GetSize())));
+		Widget::Refresh(PaintContext(g, pt, Rect(pt, GetSizeOf(*this))));
 
 		const SDst ln_w(GetWidth());
 		const SDst ln_h(GetItemHeight());
@@ -369,7 +369,7 @@ ResizeForContent(TextList& tl)
 			if(ln_width > max_width)
 				max_width = ln_width;
 	});
-	tl.SetSize(Size(max_width + GetHorizontalOf(tl.Margin),
+	SetSizeOf(tl, Size(max_width + GetHorizontalOf(tl.Margin),
 		tl.GetItemHeight() * tl.GetList().size()));
 }
 

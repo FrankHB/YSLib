@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5570;
+\version r5575;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-11-07 22:35 +0800;
+	2011-11-11 11:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -96,7 +96,7 @@ IsEnabled(const IWidget& wgt)
 inline bool
 IsEnabledAndVisible(const IWidget& wgt)
 {
-	return IsEnabled(wgt) && wgt.IsVisible();
+	return IsEnabled(wgt) && IsVisible(wgt);
 }
 
 /*!
@@ -303,11 +303,6 @@ public:
 	*/
 	virtual PDefH(IWidget*, GetBoundControlPtr, const KeyCode&)
 		ImplRet(nullptr)
-
-	virtual void
-	SetLocation(const Point&);
-	virtual void
-	SetSize(const Size&);
 };
 
 YSL_END_NAMESPACE(Components)

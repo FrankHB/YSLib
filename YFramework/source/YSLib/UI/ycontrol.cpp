@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4588;
+\version r4598;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-11-07 22:36 +0800;
+	2011-11-11 13:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -80,7 +80,7 @@ OnTouchHeld(TouchEventArgs&& e)
 		auto& shl(FetchGUIShell());
 
 		if(shl.DraggingOffset == Vec::Invalid)
-			shl.DraggingOffset = e.GetSender().GetLocation()
+			shl.DraggingOffset = GetLocationOf(e.GetSender())
 				- shl.ControlLocation;
 		else
 			CallEvent<TouchMove>(e.GetSender(), e);
@@ -113,7 +113,7 @@ OnTouchMove_Dragging(TouchEventArgs&& e)
 	//	{
 	// TODO: merge state to make a more efficient implementation;
 		Invalidate(wgt);
-		wgt.SetLocation(shl.LastControlLocation + shl.DraggingOffset);
+		SetLocationOf(wgt, shl.LastControlLocation + shl.DraggingOffset);
 		Invalidate(wgt);
 	//	}
 	}
@@ -195,7 +195,7 @@ Control::ControlEventMap::ControlEventMap()
 }
 
 Control::Control(const Rect& r)
-	: Widget(r, new Renderer(),
+	: Widget(new View(r), new Renderer(),
 	new Controller(true, FetchPrototype<ControlEventMap>()))
 {
 //	const auto& h([this](EventArgs&&){
@@ -217,19 +217,6 @@ Control::Control(const Rect& r)
 Control::Control(const Control& ctl)
 	: Widget(ctl), BoundControlPtr(ctl.BoundControlPtr)
 {}
-
-void
-Control::SetLocation(const Point& pt)
-{
-	Widget::SetLocation(pt);
-	CallEvent<Move>(*this, UIEventArgs(*this));
-}
-void
-Control::SetSize(const Size& s)
-{
-	Widget::SetSize(s);
-	CallEvent<Resize>(*this, UIEventArgs(*this));
-}
 
 YSL_END_NAMESPACE(Components)
 

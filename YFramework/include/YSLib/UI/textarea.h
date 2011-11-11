@@ -11,12 +11,12 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r1374;
+\version r1378;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-30 20:09:23 +0800;
 \par 修改时间:
-	2011-11-05 10:48 +0800;
+	2011-11-11 11:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -51,11 +51,8 @@ public:
 		FontCache& = FetchGlobalInstance().GetFontCache());
 	inline DefDeMoveCtor(TextArea)
 
-	using Widget::GetSize;
 	using Widget::GetWidth;
 	using Widget::GetHeight;
-
-	using Widget::SetSize;
 };
 
 
@@ -72,11 +69,8 @@ public:
 		FontCache& = FetchGlobalInstance().GetFontCache());
 	inline DefDeMoveCtor(BufferedTextArea)
 
-	using Widget::GetSize;
 	using Widget::GetWidth;
 	using Widget::GetHeight;
-
-	using Widget::SetSize;
 
 	virtual Rect
 	Refresh(const PaintContext&);

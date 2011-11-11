@@ -11,12 +11,12 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r1307;
+\version r1320;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-11-09 15:18 +0800;
+	2011-11-11 12:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -131,22 +131,23 @@ public:
 /*!
 \brief 部件视图。
 */
-class WidgetView
+class View
 {
 private:
 	Visual visual; //!< 当前可视状态。
-	mutable IWidget* pContainer; //!< 从属的部件容器的指针。
 
 public:
+	mutable IWidget* pContainer; //!< 从属的部件容器的指针。
 	mutable IWidget* pFocusing; //!< 焦点指针。
 
 	/*!
 	\brief 构造：使用指定边界、前景色和背景色。
 	*/
-	WidgetView(const Rect& = Rect::Empty);
-	WidgetView(const WidgetView&);
-	WidgetView(WidgetView&&);
-	virtual DefEmptyDtor(WidgetView)
+	View(const Rect& = Rect::Empty);
+	View(const View&);
+	View(View&&);
+	virtual DefClone(View, Clone)
+	virtual DefEmptyDtor(View)
 
 	DefPredicateMember(Visible, visual)
 	DefPredicateMember(Transparent, visual)
@@ -157,7 +158,6 @@ public:
 	DefGetterMember(SDst, Height, visual)
 	DefGetterMember(const Point&, Location, visual)
 	DefGetterMember(const Size&, Size, visual)
-	DefGetter(IWidget*&, ContainerPtrRef, pContainer)
 
 	DefSetterMember(bool, Visible, visual)
 	DefSetterMember(bool, Transparent, visual)
@@ -174,15 +174,15 @@ public:
 };
 
 inline
-WidgetView::WidgetView(const Rect& r)
+View::View(const Rect& r)
 	: visual(r), pContainer(), pFocusing()
 {}
 inline
-WidgetView::WidgetView(const WidgetView& wv)
+View::View(const View& wv)
 	: visual(wv.visual), pContainer(), pFocusing()
 {}
 inline
-WidgetView::WidgetView(WidgetView&& wv)
+View::View(View&& wv)
 	: visual(wv.visual), pContainer(wv.pContainer), pFocusing(wv.pFocusing)
 {
 	yunsequenced(wv.pContainer = nullptr, wv.pFocusing = nullptr);

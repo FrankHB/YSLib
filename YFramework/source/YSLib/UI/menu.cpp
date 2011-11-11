@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1859;
+\version r1863;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-11-05 11:31 +0800;
+	2011-11-11 12:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -212,10 +212,10 @@ Menu::PaintItem(const Graphics& g, const Rect& r, ListType::size_type i)
 
 
 void
-LocateMenu(Menu& d, const Menu& s, Menu::IndexType idx)
+LocateMenu(Menu& dst, const Menu& src, Menu::IndexType idx)
 {
-	d.SetLocation(Point(s.GetLocation().X
-		+ s.GetWidth(), s.GetLocation().Y + s.GetItemHeight() * idx));
+	SetLocationOf(dst, Point(src.GetX() + src.GetWidth(),
+		src.GetY() + src.GetItemHeight() * idx));
 }
 
 
@@ -347,7 +347,7 @@ void
 MenuHost::HideRaw(Menu& mnu)
 {
 	ReleaseFocus(mnu);
-	if(mnu.IsVisible())
+	if(IsVisible(mnu))
 		Invalidate(mnu);
 	Frame -= mnu;
 }

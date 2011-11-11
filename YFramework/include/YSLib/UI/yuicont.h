@@ -11,12 +11,12 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2566;
+\version r2572;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-09-17 23:28 +0800;
+	2011-11-10 19:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,7 +59,7 @@ _tNode* FetchWidgetNodePtr(IWidget* pWgt, Point& pt)
 
 	while(pWgt && !(pNode = dynamic_cast<_tNode*>(pWgt)))
 	{
-		pt += pWgt->GetLocation();
+		pt += GetLocationOf(*pWgt);
 		pWgt = FetchContainerPtr(*pWgt);
 	}
 	return pNode;
@@ -85,7 +85,7 @@ LocateOffset(const IWidget* pEnd, Point, const IWidget* pWgt);
 inline Point
 LocateContainerOffset(const IWidget& wgt, const Point& pt)
 {
-	return pt + wgt.GetLocation();
+	return pt + GetLocationOf(wgt);
 }
 
 /*!

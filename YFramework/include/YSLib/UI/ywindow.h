@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4673;
+\version r4676;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-11-04 19:32 +0800;
+	2011-11-11 11:40 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -89,13 +89,6 @@ public:
 
 	using MWindow::GetBackgroundImagePtr;
 	using MWindow::GetBackgroundPtr;
-
-	/*!
-	\brief 设置大小。
-	\note 虚 \c public 实现。
-	*/
-	virtual void
-	SetSize(const Size&);
 
 protected:
 	/*!

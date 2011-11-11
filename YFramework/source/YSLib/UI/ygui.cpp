@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4003;
+\version r4007;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-11-07 14:32 +0800;
+	2011-11-11 12:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,7 +56,7 @@ GUIShell::OnGotMessage(const Message& msg)
 			
 			if(h)
 				h->Refresh(PaintContext(FetchContext(*h),
-					Point::Zero, Rect(Point::Zero, h->GetSize())));
+					Point::Zero, Rect(Point::Zero, GetSizeOf(*h))));
 		}
 		return 0;
 	default:
@@ -236,7 +236,7 @@ GUIShell::ResponseKey(KeyEventArgs& e, Components::VisualEvent op)
 	e.Strategy = Components::RoutedEventArgs::Tunnel;
 	while(true)
 	{
-		if(!(p->IsVisible() && IsEnabled(*p)))
+		if(!(IsVisible(*p) && IsEnabled(*p)))
 			return false;
 		if(e.Handled)
 			return true;
@@ -278,7 +278,7 @@ GUIShell::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 	e.Strategy = Components::RoutedEventArgs::Tunnel;
 	while(true)
 	{
-		if(!(p->IsVisible() && IsEnabled(*p)))
+		if(!(IsVisible(*p) && IsEnabled(*p)))
 			return false;
 		if(e.Handled)
 			return true;
@@ -300,7 +300,7 @@ GUIShell::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 		e.SetSender(*p);
 		r |= DoEvent<HTouchEvent>(p->GetController(), op, e) != 0;
 		p = t;
-		e -= p->GetLocation();
+		e -= GetLocationOf(*p);
 	};
 
 	YAssert(p, "Null pointer found @ GUIShell::ResponseTouch");
@@ -311,7 +311,7 @@ GUIShell::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 	e.Strategy = Components::RoutedEventArgs::Bubble;
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
-		e += p->GetLocation();
+		e += GetLocationOf(*p);
 		p = pCon;
 		e.SetSender(*p);
 		r |= DoEvent<HTouchEvent>(p->GetController(), op, e) != 0;

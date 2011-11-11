@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r3384; *build 258 rev 24;
+\version r3384; *build 259 rev 54;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-11-09 15:29 +0800;
+	2011-11-10 13:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -221,7 +221,7 @@ $using:
 \h YWidgetView
 (
 	\cl Visual,
-	\cl WidgetView
+	\cl View
 ),
 \h YWidgetEvent
 (
@@ -325,220 +325,111 @@ $using:
 
 
 $DONE:
-r1:
-/ \h Container["cont.h"] @ \dir Adaptor @ \lib YSLib @ \proj YFramwork
-	=> YContainer["ycont.h"];
-/ \inc \h (YShell, YApplication, YGlobal) -> (YGDIBase, YContainer)
-	@ \h YComponent;
-- \tr \inc \h YContainer @ \h YDesktop,
-- \inc \h YWidgetEvent @ \h YControl;
-- \inc \h (YDraw, YGDI) @ \h YWidget,
-+ \tr \inc \h YBlit @ \h YWidget;
-/ \a 'using::*' @ \ns Components @ \h YRenderer >> \h YComponent,
-+ \tr \inc \h YComponent @ \h YRenderer;
-+ \u YWidgetView["ywgtview.h", "ywgtview.cpp"] @ \dir UI @ \lib YSLib
-	@ \proj YFramework;
-/ \cl (MOriented, Visual) @ \u YWidget >> \u YWidgetView,
-+ \tr \inc \h YWidgetView @ \h YWidget,
-+ \tr \inc \h YFileSystem @ \h ListBox,
-+ \tr \inc \h YGlobal @ \h (TextArea, HexBrowser);
-/ \a relative \inc \h path @ (\a \impl \u) @ \proj YFramework -> absolute path;
-/ \simp Makefile @ \proj YFramework;
+r1-r28:
+/= test 1;
 
-r2:
-/= test 1 ^ \conf release;
+r29-r40:
+/= test 2;
 
-r3:
-(
-	/ @ \u YWidgetView $=
-	(
-		/ @ \cl Visual $=
-		(
-			- \vt \dtor,
-			- copy \ctor,
-			- move \ctor,
-			- \m Color BackColor,
-			- \m Color ForeColor;
-			/ @ \de \ctor
-		),
-		+ \cl WidgetView;
-	);
-	/ \tr @ \YWidget $=
-	(
-		/ \inh public \cl Visual -> protected \cl WidgetView,
-		- \m mutable IWidget* pContainer;
-		/ \tr \impl @ \ctor
-	)
-),
-/ @ \h YBaseMacro $=
-(
-	/ \mac DefSetterEx(_t, _n, _m, _tempArgName, _e)
-		-> DefSetterEx(_t, _n, _m, _e),
-	/ \mac DefSetterDeEx(_t, _n, _m, _defv, _tempArgName, _e)
-		-> DefSetterDeEx(_t, _n, _m, _defv, _e)
-);
+r41:
+* focusing pointer not removed when removing widgets
+	@ \cl (Panel, AFrame) $since b258;
 
-r4:
-/ @ \h YFocus $=
-(
-	/ \clt GCheckedFocusResponder \mg -> \clt GFocusResponder;
-	(
-		/ @ \clt GFocusResponder $=
-		(
-			- \vt \dtor,
-			- \vt \mf Clone;
-			- \vt @ \a \mf
-		),
-		/ \tr @ typedef
-	),
-	+ \i @ \ft ReleaseFocusOf
-);
-/ \tr \simp \impl @ \ctor @ \cl (Panel, AWindow);
-/ @ \cl Widget $=
-(
-	- \mf SetFocusResponser @ \cl Widget;
-	/ private \m unique_ptr<FocusResponder> pFocusResponser;
-		-> private \m mutable Components::FocusResponder FocusResponder;
-	/ \tr \simp \impl @ 2 \ctor,
-	/ \tr \impl @ \mf GetFocusResponder
-);
-/ \tr \simp \impl @ \ctor @ \cl Control;
-
-r5:
-/= test 2 ^ \conf release;
-
-r6:
-/ \simp @ \h YFocus $=
-(
-	/ \ft (RequestFocusOf, ReleaseFocusOf) \mg -> \clt GFocusResponder;
-	- \ft IsFocusOfContainer;
-);
-/ \a FocusResponder => FocusProvider,
-/ \a GFocusResponder => GFocusProvider;
-
-r7-r8:
-/ @ \clt GFocusProvider @ \h YFocus $=
-(
-	/ \mf bool SetFocusingPtr(_type*) -> bool SetFocusing(_type&),
-	/ \mf ClearFocusingPtr => ClearFocusing;
-	/ \tr \impl @ \mf (ResponseFocusRequest, ResponseFocusRelease)
-);
-/ \f ClearFocusingPtrOf -> ClearFocusingPtr @ \u YWidget;
-/ \tr \impl @ \impl \u (YWindow, Panel, YDesktop, YGUI);
-
-r9:
-/ @ \h YEvent $=
-(
-	/ \mft PDefTH1(_type) GEvent& operator+=(_type&&)
-		-> PDefTH1(_type) GEvent& operator+=(_type&&) @ \clt GEvent,
-	(
-		- \stt GSEventTypeSpace;
-		/ \tr \decl @ \clt (GHEvent, GEvent, GDependencyEvent),
-	),
-	(
-		/ \impl @ \mac (EventT, DepEventT);
-		- \stt GSEvent
-	)
-);
-/ \tr \impl @ \h (YControl, YWidgetEvent);
-
-r10:
-/ \impl @ \f (RequestFocusFrom, ReleaseFocusFrom) @ \impl \u YControl;
-- \mf (ResponseFocusRequest, ReleaseFocusRequest) @ \clt GFocusProvider
-	@ \h YFocus;
-
-r11:
-/ @ \clt GFocusProvider @ \h YFocus $=
-(
-	/ \impl @ move \ctor,
-	+ \i copy \ctor
-);
--= \h YFocus @ \h (Scroll, UIContainerEx);
-/ \h YFocus["yfocus.hpp"] -> \u YFocus["yfocus.h", "yfocus.cpp"];
-/ \tr \inc \h @ \h YWidget;
-/ \f (IsFocused, RequestFocusFrom, ReleaseFocusFrom, RequestFocus, ReleaseFocus)
-	@ \u YControl >> \u YFocus;
-
-r12:
+r42:
 /= test 3 ^ \conf release;
 
-r13:
-/ @ \u YFocus $=
+r43:
+/ @ \u YWidget $=
 (
-	/ \impl @ \mf SetFocusing @ \clt GFocusProvider;
-	/ \tr \impl @ \f RequestFocusFrom;
-);
-
-r14:
-/ @ \u YFocus $=
-(
-	/ @ \clt GFocusProvider $=
+	/ \amf (IsVisible, GetLocation, GetSize, SetVisible, SetLocation, SetSize)
+		-> !\m \f (IsVisible, GetLocationOf, SetSizeOf, SetVisibleOf,
+		SetLocationOf, SetSizeOf),
+	+ \amf WidgetView& GetView() const;
+	/ \tr @ \cl Widget $=
 	(
-		/ \ac @ \m pFocusing -> public ~ protected,
-		- \mf (SetFocusingPtr, GetFocusingPtr),
-		- \mf ClearFocusingPtr,
-		- \mf IsFocusing
+		/ \inh protected \cl WidgetView -> protected \m mutable WidgetView View;
+		/ \tr \impl @ \ctor,
+		/ \tr \impl @ \mf (IsVisible, GetLocation, GetSize, SetVisible,
+			SetLocation, SetSize, GetContainerPtrRef, GetFocusingPtrRef)
 	)
 );
-/ \tr \impl @ \f \i FetchFocusingPtr @ \h YWidget,
-/ \tr \impl @ \f ClearFocusingOf @ \impl \u YWidget;
-/ \tr \impl @ \impl \u (YFocus, YWindow, Panel);
+/ \tr \impl @ (\ft FetchWidgetNodePtr, \f \i LocateContainerOffset)
+	@ \h YUIContainer,
+/ \tr \impl @ \f \i IsEnabledAndVisible @ \h YControl,
+/ \tr \impl @ \f OnTouchHeld, OnTouchMove_Dragging) @ \impl \u YControl,
+/ \tr \impl @ \mf GUIShell::(ResponseKey, ResponseTouch),
+/ \tr \impl @ \f (LocateOffset, LocateForWidget, LocateForParentContainer,
+	MoveToLeft, MoveToRight, MoveToTop) @ \impl \u YUIContainer,
+/ \tr \impl @ (\f (ContainsVisible, SetInvalidationOf, Invalidate,
+	InvalidateCascade, Render, RenderChild, Update, Show, Hide),
+	copy \ctor @ \cl Widget) @ \impl \u YWidget,
+/ \impl @ \mf Frame::DrawContents,
+/ \tr \impl @ \f SwitchVisible @ \impl \u Shells;
 
-r15-r16:
-/= test 4;
-
-r17:
-/ \a (^ @ \mf (GetContainerPtrRef @ \in IWidget) with \op==) -> (^ @ !\m \f
-	FetchContainerPtr);
-
-r18:
-/ \a (^ @ \mf (GetFocusResponder @ \in IWidget) with \op==) -> (^ @ !\m \f
-	FetchFocusingPtr);
-
-r19:
-/ \amf FocusProvider& GetFocusResponder() const @ \in IWidget
-	-> IWidget*& GetFocusingPtrRef() const,
-/ \tr \impl @ \f \i FetchFocusingPtr @ \h YWidget,
-/ \tr \mf GetFocusResponder -> GetFocusingPtrRef,
-/ \tr \impl @ \f ClearFocusingOf @ \impl \u YWidget;
-/ \tr \impl @ \impl \u (YFocus, YWindow, Panel),
-/ \tr \impl @ \f (RequestFocusFrom, ReleaseFocusFrom) @ \impl \u YFocus;
-
-r20:
-/= test 5 ^ \conf release;
-
-r21:
-/ @ \cl WidgetView $=
+r44:
+/ @ \cl WidgetView
 (
-	+ \m pFocusing @ \cl WidgetView;
-	/ \tr \impl @ 3 \ctor
-);
-/ \tr @ \cl YWidget $=
+	/ \ac @ \m pContainer -> public ~ private,
+	- \mf GetContainerPtrRef
+),
+- \amf (GetFocusingPtrRef, GetContainerPtrRef) @ \in IWidget;
+/ \tr \impl @ \h YWidget,
+/ \tr \impl @ \impl \u (Panel, YFocus, YWidget, YWindow, ListBox, Scroll,
+	Shells);
+
+r45:
+/= test 4 ^ \conf release;
+
+r46:
++ \de \param @ \ctor @ \cl AController;
++ \de \param @ \cl WidgetController;
+
+r47-r48:
+/ \cl Form @ \u Form -> typedef Frame Form,
++ \vt DefClone(WidgetView, Clone) @ \cl WidgetView,
+- \i @ \f (SetLocationOf, SetSizeOf) @ \u YWidget;
+
+r49:
+- \mf \vt (SetSize, SetLocation) @ \cl Control,
+- \mf \vt SetSize @ \cl AWindow,
+- \mf (SetSize, SetLocation) @ \cl Widget,
+/ \tr \impl @ \f (SetLocationOf, SetSizeOf) @ \impl \u YWidget;
+/ \tr \impl @ \impl \u (ListBox, Scroll, TextList, Menu, Shells),
+/ \tr \impl @ \u TextArea;
+
+r50:
+* \ret \tp @ \mf (GetX, GetY) @ \cl Widget $since r43;
+
+r51:
+- \mf Widget::(GetSize, GetLocation);
+/ \tr \impl @ \h Scroll,
+/ \tr \impl @ \impl \u (YWidget, YWindow, YGUI, Label, Progress, Scroll,
+	TextList, CheckBox, HexBrowser, Shells);
+
+r52:
+- \mf Widget::(IsVisible, SetVisible);
+/ \tr \impl @ \impl \u (Scroll, Menu, HexBrowser, Shells);
+
+r53:
+/ \a \cl WidgetView => \cl View;
+/ @ \cl YWidget $=
 (
-	- private \m mutable Components::FocusingResponder FocusingResponder,
-	/ \tr \impl @ \mf GetFocusingPtrRef
+	/ proteced \m mutable View View -> private \m unique_ptr<View> pView;
+	/ \tr @ (\ctor, \mf);
+	+ \mf SetView
 );
+/ \tr \impl @ \ctor @ \cl Control;
 
-r22:
-* \impl @ 1st \ctor @ \cl WidgetView $since r21;
-
-r23:
-/ \simp @ \h YFocus $=
-(
-	- typedef FocusProvider;
-	- \clt GFocusProvider
-);
-
-r24:
+r54:
 /= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-11-09:
--20.8d;
-//Mercurial rev1-rev129: r6091;
+2011-11-11:
+-19.1d;
+//Mercurial rev1-rev130: r6115;
 
 / ...
 
@@ -632,6 +523,21 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ "GUI" $=
+	(
+		* "focusing pointer not removed when removing widgets"
+			@ "class %(Panel, AFrame) $since b258;
+		+ $design "subobject detaching of view class" @ "class %Widget",
+		/ "simplified form class as typedef" ^ "class %Frame"
+	);
+	/ "shells test example" $=
+	(
+		* "wrong behavior after pressing down exit button" $since b258
+	)
+),
+
+b258
 (
 	/ "GUI" $=
 	(

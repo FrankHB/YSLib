@@ -11,12 +11,12 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2465;
+\version r2482;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-11-05 11:29 +0800;
+	2011-11-10 19:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,7 @@ LocateOffset(const IWidget* pEnd, Point pt, const IWidget* pWgt)
 {
 	while(pWgt && pWgt != pEnd)
 	{
-		pt += pWgt->GetLocation();
+		pt += GetLocationOf(*pWgt);
 		pWgt = FetchContainerPtr(*pWgt);
 	}
 	return pt;
@@ -60,7 +60,7 @@ LocateForWidget(IWidget& a, IWidget& b)
 	while(pCon)
 	{
 		lst.push_back(make_pair(pCon, pt));
-		pt += pCon->GetLocation();
+		pt += GetLocationOf(*pCon);
 		pCon = FetchContainerPtr(*pCon);
 	}
 	pCon = &b;
@@ -74,7 +74,7 @@ LocateForWidget(IWidget& a, IWidget& b)
 
 		if(i != lst.cend())
 			return pt - i->second;
-		pt += pCon->GetLocation();
+		pt += GetLocationOf(*pCon);
 		pCon = FetchContainerPtr(*pCon);
 	}
 	return Point::Invalid;
@@ -84,8 +84,8 @@ Point
 LocateForParentContainer(const IWidget& wgt)
 {
 	return FetchContainerPtr(wgt)
-		? LocateContainerOffset(*FetchContainerPtr(wgt),
-		wgt.GetLocation()) : Point::Invalid;
+		? LocateContainerOffset(*FetchContainerPtr(wgt), GetLocationOf(wgt))
+		: Point::Invalid;
 }
 
 
@@ -97,7 +97,7 @@ MoveToLeft(IWidget& wgt)
 		"ATrack::MoveToLeft(IWidget&)\": \n"
 		"Container pointer of the widget is null.");
 
-	wgt.SetLocation(Point(0, wgt.GetLocation().Y));
+	SetLocationOf(wgt, Point(0, GetLocationOf(wgt).Y));
 }
 
 void
@@ -108,8 +108,8 @@ MoveToRight(IWidget& wgt)
 		"ATrack::MoveToLeft(IWidget&)\": \n"
 		"Container pointer of the widget is null.");
 
-	wgt.SetLocation(Point(FetchContainerPtr(wgt)->GetSize().Width
-		- wgt.GetSize().Width, wgt.GetLocation().Y));
+	SetLocationOf(wgt, Point(GetSizeOf(*FetchContainerPtr(wgt)).Width
+		- GetSizeOf(wgt).Width, GetLocationOf(wgt).Y));
 }
 
 void
@@ -120,7 +120,7 @@ MoveToTop(IWidget& wgt)
 		"ATrack::MoveToLeft(IWidget&)\": \n"
 		"Container pointer of the widget is null.");
 
-	wgt.SetLocation(Point(wgt.GetLocation().X, 0));
+	SetLocationOf(wgt, Point(GetLocationOf(wgt).X, 0));
 }
 
 void
@@ -131,8 +131,8 @@ MoveToBottom(IWidget& wgt)
 		"ATrack::MoveToLeft(IWidget&)\": \n"
 		"Container pointer of the widget is null.");
 
-	wgt.SetLocation(Point(wgt.GetLocation().X,
-		FetchContainerPtr(wgt)->GetSize().Height - wgt.GetSize().Height));
+	SetLocationOf(wgt, Point(GetLocationOf(wgt).X,
+		GetSizeOf(*FetchContainerPtr(wgt)).Height - GetSizeOf(wgt).Height));
 }
 
 

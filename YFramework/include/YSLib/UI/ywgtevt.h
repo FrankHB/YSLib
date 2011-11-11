@@ -11,12 +11,12 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r2000;
+\version r2003;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2011-11-07 17:28 +0800;
+	2011-11-11 09:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -352,7 +352,10 @@ private:
 	bool enabled; //!< 控件可用性。
 
 public:
-	AController(bool);
+	/*!
+	\brief 构造：使用指定可用性。
+	*/
+	AController(bool = true);
 
 	DefPredicate(Enabled, enabled)
 

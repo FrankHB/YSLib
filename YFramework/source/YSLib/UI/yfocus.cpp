@@ -11,12 +11,12 @@
 /*!	\file yfocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1458;
+\version r1461;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-11-09 14:33 +0800;
+	2011-11-10 20:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,7 @@ RequestFocusFrom(IWidget& dst, IWidget& src)
 {
 	if(auto p = FetchContainerPtr(dst))
 	{
-		auto& pFocusing(p->GetFocusingPtrRef());
+		auto& pFocusing(p->GetView().pFocusing);
 
 		if(pFocusing != &dst)
 		{
@@ -60,7 +60,7 @@ ReleaseFocusFrom(IWidget& dst, IWidget& src)
 {
 	if(auto p = FetchContainerPtr(dst))
 	{
-		auto& pFocusing(p->GetFocusingPtrRef());
+		auto& pFocusing(p->GetView().pFocusing);
 
 		if(pFocusing == &dst)
 		{
