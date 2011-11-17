@@ -1,7 +1,6 @@
 syntax: glob
 *.old
 *.tmp
-*.orig*
 *.log
 *.user
 *.stackdump

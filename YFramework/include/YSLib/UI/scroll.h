@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3250;
+\version r3260;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-11-11 12:21 +0800;
+	2011-11-15 17:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,6 +29,7 @@
 
 #include "uicontx.h"
 #include "button.h"
+#include <ystdex/rational.hpp>
 //#include "../Core/yres.h"
 //#include "ystyle.h"
 
@@ -57,10 +58,10 @@ namespace ScrollEventSpace
 
 //! \brief 滚动事件参数类。
 struct ScrollEventArgs : public UIEventArgs,
-	public GMValueEventArgs<SDst>
+	public GMValueEventArgs<ystdex::fixed_point<u32, 16>>
 {
 public:
-	typedef GMValueEventArgs<SDst> MEventArgs;
+	typedef GMValueEventArgs<ystdex::fixed_point<u32, 16>> MEventArgs;
 	typedef MEventArgs::ValueType ValueType;
 
 	ScrollEventSpace::ScrollEventType Type; //滚动事件类型。
@@ -80,14 +81,14 @@ public:
 inline
 ScrollEventArgs::ScrollEventArgs(IWidget& wgt,
 	ScrollEventSpace::ScrollEventType t, ScrollEventArgs::ValueType v)
-	: UIEventArgs(wgt), GMValueEventArgs<SDst>(v),
+	: UIEventArgs(wgt), MEventArgs(v),
 	Type(t)
 {}
 inline
 ScrollEventArgs::ScrollEventArgs(IWidget& wgt,
 	ScrollEventSpace::ScrollEventType t,
 	ScrollEventArgs::ValueType v, ScrollEventArgs::ValueType old_value)
-	: UIEventArgs(wgt), GMValueEventArgs<SDst>(v, old_value),
+	: UIEventArgs(wgt), MEventArgs(v, old_value),
 	Type(t)
 {}
 
@@ -96,7 +97,7 @@ DefDelegate(HScrollEvent, ScrollEventArgs)
 
 
 //! \brief 轨道。
-class ATrack : public AUIBoxControl, public GMRange<u16>
+class ATrack : public AUIBoxControl, public GMRange<ScrollEventArgs::ValueType>
 {
 public:
 	//! \brief 轨道区域。
@@ -108,7 +109,7 @@ public:
 		OnNext = 3
 	} Area;
 	//注意值类型需要和继承的 GMRange 的 ValueType 一致。
-	typedef u16 ValueType; //!< 值类型。
+	typedef ScrollEventArgs::ValueType ValueType; //!< 值类型。
 
 protected:
 	Components::Thumb Thumb; //!< 滑块：轨道区域上的滚动框。
@@ -164,8 +165,8 @@ public:
 	SetThumbPosition(SPos);
 	/*!
 	\brief 设置滚动事件关联值最大取值。
-	\note 当指定值不大于 1 时无效。
-	\note 约束 large_delta 小于指定值。
+	\note 当指定值非正值时无效。
+	\note 约束 large_delta 不大于指定值。
 	*/
 	void
 	SetMaxValue(ValueType);

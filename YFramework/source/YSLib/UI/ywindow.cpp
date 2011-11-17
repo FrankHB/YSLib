@@ -11,12 +11,12 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4202;
+\version r4208;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-11-11 12:30 +0800;
+	2011-11-12 11:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,19 +32,8 @@ using namespace Drawing;
 
 YSL_BEGIN_NAMESPACE(Components)
 
-MWindow::MWindow(const Rect& r, const shared_ptr<Image>& hImg)
-	: hBgImage(hImg)
-{}
-
-BitmapPtr
-MWindow::GetBackgroundPtr() const
-{
-	return hBgImage ? hBgImage->GetImagePtr() : nullptr;
-}
-
-
 AWindow::AWindow(const Rect& r, const shared_ptr<Image>& hImg)
-	: Control(r), MWindow(r, hImg)
+	: Control(r), MBackground(hImg)
 {
 	SetRenderer(unique_raw(new BufferedRenderer()));
 }

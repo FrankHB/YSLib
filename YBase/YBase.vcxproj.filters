@@ -57,6 +57,12 @@
     <ClInclude Include="include\ystdex\algorithm.hpp">
       <Filter>头文件\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\rational.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\operators.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">

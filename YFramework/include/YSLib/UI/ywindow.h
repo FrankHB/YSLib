@@ -11,12 +11,12 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4676;
+\version r4682;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-11-11 11:40 +0800;
+	2011-11-12 11:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,6 @@
 #define YSL_INC_UI_YWINDOW_H_
 
 #include "ycontrol.h"
-#include "../Service/yres.h"
 #include "yuicont.h"
 #include "../Service/yblit.h"
 
@@ -52,31 +51,8 @@ YSL_BEGIN_NAMESPACE(Components)
 #endif
 
 
-//! \brief 窗口模块。
-class MWindow : public noncopyable
-{
-protected:
-	mutable shared_ptr<Drawing::Image> hBgImage; //!< 背景图像句柄。
-
-public:
-	/*!
-	\brief 构造：使用指定边界和背景图像。
-	*/
-	explicit
-	MWindow(const Rect& = Rect::Empty,
-		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()));
-
-	DefGetter(shared_ptr<Drawing::Image>&, BackgroundImagePtr, hBgImage)
-	/*!
-	\brief 取位图背景指针。
-	*/
-	BitmapPtr
-	GetBackgroundPtr() const;
-};
-
-
 //! \brief 抽象窗口。
-class AWindow : public Control, protected MWindow
+class AWindow : public Control, protected MBackground
 {
 public:
 	/*!
@@ -87,8 +63,8 @@ public:
 		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()));
 	inline DefDeMoveCtor(AWindow)
 
-	using MWindow::GetBackgroundImagePtr;
-	using MWindow::GetBackgroundPtr;
+	using MBackground::GetBackgroundImagePtr;
+	using MBackground::GetBackgroundPtr;
 
 protected:
 	/*!

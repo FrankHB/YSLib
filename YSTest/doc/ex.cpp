@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r3384; *build 259 rev 54;
+\version r3386; *build 260 rev 43;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-11-10 13:13 +0800;
+	2011-11-17 10:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -194,7 +194,7 @@ $using:
 \u YObject
 (
 	\cl ValueObject,
-	\clt GDependence
+	\clt GDependency
 ),
 \u YFileSystem
 (
@@ -325,117 +325,115 @@ $using:
 
 
 $DONE:
-r1-r28:
-/= test 1;
+r1:
+- \inh noncopyable @ \cl MWindow;
+/ \a MWindow => MBackground;
+/ \simp @ \ctor @ \cl MBackground,
+/ \inc \h YResource @ \h YWindow >> \h YWidgetView;
+/ \cl MBackground @ \u YWindow >> \u YWidgetView;
+/ \tr \ctor @ \cl AWindow;
 
-r29-r40:
+r2-r3:
+/ @ \lib YStandardEx $=
+(
+	/ @ \h TypeOperation $=
+	(
+		/ \impl @ \stt (has_nonempty_virtual_base,
+			has_common_nonempty_virtual_base),
+		+ \stt make_signed_c,
+		+ \stt integer_width,
+		+ \stt make_fixed_width_int
+	);
+	+ \h Operators["operators.hpp"];
+	+ \h Rational["rational.hpp"]
+),
+- 'yconstexprf' @ \mf \i (GetX, GetY) @ \cl CursorInfo @ \h YCommon;
+
+r4-r6:
+* improper underlying type type of scroll event argument type
+	@ \h YScroll $since b201 $=
+(
+	/ \inh \cl GMValueEventArgs<SDst> @ \cl ScrollEventArgs
+		-> GMValueEventArgs<u16>;
+	/ \tr @ \cl AScrollBar
+),
+/= test 1 ^ \conf release;
+
+r7-r8:
+/ \impl @ \h Operators;
 /= test 2;
 
-r41:
-* focusing pointer not removed when removing widgets
-	@ \cl (Panel, AFrame) $since b258;
+r9-r13:
+* \impl @ \stt integer_width @ \h TypeOperation $since r3,
+* \impl @ \ft \op/= @ \clt fixed_point $since r3;
+/ \impl @ \ctor @ \cl (ListBox, \cl HexViewArea @ \impl \u HexBrowser)
+	^ \exp \ctor nonation for conversion \param -> \tp SDst;
 
-r42:
-/= test 3 ^ \conf release;
+r14-17:
+/= test 3,
+/ \de \t \param @ \clt fixed_point @ \h Rational;
 
-r43:
-/ @ \u YWidget $=
+r18-r37:
+/= test 4,
+* \impl @ \ft<_type> \op _type @ \clt fixed_point $since r3;
+
+r38:
++ \inc \h Rational @ \h Scroll;
+/ underlying type 'u16' -> 'ystdex::fixed_point<u32, 16>' @ \cl ScrollEventArgs
+	@ \h Scroll;
+* ValueType incompatibility @ \mf (SetValue, SetLargeDelta) @ \cl ATrack
+	$since b193;
+
+r39:
+/= test 5 ^ \conf release;
+
+r40:
+/ @ \clt fixed_point @ \h Rational $=
 (
-	/ \amf (IsVisible, GetLocation, GetSize, SetVisible, SetLocation, SetSize)
-		-> !\m \f (IsVisible, GetLocationOf, SetSizeOf, SetVisibleOf,
-		SetLocationOf, SetSizeOf),
-	+ \amf WidgetView& GetView() const;
-	/ \tr @ \cl Widget $=
+	+ 'yconstexprf' @ \a \ctor,
 	(
-		/ \inh protected \cl WidgetView -> protected \m mutable WidgetView View;
-		/ \tr \impl @ \ctor,
-		/ \tr \impl @ \mf (IsVisible, GetLocation, GetSize, SetVisible,
-			SetLocation, SetSize, GetContainerPtrRef, GetFocusingPtrRef)
+		+ private typedef empty_base<fixed_point> interal_construct_tag,
+		+ private \ctor yconstexprf fixed_point(base_type,
+			internal_construct_tag);
+		+ \smf yconstexprf epsilon()
+	),
+	(
+		+ \smf yconstexprf base_element();
+		/ \simp \mf (\impl, \ctor) ^ base_element
+	);
+	+ \smf yconstexprf identity(),
+	+ friend \mf (fabs, ceil, floor),
+	/ \m total_bit_n => digit_bit_n
+);
+
+r41:
+/ @ \h Rational $=
+(
+	+ \ns std @ \g ns $=
+	(
+		+ \t<> numeric_limits<ystdex::fixed_point>
 	)
 );
-/ \tr \impl @ (\ft FetchWidgetNodePtr, \f \i LocateContainerOffset)
-	@ \h YUIContainer,
-/ \tr \impl @ \f \i IsEnabledAndVisible @ \h YControl,
-/ \tr \impl @ \f OnTouchHeld, OnTouchMove_Dragging) @ \impl \u YControl,
-/ \tr \impl @ \mf GUIShell::(ResponseKey, ResponseTouch),
-/ \tr \impl @ \f (LocateOffset, LocateForWidget, LocateForParentContainer,
-	MoveToLeft, MoveToRight, MoveToTop) @ \impl \u YUIContainer,
-/ \tr \impl @ (\f (ContainsVisible, SetInvalidationOf, Invalidate,
-	InvalidateCascade, Render, RenderChild, Update, Show, Hide),
-	copy \ctor @ \cl Widget) @ \impl \u YWidget,
-/ \impl @ \mf Frame::DrawContents,
-/ \tr \impl @ \f SwitchVisible @ \impl \u Shells;
 
-r44:
-/ @ \cl WidgetView
-(
-	/ \ac @ \m pContainer -> public ~ private,
-	- \mf GetContainerPtrRef
-),
-- \amf (GetFocusingPtrRef, GetContainerPtrRef) @ \in IWidget;
-/ \tr \impl @ \h YWidget,
-/ \tr \impl @ \impl \u (Panel, YFocus, YWidget, YWindow, ListBox, Scroll,
-	Shells);
+r42:
+/ \impl @ \mf ATrack::SetMaxValue;
 
-r45:
-/= test 4 ^ \conf release;
-
-r46:
-+ \de \param @ \ctor @ \cl AController;
-+ \de \param @ \cl WidgetController;
-
-r47-r48:
-/ \cl Form @ \u Form -> typedef Frame Form,
-+ \vt DefClone(WidgetView, Clone) @ \cl WidgetView,
-- \i @ \f (SetLocationOf, SetSizeOf) @ \u YWidget;
-
-r49:
-- \mf \vt (SetSize, SetLocation) @ \cl Control,
-- \mf \vt SetSize @ \cl AWindow,
-- \mf (SetSize, SetLocation) @ \cl Widget,
-/ \tr \impl @ \f (SetLocationOf, SetSizeOf) @ \impl \u YWidget;
-/ \tr \impl @ \impl \u (ListBox, Scroll, TextList, Menu, Shells),
-/ \tr \impl @ \u TextArea;
-
-r50:
-* \ret \tp @ \mf (GetX, GetY) @ \cl Widget $since r43;
-
-r51:
-- \mf Widget::(GetSize, GetLocation);
-/ \tr \impl @ \h Scroll,
-/ \tr \impl @ \impl \u (YWidget, YWindow, YGUI, Label, Progress, Scroll,
-	TextList, CheckBox, HexBrowser, Shells);
-
-r52:
-- \mf Widget::(IsVisible, SetVisible);
-/ \tr \impl @ \impl \u (Scroll, Menu, HexBrowser, Shells);
-
-r53:
-/ \a \cl WidgetView => \cl View;
-/ @ \cl YWidget $=
-(
-	/ proteced \m mutable View View -> private \m unique_ptr<View> pView;
-	/ \tr @ (\ctor, \mf);
-	+ \mf SetView
-);
-/ \tr \impl @ \ctor @ \cl Control;
-
-r54:
-/= test 5 ^ \conf release;
+r43:
+/= test 6 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-11-11:
--19.1d;
-//Mercurial rev1-rev130: r6115;
+2011-11-17:
+-20.9d;
+//Mercurial rev1-rev131: r6169;
 
 / ...
 
 
 $NEXT_TODO:
-b259-b384:
+b261-b384:
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 + partial invalidation support @ %(TextList::PrintItems, HexViewArea::Refresh);
@@ -443,6 +441,7 @@ b259-b384:
 
 b385-b1089:
 + key accelerators;
++ abstract of hit test;
 / fully \impl @ \cl Path;
 + clipping areas;
 + fully \impl styles @ widgets;
@@ -523,6 +522,20 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ @ "library %YBase" $=
+	(
+		+ $design "several operations for integer types",
+		+ $design "reusable overloaded operators";
+		+ "fixed-point arithmetic template %fixed_point"
+	);
+	/ @ "GUI" $=
+	(
+		* "improper underlying type of scroll event argument type" $since b201
+	)
+),
+
+b259
 (
 	/ "GUI" $=
 	(

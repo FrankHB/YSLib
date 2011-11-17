@@ -15,12 +15,12 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2750;
+\version r2755;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2011-09-23 16:01 +0800;
+	2011-11-13 18:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -345,21 +345,21 @@ namespace platform
 		/*!
 		\brief 取横坐标。
 		*/
-		yconstexprf
-		SDst GetX() const;
+		SDst
+		GetX() const;
 		/*!
 		\brief 取纵坐标。
 		*/
-		yconstexprf
-		SDst GetY() const;
+		SDst
+		GetY() const;
 	} CursorInfo;
 
-	yconstexprf SDst
+	inline SDst
 	CursorInfo::GetX() const
 	{
 		return px;
 	}
-	yconstexprf SDst
+	inline SDst
 	CursorInfo::GetY() const
 	{
 		return py;

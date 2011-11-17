@@ -11,12 +11,12 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11459;
+\version r11464;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-11-05 18:10 +0800;
+	2011-11-15 09:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -651,6 +651,12 @@ $header "ydef.h"
 $header <platform.h>
 {
 } //$header <platfrom.h>
+
+$header <ystdex/rational.hpp>
+{
+	template<typename _tBase, ystdex::size_t _vInt, ystdex::size_t _vFrac>
+	std::numeric_limits<ystdex::fixed_point>
+} //$header <rational.hpp>
 
 //既定 ystdex 命名空间污染列表。
 

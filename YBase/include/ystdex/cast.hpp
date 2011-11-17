@@ -11,12 +11,12 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r1659;
+\version r1660;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-12-15 08:13:18 +0800;
 \par 修改时间:
-	2011-10-10 19:28 +0800;
+	2011-11-13 12:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -154,8 +154,8 @@ namespace ystdex
 			{
 				return _general_polymorphic_cast_helper<_tFrom, _tTo,
 					(is_base_of<_tFrom, _tTo>::value
-					&& !has_common_nonempty_virtual_base<typename
-					remove_rp<_tFrom>::type, typename remove_rp<_tTo>::type>::value)
+					&& !has_common_nonempty_virtual_base<typename remove_rp<
+					_tFrom>::type, typename remove_rp<_tTo>::type>::value)
 				>::cast(x);
 			}
 		};

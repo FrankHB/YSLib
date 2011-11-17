@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r1178;
+\version r1272;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2011-10-10 19:27 +0800;
+	2011-11-13 15:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -158,6 +158,7 @@ namespace ystdex
 	template<class _type>
 	struct has_nonempty_virtual_base
 	{
+	private:
 		struct A : _type
 		{
 			~A() throw()
@@ -174,15 +175,15 @@ namespace ystdex
 			{}
 		};
 
-		enum
-		{
-			value = sizeof(C) < sizeof(A) + sizeof(B)
-		};
+	public:
+		static yconstexpr bool value = sizeof(C) < sizeof(A) + sizeof(B);
 	};
+
 
 	template<class _type1, class _type2>
 	struct has_common_nonempty_virtual_base
 	{
+	private:
 		struct A : virtual _type1
 		{
 			~A() throw()
@@ -219,10 +220,64 @@ namespace ystdex
 #	pragma GCC diagnostic pop
 #endif
 
-		enum
-		{
-			value = sizeof(C) < sizeof(A) + sizeof(B)
-		};
+	public:
+		static yconstexpr auto value = sizeof(C) < sizeof(A) + sizeof(B);
+	};
+
+
+	template<typename _tInt>
+	struct integer_width
+	{
+		static yconstexpr auto value = sizeof(_tInt) * CHAR_BIT;
+	};
+
+
+	template<typename _type, bool>
+	struct make_signed_c
+	{
+		typedef typename std::make_signed<_type>::type type;
+	};
+
+	template<typename _type>
+	struct make_signed_c<_type, false>
+	{
+		typedef typename std::make_unsigned<_type>::type type;
+	};
+
+
+	template<size_t>
+	struct make_fixed_width_int
+	{
+		typedef int type;
+		typedef unsigned unsigned_type;
+	};
+
+	template<>
+	struct make_fixed_width_int<8U>
+	{
+		typedef std::int8_t type;
+		typedef std::uint8_t unsigned_type;
+	};
+
+	template<>
+	struct make_fixed_width_int<16U>
+	{
+		typedef std::int16_t type;
+		typedef std::uint16_t unsigned_type;
+	};
+
+	template<>
+	struct make_fixed_width_int<32U>
+	{
+		typedef std::int32_t type;
+		typedef std::uint32_t unsigned_type;
+	};
+
+	template<>
+	struct make_fixed_width_int<64U>
+	{
+		typedef std::int64_t type;
+		typedef std::uint64_t unsigned_type;
 	};
 }
 
