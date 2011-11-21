@@ -11,12 +11,12 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5336;
+\version r5341;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-11-11 12:54 +0800;
+	2011-11-19 18:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -499,12 +499,12 @@ ShlExplorer::TFormTest::TFormTest()
 	*this += btnNextBackground;
 	yunsequenced(
 		btnEnterTest.Text = u"边界测试",
-		btnEnterTest.HorizontalAlignment = MLabel::Right,
-		btnEnterTest.VerticalAlignment = MLabel::Up,
+		btnEnterTest.HorizontalAlignment = TextAlignment::Right,
+		btnEnterTest.VerticalAlignment = TextAlignment::Up,
 		btnMenuTest.Text = u"菜单测试",
 		btnShowWindow.Text = u"显示/隐藏窗口",
-		btnShowWindow.HorizontalAlignment = MLabel::Left,
-		btnShowWindow.VerticalAlignment = MLabel::Down,
+		btnShowWindow.HorizontalAlignment = TextAlignment::Left,
+		btnShowWindow.VerticalAlignment = TextAlignment::Down,
 		btnPrevBackground.Text = "<<",
 		btnNextBackground.Text = ">>",
 		BackColor = Color(248, 248, 120)
@@ -626,7 +626,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 	*this += btnExit;
 	yunsequenced(
 		btnDragTest.Text = u"测试拖放控件",
-		btnDragTest.HorizontalAlignment = MLabel::Left,
+		btnDragTest.HorizontalAlignment = TextAlignment::Left,
 		btnTestEx.Text = u"直接屏幕绘制测试",
 		btnClose.Text = u"关闭",
 		btnExit.Text = u"退出",

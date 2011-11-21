@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3260;
+\version r3325;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-11-15 17:36 +0800;
+	2011-11-20 21:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,23 +37,19 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//! \brief 滚动事件类型空间。
-namespace ScrollEventSpace
+//! \brief 滚动类别。
+typedef enum class
 {
-	//! \brief 滚动事件类型。
-	typedef enum
-	{
-		SmallDecrement = 0, //!< 滚动框小距离减量移动。
-		SmallIncrement = 1, //!< 滚动框小距离增量移动。
-		LargeDecrement = 2, //!< 滚动框大距离减量移动。
-		LargeIncrement = 3, //!< 滚动框大距离增量移动。
-		ThumbPosition = 4, //!< 滚动框定位（通过直接设置位置）。
-		ThumbTrack = 5, //!< 滚动框当前正在移动。
-		First = 6, //!< 滚动框移动至最小位置。
-		Last = 7, //!< 滚动框移动至最大位置。
-		EndScroll = 8 //!< 滚动框移动停止。
-	} ScrollEventType;
-};
+	SmallDecrement = 0, //!< 滚动框小距离减量移动。
+	SmallIncrement = 1, //!< 滚动框小距离增量移动。
+	LargeDecrement = 2, //!< 滚动框大距离减量移动。
+	LargeIncrement = 3, //!< 滚动框大距离增量移动。
+	ThumbPosition = 4, //!< 滚动框定位（通过直接设置位置）。
+	ThumbTrack = 5, //!< 滚动框当前正在移动。
+	First = 6, //!< 滚动框移动至最小位置。
+	Last = 7, //!< 滚动框移动至最大位置。
+	EndScroll = 8 //!< 滚动框移动停止。
+} ScrollCategory;
 
 
 //! \brief 滚动事件参数类。
@@ -64,29 +60,27 @@ public:
 	typedef GMValueEventArgs<ystdex::fixed_point<u32, 16>> MEventArgs;
 	typedef MEventArgs::ValueType ValueType;
 
-	ScrollEventSpace::ScrollEventType Type; //滚动事件类型。
+	ScrollCategory Type; //滚动事件类型。
 
 	/*!
 	\brief 构造：使用指定事件源、滚动事件类型和值。
 	\note 值等于旧值。
 	*/
-	ScrollEventArgs(IWidget&, ScrollEventSpace::ScrollEventType, ValueType);
+	ScrollEventArgs(IWidget&, ScrollCategory, ValueType);
 	/*!
 	\brief 构造：使用指定事件源、滚动事件类型、值和旧值。
 	*/
-	ScrollEventArgs(IWidget&, ScrollEventSpace::ScrollEventType, ValueType,
-		ValueType);
+	ScrollEventArgs(IWidget&, ScrollCategory, ValueType, ValueType);
 };
 
 inline
-ScrollEventArgs::ScrollEventArgs(IWidget& wgt,
-	ScrollEventSpace::ScrollEventType t, ScrollEventArgs::ValueType v)
+ScrollEventArgs::ScrollEventArgs(IWidget& wgt, ScrollCategory t,
+	ScrollEventArgs::ValueType v)
 	: UIEventArgs(wgt), MEventArgs(v),
 	Type(t)
 {}
 inline
-ScrollEventArgs::ScrollEventArgs(IWidget& wgt,
-	ScrollEventSpace::ScrollEventType t,
+ScrollEventArgs::ScrollEventArgs(IWidget& wgt, ScrollCategory t,
 	ScrollEventArgs::ValueType v, ScrollEventArgs::ValueType old_value)
 	: UIEventArgs(wgt), MEventArgs(v, old_value),
 	Type(t)
@@ -199,136 +193,16 @@ protected:
 
 public:
 	/*!
-	\brief 设置和调用滚动事件处理器。
-	\param t 滚动事件类型。
-	\param old_value 旧的滚动事件关联值。
-	*/
-	void
-	CheckScroll(ScrollEventSpace::ScrollEventType t, ValueType old_value);
-
-	/*!
-	\brief 定位滑块。
-	\note 按指定滚动事件关联值设置滑块位置并触发滚动定位事件。
-	*/
-	virtual void
-	LocateThumb(ValueType);
-
-private:
-	/*!
 	\brief 定位滑块。
 	\note 指定滚动事件关联值设置滑块位置并触发对应事件。
+	\note 当滚动类别为 <tt>ScrollCategory::ThumbPosition</tt> 值参数为设置指定值；
+		当滚动类别为 <tt>ScrollCategory::SmallDecrement</tt>
+		或 <tt>ScrollCategory::SmallIncrement</tt> 时参数为值变化的绝对值；
+		其它情况无效。
 	*/
 	void
-	LocateThumb(ScrollEventSpace::ScrollEventType, ValueType);
-
-public:
-	/*!
-	\brief 定位滑块至最小位置。
-	\note 设置滑块位置并触发滚动定位事件。
-	*/
-	void
-	LocateThumbToFirst();
-
-	/*!
-	\brief 定位滑块至最大位置。
-	\note 设置滑块位置并触发滚动定位事件。
-	*/
-	void
-	LocateThumbToLast();
-
-private:
-	/*!
-	\brief 定位滑块（增量移动）。
-	\note 设置滑块位置并触发滚动定位事件。
-	*/
-	void
-	LocateThumbForIncrement(ScrollEventSpace::ScrollEventType, ValueType);
-
-	/*!
-	\brief 定位滑块（减量移动）。
-	\note 设置滑块位置并触发滚动定位事件。
-	*/
-	void
-	LocateThumbForDecrement(ScrollEventSpace::ScrollEventType, ValueType);
-
-public:
-	/*!
-	\brief 定位滑块（大距离增量移动）。
-	\note 设置滑块位置并触发滚动定位事件。
-	*/
-	void
-	LocateThumbForLargeIncrement();
-
-	/*!
-	\brief 定位滑块（大距离减量移动）。
-	\note 设置滑块位置并触发滚动定位事件。
-	*/
-	void
-	LocateThumbForLargeDecrement();
-
-	/*!
-	\brief 定位滑块（指定小距离增量移动）。
-	\note 设置滑块位置并触发滚动定位事件。
-	*/
-	void
-	LocateThumbForSmallIncrement(ValueType);
-
-	/*!
-	\brief 定位滑块（指定小距离减量移动）。
-	\note 设置滑块位置并触发滚动定位事件。
-	*/
-	void
-	LocateThumbForSmallDecrement(ValueType);
-
-	/*!
-	\brief 更新滚动事件关联值。
-	\note 由滑块位置按比例设置。
-	*/
-	void
-	UpdateValue();
+	LocateThumb(ValueType, ScrollCategory = ScrollCategory::ThumbPosition);
 };
-
-inline void
-ATrack::LocateThumb(ValueType val)
-{
-	LocateThumb(ScrollEventSpace::ThumbPosition, val);
-}
-
-inline void
-ATrack::LocateThumbToFirst()
-{
-	LocateThumb(ScrollEventSpace::First, 0);
-}
-
-inline void
-ATrack::LocateThumbToLast()
-{
-	LocateThumb(ScrollEventSpace::Last, 0);
-}
-
-inline void
-ATrack::LocateThumbForLargeIncrement()
-{
-	LocateThumbForIncrement(ScrollEventSpace::LargeIncrement, GetLargeDelta());
-}
-
-inline void
-ATrack::LocateThumbForLargeDecrement()
-{
-	LocateThumbForDecrement(ScrollEventSpace::LargeDecrement, GetLargeDelta());
-}
-
-inline void
-ATrack::LocateThumbForSmallIncrement(ValueType abs_delta)
-{
-	LocateThumbForIncrement(ScrollEventSpace::SmallIncrement, abs_delta);
-}
-
-inline void
-ATrack::LocateThumbForSmallDecrement(ValueType abs_delta)
-{
-	LocateThumbForDecrement(ScrollEventSpace::SmallDecrement, abs_delta);
-}
 
 
 //! \brief 水平轨道。
@@ -416,19 +290,6 @@ public:
 	*/
 	virtual Rect
 	Refresh(const PaintContext&);
-
-private:
-	/*!
-	\brief 小距离减量滚动滑块。
-	*/
-	void
-	PerformSmallDecrement();
-
-	/*!
-	\brief 小距离增量滚动滑块。
-	*/
-	void
-	PerformSmallIncrement();
 };
 
 inline ATrack&
@@ -438,18 +299,6 @@ AScrollBar::GetTrack() const ynothrow
 		"Null widget pointer found @ AScrollBar::GetTrack;");
 
 	return *pTrack;
-}
-
-inline void
-AScrollBar::PerformSmallDecrement()
-{
-	GetTrack().LocateThumbForSmallDecrement(small_delta);
-}
-
-inline void
-AScrollBar::PerformSmallIncrement()
-{
-	GetTrack().LocateThumbForSmallIncrement(small_delta);
 }
 
 

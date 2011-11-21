@@ -11,12 +11,12 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2012;
+\version r2022;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-11-12 23:23:47 +0800;
 \par 修改时间:
-	2011-11-15 11:15 +0800;
+	2011-11-18 11:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -294,17 +294,6 @@ namespace ystdex
 		}
 
 		/*!
-		\brief 取最小有效值。
-
-		取存储中可分辨的最小有效值，等于 \c base_type 的 1 表示的数值。
-		*/
-		static yconstexprf fixed_point
-		epsilon() ynothrow
-		{
-			return fixed_point(1, internal_construct_tag());
-		}
-
-		/*!
 		\brief 取单位元。
 
 		取值等于 1 的元素。
@@ -333,6 +322,13 @@ namespace ystdex
 		{
 			return fixed_point(x.value & ~(base_element() - 1),
 				internal_construct_tag());
+		}
+
+		friend yconstexprf fixed_point
+		round(fixed_point x)
+		{
+			return fixed_point((x.value + (base_element() >> 1))
+				& ~(base_element() - 1), internal_construct_tag());
 		}
 	};
 }
@@ -381,7 +377,7 @@ namespace std
 		static yconstexprf fp_type
 		epsilon() throw()
 		{
-			return fp_type::epsilon();
+			return fp_type(1, fp_type::internal_construct_tag());;
 		}
 
 		static yconstexprf fp_type

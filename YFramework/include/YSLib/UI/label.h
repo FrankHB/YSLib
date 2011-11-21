@@ -11,12 +11,12 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2117;
+\version r2127;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-10-28 13:57 +0800;
+	2011-11-19 18:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,23 +36,24 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
+//文本对齐样式。
+typedef enum class
+{
+	Left = 0,
+	Up = 0,
+	Center = 1,
+	Right = 2,
+	Down = 2
+} TextAlignment;
+
+
 //! \brief 标签模块。
 class MLabel : public noncopyable
 {
 public:
-	//文本（水平）对齐样式。
-	typedef enum
-	{
-		Left = 0,
-		Up = 0,
-		Center = 1,
-		Right = 2,
-		Down = 2
-	} TextAlignmentStyle;
-
 	Drawing::Font Font; //!< 字体。
 	Drawing::Padding Margin; //!< 文本和容器的间距。
-	TextAlignmentStyle HorizontalAlignment, VerticalAlignment; \
+	TextAlignment HorizontalAlignment, VerticalAlignment; \
 		//!< 文本水平和竖直对齐属性（只在可完整显示时有效）。
 //	bool AutoSize; //!< 启用根据字号自动调整大小。
 //	bool AutoEllipsis; //!< 启用对超出标签宽度的文本调整大小。
@@ -64,7 +65,7 @@ protected:
 	*/
 	explicit
 	MLabel(const Drawing::Font& = Drawing::Font::GetDefault(),
-		TextAlignmentStyle = Left);
+		TextAlignment = TextAlignment::Left);
 	inline DefDeMoveCtor(MLabel)
 
 	/*!
@@ -79,10 +80,10 @@ protected:
 class Label : public Widget, protected MLabel
 {
 public:
-	using MLabel::TextAlignmentStyle;
 	using MLabel::Font;
 	using MLabel::Margin;
 	using MLabel::HorizontalAlignment;
+	using MLabel::VerticalAlignment;
 	using MLabel::Text;
 /*
 	YImage BackgroundImage; //!< 背景图像。

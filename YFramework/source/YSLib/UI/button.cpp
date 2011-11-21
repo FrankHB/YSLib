@@ -11,12 +11,12 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3604;
+\version r3605;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-11-11 12:22 +0800;
+	2011-11-19 18:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -111,7 +111,7 @@ Thumb::Refresh(const PaintContext& e)
 
 Button::Button(const Rect& r, const Drawing::Font& fnt)
 	: Thumb(r),
-	MLabel(fnt, MLabel::Center)
+	MLabel(fnt, TextAlignment::Center)
 {}
 
 Rect

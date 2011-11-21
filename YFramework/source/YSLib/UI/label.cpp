@@ -11,12 +11,12 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2148;
+\version r2158;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2011-11-11 12:23 +0800;
+	2011-11-19 18:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,9 +30,9 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-MLabel::MLabel(const Drawing::Font& fnt, TextAlignmentStyle a)
+MLabel::MLabel(const Drawing::Font& fnt, TextAlignment a)
 	: Font(fnt), Margin(2, 2, 2, 2),
-	HorizontalAlignment(a), VerticalAlignment(Center),
+	HorizontalAlignment(a), VerticalAlignment(TextAlignment::Center),
 	/*AutoSize(false), AutoEllipsis(false),*/ Text()
 {}
 
@@ -48,20 +48,20 @@ MLabel::PaintText(const Size& s, Color c, const PaintContext& e)
 
 	switch(HorizontalAlignment)
 	{
-	case Center:
-	case Right:
+	case TextAlignment::Center:
+	case TextAlignment::Right:
 		{
 			SPos horizontal_offset(bounds.Width - GetHorizontalOf(Margin)
 				- FetchStringWidth(ts.Font, Text));
 
 			if(horizontal_offset > 0)
 			{
-				if(HorizontalAlignment == Center)
+				if(HorizontalAlignment == TextAlignment::Center)
 					horizontal_offset /= 2;
 				ts.PenX += horizontal_offset;
 			}
 		}
-	case Left:
+	case TextAlignment::Left:
 	default:
 		break;
 	}
@@ -70,20 +70,20 @@ MLabel::PaintText(const Size& s, Color c, const PaintContext& e)
 
 	switch(VerticalAlignment)
 	{
-	case Center:
-	case Down:
+	case TextAlignment::Center:
+	case TextAlignment::Down:
 		{
 			SPos vertical_offset(bounds.Height - GetHorizontalOf(Margin)
 				- GetTextLineHeightOf(ts));
 
 			if(vertical_offset > 0)
 			{
-				if(VerticalAlignment == Center)
+				if(VerticalAlignment == TextAlignment::Center)
 					vertical_offset /= 2;
 				ts.PenY += vertical_offset;
 			}
 		}
-	case Up:
+	case TextAlignment::Up:
 	default:
 		break;
 	}

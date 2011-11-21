@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1388;
+\version r1389;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-11-04 19:33 +0800;
+	2011-11-19 18:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,7 +42,6 @@ public:
 	using MTextList::ItemType;
 	using MTextList::ListType;
 	using MTextList::IndexType;
-	using MTextList::TextAlignmentStyle;
 	typedef GSequenceViewer<ListType> ViewerType; //!< 视图类型。
 
 	using MTextList::Font;

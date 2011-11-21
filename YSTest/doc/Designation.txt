@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5586;
+\version r5594;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-11-16 20:41 +0800;
+	2011-11-19 18:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -176,6 +176,7 @@
  New character types(N2249) ；
  Declared type of an expression v1.0(N2343) ；
  Defaulted and deleted functions(N2346) ；
+ Strongly-typed enums(N2347) ；
  New function declaration syntax for deduced return types(N2541) ；
  Lambda expressions and closures v0.9(N2550) 。
 仅使用ISO/IEC C++ 2011 中头文件 <array> 、 <type_traits> 、 <tuple> 、 <forward_list> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
@@ -510,6 +511,7 @@
 
 @1.4.7.4
 根据可访问性的需要选择 struct 或 class 。
+由 ISO C++11 7.2/2 ， enum class 和 enum struct 语义等价，统一风格起见应尽可能使用 enum class 。
 
 @1.4.7.5
 在定义模板类型（非模板）参数时 class 和 typename 等价，但应根据语义适当选择，以提升可读性：
@@ -781,7 +783,7 @@
 
 @1.5.4.6 实例：
 标准库容器的各种迭代器都是典型的迭代器。
- C++2011 标准库的智能指针中， std::unique_ptr 是完全强引用的透明智能指针， std::shared_ptr 是不完全强引用的透明智能指针， std::weak_ptr 是弱引用的不透明智能指针。
+ ISO C++11 标准库的智能指针中， std::unique_ptr 是完全强引用的透明智能指针， std::shared_ptr 是不完全强引用的透明智能指针， std::weak_ptr 是弱引用的不透明智能指针。
 
 @1.6 对象特性和语义抽象：
 本节讨论完成非特定功能但在行为和实现方法上具有显著相似点的某几类对象的性质、意义和行为。
@@ -1196,8 +1198,8 @@
 在 "yref.hpp" 中声明智能指针等引用对象类型。
 可以包装 Loki 或 std::tr1 指针智能等实现。
  YSLib 早期包装 Loki 指针实现句柄；
- build 208 起包装 C++2011 标准库智能指针实现；
- build 210 开始直接使用 C++2011 标准库智能指针作为句柄。
+ build 208 起包装 ISO C++11 标准库智能指针实现；
+ build 210 开始直接使用 ISO C++11 标准库智能指针作为句柄。
 
 @2.6.5 初始化逻辑的实现 YShellInitialization
 

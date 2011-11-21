@@ -11,12 +11,12 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1485;
+\version r1494;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-11-11 12:28 +0800;
+	2011-11-21 14:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -240,12 +240,14 @@ TextList::Refresh(const PaintContext& e)
 void
 TextList::LocateViewPosition(SDst h)
 {
-	RestrictInInterval(h, 0, GetFullViewHeight());
+	RestrictInInterval(h, 0, GetFullViewHeight() - GetHeight());
 
 	if(GetViewPosition() != h)
 	{
 		const SDst item_height(GetItemHeight());
 
+		//先保证避免部分显示的项目使视图超长，再设置视图位置。
+		viewer.SetLength(GetHeight() / item_height);
 		viewer.SetHeadIndex(h / item_height);
 		top_offset = h % item_height;
 	}
@@ -271,14 +273,15 @@ TextList::PaintItems(const PaintContext& e)
 		// TODO: refresh for 'rect' properly;
 		Widget::Refresh(PaintContext(g, pt, Rect(pt, GetSizeOf(*this))));
 
-		const SDst ln_w(GetWidth());
-		const SDst ln_h(GetItemHeight());
-
-		viewer.SetLength((GetHeight() + top_offset + ln_h - 1) / ln_h);
 		if(viewer.GetTotal() != 0)
 		{
-			const auto last(viewer.GetHeadIndex()
-				+ viewer.GetValid());
+			const auto ln_w(GetWidth());
+			const auto ln_h(GetItemHeight());
+
+			//长度可能因为避免视图超长等原因在其它方法中改变，必须重新计算。
+			viewer.SetLength((GetHeight() + top_offset + ln_h - 1) / ln_h);
+
+			const auto last(viewer.GetHeadIndex() + viewer.GetValid());
 			SPos y(-top_offset);
 
 			for(auto i(viewer.GetHeadIndex()); i < last; ++i)

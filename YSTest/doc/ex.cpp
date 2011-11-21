@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r3386; *build 260 rev 43;
+\version r3386; *build 261 rev 59;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-11-17 10:59 +0800;
+	2011-11-21 14:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -326,114 +326,126 @@ $using:
 
 $DONE:
 r1:
-- \inh noncopyable @ \cl MWindow;
-/ \a MWindow => MBackground;
-/ \simp @ \ctor @ \cl MBackground,
-/ \inc \h YResource @ \h YWindow >> \h YWidgetView;
-/ \cl MBackground @ \u YWindow >> \u YWidgetView;
-/ \tr \ctor @ \cl AWindow;
-
-r2-r3:
-/ @ \lib YStandardEx $=
-(
-	/ @ \h TypeOperation $=
-	(
-		/ \impl @ \stt (has_nonempty_virtual_base,
-			has_common_nonempty_virtual_base),
-		+ \stt make_signed_c,
-		+ \stt integer_width,
-		+ \stt make_fixed_width_int
-	);
-	+ \h Operators["operators.hpp"];
-	+ \h Rational["rational.hpp"]
-),
-- 'yconstexprf' @ \mf \i (GetX, GetY) @ \cl CursorInfo @ \h YCommon;
-
-r4-r6:
-* improper underlying type type of scroll event argument type
-	@ \h YScroll $since b201 $=
-(
-	/ \inh \cl GMValueEventArgs<SDst> @ \cl ScrollEventArgs
-		-> GMValueEventArgs<u16>;
-	/ \tr @ \cl AScrollBar
-),
-/= test 1 ^ \conf release;
-
-r7-r8:
-/ \impl @ \h Operators;
-/= test 2;
-
-r9-r13:
-* \impl @ \stt integer_width @ \h TypeOperation $since r3,
-* \impl @ \ft \op/= @ \clt fixed_point $since r3;
-/ \impl @ \ctor @ \cl (ListBox, \cl HexViewArea @ \impl \u HexBrowser)
-	^ \exp \ctor nonation for conversion \param -> \tp SDst;
-
-r14-17:
-/= test 3,
-/ \de \t \param @ \clt fixed_point @ \h Rational;
-
-r18-r37:
-/= test 4,
-* \impl @ \ft<_type> \op _type @ \clt fixed_point $since r3;
-
-r38:
-+ \inc \h Rational @ \h Scroll;
-/ underlying type 'u16' -> 'ystdex::fixed_point<u32, 16>' @ \cl ScrollEventArgs
-	@ \h Scroll;
-* ValueType incompatibility @ \mf (SetValue, SetLargeDelta) @ \cl ATrack
-	$since b193;
-
-r39:
-/= test 5 ^ \conf release;
-
-r40:
-/ @ \clt fixed_point @ \h Rational $=
-(
-	+ 'yconstexprf' @ \a \ctor,
-	(
-		+ private typedef empty_base<fixed_point> interal_construct_tag,
-		+ private \ctor yconstexprf fixed_point(base_type,
-			internal_construct_tag);
-		+ \smf yconstexprf epsilon()
-	),
-	(
-		+ \smf yconstexprf base_element();
-		/ \simp \mf (\impl, \ctor) ^ base_element
-	);
-	+ \smf yconstexprf identity(),
-	+ friend \mf (fabs, ceil, floor),
-	/ \m total_bit_n => digit_bit_n
-);
-
-r41:
 / @ \h Rational $=
 (
-	+ \ns std @ \g ns $=
-	(
-		+ \t<> numeric_limits<ystdex::fixed_point>
-	)
+	/ friend \f epsilon @ \clt fixed_point \mg
+		-> std::numeric_limits<ystdex::fixed_point>::epsilon,
+	+ friend \f round @ \clt fixed_point
+);
+/ \impl @ \mf (SetValue, SetLargeDelta) @ \cl AScrollBar,
+/ \impl @ \ctor @ \cl (ListBox, HexViewArea @ \impl \u HexBrowser);
+
+r2-r3:
+/= test 1;
+
+r4:
+/ \simp @ \cl ATrack $=
+(
+	- \mf (LocateThumbToFirst, LocateThumbToLast, LocateThumbForIncrement,
+		LocateThumbForDecrement, LocateThumbForLargeIncrement,
+		LocateThumbForLargeDecrement, LocateThumbForSmallIncrement,
+		LocateThumbForSmallDecrement),
+	- \mf \vt void LocateThumb(ValueType),
+	/ private \mf void LocateThumb(ScrollEventSpace::ScrollEventType, ValueType)
+		-> public \mf !\vt void LocateThumb(ValueType,
+		ScrollEventSpace::ScrollEventType = ScrollEventSpace::ThumbPosition);
+	/ \tr \impl @ \ctor
+);
+/ \tr \impl @ \mf (PerformSmallDecrement, PerformSmallIncrement)
+	@ \cl AScrollBar;
+/ \a ScrollEventType => ScrollCategory;
+/ \ns ScrollEventSpace @ \h Scroll-> typedef \en \cl ScrollCategory,
+(
+	/ \en TextAlignmentStyle @ \cl MLabel -> typedef \en \cl TextAlignment
+		@ \ns Components;
+	/ \tr @ \cl (MLabel, Label, Button, TextList),
+	+ using MLabel::VerticalAlignment @ \cl Label,
+	/ \tr \impl @ \impl \u Shells
 );
 
-r42:
-/ \impl @ \mf ATrack::SetMaxValue;
+r5:
+* \impl @ \mf (PerformSmallDecrement, PerformSmallIncrement)
+	@ \cl AScrollBar $since r4;
 
-r43:
+r6:
+/= test 2 ^ \conf release;
+
+r7:
+* \impl @ \mf ATrack::UpdateValue $since b193;
+
+r8:
+/ \impl @ \mf ATrack::CheckArea ^ yconstexpr;
+
+r9:
+/ \simp @ \cl AScrollBar
+(
+	/ \impl @ \ctor;
+	- private \mf \i (PerformSmallDecrement, PerformSmallIncrement)
+);
+
+r10:
+* \impl @ \ctor @ \cl AScroll $since r4;
+
+r11:
+* \impl @ \ctor @ \cl ListBox $since b260;
+
+r12:
+/= test 3 ^ \conf release;
+
+r13:
+/ @ \cl ATrack $=
+(
+	/ \impl @ \ctor,
+	/ \impl @ \mf LocateThumb;
+	- \mf UpdateValue,
+	/ \mf CheckScroll \mg -> \mf LocateThumb
+);
+/ \tr \impl @ \ctor @ \cl AScroll;
+
+r14-r33:
+/= test 4;
+
+r34-r36:
+* \impl $since r11 $=
+(
+	/ \impl @ \ctor @ \cl ListBox
+),
+/ \impl @ \mf (SetThumbPosition, CheckArea) @ \cl ATrack;
+
+r37-r40:
+/= test 5;
+
+r41:
+/ \impl @ \mf ATrack::LocateThumb;
+
+r42:
 /= test 6 ^ \conf release;
+
+r43-r55:
+/= test 7;
+
+r56:
+* \impl @ \mf TextList::LocateViewPosition $since b193;
+
+r57-r58:
+/ \impl @ \mf TextList::PaintItems;
+
+r59:
+/= test 8 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-11-17:
--20.9d;
-//Mercurial rev1-rev131: r6169;
+2011-11-21:
+-21.9d;
+//Mercurial rev1-rev132: r6212;
 
 / ...
 
 
 $NEXT_TODO:
-b261-b384:
+b262-b384:
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 + partial invalidation support @ %(TextList::PrintItems, HexViewArea::Refresh);
@@ -496,8 +508,8 @@ Design by contract: DbC for C/C++, GNU nana.
 
 $KNOWN_ISSUE:
 // obselete all resolved;
-* corrupted embedded bitmap glyph loading $since b185;
-* fatal error occurred using "simson.ttc";
+* "corrupted loading or fatal errors on loading like font file with embedded \
+	bitmap glyph like simson.ttc" $since b185;
 
 
 $HISTORY:
@@ -522,6 +534,16 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ @ "GUI" $=
+	(
+		/ $design "simplified interface" @ "class %ATrack";
+		* "wrong alignment" @ "listbox when alignment is non-zero value \
+			and scrolling down to end" $since b193,
+	)
+),
+
+b260
 (
 	/ @ "library %YBase" $=
 	(

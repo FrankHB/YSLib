@@ -11,12 +11,12 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3934;
+\version r3992;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-11-15 17:36 +0800;
+	2011-11-21 12:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -90,10 +90,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	Thumb.GetView().pContainer = this;
 	yunsequenced(
 		GetThumbDrag() += [this](UIEventArgs&&){
-			ValueType old_value(value);
-			// FIXME: get correct old value;
-			UpdateValue();
-			CheckScroll(ScrollEventSpace::ThumbTrack, old_value);
+			LocateThumb(0, ScrollCategory::ThumbTrack);
 			Invalidate(*this);
 		},
 		FetchEvent<TouchMove>(*this) += OnTouchMove,
@@ -101,21 +98,20 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 			if(e.Strategy == RoutedEventArgs::Direct
 				&& Rect(Point::Zero, GetSizeOf(*this)).Contains(e))
 			{
-				using namespace ScrollEventSpace;
+				ScrollCategory t;
 
 				switch(CheckArea(SelectFrom(e, IsHorizontal())))
 				{
 				case OnPrev:
-					LocateThumbForLargeDecrement();
+					t = ScrollCategory::LargeDecrement;
 					break;
 				case OnNext:
-					LocateThumbForLargeIncrement();
+					t = ScrollCategory::LargeIncrement;
 					break;
-				case OnThumb:
 				default:
-					LocateThumb(EndScroll, value);
-					break;
+					t = ScrollCategory::EndScroll;
 				}
+				LocateThumb(0, t);
 			}
 		}
 	);
@@ -141,7 +137,8 @@ ATrack::SetThumbLength(SDst l)
 void
 ATrack::SetThumbPosition(SPos pos)
 {
-	RestrictInClosedInterval(pos, 0, GetTrackLength() - GetThumbLength());
+	RestrictInClosedInterval(pos, 0, SDst(GetTrackLength()
+		- large_delta * GetTrackLength() / max_value));
 
 	Point p(GetLocationOf(Thumb));
 
@@ -160,16 +157,16 @@ ATrack::SetMaxValue(ValueType m)
 	}
 }
 void
-ATrack::SetValue(ValueType v)
+ATrack::SetValue(ValueType val)
 {
-	value = v;
-	SetThumbPosition(SDst(v * GetTrackLength() / max_value));
+	value = val;
+	SetThumbPosition(SPos(round(val * GetTrackLength() / max_value)));
 }
 void
 ATrack::SetLargeDelta(ValueType val)
 {
 	large_delta = val;
-	SetThumbLength(SDst(val * GetTrackLength() / max_value));
+	SetThumbLength(SDst(round(val * GetTrackLength() / max_value)));
 }
 
 Rect
@@ -208,9 +205,9 @@ ATrack::Refresh(const PaintContext& e)
 ATrack::Area
 ATrack::CheckArea(SDst q) const
 {
-	const Area lst[] = {OnPrev, OnThumb, OnNext};
+	yconstexpr Area lst[] = {OnPrev, OnThumb, OnNext};
 	const SDst a[] = {0, GetThumbPosition(),
-		static_cast<SDst>(GetThumbPosition() + GetThumbLength())};
+		SDst(GetThumbPosition() + GetThumbLength())};
 	size_t n(SwitchInterval(q, a, 3));
 
 	YAssert(n < 3,
@@ -222,65 +219,47 @@ ATrack::CheckArea(SDst q) const
 }
 
 void
-ATrack::CheckScroll(ScrollEventSpace::ScrollEventType t, ValueType old_value)
+ATrack::LocateThumb(ValueType val, ScrollCategory t)
 {
-	GetScroll()(ScrollEventArgs(*this, t, value, old_value));
-}
-
-void
-ATrack::LocateThumb(ScrollEventSpace::ScrollEventType t, ValueType v)
-{
-	switch(t)
-	{
-	case ScrollEventSpace::First:
-		v = 0;
-		break;
-	case ScrollEventSpace::Last:
-		v = max_value - large_delta;
-		break;
-	default:
-		break;
-	}
-
 	ValueType old_value(value);
 
-	SetValue(v);
-	CheckScroll(t, old_value);
-}
-
-void
-ATrack::LocateThumbForIncrement(ScrollEventSpace::ScrollEventType t,
-	ValueType abs_delta)
-{
-	ValueType v(value);
-
-	const ValueType m(max_value - large_delta);
-
-	if(v + abs_delta > m)
-		v = m;
+	if(t == ScrollCategory::ThumbTrack)
+		value = GetThumbPosition() == GetTrackLength() - GetThumbLength() ?
+			max_value - large_delta
+			: max_value * GetThumbPosition() / GetTrackLength();
 	else
-		v += abs_delta;
-	LocateThumb(t, v);
-}
-
-void
-ATrack::LocateThumbForDecrement(ScrollEventSpace::ScrollEventType t,
-	ValueType abs_delta)
-{
-	ValueType v(value);
-
-	if(v < abs_delta)
-		v = 0;
-	else
-		v -= abs_delta;
-	LocateThumb(t, v);
-}
-
-void
-ATrack::UpdateValue()
-{
-	// FIXME: check ValueType incompatibility(perhaps overflow);
-	value = GetThumbPosition() * max_value / GetTrackLength();
+	{
+		if(t == ScrollCategory::LargeDecrement
+			|| t == ScrollCategory::LargeIncrement)
+			val = GetLargeDelta();
+		switch(t)
+		{
+		case ScrollCategory::SmallDecrement:
+		case ScrollCategory::LargeDecrement:
+			if(value > val)
+			{
+				SetValue(value - val);
+				break;
+			}
+		case ScrollCategory::First:
+			value = 0;
+			SetThumbPosition(0);
+			break;
+		case ScrollCategory::SmallIncrement:
+		case ScrollCategory::LargeIncrement:
+			if(value + val < max_value - large_delta)
+			{
+				SetValue(value + val);
+				break;
+			}
+		case ScrollCategory::Last:
+			value = max_value - large_delta;
+			SetThumbPosition(GetTrackLength() - GetThumbLength());
+		default:
+			;
+		}
+	}
+	GetScroll()(ScrollEventArgs(*this, t, value, old_value));
 }
 
 
@@ -348,11 +327,11 @@ try	: AUIBoxControl(r),
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 		FetchEvent<TouchMove>(PrevButton) += OnTouchMove,
 		FetchEvent<TouchDown>(PrevButton) += [this](TouchEventArgs&& e){
-			PerformSmallDecrement();
+			GetTrack().LocateThumb(small_delta, ScrollCategory::SmallDecrement);
 		},
 		FetchEvent<TouchMove>(NextButton) += OnTouchMove,
 		FetchEvent<TouchDown>(NextButton) += [this](TouchEventArgs&& e){
-			PerformSmallIncrement();
+			GetTrack().LocateThumb(small_delta, ScrollCategory::SmallIncrement);
 		},
 		FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUpAndLeave,
 		FetchEvent<KeyDown>(*this) += OnKey_Bound_EnterAndTouchDown
