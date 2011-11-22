@@ -11,12 +11,12 @@
 /*!	\file yviewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r1158;
+\version r1164;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 23:00:28 +0800;
 \par 修改时间:
-	2011-11-04 19:16 +0800;
+	2011-11-22 08:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,13 +35,13 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 //! \brief 序列视图类模板。
-template<class _tContainer, typename _tSize = typename _tContainer::size_type,
-		typename _tDifference = typename _tContainer::difference_type>
+template<class _tContainer>
 class GSequenceViewer
 {
 public:
-	typedef _tSize SizeType; //!< 项目下标类型。
-	typedef _tDifference DifferenceType; //!< 项目索引差值类型。
+	typedef typename _tContainer::size_type SizeType; //!< 项目下标类型。
+	typedef typename _tContainer::difference_type DifferenceType; \
+		//!< 项目索引差值类型。
 
 private:
 	_tContainer& c; //!< 序列容器引用。

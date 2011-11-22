@@ -11,12 +11,12 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1863;
+\version r1864;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-11-11 12:41 +0800;
+	2011-11-21 22:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -148,7 +148,7 @@ Menu::AdjustSize() const
 }
 
 bool
-Menu::CheckConfirmed(Menu::ViewerType::SizeType idx) const
+Menu::CheckConfirmed(Menu::ListType::size_type idx) const
 {
 	return TextList::CheckConfirmed(idx) && IsItemEnabled(idx);
 }

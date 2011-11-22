@@ -11,12 +11,12 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1732;
+\version r1733;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-11-04 19:17 +0800;
+	2011-11-21 22:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -122,7 +122,7 @@ public:
 	\note 当且仅当可用时响应 Confirmed 事件。
 	*/
 	virtual bool
-	CheckConfirmed(ViewerType::SizeType) const;
+	CheckConfirmed(ListType::size_type) const;
 
 	/*!
 	\brief 按指定 Z 顺序显示菜单。

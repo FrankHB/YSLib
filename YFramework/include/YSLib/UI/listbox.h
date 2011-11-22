@@ -11,12 +11,12 @@
 /*!	\file listbox.h
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3220;
+\version r3224;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-11-05 10:45 +0800;
+	2011-11-21 22:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,6 @@ class ListBox : public ScrollableContainer
 {
 public:
 	typedef TextList::ListType ListType;
-	typedef TextList::ViewerType ViewerType;
 
 private:
 	TextList TextListBox; //文本列表框。
@@ -55,7 +54,7 @@ public:
 	inline DefDeMoveCtor(ListBox)
 
 	DefPredicateMember(Selected, TextListBox)
-	PDefH(bool, Contains, ViewerType::SizeType i)
+	PDefH(bool, Contains, ListType::size_type i)
 		ImplBodyMember(TextListBox, Contains, i)
 
 	/*!
@@ -63,8 +62,8 @@ public:
 	*/
 	virtual IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
-	DefGetterMember(ViewerType::SizeType, HeadIndex, TextListBox)
-	DefGetterMember(ViewerType::SizeType, SelectedIndex, TextListBox)
+	DefGetterMember(ListType::size_type, HeadIndex, TextListBox)
+	DefGetterMember(ListType::size_type, SelectedIndex, TextListBox)
 	DefGetterMember(ListType&, List, TextListBox)
 	DefMutableEventGetterMember(HUIEvent, ViewChanged, TextListBox) \
 		//!< 视图变更事件。

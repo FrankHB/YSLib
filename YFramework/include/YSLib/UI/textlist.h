@@ -11,12 +11,12 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1389;
+\version r1414;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-11-19 18:49 +0800;
+	2011-11-22 10:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,7 +73,7 @@ public:
 	inline DefDeMoveCtor(TextList)
 
 	DefPredicateMember(Selected, viewer)
-	PDefH(bool, Contains, ViewerType::SizeType i)
+	PDefH(bool, Contains, ListType::size_type i)
 		ImplBodyMember(viewer, Contains, i)
 
 	DefMutableEventGetter(HUIEvent, ViewChanged, ViewChanged) //!< 视图变更事件。
@@ -85,8 +85,8 @@ public:
 	using MTextList::GetList;
 	using MTextList::GetItemPtr;
 	using MTextList::GetItemHeight;
-	DefGetterMember(ViewerType::SizeType, HeadIndex, viewer)
-	DefGetterMember(ViewerType::SizeType, SelectedIndex, viewer)
+	DefGetterMember(ListType::size_type, HeadIndex, viewer)
+	DefGetterMember(ListType::size_type, SelectedIndex, viewer)
 
 	/*!
 	\brief 取完整视图高。
@@ -111,7 +111,7 @@ public:
 	\brief 按指定项目索引设置选中项目。
 	*/
 	void
-	SetSelected(ViewerType::SizeType);
+	SetSelected(ListType::size_type);
 	/*!
 	\brief 按接触点设置选中项目。
 	*/
@@ -123,38 +123,49 @@ public:
 	void
 	SetSelected(const Point&);
 
+private:
 	/*!
-	\brief 调整列表视图首项目超出上边界的竖直偏移量为零。
-	\return 返回调整前的偏移量值。
-	*/
-	SDst
-	AdjustTopOffset();
-	/*!
-	\brief 调整列表视图底项目超出上边界的竖直偏移量为零。
-	\return 返回调整前的偏移量值。
+	\brief 调整列表视图底项目（可能不完全）超出下边界以上的竖直偏移量为零。
+	\return 返回调整前的偏移量值（取值区间 [0, <tt>GetItemHeight()</tt>) ）。
 	\note 若没有底项目则不调整，返回 0 。
 	*/
 	SDst
 	AdjustBottomOffset();
 
 	/*!
+	\brief 调整列表视图首项目（可能不完全）超出上边界以上的竖直偏移量为零。
+	\return 返回调整前的偏移量值（取值区间 [0, <tt>GetItemHeight()</tt>) ）。
+	\post 若调整则 <tt>top_offset == 0</tt> 。
+	*/
+	SDst
+	AdjustTopOffset();
+
+	/*!
+	\brief 调整视图长度。
+	\note 视图长为当项目数足够时所有在视图中显示的（可能不完全）项目总数。
+	*/
+	void
+	AdjustViewLength();
+
+public:
+	/*!
 	\brief 检查列表中的指定项是否有效。
 	\note 当且仅当有效时响应 Confirmed 事件。
 	*/
 	virtual bool
-	CheckConfirmed(ViewerType::SizeType) const;
+	CheckConfirmed(ListType::size_type) const;
 
 	/*!
 	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
 	\return 选择的项目索引。
 	*/
-	ViewerType::SizeType
+	ListType::size_type
 	CheckPoint(SPos, SPos);
 	/*!
 	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
 	\return 选择的项目索引，若无效则为 static_cast<Viewer::IndexType>(-1) 。
 	*/
-	ViewerType::SizeType
+	ListType::size_type
 	CheckPoint(const Point&);
 
 	/*!
@@ -227,7 +238,7 @@ private:
 	\brief 检查和调用确认事件处理器。
 	*/
 	void
-	InvokeConfirmed(ViewerType::SizeType);
+	InvokeConfirmed(ListType::size_type);
 };
 
 inline void
@@ -236,7 +247,7 @@ TextList::SetSelected(const Point& pt)
 	SetSelected(pt.X, pt.Y);
 }
 
-inline TextList::ViewerType::SizeType
+inline TextList::ListType::size_type
 TextList::CheckPoint(const Point& pt)
 {
 	return CheckPoint(pt.X, pt.Y);

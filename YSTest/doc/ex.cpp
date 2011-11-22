@@ -11,12 +11,12 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r3386; *build 261 rev 59;
+\version r3386; *build 262 rev 61;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-11-21 14:26 +0800;
+	2011-11-22 10:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -325,127 +325,84 @@ $using:
 
 
 $DONE:
-r1:
-/ @ \h Rational $=
+r1-r25:
+/= test 1,
+* wrong behavior on page selection @ \cl TextList $since b191 $=
 (
-	/ friend \f epsilon @ \clt fixed_point \mg
-		-> std::numeric_limits<ystdex::fixed_point>::epsilon,
-	+ friend \f round @ \clt fixed_point
-);
-/ \impl @ \mf (SetValue, SetLargeDelta) @ \cl AScrollBar,
-/ \impl @ \ctor @ \cl (ListBox, HexViewArea @ \impl \u HexBrowser);
-
-r2-r3:
-/= test 1;
-
-r4:
-/ \simp @ \cl ATrack $=
-(
-	- \mf (LocateThumbToFirst, LocateThumbToLast, LocateThumbForIncrement,
-		LocateThumbForDecrement, LocateThumbForLargeIncrement,
-		LocateThumbForLargeDecrement, LocateThumbForSmallIncrement,
-		LocateThumbForSmallDecrement),
-	- \mf \vt void LocateThumb(ValueType),
-	/ private \mf void LocateThumb(ScrollEventSpace::ScrollEventType, ValueType)
-		-> public \mf !\vt void LocateThumb(ValueType,
-		ScrollEventSpace::ScrollEventType = ScrollEventSpace::ThumbPosition);
-	/ \tr \impl @ \ctor
-);
-/ \tr \impl @ \mf (PerformSmallDecrement, PerformSmallIncrement)
-	@ \cl AScrollBar;
-/ \a ScrollEventType => ScrollCategory;
-/ \ns ScrollEventSpace @ \h Scroll-> typedef \en \cl ScrollCategory,
-(
-	/ \en TextAlignmentStyle @ \cl MLabel -> typedef \en \cl TextAlignment
-		@ \ns Components;
-	/ \tr @ \cl (MLabel, Label, Button, TextList),
-	+ using MLabel::VerticalAlignment @ \cl Label,
-	/ \tr \impl @ \impl \u Shells
+	* \impl @ \mf AdjustBottomOffset;
+	/ \impl @ \ctor
 );
 
-r5:
-* \impl @ \mf (PerformSmallDecrement, PerformSmallIncrement)
-	@ \cl AScrollBar $since r4;
-
-r6:
+r26:
 /= test 2 ^ \conf release;
 
-r7:
-* \impl @ \mf ATrack::UpdateValue $since b193;
+r27-r42:
+/= test 3;
 
-r8:
-/ \impl @ \mf ATrack::CheckArea ^ yconstexpr;
+r43:
+/ \a 'ViewerType::SizeType' -> 'ListType::size_type' @ \u (TextList, Menu,
+	ListBox);
+- typedef ViewerType @ \cl ListBox;
 
-r9:
-/ \simp @ \cl AScrollBar
+r44:
+/ @ \h Viewer $=
 (
-	/ \impl @ \ctor;
-	- private \mf \i (PerformSmallDecrement, PerformSmallIncrement)
+	/ @ \clt GSequenceViewer $=
+	(
+		/ typedef _tSize SizeType
+			-> typedef typename _tContainer::size_type SizeType,
+		/ typedef _tDifference DifferenceType
+			-> typedef typename _tContainer::difference_type DifferenceType
+	);
+	/ \ft<class _tContainer, typename _tSize = typename _tContainer::size_type,
+		typename _tDifference = typename _tContainer::difference_type>
+		GSequenceViewer -> \ft<class _tContainer> GSequenceViewer
 );
 
-r10:
-* \impl @ \ctor @ \cl AScroll $since r4;
+r45:
+/ \impl @ (\ctor, \mf CheckConfirmed) @ \cl TextList;
 
-r11:
-* \impl @ \ctor @ \cl ListBox $since b260;
+r46-r50:
+/= test 4,
+/ \impl @ (\ctor, \mf AdjustBottomOffset) @ \cl TextList;
 
-r12:
-/= test 3 ^ \conf release;
+r51:
+/= test 5 ^ \conf release;
 
-r13:
-/ @ \cl ATrack $=
+r52-r53:
+* \impl @ \ctor @ \cl TextList $since r45;
+
+r54:
+* \impl @ \mf AdjustBottomOffset @ \cl TextList $since r50;
+
+r55:
+/ @ \cl TextList $=
 (
-	/ \impl @ \ctor,
-	/ \impl @ \mf LocateThumb;
-	- \mf UpdateValue,
-	/ \mf CheckScroll \mg -> \mf LocateThumb
+	/ \ac @ public \mf AdjustTopOffset, AdjustBottomOffset -> private,
+	+ private \mf AdjustViewLength;
+	/ \simp \impl @ (\ctor, \mf AdjustBottomOffset) ^ \mf AdjustViewLength
 );
-/ \tr \impl @ \ctor @ \cl AScroll;
 
-r14-r33:
-/= test 4;
+r56-r60:
+/ \impl @ (\ctor, \mf (AdjustTopOffset, PaintItems, LocateThumbPosition,
+	UpdateView));
 
-r34-r36:
-* \impl $since r11 $=
-(
-	/ \impl @ \ctor @ \cl ListBox
-),
-/ \impl @ \mf (SetThumbPosition, CheckArea) @ \cl ATrack;
-
-r37-r40:
-/= test 5;
-
-r41:
-/ \impl @ \mf ATrack::LocateThumb;
-
-r42:
+r61:
 /= test 6 ^ \conf release;
-
-r43-r55:
-/= test 7;
-
-r56:
-* \impl @ \mf TextList::LocateViewPosition $since b193;
-
-r57-r58:
-/ \impl @ \mf TextList::PaintItems;
-
-r59:
-/= test 8 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-11-21:
--21.9d;
-//Mercurial rev1-rev132: r6212;
+2011-11-22:
+-21.6d;
+//Mercurial rev1-rev133: r6271;
 
 / ...
 
 
 $NEXT_TODO:
-b262-b384:
+b263-b384:
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 + partial invalidation support @ %(TextList::PrintItems, HexViewArea::Refresh);
@@ -534,6 +491,15 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ @ "class %TextList" @ "GUI" $=
+	(
+		* "wrong bottom adjustment of alignment" $since b261;
+		* "wrong behavior on page selection" $since b191
+	)
+),
+
+b261
 (
 	/ @ "GUI" $=
 	(
