@@ -12,12 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2019;
+\version r2027;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-10-12 17:34 +0800;
+	2011-11-26 15:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +35,10 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Shells)
 
-//标准命令行界面 Shell 。
+/*!
+\brief 标准命令行界面 Shell 。
+\since build 147 。
+*/
 class ShlCLI : public Shell
 {
 public:
@@ -78,12 +82,15 @@ YSL_END_NAMESPACE(Shells)
 
 YSL_BEGIN_NAMESPACE(DS)
 
-//双屏全屏窗口 Shell 。
+/*!
+\brief 双屏全屏窗口 Shell 。
+\since 早于 build 132 。
+*/
 class ShlDS : public Shells::GUIShell
 {
 private:
 	shared_ptr<Desktop> hDskUp, hDskDown; \
-		//正常状态下应该总是指向可用的桌面对象。
+		//正常状态下应总是指向可用的桌面对象。
 
 public:
 	/*!
@@ -134,13 +141,16 @@ void
 ResponseInput(const Message&);
 
 
-// Shell 快捷操作。
-
-//! \ingroup HelperFunctions
+/*!
+\brief Shell 快捷操作。
+\ingroup HelperFunctions
+\since 早于 build 132 。
+*/
 //@{
 
 /*!
 \brief 发送当前 Shell 预注销消息。
+\since build 175 。
 */
 inline void
 NowShellInsertDropMessage(Messaging::Priority p = 0x80)
@@ -150,11 +160,18 @@ NowShellInsertDropMessage(Messaging::Priority p = 0x80)
 
 //@}
 
+YSL_BEGIN_NAMESPACE(Components)
+
+YSL_END_NAMESPACE(Components)
+
 YSL_END_NAMESPACE(DS)
 
 YSL_BEGIN_NAMESPACE(Shells)
 
-//! \brief 主 Shell 。
+/*!
+\brief 主 Shell 。
+\since 早于 build 132 。
+*/
 class MainShell : public DS::ShlDS
 {
 public:

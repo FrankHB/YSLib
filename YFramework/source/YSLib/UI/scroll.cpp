@@ -11,12 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3992;
+\version r4005;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-11-21 12:54 +0800;
+	2011-11-25 23:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -170,14 +171,14 @@ ATrack::SetLargeDelta(ValueType val)
 }
 
 Rect
-ATrack::Refresh(const PaintContext& e)
+ATrack::Refresh(const PaintContext& pc)
 {
-	auto r(Widget::Refresh(e));
+	auto r(Widget::Refresh(pc));
 
 	if(!IsTransparent())
 	{
-		const auto& g(e.Target);
-		const auto& pt(e.Location);
+		const auto& g(pc.Target);
+		const auto& pt(pc.Location);
 		Styles::Palette& pal(FetchGUIShell().Colors);
 
 		FillRect(g, pt, GetSizeOf(*this), pal[Styles::Track]);
@@ -198,7 +199,7 @@ ATrack::Refresh(const PaintContext& e)
 			DrawVLineSeg(g, xr, pt.Y, yr, c);
 		}
 	}
-	RenderChild(Thumb, e);
+	PaintChild(Thumb, pc);
 	return r;
 }
 
@@ -368,20 +369,20 @@ AScrollBar::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 }
 
 Rect
-AScrollBar::Refresh(const PaintContext& e)
+AScrollBar::Refresh(const PaintContext& pc)
 {
 	YAssert(is_not_null(pTrack),
 		"Null widget pointer found @ AScrollBar::Draw;");
 
-	auto r(Widget::Refresh(e));
+	auto r(Widget::Refresh(pc));
 
-	RenderChild(*pTrack, e),
-	RenderChild(PrevButton, e),
-	RenderChild(NextButton, e);
-	WndDrawArrow(e.Target, Rect(e.Location + GetLocationOf(PrevButton),
+	PaintChild(*pTrack, pc),
+	PaintChild(PrevButton, pc),
+	PaintChild(NextButton, pc);
+	WndDrawArrow(pc.Target, Rect(pc.Location + GetLocationOf(PrevButton),
 		GetSizeOf(PrevButton)), 4, pTrack->GetOrientation() == Horizontal
 		? RDeg180 : RDeg90, ForeColor),
-	WndDrawArrow(e.Target, Rect(e.Location + GetLocationOf(NextButton),
+	WndDrawArrow(pc.Target, Rect(pc.Location + GetLocationOf(NextButton),
 		GetSizeOf(NextButton)), 4, pTrack->GetOrientation() == Horizontal
 		? RDeg0 : RDeg270, ForeColor);
 	return r;
@@ -454,14 +455,14 @@ ScrollableContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 }
 
 Rect
-ScrollableContainer::Refresh(const PaintContext& e)
+ScrollableContainer::Refresh(const PaintContext& pc)
 {
-//	AUIBoxControl::Refresh(e);
+//	AUIBoxControl::Refresh(pc);
 	if(IsVisible(HorizontalScrollBar))
-		RenderChild(HorizontalScrollBar, e);
+		PaintChild(HorizontalScrollBar, pc);
 	if(IsVisible(VerticalScrollBar))
-		RenderChild(VerticalScrollBar, e);
-	return Rect(e.Location, GetSizeOf(*this));
+		PaintChild(VerticalScrollBar, pc);
+	return Rect(pc.Location, GetSizeOf(*this));
 }
 
 Size

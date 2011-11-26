@@ -15,12 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3480;
+\version r3544;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-10-30 13:31 +0800;
+	2011-11-24 18:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,9 +33,6 @@
 #define INCLUDED_SHELLS_H_
 
 #include <YSLib/Helper/shlds.h>
-#include <YSLib/UI/progress.h>
-#include "DSReader.h"
-#include "HexBrowser.h"
 
 YSL_BEGIN
 
@@ -162,81 +160,6 @@ private:
 
 	static void
 	OnClick_ShowWindow(TouchEventArgs&&);
-};
-
-
-class ShlReader : public ShlDS
-{
-public:
-	typedef ShlDS ParentType;
-
-	class ReaderPanel : public AUIBoxControl
-	{
-	public:
-		ShlReader& Shell;
-		Button btnClose;
-		HorizontalTrack trReader;
-		Label lblProgress;
-
-		ReaderPanel(const Rect&, ShlReader&);
-
-		ImplI(AUIBoxControl) IWidget*
-		GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
-
-		virtual Rect
-		Refresh(const PaintContext&);
-	};
-
-	class FileInfoPanel : public AUIBoxControl
-	{
-	public:
-		ShlReader& Shell;
-		Button btnClose;
-		Label lblInfo;
-
-		FileInfoPanel(const Rect&, ShlReader&);
-
-		ImplI(AUIBoxControl) IWidget*
-		GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
-
-		virtual Rect
-		Refresh(const PaintContext&);
-
-		void
-		UpdateData();
-	};
-
-	static string path;
-	static bool is_text;
-
-	DualScreenReader Reader;
-	ReaderPanel pnlReader;
-	FileInfoPanel pnlFileInfo;
-	TextFile* pTextFile;
-	shared_ptr<Image> hUp, hDn;
-	MenuHost mhMain;
-	HexViewArea HexArea;
-
-	ShlReader();
-
-	virtual int
-	OnActivated(const Message&);
-
-	virtual int
-	OnDeactivated(const Message&);
-
-private:
-	void
-	ExcuteReadingCommand(IndexEventArgs::IndexType);
-
-	void
-	ShowMenu(Menu::ID, const Point&);
-
-	void
-	OnClick(TouchEventArgs&&);
-
-	void
-	OnKeyDown(KeyEventArgs&&);
 };
 
 YSL_END_NAMESPACE(YReader)

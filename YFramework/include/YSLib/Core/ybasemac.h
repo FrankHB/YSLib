@@ -11,12 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2967;
+\version r2971;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 204 。
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-11-04 18:11 +0800;
+	2011-11-26 15:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +32,7 @@
 
 /*
  ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
- GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，该宏不会被展开。
+ GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，此宏不会被展开。
 详见：http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
 解决方案来源：
  https://www.securecoding.cert.org/confluence/display/cplusplus/ \
@@ -114,6 +115,7 @@ _t type
 /*!
 \brief 定义直接派生类。
 \note 仅构造函数。不定义成员，避免对象切片或其它成员存储泄漏问题。
+\since build 240 。
 */
 #define DefExtendClass1(_n, _b, _a) \
 	class _n : _a _b \
@@ -353,6 +355,7 @@ _t type
 /*!
 \brief 动态复制。
 \note 需要在满足 CopyConstructible 的类的定义内。
+\since build 240 。
 */
 #define DefClone(_t, _n) \
 	_t* \

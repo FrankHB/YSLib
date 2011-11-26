@@ -11,12 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1703;
+\version r1706;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 219 。
 \par 创建时间:
 	2011-06-16 19:45:33 +0800;
 \par 修改时间:
-	2011-11-05 11:23 +0800;
+	2011-11-24 17:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -107,7 +108,7 @@ namespace
 			*/
 			//起点 (x1, y1) 和终点 (x2, y2) 不同。
 
-			const s8 sx(sgn(x2 - x1)), sy(sgn(y2 - y1));
+			const s8 sx(FetchSign(x2 - x1)), sy(FetchSign(y2 - y1));
 			SDst dx(abs(x2 - x1)), dy(abs(y2 - y1));
 			bool f(dy > dx);
 

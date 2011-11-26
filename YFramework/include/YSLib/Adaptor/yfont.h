@@ -11,12 +11,13 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7330;
+\version r7342;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-11-04 19:23 +0800;
+	2011-11-26 15:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -47,8 +48,16 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-const u8 DEFAULT_FONT_SIZE(14); //!< 默认字体大小（ pt ）。
-const size_t GLYPH_CACHE_SIZE(128 << 10); //!< 字形缓冲区大小（字节）。
+/*!
+\brief 默认字体大小（ pt ）。
+\since build 198 。
+*/
+const u8 DEFAULT_FONT_SIZE(14);
+/*!
+\brief 字形缓冲区大小（字节）。
+\since build 198 。
+*/
+const size_t GLYPH_CACHE_SIZE(128 << 10);
 
 //前向声明。
 class Font;
@@ -58,7 +67,10 @@ class FontFile;
 class FontCache;
 
 
-//! \brief 字体样式。
+/*!
+\brief 字体样式。
+\since build 197 。
+*/
 struct FontStyle
 {
 public:
@@ -96,7 +108,10 @@ FontStyle::FontStyle(Styles s)
 {}
 
 
-//! \brief 字型家族 (Typeface Family) 标识。
+/*!
+\brief 字型家族 (Typeface Family) 标识。
+\since build 145 。
+*/
 class FontFamily : public noncopyable
 {
 	friend class Typeface;
@@ -164,7 +179,10 @@ public:
 };
 
 
-//! \brief 字型标识。
+/*!
+\brief 字型标识。
+\since build 145 。
+*/
 class Typeface : public noncopyable
 {
 	friend class FontCache;
@@ -219,7 +237,10 @@ public:
 };
 
 
-//! \brief 字体文件。
+/*!
+\brief 字体文件。
+\since build 145 。
+*/
 class FontFile : public noncopyable
 {
 public:
@@ -262,6 +283,7 @@ public:
 \brief 取默认字型引用。
 \throw LoggedEvent 记录异常事件。
 \note 仅抛出以上异常。
+\since build 194 。
 */
 const Typeface&
 FetchDefaultTypeface() ythrow(LoggedEvent);
@@ -270,12 +292,16 @@ FetchDefaultTypeface() ythrow(LoggedEvent);
 \brief 取默认字型家族引用。
 \throw LoggedEvent 记录异常事件。
 \note 仅抛出以上异常。
+\since build 194 。
 */
 const FontFamily&
 FetchDefaultFontFamily() ythrow(LoggedEvent);
 
 
-//! \brief 字体：字模，包含字型和大小。
+/*!
+\brief 字体：字模，包含字型和大小。
+\since build 145 。
+*/
 class Font
 {
 public:
@@ -358,7 +384,10 @@ Font::GetDefault()
 }
 
 
-//! \brief 字符位图。
+/*!
+\brief 字符位图。
+\since build 147 。
+*/
 class CharBitmap
 {
 public:
@@ -394,7 +423,10 @@ CharBitmap::CharBitmap(const NativeType& b)
 {}
 
 
-//! \brief 字体缓存。
+/*!
+\brief 字体缓存。
+\since build 209 。
+*/
 class FontCache : public noncopyable,
 	public OwnershipTag<Typeface>, public OwnershipTag<FontFile>
 {
@@ -606,7 +638,7 @@ public:
 
 	/*!
 	\brief 从指定字体文件中载入字体信息。
-	\note 若指定字体文件不在字体文件组中则先按路径添加该文件。
+	\note 若指定字体文件不在字体文件组中则先按路径添加此文件。
 	*/
 	void
 	LoadTypefaces(const FontFile&);

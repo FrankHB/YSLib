@@ -11,12 +11,13 @@
 /*!	\file textarea.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r1386;
+\version r1393;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 222 。
 \par 创建时间:
 	2011-06-30 20:10:27 +0800;
 \par 修改时间:
-	2011-11-05 11:56 +0800;
+	2011-11-25 21:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,17 +46,17 @@ BufferedTextArea::BufferedTextArea(const Rect& r, FontCache& fc)
 }
 
 Rect
-BufferedTextArea::Refresh(const PaintContext& e)
+BufferedTextArea::Refresh(const PaintContext& pc)
 {
-	Widget::Refresh(e);
+	Widget::Refresh(pc);
 
-	const auto& g(e.Target);
-	const auto& pt(e.Location);
-	const auto& r(e.ClipArea);
+	const auto& g(pc.Target);
+	const auto& pt(pc.Location);
+	const auto& r(pc.ClipArea);
 
 	BlitTo(g.GetBufferPtr(), *this, g.GetSize(),
 		r, static_cast<const Point&>(r) - pt, r, Rotation);
-	return Rect(e.Location, GetSizeOf(*this));
+	return Rect(pc.Location, GetSizeOf(*this));
 }
 
 YSL_END_NAMESPACE(Components)

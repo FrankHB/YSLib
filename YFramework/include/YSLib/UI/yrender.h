@@ -11,12 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1334;
+\version r1486;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 237 。
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-11-05 10:41 +0800;
+	2011-11-26 11:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,12 +37,14 @@ YSL_BEGIN_NAMESPACE(Components)
 
 //前向声明。
 struct PaintContext;
+struct PaintEventArgs;
 
 
 /*!
 \brief 部件渲染器。
 
 无缓冲渲染策略：不保存部件渲染状态和有效的图形接口上下文。
+\since build 237 。
 */
 class Renderer
 {
@@ -81,14 +84,6 @@ public:
 	{}
 
 	/*!
-	\brief 清除无效区域。
-	\note 空实现。
-	*/
-	virtual void
-	ClearInvalidation()
-	{}
-
-	/*!
 	\brief 提交无效区域。
 	\note 空实现。
 	*/
@@ -105,6 +100,15 @@ public:
 	{}
 
 	/*!
+	\brief 按参数刷新。
+	\pre 断言： <tt>&wgt.GetRenderer() == this</tt> 。
+	\note 调用 wgt 的 Refresh 刷新，仅适用于指定部件包含自身。
+	\since build 263 。
+	*/
+	virtual Rect
+	Refresh(IWidget& wgt, PaintContext&&);
+
+	/*!
 	\brief 更新至指定图形设备上下文的指定点。
 	\param 意义同 IWidget::Refresh 。
 	\note 空实现。
@@ -112,6 +116,18 @@ public:
 	virtual void
 	UpdateTo(const PaintContext&) const
 	{}
+
+	/*!
+	\brief 验证指定部件的指定区域的缓冲区，若存在无效区域则刷新。
+	\param r 相对部件的指定区域边界。
+	\return 验证中被刷新的区域边界：总是 Rect::Empty ，因为缓冲区不存在。
+	\since build 263 。
+	*/
+	virtual Rect
+	Validate(IWidget&, const Rect&)
+	{
+		return Rect::Empty;
+	}
 };
 
 
@@ -119,6 +135,7 @@ public:
 \brief 带缓冲的部件渲染器。
 
 缓冲渲染策略：保存部件渲染状态和有效的图形接口上下文。
+\since build 237 。
 */
 class BufferedRenderer : public Renderer
 {
@@ -164,13 +181,6 @@ public:
 	SetSize(const Size&);
 
 	/*!
-	\brief 清除无效区域。
-	\note 通过设置大小为 Size::Zero 使无效区域被忽略。
-	*/
-	virtual void
-	ClearInvalidation();
-
-	/*!
 	\brief 提交无效区域。
 	\note 合并至现有无效区域中。
 	\note 由于无效区域的形状限制，结果可能会包含部分有效区域。
@@ -185,11 +195,121 @@ public:
 	FillInvalidation(Color);
 
 	/*!
+	\brief 按参数刷新。
+	\pre 断言： <tt>&wgt.GetRenderer() == this</tt> 。
+	\pre 断言： <tt>GetContext().IsValid()</tt> 。
+	\note 在 Validate 后 Update ，仅适用于指定部件包含自身。
+	\since build 263 。
+	*/
+	virtual Rect
+	Refresh(IWidget& wgt, PaintContext&&);
+
+
+	/*!
 	\brief 更新至指定图形设备上下文的指定点。
+	\note 调用 wgt 的 Refresh 刷新。
 	*/
 	virtual void
 	UpdateTo(const PaintContext&) const;
+
+	/*!
+	\brief 验证指定部件的指定区域的缓冲区，若存在无效区域则刷新。
+	\param r 相对部件的指定区域边界。
+	\return 验证中被刷新的区域边界。
+	\since build 263 。
+	*/
+	virtual Rect
+	Validate(IWidget&, const Rect& r);
 };
+
+/*!
+\brief 设置部件的无效区域。
+\since build 231 。
+*/
+void
+SetInvalidationOf(IWidget&);
+
+/*!
+\brief 在容器设置部件的无效区域。
+\note 若容器不存在则忽略。
+\since build 229 。
+*/
+void
+SetInvalidationToParent(IWidget&);
+
+
+/*!
+\brief 无效化：使部件区域在窗口缓冲区中无效。
+\since build 224 。
+*/
+void
+Invalidate(IWidget&);
+
+/*!
+\brief 级联无效化：使相对于部件的指定区域在直接和间接的窗口缓冲区中无效。
+\since build 226 。
+*/
+void
+InvalidateCascade(IWidget&, const Rect&);
+
+/*!
+\brief 判断相交并调用指定部件的 Paint 事件绘制事件参数指定的部件，并更新区域参数。
+
+以发送者 e.GetSender() 作为绘制目标，判断其边界是否和区域 e.ClipArea 相交，
+若相交区域非空则调用 wgt 的 Paint 事件绘制 e.GetSender() 。
+调用结束后，e.ClipArea 被覆盖为相交区域边界。
+\param wgt 事件所有者。
+\return 是否相交。
+\note 所有者、订阅者可以和发送者不同，但应避免造成无限递归调用。
+\since build 263 。
+*/
+bool
+PaintIntersection(IWidget& wgt, PaintEventArgs&& e);
+
+/*
+\brief 调用指定子部件所有的 Paint 事件绘制参数指定的事件发送者。
+\since build 263 。
+*/
+bool
+PaintChild(IWidget&, PaintEventArgs&&);
+/*
+\brief 调用 Paint 事件绘制指定子部件。
+\note 使用指定子部件作为事件发送者并复制参数。
+\since build 263 。
+*/
+bool
+PaintChild(IWidget&, const PaintContext&);
+
+
+/*
+\brief 渲染：更新，若缓冲存储不可用则在更新前使用渲染器的 Refresh 方法刷新指定部件。
+\note 无条件更新实际渲染的区域至 pc.ClipArea 。
+\since build 243 。
+*/
+void
+Render(IWidget&, PaintContext&& pc);
+/*
+\brief 渲染：更新，若缓冲存储不可用则在更新前刷新发送者。
+\note 无条件更新实际渲染的区域至 e.ClipArea 。
+\since build 256 。
+*/
+void
+Render(PaintEventArgs&& e);
+
+
+/*!
+\brief 更新部件至指定图形设备上下文的指定点。
+\since build 244 。
+*/
+void
+Update(const IWidget&, const PaintContext&);
+
+/*!
+\brief 验证：若部件的缓冲区存在，绘制缓冲区使之有效。
+\since build 228 。
+*/
+Rect
+Validate(IWidget&);
 
 YSL_END_NAMESPACE(Components)
 

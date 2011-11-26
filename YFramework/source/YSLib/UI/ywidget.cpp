@@ -11,12 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5244;
+\version r5258;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-11-11 13:37 +0800;
+	2011-11-25 21:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,19 +53,6 @@ SetBoundsOf(IWidget& wgt, const Rect& r)
 }
 
 void
-SetInvalidationOf(IWidget& wgt)
-{
-	wgt.GetRenderer().CommitInvalidation(Rect(Point::Zero, GetSizeOf(wgt)));
-}
-
-void
-SetInvalidationToParent(IWidget& wgt)
-{
-	if(const auto pCon = FetchContainerPtr(wgt))
-		pCon->GetRenderer().CommitInvalidation(GetBoundsOf(wgt));
-}
-
-void
 SetLocationOf(IWidget& wgt, const Point& pt)
 {
 	wgt.GetView().SetLocation(pt);
@@ -97,80 +85,10 @@ CheckWidget(IWidget& wgt, const Point& pt, bool(&f)(const IWidget&))
 }
 
 void
-Invalidate(IWidget& wgt)
-{
-	InvalidateCascade(wgt, Rect(Point::Zero, GetSizeOf(wgt)));
-}
-
-void
-InvalidateCascade(IWidget& wgt, const Rect& bounds)
-{
-	auto pWgt(&wgt);
-	Rect r(bounds);
-
-	do
-	{
-		pWgt->GetRenderer().CommitInvalidation(r);
-		pWgt->GetRenderer().GetInvalidatedArea(r);
-		r += GetLocationOf(*pWgt);
-	}while((pWgt = FetchContainerPtr(*pWgt)));
-}
-
-void
-Render(IWidget& wgt, PaintContext&& e)
-{
-	Rect r;
-
-	if(wgt.GetRenderer().RequiresRefresh())
-	{
-		const auto& g_buf(FetchContext(wgt));
-
-		r = g_buf.IsValid() ? wgt.Refresh(PaintContext(g_buf, Point::Zero,
-			Rect(e.ClipArea.GetPoint() - GetLocationOf(wgt), e.ClipArea)))
-			: wgt.Refresh(e);
-		wgt.GetRenderer().ClearInvalidation();
-	}
-	Update(wgt, e);
-	e.ClipArea = r;
-}
-
-void
-RenderChild(IWidget& wgt, PaintContext&& e)
-{
-	const auto& r(Intersect(Rect(e.Location + GetLocationOf(wgt),
-		GetSizeOf(wgt)), e.ClipArea));
-
-	if(!r.IsEmptyStrict())
-		Render(wgt, PaintContext(e.Target, e.Location + GetLocationOf(wgt),
-			r));
-}
-
-void
 RequestToTop(IWidget& wgt)
 {
 	if(auto pFrm = dynamic_cast<AFrame*>(FetchContainerPtr(wgt)))
 		pFrm->MoveToTop(wgt);
-}
-
-void
-Update(const IWidget& wgt, const PaintContext& e)
-{
-	if(IsVisible(wgt))
-		wgt.GetRenderer().UpdateTo(e);
-}
-
-Rect
-Validate(IWidget& wgt)
-{
-	Rect r;
-
-	if(wgt.GetRenderer().RequiresRefresh() && FetchContext(wgt).IsValid())
-	{
-		r = wgt.Refresh(PaintContext(FetchContext(wgt), Point::Zero,
-			Rect(Point::Zero, GetSizeOf(wgt))));
-		wgt.GetRenderer().ClearInvalidation();
-	}
-	return r;
 }
 
 
@@ -237,11 +155,11 @@ Widget::SetView(unique_ptr<View>&& p)
 }
 
 Rect
-Widget::Refresh(const PaintContext& e)
+Widget::Refresh(const PaintContext& pc)
 {
 	if(!IsTransparent())
-		Drawing::FillRect(e.Target, e.ClipArea, BackColor);
-	return Rect(e.Location, GetSizeOf(*this));
+		Drawing::FillRect(pc.Target, pc.ClipArea, BackColor);
+	return Rect(pc.Location, GetSizeOf(*this));
 }
 
 YSL_END_NAMESPACE(Components)

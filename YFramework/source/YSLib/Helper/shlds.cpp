@@ -12,12 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1869;
+\version r1877;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-11-05 11:19 +0800;
+	2011-11-24 18:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -139,42 +140,42 @@ ResponseInput(const Message& msg)
 	GUIShell& shl(FetchGUIShell());
 	Desktop& d(FetchGlobalInstance().GetTouchableDesktop());
 
-	using namespace KeySpace;
-	using namespace Components;
+	using namespace YSL_ KeySpace;
+	using namespace YSL_ Components;
 
 	if(k.Up & Touch)
 	{
-		Components::TouchEventArgs e(d, hContent->CursorLocation);
+		TouchEventArgs e(d, hContent->CursorLocation);
 
 		shl.ResponseTouch(e, TouchUp);
 	}
 	else if(k.Up)
 	{
-		Components::KeyEventArgs e(d, k.Up);
+		KeyEventArgs e(d, k.Up);
 
 		shl.ResponseKey(e, KeyUp);
 	}
 	if(k.Down & Touch)
 	{
-		Components::TouchEventArgs e(d, hContent->CursorLocation);
+		TouchEventArgs e(d, hContent->CursorLocation);
 
 		shl.ResponseTouch(e, TouchDown);
 	}
 	else if(k.Down)
 	{
-		Components::KeyEventArgs e(d, k.Down);
+		KeyEventArgs e(d, k.Down);
 
 		shl.ResponseKey(e, KeyDown);
 	}
 	if(k.Held & Touch)
 	{
-		Components::TouchEventArgs e(d, hContent->CursorLocation);
+		TouchEventArgs e(d, hContent->CursorLocation);
 
 		shl.ResponseTouch(e, TouchHeld);
 	}
 	else if(k.Held)
 	{
-		Components::KeyEventArgs e(d, k.Held);
+		KeyEventArgs e(d, k.Held);
 
 		shl.ResponseKey(e, KeyHeld);
 	}

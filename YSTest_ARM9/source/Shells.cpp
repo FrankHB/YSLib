@@ -11,12 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5341;
+\version r5432;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-11-19 18:52 +0800;
+	2011-11-24 18:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -24,7 +25,8 @@
 */
 
 
-#include <Shells.h>
+#include "Shells.h"
+#include "ShlReader.h"
 
 ////////
 //测试用声明：全局资源定义。
@@ -460,8 +462,8 @@ ShlExplorer::ShlExplorer()
 
 				if(!IO::ValidateDirectory(s) && fexists(s.c_str()))
 				{
-					ShlReader::path = s;
-					ShlReader::is_text = GetEntryType(s) == EnrtySpace::Text
+					ReaderManager::path = s;
+					ReaderManager::is_text = GetEntryType(s) == EnrtySpace::Text
 						&& !chkHex.IsTicked();
 					CallStored<ShlReader>();
 				}
@@ -836,12 +838,12 @@ ShlExplorer::OnActivated(const Message& msg)
 //	pWndTest->DrawContents();
 //	pWndExtra->DrawContents();
 	// init-seg 5;
-/*	Menu& mnu(*new Menu(Rect::Empty, GenerateList(u"TestMenuItem0"), 1u));
+/*	Menu& mnu(*(ynew Menu(Rect::Empty, GenerateList(u"TestMenuItem0"), 1u)));
 
 	FetchEvent<Click>(mnu) += OnClick_ShowWindow;
 	mhMain += mnu;*/
-	mhMain += *new Menu(Rect::Empty, GenerateList(u"A:MenuItem"), 1u),
-	mhMain += *new Menu(Rect::Empty, GenerateList(u"B:MenuItem"), 2u);
+	mhMain += *(ynew Menu(Rect::Empty, GenerateList(u"A:MenuItem"), 1u)),
+	mhMain += *(ynew Menu(Rect::Empty, GenerateList(u"B:MenuItem"), 2u));
 	mhMain[1u] += make_pair(1u, &mhMain[2u]);
 	ResizeForContent(mhMain[2u]);
 	UpdateToScreen();
@@ -957,380 +959,6 @@ ShlExplorer::OnClick_ShowWindow(TouchEventArgs&&)
 
 	SwitchVisible(*pWnd);
 }
-
-
-namespace
-{
-	// MR -> MNU_READER;
-	yconstexpr Menu::IndexType MR_Return(0),
-		MR_Panel(1),
-		MR_FileInfo(2),
-		MR_LineUp(3),
-		MR_LineDown(4),
-		MR_ScreenUp(5),
-		MR_ScreenDown(6);
-}
-
-
-ShlReader::ReaderPanel::ReaderPanel(const Rect& r, ShlReader& shl)
-	: AUIBoxControl(r),
-	Shell(shl), btnClose(Rect(232, 4, 16, 16)),
-	trReader(Rect(8, 4, 192, 16)), lblProgress(Rect(204, 4, 24, 16))
-{
-	btnClose.GetView().pContainer = this;
-	trReader.GetView().pContainer = this;
-	lblProgress.GetView().pContainer = this;
-	btnClose.Text = "×";
-	lblProgress.Text = "0%";
-	lblProgress.ForeColor = ColorSpace::Fuchsia;
-	lblProgress.Font.SetSize(12);
-	FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
-		Hide(*this);
-	};
-}
-
-IWidget*
-ShlReader::ReaderPanel::GetTopWidgetPtr(const Point& pt,
-	bool(&f)(const IWidget&))
-{
-	IWidget* const pWidgets[] = {&btnClose, &trReader, &lblProgress};
-
-	for(int i(0); i < 3; ++i)
-		if(auto p = CheckWidget(*pWidgets[i], pt, f))
-			return p;
-	return nullptr;
-}
-
-Rect
-ShlReader::ReaderPanel::Refresh(const PaintContext& e)
-{
-	Widget::Refresh(e);
-
-	IWidget* const pWidgets[] = {&btnClose, &trReader, &lblProgress};
-
-	for(int i(0); i < 3; ++i)
-		RenderChild(*pWidgets[i], e);
-	return Rect(e.Location, GetSizeOf(*this));
-}
-
-ShlReader::FileInfoPanel::FileInfoPanel(const Rect& r, ShlReader& shl)
-	: AUIBoxControl(r),
-	Shell(shl), btnClose(Rect(GetWidth() - 20, 4, 16, 16)),
-	lblInfo(Rect(4, 20, GetWidth() - 8, GetHeight() - 24))
-{
-	btnClose.GetView().pContainer = this;
-	lblInfo.GetView().pContainer = this;
-	btnClose.Text = "×";
-	FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
-		Hide(*this);
-	};
-	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
-}
-
-IWidget*
-ShlReader::FileInfoPanel::GetTopWidgetPtr(const Point& pt,
-	bool(&f)(const IWidget&))
-{
-	IWidget* const pWidgets[] = {&btnClose, &lblInfo};
-
-	for(int i(0); i < 2; ++i)
-		if(auto p = CheckWidget(*pWidgets[i], pt, f))
-			return p;
-	return nullptr;
-}
-
-Rect
-ShlReader::FileInfoPanel::Refresh(const PaintContext& e)
-{
-	Widget::Refresh(e);
-	IWidget* const pWidgets[] = {&btnClose, &lblInfo};
-
-	for(int i(0); i < 2; ++i)
-		RenderChild(*pWidgets[i], e);
-	return Rect(e.Location, GetSizeOf(*this));
-}
-
-void
-ShlReader::FileInfoPanel::UpdateData()
-{
-	char str[80];
-
-	siprintf(str, "Encoding: %d;", Shell.Reader.GetEncoding());
-	lblInfo.Text = str;
-}
-
-string ShlReader::path;
-bool ShlReader::is_text(false);
-
-ShlReader::ShlReader()
-	: ShlDS(),
-	Reader(), pnlReader(Rect(0, 168, 256, 24), *this),
-	pnlFileInfo(Rect(32, 32, 128, 64), *this),
-	pTextFile(), hUp(), hDn(), mhMain(*GetDesktopDownHandle()),
-	HexArea(Rect::FullScreen)
-{
-	FetchEvent<Click>(HexArea) += [](TouchEventArgs&&){
-		CallStored<ShlExplorer>();
-	};
-}
-
-int
-ShlReader::OnActivated(const Message& msg)
-{
-	ParentType::OnActivated(msg);
-
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
-
-	if(is_text)
-	{
-		std::swap(hUp, dsk_up.GetBackgroundImagePtr());
-		std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
-		yunsequenced(
-			dsk_up.BackColor = Color(240, 216, 192),
-			dsk_dn.BackColor = Color(192, 216, 240)
-		);
-		yunsequenced(
-			FetchEvent<Click>(dsk_dn).Add(*this, &ShlReader::OnClick),
-			FetchEvent<KeyDown>(dsk_dn).Add(*this, &ShlReader::OnKeyDown),
-			FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld
-		);
-		dsk_up += Reader.AreaUp,
-		dsk_dn += Reader.AreaDown,
-		dsk_dn += pnlReader,
-		dsk_dn += pnlFileInfo;
-		SetVisibleOf(pnlReader, false);
-		SetVisibleOf(pnlFileInfo, false);
-		{
-			auto hList(share_raw(new Menu::ListType));
-			auto& lst(*hList);
-
-			lst.reserve(7);
-			lst.push_back("返回");
-			lst.push_back("显示面板");
-			lst.push_back("文件信息...");
-			lst.push_back("向上一行");
-			lst.push_back("向下一行");
-			lst.push_back("向上一屏");
-			lst.push_back("向下一屏");
-
-			Menu& mnu(*new Menu(Rect::Empty, std::move(hList), 1u));
-
-			mnu.GetConfirmed() += [this](IndexEventArgs&& e){
-				ExcuteReadingCommand(e.Index);
-			};
-			/*
-			FetchEvent<TouchDown>(mnu) += [&, this](TouchEventArgs&&){
-				char strt[60];
-				auto& dsk(this->GetDesktopDown());
-				auto& g(dsk.GetScreen());
-				using namespace ColorSpace;
-				{
-					const Rect r(0, 172, 72, 20);
-					auto& evt(FetchEvent<TouchDown>(mnu));
-					u32 t(evt.GetSize());
-
-					siprintf(strt, "n=%u", t);
-					FillRect(g, r, Blue);
-					DrawText(g, r, strt, Padding(), White);
-				}
-				WaitForInput();
-			};
-			*/
-			mhMain += mnu;
-			/*
-			mhMain += *new Menu(Rect::Empty, GenerateList("a"), 1u);
-			mhMain[1u] += make_pair(1u, &mhMain[2u]);
-			*/
-		}
-		ResizeForContent(mhMain[1u]);
-		pTextFile = ynew TextFile(path.c_str());
-		Reader.LoadText(*pTextFile);
-	}
-	else
-	{
-		HexArea.Load(path.c_str());
-		HexArea.UpdateData(0);
-		dsk_dn += HexArea;
-	}
-	SetInvalidationOf(dsk_up);
-	SetInvalidationOf(dsk_dn);
-	RequestFocusCascade(dsk_dn);
-	UpdateToScreen();
-	return 0;
-}
-
-int
-ShlReader::OnDeactivated(const Message& msg)
-{
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
-
-	if(is_text)
-	{
-		Reader.UnloadText();
-		safe_delete_obj()(pTextFile);
-		mhMain.Clear();
-		yunsequenced(
-			FetchEvent<Click>(dsk_dn).Remove(*this, &ShlReader::OnClick),
-			FetchEvent<KeyDown>(dsk_dn).Remove(*this, &ShlReader::OnKeyDown),
-			FetchEvent<KeyHeld>(dsk_dn) -= OnKeyHeld
-		);
-		yunsequenced(
-			dsk_up -= Reader.AreaUp,
-			dsk_dn -= Reader.AreaDown,
-			dsk_up -= pnlReader,
-			dsk_dn -= pnlFileInfo
-		);
-		std::swap(hUp, dsk_up.GetBackgroundImagePtr());
-		std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
-	}
-	else
-	{
-		HexArea.Reset();
-		dsk_dn -= HexArea;
-	}
-	ParentType::OnDeactivated(msg);
-	return 0;
-}
-
-void
-ShlReader::ExcuteReadingCommand(IndexEventArgs::IndexType idx)
-{
-	switch(idx)
-	{
-	case MR_Return:
-		CallStored<ShlExplorer>();
-		break;
-	case MR_Panel:
-		Show(pnlReader);
-		break;
-	case MR_FileInfo:
-		pnlFileInfo.UpdateData();
-		Show(pnlFileInfo);
-		break;
-	case MR_LineUp:
-		Reader.LineUp();
-		break;
-	case MR_LineDown:
-		Reader.LineDown();
-		break;
-	case MR_ScreenUp:
-		Reader.ScreenUp();
-		break;
-	case MR_ScreenDown:
-		Reader.ScreenDown();
-		break;
-	}
-}
-
-void
-ShlReader::ShowMenu(Menu::ID id, const Point& pt)
-{
-	auto& mnu(mhMain[id]);
-
-	SetLocationOf(mnu, pt);
-	switch(id)
-	{
-	case 1u:
-		mnu.SetItemEnabled(MR_LineUp, !Reader.IsTextTop());
-		mnu.SetItemEnabled(MR_LineDown, !Reader.IsTextBottom());
-		mnu.SetItemEnabled(MR_ScreenUp, !Reader.IsTextTop());
-		mnu.SetItemEnabled(MR_ScreenDown, !Reader.IsTextBottom());
-	}
-	mhMain.Show(id);
-}
-
-void
-ShlReader::OnClick(TouchEventArgs&& e)
-{
-	ShowMenu(1u, e);
-}
-
-void
-ShlReader::OnKeyDown(KeyEventArgs&& e)
-{
-	if(e.Strategy == RoutedEventArgs::Direct)
-	{
-		u32 k(static_cast<KeyEventArgs::InputType>(e));
-
-		switch(k)
-		{
-		case KeySpace::Enter:
-			//Reader.Invalidate();
-			Reader.Update();
-			break;
-
-		case KeySpace::Esc:
-			CallStored<ShlExplorer>();
-			break;
-
-		case KeySpace::Up:
-		case KeySpace::Down:
-		case KeySpace::PgUp:
-		case KeySpace::PgDn:
-			{
-				switch(k)
-				{
-				case KeySpace::Up:
-					Reader.LineUp();
-					break;
-				case KeySpace::Down:
-					Reader.LineDown();
-					break;
-				case KeySpace::PgUp:
-					Reader.ScreenUp();
-					break;
-				case KeySpace::PgDn:
-					Reader.ScreenDown();
-					break;
-				}
-			}
-			break;
-
-		case KeySpace::X:
-			Reader.SetLineGap(5);
-			Reader.Update();
-			break;
-
-		case KeySpace::Y:
-			Reader.SetLineGap(8);
-			Reader.Update();
-			break;
-
-		case KeySpace::Left:
-			//Reader.SetFontSize(Reader.GetFontSize()+1);
-			if(Reader.GetLineGap() != 0)
-			{
-				Reader.SetLineGap(Reader.GetLineGap() - 1);
-				Reader.Update();
-			}
-			break;
-
-		case KeySpace::Right:
-			//PixelType cc(Reader.GetColor());
-			//Reader.SetColor(Color((cc & (15 << 5)) >> 2, (cc & 29) << 3,
-			//	(cc&(31 << 10)) >> 7));
-			if(Reader.GetLineGap() != 12)
-			{
-				Reader.SetLineGap(Reader.GetLineGap() + 1);
-				Reader.Update();
-			}
-			break;
-
-		default:
-			return;
-		}
-	}
-}
-
-/*
-void ShlReader::OnPaint(EventArgs&&)
-{
-	Reader.PrintTextUp(FetchContext(GetDesktopUp()));
-	Reader.PrintTextDown(FetchContext(GetDesktopDown()));
-}
-*/
 
 YSL_END_NAMESPACE(YReader)
 

@@ -11,12 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1246;
+\version r1259;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 254 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-10-25 16:12 +0800;
+	2011-11-24 17:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,12 +35,14 @@ namespace ystdex
 {
 	/*!	\defgroup algorithms Gerneral Algorithms
 	\brief 算法。
+	\since build 189 。
 	*/
 
 
 	/*!
 	\ingroup algorithms
 	\brief 取值类型最小值。
+	\since 早于 build 132 。
 	*/
 	template<typename _type>
 	inline _type
@@ -51,6 +54,7 @@ namespace ystdex
 	\ingroup algorithms
 	\brief 取值类型最小值。
 	\note 使用指定判断操作。
+	\since 早于 build 132 。
 	*/
 	template<typename _type, typename _fCompare>
 	inline _type
@@ -62,6 +66,7 @@ namespace ystdex
 	/*!
 	\ingroup algorithms
 	\brief 取值类型最大值。
+	\since 早于 build 132 。
 	*/
 	template<typename _type>
 	inline _type
@@ -73,6 +78,7 @@ namespace ystdex
 	\ingroup algorithms
 	\brief 取值类型最大值。
 	\note 使用指定判断操作。
+	\since 早于 build 132 。
 	*/
 	template<typename _type, typename _fCompare>
 	inline _type
@@ -89,6 +95,7 @@ namespace ystdex
 	\pre 静态断言： <tt>std::is_pod<typename std::remove_reference<_type>::type>
 		::value</tt> 。
 	\note 不检查指针是否有效。
+	\since build 254 。
 	*/
 	//@{
 	template <class _type>
@@ -157,6 +164,7 @@ namespace ystdex
 	/*!
 	\ingroup algorithms
 	\brief 删除指定标准容器中所有相同元素。
+	\since build 131 。
 	*/
 	template<typename _tContainer>
 	typename _tContainer::size_type
@@ -172,6 +180,7 @@ namespace ystdex
 	/*!
 	\ingroup algorithms
 	\brief 删除指定标准容器中所有满足条件元素。
+	\since 早于 build 132 。
 	*/
 	template<typename _tContainer, typename _fPredicate>
 	typename _tContainer::size_type
@@ -190,6 +199,7 @@ namespace ystdex
 	\return 一个用于表示结果的 std::pair 对象，其成员 first 为迭代器，
 		second 表示是否不存在而需要插入。
 	\note 行为类似 std::map::operator[] 。
+	\since build 173 。
 	*/
 	template<class _tMap>
 	std::pair<typename _tMap::iterator, bool>
@@ -200,10 +210,6 @@ namespace ystdex
 		return std::make_pair(i, (i == m.end() || m.key_comp()(k, i->first)));
 	}
 }
-
-#ifndef YCL_HAS_BUILTIN_NULLPTR
-using ystdex::nullptr;
-#endif
 
 #endif
 

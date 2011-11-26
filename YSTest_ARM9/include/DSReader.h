@@ -11,12 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2497;
+\version r2499;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-11-04 19:23 +0800;
+	2011-11-24 18:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -54,8 +55,8 @@ private:
 	Text::TextFileBuffer::Iterator iBottom; //!< 字符区域底端文本缓存输入迭代器。
 
 public:
-	YSLib::Components::BufferedTextArea AreaUp; //!< 上屏幕对应字符区域。
-	YSLib::Components::BufferedTextArea AreaDown; //!< 下屏幕对应字符区域。
+	YSL_ Components::BufferedTextArea AreaUp; //!< 上屏幕对应字符区域。
+	YSL_ Components::BufferedTextArea AreaDown; //!< 下屏幕对应字符区域。
 
 	/*!
 	\brief 构造。

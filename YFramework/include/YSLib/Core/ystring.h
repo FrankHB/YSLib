@@ -11,12 +11,13 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r3005;
+\version r3011;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-03-05 22:06:05 +0800;
 \par 修改时间:
-	2011-11-05 10:54 +0800;
+	2011-11-24 21:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +35,10 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Text)
 
-//! \brief YSLib 标准字符串（使用 UTF-16LE ）。
+/*!
+\brief YSLib 标准字符串（使用 UTF-16LE ）。
+\since 早于 build 132 。
+*/
 class String : public ucs2string
 {
 private:
@@ -87,11 +91,13 @@ String::String(const ucs2string& s)
 
 /*!
 \brief 多字节字符串转换为 YSLib 标准字符串。
+\since build 141 。
 */
 String
 MBCSToString(const char*, const Encoding& = CP_Local);
 /*!
 \brief 多字节字符串转换为 YSLib 标准字符串。
+\since build 141 。
 */
 inline String
 MBCSToString(const string& s, const Encoding& cp = CP_Local)
@@ -100,7 +106,8 @@ MBCSToString(const string& s, const Encoding& cp = CP_Local)
 }
 
 /*!
-\brief  YSLib 基本字符串转化为多字节字符串。
+\brief YSLib 基本字符串转化为多字节字符串。
+\since build 152 。
 */
 string
 StringToMBCS(const ucs2string&, const Encoding& = CP_Local);

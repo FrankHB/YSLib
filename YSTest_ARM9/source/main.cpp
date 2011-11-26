@@ -11,12 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2158;
+\version r2162;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2011-10-18 15:16 +0800;
+	2011-11-24 18:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,6 +51,7 @@
 
 #include YSL_YSBUILD_H
 #include "Shells.h"
+#include <YSLib/UI/progress.h>
 
 using namespace platform;
 using std::puts;

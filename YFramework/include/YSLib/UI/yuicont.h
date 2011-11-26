@@ -11,12 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2572;
+\version r2599;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 188 。
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-11-10 19:20 +0800;
+	2011-11-25 17:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,6 +38,7 @@ YSL_BEGIN_NAMESPACE(Components)
 /*!
 \brief 取指针指定的部件在视图树中的节点指针。
 \tparam _Node 节点类型。
+\since build 227 。
 */
 template<class _tNode>
 _tNode* FetchWidgetNodePtr(IWidget* pWgt)
@@ -51,6 +53,7 @@ _tNode* FetchWidgetNodePtr(IWidget* pWgt)
 \brief 取指针指定的部件在视图树中的直接节点指针，同时j变换偏移坐标。
 \tparam _Node 节点类型。
 \note 原始坐标相对于指定的部件，会被转换为相对于最终节点的坐标。
+\since build 227 。
 */
 template<class _tNode>
 _tNode* FetchWidgetNodePtr(IWidget* pWgt, Point& pt)
@@ -68,6 +71,7 @@ _tNode* FetchWidgetNodePtr(IWidget* pWgt, Point& pt)
 /*!
 \brief 取指定部件的桌面指针。
 \note 加入容器指针判断；包括部件自身。
+\since build 227 。
 */
 Desktop*
 FetchDesktopPtr(IWidget&);
@@ -75,12 +79,14 @@ FetchDesktopPtr(IWidget&);
 
 /*!
 \brief 取相对于 pWgt 指向的部件的点 pt 相对于 pEnd 指向的容器的偏移坐标。
+\since build 229 。
 */
 Point
 LocateOffset(const IWidget* pEnd, Point, const IWidget* pWgt);
 
 /*!
 \brief 取相对部件 wgt 的点 pt 相对于 wgt 的容器的偏移坐标。
+\since build 167 。
 */
 inline Point
 LocateContainerOffset(const IWidget& wgt, const Point& pt)
@@ -90,6 +96,7 @@ LocateContainerOffset(const IWidget& wgt, const Point& pt)
 
 /*!
 \brief 取指定部件 b 相对于部件 a 的偏移坐标。
+\since build 169 。
 */
 Point
 LocateForWidget(IWidget& a, IWidget& b);
@@ -98,6 +105,7 @@ LocateForWidget(IWidget& a, IWidget& b);
 \brief 取指定部件相对于视图树中的直接节点指针的偏移坐标。
 \tparam _Node 节点类型。
 \tparam _fFetcher 节点访问器类型。
+\since build 227 。
 */
 template<class _tWidget, typename _fFetcher>
 Point
@@ -114,6 +122,7 @@ LocateForWidgetNode(IWidget& wgt, _fFetcher fetch_ptr)
 /*!
 \brief 取指定部件相对于容器的父容器的偏移坐标。
 \note 若无容器则返回 FullScreen 。
+\since build 167 。
 */
 Point
 LocateForParentContainer(const IWidget&);
@@ -122,6 +131,7 @@ LocateForParentContainer(const IWidget&);
 /*!
 \brief 移动部件 wgt 至容器左端。
 \pre 断言： FetchContainerPtr(wgt) 。
+\since build 171 。
 */
 void
 MoveToLeft(IWidget& wgt);
@@ -129,6 +139,7 @@ MoveToLeft(IWidget& wgt);
 /*!
 \brief 移动部件 wgt 至容器右端。
 \pre 断言： FetchContainerPtr(wgt) 。
+\since build 171 。
 */
 void
 MoveToRight(IWidget& wgt);
@@ -136,6 +147,7 @@ MoveToRight(IWidget& wgt);
 /*!
 \brief 移动部件 wgt 至容器上端。
 \pre 断言： FetchContainerPtr(wgt) 。
+\since build 171 。
 */
 void
 MoveToTop(IWidget& wgt);
@@ -143,18 +155,33 @@ MoveToTop(IWidget& wgt);
 /*!
 \brief 移动部件 wgt 至容器下端。
 \pre 断言： FetchContainerPtr(wgt) 。
+\since build 171 。
 */
 void
 MoveToBottom(IWidget& wgt);
 
 
-typedef u8 ZOrderType; //!< Z 顺序类型：覆盖顺序，值越大表示越接近顶层。
+/*
+\brief Z 顺序类型：覆盖顺序，值越大表示越接近顶层。
+\since build 212 。
+*/
+typedef u8 ZOrderType;
+/*!
+\brief 默认 Z 顺序值。
+\since build 212 。
+*/
+const ZOrderType DefaultZOrder(64);
+/*!
+\brief 默认窗口 Z 顺序值。
+\since build 212 。
+*/
+const ZOrderType DefaultWindowZOrder(128);
 
-const ZOrderType DefaultZOrder(64); //!< 默认 Z 顺序值。
-const ZOrderType DefaultWindowZOrder(128); //!< 默认窗口 Z 顺序值。
 
-
-//! \brief 部件容器模块。
+/*!
+\brief 部件容器模块。
+\since build 167 。
+*/
 class MUIContainer
 {
 public:
@@ -212,6 +239,31 @@ public:
 	virtual void
 	Add(IWidget&, ZOrderType = DefaultZOrder);
 };
+
+
+inline IWidget*
+ConvertWidgetPtr(MUIContainer::WidgetMap::iterator i)
+{
+	return i->second;
+}
+
+template<typename _tIn>
+bool
+CheckVisibleChildren(_tIn b, _tIn e)
+{
+	bool result(false);
+
+	while(b != e)
+	{
+		const auto p(ConvertWidgetPtr(b));
+
+		YAssert(p, "Null widget pointer found @ CheckVisibleChildren");
+
+		result |= Components::IsVisible(*p);
+		++b;
+	}
+	return result;
+}
 
 YSL_END_NAMESPACE(Components)
 

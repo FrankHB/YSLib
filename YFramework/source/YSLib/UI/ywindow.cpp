@@ -11,12 +11,13 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4208;
+\version r4261;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-11-12 11:24 +0800;
+	2011-11-26 15:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,12 +58,12 @@ AWindow::DrawBackgroundImage()
 }
 
 Rect
-AWindow::Refresh(const PaintContext& e)
+AWindow::Refresh(const PaintContext& pc)
 {
 	if(!(IsTransparent() || DrawBackgroundImage()))
 		GetRenderer().FillInvalidation(BackColor);
 	DrawContents();
-	return Rect(e.Location, GetSizeOf(*this));
+	return Rect(pc.Location, GetSizeOf(*this));
 }
 
 void
@@ -156,39 +157,28 @@ Frame::Frame(const Rect& r, const shared_ptr<Image>& hImg, IWidget* pCon)
 bool
 Frame::DrawContents()
 {
+	// TODO: working for unbuffered context;
 	if(!FetchContext(*this).IsValid())
 		return false;
 
-	bool result(GetRenderer().RequiresRefresh());
+	bool result(GetRenderer().RequiresRefresh()
+		|| CheckVisibleChildren(sWidgets.begin(), sWidgets.end()));
 
-	for(auto i(sWidgets.begin()); !result && i != sWidgets.end(); ++i)
-	{
-		IWidget* const p(i->second);
-
-		YAssert(p, "Null widget pointer found @ Frame::DrawContents");
-
-		result |= Components::IsVisible(*p);
-	}
 	if(result)
 		for(auto i(sWidgets.begin()); i != sWidgets.end(); ++i)
 		{
-			IWidget& wgt(*i->second);
+			auto& wgt(*ConvertWidgetPtr(i));
 
 			if(Components::IsVisible(wgt))
 			{
-				//	pt = LocateOffset(this, Point::Zero, &w);
-				Point pt(GetLocationOf(wgt));
-				Rect r;
+				// NOTE: for non-direct child,
+				// using 'pt = LocateOffset(this, Point::Zero, &w)' instead;
+				PaintEventArgs e(wgt, FetchContext(*this), GetLocationOf(wgt),
+					Rect());
 
-				GetRenderer().GetInvalidatedArea(r);
-				r = Intersect(Rect(pt, GetSizeOf(wgt)), r);
-				if(!r.IsEmptyStrict())
-				{
-					PaintEventArgs e(wgt, FetchContext(*this), pt, r);
-
-					CallEvent<Paint>(wgt, e);
+				GetRenderer().GetInvalidatedArea(e.ClipArea);
+				if(PaintIntersection(wgt, std::move(e)))
 					GetRenderer().CommitInvalidation(e.ClipArea);
-				}
 			}
 		}
 	return result;

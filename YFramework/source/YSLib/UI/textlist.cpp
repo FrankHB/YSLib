@@ -11,12 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1564;
+\version r1573;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-11-22 10:31 +0800;
+	2011-11-25 21:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -242,7 +243,7 @@ TextList::AdjustViewLength()
 bool
 TextList::CheckConfirmed(TextList::ListType::size_type idx) const
 {
-	return ListType::size_type(viewer.GetOffset()) == idx;
+	return viewer.IsSelected() && viewer.GetSelectedIndex() == idx;
 }
 
 TextList::ListType::size_type
@@ -254,14 +255,14 @@ TextList::CheckPoint(SPos x, SPos y)
 }
 
 Rect
-TextList::Refresh(const PaintContext& e)
+TextList::Refresh(const PaintContext& pc)
 {
-//	Widget::Refresh(e);
+//	Widget::Refresh(pc);
 
-	const auto& pt(e.Location);
+	const auto& pt(pc.Location);
 
-	PaintItems(e);
-	DrawRect(e.Target, pt, GetSizeOf(*this), IsFocused(*this) ? ColorSpace::Aqua
+	PaintItems(pc);
+	DrawRect(pc.Target, pt, GetSizeOf(*this), IsFocused(*this) ? ColorSpace::Aqua
 		: FetchGUIShell().Colors[Styles::ActiveBorder]);
 	return Rect(pt, GetSizeOf(*this));
 }

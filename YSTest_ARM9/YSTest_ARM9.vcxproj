@@ -19,11 +19,13 @@
     <ClCompile Include="source\HexBrowser.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\Shells.cpp" />
+    <ClCompile Include="source\ShlReader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\DSReader.h" />
     <ClInclude Include="include\HexBrowser.h" />
     <ClInclude Include="include\Shells.h" />
+    <ClInclude Include="include\ShlReader.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{501944E8-ADCC-40E6-87F0-08816CFAA343}</ProjectGuid>

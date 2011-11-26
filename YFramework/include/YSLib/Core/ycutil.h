@@ -11,12 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2708;
+\version r2738;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-10-12 16:48 +0800;
+	2011-11-24 17:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,6 +37,7 @@ YSL_BEGIN
 
 若 \c _type 能隐式转换为 \c _tStrict 则 \c Result 为 \c _tStrict，
 	否则 \c Result 为 \c _tWeak 。
+\since build 201 。
 */
 template<typename _type, typename _tStrict, typename _tWeak>
 struct MoreConvertible
@@ -43,7 +45,7 @@ struct MoreConvertible
 	typedef typename std::conditional<std::is_convertible<_type,
 		_tStrict>::value, _tStrict, _tWeak>::Result Result;
 
-	inline static Result
+	static inline Result
 	Cast(_type o)
 	{
 		return static_cast<Result>(o);
@@ -56,6 +58,7 @@ struct MoreConvertible
 
 若 \c _type 能隐式转换为 \c _tStrict 则 \c Result 为 \c _tStrict，
 	否则 \c Result 为 \c _type 。
+\since build 201 。
 */
 template<typename _type, typename _tStrict>
 struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
@@ -67,6 +70,7 @@ struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
 
 /*!
 \brief 取整数类型的零元素。
+\since build 242 。
 */
 yconstexprf int
 FetchZero()
@@ -75,6 +79,7 @@ FetchZero()
 }
 /*!
 \brief 取指定类型的零元素。
+\since build 242 。
 */
 PDefTH1(_type)
 yconstexprf _type
@@ -86,19 +91,21 @@ FetchZero()
 /*!
 \brief 整数类型符号函数。
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
+\since build 263 。
 */
 yconstexprf s8
-sgn(int a, int b = 0)
+FetchSign(int a, int b = 0)
 {
 	return a < b ? -1 : !(a == b);
 }
 /*!
 \brief 符号函数。
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
+\since build 263 。
 */
 PDefTH1(_type)
 yconstexprf s8
-sgn(const _type& a, const _type& b = FetchZero<_type>())
+FetchSign(const _type& a, const _type& b = FetchZero<_type>())
 {
 	return a < b ? -1 : !(a == b);
 }
@@ -109,11 +116,12 @@ sgn(const _type& a, const _type& b = FetchZero<_type>())
 \return = 0 ：d 在区间端点上；
 \return > 0 ：d 在区间内。
 \note 无精度修正。
+\since build 263 。
 */
 yconstexprf int
-sgnInterval(int d, int a, int b)
+FetchSignFromInterval(int d, int a, int b)
 {
-	return sgn(a, d) * sgn(d, b);
+	return FetchSign(a, d) * FetchSign(d, b);
 }
 /*!
 \brief 判断 d 和以 [a, b](a ≤ b) 或 [b, a](a > b) 区间的关系。
@@ -121,17 +129,19 @@ sgnInterval(int d, int a, int b)
 \return = 0 ：d 在区间端点上；
 \return > 0 ：d 在区间内。
 \note 无精度修正。
+\since build 263 。
 */
 PDefTH1(_type)
 yconstexprf int
-sgnInterval(const _type& d, const _type& a, const _type& b)
+FetchSignFromInterval(const _type& d, const _type& a, const _type& b)
 {
-	return sgn(a, d) * sgn(d, b);
+	return FetchSign(a, d) * FetchSign(d, b);
 }
 
 /*!
 \brief 判断 i 是否在左闭右开区间 [<tt>FetchZero<_type>()</tt>, b) 中。
 \pre 断言： <tt>FetchZero<_type>() < b</tt> 。
+\since build 167 。
 */
 PDefTH1(_type)
 inline bool
@@ -146,6 +156,7 @@ IsInInterval(_type i, _type b)
 /*!
 \brief 判断 i 是否在左闭右开区间 [a, b) 中。
 \pre 断言： <tt>a < b</tt> 。
+\since build 167 。
 */
 PDefTH1(_type)
 inline bool
@@ -160,6 +171,7 @@ IsInInterval(_type i, _type a, _type b)
 /*!
 \brief 判断 i 是否在开区间 (FetchZero<_type>(), b) 内。
 \pre 断言： <tt>FetchZero<_type>() < b</tt> 。
+\since build 168 。
 */
 PDefTH1(_type)
 inline bool
@@ -174,6 +186,7 @@ IsInOpenInterval(_type i, _type b)
 /*!
 \brief 判断 i 是否在开区间 (a, b) 内。
 \pre 断言： <tt>a < b</tt> 。
+\since build 168 。
 */
 PDefTH1(_type)
 inline bool
@@ -191,7 +204,7 @@ IsInOpenInterval(_type i, _type a, _type b)
 \pre 断言： <tt>a</tt> 。
 \pre 断言： <tt>n != 0</tt> 。
 \pre 断言： <tt>!(v < *a)</tt> 。
-
+\since build 168 。
 */
 PDefTH1(_type)
 size_t
@@ -217,6 +230,7 @@ SwitchInterval(_type v, const _type* a, size_t n)
 \pre 断言： <tt>a</tt> 。
 \pre 断言： <tt>n != 0</tt> 。
 \pre 断言： <tt>!(v < *a)</tt> 。
+\since build 168 。
 */
 PDefTH1(_type)
 size_t
@@ -241,6 +255,7 @@ SwitchAddedInterval(_type v, const _type* a, size_t n)
 \brief 约束整数 i 在闭区间 [a, b] 中。
 \pre 断言： <tt>!(b < a)</tt> 。
 \post <tt>!(i < a || b < i)</tt> 。
+\since build 168 。
 */
 PDefTH1(_type)
 void
@@ -259,6 +274,7 @@ RestrictInClosedInterval(_type& i, int a, int b)
 \brief 约束整数 i 在左闭右开区间 [a, b) 中。
 \pre 断言： <tt>a < b</tt> 。
 \post <tt>!(i < a) && i < b</tt> 。
+\since build 168 。
 */
 PDefTH1(_type)
 void
@@ -276,6 +292,7 @@ RestrictInInterval(_type& i, int a, int b)
 /*!
 \brief 约束无符号整数 u 在区间上界 b 内。
 \post <tt>!(b < u)</tt>。
+\since build 168 。
 */
 PDefTH1(_type)
 void
@@ -289,6 +306,7 @@ RestrictUnsignedStrict(_type& u, unsigned b)
 \brief 约束无符号整数 u 在左闭右开区间 [0, b) 中。
 \pre 断言： <tt>b != FetchZero<_type>()</tt> 。
 \post <tt>!(u < FetchZero<_type>()) && u < b</tt> 。
+\since build 167 。
 */
 PDefTH1(_type)
 void
@@ -304,6 +322,7 @@ RestrictUnsigned(_type& u, unsigned b)
 /*!
 \brief 约束关系：a ≤ b 。
 \post <tt>a <= b</tt> 。
+\since build 168 。
 */
 PDefTH1(_type)
 inline void
@@ -317,6 +336,7 @@ RestrictLessEqual(_type& a, _type& b)
 /*!
 \brief 清除指定的连续区域。
 \note 忽略空指针和零长度。
+\since 早于 build 132 。
 */
 PDefTH1(_type)
 inline void
@@ -327,7 +347,10 @@ ClearSequence(_type* dst, size_t n)
 }
 
 
-//! \brief delete 仿函数。
+/*!
+\brief delete 仿函数。
+\since build 174 。
+*/
 struct delete_obj_ndebug
 {
 	/*!
@@ -344,7 +367,10 @@ struct delete_obj_ndebug
 
 #ifdef YSL_USE_MEMORY_DEBUG
 
-//! \brief delete 仿函数（调试版本）。
+/*
+! \brief delete 仿函数（调试版本）。
+\since build 174 。
+*/
 struct delete_obj_debug
 {
 	/*!
@@ -366,7 +392,10 @@ struct delete_obj_debug
 
 #endif
 
-//! \brief 带置空指针操作的 delete 仿函数。
+/*
+! \brief 带置空指针操作的 delete 仿函数。
+\since build 154 。
+*/
 struct safe_delete_obj
 {
 	/*!
@@ -383,6 +412,7 @@ struct safe_delete_obj
 
 /*!
 \brief 使用 new 复制指定指针指向的对象。
+\since build 240 。
 */
 PDefTH1(_type)
 yconstexprf auto
@@ -394,6 +424,7 @@ CloneNonpolymorphic(const _type& p) -> decltype(&*p)
 /*!
 \brief 使用 Clone 成员函数复制指定指针指向的多态类类型对象。
 \pre 断言： std::is_polymorphic<decltype(*p)>::value 。
+\since build 240 。
 */
 template<class _type>
 auto

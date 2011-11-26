@@ -11,12 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1864;
+\version r1868;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-11-21 22:37 +0800;
+	2011-11-24 17:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -285,7 +286,7 @@ void
 MenuHost::Clear()
 {
 	for(auto i(mMenus.begin()); i != mMenus.end(); ++i)
-		delete(i->second);
+		ydelete(i->second);
 	mMenus.clear();
 }
 

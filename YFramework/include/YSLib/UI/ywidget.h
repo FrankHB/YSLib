@@ -11,12 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6254;
+\version r6291;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-11-11 13:09 +0800;
+	2011-11-25 20:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +38,10 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//! \brief 部件接口。
+/*!
+\brief 部件接口。
+\since 早于 build 132 。
+*/
 DeclInterface(IWidget)
 	/*!
 	\brief 取渲染器。
@@ -71,6 +75,7 @@ EndDecl
 
 /*!
 \brief 判断部件是否可见。
+\since build 259 。
 */
 inline bool
 IsVisible(const IWidget& wgt)
@@ -80,11 +85,13 @@ IsVisible(const IWidget& wgt)
 
 /*!
 \brief 判断点是否在部件的可视区域内。
+\since build 167 。
 */
 bool
 Contains(const IWidget&, SPos, SPos);
 /*!
 \brief 判断点是否在部件的可视区域内。
+\since build 167 。
 */
 inline bool
 Contains(const IWidget& wgt, const Point& pt)
@@ -94,11 +101,13 @@ Contains(const IWidget& wgt, const Point& pt)
 
 /*!
 \brief 判断点是否在可见部件的可视区域内。
+\since build 173 。
 */
 bool
 ContainsVisible(const IWidget& wgt, SPos x, SPos y);
 /*!
 \brief 判断点是否在可见部件的可视区域内。
+\since build 173 。
 */
 inline bool
 ContainsVisible(const IWidget& wgt, const Point& pt)
@@ -111,6 +120,7 @@ ContainsVisible(const IWidget& wgt, const Point& pt)
 \ingroup HelperFunctions
 \brief 取部件的容器指针。
 \note 使用此函数确保返回值传递的值语义。
+\since build 225 。
 */
 inline IWidget*
 FetchContainerPtr(const IWidget& wgt)
@@ -121,6 +131,7 @@ FetchContainerPtr(const IWidget& wgt)
 /*
 \ingroup HelperFunctions
 \brief 取指定部件的图形接口上下文。
+\since build 228 。
 */
 inline const Graphics&
 FetchContext(const IWidget& wgt)
@@ -132,6 +143,7 @@ FetchContext(const IWidget& wgt)
 \ingroup HelperFunctions
 \brief 取焦点对象指针。
 \return 若为保存了子部件中的焦点对象的容器则返回指针，否则返回 \c nullptr 。
+\since build 239 。
 */
 inline IWidget*
 FetchFocusingPtr(IWidget& wgt)
@@ -139,12 +151,24 @@ FetchFocusingPtr(IWidget& wgt)
 	return wgt.GetView().pFocusing;
 }
 
+/*!
+\ingroup HelperFunctions
+\brief 取部件位置。
+\return 若为保存了子部件中的焦点对象的容器则返回指针，否则返回 \c nullptr 。
+\since build 239 。
+*/
 inline const Point&
 GetLocationOf(const IWidget& wgt)
 {
 	return wgt.GetView().GetLocation();
 }
 
+/*!
+\ingroup HelperFunctions
+\brief 取部件大小。
+\return 若为保存了子部件中的焦点对象的容器则返回指针，否则返回 \c nullptr 。
+\since build 259 。
+*/
 inline const Size&
 GetSizeOf(const IWidget& wgt)
 {
@@ -153,6 +177,7 @@ GetSizeOf(const IWidget& wgt)
 
 /*!
 \brief 取部件边界。
+\since build 190 。
 */
 inline Rect
 GetBoundsOf(const IWidget& wgt)
@@ -162,37 +187,28 @@ GetBoundsOf(const IWidget& wgt)
 
 /*!
 \brief 设置部件边界。
+\since build 177 。
 */
 void
 SetBoundsOf(IWidget&, const Rect&);
 
 /*!
 \brief 设置部件左上角所在位置（相对于容器的偏移坐标）。
+\since build 259 。
 */
 void
 SetLocationOf(IWidget&, const Point&);
 
 /*
 \brief 设置部件大小。
+\since build 259 。
 */
 void
 SetSizeOf(IWidget&, const Size&);
 
 /*!
-\brief 设置部件的无效区域。
-*/
-void
-SetInvalidationOf(IWidget&);
-
-/*!
-\brief 在容器设置部件的无效区域。
-\note 若容器不存在则忽略。
-*/
-void
-SetInvalidationToParent(IWidget&);
-
-/*!
 \brief 设置部件可见性。
+\since build 259 。
 */
 inline void
 SetVisibleOf(IWidget& wgt, bool b)
@@ -204,6 +220,7 @@ SetVisibleOf(IWidget& wgt, bool b)
 /*!
 \brief 检查指定部件是否满足 Contains(wgt, pt) && f(wgt) 。
 \return 若满足则返回部件指针，否则为 nullptr 。
+\since build 247 。
 */
 IWidget*
 CheckWidget(IWidget& wgt, const Point& pt, bool(&f)(const IWidget&));
@@ -211,78 +228,26 @@ CheckWidget(IWidget& wgt, const Point& pt, bool(&f)(const IWidget&));
 /*!
 \brief 清除焦点指针，同时以此部件作为事件源，调用被清除焦点部件的 LostFocus 事件。
 \note 若此部件非容器则无效。
+\since build 258 。
 */
 void
 ClearFocusingOf(IWidget&);
 
-/*!
-\brief 无效化：使部件区域在窗口缓冲区中无效。
-*/
-void
-Invalidate(IWidget&);
-
-/*!
-\brief 级联无效化：使相对于部件的指定区域在直接和间接的窗口缓冲区中无效。
-*/
-void
-InvalidateCascade(IWidget&, const Rect&);
-
-/*
-\brief 渲染：更新，若缓冲存储不可用则在更新前刷新 wgt 。
-\note 无条件更新实际渲染的区域至 pc.ClipArea 。
-*/
-void
-Render(IWidget& wgt, PaintContext&& pc);
-inline void
-Render(PaintEventArgs&& e)
-{
-	return Render(e.GetSender(), std::move(static_cast<PaintContext&>(e)));
-}
-
-/*
-\brief 渲染子部件。
-*/
-void
-RenderChild(IWidget&, PaintContext&&);
-/*
-\brief 渲染子部件。
-*/
-inline void
-RenderChild(IWidget& wgt, const PaintContext& e)
-{
-	return RenderChild(wgt, PaintContext(e));
-}
-inline void
-RenderChild(IWidget& wgt, PaintEventArgs&& e)
-{
-	return RenderChild(wgt, static_cast<PaintContext&&>(e));
-}
 
 /*!
 \brief 请求提升至容器顶端。
 
 \todo 完全实现提升 IWidget 至容器顶端（目前仅实现父容器为 AFrame 的情形）。
+\since build 192 。
 */
 void
 RequestToTop(IWidget&);
-
-/*!
-\brief 更新部件至指定图形设备上下文的指定点。
-*/
-void
-Update(const IWidget&, const PaintContext&);
-
-/*!
-\brief 验证：若部件的缓冲区存在，绘制缓冲区使之有效。
-\return 实际绘制的区域，意义同 IWidget::Refresh 。
-*/
-Rect
-Validate(IWidget&);
 
 
 /*!
 \brief 显示部件。
 \note 设置可见性和容器（若存在）背景重绘状态并设置自身刷新状态。
+\since build 229 。
 */
 void
 Show(IWidget&);
@@ -290,6 +255,7 @@ Show(IWidget&);
 /*!
 \brief 隐藏部件。
 \note 设置不可见性和容器（若存在）背景重绘状态并取消自身刷新状态。
+\since build 229 。
 */
 void
 Hide(IWidget&);
@@ -297,6 +263,7 @@ Hide(IWidget&);
 
 /*!
 \brief 部件控制器。
+\since build 236 。
 */
 class WidgetController : public AController
 {
@@ -316,7 +283,10 @@ public:
 };
 
 
-//! \brief 部件。
+/*!
+\brief 部件。
+\since 早于 build 132 。
+*/
 class Widget : implements IWidget
 {
 private:

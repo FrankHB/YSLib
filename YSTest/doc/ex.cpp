@@ -8,15 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file Designation.txt
+/*!	\file ex.cpp
 \ingroup Documentation
-\brief 设计规则指定和说明。
-\version r3386; *build 262 rev 61;
+\brief 设计规则指定和附加说明 - 存档与临时文件。
+\version r3391; *build 263 rev 55;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-11-22 10:35 +0800;
+	2011-11-26 20:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -101,6 +102,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \ctort ::= constuctor templates
 \cv ::= const & volatile
 \d ::= derived
+\dat ::= data
 \de ::= default/defaulted
 \def ::= definitions
 \del ::= deleted/deletion
@@ -325,84 +327,269 @@ $using:
 
 
 $DONE:
-r1-r25:
-/= test 1,
-* wrong behavior on page selection @ \cl TextList $since b191 $=
+r1-r2:
+/= test 0;
+
+r3:
+/ @ \u Shells $=
 (
-	* \impl @ \mf AdjustBottomOffset;
-	/ \impl @ \ctor
+	/ \cl (FileInfoPanel, TextReaderManager) @ \cl ShlReader @ \ns YReader
+		>> \ns YReader;
+	+ \cl ReaderManager;
+	+ \cl (TextReaderManager, HexReaderManager),
+	/ \a \s \dat \m @ \cl ShlReader >> \cl ReaderManager;
+	/ \a \dat \m \exc (hUp, hDn) @ \cl ShlReader >> (TextReaderManager
+		| HexReaderManager),
+	/ private \mf (ExcuteReadingCommand, ShowMenu, OnClick, OnKeyDown)
+		@ \cl ShlReader >> \cl TextReaderManager;
+	+ private \m unique_ptr<ReaderManager> pManager @ \cl ShlReader;
+	/ \tr \impl @ \cl (ShlReader, TextReaderManager, HexReaderManager),
+	/ \tr \impl @ \ctor @ \cl ShlExplorer
 );
 
-r26:
+r4:
+* \impl @ \ctor @ \cl TextReaderManager @ \impl \u Shells $since r3;
+
+r5:
+/ \impl @ \mf (OnActivated, OnDeactivated) @ \cl ShlReader;
+
+r6-11:
+/= test 1;
+
+r12:
+* "event %Confirmed checking fail for items out of initial view scope"
+	$since b262 $=
+(
+	* \impl @ \mf TextList::CheckConfirmed $since b262
+);
+
+r13:
 /= test 2 ^ \conf release;
 
-r27-r42:
-/= test 3;
+r14-r15:
+* unexpected \n pollution '::nullptr' @ \h Algroithm @ \lib YStandardEx
+	$since b254 $=
+(
+	- 'ifdef \mac YCL_HAS_BUILTIN_NULLPTR ...'
+),
+/= test 3; //found g++ 4.6 'internal compiler error: Segmentation fault'
+	for variadic templates;
+
+r16:
+/ \impl @ \mf ShlReader::OnActivated @ \impl \u Shells;
+
+r17:
+/ \impl @ \mf MenuHost::Clear @ \impl \u Menu ^ ydelete ~ delete;
+/ @ \impl \u Shells $=
+(
+	/ \tr \impl @ \mf ShlExplorer::OnActivated,
+	/ \tr \impl @ \mf TextReaderManager::Activate
+);
+
+r18:
+/ @ \cl TextReaderManager @ \impl \u Shells $=
+(
+	/ \impl @ \mf Activate,
+	/ \tr \impl @ \ctor
+);
+
+r19:
+/ \a sgn => FetchSign,
+/ \a sgnInterval -> FetchSignFromInterval,
++ \em \ns @ \h Shell_DS,
++ \u ShlReader["ShlReader.h", "ShlReader.cpp"] @ \proj YSTest_ARM9;
+/ \cl (ShlReader, HexReaderManager, TextReaderManager, FileInfoPanel,
+	ReaderPanel) @ \u Shells >> \u ShlReader;
+/ \tr \inc \h @ \u (Shells, ShlReader, Main) @ \proj YSTest_ARM9;
+
+r20:
+/= test 4 ^ \conf release;
+
+r21:
+/ @ \u ShlReader $=
+(
+	/ \cl ReaderPanel => ReaderBox,
+	/ \cl FileInfoPanel => TextInfoBox,
+	+ \cl FileInfoPanel;
+	+ \m FileInfoPanel pnlFileInfo @ \cl HexReaderManager;
+	/ \impl @ (\ctor, \mf (Activate, Deactivate)) @ \cl HexReaderManager
+);
+
+r22:
+/ @ \impl \u ShlReader $=
+(
+	/ \impl @ \ctor @ \cl FileInfoPanel,
+	/ \impl @ \mf HexReaderManager::Activate
+);
+
+r23-r25:
+/= test 5;
+
+r26:
+/ @ \cl FileInfoPanel
+(
+	- \m btnClose;
+	/ \tr \impl @ \ctor,
+	* \impl @ \mf Refresh $since r22
+);
+
+r27:
+* \impl @ \mf FileInfoPanel::Refresh @ \impl \u ShlReader $since r26;
+
+r28:
+/= test 6 ^ \conf release;
+
+r29:
+/ @ \impl \u YWindow $=
+(
+	/ @ \un \ns $=
+	(
+		+ \f \i IWidget* ConvertWidgetPtr(MUIContainer::WidgetMap::iterator),
+		+ \ft<typename _tIn> bool CheckVisibleChildren(_tIn, _tIn),
+	);
+	/ \impl @ \mf Frame::DrawContents ^ CheckVisibleChildren
+);
+
+r30:
+/ @ \impl \u YWindow $=
+(
+	+ \f PaintValidation(Renderer&, PaintEventArgs&&) @ \un \ns;
+	/ \impl @ \mf Frame::DrawContents ^ (ConvertWidgetPtr, CheckVisibleChildren)
+);
+
+r31:
+/ (\i \f ConvertWidgetPtr, \ft CheckVisibleChildren)
+	@ \un \ns @ \impl \u YWindow >> \h YUIContainer,
+(
+	+ \pre \decl @ \cl PaintEventArgs @ \h YRenderer,
+	+ \mf \vt void Paint(PaintEventArgs&&) @ \cl Renderer,
+	/ \inc \h YWidgetEvent -> YControl
+	/ \f void PaintValidation(Renderer&, PaintEventArgs&&)
+		@ \un \ns @ \impl \u YWindow -> \mf void Paint(PaintEventArgs&&)
+		@ \cl BufferedRenderer;
+);
+/ \tr \impl @ \mf Frame::DrawContents;
+
+r32:
+/= test 7 ^ \conf release;
+
+r33:
+/ \a \f ('Render*', '*alidat*', Update) @ \u YWidget >> \u YRenderer;
+/ \a \i \f (Render, RenderChild) @ \u YRenderer -> !\i;
+
+r34:
+/ @ \u YRenderer $=
+(
+	+ \mf \vt void Refresh(PaintContext&&) @ \cl (Renderer; BufferedRenderer);
+	/ \simp \impl @ \f Render ^ \mf Refersh
+);
+
+r35:
+/ @ \u YRenderer $=
+(
+	/ \mf \vt void BufferedRenderer::Paint(PaintEventArgs&&)
+		-> !\m \f bool PaintIntersection(PaintEventArgs&&) @ \ns Components;
+	- \mf Renderer::Paint
+);
+/ \tr \impl @ \mf Frame::DrawContents ^ PaintIntersection;
+
+r36:
+/= test 8 ^ \conf release;
+
+r37:
+/ @ \u YRenderer $=
+(
+	/ \f bool PaintIntersection(PaintEventArgs&&)
+		-> bool PaintIntersection(IWidget&, PaintContext&);
+	- \f void RenderChild(IWidget&, PaintEventArgs&&),
+	/ \impl @ \f void RenderChildPaintChild(IWidget&, PaintContext&&)
+)
+/ \tr \impl @ \mf Frame::DrawContents,
+/ \a RenderChild => PaintChild;
+
+r38-r39:
+/ @ \u YRenderer $=
+(
+	+ \mf \vt Rect Validate() @ \cl Renderer;
+	+ \mf \vt Rect Validate() @ \cl BufferedRenderer;
+	/ \impl @ \f Validate @ \ns Components
+);
+
+r40:
+/ @ \impl \u YRenderer $=
+(
+	/ \impl @ \mf Refresh @ \cl (Renderer, BufferedRenderer);
+	/ \simp \impl @ \f Render
+);
+
+r41-r42:
+/ @ \impl \u YRenderer $=
+(
+	/ \impl @ \mf BufferedRenderer::Validate;
+	/ \simp \impl @ \f Validate,
+	/ \simp \impl @ \mf BufferedRenderer::Refresh
+		^ \mf BufferedRenderer::Validate,
+);
 
 r43:
-/ \a 'ViewerType::SizeType' -> 'ListType::size_type' @ \u (TextList, Menu,
-	ListBox);
-- typedef ViewerType @ \cl ListBox;
+/ @ \u YRenderer $=
+(
+	/ \mf BufferedRenderer::ClearInvalidation
+		\mg -> \mf BufferedRendered::Validate;
+	- \mf Renderer::ClearInvalidation
+
+);
 
 r44:
-/ @ \h Viewer $=
-(
-	/ @ \clt GSequenceViewer $=
-	(
-		/ typedef _tSize SizeType
-			-> typedef typename _tContainer::size_type SizeType,
-		/ typedef _tDifference DifferenceType
-			-> typedef typename _tContainer::difference_type DifferenceType
-	);
-	/ \ft<class _tContainer, typename _tSize = typename _tContainer::size_type,
-		typename _tDifference = typename _tContainer::difference_type>
-		GSequenceViewer -> \ft<class _tContainer> GSequenceViewer
-);
+/= test 9 ^ \conf release;
 
 r45:
-/ \impl @ (\ctor, \mf CheckConfirmed) @ \cl TextList;
+/= test 10;
 
-r46-r50:
-/= test 4,
-/ \impl @ (\ctor, \mf AdjustBottomOffset) @ \cl TextList;
+r46:
+/ \simp \mf Renderer::Refresh @ \impl \u YRenderer;
 
-r51:
-/= test 5 ^ \conf release;
-
-r52-r53:
-* \impl @ \ctor @ \cl TextList $since r45;
-
-r54:
-* \impl @ \mf AdjustBottomOffset @ \cl TextList $since r50;
-
-r55:
-/ @ \cl TextList $=
+r47:
+/ @ \u YRenderer $=
 (
-	/ \ac @ public \mf AdjustTopOffset, AdjustBottomOffset -> private,
-	+ private \mf AdjustViewLength;
-	/ \simp \impl @ (\ctor, \mf AdjustBottomOffset) ^ \mf AdjustViewLength
+	/ \f bool PaintIntersection(IWidget&, PaintContext&)
+		 -> \f Rect PaintIntersection(IWidget&, PaintEventArgs&&);
+	/ \tr \f void PaintChild(IWidget&, PaintContext&&)
+		-> \f bool PaintChild(IWidget&, PaintEventArgs&&),
+	/ \f void PaintChild(IWidget&, const PaintContext&)
+		-> \f bool PaintChild(IWidget&, const PaintContext&)
 );
 
-r56-r60:
-/ \impl @ (\ctor, \mf (AdjustTopOffset, PaintItems, LocateThumbPosition,
-	UpdateView));
+r48:
+/= test 11 ^ \conf release;
 
-r61:
-/= test 6 ^ \conf release;
+r49-r54:
+/ @ \impl \u ShlReader $=
+(
+	/ \impl @ \mf void HexReaderManager::Activate(),
+	+ \mf void HexReaderManager::UpdateInfo();
+	/ \impl @ \ctor @ \cl HexReaderManager @ \impl \u ShlReader
+);
+/ \a lblCreateTime => lblAccessTime;
+
+r55:
+/= test 11 ^ \conf release;
 
 
 $DOING:
+Add files @ C::B;
+r54
 
 $relative_process:
-2011-11-22:
--21.6d;
-//Mercurial rev1-rev133: r6271;
+2011-11-26:
+-19.1d;
+//Mercurial rev1-rev134: r6332;
 
 / ...
 
 
 $NEXT_TODO:
-b263-b384:
+b264-b384:
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 + partial invalidation support @ %(TextList::PrintItems, HexViewArea::Refresh);
@@ -410,7 +597,7 @@ b263-b384:
 
 b385-b1089:
 + key accelerators;
-+ abstract of hit test;
++ abstraction of rectangular hit test;
 / fully \impl @ \cl Path;
 + clipping areas;
 + fully \impl styles @ widgets;
@@ -492,6 +679,22 @@ $ellipse_debug_assertion;
 
 $now
 (
+	/ @ "GUI" $=
+	(
+		* "event %Confirmed checking fail for items out of initial view scope"
+			$since b262,
+		/ $design "rearranged rendering and updating implementation"
+	),
+	* $design "minor unexpected name pollution" @ "header %algorithm.hpp"
+		@ "library %YStandardEx" $since b254,
+	/ "shells test example" $=
+	(
+		+ "infomation labels" @ "hexadecimal browser"
+	)
+),
+
+b262
+(
 	/ @ "class %TextList" @ "GUI" $=
 	(
 		* "wrong bottom adjustment of alignment" $since b261;
@@ -505,7 +708,7 @@ b261
 	(
 		/ $design "simplified interface" @ "class %ATrack";
 		* "wrong alignment" @ "listbox when alignment is non-zero value \
-			and scrolling down to end" $since b193,
+			and scrolling down to end" $since b193
 	)
 ),
 
@@ -2000,12 +2203,40 @@ b1_b131
 	//	StartTicks();
 	}*/
 /*
+// ShlReader::OnActivated;
+
+			FetchEvent<TouchDown>(mnu) += [&, this](TouchEventArgs&&){
+				char strt[60];
+				auto& dsk(this->GetDesktopDown());
+				auto& g(dsk.GetScreen());
+				using namespace ColorSpace;
+				{
+					const Rect r(0, 172, 72, 20);
+					auto& evt(FetchEvent<TouchDown>(mnu));
+					u32 t(evt.GetSize());
+
+					siprintf(strt, "n=%u", t);
+					FillRect(g, r, Blue);
+					DrawText(g, r, strt, Padding(), White);
+				}
+				WaitForInput();
+			};
+			mhMain += *new Menu(Rect::Empty, GenerateList("a"), 1u);
+			mhMain[1u] += make_pair(1u, &mhMain[2u]);
+*/
+/*
+	auto cc(Reader.GetColor());
+	Reader.SetColor(Color((cc & (15 << 5)) >> 2, (cc & 29) << 3,
+		(cc&(31 << 10)) >> 7));
+*/
+/*
 	YDebugBegin();
 	iprintf("time : %u ticks\n", GetTicks());
 	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
 		"W : %u;\nL : %lx;\n", msg.GetMessageID(), msg.GetPriority(),
 		msg.GetObjectID(), msg.GetWParam(), msg.GetLParam());
-	WaitForInput();*/
+	WaitForInput();
+*/
 /*
 		InitYSConsole();
 		iprintf("%d,(%d,%d)\n",msg.GetWParam(),

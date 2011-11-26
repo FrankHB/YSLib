@@ -11,12 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r1279;
+\version r1283;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 219 。
 \par 创建时间:
 	2011-06-20 08:59:56 +0800;
 \par 修改时间:
-	2011-11-11 12:24 +0800;
+	2011-11-25 21:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,10 +43,10 @@ ProgressBar::ProgressBar(const Rect& r, u16 m)
 }
 
 Rect
-ProgressBar::Refresh(const PaintContext& e)
+ProgressBar::Refresh(const PaintContext& pc)
 {
-	const auto& g(e.Target);
-	const auto& pt(e.Location);
+	const auto& g(pc.Target);
+	const auto& pt(pc.Location);
 
 	if(!IsTransparent())
 	{
@@ -56,7 +57,7 @@ ProgressBar::Refresh(const PaintContext& e)
 		FillRect(g, Point(pt.X + 1, pt.Y + 1),
 			Size(value * (GetWidth() - 2) / max_value, GetHeight() - 2),
 			ForeColor);
-	return Rect(e.Location, GetSizeOf(*this));
+	return Rect(pc.Location, GetSizeOf(*this));
 }
 
 YSL_END_NAMESPACE(Components)
