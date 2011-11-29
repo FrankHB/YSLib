@@ -11,13 +11,13 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4261;
+\version r4264;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-11-26 15:37 +0800;
+	2011-11-28 19:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -177,7 +177,8 @@ Frame::DrawContents()
 					Rect());
 
 				GetRenderer().GetInvalidatedArea(e.ClipArea);
-				if(PaintIntersection(wgt, std::move(e)))
+				PaintIntersection(wgt, std::move(e));
+				if(!e.ClipArea.IsUnstrictlyEmpty())
 					GetRenderer().CommitInvalidation(e.ClipArea);
 			}
 		}

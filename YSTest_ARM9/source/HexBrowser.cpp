@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1381;
+\version r1392;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2011-11-25 21:19 +0800;
+	2011-11-27 16:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,9 +68,17 @@ HexViewArea::Load(const_path_t path)
 {
 	Reset();
 	Source.Open(path);
-	VerticalScrollBar.SetMaxValue((Source.GetSize() + ItemPerLine - 1)
+
+	const auto n_total_line((Source.GetSize() + ItemPerLine - 1)
 		/ ItemPerLine);
-	VerticalScrollBar.SetLargeDelta(GetItemNum());
+
+	if(n_total_line > GetItemNum())
+	{
+		VerticalScrollBar.SetMaxValue(n_total_line - GetItemNum());
+		VerticalScrollBar.SetLargeDelta(GetItemNum());
+	}
+	else
+		SetVisibleOf(VerticalScrollBar, false);
 }
 
 void

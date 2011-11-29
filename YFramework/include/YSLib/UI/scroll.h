@@ -11,12 +11,12 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3325;
+\version r3335;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-11-20 21:57 +0800;
+	2011-11-27 21:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,7 @@
 
 #include "uicontx.h"
 #include "button.h"
-#include <ystdex/rational.hpp>
+//#include <ystdex/rational.hpp>
 //#include "../Core/yres.h"
 //#include "ystyle.h"
 
@@ -54,10 +54,10 @@ typedef enum class
 
 //! \brief 滚动事件参数类。
 struct ScrollEventArgs : public UIEventArgs,
-	public GMValueEventArgs<ystdex::fixed_point<u32, 16>>
+	public GMValueEventArgs<float>
 {
 public:
-	typedef GMValueEventArgs<ystdex::fixed_point<u32, 16>> MEventArgs;
+	typedef GMValueEventArgs<float> MEventArgs;
 	typedef MEventArgs::ValueType ValueType;
 
 	ScrollCategory Type; //滚动事件类型。
@@ -138,6 +138,8 @@ public:
 	DefMutableEventGetter(HScrollEvent, Scroll, Scroll) //!< 滚动事件。
 	DefGetter(SDst, MinThumbLength, min_thumb_length)
 	DeclIEntry(Orientation GetOrientation() const) //!< 取轨道方向。
+	DefGetter(SDst, ScrollableLength, GetTrackLength() - GetThumbLength()) \
+		//取可滚动区域长度。
 	DefGetter(SDst, ThumbLength, SelectFrom(GetSizeOf(Thumb),
 		IsHorizontal())) //!< 取轨道方向上的滑块长度。
 	DefGetter(SDst, ThumbPosition,
@@ -186,10 +188,9 @@ public:
 protected:
 	/*!
 	\brief 检查轨道方向指定位置所在的区域。
-	\note 内部断言检查。
 	*/
 	Area
-	CheckArea(SDst) const;
+	CheckArea(SPos) const;
 
 public:
 	/*!

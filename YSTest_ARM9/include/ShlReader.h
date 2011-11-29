@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1590;
+\version r1593;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2011-11-26 19:51 +0800;
+	2011-11-28 15:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,7 +74,7 @@ public:
 	Refresh(const PaintContext&);
 
 	void
-	UpdateData();
+	UpdateData(DualScreenReader&);
 };
 
 
@@ -111,8 +111,8 @@ class TextReaderManager : public ReaderManager
 {
 public:
 	DualScreenReader Reader;
-	ReaderBox pnlReader;
-	TextInfoBox pnlFileInfo;
+	ReaderBox boxReader;
+	TextInfoBox boxTextInfo;
 	TextFile* pTextFile;
 	MenuHost mhMain;
 

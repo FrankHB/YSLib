@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3391; *build 263 rev 55;
+\version r3391; *build 264 rev 54;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-11-26 20:47 +0800;
+	2011-11-29 08:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -327,273 +327,188 @@ $using:
 
 
 $DONE:
-r1-r2:
-/= test 0;
-
-r3:
-/ @ \u Shells $=
-(
-	/ \cl (FileInfoPanel, TextReaderManager) @ \cl ShlReader @ \ns YReader
-		>> \ns YReader;
-	+ \cl ReaderManager;
-	+ \cl (TextReaderManager, HexReaderManager),
-	/ \a \s \dat \m @ \cl ShlReader >> \cl ReaderManager;
-	/ \a \dat \m \exc (hUp, hDn) @ \cl ShlReader >> (TextReaderManager
-		| HexReaderManager),
-	/ private \mf (ExcuteReadingCommand, ShowMenu, OnClick, OnKeyDown)
-		@ \cl ShlReader >> \cl TextReaderManager;
-	+ private \m unique_ptr<ReaderManager> pManager @ \cl ShlReader;
-	/ \tr \impl @ \cl (ShlReader, TextReaderManager, HexReaderManager),
-	/ \tr \impl @ \ctor @ \cl ShlExplorer
-);
-
-r4:
-* \impl @ \ctor @ \cl TextReaderManager @ \impl \u Shells $since r3;
-
-r5:
-/ \impl @ \mf (OnActivated, OnDeactivated) @ \cl ShlReader;
-
-r6-11:
-/= test 1;
-
-r12:
-* "event %Confirmed checking fail for items out of initial view scope"
-	$since b262 $=
-(
-	* \impl @ \mf TextList::CheckConfirmed $since b262
-);
-
-r13:
-/= test 2 ^ \conf release;
-
-r14-r15:
-* unexpected \n pollution '::nullptr' @ \h Algroithm @ \lib YStandardEx
-	$since b254 $=
-(
-	- 'ifdef \mac YCL_HAS_BUILTIN_NULLPTR ...'
-),
-/= test 3; //found g++ 4.6 'internal compiler error: Segmentation fault'
-	for variadic templates;
-
-r16:
-/ \impl @ \mf ShlReader::OnActivated @ \impl \u Shells;
-
-r17:
-/ \impl @ \mf MenuHost::Clear @ \impl \u Menu ^ ydelete ~ delete;
-/ @ \impl \u Shells $=
-(
-	/ \tr \impl @ \mf ShlExplorer::OnActivated,
-	/ \tr \impl @ \mf TextReaderManager::Activate
-);
-
-r18:
-/ @ \cl TextReaderManager @ \impl \u Shells $=
-(
-	/ \impl @ \mf Activate,
-	/ \tr \impl @ \ctor
-);
-
-r19:
-/ \a sgn => FetchSign,
-/ \a sgnInterval -> FetchSignFromInterval,
-+ \em \ns @ \h Shell_DS,
-+ \u ShlReader["ShlReader.h", "ShlReader.cpp"] @ \proj YSTest_ARM9;
-/ \cl (ShlReader, HexReaderManager, TextReaderManager, FileInfoPanel,
-	ReaderPanel) @ \u Shells >> \u ShlReader;
-/ \tr \inc \h @ \u (Shells, ShlReader, Main) @ \proj YSTest_ARM9;
-
-r20:
-/= test 4 ^ \conf release;
-
-r21:
-/ @ \u ShlReader $=
-(
-	/ \cl ReaderPanel => ReaderBox,
-	/ \cl FileInfoPanel => TextInfoBox,
-	+ \cl FileInfoPanel;
-	+ \m FileInfoPanel pnlFileInfo @ \cl HexReaderManager;
-	/ \impl @ (\ctor, \mf (Activate, Deactivate)) @ \cl HexReaderManager
-);
-
-r22:
+r1:
+/ \as \str @ \ft CallEvent @ \h YControl,
 / @ \impl \u ShlReader $=
-(
-	/ \impl @ \ctor @ \cl FileInfoPanel,
-	/ \impl @ \mf HexReaderManager::Activate
-);
-
-r23-r25:
-/= test 5;
-
-r26:
-/ @ \cl FileInfoPanel
-(
-	- \m btnClose;
-	/ \tr \impl @ \ctor,
-	* \impl @ \mf Refresh $since r22
-);
-
-r27:
-* \impl @ \mf FileInfoPanel::Refresh @ \impl \u ShlReader $since r26;
-
-r28:
-/= test 6 ^ \conf release;
-
-r29:
-/ @ \impl \u YWindow $=
 (
 	/ @ \un \ns $=
 	(
-		+ \f \i IWidget* ConvertWidgetPtr(MUIContainer::WidgetMap::iterator),
-		+ \ft<typename _tIn> bool CheckVisibleChildren(_tIn, _tIn),
+		+ \o yconstexpr const char* DefaultTimeFormat("%Y-%m-%d %H:%M:%S");
+		+ \f const char* TranslateTime(const std::tm&,
+			const char* = DefaultTimeFormat);
+		+ \f const char* TranslateTime(const std::time_t&,
+			const char* = DefaultTimeFormat) ythrow(GeneralEvent)
 	);
-	/ \impl @ \mf Frame::DrawContents ^ CheckVisibleChildren
+	/ \impl @ \mf HexReaderManager::Activate ^ TranslateISO8601
 );
 
-r30:
-/ @ \impl \u YWindow $=
+r2:
+/= test 1 ^ \conf release;
+
+r3-r4:
++ \inc \h <cstddef>, <cstdint>, <climits>, <cmath> @ \h YAdatpor,
+/= test 2;
+
+r5:
+* wrong value caculation when minimum thumb length reached @ track
+	$since b193 $=
 (
-	+ \f PaintValidation(Renderer&, PaintEventArgs&&) @ \un \ns;
-	/ \impl @ \mf Frame::DrawContents ^ (ConvertWidgetPtr, CheckVisibleChildren)
+	/ \impl @ \mf (SetValue, SetLargeDelta, SetThumbPosition) @ \cl ATrack
 );
 
-r31:
-/ (\i \f ConvertWidgetPtr, \ft CheckVisibleChildren)
-	@ \un \ns @ \impl \u YWindow >> \h YUIContainer,
+r6:
+* scrolling overflow of value greater than about 0x1998 $since b260 $=
 (
-	+ \pre \decl @ \cl PaintEventArgs @ \h YRenderer,
-	+ \mf \vt void Paint(PaintEventArgs&&) @ \cl Renderer,
-	/ \inc \h YWidgetEvent -> YControl
-	/ \f void PaintValidation(Renderer&, PaintEventArgs&&)
-		@ \un \ns @ \impl \u YWindow -> \mf void Paint(PaintEventArgs&&)
-		@ \cl BufferedRenderer;
+	/ @ \h Scroll $=
+	(
+		/ \a ystdex::fixed_point<u32, 16> -> float;
+		- \inc \h Rational
+	)
+);
+
+r7-r8:
+/= test 3;
+
+r9:
+/ \impl @ \mf (SetThumbLength, SetThumbPosition, SetValue, SetLargeDelta,
+	LocateThumb) @ \cl ATrack;
+/ \tr \impl @ \ctor @ \cl ListBox,
+/ \tr \impl @ \mf HexViewArea::Load @ \impl \u HexBrowser;
+
+r10:
+* \impl @ \mf (SetThumbPosition, SetValue) @ \cl ATrack $since r9;
+
+r11:
+* \impl @ \mf HexViewArea::Load @ \impl \u HexBrowser $since r9;
+
+r12:
+/= test 4 ^ \conf release;
+
+r13:
+/= test 5;
+
+r14:
+/ @ \cl ATrack $=
+(
+	+ \mf SDst GetScrollableLength() const;
+	+ / \simp \impl @ \mf (SetThumbPosition, SetValue, SetLargeDelta,
+		LocateThumb) ^ GetScrollableLength
+);
+
+r15-r16:
+/= test 6;
+
+r17:
+/ @ \cl ATrack $=
+(
+	/ \mf Area CheckArea(SDst) const -> Area CheckArea(SPos) const,
+	/ \impl @ \ctor
+);
+
+r18-r25:
+/= test 7;
+
+r26:
+* wrong touch coordinate for event %TouchHeld when touching widget changed
+	$since b219 $=
+(
+	/ \impl @ \mf GUIShell::ResponseTouchBase
+);
+
+r27-r28:
+/= test 8;
+
+r29-r31:
+/ \impl @ \mf GUIShell::ResponseTouchBase,
+/= test 9;
+
+r32-r46:
+/= test 10,
+* touch (helding, dragging) \impl $since r26
+(
+	/ \impl @ \mf GUIShell::ResponseTouchBase;
+	/ \impl @ \f (OnTouchHeld, OnTouchMove, OnTouchMove_Dragging) @ \u Control
+);
+* wrong behavior when the corresponding relative touch coordinate component
+	below zero on dragging @ \cl ATrack $since b219 $=
+(
+	/ \impl @ \ctor @ \cl ATrack
+);
+
+r47:
+/= test 11 ^ \conf release;
+
+r48:
+/ @ \un \ns @ \impl \u ShlReader $=
+(
+	+ \f \i snftime,
+	/ \tr @ \o DefaultTimeFormat;
+	/ \tr \impl @ \f TranslateTime#1
+);
+
+r49:
+/ @ \u ShlReader $=
+(
+	* \as \str @ \mf FileInfoPanel::Refresh $since b263,
+	/ @ \cl TextReaderManager
+	(
+		/ \m pnlReader => boxReader,
+		/ \m pnlFileInfo => boxTextInfo
+	)
+);
+
+r50:
+* file infomation box cannot be shown @ \u ShlReader $since b263 $=
+(
+	/ \mf void UpdateData() @ \cl TextInfoBox
+		-> \mf void UpdateData(DualScreenReader&);
+	/ \tr \impl @ \mf TextReaderManager::ExcuteReadingCommand
+);
+
+r51:
+/= test 12 ^ \conf release;
+
+r52:
+(
+	/ \a IsEmptyStrict => IsUnstrictlyEmpty;
+	/ \tr \impl @ \f PaintIntersection @ \impl \u YRenderer;
+),
++ \mf yconstexprf DefPredicate(LineSegment, !((Width == 0) ^ (Height == 0)))
+	@ \cl Size @ \h YGDIBase;
+
+r53:
+/ @ \u YRenderer $=
+(
+	/ \f bool PaintIntersection(IWidget&, PaintEventArgs&&)
+		-> void PaintIntersection(IWidget&, PaintEventArgs&&);
+	/ \tr \f bool PaintChild(IWidget&, PaintEventArgs&&)
+		-> void PaintChild(IWidget&, PaintEventArgs&&),
+	/ \tr \f bool PaintChild(IWidget&, const PaintContext&)
+		-> void PaintChild(IWidget&, const PaintContext&)
 );
 / \tr \impl @ \mf Frame::DrawContents;
 
-r32:
-/= test 7 ^ \conf release;
-
-r33:
-/ \a \f ('Render*', '*alidat*', Update) @ \u YWidget >> \u YRenderer;
-/ \a \i \f (Render, RenderChild) @ \u YRenderer -> !\i;
-
-r34:
-/ @ \u YRenderer $=
-(
-	+ \mf \vt void Refresh(PaintContext&&) @ \cl (Renderer; BufferedRenderer);
-	/ \simp \impl @ \f Render ^ \mf Refersh
-);
-
-r35:
-/ @ \u YRenderer $=
-(
-	/ \mf \vt void BufferedRenderer::Paint(PaintEventArgs&&)
-		-> !\m \f bool PaintIntersection(PaintEventArgs&&) @ \ns Components;
-	- \mf Renderer::Paint
-);
-/ \tr \impl @ \mf Frame::DrawContents ^ PaintIntersection;
-
-r36:
-/= test 8 ^ \conf release;
-
-r37:
-/ @ \u YRenderer $=
-(
-	/ \f bool PaintIntersection(PaintEventArgs&&)
-		-> bool PaintIntersection(IWidget&, PaintContext&);
-	- \f void RenderChild(IWidget&, PaintEventArgs&&),
-	/ \impl @ \f void RenderChildPaintChild(IWidget&, PaintContext&&)
-)
-/ \tr \impl @ \mf Frame::DrawContents,
-/ \a RenderChild => PaintChild;
-
-r38-r39:
-/ @ \u YRenderer $=
-(
-	+ \mf \vt Rect Validate() @ \cl Renderer;
-	+ \mf \vt Rect Validate() @ \cl BufferedRenderer;
-	/ \impl @ \f Validate @ \ns Components
-);
-
-r40:
-/ @ \impl \u YRenderer $=
-(
-	/ \impl @ \mf Refresh @ \cl (Renderer, BufferedRenderer);
-	/ \simp \impl @ \f Render
-);
-
-r41-r42:
-/ @ \impl \u YRenderer $=
-(
-	/ \impl @ \mf BufferedRenderer::Validate;
-	/ \simp \impl @ \f Validate,
-	/ \simp \impl @ \mf BufferedRenderer::Refresh
-		^ \mf BufferedRenderer::Validate,
-);
-
-r43:
-/ @ \u YRenderer $=
-(
-	/ \mf BufferedRenderer::ClearInvalidation
-		\mg -> \mf BufferedRendered::Validate;
-	- \mf Renderer::ClearInvalidation
-
-);
-
-r44:
-/= test 9 ^ \conf release;
-
-r45:
-/= test 10;
-
-r46:
-/ \simp \mf Renderer::Refresh @ \impl \u YRenderer;
-
-r47:
-/ @ \u YRenderer $=
-(
-	/ \f bool PaintIntersection(IWidget&, PaintContext&)
-		 -> \f Rect PaintIntersection(IWidget&, PaintEventArgs&&);
-	/ \tr \f void PaintChild(IWidget&, PaintContext&&)
-		-> \f bool PaintChild(IWidget&, PaintEventArgs&&),
-	/ \f void PaintChild(IWidget&, const PaintContext&)
-		-> \f bool PaintChild(IWidget&, const PaintContext&)
-);
-
-r48:
-/= test 11 ^ \conf release;
-
-r49-r54:
-/ @ \impl \u ShlReader $=
-(
-	/ \impl @ \mf void HexReaderManager::Activate(),
-	+ \mf void HexReaderManager::UpdateInfo();
-	/ \impl @ \ctor @ \cl HexReaderManager @ \impl \u ShlReader
-);
-/ \a lblCreateTime => lblAccessTime;
-
-r55:
-/= test 11 ^ \conf release;
+r54:
+/= test 13 ^ \conf release;
 
 
 $DOING:
-Add files @ C::B;
-r54
 
 $relative_process:
-2011-11-26:
+2011-11-29:
 -19.1d;
-//Mercurial rev1-rev134: r6332;
+//Mercurial rev1-rev135: r6387;
 
 / ...
 
 
 $NEXT_TODO:
-b264-b384:
+b265-b384:
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 + partial invalidation support @ %(TextList::PrintItems, HexViewArea::Refresh);
 + dynamic character mapper loader for \u CharacterMapping;
++ 64-bit support for ystdex::fixed_point;
 
 b385-b1089:
 + key accelerators;
@@ -654,6 +569,7 @@ $KNOWN_ISSUE:
 // obselete all resolved;
 * "corrupted loading or fatal errors on loading like font file with embedded \
 	bitmap glyph like simson.ttc" $since b185;
+* "<cmath> cannot use 'std::*' names" @ "libstdc++ with g++4.6";
 
 
 $HISTORY:
@@ -679,6 +595,42 @@ $ellipse_debug_assertion;
 
 $now
 (
+	/ "shells test example" $=
+	(
+		/ "format of time strings showed by infomation labels"
+			@ "hexadecimal browser" ^ "custom functions" 
+			~ "function %std::ctime",
+		* "file infomation box cannot be shown" @ "text reader" $since b263
+	),
+	/ GUI $=
+	(
+		/ @ "class %ATrack"
+		(
+			* "scrolling overflow of value greater than about 0x1998"
+				$since b260 $=
+			(
+				/ "value type" ^ "float" ~ "ystdex::fixed_point<u32, 16>"
+			),
+			(
+				/ "value mapping for scrollable length" ~ "total value range";
+				* "wrong value calculation when minimum thumb length reached"
+					@ "class %ATrack" $since b193
+			),
+			/ "GUI shell" ^ "temporary argument" @ "event %Enter",
+			(
+				* "wrong touch coordinate for event %TouchHeld when touching \
+					widget changed" $since b219;
+				* "wrong behavior when the corresponding relative touch \
+					coordinate component below zero on dragging"
+					@ "class %ATrack" $since b219
+			),
+			/ $design "minor renderer interface"
+		)
+	)
+),
+
+b263
+(
 	/ @ "GUI" $=
 	(
 		* "event %Confirmed checking fail for items out of initial view scope"
@@ -687,7 +639,7 @@ $now
 	),
 	* $design "minor unexpected name pollution" @ "header %algorithm.hpp"
 		@ "library %YStandardEx" $since b254,
-	/ "shells test example" $=
+	/ @ "hexadecimal browser" @ "shells test example" $=
 	(
 		+ "infomation labels" @ "hexadecimal browser"
 	)

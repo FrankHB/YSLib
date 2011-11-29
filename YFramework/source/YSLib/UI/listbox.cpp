@@ -11,13 +11,13 @@
 /*!	\file listbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3723;
+\version r3727;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-11-25 23:12 +0800;
+	2011-11-27 15:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,10 +59,14 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 
 			view_arena.Width = GetWidth() - defMinScrollBarWidth;
 			SetSizeOf(TextListBox, FixLayout(view_arena));
-			VerticalScrollBar.SetSmallDelta(TextListBox.GetItemHeight());
-			VerticalScrollBar.SetMaxValue(view_arena.Height);
-			VerticalScrollBar.SetLargeDelta(TextListBox.GetHeight());
-			VerticalScrollBar.SetValue(TextListBox.GetViewPosition());
+			if(view_arena.Height > TextListBox.GetHeight())
+			{
+				VerticalScrollBar.SetSmallDelta(TextListBox.GetItemHeight());
+				VerticalScrollBar.SetMaxValue(view_arena.Height
+					- TextListBox.GetHeight());
+				VerticalScrollBar.SetLargeDelta(TextListBox.GetHeight());
+				VerticalScrollBar.SetValue(TextListBox.GetViewPosition());
+			}
 		}
 	};
 	//刷新文本状态，防止第一次绘制时无法正确决定是否需要滚动条。

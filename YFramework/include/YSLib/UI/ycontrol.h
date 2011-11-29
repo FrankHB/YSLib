@@ -11,12 +11,12 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5575;
+\version r5576;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-11-11 11:40 +0800;
+	2011-11-26 22:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -190,7 +190,7 @@ CallEvent(IWidget& wgt, _tEventArgs&& e)
 {
 	static_assert(std::is_same<typename std::remove_reference<_tEventArgs>
 		::type, typename EventTypeMapping<_vID>::HandlerType::EventArgsType>
-		::value, "Invalid event argument type found @ CallEvent #1;");
+		::value, "Invalid event argument type found @ CallEvent;");
 
 	try
 	{

@@ -16,12 +16,12 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2252;
+\version r2256;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2011-10-25 15:02 +0800;
+	2011-11-27 12:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,8 +41,14 @@
 //包含 YCLib 公用部分。
 #include <YCLib/ycommon.h>
 
+//包含 CHRLib 。
+#include <CHRLib/chrproc.h>
 
-#include <CHRLib/chrproc.h> //包含 CHRLib 。
+// 确保包含 C 标准库必要部分。
+#include <cstddef>
+#include <cstdint>
+#include <climits>
+#include <cmath>
 
 // !\brief YSLib 命名空间。
 YSL_BEGIN

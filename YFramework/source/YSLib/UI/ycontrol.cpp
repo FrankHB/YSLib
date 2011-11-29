@@ -11,12 +11,12 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4598;
+\version r4606;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2011-11-11 13:12 +0800;
+	2011-11-28 13:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -79,12 +79,17 @@ OnTouchHeld(TouchEventArgs&& e)
 	{
 		auto& shl(FetchGUIShell());
 
-		if(shl.DraggingOffset == Vec::Invalid)
-			shl.DraggingOffset = GetLocationOf(e.GetSender())
-				- shl.ControlLocation;
-		else
-			CallEvent<TouchMove>(e.GetSender(), e);
-		shl.LastControlLocation = shl.ControlLocation;
+		if(shl.GetTouchDownPtr())
+		{
+			auto& wgt(*shl.GetTouchDownPtr());
+
+			if(shl.DraggingOffset == Vec::Invalid)
+				shl.DraggingOffset = GetLocationOf(wgt)
+					- shl.ControlLocation;
+			else
+				CallEvent<TouchMove>(wgt, e);
+			shl.LastControlLocation = shl.ControlLocation;
+		}
 	}
 }
 
@@ -95,8 +100,8 @@ OnTouchMove(TouchEventArgs&& e)
 	{
 		auto& shl(FetchGUIShell());
 
-		if(shl.RepeatHeld(shl.TouchHeldState, 240, 60))
-			CallEvent<TouchDown>(e.GetSender(), e);
+		if(shl.GetTouchDownPtr() && shl.RepeatHeld(shl.TouchHeldState, 240, 60))
+			CallEvent<TouchDown>(*shl.GetTouchDownPtr(), e);
 	}
 }
 
@@ -106,16 +111,20 @@ OnTouchMove_Dragging(TouchEventArgs&& e)
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
 		auto& shl(FetchGUIShell());
-		auto& wgt(e.GetSender());
 
-	// TODO: analysis buffered coordinate delayed painting bug;
-	//	if(hShl->LastControlLocation != hShl->ControlLocation)
-	//	{
-	// TODO: merge state to make a more efficient implementation;
-		Invalidate(wgt);
-		SetLocationOf(wgt, shl.LastControlLocation + shl.DraggingOffset);
-		Invalidate(wgt);
-	//	}
+		if(shl.GetTouchDownPtr())
+		{
+			auto& wgt(*shl.GetTouchDownPtr());
+
+		// TODO: analysis buffered coordinate delayed painting bug;
+		//	if(hShl->LastControlLocation != hShl->ControlLocation)
+		//	{
+		// TODO: merge state to make a more efficient implementation;
+			Invalidate(wgt);
+			SetLocationOf(wgt, shl.LastControlLocation + shl.DraggingOffset);
+			Invalidate(wgt);
+		//	}
+		}
 	}
 }
 

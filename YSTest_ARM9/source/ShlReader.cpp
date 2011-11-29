@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2529;
+\version r2561;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2011-11-26 20:46 +0800;
+	2011-11-28 15:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -143,14 +143,14 @@ TextInfoBox::Refresh(const PaintContext& pc)
 }
 
 void
-TextInfoBox::UpdateData()
+TextInfoBox::UpdateData(DualScreenReader& reader)
 {
-	char str[80];
-	auto& Reader(dynamic_cast<TextReaderManager&>(Shell).Reader);
+	char str[20];
 
-	siprintf(str, "Encoding: %d;", Reader.GetEncoding());
+	siprintf(str, "Encoding: %d;", reader.GetEncoding());
 	lblInfo.Text = str;
 }
+
 
 FileInfoPanel::FileInfoPanel()
 	: Panel(Rect::FullScreen),
@@ -175,7 +175,7 @@ FileInfoPanel::Refresh(const PaintContext& pc)
 	{
 		const auto p(i->second);
 
-		YAssert(p, "Null widget pointer found @ Frame::DrawContents");
+		YAssert(p, "Null widget pointer found @ FileInfoPanel::Refresh");
 
 		if(YSL_ Components::IsVisible(*p))
 			PaintChild(*p, pc);
@@ -193,8 +193,8 @@ ReaderManager::ReaderManager(ShlReader& shl)
 
 TextReaderManager::TextReaderManager(ShlReader& shl)
 	: ReaderManager(shl),
-	Reader(), pnlReader(Rect(0, 168, 256, 24), shl),
-	pnlFileInfo(Rect(32, 32, 128, 64), shl),
+	Reader(), boxReader(Rect(0, 168, 256, 24), shl),
+	boxTextInfo(Rect(32, 32, 128, 64), shl),
 	pTextFile(), mhMain(shl.GetDesktopDown())
 {
 	{
@@ -237,10 +237,10 @@ TextReaderManager::Activate()
 	);
 	dsk_up += Reader.AreaUp,
 	dsk_dn += Reader.AreaDown,
-	dsk_dn += pnlReader,
-	dsk_dn += pnlFileInfo;
-	SetVisibleOf(pnlReader, false),
-	SetVisibleOf(pnlFileInfo, false);
+	dsk_dn += boxReader,
+	dsk_dn += boxTextInfo;
+	SetVisibleOf(boxReader, false),
+	SetVisibleOf(boxTextInfo, false);
 	pTextFile = ynew TextFile(path.c_str());
 	Reader.LoadText(*pTextFile);
 }
@@ -263,8 +263,8 @@ TextReaderManager::Deactivate()
 	yunsequenced(
 		dsk_up -= Reader.AreaUp,
 		dsk_dn -= Reader.AreaDown,
-		dsk_up -= pnlReader,
-		dsk_dn -= pnlFileInfo
+		dsk_up -= boxReader,
+		dsk_dn -= boxTextInfo
 	);
 }
 
@@ -277,11 +277,11 @@ TextReaderManager::ExcuteReadingCommand(IndexEventArgs::IndexType idx)
 		CallStored<ShlExplorer>();
 		break;
 	case MR_Panel:
-		Show(pnlReader);
+		Show(boxReader);
 		break;
 	case MR_FileInfo:
-		pnlFileInfo.UpdateData();
-		Show(pnlFileInfo);
+		boxTextInfo.UpdateData(Reader);
+		Show(boxTextInfo);
 		break;
 	case MR_LineUp:
 		Reader.LineUp();
@@ -404,6 +404,44 @@ HexReaderManager::HexReaderManager(ShlReader& shl)
 	);
 }
 
+namespace
+{
+	yconstexpr const char* DefaultTimeFormat("%04u-%02u-%02u %02u:%02u:%02u");
+
+	inline void
+	snftime(char* buf, size_t n, const std::tm& tm,
+		const char* format = DefaultTimeFormat)
+	{
+		// FIXME: correct behavior for time with BC date(i.e. tm_year < -1900);
+		::sniprintf(buf, n, format, tm.tm_year + 1900,
+			tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	}
+
+	const char*
+	TranslateTime(const std::tm& tm, const char* format = DefaultTimeFormat)
+	{
+		static char str[80];
+
+		/*
+		NOTE: 'std::strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", &tm)'
+			is correct but make the object file too large;
+		*/
+		snftime(str, 80, tm, format);
+		return str;
+	}
+	const char*
+	TranslateTime(const std::time_t& t,
+		const char* format = DefaultTimeFormat) ythrow(GeneralEvent)
+	{
+		auto p(std::localtime(&t));
+
+		if(!p)
+			throw GeneralEvent("Get broken-down time object failed"
+				" @ TranslateTime#2;");
+		return TranslateTime(*p, format);
+	}
+}
+
 void
 HexReaderManager::Activate()
 {
@@ -415,12 +453,12 @@ HexReaderManager::Activate()
 
 	struct ::stat file_stat;
 
-	// NOTE: it is likely not work for current libnds/libfat implementation;
+	//在 DeSmuMe 上无效； iDSL + DSTT 上访问时间精确不到日，修改时间正常。
 	::stat(ReaderManager::path.c_str(), &file_stat);
 	pnlFileInfo.lblAccessTime.Text = u"访问时间："
-		+ Text::MBCSToString(std::ctime(&file_stat.st_atime));
+		+ Text::MBCSToString(TranslateTime(file_stat.st_atime));
 	pnlFileInfo.lblModifiedTime.Text = u"修改时间："
-		+ Text::MBCSToString(std::ctime(&file_stat.st_mtime));
+		+ Text::MBCSToString(TranslateTime(file_stat.st_mtime));
 	dsk_up += pnlFileInfo;
 	HexArea.Load(path.c_str());
 	HexArea.UpdateData(0);

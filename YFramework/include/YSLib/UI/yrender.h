@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1486;
+\version r1490;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-11-26 11:43 +0800;
+	2011-11-28 19:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -259,25 +259,24 @@ InvalidateCascade(IWidget&, const Rect&);
 若相交区域非空则调用 wgt 的 Paint 事件绘制 e.GetSender() 。
 调用结束后，e.ClipArea 被覆盖为相交区域边界。
 \param wgt 事件所有者。
-\return 是否相交。
 \note 所有者、订阅者可以和发送者不同，但应避免造成无限递归调用。
 \since build 263 。
 */
-bool
+void
 PaintIntersection(IWidget& wgt, PaintEventArgs&& e);
 
 /*
 \brief 调用指定子部件所有的 Paint 事件绘制参数指定的事件发送者。
 \since build 263 。
 */
-bool
+void
 PaintChild(IWidget&, PaintEventArgs&&);
 /*
 \brief 调用 Paint 事件绘制指定子部件。
 \note 使用指定子部件作为事件发送者并复制参数。
 \since build 263 。
 */
-bool
+void
 PaintChild(IWidget&, const PaintContext&);
 
 

@@ -11,12 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1656;
+\version r1698;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 206 。
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-11-04 19:22 +0800;
+	2011-11-28 19:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,12 +38,14 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Drawing)
 
 //前向声明。
-
 class Size;
 class Rect;
 
 
-//! \brief 屏幕二元组。
+/*!
+\brief 屏幕二元组。
+\since build 242 。
+*/
 PDefTH1(_type)
 class GBinaryGroup
 {
@@ -129,7 +132,8 @@ const GBinaryGroup<_type> GBinaryGroup<_type>::Invalid
 //屏幕二元组二元运算。
 
 /*!
-\brief 比较：相等关系。
+\brief 比较：屏幕二元组相等关系。
+\since build 242 。
 */
 PDefTH1(_type)
 yconstexprf bool
@@ -139,7 +143,8 @@ operator==(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 }
 
 /*!
-\brief 比较：不等关系。
+\brief 比较：屏幕二元组不等关系。
+\since build 242 。
 */
 PDefTH1(_type)
 yconstexprf bool
@@ -149,7 +154,8 @@ operator!=(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 }
 
 /*!
-\brief 加法。
+\brief 加法：屏幕二元组。
+\since build 242 。
 */
 PDefTH1(_type)
 yconstexprf GBinaryGroup<_type>
@@ -159,7 +165,8 @@ operator+(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 }
 
 /*!
-\brief 减法。
+\brief 减法：屏幕二元组。
+\since build 242 。
 */
 PDefTH1(_type)
 yconstexprf GBinaryGroup<_type>
@@ -169,7 +176,8 @@ operator-(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 }
 
 /*!
-\brief 数乘。
+\brief 数乘：屏幕二元组。
+\since build 242 。
 */
 PDefTH2(_type, _tScalar)
 yconstexprf GBinaryGroup<_type>
@@ -179,15 +187,25 @@ operator*(const GBinaryGroup<_type>& val, _tScalar l)
 }
 
 
-//! \brief 屏幕二维点（直角坐标表示）。
+/*!
+\brief 屏幕二维点（直角坐标表示）。
+\since build 242 。
+*/
 typedef GBinaryGroup<SPos> Point;
 
 
-//! \brief 屏幕二维向量（直角坐标表示）。
+/*!
+\brief 屏幕二维向量（直角坐标表示）。
+\since build 242 。
+*/
 typedef GBinaryGroup<SPos> Vec;
 
 
-class Size //!< 屏幕区域大小。
+/*!
+\brief 屏幕区域大小。
+\since build 161 。
+*/
+class Size
 {
 public:
 	SDst Width, Height; //!< 宽和高。
@@ -234,9 +252,15 @@ public:
 	*/
 	yconstexprf DefPredicate(Empty, Width == 0 && Height == 0)
 	/*!
-	\brief 判断是否为空。
+	\brief 判断是否为线段：长或宽中有且一个数值等于 0 。
+	\since build 264 。
 	*/
-	yconstexprf DefPredicate(EmptyStrict, Width == 0 || Height == 0)
+	yconstexprf DefPredicate(LineSegment, !((Width == 0) ^ (Height == 0)))
+	/*!
+	\brief 判断是否为不严格的空矩形区域：包括空矩形和线段。
+	\since build 264 。
+	*/
+	yconstexprf DefPredicate(UnstrictlyEmpty, Width == 0 || Height == 0)
 };
 
 yconstexprf
@@ -248,11 +272,20 @@ Size::Size(const Size& s)
 	: Width(s.Width), Height(s.Height)
 {}
 
+/*!
+\brief 比较：屏幕区域大小相等关系。
+\since build 161 。
+*/
 yconstexprf bool
 operator==(const Size& a, const Size& b)
 {
 	return a.Width == b.Width && a.Height == b.Height;
 }
+
+/*!
+\brief 比较：屏幕区域大小不等关系。
+\since build 161 。
+*/
 yconstexprf bool
 operator!=(const Size& a, const Size& b)
 {
@@ -260,6 +293,10 @@ operator!=(const Size& a, const Size& b)
 }
 
 
+/*!
+\brief 加法：使用屏幕二元组和屏幕区域大小分量对应相加构造屏幕二元组。
+\since build 242 。
+*/
 PDefTH1(_type)
 yconstexprf GBinaryGroup<_type>
 operator+(GBinaryGroup<_type> val, const Size& s)
@@ -271,6 +308,7 @@ operator+(GBinaryGroup<_type> val, const Size& s)
 /*!
 \brief 选择分量。
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
+\since build 242 。
 */
 PDefTH1(_type)
 yconstexprf SPos
@@ -281,6 +319,7 @@ SelectFrom(const GBinaryGroup<_type>& obj, bool is_1st)
 /*!
 \brief 选择分量。
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
+\since build 170 。
 */
 SDst
 SelectFrom(const Size&, bool = true);
@@ -288,6 +327,7 @@ SelectFrom(const Size&, bool = true);
 /*!
 \brief 选择分量引用。
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
+\since build 242 。
 */
 PDefTH1(_type)
 yconstexprf _type&
@@ -298,6 +338,7 @@ SelectRefFrom(GBinaryGroup<_type>& obj, bool is_1st = true)
 /*!
 \brief 选择分量引用。
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
+\since build 170 。
 */
 SDst&
 SelectRefFrom(Size&, bool = true);
@@ -305,6 +346,7 @@ SelectRefFrom(Size&, bool = true);
 /*!
 \brief 更新：其中的一个分量。
 \note 第三参数为 true 时更新第一分量，否则更新第二分量。
+\since build 242 。
 */
 PDefTH1(_type)
 void
@@ -318,12 +360,14 @@ UpdateTo(GBinaryGroup<_type>& obj, SPos val, bool is_1st = true)
 /*!
 \brief 更新：其中的一个分量。
 \note 第三参数为 true 时更新第一分量，否则更新第二分量。
+\since build 170 。
 */
 void
 UpdateTo(Size&, SDst, bool = true);
 
 /*!
 \brief 二元对象转置。
+\since build 242 。
 */
 template<class _tBinary>
 yconstexprf _tBinary
@@ -334,6 +378,7 @@ Transpose(_tBinary& obj)
 
 /*!
 \brief 取面积。
+\since build 231 。
 \todo 确定任意精度的返回值类型。
 */
 yconstexprf u32
@@ -344,8 +389,9 @@ GetAreaOf(const Size& s)
 
 
 /*!
-\brief 屏幕坐标系的正则矩形。
+\brief 屏幕正则矩形：表示屏幕矩形区域。
 \note 边平行于水平直线；使用左上点屏幕坐标、宽和高表示。
+\since build 161 。
 */
 class Rect : public Point, public Size
 {
@@ -484,11 +530,21 @@ Rect::operator=(const Size& s)
 	return *this;
 }
 
+/*!
+\brief 比较：屏幕正则矩形相等关系。
+\since build 161 。
+*/
 yconstexprf bool
 operator==(const Rect& a, const Rect& b)
 {
 	return a.GetPoint() == b.GetPoint() && a.GetSize() == b.GetSize();
 }
+
+/*!
+\brief 比较：屏幕正则矩形不等关系。
+\since build 161 。
+*/
+
 yconstexprf bool
 operator!=(const Rect& a, const Rect& b)
 {
@@ -497,7 +553,8 @@ operator!=(const Rect& a, const Rect& b)
 
 
 /*!
-\brief 构造屏幕正则矩形：使用正则矩形 r 和偏移向量 v 。
+\brief 加法：使用正则矩形 r 和偏移向量 v 构造屏幕正则矩形。
+\since build 161 。
 */
 yconstexprf Rect
 operator+(const Rect& r, const Vec& v)
@@ -506,7 +563,8 @@ operator+(const Rect& r, const Vec& v)
 }
 
 /*!
-\brief 构造屏幕正则矩形：使用正则矩形 r 和偏移向量的加法逆元 v 。
+\brief 减法：使用正则矩形 r 和偏移向量的加法逆元 v 构造屏幕正则矩形。
+\since build 161 。
 */
 yconstexprf Rect
 operator-(const Rect& r, const Vec& v)
@@ -518,6 +576,7 @@ operator-(const Rect& r, const Vec& v)
 /*!
 \brief 求两个屏幕正则矩形的交。
 \return 若相离为 Rect::Empty ，否则为包含于两个参数中的最大矩形。
+\since build 225 。
 */
 Rect
 Intersect(const Rect&, const Rect&);
@@ -525,12 +584,16 @@ Intersect(const Rect&, const Rect&);
 /*!
 \brief 求两个屏幕正则矩形的并。
 \return 包含两个参数中的最小矩形。
+\since build 225 。
 */
 Rect
 Unite(const Rect&, const Rect&);
 
 
-//! \brief 二维图形接口上下文。
+/*!
+\brief 二维图形接口上下文。
+\since build 164 。
+*/
 class Graphics
 {
 public:
@@ -593,7 +656,10 @@ Graphics::Graphics(const Graphics& g)
 {}
 
 
-//! \brief 逆时针旋转角度指示输出指向。
+/*!
+\brief 逆时针旋转角度指示输出指向。
+\since build 178 。
+*/
 typedef enum
 {
 	RDeg0 = 0,
@@ -602,7 +668,10 @@ typedef enum
 	RDeg270 = 3
 } Rotation;
 
-//! \brief 二元方向。
+/*!
+\brief 二元方向。
+\since build 170 。
+*/
 typedef enum
 {
 	Horizontal = 0,

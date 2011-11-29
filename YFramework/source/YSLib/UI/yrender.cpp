@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1472;
+\version r1483;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2011-11-26 15:38 +0800;
+	2011-11-28 19:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -147,29 +147,25 @@ InvalidateCascade(IWidget& wgt, const Rect& bounds)
 	}while((pWgt = FetchContainerPtr(*pWgt)));
 }
 
-bool
+void
 PaintIntersection(IWidget& wgt, PaintEventArgs&& e)
 {
 	e.ClipArea = Intersect(Rect(e.Location, GetSizeOf(e.GetSender())),
 		e.ClipArea);
-	if(!e.ClipArea.IsEmptyStrict())
-	{
+	if(!e.ClipArea.IsUnstrictlyEmpty())
 		CallEvent<Paint>(wgt, e);
-		return true;
-	}
-	return false;
 }
 
-bool
+void
 PaintChild(IWidget& wgt, PaintEventArgs&& e)
 {
 	e.Location += GetLocationOf(e.GetSender());
-	return PaintIntersection(wgt, std::move(e));
+	PaintIntersection(wgt, std::move(e));
 }
-bool
+void
 PaintChild(IWidget& wgt, const PaintContext& pc)
 {
-	return PaintChild(wgt, PaintEventArgs(wgt, pc));
+	PaintChild(wgt, PaintEventArgs(wgt, pc));
 }
 
 void

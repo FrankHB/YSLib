@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4005;
+\version r4038;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-11-25 23:12 +0800;
+	2011-11-28 12:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -97,6 +97,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 		FetchEvent<TouchMove>(*this) += OnTouchMove,
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
 			if(e.Strategy == RoutedEventArgs::Direct
+				&& &e.GetSender() == this
 				&& Rect(Point::Zero, GetSizeOf(*this)).Contains(e))
 			{
 				ScrollCategory t;
@@ -109,6 +110,8 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 				case OnNext:
 					t = ScrollCategory::LargeIncrement;
 					break;
+				case None:
+					return;
 				default:
 					t = ScrollCategory::EndScroll;
 				}
@@ -127,7 +130,7 @@ ATrack::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 void
 ATrack::SetThumbLength(SDst l)
 {
-	RestrictInClosedInterval(l, min_thumb_length, GetTrackLength());
+	RestrictInInterval(l, min_thumb_length, GetTrackLength());
 
 	Size s(GetSizeOf(Thumb));
 
@@ -138,8 +141,7 @@ ATrack::SetThumbLength(SDst l)
 void
 ATrack::SetThumbPosition(SPos pos)
 {
-	RestrictInClosedInterval(pos, 0, SDst(GetTrackLength()
-		- large_delta * GetTrackLength() / max_value));
+	RestrictInClosedInterval(pos, 0, GetScrollableLength());
 
 	Point p(GetLocationOf(Thumb));
 
@@ -161,13 +163,15 @@ void
 ATrack::SetValue(ValueType val)
 {
 	value = val;
-	SetThumbPosition(SPos(round(val * GetTrackLength() / max_value)));
+	SetThumbPosition(SPos(round(val
+		* GetScrollableLength() / max_value)));
 }
 void
 ATrack::SetLargeDelta(ValueType val)
 {
 	large_delta = val;
-	SetThumbLength(SDst(round(val * GetTrackLength() / max_value)));
+	SetThumbLength(SDst(round(val
+		* GetScrollableLength() / max_value)));
 }
 
 Rect
@@ -204,19 +208,19 @@ ATrack::Refresh(const PaintContext& pc)
 }
 
 ATrack::Area
-ATrack::CheckArea(SDst q) const
+ATrack::CheckArea(SPos q) const
 {
-	yconstexpr Area lst[] = {OnPrev, OnThumb, OnNext};
-	const SDst a[] = {0, GetThumbPosition(),
-		SDst(GetThumbPosition() + GetThumbLength())};
-	size_t n(SwitchInterval(q, a, 3));
+	if(q >= 0)
+	{
+		yconstexpr Area lst[] = {OnPrev, OnThumb, OnNext};
+		const SPos a[] = {0, GetThumbPosition(),
+			SPos(GetThumbPosition() + GetThumbLength())};
+		const size_t n(SwitchInterval(q, a, 3));
 
-	YAssert(n < 3,
-		"In function \"Components::ATrack::Area\n"
-		"Components::ATrack::CheckArea(SPos q) const\": \n"
-		"Array index is out of bound.");
-
-	return lst[n];
+		if(n < 3)
+			return lst[n];
+	}
+	return None;
 }
 
 void
@@ -225,9 +229,9 @@ ATrack::LocateThumb(ValueType val, ScrollCategory t)
 	ValueType old_value(value);
 
 	if(t == ScrollCategory::ThumbTrack)
-		value = GetThumbPosition() == GetTrackLength() - GetThumbLength() ?
-			max_value - large_delta
-			: max_value * GetThumbPosition() / GetTrackLength();
+		value = GetThumbPosition() == GetScrollableLength() ? max_value
+			: max_value * GetThumbPosition()
+			/ (GetTrackLength() - GetThumbLength());
 	else
 	{
 		if(t == ScrollCategory::LargeDecrement
@@ -248,14 +252,14 @@ ATrack::LocateThumb(ValueType val, ScrollCategory t)
 			break;
 		case ScrollCategory::SmallIncrement:
 		case ScrollCategory::LargeIncrement:
-			if(value + val < max_value - large_delta)
+			if(value + val < max_value)
 			{
 				SetValue(value + val);
 				break;
 			}
 		case ScrollCategory::Last:
-			value = max_value - large_delta;
-			SetThumbPosition(GetTrackLength() - GetThumbLength());
+			value = max_value;
+			SetThumbPosition(GetScrollableLength());
 		default:
 			;
 		}

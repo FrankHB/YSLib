@@ -11,12 +11,12 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4007;
+\version r4013;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-11-11 12:27 +0800;
+	2011-11-28 12:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -208,15 +208,10 @@ GUIShell::ResponseTouchBase(TouchEventArgs& e, Components::VisualEvent op)
 		if(!p_TouchDown)
 			return false;
 		if(p_TouchDown == &wgt)
-			TryEntering(std::move(e));
+			TryEntering(TouchEventArgs(e));
 		else
-		{
-			const auto offset(LocateForWidget(wgt, *p_TouchDown));
-
-			TryLeaving(TouchEventArgs(*p_TouchDown, e - offset));
-			e += offset;
-		}
-		e.SetSender(*p_TouchDown);
+			TryLeaving(TouchEventArgs(*p_TouchDown,
+				e - LocateForWidget(wgt, *p_TouchDown)));
 		CallEvent<TouchHeld>(*p_TouchDown, e);
 		break;
 	default:
