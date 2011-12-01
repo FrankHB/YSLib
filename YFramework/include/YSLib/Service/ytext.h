@@ -11,12 +11,13 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version r7101;
+\version r7174;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-10-25 20:37 +0800;
+	2011-11-30 19:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,6 +47,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 显示区域为文本区域内部实际显示文本光栅化结果的区域。
 边距描述显示区域和文本区域的位置关系。
 文本状态不包含文本区域和显示区域的大小，应由外部图形接口上下文或缓冲区状态确定。
+\since build 145 。
 */
 class TextState : public PenStyle
 {
@@ -118,6 +120,7 @@ TextState::operator=(const Padding& ms)
 
 /*!
 \brief 取当前指定文本状态的字体设置对应的行高。
+\since build 231 。
 */
 inline SDst
 GetTextLineHeightOf(const TextState& s)
@@ -127,6 +130,7 @@ GetTextLineHeightOf(const TextState& s)
 
 /*!
 \brief 取当前指定文本状态的字体设置对应的行高与行距之和。
+\since build 231 。
 */
 inline SDst
 GetTextLineHeightExOf(const TextState& s)
@@ -136,6 +140,7 @@ GetTextLineHeightExOf(const TextState& s)
 
 /*!
 \brief 取笔所在的当前行数。
+\since build 231 。
 */
 inline u16
 GetCurrentTextLineNOf(const TextState& s)
@@ -145,6 +150,7 @@ GetCurrentTextLineNOf(const TextState& s)
 
 /*!
 \brief 设置笔位置。
+\since build 231 。
 */
 inline void
 SetPenOf(TextState& s, SPos x, SPos y)
@@ -156,6 +162,7 @@ SetPenOf(TextState& s, SPos x, SPos y)
 /*!
 \brief 设置边距。
 \note 4 个 \c SDst 形式。
+\since build 231 。
 */
 inline void
 SetMarginsOf(TextState& s, SDst l, SDst r, SDst t, SDst b)
@@ -166,6 +173,7 @@ SetMarginsOf(TextState& s, SDst l, SDst r, SDst t, SDst b)
 /*!
 \brief 设置边距。
 \note 64 位无符号整数形式。
+\since build 231 。
 */
 inline void
 SetMarginsOf(TextState& s, u64 m)
@@ -176,6 +184,7 @@ SetMarginsOf(TextState& s, u64 m)
 /*!
 \brief 设置边距。
 \note 2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
+\since build 231 。
 */
 inline void
 SetMarginsOf(TextState& s, SDst h, SDst v)
@@ -186,12 +195,14 @@ SetMarginsOf(TextState& s, SDst h, SDst v)
 
 /*!
 \brief 设置笔的行位置。
+\since build 231 。
 */
 void
 SetCurrentTextLineNOf(TextState&, u16);
 
 /*!
 \brief 按字符跨距移动笔。
+\since build 196 。
 */
 void
 MovePen(TextState&, ucs4_t);
@@ -199,14 +210,22 @@ MovePen(TextState&, ucs4_t);
 
 /*!
 \brief 打印单个字符。
+\param c 被打印的 UCS4 字符。
+\param ts 文本状态。
+\param g 输出图形接口上下文。
+\param mask 相对于输出图形接口上下文矩形，限定输出边界。
+\param alpha 输出设备接收的 8 位 Alpha 缓冲区首个元素的指针，若为 nullptr 则忽略。
+\since build 254 。
 */
 void
-RenderChar(ucs4_t, TextState&, const Graphics&, u8*);
+RenderChar(ucs4_t c, TextState& ts, const Graphics& g, const Rect& mask,
+	u8* alpha);
 
 
 /*!
 \brief 取指定文本状态和文本区域高调整的底边距。
 \return 返回调整后的底边距值（由字体大小、行距和高决定）。
+\since build 252 。
 */
 SDst
 FetchResizedBottomMargin(const TextState&, SDst);
@@ -215,12 +234,14 @@ FetchResizedBottomMargin(const TextState&, SDst);
 \brief 取指定文本状态和文本区域高所能显示的最大文本行数。
 \pre 断言： <tt>GetTextLineHeightExOf(ts) != 0</tt> 。
 \return 最大能容纳的文本行数。
+\since build 252 。
 */
 u16
 FetchResizedLineN(const TextState& ts, SDst);
 
 /*!
 \brief 取指定文本状态表示的最底行的基线位置（纵坐标）。
+\since build 190 。
 */
 SPos
 FetchLastLineBasePosition(const TextState&, SDst);
@@ -228,6 +249,7 @@ FetchLastLineBasePosition(const TextState&, SDst);
 
 /*!
 \brief 打印单个字符。
+\since build 190 。
 */
 template<class _tRenderer>
 u8
@@ -247,6 +269,7 @@ PrintChar(_tRenderer& r, ucs4_t c)
 /*!
 \brief 打印单个字符。
 \note 当行内无法容纳完整字符时换行。
+\since build 190 。
 */
 template<class _tRenderer>
 u8
@@ -281,6 +304,7 @@ PutChar(_tRenderer& r, ucs4_t c)
 \brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
 \note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
 \return 指向结束位置的迭代器。
+\since build 190 。
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -299,6 +323,7 @@ PrintLine(_tRenderer& r, _tIn s)
 \brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \return 指向结束位置的迭代器。
+\since build 251 。
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -315,6 +340,7 @@ PrintLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 /*!
 \brief 打印字符串，直至行尾或字符串结束。
 \return 打印字符数。
+\since build 190 。
 */
 template<class _tRenderer>
 inline String::size_type
@@ -328,6 +354,7 @@ PrintLine(_tRenderer& r, const String& str)
 \note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
 \note 当行内无法容纳完整字符时换行。
 \return 指向结束位置的迭代器。
+\since build 190 。
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -347,6 +374,7 @@ PutLine(_tRenderer& r, _tIn s)
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \note 当行内无法容纳完整字符时换行。
 \return 指向结束位置的迭代器。
+\since build 251 。
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -364,6 +392,7 @@ PutLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 \brief 打印字符串，直至行尾或字符串结束。
 \note 当行内无法容纳完整字符时换行。
 \return 打印字符数。
+\since build 190 。
 */
 template<class _tRenderer>
 inline String::size_type
@@ -376,6 +405,7 @@ PutLine(_tRenderer& r, const String& str)
 \brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
 \note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
 \return 指向结束位置的迭代器。
+\since build 190 。
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -394,6 +424,7 @@ PrintString(_tRenderer& r, _tIn s)
 \brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \return 指向结束位置的迭代器。
+\since build 251 。
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -410,6 +441,7 @@ PrintString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 /*!
 \brief 打印字符串，直至区域末尾或字符串结束。
 \return 打印字符数。
+\since build 190 。
 */
 template<class _tRenderer>
 inline String::size_type
@@ -423,6 +455,7 @@ PrintString(_tRenderer& r, const String& str)
 \note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
 \note 当行内无法容纳完整字符时换行。
 \return 指向结束位置的迭代器。
+\since build 190 。
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -442,6 +475,7 @@ PutString(_tRenderer& r, _tIn s)
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \note 当行内无法容纳完整字符时换行。
 \return 指向结束位置的迭代器。
+\since build 251 。
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -459,6 +493,7 @@ PutString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 \brief 打印字符串，直至区域末尾或字符串结束。
 \note 当行内无法容纳完整字符时换行。
 \return 打印字符数。
+\since build 190 。
 */
 template<class _tRenderer>
 inline String::size_type
@@ -470,6 +505,7 @@ PutString(_tRenderer& r, const String& str)
 
 /*!
 \brief 取指定的字符在字体指定、无边界限制时的显示宽度。
+\since build 214 。
 */
 SDst
 FetchCharWidth(const Font&, ucs4_t);
@@ -477,11 +513,13 @@ FetchCharWidth(const Font&, ucs4_t);
 
 /*!	\defgroup TextRenderers Text Renderers
 \brief 文本渲染器。
+\since build 190 。
 */
 
 /*!
 \ingroup TextRenderers
 \brief 空文本渲染器。
+\since build 196 。
 */
 class EmptyTextRenderer
 {
@@ -517,6 +555,7 @@ EmptyTextRenderer::operator()(ucs4_t c)
 /*!
 \ingroup TextRenderers
 \brief 抽象文本渲染器。
+\since build 190 。
 */
 class ATextRenderer
 {
@@ -577,14 +616,21 @@ public:
 \brief 文本渲染器。
 
 简单实现。
+\since build 190 。
 */
 class TextRenderer : public ATextRenderer
 {
 public:
 	TextState& State;
 	const Graphics& Buffer;
+	Rect ClipArea;
 
 	TextRenderer(TextState&, const Graphics&);
+	/*
+	\brief 构造：使用文本状态、图形接口上下文和指定区域边界。
+	\since build 265 。
+	*/
+	TextRenderer(TextState&, const Graphics&, const Rect&);
 
 	/*!
 	\brief 渲染单个字符。
@@ -599,13 +645,17 @@ public:
 
 inline
 TextRenderer::TextRenderer(TextState& ts, const Graphics& g)
-	: ATextRenderer(), State(ts), Buffer(g)
+	: ATextRenderer(), State(ts), Buffer(g), ClipArea(Point::Zero, g.GetSize())
+{}
+inline
+TextRenderer::TextRenderer(TextState& ts, const Graphics& g, const Rect& mask)
+	: ATextRenderer(), State(ts), Buffer(g), ClipArea(mask)
 {}
 
 inline void
 TextRenderer::operator()(ucs4_t c)
 {
-	RenderChar(c, GetTextState(), GetContext(), nullptr);
+	RenderChar(c, GetTextState(), GetContext(), ClipArea, nullptr);
 }
 
 
@@ -614,6 +664,7 @@ TextRenderer::operator()(ucs4_t c)
 \brief 文本区域。
 
 自带缓冲区的文本渲染器，通过 Alpha 贴图刷新至位图缓冲区显示光栅化文本。
+\since 早于 build 132 。
 */
 class TextRegion : public ATextRenderer, public TextState, public BitmapBufferEx
 {
@@ -690,11 +741,13 @@ TextRegion::operator=(const TextState& ts)
 inline void
 TextRegion::operator()(ucs4_t c)
 {
-	RenderChar(c, *this, *this, GetBufferAlphaPtr());
+	RenderChar(c, *this, *this, Rect(Point::Zero, GetSize()),
+		GetBufferAlphaPtr());
 }
 
 /*!
 \brief 取按字体高度和行距调整文本区域的底边距。
+\since build 252 。
 */
 inline SDst
 FetchResizedBottomMargin(const TextRegion& tr)
@@ -704,6 +757,7 @@ FetchResizedBottomMargin(const TextRegion& tr)
 
 /*!
 \brief 按字体高度和行距调整文本区域的底边距。
+\since build 252 。
 */
 inline SDst
 AdjustBottomMarginOf(TextRegion& tr)
@@ -715,6 +769,7 @@ AdjustBottomMarginOf(TextRegion& tr)
 /*!
 \brief 取迭代器指定的字符串在字体指定、无边界限制时的显示宽度。
 \note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
+\since build 214 。
 */
 template<typename _tIn>
 SDst
@@ -729,6 +784,7 @@ FetchStringWidth(const Font& fnt, _tIn s)
 /*!
 \brief 取迭代器指定的单行字符串在字体指定、无边界限制时的显示宽度。
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
+\since build 251 。
 */
 template<typename _tIn>
 SDst
@@ -742,6 +798,7 @@ FetchStringWidth(const Font& fnt, _tIn s, _tIn g, ucs4_t c = '\0')
 }
 /*!
 \brief 取单行字符串在字体指定、无边界限制时的显示宽度。
+\since build 214 。
 */
 inline SDst
 FetchStringWidth(const Font& fnt, const String& str)
@@ -752,6 +809,7 @@ FetchStringWidth(const Font& fnt, const String& str)
 \brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。
 \note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
 \note 字体由文本状态指定。
+\since build 197 。
 */
 template<typename _tIn>
 SDst
@@ -767,6 +825,7 @@ FetchStringWidth(TextState& ts, SDst h, _tIn s)
 \brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \note 字体由文本状态指定。
+\since build 251 。
 */
 template<typename _tIn>
 SDst
@@ -781,6 +840,7 @@ FetchStringWidth(TextState& ts, SDst h, _tIn s, _tIn g, ucs4_t c = '\0')
 /*!
 \brief 取单行字符串在指定文本状态和高度限制时的显示宽度。
 \note 字体由文本状态指定。
+\since build 197 。
 */
 inline SDst
 FetchStringWidth(TextState& ts, SDst h, const String& str)
@@ -791,17 +851,34 @@ FetchStringWidth(TextState& ts, SDst h, const String& str)
 
 /*!
 \brief 绘制文本。
+\since build 265 。
+*/
+void
+DrawClippedText(const Graphics&, const Rect& mask, TextState&, const String&);
+/*!
+\brief 绘制文本。
+\since build 265 。
+*/
+void
+DrawClippedText(const Graphics&, const Rect& mask, const Rect& bound,
+	const String&, const Padding&, Color);
+
+/*!
+\brief 绘制文本。
+\since build 190 。
 */
 void
 DrawText(const Graphics&, TextState&, const String&);
 /*!
 \brief 绘制文本。
+\since build 190 。
 */
 void
 DrawText(const Graphics&, const Rect&, const String&, const Padding&, Color);
 /*!
 \brief 绘制文本。
 \note 间接绘制并贴图。
+\since build 188 。
 */
 void
 DrawText(TextRegion&, const Graphics&, const Point&, const Size&,
@@ -815,6 +892,7 @@ YSL_BEGIN_NAMESPACE(Text)
 \brief 以 cache 为字体缓存，width 为宽度，
 	从当前文本迭代器 p 开始逆向查找字符 f 。
 \note 不含 p ；满足 p != --g 。
+\since build 251 。
 */
 template<typename _tIn>
 _tIn
@@ -835,6 +913,7 @@ ReverseFind(FontCache& cache, SDst width, _tIn p, _tIn g, ucs4_t f)
 /*!
 \brief 在 r 中取当前文本迭代器 p 的前 l 行首对应文本迭代器。
 \note 满足 p != --g 。
+\since build 251 。
 */
 template<typename _tIn>
 _tIn
@@ -858,6 +937,7 @@ FindPrevious(const Drawing::TextRegion& r, _tIn p, _tIn g, ucs4_t c = '\n',
 /*!
 \brief 在 r 中取当前文本迭代器 p 至后一行首对应文本迭代器。
 \note 满足 p != g 。
+\since build 251 。
 */
 template<typename _tIn>
 _tIn

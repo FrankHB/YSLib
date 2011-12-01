@@ -11,12 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4682;
+\version r4747;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-11-12 11:23 +0800;
+	2011-11-30 08:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,8 +28,7 @@
 #ifndef YSL_INC_UI_YWINDOW_H_
 #define YSL_INC_UI_YWINDOW_H_
 
-#include "ycontrol.h"
-#include "yuicont.h"
+#include "ypanel.h"
 #include "../Service/yblit.h"
 
 YSL_BEGIN
@@ -51,83 +51,51 @@ YSL_BEGIN_NAMESPACE(Components)
 #endif
 
 
-//! \brief 抽象窗口。
-class AWindow : public Control, protected MBackground
+/*!
+\brief 窗口。
+\since build 264 。
+*/
+class Window : public Panel, protected MBackground
 {
 public:
 	/*!
 	\brief 构造：使用指定边界和背景图像。
 	*/
 	explicit
-	AWindow(const Rect& = Rect::Empty,
+	Window(const Rect& = Rect::Empty,
 		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()));
-	inline DefDeMoveCtor(AWindow)
-
-	using MBackground::GetBackgroundImagePtr;
-	using MBackground::GetBackgroundPtr;
-
-protected:
-	/*!
-	\brief 绘制背景图像。
-	*/
-	bool
-	DrawBackgroundImage();
-
-	DeclIEntry(bool DrawContents())
-
-public:
-	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
-	*/
-	virtual Rect
-	Refresh(const PaintContext&);
-
-	/*!
-	\brief 按需更新。
-	\note 以父窗口、屏幕优先顺序。
-	*/
-	virtual void
-	Update();
-};
-
-
-//! \brief 抽象框架窗口。
-class AFrame : public AWindow, protected MUIContainer
-{
-public:
-	explicit
-	AFrame(const Rect& = Rect::Empty,
-		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()));
-	inline DefDeMoveCtor(AFrame)
+	inline DefDeMoveCtor(Window)
 
 	virtual void
 	operator+=(IWidget&);
 	virtual void
-	operator+=(AWindow&);
+	operator+=(Window&);
 	template<class _type>
 	inline void
 	operator+=(_type& p)
 	{
 		return operator+=(static_cast<typename std::conditional<
-			std::is_convertible<_type&, AWindow&>::value,
-			AWindow&, IWidget&>::type>(p));
+			std::is_convertible<_type&, Window&>::value,
+			Window&, IWidget&>::type>(p));
 	}
 
 	virtual bool
 	operator-=(IWidget&);
 	virtual bool
-	operator-=(AWindow&);
+	operator-=(Window&);
 	template<class _type>
 	inline bool
 	operator-=(_type& p)
 	{
 		return operator-=(static_cast<typename std::conditional<
-			std::is_convertible<_type&, AWindow&>::value,
-			AWindow&, IWidget&>::type>(p));
+			std::is_convertible<_type&, Window&>::value,
+			Window&, IWidget&>::type>(p));
 	}
 
 	using MUIContainer::Contains;
 
+	using MBackground::GetBackgroundImagePtr;
+	using MBackground::GetBackgroundPtr;
 	virtual PDefH(IWidget*, GetTopWidgetPtr, const Point& pt,
 		bool(&f)(const IWidget&))
 		ImplBodyBase(MUIContainer, GetTopWidgetPtr, pt, f)
@@ -142,28 +110,19 @@ public:
 	*/
 	bool
 	MoveToTop(IWidget&);
-};
 
-
-//! \brief 标准框架窗口。
-class Frame : public AFrame
-{
-public:
 	/*!
-	\brief 构造：使用指定边界、背景图像和容器指针。
+	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
-	explicit
-	Frame(const Rect& = Rect::Empty,
-		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()),
-		IWidget* = nullptr);
+	virtual Rect
+	Refresh(const PaintContext&);
 
-protected:
 	/*!
-	\brief 绘制内容。
-	\note 绘制部件。
+	\brief 按需更新。
+	\note 以父窗口、屏幕优先顺序。
 	*/
-	ImplI(AWindow) bool
-	DrawContents();
+	virtual void
+	Update();
 };
 
 YSL_END_NAMESPACE(Components)

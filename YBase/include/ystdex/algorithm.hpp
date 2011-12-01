@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1259;
+\version r1276;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 254 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-11-24 17:36 +0800;
+	2011-12-01 08:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,55 +37,6 @@ namespace ystdex
 	\brief 算法。
 	\since build 189 。
 	*/
-
-
-	/*!
-	\ingroup algorithms
-	\brief 取值类型最小值。
-	\since 早于 build 132 。
-	*/
-	template<typename _type>
-	inline _type
-	vmin(_type x, _type y)
-	{
-		return y < x ? y : x;
-	}
-	/*!
-	\ingroup algorithms
-	\brief 取值类型最小值。
-	\note 使用指定判断操作。
-	\since 早于 build 132 。
-	*/
-	template<typename _type, typename _fCompare>
-	inline _type
-	vmin(_type x, _type y, _fCompare comp)
-	{
-		return comp(y, x) ? y : x;
-	}
-
-	/*!
-	\ingroup algorithms
-	\brief 取值类型最大值。
-	\since 早于 build 132 。
-	*/
-	template<typename _type>
-	inline _type
-	vmax(_type x, _type y)
-	{
-		return x < y ? y : x;
-	}
-	/*!
-	\ingroup algorithms
-	\brief 取值类型最大值。
-	\note 使用指定判断操作。
-	\since 早于 build 132 。
-	*/
-	template<typename _type, typename _fCompare>
-	inline _type
-	vmax(_type x, _type y, _fCompare comp)
-	{
-		return comp(x, y) ? y : x;
-	}
 
 
 	/*!	\defgroup pod_operations POD Type Operations
@@ -159,6 +110,32 @@ namespace ystdex
 		return pod_move_n(first, last - first, result);
 	}
 	//@}
+
+
+	/*!
+	\brief 去除迭代器指定的范围中的重复元素，且不改变元素之间的相对顺序。
+	\param b 输入范围起始迭代器。
+	\param e 输入范围终止迭代器。
+	\return 输出范围终止迭代器。
+	\note 输入和输出范围的起始迭代器相同。
+	\note 输出范围元素之间的相对顺序和输入的范围保持一致。
+	\note 时间复杂度： O(n^2) ，其中 n 满足 std::advance(b, n) == e 。
+	\since build 265 。
+	*/
+	template<typename _tForward>
+	_tForward
+	stable_range_unique(_tForward first, _tForward last)
+	{
+		_tForward result(first);
+
+		for(_tForward i(first); i != last; ++i)
+			if(std::find(first, result, *i) == result)
+			{
+				std::swap(*i, *result);
+				++result;
+			}
+		return result;
+	}
 
 
 	/*!

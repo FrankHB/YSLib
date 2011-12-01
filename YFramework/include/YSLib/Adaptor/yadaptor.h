@@ -16,12 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2256;
+\version r2268;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2011-11-27 12:47 +0800;
+	2011-12-01 08:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,9 +51,18 @@
 #include <climits>
 #include <cmath>
 
-// !\brief YSLib 命名空间。
+// 确保包含 C++ 标准库必要部分。
+#include <algorithm> // for std::min, std::max;
+
+/*
+!\brief YSLib 命名空间。
+\since 早于 build 132 。
+*/
 YSL_BEGIN
 
+	//目标平台中立接口。
+
+	//通用数据类型。
 	typedef std::uint8_t	u8;
 	typedef std::uint16_t	u16;
 	typedef std::uint32_t	u32;
@@ -70,17 +80,45 @@ YSL_BEGIN
 	typedef volatile s32	vs32;
 	typedef volatile s64	vs64;
 
-	using ystdex::errno_t;
+	//实用类型。
+	using ystdex::noncopyable;
 	using ystdex::nullptr_t;
+
+	//算法。
+	using std::min;
+	using std::max;
+
+
+	//非目标平台中立接口。
+
+	//特殊数据类型。
+	using ystdex::errno_t;
 	using ystdex::ptrdiff_t;
 	using ystdex::size_t;
 	using ystdex::ssize_t;
 	using ystdex::wint_t;
 
-	using ystdex::noncopyable;
+	//基本实用例程。
+	using platform::mmbset;
+	using platform::mmbcpy;
+	using platform::direxists;
+	using platform::chdir;
+	using platform::getcwd_n;
 
+	//系统处理函数。
+	using platform::terminate;
+
+	//基本图形定义。
+	using platform::SPos;
+	using platform::SDst;
+
+	//文件系统抽象。
 	using platform::const_path_t;
 	using platform::path_t;
+
+	using platform::HDirectory;
+	using platform::IsAbsolute;
+	using platform::GetRootNameLength;
 
 	//文件系统常量。
 	using platform::DEF_PATH_DELIMITER;
@@ -88,30 +126,16 @@ YSL_BEGIN
 	using platform::PATHSTR;
 	using platform::FILENAMESTR;
 
-	using platform::mmbset;
-	using platform::mmbcpy;
-	using platform::direxists;
-	using platform::chdir;
-	using platform::getcwd_n;
-
-	using platform::terminate;
-
-	using platform::SPos;
-	using platform::SDst;
-
-	using platform::HDirectory;
-	using platform::IsAbsolute;
-	using platform::GetRootNameLength;
-
+	//基本输入输出接口。
+	using platform::InitVideo;
 	using platform::ScreenSynchronize;
-
 	using platform::WaitForInput;
 
+	//时钟。
 	using platform::GetRTC;
 	using platform::ResetRTC;
 
-	using platform::InitVideo;
-
+	//输入类型。
 	namespace KeySpace = platform::KeySpace;
 	using platform::KeyCode;
 	using platform::KeysInfo;

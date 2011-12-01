@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2561;
+\version r2564;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2011-11-28 15:22 +0800;
+	2011-11-30 14:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -164,23 +164,6 @@ FileInfoPanel::FileInfoPanel()
 	*this += lblSize,
 	*this += lblAccessTime,
 	*this += lblModifiedTime;
-}
-
-Rect
-FileInfoPanel::Refresh(const PaintContext& pc)
-{
-	Widget::Refresh(pc);
-
-	for(auto i(sWidgets.begin()); i != sWidgets.end(); ++i)
-	{
-		const auto p(i->second);
-
-		YAssert(p, "Null widget pointer found @ FileInfoPanel::Refresh");
-
-		if(YSL_ Components::IsVisible(*p))
-			PaintChild(*p, pc);
-	}
-	return Rect(pc.Location, GetSizeOf(*this));
 }
 
 

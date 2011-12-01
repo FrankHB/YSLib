@@ -11,12 +11,12 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1451;
+\version r1469;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2011-11-05 11:17 +0800;
+	2011-12-01 08:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,11 +91,9 @@ Rect::ContainsStrict(const Rect& r) const
 Rect
 Intersect(const Rect& a, const Rect& b)
 {
-	using namespace ystdex;
-
-	const SPos xmin(vmin(a.X, b.X)), ymin(vmin(a.Y, b.Y)),
-		xmax(vmax(a.X + a.Width, b.X + b.Width)),
-		ymax(vmax(a.Y + a.Height, b.Y + b.Height));
+	const SPos xmin(min(a.X, b.X)), ymin(min(a.Y, b.Y)),
+		xmax(max(a.X + a.Width, b.X + b.Width)),
+		ymax(max(a.Y + a.Height, b.Y + b.Height));
 	const SDst dx(xmax - xmin), dy(ymax - ymin);
 
 	//相离。
@@ -108,35 +106,25 @@ Intersect(const Rect& a, const Rect& b)
 	if(dx == b.Width && dy == a.Height)
 		return a;
 
-	int x_array[4] = {a.X, b.X, a.X + a.Width, b.X + b.Width},
-		y_array[4] = {a.Y, b.Y, a.Y + a.Height, b.Y + b.Height};
+	const SPos x1(max(a.X, b.X)), x2(min(a.X + a.Width, b.X + b.Width)),
+		y1(max(a.Y, b.Y)), y2(min(a.Y + a.Height, b.Y + b.Height));
 
-	for(size_t i = 0; i < 3; ++i)
-		for(size_t j = i + 1; j < 4; ++j)
-			if(x_array[j] < x_array[i])
-				std::swap(x_array[i], x_array[j]);
-	for(size_t i = 0; i < 3; ++i)
-		for(size_t j = i + 1; j < 4; ++j)
-			if(y_array[j] < y_array[i])
-				std::swap(y_array[i], y_array[j]);
-	return Rect(x_array[1], y_array[1], x_array[2] - x_array[1],
-		y_array[2] - y_array[1]);
+	return Rect(min(x1, x2), min(y1, y2),
+		std::abs(x2 - x1), std::abs(y2 - y1));
 }
 
 Rect
 Unite(const Rect& a, const Rect& b)
 {
-	using namespace ystdex;
-
 	if(a.IsEmpty())
 		return b;
 	if(b.IsEmpty())
 		return a;
 
-	auto mx(vmin(a.X, b.X)), my(vmin(a.Y, b.Y));
+	auto mx(min(a.X, b.X)), my(min(a.Y, b.Y));
 
-	return Rect(mx, my, vmax<SPos>(a.X + a.Width, b.X + b.Width) - mx,
-		vmax<SPos>(a.Y + a.Height, b.Y + b.Height) - my);
+	return Rect(mx, my, max<SPos>(a.X + a.Width, b.X + b.Width) - mx,
+		max<SPos>(a.Y + a.Height, b.Y + b.Height) - my);
 }
 
 

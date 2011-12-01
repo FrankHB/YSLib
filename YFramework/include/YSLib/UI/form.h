@@ -11,12 +11,13 @@
 /*!	\file form.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗体。
-\version r1552;
+\version r1558;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-11-11 10:52 +0800;
+	2011-11-30 08:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,10 +34,10 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-typedef Frame Form;
+typedef Window Form;
 
 /*//窗体。
-class Form : public Frame
+class Form : public Window
 {
 //	UIContainer Client;
 

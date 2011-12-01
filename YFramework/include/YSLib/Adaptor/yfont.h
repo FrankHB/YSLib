@@ -11,13 +11,13 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7342;
+\version r7343;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-11-26 15:51 +0800;
+	2011-12-01 09:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -425,6 +425,7 @@ CharBitmap::CharBitmap(const NativeType& b)
 
 /*!
 \brief 字体缓存。
+\warning 非虚析构。
 \since build 209 。
 */
 class FontCache : public noncopyable,
@@ -466,7 +467,6 @@ public:
 	/*!
 	\brief 析构：释放空间。
 	*/
-	virtual
 	~FontCache();
 
 private:

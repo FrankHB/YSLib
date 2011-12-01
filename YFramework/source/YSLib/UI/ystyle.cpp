@@ -11,12 +11,12 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1504;
+\version r1506;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-11-05 11:31 +0800;
+	2011-12-01 08:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -137,8 +137,8 @@ WndDrawArrow(const Graphics& g, const Rect& r, SDst half_size, Rotation rot,
 hsl_t
 rgb2hsl(rgb_t c)
 {
-	const u8 min_color(vmin(vmin(c.r, c.g), c.b)),
-		max_color(vmax(vmax(c.r, c.g), c.b));
+	const u8 min_color(min(min(c.r, c.g), c.b)),
+		max_color(max(max(c.r, c.g), c.b));
 	u16 s(0), l;
 	s32 h(0); // 此处 h 的值每 0x60000 对应一个圆周。
 

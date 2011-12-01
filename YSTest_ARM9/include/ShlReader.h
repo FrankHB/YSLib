@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1593;
+\version r1595;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2011-11-28 15:21 +0800;
+	2011-11-30 14:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -84,9 +84,6 @@ public:
 	Label lblPath, lblSize, lblAccessTime, lblModifiedTime;
 	
 	FileInfoPanel();
-
-	virtual Rect
-	Refresh(const PaintContext&);
 };
 
 

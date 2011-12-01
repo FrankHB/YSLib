@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1573;
+\version r1583;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-11-25 21:19 +0800;
+	2011-11-30 20:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -155,8 +155,11 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 			UpdateView();
 		},
 		FetchEvent<TouchMove>(*this) += [this](TouchEventArgs&& e){
-			SetSelected(e);
-			UpdateView();
+			if(&e.GetSender() == this)
+			{
+				SetSelected(e);
+				UpdateView();
+			}
 		},
 		FetchEvent<Click>(*this) += [this](TouchEventArgs&& e){
 			InvokeConfirmed(CheckPoint(e));
@@ -286,24 +289,24 @@ TextList::LocateViewPosition(SDst h)
 }
 
 void
-TextList::PaintItem(const Graphics& g, const Rect&, ListType::size_type i)
+TextList::PaintItem(const Graphics& g, const Rect& mask, const Rect&,
+	ListType::size_type i)
 {
-	DrawText(g, GetTextState(), GetList()[i]);
+	DrawClippedText(g, mask, GetTextState(), GetList()[i]);
 }
 
 void
-TextList::PaintItems(const PaintContext& e)
+TextList::PaintItems(const PaintContext& pc)
 {
-	const auto& g(e.Target);
-	const auto& pt(e.Location);
+	const auto& g(pc.Target);
+	const auto& pt(pc.Location);
 	const auto h(GetHeight());
 
 	if(h != 0)
 	{
 		RefreshTextState();
 
-		// TODO: refresh for 'rect' properly;
-		Widget::Refresh(PaintContext(g, pt, Rect(pt, GetSizeOf(*this))));
+		Widget::Refresh(pc);
 
 		if(viewer.GetTotal() != 0)
 		{
@@ -328,8 +331,8 @@ TextList::PaintItems(const PaintContext& e)
 				{
 					GetTextState().Color = HilightTextColor;
 					FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
-						Rect(pt.X + 1, top + 1, ln_w - 2, tmp - 1),
-						HilightBackColor);
+						Intersect(Rect(pt.X + 1, top + 1, ln_w - 2, tmp - 1),
+						pc.ClipArea), HilightBackColor);
 				}
 				else
 					GetTextState().Color = ForeColor;
@@ -340,7 +343,7 @@ TextList::PaintItems(const PaintContext& e)
 					Margin);
 				if(y < 0)
 					GetTextState().PenY -= top_offset;
-				PaintItem(g, unit_bounds, i);
+				PaintItem(g, pc.ClipArea, unit_bounds, i);
 				y += ln_h;
 			}
 		}

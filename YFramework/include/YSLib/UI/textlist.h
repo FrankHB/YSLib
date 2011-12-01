@@ -11,12 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1414;
+\version r1419;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-11-22 10:10 +0800;
+	2011-11-30 19:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +36,10 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//! \brief 文本列表。
+/*!
+\brief 文本列表。
+\since build 212 。
+*/
 class TextList : public Control, protected MTextList
 {
 public:
@@ -186,9 +190,11 @@ public:
 protected:
 	/*!
 	\brief 绘制列表项。
+	\since build 265 。
 	*/
 	virtual void
-	PaintItem(const Graphics&, const Rect&, ListType::size_type);
+	PaintItem(const Graphics&, const Rect& mask, const Rect&,
+		ListType::size_type);
 
 	/*!
 	\brief 绘制列表。

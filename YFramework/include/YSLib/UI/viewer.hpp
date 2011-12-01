@@ -11,12 +11,12 @@
 /*!	\file yviewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r1164;
+\version r1165;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-19 23:00:28 +0800;
 \par 修改时间:
-	2011-11-22 08:04 +0800;
+	2011-12-01 08:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,7 +92,7 @@ public:
 	DefGetter(DifferenceType, Offset, IsSelected()
 		? GetSelectedIndex() - GetHeadIndex() : -1) \
 		//!< 取选中的项目相对于视图中首个项目的下标偏移（未选中时为 -1 ）。
-	DefGetter(SizeType, Valid, ystdex::vmin(GetTotal() - GetHeadIndex(),
+	DefGetter(SizeType, Valid, min(GetTotal() - GetHeadIndex(),
 		GetLength())) //!< 取当前视图中有效项目个数。
 
 	/*!

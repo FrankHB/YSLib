@@ -11,12 +11,12 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2422;
+\version r2429;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-11-05 10:53 +0800;
+	2011-12-01 09:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,15 +35,28 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Messaging)
 
+/*!
+\brief 消息标识。
+\since build 175 。
+*/
 typedef u32 ID;
+/*!
+\brief 消息优先级。
+\since build 175 。
+*/
 typedef u8 Priority;
 
+/*!
+\brief 消息默认有效期。
+\since build 175 。
+*/
 const std::time_t DefTimeout(0);
 
 
-/*
-! \brief 消息类。
+/*!
+\brief 消息。
 \warning 非虚析构。
+\since build 145 。
 */
 class Message
 {
@@ -159,7 +172,10 @@ Message::UpdateTimestamp()
 }
 
 
-//消息队列类。
+/*!
+\brief 消息队列。
+\since build 211 。
+*/
 class MessageQueue : public noncopyable
 {
 private:

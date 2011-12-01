@@ -11,12 +11,13 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version r6787;
+\version r6811;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-11-05 11:25 +0800;
+	2011-12-01 08:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -131,7 +132,8 @@ namespace
 
 
 void
-RenderChar(ucs4_t c, TextState& ts, const Graphics& g, u8* alpha)
+RenderChar(ucs4_t c, TextState& ts, const Graphics& g, const Rect& mask,
+	u8* alpha)
 {
 	//无缓冲区时无法绘图。
 	if(g.IsValid())
@@ -150,27 +152,29 @@ RenderChar(ucs4_t c, TextState& ts, const Graphics& g, u8* alpha)
 			const auto& sbh(sbit.GetHeight());
 			const auto dx(ts.PenX + sbit.GetLeft()),
 				dy(ts.PenY - sbit.GetTop()),
-				xmin(vmax<int>(0, left - dx)),
-				ymin(vmax<int>(0, top - dy));
+				xmin(max<int>(0, left - dx)),
+				ymin(max<int>(0, top - dy));
 			const Size& ds(g.GetSize());
 			const Size ss(sbw, sbh);
-			const Point dp(vmax<int>(left, dx), vmax<int>(top, dy));
-			const Point sp(xmin, ymin);
-			const Size sc(vmax<int>(vmin<int>(g.GetWidth() - ts.Margin.Right
-				- dx, sbw) - xmin, 0), vmax<int>(vmin<int>(g.GetHeight()
+			const Point dp(max<int>(left, dx), max<int>(top, dy));
+			Point sp(xmin, ymin);
+			const Size sc(max<int>(min<int>(g.GetWidth() - ts.Margin.Right
+				- dx, sbw) - xmin, 0), max<int>(min<int>(g.GetHeight()
 				- ts.Margin.Bottom - dy, sbh) - ymin, 0));
+			const Rect r(Intersect(mask, Rect(dp, sc)));
 
+			sp += r.GetPoint() - dp;
 			if(alpha)
 			{
 				char_color = ts.Color | BITALPHA;
 				Blit<BlitTextLoop, false, false>(pair_iterator<BitmapPtr,
 					u8*>(g.GetBufferPtr(), alpha), ds, sbit.GetBuffer(), ss,
-					dp, sp, sc);
+					r, sp, r);
 			}
 			else
 				Blit<BlitBlendLoop, false, false>(g.GetBufferPtr(), ds,
 					MonoIteratorPair(pseudo_iterator<const PixelType>(
-					ts.Color | BITALPHA), sbit.GetBuffer()), ss, dp, sp, sc);
+					ts.Color | BITALPHA), sbit.GetBuffer()), ss, r, sp, r);
 		}
 		//移动笔。
 		ts.PenX = tx;
@@ -342,22 +346,35 @@ TextRegion::Scroll(ptrdiff_t n, SDst h)
 
 
 void
-DrawText(const Graphics& g, TextState& ts, const String& str)
+DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
+	const String& str)
 {
-	TextRenderer tr(ts, g);
+	TextRenderer tr(ts, g, mask);
 
 	PrintLine(tr, str);
 }
 void
-DrawText(const Graphics& g, const Rect& r, const String& str, const Padding& m,
-	Color color)
+DrawClippedText(const Graphics& g, const Rect& mask, const Rect& r,
+	const String& str, const Padding& m, Color color)
 {
 	TextState ts;
 
 	(ts.Font = Font()).Update(); //设置默认字体。
 	ts.ResetForBounds(r, g.GetSize(), m);
 	ts.Color = color;
-	DrawText(g, ts, str);
+	DrawClippedText(g, mask, ts, str);
+}
+
+void
+DrawText(const Graphics& g, TextState& ts, const String& str)
+{
+	DrawClippedText(g, Rect(Point::Zero, g.GetSize()), ts, str);
+}
+void
+DrawText(const Graphics& g, const Rect& r, const String& str, const Padding& m,
+	Color color)
+{
+	DrawClippedText(g, Rect(Point::Zero, g.GetSize()), r, str, m, color);
 }
 void
 DrawText(TextRegion& tr, const Graphics& g, const Point& pt, const Size& s,

@@ -16,12 +16,13 @@
 /*!	\file ycomp.h
 \ingroup UI
 \brief 平台无关的 Shell 组件。
-\version r3204;
+\version r3208;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2011-11-05 11:00 +0800;
+	2011-11-29 17:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,8 +47,7 @@ YSL_BEGIN_NAMESPACE(Components)
 PDeclInterface(AController)
 PDeclInterface(IWidget)
 
-class AFrame;
-class AWindow;
+class Window;
 
 //名称引用。
 using Drawing::PixelType;

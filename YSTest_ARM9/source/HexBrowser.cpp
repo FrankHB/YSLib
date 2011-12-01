@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1392;
+\version r1393;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2011-11-27 16:14 +0800;
+	2011-12-01 08:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -128,7 +128,7 @@ HexViewArea::Refresh(const PaintContext& pc)
 		}
 		x += w_addr;
 
-		const auto n(std::min<IndexType>(fsize - pos, ItemPerLine));
+		const auto n(min<IndexType>(fsize - pos, ItemPerLine));
 
 		for(IndexType j(0); j < n; ++j)
 		{

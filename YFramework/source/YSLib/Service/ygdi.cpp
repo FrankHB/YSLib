@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3525;
+\version r3529;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-11-05 11:24 +0800;
+	2011-12-01 08:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,8 +62,8 @@ Rect
 operator+(const Rect& r, const Padding& m)
 {
 	return Rect(r.X + m.Left, r.Y + m.Top,
-		vmax<int>(0, r.Width - GetHorizontalOf(m)),
-		vmax<int>(0, r.Height - GetVerticalOf(m)));
+		max<int>(0, r.Width - GetHorizontalOf(m)),
+		max<int>(0, r.Height - GetVerticalOf(m)));
 }
 
 
@@ -89,8 +89,8 @@ SetAllOf(Padding& m, SDst left, SDst right, SDst top, SDst bottom)
 Padding
 FetchMargin(const Rect& r, const Size& s)
 {
-	return Padding(vmax<int>(0, r.X), vmax<int>(0, s.Width - r.X - r.Width),
-		vmax<int>(0, r.Y), vmax<int>(0, s.Height - r.Y - r.Height));
+	return Padding(max<int>(0, r.X), max<int>(0, s.Width - r.X - r.Width),
+		max<int>(0, r.Y), max<int>(0, s.Height - r.Y - r.Height));
 }
 
 

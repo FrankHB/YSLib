@@ -11,12 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11464;
+\version r11470;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-11-15 09:09 +0800;
+	2011-12-01 08:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -806,32 +807,86 @@ $header "ycommon.h"
 
 $header Adaptor::YAdaptor
 {
-	using ystdex::errno_t;
+	//目标平台中立接口。
+
+	//通用数据类型。
+	typedef std::uint8_t	u8;
+	typedef std::uint16_t	u16;
+	typedef std::uint32_t	u32;
+	typedef std::uint64_t	u64;
+	typedef std::int8_t		s8;
+	typedef std::int16_t	s16;
+	typedef std::int32_t	s32;
+	typedef std::int64_t	s64;
+	typedef volatile u8		vu8;
+	typedef volatile u16	vu16;
+	typedef volatile u32	vu32;
+	typedef volatile u64	vu64;
+	typedef volatile s8		vs8;
+	typedef volatile s16	vs16;
+	typedef volatile s32	vs32;
+	typedef volatile s64	vs64;
+
+	//实用类型。
+	using ystdex::noncopyable;
 	using ystdex::nullptr_t;
+
+	//算法。
+	using std::min;
+	using std::max;
+
+
+	//非目标平台中立接口。
+
+	//特殊数据类型。
+	using ystdex::errno_t;
 	using ystdex::ptrdiff_t;
 	using ystdex::size_t;
 	using ystdex::ssize_t;
 	using ystdex::wint_t;
 
-	using ystdex::noncopyable;
+	//基本实用例程。
+	using platform::mmbset;
+	using platform::mmbcpy;
+	using platform::direxists;
+	using platform::chdir;
+	using platform::getcwd_n;
 
+	//系统处理函数。
+	using platform::terminate;
+
+	//基本图形定义。
+	using platform::SPos;
+	using platform::SDst;
+
+	//文件系统抽象。
 	using platform::const_path_t;
 	using platform::path_t;
 
-	using platform::DEF_PATH_DELIMITER, platform::DEF_PATH_SEPERATOR,
-		platform::PATHSTR, platform::FILENAMESTR;
-	using platform::mmbset, platform::mmbcpy;
-	using platform::direxists, platform::chdir, platform::getcwd_n;
-	using platform::terminate;
-	using platform::HDirectory,
-		platform::IsAbsolute, platform::GetRootNameLength;
+	using platform::HDirectory;
+	using platform::IsAbsolute;
+	using platform::GetRootNameLength;
+
+	//文件系统常量。
+	using platform::DEF_PATH_DELIMITER;
+	using platform::DEF_PATH_SEPERATOR;
+	using platform::PATHSTR;
+	using platform::FILENAMESTR;
+
+	//基本输入输出接口。
+	using platform::InitVideo;
 	using platform::ScreenSynchronize;
 	using platform::WaitForInput;
-	using platform::GetRTC, platform::ResetRTC;
-	using platform::InitVideo;
 
+	//时钟。
+	using platform::GetRTC;
+	using platform::ResetRTC;
+
+	//输入类型。
 	namespace KeySpace = platform::KeySpace;
-	using platform::Key, platform::KeysInfo, CursorInfo;
+	using platform::KeyCode;
+	using platform::KeysInfo;
+	using platform::CursorInfo;
 
 	namespace Drawing
 	{

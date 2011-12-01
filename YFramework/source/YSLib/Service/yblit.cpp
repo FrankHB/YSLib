@@ -11,12 +11,12 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1918;
+\version r1924;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:45:32 +0800;
 \par 修改时间:
-	2011-11-05 11:22 +0800;
+	2011-12-01 08:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,13 +37,13 @@ namespace
 	inline SPos
 	blit_min(SPos s, SPos d)
 	{
-		return s + vmax<int>(0, -d);
+		return s + max<int>(0, -d);
 	}
 
 	inline SPos
 	blit_max(SPos s, SPos d, SDst sl, SDst dl, SDst cl)
 	{
-		return s + vmin<int>(vmin<int>(dl - d, sl - s), cl);
+		return s + min<int>(min<int>(dl - d, sl - s), cl);
 	}
 }
 
@@ -64,29 +64,29 @@ int
 BlitScale<false, false>(const Point& dp, const Point& sp,
 	const Size& ds, const Size& ss, const Size& sc, int delta_x, int delta_y)
 {
-	return vmax<int>(0, dp.Y) * ds.Width + vmax<int>(0, dp.X);
+	return max<int>(0, dp.Y) * ds.Width + max<int>(0, dp.X);
 }
 template<>
 int
 BlitScale<true, false>(const Point& dp, const Point& sp,
 	const Size& ds, const Size& ss, const Size& sc, int delta_x, int delta_y)
 {
-	return (vmax<int>(0, dp.Y) + delta_y - 1) * ds.Width + vmax<int>(0, dp.X);
+	return (max<int>(0, dp.Y) + delta_y - 1) * ds.Width + max<int>(0, dp.X);
 }
 template<>
 int
 BlitScale<false, true>(const Point& dp, const Point& sp,
 	const Size& ds, const Size& ss, const Size& sc, int delta_x, int delta_y)
 {
-	return vmax<int>(0, dp.Y) * ds.Width + vmax<int>(0, dp.X) + delta_x - 1;
+	return max<int>(0, dp.Y) * ds.Width + max<int>(0, dp.X) + delta_x - 1;
 }
 template<>
 int
 BlitScale<true, true>(const Point& dp, const Point& sp,
 	const Size& ds, const Size& ss, const Size& sc, int delta_x, int delta_y)
 {
-	return (vmax<int>(0, dp.Y) + delta_y - 1) * ds.Width
-		+ vmax<int>(0, dp.X) + delta_x - 1;
+	return (max<int>(0, dp.Y) + delta_y - 1) * ds.Width
+		+ max<int>(0, dp.X) + delta_x - 1;
 }
 
 //显式实例化：防止链接错误。

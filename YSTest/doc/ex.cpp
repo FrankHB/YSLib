@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3391; *build 264 rev 54;
+\version r3397; *build 265 rev 63;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-11-29 08:06 +0800;
+	2011-12-01 11:04 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -244,10 +244,13 @@ $using:
 	\cl Controller,
 	\cl Control
 ),
+\u YPanel
+(
+	\cl Panel,
+),
 \u YWindow
 (
-	\cl AWindow,
-	\cl AFrame,
+	\cl Window,
 	\cl Frame
 ),
 \u YGUI
@@ -286,10 +289,6 @@ $using:
 (
 	\cl TextList
 ),
-\u Panel
-(
-	\cl Panel
-)
 \u Menu
 (
 	\u Menu
@@ -327,186 +326,227 @@ $using:
 
 
 $DONE:
-r1:
-/ \as \str @ \ft CallEvent @ \h YControl,
-/ @ \impl \u ShlReader $=
+r1-r2:
+/= test 1;
+
+r3:
+/ @ \u YWindow $=
 (
-	/ @ \un \ns $=
-	(
-		+ \o yconstexpr const char* DefaultTimeFormat("%Y-%m-%d %H:%M:%S");
-		+ \f const char* TranslateTime(const std::tm&,
-			const char* = DefaultTimeFormat);
-		+ \f const char* TranslateTime(const std::time_t&,
-			const char* = DefaultTimeFormat) ythrow(GeneralEvent)
-	);
-	/ \impl @ \mf HexReaderManager::Activate ^ TranslateISO8601
+	/ \mf AWindow::Refresh \mg -> Frame::Refresh;
+	/ \mf \vt DrawContents @ \cl Frame \mg -> Refresh;
+	- \tr protected \amf DrawContents @ \cl AWindow
 );
 
-r2:
-/= test 1 ^ \conf release;
-
-r3-r4:
-+ \inc \h <cstddef>, <cstdint>, <climits>, <cmath> @ \h YAdatpor,
-/= test 2;
+r4:
+/ @ \u YWindow $=
+(
+	/ \cl AWindow \mg -> AFrame;
+	/ \cl AFrame => Window
+);
+/ \tr @ \h (YComponent, YMenu), \impl \u (Menu, YWidget);
 
 r5:
-* wrong value caculation when minimum thumb length reached @ track
-	$since b193 $=
+/ \u Panel["panel.h", "panel.cpp"] @ \dir UI @ \lib YSLib
+	=> YPanel["ypanel.h", "ypanel.cpp"];
+/ \inc \h (YControl, YUIContainer) -> \h YPanel @ \h YWindow;
+/ @ \cl Window $=
 (
-	/ \impl @ \mf (SetValue, SetLargeDelta, SetThumbPosition) @ \cl ATrack
-);
+	/ \inh public Control, protected MBackground, protected MUIContainer
+		-> \inh public Panel, protected MBackground;
+	/ \tr \impl @ \ctor
+),
+/ \tr \h @ \h Build;
 
 r6:
-* scrolling overflow of value greater than about 0x1998 $since b260 $=
-(
-	/ @ \h Scroll $=
-	(
-		/ \a ystdex::fixed_point<u32, 16> -> float;
-		- \inc \h Rational
-	)
-);
+/= test 2 ^ \conf release;
 
-r7-r8:
+r7-r11:
 /= test 3;
 
-r9:
-/ \impl @ \mf (SetThumbLength, SetThumbPosition, SetValue, SetLargeDelta,
-	LocateThumb) @ \cl ATrack;
-/ \tr \impl @ \ctor @ \cl ListBox,
-/ \tr \impl @ \mf HexViewArea::Load @ \impl \u HexBrowser;
-
-r10:
-* \impl @ \mf (SetThumbPosition, SetValue) @ \cl ATrack $since r9;
-
-r11:
-* \impl @ \mf HexViewArea::Load @ \impl \u HexBrowser $since r9;
-
 r12:
-/= test 4 ^ \conf release;
+/ \impl @ \mf Frame::Refresh;
 
 r13:
-/= test 5;
+/= test 4 ^ \conf release;
 
 r14:
-/ @ \cl ATrack $=
+* \impl @ \mf Frame::Refresh $since r12;
+
+r15-r18:
+/ @ \u YRenderer $=
 (
-	+ \mf SDst GetScrollableLength() const;
-	+ / \simp \impl @ \mf (SetThumbPosition, SetValue, SetLargeDelta,
-		LocateThumb) ^ GetScrollableLength
+	/ \impl @ \f void Render(IWidget&, PaintContext&&);
+	/ \impl @ \f void PaintChild(IWidget&, PaintEventArgs&&);
+	- \f PaintIntersection
 );
 
-r15-r16:
-/= test 6;
-
-r17:
-/ @ \cl ATrack $=
-(
-	/ \mf Area CheckArea(SDst) const -> Area CheckArea(SPos) const,
-	/ \impl @ \ctor
-);
-
-r18-r25:
-/= test 7;
+r19-r25:
+/= test 5;
 
 r26:
-* wrong touch coordinate for event %TouchHeld when touching widget changed
-	$since b219 $=
+/ \impl @ \mf BufferedRenderer::Validate;
+/ \simp \impl @ \mf Frame::Refresh;
+
+r27:
+/ \impl @ \mf Frame::Refresh;
+
+r28-r31:
+/= test 6;
+
+r32:
+/ @ \impl \u YRenderer $=
 (
-	/ \impl @ \mf GUIShell::ResponseTouchBase
+	/ \impl @ \mf Refresh @ \cl (Renderer, BufferedRenderer),
+	/ \impl @ \f void Render(IWidget&, PaintContext&&)
 );
 
-r27-r28:
-/= test 8;
+r33-r36:
+/= test 7;
 
-r29-r31:
-/ \impl @ \mf GUIShell::ResponseTouchBase,
-/= test 9;
+r37:
+/= test 8 ^ \conf release;
 
-r32-r46:
-/= test 10,
-* touch (helding, dragging) \impl $since r26
+r38:
+/ \impl @ \mf Frame::Refresh;
+
+r39:
+/ \mf DrawBackgroundImage @ \cl Window \mg -> \mf Refresh;
+
+r40:
+/ \impl @ \mf Frame::Refresh;
+
+r41:
+/ @ \u YRenderer $=
 (
-	/ \impl @ \mf GUIShell::ResponseTouchBase;
-	/ \impl @ \f (OnTouchHeld, OnTouchMove, OnTouchMove_Dragging) @ \u Control
+	- \mf BufferedRenderer::FillInvalidation;
+	- \mf Renderer::FillInvalidation
 );
-* wrong behavior when the corresponding relative touch coordinate component
-	below zero on dragging @ \cl ATrack $since b219 $=
+
+r42:
+/ \cl Frame @ \u YWindow \mg -> \cl Window;
+/ \tr \a 'Frame' @ \u Form -> 'Window',
+/ \tr @ \u Desktop,
+/ \tr \simp @ \impl \u Shells;
+
+r43:
+/= test 9 ^ \conf release;
+
+r44:
++ \ft<typename _tForward> _tForward stable_range_unique(_tForward, _tForward)
+	@ \h Algorithm,
 (
-	/ \impl @ \ctor @ \cl ATrack
+	+ \mf Rect PaintChildren(const PaintContext&) @ \cl MUIContainer;
+	/ \simp \impl @ Frame::Refresh
 );
+
+r45:
+/ \impl @ \mf Window::Refresh,
++ \mf Refresh @ \cl Panel;
+
+r46:
+- \mf Refresh @ \cl TextInfoPanel @ \u ShlReader;
 
 r47:
-/= test 11 ^ \conf release;
+/= test 10 ^ \conf release;
 
 r48:
-/ @ \un \ns @ \impl \u ShlReader $=
+/ @ \u YText $=
 (
-	+ \f \i snftime,
-	/ \tr @ \o DefaultTimeFormat;
-	/ \tr \impl @ \f TranslateTime#1
+	/ \f void RenderChar(ucs4_t, TextState&, const Graphics&, u8*)
+		-> void RenderChar(ucs4_t, TextState&, const Graphics&,
+		const Rect, u8*);
+	/ @ \cl TextRenderer $=
+	(
+		+ \m Rect ClipArea;
+		/ \tr \impl @ \ctor;
+		+ \ctor TextRenderer(TextState&, const Graphics&),
+		/ \impl @ \mf \op()
+	),
+	/ \tr \impl @ \mf TextRegion::\op()
 );
 
 r49:
-/ @ \u ShlReader $=
+/ @ \u Text $=
 (
-	* \as \str @ \mf FileInfoPanel::Refresh $since b263,
-	/ @ \cl TextReaderManager
-	(
-		/ \m pnlReader => boxReader,
-		/ \m pnlFileInfo => boxTextInfo
-	)
+	+ \f void DrawClippedText(const Graphics&, TextState&, const String&,
+		const Rect&);
+	+ \f void DrawClippedText(const Graphics&, const Rect&, const Rect&,
+		const String&, const Padding&, Color);
+	/ \simp \impl @ \a \f DrawText#2
 );
 
 r50:
-* file infomation box cannot be shown @ \u ShlReader $since b263 $=
-(
-	/ \mf void UpdateData() @ \cl TextInfoBox
-		-> \mf void UpdateData(DualScreenReader&);
-	/ \tr \impl @ \mf TextReaderManager::ExcuteReadingCommand
-);
+/ \impl @ \mf MLabel::PaintText ^ \f DrawClippedText ~ DrawText;
 
 r51:
-/= test 12 ^ \conf release;
+/ \mf \vt void PaintItem(const Graphics&, const Rect&, ListType::size_type)
+	-> void PaintItem(const Graphics&, const Rect&, const Rect&,
+	ListType::size_type) @ \cl (TextList, Menu) ^ DrawClippedText ~ DrawText;
+/ \tr \impl @ \mf TextList::PaintItems;
 
 r52:
-(
-	/ \a IsEmptyStrict => IsUnstrictlyEmpty;
-	/ \tr \impl @ \f PaintIntersection @ \impl \u YRenderer;
-),
-+ \mf yconstexprf DefPredicate(LineSegment, !((Width == 0) ^ (Height == 0)))
-	@ \cl Size @ \h YGDIBase;
+/ \impl @ \mf TextList::PaintItems;
 
-r53:
-/ @ \u YRenderer $=
+r53-r55:
+/= test 11,
+* \impl @ \f RenderChar $since r48;
+
+r56:
+/ @ \impl \u Button $=
 (
-	/ \f bool PaintIntersection(IWidget&, PaintEventArgs&&)
-		-> void PaintIntersection(IWidget&, PaintEventArgs&&);
-	/ \tr \f bool PaintChild(IWidget&, PaintEventArgs&&)
-		-> void PaintChild(IWidget&, PaintEventArgs&&),
-	/ \tr \f bool PaintChild(IWidget&, const PaintContext&)
-		-> void PaintChild(IWidget&, const PaintContext&)
+	/ \f void RectDrawButton(const Graphics&, Point, Size, bool = false,
+		bool = true) -> void RectDrawButton(const Graphics&, const Rect&,
+			Point, Size, bool = false, bool = true);
+	/ \impl @ \mf Thumb::Refresh
 );
-/ \tr \impl @ \mf Frame::DrawContents;
 
-r54:
+r57:
+/= test 12 ^ \conf release;
+
+r58:
+* sender checking missing for event TouchMove @ \cl TextList $since b264 $=
+(
+	/ \impl @ \ctor
+);
+* wrong behavior for listbox on event TouchHeld when touching widget changed
+	$since b219;
+
+r59:
+/ \impl @ \f Intersect @ \impl \u YGDIBase;
+
+r60:
+/ \a ^ @ vmax -> std::max,
+/ \a ^ @ vmin -> std::min;
++ \tr using std::min, using std::max @ \ns YSLib @ \h YAdaptor,
+- (vmin, vmax) @ \ns ystdex @ \lib YStandardEx,
+/ \tr \simp @ \impl \u YGDIBase;
+
+r61:
 /= test 13 ^ \conf release;
+
+r62:
+- \vt @ \dtor @ \cl FontCache @ \u YFont
+
+r63:
+/= test 14 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-11-29:
--19.1d;
-//Mercurial rev1-rev135: r6387;
+2011-12-01:
+-16.1d;
+//Mercurial rev1-rev136: r6441;
 
 / ...
 
 
 $NEXT_TODO:
-b265-b384:
+b266-b384:
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
-+ partial invalidation support @ %(TextList::PrintItems, HexViewArea::Refresh);
+/ partial invalidation support @ \f DrawRectRoundCorner;
++ partial invalidation support @ %(HexViewArea::Refresh);
 + dynamic character mapper loader for \u CharacterMapping;
 + 64-bit support for ystdex::fixed_point;
 
@@ -594,6 +634,31 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	+ "partial invalidation support for text rendering";
+		// NOTE: it makes efficiency decreased obviously \
+			for non-overlapped widgets.
+	/ GUI $=
+	(
+		/ "window classes hierarchy" ^ "class %Panel",
+		/ "refreshing algorithm" @ "class %Frame::Refresh" $=
+		(
+			+ "support for unbuffered windows",
+			/ "minor efficiency improvement"
+		),
+		+ "member function %Panel::Refresh",
+		+ "partial invalidation support" @ "class %(MLabel, TextList, Menu)",
+		(
+			* "sender checking missing for event %TouchMove" @ "class %TextList"
+				$since b264;
+			* wrong behavior for listbox on event %TouchHeld when touching \
+				widget changed" $since b219
+		)
+	),
+	"intersection algorithm improvement for non-trivial result"
+),
+
+b264
 (
 	/ "shells test example" $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1490;
+\version r1501;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-11-28 19:16 +0800;
+	2011-11-30 08:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -89,14 +89,6 @@ public:
 	*/
 	virtual void
 	CommitInvalidation(const Rect&)
-	{}
-
-	/*
-	\brief 以纯色填充无效区域。
-	\note 空实现。
-	*/
-	virtual void
-	FillInvalidation(Color)
 	{}
 
 	/*!
@@ -188,12 +180,6 @@ public:
 	virtual void
 	CommitInvalidation(const Rect&);
 
-	/*
-	\brief 以纯色填充无效区域。
-	*/
-	virtual void
-	FillInvalidation(Color);
-
 	/*!
 	\brief 按参数刷新。
 	\pre 断言： <tt>&wgt.GetRenderer() == this</tt> 。
@@ -252,19 +238,6 @@ Invalidate(IWidget&);
 void
 InvalidateCascade(IWidget&, const Rect&);
 
-/*!
-\brief 判断相交并调用指定部件的 Paint 事件绘制事件参数指定的部件，并更新区域参数。
-
-以发送者 e.GetSender() 作为绘制目标，判断其边界是否和区域 e.ClipArea 相交，
-若相交区域非空则调用 wgt 的 Paint 事件绘制 e.GetSender() 。
-调用结束后，e.ClipArea 被覆盖为相交区域边界。
-\param wgt 事件所有者。
-\note 所有者、订阅者可以和发送者不同，但应避免造成无限递归调用。
-\since build 263 。
-*/
-void
-PaintIntersection(IWidget& wgt, PaintEventArgs&& e);
-
 /*
 \brief 调用指定子部件所有的 Paint 事件绘制参数指定的事件发送者。
 \since build 263 。
@@ -282,14 +255,20 @@ PaintChild(IWidget&, const PaintContext&);
 
 /*
 \brief 渲染：更新，若缓冲存储不可用则在更新前使用渲染器的 Refresh 方法刷新指定部件。
-\note 无条件更新实际渲染的区域至 pc.ClipArea 。
+
+以 wgt 作为绘制目标，判断其边界是否和区域 pc.ClipArea 相交，
+若相交区域非空则调用 wgt 的渲染器的 Refresh 方法绘制 。
+调用结束后，e.ClipArea 被覆盖为 Refresh 方法的返回结果。
 \since build 243 。
 */
 void
-Render(IWidget&, PaintContext&& pc);
+Render(IWidget& wgt, PaintContext&& pc);
 /*
 \brief 渲染：更新，若缓冲存储不可用则在更新前刷新发送者。
-\note 无条件更新实际渲染的区域至 e.ClipArea 。
+
+以 e.GetSender() 作为绘制目标，判断其边界是否和区域 e.ClipArea 相交，
+若相交区域非空则调用 e.GetSender() 的渲染器的 Refresh 方法绘制 。
+调用结束后，e.ClipArea 被覆盖为 Refresh 方法的返回结果。
 \since build 256 。
 */
 void

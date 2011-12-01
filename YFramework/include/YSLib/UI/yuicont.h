@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2599;
+\version r2605;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-11-25 17:49 +0800;
+	2011-11-30 14:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -238,6 +238,14 @@ public:
 	*/
 	virtual void
 	Add(IWidget&, ZOrderType = DefaultZOrder);
+
+protected:
+	/*!
+	\brief 绘制子部件。
+	\since b264 。
+	*/
+	Rect
+	PaintChildren(const PaintContext&);
 };
 
 

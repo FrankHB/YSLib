@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5432;
+\version r5435;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-11-24 18:11 +0800;
+	2011-11-30 08:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -486,8 +486,7 @@ ShlExplorer::ShlExplorer()
 
 
 ShlExplorer::TFormTest::TFormTest()
-	: Form(Rect(10, 40, 228, 100), shared_ptr<Image>(),
-		raw(FetchGlobalInstance().GetDesktopDownHandle())),
+	: Form(Rect(10, 40, 228, 100), shared_ptr<Image>()),
 	btnEnterTest(Rect(2, 5, 148, 22)), /*FetchImage(6)*/
 	btnMenuTest(Rect(152, 5, 60, 22)),
 	btnShowWindow(Rect(45, 35, 124, 22)),
@@ -615,8 +614,7 @@ ShlExplorer::TFormTest::OnLeave_btnEnterTest(TouchEventArgs&& e)
 }
 
 ShlExplorer::TFormExtra::TFormExtra()
-	: Form(Rect(5, 60, 208, 120), shared_ptr<Image>(), /*FetchImage(7)*/
-		raw(FetchGlobalInstance().GetDesktopDownHandle())),
+	: Form(Rect(5, 60, 208, 120), shared_ptr<Image>()), /*FetchImage(7)*/
 	btnDragTest(Rect(13, 15, 184, 22)),
 	btnTestEx(Rect(13, 52, 168, 22)),
 	btnClose(Rect(13, 82, 60, 22)),

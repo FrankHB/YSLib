@@ -11,12 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1733;
+\version r1741;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 203 。
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-11-21 22:36 +0800;
+	2011-11-30 19:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,7 +40,10 @@ class MenuHost;
 const ZOrderType DefaultMenuZOrder(224); //!< 默认菜单 Z 顺序值。
 
 
-//! \brief 文本菜单。
+/*!
+\brief 文本菜单。
+\since build 252 。
+*/
 class Menu : public TextList
 {
 	friend class MenuHost;
@@ -150,9 +154,11 @@ public:
 protected:
 	/*!
 	\brief 绘制菜单项。
+	\since build 265 。
 	*/
 	virtual void
-	PaintItem(const Graphics&, const Rect&, ListType::size_type);
+	PaintItem(const Graphics&, const Rect& mask,
+		const Rect&, ListType::size_type);
 };
 
 
@@ -163,7 +169,10 @@ void
 LocateMenu(Menu&, const Menu&, Menu::IndexType);
 
 
-//! \brief 菜单宿主。
+/*!
+\brief 菜单宿主。
+\since build 252 。
+*/
 class MenuHost : public noncopyable,
 	public OwnershipTag<Menu>
 {
@@ -172,13 +181,13 @@ public:
 	typedef map<Menu::ID, ItemType> MenuMap; //!< 菜单组类型。
 	typedef MenuMap::value_type ValueType;
 
-	AFrame& Frame; //!< 框架窗口。
+	Window& Frame; //!< 框架窗口。
 
 protected:
 	MenuMap mMenus; //!< 菜单组：存储非空菜单指针。
 
 public:
-	MenuHost(AFrame&);
+	MenuHost(Window&);
 	/*!
 	\brief 析构。
 	\note 隐藏菜单组中的所有菜单并清理菜单组。

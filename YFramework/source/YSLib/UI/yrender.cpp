@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1483;
+\version r1494;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2011-11-28 19:21 +0800;
+	2011-11-30 08:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,12 +68,6 @@ BufferedRenderer::CommitInvalidation(const Rect& r)
 	rInvalidated = Unite(rInvalidated, r);
 }
 
-void
-BufferedRenderer::FillInvalidation(Color c)
-{
-	FillRect(Buffer, rInvalidated, c);
-}
-
 Rect
 BufferedRenderer::Refresh(IWidget& wgt, PaintContext&& pc)
 {
@@ -103,7 +97,7 @@ BufferedRenderer::Validate(IWidget& wgt, const Rect& r)
 	if(RequiresRefresh())
 	{
 		auto result(wgt.Refresh(PaintContext(GetContext(),
-			Point::Zero, r)));
+			Point::Zero, Intersect(r, rInvalidated))));
 
 		//清除无效区域：只设置一个分量为零可能会使 CommitInvalidation 结果错误。
 		static_cast<Size&>(rInvalidated) = Size::Zero;
@@ -148,19 +142,10 @@ InvalidateCascade(IWidget& wgt, const Rect& bounds)
 }
 
 void
-PaintIntersection(IWidget& wgt, PaintEventArgs&& e)
-{
-	e.ClipArea = Intersect(Rect(e.Location, GetSizeOf(e.GetSender())),
-		e.ClipArea);
-	if(!e.ClipArea.IsUnstrictlyEmpty())
-		CallEvent<Paint>(wgt, e);
-}
-
-void
 PaintChild(IWidget& wgt, PaintEventArgs&& e)
 {
 	e.Location += GetLocationOf(e.GetSender());
-	PaintIntersection(wgt, std::move(e));
+	CallEvent<Paint>(wgt, e);
 }
 void
 PaintChild(IWidget& wgt, const PaintContext& pc)
@@ -171,7 +156,9 @@ PaintChild(IWidget& wgt, const PaintContext& pc)
 void
 Render(IWidget& wgt, PaintContext&& pc)
 {
-	pc.ClipArea = wgt.GetRenderer().Refresh(wgt, std::move(pc));
+	pc.ClipArea = Intersect(Rect(pc.Location, GetSizeOf(wgt)), pc.ClipArea);
+	if(!pc.ClipArea.IsUnstrictlyEmpty())
+		pc.ClipArea = wgt.GetRenderer().Refresh(wgt, std::move(pc));
 }
 void
 Render(PaintEventArgs&& e)

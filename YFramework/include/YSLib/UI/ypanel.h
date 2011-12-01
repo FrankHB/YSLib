@@ -8,24 +8,25 @@
 	understand and accept it fully.
 */
 
-/*!	\file panel.h
+/*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r1315;
+\version r1325;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 201 。
 \par 创建时间:
 	2011-04-13 20:40:51 +0800;
 \par 修改时间:
-	2011-11-04 19:32 +0800;
+	2011-11-30 14:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::Panel;
+	YSLib::UI::YPanel;
 */
 
 
-#ifndef YSL_INC_UI_PANEL_H_
-#define YSL_INC_UI_PANEL_H_
+#ifndef YSL_INC_UI_YPANEL_H_
+#define YSL_INC_UI_YPANEL_H_
 
 #include "ycontrol.h"
 #include "yuicont.h"
@@ -35,7 +36,10 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//! \brief 面板。
+/*!
+\brief 面板。
+\since build 201 。
+*/
 class Panel : public Control, protected MUIContainer
 {
 public:
@@ -57,6 +61,9 @@ public:
 	virtual PDefH(IWidget*, GetTopWidgetPtr, const Point& pt,
 		bool(&f)(const IWidget&))
 		ImplBodyBase(MUIContainer, GetTopWidgetPtr, pt, f)
+
+	virtual Rect
+	Refresh(const PaintContext&);
 };
 
 YSL_END_NAMESPACE(Components)

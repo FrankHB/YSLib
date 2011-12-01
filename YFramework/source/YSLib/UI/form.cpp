@@ -11,12 +11,13 @@
 /*!	\file form.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗体。
-\version r1545;
+\version r1551;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2011-11-11 11:31 +0800;
+	2011-11-30 08:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +32,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 /*Form::Form(const Rect& r, const shared_ptr<Image>& hImg, IWidget* pCon)
-	: Frame(r, hImg, pCon)//,
+	: Window(r, hImg, pCon)//,
 //	Client(this, Rect::Emptyr)
 {
 //	SetSize(Size.Width, Size.Height);
@@ -40,14 +41,14 @@ YSL_BEGIN_NAMESPACE(Components)
 void
 Form::SetSize(SDst w, SDst h)
 {
-	Frame::SetSize(w, h);
+	Window::SetSize(w, h);
 //	BitmapBuffer::SetSize(w, h);
 //	YWidget::SetSize(w, h);
 }
 void
 Form::SetBounds(const Rect& r)
 {
-	Frame::SetBounds(r);
+	Window::SetBounds(r);
 //	Location = r.GetPoint();
 //	SetSize(r.Width, r.Height);
 }
@@ -55,7 +56,7 @@ Form::SetBounds(const Rect& r)
 void
 Form::Draw()
 {
-	Frame::Draw();
+	Window::Draw();
 //	Client.Draw();
 
 }
