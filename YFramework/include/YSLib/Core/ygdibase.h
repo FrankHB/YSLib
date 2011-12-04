@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1698;
+\version r1793;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-11-28 19:05 +0800;
+	2011-12-04 13:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,7 +46,7 @@ class Rect;
 \brief 屏幕二元组。
 \since build 242 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 class GBinaryGroup
 {
 public:
@@ -59,24 +59,24 @@ public:
 	\brief 无参数构造。
 	\note 零初始化。
 	*/
-	yconstexprf
+	yconstfn
 	GBinaryGroup()
 		: X(0), Y(0)
 	{}
 	/*!
 	\brief 复制构造：默认实现。
 	*/
-	yconstexprf DefDeCopyCtor(GBinaryGroup)
+	yconstfn DefDeCopyCtor(GBinaryGroup)
 	/*!
 	\brief 构造：使用 Size 对象。
 	*/
-	explicit yconstexprf
+	explicit yconstfn
 	GBinaryGroup(const Size&);
 	/*!
 	\brief 构造：使用两个标量。
 	*/
-	PDefTH2(_tScalar1, _tScalar2)
-	yconstexprf
+	PDefTmplH2(_tScalar1, _tScalar2)
+	yconstfn
 	GBinaryGroup(_tScalar1 x, _tScalar2 y)
 		: X(x), Y(y)
 	{}
@@ -84,7 +84,7 @@ public:
 	/*!
 	\brief 负运算：取加法逆元。
 	*/
-	yconstexprf GBinaryGroup
+	yconstfn GBinaryGroup
 	operator-()
 	{
 		return GBinaryGroup(-X, -Y);
@@ -96,7 +96,7 @@ public:
 	GBinaryGroup&
 	operator+=(const GBinaryGroup& val) ynothrow
 	{
-		yunsequenced(X += val.X, Y += val.Y);
+		yunseq(X += val.X, Y += val.Y);
 		return *this;
 	}
 	/*!
@@ -105,25 +105,25 @@ public:
 	GBinaryGroup&
 	operator-=(const GBinaryGroup& val) ynothrow
 	{
-		yunsequenced(X -= val.X, Y -= val.Y);
+		yunseq(X -= val.X, Y -= val.Y);
 		return *this;
 	}
 
-	yconstexprf DefGetter(_type, X, X)
-	yconstexprf DefGetter(_type, Y, Y)
+	yconstfn DefGetter(const ynothrow, _type, X, X)
+	yconstfn DefGetter(const ynothrow, _type, Y, Y)
 
-	yconstexprf DefSetter(_type, X, X)
-	yconstexprf DefSetter(_type, Y, Y)
+	yconstfn DefSetter(_type, X, X)
+	yconstfn DefSetter(_type, Y, Y)
 
 	/*!
 	\biref 判断是否是零元素。
 	*/
-	yconstexprf DefPredicate(Zero, X == 0 && Y == 0)
+	yconstfn DefPred(const ynothrow, Zero, X == 0 && Y == 0)
 };
 
-PDefTH1(_type)
+PDefTmplH1(_type)
 const GBinaryGroup<_type> GBinaryGroup<_type>::Zero = GBinaryGroup<_type>();
-PDefTH1(_type)
+PDefTmplH1(_type)
 const GBinaryGroup<_type> GBinaryGroup<_type>::Invalid
 	= GBinaryGroup<_type>(std::numeric_limits<_type>::lowest(),
 		std::numeric_limits<_type>::lowest());
@@ -135,8 +135,8 @@ const GBinaryGroup<_type> GBinaryGroup<_type>::Invalid
 \brief 比较：屏幕二元组相等关系。
 \since build 242 。
 */
-PDefTH1(_type)
-yconstexprf bool
+PDefTmplH1(_type)
+yconstfn bool
 operator==(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 {
 	return a.X == b.X && a.Y == b.Y;
@@ -146,8 +146,8 @@ operator==(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 \brief 比较：屏幕二元组不等关系。
 \since build 242 。
 */
-PDefTH1(_type)
-yconstexprf bool
+PDefTmplH1(_type)
+yconstfn bool
 operator!=(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 {
 	return !(a == b);
@@ -157,8 +157,8 @@ operator!=(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 \brief 加法：屏幕二元组。
 \since build 242 。
 */
-PDefTH1(_type)
-yconstexprf GBinaryGroup<_type>
+PDefTmplH1(_type)
+yconstfn GBinaryGroup<_type>
 operator+(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 {
 	return GBinaryGroup<_type>(a.X + b.X, a.Y + b.Y);
@@ -168,8 +168,8 @@ operator+(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 \brief 减法：屏幕二元组。
 \since build 242 。
 */
-PDefTH1(_type)
-yconstexprf GBinaryGroup<_type>
+PDefTmplH1(_type)
+yconstfn GBinaryGroup<_type>
 operator-(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 {
 	return GBinaryGroup<_type>(a.X - b.X, a.Y - b.Y);
@@ -179,8 +179,8 @@ operator-(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
 \brief 数乘：屏幕二元组。
 \since build 242 。
 */
-PDefTH2(_type, _tScalar)
-yconstexprf GBinaryGroup<_type>
+PDefTmplH2(_type, _tScalar)
+yconstfn GBinaryGroup<_type>
 operator*(const GBinaryGroup<_type>& val, _tScalar l)
 {
 	return GBinaryGroup<_type>(val.X * l, val.Y * l);
@@ -217,26 +217,26 @@ public:
 	\brief 无参数构造。
 	\note 零初始化。
 	*/
-	yconstexprf
+	yconstfn
 	Size();
 	/*!
 	\brief 复制构造。
 	*/
-	yconstexprf
+	yconstfn
 	Size(const Size&);
 	/*!
 	\brief 构造：使用屏幕二元组。
 	*/
-	PDefTH1(_type)
-	yconstexprf explicit
+	PDefTmplH1(_type)
+	yconstfn explicit
 	Size(const GBinaryGroup<_type>& val)
 		: Width(val.X), Height(val.Y)
 	{}
 	/*!
 	\brief 构造：使用两个标量。
 	*/
-	PDefTH2(_tScalar1, _tScalar2)
-	yconstexprf
+	PDefTmplH2(_tScalar1, _tScalar2)
+	yconstfn
 	Size(_tScalar1 w, _tScalar2 h)
 		: Width(w), Height(h)
 	{}
@@ -245,29 +245,30 @@ public:
 	\brief 转换：屏幕二维向量。
 	\note 以Width 和 Height 分量作为结果的 X 和 Y分量。
 	*/
-	yconstexprf DefConverter(Vec, Vec(Width, Height))
+	yconstfn DefCvt(const ynothrow, Vec, Vec(Width, Height))
 
 	/*!
 	\brief 判断是否为空。
 	*/
-	yconstexprf DefPredicate(Empty, Width == 0 && Height == 0)
+	yconstfn DefPred(const ynothrow, Empty, Width == 0 && Height == 0)
 	/*!
 	\brief 判断是否为线段：长或宽中有且一个数值等于 0 。
 	\since build 264 。
 	*/
-	yconstexprf DefPredicate(LineSegment, !((Width == 0) ^ (Height == 0)))
+	yconstfn DefPred(const ynothrow, LineSegment,
+		!((Width == 0) ^ (Height == 0)))
 	/*!
 	\brief 判断是否为不严格的空矩形区域：包括空矩形和线段。
 	\since build 264 。
 	*/
-	yconstexprf DefPredicate(UnstrictlyEmpty, Width == 0 || Height == 0)
+	yconstfn DefPred(const ynothrow, UnstrictlyEmpty, Width == 0 || Height == 0)
 };
 
-yconstexprf
+yconstfn
 Size::Size()
 	: Width(0), Height(0)
 {}
-yconstexprf
+yconstfn
 Size::Size(const Size& s)
 	: Width(s.Width), Height(s.Height)
 {}
@@ -276,7 +277,7 @@ Size::Size(const Size& s)
 \brief 比较：屏幕区域大小相等关系。
 \since build 161 。
 */
-yconstexprf bool
+yconstfn bool
 operator==(const Size& a, const Size& b)
 {
 	return a.Width == b.Width && a.Height == b.Height;
@@ -286,7 +287,7 @@ operator==(const Size& a, const Size& b)
 \brief 比较：屏幕区域大小不等关系。
 \since build 161 。
 */
-yconstexprf bool
+yconstfn bool
 operator!=(const Size& a, const Size& b)
 {
 	return !(a == b);
@@ -297,8 +298,8 @@ operator!=(const Size& a, const Size& b)
 \brief 加法：使用屏幕二元组和屏幕区域大小分量对应相加构造屏幕二元组。
 \since build 242 。
 */
-PDefTH1(_type)
-yconstexprf GBinaryGroup<_type>
+PDefTmplH1(_type)
+yconstfn GBinaryGroup<_type>
 operator+(GBinaryGroup<_type> val, const Size& s)
 {
 	return GBinaryGroup<_type>(val.X + s.Width, val.Y + s.Height);
@@ -310,8 +311,8 @@ operator+(GBinaryGroup<_type> val, const Size& s)
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
 \since build 242 。
 */
-PDefTH1(_type)
-yconstexprf SPos
+PDefTmplH1(_type)
+yconstfn SPos
 SelectFrom(const GBinaryGroup<_type>& obj, bool is_1st)
 {
 	return is_1st ? obj.X : obj.Y;
@@ -329,8 +330,8 @@ SelectFrom(const Size&, bool = true);
 \note 第二参数为 true 时选择第一分量，否则选择第二分量。
 \since build 242 。
 */
-PDefTH1(_type)
-yconstexprf _type&
+PDefTmplH1(_type)
+yconstfn _type&
 SelectRefFrom(GBinaryGroup<_type>& obj, bool is_1st = true)
 {
 	return is_1st ? obj.X : obj.Y;
@@ -348,7 +349,7 @@ SelectRefFrom(Size&, bool = true);
 \note 第三参数为 true 时更新第一分量，否则更新第二分量。
 \since build 242 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 void
 UpdateTo(GBinaryGroup<_type>& obj, SPos val, bool is_1st = true)
 {
@@ -370,7 +371,7 @@ UpdateTo(Size&, SDst, bool = true);
 \since build 242 。
 */
 template<class _tBinary>
-yconstexprf _tBinary
+yconstfn _tBinary
 Transpose(_tBinary& obj)
 {
 	return _tBinary(obj.Y, obj.X);
@@ -381,7 +382,7 @@ Transpose(_tBinary& obj)
 \since build 231 。
 \todo 确定任意精度的返回值类型。
 */
-yconstexprf u32
+yconstfn u32
 GetAreaOf(const Size& s)
 {
 	return s.Width * s.Height;
@@ -403,41 +404,41 @@ public:
 	\brief 无参数构造。
 	\note 零初始化。
 	*/
-	yconstexprf
+	yconstfn
 	Rect();
 	/*!
 	\brief 复制构造：默认实现。
 	*/
-	yconstexprf DefDeCopyCtor(Rect)
+	yconstfn DefDeCopyCtor(Rect)
 	/*!
 	\brief 构造：使用屏幕二维点。
 	*/
-	explicit yconstexprf
+	explicit yconstfn
 	Rect(const Point&);
 	/*!
 	\brief 构造：使用 Size 对象。
 	*/
-	explicit yconstexprf
+	explicit yconstfn
 	Rect(const Size&);
 	/*!
 	\brief 构造：使用屏幕二维点和 Size 对象。
 	*/
-	yconstexprf
+	yconstfn
 	Rect(const Point&, const Size&);
 	/*!
 	\brief 构造：使用屏幕二维点和表示长宽的两个 SDst 值。
 	*/
-	yconstexprf
+	yconstfn
 	Rect(const Point&, SDst, SDst);
 	/*!
 	\brief 构造：使用表示位置的两个 SPos 值和 Size 对象。
 	*/
-	yconstexprf
+	yconstfn
 	Rect(SPos, SPos, const Size&);
 	/*!
 	\brief 构造：使用表示位置的两个 SPos 值和表示大小的两个 SDst 值。
 	*/
-	yconstexprf
+	yconstfn
 	Rect(SPos, SPos, SDst, SDst);
 
 	DefDeCopyAssignment(Rect)
@@ -481,38 +482,40 @@ public:
 	/*!
 	\brief 取左上角位置。
 	*/
-	yconstexprf DefGetter(const Point&, Point, static_cast<const Point&>(*this))
+	yconstfn DefGetter(const ynothrow, const Point&, Point,
+		static_cast<const Point&>(*this))
 	/*!
 	\brief 取大小。
 	*/
-	yconstexprf DefGetter(const Size&, Size, static_cast<const Size&>(*this))
+	yconstfn DefGetter(const ynothrow, const Size&, Size,
+		static_cast<const Size&>(*this))
 };
 
-yconstexprf
+yconstfn
 Rect::Rect()
 	: Point(), Size()
 {}
-yconstexprf
+yconstfn
 Rect::Rect(const Point& pt)
 	: Point(pt), Size()
 {}
-yconstexprf
+yconstfn
 Rect::Rect(const Size& s)
 	: Point(), Size(s)
 {}
-yconstexprf
+yconstfn
 Rect::Rect(const Point& pt, const Size& s)
 	: Point(pt), Size(s)
 {}
-yconstexprf
+yconstfn
 Rect::Rect(const Point& pt, SDst w, SDst h)
 	: Point(pt.X, pt.Y), Size(w, h)
 {}
-yconstexprf
+yconstfn
 Rect::Rect(SPos x, SPos y, const Size& s)
 	: Point(x, y), Size(s.Width, s.Height)
 {}
-yconstexprf
+yconstfn
 Rect::Rect(SPos x, SPos y, SDst w, SDst h)
 	: Point(x, y), Size(w, h)
 {}
@@ -520,13 +523,13 @@ Rect::Rect(SPos x, SPos y, SDst w, SDst h)
 inline Rect&
 Rect::operator=(const Point& pt)
 {
-	yunsequenced(X = pt.X, Y = pt.Y);
+	yunseq(X = pt.X, Y = pt.Y);
 	return *this;
 }
 inline Rect&
 Rect::operator=(const Size& s)
 {
-	yunsequenced(Width = s.Width, Height = s.Height);
+	yunseq(Width = s.Width, Height = s.Height);
 	return *this;
 }
 
@@ -534,7 +537,7 @@ Rect::operator=(const Size& s)
 \brief 比较：屏幕正则矩形相等关系。
 \since build 161 。
 */
-yconstexprf bool
+yconstfn bool
 operator==(const Rect& a, const Rect& b)
 {
 	return a.GetPoint() == b.GetPoint() && a.GetSize() == b.GetSize();
@@ -545,7 +548,7 @@ operator==(const Rect& a, const Rect& b)
 \since build 161 。
 */
 
-yconstexprf bool
+yconstfn bool
 operator!=(const Rect& a, const Rect& b)
 {
 	return !(a == b);
@@ -556,7 +559,7 @@ operator!=(const Rect& a, const Rect& b)
 \brief 加法：使用正则矩形 r 和偏移向量 v 构造屏幕正则矩形。
 \since build 161 。
 */
-yconstexprf Rect
+yconstfn Rect
 operator+(const Rect& r, const Vec& v)
 {
 	return Rect(r.GetPoint() + v, r.GetSize());
@@ -566,7 +569,7 @@ operator+(const Rect& r, const Vec& v)
 \brief 减法：使用正则矩形 r 和偏移向量的加法逆元 v 构造屏幕正则矩形。
 \since build 161 。
 */
-yconstexprf Rect
+yconstfn Rect
 operator-(const Rect& r, const Vec& v)
 {
 	return Rect(r.GetPoint() - v, r.GetSize());
@@ -607,12 +610,12 @@ public:
 	/*!
 	\brief 构造：使用指定位图指针和大小。
 	*/
-	explicit yconstexprf
+	explicit yconstfn
 	Graphics(BitmapPtr = nullptr, const Size& = Size::Zero);
 	/*!
 	\brief 复制构造：浅复制。
 	*/
-	yconstexprf
+	yconstfn
 	Graphics(const Graphics&);
 	/*!
 	\brief 析构：空实现。
@@ -627,13 +630,14 @@ public:
 	BitmapPtr
 	operator[](size_t) const ynothrow;
 
-	DefPredicate(Valid, pBuffer && size.Width != 0 && size.Height != 0)
+	DefPred(const ynothrow, Valid,
+		pBuffer && size.Width != 0 && size.Height != 0)
 
-	DefGetter(BitmapPtr, BufferPtr, pBuffer)
-	DefGetter(const Size&, Size, size)
-	DefGetter(SDst, Width, size.Width)
-	DefGetter(SDst, Height, size.Height)
-	DefGetter(size_t, SizeOfBuffer,
+	DefGetter(const ynothrow, BitmapPtr, BufferPtr, pBuffer)
+	DefGetter(const ynothrow, const Size&, Size, size)
+	DefGetter(const ynothrow, SDst, Width, size.Width)
+	DefGetter(const ynothrow, SDst, Height, size.Height)
+	DefGetter(const ynothrow, size_t, SizeOfBuffer,
 		sizeof(PixelType) * GetAreaOf(size)) //!< 取缓冲区占用空间。
 
 	/*!
@@ -646,11 +650,11 @@ public:
 	at(size_t) const ythrow(GeneralEvent, std::out_of_range);
 };
 
-yconstexprf
+yconstfn
 Graphics::Graphics(BitmapPtr b, const Size& s)
 	: pBuffer(b), size(s)
 {}
-yconstexprf
+yconstfn
 Graphics::Graphics(const Graphics& g)
 	: pBuffer(g.pBuffer), size(g.size)
 {}

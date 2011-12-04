@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6292;
+\version r6312;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-11-29 17:18 +0800;
+	2011-12-04 12:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,7 +42,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 部件接口。
 \since 早于 build 132 。
 */
-DeclInterface(IWidget)
+DeclI(IWidget)
 	/*!
 	\brief 取渲染器。
 	*/
@@ -308,7 +308,7 @@ public:
 	\param pController_ 控制器指针。
 	\pre <tt>is_not_null(pView_) && is_not_null(pRenderer_)</tt> 。
 	*/
-	PDefTH3(_tView, _tRenderer, _tController)
+	PDefTmplH3(_tView, _tRenderer, _tController)
 	inline Widget(_tView&& pView_ = unique_raw(new View()),
 		_tRenderer&& pRenderer_ = unique_raw(new Renderer()),
 		_tController pController_ = nullptr)
@@ -317,7 +317,7 @@ public:
 		BackColor(Drawing::ColorSpace::White),
 		ForeColor(Drawing::ColorSpace::Black)
 	{
-		YAssert(is_not_null(pView) && is_not_null(pRenderer),
+		YAssert(bool(pView) && bool(pRenderer),
 			"Null pointer(s) found @ Widget::Widget#2;");
 	}
 	/*!
@@ -334,25 +334,25 @@ public:
 	virtual
 	~Widget();
 
-	DefPredicateMember(Transparent, GetView())
+	DefPredMem(const ynothrow, Transparent, GetView())
 
-	DefGetterMember(SPos, X, GetView())
-	DefGetterMember(SPos, Y, GetView())
-	DefGetterMember(SDst, Width, GetView())
-	DefGetterMember(SDst, Height, GetView())
-	ImplI(IWidget) DefGetter(Renderer&, Renderer, *pRenderer)
-	ImplI(IWidget) DefGetter(View&, View, *pView)
+	DefGetterMem(const ynothrow, SPos, X, GetView())
+	DefGetterMem(const ynothrow, SPos, Y, GetView())
+	DefGetterMem(const ynothrow, SDst, Width, GetView())
+	DefGetterMem(const ynothrow, SDst, Height, GetView())
+	ImplI(IWidget) DefGetter(const ynothrow, Renderer&, Renderer, *pRenderer)
+	ImplI(IWidget) DefGetter(const ynothrow, View&, View, *pView)
 	ImplI(IWidget) AController&
 	GetController() const;
 	ImplI(IWidget) PDefH(IWidget*, GetTopWidgetPtr, const Point&,
 		bool(&)(const IWidget&))
 		ImplRet(nullptr)
 
-	DefSetterMember(bool, Transparent, GetView())
-	DefSetterMember(SDst, X, GetView())
-	DefSetterMember(SDst, Y, GetView())
-	DefSetterMember(SDst, Width, GetView())
-	DefSetterMember(SDst, Height, GetView())
+	DefSetterMem(bool, Transparent, GetView())
+	DefSetterMem(SDst, X, GetView())
+	DefSetterMem(SDst, Y, GetView())
+	DefSetterMem(SDst, Width, GetView())
+	DefSetterMem(SDst, Height, GetView())
 	/*!
 	\brief 设置渲染器为指定指针指向的对象，同时更新渲染器状态。
 	\note 若指针为空，则使用以当前部件边界新建的 Renderer 对象。

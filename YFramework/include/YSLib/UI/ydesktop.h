@@ -11,13 +11,13 @@
 /*!	\file ydesktop.h
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r2344;
+\version r2346;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-11-30 08:47 +0800;
+	2011-11-30 12:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,9 +53,10 @@ public:
 		const shared_ptr<Drawing::Image>& = shared_ptr<Drawing::Image>());
 	inline DefDeMoveCtor(Desktop)
 
-	DefGetter(const Devices::Screen&, Screen, screen) //!< 取屏幕对象。
-	DefGetter(BitmapPtr, BackgroundPtr, screen.GetCheckedBufferPtr()) \
-		//!< 取屏幕背景指针。
+	DefGetter(const ynothrow, const Devices::Screen&, Screen, screen) \
+		//!< 取屏幕对象。
+	DefGetter(const ynothrow, BitmapPtr, BackgroundPtr,
+		screen.GetCheckedBufferPtr()) //!< 取屏幕背景指针。
 
 	/*!
 	\brief 清除桌面内容。

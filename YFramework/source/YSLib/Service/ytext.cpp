@@ -11,13 +11,13 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version r6811;
+\version r6841;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-12-01 08:34 +0800;
+	2011-12-04 11:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -76,7 +76,7 @@ void
 TextState::ResetForBounds(const Rect& r, const Size& s, const Padding& m)
 {
 	Margin = FetchMargin(r + m, s);
-	yunsequenced(PenX = r.X + m.Left,
+	yunseq(PenX = r.X + m.Left,
 		PenY = r.Y + GetCache().GetAscender() + m.Top);
 }
 
@@ -217,72 +217,72 @@ FetchCharWidth(const Font& fnt, ucs4_t c)
 }
 
 
-u16
-ATextRenderer::GetTextLineN() const
+namespace TextRendering
 {
-	return FetchResizedLineN(GetTextState(), GetContext().GetHeight());
-}
-u16
-ATextRenderer::GetTextLineNEx() const
-{
-	const auto& ts(GetTextState());
-
-	return FetchResizedLineN(ts, GetContext().GetHeight() + ts.LineGap);
-}
-
-void
-ATextRenderer::SetTextLineLast()
-{
-	const u16 n(GetTextLineN());
-
-	if(n)
-		SetCurrentTextLineNOf(GetTextState(), n - 1);
-}
-
-void
-ATextRenderer::ClearLine(u16 l, SDst n)
-{
-	const auto& g(GetContext());
-	const auto h(g.GetHeight());
-
-	if(g.IsValid() && l < h)
+	u16
+	GetTextLineN(const TextState& ts, const Graphics& g)
 	{
-		if(n == 0 || l + n > h)
-			n = h - l;
-		ClearPixel(g[l], g.GetWidth() * n);
+		return FetchResizedLineN(ts, g.GetHeight());
 	}
-}
 
-void
-ATextRenderer::ClearTextLine(u16 l)
-{
-	SDst h(GetTextLineHeightExOf(GetTextState()));
+	u16
+	GetTextLineNEx(const TextState& ts, const Graphics& g)
+	{
+		return FetchResizedLineN(ts, g.GetHeight() + ts.LineGap);
+	}
 
-	ClearLine(GetTextState().Margin.Top + h * l, h);
-}
+	void
+	SetTextLineLast(TextState& ts, const Graphics& g)
+	{
+		const u16 n(GetTextLineN(ts, g));
 
-void
-ATextRenderer::ClearTextLineLast()
-{
-	TextState ts(GetTextState());
-	SDst h(GetTextLineHeightExOf(ts));
+		if(n != 0)
+			SetCurrentTextLineNOf(ts, n - 1);
+	}
 
-	ClearLine(GetContext().GetHeight() - ts.Margin.Bottom - h, h);
+	void
+	ClearLine(const Graphics& g, u16 l, SDst n)
+	{
+		const auto h(g.GetHeight());
+
+		if(g.IsValid() && l < h)
+		{
+			if(n == 0 || l + n > h)
+				n = h - l;
+			ClearPixel(g[l], g.GetWidth() * n);
+		}
+	}
+
+	void
+	ClearTextLine(TextState& ts, const Graphics& g, u16 l)
+	{
+		SDst h(GetTextLineHeightExOf(ts));
+
+		ClearLine(g, ts.Margin.Top + h * l, h);
+	}
+
+	void
+	ClearTextLineLast(TextState& ts, const Graphics& g)
+	{
+		SDst h(GetTextLineHeightExOf(ts));
+
+		ClearLine(g, g.GetHeight() - ts.Margin.Bottom - h, h);
+	}
 }
 
 
 TextRegion::TextRegion()
-	: ATextRenderer(), TextState(), BitmapBufferEx()
+	: GTextRendererBase<TextRegion>(), TextState(), BitmapBufferEx()
 {
 	InitializeFont();
 }
 TextRegion::TextRegion(Drawing::Font& fnt)
-	: ATextRenderer(), TextState(fnt), BitmapBufferEx()
+	: GTextRendererBase<TextRegion>(), TextState(fnt), BitmapBufferEx()
 {
 	InitializeFont();
 }
 TextRegion::TextRegion(FontCache& fc)
-	: ATextRenderer(), TextState(fc), BitmapBufferEx()
+	: GTextRendererBase<TextRegion>(), TextState(fc), BitmapBufferEx()
 {
 	InitializeFont();
 }
@@ -309,7 +309,7 @@ TextRegion::ClearLine(u16 l, SDst n)
 		const u32 t((l + n > g.GetHeight() ? g.GetHeight() - l : n)
 			* g.GetWidth());
 
-		yunsequenced(ClearPixel(g[l], t),
+		yunseq(ClearPixel(g[l], t),
 			ClearPixel(&pBufferAlpha[l * g.GetWidth()], t));
 	}
 }
@@ -337,8 +337,8 @@ TextRegion::Scroll(ptrdiff_t n, SDst h)
 				d += n;
 			else
 				s -= n;
-			yunsequenced(s *= GetWidth(), d *= GetWidth());
-			yunsequenced(ystdex::pod_move_n(&pBuffer[s], t, &pBuffer[d]),
+			yunseq(s *= GetWidth(), d *= GetWidth());
+			yunseq(ystdex::pod_move_n(&pBuffer[s], t, &pBuffer[d]),
 				ystdex::pod_move_n(&pBufferAlpha[s], t, &pBufferAlpha[d]));
 		}
 	}

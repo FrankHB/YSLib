@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r1272;
+\version r1286;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2011-11-13 15:36 +0800;
+	2011-12-03 17:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -155,9 +155,28 @@ namespace ystdex
 	using std::result_of;
 
 
+	/*!
+	\brief 移除指针和引用类型。
+	\since build 175 。
+	*/
+	template<typename _type>
+	struct remove_rp
+	{
+		typedef typename remove_pointer<typename remove_reference<_type>
+			::type>::type type;
+	};
+
+
+	/*!
+	\brief 判断指定类型是否有非空虚基类。
+	\since build 175 。
+	*/
 	template<class _type>
 	struct has_nonempty_virtual_base
 	{
+		static_assert(std::is_class<_type>::value,
+			"Non-class type found @ ystdex::has_nonempty_virtual_base;");
+
 	private:
 		struct A : _type
 		{
@@ -180,9 +199,17 @@ namespace ystdex
 	};
 
 
+	/*!
+	\brief 判断指定的两个类类型是否有非空虚基类。
+	\since build 175 。
+	*/
 	template<class _type1, class _type2>
 	struct has_common_nonempty_virtual_base
 	{
+		static_assert(std::is_class<_type1>::value
+			&& std::is_class<_type2>::value,
+			"Non-class type found @ ystdex::has_common_nonempty_virtual_base;");
+
 	private:
 		struct A : virtual _type1
 		{
@@ -225,6 +252,10 @@ namespace ystdex
 	};
 
 
+	/*!
+	\brief 取指定整数类型的位宽度。
+	\since build 260 。
+	*/
 	template<typename _tInt>
 	struct integer_width
 	{
@@ -232,6 +263,11 @@ namespace ystdex
 	};
 
 
+	/*!
+	\brief 按指定整数类型和条件表达式取对应的有符号或无符号整数类型。
+	\since build 260 。
+	*/
+	//@{
 	template<typename _type, bool>
 	struct make_signed_c
 	{
@@ -243,8 +279,14 @@ namespace ystdex
 	{
 		typedef typename std::make_unsigned<_type>::type type;
 	};
+	//@}
 
 
+	/*!
+	\brief 按指定宽度取整数类型。
+	\since build 260 。
+	*/
+	//@{
 	template<size_t>
 	struct make_fixed_width_int
 	{
@@ -279,6 +321,7 @@ namespace ystdex
 		typedef std::int64_t type;
 		typedef std::uint64_t unsigned_type;
 	};
+	//@}
 }
 
 #endif

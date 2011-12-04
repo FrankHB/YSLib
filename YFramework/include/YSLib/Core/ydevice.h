@@ -11,12 +11,13 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2898;
+\version r2904;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:39:39 +0800;
 \par 修改时间:
-	2011-09-23 18:40 +0800;
+	2011-12-04 10:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,11 +42,11 @@ public:
 	/*!
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
-	yconstexprf
+	yconstfn
 	GraphicDevice(SDst, SDst, Drawing::BitmapPtr = nullptr);
 };
 
-yconstexprf
+yconstfn
 GraphicDevice::GraphicDevice(SDst w, SDst h, Drawing::BitmapPtr p)
 	: Graphics(p, Drawing::Size(w, h))
 {}
@@ -58,7 +59,7 @@ public:
 	/*!
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
-	yconstexprf
+	yconstfn
 	Screen(SDst, SDst, Drawing::BitmapPtr = nullptr);
 
 	/*!
@@ -77,7 +78,7 @@ public:
 	Update(Drawing::BitmapPtr);
 };
 
-yconstexprf
+yconstfn
 Screen::Screen(SDst w, SDst h, Drawing::BitmapPtr p)
 	: GraphicDevice(w, h, p)
 {}

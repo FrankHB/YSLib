@@ -11,12 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1262;
+\version r1277;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 253 。
 \par 创建时间:
 	2011-10-14 18:13:04 +0800;
 \par 修改时间:
-	2011-11-05 10:50 +0800;
+	2011-12-04 12:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,6 +40,7 @@ YSL_BEGIN_NAMESPACE(Components)
 /*!
 \brief 十六进制模型：十六进制视图区域数据源。
 \warning 非虚析构。
+\since build 257 。
 */
 class HexModel
 {
@@ -46,13 +48,14 @@ protected:
 	File Source; //!< 文件数据源。
 
 public:
-	DefGetter(const File&, Source, Source)
+	DefGetter(const ynothrow, const File&, Source, Source)
 };
 
 
 /*!
 \brief 十六进制视图。
 \warning 非虚析构。
+\since build 257 。
 */
 class HexView
 {
@@ -73,7 +76,7 @@ public:
 	HexView(FontCache& = FetchGlobalInstance().GetFontCache());
 
 protected:
-	PDefHOperator(char&, [], DataType::size_type i)
+	PDefHOp(char&, [], DataType::size_type i)
 		ImplRet(data[i])
 
 public:
@@ -82,13 +85,13 @@ public:
 	*/
 	SDst
 	GetItemHeight() const;
-	DefGetter(IndexType, ItemNum, item_num)
+	DefGetter(const ynothrow, IndexType, ItemNum, item_num)
 
 protected:
-	DefGetter(DataType::const_iterator, Begin, data.cbegin())
-	DefMutableGetter(DataType::iterator, Begin, data.begin())
-	DefGetter(DataType::const_iterator, End, data.cend())
-	DefMutableGetter(DataType::iterator, End, data.end())
+	DefGetter(const ynothrow, DataType::const_iterator, Begin, data.cbegin())
+	DefGetter(ynothrow, DataType::iterator, Begin, data.begin())
+	DefGetter(const ynothrow, DataType::const_iterator, End, data.cend())
+	DefGetter(ynothrow, DataType::iterator, End, data.end())
 
 	PDefH(void, ClearData)
 		ImplExpr(data.clear())
@@ -109,6 +112,7 @@ HexView::GetItemHeight() const
 
 /*!
 \brief 十六进制视图区域。
+\since build 253 。
 */
 class HexViewArea : public ScrollableContainer,
 	protected HexModel, protected HexView

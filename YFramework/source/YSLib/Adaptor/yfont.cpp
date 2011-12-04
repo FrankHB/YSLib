@@ -11,12 +11,13 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7293;
+\version r7298;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-11-05 11:15 +0800;
+	2011-12-03 16:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -402,7 +403,7 @@ FontCache::SetTypeface(Typeface* p)
 {
 	if(!p || sFaces.find(p) == sFaces.end())
 		return false;
-	scaler.face_id = static_cast<FTC_FaceID>(p);
+	scaler.face_id = FTC_FaceID(p);
 	return true;
 }
 void
@@ -412,8 +413,8 @@ FontCache::SetFontSize(Font::SizeType s)
 		s = Font::DefaultSize;
 //	if(s != GetFontSize())
 //	ClearCache();
-	scaler.width  = static_cast<FT_UInt>(s);
-	scaler.height = static_cast<FT_UInt>(s);
+	scaler.width  = FT_UInt(s);
+	scaler.height = FT_UInt(s);
 	GetGlyph(' '); //更新当前字形，否则 GetHeight() 会返回错误的值。
 }
 
@@ -526,7 +527,7 @@ FontCache::LoadTypefaces(const FontFile& f)
 					if(sFaces.find(q = ynew Typeface(*this, f, i))
 						== sFaces.end())
 					{
-						FTC_FaceID new_face_id(static_cast<FTC_FaceID>(q));
+						FTC_FaceID new_face_id(q);
 
 						//读取字型名称并构造名称映射。
 						FT_Face face(nullptr);

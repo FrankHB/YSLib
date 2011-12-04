@@ -15,12 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2755;
+\version r2780;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2011-11-13 18:29 +0800;
+	2011-12-04 10:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -193,73 +194,73 @@ namespace platform
 		/*!
 		\brief 构造：使用本机颜色对象。
 		*/
-		yconstexprf
+		yconstfn
 		Color(PixelType = 0);
 		/*!
 		\brief 使用 RGB 值和 alpha 位构造 Color 对象。
 		*/
-		yconstexprf
+		yconstfn
 		Color(MonoType, MonoType, MonoType, AlphaType = true);
 
 		/*!
 		\brief 转换：本机颜色对象。
 		*/
-		yconstexprf
+		yconstfn
 		operator PixelType() const;
 
 		/*!
 		\brief 取红色分量。
 		*/
-		yconstexprf MonoType
+		yconstfn MonoType
 		GetR() const;
 		/*!
 		\brief 取绿色分量。
 		*/
-		yconstexprf MonoType
+		yconstfn MonoType
 		GetG() const;
 		/*!
 		\brief 取蓝色分量。
 		*/
-		yconstexprf MonoType
+		yconstfn MonoType
 		GetB() const;
 		/*!
 		\brief 取 alpha 分量。
 		*/
-		yconstexprf AlphaType
+		yconstfn AlphaType
 		GetA() const;
 	};
 
-	yconstexprf
+	yconstfn
 	Color::Color(PixelType p)
 		: _value(p)
 	{}
-	yconstexprf
+	yconstfn
 	Color::Color(MonoType r, MonoType g, MonoType b, AlphaType a)
 		: _value(ARGB16(int(a), r >> 3, g >> 3, b >> 3))
 	{}
 
-	yconstexprf
+	yconstfn
 	Color::operator PixelType() const
 	{
 		return _value;
 	}
 
-	yconstexprf Color::MonoType
+	yconstfn Color::MonoType
 	Color::GetR() const
 	{
 		return _value << 3 & 248;
 	}
-	yconstexprf Color::MonoType
+	yconstfn Color::MonoType
 	Color::GetG() const
 	{
 		return _value >> 2 & 248;
 	}
-	yconstexprf Color::MonoType
+	yconstfn Color::MonoType
 	Color::GetB() const
 	{
 		return _value >> 7 & 248;
 	}
-	yconstexprf Color::AlphaType
+	yconstfn Color::AlphaType
 	Color::GetA() const
 	{
 		return _value & BITALPHA;
@@ -310,22 +311,22 @@ namespace platform
 		/*!
 		\brief 构造：使用本机按键输入对象。
 		*/
-		yconstexprf
+		yconstfn
 		KeyCode(InputType = 0);
 
 		/*!
 		\brief 转换：本机按键输入对象。
 		*/
-		yconstexprf
+		yconstfn
 		operator InputType() const;
 	};
 
-	yconstexprf
+	yconstfn
 	KeyCode::KeyCode(InputType i)
 	: _value(i)
 	{}
 
-	yconstexprf
+	yconstfn
 	KeyCode::operator KeyCode::InputType() const
 	{
 		return _value;
@@ -461,7 +462,7 @@ namespace platform
 		/*!
 		\brief 构造：使用本机迭代器。
 		*/
-		yconstexprf
+		yconstfn
 		HDirectory(IteratorType&);
 
 	public:
@@ -469,7 +470,7 @@ namespace platform
 		\brief 复制构造。
 		\note 浅复制。
 		*/
-		yconstexprf
+		yconstfn
 		HDirectory(const HDirectory&);
 		/*!
 		\brief 析构。
@@ -524,11 +525,11 @@ namespace platform
 	{
 		Open(path);
 	}
-	yconstexprf
+	yconstfn
 	HDirectory::HDirectory(const HDirectory& h)
 		: dir(h.dir)
 	{}
-	yconstexprf
+	yconstfn
 	HDirectory::HDirectory(IteratorType& d)
 		: dir(d)
 	{}

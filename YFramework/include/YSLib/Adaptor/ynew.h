@@ -11,12 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r2063;
+\version r2073;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 173 。
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2011-10-25 12:42 +0800;
+	2011-12-04 12:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,6 +54,7 @@
 /*//@{*/
 /*	\defgroup YSLMemoryDebugFunctions YSLib Memory Debug Functions
 \brief 调试用重载 ::operator new 和 ::operator delete 。
+\since build 173 。
 */
 /*
 void*
@@ -72,21 +74,25 @@ operator delete(void*, const std::nothrow_t&, const char*, int) throw();
 void
 operator delete[](void*, const std::nothrow_t&, const char*, int) throw();
 */
-/*//}@*/
+/*//@}*/
 
 
 YSL_BEGIN
 
 class MemoryList;
 
-/*
-!\brief 取调试用内存块列表。
+/*!
+\brief 取调试用内存块列表。
+\since build 203 。
 */
 MemoryList&
 GetDebugMemoryList();
 
 
-//内存块列表。
+/*!
+\brief 内存块列表。
+\since build 173 。
+*/
 class MemoryList
 {
 public:
@@ -112,7 +118,7 @@ public:
 		const int line;
 
 	public:
-		explicit yconstexprf
+		explicit yconstfn
 		NewRecorder(const char*, int, MemoryList& = GetDebugMemoryList());
 
 	public:
@@ -144,7 +150,7 @@ public:
 	explicit
 	MemoryList(void(*)());
 
-	DefGetter(MapType::size_type, Size, Blocks.size())
+	DefGetter(const ynothrow, MapType::size_type, Size, Blocks.size())
 
 	void
 	Register(const void*, std::size_t, const char*, int);
@@ -169,7 +175,7 @@ MemoryList::BlockInfo::BlockInfo(std::size_t s, const char* f, int l)
 	: size(s), file(f), line(l)
 {}
 
-yconstexprf
+yconstfn
 MemoryList::NewRecorder::NewRecorder(const char* f, int l, MemoryList& b)
 	: blocks(b), file(f), line(l)
 {}

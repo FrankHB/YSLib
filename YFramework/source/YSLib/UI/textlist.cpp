@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1583;
+\version r1584;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-11-30 20:59 +0800;
+	2011-12-04 11:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -55,7 +55,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	static auto on_selected = [this](IndexEventArgs&&){
 		Invalidate(*this);
 	};
-	yunsequenced(
+	yunseq(
 		GetSelected() += on_selected,
 		GetConfirmed() += on_selected,
 		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){

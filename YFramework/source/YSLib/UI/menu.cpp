@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1871;
+\version r1872;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-11-30 19:45 +0800;
+	2011-12-04 11:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,7 +44,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 	CyclicTraverse = true;
 	if(h)
 		vDisabled.resize(h->size());
-	yunsequenced(
+	yunseq(
 		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 			if(pHost && IsSelected())
 				switch(e.GetKeyCode())
@@ -235,7 +235,7 @@ MenuHost::operator+=(const ValueType& val)
 {
 	YAssert(val.second, "Null pointer found @ Menu::operator+=;");
 
-	yunsequenced(mMenus[val.first] = val.second,
+	yunseq(mMenus[val.first] = val.second,
 		val.second->id = val.first, val.second->pHost = this);
 }
 

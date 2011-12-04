@@ -11,12 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2022;
+\version r2056;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 260 。
 \par 创建时间:
 	2011-11-12 23:23:47 +0800;
 \par 修改时间:
-	2011-11-18 11:09 +0800;
+	2011-12-04 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,16 +36,21 @@
 
 namespace ystdex
 {
+	/*!
+	\brief 取无符号数的以 2 为底的整数次幂。
+	\since build 260 。
+	*/
 	template<typename _tDst, typename _tSrc>
-	yconstexprf _tDst
+	yconstfn _tDst
 	exp2u(_tSrc n) ynothrow
 	{
-		return static_cast<_tSrc>(1) << n;
+		return _tSrc(1) << n;
 	}
 
 
 	/*!
 	\brief 定点数乘除法中间类型。
+	\since build 260 。
 	\todo 保持 64 位类型精度。
 	*/
 	template<typename _type>
@@ -81,6 +87,7 @@ namespace ystdex
 	逻辑布局： 整数部分|小数部分 。各个部分的内部为补码表示。
 	\note 默认保留 6 位二进制小数。
 	\note 部分实现参考： http://www.codeproject.com/KB/cpp/fp_math.aspx 。
+	\since build 260 。
 	*/
 	template<typename _tBase = std::int32_t,
 		size_t _vInt = std::numeric_limits<_tBase>::digits - 6U,
@@ -123,42 +130,42 @@ namespace ystdex
 		\breif 无参数构造。
 		\warning 基本整数类型成员未被初始化，具有未决定值 ，使用可能造成未定义行为。
 		*/
-		yconstexprf
+		yconstfn
 		fixed_point() ynothrow
 		{}
 
 	private:
-		yconstexprf
+		yconstfn
 		fixed_point(base_type v, internal_construct_tag) ynothrow
 			: value(v)
 		{}
 
 	public:
 		template<typename _tInt>
-		yconstexprf
+		yconstfn
 		fixed_point(_tInt val, typename std::enable_if<
 			std::is_integral<_tInt>::value, int>::type = 0) ynothrow
-			: value(static_cast<base_type>(val) << frac_bit_n)
+			: value(base_type(val) << frac_bit_n)
 		{}
 		template<typename _tFloat>
-		yconstexprf
+		yconstfn
 		fixed_point(_tFloat val, typename std::enable_if<std::is_floating_point<
 			_tFloat>::value, int>::type = 0) ynothrow
 			: value(::llround(base_element() * val))
 		{
 			// TODO: use 'std::llround';
 		}
-		yconstexprf
+		yconstfn
 		fixed_point(const fixed_point&) = default;
 		template<size_t _vOtherInt, size_t _vOtherFrac>
-		yconstexprf
+		yconstfn
 		fixed_point(const fixed_point<base_type, _vOtherInt, _vOtherFrac>& f,
 			typename std::enable_if<(_vOtherInt < int_bit_n), int>::type = 0)
 			ynothrow
 			: value(f.value >> (int_bit_n - _vOtherInt))
 		{}
 		template<size_t _vOtherInt, size_t _vOtherFrac>
-		yconstexprf
+		yconstfn
 		fixed_point(const fixed_point<base_type, _vOtherInt, _vOtherFrac>& f,
 			typename std::enable_if<(int_bit_n < _vOtherInt), int>::type = 0)
 			ynothrow
@@ -223,16 +230,16 @@ namespace ystdex
 		fixed_point&
 		operator*=(const fixed_point& f) ynothrow
 		{
-			this->value = (static_cast<typename fixed_multiplicative<base_type>
-				::type>(value) * f.value) >> frac_bit_n;
+			this->value = (typename fixed_multiplicative<base_type>::type(value)
+				* f.value) >> frac_bit_n;
 			return *this;
 		}
 
 		fixed_point&
 		operator/=(const fixed_point& f) ynothrow
 		{
-			this->value = (static_cast<typename fixed_multiplicative<base_type>
-				::type>(value) << frac_bit_n) / f.value;
+			this->value = (typename fixed_multiplicative<base_type>::type(value)
+				<< frac_bit_n) / f.value;
 			return *this;
 		}
 
@@ -287,7 +294,7 @@ namespace ystdex
 
 		取值等于 1 的元素，使用 \c base_type 表达。
 		*/
-		static yconstexprf base_type
+		static yconstfn base_type
 		base_element() ynothrow
 		{
 			return ystdex::exp2u<base_type, base_type>(frac_bit_n);
@@ -298,7 +305,7 @@ namespace ystdex
 
 		取值等于 1 的元素。
 		*/
-		static yconstexprf fixed_point
+		static yconstfn fixed_point
 		identity() ynothrow
 		{
 			return fixed_point(base_element());
@@ -310,21 +317,21 @@ namespace ystdex
 			return x.value < 0 ? -x : x;
 		}
 
-		friend yconstexprf fixed_point
+		friend yconstfn fixed_point
 		ceil(fixed_point x)
 		{
 			return fixed_point((x.value + base_element() - 1)
 				& ~(base_element() - 1), internal_construct_tag());
 		}
 
-		friend yconstexprf fixed_point
+		friend yconstfn fixed_point
 		floor(fixed_point x)
 		{
 			return fixed_point(x.value & ~(base_element() - 1),
 				internal_construct_tag());
 		}
 
-		friend yconstexprf fixed_point
+		friend yconstfn fixed_point
 		round(fixed_point x)
 		{
 			return fixed_point((x.value + (base_element() >> 1))
@@ -336,6 +343,10 @@ namespace ystdex
 
 namespace std
 {
+	/*!
+	\brief std::numeric_traits 的 ystdex::fixed_point 特化类型。
+	\since build 260 。
+	*/
 	template<typename _tBase, ystdex::size_t _vInt, ystdex::size_t _vFrac>
 	struct numeric_limits<ystdex::fixed_point<_tBase, _vInt, _vFrac>>
 	{
@@ -346,21 +357,21 @@ namespace std
 	public:
 		static yconstexpr bool is_specialized = true;
 
-		static yconstexprf fp_type
+		static yconstfn fp_type
 		min() throw()
 		{
 			return fp_type(std::numeric_limits<base_type>::min(),
 				fp_type::internal_construct_tag());
 		}
 
-		static yconstexprf fp_type
+		static yconstfn fp_type
 		max() throw()
 		{
 			return fp_type(std::numeric_limits<base_type>::max(),
 				fp_type::internal_construct_tag());
 		}
 
-		static yconstexprf fp_type
+		static yconstfn fp_type
 		lowest() throw()
 		{
 			return min();
@@ -374,13 +385,13 @@ namespace std
 		static yconstexpr bool is_exact = true;
 		static yconstexpr int radix = 2;
 
-		static yconstexprf fp_type
+		static yconstfn fp_type
 		epsilon() throw()
 		{
 			return fp_type(1, fp_type::internal_construct_tag());;
 		}
 
-		static yconstexprf fp_type
+		static yconstfn fp_type
 		round_error() throw()
 		{
 			return 0.5;
@@ -397,25 +408,25 @@ namespace std
 		static yconstexpr float_denorm_style has_denorm = denorm_absent;
 		static yconstexpr bool has_denorm_loss = false;
 
-		static yconstexprf fp_type
+		static yconstfn fp_type
 		infinity() throw()
 		{
 			return 0;
 		}
 
-		static yconstexprf fp_type
+		static yconstfn fp_type
 		quiet_NaN() throw()
 		{
 			return 0;
 		}
 
-		static yconstexprf fp_type
+		static yconstfn fp_type
 		signaling_NaN() throw()
 		{
 			return 0;
 		}
 
-		static yconstexprf fp_type
+		static yconstfn fp_type
 		denorm_min() throw()
 		{
 			return 0;

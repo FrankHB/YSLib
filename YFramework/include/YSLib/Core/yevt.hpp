@@ -11,12 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4770;
+\version r4871;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-11-07 17:36 +0800;
+	2011-12-04 13:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,6 +37,7 @@ YSL_BEGIN
 \brief 标准事件处理器类模板。
 \note 若使用函数对象，可以不满足 \c EqualityComparable 的接口，即
 	可使用返回 \c bool 的 \c operator== ，但此模板类无法检查其语义正确性。
+\since build 173 。
 */
 template<class _tEventArgs>
 class GHEvent : protected std::function<void(_tEventArgs&&)>
@@ -70,13 +72,13 @@ private:
 	Comparer comp_eq; //!< 比较函数：相等关系。
 
 public:
-	yconstexprf DefDeCopyCtor(GHEvent)
-	yconstexprf DefDeMoveCtor(GHEvent)
+	yconstfn DefDeCopyCtor(GHEvent)
+	yconstfn DefDeMoveCtor(GHEvent)
 	/*!
 	\brief 构造：使用函数指针。
 	\note 匹配函数引用。
 	*/
-	yconstexprf
+	yconstfn
 	GHEvent(FuncType* f)
 		: std::function<FuncType>(f), comp_eq(GEquality<FuncType>::AreEqual)
 	{}
@@ -84,7 +86,7 @@ public:
 	\brief 使用函数对象类型。
 	*/
 	template<class _tFunc>
-	yconstexprf
+	yconstfn
 	GHEvent(_tFunc f)
 		: std::function<FuncType>(yforward(f)),
 		comp_eq(GetComparer(f, f))
@@ -93,7 +95,7 @@ public:
 	\brief 构造：使用对象引用和成员函数指针。
 	*/
 	template<class _type>
-	yconstexprf
+	yconstfn
 	GHEvent(_type& obj, void(_type::*pm)(_tEventArgs&&))
 		: std::function<FuncType>(ExpandMemberFirstBinder<
 			_type, void, _tEventArgs&&>(obj, pm)),
@@ -107,7 +109,7 @@ public:
 	*/
 	DefDeMoveAssignment(GHEvent)
 
-	yconstexprf bool
+	yconstfn bool
 	operator==(const GHEvent& h) const
 	{
 		return this->comp_eq == h.comp_eq && (this->comp_eq(*this, h));
@@ -119,20 +121,20 @@ public:
 	using BaseType::operator();
 
 private:
-	PDefTH1(_type)
-	static yconstexprf Comparer
+	PDefTmplH1(_type)
+	static yconstfn Comparer
 	GetComparer(_type& x, _type& y, decltype(x == y) = false)
 	{
 		return GEquality<_type>::AreEqual;
 	}
 	template<typename _type, typename _tUnused>
-	static yconstexprf Comparer
+	static yconstfn Comparer
 	GetComparer(_type&, _tUnused&)
 	{
 		return GHEvent::AreAlwaysEqual;
 	}
 
-	static yconstexprf bool
+	static yconstfn bool
 	AreAlwaysEqual(const GHEvent& x, const GHEvent& y)
 	{
 		return true;
@@ -143,6 +145,7 @@ private:
 /*!
 \brief 事件类模板。
 \note 支持顺序多播。
+\since 早于 build 132 。
 */
 template<class _tEventArgs>
 class GEvent
@@ -162,22 +165,22 @@ public:
 	\brief 无参数构造：默认实现。
 	\note 得到空实例。
 	*/
-	yconstexprf DefDeCtor(GEvent)
+	yconstfn DefDeCtor(GEvent)
 	/*!
 	\brief 复制构造：默认实现。
 	\note 深复制。
 	*/
-	yconstexprf DefDeCopyCtor(GEvent);
+	yconstfn DefDeCopyCtor(GEvent);
 	/*!
 	\brief 转移构造：默认实现。
 	*/
-	yconstexprf DefDeMoveCtor(GEvent);
+	yconstfn DefDeMoveCtor(GEvent);
 
 private:
 	/*!
 	\brief \c private 构造：添加事件处理器。
 	*/
-	PDefTH1(_tHandler)
+	PDefTmplH1(_tHandler)
 	GEvent(_tHandler h)
 		: List()
 	{
@@ -216,7 +219,7 @@ public:
 	/*!
 	\brief 赋值：覆盖事件响应：使用单一构造参数指定的指定事件处理器。
 	*/
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	inline GEvent&
 	operator=(_type _arg)
 	{
@@ -247,7 +250,7 @@ public:
 	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
 	\note 不检查是否已经在列表中。
 	*/
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	inline GEvent&
 	operator+=(_type&& _arg)
 	{
@@ -275,7 +278,7 @@ public:
 	/*!
 	\brief 移除事件响应：目标为单一构造参数指定的指定事件处理器。
 	*/
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	inline GEvent&
 	operator-=(_type _arg)
 	{
@@ -312,7 +315,7 @@ public:
 	/*!
 	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
 	*/
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	inline GEvent&
 	AddUnique(_type _arg)
 	{
@@ -350,7 +353,7 @@ public:
 	/*!
 	\brief 判断是否包含单一构造参数指定的事件响应。
 	*/
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	inline bool
 	Contains(_type _arg) const
 	{
@@ -373,7 +376,7 @@ public:
 	/*!
 	\brief 取列表中的响应数。
 	*/
-	inline DefGetter(SizeType, Size, this->List.size())
+	inline DefGetter(const ynothrow, SizeType, Size, this->List.size())
 
 	/*!
 	\brief 清除：移除所有事件响应。
@@ -395,6 +398,7 @@ public:
 
 /*!
 \brief 依赖事件项类模板。
+\since build 195 。
 */
 template<class _tEvent, class _tOwnerPointer = shared_ptr<_tEvent>>
 class GDependencyEvent : public GDependency<_tEvent, _tOwnerPointer>
@@ -420,7 +424,7 @@ public:
 	/*!
 	\brief 添加事件响应。
 	*/
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	inline ReferenceType
 	operator+=(_type _arg)
 	{
@@ -430,7 +434,7 @@ public:
 	/*!
 	\brief 移除事件响应。
 	*/
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	inline ReferenceType
 	operator-=(_type _arg)
 	{
@@ -469,78 +473,96 @@ public:
 	/*!
 	\brief 取列表中的响应数。
 	*/
-	inline DefGetterMember(SizeType, Size, this->GetRef())
+	inline DefGetterMem(const ynothrow, SizeType, Size, this->GetRef())
 
 	/*!
 	\brief 清除：移除所有事件响应。
 	*/
 	inline PDefH(void, Clear)
-		ImplBodyMember(this->GetNewRef(), Clear)
+		ImplBodyMem(this->GetNewRef(), Clear)
 };
 
 
-//! \brief 事件类型宏。
+/*!
+\brief 事件类型宏。
+\since build 188 。
+*/
+//@{
 #define EventT(_tEventHandler) \
 	GEvent<_tEventHandler::EventArgsType>
 #define DepEventT(_tEventHandler) \
 	typename GDependencyEvent(EventT(_tEventHandler))
+//@}
 
-//! \brief 声明事件。
+/*!
+\brief 声明事件。
+\since build 188 。
+*/
+//@{
 #define DeclEvent(_tEventHandler, _name) \
 	EventT(_tEventHandler) _name;
 #define DeclDepEvent(_tEventHandler, _name) \
 	DepEventT(_tEventHandler) _name;
+//@}
 
-//! \brief 声明事件引用。
+/*!
+\brief 声明事件引用。
+\since build 188 。
+*/
+//@{
 #define DeclEventRef(_tEventHandler, _name) \
 	EventT(_tEventHandler)& _name;
 #define DeclDepEventRef(_tEventHandler, _name) \
 	DepEventT(_tEventHandler)& _name;
+//@}
 
-//! \brief 声明事件接口函数。
+/*!
+\brief 声明事件接口函数。
+*/
+//@{
+//! since build 166 。
 #define DeclIEventEntry(_tEventHandler, _name) \
 	DeclIEntry(const EventT(_tEventHandler)& _yJOIN(Get, _name)() const)
+//! since build 188 。
 #define DeclIDepEventEntry(_tEventHandler, _name) \
 	DeclIEntry(const DepEventT(_tEventHandler)& _yJOIN(Get, _name)() const)
+//@}
 
-//! \brief 定义事件访问器。
-#define DefEventGetter(_tEventHandler, _name, _member) \
-	DefGetter(const EventT(_tEventHandler)&, _name, _member)
-#define DefEventGetterBase(_tEventHandler, _name, _base) \
-	DefGetterBase(const EventT(_tEventHandler)&, _name, _base)
-#define DefEventGetterMember(_tEventHandler, _name, _member) \
-	DefGetterMember(const EventT(_tEventHandler)&, _name, _member)
-#define DefDepEventGetter(_tEventHandler, _name, _member) \
-	DefGetter(const DepEventT(_tEventHandler)&, _name, _member)
-#define DefDepEventGetterBase(_tEventHandler, _name, _base) \
-	DefGetterBase(const DepEventT(_tEventHandler)&, _name, _base)
-#define DefDepEventGetterMember(_tEventHandler, _name, _member) \
-	DefGetterMember(const DepEventT(_tEventHandler)&, _name, _member)
-
-//! \brief 定义事件可修改访问器。
-#define DefMutableEventGetter(_tEventHandler, _name, _member) \
-	DefMutableGetter(EventT(_tEventHandler)&, _name, _member)
-#define DefMutableEventGetterBase(_tEventHandler, _name, _base) \
-	DefMutableGetterBase(EventT(_tEventHandler)&, _name, _base)
-#define DefMutableEventGetterMember(_tEventHandler, _name, _member) \
-	DefMutableGetterMember(EventT(_tEventHandler)&, _name, _member)
-#define DefMutableDepEventGetter(_tEventHandler, _name, _member) \
-	DefMutableGetter(DepEventT(_tEventHandler)&, _name, _member)
-#define DefMutableDepEventGetterBase(_tEventHandler, _name, _base) \
-	DefMutableGetterBase(DepEventT(_tEventHandler)&, _name, _base)
-#define DefMutableDepEventGetterMember(_tEventHandler, _name, _member) \
-	DefMutableGetterMember(DepEventT(_tEventHandler)&, _name, _member)
+/*!
+\brief 定义事件访问器。
+\since build 188 。
+*/
+//@{
+#define DefEventGetter(_q, _tEventHandler, _name, _member) \
+	DefGetter(_q, EventT(_tEventHandler)&, _name, _member)
+#define DefEventGetterBase(_q, _tEventHandler, _name, _base) \
+	DefGetterBase(_q, EventT(_tEventHandler)&, _name, _base)
+#define DefEventGetterMem(_q, _tEventHandler, _name, _member) \
+	DefGetterMem(_q, EventT(_tEventHandler)&, _name, _member)
+#define DefDepEventGetter(_q, _tEventHandler, _name, _member) \
+	DefGetter(_q, DepEventT(_tEventHandler)&, _name, _member)
+#define DefDepEventGetterBase(_q, _tEventHandler, _name, _base) \
+	DefGetterBase(_q, DepEventT(_tEventHandler)&, _name, _base)
+#define DefDepEventGetterMem(_q, _tEventHandler, _name, _member) \
+	DefGetterMem(_q, DepEventT(_tEventHandler)&, _name, _member)
+//@}
 
 
-//! \brief 事件处理器接口模板。
+/*!
+\brief 事件处理器接口模板。
+\since build 188 。
+*/
 template<class _tEventArgs>
-DeclInterface(GIHEvent)
+DeclI(GIHEvent)
 	DeclIEntry(size_t operator()(_tEventArgs&&) const)
 	DeclIEntry(GIHEvent* Clone() const)
 EndDecl
 
 
-//! \brief 事件处理器包装类模板。
+/*!
+\brief 事件处理器包装类模板。
+\since build 173 。
+*/
 template<class _tEvent, typename _tBaseArgs>
 class GEventWrapper : public _tEvent,
 	implements GIHEvent<_tBaseArgs>
@@ -568,8 +590,9 @@ public:
 /*!
 \brief 事件项类型。
 \warning 非虚析构。
+\since build 242 。
 */
-PDefTH1(_tBaseArgs)
+PDefTmplH1(_tBaseArgs)
 class GEventPointerWrapper
 {
 public:
@@ -584,7 +607,7 @@ public:
 	inline GEventPointerWrapper(_type&& p)
 		: ptr(yforward(p))
 	{
-		YAssert(is_not_null(p), "Null pointer found @ GEventItem::GEventItem;");
+		YAssert(bool(p), "Null pointer found @ GEventItem::GEventItem;");
 	}
 	/*!
 	\brief 复制构造：深复制。
@@ -594,12 +617,15 @@ public:
 	{}
 	DefDeMoveCtor(GEventPointerWrapper)
 
-	yconstexprf DefConverter(const ItemType&, *ptr)
-	yconstexprf DefMutableConverter(ItemType&, *ptr)
+	yconstfn DefCvt(const ynothrow, const ItemType&, *ptr)
+	yconstfn DefCvt(ynothrow, ItemType&, *ptr)
 };
 
 
-//! \brief 定义扩展事件类。
+/*!
+\brief 定义扩展事件类。
+\since build 240 。
+*/
 #define DefExtendEventMap(_n, _b) \
 	DefExtendClass1(_n, _b, public)
 

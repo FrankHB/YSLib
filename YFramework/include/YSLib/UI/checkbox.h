@@ -11,12 +11,13 @@
 /*!	\file checkbox.h
 \ingroup UI
 \brief 样式相关的图形用户界面复选框控件。
-\version r1182;
+\version r1186;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 196 。
 \par 创建时间:
 	2011-03-22 07:17:17 +0800;
 \par 修改时间:
-	2011-10-28 13:57 +0800;
+	2011-12-04 12:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +36,10 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//! \brief 复选框。
+/*!
+\brief 复选框。
+\since build 205 。
+*/
 class CheckBox: public Thumb
 {
 protected:
@@ -49,7 +53,7 @@ public:
 	CheckBox(const Rect& = Rect::Empty);
 	inline DefDeMoveCtor(CheckBox)
 
-	DefPredicate(Ticked, bTicked)
+	DefPred(const ynothrow, Ticked, bTicked)
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。

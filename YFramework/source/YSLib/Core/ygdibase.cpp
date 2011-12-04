@@ -11,12 +11,12 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1469;
+\version r1472;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2011-12-01 08:36 +0800;
+	2011-12-02 08:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -91,10 +91,12 @@ Rect::ContainsStrict(const Rect& r) const
 Rect
 Intersect(const Rect& a, const Rect& b)
 {
-	const SPos xmin(min(a.X, b.X)), ymin(min(a.Y, b.Y)),
-		xmax(max(a.X + a.Width, b.X + b.Width)),
-		ymax(max(a.Y + a.Height, b.Y + b.Height));
-	const SDst dx(xmax - xmin), dy(ymax - ymin);
+	const SPos axm(a.X + a.Width);
+	const SPos bxm(b.X + b.Width);
+	const SPos aym(a.Y + a.Height);
+	const SPos bym(b.Y + b.Height);
+	const SDst dx(max(axm, bxm) - min(a.X, b.X)),
+		dy(max(aym, bym) - min(a.Y, b.Y));
 
 	//相离。
 	if(a.Width + b.Width < dx || a.Height + b.Height < dy)
@@ -106,11 +108,15 @@ Intersect(const Rect& a, const Rect& b)
 	if(dx == b.Width && dy == a.Height)
 		return a;
 
-	const SPos x1(max(a.X, b.X)), x2(min(a.X + a.Width, b.X + b.Width)),
-		y1(max(a.Y, b.Y)), y2(min(a.Y + a.Height, b.Y + b.Height));
+	SPos x1(max(a.X, b.X)), x2(min(axm, bxm)),
+		y1(max(a.Y, b.Y)), y2(min(aym, bym));
 
-	return Rect(min(x1, x2), min(y1, y2),
-		std::abs(x2 - x1), std::abs(y2 - y1));
+	if(x2 < x1)
+		std::swap(x1, x2);
+	if(y2 < y1)
+		std::swap(y1, y2);
+
+	return Rect(x1, y1, x2 - x1, y2 - y1);
 }
 
 Rect

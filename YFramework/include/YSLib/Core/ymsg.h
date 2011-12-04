@@ -11,12 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2429;
+\version r2442;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-12-01 09:48 +0800;
+	2011-12-04 12:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -111,14 +112,16 @@ public:
 	friend bool
 	operator==(const Message&, const Message&);
 
-	DefPredicate(TimeOut, timestamp + timeout < std::clock()) \
+	DefPred(const ynothrow, TimeOut, timestamp + timeout < std::clock()) \
 		//!< 判断消息是否过期。
-	DefPredicate(Valid, id) //!< 判断消息是否有效。
+	DefPred(const ynothrow, Valid, id) //!< 判断消息是否有效。
 
-	DefGetter(shared_ptr<Shell>, ShellHandle, hShl) //!< 取关联的 Shell 句柄。
-	DefGetter(ID, MessageID, id) //!< 取消息标识。
-	DefGetter(Priority, Priority, prior) //!< 取消息优先级。
-	DefGetter(const ValueObject&, Content, content) //!< 取消息内容句柄。
+	DefGetter(const ynothrow, shared_ptr<Shell>, ShellHandle, hShl) \
+		//!< 取关联的 Shell 句柄。
+	DefGetter(const ynothrow, ID, MessageID, id) //!< 取消息标识。
+	DefGetter(const ynothrow, Priority, Priority, prior) //!< 取消息优先级。
+	DefGetter(const ynothrow, const ValueObject&, Content, content) \
+		//!< 取消息内容句柄。
 
 	/*
 	\brief 交换。
@@ -213,9 +216,9 @@ public:
 	inline DefDeCtor(MessageQueue)
 	virtual DefEmptyDtor(MessageQueue)
 
-	DefPredicate(Empty, q.empty()) //!< 判断消息队列是否为空。
+	DefPred(const ynothrow, Empty, q.empty()) //!< 判断消息队列是否为空。
 
-	DefGetter(SizeType, Size, q.size()) //!< 取队列中消息容量。
+	DefGetter(const ynothrow, SizeType, Size, q.size()) //!< 取队列中消息容量。
 	/*!
 	\brief 取消息队列中取优先级最高的消息。
 	\note 不在消息队列中保留消息。

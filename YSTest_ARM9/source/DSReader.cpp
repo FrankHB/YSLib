@@ -11,12 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3291;
+\version r3297;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-10-14 14:32 +0800;
+	2011-12-04 11:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -76,14 +77,14 @@ DualScreenReader::LineUp()
 	const u8 h(fc.GetHeight()), hx(h + GetLineGapDown());
 	const auto w(AreaUp.GetWidth());
 
-	yunsequenced(AdjustBottomMarginOf(AreaUp), AdjustBottomMarginOf(AreaDown));
+	yunseq(AdjustBottomMarginOf(AreaUp), AdjustBottomMarginOf(AreaDown));
 
 	const u32 t(w * h),
 		s((AreaUp.GetHeight() - AreaUp.Margin.Bottom - h) * w),
 		d(AreaDown.Margin.Top * w);
 
 	AreaDown.Scroll(hx);
-	yunsequenced(ystdex::pod_copy_n(&AreaUp.GetBufferPtr()[s], t,
+	yunseq(ystdex::pod_copy_n(&AreaUp.GetBufferPtr()[s], t,
 		&AreaDown.GetBufferPtr()[d]), ystdex::pod_copy_n(
 		&AreaUp.GetBufferAlphaPtr()[s], t, &AreaDown.GetBufferAlphaPtr()[d]));
 	AreaUp.Scroll(hx);
@@ -112,7 +113,7 @@ DualScreenReader::LineDown()
 		d((AreaUp.GetHeight() - FetchResizedBottomMargin(AreaUp) - h) * w);
 
 	AreaUp.Scroll(-hx);
-	yunsequenced(ystdex::pod_copy_n(&AreaDown.GetBufferPtr()[s], t,
+	yunseq(ystdex::pod_copy_n(&AreaDown.GetBufferPtr()[s], t,
 		&AreaUp.GetBufferPtr()[d]), ystdex::pod_copy_n(
 		&AreaDown.GetBufferAlphaPtr()[s], t, &AreaUp.GetBufferAlphaPtr()[d]));
 	AreaDown.Scroll(-hx);
@@ -180,7 +181,7 @@ DualScreenReader::ScreenDown()
 	int t(AreaUp.GetTextLineN() + AreaDown.GetTextLineN());
 
 	while(t-- && iBottom != pText->end())
-		yunsequenced((iTop = FindNext(AreaUp, iTop, pText->cend()),
+		yunseq((iTop = FindNext(AreaUp, iTop, pText->cend()),
 			iBottom = FindNext(AreaDown, iBottom, pText->cend())));
 //	itUp = itDn;
 	Update();

@@ -11,12 +11,13 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version r1702;
+\version r1711;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-02-09 20:43:52 +0800;
 \par 修改时间:
-	2011-09-23 16:31 +0800;
+	2011-12-04 12:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +32,10 @@
 
 YSL_BEGIN
 
-//! \brief 模板类实例计数器。
+/*!
+\brief 模板类实例计数器。
+\since 早于 build 132 。
+*/
 template<class T, typename count_t = u32>
 class GMCounter
 {
@@ -76,9 +80,9 @@ protected:
 	}
 
 public:
-	static DefMutableGetter(count_t, Count, nCount)
-	static DefMutableGetter(count_t, Total, nTotal)
-	yconstexprf DefGetter(count_t, ObjectID, nID)
+	static DefGetter(ynothrow, count_t, Count, nCount)
+	static DefGetter(ynothrow, count_t, Total, nTotal)
+	yconstfn DefGetter(const ynothrow, count_t, ObjectID, nID)
 
 protected:
 	/*!

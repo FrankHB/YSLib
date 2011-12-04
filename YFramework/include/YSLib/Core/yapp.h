@@ -11,12 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2354;
+\version r2358;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-10-12 17:35 +0800;
+	2011-12-04 12:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +44,7 @@ public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
-	yconstexprf DefDeCtor(Log)
+	yconstfn DefDeCtor(Log)
 	/*!
 	\brief 析构：空实现。
 	*/
@@ -132,7 +133,7 @@ public:
 	/*!
 	\brief 取得线程空间中当前运行的 Shell 的句柄。
 	*/
-	DefGetter(shared_ptr<Shell>, ShellHandle, hShell) \
+	DefGetter(const ynothrow, shared_ptr<Shell>, ShellHandle, hShell)
 	/*!
 	\brief 取主消息队列。
 	\throw LoggedEvent 记录异常事件。

@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2738;
+\version r2765;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-11-24 17:55 +0800;
+	2011-12-04 10:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -48,7 +48,7 @@ struct MoreConvertible
 	static inline Result
 	Cast(_type o)
 	{
-		return static_cast<Result>(o);
+		return Result(o);
 	}
 };
 
@@ -72,7 +72,7 @@ struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
 \brief 取整数类型的零元素。
 \since build 242 。
 */
-yconstexprf int
+yconstfn int
 FetchZero()
 {
 	return 0;
@@ -81,8 +81,8 @@ FetchZero()
 \brief 取指定类型的零元素。
 \since build 242 。
 */
-PDefTH1(_type)
-yconstexprf _type
+PDefTmplH1(_type)
+yconstfn _type
 FetchZero()
 {
 	return _type(0);
@@ -93,7 +93,7 @@ FetchZero()
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
 \since build 263 。
 */
-yconstexprf s8
+yconstfn s8
 FetchSign(int a, int b = 0)
 {
 	return a < b ? -1 : !(a == b);
@@ -103,8 +103,8 @@ FetchSign(int a, int b = 0)
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
 \since build 263 。
 */
-PDefTH1(_type)
-yconstexprf s8
+PDefTmplH1(_type)
+yconstfn s8
 FetchSign(const _type& a, const _type& b = FetchZero<_type>())
 {
 	return a < b ? -1 : !(a == b);
@@ -118,7 +118,7 @@ FetchSign(const _type& a, const _type& b = FetchZero<_type>())
 \note 无精度修正。
 \since build 263 。
 */
-yconstexprf int
+yconstfn int
 FetchSignFromInterval(int d, int a, int b)
 {
 	return FetchSign(a, d) * FetchSign(d, b);
@@ -131,8 +131,8 @@ FetchSignFromInterval(int d, int a, int b)
 \note 无精度修正。
 \since build 263 。
 */
-PDefTH1(_type)
-yconstexprf int
+PDefTmplH1(_type)
+yconstfn int
 FetchSignFromInterval(const _type& d, const _type& a, const _type& b)
 {
 	return FetchSign(a, d) * FetchSign(d, b);
@@ -143,7 +143,7 @@ FetchSignFromInterval(const _type& d, const _type& a, const _type& b)
 \pre 断言： <tt>FetchZero<_type>() < b</tt> 。
 \since build 167 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 inline bool
 IsInInterval(_type i, _type b)
 {
@@ -158,7 +158,7 @@ IsInInterval(_type i, _type b)
 \pre 断言： <tt>a < b</tt> 。
 \since build 167 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 inline bool
 IsInInterval(_type i, _type a, _type b)
 {
@@ -173,7 +173,7 @@ IsInInterval(_type i, _type a, _type b)
 \pre 断言： <tt>FetchZero<_type>() < b</tt> 。
 \since build 168 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 inline bool
 IsInOpenInterval(_type i, _type b)
 {
@@ -188,7 +188,7 @@ IsInOpenInterval(_type i, _type b)
 \pre 断言： <tt>a < b</tt> 。
 \since build 168 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 inline bool
 IsInOpenInterval(_type i, _type a, _type b)
 {
@@ -206,7 +206,7 @@ IsInOpenInterval(_type i, _type a, _type b)
 \pre 断言： <tt>!(v < *a)</tt> 。
 \since build 168 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 size_t
 SwitchInterval(_type v, const _type* a, size_t n)
 {
@@ -232,7 +232,7 @@ SwitchInterval(_type v, const _type* a, size_t n)
 \pre 断言： <tt>!(v < *a)</tt> 。
 \since build 168 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 size_t
 SwitchAddedInterval(_type v, const _type* a, size_t n)
 {
@@ -257,7 +257,7 @@ SwitchAddedInterval(_type v, const _type* a, size_t n)
 \post <tt>!(i < a || b < i)</tt> 。
 \since build 168 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 void
 RestrictInClosedInterval(_type& i, int a, int b)
 {
@@ -276,7 +276,7 @@ RestrictInClosedInterval(_type& i, int a, int b)
 \post <tt>!(i < a) && i < b</tt> 。
 \since build 168 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 void
 RestrictInInterval(_type& i, int a, int b)
 {
@@ -294,7 +294,7 @@ RestrictInInterval(_type& i, int a, int b)
 \post <tt>!(b < u)</tt>。
 \since build 168 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 void
 RestrictUnsignedStrict(_type& u, unsigned b)
 {
@@ -308,7 +308,7 @@ RestrictUnsignedStrict(_type& u, unsigned b)
 \post <tt>!(u < FetchZero<_type>()) && u < b</tt> 。
 \since build 167 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 void
 RestrictUnsigned(_type& u, unsigned b)
 {
@@ -324,7 +324,7 @@ RestrictUnsigned(_type& u, unsigned b)
 \post <tt>a <= b</tt> 。
 \since build 168 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 inline void
 RestrictLessEqual(_type& a, _type& b)
 {
@@ -338,7 +338,7 @@ RestrictLessEqual(_type& a, _type& b)
 \note 忽略空指针和零长度。
 \since 早于 build 132 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 inline void
 ClearSequence(_type* dst, size_t n)
 {
@@ -356,7 +356,7 @@ struct delete_obj_ndebug
 	/*!
 	\brief 删除指针指向的对象。
 	*/
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	inline void
 	operator()(_type* _ptr) ynothrow
 	{
@@ -376,7 +376,7 @@ struct delete_obj_debug
 	/*!
 	\brief 删除指针指向的对象。
 	*/
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	inline void
 	operator()(_type* _ptr) ynothrow
 	{
@@ -401,7 +401,7 @@ struct safe_delete_obj
 	/*!
 	\brief 删除指针指向的对象，并置指针为空值。
 	*/
-	PDefTH1(_tPointer)
+	PDefTmplH1(_tPointer)
 	inline void
 	operator()(_tPointer& _ptr) ynothrow
 	{
@@ -414,8 +414,8 @@ struct safe_delete_obj
 \brief 使用 new 复制指定指针指向的对象。
 \since build 240 。
 */
-PDefTH1(_type)
-yconstexprf auto
+PDefTmplH1(_type)
+yconstfn auto
 CloneNonpolymorphic(const _type& p) -> decltype(&*p)
 {
 	return new typename std::remove_reference<decltype(*p)>::type(*p);

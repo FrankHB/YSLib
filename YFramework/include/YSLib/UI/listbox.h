@@ -11,12 +11,13 @@
 /*!	\file listbox.h
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3224;
+\version r3246;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 205 。
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-11-21 22:38 +0800;
+	2011-12-04 13:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,6 +39,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 /*!
 \brief 带滚动条的文本列表框。
+\since build 205 。
 */
 class ListBox : public ScrollableContainer
 {
@@ -53,23 +55,24 @@ public:
 		const shared_ptr<ListType>& = shared_ptr<ListType>());
 	inline DefDeMoveCtor(ListBox)
 
-	DefPredicateMember(Selected, TextListBox)
+	DefPredMem(const ynothrow, Selected, TextListBox)
 	PDefH(bool, Contains, ListType::size_type i)
-		ImplBodyMember(TextListBox, Contains, i)
+		ImplBodyMem(TextListBox, Contains, i)
 
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	*/
 	virtual IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
-	DefGetterMember(ListType::size_type, HeadIndex, TextListBox)
-	DefGetterMember(ListType::size_type, SelectedIndex, TextListBox)
-	DefGetterMember(ListType&, List, TextListBox)
-	DefMutableEventGetterMember(HUIEvent, ViewChanged, TextListBox) \
+	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, TextListBox)
+	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex,
+		TextListBox)
+	DefGetterMem(const ynothrow, ListType&, List, TextListBox)
+	DefEventGetterMem(ynothrow, HUIEvent, ViewChanged, TextListBox) \
 		//!< 视图变更事件。
-	DefMutableEventGetterMember(HIndexEvent, Selected, TextListBox) \
+	DefEventGetterMem(ynothrow, HIndexEvent, Selected, TextListBox) \
 		//!< 项目选择状态变更事件。
-	DefMutableEventGetterMember(HIndexEvent, Confirmed, TextListBox) \
+	DefEventGetterMem(ynothrow, HIndexEvent, Confirmed, TextListBox) \
 		//!< 项目选中确定事件。
 
 	/*!
@@ -79,13 +82,16 @@ public:
 	Refresh(const PaintContext&);
 
 	PDefH(void, ResetView)
-		ImplBodyMember(TextListBox, ResetView)
+		ImplBodyMem(TextListBox, ResetView)
 	PDefH(void, UpdateView)
-		ImplBodyMember(TextListBox, UpdateView)
+		ImplBodyMem(TextListBox, UpdateView)
 };
 
 
-//! \brief 文件列表框。
+/*!
+\brief 文件列表框。
+\since build 205 。
+*/
 class FileBox : public IO::FileList, public ListBox
 {
 public:

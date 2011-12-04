@@ -11,12 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2224;
+\version r2228;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-11-05 11:17 +0800;
+	2011-12-04 11:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -201,9 +202,9 @@ SplitPath(const string& path, string& directory, string& file)
 	const string::size_type p(path.rfind(DEF_PATH_DELIMITER));
 
 	if(p == string::npos)
-		yunsequenced((directory = "", file = path));
+		yunseq((directory = "", file = path));
 	else
-		yunsequenced((directory = path.substr(0, p + 1),
+		yunseq((directory = path.substr(0, p + 1),
 			file = path.substr(p + 1)));
 	return p;
 }
@@ -244,7 +245,7 @@ HaveSameStems(const char* a, const char* b)
 	{
 		if(*a != *b)
 			return false;
-		yunsequenced(++a, ++b);
+		yunseq(++a, ++b);
 	}
 	return true;
 }
@@ -376,8 +377,7 @@ FileList::LoadSubItems()
 
 	if(dir.IsValid())
 	{
-		YAssert(is_not_null(hList),
-			"Null handle found @ FileList::LoadSubItems;");
+		YAssert(bool(hList), "Null handle found @ FileList::LoadSubItems;");
 
 		hList->clear();
 		while((++dir).LastError == 0)

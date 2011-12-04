@@ -11,13 +11,13 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version r7174;
+\version r7255;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-11-30 19:16 +0800;
+	2011-12-04 13:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -535,9 +535,9 @@ public:
 	void
 	operator()(ucs4_t);
 
-	DefGetter(const TextState&, TextState, State)
-	DefMutableGetter(TextState&, TextState, State)
-	DefGetter(SDst, Height, Height)
+	DefGetter(const ynothrow, const TextState&, TextState, State)
+	DefGetter(ynothrow, TextState&, TextState, State)
+	DefGetter(const ynothrow, SDst, Height, Height)
 };
 
 inline
@@ -553,38 +553,28 @@ EmptyTextRenderer::operator()(ucs4_t c)
 
 
 /*!
-\ingroup TextRenderers
-\brief 抽象文本渲染器。
-\since build 190 。
+\brief 文本渲染操作。
+\since build 266 。
 */
-class ATextRenderer
+namespace TextRendering
 {
-public:
-	/*!
-	\brief 析构：空实现。
-	*/
-	virtual DefEmptyDtor(ATextRenderer)
-
-	DeclIEntry(const TextState& GetTextState() const) //!< 取文本状态。
-	DeclIEntry(TextState& GetTextState()) //!< 取文本状态。
-	DeclIEntry(const Graphics& GetContext() const) //!< 取图形接口上下文。
-
 	/*!
 	\brief 取按当前行高和行距所能显示的最大行数。
 	*/
 	u16
-	GetTextLineN() const;
+	GetTextLineN(const TextState&, const Graphics&);
+
 	/*!
 	\brief 取按当前行高和行距（行间距数小于行数 1 ）所能显示的最大行数。
 	*/
 	u16
-	GetTextLineNEx() const;
+	GetTextLineNEx(const TextState&, const Graphics&);
 
 	/*!
 	\brief 设置笔的行位置为最底行。
 	*/
 	void
-	SetTextLineLast();
+	SetTextLineLast(TextState&, const Graphics&);
 
 	/*!
 	\brief 清除缓冲区第 l 行起始的 n 行像素。
@@ -592,22 +582,57 @@ public:
 	\note n 被限制为不越界。
 	\note n 为 0 时清除之后的所有行。
 	*/
-	virtual void
-	ClearLine(u16 l, SDst n);
+	void
+	ClearLine(const Graphics& g, u16 l, SDst n);
 
 	/*!
 	\brief 清除缓冲区中的指定行号的文本行。
 	\note 参数为 0 表示首行。
 	*/
 	void
-	ClearTextLine(u16);
+	ClearTextLine(TextState&, const Graphics&, u16);
 
-	//
 	/*!
 	\brief 清除缓冲区中的最后一个文本行。
 	*/
 	void
-	ClearTextLineLast();
+	ClearTextLineLast(TextState&, const Graphics&);
+};
+
+
+/*!
+\brief 文本渲染器静态多态模版基类。
+\since build 266 。
+*/
+template<class _type>
+class GTextRendererBase
+{
+public:
+	DeclSEntry(const TextState& GetTextState() const) //!< 取文本状态。
+	DeclSEntry(TextState& GetTextState()) //!< 取文本状态。
+	DeclSEntry(const Graphics& GetContext() const) //!< 取图形接口上下文。
+
+	DefFwdFn(const, u16, GetTextLineN, TextRendering::GetTextLineN(
+		static_cast<const _type*>(this)->GetTextState(),
+		static_cast<const _type*>(this)->GetContext()))
+	DefFwdFn(const, u16, GetTextLineNEx, TextRendering::GetTextLineNEx(
+		static_cast<const _type*>(this)->GetTextState(),
+		static_cast<const _type*>(this)->GetContext()))
+
+	DefFwdFn(, void, SetTextLineLast, TextRendering::SetTextLineLast(
+		static_cast<_type*>(this)->GetTextState(),
+		static_cast<_type*>(this)->GetContext()))
+
+	DefFwdTmpl(, void, ClearLine, TextRendering::ClearLine(
+		static_cast<_type*>(this)->GetTextState(), args...))
+
+	DefFwdTmpl(, void, ClearTextLine, TextRendering::ClearTextLine(
+		static_cast<_type*>(this)->GetTextState(),
+		static_cast<_type*>(this)->GetContext(), args...))
+
+	DefFwdFn(, void, ClearTextLineLast, TextRendering::ClearTextLineLast(
+		static_cast<_type*>(this)->GetTextState(),
+		static_cast<_type*>(this)->GetContext()))
 };
 
 
@@ -618,7 +643,7 @@ public:
 简单实现。
 \since build 190 。
 */
-class TextRenderer : public ATextRenderer
+class TextRenderer : public GTextRendererBase<TextRenderer>
 {
 public:
 	TextState& State;
@@ -638,24 +663,28 @@ public:
 	void
 	operator()(ucs4_t);
 
-	ImplI(ATextRenderer) DefGetter(const TextState&, TextState, State)
-	ImplI(ATextRenderer) DefMutableGetter(TextState&, TextState, State)
-	ImplI(ATextRenderer) DefGetter(const Graphics&, Context, Buffer)
+	ImplS(GTextRendererBase) DefGetter(const ynothrow, const TextState&,
+		TextState, State)
+	ImplS(GTextRendererBase) DefGetter(ynothrow, TextState&, TextState, State)
+	ImplS(GTextRendererBase) DefGetter(const ynothrow, const Graphics&, Context,
+		Buffer)
 };
 
 inline
 TextRenderer::TextRenderer(TextState& ts, const Graphics& g)
-	: ATextRenderer(), State(ts), Buffer(g), ClipArea(Point::Zero, g.GetSize())
+	: GTextRendererBase<TextRenderer>(),
+	State(ts), Buffer(g), ClipArea(Point::Zero, g.GetSize())
 {}
 inline
 TextRenderer::TextRenderer(TextState& ts, const Graphics& g, const Rect& mask)
-	: ATextRenderer(), State(ts), Buffer(g), ClipArea(mask)
+	: GTextRendererBase<TextRenderer>(),
+	State(ts), Buffer(g), ClipArea(mask)
 {}
 
 inline void
 TextRenderer::operator()(ucs4_t c)
 {
-	RenderChar(c, GetTextState(), GetContext(), ClipArea, nullptr);
+	RenderChar(c, State, TextRenderer::GetContext(), ClipArea, nullptr);
 }
 
 
@@ -666,7 +695,8 @@ TextRenderer::operator()(ucs4_t c)
 自带缓冲区的文本渲染器，通过 Alpha 贴图刷新至位图缓冲区显示光栅化文本。
 \since 早于 build 132 。
 */
-class TextRegion : public ATextRenderer, public TextState, public BitmapBufferEx
+class TextRegion : public GTextRendererBase<TextRegion>,
+	public TextState, public BitmapBufferEx
 {
 public:
 	/*!
@@ -696,9 +726,11 @@ public:
 	void
 	operator()(ucs4_t);
 
-	ImplI(ATextRenderer) DefGetter(const TextState&, TextState, *this)
-	ImplI(ATextRenderer) DefMutableGetter(TextState&, TextState, *this)
-	ImplI(ATextRenderer) DefGetter(const Graphics&, Context, *this)
+	ImplS(GTextRendererBase) DefGetter(const ynothrow, const TextState&,
+		TextState, *this)
+	ImplS(GTextRendererBase) DefGetter(ynothrow, TextState&, TextState, *this)
+	ImplS(GTextRendererBase) DefGetter(const ynothrow, const Graphics&, Context,
+		*this)
 
 protected:
 	/*!
@@ -712,7 +744,7 @@ public:
 	\brief 清除缓冲区第 l 行起始的 n 行像素。
 	\note n 为 0 时清除之后的所有行。
 	*/
-	virtual void
+	void
 	ClearLine(u16 l, SDst n);
 
 	/*!

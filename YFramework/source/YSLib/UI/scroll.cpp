@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4040;
+\version r4044;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-12-01 08:33 +0800;
+	2011-12-04 11:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -89,7 +89,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length)
 {
 	Thumb.GetView().pContainer = this;
-	yunsequenced(
+	yunseq(
 		GetThumbDrag() += [this](UIEventArgs&&){
 			LocateThumb(0, ScrollCategory::ThumbTrack);
 			Invalidate(*this);
@@ -323,12 +323,12 @@ try	: AUIBoxControl(r),
 			Rect(0, r.Width, r.Width, r.Height - r.Width * 2), uMinThumbSize))),
 	PrevButton(Rect()), NextButton(Rect()), small_delta(2)
 {
-	yunsequenced(
+	yunseq(
 		pTrack->GetView().pContainer = this,
 		PrevButton.GetView().pContainer = this,
 		NextButton.GetView().pContainer = this
 	);
-	yunsequenced(
+	yunseq(
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 		FetchEvent<TouchMove>(PrevButton) += OnTouchMove,
 		FetchEvent<TouchDown>(PrevButton) += [this](TouchEventArgs&& e){
@@ -366,7 +366,7 @@ AScrollBar::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 	if(auto p = CheckWidget(NextButton, pt, f))
 		return p;
 
-	YAssert(is_not_null(pTrack),
+	YAssert(bool(pTrack),
 		"Null widget pointer found @ AScrollBar::GetTopWidgetPtr;");
 
 	return f(*pTrack.get()) ? pTrack.get() : nullptr;
@@ -375,8 +375,7 @@ AScrollBar::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 Rect
 AScrollBar::Refresh(const PaintContext& pc)
 {
-	YAssert(is_not_null(pTrack),
-		"Null widget pointer found @ AScrollBar::Draw;");
+	YAssert(bool(pTrack), "Null widget pointer found @ AScrollBar::Draw;");
 
 	auto r(Widget::Refresh(pc));
 
@@ -440,7 +439,7 @@ ScrollableContainer::ScrollableContainer(const Rect& r)
 	HorizontalScrollBar(Rect(Point::Zero, r.Width, defMinScrollBarHeight)),
 	VerticalScrollBar(Rect(Point::Zero, defMinScrollBarWidth, r.Height))
 {
-	yunsequenced(
+	yunseq(
 		HorizontalScrollBar.GetView().pContainer = this,
 		VerticalScrollBar.GetView().pContainer = this
 	);

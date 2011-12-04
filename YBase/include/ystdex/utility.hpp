@@ -10,13 +10,14 @@
 
 /*!	\file utility.hpp
 \ingroup YStandardEx
-\brief 函数对象、算法和实用程序。
-\version r1717;
+\brief 函数对象和实用程序。
+\version r1728;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-10-25 12:24 +0800;
+	2011-12-04 11:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -48,7 +49,7 @@ namespace ystdex
 		\brief \c protected 构造：空实现。
 		\note 保护非多态类。
 		*/
-		yconstexprf
+		yconstfn
 		noncopyable()
 		{}
 		/*!
@@ -61,7 +62,7 @@ namespace ystdex
 		/*!
 		\brief 禁止复制构造。
 		*/
-		yconstexprf
+		yconstfn
 		noncopyable(const noncopyable&) = delete;
 
 		/*!
@@ -83,7 +84,7 @@ namespace ystdex
 	template<typename _type>
 	struct ref_eq : public std::binary_function<_type, _type, bool>
 	{
-		yconstexprf bool
+		yconstfn bool
 		operator()(const _type& _x, const _type& _y) const
 		{
 			return &_x == &_y;
@@ -123,7 +124,7 @@ namespace ystdex
 	template<bool, typename _tScalar1, typename _tScalar2>
 	struct delta_assignment_t
 	{
-		yconstexprf _tScalar1&
+		yconstfn _tScalar1&
 		operator()(_tScalar1& x, _tScalar2 y)
 		{
 			return x += y;
@@ -132,7 +133,7 @@ namespace ystdex
 	template<typename _tScalar1, typename _tScalar2>
 	struct delta_assignment_t<false, _tScalar1, _tScalar2>
 	{
-		yconstexprf _tScalar1&
+		yconstfn _tScalar1&
 		operator()(_tScalar1& x, _tScalar2 y)
 		{
 			return x -= y;
@@ -145,7 +146,7 @@ namespace ystdex
 	\brief 编译期选择自增/自减运算。
 	*/
 	template<bool _bIsPositive, typename _tScalar>
-	yconstexprf _tScalar&
+	yconstfn _tScalar&
 	xcrease(_tScalar& _x)
 	{
 		return xcrease_t<_bIsPositive, _tScalar>()(_x);
@@ -156,7 +157,7 @@ namespace ystdex
 	\brief 编译期选择加法/减法复合赋值运算。
 	*/
 	template<bool _bIsPositive, typename _tScalar1, typename _tScalar2>
-	yconstexprf _tScalar1&
+	yconstfn _tScalar1&
 	delta_assignment(_tScalar1& _x, _tScalar2& _y)
 	{
 		return delta_assignment_t<_bIsPositive, _tScalar1, _tScalar2>()(_x, _y);
@@ -173,7 +174,7 @@ namespace ystdex
 		/*!
 		\brief 对指定对象使用 operator& 并返回结果。
 		*/
-		yconstexprf _type*
+		yconstfn _type*
 		operator()(_type& _x) const
 		{
 			return &_x;

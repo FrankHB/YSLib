@@ -11,12 +11,12 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r2198;
+\version r2200;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-10-05 12:59 +0800;
+	2011-12-03 15:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -48,7 +48,7 @@ FetchBiCharBE(const char* c_ptr)
 {
 	assert(c_ptr);
 
-	return (*c_ptr << YCL_CHAR_BIT) | c_ptr[1];
+	return (*c_ptr << CHAR_BIT) | c_ptr[1];
 }
 
 /*!
@@ -60,7 +60,7 @@ FetchBiCharLE(const char* c_ptr)
 {
 	assert(c_ptr);
 
-	return (c_ptr[1] << YCL_CHAR_BIT) | *c_ptr;
+	return (c_ptr[1] << CHAR_BIT) | *c_ptr;
 }
 
 

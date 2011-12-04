@@ -11,12 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载运算符。
-\version r2096;
+\version r2099;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 260 。
 \par 创建时间:
 	2011-11-13 14:58:05 +0800;
 \par 修改时间:
-	2011-11-14 12:25 +0800;
+	2011-12-04 11:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +38,7 @@ namespace ystdex
 
 
 #define YCL_OP_FRIEND(_op, _tRet, _expr, ...) \
-	friend yconstexprf _tRet operator _op (__VA_ARGS__) {return (_expr);}
+	friend yconstfn _tRet operator _op (__VA_ARGS__) {return (_expr);}
 #define YCL_OP_TEMPLATE_HEADER2(_name) \
 	template<class _type, class _type2, class _tBase = empty_base<_type>> \
 	struct _name

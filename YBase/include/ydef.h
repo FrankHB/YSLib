@@ -19,12 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2686;
+\version r2704;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2011-10-13 21:12 +0800;
+	2011-12-04 10:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -90,27 +91,12 @@
 
 #ifdef YCL_HAS_CONSTEXPR
 #define yconstexpr constexpr
-#define yconstexprf constexpr
+#define yconstfn constexpr
 #else
 #define yconstexpr const
-#define yconstexprf inline
+#define yconstfn inline
 #endif
 
-#ifndef YCL_CHAR_BIT
-#define YCL_CHAR_BIT CHAR_BIT
-#endif
-
-#ifndef YCL_UNUSED
-#	define YCL_UNUSED(arg) ((arg) = (arg))
-#endif
-
-#ifndef YCL_VOID
-#	define YCL_VOID(arg) ((void)(arg))
-#endif
-
-#ifndef YCL_VOIDX
-#	define YCL_VOIDX(arg) (static_cast<void>(arg))
-#endif
 
 namespace ystdex
 {
@@ -213,7 +199,7 @@ namespace ystdex
 	\note 无异常抛出。
 	*/
 	template<typename... _type>
-	yconstexprf int
+	yconstfn int
 	unsequenced(_type&&...) ynothrow
 	{
 		return 0;
@@ -226,7 +212,7 @@ namespace ystdex
 	\note 使用一元形式 %yunsequenced((_expr)) 的形式标记表达式组但不取消序列关系。
 	\note 支持嵌套使用。
 	*/
-	#define yunsequenced ystdex::unsequenced
+	#define yunseq ystdex::unsequenced
 }
 
 #endif

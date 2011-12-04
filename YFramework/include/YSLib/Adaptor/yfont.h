@@ -11,13 +11,13 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7343;
+\version r7408;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-12-01 09:49 +0800;
+	2011-12-04 13:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -87,11 +87,11 @@ private:
 	Styles style;
 
 public:
-	yconstexprf
+	yconstfn
 	FontStyle(Styles = Regular);
 
-	yconstexprf DefConverter(const Styles&, style)
-	DefMutableConverter(Styles&, style)
+	yconstfn DefCvt(const ynothrow, const Styles&, style)
+	DefCvt(ynothrow, Styles&, style)
 
 	/*!
 	\brief 取样式名称。
@@ -102,7 +102,7 @@ public:
 	GetName() const ynothrow;
 };
 
-yconstexprf
+yconstfn
 FontStyle::FontStyle(Styles s)
 	: style(s)
 {}
@@ -164,7 +164,7 @@ private:
 	operator-=(Typeface*);
 
 public:
-	DefGetter(const NameType&, FamilyName, family_name)
+	DefGetter(const ynothrow, const NameType&, FamilyName, family_name)
 	/*!
 	\brief 取指定样式的字型指针。
 	\note 若非 Regular 样式失败则尝试取 Regular 样式的字型指针。
@@ -230,10 +230,10 @@ public:
 	bool
 	operator<(const Typeface&) const;
 
-	DefGetter(const FontFamily*, FontFamilyPtr, pFontFamily)
-	DefGetter(FontFamily::NameType, FamilyName, pFontFamily
+	DefGetter(const ynothrow, const FontFamily*, FontFamilyPtr, pFontFamily)
+	DefGetter(const ynothrow, FontFamily::NameType, FamilyName, pFontFamily
 		? pFontFamily->GetFamilyName() : "")
-	DefGetter(const NameType&, StyleName, style_name)
+	DefGetter(const ynothrow, const NameType&, StyleName, style_name)
 };
 
 
@@ -259,17 +259,17 @@ public:
 	/*!
 	\brief 比较：相等关系。
 	*/
-	PDefHOperator(bool, ==, const FontFile& rhs) const
+	PDefHOp(bool, ==, const FontFile& rhs) const
 		ImplRet(path == rhs.path);
 
 	/*!
 	\brief 比较：严格递增偏序关系。
 	*/
-	PDefHOperator(bool, <, const FontFile& rhs) const
+	PDefHOp(bool, <, const FontFile& rhs) const
 		ImplRet(path < rhs.path);
 
-	DefGetter(PathType, Path, path)
-	DefGetter(s32, FaceN, face_num)
+	DefGetter(const ynothrow, PathType, Path, path)
+	DefGetter(const ynothrow, s32, FaceN, face_num)
 
 	/*!
 	\brief 向指定本地字体库中重新读取字体文件，载入全部字体。
@@ -321,26 +321,27 @@ public:
 	/*!
 	\brief 构造指定字型家族、大小和样式的字体对象。
 	*/
-	explicit yconstexprf
+	explicit yconstfn
 	Font(const FontFamily& = FetchDefaultFontFamily(), SizeType = DefaultSize,
 		FontStyle = FontStyle::Regular);
 
-	yconstexprf DefPredicate(Bold, Style | FontStyle::Bold)
-	yconstexprf DefPredicate(Italic, Style | FontStyle::Italic)
-	yconstexprf DefPredicate(Underline, Style | FontStyle::Underline)
-	yconstexprf DefPredicate(Strikeout, Style | FontStyle::Strikeout)
+	yconstfn DefPred(const ynothrow, Bold, Style | FontStyle::Bold)
+	yconstfn DefPred(const ynothrow, Italic, Style | FontStyle::Italic)
+	yconstfn DefPred(const ynothrow, Underline, Style | FontStyle::Underline)
+	yconstfn DefPred(const ynothrow, Strikeout, Style | FontStyle::Strikeout)
 
 	/*!
 	\brief 取默认实例。
 	*/
 	static const Font&
 	GetDefault();
-	DefGetter(const FontFamily&, FontFamily, *pFontFamily)
-	yconstexprf DefGetter(FontStyle, Style, Style)
-	yconstexprf DefGetter(SizeType, Size, Size)
-	DefGetter(FontCache&, Cache, GetFontFamily().Cache)
-	DefGetterMember(const FontFamily::NameType&, FamilyName, GetFontFamily())
-	DefGetter(Typeface::NameType, StyleName, Style.GetName())
+	DefGetter(const ynothrow, const FontFamily&, FontFamily, *pFontFamily)
+	yconstfn DefGetter(const ynothrow, FontStyle, Style, Style)
+	yconstfn DefGetter(const ynothrow, SizeType, Size, Size)
+	DefGetter(const ynothrow, FontCache&, Cache, GetFontFamily().Cache)
+	DefGetterMem(const ynothrow, const FontFamily::NameType&, FamilyName,
+		GetFontFamily())
+	DefGetter(const ynothrow, Typeface::NameType, StyleName, Style.GetName())
 	/*!
 	\brief 取字体对应的字符高度。
 	*/
@@ -369,7 +370,7 @@ public:
 	UpdateSize();
 };
 
-yconstexprf
+yconstfn
 Font::Font(const FontFamily& family, const SizeType size, FontStyle style)
 	: pFontFamily(&family), Style(style), Size(size)
 {}
@@ -403,21 +404,23 @@ public:
 	/*!
 	\brief 使用本机类型对象构造字符位图对象。
 	*/
-	yconstexprf
+	yconstfn
 	CharBitmap(const NativeType&);
 
-	yconstexprf DefConverter(NativeType, bitmap)
+	yconstfn DefCvt(const ynothrow, NativeType, bitmap)
 
-	yconstexprf DefGetter(BufferType, Buffer, bitmap->buffer)
-	yconstexprf DefGetter(ScaleType, Width, bitmap->width)
-	yconstexprf DefGetter(ScaleType, Height, bitmap->height)
-	yconstexprf DefGetter(SignedScaleType, Left, bitmap->left)
-	yconstexprf DefGetter(SignedScaleType, Top, bitmap->top)
-	yconstexprf DefGetter(SignedScaleType, XAdvance, bitmap->xadvance)
-	yconstexprf DefGetter(SignedScaleType, YAdvance, bitmap->yadvance)
+	yconstfn DefGetter(const ynothrow, BufferType, Buffer, bitmap->buffer)
+	yconstfn DefGetter(const ynothrow, ScaleType, Width, bitmap->width)
+	yconstfn DefGetter(const ynothrow, ScaleType, Height, bitmap->height)
+	yconstfn DefGetter(const ynothrow, SignedScaleType, Left, bitmap->left)
+	yconstfn DefGetter(const ynothrow, SignedScaleType, Top, bitmap->top)
+	yconstfn DefGetter(const ynothrow, SignedScaleType, XAdvance,
+		bitmap->xadvance)
+	yconstfn DefGetter(const ynothrow, SignedScaleType, YAdvance,
+		bitmap->yadvance)
 };
 
-yconstexprf
+yconstfn
 CharBitmap::CharBitmap(const NativeType& b)
 	: bitmap(b)
 {}
@@ -477,16 +480,17 @@ private:
 	GetInternalFaceInfo() const;
 
 public:
-	DefGetter(const FileSet&, Files, sFiles) //!< 取字体文件组。
-	DefGetter(const FaceSet&, Types, sFaces) //!< 取字型组。
-	DefGetter(const FamilySet&, Faces, sFamilies) //!< 取字型家族组。
-	DefGetter(const FamilyMap&, FacesIndex, mFamilies) \
+	DefGetter(const ynothrow, const FileSet&, Files, sFiles) //!< 取字体文件组。
+	DefGetter(const ynothrow, const FaceSet&, Types, sFaces) //!< 取字型组。
+	DefGetter(const ynothrow, const FamilySet&, Faces, sFamilies) \
+		//!< 取字型家族组。
+	DefGetter(const ynothrow, const FamilyMap&, FacesIndex, mFamilies) \
 		//!< 取字型家族组索引。
-	DefGetter(FileSet::size_type, FilesN, sFiles.size()) \
+	DefGetter(const ynothrow, FileSet::size_type, FilesN, sFiles.size()) \
 		//!< 取字体文件组储存的文件数。
-	DefGetter(FaceSet::size_type, TypesN, sFaces.size()) \
+	DefGetter(const ynothrow, FaceSet::size_type, TypesN, sFaces.size()) \
 		//!< 取字型组储存的字型数。
-	DefGetter(FamilySet::size_type, FacesN, sFamilies.size()) \
+	DefGetter(const ynothrow, FamilySet::size_type, FacesN, sFamilies.size()) \
 		//!< 取字型家族组储存的字型家族数。
 //	Font*
 //	GetFontPtr() const;
@@ -502,7 +506,7 @@ public:
 	*/
 	const Typeface*
 	GetDefaultTypefacePtr() const ythrow(LoggedEvent);
-	DefGetter(const Typeface*, TypefacePtr,
+	DefGetter(const ynothrow, const Typeface*, TypefacePtr,
 		static_cast<Typeface*>(scaler.face_id)) //!< 取当前处理的字型指针。
 //	Typeface*
 //	GetTypefacePtr(u16) const; //!< 取字型组储存的指定索引的字型指针。
@@ -512,7 +516,7 @@ public:
 	const Typeface*
 	GetTypefacePtr(const FontFamily::NameType&, const Typeface::NameType&)
 		const;
-	DefGetter(u8, FontSize, static_cast<u8>(scaler.width)) \
+	DefGetter(const ynothrow, u8, FontSize, u8(scaler.width)) \
 		//!< 取当前处理的字体大小。
 	/*!
 	\brief 取当前字型和大小渲染的指定字符的字形。

@@ -16,12 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1681;
+\version r1688;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2011-11-05 10:54 +0800;
+	2011-12-04 12:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,6 +46,7 @@ typedef u32 TimeSpan;
 /*!
 \brief 计时器。
 \warning 非虚析构。
+\since build 243 。
 */
 class Timer : public noncopyable, public GMCounter<Timer>
 {
@@ -66,9 +68,9 @@ public:
 	explicit
 	Timer(TimeSpan = 1000, bool = true);
 
-	static DefMutableGetter(TimeSpan, SystemTick, SystemTick)
-	DefGetter(TimeSpan, Interval, nInterval)
-	DefGetter(TimeSpan, BaseTick, nBase)
+	static DefGetter(ynothrow, TimeSpan, SystemTick, SystemTick)
+	DefGetter(const ynothrow, TimeSpan, Interval, nInterval)
+	DefGetter(const ynothrow, TimeSpan, BaseTick, nBase)
 
 	/*!
 	\brief 设置时间间隔。

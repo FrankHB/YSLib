@@ -11,12 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3335;
+\version r3367;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 194 。
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-11-27 21:34 +0800;
+	2011-12-04 13:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +38,10 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//! \brief 滚动类别。
+/*!
+\brief 滚动类别。
+\since build 261 。
+*/
 typedef enum class
 {
 	SmallDecrement = 0, //!< 滚动框小距离减量移动。
@@ -52,7 +56,10 @@ typedef enum class
 } ScrollCategory;
 
 
-//! \brief 滚动事件参数类。
+/*!
+\brief 滚动事件参数类。
+\since build 193 。
+*/
 struct ScrollEventArgs : public UIEventArgs,
 	public GMValueEventArgs<float>
 {
@@ -90,7 +97,10 @@ ScrollEventArgs::ScrollEventArgs(IWidget& wgt, ScrollCategory t,
 DefDelegate(HScrollEvent, ScrollEventArgs)
 
 
-//! \brief 轨道。
+/*!
+\brief 轨道。
+\since build 167 。
+*/
 class ATrack : public AUIBoxControl, public GMRange<ScrollEventArgs::ValueType>
 {
 public:
@@ -125,8 +135,8 @@ public:
 	ATrack(const Rect& = Rect::Empty, SDst = 8);
 	inline DefDeMoveCtor(ATrack)
 
-	DefPredicate(Horizontal, GetOrientation() == Horizontal)
-	DefPredicate(Vertical, GetOrientation() == Vertical)
+	DefPred(const ynothrow, Horizontal, GetOrientation() == Horizontal)
+	DefPred(const ynothrow, Vertical, GetOrientation() == Vertical)
 
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
@@ -134,20 +144,20 @@ public:
 	*/
 	ImplI(AUIBoxControl) IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
-	DefMutableEventGetter(HUIEvent, ThumbDrag, ThumbDrag) //!< 滑块拖动事件。
-	DefMutableEventGetter(HScrollEvent, Scroll, Scroll) //!< 滚动事件。
-	DefGetter(SDst, MinThumbLength, min_thumb_length)
+	DefEventGetter(ynothrow, HUIEvent, ThumbDrag, ThumbDrag) //!< 滑块拖动事件。
+	DefEventGetter(ynothrow, HScrollEvent, Scroll, Scroll) //!< 滚动事件。
+	DefGetter(const ynothrow, SDst, MinThumbLength, min_thumb_length)
 	DeclIEntry(Orientation GetOrientation() const) //!< 取轨道方向。
-	DefGetter(SDst, ScrollableLength, GetTrackLength() - GetThumbLength()) \
-		//取可滚动区域长度。
-	DefGetter(SDst, ThumbLength, SelectFrom(GetSizeOf(Thumb),
+	DefGetter(const ynothrow, SDst, ScrollableLength,
+		GetTrackLength() - GetThumbLength()) //!< 取可滚动区域长度。
+	DefGetter(const ynothrow, SDst, ThumbLength, SelectFrom(GetSizeOf(Thumb),
 		IsHorizontal())) //!< 取轨道方向上的滑块长度。
-	DefGetter(SDst, ThumbPosition,
+	DefGetter(const ynothrow, SDst, ThumbPosition,
 		SelectFrom(GetLocationOf(Thumb), IsHorizontal())) //!< 取滑块位置。
-	virtual DefGetter(SDst, TrackLength,
+	virtual DefGetter(const ynothrow, SDst, TrackLength,
 		SelectFrom(GetSizeOf(*this), IsHorizontal())) \
 		//!< 取轨道方向上的轨道长度。
-	DefGetter(ValueType, LargeDelta, large_delta)
+	DefGetter(const ynothrow, ValueType, LargeDelta, large_delta)
 
 	/*!
 	\brief 设置轨道方向上的滑块长度。
@@ -206,7 +216,10 @@ public:
 };
 
 
-//! \brief 水平轨道。
+/*!
+\brief 水平轨道。
+\since build 205 。
+*/
 class HorizontalTrack : public ATrack
 {
 public:
@@ -219,11 +232,14 @@ public:
 	inline DefDeMoveCtor(HorizontalTrack)
 
 	ImplI(ATrack)
-	DefGetter(Orientation, Orientation, Horizontal)
+	DefGetter(const ynothrow, Orientation, Orientation, Horizontal)
 };
 
 
-//! \brief 竖直轨道。
+/*!
+\brief 竖直轨道。
+\since build 205 。
+*/
 class VerticalTrack : public ATrack
 {
 public:
@@ -236,11 +252,14 @@ public:
 	inline DefDeMoveCtor(VerticalTrack)
 
 	ImplI(ATrack)
-	DefGetter(Orientation, Orientation, Vertical)
+	DefGetter(const ynothrow, Orientation, Orientation, Vertical)
 };
 
 
-//! \brief 滚动条。
+/*!
+\brief 滚动条。
+\since build 162 。
+*/
 class AScrollBar : public AUIBoxControl
 {
 public:
@@ -276,14 +295,14 @@ public:
 	*/
 	ATrack&
 	GetTrack() const ynothrow;
-	DefGetterMember(ValueType, MaxValue, GetTrack())
-	DefGetterMember(ValueType, Value, GetTrack())
-	DefGetterMember(ValueType, LargeDelta, GetTrack())
-	DefGetter(ValueType, SmallDelta, small_delta)
+	DefGetterMem(const ynothrow, ValueType, MaxValue, GetTrack())
+	DefGetterMem(const ynothrow, ValueType, Value, GetTrack())
+	DefGetterMem(const ynothrow, ValueType, LargeDelta, GetTrack())
+	DefGetter(const ynothrow, ValueType, SmallDelta, small_delta)
 
-	DefSetterMember(ValueType, MaxValue, GetTrack())
-	DefSetterMember(ValueType, Value, GetTrack())
-	DefSetterMember(ValueType, LargeDelta, GetTrack())
+	DefSetterMem(ValueType, MaxValue, GetTrack())
+	DefSetterMem(ValueType, Value, GetTrack())
+	DefSetterMem(ValueType, LargeDelta, GetTrack())
 	DefSetter(ValueType, SmallDelta, small_delta)
 
 	/*!
@@ -296,14 +315,17 @@ public:
 inline ATrack&
 AScrollBar::GetTrack() const ynothrow
 {
-	YAssert(is_not_null(pTrack),
+	YAssert(bool(pTrack),
 		"Null widget pointer found @ AScrollBar::GetTrack;");
 
 	return *pTrack;
 }
 
 
-//! \brief 水平滚动条。
+/*!
+\brief 水平滚动条。
+\since build 205 。
+*/
 class HorizontalScrollBar : public AScrollBar
 {
 public:
@@ -312,8 +334,8 @@ public:
 	inline DefDeMoveCtor(HorizontalScrollBar)
 
 public:
-	ImplI(ATrack)
-	DefGetter(Orientation, Orientation, Horizontal)
+	ImplI(ATrack) DefGetter(const ynothrow, Orientation, Orientation,
+		Horizontal)
 
 protected:
 	virtual IWidget*
@@ -321,7 +343,10 @@ protected:
 };
 
 
-//! \brief 竖直滚动条。
+/*!
+\brief 竖直滚动条。
+\since build 205 。
+*/
 class VerticalScrollBar : public AScrollBar
 {
 public:
@@ -330,8 +355,7 @@ public:
 	inline DefDeMoveCtor(VerticalScrollBar)
 
 public:
-	ImplI(ATrack)
-	DefGetter(Orientation, Orientation, Vertical)
+	ImplI(ATrack) DefGetter(const ynothrow, Orientation, Orientation, Vertical)
 
 protected:
 	virtual IWidget*
@@ -339,7 +363,10 @@ protected:
 };
 
 
-//! \brief 带滚动条的容器基实现类。
+/*!
+\brief 带滚动条的容器基实现类。
+\since build 192 。
+*/
 class ScrollableContainer : public AUIBoxControl
 {
 protected:

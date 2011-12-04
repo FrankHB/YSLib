@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r1283;
+\version r1284;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-20 08:59:56 +0800;
 \par 修改时间:
-	2011-11-25 21:18 +0800;
+	2011-12-04 11:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,7 @@ ProgressBar::ProgressBar(const Rect& r, u16 m)
 {
 	Styles::Palette& pal(FetchGUIShell().Colors);
 
-	yunsequenced(BackColor = pal[Styles::Track],
+	yunseq(BackColor = pal[Styles::Track],
 		ForeColor = pal[Styles::HotTracking],
 		BorderColor = pal[Styles::ActiveBorder]);
 }

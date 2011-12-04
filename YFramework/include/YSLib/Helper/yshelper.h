@@ -11,12 +11,13 @@
 /*!	\file yshelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2196;
+\version r2218;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2011-10-12 17:34 +0800;
+	2011-12-03 21:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,6 +42,7 @@ YSL_BEGIN
 
 /*!
 \brief 句柄转换：对象引用。
+\since 早于 build 132 。
 */
 template<class _type, class _tHandle>
 inline _type&
@@ -53,13 +55,17 @@ HandleToReference(_tHandle h) ythrow(std::bad_cast)
 	return *_tmp;
 }
 
+/*!
+\brief 取指定 Shell 句柄对应的 Shell 引用 。
+\since build 205 。
+*/
 template<class _tShell>
 inline _tShell&
 FetchShell()
 {
 	auto hShl(FetchShellHandle());
 
-	YAssert(is_not_null(hShl), "Null handle found @ FetchShell;");
+	YAssert(bool(hShl), "Null handle found @ FetchShell;");
 
 	return dynamic_cast<_tShell&>(*hShl);
 }
@@ -69,6 +75,7 @@ FetchShell()
 
 /*!
 \brief 取全局 Shell 句柄。
+\since build 195 。
 */
 template<class _tShl>
 inline shared_ptr<Shell>
@@ -79,6 +86,7 @@ FetchStored()
 
 /*!
 \brief 释放全局 Shell 。
+\since build 195 。
 */
 template<class _tShl>
 inline void
@@ -90,6 +98,7 @@ ReleaseStored()
 
 /*!
 \brief 判断句柄指定的 Shell 是否为当前线程空间中运行的 Shell 。
+\since 早于 build 132 。
 */
 inline bool
 IsNowShell(const shared_ptr<Shell>& hShl)
@@ -99,6 +108,7 @@ IsNowShell(const shared_ptr<Shell>& hShl)
 
 /*!
 \brief 向句柄指定的 Shell 对象转移线程控制权。
+\since 早于 build 132 。
 */
 inline errno_t
 NowShellTo(const shared_ptr<Shell>& hShl)
@@ -108,6 +118,7 @@ NowShellTo(const shared_ptr<Shell>& hShl)
 
 /*!
 \brief 向新建 Shell 对象转移控制权。
+\since 早于 build 132 。
 */
 template<class _tShl>
 inline errno_t
@@ -118,6 +129,7 @@ NowShellToNew()
 
 /*!
 \brief 向全局 Shell 管理器的对象转移控制权。
+\since 早于 build 132 。
 */
 template<class _tShl>
 inline errno_t
@@ -128,6 +140,7 @@ NowShellToStored()
 
 /*!
 \brief 通过主消息队列向指定 Shell 对象转移控制权。
+\since 早于 build 132 。
 */
 inline void
 SetShellTo(const shared_ptr<Shell>& hShl, Messaging::Priority p = 0x80)
@@ -137,6 +150,7 @@ SetShellTo(const shared_ptr<Shell>& hShl, Messaging::Priority p = 0x80)
 
 /*!
 \brief 通过主消息队列向新建 Shell 对象转移控制权。
+\since 早于 build 132 。
 */
 template<class _tShl>
 inline void
@@ -147,6 +161,7 @@ SetShellToNew()
 
 /*!
 \brief 通过主消息队列向全局 Shell 管理器内的对象转移控制权。
+\since 早于 build 132 。
 */
 template<class _tShl>
 inline void
@@ -157,6 +172,7 @@ SetShellToStored()
 
 /*!
 \brief 封装向全局 Shell 管理器内的对象转移控制权。
+\since 早于 build 132 。
 */
 template<class _tShl>
 inline void
@@ -167,6 +183,7 @@ CallStoredAtOnce()
 
 /*!
 \brief 封装通过消息队列向全局 Shell 管理器内的对象转移控制权。
+\since 早于 build 132 。
 */
 template<class _tShl>
 inline void
@@ -180,11 +197,16 @@ CallStored()
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-typedef void (*PPDRAW)(BitmapPtr, SDst, SDst); //!< 简单屏幕绘图函数指针类型。
+/*!
+\brief 简单屏幕绘图函数指针类型。
+\since 早于 build 132 。
+*/
+typedef void (*PPDRAW)(BitmapPtr, SDst, SDst);
 
 /*!
 \brief 全屏幕描点。
 \note 颜色由坐标决定。
+\since 早于 build 132 。
 */
 inline void
 ScrDraw(BitmapPtr buf, PPDRAW f)
@@ -196,6 +218,7 @@ ScrDraw(BitmapPtr buf, PPDRAW f)
 
 /*!
 \brief 新建屏幕图像。
+\since build 213 。
 */
 inline shared_ptr<Image>
 CreateSharedScreenImage(ConstBitmapPtr p)
@@ -205,8 +228,9 @@ CreateSharedScreenImage(ConstBitmapPtr p)
 
 /*!
 \brief 使用 new 分配空间并复制无压缩位图。
+\since build 213 。
 */
-PDefTH1(_tPixel)
+PDefTmplH1(_tPixel)
 _tPixel*
 CreateRawBitmap(const _tPixel* s, size_t n)
 {

@@ -12,12 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3266;
+\version r3302;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-11-05 10:53 +0800;
+	2011-12-04 12:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,13 +39,17 @@ YSL_BEGIN
 
 /*!
 \brief 指定对于 _type 类型成员具有所有权的标签。
+\since build 218 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 struct OwnershipTag
 {};
 
-//标签类型元运算。
 
+/*!
+\brief 标签类型元运算。
+\since build 218 。
+*/
 template<class _tOwner, typename _type>
 struct HasOwnershipOf : public std::integral_constant<bool,
 	std::is_base_of<OwnershipTag<_type>, _tOwner>::value>
@@ -59,6 +64,7 @@ struct HasOwnershipOf : public std::integral_constant<bool,
 \warning \c public 析构函数非虚实现。
 
 具有值语义和深复制语义的对象。
+\since build 217 。
 */
 class ValueObject
 {
@@ -77,7 +83,7 @@ public:
 	{};
 
 private:
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	struct GManager
 	{
 		static bool
@@ -123,7 +129,7 @@ public:
 	\pre obj 可被复制构造。
 	\note 得到包含指定对象副本的实例。
 	*/
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	ValueObject(const _type& obj)
 		: manager(&GManager<_type>::Do), obj_ptr(new _type(obj))
 	{}
@@ -131,7 +137,7 @@ public:
 	\brief 构造：使用对象指针。
 	\note 得到包含指针指向的指定对象的实例，并获得所有权。
 	*/
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	ValueObject(_type* p, PointerConstructTag)
 		: manager(&GManager<_type>::Do), obj_ptr(p)
 	{}
@@ -147,9 +153,9 @@ public:
 	bool
 	operator==(const ValueObject&) const;
 
-	DefPredicate(Empty, !obj_ptr)
+	DefPred(const ynothrow, Empty, !obj_ptr)
 
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	const _type&
 	GetObject() const
 	{
@@ -159,7 +165,7 @@ public:
 
 		return *static_cast<const _type*>(obj_ptr);
 	}
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	_type&
 	GetObject()
 	{
@@ -171,13 +177,13 @@ public:
 	}
 
 private:
-	PDefTH1(_type)
+	PDefTmplH1(_type)
 	static inline bool
 	AreEqual(_type& x, _type& y, decltype(x == y) = false)
 	{
 		return x == y;
 	}
-	PDefTH2(_type, _tUnused)
+	PDefTmplH2(_type, _tUnused)
 	static inline bool
 	AreEqual(_type&, _tUnused&)
 	{
@@ -213,8 +219,9 @@ ValueObject::operator=(const ValueObject& c)
 /*!
 \ingroup HelperFunctions
 \brief 使用指针构造 ValueObject 实例。
+\since build 233 。
 */
-PDefTH1(_type)
+PDefTmplH1(_type)
 inline ValueObject
 MakeValueObjectByPtr(_type* p)
 {
@@ -230,6 +237,7 @@ MakeValueObjectByPtr(_type* p)
 \tparam _tOwnerPointer 依赖所有者指针类型。
 \warning 依赖所有者指针需要实现所有权语义，
 	否则出现无法释放资源导致内存泄漏或其它非预期行为。
+\since build 195 。
 \todo 线程模型及安全性。
 */
 template<typename _type, class _tOwnerPointer = shared_ptr<_type>>
@@ -256,13 +264,13 @@ public:
 	DefDeCopyAssignment(GDependency)
 	DefDeMoveAssignment(GDependency)
 
-	DefConverter(ConstReferenceType, *ptr)
-	DefMutableConverter(ReferenceType, *ptr)
-	DefConverter(bool, static_cast<bool>(ptr))
+	DefCvt(const ynothrow, ConstReferenceType, *ptr)
+	DefCvt(ynothrow, ReferenceType, *ptr)
+	DefCvt(const ynothrow, bool, bool(ptr))
 
-	DefGetter(ConstReferenceType, Ref, operator ConstReferenceType())
-	DefMutableGetter(ReferenceType, Ref, operator ReferenceType())
-	DefMutableGetter(ReferenceType, NewRef, *GetCopyOnWritePtr())
+	DefGetter(const ynothrow, ConstReferenceType, Ref, operator ConstReferenceType())
+	DefGetter(ynothrow, ReferenceType, Ref, operator ReferenceType())
+	DefGetter(ynothrow, ReferenceType, NewRef, *GetCopyOnWritePtr())
 
 	PointerType
 	GetCopyOnWritePtr()
@@ -272,7 +280,7 @@ public:
 		else if(!ptr.unique())
 			ptr = PointerType(CloneNonpolymorphic(ptr));
 
-		YAssert(is_not_null(ptr),
+		YAssert(bool(ptr),
 			"Null pointer found @ GDependency::GetCopyOnWritePtr;");
 
 		return ptr;
@@ -285,8 +293,11 @@ public:
 	}
 };
 
-//! \brief 范围模块类。
-PDefTH1(_type)
+/*!
+\brief 范围模块类。
+\since build 193 。
+*/
+PDefTmplH1(_type)
 class GMRange
 {
 public:
@@ -304,8 +315,8 @@ protected:
 	{}
 
 public:
-	DefGetter(ValueType, MaxValue, max_value)
-	DefGetter(ValueType, Value, value)
+	DefGetter(const ynothrow, ValueType, MaxValue, max_value)
+	DefGetter(const ynothrow, ValueType, Value, value)
 };
 
 YSL_END

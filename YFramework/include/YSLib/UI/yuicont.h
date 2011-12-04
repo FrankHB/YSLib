@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2605;
+\version r2606;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-11-30 14:05 +0800;
+	2011-12-03 21:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -205,7 +205,7 @@ protected:
 	向焦点对象组添加焦点对象，同时向部件组按默认 Z 顺序值添加部件。
 	\note 部件已存在时忽略。
 	*/
-	PDefHOperator(void, +=, IWidget& wgt)
+	PDefHOp(void, +=, IWidget& wgt)
 		ImplRet(Add(wgt))
 
 	/*!

@@ -16,12 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2420;
+\version r2451;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-11-04 19:19 +0800;
+	2011-12-04 12:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,15 +42,20 @@ YSL_BEGIN
 /*!	\defgroup CustomGlobalConstants Custom Global Constants
 \ingroup GlobalObjects
 \brief 平台相关的全局常量。
+\since build 173 。
 */
 //@{
-//! \brief 屏幕大小。
+/*!
+\brief 屏幕大小。
+\since build 215 。
+*/
 const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
 //@}
 
 /*!	\defgroup CustomGlobalVariables Custom Global Variables
 \ingroup GlobalObjects
 \brief 平台相关的全局变量。
+\since build 173 。
 */
 //@{
 //@}
@@ -57,7 +63,10 @@ const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
 
 YSL_BEGIN_NAMESPACE(Devices)
 
-// DS 屏幕。
+/*!
+\brief DS 屏幕。
+\since 早于 build 218 。
+*/
 class DSScreen : public Screen
 {
 public:
@@ -86,7 +95,7 @@ public:
 	*/
 	virtual Drawing::BitmapPtr
 	GetCheckedBufferPtr() const ynothrow;
-	DefGetter(const BGType&, BgID, bg)
+	DefGetter(const ynothrow, const BGType&, BgID, bg)
 
 	/*!
 	\brief 更新。
@@ -108,6 +117,7 @@ YSL_END_NAMESPACE(Devices)
 /*!
 \brief 平台相关的应用程序类。
 \note 含默认接口。
+\since build 215 。
 */
 class DSApplication : public Application
 {
@@ -136,11 +146,14 @@ public:
 	*/
 	FontCache&
 	GetFontCache() const ythrow(LoggedEvent);
-	DefGetter(const shared_ptr<Devices::DSScreen>&, ScreenUpHandle, hScreenUp)
-	DefGetter(const shared_ptr<Devices::DSScreen>&, ScreenDownHandle,
-		hScreenDown)
-	DefGetter(const shared_ptr<Desktop>&, DesktopUpHandle, hDesktopUp)
-	DefGetter(const shared_ptr<Desktop>&, DesktopDownHandle, hDesktopDown)
+	DefGetter(const ynothrow, const shared_ptr<Devices::DSScreen>&,
+		ScreenUpHandle, hScreenUp)
+	DefGetter(const ynothrow, const shared_ptr<Devices::DSScreen>&,
+		ScreenDownHandle, hScreenDown)
+	DefGetter(const ynothrow, const shared_ptr<Desktop>&, DesktopUpHandle,
+		hDesktopUp)
+	DefGetter(const ynothrow, const shared_ptr<Desktop>&, DesktopDownHandle,
+		hDesktopDown)
 
 	/*!
 	\brief 取上屏幕。
@@ -224,7 +237,7 @@ public:
 inline Devices::DSScreen&
 DSApplication::GetScreenUp() const ynothrow
 {
-	YAssert(is_not_null(hScreenUp), "Fatal error:"
+	YAssert(bool(hScreenUp), "Fatal error:"
 		" null screen handle found @ DSApplication::GetScreenUp;");
 
 	return *hScreenUp;
@@ -232,7 +245,7 @@ DSApplication::GetScreenUp() const ynothrow
 inline Devices::DSScreen&
 DSApplication::GetScreenDown() const ynothrow
 {
-	YAssert(is_not_null(hScreenDown), "Fatal error:"
+	YAssert(bool(hScreenDown), "Fatal error:"
 		" null screen handle found @ DSApplication::GetScreenDown;");
 
 	return *hScreenDown;
@@ -240,7 +253,7 @@ DSApplication::GetScreenDown() const ynothrow
 inline Desktop&
 DSApplication::GetDesktopUp() const ynothrow
 {
-	YAssert(is_not_null(hDesktopUp), "Fatal error:"
+	YAssert(bool(hDesktopUp), "Fatal error:"
 		" null desktop handle found @ DSApplication::GetDesktopUp;");
 
 	return *hDesktopUp;
@@ -248,7 +261,7 @@ DSApplication::GetDesktopUp() const ynothrow
 inline Desktop&
 DSApplication::GetDesktopDown() const ynothrow
 {
-	YAssert(is_not_null(hDesktopDown), "Fatal error:"
+	YAssert(bool(hDesktopDown), "Fatal error:"
 		" null desktop handle found @ DSApplication::GetDesktopDown;");
 
 	return *hDesktopDown;
@@ -257,21 +270,24 @@ DSApplication::GetDesktopDown() const ynothrow
 
 YSL_BEGIN_NAMESPACE(Messaging)
 
-//! \brief 输入消息内容。
+/*!
+\brief 输入消息内容。
+\since build 210 。
+*/
 class InputContent
 {
 public:
 	KeysInfo Keys;
 	Drawing::Point CursorLocation;
 
-	explicit yconstexprf
+	explicit yconstfn
 	InputContent(const KeysInfo&, const Drawing::Point&);
 
 	bool
 	operator==(const InputContent&) const;
 };
 
-inline yconstexprf
+inline yconstfn
 InputContent::InputContent(const KeysInfo& k, const Drawing::Point& pt)
 	: Keys(k), CursorLocation(pt)
 {}
@@ -286,6 +302,7 @@ YSL_END_NAMESPACE(Messaging)
 /*!
 \brief 取平台相关的全局资源。
 \note 无异常抛出。
+\since build 211 。
 */
 DSApplication&
 FetchGlobalInstance() ynothrow;
@@ -298,10 +315,15 @@ Idle();
 
 /*!
 \brief 以指定前景色和背景色初始化指定屏幕的控制台。
+\since build 148 。
 */
 bool
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
+/*!
+\brief 显示致命错误。
+\since build 175 。
+*/
 void
 ShowFatalError(const char*);
 
@@ -309,15 +331,24 @@ ShowFatalError(const char*);
 \brief 助手功能/函数。
 
 仅帮助简化编码形式或确定接口，并不包含编译期之后逻辑功能实现的代码设施。
+\since build 252 。
 */
 //@{
 
+/*!
+\brief 取默认字体缓存。
+\since build 219 。
+*/
 inline FontCache&
 FetchDefaultFontCache()
 {
 	return FetchGlobalInstance().GetFontCache();
 }
 
+/*!
+\brief 取默认屏幕。
+\since build 219 。
+*/
 inline Devices::Screen&
 FetchDefaultScreen()
 {

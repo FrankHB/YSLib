@@ -11,12 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 字符映射静态函数。
-\version r2389;
+\version r2397;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 247 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-10-10 12:08 +0800;
+	2011-12-03 16:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,7 +33,11 @@
 
 CHRLIB_BEGIN
 
-//编码转换表。
+/*!
+\brief 编码转换表。
+\since 早于 build 132 。
+*/
+//@{
 yconstexpr ubyte_t cp17[] = {0};
 extern "C"
 {
@@ -40,8 +45,13 @@ extern "C"
 	//extern const ubyte_t cp2026[13658];
 }
 yconstexpr ubyte_t cp2026[] = {0};
+//@}
 
 
+/*!
+\brief 以输入迭代器指向内容填充字节。
+\since build 249 。
+*/
 template<typename _tIn, typename _tState>
 inline byte
 FillByte(_tIn& i, _tState& st)
@@ -60,12 +70,15 @@ FillByte(_tIn& i, _tState& st)
 }
 
 
-//静态编码映射函数模板原型。
+/*!
+\brief 静态编码映射函数模板。
+\since build 245 。
+*/
+//@{
 template<Encoding>
 class GUCS2Mapper
 {};
 
-//编码映射函数模板特化版本。
 template<>
 struct GUCS2Mapper<CharSet::SHIFT_JIS>
 {
@@ -360,6 +373,7 @@ struct GUCS2Mapper<CharSet::Big5>
 		return 2;
 	}*/
 };
+//@}
 
 CHRLIB_END
 

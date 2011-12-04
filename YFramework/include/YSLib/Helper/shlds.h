@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2027;
+\version r2031;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-11-26 15:38 +0800;
+	2011-12-04 12:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -101,10 +101,12 @@ public:
 		const shared_ptr<Desktop>&
 		= FetchGlobalInstance().GetDesktopDownHandle());
 
-	DefGetter(const shared_ptr<Desktop>&, DesktopUpHandle, hDskUp)
-	DefGetter(const shared_ptr<Desktop>&, DesktopDownHandle, hDskDown)
-	DefGetter(Desktop&, DesktopUp, *hDskUp)
-	DefGetter(Desktop&, DesktopDown, *hDskDown)
+	DefGetter(const ynothrow, const shared_ptr<Desktop>&, DesktopUpHandle,
+		hDskUp)
+	DefGetter(const ynothrow, const shared_ptr<Desktop>&, DesktopDownHandle,
+		hDskDown)
+	DefGetter(const ynothrow, Desktop&, DesktopUp, *hDskUp)
+	DefGetter(const ynothrow, Desktop&, DesktopDown, *hDskDown)
 
 	/*!
 	\brief 处理激活消息。

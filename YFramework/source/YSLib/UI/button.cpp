@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3628;
+\version r3632;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-11-30 20:41 +0800;
+	2011-12-04 11:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,20 +36,18 @@ YSL_BEGIN_NAMESPACE(Components)
 namespace
 {
 	void
-	RectDrawButton(const Graphics& g, const Rect& mask,
-		Point pt, Size s, bool is_pressed = false, bool is_enabled = true)
+	RectDrawButton(const Graphics& g, Point pt, Size s, bool is_pressed = false,
+		bool is_enabled = true)
 	{
 		YAssert(g.IsValid(), "err: @g is invalid.");
-		const Rect r1(Intersect(mask, Rect(pt, s)));
 
-		DrawRectRoundCorner(g, r1.GetPoint(), r1.GetSize(),
-			is_enabled ? Color(60, 127, 177)
+		DrawRectRoundCorner(g, pt, s, is_enabled ? Color(60, 127, 177)
 			: FetchGUIShell().Colors[Styles::Workspace]);
 		if(s.Width > 2 && s.Height > 2)
 		{
-			yunsequenced(pt.X += 1, pt.Y += 1, s.Width -= 2, s.Height -= 2);
-			FillRect(g, Intersect(mask, Rect(pt, s)),
-				is_enabled ? Color(48, 216, 255) : Color(244, 244, 244));
+			yunseq(pt.X += 1, pt.Y += 1, s.Width -= 2, s.Height -= 2);
+			FillRect(g, pt, s, is_enabled ? Color(48, 216, 255)
+				: Color(244, 244, 244));
 			if(is_enabled)
 			{
 				if(s.Width > 2 && s.Height > 2)
@@ -57,16 +55,14 @@ namespace
 					Size sz(s.Width - 2, (s.Height - 2) / 2);
 					Point sp(pt.X + 1, pt.Y + 1);
 
-					FillRect(g, Intersect(mask, Rect(sp, sz)),
-						Color(232, 240, 255));
+					FillRect(g, sp, sz, Color(232, 240, 255));
 					sp.Y += sz.Height;
 					if(s.Height % 2 != 0)
 						++sz.Height;
-					FillRect(g, Intersect(mask, Rect(sp, sz)),
-						Color(192, 224, 255));
+					FillRect(g, sp, sz, Color(192, 224, 255));
 				}
 				if(is_pressed)
-					TransformRect(g, r1,
+					TransformRect(g, pt, s,
 						Drawing::transform_pixel_ex<56, 24, 32>);
 			}
 		}
@@ -78,7 +74,7 @@ Thumb::Thumb(const Rect& r)
 	: Control(r),
 	MButton()
 {
-	yunsequenced(
+	yunseq(
 		FetchEvent<Enter>(*this) += [this](TouchEventArgs&&){
 			bPressed = true;
 			Invalidate(*this);
@@ -99,18 +95,18 @@ Thumb::Refresh(const PaintContext& pc)
 
 	if(!enabled)
 		bPressed = false;
-	RectDrawButton(g, pc.ClipArea, pt, GetSizeOf(*this), bPressed, enabled);
+	RectDrawButton(g, pt, GetSizeOf(*this), bPressed, enabled);
 	if(enabled && IsFocused(*this))
 	{
 		Size s(GetSizeOf(*this));
 
 		if(s.Width > 6 && s.Height > 6)
 		{
-			yunsequenced(s.Width -= 6, s.Height -= 6);
+			yunseq(s.Width -= 6, s.Height -= 6);
 			DrawRect(g, pt + Vec(3, 3), s, ColorSpace::Aqua);
 		}
 	}
-	return pc.ClipArea;
+	return Rect(pt, GetSizeOf(*this));
 }
 
 
@@ -124,8 +120,10 @@ Button::Refresh(const PaintContext& pc)
 {
 	auto r(Thumb::Refresh(pc));
 
+	// NOTE: partial invalidation made no efficiency improved here;
 	PaintText(GetSizeOf(*this), IsEnabled(*this) ? ForeColor
-		: FetchGUIShell().Colors[Styles::Workspace], pc);
+		: FetchGUIShell().Colors[Styles::Workspace], PaintContext(pc.Target,
+		pc.Location, Rect(pc.ClipArea.GetPoint(), GetSizeOf(*this))));
 	return r;
 }
 

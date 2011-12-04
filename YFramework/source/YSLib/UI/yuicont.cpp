@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2493;
+\version r2494;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2011-11-30 14:07 +0800;
+	2011-12-03 15:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -172,7 +172,7 @@ void
 MUIContainer::Add(IWidget& wgt, ZOrderType z)
 {
 	if(!Contains(wgt))
-		sWidgets.insert(make_pair(z, static_cast<ItemType>(&wgt)));
+		sWidgets.insert(make_pair(z, ItemType(&wgt)));
 }
 
 bool

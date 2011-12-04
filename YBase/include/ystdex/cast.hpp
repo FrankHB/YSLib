@@ -11,12 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r1660;
+\version r1698;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 175 。
 \par 创建时间:
 	2010-12-15 08:13:18 +0800;
 \par 修改时间:
-	2011-11-13 12:30 +0800;
+	2011-12-04 11:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,34 +36,16 @@ namespace ystdex
 {
 	/*!	\defgroup cast Cast
 	\brief 显式类型转换。
+	\since build 243 。
 	*/
+
 
 	/*!
-	\brief 自动指针转换：包装一个对象为一个整数。
+	\ingroup cast
+	\brief 多态类指针类型转换。
+	\throw std::bad_cast dynamic_cast 失败。
+	\since build 175 。
 	*/
-	template<class _type, typename _tIntegral>
-	yconstexprf _tIntegral
-	auto_integral_cast(_type h)
-	{
-		return reinterpret_cast<_tIntegral>(
-			std::auto_ptr<_type*>(new _type(h)));
-	}
-
-	/*!
-	\brief 自动整数转换：转换整数为 std::auto 所有的对象。
-	*/
-	template<class _type, typename _tIntegral>
-	_type
-	integral_auto_cast(_tIntegral i)
-	{
-		auto p(reinterpret_cast<std::auto_ptr<_type>>(i).release());
-
-		assert(p);
-
-		return *p;
-	}
-
-
 	template <class _tDst, class _tSrc>
 	inline _tDst
 	polymorphic_cast(_tSrc* x)
@@ -74,22 +57,39 @@ namespace ystdex
 		return tmp;
 	}
 
+	/*!
+	\ingroup cast
+	\brief 多态类指针向派生类指针转换。
+	\pre 断言： dynamic_cast 成功。
+	\since build 175 。
+	*/
 	template <class _tDst, class _tSrc>
 	inline _tDst
 	polymorphic_downcast(_tSrc* x)
 	{
 		assert(dynamic_cast<_tDst>(x) == x);
 
-		return static_cast<_tDst>(x);
+		return _tDst(x);
 	}
+	/*!
+	\ingroup cast
+	\brief 多态类引用向派生类引用转换。
+	\since build 175 。
+	*/
 	template <class _tDst, class _tSrc>
-	yconstexprf _tDst&
+	yconstfn _tDst&
 	polymorphic_downcast(_tSrc& x)
 	{
 		return *polymorphic_downcast<typename remove_reference<_tDst>
 			::type*>(&x);
 	}
 
+	/*!
+	\ingroup cast
+	\brief 多态类指针交叉转换。
+	\pre 断言： dynamic_cast 成功。
+	\since build 179 。
+	*/
 	template <class _tDst, class _tSrc>
 	inline _tDst
 	polymorphic_crosscast(_tSrc* x)
@@ -99,8 +99,14 @@ namespace ystdex
 		assert(p);
 		return p;
 	}
+	/*!
+	\ingroup cast
+	\brief 多态类引用交叉转换。
+	\throw std::bad_cast dynamic_cast 失败。
+	\since build 179 。
+	*/
 	template <class _tDst, class _tSrc>
-	yconstexprf _tDst&
+	yconstfn _tDst&
 	polymorphic_crosscast(_tSrc& x)
 	{
 		return *polymorphic_crosscast<typename remove_reference<_tDst>
@@ -108,20 +114,12 @@ namespace ystdex
 	}
 
 
-	template<typename _type>
-	struct remove_rp
-	{
-		typedef typename remove_pointer<typename remove_reference<_type>
-			::type>::type type;
-	};
-
-
 	namespace _impl
 	{
 		template<typename _tFrom, typename _tTo, bool _bNonVirtualDownCast>
 		struct _general_polymorphic_cast_helper
 		{
-			static yconstexprf _tTo
+			static yconstfn _tTo
 			cast(_tFrom x)
 			{
 				return polymorphic_downcast<_tTo>(x);
@@ -130,7 +128,7 @@ namespace ystdex
 		template<typename _tFrom, typename _tTo>
 		struct _general_polymorphic_cast_helper<_tFrom, _tTo, false>
 		{
-			static yconstexprf _tTo
+			static yconstfn _tTo
 			cast(_tFrom x)
 			{
 				return dynamic_cast<_tTo>(x);
@@ -140,16 +138,16 @@ namespace ystdex
 		template<typename _tFrom, typename _tTo, bool _bUseStaticCast>
 		struct _general_cast_helper
 		{
-			static yconstexprf _tTo
+			static yconstfn _tTo
 			cast(_tFrom x)
 			{
-				return static_cast<_tTo>(x);
+				return _tTo(x);
 			}
 		};
 		template<typename _tFrom, typename _tTo>
 		struct _general_cast_helper<_tFrom, _tTo, false>
 		{
-			static yconstexprf _tTo
+			static yconstfn _tTo
 			cast(_tFrom x)
 			{
 				return _general_polymorphic_cast_helper<_tFrom, _tTo,
@@ -171,7 +169,7 @@ namespace ystdex
 		template<typename _type>
 		struct _general_cast_helper<_type, _type, false>
 		{
-			static yconstexprf _type
+			static yconstfn _type
 			cast(_type x)
 			{
 				return x;
@@ -192,24 +190,25 @@ namespace ystdex
 	能确保安全隐式转换时使用 static_cast ；
 	除此之外非虚基类向派生类转换使用 polymophic_downcast；
 	否则使用 dynamic_cast。
+	\since build 175 。
 	*/
 	//@{
 	template<typename _tDst, typename _tSrc>
-	yconstexprf _tDst
+	yconstfn _tDst
 	general_cast(_tSrc* x)
 	{
 		return _impl::_general_cast_helper<_tSrc*, _tDst,
 			_impl::_general_cast_type_helper<_tSrc*, _tDst>::value>::cast(x);
 	}
 	template<typename _tDst, typename _tSrc>
-	yconstexprf _tDst
+	yconstfn _tDst
 	general_cast(_tSrc& x)
 	{
 		return _impl::_general_cast_helper<_tSrc&, _tDst,
 			_impl::_general_cast_type_helper<_tSrc&, _tDst>::value>::cast(x);
 	}
 	template<typename _tDst, typename _tSrc>
-	yconstexprf const _tDst
+	yconstfn const _tDst
 	general_cast(const _tSrc& x)
 	{
 		return _impl::_general_cast_helper<const _tSrc&, _tDst,

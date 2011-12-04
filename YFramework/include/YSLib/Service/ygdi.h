@@ -11,12 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r4065;
+\version r4075;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-10-13 16:31 +0800;
+	2011-12-04 12:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -55,8 +56,8 @@ public:
 	*/
 	virtual DefEmptyDtor(PenStyle)
 
-	DefGetterMember(const FontFamily&, FontFamily, Font)
-	DefGetterMember(FontCache&, Cache, Font)
+	DefGetterMem(const ynothrow, const FontFamily&, FontFamily, Font)
+	DefGetterMem(const ynothrow, FontCache&, Cache, Font)
 };
 
 inline
@@ -100,7 +101,7 @@ operator+(const Rect&, const Padding&);
 /*!
 \brief 取水平边距和。
 */
-yconstexprf SDst
+yconstfn SDst
 GetHorizontalOf(const Padding& m)
 {
 	return m.Left + m.Right;
@@ -109,7 +110,7 @@ GetHorizontalOf(const Padding& m)
 /*!
 \brief 取竖直边距和。
 */
-yconstexprf SDst
+yconstfn SDst
 GetVerticalOf(const Padding& m)
 {
 	return m.Top + m.Bottom;
@@ -235,9 +236,10 @@ public:
 	virtual
 	~BitmapBufferEx();
 
-	DefGetter(u8*, BufferAlphaPtr, pBufferAlpha) //!< 取 Alpha 缓冲区的指针。
-	DefGetter(size_t, SizeOfBufferAlpha, sizeof(u8) * GetAreaOf(GetSize())) \
-		//!< 取 Alpha 缓冲区占用空间。
+	DefGetter(const ynothrow, u8*, BufferAlphaPtr, pBufferAlpha) \
+		//!< 取 Alpha 缓冲区的指针。
+	DefGetter(const ynothrow, size_t, SizeOfBufferAlpha, sizeof(u8)
+		* GetAreaOf(GetSize())) //!< 取 Alpha 缓冲区占用空间。
 
 	/*!
 	\brief 重新设置缓冲区大小。

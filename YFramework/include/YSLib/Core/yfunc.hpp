@@ -11,12 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数对象封装。
-\version r1767;
+\version r1776;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2011-10-30 16:16 +0800;
+	2011-12-04 10:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -138,7 +139,10 @@ ConstructDynamicFunctionWith(_tRet (_type::*_f)(_tArg) const)
 }*/
 
 
-//! \brief 函数对象类：替换非静态成员二元函数的第一个参数。
+/*!
+\brief 函数对象类：替换非静态成员二元函数的第一个参数。
+\since build 167 。
+*/
 template<class _type, typename _tRet, typename _tPara, class _tNew = _type>
 struct ExpandMemberFirst
 {
@@ -149,7 +153,7 @@ public:
 	/*!
 	\brief 构造：使用函数指针。
 	*/
-	yconstexprf
+	yconstfn
 	ExpandMemberFirst(_tRet(_type::*p)(_tPara))
 		: _pm(p)
 	{}
@@ -157,7 +161,7 @@ public:
 	/*!
 	\brief 比较：相等关系。
 	*/
-	yconstexprf bool
+	yconstfn bool
 	operator==(const ExpandMemberFirst& rhs) const
 	{
 		return _pm == rhs._pm;
@@ -191,7 +195,10 @@ public:
 };
 
 
-//! \brief 函数对象类：替换非静态成员二元函数的第一个参数并绑定到指定对象。
+/*!
+\brief 函数对象类：替换非静态成员二元函数的第一个参数并绑定到指定对象。
+\since build 171 。
+*/
 template<class _type, typename _tRet, typename _tPara, class _tNew = _type>
 struct ExpandMemberFirstBinder
 {
@@ -204,7 +211,7 @@ public:
 	\brief 构造：使用非 _type 类型对象引用和成员函数指针。
 	\note 使用 dynamic_cast 测试类型。
 	*/
-	yconstexprf
+	yconstfn
 	ExpandMemberFirstBinder(_tNew& obj, _tRet(_type::*p)(_tPara))
 		: _po(dynamic_cast<_type*>(&obj)), _pm(p)
 	{}
@@ -212,7 +219,7 @@ public:
 	/*!
 	\brief 比较：相等关系。
 	*/
-	yconstexprf bool
+	yconstfn bool
 	operator==(const ExpandMemberFirstBinder& rhs) const
 	{
 		return _po == rhs._po && _pm == rhs._pm;
@@ -258,7 +265,7 @@ struct InversedCurrying
 		: f(f_)
 	{}
 
-	PDefHOperator(bool, ==, const InversedCurrying& r) const
+	PDefHOp(bool, ==, const InversedCurrying& r) const
 		ImplRet(f == r.f)
 
 	/!

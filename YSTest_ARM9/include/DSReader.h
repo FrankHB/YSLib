@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2499;
+\version r2513;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-11-24 18:32 +0800;
+	2011-12-04 12:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,33 +69,37 @@ public:
 		SDst h_up = MainScreenHeight, SDst h_down = MainScreenHeight,
 		FontCache& fc_ = FetchGlobalInstance().GetFontCache());
 
-	DefPredicate(TextTop, iTop == pText->cbegin()) \
+	DefPred(const ynothrow, TextTop, iTop == pText->cbegin()) \
 		//!< 判断输出位置是否到文本顶端。
-	DefPredicate(TextBottom, iBottom == pText->cend()) \
+	DefPred(const ynothrow, TextBottom, iBottom == pText->cend()) \
 		//!< 判断输出位置是否到文本底端。
 
-	DefGetter(u8, FontSize, fc.GetFontSize()) //!< 取字符区域的字体大小。
-	DefGetter(Color, ColorUp, AreaUp.Color) \
+	DefGetter(const ynothrow, u8, FontSize, fc.GetFontSize()) \
+		//!< 取字符区域的字体大小。
+	DefGetter(const ynothrow, Color, ColorUp, AreaUp.Color) \
 		//!< 取上字符区域的字体颜色。
-	DefGetter(Color, ColorDown, AreaDown.Color) \
+	DefGetter(const ynothrow, Color, ColorDown, AreaDown.Color) \
 		//!< 取下字符区域的字体颜色。
-	DefGetter(u8, LineGapUp, AreaUp.LineGap) //!< 取上字符区域的行距。
-	DefGetter(u8, LineGapDown, AreaDown.LineGap) \
+	DefGetter(const ynothrow, u8, LineGapUp, AreaUp.LineGap) \
+		//!< 取上字符区域的行距。
+	DefGetter(const ynothrow, u8, LineGapDown, AreaDown.LineGap) \
 		//!< 取下字符区域的行距。
-	DefGetter(Color, Color, GetColorUp()) //!< 取字符区域的字体颜色。
-	DefGetter(u8, LineGap, GetLineGapUp()) //!< 取字符区域的行距。
-	DefGetter(Text::Encoding, Encoding, pText ? pText->GetEncoding()
-		: Text::CharSet::Null) //!< 取编码。
+	DefGetter(const ynothrow, Color, Color, GetColorUp()) \
+		//!< 取字符区域的字体颜色。
+	DefGetter(const ynothrow, u8, LineGap, GetLineGapUp()) \
+		//!< 取字符区域的行距。
+	DefGetter(const ynothrow, Text::Encoding, Encoding, pText
+		? pText->GetEncoding() : Text::CharSet::Null) //!< 取编码。
 
 	PDefH(void, SetColor, Color c = Drawing::ColorSpace::Black)
-		ImplUnsequenced(AreaUp.Color = c, AreaDown.Color = c) \
+		ImplUnseq(AreaUp.Color = c, AreaDown.Color = c) \
 		//!< 设置字符颜色。
 	PDefH(void, SetFontSize, Drawing::Font::SizeType s
 		= Drawing::Font::DefaultSize)
 		ImplExpr(fc.SetFontSize(s)) \
 		//!< 设置字符区域字体大小。
 	PDefH(void, SetLineGap, u8 g = 0)
-		ImplUnsequenced(AreaUp.LineGap = g, AreaDown.LineGap = g) \
+		ImplUnseq(AreaUp.LineGap = g, AreaDown.LineGap = g) \
 		//!< 设置行距。
 
 	//设置笔的行位置。

@@ -11,12 +11,13 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version r1831;
+\version r1838;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-11-04 19:19 +0800;
+	2011-12-04 12:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +32,10 @@
 
 YSL_BEGIN
 
-//! \brief 文件基类。
+/*!
+\brief 文件基类。
+\since build 206 。
+*/
 class File
 {
 public:
@@ -62,10 +66,10 @@ public:
 	virtual
 	~File();
 
-	DefPredicate(Valid, fp) //!< 判断文件指针是否有效。
+	DefPred(const ynothrow, Valid, fp) //!< 判断文件指针是否有效。
 
-	DefGetter(FILE*, Ptr, fp) //!< 取文件指针。
-	DefGetter(SizeType, Size, fsize) //!< 取文件大小。
+	DefGetter(const ynothrow, FILE*, Ptr, fp) //!< 取文件指针。
+	DefGetter(const ynothrow, SizeType, Size, fsize) //!< 取文件大小。
 	/*!
 	\brief 取文件指针的位置，返回值语义同 std::ftell 。
 	*/

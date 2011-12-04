@@ -11,12 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3058;
+\version r3065;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-11-19 18:48 +0800;
+	2011-12-04 12:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +36,10 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//! \brief 按钮模块。
+/*!
+\brief 按钮模块。
+\since build 160 。
+*/
 class MButton
 {
 protected:
@@ -49,7 +53,7 @@ protected:
 	inline DefDeMoveCtor(MButton)
 
 public:
-	DefPredicate(Pressed, bPressed)
+	DefPred(const ynothrow, Pressed, bPressed)
 };
 
 inline
@@ -58,7 +62,10 @@ MButton::MButton(bool b)
 {}
 
 
-//! \brief 基本按钮/滑块。
+/*!
+\brief 基本按钮/滑块。
+\since build 205 。
+*/
 class Thumb : public Control, protected MButton
 {
 public:
@@ -77,7 +84,10 @@ public:
 };
 
 
-//! \brief 按钮。
+/*!
+\brief 按钮。
+\since build 205 。
+*/
 class Button : public Thumb, protected Components::MLabel
 {
 public:

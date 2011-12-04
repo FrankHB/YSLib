@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2564;
+\version r2569;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2011-11-30 14:44 +0800;
+	2011-12-04 10:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -209,11 +209,11 @@ TextReaderManager::Activate()
 	auto& dsk_up(Shell.GetDesktopUp());
 	auto& dsk_dn(Shell.GetDesktopDown());
 
-	yunsequenced(
+	yunseq(
 		dsk_up.BackColor = Color(240, 216, 192),
 		dsk_dn.BackColor = Color(192, 216, 240)
 	);
-	yunsequenced(
+	yunseq(
 		FetchEvent<Click>(dsk_dn).Add(*this, &TextReaderManager::OnClick),
 		FetchEvent<KeyDown>(dsk_dn).Add(*this, &TextReaderManager::OnKeyDown),
 		FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld
@@ -237,13 +237,13 @@ TextReaderManager::Deactivate()
 	Reader.UnloadText();
 	safe_delete_obj()(pTextFile);
 	mhMain.Clear();
-	yunsequenced(
+	yunseq(
 		FetchEvent<Click>(dsk_dn).Remove(*this, &TextReaderManager::OnClick),
 		FetchEvent<KeyDown>(dsk_dn).Remove(*this,
 			&TextReaderManager::OnKeyDown),
 		FetchEvent<KeyHeld>(dsk_dn) -= OnKeyHeld
 	);
-	yunsequenced(
+	yunseq(
 		dsk_up -= Reader.AreaUp,
 		dsk_dn -= Reader.AreaDown,
 		dsk_up -= boxReader,
@@ -377,7 +377,7 @@ HexReaderManager::HexReaderManager(ShlReader& shl)
 	HexArea(Rect::FullScreen), pnlFileInfo()
 {
 	HexArea.SetRenderer(unique_raw(new BufferedRenderer()));
-	yunsequenced(
+	yunseq(
 		FetchEvent<Click>(HexArea) += [](TouchEventArgs&&){
 			CallStored<ShlExplorer>();
 		},

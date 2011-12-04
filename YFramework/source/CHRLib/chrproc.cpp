@@ -11,12 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1971;
+\version r1977;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-10-06 11:13 +0800;
+	2011-12-04 11:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,13 +47,13 @@ using ystdex::input_monomorphic_iterator;
 namespace
 {
 	template<Encoding, typename _tDst, typename _tSrc, typename _tState>
-	yconstexprf ubyte_t
+	yconstfn ubyte_t
 	UCS2Mapper_Map(_tDst, _tSrc, _tState)
 	{
 		return 0;
 	}
 	template<Encoding cp, typename _tSrc, typename _tState>
-	yconstexprf ubyte_t
+	yconstfn ubyte_t
 	UCS2Mapper_Map(ucs2_t& d, _tSrc&& s, _tState&& st,
 		decltype(&GUCS2Mapper<cp>::template Map<_tSrc, _tState>) = nullptr)
 	{
@@ -60,13 +61,13 @@ namespace
 	}
 
 	template<Encoding cp, typename _tDst, typename _tSrc>
-	yconstexprf ubyte_t
+	yconstfn ubyte_t
 	UCS2Mapper_InverseMap(_tDst, _tSrc)
 	{
 		return 0;
 	}
 	template<Encoding cp, typename _tDst>
-	yconstexprf ubyte_t
+	yconstfn ubyte_t
 	UCS2Mapper_InverseMap(_tDst d, const ucs2_t& s,
 		decltype(&GUCS2Mapper<cp>::template InverseMap<_tDst>) = nullptr)
 	{

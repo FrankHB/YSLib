@@ -11,12 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2646;
+\version r2652;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-10-31 17:19 +0800;
+	2011-12-04 12:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,10 +70,11 @@ public:
 	*/
 	GUIShell();
 
-	DefPredicate(ControlEntered, control_entered)
+	DefPred(const ynothrow, ControlEntered, control_entered)
 
-	DefGetter(Components::IWidget*, KeyDownPtr, p_KeyDown) //独立键焦点指针。
-	DefGetter(Components::IWidget*, TouchDownPtr, p_TouchDown) \
+	DefGetter(const ynothrow, Components::IWidget*, KeyDownPtr, p_KeyDown) \
+		//独立键焦点指针。
+	DefGetter(const ynothrow, Components::IWidget*, TouchDownPtr, p_TouchDown) \
 		//独立屏幕焦点指针。
 
 	/*!

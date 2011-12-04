@@ -11,12 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version 0.1275;
+\version r1307;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 194 。
 \par 创建时间:
 	2010-06-08 13:21:10 +0800;
 \par 修改时间:
-	2011-08-03 07:22 +0800;
+	2011-12-04 12:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,23 +35,36 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-/*
+/*!
 \brief 绘制部件边框用空心正则矩形。
 \note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
+\since build 215 。
 */
 bool
 DrawRectRoundCorner(const Graphics&, const Point&, const Size&, Color);
 
 
+/*!
+\brief 在指定图形接口上下文的矩形上画箭头。
+\since build 215 。
+*/
 void
 RectDrawArrow(const Graphics&, const Point&, SDst, Rotation = RDeg0,
 	Color c = Drawing::ColorSpace::Black);
 
+/*!
+\brief 在指定图形接口上下文的窗口上画箭头。
+\since build 215 。
+*/
 void
 WndDrawArrow(const Graphics&, const Rect&, SDst, Rotation = RDeg0,
 	Color c = Drawing::ColorSpace::Black);
 
 
+/*!
+\brief 矩形区域颜色转换。
+\since build 196 。
+*/
 template<Color::MonoType r, Color::MonoType g, Color::MonoType b>
 inline void
 transform_pixel_ex(BitmapPtr dst)
@@ -61,11 +75,19 @@ transform_pixel_ex(BitmapPtr dst)
 
 //平台无关色彩系统转换。
 
+/*!
+\brief RGB 颜色。
+\since build 196 。
+*/
 typedef struct
 {
 	u8 r, g, b;
 } rgb_t;
 
+/*!
+\brief HSL 颜色。
+\since build 196 。
+*/
 typedef struct
 {
 	u16 h; //单位为 1/64 度。
@@ -73,6 +95,10 @@ typedef struct
 	u16 l;
 } hsl_t;
 
+/*!
+\brief RGB 颜色转换为平台颜色类型。
+\since build 196 。
+*/
 inline
 Color
 rgb2Color(const rgb_t& c)
@@ -80,8 +106,11 @@ rgb2Color(const rgb_t& c)
 	return Color(c.r, c.g, c.b);
 }
 
-inline
-rgb_t
+/*!
+\brief 平台颜色类型转换为 RGB 颜色。
+\since build 196 。
+*/
+inline rgb_t
 Color2rgb(const Color& c)
 {
 	const rgb_t r = {c.GetR(), c.GetG(), c.GetB()};
@@ -89,9 +118,17 @@ Color2rgb(const Color& c)
 	return r;
 }
 
+/*!
+\brief RGB 颜色类型转换为 HSL 颜色。
+\since build 196 。
+*/
 hsl_t
 rgb2hsl(rgb_t c);
 
+/*!
+\brief HSL 颜色类型转换为 RGB 颜色。
+\since build 196 。
+*/
 rgb_t
 hsl2rgb(hsl_t c);
 
@@ -102,6 +139,10 @@ YSL_BEGIN_NAMESPACE(Components)
 
 YSL_BEGIN_NAMESPACE(Styles)
 
+/*!
+\brief 样式区域类型。
+\since b204 。
+*/
 typedef enum
 {
 	//背景和填充区域。
@@ -137,6 +178,7 @@ typedef enum
 
 /*!
 \brief 默认调色板。
+\since b204 。
 */
 class Palette
 {
@@ -158,11 +200,11 @@ public:
 	/*!
 	\brief 取颜色引用。
 	*/
-	PDefHOperator(Drawing::Color&, [], size_t s)
+	PDefHOp(Drawing::Color&, [], size_t s)
 		ImplRet(colors[s])
 
-	DefGetter(const ColorListType&, List, colors)
-	DefMutableGetter(ColorListType&, List, colors)
+	DefGetter(const ynothrow, const ColorListType&, List, colors)
+	DefGetter(ynothrow, ColorListType&, List, colors)
 	/*!
 	\brief 取指定下标的颜色对。
 	*/

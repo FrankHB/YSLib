@@ -11,12 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2186;
+\version r2198;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-09-23 12:26 +0800;
+	2011-12-04 12:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -90,8 +91,9 @@ public:
 	operator/=(const Path&);
 
 	//查询。
-	DefPredicate(Absolute, YSLib::IsAbsolute(GetNativeString().c_str()))
-	DefPredicate(Relative, !IsAbsolute())
+	DefPred(const ynothrow, Absolute,
+		YSLib::IsAbsolute(GetNativeString().c_str()))
+	DefPred(const ynothrow, Relative, !IsAbsolute())
 	/*!
 	\brief 判断是否有根名称。
 	*/
@@ -174,7 +176,7 @@ public:
 	*/
 	Path
 	GetExtension() const;
-	DefGetter(NativeStringType, NativeString, Text::StringToMBCS(*this,
+	DefGetter(const ynothrow, NativeStringType, NativeString, Text::StringToMBCS(*this,
 		CP_Path)) \
 		//!< 取本地格式和编码的字符串。
 
@@ -262,8 +264,8 @@ public:
 		value_type
 		operator*() const;
 
-		DefGetter(const value_type*, Ptr, ptr)
-		DefGetter(StringType::size_type, Position, n)
+		DefGetter(const ynothrow, const value_type*, Ptr, ptr)
+		DefGetter(const ynothrow, StringType::size_type, Position, n)
 	};
 
 	typedef iterator const_iterator;
@@ -610,9 +612,11 @@ public:
 	bool
 	operator/=(const String&);
 
-	DefGetter(const Path&, Directory, Directory) //!< 取目录的完整路径。
-	DefGetter(shared_ptr<ListType>, ListPtr, hList) //!< 取项目列表句柄。
-//	DefGetter(const ListType&, List, List) //!< 取项目列表。
+	DefGetter(const ynothrow, const Path&, Directory, Directory) \
+		//!< 取目录的完整路径。
+	DefGetter(const ynothrow, shared_ptr<ListType>, ListPtr, hList) \
+		//!< 取项目列表句柄。
+//	DefGetter(const ynothrow, const ListType&, List, List) //!< 取项目列表。
 
 	/*!
 	\brief 在目录中取子项目。

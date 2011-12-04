@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1419;
+\version r1431;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-11-30 19:44 +0800;
+	2011-12-04 13:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -76,21 +76,21 @@ public:
 		Styles::HighlightText));
 	inline DefDeMoveCtor(TextList)
 
-	DefPredicateMember(Selected, viewer)
+	DefPredMem(const ynothrow, Selected, viewer)
 	PDefH(bool, Contains, ListType::size_type i)
-		ImplBodyMember(viewer, Contains, i)
+		ImplBodyMem(viewer, Contains, i)
 
-	DefMutableEventGetter(HUIEvent, ViewChanged, ViewChanged) //!< 视图变更事件。
-	DefMutableEventGetter(HIndexEvent, Selected, Selected) \
+	DefEventGetter(ynothrow, HUIEvent, ViewChanged, ViewChanged) //!< 视图变更事件。
+	DefEventGetter(ynothrow, HIndexEvent, Selected, Selected) \
 		//!< 项目选择状态变更事件。
-	DefMutableEventGetter(HIndexEvent, Confirmed, Confirmed) \
+	DefEventGetter(ynothrow, HIndexEvent, Confirmed, Confirmed) \
 		//!< 项目选中确定事件。
 
 	using MTextList::GetList;
 	using MTextList::GetItemPtr;
 	using MTextList::GetItemHeight;
-	DefGetterMember(ListType::size_type, HeadIndex, viewer)
-	DefGetterMember(ListType::size_type, SelectedIndex, viewer)
+	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, viewer)
+	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex, viewer)
 
 	/*!
 	\brief 取完整视图高。
@@ -179,7 +179,7 @@ public:
 	Refresh(const PaintContext&);
 
 	PDefH(void, ClearSelected)
-		ImplBodyMember(viewer, ClearSelected)
+		ImplBodyMem(viewer, ClearSelected)
 
 	/*!
 	\brief 定位视图顶端至指定竖直位置。

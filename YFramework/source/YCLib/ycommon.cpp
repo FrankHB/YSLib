@@ -11,12 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2397;
+\version r2403;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2011-11-05 11:14 +0800;
+	2011-12-04 11:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +36,7 @@ namespace platform
 	namespace
 	{
 		//! \brief 检查 32 位地址是否在 DMA 操作有效范围之外。
-		yconstexprf bool
+		yconstfn bool
 		dma_out_of_range(u32 addr)
 		{
 			// 检查 TCM 和 BIOS (0x01000000, 0x0B000000, 0xFFFF0000) 。
@@ -45,7 +46,7 @@ namespace platform
 		}
 
 		//! \brief 检查 32 位地址是否在主内存中。
-		yconstexprf bool
+		yconstfn bool
 		is_in_main_RAM(u32 addr)
 		{
 			return addr >> 24 == 0x02;
@@ -642,11 +643,11 @@ namespace platform
 		StartTicks();
 	/*
 		ms &= 0x01FFFFFF;
-		while(static_cast<u32>(timers2ms(TIMER0_DATA, TIMER1_DATA)) < ms)
+		while(u32(timers2ms(TIMER0_DATA, TIMER1_DATA)) < ms)
 			;
 	*/
 		ms <<= 5;
-		while(static_cast<u32>(timers2msRaw(TIMER0_DATA, TIMER1_DATA)) < ms)
+		while(u32(timers2msRaw(TIMER0_DATA, TIMER1_DATA)) < ms)
 			;
 	}
 

@@ -11,12 +11,13 @@
 /*!	\file yviewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r1165;
+\version r1172;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 203 。
 \par 创建时间:
 	2011-04-19 23:00:28 +0800;
 \par 修改时间:
-	2011-12-01 08:33 +0800;
+	2011-12-04 12:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +35,10 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//! \brief 序列视图类模板。
+/*!
+\brief 序列视图类模板。
+\since build 147 。
+*/
 template<class _tContainer>
 class GSequenceViewer
 {
@@ -59,21 +63,21 @@ public:
 		: c(c_), head(0), selected(0), length(1), is_selected(false)
 	{}
 
-	inline PDefHOperator(GSequenceViewer&, ++) //!< 选中项目下标自增。
+	inline PDefHOp(GSequenceViewer&, ++) //!< 选中项目下标自增。
 		ImplRet(IncreaseSelected(1))
-	inline PDefHOperator(GSequenceViewer&, --) //!< 选中项目下标自减。
+	inline PDefHOp(GSequenceViewer&, --) //!< 选中项目下标自减。
 		ImplRet(IncreaseSelected(-1))
-	inline PDefHOperator(GSequenceViewer&, ++, int) \
+	inline PDefHOp(GSequenceViewer&, ++, int) \
 		//!< 视图中首个项目下标自增。
 		ImplRet(IncreaseHead(1))
-	inline PDefHOperator(GSequenceViewer&, --, int) \
+	inline PDefHOp(GSequenceViewer&, --, int) \
 		//!< 视图中首个项目下标自减。
 		ImplRet(IncreaseHead(-1))
 
 	/*!
 	\brief 判断是否为选中状态。
 	*/
-	DefPredicate(Selected, is_selected)
+	DefPred(const ynothrow, Selected, is_selected)
 
 	/*!
 	\brief 判断是否在有效范围内包含指定项目索引。
@@ -85,14 +89,14 @@ public:
 			&& IsInInterval<SizeType>(i - GetHeadIndex(), GetLength());
 	}
 
-	DefGetter(SizeType, Total, c.size()) //!< 取容器中项目个数。
-	DefGetter(SizeType, Length, length)
-	DefGetter(SizeType, HeadIndex, head)
-	DefGetter(SizeType, SelectedIndex, selected)
-	DefGetter(DifferenceType, Offset, IsSelected()
+	DefGetter(const ynothrow, SizeType, Total, c.size()) //!< 取容器中项目个数。
+	DefGetter(const ynothrow, SizeType, Length, length)
+	DefGetter(const ynothrow, SizeType, HeadIndex, head)
+	DefGetter(const ynothrow, SizeType, SelectedIndex, selected)
+	DefGetter(const ynothrow, DifferenceType, Offset, IsSelected()
 		? GetSelectedIndex() - GetHeadIndex() : -1) \
 		//!< 取选中的项目相对于视图中首个项目的下标偏移（未选中时为 -1 ）。
-	DefGetter(SizeType, Valid, min(GetTotal() - GetHeadIndex(),
+	DefGetter(const ynothrow, SizeType, Valid, min(GetTotal() - GetHeadIndex(),
 		GetLength())) //!< 取当前视图中有效项目个数。
 
 	/*!
@@ -167,7 +171,7 @@ public:
 	{
 		int t(head + d);
 
-		RestrictInInterval(t, 0, static_cast<int>(GetTotal()));
+		RestrictInInterval(t, 0, int(GetTotal()));
 		SetHeadIndex(t);
 		return *this;
 	}
@@ -180,7 +184,7 @@ public:
 	{
 		int t(selected + d);
 
-		RestrictInInterval(t, 0, static_cast<int>(GetTotal()));
+		RestrictInInterval(t, 0, int(GetTotal()));
 		SetSelectedIndex(t);
 		return *this;
 	}

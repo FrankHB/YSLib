@@ -11,12 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief C++ 标准库迭代器扩展。
-\version r1518;
+\version r1549;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 189 。
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2011-10-25 18:05 +0800;
+	2011-12-04 11:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -72,17 +73,17 @@ namespace ystdex
 
 		value_type value;
 
-		yconstexprf
+		yconstfn
 		pseudo_iterator()
 			: value()
 		{}
-		explicit yconstexprf
+		explicit yconstfn
 		pseudo_iterator(value_type v)
 			: value(v)
 		{}
-		yconstexprf inline
+		yconstfn inline
 		pseudo_iterator(const pseudo_iterator&) = default;
-		yconstexprf inline
+		yconstfn inline
 		pseudo_iterator(pseudo_iterator&&) = default;
 
 		pseudo_iterator&
@@ -91,13 +92,13 @@ namespace ystdex
 		operator=(pseudo_iterator&&) = default;
 
 		//前向迭代器需求。
-		yconstexprf reference
+		yconstfn reference
 		operator*() const
 		{
 			return value;
 		}
 
-		yconstexprf pointer
+		yconstfn pointer
 		operator->() const
 		{
 			return this;
@@ -116,20 +117,20 @@ namespace ystdex
 		}
 
 		//双向迭代器需求。
-		yconstexprf pseudo_iterator&
+		yconstfn pseudo_iterator&
 		operator--()
 		{
 			return *this;
 		}
 
-		yconstexprf pseudo_iterator
+		yconstfn pseudo_iterator
 		operator--(int)
 		{
 			return *this;
 		}
 
 		//随机访问迭代器需求。
-		yconstexprf reference
+		yconstfn reference
 		operator[](const difference_type& _n) const
 		{
 			return this[_n];
@@ -141,19 +142,19 @@ namespace ystdex
 			return *this;
 		}
 
-		yconstexprf pseudo_iterator
+		yconstfn pseudo_iterator
 		operator+(const difference_type& _n) const
 		{
 			return *this;
 		}
 
-		yconstexprf pseudo_iterator&
+		yconstfn pseudo_iterator&
 		operator-=(const difference_type& _n)
 		{
 			return *this;
 		}
 
-		yconstexprf pseudo_iterator
+		yconstfn pseudo_iterator
 		operator-(const difference_type& _n) const
 		{
 			return *this;
@@ -189,21 +190,21 @@ namespace ystdex
 		typedef typename traits_type::reference reference;
 		typedef typename traits_type::pointer pointer;
 
-		yconstexprf
+		yconstfn
 		pair_iterator()
 			: std::pair<_tMaster, _tSlave>(_tMaster(), _tSlave())
 		{}
-		explicit yconstexprf
+		explicit yconstfn
 		pair_iterator(const _tMaster& _i)
 			: std::pair<_tMaster, _tSlave>(_i, _tSlave())
 		{}
-		yconstexprf
+		yconstfn
 		pair_iterator(const _tMaster& _i, const _tSlave& _s)
 			: std::pair<_tMaster, _tSlave>(_i, _s)
 		{}
-		yconstexprf
+		yconstfn
 		pair_iterator(const pair_iterator&) = default;
-		yconstexprf
+		yconstfn
 		pair_iterator(pair_iterator&& _r)
 			: std::pair<_tMaster, _tSlave>(std::move(_r))
 		{}
@@ -223,13 +224,13 @@ namespace ystdex
 */
 
 		//前向迭代器需求。
-		yconstexprf reference
+		yconstfn reference
 		operator*() const
 		{
 			return *this->first;
 		}
 
-		yconstexprf pointer
+		yconstfn pointer
 		operator->() const
 		{
 			return this->first;
@@ -238,7 +239,7 @@ namespace ystdex
 		pair_iterator&
 		operator++()
 		{
-			yunsequenced(++this->first, ++this->second);
+			yunseq(++this->first, ++this->second);
 			return *this;
 		}
 
@@ -255,7 +256,7 @@ namespace ystdex
 		pair_iterator&
 		operator--() ynothrow
 		{
-			yunsequenced(--this->first, --this->second);
+			yunseq(--this->first, --this->second);
 			return *this;
 		}
 
@@ -269,7 +270,7 @@ namespace ystdex
 		}
 
 		//随机访问迭代器需求。
-		yconstexprf reference
+		yconstfn reference
 		operator[](const difference_type& _n) const
 		{
 			return this->first[_n];
@@ -278,11 +279,11 @@ namespace ystdex
 		pair_iterator&
 		operator+=(const difference_type& _n) ynothrow
 		{
-			yunsequenced(this->first += _n, this->second += _n);
+			yunseq(this->first += _n, this->second += _n);
 			return *this;
 		}
 
-		yconstexprf pair_iterator
+		yconstfn pair_iterator
 		operator+(const difference_type& _n) const
 		{
 			return pair_iterator(this->first + _n, this->second + _n);
@@ -291,17 +292,17 @@ namespace ystdex
 		pair_iterator&
 		operator-=(const difference_type& _n)
 		{
-			yunsequenced(this->first -= _n, this->second -= _n);
+			yunseq(this->first -= _n, this->second -= _n);
 			return *this;
 		}
 
-		yconstexprf pair_iterator
+		yconstfn pair_iterator
 		operator-(const difference_type& _n) const
 		{
 			return pair_iterator(this->first - _n, this->second - _n);
 		}
 
-		yconstexprf const pair_type&
+		yconstfn const pair_type&
 		base() const
 		{
 			return *this;
@@ -369,13 +370,13 @@ namespace ystdex
 			++i.operator iterator_type&();
 		}
 
-		static yconstexprf bool
+		static yconstfn bool
 		is_dereferencable(common_iterator i)
 		{
 			return ystdex::is_dereferencable(i.operator iterator_type&());
 		}
 
-		static yconstexprf bool
+		static yconstfn bool
 		is_undereferencable(common_iterator i)
 		{
 			return ystdex::is_undereferencable(i.operator iterator_type&());

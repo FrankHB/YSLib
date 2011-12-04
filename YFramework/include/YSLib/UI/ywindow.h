@@ -11,13 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4747;
+\version r4751;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-11-30 08:41 +0800;
+	2011-12-03 15:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,9 +74,9 @@ public:
 	inline void
 	operator+=(_type& p)
 	{
-		return operator+=(static_cast<typename std::conditional<
+		return operator+=(typename std::conditional<
 			std::is_convertible<_type&, Window&>::value,
-			Window&, IWidget&>::type>(p));
+			Window&, IWidget&>::type(p));
 	}
 
 	virtual bool
@@ -87,9 +87,9 @@ public:
 	inline bool
 	operator-=(_type& p)
 	{
-		return operator-=(static_cast<typename std::conditional<
+		return operator-=(typename std::conditional<
 			std::is_convertible<_type&, Window&>::value,
-			Window&, IWidget&>::type>(p));
+			Window&, IWidget&>::type(p));
 	}
 
 	using MUIContainer::Contains;

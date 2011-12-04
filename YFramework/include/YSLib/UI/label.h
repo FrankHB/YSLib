@@ -11,12 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2127;
+\version r2131;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 188 。
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-11-19 18:47 +0800;
+	2011-12-04 12:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -142,7 +143,7 @@ public:
 	/*!
 	\brief 取文本列表。
 	*/
-	DefGetter(ListType&, List, *hList)
+	DefGetter(const ynothrow, ListType&, List, *hList)
 	/*!
 	\brief 取指定项目索引的项目指针。
 	*/

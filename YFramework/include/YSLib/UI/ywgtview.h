@@ -11,12 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r1344;
+\version r1387;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 258 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-11-12 11:22 +0800;
+	2011-12-04 12:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +35,10 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//! \brief 方向模块。
+/*!
+\brief 方向模块。
+\since build 170 。
+*/
 class MOriented
 {
 protected:
@@ -43,7 +47,7 @@ protected:
 	explicit
 	MOriented(Drawing::Orientation);
 
-	DefGetter(Drawing::Orientation, Orientation, Orientation)
+	DefGetter(const ynothrow, Drawing::Orientation, Orientation, Orientation)
 };
 
 inline
@@ -54,6 +58,7 @@ MOriented::MOriented(Drawing::Orientation o)
 
 /*!
 \brief 可视状态。
+\since build 168 。
 */
 class Visual
 {
@@ -69,15 +74,15 @@ public:
 	*/
 	Visual(const Rect& = Rect::Empty);
 
-	DefPredicate(Visible, visible)
-	DefPredicate(Transparent, transparent) //!< 判断是否透明。
+	DefPred(const ynothrow, Visible, visible)
+	DefPred(const ynothrow, Transparent, transparent) //!< 判断是否透明。
 
-	DefGetter(SPos, X, GetLocation().X)
-	DefGetter(SPos, Y, GetLocation().Y)
-	DefGetter(SDst, Width, GetSize().Width)
-	DefGetter(SDst, Height, GetSize().Height)
-	DefGetter(const Point&, Location, location)
-	DefGetter(const Size&, Size, size)
+	DefGetter(const ynothrow, SPos, X, GetLocation().X)
+	DefGetter(const ynothrow, SPos, Y, GetLocation().Y)
+	DefGetter(const ynothrow, SDst, Width, GetSize().Width)
+	DefGetter(const ynothrow, SDst, Height, GetSize().Height)
+	DefGetter(const ynothrow, const Point&, Location, location)
+	DefGetter(const ynothrow, const Size&, Size, size)
 
 	DefSetter(bool, Visible, visible)
 	DefSetter(bool, Transparent, transparent) //!< 设置透明性。
@@ -131,6 +136,7 @@ public:
 
 /*!
 \brief 部件视图。
+\since build 259 。
 */
 class View
 {
@@ -150,28 +156,28 @@ public:
 	virtual DefClone(View, Clone)
 	virtual DefEmptyDtor(View)
 
-	DefPredicateMember(Visible, visual)
-	DefPredicateMember(Transparent, visual)
+	DefPredMem(const ynothrow, Visible, visual)
+	DefPredMem(const ynothrow, Transparent, visual)
 
-	DefGetterMember(SPos, X, visual)
-	DefGetterMember(SPos, Y, visual)
-	DefGetterMember(SDst, Width, visual)
-	DefGetterMember(SDst, Height, visual)
-	DefGetterMember(const Point&, Location, visual)
-	DefGetterMember(const Size&, Size, visual)
+	DefGetterMem(const ynothrow, SPos, X, visual)
+	DefGetterMem(const ynothrow, SPos, Y, visual)
+	DefGetterMem(const ynothrow, SDst, Width, visual)
+	DefGetterMem(const ynothrow, SDst, Height, visual)
+	DefGetterMem(const ynothrow, const Point&, Location, visual)
+	DefGetterMem(const ynothrow, const Size&, Size, visual)
 
-	DefSetterMember(bool, Visible, visual)
-	DefSetterMember(bool, Transparent, visual)
-	DefSetterMember(SPos, X, visual)
-	DefSetterMember(SPos, Y, visual)
-	DefSetterMember(SDst, Width, visual)
-	DefSetterMember(SDst, Height, visual)
-	virtual DefSetterMember(const Point&, Location, visual)
-	virtual DefSetterMember(const Size&, Size, visual)
+	DefSetterMem(bool, Visible, visual)
+	DefSetterMem(bool, Transparent, visual)
+	DefSetterMem(SPos, X, visual)
+	DefSetterMem(SPos, Y, visual)
+	DefSetterMem(SDst, Width, visual)
+	DefSetterMem(SDst, Height, visual)
+	virtual DefSetterMem(const Point&, Location, visual)
+	virtual DefSetterMem(const Size&, Size, visual)
 	PDefH(void, SetLocation, SPos x, SPos y)
-		ImplBodyMember(visual, SetLocation, Point(x, y))
+		ImplBodyMem(visual, SetLocation, Point(x, y))
 	PDefH(void, SetSize, SDst w, SDst h)
-		ImplBodyMember(visual, SetSize, Size(w, h))
+		ImplBodyMem(visual, SetSize, Size(w, h))
 };
 
 inline
@@ -186,11 +192,14 @@ inline
 View::View(View&& wv)
 	: visual(wv.visual), pContainer(wv.pContainer), pFocusing(wv.pFocusing)
 {
-	yunsequenced(wv.pContainer = nullptr, wv.pFocusing = nullptr);
+	yunseq(wv.pContainer = nullptr, wv.pFocusing = nullptr);
 }
 
 
-//! \brief 背景模块。
+/*!
+\brief 背景模块。
+\since build 260 。
+*/
 class MBackground
 {
 protected:
@@ -201,9 +210,11 @@ public:
 	\brief 构造：使用指定边界和背景图像。
 	*/
 	explicit
-	MBackground(const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()));
+	MBackground(const shared_ptr<Drawing::Image>&
+		= share_raw(new Drawing::Image()));
 
-	DefGetter(shared_ptr<Drawing::Image>&, BackgroundImagePtr, hBgImage)
+	DefGetter(const ynothrow, shared_ptr<Drawing::Image>&, BackgroundImagePtr,
+		hBgImage)
 	/*!
 	\brief 取位图背景指针。
 	*/

@@ -11,12 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1506;
+\version r1514;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 194 。
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-12-01 08:35 +0800;
+	2011-12-04 11:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -148,9 +149,9 @@ rgb2hsl(rgb_t c)
 	{
 		l = ((min_color + max_color) << 8) / 2;
 	/*
-		l = static_cast<u16>((0.2126 * c.r + 0.7152 * c.g
+		l = u16((0.2126 * c.r + 0.7152 * c.g
 			 + 0.0722 * c.b) * 256); // Rec. 601 luma;
-		l = static_cast<u16>((0.299 * c.r + 0.588 * c.g
+		l = u16((0.299 * c.r + 0.588 * c.g
 			 + 0.114 * c.b) * 256); // Rec. 709 luma;
 	*/
 
@@ -168,7 +169,7 @@ rgb2hsl(rgb_t c)
 			h += 0x60000;
 	}
 
-	const hsl_t r = {static_cast<u16>(h * 15 >> 8), s, l};
+	const hsl_t r = {u16(h * 15 >> 8), s, l};
 
 	return r;
 }
@@ -183,7 +184,7 @@ hsl2rgb(hsl_t c)
 	else
 	{
 		u32 t2(c.l < 0x8000 ? (c.l >> 8) * (0x10000 + c.s)
-			: ((c.l + c.s) << 8) - (static_cast<u32>(c.l * c.s) >> 8)),
+			: ((c.l + c.s) << 8) - (u32(c.l * c.s) >> 8)),
 			t1((c.l * 2 << 8) - t2); // t1 和 t2 为 8.24 定点数 。
 		u32 t3((c.h << 8) / 5); // t3 值 0x120000 对应一个圆周。
 		s32 temp3[3] = {t3 + 0x60000, t3, t3 - 0x60000}; \
@@ -210,7 +211,7 @@ hsl2rgb(hsl_t c)
 					dc[i] += ((t2 - t1) >> 8) * (((0xC0000 - temp3[i]) / 3)
 						>> 8);
 			}
-			yunsequenced(r.r = dc[0] >> 16, r.g = dc[1] >> 16,
+			yunseq(r.r = dc[0] >> 16, r.g = dc[1] >> 16,
 				r.b = dc[2] >> 16);
 	}
 	return r;

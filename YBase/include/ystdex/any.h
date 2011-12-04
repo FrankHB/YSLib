@@ -11,12 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 函数对象、算法和实用程序。
-\version r1168;
+\version r1176;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 247 。
 \par 创建时间:
 	2011-09-26 07:55:44 +0800;
 \par 修改时间:
-	2011-10-10 19:26 +0800;
+	2011-12-04 11:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,6 +34,7 @@ namespace ystdex
 {
 	/*
 	\brief 任意非可复制构造的非聚集类型。
+	\since build 207 。
 	*/
 	union no_copy_t
 	{
@@ -46,6 +48,7 @@ namespace ystdex
 	/*
 	\brief 任意 POD 类型。
 	\note POD 含义参考 ISO C++ 2011 。
+	\since build 207 。
 	*/
 	union any_pod_t
 	{
@@ -57,7 +60,7 @@ namespace ystdex
 		{
 			return &plain_old_data[0];
 		}
-		yconstexprf const void*
+		yconstfn const void*
 		access() const
 		{
 			return &plain_old_data[0];
@@ -69,7 +72,7 @@ namespace ystdex
 			return *static_cast<_type*>(access());
 		}
 		template<typename _type>
-		yconstexprf const _type&
+		yconstfn const _type&
 		access() const
 		{
 			return *static_cast<const _type*>(access());
@@ -80,6 +83,7 @@ namespace ystdex
 	/*!
 	\brief 任意对象引用类型。
 	\warning 不检查 cv-qualifier 。
+	\since build 247 。
 	*/
 	class void_ref
 	{
@@ -88,13 +92,13 @@ namespace ystdex
 
 	public:
 		template<typename _type>
-		yconstexprf
+		yconstfn
 		void_ref(_type& obj)
 			: ptr(&obj)
 		{}
 
 		template<typename _type>
-		yconstexprf operator _type&()
+		yconstfn operator _type&()
 		{
 			return *static_cast<_type*>(&*this);
 		}

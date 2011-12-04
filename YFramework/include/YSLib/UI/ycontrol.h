@@ -11,12 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5576;
+\version r5579;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-11-26 22:00 +0800;
+	2011-12-04 12:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,7 +57,8 @@ public:
 		ImplRet(EventMap.at(id))
 	virtual EventMapping::ItemType&
 	GetItemRef(const VisualEvent&, EventMapping::MappedType(&)());
-	DefGetter(EventMapping::MapType&, EventMap, EventMap) //!< 取事件映射表。
+	DefGetter(const ynothrow, EventMapping::MapType&, EventMap, EventMap) \
+		//!< 取事件映射表。
 
 	ImplI(AController) DefClone(Controller, Clone)
 };

@@ -11,13 +11,13 @@
 /*!	\file listbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3727;
+\version r3728;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-11-27 15:57 +0800;
+	2011-12-03 15:45 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -96,7 +96,7 @@ FileBox::FileBox(const Rect& r)
 	: FileList(), ListBox(r, GetListPtr())
 {
 	GetConfirmed() += [this](IndexEventArgs&& e){
-		if(Contains(e) && static_cast<bool>(*this /= GetList()[e.Index]))
+		if(Contains(e) && bool(*this /= GetList()[e.Index]))
 		{
 			ListItems();
 			ResetView();

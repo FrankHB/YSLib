@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1501;
+\version r1503;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-11-30 08:30 +0800;
+	2011-12-03 12:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,7 +73,8 @@ public:
 	\brief 取图形接口上下文。
 	\note 返回无效图形接口上下文。
 	*/
-	virtual DefGetter(const Graphics&, Context, Graphics::Invalid)
+	virtual DefGetter(const ynothrow, const Graphics&, Context,
+		Graphics::Invalid)
 
 	/*!
 	\brief 设置缓冲区大小。
@@ -153,7 +154,7 @@ public:
 	/*!
 	\brief 取无效区域。
 	*/
-	DefGetter(const Rect&, InvalidatedArea, rInvalidated)
+	DefGetter(const ynothrow, const Rect&, InvalidatedArea, rInvalidated)
 	/*!
 	\brief 取无效区域。
 	\note 通过参数返回。
@@ -164,7 +165,7 @@ public:
 	\brief 取图形接口上下文。
 	\return 缓冲区图形接口上下文。
 	*/
-	virtual DefGetter(const Graphics&, Context, Buffer)
+	virtual DefGetter(const ynothrow, const Graphics&, Context, Buffer)
 
 	/*!
 	\brief 设置缓冲区大小。

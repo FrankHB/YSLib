@@ -11,12 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4268;
+\version r4271;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 214 。
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-11-05 11:22 +0800;
+	2011-12-04 11:13 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -74,7 +75,7 @@ TextFileBuffer::LoadText(SizeType n)
 
 			if(GetCountOf(st) < 0)
 				break;
-			yunsequenced(idx += t, ++l);
+			yunseq(idx += t, ++l);
 		}
 		b.resize(l);
 		return l - l_old;

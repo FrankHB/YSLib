@@ -11,12 +11,13 @@
 /*!	\file yres.h
 \ingroup Service
 \brief 应用程序资源管理模块。
-\version r1520;
+\version r1526;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-09-16 03:49 +0800;
+	2011-12-04 12:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,8 +34,11 @@
 
 YSL_BEGIN
 
-//! \brief 资源接口。
-DeclInterface(IResource)
+/*!
+\brief 资源接口。
+\since build 174 。
+*/
+DeclI(IResource)
 EndDecl
 
 
@@ -42,7 +46,10 @@ EndDecl
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-//图像资源。
+/*!
+\brief 图像资源。
+\since build 205 。
+*/
 class Image : public BitmapBuffer,
 	implements IResource
 {
@@ -53,7 +60,7 @@ public:
 	explicit
 	Image(ConstBitmapPtr = nullptr, SDst = 0, SDst = 0);
 
-	DefGetter(BitmapPtr, ImagePtr, GetBufferPtr())
+	DefGetter(const ynothrow, BitmapPtr, ImagePtr, GetBufferPtr())
 
 	void
 	SetImage(ConstBitmapPtr, SDst = MainScreenWidth, SDst = MainScreenHeight);

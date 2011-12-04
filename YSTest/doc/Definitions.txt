@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11470;
+\version r11564;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-12-01 08:53 +0800;
+	2011-12-04 13:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -163,10 +163,6 @@ YSL_USE_EXCEPTION_SPECIFICATION
 ythrow(*)?
 yconstexpr
 yconstexprf
-YCL_CHAR_BIT
-YCL_UNUSED(arg)
-YCL_VOID(arg)
-YCL_VOIDX(arg)
 yforward(_expr)
 yunsequenced
 }
@@ -204,26 +200,28 @@ YSL_BEGIN_NAMESPACE(s)
 YSL_END_NAMESPACE(s)
 _yInterface
 _yInterfaceHead(_n)
-PDeclInterface(_n)
-DeclInterface(_n)
-DeclBasedInterface(_n, ...)
+PDeclI(_n)
+DeclI(_n)
+DeclBasedI(_n, ...)
 ImplI(...)
 ImplA(...)
 DeclIEntry(_signature)
 EndDecl
+DeclSEntry(...)
+ImplS(...)
 DefExtendClass1(_n, _b, _a)
 PDefH(_t, _n, ...)
-PDefHOperator(_t, _op, ...)
-PDefConverter(_t)
-PDefTH1(_t1)
-PDefTH2(_t1, _t2)
-PDefTH3(_t1, _t2, _t3)
-PDefTH4(_t1, _t2, _t3, _t4)
-ImplExpr(_e)
-ImplRet(_e)
+PDefHOp(_t, _op, ...)
+PDefCvt(_t)
+PDefTmplH1(_t1)
+PDefTmplH2(_t1, _t2)
+PDefTmplH3(_t1, _t2, _t3)
+PDefTmplH4(_t1, _t2, _t3, _t4)
+ImplExpr(...)
+ImplRet(...)
 ImplUnsequenced(_e)
 ImplBodyBase(_b, _n, ...)
-ImplBodyMember(_m, _n, ...)
+ImplBodyMem(_m, _n, ...)
 DefEmptyDtor(_t)
 ImplEmptyDtor(_t)
 DefDeCtor(_t)
@@ -238,37 +236,30 @@ DefDeCopyAssignment(_t),
 DefDelCopyAssignment(_t),
 DefDeMoveAssignment(_t),
 DefDelMoveAssignment(_t)
-DefConverter(_t, _e)
-DefConverterBase(_t, _b)
-DefConverterMember(_t, _m)
-DefMutableConverter(_t, _e)
-DefMutableConverterBase(_t, _b)
-DefMutableConverterMember(_t, _m)
-DefPredicate(_n, _m)
-DefPredicateBase(_n, _b)
-DefPredicateMember(_n, _m)
-DefMutablePredicate(_n, _m)
-DefMutablePredicateBase(_n, _b)
-DefMutablePredicateMember(_n, _m)
-DefGetter(_t, _n, _m)
-DefGetterBase(_t, _n, _b)
-DefGetterMember(_t, _n, _m)
-DefMutableGetter(_t, _n, _m)
-DefMutableGetterBase(_t, _n, _b)
-DefMutableGetterMember(_t, _n, _m)
+DefCvt(_q, _t, ...)
+DefCvtBase(_q, _t, _b)
+DefCvtMem(_q, _t, _m)
+DefPred(_q, _n, ...)
+DefPredBase(_q, _n, _b)
+DefPredMem(_q, _n, _m)
+DefGetter(_q, _t, _n, ...)
+DefGetterBase(_q, _t, _n, _b)
+DefGetterMem(_q, _t, _n, _m)
 DefSetter(_t, _n, _m)
 DefSetterDe(_t, _n, _m, _defv)
 DefSetterBase(_t, _n, _b)
 DefSetterBaseDe(_t, _n, _b, _defv)
-DefSetterMember(_t, _n, _m)
-DefSetterMemberDe(_t, _n, _m, _defv)
+DefSetterMem(_t, _n, _m)
+DefSetterMemDe(_t, _n, _m, _defv)
 DefSetterEx(_t, _n, _m, _e)
 DefSetterDeEx(_t, _n, _m, _defv, _e)
 DefClone(_t, _n)
-DefForwardCtorT1(_tClass, _t1, _p1)
-DefForwardCtorT2(_tClass, _t1, _p1, _t2, _p2)
-DefForwardCtorT3(_tClass, _t1, _p1, _t2, _p2, _t3)
-DefForwardCtorT4(_tClass, _t1, _p1, _t2, _p2, _t3, _p3, _t4, _p4)
+DefFwdCtorT1(_tClass, _t1, _p1)
+DefFwdCtorT2(_tClass, _t1, _p1, _t2, _p2)
+DefFwdCtorT3(_tClass, _t1, _p1, _t2, _p2, _t3)
+DefFwdCtorT4(_tClass, _t1, _p1, _t2, _p2, _t3, _p3, _t4, _p4)
+DefFwdFn(_q _type, _name, ...)
+DefFwdTmpl(_q, _type, _name, ...)
 }
 } //$dir Adaptor;
 $dir Core
@@ -284,18 +275,12 @@ DeclEventRef(_tEventHandler, _n)
 DeclDepEventRef(_tEventHandler, _n)
 DeclIEventEntry(_tEventHandler, _n)
 DeclIDepEventEntry(_tEventHandler, _n)
-DefEventGetter(_tEventHandler, _n, _m)
-DefEventGetterBase(_tEventHandler, _n, _b)
-DefEventGetterMember(_tEventHandler, _n, _m)
-DefDepEventGetter(_tEventHandler, _n, _m)
-DefDepEventGetterBase(_tEventHandler, _n, _b)
-DefDepEventGetterMember(_tEventHandler, _n, _m)
-DefMutableEventGetter(_tEventHandler, _n, _m)
-DefMutableEventGetterBase(_tEventHandler, _n, _b)
-DefMutableEventGetterMember(_tEventHandler, _n, _m)
-DefMutableDepEventGetter(_tEventHandler, _n, _m)
-DefMutableDepEventGetterBase(_tEventHandler, _n, _b)
-DefMutableDepEventGetterMember(_tEventHandler, _n, _m)
+DefEventGetter(_q, _tEventHandler, _n, _m)
+DefEventGetterBase(_q, _tEventHandler, _n, _b)
+DefEventGetterMem(_q, _tEventHandler, _n, _m)
+DefDepEventGetter(_q, _tEventHandler, _n, _m)
+DefDepEventGetterBase(_q, _tEventHandler, _n, _b)
+DefDepEventGetterMem(_q, _tEventHandler, _n, _m)
 DefExtendEventMap(_n, _b)
 }
 $header YMessageDefinition
@@ -943,8 +928,6 @@ $header Adaptor::YReference
 	using std::static_pointer_cast;
 	using std::unique_ptr;
 	using std::weak_ptr;
-	using ystdex::is_not_null;
-	using ystdex::is_null;
 	using ystdex::raw;
 	using ystdex::reset;
 	using ystdex::share_raw;

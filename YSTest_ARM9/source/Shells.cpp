@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5435;
+\version r5448;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-11-30 08:51 +0800;
+	2011-12-04 10:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -437,7 +437,7 @@ ShlExplorer::ShlExplorer()
 {
 	//对 fbMain 启用缓存。
 	fbMain.SetRenderer(unique_raw(new BufferedRenderer()));
-	yunsequenced(
+	yunseq(
 		FetchEvent<KeyPress>(fbMain) += [](KeyEventArgs&& e){
 			if(e.GetKeyCode() & KeySpace::L)
 				CallStored<ShlExplorer>();
@@ -451,7 +451,7 @@ ShlExplorer::ShlExplorer()
 		},
 		fbMain.GetConfirmed() += OnConfirmed_fbMain,
 		FetchEvent<Click>(btnTest) += [this](TouchEventArgs&&){
-			YAssert(is_not_null(pWndTest), "err: pWndTest is null;");
+			YAssert(bool(pWndTest), "err: pWndTest is null;");
 
 			SwitchVisible(*pWndTest);
 		},
@@ -498,7 +498,7 @@ ShlExplorer::TFormTest::TFormTest()
 	*this += btnShowWindow,
 	*this += btnPrevBackground,
 	*this += btnNextBackground;
-	yunsequenced(
+	yunseq(
 		btnEnterTest.Text = u"边界测试",
 		btnEnterTest.HorizontalAlignment = TextAlignment::Right,
 		btnEnterTest.VerticalAlignment = TextAlignment::Up,
@@ -514,7 +514,7 @@ ShlExplorer::TFormTest::TFormTest()
 
 	static int up_i(1);
 
-	yunsequenced(
+	yunseq(
 		FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging,
 		FetchEvent<Enter>(btnEnterTest) += OnEnter_btnEnterTest,
 		FetchEvent<Leave>(btnEnterTest) += OnLeave_btnEnterTest,
@@ -624,7 +624,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 	*this += btnTestEx,
 	*this += btnClose,
 	*this += btnExit;
-	yunsequenced(
+	yunseq(
 		btnDragTest.Text = u"测试拖放控件",
 		btnDragTest.HorizontalAlignment = TextAlignment::Left,
 		btnTestEx.Text = u"直接屏幕绘制测试",
@@ -635,7 +635,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 		btnClose.BackColor = Color(176, 184, 192)
 	);
 	SetInvalidationOf(*this);
-	yunsequenced(
+	yunseq(
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&&){
 			BackColor = GenerateRandomColor();
 			SetInvalidationOf(*this);
@@ -681,7 +681,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 			//	GetDefaultFontFamily(), 16 - (itype << 1), FontStyle::Regular);
 				siprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n",
 					btnDragTest.Font.GetSize(), ffilen, ftypen, ffacen);
-				yunsequenced(
+				yunseq(
 					btnDragTest.Text = strtf,
 					btnDragTest.ForeColor = GenerateRandomColor(),
 					btnClose.ForeColor = GenerateRandomColor()
@@ -800,7 +800,7 @@ ShlExplorer::OnActivated(const Message& msg)
 	dsk_up += lblA,
 	dsk_up += lblB;
 	// init-seg 1;
-	yunsequenced(
+	yunseq(
 		dsk_up.GetBackgroundImagePtr() = FetchImage(1),
 		dsk_dn.GetBackgroundImagePtr() = FetchImage(2),
 	// init-seg 2;
@@ -813,7 +813,7 @@ ShlExplorer::OnActivated(const Message& msg)
 	);
 	btnOK.SetTransparent(false);
 	// init-seg 3;
-	yunsequenced(
+	yunseq(
 		dsk_dn.BoundControlPtr = std::bind(
 			std::mem_fn(&ShlExplorer::GetBoundControlPtr), this,
 			std::placeholders::_1),
@@ -823,7 +823,7 @@ ShlExplorer::OnActivated(const Message& msg)
 	);
 	RequestFocusCascade(fbMain);
 	// init-seg 4;
-	yunsequenced(
+	yunseq(
 		dsk_dn.BackColor = Color(120, 120, 248),
 		pWndTest = unique_raw(new TFormTest()),
 		pWndExtra = unique_raw(new TFormExtra())
@@ -855,7 +855,7 @@ ShlExplorer::OnDeactivated(const Message& msg)
 	auto& dsk_dn(GetDesktopDown());
 
 	// uninit-seg 1;
-	yunsequenced(
+	yunseq(
 		reset(dsk_up.GetBackgroundImagePtr()),
 		reset(dsk_dn.GetBackgroundImagePtr()),
 	// uninit-seg 3;
@@ -869,7 +869,7 @@ ShlExplorer::OnDeactivated(const Message& msg)
 	// uninit-seg 4;
 	dsk_dn -= *pWndTest,
 	dsk_dn -= *pWndExtra;
-	yunsequenced(
+	yunseq(
 		reset(pWndTest),
 		reset(pWndExtra)
 	);
@@ -953,7 +953,7 @@ ShlExplorer::OnClick_ShowWindow(TouchEventArgs&&)
 {
 	auto& pWnd(FetchShell<ShlExplorer>().pWndExtra);
 
-	YAssert(is_not_null(pWnd), "err: pWndExtra is null;");
+	YAssert(bool(pWnd), "err: pWndExtra is null;");
 
 	SwitchVisible(*pWnd);
 }

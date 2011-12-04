@@ -11,12 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief YCLib ISO C 标准字符串扩展。
-\version r2404;
+\version r2408;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 245 。
 \par 创建时间:
 	2009-12-27 17:31:14 +0800;
 \par 修改时间:
-	2011-10-10 19:28 +0800;
+	2011-12-04 11:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -143,7 +144,7 @@ namespace ystdex
 
 		while(!(d = *str1 - *str2))
 		{
-			yunsequenced(++str1, ++str2);
+			yunseq(++str1, ++str2);
 		}
 		return d;
 	}
@@ -163,7 +164,7 @@ namespace ystdex
 
 		while(!(d = std::tolower(*str1) - std::tolower(*str2)))
 		{
-			yunsequenced(++str1, ++str2);
+			yunseq(++str1, ++str2);
 		}
 		return d;
 	}

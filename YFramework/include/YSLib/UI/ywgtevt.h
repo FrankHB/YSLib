@@ -11,12 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r2003;
+\version r2028;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 241 。
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2011-11-11 09:47 +0800;
+	2011-12-04 12:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +35,10 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//!< 用户界面事件参数基类。
+/*!
+\brief 用户界面事件参数基类。
+\since build 255 。
+*/
 struct UIEventArgs
 {
 private:
@@ -43,9 +47,9 @@ private:
 public:
 	explicit
 	UIEventArgs(IWidget&);
-	DefGetter(IWidget&, Sender, *pSender)
+	DefGetter(const ynothrow, IWidget&, Sender, *pSender)
 	PDefH(void, SetSender, IWidget& wgt)
-		ImplRet(static_cast<void>(pSender = &wgt))
+		ImplExpr(pSender = &wgt)
 };
 
 inline
@@ -54,7 +58,10 @@ UIEventArgs::UIEventArgs(IWidget& wgt)
 {}
 
 
-//! \brief 路由事件参数基类。
+/*!
+\brief 路由事件参数基类。
+\since build 195 。
+*/
 struct RoutedEventArgs : public UIEventArgs
 {
 public:
@@ -79,11 +86,17 @@ RoutedEventArgs::RoutedEventArgs(IWidget& wgt, RoutingStrategy strategy)
 {}
 
 
-//! \brief 屏幕（指针设备）输入事件参数模块类。
+/*!
+\brief 屏幕（指针设备）输入事件参数模块类。
+\since build 160 。
+*/
 typedef Drawing::Point MScreenPositionEventArgs;
 
 
-//! \brief 输入事件参数类。
+/*!
+\brief 输入事件参数类。
+\since 早于 build 132 。
+*/
 struct InputEventArgs : public RoutedEventArgs
 {
 public:
@@ -94,9 +107,9 @@ public:
 	*/
 	InputEventArgs(IWidget&, KeyCode = 0, RoutingStrategy = Direct);
 
-	DefConverter(KeyCode, Key)
+	DefCvt(const ynothrow, KeyCode, Key)
 
-	DefGetter(KeyCode, KeyCode, Key)
+	DefGetter(const ynothrow, KeyCode, KeyCode, Key)
 };
 
 inline
@@ -105,7 +118,10 @@ InputEventArgs::InputEventArgs(IWidget& wgt, KeyCode k, RoutingStrategy s)
 {}
 
 
-//! \brief 按键输入事件参数类。
+/*!
+\brief 按键输入事件参数类。
+\since 早于 build 132 。
+*/
 struct KeyEventArgs : public InputEventArgs
 {
 public:
@@ -123,7 +139,10 @@ KeyEventArgs::KeyEventArgs(IWidget& wgt, const InputType& k, RoutingStrategy s)
 {}
 
 
-//! \brief 指针设备输入事件参数类。
+/*!
+\brief 指针设备输入事件参数类。
+\since 早于 build 132 。
+*/
 struct TouchEventArgs : public InputEventArgs, public MScreenPositionEventArgs
 {
 public:
@@ -143,7 +162,10 @@ TouchEventArgs::TouchEventArgs(IWidget& wgt, const InputType& pt,
 {}
 
 
-//! \brief 控件事件参数类。
+/*!
+\brief 控件事件参数类。
+\since 早于 build 132 。
+*/
 struct IndexEventArgs : public UIEventArgs
 {
 	typedef ssize_t IndexType;
@@ -155,7 +177,7 @@ struct IndexEventArgs : public UIEventArgs
 	\brief 构造：使用控件引用和索引值。
 	*/
 	IndexEventArgs(IWidget&, IndexType);
-	DefConverter(IndexType, Index)
+	DefCvt(const ynothrow, IndexType, Index)
 };
 
 inline
@@ -165,6 +187,10 @@ IndexEventArgs::IndexEventArgs(IWidget& wgt, IndexEventArgs::IndexType idx)
 {}
 
 
+/*
+\brief 部件绘制上下文。
+\since build 255 。
+*/
 struct PaintContext
 {
 	Drawing::Graphics Target; //!< 渲染目标：图形接口上下文。
@@ -184,6 +210,10 @@ PaintContext::PaintContext(const Drawing::Graphics& g,
 {}
 
 
+/*!
+\brief 部件绘制参数。
+\since build 242 。
+*/
 struct PaintEventArgs : public UIEventArgs, public PaintContext
 {
 	PaintEventArgs(IWidget&);
@@ -209,8 +239,11 @@ PaintEventArgs::PaintEventArgs(IWidget& wgt, const Drawing::Graphics& g,
 {}
 
 
-//! \brief 值类型参数类模块模板。
-PDefTH1(_type)
+/*!
+\brief 值类型参数类模块模板。
+\since build 193 。
+*/
+PDefTmplH1(_type)
 struct GMValueEventArgs
 {
 public:
@@ -252,7 +285,10 @@ DefDelegate(HPaintEvent, PaintEventArgs)
 	};
 
 
-//! \brief 标准控件事件空间。
+/*!
+\brief 标准控件事件空间。
+\since build 192 。
+*/
 typedef enum
 {
 //	AutoSizeChanged,
@@ -325,7 +361,10 @@ DefEventTypeMapping(Enter, HTouchEvent)
 DefEventTypeMapping(Leave, HTouchEvent)
 
 
-//! \brief 事件映射命名空间。
+/*!
+\brief 事件映射命名空间。
+\since build 242 。
+*/
 YSL_BEGIN_NAMESPACE(EventMapping)
 
 typedef GEventPointerWrapper<UIEventArgs> MappedType; //!< 映射项类型。
@@ -345,7 +384,10 @@ struct BadEvent
 {};
 
 
-//! \brief 控制器抽象类。
+/*!
+\brief 控制器抽象类。
+\since build 243 。
+*/
 class AController
 {
 private:
@@ -357,7 +399,7 @@ public:
 	*/
 	AController(bool = true);
 
-	DefPredicate(Enabled, enabled)
+	DefPred(const ynothrow, Enabled, enabled)
 
 	/*!
 	\brief 取事件项。

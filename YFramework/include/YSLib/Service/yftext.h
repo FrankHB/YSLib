@@ -11,12 +11,13 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1663;
+\version r1669;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-09-30 19:41 +0800;
+	2011-12-04 12:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -53,11 +54,11 @@ public:
 	explicit
 	TextFile(const_path_t);
 
-	DefGetter(u8, BOMSize, bl) //!< 取 BOM 大小。
-	DefGetter(Text::Encoding, Encoding, cp) //!< 取编码。
-	DefGetter(SizeType, TextSize, GetSize() - GetBOMSize()) \
+	DefGetter(const ynothrow, u8, BOMSize, bl) //!< 取 BOM 大小。
+	DefGetter(const ynothrow, Text::Encoding, Encoding, cp) //!< 取编码。
+	DefGetter(const ynothrow, SizeType, TextSize, GetSize() - GetBOMSize()) \
 		//!< 取文本区段大小。
-	DefGetter(SizeType, TextPosition, GetPosition() - bl) \
+	DefGetter(const ynothrow, SizeType, TextPosition, GetPosition() - bl) \
 		//!< 取文件指针关于文本区段的位置。
 
 	/*!
