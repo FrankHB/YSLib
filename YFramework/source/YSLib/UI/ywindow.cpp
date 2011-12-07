@@ -11,13 +11,13 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4346;
+\version r4351;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-11-30 14:35 +0800;
+	2011-12-05 07:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -127,19 +127,6 @@ Window::Refresh(const PaintContext& pc)
 		return PaintChildren(pc);
 	}
 	return pc.ClipArea;
-}
-
-void
-Window::Update()
-{
-	if(!GetRenderer().RequiresRefresh())
-	{
-		const auto pCon(FetchContainerPtr(*this));
-
-		if(pCon)
-			Components::Update(*this, PaintContext(FetchContext(*pCon),
-				GetLocationOf(*this), GetBoundsOf(*this)));
-	}
 }
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version r6841;
+\version r6859;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-12-04 11:12 +0800;
+	2011-12-05 22:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -217,56 +217,17 @@ FetchCharWidth(const Font& fnt, ucs4_t c)
 }
 
 
-namespace TextRendering
+void
+TextRenderer::ClearLine(u16 l, SDst n)
 {
-	u16
-	GetTextLineN(const TextState& ts, const Graphics& g)
+	const auto& g(GetContext());
+	const auto h(g.GetHeight());
+
+	if(g.IsValid() && l < h)
 	{
-		return FetchResizedLineN(ts, g.GetHeight());
-	}
-
-	u16
-	GetTextLineNEx(const TextState& ts, const Graphics& g)
-	{
-		return FetchResizedLineN(ts, g.GetHeight() + ts.LineGap);
-	}
-
-	void
-	SetTextLineLast(TextState& ts, const Graphics& g)
-	{
-		const u16 n(GetTextLineN(ts, g));
-
-		if(n != 0)
-			SetCurrentTextLineNOf(ts, n - 1);
-	}
-
-	void
-	ClearLine(const Graphics& g, u16 l, SDst n)
-	{
-		const auto h(g.GetHeight());
-
-		if(g.IsValid() && l < h)
-		{
-			if(n == 0 || l + n > h)
-				n = h - l;
-			ClearPixel(g[l], g.GetWidth() * n);
-		}
-	}
-
-	void
-	ClearTextLine(TextState& ts, const Graphics& g, u16 l)
-	{
-		SDst h(GetTextLineHeightExOf(ts));
-
-		ClearLine(g, ts.Margin.Top + h * l, h);
-	}
-
-	void
-	ClearTextLineLast(TextState& ts, const Graphics& g)
-	{
-		SDst h(GetTextLineHeightExOf(ts));
-
-		ClearLine(g, g.GetHeight() - ts.Margin.Bottom - h, h);
+		if(n == 0 || l + n > h)
+			n = h - l;
+		ClearPixel(g[l], g.GetWidth() * n);
 	}
 }
 
@@ -312,6 +273,25 @@ TextRegion::ClearLine(u16 l, SDst n)
 		yunseq(ClearPixel(g[l], t),
 			ClearPixel(&pBufferAlpha[l * g.GetWidth()], t));
 	}
+}
+
+void
+TextRegion::ClearTextLine(u16 l)
+{
+	auto& ts(GetTextState());
+	SDst h(GetTextLineHeightExOf(ts));
+
+	ClearLine(ts.Margin.Top + h * l, h);
+}
+
+void
+TextRegion::ClearTextLineLast()
+{
+	auto& ts(GetTextState());
+	const auto& g(GetContext());
+	SDst h(GetTextLineHeightExOf(ts));
+
+	ClearLine(g.GetHeight() - ts.Margin.Bottom - h, h);
 }
 
 void

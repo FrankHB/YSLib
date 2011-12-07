@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1503;
+\version r1527;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-12-03 12:42 +0800;
+	2011-12-05 09:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,27 +56,6 @@ public:
 	virtual DefEmptyDtor(Renderer)
 
 	/*!
-	\brief 判断是否需要刷新。
-	\note 总是需要刷新。
-	*/
-	virtual PDefH(bool, RequiresRefresh) const
-		ImplRet(true)
-
-	/*!
-	\brief 取无效区域。
-	\note 空实现。
-	*/
-	virtual void
-	GetInvalidatedArea(Rect&) const
-	{}
-	/*!
-	\brief 取图形接口上下文。
-	\note 返回无效图形接口上下文。
-	*/
-	virtual DefGetter(const ynothrow, const Graphics&, Context,
-		Graphics::Invalid)
-
-	/*!
 	\brief 设置缓冲区大小。
 	\note 空实现。
 	*/
@@ -86,11 +65,12 @@ public:
 
 	/*!
 	\brief 提交无效区域。
-	\note 空实现。
 	*/
-	virtual void
-	CommitInvalidation(const Rect&)
-	{}
+	virtual Rect
+	CommitInvalidation(const Rect& r)
+	{
+		return r;
+	}
 
 	/*!
 	\brief 按参数刷新。
@@ -100,27 +80,6 @@ public:
 	*/
 	virtual Rect
 	Refresh(IWidget& wgt, PaintContext&&);
-
-	/*!
-	\brief 更新至指定图形设备上下文的指定点。
-	\param 意义同 IWidget::Refresh 。
-	\note 空实现。
-	*/
-	virtual void
-	UpdateTo(const PaintContext&) const
-	{}
-
-	/*!
-	\brief 验证指定部件的指定区域的缓冲区，若存在无效区域则刷新。
-	\param r 相对部件的指定区域边界。
-	\return 验证中被刷新的区域边界：总是 Rect::Empty ，因为缓冲区不存在。
-	\since build 263 。
-	*/
-	virtual Rect
-	Validate(IWidget&, const Rect&)
-	{
-		return Rect::Empty;
-	}
 };
 
 
@@ -148,7 +107,7 @@ public:
 	\brief 判断是否需要刷新。
 	\note 若无效区域长宽都不为零，则需要刷新。
 	*/
-	virtual bool
+	bool
 	RequiresRefresh() const;
 
 	/*!
@@ -156,16 +115,10 @@ public:
 	*/
 	DefGetter(const ynothrow, const Rect&, InvalidatedArea, rInvalidated)
 	/*!
-	\brief 取无效区域。
-	\note 通过参数返回。
-	*/
-	virtual void
-	GetInvalidatedArea(Rect&) const;
-	/*!
 	\brief 取图形接口上下文。
 	\return 缓冲区图形接口上下文。
 	*/
-	virtual DefGetter(const ynothrow, const Graphics&, Context, Buffer)
+	DefGetter(const ynothrow, const Graphics&, Context, Buffer)
 
 	/*!
 	\brief 设置缓冲区大小。
@@ -174,11 +127,11 @@ public:
 	SetSize(const Size&);
 
 	/*!
-	\brief 提交无效区域。
-	\note 合并至现有无效区域中。
-	\note 由于无效区域的形状限制，结果可能会包含部分有效区域。
+	\brief 提交无效区域，使之合并至现有无效区域中。
+	\return 新的无效区域。
+	\note 由于无效区域的形状限制，可能会存在部分有效区域被合并。
 	*/
-	virtual void
+	virtual Rect
 	CommitInvalidation(const Rect&);
 
 	/*!
@@ -196,7 +149,7 @@ public:
 	\brief 更新至指定图形设备上下文的指定点。
 	\note 调用 wgt 的 Refresh 刷新。
 	*/
-	virtual void
+	void
 	UpdateTo(const PaintContext&) const;
 
 	/*!
@@ -205,7 +158,7 @@ public:
 	\return 验证中被刷新的区域边界。
 	\since build 263 。
 	*/
-	virtual Rect
+	Rect
 	Validate(IWidget&, const Rect& r);
 };
 
@@ -274,21 +227,6 @@ Render(IWidget& wgt, PaintContext&& pc);
 */
 void
 Render(PaintEventArgs&& e);
-
-
-/*!
-\brief 更新部件至指定图形设备上下文的指定点。
-\since build 244 。
-*/
-void
-Update(const IWidget&, const PaintContext&);
-
-/*!
-\brief 验证：若部件的缓冲区存在，绘制缓冲区使之有效。
-\since build 228 。
-*/
-Rect
-Validate(IWidget&);
 
 YSL_END_NAMESPACE(Components)
 

@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4044;
+\version r4048;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-12-04 11:15 +0800;
+	2011-12-07 12:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -163,15 +163,13 @@ void
 ATrack::SetValue(ValueType val)
 {
 	value = val;
-	SetThumbPosition(SPos(round(val
-		* GetScrollableLength() / max_value)));
+	SetThumbPosition(SPos(round(val * GetScrollableLength() / max_value)));
 }
 void
 ATrack::SetLargeDelta(ValueType val)
 {
 	large_delta = val;
-	SetThumbLength(SDst(round(val
-		* GetScrollableLength() / max_value)));
+	SetThumbLength(SDst(round(val * GetTrackLength() / (val + max_value))));
 }
 
 Rect

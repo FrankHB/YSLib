@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6312;
+\version r6314;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-12-04 12:51 +0800;
+	2011-12-05 07:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -126,17 +126,6 @@ inline IWidget*
 FetchContainerPtr(const IWidget& wgt)
 {
 	return wgt.GetView().pContainer;
-}
-
-/*
-\ingroup HelperFunctions
-\brief 取指定部件的图形接口上下文。
-\since build 228 。
-*/
-inline const Graphics&
-FetchContext(const IWidget& wgt)
-{
-	return wgt.GetRenderer().GetContext();
 }
 
 /*!

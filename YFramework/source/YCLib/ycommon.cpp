@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2403;
+\version r2407;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2011-12-04 11:00 +0800;
+	2011-12-06 11:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,145 +33,10 @@
 
 namespace platform
 {
-	namespace
-	{
-		//! \brief 检查 32 位地址是否在 DMA 操作有效范围之外。
-		yconstfn bool
-		dma_out_of_range(u32 addr)
-		{
-			// 检查 TCM 和 BIOS (0x01000000, 0x0B000000, 0xFFFF0000) 。
-			// NOTE: probably incomplete checks;
-			return ((addr >> 24) == 0x01 || (addr >> 24) == 0x0B
-				|| !~(addr|0xFFFF));
-		}
-
-		//! \brief 检查 32 位地址是否在主内存中。
-		yconstfn bool
-		is_in_main_RAM(u32 addr)
-		{
-			return addr >> 24 == 0x02;
-		}
-
-
-		/*
-		解释和代码参考：
-		http://www.coranac.com/2009/05/dma-vs-arm9-fight/ ；
-		http://www.coranac.com/2010/03/dma-vs-arm9-round-2/ 。
-		*/
-
-/*		const std::size_t ARM9_CACHE_LINE_SIZE(32);
-
-
-		//! \brief 检查缓存区域端点。
-		inline void
-		dc_check(u32 addr)
-		{
-			if(addr % ARM9_CACHE_LINE_SIZE)
-				DC_FlushRange(reinterpret_cast<void*>(addr), 1);
-		}*/
-
-		/*!
-		\brief 检查缓存区域两端。
-		\warning 如果之后无效化高速缓存，之间 CPU 对高速缓存的改动会被丢弃。
-		*/
-/*		inline void
-		dc_check2(u32 addr, u32 size)
-		{
-			dc_check(addr); //检查缓存区域头部。
-			dc_check(addr + size); //检查缓存区域尾部。
-		}
-*/
-
-//		/*!
-//		\brief 内存复制。
-//		\note DMA 模式。
-//		\warning 注意高速缓存刷新和无效化。
-//		*/
-/*		inline void
-		dmacpy(void *dst, const void *src, std::size_t size)
-		{
-			dmaCopy(src, dst, size);
-		}
-
-		//! \brief 对已缓存区域的 DMA 复制。
-		void
-		dmacpy_cached(void *dst, const void *src, std::size_t size)
-		{
-			DC_FlushRange(src, size); //写回内存。
-
-			u32 addr = reinterpret_cast<u32>(dst);
-			dc_check2(addr, size);
-			dmacpy(dst, src, size); //实际复制。
-			DC_InvalidateRange(dst, size); //最终无效化。
-		}
-*/
-
-		ystdex::errno_t
-		safe_dma_fill(void *dst, int v, std::size_t size)
-		{
-			const u32 d(reinterpret_cast<u32>(dst));
-
-			if(dma_out_of_range(d))
-				return 1;
-			if(d & 1) //非对齐字节覆盖失败。
-				return 2;
-			while(DMA_CR(3) & DMA_BUSY)
-				;
-			v &= 0xFF;
-			v |= v << 8;
-
-			bool b(is_in_main_RAM(d)); //目标在主内存中。
-
-			if(b)
-			//	dc_check2(d, size);
-				DC_FlushRange(dst, size);
-			if((d | size) & 3)
-				dmaFillHalfWords(v, dst, size);
-			else
-			{
-				v |= v << 16;
-				dmaFillWords(v, dst, size);
-			}
-			if(b) //设置目标范围内高速缓存污染状态。
-				DC_InvalidateRange(dst, size);
-			return 0;
-		}
-
-		ystdex::errno_t
-		safe_dma_copy(void *dst, const void *src, std::size_t size)
-		{
-			const u32 s(reinterpret_cast<u32>(src)),
-				d(reinterpret_cast<u32>(dst));
-
-			// 检查 TCM 和 BIOS (0x01000000, 0x0B000000, 0xFFFF0000) 。
-			// NOTE: probably incomplete checks;
-			if(dma_out_of_range(s) || dma_out_of_range(d))
-				return 1;
-			if((s | d) & 1) //非对齐字节复制失败。
-				return 2;
-			while(DMA_CR(3) & DMA_BUSY)
-				;
-			if(is_in_main_RAM(s)) //需要写回内存。
-				DC_FlushRange(src, size);
-
-			bool b(is_in_main_RAM(d));
-
-			if(b)
-			//	dc_check2(d, size);
-				DC_FlushRange(dst, size);
-			if((s | d | size) & 3)
-				dmaCopyHalfWords(3, src, dst, size);
-			else
-				dmaCopyWords(3, src, dst, size);
-		//	if(b) //设置目标范围内高速缓存污染状态。
-		//		DC_InvalidateRange(dst, size);
-			return 0;
-		}
-	}
-
 	void*
 	mmbset(void* d, int v, std::size_t t)
 	{
+		// NOTE: DMA fill to main RAM is maybe slower;
 	//	return safe_dma_fill(d, v, t) != 0 ? std::memset(d, v, t) : d;
 		return std::memset(d, v, t);
 	}
@@ -179,6 +44,8 @@ namespace platform
 	void*
 	mmbcpy(void* d, const void* s, std::size_t t)
 	{
+		// NOTE: DMA copy to main RAM is slower;
+		// TODO: ASM optimization, like using LDMIA instructions;
 	//	return safe_dma_copy(d, s, t) != 0 ? std::memcpy(d, s, t) : d;
 		return std::memcpy(d, s, t);
 	}
@@ -385,7 +252,9 @@ namespace platform
 	{
 	//	YAssert(safe_dma_copy(buf, src, sizeof(ScreenBufferType)) == 0,
 	//		"Screen sychronize failure;");
-		std::memcpy(buf, src, sizeof(ScreenBufferType));
+		DC_FlushRange(src, sizeof(ScreenBufferType));
+		dmaCopy(src, buf, sizeof(ScreenBufferType));
+	//	std::memcpy(buf, src, sizeof(ScreenBufferType));
 	}
 
 	void

@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2162;
+\version r2167;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2011-11-24 18:45 +0800;
+	2011-12-05 08:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -145,15 +145,13 @@ MainShell::OnActivated(const Message& msg)
 		dsk_up.BackColor = Color(255 - i * 255 / 10, 216, 192);
 		SetInvalidationOf(dsk_up);
 		Invalidate(dsk_up);
-		Validate(dsk_up);
+		dsk_up.Validate();
 		dsk_up.Update();
-//		dsk_up.Refresh(FetchContext(dsk_up), Point::Zero,
-//			Rect(Point::Zero, dsk_up.GetSize()));
 		YReader::FetchImage(i);
 	}
 	pb.SetValue(10);
 	Invalidate(dsk_up);
-	Validate(dsk_up);
+	dsk_up.Validate();
 	dsk_up.Update();
 	dsk_up -= pb;
 	delete &pb;

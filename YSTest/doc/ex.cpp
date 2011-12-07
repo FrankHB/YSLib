@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3397; *build 266 rev 69;
+\version r3397; *build 267 rev 22;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-12-04 13:35 +0800;
+	2011-12-07 12:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -327,199 +327,141 @@ $using:
 
 $DONE:
 r1:
-* missing Code::Block project files update $since b264,
-^ "updated freetype 2.4.8 file libfreetype.a" ~ "modified freetype 2.4.5";
+/ \n @ \impl @ \mac (DefFwdFn, DefFwdTmpl) @ \h YBaseMacro,
+- \mac YWindowAssert @ \h YWindow;
+- \f FetchContext @ \h YWidget;
+- \mf Update @ \cl Window;
+/ @ \cl Desktop $=;
+(
+	+ \tr \mf GetContext,
+	- \vt @ \mf Update
+);
+/ \tr \rem @ \impl \u (Main, Shells, YDesktop),
+/ \tr \impl @ \impl \u (Shells, Window, GUI, YDesktop);
+/ @ \u YRenderer $=
+(
+	- \mf \vt GetContext @ \cl Renderer,
+	- !\vt @ \mf GetContext @ \cl BufferedRenderer
+);
 
 r2:
 /= test 1 ^ \conf release;
 
-r3-r4:
-^ "freetype 2.4.8 headers" ~ "freetype 2.4.5 headers",
-^ "freetype 2.4.4 cache system" ~ "freetype 2.4.8 cache system";
-	// NOTE: it seems like the one in freetype 2.4.5.
-
-r5:
-/= test 2 ^ \conf release;
-
-r6-r23:
-/= test 3,
-/ \impl @ \f Intersect @ \u YGDIBase;
-// NOTE: the order of arguments for all calls of function 'Intersect' \
-	has been occasionally made it fastest;
-
-r24:
-/= test 4 ^ \conf release;
-
-r25-r47:
-/= test 5;
-
-r48-r49:
-/ \impl \u Button ^ \impl @ b263;
-/ \impl @ \mf Button::Refresh;
-
-r50-r54:
-/ (\a 2 \ctor, \op()) -> !\i ~ \i @ \cl TextRenderer @ \u YText,
-/= test 6;
-
-r55:
-/= test 7 ^ \conf release;
-
-r56:
-/ @ \u YText $=
+r3:
+/ @ \u YRenderer $=
 (
-	/ \mf @ \cl ATextRenderer -> \ns TextRendering,
-	+ \mac (DeclSEntry, ImplS, DefFFunction, DefFTemplate);
-	/ \cl ATextRenderer -> \clt GTextRendererBase;
-	/ @ \cl (TextRenderer, TextRegion) $=
+	- \f Update;
+	- \mf UpdateTo @ \cl Renderer,
+	/ @ \cl BufferedRenderer $=
 	(
-		/ \tr \inh ATextRenderer -> GTextRendererBase<'*'>;
-		/ \tr \impl @ \ctor
+		/ \tr \impl @ \mf Refresh,
+		- \vt @ \mf UpdateTo
 	)
 );
 
-r57:
-/ \mac (DeclSEntry, ImplS, DefFFunction, DefFTemplate) @ \h YText
-	-> YBaseMacro;
+r4:
++ \mf Validate @ \cl Desktop;
+/ \impl @ \impl \u (Main, Shells, Shell_DS);
+/ @ \u YRenderer $=
+(
+	- \f Validate;
+	- \mf Validate @ \cl Renderer,
+	- \vt @ \mf Validate @ \cl BufferedRenderer
+);
 
-r58:
+r5:
+/ @ \cl Desktop $=
+(
+	+ protected \mf GetBufferedRenderer;
+	/ \simp \impl @ \mf (GetContext, Validate);
+	/ \impl @ \mf Update
+);
+/ @ \u YRenderer $=
+(
+	- \mf RequiresRefresh @ \cl Renderer,
+	- \vt @ \mf RequiresRefresh @ \cl BufferedRenderer
+);
+
+r6-r7:
+/= test 2;
+
+r8:
+/ @ \u YRenderer $=
+(
+	/ \mf \vt void CommitInvalidation(const Rect&)
+		-> \mf \vt Rect CommitInvalidation(const Rect&)
+		@ \cl (Renderer, BufferedRenderer);
+	/ \tr \simp \impl @ \f InvalidateCascade
+);
++ \mf GetInvalidatedArea @ \cl Desktop;
+
+r9:
+- \mf \vt void GetInvalidatedArea(Rect&) const
+	@ \cl (Renderer, BufferedRenderer),
+/ \simp \impl @ \mf ShlExplorer::UpdateToScreen @ \impl \u Shells;
+
+r10:
+/= test 3 ^ \conf release;
+
+r11-r12:
+/= test 4;
+
+r13:
+/ \simp \impl @ \clt GTextRendererBase @ \h YText ^ \mac;
+
+r14-r17:
+/ @ \u YText $=
+(
+	/ \a \f ('Get*', 'Set*') @ \ns TextRendering \mg
+		>> \f @ \clt GTextRendererBase,
+	/ \a \f 'Clear*' \exc \f 'ClearLine' @ \ns TextRendering
+		>> \f @ \cl TextRegion,
+	/ \f ClearLine @ \ns TextRendering >> \f @ \cl TextRenderer;
+	- \tr \a \f 'Clear*' @ \clt GTextRendererBase
+	- \ns TextRendering
+),
+/= test 5;
+
+r18:
+/= test 6 ^ \conf release;
+
+r19:
+/ \simp \impl @ \mf TextRegion::ClearTextLine,
+/ @ \impl \u YCommon $=
+(
+	- DMA copy code,
+	/ \impl @ \f ScreenSynchronize ^ DMA copy
+);
+
+r20:
+/= test 7 ^ \conf release;
+
+r21:
+* \impl @ \mf ATrack::SetLargeDelta $since b264;
+
+r22:
 /= test 8 ^ \conf release;
-
-r59:
-(
-	- \mac (YCL_CHAR_BIT, YCL_UNUSED, YCL_VOID, YCL_VOIDX) @ \h YDefinition;
-	/ \tr \impl @ \h CHRLib::CharacterMapping;
-),
-/ \simp @ \impl @ \mf UIEvent::SetSender ^ \mac ImplExpr ~ ImplRet
-	@ \h YWidgetEvent,
-/ \a 'static_cast<void>' -> 'void';
-/ \impl @ (\h (CStandardIO, Rational, Memory, YFont, YCoreUtility, Cast,
-	YObject, Viewer, YWindow), \impl \u (YFont, YCommon, ListBox, YStyle,
-	YUIContainer)) ^ \f notation \exp cast ~ static_cast;
-/ @ \h Cast $=
-(
-	- \ft (auto_integral_cast, integral_auto_cast),
-	/ \stt remove_rp >> \h TypeOperation
-),
-+ \s \as @ \stt (has_nonempty_virtual_base, has_common_nonempty_virtual_base)
-	@ \h TypeOperation;
-
-r60:
-- ('using ystdex::isnull', 'using ystdex::is_not_null') @ \h YReference;
-/ \impl @ \ft is_undereferencable @ \h Memory,
-/ \a 'is_not_null' -> 'bool' \exc @ \h Memory;
-- \a \ft (is_null, is_not_null) @ \h Memory;
-
-r61:
-/= test 9 ^ \conf release;
-
-r62:
-/ \a PDeclInterface -> FwdDeclInterface,
-/ \a DeclInterface -> DeclI,
-/ \a DeclBasedInterface -> DeclBasedI,
-- \mac (DeclBasedInterface1, DeclBasedInterface2, DeclBasedInterface3,
-	DeclBasedInterface4) @ \h YBaseMacro,
-/ \a DefTH1 -> DefTmplH1,
-/ \a DefTH2 -> DefTmplH4,
-/ \a DefTH3 -> DefTmplH4,
-/ \a DefTH4 -> DefTmplH4,
-/ \a DefForwardCtorT1 -> DefFwdCtorTmpl1,
-/ \a DefForwardCtorT2 -> DefFwdCtorTmpl2,
-/ \a DefForwardCtorT3 -> DefFwdCtorTmpl3,
-/ \a DefForwardCtorT4 -> DefFwdCtorTmpl4,
-/ \a DefFFunction -> DefFwdFn,
-/ \a DefFTemplate -> DefFwdTmpl,
-/ \a PDefHOperator -> PDefHOp,
-/ \a PDefConverter -> PDefCvt,
-/ \a DefConverter -> DefCvt,
-/ \a DefConverterBase -> DefCvtBase,
-/ \a DefConverterMember -> DefCvtMem,
-/ \a DefMutableConverter -> DefMCvt,
-/ \a ImplBodyMember -> ImplBodyMem,
-/ \a DefMutableConverterBase -> DefMCvtBase,
-/ \a DefMutableConverterMember -> DefMCvtMem,
-/ \a DefPredicate -> DefPred,
-/ \a DefPredicateBase -> DefPredBase,
-/ \a DefPredicateMember -> DefPredMem,
-/ \a DefMutablePredicate -> DefMPred,
-/ \a DefMutablePredicateBase -> DefMPredBase,
-/ \a DefMutablePredicateMember -> DefMPredMem,
-/ \a DefGetterMember -> DefGetterMem,
-/ \a DefMutableGetter -> DefMGetter,
-/ \a DefMutableGetterBase -> DefMGetterBase,
-/ \a DefMutableGetterMember -> DefMGetterMem,
-/ \a DefSetterMember -> DefSetterMem,
-/ \a DefSetterMemberDe -> DefSetterMemDe,
-/ \a RectTransfomer -> RectTransformer;
-
-r63:
-/ \a DefMutableEventGetterMember -> DefMEventGetterMem,
-/ \a DefMutableEventGetterBase -> DefMEventGetterBase,
-/ \a DefMutableEventGetter -> DefMEventGetter,
-/ \a DefMutableDepEventGetter -> DefMDepEventGetter,
-/ \a DefMutableDepEventGetterBase -> DefMDepEventGetter,
-/ \a DefMutableDepEventGetterMember -> DefMDepEventGetterMem,
-/ \a DefDepEventGetterMember -> DefDepEventGetterMem,
-/ \a DefEventGetterMember -> DefEventGetterMem;
-
-r64:
-/ \simp @ \mac \impl @ \h YBaseMacro 'Def*'
-	^ (reusing code between \mac, '__VA_ARGS__');
-
-r65:
-/ \a yunsequenced -> yunseq,
-/ \a yconstexprf -> yconstfn,
-/ \a ImplUnsequenced -> ImplUnseq;
-
-r66:
-/ @ \h YBaseMacro $=
-(
-	/ \mg \a \mac '*MCvt' -> '*[^M]Cvt',
-	/ \mg \a \mac '*MPred' -> '*[^M]Pred',
-	/ \mg \a \mac '*MGetter' -> '*[^M]Getter',
-);
-/ \tr \impl @ \a files;
-
-r67:
-/ @ \h YEvent $=
-(
-	/ \mg \a \mac '*MCvt' -> '*[^M]Cvt',
-	/ \mg \a \mac '*MPred' -> '*[^M]Pred',
-	/ \mg \a \mac '*MGetter' -> '*[^M]Getter',
-);
-/ \tr \impl @ \a files;
-
-r68:
-/ @ \h YBaseMacro $=
-(
-	/ \mac DefFwdFunc(_type, _name, _expr, ...)
-		-> DefFwdFunc(_q, _type, _name, _expr),
-	/ \mac DefFwdTmpl(_type, _name, _expr, ...)
-		-> DefFwdTmpl(_q, _type, _name, _expr)
-);
-/ \tr \simp @ \h YText;
-
-r69:
-/= test 10 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-12-04:
--14.6d;
-//Mercurial rev1-rev137: r6504;
+2011-12-07:
+-14.7d;
+//Mercurial rev1-rev138: r6573;
 
 / ...
 
 
 $NEXT_TODO:
-b266-b384:
+b267-b384:
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 / partial invalidation support @ \f DrawRectRoundCorner;
 + partial invalidation support @ %(HexViewArea::Refresh);
 + dynamic character mapper loader for \u CharacterMapping;
 + 64-bit support for ystdex::fixed_point;
+* VRAM not flushed when opening lid on real DS;
 
 b385-b1089:
 + key accelerators;
@@ -581,7 +523,6 @@ $KNOWN_ISSUE:
 * "corrupted loading or fatal errors on loading font file with embedded \
 	bitmap glyph like simson.ttc" $since b185;
 * "<cmath> cannot use 'std::*' names" @ "libstdc++ with g++4.6";
-* "unstable length of scrolling thumb" @ "class %ATrack" $since b264;
 
 
 $HISTORY:
@@ -606,6 +547,17 @@ $ellipse_refactoring;
 $ellipse_debug_assertion;
 
 $now
+(
+	/ "GUI" $=
+	(
+		/ "simplified renderer interface",
+		* "unstable length of scrolling thumb" @ "class %ATrack" $since b264
+	),
+	* "wrong buffered text rendering behavior" $since b266,
+	^ "DMA copy on synchronizing to VRAM" @ "library YCLib"
+),
+
+b266
 (
 	^ "updated library freetype 2.4.8" ~ "modified freetype 2.4.5",
 	/ "invalidation algorithm",

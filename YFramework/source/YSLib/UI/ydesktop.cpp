@@ -11,13 +11,13 @@
 /*!	\file ydesktop.cpp
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r2363;
+\version r2374;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-11-30 08:47 +0800;
+	2011-12-05 08:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -40,17 +40,6 @@ Desktop::Desktop(Devices::Screen& s, Color c, const shared_ptr<Image>& hImg)
 	BackColor = c;
 }
 
-/*void
-Desktop::RemoveTopDesktopObject()
-{
-	if(!sDOs.empty())
-	{
-		sDOs.back()->ReleaseFocus();
-		sDOs.pop_back();
-		bRefresh = true;
-	}
-}*/
-
 void
 Desktop::ClearContents()
 {
@@ -62,8 +51,14 @@ Desktop::ClearContents()
 void
 Desktop::Update()
 {
-	if(!GetRenderer().RequiresRefresh())
-		screen.Update(FetchContext(*this).GetBufferPtr());
+	if(!GetBufferedRenderer().RequiresRefresh())
+		screen.Update(GetContext().GetBufferPtr());
+}
+
+Rect
+Desktop::Validate()
+{
+	return GetBufferedRenderer().Validate(*this, GetBoundsOf(*this));
 }
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5448;
+\version r5458;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-12-04 10:49 +0800;
+	2011-12-05 09:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -708,7 +708,6 @@ ShlExplorer::TFormExtra::TFormExtra()
 			std::free(tstr);
 		*/
 			TestObj t(FetchGlobalInstance().GetDesktopDownHandle());
-		//	const auto& g(FetchContext(*t.h));
 
 			using namespace ColorSpace;
 
@@ -886,13 +885,12 @@ ShlExplorer::UpdateToScreen()
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	Validate(dsk_up),
-	Validate(dsk_dn);
+	yunseq(dsk_up.Validate(), dsk_dn.Validate());
 
 	if(chkFPS.IsTicked())
 	{
 		char strt[60];
-		auto& g(FetchContext(dsk_dn));
+		auto& g(dsk_dn.GetContext());
 	//	auto& g(dsk_dn.GetScreen());
 		using namespace ColorSpace;
 
@@ -905,10 +903,8 @@ ShlExplorer::UpdateToScreen()
 			DrawText(g, r, strt, Padding(), White);
 		}
 		{
-			const Rect r(4, 144, 120, 20);
-			Rect ri;
+			const Rect r(4, 144, 120, 20), ri(dsk_dn.GetInvalidatedArea());
 
-			dsk_dn.GetRenderer().GetInvalidatedArea(ri);
 			siprintf(strt, "(%d, %d, %u, %u)",
 				ri.X, ri.Y, ri.Width, ri.Height);
 			FillRect(g, r, Green);

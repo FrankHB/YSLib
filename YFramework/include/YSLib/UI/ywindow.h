@@ -11,13 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4751;
+\version r4760;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-12-03 15:49 +0800;
+	2011-12-05 07:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,20 +36,6 @@ YSL_BEGIN
 #undef YWindowAssert
 
 YSL_BEGIN_NAMESPACE(Components)
-
-#ifdef YCL_USE_YASSERT
-
-#	define YWindowAssert(ptr, comp, func) \
-	Components::yassert((ptr) && FetchContext(*(ptr)).IsValid(), \
-	"The graphics context is invalid.", __LINE__, __FILE__, #comp, #func)
-
-#else
-
-#	define YWindowAssert(ptr, comp, func) \
-	assert((ptr) && FetchContext(*(ptr)).IsValid())
-
-#endif
-
 
 /*!
 \brief 窗口。
@@ -116,13 +102,6 @@ public:
 	*/
 	virtual Rect
 	Refresh(const PaintContext&);
-
-	/*!
-	\brief 按需更新。
-	\note 以父窗口、屏幕优先顺序。
-	*/
-	virtual void
-	Update();
 };
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2569;
+\version r2571;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2011-12-04 10:48 +0800;
+	2011-12-05 07:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -510,14 +510,6 @@ ShlReader::OnDeactivated(const Message& msg)
 	ParentType::OnDeactivated(msg);
 	return 0;
 }
-
-/*
-void ShlReader::OnPaint(EventArgs&&)
-{
-	Reader.PrintTextUp(FetchContext(GetDesktopUp()));
-	Reader.PrintTextDown(FetchContext(GetDesktopDown()));
-}
-*/
 
 YSL_END_NAMESPACE(YReader)
 

@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r3174;
+\version r3178;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 204 。
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-12-04 13:24 +0800;
+	2011-12-04 22:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -328,9 +328,9 @@ _t type
 \brief 传递函数。
 \since build 266 。
 */
-#define DefFwdFn(_q, _type, _name, ...) \
-	inline _type \
-	_name() _q \
+#define DefFwdFn(_q, _t, _n, ...) \
+	inline _t \
+	_n() _q \
 	{ \
 		return (__VA_ARGS__); \
 	}
@@ -339,10 +339,10 @@ _t type
 \brief 传递模版。
 \since build 266 。
 */
-#define DefFwdTmpl(_q, _type, _name, ...) \
+#define DefFwdTmpl(_q, _t, _n, ...) \
 	template<typename... _tParams> \
-	inline _type \
-	_name(_tParams&&... args) _q \
+	inline _t \
+	_n(_tParams&&... args) _q \
 	{ \
 		return (__VA_ARGS__); \
 	}

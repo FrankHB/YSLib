@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1494;
+\version r1512;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2011-11-30 08:30 +0800;
+	2011-12-05 09:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -50,22 +50,16 @@ BufferedRenderer::RequiresRefresh() const
 }
 
 void
-BufferedRenderer::GetInvalidatedArea(Rect& r) const
-{
-	r = rInvalidated;
-}
-
-void
 BufferedRenderer::SetSize(const Size& s)
 {
 	Buffer.SetSize(s.Width, s.Height);
 	static_cast<Size&>(rInvalidated) = s;
 }
 
-void
+Rect
 BufferedRenderer::CommitInvalidation(const Rect& r)
 {
-	rInvalidated = Unite(rInvalidated, r);
+	return rInvalidated = Unite(rInvalidated, r);
 }
 
 Rect
@@ -77,7 +71,8 @@ BufferedRenderer::Refresh(IWidget& wgt, PaintContext&& pc)
 	auto r(Validate(wgt,
 		Rect(pc.ClipArea.GetPoint() - GetLocationOf(wgt), pc.ClipArea)));
 
-	Update(wgt, pc);
+	if(IsVisible(wgt))
+		UpdateTo(pc);
 	return r;
 }
 
@@ -135,8 +130,7 @@ InvalidateCascade(IWidget& wgt, const Rect& bounds)
 
 	do
 	{
-		pWgt->GetRenderer().CommitInvalidation(r);
-		pWgt->GetRenderer().GetInvalidatedArea(r);
+		r = pWgt->GetRenderer().CommitInvalidation(r);
 		r += GetLocationOf(*pWgt);
 	}while((pWgt = FetchContainerPtr(*pWgt)));
 }
@@ -164,19 +158,6 @@ void
 Render(PaintEventArgs&& e)
 {
 	return Render(e.GetSender(), std::move(static_cast<PaintContext&>(e)));
-}
-
-void
-Update(const IWidget& wgt, const PaintContext& e)
-{
-	if(IsVisible(wgt))
-		wgt.GetRenderer().UpdateTo(e);
-}
-
-Rect
-Validate(IWidget& wgt)
-{
-	return wgt.GetRenderer().Validate(wgt, GetBoundsOf(wgt));
 }
 
 YSL_END_NAMESPACE(Components)

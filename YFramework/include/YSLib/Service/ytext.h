@@ -11,13 +11,13 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version r7255;
+\version r7281;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-12-04 13:27 +0800;
+	2011-12-05 21:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -553,54 +553,6 @@ EmptyTextRenderer::operator()(ucs4_t c)
 
 
 /*!
-\brief 文本渲染操作。
-\since build 266 。
-*/
-namespace TextRendering
-{
-	/*!
-	\brief 取按当前行高和行距所能显示的最大行数。
-	*/
-	u16
-	GetTextLineN(const TextState&, const Graphics&);
-
-	/*!
-	\brief 取按当前行高和行距（行间距数小于行数 1 ）所能显示的最大行数。
-	*/
-	u16
-	GetTextLineNEx(const TextState&, const Graphics&);
-
-	/*!
-	\brief 设置笔的行位置为最底行。
-	*/
-	void
-	SetTextLineLast(TextState&, const Graphics&);
-
-	/*!
-	\brief 清除缓冲区第 l 行起始的 n 行像素。
-	\note 图形接口上下文不可用或 l 越界时忽略。
-	\note n 被限制为不越界。
-	\note n 为 0 时清除之后的所有行。
-	*/
-	void
-	ClearLine(const Graphics& g, u16 l, SDst n);
-
-	/*!
-	\brief 清除缓冲区中的指定行号的文本行。
-	\note 参数为 0 表示首行。
-	*/
-	void
-	ClearTextLine(TextState&, const Graphics&, u16);
-
-	/*!
-	\brief 清除缓冲区中的最后一个文本行。
-	*/
-	void
-	ClearTextLineLast(TextState&, const Graphics&);
-};
-
-
-/*!
 \brief 文本渲染器静态多态模版基类。
 \since build 266 。
 */
@@ -612,27 +564,35 @@ public:
 	DeclSEntry(TextState& GetTextState()) //!< 取文本状态。
 	DeclSEntry(const Graphics& GetContext() const) //!< 取图形接口上下文。
 
-	DefFwdFn(const, u16, GetTextLineN, TextRendering::GetTextLineN(
-		static_cast<const _type*>(this)->GetTextState(),
-		static_cast<const _type*>(this)->GetContext()))
-	DefFwdFn(const, u16, GetTextLineNEx, TextRendering::GetTextLineNEx(
-		static_cast<const _type*>(this)->GetTextState(),
-		static_cast<const _type*>(this)->GetContext()))
+#define This static_cast<_type*>(this)
+#define CThis static_cast<const _type*>(this)
 
-	DefFwdFn(, void, SetTextLineLast, TextRendering::SetTextLineLast(
-		static_cast<_type*>(this)->GetTextState(),
-		static_cast<_type*>(this)->GetContext()))
+	/*!
+	\brief 取按当前行高和行距所能显示的最大行数。
+	*/
+	DefGetter(const, u16, TextLineN, FetchResizedLineN(CThis->GetTextState(),
+		CThis->GetContext().GetHeight()))
+	/*!
+	\brief 取按当前行高和行距（行间距数小于行数 1 ）所能显示的最大行数。
+	*/
+	DefGetter(const, u16, TextLineNEx, FetchResizedLineN(CThis->GetTextState(),
+		CThis->GetContext().GetHeight()) + CThis->GetTextState().LineGap)
 
-	DefFwdTmpl(, void, ClearLine, TextRendering::ClearLine(
-		static_cast<_type*>(this)->GetTextState(), args...))
+	/*!
+	\brief 设置笔的行位置为最底行。
+	*/
+	void
+	SetTextLineLast()
+	{
+		const u16 n(GetTextLineN());
 
-	DefFwdTmpl(, void, ClearTextLine, TextRendering::ClearTextLine(
-		static_cast<_type*>(this)->GetTextState(),
-		static_cast<_type*>(this)->GetContext(), args...))
+		if(n != 0)
+			SetCurrentTextLineNOf(This->GetTextState(), n - 1);
+	}
 
-	DefFwdFn(, void, ClearTextLineLast, TextRendering::ClearTextLineLast(
-		static_cast<_type*>(this)->GetTextState(),
-		static_cast<_type*>(this)->GetContext()))
+#undef CThis
+#undef This
+
 };
 
 
@@ -668,6 +628,15 @@ public:
 	ImplS(GTextRendererBase) DefGetter(ynothrow, TextState&, TextState, State)
 	ImplS(GTextRendererBase) DefGetter(const ynothrow, const Graphics&, Context,
 		Buffer)
+
+	/*!
+	\brief 清除缓冲区第 l 行起始的 n 行像素。
+	\note 图形接口上下文不可用或 l 越界时忽略。
+	\note n 被限制为不越界。
+	\note n 为 0 时清除之后的所有行。
+	*/
+	void
+	ClearLine(u16 l, SDst n);
 };
 
 inline
@@ -746,6 +715,19 @@ public:
 	*/
 	void
 	ClearLine(u16 l, SDst n);
+
+	/*!
+	\brief 清除缓冲区中的指定行号的文本行。
+	\note 参数为 0 表示首行。
+	*/
+	void
+	ClearTextLine(u16);
+
+	/*!
+	\brief 清除缓冲区中的最后一个文本行。
+	*/
+	void
+	ClearTextLineLast();
 
 	/*!
 	\brief 缓冲区特效：整体移动 n 像素。
