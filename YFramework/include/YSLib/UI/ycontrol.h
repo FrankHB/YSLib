@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5579;
+\version r5583;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-12-04 12:43 +0800;
+	2011-12-07 18:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -232,6 +232,7 @@ OnTouchMove(TouchEventArgs&&);
 /*!
 \brief 处理屏幕接触移动事件。
 \note 使用拖放。
+\note 无效化当前区域，但不无效化移动后区域；通过 Move 事件可以调用无效化。
 */
 void
 OnTouchMove_Dragging(TouchEventArgs&&);
@@ -267,7 +268,10 @@ void
 OnKey_Bound_Click(KeyEventArgs&&);
 
 
-//! \brief 控件。
+/*!
+\brief 控件。
+\note 默认加载事件处理器： Move 、 Resize 、 GotFocus 和 LostFocus 时自动无效化。
+*/
 class Control : public Widget
 {
 protected:

@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1872;
+\version r1876;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-12-04 11:15 +0800;
+	2011-12-11 07:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -84,7 +84,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 			}
 		},
 		GetConfirmed() += [this](IndexEventArgs&& e){
-			if(this->Contains(e) && pHost && !ShowSub(e.Index))
+			if(this->Contains(e) && pHost && !ShowSub(e.Value))
 				pHost->HideAll();
 		}
 	);
@@ -318,7 +318,8 @@ void
 MenuHost::ShowRaw(Menu& mnu, ZOrderType z)
 {
 	Frame.Add(mnu, z);
-	Invalidate(mnu);
+//依赖于 mnu 的 GotFocus 事件默认会调用自身的 Invalidate 函数。
+//	Invalidate(mnu);
 	RequestFocus(mnu);
 }
 

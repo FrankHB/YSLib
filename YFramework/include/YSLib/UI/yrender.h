@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1527;
+\version r1531;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-12-05 09:24 +0800;
+	2011-12-10 16:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -76,6 +76,7 @@ public:
 	\brief 按参数刷新。
 	\pre 断言： <tt>&wgt.GetRenderer() == this</tt> 。
 	\note 调用 wgt 的 Refresh 刷新，仅适用于指定部件包含自身。
+	\note 不调用 wgt.IsVisible() 检查可见性。
 	\since build 263 。
 	*/
 	virtual Rect
@@ -139,6 +140,7 @@ public:
 	\pre 断言： <tt>&wgt.GetRenderer() == this</tt> 。
 	\pre 断言： <tt>GetContext().IsValid()</tt> 。
 	\note 在 Validate 后 Update ，仅适用于指定部件包含自身。
+	\note 不调用 wgt.IsVisible() 检查可见性。
 	\since build 263 。
 	*/
 	virtual Rect
@@ -179,18 +181,17 @@ SetInvalidationToParent(IWidget&);
 
 
 /*!
-\brief 无效化：使部件区域在窗口缓冲区中无效。
+\brief 无效化：使部件区域在直接和间接的窗口缓冲区中无效。
 \since build 224 。
 */
 void
 Invalidate(IWidget&);
-
 /*!
-\brief 级联无效化：使相对于部件的指定区域在直接和间接的窗口缓冲区中无效。
-\since build 226 。
+\brief 无效化：使相对于部件的指定区域在直接和间接的窗口缓冲区中无效。
+\since build 268 。
 */
 void
-InvalidateCascade(IWidget&, const Rect&);
+Invalidate(IWidget&, const Rect&);
 
 /*
 \brief 调用指定子部件所有的 Paint 事件绘制参数指定的事件发送者。

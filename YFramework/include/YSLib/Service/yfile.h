@@ -11,13 +11,13 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version r1838;
+\version r1841;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-12-04 12:56 +0800;
+	2011-12-08 20:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,8 +73,7 @@ public:
 	/*!
 	\brief 取文件指针的位置，返回值语义同 std::ftell 。
 	*/
-	PDefH(OffsetType, GetPosition) const
-		ImplRet(std::ftell(fp))
+	DefGetter(const ynothrow, OffsetType, Position, std::ftell(fp))
 
 	/*!
 	\brief 设置文件指针位置。

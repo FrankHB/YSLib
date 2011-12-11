@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1512;
+\version r1514;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2011-12-05 09:24 +0800;
+	2011-12-10 16:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -71,8 +71,7 @@ BufferedRenderer::Refresh(IWidget& wgt, PaintContext&& pc)
 	auto r(Validate(wgt,
 		Rect(pc.ClipArea.GetPoint() - GetLocationOf(wgt), pc.ClipArea)));
 
-	if(IsVisible(wgt))
-		UpdateTo(pc);
+	UpdateTo(pc);
 	return r;
 }
 
@@ -119,11 +118,10 @@ SetInvalidationToParent(IWidget& wgt)
 void
 Invalidate(IWidget& wgt)
 {
-	InvalidateCascade(wgt, Rect(Point::Zero, GetSizeOf(wgt)));
+	Invalidate(wgt, Rect(Point::Zero, GetSizeOf(wgt)));
 }
-
 void
-InvalidateCascade(IWidget& wgt, const Rect& bounds)
+Invalidate(IWidget& wgt, const Rect& bounds)
 {
 	auto pWgt(&wgt);
 	Rect r(bounds);

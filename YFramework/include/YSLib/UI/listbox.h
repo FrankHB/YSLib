@@ -11,13 +11,13 @@
 /*!	\file listbox.h
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3246;
+\version r3249;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 205 。
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2011-12-04 13:15 +0800;
+	2011-12-11 07:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,6 +45,8 @@ class ListBox : public ScrollableContainer
 {
 public:
 	typedef TextList::ListType ListType;
+	typedef TextList::ViewArgs ViewArgs;
+	typedef TextList::HViewEvent HViewEvent;
 
 private:
 	TextList TextListBox; //文本列表框。
@@ -68,7 +70,7 @@ public:
 	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex,
 		TextListBox)
 	DefGetterMem(const ynothrow, ListType&, List, TextListBox)
-	DefEventGetterMem(ynothrow, HUIEvent, ViewChanged, TextListBox) \
+	DefEventGetterMem(ynothrow, HViewEvent, ViewChanged, TextListBox) \
 		//!< 视图变更事件。
 	DefEventGetterMem(ynothrow, HIndexEvent, Selected, TextListBox) \
 		//!< 项目选择状态变更事件。

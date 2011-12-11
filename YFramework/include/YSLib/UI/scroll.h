@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3367;
+\version r3374;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-12-04 13:16 +0800;
+	2011-12-11 07:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -61,10 +61,10 @@ typedef enum class
 \since build 193 。
 */
 struct ScrollEventArgs : public UIEventArgs,
-	public GMValueEventArgs<float>
+	public GMDoubleValueEventArgs<float>
 {
 public:
-	typedef GMValueEventArgs<float> MEventArgs;
+	typedef GMDoubleValueEventArgs<float> MEventArgs;
 	typedef MEventArgs::ValueType ValueType;
 
 	ScrollCategory Type; //滚动事件类型。
@@ -94,7 +94,7 @@ ScrollEventArgs::ScrollEventArgs(IWidget& wgt, ScrollCategory t,
 {}
 
 
-DefDelegate(HScrollEvent, ScrollEventArgs)
+DeclDelegate(HScrollEvent, ScrollEventArgs)
 
 
 /*!
@@ -150,13 +150,12 @@ public:
 	DeclIEntry(Orientation GetOrientation() const) //!< 取轨道方向。
 	DefGetter(const ynothrow, SDst, ScrollableLength,
 		GetTrackLength() - GetThumbLength()) //!< 取可滚动区域长度。
-	DefGetter(const ynothrow, SDst, ThumbLength, SelectFrom(GetSizeOf(Thumb),
-		IsHorizontal())) //!< 取轨道方向上的滑块长度。
+	DefGetter(const ynothrow, SDst, ThumbLength,
+		GetSizeOf(Thumb).GetRef(IsHorizontal())) //!< 取轨道方向上的滑块长度。
 	DefGetter(const ynothrow, SDst, ThumbPosition,
-		SelectFrom(GetLocationOf(Thumb), IsHorizontal())) //!< 取滑块位置。
+		GetLocationOf(Thumb).GetRef(IsHorizontal())) //!< 取滑块位置。
 	virtual DefGetter(const ynothrow, SDst, TrackLength,
-		SelectFrom(GetSizeOf(*this), IsHorizontal())) \
-		//!< 取轨道方向上的轨道长度。
+		GetSizeOf(*this).GetRef(IsHorizontal())) //!< 取轨道方向上的轨道长度。
 	DefGetter(const ynothrow, ValueType, LargeDelta, large_delta)
 
 	/*!

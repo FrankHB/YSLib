@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r2028;
+\version r2070;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241 。
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2011-12-04 12:58 +0800;
+	2011-12-11 07:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -163,28 +163,30 @@ TouchEventArgs::TouchEventArgs(IWidget& wgt, const InputType& pt,
 
 
 /*!
-\brief 控件事件参数类。
-\since 早于 build 132 。
-*/
-struct IndexEventArgs : public UIEventArgs
-{
-	typedef ssize_t IndexType;
+\brief 简单事件参数类。
 
-	IWidget& Widget;
-	IndexType Index;
+保存部件引用和指定类型值的事件参数。
+\since build 268 。
+*/
+PDefTmplH1(_type)
+struct GValueEventArgs : public UIEventArgs
+{
+	//! \brief 值类型。
+	typedef _type ValueType;
+
+	ValueType Value;
 
 	/*!
-	\brief 构造：使用控件引用和索引值。
+	\brief 构造：使用部件引用和值。
 	*/
-	IndexEventArgs(IWidget&, IndexType);
-	DefCvt(const ynothrow, IndexType, Index)
+	template<typename... _tParams>
+	yconstfn
+	GValueEventArgs(IWidget& wgt, _tParams&&... args)
+		: UIEventArgs(wgt),
+		Value(yforward(args)...)
+	{}
+	DefCvt(const ynothrow, ValueType, Value)
 };
-
-inline
-IndexEventArgs::IndexEventArgs(IWidget& wgt, IndexEventArgs::IndexType idx)
-	: UIEventArgs(wgt),
-	Widget(wgt), Index(idx)
-{}
 
 
 /*
@@ -240,11 +242,11 @@ PaintEventArgs::PaintEventArgs(IWidget& wgt, const Drawing::Graphics& g,
 
 
 /*!
-\brief 值类型参数类模块模板。
-\since build 193 。
+\brief 保存旧值的值类型参数类模块模板。
+\since build 268 。
 */
 PDefTmplH1(_type)
-struct GMValueEventArgs
+struct GMDoubleValueEventArgs
 {
 public:
 	typedef _type ValueType; //值类型。
@@ -254,25 +256,24 @@ public:
 	\brief 构造：使用指定值。
 	\note 值等于旧值。
 	*/
-	GMValueEventArgs(ValueType v)
+	GMDoubleValueEventArgs(ValueType v)
 		: Value(v), OldValue(v)
 	{}
 	/*!
 	\brief 构造：使用指定值和旧值。
 	*/
-	GMValueEventArgs(ValueType v, ValueType old_value)
+	GMDoubleValueEventArgs(ValueType v, ValueType old_value)
 		: Value(v), OldValue(old_value)
 	{}
 };
 
 
 //事件处理器类型。
-DefDelegate(HUIEvent, UIEventArgs)
-DefDelegate(HInputEvent, InputEventArgs)
-DefDelegate(HKeyEvent, KeyEventArgs)
-DefDelegate(HTouchEvent, TouchEventArgs)
-DefDelegate(HIndexEvent, IndexEventArgs)
-DefDelegate(HPaintEvent, PaintEventArgs)
+DeclDelegate(HUIEvent, UIEventArgs)
+DeclDelegate(HInputEvent, InputEventArgs)
+DeclDelegate(HKeyEvent, KeyEventArgs)
+DeclDelegate(HTouchEvent, TouchEventArgs)
+DeclDelegate(HPaintEvent, PaintEventArgs)
 //DefDelegate(HPointEvent, Drawing::Point)
 //DefDelegate(HSizeEvent, Size)
 

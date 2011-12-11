@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2056;
+\version r2060;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260 。
 \par 创建时间:
 	2011-11-12 23:23:47 +0800;
 \par 修改时间:
-	2011-12-04 11:02 +0800;
+	2011-12-08 21:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -76,15 +76,16 @@ namespace ystdex
 
 	/*!
 	\brief 通用定点数。
+
+	基于整数算术实现的确定有限精度二进制定点小数类型。用于替换内建的 float 、 double
+	和 long double 类型。是否有符号同基本整数类型。若有符号，则最高有效位为符号位。
+	逻辑布局： 整数部分|小数部分 。各个部分的内部为补码表示。
 	\tparam _tBase 基本整数类型。
 	\tparam _vInt 整数部分（若有符号则包括符号位，下同）二进制位数。
 	\tparam _vFrac 分数部分二进制位数。
 	\warning 基本整数类型需要具有补码表示。
 	\warning 非虚析构。
-
-	基于整数算术实现的确定有限精度二进制定点小数类型。用于替换内建的 float 、 double
-	和 long double 类型。是否有符号同基本整数类型。若有符号，则最高有效位为符号位。
-	逻辑布局： 整数部分|小数部分 。各个部分的内部为补码表示。
+	\warning 算术运算可能溢出。
 	\note 默认保留 6 位二进制小数。
 	\note 部分实现参考： http://www.codeproject.com/KB/cpp/fp_math.aspx 。
 	\since build 260 。
@@ -230,16 +231,16 @@ namespace ystdex
 		fixed_point&
 		operator*=(const fixed_point& f) ynothrow
 		{
-			this->value = (typename fixed_multiplicative<base_type>::type(value)
-				* f.value) >> frac_bit_n;
+			this->value = (typename fixed_multiplicative<base_type>::type(
+				this->value) * f.value) >> frac_bit_n;
 			return *this;
 		}
 
 		fixed_point&
 		operator/=(const fixed_point& f) ynothrow
 		{
-			this->value = (typename fixed_multiplicative<base_type>::type(value)
-				<< frac_bit_n) / f.value;
+			this->value = (typename fixed_multiplicative<base_type>::type(
+				this->value) << frac_bit_n) / f.value;
 			return *this;
 		}
 
@@ -258,7 +259,7 @@ namespace ystdex
 		}
 
 /*
-		// FIXME: g++ 4.6 has bug to cast all type as bool;
+		// FIXME: g++ 4.6 has a bug to cast all type as bool;
 		explicit
 		operator bool() const ynothrow
 		{

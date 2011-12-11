@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1793;
+\version r1813;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-12-04 13:00 +0800;
+	2011-12-07 17:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -119,6 +119,27 @@ public:
 	\biref 判断是否是零元素。
 	*/
 	yconstfn DefPred(const ynothrow, Zero, X == 0 && Y == 0)
+
+	/*!
+	\brief 选择分量引用。
+	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
+	\since build 268 。
+	*/
+	_type&
+	GetRef(bool b = true)
+	{
+		return b ? this->X : this->Y;
+	}
+	/*!
+	\brief 选择分量常量引用。
+	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
+	\since build 268 。
+	*/
+	const _type&
+	GetRef(bool b = true) const
+	{
+		return b ? this->X : this->Y;
+	}
 };
 
 PDefTmplH1(_type)
@@ -262,6 +283,27 @@ public:
 	\since build 264 。
 	*/
 	yconstfn DefPred(const ynothrow, UnstrictlyEmpty, Width == 0 || Height == 0)
+
+	/*!
+	\brief 选择分量引用。
+	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
+	\since build 268 。
+	*/
+	SDst&
+	GetRef(bool b = true)
+	{
+		return b ? Width : Height;
+	}
+	/*!
+	\brief 选择分量常量引用。
+	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
+	\since build 268 。
+	*/
+	const SDst&
+	GetRef(bool b = true) const
+	{
+		return b ? Width : Height;
+	}
 };
 
 yconstfn
@@ -305,66 +347,6 @@ operator+(GBinaryGroup<_type> val, const Size& s)
 	return GBinaryGroup<_type>(val.X + s.Width, val.Y + s.Height);
 }
 
-
-/*!
-\brief 选择分量。
-\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-\since build 242 。
-*/
-PDefTmplH1(_type)
-yconstfn SPos
-SelectFrom(const GBinaryGroup<_type>& obj, bool is_1st)
-{
-	return is_1st ? obj.X : obj.Y;
-}
-/*!
-\brief 选择分量。
-\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-\since build 170 。
-*/
-SDst
-SelectFrom(const Size&, bool = true);
-
-/*!
-\brief 选择分量引用。
-\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-\since build 242 。
-*/
-PDefTmplH1(_type)
-yconstfn _type&
-SelectRefFrom(GBinaryGroup<_type>& obj, bool is_1st = true)
-{
-	return is_1st ? obj.X : obj.Y;
-}
-/*!
-\brief 选择分量引用。
-\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-\since build 170 。
-*/
-SDst&
-SelectRefFrom(Size&, bool = true);
-
-/*!
-\brief 更新：其中的一个分量。
-\note 第三参数为 true 时更新第一分量，否则更新第二分量。
-\since build 242 。
-*/
-PDefTmplH1(_type)
-void
-UpdateTo(GBinaryGroup<_type>& obj, SPos val, bool is_1st = true)
-{
-	if(is_1st)
-		obj.X = val;
-	else
-		obj.Y = val;
-}
-/*!
-\brief 更新：其中的一个分量。
-\note 第三参数为 true 时更新第一分量，否则更新第二分量。
-\since build 170 。
-*/
-void
-UpdateTo(Size&, SDst, bool = true);
 
 /*!
 \brief 二元对象转置。

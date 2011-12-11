@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r3178;
+\version r3179;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 204 。
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-12-04 22:11 +0800;
+	2011-12-07 21:56 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -175,7 +175,7 @@ _t type
 //prefix "Impl" = Implementation;
 #define ImplExpr(...) \
 	{ \
-		void(__VA_ARGS__); \
+		(__VA_ARGS__), void(); \
 	}
 #define ImplRet(...) \
 	{ \

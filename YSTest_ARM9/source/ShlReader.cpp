@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2571;
+\version r2574;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2011-12-05 07:16 +0800;
+	2011-12-11 07:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -196,7 +196,7 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 		Menu& mnu(*(ynew Menu(Rect::Empty, std::move(hList), 1u)));
 
 		mnu.GetConfirmed() += [this](IndexEventArgs&& e){
-			ExcuteReadingCommand(e.Index);
+			ExcuteReadingCommand(e.Value);
 		};
 		mhMain += mnu;
 	}
@@ -252,7 +252,7 @@ TextReaderManager::Deactivate()
 }
 
 void
-TextReaderManager::ExcuteReadingCommand(IndexEventArgs::IndexType idx)
+TextReaderManager::ExcuteReadingCommand(IndexEventArgs::ValueType idx)
 {
 	switch(idx)
 	{
@@ -467,7 +467,7 @@ HexReaderManager::UpdateInfo()
 	::siprintf(str, "当前位置： %u / %u", HexArea.GetSource().GetPosition(),
 		HexArea.GetSource().GetSize());
 	pnlFileInfo.lblSize.Text = Text::MBCSToString(str, Text::CP_Default);
-	Invalidate(pnlFileInfo);
+	Invalidate(pnlFileInfo.lblSize);
 }
 
 

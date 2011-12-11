@@ -11,13 +11,13 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version r7281;
+\version r7283;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-12-05 21:32 +0800;
+	2011-12-09 20:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,6 @@
 
 #include "ygdi.h"
 #include "../Core/ystring.h"
-#include "yftext.h"
 #include <cwctype>
 
 YSL_BEGIN

@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4871;
+\version r4875;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-12-04 13:14 +0800;
+	2011-12-11 07:23 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -194,7 +194,8 @@ public:
 	inline GEvent&
 	operator=(const GEvent& e)
 	{
-		this->List = e->List;
+		this->List = e.List;
+		return *this;
 	}
 	/*!
 	\brief 转移赋值：默认实现。
@@ -392,8 +393,11 @@ public:
 };
 
 
-//! \brief 定义事件处理器委托类型。
-#define DefDelegate(_name, _tEventArgs) typedef GHEvent<_tEventArgs> _name;
+/*!
+\brief 定义事件处理器委托类型。
+\since build 268 。
+*/
+#define DeclDelegate(_name, _tEventArgs) typedef GHEvent<_tEventArgs> _name;
 
 
 /*!

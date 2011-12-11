@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4048;
+\version r4074;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-12-07 12:17 +0800;
+	2011-12-11 07:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,7 +92,6 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	yunseq(
 		GetThumbDrag() += [this](UIEventArgs&&){
 			LocateThumb(0, ScrollCategory::ThumbTrack);
-			Invalidate(*this);
 		},
 		FetchEvent<TouchMove>(*this) += OnTouchMove,
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
@@ -102,7 +101,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 			{
 				ScrollCategory t;
 
-				switch(CheckArea(SelectFrom(e, IsHorizontal())))
+				switch(CheckArea(e.GetRef(IsHorizontal())))
 				{
 				case OnPrev:
 					t = ScrollCategory::LargeDecrement;
@@ -133,21 +132,29 @@ ATrack::SetThumbLength(SDst l)
 	RestrictInInterval(l, min_thumb_length, GetTrackLength());
 
 	Size s(GetSizeOf(Thumb));
+	const bool is_h(IsHorizontal());
 
-	UpdateTo(s, l, IsHorizontal());
-	SetSizeOf(Thumb, s);
-	Invalidate(*this);
+	if(l != s.GetRef(is_h))
+	{
+		Invalidate(Thumb);
+		s.GetRef(is_h) = l;
+		SetSizeOf(Thumb, s);
+	}
 }
 void
 ATrack::SetThumbPosition(SPos pos)
 {
 	RestrictInClosedInterval(pos, 0, GetScrollableLength());
 
-	Point p(GetLocationOf(Thumb));
+	Point pt(GetLocationOf(Thumb));
+	const bool is_h(IsHorizontal());
 
-	UpdateTo(p, pos, IsHorizontal());
-	SetLocationOf(Thumb, p);
-	Invalidate(*this);
+	if(pos != pt.GetRef(is_h))
+	{
+		Invalidate(Thumb);
+		pt.GetRef(is_h) = pos;
+		SetLocationOf(Thumb, pt);
+	}
 }
 void
 ATrack::SetMaxValue(ValueType m)
@@ -186,8 +193,8 @@ ATrack::Refresh(const PaintContext& pc)
 		FillRect(g, pt, GetSizeOf(*this), pal[Styles::Track]);
 	//	FillRect(g, r, pal[Styles::Track]);
 
-		const SPos xr(pt.X + GetWidth() - 1);
-		const SPos yr(pt.Y + GetHeight() - 1);
+		const SPos xr(pt.X + GetWidth());
+		const SPos yr(pt.Y + GetHeight());
 		const Color& c(pal[Styles::Light]);
 
 		if(IsHorizontal())
@@ -200,6 +207,35 @@ ATrack::Refresh(const PaintContext& pc)
 			DrawVLineSeg(g, pt.X, pt.Y, yr, c),
 			DrawVLineSeg(g, xr, pt.Y, yr, c);
 		}
+	// NOTE: partial invalidation made no efficiency improved here;
+	/*
+		const auto& g(pc.Target);
+		const auto& pt(pc.Location);
+		Styles::Palette& pal(FetchGUIShell().Colors);
+
+		FillRect(g, r, pal[Styles::Track]);
+
+		const Color& c(pal[Styles::Light]);
+		SPos x(pt.X);
+		SPos y(pt.Y);
+		SPos xr(x + GetWidth());
+		SPos yr(y + GetHeight());
+
+		if(IsHorizontal())
+		{
+			RestrictInInterval(y, r.Y, r.Y + r.Height),
+			RestrictInInterval(yr, r.Y, r.Y + r.Height);
+			DrawHLineSeg(g, pt.Y, pt.X, xr, c),
+			DrawHLineSeg(g, yr, pt.X, xr, c);
+		}
+		else
+		{
+			RestrictInInterval(x, r.X, r.X + r.Width),
+			RestrictInInterval(xr, r.X, r.X + r.Width);
+			DrawVLineSeg(g, pt.X, pt.Y, yr, c),
+			DrawVLineSeg(g, xr, pt.Y, yr, c);
+		}
+	*/
 	}
 	PaintChild(Thumb, pc);
 	return r;
@@ -282,6 +318,7 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 			SPos x(shl.LastControlLocation.X + shl.DraggingOffset.X);
 
 			RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
+			Invalidate(Thumb);
 			SetLocationOf(Thumb, Point(x, GetLocationOf(Thumb).Y));
 			GetThumbDrag()(UIEventArgs(*this));
 		}
@@ -305,6 +342,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 			SPos y(shl.LastControlLocation.Y + shl.DraggingOffset.Y);
 
 			RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
+			Invalidate(Thumb);
 			SetLocationOf(Thumb, Point(GetLocationOf(Thumb).X, y));
 			GetThumbDrag()(UIEventArgs(*this));
 		}
@@ -342,9 +380,9 @@ try	: AUIBoxControl(r),
 
 	Size s(GetSizeOf(*this));
 	const bool bHorizontal(o == Horizontal);
-	const SDst l(SelectFrom(s, !bHorizontal));
+	const SDst l(s.GetRef(!bHorizontal));
 
-	UpdateTo(s, l, bHorizontal);
+	s.GetRef(bHorizontal) = l;
 	SetSizeOf(PrevButton, s);
 	SetSizeOf(NextButton, s);
 //	Button.SetLocationOf(PrevButton, Point::Zero);

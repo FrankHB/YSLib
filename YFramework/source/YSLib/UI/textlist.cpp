@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1584;
+\version r1606;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-12-04 11:14 +0800;
+	2011-12-11 07:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,12 +52,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 {
 	SetAllOf(Margin, defMarginH, defMarginV);
 
-	static auto on_selected = [this](IndexEventArgs&&){
-		Invalidate(*this);
-	};
 	yunseq(
-		GetSelected() += on_selected,
-		GetConfirmed() += on_selected,
 		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 			if(viewer.GetTotal() != 0)
 			{
@@ -271,6 +266,26 @@ TextList::Refresh(const PaintContext& pc)
 }
 
 void
+TextList::InvalidateSelected(ListType::difference_type offset)
+{
+	if(offset >= 0)
+	{
+		const auto ln_h(GetItemHeight());
+		Rect r(0, -top_offset + ln_h * offset, GetWidth(), ln_h);
+
+		if(r.Y < GetHeight())
+		{
+			RestrictInInterval(r.Y, 0, GetHeight());
+			if(GetHeight() > r.Y)
+			{
+				RestrictUnsignedStrict(r.Height, GetHeight() - r.Y);
+				Invalidate(*this, r);
+			}
+		}
+	}
+}
+
+void
 TextList::LocateViewPosition(SDst h)
 {
 	RestrictInInterval(h, 0, GetFullViewHeight() - GetHeight());
@@ -283,8 +298,8 @@ TextList::LocateViewPosition(SDst h)
 		AdjustViewLength();
 		viewer.SetHeadIndex(h / item_height);
 		top_offset = h % item_height;
-		//更新视图长度。
-		AdjustViewLength();
+		//更新视图。
+		UpdateView(true);
 	}
 }
 
@@ -375,9 +390,9 @@ TextList::SelectLast()
 }
 
 void
-TextList::UpdateView()
+TextList::UpdateView(bool is_active)
 {
-	GetViewChanged()(UIEventArgs(*this));
+	GetViewChanged()(ViewArgs(*this, is_active));
 	AdjustViewLength();
 	Invalidate(*this);
 }
@@ -385,7 +400,9 @@ TextList::UpdateView()
 void
 TextList::CallSelected()
 {
+	InvalidateSelected(viewer.GetOffset());
 	GetSelected()(IndexEventArgs(*this, viewer.GetSelectedIndex()));
+	InvalidateSelected(viewer.GetOffset());
 }
 
 void

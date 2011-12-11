@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1394;
+\version r1401;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2011-12-04 11:10 +0800;
+	2011-12-10 15:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,6 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 	VerticalScrollBar.SetSmallDelta(1);
 	VerticalScrollBar.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
 		LocateViewPosition(SDst(round(e.Value)));
-		Invalidate(*this);
 	};
 	Reset();
 }
@@ -69,8 +68,7 @@ HexViewArea::Load(const_path_t path)
 	Reset();
 	Source.Open(path);
 
-	const auto n_total_line((Source.GetSize() + ItemPerLine - 1)
-		/ ItemPerLine);
+	const auto n_total_line((Source.GetSize() + ItemPerLine - 1) / ItemPerLine);
 
 	if(n_total_line > GetItemNum())
 	{
@@ -82,9 +80,10 @@ HexViewArea::Load(const_path_t path)
 }
 
 void
-HexViewArea::LocateViewPosition(SDst h)
+HexViewArea::LocateViewPosition(u32 line)
 {
-	UpdateData(ItemPerLine * h);
+	UpdateData(ItemPerLine * line);
+	Invalidate(*this);
 }
 
 Rect
@@ -94,7 +93,7 @@ HexViewArea::Refresh(const PaintContext& pc)
 
 	// TODO: refresh for 'rect' properly;
 	Widget::Refresh(PaintContext(pc.Target, pc.Location, Rect(pc.Location,
-		GetWidth() - VerticalScrollBar.GetWidth(), GetHeight())));
+		GetWidth(), GetHeight())));
 //	Widget::Refresh(pc);
 	ScrollableContainer::Refresh(pc);
 	TextState.ResetPen();
@@ -174,7 +173,6 @@ HexViewArea::UpdateData(u32 pos)
 	//	VerticalScrollBar.SetValue(pos / ItemPerLine);
 		ResizeData(i);
 		Source.SetPosition(pos, SEEK_SET); // Refresh 需要据此判断接近文件结尾。
-		Invalidate(*this);
 	}
 }
 

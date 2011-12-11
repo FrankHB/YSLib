@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1431;
+\version r1453;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-12-04 13:16 +0800;
+	2011-12-11 07:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,6 +37,13 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 /*!
+\brief 索引事件。
+\since build 268 。
+*/
+typedef GValueEventArgs<MTextList::IndexType> IndexEventArgs;
+DeclDelegate(HIndexEvent, IndexEventArgs)
+
+/*!
 \brief 文本列表。
 \since build 212 。
 */
@@ -47,6 +54,17 @@ public:
 	using MTextList::ListType;
 	using MTextList::IndexType;
 	typedef GSequenceViewer<ListType> ViewerType; //!< 视图类型。
+	/*!
+	\brief 视图参数类型。
+	\note bool 参数表示主动定位视图。
+	\since build 268 。
+	*/
+	typedef GValueEventArgs<bool> ViewArgs;
+	/*!
+	\brief 视图事件委托类型。
+	\since build 268 。
+	*/
+	DeclDelegate(HViewEvent, ViewArgs)
 
 	using MTextList::Font;
 	using MTextList::Margin;
@@ -61,7 +79,7 @@ public:
 private:
 	ViewerType viewer; //!< 列表视图。
 	SDst top_offset; //!< 列表视图首项目超出上边界的竖直偏移量。
-	DeclEvent(HUIEvent, ViewChanged) //!< 视图变更事件。
+	DeclEvent(HViewEvent, ViewChanged) //!< 视图变更事件。
 	DeclEvent(HIndexEvent, Selected) //!< 项目选择状态变更事件。
 	DeclEvent(HIndexEvent, Confirmed) //!< 项目选中确定事件。
 
@@ -80,7 +98,8 @@ public:
 	PDefH(bool, Contains, ListType::size_type i)
 		ImplBodyMem(viewer, Contains, i)
 
-	DefEventGetter(ynothrow, HUIEvent, ViewChanged, ViewChanged) //!< 视图变更事件。
+	DefEventGetter(ynothrow, HViewEvent, ViewChanged, ViewChanged) \
+		//!< 视图变更事件。
 	DefEventGetter(ynothrow, HIndexEvent, Selected, Selected) \
 		//!< 项目选择状态变更事件。
 	DefEventGetter(ynothrow, HIndexEvent, Confirmed, Confirmed) \
@@ -181,6 +200,15 @@ public:
 	PDefH(void, ClearSelected)
 		ImplBodyMem(viewer, ClearSelected)
 
+private:
+	/*!
+	\brief 无效化偏移量对应的列表项区域。
+	\since build 268 。
+	*/
+	void
+	InvalidateSelected(ListType::difference_type);
+
+public:
 	/*!
 	\brief 定位视图顶端至指定竖直位置。
 	*/
@@ -228,10 +256,12 @@ public:
 
 	/*!
 	\brief 更新视图。
-	\note 调用视图变更事件。
+
+	调用视图变更事件、调整视图长度后无效化自身。
+	\note 参数表示是否主动变更视图。
 	*/
 	void
-	UpdateView();
+	UpdateView(bool = false);
 
 private:
 	/*!

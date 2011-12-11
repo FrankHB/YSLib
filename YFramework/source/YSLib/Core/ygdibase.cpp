@@ -11,12 +11,12 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1472;
+\version r1478;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2011-12-02 08:27 +0800;
+	2011-12-07 17:46 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,28 +34,6 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 const Size Size::Zero = Size();
 const Size Size::FullScreen = Size(MainScreenWidth, MainScreenHeight);
-
-
-SDst
-SelectFrom(const Size& s, bool is_1st)
-{
-	return is_1st ? s.Width : s.Height;
-}
-
-SDst&
-SelectRefFrom(Size& s, bool is_1st)
-{
-	return is_1st ? s.Width : s.Height;
-}
-
-void
-UpdateTo(Size& s, SDst val, bool is_1st)
-{
-	if(is_1st)
-		s.Width = val;
-	else
-		s.Height = val;
-}
 
 
 const Rect Rect::Empty = Rect();

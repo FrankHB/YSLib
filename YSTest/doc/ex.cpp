@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3397; *build 267 rev 22;
+\version r3397; *build 268 rev 93;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-12-07 12:33 +0800;
+	2011-12-11 08:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -327,169 +327,231 @@ $using:
 
 $DONE:
 r1:
-/ \n @ \impl @ \mac (DefFwdFn, DefFwdTmpl) @ \h YBaseMacro,
-- \mac YWindowAssert @ \h YWindow;
-- \f FetchContext @ \h YWidget;
-- \mf Update @ \cl Window;
-/ @ \cl Desktop $=;
+/ \a 'InvalidateCascade' -> 'Invalidate',
+/ @ \cl ATrack $=
 (
-	+ \tr \mf GetContext,
-	- \vt @ \mf Update
-);
-/ \tr \rem @ \impl \u (Main, Shells, YDesktop),
-/ \tr \impl @ \impl \u (Shells, Window, GUI, YDesktop);
-/ @ \u YRenderer $=
-(
-	- \mf \vt GetContext @ \cl Renderer,
-	- !\vt @ \mf GetContext @ \cl BufferedRenderer
+	/ \impl @ \mf (SetThumbLength, SetThumbPosition),
+	/ \simp \impl @ \ctor
 );
 
 r2:
-/= test 1 ^ \conf release;
+/ @ \h YGDIBase $=
+(
+	/ \ft PDefTmplH1(_type) yconstfn SPos SelectFrom(const GBinaryGroup<_type>&,
+		bool = true) -> \mf yconstfn const _type&
+		GBinaryGroup::GetRef(bool = true) const,
+	/ \ft PDefTmplH1(_type) yconstfn SPos SelectRefFrom(GBinaryGroup<_type>&,
+		bool = true) -> \mf yconstfn _type& GBinaryGroup::GetRef(bool = true),
+	/ \f SDst SelectFrom(Size&, bool = true)
+		-> \mf const SDst& Size::GetRef(bool = true) const,
+	/ \f SDst& SelectRefFrom(Size&, bool = true)
+		-> \mf SDst& Size::GetRef(bool = true),
+	- \a (\f, \ft) UpdateTo
+);
+/ \tr \impl @ \u Scroll;
 
 r3:
-/ @ \u YRenderer $=
-(
-	- \f Update;
-	- \mf UpdateTo @ \cl Renderer,
-	/ @ \cl BufferedRenderer $=
-	(
-		/ \tr \impl @ \mf Refresh,
-		- \vt @ \mf UpdateTo
-	)
-);
+/ \impl @ \ctor @ \cl (Thumb, ListBox),
+/ \impl @ \mf TextList::LocateViewPosition;
 
 r4:
-+ \mf Validate @ \cl Desktop;
-/ \impl @ \impl \u (Main, Shells, Shell_DS);
-/ @ \u YRenderer $=
 (
-	- \f Validate;
-	- \mf Validate @ \cl Renderer,
-	- \vt @ \mf Validate @ \cl BufferedRenderer
-);
+	/ \impl @ \ctor @ \cl Control;
+	/ \simp \impl @ \f OnTouchMove_Dragging,
+	/ \simp \impl @ \mf (SetThumbLength, SetThumbPosition) @ \cl ATrack
+),
+/ \impl @ HexReaderManager::UpdateInfo @ \impl \u ShlReader;
 
 r5:
-/ @ \cl Desktop $=
+/= test 1 ^ \conf release;
+
+r6:
+/ @ \cl TextList $=
 (
-	+ protected \mf GetBufferedRenderer;
-	/ \simp \impl @ \mf (GetContext, Validate);
-	/ \impl @ \mf Update
-);
-/ @ \u YRenderer $=
-(
-	- \mf RequiresRefresh @ \cl Renderer,
-	- \vt @ \mf RequiresRefresh @ \cl BufferedRenderer
+	+ private \mf void InvalidateSelected(ListType::difference_type);
+	/ \impl @ \mf void CallSelected();
+	/ \simp \impl @ \ctor
 );
 
-r6-r7:
+r7-r8:
 /= test 2;
 
-r8:
-/ @ \u YRenderer $=
-(
-	/ \mf \vt void CommitInvalidation(const Rect&)
-		-> \mf \vt Rect CommitInvalidation(const Rect&)
-		@ \cl (Renderer, BufferedRenderer);
-	/ \tr \simp \impl @ \f InvalidateCascade
-);
-+ \mf GetInvalidatedArea @ \cl Desktop;
+r9-r10:
+* \impl @ \op= @ \clt GEvent $since b207;
 
-r9:
-- \mf \vt void GetInvalidatedArea(Rect&) const
-	@ \cl (Renderer, BufferedRenderer),
-/ \simp \impl @ \mf ShlExplorer::UpdateToScreen @ \impl \u Shells;
+r11-r15:
+/= test 3;
 
-r10:
-/= test 3 ^ \conf release;
+r16:
+/= test 4 ^ \conf release;
 
-r11-r12:
-/= test 4;
+r17:
+/ \impl @ \mf \op(*=, /=) @ \clt fixed_pointer @ \h Rational,
+/ \impl @ \mac ImplExpr @ \h YBaseMacro;
 
-r13:
-/ \simp \impl @ \clt GTextRendererBase @ \h YText ^ \mac;
-
-r14-r17:
-/ @ \u YText $=
-(
-	/ \a \f ('Get*', 'Set*') @ \ns TextRendering \mg
-		>> \f @ \clt GTextRendererBase,
-	/ \a \f 'Clear*' \exc \f 'ClearLine' @ \ns TextRendering
-		>> \f @ \cl TextRegion,
-	/ \f ClearLine @ \ns TextRendering >> \f @ \cl TextRenderer;
-	- \tr \a \f 'Clear*' @ \clt GTextRendererBase
-	- \ns TextRendering
-),
+r18-r19:
 /= test 5;
 
-r18:
-/= test 6 ^ \conf release;
-
-r19:
-/ \simp \impl @ \mf TextRegion::ClearTextLine,
-/ @ \impl \u YCommon $=
-(
-	- DMA copy code,
-	/ \impl @ \f ScreenSynchronize ^ DMA copy
-);
-
 r20:
-/= test 7 ^ \conf release;
+/ @ \cl HexViewArea @ \impl \u HexBrowser $=
+(
+	/ \simp @ \ctor,
+	/ \param \tp @ \mf void LocateViewPosition(SDst) -> u32;
+),
+/ \simp @ \mf GetPosition @ \cl File ^ \mac DefGetter,
+- \inc \h YFile_(Text) @ \h YText;
 
 r21:
-* \impl @ \mf ATrack::SetLargeDelta $since b264;
+/ \simp \impl @ \mf HexViewArea::UpdateData @ \impl \u HexBrowser;
 
-r22:
+r22-r74:
+/= test 6;
+
+r75:
+* missing invalidation of the thumb before setting thumb position
+	@ class %(HorizontalTrack, VerticalTrack) $since b224 $=
+(
+	/ \impl @ \ctor
+);
+
+r76:
+* missing invalidation of the thumb before setting thumb position
+	@ class %ATrack $since b224 $=
+(
+	/ \impl @ \mf (SetThumbLength, SetThumbPosition)
+);
+
+r77:
+/ \impl @ ATrack::Refresh;
+
+r78:
+/ \impl @ \mf HexViewArea:LocateViewPosition @ \impl \u HexBrowser;
+
+r79:
+* invalid scrollbar area shown for refreshing @ class %HexViewer
+	@ \u ShlReader @ $since b264 $=
+(
+	/ \impl @ \mf HexViewArea::Refresh
+);
+
+r80:
+/= test 7 ^ \conf release;
+
+r81-r82:
+/ \simp \impl @ \mf MenuHost::ShowRaw;
+
+r83:
+/ \simp \impl @ \mf BufferedRenderer::Refresh;
+
+r84:
+/ \simp \impl @ \ctor @ \cl TextList;
+
+r85:
 /= test 8 ^ \conf release;
+
+r86:
+/ \impl @ \mf TextList::LocateViewPosition;
+
+r87:
+/ \cl IndexEventArgs @ \h YWidgetEvent -> \clt GSimpleEventArgs;
++ typedef GSimpleEventArgs<MTextList::IndexType> IndexEventArgs @ \h TextList;
+/ \tr 'DefDelegate(HIndexEvent, IndexEventArgs)'
+	@ \h YWidgetEvent >> \h TextList,
+/ \tr \impl @ \ctor @ \cl (FileBox, Menu),
+/ \tr @ \cl TextReaderManager @ \u ShlReader;
+
+r88:
+/ \a DefDelegate => DeclDelegate,
+/ \a GMValueEventArgs => GMDoubleValueEventArgs,
+/ \a GSimpleEventArgs => GValueEventArgs;
+
+r89:
+/ @ \cl TextList $=
+(
+	+ typedef GValueEventArgs<bool> ViewArgs;
+	+ DeclDelegate(HViewEvent, ViewArgs)
+	/ private \m DeclEvent(HUIEvent, ViewChanged)
+		-> DeclEvent(HViewEvent, ViewChanged);
+	/ \tr @ \mf ViewChanged,
+	/ \mf void UpdateView() -> void UpdateView(bool = false)
+);
+/ @ \cl ListBox $=
+(
+	(
+		+ typedef TextList::HViewEvent HViewEvent;
+		/ \tr @ \mf ViewChanged
+	),
+	(
+		+ typedef TextList::ViewArgs ViewArgs
+		/ \impl @ \ctor;
+	)
+)
+
+r90:
+/ \impl @ \mf TextList::LocateViewPosition;
+
+r91:
+/= test 9;
+
+r92:
+/ \impl @ \mf ATrack::Refresh;
+
+r93:
+/= test 10 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-12-07:
+2011-12-11:
 -14.7d;
-//Mercurial rev1-rev138: r6573;
+//Mercurial rev1-rev139: r6595;
 
 / ...
 
 
 $NEXT_TODO:
-b267-b384:
+b268-b384:
++ partial invalidation support @ %(HexViewArea::Refresh);
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
 / partial invalidation support @ \f DrawRectRoundCorner;
-+ partial invalidation support @ %(HexViewArea::Refresh);
-+ dynamic character mapper loader for \u CharacterMapping;
-+ 64-bit support for ystdex::fixed_point;
 * VRAM not flushed when opening lid on real DS;
++ dynamic character mapper loader for \u CharacterMapping;
++ 64-bit integer underlying type support for ystdex::fixed_point;
++ overlapping test @ \cl Rect;
 
-b385-b1089:
+b385-b1152:
++ widget layout managers;
++ formal abstraction of rectangular hit test;
 + key accelerators;
-+ abstraction of rectangular hit test;
-/ fully \impl @ \cl Path;
-+ clipping areas;
 + fully \impl styles @ widgets;
-/ \impl 'real' RTC;
-/ text alignment;
 + data configuragion;
+/ fully \impl @ \cl Path;
+/ \impl @ 'real' RTC;
++ clipping areas;
 + GDI brushes;
-+ dynamic widget prototypes;
-+ \impl pictures loading;
-/ improve efficiency @ \ft polymorphic_crosscast @ \h YCast;
-+ correct DMA (copy & fill);
+/ text alignment;
++ \impl @ images loading and processing;
 * platform-independence @ alpha blending:
 	+ \impl general Blit algorithm;
-+ shared property: additional;
++ dynamic widget prototypes;
 / user-defined bitmap buffer @ \cl Desktop;
 
 
 $LOW_PRIOR_TODO:
-b1090-b1800:
+b1153-b4320:
++ shared property: additional;
++ correct DMA (copy & fill);
+/ improve efficiency @ \ft polymorphic_crosscast @ \h YCast;
 + (compressing & decompressing) @ gfx copying;
++ keys for touch events;
 + Microsoft Windows port;
 + general component operations:
 	+ serialization;
 	+ designer;
++ auto-adaptors for look and feels;
++ networking;
 + database interface;
 
 
@@ -548,6 +610,44 @@ $ellipse_debug_assertion;
 
 $now
 (
+	/ GUI $=
+	(
+		+ "invalidation on event %(Move, Resize) as default" @ "class %Control";
+		/ "unnecessary invalidation reduced" @ "function %OnTouchMove_Dragging"
+			@ unit %Control",
+		/ "unnecessary invalidation reduced"
+			@ "class %(ATrack, Button, ListBox, MenuHost, TextList)",
+		+ "partial invalidation support on event %Selected" @ "class %TextList",
+		* "missing invalidation of the thumb before setting thumb position"
+			@ class %(HorizontalTrack, VerticalTrack, ATrack) $since b224,
+		* "minor line segments length on background"
+			@ "member function ATrack::Refresh" $since b167,
+		- "widget visibility check" @ "function %BufferedRenderer::Refresh",
+		/= $design "confirmed no need of partial invalidation support \
+			on event %Selected" @ "class %ATrack",
+		(
+			$design
+			(
+				+ "simple generic UI event argument class template
+					%GValueEventArgs";
+				/ "simplified implementation" @ "class %IndexEventArgs"
+			);
+			+ "event subscription of active locating the view"
+				@ "class TextList"
+		)
+	),
+	/ "shells test example" $=
+	(
+		/ "unnecessary invalidation reduced" @ "class %HexReaderManager",
+		* "invalid scrollbar area shown for refreshing" @ "class %HexViewer"
+	),
+	* $design "ill-formed implementation of copy assignment function"
+		@ "class template %GEvent" $since b207,
+	/ $design "macro %ImplExpr for compatibility" @ "header %ybasemac.h"
+),
+
+b267
+(
 	/ "GUI" $=
 	(
 		/ "simplified renderer interface",
@@ -561,9 +661,14 @@ b266
 (
 	^ "updated library freetype 2.4.8" ~ "modified freetype 2.4.5",
 	/ "invalidation algorithm",
-	/ "simplified button invalidation",
+	/ "GUI" $=
 	(
-		/ "CRTP static polymorphic macros" @ "header ybasemac.h",
+		/= $design "confirmed no need of partial invalidation support \
+			on event %Selected" @ "class %Button",
+		/ "simplified button invalidation",
+	),
+	(
+		/ "CRTP static polymorphic macros" @ "header %ybasemac.h",
 		/ $design "simplified implementation" @ "header %(ydef.h, ybasemac.h,
 			yevt.hpp)";
 		/ "text renderers" ^ "CRTP" ~ "polymorphic classes"
@@ -759,7 +864,7 @@ b255
 
 b254
 (
-	/ $design "header dependencies",
+	/ $design "header %dependencies",
 	/ "shells test example" $=
 	(
 		/ "hexadecimal browser" $=,
@@ -865,8 +970,8 @@ b249
 	),
 	/ $design "exception macros" $=
 	(
-		/ $design "exception specification macro" @ ("header config.h"
-			@ "library YSLib::Adaptor") >> ("header ydef.h"
+		/ $design "exception specification macro" @ ("header %config.h"
+			@ "library YSLib::Adaptor") >> ("header %ydef.h"
 			@ "library YCLib::YStandardExtend");
 		* $design "macro (ythrow, ynothrow) used without definition"
 			@ "library %YStandardExtend" $since b209;
@@ -1015,7 +1120,7 @@ b242
 
 b241
 (
-	/ "macros" @ "header ybase.h" $=
+	/ "macros" @ "header %ybase.h" $=
 	(
 		+ "new macros to simplify defaulted or deleted constructors \
 			and destructors definition"
@@ -1033,13 +1138,13 @@ b241
 			@ "class template %GEventMap" >> "unit %(YWidgetEvent, YControl) \
 			as non-member"
 	),
-	* "contradict semantics of member template is_null" @ "header memory.h"
+	* "contradict semantics of member template is_null" @ "header %memory.h"
 		@ "library YCLib" $since b222
 ),
 
 b240
 (
-	/ "macros" @ "header ybase.h" $=
+	/ "macros" @ "header %ybase.h" $=
 	(
 		/ $design "simplified macro parameter names",
 		+ "new macros for template declarations and forwarding constructor \
@@ -1050,7 +1155,7 @@ b240
 		^ "always-be-equal strategy",
 	+ $design "copy constructor" @ "class template %GEventMap",
 	+ $design "const static reference getter function %GetPrototype"
-		@ "header ystatic.hpp",
+		@ "header %ystatic.hpp",
 	* $design "member function %Insert unavailable for %unique_ptr"
 		@ "class template %GEventMap" $since b221,
 	+ $design "%CopyConstructible, %MoveConstructible support"
@@ -1277,7 +1382,7 @@ b230
 (
 	+ $design "move constructors and move assignment operators"
 		@ "class template %(pseudo_iterator, pair_iterator)"
-		@ "header YCLib::YStandardExtend::Iterator",
+		@ "header %YCLib::YStandardExtend::Iterator",
 	/ $design "simplified GUI" $=
 	(
 		- "paint event for controls",
@@ -1317,7 +1422,7 @@ b229
 		+ "buffered renderer for listbox",
 		^ "namespace %::YReader" ~ "namespace ::YSLib"
 	),
-	- "using namespace %platform" @ "namespace DS" @ "header yadaptor.h"
+	- "using namespace %platform" @ "namespace DS" @ "header %yadaptor.h"
 ),
 
 b228
@@ -1346,7 +1451,7 @@ b227
 		/ "simplified background rendering" @ "class %ScrollableContainer",
 
 	),
-	* $design "guard macro" @ "header UIContainerEx" $since b203,
+	* $design "guard macro" @ "header %UIContainerEx" $since b203,
 	/ "simplified UI class inheritance" $=
 	(
 		/ $design "implementation" ^ "class %IWidget" ~ "class %IUIBox",
@@ -1357,7 +1462,7 @@ b227
 	),
 	* "strict ISO C++2003 code compatibility" $since b190 $=
 	(
-		^ "fixed macros" ~ "variadic macros" @ "header (YPanel, YWindow)"
+		^ "fixed macros" ~ "variadic macros" @ "header %(YPanel, YWindow)"
 	),
 	/ "simplified widget fetcher and locating interfaces"
 ),
@@ -1440,14 +1545,14 @@ b223
 		+ "pseudo-frame-per-second counter",
 		/ "button enabling" ^ "file extension matching in the file box"
 	),
-	* "declaration of function %GetStemFrom" @ "header yfilesys.h" $since b161,
+	* "declaration of function %GetStemFrom" @ "header %yfilesys.h" $since b161,
 	/ "updated library freetype" $=
 	(
 		^ "updated freetype 2.4.5" ~ "freetype 2.4.4",
 		+ "exact bounding box calculation",
 		+ "path stroker",
 		+ "support for synthetic emboldening and slanting of fonts",
-		- "obsolete header /freetype/internal/pcftypes.h" $since b185
+		- "obsolete header %/freetype/internal/pcftypes.h" $since b185
 	),
 	^ "updated libnds 1.5.1 with default arm7 0.5.21"
 		~ "libnds 1.5.0 with default arm 7 0.5.20",
@@ -1492,7 +1597,7 @@ b221
 			@ "class %Control"
 	),
 	^ "devkitARM release 33" ~ "devkitARM release 32",
-	/ $design "header search path of VS2010 projects",
+	/ $design "header %search path of VS2010 projects",
 	/ "event map interfaces" $=
 	(
 		+ "sender type as template parameter type",
@@ -1505,7 +1610,7 @@ b221
 	* "lost move constructor" @ "class template %GMCounter" $since b210,
 	/ "class %HDirectory" ^ "POSIX dirent API" ~ "libnds-specific API",
 	+ $design "diagnostic pragma for GCC 4.6.0 and newer"
-		@ "header type_op.hpp",
+		@ "header %type_op.hpp",
 	* "class %HDirectory state not restored during operations" $since b175,
 	/ "GUI" $=
 	(
@@ -1617,7 +1722,7 @@ b217
 
 b216
 (
-	/ $design "header file dependencies",
+	/ $design "header %file dependencies",
 	/ "focused boundary for controls",
 	* "strict ISO C++2011 code compatibility" $=
 	(
@@ -1756,7 +1861,7 @@ b209
 	+ "lost %Rect operations",
 	* "strict ISO C++2003 code compatibility" $since b190 $=
 	(
-		^ "fixed macros" ~ "variadic macros" @ "header YFont"
+		^ "fixed macros" ~ "variadic macros" @ "header %YFont"
 	),
 	/ "renamed directory %Shell to %UI @ "library YSLib",
 	/ "several memory utilities for std::shared_ptr and std::unique_ptr"
@@ -1804,7 +1909,7 @@ b206
 	(
 		* "implicit narrowing conversion(N3242 8.5.4/6)"
 			@ "ISO C++0x(N3242 5.17/9)" ^ "explicit static_cast",
-		/ "character types" @ "header platform.h"
+		/ "character types" @ "header %platform.h"
 	),
 	/ "coding using limited C++0x features" $=
 	(
@@ -1973,7 +2078,7 @@ b192
 (
 	+ "empty constant of event arguments",
 	/ "event interfaces",
-	/ $design "header including",
+	/ $design "header %including",
 	+ "unit %YUIContainerEx" @ "directory Shell",
 	+ "class %AUIBoxControl" @ "unit YUIContainerEx",
 	+ "controls: class %YScrollableContainer" @ "unit YGUIComponent",
@@ -2026,7 +2131,7 @@ b187
 (
 	/ "solution configuration" $=
 	(
-		"header files and source files put in separated directories"
+		"header %files and source files put in separated directories"
 	),
 	^ "-O3 & arm specified options compiled library libloki.a"
 		@ "project YSTest",

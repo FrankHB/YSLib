@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1595;
+\version r1596;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2011-11-30 14:44 +0800;
+	2011-12-11 07:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -123,7 +123,7 @@ public:
 
 private:
 	void
-	ExcuteReadingCommand(IndexEventArgs::IndexType);
+	ExcuteReadingCommand(IndexEventArgs::ValueType);
 
 	void
 	ShowMenu(Menu::ID, const Point&);

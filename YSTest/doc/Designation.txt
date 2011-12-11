@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5700;
+\version r5702;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-12-05 13:19 +0800;
+	2011-12-09 20:06 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -1602,7 +1602,7 @@ FetchDefaultScreen();
  "yblit.h" 、 "ydraw.h" 和 "ygdi.h" 依赖于 Core 的 "ygdibase.h" ；
  "yblit.h" 依赖于 Core 的 "ycutil.h" ；
  "ygdi.h" 依赖于 Adaptor 的 "yfont.h" ；
- "ytext.h" 依赖于 "ygdi.h" 、 "yftext.h" 和 Core 的 "ystring.h" 。
+ "ytext.h" 依赖于 "ygdi.h" 、 和 Core 的 "ystring.h" 。
 在 UI 中，以下依赖关系对于头文件包含是确定的：
  "ycomp.h" 依赖于 Core 的 "ygdibase.h"；
  "yfocus.hpp" 和 "ywgtview.h" 依赖于 "ycomp.h" ；
