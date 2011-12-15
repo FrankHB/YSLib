@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2451;
+\version r2467;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-12-04 12:49 +0800;
+	2011-12-11 21:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -131,14 +131,20 @@ private:
 	shared_ptr<Desktop> hDesktopUp; //!< DS 下屏幕默认桌面句柄。
 	shared_ptr<Desktop> hDesktopDown; //!< DS 下屏幕默认桌面句柄。
 
+public:
 	/*!
 	\brief \c private 构造函数：非内联。
-
-	\note 通过友元单例实现进程唯一性语义
+	\pre 断言检查：进程唯一性。
 	*/
 	DSApplication();
 
-public:
+	/*!
+	\brief 析构：释放资源。
+	\since build 269 。
+	*/
+	virtual
+	~DSApplication();
+
 	/*!
 	\brief 取字体缓存引用。
 	\throw LoggedEvent 记录异常事件。
@@ -204,26 +210,6 @@ public:
 	*/
 	PDefH(Desktop&, GetTouchableDesktop)
 		ImplRet(GetDesktopDown())
-
-	/*!
-	\brief 注销字体缓存。
-	*/
-	void
-	DestroyFontCache();
-
-	/*!
-	\brief 初始化设备。
-	\note 无异常抛出。
-	*/
-	void
-	InitializeDevices() ynothrow;
-
-	/*!
-	\brief 释放设备。
-	\note 无异常抛出。
-	*/
-	void
-	ReleaseDevices() ynothrow;
 
 	/*!
 	\brief 复位默认字体缓存：使用指定路径。
@@ -302,6 +288,8 @@ YSL_END_NAMESPACE(Messaging)
 /*!
 \brief 取平台相关的全局资源。
 \note 无异常抛出。
+\pre 内部断言检查存在应用程序实例。
+\note 生存期未确定。需要手动初始化并注册应用程序实例后才能使用。
 \since build 211 。
 */
 DSApplication&

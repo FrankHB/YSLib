@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1401;
+\version r1431;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2011-12-10 15:00 +0800;
+	2011-12-13 16:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -47,9 +47,37 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 	SetVisibleOf(HorizontalScrollBar, false);
 	SetVisibleOf(VerticalScrollBar, true);
 	VerticalScrollBar.SetSmallDelta(1);
-	VerticalScrollBar.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
-		LocateViewPosition(SDst(round(e.Value)));
-	};
+	yunseq(
+		VerticalScrollBar.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
+			LocateViewPosition(SDst(round(e.Value)));
+		},
+		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
+			const auto key(e.GetKeyCode());
+			ScrollCategory t(ScrollCategory::SmallDecrement);
+
+			switch(key)
+			{
+				case KeySpace::Down:
+					t = ScrollCategory::SmallIncrement;
+					break;
+				case KeySpace::PgUp:
+					t = ScrollCategory::LargeDecrement;
+					break;
+				case KeySpace::PgDn:
+					t = ScrollCategory::LargeIncrement;
+				case KeySpace::Up:
+					break;
+				default:
+					return;
+			}
+			VerticalScrollBar.LocateThumb(key == KeySpace::Up || key
+				== KeySpace::Down ? VerticalScrollBar.GetSmallDelta()
+				: VerticalScrollBar.GetLargeDelta(), t);
+			RequestFocus(*this);
+			e.Handled = true;
+		},
+		FetchEvent<KeyHeld>(*this) += OnKeyHeld
+	);
 	Reset();
 }
 
@@ -68,11 +96,12 @@ HexViewArea::Load(const_path_t path)
 	Reset();
 	Source.Open(path);
 
-	const auto n_total_line((Source.GetSize() + ItemPerLine - 1) / ItemPerLine);
+	const IndexType n_total_ln((Source.GetSize() + ItemPerLine - 1)
+		/ ItemPerLine);
 
-	if(n_total_line > GetItemNum())
+	if(n_total_ln > GetItemNum())
 	{
-		VerticalScrollBar.SetMaxValue(n_total_line - GetItemNum());
+		VerticalScrollBar.SetMaxValue(n_total_ln - GetItemNum());
 		VerticalScrollBar.SetLargeDelta(GetItemNum());
 	}
 	else
@@ -83,7 +112,7 @@ void
 HexViewArea::LocateViewPosition(u32 line)
 {
 	UpdateData(ItemPerLine * line);
-	Invalidate(*this);
+	UpdateView(true);
 }
 
 Rect
@@ -100,7 +129,7 @@ HexViewArea::Refresh(const PaintContext& pc)
 
 	yconstexpr auto ItemPerLine(HexViewArea::ItemPerLine); // TODO: fix linkage;
 	auto& y(TextState.PenY);
-	const SDst lh(GetTextLineHeightOf(TextState)), h(GetHeight()),
+	const SDst lh(GetItemHeight()), h(GetHeight()),
 		w_all(GetWidth() - VerticalScrollBar.GetWidth()
 			- GetHorizontalOf(TextState.Margin)),
 		w_blank(w_all / (10 + ItemPerLine * 3)),
@@ -148,7 +177,7 @@ HexViewArea::Reset()
 	ClearData();
 	UpdateItemNum(GetHeight());
 	Source.Close();
-	Invalidate(*this);
+	UpdateView();
 }
 
 void
@@ -174,6 +203,13 @@ HexViewArea::UpdateData(u32 pos)
 		ResizeData(i);
 		Source.SetPosition(pos, SEEK_SET); // Refresh 需要据此判断接近文件结尾。
 	}
+}
+
+void
+HexViewArea::UpdateView(bool is_active)
+{
+	ViewChanged(ViewArgs(*this, is_active));
+	Invalidate(*this);
 }
 
 YSL_END_NAMESPACE(Components)

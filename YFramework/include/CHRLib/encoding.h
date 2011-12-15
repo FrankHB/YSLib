@@ -8,15 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file chrlib.h
+/*!	\file encoding.h
 \ingroup CHRLib
 \brief 字符编码定义。
-\version r1567;
+\version r1572;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 242 。
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-10-03 01:20 +0800;
+	2011-12-15 13:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +38,7 @@ CHRLIB_BEGIN_NAMESPACE(CharSet)
 \brief 字符流编码标识。
 
 编码字符集：使用 IANA 官方字符集名称和 MIBenum（MIB 枚举）。
-\note MIB(management infomation base) 是
+\note MIB(management information base) 是
 	SNMP(simple network management protocal ，简单网络管理协议) 和
 	OSI/ISO 网络管理模型上下文中的虚拟数据库，参见
  http://en.wikipedia.org/wiki/Management_information_base 。

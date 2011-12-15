@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4074;
+\version r4088;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-12-11 07:58 +0800;
+	2011-12-15 12:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -81,14 +81,14 @@ namespace
 
 
 ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
-	: AUIBoxControl(Rect(r.GetPoint(),
+	: Control(Rect(r.GetPoint(),
 		max<SDst>(defMinScrollBarWidth, r.Width),
 		max<SDst>(defMinScrollBarHeight, r.Height))),
 	GMRange<ValueType>(0xFF, 0),
 	Thumb(Rect(0, 0, defMinScrollBarWidth, defMinScrollBarHeight)),
 	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length)
 {
-	Thumb.GetView().pContainer = this;
+	SetContainerPtrOf(Thumb, this);
 	yunseq(
 		GetThumbDrag() += [this](UIEventArgs&&){
 			LocateThumb(0, ScrollCategory::ThumbTrack);
@@ -351,7 +351,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 
 
 AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
-try	: AUIBoxControl(r),
+try	: Control(r),
 	pTrack(o == Horizontal
 		? static_cast<ATrack*>(new HorizontalTrack(
 			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), uMinThumbSize))
@@ -359,20 +359,18 @@ try	: AUIBoxControl(r),
 			Rect(0, r.Width, r.Width, r.Height - r.Width * 2), uMinThumbSize))),
 	PrevButton(Rect()), NextButton(Rect()), small_delta(2)
 {
-	yunseq(
-		pTrack->GetView().pContainer = this,
-		PrevButton.GetView().pContainer = this,
-		NextButton.GetView().pContainer = this
-	);
+	SetContainerPtrOf(*pTrack, this),
+	SetContainerPtrOf(PrevButton, this);
+	SetContainerPtrOf(NextButton, this);
 	yunseq(
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 		FetchEvent<TouchMove>(PrevButton) += OnTouchMove,
-		FetchEvent<TouchDown>(PrevButton) += [this](TouchEventArgs&& e){
-			GetTrack().LocateThumb(small_delta, ScrollCategory::SmallDecrement);
+		FetchEvent<TouchDown>(PrevButton) += [this](TouchEventArgs&&){
+			LocateThumb(small_delta, ScrollCategory::SmallDecrement);
 		},
 		FetchEvent<TouchMove>(NextButton) += OnTouchMove,
-		FetchEvent<TouchDown>(NextButton) += [this](TouchEventArgs&& e){
-			GetTrack().LocateThumb(small_delta, ScrollCategory::SmallIncrement);
+		FetchEvent<TouchDown>(NextButton) += [this](TouchEventArgs&&){
+			LocateThumb(small_delta, ScrollCategory::SmallIncrement);
 		},
 		FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUpAndLeave,
 		FetchEvent<KeyDown>(*this) += OnKey_Bound_EnterAndTouchDown
@@ -471,14 +469,12 @@ VerticalScrollBar::GetBoundControlPtr(const KeyCode& k)
 
 
 ScrollableContainer::ScrollableContainer(const Rect& r)
-	: AUIBoxControl(r),
+	: Control(r),
 	HorizontalScrollBar(Rect(Point::Zero, r.Width, defMinScrollBarHeight)),
 	VerticalScrollBar(Rect(Point::Zero, defMinScrollBarWidth, r.Height))
 {
-	yunseq(
-		HorizontalScrollBar.GetView().pContainer = this,
-		VerticalScrollBar.GetView().pContainer = this
-	);
+	SetContainerPtrOf(HorizontalScrollBar, this),
+	SetContainerPtrOf(VerticalScrollBar, this);
 	MoveToBottom(HorizontalScrollBar);
 	MoveToRight(VerticalScrollBar);
 }
@@ -496,7 +492,7 @@ ScrollableContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 Rect
 ScrollableContainer::Refresh(const PaintContext& pc)
 {
-//	AUIBoxControl::Refresh(pc);
+//	Widget::Refresh(pc);
 	if(IsVisible(HorizontalScrollBar))
 		PaintChild(HorizontalScrollBar, pc);
 	if(IsVisible(VerticalScrollBar))

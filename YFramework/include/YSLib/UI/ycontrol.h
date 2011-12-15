@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5583;
+\version r5590;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-12-07 18:19 +0800;
+	2011-12-12 21:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -156,9 +156,12 @@ FetchEvent(VisualEventMap& m)
 /*!
 \ingroup HelperFunctions
 \brief 取部件事件。
+\tparam _vID 指定事件类型。
+\param controller 指定部件的控制器。
 \exception BadControl 异常中立：无事件映射表：由 GetController 抛出。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则自动添加空事件。
+\since build 195 。
 */
 template<VisualEvent _vID>
 EventT(typename EventTypeMapping<_vID>::HandlerType)&
@@ -170,9 +173,12 @@ FetchEvent(AController& controller)
 /*!
 \ingroup HelperFunctions
 \brief 取部件事件。
+\tparam _vID 指定事件类型。
+\param wgt 指定部件。
 \exception BadControl 异常中立：无事件映射表：由 GetController 抛出。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则自动添加空事件。
+\since build 237 。
 */
 template<VisualEvent _vID>
 inline EventT(typename EventTypeMapping<_vID>::HandlerType)&
@@ -271,6 +277,7 @@ OnKey_Bound_Click(KeyEventArgs&&);
 /*!
 \brief 控件。
 \note 默认加载事件处理器： Move 、 Resize 、 GotFocus 和 LostFocus 时自动无效化。
+\since build 168 。
 */
 class Control : public Widget
 {

@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1876;
+\version r1886;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-12-11 07:09 +0800;
+	2011-12-15 13:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,10 +46,11 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		vDisabled.resize(h->size());
 	yunseq(
 		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
-			if(pHost && IsSelected())
+			if(pHost)
 				switch(e.GetKeyCode())
 				{
 				case KeySpace::Right:
+					if(IsSelected())
 					{
 						auto pMnu(ShowSub(GetSelectedIndex()));
 
@@ -58,13 +59,15 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 					}
 					break;
 				case KeySpace::Left:
+				case KeySpace::Esc:
 					{
 						auto pMnu(GetParentPtr());
 
 						if(pMnu)
 							RequestFocus(*pMnu);
+						else if(e.GetKeyCode() == KeySpace::Esc)
+							Hide();
 					}
-					break;
 				default:
 					break;
 				}

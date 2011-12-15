@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2574;
+\version r2602;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2011-12-11 07:19 +0800;
+	2011-12-15 12:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -55,13 +55,13 @@ namespace
 
 
 ReaderBox::ReaderBox(const Rect& r, ShlReader& shl)
-	: AUIBoxControl(r),
+	: Control(r),
 	Shell(shl), btnClose(Rect(232, 4, 16, 16)),
 	trReader(Rect(8, 4, 192, 16)), lblProgress(Rect(204, 4, 24, 16))
 {
-	btnClose.GetView().pContainer = this;
-	trReader.GetView().pContainer = this;
-	lblProgress.GetView().pContainer = this;
+	SetContainerPtrOf(btnClose, this),
+	SetContainerPtrOf(trReader, this),
+	SetContainerPtrOf(lblProgress, this);
 	btnClose.Text = "×";
 	lblProgress.Text = "0%";
 	lblProgress.ForeColor = ColorSpace::Fuchsia;
@@ -107,12 +107,13 @@ ReaderBox::Refresh(const PaintContext& pc)
 
 
 TextInfoBox::TextInfoBox(const Rect& r, ShlReader& shl)
-	: AUIBoxControl(r),
+	: Control(r),
 	Shell(shl), btnClose(Rect(GetWidth() - 20, 4, 16, 16)),
 	lblInfo(Rect(4, 20, GetWidth() - 8, GetHeight() - 24))
 {
-	btnClose.GetView().pContainer = this;
-	lblInfo.GetView().pContainer = this;
+	SetContainerPtrOf(btnClose, this),
+	SetContainerPtrOf(btnClose, this),
+	SetContainerPtrOf(lblInfo, this),
 	btnClose.Text = "×";
 	FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
 		Hide(*this);
@@ -157,13 +158,16 @@ FileInfoPanel::FileInfoPanel()
 	lblPath(Rect(8, 20, 240, 16)),
 	lblSize(Rect(8, 40, 240, 16)),
 	lblAccessTime(Rect(8, 60, 240, 16)),
-	lblModifiedTime(Rect(8, 80, 240, 16))
+	lblModifiedTime(Rect(8, 80, 240, 16)),
+	lblOperations(Rect(8, 120, 240, 16))
 {
 	BackColor = ColorSpace::Silver;
+	lblOperations.Text = "<↑↓> 滚动一行 <LR> 滚动一屏 <B>退出";
 	*this += lblPath,
 	*this += lblSize,
 	*this += lblAccessTime,
-	*this += lblModifiedTime;
+	*this += lblModifiedTime,
+	*this += lblOperations;
 }
 
 
@@ -226,6 +230,7 @@ TextReaderManager::Activate()
 	SetVisibleOf(boxTextInfo, false);
 	pTextFile = ynew TextFile(path.c_str());
 	Reader.LoadText(*pTextFile);
+	RequestFocusCascade(dsk_dn);
 }
 
 void
@@ -378,10 +383,14 @@ HexReaderManager::HexReaderManager(ShlReader& shl)
 {
 	HexArea.SetRenderer(unique_raw(new BufferedRenderer()));
 	yunseq(
-		FetchEvent<Click>(HexArea) += [](TouchEventArgs&&){
-			CallStored<ShlExplorer>();
+		FetchEvent<KeyDown>(HexArea) += [](KeyEventArgs&& e){
+			if(e.GetKeyCode() == KeySpace::Esc)
+			{
+				CallStored<ShlExplorer>();
+				e.Handled = true; //注意不要使 CallStored 被调用多次。
+			}
 		},
-		FetchEvent<Paint>(HexArea) += [this](PaintEventArgs&&){
+		HexArea.ViewChanged += [this](HexViewArea::ViewArgs&&){
 			UpdateInfo();
 		}
 	);
@@ -432,7 +441,7 @@ HexReaderManager::Activate()
 	auto& dsk_dn(Shell.GetDesktopDown());
 
 	pnlFileInfo.lblPath.Text = u"文件路径："
-		+ Text::MBCSToString(ReaderManager::path);
+		+ Text::MBCSToString(ReaderManager::path, IO::CP_Path);
 
 	struct ::stat file_stat;
 
@@ -445,7 +454,9 @@ HexReaderManager::Activate()
 	dsk_up += pnlFileInfo;
 	HexArea.Load(path.c_str());
 	HexArea.UpdateData(0);
+	UpdateInfo();
 	dsk_dn += HexArea;
+	RequestFocusCascade(HexArea);
 }
 
 void
@@ -493,7 +504,6 @@ ShlReader::OnActivated(const Message& msg)
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
 	SetInvalidationOf(dsk_up),
 	SetInvalidationOf(dsk_dn);
-	RequestFocusCascade(dsk_dn);
 	UpdateToScreen();
 	return 0;
 }

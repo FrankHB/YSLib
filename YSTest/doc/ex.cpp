@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3397; *build 268 rev 93;
+\version r3397; *build 269 rev 87;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-12-11 08:19 +0800;
+	2011-12-15 14:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -327,201 +327,207 @@ $using:
 
 $DONE:
 r1:
-/ \a 'InvalidateCascade' -> 'Invalidate',
-/ @ \cl ATrack $=
+/ @ \cl HexViewArea @ \u HexBrowser $=
 (
-	/ \impl @ \mf (SetThumbLength, SetThumbPosition),
-	/ \simp \impl @ \ctor
+	+ typedef GValueEventArgs<bool> ViewArgs;
+	+ DeclDelegate(HViewEvent, ViewArgs);
+	+ DeclEvent(HViewEvent, ViewChanged);
+	+ \mf void UpdateView(bool = false)
+	/ \impl @ \mf (LocateViewPosition, Reset ^ \mf UpdateView)
 );
+/ \impl @ \ctor @ \cl HexReaderManager @ \impl \u ShellReader;
 
-r2:
-/ @ \h YGDIBase $=
-(
-	/ \ft PDefTmplH1(_type) yconstfn SPos SelectFrom(const GBinaryGroup<_type>&,
-		bool = true) -> \mf yconstfn const _type&
-		GBinaryGroup::GetRef(bool = true) const,
-	/ \ft PDefTmplH1(_type) yconstfn SPos SelectRefFrom(GBinaryGroup<_type>&,
-		bool = true) -> \mf yconstfn _type& GBinaryGroup::GetRef(bool = true),
-	/ \f SDst SelectFrom(Size&, bool = true)
-		-> \mf const SDst& Size::GetRef(bool = true) const,
-	/ \f SDst& SelectRefFrom(Size&, bool = true)
-		-> \mf SDst& Size::GetRef(bool = true),
-	- \a (\f, \ft) UpdateTo
-);
-/ \tr \impl @ \u Scroll;
-
-r3:
-/ \impl @ \ctor @ \cl (Thumb, ListBox),
-/ \impl @ \mf TextList::LocateViewPosition;
-
-r4:
-(
-	/ \impl @ \ctor @ \cl Control;
-	/ \simp \impl @ \f OnTouchMove_Dragging,
-	/ \simp \impl @ \mf (SetThumbLength, SetThumbPosition) @ \cl ATrack
-),
-/ \impl @ HexReaderManager::UpdateInfo @ \impl \u ShlReader;
+r2-r4:
+- \f InitYSConsole @ \u InitConsole,
+/ \tr \impl @ \impl \u YGlobal,
+/= test 1;
 
 r5:
-/= test 1 ^ \conf release;
-
-r6:
-/ @ \cl TextList $=
+/ @ \impl \u YGlobal $=
 (
-	+ private \mf void InvalidateSelected(ListType::difference_type);
-	/ \impl @ \mf void CallSelected();
-	/ \simp \impl @ \ctor
+	(
+		+ DSApplication* pApp @ \un \ns;
+		/ \impl @ \f FetchGlobalInstance;
+		/ \tr \impl @ \f ::main;
+		/ \tr \impl @ \ctor @ \cl DSApplication
+	),
+	/ \f WaitForGUIInput @ \un \ns \mg -> \f Idle
 );
 
-r7-r8:
+r6-r10:
 /= test 2;
 
-r9-r10:
-* \impl @ \op= @ \clt GEvent $since b207;
+r11:
+* \impl @ \f ::main @ \impl \u YGlobal $since r5;
 
-r11-r15:
-/= test 3;
+r12:
+* null function call @ \dtor @ \cl Application $since b243;
 
-r16:
-/= test 4 ^ \conf release;
+r13:
+/ @ \impl \u YGlobal $=
+(
+	/ \impl @ \f ::main,
+	/ @ \cl DSApplication $=
+	(
+		/ \impl @ \ctor,
+		+ \vt \dtor,
+		- \mf DestroyFontCache, ReleaseDevices, InitializeDevices
+	),
+);
 
-r17:
-/ \impl @ \mf \op(*=, /=) @ \clt fixed_pointer @ \h Rational,
-/ \impl @ \mac ImplExpr @ \h YBaseMacro;
+r14:
+/= test 3 ^ \conf release;
 
-r18-r19:
-/= test 5;
-
-r20:
+r15:
 / @ \cl HexViewArea @ \impl \u HexBrowser $=
 (
-	/ \simp @ \ctor,
-	/ \param \tp @ \mf void LocateViewPosition(SDst) -> u32;
+	/ \simp \impl @ \mf Refresh ^ \mf GetItemHeight,
+	/ \impl @ \mf Load
 ),
-/ \simp @ \mf GetPosition @ \cl File ^ \mac DefGetter,
-- \inc \h YFile_(Text) @ \h YText;
+/ \impl @ \ctor @ \cl TextList;
 
-r21:
-/ \simp \impl @ \mf HexViewArea::UpdateData @ \impl \u HexBrowser;
+r16-r17:
+/= test 4;
 
-r22-r74:
-/= test 6;
+r18:
+/ \simp \impl @ \ctor AScrollBar,
+/ \rem @ \h YControl;
+
+r19-r22:
+/= \mf order @ \cl TextList,
+/ @ \cl AScrollBar $=
+(
+	+ \mf \i void LocateThumb(ValueType, ScrollCategory
+		= ScrollCategory::ThumbPosition);
+	/ \simp \impl @ \ctor ^ \mf AScrollBar::LocateThumb
+);
+/ \impl @ \ctor @ \cl HexViewArea @ \impl \u HexBrowser;
+/ \tr \impl @ \ctor HexReaderManager @ \impl \u ShlReader;
+
+r23-r24:
+/ @ \impl \u ShlReader $=
+(
+	/ \impl @ \mf ShlReader::OnActivated,
+	/ \impl @ \mf HexReaderManager::Activate;
+	/ \tr \impl @ \mf TextReaderManager::Activate
+),
+/ \impl @ \ctor @ \cl HexViewArea @ \impl \u HexBrowser;
+
+r25-r34:
+/ \impl @ \f DispatchMessage,
+/= test 5;
+
+r35:
+/ \f ResponseInput @ \u Shell_DS \mg -> \mf ShlDS::OnGotMessage;
+
+r36:
+/= test 6 ^ \conf release;
+
+r37:
+/ \impl @ \ctor HexViewArea @ \impl \u HexBrowser;
+
+r38-r66:
+/= test 7;
+
+r67:
+* \impl @ \ctor @ \cl HexReaderManager @ \impl \u ShlReader $since r24;
+
+r68:
+/ \simp \impl @ \ctor HexViewArea @ \impl \u HexBrowser;
+
+r69-r70:
+/ \impl @ \ctor @ \cl ShlExplorer::TFormExtra @ \impl \u Shells;
+
+r71:
+/= test 8 ^ \conf release;
+
+r72:
+/ \simp \ctor @ \cl DSApplication @ \impl \u YGlobal;
+
+r73:
+/ \impl @ \mf DispatchMessage @ \impl \u YApplication;
+
+r74:
+/ \impl @ \f ::main @ \impl \u YGlobal;
 
 r75:
-* missing invalidation of the thumb before setting thumb position
-	@ class %(HorizontalTrack, VerticalTrack) $since b224 $=
-(
-	/ \impl @ \ctor
-);
++ \as @ \f \i Activate @ \h YApplication;
 
 r76:
-* missing invalidation of the thumb before setting thumb position
-	@ class %ATrack $since b224 $=
-(
-	/ \impl @ \mf (SetThumbLength, SetThumbPosition)
-);
+/= test 9;
 
 r77:
-/ \impl @ ATrack::Refresh;
+* \impl @ \f ::main @ \impl \u YGlobal $since r74;
 
 r78:
-/ \impl @ \mf HexViewArea:LocateViewPosition @ \impl \u HexBrowser;
++ \f \i void SetContainerPtrOf(IWidget&, IWidget* = nullptr) @ \h YWidget;
+/ \simp \impl @ \mf (Panel::\op+=, Panel::\op-=, Window::\op+=#1,
+	Window::\op-=#1, Window::\op+=, Windows::\op-=, Window::Add#1)
+	^ \f SetContainerPtrOf,
+/ \simp \impl @ \ctor @ \cl (ListBox, ATrack, AScrollBar, ScrollableContainer)
+	^ \f SetContainerPtrOf,
+/ \simp \impl @ \ctor @ \cl (ReaderBox, ) @ \impl \u ShellReader;
 
 r79:
-* invalid scrollbar area shown for refreshing @ class %HexViewer
-	@ \u ShlReader @ $since b264 $=
+* missing updating size information of file when opening @ \cl HexReaderManager
+	$since r1 $=
 (
-	/ \impl @ \mf HexViewArea::Refresh
+	/ \impl @ \mf HexReaderManager::Activate
 );
 
 r80:
-/= test 7 ^ \conf release;
+/ @ \u ShlReader $=
+(
+	/ @ \cl FileInfoPanel $=
+	(
+		+ \m Label lblOperations;
+		/ \tr \impl @ \ctor
+	)
+);
 
-r81-r82:
-/ \simp \impl @ \mf MenuHost::ShowRaw;
+r81:
+* encoding of updated path information @ \cl HexReaderManager $since b263,
+(
+	/ \impl @ \mf HexReaderManager::Activate
+);
+
+r82:
+* \rem @ \h Encoding $since b242;
+/= test 10 ^ \conf release;
 
 r83:
-/ \simp \impl @ \mf BufferedRenderer::Refresh;
+/ \a 'AUIBoxControl' -> 'Control' \exc @ \u UIContainerEx;
+- \cl AUIBoxControl @ \u UIContainerEx;
 
-r84:
-/ \simp \impl @ \ctor @ \cl TextList;
-
-r85:
-/= test 8 ^ \conf release;
-
-r86:
-/ \impl @ \mf TextList::LocateViewPosition;
+r84-r86:
+/ \impl @ \ctor @ \cl Menu;
 
 r87:
-/ \cl IndexEventArgs @ \h YWidgetEvent -> \clt GSimpleEventArgs;
-+ typedef GSimpleEventArgs<MTextList::IndexType> IndexEventArgs @ \h TextList;
-/ \tr 'DefDelegate(HIndexEvent, IndexEventArgs)'
-	@ \h YWidgetEvent >> \h TextList,
-/ \tr \impl @ \ctor @ \cl (FileBox, Menu),
-/ \tr @ \cl TextReaderManager @ \u ShlReader;
-
-r88:
-/ \a DefDelegate => DeclDelegate,
-/ \a GMValueEventArgs => GMDoubleValueEventArgs,
-/ \a GSimpleEventArgs => GValueEventArgs;
-
-r89:
-/ @ \cl TextList $=
-(
-	+ typedef GValueEventArgs<bool> ViewArgs;
-	+ DeclDelegate(HViewEvent, ViewArgs)
-	/ private \m DeclEvent(HUIEvent, ViewChanged)
-		-> DeclEvent(HViewEvent, ViewChanged);
-	/ \tr @ \mf ViewChanged,
-	/ \mf void UpdateView() -> void UpdateView(bool = false)
-);
-/ @ \cl ListBox $=
-(
-	(
-		+ typedef TextList::HViewEvent HViewEvent;
-		/ \tr @ \mf ViewChanged
-	),
-	(
-		+ typedef TextList::ViewArgs ViewArgs
-		/ \impl @ \ctor;
-	)
-)
-
-r90:
-/ \impl @ \mf TextList::LocateViewPosition;
-
-r91:
-/= test 9;
-
-r92:
-/ \impl @ \mf ATrack::Refresh;
-
-r93:
-/= test 10 ^ \conf release;
+/= test 11 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-12-11:
--14.7d;
-//Mercurial rev1-rev139: r6595;
+2011-12-15:
+-14.1d;
+//Mercurial rev1-rev139: r6688;
 
 / ...
 
 
 $NEXT_TODO:
-b268-b384:
+b270-b384:
 + partial invalidation support @ %(HexViewArea::Refresh);
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
-/ partial invalidation support @ \f DrawRectRoundCorner;
 * VRAM not flushed when opening lid on real DS;
 + dynamic character mapper loader for \u CharacterMapping;
 + 64-bit integer underlying type support for ystdex::fixed_point;
 + overlapping test @ \cl Rect;
 
 b385-b1152:
+/ partial invalidation support @ \f DrawRectRoundCorner;
 + widget layout managers;
 + formal abstraction of rectangular hit test;
 + key accelerators;
@@ -610,6 +616,39 @@ $ellipse_debug_assertion;
 
 $now
 (
+	/ @ "shells test example" $=
+	(
+		/ "hexadecimal browser" $=
+		(
+			+ "event subscription of actively locating the view"
+				@ "class %HexViewArea",
+			/ "information updating instantly to panel",
+			+ "view scrolling by pressing arrow/L/R",
+			+ "exiting by pressing Esc",
+			* "encoding of updated path information" $since b263
+		),
+		/ "focus automatically requesting"
+	),
+	/ $design "simplified application instance management" $=
+	(
+		^ "assertion to check singleton constraint" ~ "access control",
+		+ "destructor" @ "class %DSApplication",
+		/ "main function cleanup"
+	),
+	* $design "null function call" @ "destructor" @ "class %Application"
+		$since b243,
+	/ "GUI" $=
+	(
+		- "unnecessary view updating for empty list on event %KeyDown"
+			@ "class %TextList",
+		/ $design "simplified container control inheritance",
+		+ "hiding by press Esc" @ "class %Menu"
+	),
+	/ $design "message loop" @ "function %::main"
+),
+
+b268
+(
 	/ GUI $=
 	(
 		+ "invalidation on event %(Move, Resize) as default" @ "class %Control";
@@ -633,7 +672,7 @@ $now
 				/ "simplified implementation" @ "class %IndexEventArgs"
 			);
 			+ "event subscription of active locating the view"
-				@ "class TextList"
+				@ "class %TextList"
 		)
 	),
 	/ "shells test example" $=
@@ -704,10 +743,10 @@ b264
 (
 	/ "shells test example" $=
 	(
-		/ "format of time strings showed by infomation labels"
+		/ "format of time strings showed by information labels"
 			@ "hexadecimal browser" ^ "custom functions" 
 			~ "function %std::ctime",
-		* "file infomation box cannot be shown" @ "text reader" $since b263
+		* "file information box cannot be shown" @ "text reader" $since b263
 	),
 	/ GUI $=
 	(
@@ -748,7 +787,7 @@ b263
 		@ "library %YStandardEx" $since b254,
 	/ @ "hexadecimal browser" @ "shells test example" $=
 	(
-		+ "infomation labels" @ "hexadecimal browser"
+		+ "information labels" @ "hexadecimal browser"
 	)
 ),
 
@@ -993,7 +1032,7 @@ b248
 	)
 ),
 
-r247
+b247
 (
 	/ "GUI" $=
 	(
@@ -1022,7 +1061,7 @@ b246
 	),
 	/ "shells test example" $=
 	(
-		+ "file infomation panel"
+		+ "file information panel"
 	),
 	* "character mapping for GBK" @ "library %CHRLib" $since b245
 ),

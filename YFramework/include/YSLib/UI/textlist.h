@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1453;
+\version r1457;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-12-11 07:38 +0800;
+	2011-12-12 21:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -146,6 +146,12 @@ public:
 	void
 	SetSelected(const Point&);
 
+	/*!
+	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	*/
+	virtual Rect
+	Refresh(const PaintContext&);
+
 private:
 	/*!
 	\brief 调整列表视图底项目（可能不完全）超出下边界以上的竖直偏移量为零。
@@ -190,12 +196,6 @@ public:
 	*/
 	ListType::size_type
 	CheckPoint(const Point&);
-
-	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
-	*/
-	virtual Rect
-	Refresh(const PaintContext&);
 
 	PDefH(void, ClearSelected)
 		ImplBodyMem(viewer, ClearSelected)
@@ -258,7 +258,8 @@ public:
 	\brief 更新视图。
 
 	调用视图变更事件、调整视图长度后无效化自身。
-	\note 参数表示是否主动变更视图。
+	\note 参数表示是否确定仅变更视图位置。
+	\since build 268 。
 	*/
 	void
 	UpdateView(bool = false);

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1882;
+\version r1894;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-12-05 08:09 +0800;
+	2011-12-13 13:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -106,7 +106,59 @@ ShlDS::OnGotMessage(const Message& msg)
 		}
 		break;
 	case SM_INPUT:
-		ResponseInput(msg);
+		//平台相关输入处理。
+		{
+			using namespace Messaging;
+
+			auto hContent(FetchTarget<SM_INPUT>(msg));
+
+			if(hContent)
+			{
+				KeysInfo& k(hContent->Keys);
+				Desktop& d(*hDskDown); // TODO: assertion & etc;
+			//	Desktop& d(FetchGlobalInstance().GetTouchableDesktop());
+
+				using namespace YSL_ KeySpace;
+				using namespace YSL_ Components;
+
+				if(k.Up & Touch)
+				{
+					TouchEventArgs e(d, hContent->CursorLocation);
+
+					ResponseTouch(e, TouchUp);
+				}
+				else if(k.Up)
+				{
+					KeyEventArgs e(d, k.Up);
+
+					ResponseKey(e, KeyUp);
+				}
+				if(k.Down & Touch)
+				{
+					TouchEventArgs e(d, hContent->CursorLocation);
+
+					ResponseTouch(e, TouchDown);
+				}
+				else if(k.Down)
+				{
+					KeyEventArgs e(d, k.Down);
+
+					ResponseKey(e, KeyDown);
+				}
+				if(k.Held & Touch)
+				{
+					TouchEventArgs e(d, hContent->CursorLocation);
+
+					ResponseTouch(e, TouchHeld);
+				}
+				else if(k.Held)
+				{
+					KeyEventArgs e(d, k.Held);
+
+					ResponseKey(e, KeyHeld);
+				}
+			}
+		}
 		SendMessage<SM_PAINT>(FetchShellHandle(), 0xE0, nullptr);
 		return 0;
 	default:
@@ -121,62 +173,6 @@ ShlDS::UpdateToScreen()
 	yunseq(hDskUp->Validate(), hDskDown->Validate());
 	hDskUp->Update();
 	hDskDown->Update();
-}
-
-
-void
-ResponseInput(const Message& msg)
-{
-	using namespace Messaging;
-
-	auto hContent(FetchTarget<SM_INPUT>(msg));
-
-	if(!hContent)
-		return;
-
-	KeysInfo& k(hContent->Keys);
-	GUIShell& shl(FetchGUIShell());
-	Desktop& d(FetchGlobalInstance().GetTouchableDesktop());
-
-	using namespace YSL_ KeySpace;
-	using namespace YSL_ Components;
-
-	if(k.Up & Touch)
-	{
-		TouchEventArgs e(d, hContent->CursorLocation);
-
-		shl.ResponseTouch(e, TouchUp);
-	}
-	else if(k.Up)
-	{
-		KeyEventArgs e(d, k.Up);
-
-		shl.ResponseKey(e, KeyUp);
-	}
-	if(k.Down & Touch)
-	{
-		TouchEventArgs e(d, hContent->CursorLocation);
-
-		shl.ResponseTouch(e, TouchDown);
-	}
-	else if(k.Down)
-	{
-		KeyEventArgs e(d, k.Down);
-
-		shl.ResponseKey(e, KeyDown);
-	}
-	if(k.Held & Touch)
-	{
-		TouchEventArgs e(d, hContent->CursorLocation);
-
-		shl.ResponseTouch(e, TouchHeld);
-	}
-	else if(k.Held)
-	{
-		KeyEventArgs e(d, k.Held);
-
-		shl.ResponseKey(e, KeyHeld);
-	}
 }
 
 YSL_END_NAMESPACE(DS)

@@ -11,12 +11,13 @@
 /*!	\file uicontx.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1078;
+\version r1084;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 192 。
 \par 创建时间:
 	2011-02-21 09:01:13 +0800;
 \par 修改时间:
-	2011-11-05 11:34 +0800;
+	2011-12-15 12:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,10 +30,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-AUIBoxControl::AUIBoxControl(const Rect& r)
-	: Control(r)
-{}
 
 YSL_END_NAMESPACE(Components)
 

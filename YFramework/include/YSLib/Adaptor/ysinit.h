@@ -11,12 +11,13 @@
 /*!	\file ysinit.h
 \ingroup Adaptor
 \brief 程序启动时的通用初始化。
-\version 0.1545;
+\version r1551;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2011-06-19 02:26 +0800;
+	2011-12-11 19:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,13 +31,6 @@
 #include "../Core/ysdef.h"
 
 YSL_BEGIN
-
-/*!
-\brief 初始化主控制台。
-*/
-void
-InitYSConsole();
-
 
 //默认字型路径和目录。
 extern const_path_t DEF_FONT_PATH;

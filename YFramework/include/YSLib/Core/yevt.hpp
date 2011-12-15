@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4875;
+\version r4878;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-12-11 07:23 +0800;
+	2011-12-12 16:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,6 +37,7 @@ YSL_BEGIN
 \brief 标准事件处理器类模板。
 \note 若使用函数对象，可以不满足 \c EqualityComparable 的接口，即
 	可使用返回 \c bool 的 \c operator== ，但此模板类无法检查其语义正确性。
+\warning 非虚析构。
 \since build 173 。
 */
 template<class _tEventArgs>
@@ -145,6 +146,7 @@ private:
 /*!
 \brief 事件类模板。
 \note 支持顺序多播。
+\warning 非虚析构。
 \since 早于 build 132 。
 */
 template<class _tEventArgs>
@@ -402,6 +404,7 @@ public:
 
 /*!
 \brief 依赖事件项类模板。
+\warning 非虚析构。
 \since build 195 。
 */
 template<class _tEvent, class _tOwnerPointer = shared_ptr<_tEvent>>
@@ -608,7 +611,8 @@ private:
 
 public:
 	template<typename _type>
-	inline GEventPointerWrapper(_type&& p)
+	inline
+	GEventPointerWrapper(_type&& p)
 		: ptr(yforward(p))
 	{
 		YAssert(bool(p), "Null pointer found @ GEventItem::GEventItem;");

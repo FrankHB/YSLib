@@ -11,13 +11,13 @@
 /*!	\file ypanel.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r1199;
+\version r1201;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201 。
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2011-11-30 14:38 +0800;
+	2011-12-14 21:03 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -39,7 +39,7 @@ void
 Panel::operator+=(IWidget& wgt)
 {
 	MUIContainer::operator+=(wgt);
-	wgt.GetView().pContainer = this;
+	SetContainerPtrOf(wgt, this);
 }
 
 bool
@@ -47,7 +47,7 @@ Panel::operator-=(IWidget& wgt)
 {
 	if(FetchContainerPtr(wgt) == this)
 	{
-		wgt.GetView().pContainer = nullptr;
+		SetContainerPtrOf(wgt);
 		if(FetchFocusingPtr(*this) == &wgt)
 			GetView().pFocusing = nullptr;
 		return MUIContainer::operator-=(wgt);

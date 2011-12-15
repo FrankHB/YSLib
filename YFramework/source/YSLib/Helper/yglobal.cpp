@@ -11,12 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3271;
+\version r3338;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-11-05 11:21 +0800;
+	2011-12-14 18:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -102,43 +103,65 @@ DSScreen::Update(Color c)
 YSL_END_NAMESPACE(Devices)
 
 
+namespace
+{
+	//注册的应用程序指针。
+	DSApplication* pApp;
+}
+
 DSApplication::DSApplication()
 	: pFontCache(), hScreenUp(), hScreenDown(), hDesktopUp(), hDesktopDown()
-{}
-
-FontCache&
-DSApplication::GetFontCache() const ythrow(LoggedEvent)
 {
-	if(!pFontCache)
-		throw LoggedEvent("Null font cache pointer found"
-			" @ Application::GetFontCache;");
-	return *pFontCache;
-}
+	YAssert(!YSL_ pApp, "Duplicate instance found"
+		" @ DSApplication::DSApplication;");
 
-void
-DSApplication::DestroyFontCache()
-{
-	ydelete(pFontCache);
-	pFontCache = nullptr;
-}
+	//注册全局应用程序实例。
+	YSL_ pApp = this;
 
-void
-DSApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
-{
-	try
+	//全局初始化。
+
+	//设置默认异常终止函数。
+	std::set_terminate(terminate);
+
+	//启用设备。
+	::powerOn(POWER_ALL);
+
+	//启用 LibNDS 默认异常处理。
+	::defaultExceptionHandler();
+
+	//初始化主控制台。
+	platform::YConsoleInit(true, ColorSpace::Lime);
+
+/*	if(!setlocale(LC_ALL, "zh_CN.GBK"))
 	{
-		ydelete(pFontCache);
-		pFontCache = ynew FontCache(path);
-	}
-	catch(...)
-	{
-		throw LoggedEvent("Error occured @ YApplication::ResetFontCache;");
-	}
-}
+		EpicFail();
+		platform::yprintf("setlocale() with %s failed.\n", "zh_CN.GBK");
+		terminate();
+	}*/
 
-void
-DSApplication::InitializeDevices() ynothrow
-{
+	//初始化文件系统。
+	//初始化 EFSLib 和 LibFAT 。
+	//当 .nds 文件大于32MB时， EFS 行为异常。
+#ifdef USE_EFS
+	if(!::EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, nullptr))
+	{
+		//如果初始化 EFS 失败则初始化 FAT 。
+#endif
+		if(!fatInitDefault())
+			LibfatFail();
+		IO::ChangeDirectory(Application::CommonAppDataPath
+			.GetNativeString());
+#ifdef USE_EFS
+	}
+#endif
+
+	//检查程序是否被正确安装。
+	CheckInstall();
+
+	//初始化系统字体资源。
+	InitializeSystemFontCache();
+
+	//初始化系统设备。
 	//初始化显示设备。
 	try
 	{
@@ -161,22 +184,51 @@ DSApplication::InitializeDevices() ynothrow
 	}
 }
 
-void
-DSApplication::ReleaseDevices() ynothrow
+DSApplication::~DSApplication()
 {
+	//释放全局非静态资源。
+
+	//释放默认字体资源。
+	ydelete(pFontCache);
+	pFontCache = nullptr;
+
+	//释放设备。
 	reset(hDesktopUp);
 	reset(hScreenUp);
 	reset(hDesktopDown);
 	reset(hScreenDown);
 }
 
+FontCache&
+DSApplication::GetFontCache() const ythrow(LoggedEvent)
+{
+	if(!pFontCache)
+		throw LoggedEvent("Null font cache pointer found"
+			" @ Application::GetFontCache;");
+	return *pFontCache;
+}
+
+void
+DSApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
+{
+	try
+	{
+		ydelete(pFontCache);
+		pFontCache = ynew FontCache(path);
+	}
+	catch(...)
+	{
+		throw LoggedEvent("Error occured @ YApplication::ResetFontCache;");
+	}
+}
+
 
 DSApplication&
 FetchGlobalInstance() ynothrow
 {
-	static DSApplication theApp;
+	YAssert(pApp, "Null pointer found @ FetchGlobalInstance;");
 
-	return theApp;
+	return *pApp;
 }
 
 Application&
@@ -222,40 +274,33 @@ namespace
 	{
 		return Point(c.GetX(), c.GetY());
 	}
-
-	//图形用户界面输入等待函数。
-	void
-	WaitForGUIInput()
-	{
-		using namespace Messaging;
-
-		static KeysInfo keys;
-		static CursorInfo TouchPos_Old, TouchPos;
-		static shared_ptr<InputContent> pContent;
-
-		if(keys.Held & KeySpace::Touch)
-			TouchPos_Old = TouchPos;
-		scanKeys();
-		WriteKeysInfo(keys, TouchPos);
-
-		const Point pt(ToSPoint(keys.Held & KeySpace::Touch
-			? TouchPos : TouchPos_Old));
-
-		if(!pContent || ((FetchAppInstance().GetDefaultMessageQueue().IsEmpty()
-			|| keys != pContent->Keys || pt != pContent->CursorLocation)
-			&& pt != Point::Invalid))
-		{
-			pContent = share_raw(new InputContent(keys, pt));
-			SendMessage<SM_INPUT>(FetchShellHandle(), 0x40, pContent);
-		}
-	}
 }
-
 
 void
 Idle()
 {
-	WaitForGUIInput();
+	//等待图形用户界面输入。
+	using namespace Messaging;
+
+	static KeysInfo keys;
+	static CursorInfo TouchPos_Old, TouchPos;
+	static shared_ptr<InputContent> pContent;
+
+	if(keys.Held & KeySpace::Touch)
+		TouchPos_Old = TouchPos;
+	scanKeys();
+	WriteKeysInfo(keys, TouchPos);
+
+	const Point pt(ToSPoint(keys.Held & KeySpace::Touch
+		? TouchPos : TouchPos_Old));
+
+	if(!pContent || ((FetchAppInstance().GetDefaultMessageQueue().IsEmpty()
+		|| keys != pContent->Keys || pt != pContent->CursorLocation)
+		&& pt != Point::Invalid))
+	{
+		pContent = share_raw(new InputContent(keys, pt));
+		SendMessage<SM_INPUT>(FetchShellHandle(), 0x40, pContent);
+	}
 }
 
 bool
@@ -381,112 +426,65 @@ main(int argc, char* argv[])
 {
 	using namespace YSL;
 
+	Log log;
+
 	try
 	{
-		//全局初始化。
-
-		//设置默认异常终止函数。
-		std::set_terminate(terminate);
-
-		//启用设备。
-		powerOn(POWER_ALL);
-
-		//启用 LibNDS 默认异常处理。
-		defaultExceptionHandler();
-
-		//初始化主控制台。
-		InitYSConsole();
-
-	/*	if(!setlocale(LC_ALL, "zh_CN.GBK"))
 		{
-			EpicFail();
-			platform::yprintf("setlocale() with %s failed.\n", "zh_CN.GBK");
-			terminate();
-		}*/
+			//应用程序实例。
+			DSApplication theApp;
 
-		//初始化文件系统。
-		//初始化 EFSLib 和 LibFAT 。
-		//当 .nds 文件大于32MB时， EFS 行为异常。
-	#ifdef USE_EFS
-		if(!EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, nullptr))
-		{
-			//如果初始化 EFS 失败则初始化 FAT 。
-	#endif
-			if(!fatInitDefault())
-				LibfatFail();
-			IO::ChangeDirectory(Application::CommonAppDataPath
-				.GetNativeString());
-	#ifdef USE_EFS
+			/*
+			需要保证主 Shell 句柄在应用程序实例初始化之后初始化，
+			因为 MainShell 的基类 Shell 的构造函数
+			调用了 Application 的非静态成员函数。
+			*/
+			static shared_ptr<Shell> hMainShell(new Shells::MainShell());
+
+			if(!FetchAppInstance().SetShellHandle(hMainShell))
+				FetchAppInstance().Log.FatalError("Failed launching the"
+					" main shell @ main;");
+
+			//主体。
+
+			using namespace Shells;
+
+			Message msg;
+			int r;
+
+			//消息循环。
+			while(true) 
+			{
+				r = FetchMessage(msg, 0);
+				if(r < 0)
+					Idle();
+				if(r == SM_QUIT)
+					break;
+				TranslateMessage(msg);
+				DispatchMessage(msg);
+			}
+
+			//清理消息队列（当应用程序实例为静态存储期对象时需要）。
+		//	FetchAppInstance().GetDefaultMessageQueue().Clear();
+		//	FetchAppInstance().GetBackupMessageQueue().Clear();
+
+			//释放 Shell 。
+			YSL_ ReleaseShells();
+			reset(hMainShell);
 		}
-	#endif
-
-		//检查程序是否被正确安装。
-		CheckInstall();
-
-		//初始化系统字体资源。
-		InitializeSystemFontCache();
-
-		//初始化系统设备。
-		FetchGlobalInstance().InitializeDevices();
-
-		//注册全局应用程序对象。
-		FetchAppInstance();
-
-		/*
-		需要保证主 Shell 句柄在应用程序实例初始化之后初始化，
-		因为 MainShell 的基类 Shell 的构造函数
-		调用了 Application 的非静态成员函数。
-		*/
-		static shared_ptr<Shell> hMainShell(new Shells::MainShell());
-
-		if(!FetchAppInstance().SetShellHandle(hMainShell))
-			FetchAppInstance().Log.FatalError("Failed launching the"
-				" main shell @ main;");
-
-		//主体。
-
-		using namespace Shells;
-
-		Message msg;
-
-		//消息循环。
-		while(FetchMessage(msg, 0) != SM_QUIT)
-		{
-			TranslateMessage(msg);
-			DispatchMessage(msg);
-		}
-
-		const int r(0); // TODO: evaluate the main result properly;
-
-		//清理消息队列。
-		FetchAppInstance().GetDefaultMessageQueue().Clear();
-		FetchAppInstance().GetBackupMessageQueue().Clear();
-
-		//释放 Shell 。
-		YSL_ ReleaseShells();
-		reset(hMainShell);
-
-		//释放全局非静态资源。
-
-		//释放默认字体资源。
-		FetchGlobalInstance().DestroyFontCache();
-
-		//释放设备。
-		FetchGlobalInstance().ReleaseDevices();
 
 	#ifdef YSL_USE_MEMORY_DEBUG
 		OnExit_DebugMemory();
 	#endif
-		return r;
+		return 0;
 	}
 	catch(std::exception& e)
 	{
-		YSL_ FetchAppInstance().Log.FatalError(e.what());
+		log.FatalError(e.what());
 	}
 	catch(...)
 	{
-		YSL_ FetchAppInstance().Log.FatalError("Unhandled exception"
-			" @ int main(int, char*[]);");
+		log.FatalError("Unhandled exception @ int main(int, char*[]);");
 	}
 }
 

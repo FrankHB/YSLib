@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1606;
+\version r1609;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2011-12-11 07:50 +0800;
+	2011-12-12 21:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -141,8 +141,8 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 					default:
 						return;
 					}
+				UpdateView();
 			}
-			UpdateView();
 		},
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
@@ -188,6 +188,19 @@ void
 TextList::SetSelected(SPos x, SPos y)
 {
 	SetSelected(CheckPoint(x, y));
+}
+
+Rect
+TextList::Refresh(const PaintContext& pc)
+{
+//	Widget::Refresh(pc);
+
+	const auto& pt(pc.Location);
+
+	PaintItems(pc);
+	DrawRect(pc.Target, pt, GetSizeOf(*this), IsFocused(*this) ? ColorSpace::Aqua
+		: FetchGUIShell().Colors[Styles::ActiveBorder]);
+	return Rect(pt, GetSizeOf(*this));
 }
 
 SDst
@@ -250,19 +263,6 @@ TextList::CheckPoint(SPos x, SPos y)
 	return Rect(Point::Zero, GetSizeOf(*this)).Contains(x, y)
 		? (y + top_offset) / GetItemHeight() + viewer.GetHeadIndex()
 		: ListType::size_type(-1);
-}
-
-Rect
-TextList::Refresh(const PaintContext& pc)
-{
-//	Widget::Refresh(pc);
-
-	const auto& pt(pc.Location);
-
-	PaintItems(pc);
-	DrawRect(pc.Target, pt, GetSizeOf(*this), IsFocused(*this) ? ColorSpace::Aqua
-		: FetchGUIShell().Colors[Styles::ActiveBorder]);
-	return Rect(pt, GetSizeOf(*this));
 }
 
 void

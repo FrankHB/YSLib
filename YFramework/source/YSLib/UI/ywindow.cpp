@@ -11,13 +11,13 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4351;
+\version r4357;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-12-05 07:35 +0800;
+	2011-12-14 21:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -43,13 +43,13 @@ void
 Window::operator+=(IWidget& wgt)
 {
 	MUIContainer::operator+=(wgt);
-	wgt.GetView().pContainer = this;
+	SetContainerPtrOf(wgt, this);
 }
 void
 Window::operator+=(Window& wnd)
 {
 	MUIContainer::Add(wnd, DefaultWindowZOrder);
-	wnd.GetView().pContainer = this;
+	SetContainerPtrOf(wnd, this);
 }
 
 bool
@@ -57,7 +57,7 @@ Window::operator-=(IWidget& wgt)
 {
 	if(FetchContainerPtr(wgt) == this)
 	{
-		wgt.GetView().pContainer = nullptr;
+		SetContainerPtrOf(wgt);
 		if(FetchFocusingPtr(*this) == &wgt)
 			GetView().pFocusing = nullptr;
 		return MUIContainer::operator-=(wgt);
@@ -69,7 +69,7 @@ Window::operator-=(Window& wnd)
 {
 	if(FetchContainerPtr(wnd) == this)
 	{
-		wnd.GetView().pContainer = nullptr;
+		SetContainerPtrOf(wnd);
 		if(FetchFocusingPtr(*this) == &wnd)
 			GetView().pFocusing = nullptr;
 		return MUIContainer::operator-=(wnd);
@@ -81,7 +81,7 @@ void
 Window::Add(IWidget& wgt, ZOrderType z)
 {
 	MUIContainer::Add(wgt, z);
-	wgt.GetView().pContainer = this;
+	SetContainerPtrOf(wgt, this);
 }
 
 bool

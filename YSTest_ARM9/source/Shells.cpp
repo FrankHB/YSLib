@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5458;
+\version r5461;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-12-05 09:25 +0800;
+	2011-12-13 17:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -636,9 +636,11 @@ ShlExplorer::TFormExtra::TFormExtra()
 	);
 	SetInvalidationOf(*this);
 	yunseq(
-		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&&){
+		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
 			BackColor = GenerateRandomColor();
 			SetInvalidationOf(*this);
+			if(e.Strategy == RoutedEventArgs::Direct)
+				e.Handled = true;
 		},
 		FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging,
 		FetchEvent<Move>(btnDragTest) += [this](UIEventArgs&&){

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2031;
+\version r2034;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-12-04 12:49 +0800;
+	2011-12-13 13:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -133,8 +133,6 @@ public:
 	UpdateToScreen();
 };
 
-
-//平台相关输入处理。
 
 /*!
 \brief 响应输入。

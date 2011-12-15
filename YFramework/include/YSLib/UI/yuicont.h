@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2606;
+\version r2608;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-12-03 21:50 +0800;
+	2011-12-14 20:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -41,7 +41,8 @@ YSL_BEGIN_NAMESPACE(Components)
 \since build 227 。
 */
 template<class _tNode>
-_tNode* FetchWidgetNodePtr(IWidget* pWgt)
+_tNode*
+FetchWidgetNodePtr(IWidget* pWgt)
 {
 	_tNode* pNode(nullptr);
 
@@ -56,7 +57,8 @@ _tNode* FetchWidgetNodePtr(IWidget* pWgt)
 \since build 227 。
 */
 template<class _tNode>
-_tNode* FetchWidgetNodePtr(IWidget* pWgt, Point& pt)
+_tNode*
+FetchWidgetNodePtr(IWidget* pWgt, Point& pt)
 {
 	_tNode* pNode(nullptr);
 

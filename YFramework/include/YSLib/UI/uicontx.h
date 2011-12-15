@@ -11,12 +11,13 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1171;
+\version r1179;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 192 。
 \par 创建时间:
 	2011-02-21 08:59:34 +0800;
 \par 修改时间:
-	2011-11-07 22:28 +0800;
+	2011-12-15 12:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,20 +34,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
-
-//! \brief 固定容器抽象实现类。
-class AUIBoxControl : public Control
-{
-public:
-	AUIBoxControl(const Rect& = Rect::Empty);
-	inline DefDeMoveCtor(AUIBoxControl)
-
-	/*!
-	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
-	*/
-	ImplA(IWidget)
-	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)));
-};
 
 YSL_END_NAMESPACE(Components)
 

@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6314;
+\version r6320;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-12-05 07:12 +0800;
+	2011-12-05 21:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -180,6 +180,16 @@ GetBoundsOf(const IWidget& wgt)
 */
 void
 SetBoundsOf(IWidget&, const Rect&);
+
+/*!
+\brief 设置部件的容器指针。
+\since build 269 。
+*/
+inline void
+SetContainerPtrOf(IWidget& wgt, IWidget* pCon = nullptr)
+{
+	wgt.GetView().pContainer = pCon;
+}
 
 /*!
 \brief 设置部件左上角所在位置（相对于容器的偏移坐标）。

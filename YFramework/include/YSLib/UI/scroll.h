@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3374;
+\version r3385;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-12-11 07:24 +0800;
+	2011-12-15 12:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -101,7 +101,7 @@ DeclDelegate(HScrollEvent, ScrollEventArgs)
 \brief 轨道。
 \since build 167 。
 */
-class ATrack : public AUIBoxControl, public GMRange<ScrollEventArgs::ValueType>
+class ATrack : public Control, public GMRange<ScrollEventArgs::ValueType>
 {
 public:
 	//! \brief 轨道区域。
@@ -142,7 +142,7 @@ public:
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	\note 仅滑块。
 	*/
-	ImplI(AUIBoxControl) IWidget*
+	IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 	DefEventGetter(ynothrow, HUIEvent, ThumbDrag, ThumbDrag) //!< 滑块拖动事件。
 	DefEventGetter(ynothrow, HScrollEvent, Scroll, Scroll) //!< 滚动事件。
@@ -259,7 +259,7 @@ public:
 \brief 滚动条。
 \since build 162 。
 */
-class AScrollBar : public AUIBoxControl
+class AScrollBar : public Control
 {
 public:
 	typedef ATrack::ValueType ValueType; //!< 值类型。
@@ -286,7 +286,7 @@ public:
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	\note 仅滑块和滚动条按钮。
 	*/
-	ImplI(AUIBoxControl) IWidget*
+	IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 	/*!
 	\brief 取轨道引用。
@@ -309,6 +309,13 @@ public:
 	*/
 	virtual Rect
 	Refresh(const PaintContext&);
+
+	/*!
+	\brief 定位滑块。
+	\note 调用 GetTrack() 的同名函数指定滚动事件关联值设置滑块位置并触发对应事件。
+	*/
+	void
+	LocateThumb(ValueType, ScrollCategory = ScrollCategory::ThumbPosition);
 };
 
 inline ATrack&
@@ -318,6 +325,12 @@ AScrollBar::GetTrack() const ynothrow
 		"Null widget pointer found @ AScrollBar::GetTrack;");
 
 	return *pTrack;
+}
+
+inline void
+AScrollBar::LocateThumb(ValueType val, ScrollCategory t)
+{
+	return GetTrack().LocateThumb(val, t);
 }
 
 
@@ -366,7 +379,7 @@ protected:
 \brief 带滚动条的容器基实现类。
 \since build 192 。
 */
-class ScrollableContainer : public AUIBoxControl
+class ScrollableContainer : public Control
 {
 protected:
 	Components::HorizontalScrollBar HorizontalScrollBar;
@@ -380,7 +393,7 @@ public:
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	*/
-	ImplI(AUIBoxControl) IWidget*
+	IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 	/*!
