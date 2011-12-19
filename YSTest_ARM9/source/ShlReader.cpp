@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2602;
+\version r2644;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2011-12-15 12:55 +0800;
+	2011-12-19 10:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -106,15 +106,16 @@ ReaderBox::Refresh(const PaintContext& pc)
 }
 
 
-TextInfoBox::TextInfoBox(const Rect& r, ShlReader& shl)
-	: Control(r),
+TextInfoBox::TextInfoBox(ShlReader& shl)
+	: Control(Rect(32, 32, 160, 96)),
 	Shell(shl), btnClose(Rect(GetWidth() - 20, 4, 16, 16)),
-	lblInfo(Rect(4, 20, GetWidth() - 8, GetHeight() - 24))
+	lblEncoding(Rect(4, 20, 160, 16)),
+	lblSize(Rect(4, 40, 160, 16))
 {
-	SetContainerPtrOf(btnClose, this),
-	SetContainerPtrOf(btnClose, this),
-	SetContainerPtrOf(lblInfo, this),
 	btnClose.Text = "×";
+	SetContainerPtrOf(btnClose, this),
+	SetContainerPtrOf(lblEncoding, this),
+	SetContainerPtrOf(lblSize, this);
 	FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
 		Hide(*this);
 	};
@@ -124,9 +125,9 @@ TextInfoBox::TextInfoBox(const Rect& r, ShlReader& shl)
 IWidget*
 TextInfoBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	IWidget* const pWidgets[] = {&btnClose, &lblInfo};
+	IWidget* const pWidgets[] = {&btnClose, &lblEncoding, &lblSize};
 
-	for(int i(0); i < 2; ++i)
+	for(size_t i(0); i < sizeof(pWidgets) / sizeof(*pWidgets); ++i)
 		if(auto p = CheckWidget(*pWidgets[i], pt, f))
 			return p;
 	return nullptr;
@@ -136,9 +137,10 @@ Rect
 TextInfoBox::Refresh(const PaintContext& pc)
 {
 	Widget::Refresh(pc);
-	IWidget* const pWidgets[] = {&btnClose, &lblInfo};
 
-	for(int i(0); i < 2; ++i)
+	IWidget* const pWidgets[] = {&btnClose, &lblEncoding, &lblSize};
+
+	for(size_t i(0); i < sizeof(pWidgets) / sizeof(*pWidgets); ++i)
 		PaintChild(*pWidgets[i], pc);
 	return Rect(pc.Location, GetSizeOf(*this));
 }
@@ -146,10 +148,12 @@ TextInfoBox::Refresh(const PaintContext& pc)
 void
 TextInfoBox::UpdateData(DualScreenReader& reader)
 {
-	char str[20];
+	char str[40];
 
 	siprintf(str, "Encoding: %d;", reader.GetEncoding());
-	lblInfo.Text = str;
+	lblEncoding.Text = str;
+	siprintf(str, "Size: %u;", reader.GetTextSize());
+	lblSize.Text = str;
 }
 
 
@@ -181,7 +185,7 @@ ReaderManager::ReaderManager(ShlReader& shl)
 TextReaderManager::TextReaderManager(ShlReader& shl)
 	: ReaderManager(shl),
 	Reader(), boxReader(Rect(0, 168, 256, 24), shl),
-	boxTextInfo(Rect(32, 32, 128, 64), shl),
+	boxTextInfo(shl),
 	pTextFile(), mhMain(shl.GetDesktopDown())
 {
 	{
@@ -228,7 +232,7 @@ TextReaderManager::Activate()
 	dsk_dn += boxTextInfo;
 	SetVisibleOf(boxReader, false),
 	SetVisibleOf(boxTextInfo, false);
-	pTextFile = ynew TextFile(path.c_str());
+	pTextFile = unique_raw(new TextFile(path.c_str()));
 	Reader.LoadText(*pTextFile);
 	RequestFocusCascade(dsk_dn);
 }
@@ -240,7 +244,7 @@ TextReaderManager::Deactivate()
 	auto& dsk_dn(Shell.GetDesktopDown());
 
 	Reader.UnloadText();
-	safe_delete_obj()(pTextFile);
+	pTextFile = nullptr;
 	mhMain.Clear();
 	yunseq(
 		FetchEvent<Click>(dsk_dn).Remove(*this, &TextReaderManager::OnClick),
@@ -272,16 +276,16 @@ TextReaderManager::ExcuteReadingCommand(IndexEventArgs::ValueType idx)
 		Show(boxTextInfo);
 		break;
 	case MR_LineUp:
-		Reader.LineUp();
+		Reader.Execute(DualScreenReader::LineUpScroll);
 		break;
 	case MR_LineDown:
-		Reader.LineDown();
+		Reader.Execute(DualScreenReader::LineDownScroll);
 		break;
 	case MR_ScreenUp:
-		Reader.ScreenUp();
+		Reader.Execute(DualScreenReader::ScreenUpScroll);
 		break;
 	case MR_ScreenDown:
-		Reader.ScreenDown();
+		Reader.Execute(DualScreenReader::ScreenDownScroll);
 		break;
 	}
 }
@@ -319,59 +323,47 @@ TextReaderManager::OnKeyDown(KeyEventArgs&& e)
 		switch(k)
 		{
 		case KeySpace::Enter:
-			//Reader.Invalidate();
-			Reader.Update();
+			Reader.UpdateView();
 			break;
 		case KeySpace::Esc:
 			CallStored<ShlExplorer>();
 			break;
 		case KeySpace::Up:
+			Reader.Execute(DualScreenReader::LineUpScroll);
+			break;
 		case KeySpace::Down:
+			Reader.Execute(DualScreenReader::LineDownScroll);
+			break;
 		case KeySpace::PgUp:
+			Reader.Execute(DualScreenReader::ScreenUpScroll);
+			break;
 		case KeySpace::PgDn:
-			{
-				switch(k)
-				{
-				case KeySpace::Up:
-					Reader.LineUp();
-					break;
-				case KeySpace::Down:
-					Reader.LineDown();
-					break;
-				case KeySpace::PgUp:
-					Reader.ScreenUp();
-					break;
-				case KeySpace::PgDn:
-					Reader.ScreenDown();
-					break;
-				}
-			}
+			Reader.Execute(DualScreenReader::ScreenDownScroll);
 			break;
 		case KeySpace::X:
 			Reader.SetLineGap(5);
-			Reader.Update();
+			Reader.UpdateView();
 			break;
 		case KeySpace::Y:
 			Reader.SetLineGap(8);
-			Reader.Update();
+			Reader.UpdateView();
 			break;
 		case KeySpace::Left:
 			//Reader.SetFontSize(Reader.GetFontSize()+1);
 			if(Reader.GetLineGap() != 0)
 			{
 				Reader.SetLineGap(Reader.GetLineGap() - 1);
-				Reader.Update();
+				Reader.UpdateView();
 			}
 			break;
 		case KeySpace::Right:
 			if(Reader.GetLineGap() != 12)
 			{
 				Reader.SetLineGap(Reader.GetLineGap() + 1);
-				Reader.Update();
+				Reader.UpdateView();
 			}
-			break;
 		default:
-			return;
+			break;
 		}
 	}
 }
@@ -475,8 +467,8 @@ HexReaderManager::UpdateInfo()
 {
 	char str[80];
 
-	::siprintf(str, "当前位置： %u / %u", HexArea.GetSource().GetPosition(),
-		HexArea.GetSource().GetSize());
+	::siprintf(str, "当前位置： %u / %u", HexArea.GetModel().GetPosition(),
+		HexArea.GetModel().GetSize());
 	pnlFileInfo.lblSize.Text = Text::MBCSToString(str, Text::CP_Default);
 	Invalidate(pnlFileInfo.lblSize);
 }

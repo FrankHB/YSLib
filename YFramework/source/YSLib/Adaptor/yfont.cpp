@@ -11,13 +11,13 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7298;
+\version r7302;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-12-03 16:58 +0800;
+	2011-12-19 15:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -351,12 +351,11 @@ FontCache::GetTypefacePtr(const FontFamily::NameType& family_name,
 	return f->GetTypefacePtr(style_name);
 }
 CharBitmap
-FontCache::GetGlyph(ucs4_t c)
+FontCache::GetGlyph(ucs4_t c, FT_UInt flags)
 {
 	if(!scaler.face_id)
 		return FTC_SBit();
 
-	const u32 flags(FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL);
 	const u32 index(FTC_CMapCache_Lookup(cmapCache, scaler.face_id,
 		GetTypefacePtr()->cmap_index, c));
 	FTC_SBit sbit;
@@ -371,7 +370,7 @@ FontCache::GetAdvance(ucs4_t c, FTC_SBit sbit)
 	if(c == '\t')
 		return GetAdvance(' ') << 2;
 	if(!sbit)
-		sbit = GetGlyph(c);
+		sbit = GetGlyph(c, FT_LOAD_DEFAULT);
 	return sbit->xadvance;
 }
 FT_Face

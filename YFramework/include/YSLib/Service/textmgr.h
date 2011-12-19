@@ -11,12 +11,13 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version r4550;
+\version r4556;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-11-05 10:54 +0800;
+	2011-12-17 11:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,6 +69,10 @@ public:
 	using vector<ucs2_t>::end;
 	using vector<ucs2_t>::cbegin;
 	using vector<ucs2_t>::cend;
+	using vector<ucs2_t>::rbegin;
+	using vector<ucs2_t>::rend;
+	using vector<ucs2_t>::crbegin;
+	using vector<ucs2_t>::crend;
 
 protected:
 	/*!

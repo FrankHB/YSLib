@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3297;
+\version r3398;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-12-04 11:11 +0800;
+	2011-12-19 12:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,13 +26,79 @@
 
 
 #include "DSReader.h"
+#include <ystdex/algorithm.hpp> // for ystdex::pod_copy_n;
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(DS)
-
 using namespace Drawing;
 using namespace Text;
+
+namespace
+{
+	/*!
+	\brief 指定迭代器最小值 b ，取文本迭代器 s 前最近出现的字符 c 的对应文本迭代器。
+	\since build 270 。
+	*/
+	template<typename _tBi>
+	_tBi
+	FindPreviousChar(_tBi s, _tBi b, ucs4_t c = '\0')
+	{
+		while(b < --s && *s != c)
+			;
+		return s;
+	}
+
+	/*!
+	\brief 指定迭代器上确界 b ，在 r 中取当前文本迭代器 s 的后一行首对应文本迭代器。
+	\since build 270 。
+	*/
+	template<typename _tRan>
+	_tRan
+	FindNextLine(const TextRegion& r, _tRan s, _tRan e)
+	{
+		auto& cache(r.GetCache());
+		const SDst wmax(r.GetWidth() - GetHorizontalOf(r.Margin));
+		SDst w(0);
+
+		while(s < e && *s != '\n')
+		{
+			 if(std::iswprint(*s))
+			 {
+				 w += cache.GetAdvance(*s);
+				 if(w >= wmax)
+					 break;
+			 }
+			 ++s;
+		}
+		return s;
+	}
+
+	/*!
+	\brief 指定迭代器最小值 b ，在 r 中取当前文本迭代器 s 的前一行首对应文本迭代器。
+	\since build 270 。
+	*/
+	template<typename _tRan>
+	_tRan
+	FindPreviousLine(TextRegion& r, _tRan s, _tRan b)
+	{
+		if(b < s)
+		{
+			const auto e(s);
+			auto t(FindPreviousChar(s, b, '\n'));
+
+			do
+			{
+				s = t;
+				if(*t == '\n')
+					++t;
+				t = FindNextLine(r, t, e);
+			}while(t != e);
+		}
+		return s;
+	}
+}
+
+YSL_BEGIN_NAMESPACE(DS)
 
 YSL_BEGIN_NAMESPACE(Components)
 
@@ -50,79 +116,121 @@ DualScreenReader::DualScreenReader(SDst w, SDst h_up, SDst h_down,
 	AreaDown.SetTransparent(true);
 }
 
-/*
-void MDualScreenReader::SetCurrentTextLineNOf(u8 n)
+bool
+DualScreenReader::Execute(Command cmd)
 {
-	if(n >= 0)
-		AreaUp.SetCurrentTextLineNOf(n);
+	if(~cmd & Scroll)
+		return false;
+	if(cmd & Up)
+	{
+		if(IsTextTop())
+			return false;
+	}
+	else if(IsTextBottom())
+		return false;
+
+	cmd &= ~Scroll;
+	if(cmd & Line)
+	{
+		// NOTE: assume GetLineGapDown() == GetLineGapUp();
+		const u8 h(fc.GetHeight()), hx(h + GetLineGapDown());
+		const auto w(AreaUp.GetWidth());
+		const u32 t(w * h);
+
+		if(cmd & Up)
+		{
+			yunseq(AdjustBottomMarginOf(AreaUp),
+				AdjustBottomMarginOf(AreaDown));
+
+			const u32 s((AreaUp.GetHeight() - AreaUp.Margin.Bottom - h) * w),
+				d(AreaDown.Margin.Top * w);
+
+			AreaDown.Scroll(hx);
+			yunseq(ystdex::pod_copy_n(&AreaUp.GetBufferPtr()[s], t,
+				&AreaDown.GetBufferPtr()[d]),
+				ystdex::pod_copy_n(&AreaUp.GetBufferAlphaPtr()[s], t,
+				&AreaDown.GetBufferAlphaPtr()[d]));
+			AreaUp.Scroll(hx);
+			AreaUp.ClearTextLine(0);
+			SetCurrentTextLineNOf(AreaUp, 0);
+			iTop = FindPreviousLine(AreaUp, iTop, pText->cbegin());
+			CarriageReturn(AreaUp);
+			{
+				auto iTopNew(iTop);
+
+				if(*iTopNew == '\n')
+					++iTopNew;
+				PutLine(AreaUp, iTopNew, pText->cend(), '\n');
+			}
+			iBottom = FindPreviousLine(AreaUp, iBottom, pText->cbegin());
+		}
+		else
+		{
+			const u32 s(AreaUp.Margin.Top * w),
+				d((AreaUp.GetHeight() - FetchResizedBottomMargin(AreaUp) - h)
+				* w);
+
+			AreaUp.Scroll(-hx);
+			yunseq(ystdex::pod_copy_n(&AreaDown.GetBufferPtr()[s], t,
+				&AreaUp.GetBufferPtr()[d]),
+				ystdex::pod_copy_n(&AreaDown.GetBufferAlphaPtr()[s], t,
+				&AreaUp.GetBufferAlphaPtr()[d]));
+			AreaDown.Scroll(-hx);
+			{
+				u16 n(AreaDown.GetTextLineN());
+
+				YAssert(n != 0,
+					"No Enough height found @ DualScreenReader::Excute;");
+
+				--n;
+				AreaDown.ClearTextLine(n);
+				SetCurrentTextLineNOf(AreaDown, n);
+			}
+			//注意缓冲区不保证以 '\0' 结尾。
+			CarriageReturn(AreaDown);
+			if(*iBottom == '\n')
+				++iBottom;
+			iBottom = PutLine(AreaDown, iBottom, pText->cend(), '\n');
+			if(*iTop == '\n')
+				++iTop;
+			iTop = FindNextLine(AreaUp, iTop, pText->cend());
+		}
+		Invalidate();
+	}
+	else
+	{
+		auto ln(AreaUp.GetTextLineN() + AreaDown.GetTextLineN());
+
+		if(cmd & Up)
+		{
+			while(ln--)
+				iTop = FindPreviousLine(AreaUp, iTop, pText->cbegin());
+		}
+		else
+		{
+			while(ln-- && iBottom != pText->end())
+			{
+				if(*iBottom == '\n')
+					++iBottom;
+				iBottom = FindNextLine(AreaDown, iBottom, pText->cend());
+				if(*iTop == '\n')
+					++iTop;
+				iTop = FindNextLine(AreaUp, iTop, pText->cend());
+			}
+		}
+		UpdateView();
+	}
+	return true;
 }
-*/
 
 void
 DualScreenReader::Invalidate()
 {
-	using YSLib::Components::Invalidate;
+	using YSL_ Components::Invalidate;
 
 	//强制刷新背景。
 	Invalidate(AreaUp);
 	Invalidate(AreaDown);
-}
-
-bool
-DualScreenReader::LineUp()
-{
-	if(IsTextTop())
-		return false;
-
-	const u8 h(fc.GetHeight()), hx(h + GetLineGapDown());
-	const auto w(AreaUp.GetWidth());
-
-	yunseq(AdjustBottomMarginOf(AreaUp), AdjustBottomMarginOf(AreaDown));
-
-	const u32 t(w * h),
-		s((AreaUp.GetHeight() - AreaUp.Margin.Bottom - h) * w),
-		d(AreaDown.Margin.Top * w);
-
-	AreaDown.Scroll(hx);
-	yunseq(ystdex::pod_copy_n(&AreaUp.GetBufferPtr()[s], t,
-		&AreaDown.GetBufferPtr()[d]), ystdex::pod_copy_n(
-		&AreaUp.GetBufferAlphaPtr()[s], t, &AreaDown.GetBufferAlphaPtr()[d]));
-	AreaUp.Scroll(hx);
-	AreaUp.ClearTextLine(0);
-	SetCurrentTextLineNOf(AreaUp, 0);
-
-	const auto itUpOld(iTop);
-
-	iTop = FindPrevious(AreaUp, iTop, pText->cbegin());
-	PutLine(AreaUp, iTop, itUpOld);
-	iBottom = FindPrevious(AreaUp, iBottom, pText->cbegin());
-	Invalidate();
-	return true;
-}
-
-bool
-DualScreenReader::LineDown()
-{
-	if(IsTextBottom())
-		return false;
-
-	const u8 h(fc.GetHeight()), hx(h + GetLineGapUp());
-	const auto w(AreaUp.GetWidth());
-	const u32 t(w * h),
-		s(AreaUp.Margin.Top * w),
-		d((AreaUp.GetHeight() - FetchResizedBottomMargin(AreaUp) - h) * w);
-
-	AreaUp.Scroll(-hx);
-	yunseq(ystdex::pod_copy_n(&AreaDown.GetBufferPtr()[s], t,
-		&AreaUp.GetBufferPtr()[d]), ystdex::pod_copy_n(
-		&AreaDown.GetBufferAlphaPtr()[s], t, &AreaUp.GetBufferAlphaPtr()[d]));
-	AreaDown.Scroll(-hx);
-	AreaDown.ClearTextLineLast();
-	AreaDown.SetTextLineLast();
-	iBottom = PutLine(AreaDown, iBottom);
-	iTop = FindNext(AreaUp, iTop, pText->cend());
-	Invalidate();
-	return true;
 }
 
 void
@@ -130,10 +238,10 @@ DualScreenReader::LoadText(TextFile& file)
 {
 	if(file.IsValid())
 	{
-		pText = ynew Text::TextFileBuffer(file);
+		pText = unique_raw(new Text::TextFileBuffer(file));
 		iTop = pText->begin();
 		iBottom = pText->end();
-		Update();
+		UpdateView();
 	}
 	else
 		PutString(AreaUp, L"文件打开失败！\n");
@@ -162,51 +270,27 @@ DualScreenReader::Reset()
 	AreaDown.ResetPen();
 }
 
-bool
-DualScreenReader::ScreenUp()
-{
-	if(IsTextTop())
-		return false;
-	iTop = FindPrevious(AreaUp, iTop, pText->cbegin(),
-		AreaUp.GetTextLineN() + AreaDown.GetTextLineN());
-	Update();
-	return true;
-}
-bool
-DualScreenReader::ScreenDown()
-{
-	if(IsTextBottom())
-		return false;
-
-	int t(AreaUp.GetTextLineN() + AreaDown.GetTextLineN());
-
-	while(t-- && iBottom != pText->end())
-		yunseq((iTop = FindNext(AreaUp, iTop, pText->cend()),
-			iBottom = FindNext(AreaDown, iBottom, pText->cend())));
-//	itUp = itDn;
-	Update();
-	return true;
-}
-
-/*void
-MDualScreenReader::Scroll(Function<void()> pCheck)
-{
-}*/
-
 void
 DualScreenReader::UnloadText()
 {
-	iTop = Text::TextFileBuffer::Iterator();
-	iBottom = Text::TextFileBuffer::Iterator();
-	safe_delete_obj()(pText);
+	yunseq(iTop = Text::TextFileBuffer::Iterator(),
+		iBottom = Text::TextFileBuffer::Iterator(),
+		pText = nullptr);
 }
 
 void
-DualScreenReader::Update()
+DualScreenReader::UpdateView()
 {
 	Reset();
-	//文本填充：输出文本缓冲区字符串，并返回填充字符数。
-	iBottom = PutString(AreaDown, PutString(AreaUp, iTop));
+	{
+		auto iTopNew(iTop);
+
+		if(*iTopNew == '\n')
+			++iTopNew;
+		iBottom = PutString(AreaDown, PutString(AreaUp, iTopNew));
+	}
+	if(*iBottom == '\n')
+		--iBottom;
 	Invalidate();
 }
 

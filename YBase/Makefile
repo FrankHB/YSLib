@@ -1,30 +1,37 @@
 # DS Makefile for YBase -> ARM9 by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-10-12 15:16 +0800;
-# Version = r3868;
+# UTime = 2011-12-16 08:46 +0800;
+# Version = r3900;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
-#--------------------------------------------------------------------------------
+#----
 .SUFFIXES:
-#--------------------------------------------------------------------------------
-ifeq ($(strip $(DEVKITARM)),)
-$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
+#----
+export PLATFORM		?= DS
+
+ifeq ($(PLATFORM),DS)
+
+	ifeq ($(strip $(DEVKITARM)),)
+		$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
+	endif
+
+	include $(DEVKITARM)/ds_rules
+
 endif
 
-include $(DEVKITARM)/ds_rules
 
 export TOPDIR		?=	$(CURDIR)
 
-#--------------------------------------------------------------------------------
+#----
 # TARGET is the name of the file to output
 # BUILD is the directory where object files and intermediate files will be placed
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 # DATA is a list of directories containing binary files embedded using bin2o
 # GRAPHICS is a list of directories containing image files to be converted with grit
-#--------------------------------------------------------------------------------
+#----
 
 export TARGET		:= $(shell basename $(CURDIR))
 export BUILD		?= release
@@ -33,12 +40,17 @@ export SOURCES		:= source source/ystdex data
 export INCLUDES		:= include data
 export DATA			:= data
 
-#--------------------------------------------------------------------------------
+#----
 # options for code generation
-#--------------------------------------------------------------------------------
+#----
+ifeq ($(PLATFORM),DS)
+
+# the prefix on the compiler executables
+PREFIX	:=	arm-eabi-
+
 ARCH	:=	-mthumb -mthumb-interwork -march=armv5te
 
-# note: arm9tdmi isn't the correct CPU arch, but anything newer and LD
+# NOTE: arm9tdmi isn't the correct CPU arch, but anything newer and LD
 # *insists* it has a FPU or VFP, and it won't take no for an answer!
 
 ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
@@ -46,8 +58,8 @@ ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 CFLAGS	:=	-Wall \
  			-mtune=arm946e-s \
  			-fomit-frame-pointer \
-			-ffast-math \
-			$(ARCH)
+ 			-ffast-math \
+ 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -pedantic -DARM9
 LDFLAGS :=	-specs=ds_arm9.specs $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
@@ -62,33 +74,30 @@ endif
 
 CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=gnu++0x
 
-#--------------------------------------------------------------------------------
+endif
+
+#----
 # path to tools - this can be deleted if you set the path in windows
-#--------------------------------------------------------------------------------
+#----
 # export PATH		:=	/d/dev/ds/devkitARM_r11/bin:/bin
 
-#--------------------------------------------------------------------------------
-# the prefix on the compiler executables
-#--------------------------------------------------------------------------------
-PREFIX			:=	arm-eabi-
-
-#--------------------------------------------------------------------------------
+#----
 # any extra libraries we wish to link with the project
-#--------------------------------------------------------------------------------
+#----
 LIBS	:=	#-lnds9 -lfat
 
-#--------------------------------------------------------------------------------
+#----
 # list of directories containing libraries, this must be the top level containing
 # include and lib
-#--------------------------------------------------------------------------------
+#----
 LIBDIRS	:=	#$(LIBNDS)
 
-#--------------------------------------------------------------------------------
+#----
 # no real need to edit anything past this point unless you need to add additional
 # rules for different file extensions
-#--------------------------------------------------------------------------------
+#----
 ifneq ($(BUILD),$(notdir $(CURDIR)))
-#--------------------------------------------------------------------------------
+#----
 
 export OUTPUT	:=	$(CURDIR)/$(RELEASE)/lib$(TARGET).a
 
@@ -105,16 +114,16 @@ BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
 ifeq ($(strip $(AUDIOFILES)),)
 	ifeq ($(strip $(ARM7_SELECTED)), ARM7_MAXMOD_DSWIFI)
-		TEXT_TO_SAY_2 := No MaxMod-compatible files were found in the audio folder.
-		TEXT_TO_SAY_3 := If you are loading the soundbank from FAT or EFS, ignore this message.
-		TEXT_TO_SAY_4 := " "
+ 		TEXT_TO_SAY_2 := No MaxMod-compatible files were found in the audio folder.
+ 		TEXT_TO_SAY_3 := If you are loading the soundbank from FAT or EFS, ignore this message.
+ 		TEXT_TO_SAY_4 := " "
 	endif
 	DONT_BUILD_MAXMOD_SOUNDBANK = YES
 endif
 
 ifneq ($(strip $(DONT_BUILD_MAXMOD_SOUNDBANK)), YES)
 	ifeq ($(strip $(ARM7_SELECTED)), ARM7_MAXMOD_DSWIFI)
-		BINFILES += soundbank_bin.bin
+ 		BINFILES += soundbank_bin.bin
 	endif
 endif
 
@@ -128,19 +137,19 @@ GIFFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.gif)))
 BMPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.bmp)))
 MP3FILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.mp3)))
 
-#--------------------------------------------------------------------------------
+#----
 # use CXX for linking C++ projects, CC for standard C
-#--------------------------------------------------------------------------------
+#----
 ifeq ($(strip $(CPPFILES)),)
-#--------------------------------------------------------------------------------
-	export LD	:=	$(CC)
-#--------------------------------------------------------------------------------
+#----
+ 	export LD	:=	$(CC)
+#----
 else
-#--------------------------------------------------------------------------------
-	export LD	:=	$(CXX)
-#--------------------------------------------------------------------------------
+#----
+ 	export LD	:=	$(CXX)
+#----
 endif
-#--------------------------------------------------------------------------------
+#----
 
 #export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 #					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
@@ -156,14 +165,14 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 .PHONY: $(BUILD) clean
 
-#--------------------------------------------------------------------------------
+#----
 $(BUILD):
 	@echo Building configuration: $(notdir $@) ...
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 	@echo Built configuration: $(notdir $@).
 
-#--------------------------------------------------------------------------------
+#----
 clean:
 	@echo Cleaning $(TARGET) - ARM9 ...
 	@rm -f $(BUILD)/*.d
@@ -175,41 +184,41 @@ rebuild: all
 
 all: $(BUILD) $(OUTPUT)
 
-#--------------------------------------------------------------------------------
+#----
 else
 
 DEPENDS	:= $(OFILES:.o=.d)
 
-#--------------------------------------------------------------------------------
+#----
 # main targets
-#--------------------------------------------------------------------------------
+#----
 
 $(OUTPUT)	:	$(OFILES)
 	@rm -f "$(OUTPUT)"
 	@echo Linking $(notdir $@) ...
 	@$(AR) rcs "$(OUTPUT)" $(OFILES)
 
-#--------------------------------------------------------------------------------
+#----
 # you need a rule like this for each extension you use as binary data
-#--------------------------------------------------------------------------------
+#----
 
-#--------------------------------------------------------------------------------
+#----
 # Compile Targets for C/C++
-#--------------------------------------------------------------------------------
+#----
 
-#--------------------------------------------------------------------------------
+#----
 %.o : %.cpp
 	@echo $(notdir $<)
 	@$(CXX) -MM $(CXXFLAGS) -o $*.d $<
 	@$(CXX) $(CXXFLAGS) -c $< -o$@
 
-#--------------------------------------------------------------------------------
+#----
 %.o : %.c
 	@echo $(notdir $<)
 	@$(CC) -MM $(CFLAGS) -o $*.d $<
 	@$(CC)  $(CFLAGS) -c $< -o$@
 
-#--------------------------------------------------------------------------------
+#----
 %.o : %.s
 	@echo $(notdir $<)
 	@$(CC) -MM $(CFLAGS) -o $*.d $<
@@ -226,91 +235,91 @@ define bin2o
 	echo "extern const u32" $(*)_size";" >> $(*).h
 endef
 
-#--------------------------------------------------------------------------------
+#----
 %.o	:	%.mp3
-#--------------------------------------------------------------------------------
+#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#--------------------------------------------------------------------------------
+#----
 %.o	:	%.pcx
-#--------------------------------------------------------------------------------
+#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#--------------------------------------------------------------------------------
+#----
 %.o	:	%.bin
-#--------------------------------------------------------------------------------
+#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#--------------------------------------------------------------------------------
+#----
 %.o	:	%.png
-#--------------------------------------------------------------------------------
+#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#--------------------------------------------------------------------------------
+#----
 %.o	:	%.raw
-#--------------------------------------------------------------------------------
+#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#--------------------------------------------------------------------------------
+#----
 %.o	:	%.pal
-#--------------------------------------------------------------------------------
+#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#--------------------------------------------------------------------------------
+#----
 %.o	:	%.map
-#--------------------------------------------------------------------------------
+#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#--------------------------------------------------------------------------------
+#----
 %.o	:	%.mdl
-#--------------------------------------------------------------------------------
+#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#--------------------------------------------------------------------------------
+#----
 %.o	:	%.jpg
-#--------------------------------------------------------------------------------
+#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#--------------------------------------------------------------------------------
+#----
 %.o	:	%.mod
-#--------------------------------------------------------------------------------
+#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#--------------------------------------------------------------------------------
+#----
 %.o	:	%.gif
-#--------------------------------------------------------------------------------
+#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#--------------------------------------------------------------------------------
+#----
 %.o	:	%.bmp
-#--------------------------------------------------------------------------------
+#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#--------------------------------------------------------------------------------
+#----
 # This rule creates assembly source files using grit
 # grit takes an image file and a .grit describing how the file is to be processed
 # add additional rules like this for each image extension
 # you use in the graphics folders
-#--------------------------------------------------------------------------------
+#----
 %.s %.h   : %.png %.grit
-#--------------------------------------------------------------------------------
+#----
 	grit $< -fts -o$*
 
 -include $(DEPSDIR)/*.d
 
-#--------------------------------------------------------------------------------
+#----
 endif
-#--------------------------------------------------------------------------------
+#----
 

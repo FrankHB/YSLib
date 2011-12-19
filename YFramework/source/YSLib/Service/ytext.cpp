@@ -11,13 +11,13 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version r6859;
+\version r6872;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-12-05 22:02 +0800;
+	2011-12-18 12:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,14 +59,14 @@ TextState::SetFont(const char* name, CPATH filename)
 void
 TextState::PutNewline()
 {
-	PenX = Margin.Left;
+	CarriageReturn(*this);
 	PenY += GetTextLineHeightExOf(*this);
 }
 
 void
 TextState::ResetPen()
 {
-	PenX = Margin.Left;
+	CarriageReturn(*this);
 	//	PenY = Margin.Top + GetTextLineHeightExOf(*this);
 	//	PenY = Margin.Top + pCache->GetAscender();
 	SetCurrentTextLineNOf(*this, 0);
@@ -208,9 +208,8 @@ FetchLastLineBasePosition(const TextState& ts, SDst h)
 
 
 SDst
-FetchCharWidth(const Font& fnt, ucs4_t c)
+FetchCharWidth(FontCache& cache, ucs4_t c)
 {
-	FontCache& cache(fnt.GetCache());
 	CharBitmap sbit(cache.GetGlyph(c));
 
 	return cache.GetAdvance(c, sbit);
@@ -282,16 +281,6 @@ TextRegion::ClearTextLine(u16 l)
 	SDst h(GetTextLineHeightExOf(ts));
 
 	ClearLine(ts.Margin.Top + h * l, h);
-}
-
-void
-TextRegion::ClearTextLineLast()
-{
-	auto& ts(GetTextState());
-	const auto& g(GetContext());
-	SDst h(GetTextLineHeightExOf(ts));
-
-	ClearLine(g.GetHeight() - ts.Margin.Bottom - h, h);
 }
 
 void

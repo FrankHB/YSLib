@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r3179;
+\version r3217;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 204 。
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-12-07 21:56 +0800;
+	2011-12-19 09:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -286,7 +286,7 @@ _t type
 
 /*!
 \brief 动态复制。
-\note 需要在满足 CopyConstructible 的类的定义内。
+\note 需要在满足 \c CopyConstructible 的类的定义内。
 \since build 240 。
 */
 #define DefClone(_t, _n) \
@@ -346,6 +346,54 @@ _t type
 	{ \
 		return (__VA_ARGS__); \
 	}
+
+
+/*!
+\brief 位掩码类型操作。
+\note 参见 ISO C++2011 17.5.2.1.3[bitmask.types] 。
+\since build 270 。
+*/
+//@{
+#define DefBitmaskAnd(_tBitmask, _tInt) \
+	yconstfn _tBitmask operator&(_tBitmask _x, _tBitmask _y) \
+		ImplRet(static_cast<_tBitmask>( \
+			static_cast<_tInt>(_x) & static_cast<_tInt>(_y)))
+
+#define DefBitmaskOr(_tBitmask, _tInt) \
+	yconstfn _tBitmask operator|(_tBitmask _x, _tBitmask _y) \
+		ImplRet(static_cast<_tBitmask>( \
+			static_cast<_tInt>(_x) | static_cast<_tInt>(_y)))
+
+#define DefBitmaskXor(_tBitmask, _tInt) \
+	yconstfn _tBitmask operator^(_tBitmask _x, _tBitmask _y) \
+		ImplRet(static_cast<_tBitmask>( \
+			static_cast<_tInt>(_x) ^ static_cast<_tInt>(_y)));
+
+#define DefBitmaskNot(_tBitmask, _tInt) \
+	yconstfn _tBitmask operator~(_tBitmask _x) \
+		ImplRet(static_cast<_tBitmask>(~static_cast<_tInt>(_x)));
+
+#define DefBitmaskAndAssignment(_tBitmask, _tInt) \
+	inline _tBitmask& operator&=(_tBitmask& _x, _tBitmask _y) \
+		ImplRet(_x = _x & _y)
+
+#define DefBitmaskOrAssignment(_tBitmask, _tInt) \
+	inline _tBitmask& operator|=(_tBitmask& _x, _tBitmask _y) \
+		ImplRet(_x = _x | _y)
+
+#define DefBitmaskXorAssignment(_tBitmask, _tInt) \
+	inline _tBitmask& operator^=(_tBitmask& _x, _tBitmask _y) \
+		ImplRet(_x = _x ^ _y)
+
+#define DefBitmaskOperations(_tBitmask, _tInt) \
+	DefBitmaskAnd(_tBitmask, _tInt) \
+	DefBitmaskOr(_tBitmask, _tInt) \
+	DefBitmaskXor(_tBitmask, _tInt) \
+	DefBitmaskNot(_tBitmask, _tInt) \
+	DefBitmaskAndAssignment(_tBitmask, _tInt) \
+	DefBitmaskOrAssignment(_tBitmask, _tInt) \
+	DefBitmaskXorAssignment(_tBitmask, _tInt)
+//@}
 
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2513;
+\version r2555;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-12-04 12:53 +0800;
+	2011-12-19 09:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -28,12 +28,8 @@
 #ifndef INCLUDED_DSREADER_H_
 #define INCLUDED_DSREADER_H_
 
-#include <YSLib/Core/yapp.h>
-#include <YSLib/Service/yftext.h>
-#include <YSLib/UI/ydesktop.h>
-#include <YSLib/Service/ytext.h>
-#include <YSLib/Helper/yglobal.h>
 #include <YSLib/UI/textarea.h>
+#include <YSLib/Service/yftext.h>
 #include <YSLib/Service/textmgr.h>
 
 YSL_BEGIN
@@ -45,14 +41,53 @@ YSL_BEGIN_NAMESPACE(Components)
 using Drawing::Color;
 using Drawing::PixelType;
 
+
+/*!
+\brief 双屏阅读器。
+\warning 非虚析构。
+\since build 251 。
+*/
 class DualScreenReader
 {
+public:
+	/*!
+	\brief 命令类型。
+	\since build 270 。
+	*/
+	typedef enum : u16
+	{
+		Null = 0,
+		Scroll = 1,
+		Up = 2,
+		Down = 0,
+		Line = 4,
+		Screen = 0,
+
+		LineUp = Line | Up,
+		LineDown = Line | Down,
+		ScreenUp = Screen | Up,
+		ScreenDown = Screen | Down,
+
+		LineUpScroll = LineUp | Scroll,
+		LineDownScroll = LineDown | Scroll,
+		ScreenUpScroll = ScreenUp | Scroll,
+		ScreenDownScroll = ScreenDown | Scroll
+	} Command;
+
 private:
-	Text::TextFileBuffer* pText; //!< 文本资源。
+	unique_ptr<Text::TextFileBuffer> pText; //!< 文本资源。
 	FontCache& fc; //!< 字体缓存。
 	Drawing::Rotation rot; //!< 屏幕指向。
-	Text::TextFileBuffer::Iterator iTop; //!< 字符区域顶端文本缓存输入迭代器。
-	Text::TextFileBuffer::Iterator iBottom; //!< 字符区域底端文本缓存输入迭代器。
+	/*!
+	\brief 字符区域顶端文本缓存输入迭代器。
+	
+	表示字符区域文本缓存起点和终点的迭代器，构成一个左闭右开区间。
+	\note 若因为读入换行符而换行，则迭代器指向的字符此换行符。
+	*/
+	//@{
+	Text::TextFileBuffer::Iterator iTop;
+	Text::TextFileBuffer::Iterator iBottom;
+	//@}
 
 public:
 	YSL_ Components::BufferedTextArea AreaUp; //!< 上屏幕对应字符区域。
@@ -90,6 +125,12 @@ public:
 		//!< 取字符区域的行距。
 	DefGetter(const ynothrow, Text::Encoding, Encoding, pText
 		? pText->GetEncoding() : Text::CharSet::Null) //!< 取编码。
+	/*!
+	\brief 取文本大小。
+	\note 单位为字节。
+	\since build 270 。
+	*/
+	DefGetter(const ynothrow, size_t, TextSize, pText ? pText->size() : 0)
 
 	PDefH(void, SetColor, Color c = Drawing::ColorSpace::Black)
 		ImplUnseq(AreaUp.Color = c, AreaDown.Color = c) \
@@ -106,17 +147,16 @@ public:
 	//void
 	//SetCurrentTextLineNTo(u8);
 
+	/*!
+	\brief 执行阅读器命令。
+	\since build 270 。
+	*/
+	bool
+	Execute(Command);
+
 	//! \brief 无效化文本区域。
 	void
 	Invalidate();
-
-	//! \brief 上移一行。
-	bool
-	LineUp();
-
-	//! \brief 下移一行。
-	bool
-	LineDown();
 
 	//! \brief 载入文本。
 	void
@@ -134,14 +174,6 @@ public:
 	void
 	Reset();
 
-	//! \brief 上移一屏。
-	bool
-	ScreenUp();
-
-	//! \brief 下移一屏。
-	bool
-	ScreenDown();
-
 	/*//!
 	\brief 自动滚屏。
 	\param pCheck 输入检测函数指针。
@@ -153,10 +185,17 @@ public:
 	void
 	UnloadText();
 
-	//! \brief 更新缓冲区文本。
+	/*!
+	\brief 更新视图。
+
+	根据文本起点迭代器和当前视图状态重新填充缓冲区文本并无效化文本区域。
+	\since build 270 。
+	*/
 	void
-	Update();
+	UpdateView();
 };
+
+DefBitmaskOperations(DualScreenReader::Command, u16)
 
 YSL_END_NAMESPACE(Components)
 

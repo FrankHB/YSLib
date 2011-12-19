@@ -11,13 +11,13 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7408;
+\version r7412;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-12-04 13:02 +0800;
+	2011-12-19 15:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -520,9 +520,13 @@ public:
 		//!< 取当前处理的字体大小。
 	/*!
 	\brief 取当前字型和大小渲染的指定字符的字形。
+	\param c 指定需要被渲染的字符。
+	\param flags FreeType 渲染标识。
+	\warning flags 可能被移除，应仅用于内部实现。
+	\since build 270 。
 	*/
 	CharBitmap
-	GetGlyph(ucs4_t);
+	GetGlyph(ucs4_t c, FT_UInt flags = FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL);
 	/*!
 	\brief 取跨距。
 	*/

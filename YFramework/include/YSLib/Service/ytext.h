@@ -11,13 +11,13 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version r7283;
+\version r7348;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-12-09 20:05 +0800;
+	2011-12-18 12:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -200,6 +200,18 @@ void
 SetCurrentTextLineNOf(TextState&, u16);
 
 /*!
+\brief 回车。
+
+指定文本状态的笔的水平位置移至左端，竖直位置不变。
+\since build 270 。
+*/
+inline void
+CarriageReturn(TextState& ts)
+{
+	ts.PenX = ts.Margin.Left;
+}
+
+/*!
 \brief 按字符跨距移动笔。
 \since build 196 。
 */
@@ -247,26 +259,20 @@ FetchLastLineBasePosition(const TextState&, SDst);
 
 
 /*!
-\brief 打印单个字符。
-\since build 190 。
+\brief 打印单个可打印字符。
+\since build 270 。
 */
 template<class _tRenderer>
-u8
+void
 PrintChar(_tRenderer& r, ucs4_t c)
 {
-	if(c == '\n')
-	{
-		r.GetTextState().PutNewline();
-		return 0;
-	}
-	if(!std::iswprint(c))
-		return 0;
-	r(c);
-	return 0;
+	if(std::iswprint(c))
+		r(c);
 }
 
 /*!
 \brief 打印单个字符。
+\note 处理换行符。
 \note 当行内无法容纳完整字符时换行。
 \since build 190 。
 */
@@ -309,14 +315,9 @@ template<typename _tIn, class _tRenderer>
 _tIn
 PrintLine(_tRenderer& r, _tIn s)
 {
-	TextState& ts(r.GetTextState());
-	const SPos fpy(ts.PenY);
-	_tIn t(s);
-
-	while(*t != 0 && fpy == ts.PenY)
-		if(!PrintChar(r, *t))
-			++t;
-	return t;
+	while(*s != 0 && *s != '\n')
+		PrintChar(r, *s++);
+	return s;
 }
 /*!
 \brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
@@ -328,12 +329,8 @@ template<typename _tIn, class _tRenderer>
 _tIn
 PrintLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 {
-	TextState& ts(r.GetTextState());
-	const SPos fpy(ts.PenY);
-
-	while(s != g && *s != c && fpy == ts.PenY)
-		if(!PrintChar(r, *s))
-			++s;
+	while(s != g && *s != c && *s != '\n')
+		PrintChar(r, *s++);
 	return s;
 }
 /*!
@@ -361,12 +358,11 @@ PutLine(_tRenderer& r, _tIn s)
 {
 	TextState& ts(r.GetTextState());
 	const SPos fpy(ts.PenY);
-	_tIn t(s);
 
-	while(*t != 0 && fpy == ts.PenY)
-		if(!PutChar(r, *t))
-			++t;
-	return t;
+	while(*s != 0 && fpy == ts.PenY)
+		if(!PutChar(r, *s))
+			++s;
+	return s;
 }
 /*!
 \brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
@@ -410,14 +406,9 @@ template<typename _tIn, class _tRenderer>
 _tIn
 PrintString(_tRenderer& r, _tIn s)
 {
-	TextState& ts(r.GetTextState());
-	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
-	_tIn t(s);
-
-	while(*t != 0 && ts.PenY <= mpy)
-		if(!PrintChar(r, *t))
-			++t;
-	return t;
+	while(*s != 0 && *s != '\n')
+		PrintChar(r, *s++);
+	return s;
 }
 /*!
 \brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
@@ -429,12 +420,8 @@ template<typename _tIn, class _tRenderer>
 _tIn
 PrintString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 {
-	TextState& ts(r.GetTextState());
-	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
-
-	while(s != g && *s != c && ts.PenY <= mpy)
-		if(!PrintChar(r, *s))
-			++s;
+	while(s != g && *s != c && *s != '\n')
+		PrintChar(r, *s++);
 	return s;
 }
 /*!
@@ -462,12 +449,11 @@ PutString(_tRenderer& r, _tIn s)
 {
 	TextState& ts(r.GetTextState());
 	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
-	_tIn t(s);
 
-	while(*t != 0 && ts.PenY <= mpy)
-		if(!PutChar(r, *t))
-			++t;
-	return t;
+	while(*s != 0 && ts.PenY <= mpy)
+		if(!PutChar(r, *s))
+			++s;
+	return s;
 }
 /*!
 \brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
@@ -503,11 +489,22 @@ PutString(_tRenderer& r, const String& str)
 
 
 /*!
-\brief 取指定的字符在字体指定、无边界限制时的显示宽度。
-\since build 214 。
+\brief 取指定的字符使用指定字体缓存的当前字体的显示宽度。
+\note 无边界限制。
+\since build 270 。
 */
 SDst
-FetchCharWidth(const Font&, ucs4_t);
+FetchCharWidth(FontCache&, ucs4_t);
+/*!
+\brief 取指定的字符使用指定字体的显示宽度。
+\note 无边界限制。
+\since build 214 。
+*/
+inline SDst
+FetchCharWidth(const Font& fnt, ucs4_t c)
+{
+	return FetchCharWidth(fnt.GetCache(), c);
+}
 
 
 /*!	\defgroup TextRenderers Text Renderers
@@ -576,18 +573,6 @@ public:
 	*/
 	DefGetter(const, u16, TextLineNEx, FetchResizedLineN(CThis->GetTextState(),
 		CThis->GetContext().GetHeight()) + CThis->GetTextState().LineGap)
-
-	/*!
-	\brief 设置笔的行位置为最底行。
-	*/
-	void
-	SetTextLineLast()
-	{
-		const u16 n(GetTextLineN());
-
-		if(n != 0)
-			SetCurrentTextLineNOf(This->GetTextState(), n - 1);
-	}
 
 #undef CThis
 #undef This
@@ -721,12 +706,6 @@ public:
 	*/
 	void
 	ClearTextLine(u16);
-
-	/*!
-	\brief 清除缓冲区中的最后一个文本行。
-	*/
-	void
-	ClearTextLineLast();
 
 	/*!
 	\brief 缓冲区特效：整体移动 n 像素。
@@ -901,78 +880,7 @@ YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Text)
 
-/*!
-\brief 以 cache 为字体缓存，width 为宽度，
-	从当前文本迭代器 p 开始逆向查找字符 f 。
-\note 不含 p ；满足 p != --g 。
-\since build 251 。
-*/
-template<typename _tIn>
-_tIn
-ReverseFind(FontCache& cache, SDst width, _tIn p, _tIn g, ucs4_t f)
-{
-	if(p != g)
-	{
-		SDst w(0);
-		ucs4_t c(0);
 
-		while(--p != g && (c = *p, c != f && !(std::iswprint(c)
-			&& (w += cache.GetAdvance(c)) > width)))
-			;
-	}
-	return p;
-}
-
-/*!
-\brief 在 r 中取当前文本迭代器 p 的前 l 行首对应文本迭代器。
-\note 满足 p != --g 。
-\since build 251 。
-*/
-template<typename _tIn>
-_tIn
-FindPrevious(const Drawing::TextRegion& r, _tIn p, _tIn g, ucs4_t c = '\n',
-	u16 l = 1)
-{
-	while(l-- != 0 && p != g)
-	{
-		p = ReverseFind(r.GetCache(), r.PenX - r.Margin.Left, p, g, c);
-		if(p != g)
-		{
-			p = ReverseFind(r.GetCache(),
-				r.GetHeight() - GetVerticalOf(r.Margin), p, g, c);
-			if(p != g)
-				++p;
-		}
-	}
-	return p;
-}
-
-/*!
-\brief 在 r 中取当前文本迭代器 p 至后一行首对应文本迭代器。
-\note 满足 p != g 。
-\since build 251 。
-*/
-template<typename _tIn>
-_tIn
-FindNext(const Drawing::TextRegion& r, _tIn p, _tIn g, ucs4_t c = '\n')
-{
-	if(p == g)
-		return p;
-
-	FontCache& cache(r.GetCache());
-	SDst nw(r.GetHeight() - GetVerticalOf(r.Margin));
-	SDst w(r.PenX - r.Margin.Left);
-
-	while(p != g)
-	{
-		ucs2_t chr(*p);
-		++p;
-		if(chr == c || (std::iswprint(chr)
-			&& (w += cache.GetAdvance(chr)) > nw))
-			break;
-	}
-	return p;
-}
 
 YSL_END_NAMESPACE(Text)
 

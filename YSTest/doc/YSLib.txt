@@ -11,12 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib说明。
-\version r2068;
+\version r2071;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-09-16 02:53 +0800;
+	2011-12-18 09:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -52,7 +53,7 @@ SM_ACTIVATED			0x0005
 
 // Shell 停用消息：Shell 被停用激活状态后自动产生。参考优先级 0xF0 。
 //参数类型 shared_ptr<Shell> ，是被停用的 Shell 句柄。
-//转移线程控制权时，总在 SM_ACTIVATED 之前产生。应保持和 SM_ACTIVATED 具有相同的优先级，以保证该消息总在对应的 SM_ACTIVATED 之前被处理。
+//转移线程控制权时，总在 SM_ACTIVATED 之前产生。应保持和 SM_ACTIVATED 具有相同的优先级，以保证此消息总在对应的 SM_ACTIVATED 之前被处理。
 SM_DEACTIVATED			0x0006
 
 // Shell 系统消息。

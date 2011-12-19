@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1601;
+\version r1606;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2011-12-15 12:54 +0800;
+	2011-12-17 11:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -63,9 +63,10 @@ class TextInfoBox : public Control
 public:
 	ShlReader& Shell;
 	Button btnClose;
-	Label lblInfo;
+	Label lblEncoding;
+	Label lblSize;
 
-	TextInfoBox(const Rect&, ShlReader&);
+	TextInfoBox(ShlReader&);
 
 	IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
@@ -110,7 +111,7 @@ public:
 	DualScreenReader Reader;
 	ReaderBox boxReader;
 	TextInfoBox boxTextInfo;
-	TextFile* pTextFile;
+	unique_ptr<TextFile> pTextFile;
 	MenuHost mhMain;
 
 	TextReaderManager(ShlReader&);

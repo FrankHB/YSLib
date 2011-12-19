@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3397; *build 269 rev 87;
+\version r3400; *build 270 rev 91;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-12-15 14:07 +0800;
+	2011-12-19 16:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -274,7 +274,6 @@ $using:
 ),
 \u UIContainerEx
 (
-	\cl AUIBoxControl,
 ),
 \u Button
 (
@@ -327,197 +326,279 @@ $using:
 
 $DONE:
 r1:
-/ @ \cl HexViewArea @ \u HexBrowser $=
+/ @ Makefile @ \proj YBase, YFramework, YSTest $=
 (
-	+ typedef GValueEventArgs<bool> ViewArgs;
-	+ DeclDelegate(HViewEvent, ViewArgs);
-	+ DeclEvent(HViewEvent, ViewChanged);
-	+ \mf void UpdateView(bool = false)
-	/ \impl @ \mf (LocateViewPosition, Reset ^ \mf UpdateView)
+	+ \mac PLATFORM @ Makefile @ \proj YBase,
+	/ minor (space characters, \rem)
 );
-/ \impl @ \ctor @ \cl HexReaderManager @ \impl \u ShellReader;
 
-r2-r4:
-- \f InitYSConsole @ \u InitConsole,
-/ \tr \impl @ \impl \u YGlobal,
-/= test 1;
+r2:
+/ @ \u HexBrowser $=
+(
+	/ @ \cl HexModel $=
+	(
+		/ \m File Source -> mutable File Source;
+		+ \mft (Open, Close, GetPosition, SetPosition, GetSize, IsValid,
+			CheckEOF, GetPtr)
+	);
+	/ @ \cl HexViewArea $=
+	(
+		/ protected \inh \cl HexModel -> private \m HexModel model,
+		/ \tr \impl @ \ctor,
+		/ \tr \impl @ \mf (Load, Refresh, UpdateData)
+	);
+);
+
+r3:
+/ @ \u HexBrowser $=
+(
+	- protected \mf \op[] @ \cl HexView,
+	/ \tr \impl @ \mf UpdateData @ \cl HexViewArea
+);
+
+r4:
+/ @ \cl HexModel @ \u HexBrowser$=
+(
+	/ protected \m mutable File Source -> private \m unique_ptr<File> pSource,
+	/ \tr @ \impl @ \a (\mf, \mft);
+	+ \i \op=(File*),
+	+ \i \op=(unique<File>&&)
+	+ \i 0 \param \ctor,
+	+ DefDelCopyCtor(HexModel),
+	+ DefDeMoveAssignment(HexModel)
+);
 
 r5:
-/ @ \impl \u YGlobal $=
+/ @ \u HexBrowser $=
 (
+	+ \ctor HexModel(const_path_t) @ \cl HexModel;
+	/ @ \cl HexViewArea $=
 	(
-		+ DSApplication* pApp @ \un \ns;
-		/ \impl @ \f FetchGlobalInstance;
-		/ \tr \impl @ \f ::main;
-		/ \tr \impl @ \ctor @ \cl DSApplication
-	),
-	/ \f WaitForGUIInput @ \un \ns \mg -> \f Idle
-);
-
-r6-r10:
-/= test 2;
-
-r11:
-* \impl @ \f ::main @ \impl \u YGlobal $since r5;
-
-r12:
-* null function call @ \dtor @ \cl Application $since b243;
-
-r13:
-/ @ \impl \u YGlobal $=
-(
-	/ \impl @ \f ::main,
-	/ @ \cl DSApplication $=
-	(
-		/ \impl @ \ctor,
-		+ \vt \dtor,
-		- \mf DestroyFontCache, ReleaseDevices, InitializeDevices
-	),
-);
-
-r14:
-/= test 3 ^ \conf release;
-
-r15:
-/ @ \cl HexViewArea @ \impl \u HexBrowser $=
-(
-	/ \simp \impl @ \mf Refresh ^ \mf GetItemHeight,
-	/ \impl @ \mf Load
-),
-/ \impl @ \ctor @ \cl TextList;
-
-r16-r17:
-/= test 4;
-
-r18:
-/ \simp \impl @ \ctor AScrollBar,
-/ \rem @ \h YControl;
-
-r19-r22:
-/= \mf order @ \cl TextList,
-/ @ \cl AScrollBar $=
-(
-	+ \mf \i void LocateThumb(ValueType, ScrollCategory
-		= ScrollCategory::ThumbPosition);
-	/ \simp \impl @ \ctor ^ \mf AScrollBar::LocateThumb
-);
-/ \impl @ \ctor @ \cl HexViewArea @ \impl \u HexBrowser;
-/ \tr \impl @ \ctor HexReaderManager @ \impl \u ShlReader;
-
-r23-r24:
-/ @ \impl \u ShlReader $=
-(
-	/ \impl @ \mf ShlReader::OnActivated,
-	/ \impl @ \mf HexReaderManager::Activate;
-	/ \tr \impl @ \mf TextReaderManager::Activate
-),
-/ \impl @ \ctor @ \cl HexViewArea @ \impl \u HexBrowser;
-
-r25-r34:
-/ \impl @ \f DispatchMessage,
-/= test 5;
-
-r35:
-/ \f ResponseInput @ \u Shell_DS \mg -> \mf ShlDS::OnGotMessage;
-
-r36:
-/= test 6 ^ \conf release;
-
-r37:
-/ \impl @ \ctor HexViewArea @ \impl \u HexBrowser;
-
-r38-r66:
-/= test 7;
-
-r67:
-* \impl @ \ctor @ \cl HexReaderManager @ \impl \u ShlReader $since r24;
-
-r68:
-/ \simp \impl @ \ctor HexViewArea @ \impl \u HexBrowser;
-
-r69-r70:
-/ \impl @ \ctor @ \cl ShlExplorer::TFormExtra @ \impl \u Shells;
-
-r71:
-/= test 8 ^ \conf release;
-
-r72:
-/ \simp \ctor @ \cl DSApplication @ \impl \u YGlobal;
-
-r73:
-/ \impl @ \mf DispatchMessage @ \impl \u YApplication;
-
-r74:
-/ \impl @ \f ::main @ \impl \u YGlobal;
-
-r75:
-+ \as @ \f \i Activate @ \h YApplication;
-
-r76:
-/= test 9;
-
-r77:
-* \impl @ \f ::main @ \impl \u YGlobal $since r74;
-
-r78:
-+ \f \i void SetContainerPtrOf(IWidget&, IWidget* = nullptr) @ \h YWidget;
-/ \simp \impl @ \mf (Panel::\op+=, Panel::\op-=, Window::\op+=#1,
-	Window::\op-=#1, Window::\op+=, Windows::\op-=, Window::Add#1)
-	^ \f SetContainerPtrOf,
-/ \simp \impl @ \ctor @ \cl (ListBox, ATrack, AScrollBar, ScrollableContainer)
-	^ \f SetContainerPtrOf,
-/ \simp \impl @ \ctor @ \cl (ReaderBox, ) @ \impl \u ShellReader;
-
-r79:
-* missing updating size information of file when opening @ \cl HexReaderManager
-	$since r1 $=
-(
-	/ \impl @ \mf HexReaderManager::Activate
-);
-
-r80:
-/ @ \u ShlReader $=
-(
-	/ @ \cl FileInfoPanel $=
-	(
-		+ \m Label lblOperations;
-		/ \tr \impl @ \ctor
+		/ \impl @ \mf Load;
+		/ \simp @ \mf Reset
 	)
 );
 
-r81:
-* encoding of updated path information @ \cl HexReaderManager $since b263,
+r6:
+/ \simp @ \cl HexModel @ \u HexBrowser $=
 (
-	/ \impl @ \mf HexReaderManager::Activate
+	- \mft Open,
+	- \mf Close
+)
+
+r7:
+/ @ \u HexBrowser $=
+(
+	- \op=(File*) @ \cl HexModel,
+	/ @ \cl HexViewArea $=
+	(
+		/ \mf GetSource -> GetModel,
+		/ \tr \impl @ \mf Load
+	)
+);
+/ \tr \impl @ \mf HexReaderManager::UpdateInfo @ \impl \u ShlReader;
+
+r8:
+/= test 1 ^ \conf release;
+
+r9:
+/ platform \n @ Makefile @ \proj (YBase, YFramework),
+/ \ac @ \mf GetSource @ \cl HexModel @ \h HexBrowser -> \private ~ public;
+
+r10:
+/ \simp @ \h DSReader $=
+(
+	- \inc \h YApp,
+	- \inc \h YDesktop,
+	- \inc \h YGlobal,
+	- \inc \h YText
+),
+/ @ \cl TextReaderManager @ \u ShlReader $=
+(
+	/ \m TextFile* pTextFile -> unique_ptr<TextFile> pTextFile;
+	/ \tr \impl @ \mf (Activate, Deactivate)
+),
++ \tr \inh <ystdex/algorithm.hpp> @ \impl \u DSReader;
+
+r11:
+/ @ \cl DualScreenReader @ \u DSReader $=
+(
+	/ private \m Text::TextFileBuffer* pText
+		-> unique_ptr<Text::TextFileBuffer> pText;
+	/ \tr \impl @ \mf (LoadText, UnloadText)
 );
 
-r82:
-* \rem @ \h Encoding $since b242;
-/= test 10 ^ \conf release;
+r12:
+/ @ \cl TextFileBuffer $=
+(
+	+ using vector<ucs2_t>::rbegin,
+	+ using vector<ucs2_t>::rend,
+	+ using vector<ucs2_t>::crbegin,
+	+ using vector<ucs2_t>::crend
+),
+(
+	/ \ac @ \m pText @ \cl DSReader @ \h DSReader -> public ~ private;
+	/ \impl @ \mf TextInfoBox::UpdateData @ \impl \u ShlReader
+);
+
+r13-r14:
+/ @ \u ShlReader $=
+(
+	/ @ \cl TextInfoBox $=
+	(
+		+ \m Label lblSize,
+		/ \m lblInfo => lblEncoding;
+		/ \impl @ \a \mf
+	);
+	/ \tr \impl @ \ctor @ \cl TextReaderManager
+);
+
+r15-r30:
+/= test 2;
+
+r31-r36:
+/ @ \u YText $=
+(
+	(
+		/ \ft<class _tRenderer> u8 PrintChar(_tRenderer&, ucs4_t)
+			-> \ft<class _tRenderer> void PrintChar(_tRenderer&, ucs4_t);
+		/ \simp \impl @ (2 \ft PrintLine, 2 \ft PrintString),
+	),
+	(
+		+ \f \i void CarriageReturn(TextState&);
+		/ \impl @ \mf TextState::PutNewline ^ \f CarriageReturn
+	),
+	/ \simp \impl @ \ft PutLine#1,
+	/ \simp \impl @ \ft PutString#1
+),
+/= test 3;
+
+r37-r40:
+/= test 4;
+
+r41:
+* newline character cannot be print at file end @ \cl DualScreenReader
+	$since $before b132 $=
+(
+	/ \impl @ \mf DualScreenReader::LineDown @ \impl \u DSReader;
+);
+
+r42:
+/ \impl @ \mf TextState::ResetPen ^ \f CarriageReturn @ \impl \u YText;
+
+r43-r66:
+/= test 5,
+/ @ \u YText $=
+(
+	(
+		+ \f SDst FetchCharWidth(const FontCache&, ucs4_t);
+		/ \simp \impl @ \f SDst FetchCharWidth(const Font&, ucs4_t)
+			^ \f SDst FetchCharWidth(const FontCache&, ucs4_t);
+	),
+	/ \ft (ReverseFind, FindNext, FindPrevious) >> \un \ns @ \impl \u DSReader
+);
+/ @ \impl \u DSReader $=
+(
+	+ \ft (FindPreviousChar; FindNextLine; FindPreviousLine) @ \un \ns;
+	/ \impl @ \mf (LineUp, LineDown) @ \cl DualScreenReader
+);
+
+r67:
+/ \impl @ \mf DualScreenReader::LineUp @ \impl \u DSReader;
+
+r68-r75:
+/= test 6,
+/ @ \impl \u DSReader $=
+(
+	/ \impl @ \ft FindNextLine @ \un \ns
+	/ \impl @ \mf (ScreenUp, ScreenDown, Update) @ \cl DualScreenReader
+)
+
+r76:
+/ @ \u DSReader $=
+(
+	/ \mf Update @ \cl DualScreenReader => UpdateView,
+	- \ft (ReverseFind, FindPrevious, FindNext) @ \un \ns @ \impl \u
+);
+/ \tr \impl @ \mf TextReaderManager::OnKeyDown @ \impl \u ShlReader;
+
+r77:
+/= test 7 ^ \conf release;
+
+r78:
++ \i @ \!m \f @ FetchCharWidth(const Font& fnt, ucs4_t) \u Ytxt;
+
+r79-r82:
+/= test 8;
 
 r83:
-/ \a 'AUIBoxControl' -> 'Control' \exc @ \u UIContainerEx;
-- \cl AUIBoxControl @ \u UIContainerEx;
+/ @ \cl DualScreenReader @ \u DSReader $=
+(
+	+ \mf GetTextSize,
+	/ \ac @ \m pText -> private ~ public
+)
+/ \simp \impl @ \mf TextInfoBox::UpdateData @ \impl \u ShlReader;
 
-r84-r86:
-/ \impl @ \ctor @ \cl Menu;
+r84:
++ \mac (DefBitmaskAnd, DefBitmaskOr, DefBitmaskXor, DefBitmaskNot,
+	DefBitmaskAndAssignment, DefBitmaskOrAssignment,
+	DefBitmaskXorAssignment; DefBitmaskOperations) @ \h YBaseMacro;
+/ @ \u DSReader $=
+(
+	/ \tr \impl @ \un \ns @ \impl \u,
+	+ typedef \en : u16 Command @ \cl DualScreenReader;
+	+ DefBitmaskOperations(Command, u16) @ \h DSReader;
+	/ \f (LineUp, LineDown, ScreenUp, ScreenDown)
+		@ \cl DualScreenReader -> \f Execute(Command)
+);
+/ \tr \impl @ \mf (ExcuteReadingCommand, OnKeyDown) @ \cl TextReaderManager
+	@ \impl \u ShlReader;
+
+r85:
+/ \simp \impl @ \mf DualScreenReader::Excute;
+
+r86:
+/= test 9 ^ \conf release;
 
 r87:
-/= test 11 ^ \conf release;
+/ \impl @ \mf TextReaderManager::OnKeyDown @ \impl \u ShlReader;
+
+r88:
+/ \impl @ \mf DualScreenReader::Execute @ \impl \u DSReader;
+
+r89:
+/ @ \u Text $=
+(
+	- \mf TextRegion::ClearTextLineLast,
+	- \mf SetTextLineLast @ \clt GTextRendererBase
+);
+
+r90:
+/ @ \cl FontCache @ \u Yfont $=
+(
+	/ \mf CharBitmap GetGlyph(ucs4_t) -> CharBitmap GetGlyph(ucs4_t,
+		FT_UInt = FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL);
+	/ \impl @ \mf GetAdvance
+);
+
+r91:
+/= test 10 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-12-15:
--14.1d;
-//Mercurial rev1-rev139: r6688;
+2011-12-19:
+-12.3d;
+//Mercurial rev1-rev141: r6775;
 
 / ...
 
 
 $NEXT_TODO:
-b270-b384:
+b271-b384:
+/ \simp \impl @ \u HexBrowser;
++ deleted copy \ctor @ \cl File;
 + partial invalidation support @ %(HexViewArea::Refresh);
 / fully \impl \u DSReader;
 	* moved text after setting %lnGap;
@@ -525,8 +606,10 @@ b270-b384:
 + dynamic character mapper loader for \u CharacterMapping;
 + 64-bit integer underlying type support for ystdex::fixed_point;
 + overlapping test @ \cl Rect;
+/ command @ \a \conf proj YBase;
 
 b385-b1152:
++ general monomorphic iterator abstraction,
 / partial invalidation support @ \f DrawRectRoundCorner;
 + widget layout managers;
 + formal abstraction of rectangular hit test;
@@ -539,8 +622,14 @@ b385-b1152:
 + GDI brushes;
 / text alignment;
 + \impl @ images loading and processing;
-* platform-independence @ alpha blending:
-	+ \impl general Blit algorithm;
+* platform-neutrality @ blit \impl $=
+(
+	/ @ alpha blending $=
+	(
+		+ \impl general Blit algorithm;
+	)
+	/ bool xor operation @ \ft Blit
+)
 + dynamic widget prototypes;
 / user-defined bitmap buffer @ \cl Desktop;
 
@@ -614,7 +703,51 @@ $renamed_to =>;
 $ellipse_refactoring;
 $ellipse_debug_assertion;
 
+$module_tree $=
+(
+	"YReader"
+	(
+		"initialization",
+		"file explorer",
+		"text reader",
+		"hexadecimal browser" 
+	)
+);
+
 $now
+(
+	// NOTE: using of unique_ptr and more content of information box \
+		at readers make it significantly slower than before in %ShlExplorer
+		when running at debug configuration.
+	/ $design @ "hexadecimal browser" $=
+	(
+		/ "resource management" ^ "class %unique_ptr"
+			~ "built-in pointers",
+		/ "minor model interface"
+	),
+	/ "text rendering function 'Print*' ignoring newline characters";
+	+ "macros for bitmask operations" @ "header %YBaseMacro",
+	/ %YReader.'text reader' $=
+	(
+		/ $design "resource management" ^ "class %unique_ptr"
+			~ "built-in pointers"
+		/ "unit %DSReader" $=
+		(
+			* "newline character cannot be print before EOF"
+				$since $before b132,
+			/ "more accurate position of text locating when scrolling",
+			/ "merge several interface as reading commands"
+		),
+		/ "size and content of file infotmation box"
+	),
+	/ "implementation" @ "class %FontCache" $=
+	(
+		/ $design "interface" @ "member function %GetGlyph";
+		/ "avoiding unnecessary rendering" @ "member function %GetAdvance"
+	)
+),
+
+b269
 (
 	/ @ "shells test example" $=
 	(

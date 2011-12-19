@@ -1,23 +1,29 @@
 # DS Makefile for YShell by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-11-12 21:26:30 +0800;
-# UTime = 2011-03-05 16:55 +0800;
-# Version = 0.3242;
+# UTime = 2011-12-16 07:51 +0800;
+# Version = r3263;
 
 # This makefile is written based on devkitPro example template.
 
-#--------------------------------------------------------------------------------
+#----
 .SUFFIXES:
-#--------------------------------------------------------------------------------
-ifeq ($(strip $(DEVKITARM)),)
-$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
-endif
+#----
+export PLATFORM		?= devkitARM
 
-include $(DEVKITARM)/ds_rules
+ifeq ($(PLATFORM),devkitARM)
+
+	ifeq ($(strip $(DEVKITARM)),)
+		$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
+	endif
+
+	include $(DEVKITARM)/ds_rules
+
+endif
 
 export TOPDIR		?=	$(CURDIR)/..
 
-#--------------------------------------------------------------------------------
+#----
 
 export TARGET		:=	$(shell basename $(CURDIR))
 export BUILD		?=	release
@@ -25,20 +31,20 @@ export RELEASE		=	$(BUILD)
 export GBUILD		=	$(CURDIR)/$(BUILD)/$(TARGET)
 export OUTPUT		=	$(CURDIR)/$(RELEASE)/$(TARGET)
 
-#--------------------------------------------------------------------------------
+#----
 # Be sure to change these default banner TEXTs. This is the name your project will
 # display in the DS menu (including some flash cards). Create a custom LOGO.BMP
 # icon for your project, too!
-#--------------------------------------------------------------------------------
+#----
 
 TITLE		:= YSTest
 SUBTITLE1 	:= Franksoft
 SUBTITLE2 	:= 2009 - 2011
 ICON		:= -b $(CURDIR)/data/logo.bmp
 
-#--------------------------------------------------------------------------------
+#----
 # If you're using EFS_lib, uncomment "USE_EFS = YES" here.
-#--------------------------------------------------------------------------------
+#----
 
 #USE_EFS = YES
 
@@ -52,11 +58,11 @@ ARM9OBJ := $(TOPDIR)/$(TARGET)_ARM9/$(BUILD)/$(TARGET)_ARM9.arm9
 
 .PHONY: $(BUILD) clean rebuild
 
-#--------------------------------------------------------------------------------
+#----
 # main targets
-#--------------------------------------------------------------------------------
+#----
 all : $(BUILD) $(OUTPUT).nds
-#--------------------------------------------------------------------------------
+#----
 
 %.ds.gba: %.nds
 	@dsbuild $<
@@ -70,7 +76,7 @@ ifeq ($(strip $(USE_EFS)), YES)
 #	@$(CURDIR)/../efs $(OUTPUT).sc.nds
 endif
 
-#--------------------------------------------------------------------------------
+#----
 $(OUTPUT).nds	:	$(ARM9OBJ)
 	@echo Building $(notdir $@) ...
 ifeq ($(strip $(USE_EFS)), YES)
@@ -82,7 +88,7 @@ else
 endif
 	@echo Built $(notdir $@) .
 
-#--------------------------------------------------------------------------------
+#----
 
 $(BUILD):
 # Before compiling, show any warning messages that might have detected
@@ -125,7 +131,7 @@ ifeq ($(strip $(MSG_IS_ERROR)),)
 #	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 endif
 
-#--------------------------------------------------------------------------------
+#----
 
 clean:
 	@echo Cleaning releases ...
@@ -134,7 +140,7 @@ clean:
 	@rm -f $(RELEASE)/*.*ds*
 	@echo Cleaned.
 
-#--------------------------------------------------------------------------------
+#----
 
 rebuild: all
 

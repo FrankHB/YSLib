@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1431;
+\version r1453;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2011-12-13 16:54 +0800;
+	2011-12-16 10:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,7 +42,8 @@ HexView::HexView(FontCache& fc)
 
 
 HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
-	: ScrollableContainer(r), HexModel(), HexView(fc)
+	: ScrollableContainer(r), HexView(fc),
+	model()
 {
 	SetVisibleOf(HorizontalScrollBar, false);
 	SetVisibleOf(VerticalScrollBar, true);
@@ -94,9 +95,9 @@ void
 HexViewArea::Load(const_path_t path)
 {
 	Reset();
-	Source.Open(path);
+	model = unique_raw(new File(path));
 
-	const IndexType n_total_ln((Source.GetSize() + ItemPerLine - 1)
+	const IndexType n_total_ln((model.GetSize() + ItemPerLine - 1)
 		/ ItemPerLine);
 
 	if(n_total_ln > GetItemNum())
@@ -136,10 +137,10 @@ HexViewArea::Refresh(const PaintContext& pc)
 		w_ch((w_all - w_blank * (1 + ItemPerLine)) / (8 + ItemPerLine * 2)),
 		w_addr(w_ch * 8 + w_blank),
 		w_item(w_ch * 2 + w_blank);
-	const int fsize(Source.GetSize());
+	const int fsize(model.GetSize());
 	auto& pen_x(TextState.PenX);
 	TextRenderer tr(TextState, pc.Target);
-	auto pos(Source.GetPosition());
+	auto pos(model.GetPosition());
 	auto i_data(GetBegin());
 
 	while(y < h && pos < fsize && i_data < GetEnd())
@@ -176,32 +177,34 @@ HexViewArea::Reset()
 	VerticalScrollBar.SetValue(0);
 	ClearData();
 	UpdateItemNum(GetHeight());
-	Source.Close();
 	UpdateView();
 }
 
 void
 HexViewArea::UpdateData(u32 pos)
 {
-	if(Source.IsValid() && pos < Source.GetSize())
+	if(model.IsValid() && pos < model.GetSize())
 	{
 		const DataType::size_type n(ItemPerLine * GetItemNum() * 2);
-		DataType::size_type i(0);
 
-		Source.SetPosition(pos, SEEK_SET);
+		model.SetPosition(pos, SEEK_SET);
 		ResizeData(n);
-		while(!Source.CheckEOF() && i < n)
+
+		auto b(GetBegin());
+		const auto e(GetEnd());
+
+		while(!model.CheckEOF() && b != e)
 		{
-			byte b(std::fgetc(Source.GetPtr()));
+			byte c(std::fgetc(model.GetPtr()));
 			char h, l;
 
-			yunseq(h = (b >> 4 & 0x0F) + '0', l = (b & 0x0F) + '0');
-			(*this)[i++] = h > '9' ? h + 'A' - '9' - 1 : h;
-			(*this)[i++] = l > '9' ? l + 'A' - '9' - 1 : l;
+			yunseq(h = (c >> 4 & 0x0F) + '0', l = (c & 0x0F) + '0');
+			*b++ = h > '9' ? h + 'A' - '9' - 1 : h;
+			*b++ = l > '9' ? l + 'A' - '9' - 1 : l;
 		}
 	//	VerticalScrollBar.SetValue(pos / ItemPerLine);
-		ResizeData(i);
-		Source.SetPosition(pos, SEEK_SET); // Refresh 需要据此判断接近文件结尾。
+		ResizeData(b - GetBegin());
+		model.SetPosition(pos, SEEK_SET); // Refresh 需要据此判断接近文件结尾。
 	}
 }
 

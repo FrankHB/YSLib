@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1290;
+\version r1335;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:13:04 +0800;
 \par 修改时间:
-	2011-12-11 13:43 +0800;
+	2011-12-17 09:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,12 +44,55 @@ YSL_BEGIN_NAMESPACE(Components)
 */
 class HexModel
 {
-protected:
-	File Source; //!< 文件数据源。
+private:
+	/*!
+	\brief 文件数据源。
+	\note 保证非空。
+	\since build 270 。
+	*/
+	unique_ptr<File> pSource;
 
 public:
-	DefGetter(const ynothrow, const File&, Source, Source)
+	HexModel();
+	HexModel(const_path_t);
+	DefDelCopyCtor(HexModel)
+	DefDeMoveCtor(HexModel)
+
+	DefDeMoveAssignment(HexModel)
+	HexModel&
+	operator=(unique_ptr<File>&&);
+
+	DefPredMem(const ynothrow, Valid, GetSource())
+
+private:
+	DefGetter(const ynothrow, File&, Source, *pSource)
+
+public:
+	DefGetterMem(const ynothrow, FILE*, Ptr, GetSource())
+
+	DefGetterMem(const ynothrow, File::OffsetType, Position, GetSource())
+	DefGetterMem(const ynothrow, File::SizeType, Size, GetSource())
+
+	DefFwdTmpl(const, File::OffsetType, SetPosition,
+		GetSource().SetPosition(args...))
+
+	DefFwdFn(const, int, CheckEOF, GetSource().CheckEOF())
 };
+
+inline
+HexModel::HexModel()
+	: pSource(new File())
+{}
+inline
+HexModel::HexModel(const_path_t path)
+	: pSource(new File(path))
+{}
+inline HexModel&
+HexModel::operator=(unique_ptr<File>&& pFile)
+{
+	pSource = std::move(pFile);
+	return *this;
+}
 
 
 /*!
@@ -74,10 +117,6 @@ private:
 
 public:
 	HexView(FontCache& = FetchGlobalInstance().GetFontCache());
-
-protected:
-	PDefHOp(char&, [], DataType::size_type i)
-		ImplRet(data[i])
 
 public:
 	/*!
@@ -115,7 +154,7 @@ HexView::GetItemHeight() const
 \since build 253 。
 */
 class HexViewArea : public ScrollableContainer,
-	protected HexModel, protected HexView
+	protected HexView
 {
 public:
 	using HexView::ItemPerLine;
@@ -133,6 +172,13 @@ public:
 	*/
 	DeclDelegate(HViewEvent, ViewArgs)
 
+private:
+	/*!
+	\brief 模型。
+	*/
+	HexModel model;
+
+public:
 	/*!
 	\brief 视图变更事件。
 	\since build 269 。
@@ -150,7 +196,7 @@ public:
 	*/
 	virtual IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
-	using HexModel::GetSource;
+	DefGetter(const ynothrow, const HexModel&, Model, model)
 
 	void
 	Load(const_path_t);
