@@ -17,7 +17,7 @@
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-12-03 16:53 +0800;
+	2011-12-21 17:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -62,10 +62,9 @@ FillByte(_tIn& i, _tState& st)
 	if(is_undereferencable(i))
 		return false;
 
-	auto r(static_cast<byte>(*i));
+	const auto r(static_cast<byte>(*i));
 
-	++i;
-	GetSequenceOf(st)[GetCountOf(st)++] = r;
+	yunseq(++i, GetSequenceOf(st)[GetCountOf(st)++] = r);
 	return true;
 }
 

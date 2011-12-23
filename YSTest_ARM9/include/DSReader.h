@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2555;
+\version r2581;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-12-19 09:08 +0800;
+	2011-12-22 16:36 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -79,19 +79,30 @@ private:
 	FontCache& fc; //!< 字体缓存。
 	Drawing::Rotation rot; //!< 屏幕指向。
 	/*!
-	\brief 字符区域顶端文本缓存输入迭代器。
+	\brief 字符区域输入迭代器。
 	
-	表示字符区域文本缓存起点和终点的迭代器，构成一个左闭右开区间。
+	字符区域的起点和终点在文本缓冲区的迭代器，构成一个左闭右开区间。
 	\note 若因为读入换行符而换行，则迭代器指向的字符此换行符。
 	*/
 	//@{
 	Text::TextFileBuffer::Iterator iTop;
 	Text::TextFileBuffer::Iterator iBottom;
 	//@}
+	/*!
+	\brief 下屏文字指示标记。
+
+	最近一次 UpdateView 操作时确认下屏存在需要输出的字符。
+	*/
+	bool text_down;
 
 public:
 	YSL_ Components::BufferedTextArea AreaUp; //!< 上屏幕对应字符区域。
 	YSL_ Components::BufferedTextArea AreaDown; //!< 下屏幕对应字符区域。
+	/*!
+	\brief 视图变更回调函数。
+	\since build 271 。
+	*/
+	std::function<void()> ViewChanged;
 
 	/*!
 	\brief 构造。
@@ -115,13 +126,7 @@ public:
 		//!< 取上字符区域的字体颜色。
 	DefGetter(const ynothrow, Color, ColorDown, AreaDown.Color) \
 		//!< 取下字符区域的字体颜色。
-	DefGetter(const ynothrow, u8, LineGapUp, AreaUp.LineGap) \
-		//!< 取上字符区域的行距。
-	DefGetter(const ynothrow, u8, LineGapDown, AreaDown.LineGap) \
-		//!< 取下字符区域的行距。
-	DefGetter(const ynothrow, Color, Color, GetColorUp()) \
-		//!< 取字符区域的字体颜色。
-	DefGetter(const ynothrow, u8, LineGap, GetLineGapUp()) \
+	DefGetter(const ynothrow, u8, LineGap, AreaUp.LineGap) \
 		//!< 取字符区域的行距。
 	DefGetter(const ynothrow, Text::Encoding, Encoding, pText
 		? pText->GetEncoding() : Text::CharSet::Null) //!< 取编码。
@@ -131,21 +136,23 @@ public:
 	\since build 270 。
 	*/
 	DefGetter(const ynothrow, size_t, TextSize, pText ? pText->size() : 0)
+	/*!
+	\brief 取阅读位置。
+
+	取字符区域起始位置的输入迭代器相对于文本缓冲区起始迭代器的偏移。
+	\note 单位为字节。
+	\since build 271 。
+	*/
+	DefGetter(const ynothrow, size_t, Position,
+		pText ? iTop - pText->cbegin() : 0)
 
 	PDefH(void, SetColor, Color c = Drawing::ColorSpace::Black)
-		ImplUnseq(AreaUp.Color = c, AreaDown.Color = c) \
-		//!< 设置字符颜色。
+		ImplUnseq(AreaUp.Color = c, AreaDown.Color = c) //!< 设置字符颜色。
 	PDefH(void, SetFontSize, Drawing::Font::SizeType s
 		= Drawing::Font::DefaultSize)
-		ImplExpr(fc.SetFontSize(s)) \
-		//!< 设置字符区域字体大小。
+		ImplExpr(fc.SetFontSize(s)) //!< 设置字符区域字体大小。
 	PDefH(void, SetLineGap, u8 g = 0)
-		ImplUnseq(AreaUp.LineGap = g, AreaDown.LineGap = g) \
-		//!< 设置行距。
-
-	//设置笔的行位置。
-	//void
-	//SetCurrentTextLineNTo(u8);
+		ImplUnseq(AreaUp.LineGap = g, AreaDown.LineGap = g) //!< 设置行距。
 
 	/*!
 	\brief 执行阅读器命令。
@@ -154,9 +161,22 @@ public:
 	bool
 	Execute(Command);
 
-	//! \brief 无效化文本区域。
+	/*!
+	\brief 无效化文本区域，并调用 ViewChanged （仅当非空）。
+	\since build 233 。
+	*/
 	void
 	Invalidate();
+
+	/*!
+	\brief 文本定位。
+
+	以指定偏移量定位起始迭代器，若越界则忽略。
+	\note 自动转至最近行首。
+	\since build 271 。
+	*/
+	void
+	Locate(size_t);
 
 	//! \brief 载入文本。
 	void

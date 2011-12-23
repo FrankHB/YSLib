@@ -11,12 +11,13 @@
 /*!	\file ymsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version r2019;
+\version r2029;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-11-05 11:18 +0800;
+	2011-12-23 07:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -55,20 +56,6 @@ operator==(const Message& lhs, const Message& rhs)
 }
 
 
-Message
-MessageQueue::GetMessage()
-{
-	Message msg;
-
-	if(!q.empty())
-	{
-		if(top().IsValid())
-			msg = top();
-		pop();
-	}
-	return msg;
-}
-
 void
 MessageQueue::Merge(MessageQueue& mq)
 {
@@ -79,7 +66,7 @@ MessageQueue::Merge(MessageQueue& mq)
 }
 
 int
-MessageQueue::PeekMessage(Message& msg, const shared_ptr<Shell>& hShl,
+MessageQueue::Peek(Message& msg, const shared_ptr<Shell>& hShl,
 	bool bRemoveMsg)
 {
 	for(auto i(q.cbegin()); i != q.cend(); ++i)
@@ -95,13 +82,6 @@ MessageQueue::PeekMessage(Message& msg, const shared_ptr<Shell>& hShl,
 		}
 	}
 	return -1;
-}
-
-void
-MessageQueue::Update()
-{
-	if(!q.empty() && top().IsTimeOut());
-		pop();
 }
 
 YSL_END_NAMESPACE(Messaging)

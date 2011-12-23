@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r1249;
+\version r1263;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2011-09-21 08:30:08 +0800;
 \par 修改时间:
-	2011-12-04 11:06 +0800;
+	2011-12-21 17:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -86,7 +86,6 @@ namespace ystdex
 		\brief 构造：使用流指针。
 		\post <tt>stream == &s</tt> 。
 		*/
-		yconstfn
 		ifile_iterator(istream_type& s);
 		/*!
 		\brief 复制构造：默认实现。
@@ -102,9 +101,10 @@ namespace ystdex
 
 		/*
 		\brief 前置自增。
-		\pre 断言检查： stream 。
 
-		读入字符。
+		使用 std::fgetc 读字符。
+		\pre 断言检查：流指针非空。
+		\note 当读到 EOF 时置流指针为空指针。
 		\return 自身引用。
 		*/
 		ifile_iterator&
@@ -130,10 +130,12 @@ namespace ystdex
 	ifile_iterator::ifile_iterator()
 		: stream(), value()
 	{}
-	yconstfn
+	inline
 	ifile_iterator::ifile_iterator(istream_type& s)
-		: stream(&s), value()
-	{}
+		: stream(&s)
+	{
+		++*this;
+	}
 
 	yconstfn ifile_iterator::reference
 	ifile_iterator::operator*() const
@@ -145,15 +147,6 @@ namespace ystdex
 	ifile_iterator::operator->() const
 	{
 		return &**this;
-	}
-
-	inline ifile_iterator&
-	ifile_iterator::operator++()
-	{
-		assert(stream);
-
-		value = unsigned(fgetc(stream));
-		return *this;
 	}
 
 	inline ifile_iterator
@@ -190,7 +183,7 @@ namespace ystdex
 	inline bool
 	is_dereferencable(const ifile_iterator& i)
 	{
-		return !std::feof(i.get_stream());
+		return i.get_stream();
 	}
 
 	/*!
@@ -201,7 +194,7 @@ namespace ystdex
 	inline bool
 	is_undereferencable(const ifile_iterator& i)
 	{
-		return std::feof(i.get_stream());
+		return !i.get_stream();
 	}
 }
 

@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3385;
+\version r3401;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-12-15 12:53 +0800;
+	2011-12-20 18:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -60,14 +60,16 @@ typedef enum class
 \brief 滚动事件参数类。
 \since build 193 。
 */
-struct ScrollEventArgs : public UIEventArgs,
-	public GMDoubleValueEventArgs<float>
+struct ScrollEventArgs : public UIEventArgs, protected pair<float, float>
 {
 public:
-	typedef GMDoubleValueEventArgs<float> MEventArgs;
-	typedef MEventArgs::ValueType ValueType;
+	typedef float ValueType; //!< 值类型。
 
-	ScrollCategory Type; //滚动事件类型。
+	/*!
+	\brief 滚动事件类别。
+	\since build 271 。
+	*/
+	ScrollCategory Category;
 
 	/*!
 	\brief 构造：使用指定事件源、滚动事件类型和值。
@@ -78,19 +80,41 @@ public:
 	\brief 构造：使用指定事件源、滚动事件类型、值和旧值。
 	*/
 	ScrollEventArgs(IWidget&, ScrollCategory, ValueType, ValueType);
+
+	/*!
+	\brief 取值。
+	\since build 271 。
+	*/
+	DefGetter(const ynothrow, ValueType, Value, first)
+	/*!
+	\brief 取旧值。
+	\since build 271 。
+	*/
+	DefGetter(const ynothrow, ValueType, OldValue, second)
+
+	/*!
+	\brief 设置值。
+	\since build 271 。
+	*/
+	DefSetter(ValueType, Value, first)
+	/*!
+	\brief 设置旧值。
+	\since build 271 。
+	*/
+	DefSetter(ValueType, OldValue, first)
 };
 
 inline
 ScrollEventArgs::ScrollEventArgs(IWidget& wgt, ScrollCategory t,
-	ScrollEventArgs::ValueType v)
-	: UIEventArgs(wgt), MEventArgs(v),
-	Type(t)
+	ScrollEventArgs::ValueType val)
+	: UIEventArgs(wgt), pair<float, float>(val, float()),
+	Category(t)
 {}
 inline
 ScrollEventArgs::ScrollEventArgs(IWidget& wgt, ScrollCategory t,
-	ScrollEventArgs::ValueType v, ScrollEventArgs::ValueType old_value)
-	: UIEventArgs(wgt), MEventArgs(v, old_value),
-	Type(t)
+	ScrollEventArgs::ValueType val, ScrollEventArgs::ValueType old_val)
+	: UIEventArgs(wgt), pair<float, float>(val, old_val),
+	Category(t)
 {}
 
 

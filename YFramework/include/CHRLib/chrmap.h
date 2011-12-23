@@ -11,12 +11,13 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r2200;
+\version r2205;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-12-03 15:13 +0800;
+	2011-12-21 17:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -65,15 +66,16 @@ FetchBiCharLE(const char* c_ptr)
 
 
 /*!
-\brief 转换状态。
+\brief 编码转换状态。
+\since build 249 。
 */
 struct ConversionState
 {
 	/*!
-	\brief 当前转换字符记数。
+	\brief 当前已转换字符计数。
 
 	\note 等于 -1 时表示转换状态错误。
-	\note 等于 -2 时表示转换失败（如与源数据越界等）。
+	\note 等于 -2 时表示转换失败（如源数据越界等）。
 	*/
 	std::int_fast8_t Count;
 	union

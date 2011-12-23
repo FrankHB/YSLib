@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r2070;
+\version r2074;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241 。
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2011-12-11 07:25 +0800;
+	2011-12-20 12:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -239,33 +239,6 @@ PaintEventArgs::PaintEventArgs(IWidget& wgt, const Drawing::Graphics& g,
 	const Drawing::Point& pt, const Drawing::Rect& r)
 	: UIEventArgs(wgt), PaintContext(g, pt, r)
 {}
-
-
-/*!
-\brief 保存旧值的值类型参数类模块模板。
-\since build 268 。
-*/
-PDefTmplH1(_type)
-struct GMDoubleValueEventArgs
-{
-public:
-	typedef _type ValueType; //值类型。
-	_type Value, OldValue; //值和旧值。
-
-	/*!
-	\brief 构造：使用指定值。
-	\note 值等于旧值。
-	*/
-	GMDoubleValueEventArgs(ValueType v)
-		: Value(v), OldValue(v)
-	{}
-	/*!
-	\brief 构造：使用指定值和旧值。
-	*/
-	GMDoubleValueEventArgs(ValueType v, ValueType old_value)
-		: Value(v), OldValue(old_value)
-	{}
-};
 
 
 //事件处理器类型。

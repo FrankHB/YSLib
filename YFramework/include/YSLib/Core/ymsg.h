@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2442;
+\version r2463;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-12-04 12:57 +0800;
+	2011-12-23 12:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -92,15 +92,11 @@ public:
 	DefDeMoveCtor(Message)
 
 	/*
-	\brief 复制赋值。
+	\brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
+	\since build 271 。
 	*/
 	Message&
-	operator=(const Message&);
-	/*
-	\brief 转移赋值。
-	*/
-	Message&
-	operator=(Message&&);
+	operator=(Message);
 	Message&
 	operator=(const ValueObject&);
 	Message&
@@ -137,22 +133,9 @@ public:
 };
 
 inline Message&
-Message::operator=(const Message& msg)
+Message::operator=(Message msg)
 {
-	Message tmp(msg);
-
-	tmp.Swap(*this);
-	return *this;
-}
-inline Message&
-Message::operator=(Message&& msg)
-{
-	hShl = std::move(msg.hShl);
-	id = std::move(msg.id);
-	prior = std::move(msg.prior);
-	content = std::move(msg.content);
-	timestamp = std::move(msg.timestamp);
-	timeout = std::move(msg.timeout);
+	msg.Swap(*this);
 	return *this;
 }
 inline Message&
@@ -219,12 +202,6 @@ public:
 	DefPred(const ynothrow, Empty, q.empty()) //!< 判断消息队列是否为空。
 
 	DefGetter(const ynothrow, SizeType, Size, q.size()) //!< 取队列中消息容量。
-	/*!
-	\brief 取消息队列中取优先级最高的消息。
-	\note 不在消息队列中保留消息。
-	*/
-	Message
-	GetMessage();
 
 	/*!
 	\brief 清除消息队列。
@@ -241,18 +218,20 @@ public:
 	/*!
 	\brief 从消息队列中取优先级最高的消息存至 msg 中。
 	\note 在队列中保留消息；不检查消息是否有效。
+	\since build 271 。
 	*/
 	void
-	PeekMessage(Message& msg) const;
+	Peek(Message& msg) const;
 	/*
 	\brief 从消息队列中取消息。
 	\param lpMsg 接收消息信息的 Message 结构指针。
 	\param hShl 消息关联（发送目标）的 Shell 的句柄，
 		为 nullptr 时无限制（为全局消息）。
 	\param bRemoveMsg 确定取得的消息是否消息队列中清除。
+	\since build 271 。
 	*/
 	int
-	PeekMessage(Message& msg, const shared_ptr<Shell>& hShl,
+	Peek(Message& msg, const shared_ptr<Shell>& hShl,
 		bool bRemoveMsg = false);
 
 	/*!
@@ -267,16 +246,10 @@ public:
 	*/
 	void
 	Push(const Message& msg);
-
-	/*!
-	\brief 更新消息队列。
-	*/
-	void
-	Update();
 };
 
 inline void
-MessageQueue::PeekMessage(Message& msg) const
+MessageQueue::Peek(Message& msg) const
 {
 	if(!q.empty())
 		msg = top();

@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3398;
+\version r3422;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-12-19 12:22 +0800;
+	2011-12-22 16:37 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,12 +49,12 @@ namespace
 	}
 
 	/*!
-	\brief 指定迭代器上确界 b ，在 r 中取当前文本迭代器 s 的后一行首对应文本迭代器。
-	\since build 270 。
+	\brief 指定迭代器上确界 b ，在 r 中取文本迭代器 s 的当前行尾的文本迭代器。
+	\since build 271 。
 	*/
 	template<typename _tRan>
 	_tRan
-	FindNextLine(const TextRegion& r, _tRan s, _tRan e)
+	FindLineFeed(const TextRegion& r, _tRan s, _tRan e)
 	{
 		auto& cache(r.GetCache());
 		const SDst wmax(r.GetWidth() - GetHorizontalOf(r.Margin));
@@ -74,12 +74,12 @@ namespace
 	}
 
 	/*!
-	\brief 指定迭代器最小值 b ，在 r 中取当前文本迭代器 s 的前一行首对应文本迭代器。
+	\brief 指定迭代器最小值 b ，在 r 中取文本迭代器 s 的前一行首的前一字符的迭代器。
 	\since build 270 。
 	*/
 	template<typename _tRan>
 	_tRan
-	FindPreviousLine(TextRegion& r, _tRan s, _tRan b)
+	FindPreviousLineFeed(TextRegion& r, _tRan s, _tRan b)
 	{
 		if(b < s)
 		{
@@ -91,7 +91,7 @@ namespace
 				s = t;
 				if(*t == '\n')
 					++t;
-				t = FindNextLine(r, t, e);
+				t = FindLineFeed(r, t, e);
 			}while(t != e);
 		}
 		return s;
@@ -105,7 +105,7 @@ YSL_BEGIN_NAMESPACE(Components)
 DualScreenReader::DualScreenReader(SDst w, SDst h_up, SDst h_down,
 	FontCache& fc_)
 	: pText(), fc(fc_),
-	rot(RDeg0), iTop(), iBottom(),
+	rot(RDeg0), iTop(), iBottom(), text_down(),
 	AreaUp(Rect(Point::Zero, w, h_up), fc),
 	AreaDown(Rect(Point::Zero, w, h_down), fc)
 {
@@ -132,8 +132,8 @@ DualScreenReader::Execute(Command cmd)
 	cmd &= ~Scroll;
 	if(cmd & Line)
 	{
-		// NOTE: assume GetLineGapDown() == GetLineGapUp();
-		const u8 h(fc.GetHeight()), hx(h + GetLineGapDown());
+		// NOTE: assume AreaUp.GetLineGap() == AreaDown.GetLineGap();
+		const u8 h(fc.GetHeight()), hx(h + GetLineGap());
 		const auto w(AreaUp.GetWidth());
 		const u32 t(w * h);
 
@@ -153,7 +153,7 @@ DualScreenReader::Execute(Command cmd)
 			AreaUp.Scroll(hx);
 			AreaUp.ClearTextLine(0);
 			SetCurrentTextLineNOf(AreaUp, 0);
-			iTop = FindPreviousLine(AreaUp, iTop, pText->cbegin());
+			iTop = FindPreviousLineFeed(AreaUp, iTop, pText->cbegin());
 			CarriageReturn(AreaUp);
 			{
 				auto iTopNew(iTop);
@@ -162,7 +162,9 @@ DualScreenReader::Execute(Command cmd)
 					++iTopNew;
 				PutLine(AreaUp, iTopNew, pText->cend(), '\n');
 			}
-			iBottom = FindPreviousLine(AreaUp, iBottom, pText->cbegin());
+			if(!IsTextBottom())
+				iBottom = FindPreviousLineFeed(AreaUp, iBottom,
+					pText->cbegin());
 		}
 		else
 		{
@@ -193,7 +195,7 @@ DualScreenReader::Execute(Command cmd)
 			iBottom = PutLine(AreaDown, iBottom, pText->cend(), '\n');
 			if(*iTop == '\n')
 				++iTop;
-			iTop = FindNextLine(AreaUp, iTop, pText->cend());
+			iTop = FindLineFeed(AreaUp, iTop, pText->cend());
 		}
 		Invalidate();
 	}
@@ -204,7 +206,7 @@ DualScreenReader::Execute(Command cmd)
 		if(cmd & Up)
 		{
 			while(ln--)
-				iTop = FindPreviousLine(AreaUp, iTop, pText->cbegin());
+				iTop = FindPreviousLineFeed(AreaUp, iTop, pText->cbegin());
 		}
 		else
 		{
@@ -212,15 +214,27 @@ DualScreenReader::Execute(Command cmd)
 			{
 				if(*iBottom == '\n')
 					++iBottom;
-				iBottom = FindNextLine(AreaDown, iBottom, pText->cend());
+				iBottom = FindLineFeed(AreaDown, iBottom, pText->cend());
 				if(*iTop == '\n')
 					++iTop;
-				iTop = FindNextLine(AreaUp, iTop, pText->cend());
+				iTop = FindLineFeed(AreaUp, iTop, pText->cend());
 			}
 		}
 		UpdateView();
 	}
 	return true;
+}
+
+void
+DualScreenReader::Locate(size_t pos)
+{
+	if(pos < pText->GetTextSize())
+	{
+		iTop = pText->cbegin() + pos;
+		if(pos != 0)
+			iTop = FindPreviousLineFeed(AreaUp, iTop, pText->cbegin());
+		UpdateView();
+	}
 }
 
 void
@@ -231,6 +245,8 @@ DualScreenReader::Invalidate()
 	//强制刷新背景。
 	Invalidate(AreaUp);
 	Invalidate(AreaDown);
+	if(ViewChanged)
+		ViewChanged();
 }
 
 void
@@ -283,13 +299,15 @@ DualScreenReader::UpdateView()
 {
 	Reset();
 	{
-		auto iTopNew(iTop);
+		auto iNew(iTop);
 
-		if(*iTopNew == '\n')
-			++iTopNew;
-		iBottom = PutString(AreaDown, PutString(AreaUp, iTopNew));
+		if(*iNew == '\n')
+			++iNew;
+		iNew = PutString(AreaUp, iNew);
+		iBottom = (text_down = iNew != pText->cend())
+			? PutString(AreaDown, iNew) : pText->cend();
 	}
-	if(*iBottom == '\n')
+	if(iBottom != pText->cend() && *iBottom == '\n')
 		--iBottom;
 	Invalidate();
 }

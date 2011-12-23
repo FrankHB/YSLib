@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r1284;
+\version r1291;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-20 08:59:56 +0800;
 \par 修改时间:
-	2011-12-04 11:15 +0800;
+	2011-12-20 19:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,14 +32,25 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-ProgressBar::ProgressBar(const Rect& r, u16 m)
-	: Widget(r), GMRange<u16>(m, 0)
+ProgressBar::ProgressBar(const Rect& r, ValueType m)
+	: Control(r), GMRange<float>(m, 0)
 {
 	Styles::Palette& pal(FetchGUIShell().Colors);
 
 	yunseq(BackColor = pal[Styles::Track],
 		ForeColor = pal[Styles::HotTracking],
 		BorderColor = pal[Styles::ActiveBorder]);
+}
+
+void
+ProgressBar::SetMaxValue(ValueType m)
+{
+	if(m > 0)
+	{
+		if(value > m)
+			value = m;
+		max_value = m;
+	}
 }
 
 Rect

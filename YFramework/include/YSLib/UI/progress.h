@@ -11,12 +11,13 @@
 /*!	\file progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r1234;
+\version r1246;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 219 。
 \par 创建时间:
 	2011-06-20 08:57:48 +0800;
 \par 修改时间:
-	2011-10-28 13:57 +0800;
+	2011-12-20 18:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +28,7 @@
 #ifndef YSL_INC_UI_PROGRESS_H_
 #define YSL_INC_UI_PROGRESS_H_
 
-#include "ywidget.h"
+#include "ycontrol.h"
 //#include "../Core/yres.h"
 //#include "ystyle.h"
 
@@ -35,17 +36,26 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-//! \brief 进度条。
-class ProgressBar : public Widget, public GMRange<u16>
+/*!
+\brief 进度条。
+\since build 219 。
+*/
+class ProgressBar : public Control, public GMRange<float>
 {
 public:
 	Color BorderColor; //!< 边框颜色。
 
 	explicit
-	ProgressBar(const Rect& = Rect::Empty, u16 = 0xFF);
+	ProgressBar(const Rect& = Rect::Empty, ValueType = 0xFF);
 	inline DefDeMoveCtor(ProgressBar)
 
-	DefSetter(ValueType, MaxValue, max_value)
+	/*!
+	\brief 设置进度关联值最大取值。
+	\note 当指定值非正值时无效。
+	\note 约束关联值不大于指定值。
+	*/
+	void
+	SetMaxValue(ValueType);
 	DefSetter(ValueType, Value, value)
 
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file listbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3734;
+\version r3735;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-12-14 21:08 +0800;
+	2011-12-20 13:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,7 +46,7 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 {
 	SetContainerPtrOf(TextListBox, this);
 	VerticalScrollBar.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
-		TextListBox.LocateViewPosition(SDst(round(e.Value)));
+		TextListBox.LocateViewPosition(SDst(round(e.GetValue())));
 	};
 	TextListBox.GetViewChanged() += [this](ViewArgs&& e){
 		if(!e.Value && GetWidth() > defMinScrollBarWidth)

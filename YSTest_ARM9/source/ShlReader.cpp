@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2644;
+\version r2682;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2011-12-19 10:00 +0800;
+	2011-12-21 19:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -57,14 +57,13 @@ namespace
 ReaderBox::ReaderBox(const Rect& r, ShlReader& shl)
 	: Control(r),
 	Shell(shl), btnClose(Rect(232, 4, 16, 16)),
-	trReader(Rect(8, 4, 192, 16)), lblProgress(Rect(204, 4, 24, 16))
+	pbReader(Rect(8, 4, 192, 16)), lblProgress(Rect(204, 4, 24, 16))
 {
 	SetContainerPtrOf(btnClose, this),
-	SetContainerPtrOf(trReader, this),
+	SetContainerPtrOf(pbReader, this),
 	SetContainerPtrOf(lblProgress, this);
-	btnClose.Text = "×";
-	lblProgress.Text = "0%";
-	lblProgress.ForeColor = ColorSpace::Fuchsia;
+	btnClose.Text = "×",
+	lblProgress.ForeColor = ColorSpace::Fuchsia,
 	lblProgress.Font.SetSize(12);
 	FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
 		Hide(*this);
@@ -81,11 +80,11 @@ ReaderBox::GetTopWidgetPtr(const Point& pt,
 
 DefTuple(pWidgets,
 		&ShlReader::ReaderPanel::btnClose,
-		&ShlReader::ReaderPanel::trReader,
+		&ShlReader::ReaderPanel::pbReader,
 		&ShlReader::ReaderPanel::lblProgress
 	)
 */
-	IWidget* const pWidgets[] = {&btnClose, &trReader, &lblProgress};
+	IWidget* const pWidgets[] = {&btnClose, &pbReader, &lblProgress};
 
 	for(int i(0); i < 3; ++i)
 		if(auto p = CheckWidget(*pWidgets[i], pt, f))
@@ -98,11 +97,24 @@ ReaderBox::Refresh(const PaintContext& pc)
 {
 	Widget::Refresh(pc);
 
-	IWidget* const pWidgets[] = {&btnClose, &trReader, &lblProgress};
+	IWidget* const pWidgets[] = {&btnClose, &pbReader, &lblProgress};
 
 	for(int i(0); i < 3; ++i)
 		PaintChild(*pWidgets[i], pc);
 	return Rect(pc.Location, GetSizeOf(*this));
+}
+
+void
+ReaderBox::UpdateData(DualScreenReader& reader)
+{
+	char str[4];
+
+	siprintf(str, "%2u%%", reader.GetPosition() * 100 / reader.GetTextSize());
+	lblProgress.Text = str;
+	pbReader.SetMaxValue(reader.GetTextSize()),
+	pbReader.SetValue(reader.GetPosition());
+	Invalidate(pbReader),
+	Invalidate(lblProgress);
 }
 
 
@@ -152,8 +164,10 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 
 	siprintf(str, "Encoding: %d;", reader.GetEncoding());
 	lblEncoding.Text = str;
-	siprintf(str, "Size: %u;", reader.GetTextSize());
+	siprintf(str, "Size: %u / %u;", reader.GetPosition(), reader.GetTextSize());
 	lblSize.Text = str;
+	Invalidate(lblEncoding),
+	Invalidate(lblSize);
 }
 
 
@@ -184,10 +198,24 @@ ReaderManager::ReaderManager(ShlReader& shl)
 
 TextReaderManager::TextReaderManager(ShlReader& shl)
 	: ReaderManager(shl),
-	Reader(), boxReader(Rect(0, 168, 256, 24), shl),
-	boxTextInfo(shl),
+	Reader(),
+	boxReader(Rect(0, 168, 256, 24), shl), boxTextInfo(shl),
 	pTextFile(), mhMain(shl.GetDesktopDown())
 {
+	yunseq(
+		Reader.ViewChanged = [this]()
+		{
+			if(IsVisible(boxReader))
+				boxReader.UpdateData(Reader);
+			if(IsVisible(boxTextInfo))
+				boxTextInfo.UpdateData(Reader);
+		},
+		FetchEvent<TouchDown>(boxReader.pbReader) += [this](TouchEventArgs&& e)
+		{
+			Reader.Locate(e.X * Reader.GetTextSize()
+				/ boxReader.pbReader.GetWidth());
+		}
+	);
 	{
 		auto hList(share_raw(new Menu::ListType));
 		auto& lst(*hList);
@@ -269,6 +297,7 @@ TextReaderManager::ExcuteReadingCommand(IndexEventArgs::ValueType idx)
 		CallStored<ShlExplorer>();
 		break;
 	case MR_Panel:
+		boxReader.UpdateData(Reader);
 		Show(boxReader);
 		break;
 	case MR_FileInfo:
@@ -293,18 +322,21 @@ TextReaderManager::ExcuteReadingCommand(IndexEventArgs::ValueType idx)
 void
 TextReaderManager::ShowMenu(Menu::ID id, const Point& pt)
 {
-	auto& mnu(mhMain[id]);
-
-	SetLocationOf(mnu, pt);
-	switch(id)
+	if(!mhMain.IsShowing(id))
 	{
-	case 1u:
-		mnu.SetItemEnabled(MR_LineUp, !Reader.IsTextTop());
-		mnu.SetItemEnabled(MR_LineDown, !Reader.IsTextBottom());
-		mnu.SetItemEnabled(MR_ScreenUp, !Reader.IsTextTop());
-		mnu.SetItemEnabled(MR_ScreenDown, !Reader.IsTextBottom());
+		auto& mnu(mhMain[id]);
+
+		SetLocationOf(mnu, pt);
+		switch(id)
+		{
+		case 1u:
+			mnu.SetItemEnabled(MR_LineUp, !Reader.IsTextTop());
+			mnu.SetItemEnabled(MR_LineDown, !Reader.IsTextBottom());
+			mnu.SetItemEnabled(MR_ScreenUp, !Reader.IsTextTop());
+			mnu.SetItemEnabled(MR_ScreenDown, !Reader.IsTextBottom());
+		}
+		mhMain.Show(id);
 	}
-	mhMain.Show(id);
 }
 
 void
@@ -316,7 +348,7 @@ TextReaderManager::OnClick(TouchEventArgs&& e)
 void
 TextReaderManager::OnKeyDown(KeyEventArgs&& e)
 {
-	if(e.Strategy == RoutedEventArgs::Direct)
+	if(e.Strategy != RoutedEventArgs::Tunnel && !mhMain.IsShowing(1u))
 	{
 		u32 k(static_cast<KeyEventArgs::InputType>(e));
 
@@ -467,7 +499,7 @@ HexReaderManager::UpdateInfo()
 {
 	char str[80];
 
-	::siprintf(str, "当前位置： %u / %u", HexArea.GetModel().GetPosition(),
+	siprintf(str, "当前位置： %u / %u", HexArea.GetModel().GetPosition(),
 		HexArea.GetModel().GetSize());
 	pnlFileInfo.lblSize.Text = Text::MBCSToString(str, Text::CP_Default);
 	Invalidate(pnlFileInfo.lblSize);

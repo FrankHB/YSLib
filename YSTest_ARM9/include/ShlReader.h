@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1606;
+\version r1614;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2011-12-17 11:54 +0800;
+	2011-12-20 18:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,7 +45,7 @@ class ReaderBox : public Control
 public:
 	ShlReader& Shell;
 	Button btnClose;
-	HorizontalTrack trReader;
+	ProgressBar pbReader;
 	Label lblProgress;
 
 	ReaderBox(const Rect&, ShlReader&);
@@ -55,6 +55,13 @@ public:
 
 	virtual Rect
 	Refresh(const PaintContext&);
+
+	/*!
+	\brief 更新进度数据。
+	\since build 271 。
+	*/
+	void
+	UpdateData(DualScreenReader&);
 };
 
 

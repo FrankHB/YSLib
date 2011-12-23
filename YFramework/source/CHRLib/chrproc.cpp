@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1977;
+\version r1981;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-12-04 11:00 +0800;
+	2011-12-21 18:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -140,13 +140,9 @@ MBCToUC(ucs2_t& uc, std::FILE* fp, const Encoding& cp, ConversionState&& st)
 	{
 		ystdex::ifile_iterator i(*fp);
 
-		l = pfun(uc, input_monomorphic_iterator(++i), std::move(st));
-		if(!std::feof(fp))
-		{
+		l = pfun(uc, input_monomorphic_iterator(i), std::move(st));
+		if(is_dereferencable(i))
 			std::ungetc(*i, fp);
-			if(GetCountOf(st) > 0)
-				--GetCountOf(st);
-		}
 	}
 	return l;
 }
