@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2463;
+\version r2495;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-12-23 12:00 +0800;
+	2011-12-23 18:15 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -107,6 +107,12 @@ public:
 	*/
 	friend bool
 	operator==(const Message&, const Message&);
+	/*!
+	\brief 消息优先级比较函数。
+	\since build 272 。
+	*/
+	friend bool
+	operator<(const Message&, const Message&);
 
 	DefPred(const ynothrow, TimeOut, timestamp + timeout < std::clock()) \
 		//!< 判断消息是否过期。
@@ -157,57 +163,45 @@ Message::UpdateTimestamp()
 	timestamp = std::clock();
 }
 
+/*!
+\brief 消息优先级比较函数。
+\since build 272 。
+*/
+inline bool
+operator<(const Message& x, const Message& y)
+{
+//	if(x.prior == y.prior)
+	//	return x.time > y.time;
+//		return x.GetObjectID() < y.GetObjectID();
+	return x.prior > y.prior;
+}
+
 
 /*!
 \brief 消息队列。
+\note 使用 multiset 模拟。
 \since build 211 。
 */
-class MessageQueue : public noncopyable
+class MessageQueue : public noncopyable, private multiset<Message>
 {
-private:
-	//消息优先级比较函数对象。
-	struct cmp
-	{
-		/*!
-		\brief 调用比较函数。
-		*/
-		bool
-		operator()(const Message& a, const Message& b)
-		{
-		//	if(a.prior == b.prior)
-			//	return a.time > b.time;
-		//		return a.GetObjectID() < b.GetObjectID();
-			return a.prior > b.prior;
-		}
-	};
-
-	multiset<Message, cmp> q; //!< 消息优先队列：使用 multiset 模拟。
-
-	PDefH(const Message&, top) const
-		ImplRet(*q.begin())
-	PDefH(void, pop)
-		ImplExpr(q.erase(q.begin()))
-	PDefH(void, push, const Message& msg)
-		ImplExpr(q.insert(msg))
-
 public:
-	typedef decltype(q.size()) SizeType;
+	typedef size_type SizeType;
 
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
 	inline DefDeCtor(MessageQueue)
-	virtual DefEmptyDtor(MessageQueue)
+	DefEmptyDtor(MessageQueue)
 
-	DefPred(const ynothrow, Empty, q.empty()) //!< 判断消息队列是否为空。
+	DefPred(const ynothrow, Empty, empty()) //!< 判断消息队列是否为空。
 
-	DefGetter(const ynothrow, SizeType, Size, q.size()) //!< 取队列中消息容量。
+	DefGetter(const ynothrow, SizeType, Size, size()) //!< 取队列中消息容量。
 
 	/*!
 	\brief 清除消息队列。
 	*/
 	PDefH(void, Clear)
-		ImplRet(q.clear())
+		ImplRet(clear())
 
 	/*!
 	\brief 合并消息队列：移动指定消息队列中的所有消息至此消息队列中。
@@ -251,22 +245,22 @@ public:
 inline void
 MessageQueue::Peek(Message& msg) const
 {
-	if(!q.empty())
-		msg = top();
+	if(!empty())
+		msg = *begin();
 }
 
 inline void
 MessageQueue::Push(const Message& msg)
 {
 	if(msg.IsValid())
-		push(msg);
+		insert(msg);
 }
 
 inline void
 MessageQueue::Pop()
 {
-	if(!q.empty())
-		pop();
+	if(!empty())
+		erase(begin());
 }
 
 

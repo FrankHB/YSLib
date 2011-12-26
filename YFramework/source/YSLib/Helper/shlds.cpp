@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1894;
+\version r1900;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-12-13 13:51 +0800;
+	2011-12-24 12:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -110,53 +110,50 @@ ShlDS::OnGotMessage(const Message& msg)
 		{
 			using namespace Messaging;
 
-			auto hContent(FetchTarget<SM_INPUT>(msg));
+			auto content(FetchTarget<SM_INPUT>(msg));
 
-			if(hContent)
+			KeysInfo& k(content.Keys);
+			Desktop& d(*hDskDown); // TODO: assertion & etc;
+		//	Desktop& d(FetchGlobalInstance().GetTouchableDesktop());
+
+			using namespace YSL_ KeySpace;
+			using namespace YSL_ Components;
+
+			if(k.Up & Touch)
 			{
-				KeysInfo& k(hContent->Keys);
-				Desktop& d(*hDskDown); // TODO: assertion & etc;
-			//	Desktop& d(FetchGlobalInstance().GetTouchableDesktop());
+				TouchEventArgs e(d, content.CursorLocation);
 
-				using namespace YSL_ KeySpace;
-				using namespace YSL_ Components;
+				ResponseTouch(e, TouchUp);
+			}
+			else if(k.Up)
+			{
+				KeyEventArgs e(d, k.Up);
 
-				if(k.Up & Touch)
-				{
-					TouchEventArgs e(d, hContent->CursorLocation);
+				ResponseKey(e, KeyUp);
+			}
+			if(k.Down & Touch)
+			{
+				TouchEventArgs e(d, content.CursorLocation);
 
-					ResponseTouch(e, TouchUp);
-				}
-				else if(k.Up)
-				{
-					KeyEventArgs e(d, k.Up);
+				ResponseTouch(e, TouchDown);
+			}
+			else if(k.Down)
+			{
+				KeyEventArgs e(d, k.Down);
 
-					ResponseKey(e, KeyUp);
-				}
-				if(k.Down & Touch)
-				{
-					TouchEventArgs e(d, hContent->CursorLocation);
+				ResponseKey(e, KeyDown);
+			}
+			if(k.Held & Touch)
+			{
+				TouchEventArgs e(d, content.CursorLocation);
 
-					ResponseTouch(e, TouchDown);
-				}
-				else if(k.Down)
-				{
-					KeyEventArgs e(d, k.Down);
+				ResponseTouch(e, TouchHeld);
+			}
+			else if(k.Held)
+			{
+				KeyEventArgs e(d, k.Held);
 
-					ResponseKey(e, KeyDown);
-				}
-				if(k.Held & Touch)
-				{
-					TouchEventArgs e(d, hContent->CursorLocation);
-
-					ResponseTouch(e, TouchHeld);
-				}
-				else if(k.Held)
-				{
-					KeyEventArgs e(d, k.Held);
-
-					ResponseKey(e, KeyHeld);
-				}
+				ResponseKey(e, KeyHeld);
 			}
 		}
 		SendMessage<SM_PAINT>(FetchShellHandle(), 0xE0, nullptr);

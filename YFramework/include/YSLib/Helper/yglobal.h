@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2467;
+\version r2481;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-12-11 21:36 +0800;
+	2011-12-24 13:28 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,6 +32,9 @@
 
 #ifndef YSL_INC_HELPER_YGLOBAL_H_
 #define YSL_INC_HELPER_YGLOBAL_H_
+
+//包含 YCLib 公用部分。
+#include <YCLib/ycommon.h>
 
 #include "../Core/ygdibase.h"
 #include "../Core/yapp.h"
@@ -218,6 +221,13 @@ public:
 	*/
 	void
 	ResetFontCache(const_path_t) ythrow(LoggedEvent);
+
+	/*!
+	\brief 运行主程序逻辑。
+	\since build 271 。
+	*/
+	int
+	Run();
 };
 
 inline Devices::DSScreen&
@@ -266,6 +276,7 @@ public:
 	KeysInfo Keys;
 	Drawing::Point CursorLocation;
 
+	yconstfn DefDeCtor(InputContent)
 	explicit yconstfn
 	InputContent(const KeysInfo&, const Drawing::Point&);
 
@@ -278,7 +289,7 @@ InputContent::InputContent(const KeysInfo& k, const Drawing::Point& pt)
 	: Keys(k), CursorLocation(pt)
 {}
 
-DefMessageTarget(SM_INPUT, shared_ptr<InputContent>)
+DefMessageTarget(SM_INPUT, InputContent)
 
 YSL_END_NAMESPACE(Messaging)
 
@@ -294,12 +305,6 @@ YSL_END_NAMESPACE(Messaging)
 */
 DSApplication&
 FetchGlobalInstance() ynothrow;
-
-/*!
-\brief 默认消息发生函数。
-*/
-void
-Idle();
 
 /*!
 \brief 以指定前景色和背景色初始化指定屏幕的控制台。

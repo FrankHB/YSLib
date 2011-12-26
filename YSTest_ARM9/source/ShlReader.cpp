@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2682;
+\version r2708;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2011-12-21 19:12 +0800;
+	2011-12-25 16:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -56,17 +56,18 @@ namespace
 
 ReaderBox::ReaderBox(const Rect& r, ShlReader& shl)
 	: Control(r),
-	Shell(shl), btnClose(Rect(232, 4, 16, 16)),
-	pbReader(Rect(8, 4, 192, 16)), lblProgress(Rect(204, 4, 24, 16))
+	Shell(shl), btnClose(Rect(236, 4, 16, 16)),
+	pbReader(Rect(4, 4, 192, 16)), lblProgress(Rect(200, 4, 32, 16))
 {
 	SetContainerPtrOf(btnClose, this),
 	SetContainerPtrOf(pbReader, this),
 	SetContainerPtrOf(lblProgress, this);
 	btnClose.Text = "×",
-	lblProgress.ForeColor = ColorSpace::Fuchsia,
 	lblProgress.Font.SetSize(12);
 	FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
 		Hide(*this);
+		if(const auto pCon = FetchContainerPtr(*this))
+			ClearFocusingOf(*pCon);
 	};
 }
 
@@ -109,10 +110,15 @@ ReaderBox::UpdateData(DualScreenReader& reader)
 {
 	char str[4];
 
-	siprintf(str, "%2u%%", reader.GetPosition() * 100 / reader.GetTextSize());
-	lblProgress.Text = str;
-	pbReader.SetMaxValue(reader.GetTextSize()),
-	pbReader.SetValue(reader.GetPosition());
+	const auto ts(reader.GetTextSize());
+	const auto tp(reader.GetTopPosition());
+
+	siprintf(str, "%2u%%", tp * 100 / ts);
+	yunseq(lblProgress.Text = str,
+		lblProgress.ForeColor = reader.GetBottomPosition() == ts
+		? ColorSpace::Green : ColorSpace::Fuchsia);
+	pbReader.SetMaxValue(ts),
+	pbReader.SetValue(tp);
 	Invalidate(pbReader),
 	Invalidate(lblProgress);
 }
@@ -130,6 +136,8 @@ TextInfoBox::TextInfoBox(ShlReader& shl)
 	SetContainerPtrOf(lblSize, this);
 	FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
 		Hide(*this);
+		if(const auto pCon = FetchContainerPtr(*this))
+			ClearFocusingOf(*pCon);
 	};
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 }
@@ -164,7 +172,8 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 
 	siprintf(str, "Encoding: %d;", reader.GetEncoding());
 	lblEncoding.Text = str;
-	siprintf(str, "Size: %u / %u;", reader.GetPosition(), reader.GetTextSize());
+	siprintf(str, "Size: [%u, %u) / %u;", reader.GetTopPosition(),
+		reader.GetBottomPosition(), reader.GetTextSize());
 	lblSize.Text = str;
 	Invalidate(lblEncoding),
 	Invalidate(lblSize);
@@ -214,6 +223,17 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 		{
 			Reader.Locate(e.X * Reader.GetTextSize()
 				/ boxReader.pbReader.GetWidth());
+		},
+		FetchEvent<Paint>(boxReader.pbReader) += [this](PaintEventArgs&& e){
+			auto& pb(boxReader.pbReader);
+			const auto mval(pb.GetMaxValue());
+			const auto w(pb.GetWidth() - 2);
+			auto& pt(e.Location);
+
+			FillRect(e.Target, Point(pt.X + 1 + round(pb.GetValue() * w / mval),
+				pt.Y + 1), Size(round((Reader.GetBottomPosition()
+				- Reader.GetTopPosition()) * w / mval), pb.GetHeight() - 2),
+				ColorSpace::Navy);
 		}
 	);
 	{

@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r1263;
+\version r1264;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2011-09-21 08:30:08 +0800;
 \par 修改时间:
-	2011-12-21 17:33 +0800;
+	2011-12-25 08:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -96,6 +96,7 @@ namespace ystdex
 		
 		yconstfn reference
 		operator*() const;
+
 		yconstfn pointer
 		operator->() const;
 

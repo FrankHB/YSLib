@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2581;
+\version r2593;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-12-22 16:36 +0800;
+	2011-12-25 15:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -89,11 +89,12 @@ private:
 	Text::TextFileBuffer::Iterator iBottom;
 	//@}
 	/*!
-	\brief 下屏文字指示标记。
+	\brief 读入文件结束后的空行数。
 
-	最近一次 UpdateView 操作时确认下屏存在需要输出的字符。
+	最近一次 UpdateView 操作时确认文件结束后的空行数。
+	\since build 272 。
 	*/
-	bool text_down;
+	u16 overread_line_n;
 
 public:
 	YSL_ Components::BufferedTextArea AreaUp; //!< 上屏幕对应字符区域。
@@ -115,9 +116,9 @@ public:
 		SDst h_up = MainScreenHeight, SDst h_down = MainScreenHeight,
 		FontCache& fc_ = FetchGlobalInstance().GetFontCache());
 
-	DefPred(const ynothrow, TextTop, iTop == pText->cbegin()) \
+	DefPred(const ynothrow, TextTop, iTop == pText->GetBegin()) \
 		//!< 判断输出位置是否到文本顶端。
-	DefPred(const ynothrow, TextBottom, iBottom == pText->cend()) \
+	DefPred(const ynothrow, TextBottom, iBottom == pText->GetEnd()) \
 		//!< 判断输出位置是否到文本底端。
 
 	DefGetter(const ynothrow, u8, FontSize, fc.GetFontSize()) \
@@ -135,16 +136,20 @@ public:
 	\note 单位为字节。
 	\since build 270 。
 	*/
-	DefGetter(const ynothrow, size_t, TextSize, pText ? pText->size() : 0)
+	DefGetter(const ynothrow, size_t, TextSize, pText ? pText->GetSize() : 0)
 	/*!
 	\brief 取阅读位置。
 
-	取字符区域起始位置的输入迭代器相对于文本缓冲区起始迭代器的偏移。
+	取字符区域起始位置的输入迭代器相对于文本缓冲区迭代器的偏移。
 	\note 单位为字节。
-	\since build 271 。
+	\since build 272 。
 	*/
-	DefGetter(const ynothrow, size_t, Position,
-		pText ? iTop - pText->cbegin() : 0)
+	//@{
+	DefGetter(const ynothrow, size_t, TopPosition,
+		pText ? iTop - pText->GetBegin() : 0)
+	DefGetter(const ynothrow, size_t, BottomPosition,
+		pText ? iBottom - pText->GetBegin() : 0)
+	//@}
 
 	PDefH(void, SetColor, Color c = Drawing::ColorSpace::Black)
 		ImplUnseq(AreaUp.Color = c, AreaDown.Color = c) //!< 设置字符颜色。

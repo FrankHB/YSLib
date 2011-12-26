@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3338;
+\version r3430;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-12-14 18:18 +0800;
+	2011-12-24 13:30 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,16 +26,102 @@
 
 
 #include "YSLib/Helper/yglobal.h"
-#include "YSLib/Core/yfilesys.h"
-#include "YSLib/Core/yapp.h"
-#include "YSLib/Core/yshell.h"
-#include "YSLib/Adaptor/yfont.h"
 #include "YSLib/Adaptor/ysinit.h"
 #include "YSLib/UI/ydesktop.h"
 #include "YSLib/Helper/shlds.h"
 //#include <clocale>
 
 YSL_BEGIN
+
+namespace
+{
+	//! \brief 程序日志类。
+	class Log : public noncopyable
+	{
+	public:
+		/*!
+		\brief 无参数构造：默认实现。
+		*/
+		yconstfn DefDeCtor(Log)
+		/*!
+		\brief 析构：空实现。
+		*/
+		virtual DefEmptyDtor(Log)
+
+		/*!
+		\brief 输出 char 字符。
+		*/
+		Log&
+		operator<<(char);
+		/*!
+		\brief 输出字符指针表示的字符串。
+		*/
+		Log&
+		operator<<(const char*);
+		/*!
+		\brief 输出字符串。
+		*/
+		Log&
+		operator<<(const string&);
+
+		/*!
+		\brief 提示错误。
+		*/
+		void
+		Error(const char*);
+		/*!
+		\brief 提示错误。
+		*/
+		void
+		Error(const string&);
+		/*!
+		\brief 提示致命错误。
+		\note 中止程序。
+		*/
+		void
+		FatalError(const char*);
+		/*!
+		\brief 提示致命错误。
+		\note 中止程序。
+		*/
+		void
+		FatalError(const string&);
+	};
+
+	Log& Log::operator<<(char)
+	{
+		return *this;
+	}
+	Log& Log::operator<<(const char*)
+	{
+		return *this;
+	}
+	Log& Log::operator<<(const string& s)
+	{
+		return operator<<(s);
+	}
+
+	void
+	Log::Error(const char*)
+	{}
+	void
+	Log::Error(const string& s)
+	{
+		Error(s.c_str());
+	}
+
+	void
+	Log::FatalError(const char* s)
+	{
+		ShowFatalError(s);
+	}
+	void
+	Log::FatalError(const string& s)
+	{
+		FatalError(s.c_str());
+	}
+}
+
 
 using Devices::DSScreen;
 using namespace Drawing;
@@ -105,9 +191,72 @@ YSL_END_NAMESPACE(Devices)
 
 namespace
 {
+	bool
+	operator==(const KeysInfo& x, const KeysInfo& y)
+	{
+		return x.Up == y.Up && x.Down == y.Down && x.Held == y.Held;
+	}
+
+	inline bool
+	operator!=(const KeysInfo& x, const KeysInfo& y)
+	{
+		return !(x == y);
+	}
+}
+
+YSL_BEGIN_NAMESPACE(Messaging)
+
+bool
+InputContent::operator==(const InputContent& rhs) const
+{
+	return Keys == rhs.Keys && CursorLocation == rhs.CursorLocation;
+}
+
+YSL_END_NAMESPACE(Messaging)
+
+namespace
+{
+	inline bool
+	operator!=(const Messaging::InputContent& x,
+		const Messaging::InputContent& y)
+	{
+		return !(x == y);
+	}
+
+	/*!
+	\brief 默认消息发生函数。
+	*/
+	void
+	Idle()
+	{
+		//等待图形用户界面输入。
+		using namespace Messaging;
+
+		static InputContent content, old_content;
+
+		scanKeys();
+		WriteKeys(content.Keys);
+		if(content.Keys.Held & KeySpace::Touch)
+		{
+			CursorInfo cursor;
+
+			WriteCursor(cursor);
+			yunseq(content.CursorLocation.X = cursor.GetX(),
+				content.CursorLocation.Y = cursor.GetY());
+		}
+
+		if((FetchAppInstance().Queue.IsEmpty() || content != old_content)
+			&& content.CursorLocation != Point::Invalid)
+		{
+			old_content = content,
+			SendMessage<SM_INPUT>(FetchShellHandle(), 0x40, content);
+		}
+	}
+
 	//注册的应用程序指针。
 	DSApplication* pApp;
 }
+
 
 DSApplication::DSApplication()
 	: pFontCache(), hScreenUp(), hScreenDown(), hDesktopUp(), hDesktopDown()
@@ -182,6 +331,14 @@ DSApplication::DSApplication()
 	{
 		throw LoggedEvent("Desktop initialization failed.");
 	}
+	/*
+	需要保证主 Shell 句柄在应用程序实例初始化之后初始化，
+	因为 MainShell 的基类 Shell 的构造函数
+	调用了 Application 的非静态成员函数。
+	*/
+	if(!FetchAppInstance().SetShellHandle(
+		share_raw(new Shells::MainShell())))
+		throw LoggedEvent("Failed launching the main shell;");
 }
 
 DSApplication::~DSApplication()
@@ -222,6 +379,31 @@ DSApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
 	}
 }
 
+int
+DSApplication::Run()
+{
+	using namespace Shells;
+
+	Message msg;
+	int id;
+
+	//消息循环。
+	while(true) 
+	{
+	//	if(Queue.GetSize() <= 0)
+		if(Queue.IsEmpty())
+			Idle();
+		id = Queue.Peek(msg, hShell, true);
+		if(id < 0)
+			continue;
+		if(id == SM_QUIT)
+			break;
+	//	TranslateMessage(msg);
+		Dispatch(msg);
+	}
+	return 0;
+}
+
 
 DSApplication&
 FetchGlobalInstance() ynothrow
@@ -237,71 +419,6 @@ FetchAppInstance()
 	return FetchGlobalInstance();
 }
 
-
-namespace
-{
-	bool
-	operator==(const KeysInfo& a, const KeysInfo& b)
-	{
-		return a.Up == b.Up && a.Down == b.Down && a.Held == b.Held;
-	}
-
-	inline bool
-	operator!=(const KeysInfo& a, const KeysInfo& b)
-	{
-		return !(a == b);
-	}
-}
-
-YSL_BEGIN_NAMESPACE(Messaging)
-
-bool
-InputContent::operator==(const InputContent& rhs) const
-{
-	return Keys == rhs.Keys && CursorLocation == rhs.CursorLocation;
-}
-
-YSL_END_NAMESPACE(Messaging)
-
-
-namespace
-{
-	/*!
-	\note 转换指针设备光标位置为屏幕点。
-	*/
-	inline Point
-	ToSPoint(const CursorInfo& c)
-	{
-		return Point(c.GetX(), c.GetY());
-	}
-}
-
-void
-Idle()
-{
-	//等待图形用户界面输入。
-	using namespace Messaging;
-
-	static KeysInfo keys;
-	static CursorInfo TouchPos_Old, TouchPos;
-	static shared_ptr<InputContent> pContent;
-
-	if(keys.Held & KeySpace::Touch)
-		TouchPos_Old = TouchPos;
-	scanKeys();
-	WriteKeysInfo(keys, TouchPos);
-
-	const Point pt(ToSPoint(keys.Held & KeySpace::Touch
-		? TouchPos : TouchPos_Old));
-
-	if(!pContent || ((FetchAppInstance().GetDefaultMessageQueue().IsEmpty()
-		|| keys != pContent->Keys || pt != pContent->CursorLocation)
-		&& pt != Point::Invalid))
-	{
-		pContent = share_raw(new InputContent(keys, pt));
-		SendMessage<SM_INPUT>(FetchShellHandle(), 0x40, pContent);
-	}
-}
 
 bool
 InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
@@ -426,6 +543,7 @@ main(int argc, char* argv[])
 {
 	using namespace YSL;
 
+	int r;
 	Log log;
 
 	try
@@ -434,49 +552,22 @@ main(int argc, char* argv[])
 			//应用程序实例。
 			DSApplication theApp;
 
-			/*
-			需要保证主 Shell 句柄在应用程序实例初始化之后初始化，
-			因为 MainShell 的基类 Shell 的构造函数
-			调用了 Application 的非静态成员函数。
-			*/
-			static shared_ptr<Shell> hMainShell(new Shells::MainShell());
-
-			if(!FetchAppInstance().SetShellHandle(hMainShell))
-				FetchAppInstance().Log.FatalError("Failed launching the"
-					" main shell @ main;");
-
 			//主体。
-
-			using namespace Shells;
-
-			Message msg;
-			int r;
-
-			//消息循环。
-			while(true) 
-			{
-				r = FetchMessage(msg, 0);
-				if(r < 0)
-					Idle();
-				if(r == SM_QUIT)
-					break;
-				TranslateMessage(msg);
-				DispatchMessage(msg);
-			}
+			r = theApp.Run();
 
 			//清理消息队列（当应用程序实例为静态存储期对象时需要）。
-		//	FetchAppInstance().GetDefaultMessageQueue().Clear();
-		//	FetchAppInstance().GetBackupMessageQueue().Clear();
+		//	theApp.GetDefaultMessageQueue().Clear();
+		//	theApp.GetBackupMessageQueue().Clear();
 
 			//释放 Shell 。
 			YSL_ ReleaseShells();
-			reset(hMainShell);
+			//当主 Shell 句柄为静态存储期对象时需要通过 reset 释放。
 		}
 
 	#ifdef YSL_USE_MEMORY_DEBUG
 		OnExit_DebugMemory();
 	#endif
-		return 0;
+		return r;
 	}
 	catch(std::exception& e)
 	{

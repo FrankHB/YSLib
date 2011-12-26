@@ -11,13 +11,13 @@
 /*!	\file ymsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version r2029;
+\version r2038;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-12-23 07:02 +0800;
+	2011-12-23 18:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,38 +38,37 @@ Message::Message(const shared_ptr<Shell>& h, ID m, Priority p,
 {}
 
 void
-Message::Swap(Message& rhs) ynothrow
+Message::Swap(Message& msg) ynothrow
 {
-	std::swap(hShl, rhs.hShl);
-	std::swap(id, rhs.id);
-	std::swap(prior, rhs.prior);
-	std::swap(content, rhs.content);
-	std::swap(timestamp, rhs.timestamp);
-	std::swap(timeout, rhs.timeout);
+	std::swap(hShl, msg.hShl);
+	std::swap(id, msg.id);
+	std::swap(prior, msg.prior);
+	std::swap(content, msg.content);
+	std::swap(timestamp, msg.timestamp);
+	std::swap(timeout, msg.timeout);
 }
 
 bool
-operator==(const Message& lhs, const Message& rhs)
+operator==(const Message& x, const Message& y)
 {
-	return lhs.hShl == rhs.hShl && lhs.id == rhs.id && lhs.prior == rhs.prior
-		&& lhs.content == rhs.content;
+	return x.hShl == y.hShl && x.id == y.id && x.prior == y.prior
+		&& x.content == y.content;
 }
 
 
 void
 MessageQueue::Merge(MessageQueue& mq)
 {
-	for(auto i(mq.q.begin()); i != mq.q.end(); ++i)
+	for(auto i(mq.begin()); i != mq.end(); ++i)
 		if(i->IsValid())
-			q.insert(std::move(*i));
-	mq.q.clear();
+			insert(std::move(*i));
+	mq.clear();
 }
 
 int
-MessageQueue::Peek(Message& msg, const shared_ptr<Shell>& hShl,
-	bool bRemoveMsg)
+MessageQueue::Peek(Message& msg, const shared_ptr<Shell>& hShl, bool bRemoveMsg)
 {
-	for(auto i(q.cbegin()); i != q.cend(); ++i)
+	for(auto i(cbegin()); i != cend(); ++i)
 	{
 		const Message& m(*i);
 
@@ -77,7 +76,7 @@ MessageQueue::Peek(Message& msg, const shared_ptr<Shell>& hShl,
 		{
 			msg = m;
 			if(bRemoveMsg)
-				q.erase(i);
+				erase(i);
 			return msg.GetMessageID();
 		}
 	}

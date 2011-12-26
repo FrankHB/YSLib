@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4271;
+\version r4282;
 \author FrankHB<frankhb1989@gmail.com>
-\since build 214 。
+\since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-12-04 11:13 +0800;
+	2011-12-25 11:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,52 +32,60 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Text)
 
 TextFileBuffer::TextFileBuffer(TextFile& file)
-	: TextFile(file), vector<ucs2_t>()
+	: File(file), Buffer()
 {
 	using namespace CharSet;
 
-	switch(GetEncoding())
+	switch(File.GetEncoding())
 	{
 	case UTF_16:
 	case UTF_16LE:
 	case UTF_16BE:
-		reserve(GetTextSize());
+		Buffer.reserve(File.GetTextSize());
 		break;
 	default:
-		reserve(GetTextSize() << 1);
+		Buffer.reserve(File.GetTextSize() << 1);
 	}
-	LoadText(GetTextSize());
+	LoadText(File.GetTextSize());
 }
 
-SizeType
-TextFileBuffer::LoadText(SizeType n)
+TextFileBuffer::Iterator
+TextFileBuffer::GetBegin() const
 {
-	TextFile& f(*this);
-	vector<ucs2_t>& b(*this);
+	return Buffer.begin();
+}
+TextFileBuffer::Iterator
+TextFileBuffer::GetEnd() const
+{
+	return Buffer.end();
+}
 
-	if(n > b.capacity())
+size_t
+TextFileBuffer::LoadText(size_t n)
+{
+	if(n > Buffer.capacity())
 		return 0;
-	if(f.IsValid())
+	if(File.IsValid())
 	{
-		auto l(b.size());
+		auto l(Buffer.size());
 
-		b.resize(l + n);
+		Buffer.resize(l + n);
 
 		const auto l_old(l);
-		const auto fp(f.GetPtr());
-		const auto cp(f.GetEncoding());
-		SizeType idx(0);
+		const auto fp(File.GetPtr());
+		const auto cp(File.GetEncoding());
+		size_t idx(0);
 		ConversionState st;
 
 		while(idx < n)
 		{
-			auto t(MBCToUC(b[l], fp, cp, st));
+			auto t(MBCToUC(Buffer[l], fp, cp, st));
 
 			if(GetCountOf(st) < 0)
 				break;
 			yunseq(idx += t, ++l);
 		}
-		b.resize(l);
+		Buffer.resize(l);
 		return l - l_old;
 	}
 	return 0;

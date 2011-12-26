@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2780;
+\version r2786;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2011-12-04 10:53 +0800;
+	2011-12-24 12:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -667,9 +667,17 @@ namespace platform
 
 	/*!
 	\brief 写入当前按键信息。
+	\since build 272 。
 	*/
 	void
-	WriteKeysInfo(KeysInfo&, CursorInfo&);
+	WriteKeys(KeysInfo&);
+
+	/*!
+	\brief 写入当前指针设备信息。
+	\since build 272 。
+	*/
+	void
+	WriteCursor(CursorInfo&);
 
 
 	/*!

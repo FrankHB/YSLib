@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2060;
+\version r2061;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260 。
 \par 创建时间:
 	2011-11-12 23:23:47 +0800;
 \par 修改时间:
-	2011-12-08 21:18 +0800;
+	2011-12-24 13:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -94,7 +94,7 @@ namespace ystdex
 		size_t _vInt = std::numeric_limits<_tBase>::digits - 6U,
 		size_t _vFrac = std::numeric_limits<_tBase>::digits - _vInt>
 	class fixed_point : operators::ordered_field_operators<
-		fixed_point<_tBase,_vInt, _vFrac>, operators::unit_steppable<
+		fixed_point<_tBase, _vInt, _vFrac>, operators::unit_steppable<
 		fixed_point<_tBase, _vInt, _vFrac>, operators::shiftable<fixed_point<
 		_tBase, _vInt, _vFrac>, std::size_t>>>
 	{

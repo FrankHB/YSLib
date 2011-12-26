@@ -11,13 +11,13 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version r4556;
+\version r4585;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-12-17 11:31 +0800;
+	2011-12-25 11:50 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,14 +36,21 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Text)
 
-//文本文件块缓冲区。
-class TextFileBuffer : public TextFile, protected std::vector<ucs2_t>
+/*
+\brief 文本文件块缓冲区。
+\since build 145 。
+*/
+class TextFileBuffer
 {
 public:
-	typedef vector<ucs2_t>::const_iterator const_iterator;
-	typedef vector<ucs2_t>::iterator iterator;
-	typedef const_iterator Iterator;
+	typedef vector<ucs2_t> BufferType;
+	typedef BufferType::const_iterator Iterator;
 
+protected:
+	TextFile File;
+	BufferType Buffer;
+
+public:
 	/*!
 	\brief 构造：使用文本文件。
 	*/
@@ -54,33 +61,21 @@ public:
 	*/
 	virtual DefEmptyDtor(TextFileBuffer)
 
-	using vector<ucs2_t>::operator[];
-
-	using vector<ucs2_t>::size;
-	using vector<ucs2_t>::capacity;
-
-	using vector<ucs2_t>::at;
-
-	using vector<ucs2_t>::clear;
-
-	using vector<ucs2_t>::resize;
-
-	using vector<ucs2_t>::begin;
-	using vector<ucs2_t>::end;
-	using vector<ucs2_t>::cbegin;
-	using vector<ucs2_t>::cend;
-	using vector<ucs2_t>::rbegin;
-	using vector<ucs2_t>::rend;
-	using vector<ucs2_t>::crbegin;
-	using vector<ucs2_t>::crend;
+	DefGetterMem(const ynothrow, Encoding, Encoding, File)
+	DefGetter(const ynothrow, size_t, Size, Buffer.size())
+	DefGetterMem(const ynothrow, size_t, TextSize, File)
+	Iterator
+	GetBegin() const;
+	Iterator
+	GetEnd() const;
 
 protected:
 	/*!
 	\brief 从文本文件中读取连续 n 个字节到文本缓冲区块中，并返回成功读取的字符数。
 	\note 超过最大长度则放弃读取。
 	*/
-	SizeType
-	LoadText(SizeType n);
+	size_t
+	LoadText(size_t n);
 };
 
 YSL_END_NAMESPACE(Text)

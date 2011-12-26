@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5702;
+\version r5709;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-12-09 20:06 +0800;
+	2011-12-23 19:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -1524,9 +1524,6 @@ const SDst MainScreenWidth, MainScreenHeight;
 unspecified_class_type&
 FetchGlobalInstance() ynothrow;
 
-void
-Idle();
-
 bool
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
@@ -1549,6 +1546,7 @@ FetchDefaultScreen();
 本体的头文件仅依赖于标准库头文件或 YSLib 的头文件，除了 Service 或 UI 的头文件还可以依赖于 YBase 的头文件的例外。
  YSLib 非本体（即 Adaptor 和 Helper ）的头文件除以上外还可能依赖于其它头文件，例如支持环境的平台相关的运行时库。
  Adaptor 头文件可能依赖于 YBase 、 <YCLib/ycommon.h> 、 CHRLib 、YSLib 或标准库头文件。
+ Helper 头文件可能依赖于 YBase 、 YCLib 、YSLib 或标准库头文件。
 本体的文件中，文件名以 y 起始且模块名以 Y 起始的文件为必要文件，其它为非必要文件。
  必要头文件不依赖非必要头文件。
 

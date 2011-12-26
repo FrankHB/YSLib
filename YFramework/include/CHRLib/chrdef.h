@@ -15,12 +15,13 @@
 /*!	\file chrdef.h
 \ingroup CHRLib CHRLib 库
 \brief CHRLib 类型定义。
-\version r1624;
+\version r1631;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-10-18 14:58 +0800;
+	2011-12-24 16:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,9 +46,7 @@
 CHRLIB_BEGIN
 
 using ystdex::byte;
-
-typedef unsigned char ubyte_t;
-typedef unsigned long usize_t;
+using ystdex::size_t;
 
 // 字符类型定义。
 typedef char16_t ucs2_t; //!< UCS-2 字符类型。

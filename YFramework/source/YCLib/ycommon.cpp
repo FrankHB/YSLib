@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2407;
+\version r2413;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2011-12-06 11:58 +0800;
+	2011-12-24 12:02 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -374,24 +374,29 @@ namespace platform
 
 
 	void
-	WriteKeysInfo(KeysInfo& key, CursorInfo& tp)
+	WriteKeys(KeysInfo& keys)
+	{
+		//记录按键状态。
+		keys.Up = keysUp();
+		keys.Down = keysDown();
+		keys.Held = keysHeld();
+	}
+
+	void
+	WriteCursor(CursorInfo& tp)
 	{
 		touchRead(&tp);
 		//修正触摸位置。
 		if(tp.px != 0 && tp.py != 0)
 		{
-			--tp.px;
+			--tp.px,
 			--tp.py;
 		}
 		else
 		{
-			tp.px = SCREEN_WIDTH;
+			tp.px = SCREEN_WIDTH,
 			tp.py = SCREEN_HEIGHT;
 		}
-		//记录按键状态。
-		key.Up = keysUp();
-		key.Down = keysDown();
-		key.Held = keysHeld();
 	}
 
 

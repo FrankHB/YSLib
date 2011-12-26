@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 字符映射静态函数。
-\version r2397;
+\version r2405;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-12-21 17:05 +0800;
+	2011-12-24 16:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,13 +38,13 @@ CHRLIB_BEGIN
 \since 早于 build 132 。
 */
 //@{
-yconstexpr ubyte_t cp17[] = {0};
+yconstexpr byte cp17[] = {0};
 extern "C"
 {
-	extern const ubyte_t cp113[];
-	//extern const ubyte_t cp2026[13658];
+	extern const byte cp113[];
+	//extern const byte cp2026[13658];
 }
-yconstexpr ubyte_t cp2026[] = {0};
+yconstexpr byte cp2026[] = {0};
 //@}
 
 
@@ -82,7 +82,7 @@ template<>
 struct GUCS2Mapper<CharSet::SHIFT_JIS>
 {
 /*	template<typename _tIn, typename _tState>
-	static ubyte_t
+	static byte
 	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
 		uint_least16_t row(0), col(0), ln(188); // (7E-40 + 1 + FC-80 + 1)
@@ -125,7 +125,7 @@ template<>
 struct GUCS2Mapper<CharSet::UTF_8>
 {
 	template<typename _tIn, typename _tState>
-	static ubyte_t
+	static byte
 	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
 		auto& cnt(GetCountOf(st));
@@ -178,10 +178,10 @@ struct GUCS2Mapper<CharSet::UTF_8>
 	}
 
 	template<typename _tOut>
-	static ubyte_t
+	static byte
 	InverseMap(_tOut d, const ucs2_t& s)
 	{
-		usize_t l(0);
+		size_t l(0);
 
 		if(s < 0x80)
 		{
@@ -206,7 +206,7 @@ template<>
 struct GUCS2Mapper<CharSet::GBK>
 {
 	template<typename _tIn, typename _tState>
-	static ubyte_t
+	static byte
 	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
 		auto& cnt(GetCountOf(st));
@@ -254,7 +254,7 @@ template<>
 struct GUCS2Mapper<CharSet::UTF_16BE>
 {
 	template<typename _tIn, typename _tState>
-	static ubyte_t
+	static byte
 	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
 		auto& cnt(GetCountOf(st));
@@ -293,7 +293,7 @@ template<>
 struct GUCS2Mapper<CharSet::UTF_16LE>
 {
 	template<typename _tIn, typename _tState>
-	static ubyte_t
+	static byte
 	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
 		auto& cnt(GetCountOf(st));
@@ -332,7 +332,7 @@ template<>
 struct GUCS2Mapper<CharSet::Big5>
 {
 /*	template<typename _tIn, typename _tState>
-	static ubyte_t
+	static byte
 	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
 	{
 		uint_least16_t row(0), col(0), ln(157); // (7E-40 + FE-A1)

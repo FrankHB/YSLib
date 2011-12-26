@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3403; *build 271 rev 32;
+\version r3403; *build 272 rev 46;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-12-23 12:23 +0800;
+	2011-12-26 17:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -327,201 +327,257 @@ $using:
 
 $DONE:
 r1:
-+ \mf void UpdateData(size_t, size_t) @ \cl ReaderBox @ \u ShlReader,
-/ @ \cl DualScreenReader @ \u DSReader $=
+/ \f !\i int FetchMessage(Message&, MessageQueue::SizeType = 0, const
+	shared_ptr<Shell>& hShl = FetchShellHandle()) @ \u YApplication -> \i int
+	FetchMessage(Message&, const shared_ptr<Shell>& hShl = FetchShellHandle());
+/ @ \impl \u YGlobal $=
 (
-	+ std::function<void()> ViewChanged;
-	/ \impl @ \mf Execute
+	- \inc \h (YApplication, YFileSystem, YShell, YFont),
+	/ \impl @ \f ::main
 );
 
 r2:
-/ @ \cl DualScreenReader @ \u DSReader $=
+/ \impl \u YApplication $=
 (
+	/ @ \cl YApplication $=
 	(
-		(
-			- \mf GetLineGapUp,
-			- \mf GetLineGapDown
-		);
-		/ \tr \impl @ \mf GetLineGap,
-		/ \tr \impl @ \mf Execute
+		- \m YSLib::Log Log,
+		/ \tr \impl @ \ctor
 	),
-	- \mf GetColor,
-	+ \mf GetPosition
+	/ \simp \impl @ 2 \mf SendMessage;
+	/ \cl Log >> \impl \u YGlobal;
+	- \inc \h YGlobal @ \un \ns @ \impl \u
 );
-/ \ctor @ \cl TextReaderManager @ \impl \u ShlReader;
+- \pre \decl @ \cl Log @ \h YShellDefinition;
 
 r3:
-/ @ \cl ReaderBox @ \u DSReader
-(
-	/ \mf void ReaderBox::UpdateData(size_t, size_t)
-		-> void ReaderBox::UpdateData(DualScreenReader&),
-	/ \impl @ \mf TextInfoBox::UpdateData;
-	/ \tr \impl @ \ctor @ \cl TextReaderManager,
-	/ \impl @ \mf TextReaderManager::ExcuteReadingCommand;
-	/ \simp \impl @ \ctor @ \cl ReaderBox
-);
-
-r4:
 /= test 1 ^ \conf release;
 
+r4:
+/ \impl @ \f ::main @ \impl \u YGlobal;
+- \f (PeekMessage, FetchMessage) @ \u YApplication;
+- \f ((YSDebug_MSG_Peek, YSDebug_MSG_Insert), YSDebug_MSG_Print @ \un \ns)
+	@ \impl \u Main;
+
 r5:
-/ @ \cl ScrollEventArgs $=
-(
-	/ \inh public GMDoubleValueEventArgs<float> -> protected pair<float, float>,
-	- typedef GMDoubleValueEventArgs<float> MEventArgs,
-	/ typedef MEventArgs::ValueType ValueType
-		-> typedef float ValueType,
-	/ \m ScrollCategory Type => Category;
-	/ \tr \impl @ \a 2 \ctor,
-	+ \mf \i (GetValue, GetOldValue, SetValue, SetOldValue);
-);
-/ \tr \impl @ \ctor @ \cl ListBox,
-/ \tr \impl @ \ctor @ \cl HexViewArea @ \impl \u HexBrowser,
-- \ft GMDoubleValueEventArgs @ \h YWidgetEvent;
+/ !\m \f (DispatchMessage, BackupMessageQueue, RecoverMessageQueue)
+	@ \u YApplication -> \mf @ \cl Application,
+/ \tr \impl @ \f ::main @ \impl \u YGlobal;
+/ \a DispatchMessage => Dispatch;
 
 r6:
-/ @ \u Progress $=
+/ @ \u Message $=
 (
-	/ \inc \h YWidget -> \h YControl @ \h;
-	/ @ \cl ProgressBar $=
+	+ friend bool \op<(const Message&, const Message&) @ \cl Message;
+	/ @ \cl MessageQueue $=
 	(
-		/ \inh \cl Widget -> \cl Control;
-		/ \tr \impl @ \ctor
+		/ \impl @ \mf (Push, Pop, Peek#1),
+		- \mf (top, pop, push);
+		/ \tr private \m multiset<Message, cmp> q
+			-> private \inh multiset<Message>,
+		/ \tr \impl @ \mf (Merge, Peek#2),
+		/ \tr typedef SizeType;
+		- private \st cmp,
+		- \vt \dtor
 	)
 );
 
 r7:
-/ \inc \h Progress @ \impl \u Main >> @ \h Build;
-/ @ \cl ReaderBox @ \u ShlReader
+/ @ \u YApplication $=
 (
-	/ \m HorizontalTrack trReader -> ProgressBar pbReader;
-	/ \tr \impl @ \ctor,
-	/ \impl @ \mf (GetTopWidgetPtr, Refresh)
+	/ @ \cl Application $=
+	(
+		/ \m private MessageQueue* pMessageQueue -> public MessageQueue Queue,
+		/ \m private MessageQueue* pMessageQueueBackup
+			-> public MessageQueue BackupQueue,
+		/ \tr \impl @ \mf (BackupMessageQueue, RecoverMessageQueue)
+		- \mf (GetMessageQueue, GEtMessageQueueBackup),
+		/ \rem \m std::function<void()> Idle,
+		/ \mf BackupMessageQueue => BackupMessage,
+		/ \tr \simp \impl @ (\ctor, \dtor)
+	);
+	/ \tr \impl @ \f SendMessage#1;
 );
+/ \tr \impl @ \f (::main, Idle) @ \impl \u YGlobal;
 
 r8:
-/ @ \cl Progress $=
-(
-	/ \inh \cl GMValue<u16> -> GMValue<float>,
-	/ \ctor ProgressBar(const Rect& = Rect::Empty, u16 = 0xFF);
-		-> ProgressBar(const Rect& = Rect::Empty, ValueType = 1.0f)
-	/ \impl @ \mf SetValue
-);
-
-r9:
-/ \impl @ \mf ReaderBox::UpdateData;
-
-r10:
 /= test 2 ^ \conf release;
 
-r11:
-/ @ \h CStandardIO @ \lib YBase $=
+r9:
+- \f errno_t TranslateMessage(const Message&) @ \u YApplication,
+/ @ \cl Application $=
 (
-	/ @ \cl ifile_stream
-	(
-		/ \impl @ \ctor #2,
-		/ \impl @ \op++()
-	);
-	/ \impl @ \f (is_dereferencable, is_undereferencable)
-);
-/ \tr \simp \impl @ \mf ubyte_t MBCToUC(ucs2_t&, std::FILE*, const Encoding&,
-	ConversionState&&) @ \impl \u CharacterProcessing;
-
-r12:
-/ \impl @ \f FillByte @ \h StaticMapping;
-
-r13:
-/ \impl @ \op++ @ \cl ifile_iterator @ CStandardIO;
-
-r14:
-* wrong state in file stream conversion $since b249
+	/ \ac @ \m hShell @ \cl Application -> protected ~ private,
+	/ \ac @ \m BackupQueue @ \cl Application -> protected ~ public
+),
+/ @ \u YGlobal $=
 (
-	* \impl @ \mf ubyte_t MBCToUC(ucs2_t&, std::FILE*, const Encoding&,
-		ConversionState&&) @ \impl \u CharacterProcessing
-);
+	+ \mf int Run() @ \cl DSApplication,
+	/ \f Idle >> \un \ns @ \impl \u;
+	/ \simp \impl @ \f ::main ^ \mf DSApplication::Run,
+	/ \impl @ \ctor @ \cl DSApplication
+),
++ \inc \h YCommon @ \h YGlobal;
 
-r15:
-/ @ \cl DualScreenReader @ \u DSReader $=
+r10-r15:
+/= test 3,
+/ @ \u YCommon $=
 (
-	/ \impl @ \mf (Invalidate, Execute);
-	+ \mf void Locate(size_t)
+	/ \f void WriteKeysInfo(KeysInfo& key, CursorInfo& tp)
+		-> \f void WriteKeys(KeysInfo&),
+	+ \f void WriteCursor(CursorInfo&)
 );
-/ \impl @ \ctor @ \cl (ReaderBox, TextReaderManager) @ \impl \u ShlReader;
+/ @ \impl \u YGlobal $=
+(
+	/ \tr \impl @ \f Idle @ \un \ns,
+	/ \impl @ \mf DSApplication::Run
+);
 
 r16:
-/ \impl @ \mf DualScreenReader::Locate @ \impl \u DSReader;
+/ \simp \impl @ \f Idle @ \un \ns @ \impl \u YGlobal;
 
 r17:
-/ \impl @ \mf TextReaderManager::OnKeyDown @ \impl \u ShlReader;
+- \f \i ToSPoint @ \un \ns @ \impl \u YGlobal;
 
 r18:
-* \impl @ \mf DualScreenReader::Locate @ \impl \u DSReader $since r15;
+/ @ \u YGlobal $=
+(
+	+ yconstfn DefDeCtor(InputContent) @ \cl InputContent;
+	/ \simp \impl @ \f Idle @ \un \ns @ \impl \u
+);
 
-r19-r21:
-/ \impl @ \mf TextReaderManager::(OnKeyDown, ShowMenu) @ \impl \u ShlReader;
+r19:
+/ @ \u YGlobal $=
+(
+	/ 'DefMessageTarget(SM_INPUT, shared_ptr<InputContent>)' @ \ns Messaging
+		-> 'DefMessageTarget(SM_INPUT, shared_ptr<InputContent>)',
+	/ \un \ns @ \impl \u $=
+	(
+		+ !\i bool \op==(const Messaging::InputContent&,
+			const Messaging::InputContent&);
+		/ \tr \simp \impl @ \f Idle @ \un \ns
+	)
+);
+/ \tr \impl @ \mf ShlDS::OnGotMessage @ \impl \u Shell_DS;
 
-r22-r23:
-/= test 3;
-
-r24:
+r20:
 /= test 4 ^ \conf release;
 
-r25-r29:
-/ @ \u DSReader $=
+r21:
+/ @ \h CHRDefinition $=
 (
-	/ @ \impl \u $=
-	(
-		/ \a FindNextLine => FindLineFeed,
-		/ \a FindPreviousLine => FindPreviousLineFeed
-	),
-	/ @ \cl DualScreenReader $=
-	(
-		+ private \m bool text_down,
-		/ \tr \impl @ \ctor,
-		/ \impl @ \mf UpdateView, Execute
-	)
+	/ typedef unsigned long usize_t -> using ystdex::size_t,
+	- typedef unsigned char ubyte_t
+);
+/ \a usize_t -> size_t,
+/ \a ubyte_t -> byte;
+/ typedef size_t IndexType @ \ns Text @ \h YShellDefinition
+	-> typedef ptrdiff_t DifferenceType;
+
+r22:
+/ @ \cl TextFileBuffer $=
+(
+	/ typedef const_iterator Iterator
+		-> typedef vector<ucs2_t>::const_iterator Iterator;
+	- typedef vector<ucs2_t>::const_iterator const_iterator,
+	- typedef vector<ucs2_t>::iterator iterator
 );
 
-r30-r31:
-/ @ \u YMessage $=
+r23:
+/ \ns Text @ \h YShellDefinition $=
 (
-	/ @ \cl MessageQueue 
-	(
-		- \mf (GetMessage, Update),
-		/ \a \mf PeekMessage => Peek
-	),
-	/ \simp \impl @ (copy, move) \op= @ \cl Message $=
-	(
-		- copy \op=,
-		- move \op=,
-		+ unifying \op=,
-		* excetprion safety @ \impl @ move \op= $since b211,
-	)
+	typedef size_t SizeType,
+	typedef ptrdiff_t DifferenceType
+);
+/ \tr \a SizeType @ \u TextManager -> size_t;
+/ @ \cl TextFileBuffer $=
+(
+	/ \inh \cl TextFile @ \cl TextFileBuffer -> protected \m TextFile File,
+	+ typedef vector<ucs2_t> BufferType;
+	/ \simp typedef Iterator ^ BufferType,
+	/ \inh protected \cl vector<ucs2_t> -> protected \m BufferType Buffer,
+	/ using vector<ucs2_t>::size -> \mf GetSize,
+	- using vector<ucs2_t>::(capacity, at, clear, resize, begin, end,
+		rbegin, rend, crbegin, crend),
+	/ using vector<ucs2_t>::cbegin -> \mf GetBegin,
+	/ using vector<ucs2_t>::cend -> \mf GetEnd
+	- using vector<ucs2_t>::operator[],
+	/ \tr \impl @ \ctor,
+	/ \tr \impl @ \mf LoadText,
+	+ \mf (GetEncoding, GetTextSize)
+);
+/ \tr @ \cl DualScreenReader @ \u DSReader;
+
+r24-r39:
+/= test 5,
+* scrolling down disabled after text bottom reached @ \cl DualScreenReader
+	$since b271 $=
+(
+	/ private \m bool text_down -> u16 overread_line_n;
+	/ \tr \impl @ \ctor,
+	/ \impl @ \mf UpdateView, Execute
 );
 
-r32:
-/= test 5 ^ \conf release;
+r40:
+/= test 6 ^ \conf release;
+
+r41:
+/ \impl @ \ctor @ \cl (ReaderBox, TextInfoBox) @ \impl \u ShlReader;
+
+r42:
+/ @ \cl DualScreenReader @ \h DSReader $=
+(
+	/ \mf GetPosition => GetTopPosition,
+	+ \mf GetBottomPosition
+);
+/ @ \impl \u ShlReader $=
+(
+	/ \tr \impl @ \mf (ReaderBox::UpdateData, TextInfoBox::UpdateData),
+	/ \impl @ \ctor @ \cl ReaderBox
+);
+
+r43:
+/ @ \cl ReaderBox @ \impl \u ShlReader $=
+(
+	* \impl @ \mf UpdateData @  $since r42,
+	/ \impl @ \ctor
+);
+
+r44:
+/ @ \impl \u ShlReader $=
+(
+	/ \impl @ \mf ReaderBox::UpdateData,
+	/ \impl @ \ctor @ \cl TextReaderManager
+);
+
+r45:
+/ \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader ^ 'round',
+/ \impl @ \mf ProgressBar::Refresh ^ 'round';
+
+r46:
+/= test 7 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-12-23:
--13.7d;
-//Mercurial rev1-rev142: r6866;
+2011-12-26:
+-11.8d;
+//Mercurial rev1-rev143: r6898;
 
 / ...
 
 
 $NEXT_TODO:
-b272-b384:
+b273-b384:
 + deleted copy \ctor @ \cl File;
 / fully \impl @ \u DSReader $=
 (
 	* moved text after setting %lnGap,
-	+ bookmards
+	+ bookmarks
 );
 * VRAM not flushed when opening lid on real DS;
+^ timing triggers @ message loop;
 + dynamic character mapper loader for \u CharacterMapping;
 + partial invalidation support @ %(HexViewArea::Refresh);
 + 64-bit integer underlying type support for ystdex::fixed_point;
@@ -645,6 +701,8 @@ $module_tree $=
 			'messaging',
 			'shell abstraction',
 			'application abstraction',
+			'global helper unit',
+			'services',
 			'GUI'
 		)
 	),
@@ -659,17 +717,51 @@ $module_tree $=
 
 $now
 (
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ "simplified implementation" @ %'messaging';
+		/ %'application abstraction' $=
+		(
+			- "messages producer calling" @ "function FetchMessage"
+			- "default log object" @ "class %Application",
+			- $design "try blocks" @ "all 2 function %SendMessage";
+			/ $design "logging class %Log" >> "implementation unit %YGlobal"
+				@ "directory %Helper"
+		);
+		/ %'global helper unit' $=
+		(
+			/ "input message target type" ^ "class %InputContent"
+				~ "shared_ptr<InputContent>";
+			/ "efficiency improved" @ "function %Idle",
+			/ $design "simplified implementation" @ "function %::main"
+		),
+		/ %'GUI' $=
+		(
+			^ "rounding" @ "member function %ProgressBar::Refresh"
+		)
+	),
 	/ %'YReader'.'text reader' $=
 	(
-		+ "text reading progress infomation shown on both information boxes",
+		* "scrolling down disabled after text bottom reached" $since b271,
+		+ "return focus back to reader when box controls closed",
+		+ "bottom position shown as distinct color" @ "box controls",
+		/ "widgets layout" @ "class %ReaderBox"
+	)
+),
+
+b271
+(
+	/ %'YReader'.'text reader' $=
+	(
+		+ "text reading progress information shown on both information boxes",
 		/ "reading information indicating" @ "class %ReaderBox"
 			^ "progress bar" ~ "track";
 		+ "random locating of text by progress bar",
 		/ "key responding all the time except menu shown"
 	),
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework' $=
 	(
-		/ %'YSLib'.'GUI' $=
+		/ %'YSLib' $=
 		(
 			/ %'GUI' $=
 			(

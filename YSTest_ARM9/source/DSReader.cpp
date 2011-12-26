@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3422;
+\version r3450;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-12-22 16:37 +0800;
+	2011-12-25 14:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -105,7 +105,7 @@ YSL_BEGIN_NAMESPACE(Components)
 DualScreenReader::DualScreenReader(SDst w, SDst h_up, SDst h_down,
 	FontCache& fc_)
 	: pText(), fc(fc_),
-	rot(RDeg0), iTop(), iBottom(), text_down(),
+	rot(RDeg0), iTop(), iBottom(), overread_line_n(0),
 	AreaUp(Rect(Point::Zero, w, h_up), fc),
 	AreaDown(Rect(Point::Zero, w, h_down), fc)
 {
@@ -153,18 +153,20 @@ DualScreenReader::Execute(Command cmd)
 			AreaUp.Scroll(hx);
 			AreaUp.ClearTextLine(0);
 			SetCurrentTextLineNOf(AreaUp, 0);
-			iTop = FindPreviousLineFeed(AreaUp, iTop, pText->cbegin());
+			iTop = FindPreviousLineFeed(AreaUp, iTop, pText->GetBegin());
 			CarriageReturn(AreaUp);
 			{
 				auto iTopNew(iTop);
 
 				if(*iTopNew == '\n')
 					++iTopNew;
-				PutLine(AreaUp, iTopNew, pText->cend(), '\n');
+				PutLine(AreaUp, iTopNew, pText->GetEnd(), '\n');
 			}
-			if(!IsTextBottom())
+			if(overread_line_n > 0)
+				--overread_line_n;
+			else
 				iBottom = FindPreviousLineFeed(AreaUp, iBottom,
-					pText->cbegin());
+					pText->GetBegin());
 		}
 		else
 		{
@@ -192,10 +194,10 @@ DualScreenReader::Execute(Command cmd)
 			CarriageReturn(AreaDown);
 			if(*iBottom == '\n')
 				++iBottom;
-			iBottom = PutLine(AreaDown, iBottom, pText->cend(), '\n');
+			iBottom = PutLine(AreaDown, iBottom, pText->GetEnd(), '\n');
 			if(*iTop == '\n')
 				++iTop;
-			iTop = FindLineFeed(AreaUp, iTop, pText->cend());
+			iTop = FindLineFeed(AreaUp, iTop, pText->GetEnd());
 		}
 		Invalidate();
 	}
@@ -206,18 +208,18 @@ DualScreenReader::Execute(Command cmd)
 		if(cmd & Up)
 		{
 			while(ln--)
-				iTop = FindPreviousLineFeed(AreaUp, iTop, pText->cbegin());
+				iTop = FindPreviousLineFeed(AreaUp, iTop, pText->GetBegin());
 		}
 		else
 		{
-			while(ln-- && iBottom != pText->end())
+			while(ln-- && iBottom != pText->GetEnd())
 			{
 				if(*iBottom == '\n')
 					++iBottom;
-				iBottom = FindLineFeed(AreaDown, iBottom, pText->cend());
+				iBottom = FindLineFeed(AreaDown, iBottom, pText->GetEnd());
 				if(*iTop == '\n')
 					++iTop;
-				iTop = FindLineFeed(AreaUp, iTop, pText->cend());
+				iTop = FindLineFeed(AreaUp, iTop, pText->GetEnd());
 			}
 		}
 		UpdateView();
@@ -230,9 +232,9 @@ DualScreenReader::Locate(size_t pos)
 {
 	if(pos < pText->GetTextSize())
 	{
-		iTop = pText->cbegin() + pos;
+		iTop = pText->GetBegin() + pos;
 		if(pos != 0)
-			iTop = FindPreviousLineFeed(AreaUp, iTop, pText->cbegin());
+			iTop = FindPreviousLineFeed(AreaUp, iTop, pText->GetBegin());
 		UpdateView();
 	}
 }
@@ -255,8 +257,8 @@ DualScreenReader::LoadText(TextFile& file)
 	if(file.IsValid())
 	{
 		pText = unique_raw(new Text::TextFileBuffer(file));
-		iTop = pText->begin();
-		iBottom = pText->end();
+		iTop = pText->GetBegin();
+		iBottom = pText->GetEnd();
 		UpdateView();
 	}
 	else
@@ -304,10 +306,27 @@ DualScreenReader::UpdateView()
 		if(*iNew == '\n')
 			++iNew;
 		iNew = PutString(AreaUp, iNew);
-		iBottom = (text_down = iNew != pText->cend())
-			? PutString(AreaDown, iNew) : pText->cend();
+		if(iNew == pText->GetEnd())
+		{
+			iBottom = iNew;
+
+			const auto b(FetchLastLineBasePosition(AreaUp, AreaUp.GetHeight()));
+
+			overread_line_n = AreaUp.PenY >= b ? 0 : AreaDown.GetTextLineNEx()
+				+ (b - AreaUp.PenY) / GetTextLineHeightExOf(AreaUp);
+		}
+		else
+		{
+			iBottom = PutString(AreaDown, iNew);
+
+			const auto b(FetchLastLineBasePosition(AreaDown,
+				AreaDown.GetHeight()));
+
+			overread_line_n = AreaDown.PenY >= b ? 0
+				: (b - AreaDown.PenY) / GetTextLineHeightExOf(AreaDown);
+		}
 	}
-	if(iBottom != pText->cend() && *iBottom == '\n')
+	if(iBottom != pText->GetEnd() && *iBottom == '\n')
 		--iBottom;
 	Invalidate();
 }

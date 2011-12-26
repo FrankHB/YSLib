@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11566;
+\version r11571;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-12-18 09:37 +0800;
+	2011-12-25 11:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -417,13 +417,13 @@ $unit CharacterMapping
 		const Encoding CP_Local = CharSet::GBK;
 
 		//编码转换表。
-		const ubyte_t cp17[] = {0};
+		const byte cp17[] = {0};
 		extern "C"
 		{
-			extern const ubyte_t cp113[];
-			//extern const ubyte_t cp2026[13658];
+			extern const byte cp113[];
+			//extern const byte cp2026[13658];
 		}
-		const ubyte_t cp2026[] = {0};
+		const byte cp2026[] = {0};
 	}
 }
 
@@ -630,7 +630,7 @@ $header "ydef.h"
 #ifndef YCL_HAS_BUILTIN_NULLPTR
 	using ystdex::nullptr;
 #endif
-} //$header "ysdef.h";
+} //$header "ydef.h";
 
 // std 命名空间兼容性污染列表。
 

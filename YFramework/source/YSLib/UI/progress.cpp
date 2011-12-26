@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r1291;
+\version r1293;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-20 08:59:56 +0800;
 \par 修改时间:
-	2011-12-20 19:00 +0800;
+	2011-12-25 16:05 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,7 +66,7 @@ ProgressBar::Refresh(const PaintContext& pc)
 	}
 	if(GetWidth() > 2 && GetHeight() > 2)
 		FillRect(g, Point(pt.X + 1, pt.Y + 1),
-			Size(value * (GetWidth() - 2) / max_value, GetHeight() - 2),
+			Size(round(value * (GetWidth() - 2) / max_value), GetHeight() - 2),
 			ForeColor);
 	return Rect(pc.Location, GetSizeOf(*this));
 }

@@ -11,13 +11,13 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r2205;
+\version r2207;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-12-21 17:54 +0800;
+	2011-12-24 16:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -84,11 +84,11 @@ struct ConversionState
 		byte Sequence[4];
 	} Value;
 
-	ConversionState(usize_t = 0);
+	ConversionState(size_t = 0);
 };
 
 inline
-ConversionState::ConversionState(usize_t n)
+ConversionState::ConversionState(size_t n)
 	: Count(n), Value()
 {}
 
