@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yviewer.hpp
+/*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r1172;
+\version r1173;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-04-19 23:00:28 +0800;
 \par 修改时间:
-	2011-12-04 12:54 +0800;
+	2011-12-30 12:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1998;
+\version r2054;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-12-24 16:49 +0800;
+	2011-12-29 19:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,107 +44,52 @@ using std::memcpy;
 using ystdex::sntctslen;
 using ystdex::input_monomorphic_iterator;
 
-namespace
-{
-	template<Encoding, typename _tDst, typename _tSrc, typename _tState>
-	yconstfn byte
-	UCS2Mapper_Map(_tDst, _tSrc, _tState)
-	{
-		return 0;
-	}
-	template<Encoding cp, typename _tSrc, typename _tState>
-	yconstfn byte
-	UCS2Mapper_Map(ucs2_t& d, _tSrc&& s, _tState&& st,
-		decltype(&GUCS2Mapper<cp>::template Map<_tSrc, _tState>) = nullptr)
-	{
-		return GUCS2Mapper<cp>::Map(d, s, yforward(st));
-	}
 
-	template<Encoding cp, typename _tDst, typename _tSrc>
-	yconstfn byte
-	UCS2Mapper_InverseMap(_tDst, _tSrc)
-	{
-		return 0;
-	}
-	template<Encoding cp, typename _tDst>
-	yconstfn byte
-	UCS2Mapper_InverseMap(_tDst d, const ucs2_t& s,
-		decltype(&GUCS2Mapper<cp>::template InverseMap<_tDst>) = nullptr)
-	{
-		return GUCS2Mapper<cp>::InverseMap(d, s);
-	}
-
-
-	template<Encoding cp>
-	yconstexpr byte
-	UCS2Mapper(ucs2_t& uc, input_monomorphic_iterator&& i, ConversionState&& st)
-	{
-		return UCS2Mapper_Map<cp>(uc, i, std::move(st));
-	}
-	template<Encoding cp>
-	byte
-	UCS2Mapper(char* d, const ucs2_t& s)
-	{
-		assert(d);
-
-		return UCS2Mapper_InverseMap<cp>(d, s);
-	}
-
-	template<typename _fCodemapTransform>
-	_fCodemapTransform*
-	FetchMapperPtr(const Encoding& cp)
-	{
-		using namespace CharSet;
-
-#define CHR_MapItem(cp) \
-	case cp: \
-		return UCS2Mapper<cp>;
-
-		switch(cp)
-		{
-		CHR_MapItem(SHIFT_JIS)
-		CHR_MapItem(UTF_8)
-		CHR_MapItem(GBK)
-		CHR_MapItem(UTF_16BE)
-		CHR_MapItem(UTF_16LE)
-		CHR_MapItem(Big5)
-		default:
-			break;
-		}
-
-#undef CHR_MapItem
-
-		return nullptr;
-	}
-}
-
-byte
+ConversionResult
 MBCToUC(ucs2_t& uc, const char*& c, const Encoding& cp, ConversionState&& st)
 {
-	const auto pfun(FetchMapperPtr<byte(ucs2_t&,
-		input_monomorphic_iterator&&, ConversionState&&)>(cp));
-	byte l(0);
-
-	if(pfun)
-		l = pfun(uc, c, std::move(st));
-	return l;
+	if(const auto pfun = FetchMapperPtr<ConversionResult(ucs2_t&,
+		input_monomorphic_iterator&&, ConversionState&&)>(cp))
+		return pfun(uc, c, std::move(st));
+	return ConversionResult::Unhandled;
 }
-byte
+ConversionResult
 MBCToUC(ucs2_t& uc, std::FILE* fp, const Encoding& cp, ConversionState&& st)
 {
-	const auto pfun(FetchMapperPtr<byte(ucs2_t&,
-		input_monomorphic_iterator&&, ConversionState&&)>(cp));
-	byte l(0);
-
-	if(pfun)
+	if(const auto pfun = FetchMapperPtr<ConversionResult(ucs2_t&,
+		input_monomorphic_iterator&&, ConversionState&&)>(cp))
 	{
 		ystdex::ifile_iterator i(*fp);
+		const auto r(pfun(uc, input_monomorphic_iterator(i), std::move(st)));
 
-		l = pfun(uc, input_monomorphic_iterator(i), std::move(st));
 		if(is_dereferencable(i))
 			std::ungetc(*i, fp);
+		return r;
 	}
-	return l;
+	return ConversionResult::Unhandled;
+}
+ConversionResult
+MBCToUC(const char*& c, const Encoding& cp, ConversionState&& st)
+{
+	if(const auto pfun = FetchMapperPtr<ConversionResult(
+		input_monomorphic_iterator&&, ConversionState&&)>(cp))
+		return pfun(c, std::move(st));
+	return ConversionResult::Unhandled;
+}
+ConversionResult
+MBCToUC(std::FILE* fp, const Encoding& cp, ConversionState&& st)
+{
+	if(const auto pfun = FetchMapperPtr<ConversionResult(
+		input_monomorphic_iterator&&, ConversionState&&)>(cp))
+	{
+		ystdex::ifile_iterator i(*fp);
+		auto r(pfun(input_monomorphic_iterator(i), std::move(st)));
+
+		if(is_dereferencable(i))
+			std::ungetc(*i, fp);
+		return r;
+	}
+	return ConversionResult::Unhandled;
 }
 
 byte

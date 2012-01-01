@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 字符映射静态函数。
-\version r2405;
+\version r2576;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-12-24 16:47 +0800;
+	2011-12-30 21:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "chrmap.h"
 #include <ystdex/cstdio.h>
+#include <ystdex/any.h> // for ystdex::pseudo_object;
 
 CHRLIB_BEGIN
 
@@ -49,11 +50,11 @@ yconstexpr byte cp2026[] = {0};
 
 
 /*!
-\brief 以输入迭代器指向内容填充字节。
-\since build 249 。
+\brief 以输入迭代器指向内容填充有效输入迭代器指定的字节。
+\since build 273 。
 */
 template<typename _tIn, typename _tState>
-inline byte
+inline bool
 FillByte(_tIn& i, _tState& st)
 {
 	static_assert(std::is_explicitly_convertible<decltype(*i), byte>::value,
@@ -81,9 +82,9 @@ class GUCS2Mapper
 template<>
 struct GUCS2Mapper<CharSet::SHIFT_JIS>
 {
-/*	template<typename _tIn, typename _tState>
+/*	template<typename _tObj, typename _tIn, typename _tState>
 	static byte
-	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
+	Map(_tObj& uc, _tIn&& i, _tState&& st)
 	{
 		uint_least16_t row(0), col(0), ln(188); // (7E-40 + 1 + FC-80 + 1)
 		const auto c(FillByte(i, st));
@@ -124,35 +125,48 @@ struct GUCS2Mapper<CharSet::SHIFT_JIS>
 template<>
 struct GUCS2Mapper<CharSet::UTF_8>
 {
-	template<typename _tIn, typename _tState>
-	static byte
-	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
+	/*!
+	\brief 检查 UTF-8 文本序列中非法字节。
+	\note 包括： C0 、 C1 、 F5 至 FF 。
+	*/
+	static yconstfn bool
+	IsInvalid(byte b)
 	{
-		auto& cnt(GetCountOf(st));
+		return b == 0xC0 || b == 0xC1 || b > 0xF4;
+	}
 
-		if(cnt < 0 || cnt > 3)
-		{
-			cnt = -1;
-			return 0;
-		}
+	/*!
+	\brief 映射： UTF-8 。
 
+	实现 UTF-8 到 Unicode 编码点的映射。
+	\warning 当前实现假定编码序列完整。
+	\warning 使用 UCS-2LE 时， 4 字节编码点可能溢出。
+	\note 参考规范： RFC 3629 ，见 http://tools.ietf.org/html/rfc3629 。
+	*/
+	template<typename _tObj, typename _tIn, typename _tState>
+	static ConversionResult
+	Map(_tObj& uc, _tIn&& i, _tState&& st)
+	{
 		const auto seq(GetSequenceOf(st));
-		bool b(true);
 
-		switch(cnt)
+		switch(GetCountOf(st))
 		{
 		case 0:
-			if(!(b = FillByte(i, st)))
-				break;
+			if(!FillByte(i, st))
+				return ConversionResult::BadSource;
 			if(seq[0] < 0x80)
 			{
 				uc = seq[0];
 				break;
 			}
+			if(IsInvalid(seq[0]) || ((seq[0] & 0xC0) != 0xC0))
+				return ConversionResult::Invalid;
 		case 1:
-			if(!(b = FillByte(i, st)))
-				break;
-			if((seq[0] & 0x20) == 0)
+			if(!FillByte(i, st))
+				return ConversionResult::BadSource;
+			if(IsInvalid(seq[1]) || ((seq[1] & 0xC0) != 0x80))
+				return ConversionResult::Invalid;
+			if(((seq[0] ^ 0xC0) & 0xE0) == 0)
 			{
 				uc = ((seq[0] & 0x1C) >> 2 << 8)
 					| ((seq[0] & 0x03) << 6)
@@ -160,21 +174,36 @@ struct GUCS2Mapper<CharSet::UTF_8>
 				break;
 			}
 		case 2:
-			if(!(b = FillByte(i, st)))
+			if(!FillByte(i, st))
+				return ConversionResult::BadSource;
+			if(IsInvalid(seq[2]) || ((seq[2] & 0xC0) != 0x80))
+				return ConversionResult::Invalid;
+			if(((seq[0] ^ 0xE0) & 0xF0) == 0)
+			{
+				uc = (((seq[0] & 0x0F) << 4
+					| (seq[1] & 0x3C) >> 2) << 8)
+					| ((seq[1] & 0x3) << 6)
+					| (seq[2] & 0x3F);
 				break;
-			uc = (((seq[0] & 0x0F) << 4
-				| (seq[1] & 0x3C) >> 2) << 8)
-				| ((seq[1] & 0x3) << 6)
-				| (seq[2] & 0x3F);
-			break;
+			}
+		case 3:
+			if(!FillByte(i, st))
+				return ConversionResult::BadSource;
+			if(IsInvalid(seq[3]) || ((seq[3] & 0xC0) != 0x80))
+				return ConversionResult::Invalid;
+			if(((seq[0] ^ 0xF0) & 0xF8) == 0)
+			{
+				uc = (((seq[0] & 0x0F) << 4
+					| (seq[1] & 0x3C) >> 2) << 8)
+					| ((seq[1] & 0x3) << 6)
+					| (seq[2] & 0x3F);
+				break;
+			}
+			return ConversionResult::Unhandled;
 		default:
-			b = false;
+			return ConversionResult::BadState;
 		}
-
-		const auto r(cnt + !b);
-
-		cnt = b ? 0 : -2;
-		return r;
+		return ConversionResult::OK;
 	}
 
 	template<typename _tOut>
@@ -205,135 +234,97 @@ struct GUCS2Mapper<CharSet::UTF_8>
 template<>
 struct GUCS2Mapper<CharSet::GBK>
 {
-	template<typename _tIn, typename _tState>
-	static byte
-	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
+	template<typename _tObj, typename _tIn, typename _tState>
+	static ConversionResult
+	Map(_tObj& uc, _tIn&& i, _tState&& st)
 	{
-		auto& cnt(GetCountOf(st));
-
-		if(cnt < 0 || cnt > 1)
-		{
-			cnt = -1;
-			return 0;
-		}
-
 		const auto seq(GetSequenceOf(st));
-		bool b(true);
 
-		switch(cnt)
+		switch(GetCountOf(st))
 		{
 		case 0:
-			if(!(b = FillByte(i, st)))
-				break;
+			if(!FillByte(i, st))
+				return ConversionResult::BadSource;
 			if(cp113[seq[0]] != 0)
 			{
 				uc = seq[0];
 				break;
 			}
 		case 1:
-			if(!(b = FillByte(i, st)))
-				break;
+			if(!FillByte(i, st))
+				return ConversionResult::BadSource;
 			if((seq[0] << 8 | seq[1]) < 0xFF7E)
 			{
 				uc = reinterpret_cast<const ucs2_t*>(cp113 + 0x0100)[
 					seq[0] << 8 | seq[1]];
 				break;
 			}
+			return ConversionResult::Unhandled;
 		default:
-			b = false;
+			return ConversionResult::BadState;
 		}
-
-		const auto r(cnt + !b);
-
-		cnt = b ? 0 : -2;
-		return r;
+		return ConversionResult::OK;
 	}
 };
 
 template<>
 struct GUCS2Mapper<CharSet::UTF_16BE>
 {
-	template<typename _tIn, typename _tState>
-	static byte
-	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
+	template<typename _tObj, typename _tIn, typename _tState>
+	static ConversionResult
+	Map(_tObj& uc, _tIn&& i, _tState&& st)
 	{
-		auto& cnt(GetCountOf(st));
-
-		if(cnt < 0 || cnt > 1)
-		{
-			cnt = -1;
-			return 0;
-		}
-
 		const auto seq(GetSequenceOf(st));
-		bool b(true);
 
-		switch(cnt)
+		switch(GetCountOf(st))
 		{
 		case 0:
-			if(!(b = FillByte(i, st)))
-				break;
+			if(!FillByte(i, st))
+				return ConversionResult::BadSource;
 		case 1:
-			if(!(b = FillByte(i, st)))
-				break;
+			if(!FillByte(i, st))
+				return ConversionResult::BadSource;
 			uc = seq[0] << 8 | seq[1];
 			break;
 		default:
-			b = false;
+			return ConversionResult::BadState;
 		}
-
-		const auto r(cnt + !b);
-
-		cnt = b ? 0 : -2;
-		return r;
+		return ConversionResult::OK;
 	}
 };
 
 template<>
 struct GUCS2Mapper<CharSet::UTF_16LE>
 {
-	template<typename _tIn, typename _tState>
-	static byte
-	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
+	template<typename _tObj, typename _tIn, typename _tState>
+	static ConversionResult
+	Map(_tObj& uc, _tIn&& i, _tState&& st)
 	{
-		auto& cnt(GetCountOf(st));
-
-		if(cnt < 0 || cnt > 1)
-		{
-			cnt = -1;
-			return 0;
-		}
-
 		const auto seq(GetSequenceOf(st));
-		bool b(true);
 
-		switch(cnt)
+		switch(GetCountOf(st))
 		{
 		case 0:
-			if(!(b = FillByte(i, st)))
-				break;
+			if(!FillByte(i, st))
+				return ConversionResult::BadSource;
 		case 1:
-			if(!(b = FillByte(i, st)))
-				break;
+			if(!FillByte(i, st))
+				return ConversionResult::BadSource;
 			uc = seq[0] | seq[1] << 8;
 			break;
 		default:
-			b = false;
+			return ConversionResult::BadState;
 		}
-
-		const auto r(cnt + !b);
-
-		cnt = b ? 0 : -2;
-		return r;
+		return ConversionResult::OK;
 	}
 };
 
 template<>
 struct GUCS2Mapper<CharSet::Big5>
 {
-/*	template<typename _tIn, typename _tState>
+/*	template<typename _tObj, typename _tIn, typename _tState>
 	static byte
-	Map(ucs2_t& uc, _tIn&& i, _tState&& st)
+	Map(_tObj& uc, _tIn&& i, _tState&& st)
 	{
 		uint_least16_t row(0), col(0), ln(157); // (7E-40 + FE-A1)
 		const auto c(FillByte(i, st));
@@ -372,6 +363,90 @@ struct GUCS2Mapper<CharSet::Big5>
 		return 2;
 	}*/
 };
+//@}
+
+
+/*!
+\brief 取映射函数。
+\since build 273 。
+*/
+//@{
+template<Encoding, typename... _tParams>
+yconstfn ConversionResult
+UCS2Mapper_Map(_tParams&&...)
+{
+	return ConversionResult::Unhandled;
+}
+template<Encoding cp, typename _tDst, typename _tSrc, typename _tState>
+yconstfn ConversionResult
+UCS2Mapper_Map(_tDst&& d, _tSrc&& s, _tState&& st,
+	decltype(&GUCS2Mapper<cp>::template Map<_tDst, _tSrc, _tState>) = nullptr)
+{
+	return GUCS2Mapper<cp>::Map(d, s, st);
+}
+
+template<Encoding cp, typename _tDst, typename _tSrc>
+yconstfn byte
+UCS2Mapper_InverseMap(_tDst, _tSrc)
+{
+	return 0;
+}
+template<Encoding cp, typename _tDst>
+yconstfn byte
+UCS2Mapper_InverseMap(_tDst&& d, const ucs2_t& s,
+	decltype(&GUCS2Mapper<cp>::template InverseMap<_tDst>) = nullptr)
+{
+	return GUCS2Mapper<cp>::InverseMap(d, s);
+}
+
+
+template<Encoding cp, typename _tIn, typename _tState>
+yconstexpr ConversionResult
+UCS2Mapper(ucs2_t& uc, _tIn&& i, _tState&& st)
+{
+	return UCS2Mapper_Map<cp>(uc, i, std::move(st));
+}
+template<Encoding cp, typename _tIn, typename _tState>
+yconstexpr ConversionResult
+UCS2Mapper(_tIn&& i, _tState&& st)
+{
+	return UCS2Mapper_Map<cp>(ystdex::pseudo_output(), i, st);
+}
+template<Encoding cp>
+byte
+UCS2Mapper(char* d, const ucs2_t& s)
+{
+	assert(d);
+
+	return UCS2Mapper_InverseMap<cp>(d, s);
+}
+
+template<typename _fCodemapTransform>
+_fCodemapTransform*
+FetchMapperPtr(const Encoding& cp)
+{
+	using namespace CharSet;
+
+#define CHR_MapItem(cp) \
+case cp: \
+	return UCS2Mapper<cp>;
+
+	switch(cp)
+	{
+	CHR_MapItem(SHIFT_JIS)
+	CHR_MapItem(UTF_8)
+	CHR_MapItem(GBK)
+	CHR_MapItem(UTF_16BE)
+	CHR_MapItem(UTF_16LE)
+	CHR_MapItem(Big5)
+	default:
+		break;
+	}
+
+#undef CHR_MapItem
+
+	return nullptr;
+}
 //@}
 
 CHRLIB_END

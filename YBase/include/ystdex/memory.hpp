@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1316;
+\version r1317;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 209 。
 \par 创建时间:
 	2011-05-14 12:25:13 +0800;
 \par 修改时间:
-	2011-12-04 11:04 +0800;
+	2011-12-30 12:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,11 +34,6 @@
 
 namespace ystdex
 {
-	/*!
-	\ingroup HelperFunctions
-	*/
-	//@{
-
 	/*!	\defgroup is_dereferencable Is Dereferencable Iterator
 	\brief 判断迭代器实例是否确定可解引用。
 	\tparam _tIterator 迭代器类型。

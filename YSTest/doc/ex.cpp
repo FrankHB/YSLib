@@ -1,5 +1,5 @@
 /*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3403; *build 272 rev 46;
+\version r3404; *build 273 rev 124;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-12-26 17:01 +0800;
+	2012-01-01 12:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -327,249 +327,356 @@ $using:
 
 $DONE:
 r1:
-/ \f !\i int FetchMessage(Message&, MessageQueue::SizeType = 0, const
-	shared_ptr<Shell>& hShl = FetchShellHandle()) @ \u YApplication -> \i int
-	FetchMessage(Message&, const shared_ptr<Shell>& hShl = FetchShellHandle());
-/ @ \impl \u YGlobal $=
+/ @ \cl TextFileBuffer $=
 (
-	- \inc \h (YApplication, YFileSystem, YShell, YFont),
-	/ \impl @ \f ::main
+	/ protected \m TextFile File -> TextFile& File,
+	+ \mf Iterator GetIterator(size_t) const
 );
+/ \impl @ \u DSReader ^ bidirecitional iterators ~ random access iterators;
 
-r2:
-/ \impl \u YApplication $=
+r2-r19:
+/ @ \cl TextFileBuffer $=
 (
-	/ @ \cl YApplication $=
-	(
-		- \m YSLib::Log Log,
-		/ \tr \impl @ \ctor
-	),
-	/ \simp \impl @ 2 \mf SendMessage;
-	/ \cl Log >> \impl \u YGlobal;
-	- \inc \h YGlobal @ \un \ns @ \impl \u
-);
-- \pre \decl @ \cl Log @ \h YShellDefinition;
-
-r3:
-/= test 1 ^ \conf release;
-
-r4:
-/ \impl @ \f ::main @ \impl \u YGlobal;
-- \f (PeekMessage, FetchMessage) @ \u YApplication;
-- \f ((YSDebug_MSG_Peek, YSDebug_MSG_Insert), YSDebug_MSG_Print @ \un \ns)
-	@ \impl \u Main;
-
-r5:
-/ !\m \f (DispatchMessage, BackupMessageQueue, RecoverMessageQueue)
-	@ \u YApplication -> \mf @ \cl Application,
-/ \tr \impl @ \f ::main @ \impl \u YGlobal;
-/ \a DispatchMessage => Dispatch;
-
-r6:
-/ @ \u Message $=
-(
-	+ friend bool \op<(const Message&, const Message&) @ \cl Message;
-	/ @ \cl MessageQueue $=
-	(
-		/ \impl @ \mf (Push, Pop, Peek#1),
-		- \mf (top, pop, push);
-		/ \tr private \m multiset<Message, cmp> q
-			-> private \inh multiset<Message>,
-		/ \tr \impl @ \mf (Merge, Peek#2),
-		/ \tr typedef SizeType;
-		- private \st cmp,
-		- \vt \dtor
-	)
-);
-
-r7:
-/ @ \u YApplication $=
-(
-	/ @ \cl Application $=
-	(
-		/ \m private MessageQueue* pMessageQueue -> public MessageQueue Queue,
-		/ \m private MessageQueue* pMessageQueueBackup
-			-> public MessageQueue BackupQueue,
-		/ \tr \impl @ \mf (BackupMessageQueue, RecoverMessageQueue)
-		- \mf (GetMessageQueue, GEtMessageQueueBackup),
-		/ \rem \m std::function<void()> Idle,
-		/ \mf BackupMessageQueue => BackupMessage,
-		/ \tr \simp \impl @ (\ctor, \dtor)
-	);
-	/ \tr \impl @ \f SendMessage#1;
-);
-/ \tr \impl @ \f (::main, Idle) @ \impl \u YGlobal;
-
-r8:
-/= test 2 ^ \conf release;
-
-r9:
-- \f errno_t TranslateMessage(const Message&) @ \u YApplication,
-/ @ \cl Application $=
-(
-	/ \ac @ \m hShell @ \cl Application -> protected ~ private,
-	/ \ac @ \m BackupQueue @ \cl Application -> protected ~ public
+	/ typedef vector<ucs2_t> BufferType => BlockType;
+	+ typedef MapType<size_t, BlockType> MapType,
+	+ protected \m size_t nBlock,
+	+ protected \m size_t nTextSize;
+	/ \tr protected \m BufferType Buffer -> MapType Map,
+	/ \tr typedef BufferType::const_iterator Iterator -> \cl Iterator;
+	/ @ \mf (GetBegin, GetEnd, GetIterator, GetPosition),
+	/ \impl @ \mf GetTextSize,
+	- \mf LoadText,
+	+ \mf \op[],
+	+ \mf GetBlockN,
+	/ \tr \impl @ \ctor,
+	+ static yconstexpr nBlockSize
 ),
-/ @ \u YGlobal $=
-(
-	+ \mf int Run() @ \cl DSApplication,
-	/ \f Idle >> \un \ns @ \impl \u;
-	/ \simp \impl @ \f ::main ^ \mf DSApplication::Run,
-	/ \impl @ \ctor @ \cl DSApplication
-),
-+ \inc \h YCommon @ \h YGlobal;
-
-r10-r15:
-/= test 3,
-/ @ \u YCommon $=
-(
-	/ \f void WriteKeysInfo(KeysInfo& key, CursorInfo& tp)
-		-> \f void WriteKeys(KeysInfo&),
-	+ \f void WriteCursor(CursorInfo&)
-);
-/ @ \impl \u YGlobal $=
-(
-	/ \tr \impl @ \f Idle @ \un \ns,
-	/ \impl @ \mf DSApplication::Run
-);
-
-r16:
-/ \simp \impl @ \f Idle @ \un \ns @ \impl \u YGlobal;
-
-r17:
-- \f \i ToSPoint @ \un \ns @ \impl \u YGlobal;
-
-r18:
-/ @ \u YGlobal $=
-(
-	+ yconstfn DefDeCtor(InputContent) @ \cl InputContent;
-	/ \simp \impl @ \f Idle @ \un \ns @ \impl \u
-);
-
-r19:
-/ @ \u YGlobal $=
-(
-	/ 'DefMessageTarget(SM_INPUT, shared_ptr<InputContent>)' @ \ns Messaging
-		-> 'DefMessageTarget(SM_INPUT, shared_ptr<InputContent>)',
-	/ \un \ns @ \impl \u $=
-	(
-		+ !\i bool \op==(const Messaging::InputContent&,
-			const Messaging::InputContent&);
-		/ \tr \simp \impl @ \f Idle @ \un \ns
-	)
-);
-/ \tr \impl @ \mf ShlDS::OnGotMessage @ \impl \u Shell_DS;
+/= test 1,
+/ \tr \impl @ \DualScreenReader::GetTextSize @ \h DSReader;
 
 r20:
-/= test 4 ^ \conf release;
+/ \impl @ \mf DualScreenReader::UpdateView @ \impl \u DSReader;
 
 r21:
-/ @ \h CHRDefinition $=
+/ @ \cl TextInfoBox @ \u ShlReader $=
 (
-	/ typedef unsigned long usize_t -> using ystdex::size_t,
-	- typedef unsigned char ubyte_t
+	+ \m Label lblTop,
+	+ \m Label lblBottom;
+	/ \tr \impl @ \ctor,
+	/ \impl @ \mf UpdateData
 );
-/ \a usize_t -> size_t,
-/ \a ubyte_t -> byte;
-/ typedef size_t IndexType @ \ns Text @ \h YShellDefinition
-	-> typedef ptrdiff_t DifferenceType;
 
 r22:
-/ @ \cl TextFileBuffer $=
-(
-	/ typedef const_iterator Iterator
-		-> typedef vector<ucs2_t>::const_iterator Iterator;
-	- typedef vector<ucs2_t>::const_iterator const_iterator,
-	- typedef vector<ucs2_t>::iterator iterator
-);
+/ \impl @ \ctor @ \cl TextInfoBox @ \impl \u ShlReader;
 
 r23:
-/ \ns Text @ \h YShellDefinition $=
-(
-	typedef size_t SizeType,
-	typedef ptrdiff_t DifferenceType
-);
-/ \tr \a SizeType @ \u TextManager -> size_t;
+/ \tr \impl @ \mf (GetTopWidgetPtr, Refresh) @ \cl TextInfoBox
+	@ \impl \u ShlReader;
+
+r24:
+/ \impl @ \mf TextInfoBox::UpdateData @ \impl \u ShlReader;
+
+r25:
+/= test 2 ^ \conf release;
+
+r26:
++ \f (size_t FetchFixedCharWidth(Encoding), size_t FetchMaxCharWidth(Encoding))
+	@ \u CharacterMapping;
 / @ \cl TextFileBuffer $=
 (
-	/ \inh \cl TextFile @ \cl TextFileBuffer -> protected \m TextFile File,
-	+ typedef vector<ucs2_t> BufferType;
-	/ \simp typedef Iterator ^ BufferType,
-	/ \inh protected \cl vector<ucs2_t> -> protected \m BufferType Buffer,
-	/ using vector<ucs2_t>::size -> \mf GetSize,
-	- using vector<ucs2_t>::(capacity, at, clear, resize, begin, end,
-		rbegin, rend, crbegin, crend),
-	/ using vector<ucs2_t>::cbegin -> \mf GetBegin,
-	/ using vector<ucs2_t>::cend -> \mf GetEnd
-	- using vector<ucs2_t>::operator[],
-	/ \tr \impl @ \ctor,
-	/ \tr \impl @ \mf LoadText,
-	+ \mf (GetEncoding, GetTextSize)
+	+ private \m size_t byte_per_char;
+	/ \impl @ \ctor,
+	/ \impl @ \mf (GetIterator, GetPosition)
 );
-/ \tr @ \cl DualScreenReader @ \u DSReader;
 
-r24-r39:
-/= test 5,
-* scrolling down disabled after text bottom reached @ \cl DualScreenReader
-	$since b271 $=
+r27:
+* \impl @ \ctor TextFileBuffer $since r26;
+
+r28-r31:
+/= test 3;
+
+r32-r40:
+/ @ \impl \u TextManager $=
 (
-	/ private \m bool text_down -> u16 overread_line_n;
-	/ \tr \impl @ \ctor,
-	/ \impl @ \mf UpdateView, Execute
-);
-
-r40:
-/= test 6 ^ \conf release;
+	/ \simp \impl @ \mf TextFileBuffer::operator[];
+	- \f LoadText @ \un \ns
+),
+/= test 4;
 
 r41:
-/ \impl @ \ctor @ \cl (ReaderBox, TextInfoBox) @ \impl \u ShlReader;
+/ \impl @ (\op++, \op--) @ \cl TextFileBuffer::Iterator;
 
-r42:
-/ @ \cl DualScreenReader @ \h DSReader $=
-(
-	/ \mf GetPosition => GetTopPosition,
-	+ \mf GetBottomPosition
-);
-/ @ \impl \u ShlReader $=
-(
-	/ \tr \impl @ \mf (ReaderBox::UpdateData, TextInfoBox::UpdateData),
-	/ \impl @ \ctor @ \cl ReaderBox
-);
-
-r43:
-/ @ \cl ReaderBox @ \impl \u ShlReader $=
-(
-	* \impl @ \mf UpdateData @  $since r42,
-	/ \impl @ \ctor
-);
-
-r44:
-/ @ \impl \u ShlReader $=
-(
-	/ \impl @ \mf ReaderBox::UpdateData,
-	/ \impl @ \ctor @ \cl TextReaderManager
-);
-
-r45:
-/ \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader ^ 'round',
-/ \impl @ \mf ProgressBar::Refresh ^ 'round';
+r42-r45:
+/= test 5;
 
 r46:
-/= test 7 ^ \conf release;
+* \impl @ \mf \op[] @ \cl TextFileBuffer $since r2;
+
+r47:
+/= test 6 ^ \conf release;
+
+r48:
+/ \s \m yconstexpr size_t nBlockSize = 4096 @ \cl TextFileBuffer
+	-> static yconstexpr size_t nBlockSize = 2048U;
+
+r49:
+/ @ \u CharacterMapping $=
+(
+	+ \f size_t FetchMaxVariantCharWidth(Encoding);
+	/ \simp \impl @ \f FetchMaxCharWidth ^ \f FetchMaxVariantCharWidth
+);
+/ @ \cl TextFileBuffer $=
+(
+	+ private \m size_t max_width,
+	/ \m byte_per_char => fixed_width;
+	/ \tr \impl @ \ctor,
+	/ \tr \impl @ \mf \op[],
+	/ \impl @ \mf (GetIterator, GetPosition)
+);
+
+r50:
+/ @ \lib CHRLib $=
+(
+	/ \a @ \un \ns @ \impl \u @ CharacterProcessing >> \h StaticMapping
+		!@ \un \ns;
+	/ \decl @ \ft UCS2Mapper#1 @ \h StaticMapping
+);
+
+r51-r52:
++ \st pseudo_output @ \ns ystdex @ \h Any @ \lib YBase,
+/= test 7;
+
+r53-r62:
+/ @ \h StaticMapping $=
+(
+	/ \a \ft<typename _tIn, typename _tState> \s byte
+		Map(ucs2_t&, _tIn&&, _tState&&) @ \stt GUCS2Mapper<*>
+		-> \ft<typename _tObj, typename _tIn, typename _tState> \s byte
+		Map(_tObj&, _tIn&&, _tState&&);
+	/ \tr \ft<Encoding, typename _tDst, typename _tSrc, typename _tState>
+		yconstfn byte UCS2Mapper_Map(_tDst, _tSrc, _tState) -> \ft<Encoding,
+		typename... _tParams> yconstfn byte UCS2Mapper_Map(_tParams&&...),
+	/ \tr \ft<Encoding cp, typename _tSrc, typename _tState> yconstfn byte
+		UCS2Mapper_Map(ucs2_t&, _tSrc&&, _tState&&, decltype(&GUCS2Mapper<cp>
+		::template Map<_tSrc, _tState>) = nullptr) -> \ft<Encoding cp,
+		typename _tDst, typename _tSrc, typename _tState> yconstfn byte
+		UCS2Mapper_Map(_tDst&, _tSrc&&, _tState&&, decltype(&GUCS2Mapper<cp>
+		::template Map<_tDst, _tSrc, _tState>) = nullptr);
+	+ \ft<Encoding cp, typename _tIn> yconstexpr byte
+		UCS2Mapper(_tIn&&, std::int_fast8_t&)
+	+ \inc \h Any,
+	(
+		+ \ft<typename _tIn> \i byte FillByte(_tIn&, std::int_fast8_t&);
+		/ \a \ret \tp @ \ft FillByte -> bool ~ byte
+	)
+),
+/= test 8;
+/ @ \h StaticMapping $=
+(
+	+ \ft<typename _type> yconstfn _type& GetCountOf(_type&),
+	/ \a \i @ \f 'Get*' -> 'yconstfn',
+	+ 'yconstfn' @ \cl ConversionState
+);
+/ @ \u CharacterProcessing $=
+(
+	+ \f byte MBCToUC(ucs2_t&, const char*&, const Encoding&,
+		std::int_fast8_t&& = 0),
+	+ \f byte MBCToUC(ucs2_t&, std::FILE*, const Encoding&,
+		std::int_fast8_t&& = 0);
+	+ \f byte MBCToUC(ucs2_t&, const char*&, const Encoding&,
+		std::int_fast8_t&),
+	+ \f byte MBCToUC(ucs2_t&, std::FILE*, const Encoding&, std::int_fast8_t&)
+);
+
+r63-r67:
+/ \impl @ \mf (GetIterator, GetPosition) @ \cl TextFileBuffer;
+
+r68-r72:
+/= test 9;
+
+r73:
+/ @ \u \CharacterProcessing $=
+(
+	/ \a 'std::int_fast8_t' -> 'ConversionState';
+	/ \a 'ConversionState&& = 0' -> 'ConversionState&& = ConversionState()'
+),
+* \decl @ \op= \cl pseudo_output @ \h Any $since r52 $=
+(
+	/ 'yconstfn' -> 'inline'
+),
+/ @ \h StaticMapping $=
+(
+	- \ft<typename _tIn> \i bool FillByte(_tIn&, std::int_fast8_t&),
+	* @ \ft UCS2Mapper#2 $since r58,
+	/ @ \ft UCS2Mapper_Map#2,
+	/ @ \ft UCS2Mapper_InverseMap#2
+);
+
+r74:
+/= test 10 ^ \conf release;
+
+r75:
+* \impl @ \mf TextFileBuffer::GetIterator $since r64;
+
+r76:
+/ @ \cl TextFileBuffer $=
+(
+	/ typedef vector<ucs2_t> BlockType
+		-> typedef pair<vector<ucs2_t>, size_t> BlockType;
+	/ \tr \impl @ \mf (\op++, \op--, \op*) @ \cl Iterator,
+	/ \tr \impl @ \mf (\op[], GetIterator, GetPosition)
+);
+
+r77:
+/ @ \st GUCS2Mapper<CharSet::UTF_8> @ \h StaticMapping $=
+(
+	+ \smf yconstfn bool IsInvalid(byte);
+	/ \impl @ \smf Map $=
+	(
+		* wrong behavior for 2 byte sequence characters $since b250
+		+ invalid byte checking,
+		+ 4 byte sequence characters support
+	)
+);
+
+r78:
+/ @ \h CharacterMap $=
+(
+	+ typedef \en \cl ConversionResult;
+	/ \a 'int_fast8_t' -> 'uint_fast8_t',
+	/ \tr @ \rem
+);
+/ \a \ret \tp 'byte' @ (\a \st GUCSMapper<*>::Map, \a \ft UCS2Mapper_Map,
+	\ft UCS2Mapper(#1, #2)) -> 'ConversionResult' @ \h StaticMapping;
+/ \tr \a byte MBCToUC('*') @ \u CharacterProcessing
+	-> ConversionResult MBCToUC('*');
+/ \tr \impl @ \mf (\op[], GetIterator, GetPosition) @ \cl TextFileBuffer;
+
+r79-r91:
+/= test 11;
+
+r92:
+* \impl @ \mf TextFileBuffer::operator[] $since r78,
+/ \impl @ \smf Map @ \st GUCS2Mapper<CharSet::UTF_8> @ \h StaticMapping;
+
+r93-r94:
+/= test 12,
+/ \impl @ \mf (\op[], GetIterator, GetPosition) @ \cl TextFileBuffer;
+
+r95:
+/= test 13 ^ \conf release;
+
+r96-r97:
+/ \impl @ TextFileBuffer::operator[] ^ vector::(reserve, push_back) 
+	~ vector::iterator;
+
+r98:
+/ \cl YTextFile $=
+(
+	- \mf Seek,
+	/ \mf SetPos => Locate
+),
+/ \mf SetPosition => Seek @ \cl YFile;
+
+r99-r100:
+/ \simp \impl @ \mf (GetIterator, GetPosition, \op[]) @ \cl TextFileBuffer;
+
+r101:
+/= test 14 ^ \conf release;
+
+r102:
+/ \ret \tp @ \mf TextFile::CheckBOM -> size_t ~ u8,
+* several minor doxygen warnings @ $since b196
+(
+	* file name not found @ \h Viewer $since b222,
+	* wrong grouping @ \h Memory $since b209,
+	* member function signature mismatching @ \impl \u YFont $since b197,
+	* member function signature mismatching @ \impl \u YExcept $since b196,
+	* member function signature mismatching @ \impl \u Menu $since b234,
+);
+
+r103:
+/ \simp \mf Map @ \a \st GUCS2Mapper<'*'> @ \h StaticMapping;
+
+r104:
+/ @ \cl TextFile $=
+(
+	+ \mft<typename _tChar, typename... _tParams> \i Text::ConversionResult
+		ReadChar(_tChar&, _tParams&&...) const,
+	+ \mft<typename... _tParams> \i Text::ConversionResult
+		SkipChar(_tParams&&...) const
+);
+/ \simp \impl @ \mf (GetIterator, GetPosition, \op[]) @ \cl TextFileBuffer
+	^ \mf TextFile::(ReadChar, SkipChar);
+
+r105:
+/ @ \cl (File, TextFile) $=
+(
+	/ \a (SizeType \exc @ typedef) -> size_t,
+	/ \a (OffsetType \exc @ typedef) -> ptrdiff_t
+);
+- typedef (SizeType, Offset) @ \cl File;
+/ \tr @ \h HexBrowser;
+
+r106;
+/ \cl noncopyable @ \h Utility -> \st noncopyable,
++ public \inh noncopy @ \cl File;
+
+r107:
+/= test 15 ^ \conf release;
+
+r108-r111:
+/= test 16;
+
+r112:
++ \inc \h YWindow @ \impl \u DSReader;
+/ @ \cl DualScreenReader @ \u DSReader $=
+(
+	+ \mf void Attach(YSL_ Components::Window&, YSL_ Components::Window&),
+	+ \mf void Detach()
+);
+/ \impl @ \mf TextReaderManager::(Activate, Deactivate) @ \impl \u ShlReader;
+
+r113:
+/ @ \cl DualScreenReader @ \u DSReader $=
+(
+	/ public \m AreaUp -> private \m area_up,
+	/ public \m AreaDown -> private \m area_dn,
+	/ private \m iTop => i_top,
+	/ private \m iBottom => i_btm;
+	/ \tr \impl @ \ctor,
+	/ \tr \impl @ \mf
+);
+
+r114:
+/ @ \cl DualScreenReader @ \u DSReader $=
+(
+	(
+		- private \m Drawing::Rotation rot,
+		/ \tr \impl @ \ctor
+	);
+	- \mf (PrintTextUp, PrintTextDown)
+);
+
+r115-r123:
+/= test 17;
+
+r124:
+/= test 18 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2011-12-26:
--11.8d;
-//Mercurial rev1-rev143: r6898;
+2012-01-01:
+-10.6d;
+//Mercurial rev1-rev145: r7068;
 
 / ...
 
 
 $NEXT_TODO:
-b273-b384:
+b274-b384:
 + deleted copy \ctor @ \cl File;
 / fully \impl @ \u DSReader $=
 (
@@ -619,6 +726,7 @@ b1153-b4320:
 + (compressing & decompressing) @ gfx copying;
 + keys for touch events;
 + Microsoft Windows port;
++ Unicode layout control;
 + general component operations:
 	+ serialization;
 	+ designer;
@@ -653,7 +761,7 @@ Design by contract: DbC for C/C++, GNU nana.
 
 
 $KNOWN_ISSUE:
-// NOTE: obselete issues all resolved are ignored.
+// NOTE: obsolete issues all resolved are ignored.
 * "corrupted loading or fatal errors on loading font file with embedded \
 	bitmap glyph like simson.ttc" $since b185;
 * "<cmath> cannot use 'std::*' names" @ "libstdc++ with g++4.6";
@@ -686,6 +794,7 @@ $module_tree $=
 	(
 		'YStandardEx'
 		(
+			'Any',
 			'CStandardIO'
 		)
 	),
@@ -716,6 +825,53 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YBase'.'YStandardEx'.'Any' $=
+	(
+		+ $design "class %pseudo_output"
+	)
+	/ %'YFramework' $=
+	(
+		/ %'CHRLib' $=
+		(
+			+ "runtime character width getters",
+			/ "encoding mapping APIs exposed",
+			(
+				/ $design "UCS2 output type of encoding mapping";
+				+ "pseudo-converting-to-UCS2 APIs for width calculation"
+			),
+			/ "UTF-8 to Unicode code point mapping" $=
+			(
+				* "wrong behavior for 2 byte sequence characters" $since b250,
+				+ "invalid byte checking",
+				+ "4 byte sequence characters support"
+			),
+			(
+				+ "enum class %ConversionResult";
+				/ "converting-to-UCS2 APIs" ^ "enum class %ConversionResult"
+					~ "byte as return type"
+			)
+		);
+		/ %'YSLib' $=
+		(
+			/ %'services' $=
+			(
+				+ "mapping buffering" @ "class %TextFileBuffer"
+					@ "unit %TextManager"
+			),
+			/ $design "member functions and types" @ "class %(File, TextFile)"
+		),
+	),
+	/ %'YReader'.'text reader' $=
+	(
+		// NOTE: efficiency for opening and random access operations to \
+			large files improved obviously due to using of mapping buffering.
+		/ "view" @ "class %TextInfoBox"
+	),
+	* $design "several minor doxygen warnings" @ $since b196
+),
+
+b272
 (
 	/ %'YFramework'.'YSLib' $=
 	(

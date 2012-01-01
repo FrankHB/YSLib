@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1335;
+\version r1339;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:13:04 +0800;
 \par 修改时间:
-	2011-12-17 09:37 +0800;
+	2011-12-30 22:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -70,11 +70,11 @@ private:
 public:
 	DefGetterMem(const ynothrow, FILE*, Ptr, GetSource())
 
-	DefGetterMem(const ynothrow, File::OffsetType, Position, GetSource())
-	DefGetterMem(const ynothrow, File::SizeType, Size, GetSource())
+	DefGetterMem(const ynothrow, ptrdiff_t, Position, GetSource())
+	DefGetterMem(const ynothrow, size_t, Size, GetSource())
 
-	DefFwdTmpl(const, File::OffsetType, SetPosition,
-		GetSource().SetPosition(args...))
+	DefFwdTmpl(const, ptrdiff_t, SetPosition,
+		GetSource().Seek(args...))
 
 	DefFwdFn(const, int, CheckEOF, GetSource().CheckEOF())
 };

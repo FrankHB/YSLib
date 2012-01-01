@@ -11,13 +11,13 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7302;
+\version r7304;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2011-12-19 15:08 +0800;
+	2011-12-30 12:32 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -170,7 +170,8 @@ FontFamily::GetTypefacePtr(FontStyle s) const
 		: (s == FontStyle::Regular ? nullptr : GetTypefacePtr("Regular"));
 }
 Typeface*
-FontFamily::GetTypefacePtr(const Typeface::NameType& style_name) const
+FontFamily::GetTypefacePtr(const std::string/*Typeface::NameType*/& style_name)
+	const
 {
 	const auto i(mFaces.find(style_name));
 

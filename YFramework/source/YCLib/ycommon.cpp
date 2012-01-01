@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2413;
+\version r2414;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2011-12-24 12:02 +0800;
+	2012-01-01 11:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,8 +44,8 @@ namespace platform
 	void*
 	mmbcpy(void* d, const void* s, std::size_t t)
 	{
-		// NOTE: DMA copy to main RAM is slower;
-		// TODO: ASM optimization, like using LDMIA instructions;
+		// NOTE: DMA copy to main RAM is even slower;
+		// TODO: use ASM optimization, like using LDMIA instructions;
 	//	return safe_dma_copy(d, s, t) != 0 ? std::memcpy(d, s, t) : d;
 		return std::memcpy(d, s, t);
 	}

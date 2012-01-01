@@ -11,13 +11,13 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1669;
+\version r1701;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-12-04 12:48 +0800;
+	2011-12-30 22:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,19 +32,28 @@
 
 YSL_BEGIN
 
-// BOM（byte-order mark ，字节顺序标记）常量；零宽无间断空格字符的单字节编码。
+/*!
+\brief Unicode 编码模式标记。
+
+Unicode Encoding Scheme Signatures BOM（byte-order mark ，字节顺序标记）常量。
+\note 在 Unicode 3.2 前作为零宽无间断空格字符在对应字符集的编码单字节序列。
+\note 适用于未明确字节序或字符集的流。
+\since build 244 。
+*/
+//@{
 yconstexpr char BOM_UTF_16LE[2] = {0xFF, 0xFE};
 yconstexpr char BOM_UTF_16BE[2] = {0xFE, 0xFF};
 yconstexpr char BOM_UTF_8[3] = {0xEF, 0xBB, 0xBF};
 yconstexpr char BOM_UTF_32LE[4] = {0xFF, 0xFE, 0x00, 0x00};
 yconstexpr char BOM_UTF_32BE[4] = {0x00, 0x00, 0xFE, 0xFF};
+//@}
 
 
 //! \brief 文本文件类。
 class TextFile : public File
 {
 private:
-	SizeType bl; //!<  BOM 大小。
+	size_t bl; //!<  BOM 大小。
 	Text::Encoding cp; //!< 编码。
 
 public:
@@ -56,17 +65,25 @@ public:
 
 	DefGetter(const ynothrow, u8, BOMSize, bl) //!< 取 BOM 大小。
 	DefGetter(const ynothrow, Text::Encoding, Encoding, cp) //!< 取编码。
-	DefGetter(const ynothrow, SizeType, TextSize, GetSize() - GetBOMSize()) \
+	DefGetter(const ynothrow, size_t, TextSize, GetSize() - GetBOMSize()) \
 		//!< 取文本区段大小。
-	DefGetter(const ynothrow, SizeType, TextPosition, GetPosition() - bl) \
+	DefGetter(const ynothrow, size_t, TextPosition, GetPosition() - bl) \
 		//!< 取文件指针关于文本区段的位置。
 
 	/*!
 	\brief 检查文件头是否有 BOM(Byte Order Mark) ，若有则据此判断编码。
-		返回 BOM 的长度。
+	\return BOM 的长度（字节数）。
+	\since build 273 。
 	*/
-	u8
+	size_t
 	CheckBOM(Text::Encoding&);
+
+	/*!
+	\brief 定位：设置文件读位置。
+	\since build 273 。
+	*/
+	void
+	Locate(u32) const;
 
 	/*!
 	\brief 设置文件读位置为文本区段头。
@@ -74,25 +91,34 @@ public:
 	void
 	Rewind() const;
 
-	/*!
-	\brief 设置文件读位置。
-	*/
-	void
-	SetPos(u32) const;
-
-	/*!
-	\brief 设置文件读位置。
-	\note whence 语义同 fseek 函数（除 SEEK_SET 表示起始为文本区段头）。
-	*/
-	void
-	Seek(long, int whence) const;
-
 	using File::Read;
 	/*!
 	\brief 从文件读 n 字节到 s 中。
 	*/
-	SizeType
-	Read(void* s, SizeType n) const;
+	size_t
+	Read(void* s, size_t n) const;
+
+	/*!
+	\brief 按自身编码读取 Unicode 字符。
+	\since build 273 。
+	*/
+	template<typename _tChar, typename... _tParams>
+	inline Text::ConversionResult
+	ReadChar(_tChar& c, _tParams&&... args) const
+	{
+		return MBCToUC(c, fp, cp, args...);
+	}
+
+	/*!
+	\brief 按自身编码读取但不保存 Unicode 字符。
+	\since build 273 。
+	*/
+	template<typename... _tParams>
+	inline Text::ConversionResult
+	SkipChar(_tParams&&... args) const
+	{
+		return MBCToUC(fp, cp, args...);
+	}
 };
 
 YSL_END

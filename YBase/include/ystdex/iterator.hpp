@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief C++ 标准库迭代器扩展。
-\version r1549;
+\version r1550;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189 。
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2011-12-04 11:06 +0800;
+	2012-01-01 11:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -213,7 +213,7 @@ namespace ystdex
 		operator=(const pair_iterator&) = default;
 		inline pair_iterator&
 		operator=(pair_iterator&&) = default;
-		// TODO: Allow iterator to const_iterator conversion;
+		// TODO: allow iterator to const_iterator conversion;
 /*		template<typename _tIter>
 		pair_iterator(const pair_iterator<_Iter,
 			typename __enable_if<

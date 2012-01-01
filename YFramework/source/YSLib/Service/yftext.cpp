@@ -11,12 +11,13 @@
 /*!	\file yftext.cpp
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1817;
+\version r1829;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2011-11-05 11:23 +0800;
+	2011-12-30 22:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +38,7 @@ TextFile::TextFile(const_path_t p)
 {
 	if(IsValid())
 	{
-		SetPosition(0, SEEK_END);
+		Seek(0, SEEK_END);
 		bl = CheckBOM(cp);
 		Rewind();
 	}
@@ -45,7 +46,7 @@ TextFile::TextFile(const_path_t p)
 		cp = CP_Local;
 }
 
-u8
+size_t
 TextFile::CheckBOM(Encoding& cp)
 {
 	Rewind();
@@ -83,27 +84,18 @@ TextFile::CheckBOM(Encoding& cp)
 }
 
 void
+TextFile::Locate(u32 pos) const
+{
+	Seek(bl + pos, SEEK_SET);
+}
+
+void
 TextFile::Rewind() const
 {
-	SetPosition(bl, SEEK_SET);
+	Seek(bl, SEEK_SET);
 }
 
-void
-TextFile::SetPos(u32 pos) const
-{
-	SetPosition(bl + pos, SEEK_SET);
-}
-
-void
-TextFile::Seek(long offset, int whence) const
-{
-	if(whence == SEEK_SET)
-		SetPos(offset);
-	else
-		SetPosition(offset, whence);
-}
-
-TextFile::SizeType
+size_t
 TextFile::Read(void* s, u32 n) const
 {
 	return Read(s, n, 1);

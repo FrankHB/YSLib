@@ -11,13 +11,13 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version r1841;
+\version r1852;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-12-08 20:02 +0800;
+	2011-12-31 08:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,15 +36,11 @@ YSL_BEGIN
 \brief 文件基类。
 \since build 206 。
 */
-class File
+class File : public noncopyable
 {
-public:
-	typedef size_t SizeType; //!< 大小类型。
-	typedef ptrdiff_t OffsetType; //!< 偏移量类型。
-
 protected:
-	FILE* fp; //!< 默认文件指针。
-	SizeType fsize; //!< 文件大小。
+	std::FILE* fp; //!< 默认文件指针。
+	size_t fsize; //!< 文件大小。
 
 public:
 	/*!
@@ -69,17 +65,18 @@ public:
 	DefPred(const ynothrow, Valid, fp) //!< 判断文件指针是否有效。
 
 	DefGetter(const ynothrow, FILE*, Ptr, fp) //!< 取文件指针。
-	DefGetter(const ynothrow, SizeType, Size, fsize) //!< 取文件大小。
+	DefGetter(const ynothrow, size_t, Size, fsize) //!< 取文件大小。
 	/*!
 	\brief 取文件指针的位置，返回值语义同 std::ftell 。
 	*/
-	DefGetter(const ynothrow, OffsetType, Position, std::ftell(fp))
+	DefGetter(const ynothrow, ptrdiff_t, Position, std::ftell(fp))
 
 	/*!
 	\brief 设置文件指针位置。
 	\note 参数和返回值语义同 std::fseek 。
+	\since build 273 。
 	*/
-	PDefH(int, SetPosition, OffsetType offset, int whence) const
+	PDefH(int, Seek, ptrdiff_t offset, int whence) const
 		ImplRet(std::fseek(fp, offset, whence))
 
 	/*!
@@ -107,7 +104,7 @@ public:
 	\brief 连续读 nmemb 个大小为 size 文件块到 ptr 中。
 	\return 返回成功读取的文件块数。
 	*/
-	PDefH(SizeType, Read, void* ptr, SizeType size, SizeType nmemb) const
+	PDefH(size_t, Read, void* ptr, size_t size, size_t nmemb) const
 		ImplRet(std::fread(ptr, size, nmemb, fp))
 
 	/*!

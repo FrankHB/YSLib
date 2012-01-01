@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1886;
+\version r1887;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-12-15 13:41 +0800;
+	2011-12-30 12:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -123,7 +123,7 @@ Menu::operator-=(IndexType idx)
 }
 
 bool
-Menu::IsItemEnabled(Menu::ListType::size_type idx) const
+Menu::IsItemEnabled(ListType::size_type idx) const
 {
 	YAssert(IsInInterval(idx, GetList().size()),
 		"Index out of range found @ Menu::IsItemEnabled;");

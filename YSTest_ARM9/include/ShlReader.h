@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1614;
+\version r1618;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2011-12-20 18:43 +0800;
+	2011-12-27 14:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -72,6 +72,14 @@ public:
 	Button btnClose;
 	Label lblEncoding;
 	Label lblSize;
+	/*!
+	\brief 指示迭代器位置。
+	\since build 273 。
+	*/
+	//@{
+	Label lblTop;
+	Label lblBottom;
+	//@}
 
 	TextInfoBox(ShlReader&);
 

@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2593;
+\version r2620;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-12-25 15:18 +0800;
+	2011-12-31 21:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -77,16 +77,16 @@ public:
 private:
 	unique_ptr<Text::TextFileBuffer> pText; //!< 文本资源。
 	FontCache& fc; //!< 字体缓存。
-	Drawing::Rotation rot; //!< 屏幕指向。
 	/*!
 	\brief 字符区域输入迭代器。
 	
 	字符区域的起点和终点在文本缓冲区的迭代器，构成一个左闭右开区间。
 	\note 若因为读入换行符而换行，则迭代器指向的字符此换行符。
+	\since build 273 。
 	*/
 	//@{
-	Text::TextFileBuffer::Iterator iTop;
-	Text::TextFileBuffer::Iterator iBottom;
+	Text::TextFileBuffer::Iterator i_top;
+	Text::TextFileBuffer::Iterator i_btm;
 	//@}
 	/*!
 	\brief 读入文件结束后的空行数。
@@ -96,9 +96,16 @@ private:
 	*/
 	u16 overread_line_n;
 
+	/*!
+	\brief 上下屏幕对应字符区域。
+	\since build 273 。
+	*/
+	//@{
+	YSL_ Components::BufferedTextArea area_up;
+	YSL_ Components::BufferedTextArea area_dn;
+	//@}
+
 public:
-	YSL_ Components::BufferedTextArea AreaUp; //!< 上屏幕对应字符区域。
-	YSL_ Components::BufferedTextArea AreaDown; //!< 下屏幕对应字符区域。
 	/*!
 	\brief 视图变更回调函数。
 	\since build 271 。
@@ -116,18 +123,18 @@ public:
 		SDst h_up = MainScreenHeight, SDst h_down = MainScreenHeight,
 		FontCache& fc_ = FetchGlobalInstance().GetFontCache());
 
-	DefPred(const ynothrow, TextTop, iTop == pText->GetBegin()) \
+	DefPred(const ynothrow, TextTop, i_top == pText->GetBegin()) \
 		//!< 判断输出位置是否到文本顶端。
-	DefPred(const ynothrow, TextBottom, iBottom == pText->GetEnd()) \
+	DefPred(const ynothrow, TextBottom, i_btm == pText->GetEnd()) \
 		//!< 判断输出位置是否到文本底端。
 
 	DefGetter(const ynothrow, u8, FontSize, fc.GetFontSize()) \
 		//!< 取字符区域的字体大小。
-	DefGetter(const ynothrow, Color, ColorUp, AreaUp.Color) \
+	DefGetter(const ynothrow, Color, ColorUp, area_up.Color) \
 		//!< 取上字符区域的字体颜色。
-	DefGetter(const ynothrow, Color, ColorDown, AreaDown.Color) \
+	DefGetter(const ynothrow, Color, ColorDown, area_dn.Color) \
 		//!< 取下字符区域的字体颜色。
-	DefGetter(const ynothrow, u8, LineGap, AreaUp.LineGap) \
+	DefGetter(const ynothrow, u8, LineGap, area_up.LineGap) \
 		//!< 取字符区域的行距。
 	DefGetter(const ynothrow, Text::Encoding, Encoding, pText
 		? pText->GetEncoding() : Text::CharSet::Null) //!< 取编码。
@@ -136,7 +143,8 @@ public:
 	\note 单位为字节。
 	\since build 270 。
 	*/
-	DefGetter(const ynothrow, size_t, TextSize, pText ? pText->GetSize() : 0)
+	DefGetter(const ynothrow, size_t, TextSize,
+		pText ? pText->GetTextSize() : 0)
 	/*!
 	\brief 取阅读位置。
 
@@ -146,18 +154,32 @@ public:
 	*/
 	//@{
 	DefGetter(const ynothrow, size_t, TopPosition,
-		pText ? iTop - pText->GetBegin() : 0)
+		pText ? pText->GetPosition(i_top) : 0)
 	DefGetter(const ynothrow, size_t, BottomPosition,
-		pText ? iBottom - pText->GetBegin() : 0)
+		pText ? pText->GetPosition(i_btm) : 0)
 	//@}
 
 	PDefH(void, SetColor, Color c = Drawing::ColorSpace::Black)
-		ImplUnseq(AreaUp.Color = c, AreaDown.Color = c) //!< 设置字符颜色。
+		ImplUnseq(area_up.Color = c, area_dn.Color = c) //!< 设置字符颜色。
 	PDefH(void, SetFontSize, Drawing::Font::SizeType s
 		= Drawing::Font::DefaultSize)
 		ImplExpr(fc.SetFontSize(s)) //!< 设置字符区域字体大小。
 	PDefH(void, SetLineGap, u8 g = 0)
-		ImplUnseq(AreaUp.LineGap = g, AreaDown.LineGap = g) //!< 设置行距。
+		ImplUnseq(area_up.LineGap = g, area_dn.LineGap = g) //!< 设置行距。
+
+	/*!
+	\brief 附加到窗口。
+	\since build 273 。
+	*/
+	void
+	Attach(YSL_ Components::Window&, YSL_ Components::Window&);
+
+	/*!
+	\brief 从窗口分离。
+	\since build 273 。
+	*/
+	void
+	Detach();
 
 	/*!
 	\brief 执行阅读器命令。

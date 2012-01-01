@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2708;
+\version r2723;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2011-12-25 16:05 +0800;
+	2011-12-31 21:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -125,10 +125,12 @@ ReaderBox::UpdateData(DualScreenReader& reader)
 
 
 TextInfoBox::TextInfoBox(ShlReader& shl)
-	: Control(Rect(32, 32, 160, 96)),
+	: Control(Rect(32, 32, 200, 108)),
 	Shell(shl), btnClose(Rect(GetWidth() - 20, 4, 16, 16)),
-	lblEncoding(Rect(4, 20, 160, 16)),
-	lblSize(Rect(4, 40, 160, 16))
+	lblEncoding(Rect(4, 20, 192, 18)),
+	lblSize(Rect(4, 40, 192, 18)),
+	lblTop(Rect(4, 60, 192, 18)),
+	lblBottom(Rect(4, 80, 192, 18))
 {
 	btnClose.Text = "×";
 	SetContainerPtrOf(btnClose, this),
@@ -145,7 +147,8 @@ TextInfoBox::TextInfoBox(ShlReader& shl)
 IWidget*
 TextInfoBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	IWidget* const pWidgets[] = {&btnClose, &lblEncoding, &lblSize};
+	IWidget* const pWidgets[] = {&btnClose, &lblEncoding, &lblSize,
+		&lblTop, &lblBottom};
 
 	for(size_t i(0); i < sizeof(pWidgets) / sizeof(*pWidgets); ++i)
 		if(auto p = CheckWidget(*pWidgets[i], pt, f))
@@ -158,7 +161,8 @@ TextInfoBox::Refresh(const PaintContext& pc)
 {
 	Widget::Refresh(pc);
 
-	IWidget* const pWidgets[] = {&btnClose, &lblEncoding, &lblSize};
+	IWidget* const pWidgets[] = {&btnClose, &lblEncoding, &lblSize,
+		&lblTop, &lblBottom};
 
 	for(size_t i(0); i < sizeof(pWidgets) / sizeof(*pWidgets); ++i)
 		PaintChild(*pWidgets[i], pc);
@@ -172,9 +176,12 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 
 	siprintf(str, "Encoding: %d;", reader.GetEncoding());
 	lblEncoding.Text = str;
-	siprintf(str, "Size: [%u, %u) / %u;", reader.GetTopPosition(),
-		reader.GetBottomPosition(), reader.GetTextSize());
+	siprintf(str, "Size: %u B;", reader.GetTextSize());
 	lblSize.Text = str;
+	siprintf(str, "Top: %u B;", reader.GetTopPosition());
+	lblTop.Text = str;
+	siprintf(str, "Bottom: %u B;", reader.GetBottomPosition());
+	lblBottom.Text = str;
 	Invalidate(lblEncoding),
 	Invalidate(lblSize);
 }
@@ -274,8 +281,7 @@ TextReaderManager::Activate()
 		FetchEvent<KeyDown>(dsk_dn).Add(*this, &TextReaderManager::OnKeyDown),
 		FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld
 	);
-	dsk_up += Reader.AreaUp,
-	dsk_dn += Reader.AreaDown,
+	Reader.Attach(dsk_up, dsk_dn),
 	dsk_dn += boxReader,
 	dsk_dn += boxTextInfo;
 	SetVisibleOf(boxReader, false),
@@ -300,9 +306,8 @@ TextReaderManager::Deactivate()
 			&TextReaderManager::OnKeyDown),
 		FetchEvent<KeyHeld>(dsk_dn) -= OnKeyHeld
 	);
+	Reader.Detach();
 	yunseq(
-		dsk_up -= Reader.AreaUp,
-		dsk_dn -= Reader.AreaDown,
 		dsk_up -= boxReader,
 		dsk_dn -= boxTextInfo
 	);

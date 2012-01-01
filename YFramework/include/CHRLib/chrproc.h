@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1610;
+\version r1638;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-12-24 16:48 +0800;
+	2011-12-28 19:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,12 +68,13 @@ ToASCII(_tChar c)
 
 /*!
 \brief 按指定编码和转换状态转换字符串中字符为 UCS-2 字符，返回转换的字节数。
+\since build 273 。
 */
 //@{
-byte
+ConversionResult
 MBCToUC(ucs2_t&, const char*&, const Encoding&,
 	ConversionState&& = ConversionState());
-inline byte
+inline ConversionResult
 MBCToUC(ucs2_t& uc, const char*& c, const Encoding& cp, ConversionState& st)
 {
 	return MBCToUC(uc, c, cp, std::move(st));
@@ -81,15 +82,36 @@ MBCToUC(ucs2_t& uc, const char*& c, const Encoding& cp, ConversionState& st)
 //@}
 /*!
 \brief 按指定编码和转换状态转换字符流中字符为 UCS-2 字符，返回转换的字节数。
+\since build 273 。
 */
 //@{
-byte
+ConversionResult
 MBCToUC(ucs2_t&, std::FILE*, const Encoding&,
 	ConversionState&& = ConversionState());
-inline byte
+inline ConversionResult
 MBCToUC(ucs2_t& uc, std::FILE* fp, const Encoding& cp, ConversionState& st)
 {
 	return MBCToUC(uc, fp, cp, std::move(st));
+}
+//@}
+/*!
+\brief 按指定编码和转换状态返回转换字符为 UCS-2 字符的字节数。
+\since build 273 。
+*/
+//@{
+ConversionResult
+MBCToUC(const char*&, const Encoding&, ConversionState&& = ConversionState());
+inline ConversionResult
+MBCToUC(const char*& c, const Encoding& cp, ConversionState& st)
+{
+	return MBCToUC(c, cp, std::move(st));
+}
+ConversionResult
+MBCToUC(std::FILE*, const Encoding&, ConversionState&& = ConversionState());
+inline ConversionResult
+MBCToUC(std::FILE* fp, const Encoding& cp, ConversionState& st)
+{
+	return MBCToUC(fp, cp, std::move(st));
 }
 //@}
 

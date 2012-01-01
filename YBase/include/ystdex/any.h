@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 函数对象、算法和实用程序。
-\version r1176;
+\version r1183;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2011-09-26 07:55:44 +0800;
 \par 修改时间:
-	2011-12-04 11:09 +0800;
+	2011-12-28 15:43 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -109,6 +109,23 @@ namespace ystdex
 			return const_cast<void*>(ptr);
 		}
 	};
+
+
+	/*!
+	\brief 伪输出对象。
+	\note 吸收所有赋值操作。
+	\since build 273 。
+	*/
+	struct pseudo_output
+	{
+		template<typename... _tParams>
+		inline pseudo_output&
+		operator=(_tParams&&...)
+		{
+			return *this;
+		}
+	};
+
 }
 
 #endif

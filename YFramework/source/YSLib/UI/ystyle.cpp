@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1514;
+\version r1515;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-12-04 11:13 +0800;
+	2012-01-01 11:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -228,7 +228,7 @@ Palette::Palette()
 {
 	using Drawing::Color;
 
-	// TODO: using initializer-list;
+	// TODO: use initializer-list;
 	colors[Null] = Color(0, 0, 0);
 	colors[Desktop] = Color(10, 59, 118);
 	colors[Window] = Color(255, 255, 255);
