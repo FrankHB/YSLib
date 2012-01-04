@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,14 +16,14 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version r2551;
+\version r2553;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-24 15:29:11 +0800;
 \par 修改时间:
-	2011-12-25 11:19 +0800;
-\par 字符集:
+	2012-01-04 08:28 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YShellDefinition;
@@ -51,10 +51,6 @@ YSL_BEGIN_NAMESPACE(Components)
 class Desktop;
 YSL_END_NAMESPACE(Components)
 
-YSL_BEGIN_NAMESPACE(Drawing)
-class FontCache;
-YSL_END_NAMESPACE(Drawing)
-
 YSL_BEGIN_NAMESPACE(Shells)
 class Shell;
 YSL_END_NAMESPACE(Shells)
@@ -66,8 +62,6 @@ YSL_END_NAMESPACE(Text)
 class Application;
 
 using Components::Desktop;
-
-using Drawing::FontCache;
 
 using Shells::Shell;
 

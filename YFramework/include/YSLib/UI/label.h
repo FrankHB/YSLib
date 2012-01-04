@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2131;
+\version r2133;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2011-12-04 12:45 +0800;
-\par 字符集:
+	2012-01-04 08:16 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::Label;
@@ -29,7 +29,6 @@
 #define YSL_INC_UI_LABEL_H_
 
 #include "ywidget.h"
-#include "../Adaptor/yfont.h"
 //#include "../Core/yres.h"
 #include "../Service/ytext.h"
 

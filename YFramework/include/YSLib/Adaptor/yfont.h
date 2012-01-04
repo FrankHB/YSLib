@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7412;
+\version r7415;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2011-12-19 15:08 +0800;
-\par 字符集:
+	2012-01-03 21:30 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Adaptor::YFontCache;
@@ -375,8 +375,7 @@ Font::Font(const FontFamily& family, const SizeType size, FontStyle style)
 	: pFontFamily(&family), Style(style), Size(size)
 {}
 
-inline
-const Font&
+inline const Font&
 Font::GetDefault()
 {
 	static Font f;

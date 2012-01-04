@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r4075;
+\version r4082;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-12-04 12:47 +0800;
-\par 字符集:
+	2012-01-04 08:10 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Service::YGDI;
@@ -29,43 +29,12 @@
 #define YSL_INC_SERVICE_YGDI_H_
 
 #include "../Core/ygdibase.h"
-#include "../Adaptor/yfont.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
 // GDI 逻辑对象。
-
-//! \brief 笔样式：字体和笔颜色。
-class PenStyle
-{
-public:
-	Drawing::Font Font; //!< 字体。
-	Drawing::Color Color; //!< 笔颜色。
-
-	/*!
-	\brief 构造：使用指定字体家族、字体大小和颜色。
-	*/
-	explicit
-	PenStyle(const FontFamily& = FetchDefaultFontFamily(),
-		Font::SizeType = Font::DefaultSize,
-		Drawing::Color = Drawing::ColorSpace::White);
-	/*!
-	\brief 析构：空实现。
-	*/
-	virtual DefEmptyDtor(PenStyle)
-
-	DefGetterMem(const ynothrow, const FontFamily&, FontFamily, Font)
-	DefGetterMem(const ynothrow, FontCache&, Cache, Font)
-};
-
-inline
-PenStyle::PenStyle(const FontFamily& family, Font::SizeType size,
-	Drawing::Color c)
-	: Font(family, size), Color(c)
-{}
-
 
 //! \brief 边距样式。
 struct Padding

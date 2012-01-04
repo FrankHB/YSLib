@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ytext.cpp
 \ingroup Service
 \brief 基础文本显示。
-\version r6872;
+\version r6882;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-12-18 12:41 +0800;
-\par 字符集:
+	2012-01-03 09:10 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YText;
@@ -185,25 +185,31 @@ RenderChar(ucs4_t c, TextState& ts, const Graphics& g, const Rect& mask,
 SDst
 FetchResizedBottomMargin(const TextState& ts, SDst h)
 {
-	const u8 t(GetTextLineHeightExOf(ts));
+	YAssert(GetTextLineHeightExOf(ts) != 0,
+		"Zero line height found @ FetchResizedBottomMargin");
 
-	return t ? ts.Margin.Bottom + (h + ts.LineGap - GetVerticalOf(ts.Margin))
-		% t : 0;
+	return ts.Margin.Bottom + (h + ts.LineGap - GetVerticalOf(ts.Margin))
+		% GetTextLineHeightExOf(ts);
 }
 
 u16
 FetchResizedLineN(const TextState& ts, SDst h)
 {
 	YAssert(GetTextLineHeightExOf(ts) != 0,
-		"Zero line height found @ TextFetchResizedLineN");
+		"Zero line height found @ FetchResizedLineN");
 
-	return (h - GetVerticalOf(ts.Margin)) / GetTextLineHeightExOf(ts);
+	return (h + ts.LineGap - GetVerticalOf(ts.Margin))
+		/ GetTextLineHeightExOf(ts);
 }
 
 SPos
 FetchLastLineBasePosition(const TextState& ts, SDst h)
 {
-	return h - ts.Margin.Bottom + ts.GetCache().GetDescender() + 1;
+	const u16 n(FetchResizedLineN(ts, h));
+
+	return ts.Margin.Top + ts.GetCache().GetAscender()
+		+ GetTextLineHeightExOf(ts) * (n > 0 ? n - 1 : n);
+//	return h - ts.Margin.Bottom + ts.GetCache().GetDescender() + 1;
 }
 
 

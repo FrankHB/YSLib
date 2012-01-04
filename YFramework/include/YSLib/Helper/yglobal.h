@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,14 +16,14 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2481;
+\version r2487;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2011-12-24 13:28 +0800;
-\par 字符集:
+	2012-01-04 08:29 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Helper::YGlobal;
@@ -117,6 +117,12 @@ public:
 YSL_END_NAMESPACE(Devices)
 
 
+//前向声明。
+YSL_BEGIN_NAMESPACE(Drawing)
+class FontCache;
+YSL_END_NAMESPACE(Drawing)
+
+
 /*!
 \brief 平台相关的应用程序类。
 \note 含默认接口。
@@ -128,7 +134,7 @@ class DSApplication : public Application
 	FetchGlobalInstance() ynothrow;
 
 private:
-	FontCache* pFontCache; //!< 默认字体缓存。
+	Drawing::FontCache* pFontCache; //!< 默认字体缓存。
 	shared_ptr<Devices::DSScreen> hScreenUp; //!< DS 上屏幕句柄。
 	shared_ptr<Devices::DSScreen> hScreenDown; //!< DS 上屏幕句柄。
 	shared_ptr<Desktop> hDesktopUp; //!< DS 下屏幕默认桌面句柄。
@@ -153,7 +159,7 @@ public:
 	\throw LoggedEvent 记录异常事件。
 	\note 仅抛出以上异常。
 	*/
-	FontCache&
+	Drawing::FontCache&
 	GetFontCache() const ythrow(LoggedEvent);
 	DefGetter(const ynothrow, const shared_ptr<Devices::DSScreen>&,
 		ScreenUpHandle, hScreenUp)
@@ -332,7 +338,7 @@ ShowFatalError(const char*);
 \brief 取默认字体缓存。
 \since build 219 。
 */
-inline FontCache&
+inline Drawing::FontCache&
 FetchDefaultFontCache()
 {
 	return FetchGlobalInstance().GetFontCache();

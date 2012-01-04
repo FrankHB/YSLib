@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1276;
+\version r1283;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 254 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-12-01 08:30 +0800;
-\par 字符集:
+	2012-01-03 07:34 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YStandardEx::Algorithms;
@@ -137,6 +137,26 @@ namespace ystdex
 		return result;
 	}
 
+
+	/*!
+	\ingroup algorithms
+	\brief 插入参数指定的元素到容器。
+	\since build 274 。
+	*/
+	//@{
+	template<class _tCon, typename... _tParams>
+	inline void
+	assign(_tCon& con, _tParams&&... args)
+	{
+		con.assign(yforward(args)...);
+	}
+	template<class _tCon, typename _type, size_t N>
+	inline void
+	assign(_tCon& con, const _type(&arr)[N])
+	{
+		con.assign(arr, arr + N);
+	}
+	//@}
 
 	/*!
 	\ingroup algorithms

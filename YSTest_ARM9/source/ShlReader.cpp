@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2723;
+\version r2780;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2011-12-31 21:10 +0800;
-\par 字符集:
+	2012-01-03 09:10 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YReader::ShlReader;
@@ -45,30 +45,32 @@ namespace
 {
 	// MR -> MNU_READER;
 	yconstexpr Menu::IndexType MR_Return(0),
-		MR_Panel(1),
-		MR_FileInfo(2),
-		MR_LineUp(3),
-		MR_LineDown(4),
-		MR_ScreenUp(5),
-		MR_ScreenDown(6);
+		MR_FileInfo(1),
+		MR_LineUp(2),
+		MR_LineDown(3),
+		MR_ScreenUp(4),
+		MR_ScreenDown(5);
 }
 
 
 ReaderBox::ReaderBox(const Rect& r, ShlReader& shl)
 	: Control(r),
-	Shell(shl), btnClose(Rect(236, 4, 16, 16)),
-	pbReader(Rect(4, 4, 192, 16)), lblProgress(Rect(200, 4, 32, 16))
+	Shell(shl), btnMenu(Rect(4, 12, 16, 16)),
+	btnInfo(Rect(24, 12, 16, 16)), btnReturn(Rect(44, 12, 16, 16)),
+	pbReader(Rect(4, 0, 248, 8)), lblProgress(Rect(216, 12, 40, 16))
 {
-	SetContainerPtrOf(btnClose, this),
+	SetTransparent(true),
+	SetContainerPtrOf(btnMenu, this),
+	SetContainerPtrOf(btnInfo, this),
+	SetContainerPtrOf(btnReturn, this),
 	SetContainerPtrOf(pbReader, this),
-	SetContainerPtrOf(lblProgress, this);
-	btnClose.Text = "×",
+	SetContainerPtrOf(lblProgress, this),
+	btnMenu.Text = "M",
+	btnInfo.Text = "I",
+	btnReturn.Text = "R",
+	pbReader.ForeColor = Color(192, 192, 64),
+	lblProgress.SetTransparent(true),
 	lblProgress.Font.SetSize(12);
-	FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
-		Hide(*this);
-		if(const auto pCon = FetchContainerPtr(*this))
-			ClearFocusingOf(*pCon);
-	};
 }
 
 IWidget*
@@ -80,14 +82,15 @@ ReaderBox::GetTopWidgetPtr(const Point& pt,
 	const auto _n = std::make_tuple(__VA_ARGS__);
 
 DefTuple(pWidgets,
-		&ShlReader::ReaderPanel::btnClose,
+		&ShlReader::ReaderPanel::btnMenu,
 		&ShlReader::ReaderPanel::pbReader,
 		&ShlReader::ReaderPanel::lblProgress
 	)
 */
-	IWidget* const pWidgets[] = {&btnClose, &pbReader, &lblProgress};
+	IWidget* const pWidgets[] = {&btnMenu, &btnInfo, &btnReturn, &pbReader,
+		&lblProgress};
 
-	for(int i(0); i < 3; ++i)
+	for(int i(0); i < 5; ++i)
 		if(auto p = CheckWidget(*pWidgets[i], pt, f))
 			return p;
 	return nullptr;
@@ -98,9 +101,10 @@ ReaderBox::Refresh(const PaintContext& pc)
 {
 	Widget::Refresh(pc);
 
-	IWidget* const pWidgets[] = {&btnClose, &pbReader, &lblProgress};
+	IWidget* const pWidgets[] = {&btnMenu, &btnInfo, &btnReturn, &pbReader,
+		&lblProgress};
 
-	for(int i(0); i < 3; ++i)
+	for(int i(0); i < 5; ++i)
 		PaintChild(*pWidgets[i], pc);
 	return Rect(pc.Location, GetSizeOf(*this));
 }
@@ -212,10 +216,11 @@ ReaderManager::ReaderManager(ShlReader& shl)
 	: Shell(shl)
 {}
 
+
 TextReaderManager::TextReaderManager(ShlReader& shl)
 	: ReaderManager(shl),
 	Reader(),
-	boxReader(Rect(0, 168, 256, 24), shl), boxTextInfo(shl),
+	boxReader(Rect(0, 160, 256, 32), shl), boxTextInfo(shl),
 	pTextFile(), mhMain(shl.GetDesktopDown())
 {
 	yunseq(
@@ -225,6 +230,18 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 				boxReader.UpdateData(Reader);
 			if(IsVisible(boxTextInfo))
 				boxTextInfo.UpdateData(Reader);
+		},
+		FetchEvent<Click>(boxReader.btnMenu) += [this](TouchEventArgs&& e)
+		{
+			ShowMenu(1u, e);
+		},
+		FetchEvent<Click>(boxReader.btnInfo) += [this](TouchEventArgs&&)
+		{
+			Execute(MR_FileInfo);
+		},
+		FetchEvent<Click>(boxReader.btnReturn) += [this](TouchEventArgs&&)
+		{
+			Execute(MR_Return);
 		},
 		FetchEvent<TouchDown>(boxReader.pbReader) += [this](TouchEventArgs&& e)
 		{
@@ -240,26 +257,22 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 			FillRect(e.Target, Point(pt.X + 1 + round(pb.GetValue() * w / mval),
 				pt.Y + 1), Size(round((Reader.GetBottomPosition()
 				- Reader.GetTopPosition()) * w / mval), pb.GetHeight() - 2),
-				ColorSpace::Navy);
+				ColorSpace::Yellow);
 		}
 	);
 	{
 		auto hList(share_raw(new Menu::ListType));
 		auto& lst(*hList);
 
-		lst.reserve(7);
-		lst.push_back("返回");
-		lst.push_back("显示面板");
-		lst.push_back("文件信息...");
-		lst.push_back("向上一行");
-		lst.push_back("向下一行");
-		lst.push_back("向上一屏");
-		lst.push_back("向下一屏");
+		static yconstexpr const char* mnustr[] = {"返回",
+			"文件信息...", "向上一行", "向下一行", "向上一屏", "向下一屏"};
+
+		ystdex::assign(lst, mnustr);
 
 		Menu& mnu(*(ynew Menu(Rect::Empty, std::move(hList), 1u)));
 
 		mnu.GetConfirmed() += [this](IndexEventArgs&& e){
-			ExcuteReadingCommand(e.Value);
+			Execute(e.Value);
 		};
 		mhMain += mnu;
 	}
@@ -314,16 +327,12 @@ TextReaderManager::Deactivate()
 }
 
 void
-TextReaderManager::ExcuteReadingCommand(IndexEventArgs::ValueType idx)
+TextReaderManager::Execute(IndexEventArgs::ValueType idx)
 {
 	switch(idx)
 	{
 	case MR_Return:
 		CallStored<ShlExplorer>();
-		break;
-	case MR_Panel:
-		boxReader.UpdateData(Reader);
-		Show(boxReader);
 		break;
 	case MR_FileInfo:
 		boxTextInfo.UpdateData(Reader);
@@ -345,13 +354,13 @@ TextReaderManager::ExcuteReadingCommand(IndexEventArgs::ValueType idx)
 }
 
 void
-TextReaderManager::ShowMenu(Menu::ID id, const Point& pt)
+TextReaderManager::ShowMenu(Menu::ID id, const Point&)
 {
 	if(!mhMain.IsShowing(id))
 	{
 		auto& mnu(mhMain[id]);
 
-		SetLocationOf(mnu, pt);
+		SetLocationOf(mnu, Point());
 		switch(id)
 		{
 		case 1u:
@@ -367,7 +376,19 @@ TextReaderManager::ShowMenu(Menu::ID id, const Point& pt)
 void
 TextReaderManager::OnClick(TouchEventArgs&& e)
 {
-	ShowMenu(1u, e);
+	if(IsVisible(boxReader))
+	{
+		Reader.Stretch(0);
+		Hide(boxReader);
+		if(const auto pCon = FetchContainerPtr(boxReader))
+			ClearFocusingOf(*pCon);
+	}
+	else
+	{
+		Reader.Stretch(boxReader.GetHeight());
+		boxReader.UpdateData(Reader);
+		Show(boxReader);
+	}
 }
 
 void
@@ -399,26 +420,18 @@ TextReaderManager::OnKeyDown(KeyEventArgs&& e)
 			break;
 		case KeySpace::X:
 			Reader.SetLineGap(5);
-			Reader.UpdateView();
 			break;
 		case KeySpace::Y:
 			Reader.SetLineGap(8);
-			Reader.UpdateView();
 			break;
 		case KeySpace::Left:
 			//Reader.SetFontSize(Reader.GetFontSize()+1);
 			if(Reader.GetLineGap() != 0)
-			{
 				Reader.SetLineGap(Reader.GetLineGap() - 1);
-				Reader.UpdateView();
-			}
 			break;
 		case KeySpace::Right:
 			if(Reader.GetLineGap() != 12)
-			{
 				Reader.SetLineGap(Reader.GetLineGap() + 1);
-				Reader.UpdateView();
-			}
 		default:
 			break;
 		}

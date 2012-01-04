@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3487;
+\version r3529;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-12-31 21:48 +0800;
-\par 字符集:
+	2011-01-03 12:44 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YReader::DSReader;
@@ -109,6 +109,7 @@ YSL_BEGIN_NAMESPACE(Components)
 DualScreenReader::DualScreenReader(SDst w, SDst h_up, SDst h_down,
 	FontCache& fc_)
 	: pText(), fc(fc_), i_top(), i_btm(), overread_line_n(0),
+	Margin(4, 4, 4, 4),
 	area_up(Rect(Point::Zero, w, h_up), fc),
 	area_dn(Rect(Point::Zero, w, h_down), fc)
 {
@@ -120,11 +121,38 @@ DualScreenReader::DualScreenReader(SDst w, SDst h_up, SDst h_down,
 }
 
 void
+DualScreenReader::SetLineGap(u8 g)
+{
+	if(area_up.LineGap != g)
+	{
+		yunseq(area_up.LineGap = g, area_dn.LineGap = g);
+		UpdateView();
+	}
+}
+
+void
 DualScreenReader::Attach(YSL_ Components::Window& wnd_up,
 	YSL_ Components::Window& wnd_dn)
 {
 	wnd_up += area_up,
 	wnd_dn += area_dn;
+}
+
+void
+DualScreenReader::AdjustMargins()
+{
+	yunseq(area_up.Margin = Margin, area_dn.Margin = Margin);
+	yunseq(AdjustBottomMarginOf(area_up), AdjustBottomMarginOf(area_dn));
+	{
+		const SPos v((area_up.Margin.Bottom - area_up.Margin.Top) / 2);
+
+		yunseq(area_up.Margin.Top += v, area_up.Margin.Bottom -= v);
+	}
+	{
+		const SPos v((area_dn.Margin.Bottom - area_dn.Margin.Top) / 2);
+
+		yunseq(area_dn.Margin.Top += v, area_dn.Margin.Bottom -= v);
+	}
 }
 
 void
@@ -151,19 +179,18 @@ DualScreenReader::Execute(Command cmd)
 	else if(IsTextBottom())
 		return false;
 
+	YAssert(area_up.LineGap == area_dn.LineGap, "Unequal line gaps found"
+		" @ DualScreenReader::Execute;");
+
 	cmd &= ~Scroll;
 	if(cmd & Line)
 	{
-		// NOTE: assume AreaUp.GetLineGap() == AreaDown.GetLineGap();
 		const u8 h(fc.GetHeight()), hx(h + GetLineGap());
 		const auto w(area_up.GetWidth());
 		const u32 t(w * h);
 
 		if(cmd & Up)
 		{
-			yunseq(AdjustBottomMarginOf(area_up),
-				AdjustBottomMarginOf(area_dn));
-
 			const u32 s((area_up.GetHeight() - area_up.Margin.Bottom - h) * w),
 				d(area_dn.Margin.Top * w);
 
@@ -192,9 +219,8 @@ DualScreenReader::Execute(Command cmd)
 		}
 		else
 		{
-			const u32 s(area_up.Margin.Top * w),
-				d((area_up.GetHeight() - FetchResizedBottomMargin(area_up) - h)
-				* w);
+			const u32 s(area_dn.Margin.Top * w),
+				d((area_up.GetHeight() - area_up.Margin.Bottom - h) * w);
 
 			area_up.Scroll(-hx);
 			yunseq(ystdex::pod_copy_n(&area_dn.GetBufferPtr()[s], t,
@@ -203,13 +229,12 @@ DualScreenReader::Execute(Command cmd)
 				&area_up.GetBufferAlphaPtr()[d]));
 			area_dn.Scroll(-hx);
 			{
-				u16 n(area_dn.GetTextLineN());
+				u16 n(area_dn.GetTextLineNEx());
 
 				YAssert(n != 0,
 					"No Enough height found @ DualScreenReader::Excute;");
 
-				--n;
-				area_dn.ClearTextLine(n);
+				area_dn.ClearTextLine(--n);
 				SetCurrentTextLineNOf(area_dn, n);
 			}
 			//注意缓冲区不保证以 '\0' 结尾。
@@ -225,7 +250,7 @@ DualScreenReader::Execute(Command cmd)
 	}
 	else
 	{
-		auto ln(area_up.GetTextLineN() + area_dn.GetTextLineN());
+		auto ln(area_up.GetTextLineNEx() + area_dn.GetTextLineNEx());
 
 		if(cmd & Up)
 		{
@@ -293,9 +318,24 @@ DualScreenReader::Reset()
 	//清除字符区域缓冲区。
 	area_up.ClearImage();
 	area_dn.ClearImage();
+	//根据行距调整并均衡边距。
+	AdjustMargins();
 	//复位缓存区域写入位置。
 	area_up.ResetPen();
 	area_dn.ResetPen();
+}
+
+void
+DualScreenReader::Stretch(SDst h)
+{
+	RestrictInClosedInterval(h, 0, MainScreenHeight - 40);
+	h = MainScreenHeight - h;
+
+	const SDst w(area_dn.GetWidth());
+
+	SetSizeOf(area_dn, Size(w, h)),
+	area_dn.SetSize(w, h);
+	UpdateView();
 }
 
 void

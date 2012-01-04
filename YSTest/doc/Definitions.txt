@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11571;
+\version r11573;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2011-12-25 11:22 +0800;
-\par 字符集:
+	2012-01-04 08:33 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	Documentation::Definitions;
@@ -937,8 +937,6 @@ $header Adaptor::YReference
 $header Core::YShellDefinition : Adaptor::YAdaptor
 {
 	using Components::Desktop;
-
-	using Drawing::FontCache;
 
 	using Shells::
 	{MainShell, Shell};

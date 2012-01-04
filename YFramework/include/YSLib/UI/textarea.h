@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r1378;
+\version r1382;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-30 20:09:23 +0800;
 \par 修改时间:
-	2011-11-11 11:55 +0800;
-\par 字符集:
+	2012-01-04 08:32 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::TextArea;
@@ -28,7 +28,6 @@
 #define YSL_INC_UI_TEXTAREA_H_
 
 #include "ywidget.h"
-//#include "../Adaptor/yfont.h"
 //#include "../Core/yres.h"
 #include "../Service/ytext.h"
 #include "../Helper/yglobal.h"
@@ -48,7 +47,7 @@ public:
 
 	explicit
 	TextArea(const Drawing::Rect& = Drawing::Rect::Empty,
-		FontCache& = FetchGlobalInstance().GetFontCache());
+		Drawing::FontCache& = FetchGlobalInstance().GetFontCache());
 	inline DefDeMoveCtor(TextArea)
 
 	using Widget::GetWidth;
@@ -66,7 +65,7 @@ public:
 
 	explicit
 	BufferedTextArea(const Drawing::Rect& = Drawing::Rect::Empty,
-		FontCache& = FetchGlobalInstance().GetFontCache());
+		Drawing::FontCache& = FetchGlobalInstance().GetFontCache());
 	inline DefDeMoveCtor(BufferedTextArea)
 
 	using Widget::GetWidth;

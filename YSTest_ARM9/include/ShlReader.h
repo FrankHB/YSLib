@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1618;
+\version r1631;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2011-12-27 14:34 +0800;
-\par 字符集:
+	2012-01-03 08:12 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YReader::ShlReader;
@@ -44,7 +44,21 @@ class ReaderBox : public Control
 {
 public:
 	ShlReader& Shell;
-	Button btnClose;
+	/*!
+	\brief 弹出菜单按钮。
+	\since build 274 。
+	*/
+	Button btnMenu;
+	/*!
+	\brief 显示信息框按钮。
+	\since build 274 。
+	*/
+	Button btnInfo;
+	/*!
+	\brief 返回按钮。
+	\since build 274 。
+	*/
+	Button btnReturn;
 	ProgressBar pbReader;
 	Label lblProgress;
 
@@ -138,8 +152,12 @@ public:
 	Deactivate();
 
 private:
+	/*!
+	\brief 执行阅读器命令。
+	\since build 274 。
+	*/
 	void
-	ExcuteReadingCommand(IndexEventArgs::ValueType);
+	Execute(IndexEventArgs::ValueType);
 
 	void
 	ShowMenu(Menu::ID, const Point&);

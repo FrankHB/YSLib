@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5738;
+\version r5746;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-12-31 11:11 +0800;
-\par 字符集:
+	2012-01-04 08:32 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	Documentation::Designation;
@@ -1523,7 +1523,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 void
 ShowFatalError(const char*);
 
-FontCache&
+Drawing::FontCache&
 FetchDefaultFontCache();
 
 Devices::Screen&
@@ -1592,8 +1592,7 @@ FetchDefaultScreen();
  "ytimer.h" 依赖于 Core 的 "yobject.h" 和 "ycounter.hpp" ；
  "yblit.h" 、 "ydraw.h" 和 "ygdi.h" 依赖于 Core 的 "ygdibase.h" ；
  "yblit.h" 依赖于 Core 的 "ycutil.h" ；
- "ygdi.h" 依赖于 Adaptor 的 "yfont.h" ；
- "ytext.h" 依赖于 "ygdi.h" 、 和 Core 的 "ystring.h" 。
+ "ytext.h" 依赖于 "ygdi.h" 、 Adaptor 的 "yfont.h" 和 Core 的 "ystring.h" 。
 在 UI 中，以下依赖关系对于头文件包含是确定的：
  "ycomp.h" 依赖于 Core 的 "ygdibase.h"；
  "yfocus.hpp" 和 "ywgtview.h" 依赖于 "ycomp.h" ；
@@ -2054,6 +2053,13 @@ $4.1.3.1.4 临时性例外：
 @6.4.3.5
 函数定义内部应该避免空行，除非用于标识声明语句或断言。
 因逻辑原因需要空行标识分隔语句块的，应考虑改用（无名命名空间的、 inline 的）函数或其它实体形式包装。
+
+@6.4.3.6
+模板声明中 template 和被声明的模板名称及模板修饰符以外的修饰符不在同一行，即模板形式参数列表至少占一行。
+
+@6.4.3.7
+不使用复杂函数声明符，保证函数声明符能拆分成返回类型和非返回类型（包含参数列表）两部分。
+函数及函数模板声明中的返回类型和函数修饰符独占一行。
 
 @6.4.4 注释：
 

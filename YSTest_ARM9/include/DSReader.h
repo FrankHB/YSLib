@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2620;
+\version r2648;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2011-12-31 21:48 +0800;
-\par 字符集:
+	2012-01-04 08:35 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YReader::DSReader;
@@ -76,7 +76,7 @@ public:
 
 private:
 	unique_ptr<Text::TextFileBuffer> pText; //!< 文本资源。
-	FontCache& fc; //!< 字体缓存。
+	Drawing::FontCache& fc; //!< 字体缓存。
 	/*!
 	\brief 字符区域输入迭代器。
 	
@@ -96,6 +96,16 @@ private:
 	*/
 	u16 overread_line_n;
 
+public:
+	/*!
+	\brief 公用边距。
+
+	限制文本区域的文本边界的基准边距。
+	\since build 274 。
+	*/
+	Drawing::Padding Margin;
+
+private:
 	/*!
 	\brief 上下屏幕对应字符区域。
 	\since build 273 。
@@ -121,7 +131,7 @@ public:
 	*/
 	DualScreenReader(SDst w = MainScreenWidth,
 		SDst h_up = MainScreenHeight, SDst h_down = MainScreenHeight,
-		FontCache& fc_ = FetchGlobalInstance().GetFontCache());
+		Drawing::FontCache& fc_ = FetchGlobalInstance().GetFontCache());
 
 	DefPred(const ynothrow, TextTop, i_top == pText->GetBegin()) \
 		//!< 判断输出位置是否到文本顶端。
@@ -164,8 +174,8 @@ public:
 	PDefH(void, SetFontSize, Drawing::Font::SizeType s
 		= Drawing::Font::DefaultSize)
 		ImplExpr(fc.SetFontSize(s)) //!< 设置字符区域字体大小。
-	PDefH(void, SetLineGap, u8 g = 0)
-		ImplUnseq(area_up.LineGap = g, area_dn.LineGap = g) //!< 设置行距。
+	void
+	SetLineGap(u8 = 0); //!< 设置行距。
 
 	/*!
 	\brief 附加到窗口。
@@ -173,6 +183,14 @@ public:
 	*/
 	void
 	Attach(YSL_ Components::Window&, YSL_ Components::Window&);
+
+	/*!
+	\brief 调整边距：使用公用边距更新各文本显示区域的边距。
+	\note 保持顶端和底端边距均衡。
+	\since build 274 。
+	*/
+	void
+	AdjustMargins();
 
 	/*!
 	\brief 从窗口分离。
@@ -217,9 +235,18 @@ public:
 	void
 	PrintTextDown(const Drawing::Graphics&);
 
-	//! \brief 复位输出状态。
+	//! \brief 复位输出显示状态。
 	void
 	Reset();
+
+	/*!
+	\brief 伸缩：从最大值起向上调整（减少）下文字区域的高后更新视图。
+	\note 高的最大值为 MainScreenHeight 。
+	\note 调整后的高限制为 40 到 MainScreenHeight 的闭区间。
+	\note 顶端文本迭代器保持不变，底端文本迭代器可能改变。
+	*/
+	void
+	Stretch(SDst);
 
 	/*//!
 	\brief 自动滚屏。

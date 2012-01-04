@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file textarea.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r1393;
+\version r1395;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 222 。
 \par 创建时间:
 	2011-06-30 20:10:27 +0800;
 \par 修改时间:
-	2011-11-25 21:16 +0800;
-\par 字符集:
+	2012-01-04 08:34 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::TextArea;
@@ -28,6 +28,8 @@
 #include "YSLib/UI/textarea.h"
 
 YSL_BEGIN
+
+using namespace Drawing;
 
 YSL_BEGIN_NAMESPACE(Components)
 

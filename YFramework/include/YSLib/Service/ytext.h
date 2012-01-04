@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ytext.h
 \ingroup Service
 \brief 基础文本显示。
-\version r7348;
+\version r7368;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2011-12-18 12:41 +0800;
-\par 字符集:
+	2012-01-04 08:11 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Service::YText;
@@ -29,12 +29,43 @@
 #define YSL_INC_SERVICE_YTEXT_H_
 
 #include "ygdi.h"
+#include "../Adaptor/yfont.h"
 #include "../Core/ystring.h"
 #include <cwctype>
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
+
+//! \brief 笔样式：字体和笔颜色。
+class PenStyle
+{
+public:
+	Drawing::Font Font; //!< 字体。
+	Drawing::Color Color; //!< 笔颜色。
+
+	/*!
+	\brief 构造：使用指定字体家族、字体大小和颜色。
+	*/
+	explicit
+	PenStyle(const FontFamily& = FetchDefaultFontFamily(),
+		Font::SizeType = Font::DefaultSize,
+		Drawing::Color = Drawing::ColorSpace::White);
+	/*!
+	\brief 析构：空实现。
+	*/
+	virtual DefEmptyDtor(PenStyle)
+
+	DefGetterMem(const ynothrow, const FontFamily&, FontFamily, Font)
+	DefGetterMem(const ynothrow, FontCache&, Cache, Font)
+};
+
+inline
+PenStyle::PenStyle(const FontFamily& family, Font::SizeType size,
+	Drawing::Color c)
+	: Font(family, size), Color(c)
+{}
+
 
 /*!
 \brief 文本状态。
@@ -72,12 +103,12 @@ public:
 	TextState(FontCache&);
 
 	/*!
-	\brief 赋值：恢复笔样式。
+	\brief 赋值：笔样式。
 	*/
 	TextState&
 	operator=(const PenStyle& ps);
 	/*!
-	\brief 赋值：恢复边距。
+	\brief 赋值：边距。
 	*/
 	TextState&
 	operator=(const Padding& ms);
@@ -159,40 +190,6 @@ SetPenOf(TextState& s, SPos x, SPos y)
 }
 
 /*!
-\brief 设置边距。
-\note 4 个 \c SDst 形式。
-\since build 231 。
-*/
-inline void
-SetMarginsOf(TextState& s, SDst l, SDst r, SDst t, SDst b)
-{
-	SetAllOf(s.Margin, l, r, t, b);
-	s.ResetPen();
-}
-/*!
-\brief 设置边距。
-\note 64 位无符号整数形式。
-\since build 231 。
-*/
-inline void
-SetMarginsOf(TextState& s, u64 m)
-{
-	SetAllOf(s.Margin, m);
-	s.ResetPen();
-}
-/*!
-\brief 设置边距。
-\note 2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
-\since build 231 。
-*/
-inline void
-SetMarginsOf(TextState& s, SDst h, SDst v)
-{
-	SetAllOf(s.Margin, h, v);
-	s.ResetPen();
-}
-
-/*!
 \brief 设置笔的行位置。
 \since build 231 。
 */
@@ -235,6 +232,8 @@ RenderChar(ucs4_t c, TextState& ts, const Graphics& g, const Rect& mask,
 
 /*!
 \brief 取指定文本状态和文本区域高调整的底边距。
+\pre 断言： <tt>GetTextLineHeightExOf(ts) != 0</tt> 。
+\post <tt>ts.Margin.Bottom</tt> 不小于原值。
 \return 返回调整后的底边距值（由字体大小、行距和高决定）。
 \since build 252 。
 */
@@ -251,7 +250,9 @@ u16
 FetchResizedLineN(const TextState& ts, SDst);
 
 /*!
-\brief 取指定文本状态表示的最底行的基线位置（纵坐标）。
+\brief 取指定文本状态在指定高的区域中表示的最底行的基线位置（纵坐标）。
+\note 若不足一行则最底行视为首行。
+\warning 不检查边距正确性。若顶边距正确，则返回值应小于输入的高。
 \since build 190 。
 */
 SPos
@@ -316,7 +317,10 @@ _tIn
 PrintLine(_tRenderer& r, _tIn s)
 {
 	while(*s != 0 && *s != '\n')
-		PrintChar(r, *s++);
+	{
+		PrintChar(r, *s);
+		++s;
+	}
 	return s;
 }
 /*!
@@ -330,7 +334,10 @@ _tIn
 PrintLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 {
 	while(s != g && *s != c && *s != '\n')
-		PrintChar(r, *s++);
+	{
+		PrintChar(r, *s);
+		++s;
+	}
 	return s;
 }
 /*!
@@ -572,7 +579,7 @@ public:
 	\brief 取按当前行高和行距（行间距数小于行数 1 ）所能显示的最大行数。
 	*/
 	DefGetter(const, u16, TextLineNEx, FetchResizedLineN(CThis->GetTextState(),
-		CThis->GetContext().GetHeight()) + CThis->GetTextState().LineGap)
+		CThis->GetContext().GetHeight() + CThis->GetTextState().LineGap))
 
 #undef CThis
 #undef This

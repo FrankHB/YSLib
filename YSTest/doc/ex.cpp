@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3404; *build 273 rev 124;
+\version r3404; *build 274 rev 73;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-01-01 12:31 +0800;
+	2012-01-04 09:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,9 @@
 	process of development, conformed with a set of virtual set of syntax rules
 	which constitutes an informal pseudo-code-based language.
 	This file shall be safe of deletion when building the projects.
-/*
+*/
+
+#if 0
 
 $META:
 //$configureation_for_custom_NPL_script_parser:
@@ -327,360 +329,211 @@ $using:
 
 $DONE:
 r1:
-/ @ \cl TextFileBuffer $=
-(
-	/ protected \m TextFile File -> TextFile& File,
-	+ \mf Iterator GetIterator(size_t) const
-);
-/ \impl @ \u DSReader ^ bidirecitional iterators ~ random access iterators;
+- \a 3 \f \i SetMarginsOf @ \h YText,
+* wrong line number @ \mf DualScreenReader::UpdateView $since b226;
 
-r2-r19:
-/ @ \cl TextFileBuffer $=
+r2:
++ \as @ \f FetchResizedBottomMargin#1 @ \u YText;
+
+r3-r24:
+* \ft PrintLine(#1, #2) cannot used with iterators without postfix \op++
+	@ \h YText $since b270,
+/ @ \impl \u YText $=
 (
-	/ typedef vector<ucs2_t> BufferType => BlockType;
-	+ typedef MapType<size_t, BlockType> MapType,
-	+ protected \m size_t nBlock,
-	+ protected \m size_t nTextSize;
-	/ \tr protected \m BufferType Buffer -> MapType Map,
-	/ \tr typedef BufferType::const_iterator Iterator -> \cl Iterator;
-	/ @ \mf (GetBegin, GetEnd, GetIterator, GetPosition),
-	/ \impl @ \mf GetTextSize,
-	- \mf LoadText,
-	+ \mf \op[],
-	+ \mf GetBlockN,
-	/ \tr \impl @ \ctor,
-	+ static yconstexpr nBlockSize
+	* \as \str @ \impl @ \f FetchResizedBottomMargin @ $since b273,
+	* \as \str @ \impl @ \f FetchResizedLineN @ $since b252
 ),
-/= test 1,
-/ \tr \impl @ \DualScreenReader::GetTextSize @ \h DSReader;
-
-r20:
-/ \impl @ \mf DualScreenReader::UpdateView @ \impl \u DSReader;
-
-r21:
-/ @ \cl TextInfoBox @ \u ShlReader $=
 (
-	+ \m Label lblTop,
-	+ \m Label lblBottom;
-	/ \tr \impl @ \ctor,
-	/ \impl @ \mf UpdateData
+	* \impl @ \mf TextLineNEx @ \clt GTextRendererBase $since b267;
+	/ @ \cl DualScreenReader @ \u DSReader $=
+	(
+		+ \m Padding Margin,
+		+ \mf void AdjustMargins();
+		/ \tr \impl @ \ctor,
+		* wrong line number @ \mf DualScreenReader::Execute $since b270,
+		/ \impl @ \mf (Reset, SetLineGap)
+	),
+	/= test 1;
+	/ \tr \simp \impl @ \mf TextReaderManager::OnKeyDown @ \impl \u ShlReader,
+	* wrong view area shown after set line gaps @ text reader
+		$since $before b132
 );
-
-r22:
-/ \impl @ \ctor @ \cl TextInfoBox @ \impl \u ShlReader;
-
-r23:
-/ \tr \impl @ \mf (GetTopWidgetPtr, Refresh) @ \cl TextInfoBox
-	@ \impl \u ShlReader;
-
-r24:
-/ \impl @ \mf TextInfoBox::UpdateData @ \impl \u ShlReader;
 
 r25:
 /= test 2 ^ \conf release;
 
 r26:
-+ \f (size_t FetchFixedCharWidth(Encoding), size_t FetchMaxCharWidth(Encoding))
-	@ \u CharacterMapping;
-/ @ \cl TextFileBuffer $=
++ \mf void Stretch(SDst) @ \cl DualScreenReader @ \u DSReader;
+/ @ \impl \u ShlReader $=
 (
-	+ private \m size_t byte_per_char;
-	/ \impl @ \ctor,
-	/ \impl @ \mf (GetIterator, GetPosition)
+	/ \impl @ \mf TextReaderManager::ExcuteReadingCommand,
+	/ \impl @ \ctor @ \cl TextReaderManager
 );
 
 r27:
-* \impl @ \ctor TextFileBuffer $since r26;
+* \impl @ \mf DualScreenReader::Stretch @ \impl \u DSReader $since r26;
 
-r28-r31:
-/= test 3;
+r28-r29:
+* \impl @ \mf TextReaderManager::ExcuteReadingCommand @ \u DSReader $since r26;
 
-r32-r40:
-/ @ \impl \u TextManager $=
+r30:
+* \impl @ \f FetchLastLineBasePosition @ \impl \u YText $since $before b132
+	^ ascender ~ descender;
+
+r31:
+/ @ \impl \u ShlReader $=
 (
-	/ \simp \impl @ \mf TextFileBuffer::operator[];
-	- \f LoadText @ \un \ns
-),
+	/ \a MR_Panel => MR_ReaderBox,
+	/ \impl @ \ctor @ \cl (TextReaderManager, ReaderBox)
+);
+
+r32-r35:
+/ \impl @ \ctor @ \cl (TextReaderManager, ReaderBox) @ \impl \u ShlReader;
+
+r36:
+* \impl @ \f FetchLastLineBasePosition @ \impl \u YText $since r30;
+
+r37:
+/ \impl @ \f FetchLastLineBasePosition @ \impl \u YText;
+
+r38:
+/= test 3 ^ \conf release;
+
+r39-r42:
 /= test 4;
 
-r41:
-/ \impl @ (\op++, \op--) @ \cl TextFileBuffer::Iterator;
+r43:
+* \impl @ \mf DualScreenReader::AdjustMargins $since r24;
 
-r42-r45:
-/= test 5;
+r44:
+/ @ \impl \u ShlReader $=
+(
+	+ 2 \ft assign @ \un \ns;
+	/ \simp \impl @ \ctor @ TextReaderManager ^ \ft assign
+);
+
+r45:
+/ @ \impl \u ShlReader $=
+(
+	/ \a \ft assign >> \ns ystdex @ \h Algorithm,
+	/ \tr \impl @ \ctor @ TextReaderManager
+);
 
 r46:
-* \impl @ \mf \op[] @ \cl TextFileBuffer $since r2;
+/ @ \u ShlReader $=
+(
+	/ @ \cl ReaderBox $=
+	(
+		+ \m Button btnMenu,
+		- \m Button btnClose;
+		/ \impl @ \ctor,
+		/ \tr \impl @ \mf (GetTopWidgetPtr, Refresh)
+	);
+	/ @ \cl TextReaderManager $=
+	(
+		/ \impl @ \ctor,
+		/ \impl @ \mf OnClick,
+		/ \impl @ \mf ShowMenu
+	)
+);
 
 r47:
-/= test 6 ^ \conf release;
-
-r48:
-/ \s \m yconstexpr size_t nBlockSize = 4096 @ \cl TextFileBuffer
-	-> static yconstexpr size_t nBlockSize = 2048U;
-
-r49:
-/ @ \u CharacterMapping $=
+/ @ \impl \u ShlReader $=
 (
-	+ \f size_t FetchMaxVariantCharWidth(Encoding);
-	/ \simp \impl @ \f FetchMaxCharWidth ^ \f FetchMaxVariantCharWidth
-);
-/ @ \cl TextFileBuffer $=
-(
-	+ private \m size_t max_width,
-	/ \m byte_per_char => fixed_width;
-	/ \tr \impl @ \ctor,
-	/ \tr \impl @ \mf \op[],
-	/ \impl @ \mf (GetIterator, GetPosition)
+	- \g \c \o MR_ReaderBox @ \un \ns;
+	/ \tr \simp \impl @ \ctor @ \cl TextReaderManager,
+	/ \tr \simp \impl @ \mf TextReaderManager::ExcuteReadingCommand
 );
 
-r50:
-/ @ \lib CHRLib $=
+r48-r50:
+/ @ \u ShlReader $=
 (
-	/ \a @ \un \ns @ \impl \u @ CharacterProcessing >> \h StaticMapping
-		!@ \un \ns;
-	/ \decl @ \ft UCS2Mapper#1 @ \h StaticMapping
+	(
+		/ @ \cl ReaderBox $=
+		(
+			+ \m Button btnInfo,
+			+ \m Button btnReturn;
+			/ \impl @ \ctor,
+			/ \tr \impl @ \mf (GetTopWidgetPtr, Refresh)
+		);
+		/ \tr \impl @ \ctor @ \cl TextReaderManager
+	),
+	/ \a ExcuteReadingCommand => Execute
 );
 
-r51-r52:
-+ \st pseudo_output @ \ns ystdex @ \h Any @ \lib YBase,
+r51:
+/= test 5 ^ \conf release;
+
+r52:
+/ \impl @ \ctor @ \cl ReaderBox @ \impl \u ShlReader;
+
+r53-r55:
+/= test 6,
+/ \impl @ \mf DualScreenReader::AdjustMargins @ \impl \u DSReader,
+* \impl @ \f FetchResizedLineN @ \impl \u YText $since b252,
+/ \impl @ \ctor @ \cl ReaderBox @ \impl \u ShlReader;
+
+r56-r57:
+/ \impl @ \mf DualScreenReader::AdjustMargins @ \impl \u DSReader;
+
+r58:
+* \impl @ \mf DualScreenReader::Execute when top margins differed
+	@ \impl \u DSReader $since $before b132;
+
+r59-r60:
 /= test 7;
 
-r53-r62:
-/ @ \h StaticMapping $=
+r61:
+/ \tr \impl @ \mf DualScreenReader::Reset @ \impl \u DSReader;
+
+r62:
+/= test 8 ^ \conf release;
+
+r63:
+/ @ \cl TextFileBuffer $=
 (
-	/ \a \ft<typename _tIn, typename _tState> \s byte
-		Map(ucs2_t&, _tIn&&, _tState&&) @ \stt GUCS2Mapper<*>
-		-> \ft<typename _tObj, typename _tIn, typename _tState> \s byte
-		Map(_tObj&, _tIn&&, _tState&&);
-	/ \tr \ft<Encoding, typename _tDst, typename _tSrc, typename _tState>
-		yconstfn byte UCS2Mapper_Map(_tDst, _tSrc, _tState) -> \ft<Encoding,
-		typename... _tParams> yconstfn byte UCS2Mapper_Map(_tParams&&...),
-	/ \tr \ft<Encoding cp, typename _tSrc, typename _tState> yconstfn byte
-		UCS2Mapper_Map(ucs2_t&, _tSrc&&, _tState&&, decltype(&GUCS2Mapper<cp>
-		::template Map<_tSrc, _tState>) = nullptr) -> \ft<Encoding cp,
-		typename _tDst, typename _tSrc, typename _tState> yconstfn byte
-		UCS2Mapper_Map(_tDst&, _tSrc&&, _tState&&, decltype(&GUCS2Mapper<cp>
-		::template Map<_tDst, _tSrc, _tState>) = nullptr);
-	+ \ft<Encoding cp, typename _tIn> yconstexpr byte
-		UCS2Mapper(_tIn&&, std::int_fast8_t&)
-	+ \inc \h Any,
-	(
-		+ \ft<typename _tIn> \i byte FillByte(_tIn&, std::int_fast8_t&);
-		/ \a \ret \tp @ \ft FillByte -> bool ~ byte
-	)
-),
-/= test 8;
-/ @ \h StaticMapping $=
-(
-	+ \ft<typename _type> yconstfn _type& GetCountOf(_type&),
-	/ \a \i @ \f 'Get*' -> 'yconstfn',
-	+ 'yconstfn' @ \cl ConversionState
-);
-/ @ \u CharacterProcessing $=
-(
-	+ \f byte MBCToUC(ucs2_t&, const char*&, const Encoding&,
-		std::int_fast8_t&& = 0),
-	+ \f byte MBCToUC(ucs2_t&, std::FILE*, const Encoding&,
-		std::int_fast8_t&& = 0);
-	+ \f byte MBCToUC(ucs2_t&, const char*&, const Encoding&,
-		std::int_fast8_t&),
-	+ \f byte MBCToUC(ucs2_t&, std::FILE*, const Encoding&, std::int_fast8_t&)
+	/ \simp \impl @ \mf GetIterator,
+	+ \as \str @ \impl @ \mf Iterator::operator*
 );
 
-r63-r67:
-/ \impl @ \mf (GetIterator, GetPosition) @ \cl TextFileBuffer;
+r64:
+- \inc \h (YFont, YStorage) @ \impl \u YApplication,
+/ @ \h YGDI $=
+(
+	\cl PenStyle >> \h YText;
+	/ \inc \h YFont >> \h YText
+);
+- \inc \h YFont @ \h Label;
 
-r68-r72:
+r65:
+- using Drawing::FontCache @ \h (YShellDefinition, YApplication);
+/ \pre \decl @ \cl FontCache @ \h YShellDefinition >> \h YGlobal;
+/ \tr @ \h (YGlobal, DSReader), \u (TextArea);
+
+r66-r72:
 /= test 9;
 
 r73:
-/ @ \u \CharacterProcessing $=
-(
-	/ \a 'std::int_fast8_t' -> 'ConversionState';
-	/ \a 'ConversionState&& = 0' -> 'ConversionState&& = ConversionState()'
-),
-* \decl @ \op= \cl pseudo_output @ \h Any $since r52 $=
-(
-	/ 'yconstfn' -> 'inline'
-),
-/ @ \h StaticMapping $=
-(
-	- \ft<typename _tIn> \i bool FillByte(_tIn&, std::int_fast8_t&),
-	* @ \ft UCS2Mapper#2 $since r58,
-	/ @ \ft UCS2Mapper_Map#2,
-	/ @ \ft UCS2Mapper_InverseMap#2
-);
-
-r74:
 /= test 10 ^ \conf release;
-
-r75:
-* \impl @ \mf TextFileBuffer::GetIterator $since r64;
-
-r76:
-/ @ \cl TextFileBuffer $=
-(
-	/ typedef vector<ucs2_t> BlockType
-		-> typedef pair<vector<ucs2_t>, size_t> BlockType;
-	/ \tr \impl @ \mf (\op++, \op--, \op*) @ \cl Iterator,
-	/ \tr \impl @ \mf (\op[], GetIterator, GetPosition)
-);
-
-r77:
-/ @ \st GUCS2Mapper<CharSet::UTF_8> @ \h StaticMapping $=
-(
-	+ \smf yconstfn bool IsInvalid(byte);
-	/ \impl @ \smf Map $=
-	(
-		* wrong behavior for 2 byte sequence characters $since b250
-		+ invalid byte checking,
-		+ 4 byte sequence characters support
-	)
-);
-
-r78:
-/ @ \h CharacterMap $=
-(
-	+ typedef \en \cl ConversionResult;
-	/ \a 'int_fast8_t' -> 'uint_fast8_t',
-	/ \tr @ \rem
-);
-/ \a \ret \tp 'byte' @ (\a \st GUCSMapper<*>::Map, \a \ft UCS2Mapper_Map,
-	\ft UCS2Mapper(#1, #2)) -> 'ConversionResult' @ \h StaticMapping;
-/ \tr \a byte MBCToUC('*') @ \u CharacterProcessing
-	-> ConversionResult MBCToUC('*');
-/ \tr \impl @ \mf (\op[], GetIterator, GetPosition) @ \cl TextFileBuffer;
-
-r79-r91:
-/= test 11;
-
-r92:
-* \impl @ \mf TextFileBuffer::operator[] $since r78,
-/ \impl @ \smf Map @ \st GUCS2Mapper<CharSet::UTF_8> @ \h StaticMapping;
-
-r93-r94:
-/= test 12,
-/ \impl @ \mf (\op[], GetIterator, GetPosition) @ \cl TextFileBuffer;
-
-r95:
-/= test 13 ^ \conf release;
-
-r96-r97:
-/ \impl @ TextFileBuffer::operator[] ^ vector::(reserve, push_back) 
-	~ vector::iterator;
-
-r98:
-/ \cl YTextFile $=
-(
-	- \mf Seek,
-	/ \mf SetPos => Locate
-),
-/ \mf SetPosition => Seek @ \cl YFile;
-
-r99-r100:
-/ \simp \impl @ \mf (GetIterator, GetPosition, \op[]) @ \cl TextFileBuffer;
-
-r101:
-/= test 14 ^ \conf release;
-
-r102:
-/ \ret \tp @ \mf TextFile::CheckBOM -> size_t ~ u8,
-* several minor doxygen warnings @ $since b196
-(
-	* file name not found @ \h Viewer $since b222,
-	* wrong grouping @ \h Memory $since b209,
-	* member function signature mismatching @ \impl \u YFont $since b197,
-	* member function signature mismatching @ \impl \u YExcept $since b196,
-	* member function signature mismatching @ \impl \u Menu $since b234,
-);
-
-r103:
-/ \simp \mf Map @ \a \st GUCS2Mapper<'*'> @ \h StaticMapping;
-
-r104:
-/ @ \cl TextFile $=
-(
-	+ \mft<typename _tChar, typename... _tParams> \i Text::ConversionResult
-		ReadChar(_tChar&, _tParams&&...) const,
-	+ \mft<typename... _tParams> \i Text::ConversionResult
-		SkipChar(_tParams&&...) const
-);
-/ \simp \impl @ \mf (GetIterator, GetPosition, \op[]) @ \cl TextFileBuffer
-	^ \mf TextFile::(ReadChar, SkipChar);
-
-r105:
-/ @ \cl (File, TextFile) $=
-(
-	/ \a (SizeType \exc @ typedef) -> size_t,
-	/ \a (OffsetType \exc @ typedef) -> ptrdiff_t
-);
-- typedef (SizeType, Offset) @ \cl File;
-/ \tr @ \h HexBrowser;
-
-r106;
-/ \cl noncopyable @ \h Utility -> \st noncopyable,
-+ public \inh noncopy @ \cl File;
-
-r107:
-/= test 15 ^ \conf release;
-
-r108-r111:
-/= test 16;
-
-r112:
-+ \inc \h YWindow @ \impl \u DSReader;
-/ @ \cl DualScreenReader @ \u DSReader $=
-(
-	+ \mf void Attach(YSL_ Components::Window&, YSL_ Components::Window&),
-	+ \mf void Detach()
-);
-/ \impl @ \mf TextReaderManager::(Activate, Deactivate) @ \impl \u ShlReader;
-
-r113:
-/ @ \cl DualScreenReader @ \u DSReader $=
-(
-	/ public \m AreaUp -> private \m area_up,
-	/ public \m AreaDown -> private \m area_dn,
-	/ private \m iTop => i_top,
-	/ private \m iBottom => i_btm;
-	/ \tr \impl @ \ctor,
-	/ \tr \impl @ \mf
-);
-
-r114:
-/ @ \cl DualScreenReader @ \u DSReader $=
-(
-	(
-		- private \m Drawing::Rotation rot,
-		/ \tr \impl @ \ctor
-	);
-	- \mf (PrintTextUp, PrintTextDown)
-);
-
-r115-r123:
-/= test 17;
-
-r124:
-/= test 18 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-01-01:
--10.6d;
-//Mercurial rev1-rev145: r7068;
+2012-01-04:
+-9.8d;
+//Mercurial rev1-rev146: r7141;
 
 / ...
 
 
 $NEXT_TODO:
-b274-b384:
+b275-b384:
 + deleted copy \ctor @ \cl File;
 / fully \impl @ \u DSReader $=
 (
-	* moved text after setting %lnGap,
+	* unstable while Margin.Top != 0,
+	+ resizing support,
 	+ bookmarks
 );
 * VRAM not flushed when opening lid on real DS;
@@ -825,6 +678,54 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ "text rendering" @ %'services' $=
+			(
+				- $design "all function %SetMarginOf",
+				* $design "2 function template %PrintLine cannot used with \
+					iterator parameters without postfix operator++" $since b270,
+				* $design "assertion string"
+					@ "function %FetchResizedBottomMargin" $since b273,
+				* $design "assertion string" @ "function %FetchResizedLineN"
+					$since b252,
+				* "implementation" @ "member function %TextLineNEx"
+					@ "class template %GTextRendererBase" $since b267，
+				* "implementation" @ "function %FetchLastLineBasePosition"
+					$since $before b132 ^ "ascender" ~ "descender",
+				* "implementation" @ "function %FetchResizedLineN"
+					$since b252
+			),
+			/ $design "lessened header dependencies"
+		),
+	);
+	/ %'YReader'.'text reader' $=
+	(
+		// NOTE: efficiency for opening and random access operations to \
+			large files improved obviously due to using of mapping buffering.
+		/ @ "class %DualScreenReader" $=
+		(
+			+ $design "common margin",
+			* $design "wrong line number"
+				@ "member functions %(UpdateView, Execute)" $since b270,
+			* "wrong view area shown after set line gaps" $since $before b132,
+			+ "reading area resizing interface",
+			* "wrong behavior for scrolling line up when top margins differed"
+				$since $before b132;
+			+ "top and bottom margins balancing"
+		);
+		/ "reader box appearance"
+		(
+			+ "reading area resizing when showing or hiding reader box",
+			/ "boxes transparency"
+		);
+	)
+),
+
+b273
 (
 	/ %'YBase'.'YStandardEx'.'Any' $=
 	(
@@ -2659,9 +2560,8 @@ b1_b131
 );
 
 
-*/
 //---- temp code;
-/*
+
 
 	static Timers::Timer Timer(1250);
 
@@ -2676,8 +2576,8 @@ b1_b131
 			msg.GetLParam());
 		WaitForInput();
 	//	StartTicks();
-	}*/
-/*
+	}
+
 // ShlReader::OnActivated;
 
 			FetchEvent<TouchDown>(mnu) += [&, this](TouchEventArgs&&){
@@ -2698,23 +2598,22 @@ b1_b131
 			};
 			mhMain += *new Menu(Rect::Empty, GenerateList("a"), 1u);
 			mhMain[1u] += make_pair(1u, &mhMain[2u]);
-*/
-/*
+
 	auto cc(Reader.GetColor());
 	Reader.SetColor(Color((cc & (15 << 5)) >> 2, (cc & 29) << 3,
 		(cc&(31 << 10)) >> 7));
-*/
-/*
+
+
 	YDebugBegin();
 	iprintf("time : %u ticks\n", GetTicks());
 	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
 		"W : %u;\nL : %lx;\n", msg.GetMessageID(), msg.GetPriority(),
 		msg.GetObjectID(), msg.GetWParam(), msg.GetLParam());
 	WaitForInput();
-*/
-/*
-		InitYSConsole();
-		iprintf("%d,(%d,%d)\n",msg.GetWParam(),
-			msg.GetCursorLocation().X, msg.GetCursorLocation().Y);
-*/
+
+	InitYSConsole();
+	iprintf("%d,(%d,%d)\n",msg.GetWParam(),
+		msg.GetCursorLocation().X, msg.GetCursorLocation().Y);
+
+#endif
 
