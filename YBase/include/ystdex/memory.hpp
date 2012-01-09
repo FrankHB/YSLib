@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1317;
+\version r1320;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 209 。
 \par 创建时间:
 	2011-05-14 12:25:13 +0800;
 \par 修改时间:
-	2011-12-30 12:29 +0800;
-\par 字符集:
+	2012-01-04 13:03 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YStandardEx::Memory;
@@ -38,7 +38,7 @@ namespace ystdex
 	\brief 判断迭代器实例是否确定可解引用。
 	\tparam _tIterator 迭代器类型。
 	\note 注意返回 \c false 不表示参数实际不可解引用。
-	\note 默认实现对指针使用 \c is_not_null 。
+	\note 默认实现对参数转换为 \c bool 类型判断是否为 true 。
 	\since build 249 。
 	*/
 	//@{
@@ -61,7 +61,7 @@ namespace ystdex
 	\brief 判断迭代器实例是否为可解引用。
 	\tparam _tIterator 迭代器类型。
 	\note 注意返回 \c false 不表示参数实际可解引用。
-	\note 默认实现对指针使用 \c is_null 。
+	\note 默认实现对参数转换为 \c bool 类型判断是否为 false 。
 	\since build 250 。
 	*/
 	//@{

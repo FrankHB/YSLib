@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,19 +8,19 @@
 	understand and accept it fully.
 */
 
-/*!	\file api.h
+/*!	\file NativeAPI.h
 \ingroup DS
 \brief 通用平台应用程序接口描述文件。
-\version 0.1026;
+\version r1030;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-13 20:26:21 +0800;
 \par 修改时间:
-	2011-04-13 20:31 +0800;
+	2012-01-06 13:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	Platform::DS::API;
+	YCLib::NativeAPI;
 */
 
 

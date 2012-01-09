@@ -55,10 +55,12 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Unit filename="Makefile" />
+		<Unit filename="include\ColorPicker.h" />
 		<Unit filename="include\DSReader.h" />
 		<Unit filename="include\HexBrowser.h" />
 		<Unit filename="include\Shells.h" />
 		<Unit filename="include\ShlReader.h" />
+		<Unit filename="source\ColorPicker.cpp" />
 		<Unit filename="source\DSReader.cpp" />
 		<Unit filename="source\GBKEX.cpp" />
 		<Unit filename="source\HexBrowser.cpp" />

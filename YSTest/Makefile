@@ -1,8 +1,8 @@
 # DS Makefile for YShell by Franksoft 2009 - 2011
 # CodePage = ANSI / GBK;
 # CTime = 2009-11-12 21:26:30 +0800;
-# UTime = 2011-12-16 07:51 +0800;
-# Version = r3263;
+# UTime = 2012-01-06 16:48 +0800;
+# Version = r3264;
 
 # This makefile is written based on devkitPro example template.
 
@@ -39,7 +39,7 @@ export OUTPUT		=	$(CURDIR)/$(RELEASE)/$(TARGET)
 
 TITLE		:= YSTest
 SUBTITLE1 	:= Franksoft
-SUBTITLE2 	:= 2009 - 2011
+SUBTITLE2 	:= 2009 - 2012
 ICON		:= -b $(CURDIR)/data/logo.bmp
 
 #----

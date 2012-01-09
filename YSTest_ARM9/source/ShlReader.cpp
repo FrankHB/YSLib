@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2780;
+\version r2893;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-01-03 09:10 +0800;
+	2012-01-08 22:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -45,11 +45,12 @@ namespace
 {
 	// MR -> MNU_READER;
 	yconstexpr Menu::IndexType MR_Return(0),
-		MR_FileInfo(1),
-		MR_LineUp(2),
-		MR_LineDown(3),
-		MR_ScreenUp(4),
-		MR_ScreenDown(5);
+		MR_Setting(1),
+		MR_FileInfo(2),
+		MR_LineUp(3),
+		MR_LineDown(4),
+		MR_ScreenUp(5),
+		MR_ScreenDown(6);
 }
 
 
@@ -87,10 +88,9 @@ DefTuple(pWidgets,
 		&ShlReader::ReaderPanel::lblProgress
 	)
 */
-	IWidget* const pWidgets[] = {&btnMenu, &btnInfo, &btnReturn, &pbReader,
-		&lblProgress};
+	IWidget* const pWidgets[] = {&btnMenu, &btnInfo, &btnReturn, &pbReader};
 
-	for(int i(0); i < 5; ++i)
+	for(std::size_t i(0); i < sizeof(pWidgets) / sizeof(*pWidgets); ++i)
 		if(auto p = CheckWidget(*pWidgets[i], pt, f))
 			return p;
 	return nullptr;
@@ -104,7 +104,7 @@ ReaderBox::Refresh(const PaintContext& pc)
 	IWidget* const pWidgets[] = {&btnMenu, &btnInfo, &btnReturn, &pbReader,
 		&lblProgress};
 
-	for(int i(0); i < 5; ++i)
+	for(std::size_t i(0); i < sizeof(pWidgets) / sizeof(*pWidgets); ++i)
 		PaintChild(*pWidgets[i], pc);
 	return Rect(pc.Location, GetSizeOf(*this));
 }
@@ -117,7 +117,7 @@ ReaderBox::UpdateData(DualScreenReader& reader)
 	const auto ts(reader.GetTextSize());
 	const auto tp(reader.GetTopPosition());
 
-	siprintf(str, "%2u%%", tp * 100 / ts);
+	std::sprintf(str, "%2u%%", tp * 100 / ts);
 	yunseq(lblProgress.Text = str,
 		lblProgress.ForeColor = reader.GetBottomPosition() == ts
 		? ColorSpace::Green : ColorSpace::Fuchsia);
@@ -141,9 +141,7 @@ TextInfoBox::TextInfoBox(ShlReader& shl)
 	SetContainerPtrOf(lblEncoding, this),
 	SetContainerPtrOf(lblSize, this);
 	FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
-		Hide(*this);
-		if(const auto pCon = FetchContainerPtr(*this))
-			ClearFocusingOf(*pCon);
+		Close(*this);
 	};
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 }
@@ -151,12 +149,8 @@ TextInfoBox::TextInfoBox(ShlReader& shl)
 IWidget*
 TextInfoBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	IWidget* const pWidgets[] = {&btnClose, &lblEncoding, &lblSize,
-		&lblTop, &lblBottom};
-
-	for(size_t i(0); i < sizeof(pWidgets) / sizeof(*pWidgets); ++i)
-		if(auto p = CheckWidget(*pWidgets[i], pt, f))
-			return p;
+	if(auto p = CheckWidget(btnClose, pt, f))
+		return p;
 	return nullptr;
 }
 
@@ -178,18 +172,69 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 {
 	char str[40];
 
-	siprintf(str, "Encoding: %d;", reader.GetEncoding());
+	std::sprintf(str, "Encoding: %d;", reader.GetEncoding());
 	lblEncoding.Text = str;
-	siprintf(str, "Size: %u B;", reader.GetTextSize());
+	std::sprintf(str, "Size: %u B;", reader.GetTextSize());
 	lblSize.Text = str;
-	siprintf(str, "Top: %u B;", reader.GetTopPosition());
+	std::sprintf(str, "Top: %u B;", reader.GetTopPosition());
 	lblTop.Text = str;
-	siprintf(str, "Bottom: %u B;", reader.GetBottomPosition());
+	std::sprintf(str, "Bottom: %u B;", reader.GetBottomPosition());
 	lblBottom.Text = str;
 	Invalidate(lblEncoding),
 	Invalidate(lblSize);
 }
 
+
+SettingPanel::SettingPanel()
+	: Panel(Rect::FullScreen),
+	btnClose(Rect(GetWidth() - 20, 4, 16, 16)),
+	btnOK(Rect(GetWidth() - 36, 4, 16, 16)),
+	ColorAreaUp(Rect(32, 32, 48, 24)), ColorAreaDown(Rect(128, 32, 48, 24)),
+	boxColor(Point(4, 80))
+{
+	static int state;
+
+	*this += btnClose,
+	*this += btnOK,
+	*this += ColorAreaUp,
+	*this += ColorAreaDown,
+	*this += boxColor,
+	SetVisibleOf(boxColor, false);
+	yunseq(
+		btnClose.Text = "×",
+		btnOK.Text = "○",
+		FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
+			Close(*this);
+		},
+		FetchEvent<Click>(btnOK) += [this](TouchEventArgs&&){
+			Close(*this);
+		},
+		FetchEvent<Click>(ColorAreaUp) += [&, this](TouchEventArgs&&){
+			boxColor.SetColor(ColorAreaUp.BackColor);
+			Show(boxColor);
+			state = 1;
+		},
+		FetchEvent<Click>(ColorAreaDown) += [&, this](TouchEventArgs&&){
+			boxColor.SetColor(ColorAreaDown.BackColor);
+			Show(boxColor);
+			state = 2;
+		},
+		FetchEvent<TouchMove>(boxColor) += OnTouchMove_Dragging,
+		FetchEvent<Click>(boxColor.btnOK) += [&](TouchEventArgs&&){
+			if(state == 1)
+			{
+				ColorAreaUp.BackColor = boxColor.GetColor();
+				Invalidate(ColorAreaUp);
+			}
+			else if(state == 2)
+			{
+				ColorAreaDown.BackColor = boxColor.GetColor();
+				Invalidate(ColorAreaDown);
+			}
+			state = 0;
+		}
+	);
+}
 
 FileInfoPanel::FileInfoPanel()
 	: Panel(Rect::FullScreen),
@@ -220,7 +265,7 @@ ReaderManager::ReaderManager(ShlReader& shl)
 TextReaderManager::TextReaderManager(ShlReader& shl)
 	: ReaderManager(shl),
 	Reader(),
-	boxReader(Rect(0, 160, 256, 32), shl), boxTextInfo(shl),
+	boxReader(Rect(0, 160, 256, 32), shl), boxTextInfo(shl), pnlSetting(),
 	pTextFile(), mhMain(shl.GetDesktopDown())
 {
 	yunseq(
@@ -231,9 +276,16 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 			if(IsVisible(boxTextInfo))
 				boxTextInfo.UpdateData(Reader);
 		},
+		FetchEvent<TouchDown>(boxReader) -= OnTouchDown_RequestToTopFocused,
 		FetchEvent<Click>(boxReader.btnMenu) += [this](TouchEventArgs&& e)
 		{
-			ShowMenu(1u, e);
+			if(mhMain.IsShowing(1u))
+				mhMain.Hide(1u);
+			else
+			{
+				mhMain.Referent = &boxReader.btnMenu;
+				ShowMenu(1u, e);
+			}
 		},
 		FetchEvent<Click>(boxReader.btnInfo) += [this](TouchEventArgs&&)
 		{
@@ -258,13 +310,25 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 				pt.Y + 1), Size(round((Reader.GetBottomPosition()
 				- Reader.GetTopPosition()) * w / mval), pb.GetHeight() - 2),
 				ColorSpace::Yellow);
+		},
+		FetchEvent<Click>(pnlSetting.btnClose) += [this](TouchEventArgs&&)
+		{
+			Reader.SetVisible(true);
+		},
+		FetchEvent<Click>(pnlSetting.btnOK) += [this](TouchEventArgs&&)
+		{
+			yunseq(Shell.GetDesktopUp().BackColor
+				= pnlSetting.ColorAreaUp.BackColor,
+				Shell.GetDesktopDown().BackColor
+				= pnlSetting.ColorAreaDown.BackColor);
+			Reader.SetVisible(true);
 		}
 	);
 	{
 		auto hList(share_raw(new Menu::ListType));
 		auto& lst(*hList);
 
-		static yconstexpr const char* mnustr[] = {"返回",
+		static yconstexpr const char* mnustr[] = {"返回", "设置...",
 			"文件信息...", "向上一行", "向下一行", "向上一屏", "向下一屏"};
 
 		ystdex::assign(lst, mnustr);
@@ -287,18 +351,18 @@ TextReaderManager::Activate()
 
 	yunseq(
 		dsk_up.BackColor = Color(240, 216, 192),
-		dsk_dn.BackColor = Color(192, 216, 240)
-	);
-	yunseq(
+		dsk_dn.BackColor = Color(192, 216, 240),
 		FetchEvent<Click>(dsk_dn).Add(*this, &TextReaderManager::OnClick),
 		FetchEvent<KeyDown>(dsk_dn).Add(*this, &TextReaderManager::OnKeyDown),
 		FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld
 	);
 	Reader.Attach(dsk_up, dsk_dn),
 	dsk_dn += boxReader,
-	dsk_dn += boxTextInfo;
+	dsk_dn += boxTextInfo,
+	dsk_dn += pnlSetting;
 	SetVisibleOf(boxReader, false),
-	SetVisibleOf(boxTextInfo, false);
+	SetVisibleOf(boxTextInfo, false),
+	SetVisibleOf(pnlSetting, false);
 	pTextFile = unique_raw(new TextFile(path.c_str()));
 	Reader.LoadText(*pTextFile);
 	RequestFocusCascade(dsk_dn);
@@ -322,7 +386,8 @@ TextReaderManager::Deactivate()
 	Reader.Detach();
 	yunseq(
 		dsk_up -= boxReader,
-		dsk_dn -= boxTextInfo
+		dsk_dn -= boxTextInfo,
+		dsk_dn -= pnlSetting
 	);
 }
 
@@ -333,6 +398,12 @@ TextReaderManager::Execute(IndexEventArgs::ValueType idx)
 	{
 	case MR_Return:
 		CallStored<ShlExplorer>();
+		break;
+	case MR_Setting:
+		Reader.SetVisible(false),
+		pnlSetting.ColorAreaUp.BackColor = Shell.GetDesktopUp().BackColor,
+		pnlSetting.ColorAreaDown.BackColor = Shell.GetDesktopDown().BackColor;
+		Show(pnlSetting);
 		break;
 	case MR_FileInfo:
 		boxTextInfo.UpdateData(Reader);
@@ -379,9 +450,7 @@ TextReaderManager::OnClick(TouchEventArgs&& e)
 	if(IsVisible(boxReader))
 	{
 		Reader.Stretch(0);
-		Hide(boxReader);
-		if(const auto pCon = FetchContainerPtr(boxReader))
-			ClearFocusingOf(*pCon);
+		Close(boxReader);
 	}
 	else
 	{
@@ -467,7 +536,8 @@ namespace
 		const char* format = DefaultTimeFormat)
 	{
 		// FIXME: correct behavior for time with BC date(i.e. tm_year < -1900);
-		::sniprintf(buf, n, format, tm.tm_year + 1900,
+		// FIXME: snprintf shall be a member of namespace std;
+		/*std*/::snprintf(buf, n, format, tm.tm_year + 1900,
 			tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 	}
 
@@ -537,7 +607,7 @@ HexReaderManager::UpdateInfo()
 {
 	char str[80];
 
-	siprintf(str, "当前位置： %u / %u", HexArea.GetModel().GetPosition(),
+	std::sprintf(str, "当前位置： %u / %u", HexArea.GetModel().GetPosition(),
 		HexArea.GetModel().GetSize());
 	pnlFileInfo.lblSize.Text = Text::MBCSToString(str, Text::CP_Default);
 	Invalidate(pnlFileInfo.lblSize);

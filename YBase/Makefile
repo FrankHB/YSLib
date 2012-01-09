@@ -1,8 +1,8 @@
-# DS Makefile for YBase -> ARM9 by Franksoft 2009 - 2011
+# DS Makefile for YBase -> ARM9 by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-12-16 08:46 +0800;
-# Version = r3900;
+# UTime = 2012-01-07 21:00 +0800;
+# Version = r3901;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -72,7 +72,7 @@ CFLAGS	+=	-g -O0 -DDEBUG
 LDFLAGS	+=	-g
 endif
 
-CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=gnu++0x
+CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++0x
 
 endif
 

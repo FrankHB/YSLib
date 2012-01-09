@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ysinit.cpp
 \ingroup Adaptor
 \brief 程序启动时的通用初始化。
-\version r1823;
+\version r1828;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2011-12-11 19:50 +0800;
-\par 字符集:
+	2012-01-07 21:10 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Adaptor::YShellInitialization;
@@ -62,7 +62,7 @@ namespace
 		const char* line =
 			"--------------------------------";
 
-		iprintf("%s%s%s\n%s\n%s", line, t, line, s, line);
+		std::printf("%s%s%s\n%s\n%s", line, t, line, s, line);
 	}
 
 	void
@@ -88,7 +88,7 @@ namespace
 			" stored in correct directory.   ";
 
 		printFailInfo(title, warning);
-		iprintf(" %s\n cannot be found!\n", str);
+		std::printf(" %s\n cannot be found!\n", str);
 		fatalError();
 	}
 
@@ -190,7 +190,7 @@ CheckInstall()
 	const auto& dir_str(Application::CommonAppDataPath.GetNativeString());
 	const auto dir(dir_str.c_str());
 
-	iprintf("Trying entering directory %s ...\n", dir);
+	std::printf("Trying entering directory %s ...\n", dir);
 	if(!direxists(dir))
 		installFail("Default data directory");
 	if(!(fexists(DEF_FONT_PATH)

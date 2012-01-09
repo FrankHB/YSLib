@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r2073;
+\version r2079;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 173 。
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2011-12-04 12:51 +0800;
-\par 字符集:
+	2012-01-04 13:45 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Adaptor::YNew;
@@ -31,10 +31,7 @@
 //包含编译配置。
 #include "config.h"
 
-//包含平台文件。
-#include <platform.h>
-
-//包含 YCLib 配置。
+//包含 YBase 基础定义。
 #include <ydef.h>
 
 //引入 YSLib 命名空间宏。

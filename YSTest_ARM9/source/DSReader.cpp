@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3529;
+\version r3535;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-01-03 12:44 +0800;
+	2011-01-08 19:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "DSReader.h"
 #include <ystdex/algorithm.hpp> // for ystdex::pod_copy_n;
 #include <YSLib/UI/ywindow.h>
+#include <YSLib/Service/TextLayout.h>
 
 YSL_BEGIN
 
@@ -128,6 +129,18 @@ DualScreenReader::SetLineGap(u8 g)
 		yunseq(area_up.LineGap = g, area_dn.LineGap = g);
 		UpdateView();
 	}
+}
+
+void
+DualScreenReader::SetVisible(bool b)
+{
+	SetVisibleOf(area_up, b), SetVisibleOf(area_dn, b);
+
+	using YSL_ Components::Invalidate;
+
+	//强制刷新背景。
+	Invalidate(area_up);
+	Invalidate(area_dn);
 }
 
 void

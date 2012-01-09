@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6320;
+\version r6329;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-12-05 21:01 +0800;
-\par 字符集:
+	2012-01-08 21:55 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YWidget;
@@ -245,7 +245,8 @@ RequestToTop(IWidget&);
 
 /*!
 \brief 显示部件。
-\note 设置可见性和容器（若存在）背景重绘状态并设置自身刷新状态。
+
+设置部件可见性后无效化。
 \since build 229 。
 */
 void
@@ -253,11 +254,21 @@ Show(IWidget&);
 
 /*!
 \brief 隐藏部件。
-\note 设置不可见性和容器（若存在）背景重绘状态并取消自身刷新状态。
+
+设置部件不可见性后无效化。
 \since build 229 。
 */
 void
 Hide(IWidget&);
+
+/*!
+\brief 关闭部件。
+
+隐藏部件后取消容器（若存在）焦点状态。
+\since build 275 。
+*/
+void
+Close(IWidget&);
 
 
 /*!
@@ -305,7 +316,7 @@ public:
 	\param pView_ 视图指针。
 	\param pRenderer_ 渲染器指针。
 	\param pController_ 控制器指针。
-	\pre <tt>is_not_null(pView_) && is_not_null(pRenderer_)</tt> 。
+	\pre <tt>bool(pView_) && bool(pRenderer_)</tt> 。
 	*/
 	PDefTmplH3(_tView, _tRenderer, _tController)
 	inline Widget(_tView&& pView_ = unique_raw(new View()),

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3401;
+\version r3404;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2011-12-20 18:54 +0800;
-\par 字符集:
+	2012-01-04 13:00 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::Scroll;
@@ -314,7 +314,7 @@ public:
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 	/*!
 	\brief 取轨道引用。
-	\note 断言检查： is_not_null(pTrack) 。
+	\note 断言检查： bool(pTrack) 。
 	*/
 	ATrack&
 	GetTrack() const ynothrow;

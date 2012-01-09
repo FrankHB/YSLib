@@ -78,6 +78,21 @@
       <UniqueIdentifier>{a0ebed6b-5c50-424a-a9bb-ed2e4a92369a}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="文档">
+      <UniqueIdentifier>{13193de8-2c62-4701-b8d9-520168a94ed9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\freetype">
+      <UniqueIdentifier>{e84ea4d1-fce8-4bb2-ac44-79d5a2876533}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\freetype\config">
+      <UniqueIdentifier>{913cab65-ebc0-4868-bb15-2ead85e739be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\freetype\internal">
+      <UniqueIdentifier>{67f6f318-ae17-4637-a90d-1f53a59d4ca2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\freetype\internal\services">
+      <UniqueIdentifier>{2e8d283b-d3e7-4e91-8ad1-0684e8a83950}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />
@@ -86,6 +101,15 @@
     </None>
     <None Include="data\default_font.bin">
       <Filter>资源文件</Filter>
+    </None>
+    <None Include="doc\Definitions.txt">
+      <Filter>文档</Filter>
+    </None>
+    <None Include="doc\Designation.txt">
+      <Filter>文档</Filter>
+    </None>
+    <None Include="doc\YSLib.txt">
+      <Filter>文档</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -233,9 +257,6 @@
     <ClInclude Include="include\YSLib\Service\yres.h">
       <Filter>头文件\YSLib\Service</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Service\ytext.h">
-      <Filter>头文件\YSLib\Service</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Service\yblit.h">
       <Filter>头文件\YSLib\Service</Filter>
     </ClInclude>
@@ -295,6 +316,276 @@
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\ypanel.h">
       <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Service\CharRenderer.h">
+      <Filter>头文件\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Service\TextBase.h">
+      <Filter>头文件\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Service\TextLayout.h">
+      <Filter>头文件\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Service\TextRenderer.h">
+      <Filter>头文件\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ft2build.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YCLib\NativeAPI.h">
+      <Filter>头文件\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YCLib\Platform.h">
+      <Filter>头文件\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svbdf.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svcid.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svgldict.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svgxval.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svkern.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svmm.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svotval.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svpfr.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svpostnm.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svpscmap.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svpsinfo.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svsfnt.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svttcmap.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svtteng.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svttglyf.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svwinfnt.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\services\svxf86nm.h">
+      <Filter>头文件\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\autohint.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\ftcalc.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\ftdebug.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\ftdriver.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\ftgloadr.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\ftmemory.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\ftobjs.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\ftpic.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\ftrfork.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\ftserv.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\ftstream.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\fttrace.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\ftvalid.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\internal.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\psaux.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\pshints.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\sfnt.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\t1types.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\internal\tttypes.h">
+      <Filter>头文件\freetype\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\config\ftconfig.h">
+      <Filter>头文件\freetype\config</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\config\ftheader.h">
+      <Filter>头文件\freetype\config</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\config\ftmodule.h">
+      <Filter>头文件\freetype\config</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\config\ftoption.h">
+      <Filter>头文件\freetype\config</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\config\ftstdlib.h">
+      <Filter>头文件\freetype\config</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\freetype.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftadvanc.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftbbox.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftbdf.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftbitmap.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftbzip2.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftcache.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftchapters.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftcid.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\fterrdef.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\fterrors.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftgasp.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftglyph.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftgxval.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftgzip.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftimage.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftincrem.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftlcdfil.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftlist.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftlzw.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftmac.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftmm.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftmodapi.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftmoderr.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftotval.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftoutln.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftpfr.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftrender.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftsizes.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftsnames.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftstroke.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftsynth.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftsystem.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\fttrigon.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\fttypes.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftwinfnt.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ftxf86.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\t1tables.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ttnameid.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\tttables.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\tttags.h">
+      <Filter>头文件\freetype</Filter>
+    </ClInclude>
+    <ClInclude Include="include\freetype\ttunpat.h">
+      <Filter>头文件\freetype</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -409,9 +700,6 @@
     <ClCompile Include="source\YSLib\Service\yres.cpp">
       <Filter>源文件\YSLib\Service</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\Service\ytext.cpp">
-      <Filter>源文件\YSLib\Service</Filter>
-    </ClCompile>
     <ClCompile Include="source\YSLib\Service\yblit.cpp">
       <Filter>源文件\YSLib\Service</Filter>
     </ClCompile>
@@ -447,6 +735,21 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\ypanel.cpp">
       <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\CharRenderer.cpp">
+      <Filter>源文件\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\TextBase.cpp">
+      <Filter>源文件\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\TextLayout.cpp">
+      <Filter>源文件\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\TextRenderer.cpp">
+      <Filter>源文件\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="doc\ex.cpp">
+      <Filter>文档</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

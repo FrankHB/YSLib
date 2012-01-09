@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4088;
+\version r4091;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2011-12-15 12:54 +0800;
-\par 字符集:
+	2012-01-09 14:26 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::Scroll;
@@ -207,6 +207,10 @@ ATrack::Refresh(const PaintContext& pc)
 			DrawVLineSeg(g, pt.X, pt.Y, yr, c),
 			DrawVLineSeg(g, xr, pt.Y, yr, c);
 		}
+	}
+	PaintChild(Thumb, PaintContext(pc.Target, pc.Location,
+		Rect(pc.Location, GetSizeOf(*this))));
+	return r;
 	// NOTE: partial invalidation made no efficiency improved here;
 	/*
 		const auto& g(pc.Target);
@@ -235,10 +239,10 @@ ATrack::Refresh(const PaintContext& pc)
 			DrawVLineSeg(g, pt.X, pt.Y, yr, c),
 			DrawVLineSeg(g, xr, pt.Y, yr, c);
 		}
-	*/
 	}
 	PaintChild(Thumb, pc);
 	return r;
+	*/
 }
 
 ATrack::Area

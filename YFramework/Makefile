@@ -1,8 +1,8 @@
-# DS Makefile for YFramework -> ARM9 by Franksoft 2009 - 2011
+# DS Makefile for YFramework -> ARM9 by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-12-17 07:54 +0800;
-# Version = r3968;
+# UTime = 2012-01-07 20:55 +0800;
+# Version = r3972;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -36,7 +36,7 @@ export TARGET		:= $(shell basename $(CURDIR))
 export BUILD		?= release
 export RELEASE		= $(BUILD)
 export SOURCES		:= source source/CHRLib source/YCLib source/YSLib source/YSLib/Adaptor source/YSLib/Core source/YSLib/Helper source/YSLib/Service Source/YSLib/UI data
-export INCLUDES		:= include ../YBase/include include/CHRLib include/YCLib ../YSTest/include ../YCLib/include include/YSLib data
+export INCLUDES		:= include ../YBase/include include/CHRLib include/YCLib ../YCLib/include include/YSLib data
 export DATA			:= data
 #export GRAPHICS	:= gfx
 #export MUSIC		:= music
@@ -74,7 +74,7 @@ CFLAGS	+=	-g -O0 -DDEBUG
 LDFLAGS	+=	-g
 endif
 
-CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=gnu++0x
+CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++0x
 
 endif
 
@@ -91,13 +91,13 @@ endif
 #----
 # any extra libraries we wish to link with the project
 #----
-LIBS	:=	#-lfat -lnds9
+LIBS	:=	#-lfreetype #-lfat -lnds9
 
 #----
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #----
-LIBDIRS	:=	$(LIBNDS)
+LIBDIRS	:=	$(LIBNDS) #lib
 
 #----
 # no real need to edit anything past this point unless you need to add additional

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5259;
+\version r5268;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-11-29 17:14 +0800;
-\par 字符集:
+	2012-01-08 22:05 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YWidget;
@@ -96,14 +96,22 @@ void
 Show(IWidget& wgt)
 {
 	SetVisibleOf(wgt, true);
-	SetInvalidationToParent(wgt);
+	Invalidate(wgt);
 }
 
 void
 Hide(IWidget& wgt)
 {
 	SetVisibleOf(wgt, false);
-	SetInvalidationToParent(wgt);
+	Invalidate(wgt);
+}
+
+void
+Close(IWidget& wgt)
+{
+	Hide(wgt);
+	if(const auto pCon = FetchContainerPtr(wgt))
+		ClearFocusingOf(*pCon);
 }
 
 

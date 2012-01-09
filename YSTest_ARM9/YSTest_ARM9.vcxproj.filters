@@ -37,6 +37,9 @@
     <ClCompile Include="source\ShlReader.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="source\ColorPicker.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\DSReader.h">
@@ -49,6 +52,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="include\ShlReader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ColorPicker.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

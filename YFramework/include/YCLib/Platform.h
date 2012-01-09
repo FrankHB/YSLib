@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,19 +16,19 @@
 \brief DS 平台。
 */
 
-/*!	\file platform.h
+/*!	\file Platform.h
 \ingroup DS
 \brief 通用平台描述文件。
-\version 0.1314;
+\version r1319;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-24 00:05:08 +0800;
 \par 修改时间:
-	2011-05-16 04:26 +0800;
-\par 字符集:
+	2012-01-06 13:38 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
-	Platform::DS;
+	YCLib::Platform;
 */
 
 

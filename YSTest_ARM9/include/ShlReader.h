@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1631;
+\version r1678;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-01-03 08:12 +0800;
+	2012-01-08 21:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,9 +31,7 @@
 #include "Shells.h"
 #include "DSReader.h"
 #include "HexBrowser.h"
-
-YSL_BEGIN
-YSL_END
+#include "ColorPicker.h"
 
 YSL_BEGIN_NAMESPACE(YReader)
 
@@ -64,7 +62,7 @@ public:
 
 	ReaderBox(const Rect&, ShlReader&);
 
-	IWidget*
+	virtual IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 	virtual Rect
@@ -97,7 +95,7 @@ public:
 
 	TextInfoBox(ShlReader&);
 
-	IWidget*
+	virtual IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 	virtual Rect
@@ -105,6 +103,24 @@ public:
 
 	void
 	UpdateData(DualScreenReader&);
+};
+
+
+/*!
+\brief 设置面板。
+\since build 275 。
+*/
+class SettingPanel : public Panel
+{
+public:
+	Button btnClose, btnOK;
+	Control ColorAreaUp, ColorAreaDown;
+
+protected:
+	ColorBox boxColor;
+
+public:
+	SettingPanel();
 };
 
 
@@ -140,6 +156,11 @@ public:
 	DualScreenReader Reader;
 	ReaderBox boxReader;
 	TextInfoBox boxTextInfo;
+	/*!
+	\brief 设置面板。
+	\since build 275 。
+	*/
+	SettingPanel pnlSetting;
 	unique_ptr<TextFile> pTextFile;
 	MenuHost mhMain;
 

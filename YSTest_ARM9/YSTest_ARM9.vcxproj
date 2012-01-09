@@ -14,6 +14,7 @@
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\ColorPicker.cpp" />
     <ClCompile Include="source\DSReader.cpp" />
     <ClCompile Include="source\GBKEX.cpp" />
     <ClCompile Include="source\HexBrowser.cpp" />
@@ -22,6 +23,7 @@
     <ClCompile Include="source\ShlReader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\ColorPicker.h" />
     <ClInclude Include="include\DSReader.h" />
     <ClInclude Include="include\HexBrowser.h" />
     <ClInclude Include="include\Shells.h" />

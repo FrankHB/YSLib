@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file listbox.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面列表框控件。
-\version r3735;
+\version r3739;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2011-12-20 13:09 +0800;
+	2012-01-05 15:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,6 @@
 
 #include "YSLib/UI/listbox.h"
 #include "YSLib/UI/ystyle.h"
-#include "YSLib/Service/ytext.h"
 
 YSL_BEGIN
 

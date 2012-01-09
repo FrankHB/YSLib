@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2228;
+\version r2235;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2011-12-04 11:16 +0800;
-\par 字符集:
+	2012-01-07 21:08 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YFileSystem;
@@ -280,7 +280,8 @@ IsExtensionOf(const char* str, const char* name)
 
 	if(!p)
 		return false;
-	return !stricmp(str, p);
+	// TODO: for non-case-sensitive file names;
+	return !strcmp(str, p);
 }
 bool
 IsExtensionOf(const string& str, const string& name)
@@ -300,14 +301,16 @@ HaveSameExtensions(const char* a, const char* b)
 
 	if(!(pa && pb))
 		return false;
-	return stricmp_n(pa, pb) != 0;
+	// TODO: for non-case-sensitive file names;
+	return std::strcmp(pa, pb) != 0;
 }
 bool
 HaveSameExtensions(const string& a, const string& b)
 {
 	string ea(GetExtensionOf(a)), eb(GetExtensionOf(b));
 
-	return stricmp_n(ea.c_str(), eb.c_str()) != 0;
+	// TODO: for non-case-sensitive file names;
+	return std::strcmp(ea.c_str(), eb.c_str()) != 0;
 //	return ucsicmp(ea.c_str(), eb.c_str());
 }
 

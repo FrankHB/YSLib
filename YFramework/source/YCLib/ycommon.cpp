@@ -11,14 +11,14 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2414;
+\version r2423;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2012-01-01 11:10 +0800;
-\par 字符集:
+	2012-01-07 20:53 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YCLib::YCommon;
@@ -135,17 +135,6 @@ namespace platform
 		}
 	}
 
-	void
-	YDebugW(int n)
-	{
-		if(bDebugStatus)
-		{
-			YDebugBegin();
-			iputw(n);
-			WaitForInput();
-		}
-	}
-
 	int
 	yprintf(const char* str, ...)
 	{
@@ -159,7 +148,7 @@ namespace platform
 
 			va_start(list, str);
 
-			t = viprintf(str, list);
+			t = std::vprintf(str, list);
 
 			va_end(list);
 			WaitForInput();
@@ -253,7 +242,7 @@ namespace platform
 	//	YAssert(safe_dma_copy(buf, src, sizeof(ScreenBufferType)) == 0,
 	//		"Screen sychronize failure;");
 		DC_FlushRange(src, sizeof(ScreenBufferType));
-		dmaCopy(src, buf, sizeof(ScreenBufferType));
+		dmaCopyWordsAsynch(3, src, buf, sizeof(ScreenBufferType));
 	//	std::memcpy(buf, src, sizeof(ScreenBufferType));
 	}
 
@@ -338,7 +327,7 @@ namespace platform
 		if((dspIndex ? consoleMainInit() : consoleDemoInit()))
 		{
 			//使用 ANSI Escape 序列 CUrsor Position 指令设置光标位置为左上角。
-			iprintf("\x1b[0;0H");
+			std::printf("\x1b[0;0H");
 
 			PixelType* bg_palette = dspIndex ? BG_PALETTE : BG_PALETTE_SUB;
 

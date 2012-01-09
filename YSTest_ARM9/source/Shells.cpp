@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5461;
+\version r5476;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-12-13 17:15 +0800;
-\par 字符集:
+	2012-01-07 20:45 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YReader::Shells;
@@ -147,7 +147,7 @@ namespace
 	void
 	InputCounter(const Point& pt)
 	{
-		siprintf(strCount, "Count = %d, Pos = (%d, %d);",
+		std::sprintf(strCount, "Count = %d, Pos = (%d, %d);",
 			nCountInput++, pt.X, pt.Y);
 	}
 
@@ -156,14 +156,14 @@ namespace
 	{
 		struct mallinfo t(mallinfo());
 
-	/*	siprintf(strCount, "%d,%d,%d,%d,%d;",
+	/*	std::sprintf(strCount, "%d,%d,%d,%d,%d;",
 			t.arena,    // total space allocated from system 2742496
 			t.ordblks,  // number of non-inuse chunks 37
 			t.smblks,   // unused -- always zero 0
 			t.hblks,    // number of mmapped regions 0
 			t.hblkhd   // total space in mmapped regions 0
 		);*/
-	/*	siprintf(strCount, "%d,%d,%d,%d,%d;",
+	/*	std::sprintf(strCount, "%d,%d,%d,%d,%d;",
 			t.usmblks,  // unused -- always zero 0
 			t.fsmblks,  // unused -- always zero 0
 			t.uordblks, // total allocated space 2413256, 1223768
@@ -171,7 +171,7 @@ namespace
 			t.keepcost // top-most, releasable (via malloc_trim) space
 			//46496,23464
 			);*/
-		siprintf(strCount, "%d,%d,%d,%d,%d;",
+		std::sprintf(strCount, "%d,%d,%d,%d,%d;",
 			t.arena,
 			t.ordblks,
 			t.uordblks,
@@ -532,7 +532,7 @@ ShlExplorer::TFormTest::TFormTest()
 
 				char stra[4];
 
-				siprintf(stra, "%d", t);
+				std::sprintf(stra, "%d", t);
 				lst.push_back(String((string("TMI") + stra).c_str()));
 			}
 			else
@@ -592,7 +592,7 @@ ShlExplorer::TFormTest::OnEnter_btnEnterTest(TouchEventArgs&& e)
 {
 	char str[20];
 
-	siprintf(str, "Enter:(%d,%d)", e.Point::X, e.Point::Y);
+	std::sprintf(str, "Enter:(%d,%d)", e.Point::X, e.Point::Y);
 
 	auto& btn(dynamic_cast<Button&>(e.GetSender()));
 
@@ -605,7 +605,7 @@ ShlExplorer::TFormTest::OnLeave_btnEnterTest(TouchEventArgs&& e)
 {
 	char str[20];
 
-	siprintf(str, "Leave:(%d,%d)", e.Point::X, e.Point::Y);
+	std::sprintf(str, "Leave:(%d,%d)", e.Point::X, e.Point::Y);
 
 	auto& btn(dynamic_cast<Button&>(e.GetSender()));
 
@@ -646,7 +646,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 		FetchEvent<Move>(btnDragTest) += [this](UIEventArgs&&){
 			char sloc[20];
 
-			siprintf(sloc, "(%d, %d);", btnDragTest.GetX(), btnDragTest.GetY());
+			std::sprintf(sloc, "(%d, %d);", btnDragTest.GetX(), btnDragTest.GetY());
 			btnDragTest.Text = sloc;
 			Invalidate(btnDragTest);
 		},
@@ -681,7 +681,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 					16 - (itype << 1), FontStyle::Regular);
 			//	btnDragTest.Font = Font(*(*it)->GetFontFamilyPtr(),
 			//	GetDefaultFontFamily(), 16 - (itype << 1), FontStyle::Regular);
-				siprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n",
+				std::sprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n",
 					btnDragTest.Font.GetSize(), ffilen, ftypen, ffacen);
 				yunseq(
 					btnDragTest.Text = strtf,
@@ -692,7 +692,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 			}
 			else
 			{
-				siprintf(strtf, "%d/%d;%s:%s;", itype + 1, ftypen,
+				std::sprintf(strtf, "%d/%d;%s:%s;", itype + 1, ftypen,
 					(*i)->GetFamilyName().c_str(),
 					(*i)->GetStyleName().c_str());
 				//	sprintf(strtf, "B%p\n",
@@ -770,7 +770,7 @@ ShlExplorer::TFormExtra::OnKeyPress_btnDragTest(KeyEventArgs&& e)
 	auto& lbl(dynamic_cast<Label&>(e.GetSender()));
 
 	lbl.SetTransparent(!lbl.IsTransparent());
-	siprintf(strt, "%d;\n", k);
+	std::sprintf(strt, "%d;\n", k);
 	lbl.Text = strt;
 	Invalidate(lbl);
 /*
@@ -900,14 +900,14 @@ ShlExplorer::UpdateToScreen()
 			const Rect r(0, 172, 72, 20);
 			u32 t(fpsCounter.Refresh());
 
-			siprintf(strt, "FPS: %u.%03u", t/1000, t%1000);
+			std::sprintf(strt, "FPS: %u.%03u", t/1000, t%1000);
 			FillRect(g, r, Blue);
 			DrawText(g, r, strt, Padding(), White);
 		}
 		{
 			const Rect r(4, 144, 120, 20), ri(dsk_dn.GetInvalidatedArea());
 
-			siprintf(strt, "(%d, %d, %u, %u)",
+			std::sprintf(strt, "(%d, %d, %u, %u)",
 				ri.X, ri.Y, ri.Width, ri.Height);
 			FillRect(g, r, Green);
 			DrawText(g, r, strt, Padding(), Yellow);

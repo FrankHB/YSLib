@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief YCLib ISO C 标准字符串扩展。
-\version r2408;
+\version r2421;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2009-12-27 17:31:14 +0800;
 \par 修改时间:
-	2011-12-04 11:17 +0800;
-\par 字符集:
+	2012-01-07 21:07 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YStandardEx::CString;
@@ -54,33 +54,6 @@ namespace ystdex
 	*/
 	char*
 	strcpy_n(char*, const char*);
-
-	/*!
-	\brief 带空指针检查的字符串复制。
-	\return 成功时为复制的字符串的结尾指针，失败时为空指针。
-
-	当目标字符串和源字符串都非空时用 stpcpy 复制字符串。
-	*/
-	char*
-	stpcpy_n(char*, const char*);
-
-	/*!
-	\brief 带空指针检查的字符串忽略大小写比较。
-	\return 成功时为比较结果，否则为 EOF 。
-
-	当两个字符串都非空时 stricmp 比较的字符串结果。
-	*/
-	int
-	stricmp_n(const char*, const char*);
-
-	/*!
-	\brief 带空指针检查的字符串复制。
-	\return 成功时为复制的字符串的结尾指针，失败时为空指针。
-
-	当字符指针非空时用 strdup 复制字符串。
-	*/
-	char*
-	strdup_n(const char*);
 
 	/*!
 	\brief 带空指针检查的字符串连接。

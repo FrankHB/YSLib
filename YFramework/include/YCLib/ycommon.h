@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -15,14 +15,14 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2786;
+\version r2801;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2011-12-24 12:02 +0800;
-\par 字符集:
+	2012-01-07 20:53 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YCLib::YCommon;
@@ -33,7 +33,7 @@
 #define YCL_INC_YCOMMON_H_
 
 //平台定义。
-#include <platform.h>
+#include "Platform.h"
 
 //平台无关部分。
 #include <ydef.h>
@@ -41,7 +41,7 @@
 #include <cstdlib>
 
 //平台相关部分。
-#include <api.h>
+#include "NativeAPI.h"
 
 //#define HEAP_SIZE (mallinfo().uordblks)
 
@@ -73,11 +73,6 @@ namespace platform
 	typedef char PATHSTR[YCL_MAX_PATH_LENGTH];
 	//typedef char PATHSTR[MAXPATHLEN];
 	typedef char FILENAMESTR[YCL_MAX_FILENAME_LENGTH];
-
-	// using newlib;
-	using ::iprintf;
-	using ::siprintf;
-	using ::viprintf;
 
 	// using ystdex;
 	using ystdex::const_path_t;
@@ -399,12 +394,6 @@ namespace platform
 	YDebug(const char*);
 
 	/*!
-	\brief 调试模式：显示控制台字（int 型数据），按键继续。
-	*/
-	void
-	YDebugW(int);
-
-	/*!
 	\brief 调试模式 printf ：显示控制台格式化输出 ，按键继续。
 	*/
 	int
@@ -584,15 +573,6 @@ namespace platform
 	void
 	YConsoleInit(u8 dspIndex,
 		Color fc = ColorSpace::White, Color bc = ColorSpace::Black);
-
-	/*!
-	\brief 输出控制台字（int 型数据）。
-	*/
-	inline void
-	iputw(int n)
-	{
-		iprintf("%d\n", n);
-	}
 
 
 	/*!

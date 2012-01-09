@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1887;
+\version r1897;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2011-12-30 12:47 +0800;
-\par 字符集:
+	2012-01-05 16:02 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::Menu;
@@ -27,6 +27,7 @@
 
 #include "YSLib/UI/menu.h"
 #include "YSLib/UI/ywindow.h"
+#include "YSLib/Service/TextRenderer.h"
 
 YSL_BEGIN
 
@@ -82,8 +83,9 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 					if(pMnu->GetParentPtr() != this)
 						pHost->HideUnrelated(*this, *pMnu);
 				}
-				else
+				else if(pHost->Referent != &e.GetSender())
 					pHost->HideAll();
+				pHost->Referent = nullptr;
 			}
 		},
 		GetConfirmed() += [this](IndexEventArgs&& e){

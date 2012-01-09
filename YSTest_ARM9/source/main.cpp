@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,20 +8,20 @@
 	understand and accept it fully.
 */
 
-/*!	\file main.cpp
+/*!	\file main9.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2180;
+\version r2186;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2011-12-23 17:35 +0800;
+	2012-01-06 16:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	Platform::DS::Main;
+	Main_ARM9;
 */
 
 
@@ -43,13 +43,6 @@
 //#define USE_EFS
 
 //包含文件。
-#ifndef PLATFORM_H
-#define PLATFORM_H <platform.h>
-#endif
-#include PLATFORM_H
-#include <api.h>
-
-#include YSL_YSBUILD_H
 #include "Shells.h"
 
 using namespace platform;

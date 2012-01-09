@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1744;
+\version r1749;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2011-12-04 12:44 +0800;
-\par 字符集:
+	2012-01-04 11:20 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::Menu;
@@ -187,6 +187,16 @@ protected:
 	MenuMap mMenus; //!< 菜单组：存储非空菜单指针。
 
 public:
+	/*!
+	\brief 参照指针。
+	
+	可能指向某个部件，用于作为菜单操作的参照。
+	\note 应仅用于比较。
+	\note 可能被菜单操作修改。
+	\since build 274 。
+	*/
+	IWidget* Referent;
+
 	MenuHost(Window&);
 	/*!
 	\brief 析构。

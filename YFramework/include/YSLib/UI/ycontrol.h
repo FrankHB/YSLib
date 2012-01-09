@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5590;
+\version r5598;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2011-12-12 21:37 +0800;
-\par 字符集:
+	2012-01-14 10:38 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YComponent;
@@ -236,6 +236,15 @@ void
 OnTouchMove(TouchEventArgs&&);
 
 /*!
+\brief 处理屏幕接触开始事件：使用一般接触策略。
+
+当事件路由策略非 RoutedEventArgs::Bubble 时请求置于顶端及焦点。
+\since build 275 。
+*/
+void
+OnTouchDown_RequestToTopFocused(TouchEventArgs&&);
+
+/*!
 \brief 处理屏幕接触移动事件。
 \note 使用拖放。
 \note 无效化当前区域，但不无效化移动后区域；通过 Move 事件可以调用无效化。
@@ -277,6 +286,7 @@ OnKey_Bound_Click(KeyEventArgs&&);
 /*!
 \brief 控件。
 \note 默认加载事件处理器： Move 、 Resize 、 GotFocus 和 LostFocus 时自动无效化。
+\note 默认加载事件处理器： OnTouchDown_RequestToTopFocused 。
 \since build 168 。
 */
 class Control : public Widget

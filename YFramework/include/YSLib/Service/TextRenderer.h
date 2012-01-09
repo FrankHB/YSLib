@@ -8,303 +8,33 @@
 	understand and accept it fully.
 */
 
-/*!	\file ytext.h
+/*!	\file TextRenderer.h
 \ingroup Service
-\brief 基础文本显示。
-\version r7368;
+\brief 文本渲染。
+\version r7372;
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-04 08:11 +0800;
+	2012-01-05 15:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YSLib::Service::YText;
+	YSLib::Service::TextRenderer;
 */
 
 
-#ifndef YSL_INC_SERVICE_YTEXT_H_
-#define YSL_INC_SERVICE_YTEXT_H_
+#ifndef YSL_INC_SERVICE_TEXTRENDERER_H_
+#define YSL_INC_SERVICE_TEXTRENDERER_H_
 
-#include "ygdi.h"
-#include "../Adaptor/yfont.h"
+#include "CharRenderer.h"
 #include "../Core/ystring.h"
-#include <cwctype>
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-//! \brief 笔样式：字体和笔颜色。
-class PenStyle
-{
-public:
-	Drawing::Font Font; //!< 字体。
-	Drawing::Color Color; //!< 笔颜色。
-
-	/*!
-	\brief 构造：使用指定字体家族、字体大小和颜色。
-	*/
-	explicit
-	PenStyle(const FontFamily& = FetchDefaultFontFamily(),
-		Font::SizeType = Font::DefaultSize,
-		Drawing::Color = Drawing::ColorSpace::White);
-	/*!
-	\brief 析构：空实现。
-	*/
-	virtual DefEmptyDtor(PenStyle)
-
-	DefGetterMem(const ynothrow, const FontFamily&, FontFamily, Font)
-	DefGetterMem(const ynothrow, FontCache&, Cache, Font)
-};
-
-inline
-PenStyle::PenStyle(const FontFamily& family, Font::SizeType size,
-	Drawing::Color c)
-	: Font(family, size), Color(c)
-{}
-
-
-/*!
-\brief 文本状态。
-
-包含笔样式、显示区域边界、字体缓存和行距。
-文本区域指文本状态描述的平面区域。
-文本区域位置坐标是文本区域左上角为原点的屏幕坐标系。
-笔位置以文本区域位置坐标表示。
-显示区域为文本区域内部实际显示文本光栅化结果的区域。
-边距描述显示区域和文本区域的位置关系。
-文本状态不包含文本区域和显示区域的大小，应由外部图形接口上下文或缓冲区状态确定。
-\since build 145 。
-*/
-class TextState : public PenStyle
-{
-public:
-	Padding Margin; //!< 边距：文本区域到显示区域的距离。
-	SPos PenX, PenY; //!< 笔坐标。
-	u8 LineGap; //!< 行距。
-
-public:
-	/*!
-	\brief 无参数构造。
-	*/
-	TextState();
-	/*!
-	\brief 构造：使用指定字体。
-	*/
-	explicit
-	TextState(Drawing::Font&);
-	/*!
-	\brief 构造：使用指定字体缓存。
-	*/
-	explicit
-	TextState(FontCache&);
-
-	/*!
-	\brief 赋值：笔样式。
-	*/
-	TextState&
-	operator=(const PenStyle& ps);
-	/*!
-	\brief 赋值：边距。
-	*/
-	TextState&
-	operator=(const Padding& ms);
-
-	/*!
-	\brief 打印换行。
-	*/
-	void
-	PutNewline();
-
-	/*!
-	\brief 复位笔：按字体大小设置笔位置为默认位置。
-	\note 默认笔位置在由边距约束的显示区域左上角。
-	*/
-	void
-	ResetPen();
-
-	/*!
-	\brief 按指定显示区域边界、文本区域大小和附加边距重新设置边距和笔位置。
-	\note 通过已有的区域大小和附加边距约束新的边距和笔位置。
-	*/
-	void
-	ResetForBounds(const Rect&, const Size&, const Padding&);
-};
-
-inline TextState&
-TextState::operator=(const PenStyle& ps)
-{
-	PenStyle::operator=(ps);
-	return *this;
-}
-inline TextState&
-TextState::operator=(const Padding& ms)
-{
-	Margin = ms;
-	return *this;
-}
-
-
-/*!
-\brief 取当前指定文本状态的字体设置对应的行高。
-\since build 231 。
-*/
-inline SDst
-GetTextLineHeightOf(const TextState& s)
-{
-	return s.GetCache().GetHeight();
-}
-
-/*!
-\brief 取当前指定文本状态的字体设置对应的行高与行距之和。
-\since build 231 。
-*/
-inline SDst
-GetTextLineHeightExOf(const TextState& s)
-{
-	return s.GetCache().GetHeight() + s.LineGap;
-}
-
-/*!
-\brief 取笔所在的当前行数。
-\since build 231 。
-*/
-inline u16
-GetCurrentTextLineNOf(const TextState& s)
-{
-	return (s.PenY - s.Margin.Top) / GetTextLineHeightExOf(s);
-}
-
-/*!
-\brief 设置笔位置。
-\since build 231 。
-*/
-inline void
-SetPenOf(TextState& s, SPos x, SPos y)
-{
-	s.PenX = x;
-	s.PenY = y;
-}
-
-/*!
-\brief 设置笔的行位置。
-\since build 231 。
-*/
-void
-SetCurrentTextLineNOf(TextState&, u16);
-
-/*!
-\brief 回车。
-
-指定文本状态的笔的水平位置移至左端，竖直位置不变。
-\since build 270 。
-*/
-inline void
-CarriageReturn(TextState& ts)
-{
-	ts.PenX = ts.Margin.Left;
-}
-
-/*!
-\brief 按字符跨距移动笔。
-\since build 196 。
-*/
-void
-MovePen(TextState&, ucs4_t);
-
-
-/*!
-\brief 打印单个字符。
-\param c 被打印的 UCS4 字符。
-\param ts 文本状态。
-\param g 输出图形接口上下文。
-\param mask 相对于输出图形接口上下文矩形，限定输出边界。
-\param alpha 输出设备接收的 8 位 Alpha 缓冲区首个元素的指针，若为 nullptr 则忽略。
-\since build 254 。
-*/
-void
-RenderChar(ucs4_t c, TextState& ts, const Graphics& g, const Rect& mask,
-	u8* alpha);
-
-
-/*!
-\brief 取指定文本状态和文本区域高调整的底边距。
-\pre 断言： <tt>GetTextLineHeightExOf(ts) != 0</tt> 。
-\post <tt>ts.Margin.Bottom</tt> 不小于原值。
-\return 返回调整后的底边距值（由字体大小、行距和高决定）。
-\since build 252 。
-*/
-SDst
-FetchResizedBottomMargin(const TextState&, SDst);
-
-/*!
-\brief 取指定文本状态和文本区域高所能显示的最大文本行数。
-\pre 断言： <tt>GetTextLineHeightExOf(ts) != 0</tt> 。
-\return 最大能容纳的文本行数。
-\since build 252 。
-*/
-u16
-FetchResizedLineN(const TextState& ts, SDst);
-
-/*!
-\brief 取指定文本状态在指定高的区域中表示的最底行的基线位置（纵坐标）。
-\note 若不足一行则最底行视为首行。
-\warning 不检查边距正确性。若顶边距正确，则返回值应小于输入的高。
-\since build 190 。
-*/
-SPos
-FetchLastLineBasePosition(const TextState&, SDst);
-
-
-/*!
-\brief 打印单个可打印字符。
-\since build 270 。
-*/
-template<class _tRenderer>
-void
-PrintChar(_tRenderer& r, ucs4_t c)
-{
-	if(std::iswprint(c))
-		r(c);
-}
-
-/*!
-\brief 打印单个字符。
-\note 处理换行符。
-\note 当行内无法容纳完整字符时换行。
-\since build 190 。
-*/
-template<class _tRenderer>
-u8
-PutChar(_tRenderer& r, ucs4_t c)
-{
-	TextState& ts(r.GetTextState());
-
-	if(c == '\n')
-	{
-		ts.PutNewline();
-		return 0;
-	}
-	if(!std::iswprint(c))
-		return 0;
-/*
-	const int maxW(GetBufWidthN() - 1), spaceW(ts.GetCache().GetAdvance(' '));
-
-	if(maxW < spaceW)
-		return lineBreaksL = 1;
-*/
-	if(ts.PenX + ts.GetCache().GetAdvance(c)
-		>= r.GetContext().GetWidth() - ts.Margin.Right)
-	{
-		ts.PutNewline();
-		return 1;
-	}
-	r(c);
-	return 0;
-}
 
 /*!
 \brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
@@ -492,25 +222,6 @@ inline String::size_type
 PutString(_tRenderer& r, const String& str)
 {
 	return PutString(r, str.c_str()) - str.c_str();
-}
-
-
-/*!
-\brief 取指定的字符使用指定字体缓存的当前字体的显示宽度。
-\note 无边界限制。
-\since build 270 。
-*/
-SDst
-FetchCharWidth(FontCache&, ucs4_t);
-/*!
-\brief 取指定的字符使用指定字体的显示宽度。
-\note 无边界限制。
-\since build 214 。
-*/
-inline SDst
-FetchCharWidth(const Font& fnt, ucs4_t c)
-{
-	return FetchCharWidth(fnt.GetCache(), c);
 }
 
 
@@ -745,110 +456,6 @@ TextRegion::operator()(ucs4_t c)
 }
 
 /*!
-\brief 取按字体高度和行距调整文本区域的底边距。
-\since build 252 。
-*/
-inline SDst
-FetchResizedBottomMargin(const TextRegion& tr)
-{
-	return FetchResizedBottomMargin(tr, tr.GetHeight());
-}
-
-/*!
-\brief 按字体高度和行距调整文本区域的底边距。
-\since build 252 。
-*/
-inline SDst
-AdjustBottomMarginOf(TextRegion& tr)
-{
-	return tr.Margin.Bottom = FetchResizedBottomMargin(tr);
-}
-
-
-/*!
-\brief 取迭代器指定的字符串在字体指定、无边界限制时的显示宽度。
-\note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
-\since build 214 。
-*/
-template<typename _tIn>
-SDst
-FetchStringWidth(const Font& fnt, _tIn s)
-{
-	SDst w(0);
-
-	while(*s != '\0')
-		w += FetchCharWidth(fnt, *s++);
-	return w;
-}
-/*!
-\brief 取迭代器指定的单行字符串在字体指定、无边界限制时的显示宽度。
-\note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
-\since build 251 。
-*/
-template<typename _tIn>
-SDst
-FetchStringWidth(const Font& fnt, _tIn s, _tIn g, ucs4_t c = '\0')
-{
-	SDst w(0);
-
-	while(s != g && *s != c)
-		w += FetchCharWidth(fnt, *s++);
-	return w;
-}
-/*!
-\brief 取单行字符串在字体指定、无边界限制时的显示宽度。
-\since build 214 。
-*/
-inline SDst
-FetchStringWidth(const Font& fnt, const String& str)
-{
-	return FetchStringWidth(fnt, str.c_str());
-}
-/*!
-\brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。
-\note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
-\note 字体由文本状态指定。
-\since build 197 。
-*/
-template<typename _tIn>
-SDst
-FetchStringWidth(TextState& ts, SDst h, _tIn s)
-{
-	const SPos x(ts.PenX);
-	EmptyTextRenderer r(ts, h);
-
-	PrintString(r, s);
-	return ts.PenX - x;
-}
-/*!
-\brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。
-\note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
-\note 字体由文本状态指定。
-\since build 251 。
-*/
-template<typename _tIn>
-SDst
-FetchStringWidth(TextState& ts, SDst h, _tIn s, _tIn g, ucs4_t c = '\0')
-{
-	const SPos x(ts.PenX);
-	EmptyTextRenderer r(ts, h);
-
-	PrintString(r, s, g, c);
-	return ts.PenX - x;
-}
-/*!
-\brief 取单行字符串在指定文本状态和高度限制时的显示宽度。
-\note 字体由文本状态指定。
-\since build 197 。
-*/
-inline SDst
-FetchStringWidth(TextState& ts, SDst h, const String& str)
-{
-	return FetchStringWidth(ts, h, str.c_str());
-}
-
-
-/*!
 \brief 绘制文本。
 \since build 265 。
 */
@@ -884,12 +491,6 @@ DrawText(TextRegion&, const Graphics&, const Point&, const Size&,
 	const String&);
 
 YSL_END_NAMESPACE(Drawing)
-
-YSL_BEGIN_NAMESPACE(Text)
-
-
-
-YSL_END_NAMESPACE(Text)
 
 YSL_END
 

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3404; *build 274 rev 73;
+\version r3405; *build 275 rev 42;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-01-04 09:44 +0800;
+	2012-01-09 14:42 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -164,7 +164,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \pt ::= points
 \ptr ::= pointers
 \q ::= qualifiers
-\rem ::= remarked
+\rem ::= remarked/comments
 \ren ::= renamed
 \ref ::= references
 \refact ::= refactorings
@@ -329,222 +329,228 @@ $using:
 
 $DONE:
 r1:
-- \a 3 \f \i SetMarginsOf @ \h YText,
-* wrong line number @ \mf DualScreenReader::UpdateView $since b226;
+/ @ \u YControl $=
+(
+	+ \f void OnTouchDown_RequestToTopFocused(TouchEventArgs&&);
+	/ \impl @ \ctor @ \cl Control
+);
+/ \tr \simp \impl @ \mf GUIShell::ResponseTouch;
 
 r2:
-+ \as @ \f FetchResizedBottomMargin#1 @ \u YText;
+* \impl @ \f OnTouchDown_RequestToTopFocused @ \impl \u YControl $since r1;
 
-r3-r24:
-* \ft PrintLine(#1, #2) cannot used with iterators without postfix \op++
-	@ \h YText $since b270,
-/ @ \impl \u YText $=
-(
-	* \as \str @ \impl @ \f FetchResizedBottomMargin @ $since b273,
-	* \as \str @ \impl @ \f FetchResizedLineN @ $since b252
-),
-(
-	* \impl @ \mf TextLineNEx @ \clt GTextRendererBase $since b267;
-	/ @ \cl DualScreenReader @ \u DSReader $=
-	(
-		+ \m Padding Margin,
-		+ \mf void AdjustMargins();
-		/ \tr \impl @ \ctor,
-		* wrong line number @ \mf DualScreenReader::Execute $since b270,
-		/ \impl @ \mf (Reset, SetLineGap)
-	),
-	/= test 1;
-	/ \tr \simp \impl @ \mf TextReaderManager::OnKeyDown @ \impl \u ShlReader,
-	* wrong view area shown after set line gaps @ text reader
-		$since $before b132
-);
+r3:
++ \m IWidget* Referent @ \cl MenuHost;
+/ \impl @ \ctor @ \cl Menu;
+/ \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader;
 
-r25:
+r4-r6:
+/= test 1;
+
+r7:
+* \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader;
+
+r8:
 /= test 2 ^ \conf release;
 
-r26:
-+ \mf void Stretch(SDst) @ \cl DualScreenReader @ \u DSReader;
-/ @ \impl \u ShlReader $=
-(
-	/ \impl @ \mf TextReaderManager::ExcuteReadingCommand,
-	/ \impl @ \ctor @ \cl TextReaderManager
-);
+r9:
+* \rem not removed for (is_not_null, is_null)
+	@ \h (YWidget, Scroll, Memory) $since b254,
+/ \impl @ \f ScreenSynchronize @ \impl \u YCommon
+	^ dmaCopyWordsAsynch ~ dmaCopy,
+- \inc \h Platform @ \h YNew;
 
-r27:
-* \impl @ \mf DualScreenReader::Stretch @ \impl \u DSReader $since r26;
+r10:
+/ \u YText["ytext.h", "ytext.cpp"] @ \dir Service -> \u (TextBase["TextBase.h",
+	"TextBase.cpp"], CharRenderer["CharRenderer.h", "CharRenderer.cpp"],
+	TextLayout["TextLayout.h", "TextLayout.cpp"], TextRenderer["TextRenderer.h",
+	"TextRenderer.cpp"]);
+/ \tr \inc \h @ \h (Label, TextArea, HexBrowser), \u (ListBox, DSReader, Label,
+	Menu, TextList);
 
-r28-r29:
-* \impl @ \mf TextReaderManager::ExcuteReadingCommand @ \u DSReader $since r26;
-
-r30:
-* \impl @ \f FetchLastLineBasePosition @ \impl \u YText $since $before b132
-	^ ascender ~ descender;
-
-r31:
-/ @ \impl \u ShlReader $=
-(
-	/ \a MR_Panel => MR_ReaderBox,
-	/ \impl @ \ctor @ \cl (TextReaderManager, ReaderBox)
-);
-
-r32-r35:
-/ \impl @ \ctor @ \cl (TextReaderManager, ReaderBox) @ \impl \u ShlReader;
-
-r36:
-* \impl @ \f FetchLastLineBasePosition @ \impl \u YText $since r30;
-
-r37:
-/ \impl @ \f FetchLastLineBasePosition @ \impl \u YText;
-
-r38:
+r11:
 /= test 3 ^ \conf release;
 
-r39-r42:
-/= test 4;
+r12:
+/ \h Platform::DS["platform.h"] @ \proj YSTest -> YCLib::DS["Platform.h"],
+/ \h Platform::DS["api.h"] @ \proj YSTest -> YCLib::NativeAPI["NativeAPI.h"];
+/ \tr \inc \h @ \h YCommon,
+/ \tr \impl @ \impl \u Main;
+/ \impl \u Platform::DS::Main["main.cpp"] @ \proj YSTest
+	=> Main_ARM9["main.cpp"];
 
-r43:
-* \impl @ \mf DualScreenReader::AdjustMargins $since r24;
+r13:
+/ \a \inc @ \proj YSTest >> \proj YFramework,
+/ \dir ('lib', 'doc') @ \proj YSTest >> \proj YFramework;
+/ \simp @ export \mac INCLUDES @ Makefile @ \proj YFramework,
+/ \tr \impl @ Makefile @ \proj (YFramework, YSTest_ARM9);
+/= test 4 ^ \conf release;
 
-r44:
-/ @ \impl \u ShlReader $=
+r14:
+/= test 5;
+
+r15:
++ \u ColorPicker["ColorPicker.h", "ColorPicker.cpp"] @ \proj YSTest_ARM9;
++ \cl ColorBox @ \u ColorPicker;
+
+r16:
+/ @ \u YCommon $=
 (
-	+ 2 \ft assign @ \un \ns;
-	/ \simp \impl @ \ctor @ TextReaderManager ^ \ft assign
-);
-
-r45:
-/ @ \impl \u ShlReader $=
+	/ \impl @ \f yprintf @ \impl \u ^ std::vprintf ~ viprintf,
+	(
+		- \f YDebugW;
+		- \f \i iputw @ \h,
+	)
+),
+/ \a 'siprintf' -> 'std::sprintf' @ \impl \u (Shells, ShlReader, YCommon,
+	YShellInitialization),
+/ \impl @ \f snftime @ \un \ns @ \impl \u ShlReader
+	^ ::snprintf ~ ::sniprintf;
+- using '::*iprintf' @ \h YCommon,
+- \f (stpcpy_n, strdup_n) @ \u YStandardEx::CString,
 (
-	/ \a \ft assign >> \ns ystdex @ \h Algorithm,
-	/ \tr \impl @ \ctor @ TextReaderManager
-);
+	/ \impl @ 2 \f HaveSameExtensions @ \impl \u YFileSystem,
+	- \f stricmp_n @ \u YStandardEx::CString
+),
+/ \impl @ \f IsExtensionOf#1 @ \impl \u YFileSystem;
+/ '-std=gnu++0x' @ \mac CXXFLAGS @ Makefile @ \proj (YFramework, YBase)
+	-> '-std=c++0x';
 
-r46:
+r17:
+/= test 6 ^ \conf release;
+
+r18:
 / @ \u ShlReader $=
 (
-	/ @ \cl ReaderBox $=
-	(
-		+ \m Button btnMenu,
-		- \m Button btnClose;
-		/ \impl @ \ctor,
-		/ \tr \impl @ \mf (GetTopWidgetPtr, Refresh)
-	);
+	/ \simp \impl @ \mf TextInfoBox::GetTopWidgetPtr,
+	/ \impl @ \mf (GetTopWidgetPtr, Refresh) @ \cl ReaderBox
+);
+
+r19-r23:
++ \mf \i void SetVisible(bool = true) @ \cl DualScreenReader @ \h DSReader;
+/ @ \u ShlReader $=
+(
+	+ \cl SettingPanel;
+	+ yconstexpr Menu::IndexType MR_FileInfo @ \un \ns @ \impl \u;
 	/ @ \cl TextReaderManager $=
 	(
-		/ \impl @ \ctor,
-		/ \impl @ \mf OnClick,
-		/ \impl @ \mf ShowMenu
+		+ \m SettingPanel boxSetting,
+		/ \tr \impl @ \ctor,
+		/ \impl @ \mf (Execute, Activate, Deactivate)
 	)
 );
 
-r47:
-/ @ \impl \u ShlReader $=
+r24:
+/= test 7 ^ \conf release;
+
+r25-r26:
+/ @ \cl TextReaderManager / @ \impl \u ShlReader $=
 (
-	- \g \c \o MR_ReaderBox @ \un \ns;
-	/ \tr \simp \impl @ \ctor @ \cl TextReaderManager,
-	/ \tr \simp \impl @ \mf TextReaderManager::ExcuteReadingCommand
+	/ \impl @ \ctor,
+	* \impl @ \mf Execute $since r22
 );
 
-r48-r50:
+r27:
 / @ \u ShlReader $=
 (
+	/ @ \cl SettingPanel $=
 	(
-		/ @ \cl ReaderBox $=
-		(
-			+ \m Button btnInfo,
-			+ \m Button btnReturn;
-			/ \impl @ \ctor,
-			/ \tr \impl @ \mf (GetTopWidgetPtr, Refresh)
-		);
-		/ \tr \impl @ \ctor @ \cl TextReaderManager
-	),
-	/ \a ExcuteReadingCommand => Execute
+		+ \mf void Close();
+		/ \impl @ \ctor
+	);
+	/ \impl @ \ctor @ \cl TextReaderManager
 );
 
-r51:
-/= test 5 ^ \conf release;
+r28:
+/ @ \cl ColorBox @ \u ColorBox $=
+(
+	/ \a private -> public;
+	/ \impl @ \ctor
+);
+/ @ \u ShlReader $=
+(
+	+ \inc \h "ColorPicker.h" @ \h;
+	/ @ \cl SettingPanel $=
+	(
+		+ protected \m ColorBox boxColor;
+		/ \impl @ \ctor
+	)
+);
 
-r52:
-/ \impl @ \ctor @ \cl ReaderBox @ \impl \u ShlReader;
+r29-r32:
+/ @ \impl \u ColorPicker $=
+(
+	+ \inc \h YGUI;
+	/ @ \cl ColorBox $=
+	(
+		/ \impl @ \ctor,
+		/ \impl @ \mf Refresh
+	)
+),
+* \impl @ \ctor @ \cl SettingPanel @ \impl \u ShlReader;
 
-r53-r55:
-/= test 6,
-/ \impl @ \mf DualScreenReader::AdjustMargins @ \impl \u DSReader,
-* \impl @ \f FetchResizedLineN @ \impl \u YText $since b252,
-/ \impl @ \ctor @ \cl ReaderBox @ \impl \u ShlReader;
+r33:
+/ @ \u YWidget $=
+(
+	+ \f void Close(IWidget&);
+	* \impl @ \f (Show, Hide) $since b229
+		^ \f Invalidate ~ SetInvalidationToParent
+);
+- \mf SettingPanel::Close @ \u ShlReader;
+/ \simp \impl \u (ShlReader, ColorPicker) ^ \f Close;
 
-r56-r57:
-/ \impl @ \mf DualScreenReader::AdjustMargins @ \impl \u DSReader;
+r34:
+/ @ \cl ColorBox $=
+(
+	/ \ac @ \m (ColorArea, RTrack, GTrack, BTrack) -> protected ~ public,
+	+ \mf void SetColor(Color)
+);
+/ \impl @ \ctor @ \cl SettingPanel @ \u ShlReader;
 
-r58:
-* \impl @ \mf DualScreenReader::Execute when top margins differed
-	@ \impl \u DSReader $since $before b132;
-
-r59-r60:
-/= test 7;
-
-r61:
-/ \tr \impl @ \mf DualScreenReader::Reset @ \impl \u DSReader;
-
-r62:
+r35:
 /= test 8 ^ \conf release;
 
-r63:
-/ @ \cl TextFileBuffer $=
-(
-	/ \simp \impl @ \mf GetIterator,
-	+ \as \str @ \impl @ \mf Iterator::operator*
-);
-
-r64:
-- \inc \h (YFont, YStorage) @ \impl \u YApplication,
-/ @ \h YGDI $=
-(
-	\cl PenStyle >> \h YText;
-	/ \inc \h YFont >> \h YText
-);
-- \inc \h YFont @ \h Label;
-
-r65:
-- using Drawing::FontCache @ \h (YShellDefinition, YApplication);
-/ \pre \decl @ \cl FontCache @ \h YShellDefinition >> \h YGlobal;
-/ \tr @ \h (YGlobal, DSReader), \u (TextArea);
-
-r66-r72:
+r36-r39:
 /= test 9;
 
-r73:
+r40:
+* \impl @ \ctor @ \cl ColorBox @ \impl \u ColorPicker $since r33;
+
+r41:
+* \impl @ \mf ATrack::Refresh $since b235,
+* \impl @ \mf Button::Refresh $since b266;
+
+r42:
 /= test 10 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-01-04:
--9.8d;
-//Mercurial rev1-rev146: r7141;
+2012-01-09:
+-10.4d;
+//Mercurial rev1-rev147: r7183;
 
 / ...
 
 
 $NEXT_TODO:
-b275-b384:
-+ deleted copy \ctor @ \cl File;
+b276-b324:
+* background for buffered widgets;
 / fully \impl @ \u DSReader $=
 (
-	* unstable while Margin.Top != 0,
-	+ resizing support,
+	+ fully \impl settings,
 	+ bookmarks
 );
 * VRAM not flushed when opening lid on real DS;
-^ timing triggers @ message loop;
 + dynamic character mapper loader for \u CharacterMapping;
-+ partial invalidation support @ %(HexViewArea::Refresh);
+
+b325-b1152:
+^ timing triggers @ message loop;
 + 64-bit integer underlying type support for ystdex::fixed_point;
 + overlapping test @ \cl Rect;
 / build command @ \a \conf proj YBase;
-
-b385-b1152:
++ partial invalidation support @ %(HexViewArea::Refresh);
 + user-defined stream filters;
 + formal abstraction of rectangular hit test;
 + general monomorphic iterator abstraction,
@@ -673,7 +679,7 @@ $module_tree $=
 		'initialization',
 		'file explorer',
 		'text reader',
-		'hexadecimal browser' 
+		'hexadecimal browser'
 	)
 );
 
@@ -683,29 +689,82 @@ $now
 	(
 		/ %'YSLib' $=
 		(
-			/ "text rendering" @ %'services' $=
+			/ $design "decomposed unit %YText into unit %(TextBase.cpp, \
+				CharRenderer, TextRenderer, TextLayout)",
+			/ %'GUI' $=
 			(
-				- $design "all function %SetMarginOf",
-				* $design "2 function template %PrintLine cannot used with \
-					iterator parameters without postfix operator++" $since b270,
-				* $design "assertion string"
-					@ "function %FetchResizedBottomMargin" $since b273,
-				* $design "assertion string" @ "function %FetchResizedLineN"
-					$since b252,
-				* "implementation" @ "member function %TextLineNEx"
-					@ "class template %GTextRendererBase" $since b267，
-				* "implementation" @ "function %FetchLastLineBasePosition"
-					$since $before b132 ^ "ascender" ~ "descender",
-				* "implementation" @ "function %FetchResizedLineN"
-					$since b252
+				+ "control default handler for requesting to top and focus \
+					for event %TouchDown",
+				- "%TouchDown handling for requesting to top and focus"
+					@ "member function %GUIShell::ResponseTouch";
+					// Clearing focusing pointer of containers is reserved in \
+						%GUIShell::ResponseTouch, but now can only occur before \
+						the control requesting for focus in its parent widget.
+					// It means that the requesting handler can be unloaded \
+						by user manually.
+				+ "referent pointer" @ "class %MenuHost",
+				/ @ "unit %YWidget" $=
+				(
+					* "no effect of function %(Show, Hide) \
+						when used with widgets not buffered" $since b229,
+					+ "covenient function %Close for hiding and releasing focus"
+				)
+				* "missing thumb refreshing when invalidated area not \
+				  intersecting with thumb" @ "member function %ATrack::Refresh"
+				  $since b235,
+				* "wrong position argument" @ "implementation"
+					@ "member function %Button::Refresh" $since b266
 			),
-			/ $design "lessened header dependencies"
+			- $design "dependency of header %platform.h" @ "header %ynew.h",
 		),
+		/ %'YCLib' $=
+		(
+			/ "efficiency improved" @ "function %ScreenSynchronize"
+				^ "asynchronous DMA copy function %dmaCopyWordsAsynch"
+				~ "function %dmaCopy"
+		)
+	);
+	* $design "trivial comments not removed for %(is_not_null, is_null)"
+		$since b254,
+	+ "color picker class %ColorBox";
+	/ %'YReader'.'text reader' $=
+	(
+		/ "behavior on clicking menu button",
+		+ "setting panel"
+	),
+	$design "all code and document files" @ "project %YSTest"
+		>> "project %YFramework",
+	(
+		- "string functions not strictly compliant to ISO" @ "all projects";
+		/ $design "Makefile" @ "project %(YBase, YFramework)" ^ "-std=c++0x"
+			~ "-std=gnu++0x"
+	)
+),
+
+b274
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ "text rendering" @ %'services' $=
+		(
+			- $design "all function %SetMarginOf",
+			* $design "2 function template %PrintLine cannot used with \
+				iterator parameters without postfix operator++" $since b270,
+			* $design "assertion string"
+				@ "function %FetchResizedBottomMargin" $since b273,
+			* $design "assertion string" @ "function %FetchResizedLineN"
+				$since b252,
+			* "implementation" @ "member function %TextLineNEx"
+				@ "class template %GTextRendererBase" $since b267，
+			* "implementation" @ "function %FetchLastLineBasePosition"
+				$since $before b132 ^ "ascender" ~ "descender",
+			* "implementation" @ "function %FetchResizedLineN"
+				$since b252
+		),
+		/ $design "lessened header dependencies"
 	);
 	/ %'YReader'.'text reader' $=
 	(
-		// NOTE: efficiency for opening and random access operations to \
-			large files improved obviously due to using of mapping buffering.
 		/ @ "class %DualScreenReader" $=
 		(
 			+ $design "common margin",
@@ -717,7 +776,7 @@ $now
 				$since $before b132;
 			+ "top and bottom margins balancing"
 		);
-		/ "reader box appearance"
+		/ "appearance"
 		(
 			+ "reading area resizing when showing or hiding reader box",
 			/ "boxes transparency"
@@ -730,7 +789,7 @@ b273
 	/ %'YBase'.'YStandardEx'.'Any' $=
 	(
 		+ $design "class %pseudo_output"
-	)
+	),
 	/ %'YFramework' $=
 	(
 		/ %'CHRLib' $=
@@ -765,7 +824,7 @@ b273
 	),
 	/ %'YReader'.'text reader' $=
 	(
-		// NOTE: efficiency for opening and random access operations to \
+		// Efficiency for opening and random access operations to \
 			large files improved obviously due to using of mapping buffering.
 		/ "view" @ "class %TextInfoBox"
 	),
@@ -860,9 +919,6 @@ b271
 
 b270
 (
-	// NOTE: using of unique_ptr and more content of information box \
-		at readers make it significantly slower than before in %ShlExplorer
-		when running on DeSmuMe at debug configuration.
 	/ $design %'YReader'.'hexadecimal browser' $=
 	(
 		/ "resource management" ^ "class %unique_ptr"
@@ -873,6 +929,9 @@ b270
 	+ "macros for bitmask operations" @ "header %YBaseMacro",
 	/ %'YReader'.'text reader' $=
 	(
+		// Using of unique_ptr and more content of information box \
+			at readers make it significantly slower than before in \
+			%ShlExplorer when running on DeSmuMe at debug configuration.
 		/ $design "resource management" ^ "class %unique_ptr"
 			~ "built-in pointers"
 		/ "unit %DSReader" $=
@@ -994,7 +1053,7 @@ b266
 b265
 (
 	+ "partial invalidation support for text rendering";
-		// NOTE: it makes efficiency decreased obviously \
+		// It makes efficiency decreased obviously \
 			for non-overlapped widgets.
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
@@ -1021,7 +1080,7 @@ b264
 	/ %'YReader' $=
 	(
 		/ "format of time strings showed by information labels"
-			@ "hexadecimal browser" ^ "custom functions" 
+			@ "hexadecimal browser" ^ "custom functions"
 			~ "function %std::ctime",
 		* "file information box cannot be shown" @ "text reader" $since b263
 	),
@@ -1553,7 +1612,7 @@ b237
 b236
 (
 	^ "updated libnds 1.5.3 with default arm7 0.5.22"
-		~ "libnds 1.5.4 with default arm 7 0.5.23",
+		~ "libnds 1.5.4 with default arm7 0.5.23",
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
 		+ "controllers",
@@ -1837,7 +1896,7 @@ b224
 	* "wrong ascending when switching font size" $since b224 $=
 	(
 		^ "freetype 2.4.4 cache system" ~ "freetype 2.4.5 cache system"
-			// NOTE: it seems a new bug in freetype 2.4.5 cache system.
+			// It seems a new bug in freetype 2.4.5 cache system.
 	),
 	+ "containing test" @ "class %Rect",
 	+ $design "WinGDB settings" @ "main project file",
@@ -1856,7 +1915,7 @@ b223
 			~ "directly calling of %ShlDS::UpdateToScreen"
 	),
 	* "uncleared application message queues on program exit" $since b174,
-		// NOTE: this might cause memory leak.
+		// This might cause memory leaks.
 	/ %'YReader' $=
 	(
 		+ "pseudo-frame-per-second counter",
@@ -1920,9 +1979,9 @@ b221
 		+ "sender type as template parameter type",
 		/ "simplified sender argument forwarding"
 		/ "more efficient implementation"^ "%unique_ptr" ~ "%shared_ptr",
-			// NOTE: old version of libstdc++ might fail in compiling
-			// due to members with parameter of rvalue-reference type
-			// are not supported.
+			// Old version of libstdc++ might fail in compiling \
+				due to members with parameter of rvalue-reference type \
+				are not supported.
 	),
 	* "lost move constructor" @ "class template %GMCounter" $since b210,
 	/ "class %HDirectory" ^ "POSIX dirent API" ~ "libnds-specific API",
@@ -2569,8 +2628,8 @@ b1_b131
 	{
 	//	InitYSConsole();
 	//	YDebugBegin();
-		iprintf("time : %u ticks\n", GetTicks());
-		iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
+		std::printf("time : %u ticks\n", GetTicks());
+		std::printf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
 			"W : %u;\nL : %lx;\n", msg.GetMessageID(),
 			msg.GetPriority(), msg.GetObjectID(), msg.GetWParam(),
 			msg.GetLParam());
@@ -2590,7 +2649,7 @@ b1_b131
 					auto& evt(FetchEvent<TouchDown>(mnu));
 					u32 t(evt.GetSize());
 
-					siprintf(strt, "n=%u", t);
+					std::sprintf(strt, "n=%u", t);
 					FillRect(g, r, Blue);
 					DrawText(g, r, strt, Padding(), White);
 				}
@@ -2605,14 +2664,14 @@ b1_b131
 
 
 	YDebugBegin();
-	iprintf("time : %u ticks\n", GetTicks());
-	iprintf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
+	std::printf("time : %u ticks\n", GetTicks());
+	std::printf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
 		"W : %u;\nL : %lx;\n", msg.GetMessageID(), msg.GetPriority(),
 		msg.GetObjectID(), msg.GetWParam(), msg.GetLParam());
 	WaitForInput();
 
 	InitYSConsole();
-	iprintf("%d,(%d,%d)\n",msg.GetWParam(),
+	std::printf("%d,(%d,%d)\n",msg.GetWParam(),
 		msg.GetCursorLocation().X, msg.GetCursorLocation().Y);
 
 #endif
