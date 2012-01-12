@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1514;
+\version r1521;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2011-12-10 16:54 +0800;
-\par 字符集:
+	2012-01-12 23:43 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YRenderer;
@@ -136,8 +136,12 @@ Invalidate(IWidget& wgt, const Rect& bounds)
 void
 PaintChild(IWidget& wgt, PaintEventArgs&& e)
 {
-	e.Location += GetLocationOf(e.GetSender());
-	CallEvent<Paint>(wgt, e);
+	auto& sender(e.GetSender());
+
+	e.Location += GetLocationOf(sender);
+	e.ClipArea = Intersect(Rect(e.Location, GetSizeOf(sender)), e.ClipArea);
+	if(!e.ClipArea.IsUnstrictlyEmpty())
+		CallEvent<Paint>(wgt, e);
 }
 void
 PaintChild(IWidget& wgt, const PaintContext& pc)
@@ -148,9 +152,7 @@ PaintChild(IWidget& wgt, const PaintContext& pc)
 void
 Render(IWidget& wgt, PaintContext&& pc)
 {
-	pc.ClipArea = Intersect(Rect(pc.Location, GetSizeOf(wgt)), pc.ClipArea);
-	if(!pc.ClipArea.IsUnstrictlyEmpty())
-		pc.ClipArea = wgt.GetRenderer().Refresh(wgt, std::move(pc));
+	pc.ClipArea = wgt.GetRenderer().Refresh(wgt, std::move(pc));
 }
 void
 Render(PaintEventArgs&& e)

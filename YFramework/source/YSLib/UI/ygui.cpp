@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4025;
+\version r4026;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-01-04 10:12 +0800;
+	2012-01-12 23:31 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -53,7 +53,7 @@ GUIShell::OnGotMessage(const Message& msg)
 	{
 	case SM_PAINT:
 		{
-			auto h(FetchTarget<SM_PAINT>(msg));
+			const auto h(FetchTarget<SM_PAINT>(msg));
 			
 			if(h)
 				h->Refresh(PaintContext(h->GetContext(), Point::Zero,

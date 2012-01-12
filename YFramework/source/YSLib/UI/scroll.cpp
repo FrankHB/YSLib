@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4091;
+\version r4102;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2012-01-09 14:26 +0800;
+	2012-01-09 18:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -361,19 +361,19 @@ try	: Control(r),
 			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), uMinThumbSize))
 		: static_cast<ATrack*>(new VerticalTrack(
 			Rect(0, r.Width, r.Width, r.Height - r.Width * 2), uMinThumbSize))),
-	PrevButton(Rect()), NextButton(Rect()), small_delta(2)
+	btnPrev(Rect()), btnNext(Rect()), small_delta(2)
 {
 	SetContainerPtrOf(*pTrack, this),
-	SetContainerPtrOf(PrevButton, this);
-	SetContainerPtrOf(NextButton, this);
+	SetContainerPtrOf(btnPrev, this);
+	SetContainerPtrOf(btnNext, this);
 	yunseq(
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
-		FetchEvent<TouchMove>(PrevButton) += OnTouchMove,
-		FetchEvent<TouchDown>(PrevButton) += [this](TouchEventArgs&&){
+		FetchEvent<TouchMove>(btnPrev) += OnTouchMove,
+		FetchEvent<TouchDown>(btnPrev) += [this](TouchEventArgs&&){
 			LocateThumb(small_delta, ScrollCategory::SmallDecrement);
 		},
-		FetchEvent<TouchMove>(NextButton) += OnTouchMove,
-		FetchEvent<TouchDown>(NextButton) += [this](TouchEventArgs&&){
+		FetchEvent<TouchMove>(btnNext) += OnTouchMove,
+		FetchEvent<TouchDown>(btnNext) += [this](TouchEventArgs&&){
 			LocateThumb(small_delta, ScrollCategory::SmallIncrement);
 		},
 		FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUpAndLeave,
@@ -385,11 +385,11 @@ try	: Control(r),
 	const SDst l(s.GetRef(!bHorizontal));
 
 	s.GetRef(bHorizontal) = l;
-	SetSizeOf(PrevButton, s);
-	SetSizeOf(NextButton, s);
-//	Button.SetLocationOf(PrevButton, Point::Zero);
-	MoveToBottom(NextButton);
-	MoveToRight(NextButton);
+	SetSizeOf(btnPrev, s);
+	SetSizeOf(btnNext, s);
+//	Button.SetLocationOf(btnPrev, Point::Zero);
+	MoveToBottom(btnNext);
+	MoveToRight(btnNext);
 }
 catch(...)
 {
@@ -399,9 +399,9 @@ catch(...)
 IWidget*
 AScrollBar::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	if(auto p = CheckWidget(PrevButton, pt, f))
+	if(auto p = CheckWidget(btnPrev, pt, f))
 		return p;
-	if(auto p = CheckWidget(NextButton, pt, f))
+	if(auto p = CheckWidget(btnNext, pt, f))
 		return p;
 
 	YAssert(bool(pTrack),
@@ -418,13 +418,13 @@ AScrollBar::Refresh(const PaintContext& pc)
 	auto r(Widget::Refresh(pc));
 
 	PaintChild(*pTrack, pc),
-	PaintChild(PrevButton, pc),
-	PaintChild(NextButton, pc);
-	WndDrawArrow(pc.Target, Rect(pc.Location + GetLocationOf(PrevButton),
-		GetSizeOf(PrevButton)), 4, pTrack->GetOrientation() == Horizontal
+	PaintChild(btnPrev, pc),
+	PaintChild(btnNext, pc);
+	WndDrawArrow(pc.Target, Rect(pc.Location + GetLocationOf(btnPrev),
+		GetSizeOf(btnPrev)), 4, pTrack->GetOrientation() == Horizontal
 		? RDeg180 : RDeg90, ForeColor),
-	WndDrawArrow(pc.Target, Rect(pc.Location + GetLocationOf(NextButton),
-		GetSizeOf(NextButton)), 4, pTrack->GetOrientation() == Horizontal
+	WndDrawArrow(pc.Target, Rect(pc.Location + GetLocationOf(btnNext),
+		GetSizeOf(btnNext)), 4, pTrack->GetOrientation() == Horizontal
 		? RDeg0 : RDeg270, ForeColor);
 	return r;
 }
@@ -444,9 +444,9 @@ IWidget*
 HorizontalScrollBar::GetBoundControlPtr(const KeyCode& k)
 {
 	if(k == KeySpace::Left)
-		return &PrevButton;
+		return &btnPrev;
 	if(k == KeySpace::Right)
-		return &NextButton;
+		return &btnNext;
 	return nullptr;
 }
 
@@ -465,9 +465,9 @@ IWidget*
 VerticalScrollBar::GetBoundControlPtr(const KeyCode& k)
 {
 	if(k == KeySpace::Up)
-		return &PrevButton;
+		return &btnPrev;
 	if(k == KeySpace::Down)
-		return &NextButton;
+		return &btnNext;
 	return nullptr;
 }
 

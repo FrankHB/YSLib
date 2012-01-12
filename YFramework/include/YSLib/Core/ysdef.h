@@ -22,7 +22,7 @@
 \par 创建时间:
 	2009-12-24 15:29:11 +0800;
 \par 修改时间:
-	2012-01-04 08:28 +0800;
+	2012-01-09 18:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -41,11 +41,7 @@
 
 YSL_BEGIN
 
-//前向声明和类型定义。
-
-//空结构体类型。
-struct EmptyType
-{};
+//前向声明。
 
 YSL_BEGIN_NAMESPACE(Components)
 class Desktop;

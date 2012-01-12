@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3065;
+\version r3082;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2011-12-04 12:56 +0800;
-\par 字符集:
+	2012-01-10 21:18 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::Button;
@@ -108,6 +108,28 @@ public:
 	Button(const Rect& = Rect::Empty,
 		const Drawing::Font& = Drawing::Font::GetDefault());
 	inline DefDeMoveCtor(Button)
+
+	/*!
+	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	*/
+	virtual Rect
+	Refresh(const PaintContext&);
+};
+
+
+/*!
+\brief 关闭按钮。
+\since build 276 。
+*/
+class CloseButton : public Thumb
+{
+public:
+	/*!
+	\brief 构造：使用指定边界和字体。
+	*/
+	explicit
+	CloseButton(const Rect& = Rect::Empty);
+	inline DefDeMoveCtor(CloseButton)
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。

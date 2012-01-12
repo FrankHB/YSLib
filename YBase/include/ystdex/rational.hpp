@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2061;
+\version r2074;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260 。
 \par 创建时间:
 	2011-11-12 23:23:47 +0800;
 \par 修改时间:
-	2011-12-24 13:00 +0800;
-\par 字符集:
+	2012-01-10 18:59 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YStandardEx::Rational;
@@ -77,11 +77,11 @@ namespace ystdex
 	/*!
 	\brief 通用定点数。
 
-	基于整数算术实现的确定有限精度二进制定点小数类型。用于替换内建的 float 、 double
-	和 long double 类型。是否有符号同基本整数类型。若有符号，则最高有效位为符号位。
-	逻辑布局： 整数部分|小数部分 。各个部分的内部为补码表示。
+	基于整数算术实现的确定有限精度二进制定点小数类型。可用于替换内建的浮点数类型。
+	是否有符号同基本整数类型参数。若有符号，则最高有效位为符号位。
+	逻辑布局： [符号位]|整数部分|小数部分 。各个部分的内部为补码表示。
 	\tparam _tBase 基本整数类型。
-	\tparam _vInt 整数部分（若有符号则包括符号位，下同）二进制位数。
+	\tparam _vInt 整数部分（若有符号则不包括符号位，下同）二进制位数。
 	\tparam _vFrac 分数部分二进制位数。
 	\warning 基本整数类型需要具有补码表示。
 	\warning 非虚析构。
@@ -128,7 +128,7 @@ namespace ystdex
 
 	public:
 		/*!
-		\breif 无参数构造。
+		\brief 无参数构造。
 		\warning 基本整数类型成员未被初始化，具有未决定值 ，使用可能造成未定义行为。
 		*/
 		yconstfn
@@ -231,8 +231,17 @@ namespace ystdex
 		fixed_point&
 		operator*=(const fixed_point& f) ynothrow
 		{
-			this->value = (typename fixed_multiplicative<base_type>::type(
-				this->value) * f.value) >> frac_bit_n;
+			typename fixed_multiplicative<base_type>::type
+				tmp(this->value * f.value);
+			yconstexpr size_t shift_bit_n(frac_bit_n
+				+ std::is_signed<base_type>::value);
+
+			this->value = tmp < 0 ? -(-tmp >> shift_bit_n) : tmp >> shift_bit_n;
+		// NOTE: Code below only fit for unsigned type, due to there exists
+		//	implementation-defined in conversion and right shifting on
+		//	signed types;
+		//	this->value = (typename fixed_multiplicative<base_type>::type(
+		//		this->value) * f.value) >> shift_bit_n;
 			return *this;
 		}
 
@@ -267,7 +276,7 @@ namespace ystdex
 		}
 */
 		template<typename _type>
-		inline explicit
+		inline
 		operator _type() const
 		{
 			return this->cast<_type>();
@@ -286,7 +295,7 @@ namespace ystdex
 			_type>::type
 		cast() const
 		{
-			return this->value / base_element();
+			return _type(this->value) / base_element();
 		}
 
 	public:

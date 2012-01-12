@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5476;
+\version r5478;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-01-07 20:45 +0800;
+	2012-01-12 23:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -646,7 +646,8 @@ ShlExplorer::TFormExtra::TFormExtra()
 		FetchEvent<Move>(btnDragTest) += [this](UIEventArgs&&){
 			char sloc[20];
 
-			std::sprintf(sloc, "(%d, %d);", btnDragTest.GetX(), btnDragTest.GetY());
+			std::sprintf(sloc, "(%d, %d);", btnDragTest.GetX(),
+				btnDragTest.GetY());
 			btnDragTest.Text = sloc;
 			Invalidate(btnDragTest);
 		},

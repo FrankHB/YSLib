@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r1293;
+\version r1296;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-20 08:59:56 +0800;
 \par 修改时间:
-	2011-12-25 16:05 +0800;
-\par 字符集:
+	2012-01-12 15:46 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::Progress;
@@ -39,7 +39,7 @@ ProgressBar::ProgressBar(const Rect& r, ValueType m)
 
 	yunseq(BackColor = pal[Styles::Track],
 		ForeColor = pal[Styles::HotTracking],
-		BorderColor = pal[Styles::ActiveBorder]);
+		BorderColor = pal[Styles::InactiveBorder]);
 }
 
 void

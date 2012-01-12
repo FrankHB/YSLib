@@ -8,53 +8,46 @@
 	understand and accept it fully.
 */
 
-/*!	\file ColorPicker.h
-\ingroup YReader
-\brief 拾色器。
-\version r1101;
+/*!	\file Border.h
+\ingroup UI
+\brief 样式无关的图形用户界面附加容器。
+\version r1046;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
-	2012-01-06 20:46:10 +0800;
+	2012-01-10 19:55:30 +0800;
 \par 修改时间:
-	2012-01-13 00:34 +0800;
+	2012-01-13 00:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YReader::ColorPicker;
+	YSLib::UI::Border;
 */
 
 
-#ifndef INCLUDED_COLORPICKER_H_
-#define INCLUDED_COLORPICKER_H_
+#ifndef YSL_INC_UI_BORDER_H_
+#define YSL_INC_UI_BORDER_H_
 
-#include <YSLib/UI/uicontx.h>
-#include <YSLib/UI/scroll.h>
+#include "ywgtevt.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
 /*!
-\brief 拾色框。
-\since build 275 。
+\brief 边框样式。
+\warning 非虚析构。
+\since build 276 。
 */
-class ColorBox : public DialogPanel
+class BorderStyle
 {
-protected:
-	/*!
-	\brief 颜色区域。
-	\since build 276 。
-	*/
-	Control ColorArea;
-	HorizontalTrack RTrack, GTrack, BTrack;
-
 public:
-	ColorBox(const Point&, Color c = ColorSpace::White);
+	Color ActiveColor, InactiveColor;
 
-	DefGetter(const ynothrow, Color, Color, ColorArea.BackColor)
+	BorderStyle();
+
 	void
-	SetColor(Color);
+	OnPaint(PaintEventArgs&&);
 };
 
 YSL_END_NAMESPACE(Components)

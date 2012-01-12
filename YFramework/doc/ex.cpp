@@ -11,14 +11,14 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3405; *build 275 rev 42;
+\version r3421; *build 276 rev 33;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-01-09 14:42 +0800;
-\par 字符集:
+	2012-01-13 00:39 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	Documentation::Designation;
@@ -255,6 +255,10 @@ $using:
 	\cl Window,
 	\cl Frame
 ),
+\u YStyle
+(
+	\cl Palette
+),
 \u YGUI
 (
 	\cl GUIShell,
@@ -274,13 +278,17 @@ $using:
 (
 	\cl ProgressBar
 ),
-\u UIContainerEx
-(
-),
+\u Border
+(),
 \u Button
 (
 	\cl Thumb,
 	\cl Button
+),
+\u UIContainerEx
+(
+	\cl DialogBox,
+	\cl DialogPanel
 ),
 \u CheckBox
 (
@@ -314,11 +322,15 @@ $using:
 (
 	\cl Form
 ),
-\u YText
+\u TextBase
 (
 	\cl TextState,
+),
+\u TextRenderer
+(
 	\cl EmptyTextRenderer,
-	\cl ATextRenderer,
+	\clt GTextRendererBase,
+	\cl TextRenderer
 	\cl TextRegion
 ),
 \u TextManager
@@ -329,242 +341,295 @@ $using:
 
 $DONE:
 r1:
-/ @ \u YControl $=
+/ \ft<typename...> empty_base @ \h Operators >> \h YDefinition,
+- \st EmptyType @ \h YShellDefinition,
+/ @ \u UIContainerEx $=
 (
-	+ \f void OnTouchDown_RequestToTopFocused(TouchEventArgs&&);
-	/ \impl @ \ctor @ \cl Control
-);
-/ \tr \simp \impl @ \mf GUIShell::ResponseTouch;
+	+ \inc \h Button @ \h,
+	+ \inc \h YGUI @ \impl \u;
+	+ \cl ToolBox @ \u UIContainerEx
+),
+/ \a PrevButton => btnPrev,
+/ \a NextButton => btnNext;
 
 r2:
-* \impl @ \f OnTouchDown_RequestToTopFocused @ \impl \u YControl $since r1;
+/ \inc \h UIContainerEx -> \inc \h (YControl, YUIContainer)
+	@ \h Scroll,
+(
+	+ \inc \h YUIContainer @ \h YSLib::Build,
+	/ \simp @ \cl TextInfoBox @ \u ShlReader ^ \cl ToolBox $=
+	(
+		/ \inh Control -> ToolBox,
+		- \m Button btnClose;
+		/ \tr \impl @ \ctor,
+		- \mf GetTopWidgetPtr,
+		/ \tr \impl @ \mf Refresh
+	)
+);
 
 r3:
-+ \m IWidget* Referent @ \cl MenuHost;
-/ \impl @ \ctor @ \cl Menu;
-/ \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader;
++ \mf void Control::OnTouch_Close(TouchEventArgs&&),
+/ \mf (Add, AddUnique)#3 @ \clt GEvent @ \h YEvent;
+/ \simp \impl @ \ctor @ \cl ToolBox ^ \mf Control::OnTouch_Close ~ \f Close;
 
-r4-r6:
-/= test 1;
+r4:
+/ @ \cl Color @ \h YCommon $=
+(
+	/ \m typedef bool AlphaType - typedef u8 AlphaType;
+	/ private \m PixelType _value -> (MonoType r, g, b; AlphaType a);
+	/ \tr \impl @ \a 2 \ctor,
+	/ \tr \impl @ \mf (GetR, GetG, GetB, GetA)
+);
+
+r5:
+* \impl @ \ctor @ \cl Color @ \h YCommon $since r4;
+
+r6:
+/ @ \u YStyle $=
+(
+	/ \f hsl_t rgb2hsl(rgb_t) -> hsl_t ColorToHSL(Color),
+	/ \f rgb_t hsl2rgb(hsl_t c) -> Color HSLToColor(hsl_t);
+	- \f (rgb2Color, Color2rgb);
+	- \st rgb_t
+);
+/ \tr \impl @ \impl \u CheckBox;
 
 r7:
-* \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader;
+/= test 1 ^ \conf release;
 
 r8:
-/= test 2 ^ \conf release;
+/ @ \clt fixed_point @ \h Rational $=
+(
+	* \rem $since b260,
+	* \rem @ \ctor $since b260,
+	* private \mf cast#2 $since $since b260,
+	* wrong \impl @ operator*= for signed types $since b260 $=
+	(
+		* wrong bits shifted leading to overflow,
+		* implementation-defined behavior dependencies
+	)
+	- \exp @ \ft<_type> operator _type()
+);
+/ @ \impl \u YStyle $=
+(
+	+ \inc \h <ystdex/rational.hpp> @ \h;
+	/ \impl @ \f (ColorToHSL, HSLToColor)
+);
 
 r9:
-* \rem not removed for (is_not_null, is_null)
-	@ \h (YWidget, Scroll, Memory) $since b254,
-/ \impl @ \f ScreenSynchronize @ \impl \u YCommon
-	^ dmaCopyWordsAsynch ~ dmaCopy,
-- \inc \h Platform @ \h YNew;
-
-r10:
-/ \u YText["ytext.h", "ytext.cpp"] @ \dir Service -> \u (TextBase["TextBase.h",
-	"TextBase.cpp"], CharRenderer["CharRenderer.h", "CharRenderer.cpp"],
-	TextLayout["TextLayout.h", "TextLayout.cpp"], TextRenderer["TextRenderer.h",
-	"TextRenderer.cpp"]);
-/ \tr \inc \h @ \h (Label, TextArea, HexBrowser), \u (ListBox, DSReader, Label,
-	Menu, TextList);
-
-r11:
-/= test 3 ^ \conf release;
-
-r12:
-/ \h Platform::DS["platform.h"] @ \proj YSTest -> YCLib::DS["Platform.h"],
-/ \h Platform::DS["api.h"] @ \proj YSTest -> YCLib::NativeAPI["NativeAPI.h"];
-/ \tr \inc \h @ \h YCommon,
-/ \tr \impl @ \impl \u Main;
-/ \impl \u Platform::DS::Main["main.cpp"] @ \proj YSTest
-	=> Main_ARM9["main.cpp"];
-
-r13:
-/ \a \inc @ \proj YSTest >> \proj YFramework,
-/ \dir ('lib', 'doc') @ \proj YSTest >> \proj YFramework;
-/ \simp @ export \mac INCLUDES @ Makefile @ \proj YFramework,
-/ \tr \impl @ Makefile @ \proj (YFramework, YSTest_ARM9);
-/= test 4 ^ \conf release;
-
-r14:
-/= test 5;
-
-r15:
-+ \u ColorPicker["ColorPicker.h", "ColorPicker.cpp"] @ \proj YSTest_ARM9;
-+ \cl ColorBox @ \u ColorPicker;
-
-r16:
-/ @ \u YCommon $=
 (
-	/ \impl @ \f yprintf @ \impl \u ^ std::vprintf ~ viprintf,
+	+ \u Border["Border.h", "Border.cpp"] @ \dir UI;
 	(
-		- \f YDebugW;
-		- \f \i iputw @ \h,
-	)
-),
-/ \a 'siprintf' -> 'std::sprintf' @ \impl \u (Shells, ShlReader, YCommon,
-	YShellInitialization),
-/ \impl @ \f snftime @ \un \ns @ \impl \u ShlReader
-	^ ::snprintf ~ ::sniprintf;
-- using '::*iprintf' @ \h YCommon,
-- \f (stpcpy_n, strdup_n) @ \u YStandardEx::CString,
-(
-	/ \impl @ 2 \f HaveSameExtensions @ \impl \u YFileSystem,
-	- \f stricmp_n @ \u YStandardEx::CString
-),
-/ \impl @ \f IsExtensionOf#1 @ \impl \u YFileSystem;
-/ '-std=gnu++0x' @ \mac CXXFLAGS @ Makefile @ \proj (YFramework, YBase)
-	-> '-std=c++0x';
-
-r17:
-/= test 6 ^ \conf release;
-
-r18:
-/ @ \u ShlReader $=
-(
-	/ \simp \impl @ \mf TextInfoBox::GetTopWidgetPtr,
-	/ \impl @ \mf (GetTopWidgetPtr, Refresh) @ \cl ReaderBox
-);
-
-r19-r23:
-+ \mf \i void SetVisible(bool = true) @ \cl DualScreenReader @ \h DSReader;
-/ @ \u ShlReader $=
-(
-	+ \cl SettingPanel;
-	+ yconstexpr Menu::IndexType MR_FileInfo @ \un \ns @ \impl \u;
-	/ @ \cl TextReaderManager $=
-	(
-		+ \m SettingPanel boxSetting,
-		/ \tr \impl @ \ctor,
-		/ \impl @ \mf (Execute, Activate, Deactivate)
-	)
-);
-
-r24:
-/= test 7 ^ \conf release;
-
-r25-r26:
-/ @ \cl TextReaderManager / @ \impl \u ShlReader $=
-(
-	/ \impl @ \ctor,
-	* \impl @ \mf Execute $since r22
-);
-
-r27:
-/ @ \u ShlReader $=
-(
-	/ @ \cl SettingPanel $=
-	(
-		+ \mf void Close();
-		/ \impl @ \ctor
+		+ \inc \h Border @ \impl \u (UIConteinerEx, TextList),
+		+ \f void DrawWidgetBounds(PaintEventArgs&&) @ \u Border;
 	);
-	/ \impl @ \ctor @ \cl TextReaderManager
-);
-
-r28:
-/ @ \cl ColorBox @ \u ColorBox $=
-(
-	/ \a private -> public;
-	/ \impl @ \ctor
-);
-/ @ \u ShlReader $=
-(
-	+ \inc \h "ColorPicker.h" @ \h;
-	/ @ \cl SettingPanel $=
+	/ @ \cl ToolBox $=
 	(
-		+ protected \m ColorBox boxColor;
-		/ \impl @ \ctor
-	)
-);
-
-r29-r32:
-/ @ \impl \u ColorPicker $=
-(
-	+ \inc \h YGUI;
-	/ @ \cl ColorBox $=
+		- \m HasBorder;
+		/ \impl @ \ctor,
+		/ \simp \impl @ \mf Refresh
+	),
+	/ @ \cl TextList $=
 	(
 		/ \impl @ \ctor,
-		/ \impl @ \mf Refresh
+		/ \simp \impl @ \mf Refresh
+	),
+	+ \inc \h Border @ \impl \u ColorPicker;
+	/ @ \cl ColorBox @ \impl \u ColorPicker $=
+	(
+		/ \impl @ \ctor,
+		/ \simp \impl @ \mf Refresh
 	)
 ),
-* \impl @ \ctor @ \cl SettingPanel @ \impl \u ShlReader;
+/ \impl @ \ctor @ \cl Control::ControlEventMap ^ yunseq;
+
+r10:
++ \cl CloseButton @ \u Button;
+/ \simp @ \cl ToolBox ^ \cl CloseButton;
+
+r11-r13:
+/= test 2,
+* \impl @ \mf CloseButton::Refresh $since r10;
+
+r13:
+/ \impl @ \mf CloseButton::Refresh $since r10;
+
+r14:
+/= test 3 ^ \conf release;
+
+r15:
+/ \a ToolBox -> DialogBox,
+/ \inc \h (YControl, YUIContainer) @ \h UIContainerEx -> \h YPanel;
++ \cl DialogPanel @ \u UIContainerEx;
+
+r16:
+/ \simp @ \cl SettingPanel @ \u ShlReader ^ \cl DialogPanel,
+/ @ \u ColorPicker $=
+(
+	+ \inc \h UIContainerEx @ \h,
+	/ \simp @ \cl ColorBox ^ \cl DialogPanel,
+	- \inc \h Border @ \impl \u;
+);
+
+r17:
+* \impl @ \ctor @ \cl DialogPanel $since r15;
+
+r18:
+/= test 4 ^ \conf release;
+
+r19:
+/ @ \u ColorPicker $=
+(
+	+ \inc \h Border @ \impl \u;
+	+ \cl BorderControl;
+	/ \m Widget ColorArea @ \cl ColorBox -> BorderControl ColorArea
+);
+
+r20:
+/ \m Control ColorAreaUp, ColorAreaDown @ \cl SettingPanel @ \u ShlReader
+	-> BorderControl ColorAreaUp, ColorAreaDown;
+
+r21:
+/ @ \cl BorderControl @ \u ColorPicker $=
+(
+	+ \m Color ActiveBorderColor, InactiveBorderColor;
+	/ \impl @ \ctor
+),
+(
+	/ \inc \h YWidgetEvent -> \h YControl @ \h Border,
+	+ \INC \h Border @ \h UIContainerEx;
+	/ \cl BorderControl @ \u ColorPicker >> \u Border
+);
+
+r22:
+/ \inc \h Border @ \impl \u TextList -> \h;
+/ @ \cl TextList $=
+(
+	/ \inh \cl Control -> BorderControl;
+	/ \impl @ \ctor
+);
+
+r23:
+/ \impl @ \ctor @ \cl Palette;
+
+r24:
+- \inc \h (Border, YGUI) @ \impl \u UIContainerEx,
+/ @ \cl DialogBox $=
+(
+	/ \inh \cl Control -> BorderControl;
+	/ \impl @ \ctor
+);
+
+r25:
+/ \impl @ \ctor @ \cl ProgressBar;
+
+r26:
+/ \impl @ \ctor @ \cl DialogPanel;
+- \f DrawWidgetBounds @ \u Border;
+
+r27:
+/= test 5 ^ \conf release;
+
+r28:
+/ \impl @ \f (Render, PaintChild#1) @ \impl \u YRenderer;
+
+r29:
+/ \impl @ \mf GUIShell::OnGotMessage,
+* \impl @ \f PaintChild#1 @ \u YRenderer $since b28;
+
+r30:
++ \cl BorderStyle @ \u Border;
+/ @ \cl (TextList, DialogBox) $=
+(
+	/ \inh \cl BorderControl -> Control;
+	+ \m BorderStyle Border;
+	/ \tr \impl @ \ctor
+);
+
+r31:
+/ @ \cl DialogPanel $=
+(
+	+ \m BorderStyle Border;
+	/ \impl @ \ctor
+),
+/ @ \u Border $=
+(
+	- \f DrawWidgetBounds,
+	/ \cl BorderControl >> \u ColorPicker;
+	/ \inc \h YControl -> YWidgetEvent
+),
+/ @ \cl SettingPanel @ \u ShlReader $=
+(
+	/ \m BorderControl ColorAreaUp, ColorAreaDown
+		-> Control ColorAreaUp, ColorAreaDown;
+	/ \impl @ \ctor
+);
+
+r32:
+/ @ \u ColorPicker $=
+(
+	/ @ \u ColorBox $=
+	(
+		/ \m BorderControl ColorArea -> Control ColorArea;
+		/ \impl @ \ctor
+	);
+	- \cl BorderControl,
+	- \inc \h Border @ \impl \u
+);
 
 r33:
-/ @ \u YWidget $=
-(
-	+ \f void Close(IWidget&);
-	* \impl @ \f (Show, Hide) $since b229
-		^ \f Invalidate ~ SetInvalidationToParent
-);
-- \mf SettingPanel::Close @ \u ShlReader;
-/ \simp \impl \u (ShlReader, ColorPicker) ^ \f Close;
-
-r34:
-/ @ \cl ColorBox $=
-(
-	/ \ac @ \m (ColorArea, RTrack, GTrack, BTrack) -> protected ~ public,
-	+ \mf void SetColor(Color)
-);
-/ \impl @ \ctor @ \cl SettingPanel @ \u ShlReader;
-
-r35:
-/= test 8 ^ \conf release;
-
-r36-r39:
-/= test 9;
-
-r40:
-* \impl @ \ctor @ \cl ColorBox @ \impl \u ColorPicker $since r33;
-
-r41:
-* \impl @ \mf ATrack::Refresh $since b235,
-* \impl @ \mf Button::Refresh $since b266;
-
-r42:
-/= test 10 ^ \conf release;
+/= test 6 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-01-09:
--10.4d;
-//Mercurial rev1-rev147: r7183;
+2012-01-13:
+-9.0d;
+//Mercurial rev1-rev148: r7216;
 
 / ...
 
 
 $NEXT_TODO:
-b276-b324:
+b277-b324:
 * background for buffered widgets;
 / fully \impl @ \u DSReader $=
 (
 	+ fully \impl settings,
 	+ bookmarks
 );
-* VRAM not flushed when opening lid on real DS;
+* VRAM not flushed when opening lid on real DS,
 + dynamic character mapper loader for \u CharacterMapping;
 
 b325-b1152:
-^ timing triggers @ message loop;
-+ 64-bit integer underlying type support for ystdex::fixed_point;
-+ overlapping test @ \cl Rect;
-/ build command @ \a \conf proj YBase;
-+ partial invalidation support @ %(HexViewArea::Refresh);
-+ user-defined stream filters;
-+ formal abstraction of rectangular hit test;
+^ timing triggers @ message loop,
+/ ystdex::fixed_point $=
+(
+	* \impl @ \op/= for signed types,
+	+ 64-bit integer underlying type support
+)
++ overlapping test @ \cl Rect,
+/ build command @ \a \conf proj YBase,
++ partial invalidation support @ %(HexViewArea::Refresh),
++ user-defined stream filters,
++ formal abstraction of rectangular hit test,
 + general monomorphic iterator abstraction,
-+ widget layout managers;
-+ key accelerators;
-+ fully \impl styles @ widgets;
-/ partial invalidation support @ \f DrawRectRoundCorner;
-+ data configuragion;
-/ fully \impl @ \cl Path;
-/ \impl @ 'real' RTC;
-+ clipping areas;
-+ GDI brushes;
-/ text alignment;
-+ \impl @ images loading and processing;
++ widget layout managers,
++ key accelerators,
++ fully \impl styles @ widgets,
+/ partial invalidation support @ \f DrawRectRoundCorner,
++ data configuragion,
+/ fully \impl @ \cl Path,
+/ \impl @ 'real' RTC,
+/ @ "GUI" $=
+(
+	+ modal widget behavior,
+	+ clipping areas,
+	+ GDI brushes,
+	/ text alignment
+),
++ \impl @ images loading and processing,
 * platform-neutrality @ blit \impl $=
 (
 	/ @ alpha blending $=
@@ -573,24 +638,26 @@ b325-b1152:
 	)
 	/ bool xor operation @ \ft Blit
 )
-+ dynamic widget prototypes;
++ dynamic widget prototypes,
 / user-defined bitmap buffer @ \cl Desktop;
 
 
 $LOW_PRIOR_TODO:
 b1153-b4320:
-+ shared property: additional;
-+ correct DMA (copy & fill);
-/ improve efficiency @ \ft polymorphic_crosscast @ \h YCast;
-+ (compressing & decompressing) @ gfx copying;
-+ keys for touch events;
++ shared property: additional,
+/ improve efficiency @ \ft polymorphic_crosscast @ \h YCast,
++ (compressing & decompressing) @ gfx copying,
++ keys for touch events,
 + Microsoft Windows port;
-+ Unicode layout control;
-+ general component operations:
-	+ serialization;
-	+ designer;
-+ auto-adaptors for look and feels;
-+ networking;
++ correct DMA (copy & fill),
++ Unicode layout control,
++ general component operations $=
+(
+	+ serialization,
+	+ designers
+),
++ auto-adaptors for look and feels,
++ networking,
 + database interface;
 
 
@@ -685,6 +752,50 @@ $module_tree $=
 
 $now
 (
+	/ %'YBase' $=
+	(
+		/ "template %fixed_point" $=
+		(
+			* "wrong casting to floating types" $since b260,
+			* "wrong comments" $since b260,
+			* "wrong implementation @ member function %operator*= \
+				for signed types" $since b260,
+			- "explicit @ casting operator"
+		)
+	);
+	/ %'YFramework' $=
+	(
+		/ %'YCLib' $=
+		(
+			/ "storing 8-bit RGBA values in native color type class %Color"
+				// It spends more space but is more efficient in time.
+		);
+		/ %'YSLib' $=
+		(
+			+ "adding/removing member function handlers with object type \
+				distinct to class type" @ "class %GEvent",
+			/ %'GUI' $=
+			(
+				+ $design "member function %OnTouch_Close" @ "class %Control";
+				+ "class %ToolBox",
+				/ "simplified color conversion APIs" @ "unit %YStyle",
+				/ "color conversion APIs" ^ "%ystdex::fixed_point",
+				+ "border APIs",
+				/ "default related border color" @ "class %ProgressBar",
+				/ "intersection calculation" >> "function %PaintChild#1"
+					~ "function %Render"
+			)
+		)
+	);
+	/ %'YReader'.'text reader' $=
+	(
+		/ $design "simplified implementation",
+		/ "control appearance" @ "setting panel" ^ "border" 
+	)
+),
+
+b275
+(
 	/ %'YFramework' $=
 	(
 		/ %'YSLib' $=
@@ -698,8 +809,9 @@ $now
 				- "%TouchDown handling for requesting to top and focus"
 					@ "member function %GUIShell::ResponseTouch";
 					// Clearing focusing pointer of containers is reserved in \
-						%GUIShell::ResponseTouch, but now can only occur before \
-						the control requesting for focus in its parent widget.
+						%GUIShell::ResponseTouch, but now can only occur \
+						before the control requesting for focus \
+						in its parent widget.
 					// It means that the requesting handler can be unloaded \
 						by user manually.
 				+ "referent pointer" @ "class %MenuHost",
@@ -707,7 +819,7 @@ $now
 				(
 					* "no effect of function %(Show, Hide) \
 						when used with widgets not buffered" $since b229,
-					+ "covenient function %Close for hiding and releasing focus"
+					+ "function %Close for hiding and releasing focus"
 				)
 				* "missing thumb refreshing when invalidated area not \
 				  intersecting with thumb" @ "member function %ATrack::Refresh"
@@ -780,7 +892,7 @@ b274
 		(
 			+ "reading area resizing when showing or hiding reader box",
 			/ "boxes transparency"
-		);
+		)
 	)
 ),
 
@@ -929,7 +1041,7 @@ b270
 	+ "macros for bitmask operations" @ "header %YBaseMacro",
 	/ %'YReader'.'text reader' $=
 	(
-		// Using of unique_ptr and more content of information box \
+		// Using of unique_ptr and more contents of information box \
 			at readers make it significantly slower than before in \
 			%ShlExplorer when running on DeSmuMe at debug configuration.
 		/ $design "resource management" ^ "class %unique_ptr"
@@ -1148,7 +1260,7 @@ b261
 
 b260
 (
-	/ @ "library %YBase" $=
+	/ %'%YBase' $=
 	(
 		+ $design "several operations for integer types",
 		+ $design "reusable overloaded operators";

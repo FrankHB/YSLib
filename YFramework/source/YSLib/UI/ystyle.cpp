@@ -11,14 +11,14 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1515;
+\version r1589;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2012-01-01 11:10 +0800;
-\par 字符集:
+	2012-01-12 15:36 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YStyle;
@@ -133,88 +133,79 @@ WndDrawArrow(const Graphics& g, const Rect& r, SDst half_size, Rotation rot,
 }
 
 
-// 实现参照： http://130.113.54.154/~monger/hsl-rgb.html 。
-
 hsl_t
-rgb2hsl(rgb_t c)
+ColorToHSL(Color c)
 {
-	const u8 min_color(min(min(c.r, c.g), c.b)),
-		max_color(max(max(c.r, c.g), c.b));
-	u16 s(0), l;
-	s32 h(0); // 此处 h 的值每 0x60000 对应一个圆周。
+	typedef float mid_t; //中间类型。
+
+	const u8 r(c.GetR()), g(c.GetG()), b(c.GetB()),
+		min_color(min(min(r, g), b)), max_color(max(max(r, g), b));
+	mid_t h(0); // 此处 h 的值每 0x6 对应一个圆周。
+	mid_t s(0);
+	decltype(hsl_t::l) l;
 
 	if(min_color == max_color)
-		l = min_color << 8;
+		l = decltype(hsl_t::l)(min_color) / 0x100;
 	else
 	{
-		l = ((min_color + max_color) << 8) / 2;
+		const unsigned p(max_color + min_color);
+
+		l = decltype(hsl_t::l)(p) / 0x200;
 	/*
-		l = u16((0.2126 * c.r + 0.7152 * c.g
-			 + 0.0722 * c.b) * 256); // Rec. 601 luma;
-		l = u16((0.299 * c.r + 0.588 * c.g
-			 + 0.114 * c.b) * 256); // Rec. 709 luma;
+		l = 0.2126 * r + 0.7152 * g + 0.0722 * b; // Rec. 601 luma;
+		l = 0.299 * r + 0.588 * g + 0.114 * b; // Rec. 709 luma;
 	*/
 
-		const u32 p((max_color + min_color) << 8);
-		const u16 q((max_color - min_color) << 8); // chroma;
+		// chroma * 256;
+		const mid_t q(max_color - min_color);
 
-		s = (q << 16) / (l < 0x8000 ? p : 0x20000 - p);
-		if(c.r == max_color)
-			h = ((c.g - c.b) << 24) / q;
-		else if(c.g == max_color)
-			h = ((c.b - c.r) << 24) / q + 0x20000;
-		else if(c.b == max_color)
-			h = ((c.r - c.g) << 24) / q + 0x40000;
+		s = q / (p < 0x100 ? p : 0x200 - p);
+		if(r == max_color)
+			h = (g - b) / q;
+		else if(g == max_color)
+			h = (b - r) / q + 0x2;
+		else if(b == max_color)
+			h = (r - g) / q + 0x4;
 		if(h < 0)
-			h += 0x60000;
+			h += 0x6;
 	}
 
-	const hsl_t r = {u16(h * 15 >> 8), s, l};
+	const hsl_t res = {h * 60, s, l};
 
-	return r;
+	return res;
 }
 
-rgb_t
-hsl2rgb(hsl_t c)
+Color
+HSLToColor(hsl_t c)
 {
-	rgb_t r;
-
 	if(c.s == 0)
-		r.r = r.g = r.b = c.l >> 8;
-	else
+		return Color(c.l * 0x100, c.l * 0x100, c.l * 0x100);
+
+	typedef float mid_t; //中间类型。
+
+	mid_t t2((c.l < 0.5 ? c.l * (1 + c.s) : (c.l + c.s - c.l * c.s)) * 0x100),
+		t1((c.l * 0x200) - t2);
+	mid_t t3(c.h); //角度制，即值 360 对应一个圆周。
+	mid_t tmp[3] = {t3 + 120, t3, t3 - 120}; \
+		// tmp 每个元素对应一个 RGB 分量，值 360 对应一个圆周。
+	float dc[3]; //对应 RGB 分量。
+
+	for(size_t i(0); i < 3; ++i)
 	{
-		u32 t2(c.l < 0x8000 ? (c.l >> 8) * (0x10000 + c.s)
-			: ((c.l + c.s) << 8) - (u32(c.l * c.s) >> 8)),
-			t1((c.l * 2 << 8) - t2); // t1 和 t2 为 8.24 定点数 。
-		u32 t3((c.h << 8) / 5); // t3 值 0x120000 对应一个圆周。
-		s32 temp3[3] = {t3 + 0x60000, t3, t3 - 0x60000}; \
-			// temp3 每个元素对应一个 RGB 分量，值 0x120000 对应一个圆周。
-
-			for(size_t i(0); i < 3; ++i)
-			{
-				if(temp3[i] < 0)
-					temp3[i] += 0x120000;
-				else if(temp3[i] > 0x120000)
-					temp3[i] -= 0x120000;
-			}
-
-			u32 dc[3] = {t1, t1, t1}; \
-				//对应 RGB 分量，为 8.24 定点数 。
-
-			for(size_t i(0); i < 3; ++i)
-			{
-				if(temp3[i] < 0x30000)
-					dc[i] += ((t2 - t1) >> 8) * ((temp3[i] / 3) >> 8);
-				else if(temp3[i] < 0x90000)
-					dc[i] = t2;
-				else if(temp3[i] < 0xC0000)
-					dc[i] += ((t2 - t1) >> 8) * (((0xC0000 - temp3[i]) / 3)
-						>> 8);
-			}
-			yunseq(r.r = dc[0] >> 16, r.g = dc[1] >> 16,
-				r.b = dc[2] >> 16);
+		if(tmp[i] < 0)
+			tmp[i] += 360;
+		else if(tmp[i] > 360)
+			tmp[i] -= 360;
+		if(tmp[i] < 60)
+			dc[i] = t1 + (t2 - t1) * tmp[i] / 60;
+		else if(tmp[i] < 180)
+			dc[i] = t2;
+		else if(tmp[i] < 240)
+			dc[i] = t1 + (t2 - t1) * (240 - tmp[i]) / 60;
+		else
+			dc[i] = t1;
 	}
-	return r;
+	return Color(dc[0], dc[1], dc[2]);
 }
 
 YSL_END_NAMESPACE(Drawing)
@@ -229,30 +220,35 @@ Palette::Palette()
 	using Drawing::Color;
 
 	// TODO: use initializer-list;
-	colors[Null] = Color(0, 0, 0);
-	colors[Desktop] = Color(10, 59, 118);
-	colors[Window] = Color(255, 255, 255);
-	colors[Panel] = Color(240, 240, 240);
-	colors[Track] = Color(237, 237, 237);
-	colors[Workspace] = Color(171, 171, 171);
-	colors[Shadow] = Color(160, 160, 160);
-	colors[DockShadow] = Color(105, 105, 105);
-	colors[Light] = Color(227, 227, 227);
-	colors[Frame] = Color(100, 100, 100);
-	colors[Highlight] = Color(51, 153, 255);
-	colors[BorderFill] = Color(158, 62, 255);
-	colors[ActiveBorder] = Color(180, 180, 180);
-	colors[InactiveBorder] = Color(244, 247, 252);
-	colors[ActiveTitle] = Color(153, 180, 209);
-	colors[InactiveTitle] = Color(191, 205, 219);
+	yunseq
+	(
+		colors[Null] = Color(0, 0, 0),
+		colors[Desktop] = Color(10, 59, 118),
+		colors[Window] = Color(255, 255, 255),
+		colors[Panel] = Color(240, 240, 240),
+		colors[Track] = Color(237, 237, 237),
+		colors[Workspace] = Color(171, 171, 171),
+		colors[Shadow] = Color(160, 160, 160),
+		colors[DockShadow] = Color(105, 105, 105),
+		colors[Light] = Color(227, 227, 227),
+		colors[Frame] = Color(100, 100, 100),
+		colors[Highlight] = Color(51, 153, 255),
+		colors[BorderFill] = Color(158, 62, 255),
+		colors[ActiveBorder] = ColorSpace::Aqua,
+		colors[InactiveBorder] = Color(180, 180, 180),
+	//	colors[ActiveBorder] = Color(180, 180, 180),
+	//	colors[InactiveBorder] = Color(244, 247, 252),
+		colors[ActiveTitle] = Color(153, 180, 209),
+		colors[InactiveTitle] = Color(191, 205, 219),
 
-	colors[HighlightText] = Color(255, 255, 255);
-	colors[WindowText] = Color(0, 0, 0);
-	colors[PanelText] = Color(0, 0, 0);
-	colors[GrayText] = Color(109, 109, 109);
-	colors[TitleText] = Color(0, 0, 0);
-	colors[InactiveTitleText] = Color(67, 78, 84);
-	colors[HotTracking] = Color(0, 102, 204);
+		colors[HighlightText] = Color(255, 255, 255),
+		colors[WindowText] = Color(0, 0, 0),
+		colors[PanelText] = Color(0, 0, 0),
+		colors[GrayText] = Color(109, 109, 109),
+		colors[TitleText] = Color(0, 0, 0),
+		colors[InactiveTitleText] = Color(67, 78, 84),
+		colors[HotTracking] = Color(0, 102, 204)
+	);
 
 	//"GradientActiveTitle"="185 209 234"
 	//"GradientInactiveTitle"="215 228 242"

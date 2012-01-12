@@ -151,6 +151,7 @@
     <ClInclude Include="include\YSLib\Service\ygdi.h" />
     <ClInclude Include="include\YSLib\Service\yres.h" />
     <ClInclude Include="include\YSLib\Service\ytimer.h" />
+    <ClInclude Include="include\YSLib\UI\Border.h" />
     <ClInclude Include="include\YSLib\UI\button.h" />
     <ClInclude Include="include\YSLib\UI\checkbox.h" />
     <ClInclude Include="include\YSLib\UI\form.h" />
@@ -210,6 +211,7 @@
     <ClCompile Include="source\YSLib\Service\ygdi.cpp" />
     <ClCompile Include="source\YSLib\Service\yres.cpp" />
     <ClCompile Include="source\YSLib\Service\ytimer.cpp" />
+    <ClCompile Include="source\YSLib\UI\Border.cpp" />
     <ClCompile Include="source\YSLib\UI\button.cpp" />
     <ClCompile Include="source\YSLib\UI\checkbox.cpp" />
     <ClCompile Include="source\YSLib\UI\form.cpp" />

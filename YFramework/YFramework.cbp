@@ -109,6 +109,7 @@
 		<Unit filename="include\YSLib\Service\yres.h" />
 		<Unit filename="include\YSLib\Service\ytext.h" />
 		<Unit filename="include\YSLib\Service\ytimer.h" />
+		<Unit filename="include\YSLib\UI\Border.h" />
 		<Unit filename="include\YSLib\UI\button.h" />
 		<Unit filename="include\YSLib\UI\checkbox.h" />
 		<Unit filename="include\YSLib\UI\form.h" />
@@ -251,6 +252,7 @@
 		<Unit filename="source\YSLib\Service\yres.cpp" />
 		<Unit filename="source\YSLib\Service\ytext.cpp" />
 		<Unit filename="source\YSLib\Service\ytimer.cpp" />
+		<Unit filename="source\YSLib\UI\Border.cpp" />
 		<Unit filename="source\YSLib\UI\button.cpp" />
 		<Unit filename="source\YSLib\UI\checkbox.cpp" />
 		<Unit filename="source\YSLib\UI\form.cpp" />

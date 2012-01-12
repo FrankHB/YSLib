@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4878;
+\version r4890;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2011-12-12 16:18 +0800;
-\par 字符集:
+	2012-01-09 19:56 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YEvent;
@@ -291,12 +291,13 @@ public:
 	/*!
 	\brief 添加事件响应：使用对象引用和成员函数指针。
 	\note 不检查是否已经在列表中。
+	\since build 276 。
 	*/
-	template<class _type>
+	template<class _tObj, class _type>
 	inline GEvent&
-	Add(_type& obj, void(_type::*pm)(_tEventArgs&&))
+	Add(_tObj& obj, void(_type::*pm)(_tEventArgs&&))
 	{
-		return *this += HandlerType(obj, std::move(pm));
+		return *this += HandlerType(static_cast<_type&>(obj), std::move(pm));
 	}
 
 	/*!
@@ -309,6 +310,7 @@ public:
 	}
 	/*!
 	\brief 添加事件响应：使用事件处理器。
+	\note 不重复添加。
 	*/
 	inline GEvent&
 	AddUnique(HandlerType&& h)
@@ -317,6 +319,7 @@ public:
 	}
 	/*!
 	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
+	\note 不重复添加。
 	*/
 	PDefTmplH1(_type)
 	inline GEvent&
@@ -326,22 +329,26 @@ public:
 	}
 	/*!
 	\brief 添加事件响应：使用对象引用和成员函数指针。
+	\note 不重复添加。
+	\since build 276 。
 	*/
-	template<class _type>
+	template<class _tObj, class _type>
 	inline GEvent&
 	AddUnique(_type& obj, void(_type::*pm)(_tEventArgs&&))
 	{
-		return this->AddUnique(HandlerType(obj, std::move(pm)));
+		return this->AddUnique(HandlerType(static_cast<_type&>(obj),
+			std::move(pm)));
 	}
 
 	/*!
 	\brief 移除事件响应：目标为指定对象引用和成员函数指针。
+	\since build 276 。
 	*/
-	template<class _type>
+	template<class _tObj, class _type>
 	inline GEvent&
-	Remove(_type& obj, void(_type::*pm)(_tEventArgs&&))
+	Remove(_tObj& obj, void(_type::*pm)(_tEventArgs&&))
 	{
-		return *this -= HandlerType(obj, std::move(pm));
+		return *this -= HandlerType(static_cast<_type&>(obj), std::move(pm));
 	}
 
 	/*!

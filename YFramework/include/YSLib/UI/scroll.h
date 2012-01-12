@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3404;
+\version r3418;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2012-01-04 13:00 +0800;
+	2012-01-09 18:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_UI_SCROLL_H_
 #define YSL_INC_UI_SCROLL_H_
 
-#include "uicontx.h"
+#include "ycontrol.h"
+#include "yuicont.h"
 #include "button.h"
 //#include <ystdex/rational.hpp>
 //#include "../Core/yres.h"
@@ -292,7 +293,18 @@ private:
 	unique_ptr<ATrack> pTrack; //轨道。
 
 protected:
-	Thumb PrevButton, NextButton; //!< 滚动条按钮。
+	/*!
+	\brief 前滚动条按钮。
+	\note 可响应按键持续。
+	\since build 276 。
+	*/
+	Thumb btnPrev;
+	/*!
+	\brief 后滚动条按钮。
+	\note 可响应按键持续。
+	\since build 276 。
+	*/
+	Thumb btnNext;
 
 private:
 	ValueType small_delta; \

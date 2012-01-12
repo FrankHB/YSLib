@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2893;
+\version r2914;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-01-08 22:16 +0800;
+	2012-01-13 00:31 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -129,38 +129,24 @@ ReaderBox::UpdateData(DualScreenReader& reader)
 
 
 TextInfoBox::TextInfoBox(ShlReader& shl)
-	: Control(Rect(32, 32, 200, 108)),
-	Shell(shl), btnClose(Rect(GetWidth() - 20, 4, 16, 16)),
+	: DialogBox(Rect(32, 32, 200, 108)),
+	Shell(shl),
 	lblEncoding(Rect(4, 20, 192, 18)),
 	lblSize(Rect(4, 40, 192, 18)),
 	lblTop(Rect(4, 60, 192, 18)),
 	lblBottom(Rect(4, 80, 192, 18))
 {
-	btnClose.Text = "×";
-	SetContainerPtrOf(btnClose, this),
 	SetContainerPtrOf(lblEncoding, this),
 	SetContainerPtrOf(lblSize, this);
-	FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
-		Close(*this);
-	};
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
-}
-
-IWidget*
-TextInfoBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
-{
-	if(auto p = CheckWidget(btnClose, pt, f))
-		return p;
-	return nullptr;
 }
 
 Rect
 TextInfoBox::Refresh(const PaintContext& pc)
 {
-	Widget::Refresh(pc);
+	DialogBox::Refresh(pc);
 
-	IWidget* const pWidgets[] = {&btnClose, &lblEncoding, &lblSize,
-		&lblTop, &lblBottom};
+	IWidget* const pWidgets[] = {&lblEncoding, &lblSize, &lblTop, &lblBottom};
 
 	for(size_t i(0); i < sizeof(pWidgets) / sizeof(*pWidgets); ++i)
 		PaintChild(*pWidgets[i], pc);
@@ -186,39 +172,29 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 
 
 SettingPanel::SettingPanel()
-	: Panel(Rect::FullScreen),
-	btnClose(Rect(GetWidth() - 20, 4, 16, 16)),
-	btnOK(Rect(GetWidth() - 36, 4, 16, 16)),
+	: DialogPanel(Rect::FullScreen),
 	ColorAreaUp(Rect(32, 32, 48, 24)), ColorAreaDown(Rect(128, 32, 48, 24)),
 	boxColor(Point(4, 80))
 {
 	static int state;
 
-	*this += btnClose,
-	*this += btnOK,
 	*this += ColorAreaUp,
 	*this += ColorAreaDown,
 	*this += boxColor,
 	SetVisibleOf(boxColor, false);
 	yunseq(
-		btnClose.Text = "×",
-		btnOK.Text = "○",
-		FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
-			Close(*this);
-		},
-		FetchEvent<Click>(btnOK) += [this](TouchEventArgs&&){
-			Close(*this);
-		},
 		FetchEvent<Click>(ColorAreaUp) += [&, this](TouchEventArgs&&){
 			boxColor.SetColor(ColorAreaUp.BackColor);
 			Show(boxColor);
 			state = 1;
 		},
+		FetchEvent<Paint>(ColorAreaUp).Add(Border, &BorderStyle::OnPaint),
 		FetchEvent<Click>(ColorAreaDown) += [&, this](TouchEventArgs&&){
 			boxColor.SetColor(ColorAreaDown.BackColor);
 			Show(boxColor);
 			state = 2;
 		},
+		FetchEvent<Paint>(ColorAreaDown).Add(Border, &BorderStyle::OnPaint),
 		FetchEvent<TouchMove>(boxColor) += OnTouchMove_Dragging,
 		FetchEvent<Click>(boxColor.btnOK) += [&](TouchEventArgs&&){
 			if(state == 1)

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2704;
+\version r2710;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2011-12-04 10:52 +0800;
+	2012-01-09 18:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -188,6 +188,15 @@ namespace ystdex
 	}
 
 #endif
+
+
+	/*!
+	\brief 空基类模板。
+	\since build 260 。
+	*/
+	template<typename...>
+	struct empty_base
+	{};
 
 
 	//! \brief 根据参数类型使用 std::forward 传递对应参数，保持左值性和常量性。

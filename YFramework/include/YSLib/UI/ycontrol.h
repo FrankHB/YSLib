@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5598;
+\version r5504;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2012-01-14 10:38 +0800;
+	2012-01-09 19:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -222,7 +222,6 @@ OnKeyHeld(KeyEventArgs&&);
 /*!
 \brief 处理屏幕接触保持事件。
 
- Control 加载的默认 TouchHeld 事件处理器。
 实现记录坐标偏移（用于拖放）或触发 TouchMove 事件。
 */
 void
@@ -285,19 +284,22 @@ OnKey_Bound_Click(KeyEventArgs&&);
 
 /*!
 \brief 控件。
-\note 默认加载事件处理器： Move 、 Resize 、 GotFocus 和 LostFocus 时自动无效化。
-\note 默认加载事件处理器： OnTouchDown_RequestToTopFocused 。
 \since build 168 。
 */
 class Control : public Widget
 {
 protected:
+	/*!
+	\brief 扩展控件事件表。
+	\note 加载 Components::OnTouchHeld 作为 TouchHeld 事件处理器。
+	\since build 240 。
+	*/
 	DefExtendEventMap(ControlEventMap, VisualEventMap)
 
 public:
 	//标准控件事件见 VisualEvent 。
 
-	//扩展控件事件示例。
+	//其它扩展控件事件示例。
 //	DeclEvent(H1Event, Ext1) //!< 扩展事件 1 。
 //	DeclEvent(H2Event, Ext2) //!< 扩展事件 2 。
 
@@ -312,6 +314,9 @@ public:
 
 	/*!
 	\brief 构造：使用指定边界。
+	\note 使用扩展控件事件表加载的事件处理器。
+	\note 加载事件处理器： Move 、 Resize 、 GotFocus 和 LostFocus 时自动无效化。
+	\note 加载事件处理器： OnTouchDown_RequestToTopFocused 。
 	*/
 	explicit
 	Control(const Rect& = Rect::Empty);
@@ -326,6 +331,14 @@ public:
 	*/
 	virtual PDefH(IWidget*, GetBoundControlPtr, const KeyCode&)
 		ImplRet(nullptr)
+
+	/*!
+	\brief 处理屏幕事件：关闭显示。
+
+	调用 Components::Close 。
+	*/
+	void
+	OnTouch_Close(TouchEventArgs&&);
 };
 
 YSL_END_NAMESPACE(Components)

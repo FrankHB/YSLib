@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载运算符。
-\version r2099;
+\version r2102;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260 。
 \par 创建时间:
 	2011-11-13 14:58:05 +0800;
 \par 修改时间:
-	2011-12-04 11:03 +0800;
+	2012-01-09 18:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,10 +32,6 @@
 
 namespace ystdex
 {
-	template <typename...>
-	struct empty_base
-	{};
-
 
 #define YCL_OP_FRIEND(_op, _tRet, _expr, ...) \
 	friend yconstfn _tRet operator _op (__VA_ARGS__) {return (_expr);}

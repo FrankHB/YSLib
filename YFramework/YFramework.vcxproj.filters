@@ -18,10 +18,6 @@
       <UniqueIdentifier>{fbb995fa-dfe1-4f20-99ac-8f01e13a54ba}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="头文件\YSLib\Adaptor">
-      <UniqueIdentifier>{88a70fc5-239e-4e2b-802c-dad41bd268c6}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="头文件\YSLib\Core">
       <UniqueIdentifier>{bd4a3a95-5fe7-4471-9093-a76228bc5a0c}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
@@ -92,6 +88,10 @@
     </Filter>
     <Filter Include="头文件\freetype\internal\services">
       <UniqueIdentifier>{2e8d283b-d3e7-4e91-8ad1-0684e8a83950}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\YSLib\Adaptor">
+      <UniqueIdentifier>{88a70fc5-239e-4e2b-802c-dad41bd268c6}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -587,6 +587,9 @@
     <ClInclude Include="include\freetype\ttunpat.h">
       <Filter>头文件\freetype</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\UI\Border.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\yfont.cpp">
@@ -750,6 +753,9 @@
     </ClCompile>
     <ClCompile Include="doc\ex.cpp">
       <Filter>文档</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\Border.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

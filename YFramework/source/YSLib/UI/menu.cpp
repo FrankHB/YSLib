@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1897;
+\version r1898;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2012-01-05 16:02 +0800;
+	2012-01-12 15:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -40,7 +40,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		Styles::HighlightText)),
 	id(id), pParent(nullptr), mSubMenus(), vDisabled()
 {
-	BackColor = FetchGUIShell().Colors[Styles::Panel];
+	BackColor = FetchGUIShell().Colors[Styles::Panel],
 	SetAllOf(Margin, 6, 18, 4, 4);
 	CyclicTraverse = true;
 	if(h)

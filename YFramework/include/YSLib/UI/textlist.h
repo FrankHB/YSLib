@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1457;
+\version r1465;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2011-12-12 21:53 +0800;
-\par 字符集:
+	2012-01-13 00:09 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::TextList;
@@ -30,6 +30,7 @@
 
 #include "ygui.h"
 #include "label.h"
+#include "Border.h"
 #include "viewer.hpp"
 
 YSL_BEGIN
@@ -71,6 +72,11 @@ public:
 	using MTextList::HorizontalAlignment;
 	using MTextList::VerticalAlignment;
 	using MTextList::Text;
+	/*!
+	\brief 边框。
+	\since build 276 。
+	*/
+	BorderStyle Border;
 	Color HilightBackColor; //!< 高亮背景色。
 	Color HilightTextColor; //!< 高亮文本色。
 

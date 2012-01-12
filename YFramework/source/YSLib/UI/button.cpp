@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3638;
+\version r3678;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2012-01-09 14:25 +0800;
+	2012-01-10 21:43 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -130,6 +130,40 @@ Button::Refresh(const PaintContext& pc)
 	PaintText(GetSizeOf(*this), IsEnabled(*this) ? ForeColor
 		: FetchGUIShell().Colors[Styles::Workspace], PaintContext(pc.Target,
 		pc.Location, Rect(pc.Location, GetSizeOf(*this))));
+	return r;
+}
+
+
+CloseButton::CloseButton(const Rect& r)
+	: Thumb(r)
+{
+	FetchEvent<Click>(*this) += [this](TouchEventArgs&&)
+	{
+		if(const auto pCon = FetchContainerPtr(*this))
+			Close(*pCon);
+	};
+}
+
+Rect
+CloseButton::Refresh(const PaintContext& pc)
+{
+	auto r(Thumb::Refresh(pc));
+
+	//画叉。
+	{
+		Size s(GetSizeOf(*this));
+
+		if(s.Width > 8 && s.Height > 8)
+		{
+			const SPos xmin(pc.Location.X + 4), xmax(xmin + s.Width - 8),
+				ymin(pc.Location.Y + 4), ymax(ymin + s.Height - 8);
+			const Color c(IsEnabled(*this) ? ForeColor
+				: FetchGUIShell().Colors[Styles::Workspace]);
+
+			DrawLineSeg(pc.Target, xmin, ymin, xmax, ymax, c),
+			DrawLineSeg(pc.Target, xmax - 1, ymin, xmin - 1, ymax, c);
+		}
+	}
 	return r;
 }
 

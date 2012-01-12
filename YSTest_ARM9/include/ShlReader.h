@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1678;
+\version r1689;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-01-08 21:59 +0800;
+	2012-01-13 00:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -77,11 +77,10 @@ public:
 };
 
 
-class TextInfoBox : public Control
+class TextInfoBox : public DialogBox
 {
 public:
 	ShlReader& Shell;
-	Button btnClose;
 	Label lblEncoding;
 	Label lblSize;
 	/*!
@@ -95,9 +94,6 @@ public:
 
 	TextInfoBox(ShlReader&);
 
-	virtual IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
-
 	virtual Rect
 	Refresh(const PaintContext&);
 
@@ -110,10 +106,9 @@ public:
 \brief 设置面板。
 \since build 275 。
 */
-class SettingPanel : public Panel
+class SettingPanel : public DialogPanel
 {
 public:
-	Button btnClose, btnOK;
 	Control ColorAreaUp, ColorAreaDown;
 
 protected:

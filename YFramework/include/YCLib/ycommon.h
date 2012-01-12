@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2801;
+\version r2813;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-01-07 20:53 +0800;
+	2012-01-09 20:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -180,10 +180,19 @@ namespace platform
 	public:
 		typedef ColorSpace::ColorSet ColorSet;
 		typedef u8 MonoType;
-		typedef bool AlphaType;
+		typedef u8 AlphaType;
 
 	private:
-		PixelType _value;
+		/*!
+		\brief RGB 分量。
+		\since build 276 。
+		*/
+		MonoType r, g, b;
+		/*!
+		\brief Alpha 分量。
+		\since build 276 。
+		*/
+		AlphaType a;
 
 	public:
 		/*!
@@ -226,39 +235,40 @@ namespace platform
 	};
 
 	yconstfn
-	Color::Color(PixelType p)
-		: _value(p)
+	Color::Color(PixelType px)
+		: r(px << 3 & 248), g(px >> 2 & 248), b(px >> 7 & 248),
+		a(px & BITALPHA ? 0xFF : 0x00)
 	{}
 	yconstfn
-	Color::Color(MonoType r, MonoType g, MonoType b, AlphaType a)
-		: _value(ARGB16(int(a), r >> 3, g >> 3, b >> 3))
+	Color::Color(MonoType r_, MonoType g_, MonoType b_, AlphaType a_)
+		: r(r_), g(g_), b(b_), a(a_)
 	{}
 
 	yconstfn
 	Color::operator PixelType() const
 	{
-		return _value;
+		return ARGB16(int(a != 0), r >> 3, g >> 3, b >> 3);
 	}
 
 	yconstfn Color::MonoType
 	Color::GetR() const
 	{
-		return _value << 3 & 248;
+		return r;
 	}
 	yconstfn Color::MonoType
 	Color::GetG() const
 	{
-		return _value >> 2 & 248;
+		return g;
 	}
 	yconstfn Color::MonoType
 	Color::GetB() const
 	{
-		return _value >> 7 & 248;
+		return b;
 	}
 	yconstfn Color::AlphaType
 	Color::GetA() const
 	{
-		return _value & BITALPHA;
+		return a;
 	}
 
 	//! \brief 本机按键空间。

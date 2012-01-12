@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1307;
+\version r1326;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-06-08 13:21:10 +0800;
 \par 修改时间:
-	2011-12-04 12:42 +0800;
-\par 字符集:
+	2012-01-10 17:09 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YStyle;
@@ -30,6 +30,7 @@
 
 #include "ycomp.h"
 #include "../Service/ydraw.h"
+#include <ystdex/rational.hpp>
 
 YSL_BEGIN
 
@@ -76,61 +77,38 @@ transform_pixel_ex(BitmapPtr dst)
 //平台无关色彩系统转换。
 
 /*!
-\brief RGB 颜色。
-\since build 196 。
-*/
-typedef struct
-{
-	u8 r, g, b;
-} rgb_t;
-
-/*!
 \brief HSL 颜色。
 \since build 196 。
 */
 typedef struct
 {
-	u16 h; //单位为 1/64 度。
-	u16 s;
-	u16 l;
+	/*!
+	\brief 色调。
+	\since build 276 。
+	\note 角度制，值 360 对应一个圆周。
+	*/
+	ystdex::fixed_point<u16, 9> h;
+	/*!
+	\brief 饱和度和亮度。
+	\note 最大有效值为 1 。
+	\since build 276 。
+	*/
+	float s, l;
 } hsl_t;
 
 /*!
-\brief RGB 颜色转换为平台颜色类型。
-\since build 196 。
-*/
-inline
-Color
-rgb2Color(const rgb_t& c)
-{
-	return Color(c.r, c.g, c.b);
-}
-
-/*!
-\brief 平台颜色类型转换为 RGB 颜色。
-\since build 196 。
-*/
-inline rgb_t
-Color2rgb(const Color& c)
-{
-	const rgb_t r = {c.GetR(), c.GetG(), c.GetB()};
-
-	return r;
-}
-
-/*!
-\brief RGB 颜色类型转换为 HSL 颜色。
-\since build 196 。
+\brief RGB 颜色转换为 HSL 颜色。
+\since build 276 。
 */
 hsl_t
-rgb2hsl(rgb_t c);
+ColorToHSL(Color);
 
 /*!
-\brief HSL 颜色类型转换为 RGB 颜色。
-\since build 196 。
+\brief HSL 颜色转换为 RGB 颜色。
+\since build 276 。
 */
-rgb_t
-hsl2rgb(hsl_t c);
+Color
+HSLToColor(hsl_t);
 
 
 YSL_END_NAMESPACE(Drawing)

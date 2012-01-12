@@ -11,14 +11,14 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1610;
+\version r1617;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-01-05 16:05 +0800;
-\par 字符集:
+	2012-01-13 00:08 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::TextList;
@@ -47,8 +47,8 @@ namespace
 TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	pair<Color, Color> hilight_pair)
 	: Control(r), MTextList(h),
-	HilightBackColor(hilight_pair.first), HilightTextColor(hilight_pair.second),
-	CyclicTraverse(false),
+	Border(), HilightBackColor(hilight_pair.first),
+	HilightTextColor(hilight_pair.second), CyclicTraverse(false),
 	viewer(GetList()), top_offset(0)
 {
 	SetAllOf(Margin, defMarginH, defMarginV);
@@ -159,7 +159,8 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 		},
 		FetchEvent<Click>(*this) += [this](TouchEventArgs&& e){
 			InvokeConfirmed(CheckPoint(e));
-		}
+		},
+		FetchEvent<Paint>(*this).Add(Border, &BorderStyle::OnPaint)
 	);
 }
 
@@ -199,8 +200,6 @@ TextList::Refresh(const PaintContext& pc)
 	const auto& pt(pc.Location);
 
 	PaintItems(pc);
-	DrawRect(pc.Target, pt, GetSizeOf(*this), IsFocused(*this) ? ColorSpace::Aqua
-		: FetchGUIShell().Colors[Styles::ActiveBorder]);
 	return Rect(pt, GetSizeOf(*this));
 }
 
