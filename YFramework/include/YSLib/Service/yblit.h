@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r2228;
+\version r2249;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-16 19:43:24 +0800;
 \par 修改时间:
-	2011-12-03 22:30 +0800;
-\par 字符集:
+	2012-01-15 01:53 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Service::YBlit;
@@ -198,7 +198,7 @@ Blit(_tOut dst, const Size& ds,
 				delta_x, delta_y));
 
 		_gBlitLoop<!_bSwapLR>()(delta_x, delta_y, dst + dst_off, src + src_off,
-			(_bSwapLR ^ _bSwapUD ? -1 : 1) * ds.Width - delta_x,
+			(_bSwapLR != _bSwapUD ? -1 : 1) * ds.Width - delta_x,
 			ss.Width - delta_x);
 	}
 }
@@ -434,11 +434,6 @@ struct BlitTransparentLoop
 	}
 };
 
-const u8 BLT_ALPHA_BITS(8);
-const u32 BLT_MAX_ALPHA((1 << BLT_ALPHA_BITS) - 1);
-const u32 BLT_ROUND(1 << (BLT_ALPHA_BITS - 1));
-const u8 BLT_THRESHOLD(8);
-const u8 BLT_THRESHOLD2(128);
 
 //#define YSL_FAST_BLIT
 
@@ -466,37 +461,45 @@ biltAlphaPoint(PixelType* dst_iter, MonoIteratorPair src_iter)
 
 #else
 
-// TODO: 消除具体像素格式依赖。
+yconstexpr u8 BLT_ALPHA_BITS(8);
+yconstexpr u32 BLT_MAX_ALPHA((1 << BLT_ALPHA_BITS) - 1);
+yconstexpr u32 BLT_ROUND(1 << (BLT_ALPHA_BITS - 1));
+yconstexpr u8 BLT_THRESHOLD(8);
+yconstexpr u8 BLT_THRESHOLD2(128);
+yconstexpr u32 BLT_ROUND_BR(BLT_ROUND | BLT_ROUND << 16);
+
+
+/*
+\brief Alpha 混合。
+
+使用下列公式进行像素的 Alpha 混合（其中 alpha = a / BLT_MAX_ALPHA）：
+*dst_iter = (1 - alpha) * d + alpha * s
+= ((BLT_MAX_ALPHA - a) * d + a * s) >> BLT_ALPHA_BITS
+= d + (a * (s - d) + BLT_ROUND) >> BLT_ALPHA_BITS 。
+\since build 189 。
+\todo 消除具体像素格式依赖。
+*/
 inline u16
 blitAlphaBlend(u32 d, u32 s, u8 a)
 {
 	/*
-	格式： 16 位 ARGB1555 。
+	格式： 16 位 AXYZ1555 ，以 ARGB1555 为例。
 	算法示意：
-						arrrrrgggggbbbbb
-		0000000000arrrrrgggggbbbbb000000
-		00000000000111110000000000000000
-		00000000000rrrrr0000000000000000
-		00000000000rrrrr00000000000bbbbb : dbr
-		0000000000000000000000ggggg00000 : dg
-	分解红色和蓝色分量至 32 位寄存器以减少乘法次数。
-	使用下列 Alpha 混合公式（其中 alpha = a / BLT_MAX_ALPHA）：
-	*dst_iter = (1 - alpha) * d + alpha * s
-	= ((BLT_MAX_ALPHA - a) * d + a * s) >> BLT_ALPHA_BITS
-	= ((d << BLT_ALPHA_BITS) + BLT_ROUND + a * (s - d))
-		>> BLT_ALPHA_BITS;
-	可进一步近似为 d + ((a * (s - d)) >> BLT_ALPHA_BITS)，但有额外损失。
+						 arrrrrgggggbbbbb
+		0000000000arrrrr gggggbbbbb000000
+		0000000000011111 0000000000011111
+		00000000000rrrrr 00000000000bbbbb : dbr
+		0000000000000000 000000ggggg00000 : dg
+	分解分量至 32 位寄存器以减少总指令数。
 	*/
 	if(d & BITALPHA && a <= BLT_MAX_ALPHA - BLT_THRESHOLD)
 	{
 		u32 dbr((d & 0x1F) | (d << 6 & 0x1F0000)), dg(d & 0x3E0);
-
-		dbr = (dbr + (((((s & 0x1F) | (s << 6 & 0x1F0000)) - dbr)
-			* a + BLT_ROUND) >> BLT_ALPHA_BITS));
-		dg  = (dg  + ((((s & 0x3E0) - dg) * a + BLT_ROUND)
-			>> BLT_ALPHA_BITS));
-		return (dbr & 0x1F) | (dg & 0x3E0)
-			| (dbr >> 6 & 0x7C00) | BITALPHA;
+ 
+		dbr += ((((s & 0x1F) | (s << 6 & 0x1F0000)) - dbr) * a + BLT_ROUND_BR)
+			>> BLT_ALPHA_BITS,
+		dg  += (((s & 0x3E0) - dg) * a + BLT_ROUND) >> BLT_ALPHA_BITS;
+		return (dbr & 0x1F) | (dg & 0x3E0) | (dbr >> 6 & 0x7C00) | BITALPHA;
 	}
 	if(a >= BLT_THRESHOLD2)
 		return s | BITALPHA;

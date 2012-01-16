@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5780;
+\version r5781;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-01-12 23:44 +0800;
+	2012-01-15 20:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -1001,7 +1001,7 @@
 对于需要保持所有权但又要避免重复引用计数的开销的情况，使用 std::unique_ptr 。
 其它情况下，使用不含所有权的内建指针，以保持用户程序对资源管理的选择自由和灵活性。若没有在注释或文档注明所有权关系，均应视为由用户程序对象具有指针参数指向对象的所有权。
 以下所有权关系中，被托管对象类包括派生类。所有者（基类）中 public 继承了 OwnershipTag<_type> ，其中 _type 是被托管对象类型。实例包括：
- Drawing::FontCache 具有 Drawing::Typeface 、 Drawing::FontFile 、 Drawing::FontFamily 的所有权；
+ Drawing::FontCache 具有 Drawing::Typeface 和 Drawing::FontFamily 的所有权；
  Components::MenuHost 具有 Components::Menu 的所有权；
  Text::TextMap 及其派生类 Text::TextFileBuffer 具有 Text::TextBlock 的所有权。
 可以使用 HasOwnership<_tOwner, _type> 判断 _tOwner 是否具有 _type 成员的所有权。

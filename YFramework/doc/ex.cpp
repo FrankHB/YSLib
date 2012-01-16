@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3421; *build 276 rev 33;
+\version r3424; *build 277 rev 36;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-01-13 00:39 +0800;
+	2012-01-16 23:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -324,7 +324,8 @@ $using:
 ),
 \u TextBase
 (
-	\cl TextState,
+	\cl PenStyle,
+	\cl TextState
 ),
 \u TextRenderer
 (
@@ -340,269 +341,291 @@ $using:
 
 
 $DONE:
-r1:
-/ \ft<typename...> empty_base @ \h Operators >> \h YDefinition,
-- \st EmptyType @ \h YShellDefinition,
-/ @ \u UIContainerEx $=
-(
-	+ \inc \h Button @ \h,
-	+ \inc \h YGUI @ \impl \u;
-	+ \cl ToolBox @ \u UIContainerEx
-),
-/ \a PrevButton => btnPrev,
-/ \a NextButton => btnNext;
-
-r2:
-/ \inc \h UIContainerEx -> \inc \h (YControl, YUIContainer)
-	@ \h Scroll,
-(
-	+ \inc \h YUIContainer @ \h YSLib::Build,
-	/ \simp @ \cl TextInfoBox @ \u ShlReader ^ \cl ToolBox $=
-	(
-		/ \inh Control -> ToolBox,
-		- \m Button btnClose;
-		/ \tr \impl @ \ctor,
-		- \mf GetTopWidgetPtr,
-		/ \tr \impl @ \mf Refresh
-	)
-);
-
-r3:
-+ \mf void Control::OnTouch_Close(TouchEventArgs&&),
-/ \mf (Add, AddUnique)#3 @ \clt GEvent @ \h YEvent;
-/ \simp \impl @ \ctor @ \cl ToolBox ^ \mf Control::OnTouch_Close ~ \f Close;
+r1-r3:
+/ \impl @ \ctor @ \cl SettingPanel @ \impl \u ShlReader;
 
 r4:
-/ @ \cl Color @ \h YCommon $=
+/ @ \cl SettingPanel @ \u ShlReader $=
 (
-	/ \m typedef bool AlphaType - typedef u8 AlphaType;
-	/ private \m PixelType _value -> (MonoType r, g, b; AlphaType a);
-	/ \tr \impl @ \a 2 \ctor,
-	/ \tr \impl @ \mf (GetR, GetG, GetB, GetA)
+	+ private \m Widget* pSetting,
+	+ protected \m Label lblColorAreaUp, lblColorAreaDown;
+	/ \impl @ \ctor
 );
 
 r5:
-* \impl @ \ctor @ \cl Color @ \h YCommon $since r4;
+/ \impl @ \ctor @ \cl SettingPanel @ \impl \u ShlReader;
 
 r6:
-/ @ \u YStyle $=
+/ @ \cl ColorBox @ \u ColorPicker $=
 (
-	/ \f hsl_t rgb2hsl(rgb_t) -> hsl_t ColorToHSL(Color),
-	/ \f rgb_t hsl2rgb(hsl_t c) -> Color HSLToColor(hsl_t);
-	- \f (rgb2Color, Color2rgb);
-	- \st rgb_t
-);
-/ \tr \impl @ \impl \u CheckBox;
-
-r7:
-/= test 1 ^ \conf release;
-
-r8:
-/ @ \clt fixed_point @ \h Rational $=
-(
-	* \rem $since b260,
-	* \rem @ \ctor $since b260,
-	* private \mf cast#2 $since $since b260,
-	* wrong \impl @ operator*= for signed types $since b260 $=
-	(
-		* wrong bits shifted leading to overflow,
-		* implementation-defined behavior dependencies
-	)
-	- \exp @ \ft<_type> operator _type()
-);
-/ @ \impl \u YStyle $=
-(
-	+ \inc \h <ystdex/rational.hpp> @ \h;
-	/ \impl @ \f (ColorToHSL, HSLToColor)
+	/ protected \m Control ColorArea => ctlColorArea,
+	/ protected \m HorizontalTrack (RTrack, GTrack, BTrack)
+		=> (trRed, trGreen, trBlue),
+	+ protected \m (lblRed, lblGreen, lblBlue);
+	/ \impl @ \ctor,
+	/ \impl @ \mf SetColor
 );
 
-r9:
-(
-	+ \u Border["Border.h", "Border.cpp"] @ \dir UI;
-	(
-		+ \inc \h Border @ \impl \u (UIConteinerEx, TextList),
-		+ \f void DrawWidgetBounds(PaintEventArgs&&) @ \u Border;
-	);
-	/ @ \cl ToolBox $=
-	(
-		- \m HasBorder;
-		/ \impl @ \ctor,
-		/ \simp \impl @ \mf Refresh
-	),
-	/ @ \cl TextList $=
-	(
-		/ \impl @ \ctor,
-		/ \simp \impl @ \mf Refresh
-	),
-	+ \inc \h Border @ \impl \u ColorPicker;
-	/ @ \cl ColorBox @ \impl \u ColorPicker $=
-	(
-		/ \impl @ \ctor,
-		/ \simp \impl @ \mf Refresh
-	)
-),
-/ \impl @ \ctor @ \cl Control::ControlEventMap ^ yunseq;
+r7-r9:
+/ \impl @ \impl \u ColorPicker;
 
 r10:
-+ \cl CloseButton @ \u Button;
-/ \simp @ \cl ToolBox ^ \cl CloseButton;
+* \impl @ \mf ColorBox::SetColor $since r6;
 
-r11-r13:
-/= test 2,
-* \impl @ \mf CloseButton::Refresh $since r10;
+r11:
+/= test 1 ^ \conf release;
+
+r12:
+/ @ \h YBlit $=
+(
+	/ \a const \ns \o @ \h YBlit -> 'yconstexpr' \ns \o,
+	/ \simp \impl @ \f \i blitAlphaBlend
+);
 
 r13:
-/ \impl @ \mf CloseButton::Refresh $since r10;
+/= test 2;
 
 r14:
-/= test 3 ^ \conf release;
+/ @ \h YBlit $=
+(
+	/ \a \ns \o moved to ifndef YSL_FAST_BLIT,
+	(
+		+ yconstexpr u32 BLT_ROUND_BR;
+		* \impl @ \f \i blitAlphaBlend $since $before b132
+	),
+	* platform-dependent bool type xor operation @ \ft Blit $since b189
+);
 
 r15:
-/ \a ToolBox -> DialogBox,
-/ \inc \h (YControl, YUIContainer) @ \h UIContainerEx -> \h YPanel;
-+ \cl DialogPanel @ \u UIContainerEx;
+/ @ \u YFont $=
+(
+	/ \mf FontStyle::GetName -> !\m yconstfn \f FetchName;
+	+ DefBitmaskOperations(FontStyle, u8);
+	/ \st FontStyle -> \em \cl FontStyle,
+	/ \tr \impl @ \mf FontFamily::GetTypefacePtr,
+	/ \tr \impl @ \mf Font::GetStyleName,
+	* \impl @ \a predicates @ \cl Font $since b,	
+	- \inc \h FT_BITMAP_H @ \h,
+	- \inc \h FT_GLYPH_H @ \h
+);
 
 r16:
-/ \simp @ \cl SettingPanel @ \u ShlReader ^ \cl DialogPanel,
-/ @ \u ColorPicker $=
-(
-	+ \inc \h UIContainerEx @ \h,
-	/ \simp @ \cl ColorBox ^ \cl DialogPanel,
-	- \inc \h Border @ \impl \u;
-);
+/ \a const \ns \o @ \h YFont -> 'yconstexpr' \o;
 
 r17:
-* \impl @ \ctor @ \cl DialogPanel $since r15;
+/ \a \de \arg 'Drawing::Font::GetDefault()'
+	-> 'FetchPrototype<Drawing::Font>()';
+- \i \smf Font::GetDefault @ \h YFont;
 
 r18:
-/= test 4 ^ \conf release;
+/ @ \u YFont $=
+(
+	/ yconstexpr \o GLYPH_CACHE_SIZE
+		-> \s \o yconstexpr size_t DefaultGlyphCacheSize @ \cl FontCache;
+	/ \tr \ctor @ \cl FontCache,
+	- yconstexpr u8 DEFAULT_FONT_SIZE(14),
+);
 
 r19:
-/ @ \u ColorPicker $=
-(
-	+ \inc \h Border @ \impl \u;
-	+ \cl BorderControl;
-	/ \m Widget ColorArea @ \cl ColorBox -> BorderControl ColorArea
-);
++ \inc \h YStorage @ \h TextBase;
+/ \simp @ \ctor @ \cl (PenStyle, TextState) ^ FetchPrototype;
+/ @ \ctor @ \cl Font;
+- \f FetchDefaultFontFamily @ \u YFont;
 
 r20:
-/ \m Control ColorAreaUp, ColorAreaDown @ \cl SettingPanel @ \u ShlReader
-	-> BorderControl ColorAreaUp, ColorAreaDown;
+/ @ \u YFont $=
+(
+	/ \m typedef u8 Font::SizeType -> !\m FontSize;
+	/ \decl @ \cl Font >> after to \cl FontCache;
+	/ \mf !\i Font::GetHeight -> \mf \i,
+	/ @ \cl FontCache $=
+	(
+		/ \impl @ \mf ClearContainers;
+		- \mf (ClearFontFiles, ClearTypefaces, ClearFontFamilies)
+	)
+);
 
 r21:
-/ @ \cl BorderControl @ \u ColorPicker $=
-(
-	+ \m Color ActiveBorderColor, InactiveBorderColor;
-	/ \impl @ \ctor
-),
-(
-	/ \inc \h YWidgetEvent -> \h YControl @ \h Border,
-	+ \INC \h Border @ \h UIContainerEx;
-	/ \cl BorderControl @ \u ColorPicker >> \u Border
-);
+/ typedef std::string PathType @ \cl FontFile @ \h YFont -> !\m FontPath;
+/ \tr \impl @ \f LoadFontFileDirectory @ \un \ns
+	@ \impl \u YShellInitialization;
 
-r22:
-/ \inc \h Border @ \impl \u TextList -> \h;
-/ @ \cl TextList $=
+r22-r23:
+/ @ \u YFont $=
 (
-	/ \inh \cl Control -> BorderControl;
-	/ \impl @ \ctor
+	/ \impl @ \f simpleFaceRequester,
+	/ @ \cl Typeface $=
+	(
+		/ \m const FontFile& File -> const FontPath Path,
+		/ \tr @ \ctor,
+		/ \tr \impl @ \mf \op(<, ==)
+	),
+	/ @ \cl FontCache $=
+	(
+		/ @ \mf (LoadFontFile, LoadTypefaces#1, LoadTypefaces#2,
+			ClearContainers),
+		- \mf void \op+=(FontFile*),
+		- \mf bool \op-=(FontFile*);
+		/ typedef set<const FontFile*, ystdex::deref_comp<const FontFile>>
+			FileSet -> typedef map<const FontPath, FT_Long> PathMap,
+		/ \tr FileSet sFiles -> PathMap sFiles
+	);
+	- \cl FontFile
 );
-
-r23:
-/ \impl @ \ctor @ \cl Palette;
 
 r24:
-- \inc \h (Border, YGUI) @ \impl \u UIContainerEx,
-/ @ \cl DialogBox $=
+/ @ \h YFont $=
 (
-	/ \inh \cl Control -> BorderControl;
-	/ \impl @ \ctor
+	/ @ \cl FontCache $=
+	(
+		/ \inh \cl OwnershipTag<FontFile> -> OwnershipTag<FontFamily>,
+		/ \m sFile => sPaths
+	),
+	- \pre \decl @ \cl FontFile,
 );
 
 r25:
-/ \impl @ \ctor @ \cl ProgressBar;
+/= test 3 ^ \conf release;
 
 r26:
-/ \impl @ \ctor @ \cl DialogPanel;
-- \f DrawWidgetBounds @ \u Border;
+/ @ \cl FontCache  @ \u YFont $=
+(
+	/ \mf GetFiles => GetPaths,
+	- \mf (GetFilesN, GetTypesN, GetFacesN),
+	/ \mf GetFacesIndex => GetFaceIndices,
+	/ \m sPaths => mPaths
+);
+/ \tr \impl @ \f (InitializeSystemFontCache, CheckSystemFontCache)
+	@ \impl \u YShellInitialization,
+/ \tr \impl @ \ctor @ \cl ShlExplorer::TFormExtra @ \impl \u Shells;
 
 r27:
-/= test 5 ^ \conf release;
+/ @ \u YFont $=
+(
+	- private \s Font* pDefFont @ \cl Font,
+	/ typedef std::string NameType @ \m FontFamily
+		-> !\m typedef std::string FamilyName,
+	/ typedef std::string NameType @ \m Typeface
+		-> !\m typedef std::string FaceName
+);
 
 r28:
-/ \impl @ \f (Render, PaintChild#1) @ \impl \u YRenderer;
+/ @ \u YFont $=
+(
+	/ @ \cl FontCache $=
+	(
+		/ typedef map<const FontPath, FT_Long> PathMap
+			-> typedef map<FontPath, FT_Long> PathMap
+	),
+	/ \a FaceName => StyleName
+);
 
 r29:
-/ \impl @ \mf GUIShell::OnGotMessage,
-* \impl @ \f PaintChild#1 @ \u YRenderer $since b28;
+/ \impl @ \ctor @ \cl ShlExplorer::TFormExtra @ \impl \u Shells;
+/ @ \cl FontCache @ \u YFont $=
+(
+	/ \simp \impl @ \mf void operator+=(FontFamily*),
+	/ \simp \impl @ \mf void operator-=(FontFamily*),
+	- \mf GetFaces;
+	- \m FamilySet sFamilies,
+	/ \mf GetFaceIndices => GetFamilyIndices;
+	- typedef set<FontFamily*, ystdex::deref_comp<FontFamily>> FamilySet
+);
 
 r30:
-+ \cl BorderStyle @ \u Border;
-/ @ \cl (TextList, DialogBox) $=
+/ @ \u YFont $=
 (
-	/ \inh \cl BorderControl -> Control;
-	+ \m BorderStyle Border;
-	/ \tr \impl @ \ctor
+	/ @ \cl FontFamily $=
+	(
+		(
+			/ \simp \impl @ \mf \op(+=, -=),
+			/ \simp \impl @ \ctor;
+			/ typedef set<Typeface*> FaceSet -> typedef set<FaceName> FaceSet;
+			- \m sFaces
+		)
+		- \decl @ friend \cl FontCache,
+		/ \ac @ \a private \mf -> public,
+		- \mf \op(==, <)
+	);
+	/ \tr \impl @ \mf (\op+=#2, \op-=#2) @ \cl FontCache
 );
 
 r31:
-/ @ \cl DialogPanel $=
-(
-	+ \m BorderStyle Border;
-	/ \impl @ \ctor
-),
-/ @ \u Border $=
-(
-	- \f DrawWidgetBounds,
-	/ \cl BorderControl >> \u ColorPicker;
-	/ \inc \h YControl -> YWidgetEvent
-),
-/ @ \cl SettingPanel @ \u ShlReader $=
-(
-	/ \m BorderControl ColorAreaUp, ColorAreaDown
-		-> Control ColorAreaUp, ColorAreaDown;
-	/ \impl @ \ctor
-);
+/= test 4 ^ \conf release;
 
 r32:
-/ @ \u ColorPicker $=
+/ @ \cl Typeface @ \u YFont $=
 (
-	/ @ \u ColorBox $=
-	(
-		/ \m BorderControl ColorArea -> Control ColorArea;
-		/ \impl @ \ctor
-	);
-	- \cl BorderControl,
-	- \inc \h Border @ \impl \u
+	- \m Cache,
+	/ \tr @ \ctor
 );
 
 r33:
-/= test 6 ^ \conf release;
+/ @ \cl FontCache @ \u YFont $=
+(
+	- unnecessary \e handling @ \mf LoadFontFile,
+	/ public \mf void LoadTypefaces(const pair<const FontPath, FT_Long>&)
+		-> private \mf void LoadTypefaces(const FontPath&, size_t),
+	/ \mf bool LoadFontFile(const_path_t)
+		-> \mf bool LoadFontFile(const FontPath&),
+	/ \tr @ \impl @ \ctor
+);
+/ \tr \impl @ \f InitializeSystemFontCache @ \impl \u YShellInitialization;
+
+r34:
+/ @ \u YFont $=
+(
+	/ @ \cl FontFamily $=
+	(
+		/ \mf void operator+=(Typeface*)
+			-> \mf void operator+=(Typeface&),
+		/ \mf void operator-=(Typeface*)
+			-> \mf void operator-=(Typeface&)
+	),
+	/ @ \cl FontCache $=
+	(
+		/ \mf void operator+=(Typeface*)
+			-> \mf void operator+=(Typeface&),
+		/ \mf void operator-=(Typeface*)
+			-> \mf void operator-=(Typeface&),
+		/ \mf void operator+=(FontFamily*)
+			-> \mf void operator+=(FontFamily&),
+		/ \mf void operator-=(FontFamily*)
+			-> \mf void operator-=(FontFamily&);
+		/ \tr \impl @ \mf LoadTypefaces#2
+	)
+);
+
+r35:
+/ \simp \impl @ \mf FontCache::LoadTypefaces @ \impl \u YFont;
+
+r36:
+/= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-01-13:
--9.0d;
-//Mercurial rev1-rev148: r7216;
+2012-01-16:
+-7.0d;
+//Mercurial rev1-rev149: r7252;
 
 / ...
 
 
 $NEXT_TODO:
-b277-b324:
-* background for buffered widgets;
+b278-b324:
 / fully \impl @ \u DSReader $=
 (
 	+ fully \impl settings,
 	+ bookmarks
-);
+),
+* background for buffered widgets,
 * VRAM not flushed when opening lid on real DS,
 + dynamic character mapper loader for \u CharacterMapping;
 
-b325-b1152:
+b325-b1344:
++ shell sessions,
 ^ timing triggers @ message loop,
 / ystdex::fixed_point $=
 (
@@ -611,16 +634,15 @@ b325-b1152:
 )
 + overlapping test @ \cl Rect,
 / build command @ \a \conf proj YBase,
-+ partial invalidation support @ %(HexViewArea::Refresh),
-+ user-defined stream filters,
 + formal abstraction of rectangular hit test,
-+ general monomorphic iterator abstraction,
 + widget layout managers,
 + key accelerators,
 + fully \impl styles @ widgets,
-/ partial invalidation support @ \f DrawRectRoundCorner,
 + data configuragion,
++ general widget decorators,
++ partial invalidation support @ %(HexViewArea::Refresh),
 / fully \impl @ \cl Path,
++ user-defined stream filters,
 / \impl @ 'real' RTC,
 / @ "GUI" $=
 (
@@ -630,20 +652,15 @@ b325-b1152:
 	/ text alignment
 ),
 + \impl @ images loading and processing,
-* platform-neutrality @ blit \impl $=
-(
-	/ @ alpha blending $=
-	(
-		+ \impl general Blit algorithm;
-	)
-	/ bool xor operation @ \ft Blit
-)
+* platform-neutrality @ alpha blending \impl,
 + dynamic widget prototypes,
-/ user-defined bitmap buffer @ \cl Desktop;
 
 
 $LOW_PRIOR_TODO:
-b1153-b4320:
+b1345-b5120:
++ general monomorphic iterator abstraction,
+/ partial invalidation support @ \f DrawRectRoundCorner,
+/ user-defined bitmap buffer @ \cl Desktop,
 + shared property: additional,
 / improve efficiency @ \ft polymorphic_crosscast @ \h YCast,
 + (compressing & decompressing) @ gfx copying,
@@ -751,6 +768,30 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YReader'.'text reader' $=
+	(
+		+ "text" @ "class %ColorBox",
+		+ "text" @ "setting panel"
+	),
+	/ %'YFramework'.'YSLib' $=
+	(
+		* "rounding of alpha blending color component" $since $before b132,
+		* $design "platform-dependent bool type xor operation"
+			@ "function template %Blit" $since b189,
+		/ "font APIs" $=
+		(
+			/ $design "struct %FontStyle reimplemented as enum class",
+			/ $design "simplified style names lookup function",
+			* "wrong implementation" @ "all predicates" @ "class %Font"
+				$since $before b132,
+			- "class %FontFile",
+			/ $design "data structure" @ "class %FontCache"
+		)
+	)
+),
+
+b276
 (
 	/ %'YBase' $=
 	(

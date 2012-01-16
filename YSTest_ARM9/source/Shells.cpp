@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5478;
+\version r5484;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-01-12 23:19 +0800;
+	2012-01-16 07:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -664,9 +664,9 @@ ShlExplorer::TFormExtra::TFormExtra()
 		FetchEvent<TouchMove>(btnDragTest) += OnTouchMove_Dragging,
 		FetchEvent<Click>(btnDragTest) += [this](TouchEventArgs&&){
 			static auto& fc(FetchGlobalInstance().GetFontCache());
-			static const int ffilen(fc.GetFilesN());
-			static const int ftypen(fc.GetTypesN());
-			static const int ffacen(fc.GetFacesN());
+			static const int ffilen(fc.GetPaths().size());
+			static const int ftypen(fc.GetTypes().size());
+			static const int ffamilyn(fc.GetFamilyIndices().size());
 			static int itype;
 			static auto i(fc.GetTypes().cbegin());
 			static char strtf[0x400];
@@ -682,8 +682,8 @@ ShlExplorer::TFormExtra::TFormExtra()
 					16 - (itype << 1), FontStyle::Regular);
 			//	btnDragTest.Font = Font(*(*it)->GetFontFamilyPtr(),
 			//	GetDefaultFontFamily(), 16 - (itype << 1), FontStyle::Regular);
-				std::sprintf(strtf, "%d, %d file(s), %d type(s), %d faces(s);\n",
-					btnDragTest.Font.GetSize(), ffilen, ftypen, ffacen);
+				std::sprintf(strtf, "%d, %d file(s), %d type(s), %d family(s);",
+					btnDragTest.Font.GetSize(), ffilen, ftypen, ffamilyn);
 				yunseq(
 					btnDragTest.Text = strtf,
 					btnDragTest.ForeColor = GenerateRandomColor(),

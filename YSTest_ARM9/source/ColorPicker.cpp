@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.cpp
 \ingroup YReader
 \brief Shell 拾色器。
-\version r1151;
+\version r1193;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2012-01-06 21:37:51 +0800;
 \par 修改时间:
-	2012-01-13 00:36 +0800;
+	2012-01-14 19:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -32,42 +32,65 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
+namespace
+{
+	yconstexpr Size track_size(112, 16);
+	yconstexpr Size label_size(44, 20);
+}
+
 ColorBox::ColorBox(const Point& pt, Color c)
-	: DialogPanel(Rect(pt, 192, 96)),
-	ColorArea(Rect(144, 32, 32, 32)), RTrack(Rect(8, 24, 128, 16)),
-	GTrack(Rect(8, 48, 128, 16)), BTrack(Rect(8, 72, 128, 16))
+	: DialogPanel(Rect(pt, 200, 96)),
+	ctlColorArea(Rect(164, 32, 32, 32)), trRed(Rect(4, 24, track_size)),
+	trGreen(Rect(4, 48, track_size)), trBlue(Rect(4, 72, track_size)),
+	lblRed(Rect(120, 24, label_size)), lblGreen(Rect(120, 48, label_size)),
+	lblBlue(Rect(120, 72, label_size))
 {
 	const auto update_color([this](ScrollEventArgs&& e){
-		ColorArea.BackColor = Color(RTrack.GetValue(), GTrack.GetValue(),
-			BTrack.GetValue());
-		Invalidate(ColorArea);
+		SetColor(Color(trRed.GetValue(), trGreen.GetValue(),
+			trBlue.GetValue()));
 	});
 
-	*this += ColorArea,
-	*this += RTrack,
-	*this += GTrack,
-	*this += BTrack,
-	RTrack.SetMaxValue(255),
-	GTrack.SetMaxValue(255),
-	BTrack.SetMaxValue(255),
+	*this += ctlColorArea,
+	*this += trRed,
+	*this += trGreen,
+	*this += trBlue,
+	*this += lblRed,
+	*this += lblGreen,
+	*this += lblBlue,
+	trRed.SetMaxValue(255),
+	trGreen.SetMaxValue(255),
+	trBlue.SetMaxValue(255),
 	yunseq(
-		ColorArea.BackColor = c,
-		FetchEvent<Paint>(ColorArea).Add(Border, &BorderStyle::OnPaint),
-		RTrack.GetScroll() += update_color,
-		GTrack.GetScroll() += update_color,
-		BTrack.GetScroll() += update_color
+		ctlColorArea.BackColor = c,
+		FetchEvent<Paint>(ctlColorArea).Add(Border, &BorderStyle::OnPaint),
+		trRed.GetScroll() += update_color,
+		trGreen.GetScroll() += update_color,
+		trBlue.GetScroll() += update_color
 	);
+	SetColor(ctlColorArea.BackColor);
 }
 
 void
 ColorBox::SetColor(Color c)
 {
-	ColorArea.BackColor = c,
-	RTrack.SetValue(c.GetR()),
-	GTrack.SetValue(c.GetG()),
-	BTrack.SetValue(c.GetB());
-	Invalidate(ColorArea),
-	Invalidate(RTrack), Invalidate(GTrack), Invalidate(BTrack);
+	ctlColorArea.BackColor = c,
+	trRed.SetValue(c.GetR()),
+	trGreen.SetValue(c.GetG()),
+	trBlue.SetValue(c.GetB());
+
+	char str[7];
+
+	// FIXME: snprintf shall be a member of namespace std;
+	/*std::*/snprintf(str, 7, "R: %d", c.GetR());
+	lblRed.Text = str;
+	/*std::*/snprintf(str, 7, "G: %d", c.GetG());
+	lblGreen.Text = str;
+	/*std::*/snprintf(str, 7, "B: %d", c.GetB());
+	lblBlue.Text = str;
+
+	Invalidate(ctlColorArea),
+	Invalidate(trRed), Invalidate(trGreen), Invalidate(trBlue),
+	Invalidate(lblRed), Invalidate(lblGreen), Invalidate(lblBlue);
 }
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r7374;
+\version r7382;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-05 15:53 +0800;
+	2012-01-15 17:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "ygdi.h"
 #include "../Adaptor/yfont.h"
+#include "../Core/ystorage.hpp"
 
 YSL_BEGIN
 
@@ -46,8 +47,7 @@ public:
 	\brief 构造：使用指定字体家族、字体大小和颜色。
 	*/
 	explicit
-	PenStyle(const FontFamily& = FetchDefaultFontFamily(),
-		Font::SizeType = Font::DefaultSize,
+	PenStyle(const Drawing::Font& = FetchPrototype<Drawing::Font>(),
 		Drawing::Color = Drawing::ColorSpace::White);
 	/*!
 	\brief 析构：空实现。
@@ -59,9 +59,8 @@ public:
 };
 
 inline
-PenStyle::PenStyle(const FontFamily& family, Font::SizeType size,
-	Drawing::Color c)
-	: Font(family, size), Color(c)
+PenStyle::PenStyle(const Drawing::Font& font, Drawing::Color c)
+	: Font(font), Color(c)
 {}
 
 
@@ -86,14 +85,11 @@ public:
 
 public:
 	/*!
-	\brief 无参数构造。
-	*/
-	TextState();
-	/*!
 	\brief 构造：使用指定字体。
+	\since build 277 。
 	*/
 	explicit
-	TextState(Drawing::Font&);
+	TextState(const Drawing::Font& = FetchPrototype<Drawing::Font>());
 	/*!
 	\brief 构造：使用指定字体缓存。
 	*/

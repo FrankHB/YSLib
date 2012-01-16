@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2135;
+\version r2139;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2012-01-05 15:51 +0800;
+	2012-01-15 04:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -64,7 +64,7 @@ protected:
 	\brief 构造：使用指定字体。
 	*/
 	explicit
-	MLabel(const Drawing::Font& = Drawing::Font::GetDefault(),
+	MLabel(const Drawing::Font& = FetchPrototype<Drawing::Font>(),
 		TextAlignment = TextAlignment::Left);
 	inline DefDeMoveCtor(MLabel)
 
@@ -95,7 +95,7 @@ public:
 	*/
 	explicit
 	Label(const Rect& = Rect::Empty,
-		const Drawing::Font& = Drawing::Font::GetDefault());
+		const Drawing::Font& = FetchPrototype<Drawing::Font>());
 	inline DefDeMoveCtor(Label)
 
 	/*!
@@ -132,7 +132,7 @@ protected:
 	*/
 	explicit
 	MTextList(const shared_ptr<ListType>& = shared_ptr<ListType>(),
-		const Drawing::Font& = Drawing::Font::GetDefault());
+		const Drawing::Font& = FetchPrototype<Drawing::Font>());
 	inline DefDeMoveCtor(MTextList)
 
 	//void

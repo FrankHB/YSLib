@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.h
 \ingroup YReader
 \brief 拾色器。
-\version r1101;
+\version r1109;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2012-01-06 20:46:10 +0800;
 \par 修改时间:
-	2012-01-13 00:34 +0800;
+	2012-01-14 19:27 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -44,15 +44,24 @@ class ColorBox : public DialogPanel
 protected:
 	/*!
 	\brief 颜色区域。
-	\since build 276 。
+	\since build 277 。
 	*/
-	Control ColorArea;
-	HorizontalTrack RTrack, GTrack, BTrack;
+	Control ctlColorArea;
+	/*!
+	\brief 颜色分量轨道。
+	\since build 277 。
+	*/
+	HorizontalTrack trRed, trGreen, trBlue;
+	/*!
+	\brief 颜色分量标签。
+	\since build 277 。
+	*/
+	Label lblRed, lblGreen, lblBlue;
 
 public:
 	ColorBox(const Point&, Color c = ColorSpace::White);
 
-	DefGetter(const ynothrow, Color, Color, ColorArea.BackColor)
+	DefGetter(const ynothrow, Color, Color, ctlColorArea.BackColor)
 	void
 	SetColor(Color);
 };

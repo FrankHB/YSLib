@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2914;
+\version r2932;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-01-13 00:31 +0800;
+	2012-01-14 19:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -173,41 +173,40 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 
 SettingPanel::SettingPanel()
 	: DialogPanel(Rect::FullScreen),
-	ColorAreaUp(Rect(32, 32, 48, 24)), ColorAreaDown(Rect(128, 32, 48, 24)),
-	boxColor(Point(4, 80))
+	lblColorAreaUp(Rect(32, 32, 64, 20)),
+	lblColorAreaDown(Rect(160, 32, 64, 20)),
+	ColorAreaUp(Rect(32, 64, 48, 24)), ColorAreaDown(Rect(160, 64, 48, 24)),
+	boxColor(Point(4, 80)), pSetting()
 {
-	static int state;
-
+	*this += lblColorAreaUp,
+	*this += lblColorAreaDown,
 	*this += ColorAreaUp,
 	*this += ColorAreaDown,
 	*this += boxColor,
 	SetVisibleOf(boxColor, false);
 	yunseq(
-		FetchEvent<Click>(ColorAreaUp) += [&, this](TouchEventArgs&&){
+		lblColorAreaUp.Text = "上屏背景色：",
+		lblColorAreaDown.Text = "下屏背景色：",
+		FetchEvent<Click>(ColorAreaUp) += [this](TouchEventArgs&&){
 			boxColor.SetColor(ColorAreaUp.BackColor);
 			Show(boxColor);
-			state = 1;
+			pSetting = &ColorAreaUp;
 		},
 		FetchEvent<Paint>(ColorAreaUp).Add(Border, &BorderStyle::OnPaint),
-		FetchEvent<Click>(ColorAreaDown) += [&, this](TouchEventArgs&&){
+		FetchEvent<Click>(ColorAreaDown) += [this](TouchEventArgs&&){
 			boxColor.SetColor(ColorAreaDown.BackColor);
 			Show(boxColor);
-			state = 2;
+			pSetting = &ColorAreaDown;
 		},
 		FetchEvent<Paint>(ColorAreaDown).Add(Border, &BorderStyle::OnPaint),
 		FetchEvent<TouchMove>(boxColor) += OnTouchMove_Dragging,
-		FetchEvent<Click>(boxColor.btnOK) += [&](TouchEventArgs&&){
-			if(state == 1)
+		FetchEvent<Click>(boxColor.btnOK) += [this](TouchEventArgs&&){
+			if(pSetting)
 			{
-				ColorAreaUp.BackColor = boxColor.GetColor();
-				Invalidate(ColorAreaUp);
+				pSetting->BackColor = boxColor.GetColor();
+				Invalidate(*pSetting);
+				pSetting = nullptr;
 			}
-			else if(state == 2)
-			{
-				ColorAreaDown.BackColor = boxColor.GetColor();
-				Invalidate(ColorAreaDown);
-			}
-			state = 0;
 		}
 	);
 }

@@ -11,13 +11,13 @@
 /*!	\file ysinit.cpp
 \ingroup Adaptor
 \brief 程序启动时的通用初始化。
-\version r1828;
+\version r1834;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-01-07 21:10 +0800;
+	2012-01-16 10:43 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -107,7 +107,7 @@ namespace
 				if(std::strcmp(HDirectory::Name, FS_Now) != 0
 					&& !HDirectory::IsDirectory()
 					/*&& IsExtendNameOf(ext, HDirectory::Name)*/)
-					fc.LoadFontFile((FontFile::PathType(path)
+					fc.LoadFontFile((FontPath(path)
 						+ HDirectory::Name).c_str());
 	}
 }
@@ -149,11 +149,11 @@ InitializeSystemFontCache()
 	FetchGlobalInstance().ResetFontCache(DEF_FONT_PATH);
 	// TODO: 使用不依赖于 YGlobal 未确定接口的实现。
 
-	FontCache& fc(FetchDefaultFontCache());
+	auto& fc(FetchDefaultFontCache());
 
 	if(DEF_FONT_PATH)
 	{
-		if(fc.LoadFontFile(DEF_FONT_PATH))
+		if(fc.LoadFontFile(FontPath(DEF_FONT_PATH)))
 		{
 			fc.LoadTypefaces();
 			fc.InitializeDefaultTypeface();
@@ -166,13 +166,10 @@ InitializeSystemFontCache()
 	}
 	fc.InitializeDefaultTypeface();
 	CheckSystemFontCache();
-	std::printf("%u font file(s) are loaded\nsuccessfully.\n", fc.GetFilesN());
+	std::printf("%u font file(s) are loaded\nsuccessfully.\n",
+		fc.GetPaths().size());
 	puts("Setting default font face...");
-
-	const Drawing::Typeface* const
-		pf(fc.GetDefaultTypefacePtr());
-
-	if(pf)
+	if(const auto* const pf = fc.GetDefaultTypefacePtr())
 		std::printf("\"%s\":\"%s\",\nsuccessfully.\n",
 			pf->GetFamilyName().c_str(), pf->GetStyleName().c_str());
 	else
@@ -204,7 +201,7 @@ CheckSystemFontCache()
 {
 	try
 	{
-		if(FetchDefaultFontCache().GetTypesN() > 0)
+		if(FetchDefaultFontCache().GetTypes().size() > 0)
 			return;
 	}
 	catch(...)
