@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2710;
+\version r2721;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-01-09 18:17 +0800;
+	2012-01-20 07:34 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -61,6 +61,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cwchar>
+#include <utility> // for std::forward;
 #include <type_traits>
 #include <sys/types.h>
 
@@ -205,13 +206,14 @@ namespace ystdex
 
 	/*!
 	\brief 无序列依赖表达式组求值实现。
+	\return 第一个参数的引用。
 	\note 无异常抛出。
 	*/
-	template<typename... _type>
-	yconstfn int
-	unsequenced(_type&&...) ynothrow
+	template<typename _type, typename... _tParams>
+	yconstfn auto
+	unsequenced(_type&& arg, _tParams&&...) ynothrow -> decltype(yforward(arg))
 	{
-		return 0;
+		return yforward(arg);
 	}
 
 	/*!

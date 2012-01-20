@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1521;
+\version r1538;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2012-01-12 23:43 +0800;
+	2012-01-17 03:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -68,8 +68,7 @@ BufferedRenderer::Refresh(IWidget& wgt, PaintContext&& pc)
 	YAssert(&wgt.GetRenderer() == this,
 		"Invalid widget found @ BufferedRenderer::Refresh;");
 
-	auto r(Validate(wgt,
-		Rect(pc.ClipArea.GetPoint() - GetLocationOf(wgt), pc.ClipArea)));
+	Rect r(Validate(wgt, pc));
 
 	UpdateTo(pc);
 	return r;
@@ -79,19 +78,30 @@ void
 BufferedRenderer::UpdateTo(const PaintContext& pc) const
 {
 	const auto& g(pc.Target);
-	const auto& r(pc.ClipArea);
+	const Rect& r(pc.ClipArea);
 
 	CopyTo(g.GetBufferPtr(), GetContext(), g.GetSize(), r,
 		r.GetPoint() - pc.Location, r);
 }
 
 Rect
-BufferedRenderer::Validate(IWidget& wgt, const Rect& r)
+BufferedRenderer::Validate(IWidget& wgt, const PaintContext& pc)
 {
 	if(RequiresRefresh())
 	{
-		auto result(wgt.Refresh(PaintContext(GetContext(),
-			Point::Zero, Intersect(r, rInvalidated))));
+		const auto& l(GetLocationOf(wgt));
+		const Rect& clip(Intersect(pc.ClipArea, rInvalidated + l));
+
+		if(!IgnoreBackground && FetchContainerPtr(wgt))
+		{
+			const auto& g(GetContext());
+
+			CopyTo(g.GetBufferPtr(), pc.Target, g.GetSize(),
+				clip.GetPoint() - pc.Location, clip, clip);
+		}
+
+		Rect result(wgt.Refresh(PaintContext(GetContext(), Point::Zero,
+			clip - l)));
 
 		//清除无效区域：只设置一个分量为零可能会使 CommitInvalidation 结果错误。
 		static_cast<Size&>(rInvalidated) = Size::Zero;

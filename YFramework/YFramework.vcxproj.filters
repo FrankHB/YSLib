@@ -188,9 +188,6 @@
     <ClInclude Include="include\YSLib\Core\ygdibase.h">
       <Filter>头文件\YSLib\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Helper\yshelper.h">
-      <Filter>头文件\YSLib\Helper</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\UI\button.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
@@ -590,6 +587,9 @@
     <ClInclude Include="include\YSLib\UI\Border.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Helper\ShellHelper.h">
+      <Filter>头文件\YSLib\Helper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\yfont.cpp">
@@ -626,9 +626,6 @@
       <Filter>源文件\YSLib\Helper</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Helper\yglobal.cpp">
-      <Filter>源文件\YSLib\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Helper\yshelper.cpp">
       <Filter>源文件\YSLib\Helper</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Service\ytimer.cpp">
@@ -756,6 +753,9 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\Border.cpp">
       <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Helper\ShellHelper.cpp">
+      <Filter>源文件\YSLib\Helper</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

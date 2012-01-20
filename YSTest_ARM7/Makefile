@@ -1,8 +1,8 @@
-# DS Makefile for YShell -> ARM7 by Franksoft 2009 - 2011
+# DS Makefile for YShell -> ARM7 by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2011-05-03 13:18 +0800;
-# Version = 0.3340;
+# UTime = 2012-01-17 16:39 +0800;
+# Version = r3348;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -38,7 +38,8 @@ export DATA			:= data
 #--------------------------------------------------------------------------------
 # options for code generation
 #--------------------------------------------------------------------------------
-ARCH	:=	-mthumb -mthumb-interwork -mcpu=arm7tdmi
+ARCH_AS	:=	-mthumb -mthumb-interwork -mcpu=arm7tdmi
+ARCH	:=	$(ARCH_AS) -mtune=arm7tdmi
 
 # note: arm9tdmi isn't the correct CPU arch, but anything newer and LD
 # *insists* it has a FPU or VFP, and it won't take no for an answer!
@@ -46,7 +47,6 @@ ARCH	:=	-mthumb -mthumb-interwork -mcpu=arm7tdmi
 ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 
 CFLAGS	:=	-Wall \
- 			-mtune=arm7tdmi \
  			-fomit-frame-pointer \
 			-ffast-math \
 			$(ARCH)
@@ -228,7 +228,7 @@ $(ARM7ELF)	:	$(OFILES)
 # bin2o macro like that from libnds, slightly changed for the PALib naming conventions of resources which doesn't append the file extension to the resource name
 define bin2o
 	cp $(<) $(*)
-	bin2s $(*) | $(AS) $(ARCH) -o $(@)
+	bin2s $(*) | $(AS) $(ARCH_AS) -o $(@)
 	rm $(*)
 
 	echo "extern const u8" $(*)"[];" > $(*).h

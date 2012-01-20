@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1531;
+\version r1546;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2011-12-10 16:54 +0800;
-\par 字符集:
+	2012-01-17 03:58 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YRenderer;
@@ -98,8 +98,17 @@ protected:
 
 public:
 	Drawing::BitmapBuffer Buffer; //!< 显示缓冲区。
+	/*!
+	\brief 指定验证时忽略上层缓冲区背景。
+	\since build 278 。
+	*/
+	bool IgnoreBackground;
 
-	DefDeCtor(BufferedRenderer)
+	/*!
+	\brief 构造：指定是否忽略上层缓冲区背景。
+	\since build 278 。
+	*/
+	BufferedRenderer(bool = false);
 	DefDeCopyCtor(BufferedRenderer)
 	DefDeMoveCtor(BufferedRenderer)
 	virtual DefClone(BufferedRenderer, Clone)
@@ -155,14 +164,19 @@ public:
 	UpdateTo(const PaintContext&) const;
 
 	/*!
-	\brief 验证指定部件的指定区域的缓冲区，若存在无效区域则刷新。
-	\param r 相对部件的指定区域边界。
+	\brief 验证指定部件的指定图形设备上下文的关联的缓冲区，若存在无效区域则刷新。
 	\return 验证中被刷新的区域边界。
-	\since build 263 。
+	\since build 278 。
 	*/
 	Rect
-	Validate(IWidget&, const Rect& r);
+	Validate(IWidget&, const PaintContext&);
 };
+
+inline
+BufferedRenderer::BufferedRenderer(bool b)
+	: rInvalidated(), Buffer(), IgnoreBackground(b)
+{}
+
 
 /*!
 \brief 设置部件的无效区域。

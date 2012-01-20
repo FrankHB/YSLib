@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2813;
+\version r2821;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-01-09 20:51 +0800;
+	2012-01-20 10:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -562,6 +562,16 @@ namespace platform
 	*/
 	std::size_t
 	GetRootNameLength(const_path_t);
+
+
+	/*!
+	\brief 设置允许设备进入睡眠的标识状态。
+	\return 旧状态。
+	\note 默认状态为 true 。
+	\since build 278 。
+	*/
+	bool
+	AllowSleep(bool);
 
 	/*!
 	\brief 快速刷新缓存映像到显示屏缓冲区。

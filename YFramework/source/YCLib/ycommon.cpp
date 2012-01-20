@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2423;
+\version r2433;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2012-01-07 20:53 +0800;
+	2012-01-20 10:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -234,6 +234,21 @@ namespace platform
 		const char* p(std::strchr(path, ':'));
 
 		return !p ? 0 : p - path + 1;
+	}
+
+	bool
+	AllowSleep(bool b)
+	{
+		static bool bSleepEnabled(true); //与 libnds 默认的 ARM7 电源管理同步。
+		const bool b_old(bSleepEnabled);
+
+		if(b != bSleepEnabled)
+		{
+			bSleepEnabled = b;
+			::fifoSendValue32(FIFO_PM,
+				b ? PM_REQ_SLEEP_ENABLE : PM_REQ_SLEEP_DISABLE);
+		}
+		return b_old;
 	}
 
 	void

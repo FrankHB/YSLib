@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,14 +12,14 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2034;
+\version r2037;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-12-13 13:30 +0800;
-\par 字符集:
+	2012-01-20 13:30 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Helper::Shell_DS;
@@ -29,7 +29,7 @@
 #ifndef YSL_INC_HELPER_SHLDS_H_
 #define YSL_INC_HELPER_SHLDS_H_
 
-#include "yshelper.h"
+#include "ShellHelper.h"
 
 YSL_BEGIN
 

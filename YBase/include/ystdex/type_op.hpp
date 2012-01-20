@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r1286;
+\version r1288;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2011-12-03 17:03 +0800;
-\par 字符集:
+	2012-01-19 20:33 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YStandardEx::TypeOperation;
@@ -248,7 +248,7 @@ namespace ystdex
 #endif
 
 	public:
-		static yconstexpr auto value = sizeof(C) < sizeof(A) + sizeof(B);
+		static yconstexpr bool value = sizeof(C) < sizeof(A) + sizeof(B);
 	};
 
 
@@ -258,9 +258,8 @@ namespace ystdex
 	*/
 	template<typename _tInt>
 	struct integer_width
-	{
-		static yconstexpr auto value = sizeof(_tInt) * CHAR_BIT;
-	};
+		: public integral_constant<size_t, sizeof(_tInt) * CHAR_BIT>
+	{};
 
 
 	/*!

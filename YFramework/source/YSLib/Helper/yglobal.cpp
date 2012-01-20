@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3430;
+\version r3438;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2011-12-24 13:30 +0800;
-\par 字符集:
+	2012-01-20 10:03 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Helper::YGlobal;
@@ -178,7 +178,7 @@ DSScreen::GetCheckedBufferPtr() const ynothrow
 void
 DSScreen::Update(BitmapPtr buf)
 {
-	platform::ScreenSynchronize(GetCheckedBufferPtr(), buf);
+	ScreenSynchronize(GetCheckedBufferPtr(), buf);
 }
 void
 DSScreen::Update(Color c)
@@ -234,17 +234,18 @@ namespace
 
 		static InputContent content, old_content;
 
-		scanKeys();
-		WriteKeys(content.Keys);
+		platform::AllowSleep(true);
+		::scanKeys();
+		platform::WriteKeys(content.Keys);
 		if(content.Keys.Held & KeySpace::Touch)
 		{
 			CursorInfo cursor;
 
-			WriteCursor(cursor);
+			platform::WriteCursor(cursor);
 			yunseq(content.CursorLocation.X = cursor.GetX(),
 				content.CursorLocation.Y = cursor.GetY());
 		}
-
+		platform::AllowSleep(false);
 		if((FetchAppInstance().Queue.IsEmpty() || content != old_content)
 			&& content.CursorLocation != Point::Invalid)
 		{

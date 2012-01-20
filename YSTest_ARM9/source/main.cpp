@@ -8,7 +8,7 @@
 	understand and accept it fully.
 */
 
-/*!	\file main9.cpp
+/*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
 \version r2186;
@@ -17,8 +17,8 @@
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-01-06 16:21 +0800;
-\par 字符集:
+	2012-01-17 21:08 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	Main_ARM9;

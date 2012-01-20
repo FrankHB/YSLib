@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3424; *build 277 rev 36;
+\version r3426; *build 278 rev 39;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-01-16 23:47 +0800;
+	2012-01-20 10:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -341,366 +341,257 @@ $using:
 
 
 $DONE:
-r1-r3:
-/ \impl @ \ctor @ \cl SettingPanel @ \impl \u ShlReader;
+r1:
+* memory leak when loading duplicate typefaces @ \impl
+	@ \mf FontCache::LoadTypefaces @ \impl \u YFont $since b277;
 
-r4:
-/ @ \cl SettingPanel @ \u ShlReader $=
-(
-	+ private \m Widget* pSetting,
-	+ protected \m Label lblColorAreaUp, lblColorAreaDown;
-	/ \impl @ \ctor
-);
-
-r5:
-/ \impl @ \ctor @ \cl SettingPanel @ \impl \u ShlReader;
+r2-r5:
+/= test 1;
 
 r6:
-/ @ \cl ColorBox @ \u ColorPicker $=
-(
-	/ protected \m Control ColorArea => ctlColorArea,
-	/ protected \m HorizontalTrack (RTrack, GTrack, BTrack)
-		=> (trRed, trGreen, trBlue),
-	+ protected \m (lblRed, lblGreen, lblBlue);
-	/ \impl @ \ctor,
-	/ \impl @ \mf SetColor
-);
+/ \simp \impl @ \f InitializeSystemFontCache @ \impl \u YShellInitialization;
 
-r7-r9:
-/ \impl @ \impl \u ColorPicker;
+r7:
+/ \simp \impl @ \mf FontCache::LoadTypefaces @ \impl \u YFont;
 
-r10:
-* \impl @ \mf ColorBox::SetColor $since r6;
-
-r11:
-/= test 1 ^ \conf release;
-
-r12:
-/ @ \h YBlit $=
-(
-	/ \a const \ns \o @ \h YBlit -> 'yconstexpr' \ns \o,
-	/ \simp \impl @ \f \i blitAlphaBlend
-);
-
-r13:
-/= test 2;
-
-r14:
-/ @ \h YBlit $=
-(
-	/ \a \ns \o moved to ifndef YSL_FAST_BLIT,
-	(
-		+ yconstexpr u32 BLT_ROUND_BR;
-		* \impl @ \f \i blitAlphaBlend $since $before b132
-	),
-	* platform-dependent bool type xor operation @ \ft Blit $since b189
-);
-
-r15:
+r8-r11:
 / @ \u YFont $=
 (
-	/ \mf FontStyle::GetName -> !\m yconstfn \f FetchName;
-	+ DefBitmaskOperations(FontStyle, u8);
-	/ \st FontStyle -> \em \cl FontStyle,
-	/ \tr \impl @ \mf FontFamily::GetTypefacePtr,
-	/ \tr \impl @ \mf Font::GetStyleName,
-	* \impl @ \a predicates @ \cl Font $since b,	
-	- \inc \h FT_BITMAP_H @ \h,
-	- \inc \h FT_GLYPH_H @ \h
+	/ \impl @ \ctor @ \cl Typeface;
+	/ \tr \simp \impl @ \mf FontCache::LoadTypefaces
+);
+
+r12:
+/ @ \u YFont $=
+(
+	/ @ \cl Typeface $=
+	(
+		- \decl @ friend \cl FontCache,
+		+ \mf GetCMapIndex,
+		/ \mf GetFontFamilyPtr -> GetFontFamily
+	);
+	/ \tr \impl @ \mf FontCache::GetGlyph,
+	/ \tr \decl @ \ctor @ \cl Font
+);
+/ \tr \impl @ \ctor @ \cl TextState,
+/ \tr \impl @ \ctor @ \cl ShlExplorer::TFormExtra @ \impl \u Shells;
+
+r13:
+/= test 2 ^ \conf release;
+
+r14-r15:
+* missing painting of background for parent of buffered widgets $since b225 $=
+(
+	/ \impl @ \mf BufferedRenderer::Refresh @ \impl \u YRenderer
 );
 
 r16:
-/ \a const \ns \o @ \h YFont -> 'yconstexpr' \o;
+/ @ \cl BufferedRenderer @ \u YRenderer $=
+(
+	/ \mf Rect Validate(IWidget&, const Rect&)
+		-> \mf Rect Validate(IWidget&, const PaintContext&),
+	/ \impl @ \mf Refresh
+);
+/ \tr \impl @ \mf Desktop::Validate;
 
 r17:
-/ \a \de \arg 'Drawing::Font::GetDefault()'
-	-> 'FetchPrototype<Drawing::Font>()';
-- \i \smf Font::GetDefault @ \h YFont;
-
-r18:
-/ @ \u YFont $=
+/ @ \cl BufferedRenderer @ \u YRenderer $=
 (
-	/ yconstexpr \o GLYPH_CACHE_SIZE
-		-> \s \o yconstexpr size_t DefaultGlyphCacheSize @ \cl FontCache;
-	/ \tr \ctor @ \cl FontCache,
-	- yconstexpr u8 DEFAULT_FONT_SIZE(14),
+	+ \m bool IgnoreBackground;
+	/ \tr \impl @ \ctor,
+	/ \impl @ \mf Validate
 );
+/ \impl @ \ctor @ \cl Desktop;
 
-r19:
-+ \inc \h YStorage @ \h TextBase;
-/ \simp @ \ctor @ \cl (PenStyle, TextState) ^ FetchPrototype;
-/ @ \ctor @ \cl Font;
-- \f FetchDefaultFontFamily @ \u YFont;
-
-r20:
-/ @ \u YFont $=
-(
-	/ \m typedef u8 Font::SizeType -> !\m FontSize;
-	/ \decl @ \cl Font >> after to \cl FontCache;
-	/ \mf !\i Font::GetHeight -> \mf \i,
-	/ @ \cl FontCache $=
-	(
-		/ \impl @ \mf ClearContainers;
-		- \mf (ClearFontFiles, ClearTypefaces, ClearFontFamilies)
-	)
-);
+r18-r20:
+/= test 3;
 
 r21:
-/ typedef std::string PathType @ \cl FontFile @ \h YFont -> !\m FontPath;
-/ \tr \impl @ \f LoadFontFileDirectory @ \un \ns
-	@ \impl \u YShellInitialization;
+/ \impl @ \ctor @ \cl ShlExplorer @ \impl \u Shells;
 
-r22-r23:
-/ @ \u YFont $=
+r22:
+/= test 4 ^ \conf release;
+
+r23-r26:
+/ @ \a Makefile $=
 (
-	/ \impl @ \f simpleFaceRequester,
-	/ @ \cl Typeface $=
-	(
-		/ \m const FontFile& File -> const FontPath Path,
-		/ \tr @ \ctor,
-		/ \tr \impl @ \mf \op(<, ==)
-	),
-	/ @ \cl FontCache $=
-	(
-		/ @ \mf (LoadFontFile, LoadTypefaces#1, LoadTypefaces#2,
-			ClearContainers),
-		- \mf void \op+=(FontFile*),
-		- \mf bool \op-=(FontFile*);
-		/ typedef set<const FontFile*, ystdex::deref_comp<const FontFile>>
-			FileSet -> typedef map<const FontPath, FT_Long> PathMap,
-		/ \tr FileSet sFiles -> PathMap sFiles
-	);
-	- \cl FontFile
-);
-
-r24:
-/ @ \h YFont $=
-(
-	/ @ \cl FontCache $=
-	(
-		/ \inh \cl OwnershipTag<FontFile> -> OwnershipTag<FontFamily>,
-		/ \m sFile => sPaths
-	),
-	- \pre \decl @ \cl FontFile,
-);
-
-r25:
-/= test 3 ^ \conf release;
-
-r26:
-/ @ \cl FontCache  @ \u YFont $=
-(
-	/ \mf GetFiles => GetPaths,
-	- \mf (GetFilesN, GetTypesN, GetFacesN),
-	/ \mf GetFacesIndex => GetFaceIndices,
-	/ \m sPaths => mPaths
-);
-/ \tr \impl @ \f (InitializeSystemFontCache, CheckSystemFontCache)
-	@ \impl \u YShellInitialization,
-/ \tr \impl @ \ctor @ \cl ShlExplorer::TFormExtra @ \impl \u Shells;
+	/ copy \mac ARCH -> ARCH_AS;
+	/ ARCH -> ARCH_AS @ assembler command;
+	/ \simp \mac CFLAGS
+),
+/= test 5,
+/= test 6 ^ \conf release;
 
 r27:
-/ @ \u YFont $=
+/ \u Platform::DS::ARM7 => Main_ARM7;
+/ \simp \impl @ \u Main_ARM7 $=
 (
-	- private \s Font* pDefFont @ \cl Font,
-	/ typedef std::string NameType @ \m FontFamily
-		-> !\m typedef std::string FamilyName,
-	/ typedef std::string NameType @ \m Typeface
-		-> !\m typedef std::string FaceName
+	/ \rem \f (VcountHandler, VblankHandler),
+	/ \simp @ \f main;
+	/ \rem \inc \h <maxmod7.h>
 );
 
 r28:
-/ @ \u YFont $=
-(
-	/ @ \cl FontCache $=
-	(
-		/ typedef map<const FontPath, FT_Long> PathMap
-			-> typedef map<FontPath, FT_Long> PathMap
-	),
-	/ \a FaceName => StyleName
-);
+/= test 7 ^ \conf release;
 
-r29:
-/ \impl @ \ctor @ \cl ShlExplorer::TFormExtra @ \impl \u Shells;
-/ @ \cl FontCache @ \u YFont $=
-(
-	/ \simp \impl @ \mf void operator+=(FontFamily*),
-	/ \simp \impl @ \mf void operator-=(FontFamily*),
-	- \mf GetFaces;
-	- \m FamilySet sFamilies,
-	/ \mf GetFaceIndices => GetFamilyIndices;
-	- typedef set<FontFamily*, ystdex::deref_comp<FontFamily>> FamilySet
-);
-
-r30:
-/ @ \u YFont $=
-(
-	/ @ \cl FontFamily $=
-	(
-		(
-			/ \simp \impl @ \mf \op(+=, -=),
-			/ \simp \impl @ \ctor;
-			/ typedef set<Typeface*> FaceSet -> typedef set<FaceName> FaceSet;
-			- \m sFaces
-		)
-		- \decl @ friend \cl FontCache,
-		/ \ac @ \a private \mf -> public,
-		- \mf \op(==, <)
-	);
-	/ \tr \impl @ \mf (\op+=#2, \op-=#2) @ \cl FontCache
-);
+r29-r30:
+/ \impl @ \mf TextReaderManager::Activate @ \impl \u ShlReader;
 
 r31:
-/= test 4 ^ \conf release;
+/ \a meta programing constant ^ (true_type, false_type) ~ \s yconstexpr \o
+	@ \h Operators,
+/ @ \ft integer_width @ \h Rational ^ integral_constant ~ \s yconstexpr \o;
 
 r32:
-/ @ \cl Typeface @ \u YFont $=
+/ @ \h YDefinition $=
 (
-	- \m Cache,
-	/ \tr @ \ctor
+	+ \inc \h <utility>;
+	/ \ft<typename _type> yconstfn int unsequenced(_type...) ynothrow
+		@ \h YDifinition -> \ft<typename _type, typename... _tParams>
+		yconstfn auto&& unsequenced(_type&& arg, _tParams&&...) ynothrow
 );
 
 r33:
-/ @ \cl FontCache @ \u YFont $=
+/ @ \impl \u ShlReader $=
 (
-	- unnecessary \e handling @ \mf LoadFontFile,
-	/ public \mf void LoadTypefaces(const pair<const FontPath, FT_Long>&)
-		-> private \mf void LoadTypefaces(const FontPath&, size_t),
-	/ \mf bool LoadFontFile(const_path_t)
-		-> \mf bool LoadFontFile(const FontPath&),
-	/ \tr @ \impl @ \ctor
+	/ @ \un \ns $=
+	(
+		+ \em \ft<typename _tFunc> void seq_apply(_tFunc&&),
+		+ \ft<typename _tFunc, typename _type, typename... _tParams> \i
+			void seq_apply(_tFunc&&, _type&&, _tParams&&...);
+		+ \st ContainerSetter
+	);
+	/ \simp \impl @ \ctor @ \cl (ReaderBox, TextInfoBox) ^ (\ft seq_apply,
+		\st ContainerSetter)
 );
-/ \tr \impl @ \f InitializeSystemFontCache @ \impl \u YShellInitialization;
 
 r34:
-/ @ \u YFont $=
-(
-	/ @ \cl FontFamily $=
-	(
-		/ \mf void operator+=(Typeface*)
-			-> \mf void operator+=(Typeface&),
-		/ \mf void operator-=(Typeface*)
-			-> \mf void operator-=(Typeface&)
-	),
-	/ @ \cl FontCache $=
-	(
-		/ \mf void operator+=(Typeface*)
-			-> \mf void operator+=(Typeface&),
-		/ \mf void operator-=(Typeface*)
-			-> \mf void operator-=(Typeface&),
-		/ \mf void operator+=(FontFamily*)
-			-> \mf void operator+=(FontFamily&),
-		/ \mf void operator-=(FontFamily*)
-			-> \mf void operator-=(FontFamily&);
-		/ \tr \impl @ \mf LoadTypefaces#2
-	)
-);
+/ \ft seq_apply @ \un \ns @ \impl \u ShlReader >> \h YFunc,
+/ \st ContainerSetter @ \un \ns ShlReader >> \ns YSLib::Components
+	@ \h YShellHelper;
 
 r35:
-/ \simp \impl @ \mf FontCache::LoadTypefaces @ \impl \u YFont;
+/= test 8 ^ \conf release;
 
 r36:
-/= test 5 ^ \conf release;
+/ \h YShellHelper[yshelper.h, yshelper.cpp] @ \dir YSLib/Helper
+	@ \proj YFramework -> ShellHelper[ShellHelper.h, ShellHelper.cpp];
+/ \tr \inc \h @ \impl \u Shell_DS,
++ \st ChildPainter @ \un \ns ShlReader >> \ns YSLib::Components
+	@ \h ShellHelper;
+
+r37:
+* \decl @ \cl ChildPainter @ \h ShellHelper;
+/ \simp \impl @ \mf Refresh @ \cl (ReaderBox, TextInfoBox) @ \impl \u ShlReader
+	^ (\ft seq_apply, \st ChildPainter);
+
+r38:
++ \f void AllowSleep(bool) @ \ns platform @ \u YCommon;
+/ @ \impl \u YGlobal $=
+(
+	/ \simp \impl @ \mf DSScreen::Update,
+	/ \impl @ \f Idle @ \un \ns
+);
+
+r39:
+/= test 9 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-01-16:
--7.0d;
-//Mercurial rev1-rev149: r7252;
+2012-01-20:
+-8.2d;
+//Mercurial rev1-rev149: r7291;
 
 / ...
 
 
 $NEXT_TODO:
-b278-b324:
+b279-b300:
 / fully \impl @ \u DSReader $=
 (
 	+ fully \impl settings,
 	+ bookmarks
 ),
-* background for buffered widgets,
-* VRAM not flushed when opening lid on real DS,
-+ dynamic character mapper loader for \u CharacterMapping;
+(
+	+ sleeping enabling @ YGlobal
+);
 
-b325-b1344:
+
+$TODO:
+b301-b1536:
++ dynamic character mapper loader for \u CharacterMapping,
 + shell sessions,
 ^ timing triggers @ message loop,
 / ystdex::fixed_point $=
 (
 	* \impl @ \op/= for signed types,
 	+ 64-bit integer underlying type support
-)
+),
 + overlapping test @ \cl Rect,
 / build command @ \a \conf proj YBase,
-+ formal abstraction of rectangular hit test,
-+ widget layout managers,
-+ key accelerators,
-+ fully \impl styles @ widgets,
-+ data configuragion,
-+ general widget decorators,
-+ partial invalidation support @ %(HexViewArea::Refresh),
 / fully \impl @ \cl Path,
++ general data configuragion,
++ partial invalidation support @ %(HexViewArea::Refresh),
 + user-defined stream filters,
 / \impl @ 'real' RTC,
++ \impl @ images loading and processing,
++ general resouce management,
++ Microsoft Windows port,
+/ @ "GDI" $=
+(
+	/ more efficient Font switching,
+	+ animation,
+	+ GDI brushes,
+	/ text alignment,
+	/ advanced text layout like Unicode layout control
+)
 / @ "GUI" $=
 (
+	/ fully \impl @ \cl Form,
+	+ icons,
+	+ complex controls,
+	+ formal abstraction of rectangular hit test,
+	+ key accelerators,
+	+ widget layout managers,
+	+ fully \impl styles @ widgets,
+	+ general widget decorators,
 	+ modal widget behavior,
 	+ clipping areas,
-	+ GDI brushes,
-	/ text alignment
+	+ dynamic widget prototypes
 ),
-+ \impl @ images loading and processing,
 * platform-neutrality @ alpha blending \impl,
-+ dynamic widget prototypes,
+/ fully \impl logging $=
+(
+	+ more clarified log Levels,
+	+ log streams
+);
 
 
 $LOW_PRIOR_TODO:
-b1345-b5120:
+b1537-b5120:
 + general monomorphic iterator abstraction,
 / partial invalidation support @ \f DrawRectRoundCorner,
 / user-defined bitmap buffer @ \cl Desktop,
-+ shared property: additional,
-/ improve efficiency @ \ft polymorphic_crosscast @ \h YCast,
++ additional shared property,
+/ improve efficiency @ \ft polymorphic_crosscast @ \h YCast for \conf release,
++ more advanced console wrapper,
++ a series set of robust gfx APIs,
 + (compressing & decompressing) @ gfx copying,
-+ keys for touch events,
-+ Microsoft Windows port;
 + correct DMA (copy & fill),
-+ Unicode layout control,
 + general component operations $=
 (
 	+ serialization,
 	+ designers
 ),
-+ auto-adaptors for look and feels,
++ automatic adaptors for look and feels,
 + networking,
-+ database interface;
-
-
-$TODO:
-
-Clarify the log levels.
-
-Make "UpdateFont()" more efficienct.
-
-More efficient %YTextRegion output:
-Use in-buffer background color rendering and function %CopyToScreen()
-	to inplements %YTextRegion background;
-Use pre-refreshing to make font changing.
-
-Consider to simplify the general window class: @YForm.
-
-Build a more advanced console wrapper.
-
-Build a series set of robust gfx APIs.
-
-More GUI features needed:
-Icons;
-Other controls.
-
-Other stuff to be considered to append:
-Design by contract: DbC for C/C++, GNU nana.
++ database interface,
++ other stuff to be considered to append $=
+(
+	+ design by contract: DbC for C/C++, GNU nana
+);
 
 
 $KNOWN_ISSUE:
@@ -769,10 +660,58 @@ $module_tree $=
 
 $now
 (
+	/ %'YCLib' $=
+	(
+		+ "sleeping status configuring function %AllowSleep"
+	);
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ "font APIs" $=
+		(
+			* "memory leak when loading duplicate typefaces"
+				@ "member function %FontCache::LoadTypefaces" $since b277,
+			/ $design "font file loading implemented" @ "constructor \
+				of class %Typeface" ~ "member function FontCache::LoadTypefaces"
+		),
+		/ 'GUI' $=
+		(
+			* "missing painting of background for parent of buffered widgets"
+				$since b225,
+			+ "forced background painting ignorance state"
+				@ "class %BufferedRenderer"
+		),
+		+ $design "sequence function application function template %seq_apply" 
+			@ "header %yfunc.hpp",
+		+ "helper function object class %ContainerSetter",
+		/ $design "default idle handler implementation"
+			^ "function %platform::AllowSleep to forbid sleeping \
+			when the main message queue is not empty";
+		* "VRAM not flushed or crashing when opening lid on real DS"
+			$since $before b132
+	),
+	/ $design "simplified implementation" @ "file %main.cpp"
+		@ "project %YSTest_ARM7",
+	/ %'YBase' $=
+	(
+		/ $design "implementation for meta programing constant"
+			^ "struct %integral_constant" ~ "static yconstexpr objects",
+		/ "unsequenced expression returning first expression"
+			^ "macro %yforward"
+	);
 	/ %'YReader'.'text reader' $=
 	(
-		+ "text" @ "class %ColorBox",
-		+ "text" @ "setting panel"
+		/ "reader box shown as default",
+		/ $design "simplified container pointer setting implementation"
+			^ "function template %seq_apply"
+	)
+),
+
+b277
+(
+	/ %'YReader'.'text reader' $=
+	(
+		+ "labels" @ "class %ColorBox",
+		+ "labels" @ "setting panel"
 	),
 	/ %'YFramework'.'YSLib' $=
 	(

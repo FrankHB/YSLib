@@ -11,13 +11,13 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7542;
+\version r7554;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2012-01-16 11:36 +0800;
+	2012-01-17 02:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -162,7 +162,6 @@ public:
 */
 class Typeface : public noncopyable
 {
-	friend class FontCache;
 	friend FT_Error
 	simpleFaceRequester(FTC_FaceID, FT_Library, FT_Pointer, FT_Face*);
 
@@ -188,6 +187,7 @@ private:
 public:
 	/*!
 	\brief 使用字体缓存引用在指定字体文件路径读取指定索引的字型并构造对象。
+	\post <tt>bool(pFontFamily)</tt> 。
 	*/
 	Typeface(FontCache&, const FontPath&, u32 = 0
 		/*, const bool bb = false,
@@ -204,10 +204,18 @@ public:
 	bool
 	operator<(const Typeface&) const;
 
-	DefGetter(const ynothrow, const FontFamily*, FontFamilyPtr, pFontFamily)
-	DefGetter(const ynothrow, FamilyName, FamilyName, pFontFamily
-		? pFontFamily->GetFamilyName() : "")
+	DefGetterMem(const ynothrow, FamilyName, FamilyName, GetFontFamily())
+	/*!
+	\brief 取字型家族。
+	\since build 278 。
+	*/
+	DefGetter(const ynothrow, const FontFamily&, FontFamily, *pFontFamily)
 	DefGetter(const ynothrow, const StyleName&, StyleName, style_name)
+	/*!
+	\brief 取字符映射索引号。
+	\since build 278 。
+	*/
+	DefGetter(const ynothrow, FT_Int, CMapIndex, cmap_index)
 };
 
 
@@ -501,7 +509,7 @@ public:
 	\brief 构造指定字型家族、大小和样式的字体对象。
 	*/
 	explicit yconstfn
-	Font(const FontFamily& = *FetchDefaultTypeface().GetFontFamilyPtr(),
+	Font(const FontFamily& = FetchDefaultTypeface().GetFontFamily(),
 		FontSize = DefaultSize, FontStyle = FontStyle::Regular);
 
 	yconstfn DefPred(const ynothrow, Bold, bool(Style & FontStyle::Bold))

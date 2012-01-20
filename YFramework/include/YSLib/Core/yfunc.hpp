@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,15 +10,15 @@
 
 /*!	\file yfunc.hpp
 \ingroup Core
-\brief 函数对象封装。
-\version r1776;
+\brief 函数调用和仿函数封装。
+\version r1792;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2011-12-04 10:56 +0800;
-\par 字符集:
+	2011-01-20 08:33 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YFunc;
@@ -34,7 +34,24 @@
 
 YSL_BEGIN
 
-/* \brief 调用时动态类型检查函数对象模板类。
+/*!
+\brief 顺序递归调用。
+\since build 278 。
+*/
+//@{
+template<typename _tFunc>
+void
+seq_apply(_tFunc&&)
+{}
+template<typename _tFunc, typename _type, typename... _tParams>
+inline void
+seq_apply(_tFunc&& f, _type&& arg, _tParams&&... args)
+{
+	f(arg), seq_apply(f, yforward(args)...);
+}
+//@}
+
+/* \brief 调用时动态类型检查仿函数模板。
 PDefTH3(_type, _tArg, _tRet)
 class GHDynamicFunction
 	: public std::binary_function<_type, _tArg, _tRet>
@@ -140,7 +157,7 @@ ConstructDynamicFunctionWith(_tRet (_type::*_f)(_tArg) const)
 
 
 /*!
-\brief 函数对象类：替换非静态成员二元函数的第一个参数。
+\brief 仿函数：替换非静态成员二元函数的第一个参数。
 \since build 167 。
 */
 template<class _type, typename _tRet, typename _tPara, class _tNew = _type>
@@ -196,7 +213,7 @@ public:
 
 
 /*!
-\brief 函数对象类：替换非静态成员二元函数的第一个参数并绑定到指定对象。
+\brief 仿函数：替换非静态成员二元函数的第一个参数并绑定到指定对象。
 \since build 171 。
 */
 template<class _type, typename _tRet, typename _tPara, class _tNew = _type>
@@ -288,7 +305,7 @@ struct PolymorphicFunctorBase
 
 /*
 \brief 多态函数对象模板。
-\note 继承其它函数对象类。
+\note 继承其它仿函数。
 */
 /*template<class _tFunctor>
 class GFunctor : public PolymorphicFunctorBase, public _tFunctor

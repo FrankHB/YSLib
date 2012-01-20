@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载运算符。
-\version r2102;
+\version r2106;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260 。
 \par 创建时间:
 	2011-11-13 14:58:05 +0800;
 \par 修改时间:
-	2012-01-09 18:17 +0800;
+	2012-01-19 20:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -431,26 +431,23 @@ namespace ystdex
 
 		template<class> 
 		struct is_chained_base
-		{
-			static yconstexpr bool value = false;
-		};
+			: public false_type
+		{};
 
 
 	# define YCL_OP_CHAIN2(_name) \
 		using ystdex::_impl::_name; \
 		template<class _type, class _type2, class _tBase> \
 		struct is_chained_base<_name<_type, _type2, _tBase>> \
-		{ \
-			static yconstexpr bool value = true; \
-		};
+			: public true_type \
+		{};
 
 	# define YCL_OP_CHAIN1(_name) \
 		using ystdex::_impl::_name; \
 		template<class _type, class _tBase> \
 		struct is_chained_base<_name<_type, _tBase>> \
-		{ \
-			static yconstexpr bool value = true; \
-		};
+			: public true_type \
+		{};
 
 	#define YCL_OP_CHAIN(_name) \
 		using ystdex::_impl::_name##2; \
@@ -475,9 +472,8 @@ namespace ystdex
 		\
 		template<class _type, class _type2, class _tBase, bool _v> \
 		struct is_chained_base<_name<_type, _type2, _tBase, _v>> \
-		{ \
-			static yconstexpr bool value = true; \
-		}; \
+			: public true_type \
+		{}; \
 		\
 		YCL_OP_CHAIN2(_name##2) \
 		YCL_OP_CHAIN1(_name##1)

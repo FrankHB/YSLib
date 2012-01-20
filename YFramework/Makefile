@@ -1,8 +1,8 @@
 # DS Makefile for YFramework -> ARM9 by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-01-07 20:55 +0800;
-# Version = r3972;
+# UTime = 2012-01-17 16:38 +0800;
+# Version = r3977;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -49,7 +49,8 @@ ifeq ($(PLATFORM),DS)
 # the prefix on the compiler executables
 PREFIX	:=	arm-eabi-
 
-ARCH	:=	-mthumb -mthumb-interwork -march=armv5te
+ARCH_AS	:=	-mthumb -mthumb-interwork -march=armv5te
+ARCH	:=	$(ARCH_AS) -mtune=arm946e-s
 
 # NOTE: arm9tdmi isn't the correct CPU arch, but anything newer and LD
 # *insists* it has a FPU or VFP, and it won't take no for an answer!
@@ -57,7 +58,6 @@ ARCH	:=	-mthumb -mthumb-interwork -march=armv5te
 ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 
 CFLAGS	:=	-Wall \
- 			-mtune=arm946e-s \
  			-fomit-frame-pointer \
  			-ffast-math \
  			$(ARCH)
@@ -235,7 +235,7 @@ $(OUTPUT)	:	$(OFILES)
 # bin2o macro like that from libnds, slightly changed for the PALib naming conventions of resources which doesn't append the file extension to the resource name
 define bin2o
 	cp $(<) $(*)
-	bin2s $(*) | $(AS) $(ARCH) -o $(@)
+	bin2s $(*) | $(AS) $(ARCH_AS) -o $(@)
 	rm $(*)
 
 	echo "extern const u8" $(*)"[];" > $(*).h

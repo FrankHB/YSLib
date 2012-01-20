@@ -93,9 +93,9 @@
 		<Unit filename="include\YSLib\Core\yshell.h" />
 		<Unit filename="include\YSLib\Core\ystorage.hpp" />
 		<Unit filename="include\YSLib\Core\ystring.h" />
+		<Unit filename="include\YSLib\Helper\ShellHelper.h" />
 		<Unit filename="include\YSLib\Helper\shlds.h" />
 		<Unit filename="include\YSLib\Helper\yglobal.h" />
-		<Unit filename="include\YSLib\Helper\yshelper.h" />
 		<Unit filename="include\YSLib\Service\CharRenderer.h" />
 		<Unit filename="include\YSLib\Service\TextBase.h" />
 		<Unit filename="include\YSLib\Service\TextLayout.h" />
@@ -236,9 +236,9 @@
 		<Unit filename="source\YSLib\Core\yobject.cpp" />
 		<Unit filename="source\YSLib\Core\yshell.cpp" />
 		<Unit filename="source\YSLib\Core\ystring.cpp" />
+		<Unit filename="source\YSLib\Helper\ShellHelper.cpp" />
 		<Unit filename="source\YSLib\Helper\shlds.cpp" />
 		<Unit filename="source\YSLib\Helper\yglobal.cpp" />
-		<Unit filename="source\YSLib\Helper\yshelper.cpp" />
 		<Unit filename="source\YSLib\Service\CharRenderer.cpp" />
 		<Unit filename="source\YSLib\Service\TextBase.cpp" />
 		<Unit filename="source\YSLib\Service\TextLayout.cpp" />

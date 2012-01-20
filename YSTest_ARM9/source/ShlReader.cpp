@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2932;
+\version r2960;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-01-14 19:06 +0800;
+	2012-01-20 09:27 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -61,11 +61,8 @@ ReaderBox::ReaderBox(const Rect& r, ShlReader& shl)
 	pbReader(Rect(4, 0, 248, 8)), lblProgress(Rect(216, 12, 40, 16))
 {
 	SetTransparent(true),
-	SetContainerPtrOf(btnMenu, this),
-	SetContainerPtrOf(btnInfo, this),
-	SetContainerPtrOf(btnReturn, this),
-	SetContainerPtrOf(pbReader, this),
-	SetContainerPtrOf(lblProgress, this),
+	seq_apply(ContainerSetter(*this),
+		btnMenu, btnInfo, btnReturn, pbReader, lblProgress);
 	btnMenu.Text = "M",
 	btnInfo.Text = "I",
 	btnReturn.Text = "R",
@@ -101,11 +98,8 @@ ReaderBox::Refresh(const PaintContext& pc)
 {
 	Widget::Refresh(pc);
 
-	IWidget* const pWidgets[] = {&btnMenu, &btnInfo, &btnReturn, &pbReader,
-		&lblProgress};
-
-	for(std::size_t i(0); i < sizeof(pWidgets) / sizeof(*pWidgets); ++i)
-		PaintChild(*pWidgets[i], pc);
+	seq_apply(ChildPainter(pc),
+		btnMenu, btnInfo, btnReturn, pbReader, lblProgress);
 	return Rect(pc.Location, GetSizeOf(*this));
 }
 
@@ -136,8 +130,7 @@ TextInfoBox::TextInfoBox(ShlReader& shl)
 	lblTop(Rect(4, 60, 192, 18)),
 	lblBottom(Rect(4, 80, 192, 18))
 {
-	SetContainerPtrOf(lblEncoding, this),
-	SetContainerPtrOf(lblSize, this);
+	seq_apply(ContainerSetter(*this), lblEncoding, lblSize);
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 }
 
@@ -146,10 +139,8 @@ TextInfoBox::Refresh(const PaintContext& pc)
 {
 	DialogBox::Refresh(pc);
 
-	IWidget* const pWidgets[] = {&lblEncoding, &lblSize, &lblTop, &lblBottom};
-
-	for(size_t i(0); i < sizeof(pWidgets) / sizeof(*pWidgets); ++i)
-		PaintChild(*pWidgets[i], pc);
+	seq_apply(ChildPainter(pc),
+		lblEncoding, lblSize, lblTop, lblBottom);
 	return Rect(pc.Location, GetSizeOf(*this));
 }
 
@@ -340,6 +331,9 @@ TextReaderManager::Activate()
 	SetVisibleOf(pnlSetting, false);
 	pTextFile = unique_raw(new TextFile(path.c_str()));
 	Reader.LoadText(*pTextFile);
+	//置默认视图。
+	// TODO: 关联视图设置状态使用户可选。
+	OnClick(TouchEventArgs(dsk_dn));
 	RequestFocusCascade(dsk_dn);
 }
 

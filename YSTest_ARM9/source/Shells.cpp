@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5484;
+\version r5487;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-01-16 07:16 +0800;
+	2012-01-17 04:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -436,7 +436,7 @@ ShlExplorer::ShlExplorer()
 	mhMain(*GetDesktopDownHandle())
 {
 	//对 fbMain 启用缓存。
-	fbMain.SetRenderer(unique_raw(new BufferedRenderer()));
+	fbMain.SetRenderer(unique_raw(new BufferedRenderer(true)));
 	yunseq(
 		FetchEvent<KeyPress>(fbMain) += [](KeyEventArgs&& e){
 			if(e.GetKeyCode() & KeySpace::L)
@@ -678,9 +678,9 @@ ShlExplorer::TFormExtra::TFormExtra()
 				++itype %= ftypen;
 				if(++i == fc.GetTypes().end())
 					i = fc.GetTypes().begin();
-				btnDragTest.Font = Font(*(*i)->GetFontFamilyPtr(),
+				btnDragTest.Font = Font((*i)->GetFontFamily(),
 					16 - (itype << 1), FontStyle::Regular);
-			//	btnDragTest.Font = Font(*(*it)->GetFontFamilyPtr(),
+			//	btnDragTest.Font = Font((*it)->GetFontFamily(),
 			//	GetDefaultFontFamily(), 16 - (itype << 1), FontStyle::Regular);
 				std::sprintf(strtf, "%d, %d file(s), %d type(s), %d family(s);",
 					btnDragTest.Font.GetSize(), ffilen, ftypen, ffamilyn);

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,61 +11,65 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM7 主源文件。
-\version 0.1026;
+\version r1043;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-12-18 12:27:40 +0800;
 \par 修改时间:
-	2011-03-05 17:05 +0800;
-\par 字符集:
+	2012-01-17 21:11 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
-	Platform::DS::Main;
+	Main_ARM7;
 */
 
 
 #include <nds.h>
 //#include <dswifi7.h>
-#include <maxmod7.h>
+//#include <maxmod7.h>
 
+
+/*
 void VcountHandler()
 {
 	inputGetAndSend();
 }
-
 void VblankHandler(void)
 {
 	//Wifi_Update();
 }
+*/
 
 
 int main()
 {
-	irqInit();
-	fifoInit();
+	::irqInit();
+	::fifoInit();
 
 	//从固件中读取用户设置。
-	readUserSettings();
+	::readUserSettings();
 
 	// 开始使用 RTC 跟踪 IRQ 。
-	initClockIRQ();
+	::initClockIRQ();
 
-	SetYtrigger(80);
+	::SetYtrigger(80);
 
 	//installWifiFIFO();
-	installSoundFIFO();
+	::installSoundFIFO();
 
-	mmInstall(FIFO_MAXMOD);
+	//::mmInstall(FIFO_MAXMOD);
 
-	installSystemFIFO();
+	::installSystemFIFO();
 
-	irqSet(IRQ_VCOUNT, VcountHandler);
-	irqSet(IRQ_VBLANK, VblankHandler);
+	::irqSet(IRQ_VCOUNT, ::inputGetAndSend);
+//	::irqSet(IRQ_VCOUNT, VcountHandler);
+//	::irqSet(IRQ_VBLANK, VblankHandler);
 
-	irqEnable(IRQ_VBLANK | IRQ_VCOUNT | IRQ_NETWORK);
+	::irqEnable(IRQ_VBLANK | IRQ_VCOUNT | IRQ_NETWORK);
 
 	//保持 ARM7 空闲状态。
 	while(true)
-		swiWaitForVBlank();
+		::swiWaitForVBlank();
 }
 

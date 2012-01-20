@@ -136,9 +136,9 @@
     <ClInclude Include="include\YSLib\Core\ymsgdef.h" />
     <ClInclude Include="include\YSLib\Core\ystorage.hpp" />
     <ClInclude Include="include\YSLib\Core\ystring.h" />
+    <ClInclude Include="include\YSLib\Helper\ShellHelper.h" />
     <ClInclude Include="include\YSLib\Helper\shlds.h" />
     <ClInclude Include="include\YSLib\Helper\yglobal.h" />
-    <ClInclude Include="include\YSLib\Helper\yshelper.h" />
     <ClInclude Include="include\YSLib\Service\CharRenderer.h" />
     <ClInclude Include="include\YSLib\Service\TextBase.h" />
     <ClInclude Include="include\YSLib\Service\TextLayout.h" />
@@ -196,9 +196,9 @@
     <ClCompile Include="source\YSLib\Core\yshell.cpp" />
     <ClCompile Include="source\YSLib\Core\ymsg.cpp" />
     <ClCompile Include="source\YSLib\Core\ystring.cpp" />
+    <ClCompile Include="source\YSLib\Helper\ShellHelper.cpp" />
     <ClCompile Include="source\YSLib\Helper\shlds.cpp" />
     <ClCompile Include="source\YSLib\Helper\yglobal.cpp" />
-    <ClCompile Include="source\YSLib\Helper\yshelper.cpp" />
     <ClCompile Include="source\YSLib\Service\CharRenderer.cpp" />
     <ClCompile Include="source\YSLib\Service\TextBase.cpp" />
     <ClCompile Include="source\YSLib\Service\TextLayout.cpp" />

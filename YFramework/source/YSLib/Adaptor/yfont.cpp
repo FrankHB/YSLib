@@ -11,13 +11,13 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7409;
+\version r7419;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2012-01-16 15:57 +0800;
+	2012-01-17 02:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -139,10 +139,32 @@ FontFamily::GetTypefacePtr(const StyleName& style_name)
 
 Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i
 	/*, const bool bb, const bool bi, const bool bu*/)
-	: Path(path), pFontFamily(), style_name(), face_index(i), cmap_index(-1)
+	: Path(path), face_index(i), cmap_index(-1)
 /*	, bBold(bb), bOblique(bi), bUnderline(bu),
 	, matrix(bi ? MOblique : MNormal)*/
-{}
+{
+	if(cache.sFaces.find(this) != cache.sFaces.end())
+		throw LoggedEvent("Duplicate typeface found.", 2);
+
+	FTC_FaceID new_face_id(this);
+	FT_Face face(nullptr);
+
+	//读取字型名称并构造名称映射。
+	if(FTC_Manager_LookupFace(cache.manager, new_face_id, &face) != 0 || !face)
+		throw LoggedEvent("Face loading failed.", 2);
+	if(!cache.scaler.face_id)
+		cache.scaler.face_id = new_face_id;
+
+	const FamilyName family_name(face->family_name);
+	const auto it(cache.mFamilies.find(family_name));
+	const bool not_found(it == cache.mFamilies.end());
+
+	yunseq(pFontFamily = not_found ? ynew FontFamily(cache, family_name)
+		: it->second, style_name = face->style_name);
+	if(not_found)
+		cache += *pFontFamily;
+	*pFontFamily += *this;
+}
 
 bool
 Typeface::operator==(const Typeface& rhs) const
@@ -240,7 +262,7 @@ FontCache::GetGlyph(ucs4_t c, FT_UInt flags)
 		return FTC_SBit();
 
 	const u32 index(FTC_CMapCache_Lookup(cmapCache, scaler.face_id,
-		GetTypefacePtr()->cmap_index, c));
+		GetTypefacePtr()->GetCMapIndex(), c));
 	FTC_SBit sbit;
 
 	FTC_SBitCache_LookupScaler(sbitCache, &scaler, flags, index, &sbit,
@@ -351,7 +373,6 @@ FontCache::LoadTypefaces()
 		if(i->second > 0)
 			LoadTypefaces(i->first, i->second);
 }
-
 void
 FontCache::LoadTypefaces(const FontPath& path, size_t n)
 {
@@ -360,58 +381,15 @@ FontCache::LoadTypefaces(const FontPath& path, size_t n)
 
 	for(size_t i(0); i < n; ++i)
 	{
+		const auto old_id(scaler.face_id);
+
 		try
 		{
-			Typeface* q(nullptr);
-			FontFamily* r(nullptr);
-
-			try
-			{
-				try
-				{
-					if(sFaces.find(q = ynew Typeface(*this, path, i))
-						== sFaces.end())
-					{
-						FTC_FaceID new_face_id(q);
-						FT_Face face(nullptr);
-
-						//读取字型名称并构造名称映射。
-						if(FTC_Manager_LookupFace(manager, new_face_id, &face)
-							!= 0 || !face)
-							throw LoggedEvent("Face loading failed.", 2);
-						if(!scaler.face_id)
-							scaler.face_id = new_face_id;
-
-						auto i(mFamilies.find(face->family_name));
-
-						q->pFontFamily = r = i == mFamilies.end()
-							? ynew FontFamily(*this, face->family_name)
-							: i->second;
-						q->style_name = face->style_name;
-						*r += *q;
-						if(i == mFamilies.end())
-							*this += *r;
-						*this += *q;
-					}
-				}
-				catch(std::bad_alloc&)
-				{
-					throw LoggedEvent("Allocation failed"
-						" @ FontCache::LoadTypefaces;", 2);
-				}
-			}
-			catch(...)
-			{
-				scaler.face_id = nullptr;
-				ydelete(r);
-				ydelete(q);
-				throw;
-			}
+			*this += *(ynew Typeface(*this, path, i));
 		}
-		catch(LoggedEvent& e)
+		catch(...)
 		{
-			if(e.GetLevel() < 2)
-				throw;
+			scaler.face_id = old_id;
 		}
 	}
 	InitializeDefaultTypeface();
