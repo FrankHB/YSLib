@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3438;
+\version r3442;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2012-01-20 10:03 +0800;
+	2012-01-25 03:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -234,7 +234,10 @@ namespace
 
 		static InputContent content, old_content;
 
-		platform::AllowSleep(true);
+		// FIXME: crashing after sleeping(default behavior of closing then
+		// reopening lid) on real machine due to libnds default interrupt
+		// handler for power management";
+	//	platform::AllowSleep(true);
 		::scanKeys();
 		platform::WriteKeys(content.Keys);
 		if(content.Keys.Held & KeySpace::Touch)
@@ -245,7 +248,6 @@ namespace
 			yunseq(content.CursorLocation.X = cursor.GetX(),
 				content.CursorLocation.Y = cursor.GetY());
 		}
-		platform::AllowSleep(false);
 		if((FetchAppInstance().Queue.IsEmpty() || content != old_content)
 			&& content.CursorLocation != Point::Invalid)
 		{

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4760;
+\version r4764;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2011-12-05 07:34 +0800;
-\par 字符集:
+	2012-01-22 19:31 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YWindow;
@@ -88,14 +88,6 @@ public:
 
 	virtual void
 	Add(IWidget&, ZOrderType = DefaultZOrder);
-
-	/*!
-	\brief 提升部件至顶端。
-
-	子部件组中查找指定部件并重新插入至顶端。
-	*/
-	bool
-	MoveToTop(IWidget&);
 
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。

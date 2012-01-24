@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2608;
+\version r2621;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2011-12-14 20:58 +0800;
-\par 字符集:
+	2012-01-23 01:40 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YUIContainer;
@@ -189,11 +189,15 @@ class MUIContainer
 public:
 	typedef IWidget* ItemType; //!< 部件组项目类型。
 	typedef multimap<ZOrderType, ItemType> WidgetMap; \
-		//!< 部件组类型：映射 Z 顺序至部件。
+		//!< 部件映射表类型：映射 Z 顺序至部件。
 	typedef WidgetMap::value_type PairType;
 
 protected:
-	WidgetMap sWidgets; //!< 部件对象组：存储非空部件指针。
+	/*
+	\brief 部件映射：存储 Z 顺序映射至非空部件指针。
+	\since build 279 。
+	*/
+	WidgetMap mWidgets;
 
 	/*!
 	\brief 无参数构造：默认实现。
@@ -233,12 +237,12 @@ public:
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 	/*!
-	\brief 向部件组添加控件。
+	\brief 向部件组添加部件。
 
 	向焦点对象组添加焦点对象，同时向部件组按指定 Z 顺序值添加部件。
-	\note 控件已存在时忽略。
+	\note 部件已存在时忽略。
 	*/
-	virtual void
+	void
 	Add(IWidget&, ZOrderType = DefaultZOrder);
 
 protected:

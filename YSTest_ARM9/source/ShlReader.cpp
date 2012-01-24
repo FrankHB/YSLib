@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2960;
+\version r2975;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-01-20 09:27 +0800;
+	2012-01-24 07:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -164,43 +164,54 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 
 SettingPanel::SettingPanel()
 	: DialogPanel(Rect::FullScreen),
-	lblColorAreaUp(Rect(32, 32, 64, 20)),
-	lblColorAreaDown(Rect(160, 32, 64, 20)),
-	ColorAreaUp(Rect(32, 64, 48, 24)), ColorAreaDown(Rect(160, 64, 48, 24)),
-	boxColor(Point(4, 80)), pSetting()
+	lblColorAreaUp(Rect(20, 12, 216, 72)),
+	lblColorAreaDown(Rect(20, 108, 216, 72)),
+	btnSetUpBack(Rect(20, 32, 80, 24)), btnSetDownBack(Rect(148, 32, 80, 24)),
+	btnTextColor(Rect(20, 64, 80, 24)),
+	boxColor(Point(4, 80)), pColor()
 {
-	*this += lblColorAreaUp,
-	*this += lblColorAreaDown,
-	*this += ColorAreaUp,
-	*this += ColorAreaDown,
-	*this += boxColor,
+	*this += btnTextColor,
+	*this += btnSetUpBack,
+	*this += btnSetDownBack,
+	Add(boxColor, 112U),
 	SetVisibleOf(boxColor, false);
 	yunseq(
-		lblColorAreaUp.Text = "上屏背景色：",
-		lblColorAreaDown.Text = "下屏背景色：",
-		FetchEvent<Click>(ColorAreaUp) += [this](TouchEventArgs&&){
-			boxColor.SetColor(ColorAreaUp.BackColor);
+		lblColorAreaUp.Text = "上屏文字",
+		lblColorAreaDown.Text = "下屏文字",
+		btnTextColor.Text = "文字颜色...",
+		btnSetUpBack.Text = "上屏颜色...",
+		btnSetDownBack.Text = "上屏颜色...",
+	//	FetchEvent<Paint>(lblColorAreaUp).Add(Border, &BorderStyle::OnPaint),
+	//	FetchEvent<Paint>(lblColorAreaDown).Add(Border, &BorderStyle::OnPaint),
+		FetchEvent<Click>(btnSetUpBack) += [this](TouchEventArgs&&){
+			pColor = &lblColorAreaUp.BackColor;
+			boxColor.SetColor(*pColor);
 			Show(boxColor);
-			pSetting = &ColorAreaUp;
 		},
-		FetchEvent<Paint>(ColorAreaUp).Add(Border, &BorderStyle::OnPaint),
-		FetchEvent<Click>(ColorAreaDown) += [this](TouchEventArgs&&){
-			boxColor.SetColor(ColorAreaDown.BackColor);
+		FetchEvent<Click>(btnSetDownBack) += [this](TouchEventArgs&&){
+			pColor = &lblColorAreaDown.BackColor;
+			boxColor.SetColor(*pColor);
 			Show(boxColor);
-			pSetting = &ColorAreaDown;
 		},
-		FetchEvent<Paint>(ColorAreaDown).Add(Border, &BorderStyle::OnPaint),
+		FetchEvent<Click>(btnTextColor) += [this](TouchEventArgs&&){
+			pColor = &lblColorAreaUp.ForeColor;
+			boxColor.SetColor(*pColor);
+			Show(boxColor);
+		},
 		FetchEvent<TouchMove>(boxColor) += OnTouchMove_Dragging,
 		FetchEvent<Click>(boxColor.btnOK) += [this](TouchEventArgs&&){
-			if(pSetting)
+			if(pColor)
 			{
-				pSetting->BackColor = boxColor.GetColor();
-				Invalidate(*pSetting);
-				pSetting = nullptr;
+				*pColor = boxColor.GetColor();
+				lblColorAreaDown.ForeColor = lblColorAreaUp.ForeColor;
+				Invalidate(lblColorAreaUp),
+				Invalidate(lblColorAreaDown);
+				pColor = nullptr;
 			}
 		}
 	);
 }
+
 
 FileInfoPanel::FileInfoPanel()
 	: Panel(Rect::FullScreen),
@@ -234,6 +245,17 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 	boxReader(Rect(0, 160, 256, 32), shl), boxTextInfo(shl), pnlSetting(),
 	pTextFile(), mhMain(shl.GetDesktopDown())
 {
+	const auto exit_setting([this](TouchEventArgs&&){
+		auto& dsk_up(Shell.GetDesktopUp());
+
+		yunseq(dsk_up.BackColor = pnlSetting.lblColorAreaUp.BackColor,
+			Shell.GetDesktopDown().BackColor
+			= pnlSetting.lblColorAreaDown.BackColor,
+		dsk_up -= pnlSetting.lblColorAreaUp,
+		dsk_up -= pnlSetting.lblColorAreaDown);
+		Reader.SetVisible(true);
+	});
+
 	yunseq(
 		Reader.ViewChanged = [this]()
 		{
@@ -277,18 +299,13 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 				- Reader.GetTopPosition()) * w / mval), pb.GetHeight() - 2),
 				ColorSpace::Yellow);
 		},
-		FetchEvent<Click>(pnlSetting.btnClose) += [this](TouchEventArgs&&)
-		{
-			Reader.SetVisible(true);
-		},
+		FetchEvent<Click>(pnlSetting.btnClose) += exit_setting,
 		FetchEvent<Click>(pnlSetting.btnOK) += [this](TouchEventArgs&&)
 		{
-			yunseq(Shell.GetDesktopUp().BackColor
-				= pnlSetting.ColorAreaUp.BackColor,
-				Shell.GetDesktopDown().BackColor
-				= pnlSetting.ColorAreaDown.BackColor);
-			Reader.SetVisible(true);
-		}
+			Reader.SetColor(pnlSetting.lblColorAreaUp.ForeColor);
+			Reader.UpdateView();
+		},
+		FetchEvent<Click>(pnlSetting.btnOK) += exit_setting
 	);
 	{
 		auto hList(share_raw(new Menu::ListType));
@@ -370,8 +387,21 @@ TextReaderManager::Execute(IndexEventArgs::ValueType idx)
 		break;
 	case MR_Setting:
 		Reader.SetVisible(false),
-		pnlSetting.ColorAreaUp.BackColor = Shell.GetDesktopUp().BackColor,
-		pnlSetting.ColorAreaDown.BackColor = Shell.GetDesktopDown().BackColor;
+		yunseq(
+			pnlSetting.lblColorAreaUp.ForeColor
+				= pnlSetting.lblColorAreaDown.ForeColor = Reader.GetColor(),
+			pnlSetting.lblColorAreaUp.BackColor
+				= Shell.GetDesktopUp().BackColor,
+			pnlSetting.lblColorAreaDown.BackColor
+				= Shell.GetDesktopDown().BackColor
+		);
+		{
+			auto& dsk_up(Shell.GetDesktopUp());
+
+			dsk_up.BackColor = ColorSpace::White;
+			dsk_up += pnlSetting.lblColorAreaUp,
+			dsk_up += pnlSetting.lblColorAreaDown;
+		}
 		Show(pnlSetting);
 		break;
 	case MR_FileInfo:

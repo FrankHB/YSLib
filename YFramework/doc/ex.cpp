@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3426; *build 278 rev 39;
+\version r3428; *build 279 rev 26;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-01-20 10:30 +0800;
+	2012-01-25 04:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -341,181 +341,93 @@ $using:
 
 
 $DONE:
-r1:
-* memory leak when loading duplicate typefaces @ \impl
-	@ \mf FontCache::LoadTypefaces @ \impl \u YFont $since b277;
+r1-r2:
+/= test 0;
 
-r2-r5:
+r3:
+(
+	/ \mf Window::MoveToTop >> \cl Panel;
+	/ \impl @ \f RequestToTop @ \impl \u YWidget
+),
+* \as \str @ 4 \f 'MoveTo*' @ \impl \u YUIContainer $since b171;
+
+r4-r6:
 /= test 1;
 
-r6:
-/ \simp \impl @ \f InitializeSystemFontCache @ \impl \u YShellInitialization;
-
 r7:
-/ \simp \impl @ \mf FontCache::LoadTypefaces @ \impl \u YFont;
-
-r8-r11:
-/ @ \u YFont $=
-(
-	/ \impl @ \ctor @ \cl Typeface;
-	/ \tr \simp \impl @ \mf FontCache::LoadTypefaces
-);
-
-r12:
-/ @ \u YFont $=
-(
-	/ @ \cl Typeface $=
-	(
-		- \decl @ friend \cl FontCache,
-		+ \mf GetCMapIndex,
-		/ \mf GetFontFamilyPtr -> GetFontFamily
-	);
-	/ \tr \impl @ \mf FontCache::GetGlyph,
-	/ \tr \decl @ \ctor @ \cl Font
-);
-/ \tr \impl @ \ctor @ \cl TextState,
-/ \tr \impl @ \ctor @ \cl ShlExplorer::TFormExtra @ \impl \u Shells;
-
-r13:
 /= test 2 ^ \conf release;
 
-r14-r15:
-* missing painting of background for parent of buffered widgets $since b225 $=
-(
-	/ \impl @ \mf BufferedRenderer::Refresh @ \impl \u YRenderer
-);
-
-r16:
-/ @ \cl BufferedRenderer @ \u YRenderer $=
-(
-	/ \mf Rect Validate(IWidget&, const Rect&)
-		-> \mf Rect Validate(IWidget&, const PaintContext&),
-	/ \impl @ \mf Refresh
-);
-/ \tr \impl @ \mf Desktop::Validate;
-
-r17:
-/ @ \cl BufferedRenderer @ \u YRenderer $=
-(
-	+ \m bool IgnoreBackground;
-	/ \tr \impl @ \ctor,
-	/ \impl @ \mf Validate
-);
-/ \impl @ \ctor @ \cl Desktop;
-
-r18-r20:
+r8-r18:
+/ \mf (GetColorUp, GetColorDown) -> \mf GetColor
+	@ \cl DualScreenReader @ \h DSReader,
 /= test 3;
+/ @ \u ShlReader $=
+(
+	/ @ \cl SettingPanel $=
+	(
+		+ \m Button btnSetUpBack, btnSetDownBack, btnTextColor,
+		- \m Control ColorAreaUp, ColorAreaDown,
+		+ \decl friend \cl TextReaderManager,
+		/ \m Widget* pSetting -> Color* pColor;
+		/ \tr \impl @ \ctor
+	);
+	/ @ \cl TextReaderManager $=
+	(
+		/ \tr \impl @ \ctor,
+		/ \tr \impl @ \mf Execute
+	)
+);
+
+r19:
+/ @ \cl MUIContainer $=
+(
+	/ protected \m WidgetMap sWidgets => WidgetMap mWidgets,
+	- \vt @ \a \mf
+),
++ \mf Add @ \cl Panel;
+/ \tr \impl @ \impl \u (YWindow, YDesktop),
+/ \simp \impl @ \ctor @ \cl SettingPanel @ \impl \u ShlReader;
+
+r20:
+/ \mf ClearConents @ \cl Desktop >> \cl Panel,
+* \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader $since r15;
 
 r21:
-/ \impl @ \ctor @ \cl ShlExplorer @ \impl \u Shells;
-
-r22:
 /= test 4 ^ \conf release;
 
-r23-r26:
-/ @ \a Makefile $=
+r22:
+/ @ \cl TextReaderManager @ \impl \u ShlReader $=
 (
-	/ copy \mac ARCH -> ARCH_AS;
-	/ ARCH -> ARCH_AS @ assembler command;
-	/ \simp \mac CFLAGS
-),
-/= test 5,
-/= test 6 ^ \conf release;
-
-r27:
-/ \u Platform::DS::ARM7 => Main_ARM7;
-/ \simp \impl @ \u Main_ARM7 $=
-(
-	/ \rem \f (VcountHandler, VblankHandler),
-	/ \simp @ \f main;
-	/ \rem \inc \h <maxmod7.h>
+	/ \impl @ \mf Execute,
+	/ \impl @ \ctor
 );
 
-r28:
-/= test 7 ^ \conf release;
+r23-r24:
+/ \impl @ \ctor @ \cl SettingPanel @ \impl \u ShlReader;
 
-r29-r30:
-/ \impl @ \mf TextReaderManager::Activate @ \impl \u ShlReader;
+r25:
+/ \impl @ \f Idle @ \un \ns @ \impl \u YGlobal;
 
-r31:
-/ \a meta programing constant ^ (true_type, false_type) ~ \s yconstexpr \o
-	@ \h Operators,
-/ @ \ft integer_width @ \h Rational ^ integral_constant ~ \s yconstexpr \o;
-
-r32:
-/ @ \h YDefinition $=
-(
-	+ \inc \h <utility>;
-	/ \ft<typename _type> yconstfn int unsequenced(_type...) ynothrow
-		@ \h YDifinition -> \ft<typename _type, typename... _tParams>
-		yconstfn auto&& unsequenced(_type&& arg, _tParams&&...) ynothrow
-);
-
-r33:
-/ @ \impl \u ShlReader $=
-(
-	/ @ \un \ns $=
-	(
-		+ \em \ft<typename _tFunc> void seq_apply(_tFunc&&),
-		+ \ft<typename _tFunc, typename _type, typename... _tParams> \i
-			void seq_apply(_tFunc&&, _type&&, _tParams&&...);
-		+ \st ContainerSetter
-	);
-	/ \simp \impl @ \ctor @ \cl (ReaderBox, TextInfoBox) ^ (\ft seq_apply,
-		\st ContainerSetter)
-);
-
-r34:
-/ \ft seq_apply @ \un \ns @ \impl \u ShlReader >> \h YFunc,
-/ \st ContainerSetter @ \un \ns ShlReader >> \ns YSLib::Components
-	@ \h YShellHelper;
-
-r35:
-/= test 8 ^ \conf release;
-
-r36:
-/ \h YShellHelper[yshelper.h, yshelper.cpp] @ \dir YSLib/Helper
-	@ \proj YFramework -> ShellHelper[ShellHelper.h, ShellHelper.cpp];
-/ \tr \inc \h @ \impl \u Shell_DS,
-+ \st ChildPainter @ \un \ns ShlReader >> \ns YSLib::Components
-	@ \h ShellHelper;
-
-r37:
-* \decl @ \cl ChildPainter @ \h ShellHelper;
-/ \simp \impl @ \mf Refresh @ \cl (ReaderBox, TextInfoBox) @ \impl \u ShlReader
-	^ (\ft seq_apply, \st ChildPainter);
-
-r38:
-+ \f void AllowSleep(bool) @ \ns platform @ \u YCommon;
-/ @ \impl \u YGlobal $=
-(
-	/ \simp \impl @ \mf DSScreen::Update,
-	/ \impl @ \f Idle @ \un \ns
-);
-
-r39:
-/= test 9 ^ \conf release;
+r26:
+/= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-01-20:
--8.2d;
-//Mercurial rev1-rev149: r7291;
+2012-01-25:
+-10.8d;
+//Mercurial rev1-rev149: r7317;
 
 / ...
 
 
 $NEXT_TODO:
-b279-b300:
+b280-b300:
 / fully \impl @ \u DSReader $=
 (
 	+ fully \impl settings,
 	+ bookmarks
-),
-(
-	+ sleeping enabling @ YGlobal
 );
 
 
@@ -597,8 +509,11 @@ b1537-b5120:
 $KNOWN_ISSUE:
 // NOTE: obsolete issues all resolved are ignored.
 * "corrupted loading or fatal errors on loading font file with embedded \
-	bitmap glyph like simson.ttc" $since b185;
-* "<cmath> cannot use 'std::*' names" @ "libstdc++ with g++4.6";
+	bitmap glyph like simson.ttc" $since b185,
+* "<cmath> cannot use 'std::*' names" @ "libstdc++ with g++4.6",
+* "crashing after sleeping(default behavior of closing then reopening lid) on \
+	real machine due to libnds default interrupt handler for power management"
+	$since b279;
 
 
 $HISTORY:
@@ -611,7 +526,8 @@ $fix_bugs *; // bugs fixed;
 $modify_features /; // features modified;
 $remove_features -; // features removed;
 $using ^; // using;
-$source_from ~; // features replacing from;
+$not !; // not;
+$source_from ~; // features replaced from;
 $belonged_to @;
 $moved_to >>;
 $renamed_to =>;
@@ -659,6 +575,37 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'GUI' $=
+		(
+			(
+				/ "support widget moving to top" >> "class %Panel"
+					~ "class %Window";
+				/ "support for class %Panel" ~ "class %Window"
+					@ "function %RequestToTop"
+			)
+			* $design "assertion string" @ "4 function %(MoveToTop, \
+				MoveToBottom, MoveToLeft, MoveToRight)" $since b171,
+			/ "member funtion %Desktop::ClearContents" >> "class %Panel"
+		),
+		/ $design "default idle handler implementation"
+			!^ "function %platform::AllowSleep to forbid sleeping \
+			when the main message queue is not empty"
+	),
+	/ %'YReader'.'text reader' $=
+	(
+		/ $design "simplefied color API" @ "class %DualScreenReader";
+		/ @ "setting panel" $=
+		(
+			/ "control appearance" !^ ("border", ^ "the top desktop")
+			+ "text color setting" 
+		)
+	)
+),
+
+b278
 (
 	/ %'YCLib' $=
 	(

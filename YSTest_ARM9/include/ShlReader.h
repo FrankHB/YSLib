@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1693;
+\version r1712;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-01-13 19:02 +0800;
+	2012-01-23 00:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -108,21 +108,28 @@ public:
 */
 class SettingPanel : public DialogPanel
 {
+	/*!
+	\brief 友元类：共享设置状态。
+	\since build 279 。
+	*/
+	friend class TextReaderManager;
+
 protected:
 	Label lblColorAreaUp, lblColorAreaDown;
-
-public:
-	Control ColorAreaUp, ColorAreaDown;
-
-protected:
+	/*!
+	\brief 设置按钮。
+	\since build 279 。
+	*/
+	Button btnSetUpBack, btnSetDownBack, btnTextColor;
 	ColorBox boxColor;
 
 private:
 	/*!
-	\brief 当前设置的部件指针。
+	\brief 当前设置的颜色指针。
+	\none 为空指针时忽略。
 	\since build 277 。
 	*/
-	Widget* pSetting;
+	Color* pColor;
 
 public:
 	SettingPanel();

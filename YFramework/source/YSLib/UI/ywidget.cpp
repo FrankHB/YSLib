@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5268;
+\version r5269;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-01-08 22:05 +0800;
+	2012-01-22 20:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -87,7 +87,7 @@ CheckWidget(IWidget& wgt, const Point& pt, bool(&f)(const IWidget&))
 void
 RequestToTop(IWidget& wgt)
 {
-	if(auto pFrm = dynamic_cast<Window*>(FetchContainerPtr(wgt)))
+	if(auto pFrm = dynamic_cast<Panel*>(FetchContainerPtr(wgt)))
 		pFrm->MoveToTop(wgt);
 }
 

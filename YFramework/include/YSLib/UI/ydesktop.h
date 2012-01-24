@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ydesktop.h
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r2364;
+\version r2367;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2011-12-05 09:20 +0800;
-\par 字符集:
+	2012-01-23 01:54 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YDesktop;
@@ -77,13 +77,6 @@ public:
 		GetBufferedRenderer())
 	DefGetter(ynothrow, Rect, InvalidatedArea,
 		GetRenderer().CommitInvalidation(Rect::Empty))
-
-	/*!
-	\brief 清除桌面内容。
-	\note 直接清除桌面对象组、部件组和焦点对象组中的指针，不进行焦点或其它操作。
-	*/
-	void
-	ClearContents();
 
 public:
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6329;
+\version r6330;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-01-08 21:55 +0800;
+	2012-01-22 20:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -236,7 +236,7 @@ ClearFocusingOf(IWidget&);
 /*!
 \brief 请求提升至容器顶端。
 
-\todo 完全实现提升 IWidget 至容器顶端（目前仅实现父容器为 Window 的情形）。
+\todo 完全实现提升 IWidget 至容器顶端（目前仅实现父容器为 Panel 的情形）。
 \since build 192 。
 */
 void

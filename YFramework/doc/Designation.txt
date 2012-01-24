@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r5789;
+\version r5790;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-01-19 01:59 +0800;
+	2012-01-22 19:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -1284,7 +1284,7 @@
 
 @2.7.2.1.1.1 Move 事件：
 设置控件位置后触发。
-默认通过调用 Components::SetLocationOf 触发，此时发送对象和事件所在的对象相同。
+默认通过调用 Components::SetLocationOf 触发，此时发送对象和订阅者相同。
 
 @2.7.2.1.1.2 Resize 事件：
 设置控件大小后触发。

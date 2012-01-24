@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ypanel.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r1201;
+\version r1229;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201 。
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2011-12-14 21:03 +0800;
-\par 字符集:
+	2012-01-23 01:54 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YPanel;
@@ -55,12 +55,47 @@ Panel::operator-=(IWidget& wgt)
 	return false;
 }
 
+void
+Panel::Add(IWidget& wgt, ZOrderType z)
+{
+	MUIContainer::Add(wgt, z);
+	SetContainerPtrOf(wgt, this);
+}
+
+void
+Panel::ClearContents()
+{
+	ClearFocusingOf(*this);
+	mWidgets.clear();
+	SetInvalidationOf(*this);
+}
+
+bool
+Panel::MoveToTop(IWidget& wgt)
+{
+	auto i(std::find_if(mWidgets.begin(), mWidgets.end(),
+		[&](const WidgetMap::value_type& val){
+		return val.second == &wgt;
+	}));
+
+	if(i != mWidgets.end())
+	{
+		const ZOrderType z(i->first);
+
+		mWidgets.erase(i);
+		mWidgets.insert(make_pair(z, static_cast<IWidget*>(&wgt)));
+		Invalidate(wgt);
+		return true;
+	}
+	return false;
+}
+
 Rect
 Panel::Refresh(const PaintContext& pc)
 {
 	const Rect& r(pc.ClipArea);
 	bool result(!r.IsUnstrictlyEmpty()
-		|| CheckVisibleChildren(sWidgets.begin(), sWidgets.end()));
+		|| CheckVisibleChildren(mWidgets.begin(), mWidgets.end()));
 	
 	if(result)
 	{

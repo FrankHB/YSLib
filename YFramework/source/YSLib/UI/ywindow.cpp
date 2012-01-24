@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4357;
+\version r4358;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-12-14 21:15 +0800;
-\par 字符集:
+	2012-01-23 01:40 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YWindow;
@@ -84,32 +84,12 @@ Window::Add(IWidget& wgt, ZOrderType z)
 	SetContainerPtrOf(wgt, this);
 }
 
-bool
-Window::MoveToTop(IWidget& wgt)
-{
-	auto i(std::find_if(sWidgets.begin(), sWidgets.end(),
-		[&](const WidgetMap::value_type& val){
-		return val.second == &wgt;
-	}));
-
-	if(i != sWidgets.end())
-	{
-		const ZOrderType z(i->first);
-
-		sWidgets.erase(i);
-		sWidgets.insert(make_pair(z, static_cast<IWidget*>(&wgt)));
-		Invalidate(wgt);
-		return true;
-	}
-	return false;
-}
-
 Rect
 Window::Refresh(const PaintContext& pc)
 {
 	const Rect& r(pc.ClipArea);
 	bool result(!r.IsUnstrictlyEmpty()
-		|| CheckVisibleChildren(sWidgets.begin(), sWidgets.end()));
+		|| CheckVisibleChildren(mWidgets.begin(), mWidgets.end()));
 	
 	if(result)
 	{
