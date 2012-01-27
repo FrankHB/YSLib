@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2167;
+\version r2173;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2012-01-05 16:03 +0800;
+	2012-01-27 11:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -44,9 +44,8 @@ MLabel::PaintText(const Size& s, Color c, const PaintContext& e)
 	Drawing::TextState ts;
 	const auto& bounds(Rect(e.Location, s));
 
-	(ts.Font = Font).Update();
+	yunseq(ts.Font = Font, ts.Color = c);
 	ts.ResetForBounds(bounds, e.Target.GetSize(), Margin);
-	ts.Color = c;
 
 	switch(HorizontalAlignment)
 	{
@@ -122,8 +121,7 @@ MTextList::GetItemPtr(IndexType idx) const
 void
 MTextList::RefreshTextState()
 {
-	text_state.LineGap = GetVerticalOf(Margin);
-	(text_state.Font = Font).Update();
+	yunseq(text_state.LineGap = GetVerticalOf(Margin), text_state.Font = Font);
 }
 
 /*void

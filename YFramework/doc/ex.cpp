@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3428; *build 279 rev 26;
+\version r3428; *build 280 rev 41;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-01-25 04:00 +0800;
+	2012-01-28 01:37 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -341,92 +341,246 @@ $using:
 
 
 $DONE:
-r1-r2:
-/= test 0;
+r1:
+* content of string literal @ \impl @ \ctor @ \cl SettingPanel
+	@ \impl \u ShlReader $since b279;
 
-r3:
-(
-	/ \mf Window::MoveToTop >> \cl Panel;
-	/ \impl @ \f RequestToTop @ \impl \u YWidget
-),
-* \as \str @ 4 \f 'MoveTo*' @ \impl \u YUIContainer $since b171;
-
-r4-r6:
-/= test 1;
-
-r7:
-/= test 2 ^ \conf release;
-
-r8-r18:
-/ \mf (GetColorUp, GetColorDown) -> \mf GetColor
-	@ \cl DualScreenReader @ \h DSReader,
-/= test 3;
+r2:
 / @ \u ShlReader $=
 (
 	/ @ \cl SettingPanel $=
 	(
-		+ \m Button btnSetUpBack, btnSetDownBack, btnTextColor,
-		- \m Control ColorAreaUp, ColorAreaDown,
-		+ \decl friend \cl TextReaderManager,
-		/ \m Widget* pSetting -> Color* pColor;
-		/ \tr \impl @ \ctor
+		+ protected \m Button btnFontSizeDecrease, btnFontSizeIncrease,
+		/ \impl @ \ctor
 	);
-	/ @ \cl TextReaderManager $=
-	(
-		/ \tr \impl @ \ctor,
-		/ \tr \impl @ \mf Execute
-	)
+	/ \tr \impl @ \mf TextReaderManager::Execute
 );
 
-r19:
-/ @ \cl MUIContainer $=
-(
-	/ protected \m WidgetMap sWidgets => WidgetMap mWidgets,
-	- \vt @ \a \mf
-),
-+ \mf Add @ \cl Panel;
-/ \tr \impl @ \impl \u (YWindow, YDesktop),
-/ \simp \impl @ \ctor @ \cl SettingPanel @ \impl \u ShlReader;
+r3:
+* \impl @ \mf TextReaderManager::Execute @ \impl \u ShlReader $since r2;
 
-r20:
-/ \mf ClearConents @ \cl Desktop >> \cl Panel,
-* \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader $since r15;
-
-r21:
-/= test 4 ^ \conf release;
-
-r22:
-/ @ \cl TextReaderManager @ \impl \u ShlReader $=
-(
-	/ \impl @ \mf Execute,
-	/ \impl @ \ctor
-);
-
-r23-r24:
+r4-r5:
 / \impl @ \ctor @ \cl SettingPanel @ \impl \u ShlReader;
 
-r25:
-/ \impl @ \f Idle @ \un \ns @ \impl \u YGlobal;
+r6:
+/ @ \u ShlReader $=
+(
+	/ @ \cl SettingPanel $=
+	(
+		/ protected \m lblColorAreaUp => lblAreaUp,
+		/ protected \m lblColorAreaDown => lblAreaDown,
+		/ \impl @ \ctor,
+		+ \mf void UpdateInfo()
+	);
+	/ \simp \impl @ \mf TextReaderManager::Execute
+		^ \mf SettingPanel::UpdateInfo
+);
+
+r7:
+/ \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader;
+
+r8-r10:
+/ \impl @ \mf DualScreenReader::SetFontSize @ \u DSReader;
+
+r11:
+/ \impl @ \mf (SetFontSize, ResetView, Execute)
+	@ \cl DualScreenReader @ \u DSReader;
+
+r12:
+/= test 1 ^ \conf release;
+
+r13:
+* text @ \mf SettingPanel::UpdateInfo @ \impl \u ShlReader $since r6;
+
+r14:
+/ @ \u YFont $=
+(
+	+ \mf bool SetFont(Typeface&, FontSize) @ \cl FontCache;
+	/ \simp \impl @ \mf Font::Update ^ \mf FontCache::SetFont,
+	- \mf Font::UpdateSize
+);
+/ \impl @ \mf TextRegion::InitializeFont;
+
+r15:
+/ \impl @ \mf DualScreenReader::GetFontSize @ \h DSReader;
+/ @ \cl FontCache @ \u YFont $=
+(
+	/ \impl @ \mf (SetFont, GetGlyph, bool operator-=(Typeface&));
+	- \mf (GetTypefacePtr#1, GetFontSize);
+);
+
+r16:
+/ @ \u YFont $=
+(
+	/ \simp \impl @ \ctor @ \cl Typeface,
+	/ \impl @ \mf FontCache::LoadTypefaces
+);
+
+r17:
+/ @ \u YFont $=
+(
+	/ \simp \impl @ \dtor,
+	+ friend \decl \cl Font @ \cl FontCache,
+	/ \tr \impl @ \mf FontCache::SetFontSize,
+	(
+		- \mf GetHeight @ \cl Font;
+		/ \mf (GetHeight, GetAdvance, GetAscender, GetDescender, GetGlyph)
+	);
+	/ @ \cl Font $=
+	(
+		/ \tr \impl @ \mf Update,
+		+ \c @ \mf (GetGlyph, GetAdvance)
+	)
+);
+/ \tr \impl @ \f RenderChar @ \impl \u CharRenderer,
+/ \tr @ \impl \u TextBase $=
+(
+	/ \impl @ \mf TextState::ResetForBounds,
+	/ \impl @ \f SetCurrentTextLineNOf,
+	/ \impl @ \f MovePen
+),
+/ \tr @ \u TextLayout $=
+(
+	/ \impl @ \f (FetchCharWidth, FetchLastLineBasePosition) @ \impl \u,
+	- \f \i FetchCharWidth @ \h;
+	/ \f SDst FetchCharWidth(FontCache&, ucs4_t)
+		-> SDst FetchCharWidth(const Font&, ucs4_t)
+),
+/ \tr \impl @ \f \i (GetTextLineHeightOf, GetTextLineHeightExOf) @ \h TextBase,
+/ \tr \impl @ \ft PutChar @ \h CharRenderer;
+/ \tr @ \impl \u DSReader $=
+(
+	/ \impl @ \ft FindLineFeed @ \un \ns,
+	/ \impl @ \mf DualScreenReader::Execute
+);
+
+r18:
+/= test 2 ^ \conf release;
+
+r19-r20:
+/ @ \u YFont $=
+(
+	/ private \mf FontCache::GetInternalFaceInfo >> \cl Font;
+	/ \tr \impl @ \mf (GetAscender, GetDescender, GetHeight) @ \cl Font
+);
+
+r21:
+/ @ \cl Font @ \u YFont $=
+(
+	+ \mf GetTypefacePtr;
+	/ \impl @ \mf GetGlyph
+);
+
+r22:
+/ @ \u YFont $=
+(
+	/ \simp \impl @ mf Font::Update;
+	/ \simp @ \cl FontCache @ \impl \u YFont $=
+	(
+		- \mf (SetFont, SetTypeface, SetFontSize),
+		/ \impl @ \ctor,
+		/ \impl @ \mf (LoadTypefaces#2, \op-=#2);
+		- private \m FTC_ScalerRec scaler
+	);
+);
+
+r23-r25:
+/ @ \cl Font @ \u YFont $=
+(
+	/ private \mf FT_Face GetInternalFaceInfo() const -> FT_Face
+		GetInternalFaceInfo(Typeface* hint = nullptr) const;
+	/ \impl @ \mf GetGlyph
+);
 
 r26:
++ '::' before \a (\fn, \tp) \n 'FT*' @ \u YFont,
+/ \impl @ \mf Font::GetGlyph @ \impl \u YFont;
+
+r27:
+/ @ \u YFont $=
+(
+	/ private \mf Font::GetInternalFaceInfo -> FontCache::GetNativeFace;
+	/ \tr \impl @ \mf @ \cl Font
+);
+
+r28:
+/ @ \cl Font $=
+(
+	- private \m const FontFamily* pFontFamily,
+	- private \m FontSize Size,
+	+ private \m mutable ::FTC_ScalerRec_ scaler,
+	- \tr \a 'yconstfn' @ \mf,
+	/ \tr \impl @ (\ctor, \mf)
+);
+
+r29-r32:
+/= test 3,
+* \impl @ \mf Font::GetGlyph $since r23;
+
+r33:
+/ @ \cl Font @ \u YFont $=
+(
+	/ \mf GetTypefacePtr -> GetTypeface,
+	+ private \mf ::FT_SizeRec& GetInternalInfo() const;
+	/ \impl @ \mf (GetAscender, GetDescender, GetGlyph, GetHeight, SetStyle,
+		GetFontFamily),
+	/ \mf bool Update() -> void Update()
+);
+
+r34:
+/ \mf Font::Update @ \impl \u YFont -> \em \mf;
+
+r35:
+/ @ \impl \u TextRenderer $=
+(
+	/ \simp \impl @ \f DrawClippedText#2,
+	/ \simp \impl @ \mf TextRegion::InitializeFont
+),
+/ \simp \impl @ \mf (Execute, Reset) @ \cl DualScreenReader
+	@ \impl \u DSRreader,
+/ \impl @ \mf (MLabel::PaintText, MTextList::RefreshTextState) ^ \mac yunseq;
+- \mf Font::Update @ \impl \u YFont;
+
+r36:
+* \impl @ MLabel::PaintText $since r35;
+
+r37:
+/= test 4 ^ \conf release;
+
+r38-r39:
+/ \simp \impl @ \mf Font::GetGlyph @ \impl \u YFont;
+
+r40:
+* undefined behavior raised when small bitmap discriptor is null
+	$since before b132 $=
+(
+	/ \impl @ \mf Font::GetAdvance @ \impl \u YFont,
+	/ \impl @ \f RenderChar @ \impl \u CharRenderer
+);
+
+r41:
 /= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-01-25:
--10.8d;
-//Mercurial rev1-rev149: r7317;
+2012-01-28:
+-9.3d;
+//Mercurial rev1-rev152: r7358;
 
 / ...
 
 
 $NEXT_TODO:
-b280-b300:
+b281-b300:
 / fully \impl @ \u DSReader $=
 (
-	+ fully \impl settings,
+	+ fully \impl settings $=
+	(
+		+ typeface setting
+	),
+	+ history,
 	+ bookmarks
 );
 
@@ -447,6 +601,7 @@ b301-b1536:
 + general data configuragion,
 + partial invalidation support @ %(HexViewArea::Refresh),
 + user-defined stream filters,
+/ improving \impl font switching,
 / \impl @ 'real' RTC,
 + \impl @ images loading and processing,
 + general resouce management,
@@ -575,6 +730,35 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YReader'.'text reader' $=
+	(
+		+ "automatic updating font before print text";
+		/ @ "setting panel" $=
+		(
+			* "button text" $since b279,
+			/ "label text",
+			+ "text size setting"
+		)
+	),
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ $design "simplified font APIs",
+		/ "font APIs" $=
+		(
+			/ $design "several getters" @ "class %FontCache" >> "class %Font",
+			/ $design "stored state" @ "class %Font";
+				// It brings the ability of automatically state synchronizing \
+					with FT_Size with almost no efficiency changing, \
+					but 'sizeof(Font)' grows obviously.
+			/ "eliminating need of updating font"
+		),
+		* "undefined behavior raised when calculating advance of or rendering \
+		  a glyph and the small bitmap descriptor is null" $since before b132
+	)
+),
+
+b279
 (
 	/ %'YFramework'.'YSLib' $=
 	(

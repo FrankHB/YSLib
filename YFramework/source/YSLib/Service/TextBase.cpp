@@ -11,13 +11,13 @@
 /*!	\file TextBase.cpp
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r6895;
+\version r6898;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-17 02:34 +0800;
+	2012-01-27 06:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -72,25 +72,22 @@ void
 TextState::ResetForBounds(const Rect& r, const Size& s, const Padding& m)
 {
 	Margin = FetchMargin(r + m, s);
-	yunseq(PenX = r.X + m.Left,
-		PenY = r.Y + GetCache().GetAscender() + m.Top);
+	yunseq(PenX = r.X + m.Left, PenY = r.Y + Font.GetAscender() + m.Top);
 }
 
 
 void
 SetCurrentTextLineNOf(TextState& s, u16 n)
 {
-	s.PenY = s.Margin.Top + s.GetCache().GetAscender()
-		+ GetTextLineHeightExOf(s) * n;
+	s.PenY = s.Margin.Top + s.Font.GetAscender() + GetTextLineHeightExOf(s) * n;
 }
 
 void
 MovePen(TextState& ts, ucs4_t c)
 {
-	FontCache& cache(ts.GetCache());
-	CharBitmap sbit(cache.GetGlyph(c));
+	CharBitmap sbit(ts.Font.GetGlyph(c));
 
-	ts.PenX += cache.GetAdvance(c, sbit);
+	ts.PenX += ts.Font.GetAdvance(c, sbit);
 }
 
 YSL_END_NAMESPACE(Drawing)

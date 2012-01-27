@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r6889;
+\version r6894;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-05 15:54 +0800;
+	2012-01-27 11:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -72,7 +72,6 @@ void
 TextRegion::InitializeFont()
 {
 	Font.SetSize(Font::DefaultSize);
-	Font.UpdateSize();
 	ResetPen();
 }
 
@@ -149,7 +148,7 @@ DrawClippedText(const Graphics& g, const Rect& mask, const Rect& r,
 {
 	TextState ts;
 
-	(ts.Font = Font()).Update(); //设置默认字体。
+	ts.Font = Font(); //设置默认字体。
 	ts.ResetForBounds(r, g.GetSize(), m);
 	ts.Color = color;
 	DrawClippedText(g, mask, ts, str);

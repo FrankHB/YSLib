@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r7376;
+\version r7389;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-05 15:59 +0800;
+	2012-01-27 07:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -85,22 +85,12 @@ AdjustBottomMarginOf(TextRegion& tr)
 
 
 /*!
-\brief 取指定的字符使用指定字体缓存的当前字体的显示宽度。
-\note 无边界限制。
-\since build 270 。
-*/
-SDst
-FetchCharWidth(FontCache&, ucs4_t);
-/*!
 \brief 取指定的字符使用指定字体的显示宽度。
 \note 无边界限制。
-\since build 214 。
+\since build 280 。
 */
-inline SDst
-FetchCharWidth(const Font& fnt, ucs4_t c)
-{
-	return FetchCharWidth(fnt.GetCache(), c);
-}
+SDst
+FetchCharWidth(const Font&, ucs4_t);
 
 
 /*!

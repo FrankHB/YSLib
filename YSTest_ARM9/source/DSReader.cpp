@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3535;
+\version r3558;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-01-08 19:58 +0800;
+	2011-01-27 11:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -59,7 +59,6 @@ namespace
 	_tBi
 	FindLineFeed(const TextRegion& r, _tBi s, _tBi e)
 	{
-		auto& cache(r.GetCache());
 		const SDst wmax(r.GetWidth() - GetHorizontalOf(r.Margin));
 		SDst w(0);
 
@@ -68,7 +67,7 @@ namespace
 		{
 			 if(std::iswprint(*s))
 			 {
-				 w += cache.GetAdvance(*s);
+				 w += r.Font.GetAdvance(*s);
 				 if(w >= wmax)
 					 break;
 			 }
@@ -144,11 +143,12 @@ DualScreenReader::SetVisible(bool b)
 }
 
 void
-DualScreenReader::Attach(YSL_ Components::Window& wnd_up,
-	YSL_ Components::Window& wnd_dn)
+DualScreenReader::SetFontSize(FontSize s)
 {
-	wnd_up += area_up,
-	wnd_dn += area_dn;
+	area_up.Font.SetSize(s),
+	area_dn.Font.SetSize(s);
+	// NOTE: font shall be updated to the cache
+	// and then margins shall be adjusted before output;
 }
 
 void
@@ -166,6 +166,14 @@ DualScreenReader::AdjustMargins()
 
 		yunseq(area_dn.Margin.Top += v, area_dn.Margin.Bottom -= v);
 	}
+}
+
+void
+DualScreenReader::Attach(YSL_ Components::Window& wnd_up,
+	YSL_ Components::Window& wnd_dn)
+{
+	wnd_up += area_up,
+	wnd_dn += area_dn;
 }
 
 void
@@ -194,11 +202,12 @@ DualScreenReader::Execute(Command cmd)
 
 	YAssert(area_up.LineGap == area_dn.LineGap, "Unequal line gaps found"
 		" @ DualScreenReader::Execute;");
+	// TODO: assert the fonts are same;
 
 	cmd &= ~Scroll;
 	if(cmd & Line)
 	{
-		const u8 h(fc.GetHeight()), hx(h + GetLineGap());
+		const u8 h(area_up.Font.GetHeight()), hx(h + GetLineGap());
 		const auto w(area_up.GetWidth());
 		const u32 t(w * h);
 

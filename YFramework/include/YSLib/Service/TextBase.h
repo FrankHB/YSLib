@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r7382;
+\version r7385;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-15 17:45 +0800;
+	2012-01-27 06:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -149,7 +149,7 @@ TextState::operator=(const Padding& ms)
 inline SDst
 GetTextLineHeightOf(const TextState& s)
 {
-	return s.GetCache().GetHeight();
+	return s.Font.GetHeight();
 }
 
 /*!
@@ -159,7 +159,7 @@ GetTextLineHeightOf(const TextState& s)
 inline SDst
 GetTextLineHeightExOf(const TextState& s)
 {
-	return s.GetCache().GetHeight() + s.LineGap;
+	return s.Font.GetHeight() + s.LineGap;
 }
 
 /*!

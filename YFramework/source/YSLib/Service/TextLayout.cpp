@@ -11,13 +11,13 @@
 /*!	\file TextLayout.cpp
 \ingroup Service
 \brief 文本布局计算。
-\version r6890;
+\version r6895;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-05 15:54 +0800;
+	2012-01-27 07:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -62,18 +62,16 @@ FetchLastLineBasePosition(const TextState& ts, SDst h)
 {
 	const u16 n(FetchResizedLineN(ts, h));
 
-	return ts.Margin.Top + ts.GetCache().GetAscender()
+	return ts.Margin.Top + ts.Font.GetAscender()
 		+ GetTextLineHeightExOf(ts) * (n > 0 ? n - 1 : n);
 //	return h - ts.Margin.Bottom + ts.GetCache().GetDescender() + 1;
 }
 
 
 SDst
-FetchCharWidth(FontCache& cache, ucs4_t c)
+FetchCharWidth(const Font& font, ucs4_t c)
 {
-	CharBitmap sbit(cache.GetGlyph(c));
-
-	return cache.GetAdvance(c, sbit);
+	return font.GetAdvance(c, font.GetGlyph(c));
 }
 
 YSL_END_NAMESPACE(Drawing)

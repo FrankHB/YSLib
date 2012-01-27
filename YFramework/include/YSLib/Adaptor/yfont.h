@@ -11,13 +11,13 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7554;
+\version r7669;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2012-01-17 02:33 +0800;
+	2012-01-28 00:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -162,21 +162,21 @@ public:
 */
 class Typeface : public noncopyable
 {
-	friend FT_Error
-	simpleFaceRequester(FTC_FaceID, FT_Library, FT_Pointer, FT_Face*);
+	friend ::FT_Error
+	simpleFaceRequester(::FTC_FaceID, ::FT_Library, ::FT_Pointer, ::FT_Face*);
 
-//	static const FT_Matrix MNormal, MOblique;
+//	static const ::FT_Matrix MNormal, MOblique;
 public:
 	const FontPath Path;
 
 private:
 	FontFamily* pFontFamily;
-//	FT_Face face;
+//	::FT_Face face;
 //	bool bBold, bOblique, bUnderline;
 	StyleName style_name;
 
-	FT_Long face_index;
-	FT_Int cmap_index;
+	::FT_Long face_index;
+	::FT_Int cmap_index;
 /*	FT_Long nGlyphs;
 	FT_UShort uUnitPerEM;
 	FT_Int nCharmaps;
@@ -215,7 +215,7 @@ public:
 	\brief 取字符映射索引号。
 	\since build 278 。
 	*/
-	DefGetter(const ynothrow, FT_Int, CMapIndex, cmap_index)
+	DefGetter(const ynothrow, ::FT_Int, CMapIndex, cmap_index)
 };
 
 
@@ -232,15 +232,16 @@ FetchDefaultTypeface() ythrow(LoggedEvent);
 /*!
 \brief 字符位图。
 \warning 非虚析构。
+\warning 若为空时调用成员函数时行为未定义。
 \since build 147 。
 */
 class CharBitmap
 {
 public:
-	typedef FTC_SBit NativeType;
-	typedef FT_Byte* BufferType;
-	typedef FT_Byte ScaleType;
-	typedef FT_Char SignedScaleType;
+	typedef ::FTC_SBit NativeType;
+	typedef ::FT_Byte* BufferType;
+	typedef ::FT_Byte ScaleType;
+	typedef ::FT_Char SignedScaleType;
 
 private:
 	NativeType bitmap;
@@ -280,6 +281,11 @@ class FontCache : public noncopyable,
 	public OwnershipTag<Typeface>, public OwnershipTag<FontFamily>
 {
 	friend class Typeface;
+	/*!
+	\brief 友元类：访问 scaler 等对象。
+	\since build 280 。
+	*/
+	friend class Font;
 
 public:
 	/*!
@@ -288,7 +294,7 @@ public:
 	字体文件路径映射至此文件中的字型数。
 	\since build 277 。
 	*/
-	typedef map<FontPath, FT_Long> PathMap;
+	typedef map<FontPath, ::FT_Long> PathMap;
 	typedef set<Typeface*, ystdex::deref_comp<const Typeface>>
 		FaceSet; //!< 字型组类型。
 	typedef map<FamilyName, FontFamily*> FamilyMap; //!< 字型家族组索引类型。
@@ -301,11 +307,10 @@ public:
 	static yconstexpr size_t DefaultGlyphCacheSize = 128U << 10;
 
 private:
-	FT_Library library; //!< 库实例。
-	FTC_Manager manager; //!< 内存管理器实例。
-	FTC_ScalerRec scaler;
-	FTC_CMapCache cmapCache;
-	FTC_SBitCache sbitCache;
+	::FT_Library library; //!< 库实例。
+	::FTC_Manager manager; //!< 内存管理器实例。
+	::FTC_CMapCache cmapCache;
+	::FTC_SBitCache sbitCache;
 
 protected:
 	/*
@@ -329,13 +334,6 @@ public:
 	*/
 	~FontCache();
 
-private:
-	/*!
-	\brief 取当前处理的内部字型结构体指针。
-	*/
-	FT_Face
-	GetInternalFaceInfo() const;
-
 public:
 	DefGetter(const ynothrow, const PathMap&, Paths, mPaths) \
 		//!< 取字体文件路径映射。
@@ -356,62 +354,22 @@ public:
 	*/
 	const Typeface*
 	GetDefaultTypefacePtr() const ythrow(LoggedEvent);
-	DefGetter(const ynothrow, const Typeface*, TypefacePtr,
-		static_cast<Typeface*>(scaler.face_id)) //!< 取当前处理的字型指针。
 //	Typeface*
 //	GetTypefacePtr(u16) const; //!< 取字型组储存的指定索引的字型指针。
 	/*!
 	\brief 取指定名称的字型指针。
 	*/
 	const Typeface*
-	GetTypefacePtr(const FamilyName&, const StyleName&)
-		const;
-	DefGetter(const ynothrow, u8, FontSize, u8(scaler.width)) \
-		//!< 取当前处理的字体大小。
-	/*!
-	\brief 取当前字型和大小渲染的指定字符的字形。
-	\param c 指定需要被渲染的字符。
-	\param flags FreeType 渲染标识。
-	\warning flags 可能被移除，应仅用于内部实现。
-	\since build 270 。
-	*/
-	CharBitmap
-	GetGlyph(ucs4_t c, FT_UInt flags = FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL);
-	/*!
-	\brief 取跨距。
-	*/
-	s8
-	GetAdvance(ucs4_t, FTC_SBit = nullptr);
-	/*!
-	\brief 取行高。
-	*/
-	u8
-	GetHeight() const;
-	/*!
-	\brief 取升部。
-	*/
-	s8
-	GetAscender() const;
-	/*!
-	\brief 取降部。
-	*/
-	s8
-	GetDescender() const;
-
-	/*!
-	\brief 设置字型组中指定的字型为当前字型。
-	\note 忽略不属于字型组的字型。
-	*/
-	bool
-	SetTypeface(Typeface*);
-	/*!
-	\brief 设置当前处理的字体大小。
-	\note 0 表示默认字体大小。
-	*/
-	void
-	SetFontSize(FontSize);
+	GetTypefacePtr(const FamilyName&, const StyleName&) const;
 
 private:
+	/*!
+	\brief 取当前本机类型字型。
+	\since build 280 。
+	*/
+	::FT_Face
+	GetNativeFace(Typeface*) const;
+
 	/*!
 	\brief 向字型家族组添加字型对象。
 	\since build 277 。
@@ -491,6 +449,7 @@ public:
 
 /*!
 \brief 字体：字模，包含字型、样式和大小。
+\warning 非虚析构。
 \since build 145 。
 */
 class Font
@@ -500,61 +459,92 @@ public:
 		MinimalSize = 4, MaximalSize = 96;
 
 private:
-	const FontFamily* pFontFamily;
+	mutable ::FTC_ScalerRec scaler;
 	FontStyle Style;
-	FontSize Size;
 
 public:
 	/*!
 	\brief 构造指定字型家族、大小和样式的字体对象。
 	*/
-	explicit yconstfn
+	explicit
 	Font(const FontFamily& = FetchDefaultTypeface().GetFontFamily(),
 		FontSize = DefaultSize, FontStyle = FontStyle::Regular);
 
-	yconstfn DefPred(const ynothrow, Bold, bool(Style & FontStyle::Bold))
-	yconstfn DefPred(const ynothrow, Italic, bool(Style & FontStyle::Italic))
-	yconstfn DefPred(const ynothrow, Underline,
-		bool(Style & FontStyle::Underline))
-	yconstfn DefPred(const ynothrow, Strikeout,
-		bool(Style & FontStyle::Strikeout))
+	DefPred(const ynothrow, Bold, bool(Style & FontStyle::Bold))
+	DefPred(const ynothrow, Italic, bool(Style & FontStyle::Italic))
+	DefPred(const ynothrow, Underline, bool(Style & FontStyle::Underline))
+	DefPred(const ynothrow, Strikeout, bool(Style & FontStyle::Strikeout))
 
-	DefGetter(const ynothrow, FontCache&, Cache, GetFontFamily().Cache)
-	DefGetter(const ynothrow, const FontFamily&, FontFamily, *pFontFamily)
+	/*!
+	\brief 取跨距。
+	\since build 280 。
+	*/
+	s8
+	GetAdvance(ucs4_t, FTC_SBit = nullptr) const;
+	/*!
+	\brief 取升部。
+	\since build 280 。
+	*/
+	s8
+	GetAscender() const;
+	/*!
+	\brief 取降部。
+	\since build 280 。
+	*/
+	s8
+	GetDescender() const;
 	DefGetterMem(const ynothrow, const FamilyName&, FamilyName,
 		GetFontFamily())
+	DefGetter(const ynothrow, FontCache&, Cache, GetFontFamily().Cache)
+	DefGetterMem(const ynothrow, const FontFamily&, FontFamily, GetTypeface())
+	DefGetter(const ynothrow, FontSize, Size, FontSize(scaler.height))
+	DefGetter(const ynothrow, FontStyle, Style, Style)
+	/*!
+	\brief 取当前字型和大小渲染的指定字符的字形。
+	\param c 指定需要被渲染的字符。
+	\param flags FreeType 渲染标识。
+	\warning flags 可能被移除，应仅用于内部实现。
+	\since build 280 。
+	*/
+	CharBitmap
+	GetGlyph(ucs4_t c, ::FT_UInt flags = FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL)
+		const;
 	/*!
 	\brief 取字体对应的字符高度。
+	\since build 280 。
 	*/
-	DefGetterMem(const ynothrow, FontSize, Height, GetCache())
-	yconstfn DefGetter(const ynothrow, FontSize, Size, Size)
-	yconstfn DefGetter(const ynothrow, FontStyle, Style, Style)
+	FontSize
+	GetHeight() const ynothrow;
 	DefGetter(const ynothrow, StyleName, StyleName, FetchName(Style))
 
-	DefSetter(FontStyle, Style, Style)
+private:
+	/*!
+	\brief 取内部信息。
+	\since build 280 。
+	*/
+	::FT_SizeRec&
+	GetInternalInfo() const;
+
+public:
+	/*!
+	\brief 取字型引用。
+	\since build 280 。
+	*/
+	DefGetter(const ynothrow, Typeface&, Typeface,
+		*static_cast<Typeface*>(scaler.face_id))
+
 	/*!
 	\brief 设置字体大小。
 	*/
 	void
 	SetSize(FontSize = DefaultSize);
-
 	/*!
-	\brief 更新字体缓存中当前处理的字体。
+	\brief 设置样式。
+	\since build 280 。
 	*/
 	bool
-	Update();
-
-	/*!
-	\brief 更新字体缓存中当前处理的字体大小。
-	*/
-	void
-	UpdateSize();
+	SetStyle(FontStyle);
 };
-
-yconstfn
-Font::Font(const FontFamily& family, const FontSize size, FontStyle style)
-	: pFontFamily(&family), Style(style), Size(size)
-{}
 
 YSL_END_NAMESPACE(Drawing)
 

@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2661;
+\version r2669;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2012-01-23 00:18 +0800;
+	2012-01-27 06:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -138,7 +138,7 @@ public:
 	DefPred(const ynothrow, TextBottom, i_btm == pText->GetEnd()) \
 		//!< 判断输出位置是否到文本底端。
 
-	DefGetter(const ynothrow, u8, FontSize, fc.GetFontSize()) \
+	DefGetter(const ynothrow, u8, FontSize, area_up.Font.GetSize()) \
 		//!< 取字符区域的字体大小。
 	/*!
 	\brief 取字符区域的字体颜色。
@@ -173,8 +173,9 @@ public:
 
 	PDefH(void, SetColor, Color c = Drawing::ColorSpace::Black)
 		ImplUnseq(area_up.Color = c, area_dn.Color = c) //!< 设置字符颜色。
-	PDefH(void, SetFontSize, Drawing::FontSize s = Drawing::Font::DefaultSize)
-		ImplExpr(fc.SetFontSize(s)) //!< 设置字符区域字体大小。
+	void
+	SetFontSize(Drawing::FontSize = Drawing::Font::DefaultSize); \
+		//!< 设置字符区域字体大小后调整边距。
 	void
 	SetLineGap(u8 = 0); //!< 设置行距。
 	/*!
@@ -185,19 +186,19 @@ public:
 	SetVisible(bool = true);
 
 	/*!
-	\brief 附加到窗口。
-	\since build 273 。
-	*/
-	void
-	Attach(YSL_ Components::Window&, YSL_ Components::Window&);
-
-	/*!
 	\brief 调整边距：使用公用边距更新各文本显示区域的边距。
 	\note 保持顶端和底端边距均衡。
 	\since build 274 。
 	*/
 	void
 	AdjustMargins();
+
+	/*!
+	\brief 附加到窗口。
+	\since build 273 。
+	*/
+	void
+	Attach(YSL_ Components::Window&, YSL_ Components::Window&);
 
 	/*!
 	\brief 从窗口分离。

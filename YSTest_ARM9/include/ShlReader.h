@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1712;
+\version r1731;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-01-23 00:24 +0800;
+	2012-01-25 15:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -115,7 +115,17 @@ class SettingPanel : public DialogPanel
 	friend class TextReaderManager;
 
 protected:
-	Label lblColorAreaUp, lblColorAreaDown;
+	/*!
+	\brief 文本区域示例文本标签。
+	\note 不加入 SettingPanel 容器，加入上屏桌面。
+	\since build 280 。
+	*/
+	Label lblAreaUp, lblAreaDown;
+	/*!
+	\brief 字体大小递减/递增按钮。
+	\since build 280 。
+	*/
+	Button btnFontSizeDecrease, btnFontSizeIncrease;
 	/*!
 	\brief 设置按钮。
 	\since build 279 。
@@ -133,6 +143,13 @@ private:
 
 public:
 	SettingPanel();
+
+	/*!
+	\brief 更新示例文本。
+	\since build 280 。
+	*/
+	void
+	UpdateInfo();
 };
 
 

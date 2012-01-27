@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2975;
+\version r3021;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-01-24 07:55 +0800;
+	2012-01-26 05:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -164,37 +164,60 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 
 SettingPanel::SettingPanel()
 	: DialogPanel(Rect::FullScreen),
-	lblColorAreaUp(Rect(20, 12, 216, 72)),
-	lblColorAreaDown(Rect(20, 108, 216, 72)),
-	btnSetUpBack(Rect(20, 32, 80, 24)), btnSetDownBack(Rect(148, 32, 80, 24)),
-	btnTextColor(Rect(20, 64, 80, 24)),
+	lblAreaUp(Rect(20, 12, 216, 72)), lblAreaDown(Rect(20, 108, 216, 72)),
+	btnFontSizeDecrease(Rect(20, 32, 80, 24)),
+	btnFontSizeIncrease(Rect(148, 32, 80, 24)),
+	btnSetUpBack(Rect(20, 64, 80, 24)), btnSetDownBack(Rect(148, 64, 80, 24)),
+	btnTextColor(Rect(20, 96, 80, 24)),
 	boxColor(Point(4, 80)), pColor()
 {
-	*this += btnTextColor,
+	const auto set_font_size([this](FontSize size){
+		lblAreaUp.Font.SetSize(size),
+		lblAreaDown.Font.SetSize(size);
+		UpdateInfo();
+		Invalidate(lblAreaUp),
+		Invalidate(lblAreaDown);
+	});
+
+	*this += btnFontSizeDecrease,
+	*this += btnFontSizeIncrease,
 	*this += btnSetUpBack,
 	*this += btnSetDownBack,
+	*this += btnTextColor,
 	Add(boxColor, 112U),
 	SetVisibleOf(boxColor, false);
 	yunseq(
-		lblColorAreaUp.Text = "上屏文字",
-		lblColorAreaDown.Text = "下屏文字",
+		btnFontSizeDecrease.Text = "减小字体",
+		btnFontSizeIncrease.Text = "增大字体",
 		btnTextColor.Text = "文字颜色...",
 		btnSetUpBack.Text = "上屏颜色...",
-		btnSetDownBack.Text = "上屏颜色...",
+		btnSetDownBack.Text = "下屏颜色...",
 	//	FetchEvent<Paint>(lblColorAreaUp).Add(Border, &BorderStyle::OnPaint),
 	//	FetchEvent<Paint>(lblColorAreaDown).Add(Border, &BorderStyle::OnPaint),
+		FetchEvent<Click>(btnFontSizeDecrease) += [=, this](TouchEventArgs&&){
+			auto size(lblAreaUp.Font.GetSize());
+
+			if(size > Font::MinimalSize)
+				set_font_size(--size);
+		},
+		FetchEvent<Click>(btnFontSizeIncrease) += [=, this](TouchEventArgs&&){
+			auto size(lblAreaUp.Font.GetSize());
+
+			if(size < Font::MaximalSize)
+				set_font_size(++size);
+		},
+		FetchEvent<Click>(btnTextColor) += [this](TouchEventArgs&&){
+			pColor = &lblAreaUp.ForeColor;
+			boxColor.SetColor(*pColor);
+			Show(boxColor);
+		},
 		FetchEvent<Click>(btnSetUpBack) += [this](TouchEventArgs&&){
-			pColor = &lblColorAreaUp.BackColor;
+			pColor = &lblAreaUp.BackColor;
 			boxColor.SetColor(*pColor);
 			Show(boxColor);
 		},
 		FetchEvent<Click>(btnSetDownBack) += [this](TouchEventArgs&&){
-			pColor = &lblColorAreaDown.BackColor;
-			boxColor.SetColor(*pColor);
-			Show(boxColor);
-		},
-		FetchEvent<Click>(btnTextColor) += [this](TouchEventArgs&&){
-			pColor = &lblColorAreaUp.ForeColor;
+			pColor = &lblAreaDown.BackColor;
 			boxColor.SetColor(*pColor);
 			Show(boxColor);
 		},
@@ -203,12 +226,26 @@ SettingPanel::SettingPanel()
 			if(pColor)
 			{
 				*pColor = boxColor.GetColor();
-				lblColorAreaDown.ForeColor = lblColorAreaUp.ForeColor;
-				Invalidate(lblColorAreaUp),
-				Invalidate(lblColorAreaDown);
+				lblAreaDown.ForeColor = lblAreaUp.ForeColor;
+				Invalidate(lblAreaUp),
+				Invalidate(lblAreaDown);
 				pColor = nullptr;
 			}
 		}
+	);
+}
+
+void
+SettingPanel::UpdateInfo()
+{
+	char str[20];
+
+	/*std::*/snprintf(str, 20, "%u 。", lblAreaUp.Font.GetSize());
+	yunseq(
+		lblAreaUp.Text = Text::MBCSToString(string("上屏文字大小: ") + str,
+			Text::CharSet::UTF_8),
+		lblAreaDown.Text = Text::MBCSToString(string("下屏文字大小: ") + str,
+			Text::CharSet::UTF_8)
 	);
 }
 
@@ -248,11 +285,11 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 	const auto exit_setting([this](TouchEventArgs&&){
 		auto& dsk_up(Shell.GetDesktopUp());
 
-		yunseq(dsk_up.BackColor = pnlSetting.lblColorAreaUp.BackColor,
+		yunseq(dsk_up.BackColor = pnlSetting.lblAreaUp.BackColor,
 			Shell.GetDesktopDown().BackColor
-			= pnlSetting.lblColorAreaDown.BackColor,
-		dsk_up -= pnlSetting.lblColorAreaUp,
-		dsk_up -= pnlSetting.lblColorAreaDown);
+			= pnlSetting.lblAreaDown.BackColor,
+		dsk_up -= pnlSetting.lblAreaUp,
+		dsk_up -= pnlSetting.lblAreaDown);
 		Reader.SetVisible(true);
 	});
 
@@ -302,7 +339,8 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 		FetchEvent<Click>(pnlSetting.btnClose) += exit_setting,
 		FetchEvent<Click>(pnlSetting.btnOK) += [this](TouchEventArgs&&)
 		{
-			Reader.SetColor(pnlSetting.lblColorAreaUp.ForeColor);
+			Reader.SetColor(pnlSetting.lblAreaUp.ForeColor),
+			Reader.SetFontSize(pnlSetting.lblAreaUp.Font.GetSize());
 			Reader.UpdateView();
 		},
 		FetchEvent<Click>(pnlSetting.btnOK) += exit_setting
@@ -332,6 +370,7 @@ TextReaderManager::Activate()
 	auto& dsk_up(Shell.GetDesktopUp());
 	auto& dsk_dn(Shell.GetDesktopDown());
 
+	// TODO: use entity tree to store properties;
 	yunseq(
 		dsk_up.BackColor = Color(240, 216, 192),
 		dsk_dn.BackColor = Color(192, 216, 240),
@@ -388,19 +427,20 @@ TextReaderManager::Execute(IndexEventArgs::ValueType idx)
 	case MR_Setting:
 		Reader.SetVisible(false),
 		yunseq(
-			pnlSetting.lblColorAreaUp.ForeColor
-				= pnlSetting.lblColorAreaDown.ForeColor = Reader.GetColor(),
-			pnlSetting.lblColorAreaUp.BackColor
+			pnlSetting.lblAreaUp.ForeColor
+				= pnlSetting.lblAreaDown.ForeColor = Reader.GetColor(),
+			pnlSetting.lblAreaUp.BackColor
 				= Shell.GetDesktopUp().BackColor,
-			pnlSetting.lblColorAreaDown.BackColor
+			pnlSetting.lblAreaDown.BackColor
 				= Shell.GetDesktopDown().BackColor
 		);
+		pnlSetting.UpdateInfo();
 		{
 			auto& dsk_up(Shell.GetDesktopUp());
 
 			dsk_up.BackColor = ColorSpace::White;
-			dsk_up += pnlSetting.lblColorAreaUp,
-			dsk_up += pnlSetting.lblColorAreaDown;
+			dsk_up += pnlSetting.lblAreaUp,
+			dsk_up += pnlSetting.lblAreaDown;
 		}
 		Show(pnlSetting);
 		break;
