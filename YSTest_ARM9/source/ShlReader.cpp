@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3021;
+\version r3029;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-01-26 05:58 +0800;
+	2012-01-31 17:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -241,11 +241,12 @@ SettingPanel::UpdateInfo()
 	char str[20];
 
 	/*std::*/snprintf(str, 20, "%u 。", lblAreaUp.Font.GetSize());
+
+	String ustr(str);
+
 	yunseq(
-		lblAreaUp.Text = Text::MBCSToString(string("上屏文字大小: ") + str,
-			Text::CharSet::UTF_8),
-		lblAreaDown.Text = Text::MBCSToString(string("下屏文字大小: ") + str,
-			Text::CharSet::UTF_8)
+		lblAreaUp.Text = u"上屏文字大小: " + ustr,
+		lblAreaDown.Text = u"下屏文字大小: " + ustr
 	);
 }
 
@@ -612,16 +613,16 @@ HexReaderManager::Activate()
 	auto& dsk_dn(Shell.GetDesktopDown());
 
 	pnlFileInfo.lblPath.Text = u"文件路径："
-		+ Text::MBCSToString(ReaderManager::path, IO::CP_Path);
+		+ String(ReaderManager::path, IO::CP_Path);
 
 	struct ::stat file_stat;
 
 	//在 DeSmuMe 上无效； iDSL + DSTT 上访问时间精确不到日，修改时间正常。
 	::stat(ReaderManager::path.c_str(), &file_stat);
 	pnlFileInfo.lblAccessTime.Text = u"访问时间："
-		+ Text::MBCSToString(TranslateTime(file_stat.st_atime));
+		+ String(TranslateTime(file_stat.st_atime));
 	pnlFileInfo.lblModifiedTime.Text = u"修改时间："
-		+ Text::MBCSToString(TranslateTime(file_stat.st_mtime));
+		+ String(TranslateTime(file_stat.st_mtime));
 	dsk_up += pnlFileInfo;
 	HexArea.Load(path.c_str());
 	HexArea.UpdateData(0);
@@ -648,7 +649,7 @@ HexReaderManager::UpdateInfo()
 
 	std::sprintf(str, "当前位置： %u / %u", HexArea.GetModel().GetPosition(),
 		HexArea.GetModel().GetSize());
-	pnlFileInfo.lblSize.Text = Text::MBCSToString(str, Text::CP_Default);
+	pnlFileInfo.lblSize.Text = str;
 	Invalidate(pnlFileInfo.lblSize);
 }
 

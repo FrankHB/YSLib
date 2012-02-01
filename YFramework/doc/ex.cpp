@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
@@ -10,17 +10,17 @@
 
 /*!	\file ex.cpp
 \ingroup Documentation
-\brief Éè¼Æ¹æÔòÖ¸¶¨ºÍ¸½¼ÓËµÃ÷ - ´æµµÓëÁÙÊ±ÎÄ¼þ¡£
-\version r3428; *build 280 rev 41;
+\brief è®¾è®¡è§„åˆ™æŒ‡å®šå’Œé™„åŠ è¯´æ˜Ž - å­˜æ¡£ä¸Žä¸´æ—¶æ–‡ä»¶ã€‚
+\version r3428; *build 281 rev 18;
 \author FrankHB<frankhb1989@gmail.com>
-\since ÔçÓÚ build 132 ¡£
-\par ´´½¨Ê±¼ä:
+\since æ—©äºŽ build 132 ã€‚
+\par åˆ›å»ºæ—¶é—´:
 	2009-12-02 05:14:30 +0800;
-\par ÐÞ¸ÄÊ±¼ä:
-	2012-01-28 01:37 +0800;
-\par ÎÄ±¾±àÂë:
+\par ä¿®æ”¹æ—¶é—´:
+	2012-02-01 09:35 +0800;
+\par æ–‡æœ¬ç¼–ç :
 	UTF-8;
-\par Ä£¿éÃû³Æ:
+\par æ¨¡å—åç§°:
 	Documentation::Designation;
 */
 
@@ -342,238 +342,133 @@ $using:
 
 $DONE:
 r1:
-* content of string literal @ \impl @ \ctor @ \cl SettingPanel
-	@ \impl \u ShlReader $since b279;
-
-r2:
-/ @ \u ShlReader $=
+/ \impl @ \mf TextList::PaintItems $=
 (
-	/ @ \cl SettingPanel $=
-	(
-		+ protected \m Button btnFontSizeDecrease, btnFontSizeIncrease,
-		/ \impl @ \ctor
-	);
-	/ \tr \impl @ \mf TextReaderManager::Execute
+	* text not fully shown at bottom $since b190;
+	/ hilight area height
 );
 
-r3:
-* \impl @ \mf TextReaderManager::Execute @ \impl \u ShlReader $since r2;
+r2:
+/= test 1 ^ \conf release;
 
-r4-r5:
-/ \impl @ \ctor @ \cl SettingPanel @ \impl \u ShlReader;
+r3:
+/ @ \un \ns @ \impl \u Shells $=
+(
+	/ \impl @ \f SwitchVisible ^ (SetVisibleOf, Invalidate) ~ (Show, Hide),
+	/ \impl @ \f GenerateList
+);
+
+r4:
+/ @ \u Shells $=
+(
+	/ \impl @ \ctor @ \cl ShlExplorer::TFormExtra;
+	- \a 2 \mf ShowString @ \cl ShlExplorer,
+	/ @ \un \ns @ \impl \u $=
+	(
+		- \f (InputCounter, InputCounterAnother),
+		- \o int nCountInput,
+		- \o char strCount[40]
+	)
+);
+
+r5:
+* \rem @ group functors @ \h Utility $since b193,
+* \rem @ \h Any $since b243,
+/ \impl @ (\mf (RefreshAll, ResetAll, ResetYTimer) @ \cl Timer,
+	\mf MUIContainer::PaintChildren @ \impl \u YUIContainer,
+	\mf (ShowAll, HideAll) @ \cl MenuHost @ \impl \u Menu) @ \impl \u YTimer
+	^ std::foreach ~ for loop;
 
 r6:
-/ @ \u ShlReader $=
+/ @ \h YUIContainer $=
 (
-	/ @ \cl SettingPanel $=
-	(
-		/ protected \m lblColorAreaUp => lblAreaUp,
-		/ protected \m lblColorAreaDown => lblAreaDown,
-		/ \impl @ \ctor,
-		+ \mf void UpdateInfo()
-	);
-	/ \simp \impl @ \mf TextReaderManager::Execute
-		^ \mf SettingPanel::UpdateInfo
+	/ \impl @ \ft CheckVisibleChildren;
+	- \f \i ConvertWidgetPtr
 );
 
 r7:
-/ \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader;
+/ @ \h YCoreUtility $=
+(
+	+ \st (delete_second_mem_ndebug, delete_second_mem_debug);
+	+ \mac delete_second_mem
+);
+/ @ (\mf FontCache::ClearContainers @ \impl \u YFont, \mf MenuHost::Clear
+	@ \impl \u Menu) ^ (std::for_each, delete_second_mem) ~ for loop;
 
-r8-r10:
-/ \impl @ \mf DualScreenReader::SetFontSize @ \u DSReader;
+r8:
+/= test 2 ^ \conf release;
 
-r11:
-/ \impl @ \mf (SetFontSize, ResetView, Execute)
-	@ \cl DualScreenReader @ \u DSReader;
+r9:
+/ \mf GetTypes @ \cl FontCache @ \u YFont => GetFaces;
+/ \tr \impl @ \f CheckSystemFontCache @ \impl \u YShellInitialization,
+/ \tr \impl @ \ctor @ \cl ShlExplorer::TFormExtra @ \impl \u Shells;
 
-r12:
-/= test 1 ^ \conf release;
+r10-r11:
+/ @ \impl \u Shells $=
+(
+	+ \f shared_ptr<TextList::ListType> FetchFontFamilyNames() @ \un \ns;
+	/ \impl @ \ctor @ \cl ShlExplorer::TFormExtra ^ \f FetchFontFamilyNames
+);
 
-r13:
-* text @ \mf SettingPanel::UpdateInfo @ \impl \u ShlReader $since r6;
+r12-r13:
+/= test 3;
 
 r14:
-/ @ \u YFont $=
+/ @ \u YString $=
 (
-	+ \mf bool SetFont(Typeface&, FontSize) @ \cl FontCache;
-	/ \simp \impl @ \mf Font::Update ^ \mf FontCache::SetFont,
-	- \mf Font::UpdateSize
+	/ @ \cl String $=
+	(
+		/ \ctor \t<class _tChar> String(const _tChar*)
+			-> \ctor \t<typename _tChar> String(const _tChar*,
+				Encoding = CP_Default),
+		+ \ctor \t<typename _tChar> String(const std::basic_string<_tChar>&,
+		Encoding = CP_Default)
+	);
+	- \a 2 \f MBCSToString
 );
-/ \impl @ \mf TextRegion::InitializeFont;
+/ \tr \impl @ 2 \ctor @ \cl Path @ \h YFileSystem,
+/ \tr \impl @ \mf FileList::LoadSubItems @ \impl \u YFileSystem,
+/ \tr \impl @ \f FetchFontFamilyNames @ \un \ns @ \impl \u Shells,
+/ \tr \impl @ \mf (SettingPanel::UpdateInfo, HexReaderManager::Activate,
+	HexReaderManager::UpdateInfo) @ \impl \u ShlReader;
 
 r15:
-/ \impl @ \mf DualScreenReader::GetFontSize @ \h DSReader;
-/ @ \cl FontCache @ \u YFont $=
+/ @ \impl \u Shells $=
 (
-	/ \impl @ \mf (SetFont, GetGlyph, bool operator-=(Typeface&));
-	- \mf (GetTypefacePtr#1, GetFontSize);
+	(
+		* \impl @ \f FetchFontFamilyNames @ \un \ns $since r10,
+		/ \impl @ \ctor @ \cl ShlExplorer::TFormExtra
+	),
+	/ \simp @ \ctor @ \cl ShlExplorer::TFormTest
 );
 
 r16:
-/ @ \u YFont $=
-(
-	/ \simp \impl @ \ctor @ \cl Typeface,
-	/ \impl @ \mf FontCache::LoadTypefaces
-);
+/= test 4 ^ \conf release;
 
 r17:
-/ @ \u YFont $=
+/ @ \cl ShlExplorer @ \u Shells $=
 (
-	/ \simp \impl @ \dtor,
-	+ friend \decl \cl Font @ \cl FontCache,
-	/ \tr \impl @ \mf FontCache::SetFontSize,
-	(
-		- \mf GetHeight @ \cl Font;
-		/ \mf (GetHeight, GetAdvance, GetAscender, GetDescender, GetGlyph)
-	);
-	/ @ \cl Font $=
-	(
-		/ \tr \impl @ \mf Update,
-		+ \c @ \mf (GetGlyph, GetAdvance)
-	)
-);
-/ \tr \impl @ \f RenderChar @ \impl \u CharRenderer,
-/ \tr @ \impl \u TextBase $=
-(
-	/ \impl @ \mf TextState::ResetForBounds,
-	/ \impl @ \f SetCurrentTextLineNOf,
-	/ \impl @ \f MovePen
-),
-/ \tr @ \u TextLayout $=
-(
-	/ \impl @ \f (FetchCharWidth, FetchLastLineBasePosition) @ \impl \u,
-	- \f \i FetchCharWidth @ \h;
-	/ \f SDst FetchCharWidth(FontCache&, ucs4_t)
-		-> SDst FetchCharWidth(const Font&, ucs4_t)
-),
-/ \tr \impl @ \f \i (GetTextLineHeightOf, GetTextLineHeightExOf) @ \h TextBase,
-/ \tr \impl @ \ft PutChar @ \h CharRenderer;
-/ \tr @ \impl \u DSReader $=
-(
-	/ \impl @ \ft FindLineFeed @ \un \ns,
-	/ \impl @ \mf DualScreenReader::Execute
+	+ protected \m shared_ptr<TextList::ListType> hFontFamilyNames;
+	/ \tr \impl @ \ctor,
+	/ \impl @ \ctor @ \cl TFormExtra
 );
 
 r18:
-/= test 2 ^ \conf release;
-
-r19-r20:
-/ @ \u YFont $=
-(
-	/ private \mf FontCache::GetInternalFaceInfo >> \cl Font;
-	/ \tr \impl @ \mf (GetAscender, GetDescender, GetHeight) @ \cl Font
-);
-
-r21:
-/ @ \cl Font @ \u YFont $=
-(
-	+ \mf GetTypefacePtr;
-	/ \impl @ \mf GetGlyph
-);
-
-r22:
-/ @ \u YFont $=
-(
-	/ \simp \impl @ mf Font::Update;
-	/ \simp @ \cl FontCache @ \impl \u YFont $=
-	(
-		- \mf (SetFont, SetTypeface, SetFontSize),
-		/ \impl @ \ctor,
-		/ \impl @ \mf (LoadTypefaces#2, \op-=#2);
-		- private \m FTC_ScalerRec scaler
-	);
-);
-
-r23-r25:
-/ @ \cl Font @ \u YFont $=
-(
-	/ private \mf FT_Face GetInternalFaceInfo() const -> FT_Face
-		GetInternalFaceInfo(Typeface* hint = nullptr) const;
-	/ \impl @ \mf GetGlyph
-);
-
-r26:
-+ '::' before \a (\fn, \tp) \n 'FT*' @ \u YFont,
-/ \impl @ \mf Font::GetGlyph @ \impl \u YFont;
-
-r27:
-/ @ \u YFont $=
-(
-	/ private \mf Font::GetInternalFaceInfo -> FontCache::GetNativeFace;
-	/ \tr \impl @ \mf @ \cl Font
-);
-
-r28:
-/ @ \cl Font $=
-(
-	- private \m const FontFamily* pFontFamily,
-	- private \m FontSize Size,
-	+ private \m mutable ::FTC_ScalerRec_ scaler,
-	- \tr \a 'yconstfn' @ \mf,
-	/ \tr \impl @ (\ctor, \mf)
-);
-
-r29-r32:
-/= test 3,
-* \impl @ \mf Font::GetGlyph $since r23;
-
-r33:
-/ @ \cl Font @ \u YFont $=
-(
-	/ \mf GetTypefacePtr -> GetTypeface,
-	+ private \mf ::FT_SizeRec& GetInternalInfo() const;
-	/ \impl @ \mf (GetAscender, GetDescender, GetGlyph, GetHeight, SetStyle,
-		GetFontFamily),
-	/ \mf bool Update() -> void Update()
-);
-
-r34:
-/ \mf Font::Update @ \impl \u YFont -> \em \mf;
-
-r35:
-/ @ \impl \u TextRenderer $=
-(
-	/ \simp \impl @ \f DrawClippedText#2,
-	/ \simp \impl @ \mf TextRegion::InitializeFont
-),
-/ \simp \impl @ \mf (Execute, Reset) @ \cl DualScreenReader
-	@ \impl \u DSRreader,
-/ \impl @ \mf (MLabel::PaintText, MTextList::RefreshTextState) ^ \mac yunseq;
-- \mf Font::Update @ \impl \u YFont;
-
-r36:
-* \impl @ MLabel::PaintText $since r35;
-
-r37:
-/= test 4 ^ \conf release;
-
-r38-r39:
-/ \simp \impl @ \mf Font::GetGlyph @ \impl \u YFont;
-
-r40:
-* undefined behavior raised when small bitmap discriptor is null
-	$since before b132 $=
-(
-	/ \impl @ \mf Font::GetAdvance @ \impl \u YFont,
-	/ \impl @ \f RenderChar @ \impl \u CharRenderer
-);
-
-r41:
 /= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-01-28:
--9.3d;
-//Mercurial rev1-rev152: r7358;
+2012-02-01:
+-10.7d;
+//Mercurial rev1-rev153: r7376;
 
 / ...
 
 
 $NEXT_TODO:
-b281-b300:
+b282-b300:
 / fully \impl @ \u DSReader $=
 (
 	+ fully \impl settings $=
@@ -595,6 +490,7 @@ b301-b1536:
 	* \impl @ \op/= for signed types,
 	+ 64-bit integer underlying type support
 ),
++ debug headers and namespace,
 + overlapping test @ \cl Rect,
 / build command @ \a \conf proj YBase,
 / fully \impl @ \cl Path,
@@ -616,6 +512,8 @@ b301-b1536:
 )
 / @ "GUI" $=
 (
+	* View position switch through scrall bar not accurate enough
+		@ class %ListBox
 	/ fully \impl @ \cl Form,
 	+ icons,
 	+ complex controls,
@@ -731,6 +629,44 @@ $module_tree $=
 
 $now
 (
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'GUI' $=
+		(
+			/ "text list refreshing implementation " $=
+			(
+				* "text not fully shown at bottom" $since b190;
+				/ "high light area height"
+			)
+		),
+		$design
+		(
+			+ "deleting second member debug functor" @ "header %ycutil.h";
+			/ $design "several implementations" @ "unit %(YTimer, \
+				YUIContainer, Menu)" ^ "%std::for_each" ~ "for loop"
+		),
+		/ @ "unit %YString" $=
+		(
+			/ "enhancement of constructors of class %String";
+			- "function %MBCSToString"
+		)
+	),
+	/ "unit %Shells" @ %'YReader' $=
+	(
+		/ "simplified testing implementation",
+		+ $design "font family names list" @ "class %ShlExplorer"
+	),
+	/ %'YBase' $=
+	(
+		* $design "wrong Doxygen comments 'defgroup functors'"
+			@ "header %utility.hpp" $since b193,
+		* $design "wrong Doxygen comments file 'brief'"
+			@ "header %any.hpp" $since b243
+	)
+),
+
+b280
+(
 	/ %'YReader'.'text reader' $=
 	(
 		+ "automatic updating font before print text";
@@ -791,34 +727,38 @@ b279
 
 b278
 (
-	/ %'YCLib' $=
+	/ %'YFramework' $=
 	(
-		+ "sleeping status configuring function %AllowSleep"
-	);
-	/ %'YFramework'.'YSLib' $=
-	(
-		/ "font APIs" $=
+		/ %'YCLib' $=
 		(
-			* "memory leak when loading duplicate typefaces"
-				@ "member function %FontCache::LoadTypefaces" $since b277,
-			/ $design "font file loading implemented" @ "constructor \
-				of class %Typeface" ~ "member function FontCache::LoadTypefaces"
-		),
-		/ 'GUI' $=
+			+ "sleeping status configuring function %AllowSleep"
+		);
+		/ %'YSLib' $=
 		(
-			* "missing painting of background for parent of buffered widgets"
-				$since b225,
-			+ "forced background painting ignorance state"
-				@ "class %BufferedRenderer"
-		),
-		+ $design "sequence function application function template %seq_apply" 
-			@ "header %yfunc.hpp",
-		+ "helper function object class %ContainerSetter",
-		/ $design "default idle handler implementation"
-			^ "function %platform::AllowSleep to forbid sleeping \
-			when the main message queue is not empty";
-		* "VRAM not flushed or crashing when opening lid on real DS"
-			$since $before b132
+			/ "font APIs" $=
+			(
+				* "memory leak when loading duplicate typefaces"
+					@ "member function %FontCache::LoadTypefaces" $since b277,
+				/ $design "font file loading implementation" @ "constructor of \
+					class %Typeface" ~ "member function \
+					FontCache::LoadTypefaces"
+			),
+			/ 'GUI' $=
+			(
+				* "missing painting of background for parent of buffered widgets"
+					$since b225,
+				+ "forced background painting ignorance state"
+					@ "class %BufferedRenderer"
+			),
+			+ $design "sequence function application function template %seq_apply" 
+				@ "header %yfunc.hpp",
+			+ "helper function object class %ContainerSetter",
+			/ $design "default idle handler implementation"
+				^ "function %platform::AllowSleep to forbid sleeping \
+				when the main message queue is not empty";
+			* "VRAM not flushed or crashing when opening lid on real DS"
+				$since $before b132
+		)
 	),
 	/ $design "simplified implementation" @ "file %main.cpp"
 		@ "project %YSTest_ARM7",
@@ -978,7 +918,7 @@ b274
 			* $design "assertion string" @ "function %FetchResizedLineN"
 				$since b252,
 			* "implementation" @ "member function %TextLineNEx"
-				@ "class template %GTextRendererBase" $since b267£¬
+				@ "class template %GTextRendererBase" $since b267ï¼Œ
 			* "implementation" @ "function %FetchLastLineBasePosition"
 				$since $before b132 ^ "ascender" ~ "descender",
 			* "implementation" @ "function %FetchResizedLineN"
@@ -1051,7 +991,7 @@ b273
 			large files improved obviously due to using of mapping buffering.
 		/ "view" @ "class %TextInfoBox"
 	),
-	* $design "several minor doxygen warnings" @ $since b196
+	* $design "several minor Doxygen warnings" @ $since b196
 ),
 
 b272
@@ -2743,7 +2683,7 @@ b186
 	/ "solution configuration",
 	* "makefiles",
 	/ $design "file including",
-	* "some wrong Doxygen remarks"
+	* "some wrong Doxygen comments"
 ),
 
 b185

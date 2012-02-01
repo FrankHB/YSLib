@@ -17,7 +17,7 @@
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-01-17 01:53 +0800;
+	2012-01-31 12:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -195,7 +195,7 @@ CheckSystemFontCache()
 {
 	try
 	{
-		if(FetchDefaultFontCache().GetTypes().size() > 0)
+		if(FetchDefaultFontCache().GetFaces().size() > 0)
 			return;
 	}
 	catch(...)

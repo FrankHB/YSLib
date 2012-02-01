@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file YSLib.txt
 \ingroup Documentation
-\brief YSLib说明。
-\version r2071;
+\brief YSLib 说明。
+\version r2100;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2011-12-18 09:37 +0800;
+	2012-01-30 16:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,11 +25,12 @@
 */
 
 
-// 方法和公共域定义与说明见 Definition.txt 。
-
-// Shell 消息列表。
-
 /*
+@0 体例和适用范围：
+以字符 @ 起始的行作为章节标题。
+本文档适用于 YSLib 。
+
+@1 Shell 消息列表：
 
 //全局系统消息。
 
@@ -76,8 +77,37 @@ SM_QUIT					0x0012
 //参数类型 InputContent ，表示按键信息。
 SM_INPUT				0x4001
 
+@2 计划 GUI 测试项目：
+
+@2.1 基本部件测试：
+ Label 、 Button 、 Window 等基本控件的静态显示。
+ Button 功能。
+
+@2.2 隐含部件测试（非单独测试，作为正常功能集成使用）：
+ CheckBox 功能。
+ ListBox 功能（含 VerticalTrack 和 VerticalScrollBar 功能）。
+ FileBox 功能。
+ ProgressBar 功能。
+
+@2.3 部件综合测试：
+ 显示/隐藏控件。
+
+@2.4 进阶互斥测试组：
+
+@2.4.1 显示：
+屏幕直接绘制。
+动态 FPS 显示。
+
+@2.4.2 屏幕接触移动：
+边界测试：移动接触点记录 Enter 和 Leave 事件参数。
+拖放测试：拖动控件（ Button 和 Window 等）。
+顶层控件测试：菜单测试（包括子菜单）。
+
+@2.4.3 背景变换：
+背景色变换。
+背景图像替换。
 
 */
 
-///
+////
 

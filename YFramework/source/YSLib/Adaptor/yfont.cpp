@@ -11,13 +11,13 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7549;
+\version r7551;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2012-01-27 00:51 +0800;
+	2012-01-31 06:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -294,8 +294,7 @@ FontCache::ClearContainers()
 	std::for_each(sFaces.begin(), sFaces.end(), delete_obj());
 	sFaces.clear();
 	//清除字型家族组。
-	for(auto i(mFamilies.cbegin()); i != mFamilies.cend(); ++i)
-		ydelete(i->second);
+	std::for_each(mFamilies.begin(), mFamilies.end(), delete_second_mem());
 	mFamilies.clear();
 }
 

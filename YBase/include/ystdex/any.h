@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,15 +10,15 @@
 
 /*!	\file any.h
 \ingroup YStandardEx
-\brief 函数对象、算法和实用程序。
-\version r1183;
+\brief 泛型类型对象。
+\version r1186;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2011-09-26 07:55:44 +0800;
 \par 修改时间:
-	2011-12-28 15:43 +0800;
-\par 字符集:
+	2012-01-31 05:02 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YStandardEx::Any;

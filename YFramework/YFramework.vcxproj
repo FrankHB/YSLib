@@ -274,6 +274,8 @@
     <NMakeBuildCommandLine>make -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>make -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
+    <LibraryPath />
+    <SourcePath />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
     <NMakePreprocessorDefinitions>NDEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
@@ -287,6 +289,8 @@
     <IncludePath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1\arm-eabi;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(NMakeIncludeSearchPath)</IncludePath>
     <ReferencePath>$(ReferencePath)</ReferencePath>
     <ExcludePath>$(ExcludePath)</ExcludePath>
+    <LibraryPath />
+    <SourcePath />
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>

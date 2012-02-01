@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5487;
+\version r5549;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-01-17 04:18 +0800;
+	2012-02-01 09:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -119,12 +119,6 @@ namespace
 		);
 	}
 
-	////
-
-	//测试用变量。
-	int nCountInput;
-	char strCount[40];
-
 	template<typename _tTarget>
 	_tTarget&
 	FetchGlobalResource(ResourceIndex idx)
@@ -142,41 +136,6 @@ namespace
 		YAssert(IsInInterval(idx, 10u), "Array index out of range"
 			" @ FetchGlobalImage;");
 		return spi[idx];
-	}
-
-	void
-	InputCounter(const Point& pt)
-	{
-		std::sprintf(strCount, "Count = %d, Pos = (%d, %d);",
-			nCountInput++, pt.X, pt.Y);
-	}
-
-	void
-	InputCounterAnother(const Point&)
-	{
-		struct mallinfo t(mallinfo());
-
-	/*	std::sprintf(strCount, "%d,%d,%d,%d,%d;",
-			t.arena,    // total space allocated from system 2742496
-			t.ordblks,  // number of non-inuse chunks 37
-			t.smblks,   // unused -- always zero 0
-			t.hblks,    // number of mmapped regions 0
-			t.hblkhd   // total space in mmapped regions 0
-		);*/
-	/*	std::sprintf(strCount, "%d,%d,%d,%d,%d;",
-			t.usmblks,  // unused -- always zero 0
-			t.fsmblks,  // unused -- always zero 0
-			t.uordblks, // total allocated space 2413256, 1223768
-			t.fordblks, // total non-inuse space 329240, 57760
-			t.keepcost // top-most, releasable (via malloc_trim) space
-			//46496,23464
-			);*/
-		std::sprintf(strCount, "%d,%d,%d,%d,%d;",
-			t.arena,
-			t.ordblks,
-			t.uordblks,
-			t.fordblks,
-			t.keepcost);
 	}
 }
 
@@ -224,8 +183,34 @@ FetchImage(size_t i)
 }
 
 
+u32
+FPSCounter::Refresh()
+{
+	if(last_tick != GetRTC())
+	{
+		last_tick = now_tick;
+		now_tick = GetRTC();
+	}
+	return now_tick == last_tick ? 0 : 1000000 / (now_tick - last_tick);
+}
+
+
 namespace
 {
+	shared_ptr<TextList::ListType>
+	FetchFontFamilyNames()
+	{
+		auto& mFamilies(FetchGlobalInstance().GetFontCache().GetFamilyIndices());
+		auto& vec(*new TextList::ListType());
+
+		vec.reserve(mFamilies.size());
+		std::for_each(mFamilies.cbegin(), mFamilies.cend(),
+			[&](decltype(*mFamilies.cbegin())& pr){
+				vec.push_back(pr.first);
+		});
+		return share_raw(&vec);
+	}
+
 	shared_ptr<TextList::ListType>
 	GenerateList(const String& str)
 	{
@@ -233,9 +218,9 @@ namespace
 
 		p->push_back(str);
 
-		char cstr[80];
+		char cstr[40];
 
-		sprintf(cstr, "%p;", p);
+		std::sprintf(cstr, "%p;", p);
 		p->push_back(cstr);
 		return share_raw(p);
 	}
@@ -243,10 +228,8 @@ namespace
 	void
 	SwitchVisible(IWidget& wgt)
 	{
-		if(IsVisible(wgt))
-			Hide(wgt);
-		else
-			Show(wgt);
+		SetVisibleOf(wgt, !IsVisible(wgt));
+		Invalidate(wgt);
 	}
 
 
@@ -331,23 +314,7 @@ namespace
 		Test1(c);
 		Test2();
 	}
-}
 
-
-u32
-FPSCounter::Refresh()
-{
-	if(last_tick != GetRTC())
-	{
-		last_tick = now_tick;
-		now_tick = GetRTC();
-	}
-	return now_tick == last_tick ? 0 : 1000000 / (now_tick - last_tick);
-}
-
-
-namespace
-{
 	namespace EnrtySpace
 	{
 		typedef enum
@@ -426,6 +393,7 @@ namespace
 
 ShlExplorer::ShlExplorer()
 	: ShlDS(),
+	hFontFamilyNames(FetchFontFamilyNames()),
 	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(12, 80, 240, 22)),
 	fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
@@ -533,7 +501,7 @@ ShlExplorer::TFormTest::TFormTest()
 				char stra[4];
 
 				std::sprintf(stra, "%d", t);
-				lst.push_back(String((string("TMI") + stra).c_str()));
+				lst.push_back(string("TMI") + stra);
 			}
 			else
 			{
@@ -651,70 +619,59 @@ ShlExplorer::TFormExtra::TFormExtra()
 			btnDragTest.Text = sloc;
 			Invalidate(btnDragTest);
 		},
-		FetchEvent<TouchUp>(btnDragTest) += [this](TouchEventArgs&& e){
-			InputCounter(e);
-			FetchShell<ShlExplorer>().ShowString(strCount);
-			Invalidate(btnDragTest);
-		},
-		FetchEvent<TouchDown>(btnDragTest) += [this](TouchEventArgs&& e){
-			InputCounterAnother(e);
-			FetchShell<ShlExplorer>().ShowString(strCount);
-		//	btnDragTest.Refresh();
+		FetchEvent<TouchDown>(btnDragTest) += [this](TouchEventArgs&&){
+			struct mallinfo t(mallinfo());
+			char strMemory[40];
+
+			/*	std::sprintf(strMemory, "%d,%d,%d,%d,%d;",
+					t.arena,    // total space allocated from system 2742496
+					t.ordblks,  // number of non-inuse chunks 37
+					t.smblks,   // unused -- always zero 0
+					t.hblks,    // number of mmapped regions 0
+					t.hblkhd   // total space in mmapped regions 0
+				);*/
+			/*	std::sprintf(strMemory, "%d,%d,%d,%d,%d;",
+					t.usmblks,  // unused -- always zero 0
+					t.fsmblks,  // unused -- always zero 0
+					t.uordblks, // total allocated space 2413256, 1223768
+					t.fordblks, // total non-inuse space 329240, 57760
+					t.keepcost // top-most, releasable (via malloc_trim) space
+					//46496,23464
+					);*/
+			std::sprintf(strMemory, "%d,%d,%d,%d,%d;",
+				t.arena,
+				t.ordblks,
+				t.uordblks,
+				t.fordblks,
+				t.keepcost);
+
+			auto& lblA(FetchShell<ShlExplorer>().lblA);
+
+			lblA.Text = strMemory;
+			Invalidate(lblA);
 		},
 		FetchEvent<TouchMove>(btnDragTest) += OnTouchMove_Dragging,
 		FetchEvent<Click>(btnDragTest) += [this](TouchEventArgs&&){
-			static auto& fc(FetchGlobalInstance().GetFontCache());
-			static const int ffilen(fc.GetPaths().size());
-			static const int ftypen(fc.GetTypes().size());
-			static const int ffamilyn(fc.GetFamilyIndices().size());
-			static int itype;
-			static auto i(fc.GetTypes().cbegin());
-			static char strtf[0x400];
+			auto hList(FetchShell<ShlExplorer>().hFontFamilyNames);
+			char strtf[0x100];
 
-			//	btnDragTest.Transparent ^= 1;
-			if(nCountInput & 1)
-			{
-				//	btnDragTest.Visible ^= 1;
-				++itype %= ftypen;
-				if(++i == fc.GetTypes().end())
-					i = fc.GetTypes().begin();
-				btnDragTest.Font = Font((*i)->GetFontFamily(),
-					16 - (itype << 1), FontStyle::Regular);
-			//	btnDragTest.Font = Font((*it)->GetFontFamily(),
-			//	GetDefaultFontFamily(), 16 - (itype << 1), FontStyle::Regular);
-				std::sprintf(strtf, "%d, %d file(s), %d type(s), %d family(s);",
-					btnDragTest.Font.GetSize(), ffilen, ftypen, ffamilyn);
-				yunseq(
-					btnDragTest.Text = strtf,
-					btnDragTest.ForeColor = GenerateRandomColor(),
-					btnClose.ForeColor = GenerateRandomColor()
-				);
-				Enable(btnClose);
-			}
-			else
-			{
-				std::sprintf(strtf, "%d/%d;%s:%s;", itype + 1, ftypen,
-					(*i)->GetFamilyName().c_str(),
-					(*i)->GetStyleName().c_str());
-				//	sprintf(strtf, "B%p\n",
-				//		fc.GetTypefacePtr("FZYaoti", "Regular"));
-				btnDragTest.Text = strtf;
-			}
-			//	btnDragTest.Refresh();
+			std::sprintf(strtf, "1/%d;%s;", hList->size(),
+				Text::StringToMBCS((*hList)[0], Text::CP_Default).c_str());
+			yunseq(
+				btnDragTest.Text = strtf,
+				btnDragTest.ForeColor = GenerateRandomColor(),
+				btnClose.ForeColor = GenerateRandomColor()
+			);
+			Invalidate(*this);
+		//	Enable(btnClose);
 		},
 		FetchEvent<Click>(btnTestEx) += [this](TouchEventArgs&& e){
 			using namespace Drawing;
-		/*
-			ucs2_t* tstr(Text::ucsdup("Abc测试", Text::CS_Local));
-			String str(tstr);
-
-			std::free(tstr);
-		*/
-			TestObj t(FetchGlobalInstance().GetDesktopDownHandle());
-
 			using namespace ColorSpace;
 
-			t.str = String(u"Abc测试");
+			TestObj t(FetchGlobalInstance().GetDesktopDownHandle());
+
+			t.str = u"Abc测试";
 			switch(e.X * 4 / btnTestEx.GetWidth())
 			{
 			case 0:
@@ -774,12 +731,11 @@ ShlExplorer::TFormExtra::OnKeyPress_btnDragTest(KeyEventArgs&& e)
 	std::sprintf(strt, "%d;\n", k);
 	lbl.Text = strt;
 	Invalidate(lbl);
-/*
+#if 0
 	Button& lbl(static_cast<Button&>(e.GetSender()));
 
-	if(nCountInput & 1)
-		lbl.Text = u"测试键盘...";
-*/
+	lbl.Text = u"测试键盘...";
+#endif
 }
 
 
@@ -926,18 +882,6 @@ ShlExplorer::GetBoundControlPtr(const KeyCode& k)
 	if(k == KeySpace::A)
 		return &btnOK;
 	return nullptr;
-}
-
-void
-ShlExplorer::ShowString(const String& s)
-{
-	lblA.Text = s;
-	Invalidate(lblA);
-}
-void
-ShlExplorer::ShowString(const char* s)
-{
-	ShowString(String(s));
 }
 
 void

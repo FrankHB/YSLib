@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r2249;
+\version r2250;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-16 19:43:24 +0800;
 \par 修改时间:
-	2012-01-15 01:53 +0800;
+	2012-01-31 05:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -51,7 +51,7 @@ typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
 	const u8*> MonoIteratorPair;
 
 
-//基本函数对象。
+//基本仿函数。
 
 /*!
 \brief 像素填充器。

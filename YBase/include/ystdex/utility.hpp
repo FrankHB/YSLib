@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r1730;
+\version r1735;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-12-31 08:28 +0800;
-\par 字符集:
+	2012-01-31 05:06 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YStandardEx::Utilities;
@@ -74,7 +74,9 @@ namespace ystdex
 
 
 	/*!	\defgroup functors General Functors
-	\brief 算法。
+	\brief 仿函数。
+	\note 函数对象包含函数指针和仿函数。
+	\since build 243 。
 	*/
 
 	/*!

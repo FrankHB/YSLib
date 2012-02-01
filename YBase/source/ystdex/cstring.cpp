@@ -11,12 +11,12 @@
 /*!	\file cstring.cpp
 \ingroup YStandardEx
 \brief YCLib ISO C 标准字符串扩展。
-\version r2068;
+\version r2069;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:31:20 +0800;
 \par 修改时间:
-	2012-01-07 21:07 +0800;
+	2012-01-31 05:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -56,7 +56,7 @@ namespace ystdex
 	char*
 	strcatdup(const char* s1, const char* s2, void*(*fun)(std::size_t))
 	{
-		char* d(static_cast<char*>(
+		auto d(static_cast<char*>(
 			fun((strlen(s1) + strlen(s2) + 1) * sizeof(char))));
 
 		return strcpycat(d, s1, s2);

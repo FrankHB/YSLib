@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -15,14 +15,14 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3546;
+\version r3557;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2011-12-04 12:41 +0800;
-\par 字符集:
+	2012-02-01 09:04 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YReader::Shells;
@@ -125,6 +125,14 @@ public:
 		OnKeyPress_btnDragTest(KeyEventArgs&&);
 	};
 
+protected:
+	/*!
+	\brief 字型名称列表。
+	\since build 281 。
+	*/
+	shared_ptr<TextList::ListType> hFontFamilyNames;
+
+public:
 	Label lblTitle, lblPath;
 	FileBox fbMain;
 	Button btnTest, btnOK;
@@ -149,11 +157,6 @@ public:
 private:
 	IWidget*
 	GetBoundControlPtr(const KeyCode&);
-
-	void
-	ShowString(const String&);
-	void
-	ShowString(const char*);
 
 	static void
 	OnConfirmed_fbMain(IndexEventArgs&&);

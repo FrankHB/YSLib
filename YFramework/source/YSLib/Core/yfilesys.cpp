@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2235;
+\version r2237;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2012-01-07 21:08 +0800;
+	2012-01-31 16:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -391,9 +391,9 @@ FileList::LoadSubItems()
 		while((++dir).LastError == 0)
 			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
 				hList->push_back(std::strcmp(HDirectory::Name, FS_Parent)
-					&& HDirectory::IsDirectory() ? MBCSToString(
+					&& HDirectory::IsDirectory() ? String(
 					string(HDirectory::Name) + FS_Seperator, CP_Path)
-					: MBCSToString(HDirectory::Name, CP_Path));
+					: String(HDirectory::Name, CP_Path));
 		// TODO: platform-dependent name converting;
 	}
 	return n;

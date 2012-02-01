@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2507;
+\version r2513;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2012-01-23 01:39 +0800;
+	2012-01-31 05:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -185,9 +185,9 @@ MUIContainer::PaintChildren(const PaintContext& pc)
 {
 	Rect clip_area(pc.ClipArea);
 
-	for(auto i(mWidgets.begin()); i != mWidgets.end(); ++i)
-	{
-		auto& wgt(*ConvertWidgetPtr(i));
+	std::for_each(mWidgets.begin(), mWidgets.end(),
+		[&](decltype(*mWidgets.begin())& pr){
+		auto& wgt(*pr.second);
 
 		if(Components::IsVisible(wgt))
 		{
@@ -196,7 +196,7 @@ MUIContainer::PaintChildren(const PaintContext& pc)
 			PaintChild(wgt, std::move(e));
 			clip_area = Unite(clip_area, e.ClipArea);
 		}
-	}
+	});
 	return clip_area;
 }
 

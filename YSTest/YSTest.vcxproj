@@ -61,6 +61,14 @@
     <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1\arm-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1\arm-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.1\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.1\arm-eabi;$(DKP_HOME)\libnds\include;$(DKP_HOME)\PAlib\lib\include\nds;$(DKP_HOME)\PAlib\lib\include\nds\arm7;$(DKP_HOME)\PAlib\lib\include\nds\arm9;$(DKP_HOME)\PAlib\lib\include\nds\netinet;$(DKP_HOME)\PAlib\lib\include\nds\sys;$(ProjectDir)..\YCLib\include;$(ProjectDir)..\YSLib\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(ReferencePath)</ReferencePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" />
+    <SourcePath Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" />
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(ReferencePath)</ReferencePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='release|Win32'" />
+    <SourcePath Condition="'$(Configuration)|$(Platform)'=='release|Win32'" />
+    <ExcludePath Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(ExcludePath)</ExcludePath>
+    <ExcludePath Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(ExcludePath)</ExcludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>

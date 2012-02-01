@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1617;
+\version r1619;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-01-13 00:08 +0800;
+	2012-01-30 12:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -339,14 +339,14 @@ TextList::PaintItems(const PaintContext& pc)
 				int top(y), tmp(y + ln_h);
 
 				RestrictInInterval<int>(top, 0, h);
-				RestrictInInterval<int>(tmp, 0, h);
+				RestrictInInterval<int>(tmp, 1, h + 1);
 				tmp -= top;
 				top += pt.Y;
 				if(viewer.IsSelected() && i == viewer.GetSelectedIndex())
 				{
 					GetTextState().Color = HilightTextColor;
 					FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
-						Intersect(Rect(pt.X + 1, top + 1, ln_w - 2, tmp - 1),
+						Intersect(Rect(pt.X + 1, top, ln_w - 2, tmp),
 						pc.ClipArea), HilightBackColor);
 				}
 				else

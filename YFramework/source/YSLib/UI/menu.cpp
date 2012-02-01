@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1898;
+\version r1908;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2012-01-12 15:13 +0800;
+	2012-01-31 06:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -291,8 +291,7 @@ MenuHost::Contains(Menu& mnu)
 void
 MenuHost::Clear()
 {
-	for(auto i(mMenus.begin()); i != mMenus.end(); ++i)
-		ydelete(i->second);
+	std::for_each(mMenus.begin(), mMenus.end(), delete_second_mem());
 	mMenus.clear();
 }
 
@@ -314,9 +313,11 @@ MenuHost::Show(Menu::ID id, ZOrderType z)
 void
 MenuHost::ShowAll(ZOrderType z)
 {
-	for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
-		if(i->second)
-			ShowRaw(*i->second, z);
+	std::for_each(mMenus.cbegin(), mMenus.cend(),
+		[this, z](decltype(*mMenus.cbegin())& pr){
+		if(pr.second)
+			ShowRaw(*pr.second, z);
+	});
 }
 
 void
@@ -346,9 +347,11 @@ MenuHost::Hide(Menu::ID id)
 void
 MenuHost::HideAll()
 {
-	for(auto i(mMenus.cbegin()); i != mMenus.cend(); ++i)
-		if(i->second)
-			HideRaw(*i->second);
+	std::for_each(mMenus.cbegin(), mMenus.cend(),
+		[this](decltype(*mMenus.cbegin())& pr){
+		if(pr.second)
+			HideRaw(*pr.second);
+	});
 }
 
 void

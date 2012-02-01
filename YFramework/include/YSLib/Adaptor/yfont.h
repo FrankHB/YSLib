@@ -11,13 +11,13 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7669;
+\version r7672;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2012-01-28 00:55 +0800;
+	2012-01-31 11:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -337,7 +337,11 @@ public:
 public:
 	DefGetter(const ynothrow, const PathMap&, Paths, mPaths) \
 		//!< 取字体文件路径映射。
-	DefGetter(const ynothrow, const FaceSet&, Types, sFaces) //!< 取字型组。
+	/*!
+	\brief 取字型组。
+	\since build 281 。
+	*/
+	DefGetter(const ynothrow, const FaceSet&, Faces, sFaces)
 	DefGetter(const ynothrow, const FamilyMap&, FamilyIndices, mFamilies) \
 		//!< 取字型家族组索引。
 //	Font*

@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1792;
+\version r1795;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2011-01-20 08:33 +0800;
+	2012-01-31 05:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -304,7 +304,7 @@ struct PolymorphicFunctorBase
 
 
 /*
-\brief 多态函数对象模板。
+\brief 多态仿函数模板。
 \note 继承其它仿函数。
 */
 /*template<class _tFunctor>

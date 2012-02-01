@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2765;
+\version r2784;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2011-12-04 10:57 +0800;
-\par 字符集:
+	2012-01-31 06:36 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YCoreUtilities;
@@ -365,10 +365,29 @@ struct delete_obj_ndebug
 };
 
 
+/*!
+\brief delete 第二成员仿函数。
+\since build 281 。
+\todo 删除数组成员。
+*/
+struct delete_second_mem_ndebug
+{
+	/*!
+	\brief 删除指针指向的对象。
+	*/
+	PDefTmplH1(_type)
+	inline void
+	operator()(const _type& _pr) ynothrow
+	{
+		delete _pr.second;
+	}
+};
+
+
 #ifdef YSL_USE_MEMORY_DEBUG
 
-/*
-! \brief delete 仿函数（调试版本）。
+/*!
+\brief delete 仿函数（调试版本）。
 \since build 174 。
 */
 struct delete_obj_debug
@@ -384,11 +403,33 @@ struct delete_obj_debug
 	}
 };
 
+
+/*!
+\brief delete 第二成员仿函数。
+\since build 281 。
+\todo 删除数组成员。
+*/
+struct delete_second_mem_debug
+{
+	/*!
+	\brief 删除指针指向的对象。
+	*/
+	PDefTmplH1(_type)
+	inline void
+	operator()(const _type& _pr) ynothrow
+	{
+		ydelete(_pr.second);
+	}
+};
+
+
 #	define delete_obj delete_obj_debug
+#	define delete_second_mem delete_second_mem_debug
 
 #else
 
 #	define delete_obj delete_obj_ndebug
+#	define delete_second_mem delete_second_mem_ndebug
 
 #endif
 

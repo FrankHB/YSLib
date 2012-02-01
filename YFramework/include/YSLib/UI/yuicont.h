@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2621;
+\version r2627;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2012-01-23 01:40 +0800;
+	2012-01-31 06:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -255,27 +255,19 @@ protected:
 };
 
 
-inline IWidget*
-ConvertWidgetPtr(MUIContainer::WidgetMap::iterator i)
-{
-	return i->second;
-}
-
 template<typename _tIn>
 bool
 CheckVisibleChildren(_tIn b, _tIn e)
 {
 	bool result(false);
 
-	while(b != e)
-	{
-		const auto p(ConvertWidgetPtr(b));
+	std::for_each(b, e, [&](decltype(*b)& pr){
+		const auto p(pr.second);
 
 		YAssert(p, "Null widget pointer found @ CheckVisibleChildren");
 
 		result |= Components::IsVisible(*p);
-		++b;
-	}
+	});
 	return result;
 }
 

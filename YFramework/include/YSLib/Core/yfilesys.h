@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2199;
+\version r2203;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2011-12-14 22:11 +0800;
-\par 字符集:
+	2012-01-31 16:52 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YFileSystem;
@@ -288,11 +288,11 @@ Path::Path(const ValueType* pathstr)
 {}
 inline
 Path::Path(const NativePathCharType* pathstr)
-	: ucs2string(Text::MBCSToString(pathstr, CP_Path))
+	: ucs2string(String(pathstr, CP_Path))
 {}
 inline
 Path::Path(const NativeStringType& pathstr)
-	: ucs2string(Text::MBCSToString(pathstr, CP_Path))
+	: ucs2string(String(pathstr, CP_Path))
 {}
 template<class _tString>
 inline

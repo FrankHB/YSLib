@@ -11,13 +11,13 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r1565;
+\version r1580;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2011-11-05 11:25 +0800;
-\par 字符集:
+	2012-01-31 05:55 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Service::YTimer;
@@ -84,33 +84,39 @@ bool
 Timer::RefreshAll()
 {
 	bool t(false);
+
 	Synchronize();
-	for(auto i(mTimers.begin()); i != mTimers.end(); ++i)
-		if(i->second)
-			t |= i->second->RefreshRaw();
+	std::for_each(mTimers.begin(), mTimers.end(),
+		[&](decltype(*mTimers.begin())& pr){
+		if(pr.second)
+			t |= pr.second->RefreshRaw();
+	});
 	return t;
 }
 
 void
 Timer::ResetAll()
 {
-	for(auto i(mTimers.begin()); i != mTimers.end(); ++i)
-		if(i->second)
-			i->second->Reset();
+	std::for_each(mTimers.begin(), mTimers.end(),
+		[](decltype(*mTimers.begin())& pr){
+		if(pr.second)
+			pr.second->Reset();
+	});
 }
 
 void
 Timer::ResetYTimer()
 {
-	for(auto i(mTimers.begin()); i != mTimers.end(); ++i)
-	{
-		Timer* const p(i->second);
+	std::for_each(mTimers.begin(), mTimers.end(),
+		[](decltype(*mTimers.begin())& pr){
+		const auto p(pr.second);
+
 		if(p)
 		{
 			p->SetInterval(0);
 			p->Reset();
 		}
-	}
+	});
 	mTimers.clear();
 	ResetSystemTimer();
 }
