@@ -11,13 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3083;
+\version r3086;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2012-01-15 04:21 +0800;
+	2012-02-01 19:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -88,7 +88,7 @@ public:
 \brief 按钮。
 \since build 205 。
 */
-class Button : public Thumb, protected Components::MLabel
+class Button : public Thumb, protected MLabel
 {
 public:
 	using MLabel::Font;

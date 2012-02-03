@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2513;
+\version r2529;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2012-01-31 05:59 +0800;
+	2012-02-03 13:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -32,10 +32,26 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-Desktop*
-FetchDesktopPtr(IWidget& wgt)
+IWidget&
+FetchTopLevel(IWidget& wgt)
 {
-	return FetchWidgetNodePtr<Desktop>(&wgt);
+	auto pWgt(&wgt);
+
+	while(const auto p = FetchContainerPtr(*pWgt))
+		pWgt = p;
+	return *pWgt;
+}
+IWidget&
+FetchTopLevel(IWidget& wgt, Point& pt)
+{
+	auto pWgt(&wgt);
+
+	while(const auto p = FetchContainerPtr(*pWgt))
+	{
+		pt += GetLocationOf(*pWgt);
+		pWgt = p;
+	}
+	return *pWgt;
 }
 
 

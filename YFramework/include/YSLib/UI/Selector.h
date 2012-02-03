@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,27 +8,26 @@
 	understand and accept it fully.
 */
 
-/*!	\file checkbox.h
+/*!	\file Selector.h
 \ingroup UI
-\brief 样式相关的图形用户界面复选框控件。
-\version r1186;
+\brief 样式相关的图形用户界面选择控件。
+\version r1198;
 \author FrankHB<frankhb1989@gmail.com>
-\since build 196 。
+\since build 282 。
 \par 创建时间:
 	2011-03-22 07:17:17 +0800;
 \par 修改时间:
-	2011-12-04 12:56 +0800;
+	2012-02-01 13:12 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::CheckBox;
+	YSLib::UI::Selector;
 */
 
 
-#ifndef YSL_INC_UI_CHECKBOX_H_
-#define YSL_INC_UI_CHECKBOX_H_
+#ifndef YSL_INC_UI_SELECTOR_H_
+#define YSL_INC_UI_SELECTOR_H_
 
-#include "ycontrol.h"
 #include "button.h"
 #include "ystyle.h"
 
@@ -40,7 +39,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 复选框。
 \since build 205 。
 */
-class CheckBox: public Thumb
+class CheckBox : public Thumb
 {
 protected:
 	bool bTicked; //选中状态。

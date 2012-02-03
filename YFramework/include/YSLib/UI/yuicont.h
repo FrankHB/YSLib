@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2627;
+\version r2650;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2012-01-31 06:22 +0800;
+	2012-02-03 13:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,47 +36,20 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 /*!
-\brief 取指针指定的部件在视图树中的节点指针。
-\tparam _Node 节点类型。
-\since build 227 。
+\brief 取指定部件的顶层部件。
+\return 若无父部件则为参数自身，否则为视图树中的父部件指针为空指针的部件的引用。
+\since build 282 。
 */
-template<class _tNode>
-_tNode*
-FetchWidgetNodePtr(IWidget* pWgt)
-{
-	_tNode* pNode(nullptr);
-
-	while(pWgt && !(pNode = dynamic_cast<_tNode*>(pWgt)))
-		pWgt = FetchContainerPtr(*pWgt);
-	return pNode;
-}
+IWidget&
+FetchTopLevel(IWidget&);
 /*!
-\brief 取指针指定的部件在视图树中的直接节点指针，同时j变换偏移坐标。
-\tparam _Node 节点类型。
-\note 原始坐标相对于指定的部件，会被转换为相对于最终节点的坐标。
-\since build 227 。
+\brief 取指定部件的顶层部件，当返回非第一参数时变换坐标。
+\return 若无父部件则为第一参数，否则为视图树中的父部件指针为空指针的部件的引用。
+\note 原始坐标相对于指定部件，会被转换为相对于最终节点的坐标。
+\since build 282 。
 */
-template<class _tNode>
-_tNode*
-FetchWidgetNodePtr(IWidget* pWgt, Point& pt)
-{
-	_tNode* pNode(nullptr);
-
-	while(pWgt && !(pNode = dynamic_cast<_tNode*>(pWgt)))
-	{
-		pt += GetLocationOf(*pWgt);
-		pWgt = FetchContainerPtr(*pWgt);
-	}
-	return pNode;
-}
-
-/*!
-\brief 取指定部件的桌面指针。
-\note 加入容器指针判断；包括部件自身。
-\since build 227 。
-*/
-Desktop*
-FetchDesktopPtr(IWidget&);
+IWidget&
+FetchTopLevel(IWidget&, Point&);
 
 
 /*!
@@ -257,11 +230,11 @@ protected:
 
 template<typename _tIn>
 bool
-CheckVisibleChildren(_tIn b, _tIn e)
+CheckVisibleChildren(_tIn first, _tIn last)
 {
 	bool result(false);
 
-	std::for_each(b, e, [&](decltype(*b)& pr){
+	std::for_each(first, last, [&](decltype(*first)& pr){
 		const auto p(pr.second);
 
 		YAssert(p, "Null widget pointer found @ CheckVisibleChildren");

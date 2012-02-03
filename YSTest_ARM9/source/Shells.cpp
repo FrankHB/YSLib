@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5549;
+\version r5563;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-02-01 09:05 +0800;
+	2012-02-03 14:36 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -455,18 +455,21 @@ ShlExplorer::ShlExplorer()
 
 ShlExplorer::TFormTest::TFormTest()
 	: Form(Rect(10, 40, 228, 100), shared_ptr<Image>()),
-	btnEnterTest(Rect(2, 5, 148, 22)), /*FetchImage(6)*/
-	btnMenuTest(Rect(152, 5, 60, 22)),
-	btnShowWindow(Rect(45, 35, 124, 22)),
-	btnPrevBackground(Rect(45, 65, 30, 22)),
-	btnNextBackground(Rect(95, 65, 30, 22))
+	btnEnterTest(Rect(4, 4, 146, 22)), /*FetchImage(6)*/
+	btnMenuTest(Rect(152, 4, 60, 22)),
+	btnShowWindow(Rect(8, 32, 104, 22)),
+	btnPrevBackground(Rect(45, 64, 30, 22)),
+	btnNextBackground(Rect(95, 64, 30, 22)),
+	dlFont(Rect(120, 32, 96, 22))
 {
 	*this += btnEnterTest,
 	*this += btnMenuTest,
 	*this += btnShowWindow,
 	*this += btnPrevBackground,
-	*this += btnNextBackground;
+	*this += btnNextBackground,
+	*this += dlFont,
 	yunseq(
+		BackColor = Color(248, 248, 120),
 		btnEnterTest.Text = u"边界测试",
 		btnEnterTest.HorizontalAlignment = TextAlignment::Right,
 		btnEnterTest.VerticalAlignment = TextAlignment::Up,
@@ -476,9 +479,13 @@ ShlExplorer::TFormTest::TFormTest()
 		btnShowWindow.VerticalAlignment = TextAlignment::Down,
 		btnPrevBackground.Text = "<<",
 		btnNextBackground.Text = ">>",
-		BackColor = Color(248, 248, 120)
+		dlFont.Text = u"字体设置"
 	);
 	SetInvalidationOf(*this);
+
+	static yconstexpr const char* mnustr[] = {"SimSun", "SimHei", "FZYTK"};
+
+	ystdex::assign(dlFont.GetList(), mnustr);
 
 	static int up_i(1);
 

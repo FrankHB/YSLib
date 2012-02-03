@@ -13,6 +13,7 @@
   <ItemGroup>
     <None Include="data\cp113.bin" />
     <None Include="data\default_font.bin" />
+    <None Include="doc\CommonRules.txt" />
     <None Include="doc\Definitions.txt" />
     <None Include="doc\Designation.txt" />
     <None Include="doc\YSLib.txt" />
@@ -153,13 +154,13 @@
     <ClInclude Include="include\YSLib\Service\ytimer.h" />
     <ClInclude Include="include\YSLib\UI\Border.h" />
     <ClInclude Include="include\YSLib\UI\button.h" />
-    <ClInclude Include="include\YSLib\UI\checkbox.h" />
+    <ClInclude Include="include\YSLib\UI\ComboList.h" />
     <ClInclude Include="include\YSLib\UI\form.h" />
     <ClInclude Include="include\YSLib\UI\label.h" />
-    <ClInclude Include="include\YSLib\UI\listbox.h" />
     <ClInclude Include="include\YSLib\UI\menu.h" />
     <ClInclude Include="include\YSLib\UI\progress.h" />
     <ClInclude Include="include\YSLib\UI\scroll.h" />
+    <ClInclude Include="include\YSLib\UI\Selector.h" />
     <ClInclude Include="include\YSLib\UI\textarea.h" />
     <ClInclude Include="include\YSLib\UI\textlist.h" />
     <ClInclude Include="include\YSLib\UI\uicontx.h" />
@@ -213,13 +214,13 @@
     <ClCompile Include="source\YSLib\Service\ytimer.cpp" />
     <ClCompile Include="source\YSLib\UI\Border.cpp" />
     <ClCompile Include="source\YSLib\UI\button.cpp" />
-    <ClCompile Include="source\YSLib\UI\checkbox.cpp" />
+    <ClCompile Include="source\YSLib\UI\ComboList.cpp" />
     <ClCompile Include="source\YSLib\UI\form.cpp" />
     <ClCompile Include="source\YSLib\UI\label.cpp" />
-    <ClCompile Include="source\YSLib\UI\listbox.cpp" />
     <ClCompile Include="source\YSLib\UI\menu.cpp" />
     <ClCompile Include="source\YSLib\UI\progress.cpp" />
     <ClCompile Include="source\YSLib\UI\scroll.cpp" />
+    <ClCompile Include="source\YSLib\UI\Selector.cpp" />
     <ClCompile Include="source\YSLib\UI\textarea.cpp" />
     <ClCompile Include="source\YSLib\UI\textlist.cpp" />
     <ClCompile Include="source\YSLib\UI\uicontx.cpp" />

@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2173;
+\version r2178;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2012-01-27 11:46 +0800;
+	2012-02-01 17:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -116,6 +116,12 @@ MTextList::GetItemPtr(IndexType idx) const
 	ListType& lst(GetList());
 
 	return IsInInterval<IndexType>(idx, lst.size()) ? &lst[idx] : nullptr;
+}
+
+SDst
+MTextList::GetMaxTextWidth() const
+{
+	return FetchMaxTextWidth(Font, GetList().cbegin(), GetList().cend());
 }
 
 void

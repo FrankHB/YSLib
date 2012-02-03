@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1465;
+\version r1467;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2012-01-13 00:09 +0800;
+	2012-02-01 17:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -111,10 +111,11 @@ public:
 	DefEventGetter(ynothrow, HIndexEvent, Confirmed, Confirmed) \
 		//!< 项目选中确定事件。
 
-	using MTextList::GetList;
-	using MTextList::GetItemPtr;
-	using MTextList::GetItemHeight;
 	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, viewer)
+	using MTextList::GetItemHeight;
+	using MTextList::GetItemPtr;
+	using MTextList::GetList;
+	using MTextList::GetMaxTextWidth;
 	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex, viewer)
 
 	/*!

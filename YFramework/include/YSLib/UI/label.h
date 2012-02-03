@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2139;
+\version r2145;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2012-01-15 04:21 +0800;
+	2012-02-01 17:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -162,6 +162,13 @@ protected:
 	GetTextState();
 
 public:
+	/*!
+	\brief 取文本列表中的最大文本宽度。
+	\since build 282 。
+	*/
+	SDst
+	GetMaxTextWidth() const;
+
 	/*!
 	\brief 刷新文本状态。
 	*/

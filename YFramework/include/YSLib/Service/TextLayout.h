@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r7389;
+\version r7410;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-27 07:02 +0800;
+	2012-02-01 17:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -173,6 +173,27 @@ inline SDst
 FetchStringWidth(TextState& ts, SDst h, const String& str)
 {
 	return FetchStringWidth(ts, h, str.c_str());
+}
+
+
+/*!
+\brief 取指定字体显示的迭代器范围中的文本的最大宽度。
+\since build 282 。
+*/
+template<typename _tIn>
+SDst
+FetchMaxTextWidth(const Font& font, _tIn first, _tIn last)
+{
+	SDst max_width(0);
+
+	std::for_each(first, last,
+		[&](decltype(*first)& str){
+			SDst ln_width(FetchStringWidth(font, str));
+
+			if(ln_width > max_width)
+				max_width = ln_width;
+	});
+	return max_width;
 }
 
 YSL_END_NAMESPACE(Drawing)

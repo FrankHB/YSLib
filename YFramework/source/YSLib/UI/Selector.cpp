@@ -8,24 +8,24 @@
 	understand and accept it fully.
 */
 
-/*!	\file checkbox.cpp
+/*!	\file Selector.cpp
 \ingroup UI
-\brief 样式相关的图形用户界面复选框控件。
-\version r1430;
+\brief 样式相关的图形用户界面选择控件。
+\version r1434;
 \author FrankHB<frankhb1989@gmail.com>
-\since build 196 。
+\since build 282 。
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2012-01-09 19:19 +0800;
+	2012-02-01 13:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::CheckBox;
+	YSLib::UI::Selector;
 */
 
 
-#include "YSLib/UI/checkbox.h"
+#include "YSLib/UI/Selector.h"
 #include "YSLib/Service/yblit.h"
 #include "YSLib/UI/ygui.h"
 

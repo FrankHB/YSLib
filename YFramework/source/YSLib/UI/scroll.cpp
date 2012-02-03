@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4102;
+\version r4108;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2012-01-09 18:45 +0800;
+	2012-02-01 19:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -432,13 +432,7 @@ AScrollBar::Refresh(const PaintContext& pc)
 
 HorizontalScrollBar::HorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
 	: AScrollBar(r, uMinThumbLength, Horizontal)
-{
-	YAssert(GetWidth() > GetHeight() * 2,
-		"In constructor Components::\n"
-			"HorizontalScrollBar::HorizontalScrollBar"
-		"(const Rect& r, SDst uMinThumbLength) const\": \n"
-		"Width is not greater than twice of height.");
-}
+{}
 
 IWidget*
 HorizontalScrollBar::GetBoundControlPtr(const KeyCode& k)
@@ -453,13 +447,7 @@ HorizontalScrollBar::GetBoundControlPtr(const KeyCode& k)
 
 VerticalScrollBar::VerticalScrollBar(const Rect& r, SDst uMinThumbLength)
 	: AScrollBar(r, uMinThumbLength, Vertical)
-{
-	YAssert(GetHeight() > GetWidth() * 2,
-		"In constructor Components::\n"
-			"VerticalScrollBar::VerticalScrollBar"
-		"(const Rect& r, SDst uMinThumbLength) const\": \n"
-		"height is not greater than twice of width.");
-}
+{}
 
 IWidget*
 VerticalScrollBar::GetBoundControlPtr(const KeyCode& k)

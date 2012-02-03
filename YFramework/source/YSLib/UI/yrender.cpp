@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1538;
+\version r1539;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2012-01-17 03:54 +0800;
+	2012-02-04 07:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -149,7 +149,7 @@ PaintChild(IWidget& wgt, PaintEventArgs&& e)
 	auto& sender(e.GetSender());
 
 	e.Location += GetLocationOf(sender);
-	e.ClipArea = Intersect(Rect(e.Location, GetSizeOf(sender)), e.ClipArea);
+	e.ClipArea = Intersect(e.ClipArea, Rect(e.Location, GetSizeOf(sender)));
 	if(!e.ClipArea.IsUnstrictlyEmpty())
 		CallEvent<Paint>(wgt, e);
 }

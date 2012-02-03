@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3678;
+\version r3682;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2012-01-10 21:43 +0800;
+	2012-02-01 19:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -95,7 +95,7 @@ Thumb::Thumb(const Rect& r)
 Rect
 Thumb::Refresh(const PaintContext& pc)
 {
-	auto enabled(IsEnabled(*this));
+	const bool enabled(IsEnabled(*this));
 	const auto& g(pc.Target);
 	const auto& pt(pc.Location);
 
@@ -124,7 +124,7 @@ Button::Button(const Rect& r, const Drawing::Font& fnt)
 Rect
 Button::Refresh(const PaintContext& pc)
 {
-	auto r(Thumb::Refresh(pc));
+	const Rect r(Thumb::Refresh(pc));
 
 	// NOTE: partial invalidation made no efficiency improved here;
 	PaintText(GetSizeOf(*this), IsEnabled(*this) ? ForeColor
@@ -147,22 +147,19 @@ CloseButton::CloseButton(const Rect& r)
 Rect
 CloseButton::Refresh(const PaintContext& pc)
 {
-	auto r(Thumb::Refresh(pc));
+	const Rect r(Thumb::Refresh(pc));
+	const Size s(GetSizeOf(*this));
 
 	//画叉。
+	if(s.Width > 8 && s.Height > 8)
 	{
-		Size s(GetSizeOf(*this));
+		const SPos xmin(pc.Location.X + 4), xmax(xmin + s.Width - 8),
+			ymin(pc.Location.Y + 4), ymax(ymin + s.Height - 8);
+		const Color c(IsEnabled(*this) ? ForeColor
+			: FetchGUIShell().Colors[Styles::Workspace]);
 
-		if(s.Width > 8 && s.Height > 8)
-		{
-			const SPos xmin(pc.Location.X + 4), xmax(xmin + s.Width - 8),
-				ymin(pc.Location.Y + 4), ymax(ymin + s.Height - 8);
-			const Color c(IsEnabled(*this) ? ForeColor
-				: FetchGUIShell().Colors[Styles::Workspace]);
-
-			DrawLineSeg(pc.Target, xmin, ymin, xmax, ymax, c),
-			DrawLineSeg(pc.Target, xmax - 1, ymin, xmin - 1, ymax, c);
-		}
+		DrawLineSeg(pc.Target, xmin, ymin, xmax, ymax, c),
+		DrawLineSeg(pc.Target, xmax - 1, ymin, xmin - 1, ymax, c);
 	}
 	return r;
 }

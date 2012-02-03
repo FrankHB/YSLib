@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1619;
+\version r1628;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-01-30 12:50 +0800;
+	2012-02-04 07:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -346,8 +346,8 @@ TextList::PaintItems(const PaintContext& pc)
 				{
 					GetTextState().Color = HilightTextColor;
 					FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
-						Intersect(Rect(pt.X + 1, top, ln_w - 2, tmp),
-						pc.ClipArea), HilightBackColor);
+						Intersect(pc.ClipArea,
+						Rect(pt.X + 1, top, ln_w - 2, tmp)), HilightBackColor);
 				}
 				else
 					GetTextState().Color = ForeColor;
@@ -416,17 +416,8 @@ TextList::InvokeConfirmed(ListType::size_type idx)
 void
 ResizeForContent(TextList& tl)
 {
-	SDst max_width(0);
-
-	std::for_each(tl.GetList().cbegin(), tl.GetList().cend(),
-		[&](const TextList::ListType::value_type& str){
-			SDst ln_width(FetchStringWidth(tl.Font, str));
-
-			if(ln_width > max_width)
-				max_width = ln_width;
-	});
-	SetSizeOf(tl, Size(max_width + GetHorizontalOf(tl.Margin),
-		tl.GetItemHeight() * tl.GetList().size()));
+	SetSizeOf(tl, Size(tl.GetMaxTextWidth() + GetHorizontalOf(tl.Margin),
+		tl.GetFullViewHeight()));
 }
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4891;
+\version r4900;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2012-01-31 05:04 +0800;
+	2012-02-02 17:03 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -371,15 +371,25 @@ public:
 	}
 
 	/*!
-	\brief 调用函数。
+	\brief 调用事件处理器。
+	\return 成功调用的事件处理器个数。
+	\exception std::bad_function_call 以外异常中立。
 	*/
 	SizeType
 	operator()(_tEventArgs&& e) const
 	{
 		SizeType n(0);
 
-		for(auto i(this->List.cbegin()); i != this->List.cend(); ++i, ++n)
-			(*i)(std::move(e));
+		std::for_each(this->List.cbegin(), this->List.cend(),
+			[&](decltype(*this->List.cbegin())& f){
+			try
+			{
+				f(std::move(e));
+			}
+			catch(std::bad_function_call&)
+			{}
+			++n;
+		});
 		return n;
 	}
 

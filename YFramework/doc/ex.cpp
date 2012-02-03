@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3428; *build 281 rev 18;
+\version r3434; *build 282 rev 37;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-01 09:35 +0800;
+	2012-02-04 07:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -279,7 +279,9 @@ $using:
 	\cl ProgressBar
 ),
 \u Border
-(),
+(
+	\cl BorderStyle
+),
 \u Button
 (
 	\cl Thumb,
@@ -290,7 +292,7 @@ $using:
 	\cl DialogBox,
 	\cl DialogPanel
 ),
-\u CheckBox
+\u Selector
 (
 	\cl CheckBox
 ),
@@ -313,10 +315,11 @@ $using:
 	\cl HorizontalScrollBar,
 	\cl VerticalScrollBar
 ),
-\u ListBox
+\u ComboList
 (
 	\cl ListBox,
-	\cl FileBox
+	\cl FileBox,
+	\cl DropDownList
 ),
 \u Form
 (
@@ -342,133 +345,163 @@ $using:
 
 $DONE:
 r1:
-/ \impl @ \mf TextList::PaintItems $=
+/ @ \lib YSLib @ \proj YFramwork $=
 (
-	* text not fully shown at bottom $since b190;
-	/ hilight area height
+	(
+		/ \u CheckBox["checkbox.h", "checkbox.cpp"] => Selector["Selector.h",
+			"Selector.cpp"] @ \dir UI @ \lib YSLib @ \proj YFramwork;
+		- \inc \h YControl @ \h Selector,
+	),
+	/ \u ListBox["listbox.h", "listbox.cpp"] => ComboList["ComboList.h",
+		"ComboList.cpp"] @ \dir UI,
+	/ \tr \inc \h @ \h YSLib::Build
+	- \inc \h YControl @ \h Scroll
 );
 
 r2:
-/= test 1 ^ \conf release;
+/ @ \u ComboList $=
+(
+	/ private \m TextList TextListBox -> protected \m TextList lstText,
+	+ \cl DropDownList
+);
 
 r3:
-/ @ \un \ns @ \impl \u Shells $=
+/ @ \u ComboList $=
 (
-	/ \impl @ \f SwitchVisible ^ (SetVisibleOf, Invalidate) ~ (Show, Hide),
-	/ \impl @ \f GenerateList
+	+ \mf void ResizeForContent(const Size&) @ \cl ListBox;
+	/ \impl @ \ctor 
 );
 
 r4:
-/ @ \u Shells $=
+/ \param \n @ \ft CheckVisibleChildren @ \h YUIContainer,
 (
-	/ \impl @ \ctor @ \cl ShlExplorer::TFormExtra;
-	- \a 2 \mf ShowString @ \cl ShlExplorer,
-	/ @ \un \ns @ \impl \u $=
-	(
-		- \f (InputCounter, InputCounterAnother),
-		- \o int nCountInput,
-		- \o char strCount[40]
-	)
+	+ \ft<typename _tIn> SDst FetchMaxTextWidth(const Font&, _tIn, _tIn)
+		@ \h TextLayout;
+	/ \simp \impl @ \f ResizeForContent @ \impl \u TextList ^ FetchMaxTextWidth
 );
 
 r5:
-* \rem @ group functors @ \h Utility $since b193,
-* \rem @ \h Any $since b243,
-/ \impl @ (\mf (RefreshAll, ResetAll, ResetYTimer) @ \cl Timer,
-	\mf MUIContainer::PaintChildren @ \impl \u YUIContainer,
-	\mf (ShowAll, HideAll) @ \cl MenuHost @ \impl \u Menu) @ \impl \u YTimer
-	^ std::foreach ~ for loop;
++ \mf MTextList::GetMaxTextWidth @ \u Label;
++ using MTextList::GetMaxTextWidth @ \cl TextList;
+/ \simp @ \f ResizeForContent @ \impl \u TextList
+	^ \mf MTextList::GetMaxTextWidth;
 
 r6:
-/ @ \h YUIContainer $=
-(
-	/ \impl @ \ft CheckVisibleChildren;
-	- \f \i ConvertWidgetPtr
-);
+/ \simp \impl @ \f ResizeForContent ^ \mf MTextList::GetFullViewHeight,
+/ \impl @ \mf ListBox::ResizeForContent
+	-> \mf void ListBox::ResizeForPreferred(const Size&, Size = Size::Zero);
+/ \tr \impl @ \ctor @ \cl DropDownList;
 
 r7:
-/ @ \h YCoreUtility $=
-(
-	+ \st (delete_second_mem_ndebug, delete_second_mem_debug);
-	+ \mac delete_second_mem
-);
-/ @ (\mf FontCache::ClearContainers @ \impl \u YFont, \mf MenuHost::Clear
-	@ \impl \u Menu) ^ (std::for_each, delete_second_mem) ~ for loop;
+/= test 1 ^ \conf release;
 
 r8:
-/= test 2 ^ \conf release;
+/ \impl @ \mf Refresh @ \cl (Thumb, Button, CloseButton) @ \impl \u Button,
+/ @ \cl DropDownList $=
+(
+	/ \inh \cl Thumb -> Button;
+	/ \tr \impl @ (\ctor, \mf Refresh)
+);
 
 r9:
-/ \mf GetTypes @ \cl FontCache @ \u YFont => GetFaces;
-/ \tr \impl @ \f CheckSystemFontCache @ \impl \u YShellInitialization,
-/ \tr \impl @ \ctor @ \cl ShlExplorer::TFormExtra @ \impl \u Shells;
+/ \impl @ \mf DropDownList::Refresh;
 
-r10-r11:
-/ @ \impl \u Shells $=
+r10:
+/ @ \st ShlExplorer::TFormTest @ \u Shells $=
 (
-	+ \f shared_ptr<TextList::ListType> FetchFontFamilyNames() @ \un \ns;
-	/ \impl @ \ctor @ \cl ShlExplorer::TFormExtra ^ \f FetchFontFamilyNames
+	+ \m DropDownList dlFont;
+	/ \tr \impl @ \ctor
 );
 
-r12-r13:
-/= test 3;
+r11-r12:
+/ @ \u Scroll $=
+(
+	- \as @ \ctor @ \cl (HorizontalScrollBar, VerticalScrollBar),
+	* wrong \rem @ \ctor @ track classes $since b173
+);
+
+r13:
+/= \inh \cl 'Components::MLabel' -> 'MLabel' @ \cl Button,
+/ \impl @ \ctor @ \cl DropDownList;
 
 r14:
-/ @ \u YString $=
-(
-	/ @ \cl String $=
-	(
-		/ \ctor \t<class _tChar> String(const _tChar*)
-			-> \ctor \t<typename _tChar> String(const _tChar*,
-				Encoding = CP_Default),
-		+ \ctor \t<typename _tChar> String(const std::basic_string<_tChar>&,
-		Encoding = CP_Default)
-	);
-	- \a 2 \f MBCSToString
-);
-/ \tr \impl @ 2 \ctor @ \cl Path @ \h YFileSystem,
-/ \tr \impl @ \mf FileList::LoadSubItems @ \impl \u YFileSystem,
-/ \tr \impl @ \f FetchFontFamilyNames @ \un \ns @ \impl \u Shells,
-/ \tr \impl @ \mf (SettingPanel::UpdateInfo, HexReaderManager::Activate,
-	HexReaderManager::UpdateInfo) @ \impl \u ShlReader;
+/= test 2 ^ \conf release;
 
 r15:
-/ @ \impl \u Shells $=
-(
-	(
-		* \impl @ \f FetchFontFamilyNames @ \un \ns $since r10,
-		/ \impl @ \ctor @ \cl ShlExplorer::TFormExtra
-	),
-	/ \simp @ \ctor @ \cl ShlExplorer::TFormTest
-);
+/ \impl @ \mf DropDownList::Refresh,
+/ \impl @ \ctor @ \cl ShlExplorer::TFormTest @ \impl \u Shells;
 
-r16:
-/= test 4 ^ \conf release;
-
-r17:
-/ @ \cl ShlExplorer @ \u Shells $=
+r16-r17:
+/ \impl @ \mf \op() @ \clt GEvent @ \h YEvent $=
 (
-	+ protected \m shared_ptr<TextList::ListType> hFontFamilyNames;
-	/ \tr \impl @ \ctor,
-	/ \impl @ \ctor @ \cl TFormExtra
+	^ std::for_each ~ for loop,
+	+ \em \eh for std::bad_function_call
 );
 
 r18:
-/= test 5 ^ \conf release;
+/ \impl @ \mf MessageQueue::Merge @ \impl \u YMessage
+	^ std::for_each ~ for loop;
+
+r19:
+/= test 3 ^ \conf release;
+
+r20:
+/ @ \u YUIContainer $=
+(
+	(
+		- \f FetchDesktopPtr;
+		- \a 2 \ft FetchWidgetNodePtr
+	),
+	+ 2 \f FetchTopLevelPtr
+);
+
+r21:
+/ @ \impl \u ComboList $=
+(
+	+ \inc \h YPanel;
+	/ \impl @ \ctor @ \cl DropDownList
+);
+
+r22:
++ \mf DropDownList::GetList;
+/ \impl @ \ctor @ \cl ShlExplorer::TFormTest @ \impl \u Shells;
+
+r23-r31:
+/= test 4,
+* \impl @ \ctor @ \cl DropDownList;
+
+r32:
+/ @ \impl \u ComboList $=
+(
+	+ \f Detach @ \un \ns;
+	/ \impl @ \ctor @ \cl DropDownList
+);
+
+r33-r35:
+/ \impl @ \f PaintChind#1 @ \impl \u YRenderer,
+/ \impl @ \mf TextList::PaintItems,
+* \impl @ \f Intersect @ \impl \u YGDIBase $since b227,
+/= test 5;
+
+r36:
+/ \impl @ \ctor @ \cl DropDownList;
+
+r37:
+/= test 6 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-02-01:
--10.7d;
-//Mercurial rev1-rev153: r7376;
+2012-02-03:
+-9.4d;
+//Mercurial rev1-rev154: r7413;
 
 / ...
 
 
 $NEXT_TODO:
-b282-b300:
+b283-b300:
 / fully \impl @ \u DSReader $=
 (
 	+ fully \impl settings $=
@@ -633,7 +666,30 @@ $now
 	(
 		/ %'GUI' $=
 		(
-			/ "text list refreshing implementation " $=
+			/ $design "APIs for text list resizing for contents",
+			(
+				/ $design "unit names" @ "directory %UI";
+				+ "class %DropDownList" @ "unit %ComboList"
+			),
+			- "assertion" @ "constructor" @ "class %(HorizontalScrollBar, \
+				VerticalScrollBar),
+			* "wrong comments" @ "constructors of track classes" $since b173
+		),
+		* "wrong result for function %Intersect" @ "unit %YGDIBase" $since b227
+	);
+	/ "unit %Shells" @ %'YReader' $=
+	(
+		+ "drop down list test" @ "class %ShlExplorer"
+	)
+),
+
+b281
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'GUI' $=
+		(
+			/ "text list refreshing implementation" $=
 			(
 				* "text not fully shown at bottom" $since b190;
 				/ "high light area height"
@@ -642,14 +698,15 @@ $now
 		$design
 		(
 			+ "deleting second member debug functor" @ "header %ycutil.h";
-			/ $design "several implementations" @ "unit %(YTimer, \
-				YUIContainer, Menu)" ^ "%std::for_each" ~ "for loop"
+			/ $design "several implementations" @ "unit %(YTimer, Menu, \
+				YUIContainer, YEvent, YMessage)" ^ "%std::for_each" ~ "for loop"
 		),
 		/ @ "unit %YString" $=
 		(
 			/ "enhancement of constructors of class %String";
 			- "function %MBCSToString"
-		)
+		),
+		/ "event call catching %std::bad_function_call silently"
 	),
 	/ "unit %Shells" @ %'YReader' $=
 	(

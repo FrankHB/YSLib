@@ -15,13 +15,13 @@
 /*!	\file ysbuild.h
 \ingroup YSLib
 \brief YSLib 库配置文件。
-\version r1706;
+\version r1708;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 21:53:55 +0800;
 \par 修改时间:
-	2012-01-09 18:55 +0800;
+	2012-02-01 10:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -38,9 +38,9 @@
 #include <YSLib/UI/ydesktop.h>
 #include <YSLib/UI/ygui.h>
 #include <YSLib/Service/textmgr.h>
-#include <YSLib/UI/checkbox.h>
+#include <YSLib/UI/Selector.h>
 #include <YSLib/UI/form.h>
-#include <YSLib/UI/listbox.h>
+#include <YSLib/UI/ComboList.h>
 #include <YSLib/UI/menu.h>
 #include <YSLib/UI/progress.h>
 #include <YSLib/UI/uicontx.h>

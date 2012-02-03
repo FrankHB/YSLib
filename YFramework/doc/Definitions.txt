@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11580;
+\version r11608;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-01-15 20:52 +0800;
+	2012-02-03 17:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -28,35 +28,9 @@
 /*
 
 体例说明：
+引用标记参见 [Documentation::CommonRules @@0.1] 。
 
-（文档专用）外部语义位置标记符：
-@ //作用于可打印字符或空白符（见以下定义）的字符序列，表示逻辑位置。
-
-以下列表中的概念参考 ISO/IEC-14882:2003 - The C++ Programing Language （以下简称“语言标准”）：
-翻译单元(translation unit) ：(@2/1 [lex])；
-字符集(character set) ：(@2.2 [lex.charset])；
-预处理记号(preprocessing token) ：(@2.4 [lex.pptoken])；
-记号(token) ：(@2.6 [lex.token])；
-注释(comment) ：(@2.7 [lex.comment])；
-头文件名(header name) ：(@2.8 [lex.header])；
-标识符(identifier) ：(@2.10 [lex.name])；
-关键字(keyword) ：(@2.11 [lex.key])；
-操作符(operator) ：(@2.11 [lex.operators])；
-标点符(punctuator) ：(@2.11 [lex.operators])；
-字面量(literal) ：(@2.13 [lex.literals])；
-转义[字符]序列(escape sequence) ：(@2.13.2 [lex.ccon])；
-实体(entity) ：(@3/3 [basic])；
-名称(name) ：(@3/4 [basic])；
-作用域(scope) ：(@3.3/1 [basic.scope])；
-链接(linkage) ：(@3.5 [basic.link])；
-存储期(storage duration) ：(@3.7 [basic.stc])；
-类型(type) ：(@3.9 [basic.types])；
-对象类型(object type) ：(@3.9 [basic.types])；
-不完整类型(incomplete type) ：(@3.9.1 [basic.fundamental])；
-命名空间(namespace) ：(@7.3 [basic.namespace])。
-
-以下内容参考语言标准相关描述：
-续行/断行连接(line continuation) ：(@2.1/2 [lex.phases])，“splicing physical source lines to form logical source lines”。
+基本内容参考 [Documentation::CommonRules @@1.3.1] 。
 
 以下为附加语法和语义说明。
 

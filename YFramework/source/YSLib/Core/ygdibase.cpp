@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1478;
+\version r1483;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2011-12-07 17:46 +0800;
-\par 字符集:
+	2012-02-04 07:32 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YGDIBase;
@@ -83,7 +83,7 @@ Intersect(const Rect& a, const Rect& b)
 	//优化：包含情况。
 	if(dx == a.Width && dy == a.Height)
 		return b;
-	if(dx == b.Width && dy == a.Height)
+	if(dx == b.Width && dy == b.Height)
 		return a;
 
 	SPos x1(max(a.X, b.X)), x2(min(axm, bxm)),

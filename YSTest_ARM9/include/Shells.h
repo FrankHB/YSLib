@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3557;
+\version r3563;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-02-01 09:04 +0800;
+	2012-02-03 14:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -102,6 +102,11 @@ public:
 	{
 		Button btnEnterTest, btnMenuTest, btnShowWindow,
 			btnPrevBackground, btnNextBackground;
+		/*!
+		\brief 测试用下拉列表。
+		\since build 282 。
+		*/
+		DropDownList dlFont;
 
 		TFormTest();
 

@@ -111,6 +111,9 @@
     <None Include="doc\YSLib.txt">
       <Filter>文档</Filter>
     </None>
+    <None Include="doc\CommonRules.txt">
+      <Filter>文档</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\YSLib\Adaptor\config.h">
@@ -191,13 +194,7 @@
     <ClInclude Include="include\YSLib\UI\button.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\UI\checkbox.h">
-      <Filter>头文件\YSLib\UI</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\UI\form.h">
-      <Filter>头文件\YSLib\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\UI\listbox.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\scroll.h">
@@ -590,6 +587,12 @@
     <ClInclude Include="include\YSLib\Helper\ShellHelper.h">
       <Filter>头文件\YSLib\Helper</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\UI\Selector.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ComboList.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\yfont.cpp">
@@ -643,13 +646,7 @@
     <ClCompile Include="source\YSLib\UI\button.cpp">
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\UI\checkbox.cpp">
-      <Filter>源文件\YSLib\UI</Filter>
-    </ClCompile>
     <ClCompile Include="source\YSLib\UI\form.cpp">
-      <Filter>源文件\YSLib\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\UI\listbox.cpp">
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\scroll.cpp">
@@ -756,6 +753,12 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\Helper\ShellHelper.cpp">
       <Filter>源文件\YSLib\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\Selector.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ComboList.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

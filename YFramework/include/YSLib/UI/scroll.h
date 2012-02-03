@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3418;
+\version r3423;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2012-01-09 18:53 +0800;
+	2012-02-01 19:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -28,9 +28,8 @@
 #ifndef YSL_INC_UI_SCROLL_H_
 #define YSL_INC_UI_SCROLL_H_
 
-#include "ycontrol.h"
-#include "yuicont.h"
 #include "button.h"
+#include "yuicont.h"
 //#include <ystdex/rational.hpp>
 //#include "../Core/yres.h"
 //#include "ystyle.h"
@@ -249,7 +248,7 @@ class HorizontalTrack : public ATrack
 public:
 	/*!
 	\brief 构造：使用指定边界和最小滑块长。
-	\pre 断言：宽大于长的 2 倍。
+	\pre 断言：宽大于长。
 	*/
 	explicit
 	HorizontalTrack(const Rect& = Rect::Empty, SDst = 8);
@@ -269,7 +268,7 @@ class VerticalTrack : public ATrack
 public:
 	/*!
 	\brief 构造：使用指定边界和最小滑块长。
-	\pre 断言：长大于宽的 2 倍。
+	\pre 断言：长大于宽。
 	*/
 	explicit
 	VerticalTrack(const Rect& = Rect::Empty, SDst = 8);
