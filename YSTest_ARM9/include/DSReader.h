@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2669;
+\version r2682;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2012-01-27 06:06 +0800;
+	2012-02-06 02:32 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -78,9 +78,9 @@ private:
 	unique_ptr<Text::TextFileBuffer> pText; //!< 文本资源。
 	Drawing::FontCache& fc; //!< 字体缓存。
 	/*!
-	\brief 字符区域输入迭代器。
+	\brief 文本区域输入迭代器。
 	
-	字符区域的起点和终点在文本缓冲区的迭代器，构成一个左闭右开区间。
+	文本区域的起点和终点在文本缓冲区的迭代器，构成一个左闭右开区间。
 	\note 若因为读入换行符而换行，则迭代器指向的字符此换行符。
 	\since build 273 。
 	*/
@@ -107,7 +107,7 @@ public:
 
 private:
 	/*!
-	\brief 上下屏幕对应字符区域。
+	\brief 上下屏幕对应文本区域。
 	\since build 273 。
 	*/
 	//@{
@@ -124,9 +124,9 @@ public:
 
 	/*!
 	\brief 构造。
-	\param w 字符区域宽。
-	\param h_up 上字符区域高。
-	\param h_down 下字符区域高。
+	\param w 文本区域宽。
+	\param h_up 上文本区域高。
+	\param h_down 下文本区域高。
 	\param fc_ 字体缓存对象。
 	*/
 	DualScreenReader(SDst w = MainScreenWidth,
@@ -138,16 +138,19 @@ public:
 	DefPred(const ynothrow, TextBottom, i_btm == pText->GetEnd()) \
 		//!< 判断输出位置是否到文本底端。
 
-	DefGetter(const ynothrow, u8, FontSize, area_up.Font.GetSize()) \
-		//!< 取字符区域的字体大小。
 	/*!
-	\brief 取字符区域的字体颜色。
-	\note 上下字符区域的字体颜色应该保持一致，否则滚屏时字体颜色错误。
+	\brief 取文本区域的字体颜色。
+	\note 上下文本区域的字体颜色应该保持一致，否则滚屏时字体颜色错误。
 	\since build 279 。
 	*/
-	DefGetter(const ynothrow, Color, Color, area_up.Color) \
+	DefGetter(const ynothrow, Color, Color, area_up.Color)
+	/*!
+	\brief 取文本区域的字体。
+	\since build 283 。
+	*/
+	DefGetter(const ynothrow, const Drawing::Font&, Font, area_up.Font)
 	DefGetter(const ynothrow, u8, LineGap, area_up.LineGap) \
-		//!< 取字符区域的行距。
+		//!< 取文本区域的行距。
 	DefGetter(const ynothrow, Text::Encoding, Encoding, pText
 		? pText->GetEncoding() : Text::CharSet::Null) //!< 取编码。
 	/*!
@@ -160,7 +163,7 @@ public:
 	/*!
 	\brief 取阅读位置。
 
-	取字符区域起始位置的输入迭代器相对于文本缓冲区迭代器的偏移。
+	取文本区域起始位置的输入迭代器相对于文本缓冲区迭代器的偏移。
 	\note 单位为字节。
 	\since build 272 。
 	*/
@@ -173,9 +176,16 @@ public:
 
 	PDefH(void, SetColor, Color c = Drawing::ColorSpace::Black)
 		ImplUnseq(area_up.Color = c, area_dn.Color = c) //!< 设置字符颜色。
+	/*!
+	\brief 设置文本区域的字体。
+	\warning 边距必须在输出前被更新。
+	\since build 283 。
+	*/
+	void
+	SetFont(const Drawing::Font&);
 	void
 	SetFontSize(Drawing::FontSize = Drawing::Font::DefaultSize); \
-		//!< 设置字符区域字体大小后调整边距。
+		//!< 设置文本区域的字体大小。
 	void
 	SetLineGap(u8 = 0); //!< 设置行距。
 	/*!

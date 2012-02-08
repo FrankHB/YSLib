@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3296;
+\version r3320;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2012-02-03 14:31 +0800;
+	2012-02-06 03:16 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -130,7 +130,19 @@ public:
 class DropDownList : public Button
 {
 public:
-	typedef TextList::ListType ListType;
+	typedef ListBox::ListType ListType;
+	/*!
+	\brief 视图参数类型。
+	\see TextList::ViewArgs 。
+	\since build 283 。
+	*/
+	typedef ListBox::ViewArgs ViewArgs;
+	/*!
+	\brief 视图事件委托类型。
+	\see TextList::HViewEvent 。
+	\since build 283 。
+	*/
+	typedef ListBox::HViewEvent HViewEvent;
 
 protected:
 	ListBox boxList;
@@ -140,9 +152,38 @@ public:
 	DropDownList(const Rect& = Rect::Empty,
 		const shared_ptr<ListType>& = shared_ptr<ListType>());
 	inline DefDeMoveCtor(DropDownList)
+	/*!
+	\brief 析构：分离顶层子部件。
+	\since build 283 。
+	*/
+	virtual ~DropDownList();
 
 	DefGetterMem(const ynothrow, ListType&, List, boxList)
+	/*!
+	\brief 取视图变更事件。
+	\since build 283 。
+	*/
+	DefEventGetterMem(ynothrow, HViewEvent, ViewChanged, boxList)
+	/*!
+	\brief 取项目选择状态变更事件。
+	\since build 283 。
+	*/
+	DefEventGetterMem(ynothrow, HIndexEvent, Selected, boxList)
+	/*!
+	\brief 取项目选中确定事件。
+	\since build 283 。
+	*/
+	DefEventGetterMem(ynothrow, HIndexEvent, Confirmed, boxList)
 
+private:
+	/*!
+	\brief 分离顶层子部件。
+	\since build 282 。
+	*/
+	void
+	DetachTopWidget();
+
+public:
 	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/

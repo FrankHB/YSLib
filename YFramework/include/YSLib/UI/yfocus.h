@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r2646;
+\version r2655;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-11-09 15:22 +0800;
-\par 字符集:
+	2012-02-04 22:10 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YFocus;
@@ -76,6 +76,14 @@ ReleaseFocus(IWidget& wgt)
 {
 	ReleaseFocusFrom(wgt, wgt);
 }
+
+/*!
+\brief 清除焦点指针，同时以此部件作为事件源，调用被清除焦点部件的 LostFocus 事件。
+\note 若此部件非容器则无效。
+\since build 258 。
+*/
+void
+ClearFocusingOf(IWidget&);
 
 YSL_END_NAMESPACE(Components)
 

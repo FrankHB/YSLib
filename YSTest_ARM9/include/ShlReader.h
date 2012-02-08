@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1731;
+\version r1735;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-01-25 15:52 +0800;
+	2012-02-06 02:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -131,6 +131,11 @@ protected:
 	\since build 279 。
 	*/
 	Button btnSetUpBack, btnSetDownBack, btnTextColor;
+	/*!
+	\brief 字体设置下拉列表。
+	\since build 282 。
+	*/
+	DropDownList ddlFont;
 	ColorBox boxColor;
 
 private:

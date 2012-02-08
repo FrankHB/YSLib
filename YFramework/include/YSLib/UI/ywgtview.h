@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r1387;
+\version r1403;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 258 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-12-04 12:54 +0800;
-\par 字符集:
+	2012-02-05 21:46 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YWidgetView;
@@ -58,6 +58,7 @@ MOriented::MOriented(Drawing::Orientation o)
 
 /*!
 \brief 可视状态。
+\warning 非虚析构。
 \since build 168 。
 */
 class Visual
@@ -145,6 +146,13 @@ private:
 
 public:
 	mutable IWidget* pContainer; //!< 从属的部件容器的指针。
+	/*!
+	\brief 从属的部件指针。
+
+	逻辑依赖的部件指针，用于提供边界、容器和焦点以外属性的默认值。
+	\since build 283 。
+	*/
+	mutable IWidget* pDependency;
 	mutable IWidget* pFocusing; //!< 焦点指针。
 
 	/*!
@@ -156,8 +164,10 @@ public:
 	virtual DefClone(View, Clone)
 	virtual DefEmptyDtor(View)
 
-	DefPredMem(const ynothrow, Visible, visual)
-	DefPredMem(const ynothrow, Transparent, visual)
+	bool
+	IsVisible() const ynothrow;
+	bool
+	IsTransparent() const ynothrow;
 
 	DefGetterMem(const ynothrow, SPos, X, visual)
 	DefGetterMem(const ynothrow, SPos, Y, visual)
@@ -166,8 +176,10 @@ public:
 	DefGetterMem(const ynothrow, const Point&, Location, visual)
 	DefGetterMem(const ynothrow, const Size&, Size, visual)
 
-	DefSetterMem(bool, Visible, visual)
-	DefSetterMem(bool, Transparent, visual)
+	void
+	SetVisible(bool);
+	void
+	SetTransparent(bool);
 	DefSetterMem(SPos, X, visual)
 	DefSetterMem(SPos, Y, visual)
 	DefSetterMem(SDst, Width, visual)
@@ -182,17 +194,19 @@ public:
 
 inline
 View::View(const Rect& r)
-	: visual(r), pContainer(), pFocusing()
+	: visual(r), pContainer(), pDependency(), pFocusing()
 {}
 inline
 View::View(const View& wv)
-	: visual(wv.visual), pContainer(), pFocusing()
+	: visual(wv.visual), pContainer(), pDependency(), pFocusing()
 {}
 inline
 View::View(View&& wv)
-	: visual(wv.visual), pContainer(wv.pContainer), pFocusing(wv.pFocusing)
+	: visual(wv.visual), pContainer(wv.pContainer), pDependency(wv.pDependency),
+	pFocusing(wv.pFocusing)
 {
-	yunseq(wv.pContainer = nullptr, wv.pFocusing = nullptr);
+	yunseq(wv.pContainer = nullptr, wv.pDependency = nullptr,
+		wv.pFocusing = nullptr);
 }
 
 

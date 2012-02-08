@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6330;
+\version r6334;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-01-22 20:28 +0800;
+	2012-02-04 22:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -223,14 +223,6 @@ SetVisibleOf(IWidget& wgt, bool b)
 */
 IWidget*
 CheckWidget(IWidget& wgt, const Point& pt, bool(&f)(const IWidget&));
-
-/*!
-\brief 清除焦点指针，同时以此部件作为事件源，调用被清除焦点部件的 LostFocus 事件。
-\note 若此部件非容器则无效。
-\since build 258 。
-*/
-void
-ClearFocusingOf(IWidget&);
 
 
 /*!

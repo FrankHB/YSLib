@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3434; *build 282 rev 37;
+\version r3434; *build 283 rev 71;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-04 07:54 +0800;
+	2012-02-08 11:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -345,163 +345,132 @@ $using:
 
 $DONE:
 r1:
-/ @ \lib YSLib @ \proj YFramwork $=
+/= test 0;
+
+r2-r30:
+* @ \cl DropDownList $since b282 $=
 (
-	(
-		/ \u CheckBox["checkbox.h", "checkbox.cpp"] => Selector["Selector.h",
-			"Selector.cpp"] @ \dir UI @ \lib YSLib @ \proj YFramwork;
-		- \inc \h YControl @ \h Selector,
-	),
-	/ \u ListBox["listbox.h", "listbox.cpp"] => ComboList["ComboList.h",
-		"ComboList.cpp"] @ \dir UI,
-	/ \tr \inc \h @ \h YSLib::Build
-	- \inc \h YControl @ \h Scroll
+	+ private \mf void Detach();
+	+ \dtor,
+	/ \simp \impl @ \ctor
+),
+/= test 1;
+
+r31:
+* \impl @ \dtor @ cl Widget $since b240;
+
+r32:
+/= test 2 ^ \conf release;
+
+r33:
+/ \f ClearFocusingOf @ \u YWidget >> \u YFocus;
+
+r34:
+/ \inc \h YWidgetView @ \impl \u YWidgetView -> \h YWidget;
+/ @ \cl View $=
+(
+	+ \m mutable IWidget* pDependency;
+	/ \tr \impl @ \a 3 \ctor,
+	/ \impl @ \mf (SetVisible, GetVisible, SetTransparent, GetTransparent),
+	/ \impl @ copy \ctor
+);
+/ \impl @ \ctor @ \cl DropDownList;
+
+r35:
+/= test 3 ^ \conf release;
+
+r36:
+/ \impl @ \ctor ShlExplorer::TFormTest @ \impl \u Shells;
+
+r37:
+/ @ \cl ShlExplorer @ \u Shells $=
+(
+	/ \impl @ \ctor @ \cl TFormExtra;
+	- protected \m shared_ptr<TextList::ListType> hFontFamilyNames, 
+	/ \simp \impl @ \ctor
 );
 
-r2:
-/ @ \u ComboList $=
+r38-r39:
+/ @ \cl SettingPanel @ \u ShlReader $=
 (
-	/ private \m TextList TextListBox -> protected \m TextList lstText,
-	+ \cl DropDownList
-);
-
-r3:
-/ @ \u ComboList $=
-(
-	+ \mf void ResizeForContent(const Size&) @ \cl ListBox;
-	/ \impl @ \ctor 
-);
-
-r4:
-/ \param \n @ \ft CheckVisibleChildren @ \h YUIContainer,
-(
-	+ \ft<typename _tIn> SDst FetchMaxTextWidth(const Font&, _tIn, _tIn)
-		@ \h TextLayout;
-	/ \simp \impl @ \f ResizeForContent @ \impl \u TextList ^ FetchMaxTextWidth
-);
-
-r5:
-+ \mf MTextList::GetMaxTextWidth @ \u Label;
-+ using MTextList::GetMaxTextWidth @ \cl TextList;
-/ \simp @ \f ResizeForContent @ \impl \u TextList
-	^ \mf MTextList::GetMaxTextWidth;
-
-r6:
-/ \simp \impl @ \f ResizeForContent ^ \mf MTextList::GetFullViewHeight,
-/ \impl @ \mf ListBox::ResizeForContent
-	-> \mf void ListBox::ResizeForPreferred(const Size&, Size = Size::Zero);
-/ \tr \impl @ \ctor @ \cl DropDownList;
-
-r7:
-/= test 1 ^ \conf release;
-
-r8:
-/ \impl @ \mf Refresh @ \cl (Thumb, Button, CloseButton) @ \impl \u Button,
-/ @ \cl DropDownList $=
-(
-	/ \inh \cl Thumb -> Button;
-	/ \tr \impl @ (\ctor, \mf Refresh)
-);
-
-r9:
-/ \impl @ \mf DropDownList::Refresh;
-
-r10:
-/ @ \st ShlExplorer::TFormTest @ \u Shells $=
-(
-	+ \m DropDownList dlFont;
+	+ protected \m DropDownList ddlFont;
 	/ \tr \impl @ \ctor
 );
 
-r11-r12:
-/ @ \u Scroll $=
+r40:
+/ \mf GetFontSize @ \cl DualScreenReader @ \h DSReader -> \mf GetFont;
+/ \impl @ \mf TextReaderManager::Execute @ \impl \u ShlReader;
+
+r41:
++ \mf void DualScreenReader::SetFont(const Drawing::Font&) @ \u DSReader;
+/ @ \cl TextReaderManager @ \u ShlReader $=
 (
-	- \as @ \ctor @ \cl (HorizontalScrollBar, VerticalScrollBar),
-	* wrong \rem @ \ctor @ track classes $since b173
+	/ \impl @ \mf Execute,
+	/ \impl @ \ctor
 );
 
-r13:
-/= \inh \cl 'Components::MLabel' -> 'MLabel' @ \cl Button,
+r42:
+/ @ \cl ShlExplorer::TFormTest @ \u Shells $=
+(
+	- \m DropDownList dlFont;
+	/ \tr \simp \impl @ \ctor
+),
+/ @ \cl DropDownList $=
+(
+	/ typedef TextList::ListType ListType -> typedef ListBox::ListType ListType,
+	+ typedef ListBox::ViewArgs ViewArgs,
+	+ typedef ListBox::HViewEvent HViewEvent;
+	+ \mf (GetViewChanged, GetSelected, GetConfirmed) @ \cl DropDownList
+);
+/ @ \impl \u ShlReader $=
+(
+	/ \f @ \un \ns @ \impl \u Shells >> \un \ns;
+	/ \impl @ \ctor @ \cl SettingPanel,
+	* \impl @ \mf TextReaderManager::Execute $since r41
+);
+
+r43-r44:
+/= test 4;
+
+r45:
+* \impl @ \ctor @ \cl SettingPanel @ \impl \u ShlReader $since r42;
+
+r46:
+/= test 5 ^ \conf release;
+
+r47:
+/ \impl @ \mf GUIShell::ResponseTouch,
+/ \impl @ \ctor @ \cl Control::ControlEventMap;
+
+r48-r69:
+/= test 6,
+/ \impl @ \impl \u YControl $=
+(
+	/ \simp \impl @ \ctor @ \cl Control::ControlEventMap,
+	/ \impl @ \f OnTouchDown_RequestToTopFocused,
+	/ \impl @ \ctor @ \cl Control
+);
+
+r70:
 / \impl @ \ctor @ \cl DropDownList;
 
-r14:
-/= test 2 ^ \conf release;
-
-r15:
-/ \impl @ \mf DropDownList::Refresh,
-/ \impl @ \ctor @ \cl ShlExplorer::TFormTest @ \impl \u Shells;
-
-r16-r17:
-/ \impl @ \mf \op() @ \clt GEvent @ \h YEvent $=
-(
-	^ std::for_each ~ for loop,
-	+ \em \eh for std::bad_function_call
-);
-
-r18:
-/ \impl @ \mf MessageQueue::Merge @ \impl \u YMessage
-	^ std::for_each ~ for loop;
-
-r19:
-/= test 3 ^ \conf release;
-
-r20:
-/ @ \u YUIContainer $=
-(
-	(
-		- \f FetchDesktopPtr;
-		- \a 2 \ft FetchWidgetNodePtr
-	),
-	+ 2 \f FetchTopLevelPtr
-);
-
-r21:
-/ @ \impl \u ComboList $=
-(
-	+ \inc \h YPanel;
-	/ \impl @ \ctor @ \cl DropDownList
-);
-
-r22:
-+ \mf DropDownList::GetList;
-/ \impl @ \ctor @ \cl ShlExplorer::TFormTest @ \impl \u Shells;
-
-r23-r31:
-/= test 4,
-* \impl @ \ctor @ \cl DropDownList;
-
-r32:
-/ @ \impl \u ComboList $=
-(
-	+ \f Detach @ \un \ns;
-	/ \impl @ \ctor @ \cl DropDownList
-);
-
-r33-r35:
-/ \impl @ \f PaintChind#1 @ \impl \u YRenderer,
-/ \impl @ \mf TextList::PaintItems,
-* \impl @ \f Intersect @ \impl \u YGDIBase $since b227,
-/= test 5;
-
-r36:
-/ \impl @ \ctor @ \cl DropDownList;
-
-r37:
-/= test 6 ^ \conf release;
+r71:
+/= test 7 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-02-03:
--9.4d;
-//Mercurial rev1-rev154: r7413;
+2012-02-06:
+-9.5d;
+//Mercurial rev1-rev155: r7484;
 
 / ...
 
 
 $NEXT_TODO:
-b283-b300:
+b284-b300:
+* \impl @ \cl DropDownList $since b282;
 / fully \impl @ \u DSReader $=
 (
 	+ fully \impl settings $=
@@ -548,6 +517,7 @@ b301-b1536:
 	* View position switch through scrall bar not accurate enough
 		@ class %ListBox
 	/ fully \impl @ \cl Form,
+	+ focus paths controling,
 	+ icons,
 	+ complex controls,
 	+ formal abstraction of rectangular hit test,
@@ -661,6 +631,47 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'GUI' $=
+		(
+			* "destructor" @ "class %Widget" $since b240 $=
+			(
+				- "calling event %LostFocus"
+					// It depends on itself to be a complete object in \
+						its lifetime which does not fit for destructing.
+			),
+			(
+				/ @ "class %View"
+				(
+					+ "dependency pointer";
+					/ "visible and transparent property setter and getter"
+				);
+				+ "top widget view state synchronizing" @ "class %DropDownList"
+			),
+			/ "focus operation for containers" @ "class %YGUIShell"
+				>> "class %Control",
+			/ "focus requesting on handling event %TouchDown of controls \
+				only when the strategy is bubble";
+			/ @ "class %DropDownList" $=
+			(
+				* "top widget not removed when destructing" $since b282,
+				(
+					+ "top widget focus requesting";
+					* "top widget not hid when touching again" $since b282
+				)
+			)
+		)
+	);
+	/ "unit %Shells" @ %'YReader' $=
+	(
+		* "crashing when switching shell after testing of drop down list"
+			$since b282
+	)
+),
+
+b282
 (
 	/ %'YFramework'.'YSLib' $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4632;
+\version r4638;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2012-01-10 20:10 +0800;
+	2012-02-08 11:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -76,13 +76,12 @@ OnKeyHeld(KeyEventArgs&& e)
 void
 OnTouchDown_RequestToTopFocused(TouchEventArgs&& e)
 {
-	if(e.Strategy != RoutedEventArgs::Bubble)
-	{
-		IWidget& wgt(e.GetSender());
+	IWidget& wgt(e.GetSender());
 
+	if(e.Strategy != RoutedEventArgs::Bubble)
 		RequestToTop(wgt);
+	if(e.Strategy != RoutedEventArgs::Tunnel)
 		RequestFocus(wgt);
-	}
 }
 
 void
@@ -208,10 +207,7 @@ OnKey_Bound_Click(KeyEventArgs&& e)
 Control::ControlEventMap::ControlEventMap()
 {
 	yunseq(
-		FetchEvent<TouchDown>(*this) += [](TouchEventArgs&& e){
-			if(e.Strategy == RoutedEventArgs::Direct)
-				RequestFocus(e.GetSender());
-		},
+		FetchEvent<TouchDown>(*this) += OnTouchDown_RequestToTopFocused,
 		FetchEvent<TouchHeld>(*this) += OnTouchHeld,
 		FetchEvent<Paint>(*this) += Render
 	);
@@ -233,7 +229,6 @@ Control::Control(const Rect& r)
 		FetchEvent<Resize>(*this) += [this](UIEventArgs&&){
 			Invalidate(*this);
 		},
-		FetchEvent<TouchDown>(*this) += OnTouchDown_RequestToTopFocused,
 		FetchEvent<GotFocus>(*this) += [this](UIEventArgs&&){
 			Invalidate(*this);
 		},

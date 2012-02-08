@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5563;
+\version r5582;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-02-03 14:36 +0800;
+	2012-02-06 02:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -197,20 +197,6 @@ FPSCounter::Refresh()
 
 namespace
 {
-	shared_ptr<TextList::ListType>
-	FetchFontFamilyNames()
-	{
-		auto& mFamilies(FetchGlobalInstance().GetFontCache().GetFamilyIndices());
-		auto& vec(*new TextList::ListType());
-
-		vec.reserve(mFamilies.size());
-		std::for_each(mFamilies.cbegin(), mFamilies.cend(),
-			[&](decltype(*mFamilies.cbegin())& pr){
-				vec.push_back(pr.first);
-		});
-		return share_raw(&vec);
-	}
-
 	shared_ptr<TextList::ListType>
 	GenerateList(const String& str)
 	{
@@ -393,7 +379,6 @@ namespace
 
 ShlExplorer::ShlExplorer()
 	: ShlDS(),
-	hFontFamilyNames(FetchFontFamilyNames()),
 	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(12, 80, 240, 22)),
 	fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
@@ -459,15 +444,14 @@ ShlExplorer::TFormTest::TFormTest()
 	btnMenuTest(Rect(152, 4, 60, 22)),
 	btnShowWindow(Rect(8, 32, 104, 22)),
 	btnPrevBackground(Rect(45, 64, 30, 22)),
-	btnNextBackground(Rect(95, 64, 30, 22)),
-	dlFont(Rect(120, 32, 96, 22))
+	btnNextBackground(Rect(95, 64, 30, 22))
+//Rect(120, 32, 96, 22)
 {
 	*this += btnEnterTest,
 	*this += btnMenuTest,
 	*this += btnShowWindow,
 	*this += btnPrevBackground,
 	*this += btnNextBackground,
-	*this += dlFont,
 	yunseq(
 		BackColor = Color(248, 248, 120),
 		btnEnterTest.Text = u"边界测试",
@@ -478,14 +462,9 @@ ShlExplorer::TFormTest::TFormTest()
 		btnShowWindow.HorizontalAlignment = TextAlignment::Left,
 		btnShowWindow.VerticalAlignment = TextAlignment::Down,
 		btnPrevBackground.Text = "<<",
-		btnNextBackground.Text = ">>",
-		dlFont.Text = u"字体设置"
+		btnNextBackground.Text = ">>"
 	);
 	SetInvalidationOf(*this);
-
-	static yconstexpr const char* mnustr[] = {"SimSun", "SimHei", "FZYTK"};
-
-	ystdex::assign(dlFont.GetList(), mnustr);
 
 	static int up_i(1);
 
@@ -659,13 +638,15 @@ ShlExplorer::TFormExtra::TFormExtra()
 		},
 		FetchEvent<TouchMove>(btnDragTest) += OnTouchMove_Dragging,
 		FetchEvent<Click>(btnDragTest) += [this](TouchEventArgs&&){
+#if 0
 			auto hList(FetchShell<ShlExplorer>().hFontFamilyNames);
 			char strtf[0x100];
 
 			std::sprintf(strtf, "1/%d;%s;", hList->size(),
 				Text::StringToMBCS((*hList)[0], Text::CP_Default).c_str());
+#endif
 			yunseq(
-				btnDragTest.Text = strtf,
+//				btnDragTest.Text = strtf,
 				btnDragTest.ForeColor = GenerateRandomColor(),
 				btnClose.ForeColor = GenerateRandomColor()
 			);

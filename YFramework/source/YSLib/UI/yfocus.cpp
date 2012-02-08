@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1461;
+\version r1472;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2011-11-10 20:20 +0800;
-\par 字符集:
+	2012-02-04 22:12 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YFocus;
@@ -67,6 +67,16 @@ ReleaseFocusFrom(IWidget& dst, IWidget& src)
 			pFocusing = nullptr;
 			CallEvent<LostFocus>(dst, UIEventArgs(src));
 		}
+	}
+}
+
+void
+ClearFocusingOf(IWidget& wgt)
+{
+	if(const auto p = FetchFocusingPtr(wgt))
+	{
+		wgt.GetView().pFocusing = nullptr;
+		CallEvent<LostFocus>(*p, UIEventArgs(wgt));
 	}
 }
 

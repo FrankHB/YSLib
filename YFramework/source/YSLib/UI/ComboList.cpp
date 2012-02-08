@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3849;
+\version r3872;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-02-04 07:54 +0800;
+	2012-02-08 11:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -149,15 +149,14 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 	: Button(r), boxList(Rect::Empty, h)
 {
 	const auto detacher([this](UIEventArgs&&){
-		Detach(FetchContainerPtr(boxList), boxList);
+		DetachTopWidget();
 	});
 
 	yunseq(
 		HorizontalAlignment = TextAlignment::Left,
-		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&&){
-			if(auto pCon = FetchContainerPtr(boxList))
-				Detach(pCon, boxList);
-			else
+		boxList.GetView().pDependency = this,
+		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
+			if(!FetchContainerPtr(boxList))
 			{
 				Point pt;
 
@@ -177,7 +176,8 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 						boxList.ResizeForPreferred(Size(0, h),
 							Size(GetWidth(), 0));
 						p->Add(boxList, 224U); // TODO: Use non-magic number;
-						Invalidate(boxList);
+						RequestFocus(boxList);
+						e.Handled = true;
 					}
 				}
 			}
@@ -190,9 +190,19 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 
 			Text = boxList.GetList()[e.Value];
 			Invalidate(*this),
-			Detach(FetchContainerPtr(boxList), boxList);
+			DetachTopWidget();
 		}
 	);
+}
+DropDownList::~DropDownList()
+{
+	DetachTopWidget();
+}
+
+void
+DropDownList::DetachTopWidget()
+{
+	Detach(FetchContainerPtr(boxList), boxList);
 }
 
 Rect

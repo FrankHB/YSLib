@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4026;
+\version r4029;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-01-12 23:31 +0800;
+	2012-02-08 07:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -283,11 +283,7 @@ GUIShell::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 		auto t(pCon->GetTopWidgetPtr(e, IsEnabledAndVisible));
 
 		if(!t || t == pCon)
-		{
-			if(op == TouchDown)
-				ClearFocusingOf(*pCon);
 			break;
-		}
 		e.SetSender(*p);
 		r |= DoEvent<HTouchEvent>(p->GetController(), op, e) != 0;
 		p = t;

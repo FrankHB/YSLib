@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3029;
+\version r3073;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-01-31 17:05 +0800;
+	2012-02-06 03:32 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -43,6 +43,22 @@ YSL_BEGIN_NAMESPACE(YReader)
 
 namespace
 {
+	shared_ptr<TextList::ListType>
+	FetchFontFamilyNames()
+	{
+		auto& mFamilies(FetchGlobalInstance().GetFontCache()
+			.GetFamilyIndices());
+		auto& vec(*new TextList::ListType());
+
+		vec.reserve(mFamilies.size());
+		std::for_each(mFamilies.cbegin(), mFamilies.cend(),
+			[&](decltype(*mFamilies.cbegin())& pr){
+				vec.push_back(pr.first);
+		});
+		return share_raw(&vec);
+	}
+
+
 	// MR -> MNU_READER;
 	yconstexpr Menu::IndexType MR_Return(0),
 		MR_Setting(1),
@@ -169,6 +185,7 @@ SettingPanel::SettingPanel()
 	btnFontSizeIncrease(Rect(148, 32, 80, 24)),
 	btnSetUpBack(Rect(20, 64, 80, 24)), btnSetDownBack(Rect(148, 64, 80, 24)),
 	btnTextColor(Rect(20, 96, 80, 24)),
+	ddlFont(Rect(148, 96, 80, 24), FetchFontFamilyNames()),
 	boxColor(Point(4, 80)), pColor()
 {
 	const auto set_font_size([this](FontSize size){
@@ -184,14 +201,15 @@ SettingPanel::SettingPanel()
 	*this += btnSetUpBack,
 	*this += btnSetDownBack,
 	*this += btnTextColor,
+	*this += ddlFont,
 	Add(boxColor, 112U),
 	SetVisibleOf(boxColor, false);
 	yunseq(
-		btnFontSizeDecrease.Text = "减小字体",
-		btnFontSizeIncrease.Text = "增大字体",
-		btnTextColor.Text = "文字颜色...",
-		btnSetUpBack.Text = "上屏颜色...",
-		btnSetDownBack.Text = "下屏颜色...",
+		btnFontSizeDecrease.Text = u"减小字体",
+		btnFontSizeIncrease.Text = u"增大字体",
+		btnSetUpBack.Text = u"上屏颜色...",
+		btnSetDownBack.Text = u"下屏颜色...",
+		btnTextColor.Text = u"文字颜色...",
 	//	FetchEvent<Paint>(lblColorAreaUp).Add(Border, &BorderStyle::OnPaint),
 	//	FetchEvent<Paint>(lblColorAreaDown).Add(Border, &BorderStyle::OnPaint),
 		FetchEvent<Click>(btnFontSizeDecrease) += [=, this](TouchEventArgs&&){
@@ -220,6 +238,16 @@ SettingPanel::SettingPanel()
 			pColor = &lblAreaDown.BackColor;
 			boxColor.SetColor(*pColor);
 			Show(boxColor);
+		},
+		ddlFont.GetConfirmed() += [this](IndexEventArgs&&){
+			if(auto p = FetchGlobalInstance().GetFontCache().GetFontFamilyPtr(
+				StringToMBCS(ddlFont.Text, Text::CP_Default).c_str()))
+			{
+				lblAreaUp.Font = Font(*p, lblAreaUp.Font.GetSize());
+				lblAreaDown.Font = lblAreaUp.Font;
+				Invalidate(lblAreaUp),
+				Invalidate(lblAreaDown);
+			}
 		},
 		FetchEvent<TouchMove>(boxColor) += OnTouchMove_Dragging,
 		FetchEvent<Click>(boxColor.btnOK) += [this](TouchEventArgs&&){
@@ -341,7 +369,7 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 		FetchEvent<Click>(pnlSetting.btnOK) += [this](TouchEventArgs&&)
 		{
 			Reader.SetColor(pnlSetting.lblAreaUp.ForeColor),
-			Reader.SetFontSize(pnlSetting.lblAreaUp.Font.GetSize());
+			Reader.SetFont(pnlSetting.lblAreaUp.Font);
 			Reader.UpdateView();
 		},
 		FetchEvent<Click>(pnlSetting.btnOK) += exit_setting
@@ -428,12 +456,15 @@ TextReaderManager::Execute(IndexEventArgs::ValueType idx)
 	case MR_Setting:
 		Reader.SetVisible(false),
 		yunseq(
-			pnlSetting.lblAreaUp.ForeColor
-				= pnlSetting.lblAreaDown.ForeColor = Reader.GetColor(),
+			pnlSetting.lblAreaUp.ForeColor = Reader.GetColor(),
 			pnlSetting.lblAreaUp.BackColor
 				= Shell.GetDesktopUp().BackColor,
+			pnlSetting.lblAreaUp.Font = Reader.GetFont(),
+			pnlSetting.lblAreaDown.ForeColor = Reader.GetColor(),
 			pnlSetting.lblAreaDown.BackColor
-				= Shell.GetDesktopDown().BackColor
+				= Shell.GetDesktopDown().BackColor,
+			pnlSetting.lblAreaDown.Font = Reader.GetFont(),
+			pnlSetting.ddlFont.Text = Reader.GetFont().GetFamilyName()
 		);
 		pnlSetting.UpdateInfo();
 		{
@@ -534,7 +565,7 @@ TextReaderManager::OnKeyDown(KeyEventArgs&& e)
 			Reader.SetLineGap(8);
 			break;
 		case KeySpace::Left:
-			//Reader.SetFontSize(Reader.GetFontSize()+1);
+			//Reader.SetFontSize(Reader.GetFont().GetSize() + 1);
 			if(Reader.GetLineGap() != 0)
 				Reader.SetLineGap(Reader.GetLineGap() - 1);
 			break;
