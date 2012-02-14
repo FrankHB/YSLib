@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r6891;
+\version r6892;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-28 00:53 +0800;
+	2012-02-14 16:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -63,7 +63,7 @@ namespace
 					xcrease<_bPositiveScan>(dst_iter);
 				}
 				src_iter += src_inc;
-				delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+				delta_assign<_bPositiveScan>(dst_iter, dst_inc);
 			}
 		}
 	};

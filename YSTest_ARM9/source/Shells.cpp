@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5582;
+\version r5584;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-02-06 02:48 +0800;
+	2012-02-14 20:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -795,7 +795,7 @@ ShlExplorer::OnActivated(const Message& msg)
 }
 
 int
-ShlExplorer::OnDeactivated(const Message& msg)
+ShlExplorer::OnDeactivated()
 {
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
@@ -822,7 +822,7 @@ ShlExplorer::OnDeactivated(const Message& msg)
 	// uninit-seg 5;
 	mhMain.Clear();
 	// parent-uninit-seg 0;
-	ParentType::OnDeactivated(msg);
+	ParentType::OnDeactivated();
 	return 0;
 }
 

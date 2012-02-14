@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 说明。
-\version r2100;
+\version r2110;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-01-30 16:27 +0800;
+	2012-02-14 21:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -33,9 +33,10 @@
 @1 Shell 消息列表：
 
 //全局系统消息。
+//除另有说明外，一般用作队列消息。
 
 //空消息。参考优先级 0xFF 。
-//应被无条件忽略。
+//通常除了对消息计数外，应被无条件忽略。
 //参数类型 void 。
 SM_NULL					0x0000
 
@@ -43,18 +44,19 @@ SM_NULL					0x0000
 //参数类型 shared_ptr<Shell> ，是目标 Shell 句柄。
 SM_SET					0x0003
 
-// Shell 预注销消息：指示取消指定 Shell 的线程控制权。参考优先级 0x80 。
+// Shell 预注销消息：指示取消指定 Shell 的控制权。参考优先级 0x80 。
 //参数类型 shared_ptr<Shell> ，是预注销的 Shell 句柄。
-//线程控制权转移至主 Shell ，若成功则删除句柄指向的 Shell 对象。对主 Shell 作用无效。
+//线程控制权转移至主 Shell ，若成功则设置句柄为空。对主 Shell 作用无效。
 SM_DROP					0x0004
 
 // Shell 激活消息：Shell 被激活后自动产生。参考优先级 0xF0 。
-//参数类型 shared_ptr<Shell> ，是被激活的 Shell 句柄。
+//参数类型 void 。
+//默认为非队列消息。
 SM_ACTIVATED			0x0005
 
-// Shell 停用消息：Shell 被停用激活状态后自动产生。参考优先级 0xF0 。
-//参数类型 shared_ptr<Shell> ，是被停用的 Shell 句柄。
-//转移线程控制权时，总在 SM_ACTIVATED 之前产生。应保持和 SM_ACTIVATED 具有相同的优先级，以保证此消息总在对应的 SM_ACTIVATED 之前被处理。
+// Shell 停用消息：Shell 被取消激活状态后自动产生。参考优先级 0xF0 。
+//参数类型 void 。
+//默认为非队列消息。转移控制权时，总在 SM_ACTIVATED 之前产生。应保持和 SM_ACTIVATED 具有相同的优先级，以保证此消息总在对应的 SM_ACTIVATED 之前被处理。
 SM_DEACTIVATED			0x0006
 
 // Shell 系统消息。

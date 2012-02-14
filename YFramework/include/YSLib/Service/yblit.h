@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r2250;
+\version r2254;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-16 19:43:24 +0800;
 \par 修改时间:
-	2012-01-31 05:06 +0800;
+	2012-02-14 16:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -379,7 +379,7 @@ struct BlitLoop
 		{
 			BlitLine<_bPositiveScan>(dst_iter, src_iter, delta_x);
 			src_iter += src_inc;
-			ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+			ystdex::delta_assign<_bPositiveScan>(dst_iter, dst_inc);
 		}
 	}
 };
@@ -409,7 +409,7 @@ struct BlitTransparentLoop
 				ystdex::xcrease<_bPositiveScan>(dst_iter);
 			}
 			src_iter += src_inc;
-			ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+			ystdex::delta_assign<_bPositiveScan>(dst_iter, dst_inc);
 		}
 	}
 
@@ -429,7 +429,7 @@ struct BlitTransparentLoop
 				ystdex::xcrease<_bPositiveScan>(dst_iter);
 			}
 			src_iter += src_inc;
-			ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+			ystdex::delta_assign<_bPositiveScan>(dst_iter, dst_inc);
 		}
 	}
 };
@@ -555,7 +555,7 @@ struct BlitBlendLoop
 				ystdex::xcrease<_bPositiveScan>(dst_iter);
 			}
 			src_iter += src_inc;
-			ystdex::delta_assignment<_bPositiveScan>(dst_iter, dst_inc);
+			ystdex::delta_assign<_bPositiveScan>(dst_iter, dst_inc);
 		}
 	}
 };

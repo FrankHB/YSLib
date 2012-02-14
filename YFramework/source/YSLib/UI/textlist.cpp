@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1628;
+\version r1630;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-02-04 07:28 +0800;
+	2012-02-10 12:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -47,7 +47,7 @@ namespace
 TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	pair<Color, Color> hilight_pair)
 	: Control(r), MTextList(h),
-	Border(), HilightBackColor(hilight_pair.first),
+	BorderPtr(new BorderStyle()), HilightBackColor(hilight_pair.first),
 	HilightTextColor(hilight_pair.second), CyclicTraverse(false),
 	viewer(GetList()), top_offset(0)
 {
@@ -160,7 +160,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 		FetchEvent<Click>(*this) += [this](TouchEventArgs&& e){
 			InvokeConfirmed(CheckPoint(e));
 		},
-		FetchEvent<Paint>(*this).Add(Border, &BorderStyle::OnPaint)
+		FetchEvent<Paint>(*this) += BorderBrush(BorderPtr)
 	);
 }
 

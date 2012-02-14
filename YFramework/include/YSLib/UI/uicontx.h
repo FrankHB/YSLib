@@ -11,13 +11,13 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1238;
+\version r1248;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192 。
 \par 创建时间:
 	2011-02-21 08:59:34 +0800;
 \par 修改时间:
-	2012-01-13 00:20 +0800;
+	2012-02-10 12:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,11 @@ YSL_BEGIN_NAMESPACE(Components)
 class DialogBox : public Control
 {
 public:
-	BorderStyle Border;
+	/*!
+	\brief 边框样式指针。
+	\since build 284 。
+	*/
+	shared_ptr<BorderStyle> BorderPtr;
 
 protected:
 	CloseButton btnClose;
@@ -67,7 +71,11 @@ public:
 class DialogPanel : public Panel
 {
 public:
-	BorderStyle Border;
+	/*!
+	\brief 边框样式指针。
+	\since build 284 。
+	*/
+	shared_ptr<BorderStyle> BorderPtr;
 
 	CloseButton btnClose;
 	Button btnOK;

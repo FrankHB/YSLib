@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3574;
+\version r3579;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-02-06 02:48 +0800;
+	2012-02-14 20:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -141,8 +141,12 @@ public:
 	virtual int
 	OnActivated(const Message&);
 
+	/*!
+	\brief 处理停用消息。
+	\since build 284 。
+	*/
 	virtual int
-	OnDeactivated(const Message&);
+	OnDeactivated();
 
 	virtual void
 	UpdateToScreen();

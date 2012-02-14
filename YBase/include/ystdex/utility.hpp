@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r1735;
+\version r1743;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-01-31 05:06 +0800;
+	2012-02-14 16:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -121,10 +121,11 @@ namespace ystdex
 	/*!
 	\ingroup functors
 	\brief 编译期选择加法/减法复合赋值运算仿函数。
+	\since build 284 。
 	*/
 	//@{
 	template<bool, typename _tScalar1, typename _tScalar2>
-	struct delta_assignment_t
+	struct delta_assignment
 	{
 		yconstfn _tScalar1&
 		operator()(_tScalar1& x, _tScalar2 y)
@@ -133,7 +134,7 @@ namespace ystdex
 		}
 	};
 	template<typename _tScalar1, typename _tScalar2>
-	struct delta_assignment_t<false, _tScalar1, _tScalar2>
+	struct delta_assignment<false, _tScalar1, _tScalar2>
 	{
 		yconstfn _tScalar1&
 		operator()(_tScalar1& x, _tScalar2 y)
@@ -157,12 +158,13 @@ namespace ystdex
 	/*!
 	\ingroup HelperFunctions
 	\brief 编译期选择加法/减法复合赋值运算。
+	\since build 284 。
 	*/
 	template<bool _bIsPositive, typename _tScalar1, typename _tScalar2>
 	yconstfn _tScalar1&
-	delta_assignment(_tScalar1& _x, _tScalar2& _y)
+	delta_assign(_tScalar1& _x, _tScalar2& _y)
 	{
-		return delta_assignment_t<_bIsPositive, _tScalar1, _tScalar2>()(_x, _y);
+		return delta_assignment<_bIsPositive, _tScalar1, _tScalar2>()(_x, _y);
 	}
 
 

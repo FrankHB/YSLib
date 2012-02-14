@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3872;
+\version r3873;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-02-08 11:39 +0800;
+	2012-02-08 19:48 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -59,10 +59,10 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 	: ScrollableContainer(r),
 	lstText(Rect(Point::Zero, r), h)
 {
-	SetContainerPtrOf(lstText, this);
+	SetContainerPtrOf(lstText, this),
 	VerticalScrollBar.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
 		lstText.LocateViewPosition(SDst(round(e.GetValue())));
-	};
+	},
 	lstText.GetViewChanged() += [this](ViewArgs&& e){
 		if(!e.Value && GetWidth() > defMinScrollBarWidth)
 		{
@@ -82,7 +82,8 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 				VerticalScrollBar.SetValue(lstText.GetViewPosition());
 			}
 		}
-	};
+	},
+	RequestFocus(lstText);
 	//刷新文本状态，防止第一次绘制时无法正确决定是否需要滚动条。
 	lstText.RefreshTextState();
 }

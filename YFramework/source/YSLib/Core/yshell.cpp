@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version r3309;
+\version r3325;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-12-13 12:09 +0800;
-\par 字符集:
+	2012-02-14 18:27 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YShell;
@@ -80,20 +80,6 @@ Shell::DefShlProc(const Message& msg)
 	default:
 		break;
 	}
-	return 0;
-}
-
-int
-Shell::OnActivated(const Message& msg)
-{
-	SendMessage(msg);
-	return 0;
-}
-
-int
-Shell::OnDeactivated(const Message& msg)
-{
-	SendMessage(msg);
 	return 0;
 }
 

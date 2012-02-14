@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4638;
+\version r4641;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2012-02-08 11:34 +0800;
+	2012-02-14 21:35 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -80,6 +80,8 @@ OnTouchDown_RequestToTopFocused(TouchEventArgs&& e)
 
 	if(e.Strategy != RoutedEventArgs::Bubble)
 		RequestToTop(wgt);
+	if(e.Strategy == RoutedEventArgs::Direct)
+		ClearFocusingOf(wgt);
 	if(e.Strategy != RoutedEventArgs::Tunnel)
 		RequestFocus(wgt);
 }

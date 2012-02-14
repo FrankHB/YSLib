@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1735;
+\version r1740;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-02-06 02:05 +0800;
+	2012-02-14 20:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -260,8 +260,12 @@ public:
 	virtual int
 	OnActivated(const Message&);
 
+	/*!
+	\brief 处理停用消息。
+	\since build 284 。
+	*/
 	virtual int
-	OnDeactivated(const Message&);
+	OnDeactivated();
 };
 
 YSL_END_NAMESPACE(YReader)

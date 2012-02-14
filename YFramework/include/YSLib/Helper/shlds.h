@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2037;
+\version r2049;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-01-20 13:30 +0800;
+	2012-02-14 20:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -46,18 +46,6 @@ public:
 	\brief 无参数构造。
 	*/
 	DefDeCtor(ShlCLI);
-
-	/*!
-	\brief 处理激活消息。
-	*/
-	virtual int
-	OnActivated(const Message&);
-
-	/*!
-	\brief 处理停用消息。
-	*/
-	virtual int
-	OnDeactivated(const Message&);
 
 	/*!
 	\brief 执行命令行。
@@ -116,9 +104,10 @@ public:
 
 	/*!
 	\brief 处理停用消息。
+	\since build 284 。
 	*/
 	virtual int
-	OnDeactivated(const Message&);
+	OnDeactivated();
 
 	/*!
 	\brief 消息处理函数。
@@ -192,9 +181,10 @@ public:
 
 	/*!
 	\brief 处理停用消息。
+	\since build 284 。
 	*/
 	virtual int
-	OnDeactivated(const Message&);
+	OnDeactivated();
 };
 
 YSL_END_NAMESPACE(Shells)

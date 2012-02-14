@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version r2910;
+\version r2918;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2011-11-04 19:19 +0800;
-\par 字符集:
+	2012-02-14 18:26 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YShell;
@@ -61,18 +61,6 @@ public:
 	*/
 	static int
 	DefShlProc(const Message&);
-
-	/*!
-	\brief 处理线程的激活。
-	*/
-	virtual int
-	OnActivated(const Message&);
-
-	/*!
-	\brief 处理线程的停用。
-	*/
-	virtual int
-	OnDeactivated(const Message&);
 
 	/*!
 	\brief 消息处理函数：响应线程的直接调用。

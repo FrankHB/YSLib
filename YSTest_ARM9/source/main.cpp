@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2186;
+\version r2188;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-01-17 21:08 +0800;
+	2012-02-14 20:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -123,11 +123,11 @@ MainShell::OnActivated(const Message& msg)
 }
 
 int
-MainShell::OnDeactivated(const Message& msg)
+MainShell::OnDeactivated()
 {
 	reset(GetDesktopUp().GetBackgroundImagePtr());
 	reset(GetDesktopDown().GetBackgroundImagePtr());
-	ParentType::OnDeactivated(msg);
+	ParentType::OnDeactivated();
 	return 0;
 }
 

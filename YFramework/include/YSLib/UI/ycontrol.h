@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5504;
+\version r5508;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2012-01-09 19:24 +0800;
+	2012-02-14 21:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -237,7 +237,10 @@ OnTouchMove(TouchEventArgs&&);
 /*!
 \brief 处理屏幕接触开始事件：使用一般接触策略。
 
-当事件路由策略非 RoutedEventArgs::Bubble 时请求置于顶端及焦点。
+屏幕接触时依次进行以下判断：
+当事件路由策略非 RoutedEventArgs::Bubble 时请求置于顶端；
+当事件路由策略为 RoutedEventArgs::Direct 时清除自身包含的焦点；
+当事件路由策略非 RoutedEventArgs::Tunnel 时请求置于顶端。
 \since build 275 。
 */
 void

@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1467;
+\version r1470;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2012-02-01 17:20 +0800;
+	2012-02-10 12:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -73,10 +73,10 @@ public:
 	using MTextList::VerticalAlignment;
 	using MTextList::Text;
 	/*!
-	\brief 边框。
-	\since build 276 。
+	\brief 边框样式指针。
+	\since build 284 。
 	*/
-	BorderStyle Border;
+	shared_ptr<BorderStyle> BorderPtr;
 	Color HilightBackColor; //!< 高亮背景色。
 	Color HilightTextColor; //!< 高亮文本色。
 

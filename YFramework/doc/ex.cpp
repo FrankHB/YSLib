@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3434; *build 283 rev 71;
+\version r3437; *build 284 rev 16;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-08 11:46 +0800;
+	2012-02-14 22:03 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -280,7 +280,8 @@ $using:
 ),
 \u Border
 (
-	\cl BorderStyle
+	\cl BorderStyle,
+	\cl BorderBrush
 ),
 \u Button
 (
@@ -345,138 +346,81 @@ $using:
 
 $DONE:
 r1:
-/= test 0;
-
-r2-r30:
-* @ \cl DropDownList $since b282 $=
+/ @ \u Border $=
 (
-	+ private \mf void Detach();
-	+ \dtor,
-	/ \simp \impl @ \ctor
-),
-/= test 1;
+	+ \cl BorderBrush,
+	- \mf OnPaint @ \cl BorderStyle
+);
+/ \tr \impl @ \u (TextList, UIContainerEx),
+/ \tr \impl @ \ctor @ \cl ColorBox @ \impl \u ColorPicker;
 
-r31:
-* \impl @ \dtor @ cl Widget $since b240;
+r2:
+/ @ \cl BorderBrush $=
+(
+	/ \m shared_ptr<BorderStyle> StylePtr
+		-> \m weak_ptr<BorderStyle> StylePtr;
+	/ \tr \impl @ \mf \op(),
+	+ 2 \ctor \i
+	/ \tr \impl @ move \ctor
+);
 
-r32:
+r3-r5:
+/= test 1,
+/ \impl @ \ctor @ \cl ListBox;
+
+r6:
 /= test 2 ^ \conf release;
 
-r33:
-/ \f ClearFocusingOf @ \u YWidget >> \u YFocus;
+r7:
+/ \a delta_assignment => delta_assign;
+/ \a delta_assignment_t => delta_assignment;
 
-r34:
-/ \inc \h YWidgetView @ \impl \u YWidgetView -> \h YWidget;
-/ @ \cl View $=
+r8:
+/ \impl @ \mf Application::SetShellHandle,
+- \mf (OnActivated, OnDeactivated) @ \cl (Shell, ShlCLI @ \u Shell_DS);
+/ \tr \impl @ \mf ShlDS @ \impl \u Shell_DS;
+
+r9-r10:
+/ @ \h YMessageDefinition $=
 (
-	+ \m mutable IWidget* pDependency;
-	/ \tr \impl @ \a 3 \ctor,
-	/ \impl @ \mf (SetVisible, GetVisible, SetTransparent, GetTransparent),
-	/ \impl @ copy \ctor
+	/ DefMessageTarget(SM_ACTIVATED, shared_ptr<Shell>) ->
+		DefMessageTarget(SM_ACTIVATED, void),
+	/ DefMessageTarget(SM_DEACTIVATED, shared_ptr<Shell>) ->
+		DefMessageTarget(SM_DEACTIVATED, void)
 );
-/ \impl @ \ctor @ \cl DropDownList;
+/ \a \param \tp @ \mf OnDeactivated -> '' ~ const Message&,
+/ \tr \impl @ \mf ShlDS::OnGotMessage @ \impl \u Shell_DS,
+/ \mf bool Application::SetShellHandle(const shared_ptr<Shell>&)
+	-> \mf bool Application::SetShellHandle(const shared_ptr<Shell>,
+		ValueObject&& = ValueObject());
 
-r35:
-/= test 3 ^ \conf release;
+r11:
+* \impl @ \f OnTouchDown_RequestToTopFocused @ \impl \u YControl $since b283;
 
-r36:
-/ \impl @ \ctor ShlExplorer::TFormTest @ \impl \u Shells;
+r12-r14:
+/= test 3;
 
-r37:
-/ @ \cl ShlExplorer @ \u Shells $=
-(
-	/ \impl @ \ctor @ \cl TFormExtra;
-	- protected \m shared_ptr<TextList::ListType> hFontFamilyNames, 
-	/ \simp \impl @ \ctor
-);
+r15:
+/ \impl @ \mf TextReaderManager::ShowMenu;
 
-r38-r39:
-/ @ \cl SettingPanel @ \u ShlReader $=
-(
-	+ protected \m DropDownList ddlFont;
-	/ \tr \impl @ \ctor
-);
-
-r40:
-/ \mf GetFontSize @ \cl DualScreenReader @ \h DSReader -> \mf GetFont;
-/ \impl @ \mf TextReaderManager::Execute @ \impl \u ShlReader;
-
-r41:
-+ \mf void DualScreenReader::SetFont(const Drawing::Font&) @ \u DSReader;
-/ @ \cl TextReaderManager @ \u ShlReader $=
-(
-	/ \impl @ \mf Execute,
-	/ \impl @ \ctor
-);
-
-r42:
-/ @ \cl ShlExplorer::TFormTest @ \u Shells $=
-(
-	- \m DropDownList dlFont;
-	/ \tr \simp \impl @ \ctor
-),
-/ @ \cl DropDownList $=
-(
-	/ typedef TextList::ListType ListType -> typedef ListBox::ListType ListType,
-	+ typedef ListBox::ViewArgs ViewArgs,
-	+ typedef ListBox::HViewEvent HViewEvent;
-	+ \mf (GetViewChanged, GetSelected, GetConfirmed) @ \cl DropDownList
-);
-/ @ \impl \u ShlReader $=
-(
-	/ \f @ \un \ns @ \impl \u Shells >> \un \ns;
-	/ \impl @ \ctor @ \cl SettingPanel,
-	* \impl @ \mf TextReaderManager::Execute $since r41
-);
-
-r43-r44:
-/= test 4;
-
-r45:
-* \impl @ \ctor @ \cl SettingPanel @ \impl \u ShlReader $since r42;
-
-r46:
-/= test 5 ^ \conf release;
-
-r47:
-/ \impl @ \mf GUIShell::ResponseTouch,
-/ \impl @ \ctor @ \cl Control::ControlEventMap;
-
-r48-r69:
-/= test 6,
-/ \impl @ \impl \u YControl $=
-(
-	/ \simp \impl @ \ctor @ \cl Control::ControlEventMap,
-	/ \impl @ \f OnTouchDown_RequestToTopFocused,
-	/ \impl @ \ctor @ \cl Control
-);
-
-r70:
-/ \impl @ \ctor @ \cl DropDownList;
-
-r71:
-/= test 7 ^ \conf release;
+r16:
+/= test 4 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-02-06:
--9.5d;
-//Mercurial rev1-rev155: r7484;
+2012-02-14:
+-15.3d;
+//Mercurial rev1-rev156: r7500;
 
 / ...
 
 
 $NEXT_TODO:
-b284-b300:
-* \impl @ \cl DropDownList $since b282;
+b285-b300:
 / fully \impl @ \u DSReader $=
 (
-	+ fully \impl settings $=
-	(
-		+ typeface setting
-	),
 	+ history,
 	+ bookmarks
 );
@@ -631,6 +575,29 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'GUI' $=
+		(
+			/ "border APIs" @ "unit Border" $=
+			(
+				+ "class BorderBrush",
+				* "border shown when widget is transparent" $since b276
+			),
+			+ "auto request focus" @ "class %ListBox for proper border color",
+			* "focus not cleared when container being touched down" $since b283
+		),
+		- "shell message on activating and deactivating on shells"
+			@ "class %(Shell, ShlCLI)"
+	),
+	/ "unit %Shells" @ "text reader" @ %'YReader' $=
+	(
+		/ "menu selected index cleared when shown"
+	)
+),
+
+b283
 (
 	/ %'YFramework'.'YSLib' $=
 	(

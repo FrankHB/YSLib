@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,14 +12,14 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1900;
+\version r1920;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2011-12-24 12:58 +0800;
-\par 字符集:
+	2012-02-14 20:00 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Helper::Shell_DS;
@@ -33,18 +33,6 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Shells)
 
 using namespace Messaging;
-
-int
-ShlCLI::OnActivated(const Message&)
-{
-	return 0;
-}
-
-int
-ShlCLI::OnDeactivated(const Message&)
-{
-	return 0;
-}
 
 int
 ShlCLI::ExecuteCommand(const ucs2_t*)
@@ -79,7 +67,7 @@ ShlDS::OnActivated(const Message&)
 }
 
 int
-ShlDS::OnDeactivated(const Message&)
+ShlDS::OnDeactivated()
 {
 	YAssert(&FetchGUIShell() == this,
 		"Invalid GUI shell found @ ShlDS::OnDeactivated");
@@ -94,6 +82,10 @@ ShlDS::OnGotMessage(const Message& msg)
 {
 	switch(msg.GetMessageID())
 	{
+	case SM_ACTIVATED:
+		return OnActivated(msg);
+	case SM_DEACTIVATED:
+		return OnDeactivated();
 	case SM_PAINT:
 		{
 			auto h(Messaging::FetchTarget<SM_PAINT>(msg));

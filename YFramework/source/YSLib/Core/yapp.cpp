@@ -11,13 +11,13 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2554;
+\version r2559;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2012-01-04 08:06 +0800;
+	2012-02-14 21:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -48,11 +48,10 @@ Application::SetShellHandle(const shared_ptr<Shell>& h)
 	if(hShell == h)
 		return false;
 	if(bool(hShell))
-		hShell->OnDeactivated(Message(h, SM_DEACTIVATED, 0xF0,
-			ValueObject(hShell)));
+		hShell->OnGotMessage(Message(h, SM_DEACTIVATED, 0xF0));
 	hShell = h;
 	if(bool(h))
-		h->OnActivated(Message(h, SM_ACTIVATED, 0xF0, ValueObject(h)));
+		h->OnGotMessage(Message(h, SM_ACTIVATED, 0xF0));
 	return bool(h);
 }
 

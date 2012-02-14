@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3073;
+\version r3078;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-02-06 03:32 +0800;
+	2012-02-14 22:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -210,8 +210,8 @@ SettingPanel::SettingPanel()
 		btnSetUpBack.Text = u"上屏颜色...",
 		btnSetDownBack.Text = u"下屏颜色...",
 		btnTextColor.Text = u"文字颜色...",
-	//	FetchEvent<Paint>(lblColorAreaUp).Add(Border, &BorderStyle::OnPaint),
-	//	FetchEvent<Paint>(lblColorAreaDown).Add(Border, &BorderStyle::OnPaint),
+	//	FetchEvent<Paint>(lblColorAreaUp) += BorderBrush(BorderStyle),
+	//	FetchEvent<Paint>(lblColorAreaDown) += BorderBrush(BorderStyle),
 		FetchEvent<Click>(btnFontSizeDecrease) += [=, this](TouchEventArgs&&){
 			auto size(lblAreaUp.Font.GetSize());
 
@@ -502,7 +502,8 @@ TextReaderManager::ShowMenu(Menu::ID id, const Point&)
 	{
 		auto& mnu(mhMain[id]);
 
-		SetLocationOf(mnu, Point());
+		SetLocationOf(mnu, Point()),
+		mnu.ClearSelected();
 		switch(id)
 		{
 		case 1u:
@@ -712,7 +713,7 @@ ShlReader::OnActivated(const Message& msg)
 }
 
 int
-ShlReader::OnDeactivated(const Message& msg)
+ShlReader::OnDeactivated()
 {
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
@@ -720,7 +721,7 @@ ShlReader::OnDeactivated(const Message& msg)
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
 	pManager->Deactivate();
-	ParentType::OnDeactivated(msg);
+	ParentType::OnDeactivated();
 	return 0;
 }
 
