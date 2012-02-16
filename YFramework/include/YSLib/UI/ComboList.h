@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3320;
+\version r3332;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2012-02-06 03:16 +0800;
+	2012-02-16 15:55 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -83,6 +83,30 @@ public:
 		//!< 项目选中确定事件。
 
 	/*!
+	\brief 设置选中项。
+	\see TextList::SetSelected 。
+	\since build 285。
+	*/
+	PDefH(void, SetSelected, ListType::size_type i)
+		ImplBodyMem(lstText, SetSelected, i)
+
+	/*!
+	\brief 调整视图长度。
+	\see TextList::AdjustViewLength 。
+	\since build 285 。
+	*/
+	PDefH(void, AdjustViewLength)
+		ImplBodyMem(lstText, AdjustViewLength)
+
+	/*!
+	\brief 清除选中项。
+	\see TextList::ClearSelected 。
+	\since build 285。
+	*/
+	PDefH(void, ClearSelected)
+		ImplBodyMem(lstText, ClearSelected)
+
+	/*!
 	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
 	*/
 	virtual Rect
@@ -90,6 +114,7 @@ public:
 
 	PDefH(void, ResetView)
 		ImplBodyMem(lstText, ResetView)
+
 	/*!
 	\brief 按指定大小上限和内容调整大小。
 	\param sup 指定调整的大小的上限，当为 Size::Zero 时忽略大小限制。
@@ -98,6 +123,7 @@ public:
 	*/
 	void
 	ResizeForPreferred(const Size& sup, Size s = Size::Zero);
+
 	PDefH(void, UpdateView)
 		ImplBodyMem(lstText, UpdateView)
 };

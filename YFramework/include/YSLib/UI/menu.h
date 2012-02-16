@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1749;
+\version r1758;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2012-01-04 11:20 +0800;
+	2012-02-15 13:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -187,16 +187,6 @@ protected:
 	MenuMap mMenus; //!< 菜单组：存储非空菜单指针。
 
 public:
-	/*!
-	\brief 参照指针。
-	
-	可能指向某个部件，用于作为菜单操作的参照。
-	\note 应仅用于比较。
-	\note 可能被菜单操作修改。
-	\since build 274 。
-	*/
-	IWidget* Referent;
-
 	MenuHost(Window&);
 	/*!
 	\brief 析构。

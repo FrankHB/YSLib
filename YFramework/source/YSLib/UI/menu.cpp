@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1908;
+\version r1910;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2012-01-31 06:33 +0800;
+	2012-02-15 13:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -83,9 +83,8 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 					if(pMnu->GetParentPtr() != this)
 						pHost->HideUnrelated(*this, *pMnu);
 				}
-				else if(pHost->Referent != &e.GetSender())
+				else
 					pHost->HideAll();
-				pHost->Referent = nullptr;
 			}
 		},
 		GetConfirmed() += [this](IndexEventArgs&& e){

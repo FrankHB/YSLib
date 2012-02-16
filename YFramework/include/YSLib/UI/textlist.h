@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1470;
+\version r1476;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2012-02-10 12:48 +0800;
+	2012-02-16 15:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -176,14 +176,16 @@ private:
 	SDst
 	AdjustTopOffset();
 
+public:
 	/*!
 	\brief 调整视图长度。
 	\note 视图长为当项目数足够时所有在视图中显示的（可能不完全）项目总数。
+	\warning 设置大小或列表内容后不调用此方法可能导致显示错误。
+	\since build 285 。
 	*/
 	void
 	AdjustViewLength();
 
-public:
 	/*!
 	\brief 检查列表中的指定项是否有效。
 	\note 当且仅当有效时响应 Confirmed 事件。

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3078;
+\version r3087;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-02-14 22:01 +0800;
+	2012-02-15 13:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -319,7 +319,8 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 			= pnlSetting.lblAreaDown.BackColor,
 		dsk_up -= pnlSetting.lblAreaUp,
 		dsk_up -= pnlSetting.lblAreaDown);
-		Reader.SetVisible(true);
+		Reader.SetVisible(true),
+		Show(boxReader);
 	});
 
 	yunseq(
@@ -330,16 +331,14 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 			if(IsVisible(boxTextInfo))
 				boxTextInfo.UpdateData(Reader);
 		},
-		FetchEvent<TouchDown>(boxReader) -= OnTouchDown_RequestToTopFocused,
+		FetchEvent<TouchDown>(boxReader.btnMenu)
+			+= OnEvent_StopRouting<TouchEventArgs>, //阻止菜单失去焦点。
 		FetchEvent<Click>(boxReader.btnMenu) += [this](TouchEventArgs&& e)
 		{
 			if(mhMain.IsShowing(1u))
 				mhMain.Hide(1u);
 			else
-			{
-				mhMain.Referent = &boxReader.btnMenu;
 				ShowMenu(1u, e);
-			}
 		},
 		FetchEvent<Click>(boxReader.btnInfo) += [this](TouchEventArgs&&)
 		{
@@ -474,6 +473,7 @@ TextReaderManager::Execute(IndexEventArgs::ValueType idx)
 			dsk_up += pnlSetting.lblAreaUp,
 			dsk_up += pnlSetting.lblAreaDown;
 		}
+		Hide(boxReader),
 		Show(pnlSetting);
 		break;
 	case MR_FileInfo:

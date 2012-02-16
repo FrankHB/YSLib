@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3437; *build 284 rev 16;
+\version r3442; *build 285 rev 43;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-14 22:03 +0800;
+	2012-02-16 15:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -345,80 +345,76 @@ $using:
 
 
 $DONE:
-r1:
-/ @ \u Border $=
-(
-	+ \cl BorderBrush,
-	- \mf OnPaint @ \cl BorderStyle
-);
-/ \tr \impl @ \u (TextList, UIContainerEx),
-/ \tr \impl @ \ctor @ \cl ColorBox @ \impl \u ColorPicker;
+r1-r12:
+/= test 1;
 
-r2:
-/ @ \cl BorderBrush $=
+r13-r16:
+* menu not hidden when touching reading box @ \u ShlReader $since b283 $=
 (
-	/ \m shared_ptr<BorderStyle> StylePtr
-		-> \m weak_ptr<BorderStyle> StylePtr;
-	/ \tr \impl @ \mf \op(),
-	+ 2 \ctor \i
-	/ \tr \impl @ move \ctor
+	/ \impl @ (\ctor, \mf Execute) @ \cl TextReaderManager @ impl \u
 );
 
-r3-r5:
-/= test 1,
-/ \impl @ \ctor @ \cl ListBox;
+r17:
+- hosted menu referent pointer $=
+(
+	/ \simp \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader;
+	- \m IWidget* Referent @ \cl MenuHost;
+	/ \tr \simp \impl @ \ctor @ \cl Menu
+);
 
-r6:
+r18:
+* \impl @ \ctor @ \cl Menu $since r17;
+
+r19:
 /= test 2 ^ \conf release;
 
-r7:
-/ \a delta_assignment => delta_assign;
-/ \a delta_assignment_t => delta_assignment;
+r20:
++ \ft<_tEventArgs> \i void OnEvent_StopRouting(_tEventArgs&&) @ \h YControl;
+/ \simp \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader;
 
-r8:
-/ \impl @ \mf Application::SetShellHandle,
-- \mf (OnActivated, OnDeactivated) @ \cl (Shell, ShlCLI @ \u Shell_DS);
-/ \tr \impl @ \mf ShlDS @ \impl \u Shell_DS;
-
-r9-r10:
-/ @ \h YMessageDefinition $=
+r21:
+/ @ \u ComboList $=
 (
-	/ DefMessageTarget(SM_ACTIVATED, shared_ptr<Shell>) ->
-		DefMessageTarget(SM_ACTIVATED, void),
-	/ DefMessageTarget(SM_DEACTIVATED, shared_ptr<Shell>) ->
-		DefMessageTarget(SM_DEACTIVATED, void)
+	+ \mf (SetSelected, ClearSelected) @ \cl ListBox;
+	/ \impl @ \ctor @ \cl DropDownList
 );
-/ \a \param \tp @ \mf OnDeactivated -> '' ~ const Message&,
-/ \tr \impl @ \mf ShlDS::OnGotMessage @ \impl \u Shell_DS,
-/ \mf bool Application::SetShellHandle(const shared_ptr<Shell>&)
-	-> \mf bool Application::SetShellHandle(const shared_ptr<Shell>,
-		ValueObject&& = ValueObject());
 
-r11:
-* \impl @ \f OnTouchDown_RequestToTopFocused @ \impl \u YControl $since b283;
-
-r12-r14:
+r22-r35:
 /= test 3;
 
-r15:
-/ \impl @ \mf TextReaderManager::ShowMenu;
+r36:
+* viewer length of text list no synchronized when initialized $since b203 $=
+(
+	/ @ \cl TextList $=
+	(
+		/ private \mf AdjustViewLength @ -> public \mf,
+		* \impl @ \ctor
+	)
+);
 
-r16:
-/= test 4 ^ \conf release;
+r37-r41:
+/= test 4;
+
+r42:
++ \mf ListBox::AdjustViewLength();
+* \impl @ \ctor @ \cl DropDownList;
+
+r43:
+/= test 5 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-02-14:
--15.3d;
-//Mercurial rev1-rev156: r7500;
+2012-02-16:
+-15.6d;
+//Mercurial rev1-rev157: r7543;
 
 / ...
 
 
 $NEXT_TODO:
-b285-b300:
+b286-b300:
 / fully \impl @ \u DSReader $=
 (
 	+ history,
@@ -459,11 +455,13 @@ b301-b1536:
 / @ "GUI" $=
 (
 	* View position switch through scrall bar not accurate enough
-		@ class %ListBox
+		@ class %ListBox,
+	+ synchronization of viewer length @ class %TextList,
 	/ fully \impl @ \cl Form,
 	+ focus paths controling,
 	+ icons,
 	+ complex controls,
+	+ viewer models,
 	+ formal abstraction of rectangular hit test,
 	+ key accelerators,
 	+ widget layout managers,
@@ -569,12 +567,33 @@ $module_tree $=
 	(
 		'initialization',
 		'file explorer',
+		'shells test example',
 		'text reader',
 		'hexadecimal browser'
 	)
 );
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'GUI' $=
+		(
+			- "hosted menu referent pointer" @ "unit %Menu",
+			+ "member function %(SetSelected, ClearSelected)"
+				@ "class %ListBox";
+			+ "item text matching when list shown" @ "class %DropDownList",
+			* "viewer length of text list no synchronized when initialized"
+				$since b203
+		),
+	),
+	/ "unit %Shells" @ "text reader" @ %'YReader' $=
+	(
+		* "menu not hidden when touching reading box" $since b283
+	)
+),
+
+b284
 (
 	/ %'YFramework'.'YSLib' $=
 	(
@@ -591,7 +610,7 @@ $now
 		- "shell message on activating and deactivating on shells"
 			@ "class %(Shell, ShlCLI)"
 	),
-	/ "unit %Shells" @ "text reader" @ %'YReader' $=
+	/ %'YReader'.'text reader' $=
 	(
 		/ "menu selected index cleared when shown"
 	)
@@ -599,39 +618,36 @@ $now
 
 b283
 (
-	/ %'YFramework'.'YSLib' $=
+	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
-		/ %'GUI' $=
+		* "destructor" @ "class %Widget" $since b240 $=
 		(
-			* "destructor" @ "class %Widget" $since b240 $=
+			- "calling event %LostFocus"
+				// It depends on itself to be a complete object in \
+					its lifetime which does not fit for destructing.
+		),
+		(
+			/ @ "class %View"
 			(
-				- "calling event %LostFocus"
-					// It depends on itself to be a complete object in \
-						its lifetime which does not fit for destructing.
-			),
+				+ "dependency pointer";
+				/ "visible and transparent property setter and getter"
+			);
+			+ "top widget view state synchronizing" @ "class %DropDownList"
+		),
+		/ "focus operation for containers" @ "class %YGUIShell"
+			>> "class %Control",
+		/ "focus requesting on handling event %TouchDown of controls \
+			only when the strategy is bubble";
+		/ @ "class %DropDownList" $=
+		(
+			* "top widget not removed when destructing" $since b282,
 			(
-				/ @ "class %View"
-				(
-					+ "dependency pointer";
-					/ "visible and transparent property setter and getter"
-				);
-				+ "top widget view state synchronizing" @ "class %DropDownList"
-			),
-			/ "focus operation for containers" @ "class %YGUIShell"
-				>> "class %Control",
-			/ "focus requesting on handling event %TouchDown of controls \
-				only when the strategy is bubble";
-			/ @ "class %DropDownList" $=
-			(
-				* "top widget not removed when destructing" $since b282,
-				(
-					+ "top widget focus requesting";
-					* "top widget not hid when touching again" $since b282
-				)
+				+ "top widget focus requesting";
+				* "top widget not hid when touching again" $since b282
 			)
 		)
 	);
-	/ "unit %Shells" @ %'YReader' $=
+	/ %'YReader'.'shells test example' $=
 	(
 		* "crashing when switching shell after testing of drop down list"
 			$since b282
@@ -655,7 +671,7 @@ b282
 		),
 		* "wrong result for function %Intersect" @ "unit %YGDIBase" $since b227
 	);
-	/ "unit %Shells" @ %'YReader' $=
+	/ %'YReader'.'shells test example' $=
 	(
 		+ "drop down list test" @ "class %ShlExplorer"
 	)
@@ -900,7 +916,7 @@ b275
 						in its parent widget.
 					// It means that the requesting handler can be unloaded \
 						by user manually.
-				+ "referent pointer" @ "class %MenuHost",
+				+ "hosted referent pointer" @ "class %MenuHost",
 				/ @ "unit %YWidget" $=
 				(
 					* "no effect of function %(Show, Hide) \

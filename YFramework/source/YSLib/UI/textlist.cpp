@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1630;
+\version r1632;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-02-10 12:48 +0800;
+	2012-02-16 15:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -162,6 +162,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 		},
 		FetchEvent<Paint>(*this) += BorderBrush(BorderPtr)
 	);
+	AdjustViewLength(); //防止显示长度出错。
 }
 
 SDst
