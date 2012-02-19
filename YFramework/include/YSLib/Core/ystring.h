@@ -11,13 +11,13 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r3031;
+\version r3036;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-05 22:06:05 +0800;
 \par 修改时间:
-	2012-01-31 17:01 +0800;
+	2012-02-16 22:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -72,6 +72,11 @@ public:
 	*/
 	String(const ucs2string&);
 	/*!
+	\brief 构造：使用 YSLib 基本字符串右值引用。
+	\since build 285 。
+	*/
+	String(ucs2string&&);
+	/*!
 	\brief 构造：使用指定字符类型的 std::basic_string 和指定编码。
 	\since build 281 。
 	*/
@@ -93,6 +98,10 @@ String::String(const _tChar* s, Encoding cp)
 inline
 String::String(const ucs2string& s)
 	: ucs2string(s)
+{}
+inline
+String::String(ucs2string&& s)
+	: ucs2string(std::move(s))
 {}
 template<typename _tChar>
 String::String(const std::basic_string<_tChar>& s, Encoding cp)

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3087;
+\version r3233;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-02-15 13:34 +0800;
+	2012-02-19 19:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -59,6 +59,43 @@ namespace
 	}
 
 
+	yconstexpr const char* DefaultTimeFormat("%04u-%02u-%02u %02u:%02u:%02u");
+
+	inline void
+	snftime(char* buf, size_t n, const std::tm& tm,
+		const char* format = DefaultTimeFormat)
+	{
+		// FIXME: correct behavior for time with BC date(i.e. tm_year < -1900);
+		// FIXME: snprintf shall be a member of namespace std;
+		/*std*/::snprintf(buf, n, format, tm.tm_year + 1900,
+			tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	}
+
+	const char*
+	TranslateTime(const std::tm& tm, const char* format = DefaultTimeFormat)
+	{
+		static char str[80];
+
+		/*
+		NOTE: 'std::strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", &tm)'
+			is correct but make the object file too large;
+		*/
+		snftime(str, 80, tm, format);
+		return str;
+	}
+	const char*
+	TranslateTime(const std::time_t& t,
+		const char* format = DefaultTimeFormat) ythrow(GeneralEvent)
+	{
+		auto p(std::localtime(&t));
+
+		if(!p)
+			throw GeneralEvent("Get broken-down time object failed"
+				" @ TranslateTime#2;");
+		return TranslateTime(*p, format);
+	}
+
+
 	// MR -> MNU_READER;
 	yconstexpr Menu::IndexType MR_Return(0),
 		MR_Setting(1),
@@ -74,14 +111,17 @@ ReaderBox::ReaderBox(const Rect& r, ShlReader& shl)
 	: Control(r),
 	Shell(shl), btnMenu(Rect(4, 12, 16, 16)),
 	btnInfo(Rect(24, 12, 16, 16)), btnReturn(Rect(44, 12, 16, 16)),
+	btnPrev(Rect(64, 12, 16, 16)), btnNext(Rect(84, 12, 16, 16)),
 	pbReader(Rect(4, 0, 248, 8)), lblProgress(Rect(216, 12, 40, 16))
 {
 	SetTransparent(true),
 	seq_apply(ContainerSetter(*this),
-		btnMenu, btnInfo, btnReturn, pbReader, lblProgress);
+		btnMenu, btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
 	btnMenu.Text = "M",
 	btnInfo.Text = "I",
 	btnReturn.Text = "R",
+	btnPrev.Text = "←",
+	btnNext.Text = "→",
 	pbReader.ForeColor = Color(192, 192, 64),
 	lblProgress.SetTransparent(true),
 	lblProgress.Font.SetSize(12);
@@ -101,7 +141,8 @@ DefTuple(pWidgets,
 		&ShlReader::ReaderPanel::lblProgress
 	)
 */
-	IWidget* const pWidgets[] = {&btnMenu, &btnInfo, &btnReturn, &pbReader};
+	IWidget* const pWidgets[] = {&btnMenu, &btnInfo, &btnReturn, &btnPrev,
+		&btnNext, &pbReader};
 
 	for(std::size_t i(0); i < sizeof(pWidgets) / sizeof(*pWidgets); ++i)
 		if(auto p = CheckWidget(*pWidgets[i], pt, f))
@@ -115,7 +156,7 @@ ReaderBox::Refresh(const PaintContext& pc)
 	Widget::Refresh(pc);
 
 	seq_apply(ChildPainter(pc),
-		btnMenu, btnInfo, btnReturn, pbReader, lblProgress);
+		btnMenu, btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
 	return Rect(pc.Location, GetSizeOf(*this));
 }
 
@@ -297,8 +338,46 @@ FileInfoPanel::FileInfoPanel()
 }
 
 
-string ReaderManager::path;
-bool ReaderManager::is_text(false);
+ReadingList::ReadingList()
+	: reading_list(), now_reading(reading_list.end())
+{}
+
+pair<bool, bool>
+ReadingList::CheckBoundary()
+{
+	return make_pair(now_reading != reading_list.begin(),
+		now_reading != reading_list.end());
+}
+
+void
+ReadingList::Insert(const IO::Path& pth, size_t pos)
+{
+	reading_list.emplace(now_reading, pth, pos);
+}
+
+void
+ReadingList::ReplaceAfter(const IO::Path& pth, size_t pos)
+{
+	Insert(pth, pos);
+	reading_list.erase(now_reading, reading_list.end());
+	now_reading = reading_list.end();
+}
+
+BookMark
+ReadingList::Switch(bool is_prev)
+{
+	if(is_prev)
+	{
+		--now_reading;
+		--now_reading;
+	}
+
+	auto ret(std::move(*now_reading));
+
+	reading_list.erase(now_reading++);
+	return ret;
+}
+
 
 ReaderManager::ReaderManager(ShlReader& shl)
 	: Shell(shl)
@@ -307,9 +386,8 @@ ReaderManager::ReaderManager(ShlReader& shl)
 
 TextReaderManager::TextReaderManager(ShlReader& shl)
 	: ReaderManager(shl),
-	Reader(),
-	boxReader(Rect(0, 160, 256, 32), shl), boxTextInfo(shl), pnlSetting(),
-	pTextFile(), mhMain(shl.GetDesktopDown())
+	Reader(), boxReader(Rect(0, 160, 256, 32), shl),
+	boxTextInfo(shl), pnlSetting(), pTextFile(), mhMain(shl.GetDesktopDown())
 {
 	const auto exit_setting([this](TouchEventArgs&&){
 		auto& dsk_up(Shell.GetDesktopUp());
@@ -323,6 +401,9 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 		Show(boxReader);
 	});
 
+	SetVisibleOf(boxReader, false),
+	SetVisibleOf(boxTextInfo, false),
+	SetVisibleOf(pnlSetting, false);
 	yunseq(
 		Reader.ViewChanged = [this]()
 		{
@@ -348,8 +429,18 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 		{
 			Execute(MR_Return);
 		},
+		FetchEvent<Click>(boxReader.btnPrev) += [this](TouchEventArgs&&)
+		{
+			UpdateReadingList(true);
+		},
+		FetchEvent<Click>(boxReader.btnNext) += [this](TouchEventArgs&&)
+		{
+			UpdateReadingList(false);
+		},
 		FetchEvent<TouchDown>(boxReader.pbReader) += [this](TouchEventArgs&& e)
 		{
+			Shell.LastRead.ReplaceAfter(path, Reader.GetTopPosition());
+			UpdateButtons();
 			Reader.Locate(e.X * Reader.GetTextSize()
 				/ boxReader.pbReader.GetWidth());
 		},
@@ -390,11 +481,7 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 		mhMain += mnu;
 	}
 	ResizeForContent(mhMain[1u]);
-}
 
-void
-TextReaderManager::Activate()
-{
 	auto& dsk_up(Shell.GetDesktopUp());
 	auto& dsk_dn(Shell.GetDesktopDown());
 
@@ -410,23 +497,19 @@ TextReaderManager::Activate()
 	dsk_dn += boxReader,
 	dsk_dn += boxTextInfo,
 	dsk_dn += pnlSetting;
-	SetVisibleOf(boxReader, false),
-	SetVisibleOf(boxTextInfo, false),
-	SetVisibleOf(pnlSetting, false);
-	pTextFile = unique_raw(new TextFile(path.c_str()));
-	Reader.LoadText(*pTextFile);
+	LoadFile(ShlReader::CurrentPath);
 	//置默认视图。
 	// TODO: 关联视图设置状态使用户可选。
 	OnClick(TouchEventArgs(dsk_dn));
 	RequestFocusCascade(dsk_dn);
 }
 
-void
-TextReaderManager::Deactivate()
+TextReaderManager::~TextReaderManager()
 {
 	auto& dsk_up(Shell.GetDesktopUp());
 	auto& dsk_dn(Shell.GetDesktopDown());
 
+	Shell.LastRead.Insert(path, Reader.GetTopPosition());
 	Reader.UnloadText();
 	pTextFile = nullptr;
 	mhMain.Clear();
@@ -496,6 +579,15 @@ TextReaderManager::Execute(IndexEventArgs::ValueType idx)
 }
 
 void
+TextReaderManager::LoadFile(const IO::Path& pth)
+{
+	path = pth;
+	pTextFile = unique_raw(new TextFile(pth.GetNativeString().c_str()));
+	Reader.LoadText(*pTextFile);
+	UpdateButtons();
+}
+
+void
 TextReaderManager::ShowMenu(Menu::ID id, const Point&)
 {
 	if(!mhMain.IsShowing(id))
@@ -517,7 +609,24 @@ TextReaderManager::ShowMenu(Menu::ID id, const Point&)
 }
 
 void
-TextReaderManager::OnClick(TouchEventArgs&& e)
+TextReaderManager::UpdateReadingList(bool is_prev)
+{
+	Shell.LastRead.Insert(path, Reader.GetTopPosition());
+	Reader.Locate(Shell.LastRead.Switch(is_prev).Position);
+	UpdateButtons();
+}
+
+void
+TextReaderManager::UpdateButtons()
+{
+	const auto pr(Shell.LastRead.CheckBoundary());
+
+	yunseq(Enable(boxReader.btnPrev, pr.first),
+		Enable(boxReader.btnNext, pr.second));
+}
+
+void
+TextReaderManager::OnClick(TouchEventArgs&&)
 {
 	if(IsVisible(boxReader))
 	{
@@ -553,26 +662,40 @@ TextReaderManager::OnKeyDown(KeyEventArgs&& e)
 		case KeySpace::Down:
 			Reader.Execute(DualScreenReader::LineDownScroll);
 			break;
+/*
 		case KeySpace::PgUp:
 			Reader.Execute(DualScreenReader::ScreenUpScroll);
 			break;
 		case KeySpace::PgDn:
 			Reader.Execute(DualScreenReader::ScreenDownScroll);
 			break;
+*/
 		case KeySpace::X:
-			Reader.SetLineGap(5);
-			break;
 		case KeySpace::Y:
-			Reader.SetLineGap(8);
+			{
+				auto size(Reader.GetFont().GetSize());
+				if(k == KeySpace::X && size > Font::MinimalSize)
+					--size;
+				else if(k == KeySpace::Y && size < Font::MaximalSize)
+					++size;
+				else
+					break;
+				Reader.SetFontSize(size);
+				Reader.UpdateView();
+			}
 			break;
-		case KeySpace::Left:
-			//Reader.SetFontSize(Reader.GetFont().GetSize() + 1);
+		case KeySpace::L:
 			if(Reader.GetLineGap() != 0)
 				Reader.SetLineGap(Reader.GetLineGap() - 1);
 			break;
-		case KeySpace::Right:
+		case KeySpace::R:
 			if(Reader.GetLineGap() != 12)
 				Reader.SetLineGap(Reader.GetLineGap() + 1);
+			break;
+		case KeySpace::Left:
+			Reader.Execute(DualScreenReader::ScreenUpScroll);
+		case KeySpace::Right:
+			Reader.Execute(DualScreenReader::ScreenDownScroll);
 		default:
 			break;
 		}
@@ -597,60 +720,17 @@ HexReaderManager::HexReaderManager(ShlReader& shl)
 			UpdateInfo();
 		}
 	);
-}
 
-namespace
-{
-	yconstexpr const char* DefaultTimeFormat("%04u-%02u-%02u %02u:%02u:%02u");
-
-	inline void
-	snftime(char* buf, size_t n, const std::tm& tm,
-		const char* format = DefaultTimeFormat)
-	{
-		// FIXME: correct behavior for time with BC date(i.e. tm_year < -1900);
-		// FIXME: snprintf shall be a member of namespace std;
-		/*std*/::snprintf(buf, n, format, tm.tm_year + 1900,
-			tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-	}
-
-	const char*
-	TranslateTime(const std::tm& tm, const char* format = DefaultTimeFormat)
-	{
-		static char str[80];
-
-		/*
-		NOTE: 'std::strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", &tm)'
-			is correct but make the object file too large;
-		*/
-		snftime(str, 80, tm, format);
-		return str;
-	}
-	const char*
-	TranslateTime(const std::time_t& t,
-		const char* format = DefaultTimeFormat) ythrow(GeneralEvent)
-	{
-		auto p(std::localtime(&t));
-
-		if(!p)
-			throw GeneralEvent("Get broken-down time object failed"
-				" @ TranslateTime#2;");
-		return TranslateTime(*p, format);
-	}
-}
-
-void
-HexReaderManager::Activate()
-{
 	auto& dsk_up(Shell.GetDesktopUp());
 	auto& dsk_dn(Shell.GetDesktopDown());
+	const auto& path(ShlReader::CurrentPath.GetNativeString());
 
-	pnlFileInfo.lblPath.Text = u"文件路径："
-		+ String(ReaderManager::path, IO::CP_Path);
+	pnlFileInfo.lblPath.Text = u"文件路径：" + ShlReader::CurrentPath;
 
 	struct ::stat file_stat;
 
 	//在 DeSmuMe 上无效； iDSL + DSTT 上访问时间精确不到日，修改时间正常。
-	::stat(ReaderManager::path.c_str(), &file_stat);
+	::stat(path.c_str(), &file_stat);
 	pnlFileInfo.lblAccessTime.Text = u"访问时间："
 		+ String(TranslateTime(file_stat.st_atime));
 	pnlFileInfo.lblModifiedTime.Text = u"修改时间："
@@ -663,8 +743,7 @@ HexReaderManager::Activate()
 	RequestFocusCascade(HexArea);
 }
 
-void
-HexReaderManager::Deactivate()
+HexReaderManager::~HexReaderManager()
 {
 	auto& dsk_up(Shell.GetDesktopUp());
 	auto& dsk_dn(Shell.GetDesktopDown());
@@ -686,9 +765,12 @@ HexReaderManager::UpdateInfo()
 }
 
 
+IO::Path ShlReader::CurrentPath;
+bool ShlReader::CurrentIsText(false);
+
 ShlReader::ShlReader()
 	: ShlDS(),
-	hUp(), hDn(), pManager()
+	hUp(), hDn(), pManager(), LastRead()
 {}
 
 int
@@ -699,11 +781,10 @@ ShlReader::OnActivated(const Message& msg)
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	if(ReaderManager::is_text)
+	if(ShlReader::CurrentIsText)
 		pManager = unique_raw(new TextReaderManager(*this));
 	else
 		pManager = unique_raw(new HexReaderManager(*this));
-	pManager->Activate();
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr()),
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
 	SetInvalidationOf(dsk_up),
@@ -720,7 +801,7 @@ ShlReader::OnDeactivated()
 
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
-	pManager->Deactivate();
+	reset(pManager);
 	ParentType::OnDeactivated();
 	return 0;
 }

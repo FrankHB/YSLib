@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3442; *build 285 rev 43;
+\version r3481; *build 286 rev 32;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-16 15:59 +0800;
+	2012-02-19 19:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -345,85 +345,269 @@ $using:
 
 
 $DONE:
-r1-r12:
-/= test 1;
-
-r13-r16:
-* menu not hidden when touching reading box @ \u ShlReader $since b283 $=
+r1:
+/ @ \u ShlReader $=
 (
-	/ \impl @ (\ctor, \mf Execute) @ \cl TextReaderManager @ impl \u
-);
-
-r17:
-- hosted menu referent pointer $=
-(
-	/ \simp \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader;
-	- \m IWidget* Referent @ \cl MenuHost;
-	/ \tr \simp \impl @ \ctor @ \cl Menu
-);
-
-r18:
-* \impl @ \ctor @ \cl Menu $since r17;
-
-r19:
-/= test 2 ^ \conf release;
-
-r20:
-+ \ft<_tEventArgs> \i void OnEvent_StopRouting(_tEventArgs&&) @ \h YControl;
-/ \simp \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlReader;
-
-r21:
-/ @ \u ComboList $=
-(
-	+ \mf (SetSelected, ClearSelected) @ \cl ListBox;
-	/ \impl @ \ctor @ \cl DropDownList
-);
-
-r22-r35:
-/= test 3;
-
-r36:
-* viewer length of text list no synchronized when initialized $since b203 $=
-(
-	/ @ \cl TextList $=
+	+ \cl BookMark @ \h;
+	+ \f \i bool \op=(const BookMark&, const BookMark&) @ \h;
+	/ @ \cl ShlReader $=
 	(
-		/ private \mf AdjustViewLength @ -> public \mf,
-		* \impl @ \ctor
+		/ \ac @ \m pManager -> protected ~ private,
+		(
+			+ private \m list<BookMark> history,
+			+ private \m list<BookMark>::const_iterator now_history;
+			/ \impl @ \ctor
+		),
+		+ \s \m IO::Path CurrentPath,
+		+ \s \m bool CurrentIsText;
+		/ \impl @ \mf OnActivated
+	),
+	- \a \s \m \o @ \cl ReaderManager;
+	/ \tr \impl @ \mf (HexReaderManager, TextReaderManager)::Activate
+);
+/ \tr \impl @ \ctor @ \cl ShlExplorer @ \impl \u Shells;
+
+r2:
+/ typedef char NativePathCharType @ \h YFileSystem >> \h YCommon;
+/ @ \h YCommon $=
+(
+	/ typedef char PATHSTR[YCL_MAX_PATH_LENGTH]
+		-> typedef NativePathCharType PATHSTR[YCL_MAX_PATH_LENGTH],
+	/ typedef char FILENAMESTR[YCL_MAX_FILENAME_LENGTH]
+		-> typedef NativePathCharType FILENAMESTR[YCL_MAX_FILENAME_LENGTH]
+),
+(
+	+ using platform::NativePathCharType @ \h YAdaptor;
+	/ @ \cl Path $=
+	(
+		/ \inh ucs2string -> String;
+		/ \tr \impl @ \a \ctor
 	)
 );
 
-r37-r41:
-/= test 4;
+r3:
+/ \simp \impl @ \mf HexReaderManager::Activate @ \impl \u ShlReader,
+/ \simp \impl @ \f @ \un \ns @ \impl Shells;
 
-r42:
-+ \mf ListBox::AdjustViewLength();
-* \impl @ \ctor @ \cl DropDownList;
+r4-r5:
++ \ctor String(ucs2string&&) @ \cl String;
+/ @ \ns IO @ \u YFileSystem $=
+(
+	/ \a extern \c \o 'FS_*' @ \h -> yconstexpr \o;
+	+ yconstexpr const ucs2_t* FS_Now_X(u"."),
+	+ yconstexpr const ucs2_t* FS_Parent_X(u".."),
+	- \un \ns @ \impl \u,
+	/ @ \cl Path $=
+	(
+		/ \m \s \c ValueType Slash
+			-> \m \s yconstexpr ucs2_t Slash(DEF_PATH_DELIMITER),
+		/ \a !\decl ValueType -> ucs2_t, 
+		- \m typedef ucs2_t ValueType,
+	),
+	/ \a 'NativeStringType' -> 'NativeString',
+);
 
-r43:
-/= test 5 ^ \conf release;
+r6:
+/= test 1 ^ \conf release;
+
+r7:
+/ @ \u ShlReader $=
+(
+	/ @ \cl ShlReader $=
+	(
+		/ private \m list<BookMark> history -> public \m list<BookMark> History,
+		/ private \m list<BookMark>::const_iterator now_history @ \cl ShlReader
+			-> \m list<BookMark>::iterator now_history @ \cl TextReaderManager
+	);
+	/ \tr \impl @ \ctor @ \cl (ShlReader, TextReaderManager),
+	/ @ \cl TextReaderManager
+	(
+		/ \impl @ \mf (Activate, Deactivate),
+		+ private \mf void UpdateHistory()
+	)
+	+ (\ctor, \de move \ctor, \de copy \ctor) @ \cl BookMark,
+	/ @ \cl ReaderBox $=
+	(
+		+ \m Button btnPrev,
+		+ \m Button btnNext,
+		/ \tr \impl @ \ctor,
+		/ \tr \impl @ \mf (GetTopWidgetPtr, Refresh)
+	)
+);
+
+r8:
+/ @ \u ShlReader $=
+(
+	* \impl @ \ctor @ \cl ReaderBox $since r7,
+	/ @ \cl TextReaderManager $=
+	(
+		/ \impl @ \ctor @ \cl TextReaderManager,
+		+ private \mf void UpdateHistoryButtons()
+	)
+);
+
+r9-r10:
+* \impl @ \mf TextReaderManager::UpdateHistoryButtons
+	@ \impl \u ShlReader $since r8;
+
+r11:
+* \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlREader $since r8;
+
+r12:
+/ @ \cl TextReaderManager @ \u ShlReader $=
+(
+	+ private \m IO::Path path,
+	+ \mf void LoadFile(const IO::Path&),
+	/ \impl @ \ctor,
+	/ \simp \impl @ \mf Activate ^ \mf LoadFile
+);
+
+r13-r15:
+/ @ \u ShlReader $=
+(
+	+ \decl friend class TextReaderManager @ \cl ShlReader;
+	/ @ \cl TextReaderManager $=
+	(
+		/ private \m list<BookMark>::iterator now_history >> \cl ShlReader;
+		/ \impl @ \mf (UpdateHistory, UpdateHistoryButtons, Deactivate,
+			LoadFile),
+		/ \impl @ \ctor
+	);
+	/tr \impl @ \ctor @ \cl ShlReader
+);
+
+r16:
+/ @ \u ShlReader $=
+(
+	/ @ \cl (TextReaderManager, HexReaderManager) $=
+	(
+		/ \impl @ \ctor,
+		+ \dtor;
+		- \mf (Activate, Deactivate)
+	);
+	- \amf (Activate, Deactivate) @ \cl ReaderManager;
+	/ \tr \impl @ \mf (OnActivate, OnDeactivate) @ \cl ShlReader
+);
+
+r17-r18:
+/ @ \u ShlReader $=
+(
+	/ @ \cl ShlReader $=
+	(
+		/ public \m list<BookMark> History
+			-> protected \m list<BookMark> lstReading,
+		/ \m now_history => now_reading
+	),
+	/ \impl @ \mf TextReaderManager::OnKeyDown
+),
+/= test 2;
+
+r19:
+/= test 3 ^ \conf release;
+
+r20-r21:
+/= test 4,
+* \impl @ \mf DualScreenReader::Locate $since b271;
+
+r22:
+/ \f void Enable(IWidget&, bool = true) @ \u YControl
+	-> \f bool Enable(IWidget&, bool = true);
+/ \impl @ (\mf TextReaderManager::UpdateHistoryButtons @ \impl \u ShlReader,
+	\ctor @ \cl ShlExplorer @ \impl \u Shells) ^ \mac yunseq;
+
+r23:
+/ @ \u ShlReader $=
+(
+	(
+		+ \mf ShlReader::CheckReadingListState;
+		/ \impl @ \mf TextReaderManager::UpdateHistoryButtons,
+	),
+	(
+		/ private \mf TextReaderManager::UpdateHistory
+			-> public \mf ShlReader::Insert;
+		/ \tr \impl @ (\ctor, \dtor) @ \cl TextReaderManager
+	)
+);
+
+r24:
+/ @ \u ShlReader $=
+(
+	(
+		+ \mf ShlReader::(Switch, ReplaceAfter);
+		+ private \mf TextReaderManager::UpdateReadingList;
+		/ \simp \impl @ \ctor @ \cl TextReaderManager ^ \mf ShlReader::Switch
+	),
+	/ \a UpdateHistoryButtons => UpdateButtons
+);
+
+r25:
+/ @ \u ShlReader $=
+(
+	+ \cl ReadingList,
+	/ @ \cl ShlReader $=
+	(
+		/ protected \m lstReading -> private \m reading_list,
+		/ \tr \impl @ \ctor,
+		/ \mf CheckReadingListState => CheckBoundary,
+		/ \mf size_t Switch(bool) -> BookMark Switch(bool)
+	);
+	/ \tr \impl @ \cl TextReaderManager
+);
+
+r26:
+/ @ \u ShlReader $=
+(
+	/ @ \cl ShlReader $=
+	(
+		/ \a private \m -> public \m ReadingList LastRead,
+		/ \tr \impl @ \ctor,
+		- \mf (CheckBoundary, Insert, ReplaceAfter, Switch),
+		- friend \decl
+	);
+	/ \tr \impl @ \cl TextReaderManager
+);
+
+r27-r30:
+/= test 5,
+/ !\i \ctor -> yconstfn \ctor @ \st Padding @ \u YGDI;
++ \o yconstexpr Padding DefaultMargin = Padding(2, 2, 2, 2) @ \h TextBase;
+/ \impl @ \ctor @ \a \cl (MLabel, TextState) ^ DefaultMargin;
+
+r31:
+/ \impl @ \ctor @ \cl DropDownList,
+/ \impl @ \ctor @ \cl ShlExplorer @ \impl \u Shells;
+
+r32:
+/= test 6 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-02-16:
--15.6d;
-//Mercurial rev1-rev157: r7543;
+2012-02-19:
+-12.0d;
+//Mercurial rev1-rev158: r7575;
 
 / ...
 
 
 $NEXT_TODO:
-b286-b300:
+b287-b300:
 / fully \impl @ \u DSReader $=
 (
-	+ history,
-	+ bookmarks
+	+ cross file last reading list,
+	+ scrolling
 );
 
 
 $TODO:
 b301-b1536:
+/ fully \impl @ \u DSReader $=
+(
+	+ bookmarks manager,
+	+ settings manager,
+	+ reading history
+);
 + dynamic character mapper loader for \u CharacterMapping,
 + shell sessions,
 ^ timing triggers @ message loop,
@@ -557,6 +741,7 @@ $module_tree $=
 		(
 			'messaging',
 			'shell abstraction',
+			'file system abstraction',
 			'application abstraction',
 			'global helper unit',
 			'services',
@@ -575,6 +760,43 @@ $module_tree $=
 
 $now
 (
+	/ %'YFramework' $=
+	(
+		/ $design "native path types" @ %'YCLib';
+		/ %'YSLib' $=
+		(
+			/ "simplified inheritance" @ "class %Path"
+				@ %'file system abstraction',
+			+ "constructor %String(ucs2string&&)" @ "class %String",
+			(
+				/ "class %Padding as literal type";
+				+ $design "literal type object %DefaultMargin"
+					@ "header %TextBase.h";
+				/ "margin setting" @ "constructor" @ "class %TextBase",
+				/ %'GUI' $=
+				(
+					+ "return value" @ "function %Enable" @ "unit %YControl",
+					/ "margin setting" @ "constructor" @ "class %DropDownList"
+				)
+			)
+		)
+	),
+	/ %'YReader'.'text reader' $=
+	(
+		(
+			+ "class %BookMark";
+			+ "class %ReadingList"
+			+ "shell last reading list"
+		)
+		/ $design "static data members" @ "class %ReaderManager"
+			>> "class %ShlReader",
+		* "random locating error" @ "member function %DualScreenReader::Locate"
+			$since b271
+	)
+),
+
+b285
+(
 	/ %'YFramework'.'YSLib' $=
 	(
 		/ %'GUI' $=
@@ -587,9 +809,12 @@ $now
 				$since b203
 		),
 	),
-	/ "unit %Shells" @ "text reader" @ %'YReader' $=
+	/ %'YReader'.'text reader' $=
 	(
-		* "menu not hidden when touching reading box" $since b283
+		* "menu not hidden when touching reading box" $since b283,
+		+ "reading list",
+		/ $design "simplified implementation of activating and deactivating",
+		/ "functions of key %'(X, Y, L, R)' touching down"
 	)
 ),
 
@@ -610,22 +835,17 @@ b284
 		- "shell message on activating and deactivating on shells"
 			@ "class %(Shell, ShlCLI)"
 	),
-	/ %'YReader'.'text reader' $=
-	(
-		/ "menu selected index cleared when shown"
-	)
+	/ "menu selected index cleared when shown" @ %'YReader'.'text reader'
 ),
 
 b283
 (
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
-		* "destructor" @ "class %Widget" $since b240 $=
-		(
-			- "calling event %LostFocus"
-				// It depends on itself to be a complete object in \
-					its lifetime which does not fit for destructing.
-		),
+		* (- "calling event %LostFocus") @ "destructor" @ "class %Widget"
+			$since b240,
+			// It depends on itself to be a complete object in \
+				its lifetime which does not fit for destructing.
 		(
 			/ @ "class %View"
 			(
@@ -647,11 +867,8 @@ b283
 			)
 		)
 	);
-	/ %'YReader'.'shells test example' $=
-	(
-		* "crashing when switching shell after testing of drop down list"
-			$since b282
-	)
+	* "crashing when switching shell after testing of drop down list"
+		@ %'YReader'.'shells test example' $since b282
 ),
 
 b282
@@ -671,23 +888,18 @@ b282
 		),
 		* "wrong result for function %Intersect" @ "unit %YGDIBase" $since b227
 	);
-	/ %'YReader'.'shells test example' $=
-	(
-		+ "drop down list test" @ "class %ShlExplorer"
-	)
+	+ "drop down list test" @ "class %ShlExplorer"
+		@ %'YReader'.'shells test example'
 ),
 
 b281
 (
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ %'GUI' $=
+		/ "text list refreshing implementation" @ %'GUI' $=
 		(
-			/ "text list refreshing implementation" $=
-			(
-				* "text not fully shown at bottom" $since b190;
-				/ "high light area height"
-			)
+			* "text not fully shown at bottom" $since b190;
+			/ "high light area height"
 		),
 		$design
 		(
@@ -780,10 +992,7 @@ b278
 (
 	/ %'YFramework' $=
 	(
-		/ %'YCLib' $=
-		(
-			+ "sleeping status configuring function %AllowSleep"
-		);
+		+ "sleeping status configuring function %AllowSleep" @ %'YCLib';
 		/ %'YSLib' $=
 		(
 			/ "font APIs" $=
@@ -867,11 +1076,9 @@ b276
 	);
 	/ %'YFramework' $=
 	(
-		/ %'YCLib' $=
-		(
-			/ "storing 8-bit RGBA values in native color type class %Color"
-				// It spends more space but is more efficient in time.
-		);
+		/ "storing 8-bit RGBA values in native color type class %Color"
+			@ %'YCLib';
+			// It spends more space but is more efficient in time.
 		/ %'YSLib' $=
 		(
 			+ "adding/removing member function handlers with object type \
@@ -1000,10 +1207,7 @@ b274
 
 b273
 (
-	/ %'YBase'.'YStandardEx'.'Any' $=
-	(
-		+ $design "class %pseudo_output"
-	),
+	+ $design "class %pseudo_output" @ %'YBase'.'YStandardEx'.'Any',
 	/ %'YFramework' $=
 	(
 		/ %'CHRLib' $=
@@ -1028,11 +1232,8 @@ b273
 		);
 		/ %'YSLib' $=
 		(
-			/ %'services' $=
-			(
-				+ "mapping buffering" @ "class %TextFileBuffer"
-					@ "unit %TextManager"
-			),
+			+ "mapping buffering" @ "class %TextFileBuffer"
+				@ "unit %TextManager" @ %'services',
 			/ $design "member functions and types" @ "class %(File, TextFile)"
 		),
 	),
@@ -1065,10 +1266,7 @@ b272
 			/ "efficiency improved" @ "function %Idle",
 			/ $design "simplified implementation" @ "function %::main"
 		),
-		/ %'GUI' $=
-		(
-			^ "rounding" @ "member function %ProgressBar::Refresh"
-		)
+		^ "rounding" @ "member function %ProgressBar::Refresh" @ %'GUI'
 	),
 	/ %'YReader'.'text reader' $=
 	(
@@ -1120,23 +1318,18 @@ b271
 				)
 			)
 		),
-		/ %'CHRLib'.'CharacterMapping' $=
-		(
-			* "wrong state in file stream conversion" $since b249
-		)
+		* "wrong state in file stream conversion" @ %'CHRLib'.'CharacterMapping'
+			$since b249
 	),
-	/ %'YBase'.'YStandardEx'.'CStandardIO'.'class %ifile_iterator' $=
-	(
-		/ "behavior like class template %std::istream_iterator"
-	)
+	/ "behavior like class template %std::istream_iterator"
+		@ %'YBase'.'YStandardEx'.'CStandardIO'.'class %ifile_iterator'
 ),
 
 b270
 (
 	/ $design %'YReader'.'hexadecimal browser' $=
 	(
-		/ "resource management" ^ "class %unique_ptr"
-			~ "built-in pointers",
+		/ "resource management" ^ "class %unique_ptr" ~ "built-in pointers",
 		/ "minor model interface"
 	),
 	/ "text rendering function 'Print*' ignoring newline characters";
@@ -1293,20 +1486,17 @@ b264
 (
 	/ %'YReader' $=
 	(
-		/ "format of time strings showed by information labels"
-			@ "hexadecimal browser" ^ "custom functions"
-			~ "function %std::ctime",
+		/ "format of time strings showed by information labels" @ "hexadecimal \
+			browser" ^ "custom functions" ~ "function %std::ctime",
 		* "file information box cannot be shown" @ "text reader" $since b263
 	),
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
 		/ @ "class %ATrack"
 		(
-			* "scrolling overflow of value greater than about 0x1998"
-				$since b260 $=
-			(
-				/ "value type" ^ "float" ~ "ystdex::fixed_point<u32, 16>"
-			),
+			* (/ "value type" ^ "float" ~ "ystdex::fixed_point<u32, 16>")
+				@ "scrolling overflow of value greater than about 0x1998"
+				$since b260,
 			(
 				/ "value mapping for scrollable length" ~ "total value range";
 				* "wrong value calculation when minimum thumb length reached"
@@ -1335,10 +1525,8 @@ b263
 	),
 	* $design "minor unexpected name pollution" @ "header %algorithm.hpp"
 		@ "library %YStandardEx" $since b254,
-	/ @ "hexadecimal browser" @ "shells test example" $=
-	(
-		+ "information labels" @ "hexadecimal browser"
-	)
+	+ "information labels" @ "hexadecimal browser" @ "hexadecimal browser"
+		@ "shells test example"
 ),
 
 b262
@@ -1368,10 +1556,8 @@ b260
 		+ $design "reusable overloaded operators";
 		+ "fixed-point arithmetic template %fixed_point"
 	);
-	/ %'YFramework'.'YSLib'.'GUI' $=
-	(
-		* "improper underlying type of scroll event argument type" $since b201
-	)
+	* "improper underlying type of scroll event argument type"
+		@ %'YFramework'.'YSLib'.'GUI' $since b201
 ),
 
 b259
@@ -1383,10 +1569,7 @@ b259
 		+ $design "subobject detaching of view class" @ "class %Widget",
 		/ "simplified form class as typedef" ^ "class %Frame"
 	);
-	/ %'YReader' $=
-	(
-		* "wrong behavior after pressing down exit button" $since b258
-	)
+	* "wrong behavior after pressing down exit button" @ %'YReader' $since b258
 ),
 
 b258
@@ -1422,17 +1605,11 @@ b257
 
 b256
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
-	(
-		* $design "undefined behavior when event arguments class not empty"
-			$since b255
-	),
+	* $design "undefined behavior when event arguments class not empty"
+		@ %'YFramework'.'YSLib'.'GUI' $since b255,
 	* "overloading error when using default template argument"
 		@ "class template ExpandMemberFirstBinder" $since b171
-	/ "event handling" $=
-	(
-		/ "first parameter for merged to second parameter",
-	)
+	/ "first parameter for merged to second parameter" @ "event handling"
 ),
 
 b255
@@ -1445,10 +1622,8 @@ b255
 			+ "horizontal alignment controlling in displaying"
 		)
 	),
-	/ %'YFramework'.'YSLib'.'GUI' $=
-	(
-		* "wrong value construction" @ "class %TouchEventArgs" $since b195
-	)
+	* "wrong value construction" @ "class %TouchEventArgs"
+		@ %'YFramework'.'YSLib'.'GUI' $since b195
 ),
 
 b254
@@ -1462,11 +1637,8 @@ b254
 			+ "updating data for non-zero offset"
 		)
 	),
-	/ %'YFramework'.'YSLib'.'GUI' $=
-	(
-		+ $design "unsequenced evaluated expressions optimization"
-			@ "widget class constructors" @ "directory %YSLib::UI"
-	)
+	+ $design "unsequenced evaluated expressions optimization" @ "widget class \
+		constructors" @ "directory %YSLib::UI" @ %'YFramework'.'YSLib'.'GUI'
 ),
 
 b253
@@ -1476,13 +1648,10 @@ b253
 		+ "hexadecimal browser",
 		+ $design "unsequenced evaluated expressions optimization"
 			@ "unit %Shells",
-		+ "automatic desktop invalidation when checkbox unticked",
-
+		+ "automatic desktop invalidation when checkbox unticked"
 	),
-	/ %'YFramework'.'YSLib'.'GUI' $=
-	(
-		* "wrong control %OnLostFocus behavior" $since b240
-	),
+	* "wrong control %OnLostFocus behavior" @ %'YFramework'.'YSLib'.'GUI'
+		$since b240,
 	^ "new character types" $=
 	(
 		^ "fundamental types %(char16_t, char32_t) ~ %(std::uint16_t,
@@ -1605,14 +1774,9 @@ b246
 		/ "opening files" ^ "binary mode as default" @ "class %File";
 		/ "initializing text files" ^ "text mode" @ "class %TextFile"
 	),
-	/ "simplified text file buffering" $=
-	(
-		- "automatic Unix style newline conversion at loading files",
-	),
-	/ %'YReader' $=
-	(
-		+ "file information panel"
-	),
+	/ (- "automatic Unix style newline conversion at loading files")
+		@ "simplified text file buffering",
+	+ "file information panel" @ %'YReader',
 	* "character mapping for GBK" @ "library %CHRLib" $since b245
 ),
 
@@ -1634,10 +1798,8 @@ b245
 	) $since before '~b4x'(with timestamp 2009-11-22, $rev("chrproc.cpp")
 		= r1319),
 	+ "encoding conversion from UTF-8 to UCS-2" @ "library %CHRLib";
-	/ %'YReader' $=
-	(
-		* "path with non-ASCII characters cannot send to reader" $since b141
-	)
+	* "path with non-ASCII characters cannot send to reader" @ %'YReader'
+		$since b141
 ),
 
 b244
@@ -1647,10 +1809,8 @@ b244
 		/ "reader panel functionality",
 		/ "more text file extensions supported"
 	),
-	* "unsafe nullable dependency object" $since b242 $=
-	(
-		- "nullable features" @ "class template %GDependency"
-	),
+	* (- "nullable features" @ "class template %GDependency")
+		@ "unsafe nullable dependency object" $since b242,
 	* "path with non-ASCII characters wrongly displayed" $since b141,
 	* "wrong value of unnamed namespace constant member FS_Parent_X"
 		@ "file yfilesys.cpp" $since b156
@@ -1692,10 +1852,8 @@ b242
 			@ "class template %GEventMap");
 		- "class template %GEventMap"
 	),
-	/ %'YReader' $=
-	(
-		/ $design ^ "lambda expressions" ~ "most of member function handlers"
-	),
+	/ $design ^ "lambda expressions" ~ "most of member function handlers"
+		@ %'YReader',
 	/ "simplified screen object interface and implementation" $=
 	(
 		/ "class template %GBinaryGroup" ~ "class %(BinaryGroup, Point, Vec)",
@@ -1709,11 +1867,8 @@ b242
 
 b241
 (
-	/ "macros" @ "header %ybase.h" $=
-	(
-		+ "new macros to simplify defaulted or deleted constructors \
-			and destructors definition"
-	),
+	+ "new macros to simplify defaulted or deleted constructors \
+		and destructors definition" @ "header %ybase.h",
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
 		+ $design "%(MoveConstructible) support for all widget classes",
@@ -1753,10 +1908,8 @@ b240
 		@ "class %(BitmapBuffer, BitmapBufferEx)";
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
-		* @ "class template %GFocusResponser" $since b239 $=
-		(
-			+ "default constructor"
-		),
+		* (+ "default constructor") @ "class template %GFocusResponser"
+			$since b239,
 		+ "virtual member function %Clone" @ "renderers, focus responsers \
 			and widget classes",
 		+ $design "prototype constructing of widgets" $=
@@ -1819,7 +1972,7 @@ b237
 			- "containing test",
 			+ "predicate parameter"
 		),
-		+ "automatic canceling pressing state when refreshing" @ "%class Thumb"
+		+ "automatic canceling pressing state when refreshing" @ "class %Thumb"
 	)
 ),
 
@@ -1859,10 +2012,8 @@ b235
 	),
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
-		/ "efficiency improved" @ "member function %ATrack::Refresh" $=
-		(
-			- $design "redundant refreshing" $since b226
-		),
+		- $design "redundant refreshing" $since b226
+			@ "efficiency improved" @ "member function %ATrack::Refresh",
 		/ "GUI shell" $=
 		(
 			/ "a little improvement of efficiency"
@@ -2031,16 +2182,13 @@ b228
 
 b227
 (
-	* "invalidation area error" $since b226 $=
 	(
 		* "wrong result when one argument actually contained by another"
-			@ "intersection calculation for class %Rect" $since b226
+			@ "intersection calculation for class %Rect" $since b226;
+		* "invalidation area error" $since b226
 	),
-	/ "widget rendering efficiency improvement" $=
-	(
-		/ "simplified background rendering" @ "class %ScrollableContainer",
-
-	),
+	/ "simplified background rendering" @ "class %ScrollableContainer"
+		@ "widget rendering efficiency improvement",
 	* $design "guard macro" @ "header %UIContainerEx" $since b203,
 	/ "simplified UI class inheritance" $=
 	(
@@ -2050,10 +2198,8 @@ b227
 		/ $design "implementation" ^ "class %IControl" ~ "class %IPanel",
 		- "class %IPanel"
 	),
-	* "strict ISO C++2003 code compatibility" $since b190 $=
-	(
-		^ "fixed macros" ~ "variadic macros" @ "header %(YPanel, YWindow)"
-	),
+	* (^ "fixed macros" ~ "variadic macros" @ "header %(YPanel, YWindow)")
+		@ "strict ISO C++2003 code compatibility" $since b190,
 	/ "simplified widget fetcher and locating interfaces"
 ),
 
@@ -2063,10 +2209,7 @@ b226
 	(
 		+ "return value of actually drew area for member function %Refresh"
 			@ "widgets",
-		/ "refreshing of windows" $=
-		(
-			- "unnecessary drawing of overlaid windows"
-		),
+		- "unnecessary drawing of overlaid windows" @ "windows refreshing",
 		+ "partial refreshing optimization" @ "class %Widget"
 	),
 	* "wrong result when height of arguments are equal"
@@ -2089,10 +2232,7 @@ b225
 	(
 		+ "parameters for member function %Refresh" @ "widgets",
 		/ "background refreshing" ^ "invalidation" @ "class %AWindow",
-		/ "invalidating of windows" $=
-		(
-			/ "without validating old invalidated areas"
-		),
+		/ "without validating old invalidated areas" @ "windows invalidating",
 		+ "partial invalidation" @ "control default %TouchMove event handler \
 			%OnTouchMove_Dragging"
 	),
@@ -2107,11 +2247,9 @@ b225
 
 b224
 (
-	* "wrong ascending when switching font size" $since b224 $=
-	(
-		^ "freetype 2.4.4 cache system" ~ "freetype 2.4.5 cache system"
-			// It seems a new bug in freetype 2.4.5 cache system.
-	),
+	* (^ "freetype 2.4.4 cache system" ~ "freetype 2.4.5 cache system")
+		@ "wrong ascending when switching font size" $since b224,
+		// It seems a new bug in freetype 2.4.5 cache system.
 	+ "containing test" @ "class %Rect",
 	+ $design "WinGDB settings" @ "main project file",
 	+ "windows partial invalidation support" $=
@@ -2123,11 +2261,8 @@ b224
 
 b223
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
-	(
-		/ "DS painting" ^ "message %SM_PAINT"
-			~ "directly calling of %ShlDS::UpdateToScreen"
-	),
+	/ "DS painting" ^ "message %SM_PAINT" @ %'YFramework'.'YSLib'.'GUI'
+			~ "directly calling of %ShlDS::UpdateToScreen",
 	* "uncleared application message queues on program exit" $since b174,
 		// This might cause memory leaks.
 	/ %'YReader' $=
@@ -2187,7 +2322,7 @@ b221
 			@ "class %Control"
 	),
 	^ "devkitARM release 33" ~ "devkitARM release 32",
-	/ $design "header %search path of VS2010 projects",
+	/ $design "header search path of VS2010 projects",
 	/ "event map interfaces" $=
 	(
 		+ "sender type as template parameter type",
@@ -2303,9 +2438,9 @@ b217
 	+ "%KeyDown and %KeyHeld handlers for scroll bars \
 		to perform mapped touch behaviors",
 	+ "key-to-touch event mapping methods" @ "class %Control",
-	* "wrong behavior" @ "track touch held event handler" $since b213 $=
 	(
 		* "wrong coordinate passed to touch focus captured control" $since b195;
+		* "wrong behavior" @ "track touch held event handler" $since b213
 	),
 	+ $design "cscope files"
 ),
@@ -2314,11 +2449,8 @@ b216
 (
 	/ $design "header %file dependencies",
 	/ "focused boundary for controls",
-	* "strict ISO C++2011 code compatibility" $=
-	(
-		* "deprecated keyword static using in ISO C++2003 now removed but"
-			^ @ unit "YApplication when macro YSL_DEBUG_MSG defined"
-	),
+	^ $design "using unnamed namespace" ~ "keyword static"
+		@ "unit %YApplication",
 	/ "more efficient message queue implementation" ^ "%multiset"
 		~ %priority_queue",
 	/ "simplified shell example",
@@ -2331,10 +2463,7 @@ b215
 (
 	+ "disabled state style of control %Thumb",
 	* "disabled control touch event handling" $b199,
-	/ %'YReader' $=
-	(
-		+ "checkbox and disabling test"
-	),
+	/ + "checkbox and disabling test" @ %'YReader',
 	+ "visible arrow indicating multi-level menus",
 	/ "creating list" @ ("constructor of class %MTextList"
 		~ "member function %GetList"),
@@ -2342,10 +2471,7 @@ b215
 		requirement interface including closure types",
 	* $design "access of interitance of class std::function"
 		@ "class template %GHEvent" $since b207,
-	/ %'YReader' $=
-	(
-		+ "disabled behavior test" @ "%ShlExplorer"
-	),
+	+ "disabled behavior test" @ "%ShlExplorer" @ %'YReader',
 	/ "thumb/button boundary style",
 	/ "global architecture" $=
 	(
@@ -2380,10 +2506,8 @@ b214
 	* "point containing test for zero width or height rectangle \
 		turned out assertion failure" $since b204,
 	* "constness of text width measuring" $since b197,
-	/ "simplified focus operations interface" $=
-	(
-		- "unused parameter and argument"
-	)
+	/ (- "unused parameter and argument") @
+		"simplified focus operations interface"
 ),
 
 b213
@@ -2416,10 +2540,7 @@ b211
 		^ "non-pointer member" ~ "%shared_ptr",
 	+ "message content mapping",
 	/ $design "messaging APIs" >> "unit %YApplication" ~ "unit %YShell",
-	/ %'YReader' $=
-	(
-		/ "test menu fixed on the desktop"
-	)
+	/ "test menu fixed on the desktop" @ %'YReader'
 ),
 
 b210
@@ -2449,10 +2570,8 @@ b209
 	/ $design "protected function inheritance" @ "class template %GHEvent",
 	/ "using directive of namespace %ystdex" @ "library %YSLib",
 	+ "lost %Rect operations",
-	* "strict ISO C++2003 code compatibility" $since b190 $=
-	(
-		^ "fixed macros" ~ "variadic macros" @ "header %YFont"
-	),
+	* (^ "fixed macros" ~ "variadic macros" @ "header %YFont")
+		@ "strict ISO C++2003 code compatibility" $since b190,
 	/ "renamed directory %Shell to %UI @ "library %YSLib",
 	/ "several memory utilities for std::shared_ptr and std::unique_ptr"
 		>> "library %YCLib::YStandardExtend"
@@ -2477,10 +2596,7 @@ b207
 	- "single-cast event class template",
 	^ "rvalue reference" @ "event class",
 	* "ystdex algorithms",
-	/ %'YReader' $=
-	(
-		* "minor event handler parameter type mismatch"
-	),
+	* "minor event handler parameter type mismatch" @ %'YReader',
 	* "key events response(added as %KeyDown, but removed as %KeyPress)"
 		@ "project YSTest_ARM9" $since b201,
 	* "tunnel and direct key and touch response repeated" @ "class %YGUIShell"
@@ -2491,10 +2607,8 @@ b206
 (
 	+ "menu test button",
 	/ "file API",
-	* "strict ISO C++2003 code compatibility" $=
-	(
-		+ "function %memcmp declaration" @ "namespace %ystdex"
-	),
+	* (+ "function %memcmp declaration" @ "namespace %ystdex"
+		@) "strict ISO C++2003 code compatibility" $since $before 132,
 	* "strict ISO C++0x code compatibility" $=
 	(
 		* "implicit narrowing conversion(N3242 8.5.4/6)"
@@ -2598,10 +2712,7 @@ b198
 	+ "showing and hiding windows",
 	* "%ListBox scroll bar length",
 	* "handle constructors",
-	/ $design "shells for DS" $=
-	(
-		- "class %ShlGUI" @ "unit %Shell_DS"
-	),
+	- "class %ShlGUI" @ "unit %Shell_DS" @ $design "shells for DS",
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
 		/ $design "using pointers" ~ "references in parameters \
@@ -2694,10 +2805,8 @@ b191
 
 b190
 (
-	* "strict ISO C++2003 code compatibility" $=
-	(
-		/ "fixed macros" ~ "variadic macros"
-	),
+	* "fixed macros" ~ "variadic macros" @ "strict ISO C++2003 code \
+		compatibility" $since $before b132,
 	/ "text region and renderers APIs implementation",
 	/ "widget, label and listbox APIs implementation"
 ),
@@ -2719,10 +2828,8 @@ b188
 
 b187
 (
-	/ "solution configuration" $=
-	(
-		"header %files and source files put in separated directories"
-	),
+	/ $design "header %files and source files put in separated directories"
+		@ "solution configuration",
 	^ "-O3 & arm specified options compiled library libloki.a"
 		@ "project YSTest",
 	+ "minor templates" @ "YCLib",
@@ -2752,15 +2859,18 @@ b185
 b184
 (
 	* $design "some spell errors",
-	/ "DMA implementation"
+	/ "DMA operations implementation"
 ),
 
 b170_b183
 (
-	+ "controls: tracks",
-	+ "controls: scroll bars",
-	+ "controls: scrollable container",
-	+ "controls: listbox"
+	/ "GUI"
+	(
+		+ "controls: tracks",
+		+ "controls: scroll bars";
+		+ "controls: scrollable container",
+		+ "controls: listbox"
+	)
 ),
 
 b159_b169
@@ -2775,10 +2885,7 @@ b134_b158
 	+ $design "core utility templates",
 	/ "smart pointers",
 	+ "GUI focus",
-	/ %'YReader' $=
-	(
-		+ "some shells"
-	)
+	+ "shells" @ %'YReader' $=
 	+ "controls",
 	+ "virtual inheritance" @ "control classes",
 	+ "exceptions",
@@ -2801,10 +2908,7 @@ b132
 	/ "log interfaces",
 	+ "backup message queue object" @ "the application class",
 	/ "automatically clearing screen windows when deactivating class %ShlGUI",
-	/ %'YReader' $=
-	(
-		+ "background image indexing"
-	)
+	+ "background image indexing" @ %'YReader'
 ),
 
 b1_b131

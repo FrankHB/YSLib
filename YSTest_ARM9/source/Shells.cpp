@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5584;
+\version r5601;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-02-14 20:02 +0800;
+	2012-02-19 19:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -345,11 +345,10 @@ namespace
 			return Text;
 		return Hex;
 	}
-
-	bool
-	ReaderPathFilter(const IO::Path& path)
+	EnrtySpace::EntryType
+	GetEntryType(const IO::Path& path)
 	{
-		return ReaderPathFilter(path.GetNativeString());
+		return GetEntryType(path.GetNativeString());
 	}
 
 	bool
@@ -357,12 +356,9 @@ namespace
 	{
 		if(fb.IsSelected())
 		{
-			const auto& path(Text::StringToMBCS(fb.GetList()[
-				fb.GetSelectedIndex()], IO::CP_Path));
-
 			using namespace EnrtySpace;
 
-			switch(GetEntryType(path))
+			switch(GetEntryType(fb.GetList()[fb.GetSelectedIndex()]))
 			{
 			case Text:
 				return true;
@@ -411,13 +407,14 @@ ShlExplorer::ShlExplorer()
 		FetchEvent<Click>(btnOK) += [this](TouchEventArgs&&){
 			if(fbMain.IsSelected())
 			{
-				const string& s(fbMain.GetPath().GetNativeString());
+				const auto& path(fbMain.GetPath());
+				const string& s(path.GetNativeString());
 
 				if(!IO::ValidateDirectory(s) && fexists(s.c_str()))
 				{
-					ReaderManager::path = s;
-					ReaderManager::is_text = GetEntryType(s) == EnrtySpace::Text
-						&& !chkHex.IsTicked();
+					ShlReader::CurrentPath = path;
+					ShlReader::CurrentIsText = GetEntryType(s)
+						== EnrtySpace::Text && !chkHex.IsTicked();
 					CallStored<ShlReader>();
 				}
 			}
@@ -433,8 +430,7 @@ ShlExplorer::ShlExplorer()
 		lblB.Text = "程序测试"
 	);
 	lblB.SetTransparent(true);
-	Enable(btnTest, true),
-	Enable(btnOK, false);
+	yunseq(Enable(btnTest, true), Enable(btnOK, false));
 }
 
 
@@ -847,7 +843,7 @@ ShlExplorer::UpdateToScreen()
 
 			std::sprintf(strt, "FPS: %u.%03u", t/1000, t%1000);
 			FillRect(g, r, Blue);
-			DrawText(g, r, strt, Padding(), White);
+			DrawText(g, r, strt, DefaultMargin, White);
 		}
 		{
 			const Rect r(4, 144, 120, 20), ri(dsk_dn.GetInvalidatedArea());
@@ -855,7 +851,7 @@ ShlExplorer::UpdateToScreen()
 			std::sprintf(strt, "(%d, %d, %u, %u)",
 				ri.X, ri.Y, ri.Width, ri.Height);
 			FillRect(g, r, Green);
-			DrawText(g, r, strt, Padding(), Yellow);
+			DrawText(g, r, strt, DefaultMargin, Yellow);
 		}
 	}
 	dsk_up.Update(),

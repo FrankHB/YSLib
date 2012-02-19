@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 说明。
-\version r2110;
+\version r2114;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-14 21:09 +0800;
+	2012-02-18 16:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -108,6 +108,11 @@ SM_INPUT				0x4001
 @2.4.3 背景变换：
 背景色变换。
 背景图像替换。
+
+@3 当前非确定上层实现注意事项：
+
+@3.1 ShellHelper ：
+注意严格禁止 CallStore 在未生效前被调用多次以免破坏消息队列。
 
 */
 

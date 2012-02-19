@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1740;
+\version r1945;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-02-14 20:01 +0800;
+	2012-02-19 19:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -57,6 +57,16 @@ public:
 	\since build 274 。
 	*/
 	Button btnReturn;
+	/*!
+	\brief 后退按钮。
+	\since build 286 。
+	*/
+	Button btnPrev;
+	/*!
+	\brief 前进按钮。
+	\since build 286 。
+	*/
+	Button btnNext;
 	ProgressBar pbReader;
 	Label lblProgress;
 
@@ -167,25 +177,128 @@ public:
 };
 
 
+/*!
+\brief 书签。
+\warning 非虚析构。
+\since build 286 。
+*/
+class BookMark
+{
+public:
+	IO::Path Path;
+	size_t Position;
+
+	BookMark(const IO::Path&, size_t);
+	DefDeCopyCtor(BookMark)
+	DefDeMoveCtor(BookMark)
+};
+
+inline
+BookMark::BookMark(const IO::Path& path, size_t pos)
+	: Path(path), Position(pos)
+{}
+
+
+/*!
+\brief 判断书签是否相等。
+\since build 286 。
+*/
+inline bool
+operator==(const BookMark& x, const BookMark& y)
+{
+	return x.Path == y.Path && x.Position == y.Position;
+}
+
+
+/*!
+\brief 阅读记录。
+\warning 非虚析构。
+\since build 286 。
+*/
+class ReadingList
+{
+public:
+	/*!
+	\brief 阅读记录列表类型。
+	*/
+	typedef list<BookMark> ListType;
+
+private:
+	/*!
+	\brief 阅读记录：书签项列表。
+	*/
+	ListType reading_list;
+	/*!
+	\brief 阅读迭代器：当前浏览项在阅读记录中的插入位置。
+	*/
+	ListType::iterator now_reading;
+
+public:
+	/*!
+	\brief 构造：阅读迭代器指向阅读记录末尾。
+	*/
+	ReadingList();
+	DefDelCopyCtor(ReadingList)
+	DefDelMoveCtor(ReadingList)
+
+	/*!
+	\brief 检查操作可用性。
+	\return 后退和向前操作是否可用。
+	*/
+	pair<bool, bool>
+	CheckBoundary();
+
+	/*!
+	\brief 清除所有记录。
+	*/
+	PDefH(void, Clear)
+		ImplExpr(reading_list.clear(), now_reading = reading_list.end())
+
+	/*!
+	\brief 插入阅读记录。
+	*/
+	void
+	Insert(const IO::Path&, size_t);
+
+	/*!
+	\brief 插入阅读记录并清除之后所有记录。
+	*/
+	void
+	ReplaceAfter(const IO::Path&, size_t);
+
+	/*!
+	\brief 切换阅读记录。
+
+	后退或前进，同时移除该记录。
+	\param 是否后退。
+	\return 被移除的记录。
+	*/
+	BookMark
+	Switch(bool);
+};
+
+
 class ReaderManager
 {
 public:
-	static string path;
-	static bool is_text;
-
 	ShlReader& Shell;
 
 	ReaderManager(ShlReader&);
 	DefDelCopyCtor(ReaderManager)
 	DefDelMoveCtor(ReaderManager)
 	virtual DefEmptyDtor(ReaderManager)
-	DeclIEntry(void Activate())
-	DeclIEntry(void Deactivate())
 };
 
 
 class TextReaderManager : public ReaderManager
 {
+private:
+	/*!
+	\brief 路径。
+	\since build 286 。
+	*/
+	IO::Path path;
+
 public:
 	DualScreenReader Reader;
 	ReaderBox boxReader;
@@ -199,12 +312,12 @@ public:
 	MenuHost mhMain;
 
 	TextReaderManager(ShlReader&);
-
-	virtual void
-	Activate();
-
-	virtual void
-	Deactivate();
+	/*!
+	\brief 析构：释放资源。
+	\since build 286 。
+	*/
+	virtual
+	~TextReaderManager();
 
 private:
 	/*!
@@ -214,8 +327,33 @@ private:
 	void
 	Execute(IndexEventArgs::ValueType);
 
+public:
+	/*!
+	\brief 读取文件。
+	\since build 286 。
+	*/
+	void
+	LoadFile(const IO::Path&);
+
+private:
 	void
 	ShowMenu(Menu::ID, const Point&);
+
+	/*!
+	\brief 更新近期浏览记录并更新按钮状态。
+	\param 是否后退。
+	\since build 286 。
+	*/
+	void
+	UpdateReadingList(bool);
+
+	/*!
+	\brief 更新按钮状态。
+	\note 检查近期浏览记录状态确定可用性。
+	\since build 286 。
+	*/
+	void
+	UpdateButtons();
 
 	void
 	OnClick(TouchEventArgs&&);
@@ -232,12 +370,12 @@ public:
 	FileInfoPanel pnlFileInfo;
 
 	HexReaderManager(ShlReader&);
-
-	virtual void
-	Activate();
-
-	virtual void
-	Deactivate();
+	/*!
+	\brief 析构：释放资源。
+	\since build 286 。
+	*/
+	virtual
+	~HexReaderManager();
 
 	void
 	UpdateInfo();
@@ -249,12 +387,29 @@ class ShlReader : public ShlDS
 public:
 	typedef ShlDS ParentType;
 
+	/*!
+	\brief 临时参数：路径。
+	\since build 286 。
+	*/
+	static IO::Path CurrentPath;
+	/*!
+	\brief 临时参数：指定文件类型是否为文本文件。
+	\since build 286 。
+	*/
+	static bool CurrentIsText;
+
 	shared_ptr<Image> hUp, hDn;
 
-private:
+protected:
 	unique_ptr<ReaderManager> pManager;
 
 public:
+	/*!
+	\brief 近期浏览记录。
+	\since build 286 。
+	*/
+	ReadingList LastRead;
+
 	ShlReader();
 
 	virtual int

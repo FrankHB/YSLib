@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5518;
+\version r5521;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2012-02-15 13:54 +0800;
+	2012-02-18 16:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -117,8 +117,10 @@ SetEnabledOf(IWidget& wgt, bool b)
 
 /*!
 \brief 设置部件可用性，且当可用性改变时无效化部件区域。
+\return 可用性是否改变。
+\since build 286 。
 */
-void
+bool
 Enable(IWidget&, bool = true);
 
 

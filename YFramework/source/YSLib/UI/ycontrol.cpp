@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4641;
+\version r4645;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2012-02-14 21:35 +0800;
+	2012-02-18 16:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -53,14 +53,15 @@ Controller::GetItemRef(const VisualEvent& id, EventMapping::MappedType(&f)())
 }
 
 
-void
+bool
 Enable(IWidget& wgt, bool b)
 {
-	const auto need_invalidate(IsEnabled(wgt) != b);
+	const auto enability_changed(IsEnabled(wgt) != b);
 
 	SetEnabledOf(wgt, b);
-	if(need_invalidate)
+	if(enability_changed)
 		Invalidate(wgt);
+	return enability_changed;
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2237;
+\version r2241;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2012-01-31 16:52 +0800;
+	2012-02-16 22:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,19 +36,6 @@ using namespace Text;
 
 YSL_BEGIN_NAMESPACE(IO)
 
-const const_path_t FS_Root(DEF_PATH_ROOT);
-const const_path_t FS_Seperator(DEF_PATH_SEPERATOR);
-const const_path_t FS_Now(".");
-const const_path_t FS_Parent("..");
-
-
-namespace
-{
-	const ucs2_t FS_Now_X[] = {'.', 0};
-	const ucs2_t FS_Parent_X[] = {'.', '.', 0};
-}
-
-const Path::ValueType Path::Slash(DEF_PATH_DELIMITER);
 const Path Path::Now(FS_Now_X);
 const Path Path::Parent(FS_Parent_X);
 

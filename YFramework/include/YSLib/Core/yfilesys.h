@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2203;
+\version r2221;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2012-01-31 16:52 +0800;
+	2012-02-16 22:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -37,28 +37,38 @@ YSL_BEGIN_NAMESPACE(IO)
 
 const auto CP_Path(Text::CP_Default); //!< 路径编码。
 
-//文件系统常量：前缀 FS 表示文件系统 (File System) 。
-extern const const_path_t FS_Root;
-extern const const_path_t FS_Seperator;
-extern const const_path_t FS_Now;
-extern const const_path_t FS_Parent;
+/*!
+\brief 文件系统常量：前缀 FS 表示文件系统 (File System) 。
+\since build 285 。
+*/
+//@{
+yconstexpr const_path_t FS_Root(DEF_PATH_ROOT);
+yconstexpr const_path_t FS_Seperator(DEF_PATH_SEPERATOR);
+yconstexpr const_path_t FS_Now(".");
+yconstexpr const_path_t FS_Parent("..");
+yconstexpr const ucs2_t* FS_Now_X(u".");
+yconstexpr const ucs2_t* FS_Parent_X(u"..");
+//@}
 
 
-typedef char NativePathCharType; \
-	//!< 本机路径字符类型，POSIX 为 char ，Windows 为 wchar_t。
-typedef GSStringTemplate<NativePathCharType>::basic_string NativeStringType; \
-	//!< 本地字符串类型。
+/*!
+\brief 本机字符串。
+\since build 285 。
+*/
+typedef GSStringTemplate<NativePathCharType>::basic_string NativeString;
 
-//! \brief 路径类。
+
+/*!
+\brief 路径。
+*/
 class Path : public ucs2string
 {
 public:
-	typedef ucs2_t ValueType;
-	typedef GSStringTemplate<ValueType>::basic_string StringType; \
+	typedef GSStringTemplate<ucs2_t>::basic_string StringType; \
 		//!< 内部字符串类型。
 //	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
 
-	static const ValueType Slash;
+	static yconstexpr ucs2_t Slash = DEF_PATH_DELIMITER;
 	static const Path Now;
 	static const Path Parent;
 
@@ -79,9 +89,9 @@ public:
 	\brief 转移构造：默认实现。
 	*/
 	inline DefDeMoveCtor(Path)
-	Path(const ValueType*);
+	Path(const ucs2_t*);
 	Path(const NativePathCharType*);
-	Path(const NativeStringType&);
+	Path(const NativeString&);
 	template<class _tString>
 	Path(const _tString&);
 	inline DefDeDtor(Path)
@@ -176,7 +186,7 @@ public:
 	*/
 	Path
 	GetExtension() const;
-	DefGetter(const ynothrow, NativeStringType, NativeString,
+	DefGetter(const ynothrow, NativeString, NativeString,
 		Text::StringToMBCS(*this, CP_Path)) //!< 取本地格式和编码的字符串。
 
 	//修改函数。
@@ -283,7 +293,7 @@ public:
 };
 
 inline
-Path::Path(const ValueType* pathstr)
+Path::Path(const ucs2_t* pathstr)
 	: ucs2string(pathstr)
 {}
 inline
@@ -291,7 +301,7 @@ Path::Path(const NativePathCharType* pathstr)
 	: ucs2string(String(pathstr, CP_Path))
 {}
 inline
-Path::Path(const NativeStringType& pathstr)
+Path::Path(const NativeString& pathstr)
 	: ucs2string(String(pathstr, CP_Path))
 {}
 template<class _tString>

@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2821;
+\version r2832;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-01-20 10:00 +0800;
+	2012-02-16 20:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -70,9 +70,23 @@ namespace platform
 	#define DEF_PATH_ROOT DEF_PATH_SEPERATOR
 
 	//类型定义。
-	typedef char PATHSTR[YCL_MAX_PATH_LENGTH];
-	//typedef char PATHSTR[MAXPATHLEN];
-	typedef char FILENAMESTR[YCL_MAX_FILENAME_LENGTH];
+	/*!
+	\brief 本机路径字符类型。
+	
+	POSIX 为 char ，Windows 为 wchar_t。
+	\since build 286 。
+	*/
+	typedef char NativePathCharType;
+	/*!
+	\brief 本机路径字符串类型。
+	\since build 286 。
+	*/
+	typedef NativePathCharType PATHSTR[YCL_MAX_PATH_LENGTH];
+	/*!
+	\brief 本机文件名类型。
+	\since build 286 。
+	*/
+	typedef NativePathCharType FILENAMESTR[YCL_MAX_FILENAME_LENGTH];
 
 	// using ystdex;
 	using ystdex::const_path_t;

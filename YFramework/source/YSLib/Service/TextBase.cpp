@@ -11,13 +11,13 @@
 /*!	\file TextBase.cpp
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r6898;
+\version r6900;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-27 06:56 +0800;
+	2012-02-19 19:27 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,11 +39,11 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 TextState::TextState(const Drawing::Font& font)
 	: PenStyle(font),
-	Margin(), PenX(0), PenY(0), LineGap(0)
+	Margin(DefaultMargin), PenX(0), PenY(0), LineGap(0)
 {}
 TextState::TextState(FontCache& fc)
 	: PenStyle(Drawing::Font(fc.GetDefaultTypefacePtr()->GetFontFamily())),
-	Margin(), PenX(0), PenY(0), LineGap(0)
+	Margin(DefaultMargin), PenX(0), PenY(0), LineGap(0)
 {}
 
 /*Typeface*

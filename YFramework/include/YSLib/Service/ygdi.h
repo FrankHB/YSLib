@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r4082;
+\version r4094;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2012-01-04 08:10 +0800;
+	2012-02-19 19:27 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,16 +36,20 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 // GDI 逻辑对象。
 
-//! \brief 边距样式。
+/*!
+\brief 空白样式。
+\warning 非虚析构。
+*/
 struct Padding
 {
-	SDst Left, Right, Top, Bottom; //!< 边距：左、右、上、下。
+	SDst Left, Right, Top, Bottom; //!< 空白距离：左、右、上、下。
 
 	/*!
 	\brief 构造：使用 4 个 16 位无符号整数形式的边距。
+	\since build 286 。
 	*/
-	explicit
-	Padding(SDst = 4, SDst = 4, SDst = 4, SDst = 4);
+	yconstfn explicit
+	Padding(SDst = 0, SDst = 0, SDst = 0, SDst = 0);
 
 	/*!
 	\brief 加法赋值：对应分量调用 operator+= 。
@@ -53,6 +57,11 @@ struct Padding
 	Padding&
 	operator+=(const Padding&);
 };
+
+yconstfn
+Padding::Padding(SDst l, SDst r, SDst t, SDst b)
+	: Left(l), Right(r), Top(t), Bottom(b)
+{}
 
 /*!
 \brief 加法：对应分量调用 operator+ 。

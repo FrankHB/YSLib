@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3529;
+\version r3537;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2011-12-01 08:32 +0800;
-\par 字符集:
+	2012-02-19 19:28 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Service::YGDI;
@@ -33,9 +33,6 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-Padding::Padding(SDst l, SDst r, SDst t, SDst b)
-	: Left(l), Right(r), Top(t), Bottom(b)
-{}
 /*Padding::Padding(u64 m)
 	: Left(m >> 48), Right((m >> 32) & 0xFFFF),
 	Top((m >> 16) & 0xFFFF), Bottom(m & 0xFFFF)

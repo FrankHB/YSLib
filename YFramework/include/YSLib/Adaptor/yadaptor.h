@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,14 +16,14 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2268;
+\version r2276;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2011-12-01 08:51 +0800;
-\par 字符集:
+	2012-02-16 20:47 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Adaptor::YAdaptor;
@@ -113,6 +113,11 @@ YSL_BEGIN
 	using platform::SDst;
 
 	//文件系统抽象。
+	/*!
+	\brief 本机路径字符类型。
+	\since build 286 。
+	*/
+	using platform::NativePathCharType;
 	using platform::const_path_t;
 	using platform::path_t;
 

@@ -303,13 +303,16 @@ DualScreenReader::Execute(Command cmd)
 void
 DualScreenReader::Locate(size_t pos)
 {
-	if(pos < pText->GetTextSize())
+	if(pos == 0)
+		i_top = pText->GetBegin();
+	else if(pos < pText->GetTextSize())
 	{
 		i_top = pText->GetIterator(pos);
-		if(pos != 0)
-			i_top = FindPreviousLineFeed(area_up, i_top, pText->GetBegin());
-		UpdateView();
+		i_top = FindPreviousLineFeed(area_up, ++i_top, pText->GetBegin());
 	}
+	else
+		return;
+	UpdateView();
 }
 
 void
