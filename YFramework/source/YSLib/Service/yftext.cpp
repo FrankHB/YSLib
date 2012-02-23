@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file yftext.cpp
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1829;
+\version r1834;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2011-12-30 22:22 +0800;
-\par 字符集:
+	2012-02-21 15:10 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YFile_(Text);
@@ -42,8 +42,9 @@ TextFile::TextFile(const_path_t p)
 		bl = CheckBOM(cp);
 		Rewind();
 	}
+	// TODO: encoding checking for text stream without BOM;
 	if(bl == 0)
-		cp = CP_Local;
+		cp = CharSet::GBK;
 }
 
 size_t

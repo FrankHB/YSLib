@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3481; *build 286 rev 32;
+\version r3489; *build 287 rev 53;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-19 19:34 +0800;
+	2012-02-23 19:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -261,8 +261,8 @@ $using:
 ),
 \u YGUI
 (
-	\cl GUIShell,
-)
+	\cl GUIState
+),
 \u Label
 (
 	\cl MLabel,
@@ -345,263 +345,170 @@ $using:
 
 
 $DONE:
-r1:
-/ @ \u ShlReader $=
-(
-	+ \cl BookMark @ \h;
-	+ \f \i bool \op=(const BookMark&, const BookMark&) @ \h;
-	/ @ \cl ShlReader $=
-	(
-		/ \ac @ \m pManager -> protected ~ private,
-		(
-			+ private \m list<BookMark> history,
-			+ private \m list<BookMark>::const_iterator now_history;
-			/ \impl @ \ctor
-		),
-		+ \s \m IO::Path CurrentPath,
-		+ \s \m bool CurrentIsText;
-		/ \impl @ \mf OnActivated
-	),
-	- \a \s \m \o @ \cl ReaderManager;
-	/ \tr \impl @ \mf (HexReaderManager, TextReaderManager)::Activate
-);
-/ \tr \impl @ \ctor @ \cl ShlExplorer @ \impl \u Shells;
-
-r2:
-/ typedef char NativePathCharType @ \h YFileSystem >> \h YCommon;
-/ @ \h YCommon $=
-(
-	/ typedef char PATHSTR[YCL_MAX_PATH_LENGTH]
-		-> typedef NativePathCharType PATHSTR[YCL_MAX_PATH_LENGTH],
-	/ typedef char FILENAMESTR[YCL_MAX_FILENAME_LENGTH]
-		-> typedef NativePathCharType FILENAMESTR[YCL_MAX_FILENAME_LENGTH]
-),
-(
-	+ using platform::NativePathCharType @ \h YAdaptor;
-	/ @ \cl Path $=
-	(
-		/ \inh ucs2string -> String;
-		/ \tr \impl @ \a \ctor
-	)
-);
-
-r3:
-/ \simp \impl @ \mf HexReaderManager::Activate @ \impl \u ShlReader,
-/ \simp \impl @ \f @ \un \ns @ \impl Shells;
-
-r4-r5:
-+ \ctor String(ucs2string&&) @ \cl String;
-/ @ \ns IO @ \u YFileSystem $=
-(
-	/ \a extern \c \o 'FS_*' @ \h -> yconstexpr \o;
-	+ yconstexpr const ucs2_t* FS_Now_X(u"."),
-	+ yconstexpr const ucs2_t* FS_Parent_X(u".."),
-	- \un \ns @ \impl \u,
-	/ @ \cl Path $=
-	(
-		/ \m \s \c ValueType Slash
-			-> \m \s yconstexpr ucs2_t Slash(DEF_PATH_DELIMITER),
-		/ \a !\decl ValueType -> ucs2_t, 
-		- \m typedef ucs2_t ValueType,
-	),
-	/ \a 'NativeStringType' -> 'NativeString',
-);
-
-r6:
-/= test 1 ^ \conf release;
-
-r7:
-/ @ \u ShlReader $=
-(
-	/ @ \cl ShlReader $=
-	(
-		/ private \m list<BookMark> history -> public \m list<BookMark> History,
-		/ private \m list<BookMark>::const_iterator now_history @ \cl ShlReader
-			-> \m list<BookMark>::iterator now_history @ \cl TextReaderManager
-	);
-	/ \tr \impl @ \ctor @ \cl (ShlReader, TextReaderManager),
-	/ @ \cl TextReaderManager
-	(
-		/ \impl @ \mf (Activate, Deactivate),
-		+ private \mf void UpdateHistory()
-	)
-	+ (\ctor, \de move \ctor, \de copy \ctor) @ \cl BookMark,
-	/ @ \cl ReaderBox $=
-	(
-		+ \m Button btnPrev,
-		+ \m Button btnNext,
-		/ \tr \impl @ \ctor,
-		/ \tr \impl @ \mf (GetTopWidgetPtr, Refresh)
-	)
-);
-
-r8:
-/ @ \u ShlReader $=
-(
-	* \impl @ \ctor @ \cl ReaderBox $since r7,
-	/ @ \cl TextReaderManager $=
-	(
-		/ \impl @ \ctor @ \cl TextReaderManager,
-		+ private \mf void UpdateHistoryButtons()
-	)
-);
-
-r9-r10:
-* \impl @ \mf TextReaderManager::UpdateHistoryButtons
-	@ \impl \u ShlReader $since r8;
+r1-r10:
+/= test 1;
 
 r11:
-* \impl @ \ctor @ \cl TextReaderManager @ \impl \u ShlREader $since r8;
+/ \impl @ \ctor @ \cl DropDownList,
+* \impl @ \mf MLabel::PaintText $since b208;
 
 r12:
-/ @ \cl TextReaderManager @ \u ShlReader $=
+/= test 2 ^ \conf release;
+
+r13:
+* \impl @ \mf TextReaderManager::OnKeyDown @ \impl \u ShlReader $since b286;
+
+r14:
+/ @ \cl TextReaderManager @ \impl \u ShlReader $=
 (
-	+ private \m IO::Path path,
-	+ \mf void LoadFile(const IO::Path&),
-	/ \impl @ \ctor,
-	/ \simp \impl @ \mf Activate ^ \mf LoadFile
+	/ \ac @ \mf UpdateButtons -> public ~ private,
+	/ \impl @ (\mf LoadFile, \ctor)
 );
 
-r13-r15:
-/ @ \u ShlReader $=
-(
-	+ \decl friend class TextReaderManager @ \cl ShlReader;
-	/ @ \cl TextReaderManager $=
-	(
-		/ private \m list<BookMark>::iterator now_history >> \cl ShlReader;
-		/ \impl @ \mf (UpdateHistory, UpdateHistoryButtons, Deactivate,
-			LoadFile),
-		/ \impl @ \ctor
-	);
-	/tr \impl @ \ctor @ \cl ShlReader
-);
+r15:
+/ \impl @ \f (Show, Hide) @ \impl \u YWidget;
 
 r16:
-/ @ \u ShlReader $=
-(
-	/ @ \cl (TextReaderManager, HexReaderManager) $=
-	(
-		/ \impl @ \ctor,
-		+ \dtor;
-		- \mf (Activate, Deactivate)
-	);
-	- \amf (Activate, Deactivate) @ \cl ReaderManager;
-	/ \tr \impl @ \mf (OnActivate, OnDeactivate) @ \cl ShlReader
-);
+/ \impl @ \mf TextReaderManager::UpdateReadingList @ \impl \u ShlReader;
 
-r17-r18:
-/ @ \u ShlReader $=
-(
-	/ @ \cl ShlReader $=
-	(
-		/ public \m list<BookMark> History
-			-> protected \m list<BookMark> lstReading,
-		/ \m now_history => now_reading
-	),
-	/ \impl @ \mf TextReaderManager::OnKeyDown
-),
-/= test 2;
-
-r19:
+r17:
 /= test 3 ^ \conf release;
 
-r20-r21:
-/= test 4,
-* \impl @ \mf DualScreenReader::Locate $since b271;
+r18:
+/ @ \h YString $=
+(
+	+ \mf string String::GetMBCS(Encoding = CP_Default) const;
+	- \f StringToMBCS
+);
+/ \tr @ \cl Path @ \u YFileSystem $=
+(
+	/ \inh ucs2string -> String;
+	/ \tr @ \a \ctor;
+	/ \impl @ \mf GetNativeString
+),
+/ \tr \impl @ \u (Shells, ShlReader);
 
-r22:
-/ \f void Enable(IWidget&, bool = true) @ \u YControl
-	-> \f bool Enable(IWidget&, bool = true);
-/ \impl @ (\mf TextReaderManager::UpdateHistoryButtons @ \impl \u ShlReader,
-	\ctor @ \cl ShlExplorer @ \impl \u Shells) ^ \mac yunseq;
+r19:
+(
+	/ \impl @ \ctor @ \cl TextFile @ \impl \u YFile_(Text);
+	- \a \decl @ 'CP_Local'
+);
+/ \a CP_Default => CS_Default;
+/ \a CP_Path => CS_Path;
 
-r23:
+r20:
 / @ \u ShlReader $=
 (
+	+ \st ReaderSetting;
+	/ @ \cl ShlReader $=
 	(
-		+ \mf ShlReader::CheckReadingListState;
-		/ \impl @ \mf TextReaderManager::UpdateHistoryButtons,
-	),
+		+ \m \o ReaderSetting CurrentSetting;
+		/ \tr \impl @ \ctor
+	);
+	/ \impl @ (\ctor, \dtor) @ \cl TextReaderManager
+);
+
+r21-r28:
+/ \a '*Manager' => '*Session' @ \u ShlReader,
+/= test 4;
+
+r29:
+/= test 5 ^ \conf release;
+
+r30-r39:
+/= test 6;
+
+r40:
+/ @ \u YGUI $=
+(
+	/ @ \ns Components $=
 	(
-		/ private \mf TextReaderManager::UpdateHistory
-			-> public \mf ShlReader::Insert;
-		/ \tr \impl @ (\ctor, \dtor) @ \cl TextReaderManager
+		+ \cl GUIState;
+		+ \f shared_ptr<GUIState> FetchGUIStateHandle();
+		+ \f \i GUIState& FetchGUIState()
+	);
+	/ @ \cl GUIShell @ \ns Shells $=
+	(
+		/ \a \m \exc (\ctor, \mf OnGotMessage)
+			>> \cl GUIState @ \ns Components,
+		+ protected \m shared_ptr<Components::GUIState> hState,
+		/ \ctor GUIShell() -> GUIShell(shared_ptr<Components::GUIState>
+			= Components::FetchGUIStateHandle());
+		+ \tr \mf (ResetGUIStates, GetState)
 	)
 );
-
-r24:
-/ @ \u ShlReader $=
+/ \tr @ \u (TextList, Border, Button, Menu, Progress, Scroll, Main_ARM9),
+- \as @ \mf ShlDS::OnDeactivated @ \impl \u Shell_DS;
+/ @ \u YGUI $=
 (
+	/ \mf IsFocusedByShell;
+	- \mf FetchGUIShell
+);
+
+r41-r47:
+/= test 7;
+
+r48:
+/= test 8 ^ \conf release;
+
+r49:
+/ \impl @ \mf ShlDS::(OnActivated, OnGotMessage) @ \impl \u Shell_DS;
+- \a \mf @ \cl GUIShell;
+
+r50:
+/ @ \cl ShlDS @ \u Shell_DS $=
+(
+	/ \inh \cl Shells::GUIShell -> \cl Shell;
+	/ \tr \impl @ \ctor
+);
+
+r51:
+/ @ \u YGUI $=
+(
+	- using Shells::GUIShell;
+	- \cl GUIShell @ \ns Shells;
+	- \ns Shells;
+	/ \f FetchGUIStateHandle \mg -> \f FetchGUIState
+);
+
+r52:
+/ @ \u YGUI $=
+(
+	/ @ \cl GUIState $=
 	(
-		+ \mf ShlReader::(Switch, ReplaceAfter);
-		+ private \mf TextReaderManager::UpdateReadingList;
-		/ \simp \impl @ \ctor @ \cl TextReaderManager ^ \mf ShlReader::Switch
+		+ 'ynothrow' @ \ctor,
+		/ private \mf ResponseTouchBase \mg -> ResponseTouchBase,
+		/ \mf ResetGUIStates => Reset
 	),
-	/ \a UpdateHistoryButtons => UpdateButtons
+	/ \impl @ \f FetchGUIState
 );
 
-r25:
-/ @ \u ShlReader $=
-(
-	+ \cl ReadingList,
-	/ @ \cl ShlReader $=
-	(
-		/ protected \m lstReading -> private \m reading_list,
-		/ \tr \impl @ \ctor,
-		/ \mf CheckReadingListState => CheckBoundary,
-		/ \mf size_t Switch(bool) -> BookMark Switch(bool)
-	);
-	/ \tr \impl @ \cl TextReaderManager
-);
-
-r26:
-/ @ \u ShlReader $=
-(
-	/ @ \cl ShlReader $=
-	(
-		/ \a private \m -> public \m ReadingList LastRead,
-		/ \tr \impl @ \ctor,
-		- \mf (CheckBoundary, Insert, ReplaceAfter, Switch),
-		- friend \decl
-	);
-	/ \tr \impl @ \cl TextReaderManager
-);
-
-r27-r30:
-/= test 5,
-/ !\i \ctor -> yconstfn \ctor @ \st Padding @ \u YGDI;
-+ \o yconstexpr Padding DefaultMargin = Padding(2, 2, 2, 2) @ \h TextBase;
-/ \impl @ \ctor @ \a \cl (MLabel, TextState) ^ DefaultMargin;
-
-r31:
-/ \impl @ \ctor @ \cl DropDownList,
-/ \impl @ \ctor @ \cl ShlExplorer @ \impl \u Shells;
-
-r32:
-/= test 6 ^ \conf release;
+r53:
+/= test 9 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-02-19:
--12.0d;
-//Mercurial rev1-rev158: r7575;
+2012-02-23:
+-11.8d;
+//Mercurial rev1-rev159: r7628;
 
 / ...
 
 
 $NEXT_TODO:
-b287-b300:
+b288-b300:
 / fully \impl @ \u DSReader $=
 (
-	+ cross file last reading list,
 	+ scrolling
-);
+),
+/ merge button and selector model;
 
 
 $TODO:
 b301-b1536:
++ basic session,
 / fully \impl @ \u DSReader $=
 (
 	+ bookmarks manager,
@@ -760,12 +667,57 @@ $module_tree $=
 
 $now
 (
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'GUI' $=
+		(
+			/ "right component of margin" @ "constructor"
+				@ "class %DropDownList",
+			* "wrong vertical alignment get"
+				@ "member function %MLabel::PaintText" $since b208,
+			+ "focus requesting/releasing" @ "function %(Show, Hide)"
+				@ "unit %YWidget",
+			/ "GUI state abstraction" $=
+			(
+				+ "class %GUIState",
+				/ "common state implementation" ^ "static shared %GUIState"
+					~ "state of GUIShell";
+				- "class %GUIShell"
+			)
+		),
+		/ "string and path interface" $=
+		(
+			+ "member function %String::GetMBCS",
+			- "function %MBCSToString",
+			/ $design "inheritance" @ "class %Path"
+				@ %'file system abstraction' ^ "class %String",
+			- "local encoding alias %CP_Local"
+			/ "all pattern 'CP_*'" => "pattern 'CS_*'"
+		),
+		/ %'shell abstraction' $=
+		(
+			+ $design "public inheritance %enabled_shared_from_this"
+				@ "class %Shell"
+		)
+	);
+	/ %'YReader'.'text reader' $=
+	(
+		* "functions of key %'Left' down" $since b286,
+		/ "stopping handling key events when setting panel is shown",
+		/ $design "reader manager as sessions",
+		+ "cross-session shared state support" @ "last reading list",
+		+ "cross-session shared state support" @ "settings"
+	)
+),
+
+b286
+(
 	/ %'YFramework' $=
 	(
 		/ $design "native path types" @ %'YCLib';
 		/ %'YSLib' $=
 		(
-			/ "simplified inheritance" @ "class %Path"
+			/ $design "simplified inheritance" @ "class %Path"
 				@ %'file system abstraction',
 			+ "constructor %String(ucs2string&&)" @ "class %String",
 			(
@@ -785,11 +737,14 @@ $now
 	(
 		(
 			+ "class %BookMark";
-			+ "class %ReadingList"
+			+ "class %ReadingList";
 			+ "shell last reading list"
-		)
+				// This list is only valid in the same shell activated lifetime.
+		),
 		/ $design "static data members" @ "class %ReaderManager"
 			>> "class %ShlReader",
+		/ $design "simplified implementation of activating and deactivating",
+		/ "functions of key %'(X, Y, L, R, Left, Right)' down",
 		* "random locating error" @ "member function %DualScreenReader::Locate"
 			$since b271
 	)
@@ -797,24 +752,18 @@ $now
 
 b285
 (
-	/ %'YFramework'.'YSLib' $=
+	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
-		/ %'GUI' $=
-		(
-			- "hosted menu referent pointer" @ "unit %Menu",
-			+ "member function %(SetSelected, ClearSelected)"
-				@ "class %ListBox";
-			+ "item text matching when list shown" @ "class %DropDownList",
-			* "viewer length of text list no synchronized when initialized"
-				$since b203
-		),
+		- "hosted menu referent pointer" @ "unit %Menu",
+		+ "member function %(SetSelected, ClearSelected)"
+			@ "class %ListBox";
+		+ "item text matching when list shown" @ "class %DropDownList",
+		* "viewer length of text list no synchronized when initialized"
+			$since b203
 	),
 	/ %'YReader'.'text reader' $=
 	(
 		* "menu not hidden when touching reading box" $since b283,
-		+ "reading list",
-		/ $design "simplified implementation of activating and deactivating",
-		/ "functions of key %'(X, Y, L, R)' touching down"
 	)
 ),
 

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,15 +10,15 @@
 
 /*!	\file smap.hpp
 \ingroup CHRLib
-\brief 字符映射静态函数。
-\version r2576;
+\brief 静态编码映射。
+\version r2580;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-12-30 21:52 +0800;
-\par 字符集:
+	2012-02-21 14:25 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	CHRLib::StaticMapping;

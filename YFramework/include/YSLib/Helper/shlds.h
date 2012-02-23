@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2049;
+\version r2050;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-02-14 20:45 +0800;
+	2012-02-23 18:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -74,7 +74,7 @@ YSL_BEGIN_NAMESPACE(DS)
 \brief 双屏全屏窗口 Shell 。
 \since 早于 build 132 。
 */
-class ShlDS : public Shells::GUIShell
+class ShlDS : public Shell
 {
 private:
 	shared_ptr<Desktop> hDskUp, hDskDown; \

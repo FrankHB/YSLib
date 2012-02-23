@@ -11,13 +11,13 @@
 /*!	\file Border.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1094;
+\version r1096;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 276 。
 \par 创建时间:
 	2012-01-10 19:56:59 +0800;
 \par 修改时间:
-	2012-02-10 13:53 +0800;
+	2012-02-22 19:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,8 +34,8 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 BorderStyle::BorderStyle()
-	: ActiveColor(FetchGUIShell().Colors[Styles::ActiveBorder]),
-	InactiveColor(FetchGUIShell().Colors[Styles::InactiveBorder])
+	: ActiveColor(FetchGUIState().Colors[Styles::ActiveBorder]),
+	InactiveColor(FetchGUIState().Colors[Styles::InactiveBorder])
 {}
 
 

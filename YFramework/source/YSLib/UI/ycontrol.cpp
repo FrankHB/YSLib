@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4645;
+\version r4654;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2012-02-18 16:33 +0800;
+	2012-02-22 20:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -68,9 +68,9 @@ Enable(IWidget& wgt, bool b)
 void
 OnKeyHeld(KeyEventArgs&& e)
 {
-	auto& shl(FetchGUIShell());
+	auto& st(FetchGUIState());
 
-	if(shl.RepeatHeld(shl.KeyHeldState, 240, 120))
+	if(st.RepeatHeld(st.KeyHeldState, 240, 120))
 		CallEvent<KeyDown>(e.GetSender(), e);
 }
 
@@ -92,18 +92,18 @@ OnTouchHeld(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		auto& shl(FetchGUIShell());
+		auto& st(FetchGUIState());
 
-		if(shl.GetTouchDownPtr())
+		if(st.GetTouchDownPtr())
 		{
-			auto& wgt(*shl.GetTouchDownPtr());
+			auto& wgt(*st.GetTouchDownPtr());
 
-			if(shl.DraggingOffset == Vec::Invalid)
-				shl.DraggingOffset = GetLocationOf(wgt)
-					- shl.ControlLocation;
+			if(st.DraggingOffset == Vec::Invalid)
+				st.DraggingOffset = GetLocationOf(wgt)
+					- st.ControlLocation;
 			else
 				CallEvent<TouchMove>(wgt, e);
-			shl.LastControlLocation = shl.ControlLocation;
+			st.LastControlLocation = st.ControlLocation;
 		}
 	}
 }
@@ -113,10 +113,10 @@ OnTouchMove(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		auto& shl(FetchGUIShell());
+		auto& st(FetchGUIState());
 
-		if(shl.GetTouchDownPtr() && shl.RepeatHeld(shl.TouchHeldState, 240, 60))
-			CallEvent<TouchDown>(*shl.GetTouchDownPtr(), e);
+		if(st.GetTouchDownPtr() && st.RepeatHeld(st.TouchHeldState, 240, 60))
+			CallEvent<TouchDown>(*st.GetTouchDownPtr(), e);
 	}
 }
 
@@ -125,18 +125,18 @@ OnTouchMove_Dragging(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
-		auto& shl(FetchGUIShell());
+		auto& st(FetchGUIState());
 
-		if(shl.GetTouchDownPtr())
+		if(st.GetTouchDownPtr())
 		{
-			auto& wgt(*shl.GetTouchDownPtr());
+			auto& wgt(*st.GetTouchDownPtr());
 
 		// TODO: analysis buffered coordinate delayed painting bug;
-		//	if(hShl->LastControlLocation != hShl->ControlLocation)
+		//	if(st.LastControlLocation != st.ControlLocation)
 		//	{
 		// TODO: merge state to make a more efficient implementation;
 			Invalidate(wgt);
-			SetLocationOf(wgt, shl.LastControlLocation + shl.DraggingOffset);
+			SetLocationOf(wgt, st.LastControlLocation + st.DraggingOffset);
 		//	}
 		}
 	}

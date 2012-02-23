@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3895;
+\version r3898;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-02-19 19:27 +0800;
+	2012-02-19 21:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -149,13 +149,13 @@ FileBox::GetPath() const
 DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 	: Button(r), boxList(Rect::Empty, h)
 {
-	yunseq(Margin.Left = 4, Margin.Right = 4);
-
 	const auto detacher([this](UIEventArgs&&){
 		DetachTopWidget();
 	});
 
 	yunseq(
+		Margin.Left = 4,
+		Margin.Right = GetHeight() + 4,
 		HorizontalAlignment = TextAlignment::Left,
 		boxList.GetView().pDependency = this,
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){

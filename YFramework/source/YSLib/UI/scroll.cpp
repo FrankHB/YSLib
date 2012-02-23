@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4108;
+\version r4118;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2012-02-01 19:50 +0800;
+	2012-02-22 20:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -188,7 +188,7 @@ ATrack::Refresh(const PaintContext& pc)
 	{
 		const auto& g(pc.Target);
 		const auto& pt(pc.Location);
-		Styles::Palette& pal(FetchGUIShell().Colors);
+		auto& pal(FetchGUIState().Colors);
 
 		FillRect(g, pt, GetSizeOf(*this), pal[Styles::Track]);
 	//	FillRect(g, r, pal[Styles::Track]);
@@ -215,7 +215,7 @@ ATrack::Refresh(const PaintContext& pc)
 	/*
 		const auto& g(pc.Target);
 		const auto& pt(pc.Location);
-		Styles::Palette& pal(FetchGUIShell().Colors);
+		auto& st(FetchGUIState().Colors);
 
 		FillRect(g, r, pal[Styles::Track]);
 
@@ -318,8 +318,8 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 	FetchEvent<TouchMove>(Thumb) +=[this](TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
-			GUIShell& shl(FetchGUIShell());
-			SPos x(shl.LastControlLocation.X + shl.DraggingOffset.X);
+			auto& st(FetchGUIState());
+			SPos x(st.LastControlLocation.X + st.DraggingOffset.X);
 
 			RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
 			Invalidate(Thumb);
@@ -342,8 +342,8 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 	FetchEvent<TouchMove>(Thumb) += [this](TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
-			GUIShell& shl(FetchGUIShell());
-			SPos y(shl.LastControlLocation.Y + shl.DraggingOffset.Y);
+			auto& st(FetchGUIState());
+			SPos y(st.LastControlLocation.Y + st.DraggingOffset.Y);
 
 			RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
 			Invalidate(Thumb);

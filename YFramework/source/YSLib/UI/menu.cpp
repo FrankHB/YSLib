@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1910;
+\version r1913;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2012-02-15 13:10 +0800;
+	2012-02-22 20:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,11 +36,11 @@ using namespace Drawing;
 YSL_BEGIN_NAMESPACE(Components)
 
 Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
-	: TextList(r, h, FetchGUIShell().Colors.GetPair(Styles::Highlight,
+	: TextList(r, h, FetchGUIState().Colors.GetPair(Styles::Highlight,
 		Styles::HighlightText)),
 	id(id), pParent(nullptr), mSubMenus(), vDisabled()
 {
-	BackColor = FetchGUIShell().Colors[Styles::Panel],
+	BackColor = FetchGUIState().Colors[Styles::Panel],
 	SetAllOf(Margin, 6, 18, 4, 4);
 	CyclicTraverse = true;
 	if(h)
@@ -208,7 +208,7 @@ Menu::PaintItem(const Graphics& g, const Rect& mask, const Rect& r,
 	// TODO: handle highlight text color;
 
 	if(!IsItemEnabled(i))
-		GetTextState().Color = FetchGUIShell().Colors[Styles::GrayText];
+		GetTextState().Color = FetchGUIState().Colors[Styles::GrayText];
 	DrawClippedText(g, mask, GetTextState(), GetList()[i]);
 	GetTextState().Color = t;
 	if(r.Width > 16 && mSubMenus.find(i) != mSubMenus.end())

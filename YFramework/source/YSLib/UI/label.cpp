@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2179;
+\version r2180;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2012-02-19 19:28 +0800;
+	2012-02-19 21:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -74,7 +74,7 @@ MLabel::PaintText(const Size& s, Color c, const PaintContext& e)
 	case TextAlignment::Center:
 	case TextAlignment::Down:
 		{
-			SPos vertical_offset(bounds.Height - GetHorizontalOf(Margin)
+			SPos vertical_offset(bounds.Height - GetVerticalOf(Margin)
 				- GetTextLineHeightOf(ts));
 
 			if(vertical_offset > 0)

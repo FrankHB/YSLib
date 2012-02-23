@@ -11,13 +11,13 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r3036;
+\version r3054;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-05 22:06:05 +0800;
 \par 修改时间:
-	2012-02-16 22:00 +0800;
+	2012-02-21 15:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Text)
 
 /*!
-\brief YSLib 标准字符串（使用 UTF-16LE ）。
+\brief YSLib 标准字符串（使用 UCS-2LE ）。
 \since 早于 build 132 。
 */
 class String : public ucs2string
@@ -66,7 +66,7 @@ public:
 	\since build 281 。
 	*/
 	template<typename _tChar>
-	String(const _tChar*, Encoding = CP_Default);
+	String(const _tChar*, Encoding = CS_Default);
 	/*!
 	\brief 构造：使用 YSLib 基本字符串。
 	*/
@@ -81,8 +81,15 @@ public:
 	\since build 281 。
 	*/
 	template<typename _tChar>
-	String(const std::basic_string<_tChar>&, Encoding = CP_Default);
+	String(const std::basic_string<_tChar>&, Encoding = CS_Default);
 	inline DefDeDtor(String)
+
+	/*!
+	\brief 取指定编码的多字节字符串。
+	\since build 287 。
+	*/
+	string
+	GetMBCS(Encoding = CS_Default) const;
 };
 
 inline
@@ -104,19 +111,11 @@ String::String(ucs2string&& s)
 	: ucs2string(std::move(s))
 {}
 template<typename _tChar>
-String::String(const std::basic_string<_tChar>& s, Encoding cp)
-	: ucs2string(s_str = ucsdup(s.c_str(), cp))
+String::String(const std::basic_string<_tChar>& s, Encoding cs)
+	: ucs2string(s_str = ucsdup(s.c_str(), cs))
 {
 	std::free(s_str);
 }
-
-
-/*!
-\brief YSLib 基本字符串转化为多字节字符串。
-\since build 152 。
-*/
-string
-StringToMBCS(const ucs2string&, const Encoding& = CP_Local);
 
 YSL_END_NAMESPACE(Text)
 

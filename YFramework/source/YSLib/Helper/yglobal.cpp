@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3442;
+\version r3445;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2012-01-25 03:56 +0800;
+	2012-02-21 14:31 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -284,12 +284,15 @@ DSApplication::DSApplication()
 	//初始化主控制台。
 	platform::YConsoleInit(true, ColorSpace::Lime);
 
-/*	if(!setlocale(LC_ALL, "zh_CN.GBK"))
+#if 0
+	// TODO: review locale APIs compatibility;
+	if(!setlocale(LC_ALL, "zh_CN.GBK"))
 	{
 		EpicFail();
 		platform::yprintf("setlocale() with %s failed.\n", "zh_CN.GBK");
 		terminate();
-	}*/
+	}
+#endif
 
 	//初始化文件系统。
 	//初始化 EFSLib 和 LibFAT 。

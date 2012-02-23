@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6334;
+\version r6336;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-02-04 22:10 +0800;
+	2012-02-20 21:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -238,7 +238,7 @@ RequestToTop(IWidget&);
 /*!
 \brief 显示部件。
 
-设置部件可见性后无效化。
+依次设置部件可见性、请求部件焦点和无效化。
 \since build 229 。
 */
 void
@@ -247,7 +247,7 @@ Show(IWidget&);
 /*!
 \brief 隐藏部件。
 
-设置部件不可见性后无效化。
+依次释放部件焦点、设置部件不可见性和无效化。
 \since build 229 。
 */
 void

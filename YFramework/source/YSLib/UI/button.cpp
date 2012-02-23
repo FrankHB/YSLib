@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3682;
+\version r3685;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2012-02-01 19:02 +0800;
+	2012-02-22 20:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -42,7 +42,7 @@ namespace
 		YAssert(g.IsValid(), "err: @g is invalid.");
 
 		DrawRectRoundCorner(g, pt, s, is_enabled ? Color(60, 127, 177)
-			: FetchGUIShell().Colors[Styles::Workspace]);
+			: FetchGUIState().Colors[Styles::Workspace]);
 		if(s.Width > 2 && s.Height > 2)
 		{
 			yunseq(pt.X += 1, pt.Y += 1, s.Width -= 2, s.Height -= 2);
@@ -128,7 +128,7 @@ Button::Refresh(const PaintContext& pc)
 
 	// NOTE: partial invalidation made no efficiency improved here;
 	PaintText(GetSizeOf(*this), IsEnabled(*this) ? ForeColor
-		: FetchGUIShell().Colors[Styles::Workspace], PaintContext(pc.Target,
+		: FetchGUIState().Colors[Styles::Workspace], PaintContext(pc.Target,
 		pc.Location, Rect(pc.Location, GetSizeOf(*this))));
 	return r;
 }
@@ -156,7 +156,7 @@ CloseButton::Refresh(const PaintContext& pc)
 		const SPos xmin(pc.Location.X + 4), xmax(xmin + s.Width - 8),
 			ymin(pc.Location.Y + 4), ymax(ymin + s.Height - 8);
 		const Color c(IsEnabled(*this) ? ForeColor
-			: FetchGUIShell().Colors[Styles::Workspace]);
+			: FetchGUIState().Colors[Styles::Workspace]);
 
 		DrawLineSeg(pc.Target, xmin, ymin, xmax, ymax, c),
 		DrawLineSeg(pc.Target, xmax - 1, ymin, xmin - 1, ymax, c);

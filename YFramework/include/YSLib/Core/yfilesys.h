@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2221;
+\version r2229;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2012-02-16 22:16 +0800;
+	2012-02-21 15:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(IO)
 
-const auto CP_Path(Text::CP_Default); //!< 路径编码。
+const auto CP_Path(Text::CS_Default); //!< 路径编码。
 
 /*!
 \brief 文件系统常量：前缀 FS 表示文件系统 (File System) 。
@@ -61,7 +61,7 @@ typedef GSStringTemplate<NativePathCharType>::basic_string NativeString;
 /*!
 \brief 路径。
 */
-class Path : public ucs2string
+class Path : public String
 {
 public:
 	typedef GSStringTemplate<ucs2_t>::basic_string StringType; \
@@ -187,7 +187,7 @@ public:
 	Path
 	GetExtension() const;
 	DefGetter(const ynothrow, NativeString, NativeString,
-		Text::StringToMBCS(*this, CP_Path)) //!< 取本地格式和编码的字符串。
+		GetMBCS(CP_Path)) //!< 取本地格式和编码的字符串。
 
 	//修改函数。
 
@@ -294,20 +294,20 @@ public:
 
 inline
 Path::Path(const ucs2_t* pathstr)
-	: ucs2string(pathstr)
+	: String(pathstr)
 {}
 inline
 Path::Path(const NativePathCharType* pathstr)
-	: ucs2string(String(pathstr, CP_Path))
+	: String(pathstr, CP_Path)
 {}
 inline
 Path::Path(const NativeString& pathstr)
-	: ucs2string(String(pathstr, CP_Path))
+	: String(pathstr, CP_Path)
 {}
 template<class _tString>
 inline
 Path::Path(const _tString& pathstr)
-	: ucs2string(pathstr)
+	: String(pathstr)
 {}
 
 inline bool
@@ -643,7 +643,7 @@ public:
 inline bool
 FileList::operator/=(const String& s)
 {
-	return *this /= StringToMBCS(s, CP_Path);
+	return *this /= s.GetMBCS(CP_Path);
 }
 
 YSL_END_NAMESPACE(IO)

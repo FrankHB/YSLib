@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1945;
+\version r1980;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-02-19 19:28 +0800;
+	2012-02-21 19:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -120,9 +120,9 @@ class SettingPanel : public DialogPanel
 {
 	/*!
 	\brief 友元类：共享设置状态。
-	\since build 279 。
+	\since build 287 。
 	*/
-	friend class TextReaderManager;
+	friend class TextReaderSession;
 
 protected:
 	/*!
@@ -278,19 +278,38 @@ public:
 };
 
 
-class ReaderManager
+/*!
+\brief 阅读器设置。
+\since build 287 。
+*/
+struct ReaderSetting
+{
+	Color UpColor, DownColor, FontColor;
+	Drawing::Font Font;
+};
+
+
+/*!
+\brief 阅读器会话。
+\since build 287 。
+*/
+class ReaderSession
 {
 public:
 	ShlReader& Shell;
 
-	ReaderManager(ShlReader&);
-	DefDelCopyCtor(ReaderManager)
-	DefDelMoveCtor(ReaderManager)
-	virtual DefEmptyDtor(ReaderManager)
+	ReaderSession(ShlReader&);
+	DefDelCopyCtor(ReaderSession)
+	DefDelMoveCtor(ReaderSession)
+	virtual DefEmptyDtor(ReaderSession)
 };
 
 
-class TextReaderManager : public ReaderManager
+/*!
+\brief 文本阅读器会话。
+\since build 287 。
+*/
+class TextReaderSession : public ReaderSession
 {
 private:
 	/*!
@@ -311,13 +330,13 @@ public:
 	unique_ptr<TextFile> pTextFile;
 	MenuHost mhMain;
 
-	TextReaderManager(ShlReader&);
+	TextReaderSession(ShlReader&);
 	/*!
 	\brief 析构：释放资源。
 	\since build 286 。
 	*/
 	virtual
-	~TextReaderManager();
+	~TextReaderSession();
 
 private:
 	/*!
@@ -330,6 +349,7 @@ private:
 public:
 	/*!
 	\brief 读取文件。
+	\note 不刷新按钮状态。
 	\since build 286 。
 	*/
 	void
@@ -347,6 +367,7 @@ private:
 	void
 	UpdateReadingList(bool);
 
+public:
 	/*!
 	\brief 更新按钮状态。
 	\note 检查近期浏览记录状态确定可用性。
@@ -355,6 +376,7 @@ private:
 	void
 	UpdateButtons();
 
+private:
 	void
 	OnClick(TouchEventArgs&&);
 
@@ -363,19 +385,23 @@ private:
 };
 
 
-class HexReaderManager : public ReaderManager
+/*!
+\brief 十六进制阅读器会话。
+\since build 287 。
+*/
+class HexReaderSession : public ReaderSession
 {
 public:
 	HexViewArea HexArea;
 	FileInfoPanel pnlFileInfo;
 
-	HexReaderManager(ShlReader&);
+	HexReaderSession(ShlReader&);
 	/*!
 	\brief 析构：释放资源。
 	\since build 286 。
 	*/
 	virtual
-	~HexReaderManager();
+	~HexReaderSession();
 
 	void
 	UpdateInfo();
@@ -401,7 +427,7 @@ public:
 	shared_ptr<Image> hUp, hDn;
 
 protected:
-	unique_ptr<ReaderManager> pManager;
+	unique_ptr<ReaderSession> pManager;
 
 public:
 	/*!
@@ -409,6 +435,11 @@ public:
 	\since build 286 。
 	*/
 	ReadingList LastRead;
+	/*!
+	\brief 当前阅读器设置。
+	\since build 287 。
+	*/
+	ReaderSetting CurrentSetting;
 
 	ShlReader();
 

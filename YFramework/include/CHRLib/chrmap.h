@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r2235;
+\version r2244;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-12-29 18:43 +0800;
-\par 字符集:
+	2012-02-21 15:00 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	CHRLib::CharacterMapping;
@@ -35,9 +35,11 @@ CHRLIB_BEGIN
 using CharSet::Encoding;
 
 
-//默认字符集。
-yconstexpr Encoding CP_Default = CharSet::UTF_8;
-yconstexpr Encoding CP_Local = CharSet::GBK;
+/*!
+\brief 默认字符编码。
+\since build 287 。
+*/
+yconstexpr Encoding CS_Default = CharSet::UTF_8;
 
 
 /*!

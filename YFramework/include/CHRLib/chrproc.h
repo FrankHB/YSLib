@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1638;
+\version r1646;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-12-28 19:35 +0800;
-\par 字符集:
+	2012-02-21 15:02 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	CHRLib::CharacterProcessing;
@@ -126,13 +126,13 @@ UCToMBC(char*, const ucs2_t&, const Encoding&);
 \brief 按指定编码转换 MBCS 字符串为 UTF-16LE 字符串，返回转换的串长。
 */
 size_t
-MBCSToUCS2(ucs2_t*, const char*, const Encoding& = CP_Default);
+MBCSToUCS2(ucs2_t*, const char*, const Encoding& = CS_Default);
 
 /*!
 \brief 按指定编码转换 UTF-16LE 字符串为 MBCS 字符串，返回转换的串长。
 */
 size_t
-UCS2ToMBCS(char*, const ucs2_t*, const Encoding& = CP_Default);
+UCS2ToMBCS(char*, const ucs2_t*, const Encoding& = CS_Default);
 
 /*!
 \brief 转换 UCS-4 字符串为 UCS-2 字符串，返回转换的串长。
@@ -146,7 +146,7 @@ UCS4ToUCS2(ucs2_t*, const ucs4_t*);
 \note 空间由 std::free 释放。
 */
 ucs2_t*
-ucsdup(const char*, const Encoding& = CP_Default);
+ucsdup(const char*, const Encoding& = CS_Default);
 /*!
 \brief 复制 UCS-2 字符串。
 \note 空间由 std::free 释放。

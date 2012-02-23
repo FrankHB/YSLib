@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6902;
+\version r6926;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-17 07:44 +0800;
+	2012-02-23 18:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -40,7 +40,7 @@
 扩展目的：渐进地向独立的计算机软件系统演进，探究具有高度互操作性的系统的一般实现方法。
 
 @1.2 理论背景、工具和依据：
-基本内容参见 [Documentation::CommonRules @@2.1 ] 。
+基本内容参见 [Documentation::CommonRules @@2.1] 。
 
 @1.2.1 组织概念模型：
 
@@ -61,21 +61,29 @@
 @1.2.2.2 程序实体：
  Shell 实体（简称 Shell ）是一种包含状态的有限片段控制流抽象。
 静态角度上， Shell 可以作为的代码复用的单位。
-动态角度上， 一个 Shell 实体的实例是用于表示一段时间间隔（称为生存期）内的运行时控制流映像（线程/进程等）的相关状态的集合。
-一个 Shell 的实例有两种执行状态：非活动态和活动态。前者至后者转换过程称为激活(activation) ，后者至前者转换过程称为停用(deactivation) 。
-对于单线程的实现，同一时刻有且仅有一个 Shell 实例处于活动态。
+动态角度上， 一个 Shell 实体的实例（Shell 对象）是用于表示一段时间间隔（称为生存期）内的运行时控制流映像（线程/进程等）的相关状态的集合。
+ Shell 的实例是程序的基本调度单位之一。
 注意 YSLib 中的实现 Shell 实体的基类 Shell 属于组织意义上的 Core 而非 Shell ，位于 "/Core" 。
+
+@1.2.2.2.1 Shell 执行状态：
+作为基本调度单位， 不同 Shell 对象之间的生存期是否重叠无法简单控制。
+因此，被有效调度（包含当前正在运行的控制流映像）的 Shell 对象时间间隔不等于它的生存期，而是其中的一部分。
+这样， Shell 对象不仅表示活动的（当前正在运行的）运行时状态，还可以储存非活动的运行时状态。
+在某个确定的时刻，一个 Shell 对象具有以下执行状态之一：不处于可被有效调度时的非活动态和处于可被有效调度时的活动态。
+非活动态至活动态的转换过程称为激活(activation) ；活动态至非活动态的转换过程称为停用(deactivation) 。
+新建的 Shell 对象默认具有非活动态。
+对于单线程的实现，同一时刻有且仅有一个 Shell 对象处于活动态。
 
 @1.2.3 设计意义：
 环境隔离：对特定领域相关的上层源代码提供一致的接口。
 抽象和封装：提供控制流实体语义的抽象；提供用于封装上层平台相关的模块的支持。
 
 @1.3 构建原则：
-基本内容参见 [Documentation::CommonRules @@2.2 ] 。
+基本内容参见 [Documentation::CommonRules @@2.2] 。
 
 @1.3.2 可移植性相关：
-基本内容参见 [Documentation::CommonRules @@2.2.2 ] 。
-语言使用规则参见 [Documentation::CommonRules @@5 ] 。
+基本内容参见 [Documentation::CommonRules @@2.2.2] 。
+语言使用规则参见 [Documentation::CommonRules @@5] 。
 
 @1.3.2 标准库/系统库使用：
 基于标准 ISO C++03 环境（ISO/IEC 14882:2003 定义的基本语言特性和库函数以及以下扩展）和基本的系统调用（由 YCLib 支持）。
@@ -110,8 +118,8 @@
 格式化输出及结构对齐时注意平台字长差异。
 
 @1.3.3 可维护性和架构设计：
-基本内容参见 [Documentation::CommonRules @@2.2.3 ] 。
-语义相关的架构参见 [Documentation::CommonRules @@2.3.2 ] 。
+基本内容参见 [Documentation::CommonRules @@2.2.3] 。
+语义相关的架构参见 [Documentation::CommonRules @@2.3.2] 。
 
 @1.3.4 实现功能特征概述：
 便于扩展。
@@ -179,7 +187,7 @@
 这些属性也适用于用于实现的构件。
 强化了编译期可配置性。
 基于性能考虑，底层不实现观察者模式。
-默认实现的 UI Shell(@1.6.1) 是 GUIShell 类。
+默认公共 UI 状态通过 YGUI 单元的 GUIState 类实现。
 
 @1.6.2.1 模型(model) ：
 模型表示数据模型(data model) ，保证和领域逻辑(domain logic)/业务逻辑(business logic) 具有合理的关联。
@@ -593,21 +601,21 @@
 
 @2.7.2.1.2 GUI 输入事件：
 基本用户界面输入事件是 GUI 输入直接引起的事件，分为基本按键输入事件和基本指针设备（屏幕光标定位设备）输入事件。
-默认通过 GUIShell 实现的事件参数中，除了 TouchHeld 外，事件发送者和订阅者相同。
+默认通过 GUIState 实现的事件参数中，除了 TouchHeld 外，事件发送者和订阅者相同。
 
 @2.7.2.1.2.1 基本按键输入事件：
 基本按键输入事件包含 KeyUp 、 KeyDown 和 KeyHeld 。
 
 @2.7.2.1.2.2 基本触摸输入事件：
 基本指针设备输入事件包含 TouchUp 、 TouchDown 和 TouchHeld 。
-默认通过 GUIShell 实现的 TouchHeld 事件当且仅当触摸移动的部件和开始接触时不同时，事件发送者和订阅者不同。订阅者总是开始接触时的部件。
+默认通过 GUIState 实现的 TouchHeld 事件当且仅当触摸移动的部件和开始接触时不同时，事件发送者和订阅者不同。订阅者总是开始接触时的部件。
 
 @2.7.2.1.2.3 扩展 GUI 输入事件：
 扩展 GUI 输入事件有以下几类：复合事件（包括 KeyPress 、 Click 、TouchMove ）、边界事件（包括 Enter 和 Leave ，参见 @2.7.2.1.5 ）等。
 
 @2.7.2.1.2.4 输入事件路由：
-事件路由通过 YGUI 单元中的 GUIShell 实现。包括按键输入事件 KeyUp 、 KeyDown 、 KeyHeld 和 KeyPress；指针设备（屏幕光标定位设备）接触事件 TouchUp 、TouchDown 、 TouchHeld 、 TouchMove 和 Click 。
-触发过程：由 YGlobal 等单元完成平台相关的用户输入信号捕获并向 YGUI 单元的 GUIShell 类传递，后者处理后生成对应输入事件。
+事件路由通过 YGUI 单元中的 GUIState 类实现。包括按键输入事件 KeyUp 、 KeyDown 、 KeyHeld 和 KeyPress；指针设备（屏幕光标定位设备）接触事件 TouchUp 、TouchDown 、 TouchHeld 、 TouchMove 和 Click 。
+触发过程：由 YGlobal 等单元完成平台相关的用户输入信号捕获并向 YGUI 单元的 GUIState 类的全局实例传递，后者处理后生成对应输入事件。
 当用户按键时，触发 KeyDown 事件；持续时触发 KeyHeld 事件；结束时依次触发 KeyPress 和 KeyUp 事件。
 当用户使用指针设备（包括触摸屏）输入时，触发 TouchDown 事件；持续时触发 TouchHeld 事件；持续且移动时可触发 TouchMove 事件；结束时依次触发 Click 和 TouchUp 事件。
 注意非直接事件路由中 TouchHeld 不被触发。当 TouchHeld 被触发时，即使路由策略是 Direct ，也有可能因为其它部件移动而导致状态不一致。因此在 TouchHeld 的事件处理器中需要注意校验发送者是否符合预期。
@@ -633,7 +641,7 @@
 
 @2.7.2.1.5 边界事件：
 包括 Enter 和 Leave 事件。
-默认通过 GUIShell 实现，事件发送者和订阅者相同。
+默认通过 GUIState 实现，事件发送者和订阅者相同。
 指针设备作用于部件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
 边界事件的事件源是被作用的边界对应的部件，且参数坐标相对于此部件。
 
@@ -659,7 +667,7 @@
 
 @2.7.3 GUI 输入控制器：
 由于设备的特点， GUI 输入相对于输出而言是容易规格化的。因此在 YControl 单元中定义了一些默认 GUI 输入事件（参见 @2.7.2.1 ），且在 YGUI 单元中定义了若干函数/类用于处理默认 GUI 输入事件。
-默认实现输入输出消息及输入状态寄存的控制器类是 GUIShell ，同时是输入事件的触发器。
+默认实现输入输出消息及输入状态寄存的控制器类是 GUIState ，同时是输入事件的触发器。
 在默认的控件实现中，使用上述的默认 GUI 输入处理程序作为调度控件行为的控制器。在自定义控件实现中，可以另行定义控制器。
 
 @2.7.4 用于 GUI 的焦点特性：
@@ -1004,9 +1012,25 @@ FetchDefaultScreen();
  build 207 前使用 Loki 库的智能指针实现句柄。
 
 @5.1.3 专用库：
+包含于 YFramework 中的子库。
 
-@5.1.3.1 包含于 YFramework 中的子库：
-字符串内码支持库 CHRLib 。
+@5.1.3.1 字符串内码支持库 CHRLib ：
+目前 Unicode 编码中仅支持基本多文种平面(BMP) 编码点。
+
+@5.1.3.1.1 字符类型：
+基于 C++11 基本类型的 UCS-2/UCS-4 字符类型，以及 UCS 整数类型，参见 chrdef.h 。
+
+@5.1.3.1.2 编码：
+基于 MIBEnum 的字符编码定义，参见 encoding.h 。
+
+@5.1.3.1.3 字符映射：
+转换序列、转换结果和编码宽度等，参见 chrmap.h 。
+
+@5.1.3.1.4 静态编码映射：
+提供特定编码的转换 API ，参见 smap.hpp 。
+
+@5.1.3.1.5 字符编码处理：
+编码判断和编码转换 API ，参见 chrproc.h 。
 
 @5.1.3.2
 字体输出使用 FreeType2 实现矢量字体光栅化支持。

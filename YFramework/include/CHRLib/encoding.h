@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file encoding.h
 \ingroup CHRLib
 \brief 字符编码定义。
-\version r1572;
+\version r1576;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 242 。
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2011-12-15 13:48 +0800;
-\par 字符集:
+	2012-02-21 14:29 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	CHRLib::Encoding;
@@ -42,7 +42,7 @@ CHRLIB_BEGIN_NAMESPACE(CharSet)
 	SNMP(simple network management protocal ，简单网络管理协议) 和
 	OSI/ISO 网络管理模型上下文中的虚拟数据库，参见
  http://en.wikipedia.org/wiki/Management_information_base 。
-\note 由于历史原因， CharSet（字符集）和相关概念在此作为字符编码的同义词，
+\note 由于历史原因， CharSet（字符集）和相关概念在此作为文本编码的同义词，
 	但不是确切的用法，参见 http://www.iana.org/assignments/ianacharset-mib 。
 \note 完整枚举项的详细信息参见 http://www.iana.org/assignments/character-sets 。
 */

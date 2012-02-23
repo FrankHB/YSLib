@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 说明。
-\version r2114;
+\version r2115;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-18 16:25 +0800;
+	2012-02-23 18:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -63,7 +63,7 @@ SM_DEACTIVATED			0x0006
 
 //绘制 Shell 窗口组客户区。参考优先级 0xE0 。
 //参数类型 shared_ptr<Desktop> ，是需要绘制的桌面句柄。
-//若参数为空，则默认 GUIShell 不做处理，行为由派生类定义（例如对于多个桌面，默认实现会导致不同步刷新）。
+//若参数为空，则默认 Shell 不做处理，行为由派生类定义（例如对于多个桌面，默认实现会导致不同步刷新）。
 SM_PAINT				0x000F
 
 //退出 Shell 及进程。参考优先级 0xFF 。

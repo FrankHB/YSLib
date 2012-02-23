@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1476;
+\version r1478;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2012-02-16 15:52 +0800;
+	2012-02-22 19:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -96,7 +96,7 @@ public:
 	explicit
 	TextList(const Rect& = Rect::Empty,
 		const shared_ptr<ListType>& = shared_ptr<ListType>(),
-		pair<Color, Color> = FetchGUIShell().Colors.GetPair(Styles::Highlight,
+		pair<Color, Color> = FetchGUIState().Colors.GetPair(Styles::Highlight,
 		Styles::HighlightText));
 	inline DefDeMoveCtor(TextList)
 

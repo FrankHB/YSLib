@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5277;
+\version r5279;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-02-04 22:12 +0800;
+	2012-02-20 21:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -86,6 +86,7 @@ void
 Show(IWidget& wgt)
 {
 	SetVisibleOf(wgt, true);
+	RequestFocus(wgt);
 	Invalidate(wgt);
 }
 
@@ -93,6 +94,7 @@ void
 Hide(IWidget& wgt)
 {
 	SetVisibleOf(wgt, false);
+	ReleaseFocus(wgt);
 	Invalidate(wgt);
 }
 

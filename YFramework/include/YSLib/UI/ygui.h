@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2652;
+\version r2781;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-12-04 12:54 +0800;
-\par 字符集:
+	2012-02-23 18:35 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YGUI;
@@ -36,13 +36,19 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Shells)
+YSL_BEGIN_NAMESPACE(Components)
 
-//! \brief 默认图形用户界面 Shell 。
-class GUIShell : public Shell
+/*!
+\brief 图形用户界面公共状态。
+\warning 非虚析构。
+\since build 287 。
+*/
+class GUIState
 {
 public:
-	//! \brief 输入保持状态。
+	/*!
+	\brief 输入保持状态。
+	*/
 	typedef enum
 	{
 		Free = 0,
@@ -64,11 +70,7 @@ private:
 	bool control_entered; //!< 记录指针是否在控件内部。
 
 public:
-	/*!
-	\brief 无参数构造。
-	\note 向应用程序对象添加自身。
-	*/
-	GUIShell();
+	GUIState() ynothrow;
 
 	DefPred(const ynothrow, ControlEntered, control_entered)
 
@@ -78,22 +80,10 @@ public:
 		//独立屏幕焦点指针。
 
 	/*!
-	\brief 消息处理函数。
-	*/
-	virtual int
-	OnGotMessage(const Message&);
-
-	/*!
 	\brief 重复检测输入接触保持事件。
 	*/
 	bool
 	RepeatHeld(HeldStateType&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
-
-	/*!
-	\brief 复位接触保持状态。
-	*/
-	void
-	ResetHeldState(HeldStateType&);
 
 	/*!
 	\brief 复位图形用户界面状态。
@@ -101,7 +91,13 @@ public:
 		以避免处理无效指针。
 	*/
 	void
-	ResetGUIStates();
+	Reset();
+
+	/*!
+	\brief 复位接触保持状态。
+	*/
+	void
+	ResetHeldState(HeldStateType&);
 
 private:
 	void
@@ -109,9 +105,6 @@ private:
 
 	void
 	TryLeaving(Components::TouchEventArgs&&);
-
-	void
-	ResetTouchHeldState();
 
 public:
 	/*!
@@ -143,19 +136,24 @@ public:
 	ResponseTouch(Components::TouchEventArgs&, Components::VisualEvent);
 };
 
-YSL_END_NAMESPACE(Shells)
-
-using Shells::GUIShell;
 
 /*!
-\brief 取当前线程空间中运行的图形用户界面 Shell 句柄。
-\todo 线程模型和安全性。
-\note 不能简单兼容多线程模型。
+\brief 取默认图形用户界面公共状态。
+\since build 287 。
 */
-GUIShell&
-FetchGUIShell();
+GUIState&
+FetchGUIState();
 
-YSL_BEGIN_NAMESPACE(Components)
+
+/*
+\brief 判断指定部件是否被句柄指定的图形用户界面状态锁定为独立焦点。
+\since build 287 。
+*/
+inline bool
+IsFocusedByShell(const IWidget& wgt, const GUIState& st = FetchGUIState())
+{
+	return st.GetTouchDownPtr() == &wgt;
+}
 
 
 /*!
@@ -169,15 +167,6 @@ RequestFocusCascade(IWidget&);
 */
 void
 ReleaseFocusCascade(IWidget&);
-
-
-/*
-\brief 判断指定部件是否被句柄指定的图形用户界面 Shell 锁定为独立焦点。
-\throw GeneralEvent 图形用户界面 Shell 句柄为空。
-*/
-bool
-IsFocusedByShell(const IWidget&, const GUIShell& = FetchGUIShell());
-
 
 YSL_END_NAMESPACE(Components)
 

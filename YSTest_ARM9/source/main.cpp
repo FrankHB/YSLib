@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2188;
+\version r2189;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-02-14 20:02 +0800;
+	2012-02-22 20:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -88,7 +88,7 @@ MainShell::OnActivated(const Message& msg)
 //	dsk_up.GetBackgroundImagePtr() = FetchImage(1);
 	dsk_up.BackColor = Color(240, 216, 192);
 //	dsk_dn.BackColor = Color(240, 216, 240);
-	dsk_dn.BackColor = FetchGUIShell().Colors[Styles::Desktop];
+	dsk_dn.BackColor = FetchGUIState().Colors[Styles::Desktop];
 	lblTitle.Text = Application::ProductName;
 	lblStatus.Text = "Loading...";
 	lblDetails.Text = u"初始化中，请稍后……";

@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4029;
+\version r4144;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-02-08 07:52 +0800;
+	2012-02-23 18:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -33,41 +33,18 @@ YSL_BEGIN
 using namespace Drawing;
 using namespace Components;
 
-YSL_BEGIN_NAMESPACE(Shells)
+YSL_BEGIN_NAMESPACE(Components)
 
-GUIShell::GUIShell()
-	: Shell(),
-	KeyHeldState(Free), TouchHeldState(Free),
+GUIState::GUIState() ynothrow
+	: KeyHeldState(Free), TouchHeldState(Free),
 	DraggingOffset(Vec::Invalid), HeldTimer(1000, false),
 	ControlLocation(Point::Invalid),
 	LastControlLocation(Point::Invalid), Colors(),
 	p_KeyDown(), p_TouchDown(), control_entered(false)
 {}
 
-int
-GUIShell::OnGotMessage(const Message& msg)
-{
-	using namespace Messaging;
-
-	switch(msg.GetMessageID())
-	{
-	case SM_PAINT:
-		{
-			const auto h(FetchTarget<SM_PAINT>(msg));
-			
-			if(h)
-				h->Refresh(PaintContext(h->GetContext(), Point::Zero,
-					Rect(Point::Zero, GetSizeOf(*h))));
-		}
-		return 0;
-	default:
-		break;
-	}
-	return Shell::OnGotMessage(msg);
-}
-
 bool
-GUIShell::RepeatHeld(HeldStateType& s,
+GUIState::RepeatHeld(HeldStateType& s,
 	Timers::TimeSpan InitialDelay, Timers::TimeSpan RepeatedDelay)
 {
 	//三状态自动机。
@@ -100,14 +77,7 @@ GUIShell::RepeatHeld(HeldStateType& s,
 }
 
 void
-GUIShell::ResetHeldState(HeldStateType& s)
-{
-	Deactivate(HeldTimer);
-	s = Free;
-}
-
-void
-GUIShell::ResetGUIStates()
+GUIState::Reset()
 {
 	yunseq(KeyHeldState = Free, TouchHeldState = Free,
 		DraggingOffset = Vec::Invalid);
@@ -119,7 +89,14 @@ GUIShell::ResetGUIStates()
 }
 
 void
-GUIShell::TryEntering(TouchEventArgs&& e)
+GUIState::ResetHeldState(HeldStateType& s)
+{
+	Deactivate(HeldTimer);
+	s = Free;
+}
+
+void
+GUIState::TryEntering(TouchEventArgs&& e)
 {
 	if(!control_entered)
 	{
@@ -127,8 +104,9 @@ GUIShell::TryEntering(TouchEventArgs&& e)
 		control_entered = true;
 	}
 }
+
 void
-GUIShell::TryLeaving(TouchEventArgs&& e)
+GUIState::TryLeaving(TouchEventArgs&& e)
 {
 	if(control_entered)
 	{
@@ -137,15 +115,8 @@ GUIShell::TryLeaving(TouchEventArgs&& e)
 	}
 }
 
-void
-GUIShell::ResetTouchHeldState()
-{
-	ResetHeldState(TouchHeldState);
-	DraggingOffset = Vec::Invalid;
-}
-
 bool
-GUIShell::ResponseKeyBase(KeyEventArgs& e, Components::VisualEvent op)
+GUIState::ResponseKeyBase(KeyEventArgs& e, Components::VisualEvent op)
 {
 	auto& wgt(e.GetSender());
 
@@ -173,20 +144,21 @@ GUIShell::ResponseKeyBase(KeyEventArgs& e, Components::VisualEvent op)
 		CallEvent<KeyHeld>(wgt, e);
 		break;
 	default:
-		YAssert(false, "Invalid operation found @ GUIShell::ResponseKeyBase;");
+		YAssert(false, "Invalid operation found @ GUIState::ResponseKeyBase;");
 	}
 	return true;
 }
 
 bool
-GUIShell::ResponseTouchBase(TouchEventArgs& e, Components::VisualEvent op)
+GUIState::ResponseTouchBase(TouchEventArgs& e, Components::VisualEvent op)
 {
 	auto& wgt(e.GetSender());
 
 	switch(op)
 	{
 	case TouchUp:
-		ResetTouchHeldState();
+		ResetHeldState(TouchHeldState);
+		DraggingOffset = Vec::Invalid;
 		CallEvent<TouchUp>(wgt, e);
 		if(p_TouchDown)
 		{
@@ -217,13 +189,13 @@ GUIShell::ResponseTouchBase(TouchEventArgs& e, Components::VisualEvent op)
 		break;
 	default:
 		YAssert(false, "Invalid operation found"
-			" @ GUIShell::ResponseTouchBase;");
+			" @ GUIState::ResponseTouchBase;");
 	}
 	return true;
 }
 
 bool
-GUIShell::ResponseKey(KeyEventArgs& e, Components::VisualEvent op)
+GUIState::ResponseKey(KeyEventArgs& e, Components::VisualEvent op)
 {
 	auto p(&e.GetSender());
 	IWidget* pCon;
@@ -247,7 +219,7 @@ GUIShell::ResponseKey(KeyEventArgs& e, Components::VisualEvent op)
 		p = t;
 	}
 
-	YAssert(p, "Null pointer found @ GUIShell::ResponseKey");
+	YAssert(p, "Null pointer found @ GUIState::ResponseKey");
 
 	e.Strategy = Components::RoutedEventArgs::Direct;
 	e.SetSender(*p);
@@ -263,7 +235,7 @@ GUIShell::ResponseKey(KeyEventArgs& e, Components::VisualEvent op)
 }
 
 bool
-GUIShell::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
+GUIState::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 {
 	ControlLocation = e;
 
@@ -290,7 +262,7 @@ GUIShell::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 		e -= GetLocationOf(*p);
 	};
 
-	YAssert(p, "Null pointer found @ GUIShell::ResponseTouch");
+	YAssert(p, "Null pointer found @ GUIState::ResponseTouch");
 
 	e.Strategy = Components::RoutedEventArgs::Direct;
 	e.SetSender(*p);
@@ -306,20 +278,15 @@ GUIShell::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 	return r;
 }
 
-YSL_END_NAMESPACE(Shells)
 
-GUIShell&
-FetchGUIShell()
+GUIState&
+FetchGUIState()
 {
-	shared_ptr<GUIShell> hShl(dynamic_pointer_cast<GUIShell>(
-		FetchShellHandle()));
+	static GUIState* pState(new GUIState());
 
-	YAssert(bool(hShl), "Null handle found @ FetchGUIShell;");
-
-	return *hShl;
+	return *pState;
 }
 
-YSL_BEGIN_NAMESPACE(Components)
 
 void
 RequestFocusCascade(IWidget& wgt)
@@ -341,13 +308,6 @@ ReleaseFocusCascade(IWidget& wgt)
 	{
 		ReleaseFocus(*p);
 	}while((p = FetchContainerPtr(*p)));
-}
-
-
-bool
-IsFocusedByShell(const IWidget& wgt, const GUIShell& shl)
-{
-	return shl.GetTouchDownPtr() == &wgt;
 }
 
 YSL_END_NAMESPACE(Components)

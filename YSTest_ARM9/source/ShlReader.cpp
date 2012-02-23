@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3233;
+\version r3264;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-02-19 19:28 +0800;
+	2012-02-21 19:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -35,14 +35,10 @@ using namespace ystdex;
 
 YSL_BEGIN_NAMESPACE(YReader)
 
-/*namespace
-{
-	ResourceMap GlobalResourceMap;
-}*/
-
-
 namespace
 {
+//	ResourceMap GlobalResourceMap;
+
 	shared_ptr<TextList::ListType>
 	FetchFontFamilyNames()
 	{
@@ -253,6 +249,7 @@ SettingPanel::SettingPanel()
 		btnTextColor.Text = u"文字颜色...",
 	//	FetchEvent<Paint>(lblColorAreaUp) += BorderBrush(BorderStyle),
 	//	FetchEvent<Paint>(lblColorAreaDown) += BorderBrush(BorderStyle),
+		FetchEvent<KeyDown>(*this) += OnEvent_StopRouting<KeyEventArgs>,
 		FetchEvent<Click>(btnFontSizeDecrease) += [=, this](TouchEventArgs&&){
 			auto size(lblAreaUp.Font.GetSize());
 
@@ -282,7 +279,7 @@ SettingPanel::SettingPanel()
 		},
 		ddlFont.GetConfirmed() += [this](IndexEventArgs&&){
 			if(auto p = FetchGlobalInstance().GetFontCache().GetFontFamilyPtr(
-				StringToMBCS(ddlFont.Text, Text::CP_Default).c_str()))
+				ddlFont.Text.GetMBCS().c_str()))
 			{
 				lblAreaUp.Font = Font(*p, lblAreaUp.Font.GetSize());
 				lblAreaDown.Font = lblAreaUp.Font;
@@ -379,13 +376,13 @@ ReadingList::Switch(bool is_prev)
 }
 
 
-ReaderManager::ReaderManager(ShlReader& shl)
+ReaderSession::ReaderSession(ShlReader& shl)
 	: Shell(shl)
 {}
 
 
-TextReaderManager::TextReaderManager(ShlReader& shl)
-	: ReaderManager(shl),
+TextReaderSession::TextReaderSession(ShlReader& shl)
+	: ReaderSession(shl),
 	Reader(), boxReader(Rect(0, 160, 256, 32), shl),
 	boxTextInfo(shl), pnlSetting(), pTextFile(), mhMain(shl.GetDesktopDown())
 {
@@ -485,12 +482,13 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 	auto& dsk_up(Shell.GetDesktopUp());
 	auto& dsk_dn(Shell.GetDesktopDown());
 
-	// TODO: use entity tree to store properties;
+	Reader.SetColor(Shell.CurrentSetting.FontColor),
+	Reader.SetFont(Shell.CurrentSetting.Font),
 	yunseq(
-		dsk_up.BackColor = Color(240, 216, 192),
-		dsk_dn.BackColor = Color(192, 216, 240),
-		FetchEvent<Click>(dsk_dn).Add(*this, &TextReaderManager::OnClick),
-		FetchEvent<KeyDown>(dsk_dn).Add(*this, &TextReaderManager::OnKeyDown),
+		dsk_up.BackColor = Shell.CurrentSetting.UpColor,
+		dsk_dn.BackColor = Shell.CurrentSetting.DownColor,
+		FetchEvent<Click>(dsk_dn).Add(*this, &TextReaderSession::OnClick),
+		FetchEvent<KeyDown>(dsk_dn).Add(*this, &TextReaderSession::OnKeyDown),
 		FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld
 	);
 	Reader.Attach(dsk_up, dsk_dn),
@@ -498,25 +496,31 @@ TextReaderManager::TextReaderManager(ShlReader& shl)
 	dsk_dn += boxTextInfo,
 	dsk_dn += pnlSetting;
 	LoadFile(ShlReader::CurrentPath);
+	UpdateButtons();
 	//置默认视图。
 	// TODO: 关联视图设置状态使用户可选。
 	OnClick(TouchEventArgs(dsk_dn));
 	RequestFocusCascade(dsk_dn);
 }
 
-TextReaderManager::~TextReaderManager()
+TextReaderSession::~TextReaderSession()
 {
-	auto& dsk_up(Shell.GetDesktopUp());
-	auto& dsk_dn(Shell.GetDesktopDown());
-
 	Shell.LastRead.Insert(path, Reader.GetTopPosition());
 	Reader.UnloadText();
 	pTextFile = nullptr;
 	mhMain.Clear();
+
+	auto& dsk_up(Shell.GetDesktopUp());
+	auto& dsk_dn(Shell.GetDesktopDown());
+
 	yunseq(
-		FetchEvent<Click>(dsk_dn).Remove(*this, &TextReaderManager::OnClick),
+		Shell.CurrentSetting.UpColor = dsk_up.BackColor,
+		Shell.CurrentSetting.DownColor = dsk_dn.BackColor,
+		Shell.CurrentSetting.FontColor = Reader.GetColor(),
+		Shell.CurrentSetting.Font = Reader.GetFont(),
+		FetchEvent<Click>(dsk_dn).Remove(*this, &TextReaderSession::OnClick),
 		FetchEvent<KeyDown>(dsk_dn).Remove(*this,
-			&TextReaderManager::OnKeyDown),
+			&TextReaderSession::OnKeyDown),
 		FetchEvent<KeyHeld>(dsk_dn) -= OnKeyHeld
 	);
 	Reader.Detach();
@@ -528,7 +532,7 @@ TextReaderManager::~TextReaderManager()
 }
 
 void
-TextReaderManager::Execute(IndexEventArgs::ValueType idx)
+TextReaderSession::Execute(IndexEventArgs::ValueType idx)
 {
 	switch(idx)
 	{
@@ -579,16 +583,15 @@ TextReaderManager::Execute(IndexEventArgs::ValueType idx)
 }
 
 void
-TextReaderManager::LoadFile(const IO::Path& pth)
+TextReaderSession::LoadFile(const IO::Path& pth)
 {
 	path = pth;
 	pTextFile = unique_raw(new TextFile(pth.GetNativeString().c_str()));
 	Reader.LoadText(*pTextFile);
-	UpdateButtons();
 }
 
 void
-TextReaderManager::ShowMenu(Menu::ID id, const Point&)
+TextReaderSession::ShowMenu(Menu::ID id, const Point&)
 {
 	if(!mhMain.IsShowing(id))
 	{
@@ -609,15 +612,20 @@ TextReaderManager::ShowMenu(Menu::ID id, const Point&)
 }
 
 void
-TextReaderManager::UpdateReadingList(bool is_prev)
+TextReaderSession::UpdateReadingList(bool is_prev)
 {
 	Shell.LastRead.Insert(path, Reader.GetTopPosition());
-	Reader.Locate(Shell.LastRead.Switch(is_prev).Position);
+
+	const auto& bm(Shell.LastRead.Switch(is_prev));
+
+	if(bm.Path != path)
+		LoadFile(bm.Path);
+	Reader.Locate(bm.Position);
 	UpdateButtons();
 }
 
 void
-TextReaderManager::UpdateButtons()
+TextReaderSession::UpdateButtons()
 {
 	const auto pr(Shell.LastRead.CheckBoundary());
 
@@ -626,7 +634,7 @@ TextReaderManager::UpdateButtons()
 }
 
 void
-TextReaderManager::OnClick(TouchEventArgs&&)
+TextReaderSession::OnClick(TouchEventArgs&&)
 {
 	if(IsVisible(boxReader))
 	{
@@ -642,7 +650,7 @@ TextReaderManager::OnClick(TouchEventArgs&&)
 }
 
 void
-TextReaderManager::OnKeyDown(KeyEventArgs&& e)
+TextReaderSession::OnKeyDown(KeyEventArgs&& e)
 {
 	if(e.Strategy != RoutedEventArgs::Tunnel && !mhMain.IsShowing(1u))
 	{
@@ -694,6 +702,7 @@ TextReaderManager::OnKeyDown(KeyEventArgs&& e)
 			break;
 		case KeySpace::Left:
 			Reader.Execute(DualScreenReader::ScreenUpScroll);
+			break;
 		case KeySpace::Right:
 			Reader.Execute(DualScreenReader::ScreenDownScroll);
 		default:
@@ -703,8 +712,8 @@ TextReaderManager::OnKeyDown(KeyEventArgs&& e)
 }
 
 
-HexReaderManager::HexReaderManager(ShlReader& shl)
-	: ReaderManager(shl),
+HexReaderSession::HexReaderSession(ShlReader& shl)
+	: ReaderSession(shl),
 	HexArea(Rect::FullScreen), pnlFileInfo()
 {
 	HexArea.SetRenderer(unique_raw(new BufferedRenderer()));
@@ -743,7 +752,7 @@ HexReaderManager::HexReaderManager(ShlReader& shl)
 	RequestFocusCascade(HexArea);
 }
 
-HexReaderManager::~HexReaderManager()
+HexReaderSession::~HexReaderSession()
 {
 	auto& dsk_up(Shell.GetDesktopUp());
 	auto& dsk_dn(Shell.GetDesktopDown());
@@ -754,7 +763,7 @@ HexReaderManager::~HexReaderManager()
 }
 
 void
-HexReaderManager::UpdateInfo()
+HexReaderSession::UpdateInfo()
 {
 	char str[80];
 
@@ -770,8 +779,14 @@ bool ShlReader::CurrentIsText(false);
 
 ShlReader::ShlReader()
 	: ShlDS(),
-	hUp(), hDn(), pManager(), LastRead()
-{}
+	hUp(), hDn(), pManager(), LastRead(), CurrentSetting()
+{
+	// TODO: use entity tree to store properties;
+	yunseq(
+		CurrentSetting.UpColor = Color(240, 216, 192),
+		CurrentSetting.DownColor = Color(192, 216, 240)
+	);
+}
 
 int
 ShlReader::OnActivated(const Message& msg)
@@ -782,9 +797,9 @@ ShlReader::OnActivated(const Message& msg)
 	auto& dsk_dn(GetDesktopDown());
 
 	if(ShlReader::CurrentIsText)
-		pManager = unique_raw(new TextReaderManager(*this));
+		pManager = unique_raw(new TextReaderSession(*this));
 	else
-		pManager = unique_raw(new HexReaderManager(*this));
+		pManager = unique_raw(new HexReaderSession(*this));
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr()),
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
 	SetInvalidationOf(dsk_up),

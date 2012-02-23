@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5601;
+\version r5603;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-02-19 19:25 +0800;
+	2012-02-21 14:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -639,7 +639,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 			char strtf[0x100];
 
 			std::sprintf(strtf, "1/%d;%s;", hList->size(),
-				Text::StringToMBCS((*hList)[0], Text::CP_Default).c_str());
+				(*hList)[0].GetMBCS().c_str());
 #endif
 			yunseq(
 //				btnDragTest.Text = strtf,

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1920;
+\version r1952;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-02-14 20:00 +0800;
+	2012-02-23 18:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,7 @@ YSL_BEGIN_NAMESPACE(DS)
 
 ShlDS::ShlDS(const shared_ptr<Desktop>& h_dsk_up,
 	const shared_ptr<Desktop>& h_dsk_down)
-	: GUIShell(),
+	: Shell(),
 	hDskUp(h_dsk_up ? h_dsk_up : share_raw(new
 		Desktop(FetchGlobalInstance().GetScreenUp()))),
 	hDskDown(h_dsk_down ? h_dsk_down : share_raw(new
@@ -62,16 +62,13 @@ ShlDS::OnActivated(const Message&)
 	YAssert(bool(hDskUp), "Null up desktop handle found @ ShlDS::ShlDS;");
 	YAssert(bool(hDskDown), "Null down desktop handle found @ ShlDS::ShlDS;");
 
-	ResetGUIStates();
+	YSL_ Components::FetchGUIState().Reset();
 	return 0;
 }
 
 int
 ShlDS::OnDeactivated()
 {
-	YAssert(&FetchGUIShell() == this,
-		"Invalid GUI shell found @ ShlDS::OnDeactivated");
-
 	hDskUp->ClearContents();
 	hDskDown->ClearContents();
 	return 0;
@@ -87,6 +84,15 @@ ShlDS::OnGotMessage(const Message& msg)
 	case SM_DEACTIVATED:
 		return OnDeactivated();
 	case SM_PAINT:
+#if 0
+		{
+			const auto h(FetchTarget<SM_PAINT>(msg));
+			
+			if(h)
+				h->Refresh(PaintContext(h->GetContext(), Point::Zero,
+					Rect(Point::Zero, GetSizeOf(*h))));
+		}
+#endif
 		{
 			auto h(Messaging::FetchTarget<SM_PAINT>(msg));
 
@@ -111,41 +117,43 @@ ShlDS::OnGotMessage(const Message& msg)
 			using namespace YSL_ KeySpace;
 			using namespace YSL_ Components;
 
+			auto& st(FetchGUIState());
+
 			if(k.Up & Touch)
 			{
 				TouchEventArgs e(d, content.CursorLocation);
 
-				ResponseTouch(e, TouchUp);
+				st.ResponseTouch(e, TouchUp);
 			}
 			else if(k.Up)
 			{
 				KeyEventArgs e(d, k.Up);
 
-				ResponseKey(e, KeyUp);
+				st.ResponseKey(e, KeyUp);
 			}
 			if(k.Down & Touch)
 			{
 				TouchEventArgs e(d, content.CursorLocation);
 
-				ResponseTouch(e, TouchDown);
+				st.ResponseTouch(e, TouchDown);
 			}
 			else if(k.Down)
 			{
 				KeyEventArgs e(d, k.Down);
 
-				ResponseKey(e, KeyDown);
+				st.ResponseKey(e, KeyDown);
 			}
 			if(k.Held & Touch)
 			{
 				TouchEventArgs e(d, content.CursorLocation);
 
-				ResponseTouch(e, TouchHeld);
+				st.ResponseTouch(e, TouchHeld);
 			}
 			else if(k.Held)
 			{
 				KeyEventArgs e(d, k.Held);
 
-				ResponseKey(e, KeyHeld);
+				st.ResponseKey(e, KeyHeld);
 			}
 		}
 		SendMessage<SM_PAINT>(FetchShellHandle(), 0xE0, nullptr);
@@ -153,7 +161,7 @@ ShlDS::OnGotMessage(const Message& msg)
 	default:
 		break;
 	}
-	return GUIShell::OnGotMessage(msg);
+	return Shell::OnGotMessage(msg);
 }
 
 void
