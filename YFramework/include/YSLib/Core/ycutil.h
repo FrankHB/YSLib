@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2784;
+\version r2788;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-01-31 06:36 +0800;
+	2012-02-25 18:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -373,7 +373,7 @@ struct delete_obj_ndebug
 struct delete_second_mem_ndebug
 {
 	/*!
-	\brief 删除指针指向的对象。
+	\brief 删除第二成员指向的对象。
 	*/
 	PDefTmplH1(_type)
 	inline void
@@ -412,7 +412,7 @@ struct delete_obj_debug
 struct delete_second_mem_debug
 {
 	/*!
-	\brief 删除指针指向的对象。
+	\brief 删除第二成员指向的对象。
 	*/
 	PDefTmplH1(_type)
 	inline void

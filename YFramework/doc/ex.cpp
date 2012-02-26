@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3489; *build 287 rev 53;
+\version r3496; *build 288 rev 48;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-23 19:12 +0800;
+	2012-02-26 18:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -211,7 +211,7 @@ $using:
 \u YApplication
 (
 	\cl Log,
-	\cl YApplication
+	\cl Application
 ),
 \u YConsole
 (
@@ -219,8 +219,8 @@ $using:
 ),
 \u YRender
 (
-	\cl WidgetRenderer,
-	\cl BufferedWidgetRenderer
+	\cl Renderer,
+	\cl BufferedRenderer
 ),
 \h YWidgetView
 (
@@ -252,8 +252,7 @@ $using:
 ),
 \u YWindow
 (
-	\cl Window,
-	\cl Frame
+	\cl Window
 ),
 \u YStyle
 (
@@ -311,7 +310,6 @@ $using:
 	\cl ATrack,
 	\cl HorizontalTrack,
 	\cl VerticalTrack,
-	\cl MScrollBar,
 	\cl AScrollBar,
 	\cl HorizontalScrollBar,
 	\cl VerticalScrollBar
@@ -345,189 +343,209 @@ $using:
 
 
 $DONE:
-r1-r10:
+r1:
+/ @ \u Button $=
+(
+	/ \m bPressed @ \cl MButton >> \cl Thumb;
+	/ @ \cl Thumb $=
+	(
+		- \inh \cl MButton;
+		/ \tr \impl @ \ctor
+	);
+	- \cl MButton
+);
+
+r2:
+/ \impl @ \ctor @ \cl ListBox;
+- \mf TextList::GetFullViewSize;
+
+r3-r4:
 /= test 1;
 
-r11:
-/ \impl @ \ctor @ \cl DropDownList,
-* \impl @ \mf MLabel::PaintText $since b208;
+r5:
+(
+	/ \inc \h <ystdex/cast.hpp> @ \h YUIContainer >> \h ShellHelper;
+	/ \impl @ \ft polymorphic_downcast#2 ^ std::addressof ~ \op& @ \h Cast
+)
+,
+/ \impl @ \ft FetchShell @ \h ShellHelper ^ polymorphic_downcast
+	~ dynamic_cast;
 
-r12:
+r6:
+/ @ \cl ShlExplorer @ \u Shells $=
+(
+	/ @ \cl TFormTest $=
+	(
+		/ \impl @ \ctor;
+		- \smf (OnEnter_btnEnterTest, OnLeave_btnEnterTest)
+	),
+	/ @ \cl TFormTest $=
+	(
+		/ \impl @ \ctor;
+		- \smf OnKeyPress_btnDragTest
+	)
+);
+
+r7:
 /= test 2 ^ \conf release;
 
+r8-r11:
+/ @ \h TypeOperation
+(
+	+ \stt<Size_t> n_tag;
+	+ typedef n_tag<0> first_tag,
+	+ typedef n_tag<1> second_tag
+);
+/ @ \h Iterator $=
+(
+	+ \inc \h TypeOperation;
+	(
+		+ \clt transformed_iterator;
+		+ \ft make_transform
+	),
+	+ \stt pair_iterate;
+	(
+		+ \o yconstexpr first_tag get_first = {}, get_key = {};
+		+ \ft<typename _tIterator> \i auto operator|(const _tIterator& i,
+			first_tag),
+	),
+	(
+		+ \o yconstexpr second_tag get_second = {}, get_value = {};
+		+ \ft<typename _tIterator> \i auto operator|(const _tIterator& i,
+			second_tag)
+	)
+);
+/ @ \impl \u ShlReader $=
+(
+	+ \inc \h <ystdex/iterator.hpp>;
+	/ \impl @ \un \ns ^ (transformed_iterator, make_transform,
+		pair_iterate)
+);
+
+r12:
+* \rem @ \h YCoreUtilties $since b281,
+(
+	+ \2 \mf base @ \clt transformed_iterator @ Iterator;
+	/ \impl @ \f (MUIContainer::(GetTopWidgetPtr, Contains, PaintChildren),
+		LocateForWidget) @ \impl \u YUIContainer ^ ystdex::(get_key, get_value);
+);
+
 r13:
-* \impl @ \mf TextReaderManager::OnKeyDown @ \impl \u ShlReader $since b286;
++ \inc h Iterator @ (\h YUIContainer, \impl \u YTimer);
+/ \impl @ \f (Panel::MoveToTop, MenuHost::(Contains, ShowAll, HideAll),
+	(Timer::(RefreshAll, ResetAll, ResetYTimer) @ \impl \u YTimer),
+	CheckVisibleChildren @ \h YUIContainer) ^ ystdex::get_value;
 
 r14:
-/ @ \cl TextReaderManager @ \impl \u ShlReader $=
+/ @ \clt transformed_iterator @ \h Iterator $=
 (
-	/ \ac @ \mf UpdateButtons -> public ~ private,
-	/ \impl @ (\mf LoadFile, \ctor)
+	+ 'yconstfn' @ \mf const base_type& base() const;
+	+ \i @ \a !'yconstfn' \mf
 );
 
 r15:
-/ \impl @ \f (Show, Hide) @ \impl \u YWidget;
-
-r16:
-/ \impl @ \mf TextReaderManager::UpdateReadingList @ \impl \u ShlReader;
-
-r17:
 /= test 3 ^ \conf release;
 
-r18:
-/ @ \h YString $=
-(
-	+ \mf string String::GetMBCS(Encoding = CP_Default) const;
-	- \f StringToMBCS
-);
-/ \tr @ \cl Path @ \u YFileSystem $=
-(
-	/ \inh ucs2string -> String;
-	/ \tr @ \a \ctor;
-	/ \impl @ \mf GetNativeString
-),
-/ \tr \impl @ \u (Shells, ShlReader);
+r16:
+/ \impl @ \mf FetchFontFamilyNames @ \un \ns @ \impl \u ShlReader;
 
-r19:
-(
-	/ \impl @ \ctor @ \cl TextFile @ \impl \u YFile_(Text);
-	- \a \decl @ 'CP_Local'
-);
-/ \a CP_Default => CS_Default;
-/ \a CP_Path => CS_Path;
+r17-r19:
+/= test 4,
+/= test 5 ^ \conf release;
 
 r20:
 / @ \u ShlReader $=
 (
-	+ \st ReaderSetting;
-	/ @ \cl ShlReader $=
-	(
-		+ \m \o ReaderSetting CurrentSetting;
-		/ \tr \impl @ \ctor
-	);
-	/ \impl @ (\ctor, \dtor) @ \cl TextReaderManager
+	/ \f ReplaceAfter @ \cl ReadingList -> \f DropSubsequent;
+	* \impl @ \ctor @ \cl TextReaderSession $since b287
 );
 
-r21-r28:
-/ \a '*Manager' => '*Session' @ \u ShlReader,
-/= test 4;
+r21:
+/= test 6 ^ \conf release;
 
-r29:
-/= test 5 ^ \conf release;
+r22-r23:
+/ \simp \impl @ \f Idle @ \un \ns @ \impl \u YGlobal;
 
-r30-r39:
-/= test 6;
-
-r40:
-/ @ \u YGUI $=
+r24:
+/ @ \cl MessageQueue $=
 (
-	/ @ \ns Components $=
-	(
-		+ \cl GUIState;
-		+ \f shared_ptr<GUIState> FetchGUIStateHandle();
-		+ \f \i GUIState& FetchGUIState()
-	);
-	/ @ \cl GUIShell @ \ns Shells $=
-	(
-		/ \a \m \exc (\ctor, \mf OnGotMessage)
-			>> \cl GUIState @ \ns Components,
-		+ protected \m shared_ptr<Components::GUIState> hState,
-		/ \ctor GUIShell() -> GUIShell(shared_ptr<Components::GUIState>
-			= Components::FetchGUIStateHandle());
-		+ \tr \mf (ResetGUIStates, GetState)
-	)
-);
-/ \tr @ \u (TextList, Border, Button, Menu, Progress, Scroll, Main_ARM9),
-- \as @ \mf ShlDS::OnDeactivated @ \impl \u Shell_DS;
-/ @ \u YGUI $=
-(
-	/ \mf IsFocusedByShell;
-	- \mf FetchGUIShell
+	/ \impl @ \mf MessageQueue::Peek#2 @ \impl \u YMessage ^ std::move,
+	+ \mf GetMaxPriority
 );
 
-r41-r47:
+r25-r40:
+/ @ \cl DSApplication @ \u YGlobal $=
+(
+	+ \m Messaging::Priority UIResponseLimit;
+	/ \tr \impl @ \ctor,
+	/ \impl @ \mf Run
+),
 /= test 7;
 
-r48:
+r41:
 /= test 8 ^ \conf release;
 
-r49:
-/ \impl @ \mf ShlDS::(OnActivated, OnGotMessage) @ \impl \u Shell_DS;
-- \a \mf @ \cl GUIShell;
+r42-r46:
+/ \impl @ \mf DSApplication::Run @ \impl \u YGlobal;
 
-r50:
-/ @ \cl ShlDS @ \u Shell_DS $=
+r47:
+- \f \i NowShellInsertDropMessage @ \h Shell_DS;
+/ @ \h YMessageDefinition $=
 (
-	/ \inh \cl Shells::GUIShell -> \cl Shell;
-	/ \tr \impl @ \ctor
+	+ \inc \h <functional>;
+	/ \m Drop = 0x0004 -> \m Task = 0x0016 @ \en MessageID;
+	/ \mac SM_DROP -> \mac SM_TASK;
+	/ DefMessageTarget(SM_DROP, shared_ptr<Shell>)
+		-> DefMessageTarget(SM_TASK, std::function<int(Priority)>)
 );
+/ \tr \impl @ \mf Shell::DefShlProc;
 
-r51:
-/ @ \u YGUI $=
-(
-	- using Shells::GUIShell;
-	- \cl GUIShell @ \ns Shells;
-	- \ns Shells;
-	/ \f FetchGUIStateHandle \mg -> \f FetchGUIState
-);
-
-r52:
-/ @ \u YGUI $=
-(
-	/ @ \cl GUIState $=
-	(
-		+ 'ynothrow' @ \ctor,
-		/ private \mf ResponseTouchBase \mg -> ResponseTouchBase,
-		/ \mf ResetGUIStates => Reset
-	),
-	/ \impl @ \f FetchGUIState
-);
-
-r53:
+r48:
 /= test 9 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-02-23:
--11.8d;
-//Mercurial rev1-rev159: r7628;
+2012-02-26:
+-10.5d;
+//Mercurial rev1-rev160: r7676;
 
 / ...
 
 
 $NEXT_TODO:
-b288-b300:
+b289-b300:
++ timing messages;
 / fully \impl @ \u DSReader $=
 (
 	+ scrolling
-),
-/ merge button and selector model;
+);
 
 
 $TODO:
 b301-b1536:
-+ basic session,
 / fully \impl @ \u DSReader $=
 (
 	+ bookmarks manager,
 	+ settings manager,
 	+ reading history
-);
+),
+^ \mac __FUNCTION__ ~ custom assertion strings @ whole YFramework,
++ basic session,
 + dynamic character mapper loader for \u CharacterMapping,
-+ shell sessions,
 ^ timing triggers @ message loop,
++ shell sessions,
++ general data configuragion,
 / ystdex::fixed_point $=
 (
 	* \impl @ \op/= for signed types,
 	+ 64-bit integer underlying type support
 ),
-+ debug headers and namespace,
++ debug (headers, namespace),
 + overlapping test @ \cl Rect,
 / build command @ \a \conf proj YBase,
 / fully \impl @ \cl Path,
-+ general data configuragion,
 + partial invalidation support @ %(HexViewArea::Refresh),
 + user-defined stream filters,
 / improving \impl font switching,
@@ -634,7 +652,8 @@ $module_tree $=
 		'YStandardEx'
 		(
 			'Any',
-			'CStandardIO'
+			'CStandardIO',
+			'Iterator'
 		)
 	),
 	'YFramework'
@@ -667,6 +686,59 @@ $module_tree $=
 
 $now
 (
+	/ $design %'YBase'.'YStandardEx' $=
+	(
+		/ %'TypeOperations' $=
+		(
+			+ "template class %n_tag";
+			+ "typedef n_tag<0> %first_tag",
+			+ "typedef n_tag<0> %second_tag"
+		),
+		/ %'Iterator' $=
+		(
+			(
+				+ "class template %transformed_iterator";
+				+ "function template %make_transform",
+			),
+			+ "class template %pair_iterate for selecting members";
+			$depend_from 'TypeOperations';
+			+ "manipulators for selection members";
+			+ "pipe operators for selecting members"
+		),
+		$depend_to 'YReader'.'text reader'
+	),
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ $design "simplified implementation" @ "class %Thumb" @ %'GUI',
+		* $design "comments" @ "header %ycutil.h" $since b281,
+		/ $design "implementation" @ "idle handling",
+		/ %'messaging' $=
+		(
+			+ "member function %MessageQueue::GetMaxPriority"
+				@ "implementation" @ "message peeking",
+			- "shell message identifier %SM_DROP",
+			+ "shell message identifier %SM_TASK"
+		),
+		/ $design "implementation" @ "main message loop"
+			@ "function %DSApplication::Run"
+	),
+	/ %'YReader' $=
+	(
+		/ $design "simplified event handlers" @ "class %ShlExplorer"
+			@ %'shells test example' ^ "lambda expressions"
+			~ "static member functions",
+		/ %'text reader' $=
+		(
+			$depend_from %'YBase'.'YStandardEx'.'Iterator';
+			/ $design "simplified implementation",
+			* "subsequent bookmarks not erased when loading a file"
+				@ "reading list" $since b287
+		)
+	)
+),
+
+b287
+(
 	/ %'YFramework'.'YSLib' $=
 	(
 		/ %'GUI' $=
@@ -694,19 +766,16 @@ $now
 			- "local encoding alias %CP_Local"
 			/ "all pattern 'CP_*'" => "pattern 'CS_*'"
 		),
-		/ %'shell abstraction' $=
-		(
-			+ $design "public inheritance %enabled_shared_from_this"
-				@ "class %Shell"
-		)
+		+ $design "public inheritance %enabled_shared_from_this"
+			@ "class %Shell" @ %'shell abstraction'
 	);
 	/ %'YReader'.'text reader' $=
 	(
 		* "functions of key %'Left' down" $since b286,
 		/ "stopping handling key events when setting panel is shown",
 		/ $design "reader manager as sessions",
-		+ "cross-session shared state support" @ "last reading list",
-		+ "cross-session shared state support" @ "settings"
+		+ "cross-session shared shell state support"
+			@ ("last reading list", "settings")
 	)
 ),
 

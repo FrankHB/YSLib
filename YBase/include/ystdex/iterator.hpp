@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief C++ 标准库迭代器扩展。
-\version r1550;
+\version r1684;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189 。
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2012-01-01 11:09 +0800;
+	2012-02-25 19:35 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include <iterator>
 #include <utility>
 #include <memory> // for std::addressof;
+#include "type_op.hpp" // for *_tag, remove_reference;
 #include <tuple>
 
 namespace ystdex
@@ -160,6 +161,137 @@ namespace ystdex
 			return *this;
 		}
 	};
+
+
+	/*!
+	\ingroup iterator_adaptors
+	\brief 转换迭代器。
+
+	使用指定参数隐藏指定迭代器的原有间接操作的迭代器适配器。
+	*/
+	template<typename _tIterator, typename _fTransformer>
+	class transformed_iterator : public remove_reference<_tIterator>::type
+	{
+	public:
+		typedef typename remove_reference<_tIterator>::type base_type;
+		typedef _fTransformer transformer_type;
+		typedef decltype(std::declval<_fTransformer>()(
+			std::declval<_tIterator&>())) result;
+		typedef decltype(std::declval<_fTransformer>()(std::declval<const
+			_tIterator&>())) const_result;
+
+	protected:
+		mutable transformer_type transformer;
+
+	public:
+		template<typename _tIter, typename _tTran>
+		yconstfn
+		transformed_iterator(_tIter&& it, _tTran&& f = _tTran())
+			: base_type(it), transformer(f)
+		{}
+
+		inline result
+		operator*()
+		{
+			return this->transformer(this->base());
+		}
+		inline const_result
+		operator*() const
+		{
+			return this->transformer(this->base());
+		}
+
+		inline result*
+		operator->()
+		{
+			return std::addressof(this->operator*());
+		}
+		inline const_result*
+		operator->() const
+		{
+			return std::addressof(this->operator*());
+		}
+
+		inline base_type&
+		base()
+		{
+			return *this;
+		}
+		yconstfn const base_type&
+		base() const
+		{
+			return *this;
+		}
+	};
+
+
+	/*!
+	\ingroup helper_functions
+	\brief 创建转换迭代器。
+	\since build 288 。
+	*/
+	template<typename _tIterator, typename _fTransformer>
+	inline transformed_iterator<_tIterator, _fTransformer>
+	make_transform(_tIterator&& i, _fTransformer&& f)
+	{
+		return transformed_iterator<_tIterator, _fTransformer>(i, f);
+	}
+
+
+	/*!
+	\brief 成对迭代操作。
+	\since build 288 。
+	*/
+	template<typename _tIterator>
+	struct pair_iterate
+	{
+		typedef _tIterator iterator_type;
+		typedef decltype(*std::declval<_tIterator>()) reference;
+		typedef typename remove_reference<reference>::type pair_type;
+		typedef typename pair_type::first_type first_type;
+		typedef typename pair_type::second_type second_type;
+
+		static yconstfn auto
+		first(const _tIterator& i) -> decltype(i->first)
+		{
+			return i->first;
+		}
+		static yconstfn auto
+		second(const _tIterator& i) -> decltype(i->second)
+		{
+			return i->second;
+		}
+	};
+
+
+	/*!
+	\brief 操纵子。
+	\since build 288 。
+	*/
+	//@{
+	yconstexpr first_tag get_first = {}, get_key = {};
+	yconstexpr second_tag get_second = {}, get_value = {};
+	//@}
+
+
+	/*!
+	\brief 管道匹配操作符。
+	\since build 288 。
+	*/
+	template<typename _tIterator>
+	inline auto
+	operator|(const _tIterator& i, first_tag)
+		-> decltype(make_transform(i, pair_iterate<_tIterator>::first))
+	{
+		return make_transform(i, pair_iterate<_tIterator>::first);
+	}
+	template<typename _tIterator>
+	inline auto
+	operator|(const _tIterator& i, second_tag)
+		-> decltype(make_transform(i, pair_iterate<_tIterator>::second))
+	{
+		return make_transform(i, pair_iterate<_tIterator>::second);
+	}
 
 
 	/*!

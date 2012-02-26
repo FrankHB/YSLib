@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6926;
+\version r6930;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-23 18:21 +0800;
+	2012-02-26 17:35 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -850,6 +850,10 @@ FetchDefaultScreen();
 这里 FetchGlobalInstance 返回类型为平台相关的应用程序类的引用。
  YSLib 在 Helper 以外（本体和 Adaptor）不依赖这些接口以外的特性。
 
+@2.9.2 Application 派生类：
+适应于具体平台的应用程序实例抽象。
+包含默认消息循环等。
+
 @2.10 本体：
 以上 YSLib 构成单元中，除了 Adaptor 和 Helper 以外的部分的总称。
 其中 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元的重新编译。
@@ -889,7 +893,7 @@ FetchDefaultScreen();
  <bitset> 、 <complex> 、 <limits> 、 <numeric> 、 <memory> 和 <valarray> 。
 
 @2.10.2 本体头文件对 YBase 依赖性：
- "yblit.h" 包含 <ystdex/algorithm.hpp> 和 <ystdex/iterator.hpp> 。
+ "yblit.h" 依赖于 <ystdex/algorithm.hpp> 和 <ystdex/iterator.hpp> 。
 
 @2.10.3 本体内部头文件依赖性：
  Core 的头文件仅包含 Adaptor 或 Core 的头文件，或 "yglobal.h" 。

@@ -11,13 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3086;
+\version r3113;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2012-02-01 19:59 +0800;
+	2012-02-23 20:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -37,37 +37,18 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 /*!
-\brief 按钮模块。
-\since build 160 。
-*/
-class MButton
-{
-protected:
-	bool bPressed; //!< 键按下状态：是否处于按下状态。
-
-	/*!
-	\brief 构造：使用键按下状态。
-	*/
-	explicit
-	MButton(bool = false);
-	inline DefDeMoveCtor(MButton)
-
-public:
-	DefPred(const ynothrow, Pressed, bPressed)
-};
-
-inline
-MButton::MButton(bool b)
-	: bPressed(b)
-{}
-
-
-/*!
 \brief 基本按钮/滑块。
 \since build 205 。
 */
-class Thumb : public Control, protected MButton
+class Thumb : public Control
 {
+protected:
+	/*!
+	\brief 键按下状态：表示当前是否处于按下状态
+	\since build 288 。
+	*/
+	bool bPressed;
+
 public:
 	/*!
 	\brief 构造：使用指定边界。

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2495;
+\version r2505;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2011-12-23 18:15 +0800;
-\par 字符集:
+	2012-02-26 15:17 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YMessage;
@@ -196,6 +196,13 @@ public:
 	DefPred(const ynothrow, Empty, empty()) //!< 判断消息队列是否为空。
 
 	DefGetter(const ynothrow, SizeType, Size, size()) //!< 取队列中消息容量。
+	/*!
+	\brief 取消息队列中消息的最大优先级。
+	\return 若消息队列为空则 0 ，否则为最大优先级。
+	\since build 288 。
+	*/
+	DefGetter(const ynothrow, Priority, MaxPriority,
+		empty() ? 0 : begin()->GetPriority())
 
 	/*!
 	\brief 清除消息队列。

@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3898;
+\version r3901;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-02-19 21:18 +0800;
+	2012-02-23 21:52 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,12 +66,12 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 	lstText.GetViewChanged() += [this](ViewArgs&& e){
 		if(!e.Value && GetWidth() > defMinScrollBarWidth)
 		{
-			Size view_arena(lstText.GetFullViewSize());
+			const Size view_arena(GetWidth() - defMinScrollBarWidth,
+				lstText.GetFullViewHeight());
 
 			YAssert(view_arena.Height > 1, "Invalid size found"
 				" @ ListBox::ListBox;");
 
-			view_arena.Width = GetWidth() - defMinScrollBarWidth;
 			SetSizeOf(lstText, FixLayout(view_arena));
 			if(view_arena.Height > lstText.GetHeight())
 			{

@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5603;
+\version r5618;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-02-21 14:46 +0800;
+	2012-02-24 17:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -466,8 +466,26 @@ ShlExplorer::TFormTest::TFormTest()
 
 	yunseq(
 		FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging,
-		FetchEvent<Enter>(btnEnterTest) += OnEnter_btnEnterTest,
-		FetchEvent<Leave>(btnEnterTest) += OnLeave_btnEnterTest,
+		FetchEvent<Enter>(btnEnterTest) += [](TouchEventArgs&& e){
+			char str[20];
+
+			std::sprintf(str, "Enter: (%d, %d)", e.GetX(), e.GetY());
+
+			auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
+
+			btn.Text = str;
+			Invalidate(btn);
+		},
+		FetchEvent<Leave>(btnEnterTest) += [](TouchEventArgs&& e){
+			char str[20];
+
+			std::sprintf(str, "Leave: (%d, %d)", e.GetX(), e.GetY());
+
+			auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
+
+			btn.Text = str;
+			Invalidate(btn);
+		},
 		FetchEvent<Click>(btnMenuTest) +=[this](TouchEventArgs&&){
 			static int t;
 
@@ -535,32 +553,6 @@ ShlExplorer::TFormTest::TFormTest()
 		}
 	);
 	Enable(btnPrevBackground, false);
-}
-
-void
-ShlExplorer::TFormTest::OnEnter_btnEnterTest(TouchEventArgs&& e)
-{
-	char str[20];
-
-	std::sprintf(str, "Enter:(%d,%d)", e.Point::X, e.Point::Y);
-
-	auto& btn(dynamic_cast<Button&>(e.GetSender()));
-
-	btn.Text = str;
-	Invalidate(btn);
-}
-
-void
-ShlExplorer::TFormTest::OnLeave_btnEnterTest(TouchEventArgs&& e)
-{
-	char str[20];
-
-	std::sprintf(str, "Leave:(%d,%d)", e.Point::X, e.Point::Y);
-
-	auto& btn(dynamic_cast<Button&>(e.GetSender()));
-
-	btn.Text = str;
-	Invalidate(btn);
 }
 
 ShlExplorer::TFormExtra::TFormExtra()
@@ -693,7 +685,21 @@ ShlExplorer::TFormExtra::TFormExtra()
 				break;
 			}
 		},
-		FetchEvent<KeyPress>(btnDragTest) += OnKeyPress_btnDragTest,
+		FetchEvent<KeyPress>(btnDragTest) += [](KeyEventArgs&& e){
+			u32 k(static_cast<KeyEventArgs::InputType>(e));
+			char strt[100];
+			auto& lbl(polymorphic_downcast<Label&>(e.GetSender()));
+
+			lbl.SetTransparent(!lbl.IsTransparent());
+			std::sprintf(strt, "%d;\n", k);
+			lbl.Text = strt;
+			Invalidate(lbl);
+#if 0
+			Button& lbl(static_cast<Button&>(e.GetSender()));
+
+			lbl.Text = u"测试键盘...";
+#endif
+		},
 		FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
 			Hide(*this);
 		},
@@ -701,25 +707,6 @@ ShlExplorer::TFormExtra::TFormExtra()
 			PostQuitMessage(0);
 		}
 	);
-}
-
-
-void
-ShlExplorer::TFormExtra::OnKeyPress_btnDragTest(KeyEventArgs&& e)
-{
-	u32 k(static_cast<KeyEventArgs::InputType>(e));
-	char strt[100];
-	auto& lbl(dynamic_cast<Label&>(e.GetSender()));
-
-	lbl.SetTransparent(!lbl.IsTransparent());
-	std::sprintf(strt, "%d;\n", k);
-	lbl.Text = strt;
-	Invalidate(lbl);
-#if 0
-	Button& lbl(static_cast<Button&>(e.GetSender()));
-
-	lbl.Text = u"测试键盘...";
-#endif
 }
 
 

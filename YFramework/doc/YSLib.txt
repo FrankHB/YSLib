@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 说明。
-\version r2115;
+\version r2129;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-23 18:21 +0800;
+	2012-02-26 18:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,11 +44,6 @@ SM_NULL					0x0000
 //参数类型 shared_ptr<Shell> ，是目标 Shell 句柄。
 SM_SET					0x0003
 
-// Shell 预注销消息：指示取消指定 Shell 的控制权。参考优先级 0x80 。
-//参数类型 shared_ptr<Shell> ，是预注销的 Shell 句柄。
-//线程控制权转移至主 Shell ，若成功则设置句柄为空。对主 Shell 作用无效。
-SM_DROP					0x0004
-
 // Shell 激活消息：Shell 被激活后自动产生。参考优先级 0xF0 。
 //参数类型 void 。
 //默认为非队列消息。
@@ -59,17 +54,23 @@ SM_ACTIVATED			0x0005
 //默认为非队列消息。转移控制权时，总在 SM_ACTIVATED 之前产生。应保持和 SM_ACTIVATED 具有相同的优先级，以保证此消息总在对应的 SM_ACTIVATED 之前被处理。
 SM_DEACTIVATED			0x0006
 
-// Shell 系统消息。
+// UI 消息。
 
 //绘制 Shell 窗口组客户区。参考优先级 0xE0 。
 //参数类型 shared_ptr<Desktop> ，是需要绘制的桌面句柄。
 //若参数为空，则默认 Shell 不做处理，行为由派生类定义（例如对于多个桌面，默认实现会导致不同步刷新）。
 SM_PAINT				0x000F
 
+// 调度消息。
+
 //退出 Shell 及进程。参考优先级 0xFF 。
 //通过调用 PostQuitMessage 函数产生。
 //参数类型 int ，被传递作为退出码。
 SM_QUIT					0x0012
+
+//调用任务。一般作为后台任务，参考优先级 0x20 。
+//参数类型 std::function<void()> 。
+SM_TASK					0x0016
 
 // Shell 通用交互消息。
 

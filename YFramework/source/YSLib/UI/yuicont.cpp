@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2529;
+\version r2548;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2012-02-03 13:17 +0800;
+	2012-02-25 18:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -84,13 +84,14 @@ LocateForWidget(IWidget& a, IWidget& b)
 	pt = Point::Zero;
 	while(pCon)
 	{
-		auto i(std::find_if(lst.begin(), lst.end(),
-			[&](const pair<IWidget*, Point>& val){
-			return val.first == pCon;
-		}));
+		{
+			using ystdex::get_key;
 
-		if(i != lst.cend())
-			return pt - i->second;
+			auto i(std::find(lst.begin() | get_key, lst.end() | get_key, pCon));
+
+			if(i != lst.cend())
+				return pt - i.base()->second;
+		}
 		pt += GetLocationOf(*pCon);
 		pCon = FetchContainerPtr(*pCon);
 	}
@@ -170,14 +171,16 @@ MUIContainer::operator-=(IWidget& wgt)
 IWidget*
 MUIContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	const auto i(std::find_if(mWidgets.rbegin(), mWidgets.rend(),
-		[&](const PairType& val){
-		YAssert(val.second, "Null widget pointer found @"
+	using ystdex::get_value;
+
+	const auto i(std::find_if(mWidgets.rbegin() | get_value,
+		mWidgets.rend() | get_value, [&](const ItemType& pWgt){
+		YAssert(pWgt, "Null widget pointer found @"
 			" MUIContainer::GetTopWidgetPtr;");
 
-		return Components::Contains(*val.second, pt) && f(*val.second);
+		return Components::Contains(*pWgt, pt) && f(*pWgt);
 	}));
-	return i == mWidgets.rend() ? nullptr : i->second;
+	return i == mWidgets.rend() ? nullptr : *i;
 }
 
 void
@@ -190,20 +193,22 @@ MUIContainer::Add(IWidget& wgt, ZOrderType z)
 bool
 MUIContainer::Contains(IWidget& wgt)
 {
-	return std::find_if(mWidgets.cbegin(), mWidgets.cend(),
-		[&](const WidgetMap::value_type& val){
-		return val.second == &wgt;
-	}) != mWidgets.end();
+	using ystdex::get_value;
+
+	return std::find(mWidgets.cbegin() | get_value, mWidgets.cend() | get_value,
+		&wgt) != mWidgets.end();
 }
 
 Rect
 MUIContainer::PaintChildren(const PaintContext& pc)
 {
+	using ystdex::get_value;
+
 	Rect clip_area(pc.ClipArea);
 
-	std::for_each(mWidgets.begin(), mWidgets.end(),
-		[&](decltype(*mWidgets.begin())& pr){
-		auto& wgt(*pr.second);
+	std::for_each(mWidgets.begin() | get_value, mWidgets.end() | get_value,
+		[&](IWidget* const& pWgt){
+		auto& wgt(*pWgt);
 
 		if(Components::IsVisible(wgt))
 		{

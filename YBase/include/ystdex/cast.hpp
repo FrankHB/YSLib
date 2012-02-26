@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r1698;
+\version r1702;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 175 。
 \par 创建时间:
 	2010-12-15 08:13:18 +0800;
 \par 修改时间:
-	2011-12-04 11:07 +0800;
-\par 字符集:
+	2012-02-24 17:36 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YStandardEx::Cast;
@@ -81,7 +81,7 @@ namespace ystdex
 	polymorphic_downcast(_tSrc& x)
 	{
 		return *polymorphic_downcast<typename remove_reference<_tDst>
-			::type*>(&x);
+			::type*>(std::addressof(x));
 	}
 
 	/*!

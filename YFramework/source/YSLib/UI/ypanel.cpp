@@ -11,13 +11,13 @@
 /*!	\file ypanel.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r1229;
+\version r1232;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201 。
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2012-01-23 01:54 +0800;
+	2012-02-25 19:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -73,14 +73,14 @@ Panel::ClearContents()
 bool
 Panel::MoveToTop(IWidget& wgt)
 {
-	auto i(std::find_if(mWidgets.begin(), mWidgets.end(),
-		[&](const WidgetMap::value_type& val){
-		return val.second == &wgt;
-	}));
+	using ystdex::get_value;
+
+	auto i(std::find(mWidgets.begin() | get_value, mWidgets.end() | get_value,
+		&wgt));
 
 	if(i != mWidgets.end())
 	{
-		const ZOrderType z(i->first);
+		const ZOrderType z(i.base()->first);
 
 		mWidgets.erase(i);
 		mWidgets.insert(make_pair(z, static_cast<IWidget*>(&wgt)));

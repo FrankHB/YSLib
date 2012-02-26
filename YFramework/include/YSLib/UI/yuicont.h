@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2650;
+\version r2659;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2012-02-03 13:12 +0800;
+	2012-02-25 19:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_YUICONT_H_
 
 #include "ywidget.h"
-#include <ystdex/cast.hpp>
+#include <ystdex/iterator.hpp>
 
 YSL_BEGIN
 
@@ -232,11 +232,12 @@ template<typename _tIn>
 bool
 CheckVisibleChildren(_tIn first, _tIn last)
 {
+	using ystdex::get_value;
+
 	bool result(false);
 
-	std::for_each(first, last, [&](decltype(*first)& pr){
-		const auto p(pr.second);
-
+	std::for_each(first | get_value, last | get_value,
+		[&](decltype(*(last | get_value)) p){
 		YAssert(p, "Null widget pointer found @ CheckVisibleChildren");
 
 		result |= Components::IsVisible(*p);

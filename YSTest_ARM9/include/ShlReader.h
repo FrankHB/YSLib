@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1980;
+\version r1988;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-02-21 19:55 +0800;
+	2012-02-25 21:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -255,16 +255,17 @@ public:
 		ImplExpr(reading_list.clear(), now_reading = reading_list.end())
 
 	/*!
+	\brief 清除当前迭代器之后的所有记录并使迭代器指向末尾。
+	\since build 288 。
+	*/
+	void
+	DropSubsequent();
+
+	/*!
 	\brief 插入阅读记录。
 	*/
 	void
 	Insert(const IO::Path&, size_t);
-
-	/*!
-	\brief 插入阅读记录并清除之后所有记录。
-	*/
-	void
-	ReplaceAfter(const IO::Path&, size_t);
 
 	/*!
 	\brief 切换阅读记录。

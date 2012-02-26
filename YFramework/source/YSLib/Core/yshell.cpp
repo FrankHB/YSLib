@@ -11,12 +11,12 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version r3325;
+\version r3334;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2012-02-14 18:27 +0800;
+	2012-02-26 18:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -52,30 +52,13 @@ Shell::DefShlProc(const Message& msg)
 	switch(msg.GetMessageID())
 	{
 	case SM_SET:
-	case SM_DROP:
-		{
-			auto hShl(FetchTarget<SM_SET>(msg));
-
-			switch(msg.GetMessageID())
-			{
-			case SM_SET:
-				return -!FetchAppInstance().SetShellHandle(hShl);
-			case SM_DROP:
-				{
-					if(hShl->IsActive())
-						FetchAppInstance().SetShellHandle(shared_ptr<Shell>());
-					if(hShl->IsActive())
-						return -1;
-					reset(hShl);
-				}
-			default:
-				break;
-			}
-		}
-		return 0;
+		return -!FetchAppInstance().SetShellHandle(FetchTarget<SM_SET>(msg));
 
 	case SM_QUIT:
 		std::exit(FetchTarget<SM_QUIT>(msg));
+		break;
+	case SM_TASK:
+		FetchTarget<SM_TASK>(msg)();
 
 	default:
 		break;

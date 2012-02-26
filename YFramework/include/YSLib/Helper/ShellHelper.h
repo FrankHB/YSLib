@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2238;
+\version r2241;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2012-01-20 09:29 +0800;
+	2012-02-24 17:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YSL_INC_HELPER_SHELLHELPER_H_
 
 #include "../../ysbuild.h"
+#include <ystdex/cast.hpp>
 
 YSL_BEGIN
 
@@ -114,7 +115,7 @@ FetchShell()
 
 	YAssert(bool(hShl), "Null handle found @ FetchShell;");
 
-	return dynamic_cast<_tShell&>(*hShl);
+	return ystdex::polymorphic_downcast<_tShell&>(*hShl);
 }
 
 

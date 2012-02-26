@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3445;
+\version r3463;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2012-02-21 14:31 +0800;
+	2012-02-26 18:03 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -248,8 +248,12 @@ namespace
 			yunseq(content.CursorLocation.X = cursor.GetX(),
 				content.CursorLocation.Y = cursor.GetY());
 		}
-		if((FetchAppInstance().Queue.IsEmpty() || content != old_content)
-			&& content.CursorLocation != Point::Invalid)
+	//	if((FetchAppInstance().Queue.IsEmpty() || content != old_content)
+		//	&& content.CursorLocation != Point::Invalid)
+		// NOTE: there is no background thread and Idle() would be only called
+		//	by the message loop of DSApplication::Run,
+		//	while FetchAppInstance().Queue.IsEmpty() is always true;
+		if(content.CursorLocation != Point::Invalid)
 		{
 			old_content = content,
 			SendMessage<SM_INPUT>(FetchShellHandle(), 0x40, content);
@@ -262,7 +266,8 @@ namespace
 
 
 DSApplication::DSApplication()
-	: pFontCache(), hScreenUp(), hScreenDown(), hDesktopUp(), hDesktopDown()
+	: pFontCache(), hScreenUp(), hScreenDown(), hDesktopUp(), hDesktopDown(),
+	UIResponseLimit(0x40)
 {
 	YAssert(!YSL_ pApp, "Duplicate instance found"
 		" @ DSApplication::DSApplication;");
@@ -394,19 +399,16 @@ DSApplication::Run()
 	int id;
 
 	//消息循环。
-	while(true) 
-	{
-	//	if(Queue.GetSize() <= 0)
-		if(Queue.IsEmpty())
+	while(true)
+		if(Queue.GetMaxPriority() < UIResponseLimit)
 			Idle();
-		id = Queue.Peek(msg, hShell, true);
-		if(id < 0)
-			continue;
-		if(id == SM_QUIT)
-			break;
-	//	TranslateMessage(msg);
-		Dispatch(msg);
-	}
+		else
+		{
+			if((id = Queue.Peek(msg, hShell, true)) == SM_QUIT)
+				break;
+			Dispatch(msg);
+		}
+	// TODO: return exit code properly;
 	return 0;
 }
 

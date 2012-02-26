@@ -11,12 +11,12 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r1580;
+\version r1596;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2012-01-31 05:55 +0800;
+	2012-02-25 19:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -25,6 +25,7 @@
 
 
 #include "YSLib/Service/ytimer.h"
+#include <ystdex/iterator.hpp>
 
 YSL_BEGIN
 
@@ -83,13 +84,15 @@ Timer::Refresh()
 bool
 Timer::RefreshAll()
 {
+	using ystdex::get_value;
+
 	bool t(false);
 
 	Synchronize();
-	std::for_each(mTimers.begin(), mTimers.end(),
-		[&](decltype(*mTimers.begin())& pr){
-		if(pr.second)
-			t |= pr.second->RefreshRaw();
+	std::for_each(mTimers.begin() | get_value, mTimers.end() | get_value,
+		[&](Timer* const& pTmr){
+		if(pTmr)
+			t |= pTmr->RefreshRaw();
 	});
 	return t;
 }
@@ -97,24 +100,26 @@ Timer::RefreshAll()
 void
 Timer::ResetAll()
 {
-	std::for_each(mTimers.begin(), mTimers.end(),
-		[](decltype(*mTimers.begin())& pr){
-		if(pr.second)
-			pr.second->Reset();
+	using ystdex::get_value;
+
+	std::for_each(mTimers.begin() | get_value, mTimers.end() | get_value,
+		[](Timer* const& pTmr){
+		if(pTmr)
+			pTmr->Reset();
 	});
 }
 
 void
 Timer::ResetYTimer()
 {
-	std::for_each(mTimers.begin(), mTimers.end(),
-		[](decltype(*mTimers.begin())& pr){
-		const auto p(pr.second);
+	using ystdex::get_value;
 
-		if(p)
+	std::for_each(mTimers.begin() | get_value, mTimers.end() | get_value,
+		[](Timer* const& pTmr){
+		if(pTmr)
 		{
-			p->SetInterval(0);
-			p->Reset();
+			pTmr->SetInterval(0);
+			pTmr->Reset();
 		}
 	});
 	mTimers.clear();

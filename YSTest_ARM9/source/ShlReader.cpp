@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3264;
+\version r3314;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-02-21 19:55 +0800;
+	2012-02-25 21:41 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 
 #include <ShlReader.h>
+#include <ystdex/iterator.hpp>
 
 ////////
 //测试用声明：全局资源定义。
@@ -42,16 +43,11 @@ namespace
 	shared_ptr<TextList::ListType>
 	FetchFontFamilyNames()
 	{
-		auto& mFamilies(FetchGlobalInstance().GetFontCache()
+		const auto& mFamilies(FetchGlobalInstance().GetFontCache()
 			.GetFamilyIndices());
-		auto& vec(*new TextList::ListType());
 
-		vec.reserve(mFamilies.size());
-		std::for_each(mFamilies.cbegin(), mFamilies.cend(),
-			[&](decltype(*mFamilies.cbegin())& pr){
-				vec.push_back(pr.first);
-		});
-		return share_raw(&vec);
+		return share_raw(new TextList::ListType(mFamilies.cbegin()
+			| ystdex::get_key, mFamilies.cend() | ystdex::get_key));
 	}
 
 
@@ -347,17 +343,16 @@ ReadingList::CheckBoundary()
 }
 
 void
-ReadingList::Insert(const IO::Path& pth, size_t pos)
+ReadingList::DropSubsequent()
 {
-	reading_list.emplace(now_reading, pth, pos);
+	reading_list.erase(now_reading, reading_list.end());
+	now_reading = reading_list.end();
 }
 
 void
-ReadingList::ReplaceAfter(const IO::Path& pth, size_t pos)
+ReadingList::Insert(const IO::Path& pth, size_t pos)
 {
-	Insert(pth, pos);
-	reading_list.erase(now_reading, reading_list.end());
-	now_reading = reading_list.end();
+	reading_list.emplace(now_reading, pth, pos);
 }
 
 BookMark
@@ -436,7 +431,8 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 		},
 		FetchEvent<TouchDown>(boxReader.pbReader) += [this](TouchEventArgs&& e)
 		{
-			Shell.LastRead.ReplaceAfter(path, Reader.GetTopPosition());
+			Shell.LastRead.Insert(path, Reader.GetTopPosition());
+			Shell.LastRead.DropSubsequent();
 			UpdateButtons();
 			Reader.Locate(e.X * Reader.GetTextSize()
 				/ boxReader.pbReader.GetWidth());
@@ -496,6 +492,7 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 	dsk_dn += boxTextInfo,
 	dsk_dn += pnlSetting;
 	LoadFile(ShlReader::CurrentPath);
+	Shell.LastRead.DropSubsequent();
 	UpdateButtons();
 	//置默认视图。
 	// TODO: 关联视图设置状态使用户可选。

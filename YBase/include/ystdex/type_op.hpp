@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r1288;
+\version r1327;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2012-01-19 20:33 +0800;
+	2012-02-25 17:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -252,7 +252,26 @@ namespace ystdex
 	};
 
 
+	/*!	\defgroup template_meta_programing Template Meta Programing
+	\brief 模板元编程。
+	\since build 288 。
+	*/
+
+	/*!	\defgroup meta_types Meta Types
+	\ingroup template_meta_programing
+	\brief 元类型。
+	\since build 288 。
+	*/
+
+	/*!	\defgroup meta_operations Meta Operations
+	\ingroup template_meta_programing
+	\brief 元操作。
+	\since build 288 。
+	*/
+
+
 	/*!
+	\ingroup meta_operations
 	\brief 取指定整数类型的位宽度。
 	\since build 260 。
 	*/
@@ -263,7 +282,8 @@ namespace ystdex
 
 
 	/*!
-	\brief 按指定整数类型和条件表达式取对应的有符号或无符号整数类型。
+	\ingroup meta_operations
+	\brief 取指定整数类型和条件表达式对应的有符号或无符号整数类型。
 	\since build 260 。
 	*/
 	//@{
@@ -282,7 +302,8 @@ namespace ystdex
 
 
 	/*!
-	\brief 按指定宽度取整数类型。
+	\ingroup meta_operations
+	\brief 取按指定宽度的整数类型。
 	\since build 260 。
 	*/
 	//@{
@@ -320,6 +341,43 @@ namespace ystdex
 		typedef std::int64_t type;
 		typedef std::uint64_t unsigned_type;
 	};
+	//@}
+
+
+	/*!
+	\ingroup meta
+	\brief 标记。
+	*/
+	//@{
+	/*!
+	\ingroup meta_types
+	\brief 自然数标记。
+	*/
+	//@{
+	template<size_t _vN>
+	struct n_tag
+	{
+		typedef n_tag<_vN - 1> type;
+	};
+
+	template<>
+	struct n_tag<0>
+	{
+		typedef void type;
+	};
+	//@}
+
+	/*!
+	\ingroup meta_types
+	\brief 第一分量标记。
+	*/
+	typedef n_tag<0> first_tag;
+
+	/*!
+	\ingroup meta_types
+	\brief 第二分量标记。
+	*/
+	typedef n_tag<1> second_tag;
 	//@}
 }
 

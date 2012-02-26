@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3579;
+\version r3585;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-02-14 20:01 +0800;
+	2012-02-24 17:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -104,12 +104,6 @@ public:
 			btnPrevBackground, btnNextBackground;
 
 		TFormTest();
-
-		static void
-		OnEnter_btnEnterTest(TouchEventArgs&&);
-
-		static void
-		OnLeave_btnEnterTest(TouchEventArgs&&);
 	};
 
 	struct TFormExtra : public Form
@@ -120,9 +114,6 @@ public:
 		Button btnExit;
 
 		TFormExtra();
-
-		static void
-		OnKeyPress_btnDragTest(KeyEventArgs&&);
 	};
 
 public:

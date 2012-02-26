@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1478;
+\version r1483;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2012-02-22 19:46 +0800;
+	2012-02-23 21:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -124,11 +124,6 @@ public:
 	*/
 	SDst
 	GetFullViewHeight() const;
-	/*!
-	\brief 取完整视图大小。
-	*/
-	Size
-	GetFullViewSize() const;
 	/*!
 	\brief 取视图顶端竖直位置。
 	\note 依赖于 GetItemHeight 方法的结果。

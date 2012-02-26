@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1913;
+\version r1921;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2012-02-22 20:04 +0800;
+	2012-02-25 19:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -282,9 +282,10 @@ MenuHost::IsShowing(Menu::ID id)
 bool
 MenuHost::Contains(Menu& mnu)
 {
-	return std::find_if(mMenus.begin(), mMenus.end(), [&](const ValueType& val){
-		return val.second == &mnu;
-	}) != mMenus.end();
+	using ystdex::get_value;
+
+	return std::find(mMenus.begin() | get_value, mMenus.end() | get_value, &mnu)
+		!= mMenus.end();
 }
 
 void
@@ -312,10 +313,12 @@ MenuHost::Show(Menu::ID id, ZOrderType z)
 void
 MenuHost::ShowAll(ZOrderType z)
 {
-	std::for_each(mMenus.cbegin(), mMenus.cend(),
-		[this, z](decltype(*mMenus.cbegin())& pr){
-		if(pr.second)
-			ShowRaw(*pr.second, z);
+	using ystdex::get_value;
+
+	std::for_each(mMenus.cbegin() | get_value, mMenus.cend() | get_value,
+		[this, z](const ItemType & pMnu){
+		if(pMnu)
+			ShowRaw(*pMnu, z);
 	});
 }
 
@@ -346,10 +349,12 @@ MenuHost::Hide(Menu::ID id)
 void
 MenuHost::HideAll()
 {
-	std::for_each(mMenus.cbegin(), mMenus.cend(),
-		[this](decltype(*mMenus.cbegin())& pr){
-		if(pr.second)
-			HideRaw(*pr.second);
+	using ystdex::get_value;
+
+	std::for_each(mMenus.cbegin() | get_value, mMenus.cend() | get_value,
+		[this](const ItemType& pMnu){
+		if(pMnu)
+			HideRaw(*pMnu);
 	});
 }
 

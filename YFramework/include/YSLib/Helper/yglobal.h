@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2487;
+\version r2503;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2012-01-04 08:29 +0800;
+	2012-02-25 18:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -142,6 +142,16 @@ private:
 
 public:
 	/*!
+	\brief 用户界面输入响应阈值。
+	\note 默认值 0x40 。
+	\see DSApplication::Run 。
+	\since build 288 。
+
+	用于主消息队列的消息循环中控制后台消息生成策略的全局消息优先级。
+	*/
+	Messaging::Priority UIResponseLimit;
+
+	/*!
 	\brief \c private 构造函数：非内联。
 	\pre 断言检查：进程唯一性。
 	*/
@@ -230,7 +240,12 @@ public:
 
 	/*!
 	\brief 运行主程序逻辑。
+	\note 优先级小于 UIResponseLimit 的消息时视为后台消息，否则为前台消息。
 	\since build 271 。
+
+	若主消息队列为空，调用后台消息处理程序，否则从主消息队列取出并分发消息。
+	当取出的消息的标识为 SM_QUIT 时退出消息循环。
+	对于后台消息，分发前调用后台消息处理程序。
 	*/
 	int
 	Run();

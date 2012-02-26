@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2050;
+\version r2060;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-02-23 18:18 +0800;
+	2012-02-26 18:32 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -136,16 +136,6 @@ ResponseInput(const Message&);
 \since 早于 build 132 。
 */
 //@{
-
-/*!
-\brief 发送当前 Shell 预注销消息。
-\since build 175 。
-*/
-inline void
-NowShellInsertDropMessage(Messaging::Priority p = 0x80)
-{
-	SendMessage<SM_DROP>(FetchShellHandle(), p, FetchShellHandle());
-}
 
 //@}
 
