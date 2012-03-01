@@ -11,12 +11,12 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r1596;
+\version r1622;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2012-02-25 19:07 +0800;
+	2012-02-29 14:41 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -35,19 +35,32 @@ bool Timer::NotInitialized(true);
 vu32 Timer::SystemTick(0);
 Timer::TimerMap Timer::mTimers;
 
-Timer::Timer(TimeSpan i, bool a)
+Timer::Timer(TimeSpan i, bool b)
 	: nInterval(i), nBase(0)
 {
 	InitializeSystemTimer();
-	if(a)
+	if(b)
 		Activate(*this);
+}
+
+bool
+Timer::IsActive() const
+{
+	try
+	{
+		mTimers.at(GetObjectID());
+		return true;
+	}
+	catch(std::out_of_range&)
+	{}
+	return false;
 }
 
 void
 Timer::SetInterval(TimeSpan i)
 {
 	nInterval = i;
-	if(!nInterval)
+	if(nInterval == 0)
 		Deactivate(*this);
 }
 
@@ -127,20 +140,20 @@ Timer::ResetYTimer()
 }
 
 void
-Activate(Timer& t)
+Activate(Timer& tmr)
 {
-	if(t.nInterval != 0)
+	if(tmr.nInterval != 0)
 	{
-		Timer::mTimers[t.GetObjectID()] = &t;
-		t.Synchronize();
-		t.nBase = Timer::SystemTick;
+		Timer::mTimers.insert(make_pair(tmr.GetObjectID(), &tmr));
+		Timer::Synchronize();
+		tmr.nBase = Timer::SystemTick;
 	}
 }
 
 void
-Deactivate(Timer& t)
+Deactivate(Timer& tmr)
 {
-	Timer::mTimers[t.GetObjectID()] = nullptr;
+	Timer::mTimers.erase(tmr.GetObjectID());
 }
 
 YSL_END_NAMESPACE(Timers)

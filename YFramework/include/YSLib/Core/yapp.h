@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2416;
+\version r2424;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-01-04 08:29 +0800;
+	2011-02-28 12:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -59,6 +59,13 @@ protected:
 	*/
 	shared_ptr<Shell> hShell;
 
+protected:
+	/*!
+	\brief 当前处理的消息。
+	\since build 289 。
+	*/
+	Message msg;
+
 public:
 	//标准程序实例事件。
 	std::function<void()> ApplicationExit; //!< 资源释放函数。
@@ -77,8 +84,15 @@ public:
 
 	/*!
 	\brief 取得线程空间中当前运行的 Shell 的句柄。
+	\note 无异常抛出。
 	*/
 	DefGetter(const ynothrow, shared_ptr<Shell>, ShellHandle, hShell)
+	/*!
+	\brief 取当前处理的消息。
+	\note 无异常抛出。
+	\since build 289 。
+	*/
+	DefGetter(const ynothrow, const Message&, Message, msg)
 
 	/*!
 	\brief 设置线程空间中当前运行的 Shell 的句柄。

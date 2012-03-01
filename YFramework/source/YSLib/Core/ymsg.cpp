@@ -11,13 +11,13 @@
 /*!	\file ymsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version r2049;
+\version r2070;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-02-26 15:25 +0800;
+	2012-02-28 17:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 
 #include "YSLib/Core/ymsg.h"
+#include <ystdex/algorithm.hpp>
 
 YSL_BEGIN
 
@@ -88,6 +89,20 @@ MessageQueue::Peek(Message& msg, const shared_ptr<Shell>& hShl, bool bRemoveMsg)
 		}
 	}
 	return -1;
+}
+
+void
+MessageQueue::Remove(Shell* pShl, Priority p)
+{
+	auto i(upper_bound(Message(nullptr, 0, p)));
+
+	if(pShl)
+		ystdex::erase_all_if<multiset<Message>>(*this, i, end(),
+			[pShl](const Message& msg){
+			return raw(msg.GetShellHandle()) == pShl;
+		});
+	else
+		erase(i, end());
 }
 
 YSL_END_NAMESPACE(Messaging)

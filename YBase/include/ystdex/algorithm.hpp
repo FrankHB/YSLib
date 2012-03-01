@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1283;
+\version r1306;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 254 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-01-03 07:34 +0800;
+	2012-02-28 17:14 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -160,34 +160,58 @@ namespace ystdex
 
 	/*!
 	\ingroup algorithms
-	\brief 删除指定标准容器中所有相同元素。
-	\since build 131 。
+	\brief 删除指定序列容器中和指定值的相等的元素。
+	\since build 289 。
 	*/
 	template<typename _tContainer>
-	typename _tContainer::size_type
+	void
 	erase_all(_tContainer& c, const typename _tContainer::value_type& val)
 	{
-		const auto s(c.size());
-
 		c.erase(std::remove(c.begin(), c.end(), val), c.end());
-
-		return s - c.size();
+	}
+	/*!
+	\ingroup algorithms
+	\brief 删除指定序列容器中迭代器区间中和指定值的相等的元素。
+	\pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
+	\since build 289 。
+	*/
+	template<typename _tContainer, typename _tIn, typename _tValue>
+	void
+	erase_all(_tContainer& c, _tIn first, _tIn last, const _tValue& value)
+	{
+		while(first != last)
+			if(*first == value)
+				c.erase(first++);
+			else
+				++first;
 	}
 
 	/*!
 	\ingroup algorithms
-	\brief 删除指定标准容器中所有满足条件元素。
-	\since 早于 build 132 。
+	\brief 删除指定序列容器中满足条件的元素。
+	\since build 289 。
 	*/
 	template<typename _tContainer, typename _fPredicate>
-	typename _tContainer::size_type
+	void
 	erase_all_if(_tContainer& c, _fPredicate pred)
 	{
-		const auto s(c.size());
-
 		c.erase(std::remove_if(c.begin(), c.end(), pred), c.end());
-
-		return s - c.size();
+	}
+	/*!
+	\ingroup algorithms
+	\brief 删除指定序列容器中迭代器区间中满足条件的元素。
+	\pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
+	\since build 289 。
+	*/
+	template<typename _tContainer, typename _tIn, typename _fPredicate>
+	void
+	erase_all_if(_tContainer& c, _tIn first, _tIn last, _fPredicate pred)
+	{
+		while(first != last)
+			if(pred(*first))
+				c.erase(first++);
+			else
+				++first;
 	}
 
 	/*!
@@ -202,7 +226,7 @@ namespace ystdex
 	std::pair<typename _tMap::iterator, bool>
 	search_map(_tMap& m, const typename _tMap::key_type& k)
 	{
-		auto i(m.lower_bound(k));
+		const auto i(m.lower_bound(k));
 
 		return std::make_pair(i, (i == m.end() || m.key_comp()(k, i->first)));
 	}

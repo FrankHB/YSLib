@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1988;
+\version r2026;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-02-25 21:38 +0800;
+	2012-02-29 14:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -319,7 +319,15 @@ private:
 	*/
 	IO::Path path;
 
+protected:
+	/*!
+	\brief 滚屏计时器。
+	\since build 289 。
+	*/
+	Timers::Timer tmrScroll;
+
 public:
+
 	DualScreenReader Reader;
 	ReaderBox boxReader;
 	TextInfoBox boxTextInfo;
@@ -355,6 +363,13 @@ public:
 	*/
 	void
 	LoadFile(const IO::Path&);
+
+	/*!
+	\brief 当自动滚屏有效状态为 true 时超时自动滚屏。
+	\since build 289 。
+	*/
+	void
+	Scroll();
 
 private:
 	void
@@ -430,6 +445,13 @@ public:
 protected:
 	unique_ptr<ReaderSession> pManager;
 
+private:
+	/*!
+	\brief 背景任务：用于滚屏。
+	\since build 298 。
+	*/
+	std::function<void()> background_task;
+
 public:
 	/*!
 	\brief 近期浏览记录。
@@ -444,15 +466,26 @@ public:
 
 	ShlReader();
 
-	virtual int
+	/*!
+	\brief 处理激活消息。
+	\since build 289 。
+	*/
+	virtual void
 	OnActivated(const Message&);
 
 	/*!
 	\brief 处理停用消息。
-	\since build 284 。
+	\since build 289 。
 	*/
-	virtual int
+	virtual void
 	OnDeactivated();
+
+	/*!
+	\brief 处理输入消息：发送绘制消息，当处于滚屏状态时自动执行滚屏。
+	\since build 289 。
+	*/
+	virtual void
+	OnInput();
 };
 
 YSL_END_NAMESPACE(YReader)

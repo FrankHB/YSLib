@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4654;
+\version r4655;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2012-02-22 20:09 +0800;
+	2012-02-28 14:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -239,7 +239,7 @@ Control::Control(const Rect& r)
 			Invalidate(*this);
 		}
 	);
-	BoundControlPtr = std::bind(std::mem_fn(&Control::GetBoundControlPtr), this,
+	BoundControlPtr = std::bind(&Control::GetBoundControlPtr, this,
 		std::placeholders::_1);
 }
 Control::Control(const Control& ctl)

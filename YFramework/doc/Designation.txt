@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6930;
+\version r6931;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-26 17:35 +0800;
+	2012-02-29 11:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -761,6 +761,7 @@
  IWidget 接口；
  Visual 类；
  Widget 类。
+渲染器 BufferedRenderer 可以设置是否忽略背景（注意忽略背景可能影响子部件的渲染行为）。
 
 @2.7.8.2 样式无关的 GUI 容器 YUIContainer ：
 主要类型：

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2060;
+\version r2085;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-02-26 18:32 +0800;
+	2012-02-28 07:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -97,29 +97,44 @@ public:
 	DefGetter(const ynothrow, Desktop&, DesktopDown, *hDskDown)
 
 	/*!
-	\brief 处理激活消息。
+	\brief 处理激活消息：重置图形用户界面输出状态。
+	\since build 289 。
 	*/
-	virtual int
+	virtual void
 	OnActivated(const Message&);
 
 	/*!
-	\brief 处理停用消息。
-	\since build 284 。
+	\brief 处理停用消息：清除桌面内容。
+	\since build 289 。
 	*/
-	virtual int
+	virtual void
 	OnDeactivated();
 
 	/*!
 	\brief 消息处理函数。
+
+	处理以下消息：
+	激活消息 SM_ACTIVATED ，映射至 OnActivated ；
+	停用消息 SM_DEACTIVATED ，映射至 OnDeactivated ；
+	绘制消息 SM_PAINT ，对桌面后 Validate 操作后调用 OnPaint ，再对桌面 Update 。
+	输入消息 SM_INPUT ，分发按键处理后调用 OnInput 。
 	*/
 	virtual int
 	OnGotMessage(const Message&);
 
 	/*!
-	\brief 更新到屏幕。
+	\brief 处理输入消息：发送绘制消息。
+	\since build 289 。
 	*/
 	virtual void
-	UpdateToScreen();
+	OnInput();
+
+	/*!
+	\brief 处理绘制消息：空实现。
+	\since build 288 。
+	*/
+	virtual void
+	OnPaint();
 };
 
 
@@ -165,15 +180,16 @@ public:
 
 	/*!
 	\brief 处理激活消息。
+	\since build 289 。
 	*/
-	virtual int
+	virtual void
 	OnActivated(const Message&);
 
 	/*!
 	\brief 处理停用消息。
-	\since build 284 。
+	\since build 289 。
 	*/
-	virtual int
+	virtual void
 	OnDeactivated();
 };
 

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3314;
+\version r3377;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-02-25 21:41 +0800;
+	2012-03-01 12:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -107,14 +107,21 @@ ReaderBox::ReaderBox(const Rect& r, ShlReader& shl)
 	pbReader(Rect(4, 0, 248, 8)), lblProgress(Rect(216, 12, 40, 16))
 {
 	SetTransparent(true),
+	SetRenderer(unique_raw(new BufferedRenderer())),
 	seq_apply(ContainerSetter(*this),
 		btnMenu, btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
+	btnMenu.SetRenderer(unique_raw(new BufferedRenderer())),
 	btnMenu.Text = "M",
+	btnInfo.SetRenderer(unique_raw(new BufferedRenderer())),
 	btnInfo.Text = "I",
+	btnReturn.SetRenderer(unique_raw(new BufferedRenderer())),
 	btnReturn.Text = "R",
+	btnPrev.SetRenderer(unique_raw(new BufferedRenderer())),
 	btnPrev.Text = "←",
+	btnNext.SetRenderer(unique_raw(new BufferedRenderer())),
 	btnNext.Text = "→",
 	pbReader.ForeColor = Color(192, 192, 64),
+	lblProgress.SetRenderer(unique_raw(new BufferedRenderer())),
 	lblProgress.SetTransparent(true),
 	lblProgress.Font.SetSize(12);
 }
@@ -155,17 +162,23 @@ ReaderBox::Refresh(const PaintContext& pc)
 void
 ReaderBox::UpdateData(DualScreenReader& reader)
 {
-	char str[4];
-
 	const auto ts(reader.GetTextSize());
-	const auto tp(reader.GetTopPosition());
 
-	std::sprintf(str, "%2u%%", tp * 100 / ts);
-	yunseq(lblProgress.Text = str,
-		lblProgress.ForeColor = reader.GetBottomPosition() == ts
-		? ColorSpace::Green : ColorSpace::Fuchsia);
-	pbReader.SetMaxValue(ts),
-	pbReader.SetValue(tp);
+	if(ts == 0)
+		yunseq(lblProgress.Text = u"--%",
+			lblProgress.ForeColor = ColorSpace::Blue);
+	else
+	{
+		const auto tp(reader.GetTopPosition());
+		char str[4];
+
+		std::sprintf(str, "%2u%%", tp * 100 / ts);
+		yunseq(lblProgress.Text = str,
+			lblProgress.ForeColor = reader.GetBottomPosition() == ts
+			? ColorSpace::Green : ColorSpace::Fuchsia);
+		pbReader.SetMaxValue(ts),
+		pbReader.SetValue(tp);
+	}
 	Invalidate(pbReader),
 	Invalidate(lblProgress);
 }
@@ -378,6 +391,7 @@ ReaderSession::ReaderSession(ShlReader& shl)
 
 TextReaderSession::TextReaderSession(ShlReader& shl)
 	: ReaderSession(shl),
+	path(), tmrScroll(1000, false),
 	Reader(), boxReader(Rect(0, 160, 256, 32), shl),
 	boxTextInfo(shl), pnlSetting(), pTextFile(), mhMain(shl.GetDesktopDown())
 {
@@ -397,7 +411,7 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 	SetVisibleOf(boxTextInfo, false),
 	SetVisibleOf(pnlSetting, false);
 	yunseq(
-		Reader.ViewChanged = [this]()
+		Reader.ViewChanged = [this]
 		{
 			if(IsVisible(boxReader))
 				boxReader.UpdateData(Reader);
@@ -431,11 +445,14 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 		},
 		FetchEvent<TouchDown>(boxReader.pbReader) += [this](TouchEventArgs&& e)
 		{
-			Shell.LastRead.Insert(path, Reader.GetTopPosition());
-			Shell.LastRead.DropSubsequent();
-			UpdateButtons();
-			Reader.Locate(e.X * Reader.GetTextSize()
-				/ boxReader.pbReader.GetWidth());
+			if(Reader.GetTextSize() != 0)
+			{
+				Shell.LastRead.Insert(path, Reader.GetTopPosition());
+				Shell.LastRead.DropSubsequent();
+				UpdateButtons();
+				Reader.Locate(e.X * Reader.GetTextSize()
+					/ boxReader.pbReader.GetWidth());
+			}
 		},
 		FetchEvent<Paint>(boxReader.pbReader) += [this](PaintEventArgs&& e){
 			auto& pb(boxReader.pbReader);
@@ -588,6 +605,13 @@ TextReaderSession::LoadFile(const IO::Path& pth)
 }
 
 void
+TextReaderSession::Scroll()
+{
+	if(tmrScroll.IsActive() && tmrScroll.Refresh())
+		Reader.Execute(DualScreenReader::LineDownScroll);
+}
+
+void
 TextReaderSession::ShowMenu(Menu::ID id, const Point&)
 {
 	if(!mhMain.IsShowing(id))
@@ -633,6 +657,11 @@ TextReaderSession::UpdateButtons()
 void
 TextReaderSession::OnClick(TouchEventArgs&&)
 {
+	if(tmrScroll.IsActive())
+	{
+		Deactivate(tmrScroll);
+		return;
+	}
 	if(IsVisible(boxReader))
 	{
 		Reader.Stretch(0);
@@ -651,8 +680,16 @@ TextReaderSession::OnKeyDown(KeyEventArgs&& e)
 {
 	if(e.Strategy != RoutedEventArgs::Tunnel && !mhMain.IsShowing(1u))
 	{
-		u32 k(static_cast<KeyEventArgs::InputType>(e));
+		const u32 k(static_cast<KeyEventArgs::InputType>(e));
 
+		if(tmrScroll.IsActive())
+			Deactivate(tmrScroll);
+		else if(k == KeySpace::Start)
+		{
+			tmrScroll.Reset();
+			Activate(tmrScroll);
+			return;
+		}
 		switch(k)
 		{
 		case KeySpace::Enter:
@@ -713,7 +750,7 @@ HexReaderSession::HexReaderSession(ShlReader& shl)
 	: ReaderSession(shl),
 	HexArea(Rect::FullScreen), pnlFileInfo()
 {
-	HexArea.SetRenderer(unique_raw(new BufferedRenderer()));
+	HexArea.SetRenderer(unique_raw(new BufferedRenderer(true)));
 	yunseq(
 		FetchEvent<KeyDown>(HexArea) += [](KeyEventArgs&& e){
 			if(e.GetKeyCode() == KeySpace::Esc)
@@ -776,7 +813,7 @@ bool ShlReader::CurrentIsText(false);
 
 ShlReader::ShlReader()
 	: ShlDS(),
-	hUp(), hDn(), pManager(), LastRead(), CurrentSetting()
+	hUp(), hDn(), pManager(), background_task(), LastRead(), CurrentSetting()
 {
 	// TODO: use entity tree to store properties;
 	yunseq(
@@ -785,7 +822,7 @@ ShlReader::ShlReader()
 	);
 }
 
-int
+void
 ShlReader::OnActivated(const Message& msg)
 {
 	ParentType::OnActivated(msg);
@@ -794,18 +831,21 @@ ShlReader::OnActivated(const Message& msg)
 	auto& dsk_dn(GetDesktopDown());
 
 	if(ShlReader::CurrentIsText)
-		pManager = unique_raw(new TextReaderSession(*this));
+	{
+		auto& session(*new TextReaderSession(*this));
+
+		background_task = std::bind(&TextReaderSession::Scroll, &session);
+		pManager = unique_raw(&session);
+	}
 	else
 		pManager = unique_raw(new HexReaderSession(*this));
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr()),
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
 	SetInvalidationOf(dsk_up),
 	SetInvalidationOf(dsk_dn);
-	UpdateToScreen();
-	return 0;
 }
 
-int
+void
 ShlReader::OnDeactivated()
 {
 	auto& dsk_up(GetDesktopUp());
@@ -813,9 +853,17 @@ ShlReader::OnDeactivated()
 
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
+	background_task = nullptr;
 	reset(pManager);
 	ParentType::OnDeactivated();
-	return 0;
+}
+
+void
+ShlReader::OnInput()
+{
+	ParentType::OnInput();
+	if(background_task)
+		SendMessage<SM_TASK>(FetchShellHandle(), 0x20, background_task);
 }
 
 YSL_END_NAMESPACE(YReader)

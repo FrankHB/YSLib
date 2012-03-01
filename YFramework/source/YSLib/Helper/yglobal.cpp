@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3463;
+\version r3472;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2012-02-26 18:03 +0800;
+	2012-02-28 12:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -395,19 +395,20 @@ DSApplication::Run()
 {
 	using namespace Shells;
 
-	Message msg;
-	int id;
-
 	//消息循环。
 	while(true)
-		if(Queue.GetMaxPriority() < UIResponseLimit)
+	{
+		if(Queue.IsEmpty())
 			Idle();
 		else
 		{
-			if((id = Queue.Peek(msg, hShell, true)) == SM_QUIT)
+			if(Queue.Peek(msg, hShell, true) == SM_QUIT)
 				break;
+			if(msg.GetPriority() < UIResponseLimit)
+				Idle();
 			Dispatch(msg);
 		}
+	}
 	// TODO: return exit code properly;
 	return 0;
 }

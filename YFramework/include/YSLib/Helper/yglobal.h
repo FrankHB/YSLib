@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2503;
+\version r2515;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2012-02-25 18:06 +0800;
+	2012-02-28 12:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -179,7 +179,6 @@ public:
 		hDesktopUp)
 	DefGetter(const ynothrow, const shared_ptr<Desktop>&, DesktopDownHandle,
 		hDesktopDown)
-
 	/*!
 	\brief 取上屏幕。
 	\note 断言检查：句柄非空。

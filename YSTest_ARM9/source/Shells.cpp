@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5618;
+\version r5638;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-02-24 17:56 +0800;
+	2012-02-28 14:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -710,7 +710,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 }
 
 
-int
+void
 ShlExplorer::OnActivated(const Message& msg)
 {
 	ParentType::OnActivated(msg);
@@ -743,9 +743,8 @@ ShlExplorer::OnActivated(const Message& msg)
 	btnOK.SetTransparent(false);
 	// init-seg 3;
 	yunseq(
-		dsk_dn.BoundControlPtr = std::bind(
-			std::mem_fn(&ShlExplorer::GetBoundControlPtr), this,
-			std::placeholders::_1),
+		dsk_dn.BoundControlPtr = std::bind(&ShlExplorer::GetBoundControlPtr,
+			this, std::placeholders::_1),
 		FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave,
 		FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown,
 		FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click
@@ -773,11 +772,9 @@ ShlExplorer::OnActivated(const Message& msg)
 	mhMain += *(ynew Menu(Rect::Empty, GenerateList(u"B:MenuItem"), 2u));
 	mhMain[1u] += make_pair(1u, &mhMain[2u]);
 	ResizeForContent(mhMain[2u]);
-	UpdateToScreen();
-	return 0;
 }
 
-int
+void
 ShlExplorer::OnDeactivated()
 {
 	auto& dsk_up(GetDesktopUp());
@@ -788,9 +785,8 @@ ShlExplorer::OnDeactivated()
 		reset(dsk_up.GetBackgroundImagePtr()),
 		reset(dsk_dn.GetBackgroundImagePtr()),
 	// uninit-seg 3;
-	dsk_dn.BoundControlPtr = std::bind(
-		std::mem_fn(&Control::GetBoundControlPtr), &dsk_dn,
-		std::placeholders::_1),
+		dsk_dn.BoundControlPtr = std::bind(&Control::GetBoundControlPtr,
+			&dsk_dn, std::placeholders::_1),
 		FetchEvent<KeyUp>(dsk_dn) -= OnKey_Bound_TouchUpAndLeave,
 		FetchEvent<KeyDown>(dsk_dn) -= OnKey_Bound_EnterAndTouchDown,
 		FetchEvent<KeyPress>(dsk_dn) -= OnKey_Bound_Click
@@ -806,43 +802,28 @@ ShlExplorer::OnDeactivated()
 	mhMain.Clear();
 	// parent-uninit-seg 0;
 	ParentType::OnDeactivated();
-	return 0;
 }
 
 void
-ShlExplorer::UpdateToScreen()
+ShlExplorer::OnPaint()
 {
-	auto& dsk_up(GetDesktopUp());
+	// NOTE: overwriting member function OnInput using SM_TASK is also valid due
+	//	to the SM_INPUT message is sent continuously, but with less efficiency.
 	auto& dsk_dn(GetDesktopDown());
-
-	yunseq(dsk_up.Validate(), dsk_dn.Validate());
 
 	if(chkFPS.IsTicked())
 	{
-		char strt[60];
-		auto& g(dsk_dn.GetContext());
-	//	auto& g(dsk_dn.GetScreen());
 		using namespace ColorSpace;
 
-		{
-			const Rect r(0, 172, 72, 20);
-			u32 t(fpsCounter.Refresh());
+		auto& g(dsk_dn.GetContext());
+		const Rect r(0, 172, 80, 20);
+		const u32 t(fpsCounter.Refresh());
+		char strt[20];
 
-			std::sprintf(strt, "FPS: %u.%03u", t/1000, t%1000);
-			FillRect(g, r, Blue);
-			DrawText(g, r, strt, DefaultMargin, White);
-		}
-		{
-			const Rect r(4, 144, 120, 20), ri(dsk_dn.GetInvalidatedArea());
-
-			std::sprintf(strt, "(%d, %d, %u, %u)",
-				ri.X, ri.Y, ri.Width, ri.Height);
-			FillRect(g, r, Green);
-			DrawText(g, r, strt, DefaultMargin, Yellow);
-		}
+		std::sprintf(strt, "FPS: %u.%03u", t / 1000, t % 1000);
+		FillRect(g, r, Blue);
+		DrawText(g, r, strt, DefaultMargin, White);
 	}
-	dsk_up.Update(),
-	dsk_dn.Update();
 }
 
 IWidget*

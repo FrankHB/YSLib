@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2189;
+\version r2197;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-02-22 20:02 +0800;
+	2012-02-28 07:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -72,7 +72,7 @@ MainShell::MainShell()
 	lblDetails(Rect(30, 20, 160, 22))
 {}
 
-int
+void
 MainShell::OnActivated(const Message& msg)
 {
 	ParentType::OnActivated(msg);
@@ -95,7 +95,9 @@ MainShell::OnActivated(const Message& msg)
 	lblDetails.ForeColor = ColorSpace::White;
 	lblDetails.SetTransparent(true);
 	SetInvalidationOf(dsk_up);
-	UpdateToScreen();
+	yunseq(dsk_up.Validate(), dsk_dn.Validate());
+	dsk_up.Update(),
+	dsk_dn.Update();
 	//初始化所有图像资源。
 
 	auto& pb(*new ProgressBar(Rect(8, 168, 240, 16), 10));
@@ -119,16 +121,14 @@ MainShell::OnActivated(const Message& msg)
 	dsk_up -= pb;
 	delete &pb;
 	YReader::SetShellToStored<YReader::ShlExplorer>();
-	return 0;
 }
 
-int
+void
 MainShell::OnDeactivated()
 {
 	reset(GetDesktopUp().GetBackgroundImagePtr());
 	reset(GetDesktopDown().GetBackgroundImagePtr());
 	ParentType::OnDeactivated();
-	return 0;
 }
 
 YSL_END_NAMESPACE(Shells)

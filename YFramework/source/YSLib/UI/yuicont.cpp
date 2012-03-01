@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2548;
+\version r2554;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2012-02-25 18:48 +0800;
+	2012-02-28 17:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -153,13 +153,12 @@ MoveToBottom(IWidget& wgt)
 bool
 MUIContainer::operator-=(IWidget& wgt)
 {
+	using namespace ystdex;
+
 	auto t(mWidgets.size());
 
-	for(auto i(mWidgets.begin()); i != mWidgets.end();)
-		if(i->second == &wgt)
-			mWidgets.erase(i++);
-		else
-			++i;
+	erase_all(mWidgets, mWidgets.begin() | get_value, mWidgets.end()
+		| get_value, &wgt);
 	t -= mWidgets.size();
 
 	YAssert(t <= 1, "Duplicate desktop object pointer found"

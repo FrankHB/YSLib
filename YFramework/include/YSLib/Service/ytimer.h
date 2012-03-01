@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,14 +16,14 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1688;
+\version r1712;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2011-12-04 12:45 +0800;
-\par 字符集:
+	2012-02-29 14:35 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Service::YTimer;
@@ -63,10 +63,22 @@ protected:
 
 public:
 	/*!
-	\brief 构造：使用时间间隔和有效性。
+	\brief 构造：使用时间间隔和激活状态。
 	*/
 	explicit
 	Timer(TimeSpan = 1000, bool = true);
+	/*!
+	\brief 析构：自动停用。
+	\since build 289 。
+	*/
+	~Timer();
+
+	/*!
+	\brief 判断 Timer 是否处于激活状态。
+	\since build 289 。
+	*/
+	bool
+	IsActive() const;
 
 	static DefGetter(ynothrow, TimeSpan, SystemTick, SystemTick)
 	DefGetter(const ynothrow, TimeSpan, Interval, nInterval)
@@ -148,6 +160,12 @@ public:
 	friend void
 	Deactivate(Timer&);
 };
+
+inline
+Timer::~Timer()
+{
+	Deactivate(*this);
+}
 
 inline void
 Timer::Synchronize()
