@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r1327;
+\version r1352;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2012-02-25 17:48 +0800;
+	2012-03-04 19:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -155,7 +155,26 @@ namespace ystdex
 	using std::result_of;
 
 
+	/*!	\defgroup template_meta_programing Template Meta Programing
+	\brief 模板元编程。
+	\since build 288 。
+	*/
+
+	/*!	\defgroup meta_types Meta Types
+	\ingroup template_meta_programing
+	\brief 元类型。
+	\since build 288 。
+	*/
+
+	/*!	\defgroup meta_operations Meta Operations
+	\ingroup template_meta_programing
+	\brief 元操作。
+	\since build 288 。
+	*/
+
+
 	/*!
+	\ingroup meta_operations
 	\brief 移除指针和引用类型。
 	\since build 175 。
 	*/
@@ -168,6 +187,7 @@ namespace ystdex
 
 
 	/*!
+	\ingroup meta_operations
 	\brief 判断指定类型是否有非空虚基类。
 	\since build 175 。
 	*/
@@ -200,6 +220,7 @@ namespace ystdex
 
 
 	/*!
+	\ingroup meta_operations
 	\brief 判断指定的两个类类型是否有非空虚基类。
 	\since build 175 。
 	*/
@@ -252,22 +273,70 @@ namespace ystdex
 	};
 
 
-	/*!	\defgroup template_meta_programing Template Meta Programing
-	\brief 模板元编程。
-	\since build 288 。
-	*/
+	/*!
+	\ingroup meta_operations
+	\brief 数组类型退化。
+	\since build 290 。
 
-	/*!	\defgroup meta_types Meta Types
-	\ingroup template_meta_programing
-	\brief 元类型。
-	\since build 288 。
+	参数为数组类型时同 std::decay ，否则结果类型为参数。
 	*/
+	template<typename _type>
+	struct array_decay
+	{
+		typedef typename conditional<is_array<_type>::value,
+			typename decay<_type>::type, _type>::type type;
+	};
 
-	/*!	\defgroup meta_operations Meta Operations
-	\ingroup template_meta_programing
-	\brief 元操作。
-	\since build 288 。
+
+	/*!
+	\ingroup meta_operations
+	\brief 保持修饰符的类型退化。
+	\since build 290 。
+
+	参数移除引用后为数组或函数类型时同 std::decay ，否则结果为参数。
 	*/
+	template<typename _type>
+	struct qualified_decay
+	{
+	private:
+		typedef typename remove_reference<_type>::type value_type;
+
+	public:
+		typedef typename conditional<is_function<value_type>::value
+			|| is_array<value_type>::value, typename decay<_type>::type,
+			_type>::type type;
+	};
+
+
+	/*!
+	\ingroup meta_operations
+	\brief 数组及数组引用类型退化。
+	\since build 290 。
+
+	参数为非引用类型时同 array_decay ，
+	否则结果为被引用的类型的 array_decay 结果的引用。
+	*/
+	//@{
+	template<typename _type>
+	struct array_ref_decay
+	{
+		typedef typename array_decay<_type>::type type;
+	};
+
+	template<typename _type>
+	struct array_ref_decay<_type&>
+	{
+		typedef typename array_decay<_type>::type type;
+		typedef typename array_decay<_type>::type& reference;
+	};
+
+	template<typename _type>
+	struct array_ref_decay<_type&&>
+	{
+		typedef typename array_decay<_type>::type type;
+		typedef typename array_decay<_type>::type&& reference;
+	};
+	//@}
 
 
 	/*!

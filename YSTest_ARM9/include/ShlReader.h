@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2026;
+\version r2032;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-02-29 14:48 +0800;
+	2012-03-02 23:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -146,6 +146,11 @@ protected:
 	\since build 282 。
 	*/
 	DropDownList ddlFont;
+	/*!
+	\brief 编码设置下拉列表。
+	\since build 290 。
+	*/
+	DropDownList ddlEncoding;
 	ColorBox boxColor;
 
 private:

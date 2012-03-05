@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3515; *build 289 rev 47;
+\version r3515; *build 290 rev 31;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-03-01 14:04 +0800;
+	2012-03-05 14:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -344,198 +344,164 @@ $using:
 
 $DONE:
 r1:
-/ \simp \impl @ \mf ShlExplorer::UpdateToScreen
-	$= (- unused invalidating area test) @ \impl \u Shells;
-
-r2:
-/= test 1 ^ \conf release;
-
-r3:
-/ \impl @ \mf DSApplication::Run @ \impl \u YGlobal;
-
-r4:
-/ @ \cl ShlDS @ \u Shell_DS $=
+/ @ \cl TextReaderSession @ \impl \u ShlReader $=
 (
-	+ \mf \vt void OnInput(const InputContent&);
-	/ \impl @ \mf ShlDS::OnGotMessage
+	/ \impl @ \ctor,
+	/ \simp \impl @ \mf OnClick
+),
+* reader content and text information not refreshed after switched to
+	empty file using reading list $since b289 $=
+(
+	/ \impl @ \mf DualScreenReader::Locate @ \impl \u DSReader
 );
 
-r5:
-/ \a UpdateToScreen => OnPaint,
-/ \a \ret \tp @ \a \mf (OnActivated, OnDeactivated) -> void ~ int;
-/ \tr \impl @ \mf ShlDS::OnGotMessage @ \impl \u Shell_DS;
+r2:
+* \impl @ \mf TextReaderSession::OnClick $since r1;
+
+r3-r5:
+/= test 1,
+/ @ \cl ReaderBox @ \impl \u ShlReader $=
+(
+	/ \impl @ \mf UpdateData,
+	/ \impl @ \ctor
+);
 
 r6:
 /= test 2 ^ \conf release;
 
 r7:
-- \a \param @ \a \mf OnInput;
-/ \impl @ \mf ShlDS::OnGotMessage @ \impl \u Shell_DS,
-/ \impl @ \mf ShlReader::OnActivated @ \impl \u ShlReader,
-/ \impl @ \mf ShlExplorer::(OnActivated, OnPaint) @ \impl \u Shells;
+/ @ \cl TextFile @ \u YFile_(Text) $=
+(
+	/ private \m Text::Encoding cp -> public \m Text::Encoding Encoding,
+	- \tr \mf GetEncoding,
+	/ \impl @ \ctor,
+	/ \impl @ \mft (ReadChar, SkipChar)
+);
+/ @ \cl TextFileBuffer $=
+(
+	/ \tr \impl @ \mf GetEncoding @ \h TextManager;
+	/ \tr \impl @ \ctor
+);
 
 r8:
-* \impl @ \mf ShlDS::OnGotMessage @ \impl \u Shell_DS $since r7;
+/ @ \cl TextFile @ \u YFile_(Text) $=
+(
+	- \mf size_t Read(void*, size_t) const,
+	- using File::Read
+);
+/ \mf size_t Read(void*, size_t, size_t) const @ \cl File @ \u YFile
+	-> \mf size_t Read(void*, size_t = 1U, size_t = 1U) const;
 
 r9:
-* \impl @ \mf MainShell::OnPaint @ \impl \u ARM9_Main $since r7;
+/ @ \impl \u YFile_(Text) $=
+(
+	+ \f (CheckUTF8, CheckEncoding) @ \un \ns;
+	/ \impl @ \ctor TextFile
+);
 
 r10:
-/ @ \cl DSApplication @ \u YGlobal $=
-(
-	+ private \m Message msg;
-	+ \mf DefGetter(const ynothrow, const Message&, Message, msg),
-	/ \tr \impl @ \ctor,
-	/ \simp \impl @ \mf Run
-);
+/ \impl @ \ctor TextFile @ \impl \u YFile_(Text);
 
 r11:
 /= test 3 ^ \conf release;
 
 r12:
-/= test 4;
-
-r13:
-/= \simp \impl @ \ctor @ TextReaderSession @ \impl \u ShlReader,
-/ @ \cl DSApplication @ \u YGlobal $=
-(
-	/ private \m Message msg -> public \m @ \cl Application,
-	/ \mf GetMessage >> \cl Application;
-	/ \tr \impl @ (\ctor, \mf Run)
-);
-/ \tr \impl @ \ctor @ \cl Application;
-
-r14:
 / @ \u ShlReader $=
 (
-	/ @ \cl TextReaderSession $=
+	/ @ \un \ns @ \impl \u $=
 	(
-		+ protected \m (bool bAutoScroll, Timers::Timer tmrScroll),
-		+ \mf Scroll,
-		/ \tr \impl @ \ctor
-	);
-	/ @ \cl ShlReader $=
+		+ POD \st EncodingInfoItem;
+		+ yconstexpr EncodingInfoItem Encodings[];
+		+ \f FetchEncodingNames
+	),
+	/ @ \cl SettingPanel $=
 	(
-		+ \mf \vt void OnInput(),
-		+ private \m std::function<void()> background_task,
+		+ protected \m DropDownList ddlEncoding,
 		/ \tr \impl @ \ctor
 	)
 );
 
-r15-r16:
-/ \impl @ \mf TextReaderSession::(OnKeyDown, OnClick) @ \impl \u ShlReader;
-
-r17:
-/ \simp \impl @ \ctor Control#1,
-/ \tr \simp \impl @ \mf ShlExplorer(OnActivated, OnDeactivated)
-	@ \impl \u Shells;
-
-r18:
-/= test 5 ^ \conf release;
-
-r19:
-* \tr !\impl @ \mf ShlReader::OnDeactivated @ \impl \u ShlReader $since r14;
+r13-r19:
+/= test 4;
 
 r20:
-/= test 6;
+/ \impl @ \ctor @ \cl DropDownList;
 
-r21:
-+ \mf size_t MessageQueue::Remove(Shell*, u16);
-/ \impl @ \mf ShlDS::OnDeactivated
-
-r22:
-/= test 7 ^ \conf release;
-
-r23:
-/ @ \h Algorithms $=
+r21-r24:
+/ @ \h TypeOperation $=
 (
-	/ \impl @ \ft search_map,
-	/ \ret \tp @ \ft<_tContaienr> (erase_all, erase_all_if) -> void
-		~ typename _tContainer::size_type,
-	+ \ft<_tIn, _type> void erase_all(_tIn, _tIn, const _type&),
-	+ \ft<_tIn, _fPred> void erase_all_if(_tIn, _tIn, _fPred)
+	+ \stt array_decay,
+	+ \stt qualified_decay,
+	+ \stt array_ref_decay
 );
-/ \simp \impl @ \mf MUIContainer::operator-= ^ ystdex::(erase_all, get_value),
+/ @ \h Iterator $=
 (
-	+ \h Algorithms @ \impl \u YMessage;
-	/ \simp \impl @ \mf MessageQueue::Remove ^ ystdex::erase_all_if;
-)
+	- \a 'ynothrow',
+	(
+		+ \clt pointer_iterator;
+		+ \stt pointer_classify;
+		/ @ \clt transformed_iterator
+		(
+			/ public \inh remove_reference<_tIterator>::type
+				-> pointer_classify<_tIterator>::type,
+			/ \m typedef typename remove_reference<_tIterator>::type base_type
+				-> typedef typename pointer_classify<typename
+				remove_reference<_tIterator>::type>::type iterator_type;
+			/ \tr \impl @ \ctor,
+			/ \a \mf base -> get,
+			+ \mf operator iterator_type&(),
+			+ \mf yconstfn operator const iterator_type&() const
+		),
+		/ \tr @ \ft make_transform,
+		/ @ \a 2 \op|
+	)
+);
+/ \tr \impl @ \impl \u (YPanel, YUIContainer),
+/ \simp \impl @ \f FetchEncodingNames @ \un \ns @ \impl \u ShlReader;
 
-r24-r28:
-/ \impl @ \ctor @ ReaderBox @ \impl \u ShlReader,
-/= test 8;
+r25:
+/= test 5 ^ \conf release;
+
+r26:
+/ @ \impl \u ShlReader $=
+(
+	+ \f FetchEncodingString @ \un \ns;
+	/ @ \cl SettingPanel $=
+	(
+		/ \impl @ \ctor,
+		/ \impl @ \mf UpdateInfo
+	),
+	/ \impl @ \ctor @ TextReaderSession
+);
+
+r27-r28:
+* \impl @ \f FetchEncodingString @ \un \ns @ \impl \u ShlReader $since r26;
 
 r29:
-/ \impl @ \ctor @ HexReaderSession @ \impl \u ShlReader;
+* \impl @ \ctor @ TextReaderSession @ \impl \u ShlReader $since r26;
 
 r30:
-/ \impl @ \mf ProgressBar::Refresh;
+/ \impl @ \ctor @ TextReaderSession @ \impl \u ShlReader;
 
 r31:
-/= test 9 ^ \conf release;
-
-r32:
-/ @ \cl Timer @ \u YTimer $=
-(
-	/ \impl @ friend \f void Activate(Timer&),
-	/ \impl @ friend \f void Deactivate(Timer&),
-	/ \impl @ \mf SetInterval,
-	+ \mf bool IsActive() const,
-	+ \i \dtor,
-	/ \tr \impl @ \ctor
-);
-/ \tr \impl @ \mf TextReaderSession::OnClick;
-
-r33:
-/ @ \cl ShlReader $=
-(
-	- protected \m bAutoScroll,
-	/ \tr \impl @ (\ctor, \mf (OnKeyDown, OnClick, Scroll))
-);
-
-r34-r36:
-/= test 10,
-/ \impl @ \ctor @ \cl ProgressBar;
-
-r37:
-* \impl @ \mf ReaderBox::UpdateData @ \impl \u ShlReader $since b273;
-
-r38-r45:
-/ \impl @ \ctor @ TextFileBuffer;
-* @ \cl DualScreenReader @ \impl \u DSReader $since b273 $=
-(
-	/ \impl @ \mf UpdateView,
-	/ \impl @ \mf Execute
-),
-/= test 11;
-
-r46:
-/ @ \cl ReaderBox @ \impl \u ShlReader $=
-(
-	* \impl @ \mf ReaderBox::UpdateData $since r37,
-	/ \impl @ \ctor
-);
-
-r47:
-/= test 12 ^ \conf release;
+/= test 6 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-03-01:
--11.8d;
-//Mercurial rev1-rev161: r7723;
+2012-03-04:
+-11.2d;
+//Mercurial rev1-rev162: r7754;
 
 / ...
 
 
 $NEXT_TODO:
-b290-b300:
-/ fully \impl @ \u (DSReader, ShlReader) $=
+b291-b300:
+/ \impl @ \u (DSReader, ShlReader) $=
 (
-	* reader content not refreshed after switched to empty file,
-	* text information not updated after switched to empty file,
+	+ \impl @ user encoding switching,
 	+ automatic scrolling time setting,
 	+ smooth scrolling,
 	+ local encoding selecting,
@@ -544,7 +510,7 @@ b290-b300:
 
 
 $TODO:
-b301-b1536:
+b301-b1600:
 / fully \impl @ \u DSReader $=
 (
 	+ bookmarks manager,
@@ -589,9 +555,15 @@ b301-b1536:
 	/ text alignment,
 	/ advanced text layout like Unicode layout control
 ),
+/ fully \impl @ encoding checking;
 / @ "GUI" $=
 (
+	+ widget models,
+	+ IMEs,
+	+ widget layout \impl,
 	+ focus iteration,
+	+ document-view models,
+	+ viewer models,
 	* View position switch through scrall bar not accurate enough
 		@ class %ListBox,
 	+ synchronization of viewer length @ class %TextList,
@@ -599,7 +571,6 @@ b301-b1536:
 	+ focus paths controling,
 	+ icons,
 	+ complex controls,
-	+ viewer models,
 	+ formal abstraction of rectangular hit test,
 	+ key accelerators,
 	+ widget layout managers,
@@ -617,7 +588,7 @@ b301-b1536:
 
 
 $LOW_PRIOR_TODO:
-b1537-b5120:
+b1601-b5184:
 + general monomorphic iterator abstraction,
 / partial invalidation support @ \f DrawRectRoundCorner,
 / user-defined bitmap buffer @ \cl Desktop,
@@ -656,6 +627,7 @@ $HISTORY:
 $parser.state.style $= $natral_NPL;
 $dep_from; // take evaluation dependence from;
 $dep_to; // put evaluation dependence to;
+$label; // label for locating in code portions;
 
 $design; // features changing only made sense to library developers;
 $comp; // features consist of dependencies with no additional work;
@@ -718,6 +690,54 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YBase'.'YStandardEx' $=
+	(
+		/ $design @ %'TypeOperation' $=
+		(
+			+ "meta operation %array_decay",
+			(
+				+ "meta operation %qualified_decay";
+				$label "meta qualified"
+			),
+			+ "meta operation %array_ref_decay"
+		),
+		/ @ %'Iterator' $=
+		(
+			+ "class template %pointer_iterator";
+			+ "meta operation to classify pointer types";
+			+ "non-class type iterator support"
+				@ "class template %transformed_iterator",
+			(
+				$dep_from "meta qualified";
+				/ $design "qualified or array type decaying"
+					@ "function template %make_transform"
+			)
+		)
+	),
+	/ %'YFramework'.'YSLib' $=
+	(
+		+ "stream encoding checking without BOM" @ "class %TextFile"
+			@ %'services',
+			// At most first 64 bytes would be read for checking, \
+				now only for UTF-8 and GBK.
+		$dep_to "no BOM checking";
+		+ "top and down space comparing when list shown" @ "class %DropDownList"
+	);
+	/ %'YReader'.'text reader' $=
+	(
+		* "reader content and text information not refreshed after switched to \
+			empty file using reading list" $since b289,
+		(
+			$dep_from "no BOM checking";
+			+ $comp "automatic encoding checking of UTF-8 without BOM"
+		),
+		+ "encoding switching UI"
+			// Actually switching is not implemented yet.
+	)
+),
+
+b289
 (
 	/ "algorithm function template %(erase_all, erase_all_if)"
 		@ %'YBase'.'Algorithms' $=
@@ -981,8 +1001,8 @@ b283
 (
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
-		* (- "calling event %LostFocus") @ "destructor" @ "class %Widget"
-			$since b240,
+		* @ "destructor" @ "class %Widget"
+			$since b240 $= (- "calling event %LostFocus"),
 			// It depends on itself to be a complete object in \
 				its lifetime which does not fit for destructing.
 		(
@@ -1635,9 +1655,9 @@ b264
 	(
 		/ @ "class %ATrack"
 		(
-			* (/ "value type" ^ "float" ~ "ystdex::fixed_point<u32, 16>")
-				@ "scrolling overflow of value greater than about 0x1998"
-				$since b260,
+			* "scrolling overflow of value greater than about 0x1998"
+				$since b260 $= (/ "value type" ^ "float"
+				~ "ystdex::fixed_point<u32, 16>"),
 			(
 				/ "value mapping for scrollable length" ~ "total value range";
 				* "wrong value calculation when minimum thumb length reached"
@@ -1949,8 +1969,8 @@ b244
 		/ "reader panel functionality",
 		/ "more text file extensions supported"
 	),
-	* (- "nullable features" @ "class template %GDependency")
-		@ "unsafe nullable dependency object" $since b242,
+	* "unsafe nullable dependency object" $since b242
+		$= (- "nullable features" @ "class template %GDependency"),
 	* "path with non-ASCII characters wrongly displayed" $since b141,
 	* "wrong value of unnamed namespace constant member FS_Parent_X"
 		@ "file yfilesys.cpp" $since b156
@@ -2048,8 +2068,8 @@ b240
 		@ "class %(BitmapBuffer, BitmapBufferEx)";
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
-		* (+ "default constructor") @ "class template %GFocusResponser"
-			$since b239,
+		* @ "class template %GFocusResponser" $since b239
+			$= (+ "default constructor"),
 		+ "virtual member function %Clone" @ "renderers, focus responsers \
 			and widget classes",
 		+ $design "prototype constructing of widgets" $=
@@ -2338,8 +2358,8 @@ b227
 		/ $design "implementation" ^ "class %IControl" ~ "class %IPanel",
 		- "class %IPanel"
 	),
-	* (^ "fixed macros" ~ "variadic macros" @ "header %(YPanel, YWindow)")
-		@ "strict ISO C++2003 code compatibility" $since b190,
+	* @ "strict ISO C++2003 code compatibility" $since b190
+		$= (^ "fixed macros" ~ "variadic macros" @ "header %(YPanel, YWindow)"),
 	/ "simplified widget fetcher and locating interfaces"
 ),
 
@@ -2387,8 +2407,8 @@ b225
 
 b224
 (
-	* (^ "freetype 2.4.4 cache system" ~ "freetype 2.4.5 cache system")
-		@ "wrong ascending when switching font size" $since b224,
+	* "wrong ascending when switching font size" $since b224
+		$= (^ "freetype 2.4.4 cache system" ~ "freetype 2.4.5 cache system"),
 		// It seems a new bug in freetype 2.4.5 cache system.
 	+ "containing test" @ "class %Rect",
 	+ $design "WinGDB settings" @ "main project file",
@@ -2710,8 +2730,8 @@ b209
 	/ $design "protected function inheritance" @ "class template %GHEvent",
 	/ "using directive of namespace %ystdex" @ "library %YSLib",
 	+ "lost %Rect operations",
-	* (^ "fixed macros" ~ "variadic macros" @ "header %YFont")
-		@ "strict ISO C++2003 code compatibility" $since b190,
+	* "strict ISO C++2003 code compatibility" $since b190
+		$= (^ "fixed macros" ~ "variadic macros" @ "header %YFont"),
 	/ "renamed directory %Shell to %UI @ "library %YSLib",
 	/ "several memory utilities for std::shared_ptr and std::unique_ptr"
 		>> "library %YCLib::YStandardExtend"
@@ -2747,8 +2767,8 @@ b206
 (
 	+ "menu test button",
 	/ "file API",
-	* (+ "function %memcmp declaration" @ "namespace %ystdex"
-		@) "strict ISO C++2003 code compatibility" $since $before 132,
+	* "strict ISO C++2003 code compatibility" $since $before 132
+		$= (+ "function %memcmp declaration" @ "namespace %ystdex"),
 	* "strict ISO C++0x code compatibility" $=
 	(
 		* "implicit narrowing conversion(N3242 8.5.4/6)"

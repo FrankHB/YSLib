@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1701;
+\version r1715;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-12-30 22:21 +0800;
-\par 字符集:
+	2012-03-02 20:42 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YFile_(Text);
@@ -54,9 +54,14 @@ class TextFile : public File
 {
 private:
 	size_t bl; //!<  BOM 大小。
-	Text::Encoding cp; //!< 编码。
 
 public:
+	/*!
+	\brief 编码。
+	\since build 290 。
+	*/
+	Text::Encoding Encoding;
+
 	/*!
 	\brief 构造：使用指定文件路径初始化对象。
 	*/
@@ -64,7 +69,6 @@ public:
 	TextFile(const_path_t);
 
 	DefGetter(const ynothrow, u8, BOMSize, bl) //!< 取 BOM 大小。
-	DefGetter(const ynothrow, Text::Encoding, Encoding, cp) //!< 取编码。
 	DefGetter(const ynothrow, size_t, TextSize, GetSize() - GetBOMSize()) \
 		//!< 取文本区段大小。
 	DefGetter(const ynothrow, size_t, TextPosition, GetPosition() - bl) \
@@ -91,13 +95,6 @@ public:
 	void
 	Rewind() const;
 
-	using File::Read;
-	/*!
-	\brief 从文件读 n 字节到 s 中。
-	*/
-	size_t
-	Read(void* s, size_t n) const;
-
 	/*!
 	\brief 按自身编码读取 Unicode 字符。
 	\since build 273 。
@@ -106,7 +103,7 @@ public:
 	inline Text::ConversionResult
 	ReadChar(_tChar& c, _tParams&&... args) const
 	{
-		return MBCToUC(c, fp, cp, args...);
+		return MBCToUC(c, fp, Encoding, args...);
 	}
 
 	/*!
@@ -117,7 +114,7 @@ public:
 	inline Text::ConversionResult
 	SkipChar(_tParams&&... args) const
 	{
-		return MBCToUC(fp, cp, args...);
+		return MBCToUC(fp, Encoding, args...);
 	}
 };
 

@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4546;
+\version r4548;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2012-03-01 12:34 +0800;
+	2012-03-04 19:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -97,8 +97,8 @@ operator==(const TextFileBuffer::Iterator& x, const TextFileBuffer::Iterator& y)
 TextFileBuffer::TextFileBuffer(TextFile& file)
 	: File(file), nTextSize(File.GetTextSize()),
 	nBlock((nTextSize + nBlockSize - 1) / nBlockSize), Map(),
-	fixed_width(FetchFixedCharWidth(File.GetEncoding())), max_width(fixed_width
-	== 0 ? FetchMaxVariantCharWidth(File.GetEncoding()) : fixed_width)
+	fixed_width(FetchFixedCharWidth(File.Encoding)), max_width(fixed_width
+	== 0 ? FetchMaxVariantCharWidth(File.Encoding) : fixed_width)
 {
 	YAssert(max_width != 0, "Unknown encoding found"
 		" @ TextFileBuffer::TextFileBuffer");

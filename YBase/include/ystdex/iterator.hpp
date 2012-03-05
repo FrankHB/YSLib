@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief C++ 标准库迭代器扩展。
-\version r1684;
+\version r1800;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189 。
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2012-02-25 19:35 +0800;
+	2012-03-04 22:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -45,6 +45,145 @@ namespace ystdex
 	\ingroup iterators
 	\brief 迭代器适配器。
 	*/
+
+	/*!
+	\ingroup iterator_adaptors
+	\brief 指针迭代器。
+	\since build 290 。
+
+	转换指针为类类型的随机迭代器。
+	*/
+	template<typename _type>
+	class pointer_iterator
+		: public std::iterator<typename
+		std::iterator_traits<_type*>::iterator_category, _type>
+	{
+	protected:
+		typedef typename std::iterator<typename
+			std::iterator_traits<_type*>::iterator_category, _type> base_type;
+
+	public:
+		typedef typename base_type::difference_type difference_type;
+		typedef typename base_type::value_type value_type;
+		typedef typename base_type::pointer pointer;
+		typedef typename base_type::reference reference;
+		typedef typename base_type::iterator_category iterator_category;
+
+	protected:
+		mutable pointer current;
+
+	public:
+		yconstfn
+		pointer_iterator(std::nullptr_t = nullptr)
+			: current()
+		{}
+		template<typename _tPointer>
+		yconstfn
+		pointer_iterator(_tPointer&& ptr)
+			: current(yforward(ptr))
+		{}
+		inline
+		pointer_iterator(const pointer_iterator&) = default;
+		inline
+		pointer_iterator(pointer_iterator&&) = default;
+
+		yconstfn reference
+		operator*() const
+		{
+			return *this->current;
+		}
+
+		yconstfn pointer
+		operator->() const
+		{
+			return this->current;
+		}
+
+		inline pointer_iterator&
+		operator++()
+		{
+			++this->current;
+			return *this;
+		}
+		yconstfn pointer_iterator
+		operator++(int)
+		{
+			return this->current++;
+		}
+
+		inline pointer_iterator&
+		operator--()
+		{
+			--this->current;
+			return *this;
+		}
+		yconstfn pointer_iterator
+		operator--(int)
+		{
+			return this->current--;
+		}
+
+		yconstfn reference
+		operator[](const difference_type& n) const
+		{
+			return this->current[n];
+		}
+
+		inline pointer_iterator&
+		operator+=(const difference_type& n)
+		{
+			this->current += n;
+			return *this;
+		}
+
+		yconstfn pointer_iterator
+		operator+(const difference_type& n) const
+		{
+			return pointer_iterator(this->current + n);
+		}
+
+		inline pointer_iterator&
+		operator-=(const difference_type& n)
+		{
+			this->current -= n;
+			return *this;
+		}
+
+		yconstfn pointer_iterator
+		operator-(const difference_type& n) const
+		{
+			return pointer_iterator(this->current - n);
+		}
+
+		yconstfn
+		operator pointer() const
+		{
+			return this->current;
+		}
+	};
+
+
+	/*!
+	\ingroup meta_operations
+	\brief 指针包装为类类型迭代器。
+	\since build 290 。
+	
+	若参数是指针类型则包装为 pointer_iterator 。
+	*/
+	//@{
+	template<typename _type>
+	struct pointer_classify
+	{
+		typedef _type type;
+	};
+
+	template<typename _type>
+	struct pointer_classify<_type*>
+	{
+		typedef pointer_iterator<_type> type;
+	};
+	//@}
+
 
 	/*!
 	\ingroup iterator_adaptors
@@ -166,14 +305,20 @@ namespace ystdex
 	/*!
 	\ingroup iterator_adaptors
 	\brief 转换迭代器。
+	\since build 288 。
 
-	使用指定参数隐藏指定迭代器的原有间接操作的迭代器适配器。
+	使用指定参数隐藏指定迭代器的间接操作的迭代器适配器。
 	*/
 	template<typename _tIterator, typename _fTransformer>
-	class transformed_iterator : public remove_reference<_tIterator>::type
+	class transformed_iterator : public pointer_classify<_tIterator>::type
 	{
 	public:
-		typedef typename remove_reference<_tIterator>::type base_type;
+		/*!
+		\brief 原迭代器类型。
+		\since build 290 。
+		*/
+		typedef typename pointer_classify<typename
+			remove_reference<_tIterator>::type>::type iterator_type;
 		typedef _fTransformer transformer_type;
 		typedef decltype(std::declval<_fTransformer>()(
 			std::declval<_tIterator&>())) result;
@@ -186,19 +331,19 @@ namespace ystdex
 	public:
 		template<typename _tIter, typename _tTran>
 		yconstfn
-		transformed_iterator(_tIter&& it, _tTran&& f = _tTran())
-			: base_type(it), transformer(f)
+		transformed_iterator(_tIter&& i, _tTran&& f = _tTran())
+			: iterator_type(yforward(i)), transformer(f)
 		{}
 
 		inline result
 		operator*()
 		{
-			return this->transformer(this->base());
+			return this->transformer(this->get());
 		}
 		inline const_result
 		operator*() const
 		{
-			return this->transformer(this->base());
+			return this->transformer(this->get());
 		}
 
 		inline result*
@@ -212,13 +357,42 @@ namespace ystdex
 			return std::addressof(this->operator*());
 		}
 
-		inline base_type&
-		base()
+		/*!
+		\brief 转换为原迭代器引用。
+		\since build 290 。
+		*/
+		inline
+		operator iterator_type&()
 		{
 			return *this;
 		}
-		yconstfn const base_type&
-		base() const
+
+		/*!
+		\brief 转换为原迭代器 const 引用。
+		\since build 290 。
+		*/
+		yconstfn
+		operator const iterator_type&() const
+		{
+			return *this;
+		}
+
+		/*!
+		\brief 取原迭代器引用。
+		\since build 290 。
+		*/
+		inline iterator_type&
+		get()
+		{
+			return *this;
+		}
+
+		/*!
+		\brief 取原迭代器 const 引用。
+		\since build 290 。
+		*/
+		yconstfn const iterator_type&
+		get() const
 		{
 			return *this;
 		}
@@ -231,10 +405,12 @@ namespace ystdex
 	\since build 288 。
 	*/
 	template<typename _tIterator, typename _fTransformer>
-	inline transformed_iterator<_tIterator, _fTransformer>
+	inline transformed_iterator<typename array_ref_decay<_tIterator>::type,
+		_fTransformer>
 	make_transform(_tIterator&& i, _fTransformer&& f)
 	{
-		return transformed_iterator<_tIterator, _fTransformer>(i, f);
+		return transformed_iterator<typename array_ref_decay<_tIterator>::type,
+			_fTransformer>(yforward(i), f);
 	}
 
 
@@ -280,17 +456,21 @@ namespace ystdex
 	*/
 	template<typename _tIterator>
 	inline auto
-	operator|(const _tIterator& i, first_tag)
-		-> decltype(make_transform(i, pair_iterate<_tIterator>::first))
+	operator|(_tIterator&& i, first_tag)
+		-> decltype(make_transform(yforward(i), pair_iterate<typename
+		decay<_tIterator>::type>::first))
 	{
-		return make_transform(i, pair_iterate<_tIterator>::first);
+		return make_transform(yforward(i), pair_iterate<typename
+			decay<_tIterator>::type>::first);
 	}
 	template<typename _tIterator>
 	inline auto
-	operator|(const _tIterator& i, second_tag)
-		-> decltype(make_transform(i, pair_iterate<_tIterator>::second))
+	operator|(_tIterator&& i, second_tag)
+		-> decltype(make_transform(yforward(i), pair_iterate<typename
+		decay<_tIterator>::type>::second))
 	{
-		return make_transform(i, pair_iterate<_tIterator>::second);
+		return make_transform(yforward(i), pair_iterate<typename
+			decay<_tIterator>::type>::second);
 	}
 
 
@@ -386,14 +566,14 @@ namespace ystdex
 
 		//双向迭代器需求。
 		pair_iterator&
-		operator--() ynothrow
+		operator--()
 		{
 			yunseq(--this->first, --this->second);
 			return *this;
 		}
 
 		pair_iterator
-		operator--(int) ynothrow
+		operator--(int)
 		{
 			const auto i(*this);
 
@@ -409,7 +589,7 @@ namespace ystdex
 		}
 
 		pair_iterator&
-		operator+=(const difference_type& _n) ynothrow
+		operator+=(const difference_type& _n)
 		{
 			yunseq(this->first += _n, this->second += _n);
 			return *this;

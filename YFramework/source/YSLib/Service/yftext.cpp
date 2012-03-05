@@ -11,13 +11,13 @@
 /*!	\file yftext.cpp
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1834;
+\version r1872;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2012-02-21 15:10 +0800;
+	2012-03-02 21:41 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -32,23 +32,52 @@ YSL_BEGIN
 using namespace Text;
 using std::memcmp;
 
+namespace
+{
+	bool
+	CheckUTF8(const char* s, const char* g)
+	{
+		while(s < g && *s != 0
+			&& MBCToUC(s, CharSet::UTF_8) == ConversionResult::OK);
+		return s == g || *s == 0;
+	}
+
+	// TODO: more accurate encoding checking for text stream without BOM;
+	Encoding
+	CheckEncoding(const char* s, size_t n)
+	{
+		return CheckUTF8(s, s + n) ? CharSet::UTF_8 : CharSet::GBK;
+	}
+}
+
+
 TextFile::TextFile(const_path_t p)
 	: File(p, true),
-	bl(0), cp(CharSet::Null)
+	bl(0), Encoding(CharSet::Null)
 {
 	if(IsValid())
 	{
 		Seek(0, SEEK_END);
-		bl = CheckBOM(cp);
+		bl = CheckBOM(Encoding);
 		Rewind();
 	}
-	// TODO: encoding checking for text stream without BOM;
 	if(bl == 0)
-		cp = CharSet::GBK;
+	{
+#define YSL_TXT_CHECK_ENCODING_N 64U
+		char s[YSL_TXT_CHECK_ENCODING_N + 6];
+		const auto n(std::min(GetTextSize(), YSL_TXT_CHECK_ENCODING_N));
+#undef YSL_TXT_CHECK_ENCODING_N
+
+		std::memset(s + n, 0, sizeof(s) / sizeof(*s) - n);
+		Read(s, 1, n);
+		Rewind();
+		Encoding = CheckEncoding(s, n);
+	//	Encoding = CS_Default;
+	}
 }
 
 size_t
-TextFile::CheckBOM(Encoding& cp)
+TextFile::CheckBOM(Text::Encoding& cp)
 {
 	Rewind();
 	if(fsize < 2)
@@ -94,12 +123,6 @@ void
 TextFile::Rewind() const
 {
 	Seek(bl, SEEK_SET);
-}
-
-size_t
-TextFile::Read(void* s, u32 n) const
-{
-	return Read(s, n, 1);
 }
 
 YSL_END

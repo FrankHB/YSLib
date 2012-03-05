@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3901;
+\version r3911;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-02-23 21:52 +0800;
+	2012-03-04 15:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -166,18 +166,19 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 				if(const auto p = dynamic_cast<Panel*>(
 					&FetchTopLevel(*this, pt)))
 				{
-					// TODO: Compare top space size;
-				//	const SDst h1(std::max<SPos>(pt.Y, 0)), h2(std::max<SPos>(
-				//		GetSizeOf(*p).Height - pt.Y + GetHeight()));
-					pt.Y += GetHeight();
-					SetLocationOf(boxList, pt);
+					const SDst h1(std::max<SPos>(pt.Y, 0)), h2(std::max<SPos>(
+						GetSizeOf(*p).Height - pt.Y + GetHeight(), 0));
 
-					const SPos h(GetSizeOf(*p).Height - pt.Y);
-
-					if(h > 0)
+					if(h1 != 0 || h2 != 0)
 					{
-						boxList.ResizeForPreferred(Size(0, h),
+						boxList.ResizeForPreferred(Size(0, std::max(h1, h2)),
 							Size(GetWidth(), 0));
+
+						const SDst h(boxList.GetHeight());
+
+						// NOTE: bottom space is preferred;
+						pt.Y += h1 < h ? GetHeight() : -h;
+						SetLocationOf(boxList, pt);
 						boxList.AdjustViewLength();
 						{
 							// TODO: move this block as a method of

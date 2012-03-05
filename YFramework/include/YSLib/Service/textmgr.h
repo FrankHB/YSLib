@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version r4721;
+\version r4725;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2011-12-28 22:18 +0800;
-\par 字符集:
+	2012-03-02 19:52 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Service::TextManager;
@@ -173,7 +173,7 @@ public:
 	\since build 273 。
 	*/
 	DefGetter(const ynothrow, size_t, BlockN, nBlock)
-	DefGetterMem(const ynothrow, Encoding, Encoding, File)
+	DefGetter(const ynothrow, Encoding, Encoding, File.Encoding)
 	DefGetterMem(const ynothrow, size_t, Size, File)
 	DefGetter(const ynothrow, size_t, TextSize, nTextSize)
 	/*!

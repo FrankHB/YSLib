@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3377;
+\version r3444;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-03-01 12:58 +0800;
+	2012-03-05 14:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,6 +39,62 @@ YSL_BEGIN_NAMESPACE(YReader)
 namespace
 {
 //	ResourceMap GlobalResourceMap;
+
+	/*!
+	\brief 编码信息项目。
+	\since build 290 。
+	*/
+	struct EncodingInfoItem
+	{
+		typedef Text::Encoding first_type;
+		typedef const ucs2_t* second_type;
+
+		first_type first;
+		second_type second;
+	};
+
+
+	using namespace Text::CharSet;
+
+	/*!
+	\brief 编码信息。
+	\since build 290 。
+	*/
+	yconstexpr EncodingInfoItem Encodings[] = {{UTF_8, u"UTF-8"}, {GBK, u"GBK"},
+		{UTF_16BE, u"UTF-16 Big Endian"}, {UTF_16LE, u"UTF-16 Little Endian"},
+		{UTF_32BE, u"UTF-32 Big Endian"}, {UTF_32LE, u"UTF-16 Little Endian"}};
+
+	/*!
+	\since build 290 。
+	*/
+	shared_ptr<TextList::ListType>
+	FetchEncodingNames()
+	{
+		return share_raw(new TextList::ListType(Encodings | ystdex::get_value,
+			(Encodings + sizeof(Encodings) / sizeof(*Encodings))
+			| ystdex::get_value));
+	}
+
+	/*!
+	\since build 290 。
+	*/
+	String
+	FetchEncodingString(MTextList::IndexType i)
+	{
+		if(i < sizeof(Encodings) / sizeof(*Encodings))
+		{
+			const auto enc(Encodings[i].first);
+			const String ustr(Encodings[i].second);
+			char str[32];
+
+			std::sprintf(str, "%d: %s", enc,
+				ustr.GetMBCS().c_str());
+
+			return String(str);
+		}
+		return u"---";
+	}
+
 
 	shared_ptr<TextList::ListType>
 	FetchFontFamilyNames()
@@ -124,6 +180,7 @@ ReaderBox::ReaderBox(const Rect& r, ShlReader& shl)
 	lblProgress.SetRenderer(unique_raw(new BufferedRenderer())),
 	lblProgress.SetTransparent(true),
 	lblProgress.Font.SetSize(12);
+	yunseq(lblProgress.Text = u"--%", lblProgress.ForeColor = ColorSpace::Blue);
 }
 
 IWidget*
@@ -164,10 +221,7 @@ ReaderBox::UpdateData(DualScreenReader& reader)
 {
 	const auto ts(reader.GetTextSize());
 
-	if(ts == 0)
-		yunseq(lblProgress.Text = u"--%",
-			lblProgress.ForeColor = ColorSpace::Blue);
-	else
+	if(ts != 0)
 	{
 		const auto tp(reader.GetTopPosition());
 		char str[4];
@@ -232,6 +286,7 @@ SettingPanel::SettingPanel()
 	btnSetUpBack(Rect(20, 64, 80, 24)), btnSetDownBack(Rect(148, 64, 80, 24)),
 	btnTextColor(Rect(20, 96, 80, 24)),
 	ddlFont(Rect(148, 96, 80, 24), FetchFontFamilyNames()),
+	ddlEncoding(Rect(20, 128, 192, 24), FetchEncodingNames()),
 	boxColor(Point(4, 80)), pColor()
 {
 	const auto set_font_size([this](FontSize size){
@@ -248,6 +303,7 @@ SettingPanel::SettingPanel()
 	*this += btnSetDownBack,
 	*this += btnTextColor,
 	*this += ddlFont,
+	*this += ddlEncoding,
 	Add(boxColor, 112U),
 	SetVisibleOf(boxColor, false);
 	yunseq(
@@ -296,6 +352,10 @@ SettingPanel::SettingPanel()
 				Invalidate(lblAreaDown);
 			}
 		},
+		ddlEncoding.GetConfirmed() += [this](IndexEventArgs&& e){
+			lblAreaDown.Text = FetchEncodingString(e.Value);
+			Invalidate(lblAreaDown);
+		},
 		FetchEvent<TouchMove>(boxColor) += OnTouchMove_Dragging,
 		FetchEvent<Click>(boxColor.btnOK) += [this](TouchEventArgs&&){
 			if(pColor)
@@ -319,10 +379,7 @@ SettingPanel::UpdateInfo()
 
 	String ustr(str);
 
-	yunseq(
-		lblAreaUp.Text = u"上屏文字大小: " + ustr,
-		lblAreaDown.Text = u"下屏文字大小: " + ustr
-	);
+	lblAreaUp.Text = u"上屏文字大小: " + ustr;
 }
 
 
@@ -395,6 +452,8 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 	Reader(), boxReader(Rect(0, 160, 256, 32), shl),
 	boxTextInfo(shl), pnlSetting(), pTextFile(), mhMain(shl.GetDesktopDown())
 {
+	using ystdex::get_key;
+
 	const auto exit_setting([this](TouchEventArgs&&){
 		auto& dsk_up(Shell.GetDesktopUp());
 
@@ -445,13 +504,13 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 		},
 		FetchEvent<TouchDown>(boxReader.pbReader) += [this](TouchEventArgs&& e)
 		{
-			if(Reader.GetTextSize() != 0)
+			const auto s(Reader.GetTextSize());
+			if(s != 0)
 			{
 				Shell.LastRead.Insert(path, Reader.GetTopPosition());
 				Shell.LastRead.DropSubsequent();
 				UpdateButtons();
-				Reader.Locate(e.X * Reader.GetTextSize()
-					/ boxReader.pbReader.GetWidth());
+				Reader.Locate(e.X * s / boxReader.pbReader.GetWidth());
 			}
 		},
 		FetchEvent<Paint>(boxReader.pbReader) += [this](PaintEventArgs&& e){
@@ -509,6 +568,14 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 	dsk_dn += boxTextInfo,
 	dsk_dn += pnlSetting;
 	LoadFile(ShlReader::CurrentPath);
+	{
+		const auto idx(std::find(Encodings
+			| get_key, (Encodings + sizeof(Encodings) / sizeof(*Encodings))
+			| get_key, Reader.GetEncoding()) - Encodings);
+
+		yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(idx),
+			pnlSetting.ddlEncoding.Text = Encodings[idx].second);
+	}
 	Shell.LastRead.DropSubsequent();
 	UpdateButtons();
 	//置默认视图。
@@ -664,14 +731,13 @@ TextReaderSession::OnClick(TouchEventArgs&&)
 	}
 	if(IsVisible(boxReader))
 	{
-		Reader.Stretch(0);
 		Close(boxReader);
+		Reader.Stretch(0);
 	}
 	else
 	{
-		Reader.Stretch(boxReader.GetHeight());
-		boxReader.UpdateData(Reader);
 		Show(boxReader);
+		Reader.Stretch(boxReader.GetHeight());
 	}
 }
 

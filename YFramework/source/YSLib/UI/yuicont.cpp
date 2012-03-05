@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2554;
+\version r2555;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2012-02-28 17:21 +0800;
+	2012-03-04 15:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -90,7 +90,7 @@ LocateForWidget(IWidget& a, IWidget& b)
 			auto i(std::find(lst.begin() | get_key, lst.end() | get_key, pCon));
 
 			if(i != lst.cend())
-				return pt - i.base()->second;
+				return pt - i.get()->second;
 		}
 		pt += GetLocationOf(*pCon);
 		pCon = FetchContainerPtr(*pCon);

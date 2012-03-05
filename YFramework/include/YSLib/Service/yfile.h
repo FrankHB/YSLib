@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version r1852;
+\version r1863;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2011-12-31 08:27 +0800;
-\par 字符集:
+	2012-03-02 20:43 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YFile;
@@ -101,10 +101,11 @@ public:
 	Open(const_path_t, bool is_text = false);
 
 	/*!
-	\brief 连续读 nmemb 个大小为 size 文件块到 ptr 中。
+	\brief 连续读 nmemb 个大小为 size 文件块到 ptr 中，语义同 std::fread 。
 	\return 返回成功读取的文件块数。
+	\since build 290 。
 	*/
-	PDefH(size_t, Read, void* ptr, size_t size, size_t nmemb) const
+	PDefH(size_t, Read, void* ptr, size_t size = 1U, size_t nmemb = 1U) const
 		ImplRet(std::fread(ptr, size, nmemb, fp))
 
 	/*!
