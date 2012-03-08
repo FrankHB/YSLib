@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5638;
+\version r5645;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-02-28 14:10 +0800;
+	2012-03-06 21:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -186,12 +186,15 @@ FetchImage(size_t i)
 u32
 FPSCounter::Refresh()
 {
-	if(last_tick != GetRTC())
+	using namespace platform;
+
+	if(last_tick != GetHighResolutionTicks())
 	{
 		last_tick = now_tick;
-		now_tick = GetRTC();
+		now_tick = GetHighResolutionTicks();
 	}
-	return now_tick == last_tick ? 0 : 1000000 / (now_tick - last_tick);
+	return now_tick == last_tick ? 0
+		: 1000000000000ULL / (now_tick - last_tick);
 }
 
 

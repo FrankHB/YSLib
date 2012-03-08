@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4144;
+\version r4145;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-02-23 18:47 +0800;
+	2012-03-07 21:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -81,7 +81,7 @@ GUIState::Reset()
 {
 	yunseq(KeyHeldState = Free, TouchHeldState = Free,
 		DraggingOffset = Vec::Invalid);
-	HeldTimer.SetInterval(1000);
+	HeldTimer.SetInterval(Timers::TimeSpan(1000));
 	Deactivate(HeldTimer);
 	yunseq(ControlLocation = Point::Invalid,
 		LastControlLocation = Point::Invalid,

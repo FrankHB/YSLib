@@ -11,12 +11,12 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r1622;
+\version r1702;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2012-02-29 14:41 +0800;
+	2012-03-07 21:36 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,17 +31,53 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Timers)
 
-bool Timer::NotInitialized(true);
-vu32 Timer::SystemTick(0);
+namespace
+{
+	bool NotInitialized(true);
+
+	void
+	Init(Timer& tmr, bool b)
+	{
+		if(NotInitialized)
+		{
+			StartTicks();
+			NotInitialized = false;
+		}
+		if(b)
+			Activate(tmr);
+	}
+
+
+	inline TimePoint
+	GetTickPoint()
+	{
+		return TimePoint(TimeSpan(GetTicks()));
+	}
+}
+
+void
+Delay(const TimeSpan& ms)
+{
+	const auto end(GetTickPoint() + ms);
+
+	while(GetTickPoint() < end)
+		;
+}
+
+
 Timer::TimerMap Timer::mTimers;
 
-Timer::Timer(TimeSpan i, bool b)
-	: nInterval(i), nBase(0)
+Timer::Timer(u32 i, bool b)
+	: nBase(), nInterval(i * 1000000ULL)
 {
-	InitializeSystemTimer();
-	if(b)
-		Activate(*this);
+	Init(*this, b);
 }
+Timer::Timer(const Duration& i, bool b)
+	: nBase(), nInterval(i)
+{
+	Init(*this, b);
+}
+
 
 bool
 Timer::IsActive() const
@@ -60,38 +96,19 @@ void
 Timer::SetInterval(TimeSpan i)
 {
 	nInterval = i;
-	if(nInterval == 0)
+	if(nInterval == Duration::zero())
 		Deactivate(*this);
-}
-
-void
-Timer::InitializeSystemTimer()
-{
-	if(NotInitialized)
-		ResetRTC();
-}
-
-void
-Timer::ResetSystemTimer()
-{
-	NotInitialized = true;
-	InitializeSystemTimer();
-}
-
-bool
-Timer::RefreshRaw()
-{
-	if(SystemTick < nBase + nInterval)
-		return false;
-	nBase = SystemTick - (SystemTick - nBase) % nInterval;
-	return true;
 }
 
 bool
 Timer::Refresh()
 {
-	Synchronize();
-	return RefreshRaw();
+	const auto tick(HighResolutionClock::now());
+
+	if(tick < nBase + nInterval)
+		return false;
+	nBase = tick - (tick - nBase) % nInterval;
+	return true;
 }
 
 bool
@@ -101,11 +118,10 @@ Timer::RefreshAll()
 
 	bool t(false);
 
-	Synchronize();
 	std::for_each(mTimers.begin() | get_value, mTimers.end() | get_value,
 		[&](Timer* const& pTmr){
 		if(pTmr)
-			t |= pTmr->RefreshRaw();
+			t |= pTmr->Refresh();
 	});
 	return t;
 }
@@ -123,30 +139,12 @@ Timer::ResetAll()
 }
 
 void
-Timer::ResetYTimer()
-{
-	using ystdex::get_value;
-
-	std::for_each(mTimers.begin() | get_value, mTimers.end() | get_value,
-		[](Timer* const& pTmr){
-		if(pTmr)
-		{
-			pTmr->SetInterval(0);
-			pTmr->Reset();
-		}
-	});
-	mTimers.clear();
-	ResetSystemTimer();
-}
-
-void
 Activate(Timer& tmr)
 {
-	if(tmr.nInterval != 0)
+	if(tmr.nInterval != Duration::zero())
 	{
 		Timer::mTimers.insert(make_pair(tmr.GetObjectID(), &tmr));
-		Timer::Synchronize();
-		tmr.nBase = Timer::SystemTick;
+		tmr.nBase = HighResolutionClock::now();
 	}
 }
 

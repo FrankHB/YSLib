@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6931;
+\version r6994;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-02-29 11:33 +0800;
+	2012-03-07 19:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -88,7 +88,7 @@
 @1.3.2 标准库/系统库使用：
 基于标准 ISO C++03 环境（ISO/IEC 14882:2003 定义的基本语言特性和库函数以及以下扩展）和基本的系统调用（由 YCLib 支持）。
 
-@1.3.2.1 允许使用的非 ISO C++03 扩展：
+@1.3.2.1 需要使用的非 ISO C++03 扩展：
 定义于 ISO C99（ISO/IEC 9899:1999）和 ISO C++11（ISO/IEC 14882:2011）中，且有一个以上完整的语言实现。
  C99 preprocessor(N1653) ；
  Static assertions(N1720) ；
@@ -109,7 +109,7 @@
  New function declaration syntax for deduced return types(N2541) ；
  Rvalue references v2.1(N2844+, CWG defect 1138) ；
  Lambda expressions and closures v1.1(N2927) 。
-仅使用ISO/IEC C++ 2011 中头文件 <array> 、 <type_traits> 、 <tuple> 、 <forward_list> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
+仅使用ISO/IEC C++ 2011 中头文件 <array> 、 <chrono> 、 <forward_list> 、 <type_traits> 、 <tuple> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
 
 @1.3.2.2
  YSLib 的源代码的本体(@2.10) 是平台中立的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
@@ -855,53 +855,62 @@ FetchDefaultScreen();
 适应于具体平台的应用程序实例抽象。
 包含默认消息循环等。
 
-@2.10 本体：
-以上 YSLib 构成单元中，除了 Adaptor 和 Helper 以外的部分的总称。
+@2.10 本体与非本体：
+本体是以上 YSLib 构成单元中，除了 Adaptor 和 Helper 以外的部分的总称。
+非本体是本体在 YSLib 中的补集，即 Adaptor 和 Helper 。
 其中 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元的重新编译。
 因此除非是用来实现基本功能的外部的库，新增的平台相关的部分应尽量放在 Helper 而不是 Adaptor 中。
-本体的头文件仅依赖于标准库头文件或 YSLib 的头文件，除了 Service 或 UI 的头文件还可以依赖于 YBase 的头文件的例外。
- YSLib 非本体（即 Adaptor 和 Helper ）的头文件除以上外还可能依赖于其它头文件，例如支持环境的平台相关的运行时库。
- Adaptor 头文件可能依赖于 YBase 、 <YCLib/ycommon.h> 、 CHRLib 、YSLib 或标准库头文件。
- Helper 头文件可能依赖于 YBase 、 YCLib 、YSLib 或标准库头文件。
-本体的文件中，文件名以 y 起始且模块名以 Y 起始的文件为必要文件，其它为非必要文件。
- 必要头文件不依赖非必要头文件。
 
-@2.10.1 Adaptor 和本体文件的源代码依赖性：
-必要源文件不依赖非必要头文件。
-除此以外，源文件(.cpp) 可能依赖于任何 YBase 、 YCLib 、 YSLib 或标准库头文件。
+@2.10.1 基本代码依赖性：
+ YSLib 文件中，文件名以 y 起始且模块名以 Y 起始的文件为必要文件，其它为非必要文件。
+以下为基本代码依赖性规则按（以优先级排列，即后者不满足前者的部分以前者为准）：
+必要文件不依赖非必要头文件。
+任意 YSLib 文件可依赖于 @2.10 余下部分指定的标准库头文件以及 YBase 的头文件。
+除上述头文件外，本体的头文件不依赖于 YSLib 以外的头文件。
+非本体的头文件可依赖于以下指定的其它头文件（例如支持环境的平台相关的运行时库）：
+ Adaptor 头文件可能依赖于 <YCLib/ycommon.h> 、 CHRLib 、 YSLib 头文件；
+ Helper 头文件、 Adaptor 和本体文件的源文件(.cpp) 可能依赖于 YCLib 、 YSLib 头文件。
+注： ISO C++ 2011 直接指定的依赖项：
+ <algorithm> 、 <array> 、 <string> 、 <random> 、 <vector> 包含 <initializer_list> ；
+ <ios> 包含 <iosfwd> ；
+ <bitset> 包含 <string> 和 <iosfwd> 。
 
 @2.10.1.1 C 标准库的 C++ 标准库版本头文件依赖项：
 不在本体的必要文件中显式包含，除了以下例外：
+ "ydaptor.h" 需要保证 <cstddef> 、 <cstdint> 、 <climits> 和 <cmath> 被包含；
  "ymsg.h" 包含 <ctime> ；
- "ydaptor.h" 需要保证 <cstddef> 、 <cstdint> 、 <climits> 和 <cmath> 被包含。
+ "ytimer.h" 包含 <chrono> 。
 
 @2.10.1.2 不在本体中显式包含，需要在 "ycont.h" 包含或提供替代品的 C++ 标准库依赖项：
  <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <utility> 和  <vector>。
 例外：同时需要使用容器和限定标准库容器/拟容器时：
  "yexcept.h" 包含 <string> （鉴于复用标准库异常需要的参数类型 std::string 不一定是 "ycont.h" 配置的类型）。
 
-@2.10.1.3 不在本体的头文件中显式包含，需要在除了 "ycont.h" 的 Adaptor 的头文件直接或间接包含的 C++ 标准库依赖项：
- <algorithm> 、 <new> 。
+@2.10.1.3 不在本体的头文件中显式包含，需要在除了 "ycont.h" 的 Adaptor 的必要头文件直接或间接包含的 C++ 标准库依赖项：
+ <algorithm> 、 <memory> 、 <new> 、 <type_traits> 。
 
 @2.10.1.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性或其它因素考虑，Adaptor 和本体不直接使用以下头文件（但 Adaptor 可能会间接依赖）：
-<fstream> 、 <iomanip> 、 <ios> 、 <iosfwd>  、 <iostream> 、 <istream> 、 <locale>、 <ostream> 、 <sstream> 、 <streambuf> 和 <strstream> 。
+ <fstream> 、 <iomanip> 、 <ios> 、 <iosfwd>  、 <iostream> 、 <istream> 、 <locale>、 <ostream> 、 <sstream> 、 <streambuf> 和 <strstream> 。
 
 @2.10.1.5 本体的头文件中显式包含的 C++ 标准库依赖项：
-<exception> 、 <functional> 、 <iterator> 、 <stdexcept> 和 <typeinfo> 。
+ "Core/yexcept.h" 依赖于 <exception> 和 <stdexcept> ；
+ "Core/yfunc.hpp" 依赖于 <functional> 和 <typeinfo> ；
+其它： <iterator> 。
 
 @2.10.1.6 本体的头文件中未限定（可能会在将来版本显式包含）的 C++ 标准库依赖项：
- <bitset> 、 <complex> 、 <limits> 、 <numeric> 、 <memory> 和 <valarray> 。
+ <atomic> 、 <bitset> 、 <codecvt> 、 <complex> 、 <condition_variable> 、 <future> 、 <limits> 、 <mutex> 、 <numeric> 、 <random> 、 <ratio> 、 <system_error> 、 <thread> 、 <typeindex> 和 <valarray> 。
 
 @2.10.2 本体头文件对 YBase 依赖性：
  "yblit.h" 依赖于 <ystdex/algorithm.hpp> 和 <ystdex/iterator.hpp> 。
 
 @2.10.3 本体内部头文件依赖性：
  Core 的头文件仅包含 Adaptor 或 Core 的头文件，或 "yglobal.h" 。
+ Adaptor 的头文件依赖于 Core 的 "ybasemac.h" 。
 实现源文件依赖于同名头文件，应显式包含此头文件，不应重复包含此头文件已经包含的其它头文件。
 在 Core 中，以下依赖关系对于头文件包含是确定的：
  "ybasemac.h" 不依赖于任何头文件；
- "ysdef.h" 依赖于 "ybasemac.h" ；
+ "ysdef.h" 依赖于 Adaptor 的 "yadaptor.h" 和 "yref.hpp" ；
 除了 "ybasemac.h" 和 "ysdef.h" 外都依赖于 "ysdef.h"；
  "yobject.h" 依赖于 "ycutil.h" 和 "yexcept.h" ；
  "ystring.h" 、 "ymsg.h" 依赖于 "yobject.h" ；
@@ -1001,15 +1010,54 @@ FetchDefaultScreen();
 目前仅使用静态链接库。
 
 @5.1.1 基础库：
-基础库 YBase ，包含标准库扩展。
-平台隔离用库 YCLib ，包含于 YFramework 中。
+基于标准库的基础库 YBase ，包含标准库扩展。
+基于 YBase 的平台隔离用库 YCLib ，包含于 YFramework 中。
 包含平台相关的 API 包装和若干平台无关的独立子库（按头文件路径划分，参见 @5.1.3.1 ）。
 
-@5.1.1.1 全局命名空间：
- ystdex ：从 std 直接扩充的平台无关的实用程序。 YSLib 本体直接依赖于此命名空间。
+@5.1.1.1 平台库和标准库实现：
+使用 devkitPro 。
+依赖 devkitARM / libnds / default arm7 版本：
+ build 131 前：
+ 未指定。可使用 devkitARM release 26 - 29 。
+ 2009-09-20 起：
+ libnds 1.3.7 / default arm7 0.5.6 。
+ 2009-09-22 起：
+ devkitARM release 26 / libnds 1.3.8 。
+ 2009-12-12 起：
+ devkitARM release 27 / libnds 1.4.0 / default arm7 0.5.8 。
+ 2010-03-25 起：
+ devkitARM release 29 / libnds 1.4.3 / default arm7 0.5.12 。
+ 2010-04-06(build 131) 起：
+ devkitARM release 30 。
+ 2010-08-08(build 139) 起：
+ devkitARM release 31 / libnds 1.4.5 / default arm7 0.5.14 。
+ 2010-09-19(build 244) 起：
+ default arm7 0.5.15 。
+ 2010-11-18(build 171) 起：
+ devkitARM release 32 / libnds 1.4.8 / default arm7 0.5.17 。
+ 2011-01-06(build 180) 起：
+ libnds 1.4.9 / default arm7 0.5.18 。
+ 2011-02-16(build 192) 起：
+ libnds 1.5.0 / default arm7 0.5.20 。
+ 2011-06-24(build 221) 起：
+ devkitARM release 33 / libnds 1.5.0 / default arm7 0.5.20 。
+注：文件系统目录访问接口变化，需要使用 devkitARM release 33 或自行配置所需的 POSIX API 。 
+ 2011-07-03(build 223) 起：
+ libnds 1.5.1 / default arm7 0.5.21 。
+ 2011-07-05(build 223) 起：
+ devkitARM release 34 。
+ 2011-10-06(build 236) 起：
+ libnds 1.5.4 / default arm7 0.5.23 。
+ 2011-10-13(build 252) 起：
+ devkitARM release 35 / libnds 1.5.4 / default arm7 0.5.23 。
+ 2012-03-06(build 291) 起：
+ devkitARM release 37 。
+
+@5.1.1.2 全局命名空间：
+ ystdex ：从 std 扩充的平台无关的实用程序。 YSLib 本体直接依赖于此命名空间。
  platform ：平台中立：接口平台无关但实现平台相关的实用程序。 YSLib 本体间接依赖于此命名空间。
  platform_ex ：接口和实现都平台相关的实用程序。 YSLib 本体不依赖于此命名空间。
- CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体不直接依赖于此命名空间。
+ CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体直接依赖于此命名空间。
 
 @5.1.2 通用库：
 

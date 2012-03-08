@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1646;
+\version r1669;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2012-02-21 15:02 +0800;
+	2012-03-05 14:43 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -68,71 +68,72 @@ ToASCII(_tChar c)
 
 /*!
 \brief 按指定编码和转换状态转换字符串中字符为 UCS-2 字符，返回转换的字节数。
-\since build 273 。
+\since build 291 。
 */
 //@{
 ConversionResult
-MBCToUC(ucs2_t&, const char*&, const Encoding&,
-	ConversionState&& = ConversionState());
+MBCToUC(ucs2_t&, const char*&, Encoding, ConversionState&& = ConversionState());
 inline ConversionResult
-MBCToUC(ucs2_t& uc, const char*& c, const Encoding& cp, ConversionState& st)
+MBCToUC(ucs2_t& uc, const char*& c, Encoding enc, ConversionState& st)
 {
-	return MBCToUC(uc, c, cp, std::move(st));
+	return MBCToUC(uc, c, enc, std::move(st));
 }
 //@}
 /*!
 \brief 按指定编码和转换状态转换字符流中字符为 UCS-2 字符，返回转换的字节数。
-\since build 273 。
+\since build 291 。
 */
 //@{
 ConversionResult
-MBCToUC(ucs2_t&, std::FILE*, const Encoding&,
-	ConversionState&& = ConversionState());
+MBCToUC(ucs2_t&, std::FILE*, Encoding, ConversionState&& = ConversionState());
 inline ConversionResult
-MBCToUC(ucs2_t& uc, std::FILE* fp, const Encoding& cp, ConversionState& st)
+MBCToUC(ucs2_t& uc, std::FILE* fp, Encoding enc, ConversionState& st)
 {
-	return MBCToUC(uc, fp, cp, std::move(st));
+	return MBCToUC(uc, fp, enc, std::move(st));
 }
 //@}
 /*!
 \brief 按指定编码和转换状态返回转换字符为 UCS-2 字符的字节数。
-\since build 273 。
+\since build 291 。
 */
 //@{
 ConversionResult
-MBCToUC(const char*&, const Encoding&, ConversionState&& = ConversionState());
+MBCToUC(const char*&, Encoding, ConversionState&& = ConversionState());
 inline ConversionResult
-MBCToUC(const char*& c, const Encoding& cp, ConversionState& st)
+MBCToUC(const char*& c, Encoding enc, ConversionState& st)
 {
-	return MBCToUC(c, cp, std::move(st));
+	return MBCToUC(c, enc, std::move(st));
 }
 ConversionResult
-MBCToUC(std::FILE*, const Encoding&, ConversionState&& = ConversionState());
+MBCToUC(std::FILE*, Encoding, ConversionState&& = ConversionState());
 inline ConversionResult
-MBCToUC(std::FILE* fp, const Encoding& cp, ConversionState& st)
+MBCToUC(std::FILE* fp, Encoding enc, ConversionState& st)
 {
-	return MBCToUC(fp, cp, std::move(st));
+	return MBCToUC(fp, enc, std::move(st));
 }
 //@}
 
 /*!
 \brief 按指定编码转换 UCS-2 字符中字符为字符串表示的多字节字符，返回转换的字节数。
+\since build 291 。
 */
 byte
-UCToMBC(char*, const ucs2_t&, const Encoding&);
+UCToMBC(char*, const ucs2_t&, Encoding);
 
 
 /*!
 \brief 按指定编码转换 MBCS 字符串为 UTF-16LE 字符串，返回转换的串长。
+\since build 291 。
 */
 size_t
-MBCSToUCS2(ucs2_t*, const char*, const Encoding& = CS_Default);
+MBCSToUCS2(ucs2_t*, const char*, Encoding = CS_Default);
 
 /*!
 \brief 按指定编码转换 UTF-16LE 字符串为 MBCS 字符串，返回转换的串长。
+\since build 291 。
 */
 size_t
-UCS2ToMBCS(char*, const ucs2_t*, const Encoding& = CS_Default);
+UCS2ToMBCS(char*, const ucs2_t*, Encoding = CS_Default);
 
 /*!
 \brief 转换 UCS-4 字符串为 UCS-2 字符串，返回转换的串长。
@@ -144,9 +145,10 @@ UCS4ToUCS2(ucs2_t*, const ucs4_t*);
 /*!
 \brief 复制 MBCS 字符串为 UCS-2/UTF-16LE 字符串。
 \note 空间由 std::free 释放。
+\since build 291 。
 */
 ucs2_t*
-ucsdup(const char*, const Encoding& = CS_Default);
+ucsdup(const char*, Encoding = CS_Default);
 /*!
 \brief 复制 UCS-2 字符串。
 \note 空间由 std::free 释放。

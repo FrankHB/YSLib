@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2832;
+\version r2874;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-02-16 20:46 +0800;
+	2012-03-08 15:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -57,7 +57,6 @@ namespace platform
 	using ::videoSetMode;
 	using ::videoSetModeSub;
 
-	using ::scanKeys;
 	using ::touchRead;
 
 	//平台相关的全局常量。
@@ -695,84 +694,6 @@ namespace platform
 
 
 	/*!
-	\brief 组合计时器寄存器的值。
-	*/
-	inline u32
-	timers2msRaw(vu16 l, vu16 h)
-	{
-		return l | (h << 16);
-	}
-	/*!
-	\brief 寄存器 - 毫秒转换。
-	*/
-	inline u32
-	timers2ms(vu16 l, vu16 h)
-	{
-		return timers2msRaw(l, h) >> 5;
-	}
-
-	/*!
-	\brief 初始化计时器。
-	\note 目标寄存器为指定参数。
-	*/
-	void
-	InitTimers(vu16&, vu16&);
-	/*!
-	\brief 初始化计时器。
-	\note 会判断是否已经初始化。若已初始化则不重复进行初始化。
-	*/
-	void
-	InitTimers();
-
-	/*!
-	\brief 清除计时器。
-	\note 目标寄存器为指定参数。
-	*/
-	inline void
-	ClearTimers(vu16& l = TIMER0_DATA, vu16& h = TIMER1_DATA)
-	{
-		l = 0;
-		h = 0;
-	}
-
-	/*!
-	\brief 初始化实时时钟。
-	*/
-	inline void
-	InitRTC()
-	{
-		InitTimers(TIMER2_CR, TIMER3_CR);
-	}
-
-	/*!
-	\brief 清除实时时钟。
-	*/
-	inline void
-	ClearRTC()
-	{
-		ClearTimers(TIMER2_DATA, TIMER3_DATA);
-	}
-
-	/*!
-	\brief 复位实时时钟。
-	*/
-	inline void
-	ResetRTC()
-	{
-		InitRTC();
-		ClearRTC();
-	}
-
-	/*!
-	\brief 取实时时钟计数。
-	*/
-	inline u32
-	GetRTC()
-	{
-		return timers2ms(TIMER2_DATA, TIMER3_DATA);
-	}
-
-	/*!
 	\brief 开始 tick 计时。
 	*/
 	void
@@ -780,21 +701,18 @@ namespace platform
 
 	/*!
 	\brief 取 tick 数。
+	\note 单位为毫秒。
 	*/
 	u32
 	GetTicks();
 
 	/*!
-	\brief 延时 ms 毫秒。
-	\note ms 仅低 25 位有效。
+	\brief 取高精度 tick 数。
+	\note 单位为纳秒。
+	\since build 291 。
 	*/
-	void
-	Delay(u32 ms);
-
-	/*void setupCapture(int bank);
-	void waitForCapture();
-	char* basename(char*);
-	*/
+	u64
+	GetHighResolutionTicks();
 
 	/*!
 	\brief 初始化视频输出。

@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3911;
+\version r3914;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-03-04 15:21 +0800;
+	2012-03-05 15:25 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -116,8 +116,8 @@ ListBox::ResizeForPreferred(const Size& sup, Size s)
 	if(sup.Width != 0 && s.Width > sup.Width)
 		s.Width = sup.Width;
 	if(sup.Height != 0 && s.Height > sup.Height)
-		yunseq(s.Width = std::min<SDst>(s.Width
-			+ defMinScrollBarWidth, sup.Width), s.Height = sup.Height);
+		yunseq(s.Width = min<SDst>(s.Width + defMinScrollBarWidth, sup.Width),
+			s.Height = sup.Height);
 	SetSizeOf(*this, s);
 	SetSizeOf(lstText, FixLayout(s));
 }
@@ -166,12 +166,12 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 				if(const auto p = dynamic_cast<Panel*>(
 					&FetchTopLevel(*this, pt)))
 				{
-					const SDst h1(std::max<SPos>(pt.Y, 0)), h2(std::max<SPos>(
+					const SDst h1(max<SPos>(pt.Y, 0)), h2(max<SPos>(
 						GetSizeOf(*p).Height - pt.Y + GetHeight(), 0));
 
 					if(h1 != 0 || h2 != 0)
 					{
-						boxList.ResizeForPreferred(Size(0, std::max(h1, h2)),
+						boxList.ResizeForPreferred(Size(0, max(h1, h2)),
 							Size(GetWidth(), 0));
 
 						const SDst h(boxList.GetHeight());

@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2725;
+\version r2729;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-02-25 17:03 +0800;
+	2012-03-06 09:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,8 +42,6 @@
 
 #ifdef __cplusplus
 #	define YCL_IMPL_CPP __cplusplus
-#	define YCL_IMPL_MSCPP 0
-#	define YCL_IMPL_GNUCPP 0
 #	ifdef _MSC_VER
 #		undef YCL_IMPL_MSCPP
 #		define YCL_IMPL_MSCPP _MSC_VER
@@ -65,15 +63,22 @@
 #include <type_traits>
 #include <sys/types.h>
 
-#if YCL_IMPL_CPP >= 201103L || YCL_IMPL_MSCPP >= 1600 \
-	|| YCL_IMPL_GNUCPP >= 40600
-//#	include <type_traits>
+#undef YCL_HAS_BUILTIN_NULLPTR
+#undef YCL_HAS_CONSTEXPR
+
+#if YCL_IMPL_CPP >= 201103L
 #	define YCL_HAS_BUILTIN_NULLPTR
 #	define YCL_HAS_CONSTEXPR
+#elif YCL_IMPL_GNUCPP >= 40600
+#	define YCL_HAS_BUILTIN_NULLPTR
+#	define YCL_HAS_CONSTEXPR
+#elif YCL_IMPL_MSCPP >= 1600
+#	define YCL_HAS_BUILTIN_NULLPTR
 #else
 // TODO: complete version checking for compiler and library implementation;
 //#ifdef __GNUC__
 //#	include <tr1/type_traits>
+#	error The language implementation is not supported!
 #endif
 
 //异常规范宏。

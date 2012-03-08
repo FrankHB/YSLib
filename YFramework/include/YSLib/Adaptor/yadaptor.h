@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2276;
+\version r2282;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2012-02-16 20:47 +0800;
+	2012-03-07 12:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -88,6 +88,9 @@ YSL_BEGIN
 	using std::min;
 	using std::max;
 
+	//助手功能。
+	using ystdex::arrlen;
+
 
 	//非目标平台中立接口。
 
@@ -136,9 +139,10 @@ YSL_BEGIN
 	using platform::ScreenSynchronize;
 	using platform::WaitForInput;
 
-	//时钟。
-	using platform::GetRTC;
-	using platform::ResetRTC;
+	//计时器和时钟。
+	using platform::GetTicks;
+	using platform::GetHighResolutionTicks;
+	using platform::StartTicks;
 
 	//输入类型。
 	namespace KeySpace = platform::KeySpace;

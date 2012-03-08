@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r1743;
+\version r1752;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-02-14 16:16 +0800;
+	2012-03-05 15:27 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -71,6 +71,27 @@ namespace ystdex
 		noncopyable&
 		operator=(const noncopyable&) = delete;
 	};
+
+
+	/*!
+	\ingroup helper_functions
+	\brief 计算指定数组类型对象的长度。
+	\since build 291 。
+	*/
+	//@{
+	template<typename _type, size_t _vN>
+	yconstfn size_t
+	arrlen(_type(&)[_vN])
+	{
+		return _vN;
+	}
+	template<typename _type, size_t _vN>
+	yconstfn size_t
+	arrlen(_type(&&)[_vN])
+	{
+		return _vN;
+	}
+	//@}
 
 
 	/*!	\defgroup functors General Functors

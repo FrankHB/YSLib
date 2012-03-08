@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2580;
+\version r2599;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2012-02-21 14:25 +0800;
+	2012-03-05 14:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -377,61 +377,65 @@ UCS2Mapper_Map(_tParams&&...)
 {
 	return ConversionResult::Unhandled;
 }
-template<Encoding cp, typename _tDst, typename _tSrc, typename _tState>
+template<Encoding enc, typename _tDst, typename _tSrc, typename _tState>
 yconstfn ConversionResult
 UCS2Mapper_Map(_tDst&& d, _tSrc&& s, _tState&& st,
-	decltype(&GUCS2Mapper<cp>::template Map<_tDst, _tSrc, _tState>) = nullptr)
+	decltype(&GUCS2Mapper<enc>::template Map<_tDst, _tSrc, _tState>) = nullptr)
 {
-	return GUCS2Mapper<cp>::Map(d, s, st);
+	return GUCS2Mapper<enc>::Map(d, s, st);
 }
 
-template<Encoding cp, typename _tDst, typename _tSrc>
+template<Encoding enc, typename _tDst, typename _tSrc>
 yconstfn byte
 UCS2Mapper_InverseMap(_tDst, _tSrc)
 {
 	return 0;
 }
-template<Encoding cp, typename _tDst>
+template<Encoding enc, typename _tDst>
 yconstfn byte
 UCS2Mapper_InverseMap(_tDst&& d, const ucs2_t& s,
-	decltype(&GUCS2Mapper<cp>::template InverseMap<_tDst>) = nullptr)
+	decltype(&GUCS2Mapper<enc>::template InverseMap<_tDst>) = nullptr)
 {
-	return GUCS2Mapper<cp>::InverseMap(d, s);
+	return GUCS2Mapper<enc>::InverseMap(d, s);
 }
 
 
-template<Encoding cp, typename _tIn, typename _tState>
+template<Encoding enc, typename _tIn, typename _tState>
 yconstexpr ConversionResult
 UCS2Mapper(ucs2_t& uc, _tIn&& i, _tState&& st)
 {
-	return UCS2Mapper_Map<cp>(uc, i, std::move(st));
+	return UCS2Mapper_Map<enc>(uc, i, std::move(st));
 }
-template<Encoding cp, typename _tIn, typename _tState>
+template<Encoding enc, typename _tIn, typename _tState>
 yconstexpr ConversionResult
 UCS2Mapper(_tIn&& i, _tState&& st)
 {
-	return UCS2Mapper_Map<cp>(ystdex::pseudo_output(), i, st);
+	return UCS2Mapper_Map<enc>(ystdex::pseudo_output(), i, st);
 }
-template<Encoding cp>
+template<Encoding enc>
 byte
 UCS2Mapper(char* d, const ucs2_t& s)
 {
 	assert(d);
 
-	return UCS2Mapper_InverseMap<cp>(d, s);
+	return UCS2Mapper_InverseMap<enc>(d, s);
 }
 
+/*!
+\brief 取指定编码映射的转换函数指针。
+\since build 291 。
+*/
 template<typename _fCodemapTransform>
 _fCodemapTransform*
-FetchMapperPtr(const Encoding& cp)
+FetchMapperPtr(Encoding enc)
 {
 	using namespace CharSet;
 
-#define CHR_MapItem(cp) \
-case cp: \
-	return UCS2Mapper<cp>;
+#define CHR_MapItem(enc) \
+case enc: \
+	return UCS2Mapper<enc>;
 
-	switch(cp)
+	switch(enc)
 	{
 	CHR_MapItem(SHIFT_JIS)
 	CHR_MapItem(UTF_8)

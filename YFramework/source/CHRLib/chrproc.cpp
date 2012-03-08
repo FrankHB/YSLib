@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r2054;
+\version r2073;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-12-29 19:16 +0800;
-\par 字符集:
+	2012-03-05 14:45 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	CHRLib::CharacterProcessing;
@@ -46,18 +46,18 @@ using ystdex::input_monomorphic_iterator;
 
 
 ConversionResult
-MBCToUC(ucs2_t& uc, const char*& c, const Encoding& cp, ConversionState&& st)
+MBCToUC(ucs2_t& uc, const char*& c, Encoding enc, ConversionState&& st)
 {
 	if(const auto pfun = FetchMapperPtr<ConversionResult(ucs2_t&,
-		input_monomorphic_iterator&&, ConversionState&&)>(cp))
+		input_monomorphic_iterator&&, ConversionState&&)>(enc))
 		return pfun(uc, c, std::move(st));
 	return ConversionResult::Unhandled;
 }
 ConversionResult
-MBCToUC(ucs2_t& uc, std::FILE* fp, const Encoding& cp, ConversionState&& st)
+MBCToUC(ucs2_t& uc, std::FILE* fp, Encoding enc, ConversionState&& st)
 {
 	if(const auto pfun = FetchMapperPtr<ConversionResult(ucs2_t&,
-		input_monomorphic_iterator&&, ConversionState&&)>(cp))
+		input_monomorphic_iterator&&, ConversionState&&)>(enc))
 	{
 		ystdex::ifile_iterator i(*fp);
 		const auto r(pfun(uc, input_monomorphic_iterator(i), std::move(st)));
@@ -69,18 +69,18 @@ MBCToUC(ucs2_t& uc, std::FILE* fp, const Encoding& cp, ConversionState&& st)
 	return ConversionResult::Unhandled;
 }
 ConversionResult
-MBCToUC(const char*& c, const Encoding& cp, ConversionState&& st)
+MBCToUC(const char*& c, Encoding enc, ConversionState&& st)
 {
 	if(const auto pfun = FetchMapperPtr<ConversionResult(
-		input_monomorphic_iterator&&, ConversionState&&)>(cp))
+		input_monomorphic_iterator&&, ConversionState&&)>(enc))
 		return pfun(c, std::move(st));
 	return ConversionResult::Unhandled;
 }
 ConversionResult
-MBCToUC(std::FILE* fp, const Encoding& cp, ConversionState&& st)
+MBCToUC(std::FILE* fp, Encoding enc, ConversionState&& st)
 {
 	if(const auto pfun = FetchMapperPtr<ConversionResult(
-		input_monomorphic_iterator&&, ConversionState&&)>(cp))
+		input_monomorphic_iterator&&, ConversionState&&)>(enc))
 	{
 		ystdex::ifile_iterator i(*fp);
 		auto r(pfun(input_monomorphic_iterator(i), std::move(st)));
@@ -93,10 +93,10 @@ MBCToUC(std::FILE* fp, const Encoding& cp, ConversionState&& st)
 }
 
 byte
-UCToMBC(char* d, const ucs2_t& s, const Encoding& cp)
+UCToMBC(char* d, const ucs2_t& s, Encoding enc)
 {
 	byte l(0);
-	const auto pfun(FetchMapperPtr<byte(char*, const ucs2_t&)>(cp));
+	const auto pfun(FetchMapperPtr<byte(char*, const ucs2_t&)>(enc));
 
 	if(pfun)
 		l = pfun(d, s);
@@ -105,23 +105,23 @@ UCToMBC(char* d, const ucs2_t& s, const Encoding& cp)
 
 
 size_t
-MBCSToUCS2(ucs2_t* d, const char* s, const Encoding& cp)
+MBCSToUCS2(ucs2_t* d, const char* s, Encoding enc)
 {
 	ucs2_t* const p(d);
 
 	while(*s)
-		MBCToUC(*d++, s, cp);
+		MBCToUC(*d++, s, enc);
 	*d = 0;
 	return d - p;
 }
 
 size_t
-UCS2ToMBCS(char* d, const ucs2_t* s, const Encoding& cp)
+UCS2ToMBCS(char* d, const ucs2_t* s, Encoding enc)
 {
 	char* const p(d);
 
 	while(*s)
-		d += UCToMBC(d, *s++, cp);
+		d += UCToMBC(d, *s++, enc);
 	*d = 0;
 	return d - p;
 }
@@ -139,12 +139,12 @@ UCS4ToUCS2(ucs2_t* d, const ucs4_t* s)
 
 
 ucs2_t*
-ucsdup(const char* s, const Encoding& cp)
+ucsdup(const char* s, Encoding enc)
 {
 	ucs2_t* const p(static_cast<ucs2_t*>(malloc((strlen(s) + 1) << 1)));
 
 	if(p)
-		MBCSToUCS2(p, s, cp);
+		MBCSToUCS2(p, s, enc);
 	return p;
 }
 ucs2_t*

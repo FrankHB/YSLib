@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3515; *build 290 rev 31;
+\version r3515; *build 291 rev 27;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-03-05 14:25 +0800;
+	2012-03-08 16:35 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -344,161 +344,175 @@ $using:
 
 $DONE:
 r1:
-/ @ \cl TextReaderSession @ \impl \u ShlReader $=
-(
-	/ \impl @ \ctor,
-	/ \simp \impl @ \mf OnClick
-),
-* reader content and text information not refreshed after switched to
-	empty file using reading list $since b289 $=
-(
-	/ \impl @ \mf DualScreenReader::Locate @ \impl \u DSReader
-);
+/ \a \param \tp const Encoding& -> Encoding
+	@ (\u CharacterProcessing, \h StaticMapping) @ \lib CHRLib;
 
 r2:
-* \impl @ \mf TextReaderSession::OnClick $since r1;
-
-r3-r5:
-/= test 1,
-/ @ \cl ReaderBox @ \impl \u ShlReader $=
 (
-	/ \impl @ \mf UpdateData,
-	/ \impl @ \ctor
-);
+	+ 2 \ft arrlen @ \h Utilities;
+	+ using ystdex::arrlen @ \h YAdaptor;
+	/ \simp \impl \u (ShlReader, YFile_(Text)) ^ arrlen
+),
+/ \a std::min -> min @ \impl \u (YFile_(Text), ComboList),
+/ \a std::max -> max @ \impl \u ComboList;
 
-r6:
+r3:
+/ @ \h YDefinition,
+/= - \a \rem VNDS code @ \impl \u YCommon;
+/= test 1 ^ \conf release;
+
+r4:
+^ "updated devkitARM release 37" ~ "devkitARM release 35";
+
+r5:
 /= test 2 ^ \conf release;
 
-r7:
-/ @ \cl TextFile @ \u YFile_(Text) $=
+r6-r12:
 (
-	/ private \m Text::Encoding cp -> public \m Text::Encoding Encoding,
-	- \tr \mf GetEncoding,
-	/ \impl @ \ctor,
-	/ \impl @ \mft (ReadChar, SkipChar)
+	- \f \i (InitRTC, ClearRTC, ClearTimers, GetRTC, timers2ms, timers2msRaw)
+		@ \h;
+	- \f InitTimers#1;
+	/ \simp \impl @ \f Delay,
+	/ \impl @ \f InitTimers
 );
-/ @ \cl TextFileBuffer $=
+/ \tr @ \h YAdaptor
 (
-	/ \tr \impl @ \mf GetEncoding @ \h TextManager;
-	/ \tr \impl @ \ctor
-);
-
-r8:
-/ @ \cl TextFile @ \u YFile_(Text) $=
+	/ 'ResetRTC' -> 'StartTicks',
+	/ 'GetRTC' -> 'GetTicks'
+)
+/ @ \cl Timer $=
 (
-	- \mf size_t Read(void*, size_t) const,
-	- using File::Read
-);
-/ \mf size_t Read(void*, size_t, size_t) const @ \cl File @ \u YFile
-	-> \mf size_t Read(void*, size_t = 1U, size_t = 1U) const;
+	/ \tr \impl @ \smf Synchronize,
+	/ \simp \impl @ \ctor;
+	- \f (InitializeSystemTimer, ResetSystemTimer, ResetYTimer);
+	- \s \m NotInitialized
+),
+/ \tr \impl @ \mf FPSCounter::Refresh @ \impl \u Shells,
+/= test 3;
 
-r9:
-/ @ \impl \u YFile_(Text) $=
+r13:
+/ \f @ \ns platform @ \u YCommon >> \ns Timers @ \u YTimer;
+
+r14:
+/ \impl @ \f StartTicks @ \impl \u YCommon;
+
+r15-r18:
++ \f u64 GetHighResolutionTicks() @ \u YCommon;
+/ @ \u Shells $=
 (
-	+ \f (CheckUTF8, CheckEncoding) @ \un \ns;
-	/ \impl @ \ctor TextFile
-);
-
-r10:
-/ \impl @ \ctor TextFile @ \impl \u YFile_(Text);
-
-r11:
-/= test 3 ^ \conf release;
-
-r12:
-/ @ \u ShlReader $=
-(
-	/ @ \un \ns @ \impl \u $=
+	/ @ \cl FPSCounter $=
 	(
-		+ POD \st EncodingInfoItem;
-		+ yconstexpr EncodingInfoItem Encodings[];
-		+ \f FetchEncodingNames
-	),
-	/ @ \cl SettingPanel $=
-	(
-		+ protected \m DropDownList ddlEncoding,
-		/ \tr \impl @ \ctor
+		/ \a 'Timers::TimeSpan' -> 'u64';
+		/ \tr @ \mf,
+		/ \impl @ \mf FPSCounter::Refresh
 	)
-);
-
-r13-r19:
+	/ \tr \impl @ \mf ShlExplorer::OnPaint
+),
 /= test 4;
 
-r20:
-/ \impl @ \ctor @ \cl DropDownList;
-
-r21-r24:
-/ @ \h TypeOperation $=
-(
-	+ \stt array_decay,
-	+ \stt qualified_decay,
-	+ \stt array_ref_decay
-);
-/ @ \h Iterator $=
-(
-	- \a 'ynothrow',
-	(
-		+ \clt pointer_iterator;
-		+ \stt pointer_classify;
-		/ @ \clt transformed_iterator
-		(
-			/ public \inh remove_reference<_tIterator>::type
-				-> pointer_classify<_tIterator>::type,
-			/ \m typedef typename remove_reference<_tIterator>::type base_type
-				-> typedef typename pointer_classify<typename
-				remove_reference<_tIterator>::type>::type iterator_type;
-			/ \tr \impl @ \ctor,
-			/ \a \mf base -> get,
-			+ \mf operator iterator_type&(),
-			+ \mf yconstfn operator const iterator_type&() const
-		),
-		/ \tr @ \ft make_transform,
-		/ @ \a 2 \op|
-	)
-);
-/ \tr \impl @ \impl \u (YPanel, YUIContainer),
-/ \simp \impl @ \f FetchEncodingNames @ \un \ns @ \impl \u ShlReader;
-
-r25:
+r19:
 /= test 5 ^ \conf release;
 
-r26:
-/ @ \impl \u ShlReader $=
+r20:
+/ @ \u YTimer $=
 (
-	+ \f FetchEncodingString @ \un \ns;
-	/ @ \cl SettingPanel $=
+	/ \impl @ f Activate;
+	/ @ \cl Timer $=
 	(
-		/ \impl @ \ctor,
-		/ \impl @ \mf UpdateInfo
-	),
-	/ \impl @ \ctor @ TextReaderSession
+		/ \impl @ \mf (Refresh, RefreshAll);
+		- \mf (RefreshRaw; Synchronize);
+		- \smf GetSystemTick;
+		- \s \m SystemTick;
+	)
 );
 
-r27-r28:
-* \impl @ \f FetchEncodingString @ \un \ns @ \impl \u ShlReader $since r26;
+r21:
++ using platform::GetHighResolutionTicks @ \h YAdaptor,
+/ typedef u32 TimeSpan -> typedef u64 TimeSpan @ \h YTimer;
+/ \a GetTicks -> GetHighResolutionTicks @ \impl \u YTimer;
+/ @ \cl Timer $=
+(
+	+ \em \st HighResolutionTag @ \h,
+	+ \f Init @ \un \ns @ \impl \u;
+	+ \exp \ctor Timer(u32, bool = true),
+	/ \exp \ctor Timer(TimeSpan = 1000, bool = true)
+		-> \exp \ctor Timer(TimeSpan, bool, HighResolutionTag)
+);
 
-r29:
-* \impl @ \ctor @ TextReaderSession @ \impl \u ShlReader $since r26;
+r22:
+/ @ \ns Timers @ \u YTimer $=
+(
+	(
+		+ \inc \h <chrono> @ \h;
+		+ \cl HighResolutionClock;
+		+ typedef HighResolutionClock::duration Duration,
+		+ typedef HighResolutionClock::time_point TimePoint;
+			template<class _tRep, class _tPeriod>
+	),
+	(
+		/ \exp \ctor Timer(TimeSpan, bool, HighResolutionTag)
+			-> \exp \ctor Timer(const Duration&, bool) @ \cl Timers;
+		- \st HighResolutionTag
+	)
+);
 
-r30:
-/ \impl @ \ctor @ TextReaderSession @ \impl \u ShlReader;
+r23:
+/ @ \u YTimer $=
+(
+	/ typedef u64 TimeSpan -> typedef std::chrono::milliseconds TimeSpan;
+	/ \tr \f void Delay(TimeSpan) -> void Delay(const TimeSpan&),
+	/ @ \cl Timer $=
+	(
+		/ protected \m TimeSpan nInterval -> Duration nInterval,
+		/ protected \m TimeSpan nBase -> TimePoint nBase,
+		/ data \m order,
+		/ \tr \impl @ \a 2 \ctor,
+		/ \tr \impl @ \mf Timer::(Reset, SetInterval, Refresh,
+			GetInterval, GetBaseTick)
+	),
+	/ \tr \impl @ \f Activate
+);
+/ \tr \impl @ \f OnKeyHeld @ \impl \u YControl,
+/ \tr \impl @ \mf GUIState::Reset @ \impl \u YGUI;
 
-r31:
+r24:
+- unused \em \st HighResolutionTag @ \h YTimer;
 /= test 6 ^ \conf release;
+
+r25:
+/ \impl @ \f WriteKeys @ \impl \u YCommon,
+/ \impl @ \f Idle @ \un \ns @ \impl \u YGlobal;
+
+r26:
+/ @ \impl \u YCommon $=
+(
+	/ @ \un \ns $=
+	(
+		+ \ns \o u32 keys, keys_old;
+		+ \f \i (clear_keys, keys_up, keys_down, update_keys)
+	);
+	/ \impl @ \f (WaitForInput, WaitForKey, WriteKeys)
+);
+- using ::scanKeys @ \h YCommon;
+
+r27:
+/= test 8 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-03-04:
--11.2d;
-//Mercurial rev1-rev162: r7754;
+2012-03-08:
+-11.7d;
+//Mercurial rev1-rev163: r7781;
 
 / ...
 
 
 $NEXT_TODO:
-b291-b300:
+b292-b300:
+* \impl @ \f (WaitForInput, WaitForKey) @ \impl \u YCommon $since b291;
++ u16printf;
 / \impl @ \u (DSReader, ShlReader) $=
 (
 	+ \impl @ user encoding switching,
@@ -520,6 +534,7 @@ b301-b1600:
 + dynamic character mapper loader for \u CharacterMapping,
 ^ \mac __FUNCTION__ ~ custom assertion strings @ whole YFramework,
 / geneeral file type abstraction,
+^ <chrono> to abstract system clocks,
 ^ timing triggers @ message loop,
 + exception state and handlers when switching shells,
 + general data configuragion,
@@ -690,6 +705,44 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YBase'.'YStandardEx' $=
+	(
+		+ "helper 2 template functions %arrlen";
+		$dep_to 'YReader'.'text reader'
+	),
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ $design "all encoding parameter type" ^ 'Encoding' ~ 'const Encoding&'
+			@ %'CHRLib',
+		/ "timers" @ %'YCLib' $=
+		(
+			/ $design "simplified implementation" ^ "libnds functions"
+				~ "direct operations on registers";
+				// Now only counter 2 is used by this library instead of \
+					all the 4 counters on ARM9;
+			+ "high resolution counter";
+				// It provides at most resolution as nanoseconds.
+			$dep_to %'YReader'.'shells test example',
+			/ $design "simplified implementation" @ "input functions"
+		);
+		/ "timers" @ '%YSLib'.'services'
+		(
+			+ "class %HighResolutionClock" ^ "%std::(duration, time_point)",
+			+ "duration and time point types",
+			^ "high resolution counter" ~ "milliseconds" @ "class %Timer"
+		)
+	),
+	^ "updated devkitARM release 37" ~ "devkitARM release 35",
+	/ %'YReader' $=
+	(
+		/ "more accurate FPS counter" @ %'shells test example',
+		/ $design "simplified implementation"
+			^ "function template %ystdex::arrlen" @ %'text reader'
+	)
+),
+
+b290
 (
 	/ %'YBase'.'YStandardEx' $=
 	(
@@ -2138,8 +2191,8 @@ b237
 
 b236
 (
-	^ "updated libnds 1.5.3 with default arm7 0.5.22"
-		~ "libnds 1.5.4 with default arm7 0.5.23",
+	^ "updated libnds 1.5.4 with default arm7 0.5.23"
+		~ "libnds 1.5.1 with default arm7 0.5.21",
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
 		+ "controllers",
@@ -2481,7 +2534,9 @@ b221
 		/ "simplified key-to-touch event mapping implementation"
 			@ "class %Control"
 	),
-	^ "devkitARM release 33" ~ "devkitARM release 32",
+	^ "updated devkitARM release 33" ~ "devkitARM release 32",
+	^ "updated libnds 1.5.0 with default arm7 0.5.20"
+		~ "libnds 1.4.8 with default arm 7 0.5.17",
 	/ $design "header search path of VS2010 projects",
 	/ "event map interfaces" $=
 	(
@@ -3098,7 +3153,7 @@ b1_b131
 
 
 //---- temp code;
-
+	// TODO: remove '*printf';
 
 	static Timers::Timer Timer(1250);
 

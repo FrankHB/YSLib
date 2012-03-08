@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2433;
+\version r2505;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2012-01-20 10:02 +0800;
+	2012-03-08 15:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -352,38 +352,66 @@ namespace platform
 	}
 
 
+	namespace
+	{
+		u32 keys(0), keys_old(0);
+
+		inline void 
+		clear_keys()
+		{
+			yunseq(keys = 0, keys_old = 0);
+		}
+
+		inline u32
+		keys_down()
+		{
+			return keys &~ keys_old;
+		}
+
+		inline u32
+		keys_up()
+		{
+			return (keys ^ keys_old) & ~keys;
+		}
+
+		inline void
+		update_keys()
+		{
+			keys_old = keys;
+			keys = ::keysCurrent();
+		}
+	}
+
+
 	void
 	WaitForInput()
 	{
-		while(true)
+		do
 		{
-			scanKeys();
-			if(keysDown())
-				break;
 			swiWaitForVBlank();
-		}
+			update_keys();	
+		}while(keys_down() != 0);
+		clear_keys();
 	}
 
 	void
 	WaitForKey(u32 mask)
 	{
-		while(true)
+		do
 		{
-			scanKeys();
-			if(keysDown() & mask)
-				break;
 			swiWaitForVBlank();
-		}
+			update_keys();	
+		}while(keys_down() & mask != 0);
+		clear_keys();
 	}
 
 
 	void
-	WriteKeys(KeysInfo& keys)
+	WriteKeys(KeysInfo& info)
 	{
+		update_keys();
 		//记录按键状态。
-		keys.Up = keysUp();
-		keys.Down = keysDown();
-		keys.Held = keysHeld();
+		yunseq(info.Up = keys_up(), info.Down = keys_down(), info.Held = keys);
 	}
 
 	void
@@ -404,156 +432,51 @@ namespace platform
 	}
 
 
-	/*void
-	trimString(char* string) {
-		int a = 0;
-		int b = strlen(string);
+	namespace
+	{
+		vu32 system_tick;
+		bool bUninitializedTimers(true);
 
-		while(isspace(string[a]) && a < b) a++;
-		while(isspace(string[b-1]) && b > a) b--;
-
-		if(b-a <= 0) {
-			//string length is zero
-			string[0] = '\0';
-			return;
-		}
-		memmove(string, string+a, b-a);
-		string[b-a] = '\0';
-	}
-	void
-	unescapeString(char* str) {
-		char* s = str;
-		while(*s != '\0')
+		void
+		timer_callback()
 		{
-			if(*s == '\\')
-			{
-				switch (*++s) {
-					case '\\': *str = '\\'; break;
-					case '\'': *str = '\''; break;
-					case '\"': *str = '\"'; break;
-					case 'n':  *str = '\n'; break;
-					case 'r':  *str = '\r'; break;
-					case 't':  *str = '\t'; break;
-					case 'f':  *str = '\f'; break;
-					default: //Error
-						break;
-				}
-			} else {
-				*str = *s;
-			}
-			str++;
-			s++;
-		}
-		*str = '\0';
-	}
-
-	//Accepts version strings in a(.b(.c)?)? format
-	u32
-	versionStringToInt(char* string) {
-		u32 version = 0;
-
-		char* firstDot = strchr(string, '.');
-		char* secondDot = nullptr;
-		if(firstDot) {
-			*firstDot = '\0';
-			secondDot = strchr(firstDot+1, '.');
-			if(secondDot) {
-				*secondDot = '\0';
-			}
-		}
-
-		//Example result: 1.12.37 = 11237
-		version = atoi(string)*10000;
-		if(firstDot) {
-			version += atoi(firstDot+1)*100;
-			*firstDot = '.';
-		}
-		if(secondDot) {
-			version += atoi(secondDot+1);
-			*secondDot = '.';
-		}
-		return version;
-	}
-	void versionIntToString(char* out, u32 version)
-	{
-		sprintf(out, "%d.%d.%d", (int)(version/10000),
-			(int)((version/100)%100), (int)(version%100));
-	}*/
-
-
-	static bool bUninitializedTimers(true);
-
-	void
-	InitTimers(vu16& l, vu16& h)
-	{
-		l = TIMER_ENABLE | TIMER_DIV_1024;
-		h = TIMER_ENABLE | TIMER_CASCADE;
-	}
-	void
-	InitTimers()
-	{
-		if(bUninitializedTimers)
-		{
-			TIMER0_CR = TIMER_ENABLE | TIMER_DIV_1024;
-			TIMER1_CR = TIMER_ENABLE | TIMER_CASCADE;
-			bUninitializedTimers = false;
+			++system_tick;
 		}
 	}
 
 	void
 	StartTicks()
 	{
-		InitTimers();
-		ClearTimers();
+		if(bUninitializedTimers)
+		{
+			// f = 33.513982MHz;
+			// BUS_CLOCK = 33513982 = 2*311*53881;
+#if 0
+			::irqSet(IRQ_TIMER(2), timer_callback);
+			::irqEnable(IRQ_TIMER(2));
+			TIMER2_DATA = 0;
+			TIMER2_CR = TIMER_ENABLE | ::ClockDivider_1;
+#endif
+			::timerStart(2, ::ClockDivider_1, u16(TIMER_FREQ(1000)),
+				timer_callback);
+			bUninitializedTimers = false;
+		};
 	}
 
 	u32
 	GetTicks()
 	{
-		InitTimers();
-		return timers2ms(TIMER0_DATA, TIMER1_DATA);
-	}
-
-	void
-	Delay(u32 ms)
-	{
-		bUninitializedTimers = true;
 		StartTicks();
-	/*
-		ms &= 0x01FFFFFF;
-		while(u32(timers2ms(TIMER0_DATA, TIMER1_DATA)) < ms)
-			;
-	*/
-		ms <<= 5;
-		while(u32(timers2msRaw(TIMER0_DATA, TIMER1_DATA)) < ms)
-			;
+		return system_tick;
 	}
 
-
-	/*void
-	setupCapture(int bank) {
-		REG_DISPCAPCNT = DCAP_ENABLE | DCAP_MODE(0)
-			| DCAP_DST(0) | DCAP_SRC(0) | DCAP_SIZE(3)
-			| DCAP_OFFSET(0) | DCAP_BANK(bank) | DCAP_B(15) | DCAP_A(0);
-	}
-	void
-	waitForCapture() {
-		while(REG_DISPCAPCNT & DCAP_ENABLE) {
-			swiWaitForVBlank();
-		}
-	}
-
-	char*
-	basename(char* path)
+	u64
+	GetHighResolutionTicks()
 	{
-		int len = strlen(path);
-		int sindex;
-		for(int i = 0; i < len; ++i) {
-			if(path[i] == '/')
-				sindex = i;
-		}
-		return path+sindex+1;
-	}*/
+		StartTicks();
+		return system_tick * 1000000ULL
+			+ TIMER2_DATA * 1000000ULL / BUS_CLOCK;
+	}
 
 	bool
 	InitVideo()

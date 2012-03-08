@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3596;
+\version r3612;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-02-27 22:26 +0800;
+	2012-03-06 21:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -70,14 +70,26 @@ FetchImage(size_t);
 class FPSCounter
 {
 private:
-	Timers::TimeSpan last_tick;
-	Timers::TimeSpan now_tick;
+	/*!
+	\brief 高精度计数。
+	\since build 291 。
+	*/
+	//@{
+	u64 last_tick;
+	u64 now_tick;
+	//@}
 
 public:
 	FPSCounter();
 
-	DefGetter(const ynothrow, Timers::TimeSpan, LastTick, last_tick)
-	DefGetter(const ynothrow, Timers::TimeSpan, NowTick, now_tick)
+	/*!
+	\brief 取高精度计数。
+	\since build 291 。
+	*/
+	//@{
+	DefGetter(const ynothrow, u64, LastTick, last_tick)
+	DefGetter(const ynothrow, u64, NowTick, now_tick)
+	//@}
 
 	/*!
 	\brief 刷新计数器。

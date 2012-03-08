@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3444;
+\version r3447;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-03-05 14:18 +0800;
+	2012-03-05 15:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -71,8 +71,7 @@ namespace
 	FetchEncodingNames()
 	{
 		return share_raw(new TextList::ListType(Encodings | ystdex::get_value,
-			(Encodings + sizeof(Encodings) / sizeof(*Encodings))
-			| ystdex::get_value));
+			(Encodings + arrlen(Encodings)) | ystdex::get_value));
 	}
 
 	/*!
@@ -81,7 +80,7 @@ namespace
 	String
 	FetchEncodingString(MTextList::IndexType i)
 	{
-		if(i < sizeof(Encodings) / sizeof(*Encodings))
+		if(i < arrlen(Encodings))
 		{
 			const auto enc(Encodings[i].first);
 			const String ustr(Encodings[i].second);
@@ -200,7 +199,7 @@ DefTuple(pWidgets,
 	IWidget* const pWidgets[] = {&btnMenu, &btnInfo, &btnReturn, &btnPrev,
 		&btnNext, &pbReader};
 
-	for(std::size_t i(0); i < sizeof(pWidgets) / sizeof(*pWidgets); ++i)
+	for(std::size_t i(0); i < arrlen(pWidgets); ++i)
 		if(auto p = CheckWidget(*pWidgets[i], pt, f))
 			return p;
 	return nullptr;
@@ -569,9 +568,8 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 	dsk_dn += pnlSetting;
 	LoadFile(ShlReader::CurrentPath);
 	{
-		const auto idx(std::find(Encodings
-			| get_key, (Encodings + sizeof(Encodings) / sizeof(*Encodings))
-			| get_key, Reader.GetEncoding()) - Encodings);
+		const auto idx(std::find(Encodings | get_key, (Encodings
+			+ arrlen(Encodings)) | get_key, Reader.GetEncoding()) - Encodings);
 
 		yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(idx),
 			pnlSetting.ddlEncoding.Text = Encodings[idx].second);
