@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2505;
+\version r2514;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2012-03-08 15:56 +0800;
+	2012-03-11 15:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -386,23 +386,25 @@ namespace platform
 	void
 	WaitForInput()
 	{
-		do
-		{
-			swiWaitForVBlank();
-			update_keys();	
-		}while(keys_down() != 0);
-		clear_keys();
+		while(true)
+ 		{
+			update_keys();
+			if(keys_down())
+				break;
+ 			swiWaitForVBlank();
+		};
 	}
 
 	void
 	WaitForKey(u32 mask)
 	{
-		do
-		{
-			swiWaitForVBlank();
-			update_keys();	
-		}while(keys_down() & mask != 0);
-		clear_keys();
+		while(true)
+ 		{
+			update_keys();
+			if(keys_down() & mask)
+				break;
+ 			swiWaitForVBlank();
+		};
 	}
 
 

@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3573;
+\version r3760;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-03-01 18:30 +0800;
+	2011-03-10 15:37 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "DSReader.h"
-#include <ystdex/algorithm.hpp> // for ystdex::pod_copy_n;
+#include <algorithm> // for std::copy_n;
 #include <YSLib/UI/ywindow.h>
 #include <YSLib/Service/TextLayout.h>
 
@@ -100,6 +100,106 @@ namespace
 		}
 		return s;
 	}
+
+	/*!
+	\brief 迭代器解引用等于指定值时自增。
+	\pre i 可解引用。
+	\since build 292 。
+	*/
+	template<typename _type, typename _tIn>
+	inline void
+	IncreaseIfEqual(_tIn& i, const _type& val)
+	{
+		if(*i == val)
+			++i;
+	}
+
+	/*!
+	\brief 对可能出现的换行调整迭代器。
+	\since build 292 。
+	*/
+	template<typename _tIn, class _tArea, class _tContainer>
+	inline void
+	AdjustForNewline(_tArea& area, _tIn& i, _tContainer& c)
+	{
+		IncreaseIfEqual(i, '\n');
+		i = FindLineFeed(area, i, c.GetEnd());
+	}
+
+	/*!
+	\brief 调整不完整的行首的迭代器。
+	\since build 292 。
+	*/
+	template<typename _tIn, class _tArea, class _tContainer>
+	inline void
+	AdjustPrevious(_tArea& area, _tIn& i, _tContainer& c)
+	{
+		i = FindPreviousLineFeed(area, i, c.GetBegin());
+	}
+
+	/*!
+	\brief 按全区域移动复制上下屏区域像素。
+	\param src_area 源区域。
+	\param src_offset 源偏移行数。
+	\param dst_area 目标区域。
+	\param dst_offset 目标偏移行数。
+	\param offset 待复制区域的移动偏移（大小等于待复制区域的总行数，向上时 < 0）。
+	\param n 实际复制行数。
+	\note 不清理源区域。
+	\since build 292 。
+	*/
+	void
+	CopyScrollArea(YSL_ Components::BufferedTextArea& src_area,
+		size_t src_offset, YSL_ Components::BufferedTextArea& dst_area,
+		size_t dst_offset, ptrdiff_t offset, size_t n)
+	{
+		YAssert(n != 0, "Invalid number of lines found @ CopyScrollArea;");
+		YAssert(n <= std::abs(offset), "Invalid offset found"
+			" @ CopyScrollArea;");
+
+		const SDst w(src_area.GetWidth());
+
+		YAssert(w == dst_area.GetWidth(), "Unequal width found"
+			" @ CopyScrollArea;");
+
+		yunseq(src_offset *= w, dst_offset *= w, n *= w);
+		dst_area.Scroll(offset);
+		yunseq(std::copy_n(src_area.GetBufferPtr() + src_offset, n,
+			dst_area.GetBufferPtr() + dst_offset), std::copy_n(
+			src_area.GetBufferAlphaPtr() + src_offset, n,
+			dst_area.GetBufferAlphaPtr() + dst_offset));
+		src_area.Scroll(offset);
+	}
+
+	/*!
+	\brief 全区域移动上下屏区域像素。
+	\note 复制后清除未被覆盖区域。
+	\since build 292 。
+	*/
+	void
+	MoveScrollArea(YSL_ Components::BufferedTextArea& area_up,
+		YSL_ Components::BufferedTextArea& area_dn, ptrdiff_t offset, size_t n)
+	{
+		YAssert(area_up.GetHeight() - area_up.Margin.Bottom - n > 0,
+			"No enough space of areas found @ MoveScrollArea;");
+
+		SDst src_off(area_dn.Margin.Top),
+			dst_off(area_up.GetHeight() - area_up.Margin.Bottom - n);
+		auto* p_src(&area_dn);
+		auto* p_dst(&area_up);
+		SDst clr_off;
+
+		if(offset > 0) //复制区域向下移动，即浏览区域向上滚动。
+		{
+			std::swap(p_src, p_dst),
+			std::swap(src_off, dst_off),
+			clr_off = area_up.Margin.Top;
+		}
+		else
+			clr_off = area_dn.GetHeight() - area_dn.Margin.Bottom - n;
+		CopyScrollArea(*p_src, src_off, *p_dst, dst_off, offset, n);
+		p_src->ClearLine(clr_off, n);
+	}
 }
 
 YSL_BEGIN_NAMESPACE(DS)
@@ -108,7 +208,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 DualScreenReader::DualScreenReader(SDst w, SDst h_up, SDst h_down,
 	FontCache& fc_)
-	: pText(), fc(fc_), i_top(), i_btm(), overread_line_n(0),
+	: pText(), fc(fc_), i_top(), i_btm(), overread_line_n(0), scroll_offset(0),
 	Margin(4, 4, 4, 4),
 	area_up(Rect(Point::Zero, w, h_up), fc),
 	area_dn(Rect(Point::Zero, w, h_down), fc)
@@ -172,6 +272,13 @@ DualScreenReader::AdjustMargins()
 	}
 }
 
+FontSize
+DualScreenReader::AdjustScrollOffset()
+{
+	if(scroll_offset != 0)
+		return ScrollByPixel(GetTextLineHeightExOf(area_up) - scroll_offset);
+}
+
 void
 DualScreenReader::Attach(YSL_ Components::Window& wnd_up,
 	YSL_ Components::Window& wnd_dn)
@@ -198,6 +305,8 @@ DualScreenReader::Execute(Command cmd)
 		return false;
 	if(~cmd & Scroll)
 		return false;
+	if(AdjustScrollOffset() != 0)
+		return false;
 	if(cmd & Up)
 	{
 		if(IsTextTop())
@@ -213,66 +322,41 @@ DualScreenReader::Execute(Command cmd)
 	cmd &= ~Scroll;
 	if(cmd & Line)
 	{
-		const u8 h(area_up.Font.GetHeight()), hx(h + GetLineGap());
-		const auto w(area_up.GetWidth());
-		const u32 t(w * h);
+		const FontSize h(area_up.Font.GetHeight()), hx(h + GetLineGap());
 
 		if(cmd & Up)
 		{
-			const u32 s((area_up.GetHeight() - area_up.Margin.Bottom - h) * w),
-				d(area_dn.Margin.Top * w);
-
-			area_dn.Scroll(hx);
-			yunseq(ystdex::pod_copy_n(&area_up.GetBufferPtr()[s], t,
-				&area_dn.GetBufferPtr()[d]),
-				ystdex::pod_copy_n(&area_up.GetBufferAlphaPtr()[s], t,
-				&area_dn.GetBufferAlphaPtr()[d]));
-			area_up.Scroll(hx);
-			area_up.ClearTextLine(0);
+			MoveScrollArea(area_up, area_dn, hx, h);
 			SetCurrentTextLineNOf(area_up, 0);
-			i_top = FindPreviousLineFeed(area_up, i_top, pText->GetBegin());
+			AdjustPrevious(area_up, i_top, *pText);
 			CarriageReturn(area_up);
 			{
 				auto iTopNew(i_top);
 
-				if(*iTopNew == '\n')
-					++iTopNew;
+				IncreaseIfEqual(iTopNew, '\n');
 				PutLine(area_up, iTopNew, pText->GetEnd(), '\n');
 			}
 			if(overread_line_n > 0)
 				--overread_line_n;
 			else
-				i_btm = FindPreviousLineFeed(area_up, i_btm,
-					pText->GetBegin());
+				AdjustPrevious(area_up, i_btm, *pText);
 		}
 		else
 		{
-			const u32 s(area_dn.Margin.Top * w),
-				d((area_up.GetHeight() - area_up.Margin.Bottom - h) * w);
-
-			area_up.Scroll(-hx);
-			yunseq(ystdex::pod_copy_n(&area_dn.GetBufferPtr()[s], t,
-				&area_up.GetBufferPtr()[d]),
-				ystdex::pod_copy_n(&area_dn.GetBufferAlphaPtr()[s], t,
-				&area_up.GetBufferAlphaPtr()[d]));
-			area_dn.Scroll(-hx);
+			MoveScrollArea(area_up, area_dn, -hx, h);
 			{
 				u16 n(area_dn.GetTextLineNEx());
 
 				YAssert(n != 0,
 					"No Enough height found @ DualScreenReader::Excute;");
 
-				area_dn.ClearTextLine(--n);
-				SetCurrentTextLineNOf(area_dn, n);
+				SetCurrentTextLineNOf(area_dn, --n);
 			}
 			//注意缓冲区不保证以 '\0' 结尾。
 			CarriageReturn(area_dn);
-			if(*i_btm == '\n')
-				++i_btm;
+			IncreaseIfEqual(i_btm, '\n');
 			i_btm = PutLine(area_dn, i_btm, pText->GetEnd(), '\n');
-			if(*i_top == '\n')
-				++i_top;
-			i_top = FindLineFeed(area_up, i_top, pText->GetEnd());
+			AdjustForNewline(area_up, i_top, *pText);
 		}
 		Invalidate();
 	}
@@ -281,22 +365,14 @@ DualScreenReader::Execute(Command cmd)
 		auto ln(area_up.GetTextLineNEx() + area_dn.GetTextLineNEx());
 
 		if(cmd & Up)
-		{
 			while(ln--)
-				i_top = FindPreviousLineFeed(area_up, i_top, pText->GetBegin());
-		}
+				AdjustPrevious(area_up, i_top, *pText);
 		else
-		{
 			while(ln-- && i_btm != pText->GetEnd())
 			{
-				if(*i_btm == '\n')
-					++i_btm;
-				i_btm = FindLineFeed(area_dn, i_btm, pText->GetEnd());
-				if(*i_top == '\n')
-					++i_top;
-				i_top = FindLineFeed(area_up, i_top, pText->GetEnd());
+				AdjustForNewline(area_dn, i_btm, *pText);
+				AdjustForNewline(area_up, i_top, *pText);
 			}
-		}
 		UpdateView();
 	}
 	return true;
@@ -316,7 +392,7 @@ DualScreenReader::Locate(size_t pos)
 	else if(pos < pText->GetTextSize())
 	{
 		i_top = pText->GetIterator(pos);
-		i_top = FindPreviousLineFeed(area_up, ++i_top, pText->GetBegin());
+		AdjustPrevious(area_up, ++i_top, *pText);
 	}
 	else
 		return;
@@ -346,7 +422,7 @@ DualScreenReader::LoadText(TextFile& file)
 		UpdateView();
 	}
 	else
-		PutString(area_up, L"文件打开失败！\n");
+		PutString(area_up, u"文件打开失败！");
 }
 
 void
@@ -360,6 +436,47 @@ DualScreenReader::Reset()
 	//复位缓存区域写入位置。
 	area_up.ResetPen();
 	area_dn.ResetPen();
+}
+
+FontSize
+DualScreenReader::ScrollByPixel(Drawing::FontSize h)
+{
+	const FontSize ln_h_ex(GetTextLineHeightExOf(area_up));
+
+	YAssert(scroll_offset < ln_h_ex, "Invalid scroll offset found"
+		" @ DualScreenReader::AdjustScrollOffset");
+
+	if(i_btm == pText->GetEnd() || scroll_offset + h > ln_h_ex)
+		return 0;
+	MoveScrollArea(area_up, area_dn, -h, h);
+	{
+		u16 n(area_dn.GetTextLineNEx());
+
+		YAssert(n != 0,
+			"No Enough height found @ DualScreenReader::Excute;");
+
+		SetCurrentTextLineNOf(area_dn, --n);
+	}
+	//注意缓冲区不保证以 '\0' 结尾。
+	CarriageReturn(area_dn);
+	if((scroll_offset += h) < ln_h_ex)
+	{
+		area_dn.PenY += ln_h_ex - scroll_offset;
+
+		auto i_tmp(i_btm);
+
+		IncreaseIfEqual(i_tmp, '\n');
+		PutLine(area_dn, i_tmp, pText->GetEnd(), '\n');
+	}
+	else
+	{
+		IncreaseIfEqual(i_btm, '\n');
+		i_btm = PutLine(area_dn, i_btm, pText->GetEnd(), '\n');
+		AdjustForNewline(area_up, i_top, *pText);
+		scroll_offset = 0;
+	}
+	Invalidate();
+	return h;
 }
 
 void
@@ -392,8 +509,7 @@ DualScreenReader::UpdateView()
 	{
 		auto i_new(i_top);
 
-		if(*i_new == '\n')
-			++i_new;
+		IncreaseIfEqual(i_new, '\n');
 		i_new = PutString(area_up, i_new, pText->GetEnd());
 		if(i_new == pText->GetEnd())
 		{

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2032;
+\version r2094;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-03-02 23:29 +0800;
+	2012-03-11 19:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -126,31 +126,46 @@ class SettingPanel : public DialogPanel
 
 protected:
 	/*!
-	\brief 文本区域示例文本标签。
+	\brief 标签：文本区域示例。
 	\note 不加入 SettingPanel 容器，加入上屏桌面。
 	\since build 280 。
 	*/
 	Label lblAreaUp, lblAreaDown;
 	/*!
-	\brief 字体大小递减/递增按钮。
+	\brief 按钮：字体大小递减/递增。
 	\since build 280 。
 	*/
 	Button btnFontSizeDecrease, btnFontSizeIncrease;
 	/*!
-	\brief 设置按钮。
+	\brief 按钮：设置。
 	\since build 279 。
 	*/
 	Button btnSetUpBack, btnSetDownBack, btnTextColor;
 	/*!
-	\brief 字体设置下拉列表。
+	\brief 下拉列表：字体设置。
 	\since build 282 。
 	*/
 	DropDownList ddlFont;
 	/*!
-	\brief 编码设置下拉列表。
+	\brief 下拉列表：编码设置。
 	\since build 290 。
 	*/
 	DropDownList ddlEncoding;
+	/*!
+	\brief 复选框：选定自动光滑滚屏。
+	\since build 292 。
+	*/
+	CheckBox chkSmoothScroll;
+	/*!
+	\brief 标签：选定自动光滑说明。
+	\since build 292 。
+	*/
+	Label lblSmoothScroll;
+	/*!
+	\brief 下拉列表：自动滚屏时间设置。
+	\since build 292 。
+	*/
+	DropDownList ddlScrollTiming;
 	ColorBox boxColor;
 
 private:
@@ -160,6 +175,11 @@ private:
 	\since build 277 。
 	*/
 	Color* pColor;
+	/*!
+	\brief 当前设置的编码。
+	\since build 292 。
+	*/
+	Text::Encoding current_encoding;
 
 public:
 	SettingPanel();
@@ -274,10 +294,11 @@ public:
 
 	/*!
 	\brief 切换阅读记录。
-
-	后退或前进，同时移除该记录。
 	\param 是否后退。
 	\return 被移除的记录。
+	\warning 不检查是否越界。
+
+	后退或前进，同时移除该记录。
 	*/
 	BookMark
 	Switch(bool);
@@ -323,6 +344,16 @@ private:
 	\since build 286 。
 	*/
 	IO::Path path;
+	/*!
+	\brief 滚屏间隔。
+	\since build 292 。
+	*/
+	std::chrono::milliseconds scroll_duration;
+	/*!
+	\brief 平滑滚屏间隔。
+	\since build 292 。
+	*/
+	std::chrono::milliseconds smooth_scroll_duration;
 
 protected:
 	/*!
@@ -332,7 +363,6 @@ protected:
 	Timers::Timer tmrScroll;
 
 public:
-
 	DualScreenReader Reader;
 	ReaderBox boxReader;
 	TextInfoBox boxTextInfo;
@@ -379,6 +409,21 @@ public:
 private:
 	void
 	ShowMenu(Menu::ID, const Point&);
+
+	/*!
+	\brief 切换编码。
+	\note 若文本文件无效、参数为 Encoding() 或与当前编码相同则忽略。
+	\since build 292 。
+	*/
+	void
+	Switch(Text::Encoding);
+
+	/*!
+	\brief 显示设置界面。
+	\since build 292 。
+	*/
+	void
+	ShowSetting();
 
 	/*!
 	\brief 更新近期浏览记录并更新按钮状态。
@@ -458,6 +503,21 @@ private:
 	std::function<void()> background_task;
 
 public:
+	/*!
+	\brief 平滑滚屏。
+	\since build 292 。
+	*/
+	bool SmoothScroll;
+	/*!
+	\brief 滚屏间隔。
+	\since build 292 。
+	*/
+	std::chrono::milliseconds ScrollDuration;
+	/*!
+	\brief 平滑滚屏间隔。
+	\since build 292 。
+	*/
+	std::chrono::milliseconds SmoothScrollDuration;
 	/*!
 	\brief 近期浏览记录。
 	\since build 286 。

@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6994;
+\version r7001;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-03-07 19:44 +0800;
+	2012-03-11 22:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -1090,10 +1090,10 @@ FetchDefaultScreen();
 
 @5.1.3.2.1 FreeType2 库版本：
  build 185 前：
-头文件版本：2.3.12 ；
+头文件版本： 2.3.12 ；
 库文件版本：在 VNDS 源代码中提取的 2.3.6 。
  build 185 起：
-头文件版本：2.4.4 ；
+头文件版本： 2.4.4 ；
 库文件版本：使用 devkitPro 编译的对应版本， modules.cfg 配置包含以下行：
 FONT_MODULES += truetype
 FONT_MODULES += sfnt
@@ -1104,7 +1104,7 @@ BASE_EXTENSIONS += ftbitmap.c
 BASE_EXTENSIONS += ftglyph.c
 并使用 -O3 优化。
  build 223 rev 31 起：
-头文件版本 2.4.5 ；
+头文件版本： 2.4.5 ；
 库文件版本：使用 devkitPro 编译的对应版本， modules.cfg 配置追加行：
 BASE_EXTENSIONS += ftbbox.c
 BASE_EXTENSIONS += ftstroke.c
@@ -1113,8 +1113,11 @@ BASE_EXTENSIONS += ftsynth.c
  build 224 rev 34 起：
 使用 2.4.4 的 /src/cache 源文件代替 2.4.5 对应部分并重新编译库文件，以修正不明原因的 FontCache::GetAscender 的结果错误。
  build 266 起：
-头文件版本：2.4.8 ；
+头文件版本： 2.4.8 ；
 库文件版本：使用 2.4.4 的 /src/cache 源文件代替 2.4.8 对应部分，用 devkitPro 编译的对应版本， modules.cfg 配置不变。
+ build 292 起：
+头文件版本： 2.4.9 ；
+库文件版本： 2.4.9 用 devkitPro 编译的对应版本， modules.cfg 配置不变。
 
 @5.1.3.3
 图形库：修正的 Anti-Grain Geometry 库 V2.4 。

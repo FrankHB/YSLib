@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3515; *build 291 rev 27;
+\version r3515; *build 292 rev 85;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-03-08 16:35 +0800;
+	2012-03-12 08:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -344,266 +344,470 @@ $using:
 
 $DONE:
 r1:
-/ \a \param \tp const Encoding& -> Encoding
-	@ (\u CharacterProcessing, \h StaticMapping) @ \lib CHRLib;
+* \impl @ \f (WaitForInput, WaitForKey) @ \impl \u YCommon $since b291;
 
 r2:
+/ @ \u ShlReader $=
 (
-	+ 2 \ft arrlen @ \h Utilities;
-	+ using ystdex::arrlen @ \h YAdaptor;
-	/ \simp \impl \u (ShlReader, YFile_(Text)) ^ arrlen
-),
-/ \a std::min -> min @ \impl \u (YFile_(Text), ComboList),
-/ \a std::max -> max @ \impl \u ComboList;
+	/ @ \cl SettingPanel $=
+	(
+		+ private \m Text::Encoding current_encoding;
+		/ \impl @ \ctor
+	),
+	/ @ \cl TextReaderSession $=
+	(
+		+ private \mf void Switch(Encoding);
+		/ \impl @ \ctor
+	)
+);
 
-r3:
-/ @ \h YDefinition,
-/= - \a \rem VNDS code @ \impl \u YCommon;
+r3-r8:
+/ \impl @ \ctor @ TextReaderSession @ \impl \u ShlReader;
+
+r9:
 /= test 1 ^ \conf release;
 
-r4:
-^ "updated devkitARM release 37" ~ "devkitARM release 35";
+r10:
+* \impl @ \f WaitForKey @ \impl \u YCommon $since r1;
 
-r5:
-/= test 2 ^ \conf release;
-
-r6-r12:
-(
-	- \f \i (InitRTC, ClearRTC, ClearTimers, GetRTC, timers2ms, timers2msRaw)
-		@ \h;
-	- \f InitTimers#1;
-	/ \simp \impl @ \f Delay,
-	/ \impl @ \f InitTimers
-);
-/ \tr @ \h YAdaptor
-(
-	/ 'ResetRTC' -> 'StartTicks',
-	/ 'GetRTC' -> 'GetTicks'
-)
-/ @ \cl Timer $=
-(
-	/ \tr \impl @ \smf Synchronize,
-	/ \simp \impl @ \ctor;
-	- \f (InitializeSystemTimer, ResetSystemTimer, ResetYTimer);
-	- \s \m NotInitialized
-),
-/ \tr \impl @ \mf FPSCounter::Refresh @ \impl \u Shells,
-/= test 3;
+r11-r12:
+/ \impl @ \ctor @ TextReaderSession @ \impl \u ShlReader;
 
 r13:
-/ \f @ \ns platform @ \u YCommon >> \ns Timers @ \u YTimer;
+/ \impl @ \mf DualScreenReader::LoadText @ \impl \u DSReader;
 
 r14:
-/ \impl @ \f StartTicks @ \impl \u YCommon;
+- redundant \decl @ \mf (PrintTextUp, PrintTextDown) @ \cl DualScreenReader
+	@ \h DSReader,
+* (/ \as \str @ \impl \u YTextManager) @ strict ISO C++ code compatibility
+	$since b273;
 
-r15-r18:
-+ \f u64 GetHighResolutionTicks() @ \u YCommon;
-/ @ \u Shells $=
+r15:
+/ @ \impl \u DSReader $=
 (
-	/ @ \cl FPSCounter $=
-	(
-		/ \a 'Timers::TimeSpan' -> 'u64';
-		/ \tr @ \mf,
-		/ \impl @ \mf FPSCounter::Refresh
-	)
-	/ \tr \impl @ \mf ShlExplorer::OnPaint
-),
-/= test 4;
+	/ \a 'ystdex::pod_copy_n' -> 'std::copy_n';
+	/ \inc \h <ystdex/algorithm.hpp> -> <algorithm>
+);
 
-r19:
-/= test 5 ^ \conf release;
+r16:
+/= test 2 ^ \conf release;
 
-r20:
-/ @ \u YTimer $=
+r17-r20:
+/ @ \impl \u DSReader $=
 (
-	/ \impl @ f Activate;
-	/ @ \cl Timer $=
-	(
-		/ \impl @ \mf (Refresh, RefreshAll);
-		- \mf (RefreshRaw; Synchronize);
-		- \smf GetSystemTick;
-		- \s \m SystemTick;
-	)
+	+ \f void MoveScrollArea(SDst, YSL_ Components::BufferedTextArea&, size_t,
+		YSL_ Components::BufferedTextArea&, size_t, ptrdiff_t, size_t)
+		@ \un \ns;
+	/ \simp \impl @ \mf DualScreenReader::Execute ^ \f MoveScrollArea
 );
 
 r21:
-+ using platform::GetHighResolutionTicks @ \h YAdaptor,
-/ typedef u32 TimeSpan -> typedef u64 TimeSpan @ \h YTimer;
-/ \a GetTicks -> GetHighResolutionTicks @ \impl \u YTimer;
-/ @ \cl Timer $=
+/ @ \impl \u DSReader $=
 (
-	+ \em \st HighResolutionTag @ \h,
-	+ \f Init @ \un \ns @ \impl \u;
-	+ \exp \ctor Timer(u32, bool = true),
-	/ \exp \ctor Timer(TimeSpan = 1000, bool = true)
-		-> \exp \ctor Timer(TimeSpan, bool, HighResolutionTag)
+	/ \ft<_type, _tIn> \i void IncreaseIfEqual(_tIn&, const _type&);
+	/ \simp \impl @ \mf DualScreenReader::(Execute, UpdateView)
+		^ \ft IncreaseIfEqual
 );
 
 r22:
-/ @ \ns Timers @ \u YTimer $=
+/ @ \impl \u DSReader $=
 (
-	(
-		+ \inc \h <chrono> @ \h;
-		+ \cl HighResolutionClock;
-		+ typedef HighResolutionClock::duration Duration,
-		+ typedef HighResolutionClock::time_point TimePoint;
-			template<class _tRep, class _tPeriod>
-	),
-	(
-		/ \exp \ctor Timer(TimeSpan, bool, HighResolutionTag)
-			-> \exp \ctor Timer(const Duration&, bool) @ \cl Timers;
-		- \st HighResolutionTag
-	)
+	/ \f void MoveScrollArea(SDst, YSL_ Components::BufferedTextArea&, size_t,
+		YSL_ Components::BufferedTextArea&, size_t, ptrdiff_t, size_t)
+		@ \un \ns -> void MoveScrollArea(YSL_ Components::BufferedTextArea&,
+		size_t, YSL_ Components::BufferedTextArea&, size_t, ptrdiff_t, size_t);
+	/ \simp \impl @ \mf DualScreenReader::Execute ^ \f MoveScrollArea
 );
 
-r23:
-/ @ \u YTimer $=
+r23-r24:
+/ @ \impl \u DSReader $=
 (
-	/ typedef u64 TimeSpan -> typedef std::chrono::milliseconds TimeSpan;
-	/ \tr \f void Delay(TimeSpan) -> void Delay(const TimeSpan&),
-	/ @ \cl Timer $=
-	(
-		/ protected \m TimeSpan nInterval -> Duration nInterval,
-		/ protected \m TimeSpan nBase -> TimePoint nBase,
-		/ data \m order,
-		/ \tr \impl @ \a 2 \ctor,
-		/ \tr \impl @ \mf Timer::(Reset, SetInterval, Refresh,
-			GetInterval, GetBaseTick)
-	),
-	/ \tr \impl @ \f Activate
+	/ \a MoveScrollArea => CopyScrollArea;
+	+ \f void MoveScrollArea(YSL_ Components::BufferedTextArea&,
+		YSL_ Components::BufferedTextArea&, ptrdiff_t, size_t) @ \un \ns;
+	/ \simp \impl @ \mf DualScreenReader::Execute ^ \f MoveScrollArea
+		~ CopyScrollArea
 );
-/ \tr \impl @ \f OnKeyHeld @ \impl \u YControl,
-/ \tr \impl @ \mf GUIState::Reset @ \impl \u YGUI;
-
-r24:
-- unused \em \st HighResolutionTag @ \h YTimer;
-/= test 6 ^ \conf release;
 
 r25:
-/ \impl @ \f WriteKeys @ \impl \u YCommon,
-/ \impl @ \f Idle @ \un \ns @ \impl \u YGlobal;
-
-r26:
-/ @ \impl \u YCommon $=
+/ @ \impl \u DSReader $=
 (
 	/ @ \un \ns $=
 	(
-		+ \ns \o u32 keys, keys_old;
-		+ \f \i (clear_keys, keys_up, keys_down, update_keys)
+		+ \ft<typename _tIn, class _tArea, class _tContainer> \i void
+			AdjustForNewline(_tArea&, _tIn&, _tContainer&),
+		+ \ft<typename _tIn, class _tArea, class _tContainer> \i void
+			AdjustPreviousLine(_tArea&, _tIn&, _tContainer&)
 	);
-	/ \impl @ \f (WaitForInput, WaitForKey, WriteKeys)
+	/ \simp \impl @ \mf DualScreenReader::Execute
+		^ \ft (AdjustForNewline, AdjustPreviousLine)
 );
-- using ::scanKeys @ \h YCommon;
+
+r26:
+* \impl @ \mf DualScreenReader::Execute @ \impl \u DSReader $since r25;
 
 r27:
+/= test 3 ^ \conf release;
+
+r28:
+/ @ \cl DualScreenReader @ \u DSReader $=
+(
+	+ private \m Drawing::FontSize scroll_offset,
+	+ \mf Drawing::FontSize ScrollByPixel(Drawing::FontSize),
+	+ \mf Drawing::FontSize AdjustScrollOffset(),
+	/ \tr \impl @ \ctor
+);
+
+r29-r36:
+* \impl @ \mf DualScreenReader::(Execute, ScrollByPixel) @ \impl \u DSReader
+	$since r28,
+/= test 4;
+
+r37:
+/= test 5 ^ \conf release;
+
+r38:
+* \impl @ \ctor @ DropDownList $since b290;
+
+r39-r40:
+/ @ \cl SettingPanel @ \u ShlReader $=
+(
+	+ protected \m (CheckBox chkSmoothScroll; Label lblSmoothScroll;
+		DropDownList ddlScrollTiming);
+	/ \tr \impl @ \ctor
+);
+
+r41-r53:
+/ @ \impl \u ShlReader $=
+(
+	+ \f FetchScrollDurations @ \un \ns;
+	/ \impl @ \ctor SettingPanel
+),
+/= test 6,
+/ @ \cl DropDownList $=
+(
+	/ \impl @ \ctor,
+	/ \impl @ \mf Refresh
+);
+
+r54:
+/ @ \cl CheckBox $=
+(
+	+ typedef GValueEventArgs<bool> TickedArgs;
+	+ DeclDelegate(HTickedEvent, TickedArgs);
+	+ private DeclEvent(HTickedEvent, Ticked);
+	/ \impl @ \ctor,
+	+ \mf void SetTicked(bool),
+	+ \mf DefEventGetter(ynothrow, HTickedEvent, Ticked, Ticked)
+),
+(
+	+ \mf DefSetter(const shared_ptr<ListType>&, List, hList) @ \cl MTextList;
+	+ using MTextList::SetList @ \cl TextList;
+	+ \mf DefSetterMem(const shared_ptr<ListType>&, List, lstText)
+		@ \cl ListBox;
+	+ \mf DefSetterMem(const shared_ptr<ListType>&, List, boxList)
+		@ \cl DropDownList
+);
+/ \impl @ \ctor SettingPanel @ \impl \u ShlReader;
+
+r55:
+/ @ \u ShlReader $=
+(
+	/ @ \cl TextReaderSession $=
+	(
+		+ private \m std::chrono::milliseconds scroll_duration,
+		+ private \m std::chrono::milliseconds smooth_scroll_duration;
+		/ \tr \impl @ \ctor
+	);
+	/ \impl @ \ctor SettingPanel
+);
+
+r56-r58:
+/ @ \impl \u ShlReader $=
+(
+	+ \mf UpdateScrollDropDownList @ \un \ns;
+	/ @ \impl @ \ctor (TextReaderSession, SettingPanel)
+);
+
+r59-r71:
+/= test 7,
+* \impl @ \f (WaitForInput, WaitForKey) @ \impl \u YCommon $since r1;
+
+r72:
+* \impl @ \mf ListBox::ResizeForPreferred $since b282;
+
+r73:
+* \impl @ \mf MTextList::SetList $since r54;
+/ @ \clt GSequenceViewer @ \h Viewer $=
+(
+	/ private \m _tContainer& c -> _tContainer* pContainer,
+	+ typedef _tContainer ContainerType;
+	/ \tr \impl @ \ctor,
+	/ \tr \impl @ \mf GetTotal,
+	+ \mf void SetContainer(ContainerType&)
+);
+/ @ \cl TextList $=
+(
+	- using MTextList::SetList;
+	+ \mf SetList
+);
+
+r74:
+* \impl @ \mf TextList::SetList $since r73;
+
+r75:
 /= test 8 ^ \conf release;
+
+r76-r77:
+/ @ \u ShlReader $=
+(
+	/ @ \cl ShlReader $=
+	(
+		+ \m bool SmoothScroll,
+		+ \m std::chrono::milliseconds ScrollDuration,
+		+ \m std::chrono::milliseconds SmoothScrollDuration,
+		/ \tr \impl @ \ctor
+	);
+	/ \tr \impl @ \ctor TextReaderSession
+	* \impl @ \mf UpdateScrollDropDownList @ \un \ns $since r57
+);
+
+r78:
+/ @ \cl TextReaderSession @ \u ShlReader $=
+(
+	+ \mf void ShowSetting();
+	/ \impl @ \ctor,
+	/ \impl @ \mf Execute
+);
+
+r79:
+/ @ \cl TextReaderSession @ \impl \u ShlReader $=
+(
+	/ \impl @ \mf ShowSetting,
+	/ \impl @ \ctor
+);
+
+r80:
+/ @ \impl \u ShlReader $=
+(
+	* \impl @ \ctor TextReaderSession $since r79,
+	/ \impl @ \f FetchScrollDurations @ \un \ns
+);
+
+r81:
+/ \impl @ \mf (Scroll, OnClick) @ \cl TextReaderSession @ \impl \u ShlReader;
+
+r82:
+/= test 9 ^ \conf release;
+
+r83:
+^ updated library freetype 2.4.9 ~ modified freetype 2.4.8;
+
+r84:
+/ @ \impl \u ShlReader $=
+(
+	/ @ \un \ns $=
+	(
+		+ \en GRLs;
+		+ \f QueryList;
+		/ \impl @ \f UpdateScrollDropDownList
+	);
+	/ \impl @ \ctor SettingPanel
+);
+
+r85:
+/= test 10 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-03-08:
--11.7d;
-//Mercurial rev1-rev163: r7781;
+2012-03-11:
+-10.1d;
+//Mercurial rev1-rev164: r7866;
 
 / ...
 
 
 $NEXT_TODO:
-b292-b300:
-* \impl @ \f (WaitForInput, WaitForKey) @ \impl \u YCommon $since b291;
-+ u16printf;
+b293-b300:
 / \impl @ \u (DSReader, ShlReader) $=
 (
-	+ \impl @ user encoding switching,
-	+ automatic scrolling time setting,
-	+ smooth scrolling,
-	+ local encoding selecting,
-	/ improving performance when reader box shown
-);
+	/ $design \simp \impl
+),
+^ std::make_shared,
++ \ft make_unique;
 
 
 $TODO:
-b301-b1600:
-/ fully \impl @ \u DSReader $=
+b301-b400:
+* ISO C++11 compatibility $=
 (
+	^ \n __func__ ~ __FUNCTION__
+),
++ dynamic character mapper loader for \u CharacterMapping,
+/ completeness of core abstraction $=
+(
+	+ shell sessions;
+	+ UI scenes,
+	+ UI modes,
+	+ UI subsessions
+),
+/ services $=
+(
+	/ \impl @ RTC,
+	+ \impl @ images loading
+),
+/ $low_prior tests and examples $=
+(
+	+ local encoding selecting,
+	+ smooth scrolling,
+	/ improving performance when reader box shown,
 	+ bookmarks manager,
 	+ settings manager,
 	+ reading history
 ),
-+ dynamic character mapper loader for \u CharacterMapping,
-^ \mac __FUNCTION__ ~ custom assertion strings @ whole YFramework,
-/ geneeral file type abstraction,
-^ <chrono> to abstract system clocks,
-^ timing triggers @ message loop,
-+ exception state and handlers when switching shells,
-+ general data configuragion,
-+ shell sessions,
-/ ystdex::fixed_point $=
+/ @ "GUI" $=
 (
-	* \impl @ \op/= for signed types,
-	+ 64-bit integer underlying type support
-),
-+ general predicates for removing message,
-+ debug (headers, namespace),
-/ handles $=
+	+ viewer models,
+	/ fully \impl @ \cl Form,
+	+ icons,
+	+ formal abstraction of rectangular hit test,
+	+ key accelerators
+);
+
+b401-b768:
+^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework,
+/ completeness of core abstraction $=
 (
-	- \a direct dereference operations of handle type,
-	+ real handle type with no \op*
+	/ messaging $=
+	(
+		+ general predicates for removing message,
+	),
+	/ fully \impl @ \cl Path
 ),
-+ overlapping test @ \cl Rect,
-/ build command @ \a \conf proj YBase,
-/ fully \impl @ \cl Path,
-+ partial invalidation support @ %(HexViewArea::Refresh),
-+ user-defined stream filters,
-/ improving \impl font switching,
-/ \impl @ 'real' RTC,
-+ \impl @ images loading and processing,
-+ general resouce management,
-+ Microsoft Windows port,
-/ @ "GDI" $=
+/ services $=
 (
-	* platform-neutrality @ alpha blending \impl,
-	/ more efficient Font switching,
-	+ animation,
-	+ GDI brushes,
-	/ text alignment,
-	/ advanced text layout like Unicode layout control
+	+ user-defined stream filters,
+	/ improving \impl font switching,
+	+ \impl @ images processing,
+	+ general resouce management,
+	/ @ "GDI" $=
+	(
+		* platform-neutrality @ alpha blending \impl,
+		+ animation,
+		+ GDI brushes
+	),
+	/ fully \impl @ encoding checking
 ),
-/ fully \impl @ encoding checking;
++ debugging $=
+(
+	+ headers,
+	+ namespaces
+),
+/ $low_prior tests and examples $=
+(
+	+ overlapping test @ \cl Rect,
+	+ partial invalidation support @ %(HexViewArea::Refresh)
+),
+/ @ "GUI" $=
+(
+	/ long list test @ %DropDownList,
+	* View position switch through scrall bar not accurate enough
+		@ class %ListBox,
+	+ synchronization of viewer length @ class %TextList,
+	+ widget layout managers
+),
+/ project structure $=
+(
+	/ build command @ \a \conf proj YBase,
+	+ Microsoft Windows port
+);
+
+b769-b1256:
+/ basic routines $=
+(
+	/ ystdex::fixed_point $=
+	(
+		* \impl @ \op/= for signed types,
+		+ 64-bit integer underlying type support
+	),
+	+ u16printf,
+	+ u32printf
+),
+/ completeness of core abstraction $=
+(
+	/ messaging $=
+	(
+		^ timing triggers @ message loop
+	),
+	+ exceptional state and handlers when switching shells
+),
+/ services $=
+(
+	^ <chrono> to completely abstract system clocks,
+	+ general data configuragion,
+	/ general file type abstraction
+),
 / @ "GUI" $=
 (
 	+ widget models,
 	+ IMEs,
 	+ widget layout \impl,
-	+ focus iteration,
+	+ modal widget behavior
+);
+
+b1257-b1728:
+/ platform dependent system functions $=
+(
+	+ correct DMA (copy & fill)
+),
+/ completeness of core abstraction $=
+(
+	/ messaging $=
+	(
+		+ general predicates for removing message,
+	),
+	/ fully \impl @ \cl Path,
+	/ handles $=
+	(
+		- \a direct dereference operations of handle type,
+		+ real handle type with no \op*
+	)
+),
+/ services $=
+(
+	/ fully \impl logging $=
+	(
+		+ more clarified log Levels,
+		+ log streams
+	),
+	/ @ "GDI" $=
+	(
+		/ more efficient Font switching,
+		/ text alignment,
+		/ advanced text layout like Unicode layout control
+	)
+),
+/ @ "GUI" $=
+(
 	+ document-view models,
-	+ viewer models,
-	* View position switch through scrall bar not accurate enough
-		@ class %ListBox,
-	+ synchronization of viewer length @ class %TextList,
-	/ fully \impl @ \cl Form,
-	+ focus paths controling,
-	+ icons,
-	+ complex controls,
-	+ formal abstraction of rectangular hit test,
-	+ key accelerators,
-	+ widget layout managers,
+	/ focusing $=
+	(
+		+ focus iteration,
+		+ direct focus paths controling
+	)
+	+ more complex controls,
 	+ fully \impl styles @ widgets,
 	+ general widget decorators,
-	+ modal widget behavior,
 	+ clipping areas,
 	+ dynamic widget prototypes
-),
-/ fully \impl logging $=
-(
-	+ more clarified log Levels,
-	+ log streams
 );
 
 
 $LOW_PRIOR_TODO:
-b1601-b5184:
+^ $low_prior $for_labeled_scope;
+b1729-b5312:
 + general monomorphic iterator abstraction,
 / partial invalidation support @ \f DrawRectRoundCorner,
 / user-defined bitmap buffer @ \cl Desktop,
@@ -612,7 +816,6 @@ b1601-b5184:
 + more advanced console wrapper,
 + a series set of robust gfx APIs,
 + (compressing & decompressing) @ gfx copying,
-+ correct DMA (copy & fill),
 + general component operations $=
 (
 	+ serialization,
@@ -706,12 +909,53 @@ $module_tree $=
 
 $now
 (
+	/ %'YFramework' $=
+	(
+		* "implementation" @ "function %(WaitForInput, WaitForKey)"
+			@ "unit %YCommon" @ %'YCLib' $since b291,
+		/ %'YSLib' $=
+		(
+			* "strict ISO C++ code compatibility" $since b273
+				$= (/ "assertion strings" @ "implementation unit %TextManager"
+					@ %'services' !^ "%__FUNCTION__"),
+			/ %'GUI' $=
+			(
+				/ @ "class %DropDownList" $=
+				(
+					* "selection of top/bottom spaces to extract list to be \
+						shown" @ $since b290,
+					/ "fixed position of arrow and right margin",
+					/ "refreshing as pressed down when list shown"
+				),
+				* "member function %ListBox::ResizeForPreferred when \
+					limit width is zero" $since b282,
+				(
+					+ "container setter" @ "class template %GSequenceViewer";
+					+ "member function %SetList"
+						@ "class %(MTextList, TextList, ListBox, DropDownList)",
+				)
+			)
+		)
+	),
+	/ %'YReader'.'text reader' $=
+	(
+		+ "implementation" @ "custom encoding switching UI",
+		/ "contiguous repeated bookmarks would not be inserted to reading list \
+		  when random locating",
+		+ "smooth scrolling mode",
+		+ "automatic scrolling duration settings"
+	),
+	^ "updated library freetype 2.4.9" ~ "modified freetype 2.4.8"
+),
+
+b291
+(
 	/ %'YBase'.'YStandardEx' $=
 	(
 		+ "helper 2 template functions %arrlen";
 		$dep_to 'YReader'.'text reader'
 	),
-	/ %'YFramework'.'YSLib' $=
+	/ %'YFramework' $=
 	(
 		/ $design "all encoding parameter type" ^ 'Encoding' ~ 'const Encoding&'
 			@ %'CHRLib',
@@ -785,7 +1029,7 @@ b290
 			$dep_from "no BOM checking";
 			+ $comp "automatic encoding checking of UTF-8 without BOM"
 		),
-		+ "encoding switching UI"
+		+ "custom encoding switching UI"
 			// Actually switching is not implemented yet.
 	)
 ),
@@ -1651,7 +1895,7 @@ b267
 
 b266
 (
-	^ "updated library freetype 2.4.8" ~ "modified freetype 2.4.5",
+	^ "updated library modified freetype 2.4.8" ~ "modified freetype 2.4.5",
 	/ "invalidation algorithm",
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(

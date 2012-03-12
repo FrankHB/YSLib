@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3447;
+\version r3568;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-03-05 15:30 +0800;
+	2012-03-12 07:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -75,6 +75,7 @@ namespace
 	}
 
 	/*!
+	\brief 取编码字符串。
 	\since build 290 。
 	*/
 	String
@@ -103,6 +104,78 @@ namespace
 
 		return share_raw(new TextList::ListType(mFamilies.cbegin()
 			| ystdex::get_key, mFamilies.cend() | ystdex::get_key));
+	}
+
+
+	/*!
+	\since build 292 。
+	*/
+	shared_ptr<TextList::ListType>
+	FetchScrollDurations(bool is_smooth)
+	{
+		const auto postfix(is_smooth ? u"毫秒/像素行" : u"毫秒/文本行");
+		auto& lst(*new TextList::ListType(10U));
+		const u16 delta(is_smooth ? 20 : 200);
+		u16 t(delta);
+		char str[10];
+
+		std::generate(lst.begin(), lst.end(), [&, is_smooth, delta]{
+			std::sprintf(str, "%u", t += delta);
+			return String(str) + postfix;
+		});
+		return share_raw(&lst);
+	}
+
+
+	/*!
+	\since build 292 。
+	*/
+	enum GRLs
+	{
+		GRL_EncodingNames,
+		GRL_ScrollDurations,
+		GRL_SmoothScrollDurations
+	};
+	
+
+	/*!
+	\since build 292 。
+	*/
+	shared_ptr<TextList::ListType>
+	QueryList(enum GRLs res_id)
+	{
+		static shared_ptr<TextList::ListType> handles[3] = {
+			FetchEncodingNames(), FetchScrollDurations(false),
+			FetchScrollDurations(true)};
+
+		switch(res_id)
+		{
+		case GRL_EncodingNames:
+			return handles[0];
+		case GRL_ScrollDurations:
+			return handles[1];
+		case GRL_SmoothScrollDurations:
+			return handles[2];
+		}
+
+		YAssert(false, "No resources found @ QueryList;");
+
+		return nullptr;
+	};
+
+	/*!
+	\brief 更新列表。
+	\since build 292 。
+	*/
+	void
+	UpdateScrollDropDownList(DropDownList& ddl, bool b,
+		const std::chrono::milliseconds& d, std::chrono::milliseconds& d_s)
+	{
+		ddl.SetList(QueryList(b ? GRL_SmoothScrollDurations
+			: GRL_ScrollDurations));
+		ddl.Text = ddl.GetList()[(b ? d_s.count() / 20U : d.count() / 200U)
+			- 2U],
+		Invalidate(ddl);
 	}
 
 
@@ -280,13 +353,16 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 SettingPanel::SettingPanel()
 	: DialogPanel(Rect::FullScreen),
 	lblAreaUp(Rect(20, 12, 216, 72)), lblAreaDown(Rect(20, 108, 216, 72)),
-	btnFontSizeDecrease(Rect(20, 32, 80, 24)),
-	btnFontSizeIncrease(Rect(148, 32, 80, 24)),
-	btnSetUpBack(Rect(20, 64, 80, 24)), btnSetDownBack(Rect(148, 64, 80, 24)),
-	btnTextColor(Rect(20, 96, 80, 24)),
-	ddlFont(Rect(148, 96, 80, 24), FetchFontFamilyNames()),
-	ddlEncoding(Rect(20, 128, 192, 24), FetchEncodingNames()),
-	boxColor(Point(4, 80)), pColor()
+	btnFontSizeDecrease(Rect(20, 32, 80, 22)),
+	btnFontSizeIncrease(Rect(148, 32, 80, 22)),
+	btnSetUpBack(Rect(20, 64, 80, 22)), btnSetDownBack(Rect(148, 64, 80, 22)),
+	btnTextColor(Rect(20, 96, 80, 22)),
+	ddlFont(Rect(148, 96, 80, 22), FetchFontFamilyNames()),
+	ddlEncoding(Rect(20, 128, 192, 22), QueryList(GRL_EncodingNames)),
+	chkSmoothScroll(Rect(20, 160, 16, 16)),
+	lblSmoothScroll(Rect(36, 160, 60, 20)),
+	ddlScrollTiming(Rect(96, 160, 128, 22)),
+	boxColor(Point(4, 80)), pColor(), current_encoding()
 {
 	const auto set_font_size([this](FontSize size){
 		lblAreaUp.Font.SetSize(size),
@@ -303,6 +379,9 @@ SettingPanel::SettingPanel()
 	*this += btnTextColor,
 	*this += ddlFont,
 	*this += ddlEncoding,
+	*this += chkSmoothScroll,
+	*this += lblSmoothScroll,
+	*this += ddlScrollTiming,
 	Add(boxColor, 112U),
 	SetVisibleOf(boxColor, false);
 	yunseq(
@@ -311,6 +390,7 @@ SettingPanel::SettingPanel()
 		btnSetUpBack.Text = u"上屏颜色...",
 		btnSetDownBack.Text = u"下屏颜色...",
 		btnTextColor.Text = u"文字颜色...",
+		lblSmoothScroll.Text = u"平滑滚屏",
 	//	FetchEvent<Paint>(lblColorAreaUp) += BorderBrush(BorderStyle),
 	//	FetchEvent<Paint>(lblColorAreaDown) += BorderBrush(BorderStyle),
 		FetchEvent<KeyDown>(*this) += OnEvent_StopRouting<KeyEventArgs>,
@@ -352,7 +432,8 @@ SettingPanel::SettingPanel()
 			}
 		},
 		ddlEncoding.GetConfirmed() += [this](IndexEventArgs&& e){
-			lblAreaDown.Text = FetchEncodingString(e.Value);
+			yunseq(current_encoding = Encodings[e.Value].first,
+				lblAreaDown.Text = FetchEncodingString(e.Value)),
 			Invalidate(lblAreaDown);
 		},
 		FetchEvent<TouchMove>(boxColor) += OnTouchMove_Dragging,
@@ -447,8 +528,10 @@ ReaderSession::ReaderSession(ShlReader& shl)
 
 TextReaderSession::TextReaderSession(ShlReader& shl)
 	: ReaderSession(shl),
-	path(), tmrScroll(1000, false),
-	Reader(), boxReader(Rect(0, 160, 256, 32), shl),
+	path(), scroll_duration(), smooth_scroll_duration(),
+	tmrScroll(Shell.SmoothScroll ? Shell.SmoothScrollDuration
+		: Shell.ScrollDuration, false), Reader(),
+	boxReader(Rect(0, 160, 256, 32), shl),
 	boxTextInfo(shl), pnlSetting(), pTextFile(), mhMain(shl.GetDesktopDown())
 {
 	using ystdex::get_key;
@@ -462,6 +545,8 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 		dsk_up -= pnlSetting.lblAreaUp,
 		dsk_up -= pnlSetting.lblAreaDown);
 		Reader.SetVisible(true),
+		boxReader.UpdateData(Reader),
+		boxTextInfo.UpdateData(Reader),
 		Show(boxReader);
 	});
 
@@ -504,12 +589,18 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 		FetchEvent<TouchDown>(boxReader.pbReader) += [this](TouchEventArgs&& e)
 		{
 			const auto s(Reader.GetTextSize());
+
 			if(s != 0)
 			{
-				Shell.LastRead.Insert(path, Reader.GetTopPosition());
-				Shell.LastRead.DropSubsequent();
-				UpdateButtons();
+				const auto old_pos(Reader.GetTopPosition());
+
 				Reader.Locate(e.X * s / boxReader.pbReader.GetWidth());
+				if(old_pos != Reader.GetTopPosition())
+				{
+					Shell.LastRead.Insert(path, old_pos);
+					Shell.LastRead.DropSubsequent();
+					UpdateButtons();
+				}
 			}
 		},
 		FetchEvent<Paint>(boxReader.pbReader) += [this](PaintEventArgs&& e){
@@ -526,11 +617,35 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 		FetchEvent<Click>(pnlSetting.btnClose) += exit_setting,
 		FetchEvent<Click>(pnlSetting.btnOK) += [this](TouchEventArgs&&)
 		{
+			Switch(pnlSetting.current_encoding);
 			Reader.SetColor(pnlSetting.lblAreaUp.ForeColor),
 			Reader.SetFont(pnlSetting.lblAreaUp.Font);
 			Reader.UpdateView();
+			yunseq(
+				Shell.SmoothScroll = pnlSetting.chkSmoothScroll.IsTicked(),
+				Shell.ScrollDuration = scroll_duration,
+				Shell.SmoothScrollDuration = smooth_scroll_duration
+			);
+			tmrScroll.SetInterval(Shell.SmoothScroll ? smooth_scroll_duration
+				: scroll_duration);
 		},
-		FetchEvent<Click>(pnlSetting.btnOK) += exit_setting
+		FetchEvent<Click>(pnlSetting.btnOK) += exit_setting,
+		pnlSetting.chkSmoothScroll.GetTicked()
+			+= [this](CheckBox::TickedArgs&& e){
+			auto& ddl(pnlSetting.ddlScrollTiming);
+
+			UpdateScrollDropDownList(ddl, e.Value, scroll_duration,
+				smooth_scroll_duration);
+			Invalidate(ddl);
+		},
+		pnlSetting.ddlScrollTiming.GetConfirmed() += [this](IndexEventArgs&& e){
+			using std::chrono::milliseconds;
+
+			if(pnlSetting.chkSmoothScroll.IsTicked())
+				smooth_scroll_duration = milliseconds((e.Value + 2U) * 20);
+			else
+				scroll_duration = milliseconds((e.Value + 2U) * 200);
+		}
 	);
 	{
 		auto hList(share_raw(new Menu::ListType));
@@ -640,7 +755,7 @@ TextReaderSession::Execute(IndexEventArgs::ValueType idx)
 			dsk_up += pnlSetting.lblAreaDown;
 		}
 		Hide(boxReader),
-		Show(pnlSetting);
+		ShowSetting();
 		break;
 	case MR_FileInfo:
 		boxTextInfo.UpdateData(Reader);
@@ -673,7 +788,12 @@ void
 TextReaderSession::Scroll()
 {
 	if(tmrScroll.IsActive() && tmrScroll.Refresh())
-		Reader.Execute(DualScreenReader::LineDownScroll);
+	{
+		if(Shell.SmoothScroll)
+			Reader.ScrollByPixel(1U);
+		else
+			Reader.Execute(DualScreenReader::LineDownScroll);
+	}
 }
 
 void
@@ -694,6 +814,28 @@ TextReaderSession::ShowMenu(Menu::ID id, const Point&)
 			mnu.SetItemEnabled(MR_ScreenDown, !Reader.IsTextBottom());
 		}
 		mhMain.Show(id);
+	}
+}
+
+void
+TextReaderSession::ShowSetting()
+{
+	yunseq(scroll_duration = Shell.ScrollDuration,
+		smooth_scroll_duration = Shell.SmoothScrollDuration);
+	pnlSetting.chkSmoothScroll.SetTicked(Shell.SmoothScroll),
+	UpdateScrollDropDownList(pnlSetting.ddlScrollTiming, Shell.SmoothScroll,
+		scroll_duration, smooth_scroll_duration);
+	Show(pnlSetting);
+}
+
+void
+TextReaderSession::Switch(Encoding enc)
+{
+	if(enc != Encoding() && pTextFile && pTextFile->IsValid()
+		&& pTextFile->Encoding != enc)
+	{
+		pTextFile->Encoding = enc;
+		Reader.LoadText(*pTextFile);
 	}
 }
 
@@ -724,6 +866,7 @@ TextReaderSession::OnClick(TouchEventArgs&&)
 {
 	if(tmrScroll.IsActive())
 	{
+		Reader.AdjustScrollOffset();
 		Deactivate(tmrScroll);
 		return;
 	}
@@ -877,7 +1020,9 @@ bool ShlReader::CurrentIsText(false);
 
 ShlReader::ShlReader()
 	: ShlDS(),
-	hUp(), hDn(), pManager(), background_task(), LastRead(), CurrentSetting()
+	hUp(), hDn(), pManager(), background_task(),
+	SmoothScroll(), ScrollDuration(1000), SmoothScrollDuration(100), LastRead(),
+	CurrentSetting()
 {
 	// TODO: use entity tree to store properties;
 	yunseq(

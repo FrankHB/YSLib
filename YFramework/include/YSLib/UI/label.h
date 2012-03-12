@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2145;
+\version r2157;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2012-02-01 17:18 +0800;
+	2012-03-11 17:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -170,6 +170,14 @@ public:
 	GetMaxTextWidth() const;
 
 	/*!
+	\brief 设置文本列表。
+	\note 若参数为空则忽略。
+	\since build 292 。
+	*/
+	void
+	SetList(const shared_ptr<ListType>&);
+
+	/*!
 	\brief 刷新文本状态。
 	*/
 	void
@@ -185,6 +193,12 @@ inline Drawing::TextState&
 MTextList::GetTextState()
 {
 	return text_state;
+}
+inline void
+MTextList::SetList(const shared_ptr<ListType>& h)
+{
+	if(h)
+		hList = h;
 }
 
 YSL_END_NAMESPACE(Components)

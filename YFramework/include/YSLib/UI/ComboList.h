@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3332;
+\version r3342;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2012-02-16 15:55 +0800;
+	2012-03-11 13:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -82,6 +82,11 @@ public:
 	DefEventGetterMem(ynothrow, HIndexEvent, Confirmed, lstText) \
 		//!< 项目选中确定事件。
 
+	/*!
+	\brief 设置文本列表。
+	\since build 292 。
+	*/
+	DefSetterMem(const shared_ptr<ListType>&, List, lstText)
 	/*!
 	\brief 设置选中项。
 	\see TextList::SetSelected 。
@@ -200,6 +205,12 @@ public:
 	\since build 283 。
 	*/
 	DefEventGetterMem(ynothrow, HIndexEvent, Confirmed, boxList)
+
+	/*!
+	\brief 设置文本列表。
+	\since build 292 。
+	*/
+	DefSetterMem(const shared_ptr<ListType>&, List, boxList)
 
 private:
 	/*!

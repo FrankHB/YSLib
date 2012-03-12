@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2682;
+\version r2711;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2012-02-06 02:32 +0800;
+	2012-03-10 14:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -95,6 +95,11 @@ private:
 	\since build 272 。
 	*/
 	u16 overread_line_n;
+	/*!
+	\brief 滚屏像素偏移量。
+	\since build 292 。
+	*/
+	Drawing::FontSize scroll_offset;
 
 public:
 	/*!
@@ -204,6 +209,14 @@ public:
 	AdjustMargins();
 
 	/*!
+	\brief 调整滚屏像素偏移量：立即继续滚动至下一整文本行。
+	\return 实际滚动的像素行数。
+	\since build 292 。
+	*/
+	Drawing::FontSize
+	AdjustScrollOffset();
+
+	/*!
 	\brief 附加到窗口。
 	\since build 273 。
 	*/
@@ -233,10 +246,10 @@ public:
 
 	/*!
 	\brief 文本定位。
-
-	以指定偏移量定位起始迭代器，若越界则忽略。
 	\note 自动转至最近行首。
 	\since build 271 。
+
+	以指定偏移量定位起始迭代器，若越界则忽略。
 	*/
 	void
 	Locate(size_t);
@@ -245,43 +258,42 @@ public:
 	void
 	LoadText(TextFile&);
 
-	//! \brief 绘制上屏文本。
-	void
-	PrintTextUp(const Drawing::Graphics&);
-
-	//! \brief 绘制下屏文本。
-	void
-	PrintTextDown(const Drawing::Graphics&);
-
 	//! \brief 复位输出显示状态。
 	void
 	Reset();
+
+	/*!
+	\brief 向下滚屏指定像素行。
+	\param 像素数。
+	\return 实际滚动的像素行数。
+	\note 参数超过行高时无效。
+	\since build 292 。
+	*/
+	Drawing::FontSize
+	ScrollByPixel(Drawing::FontSize);
 
 	/*!
 	\brief 伸缩：从最大值起向上调整（减少）下文字区域的高后更新视图。
 	\note 高的最大值为 MainScreenHeight 。
 	\note 调整后的高限制为 40 到 MainScreenHeight 的闭区间。
 	\note 顶端文本迭代器保持不变，底端文本迭代器可能改变。
+	\since build 274 。
 	*/
 	void
 	Stretch(SDst);
 
-	/*//!
-	\brief 自动滚屏。
-	\param pCheck 输入检测函数指针。
+	/*!
+	\brief 卸载文本。
+	\since build 154 。
 	*/
-	//void
-	//Scroll(Function<void()> pCheck);
-
-	//! \brief 卸载文本。
 	void
 	UnloadText();
 
 	/*!
 	\brief 更新视图。
+	\since build 270 。
 
 	根据文本起点迭代器和当前视图状态重新填充缓冲区文本并无效化文本区域。
-	\since build 270 。
 	*/
 	void
 	UpdateView();

@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1637;
+\version r1647;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-02-23 21:51 +0800;
+	2012-03-11 17:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -174,6 +174,17 @@ SDst
 TextList::GetViewPosition() const
 {
 	return GetItemHeight() * viewer.GetHeadIndex() + top_offset;
+}
+
+void
+TextList::SetList(const shared_ptr<ListType>& h)
+{
+	if(h)
+	{
+		MTextList::SetList(h);
+		viewer.SetContainer(*h);
+		AdjustViewLength();
+	}
 }
 
 void

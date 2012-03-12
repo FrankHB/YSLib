@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1483;
+\version r1491;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2012-02-23 21:52 +0800;
+	2012-03-11 17:14 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -117,7 +117,6 @@ public:
 	using MTextList::GetList;
 	using MTextList::GetMaxTextWidth;
 	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex, viewer)
-
 	/*!
 	\brief 取完整视图高。
 	\note 依赖于 GetItemHeight 方法的结果。
@@ -131,7 +130,13 @@ public:
 	SDst
 	GetViewPosition() const;
 
-//	DefSetter(const ListType&, List, List)
+	/*!
+	\brief 设置文本列表。
+	\note 若参数为空则忽略，否则设置列表并重置视图。
+	\since build 292 。
+	*/
+	void
+	SetList(const shared_ptr<ListType>&);
 	/*!
 	\brief 按指定项目索引设置选中项目。
 	*/

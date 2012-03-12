@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3914;
+\version r3929;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-03-05 15:25 +0800;
+	2012-03-11 16:21 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -116,8 +116,11 @@ ListBox::ResizeForPreferred(const Size& sup, Size s)
 	if(sup.Width != 0 && s.Width > sup.Width)
 		s.Width = sup.Width;
 	if(sup.Height != 0 && s.Height > sup.Height)
-		yunseq(s.Width = min<SDst>(s.Width + defMinScrollBarWidth, sup.Width),
-			s.Height = sup.Height);
+	{
+		yunseq(s.Width = s.Width + defMinScrollBarWidth, s.Height = sup.Height);
+		if(sup.Width != 0 && sup.Width < s.Width)
+			s.Width = sup.Width;
+	}
 	SetSizeOf(*this, s);
 	SetSizeOf(lstText, FixLayout(s));
 }
@@ -155,7 +158,7 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 
 	yunseq(
 		Margin.Left = 4,
-		Margin.Right = GetHeight() + 4,
+		Margin.Right = 18,
 		HorizontalAlignment = TextAlignment::Left,
 		boxList.GetView().pDependency = this,
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
@@ -166,10 +169,12 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 				if(const auto p = dynamic_cast<Panel*>(
 					&FetchTopLevel(*this, pt)))
 				{
-					const SDst h1(max<SPos>(pt.Y, 0)), h2(max<SPos>(
-						GetSizeOf(*p).Height - pt.Y + GetHeight(), 0));
+					// NOTE: get height of top widget, top and bottom spaces;
+					const SDst h0(GetSizeOf(*p).Height);
+					const SDst h1(max<SPos>(pt.Y, 0)), h2(max<SPos>(h0 - pt.Y
+						- GetHeight(), 0));
 
-					if(h1 != 0 || h2 != 0)
+					if(IsInOpenInterval(h1, h0) || IsInOpenInterval(h2, h0))
 					{
 						boxList.ResizeForPreferred(Size(0, max(h1, h2)),
 							Size(GetWidth(), 0));
@@ -177,12 +182,12 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 						const SDst h(boxList.GetHeight());
 
 						// NOTE: bottom space is preferred;
-						pt.Y += h1 < h ? GetHeight() : -h;
+						pt.Y += h2 < h ? -h : GetHeight();
 						SetLocationOf(boxList, pt);
 						boxList.AdjustViewLength();
 						{
 							// TODO: move this block as a method of
-							// %ListBox or %TextList;
+							//	%TextList or %MTextList;
 							const auto& lst(boxList.GetList());
 							auto i(std::find(lst.begin(), lst.end(), Text));
 
@@ -224,11 +229,16 @@ DropDownList::DetachTopWidget()
 Rect
 DropDownList::Refresh(const PaintContext& pc)
 {
-	const Rect r(Button::Refresh(pc));
-	const SDst h(GetHeight());
+	bool b(bPressed);
 
-	WndDrawArrow(pc.Target, Rect(pc.Location + Vec(GetWidth() - h, 0),
-		Size(h, h)), 4, RDeg270, ForeColor);
+	bPressed = bPressed || FetchContainerPtr(boxList);
+
+	const Rect r(Button::Refresh(pc));
+
+	bPressed = b;
+
+	WndDrawArrow(pc.Target, Rect(pc.Location + Vec(GetWidth() - 16, 0),
+		Size(16, GetHeight())), 4, RDeg270, ForeColor);
 	return r;
 }
 
