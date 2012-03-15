@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4900;
+\version r4912;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2012-02-02 17:03 +0800;
+	2012-03-12 12:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -84,11 +84,12 @@ public:
 		: std::function<FuncType>(f), comp_eq(GEquality<FuncType>::AreEqual)
 	{}
 	/*!
-	\brief 使用函数对象类型。
+	\brief 使用函数对象右值引用。
+	\since build 293 。
 	*/
 	template<class _tFunc>
 	yconstfn
-	GHEvent(_tFunc f)
+	GHEvent(_tFunc&& f)
 		: std::function<FuncType>(yforward(f)),
 		comp_eq(GetComparer(f, f))
 	{}
@@ -181,9 +182,10 @@ public:
 private:
 	/*!
 	\brief \c private 构造：添加事件处理器。
+	\since build 293 。
 	*/
 	PDefTmplH1(_tHandler)
-	GEvent(_tHandler h)
+	GEvent(_tHandler&& h)
 		: List()
 	{
 		Add(yforward(h));
@@ -221,10 +223,11 @@ public:
 	}
 	/*!
 	\brief 赋值：覆盖事件响应：使用单一构造参数指定的指定事件处理器。
+	\since build 293 。
 	*/
 	PDefTmplH1(_type)
 	inline GEvent&
-	operator=(_type _arg)
+	operator=(_type&& _arg)
 	{
 		return *this = HandlerType(yforward(_arg));
 	}
@@ -280,10 +283,11 @@ public:
 	}
 	/*!
 	\brief 移除事件响应：目标为单一构造参数指定的指定事件处理器。
+	\since build 293 。
 	*/
 	PDefTmplH1(_type)
 	inline GEvent&
-	operator-=(_type _arg)
+	operator-=(_type&& _arg)
 	{
 		return *this -= HandlerType(yforward(_arg));
 	}
@@ -320,10 +324,11 @@ public:
 	/*!
 	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
 	\note 不重复添加。
+	\since build 293 。
 	*/
 	PDefTmplH1(_type)
 	inline GEvent&
-	AddUnique(_type _arg)
+	AddUnique(_type&& _arg)
 	{
 		return this->AddUnique(HandlerType(yforward(_arg)));
 	}
@@ -362,10 +367,11 @@ public:
 	}
 	/*!
 	\brief 判断是否包含单一构造参数指定的事件响应。
+	\since build 293 。
 	*/
 	PDefTmplH1(_type)
 	inline bool
-	Contains(_type _arg) const
+	Contains(_type&& _arg) const
 	{
 		return this->Contains(HandlerType(yforward(_arg)));
 	}

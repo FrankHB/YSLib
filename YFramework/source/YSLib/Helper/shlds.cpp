@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1993;
+\version r1997;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-02-28 16:25 +0800;
+	2012-03-12 09:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -50,10 +50,10 @@ YSL_BEGIN_NAMESPACE(DS)
 ShlDS::ShlDS(const shared_ptr<Desktop>& h_dsk_up,
 	const shared_ptr<Desktop>& h_dsk_down)
 	: Shell(),
-	hDskUp(h_dsk_up ? h_dsk_up : share_raw(new
-		Desktop(FetchGlobalInstance().GetScreenUp()))),
-	hDskDown(h_dsk_down ? h_dsk_down : share_raw(new
-		Desktop(FetchGlobalInstance().GetScreenDown())))
+	hDskUp(h_dsk_up ? h_dsk_up : make_shared<Desktop>(
+		FetchGlobalInstance().GetScreenUp())),
+	hDskDown(h_dsk_down ? h_dsk_down : make_shared<Desktop>(
+		FetchGlobalInstance().GetScreenDown()))
 {}
 
 void

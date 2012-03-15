@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1320;
+\version r1337;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 209 。
 \par 创建时间:
 	2011-05-14 12:25:13 +0800;
 \par 修改时间:
-	2012-01-04 13:03 +0800;
+	2012-03-12 11:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -137,6 +137,7 @@ namespace ystdex
 
 
 	/*!	\defgroup unique_raw Get Unique Pointer
+	\ingroup helper_functions
 	\brief 使用指定类型指针构造 std::unique_ptr 实例。
 	\tparam _type 被指向类型。
 	\note 不检查指针是否有效。
@@ -162,7 +163,7 @@ namespace ystdex
 		return std::unique_ptr<_type>(p);
 	}
 	template<typename _type>
-	inline std::unique_ptr<_type>
+	yconstfn std::unique_ptr<_type>
 	unique_raw(_type* p)
 	{
 		return std::unique_ptr<_type>(p);
@@ -180,6 +181,7 @@ namespace ystdex
 
 
 	/*!	\defgroup share_raw Get Shared Pointer
+	\ingroup helper_functions
 	\brief 使用指定类型指针构造 std::shared_ptr 实例。
 	\tparam _type 被指向类型。
 	\note 不检查指针是否有效。
@@ -220,6 +222,20 @@ namespace ystdex
 		return std::shared_ptr<_type>();
 	}
 	//@}
+
+
+	/*!
+	\ingroup helper_functions
+	\brief 使用全局 new 和指定参数构造指定类型的 std::unique_ptr 实例。
+	\tparam _type 被指向类型。
+	\since build 293 。
+	*/
+	template<typename _type, typename... _tParams>
+	yconstfn std::unique_ptr<_type>
+	make_unique(_tParams&&... args)
+	{
+		return std::unique_ptr<_type>(::new _type(yforward(args)...));
+	}
 }
 
 #endif

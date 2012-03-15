@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,14 +16,14 @@
 /*!	\file ycomp.h
 \ingroup UI
 \brief 平台无关的 Shell 组件。
-\version r3210;
+\version r3259;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2011-12-03 22:36 +0800;
-\par 字符集:
+	2012-03-14 21:07 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YComponent;
@@ -34,6 +34,7 @@
 #define YSL_INC_UI_YCOMP_H_
 
 #include "../Core/ygdibase.h"
+#include "../Core/yfunc.hpp"
 #include "../Adaptor/ycont.h"
 
 YSL_BEGIN
@@ -44,10 +45,55 @@ YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Components)
 
-FwdDeclI(AController)
+//前向声明。
+class AController;
 FwdDeclI(IWidget)
-
+/*!
+\since build 293 。
+*/
+struct InputEventArgs;
+/*!
+\since build 293 。
+*/
+struct KeyEventArgs;
+/*!
+\since build 293 。
+*/
+struct TouchEventArgs;
+/*!
+\since build 293 。
+*/
+struct PaintContext;
+/*!
+\since build 293 。
+*/
+struct PaintEventArgs;
+/*!
+\since build 293 。
+*/
+class Renderer;
+/*!
+\since build 293 。
+*/
+struct RoutedEventArgs;
+/*!
+\since build 293 。
+*/
+struct UIEventArgs;
+/*!
+\since build 293 。
+*/
+class WidgetController;
 class Window;
+
+
+//类型别名。
+/*!
+\brief 画刷回调函数。
+\since build 293 。
+*/
+typedef std::function<void(PaintEventArgs&&)> HBrush;
+
 
 //名称引用。
 using Drawing::PixelType;

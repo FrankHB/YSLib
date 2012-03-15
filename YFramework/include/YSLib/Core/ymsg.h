@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2514;
+\version r2515;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-02-26 16:16 +0800;
+	2012-03-13 10:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -92,7 +92,7 @@ public:
 	DefDeMoveCtor(Message)
 
 	/*
-	\brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
+	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
 	\since build 271 。
 	*/
 	Message&

@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5279;
+\version r5371;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-02-20 21:39 +0800;
+	2012-03-14 09:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -53,6 +53,19 @@ SetBoundsOf(IWidget& wgt, const Rect& r)
 }
 
 void
+SetInvalidationOf(IWidget& wgt)
+{
+	wgt.GetRenderer().CommitInvalidation(Rect(Point::Zero, GetSizeOf(wgt)));
+}
+
+void
+SetInvalidationToParent(IWidget& wgt)
+{
+	if(const auto pCon = FetchContainerPtr(wgt))
+		pCon->GetRenderer().CommitInvalidation(GetBoundsOf(wgt));
+}
+
+void
 SetLocationOf(IWidget& wgt, const Point& pt)
 {
 	wgt.GetView().SetLocation(pt);
@@ -75,19 +88,11 @@ CheckWidget(IWidget& wgt, const Point& pt, bool(&f)(const IWidget&))
 }
 
 void
-RequestToTop(IWidget& wgt)
+Close(IWidget& wgt)
 {
-	if(auto pFrm = dynamic_cast<Panel*>(FetchContainerPtr(wgt)))
-		pFrm->MoveToTop(wgt);
-}
-
-
-void
-Show(IWidget& wgt)
-{
-	SetVisibleOf(wgt, true);
-	RequestFocus(wgt);
-	Invalidate(wgt);
+	Hide(wgt);
+	if(const auto pCon = FetchContainerPtr(wgt))
+		ClearFocusingOf(*pCon);
 }
 
 void
@@ -99,27 +104,58 @@ Hide(IWidget& wgt)
 }
 
 void
-Close(IWidget& wgt)
+Invalidate(IWidget& wgt)
 {
-	Hide(wgt);
-	if(const auto pCon = FetchContainerPtr(wgt))
-		ClearFocusingOf(*pCon);
+	Invalidate(wgt, Rect(Point::Zero, GetSizeOf(wgt)));
+}
+void
+Invalidate(IWidget& wgt, const Rect& bounds)
+{
+	auto pWgt(&wgt);
+	Rect r(bounds);
+
+	do
+	{
+		r = pWgt->GetRenderer().CommitInvalidation(r);
+		r += GetLocationOf(*pWgt);
+	}while((pWgt = FetchContainerPtr(*pWgt)));
 }
 
-
-WidgetController::WidgetController(bool b)
-	: AController(b),
-	Paint()
+void
+PaintChild(IWidget& wgt, PaintEventArgs&& e)
 {
-	Paint += Render;
+	auto& sender(e.GetSender());
+
+	e.Location += GetLocationOf(sender);
+	e.ClipArea = Intersect(e.ClipArea, Rect(e.Location, GetSizeOf(sender)));
+	if(!e.ClipArea.IsUnstrictlyEmpty())
+		wgt.GetRenderer().Paint(sender, std::move(e));
+}
+void
+PaintChild(IWidget& wgt, const PaintContext& pc)
+{
+	PaintChild(wgt, PaintEventArgs(wgt, pc));
 }
 
-EventMapping::ItemType&
-WidgetController::GetItemRef(const VisualEvent& id)
+void
+Render(PaintEventArgs&& e)
 {
-	if(id == Components::Paint)
-		return Paint;
-	throw BadEvent();
+	e.GetSender().Refresh(e);
+}
+
+void
+RequestToTop(IWidget& wgt)
+{
+	if(auto pFrm = dynamic_cast<Panel*>(FetchContainerPtr(wgt)))
+		pFrm->MoveToTop(wgt);
+}
+
+void
+Show(IWidget& wgt)
+{
+	SetVisibleOf(wgt, true);
+	RequestFocus(wgt);
+	Invalidate(wgt);
 }
 
 
@@ -147,6 +183,13 @@ Widget::~Widget()
 //	ReleaseFocus(*this);
 }
 
+AController&
+Widget::GetController() const
+{
+	if(!pController)
+		throw BadEvent();
+	return *pController;
+}
 
 void
 Widget::SetRenderer(unique_ptr<Renderer>&& p)

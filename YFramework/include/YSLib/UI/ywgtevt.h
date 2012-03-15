@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r2074;
+\version r2125;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241 。
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2011-12-20 12:58 +0800;
+	2012-03-15 16:53 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -112,11 +112,6 @@ public:
 	DefGetter(const ynothrow, KeyCode, KeyCode, Key)
 };
 
-inline
-InputEventArgs::InputEventArgs(IWidget& wgt, KeyCode k, RoutingStrategy s)
-	: RoutedEventArgs(wgt, s), Key(k)
-{}
-
 
 /*!
 \brief 按键输入事件参数类。
@@ -132,11 +127,6 @@ public:
 	*/
 	KeyEventArgs(IWidget&, const InputType& = 0, RoutingStrategy = Direct);
 };
-
-inline
-KeyEventArgs::KeyEventArgs(IWidget& wgt, const InputType& k, RoutingStrategy s)
-	: InputEventArgs(wgt, k, s)
-{}
 
 
 /*!
@@ -154,12 +144,6 @@ public:
 	TouchEventArgs(IWidget&, const InputType& = InputType::Zero,
 		RoutingStrategy = Direct);
 };
-
-inline
-TouchEventArgs::TouchEventArgs(IWidget& wgt, const InputType& pt,
-	RoutingStrategy s)
-	: InputEventArgs(wgt, 0, s), MScreenPositionEventArgs(pt)
-{}
 
 
 /*!
@@ -223,22 +207,6 @@ struct PaintEventArgs : public UIEventArgs, public PaintContext
 	PaintEventArgs(IWidget&, const Drawing::Graphics&, const Drawing::Point&,
 		const Drawing::Rect&);
 };
-
-inline
-PaintEventArgs::PaintEventArgs(IWidget& wgt)
-	: UIEventArgs(wgt), PaintContext()
-{}
-
-inline
-PaintEventArgs::PaintEventArgs(IWidget& wgt, const PaintContext& pc)
-	: UIEventArgs(wgt), PaintContext(pc)
-{}
-
-inline
-PaintEventArgs::PaintEventArgs(IWidget& wgt, const Drawing::Graphics& g,
-	const Drawing::Point& pt, const Drawing::Rect& r)
-	: UIEventArgs(wgt), PaintContext(g, pt, r)
-{}
 
 
 //事件处理器类型。
@@ -377,12 +345,12 @@ public:
 
 	/*!
 	\brief 取事件项。
+	\since build 293 。
 	*/
-	DeclIEntry(EventMapping::ItemType& GetItemRef(const VisualEvent&))
-
+	DeclIEntry(EventMapping::ItemType& GetItem(const VisualEvent&))
 	/*!
 	\brief 取事件项，若不存在则用指定函数指针添加。
-	\throw std::out_of_range 拒绝加入任何事件项。
+	\throw 忽略加入任何事件项。
 	*/
 	virtual EventMapping::ItemType&
 	GetItemRef(const VisualEvent&, EventMapping::MappedType(&)());
@@ -412,9 +380,9 @@ AController::Clone()
 }
 
 inline EventMapping::ItemType&
-AController::GetItemRef(const VisualEvent&, EventMapping::MappedType(&)())
+AController::GetItemRef(const VisualEvent& id, EventMapping::MappedType(&)())
 {
-	throw std::out_of_range("AController::GetItemRef;");
+	return GetItem(id);
 }
 
 
@@ -426,7 +394,7 @@ DoEvent(AController& controller, const VisualEvent& id,
 	try
 	{
 		return dynamic_cast<EventT(typename _tEventHandler)&>(
-			controller.GetItemRef(id))(std::move(e));
+			controller.GetItem(id))(std::move(e));
 	}
 	catch(std::out_of_range&)
 	{}
@@ -441,6 +409,28 @@ DoEvent(AController& controller, const VisualEvent& id,
 {
 	return DoEvent<_tEventHandler>(controller, id, std::move(e));
 }
+
+
+/*!
+\brief 部件控制器。
+\since build 236 。
+*/
+class WidgetController : public AController
+{
+public:
+	GEventWrapper<EventT(HPaintEvent), UIEventArgs> Paint;
+
+	/*!
+	\brief 构造：使用指定可用性。
+	*/
+	explicit
+	WidgetController(bool = false);
+
+	ImplI(AController) EventMapping::ItemType&
+	GetItem(const VisualEvent&);
+
+	ImplI(AController) DefClone(WidgetController, Clone)
+};
 
 YSL_END_NAMESPACE(Components)
 

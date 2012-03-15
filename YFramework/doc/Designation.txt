@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7001;
+\version r7081;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-03-11 22:16 +0800;
+	2012-03-14 21:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -256,7 +256,7 @@
 外部库参见 @5 。
 编译单元简称单元，是一组包含源代码的文本文件，包含一个源文件（默认后缀名 .cpp ）和若干个头文件，经过预处理后成为翻译单元(translation unit) 。
 编译单元可以包含类/结构体等类型，以及 API（Application Programming Interface ，应用程序编程接口）的实现。
-对于必要的默认文件，使用 y 作为文件名的起始。
+关于一些文件的文件名的额外约定参见 @2.10.1 。
 多个编译单元组成一个系统，置于文件系统的同一个目录中。
 
 @2.1 名称规则：
@@ -327,9 +327,10 @@
 
 @2.3.3 成员函数简写（代码生成器）
 
-@2.4 类构建：
+@2.4 类型构建：
 
-@2.4.1 命名必须和标识符命名规约(@4) 兼容。
+@2.4.1 基本约束：
+命名必须和标识符命名规约(@4) 兼容。
 
 @2.4.2 类型特性：
 除了 I 和 A 前缀的类，都不含有纯虚函数。
@@ -355,15 +356,16 @@
 当作为非多态类时析构函数应为 protected （除非它的所有派生类都没有在它的基础上扩展域，或都满足析构函数为 protected ），且不可作为类的成员或被实例化。
 其它情况下可实例化，但通常仅用于作为类实例的子对象（mixin 实例）。此时应尽可能减少虚表体积，并降低额外的运行时效率开销（例如，不使用引用类型的成员）。
 
-@2.4.7 H 前缀类名的类：
-句柄类。
-具有间接访问语义的类（例如指针、引用或迭代器）。
+@2.4.7 H 前缀类名的类型：
+从属于相近但不同的两类：
+句柄(handles) ：具有间接访问语义的类型（例如指针、引用或迭代器）。
+处理器(handlers) ：具有回调功能的类型（例如事件处理器或 std::function 的实例）。
 
-@2.4.8 无前缀类名的类：
-一般类。
-不属于以上有前缀类的类。无其它限制和特性保证。
+@2.4.8 无前缀类名的类型：
+一般类型。
+其它类型。无其它限制和特性保证。
 
-@2.4.10 异常类总览：
+@2.4.9 异常类总览：
 专用于被 C++ 异常机制捕获的类称为异常类。
 异常类不在特定的命名空间中定义。
 标准库异常类以外， YSLib 仅使用派生自 YSLib::Exceptions::Exception 异常类。
@@ -631,6 +633,7 @@
 
 @2.7.2.1.3 GUI 输出事件：
  Paint 事件在绘制界面时触发，表示事件订阅者应对发送者进行渲染等操作以便完成绘制。
+ Paint 事件的参数中包含上下文信息 PaintContext ，表示绘制必要的信息，如重绘区域 ClipArea 。
 默认通过 YRenderer 单元实现。事件发送者为被绘制的部件，订阅者为实际提供绘制方法的部件。
 
 @2.7.2.1.4 焦点事件：
@@ -694,7 +697,7 @@
 @2.7.5 默认 GUI 响应流程：
 
 @2.7.5.1 概述：
-终端用户进行 GUI 输入；
+用户进行 GUI 输入；
 控制器捕获 GUI 输入产生 GUI 输入事件；
 视图或控制器处理 GUI 输入事件，必要时呈递至模型，并向视图同步模型数据；
 视图向用户呈现 GUI 数据。
@@ -702,41 +705,60 @@
 
 @2.7.5.2 默认 GUI 渲染逻辑：
 使用视图的方法对缓冲区进行渲染。具体内容由视图的实现决定。
+重绘信息(@2.7.2.1.3) 是由外部直接或间接的参数。
 
 @2.7.5.2.1 渲染器(renderer) ：
 用于存储渲染状态的类，基类为 Componenets::Renderer 。
-此外，提供带有缓冲区的渲染器类 Componenets::BufferedRenderer ，默认仅供窗口使用。
+此外，提供带有缓冲区的默认缓冲渲染器类 Componenets::BufferedRenderer ，默认仅供窗口使用。
+渲染器可在运行时向指定部件设置。
 
 @2.7.5.2.2 部件的渲染(rendering) ：
-默认使用 Components::Render ，包含验证(@2.7.5.3.2) 效果。
+默认使用 Components::Render ，包含验证(@2.7.5.2.4) 效果。
+ Components::Render 直接调用部件的 Refresh 方法(@2.7.5.3.2) 。
 
-@2.7.5.3 默认 GUI 刷新逻辑：
-成员方法 DrawContents() 作为一般的缓冲区图形内容绘制接口（可能调用子对象的 Refresh 方法）。
+@2.7.5.2.3 无效化(invalidation) ：
+渲染器向上层缓冲区容器请求需要重绘的区域的过程。
+请求得到的需要保证之后被重绘的区域在被绘制前表示无效状态。
+默认缓冲渲染器通过 Rect 类型的重绘区域保持，称为无效区域。
+无效区域长或宽为零时表示重绘已经结束且无新的绘制请求，无需再次重绘。
 
-@2.7.5.3.1 无效化(invalidation) ：
-部件向上层缓冲区容器请求需要重绘区域的过程。
-请求得到的需要保证之后被重绘的区域在被绘制前称为无效区域。
+@2.7.5.2.4 验证(validation) ：
+绘制部件并消除自身无效区域的过程。
+因为并非所有部件都保存自身无效区域，它们不一定提供验证接口。
+部件被验证时，保证缓冲区中若存在无效区域则进行绘制，并消除无效区域。
+ Components::BufferedRenderer::Validate(IWidget&, IWidget&, const PaintContext&) 是默认缓冲渲染器提供的接口。
 
-@2.7.5.3.2 验证(validation) ：
-绘制部件并消除无效区域的过程。
- Components::Validate(IWidget&) 验证部件缓冲区（若存在）的有效性，保证缓冲区中若存在无效区域则进行绘制，并消除无效区域。
-
-@2.7.5.3.3 刷新(refreshing) ：
-部件按传入的参数（图形接口上下文、起始偏移坐标和边界）直接进行绘制的过程。
-边界基于部件坐标系，用于优化暗示，可以被忽略，但是绘制过程需要保证边界内的区域无需被重绘。
-带缓冲区的部件（包括窗口和桌面）实例存储刷新状态。
-刷新状态通过重绘区域 Rect 保持。
-重绘区域长或宽为零时表示重绘已经结束且无新的绘制请求，无需再次重绘。
- InvalidateCascade(IWidget&, const Rect&) 通过调用 Validate() 向本层和上层缓冲区（若存在）传递相对于部件的正则矩形区域无效状态，以便被重绘。
- Invalidate(IWidget&) 是使用部件自身区域为参数调用 InvalidateCascade 的人本接口。
-成员方法 Refresh(const PaintEventArgs&) 是部件的状态无关的刷新接口，即直接绘制部件界面。
-
-@2.7.5.3.4 更新(updating) ：
+@2.7.5.2.5 更新(updating) ：
 缓冲区内的图形信息复制到其它缓冲区的过程。
 带缓冲区的部件（包括窗口和桌面）实例存储无效区域状态。
  Components::Update 基于渲染器实现一般的缓冲区复制。
 成员方法 Update() 查询区域重绘状态，若区域需要重绘则忽略，否则当上层缓冲区存在时更新至上层缓冲区（对于桌面而言是屏幕）。
 在 Shell 处理函数中可以在输入分支后添加桌面对象的 Invalidate 、 Refresh 或 Update ，按需要更新最近经过重绘但未经过更新的 GUI 对象。
+
+@2.7.5.3 默认 GUI 绘制逻辑：
+成员方法 DrawContents() 作为一般的缓冲区图形内容绘制接口（可能调用子对象的 Refresh 方法）。
+
+@2.7.5.3.1 渲染状态：
+部件通过与渲染器的交互保证渲染状态。
+部件的无效化是部件通过渲染器向上层缓冲区容器请求需要重绘的区域的过程。
+ Components::InvalidateCascade(IWidget&, const Rect&) 通过调用 Validate() 向本层和上层缓冲区（若存在）传递相对于部件的正则矩形区域无效状态，以便被重绘。
+ Components::Invalidate(IWidget&) 是使用部件自身区域为参数调用 InvalidateCascade 的人本接口。
+
+@2.7.5.3.2 刷新(refreshing) ：
+部件按传入的参数（图形接口上下文、起始偏移坐标和边界）直接进行绘制的过程。不被渲染器策略直接影响。
+边界基于部件坐标系，用于优化暗示，可以被忽略，但是刷新过程需要保证边界内的区域无需被重绘。
+带缓冲区的部件（包括窗口和桌面）实例存储刷新状态。
+成员方法 Refresh(const PaintContext&) 是部件的状态无关的刷新接口，即直接绘制部件界面。
+
+@2.7.5.3.3 绘制(painting) ：
+导致部件的 Paint 事件被调用一次的操作，称为一次绘制。
+可以直接调用 Paint 事件。
+一般可以通过 YWidget 单元的 PaintChild 等函数调用，它包含了重绘区域(@2.7.2.1.3) 预验证：当重绘区域和无效区域(@2.7.5.2.3) 不相交时，不进行绘制。
+
+@2.7.5.3.3 全局层次绘制逻辑：
+一般通过 Shell 对 SM_PAINT 消息的处理，以桌面对象的全局绘制操作起始，递归至各个子部件。
+典型的全局绘制操作可以是刷新。
+当多个桌面的显示需要保持同步时，一般不直接调用刷新，而是显式地验证和更新，即分别调用需要同步显示的桌面的 Desktop::Validate 和 Desktop::Update 。
 
 @2.7.6 GUI 特性抽象
 
@@ -862,8 +884,8 @@ FetchDefaultScreen();
 因此除非是用来实现基本功能的外部的库，新增的平台相关的部分应尽量放在 Helper 而不是 Adaptor 中。
 
 @2.10.1 基本代码依赖性：
- YSLib 文件中，文件名以 y 起始且模块名以 Y 起始的文件为必要文件，其它为非必要文件。
-以下为基本代码依赖性规则按（以优先级排列，即后者不满足前者的部分以前者为准）：
+ YSLib 文件中，文件名以 y 或 Y 起始且模块名以 Y 起始的文件为必要文件，其它为非必要文件。
+以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
 必要文件不依赖非必要头文件。
 任意 YSLib 文件可依赖于 @2.10 余下部分指定的标准库头文件以及 YBase 的头文件。
 除上述头文件外，本体的头文件不依赖于 YSLib 以外的头文件。
@@ -907,14 +929,14 @@ FetchDefaultScreen();
 @2.10.3 本体内部头文件依赖性：
  Core 的头文件仅包含 Adaptor 或 Core 的头文件，或 "yglobal.h" 。
  Adaptor 的头文件依赖于 Core 的 "ybasemac.h" 。
-实现源文件依赖于同名头文件，应显式包含此头文件，不应重复包含此头文件已经包含的其它头文件。
+实现源文件依赖于同名头文件，应保证包含此头文件，不应重复包含此头文件已经包含的其它头文件。
 在 Core 中，以下依赖关系对于头文件包含是确定的：
  "ybasemac.h" 不依赖于任何头文件；
  "ysdef.h" 依赖于 Adaptor 的 "yadaptor.h" 和 "yref.hpp" ；
 除了 "ybasemac.h" 和 "ysdef.h" 外都依赖于 "ysdef.h"；
  "yobject.h" 依赖于 "ycutil.h" 和 "yexcept.h" ；
  "ystring.h" 、 "ymsg.h" 依赖于 "yobject.h" ；
- "yevt.hpp" 依赖于 "yobject.h" 和 "yfunc.h" ；
+ "yevt.hpp" 依赖于 "yobject.h" 和 "yfunc.hpp" ；
  "ymsgdef.h" 依赖于 "ymsg.h" ；
  "yshell.h" 依赖于 "ymsgdef.h" ；
  "yfilesys.h" 依赖于 "ystring.h"；
@@ -924,18 +946,20 @@ FetchDefaultScreen();
  "yblit.h" 、 "ydraw.h" 和 "ygdi.h" 依赖于 Core 的 "ygdibase.h" ；
  "yblit.h" 依赖于 Core 的 "ycutil.h" ；
 在 UI 中，以下依赖关系对于头文件包含是确定的：
- "ycomp.h" 依赖于 Core 的 "ygdibase.h"；
- "yfocus.hpp" 和 "ywgtview.h" 依赖于 "ycomp.h" ；
+ "ycomp.h" 依赖于 Core 的 "ygdibase.h" 和 "yfunc.hpp" 以及 Adaptor 的 "ycont.h" ；
+ "yfocus.hpp" 依赖于 "ycomp.h" ；
  "yrender.h" 依赖于 "ycomp.h" 和 Service 的 "ygdi.h" ；
- "ystyle.h" 依赖于 "ycomp.h" 和 Service 的 "ydraw.h"；
- "ywgtview.h" 依赖于 "ycomp.h" 和 Service 的 "yres.h" ；
+ "ystyle.h" 依赖于 "ycomp.h" 和 Service 的 "ydraw.h" ；
+ "ywgtview.h" 依赖于 "ycomp.h" ；
  "ywgtevt.h" 依赖于 "ycomp.h" 和 Core 的 "yevt.hpp" ；
- "ywidget.h" 依赖于 "yrender.h" 、 "yfocus.hpp" 、 "ywgtevt.h" 和 "ywgtview.h" ；
- "ycontrol.h" 和 "yuicont.h" 依赖于 "ywidget.h" ；
- "ygui.h" 依赖于 "ycontrol.h" 、 "ystyle.h" 和 Core 的 "yshell.h" ；
- "ypanel.h" 依赖于 "ycontrol.h" 、 "yuicont.h" 和 Service 的 "yres.h" ；
- "ywindow.h" 依赖于 "ypanel.h" 和 Service 的 "yblit.h" ；
- "ydesktop.h" 依赖于 "ywindow.h" 。
+ "YBrush.h" 依赖于 "ywgtview.h" 和 Service 的 "yres.h" ；
+ "ywidget.h" 依赖于 "yfocus.hpp" 和 "ywgtview.h" ；
+ "ygui.h" 依赖于 "ywgtevt.h" 、 "ystyle.h" 、 Core 的 "yshell.h" 和 Service 的 "ytimer.h" ；
+ "yuicont.h" 依赖于 "ywidget.h" ；
+ "ycontrol.h" 依赖于 "ywidget.h" 和 "ywgtevt.h" ；
+ "ypanel.h" 依赖于 "ycontrol.h" 和 "yuicont.h" ；
+ "ywindow.h" 依赖于 "ypanel.h" 、 "YBrush.h" 和 Service 的 "yblit.h" ；
+ "ydesktop.h" 依赖于 "ywindow.h" 、 "yrender.h" 和 Core 的 "ydevice.h" 。
 在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少的头文件。
 
 @3 API 设计和风格概述：

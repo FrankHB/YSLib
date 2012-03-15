@@ -11,12 +11,12 @@
 /*!	\file yfocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1472;
+\version r1490;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2012-02-04 22:12 +0800;
+	2012-03-13 13:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -78,6 +78,28 @@ ClearFocusingOf(IWidget& wgt)
 		wgt.GetView().pFocusing = nullptr;
 		CallEvent<LostFocus>(*p, UIEventArgs(wgt));
 	}
+}
+
+void
+RequestFocusCascade(IWidget& wgt)
+{
+	auto p(&wgt);
+
+	do
+	{
+		RequestFocus(*p);
+	}while((p = FetchContainerPtr(*p)));
+}
+
+void
+ReleaseFocusCascade(IWidget& wgt)
+{
+	auto p(&wgt);
+
+	do
+	{
+		ReleaseFocus(*p);
+	}while((p = FetchContainerPtr(*p)));
 }
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3568;
+\version r3648;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-03-12 07:57 +0800;
+	2012-03-12 21:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -33,6 +33,7 @@
 //extern char gstr[128];
 
 using namespace ystdex;
+using std::chrono::milliseconds;
 
 YSL_BEGIN_NAMESPACE(YReader)
 
@@ -70,8 +71,8 @@ namespace
 	shared_ptr<TextList::ListType>
 	FetchEncodingNames()
 	{
-		return share_raw(new TextList::ListType(Encodings | ystdex::get_value,
-			(Encodings + arrlen(Encodings)) | ystdex::get_value));
+		return make_shared<TextList::ListType>(Encodings | ystdex::get_value,
+			(Encodings + arrlen(Encodings)) | ystdex::get_value);
 	}
 
 	/*!
@@ -102,8 +103,8 @@ namespace
 		const auto& mFamilies(FetchGlobalInstance().GetFontCache()
 			.GetFamilyIndices());
 
-		return share_raw(new TextList::ListType(mFamilies.cbegin()
-			| ystdex::get_key, mFamilies.cend() | ystdex::get_key));
+		return make_shared<TextList::ListType>(mFamilies.cbegin()
+			| ystdex::get_key, mFamilies.cend() | ystdex::get_key);
 	}
 
 
@@ -165,17 +166,27 @@ namespace
 
 	/*!
 	\brief 更新列表。
-	\since build 292 。
+	\since build 293 。
 	*/
 	void
-	UpdateScrollDropDownList(DropDownList& ddl, bool b,
-		const std::chrono::milliseconds& d, std::chrono::milliseconds& d_s)
+	UpdateScrollDropDownList(DropDownList& ddl, bool b, const milliseconds& d,
+		const milliseconds& d_s)
 	{
 		ddl.SetList(QueryList(b ? GRL_SmoothScrollDurations
 			: GRL_ScrollDurations));
 		ddl.Text = ddl.GetList()[(b ? d_s.count() / 20U : d.count() / 200U)
 			- 2U],
 		Invalidate(ddl);
+	}
+
+	/*!
+	\since build 293 。
+	*/
+	milliseconds
+	FetchTimerSetting(const ReaderSetting& s)
+	{
+		return s.SmoothScroll ? s.SmoothScrollDuration
+			: s.ScrollDuration;
 	}
 
 
@@ -235,21 +246,21 @@ ReaderBox::ReaderBox(const Rect& r, ShlReader& shl)
 	pbReader(Rect(4, 0, 248, 8)), lblProgress(Rect(216, 12, 40, 16))
 {
 	SetTransparent(true),
-	SetRenderer(unique_raw(new BufferedRenderer())),
+	SetRenderer(make_unique<BufferedRenderer>()),
 	seq_apply(ContainerSetter(*this),
 		btnMenu, btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
-	btnMenu.SetRenderer(unique_raw(new BufferedRenderer())),
+	btnMenu.SetRenderer(make_unique<BufferedRenderer>()),
 	btnMenu.Text = "M",
-	btnInfo.SetRenderer(unique_raw(new BufferedRenderer())),
+	btnInfo.SetRenderer(make_unique<BufferedRenderer>()),
 	btnInfo.Text = "I",
-	btnReturn.SetRenderer(unique_raw(new BufferedRenderer())),
+	btnReturn.SetRenderer(make_unique<BufferedRenderer>()),
 	btnReturn.Text = "R",
-	btnPrev.SetRenderer(unique_raw(new BufferedRenderer())),
+	btnPrev.SetRenderer(make_unique<BufferedRenderer>()),
 	btnPrev.Text = "←",
-	btnNext.SetRenderer(unique_raw(new BufferedRenderer())),
+	btnNext.SetRenderer(make_unique<BufferedRenderer>()),
 	btnNext.Text = "→",
 	pbReader.ForeColor = Color(192, 192, 64),
-	lblProgress.SetRenderer(unique_raw(new BufferedRenderer())),
+	lblProgress.SetRenderer(make_unique<BufferedRenderer>()),
 	lblProgress.SetTransparent(true),
 	lblProgress.Font.SetSize(12);
 	yunseq(lblProgress.Text = u"--%", lblProgress.ForeColor = ColorSpace::Blue);
@@ -362,7 +373,8 @@ SettingPanel::SettingPanel()
 	chkSmoothScroll(Rect(20, 160, 16, 16)),
 	lblSmoothScroll(Rect(36, 160, 60, 20)),
 	ddlScrollTiming(Rect(96, 160, 128, 22)),
-	boxColor(Point(4, 80)), pColor(), current_encoding()
+	boxColor(Point(4, 80)), pColor(), current_encoding(),
+	scroll_duration(), smooth_scroll_duration()
 {
 	const auto set_font_size([this](FontSize size){
 		lblAreaUp.Font.SetSize(size),
@@ -436,6 +448,20 @@ SettingPanel::SettingPanel()
 				lblAreaDown.Text = FetchEncodingString(e.Value)),
 			Invalidate(lblAreaDown);
 		},
+		chkSmoothScroll.GetTicked()
+			+= [this](CheckBox::TickedArgs&& e){
+			auto& ddl(ddlScrollTiming);
+
+			UpdateScrollDropDownList(ddl, e.Value, scroll_duration,
+				smooth_scroll_duration);
+			Invalidate(ddl);
+		},
+		ddlScrollTiming.GetConfirmed() += [this](IndexEventArgs&& e){
+			if(chkSmoothScroll.IsTicked())
+				smooth_scroll_duration = milliseconds((e.Value + 2U) * 20);
+			else
+				scroll_duration = milliseconds((e.Value + 2U) * 200);
+		},
 		FetchEvent<TouchMove>(boxColor) += OnTouchMove_Dragging,
 		FetchEvent<Click>(boxColor.btnOK) += [this](TouchEventArgs&&){
 			if(pColor)
@@ -448,6 +474,28 @@ SettingPanel::SettingPanel()
 			}
 		}
 	);
+}
+
+SettingPanel&
+SettingPanel::operator<<(const ReaderSetting& s)
+{
+	yunseq(scroll_duration = s.ScrollDuration,
+		smooth_scroll_duration = s.SmoothScrollDuration),
+	chkSmoothScroll.SetTicked(s.SmoothScroll);
+	UpdateScrollDropDownList(ddlScrollTiming, s.SmoothScroll, s.ScrollDuration,
+		s.SmoothScrollDuration);
+	return *this;
+}
+
+SettingPanel&
+SettingPanel::operator>>(ReaderSetting& s)
+{
+	yunseq(
+		s.SmoothScroll = chkSmoothScroll.IsTicked(),
+		s.ScrollDuration = scroll_duration,
+		s.SmoothScrollDuration = smooth_scroll_duration
+	);
+	return *this;
 }
 
 void
@@ -528,9 +576,7 @@ ReaderSession::ReaderSession(ShlReader& shl)
 
 TextReaderSession::TextReaderSession(ShlReader& shl)
 	: ReaderSession(shl),
-	path(), scroll_duration(), smooth_scroll_duration(),
-	tmrScroll(Shell.SmoothScroll ? Shell.SmoothScrollDuration
-		: Shell.ScrollDuration, false), Reader(),
+	path(), tmrScroll(FetchTimerSetting(Shell.CurrentSetting)), Reader(),
 	boxReader(Rect(0, 160, 256, 32), shl),
 	boxTextInfo(shl), pnlSetting(), pTextFile(), mhMain(shl.GetDesktopDown())
 {
@@ -549,6 +595,7 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 		boxTextInfo.UpdateData(Reader),
 		Show(boxReader);
 	});
+	auto& cur_set(Shell.CurrentSetting);
 
 	SetVisibleOf(boxReader, false),
 	SetVisibleOf(boxTextInfo, false),
@@ -615,40 +662,19 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 				ColorSpace::Yellow);
 		},
 		FetchEvent<Click>(pnlSetting.btnClose) += exit_setting,
-		FetchEvent<Click>(pnlSetting.btnOK) += [this](TouchEventArgs&&)
+		FetchEvent<Click>(pnlSetting.btnOK) += [&, this](TouchEventArgs&&)
 		{
 			Switch(pnlSetting.current_encoding);
 			Reader.SetColor(pnlSetting.lblAreaUp.ForeColor),
 			Reader.SetFont(pnlSetting.lblAreaUp.Font);
 			Reader.UpdateView();
-			yunseq(
-				Shell.SmoothScroll = pnlSetting.chkSmoothScroll.IsTicked(),
-				Shell.ScrollDuration = scroll_duration,
-				Shell.SmoothScrollDuration = smooth_scroll_duration
-			);
-			tmrScroll.SetInterval(Shell.SmoothScroll ? smooth_scroll_duration
-				: scroll_duration);
+			pnlSetting >> cur_set;
+			tmrScroll.SetInterval(FetchTimerSetting(cur_set));
 		},
-		FetchEvent<Click>(pnlSetting.btnOK) += exit_setting,
-		pnlSetting.chkSmoothScroll.GetTicked()
-			+= [this](CheckBox::TickedArgs&& e){
-			auto& ddl(pnlSetting.ddlScrollTiming);
-
-			UpdateScrollDropDownList(ddl, e.Value, scroll_duration,
-				smooth_scroll_duration);
-			Invalidate(ddl);
-		},
-		pnlSetting.ddlScrollTiming.GetConfirmed() += [this](IndexEventArgs&& e){
-			using std::chrono::milliseconds;
-
-			if(pnlSetting.chkSmoothScroll.IsTicked())
-				smooth_scroll_duration = milliseconds((e.Value + 2U) * 20);
-			else
-				scroll_duration = milliseconds((e.Value + 2U) * 200);
-		}
+		FetchEvent<Click>(pnlSetting.btnOK) += exit_setting
 	);
 	{
-		auto hList(share_raw(new Menu::ListType));
+		auto hList(make_shared<Menu::ListType>());
 		auto& lst(*hList);
 
 		static yconstexpr const char* mnustr[] = {"返回", "设置...",
@@ -668,11 +694,11 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 	auto& dsk_up(Shell.GetDesktopUp());
 	auto& dsk_dn(Shell.GetDesktopDown());
 
-	Reader.SetColor(Shell.CurrentSetting.FontColor),
-	Reader.SetFont(Shell.CurrentSetting.Font),
+	Reader.SetColor(cur_set.FontColor),
+	Reader.SetFont(cur_set.Font),
 	yunseq(
-		dsk_up.BackColor = Shell.CurrentSetting.UpColor,
-		dsk_dn.BackColor = Shell.CurrentSetting.DownColor,
+		dsk_up.BackColor = cur_set.UpColor,
+		dsk_dn.BackColor = cur_set.DownColor,
 		FetchEvent<Click>(dsk_dn).Add(*this, &TextReaderSession::OnClick),
 		FetchEvent<KeyDown>(dsk_dn).Add(*this, &TextReaderSession::OnKeyDown),
 		FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld
@@ -706,12 +732,13 @@ TextReaderSession::~TextReaderSession()
 
 	auto& dsk_up(Shell.GetDesktopUp());
 	auto& dsk_dn(Shell.GetDesktopDown());
+	auto& cur_set(Shell.CurrentSetting);
 
 	yunseq(
-		Shell.CurrentSetting.UpColor = dsk_up.BackColor,
-		Shell.CurrentSetting.DownColor = dsk_dn.BackColor,
-		Shell.CurrentSetting.FontColor = Reader.GetColor(),
-		Shell.CurrentSetting.Font = Reader.GetFont(),
+		cur_set.UpColor = dsk_up.BackColor,
+		cur_set.DownColor = dsk_dn.BackColor,
+		cur_set.FontColor = Reader.GetColor(),
+		cur_set.Font = Reader.GetFont(),
 		FetchEvent<Click>(dsk_dn).Remove(*this, &TextReaderSession::OnClick),
 		FetchEvent<KeyDown>(dsk_dn).Remove(*this,
 			&TextReaderSession::OnKeyDown),
@@ -755,7 +782,7 @@ TextReaderSession::Execute(IndexEventArgs::ValueType idx)
 			dsk_up += pnlSetting.lblAreaDown;
 		}
 		Hide(boxReader),
-		ShowSetting();
+		Show(pnlSetting << Shell.CurrentSetting);
 		break;
 	case MR_FileInfo:
 		boxTextInfo.UpdateData(Reader);
@@ -780,7 +807,7 @@ void
 TextReaderSession::LoadFile(const IO::Path& pth)
 {
 	path = pth;
-	pTextFile = unique_raw(new TextFile(pth.GetNativeString().c_str()));
+	pTextFile = make_unique<TextFile>(pth.GetNativeString().c_str());
 	Reader.LoadText(*pTextFile);
 }
 
@@ -789,7 +816,7 @@ TextReaderSession::Scroll()
 {
 	if(tmrScroll.IsActive() && tmrScroll.Refresh())
 	{
-		if(Shell.SmoothScroll)
+		if(Shell.CurrentSetting.SmoothScroll)
 			Reader.ScrollByPixel(1U);
 		else
 			Reader.Execute(DualScreenReader::LineDownScroll);
@@ -815,17 +842,6 @@ TextReaderSession::ShowMenu(Menu::ID id, const Point&)
 		}
 		mhMain.Show(id);
 	}
-}
-
-void
-TextReaderSession::ShowSetting()
-{
-	yunseq(scroll_duration = Shell.ScrollDuration,
-		smooth_scroll_duration = Shell.SmoothScrollDuration);
-	pnlSetting.chkSmoothScroll.SetTicked(Shell.SmoothScroll),
-	UpdateScrollDropDownList(pnlSetting.ddlScrollTiming, Shell.SmoothScroll,
-		scroll_duration, smooth_scroll_duration);
-	Show(pnlSetting);
 }
 
 void
@@ -957,7 +973,7 @@ HexReaderSession::HexReaderSession(ShlReader& shl)
 	: ReaderSession(shl),
 	HexArea(Rect::FullScreen), pnlFileInfo()
 {
-	HexArea.SetRenderer(unique_raw(new BufferedRenderer(true)));
+	HexArea.SetRenderer(make_unique<BufferedRenderer>(true));
 	yunseq(
 		FetchEvent<KeyDown>(HexArea) += [](KeyEventArgs&& e){
 			if(e.GetKeyCode() == KeySpace::Esc)
@@ -1020,14 +1036,15 @@ bool ShlReader::CurrentIsText(false);
 
 ShlReader::ShlReader()
 	: ShlDS(),
-	hUp(), hDn(), pManager(), background_task(),
-	SmoothScroll(), ScrollDuration(1000), SmoothScrollDuration(100), LastRead(),
-	CurrentSetting()
+	hUp(), hDn(), pManager(), background_task(), LastRead(), CurrentSetting()
 {
 	// TODO: use entity tree to store properties;
 	yunseq(
 		CurrentSetting.UpColor = Color(240, 216, 192),
-		CurrentSetting.DownColor = Color(192, 216, 240)
+		CurrentSetting.DownColor = Color(192, 216, 240),
+		CurrentSetting.SmoothScroll = false,
+		CurrentSetting.ScrollDuration = milliseconds(1000),
+		CurrentSetting.SmoothScrollDuration = milliseconds(100)
 	);
 }
 
@@ -1047,7 +1064,7 @@ ShlReader::OnActivated(const Message& msg)
 		pManager = unique_raw(&session);
 	}
 	else
-		pManager = unique_raw(new HexReaderSession(*this));
+		pManager = make_unique<HexReaderSession>(*this);
 	std::swap(hUp, dsk_up.GetBackgroundImagePtr()),
 	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
 	SetInvalidationOf(dsk_up),

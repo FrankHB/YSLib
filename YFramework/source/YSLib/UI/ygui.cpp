@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4145;
+\version r4166;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-07 21:40 +0800;
+	2012-03-13 13:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 GUIState::GUIState() ynothrow
 	: KeyHeldState(Free), TouchHeldState(Free),
-	DraggingOffset(Vec::Invalid), HeldTimer(1000, false),
+	DraggingOffset(Vec::Invalid), HeldTimer(Timers::TimeSpan(1000U)),
 	ControlLocation(Point::Invalid),
 	LastControlLocation(Point::Invalid), Colors(),
 	p_KeyDown(), p_TouchDown(), control_entered(false)
@@ -285,29 +285,6 @@ FetchGUIState()
 	static GUIState* pState(new GUIState());
 
 	return *pState;
-}
-
-
-void
-RequestFocusCascade(IWidget& wgt)
-{
-	auto p(&wgt);
-
-	do
-	{
-		RequestFocus(*p);
-	}while((p = FetchContainerPtr(*p)));
-}
-
-void
-ReleaseFocusCascade(IWidget& wgt)
-{
-	auto p(&wgt);
-
-	do
-	{
-		ReleaseFocus(*p);
-	}while((p = FetchContainerPtr(*p)));
 }
 
 YSL_END_NAMESPACE(Components)

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1454;
+\version r1458;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2011-12-20 13:41 +0800;
-\par 字符集:
+	2012-03-12 09:17 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YReader::HexBrowser;
@@ -95,7 +95,7 @@ void
 HexViewArea::Load(const_path_t path)
 {
 	Reset();
-	model = unique_raw(new File(path));
+	model = make_unique<File>(path);
 
 	const IndexType n_total_ln((model.GetSize() + ItemPerLine - 1)
 		/ ItemPerLine);

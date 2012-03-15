@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2157;
+\version r2159;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2012-03-11 17:19 +0800;
+	2012-03-14 20:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "ywidget.h"
 //#include "../Core/yres.h"
+#include "../Core/ystring.h"
 #include "../Service/TextBase.h"
 
 YSL_BEGIN

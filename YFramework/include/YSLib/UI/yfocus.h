@@ -11,12 +11,12 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r2655;
+\version r2665;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2012-02-04 22:10 +0800;
+	2012-03-13 13:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -84,6 +84,18 @@ ReleaseFocus(IWidget& wgt)
 */
 void
 ClearFocusingOf(IWidget&);
+
+/*!
+\brief 级联请求部件及上层容器焦点。
+*/
+void
+RequestFocusCascade(IWidget&);
+
+/*!
+\brief 级联释放部件及上层容器焦点。
+*/
+void
+ReleaseFocusCascade(IWidget&);
 
 YSL_END_NAMESPACE(Components)
 

@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1805;
+\version r1812;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2012-03-07 21:46 +0800;
+	2012-03-12 20:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -114,17 +114,11 @@ protected:
 
 public:
 	/*!
-	\brief 构造：使用低精度时间间隔（单位为毫秒）和激活状态。
-	\since build 291 。
-	*/
-	explicit
-	Timer(u32 = 1000, bool = true);
-	/*!
 	\brief 构造：使用时间间隔和激活状态。
-	\since build 291 。
+	\since build 293 。
 	*/
 	explicit
-	Timer(const Duration&, bool);
+	Timer(const Duration& = Duration(), bool = false);
 	/*!
 	\brief 析构：自动停用。
 	\since build 289 。

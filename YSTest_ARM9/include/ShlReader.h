@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2094;
+\version r2130;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-03-11 19:28 +0800;
+	2012-03-12 21:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -113,6 +113,32 @@ public:
 
 
 /*!
+\brief 阅读器设置。
+\since build 287 。
+*/
+struct ReaderSetting
+{
+	Color UpColor, DownColor, FontColor;
+	Drawing::Font Font;
+	/*!
+	\brief 平滑滚屏。
+	\since build 293 。
+	*/
+	bool SmoothScroll;
+	/*!
+	\brief 滚屏间隔。
+	\since build 293 。
+	*/
+	std::chrono::milliseconds ScrollDuration;
+	/*!
+	\brief 平滑滚屏间隔。
+	\since build 293 。
+	*/
+	std::chrono::milliseconds SmoothScrollDuration;
+};
+
+
+/*!
 \brief 设置面板。
 \since build 275 。
 */
@@ -180,9 +206,33 @@ private:
 	\since build 292 。
 	*/
 	Text::Encoding current_encoding;
+	/*!
+	\brief 滚屏间隔。
+	\since build 292 。
+	*/
+	std::chrono::milliseconds scroll_duration;
+	/*!
+	\brief 平滑滚屏间隔。
+	\since build 292 。
+	*/
+	std::chrono::milliseconds smooth_scroll_duration;
 
 public:
 	SettingPanel();
+
+	/*!
+	\brief 读取设置。
+	\since build 293 。
+	*/
+	SettingPanel&
+	operator<<(const ReaderSetting&);
+
+	/*!
+	\brief 保存设置。
+	\since build 293 。
+	*/
+	SettingPanel&
+	operator>>(ReaderSetting&);
 
 	/*!
 	\brief 更新示例文本。
@@ -306,17 +356,6 @@ public:
 
 
 /*!
-\brief 阅读器设置。
-\since build 287 。
-*/
-struct ReaderSetting
-{
-	Color UpColor, DownColor, FontColor;
-	Drawing::Font Font;
-};
-
-
-/*!
 \brief 阅读器会话。
 \since build 287 。
 */
@@ -344,16 +383,6 @@ private:
 	\since build 286 。
 	*/
 	IO::Path path;
-	/*!
-	\brief 滚屏间隔。
-	\since build 292 。
-	*/
-	std::chrono::milliseconds scroll_duration;
-	/*!
-	\brief 平滑滚屏间隔。
-	\since build 292 。
-	*/
-	std::chrono::milliseconds smooth_scroll_duration;
 
 protected:
 	/*!
@@ -417,13 +446,6 @@ private:
 	*/
 	void
 	Switch(Text::Encoding);
-
-	/*!
-	\brief 显示设置界面。
-	\since build 292 。
-	*/
-	void
-	ShowSetting();
 
 	/*!
 	\brief 更新近期浏览记录并更新按钮状态。
@@ -503,21 +525,6 @@ private:
 	std::function<void()> background_task;
 
 public:
-	/*!
-	\brief 平滑滚屏。
-	\since build 292 。
-	*/
-	bool SmoothScroll;
-	/*!
-	\brief 滚屏间隔。
-	\since build 292 。
-	*/
-	std::chrono::milliseconds ScrollDuration;
-	/*!
-	\brief 平滑滚屏间隔。
-	\since build 292 。
-	*/
-	std::chrono::milliseconds SmoothScrollDuration;
 	/*!
 	\brief 近期浏览记录。
 	\since build 286 。

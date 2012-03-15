@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3473;
+\version r3478;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2012-03-08 15:20 +0800;
+	2012-03-12 09:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -324,9 +324,8 @@ DSApplication::DSApplication()
 	//初始化显示设备。
 	try
 	{
-		hScreenUp = share_raw(new DSScreen(MainScreenWidth, MainScreenHeight));
-		hScreenDown = share_raw(new DSScreen(MainScreenWidth,
-			MainScreenHeight));
+		hScreenUp = make_shared<DSScreen>(MainScreenWidth, MainScreenHeight);
+		hScreenDown = make_shared<DSScreen>(MainScreenWidth, MainScreenHeight);
 	}
 	catch(...)
 	{
@@ -334,8 +333,8 @@ DSApplication::DSApplication()
 	}
 	try
 	{
-		hDesktopUp = share_raw(new Desktop(*hScreenUp));
-		hDesktopDown = share_raw(new Desktop(*hScreenDown));
+		hDesktopUp = make_shared<Desktop>(*hScreenUp);
+		hDesktopDown = make_shared<Desktop>(*hScreenDown);
 	}
 	catch(...)
 	{
@@ -347,7 +346,7 @@ DSApplication::DSApplication()
 	调用了 Application 的非静态成员函数。
 	*/
 	if(!FetchAppInstance().SetShellHandle(
-		share_raw(new Shells::MainShell())))
+		make_shared<Shells::MainShell>()))
 		throw LoggedEvent("Failed launching the main shell;");
 }
 

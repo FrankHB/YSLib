@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file Border.h
+/*!	\file YBrush.h
 \ingroup UI
-\brief 样式无关的图形用户界面附加容器。
-\version r1089;
+\brief 图形用户界面画刷。
+\version r1132;
 \author FrankHB<frankhb1989@gmail.com>
-\since build 275 。
+\since build 293 。
 \par 创建时间:
 	2012-01-10 19:55:30 +0800;
 \par 修改时间:
-	2012-02-10 18:15 +0800;
+	2012-03-14 21:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,10 +29,59 @@
 #define YSL_INC_UI_BORDER_H_
 
 #include "ywgtevt.h"
+#include "../Service/yres.h"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
+
+/*!
+\brief 单色画刷。
+\since build 293 。
+*/
+class SolidBrush
+{
+public:
+	Drawing::Color Color;
+
+	SolidBrush(Drawing::Color);
+
+	void
+	operator()(PaintEventArgs&&);
+};
+
+inline
+SolidBrush::SolidBrush(Drawing::Color c)
+	: Color(c)
+{}
+
+
+/*!
+\brief 背景模块。
+\since build 260 。
+*/
+class MBackground
+{
+protected:
+	mutable shared_ptr<Drawing::Image> hBgImage; //!< 背景图像句柄。
+
+public:
+	/*!
+	\brief 构造：使用指定边界和背景图像。
+	*/
+	explicit
+	MBackground(const shared_ptr<Drawing::Image>&
+		= make_shared<Drawing::Image>());
+
+	DefGetter(const ynothrow, shared_ptr<Drawing::Image>&, BackgroundImagePtr,
+		hBgImage)
+	/*!
+	\brief 取位图背景指针。
+	*/
+	BitmapPtr
+	GetBackgroundPtr() const;
+};
+
 
 /*!
 \brief 边框样式。

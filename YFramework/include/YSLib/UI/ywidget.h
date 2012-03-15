@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6336;
+\version r6449;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-02-20 21:40 +0800;
+	2012-03-14 09:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,9 +29,7 @@
 #define YSL_INC_UI_YWIDGET_H_
 
 #include "ycomp.h"
-#include "yrender.h"
 #include "yfocus.h"
-#include "ywgtevt.h"
 #include "ywgtview.h"
 
 YSL_BEGIN
@@ -192,6 +190,21 @@ SetContainerPtrOf(IWidget& wgt, IWidget* pCon = nullptr)
 }
 
 /*!
+\brief 设置部件的无效区域。
+\since build 231 。
+*/
+void
+SetInvalidationOf(IWidget&);
+
+/*!
+\brief 在容器设置部件的无效区域。
+\note 若容器不存在则忽略。
+\since build 229 。
+*/
+void
+SetInvalidationToParent(IWidget&);
+
+/*!
 \brief 设置部件左上角所在位置（相对于容器的偏移坐标）。
 \since build 259 。
 */
@@ -224,12 +237,73 @@ SetVisibleOf(IWidget& wgt, bool b)
 IWidget*
 CheckWidget(IWidget& wgt, const Point& pt, bool(&f)(const IWidget&));
 
+/*!
+\brief 关闭部件。
+\since build 275 。
+
+隐藏部件后取消容器（若存在）焦点状态。
+*/
+void
+Close(IWidget&);
+
+/*!
+\brief 隐藏部件。
+\since build 229 。
+依次释放部件焦点、设置部件不可见性和无效化。
+*/
+void
+Hide(IWidget&);
+
+/*!
+\brief 无效化：使部件区域在直接和间接的窗口缓冲区中无效。
+\since build 224 。
+*/
+void
+Invalidate(IWidget&);
+/*!
+\brief 无效化：使相对于部件的指定区域在直接和间接的窗口缓冲区中无效。
+\since build 268 。
+*/
+void
+Invalidate(IWidget&, const Rect&);
+
+/*
+\brief 调用指定子部件的 Paint 事件绘制参数指定的事件发送者。
+\see Renderer::Paint 。
+\since build 263 。
+
+以 e.Sender() 作为绘制目标，判断其边界是否和区域 e.ClipArea 相交，
+若相交区域非空则调用 wgt 的渲染器的 Paint 方法绘制 。
+调用中， e.ClipArea 被覆盖为相交区域。
+之后， e.ClipArea 可继续被 e.GetSender() 的渲染器的 Paint 方法修改。
+*/
+void
+PaintChild(IWidget& wgt, PaintEventArgs&& e);
+/*
+\brief 调用指定子部件的 Paint 事件绘制指定子部件。
+\note 使用指定子部件作为事件发送者并复制参数。
+\since build 263 。
+
+以 wgt 作为绘制目标，判断其边界是否和区域 pc.ClipArea 相交，
+若相交区域非空则调用 wgt 的渲染器的 Paint 方法绘制 。
+*/
+void
+PaintChild(IWidget& wgt, const PaintContext& pc);
+
+
+/*
+\brief 渲染：更新，若缓冲存储不可用则在更新前刷新发送者。
+\since build 256 。
+
+以 e.GetSender() 作为绘制目标，调用 e.GetSender() 的 Refresh 方法刷新。
+*/
+void
+Render(PaintEventArgs&& e);
 
 /*!
 \brief 请求提升至容器顶端。
-
-\todo 完全实现提升 IWidget 至容器顶端（目前仅实现父容器为 Panel 的情形）。
 \since build 192 。
+\todo 完全实现提升 IWidget 至容器顶端（目前仅实现父容器为 Panel 的情形）。
 */
 void
 RequestToTop(IWidget&);
@@ -243,46 +317,6 @@ RequestToTop(IWidget&);
 */
 void
 Show(IWidget&);
-
-/*!
-\brief 隐藏部件。
-
-依次释放部件焦点、设置部件不可见性和无效化。
-\since build 229 。
-*/
-void
-Hide(IWidget&);
-
-/*!
-\brief 关闭部件。
-
-隐藏部件后取消容器（若存在）焦点状态。
-\since build 275 。
-*/
-void
-Close(IWidget&);
-
-
-/*!
-\brief 部件控制器。
-\since build 236 。
-*/
-class WidgetController : public AController
-{
-public:
-	GEventWrapper<EventT(HPaintEvent), UIEventArgs> Paint;
-
-	/*!
-	\brief 构造：使用指定可用性。
-	*/
-	explicit
-	WidgetController(bool = false);
-
-	ImplI(AController) EventMapping::ItemType&
-	GetItemRef(const VisualEvent&);
-
-	ImplI(AController) DefClone(WidgetController, Clone)
-};
 
 
 /*!
@@ -311,9 +345,10 @@ public:
 	\pre <tt>bool(pView_) && bool(pRenderer_)</tt> 。
 	*/
 	PDefTmplH3(_tView, _tRenderer, _tController)
-	inline Widget(_tView&& pView_ = unique_raw(new View()),
-		_tRenderer&& pRenderer_ = unique_raw(new Renderer()),
-		_tController pController_ = nullptr)
+	explicit inline
+	Widget(_tView&& pView_ = make_unique<View>(),
+		_tRenderer&& pRenderer_ = make_unique<Renderer>(),
+		_tController&& pController_ = nullptr)
 		: pView(yforward(pView_)), pRenderer(yforward(pRenderer_)),
 		pController(yforward(pController_)),
 		BackColor(Drawing::ColorSpace::White),
@@ -376,14 +411,6 @@ public:
 	ImplI(IWidget) Rect
 	Refresh(const PaintContext&);
 };
-
-inline AController&
-Widget::GetController() const
-{
-	if(!pController)
-		throw BadEvent();
-	return *pController;
-}
 
 YSL_END_NAMESPACE(Components)
 

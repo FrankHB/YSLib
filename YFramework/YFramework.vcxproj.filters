@@ -581,9 +581,6 @@
     <ClInclude Include="include\freetype\ttunpat.h">
       <Filter>头文件\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\UI\Border.h">
-      <Filter>头文件\YSLib\UI</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Helper\ShellHelper.h">
       <Filter>头文件\YSLib\Helper</Filter>
     </ClInclude>
@@ -591,6 +588,9 @@
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\ComboList.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\YBrush.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
   </ItemGroup>
@@ -748,9 +748,6 @@
     <ClCompile Include="doc\ex.cpp">
       <Filter>文档</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\UI\Border.cpp">
-      <Filter>源文件\YSLib\UI</Filter>
-    </ClCompile>
     <ClCompile Include="source\YSLib\Helper\ShellHelper.cpp">
       <Filter>源文件\YSLib\Helper</Filter>
     </ClCompile>
@@ -758,6 +755,12 @@
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\ComboList.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ywgtevt.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\YBrush.cpp">
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
   </ItemGroup>

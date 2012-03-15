@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1795;
+\version r1799;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2012-01-31 05:07 +0800;
+	2012-03-12 12:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -197,9 +197,10 @@ public:
 	/*!
 	\brief 调用：使用非 _type 类型对象引用和参数。
 	\note 检测空指针；使用 dynamic_cast 测试类型。
+	\since build 293 。
 	*/
 	_tRet
-	operator()(_tNew& o, _tPara arg)
+	operator()(_tNew& o, _tPara&& arg)
 	{
 		if(_pm)
 			try
@@ -245,9 +246,10 @@ public:
 	/*!
 	\brief 调用：使用替换对象引用和参数。
 	\note 检测空指针。
+	\since build 293 。
 	*/
 	_tRet
-	operator()(_tPara arg)
+	operator()(_tPara&& arg)
 	{
 		if(_po && _pm)
 			return (_po->*_pm)(yforward(arg));
@@ -255,10 +257,11 @@ public:
 	/*!
 	\brief 调用：使用替换对象引用和参数。
 	\note 检测空指针。
+	\since build 293 。
 	*/
 	template<class _tN>
 	_tRet
-	operator()(_tN&, _tPara arg)
+	operator()(_tN&, _tPara&& arg)
 	{
 		if(_po && _pm)
 			return (_po->*_pm)(yforward(arg));
@@ -316,7 +319,7 @@ public:
 	{}
 
 	template<typename... _tArgs>
-	GFunctor(_tArgs... _args)
+	GFunctor(_tArgs&&... _args)
 		: PolymorphicFunctorBase(),
 		_tFunctor(yforward(_args)...)
 	{}

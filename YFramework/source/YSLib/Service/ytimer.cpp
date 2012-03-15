@@ -11,12 +11,12 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r1702;
+\version r1706;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2012-03-07 21:36 +0800;
+	2012-03-12 20:23 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -67,11 +67,6 @@ Delay(const TimeSpan& ms)
 
 Timer::TimerMap Timer::mTimers;
 
-Timer::Timer(u32 i, bool b)
-	: nBase(), nInterval(i * 1000000ULL)
-{
-	Init(*this, b);
-}
 Timer::Timer(const Duration& i, bool b)
 	: nBase(), nInterval(i)
 {

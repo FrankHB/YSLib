@@ -152,7 +152,6 @@
     <ClInclude Include="include\YSLib\Service\ygdi.h" />
     <ClInclude Include="include\YSLib\Service\yres.h" />
     <ClInclude Include="include\YSLib\Service\ytimer.h" />
-    <ClInclude Include="include\YSLib\UI\Border.h" />
     <ClInclude Include="include\YSLib\UI\button.h" />
     <ClInclude Include="include\YSLib\UI\ComboList.h" />
     <ClInclude Include="include\YSLib\UI\form.h" />
@@ -165,6 +164,7 @@
     <ClInclude Include="include\YSLib\UI\textlist.h" />
     <ClInclude Include="include\YSLib\UI\uicontx.h" />
     <ClInclude Include="include\YSLib\UI\viewer.hpp" />
+    <ClInclude Include="include\YSLib\UI\YBrush.h" />
     <ClInclude Include="include\YSLib\UI\ycomp.h" />
     <ClInclude Include="include\YSLib\UI\yconsole.h" />
     <ClInclude Include="include\YSLib\UI\ycontrol.h" />
@@ -212,7 +212,6 @@
     <ClCompile Include="source\YSLib\Service\ygdi.cpp" />
     <ClCompile Include="source\YSLib\Service\yres.cpp" />
     <ClCompile Include="source\YSLib\Service\ytimer.cpp" />
-    <ClCompile Include="source\YSLib\UI\Border.cpp" />
     <ClCompile Include="source\YSLib\UI\button.cpp" />
     <ClCompile Include="source\YSLib\UI\ComboList.cpp" />
     <ClCompile Include="source\YSLib\UI\form.cpp" />
@@ -224,6 +223,7 @@
     <ClCompile Include="source\YSLib\UI\textarea.cpp" />
     <ClCompile Include="source\YSLib\UI\textlist.cpp" />
     <ClCompile Include="source\YSLib\UI\uicontx.cpp" />
+    <ClCompile Include="source\YSLib\UI\YBrush.cpp" />
     <ClCompile Include="source\YSLib\UI\yconsole.cpp" />
     <ClCompile Include="source\YSLib\UI\ycontrol.cpp" />
     <ClCompile Include="source\YSLib\UI\ydesktop.cpp" />
@@ -233,6 +233,7 @@
     <ClCompile Include="source\YSLib\UI\yrender.cpp" />
     <ClCompile Include="source\YSLib\UI\ystyle.cpp" />
     <ClCompile Include="source\YSLib\UI\yuicont.cpp" />
+    <ClCompile Include="source\YSLib\UI\ywgtevt.cpp" />
     <ClCompile Include="source\YSLib\UI\ywgtview.cpp" />
     <ClCompile Include="source\YSLib\UI\ywidget.cpp" />
     <ClCompile Include="source\YSLib\UI\ywindow.cpp" />

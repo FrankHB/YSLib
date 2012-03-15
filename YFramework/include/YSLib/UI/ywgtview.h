@@ -11,13 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r1403;
+\version r1428;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 258 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-02-05 21:46 +0800;
+	2012-03-14 20:14 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,6 @@
 #define YSL_INC_UI_YWGTVIEW_H_
 
 #include "ycomp.h"
-#include "../Service/yres.h"
 
 YSL_BEGIN
 
@@ -208,33 +207,6 @@ View::View(View&& wv)
 	yunseq(wv.pContainer = nullptr, wv.pDependency = nullptr,
 		wv.pFocusing = nullptr);
 }
-
-
-/*!
-\brief 背景模块。
-\since build 260 。
-*/
-class MBackground
-{
-protected:
-	mutable shared_ptr<Drawing::Image> hBgImage; //!< 背景图像句柄。
-
-public:
-	/*!
-	\brief 构造：使用指定边界和背景图像。
-	*/
-	explicit
-	MBackground(const shared_ptr<Drawing::Image>&
-		= share_raw(new Drawing::Image()));
-
-	DefGetter(const ynothrow, shared_ptr<Drawing::Image>&, BackgroundImagePtr,
-		hBgImage)
-	/*!
-	\brief 取位图背景指针。
-	*/
-	BitmapPtr
-	GetBackgroundPtr() const;
-};
 
 YSL_END_NAMESPACE(Components)
 

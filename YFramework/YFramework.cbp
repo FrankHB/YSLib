@@ -109,9 +109,9 @@
 		<Unit filename="include\YSLib\Service\ygdi.h" />
 		<Unit filename="include\YSLib\Service\yres.h" />
 		<Unit filename="include\YSLib\Service\ytimer.h" />
-		<Unit filename="include\YSLib\UI\Border.h" />
 		<Unit filename="include\YSLib\UI\ComboList.h" />
 		<Unit filename="include\YSLib\UI\Selector.h" />
+		<Unit filename="include\YSLib\UI\YBrush.h" />
 		<Unit filename="include\YSLib\UI\button.h" />
 		<Unit filename="include\YSLib\UI\form.h" />
 		<Unit filename="include\YSLib\UI\label.h" />
@@ -251,9 +251,9 @@
 		<Unit filename="source\YSLib\Service\ygdi.cpp" />
 		<Unit filename="source\YSLib\Service\yres.cpp" />
 		<Unit filename="source\YSLib\Service\ytimer.cpp" />
-		<Unit filename="source\YSLib\UI\Border.cpp" />
 		<Unit filename="source\YSLib\UI\ComboList.cpp" />
 		<Unit filename="source\YSLib\UI\Selector.cpp" />
+		<Unit filename="source\YSLib\UI\YBrush.cpp" />
 		<Unit filename="source\YSLib\UI\button.cpp" />
 		<Unit filename="source\YSLib\UI\form.cpp" />
 		<Unit filename="source\YSLib\UI\label.cpp" />
@@ -272,6 +272,7 @@
 		<Unit filename="source\YSLib\UI\yrender.cpp" />
 		<Unit filename="source\YSLib\UI\ystyle.cpp" />
 		<Unit filename="source\YSLib\UI\yuicont.cpp" />
+		<Unit filename="source\YSLib\UI\ywgtevt.cpp" />
 		<Unit filename="source\YSLib\UI\ywgtview.cpp" />
 		<Unit filename="source\YSLib\UI\ywidget.cpp" />
 		<Unit filename="source\YSLib\UI\ywindow.cpp" />

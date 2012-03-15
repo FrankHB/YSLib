@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11616;
+\version r11619;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-03-07 12:19 +0800;
+	2012-03-14 20:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -894,10 +894,12 @@ $header Adaptor::YReference
 	using std::dynamic_pointer_cast;
 	using std::enable_shared_from_this;
 	using std::get_deleter;
+	using std::make_shared;
 	using std::shared_ptr;
 	using std::static_pointer_cast;
 	using std::unique_ptr;
 	using std::weak_ptr;
+	using ystdex::make_unique;
 	using ystdex::raw;
 	using ystdex::reset;
 	using ystdex::share_raw;
@@ -943,6 +945,8 @@ $header UI::YComponent : YMessage
 {
 	namespace Components
 	{
+		typedef HBrush;
+
 		using Drawing::PixelType, Drawing::BitmapPtr, Drawing::ConstBitmapPtr, Drawing::ScreenBufferType, Drawing::Color;
 
 		using Drawing::Point, Drawing::Vec, Drawing::Size, Drawing::Rect;

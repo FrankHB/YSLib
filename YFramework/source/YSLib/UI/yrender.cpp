@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1539;
+\version r1558;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2012-02-04 07:28 +0800;
+	2012-03-14 09:32 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,12 +34,13 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 Rect
-Renderer::Refresh(IWidget& wgt, PaintContext&& pc)
+Renderer::Paint(IWidget& wgt, PaintEventArgs&& e)
 {
-	YAssert(&wgt.GetRenderer() == this,
-		"Invalid widget found @ Render::Refresh;");
+	YAssert(&e.GetSender().GetRenderer() == this,
+		"Invalid widget found @ Render::Paint;");
 
-	return wgt.Refresh(pc);
+	CallEvent<Components::Paint>(wgt, e);
+	return e.ClipArea;
 }
 
 
@@ -63,14 +64,14 @@ BufferedRenderer::CommitInvalidation(const Rect& r)
 }
 
 Rect
-BufferedRenderer::Refresh(IWidget& wgt, PaintContext&& pc)
+BufferedRenderer::Paint(IWidget& wgt, PaintEventArgs&& e)
 {
-	YAssert(&wgt.GetRenderer() == this,
-		"Invalid widget found @ BufferedRenderer::Refresh;");
+	YAssert(&e.GetSender().GetRenderer() == this,
+		"Invalid widget found @ BufferedRenderer::Paint;");
 
-	Rect r(Validate(wgt, pc));
+	Rect r(Validate(wgt, e.GetSender(), e));
 
-	UpdateTo(pc);
+	UpdateTo(e);
 	return r;
 }
 
@@ -85,14 +86,15 @@ BufferedRenderer::UpdateTo(const PaintContext& pc) const
 }
 
 Rect
-BufferedRenderer::Validate(IWidget& wgt, const PaintContext& pc)
+BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
+	const PaintContext& pc)
 {
 	if(RequiresRefresh())
 	{
-		const auto& l(GetLocationOf(wgt));
+		const auto& l(GetLocationOf(sender));
 		const Rect& clip(Intersect(pc.ClipArea, rInvalidated + l));
 
-		if(!IgnoreBackground && FetchContainerPtr(wgt))
+		if(!IgnoreBackground && FetchContainerPtr(sender))
 		{
 			const auto& g(GetContext());
 
@@ -100,74 +102,15 @@ BufferedRenderer::Validate(IWidget& wgt, const PaintContext& pc)
 				clip.GetPoint() - pc.Location, clip, clip);
 		}
 
-		Rect result(wgt.Refresh(PaintContext(GetContext(), Point::Zero,
-			clip - l)));
+		PaintEventArgs e(sender, PaintContext(GetContext(), Point::Zero,
+			clip - l));
 
+		CallEvent<Components::Paint>(wgt, e);
 		//清除无效区域：只设置一个分量为零可能会使 CommitInvalidation 结果错误。
 		static_cast<Size&>(rInvalidated) = Size::Zero;
-		return result;
+		return e.ClipArea;
 	}
 	return Rect::Empty;
-}
-
-
-void
-SetInvalidationOf(IWidget& wgt)
-{
-	wgt.GetRenderer().CommitInvalidation(Rect(Point::Zero, GetSizeOf(wgt)));
-}
-
-void
-SetInvalidationToParent(IWidget& wgt)
-{
-	if(const auto pCon = FetchContainerPtr(wgt))
-		pCon->GetRenderer().CommitInvalidation(GetBoundsOf(wgt));
-}
-
-
-void
-Invalidate(IWidget& wgt)
-{
-	Invalidate(wgt, Rect(Point::Zero, GetSizeOf(wgt)));
-}
-void
-Invalidate(IWidget& wgt, const Rect& bounds)
-{
-	auto pWgt(&wgt);
-	Rect r(bounds);
-
-	do
-	{
-		r = pWgt->GetRenderer().CommitInvalidation(r);
-		r += GetLocationOf(*pWgt);
-	}while((pWgt = FetchContainerPtr(*pWgt)));
-}
-
-void
-PaintChild(IWidget& wgt, PaintEventArgs&& e)
-{
-	auto& sender(e.GetSender());
-
-	e.Location += GetLocationOf(sender);
-	e.ClipArea = Intersect(e.ClipArea, Rect(e.Location, GetSizeOf(sender)));
-	if(!e.ClipArea.IsUnstrictlyEmpty())
-		CallEvent<Paint>(wgt, e);
-}
-void
-PaintChild(IWidget& wgt, const PaintContext& pc)
-{
-	PaintChild(wgt, PaintEventArgs(wgt, pc));
-}
-
-void
-Render(IWidget& wgt, PaintContext&& pc)
-{
-	pc.ClipArea = wgt.GetRenderer().Refresh(wgt, std::move(pc));
-}
-void
-Render(PaintEventArgs&& e)
-{
-	return Render(e.GetSender(), std::move(static_cast<PaintContext&>(e)));
 }
 
 YSL_END_NAMESPACE(Components)

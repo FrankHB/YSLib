@@ -1,6 +1,6 @@
 ﻿
 /*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,14 +12,14 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3302;
+\version r3308;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-12-04 12:59 +0800;
-\par 字符集:
+	2012-03-15 15:58 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YObject;
@@ -101,14 +101,14 @@ private:
 				YAssert(y, "Null pointer found"
 					" @ ValueObject::GManager::Do#Clone;");
 
-				x = new _type(*static_cast<_type*>(y));
+				x = new _type(*static_cast<const _type*>(y));
 				return false;
 			case Equality:
 				YAssert(x && y, "Null pointer found"
 					" @ ValueObject::GManager::Do#Equlitiy;");
 
-				return AreEqual(*static_cast<_type*>(x),
-					*static_cast<_type*>(y));
+				return AreEqual(*static_cast<const _type*>(x),
+					*static_cast<const _type*>(y));
 				return false;
 			}
 			return false;

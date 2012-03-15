@@ -11,12 +11,12 @@
 /*!	\file ywgtview.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r1147;
+\version r1155;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-02-05 21:48 +0800;
+	2012-03-14 20:14 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -66,17 +66,6 @@ View::SetTransparent(bool b)
 		pDependency->GetView().SetTransparent(b);
 	else
 		visual.SetTransparent(b);
-}
-
-
-MBackground::MBackground(const shared_ptr<Image>& hImg)
-	: hBgImage(hImg)
-{}
-
-BitmapPtr
-MBackground::GetBackgroundPtr() const
-{
-	return hBgImage ? hBgImage->GetImagePtr() : nullptr;
 }
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2781;
+\version r2793;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-02-23 18:35 +0800;
+	2012-03-13 14:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YSL_INC_UI_YGUI_H_
 #define YSL_INC_UI_YGUI_H_
 
-#include "ycontrol.h"
+#include "ywgtevt.h"
 #include "../Core/yshell.h"
 #include "../Core/yfunc.hpp"
 #include "../Service/ytimer.h"
@@ -154,19 +154,6 @@ IsFocusedByShell(const IWidget& wgt, const GUIState& st = FetchGUIState())
 {
 	return st.GetTouchDownPtr() == &wgt;
 }
-
-
-/*!
-\brief 级联请求部件及上层容器焦点。
-*/
-void
-RequestFocusCascade(IWidget&);
-
-/*!
-\brief 级联释放部件及上层容器焦点。
-*/
-void
-ReleaseFocusCascade(IWidget&);
 
 YSL_END_NAMESPACE(Components)
 

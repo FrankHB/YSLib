@@ -11,13 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4764;
+\version r4767;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2012-01-22 19:31 +0800;
+	2012-03-14 20:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "ypanel.h"
 #include "../Service/yblit.h"
+#include "YBrush.h"
 
 YSL_BEGIN
 
@@ -49,7 +50,7 @@ public:
 	*/
 	explicit
 	Window(const Rect& = Rect::Empty,
-		const shared_ptr<Drawing::Image>& = share_raw(new Drawing::Image()));
+		const shared_ptr<Drawing::Image>& = make_shared<Drawing::Image>());
 	inline DefDeMoveCtor(Window)
 
 	virtual void

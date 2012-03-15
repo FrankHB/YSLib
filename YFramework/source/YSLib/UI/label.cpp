@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2180;
+\version r2183;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2012-02-19 21:16 +0800;
+	2012-03-12 13:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YSLib/UI/label.h"
 #include "YSLib/Service/TextLayout.h"
+#include "YSLib/UI/ywgtevt.h"
 
 YSL_BEGIN
 
@@ -107,7 +108,7 @@ MTextList::MTextList(const shared_ptr<ListType>& h, const Drawing::Font& fnt)
 	hList(h), text_state(Font)
 {
 	if(!hList)
-		hList = share_raw(new ListType());
+		hList = make_shared<ListType>();
 }
 
 MTextList::ItemType*

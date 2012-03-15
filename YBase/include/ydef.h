@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2729;
+\version r2740;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-03-06 09:38 +0800;
+	2012-03-12 12:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -205,14 +205,22 @@ namespace ystdex
 	{};
 
 
-	//! \brief 根据参数类型使用 std::forward 传递对应参数，保持左值性和常量性。
-	#define yforward(_expr) std::forward<typename \
-		std::remove_reference<decltype(_expr)>::type>(_expr)
+	/*!
+	\brief 根据参数类型使用 std::forward 传递对应参数。
+	\since build 245 。
+
+	传递参数：按类型保持值类别(value catory) 和常量性。
+	当表达式类型为函数或函数引用类型时，结果为左值(lvalue) ，否则：
+	当且仅当左值引用类型时结果为左值（此时类型不变）；
+	否则结果为 xvalue （对应的右值引用类型）。
+	*/
+	#define yforward(_expr) std::forward<decltype(_expr)>(_expr)
 
 	/*!
 	\brief 无序列依赖表达式组求值实现。
 	\return 第一个参数的引用。
 	\note 无异常抛出。
+	\since build 276 。
 	*/
 	template<typename _type, typename... _tParams>
 	yconstfn auto
@@ -229,6 +237,7 @@ namespace ystdex
 	\warning 非一元形式禁止用于产生对于同一对象的未序列化的(unsequenced) 副作用
 		的表达式，否则存在未定义行为。
 	\warning 非一元形式不适用于对顺序有依赖的表达式，包括所有可能抛出异常的表达式。
+	\since build 266 。
 	*/
 	#define yunseq ystdex::unsequenced
 }

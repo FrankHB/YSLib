@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4657;
+\version r4662;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2012-03-07 21:38 +0800;
+	2012-03-15 12:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -25,10 +25,12 @@
 */
 
 
+#include "YSLib/UI/ycontrol.h"
 #include "YSLib/UI/ygui.h"
 #include "YSLib/UI/yuicont.h"
 #include "YSLib/Core/ystorage.hpp"
 #include <ystdex/algorithm.hpp>
+#include "YSLib/UI/yrender.h"
 
 YSL_BEGIN
 
@@ -222,7 +224,7 @@ Control::Control(const Rect& r)
 	: Widget(new View(r), new Renderer(),
 	new Controller(true, FetchPrototype<ControlEventMap>()))
 {
-//	const auto& h([this](EventArgs&&){
+//	const auto& h([this](UIEventArgs&&){
 //		Invalidate(*this);
 //	});
 // FIXME: code above causes g++ 4.6 internal compiler error: 
