@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1997;
+\version r2007;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-03-12 09:08 +0800;
+	2012-03-15 19:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -53,7 +53,7 @@ ShlDS::ShlDS(const shared_ptr<Desktop>& h_dsk_up,
 	hDskUp(h_dsk_up ? h_dsk_up : make_shared<Desktop>(
 		FetchGlobalInstance().GetScreenUp())),
 	hDskDown(h_dsk_down ? h_dsk_down : make_shared<Desktop>(
-		FetchGlobalInstance().GetScreenDown()))
+		FetchGlobalInstance().GetScreenDown())), bUpdateUp(), bUpdateDown()
 {}
 
 void
@@ -97,10 +97,17 @@ ShlDS::OnGotMessage(const Message& msg)
 					Rect(Point::Zero, GetSizeOf(*h))));
 		}
 #endif
-		yunseq(hDskUp->Validate(), hDskDown->Validate());
-		OnPaint();
-		hDskUp->Update(),
-		hDskDown->Update();
+		{
+			using Drawing::Rect;
+
+			yunseq(bUpdateUp = hDskUp->Validate() != Rect::Empty,
+				bUpdateDown = hDskDown->Validate() != Rect::Empty);
+			OnPaint();
+			if(bUpdateUp)
+				hDskUp->Update();
+			if(bUpdateDown)
+				hDskDown->Update();
+		}
 		return 0;
 	case SM_INPUT:
 		//平台相关输入处理。

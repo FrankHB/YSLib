@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4912;
+\version r4993;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2012-03-12 12:04 +0800;
+	2012-03-17 13:26 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,8 @@
 
 #include "yobject.h"
 #include "yfunc.hpp"
+#include <ystdex/iterator.hpp> // for ystdex::get_value;
+#include <ystdex/algorithm.hpp> // for ystdex::erase_all_if;
 
 YSL_BEGIN
 
@@ -77,19 +79,20 @@ public:
 	yconstfn DefDeMoveCtor(GHEvent)
 	/*!
 	\brief 构造：使用函数指针。
-	\note 匹配函数引用。
+	\since build 294 。
 	*/
 	yconstfn
-	GHEvent(FuncType* f)
+	GHEvent(const FuncType* f)
 		: std::function<FuncType>(f), comp_eq(GEquality<FuncType>::AreEqual)
 	{}
 	/*!
-	\brief 使用函数对象右值引用。
-	\since build 293 。
+	\brief 使用函数对象引用。
+	\since build 294 。
 	*/
 	template<class _tFunc>
 	yconstfn
-	GHEvent(_tFunc&& f)
+	GHEvent(_tFunc&& f, typename std::enable_if<std::is_object<typename
+		std::remove_reference<_tFunc>::type>::value, int>::type = 0)
 		: std::function<FuncType>(yforward(f)),
 		comp_eq(GetComparer(f, f))
 	{}
@@ -145,6 +148,20 @@ private:
 
 
 /*!
+\brief 事件优先级。
+\since build 294 。
+*/
+typedef u8 EventPriority;
+
+
+/*!
+\brief 默认事件优先级。
+\since build 294 。
+*/
+yconstexpr EventPriority DefaultEventPriority(0x80);
+
+
+/*!
 \brief 事件类模板。
 \note 支持顺序多播。
 \warning 非虚析构。
@@ -157,13 +174,20 @@ public:
 	typedef _tEventArgs EventArgsType;
 	typedef void FuncType(_tEventArgs&&);
 	typedef GHEvent<_tEventArgs> HandlerType;
-	typedef list<HandlerType> ListType;
-	typedef typename ListType::size_type SizeType;
+	/*!
+	\brief 容器类型。
+	\since build 294 。
+	*/
+	typedef multimap<EventPriority, HandlerType, std::greater<EventPriority>>
+		ContainerType;
+	typedef typename ContainerType::size_type SizeType;
 
-protected:
-	ListType List; //!< 响应列表。
+	/*!
+	\brief 响应列表。
+	\since build 294 。
+	*/
+	ContainerType List;
 
-public:
 	/*!
 	\brief 无参数构造：默认实现。
 	\note 得到空实例。
@@ -233,14 +257,13 @@ public:
 	}
 
 	/*!
-	\brief 添加事件响应：使用事件处理器。
+	\brief 添加事件响应：使用 const 事件处理器和优先级。
 	\note 不检查是否已经在列表中。
 	*/
 	inline GEvent&
 	operator+=(const HandlerType& h)
 	{
-		this->List.push_back(h);
-		return *this;
+		return this->Add(h);
 	}
 	/*!
 	\brief 添加事件响应：使用事件处理器。
@@ -249,8 +272,7 @@ public:
 	inline GEvent&
 	operator+=(HandlerType&& h)
 	{
-		this->List.push_back(std::move(h));
-		return *this;
+		return this->Add(std::move(h));
 	}
 	/*!
 	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
@@ -260,26 +282,29 @@ public:
 	inline GEvent&
 	operator+=(_type&& _arg)
 	{
-		return *this += HandlerType(yforward(_arg));
+		return this->Add(HandlerType(yforward(_arg)));
 	}
 
 	/*!
-	\brief 移除事件响应：目标为指定事件处理器。
+	\brief 移除事件响应：指定 const 事件处理器。
 	*/
-	inline GEvent&
+	GEvent&
 	operator-=(const HandlerType& h)
 	{
-		this->List.remove(h);
+		ystdex::erase_all_if<ContainerType>(List, List.begin(), List.end(),
+			[&](decltype(*this->List.begin())& pr){
+			return pr.second == h;
+		});
 		return *this;
 	}
 	/*!
-	\brief 移除事件响应：目标为指定事件处理器。
+	\brief 移除事件响应：指定非 const 事件处理器。
+	\note 防止模板 <tt>operator-=</tt> 递归。
 	*/
 	inline GEvent&
 	operator-=(HandlerType&& h)
 	{
-		this->List.remove(std::move(h));
-		return *this;
+		return *this -= static_cast<const HandlerType&>(h);
 	}
 	/*!
 	\brief 移除事件响应：目标为单一构造参数指定的指定事件处理器。
@@ -293,56 +318,91 @@ public:
 	}
 
 	/*!
-	\brief 添加事件响应：使用对象引用和成员函数指针。
+	\brief 添加事件响应：使用 const 事件处理器和优先级。
 	\note 不检查是否已经在列表中。
-	\since build 276 。
-	*/
-	template<class _tObj, class _type>
-	inline GEvent&
-	Add(_tObj& obj, void(_type::*pm)(_tEventArgs&&))
-	{
-		return *this += HandlerType(static_cast<_type&>(obj), std::move(pm));
-	}
-
-	/*!
-	\brief 添加事件响应：使用事件处理器。
+	\since build 294 。
 	*/
 	inline GEvent&
-	AddUnique(const HandlerType& h)
+	Add(const HandlerType& h, EventPriority prior = DefaultEventPriority)
 	{
-		return *this -= h += h;
+		this->List.insert(make_pair(prior, h));
+		return *this;
 	}
 	/*!
-	\brief 添加事件响应：使用事件处理器。
-	\note 不重复添加。
+	\brief 添加事件响应：使用非 const 事件处理器和优先级。
+	\note 不检查是否已经在列表中。
+	\since build 294 。
 	*/
 	inline GEvent&
-	AddUnique(HandlerType&& h)
+	Add(HandlerType&& h, EventPriority prior = DefaultEventPriority)
 	{
-		return *this -= std::move(h) += (std::move(h));
+		this->List.insert(make_pair(prior, std::move(h)));
+		return *this;
 	}
 	/*!
-	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
-	\note 不重复添加。
-	\since build 293 。
+	\brief 添加事件响应：使用单一构造参数指定的事件处理器和优先级。
+	\note 不检查是否已经在列表中。
+	\since build 294 。
 	*/
 	PDefTmplH1(_type)
 	inline GEvent&
-	AddUnique(_type&& _arg)
+	Add(_type&& _arg, EventPriority prior = DefaultEventPriority)
 	{
-		return this->AddUnique(HandlerType(yforward(_arg)));
+		return this->Add(HandlerType(yforward(_arg)), prior);
 	}
 	/*!
-	\brief 添加事件响应：使用对象引用和成员函数指针。
-	\note 不重复添加。
-	\since build 276 。
+	\brief 添加事件响应：使用对象引用、成员函数指针和优先级。
+	\note 不检查是否已经在列表中。
+	\since build 294 。
 	*/
 	template<class _tObj, class _type>
 	inline GEvent&
-	AddUnique(_type& obj, void(_type::*pm)(_tEventArgs&&))
+	Add(_tObj& obj, void(_type::*pm)(_tEventArgs&&),
+		EventPriority prior = DefaultEventPriority)
+	{
+		return this->Add(HandlerType(static_cast<_type&>(obj), std::move(pm)),
+			prior);
+	}
+
+	/*!
+	\brief 添加单一事件响应：使用事件处理器和优先级。
+	\since build 294 。
+	*/
+	inline GEvent&
+	AddUnique(const HandlerType& h, EventPriority prior = DefaultEventPriority)
+	{
+		return (*this -= h).Add(h, prior);
+	}
+	/*!
+	\brief 添加单一事件响应：使用事件处理器。
+	\since build 294 。
+	*/
+	inline GEvent&
+	AddUnique(HandlerType&& h, EventPriority prior = DefaultEventPriority)
+	{
+		return (*this -= h).Add(std::move(h), prior);
+	}
+	/*!
+	\brief 添加单一事件响应：使用为单一构造参数指定的事件处理器和优先级。
+	\since build 294 。
+	*/
+	PDefTmplH1(_type)
+	inline GEvent&
+	AddUnique(_type&& _arg, EventPriority prior = DefaultEventPriority)
+	{
+		return this->AddUnique(HandlerType(yforward(_arg)), prior);
+	}
+	/*!
+	\brief 添加单一事件响应：使用对象引用和成员函数指针。
+	\since build 294 。
+	*/
+	template<class _tObj, class _type>
+	inline GEvent&
+	AddUnique(_type& obj, void(_type::*pm)(_tEventArgs&&),
+		EventPriority prior = DefaultEventPriority)
 	{
 		return this->AddUnique(HandlerType(static_cast<_type&>(obj),
-			std::move(pm)));
+			std::move(pm)), prior);
 	}
 
 	/*!
@@ -359,11 +419,13 @@ public:
 	/*!
 	\brief 判断是否包含指定事件响应。
 	*/
-	inline bool
+	bool
 	Contains(const HandlerType& h) const
 	{
-		return std::find(this->List.begin(), this->List.end(), h)
-			!= this->List.end();
+		using ystdex::get_value;
+
+		return std::find(this->List.cbegin() | get_value,
+			this->List.cend() | get_value, h) != this->List.cend();
 	}
 	/*!
 	\brief 判断是否包含单一构造参数指定的事件响应。
@@ -384,13 +446,15 @@ public:
 	SizeType
 	operator()(_tEventArgs&& e) const
 	{
+		using ystdex::get_value;
+
 		SizeType n(0);
 
 		std::for_each(this->List.cbegin(), this->List.cend(),
-			[&](decltype(*this->List.cbegin())& f){
+			[&](decltype(*this->List.cbegin())& pr){
 			try
 			{
-				f(std::move(e));
+				pr.second(std::move(e));
 			}
 			catch(std::bad_function_call&)
 			{}

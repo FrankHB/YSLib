@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2514;
+\version r2519;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2012-03-11 15:51 +0800;
+	2012-03-17 19:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -53,7 +53,7 @@ namespace platform
 	char*
 	getcwd_n(char* buf, std::size_t t)
 	{
-		if(buf)
+		if(YCL_LIKELY(buf))
 			return ::getcwd(buf, t);
 		return nullptr;
 	}
@@ -162,7 +162,7 @@ namespace platform
 	yassert(bool exp, const char* expstr, const char* message,
 		int line, const char* file)
 	{
-		if(!exp)
+		if(YCL_UNLIKELY(!exp))
 		{
 			yprintf("Assertion failed: \n"
 				"%s\nMessage: \n%s\nAt line %i in file \"%s\".\n",
@@ -182,7 +182,7 @@ namespace platform
 	HDirectory::operator++()
 	{
 		LastError = 0;
-		if(IsValid())
+		if(YCL_LIKELY(IsValid()))
 		{
 			auto dp(::readdir(dir));
 
@@ -339,7 +339,7 @@ namespace platform
 	{
 	//	PrintConsole* p(dspIndex ? consoleMainInit() : consoleDemoInit());
 
-		if((dspIndex ? consoleMainInit() : consoleDemoInit()))
+		if(YCL_LIKELY(dspIndex ? consoleMainInit() : consoleDemoInit()))
 		{
 			//使用 ANSI Escape 序列 CUrsor Position 指令设置光标位置为左上角。
 			std::printf("\x1b[0;0H");
@@ -421,7 +421,7 @@ namespace platform
 	{
 		touchRead(&tp);
 		//修正触摸位置。
-		if(tp.px != 0 && tp.py != 0)
+		if(YCL_LIKELY(tp.px != 0 && tp.py != 0))
 		{
 			--tp.px,
 			--tp.py;

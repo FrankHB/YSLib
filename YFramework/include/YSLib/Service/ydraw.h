@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version 0.1633;
+\version r1655;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:43:26 +0800;
 \par 修改时间:
-	2011-06-16 20:34 +0800;
-\par 字符集:
+	2012-03-17 19:24 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Service::YDraw;
@@ -60,11 +60,12 @@ PutPixel(const Graphics& g, SPos x, SPos y, Color c)
 inline bool
 DrawPoint(const Graphics& g, SPos x, SPos y, Color c)
 {
-	if(g.IsValid() && Rect(g.GetSize()).Contains(x, y))
-	{
-		PutPixel(g, x, y, c);
-		return true;
-	}
+	if(YCL_LIKELY(g.IsValid()))
+		if(Rect(g.GetSize()).Contains(x, y))
+		{
+			PutPixel(g, x, y, c);
+			return true;
+		}
 	return false;
 }
 /*!

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yres.cpp
 \ingroup Service
 \brief 应用程序资源管理模块。
-\version r1238;
+\version r1242;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2011-11-05 11:24 +0800;
-\par 字符集:
+	2012-03-17 20:05 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Service::YResource;
@@ -39,7 +39,7 @@ void
 Image::SetImage(ConstBitmapPtr s, SDst w, SDst h)
 {
 	SetSize(w, h);
-	if(pBuffer && s)
+	if(YCL_LIKELY(pBuffer && s))
 		mmbcpy(pBuffer, s, GetSizeOfBuffer());
 }
 

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3541; *build 293 rev 36;
+\version r3550; *build 294 rev 81;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-03-15 17:01 +0800;
+	2012-03-18 17:36 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -281,6 +281,7 @@ $using:
 \u YBrush
 (
 	\cl SolidBrush,
+	\cl ImageBrush,
 	\cl MBackground,
 	\cl BorderStyle,
 	\cl BorderBrush
@@ -329,13 +330,14 @@ $using:
 ),
 \u Scroll
 (
-	\cl ScrollEventArgs,
-	\cl ATrack,
+	\cl ScrollEventArgs;
+	\cl ATrack;
 	\cl HorizontalTrack,
-	\cl VerticalTrack,
-	\cl AScrollBar,
+	\cl VerticalTrack;
+	\cl AScrollBar;
 	\cl HorizontalScrollBar,
-	\cl VerticalScrollBar
+	\cl VerticalScrollBar;
+	\cl ScrollableContainer
 ),
 \u ComboList
 (
@@ -367,233 +369,263 @@ $using:
 
 $DONE:
 r1:
-* \impl @ \mac yforward $since b245;
+/ \impl @ \ctor WidgetController,
+/ \tr @ \cl Widget $=
 (
-	+ \ft make_unique @ \h Memory;
-	/ @ \h YReference $=
-	(
-		+ using std::make_shared,
-		+ using ystdex::make_unique,
-		-= \inc \h <memory>
-	);
-	/ \simp @ (\h (ShellHelper, Form, YWidgetView, YWindow), \impl \u (Shell_DS,
-		YGlobal, Label, Shells, ShlReader)) ^ make_shared,
-	/ \simp @ (\h YWidget, \impl \u (YWindow, DSReader, HexBrowser, Shells,
-		ShlReader)) ^ (make_shared, make_unique)
+	+ private \mf InitializeEvents,
+	/ \tr \impl @ (\ctor#1, \ctor \t)
 );
 
 r2:
-/= test 1 ^ \conf release;
+/= test 1;
 
-r3-r4:
-/= test 2;
+r3:
+/ \impl @ \ctor Control::ControlEventMap;
 
-r5:
-* \impl @ \mf DualScreenReader::AdjustScrollOffset @ \impl \u DSReader
-	$since b292;
-
-r6:
-/ \a 'inline' @ \ft (make_unique, unique_raw) -> 'yconstfn' @ \h Memory;
+r4-r6:
+/ \impl @ \mf Desktop::Update,
+/= test 2,
+(
+	/ @ \cl ShlDS @ \u Shell_DS $=
+	(
+		+ protected \m bool bUpdateUp, bUpdateDown;
+		/ \tr \impl @ \ctor,
+		/ \impl @ \mf OnGotMessage
+	)
+	/ \impl @ \mf ShlExplorer::OnPaint @ \impl \u Shells;
+);
 
 r7:
-/ \impl @ \ft make_unique @ \h Memory;
-
-r8:
 /= test 3 ^ \conf release;
 
-r9:
-* constructor template parameter type missing '&&' @ \cl Widget $since b258,
-* member function template parameter types missing '&&' @ \h (YEvent, YFunc)
-	$since b210;
-
-r10:
-/= test 4 ^ \conf release;
-
-r11:
-/ @ \u ShlReader $=
+r8:
 (
-	/ @ \cl ShlReader $=
+	+ \fw \decl \cl SolidBrush @ \h YComponent;
+	/ @ \cl Widget $=
 	(
-		/ \m (SmoothScroll, ScrollDuration, SmoothScrollDuration)
-			>> \cl ReaderSetting;
-		/ \tr \impl @ \ctor
+		/ \m Color BackColor -> \m mutable HBrush BackgroundBrush;
+		/ \impl @ \mf (InitializeEvents, Refresh),
+		/ \tr \impl @ \a \ctor,
+		+ \mf GetBackgroundColor
 	);
-	/ @ \un \ns $=
-	(
-		+ \f FetchTimerSetting,
-		/ \f UpdateScrollDropDownList,
-		+ \impl \f UpdateScrollDropDownList#2
-	);
-	/ @ \cl TextReaderSession $=
-	(
-		/ \impl @ \ctor,
-		/ \impl @ \mf (Scroll, ShowSetting)
-	)
-);
-
-r12:
-/ \simp \impl @ ((\ctor, \dtor), \mf ShowSetting) @ TextReaderSession
-	@ \impl \u ShlReader;
-
-r13:
-/ @ \cl Timer @ \u YTimer $=
-(
-	- 1st \ctor;
-	/ \de \arg @ \exp \ctor#2
-);
-/ \tr \impl @ \ctor GUIState,
-/ \simp \impl @ \ctor (TextReaderSession @ \impl \u ShlReader));
-
-r14:
-/ @ \u ShlReader $=
-(
-	/ @ \cl TextReaderSession $=
-	(
-		/ \m (scroll_duration, smooth_scroll_duration) >> \cl SettingPanel;
-		/ \tr \impl @ \ctor
-	);
-	/ \tr \impl @ \ctor @ \cl SettingPanel
-);
-
-r15:
-/ @ \u ShlReader $=
-(
-	/ @ \cl SettingPanel $=
-	(
-		+ \mf SettingPanel& \op<<(const ReaderSetting&),
-		+ \mf SettingPanel& \op>>(ReaderSetting&),
-		/ \tr \impl @ \ctor
-	);
-	/ @ \cl TextReaderSession $=
-	(
-		(
-			/ \impl @ \mf Execute ^ \mf SettingPanel::\op<<,
-			- \mf ShowSetting
-		),
-		/ \simp \impl @ \ctor ^ \mf SettingPanel::\op>>
-	),
-	/ \f UpdateScrollDropDownList#2 @ \un \ns \mg -> \mf SettingPanel::\op<<
-);
-
-r16:
-/= test 5 ^ \conf release;
+	+ \tr \inc \h YBrush @ \h YControl,
+	/ \tr \impl @ \ctor @ \cl (Menu, ProgressBar),
+	/ \tr \impl @ \mf Refresh @ \cl (ProgressBar),
+	/ \tr \impl @ \cl ColorBox @ \u ColorPicker,
+	/ \tr \impl @ \impl \u (Shells, ShlReader, Main_ARM9)
+),
+/= test 4,
+* $doc @ \ft xcrease @ \h Utilities $since b243;
 
 r17:
-/ \a \fw \decl @ \h YRenderer >> \h YComponents,
-/ @ \h YComponents $=
-(
-	/ FwdDeclI(AController) -> \cl AController,
-	+ \fw \decl \cl (Renderer, WidgetController)
-),
-(
-	+ \impl \u YWidgetEvent["ywgtevt.cpp"];
-	+ \inc \h YRender @ \impl \u YWidgetEvent;
-	/ \cl WidgetController @ \h YWidget >> \u YWidgetEvent,
-	/ \mf \i Widget::GetController -> !\i
-);
-- \inc \h YWidgetEvent @ \h YWidget >> \h YControl,
-+ \tr \INC \h YWidgetEvent @ \h (Label, TextArea);
+/ \simp \impl @ \mf Refresh @ \cl (Label, ATrack, AScrollBar,
+	ScrollableContainer, TextList, CheckBox, BufferedTextArea, DialogBox, Panel,
+	Window, HexViewArea @ \impl \u HexBrowser, ReaderBox @ \impl \u ShlReader),
+/ \impl @ \ctor ScrollableContainer
 
 r18:
-/ \a !\m \f @ \u YRenderer >> \u YWidget;
-/ \inc \h YRenderer @ \h YWidget >> \h YDesktop,
-+ \tr \inc \h YRenderer @ \impl \u YControl,
-/ \tr \inc \h YRenderer -> \h YWidget @ \impl \u YWidgetEvent;
+/ \simp \impl @ \mf SolidBrush::\op();
 
-r19:
-/ \f (RequestFocusCascade, ReleaseFocusCascade) @ \u YGUI >> \u YFocus,
-(
-	+ \fw \decl @ \st (UIEventArgs, RoutedEventArgs, InputEventArgs,
-		TouchEventArgs, KeyEventArgs) @ \h YComponents;
-	/ \inc \h YControl @ \h YGUI -> \h YWidgetEvent,
-	+ \tr \inc \h YWidget @ \impl \u Border,
-	+ \tr \inc \h YCControl @ (\h TextList, \impl \u YControl)
-);
+r19-r23:
+/= test 5;
 
-r20:
--= \inc \h YResource @ \h YPanel;
-
-r21:
-/= test 6 ^ \conf release;
-
-r22-r24:
-/ \mf \vt Rect Refresh(IWidget&, PaintContext&&) @ \cl (Renderer,
-	BufferedRenderer) -> \vt Rect Paint(IWidget&, PaintEventArgs&&);
-/ @ \mf BufferedRenderer::Validate,
-/ @ \u YWidget $=
-(
-	/ \impl @ \f PaintChild#1,
-	(
-		- \f Render#1;
-		/ \impl @ \f Render#2
-	)
-),
-/ \tr \impl @ \mf Desktop::Validate;
-
-r25:
-/= test 7 ^ \conf release;
+r24-r25:
+/ \impl @ \mf Window::Refresh;
 
 r26:
-/ \u Border["Border.h", "Border.cpp"] => \u YBrush["YBrush.h", "YBrush.cpp"];
-/ \tr \inc \h @ \h (TextList, UIContainerEx),
-(
-	/ \cl MBackground @ \u YWidgetView >> \u YBrush;
-	/ \inc \h YResource @ \h YWidgetView >> \h YBrush;
-	+ \tr \inc \h YBrush @ \h YWindow,
-	+ \tr \inc \h YString @ \h Label
-);
+/= test 6 ^ \conf release;
 
 r27:
-+ \cl SolidBrush @ \u YBrush,
-/ @ \h YComponent $=
-(
-	+ \inc \h YFunc;
-	+ typedef std::function<void(PaintEventArgs&&)> HBrush
-);
++ \cl ImageBrush @ \u YBrush,
+- using MBackground::GetBackgroundPtr @ \cl Window;
 
-r28-r30:
-/= test 8,
-- \i @ \ctor \i (InputEventArgs, KeyEventArgs, TouchEventArgs, PaintEventArgs)
-	@ \u YWidgetEvent;
+r28:
+(
+	/ \impl @ \u (Shells, ShlReader, Main_ARM9),
+	/ @ \cl Window $=
+	(
+		- using MBackground::GetBackgroundImagePtr;
+		- \inh protected \cl MBackground,
+		/ \tr \impl @ \ctor,
+		/ \tr \simp \impl @ \mf Refresh
+	);
+	- \cl MBackground @ \u YBrush,
+),
+(
+	+ \inc \h YBrush @ \h Progress;
+	/ \impl @ \cl (Menu, ProgressBar),
+	/ \impl @ \u ColorPicker
+);
+- \mf GetBackColor @ \cl Widget;
+
+r29:
+/ \impl @ \impl \u Shells,
+/ \a BackgroundBrush => Background;
+
+r30:
+/= test 7;
 
 r31:
-/= test 9 ^ \conf release;
+* \impl @ \mf ShlExplorer::OnActivated @ \impl \u Shells $since r28;
 
 r32:
-* \impl @ \smf Do @ \stt GManager @ \cl ValueObject $since b217;
+* \impl @ \cl ShlReader @ \u ShlReader $since r28;
 
 r33-r34:
-/= test 10;
+/= test 8;
 
 r35:
-/ @ \cl AController $=
-(
-	/ \mf GetItemRef#1 => GetItem,
-	/ \impl @ mf GetItemRef
-);
-/ \tr @ (WidgetController, Controller);
+* \impl @ \cl HexViewArea @ \impl \u HexBrowser $since r28;
 
 r36:
+/= test 9 ^ \conf release;
+
+r37:
+/ @ \h YEvent $=
+(
+	+ \h Iterator,
+	(
+		+ typedef u8 EventPriority;
+		+ yconstexpr EventPriority DefaultEventPriority(0x80)
+	);
+	/ @ \clt GEvent $=
+	(
+		/ \m typedef list<HandlerType> ListType -> typedef
+			multimap<EventPriority, HandlerType, std::greater<EventPriority>>
+			ContainerType,
+		/ \tr protected \m ListType List -> public \m ContainerType List;
+		/ \tr \impl @ \a \mf \op+=,
+		/ \tr \impl @ \a \mf Add,
+		+ \tr 4 \mf Add,
+		/ \tr \impl @ \a \mf \op-=#1,
+		/ \tr \impl @ \mf \op(),
+		/ \tr \impl @ \mf Contains
+	)
+);
+
+r38-r48:
+/= test 10,
+/ @ \h YEvent $=
+(
+	/ \decl @ \ctor @ \clt GEventHandler,
+	(
+		+ \inc \h Algorithm;
+		/ \simp \impl @ \mf \op-=#1 @ \clt GEvent
+	),
+	* \impl @ \mf GEvent::\op-=#2 $since r37,
+	- \i @ \mf Contains @ \clt GEvent
+);
+
+r49:
 /= test 11 ^ \conf release;
+
+r50:
+/ @ \h YWidgetEvent $=
+(
+	+ yconstexpr EventPriority BackgroundPriority;
+	+ yconstexpr EventPriority BoundaryPriority,
+	+ yconstexpr EventPriority ForegroundPriority
+);
+/ \impl @ \mf Widget::InitializeEvents,
+/ \impl @ \ctor @ \cl (TextList, DialogBox, DialogPanel,
+	ColorBox @ \impl \u ColorPicker);
+
+r51:
+* \impl @ \h YWidgetEvent $since r50;
+
+r52:
+* \impl @ \mf BorderBrush::\op() $since 284;
+
+r53:
+/ \impl @ \h YWidgetEvent,
+/ \impl @ \impl \u UIContainerEx;
+
+r54:
+/= test 12 ^ \conf release;
+
+r55:
+/ @ \h ydef.h $=
+(
+	+ doxygen \rem @ \mac,
+	+ branch predication hinter \mac (YCL_EXPECT, YCL_LIKELY, YCL_UNLIKELY)
+);
+^ branch hinter \mac @ (\impl \u (CStandardIO, CString, CharacterProcessing,
+	YCommon, YFont, YApplication, YFileSystem, YGlobal, CharRenderer, Button,
+	TextManager, TextRenderer, YBlit, YDraw, YGDI, YResource, YTimer, Menu,
+	Progress, Selector, YGUI, YStyle, DSReader, ShlReader), \h (StaticMapping,
+	YCoreUtilities, YFunc, YMessage, ShellHelper, CharRenderer, YBlit, YDraw,
+	Label, Viewer, YUIContainer)),
+/ \simp \impl @ \f ((UCToMBC @ \impl \u CharacterProcessing),
+	(OnKey_Bound_TouchUpAndLeave, OnKey_Bound_EnterAndTouchDown)
+	@ \impl \u YControl);
+
+r56:
+/= test 13 ^ \conf release;
+
+r57:
+/ \amf Rect Refresh(const PaintContext&) @ \in IWidget
+	-> Refresh(PaintEventArgs&&);
+/ \tr \impl @ \f Render @ \impl \u YWidget,
+/ \tr \impl @ \mf Refresh @ \cl @ \u (YWidget, Botton, ComboList, Label,
+	Progress, Scroll, Selector, TextArea, TextList, UIConainerEx, YPanel,
+	YWindow, HexBrowser, ShlReader);
+
+r58-r66:
+/= test 14;
+
+r67:
+/ \impl @ \mf ATrack::Refresh;
+
+r68-r76:
+/= test 15;
+
+r77:
+/ @ \a \f PaintChild#2 @ \u YWidget;
+/ \impl @ \mf ScrollableContainer::Refresh;
+
+r78:
+/= test 14 ^ \conf release;
+
+r79:
+/ @ \u YWidget $=
+(
+	- \f Render,
+	- \amf Refresh @ \in IWidget,
+	/ \tr @ \cl Widget $=
+	(
+		/= (Impl(IWidget) -> virtual) @ \mf Refresh;
+		/ \impl @ \mf InitializeEvents
+	)
+);
+
+r80:
+* \impl @ \cl TextReaderSession @ \impl \u ShlReader $since b292 $=
+(
+	/ \impl @ \ctor,
+	/ \impl @ \mf Execute
+);
+
+r81:
+/= test 15 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-03-15:
--11.8d;
-//Mercurial rev1-rev165: r7902;
+2012-03-18:
+-8.6d;
+//Mercurial rev1-rev166: r7983;
 
 / ...
 
 
 $NEXT_TODO:
-b294-b300:
+b295-b300:
 / \impl @ \u (DSReader, ShlReader) $=
 (
-	+ text encoding synchronization for setting panel;
 	/ $design \simp \impl
-);
+),
+/ widget refreshing partial invalidating;
 / \mf \vt Clone -> \amf @ \cl AController ^ g++ 4.7;
 
 
@@ -612,20 +644,21 @@ b301-b400:
 	+ \impl @ RTC,
 	+ \impl @ images loading
 ),
-/ $low_prior tests and examples $=
+/ $low_prior YReader $=
 (
 	+ local encoding selecting,
-	+ smooth scrolling,
+	+ improved smooth scrolling with lower limit of scrolling cycle supported,
 	/ improving performance when reader box shown,
 	+ bookmarks manager,
 	+ settings manager,
-	+ reading history
+	+ reading history,
+	/ improved tests and examples
 ),
 / @ "GUI" $=
 (
 	+ GUI brushes $=
 	(
-		+ base class template,
+		+ more base class templates,
 		+ transformations
 	),
 	+ viewer models,
@@ -636,7 +669,8 @@ b301-b400:
 );
 
 b401-b768:
-^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework,
+^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework
+	when (^ g++),
 / completeness of core abstraction $=
 (
 	/ messaging $=
@@ -647,15 +681,12 @@ b401-b768:
 ),
 / services $=
 (
-	+ user-defined stream filters,
-	/ improving \impl font switching,
-	+ \impl @ images processing,
 	+ general resouce management,
 	/ @ "GDI" $=
 	(
 		* platform-neutrality @ alpha blending \impl,
-		+ animation,
-		+ GDI brushes
+		+ basic animation support,
+		+ more GDI algorithms
 	),
 	/ fully \impl @ encoding checking
 ),
@@ -675,12 +706,13 @@ b401-b768:
 	* View position switch through scrall bar not accurate enough
 		@ class %ListBox,
 	+ synchronization of viewer length @ class %TextList,
-	+ widget layout managers
+	+ widget layout managers,
+	+ widget-based animation support
 ),
 / project structure $=
 (
 	/ build command @ \a \conf proj YBase,
-	+ Microsoft Windows port
+	+ Microsoft Windows(mingw-win32) port
 );
 
 b769-b1256:
@@ -704,6 +736,7 @@ b769-b1256:
 ),
 / services $=
 (
+	+ general \impl @ images processing interface,
 	^ <chrono> to completely abstract system clocks,
 	+ general data configuragion,
 	/ general file type abstraction
@@ -736,6 +769,8 @@ b1257-b1728:
 ),
 / services $=
 (
+	+ user-defined stream filters,
+	/ improving \impl font switching,
 	/ fully \impl logging $=
 	(
 		+ more clarified log Levels,
@@ -845,7 +880,8 @@ $module_tree $=
 			'Any',
 			'CStandardIO',
 			'Iterator',
-			'Algorithms'
+			'Algorithms',
+			'Utilities'
 		)
 	),
 	'YFramework'
@@ -869,6 +905,7 @@ $module_tree $=
 			'helpers'
 			(
 				'global helper unit',
+				'shells for DS'
 			),
 			'services',
 			'GUI'
@@ -885,6 +922,62 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'core'.'events' $=
+		(
+			+ "event priority type";
+			/ "event container" ^ "%multimap" ~ "list";
+			$dep_to "event with priority"
+		),
+		/ %'GUI' $=
+		(
+			/ "widget controller event %Paint delayed to initialize in \
+				initialization of objects with class %Widget",
+			+ "brush class %ImageBrush";
+			/ "widget background painting" ^ ("new member %HBrush Background"
+				@ "class %Widget") ~ "function %Render",
+			(
+				$dep_from "event with priority";
+				(
+					+ "paint widget event priorities" @ "header %ywgtevt.h";
+					$dep_to %'YReader'.'text reader'
+				),
+				/ $design "border painting with priority"
+					@ "class %(TextList, DialogBox, DialogPanel)"
+			),
+			(
+				* "missing clip area update" @ "class %BorderBrush" $since b284;
+				* $comp "border overlapping between widgets" $since b284
+				$dep_to %'YReader'.'text reader'
+			),
+			/ "widget refreshing interface",
+			+ "widget rendering state sharing between parent and children"
+		),
+		+ "protected boolean members to determine whether the desktops would \
+			be updated" @ %'helpers'.'shells for DS'
+	),
+	* $doc @ "function template %xcrease" @ %'YBase'.'YStandardEx'.'Utilities'
+		$since b243,
+	/ %'YReader'.'text reader'
+	(
+		/ $design "border painting with priority" @ "class %ColorBox",
+		* "border of setting panel overlapped by border of automatic scrolling \
+			setting drop down list" $since b292,
+		* "text encoding not synchronized with setting" $since b292
+	),
+	(
+		/ "header %ydef.h" @ %'YBase' $=
+		(
+			+ $doc"comments for macros",
+			+ $design "branch predication hint macros"
+		);
+		^ $design "branch predication hint macros" @ "whole project"
+	)
+),
+
+b293
 (
 	/ $design %'YBase' $=
 	(
@@ -926,10 +1019,8 @@ $now
 		* $design "missing 'const' when casting" @ "implementation"
 			@ "class %ValueObject" $since b217
 	),
-	/ %'YReader'.'text reader' $=
-	(
-		* "wrong pixel offset when stopping smooth scrolling" $since b292
-	)
+	* "wrong pixel offset when stopping smooth scrolling"
+		@ %'YReader'.'text reader' $since b292
 ),
 
 b292
@@ -2309,8 +2400,8 @@ b243
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
 		+ "default GUI event %Paint for all widgets",
-		+ "controller class %WidgetController for widgets \
-			which %Paint is the only event permitted to call";
+		+ "controller class %WidgetController for widgets which %Paint is the \
+			only event permitted to call";
 		/ "rendering of function %Render" ^ "mutable rvalue reference \
 			parameter to store the result" ~ "returning";
 		/ "constructor" @ "%WidgetControlle add event handler %Render";
@@ -2980,10 +3071,8 @@ b214
 	* $design "exception specification" @ "unit %YApplication",
 	/ $doc $=
 	(
-		* "template parameter description" $since b189 $=
-		(
-			^ "\tparam" ~ "\param"
-		),
+		* "template parameter description" $since b189
+			$= (^ "\tparam" ~ "\param"),
 		* "\defgroup description spell error" $since b209,
 		* $design "operator new & delete comments" $since b203,
 		/ "simplified Doxygen file excluded paths"

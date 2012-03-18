@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5649;
+\version r5685;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-03-12 09:16 +0800;
+	2012-03-16 17:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -46,6 +46,8 @@ DeclResource(GR_BGs)
 namespace
 {
 	using namespace YReader;
+
+	HBrush g_c_up, g_c_dn;
 
 	Color
 	GenerateRandomColor()
@@ -451,7 +453,7 @@ ShlExplorer::TFormTest::TFormTest()
 	*this += btnPrevBackground,
 	*this += btnNextBackground,
 	yunseq(
-		BackColor = Color(248, 248, 120),
+		Background = SolidBrush(Color(248, 248, 120)),
 		btnEnterTest.Text = u"边界测试",
 		btnEnterTest.HorizontalAlignment = TextAlignment::Right,
 		btnEnterTest.VerticalAlignment = TextAlignment::Up,
@@ -521,8 +523,8 @@ ShlExplorer::TFormTest::TFormTest()
 		FetchEvent<Click>(btnShowWindow) += OnClick_ShowWindow,
 		FetchEvent<Click>(btnPrevBackground) += [this](TouchEventArgs&&){
 			auto& shl(FetchShell<ShlExplorer>());
-			auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
-			auto& dsk_dn_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
+			auto& dsk_up(shl.GetDesktopUp());
+			auto& dsk_dn(shl.GetDesktopDown());
 
 			if(up_i > 1)
 			{
@@ -531,15 +533,15 @@ ShlExplorer::TFormTest::TFormTest()
 			}
 			if(up_i == 1)
 				Enable(btnPrevBackground, false);
-			dsk_up_ptr = FetchImage(up_i);
-			dsk_dn_ptr = FetchImage(up_i + 1);
-			SetInvalidationOf(shl.GetDesktopUp());
-			SetInvalidationOf(shl.GetDesktopDown());
+			dsk_up.Background = ImageBrush(FetchImage(up_i));
+			dsk_dn.Background = ImageBrush(FetchImage(up_i + 1));
+			SetInvalidationOf(dsk_up);
+			SetInvalidationOf(dsk_dn);
 		},
 		FetchEvent<Click>(btnNextBackground) += [this](TouchEventArgs&&){
 			auto& shl(FetchShell<ShlExplorer>());
-			auto& dsk_up_ptr(shl.GetDesktopUp().GetBackgroundImagePtr());
-			auto& dsk_dn_ptr(shl.GetDesktopDown().GetBackgroundImagePtr());
+			auto& dsk_up(shl.GetDesktopUp());
+			auto& dsk_dn(shl.GetDesktopDown());
 
 			if(up_i < 5)
 			{
@@ -548,10 +550,10 @@ ShlExplorer::TFormTest::TFormTest()
 			}
 			if(up_i == 5)
 				Enable(btnNextBackground, false);
-			dsk_up_ptr = FetchImage(up_i);
-			dsk_dn_ptr = FetchImage(up_i + 1);
-			SetInvalidationOf(shl.GetDesktopUp());
-			SetInvalidationOf(shl.GetDesktopDown());
+			dsk_up.Background = ImageBrush(FetchImage(up_i));
+			dsk_dn.Background = ImageBrush(FetchImage(up_i + 1));
+			SetInvalidationOf(dsk_up);
+			SetInvalidationOf(dsk_dn);
 		}
 	);
 	Enable(btnPrevBackground, false);
@@ -574,14 +576,14 @@ ShlExplorer::TFormExtra::TFormExtra()
 		btnTestEx.Text = u"直接屏幕绘制测试",
 		btnClose.Text = u"关闭",
 		btnExit.Text = u"退出",
-		BackColor = Color(248, 120, 120),
+		Background = SolidBrush(Color(248, 120, 120)),
 		//	btnDragTest.Enabled = false,
-		btnClose.BackColor = Color(176, 184, 192)
+		btnClose.Background = SolidBrush(Color(176, 184, 192))
 	);
 	SetInvalidationOf(*this);
 	yunseq(
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
-			BackColor = GenerateRandomColor();
+			Background = SolidBrush(GenerateRandomColor());
 			SetInvalidationOf(*this);
 			if(e.Strategy == RoutedEventArgs::Direct)
 				e.Handled = true;
@@ -731,9 +733,11 @@ ShlExplorer::OnActivated(const Message& msg)
 	dsk_up += lblA,
 	dsk_up += lblB;
 	// init-seg 1;
+	yunseq(g_c_up = dsk_up.Background,
+		g_c_dn = SolidBrush(Color(120, 120, 248)));
 	yunseq(
-		dsk_up.GetBackgroundImagePtr() = FetchImage(1),
-		dsk_dn.GetBackgroundImagePtr() = FetchImage(2),
+		dsk_up.Background = ImageBrush(FetchImage(1)),
+		dsk_dn.Background = ImageBrush(FetchImage(2)),
 	// init-seg 2;
 		lblTitle.Text = "文件列表：请选择一个文件。",
 		lblPath.Text = "/",
@@ -742,7 +746,6 @@ ShlExplorer::OnActivated(const Message& msg)
 		btnTest.Text = u"测试(X)",
 		btnOK.Text = u"确定(A)"
 	);
-	btnOK.SetTransparent(false);
 	// init-seg 3;
 	yunseq(
 		dsk_dn.BoundControlPtr = std::bind(&ShlExplorer::GetBoundControlPtr,
@@ -754,7 +757,6 @@ ShlExplorer::OnActivated(const Message& msg)
 	RequestFocusCascade(fbMain);
 	// init-seg 4;
 	yunseq(
-		dsk_dn.BackColor = Color(120, 120, 248),
 		pWndTest = make_unique<TFormTest>(),
 		pWndExtra = make_unique<TFormExtra>()
 	);
@@ -763,8 +765,6 @@ ShlExplorer::OnActivated(const Message& msg)
 	dsk_dn += *pWndTest,
 	dsk_dn += *pWndExtra;
 	SetInvalidationOf(dsk_dn);
-//	pWndTest->DrawContents();
-//	pWndExtra->DrawContents();
 	// init-seg 5;
 /*	Menu& mnu(*(ynew Menu(Rect::Empty, GenerateList(u"TestMenuItem0"), 1u)));
 
@@ -784,8 +784,8 @@ ShlExplorer::OnDeactivated()
 
 	// uninit-seg 1;
 	yunseq(
-		reset(dsk_up.GetBackgroundImagePtr()),
-		reset(dsk_dn.GetBackgroundImagePtr()),
+		dsk_up.Background = g_c_up,
+		dsk_dn.Background = g_c_dn,
 	// uninit-seg 3;
 		dsk_dn.BoundControlPtr = std::bind(&Control::GetBoundControlPtr,
 			&dsk_dn, std::placeholders::_1),
@@ -825,6 +825,7 @@ ShlExplorer::OnPaint()
 		std::sprintf(strt, "FPS: %u.%03u", t / 1000, t % 1000);
 		FillRect(g, r, Blue);
 		DrawText(g, r, strt, DefaultMargin, White);
+		bUpdateDown = true;
 	}
 }
 

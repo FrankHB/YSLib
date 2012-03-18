@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3423;
+\version r3435;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2012-02-01 19:50 +0800;
+	2012-03-18 13:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -213,10 +213,11 @@ public:
 	SetLargeDelta(ValueType);
 
 	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
 	*/
-	virtual Rect
-	Refresh(const PaintContext&);
+	virtual void
+	Refresh(PaintEventArgs&&);
 
 protected:
 	/*!
@@ -340,10 +341,11 @@ public:
 	DefSetter(ValueType, SmallDelta, small_delta)
 
 	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
 	*/
-	virtual Rect
-	Refresh(const PaintContext&);
+	virtual void
+	Refresh(PaintEventArgs&&);
 
 	/*!
 	\brief 定位滑块。
@@ -432,10 +434,11 @@ public:
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
 	*/
-	virtual Rect
-	Refresh(const PaintContext&);
+	virtual void
+	Refresh(PaintEventArgs&&);
 
 protected:
 	/*!

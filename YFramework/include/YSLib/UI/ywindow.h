@@ -11,13 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4767;
+\version r4775;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2012-03-14 20:15 +0800;
+	2012-03-18 13:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -42,7 +42,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 窗口。
 \since build 264 。
 */
-class Window : public Panel, protected MBackground
+class Window : public Panel
 {
 public:
 	/*!
@@ -81,8 +81,6 @@ public:
 
 	using MUIContainer::Contains;
 
-	using MBackground::GetBackgroundImagePtr;
-	using MBackground::GetBackgroundPtr;
 	virtual PDefH(IWidget*, GetTopWidgetPtr, const Point& pt,
 		bool(&f)(const IWidget&))
 		ImplBodyBase(MUIContainer, GetTopWidgetPtr, pt, f)
@@ -91,10 +89,11 @@ public:
 	Add(IWidget&, ZOrderType = DefaultZOrder);
 
 	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
 	*/
-	virtual Rect
-	Refresh(const PaintContext&);
+	virtual void
+	Refresh(PaintEventArgs&&);
 };
 
 YSL_END_NAMESPACE(Components)

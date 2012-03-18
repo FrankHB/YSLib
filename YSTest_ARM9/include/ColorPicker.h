@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.h
 \ingroup YReader
 \brief 拾色器。
-\version r1109;
+\version r1122;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2012-01-06 20:46:10 +0800;
 \par 修改时间:
-	2012-01-14 19:27 +0800;
+	2012-03-16 17:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -61,7 +61,21 @@ protected:
 public:
 	ColorBox(const Point&, Color c = ColorSpace::White);
 
-	DefGetter(const ynothrow, Color, Color, ctlColorArea.BackColor)
+	/*!
+	\brief 取当前选定的颜色。
+	\since build 294 。
+	*/
+	DefGetter(const, Color, Color, GetColorRef())
+
+private:
+	/*!
+	\brief 取当前选定的颜色引用。
+	\since build 294 。
+	*/
+	Color&
+	GetColorRef() const;
+
+public:
 	void
 	SetColor(Color);
 };

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief YCLib C++ 标准库扩展。
-\version r1066;
+\version r1070;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2011-09-21 08:38:51 +0800;
 \par 修改时间:
-	2011-12-21 17:33 +0800;
-\par 字符集:
+	2012-03-17 19:05 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YStandardEx::CStandardIO;
@@ -50,7 +50,7 @@ namespace ystdex
 
 		const auto val(std::fgetc(stream));
 
-		if(val == EOF)
+		if(YCL_UNLIKELY(val == EOF))
 			stream = nullptr;
 		else
 			value = val;

@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r1132;
+\version r1184;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 293 。
 \par 创建时间:
 	2012-01-10 19:55:30 +0800;
 \par 修改时间:
-	2012-03-14 21:09 +0800;
+	2012-03-16 16:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -57,30 +57,35 @@ SolidBrush::SolidBrush(Drawing::Color c)
 
 
 /*!
-\brief 背景模块。
-\since build 260 。
+\brief 图像画刷。
+\since build 294 。
 */
-class MBackground
+class ImageBrush
 {
-protected:
-	mutable shared_ptr<Drawing::Image> hBgImage; //!< 背景图像句柄。
-
 public:
-	/*!
-	\brief 构造：使用指定边界和背景图像。
-	*/
-	explicit
-	MBackground(const shared_ptr<Drawing::Image>&
-		= make_shared<Drawing::Image>());
+	mutable shared_ptr<Drawing::Image> Image;
 
-	DefGetter(const ynothrow, shared_ptr<Drawing::Image>&, BackgroundImagePtr,
-		hBgImage)
-	/*!
-	\brief 取位图背景指针。
-	*/
-	BitmapPtr
-	GetBackgroundPtr() const;
+	yconstfn DefDeCtor(ImageBrush)
+	ImageBrush(const shared_ptr<Drawing::Image>&);
+	ImageBrush(shared_ptr<Drawing::Image>&&);
+	DefDeCopyCtor(ImageBrush)
+	DefDeMoveCtor(ImageBrush)
+
+	DefDeCopyAssignment(ImageBrush)
+	DefDeMoveAssignment(ImageBrush)
+
+	void
+	operator()(PaintEventArgs&&);
 };
+
+inline
+ImageBrush::ImageBrush(const shared_ptr<Drawing::Image>& h)
+	: Image(h)
+{}
+inline
+ImageBrush::ImageBrush(shared_ptr<Drawing::Image>&& h)
+	: Image(std::move(h))
+{}
 
 
 /*!

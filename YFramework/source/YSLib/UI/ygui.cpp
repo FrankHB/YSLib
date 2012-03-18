@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4166;
+\version r4167;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-13 13:45 +0800;
+	2012-03-17 20:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -62,7 +62,7 @@ GUIState::RepeatHeld(HeldStateType& s,
 
 	case Pressed:
 	case Held:
-		if(HeldTimer.Refresh())
+		if(YCL_UNLIKELY(HeldTimer.Refresh()))
 		{
 			if(s == Pressed)
 			{

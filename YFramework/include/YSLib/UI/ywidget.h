@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6449;
+\version r6509;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-14 09:17 +0800;
+	2012-03-18 16:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -60,14 +60,6 @@ DeclI(IWidget)
 	\note 使用部件坐标。
 	*/
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)))
-
-	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
-	\return 实际被绘制的界面区域。
-	\note 边界仅为暗示，允许实现忽略，但可以保证边界内的区域保持最新显示状态。
-	\note 若部件的内部状态能够保证显示状态最新，则返回的区域可能比参数 r 更小。
-	*/
-	DeclIEntry(Rect Refresh(const PaintContext&))
 EndDecl
 
 
@@ -274,31 +266,23 @@ Invalidate(IWidget&, const Rect&);
 
 以 e.Sender() 作为绘制目标，判断其边界是否和区域 e.ClipArea 相交，
 若相交区域非空则调用 wgt 的渲染器的 Paint 方法绘制 。
-调用中， e.ClipArea 被覆盖为相交区域。
+调用中， e.ClipArea 被覆盖为相交区域，并进一步被 Paint 方法覆盖为实际绘制的区域。
 之后， e.ClipArea 可继续被 e.GetSender() 的渲染器的 Paint 方法修改。
 */
 void
 PaintChild(IWidget& wgt, PaintEventArgs&& e);
 /*
 \brief 调用指定子部件的 Paint 事件绘制指定子部件。
+\return 实际绘制的区域。
 \note 使用指定子部件作为事件发送者并复制参数。
-\since build 263 。
+\since build 294 。
 
 以 wgt 作为绘制目标，判断其边界是否和区域 pc.ClipArea 相交，
 若相交区域非空则调用 wgt 的渲染器的 Paint 方法绘制 。
 */
-void
+Rect
 PaintChild(IWidget& wgt, const PaintContext& pc);
 
-
-/*
-\brief 渲染：更新，若缓冲存储不可用则在更新前刷新发送者。
-\since build 256 。
-
-以 e.GetSender() 作为绘制目标，调用 e.GetSender() 的 Refresh 方法刷新。
-*/
-void
-Render(PaintEventArgs&& e);
 
 /*!
 \brief 请求提升至容器顶端。
@@ -331,7 +315,11 @@ private:
 
 public:
 	unique_ptr<AController> pController; //!< 控制器指针。
-	Color BackColor; //!< 默认背景色。
+	/*!
+	\brief 背景。
+	\since build 294 。
+	*/
+	mutable HBrush Background;
 	Color ForeColor; //!< 默认前景色。
 
 	explicit
@@ -351,11 +339,13 @@ public:
 		_tController&& pController_ = nullptr)
 		: pView(yforward(pView_)), pRenderer(yforward(pRenderer_)),
 		pController(yforward(pController_)),
-		BackColor(Drawing::ColorSpace::White),
+		Background(SolidBrush(Drawing::ColorSpace::White)),
 		ForeColor(Drawing::ColorSpace::Black)
 	{
 		YAssert(bool(pView) && bool(pRenderer),
 			"Null pointer(s) found @ Widget::Widget#2;");
+
+		InitializeEvents();
 	}
 	/*!
 	\brief 复制构造：除容器指针为空外深复制。
@@ -371,6 +361,15 @@ public:
 	virtual
 	~Widget();
 
+private:
+	/*!
+	\brief 初始化事件组。
+	\since build 294 。
+	*/
+	void
+	InitializeEvents();
+
+public:
 	DefPredMem(const ynothrow, Transparent, GetView())
 
 	DefGetterMem(const ynothrow, SPos, X, GetView())
@@ -406,10 +405,17 @@ public:
 	SetView(unique_ptr<View>&&);
 
 	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\see PaintContext 。
+	\since build 294 。
+
+	由参数指定的信息绘制事件发送者。参数的 ClipArea 成员指定边界。
+	边界仅为暗示，允许实现忽略，但应保证调用后边界内的区域保持最新显示状态。
+	绘制结束后更新边界，表示实际被绘制的区域。
+	若部件的内部状态能够保证显示状态最新，则返回的区域可能比传入时表示的范围更小。
 	*/
-	ImplI(IWidget) Rect
-	Refresh(const PaintContext&);
+	ImplI(IWidget) void
+	Refresh(PaintEventArgs&&);
 };
 
 YSL_END_NAMESPACE(Components)

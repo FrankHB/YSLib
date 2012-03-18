@@ -11,13 +11,13 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4359;
+\version r4378;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2012-03-12 09:15 +0800;
+	2012-03-18 13:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,8 +34,9 @@ using namespace Drawing;
 YSL_BEGIN_NAMESPACE(Components)
 
 Window::Window(const Rect& r, const shared_ptr<Image>& hImg)
-	: Panel(r), MBackground(hImg)
+	: Panel(r)
 {
+	Background = ImageBrush(hImg),
 	SetRenderer(make_unique<BufferedRenderer>());
 }
 
@@ -84,29 +85,12 @@ Window::Add(IWidget& wgt, ZOrderType z)
 	SetContainerPtrOf(wgt, this);
 }
 
-Rect
-Window::Refresh(const PaintContext& pc)
+void
+Window::Refresh(PaintEventArgs&& e)
 {
-	const Rect& r(pc.ClipArea);
-	bool result(!r.IsUnstrictlyEmpty()
-		|| CheckVisibleChildren(mWidgets.begin(), mWidgets.end()));
-	
-	if(result)
-	{
-		if(hBgImage)
-		{
-			if(!IsTransparent())
-			{
-				const auto& g(pc.Target);
-
-				CopyTo(g.GetBufferPtr(), *hBgImage, g.GetSize(), r, r, r);
-			}
-		}
-		else
-			Widget::Refresh(pc);
-		return PaintChildren(pc);
-	}
-	return pc.ClipArea;
+	if(!e.ClipArea.IsUnstrictlyEmpty() || CheckVisibleChildren(mWidgets.begin(),
+		mWidgets.end()))
+		e.ClipArea = PaintChildren(e);
 }
 
 YSL_END_NAMESPACE(Components)

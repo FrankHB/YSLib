@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1445;
+\version r1456;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2012-03-10 23:29 +0800;
+	2012-03-18 13:42 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -54,7 +54,7 @@ namespace
 		YAssert(g.IsValid(), "err: @g is invalid.");
 
 		DrawRect(g, r, c);
-		if(r.Width > 10 && r.Height > 10)
+		if(YCL_LIKELY(r.Width > 10 && r.Height > 10))
 		{
 			Rect rt(r);
 			Color cs[] = {Color(85, 134, 163), Color(222, 249, 250),
@@ -111,16 +111,14 @@ CheckBox::CheckBox(const Rect& r)
 	};
 }
 
-Rect
-CheckBox::Refresh(const PaintContext& pc)
+void
+CheckBox::Refresh(PaintEventArgs&& e)
 {
-	auto r(Widget::Refresh(pc));
-
-	RectDrawCheckBox(pc.Target, Rect(pc.Location, GetSizeOf(*this)), bPressed,
-		IsFocusedByShell(*this), bTicked);
+	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
+	RectDrawCheckBox(e.Target, e.ClipArea, bPressed, IsFocusedByShell(*this),
+		bTicked);
 	if(IsFocused(*this))
-		DrawRect(pc.Target, pc.Location, GetSizeOf(*this), ColorSpace::Aqua);
-	return r;
+		DrawRect(e.Target, e.Location, GetSizeOf(*this), ColorSpace::Aqua);
 }
 
 void

@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7081;
+\version r7086;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-03-14 21:08 +0800;
+	2012-03-18 16:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -745,10 +745,12 @@
  Components::Invalidate(IWidget&) 是使用部件自身区域为参数调用 InvalidateCascade 的人本接口。
 
 @2.7.5.3.2 刷新(refreshing) ：
-部件按传入的参数（图形接口上下文、起始偏移坐标和边界）直接进行绘制的过程。不被渲染器策略直接影响。
+具体部件按传入的参数（图形接口上下文、起始偏移坐标和边界）直接进行绘制的过程。不被渲染器策略直接影响。
 边界基于部件坐标系，用于优化暗示，可以被忽略，但是刷新过程需要保证边界内的区域无需被重绘。
 带缓冲区的部件（包括窗口和桌面）实例存储刷新状态。
-成员方法 Refresh(const PaintContext&) 是部件的状态无关的刷新接口，即直接绘制部件界面。
+通常应实现为 Paint 事件的处理器。
+ Widget 的虚成员方法 void Refresh(PaintEventArgs&&) 是状态无关的默认刷新接口，即直接绘制部件界面。
+ Widget 初始化 Paint 事件时加载背景和 Refresh 作为事件处理器。
 
 @2.7.5.3.3 绘制(painting) ：
 导致部件的 Paint 事件被调用一次的操作，称为一次绘制。

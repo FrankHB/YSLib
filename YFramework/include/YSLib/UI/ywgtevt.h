@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r2125;
+\version r2134;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241 。
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2012-03-15 16:53 +0800;
+	2012-03-17 15:00 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,6 +34,17 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
+
+/*!
+\brief 用户界面绘制优先级。
+\since build 294 。
+*/
+//@{
+yconstexpr EventPriority BackgroundPriority(0xC0);
+yconstexpr EventPriority BoundaryPriority(0x60);
+yconstexpr EventPriority ForegroundPriority(0x40);
+//@}
+
 
 /*!
 \brief 用户界面事件参数基类。

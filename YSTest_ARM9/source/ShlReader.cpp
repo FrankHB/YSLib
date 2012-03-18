@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3648;
+\version r3714;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-03-12 21:17 +0800;
+	2012-03-18 17:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -82,7 +82,7 @@ namespace
 	String
 	FetchEncodingString(MTextList::IndexType i)
 	{
-		if(i < arrlen(Encodings))
+		if(YCL_LIKELY(i < arrlen(Encodings)))
 		{
 			const auto enc(Encodings[i].first);
 			const String ustr(Encodings[i].second);
@@ -220,7 +220,7 @@ namespace
 	{
 		auto p(std::localtime(&t));
 
-		if(!p)
+		if(YCL_UNLIKELY(!p))
 			throw GeneralEvent("Get broken-down time object failed"
 				" @ TranslateTime#2;");
 		return TranslateTime(*p, format);
@@ -289,14 +289,12 @@ DefTuple(pWidgets,
 	return nullptr;
 }
 
-Rect
-ReaderBox::Refresh(const PaintContext& pc)
+void
+ReaderBox::Refresh(PaintEventArgs&& e)
 {
-	Widget::Refresh(pc);
-
-	seq_apply(ChildPainter(pc),
+	seq_apply(ChildPainter(e),
 		btnMenu, btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
-	return Rect(pc.Location, GetSizeOf(*this));
+	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
 void
@@ -304,7 +302,7 @@ ReaderBox::UpdateData(DualScreenReader& reader)
 {
 	const auto ts(reader.GetTextSize());
 
-	if(ts != 0)
+	if(YCL_LIKELY(ts != 0))
 	{
 		const auto tp(reader.GetTopPosition());
 		char str[4];
@@ -333,14 +331,13 @@ TextInfoBox::TextInfoBox(ShlReader& shl)
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 }
 
-Rect
-TextInfoBox::Refresh(const PaintContext& pc)
+void
+TextInfoBox::Refresh(PaintEventArgs&& e)
 {
-	DialogBox::Refresh(pc);
+	DialogBox::Refresh(std::move(e));
 
-	seq_apply(ChildPainter(pc),
-		lblEncoding, lblSize, lblTop, lblBottom);
-	return Rect(pc.Location, GetSizeOf(*this));
+	seq_apply(ChildPainter(e), lblEncoding, lblSize, lblTop, lblBottom);
+	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
 void
@@ -403,19 +400,21 @@ SettingPanel::SettingPanel()
 		btnSetDownBack.Text = u"下屏颜色...",
 		btnTextColor.Text = u"文字颜色...",
 		lblSmoothScroll.Text = u"平滑滚屏",
-	//	FetchEvent<Paint>(lblColorAreaUp) += BorderBrush(BorderStyle),
-	//	FetchEvent<Paint>(lblColorAreaDown) += BorderBrush(BorderStyle),
+	//	FetchEvent<Paint>(lblColorAreaUp).Add(BorderBrush(BorderStyle),
+	//		BoundaryPriority),
+	//	FetchEvent<Paint>(lblColorAreaDown).Add(BorderBrush(BorderStyle),
+	//		BoundaryPriority),
 		FetchEvent<KeyDown>(*this) += OnEvent_StopRouting<KeyEventArgs>,
 		FetchEvent<Click>(btnFontSizeDecrease) += [=, this](TouchEventArgs&&){
 			auto size(lblAreaUp.Font.GetSize());
 
-			if(size > Font::MinimalSize)
+			if(YCL_LIKELY(size > Font::MinimalSize))
 				set_font_size(--size);
 		},
 		FetchEvent<Click>(btnFontSizeIncrease) += [=, this](TouchEventArgs&&){
 			auto size(lblAreaUp.Font.GetSize());
 
-			if(size < Font::MaximalSize)
+			if(YCL_LIKELY(size < Font::MaximalSize))
 				set_font_size(++size);
 		},
 		FetchEvent<Click>(btnTextColor) += [this](TouchEventArgs&&){
@@ -424,13 +423,13 @@ SettingPanel::SettingPanel()
 			Show(boxColor);
 		},
 		FetchEvent<Click>(btnSetUpBack) += [this](TouchEventArgs&&){
-			pColor = &lblAreaUp.BackColor;
-			boxColor.SetColor(*pColor);
+			boxColor.SetColor(*(pColor
+				= &lblAreaUp.Background.target<SolidBrush>()->Color));
 			Show(boxColor);
 		},
 		FetchEvent<Click>(btnSetDownBack) += [this](TouchEventArgs&&){
-			pColor = &lblAreaDown.BackColor;
-			boxColor.SetColor(*pColor);
+			boxColor.SetColor(*(pColor
+				= &lblAreaDown.Background.target<SolidBrush>()->Color));
 			Show(boxColor);
 		},
 		ddlFont.GetConfirmed() += [this](IndexEventArgs&&){
@@ -519,7 +518,7 @@ FileInfoPanel::FileInfoPanel()
 	lblModifiedTime(Rect(8, 80, 240, 16)),
 	lblOperations(Rect(8, 120, 240, 16))
 {
-	BackColor = ColorSpace::Silver;
+	Background = SolidBrush(ColorSpace::Silver);
 	lblOperations.Text = "<↑↓> 滚动一行 <LR> 滚动一屏 <B>退出";
 	*this += lblPath,
 	*this += lblSize,
@@ -585,9 +584,9 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 	const auto exit_setting([this](TouchEventArgs&&){
 		auto& dsk_up(Shell.GetDesktopUp());
 
-		yunseq(dsk_up.BackColor = pnlSetting.lblAreaUp.BackColor,
-			Shell.GetDesktopDown().BackColor
-			= pnlSetting.lblAreaDown.BackColor,
+		yunseq(dsk_up.Background = pnlSetting.lblAreaUp.Background,
+			Shell.GetDesktopDown().Background
+			= pnlSetting.lblAreaDown.Background,
 		dsk_up -= pnlSetting.lblAreaUp,
 		dsk_up -= pnlSetting.lblAreaDown);
 		Reader.SetVisible(true),
@@ -637,12 +636,12 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 		{
 			const auto s(Reader.GetTextSize());
 
-			if(s != 0)
+			if(YCL_LIKELY(s != 0))
 			{
 				const auto old_pos(Reader.GetTopPosition());
 
 				Reader.Locate(e.X * s / boxReader.pbReader.GetWidth());
-				if(old_pos != Reader.GetTopPosition())
+				if(YCL_LIKELY(old_pos != Reader.GetTopPosition()))
 				{
 					Shell.LastRead.Insert(path, old_pos);
 					Shell.LastRead.DropSubsequent();
@@ -697,8 +696,8 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 	Reader.SetColor(cur_set.FontColor),
 	Reader.SetFont(cur_set.Font),
 	yunseq(
-		dsk_up.BackColor = cur_set.UpColor,
-		dsk_dn.BackColor = cur_set.DownColor,
+		dsk_up.Background = SolidBrush(cur_set.UpColor),
+		dsk_dn.Background = SolidBrush(cur_set.DownColor),
 		FetchEvent<Click>(dsk_dn).Add(*this, &TextReaderSession::OnClick),
 		FetchEvent<KeyDown>(dsk_dn).Add(*this, &TextReaderSession::OnKeyDown),
 		FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld
@@ -708,13 +707,6 @@ TextReaderSession::TextReaderSession(ShlReader& shl)
 	dsk_dn += boxTextInfo,
 	dsk_dn += pnlSetting;
 	LoadFile(ShlReader::CurrentPath);
-	{
-		const auto idx(std::find(Encodings | get_key, (Encodings
-			+ arrlen(Encodings)) | get_key, Reader.GetEncoding()) - Encodings);
-
-		yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(idx),
-			pnlSetting.ddlEncoding.Text = Encodings[idx].second);
-	}
 	Shell.LastRead.DropSubsequent();
 	UpdateButtons();
 	//置默认视图。
@@ -735,8 +727,8 @@ TextReaderSession::~TextReaderSession()
 	auto& cur_set(Shell.CurrentSetting);
 
 	yunseq(
-		cur_set.UpColor = dsk_up.BackColor,
-		cur_set.DownColor = dsk_dn.BackColor,
+		cur_set.UpColor = dsk_up.Background.target<SolidBrush>()->Color,
+		cur_set.DownColor = dsk_dn.Background.target<SolidBrush>()->Color,
 		cur_set.FontColor = Reader.GetColor(),
 		cur_set.Font = Reader.GetFont(),
 		FetchEvent<Click>(dsk_dn).Remove(*this, &TextReaderSession::OnClick),
@@ -764,12 +756,11 @@ TextReaderSession::Execute(IndexEventArgs::ValueType idx)
 		Reader.SetVisible(false),
 		yunseq(
 			pnlSetting.lblAreaUp.ForeColor = Reader.GetColor(),
-			pnlSetting.lblAreaUp.BackColor
-				= Shell.GetDesktopUp().BackColor,
+			pnlSetting.lblAreaUp.Background = Shell.GetDesktopUp().Background,
 			pnlSetting.lblAreaUp.Font = Reader.GetFont(),
 			pnlSetting.lblAreaDown.ForeColor = Reader.GetColor(),
-			pnlSetting.lblAreaDown.BackColor
-				= Shell.GetDesktopDown().BackColor,
+			pnlSetting.lblAreaDown.Background
+				= Shell.GetDesktopDown().Background,
 			pnlSetting.lblAreaDown.Font = Reader.GetFont(),
 			pnlSetting.ddlFont.Text = Reader.GetFont().GetFamilyName()
 		);
@@ -777,9 +768,16 @@ TextReaderSession::Execute(IndexEventArgs::ValueType idx)
 		{
 			auto& dsk_up(Shell.GetDesktopUp());
 
-			dsk_up.BackColor = ColorSpace::White;
+			dsk_up.Background = SolidBrush(ColorSpace::White);
 			dsk_up += pnlSetting.lblAreaUp,
 			dsk_up += pnlSetting.lblAreaDown;
+		}
+		{
+			const auto idx(std::find(Encodings | get_key, (Encodings
+				+ arrlen(Encodings)) | get_key, Reader.GetEncoding()) - Encodings);
+
+			yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(idx),
+				pnlSetting.ddlEncoding.Text = Encodings[idx].second);
 		}
 		Hide(boxReader),
 		Show(pnlSetting << Shell.CurrentSetting);
@@ -814,13 +812,14 @@ TextReaderSession::LoadFile(const IO::Path& pth)
 void
 TextReaderSession::Scroll()
 {
-	if(tmrScroll.IsActive() && tmrScroll.Refresh())
-	{
-		if(Shell.CurrentSetting.SmoothScroll)
-			Reader.ScrollByPixel(1U);
-		else
-			Reader.Execute(DualScreenReader::LineDownScroll);
-	}
+	if(tmrScroll.IsActive())
+		if(YCL_UNLIKELY(tmrScroll.Refresh()))
+		{
+			if(Shell.CurrentSetting.SmoothScroll)
+				Reader.ScrollByPixel(1U);
+			else
+				Reader.Execute(DualScreenReader::LineDownScroll);
+		}
 }
 
 void
@@ -950,11 +949,11 @@ TextReaderSession::OnKeyDown(KeyEventArgs&& e)
 			}
 			break;
 		case KeySpace::L:
-			if(Reader.GetLineGap() != 0)
+			if(YCL_LIKELY(Reader.GetLineGap() != 0))
 				Reader.SetLineGap(Reader.GetLineGap() - 1);
 			break;
 		case KeySpace::R:
-			if(Reader.GetLineGap() != 12)
+			if(YCL_LIKELY(Reader.GetLineGap() != 12))
 				Reader.SetLineGap(Reader.GetLineGap() + 1);
 			break;
 		case KeySpace::Left:
@@ -1036,7 +1035,7 @@ bool ShlReader::CurrentIsText(false);
 
 ShlReader::ShlReader()
 	: ShlDS(),
-	hUp(), hDn(), pManager(), background_task(), LastRead(), CurrentSetting()
+	bg_up(), bg_dn(), pManager(), background_task(), LastRead(), CurrentSetting()
 {
 	// TODO: use entity tree to store properties;
 	yunseq(
@@ -1065,8 +1064,7 @@ ShlReader::OnActivated(const Message& msg)
 	}
 	else
 		pManager = make_unique<HexReaderSession>(*this);
-	std::swap(hUp, dsk_up.GetBackgroundImagePtr()),
-	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
+	yunseq(bg_up = dsk_up.Background, bg_dn = dsk_dn.Background);
 	SetInvalidationOf(dsk_up),
 	SetInvalidationOf(dsk_dn);
 }
@@ -1077,8 +1075,7 @@ ShlReader::OnDeactivated()
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	std::swap(hUp, dsk_up.GetBackgroundImagePtr());
-	std::swap(hDn, dsk_dn.GetBackgroundImagePtr());
+	yunseq(dsk_up.Background = bg_up, dsk_dn.Background = bg_dn);
 	background_task = nullptr;
 	reset(pManager);
 	ParentType::OnDeactivated();
@@ -1088,7 +1085,7 @@ void
 ShlReader::OnInput()
 {
 	ParentType::OnInput();
-	if(background_task)
+	if(YCL_LIKELY(background_task))
 		SendMessage<SM_TASK>(FetchShellHandle(), 0x20, background_task);
 }
 

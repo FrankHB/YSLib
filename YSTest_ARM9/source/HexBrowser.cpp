@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1458;
+\version r1472;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2012-03-12 09:17 +0800;
+	2012-03-18 13:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -45,6 +45,7 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 	: ScrollableContainer(r), HexView(fc),
 	model()
 {
+	SetTransparent(false);
 	SetVisibleOf(HorizontalScrollBar, false);
 	SetVisibleOf(VerticalScrollBar, true);
 	VerticalScrollBar.SetSmallDelta(1);
@@ -116,16 +117,16 @@ HexViewArea::LocateViewPosition(u32 line)
 	UpdateView(true);
 }
 
-Rect
-HexViewArea::Refresh(const PaintContext& pc)
+void
+HexViewArea::Refresh(PaintEventArgs&& e)
 {
 	using namespace Text;
 
 	// TODO: refresh for 'rect' properly;
-	Widget::Refresh(PaintContext(pc.Target, pc.Location, Rect(pc.Location,
-		GetWidth(), GetHeight())));
-//	Widget::Refresh(pc);
-	ScrollableContainer::Refresh(pc);
+//	Background(PaintEventArgs(*this, e.Target, e.Location, Rect(e.Location,
+//		GetWidth(), GetHeight())));
+//	Background(PaintEventArgs(*this, e));
+	ScrollableContainer::Refresh(std::move(e));
 	TextState.ResetPen();
 
 	yconstexpr auto ItemPerLine(HexViewArea::ItemPerLine); // TODO: fix linkage;
@@ -139,7 +140,7 @@ HexViewArea::Refresh(const PaintContext& pc)
 		w_item(w_ch * 2 + w_blank);
 	const int fsize(model.GetSize());
 	auto& pen_x(TextState.PenX);
-	TextRenderer tr(TextState, pc.Target);
+	TextRenderer tr(TextState, e.Target);
 	auto pos(model.GetPosition());
 	auto i_data(GetBegin());
 
@@ -168,7 +169,6 @@ HexViewArea::Refresh(const PaintContext& pc)
 		}
 		yunseq(y += lh + TextState.LineGap, pos += ItemPerLine);
 	}
-	return Rect(pc.Location, GetSizeOf(*this));
 }
 
 void

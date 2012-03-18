@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r6894;
+\version r6900;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-27 11:34 +0800;
+	2012-03-17 20:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,7 @@ TextRenderer::ClearLine(u16 l, SDst n)
 	const auto& g(GetContext());
 	const auto h(g.GetHeight());
 
-	if(g.IsValid() && l < h)
+	if(YCL_LIKELY(g.IsValid() && l < h))
 	{
 		if(n == 0 || l + n > h)
 			n = h - l;
@@ -80,11 +80,11 @@ TextRegion::ClearLine(u16 l, SDst n)
 {
 	const auto& g(GetContext());
 
-	if(l > g.GetHeight())
+	if(YCL_UNLIKELY(l > g.GetHeight()))
 		return;
 	if(!n)
 		--n;
-	if(g.IsValid() && pBufferAlpha)
+	if(YCL_LIKELY(g.IsValid() && pBufferAlpha))
 	{
 		const u32 t((l + n > g.GetHeight() ? g.GetHeight() - l : n)
 			* g.GetWidth());
@@ -106,19 +106,19 @@ TextRegion::ClearTextLine(u16 l)
 void
 TextRegion::Scroll(ptrdiff_t n)
 {
-	if(GetHeight() > Margin.Bottom)
+	if(YCL_LIKELY(GetHeight() > Margin.Bottom))
 		Scroll(n, GetHeight() - Margin.Bottom);
 }
 void
 TextRegion::Scroll(ptrdiff_t n, SDst h)
 {
-	if(pBuffer && pBufferAlpha)
+	if(YCL_LIKELY(pBuffer && pBufferAlpha))
 	{
 		const s32 t(((h + Margin.Bottom > GetHeight()
 			? GetHeight() - Margin.Bottom : h)
 			- Margin.Top - abs(n)) * GetWidth());
 
-		if(n && t > 0)
+		if(YCL_LIKELY(n && t > 0))
 		{
 			u32 d(Margin.Top), s(d);
 

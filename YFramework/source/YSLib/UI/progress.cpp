@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r1311;
+\version r1325;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-20 08:59:56 +0800;
 \par 修改时间:
-	2012-03-01 10:52 +0800;
+	2012-03-18 13:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YSLib/UI/progress.h"
 #include "YSLib/UI/ygui.h"
+#include "YSLib/UI/YBrush.h"
 
 YSL_BEGIN
 
@@ -37,7 +38,7 @@ ProgressBar::ProgressBar(const Rect& r, ValueType m)
 {
 	auto& pal(FetchGUIState().Colors);
 
-	yunseq(BackColor = pal[Styles::Track],
+	yunseq(Background = SolidBrush(pal[Styles::Track]),
 		ForeColor = pal[Styles::HotTracking],
 		BorderColor = pal[Styles::InactiveBorder]);
 }
@@ -45,23 +46,23 @@ ProgressBar::ProgressBar(const Rect& r, ValueType m)
 void
 ProgressBar::SetMaxValue(ValueType m)
 {
-	if(m > 0)
+	if(YCL_LIKELY(m > 0))
 	{
-		if(value > m)
+		if(YCL_LIKELY(value > m))
 			value = m;
 		max_value = m;
 	}
 }
 
-Rect
-ProgressBar::Refresh(const PaintContext& pc)
+void
+ProgressBar::Refresh(PaintEventArgs&& e)
 {
-	const auto& g(pc.Target);
-	auto pt(pc.Location);
+	const auto& g(e.Target);
+	auto pt(e.Location);
 	Size s(GetSizeOf(*this));
 
 	DrawRect(g, pt, s, BorderColor);
-	if(s.Width > 2 && s.Height > 2)
+	if(YCL_LIKELY(s.Width > 2 && s.Height > 2))
 	{
 		yunseq(s.Width -= 2, s.Height -= 2, pt.X += 1, pt.Y += 1);
 
@@ -70,9 +71,10 @@ ProgressBar::Refresh(const PaintContext& pc)
 		FillRect(g, pt, Size(w_bar, s.Height), ForeColor);
 		pt.X += w_bar;
 		if(!IsTransparent() && s.Width > w_bar)
-			FillRect(g, pt, Size(s.Width - w_bar, s.Height), BackColor);
+			if(const auto p = Background.target<SolidBrush>())
+				FillRect(g, pt, Size(s.Width - w_bar, s.Height), p->Color);
 	}
-	return Rect(pc.Location, GetSizeOf(*this));
+	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
 YSL_END_NAMESPACE(Components)

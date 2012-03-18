@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.cpp
 \ingroup YReader
 \brief Shell 拾色器。
-\version r1195;
+\version r1210;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2012-01-06 21:37:51 +0800;
 \par 修改时间:
-	2012-02-10 12:58 +0800;
+	2012-03-17 14:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -61,19 +61,29 @@ ColorBox::ColorBox(const Point& pt, Color c)
 	trGreen.SetMaxValue(255),
 	trBlue.SetMaxValue(255),
 	yunseq(
-		ctlColorArea.BackColor = c,
-		FetchEvent<Paint>(ctlColorArea) += BorderBrush(BorderPtr),
+		FetchEvent<Paint>(ctlColorArea).Add(BorderBrush(BorderPtr),
+			BoundaryPriority),
 		trRed.GetScroll() += update_color,
 		trGreen.GetScroll() += update_color,
 		trBlue.GetScroll() += update_color
 	);
-	SetColor(ctlColorArea.BackColor);
+	SetColor(c);
+}
+
+Color&
+ColorBox::GetColorRef() const
+{
+	const auto p(ctlColorArea.Background.target<SolidBrush>());
+
+	if(!p)
+		throw LoggedEvent("Invalid brush found @ ColorBox::GetColor");
+	return p->Color;
 }
 
 void
 ColorBox::SetColor(Color c)
 {
-	ctlColorArea.BackColor = c,
+	GetColorRef() = c,
 	trRed.SetValue(c.GetR()),
 	trGreen.SetValue(c.GetG()),
 	trBlue.SetValue(c.GetB());

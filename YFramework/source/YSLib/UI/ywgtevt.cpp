@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.cpp
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1117;
+\version r1119;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 293 。
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2012-03-15 16:53 +0800;
+	2012-03-15 18:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -63,9 +63,7 @@ PaintEventArgs::PaintEventArgs(IWidget& wgt, const Drawing::Graphics& g,
 WidgetController::WidgetController(bool b)
 	: AController(b),
 	Paint()
-{
-	Paint += Render;
-}
+{}
 
 EventMapping::ItemType&
 WidgetController::GetItem(const VisualEvent& id)

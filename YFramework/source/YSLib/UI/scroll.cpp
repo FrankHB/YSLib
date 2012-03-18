@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4118;
+\version r4155;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2012-02-22 20:07 +0800;
+	2012-03-18 16:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -179,15 +179,13 @@ ATrack::SetLargeDelta(ValueType val)
 	SetThumbLength(SDst(round(val * GetTrackLength() / (val + max_value))));
 }
 
-Rect
-ATrack::Refresh(const PaintContext& pc)
+void
+ATrack::Refresh(PaintEventArgs&& e)
 {
-	auto r(Widget::Refresh(pc));
-
 	if(!IsTransparent())
 	{
-		const auto& g(pc.Target);
-		const auto& pt(pc.Location);
+		const auto& g(e.Target);
+		const auto& pt(e.Location);
 		auto& pal(FetchGUIState().Colors);
 
 		FillRect(g, pt, GetSizeOf(*this), pal[Styles::Track]);
@@ -208,13 +206,12 @@ ATrack::Refresh(const PaintContext& pc)
 			DrawVLineSeg(g, xr, pt.Y, yr, c);
 		}
 	}
-	PaintChild(Thumb, PaintContext(pc.Target, pc.Location,
-		Rect(pc.Location, GetSizeOf(*this))));
-	return r;
+	PaintChild(Thumb, e);
+	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 	// NOTE: partial invalidation made no efficiency improved here;
 	/*
-		const auto& g(pc.Target);
-		const auto& pt(pc.Location);
+		const auto& g(e.Target);
+		const auto& pt(e.Location);
 		auto& st(FetchGUIState().Colors);
 
 		FillRect(g, r, pal[Styles::Track]);
@@ -240,7 +237,7 @@ ATrack::Refresh(const PaintContext& pc)
 			DrawVLineSeg(g, xr, pt.Y, yr, c);
 		}
 	}
-	PaintChild(Thumb, pc);
+	PaintChild(Thumb, e);
 	return r;
 	*/
 }
@@ -410,23 +407,21 @@ AScrollBar::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 	return f(*pTrack.get()) ? pTrack.get() : nullptr;
 }
 
-Rect
-AScrollBar::Refresh(const PaintContext& pc)
+void
+AScrollBar::Refresh(PaintEventArgs&& e)
 {
 	YAssert(bool(pTrack), "Null widget pointer found @ AScrollBar::Draw;");
 
-	auto r(Widget::Refresh(pc));
-
-	PaintChild(*pTrack, pc),
-	PaintChild(btnPrev, pc),
-	PaintChild(btnNext, pc);
-	WndDrawArrow(pc.Target, Rect(pc.Location + GetLocationOf(btnPrev),
+	PaintChild(*pTrack, e),
+	PaintChild(btnPrev, e),
+	PaintChild(btnNext, e);
+	WndDrawArrow(e.Target, Rect(e.Location + GetLocationOf(btnPrev),
 		GetSizeOf(btnPrev)), 4, pTrack->GetOrientation() == Horizontal
 		? RDeg180 : RDeg90, ForeColor),
-	WndDrawArrow(pc.Target, Rect(pc.Location + GetLocationOf(btnNext),
+	WndDrawArrow(e.Target, Rect(e.Location + GetLocationOf(btnNext),
 		GetSizeOf(btnNext)), 4, pTrack->GetOrientation() == Horizontal
 		? RDeg0 : RDeg270, ForeColor);
-	return r;
+	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
 
@@ -465,6 +460,7 @@ ScrollableContainer::ScrollableContainer(const Rect& r)
 	HorizontalScrollBar(Rect(Point::Zero, r.Width, defMinScrollBarHeight)),
 	VerticalScrollBar(Rect(Point::Zero, defMinScrollBarWidth, r.Height))
 {
+	SetTransparent(true);
 	SetContainerPtrOf(HorizontalScrollBar, this),
 	SetContainerPtrOf(VerticalScrollBar, this);
 	MoveToBottom(HorizontalScrollBar);
@@ -481,15 +477,13 @@ ScrollableContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 	return nullptr;
 }
 
-Rect
-ScrollableContainer::Refresh(const PaintContext& pc)
+void
+ScrollableContainer::Refresh(PaintEventArgs&& e)
 {
-//	Widget::Refresh(pc);
 	if(IsVisible(HorizontalScrollBar))
-		PaintChild(HorizontalScrollBar, pc);
+		e.ClipArea = Unite(e.ClipArea, PaintChild(HorizontalScrollBar, e));
 	if(IsVisible(VerticalScrollBar))
-		PaintChild(VerticalScrollBar, pc);
-	return Rect(pc.Location, GetSizeOf(*this));
+		e.ClipArea = Unite(e.ClipArea, PaintChild(VerticalScrollBar, e));
 }
 
 Size

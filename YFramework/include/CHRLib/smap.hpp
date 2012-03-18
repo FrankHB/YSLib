@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2599;
+\version r2616;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2012-03-05 14:46 +0800;
+	2012-03-17 19:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -60,7 +60,7 @@ FillByte(_tIn& i, _tState& st)
 	static_assert(std::is_explicitly_convertible<decltype(*i), byte>::value,
 		"Invalid mapping source type found @ CHRLib::GetByteOf;");
 
-	if(is_undereferencable(i))
+	if(YCL_UNLIKELY(is_undereferencable(i)))
 		return false;
 
 	const auto r(static_cast<byte>(*i));
@@ -152,19 +152,19 @@ struct GUCS2Mapper<CharSet::UTF_8>
 		switch(GetCountOf(st))
 		{
 		case 0:
-			if(!FillByte(i, st))
+			if(YCL_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
 			if(seq[0] < 0x80)
 			{
 				uc = seq[0];
 				break;
 			}
-			if(IsInvalid(seq[0]) || ((seq[0] & 0xC0) != 0xC0))
+			if(YCL_UNLIKELY(IsInvalid(seq[0]) || ((seq[0] & 0xC0) != 0xC0)))
 				return ConversionResult::Invalid;
 		case 1:
-			if(!FillByte(i, st))
+			if(YCL_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			if(IsInvalid(seq[1]) || ((seq[1] & 0xC0) != 0x80))
+			if(YCL_UNLIKELY(IsInvalid(seq[1]) || ((seq[1] & 0xC0) != 0x80)))
 				return ConversionResult::Invalid;
 			if(((seq[0] ^ 0xC0) & 0xE0) == 0)
 			{
@@ -174,9 +174,9 @@ struct GUCS2Mapper<CharSet::UTF_8>
 				break;
 			}
 		case 2:
-			if(!FillByte(i, st))
+			if(YCL_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			if(IsInvalid(seq[2]) || ((seq[2] & 0xC0) != 0x80))
+			if(YCL_UNLIKELY(IsInvalid(seq[2]) || ((seq[2] & 0xC0) != 0x80)))
 				return ConversionResult::Invalid;
 			if(((seq[0] ^ 0xE0) & 0xF0) == 0)
 			{
@@ -187,11 +187,11 @@ struct GUCS2Mapper<CharSet::UTF_8>
 				break;
 			}
 		case 3:
-			if(!FillByte(i, st))
+			if(YCL_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			if(IsInvalid(seq[3]) || ((seq[3] & 0xC0) != 0x80))
+			if(YCL_UNLIKELY(IsInvalid(seq[3]) || ((seq[3] & 0xC0) != 0x80)))
 				return ConversionResult::Invalid;
-			if(((seq[0] ^ 0xF0) & 0xF8) == 0)
+			if(YCL_LIKELY(((seq[0] ^ 0xF0) & 0xF8) == 0))
 			{
 				uc = (((seq[0] & 0x0F) << 4
 					| (seq[1] & 0x3C) >> 2) << 8)
@@ -243,7 +243,7 @@ struct GUCS2Mapper<CharSet::GBK>
 		switch(GetCountOf(st))
 		{
 		case 0:
-			if(!FillByte(i, st))
+			if(YCL_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
 			if(cp113[seq[0]] != 0)
 			{
@@ -251,9 +251,9 @@ struct GUCS2Mapper<CharSet::GBK>
 				break;
 			}
 		case 1:
-			if(!FillByte(i, st))
+			if(YCL_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			if((seq[0] << 8 | seq[1]) < 0xFF7E)
+			if(YCL_LIKELY((seq[0] << 8 | seq[1]) < 0xFF7E))
 			{
 				uc = reinterpret_cast<const ucs2_t*>(cp113 + 0x0100)[
 					seq[0] << 8 | seq[1]];
@@ -279,10 +279,10 @@ struct GUCS2Mapper<CharSet::UTF_16BE>
 		switch(GetCountOf(st))
 		{
 		case 0:
-			if(!FillByte(i, st))
+			if(YCL_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
 		case 1:
-			if(!FillByte(i, st))
+			if(YCL_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
 			uc = seq[0] << 8 | seq[1];
 			break;
@@ -305,10 +305,10 @@ struct GUCS2Mapper<CharSet::UTF_16LE>
 		switch(GetCountOf(st))
 		{
 		case 0:
-			if(!FillByte(i, st))
+			if(YCL_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
 		case 1:
-			if(!FillByte(i, st))
+			if(YCL_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
 			uc = seq[0] | seq[1] << 8;
 			break;

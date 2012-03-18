@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2788;
+\version r2789;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-02-25 18:02 +0800;
+	2012-03-17 19:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -342,7 +342,7 @@ PDefTmplH1(_type)
 inline void
 ClearSequence(_type* dst, size_t n)
 {
-	if(dst && n)
+	if(YCL_LIKELY(dst && n))
 		mmbset(dst, 0, sizeof(_type) * n);
 }
 

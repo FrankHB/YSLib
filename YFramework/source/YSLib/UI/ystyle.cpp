@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1589;
+\version r1591;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2012-01-12 15:36 +0800;
+	2012-03-17 20:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -40,14 +40,14 @@ DrawRectRoundCorner(const Graphics& g, const Point& pt, const Size& s, Color c)
 	const SPos x1(pt.X + 1), y1(pt.Y + 1), x2(pt.X + s.Width - 1),
 		y2(pt.Y + s.Height - 1);
 
-	if(x1 <= x2 && y1 <= y2)
+	if(YCL_LIKELY(x1 <= x2 && y1 <= y2))
 	{
 		bool b(DrawVLineSeg(g, x1 - 1, y1, y2, c));
 
 		b |= DrawHLineSeg(g, y2, x1, x2, c);
 		b |= DrawVLineSeg(g, x2, y1, y2, c);
 		b |= DrawHLineSeg(g, y1 - 1, x1, x2, c);
-		if(s.Width > 4 && s.Height > 4)
+		if(YCL_LIKELY(s.Width > 4 && s.Height > 4))
 		{
 			DrawPoint(g, x1, y1, c);
 			DrawPoint(g, x1, y2 - 1, c);

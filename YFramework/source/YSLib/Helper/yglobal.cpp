@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3478;
+\version r3481;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2012-03-12 09:09 +0800;
+	2012-03-17 19:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -159,7 +159,7 @@ DSScreen::DSScreen(SDst w, SDst h, BitmapPtr p)
 BitmapPtr
 DSScreen::GetCheckedBufferPtr() const ynothrow
 {
-	if(!GetBufferPtr())
+	if(YCL_UNLIKELY(!GetBufferPtr()))
 	{
 		InitVideo();
 
@@ -345,8 +345,8 @@ DSApplication::DSApplication()
 	因为 MainShell 的基类 Shell 的构造函数
 	调用了 Application 的非静态成员函数。
 	*/
-	if(!FetchAppInstance().SetShellHandle(
-		make_shared<Shells::MainShell>()))
+	if(YCL_UNLIKELY(!FetchAppInstance().SetShellHandle(
+		make_shared<Shells::MainShell>())))
 		throw LoggedEvent("Failed launching the main shell;");
 }
 
@@ -368,7 +368,7 @@ DSApplication::~DSApplication()
 FontCache&
 DSApplication::GetFontCache() const ythrow(LoggedEvent)
 {
-	if(!pFontCache)
+	if(YCL_UNLIKELY(!pFontCache))
 		throw LoggedEvent("Null font cache pointer found"
 			" @ Application::GetFontCache;");
 	return *pFontCache;

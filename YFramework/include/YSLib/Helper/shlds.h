@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2085;
+\version r2095;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-02-28 07:24 +0800;
+	2012-03-15 19:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -79,6 +79,16 @@ class ShlDS : public Shell
 private:
 	shared_ptr<Desktop> hDskUp, hDskDown; \
 		//正常状态下应总是指向可用的桌面对象。
+
+protected:
+	/*!
+	\brief 指定当前桌面是否需要更新。
+	\note 默认可能被 OnGotMessage 和派生类重写的 OnPaint 改变状态。
+	\since build 294 。
+	*/
+	//@{
+	bool bUpdateUp, bUpdateDown;
+	//@}
 
 public:
 	/*!

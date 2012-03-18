@@ -11,13 +11,13 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1250;
+\version r1256;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192 。
 \par 创建时间:
 	2011-02-21 08:59:34 +0800;
 \par 修改时间:
-	2012-03-14 20:07 +0800;
+	2012-03-18 13:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -59,8 +59,12 @@ public:
 	virtual IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
-	virtual Rect
-	Refresh(const PaintContext&);
+	/*!
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
+	*/
+	virtual void
+	Refresh(PaintEventArgs&&);
 };
 
 

@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r7378;
+\version r7386;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-27 06:54 +0800;
+	2012-03-17 19:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -57,7 +57,7 @@ template<class _tRenderer>
 void
 PrintChar(_tRenderer& r, ucs4_t c)
 {
-	if(std::iswprint(c))
+	if(YCL_LIKELY(std::iswprint(c)))
 		r(c);
 }
 
@@ -78,16 +78,17 @@ PutChar(_tRenderer& r, ucs4_t c)
 		ts.PutNewline();
 		return 0;
 	}
-	if(!std::iswprint(c))
+	if(YCL_UNLIKELY(!std::iswprint(c)))
 		return 0;
 /*
-	const int maxW(GetBufWidthN() - 1), spaceW(ts.GetCache().GetAdvance(' '));
+	const int max_w(GetBufferWidthN() - 1),
+		space_w(ts.GetCache().GetAdvance(' '));
 
-	if(maxW < spaceW)
-		return lineBreaksL = 1;
+	if(max_w < spaceW)
+		return line_breaks_l = 1;
 */
-	if(ts.PenX + ts.Font.GetAdvance(c)
-		>= r.GetContext().GetWidth() - ts.Margin.Right)
+	if(YCL_UNLIKELY(ts.PenX + ts.Font.GetAdvance(c)
+		>= r.GetContext().GetWidth() - ts.Margin.Right))
 	{
 		ts.PutNewline();
 		return 1;

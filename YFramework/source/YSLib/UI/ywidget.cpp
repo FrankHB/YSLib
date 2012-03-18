@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5371;
+\version r5407;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-14 09:25 +0800;
+	2012-03-18 16:35 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -131,16 +131,13 @@ PaintChild(IWidget& wgt, PaintEventArgs&& e)
 	if(!e.ClipArea.IsUnstrictlyEmpty())
 		wgt.GetRenderer().Paint(sender, std::move(e));
 }
-void
+Rect
 PaintChild(IWidget& wgt, const PaintContext& pc)
 {
-	PaintChild(wgt, PaintEventArgs(wgt, pc));
-}
+	PaintEventArgs e(wgt, pc);
 
-void
-Render(PaintEventArgs&& e)
-{
-	e.GetSender().Refresh(e);
+	PaintChild(wgt, std::move(e));
+	return e.ClipArea;
 }
 
 void
@@ -162,13 +159,15 @@ Show(IWidget& wgt)
 Widget::Widget(const Rect& r, Color b, Color f)
 	: pView(new View(r)), pRenderer(new Renderer()),
 	pController(new WidgetController(false)),
-	BackColor(b), ForeColor(f)
-{}
+	Background(SolidBrush(b)), ForeColor(f)
+{
+	InitializeEvents();
+}
 Widget::Widget(const Widget& wgt)
 	: pView(ClonePolymorphic(wgt.pView)),
 	pRenderer(ClonePolymorphic(wgt.pRenderer)),
 	pController(ClonePolymorphic(wgt.pController)),
-	BackColor(wgt.BackColor), ForeColor(wgt.ForeColor)
+	Background(wgt.Background), ForeColor(wgt.ForeColor)
 {}
 Widget::~Widget()
 {
@@ -181,6 +180,13 @@ Widget::~Widget()
 			pFocusing = nullptr;
 	}
 //	ReleaseFocus(*this);
+}
+
+void
+Widget::InitializeEvents()
+{
+	(FetchEvent<Paint>(*this).Add(std::ref(Background), BackgroundPriority))
+		+= std::bind(&Widget::Refresh, this, std::placeholders::_1);
 }
 
 AController&
@@ -205,13 +211,9 @@ Widget::SetView(unique_ptr<View>&& p)
 		: unique_ptr<View>(new View(GetBoundsOf(*this)));
 }
 
-Rect
-Widget::Refresh(const PaintContext& pc)
-{
-	if(!IsTransparent())
-		Drawing::FillRect(pc.Target, pc.ClipArea, BackColor);
-	return Rect(pc.Location, GetSizeOf(*this));
-}
+void
+Widget::Refresh(PaintEventArgs&&)
+{}
 
 YSL_END_NAMESPACE(Components)
 

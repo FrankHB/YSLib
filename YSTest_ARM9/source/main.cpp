@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2197;
+\version r2215;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-02-28 07:38 +0800;
+	2012-03-16 17:42 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -85,14 +85,17 @@ MainShell::OnActivated(const Message& msg)
 	dsk_up += lblTitle;
 	dsk_up += lblStatus;
 	dsk_dn += lblDetails;
-//	dsk_up.GetBackgroundImagePtr() = FetchImage(1);
-	dsk_up.BackColor = Color(240, 216, 192);
-//	dsk_dn.BackColor = Color(240, 216, 240);
-	dsk_dn.BackColor = FetchGUIState().Colors[Styles::Desktop];
-	lblTitle.Text = Application::ProductName;
-	lblStatus.Text = "Loading...";
-	lblDetails.Text = u"初始化中，请稍后……";
-	lblDetails.ForeColor = ColorSpace::White;
+	yunseq(
+	//	dsk_up.Background = FetchImage(1),
+		dsk_up.Background = SolidBrush(Color(240, 216, 192)),
+	//	dsk_dn.Background = Color(240, 216, 240),
+		dsk_dn.Background
+			= SolidBrush(FetchGUIState().Colors[Styles::Desktop]),
+		lblTitle.Text = Application::ProductName,
+		lblStatus.Text = "Loading...",
+		lblDetails.Text = u"初始化中，请稍后……",
+		lblDetails.ForeColor = ColorSpace::White
+	);
 	lblDetails.SetTransparent(true);
 	SetInvalidationOf(dsk_up);
 	yunseq(dsk_up.Validate(), dsk_dn.Validate());
@@ -107,7 +110,8 @@ MainShell::OnActivated(const Message& msg)
 	{
 		pb.SetValue(i);
 //		Invalidate(pb);
-		dsk_up.BackColor = Color(255 - i * 255 / 10, 216, 192);
+		dsk_up.Background
+			= SolidBrush(Color(255 - i * 255 / 10, 216, 192));
 		SetInvalidationOf(dsk_up);
 		Invalidate(dsk_up);
 		dsk_up.Validate();
@@ -126,8 +130,8 @@ MainShell::OnActivated(const Message& msg)
 void
 MainShell::OnDeactivated()
 {
-	reset(GetDesktopUp().GetBackgroundImagePtr());
-	reset(GetDesktopDown().GetBackgroundImagePtr());
+//	yunseq(GetDesktopUp().Background = nullptr,
+//		GetDesktopDown().Background = nullptr);
 	ParentType::OnDeactivated();
 }
 

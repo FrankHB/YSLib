@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4662;
+\version r4669;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2012-03-15 12:07 +0800;
+	2012-03-17 20:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YSLib/Core/ystorage.hpp"
 #include <ystdex/algorithm.hpp>
 #include "YSLib/UI/yrender.h"
+#include "YSLib/UI/YBrush.h"
 
 YSL_BEGIN
 
@@ -169,9 +170,7 @@ namespace
 void
 OnKey_Bound_TouchUpAndLeave(KeyEventArgs&& e)
 {
-	auto pCtl(FetchEnabledBoundControlPtr(std::move(e)));
-
-	if(pCtl)
+	if(const auto pCtl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
 		TouchEventArgs et(*pCtl, TouchEventArgs::Invalid);
 
@@ -184,9 +183,7 @@ OnKey_Bound_TouchUpAndLeave(KeyEventArgs&& e)
 void
 OnKey_Bound_EnterAndTouchDown(KeyEventArgs&& e)
 {
-	auto pCtl(FetchEnabledBoundControlPtr(std::move(e)));
-
-	if(pCtl)
+	if(const auto pCtl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
 		TouchEventArgs et(*pCtl, TouchEventArgs::Invalid);
 
@@ -215,8 +212,7 @@ Control::ControlEventMap::ControlEventMap()
 {
 	yunseq(
 		FetchEvent<TouchDown>(*this) += OnTouchDown_RequestToTopFocused,
-		FetchEvent<TouchHeld>(*this) += OnTouchHeld,
-		FetchEvent<Paint>(*this) += Render
+		FetchEvent<TouchHeld>(*this) += OnTouchHeld
 	);
 }
 

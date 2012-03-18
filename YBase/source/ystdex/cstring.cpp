@@ -11,12 +11,12 @@
 /*!	\file cstring.cpp
 \ingroup YStandardEx
 \brief YCLib ISO C 标准字符串扩展。
-\version r2069;
+\version r2070;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-27 17:31:20 +0800;
 \par 修改时间:
-	2012-01-31 05:08 +0800;
+	2012-03-17 19:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -44,7 +44,7 @@ namespace ystdex
 	char*
 	strcpycat(char* d, const char* s1, const char* s2)
 	{
-		if(!d)
+		if(YCL_UNLIKELY(!d))
 			return nullptr;
 		if(s1)
 			std::strcpy(d, s1);

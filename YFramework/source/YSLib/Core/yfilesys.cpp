@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2243;
+\version r2247;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2012-02-21 14:47 +0800;
+	2012-03-17 19:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -304,7 +304,7 @@ HaveSameExtensions(const string& a, const string& b)
 int
 ChangeDirectory(const string& path)
 {
-	if(path.length() > YCL_MAX_PATH_LENGTH)
+	if(YCL_UNLIKELY(path.length() > YCL_MAX_PATH_LENGTH))
 		return -2;
 
 	return ChangeDirectory(path.c_str());
@@ -312,7 +312,7 @@ ChangeDirectory(const string& path)
 /*int //for String;
 ChangeDirectory(const Path& path)
 {
-	if(path.length() > YCL_MAX_PATH_LENGTH)
+	if(YCL_UNLIKELY(path.length() > YCL_MAX_PATH_LENGTH))
 		return -2;
 
 	PATHSTR p;
@@ -371,12 +371,12 @@ FileList::LoadSubItems()
 
 		hList->clear();
 		while((++dir).LastError == 0)
-			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
+			if(YCL_LIKELY(std::strcmp(HDirectory::Name, FS_Now) != 0))
 				++n;
 		hList->reserve(n);
 		dir.Reset();
 		while((++dir).LastError == 0)
-			if(std::strcmp(HDirectory::Name, FS_Now) != 0)
+			if(YCL_LIKELY(std::strcmp(HDirectory::Name, FS_Now) != 0))
 				hList->push_back(std::strcmp(HDirectory::Name, FS_Parent)
 					&& HDirectory::IsDirectory() ? String(
 					string(HDirectory::Name) + FS_Seperator, CP_Path)

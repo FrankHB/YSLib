@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r1246;
+\version r1253;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-20 08:57:48 +0800;
 \par 修改时间:
-	2011-12-20 18:59 +0800;
-\par 字符集:
+	2012-03-18 13:06 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::Progress;
@@ -59,10 +59,11 @@ public:
 	DefSetter(ValueType, Value, value)
 
 	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
 	*/
-	virtual Rect
-	Refresh(const PaintContext&);
+	virtual void
+	Refresh(PaintEventArgs&&);
 };
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3929;
+\version r3939;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-03-11 16:21 +0800;
+	2012-03-18 13:29 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -97,13 +97,12 @@ ListBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 	return f(*pCtl) ? pCtl : nullptr;
 }
 
-Rect
-ListBox::Refresh(const PaintContext& pc)
+void
+ListBox::Refresh(PaintEventArgs&& e)
 {
-	auto r(ScrollableContainer::Refresh(pc));
+	ScrollableContainer::Refresh(std::move(e));
 
-	PaintChild(lstText, pc);
-	return r;
+	PaintChild(lstText, e);
 }
 
 void
@@ -226,20 +225,16 @@ DropDownList::DetachTopWidget()
 	Detach(FetchContainerPtr(boxList), boxList);
 }
 
-Rect
-DropDownList::Refresh(const PaintContext& pc)
+void
+DropDownList::Refresh(PaintEventArgs&& e)
 {
 	bool b(bPressed);
 
 	bPressed = bPressed || FetchContainerPtr(boxList);
-
-	const Rect r(Button::Refresh(pc));
-
+	Button::Refresh(std::move(e));
 	bPressed = b;
-
-	WndDrawArrow(pc.Target, Rect(pc.Location + Vec(GetWidth() - 16, 0),
+	WndDrawArrow(e.Target, Rect(e.Location + Vec(GetWidth() - 16, 0),
 		Size(16, GetHeight())), 4, RDeg270, ForeColor);
-	return r;
 }
 
 YSL_END_NAMESPACE(Components)

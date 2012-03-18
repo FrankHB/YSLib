@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1921;
+\version r1927;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2012-02-25 19:13 +0800;
+	2012-03-17 20:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -40,7 +40,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		Styles::HighlightText)),
 	id(id), pParent(nullptr), mSubMenus(), vDisabled()
 {
-	BackColor = FetchGUIState().Colors[Styles::Panel],
+	Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
 	SetAllOf(Margin, 6, 18, 4, 4);
 	CyclicTraverse = true;
 	if(h)
@@ -211,9 +211,10 @@ Menu::PaintItem(const Graphics& g, const Rect& mask, const Rect& r,
 		GetTextState().Color = FetchGUIState().Colors[Styles::GrayText];
 	DrawClippedText(g, mask, GetTextState(), GetList()[i]);
 	GetTextState().Color = t;
-	if(r.Width > 16 && mSubMenus.find(i) != mSubMenus.end())
-		WndDrawArrow(g, Rect(r.X + r.Width - 16, r.Y, 16, r.Height), 4, RDeg0,
-			ForeColor);
+	if(YCL_LIKELY(r.Width > 16))
+		if(mSubMenus.find(i) != mSubMenus.end())
+			WndDrawArrow(g, Rect(r.X + r.Width - 16, r.Y, 16, r.Height), 4,
+				RDeg0, ForeColor);
 }
 
 

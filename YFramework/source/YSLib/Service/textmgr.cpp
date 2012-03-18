@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4573;
+\version r4579;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2012-03-09 17:33 +0800;
+	2012-03-17 19:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -50,7 +50,7 @@ TextFileBuffer::Iterator::operator++() ynothrow
 	YAssert(index < vec.size(), "Invalid index found"
 		" @ TextFileBuffer::Iterator::operator++");
 
-	if(++index == vec.size())
+	if(YCL_UNLIKELY(++index == vec.size()))
 		yunseq(++block, index = 0);
 	return *this;
 }
@@ -128,7 +128,7 @@ TextFileBuffer::operator[](size_t idx)
 	auto& b(Map[idx]);
 	auto& vec(b.first);
 
-	if(vec.empty() && File.IsValid())
+	if(YCL_UNLIKELY(vec.empty() && File.IsValid()))
 	{
 		size_t len(idx == nBlock - 1 && nTextSize % nBlockSize != 0
 			? nTextSize % nBlockSize : nBlockSize);
@@ -142,7 +142,7 @@ TextFileBuffer::operator[](size_t idx)
 		{
 			ConversionState st;
 
-			if(File.ReadChar(c, st) == ConversionResult::OK)
+			if(YCL_LIKELY(File.ReadChar(c, st) == ConversionResult::OK))
 				vec.push_back(c);
 			n_byte += GetCountOf(st);
 		}
@@ -183,7 +183,7 @@ TextFileBuffer::GetIterator(size_t pos)
 		{
 			ConversionState st;
 
-			if(File.SkipChar(st) == ConversionResult::OK)
+			if(YCL_LIKELY(File.SkipChar(st) == ConversionResult::OK))
 				++n_char;
 			n_byte += GetCountOf(st);
 		}
@@ -221,7 +221,7 @@ TextFileBuffer::GetPosition(TextFileBuffer::Iterator i)
 	{
 		ConversionState st;
 
-		if(File.SkipChar(st) == ConversionResult::OK)
+		if(YCL_LIKELY(File.SkipChar(st) == ConversionResult::OK))
 			++it;
 		n_byte += GetCountOf(st);
 	}

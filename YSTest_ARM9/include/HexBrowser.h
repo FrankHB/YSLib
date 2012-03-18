@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1344;
+\version r1350;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:13:04 +0800;
 \par 修改时间:
-	2012-01-05 16:05 +0800;
+	2012-03-18 13:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -207,8 +207,12 @@ public:
 	void
 	LocateViewPosition(u32);
 
-	virtual Rect
-	Refresh(const PaintContext&);
+	/*!
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
+	*/
+	virtual void
+	Refresh(PaintEventArgs&&);
 
 	void
 	Reset();

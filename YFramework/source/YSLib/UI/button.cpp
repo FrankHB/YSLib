@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3686;
+\version r3708;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2012-02-23 20:04 +0800;
+	2012-03-18 13:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,7 @@ namespace
 
 		DrawRectRoundCorner(g, pt, s, is_enabled ? Color(60, 127, 177)
 			: FetchGUIState().Colors[Styles::Workspace]);
-		if(s.Width > 2 && s.Height > 2)
+		if(YCL_LIKELY(s.Width > 2 && s.Height > 2))
 		{
 			yunseq(pt.X += 1, pt.Y += 1, s.Width -= 2, s.Height -= 2);
 			FillRect(g, pt, s, is_enabled ? Color(48, 216, 255)
@@ -92,12 +92,12 @@ Thumb::Thumb(const Rect& r)
 	);
 }
 
-Rect
-Thumb::Refresh(const PaintContext& pc)
+void
+Thumb::Refresh(PaintEventArgs&& e)
 {
 	const bool enabled(IsEnabled(*this));
-	const auto& g(pc.Target);
-	const auto& pt(pc.Location);
+	const auto& g(e.Target);
+	const auto& pt(e.Location);
 
 	if(!enabled)
 		bPressed = false;
@@ -106,13 +106,13 @@ Thumb::Refresh(const PaintContext& pc)
 	{
 		Size s(GetSizeOf(*this));
 
-		if(s.Width > 6 && s.Height > 6)
+		if(YCL_LIKELY(s.Width > 6 && s.Height > 6))
 		{
 			yunseq(s.Width -= 6, s.Height -= 6);
 			DrawRect(g, pt + Vec(3, 3), s, ColorSpace::Aqua);
 		}
 	}
-	return Rect(pt, GetSizeOf(*this));
+	e.ClipArea = Rect(pt, GetSizeOf(*this));
 }
 
 
@@ -121,16 +121,15 @@ Button::Button(const Rect& r, const Drawing::Font& fnt)
 	MLabel(fnt, TextAlignment::Center)
 {}
 
-Rect
-Button::Refresh(const PaintContext& pc)
+void
+Button::Refresh(PaintEventArgs&& e)
 {
-	const Rect r(Thumb::Refresh(pc));
+	Thumb::Refresh(std::move(e));
 
 	// NOTE: partial invalidation made no efficiency improved here;
 	PaintText(GetSizeOf(*this), IsEnabled(*this) ? ForeColor
-		: FetchGUIState().Colors[Styles::Workspace], PaintContext(pc.Target,
-		pc.Location, Rect(pc.Location, GetSizeOf(*this))));
-	return r;
+		: FetchGUIState().Colors[Styles::Workspace], PaintContext(e.Target,
+		e.Location, Rect(e.Location, GetSizeOf(*this))));
 }
 
 
@@ -144,24 +143,24 @@ CloseButton::CloseButton(const Rect& r)
 	};
 }
 
-Rect
-CloseButton::Refresh(const PaintContext& pc)
+void
+CloseButton::Refresh(PaintEventArgs&& e)
 {
-	const Rect r(Thumb::Refresh(pc));
+	Thumb::Refresh(std::move(e));
+
 	const Size s(GetSizeOf(*this));
 
 	//画叉。
-	if(s.Width > 8 && s.Height > 8)
+	if(YCL_LIKELY(s.Width > 8 && s.Height > 8))
 	{
-		const SPos xmin(pc.Location.X + 4), xmax(xmin + s.Width - 8),
-			ymin(pc.Location.Y + 4), ymax(ymin + s.Height - 8);
+		const SPos xmin(e.Location.X + 4), xmax(xmin + s.Width - 8),
+			ymin(e.Location.Y + 4), ymax(ymin + s.Height - 8);
 		const Color c(IsEnabled(*this) ? ForeColor
 			: FetchGUIState().Colors[Styles::Workspace]);
 
-		DrawLineSeg(pc.Target, xmin, ymin, xmax, ymax, c),
-		DrawLineSeg(pc.Target, xmax - 1, ymin, xmin - 1, ymax, c);
+		DrawLineSeg(e.Target, xmin, ymin, xmax, ymax, c),
+		DrawLineSeg(e.Target, xmax - 1, ymin, xmin - 1, ymax, c);
 	}
-	return r;
 }
 
 YSL_END_NAMESPACE(Components)

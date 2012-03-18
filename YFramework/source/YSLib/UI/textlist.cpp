@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1647;
+\version r1657;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-03-11 17:28 +0800;
+	2012-03-18 13:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -160,7 +160,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 		FetchEvent<Click>(*this) += [this](TouchEventArgs&& e){
 			InvokeConfirmed(CheckPoint(e));
 		},
-		FetchEvent<Paint>(*this) += BorderBrush(BorderPtr)
+		FetchEvent<Paint>(*this).Add(BorderBrush(BorderPtr), BoundaryPriority)
 	);
 	AdjustViewLength(); //防止显示长度出错。
 }
@@ -199,15 +199,11 @@ TextList::SetSelected(SPos x, SPos y)
 	SetSelected(CheckPoint(x, y));
 }
 
-Rect
-TextList::Refresh(const PaintContext& pc)
+void
+TextList::Refresh(PaintEventArgs&& e)
 {
-//	Widget::Refresh(pc);
-
-	const auto& pt(pc.Location);
-
-	PaintItems(pc);
-	return Rect(pt, GetSizeOf(*this));
+	PaintItems(e);
+	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
 SDst
@@ -327,8 +323,6 @@ TextList::PaintItems(const PaintContext& pc)
 	if(h != 0)
 	{
 		RefreshTextState();
-
-		Widget::Refresh(pc);
 
 		if(viewer.GetTotal() != 0)
 		{

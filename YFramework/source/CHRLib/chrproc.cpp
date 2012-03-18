@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r2073;
+\version r2078;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2012-03-05 14:45 +0800;
+	2012-03-17 20:31 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -96,9 +96,8 @@ byte
 UCToMBC(char* d, const ucs2_t& s, Encoding enc)
 {
 	byte l(0);
-	const auto pfun(FetchMapperPtr<byte(char*, const ucs2_t&)>(enc));
 
-	if(pfun)
+	if(const auto pfun = FetchMapperPtr<byte(char*, const ucs2_t&)>(enc))
 		l = pfun(d, s);
 	return l;
 }
@@ -143,7 +142,7 @@ ucsdup(const char* s, Encoding enc)
 {
 	ucs2_t* const p(static_cast<ucs2_t*>(malloc((strlen(s) + 1) << 1)));
 
-	if(p)
+	if(YCL_LIKELY(p))
 		MBCSToUCS2(p, s, enc);
 	return p;
 }
@@ -153,7 +152,7 @@ ucsdup(const ucs2_t* str)
 	const size_t n(sntctslen(str) * sizeof(ucs2_t));
 	ucs2_t* const p(static_cast<ucs2_t*>(malloc(n + sizeof(ucs2_t))));
 
-	if(p)
+	if(YCL_LIKELY(p))
 		memcpy(p, str, n);
 	return p;
 }
@@ -163,7 +162,7 @@ ucsdup(const ucs4_t* s)
 	ucs2_t* const p(static_cast<ucs2_t*>(malloc((sntctslen(s) + 1)
 		* sizeof(ucs2_t))));
 
-	if(p)
+	if(YCL_LIKELY(p))
 		UCS4ToUCS2(p, s);
 	return p;
 }

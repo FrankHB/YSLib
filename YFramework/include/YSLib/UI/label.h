@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2159;
+\version r2164;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2012-03-14 20:17 +0800;
+	2012-03-18 13:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -100,10 +100,11 @@ public:
 	inline DefDeMoveCtor(Label)
 
 	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
 	*/
-	virtual Rect
-	Refresh(const PaintContext&);
+	virtual void
+	Refresh(PaintEventArgs&&);
 };
 
 inline
@@ -198,7 +199,7 @@ MTextList::GetTextState()
 inline void
 MTextList::SetList(const shared_ptr<ListType>& h)
 {
-	if(h)
+	if(YCL_LIKELY(h))
 		hList = h;
 }
 

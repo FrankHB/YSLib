@@ -11,13 +11,13 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r1357;
+\version r1363;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201 。
 \par 创建时间:
 	2011-04-13 20:40:51 +0800;
 \par 修改时间:
-	2012-03-13 14:16 +0800;
+	2012-03-18 13:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -86,8 +86,12 @@ public:
 	bool
 	MoveToTop(IWidget&);
 
-	virtual Rect
-	Refresh(const PaintContext&);
+	/*!
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
+	*/
+	virtual void
+	Refresh(PaintEventArgs&&);
 };
 
 YSL_END_NAMESPACE(Components)

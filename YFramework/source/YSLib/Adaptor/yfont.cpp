@@ -11,13 +11,13 @@
 /*!	\file yfont.cpp
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7551;
+\version r7575;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2012-01-31 06:33 +0800;
+	2012-03-17 19:41 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -59,10 +59,10 @@ simpleFaceRequester(::FTC_FaceID face_id, ::FT_Library library,
 	::FT_Error error(FT_New_Face(library, fontFace->Path.c_str(),
 		fontFace->face_index, aface));
 
-	if(!error)
+	if(YCL_LIKELY(!error))
 	{
 		error = ::FT_Select_Charmap(face, FT_ENCODING_UNICODE);
-		if(!error && face)
+		if(YCL_LIKELY(!error && face))
 		{
 			fontFace->cmap_index = face->charmap
 				? ::FT_Get_Charmap_Index(face->charmap) : 0;
@@ -94,7 +94,7 @@ simpleFaceRequester(::FTC_FaceID face_id, ::FT_Library library,
 	::FT_Outline_Embolden(&face->glyph->outline, 64);
 	::FT_Set_Transform(face, &fontFace->matrix, nullptr);
 #endif
-	if(error)
+	if(YCL_UNLIKELY(error))
 		yprintf("Face request error: %08x\n", error);
 	return error;
 }
@@ -142,14 +142,15 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i
 /*	, bBold(bb), bOblique(bi), bUnderline(bu),
 	, matrix(bi ? MOblique : MNormal)*/
 {
-	if(cache.sFaces.find(this) != cache.sFaces.end())
+	if(YCL_UNLIKELY(cache.sFaces.find(this) != cache.sFaces.end()))
 		throw LoggedEvent("Duplicate typeface found.", 2);
 
 	::FTC_FaceID new_face_id(this);
 	::FT_Face face(nullptr);
 
 	//读取字型名称并构造名称映射。
-	if(FTC_Manager_LookupFace(cache.manager, new_face_id, &face) != 0 || !face)
+	if(YCL_UNLIKELY(FTC_Manager_LookupFace(cache.manager, new_face_id, &face)
+		!= 0 || !face))
 		throw LoggedEvent("Face loading failed.", 2);
 
 	const FamilyName family_name(face->family_name);
@@ -158,7 +159,7 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i
 
 	yunseq(pFontFamily = not_found ? ynew FontFamily(cache, family_name)
 		: it->second, style_name = face->style_name);
-	if(not_found)
+	if(YCL_LIKELY(not_found))
 		cache += *pFontFamily;
 	*pFontFamily += *this;
 }
@@ -182,7 +183,7 @@ FetchDefaultTypeface() ythrow(LoggedEvent)
 	const Typeface* const pDefaultTypeface(
 		FetchDefaultFontCache().GetDefaultTypefacePtr());
 
-	if(!pDefaultTypeface)
+	if(YCL_UNLIKELY(!pDefaultTypeface))
 		throw LoggedEvent("Null default font face pointer found"
 			" @ FetchDefaultTypeface.");
 	return *pDefaultTypeface;
@@ -193,11 +194,11 @@ FontCache::FontCache(const_path_t default_font_path, size_t cache_size)
 {
 	::FT_Error error;
 
-	if((error = ::FT_Init_FreeType(&library)) == 0
+	if(YCL_LIKELY((error = ::FT_Init_FreeType(&library)) == 0
 		&& (error = ::FTC_Manager_New(library, 0, 0, cache_size,
 		&simpleFaceRequester, nullptr, &manager)) == 0
 		&& (error = ::FTC_SBitCache_New(manager, &sbitCache)) == 0
-		&& (error = ::FTC_CMapCache_New(manager, &cmapCache)) == 0)
+		&& (error = ::FTC_CMapCache_New(manager, &cmapCache)) == 0))
 	{
 		if(LoadFontFile(FontPath(default_font_path)))
 			LoadTypefaces();
@@ -242,7 +243,7 @@ FontCache::GetTypefacePtr(const FamilyName& family_name,
 {
 	const FontFamily* f(GetFontFamilyPtr(family_name));
 
-	if(!f)
+	if(YCL_UNLIKELY(!f))
 		return nullptr;
 	return f->GetTypefacePtr(style_name);
 }
@@ -251,7 +252,7 @@ FontCache::GetNativeFace(Typeface* pFace) const
 {
 	::FT_Face face(nullptr);
 
-	if(pFace)
+	if(YCL_LIKELY(pFace))
 		::FTC_Manager_LookupFace(manager, pFace, &face);
 	return face;
 }
@@ -308,7 +309,7 @@ FontCache::LoadTypefaces()
 void
 FontCache::LoadTypefaces(const FontPath& path, size_t n)
 {
-	if(mPaths.find(path) == mPaths.end() && !LoadFontFile(path))
+	if(YCL_UNLIKELY(mPaths.find(path) == mPaths.end() && !LoadFontFile(path)))
 		return;
 	for(size_t i(0); i < n; ++i)
 	{
@@ -327,8 +328,8 @@ FontCache::LoadTypefaces(const FontPath& path, size_t n)
 bool
 FontCache::LoadFontFile(const FontPath& path)
 {
-	if(GetFileNameOf(path.c_str()) && fexists(path.c_str())
-		&& mPaths.find(path) == mPaths.end())
+	if(YCL_LIKELY(GetFileNameOf(path.c_str()) && fexists(path.c_str())
+		&& mPaths.find(path) == mPaths.end()))
 	{
 		::FT_Long face_n;
 		::FT_Face face(nullptr);
@@ -349,7 +350,7 @@ FontCache::LoadFontFile(const FontPath& path)
 void
 FontCache::InitializeDefaultTypeface()
 {
-	if(!(pDefaultFace || sFaces.empty()))
+	if(YCL_LIKELY(!(pDefaultFace || sFaces.empty())))
 		pDefaultFace = *sFaces.begin();
 }
 
@@ -360,18 +361,20 @@ Font::Font(const FontFamily& family, const FontSize size, FontStyle style)
 	yunseq(scaler.face_id = family.GetTypefacePtr(style), scaler.width = size,
 		scaler.height = size, scaler.pixel = 1, scaler.x_res = 0,
 		scaler.y_res = 0);
-	if(!scaler.face_id)
+	if(YCL_UNLIKELY(!scaler.face_id))
 		throw LoggedEvent("Bad font;");
 }
 
 s8
 Font::GetAdvance(ucs4_t c, FTC_SBit sbit) const
 {
-	if(c == '\t')
+	if(YCL_UNLIKELY(c == '\t'))
 		return GetAdvance(' ') << 2;
 	if(!sbit)
 		sbit = GetGlyph(c, FT_LOAD_DEFAULT);
-	return sbit ? sbit->xadvance : 0;
+	if(YCL_LIKELY(sbit))
+		return sbit->xadvance;
+	return 0;
 }
 s8
 Font::GetAscender() const
@@ -405,7 +408,8 @@ Font::GetInternalInfo() const
 {
 	::FT_Size size(nullptr);
 
-	if(::FTC_Manager_LookupSize(GetCache().manager, &scaler, &size) != 0)
+	if(YCL_UNLIKELY(::FTC_Manager_LookupSize(GetCache().manager, &scaler, &size)
+		!= 0))
 		throw LoggedEvent("Error occured @ Font::GetInternalSize;");
 	return *size;
 }
@@ -413,7 +417,7 @@ Font::GetInternalInfo() const
 void
 Font::SetSize(FontSize s)
 {
-	if(s >= MinimalSize && s <= MaximalSize)
+	if(YCL_LIKELY(s >= MinimalSize && s <= MaximalSize))
 		yunseq(scaler.width = s, scaler.height = s);
 }
 bool

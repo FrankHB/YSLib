@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r1118;
+\version r1144;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 293 。
 \par 创建时间:
 	2012-01-10 19:56:59 +0800;
 \par 修改时间:
-	2012-03-14 21:14 +0800;
+	2012-03-17 14:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,21 +39,21 @@ YSL_BEGIN_NAMESPACE(Components)
 void
 SolidBrush::operator()(PaintEventArgs&& e)
 {
-	auto& sender(e.GetSender());
-
-	if(!sender.GetView().IsTransparent())
+	if(!e.GetSender().GetView().IsTransparent())
 		Drawing::FillRect(e.Target, e.ClipArea, Color);
 }
 
 
-MBackground::MBackground(const shared_ptr<Image>& hImg)
-	: hBgImage(hImg)
-{}
-
-BitmapPtr
-MBackground::GetBackgroundPtr() const
+void
+ImageBrush::operator()(PaintEventArgs&& e)
 {
-	return hBgImage ? hBgImage->GetImagePtr() : nullptr;
+	if(bool(Image) && !e.GetSender().GetView().IsTransparent())
+	{
+		const auto& g(e.Target);
+		const Rect& r(e.ClipArea);
+
+		CopyTo(g.GetBufferPtr(), *Image, g.GetSize(), r, r, r);
+	}
 }
 
 
@@ -68,11 +68,12 @@ BorderBrush::operator()(PaintEventArgs&& e)
 {
 	if(auto pStyle = StylePtr.lock())
 	{
-		auto& wgt(e.GetSender());
+		auto& sender(e.GetSender());
 
-		if(!wgt.GetView().IsTransparent())
-			DrawRect(e.Target, e.Location, GetSizeOf(wgt), IsFocused(wgt)
-				? pStyle->ActiveColor : pStyle->InactiveColor);
+		if(!sender.GetView().IsTransparent())
+			DrawRect(e.Target, e.ClipArea = Rect(e.Location, GetSizeOf(sender)),
+				IsFocused(sender) ? pStyle->ActiveColor
+				: pStyle->InactiveColor);
 	}
 }
 

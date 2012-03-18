@@ -11,13 +11,13 @@
 /*!	\file uicontx.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1165;
+\version r1174;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192 。
 \par 创建时间:
 	2011-02-21 09:01:13 +0800;
 \par 修改时间:
-	2012-02-10 12:52 +0800;
+	2012-03-18 13:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,7 @@ DialogBox::DialogBox(const Rect& r)
 	BorderPtr(new BorderStyle()), btnClose(Rect(GetWidth() - 20, 4, 16, 16))
 {
 	SetContainerPtrOf(btnClose, this),
-	FetchEvent<Paint>(*this) += BorderBrush(BorderPtr);
+	FetchEvent<Paint>(*this).Add(BorderBrush(BorderPtr), BackgroundPriority);
 }
 
 IWidget*
@@ -48,12 +48,11 @@ DialogBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 	return nullptr;
 }
 
-Rect
-DialogBox::Refresh(const PaintContext& pc)
+void
+DialogBox::Refresh(PaintEventArgs&& e)
 {
-	Widget::Refresh(pc);
-	PaintChild(btnClose, pc);
-	return Rect(pc.Location, GetSizeOf(*this));
+	PaintChild(btnClose, e);
+	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
 
@@ -66,7 +65,7 @@ DialogPanel::DialogPanel(const Rect& r)
 	*this += btnOK,
 	yunseq(
 		btnOK.Text = "○",
-		FetchEvent<Paint>(*this) += BorderBrush(BorderPtr),
+		FetchEvent<Paint>(*this).Add(BorderBrush(BorderPtr), BackgroundPriority),
 		FetchEvent<Click>(btnOK) += [this](TouchEventArgs&&){
 			Close(*this);
 		}

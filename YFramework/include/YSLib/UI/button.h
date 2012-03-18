@@ -11,13 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3113;
+\version r3125;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2012-02-23 20:08 +0800;
+	2012-03-18 13:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -58,10 +58,11 @@ public:
 	inline DefDeMoveCtor(Thumb)
 
 	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
 	*/
-	virtual Rect
-	Refresh(const PaintContext&);
+	virtual void
+	Refresh(PaintEventArgs&&);
 };
 
 
@@ -91,10 +92,11 @@ public:
 	inline DefDeMoveCtor(Button)
 
 	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
 	*/
-	virtual Rect
-	Refresh(const PaintContext&);
+	virtual void
+	Refresh(PaintEventArgs&&);
 };
 
 
@@ -113,10 +115,11 @@ public:
 	inline DefDeMoveCtor(CloseButton)
 
 	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
 	*/
-	virtual Rect
-	Refresh(const PaintContext&);
+	virtual void
+	Refresh(PaintEventArgs&&);
 };
 
 YSL_END_NAMESPACE(Components)

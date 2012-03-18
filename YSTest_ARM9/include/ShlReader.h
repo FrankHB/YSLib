@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2130;
+\version r2149;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-03-12 21:17 +0800;
+	2012-03-18 13:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -75,8 +75,12 @@ public:
 	virtual IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
-	virtual Rect
-	Refresh(const PaintContext&);
+	/*!
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
+	*/
+	virtual void
+	Refresh(PaintEventArgs&&);
 
 	/*!
 	\brief 更新进度数据。
@@ -104,8 +108,12 @@ public:
 
 	TextInfoBox(ShlReader&);
 
-	virtual Rect
-	Refresh(const PaintContext&);
+	/*!
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
+	*/
+	virtual void
+	Refresh(PaintEventArgs&&);
 
 	void
 	UpdateData(DualScreenReader&);
@@ -512,7 +520,12 @@ public:
 	*/
 	static bool CurrentIsText;
 
-	shared_ptr<Image> hUp, hDn;
+private:
+	/*!
+	\brief 备用桌面画刷。
+	\since build 294 。
+	*/
+	HBrush bg_up, bg_dn;
 
 protected:
 	unique_ptr<ReaderSession> pManager;

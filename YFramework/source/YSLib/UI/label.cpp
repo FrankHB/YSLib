@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2183;
+\version r2189;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2012-03-12 13:11 +0800;
+	2012-03-18 13:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -94,12 +94,11 @@ MLabel::PaintText(const Size& s, Color c, const PaintContext& e)
 }
 
 
-Rect
-Label::Refresh(const PaintContext& pc)
+void
+Label::Refresh(PaintEventArgs&& e)
 {
-	Widget::Refresh(pc);
-	PaintText(GetSizeOf(*this), ForeColor, pc);
-	return Rect(pc.Location, GetSizeOf(*this));
+	PaintText(GetSizeOf(*this), ForeColor, e);
+	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
 

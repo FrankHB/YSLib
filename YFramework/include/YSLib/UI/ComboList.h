@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3342;
+\version r3350;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2012-03-11 13:54 +0800;
+	2012-03-18 13:08 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -112,10 +112,11 @@ public:
 		ImplBodyMem(lstText, ClearSelected)
 
 	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
 	*/
-	virtual Rect
-	Refresh(const PaintContext&);
+	virtual void
+	Refresh(PaintEventArgs&&);
 
 	PDefH(void, ResetView)
 		ImplBodyMem(lstText, ResetView)
@@ -222,10 +223,11 @@ private:
 
 public:
 	/*!
-	\brief 刷新：在指定图形接口上下文以指定偏移起始按指定边界绘制界面。
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
 	*/
-	virtual Rect
-	Refresh(const PaintContext&);
+	virtual void
+	Refresh(PaintEventArgs&&);
 };
 
 YSL_END_NAMESPACE(Components)

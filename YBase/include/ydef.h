@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2740;
+\version r2789;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-03-12 12:29 +0800;
+	2012-03-17 20:31 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -49,6 +49,11 @@
 #		undef YCL_IMPL_GNUCPP
 #		define YCL_IMPL_GNUCPP (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 \
 			+ __GNUC_PATCHLEVEL__)
+#	else
+// TODO: complete version checking for compiler and library implementation;
+//#ifdef __GNUC__
+//#	include <tr1/type_traits>
+#		error This language implementation is not supported!
 #	endif
 #else
 #	error This header is only for C++!
@@ -63,23 +68,60 @@
 #include <type_traits>
 #include <sys/types.h>
 
-#undef YCL_HAS_BUILTIN_NULLPTR
-#undef YCL_HAS_CONSTEXPR
 
-#if YCL_IMPL_CPP >= 201103L
+/*!	\defgroup lang_impl_features Langrage Implementation Features
+\brief 语言实现的特性。
+\since build 294 。
+*/
+
+/*!
+\ingroup lang_impl_features
+\def YCL_HAS_BUILTIN_NULLPTR
+\brief 内建 nullptr 支持。
+\since build 245 。
+*/
+#undef YCL_HAS_BUILTIN_NULLPTR
+#if YCL_IMPL_CPP >= 201103L || YCL_IMPL_GNUCPP >= 40600 \
+	|| YCL_IMPL_MSCPP >= 1600
 #	define YCL_HAS_BUILTIN_NULLPTR
-#	define YCL_HAS_CONSTEXPR
-#elif YCL_IMPL_GNUCPP >= 40600
-#	define YCL_HAS_BUILTIN_NULLPTR
-#	define YCL_HAS_CONSTEXPR
-#elif YCL_IMPL_MSCPP >= 1600
-#	define YCL_HAS_BUILTIN_NULLPTR
-#else
-// TODO: complete version checking for compiler and library implementation;
-//#ifdef __GNUC__
-//#	include <tr1/type_traits>
-#	error The language implementation is not supported!
 #endif
+
+/*!
+\ingroup lang_impl_features
+\def YCL_HAS_CONSTEXPR
+\brief constexpr 支持。
+\since build 246 。
+*/
+#undef YCL_HAS_CONSTEXPR
+#if YCL_IMPL_CPP >= 201103L || YCL_IMPL_GNUCPP >= 40600
+#	define YCL_HAS_CONSTEXPR
+#endif
+
+
+/*!	\defgroup lang_impl_hints Langrage Implementation Hints
+\brief 语言实现的提供的附加提示。
+\note 应保证忽略时不导致运行时语义差异。
+\since build 294 。
+*/
+
+/*!
+\ingroup lang_impl_hints
+\def YCL_EXPECT(expr, constant)
+\def YCL_LIKELY(expr)
+\def YCL_UNLIKELY(expr)
+\brief 分支预测提示。
+\since build 294 。
+*/
+#if YCL_IMPL_GNUCPP >= 29600
+#	define YCL_EXPECT(expr, constant) (__builtin_expect(expr, constant))
+#	define YCL_LIKELY(expr) (__builtin_expect(bool(expr), 1))
+#	define YCL_UNLIKELY(expr) (__builtin_expect(bool(expr), 0))
+#else
+#	define YCL_EXPECT(expr, constant) (expr)
+#	define YCL_LIKELY (expr)
+#	define YCL_UNLIKELY (expr)
+#endif
+
 
 //异常规范宏。
 

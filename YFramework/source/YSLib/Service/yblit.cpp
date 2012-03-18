@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1925;
+\version r1928;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:45:32 +0800;
 \par 修改时间:
-	2011-12-04 11:12 +0800;
-\par 字符集:
+	2012-03-17 20:03 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Service::YBlit;
@@ -124,7 +124,7 @@ CopyBuffer(const Graphics& dst, const Graphics& src)
 	YAssert(dst.GetSize() == src.GetSize(), "Source and destination sizes"
 		"are not same.");
 
-	if(dst.GetBufferPtr() != src.GetBufferPtr())
+	if(YCL_LIKELY(dst.GetBufferPtr() != src.GetBufferPtr()))
 		mmbcpy(dst.GetBufferPtr(), src.GetBufferPtr(), src.GetSizeOfBuffer());
 }
 
