@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3708;
+\version r3732;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2012-03-18 13:59 +0800;
+	2012-03-18 18:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -75,6 +75,26 @@ Thumb::Thumb(const Rect& r)
 	bPressed(false)
 {
 	yunseq(
+		Background = [this](PaintEventArgs&& e){
+			const bool enabled(IsEnabled(*this));
+			const auto& g(e.Target);
+			const auto& pt(e.Location);
+
+			if(!enabled)
+				bPressed = false;
+			RectDrawButton(g, pt, GetSizeOf(*this), bPressed, enabled);
+			if(enabled && IsFocused(*this))
+			{
+				Size s(GetSizeOf(*this));
+
+				if(YCL_LIKELY(s.Width > 6 && s.Height > 6))
+				{
+					yunseq(s.Width -= 6, s.Height -= 6);
+					DrawRect(g, pt + Vec(3, 3), s, ColorSpace::Aqua);
+				}
+			}
+			e.ClipArea = Rect(pt, GetSizeOf(*this));
+		},
 		FetchEvent<Enter>(*this) += [this](TouchEventArgs&&){
 			if(!bPressed)
 			{
@@ -92,29 +112,6 @@ Thumb::Thumb(const Rect& r)
 	);
 }
 
-void
-Thumb::Refresh(PaintEventArgs&& e)
-{
-	const bool enabled(IsEnabled(*this));
-	const auto& g(e.Target);
-	const auto& pt(e.Location);
-
-	if(!enabled)
-		bPressed = false;
-	RectDrawButton(g, pt, GetSizeOf(*this), bPressed, enabled);
-	if(enabled && IsFocused(*this))
-	{
-		Size s(GetSizeOf(*this));
-
-		if(YCL_LIKELY(s.Width > 6 && s.Height > 6))
-		{
-			yunseq(s.Width -= 6, s.Height -= 6);
-			DrawRect(g, pt + Vec(3, 3), s, ColorSpace::Aqua);
-		}
-	}
-	e.ClipArea = Rect(pt, GetSizeOf(*this));
-}
-
 
 Button::Button(const Rect& r, const Drawing::Font& fnt)
 	: Thumb(r),
@@ -124,8 +121,6 @@ Button::Button(const Rect& r, const Drawing::Font& fnt)
 void
 Button::Refresh(PaintEventArgs&& e)
 {
-	Thumb::Refresh(std::move(e));
-
 	// NOTE: partial invalidation made no efficiency improved here;
 	PaintText(GetSizeOf(*this), IsEnabled(*this) ? ForeColor
 		: FetchGUIState().Colors[Styles::Workspace], PaintContext(e.Target,
@@ -146,8 +141,6 @@ CloseButton::CloseButton(const Rect& r)
 void
 CloseButton::Refresh(PaintEventArgs&& e)
 {
-	Thumb::Refresh(std::move(e));
-
 	const Size s(GetSizeOf(*this));
 
 	//画叉。

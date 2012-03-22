@@ -11,13 +11,13 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2563;
+\version r2580;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2012-03-17 19:43 +0800;
+	2012-03-20 16:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -38,21 +38,6 @@ Application::~Application()
 //	YReset(DefaultShellHandle);
 	if(ApplicationExit)
 		ApplicationExit();
-}
-
-bool
-Application::SetShellHandle(const shared_ptr<Shell>& h)
-{
-	using namespace Messaging;
-
-	if(YCL_UNLIKELY(hShell == h))
-		return false;
-	if(YCL_LIKELY(bool(hShell)))
-		hShell->OnGotMessage(Message(h, SM_DEACTIVATED, 0xF0));
-	hShell = h;
-	if(YCL_LIKELY(bool(h)))
-		h->OnGotMessage(Message(h, SM_ACTIVATED, 0xF0));
-	return bool(h);
 }
 
 errno_t
@@ -76,6 +61,17 @@ void
 Application::RecoverMessageQueue()
 {
 	Queue.Merge(BackupQueue);
+}
+
+bool
+Application::Switch(shared_ptr<Shell>& h) ynothrow
+{
+	if(YCL_LIKELY(hShell != h))
+	{
+		std::swap(hShell, h);
+		return true;
+	}
+	return false;
 }
 
 

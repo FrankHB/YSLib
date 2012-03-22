@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2149;
+\version r2178;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-03-18 13:52 +0800;
+	2012-03-22 16:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -520,13 +520,6 @@ public:
 	*/
 	static bool CurrentIsText;
 
-private:
-	/*!
-	\brief 备用桌面画刷。
-	\since build 294 。
-	*/
-	HBrush bg_up, bg_dn;
-
 protected:
 	unique_ptr<ReaderSession> pManager;
 
@@ -540,30 +533,16 @@ private:
 public:
 	/*!
 	\brief 近期浏览记录。
-	\since build 286 。
+	\since build 295 。
 	*/
-	ReadingList LastRead;
+	ReadingList& LastRead;
 	/*!
 	\brief 当前阅读器设置。
-	\since build 287 。
+	\since build 295 。
 	*/
-	ReaderSetting CurrentSetting;
+	ReaderSetting& CurrentSetting;
 
 	ShlReader();
-
-	/*!
-	\brief 处理激活消息。
-	\since build 289 。
-	*/
-	virtual void
-	OnActivated(const Message&);
-
-	/*!
-	\brief 处理停用消息。
-	\since build 289 。
-	*/
-	virtual void
-	OnDeactivated();
 
 	/*!
 	\brief 处理输入消息：发送绘制消息，当处于滚屏状态时自动执行滚屏。
@@ -571,6 +550,13 @@ public:
 	*/
 	virtual void
 	OnInput();
+
+	/*!
+	\brief 退出阅读器：停止后台任务并发送消息准备切换至 ShlExplorer 。
+	\since build 295 。
+	*/
+	void
+	Exit();
 };
 
 YSL_END_NAMESPACE(YReader)

@@ -11,12 +11,13 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version r3334;
+\version r3348;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2012-02-26 18:29 +0800;
+	2012-03-20 18:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,8 +37,11 @@ using namespace Messaging;
 
 Shell::~Shell()
 {
+	// TODO: encapulate code below as a method of class %Application;
 	if(FetchAppInstance().GetShellHandle() == this)
-		FetchAppInstance().SetShellHandle(shared_ptr<Shell>());
+		FetchAppInstance().Switch(nullptr);
+	// TODO: using weak pointer in messages;
+	//FetchAppInstance().Queue.Remove(this, 0xFF);
 }
 
 bool
@@ -52,7 +56,11 @@ Shell::DefShlProc(const Message& msg)
 	switch(msg.GetMessageID())
 	{
 	case SM_SET:
-		return -!FetchAppInstance().SetShellHandle(FetchTarget<SM_SET>(msg));
+		{
+			auto h(FetchTarget<SM_SET>(msg));
+
+			return -!FetchAppInstance().Switch(h);
+		}
 
 	case SM_QUIT:
 		std::exit(FetchTarget<SM_QUIT>(msg));

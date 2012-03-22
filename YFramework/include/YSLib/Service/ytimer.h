@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1812;
+\version r1813;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2012-03-12 20:28 +0800;
+	2012-03-21 18:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -101,7 +101,7 @@ Delay(const TimeSpan&);
 \warning 非虚析构。
 \since build 243 。
 */
-class Timer : public noncopyable, public GMCounter<Timer>
+class Timer : private noncopyable, protected GMCounter<Timer>
 {
 public:
 	typedef map<u32, Timer*> TimerMap; //!< 计时器组。

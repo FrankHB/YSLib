@@ -11,12 +11,12 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version r2918;
+\version r2919;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2012-02-14 18:26 +0800;
+	2012-03-21 18:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Shells)
 
 //! \brief 外壳程序：实现运行期控制流映像语义。
-class Shell : public noncopyable
+class Shell : private noncopyable
 {
 public:
 	/*!

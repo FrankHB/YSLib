@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1657;
+\version r1661;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-03-18 13:45 +0800;
+	2012-03-18 21:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YSLib/UI/textlist.h"
 #include "YSLib/UI/ywindow.h"
+#include "YSLib/UI/YBrush.h"
 #include "YSLib/Service/TextLayout.h"
 
 YSL_BEGIN
@@ -47,7 +48,7 @@ namespace
 TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	pair<Color, Color> hilight_pair)
 	: Control(r), MTextList(h),
-	BorderPtr(new BorderStyle()), HilightBackColor(hilight_pair.first),
+	HilightBackColor(hilight_pair.first),
 	HilightTextColor(hilight_pair.second), CyclicTraverse(false),
 	viewer(GetList()), top_offset(0)
 {
@@ -160,7 +161,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 		FetchEvent<Click>(*this) += [this](TouchEventArgs&& e){
 			InvokeConfirmed(CheckPoint(e));
 		},
-		FetchEvent<Paint>(*this).Add(BorderBrush(BorderPtr), BoundaryPriority)
+		FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority)
 	);
 	AdjustViewLength(); //防止显示长度出错。
 }

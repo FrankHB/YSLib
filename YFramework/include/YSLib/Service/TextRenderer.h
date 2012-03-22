@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r7372;
+\version r7377;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-05 15:59 +0800;
+	2012-03-21 19:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -267,7 +267,8 @@ EmptyTextRenderer::operator()(ucs4_t c)
 
 
 /*!
-\brief 文本渲染器静态多态模版基类。
+\brief 文本渲染器静态多态基类模版。
+\warning 非虚析构。
 \since build 266 。
 */
 template<class _type>
@@ -301,9 +302,10 @@ public:
 /*!
 \ingroup TextRenderers
 \brief 文本渲染器。
-
-简单实现。
+\warning 非虚析构。
 \since build 190 。
+
+文本渲染器：简单实现。
 */
 class TextRenderer : public GTextRendererBase<TextRenderer>
 {

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3714;
+\version r3779;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-03-18 17:28 +0800;
+	2012-03-22 16:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -187,6 +187,35 @@ namespace
 	{
 		return s.SmoothScroll ? s.SmoothScrollDuration
 			: s.ScrollDuration;
+	}
+
+	ReadingList&
+	FetchLastRead()
+	{
+		static ReadingList* p;
+
+		if(!p)
+			p = new ReadingList();
+		return *p;
+	}
+
+	ReaderSetting&
+	FetchCurrentSetting()
+	{
+		static ReaderSetting* p;
+
+		if(!p)
+		{
+			p = new ReaderSetting();
+			yunseq(
+				p->UpColor = Color(240, 216, 192),
+				p->DownColor = Color(192, 216, 240),
+				p->SmoothScroll = false,
+				p->ScrollDuration = milliseconds(1000),
+				p->SmoothScrollDuration = milliseconds(100)
+			);
+		}
+		return *p;
 	}
 
 
@@ -750,7 +779,7 @@ TextReaderSession::Execute(IndexEventArgs::ValueType idx)
 	switch(idx)
 	{
 	case MR_Return:
-		CallStored<ShlExplorer>();
+		Shell.Exit();
 		break;
 	case MR_Setting:
 		Reader.SetVisible(false),
@@ -918,7 +947,7 @@ TextReaderSession::OnKeyDown(KeyEventArgs&& e)
 			Reader.UpdateView();
 			break;
 		case KeySpace::Esc:
-			CallStored<ShlExplorer>();
+			Shell.Exit();
 			break;
 		case KeySpace::Up:
 			Reader.Execute(DualScreenReader::LineUpScroll);
@@ -974,10 +1003,10 @@ HexReaderSession::HexReaderSession(ShlReader& shl)
 {
 	HexArea.SetRenderer(make_unique<BufferedRenderer>(true));
 	yunseq(
-		FetchEvent<KeyDown>(HexArea) += [](KeyEventArgs&& e){
+		FetchEvent<KeyDown>(HexArea) += [this](KeyEventArgs&& e){
 			if(e.GetKeyCode() == KeySpace::Esc)
 			{
-				CallStored<ShlExplorer>();
+				Shell.Exit();
 				e.Handled = true; //注意不要使 CallStored 被调用多次。
 			}
 		},
@@ -1035,26 +1064,9 @@ bool ShlReader::CurrentIsText(false);
 
 ShlReader::ShlReader()
 	: ShlDS(),
-	bg_up(), bg_dn(), pManager(), background_task(), LastRead(), CurrentSetting()
+	pManager(), background_task(), LastRead(FetchLastRead()),
+	CurrentSetting(FetchCurrentSetting())
 {
-	// TODO: use entity tree to store properties;
-	yunseq(
-		CurrentSetting.UpColor = Color(240, 216, 192),
-		CurrentSetting.DownColor = Color(192, 216, 240),
-		CurrentSetting.SmoothScroll = false,
-		CurrentSetting.ScrollDuration = milliseconds(1000),
-		CurrentSetting.SmoothScrollDuration = milliseconds(100)
-	);
-}
-
-void
-ShlReader::OnActivated(const Message& msg)
-{
-	ParentType::OnActivated(msg);
-
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
-
 	if(ShlReader::CurrentIsText)
 	{
 		auto& session(*new TextReaderSession(*this));
@@ -1064,21 +1076,8 @@ ShlReader::OnActivated(const Message& msg)
 	}
 	else
 		pManager = make_unique<HexReaderSession>(*this);
-	yunseq(bg_up = dsk_up.Background, bg_dn = dsk_dn.Background);
-	SetInvalidationOf(dsk_up),
-	SetInvalidationOf(dsk_dn);
-}
-
-void
-ShlReader::OnDeactivated()
-{
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
-
-	yunseq(dsk_up.Background = bg_up, dsk_dn.Background = bg_dn);
-	background_task = nullptr;
-	reset(pManager);
-	ParentType::OnDeactivated();
+	SetInvalidationOf(GetDesktopUp()),
+	SetInvalidationOf(GetDesktopDown());
 }
 
 void
@@ -1088,6 +1087,14 @@ ShlReader::OnInput()
 	if(YCL_LIKELY(background_task))
 		SendMessage<SM_TASK>(FetchShellHandle(), 0x20, background_task);
 }
+
+void
+ShlReader::Exit()
+{
+	background_task = nullptr;
+	SetShellToNew<ShlExplorer>();
+}
+
 
 YSL_END_NAMESPACE(YReader)
 

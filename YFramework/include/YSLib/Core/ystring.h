@@ -11,13 +11,13 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r3054;
+\version r3064;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-05 22:06:05 +0800;
 \par 修改时间:
-	2012-02-21 15:01 +0800;
+	2012-03-21 20:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -37,6 +37,7 @@ YSL_BEGIN_NAMESPACE(Text)
 
 /*!
 \brief YSLib 标准字符串（使用 UCS-2LE ）。
+\warning 非虚析构。
 \since 早于 build 132 。
 */
 class String : public ucs2string
@@ -83,6 +84,17 @@ public:
 	template<typename _tChar>
 	String(const std::basic_string<_tChar>&, Encoding = CS_Default);
 	inline DefDeDtor(String)
+
+	/*!
+	\brief 复制赋值：默认实现。
+	\since build 295 。
+	*/
+	inline DefDeCopyAssignment(String)
+	/*!
+	\brief 转移赋值：默认实现。
+	\since build 295 。
+	*/
+	inline DefDeMoveAssignment(String)
 
 	/*!
 	\brief 取指定编码的多字节字符串。

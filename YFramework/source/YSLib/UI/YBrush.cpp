@@ -11,17 +11,17 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r1144;
+\version r1149;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 293 。
 \par 创建时间:
 	2012-01-10 19:56:59 +0800;
 \par 修改时间:
-	2012-03-17 14:33 +0800;
+	2012-03-18 21:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::Border;
+	YSLib::UI::YBrush;
 */
 
 
@@ -66,15 +66,11 @@ BorderStyle::BorderStyle()
 void
 BorderBrush::operator()(PaintEventArgs&& e)
 {
-	if(auto pStyle = StylePtr.lock())
-	{
-		auto& sender(e.GetSender());
+	auto& sender(e.GetSender());
 
-		if(!sender.GetView().IsTransparent())
-			DrawRect(e.Target, e.ClipArea = Rect(e.Location, GetSizeOf(sender)),
-				IsFocused(sender) ? pStyle->ActiveColor
-				: pStyle->InactiveColor);
-	}
+	if(!sender.GetView().IsTransparent())
+		DrawRect(e.Target, e.ClipArea = Rect(e.Location, GetSizeOf(sender)),
+			IsFocused(sender) ? Style.ActiveColor : Style.InactiveColor);
 }
 
 YSL_END_NAMESPACE(Components)

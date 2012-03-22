@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1813;
+\version r1821;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2011-12-07 17:47 +0800;
-\par 字符集:
+	2012-03-21 19:11 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YGDIBase;
@@ -374,6 +374,7 @@ GetAreaOf(const Size& s)
 /*!
 \brief 屏幕正则矩形：表示屏幕矩形区域。
 \note 边平行于水平直线；使用左上点屏幕坐标、宽和高表示。
+\warning 非虚析构。
 \since build 161 。
 */
 class Rect : public Point, public Size
@@ -585,7 +586,11 @@ public:
 	static const Graphics Invalid; //!< 无效图形接口上下文。
 
 protected:
-	BitmapPtr pBuffer; //!< 显示缓冲区指针。
+	/*!
+	\brief 显示缓冲区指针。
+	\warning 不应视为具有所有权。
+	*/
+	BitmapPtr pBuffer;
 	Size size; //!< 缓冲区大小。
 
 public:

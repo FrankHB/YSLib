@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief C++ 标准库迭代器扩展。
-\version r1800;
+\version r1807;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189 。
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2012-03-04 22:20 +0800;
+	2012-03-21 19:47 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -55,7 +55,7 @@ namespace ystdex
 	*/
 	template<typename _type>
 	class pointer_iterator
-		: public std::iterator<typename
+		: private std::iterator<typename
 		std::iterator_traits<_type*>::iterator_category, _type>
 	{
 	protected:
@@ -193,7 +193,7 @@ namespace ystdex
 	*/
 	template<typename _type, typename _tIterator = _type*,
 		typename _tTraits = std::iterator_traits<_tIterator>>
-	class pseudo_iterator : std::iterator<
+	class pseudo_iterator : private std::iterator<
 		typename _tTraits::iterator_category,
 		typename _tTraits::value_type,
 		typename _tTraits::difference_type,
@@ -482,7 +482,7 @@ namespace ystdex
 	*/
 	template<typename _tMaster, typename _tSlave,
 		class _tTraits = std::iterator_traits<_tMaster>>
-	class pair_iterator : std::iterator<
+	class pair_iterator : private std::iterator<
 		typename _tTraits::iterator_category,
 		typename _tTraits::value_type,
 		typename _tTraits::difference_type,
@@ -718,7 +718,7 @@ namespace ystdex
 
 	非多态输入迭代器适配器。
 	*/
-	class input_monomorphic_iterator : std::iterator<
+	class input_monomorphic_iterator : private std::iterator<
 		std::input_iterator_tag, void_ref, std::ptrdiff_t,
 		void*, void_ref>
 	{

@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2244;
+\version r2245;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2012-03-17 19:18 +0800;
+	2012-03-20 15:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -204,7 +204,7 @@ template<class _tShl>
 inline void
 SetShellToNew()
 {
-	SetShellTo(new _tShl());
+	SetShellTo(make_shared<_tShl>());
 }
 
 /*!

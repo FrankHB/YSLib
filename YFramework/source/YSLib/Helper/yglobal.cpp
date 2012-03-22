@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3481;
+\version r3497;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2012-03-17 19:53 +0800;
+	2012-03-21 17:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@ YSL_BEGIN
 namespace
 {
 	//! \brief 程序日志类。
-	class Log : public noncopyable
+	class Log : private noncopyable
 	{
 	public:
 		/*!
@@ -265,8 +265,7 @@ namespace
 
 
 DSApplication::DSApplication()
-	: pFontCache(), hScreenUp(), hScreenDown(), hDesktopUp(), hDesktopDown(),
-	UIResponseLimit(0x40)
+	: pFontCache(), hScreenUp(), hScreenDown(), UIResponseLimit(0x40)
 {
 	YAssert(!YSL_ pApp, "Duplicate instance found"
 		" @ DSApplication::DSApplication;");
@@ -331,21 +330,12 @@ DSApplication::DSApplication()
 	{
 		throw LoggedEvent("Screen initialization failed.");
 	}
-	try
-	{
-		hDesktopUp = make_shared<Desktop>(*hScreenUp);
-		hDesktopDown = make_shared<Desktop>(*hScreenDown);
-	}
-	catch(...)
-	{
-		throw LoggedEvent("Desktop initialization failed.");
-	}
 	/*
 	需要保证主 Shell 句柄在应用程序实例初始化之后初始化，
 	因为 MainShell 的基类 Shell 的构造函数
 	调用了 Application 的非静态成员函数。
 	*/
-	if(YCL_UNLIKELY(!FetchAppInstance().SetShellHandle(
+	if(YCL_UNLIKELY(!FetchAppInstance().Switch(
 		make_shared<Shells::MainShell>())))
 		throw LoggedEvent("Failed launching the main shell;");
 }
@@ -359,9 +349,7 @@ DSApplication::~DSApplication()
 	pFontCache = nullptr;
 
 	//释放设备。
-	reset(hDesktopUp);
 	reset(hScreenUp);
-	reset(hDesktopDown);
 	reset(hScreenDown);
 }
 

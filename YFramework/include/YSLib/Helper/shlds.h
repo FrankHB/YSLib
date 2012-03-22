@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2095;
+\version r2126;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-03-15 19:53 +0800;
+	2012-03-20 16:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -92,12 +92,10 @@ protected:
 
 public:
 	/*!
-	\brief 无参数构造。
+	\brief 无参数构造：使用默认上下屏幕初始化对应桌面。
+	\since build 295 。
 	*/
-	ShlDS(const shared_ptr<Desktop>&
-		= FetchGlobalInstance().GetDesktopUpHandle(),
-		const shared_ptr<Desktop>&
-		= FetchGlobalInstance().GetDesktopDownHandle());
+	ShlDS();
 
 	DefGetter(const ynothrow, const shared_ptr<Desktop>&, DesktopUpHandle,
 		hDskUp)
@@ -107,25 +105,9 @@ public:
 	DefGetter(const ynothrow, Desktop&, DesktopDown, *hDskDown)
 
 	/*!
-	\brief 处理激活消息：重置图形用户界面输出状态。
-	\since build 289 。
-	*/
-	virtual void
-	OnActivated(const Message&);
-
-	/*!
-	\brief 处理停用消息：清除桌面内容。
-	\since build 289 。
-	*/
-	virtual void
-	OnDeactivated();
-
-	/*!
 	\brief 消息处理函数。
 
 	处理以下消息：
-	激活消息 SM_ACTIVATED ，映射至 OnActivated ；
-	停用消息 SM_DEACTIVATED ，映射至 OnDeactivated ；
 	绘制消息 SM_PAINT ，对桌面后 Validate 操作后调用 OnPaint ，再对桌面 Update 。
 	输入消息 SM_INPUT ，分发按键处理后调用 OnInput 。
 	*/
@@ -187,20 +169,6 @@ public:
 	\brief 无参数构造。
 	*/
 	MainShell();
-
-	/*!
-	\brief 处理激活消息。
-	\since build 289 。
-	*/
-	virtual void
-	OnActivated(const Message&);
-
-	/*!
-	\brief 处理停用消息。
-	\since build 289 。
-	*/
-	virtual void
-	OnDeactivated();
 };
 
 YSL_END_NAMESPACE(Shells)

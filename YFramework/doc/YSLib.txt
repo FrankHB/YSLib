@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 说明。
-\version r2187;
+\version r2196;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-03-02 22:05 +0800;
+	2012-03-22 10:20 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -42,18 +42,8 @@ SM_NULL					0x0000
 
 // Shell 设置消息。参考优先级 0x80 。
 //参数类型 shared_ptr<Shell>。
-//指示线程控制权移交给目标 Shell 。参数是目标 Shell 句柄。
+//指示 Shell 切换，控制权移交给目标 Shell 。参数是目标 Shell 句柄。
 SM_SET					0x0003
-
-// Shell 激活消息。参考优先级 0xF0 。
-//参数类型 void 。
-// Shell 被激活后自动产生。默认为非队列消息。
-SM_ACTIVATED			0x0005
-
-// Shell 停用消息。参考优先级 0xF0 。
-//参数类型 void 。
-//Shell 被取消激活状态后自动产生。默认为非队列消息。转移控制权时，总在 SM_ACTIVATED 之前产生。应保持和 SM_ACTIVATED 具有相同的优先级，以保证此消息总在对应的 SM_ACTIVATED 之前被处理。
-SM_DEACTIVATED			0x0006
 
 // UI 消息。
 

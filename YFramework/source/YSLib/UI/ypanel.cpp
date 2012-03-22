@@ -11,13 +11,13 @@
 /*!	\file ypanel.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r1241;
+\version r1246;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201 。
 \par 创建时间:
 	2011-04-13 20:44:51 +0800;
 \par 修改时间:
-	2012-03-18 14:09 +0800;
+	2012-03-19 15:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -93,11 +93,8 @@ Panel::MoveToTop(IWidget& wgt)
 void
 Panel::Refresh(PaintEventArgs&& e)
 {
-	bool result(!e.ClipArea.IsUnstrictlyEmpty()
-		|| CheckVisibleChildren(mWidgets.begin(), mWidgets.end()));
-	
-	if(result)
-		e.ClipArea = PaintChildren(e);
+	if(!e.ClipArea.IsUnstrictlyEmpty())
+		PaintVisibleChildren(e);
 }
 
 YSL_END_NAMESPACE(Components)

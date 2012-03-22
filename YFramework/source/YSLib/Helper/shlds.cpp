@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2007;
+\version r2032;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-03-15 19:56 +0800;
+	2012-03-20 16:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -47,17 +47,11 @@ YSL_END_NAMESPACE(Shells)
 
 YSL_BEGIN_NAMESPACE(DS)
 
-ShlDS::ShlDS(const shared_ptr<Desktop>& h_dsk_up,
-	const shared_ptr<Desktop>& h_dsk_down)
+ShlDS::ShlDS()
 	: Shell(),
-	hDskUp(h_dsk_up ? h_dsk_up : make_shared<Desktop>(
-		FetchGlobalInstance().GetScreenUp())),
-	hDskDown(h_dsk_down ? h_dsk_down : make_shared<Desktop>(
-		FetchGlobalInstance().GetScreenDown())), bUpdateUp(), bUpdateDown()
-{}
-
-void
-ShlDS::OnActivated(const Message&)
+	hDskUp(make_shared<Desktop>(FetchGlobalInstance().GetScreenUp())),
+	hDskDown(make_shared<Desktop>(FetchGlobalInstance().GetScreenDown())),
+	bUpdateUp(), bUpdateDown()
 {
 	YAssert(bool(hDskUp), "Null up desktop handle found @ ShlDS::ShlDS;");
 	YAssert(bool(hDskDown), "Null down desktop handle found @ ShlDS::ShlDS;");
@@ -65,28 +59,11 @@ ShlDS::OnActivated(const Message&)
 	YSL_ Components::FetchGUIState().Reset();
 }
 
-void
-ShlDS::OnDeactivated()
-{
-	hDskUp->ClearContents();
-	hDskDown->ClearContents();
-
-	auto& app(FetchGlobalInstance());
-
-	app.Queue.Remove(this, app.UIResponseLimit);
-}
-
 int
 ShlDS::OnGotMessage(const Message& msg)
 {
 	switch(msg.GetMessageID())
 	{
-	case SM_ACTIVATED:
-		OnActivated(msg);
-		return 0;
-	case SM_DEACTIVATED:
-		OnDeactivated();
-		return 0;
 	case SM_PAINT:
 #if 0
 		{

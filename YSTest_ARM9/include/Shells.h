@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3612;
+\version r3655;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-03-06 21:53 +0800;
+	2012-03-20 16:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -65,25 +65,49 @@ FetchImage(size_t);
 
 
 /*!
-\brief FPS 计数器。
+\brief 从全局消息队列中移除所有从属于指定 Shell 的后台 SM_TASK 消息。
+\since build 295 。
+*/
+void
+RemoveGlobalTasks(Shell&);
+
+
+/*!
+\brief 帧速率计数器。
 */
 class FPSCounter
 {
 private:
 	/*!
-	\brief 高精度计数。
+	\brief 内部计数。
+	\note 单位为纳秒。
 	\since build 291 。
 	*/
 	//@{
 	u64 last_tick;
 	u64 now_tick;
 	//@}
+	/*!
+	\brief 刷新计数。
+	\since build 295 。
+	*/
+	u32 refresh_count;
 
 public:
-	FPSCounter();
+	/*!
+	\brief 计时间隔下界。
+	\since build 295 。
+	*/
+	u64 MinimalInterval;
 
 	/*!
-	\brief 取高精度计数。
+	\brief 构造：使用指定计时间隔下界。
+	\since build 295 。
+	*/
+	FPSCounter(u64 = 0);
+
+	/*!
+	\brief 取内部计数。
 	\since build 291 。
 	*/
 	//@{
@@ -92,17 +116,12 @@ public:
 	//@}
 
 	/*!
-	\brief 刷新计数器。
-	\return 每秒毫帧数。
+	\brief 刷新：更新计数器内部计数。
+	\return 内部计数差值大于计时间隔下界时的每秒毫计数次数；否则为 0 。
 	*/
 	u32
 	Refresh();
 };
-
-inline
-FPSCounter::FPSCounter()
-	: last_tick(), now_tick()
-{}
 
 
 class ShlExplorer : public ShlDS
@@ -142,20 +161,6 @@ public:
 	ShlExplorer();
 
 	/*!
-	\brief 处理激活消息。
-	\since build 289 。
-	*/
-	virtual void
-	OnActivated(const Message&);
-
-	/*!
-	\brief 处理停用消息。
-	\since build 289 。
-	*/
-	virtual void
-	OnDeactivated();
-
-	/*!
 	\brief 处理绘制消息：更新到屏幕并刷新 FPS 。
 	\since build 289 。
 	*/
@@ -165,9 +170,6 @@ public:
 private:
 	IWidget*
 	GetBoundControlPtr(const KeyCode&);
-
-	static void
-	OnConfirmed_fbMain(IndexEventArgs&&);
 
 	static void
 	OnClick_ShowWindow(TouchEventArgs&&);

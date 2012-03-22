@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3550; *build 294 rev 81;
+\version r3557; *build 295 rev 117;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-03-18 17:36 +0800;
+	2012-03-22 16:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -282,7 +282,6 @@ $using:
 (
 	\cl SolidBrush,
 	\cl ImageBrush,
-	\cl MBackground,
 	\cl BorderStyle,
 	\cl BorderBrush
 ),
@@ -300,11 +299,6 @@ $using:
 \u Progress
 (
 	\cl ProgressBar
-),
-\u Border
-(
-	\cl BorderStyle,
-	\cl BorderBrush
 ),
 \u Button
 (
@@ -369,269 +363,347 @@ $using:
 
 $DONE:
 r1:
-/ \impl @ \ctor WidgetController,
-/ \tr @ \cl Widget $=
+* @ \cl Thumb $since b294 $=
 (
-	+ private \mf InitializeEvents,
-	/ \tr \impl @ (\ctor#1, \ctor \t)
+	- \mf Refresh,
+	/ \tr \impl @ \ctor
 );
+/ \simp \impl @ \mf Refresh @ \cl (Button, CloseButton);
 
 r2:
-/= test 1;
+/ @ \cl CheckBox $=
+(
+	- \mf Refresh,
+	/ \tr \impl @ \ctor
+);
 
 r3:
-/ \impl @ \ctor Control::ControlEventMap;
+/ \simp \impl @ \mf BufferedTextArea::Refresh;
 
-r4-r6:
-/ \impl @ \mf Desktop::Update,
-/= test 2,
+r4:
+/ \impl @ \cl ProgressBar $=
 (
-	/ @ \cl ShlDS @ \u Shell_DS $=
 	(
-		+ protected \m bool bUpdateUp, bUpdateDown;
-		/ \tr \impl @ \ctor,
-		/ \impl @ \mf OnGotMessage
-	)
-	/ \impl @ \mf ShlExplorer::OnPaint @ \impl \u Shells;
+		+ \inc \h YBrush @ \h Progress;
+		/ \m Color BorderColor -> shared_ptr<BorderStyle>;
+		/ \tr \impl @ \ctor
+	);
+	/ \simp \impl @ \mf ProgressBar::Refresh
 );
+
+r5:
+/ @ \cl ATrack $=
+(
+	- \mf Refresh,
+	/ \tr \impl @ \ctor
+);
+
+r6:
+/ \simp @ \cl BorderBrush,
+/ \tr @ \cl (ProgressBar, TextList, DialogBox, DialogPanel) $=
+(
+	- \m BorderPtr
+	/ \impl @ \ctor;
+);
+/ \inc \h YBrush @ \h Progress -> \h ColorPicker,
+/ \inc \h YBrush @ \h (TextList, UIContainerEx) >> \impl \u,
+/ \tr \simp \impl @ \ctor ColorBox @ \impl \u ColorPicker;
 
 r7:
-/= test 3 ^ \conf release;
+/= test 1 ^ \conf release;
 
 r8:
+/ \impl @ \ctor ATrack $=
 (
-	+ \fw \decl \cl SolidBrush @ \h YComponent;
-	/ @ \cl Widget $=
-	(
-		/ \m Color BackColor -> \m mutable HBrush BackgroundBrush;
-		/ \impl @ \mf (InitializeEvents, Refresh),
-		/ \tr \impl @ \a \ctor,
-		+ \mf GetBackgroundColor
-	);
-	+ \tr \inc \h YBrush @ \h YControl,
-	/ \tr \impl @ \ctor @ \cl (Menu, ProgressBar),
-	/ \tr \impl @ \mf Refresh @ \cl (ProgressBar),
-	/ \tr \impl @ \cl ColorBox @ \u ColorPicker,
-	/ \tr \impl @ \impl \u (Shells, ShlReader, Main_ARM9)
-),
-/= test 4,
-* $doc @ \ft xcrease @ \h Utilities $since b243;
-
-r17:
-/ \simp \impl @ \mf Refresh @ \cl (Label, ATrack, AScrollBar,
-	ScrollableContainer, TextList, CheckBox, BufferedTextArea, DialogBox, Panel,
-	Window, HexViewArea @ \impl \u HexBrowser, ReaderBox @ \impl \u ShlReader),
-/ \impl @ \ctor ScrollableContainer
-
-r18:
-/ \simp \impl @ \mf SolidBrush::\op();
-
-r19-r23:
-/= test 5;
-
-r24-r25:
-/ \impl @ \mf Window::Refresh;
-
-r26:
-/= test 6 ^ \conf release;
-
-r27:
-+ \cl ImageBrush @ \u YBrush,
-- using MBackground::GetBackgroundPtr @ \cl Window;
-
-r28:
-(
-	/ \impl @ \u (Shells, ShlReader, Main_ARM9),
-	/ @ \cl Window $=
-	(
-		- using MBackground::GetBackgroundImagePtr;
-		- \inh protected \cl MBackground,
-		/ \tr \impl @ \ctor,
-		/ \tr \simp \impl @ \mf Refresh
-	);
-	- \cl MBackground @ \u YBrush,
-),
-(
-	+ \inc \h YBrush @ \h Progress;
-	/ \impl @ \cl (Menu, ProgressBar),
-	/ \impl @ \u ColorPicker
+	- \tb,
+	/ background set -> nullptr
 );
-- \mf GetBackColor @ \cl Widget;
 
-r29:
-/ \impl @ \impl \u Shells,
-/ \a BackgroundBrush => Background;
+r9:
+/ \impl @ \mf AScrollBar::Refresh,
++ \mac YSL_UI_ATRACK_PARTIAL_INVALIDATION;
 
-r30:
-/= test 7;
+r10:
+/ \mf Rect PaintChildren(const PaintContext&) @ MUIContainer
+	-> void PaintVisibleChildren(PaintEventArgs&);
+/ \tr \simp \impl @ \mf Refresh @ Panel;
+- \mf Window::Refresh;
 
-r31:
-* \impl @ \mf ShlExplorer::OnActivated @ \impl \u Shells $since r28;
+r11:
+* \impl @ \mf AScrollBar::Refresh $since r9;
 
-r32:
-* \impl @ \cl ShlReader @ \u ShlReader $since r28;
+r12:
+- \ft CheckVisibleChildren @ \h YUIContainer;
 
-r33-r34:
-/= test 8;
+r13:
+/= test 2 ^ \conf release;
 
-r35:
-* \impl @ \cl HexViewArea @ \impl \u HexBrowser $since r28;
-
-r36:
-/= test 9 ^ \conf release;
-
-r37:
-/ @ \h YEvent $=
+r14:
+/ @ \u Shells $=
 (
-	+ \h Iterator,
+	/ @ \cl FPSCounter $=
 	(
-		+ typedef u8 EventPriority;
-		+ yconstexpr EventPriority DefaultEventPriority(0x80)
+		+ \m u64 MinimalInterval;
+		/ \ctor \i FPSCounter() -> !\i FPSCounter(u64 = 0);
+		/ \impl @ \mf Refresh
 	);
-	/ @ \clt GEvent $=
+	/ @ \cl ShlExplorer $=
 	(
-		/ \m typedef list<HandlerType> ListType -> typedef
-			multimap<EventPriority, HandlerType, std::greater<EventPriority>>
-			ContainerType,
-		/ \tr protected \m ListType List -> public \m ContainerType List;
-		/ \tr \impl @ \a \mf \op+=,
-		/ \tr \impl @ \a \mf Add,
-		+ \tr 4 \mf Add,
-		/ \tr \impl @ \a \mf \op-=#1,
-		/ \tr \impl @ \mf \op(),
-		/ \tr \impl @ \mf Contains
+		/ \impl @ \ctor,
+		/ \impl @ \mf OnPaint
 	)
 );
 
-r38-r48:
-/= test 10,
-/ @ \h YEvent $=
+r15-r21:
+* \impl @ \mf FPSCounter::Refresh @ \impl \u Shells $since r14;
+
+r22:
+/ @ \cl FPSCounter @ \u Shells $=
 (
-	/ \decl @ \ctor @ \clt GEventHandler,
-	(
-		+ \inc \h Algorithm;
-		/ \simp \impl @ \mf \op-=#1 @ \clt GEvent
-	),
-	* \impl @ \mf GEvent::\op-=#2 $since r37,
-	- \i @ \mf Contains @ \clt GEvent
+	+ private \m u32 refresh_count;
+	/ \tr \impl @ \ctor,
+	/ \tr \impl @ \mf Refresh
 );
 
-r49:
-/= test 11 ^ \conf release;
+r23:
+/= test 3 ^ \conf release;
 
-r50:
-/ @ \h YWidgetEvent $=
+r24:
+/ \mf bool SetShellHandle(const shared_ptr<Shell>&) @ \cl Application
+	-> \mf bool Switch(const shared_ptr<Shell>&) ynothrow;
+
+r25:
+- \inc \h (YShell, YFunc) @ \h YGUI;
+
+r26-r65:
+/= test 4;
+
+r66:
+/ \ctor ShlDS(const shared_ptr<Desktop>&
+	= FetchGlobalInstance().GetDesktopUpHandle(), const shared_ptr<Desktop>&
+	= FetchGlobalInstance().GetDesktopDownHandle()) @ \cl ShlDS @ \u Shell_DS
+	-> \ctor ShlDS();
+/ \simp \impl @ \ctor ShlExplorer::TFormExtra @ \impl \u Shells;
+/ @ \cl DSApplication @ \u YGlobal $=
 (
-	+ yconstexpr EventPriority BackgroundPriority;
-	+ yconstexpr EventPriority BoundaryPriority,
-	+ yconstexpr EventPriority ForegroundPriority
+	- \mf (GetDefaultDesktop, GetTouchableDesktop; GetDesktopDown, GetDesktopUp,
+		GetDesktopDownHandle, GetDesktopUpHandle);
+	- private \m (hDesktopUp, hDesktopDown),
+	/ \tr \impl @ \ctor,
+	/ \tr \impl @ \dtor
 );
-/ \impl @ \mf Widget::InitializeEvents,
-/ \impl @ \ctor @ \cl (TextList, DialogBox, DialogPanel,
-	ColorBox @ \impl \u ColorPicker);
-
-r51:
-* \impl @ \h YWidgetEvent $since r50;
-
-r52:
-* \impl @ \mf BorderBrush::\op() $since 284;
-
-r53:
-/ \impl @ \h YWidgetEvent,
-/ \impl @ \impl \u UIContainerEx;
-
-r54:
-/= test 12 ^ \conf release;
-
-r55:
-/ @ \h ydef.h $=
-(
-	+ doxygen \rem @ \mac,
-	+ branch predication hinter \mac (YCL_EXPECT, YCL_LIKELY, YCL_UNLIKELY)
-);
-^ branch hinter \mac @ (\impl \u (CStandardIO, CString, CharacterProcessing,
-	YCommon, YFont, YApplication, YFileSystem, YGlobal, CharRenderer, Button,
-	TextManager, TextRenderer, YBlit, YDraw, YGDI, YResource, YTimer, Menu,
-	Progress, Selector, YGUI, YStyle, DSReader, ShlReader), \h (StaticMapping,
-	YCoreUtilities, YFunc, YMessage, ShellHelper, CharRenderer, YBlit, YDraw,
-	Label, Viewer, YUIContainer)),
-/ \simp \impl @ \f ((UCToMBC @ \impl \u CharacterProcessing),
-	(OnKey_Bound_TouchUpAndLeave, OnKey_Bound_EnterAndTouchDown)
-	@ \impl \u YControl);
-
-r56:
-/= test 13 ^ \conf release;
-
-r57:
-/ \amf Rect Refresh(const PaintContext&) @ \in IWidget
-	-> Refresh(PaintEventArgs&&);
-/ \tr \impl @ \f Render @ \impl \u YWidget,
-/ \tr \impl @ \mf Refresh @ \cl @ \u (YWidget, Botton, ComboList, Label,
-	Progress, Scroll, Selector, TextArea, TextList, UIConainerEx, YPanel,
-	YWindow, HexBrowser, ShlReader);
-
-r58-r66:
-/= test 14;
 
 r67:
-/ \impl @ \mf ATrack::Refresh;
+- \mf ShlExplorer::OnDeactivated @ \u Shells,
+- \mf ShlReader::OnDeactivated @ \u ShlReader;
+/ \simp \impl @ \impl \u (Shells, ShlReader);
 
-r68-r76:
-/= test 15;
+r68:
+/= test 5 ^ \conf release;
+
+r69:
+/ @ \cl ShlExplorer @ \u ShlExplorer $=
+(
+	/ \simp \impl @ \ctor;
+	- \smf OnConfirmed_fbMain,
+);
+
+r70:
++ \f void RemoveTasks(Shell&) @ \u Shells;
+/ @ \impl \u ShlReader $=
+(
+	+ \f void ExitReader(ShlReader&) @ \un \ns;
+	/ \ipml @ \mf (ShlReader::Execute, TextReaderSession::OnKeyDown)
+	/ \impl @ \ctor HexReaderSession
+);
+- \mf MainShell::OnDeactivated,
+/ \simp \impl @ \mf ShlDS::OnGotMessage;
+- \mf ShlDS::OnDeactivated @ \u Shell_DS;
+
+r71:
+* \impl @ \ft \i SetShellToNew @ \h ShellHelper $since b;
+/ \impl @ \impl \u (Shells, ShlReader, Main_ARM9);
+
+r72-r73:
+/= test 6;
+
+r74:
+/ @ \u Application $=
+(
+	/ @ \cl Application $=
+	(
+		/ \mf bool Switch(const shared_ptr<Shell>&) ynothrow
+			-> bool Switch(shared_ptr<Shell>&) ynothrow;
+		+ \mf \i bool Switch(shared_ptr<Shell>&&) ynothrow
+	);
+	/ \tr \impl @ \f \i Activate
+);
+/ \tr \impl @ \mf Shell::DefShlProc,
+/ \a \mf OnActivated \mg -> \ctor;
+/ \tr \impl @ \mf ShlDS::OnGotMessage @ \Shell_DS;
+
+r75-r76:
+/= test 7;
 
 r77:
-/ @ \a \f PaintChild#2 @ \u YWidget;
-/ \impl @ \mf ScrollableContainer::Refresh;
-
-r78:
-/= test 14 ^ \conf release;
-
-r79:
-/ @ \u YWidget $=
+* @ \u ShlReader $since r74 $=
 (
-	- \f Render,
-	- \amf Refresh @ \in IWidget,
-	/ \tr @ \cl Widget $=
+	/ \f ExitReader @ \un \ns @ \impl \u -> \mf void ShlReader::Exit();
+	/ \tr \impl @ \mf TextReaderSession::(Execute, OnKeyDown),
+	/ \tr \impl @ \ctor HexReaderSession
+);
+
+r78-r83:
+/= test 8;
+
+r84:
+/ @ \cl Shell $=
+(
+	/ \impl @ \dtor,
+	* \impl @ \mf DefShlProc $since r74
+);
+
+r85-r98:
+/= test 9;
+
+r99:
+* \impl @ \dtor @ \cl Shell $since r84;
+
+r100:
+/ \impl @ \ctor MainShell @ \u Main_ARM9 ^ \mac (ynew, ydelete);
+
+r101-r103:
+/= test 10;
+
+r104:
+/= test 11 ^ \conf release;
+
+r105:
+/ @ \h YMessageDefinition $=
+(
 	(
-		/= (Impl(IWidget) -> virtual) @ \mf Refresh;
-		/ \impl @ \mf InitializeEvents
+		- DefMessageTarget(SM_ACTIVATED, void);
+		- \mac SM_ACTIVATED;
+		- \m Activated @ \en MessageSpace
+	),
+	(
+		- DefMessageTarget(SM_DEACTIVATED, void);
+		- \mac SM_DEACTIVATED;
+		- \m Deactivated @ \en MessageSpace
 	)
 );
 
-r80:
-* \impl @ \cl TextReaderSession @ \impl \u ShlReader $since b292 $=
+r106-r109:
+/= test 12;
+
+r110:
+* memory leak $since b243 $= (+ missing \dtor @ \cl AController);
+
+r111-r112:
++ '-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo' @ \mac CXXFLAGS
+	@ Makefile @ \proj (YBase, YFramework, YSTest_ARM7, YSTest_ARM9);
+/ '-std=gnu++0x' -> '-std=c++0x' @ \mac CXXFLAGS @ Makefile @ \proj YSTest_ARM7,
+/ \rem '-Wold-style-cast' @ \mac CXXFLAGS @ Makefile @ \proj (YFramework,
+	YSTest_ARM9),
++ private \inh \st ystdex::noncopyable @ \cl MemoryList @ \u YNew,
+/ \a \ac @ \a public \inh ystdex::noncopyable -> private,
+/ \a \ac @ \a public \inh OwnershipTag<'*'> -> private,
+/ \a \ac @ \a public \inh '*traits' -> protected,
+/ \ac @ \inh public GMCounter<Timer> @ \cl Timer -> protected,
+/ @ \h Iterator $=
 (
-	/ \impl @ \ctor,
-	/ \impl @ \mf Execute
+	+ private \ac \inh std::iterator<'...'> @ \clt (pseudo_iterator,
+		pair_iterator, input_monomorphic_iterator),
+	/ \ac @ \inh std::iterator<'...'> @ \clt pointer_iterator
+		-> private ~ public
+),
++ (copy, move) \op= @ \cl View,
+/ @ \cl String $=
+(
+	/ \ac @ public \inh \cl ucs2string -> protected,
+	+ \exp \de \i copy \op=,
+	+ \exp \de \i move \op=
+),
+/ @ (\cl Path, \st (UIEventArgs)) $=
+(
+	+ \exp \de \i copy \op=,
+	+ \exp \de \i move \op=
+),
+/ @ \cl ProgressBar $=
+(
+	/ \ac @ \inh public GMRange<float> @ -> protected,
+	+ using GMValue<float>::GetValue,
+	+ using GMValue<float>::GetMaxValue
+),
++ \impl @ \ctor Control;
+
+r113:
+/= test 13 ^ \conf release;
+
+r114-r115:
+/ @ \cl ShlReader @ \u ShlReader $=
+(
+	- private \m HBrush bg_up, bg_dn,
+	/ \tr \simp \impl @ \ctor
 );
 
-r81:
-/= test 15 ^ \conf release;
+r116:
+/ @ \u ShlReader $=
+(
+	(
+		+ \f ReadingList& FetchLastRead() @ \un \ns,
+		+ \f ReaderSetting& FetchReaderSetting() @ \un \ns
+	);
+	+ 
+	/ @ \cl ShlReader $=
+	(
+		/ \m ReadingList LastRead -> \m ReadingList& LastRead,
+		/ \m ReaderSetting CurrentSetting -> \m ReaderSetting& CurrentSetting,
+		/ \tr \simp \impl @ \ctor ^ \f (FetchLastRead, FetcReaderSetting)
+	)
+);
+
+r117:
+/= test 14 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-03-18:
--8.6d;
-//Mercurial rev1-rev166: r7983;
+2012-03-22:
+-7.3d;
+//Mercurial rev1-rev167: r8100;
 
 / ...
 
 
 $NEXT_TODO:
-b295-b300:
+b296-b300:
 / \impl @ \u (DSReader, ShlReader) $=
 (
-	/ $design \simp \impl
+	/ $design \simp \impl,
 ),
-/ widget refreshing partial invalidating;
-/ \mf \vt Clone -> \amf @ \cl AController ^ g++ 4.7;
+/ @ \ns platform @ \u YCommon $=
+(
+	/ \ac @ \inh touchPosition @ \cl CursorState,
+	+ copy (\ctor, \op=) @ \cl HDirectory,
+	+ \exp \init @ \m @ \cl KeysInfo
+);
 
 
 $TODO:
 b301-b400:
 + dynamic character mapper loader for \u CharacterMapping,
+/ noncopyable GUIState,
+* (copy, move) @ \cl (BitmapBuffer, BitmapBufferEx, Menu),
+/ (copy, move) @ text renderers,
+/ access control @ \inh @ (\cl Rect, \clt deref_comp),
+/ \ctor @ Font ^ initializer_list,
+/ \mf \vt Clone -> \amf @ \cl AController ^ g++ 4.7,
+/ \cl String interface,
+/ memory fragment issues,
++ noinstance base class,
++ 'yconstexpr' @ \s \m Graphics::Invalid,
 / completeness of core abstraction $=
 (
 	+ shell sessions;
@@ -641,17 +713,15 @@ b301-b400:
 ),
 / services $=
 (
-	+ \impl @ RTC,
 	+ \impl @ images loading
 ),
 / $low_prior YReader $=
 (
-	+ local encoding selecting,
-	+ improved smooth scrolling with lower limit of scrolling cycle supported,
-	/ improving performance when reader box shown,
 	+ bookmarks manager,
 	+ settings manager,
 	+ reading history,
+	/ improving performance when reader box shown,
+	+ improved smooth scrolling with lower limit of scrolling cycle supported,
 	/ improved tests and examples
 ),
 / @ "GUI" $=
@@ -665,7 +735,8 @@ b301-b400:
 	/ fully \impl @ \cl Form,
 	+ icons,
 	+ formal abstraction of rectangular hit test,
-	+ key accelerators
+	+ key accelerators,
+	+ widgets for RTC
 );
 
 b401-b768:
@@ -730,7 +801,8 @@ b769-b1256:
 (
 	/ messaging $=
 	(
-		^ timing triggers @ message loop
+		^ timing triggers @ message loop,
+		^ weak_ptr @ shell messages
 	),
 	+ exceptional state and handlers when switching shells
 ),
@@ -778,6 +850,8 @@ b1257-b1728:
 	),
 	/ @ "GDI" $=
 	(
+		+ basic shapes abstraction,
+		+ spline nodes abstraction,
 		/ more efficient Font switching,
 		/ text alignment,
 		/ advanced text layout like Unicode layout control
@@ -922,6 +996,64 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'GUI' $=
+		(
+			(
+				/ "simplified refreshing" @ "class %Thumb",
+				/ $design "simplified refreshing" @ "class %(CheckBox, ATrack, \
+					AScrollBar, Panel, Window)",
+				/ "improved refreshing" @ "class %AScrollBar";
+				* $comp "background of buttons over refreshed" $since b294,
+				* $design $comp "background of scroll bars over refreshed"
+					$since b294,
+				/ $comp "refreshing performance improved"
+			),
+			+ $design "partial invalidation support on refreshing"
+				@ "class %BufferedTextArea",
+			/ $design "refreshing" ^ "border brush" @ "class %ProgressBar",
+			* "memory leak" $since b243
+				$= (+ "missing destructor" @ "class %AController"),
+			+ $design "copy and move assignment ooperator" @ "class %View" 
+		),
+		/ %'core'.'shell abstraction' $=
+		(
+			/ "interface of shell switching";
+			$dep_to "DS shell member functions",
+			- "message %(SM_ACTIVATED, SM_DEACTIVATED)" @ %'messaging'
+		),
+		/ %'helpers' $=
+		(
+			- "global desktop" @ %'global helper unit',
+			/ %'shells for DS' $=
+			(
+				^ "dynamically allocated individual desktop objects"
+					~ "shared static desktop objects",
+				- $design "member functions %OnDeactivated",
+				/ "member functions %OnActivated merged to constructors"
+			);
+			$dep_to "DS shell member functions"
+		),
+		/ $design "more strict access controlling" @ "several classes",
+	),
+	/ %'YReader'.'shells test example' $=
+	(
+		(
+			+ "refreshing interval" @ "class %FPSCounter";
+			+ "FPS counter refreshing frequency limit",
+		),
+		/ $design $dep_from "DS shell member functions" $=
+		(
+			- "all member functions %OnDeactivated",
+			/ "all member functions %OnActivated merged to constructors",
+		),
+		/ $design "shell objects" ^ "dynamic storage" ~ "static storage"
+	)
+),
+
+b294
 (
 	/ %'YFramework'.'YSLib' $=
 	(
@@ -2404,11 +2536,11 @@ b243
 			only event permitted to call";
 		/ "rendering of function %Render" ^ "mutable rvalue reference \
 			parameter to store the result" ~ "returning";
-		/ "constructor" @ "%WidgetControlle add event handler %Render";
+		+ "event handler %Render" @ "constructor" @ "%WidgetController";
 		/ "rendering logic" @ "member function %Frame::DrawContents"
 			^ "event %Paint" ~ "directly call function %Render";
-		/ $design "simplfied updating" @ "renderer classes",
-		/ $design "simplified refreshing of class %TextList"
+		/ $design "simplified updating" @ "renderer classes",
+		/ $design "simplified refreshing" @ "class %TextList"
 	)
 ),
 

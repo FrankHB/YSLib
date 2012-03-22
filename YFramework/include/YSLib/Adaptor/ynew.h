@@ -11,13 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r2079;
+\version r2083;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 173 。
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2012-01-04 13:45 +0800;
+	2012-03-21 18:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -88,9 +88,10 @@ GetDebugMemoryList();
 
 /*!
 \brief 内存块列表。
+\warning 非虚析构。
 \since build 173 。
 */
-class MemoryList
+class MemoryList : private ystdex::noncopyable
 {
 public:
 	struct BlockInfo
@@ -106,8 +107,9 @@ public:
 
 	/*
 	\brief new 表达式分配记录器。
+	\warning 非虚析构。
 	*/
-	class NewRecorder : public ystdex::noncopyable
+	class NewRecorder : private ystdex::noncopyable
 	{
 	private:
 		MemoryList& blocks;

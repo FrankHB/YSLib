@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11620;
+\version r11628;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-03-16 15:41 +0800;
+	2012-03-20 21:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -261,11 +261,9 @@ $header YMessageDefinition
 {
 SM_NULL
 SM_SET
-SM_DROP
-SM_ACTIVATED
-SM_DEACTIVATED
 SM_PAINT
 SM_QUIT
+SM_TASK
 SM_INPUT
 DefMessageTarget
 }
@@ -318,10 +316,6 @@ $unit Helper::Shell_DS
 	{
 		extern
 		YMainShell::YMainShell();
-		extern int
-		YMainShell::OnActivated(const Message&);
-		extern int
-		YMainShell::OnDeactivated();
 	}
 } //$unit Helper::Shell_DS;
 

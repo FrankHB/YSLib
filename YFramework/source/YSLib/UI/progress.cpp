@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r1325;
+\version r1337;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-20 08:59:56 +0800;
 \par 修改时间:
-	2012-03-18 13:48 +0800;
+	2012-03-18 21:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -37,10 +37,14 @@ ProgressBar::ProgressBar(const Rect& r, ValueType m)
 	: Control(r), GMRange<float>(m == 0 ? 1 : m, 0)
 {
 	auto& pal(FetchGUIState().Colors);
+	BorderStyle style;
 
-	yunseq(Background = SolidBrush(pal[Styles::Track]),
+	style.ActiveColor = pal[Styles::InactiveBorder];
+	yunseq(
+		Background = SolidBrush(pal[Styles::Track]),
 		ForeColor = pal[Styles::HotTracking],
-		BorderColor = pal[Styles::InactiveBorder]);
+		FetchEvent<Paint>(*this).Add(BorderBrush(style), BoundaryPriority)
+	);
 }
 
 void
@@ -61,7 +65,7 @@ ProgressBar::Refresh(PaintEventArgs&& e)
 	auto pt(e.Location);
 	Size s(GetSizeOf(*this));
 
-	DrawRect(g, pt, s, BorderColor);
+	e.ClipArea = Rect(pt, s);
 	if(YCL_LIKELY(s.Width > 2 && s.Height > 2))
 	{
 		yunseq(s.Width -= 2, s.Height -= 2, pt.X += 1, pt.Y += 1);
@@ -74,7 +78,6 @@ ProgressBar::Refresh(PaintEventArgs&& e)
 			if(const auto p = Background.target<SolidBrush>())
 				FillRect(g, pt, Size(s.Width - w_bar, s.Height), p->Color);
 	}
-	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
 YSL_END_NAMESPACE(Components)

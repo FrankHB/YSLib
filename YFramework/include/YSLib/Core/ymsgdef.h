@@ -11,12 +11,12 @@
 /*!	\file ymsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version r2922;
+\version r2928;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-08 12:05:26 +0800;
 \par 修改时间:
-	2012-02-26 18:31 +0800;
+	2012-03-20 20:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -38,8 +38,6 @@ typedef enum MessageSpace
 {
 	Null = 0x0000,
 	Set = 0x0003,
-	Activated = 0x0005,
-	Deactivated = 0x0006,
 
 	Paint = 0x000F,
 
@@ -53,8 +51,6 @@ typedef enum MessageSpace
 
 #define SM_NULL					Messaging::Null
 #define SM_SET					Messaging::Set
-#define SM_ACTIVATED			Messaging::Activated
-#define SM_DEACTIVATED			Messaging::Deactivated
 
 #define SM_PAINT				Messaging::Paint
 #define SM_QUIT					Messaging::Quit
@@ -77,8 +73,6 @@ struct SMessageMap
 
 DefMessageTarget(SM_NULL, void)
 DefMessageTarget(SM_SET, shared_ptr<Shell>)
-DefMessageTarget(SM_ACTIVATED, void)
-DefMessageTarget(SM_DEACTIVATED, void)
 DefMessageTarget(SM_PAINT, shared_ptr<Desktop>)
 DefMessageTarget(SM_QUIT, int)
 DefMessageTarget(SM_TASK, std::function<void()>)

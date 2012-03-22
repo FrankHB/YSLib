@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r4094;
+\version r4104;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2012-02-19 19:27 +0800;
+	2012-03-21 18:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -151,10 +151,15 @@ public:
 	\brief 析构：释放资源。
 	*/
 	BitmapBuffer(const BitmapBuffer&);
+	// TODO: copy ctor;
+	// FIXME: right impl;
 	DefDeMoveCtor(BitmapBuffer)
 	virtual DefClone(BitmapBuffer, Clone)
 	virtual
 	~BitmapBuffer();
+
+	// TODO: copy assignment;
+	// TODO: move assignment;
 
 	/*!
 	\brief 重新设置缓冲区大小。
@@ -183,7 +188,8 @@ public:
 	BeFilledWith(Color) const;
 };
 
-inline BitmapBuffer::~BitmapBuffer()
+inline
+BitmapBuffer::~BitmapBuffer()
 {
 	ydelete_array(pBuffer);
 }
@@ -209,10 +215,15 @@ public:
 	\brief 析构：释放资源。
 	*/
 	BitmapBufferEx(const BitmapBufferEx&);
+	// TODO: copy ctor;
+	// FIXME: right impl;
 	DefDeMoveCtor(BitmapBufferEx)
 	virtual DefClone(BitmapBufferEx, Clone)
 	virtual
 	~BitmapBufferEx();
+
+	// TODO: copy assignment;
+	// TODO: move assignment;
 
 	DefGetter(const ynothrow, u8*, BufferAlphaPtr, pBufferAlpha) \
 		//!< 取 Alpha 缓冲区的指针。
@@ -235,7 +246,8 @@ public:
 };
 
 inline
-BitmapBufferEx::BitmapBufferEx() : BitmapBuffer(), pBufferAlpha()
+BitmapBufferEx::BitmapBufferEx()
+	: BitmapBuffer(), pBufferAlpha()
 {}
 inline
 BitmapBufferEx::~BitmapBufferEx()

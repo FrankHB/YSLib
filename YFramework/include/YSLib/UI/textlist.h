@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1499;
+\version r1507;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2012-03-18 13:11 +0800;
+	2012-03-18 21:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,6 @@
 
 #include "ycontrol.h"
 #include "ygui.h"
-#include "YBrush.h"
 #include "label.h"
 #include "viewer.hpp"
 
@@ -73,14 +72,8 @@ public:
 	using MTextList::HorizontalAlignment;
 	using MTextList::VerticalAlignment;
 	using MTextList::Text;
-	/*!
-	\brief 边框样式指针。
-	\since build 284 。
-	*/
-	shared_ptr<BorderStyle> BorderPtr;
 	Color HilightBackColor; //!< 高亮背景色。
 	Color HilightTextColor; //!< 高亮文本色。
-
 	bool CyclicTraverse; //!< 循环选择遍历。
 
 private:

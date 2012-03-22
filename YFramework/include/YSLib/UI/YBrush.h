@@ -11,17 +11,17 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r1184;
+\version r1212;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 293 。
 \par 创建时间:
 	2012-01-10 19:55:30 +0800;
 \par 修改时间:
-	2012-03-16 16:15 +0800;
+	2012-03-18 21:49 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YSLib::UI::Border;
+	YSLib::UI::YBrush;
 */
 
 
@@ -110,15 +110,18 @@ public:
 class BorderBrush
 {
 public:
-	weak_ptr<BorderStyle> StylePtr;
+	/*!
+	\brief 边框样式。
+	\since build 295 。
+	*/
+	BorderStyle Style;
 
-	yconstexpr DefDeCtor(BorderBrush)
-	BorderBrush(const shared_ptr<BorderStyle>&);
-	BorderBrush(shared_ptr<BorderStyle>&&);
-	BorderBrush(const weak_ptr<BorderStyle>&);
-	BorderBrush(weak_ptr<BorderStyle>&&);
-	inline DefDeCopyCtor(BorderBrush)
-	BorderBrush(BorderBrush&&);
+	DefDeCtor(BorderBrush)
+	/*!
+	\brief 初始化；使用指定边框样式。
+	\since build 295 。
+	*/
+	BorderBrush(const BorderStyle&);
 
 	inline DefDeCopyAssignment(BorderBrush)
 	inline DefDeMoveAssignment(BorderBrush)
@@ -128,24 +131,8 @@ public:
 };
 
 inline
-BorderBrush::BorderBrush(const shared_ptr<BorderStyle>& p)
-	: StylePtr(p)
-{}
-inline
-BorderBrush::BorderBrush(shared_ptr<BorderStyle>&& p)
-	: StylePtr(std::move(p))
-{}
-inline
-BorderBrush::BorderBrush(const weak_ptr<BorderStyle>& p)
-	: StylePtr(p)
-{}
-inline
-BorderBrush::BorderBrush(weak_ptr<BorderStyle>&& p)
-	: StylePtr(std::move(p))
-{}
-inline
-BorderBrush::BorderBrush(BorderBrush&& bdb)
-	: StylePtr(bdb.StylePtr.lock())
+BorderBrush::BorderBrush(const BorderStyle& style)
+	: Style(style)
 {}
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1326;
+\version r1328;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-06-08 13:21:10 +0800;
 \par 修改时间:
-	2012-01-10 17:09 +0800;
+	2012-03-19 15:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -119,7 +119,7 @@ YSL_BEGIN_NAMESPACE(Styles)
 
 /*!
 \brief 样式区域类型。
-\since b204 。
+\since build 204 。
 */
 typedef enum
 {
@@ -156,7 +156,7 @@ typedef enum
 
 /*!
 \brief 默认调色板。
-\since b204 。
+\since build 204 。
 */
 class Palette
 {

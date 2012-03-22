@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM7 by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-01-17 16:39 +0800;
-# Version = r3348;
+# UTime = 2012-03-21 19:53 +0800;
+# Version = r3350;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -62,7 +62,8 @@ CFLAGS	+=	-g -O0 -DDEBUG
 LDFLAGS	+=	-g
 endif
 
-CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=gnu++0x
+CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++0x \
+ 			-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo
 
 #--------------------------------------------------------------------------------
 # path to tools - this can be deleted if you set the path in windows

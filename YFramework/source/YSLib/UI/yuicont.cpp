@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2555;
+\version r2569;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2012-03-04 15:47 +0800;
+	2012-03-19 15:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -198,26 +198,21 @@ MUIContainer::Contains(IWidget& wgt)
 		&wgt) != mWidgets.end();
 }
 
-Rect
-MUIContainer::PaintChildren(const PaintContext& pc)
+void
+MUIContainer::PaintVisibleChildren(PaintEventArgs& e)
 {
 	using ystdex::get_value;
 
-	Rect clip_area(pc.ClipArea);
-
 	std::for_each(mWidgets.begin() | get_value, mWidgets.end() | get_value,
 		[&](IWidget* const& pWgt){
+		YAssert(pWgt,
+			"Null pointer found @ MUIContainer::PaintVisibleChildren;");
+
 		auto& wgt(*pWgt);
 
 		if(Components::IsVisible(wgt))
-		{
-			PaintEventArgs e(wgt, pc.Target, pc.Location, clip_area);
-
-			PaintChild(wgt, std::move(e));
-			clip_area = Unite(clip_area, e.ClipArea);
-		}
+			e.ClipArea = Unite(e.ClipArea, PaintChild(wgt, e));
 	});
-	return clip_area;
 }
 
 YSL_END_NAMESPACE(Components)

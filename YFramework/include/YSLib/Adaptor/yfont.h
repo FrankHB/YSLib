@@ -11,13 +11,13 @@
 /*!	\file yfont.h
 \ingroup Adaptor
 \brief 平台无关的字体缓存库。
-\version r7672;
+\version r7679;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2012-01-31 11:55 +0800;
+	2012-03-21 18:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -107,9 +107,10 @@ FetchName(FontStyle style) ynothrow
 
 /*!
 \brief 字型家族 (Typeface Family) 标识。
+\warning 非虚析构。
 \since build 145 。
 */
-class FontFamily : public noncopyable
+class FontFamily : private noncopyable
 {
 public:
 	typedef map<const StyleName, Typeface*> FaceMap; //!< 字型组索引类型。
@@ -158,9 +159,10 @@ public:
 
 /*!
 \brief 字型标识。
+\warning 非虚析构。
 \since build 145 。
 */
-class Typeface : public noncopyable
+class Typeface : private noncopyable
 {
 	friend ::FT_Error
 	simpleFaceRequester(::FTC_FaceID, ::FT_Library, ::FT_Pointer, ::FT_Face*);
@@ -277,8 +279,8 @@ CharBitmap::CharBitmap(const NativeType& b)
 \warning 非虚析构。
 \since build 209 。
 */
-class FontCache : public noncopyable,
-	public OwnershipTag<Typeface>, public OwnershipTag<FontFamily>
+class FontCache : private noncopyable,
+	private OwnershipTag<Typeface>, private OwnershipTag<FontFamily>
 {
 	friend class Typeface;
 	/*!

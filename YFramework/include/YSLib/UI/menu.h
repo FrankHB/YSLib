@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1758;
+\version r1760;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2012-02-15 13:02 +0800;
+	2012-03-21 18:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -69,6 +69,7 @@ public:
 	explicit
 	Menu(const Rect& = Rect::Empty,
 		const shared_ptr<ListType>& = shared_ptr<ListType>(), ID = 0);
+	// FIXME: consideration for pointer members;
 	inline DefDeMoveCtor(Menu)
 
 	/*!
@@ -173,8 +174,7 @@ LocateMenu(Menu&, const Menu&, Menu::IndexType);
 \brief 菜单宿主。
 \since build 252 。
 */
-class MenuHost : public noncopyable,
-	public OwnershipTag<Menu>
+class MenuHost : private noncopyable, private OwnershipTag<Menu>
 {
 public:
 	typedef Menu* ItemType; //!< 菜单组项目类型：记录菜单控件指针。

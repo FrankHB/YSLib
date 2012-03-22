@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r1264;
+\version r1269;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2011-09-21 08:30:08 +0800;
 \par 修改时间:
-	2011-12-25 08:19 +0800;
-\par 字符集:
+	2012-03-21 16:17 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YStandardEx::CStandardIO;
@@ -135,6 +135,7 @@ namespace ystdex
 	ifile_iterator::ifile_iterator(istream_type& s)
 		: stream(&s)
 	{
+		// NOTE: value is interminated if stream is null;
 		++*this;
 	}
 

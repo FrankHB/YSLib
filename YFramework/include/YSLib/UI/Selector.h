@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1230;
+\version r1236;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-22 07:17:17 +0800;
 \par 修改时间:
-	2012-03-18 13:10 +0800;
+	2012-03-18 20:10 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,13 +73,6 @@ public:
 	inline DefDeMoveCtor(CheckBox)
 
 	DefPred(const ynothrow, Ticked, bTicked)
-
-	/*!
-	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
-	*/
-	virtual void
-	Refresh(PaintEventArgs&&);
 
 	/*!
 	\brief 设置选中状态。

@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2424;
+\version r2450;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-02-28 12:17 +0800;
+	2011-03-21 18:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,7 +39,7 @@ using Messaging::MessageQueue;
 \brief 程序实例。
 \since build 243 。
 */
-class Application : public noncopyable
+class Application : private noncopyable
 {
 public:
 	//全局常量。
@@ -95,14 +95,6 @@ public:
 	DefGetter(const ynothrow, const Message&, Message, msg)
 
 	/*!
-	\brief 设置线程空间中当前运行的 Shell 的句柄。
-	\return 参数是否有效。
-	\warning 空句柄在此处是可接受的，但继续运行可能会导致断言失败。
-	*/
-	bool
-	SetShellHandle(const shared_ptr<Shell>&);
-
-	/*!
 	\brief 备份主消息队列中的消息。
 	\since build 272 。
 	*/
@@ -127,7 +119,29 @@ public:
 	//启动线程消息循环。
 //	void
 //	Run(shared_ptr<Shell>);
+
+	/*!
+	\brief 线程切换：若参数非空，和线程空间中当前运行的 Shell 的句柄交换。
+	\return 参数是否有效。
+	\since build 295 。
+	*/
+	bool
+	Switch(shared_ptr<Shell>&) ynothrow;
+	/*!
+	\brief 线程切换：若参数非空，和线程空间中当前运行的 Shell 的句柄交换。
+	\return 参数是否有效。
+	\warning 空句柄在此处是可接受的，但继续运行可能会导致断言失败。
+	\since build 295 。
+	*/
+	bool
+	Switch(shared_ptr<Shell>&&) ynothrow;
 };
+
+inline bool
+Application::Switch(shared_ptr<Shell>&& h) ynothrow
+{
+	return Switch(h);
+}
 
 
 /*!
@@ -157,7 +171,9 @@ Activate(const shared_ptr<Shell>& hShl)
 {
 	YAssert(bool(hShl), "Null shell handle found @ Activete;");
 
-	return FetchAppInstance().SetShellHandle(hShl);
+	auto h(hShl);
+
+	return FetchAppInstance().Switch(h);
 }
 
 

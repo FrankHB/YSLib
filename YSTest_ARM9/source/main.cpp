@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2215;
+\version r2229;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-03-16 17:42 +0800;
+	2012-03-20 19:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -70,13 +70,7 @@ MainShell::MainShell()
 	lblTitle(Rect(50, 20, 100, 22)),
 	lblStatus(Rect(60, 80, 80, 22)),
 	lblDetails(Rect(30, 20, 160, 22))
-{}
-
-void
-MainShell::OnActivated(const Message& msg)
 {
-	ParentType::OnActivated(msg);
-
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
@@ -103,7 +97,7 @@ MainShell::OnActivated(const Message& msg)
 	dsk_dn.Update();
 	//初始化所有图像资源。
 
-	auto& pb(*new ProgressBar(Rect(8, 168, 240, 16), 10));
+	auto& pb(*(ynew ProgressBar(Rect(8, 168, 240, 16), 10)));
 
 	dsk_up += pb;
 	for(size_t i(0); i < 10; ++i)
@@ -123,16 +117,10 @@ MainShell::OnActivated(const Message& msg)
 	dsk_up.Validate();
 	dsk_up.Update();
 	dsk_up -= pb;
-	delete &pb;
-	YReader::SetShellToStored<YReader::ShlExplorer>();
-}
-
-void
-MainShell::OnDeactivated()
-{
+	ydelete(&pb);
 //	yunseq(GetDesktopUp().Background = nullptr,
 //		GetDesktopDown().Background = nullptr);
-	ParentType::OnDeactivated();
+	YReader::SetShellToNew<YReader::ShlExplorer>();
 }
 
 YSL_END_NAMESPACE(Shells)

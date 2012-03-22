@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6509;
+\version r6511;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-18 16:28 +0800;
+	2012-03-19 11:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -266,8 +266,8 @@ Invalidate(IWidget&, const Rect&);
 
 以 e.Sender() 作为绘制目标，判断其边界是否和区域 e.ClipArea 相交，
 若相交区域非空则调用 wgt 的渲染器的 Paint 方法绘制 。
-调用中， e.ClipArea 被覆盖为相交区域，并进一步被 Paint 方法覆盖为实际绘制的区域。
-之后， e.ClipArea 可继续被 e.GetSender() 的渲染器的 Paint 方法修改。
+调用中， e.Location 被修改为相对子部件的坐标， e.ClipArea 被覆盖为相交区域。
+之后， e 可继续被 e.GetSender() 的渲染器的 Paint 方法修改。
 */
 void
 PaintChild(IWidget& wgt, PaintEventArgs&& e);

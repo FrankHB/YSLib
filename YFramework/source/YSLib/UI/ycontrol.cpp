@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4669;
+\version r4673;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2012-03-17 20:18 +0800;
+	2012-03-21 20:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -218,7 +218,9 @@ Control::ControlEventMap::ControlEventMap()
 
 Control::Control(const Rect& r)
 	: Widget(new View(r), new Renderer(),
-	new Controller(true, FetchPrototype<ControlEventMap>()))
+	new Controller(true, FetchPrototype<ControlEventMap>())),
+	BoundControlPtr(std::bind(&Control::GetBoundControlPtr, this,
+		std::placeholders::_1))
 {
 //	const auto& h([this](UIEventArgs&&){
 //		Invalidate(*this);
@@ -239,8 +241,6 @@ Control::Control(const Rect& r)
 			Invalidate(*this);
 		}
 	);
-	BoundControlPtr = std::bind(&Control::GetBoundControlPtr, this,
-		std::placeholders::_1);
 }
 Control::Control(const Control& ctl)
 	: Widget(ctl), BoundControlPtr(ctl.BoundControlPtr)

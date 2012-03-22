@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r2134;
+\version r2148;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241 。
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2012-03-17 15:00 +0800;
+	2012-03-21 19:17 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -48,6 +48,7 @@ yconstexpr EventPriority ForegroundPriority(0x40);
 
 /*!
 \brief 用户界面事件参数基类。
+\warning 非虚析构。
 \since build 255 。
 */
 struct UIEventArgs
@@ -58,6 +59,18 @@ private:
 public:
 	explicit
 	UIEventArgs(IWidget&);
+	/*!
+	\brief 复制构造：默认实现。
+	\since build 295 。
+	*/
+	inline DefDeCopyCtor(UIEventArgs)
+
+	/*!
+	\brief 复制赋值：默认实现。
+	\since build 295 。
+	*/
+	inline DefDeCopyAssignment(UIEventArgs)
+
 	DefGetter(const ynothrow, IWidget&, Sender, *pSender)
 	PDefH(void, SetSender, IWidget& wgt)
 		ImplExpr(pSender = &wgt)
@@ -71,6 +84,7 @@ UIEventArgs::UIEventArgs(IWidget& wgt)
 
 /*!
 \brief 路由事件参数基类。
+\warning 非虚析构。
 \since build 195 。
 */
 struct RoutedEventArgs : public UIEventArgs
@@ -99,6 +113,7 @@ RoutedEventArgs::RoutedEventArgs(IWidget& wgt, RoutingStrategy strategy)
 
 /*!
 \brief 屏幕（指针设备）输入事件参数模块类。
+\warning 非虚析构。
 \since build 160 。
 */
 typedef Drawing::Point MScreenPositionEventArgs;
@@ -106,6 +121,7 @@ typedef Drawing::Point MScreenPositionEventArgs;
 
 /*!
 \brief 输入事件参数类。
+\warning 非虚析构。
 \since 早于 build 132 。
 */
 struct InputEventArgs : public RoutedEventArgs
@@ -126,6 +142,7 @@ public:
 
 /*!
 \brief 按键输入事件参数类。
+\warning 非虚析构。
 \since 早于 build 132 。
 */
 struct KeyEventArgs : public InputEventArgs
@@ -142,6 +159,7 @@ public:
 
 /*!
 \brief 指针设备输入事件参数类。
+\warning 非虚析构。
 \since 早于 build 132 。
 */
 struct TouchEventArgs : public InputEventArgs, public MScreenPositionEventArgs
@@ -161,6 +179,7 @@ public:
 \brief 简单事件参数类。
 
 保存部件引用和指定类型值的事件参数。
+\warning 非虚析构。
 \since build 268 。
 */
 PDefTmplH1(_type)
@@ -186,6 +205,7 @@ struct GValueEventArgs : public UIEventArgs
 
 /*
 \brief 部件绘制上下文。
+\warning 非虚析构。
 \since build 255 。
 */
 struct PaintContext
@@ -209,6 +229,7 @@ PaintContext::PaintContext(const Drawing::Graphics& g,
 
 /*!
 \brief 部件绘制参数。
+\warning 非虚析构。
 \since build 242 。
 */
 struct PaintEventArgs : public UIEventArgs, public PaintContext
@@ -351,6 +372,11 @@ public:
 	\brief 构造：使用指定可用性。
 	*/
 	AController(bool = true);
+	/*!
+	\brief 析构：空实现。
+	\since build 295 。
+	*/
+	virtual DefEmptyDtor(AController)
 
 	DefPred(const ynothrow, Enabled, enabled)
 

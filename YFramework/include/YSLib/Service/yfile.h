@@ -11,13 +11,13 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version r1863;
+\version r1864;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2012-03-02 20:43 +0800;
+	2012-03-21 18:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@ YSL_BEGIN
 \brief 文件基类。
 \since build 206 。
 */
-class File : public noncopyable
+class File : private noncopyable
 {
 protected:
 	std::FILE* fp; //!< 默认文件指针。

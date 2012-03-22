@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2660;
+\version r2678;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2012-03-17 19:28 +0800;
+	2012-03-21 19:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -155,6 +155,7 @@ const ZOrderType DefaultWindowZOrder(128);
 
 /*!
 \brief 部件容器模块。
+\warning 非虚析构。
 \since build 167 。
 */
 class MUIContainer
@@ -220,30 +221,12 @@ public:
 
 protected:
 	/*!
-	\brief 绘制子部件。
-	\since b264 。
+	\brief 绘制可视子部件。
+	\since build 295 。
 	*/
-	Rect
-	PaintChildren(const PaintContext&);
+	void
+	PaintVisibleChildren(PaintEventArgs&);
 };
-
-
-template<typename _tIn>
-bool
-CheckVisibleChildren(_tIn first, _tIn last)
-{
-	using ystdex::get_value;
-
-	bool result(false);
-
-	std::for_each(first | get_value, last | get_value,
-		[&](decltype(*(last | get_value)) p){
-		YAssert(p, "Null widget pointer found @ CheckVisibleChildren");
-
-		result |= Components::IsVisible(*p);
-	});
-	return result;
-}
 
 YSL_END_NAMESPACE(Components)
 

@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1456;
+\version r1474;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2012-03-18 13:42 +0800;
+	2012-03-18 20:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -105,20 +105,21 @@ CheckBox::CheckBox(const Rect& r)
 	: Thumb(r),
 	bTicked(false)
 {
-	FetchEvent<Click>(*this) += [this](TouchEventArgs&&){
-		bTicked ^= true;
-		Ticked(TickedArgs(*this, bTicked));
-	};
-}
+	yunseq(
+		Background = [this](PaintEventArgs&& e){
+			const auto& g(e.Target);
+			const auto& pt(e.Location);
 
-void
-CheckBox::Refresh(PaintEventArgs&& e)
-{
-	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
-	RectDrawCheckBox(e.Target, e.ClipArea, bPressed, IsFocusedByShell(*this),
-		bTicked);
-	if(IsFocused(*this))
-		DrawRect(e.Target, e.Location, GetSizeOf(*this), ColorSpace::Aqua);
+			RectDrawCheckBox(g, (e.ClipArea = Rect(pt, GetSizeOf(*this))),
+				bPressed, IsFocusedByShell(*this), bTicked);
+			if(IsFocused(*this))
+				DrawRect(g, pt, GetSizeOf(*this), ColorSpace::Aqua);
+		},
+		FetchEvent<Click>(*this) += [this](TouchEventArgs&&){
+			bTicked ^= true;
+			Ticked(TickedArgs(*this, bTicked));
+		}
+	);
 }
 
 void

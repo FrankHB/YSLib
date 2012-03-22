@@ -11,13 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r1428;
+\version r1453;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 258 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-14 20:14 +0800;
+	2012-03-21 20:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -163,6 +163,19 @@ public:
 	virtual DefClone(View, Clone)
 	virtual DefEmptyDtor(View)
 
+	/*!
+	\brief 复制赋值：仅可视状态。
+	\since build 295 。
+	*/
+	View&
+	operator=(const View&);
+	/*!
+	\brief 转移赋值：仅可视状态。
+	\since build 295 。
+	*/
+	View&
+	operator=(View&&);
+
 	bool
 	IsVisible() const ynothrow;
 	bool
@@ -196,16 +209,29 @@ View::View(const Rect& r)
 	: visual(r), pContainer(), pDependency(), pFocusing()
 {}
 inline
-View::View(const View& wv)
-	: visual(wv.visual), pContainer(), pDependency(), pFocusing()
+View::View(const View& v)
+	: visual(v.visual), pContainer(), pDependency(), pFocusing()
 {}
 inline
-View::View(View&& wv)
-	: visual(wv.visual), pContainer(wv.pContainer), pDependency(wv.pDependency),
-	pFocusing(wv.pFocusing)
+View::View(View&& v)
+	: visual(v.visual), pContainer(v.pContainer), pDependency(v.pDependency),
+	pFocusing(v.pFocusing)
 {
-	yunseq(wv.pContainer = nullptr, wv.pDependency = nullptr,
-		wv.pFocusing = nullptr);
+	yunseq(v.pContainer = nullptr, v.pDependency = nullptr,
+		v.pFocusing = nullptr);
+}
+
+inline View&
+View::operator=(const View& v)
+{
+	visual = v.visual;
+	return *this;
+}
+inline View&
+View::operator=(View&& v)
+{
+	visual = std::move(v.visual);
+	return *this;
 }
 
 YSL_END_NAMESPACE(Components)

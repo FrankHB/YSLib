@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2229;
+\version r2239;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2012-02-21 15:01 +0800;
+	2012-03-21 19:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -60,6 +60,7 @@ typedef GSStringTemplate<NativePathCharType>::basic_string NativeString;
 
 /*!
 \brief 路径。
+\warning 非虚析构。
 */
 class Path : public String
 {
@@ -95,6 +96,17 @@ public:
 	template<class _tString>
 	Path(const _tString&);
 	inline DefDeDtor(Path)
+
+	/*!
+	\brief 复制赋值：默认实现。
+	\since build 295 。
+	*/
+	inline DefDeCopyAssignment(Path)
+	/*!
+	\brief 转移赋值：默认实现。
+	\since build 295 。
+	*/
+	inline DefDeMoveAssignment(Path)
 
 	//追加路径。
 	Path&

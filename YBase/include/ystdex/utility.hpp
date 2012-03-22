@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r1753;
+\version r1754;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-03-16 12:38 +0800;
+	2012-03-21 19:42 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -41,6 +41,7 @@ namespace ystdex
 
 	/*
 	\brief 不可复制对象：禁止继承此类的对象调用复制构造函数和复制赋值操作符。
+	\warning 非虚析构。
 	*/
 	struct noncopyable
 	{
@@ -228,6 +229,7 @@ namespace ystdex
 	/*!
 	\ingroup Functors
 	\brief 间接访问比较仿函数。
+	\warning 非虚析构。
 	*/
 	template<
 		typename _type, typename _tPointer = _type*,

@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2515;
+\version r2564;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2012-02-28 12:17 +0800;
+	2012-03-20 14:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -137,8 +137,6 @@ private:
 	Drawing::FontCache* pFontCache; //!< 默认字体缓存。
 	shared_ptr<Devices::DSScreen> hScreenUp; //!< DS 上屏幕句柄。
 	shared_ptr<Devices::DSScreen> hScreenDown; //!< DS 上屏幕句柄。
-	shared_ptr<Desktop> hDesktopUp; //!< DS 下屏幕默认桌面句柄。
-	shared_ptr<Desktop> hDesktopDown; //!< DS 下屏幕默认桌面句柄。
 
 public:
 	/*!
@@ -175,10 +173,6 @@ public:
 		ScreenUpHandle, hScreenUp)
 	DefGetter(const ynothrow, const shared_ptr<Devices::DSScreen>&,
 		ScreenDownHandle, hScreenDown)
-	DefGetter(const ynothrow, const shared_ptr<Desktop>&, DesktopUpHandle,
-		hDesktopUp)
-	DefGetter(const ynothrow, const shared_ptr<Desktop>&, DesktopDownHandle,
-		hDesktopDown)
 	/*!
 	\brief 取上屏幕。
 	\note 断言检查：句柄非空。
@@ -194,40 +188,11 @@ public:
 	Devices::DSScreen&
 	GetScreenDown() const ynothrow;
 	/*!
-	\brief 取上桌面。
-	\note 断言检查：句柄非空。
-	\note 无异常抛出。
-	*/
-	Desktop&
-	GetDesktopUp() const ynothrow;
-	/*!
-	\brief 取下桌面。
-	\note 断言检查：句柄非空。
-	\note 无异常抛出。
-	*/
-	Desktop&
-	GetDesktopDown() const ynothrow;
-	/*!
 	\brief 取默认屏幕。
 	\note 无异常抛出。
 	*/
 	PDefH(Devices::DSScreen&, GetDefaultScreen)
 		ImplRet(GetScreenUp())
-	/*!
-	\brief 取默认桌面。
-	\note 默认接口：可能会被 YSLib 本体使用。
-	\note 无异常抛出。
-	*/
-	PDefH(Desktop&, GetDefaultDesktop)
-		ImplRet(GetDesktopUp())
-	/*!
-	\brief 取触摸屏所在桌面。
-	\note 默认接口：可能会被 YSLib 本体使用。
-	\note 断言检查：句柄非空。
-	\note 无异常抛出。
-	*/
-	PDefH(Desktop&, GetTouchableDesktop)
-		ImplRet(GetDesktopDown())
 
 	/*!
 	\brief 复位默认字体缓存：使用指定路径。
@@ -266,23 +231,6 @@ DSApplication::GetScreenDown() const ynothrow
 
 	return *hScreenDown;
 }
-inline Desktop&
-DSApplication::GetDesktopUp() const ynothrow
-{
-	YAssert(bool(hDesktopUp), "Fatal error:"
-		" null desktop handle found @ DSApplication::GetDesktopUp;");
-
-	return *hDesktopUp;
-}
-inline Desktop&
-DSApplication::GetDesktopDown() const ynothrow
-{
-	YAssert(bool(hDesktopDown), "Fatal error:"
-		" null desktop handle found @ DSApplication::GetDesktopDown;");
-
-	return *hDesktopDown;
-}
-
 
 YSL_BEGIN_NAMESPACE(Messaging)
 

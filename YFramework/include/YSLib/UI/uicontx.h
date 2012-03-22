@@ -11,13 +11,13 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1256;
+\version r1269;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192 。
 \par 创建时间:
 	2011-02-21 08:59:34 +0800;
 \par 修改时间:
-	2012-03-18 13:11 +0800;
+	2012-03-18 21:43 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,6 @@
 #define YSL_INC_UI_UICONTX_H_
 
 #include "ypanel.h"
-#include "YBrush.h"
 #include "button.h"
 
 YSL_BEGIN
@@ -42,13 +41,6 @@ YSL_BEGIN_NAMESPACE(Components)
 */
 class DialogBox : public Control
 {
-public:
-	/*!
-	\brief 边框样式指针。
-	\since build 284 。
-	*/
-	shared_ptr<BorderStyle> BorderPtr;
-
 protected:
 	CloseButton btnClose;
 
@@ -75,12 +67,6 @@ public:
 class DialogPanel : public Panel
 {
 public:
-	/*!
-	\brief 边框样式指针。
-	\since build 284 。
-	*/
-	shared_ptr<BorderStyle> BorderPtr;
-
 	CloseButton btnClose;
 	Button btnOK;
 

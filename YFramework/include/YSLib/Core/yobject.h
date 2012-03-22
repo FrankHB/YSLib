@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3308;
+\version r3310;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-15 15:58 +0800;
+	2012-03-21 19:26 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -261,6 +261,7 @@ public:
 	{
 		GetCopyOnWritePtr();
 	}
+
 	DefDeCopyAssignment(GDependency)
 	DefDeMoveAssignment(GDependency)
 
@@ -295,6 +296,7 @@ public:
 
 /*!
 \brief 范围模块类。
+\warning 非虚析构。
 \since build 193 。
 */
 PDefTmplH1(_type)

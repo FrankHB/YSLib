@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5685;
+\version r5779;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-03-16 17:47 +0800;
+	2012-03-20 16:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -46,8 +46,6 @@ DeclResource(GR_BGs)
 namespace
 {
 	using namespace YReader;
-
-	HBrush g_c_up, g_c_dn;
 
 	Color
 	GenerateRandomColor()
@@ -184,18 +182,38 @@ FetchImage(size_t i)
 }
 
 
+void
+RemoveGlobalTasks(Shell& shl)
+{
+	auto& app(FetchGlobalInstance());
+
+	app.Queue.Remove(&shl, app.UIResponseLimit);
+}
+
+
+FPSCounter::FPSCounter(u64 s)
+	: last_tick(GetHighResolutionTicks()), now_tick(), refresh_count(1),
+	MinimalInterval(s)
+{}
+
 u32
 FPSCounter::Refresh()
 {
-	using namespace platform;
+	const u64 tmp_tick(GetHighResolutionTicks());
 
-	if(last_tick != GetHighResolutionTicks())
+	if(YCL_UNLIKELY(last_tick + MinimalInterval < tmp_tick))
 	{
 		last_tick = now_tick;
-		now_tick = GetHighResolutionTicks();
+
+		const u32 r(1000000000000ULL * refresh_count
+			/ ((now_tick = tmp_tick) - last_tick));
+
+		refresh_count = 1;
+		return r;
 	}
-	return now_tick == last_tick ? 0
-		: 1000000000000ULL / (now_tick - last_tick);
+	else
+		++refresh_count;
+	return 0;
 }
 
 
@@ -384,17 +402,12 @@ ShlExplorer::ShlExplorer()
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
 	chkFPS(Rect(208, 144, 16, 16)), chkHex(Rect(232, 144, 16, 16)),
 	pWndTest(), pWndExtra(),
-	lblA(Rect(5, 20, 200, 22)),
-	lblB(Rect(5, 120, 72, 22)),
-	mhMain(*GetDesktopDownHandle())
+	lblA(Rect(5, 20, 200, 22)), lblB(Rect(5, 120, 72, 22)),
+	mhMain(*GetDesktopDownHandle()), fpsCounter(500000000ULL)
 {
 	//对 fbMain 启用缓存。
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true));
 	yunseq(
-		FetchEvent<KeyPress>(fbMain) += [](KeyEventArgs&& e){
-			if(e.GetKeyCode() & KeySpace::L)
-				CallStored<ShlExplorer>();
-		},
 		fbMain.GetViewChanged() += [this](UIEventArgs&&){
 			lblPath.Text = fbMain.GetPath();
 			Invalidate(lblPath);
@@ -402,7 +415,6 @@ ShlExplorer::ShlExplorer()
 		fbMain.GetSelected() += [this](IndexEventArgs&&){
 			Enable(btnOK, CheckReaderEnability(fbMain, chkHex));
 		},
-		fbMain.GetConfirmed() += OnConfirmed_fbMain,
 		FetchEvent<Click>(btnTest) += [this](TouchEventArgs&&){
 			YAssert(bool(pWndTest), "err: pWndTest is null;");
 
@@ -419,7 +431,7 @@ ShlExplorer::ShlExplorer()
 					ShlReader::CurrentPath = path;
 					ShlReader::CurrentIsText = GetEntryType(s)
 						== EnrtySpace::Text && !chkHex.IsTicked();
-					CallStored<ShlReader>();
+					SetShellToNew<ShlReader>();
 				}
 			}
 		},
@@ -435,6 +447,62 @@ ShlExplorer::ShlExplorer()
 	);
 	lblB.SetTransparent(true);
 	yunseq(Enable(btnTest, true), Enable(btnOK, false));
+
+	auto& dsk_up(GetDesktopUp());
+	auto& dsk_dn(GetDesktopDown());
+
+	// parent-init-seg 0;
+	dsk_up += lblTitle,
+	dsk_up += lblPath;
+	dsk_dn += fbMain,
+	dsk_dn += btnTest,
+	dsk_dn += btnOK,
+	dsk_dn += chkFPS,
+	dsk_dn += chkHex;
+	dsk_up += lblA,
+	dsk_up += lblB;
+	// init-seg 1;
+		//g_c_dn = SolidBrush(Color(120, 120, 248));
+	yunseq(
+		dsk_up.Background = ImageBrush(FetchImage(1)),
+		dsk_dn.Background = ImageBrush(FetchImage(2)),
+	// init-seg 2;
+		lblTitle.Text = "文件列表：请选择一个文件。",
+		lblPath.Text = "/",
+	//	lblTitle.Transparent = true,
+	//	lblPath.Transparent = true;
+		btnTest.Text = u"测试(X)",
+		btnOK.Text = u"确定(A)"
+	);
+	// init-seg 3;
+	yunseq(
+		dsk_dn.BoundControlPtr = std::bind(&ShlExplorer::GetBoundControlPtr,
+			this, std::placeholders::_1),
+		FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave,
+		FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown,
+		FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click
+	);
+	RequestFocusCascade(fbMain);
+	// init-seg 4;
+	yunseq(
+		pWndTest = make_unique<TFormTest>(),
+		pWndExtra = make_unique<TFormExtra>()
+	);
+	SetVisibleOf(*pWndTest, false),
+	SetVisibleOf(*pWndExtra, false);
+	dsk_dn += *pWndTest,
+	dsk_dn += *pWndExtra;
+	SetInvalidationOf(dsk_dn);
+	// init-seg 5;
+/*	Menu& mnu(*(ynew Menu(Rect::Empty, GenerateList(u"TestMenuItem0"), 1u)));
+
+	FetchEvent<Click>(mnu) += OnClick_ShowWindow;
+	mhMain += mnu;*/
+	// FIXME: memory leaks;
+	mhMain += *(ynew Menu(Rect::Empty, GenerateList(u"A:MenuItem"), 1u)),
+	mhMain += *(ynew Menu(Rect::Empty, GenerateList(u"B:MenuItem"), 2u));
+	mhMain[1u] += make_pair(1u, &mhMain[2u]);
+	ResizeForContent(mhMain[2u]);
 }
 
 
@@ -649,7 +717,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 			using namespace Drawing;
 			using namespace ColorSpace;
 
-			TestObj t(FetchGlobalInstance().GetDesktopDownHandle());
+			TestObj t(FetchShell<ShlExplorer>().GetDesktopDownHandle());
 
 			t.str = u"Abc测试";
 			switch(e.X * 4 / btnTestEx.GetWidth())
@@ -715,98 +783,6 @@ ShlExplorer::TFormExtra::TFormExtra()
 
 
 void
-ShlExplorer::OnActivated(const Message& msg)
-{
-	ParentType::OnActivated(msg);
-
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
-
-	// parent-init-seg 0;
-	dsk_up += lblTitle,
-	dsk_up += lblPath;
-	dsk_dn += fbMain,
-	dsk_dn += btnTest,
-	dsk_dn += btnOK,
-	dsk_dn += chkFPS,
-	dsk_dn += chkHex;
-	dsk_up += lblA,
-	dsk_up += lblB;
-	// init-seg 1;
-	yunseq(g_c_up = dsk_up.Background,
-		g_c_dn = SolidBrush(Color(120, 120, 248)));
-	yunseq(
-		dsk_up.Background = ImageBrush(FetchImage(1)),
-		dsk_dn.Background = ImageBrush(FetchImage(2)),
-	// init-seg 2;
-		lblTitle.Text = "文件列表：请选择一个文件。",
-		lblPath.Text = "/",
-	//	lblTitle.Transparent = true,
-	//	lblPath.Transparent = true;
-		btnTest.Text = u"测试(X)",
-		btnOK.Text = u"确定(A)"
-	);
-	// init-seg 3;
-	yunseq(
-		dsk_dn.BoundControlPtr = std::bind(&ShlExplorer::GetBoundControlPtr,
-			this, std::placeholders::_1),
-		FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave,
-		FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown,
-		FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click
-	);
-	RequestFocusCascade(fbMain);
-	// init-seg 4;
-	yunseq(
-		pWndTest = make_unique<TFormTest>(),
-		pWndExtra = make_unique<TFormExtra>()
-	);
-	SetVisibleOf(*pWndTest, false),
-	SetVisibleOf(*pWndExtra, false);
-	dsk_dn += *pWndTest,
-	dsk_dn += *pWndExtra;
-	SetInvalidationOf(dsk_dn);
-	// init-seg 5;
-/*	Menu& mnu(*(ynew Menu(Rect::Empty, GenerateList(u"TestMenuItem0"), 1u)));
-
-	FetchEvent<Click>(mnu) += OnClick_ShowWindow;
-	mhMain += mnu;*/
-	mhMain += *(ynew Menu(Rect::Empty, GenerateList(u"A:MenuItem"), 1u)),
-	mhMain += *(ynew Menu(Rect::Empty, GenerateList(u"B:MenuItem"), 2u));
-	mhMain[1u] += make_pair(1u, &mhMain[2u]);
-	ResizeForContent(mhMain[2u]);
-}
-
-void
-ShlExplorer::OnDeactivated()
-{
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
-
-	// uninit-seg 1;
-	yunseq(
-		dsk_up.Background = g_c_up,
-		dsk_dn.Background = g_c_dn,
-	// uninit-seg 3;
-		dsk_dn.BoundControlPtr = std::bind(&Control::GetBoundControlPtr,
-			&dsk_dn, std::placeholders::_1),
-		FetchEvent<KeyUp>(dsk_dn) -= OnKey_Bound_TouchUpAndLeave,
-		FetchEvent<KeyDown>(dsk_dn) -= OnKey_Bound_EnterAndTouchDown,
-		FetchEvent<KeyPress>(dsk_dn) -= OnKey_Bound_Click
-	);
-	// uninit-seg 4;
-	dsk_dn -= *pWndTest,
-	dsk_dn -= *pWndExtra;
-	yunseq(
-		reset(pWndTest),
-		reset(pWndExtra)
-	);
-	// uninit-seg 5;
-	mhMain.Clear();
-	// parent-uninit-seg 0;
-	ParentType::OnDeactivated();
-}
-
-void
 ShlExplorer::OnPaint()
 {
 	// NOTE: overwriting member function OnInput using SM_TASK is also valid due
@@ -817,15 +793,19 @@ ShlExplorer::OnPaint()
 	{
 		using namespace ColorSpace;
 
-		auto& g(dsk_dn.GetContext());
-		const Rect r(0, 172, 80, 20);
 		const u32 t(fpsCounter.Refresh());
-		char strt[20];
 
-		std::sprintf(strt, "FPS: %u.%03u", t / 1000, t % 1000);
-		FillRect(g, r, Blue);
-		DrawText(g, r, strt, DefaultMargin, White);
-		bUpdateDown = true;
+		if(t != 0)
+		{
+			auto& g(dsk_dn.GetContext());
+			yconstexpr Rect r(0, 172, 80, 20);
+			char strt[20];
+
+			std::sprintf(strt, "FPS: %u.%03u", t / 1000, t % 1000);
+			FillRect(g, r, Blue);
+			DrawText(g, r, strt, DefaultMargin, White);
+			bUpdateDown = true;
+		}
 	}
 }
 
@@ -837,13 +817,6 @@ ShlExplorer::GetBoundControlPtr(const KeyCode& k)
 	if(k == KeySpace::A)
 		return &btnOK;
 	return nullptr;
-}
-
-void
-ShlExplorer::OnConfirmed_fbMain(IndexEventArgs&&)
-{
-//	if(e.Index == 2)
-//		CallStored<ShlExplorer>();
 }
 
 void

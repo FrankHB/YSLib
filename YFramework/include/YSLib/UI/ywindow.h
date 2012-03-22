@@ -11,13 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4775;
+\version r4781;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2012-03-18 13:51 +0800;
+	2012-03-19 15:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -87,13 +87,6 @@ public:
 
 	virtual void
 	Add(IWidget&, ZOrderType = DefaultZOrder);
-
-	/*!
-	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
-	*/
-	virtual void
-	Refresh(PaintEventArgs&&);
 };
 
 YSL_END_NAMESPACE(Components)
