@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,12 +11,12 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r1578;
+\version r1585;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2011-11-05 11:18 +0800;
+	2012-03-22 22:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,7 @@ ValueObject::ValueObject(const ValueObject& c)
 	if(manager && c.obj_ptr)
 		manager(obj_ptr, c.obj_ptr, Clone);
 }
-ValueObject::ValueObject(ValueObject&& c)
+ValueObject::ValueObject(ValueObject&& c) ynothrow
 	: manager(c.manager), obj_ptr(c.obj_ptr)
 {
 	c.obj_ptr = nullptr;
@@ -49,7 +49,7 @@ ValueObject::operator==(const ValueObject& rhs) const
 }
 
 ValueObject&
-ValueObject::operator=(ValueObject&& c)
+ValueObject::operator=(ValueObject&& c) ynothrow
 {
 	if(&c != this)
 	{
@@ -61,14 +61,14 @@ ValueObject::operator=(ValueObject&& c)
 }
 
 void
-ValueObject::Clear()
+ValueObject::Clear() ynothrow
 {
 	if(manager)
 		manager(obj_ptr, obj_ptr, Destroy);
 }
 
 void
-ValueObject::Swap(ValueObject& c)
+ValueObject::Swap(ValueObject& c) ynothrow
 {
 	std::swap(manager, c.manager);
 	std::swap(obj_ptr, c.obj_ptr);

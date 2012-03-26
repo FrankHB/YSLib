@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1821;
+\version r1917;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2012-03-21 19:11 +0800;
+	2012-03-26 08:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -72,6 +72,12 @@ public:
 	*/
 	explicit yconstfn
 	GBinaryGroup(const Size&);
+	/*!
+	\brief 构造：使用 Rect 对象。
+	\since build 296 。
+	*/
+	explicit yconstfn
+	GBinaryGroup(const Rect&);
 	/*!
 	\brief 构造：使用两个标量。
 	*/
@@ -231,8 +237,12 @@ class Size
 public:
 	SDst Width, Height; //!< 宽和高。
 
-	static const Size Zero; //!< 无参数构造参数构造的零元素对象。
-	static const Size FullScreen; //!< 无参数构造参数构造的全屏幕对象。
+	static const Size Zero; //!< 无参数构造的零元素对象。
+	/*!
+	\brief 无效对象。
+	\since build 296 。
+	*/
+	static const Size Invalid;
 
 	/*!
 	\brief 无参数构造。
@@ -245,6 +255,12 @@ public:
 	*/
 	yconstfn
 	Size(const Size&);
+	/*!
+	\brief 构造：使用 Rect 对象。
+	\since build 296 。
+	*/
+	explicit yconstfn
+	Size(const Rect&);
 	/*!
 	\brief 构造：使用屏幕二元组。
 	*/
@@ -377,11 +393,41 @@ GetAreaOf(const Size& s)
 \warning 非虚析构。
 \since build 161 。
 */
-class Rect : public Point, public Size
+class Rect : private Point, private Size
 {
 public:
-	static const Rect Empty; //!< 无参数构造参数构造的空矩形对象。
-	static const Rect FullScreen; //!< 无参数构造参数构造的全屏幕矩形对象。
+	static const Rect Empty; //!< 无参数构造的空矩形对象。
+	/*!
+	\brief 无效对象。
+	\since build 296 。
+	*/
+	static const Rect Invalid;
+
+	/*!
+	\brief 左上角横坐标。
+	\see Point::X 。
+	\since build 296 。
+	*/
+	using Point::X;
+	/*!
+	\brief 左上角纵坐标。
+	\see Point::Y 。
+	\since build 296 。
+	*/
+	using Point::Y;
+	/*!
+	\brief 长。
+	\see Size::Width 。
+	\since build 296 。
+	*/
+	using Size::Width;
+	/*!
+	\brief 宽。
+	\see Size::Height 。
+	\since build 296 。
+	*/
+	using Size::Height;
+
 
 	/*!
 	\brief 无参数构造。
@@ -463,15 +509,44 @@ public:
 	ContainsStrict(const Rect& r) const;
 
 	/*!
+	\brief 判断矩形大小是否为空。
+	\see Size::IsEmpty 。
+	\since build 296 。
+	*/
+	using Size::IsEmpty;
+	/*!
+	\brief 判断矩形大小是否为线段：长或宽中有且一个数值等于 0 。
+	\see Size::IsEmpty 。
+	\since build 296 。
+	*/
+	using Size::IsLineSegment;
+	/*!
+	\brief 判断矩形大小是否为不严格的空矩形区域：包括空矩形和线段。
+	\see Size::IsEmpty 。
+	\since build 296 。
+	*/
+	using Size::IsUnstrictlyEmpty;
+
+	/*!
 	\brief 取左上角位置。
 	*/
 	yconstfn DefGetter(const ynothrow, const Point&, Point,
 		static_cast<const Point&>(*this))
 	/*!
+	\brief 取左上角位置引用。
+	\since build 296 。
+	*/
+	DefGetter(ynothrow, Point&, PointRef, static_cast<Point&>(*this))
+	/*!
 	\brief 取大小。
 	*/
 	yconstfn DefGetter(const ynothrow, const Size&, Size,
 		static_cast<const Size&>(*this))
+	/*!
+	\brief 取大小引用。
+	\since build 296 。
+	*/
+	DefGetter(ynothrow, Size&, SizeRef, static_cast<Size&>(*this))
 };
 
 yconstfn
@@ -521,9 +596,9 @@ Rect::operator=(const Size& s)
 \since build 161 。
 */
 yconstfn bool
-operator==(const Rect& a, const Rect& b)
+operator==(const Rect& x, const Rect& y)
 {
-	return a.GetPoint() == b.GetPoint() && a.GetSize() == b.GetSize();
+	return x.GetPoint() == y.GetPoint() && x.GetSize() == y.GetSize();
 }
 
 /*!
@@ -532,9 +607,9 @@ operator==(const Rect& a, const Rect& b)
 */
 
 yconstfn bool
-operator!=(const Rect& a, const Rect& b)
+operator!=(const Rect& x, const Rect& y)
 {
-	return !(a == b);
+	return !(x == y);
 }
 
 
@@ -557,6 +632,18 @@ operator-(const Rect& r, const Vec& v)
 {
 	return Rect(r.GetPoint() - v, r.GetSize());
 }
+
+
+PDefTmplH1(_type)
+yconstfn
+GBinaryGroup<_type>::GBinaryGroup(const Rect& r)
+	: X(r.X), Y(r.Y)
+{}
+
+yconstfn
+Size::Size(const Rect& r)
+	: Width(r.Width), Height(r.Height)
+{}
 
 
 /*!
@@ -607,7 +694,7 @@ public:
 	/*!
 	\brief 析构：空实现。
 	*/
-	virtual DefEmptyDtor(Graphics)
+	DefEmptyDtor(Graphics)
 
 	/*!
 	\brief 取指定行首元素指针。

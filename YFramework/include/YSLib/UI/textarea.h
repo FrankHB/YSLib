@@ -11,13 +11,13 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r1394;
+\version r1416;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 222 。
 \par 创建时间:
 	2011-06-30 20:09:23 +0800;
 \par 修改时间:
-	2012-03-18 13:10 +0800;
+	2012-03-25 13:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,6 @@
 #include "ywidget.h"
 //#include "../Core/yres.h"
 #include "../Service/TextRenderer.h"
-#include "../Helper/yglobal.h"
 
 YSL_BEGIN
 
@@ -46,9 +45,17 @@ class TextArea : public Widget,
 public:
 	Drawing::Rotation Rotation; //!< 屏幕指向。
 
+	/*!
+	\brief 构造：使用指定边界和默认字型缓存。
+	\since build 296 。
+	*/
 	explicit
-	TextArea(const Drawing::Rect& = Drawing::Rect::Empty,
-		Drawing::FontCache& = FetchGlobalInstance().GetFontCache());
+	TextArea(const Drawing::Rect& = Drawing::Rect::Empty);
+	/*!
+	\brief 构造：使用指定边界和字体缓存。
+	\since build 296 。
+	*/
+	TextArea(const Drawing::Rect&, Drawing::FontCache&);
 	inline DefDeMoveCtor(TextArea)
 
 	using Widget::GetWidth;
@@ -64,9 +71,17 @@ class BufferedTextArea : public Widget, public Drawing::TextRegion
 public:
 	Drawing::Rotation Rotation; //!< 屏幕指向。
 
+	/*!
+	\brief 构造：使用指定边界和默认字型缓存。
+	\since build 296 。
+	*/
 	explicit
-	BufferedTextArea(const Drawing::Rect& = Drawing::Rect::Empty,
-		Drawing::FontCache& = FetchGlobalInstance().GetFontCache());
+	BufferedTextArea(const Drawing::Rect& = Drawing::Rect::Empty);
+	/*!
+	\brief 构造：使用指定边界和字体缓存。
+	\since build 296 。
+	*/
+	BufferedTextArea(const Drawing::Rect&, Drawing::FontCache&);
 	inline DefDeMoveCtor(BufferedTextArea)
 
 	using Widget::GetWidth;

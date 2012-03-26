@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2678;
+\version r2679;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2012-03-21 19:24 +0800;
+	2012-03-25 14:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -96,7 +96,7 @@ LocateForWidgetNode(IWidget& wgt, _fFetcher fetch_ptr)
 
 /*!
 \brief 取指定部件相对于容器的父容器的偏移坐标。
-\note 若无容器则返回 FullScreen 。
+\note 若无容器则返回 Point::Invalid 。
 \since build 167 。
 */
 Point

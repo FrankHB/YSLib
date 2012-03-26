@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r7391;
+\version r7393;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-02-19 19:27 +0800;
+	2012-03-25 15:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_SERVICE_TEXTBASE_H_
 
 #include "ygdi.h"
-#include "../Adaptor/yfont.h"
+#include "../Adaptor/Font.h"
 #include "../Core/ystorage.hpp"
 
 YSL_BEGIN

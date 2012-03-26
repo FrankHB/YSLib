@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r4104;
+\version r4233;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2012-03-21 18:53 +0800;
+	2012-03-26 10:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -134,8 +134,12 @@ Padding
 FetchMargin(const Rect&, const Size&);
 
 
-//! \brief 正则矩形位图缓冲区。
-class BitmapBuffer : public Graphics
+/*!
+\brief 正则矩形位图缓冲区。
+\note 满足 <tt>std::is_nothrow_move_constructible<T>::value &&
+	std::is_nothrow_move_assignable<T>::value</tt> 。
+*/
+class BitmapBuffer : protected Graphics
 {
 public:
 	/*!
@@ -147,19 +151,47 @@ public:
 	\brief 构造：使用指定位图指针和大小。
 	*/
 	BitmapBuffer(ConstBitmapPtr, SDst, SDst);
+	BitmapBuffer(const BitmapBuffer&);
+	/*!
+	\brief 转移构造：转移资源。
+	\note 无异常抛出。
+	\since build 296 。
+	*/
+	BitmapBuffer(BitmapBuffer&&) ynothrow;
+	virtual DefClone(BitmapBuffer, Clone)
 	/*!
 	\brief 析构：释放资源。
 	*/
-	BitmapBuffer(const BitmapBuffer&);
-	// TODO: copy ctor;
-	// FIXME: right impl;
-	DefDeMoveCtor(BitmapBuffer)
-	virtual DefClone(BitmapBuffer, Clone)
 	virtual
 	~BitmapBuffer();
 
-	// TODO: copy assignment;
-	// TODO: move assignment;
+	/*
+	\brief 复制赋值：使用复制构造函数和交换函数。
+	\since build 296 。
+	*/
+	BitmapBuffer&
+	operator=(const BitmapBuffer&);
+	/*
+	\brief 转移赋值：使用转移构造函数和交换函数。
+	\note 无异常抛出。
+	\since build 296 。
+	*/
+	BitmapBuffer&
+	operator=(BitmapBuffer&&) ynothrow;
+
+	/*!
+	\since build 296 。
+	*/
+	//@{
+	using Graphics::IsValid;
+
+	using Graphics::GetBufferPtr;
+	using Graphics::GetHeight;
+	using Graphics::GetWidth;
+	using Graphics::GetSize;
+	using Graphics::GetSizeOfBuffer;
+	DefGetter(const ynothrow, const Graphics&, Context, *this)
+	//@}
 
 	/*!
 	\brief 重新设置缓冲区大小。
@@ -181,11 +213,13 @@ public:
 	virtual void
 	ClearImage() const;
 
-	/*!
-	\brief 以纯色填充显示缓冲区。
+	/*
+	\brief 交换。
+	\note 无异常抛出。
+	\since build 296 。
 	*/
-	virtual void
-	BeFilledWith(Color) const;
+	void
+	Swap(BitmapBuffer&) ynothrow;
 };
 
 inline
@@ -194,8 +228,31 @@ BitmapBuffer::~BitmapBuffer()
 	ydelete_array(pBuffer);
 }
 
+inline BitmapBuffer&
+BitmapBuffer::operator=(const BitmapBuffer& buf)
+{
+	BitmapBuffer(buf).Swap(*this);
+	return *this;
+}
+inline BitmapBuffer&
+BitmapBuffer::operator=(BitmapBuffer&& buf) ynothrow
+{
+	buf.Swap(*this);
+	return *this;
+}
 
-//! \brief 扩展的正则矩形位图缓冲区。
+inline void
+BitmapBuffer::Swap(BitmapBuffer& buf) ynothrow
+{
+	std::swap<Graphics>(*this, buf);
+}
+
+
+/*!
+\brief 扩展的正则矩形位图缓冲区。
+\note 满足 <tt>std::is_nothrow_move_constructible<T>::value &&
+	std::is_nothrow_move_assignable<T>::value</tt> 。
+*/
 class BitmapBufferEx : public BitmapBuffer
 {
 protected:
@@ -211,19 +268,32 @@ public:
 	\brief 构造：使用指定位图指针和大小。
 	*/
 	BitmapBufferEx(ConstBitmapPtr, SDst, SDst);
+	BitmapBufferEx(const BitmapBufferEx&);
+	/*!
+	\brief 转移构造：转移资源。
+	\since build 296 。
+	*/
+	BitmapBufferEx(BitmapBufferEx&&) ynothrow;
+	virtual DefClone(BitmapBufferEx, Clone)
 	/*!
 	\brief 析构：释放资源。
 	*/
-	BitmapBufferEx(const BitmapBufferEx&);
-	// TODO: copy ctor;
-	// FIXME: right impl;
-	DefDeMoveCtor(BitmapBufferEx)
-	virtual DefClone(BitmapBufferEx, Clone)
 	virtual
 	~BitmapBufferEx();
 
-	// TODO: copy assignment;
-	// TODO: move assignment;
+	/*
+	\brief 复制赋值：使用复制构造函数和交换函数。
+	\since build 296 。
+	*/
+	BitmapBufferEx&
+	operator=(const BitmapBufferEx&);
+	/*
+	\brief 转移赋值：使用转移构造函数和交换函数。
+	\note 无异常抛出。
+	\since build 296 。
+	*/
+	BitmapBufferEx&
+	operator=(BitmapBufferEx&&) ynothrow;
 
 	DefGetter(const ynothrow, u8*, BufferAlphaPtr, pBufferAlpha) \
 		//!< 取 Alpha 缓冲区的指针。
@@ -243,6 +313,14 @@ public:
 	*/
 	virtual void
 	ClearImage() const;
+
+	/*
+	\brief 交换。
+	\note 无异常抛出。
+	\since build 296 。
+	*/
+	void
+	Swap(BitmapBufferEx&) ynothrow;
 };
 
 inline
@@ -255,6 +333,26 @@ BitmapBufferEx::~BitmapBufferEx()
 	ydelete_array(pBufferAlpha);
 }
 
+inline BitmapBufferEx&
+BitmapBufferEx::operator=(const BitmapBufferEx& buf)
+{
+	BitmapBufferEx(buf).Swap(*this);
+	return *this;
+}
+inline BitmapBufferEx&
+BitmapBufferEx::operator=(BitmapBufferEx&& buf) ynothrow
+{
+	buf.Swap(*this);
+	return *this;
+}
+
+inline void
+BitmapBufferEx::Swap(BitmapBufferEx& buf) ynothrow
+{
+	std::swap<BitmapBuffer>(*this, buf),
+	std::swap(pBufferAlpha, buf.pBufferAlpha);
+}
+
 
 /*!
 \brief 图形接口上下文向指针指定的缓冲区复制。
@@ -264,9 +362,8 @@ BitmapBufferEx::~BitmapBufferEx()
 	指定图形接口上下文以指定输出指向复制缓冲区内容。
 */
 bool
-CopyTo(BitmapPtr, const Graphics&, const Size& = Size::FullScreen,
-	const Point& = Point::Zero, const Point& = Point::Zero,
-	const Size& = Size::FullScreen, Rotation = RDeg0);
+CopyTo(BitmapPtr, const Graphics&, const Size&, const Point&, const Point&,
+	const Size&, Rotation = RDeg0);
 /*!
 \brief 刷新：位图缓冲区向指针指定的缓冲区复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
@@ -274,9 +371,8 @@ CopyTo(BitmapPtr, const Graphics&, const Size& = Size::FullScreen,
 向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向复制缓冲区内容。
 */
 bool
-CopyTo(BitmapPtr, const BitmapBufferEx&, const Size& = Size::FullScreen,
-	const Point& = Point::Zero, const Point& = Point::Zero,
-	const Size& = Size::FullScreen, Rotation = RDeg0);
+CopyTo(BitmapPtr, const BitmapBufferEx&, const Size&,
+	const Point&, const Point&, const Size&, Rotation = RDeg0);
 /*!
 \brief 图形接口上下文复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
@@ -314,9 +410,8 @@ CopyTo(const Graphics& dst, const BitmapBufferEx& src,
 向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向以缓冲区内容贴图。
 */
 bool
-BlitTo(BitmapPtr, const BitmapBufferEx&, const Size& = Size::FullScreen,
-	const Point& = Point::Zero, const Point& = Point::Zero,
-	const Size& = Size::FullScreen, Rotation = RDeg0);
+BlitTo(BitmapPtr, const BitmapBufferEx&, const Size&,
+	const Point&, const Point&, const Size&, Rotation = RDeg0);
 /*!
 \brief 贴图：位图缓冲区向指针指定的缓冲区以贴图算法复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。

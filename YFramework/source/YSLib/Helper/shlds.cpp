@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2032;
+\version r2055;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-03-20 16:17 +0800;
+	2012-03-25 15:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,10 @@
 */
 
 
-#include "YSLib/Helper/shlds.h"
+#include "YSLib/Helper/DSMain.h"
+#include "YSLib/Helper/yglobal.h"
+#include "YSLib/UI/ydesktop.h"
+#include "YSLib/UI/ygui.h"
 
 YSL_BEGIN
 
@@ -47,14 +50,18 @@ YSL_END_NAMESPACE(Shells)
 
 YSL_BEGIN_NAMESPACE(DS)
 
-ShlDS::ShlDS()
+ShlDS::ShlDS(const shared_ptr<Desktop>& hUp, const shared_ptr<Desktop>& hDn)
 	: Shell(),
-	hDskUp(make_shared<Desktop>(FetchGlobalInstance().GetScreenUp())),
-	hDskDown(make_shared<Desktop>(FetchGlobalInstance().GetScreenDown())),
+	desktop_up_ptr(hUp ? hUp : make_shared<Desktop>(
+		FetchGlobalInstance().GetScreenUp())),
+	desktop_down_ptr(hDn ? hDn : make_shared<Desktop>(
+		FetchGlobalInstance().GetScreenDown())),
 	bUpdateUp(), bUpdateDown()
 {
-	YAssert(bool(hDskUp), "Null up desktop handle found @ ShlDS::ShlDS;");
-	YAssert(bool(hDskDown), "Null down desktop handle found @ ShlDS::ShlDS;");
+	YAssert(bool(desktop_up_ptr),
+		"Null up desktop handle found @ ShlDS::ShlDS;");
+	YAssert(bool(desktop_down_ptr),
+		"Null down desktop handle found @ ShlDS::ShlDS;");
 
 	YSL_ Components::FetchGUIState().Reset();
 }
@@ -77,13 +84,13 @@ ShlDS::OnGotMessage(const Message& msg)
 		{
 			using Drawing::Rect;
 
-			yunseq(bUpdateUp = hDskUp->Validate() != Rect::Empty,
-				bUpdateDown = hDskDown->Validate() != Rect::Empty);
+			yunseq(bUpdateUp = desktop_up_ptr->Validate() != Rect::Empty,
+				bUpdateDown = desktop_down_ptr->Validate() != Rect::Empty);
 			OnPaint();
 			if(bUpdateUp)
-				hDskUp->Update();
+				desktop_up_ptr->Update();
 			if(bUpdateDown)
-				hDskDown->Update();
+				desktop_down_ptr->Update();
 		}
 		return 0;
 	case SM_INPUT:
@@ -92,7 +99,7 @@ ShlDS::OnGotMessage(const Message& msg)
 			const auto& content(Messaging::FetchTarget<SM_INPUT>(msg));
 
 			const KeysInfo& k(content.Keys);
-			Desktop& d(*hDskDown); // TODO: assertion & etc;
+			Desktop& d(*desktop_down_ptr); // TODO: assertion & etc;
 		//	Desktop& d(FetchGlobalInstance().GetTouchableDesktop());
 
 			using namespace YSL_ KeySpace;

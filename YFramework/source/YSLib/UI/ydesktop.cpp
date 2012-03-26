@@ -11,13 +11,13 @@
 /*!	\file ydesktop.cpp
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r2391;
+\version r2392;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-05-02 12:00:08 +0800;
 \par 修改时间:
-	2012-03-16 17:30 +0800;
+	2012-03-25 14:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,7 @@ using namespace Drawing;
 YSL_BEGIN_NAMESPACE(Components)
 
 Desktop::Desktop(Devices::Screen& s, Color c, const shared_ptr<Image>& hImg)
-	: Window(Rect::FullScreen, hImg),
+	: Window(Rect(Point::Zero, s.GetSize()), hImg),
 	screen(s)
 {
 	Background = SolidBrush(c),

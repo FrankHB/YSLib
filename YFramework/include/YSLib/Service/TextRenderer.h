@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r7377;
+\version r7397;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-03-21 19:30 +0800;
+	2012-03-23 12:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -386,12 +386,32 @@ public:
 	*/
 	explicit
 	TextRegion(FontCache&);
+	/*!
+	\brief 复制构造：默认实现。
+	\since build 296 。
+	*/
+	DefDeCopyCtor(TextRegion)
+	/*!
+	\brief 转移构造：默认实现。
+	\since build 296 。
+	*/
+	DefDeMoveCtor(TextRegion)
 
 	/*!
 	\brief 从文本状态中恢复状态。
 	*/
 	TextRegion&
 	operator=(const TextState&);
+	/*!
+	\brief 复制赋值：默认实现。
+	\since build 296 。
+	*/
+	DefDeCopyAssignment(TextRegion)
+	/*!
+	\brief 转移赋值：默认实现。
+	\since build 296 。
+	*/
+	DefDeMoveAssignment(TextRegion)
 
 	/*!
 	\brief 渲染单个字符。

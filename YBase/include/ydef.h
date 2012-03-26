@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2789;
+\version r2813;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-03-17 20:31 +0800;
+	2012-03-26 16:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -106,6 +106,17 @@
 
 /*!
 \ingroup lang_impl_hints
+\def YCL_ATTRIBUTE
+\brief 属性。
+*/
+#if YCL_IMPL_GNUCPP >= 20500
+#	define YCL_ATTRIBUTE(attrs) __attribute__ (attrs)
+#else
+#	define YCL_ATTRIBUTE(attrs)
+#endif
+
+/*!
+\ingroup lang_impl_hints
 \def YCL_EXPECT(expr, constant)
 \def YCL_LIKELY(expr)
 \def YCL_UNLIKELY(expr)
@@ -118,8 +129,8 @@
 #	define YCL_UNLIKELY(expr) (__builtin_expect(bool(expr), 0))
 #else
 #	define YCL_EXPECT(expr, constant) (expr)
-#	define YCL_LIKELY (expr)
-#	define YCL_UNLIKELY (expr)
+#	define YCL_LIKELY (expr) (expr)
+#	define YCL_UNLIKELY (expr) (expr)
 #endif
 
 
@@ -150,8 +161,8 @@ namespace ystdex
 {
 	/*!
 	\brief 字节类型。
-	\note ISO C++ 仅允许 char 和 unsigned char 类型的
-		不确定值(indeterminate value) 的使用，
+	\note ISO C++ 对访问存储的 glvalue 的类型有严格限制，当没有对象生存期保证时，
+		仅允许（可能 cv 修饰的） char 和 unsigned char 及其指针/引用或 void* ，
 		而不引起未定义行为(undefined behavior) 。
 	*/
 	typedef unsigned char byte;
@@ -247,7 +258,15 @@ namespace ystdex
 	{};
 
 
+	/*!	\defgroup HelperFunctions Helper Functions
+	\brief 助手功能/函数。
+
+	仅帮助简化编码形式或确定接口，并不包含编译期之后逻辑功能实现的代码设施。
+	\since build 252 。
+	*/
+
 	/*!
+	\ingroup HelperFunctions
 	\brief 根据参数类型使用 std::forward 传递对应参数。
 	\since build 245 。
 
@@ -261,12 +280,11 @@ namespace ystdex
 	/*!
 	\brief 无序列依赖表达式组求值实现。
 	\return 第一个参数的引用。
-	\note 无异常抛出。
-	\since build 276 。
+	\since build 296 。
 	*/
 	template<typename _type, typename... _tParams>
 	yconstfn auto
-	unsequenced(_type&& arg, _tParams&&...) ynothrow -> decltype(yforward(arg))
+	unsequenced(_type&& arg, _tParams&&...) -> decltype(yforward(arg))
 	{
 		return yforward(arg);
 	}
@@ -278,7 +296,8 @@ namespace ystdex
 	\note 支持嵌套使用。
 	\warning 非一元形式禁止用于产生对于同一对象的未序列化的(unsequenced) 副作用
 		的表达式，否则存在未定义行为。
-	\warning 非一元形式不适用于对顺序有依赖的表达式，包括所有可能抛出异常的表达式。
+	\warning 非一元形式不适用于对顺序有依赖的表达式，包括所有可能抛出异常且对抛出顺序
+		敏感（例如 std::bad_cast 处理顺序不同可能造成内存泄露）的表达式。
 	\since build 266 。
 	*/
 	#define yunseq ystdex::unsequenced

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,23 +8,25 @@
 	understand and accept it fully.
 */
 
-/*!	\file yconsole.cpp
+/*!	\file Console.cpp
 \ingroup UI
-\brief 平台无关的控制台。
-\version r1053;
+\brief 基于平台中立接口的控制台实现。
+\version r1057;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 296 。
 \par 创建时间:
 	2011-04-20 09:28:39 +0800;
 \par 修改时间:
-	2011-11-05 11:30 +0800;
-\par 字符集:
+	2012-03-25 17:10 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::Console
 */
 
 
-#include "YSLib/UI/yconsole.h"
+#include "YSLib/UI/Console.h"
+#include "YSLib/Helper/yglobal.h"
 
 YSL_BEGIN
 

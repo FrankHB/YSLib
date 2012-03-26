@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2519;
+\version r2545;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-03-21 19:09 +0800;
+	2012-03-23 13:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -91,16 +91,28 @@ public:
 	*/
 	DefDeMoveCtor(Message)
 
-	/*
-	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
-	\since build 271 。
-	*/
-	Message&
-	operator=(Message);
 	Message&
 	operator=(const ValueObject&);
+	/*!
+	\brief 成员赋值：使用值类型对象。
+	\note 无异常抛出。
+	\since build 296 。
+	*/
 	Message&
-	operator=(ValueObject&&);
+	operator=(ValueObject&&) ynothrow;
+	/*
+	\brief 复制赋值。
+	\since build 296 。
+	*/
+	Message&
+	operator=(const Message&);
+	/*
+	\brief 转移赋值。
+	\note 无异常抛出。
+	\since build 296 。
+	*/
+	Message&
+	operator=(Message&&) ynothrow;
 
 	/*!
 	\brief 比较：相等关系。
@@ -139,21 +151,27 @@ public:
 };
 
 inline Message&
-Message::operator=(Message msg)
-{
-	msg.Swap(*this);
-	return *this;
-}
-inline Message&
 Message::operator=(const ValueObject& c)
 {
 	content = c;
 	return *this;
 }
 inline Message&
-Message::operator=(ValueObject&& c)
+Message::operator=(ValueObject&& c) ynothrow
 {
 	content = std::move(c);
+	return *this;
+}
+inline Message&
+Message::operator=(const Message& msg)
+{
+	Message(msg).Swap(*this);
+	return *this;
+}
+inline Message&
+Message::operator=(Message&& msg) ynothrow
+{
+	msg.Swap(*this);
 	return *this;
 }
 

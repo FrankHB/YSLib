@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2178;
+\version r2325;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-03-22 16:17 +0800;
+	2012-03-24 16:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -41,7 +41,6 @@ class ShlReader;
 class ReaderBox : public Control
 {
 public:
-	ShlReader& Shell;
 	/*!
 	\brief 弹出菜单按钮。
 	\since build 274 。
@@ -70,7 +69,7 @@ public:
 	ProgressBar pbReader;
 	Label lblProgress;
 
-	ReaderBox(const Rect&, ShlReader&);
+	ReaderBox(const Rect&);
 
 	virtual IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
@@ -94,7 +93,6 @@ public:
 class TextInfoBox : public DialogBox
 {
 public:
-	ShlReader& Shell;
 	Label lblEncoding;
 	Label lblSize;
 	/*!
@@ -106,7 +104,7 @@ public:
 	Label lblBottom;
 	//@}
 
-	TextInfoBox(ShlReader&);
+	TextInfoBox();
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
@@ -156,7 +154,7 @@ class SettingPanel : public DialogPanel
 	\brief 友元类：共享设置状态。
 	\since build 287 。
 	*/
-	friend class TextReaderSession;
+	friend class ShlTextReader;
 
 protected:
 	/*!
@@ -363,34 +361,62 @@ public:
 };
 
 
-/*!
-\brief 阅读器会话。
-\since build 287 。
-*/
-class ReaderSession
+class ShlReader : public ShlDS
 {
-public:
-	ShlReader& Shell;
+protected:
+	/*!
+	\brief 当前路径。
+	\since build 296 。
+	*/
+	IO::Path CurrentPath;
 
-	ReaderSession(ShlReader&);
-	DefDelCopyCtor(ReaderSession)
-	DefDelMoveCtor(ReaderSession)
-	virtual DefEmptyDtor(ReaderSession)
+private:
+	/*!
+	\brief 背景任务：用于滚屏。
+	\since build 289 。
+	*/
+	std::function<void()> background_task;
+
+public:
+	/*!
+	\brief 构造：使用指定路径。
+	\since build 296 。
+	*/
+	ShlReader(const IO::Path&);
+
+	/*!
+	\brief 处理输入消息：发送绘制消息，当处于滚屏状态时自动执行滚屏。
+	\since build 289 。
+	*/
+	virtual void
+	OnInput();
+
+	/*!
+	\brief 退出阅读器：停止后台任务并发送消息准备切换至 ShlExplorer 。
+	\since build 295 。
+	*/
+	void
+	Exit();
 };
 
 
 /*!
-\brief 文本阅读器会话。
-\since build 287 。
+\brief 文本阅读器 Shell 。
+\since build 296 。
 */
-class TextReaderSession : public ReaderSession
+class ShlTextReader : public ShlReader
 {
-private:
+public:
 	/*!
-	\brief 路径。
-	\since build 286 。
+	\brief 近期浏览记录。
+	\since build 296 。
 	*/
-	IO::Path path;
+	ReadingList& LastRead;
+	/*!
+	\brief 当前阅读器设置。
+	\since build 296 。
+	*/
+	ReaderSetting& CurrentSetting;
 
 protected:
 	/*!
@@ -411,13 +437,17 @@ public:
 	unique_ptr<TextFile> pTextFile;
 	MenuHost mhMain;
 
-	TextReaderSession(ShlReader&);
+	/*!
+	\brief 构造：使用指定路径。
+	\since build 296 。
+	*/
+	ShlTextReader(const IO::Path&);
 	/*!
 	\brief 析构：释放资源。
 	\since build 286 。
 	*/
 	virtual
-	~TextReaderSession();
+	~ShlTextReader();
 
 private:
 	/*!
@@ -482,81 +512,26 @@ private:
 
 
 /*!
-\brief 十六进制阅读器会话。
-\since build 287 。
+\brief 十六进制浏览器 Shell 。
+\since build 296 。
 */
-class HexReaderSession : public ReaderSession
+class ShlHexBrowser : public ShlReader
 {
 public:
 	HexViewArea HexArea;
 	FileInfoPanel pnlFileInfo;
 
-	HexReaderSession(ShlReader&);
+	/*!
+	\brief 构造：使用指定路径。
+	\since build 296 。
+	*/
+	ShlHexBrowser(const IO::Path&);
 	/*!
 	\brief 析构：释放资源。
 	\since build 286 。
 	*/
 	virtual
-	~HexReaderSession();
-
-	void
-	UpdateInfo();
-};
-
-
-class ShlReader : public ShlDS
-{
-public:
-	typedef ShlDS ParentType;
-
-	/*!
-	\brief 临时参数：路径。
-	\since build 286 。
-	*/
-	static IO::Path CurrentPath;
-	/*!
-	\brief 临时参数：指定文件类型是否为文本文件。
-	\since build 286 。
-	*/
-	static bool CurrentIsText;
-
-protected:
-	unique_ptr<ReaderSession> pManager;
-
-private:
-	/*!
-	\brief 背景任务：用于滚屏。
-	\since build 298 。
-	*/
-	std::function<void()> background_task;
-
-public:
-	/*!
-	\brief 近期浏览记录。
-	\since build 295 。
-	*/
-	ReadingList& LastRead;
-	/*!
-	\brief 当前阅读器设置。
-	\since build 295 。
-	*/
-	ReaderSetting& CurrentSetting;
-
-	ShlReader();
-
-	/*!
-	\brief 处理输入消息：发送绘制消息，当处于滚屏状态时自动执行滚屏。
-	\since build 289 。
-	*/
-	virtual void
-	OnInput();
-
-	/*!
-	\brief 退出阅读器：停止后台任务并发送消息准备切换至 ShlExplorer 。
-	\since build 295 。
-	*/
-	void
-	Exit();
+	~ShlHexBrowser();
 };
 
 YSL_END_NAMESPACE(YReader)

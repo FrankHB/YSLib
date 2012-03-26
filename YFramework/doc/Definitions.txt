@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11628;
+\version r11654;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-03-20 21:48 +0800;
+	2012-03-26 11:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -55,15 +55,6 @@ $header $header_n //头文件：指称一个头文件。头文件名标识字符
 //平台定义文件（platform.h）定义示例。
 
 $code $header <platform.h> {
-
-
-#ifndef _ATTRIBUTE
-#	ifdef __GNUC__
-#		define _ATTRIBUTE(attrs) __attribute__ (attrs)
-#	else
-#		define _ATTRIBUTE(attrs)
-#	endif
-#endif
 
 
 //$example:
@@ -305,10 +296,7 @@ $header Core::YApplication
 } //$header Core::YApplication;
 
 $unit Helper::YGlobal
-{
-	extern void
-	ReleaseShells();
-} //$unit Helper::YGlobal;
+{} //$unit Helper::YGlobal;
 
 $unit Helper::Shell_DS
 {
@@ -425,31 +413,22 @@ $unit YGDIBase
 {
 	namespace Drawing
 	{
-		class Point
+		class template GBinaryGroup
 		{
-			static const Point Zero; //!< 无参数构造参数构造的原点对象。
-			static const Point FullScreen; \
-				//!< 无参数构造参数构造的屏幕右下角边界（不在屏幕坐标系中）对象。
-		};
-
-		class Vec
-		{
-			static const Vec Zero; //!< 无参数构造参数构造的零向量对象。
-			static const Vec FullScreen;
-				//无参数构造参数构造的由屏幕坐标系原点
-				//到屏幕右下角边界（不在屏幕坐标系中）对象。
+			static const GBinaryGroup Zero; //!< 无参数构造的原点对象。
+			static const GBinaryGroup Invalid; //!< 无效（不在屏幕坐标系中）对象。
 		};
 
 		class Size
 		{
-			static const Size Zero; //!< 无参数构造参数构造的零元素对象。
-			static const Size FullScreen; //!< 无参数构造参数构造的全屏幕对象。
+			static const Size Zero; //!< 无参数构造的零元素对象。
+			static const Size Invalid; //!< 无效对象。
 		};
 
 		class Rect
 		{
-			static const Rect Empty; //!< 无参数构造参数构造的空矩形对象。
-			static const Rect FullScreen; //!< 无参数构造参数构造的全屏幕矩形对象。
+			static const Rect Empty; //!< 无参数构造的空矩形对象。
+			static const Rect Invalid; //!< 无效对象。
 		};
 	}
 }

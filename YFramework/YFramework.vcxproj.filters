@@ -122,16 +122,10 @@
     <ClInclude Include="include\YSLib\Adaptor\yadaptor.h">
       <Filter>头文件\YSLib\Adaptor</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Adaptor\yfont.h">
-      <Filter>头文件\YSLib\Adaptor</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Adaptor\ynew.h">
       <Filter>头文件\YSLib\Adaptor</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Adaptor\yref.hpp">
-      <Filter>头文件\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Adaptor\ysinit.h">
       <Filter>头文件\YSLib\Adaptor</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Core\yapp.h">
@@ -204,9 +198,6 @@
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\ycomp.h">
-      <Filter>头文件\YSLib\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\UI\yconsole.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\ycontrol.h">
@@ -593,15 +584,21 @@
     <ClInclude Include="include\YSLib\UI\YBrush.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Helper\DSMain.h">
+      <Filter>头文件\YSLib\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Adaptor\Font.h">
+      <Filter>头文件\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Helper\Initialization.h">
+      <Filter>头文件\YSLib\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\Console.h">
+      <Filter>头文件\YSLib\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\YSLib\Adaptor\yfont.cpp">
-      <Filter>源文件\YSLib\Adaptor</Filter>
-    </ClCompile>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
-      <Filter>源文件\YSLib\Adaptor</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Adaptor\ysinit.cpp">
       <Filter>源文件\YSLib\Adaptor</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\yapp.cpp">
@@ -653,9 +650,6 @@
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\uicontx.cpp">
-      <Filter>源文件\YSLib\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\UI\yconsole.cpp">
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\ycontrol.cpp">
@@ -762,6 +756,21 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\YBrush.cpp">
       <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Helper\DSMain.cpp">
+      <Filter>源文件\YSLib\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Adaptor\Font.cpp">
+      <Filter>源文件\YSLib\Adaptor</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Helper\Initialization.cpp">
+      <Filter>源文件\YSLib\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\Console.cpp">
+      <Filter>源文件\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\NativeAPI.cpp">
+      <Filter>源文件\YCLib</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

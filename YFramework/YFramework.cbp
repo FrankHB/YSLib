@@ -70,13 +70,12 @@
 		<Unit filename="include\YCLib\NativeAPI.h" />
 		<Unit filename="include\YCLib\Platform.h" />
 		<Unit filename="include\YCLib\ycommon.h" />
+		<Unit filename="include\YSLib\Adaptor\Font.h" />
 		<Unit filename="include\YSLib\Adaptor\config.h" />
 		<Unit filename="include\YSLib\Adaptor\yadaptor.h" />
 		<Unit filename="include\YSLib\Adaptor\ycont.h" />
-		<Unit filename="include\YSLib\Adaptor\yfont.h" />
 		<Unit filename="include\YSLib\Adaptor\ynew.h" />
 		<Unit filename="include\YSLib\Adaptor\yref.hpp" />
-		<Unit filename="include\YSLib\Adaptor\ysinit.h" />
 		<Unit filename="include\YSLib\Core\yapp.h" />
 		<Unit filename="include\YSLib\Core\ybasemac.h" />
 		<Unit filename="include\YSLib\Core\ycounter.hpp" />
@@ -94,6 +93,8 @@
 		<Unit filename="include\YSLib\Core\yshell.h" />
 		<Unit filename="include\YSLib\Core\ystorage.hpp" />
 		<Unit filename="include\YSLib\Core\ystring.h" />
+		<Unit filename="include\YSLib\Helper\DSMain.h" />
+		<Unit filename="include\YSLib\Helper\Initialization.h" />
 		<Unit filename="include\YSLib\Helper\ShellHelper.h" />
 		<Unit filename="include\YSLib\Helper\shlds.h" />
 		<Unit filename="include\YSLib\Helper\yglobal.h" />
@@ -110,6 +111,7 @@
 		<Unit filename="include\YSLib\Service\yres.h" />
 		<Unit filename="include\YSLib\Service\ytimer.h" />
 		<Unit filename="include\YSLib\UI\ComboList.h" />
+		<Unit filename="include\YSLib\UI\Console.h" />
 		<Unit filename="include\YSLib\UI\Selector.h" />
 		<Unit filename="include\YSLib\UI\YBrush.h" />
 		<Unit filename="include\YSLib\UI\button.h" />
@@ -123,7 +125,6 @@
 		<Unit filename="include\YSLib\UI\uicontx.h" />
 		<Unit filename="include\YSLib\UI\viewer.hpp" />
 		<Unit filename="include\YSLib\UI\ycomp.h" />
-		<Unit filename="include\YSLib\UI\yconsole.h" />
 		<Unit filename="include\YSLib\UI\ycontrol.h" />
 		<Unit filename="include\YSLib\UI\ydesktop.h" />
 		<Unit filename="include\YSLib\UI\yfocus.h" />
@@ -223,10 +224,10 @@
 		<Unit filename="include\ysbuild.h" />
 		<Unit filename="source\CHRLib\chrmap.cpp" />
 		<Unit filename="source\CHRLib\chrproc.cpp" />
+		<Unit filename="source\YCLib\NativeAPI.cpp" />
 		<Unit filename="source\YCLib\ycommon.cpp" />
-		<Unit filename="source\YSLib\Adaptor\yfont.cpp" />
+		<Unit filename="source\YSLib\Adaptor\Font.cpp" />
 		<Unit filename="source\YSLib\Adaptor\ynew.cpp" />
-		<Unit filename="source\YSLib\Adaptor\ysinit.cpp" />
 		<Unit filename="source\YSLib\Core\yapp.cpp" />
 		<Unit filename="source\YSLib\Core\ydevice.cpp" />
 		<Unit filename="source\YSLib\Core\yexcept.cpp" />
@@ -236,6 +237,8 @@
 		<Unit filename="source\YSLib\Core\yobject.cpp" />
 		<Unit filename="source\YSLib\Core\yshell.cpp" />
 		<Unit filename="source\YSLib\Core\ystring.cpp" />
+		<Unit filename="source\YSLib\Helper\DSMain.cpp" />
+		<Unit filename="source\YSLib\Helper\Initialization.cpp" />
 		<Unit filename="source\YSLib\Helper\ShellHelper.cpp" />
 		<Unit filename="source\YSLib\Helper\shlds.cpp" />
 		<Unit filename="source\YSLib\Helper\yglobal.cpp" />
@@ -252,6 +255,7 @@
 		<Unit filename="source\YSLib\Service\yres.cpp" />
 		<Unit filename="source\YSLib\Service\ytimer.cpp" />
 		<Unit filename="source\YSLib\UI\ComboList.cpp" />
+		<Unit filename="source\YSLib\UI\Console.cpp" />
 		<Unit filename="source\YSLib\UI\Selector.cpp" />
 		<Unit filename="source\YSLib\UI\YBrush.cpp" />
 		<Unit filename="source\YSLib\UI\button.cpp" />
@@ -263,7 +267,6 @@
 		<Unit filename="source\YSLib\UI\textarea.cpp" />
 		<Unit filename="source\YSLib\UI\textlist.cpp" />
 		<Unit filename="source\YSLib\UI\uicontx.cpp" />
-		<Unit filename="source\YSLib\UI\yconsole.cpp" />
 		<Unit filename="source\YSLib\UI\ycontrol.cpp" />
 		<Unit filename="source\YSLib\UI\ydesktop.cpp" />
 		<Unit filename="source\YSLib\UI\yfocus.cpp" />

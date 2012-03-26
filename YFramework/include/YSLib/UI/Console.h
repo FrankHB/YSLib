@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,17 @@
 	understand and accept it fully.
 */
 
-/*!	\file yconsole.h
+/*!	\file Console.h
 \ingroup UI
-\brief 平台无关的控制台。
-\version 0.1101;
+\brief 基于平台中立接口的控制台实现。
+\version r1110;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 296 。
 \par 创建时间:
 	2011-04-19 23:00:29 +0800;
 \par 修改时间:
-	2011-06-19 02:56 +0800;
-\par 字符集:
+	2012-03-25 17:08 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::Console
@@ -28,7 +29,7 @@
 #define YSL_INC_UI_YCONSOLE_H_
 
 #include "ycomp.h"
-#include "../Helper/yglobal.h"
+#include "../Core/ydevice.h"
 
 YSL_BEGIN
 
@@ -42,9 +43,10 @@ public:
 
 	/*!
 	\brief 构造：使用指定屏幕、有效性、前景色和背景色。
+	\since build 296 。
 	*/
 	explicit
-	Console(Devices::Screen& = FetchDefaultScreen(), bool = true,
+	Console(Devices::Screen&, bool = true,
 		Drawing::Color = Drawing::ColorSpace::White,
 		Drawing::Color = Drawing::ColorSpace::Black);
 	/*!

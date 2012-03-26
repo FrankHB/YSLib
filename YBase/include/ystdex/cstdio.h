@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r1269;
+\version r1275;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2011-09-21 08:30:08 +0800;
 \par 修改时间:
-	2012-03-21 16:17 +0800;
+	2012-03-22 22:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -76,9 +76,9 @@ namespace ystdex
 	public:
 		/*!
 		\brief 无参数构造。
+		\post <tt>stream == nullptr</tt> 。
 
 		构造空流迭代器。
-		\post <tt>stream == nullptr</tt> 。
 		*/
 		yconstfn
 		ifile_iterator();
@@ -102,20 +102,20 @@ namespace ystdex
 
 		/*
 		\brief 前置自增。
-
-		使用 std::fgetc 读字符。
 		\pre 断言检查：流指针非空。
 		\note 当读到 EOF 时置流指针为空指针。
 		\return 自身引用。
+
+		使用 std::fgetc 读字符。
 		*/
 		ifile_iterator&
 		operator++();
 		/*
 		\brief 后置自增。
 		\pre 断言检查：同前置自增。
+		\return 迭代器副本。
 
 		读入字符。
-		\return 迭代器副本。
 		*/
 		ifile_iterator
 		operator++(int);

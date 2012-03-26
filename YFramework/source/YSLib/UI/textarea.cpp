@@ -11,13 +11,13 @@
 /*!	\file textarea.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r1407;
+\version r1420;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 222 。
 \par 创建时间:
 	2011-06-30 20:10:27 +0800;
 \par 修改时间:
-	2012-03-18 20:19 +0800;
+	2012-03-26 08:43 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,12 +34,23 @@ using namespace Drawing;
 
 YSL_BEGIN_NAMESPACE(Components)
 
+TextArea::TextArea(const Rect& r)
+	: Widget(r), TextState(), TextRenderer(*this),
+	Rotation(Drawing::RDeg0)
+{}
 TextArea::TextArea(const Rect& r, FontCache& fc)
 	: Widget(r), TextState(fc), TextRenderer(*this),
 	Rotation(Drawing::RDeg0)
 {}
 
 
+BufferedTextArea::BufferedTextArea(const Rect& r)
+	: Widget(r), TextRegion(),
+	Rotation(Drawing::RDeg0)
+{
+	//初始化视图。
+	TextRegion::SetSize(GetWidth(), GetHeight());
+}
 BufferedTextArea::BufferedTextArea(const Rect& r, FontCache& fc)
 	: Widget(r), TextRegion(fc),
 	Rotation(Drawing::RDeg0)
@@ -54,8 +65,8 @@ BufferedTextArea::Refresh(PaintEventArgs&& e)
 	const auto& g(e.Target);
 	const auto& r(e.ClipArea);
 
-	BlitTo(g.GetBufferPtr(), *this, g.GetSize(), r, r.GetPoint() - e.Location,
-		r, Rotation);
+	BlitTo(g.GetBufferPtr(), *this, g.GetSize(), r.GetPoint(),
+		r.GetPoint() - e.Location, r.GetSize(), Rotation);
 }
 
 YSL_END_NAMESPACE(Components)

@@ -116,10 +116,9 @@
     <ClInclude Include="include\YSLib\Adaptor\config.h" />
     <ClInclude Include="include\YSLib\Adaptor\yadaptor.h" />
     <ClInclude Include="include\YSLib\Adaptor\ycont.h" />
-    <ClInclude Include="include\YSLib\Adaptor\yfont.h" />
+    <ClInclude Include="include\YSLib\Adaptor\Font.h" />
     <ClInclude Include="include\YSLib\Adaptor\ynew.h" />
     <ClInclude Include="include\YSLib\Adaptor\yref.hpp" />
-    <ClInclude Include="include\YSLib\Adaptor\ysinit.h" />
     <ClInclude Include="include\YSLib\Core\yapp.h" />
     <ClInclude Include="include\YSLib\Core\ybasemac.h" />
     <ClInclude Include="include\YSLib\Core\ycounter.hpp" />
@@ -137,6 +136,8 @@
     <ClInclude Include="include\YSLib\Core\ymsgdef.h" />
     <ClInclude Include="include\YSLib\Core\ystorage.hpp" />
     <ClInclude Include="include\YSLib\Core\ystring.h" />
+    <ClInclude Include="include\YSLib\Helper\DSMain.h" />
+    <ClInclude Include="include\YSLib\Helper\Initialization.h" />
     <ClInclude Include="include\YSLib\Helper\ShellHelper.h" />
     <ClInclude Include="include\YSLib\Helper\shlds.h" />
     <ClInclude Include="include\YSLib\Helper\yglobal.h" />
@@ -166,7 +167,7 @@
     <ClInclude Include="include\YSLib\UI\viewer.hpp" />
     <ClInclude Include="include\YSLib\UI\YBrush.h" />
     <ClInclude Include="include\YSLib\UI\ycomp.h" />
-    <ClInclude Include="include\YSLib\UI\yconsole.h" />
+    <ClInclude Include="include\YSLib\UI\Console.h" />
     <ClInclude Include="include\YSLib\UI\ycontrol.h" />
     <ClInclude Include="include\YSLib\UI\ydesktop.h" />
     <ClInclude Include="include\YSLib\UI\yfocus.h" />
@@ -184,10 +185,10 @@
     <ClCompile Include="doc\ex.cpp" />
     <ClCompile Include="source\CHRLib\chrmap.cpp" />
     <ClCompile Include="source\CHRLib\chrproc.cpp" />
+    <ClCompile Include="source\YCLib\NativeAPI.cpp" />
     <ClCompile Include="source\YCLib\ycommon.cpp" />
-    <ClCompile Include="source\YSLib\Adaptor\yfont.cpp" />
+    <ClCompile Include="source\YSLib\Adaptor\Font.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp" />
-    <ClCompile Include="source\YSLib\Adaptor\ysinit.cpp" />
     <ClCompile Include="source\YSLib\Core\yapp.cpp" />
     <ClCompile Include="source\YSLib\Core\ydevice.cpp" />
     <ClCompile Include="source\YSLib\Core\yexcept.cpp" />
@@ -197,6 +198,8 @@
     <ClCompile Include="source\YSLib\Core\yshell.cpp" />
     <ClCompile Include="source\YSLib\Core\ymsg.cpp" />
     <ClCompile Include="source\YSLib\Core\ystring.cpp" />
+    <ClCompile Include="source\YSLib\Helper\DSMain.cpp" />
+    <ClCompile Include="source\YSLib\Helper\Initialization.cpp" />
     <ClCompile Include="source\YSLib\Helper\ShellHelper.cpp" />
     <ClCompile Include="source\YSLib\Helper\shlds.cpp" />
     <ClCompile Include="source\YSLib\Helper\yglobal.cpp" />
@@ -224,7 +227,7 @@
     <ClCompile Include="source\YSLib\UI\textlist.cpp" />
     <ClCompile Include="source\YSLib\UI\uicontx.cpp" />
     <ClCompile Include="source\YSLib\UI\YBrush.cpp" />
-    <ClCompile Include="source\YSLib\UI\yconsole.cpp" />
+    <ClCompile Include="source\YSLib\UI\Console.cpp" />
     <ClCompile Include="source\YSLib\UI\ycontrol.cpp" />
     <ClCompile Include="source\YSLib\UI\ydesktop.cpp" />
     <ClCompile Include="source\YSLib\UI\yfocus.cpp" />

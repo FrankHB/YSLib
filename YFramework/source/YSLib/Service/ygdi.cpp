@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3539;
+\version r3557;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2012-03-17 20:05 +0800;
+	2012-03-26 10:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -106,6 +106,13 @@ BitmapBuffer::BitmapBuffer(const BitmapBuffer& buf)
 	if(auto p = buf.GetBufferPtr())
 		mmbcpy(pBuffer, p, GetSizeOfBuffer());
 }
+BitmapBuffer::BitmapBuffer(BitmapBuffer&& buf) ynothrow
+	: Graphics(nullptr, buf.GetSize())
+{
+	// TODO: change Graphics::SetSize interface;
+//	buf.SetSize(0, 0);
+	std::swap<Graphics>(*this, buf);
+}
 
 void
 BitmapBuffer::SetSize(SDst w, SDst h)
@@ -150,12 +157,6 @@ BitmapBuffer::ClearImage() const
 	Drawing::ClearImage(*this);
 }
 
-void
-BitmapBuffer::BeFilledWith(Color c) const
-{
-	Fill(*this, c);
-}
-
 
 BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDst w, SDst h)
 	: BitmapBuffer(), pBufferAlpha()
@@ -173,6 +174,11 @@ BitmapBufferEx::BitmapBufferEx(const BitmapBufferEx& buf)
 		mmbcpy(pBuffer, p, GetSizeOfBuffer());
 		mmbcpy(pBufferAlpha, buf.GetBufferAlphaPtr(), GetSizeOfBufferAlpha());
 	}
+}
+BitmapBufferEx::BitmapBufferEx(BitmapBufferEx&& buf) ynothrow
+	: BitmapBuffer(std::move(buf)), pBufferAlpha(buf.GetBufferAlphaPtr())
+{
+	buf.pBufferAlpha = nullptr;
 }
 
 void

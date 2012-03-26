@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r1149;
+\version r1151;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 293 。
 \par 创建时间:
 	2012-01-10 19:56:59 +0800;
 \par 修改时间:
-	2012-03-18 21:38 +0800;
+	2012-03-26 08:37 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -52,7 +52,8 @@ ImageBrush::operator()(PaintEventArgs&& e)
 		const auto& g(e.Target);
 		const Rect& r(e.ClipArea);
 
-		CopyTo(g.GetBufferPtr(), *Image, g.GetSize(), r, r, r);
+		CopyTo(g.GetBufferPtr(), Image->GetContext(), g.GetSize(),
+			r.GetPoint(), r.GetPoint(), r.GetSize());
 	}
 }
 

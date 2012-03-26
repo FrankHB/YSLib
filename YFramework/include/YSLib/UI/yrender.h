@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1519;
+\version r1520;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2012-03-14 09:32 +0800;
+	2012-03-23 08:41 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -124,7 +124,7 @@ public:
 	\brief 取图形接口上下文。
 	\return 缓冲区图形接口上下文。
 	*/
-	DefGetter(const ynothrow, const Graphics&, Context, Buffer)
+	DefGetterMem(const ynothrow, const Graphics&, Context, Buffer)
 
 	/*!
 	\brief 设置缓冲区大小。

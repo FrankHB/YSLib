@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5779;
+\version r5797;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-03-20 16:20 +0800;
+	2012-03-26 10:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -287,7 +287,7 @@ namespace
 	void
 	TestObj::Fill()
 	{
-		Graphics g(h->GetScreen());
+		const auto& g(h->GetScreen().GetContext());
 
 		FillRect(g, l, s, c);
 	}
@@ -428,10 +428,13 @@ ShlExplorer::ShlExplorer()
 
 				if(!IO::ValidateDirectory(s) && fexists(s.c_str()))
 				{
-					ShlReader::CurrentPath = path;
-					ShlReader::CurrentIsText = GetEntryType(s)
-						== EnrtySpace::Text && !chkHex.IsTicked();
-					SetShellToNew<ShlReader>();
+					if(GetEntryType(s) == EnrtySpace::Text
+						&& !chkHex.IsTicked())
+						SetShellTo(make_shared<ShlTextReader>(path));
+					//	SetShellToNew<ShlTextReader>(path);
+					else
+						SetShellTo(make_shared<ShlHexBrowser>(path));
+					//	SetShellToNew<ShlHexBrowser>(path);
 				}
 			}
 		},
@@ -725,14 +728,14 @@ ShlExplorer::TFormExtra::TFormExtra()
 			case 0:
 				t.Fill();
 				t.Pause();
-			//	tr.BeFilledWith(ColorSpace::Black);
+			//	Drawing::Fill(tr.GetGraphics(), ColorSpace::Black);
 				t.Test2();
 				t.Test3(Black);
 				t.Test3(Blue);
 			case 1:
 				t.tr.SetSize(t.s.Width, t.s.Height);
 			//	t.Pause();
-			//	tr.BeFilledWith(ColorSpace::Black);
+			//	Drawing::Fill(t.tr.GetGraphics(), ColorSpace::Black);
 				t.Test3(White);
 				t.Test3(Black);
 				t.Test3(Red);
@@ -741,7 +744,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 				t.c = Lime;
 				t.Fill();
 				t.Pause();
-			//	tr.BeFilledWith(ColorSpace::Black);
+			//	Drawing::Fill(t.tr.GetGraphics(), ColorSpace::Black);
 				t.Test2();
 				t.Test3(Black);
 				t.Test3(Blue);
@@ -749,7 +752,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 				t.c = Lime;
 				t.tr.SetSize(t.s.Width, t.s.Height);
 			//	t.Pause();
-			//	t.tr.BeFilledWith(ColorSpace::Black);
+			//	Drawing::Fill(t.tr.GetGraphics(), ColorSpace::Black);
 				t.Test3(White);
 				t.Test3(Black);
 				t.Test3(Red);

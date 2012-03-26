@@ -11,13 +11,13 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2908;
+\version r2921;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:39:39 +0800;
 \par 修改时间:
-	2012-03-21 18:08 +0800;
+	2012-03-23 10:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Devices)
 
 //图形设备。
-class GraphicDevice : private noncopyable, public Drawing::Graphics
+class GraphicDevice : private noncopyable, protected Drawing::Graphics
 {
 public:
 	/*!
@@ -44,6 +44,20 @@ public:
 	*/
 	yconstfn
 	GraphicDevice(SDst, SDst, Drawing::BitmapPtr = nullptr);
+
+	/*!
+	\since build 296 。
+	*/
+	//@{
+	using Graphics::IsValid;
+
+	using Graphics::GetBufferPtr;
+	using Graphics::GetHeight;
+	using Graphics::GetWidth;
+	using Graphics::GetSize;
+	using Graphics::GetSizeOfBuffer;
+	DefGetter(const ynothrow, const Graphics&, Context, *this)
+	//@}
 };
 
 yconstfn

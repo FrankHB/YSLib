@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2126;
+\version r2165;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-03-20 16:16 +0800;
+	2012-03-25 15:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,8 @@
 #ifndef YSL_INC_HELPER_SHLDS_H_
 #define YSL_INC_HELPER_SHLDS_H_
 
-#include "ShellHelper.h"
+#include "../Core/yshell.h"
+#include "../Core/ystring.h"
 
 YSL_BEGIN
 
@@ -77,8 +78,13 @@ YSL_BEGIN_NAMESPACE(DS)
 class ShlDS : public Shell
 {
 private:
-	shared_ptr<Desktop> hDskUp, hDskDown; \
-		//正常状态下应总是指向可用的桌面对象。
+	/*!
+	\brief 共享桌面指针：正常状态下应总是指向可用的桌面对象。
+	\since build 296 。
+	*/
+	//@{
+	shared_ptr<Desktop> desktop_up_ptr, desktop_down_ptr;
+	//@}
 
 protected:
 	/*!
@@ -92,17 +98,19 @@ protected:
 
 public:
 	/*!
-	\brief 无参数构造：使用默认上下屏幕初始化对应桌面。
-	\since build 295 。
+	\brief 构造：使用上下屏幕初始化对应桌面。
+	\note 空参数表示新建。
+	\since build 296 。
 	*/
-	ShlDS();
+	ShlDS(const shared_ptr<Desktop>& = nullptr,
+		const shared_ptr<Desktop>& = nullptr);
 
 	DefGetter(const ynothrow, const shared_ptr<Desktop>&, DesktopUpHandle,
-		hDskUp)
+		desktop_up_ptr)
 	DefGetter(const ynothrow, const shared_ptr<Desktop>&, DesktopDownHandle,
-		hDskDown)
-	DefGetter(const ynothrow, Desktop&, DesktopUp, *hDskUp)
-	DefGetter(const ynothrow, Desktop&, DesktopDown, *hDskDown)
+		desktop_down_ptr)
+	DefGetter(const ynothrow, Desktop&, DesktopUp, *desktop_up_ptr)
+	DefGetter(const ynothrow, Desktop&, DesktopDown, *desktop_down_ptr)
 
 	/*!
 	\brief 消息处理函数。
@@ -151,27 +159,6 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_END_NAMESPACE(Components)
 
 YSL_END_NAMESPACE(DS)
-
-YSL_BEGIN_NAMESPACE(Shells)
-
-/*!
-\brief 主 Shell 。
-\since 早于 build 132 。
-*/
-class MainShell : public DS::ShlDS
-{
-public:
-	typedef ShlDS ParentType;
-
-	Components::Label lblTitle, lblStatus, lblDetails;
-
-	/*!
-	\brief 无参数构造。
-	*/
-	MainShell();
-};
-
-YSL_END_NAMESPACE(Shells)
 
 YSL_END;
 

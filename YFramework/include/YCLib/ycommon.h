@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2874;
+\version r3074;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-03-08 15:57 +0800;
+	2012-03-26 16:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -48,34 +48,71 @@
 //! \brief 默认平台命名空间。
 namespace platform
 {
-	//外部平台库名称引用。
-	using ::swiWaitForVBlank;
-
-	using ::lcdMainOnTop;
-	using ::lcdMainOnBottom;
-	using ::lcdSwap;
-	using ::videoSetMode;
-	using ::videoSetModeSub;
-
-	using ::touchRead;
-
 	//平台相关的全局常量。
 
-	#define YCL_MAX_FILENAME_LENGTH MAXPATHLEN //!< 最大路径长度。
-	#define YCL_MAX_PATH_LENGTH YCL_MAX_FILENAME_LENGTH
+//最大路径长度。
+#ifdef PATH_MAX
+#	define YCL_MAX_PATH_LENGTH PATH_MAX
+#elif MAXPATHLEN
+#	define YCL_MAX_PATH_LENGTH MAXPATHLEN
+#else
+#	define YCL_MAX_PATH_LENGTH 256
+#endif
 
-	const char DEF_PATH_DELIMITER = '/'; //!< 文件路径分隔符。
-	const char* const DEF_PATH_SEPERATOR = "/"; //!< 文件路径分隔字符串。
+//最大文件名长度。
+#ifdef NAME_MAX
+#	define YCL_MAX_FILENAME_LENGTH NAME_MAX
+#else
+#	define YCL_MAX_FILENAME_LENGTH YCL_MAX_PATH_LENGTH
+#endif
+
+#ifdef YCL_API_FILESYSTEM_POSIX
+	/*!
+	\brief 文件路径分隔符。
+	*/
+	const char DEF_PATH_DELIMITER = '/';
+	/*!
+	\brief 文件路径分隔字符串。
+	*/
+	const char* const DEF_PATH_SEPERATOR = "/";
+	/*!
+	\brief 根目录路径。
+	*/
 	#define DEF_PATH_ROOT DEF_PATH_SEPERATOR
 
-	//类型定义。
 	/*!
 	\brief 本机路径字符类型。
-	
-	POSIX 为 char ，Windows 为 wchar_t。
 	\since build 286 。
 	*/
 	typedef char NativePathCharType;
+#elif defined(YCL_MINGW32)
+	/*!
+	\brief 文件路径分隔符。
+	\since build 296 。
+	*/
+	const auto DEF_PATH_DELIMITER = '\\';
+//	const auto DEF_PATH_DELIMITER = L'\\';
+	/*!
+	\brief 文件路径分隔字符串。
+	\since build 296 。
+	*/
+	const auto* const DEF_PATH_SEPERATOR = "/";
+//	const auto* const DEF_PATH_SEPERATOR = L"/";
+	// TODO: impl;
+//	#define DEF_PATH_ROOT ""
+
+	/*!
+	\brief 本机路径字符类型。
+	\since build 296 。
+	\todo 解决 const_path_t 冲突。
+	*/
+//	typedef wchar_t NativePathCharType;
+	typedef char NativePathCharType;
+#else
+#	error Unsupported platform found!
+#endif
+
+	//类型定义。
 	/*!
 	\brief 本机路径字符串类型。
 	\since build 286 。
@@ -142,12 +179,26 @@ namespace platform
 
 	typedef s16 SPos; //!< 屏幕坐标度量。
 	typedef u16 SDst; //!< 屏幕坐标距离。
+#if defined(YCL_DS)
 	typedef u16 PixelType; //!< 像素。
-	typedef PixelType* BitmapPtr;
-	typedef const PixelType* ConstBitmapPtr;
 	typedef PixelType ScreenBufferType[SCREEN_WIDTH * SCREEN_HEIGHT]; \
 		//!< 主显示屏缓冲区。
 	#define BITALPHA BIT(15) //!<  Alpha 位。
+	#define DefColorH_(hex, name) name = \
+		RGB8(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF)) \
+		| BITALPHA
+#elif defined(YCL_MINGW32)
+	/*!
+	\brief since build 296 。
+	*/
+	typedef ::COLORREF PixelType;
+	#define DefColorH_(hex, name) name = \
+		RGB(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF))
+#else
+#	error Unsupported platform found!
+#endif
+	typedef PixelType* BitmapPtr;
+	typedef const PixelType* ConstBitmapPtr;
 
 
 	//! \brief 系统默认颜色空间。
@@ -155,9 +206,6 @@ namespace platform
 	{
 	//	#define DefColorA(r, g, b, name) name = ARGB16(1, r, g, b),
 		#define	HexAdd0x(hex) 0x##hex
-		#define DefColorH_(hex, name) name = \
-			RGB8(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF)) \
-			| BITALPHA
 		#define DefColorH(hex_, name) DefColorH_(HexAdd0x(hex_), name)
 
 		//参考：http://www.w3schools.com/html/html_colornames.asp 。
@@ -249,8 +297,14 @@ namespace platform
 
 	yconstfn
 	Color::Color(PixelType px)
+#if defined(YCL_DS)
 		: r(px << 3 & 248), g(px >> 2 & 248), b(px >> 7 & 248),
 		a(px & BITALPHA ? 0xFF : 0x00)
+#elif defined(YCL_MINGW32)
+		: r(GetRValue(px)), g(GetGValue(px)), b(GetBValue(px)), a(0xFF)
+#else
+#	error Unsupport platform found!
+#endif
 	{}
 	yconstfn
 	Color::Color(MonoType r_, MonoType g_, MonoType b_, AlphaType a_)
@@ -260,7 +314,13 @@ namespace platform
 	yconstfn
 	Color::operator PixelType() const
 	{
+#if defined(YCL_DS)
 		return ARGB16(int(a != 0), r >> 3, g >> 3, b >> 3);
+#elif defined(YCL_MINGW32)
+		return RGB(r, g, b);
+#else
+#	error Unsupport platform found!
+#endif
 	}
 
 	yconstfn Color::MonoType
@@ -287,6 +347,7 @@ namespace platform
 	//! \brief 本机按键空间。
 	namespace KeySpace
 	{
+#if defined(YCL_DS)
 		//按键集合。
 		typedef enum
 		{
@@ -313,6 +374,19 @@ namespace platform
 			Esc = B,
 			PgUp = L,
 			PgDn = R;
+#elif defined(YCL_MINGW32)
+		/*!
+		\since build 296 。
+		\todo 完整定义。
+		*/
+		//@{
+		typedef int KeySet;
+		const KeySet Enter = 13,
+			Esc = 27;
+		//@}
+#else
+#	error Unsupport platform found!
+#endif
 	}
 
 
@@ -341,7 +415,7 @@ namespace platform
 
 	yconstfn
 	KeyCode::KeyCode(InputType i)
-	: _value(i)
+		: _value(i)
 	{}
 
 	yconstfn
@@ -358,7 +432,8 @@ namespace platform
 	} KeysInfo;
 
 
-	//! \brief 屏幕光标信息。
+#if defined(YCL_DS)
+	//! \brief 屏幕指针设备光标信息。
 	typedef struct CursorInfo : public ::touchPosition
 	{
 		/*!
@@ -383,7 +458,15 @@ namespace platform
 	{
 		return py;
 	}
-
+#elif defined(YCL_MINGW32)
+		/*!
+		\brief 屏幕指针设备光标信息。
+		\since build 296 。
+		*/
+		typedef ::CURSORINFO CursorInfo;
+#else
+#	error Unsupport platform found!
+#endif
 
 	/*!
 	\brief 调试模式：设置状态。
@@ -421,7 +504,7 @@ namespace platform
 	*/
 	int
 	yprintf(const char*, ...)
-		_ATTRIBUTE ((format (printf, 1, 2)));
+		YCL_ATTRIBUTE((format (printf, 1, 2)));
 
 	//断言。
 	#ifdef YCL_USE_YASSERT
@@ -444,10 +527,6 @@ namespace platform
 	#	define YAssert(exp, message) assert(exp)
 
 	#endif
-
-
-	//定长路径字符串类型。
-	typedef char PATHSTR[MAXPATHLEN];
 
 
 	//目录迭代器。
@@ -578,26 +657,12 @@ namespace platform
 
 
 	/*!
-	\brief 设置允许设备进入睡眠的标识状态。
-	\return 旧状态。
-	\note 默认状态为 true 。
-	\since build 278 。
-	*/
-	bool
-	AllowSleep(bool);
-
-	/*!
 	\brief 快速刷新缓存映像到显示屏缓冲区。
 	\note 第一参数为显示屏缓冲区，第二参数为源缓冲区。
 	*/
 	void
 	ScreenSynchronize(PixelType*, const PixelType*);
 
-	/*!
-	\brief 复位屏幕显示模式。
-	*/
-	void
-	ResetVideo();
 
 	/*!
 	\brief 启动控制台。
@@ -615,10 +680,78 @@ namespace platform
 	WaitForInput();
 
 	/*!
-	\brief 等待 mask 包含的按键。
+	\brief 写入当前按键信息。
+	\since build 272 。
 	*/
 	void
-	WaitForKey(u32 mask);
+	WriteKeys(KeysInfo&);
+
+	/*!
+	\brief 写入当前指针设备信息。
+	\since build 272 。
+	*/
+	void
+	WriteCursor(CursorInfo&);
+
+
+	/*!
+	\brief 开始 tick 计时。
+	*/
+	void
+	StartTicks();
+
+	/*!
+	\brief 取 tick 数。
+	\note 单位为毫秒。
+	*/
+	u32
+	GetTicks();
+
+	/*!
+	\brief 取高精度 tick 数。
+	\note 单位为纳秒。
+	\since build 291 。
+	*/
+	u64
+	GetHighResolutionTicks();
+
+	/*!
+	\brief 初始化视频输出。
+	*/
+	bool
+	InitVideo();
+}
+
+namespace platform_ex
+{
+#ifdef YCL_DS
+	//外部平台库名称引用。
+	using ::swiWaitForVBlank;
+
+	using ::lcdMainOnTop;
+	using ::lcdMainOnBottom;
+	using ::lcdSwap;
+	using ::videoSetMode;
+	using ::videoSetModeSub;
+
+	using ::touchRead;
+
+
+	/*!
+	\brief 设置允许设备进入睡眠的标识状态。
+	\return 旧状态。
+	\note 默认状态为 true 。
+	\since build 278 。
+	*/
+	bool
+	AllowSleep(bool);
+
+
+	/*!
+	\brief 等待掩码指定的按键。
+	*/
+	void
+	WaitForKey(u32);
 
 	/*!
 	\brief 等待任意按键（除触摸屏、翻盖外）。
@@ -671,58 +804,14 @@ namespace platform
 		WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y);
 	}
 
-	/*
-	void trimString(char* string);
-	void unescapeString(char* string);
-	u32 versionStringToInt(char* string);
-	void versionIntToString(char* out, u32 version);
-	*/
 
 	/*!
-	\brief 写入当前按键信息。
-	\since build 272 。
+	\brief 复位屏幕显示模式。
 	*/
 	void
-	WriteKeys(KeysInfo&);
-
-	/*!
-	\brief 写入当前指针设备信息。
-	\since build 272 。
-	*/
-	void
-	WriteCursor(CursorInfo&);
+	ResetVideo();
 
 
-	/*!
-	\brief 开始 tick 计时。
-	*/
-	void
-	StartTicks();
-
-	/*!
-	\brief 取 tick 数。
-	\note 单位为毫秒。
-	*/
-	u32
-	GetTicks();
-
-	/*!
-	\brief 取高精度 tick 数。
-	\note 单位为纳秒。
-	\since build 291 。
-	*/
-	u64
-	GetHighResolutionTicks();
-
-	/*!
-	\brief 初始化视频输出。
-	*/
-	bool
-	InitVideo();
-}
-
-namespace platform_ex
-{
 	/*!
 	\brief 默认上屏初始化函数。
 	*/
@@ -734,6 +823,12 @@ namespace platform_ex
 	*/
 	platform::BitmapPtr
 	InitScrDown(int&);
+#elif defined(YCL_MINGW32)
+// TODO: add WinAPIs;
+#else
+#	error Unsupport platform found!
+#endif
+
 }
 
 #endif

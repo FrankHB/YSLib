@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief C++ 标准库迭代器扩展。
-\version r1807;
+\version r1829;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189 。
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2012-03-21 19:47 +0800;
+	2012-03-26 07:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -654,6 +654,18 @@ namespace ystdex
 			bool(*)(common_iterator),
 			void(*)(common_iterator)
 		> operation_list;
+
+	protected:
+		/*!
+		\brief 无参数构造： \c protected 默认实现。
+		\since build 296 。
+		*/
+		yconstfn common_iterator_base() = default;
+		/*!
+		\brief 复制构造： \c protected 默认实现。
+		\since build 296 。
+		*/
+		yconstfn common_iterator_base(const common_iterator_base&) = default;
 	};
 
 
@@ -704,6 +716,18 @@ namespace ystdex
 		{
 			return *i.operator iterator_type&();
 		}
+
+	protected:
+		/*!
+		\brief 无参数构造： \c protected 默认实现。
+		\since build 296 。
+		*/
+		yconstfn iterator_operations() = default;
+		/*!
+		\brief 复制构造： \c protected 默认实现。
+		\since build 296 。
+		*/
+		yconstfn iterator_operations(const iterator_operations&) = default;
 	};
 
 	template<typename _tIterator>

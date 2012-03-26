@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r6895;
+\version r6897;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-03-17 19:54 +0800;
+	2012-03-26 08:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -113,12 +113,13 @@ RenderChar(ucs4_t c, TextState& ts, const Graphics& g, const Rect& mask,
 				char_color = ts.Color | BITALPHA;
 				Blit<BlitTextLoop, false, false>(pair_iterator<BitmapPtr,
 					u8*>(g.GetBufferPtr(), alpha), ds, sbit.GetBuffer(), ss,
-					r, sp, r);
+					r.GetPoint(), sp, r.GetSize());
 			}
 			else
 				Blit<BlitBlendLoop, false, false>(g.GetBufferPtr(), ds,
 					MonoIteratorPair(pseudo_iterator<const PixelType>(
-					ts.Color | BITALPHA), sbit.GetBuffer()), ss, r, sp, r);
+					ts.Color | BITALPHA), sbit.GetBuffer()), ss,
+					r.GetPoint(), sp, r.GetSize());
 		}
 		//移动笔。
 		ts.PenX = tx;

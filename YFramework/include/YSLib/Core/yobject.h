@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3310;
+\version r3340;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-21 19:26 +0800;
+	2012-03-22 22:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -122,8 +122,11 @@ public:
 	/*!
 	\brief 无参数构造。
 	\note 得到空实例。
+	\note 无异常抛出。
+	\since build 296 。
 	*/
-	ValueObject();
+	yconstfn
+	ValueObject() ynothrow;
 	/*!
 	\brief 构造：使用对象左值引用。
 	\pre obj 可被复制构造。
@@ -142,13 +145,23 @@ public:
 		: manager(&GManager<_type>::Do), obj_ptr(p)
 	{}
 	ValueObject(const ValueObject&);
-	ValueObject(ValueObject&&);
+	/*!
+	\brief 转移构造。
+	\note 无异常抛出。
+	\since build 296 。
+	*/
+	ValueObject(ValueObject&&) ynothrow;
 	~ValueObject();
 
 	ValueObject&
 	operator=(const ValueObject&);
+	/*!
+	\brief 转移构造。
+	\note 无异常抛出。
+	\since build 296 。
+	*/
 	ValueObject&
-	operator=(ValueObject&&);
+	operator=(ValueObject&&) ynothrow;
 
 	bool
 	operator==(const ValueObject&) const;
@@ -191,15 +204,25 @@ private:
 	}
 
 public:
+	/*
+	\brief 清除。
+	\post <tt>*this == ValueObject()</tt> 。
+	\note 无异常抛出。
+	\since build 296 。
+	*/
 	void
-	Clear();
+	Clear() ynothrow;
 
+	/*!
+	\brief 交换。
+	\since build 296 。
+	*/
 	void
-	Swap(ValueObject&);
+	Swap(ValueObject&) ynothrow;
 };
 
-inline
-ValueObject::ValueObject()
+yconstfn
+ValueObject::ValueObject() ynothrow
 	: manager(nullptr), obj_ptr(nullptr)
 {}
 inline

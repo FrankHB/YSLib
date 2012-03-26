@@ -8,25 +8,25 @@
 	understand and accept it fully.
 */
 
-/*!	\file yfont.h
+/*!	\file Font.h
 \ingroup Adaptor
-\brief 平台无关的字体缓存库。
-\version r7679;
+\brief 平台无关的字体库。
+\version r7684;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2012-03-21 18:22 +0800;
+	2012-03-25 15:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YSLib::Adaptor::YFontCache;
+	YSLib::Adaptor::Font;
 */
 
 
-#ifndef YSL_INC_ADAPTOR_YFONT_H_
-#define YSL_INC_ADAPTOR_YFONT_H_
+#ifndef YSL_INC_ADAPTOR_FONT_H_
+#define YSL_INC_ADAPTOR_FONT_H_
 
 #include "../Core/yfunc.hpp"
 #include "../Core/yobject.h"

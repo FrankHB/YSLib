@@ -11,12 +11,12 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1487;
+\version r1495;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2012-03-17 19:48 +0800;
+	2012-03-25 16:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,7 @@
 
 
 #include "YSLib/Core/ygdibase.h"
-#include "YSLib/Helper/yglobal.h"
+#include "YSLib/Core/ycutil.h"
 #include <ystdex/algorithm.hpp>
 
 YSL_BEGIN
@@ -33,12 +33,12 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Drawing)
 
 const Size Size::Zero = Size();
-const Size Size::FullScreen = Size(MainScreenWidth, MainScreenHeight);
+const Size Size::Invalid = Size(std::numeric_limits<SDst>::lowest(),
+		std::numeric_limits<SDst>::lowest());
 
 
 const Rect Rect::Empty = Rect();
-const Rect Rect::FullScreen = Rect(Point::Zero,
-	MainScreenWidth, MainScreenHeight);
+const Rect Rect::Invalid(Point::Zero, Size::Invalid);
 
 bool
 Rect::Contains(int px, int py) const

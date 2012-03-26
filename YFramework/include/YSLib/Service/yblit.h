@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r2257;
+\version r2259;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-16 19:43:24 +0800;
 \par 修改时间:
-	2012-03-17 19:24 +0800;
+	2012-03-26 08:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -244,7 +244,7 @@ struct RectTransformer
 		_fTransformPixel tp, _fTransformLine tl)
 	{
 		operator()<_tPixel, _fTransformPixel,
-			_fTransformLine>(dst, ds, rSrc, rSrc, tp, tl);
+			_fTransformLine>(dst, ds, rSrc.GetPoint(), rSrc.GetSize(), tp, tl);
 	}
 	/*!
 	\brief 渲染正则矩形内的像素。
@@ -586,7 +586,7 @@ template<class _fTransformPixel>
 inline bool
 TransformRect(const Graphics& g, const Rect& r, _fTransformPixel tp)
 {
-	return TransformRect<_fTransformPixel>(g, r, r, tp);
+	return TransformRect<_fTransformPixel>(g, r.GetPoint(), r.GetSize(), tp);
 }
 
 

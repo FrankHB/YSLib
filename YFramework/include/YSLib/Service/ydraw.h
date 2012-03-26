@@ -11,12 +11,12 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1655;
+\version r1658;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:43:26 +0800;
 \par 修改时间:
-	2012-03-17 19:24 +0800;
+	2012-03-26 08:32 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -118,7 +118,7 @@ DrawRect(const Graphics& g, const Point& pt, const Size& s, Color c);
 inline bool
 DrawRect(const Graphics& g, const Rect& r, Color c)
 {
-	return DrawRect(g, r, r, c);
+	return DrawRect(g, r.GetPoint(), r.GetSize(), c);
 }
 
 /*!
@@ -134,7 +134,7 @@ FillRect(const Graphics& g, const Point& pt, const Size& s, Color c);
 inline bool
 FillRect(const Graphics& g, const Rect& r, Color c)
 {
-	return FillRect(g, r, r, c);
+	return FillRect(g, r.GetPoint(), r.GetSize(), c);
 }
 
 YSL_END_NAMESPACE(Drawing)

@@ -8,28 +8,28 @@
 	understand and accept it fully.
 */
 
-/*!	\file yfont.cpp
+/*!	\file Font.cpp
 \ingroup Adaptor
-\brief 平台无关的字体缓存库。
-\version r7575;
+\brief 平台无关的字体库。
+\version r7584;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2012-03-17 19:41 +0800;
+	2012-03-25 15:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YSLib::Adaptor::YFontCache;
+	YSLib::Adaptor::Font;
 */
 
 
-#include "YSLib/Adaptor/yfont.h"
+#include "YSLib/Adaptor/Font.h"
 #include "YSLib/Core/yapp.h"
 #include "YSLib/Core/yexcept.h"
 #include "YSLib/Core/yfilesys.h"
-#include "YSLib/Helper/yglobal.h"
+#include "YSLib/Helper/DSMain.h"
 #include <algorithm> // for std::for_each;
 //#include FT_BITMAP_H
 //#include FT_GLYPH_H
