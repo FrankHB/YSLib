@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r1319;
+\version r1459;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-03-25 16:50 +0800;
+	2012-04-01 08:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -123,11 +123,87 @@ namespace
 	}
 }
 
+YSL_BEGIN_NAMESPACE(Devices)
+class DSScreen;
+YSL_END_NAMESPACE(Devices)
 
 using Devices::DSScreen;
 using namespace Drawing;
 
+namespace
+{
+	/*!
+	\brief 默认消息发生函数。
+	*/
+	void
+	Idle()
+	{
+		//指示等待图形用户界面输入。
+		PostMessage(FetchShellHandle(), SM_INPUT, 0x40);
+	}
+
+	//注册的应用程序指针。
+	DSApplication* pApp;
+
+	/*
+	\brief 全局生存期屏幕。
+	\since build 297 。
+	*/
+	//@{
+	DSScreen* pScreenUp;
+	DSScreen* pScreenDown;
+	//@}
+}
+
 YSL_BEGIN_NAMESPACE(Devices)
+
+/*!
+\brief DS 屏幕。
+\since 早于 build 218 。
+*/
+class DSScreen : public Screen
+{
+public:
+	typedef int BGType;
+
+private:
+	BGType bg;
+
+public:
+	/*!
+	\brief 构造：指定宽度和高度，从指定缓冲区指针。
+	*/
+	DSScreen(SDst, SDst, Drawing::BitmapPtr = nullptr);
+
+	/*!
+	\brief 复位。
+	\note 无条件初始化。
+	*/
+	static void
+	Reset();
+
+	/*!
+	\brief 取指针。
+	\note 无异常抛出。
+	\note 进行状态检查。
+	*/
+	virtual Drawing::BitmapPtr
+	GetCheckedBufferPtr() const ynothrow;
+	DefGetter(const ynothrow, const BGType&, BgID, bg)
+
+	/*!
+	\brief 更新。
+	\note 复制到屏幕。
+	*/
+	void
+	Update(Drawing::BitmapPtr);
+	/*!
+	\brief 更新。
+	\note 以纯色填充屏幕。
+	*/
+	void
+	Update(Drawing::Color = Drawing::Color());
+};
 
 DSScreen::DSScreen(SDst w, SDst h, BitmapPtr p)
 	: Devices::Screen(w, h, p),
@@ -141,22 +217,17 @@ DSScreen::GetCheckedBufferPtr() const ynothrow
 	{
 		InitVideo();
 
-		DSScreen& up_scr(FetchGlobalInstance().GetScreenUp());
-
-		up_scr.pBuffer = DS::InitScrUp(up_scr.bg);
-
-		DSScreen& down_scr(FetchGlobalInstance().GetScreenDown());
-
-		down_scr.pBuffer = DS::InitScrDown(down_scr.bg);
+		// NOTE: assert(YSL_ pScreenUp && YSL_ pScreenDown);
+		yunseq(YSL_ pScreenUp->pBuffer = DS::InitScrUp(YSL_ pScreenUp->bg),
+			YSL_ pScreenDown->pBuffer = DS::InitScrDown(YSL_ pScreenDown->bg));
 	}
-
 	return Devices::Screen::GetCheckedBufferPtr();
 }
 
 void
 DSScreen::Update(BitmapPtr buf)
 {
-	ScreenSynchronize(GetCheckedBufferPtr(), buf);
+	DS::ScreenSynchronize(GetCheckedBufferPtr(), buf);
 }
 void
 DSScreen::Update(Color c)
@@ -166,58 +237,9 @@ DSScreen::Update(Color c)
 
 YSL_END_NAMESPACE(Devices)
 
-namespace
-{
-	inline bool
-	operator!=(const Messaging::InputContent& x,
-		const Messaging::InputContent& y)
-	{
-		return !(x == y);
-	}
-
-	/*!
-	\brief 默认消息发生函数。
-	*/
-	void
-	Idle()
-	{
-		//等待图形用户界面输入。
-		using namespace Messaging;
-
-		static InputContent content, old_content;
-
-		// FIXME: crashing after sleeping(default behavior of closing then
-		// reopening lid) on real machine due to libnds default interrupt
-		// handler for power management";
-	//	platform::AllowSleep(true);
-		platform::WriteKeys(content.Keys);
-		if(content.Keys.Held & KeySpace::Touch)
-		{
-			CursorInfo cursor;
-
-			platform::WriteCursor(cursor);
-			yunseq(content.CursorLocation.X = cursor.GetX(),
-				content.CursorLocation.Y = cursor.GetY());
-		}
-	//	if((FetchAppInstance().Queue.IsEmpty() || content != old_content)
-		//	&& content.CursorLocation != Point::Invalid)
-		// NOTE: there is no background thread and Idle() would be only called
-		//	by the message loop of DSApplication::Run,
-		//	while FetchAppInstance().Queue.IsEmpty() is always true;
-		if(content.CursorLocation != Point::Invalid)
-		{
-			old_content = content,
-			SendMessage<SM_INPUT>(FetchShellHandle(), 0x40, content);
-		}
-	}
-
-	//注册的应用程序指针。
-	DSApplication* pApp;
-}
-
 
 DSApplication::DSApplication()
-	: pFontCache(), hScreenUp(), hScreenDown(), UIResponseLimit(0x40)
+	: pFontCache(), UIResponseLimit(0x40)
 {
 	YAssert(!YSL_ pApp, "Duplicate instance found"
 		" @ DSApplication::DSApplication;");
@@ -275,8 +297,8 @@ DSApplication::DSApplication()
 	//初始化显示设备。
 	try
 	{
-		hScreenUp = make_shared<DSScreen>(MainScreenWidth, MainScreenHeight);
-		hScreenDown = make_shared<DSScreen>(MainScreenWidth, MainScreenHeight);
+		pScreenUp = new DSScreen(MainScreenWidth, MainScreenHeight);
+		pScreenDown = new DSScreen(MainScreenWidth, MainScreenHeight);
 	}
 	catch(...)
 	{
@@ -301,8 +323,8 @@ DSApplication::~DSApplication()
 	pFontCache = nullptr;
 
 	//释放设备。
-	reset(hScreenUp);
-	reset(hScreenDown);
+	delete pScreenUp,
+	delete pScreenDown;
 }
 
 FontCache&
@@ -312,6 +334,41 @@ DSApplication::GetFontCache() const ythrow(LoggedEvent)
 		throw LoggedEvent("Null font cache pointer found"
 			" @ Application::GetFontCache;");
 	return *pFontCache;
+}
+
+Devices::Screen&
+DSApplication::GetScreenUp() const ynothrow
+{
+	YAssert(bool(pScreenUp), "Fatal error:"
+		" null screen pointer found @ DSApplication::GetScreenUp;");
+
+	return *pScreenUp;
+}
+Devices::Screen&
+DSApplication::GetScreenDown() const ynothrow
+{
+	YAssert(bool(pScreenDown), "Fatal error:"
+		" null screen pointer found @ DSApplication::GetScreenDown;");
+
+	return *pScreenDown;
+}
+
+bool
+DSApplication::DealMessage()
+{
+	using namespace Shells;
+
+	if(Queue.IsEmpty())
+		Idle();
+	else
+	{
+		if(Queue.Peek(msg, hShell, true) == SM_QUIT)
+			return false;
+		if(msg.GetPriority() < UIResponseLimit)
+			Idle();
+		Dispatch(msg);
+	}
+	return true;
 }
 
 void
@@ -326,29 +383,6 @@ DSApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
 	{
 		throw LoggedEvent("Error occured @ YApplication::ResetFontCache;");
 	}
-}
-
-int
-DSApplication::Run()
-{
-	using namespace Shells;
-
-	//消息循环。
-	while(true)
-	{
-		if(Queue.IsEmpty())
-			Idle();
-		else
-		{
-			if(Queue.Peek(msg, hShell, true) == SM_QUIT)
-				break;
-			if(msg.GetPriority() < UIResponseLimit)
-				Idle();
-			Dispatch(msg);
-		}
-	}
-	// TODO: return exit code properly;
-	return 0;
 }
 
 
@@ -470,7 +504,6 @@ main(int argc, char* argv[])
 {
 	using namespace YSL;
 
-	int r;
 	Log log;
 
 	try
@@ -479,8 +512,9 @@ main(int argc, char* argv[])
 			//应用程序实例。
 			DSApplication theApp;
 
-			//主体。
-			r = theApp.Run();
+			//主体：消息循环。
+			while(theApp.DealMessage())
+				;
 
 			//清理消息队列（当应用程序实例为静态存储期对象时需要）。
 		//	theApp.GetDefaultMessageQueue().Clear();
@@ -494,7 +528,6 @@ main(int argc, char* argv[])
 	#ifdef YSL_USE_MEMORY_DEBUG
 		OnExit_DebugMemory();
 	#endif
-		return r;
 	}
 	catch(std::exception& e)
 	{
@@ -504,5 +537,7 @@ main(int argc, char* argv[])
 	{
 		log.FatalError("Unhandled exception @ int main(int, char*[]);");
 	}
+	// TODO: return exit code properly;
+	return 0;
 }
 

@@ -54,7 +54,6 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="Makefile" />
 		<Unit filename="data\cp113.bin" />
 		<Unit filename="data\default_font.bin" />
 		<Unit filename="doc\CommonRules.txt" />

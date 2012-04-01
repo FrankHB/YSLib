@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r6897;
+\version r6899;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-03-26 08:33 +0800;
+	2012-03-28 18:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -110,7 +110,7 @@ RenderChar(ucs4_t c, TextState& ts, const Graphics& g, const Rect& mask,
 			sp += r.GetPoint() - dp;
 			if(alpha)
 			{
-				char_color = ts.Color | BITALPHA;
+				char_color = Color(ts.Color);
 				Blit<BlitTextLoop, false, false>(pair_iterator<BitmapPtr,
 					u8*>(g.GetBufferPtr(), alpha), ds, sbit.GetBuffer(), ss,
 					r.GetPoint(), sp, r.GetSize());
@@ -118,7 +118,7 @@ RenderChar(ucs4_t c, TextState& ts, const Graphics& g, const Rect& mask,
 			else
 				Blit<BlitBlendLoop, false, false>(g.GetBufferPtr(), ds,
 					MonoIteratorPair(pseudo_iterator<const PixelType>(
-					ts.Color | BITALPHA), sbit.GetBuffer()), ss,
+					Color(ts.Color)), sbit.GetBuffer()), ss,
 					r.GetPoint(), sp, r.GetSize());
 		}
 		//移动笔。

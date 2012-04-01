@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2325;
+\version r2334;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-03-24 16:18 +0800;
+	2012-03-27 08:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -370,12 +370,11 @@ protected:
 	*/
 	IO::Path CurrentPath;
 
-private:
 	/*!
 	\brief 背景任务：用于滚屏。
-	\since build 289 。
+	\since build 297 。
 	*/
-	std::function<void()> background_task;
+	std::function<void()> fBackgroundTask;
 
 public:
 	/*!
@@ -476,6 +475,13 @@ public:
 private:
 	void
 	ShowMenu(Menu::ID, const Point&);
+
+	/*!
+	\brief 停止自动滚屏。
+	\since build 297 。
+	*/
+	void
+	StopAutoScroll();
 
 	/*!
 	\brief 切换编码。

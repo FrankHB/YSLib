@@ -11,27 +11,30 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\ydef.h" />
-    <ClInclude Include="include\ystdex\algorithm.hpp" />
-    <ClInclude Include="include\ystdex\any.h" />
-    <ClInclude Include="include\ystdex\cast.hpp" />
-    <ClInclude Include="include\ystdex\cstdio.h" />
-    <ClInclude Include="include\ystdex\cstring.h" />
-    <ClInclude Include="include\ystdex\iterator.hpp" />
-    <ClInclude Include="include\ystdex\memory.hpp" />
-    <ClInclude Include="include\ystdex\operators.hpp" />
-    <ClInclude Include="include\ystdex\rational.hpp" />
-    <ClInclude Include="include\ystdex\type_op.hpp" />
-    <ClInclude Include="include\ystdex\utility.hpp" />
+    <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\ystdex\cstdio.cpp" />
-    <ClCompile Include="source\ystdex\cstring.cpp" />
+    <ClInclude Include="..\YBase\include\ydef.h" />
+    <ClInclude Include="..\YBase\include\ystdex\algorithm.hpp" />
+    <ClInclude Include="..\YBase\include\ystdex\any.h" />
+    <ClInclude Include="..\YBase\include\ystdex\cast.hpp" />
+    <ClInclude Include="..\YBase\include\ystdex\cstdio.h" />
+    <ClInclude Include="..\YBase\include\ystdex\cstring.h" />
+    <ClInclude Include="..\YBase\include\ystdex\iterator.hpp" />
+    <ClInclude Include="..\YBase\include\ystdex\memory.hpp" />
+    <ClInclude Include="..\YBase\include\ystdex\operators.hpp" />
+    <ClInclude Include="..\YBase\include\ystdex\rational.hpp" />
+    <ClInclude Include="..\YBase\include\ystdex\type_op.hpp" />
+    <ClInclude Include="..\YBase\include\ystdex\utility.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\YBase\source\ystdex\cstdio.cpp" />
+    <ClCompile Include="..\YBase\source\ystdex\cstring.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0D1961C7-0E8F-47CD-A2FB-D7920A469E51}</ProjectGuid>
+    <ProjectGuid>{C713494C-E435-4D29-B3B6-DFECD22DDCEC}</ProjectGuid>
     <Keyword>MakeFileProj</Keyword>
-    <ProjectName>YBase</ProjectName>
+    <ProjectName>YBase_DS</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" Label="Configuration">

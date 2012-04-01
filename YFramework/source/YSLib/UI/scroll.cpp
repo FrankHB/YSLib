@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4222;
+\version r4223;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2012-03-19 15:37 +0800;
+	2012-03-29 08:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -236,7 +236,7 @@ ATrack::CheckArea(SPos q) const
 	if(q >= 0)
 	{
 		yconstexpr Area lst[] = {OnPrev, OnThumb, OnNext};
-		const SPos a[] = {0, GetThumbPosition(),
+		const SPos a[] = {SPos(), SPos(GetThumbPosition()),
 			SPos(GetThumbPosition() + GetThumbLength())};
 		const size_t n(SwitchInterval(q, a, 3));
 

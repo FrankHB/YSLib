@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3074;
+\version r3184;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-03-26 16:59 +0800;
+	2012-03-29 08:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,6 +39,7 @@
 #include <ydef.h>
 #include <ystdex/cstdio.h>
 #include <cstdlib>
+#include <initializer_list> // for well-formedly using of std::initialize_list;
 
 //平台相关部分。
 #include "NativeAPI.h"
@@ -98,8 +99,11 @@ namespace platform
 	*/
 	const auto* const DEF_PATH_SEPERATOR = "/";
 //	const auto* const DEF_PATH_SEPERATOR = L"/";
-	// TODO: impl;
-//	#define DEF_PATH_ROOT ""
+	/*!
+	\brief 虚拟根目录路径。
+	\since build 297 。
+	*/
+	#define DEF_PATH_ROOT ".\\"
 
 	/*!
 	\brief 本机路径字符类型。
@@ -179,21 +183,77 @@ namespace platform
 
 	typedef s16 SPos; //!< 屏幕坐标度量。
 	typedef u16 SDst; //!< 屏幕坐标距离。
+
 #if defined(YCL_DS)
-	typedef u16 PixelType; //!< 像素。
-	typedef PixelType ScreenBufferType[SCREEN_WIDTH * SCREEN_HEIGHT]; \
-		//!< 主显示屏缓冲区。
-	#define BITALPHA BIT(15) //!<  Alpha 位。
+
+	/*!
+	\brief 标识 AXYZ1555 像素格式。
+	\since build 297 。
+	*/
+#	define YCL_PIXEL_FORMAT_AXYZ1555
+
+	/*!
+	\brief LibNDS 兼容像素。
+	\note ABGR1555 。
+	*/
+	typedef u16 PixelType;
+	/*!
+	\brief 取像素 Alpha 值。
+	\since build 297 。
+	*/
+	yconstfn auto
+	FetchAlpha(PixelType px) -> decltype(px & BIT(15))
+	{
+		return px & BIT(15);
+	}
+	/*!
+	\brief 取不透明像素。
+	\since build 297 。
+	*/
+	yconstfn PixelType
+	FetchOpaque(PixelType px)
+	{
+		return px | BIT(15);
+	}
 	#define DefColorH_(hex, name) name = \
-		RGB8(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF)) \
-		| BITALPHA
+		RGB8((((hex) >> 16) & 0xFF), (((hex) >> 8) & 0xFF), ((hex) & 0xFF)) \
+		| BIT(15)
 #elif defined(YCL_MINGW32)
 	/*!
-	\brief since build 296 。
+	\brief Windows DIB 格式兼容像素。
+	\note MSDN 注明此处第 4 字节保留为 0 ，但此处使用作为 8 位 Alpha 值使用。
+		即 ARGB8888 （考虑字节序为BGRA8888）。
+	\warning 仅用于屏幕绘制，不保证无条件兼容于所有 DIB 。
+	\note 转换 DIB 在设备上下文绘制时无需转换格式，比 ::COLORREF 更高效。
+	\since build 296 。
 	*/
-	typedef ::COLORREF PixelType;
-	#define DefColorH_(hex, name) name = \
-		RGB(((hex >> 16) & 0xFF), ((hex >> 8) & 0xFF), (hex & 0xFF))
+	typedef ::RGBQUAD PixelType;
+	/*!
+	\brief 取像素 Alpha 值。
+	\since build 297 。
+	*/
+	yconstfn ::BYTE
+	FetchAlpha(PixelType px)
+	{
+		return px.rgbReserved;
+	}
+	/*!
+	\brief 取不透明像素。
+	\since build 297 。
+	*/
+	yconstfn PixelType
+	FetchOpaque(PixelType px)
+	{
+		return {px.rgbBlue, px.rgbGreen, px.rgbRed, 0xFF};
+	}
+	/*!
+	\brief 定义 Windows DIB 格式兼容像素。
+	\note 得到的 32 位整数和 ::RGBQUAD 在布局上兼容。
+	\note Alpha 值为 0xFF 。
+	\since build 296 。
+	*/
+	#define DefColorH_(hex, name) name = (RGB((((hex) >> 16) & 0xFF), \
+		(((hex) >> 8) & 0xFF), ((hex) & 0xFF)) << 8 | 0xFF)
 #else
 #	error Unsupported platform found!
 #endif
@@ -208,9 +268,11 @@ namespace platform
 		#define	HexAdd0x(hex) 0x##hex
 		#define DefColorH(hex_, name) DefColorH_(HexAdd0x(hex_), name)
 
-		//参考：http://www.w3schools.com/html/html_colornames.asp 。
-
-		typedef enum
+		/*!
+		\brief 默认颜色集。
+		\see http://www.w3schools.com/html/html_colornames.asp 。
+		*/
+		typedef enum : u32
 		{
 			DefColorH(00FFFF, Aqua),
 			DefColorH(000000, Black),
@@ -257,15 +319,30 @@ namespace platform
 
 	public:
 		/*!
-		\brief 构造：使用本机颜色对象。
+		\brief 无参数构造：所有分量为 0 的默认颜色。
+		\since build 297 。
 		*/
 		yconstfn
-		Color(PixelType = 0);
+		Color();
+		/*!
+		\brief 构造：使用本机颜色对象。
+		\since build 297 。
+		*/
+		yconstfn
+		Color(PixelType);
+#ifdef YCL_MINGW32
+		/*!
+		\brief 构造：使用默认颜色。
+		\since build 297 。
+		*/
+		yconstfn
+		Color(ColorSet);
+#endif
 		/*!
 		\brief 使用 RGB 值和 alpha 位构造 Color 对象。
 		*/
 		yconstfn
-		Color(MonoType, MonoType, MonoType, AlphaType = true);
+		Color(MonoType, MonoType, MonoType, AlphaType = 0xFF);
 
 		/*!
 		\brief 转换：本机颜色对象。
@@ -296,12 +373,17 @@ namespace platform
 	};
 
 	yconstfn
+	Color::Color()
+		: r(0), g(0), b(0), a(0)
+	{}
+
+	yconstfn
 	Color::Color(PixelType px)
 #if defined(YCL_DS)
 		: r(px << 3 & 248), g(px >> 2 & 248), b(px >> 7 & 248),
-		a(px & BITALPHA ? 0xFF : 0x00)
+		a(FetchAlpha(px) ? 0xFF : 0x00)
 #elif defined(YCL_MINGW32)
-		: r(GetRValue(px)), g(GetGValue(px)), b(GetBValue(px)), a(0xFF)
+		: r(px.rgbRed), g(px.rgbGreen), b(px.rgbBlue), a(px.rgbReserved)
 #else
 #	error Unsupport platform found!
 #endif
@@ -310,6 +392,13 @@ namespace platform
 	Color::Color(MonoType r_, MonoType g_, MonoType b_, AlphaType a_)
 		: r(r_), g(g_), b(b_), a(a_)
 	{}
+#ifdef YCL_MINGW32
+	yconstfn
+	Color::Color(ColorSet cs)
+		: r(GetRValue(cs >> 8)), g(GetGValue(cs >> 8)), b(GetBValue(cs >> 8)),
+		a(0xFF)
+	{}
+#endif
 
 	yconstfn
 	Color::operator PixelType() const
@@ -317,7 +406,7 @@ namespace platform
 #if defined(YCL_DS)
 		return ARGB16(int(a != 0), r >> 3, g >> 3, b >> 3);
 #elif defined(YCL_MINGW32)
-		return RGB(r, g, b);
+		return {b, g, r, a};
 #else
 #	error Unsupport platform found!
 #endif
@@ -344,11 +433,14 @@ namespace platform
 		return a;
 	}
 
-	//! \brief 本机按键空间。
+	/*!
+	\brief 本机按键空间。
+	\note MinGW32 下的 KeySpace 中仅含每个实现默认需要支持的基本集合。
+	*/
 	namespace KeySpace
 	{
 #if defined(YCL_DS)
-		//按键集合。
+		//本机按键集合。
 		typedef enum
 		{
 			Empty	= 0,
@@ -376,13 +468,22 @@ namespace platform
 			PgDn = R;
 #elif defined(YCL_MINGW32)
 		/*!
-		\since build 296 。
-		\todo 完整定义。
+		\brief 基本公用按键集合。
+		\since build 297 。
 		*/
 		//@{
-		typedef int KeySet;
-		const KeySet Enter = 13,
-			Esc = 27;
+		typedef enum
+		{
+			Empty	= 0,
+			Enter	= VK_RETURN,
+			Esc		= VK_ESCAPE,
+			PgUp	= VK_PRIOR,
+			PgDn	= VK_NEXT,
+			Left	= VK_LEFT,
+			Up		= VK_UP,
+			Right	= VK_RIGHT,
+			Down	= VK_DOWN
+		} KeySet;
 		//@}
 #else
 #	error Unsupport platform found!
@@ -657,14 +758,6 @@ namespace platform
 
 
 	/*!
-	\brief 快速刷新缓存映像到显示屏缓冲区。
-	\note 第一参数为显示屏缓冲区，第二参数为源缓冲区。
-	*/
-	void
-	ScreenSynchronize(PixelType*, const PixelType*);
-
-
-	/*!
 	\brief 启动控制台。
 	\note fc 为前景色，bc为背景色。
 	*/
@@ -823,6 +916,15 @@ namespace platform_ex
 	*/
 	platform::BitmapPtr
 	InitScrDown(int&);
+
+	/*!
+	\brief 快速刷新缓存映像到显示屏缓冲区。
+	\note 第一参数为显示屏缓冲区，第二参数为源缓冲区。
+	\since build 184 。
+	*/
+	void
+	ScreenSynchronize(platform::PixelType*, const platform::PixelType*);
+
 #elif defined(YCL_MINGW32)
 // TODO: add WinAPIs;
 #else

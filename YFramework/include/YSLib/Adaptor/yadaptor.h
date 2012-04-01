@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2282;
+\version r2296;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2012-03-07 12:18 +0800;
+	2012-03-28 19:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -136,7 +136,6 @@ YSL_BEGIN
 
 	//基本输入输出接口。
 	using platform::InitVideo;
-	using platform::ScreenSynchronize;
 	using platform::WaitForInput;
 
 	//计时器和时钟。
@@ -160,7 +159,13 @@ YSL_BEGIN_NAMESPACE(Drawing)
 	using platform::PixelType;
 	using platform::BitmapPtr;
 	using platform::ConstBitmapPtr;
-	using platform::ScreenBufferType;
+	/*!
+	\since build 297 。
+	*/
+	//@{
+	using platform::FetchAlpha;
+	using platform::FetchOpaque;
+	//@}
 	using platform::Color;
 	namespace ColorSpace = platform::ColorSpace;
 
@@ -175,12 +180,6 @@ YSL_END_NAMESPACE(Text)
 	using Text::ucs4_t;
 	using Text::ucs2_t;
 	using Text::ucsint_t;
-
-	//! \brief 运行时平台。
-	namespace DS
-	{
-		using namespace platform_ex;
-	}
 
 YSL_END
 

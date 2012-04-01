@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5797;
+\version r5816;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-03-26 10:28 +0800;
+	2012-03-30 17:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -63,9 +63,9 @@ namespace
 	{
 		//hypY1
 		buf[y * MainScreenWidth + x] = Color(
-			(~(x * y) >> 2),
-			(x | y | 128),
-			(240 - ((x & y) >> 1))
+			~(x * y) >> 2,
+			x | y | 128,
+			240 - ((x & y) >> 1)
 		);
 	}
 	void
@@ -73,9 +73,9 @@ namespace
 	{
 		//bza1BRGx
 		buf[y * MainScreenWidth + x] = Color(
-			((x << 4) / (y | 1)),
-			((x | y << 1) % (y + 2)),
-			((~y | x << 1) % 27 + 3)
+			(x << 4) / (y | 1),
+			(x | y << 1) % (y + 2),
+			(~y | x << 1) % 27 + 3
 		);
 	}
 	void
@@ -83,9 +83,9 @@ namespace
 	{
 		//fl1RBGx
 		buf[y * MainScreenWidth + x] = Color(
-			(x + y * y),
-			((x & y) ^ (x | y)),
-			(x * x + y)
+			x + y * y,
+			(x & y) ^ (x | y),
+			x * x + y
 		);
 	}
 	void
@@ -93,19 +93,19 @@ namespace
 	{
 		//rz3GRBx
 		buf[y * MainScreenWidth + x] = Color(
-			((x * y) | x),
-			((x * y) | y),
-			((x ^ y) * (x ^ y))
+			(x * y) | x,
+			(x * y) | y,
+			(x ^ y) * (x ^ y)
 		);
 	}
 	void
 	dfac2(BitmapPtr buf, SDst x, SDst y)
 	{
-		//v1BGRx
+		//v1BGRx1
 		buf[y * MainScreenWidth + x] = Color(
-			((x << 4) / (y & 1)),
-			(~x % 101 + y),
-			((x + y) % ((y - 2) & 1) + (x << 2))
+			(x << 4) / ((y & 1) | 1),
+			~x % 101 + y,
+			(x + y) % (((y - 2) & 1) | 129) + (x << 2)
 		);
 	}
 	void
@@ -113,9 +113,9 @@ namespace
 	{
 		//arz1x
 		buf[y * MainScreenWidth + x] = Color(
-			((x | y) % (y + 2)),
-			((~y | x) % 27 + 3),
-			((x << 6) / (y | 1))
+			(x | y) % (y + 2),
+			(~y | x) % 27 + 3,
+			(x << 6) / (y | 1)
 		);
 	}
 

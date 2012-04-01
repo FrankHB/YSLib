@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3557; *build 296 rev 40;
+\version r3558; *build 297 rev 38;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-03-26 17:36 +0800;
+	2012-04-01 08:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -363,340 +363,280 @@ $using:
 
 $DONE:
 r1:
-/ @ \cl (BitmapBuffer; BitmapBufferEx) @ \u YGDI $=
+/ @ \u ShlReader $=
 (
-	* rem @ (\ctor, \dtor) $since b240,
-	* \impl @ move \ctor $since b241;
+	/ @ protected \m background_task -> protected \m fBackgroundTask
+		@ \cl ShlReader;
+	* missing automatic scrolling response @ text reader @ \cl ShlTextReader
+		$since b296 $=
 	(
-		+ \mf Swap;
-		* missing assignment operators $since $before b132
-			$= (+ (copy, move) \i \op=)
-	)
-),
-+ 'ynothrow' @ unification \op= @ \cl Message @ \h YMessage;
+		+ \mf StopAutoScroll;
+		/ \impl @ \mf (OnClick, OnKeyDown)
+	);
+	+ $comp adjusting reader when key is down
+);
 
 r2:
-/ $design \impl @ \cl ValueObject $=
-(
-	* \tr \impl $since r1 $=
-	(
-		+ 'ynothrow' @ move \ctor,
-		+ 'ynothrow' @ \mf (Swap, Clear);
-		+ 'ynothrow' @ move \op=
-	),
-	+ ('yconstfn', 'ynothrow') @ \ctor ValueObject()
-);
-/ $design \impl @ \mf Message::Swap ^ \mf ValueObject::Swap;
+/ stopping automatic scrolling when setting panel entered $=
+	(/ \impl @ \mf ShlTextReader::Execute @ \impl \u ShlReader);
+* $comp smooth scrolling wrong behavior when the delay set less than before
+	$since b292;
 
-r3-r5:
-/ @ ((\cl BitmapBuffer @ \h YGDI), (\cl GraphicDevice @ \h YDevice)) $=
+r3:
++ \ft pod_cast @ \h Cast,
+/ @ \h YCommon $=
 (
-	/ \ac @ \inh \cl Graphics -> protected ~ public,
-	+ using Graphics::IsValid,
-	+ using Graphics::GetBufferPtr,
-	+ using Graphics::GetHeight,
-	+ using Graphics::GetWidth,
-	+ using Graphics::GetSize,
-	+ using Graphics::GetSizeOfBuffer,
-	+ \mf DefGetter(const ynothrow, const Graphics&, Context, *this)
+	/ typedef ::COLORREF PixelType -> typedef ::RGBQUAD PixelType when defined
+		YCL_MINGW32,
+	+ \inh u32 @ typedef ColorSpace::ColorSet;
+	/ @ \cl Color $=
+	(
+		- \de \arg @ \ctor with 1 \arg;
+		+ \de \ctor,
+		/ \impl @ \mf \op PixelType,
+		+ yconstfn \ctor Color(ColorSet) when defined YCL_MINGW32
+	)
 );
-- \vt @ \dtor @ \cl Graphics,
-/ \tr \impl @ \mf BufferedRenderer::GetContext,
-/ \tr \impl @ \mf ImageBrush::\op(),
-/= test 1,
-/ \tr \impl @ \mf TestObj::Fill @ \un \ns @ \impl \u Shells;
+
+r4:
++ \inc \h <initializer_list> @ \h YCommon;
+/ \impl @ \ctor Palette @ \impl \u YStyle ^ initializer lists;
+
+r5:
+/= test 1 ^ \conf release;
 
 r6:
+/ fork \proj \ref YBase_DS ~ YBase,
+/ fork \proj \ref YFramework_DS ~ YFramework;
+/ @ Makefile @ \proj (YBase_DS, YFramework_DS, YSTest_ARM9);
+
+r7:
 /= test 2 ^ \conf release;
 
-r7-r9:
-/ @ \cl TextRegion $=
+r8:
+- \a using '*::ScreenBufferType';
+/ typedef ScreenBufferType @ \h YCommon >> \impl
+	@ \f ScreenSynchronize @ \impl \u,
+/ \f ScreenSynchronize @ \ns platform => \ns platform_ex @ \u YCommon;
+/ \tr @ \h YAdaptor $=
 (
-	+ \exp \de (copy, move) ctor;
-	+ \exp \de (copy, move) \op=
+	- using platform::ScreenSynchronize;
+	/ \ns DS >> \h DSMain
+);
+/ \tr \impl @ \mf DSScreen::Update @ \impl \u DSMain;
+
+r9:
+/ @ \h YCast $=
+(
+	+ \inc \h <initializer_list>;
+	/ pod_cast -> union_cast
 ),
-/= test 3;
+/ @ \h YCommon $=
+(
+	/ \inc \h <initializer_list> >> \h Cast;
+	/ \mac DefColorH_ when defined YCL_MINGW32,
+	/ @ \cl Color $=
+	(
+		* \ctor with alpha value $since b;
+		/ \impl @ \mf \op PixelType ^ union_cast when defined YCL_MINGW32,
+		/ \impl @ \mf \ctor when defined YCL_MINGW32
+	)
+);
 
 r10:
-/ @ \cl Message $=
+/ @ \h YCommon $=
 (
-	/ \mf \op=(Message) @ \cl Message -> \de (copy, move) \op=;
-		Message&,
-	+ 'ynothrow' @ \mf operator=(ValueObject&&)
+	+ \mac YCL_PIXEL_ALPHA;
+	/ \mac BITALPHA => \impl \u
 );
+/ \tr \impl @ \h YBlit,
+/ \tr \impl @ \ft transform_pixel_ex @ \h YStyle,
+/ \tr \impl @ \f RenderChar @ \impl \u CharRenderer;
 
 r11:
-/ @ \u ShlReader $=
-(
-	/ \m (ReadingList& LastRead, ReaderSetting& CurrentSetting)
-		@ \cl ShlReader >> \cl TextReaderSession;
-	/ \tr \impl @ \impl \u
-);
+/= test 3;
 
 r12:
-/ @ \cl ShlDS @ Shell_DS $=
+/ @ \h YCommon $=
 (
-	/ \ctor ShlDS() -> ShlDS(const shared_ptr<Desktop>& = nullptr,
-		const shared_ptr<Desktop>& = nullptr),
-	(
-		/ private \m hDskUp => desktop_up_ptr,
-		/ private \m hDskDown => desktop_down_ptr;
-		/ \tr \impl @ getters
-	)
-),
-/ @ \u ShlReader $=
-(
-	/ \simp @ \cl (ReaderBox, FileInfoPanel) $=
-	(
-		- \m Shell,
-		/ \tr @ \ctor
-	);
-	/ \tr \impl @ \ctor (TextReaderSession, HexReaderSession)
+	/ \mac YCL_PIXEL_ALPHA -> yconstfn \f FetchAlpha;
+	+ yconstfn \f FetchOpaque;
+	/ \tr \impl @ \ctor Color when defined YCL_DS
 );
++ using platform::(FetchAlpha, FetchOpaque) @ \h YAdaptor;
+* \tr \impl @ \h YBlit $since r10;
 
 r13:
-/ @ \u ShlReader $=
-(
-	/ @ \cl ReaderSession $=
-	(
-		+ public \inh \cl ShlDS,
-		- \m Shell,
-		- \dtor,
-		- \del (copy, move) \ctor,
-		/ \tr \impl @ \ctor
-	);
-	/ @ \cl ShlReader $=
-	(
-		- \m pManager,
-		/ \m (background_task, \mf (Exit, OnInput)) >> \cl TextReaderSession,
-		/ \tr \impl @ \ctor,
-		- typedef ShlDS ParentType
-	);
-	/ \tr \impl @ \cl (TextReaderSession, HexReaderSession)
-);
+/= test 4 ^ \conf release;
 
 r14:
-/= test 4;
++ '#undef DialogBox' @ \h NativeAPI when defined YCL_MINGW32,
+(
+	+ \mac YCL_PIXEL_FORMAT_AXYZ1555 @ \h YCommon when defined YCL_DS;
+	/ \impl @ \h YBlit when !defined YCL_DS;
+),
+/ 'yconstfn' -> 'inline' @ \ctor Screen @ \h YDevice;
 
 r15:
-/ \simp @ \ctor (TextReaderSession, HexReaderSession; ReaderSession)
-	@ \u ShlReader;
-/ \impl @ \mf ShlExplorer::ShlExplorer @ \impl \u Shells;
+/ !\rem DEF_PATH_ROOT @ \h YCommon when defined YCL_MINGW32,
+/ @ \h DSMain,
+/ BOM @ \h YFile_(Text);
 
 r16:
-/ @ \u ShlReader $=
+* deleted copy \ctor @ \cl BorderBrush $since b295 $=
 (
-	/ \cl ReaderSession \mg -> \cl ShlReader;
-	/ \cl TextReaderSession => ShlTextReader,
-	/ \cl HexReaderSession => ShlHexBrowser
+	+ \exp \de copy \ctor,
+	- \exp \de move \op=
 );
 
 r17:
-/ @ \u ShlReader $=
-(
-	- \a \s \m \o @ \cl ShlReader;
-	/ private \m IO::Path @ \cl ShlTextReader
-		-> protected \m IO::Path CurrentPath @ \cl ShlReader;
-	/ \tr \ctor @ \cl (ShlTextReader, ShlHexBrowser) @ \u ShlReader
-);
-/ \tr \impl @ \ctor ShlExplorer @ \impl \u Shells;
++ typedef int KeySet -> typedef \en KeySet @ \ns KeySpace @ \h YCommon
+	when defined YCL_MINGW32,
+/ \impl @ \ctor TextList,
+/ \impl @ \mf ATrack::CheckArea;
 
 r18:
-/= test 5 ^ \conf release;
+/ @ \h DSMain $=
+(
+	/ \impl @ \f \i FetchDefaultScreen;
+	- \mf \i DSApplication::GetDefaultScreen
+);
 
 r19:
-* \impl @ \mac (YCL_LIKELY, YCL_UNLIKELY) @ \h YDefinition
-	when !(YCL_IMPL_GNUCPP >= 29600) $since b294,
-/ \mf UpdateInfo \mg -> \ctor @ \cl ShlHexBrowser @ \u ShlReader;
+/ \simp \impl @ \f InitConsole @ \impl \u YGlobal;
+/ @ \u DSMain $=
+(
+	/ @ \cl DSApplication $=
+	(
+		- \decl friend DSApplication& FetchGlobalInstance() ynothrow,
+		(
+			/ \mf \i DSScreen& GetScreenUp() const ynothrow
+				-> \mf !i Screen& GetScreenUp() const ynothrow,
+			/ \mf \i DSScreen& GetScreenUp() const ynothrow
+				-> \mf !i Screen& GetScreenUp() const ynothrow,
+			(
+				- \mf (GetScreenUpHandle, GetScreenDownHandle),
+				- private \m shared_ptr<Devices::DSScreen>
+					(hScreenUp, hScreenDown),
+			);
+			/ \tr \impl @ (\ctor, \dtor)
+		)
+	);
+	/ \cl DSScreen @ \h >> \impl \u,
+	+ \o DSScreen* (pScreenUp, pScreenDown) @ \un \ns,
+	/ \tr \simp \impl @ \mf DSScreen::GetCheckedBufferPtr
+);
 
 r20:
-/ \simp \impl @ (\ctor, \dtor) ShlTextReader @ \impl \u ShlReader;
+* \impl @ \mf DSApplication::GetScreenUp $since r19;
 
 r21:
+/ $design \impl @ \h TextRenderer for warnings concerned to char type sign,
+/ \impl @ \ctor SettingPanel @ \impl \u ShlReader,
+/ @ \cl GraphicDevice @ \h YDevice $=
 (
-	- 1st \de \arg @ \ctor Console @ \u YConsole;
-	- \f \i FetchDefaultScreen @ \h YGlobal
-),
-/ @ \h TextArea $=
-(
-	/ \cl (TextArea, BufferedTextArea) $=
-	(
-		- / 2nd \param @ \ctor,
-		+ \ctor
-	)
-	- \inc \h YGlobal @ \h TextArea;
-),
-/ \inc \h YGlobal @ (\impl \u (YFont, YShellInitialization),
-	\h (Build, HexBrowser)) -> \h DSMain;
-+ \u DSMain["DSMain.h", "DSMain.cpp"] @ \dir Helper;
-/ (\cl (DSScreen; DSApplication); \f \i (FetchGlobalInstance;
-	FetchDefaultFontCache, FetchDefaultScreen),
-	(\cl Log @ \un \ns; \f ShowFatalError)) @ \u YGlobal >> \u DSMain;
-+ \tr \h DSMain @ \h DSReader,
-/ \inc \h YApplication -> \h YMessageDefiniton @ \h YGlobal,
-/ \tr \inc YGlobal @ \impl \u YGlobal -> \h DSMain;
+	* missing virtual \dtor $since b296;
+	/ \tr 'yconstfn' -> 'inline' @ \ctor
+);
 
 r22:
-* $doc @ \f LocateForParentContainer $since b242,
-* $doc @ \s \m @ screen object types $since $before b132,
-(
-	/ \impl @ \ctor (SettingPanel, ShlHexBrowser, FileInfoPanel) @ \u ShlReader,
-	- (3rd-6th) \de \arg @ \f BlitTo#1, CopyTo#(1, 2) @ \h YGDI;
-	/ @ \u YGDIBase $=
-	(
-		+ \sm Size::Invalid;
-		+ \sm Rect::FullScreen -> Rect::Invalid;
-		- \sm Size::FullScreen
-	);
-);
++ '-D_GLIBCXX_DEBUG' @ \a \mac CFLAGS @ \a debug mode @ Makefile;
 
 r23:
-(
-	/ @ \h YResource $=
-	(
-		- \a \de \arg @ \mf Image::SetImage;
-		- \inc \h YGlobal
-	);
-	/ \c \o (MainScreenWidth, MainScreenHeight) @ \ns YSLib @ \h YGlobal
-		>> \h DSMain;
-),
-- \inc \h (YShellInitialization, Shell_DS) @ \impl \u YGlobal,
-/ \inc \h ShellHelper @ \h Shell_DS -> \h (DSMain, Label);
-+ \tr \inc \h @ \h Shells;
+/= test 5 ^ \conf release;
 
 r24:
-/ \inc \h (DSMain, Label) @ \h Shell_DS -> \h (YShell, YString),
-+ \tr \inc \h Shell_DS @ \h (DSMain, Label),
-/ \inc \h Shell_DS @ \impl \u Shell_DS -> \h (DSMain, YDesktop, YGUI);
-/ \cl MainShell @ \ns Shells @ \h Shell_DS >> \ns Shells @ \h DSMain;
+* accessing uninitialized member @ font cache $since $before b132;
+* $comp chashing @ MinGW32 @ initialization $since r20;
+/ @ \cl Font $=
+(
+	/ private \m Style => style,
+	/ \impl @ \ctor ^ initializer list
+);
 
 r25:
-/ \u YFont["yfont.h", "yfont.cpp"] => Font["font.h", "font.cpp"],
-/ \u YShellInitialization["ysinit.h", "ysinit.cpp"] @ \dir Adaptor
-	-> Initialization["Initialization.h", "Initialization.cpp"] @ \dir Helper;
-/ \tr \inc \h @ (TextBase, Build);
+* integer dividing by 0 @ \impl @ \f dfac2 @ \un \ns $since $before b132;
 
 r26:
-/= test 6 ^ \conf release;
+/ @ \u DSMain $=
+(
+	/ @ \cl DSApplication @ \u DSMain $=
+	(
+		+ \mf DealMessage();
+		- \mf Run
+	);
+	/ \impl @ \f main
+);
 
 r27:
-- \inc \h YGlobal @ (\h DSMain, \impl \u (YShell, YGDIBase)),
-+ \tr \inc \h YGlobal @ \impl \u (DSMain, Shell_DS, YGlobal),
-+ \tr \inc \h YCoreUtilities @ \impl \u YGDIBase;
+* \impl @ \mf DSApplication::DealMessage $since r26;
 
 r28:
-/ \inc \h YGlobal @ \h YConsole -> \h YDevice,
-+ \inc \h YGlobal @ \h YConsole;
-- \inc \h YConsole @ \h YUIContainer;
-/ \u YConsole["yconsole.h", "yconsole.cpp"] @ \dir UI
-	-> \u Console["console.h", "console.cpp"];
+/ \impl @ \mf main @ \impl \u DSMain;
 
 r29:
-- 'ynothrow' @ \ft unsequenced @ \h YDefinition;
+* \impl @ \dtor @ \cl Shells $since b;
 
-r30:
-+ protected yconstfn (\exp \de \ctor, copy \ctor) @ (\cl common_iterator_base,
-	\clt iterator_operations) @ \h Iterator;
+r30-r31:
+/= test 6;
 
-r31:
-/ @ \h YGDIBase $=
-(
-	+ \ctor \t GBinaryGroup(const Rect&),
-	+ \ctor Size(const Rect&);
-	/ @ \cl Rect $=
-	(
-		/ \ac @ \inh \cl (Point, Size) -> private ~ public;
-		+ using Point::X,
-		+ using Point::Y,
-		+ using Size::Width,
-		+ using Size::Height,
-		+ using Size::IsEmpty,
-		+ using Size::IsLineSegment,
-		+ using Size::IsUnstrictlyEmpty,
-		+ \mf DefGetter(ynothrow, Point&, PointRef, static_cast<Point&>(*this)),
-		+ \mf DefGetter(ynothrow, Size&, SizeRef, static_cast<Size&>(*this))
-	)
-);
-/ \tr \impl @ \f (DrawRect#2, FillRect#2) @ \h YDraw,
-/ \tr \impl @ \impl @ \f RenderChar @ \impl \u YCharRenderer,
-/ \tr \impl @ \ctor ListBox,
-/ \tr \impl @ (\ft \i TransformRect, \ft \op() @ \st RectTransformer)
-	@ \h YBlit,
-/ \tr \impl @ \mf ImageBrush::\op(),
-/ \tr \impl @ \mf BufferedTextArea::(Refresh, SetSize, UpdateTo, Validate),
-/ \tr \impl @ \f Invalidate#2 @ \impl \u YWidget;
+r32:
++ \as @ \dtor @ \cl Application;
 
 r33:
-/= test 6 ^ \conf release;
+/ \impl @ \f WriteCursor @ \impl \u YCommon,
+/ \simp \impl @ \f Idle @ \un \ns @ \impl \u DSMain;
 
 r34:
-- \mf \vt BitmapBuffer::BeFilledWith;
+/ \impl @ \mf ShlDS::OnGotMessage @ \impl \u Shell_DS,
+/ \impl @ \f Idle @ \un \ns @ \impl \u DSMain;
 
 r35:
-/ \a \mac INCLUDED_API_H_ => YCL_INC_NATIVEAPI_H_ @ \h NativeAPI,
-/ @ \h Platform $=
-(
-	/ \a \mac INCLUDED_PLATFORM_H_ => YCL_INC_PLATFORM_H_,
-	- \mac _ATTRIBUTE @ \h Platform
-);
+/ DefMessageTarget(SM_INPUT, InputContent) @ \h YGlobal
+	-> DefMessageTarget(SM_INPUT, void) @ \h YMessageDefinition,
+/ 'Input = 0x4001' @ typedef \en MessageID @ \h YMessageDefinition
+	-> 'Input = 0x00FF';
+/ \simp \impl @ \f Idle @ \un \ns @ \impl \u DSMain;
 
 r36:
-/ @ \u YCommon $=
-(
-	/ $code (
-		using ::swiWaitForVBlank;
-
-		using ::lcdMainOnTop;
-		using ::lcdMainOnBottom;
-		using ::lcdSwap;
-		using ::videoSetMode;
-		using ::videoSetModeSub;
-
-		using ::touchRead;
-	) @ \ns platform >> \ns platform_ex,
-	/ \f (AllowSleep, ResetVideo, 'WaitFor*') \exc WaitForInput
-		@ \ns platform >> \ns platform_ex,
-	/ \un \ns @ \ns platform @ \impl \u >> \g \ns
-);
+/ \a SendMessage => PostMessage,
+/ \impl @ \f FetchCurrentSetting @ \un \ns @ \impl \u ShlReader;
 
 r37:
-+ \impl u NativeAPI["NativeAPI.h"] @ \dir YCLib;
-/ @ (\h Platform, \h NativeAPI, \u YCommon);
+/ \impl @ \mf ShlDS::OnGotMessage;
+- \cl InputContent @ ns Messaging @ \u (YGlobal, DSMain);
 
 r38:
-+ \mac YCL_ATTRIBUTE @ \h YDefinition;
-+ (\inc \h <stdint.h>; integer typedefs) when defined(YCL_MINGW32)
-	@ \h NativeAPI;
-/ @ \u YCommon;
-
-r39:
-/ \impl @ \f mkdirs @ \impl \u YCommon ^ DEF_PATH_DELIMITER ~ '/';
-
-r40:
 /= test 7 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-03-26:
--6.2d;
-//Mercurial rev1-rev168: r8140;
+2012-04-01:
+-7.9d;
+//Mercurial rev1-rev168: r8178;
 
 / ...
 
 
 $NEXT_TODO:
-b297-b300:
+b298-b324:
+/ @ \h YCommon $=
+(
+	+ \inc \h <bitset>,
+	/ @ \cl KeyCode
+),
 / \impl @ \u (DSReader, ShlReader) $=
 (
 	/ $design \simp \impl
-);
+),
+- \inc \h "YSLib/Helper/DSMain.h" @ \impl \u YGlobal;
++ dynamic character mapper loader for \u CharacterMapping;
 
 
 $TODO:
-b301-b400:
-+ dynamic character mapper loader for \u CharacterMapping,
+b325-b400:
 / $design $low_prior robustness and cleanness $=
 (
 	/ noncopyable GUIState,
@@ -710,6 +650,10 @@ b301-b400:
 	/ \ctor @ Font ^ initializer_list,
 	/ \mf \vt Clone -> \amf @ \cl AController ^ g++ 4.7,
 	+ 'yconstexpr' @ \s \m Graphics::Invalid
+),
+/ improving pedantic compatiblity $=
+(
+	/ \mac with no \arg
 ),
 + $design $low_prior helpers $=
 (
@@ -759,7 +703,6 @@ b401-b768:
 	+ general resouce management,
 	/ @ "GDI" $=
 	(
-		* platform-neutrality @ alpha blending \impl,
 		+ basic animation support,
 		+ more GDI algorithms
 	),
@@ -983,6 +926,7 @@ $module_tree $=
 			'core'
 			(
 				'basic objects',
+				'devices',
 				'messaging',
 				'events',
 				'shell abstraction',
@@ -996,7 +940,8 @@ $module_tree $=
 				'DS main unit'
 			),
 			'services',
-			'GUI'
+			'GUI',
+			'UI styles'
 		)
 	),
 	'YReader'
@@ -1010,6 +955,62 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YReader'. $=
+	(
+		/ %'text reader' %=
+		(
+			(
+				(
+					* "missing automatic scrolling response" $since b296;
+					+ $comp "adjusting reader when key is down"
+				);
+				(
+					/ "stopping automatic scrolling when setting panel entered";
+					* $comp "smooth scrolling wrong behavior when the delay \
+						set less than before" $since b292
+				)
+			),
+			/ "default setting"
+		),
+		* "integer dividing by 0" @ "background" @ %'shells test example'
+	),
+	+ "function template %union_cast for type casting through anonymous union"
+		@ %'YBase',
+	/ %'YFramework' $=
+	(
+		/ "unit %YCommon" @ %'YCLib' $=
+		(
+			/ @ "defined %YCL_MINGW32" $=
+			(
+				/ "pixel format";
+				/ $design "implementation" @ "class %Color \
+					for efficiency bitmap transferring",
+			)
+			/ "function %ScreenSynchronize" @ "namespace %platform"
+				>> "namespace %platform_ex"
+		),
+		/ $design "implementation" @ "class %Palette" ^ "initializer lists"
+			~ "assignments for efficiency" @ %'UI styles',
+		+ "blit algorithm implementation without pixel format dependency"
+			@ "unit YBlit" @ %'services',
+		* "using implicitly deleted copy constructor on events causing \
+			ill-formed program" @ "class %BorderBrush" @ %'GUI' $since b295,
+		/ %'core' $=
+		(
+			* "missing virtual destructor" @ "class %GraphicDevice"
+				@ %'devices' $since b296,
+			/ "message %SM_INPUT value and parameter type" @ %'messaging'
+		),
+		* "accessing uninitialized member" @ "font cache" $since $before b132,
+		/ $design "exposed message dealing interface" @ 'helpers',
+	),
+	/ $design "VS2010 solution directories and filters",
+	/ $design (+ '-D_GLIBCXX_DEBUG' @ "compiler command line" @ "debug mode")
+		@ "makefiles" @ "all projects"
+),
+
+b296
 (
 	/ %'YFramework' $=
 	(

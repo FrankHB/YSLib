@@ -54,7 +54,6 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="Makefile" />
 		<Unit filename="include\ydef.h" />
 		<Unit filename="include\ystdex\algorithm.hpp" />
 		<Unit filename="include\ystdex\any.h" />

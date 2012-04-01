@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r1212;
+\version r1218;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 293 。
 \par 创建时间:
 	2012-01-10 19:55:30 +0800;
 \par 修改时间:
-	2012-03-18 21:49 +0800;
+	2012-03-28 21:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -118,13 +118,17 @@ public:
 
 	DefDeCtor(BorderBrush)
 	/*!
+	\brief 复制构造：默认实现。
+	\since build 297 。
+	*/
+	DefDeCopyCtor(BorderBrush)
+	/*!
 	\brief 初始化；使用指定边框样式。
 	\since build 295 。
 	*/
 	BorderBrush(const BorderStyle&);
 
 	inline DefDeCopyAssignment(BorderBrush)
-	inline DefDeMoveAssignment(BorderBrush)
 
 	void
 	operator()(PaintEventArgs&&);

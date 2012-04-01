@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,14 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief 库编译配置。
-\version r1581;
+\version r1585;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 161 。
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2011-10-05 17:41 +0800;
-\par 字符集:
+	2012-04-01 08:23 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Adaptor::Configuration;
@@ -61,9 +62,7 @@
 
 /*!
 \brief YSLib MSG Debug
-\li bit0 ：SendMessage 。
-\li bit1 ：PeekMessage 。
-\note PeekMessage 包含 SendMessage 。
+\note 当前版本忽略。
 */
 #define YSL_DEBUG_MSG 0
 

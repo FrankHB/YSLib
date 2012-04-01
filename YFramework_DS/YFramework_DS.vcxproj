@@ -1,0 +1,309 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="debug|Win32">
+      <Configuration>debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="release|Win32">
+      <Configuration>release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\YFramework\data\cp113.bin">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\YFramework\data\default_font.bin">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\YFramework\doc\CommonRules.txt" />
+    <None Include="..\YFramework\doc\Definitions.txt" />
+    <None Include="..\YFramework\doc\Designation.txt" />
+    <None Include="..\YFramework\doc\YSLib.txt" />
+    <None Include="Makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\YFramework\include\CHRLib\chrdef.h" />
+    <ClInclude Include="..\YFramework\include\CHRLib\chrmap.h" />
+    <ClInclude Include="..\YFramework\include\CHRLib\chrproc.h" />
+    <ClInclude Include="..\YFramework\include\CHRLib\encoding.h" />
+    <ClInclude Include="..\YFramework\include\CHRLib\smap.hpp" />
+    <ClInclude Include="..\YFramework\include\freetype\config\ftconfig.h" />
+    <ClInclude Include="..\YFramework\include\freetype\config\ftheader.h" />
+    <ClInclude Include="..\YFramework\include\freetype\config\ftmodule.h" />
+    <ClInclude Include="..\YFramework\include\freetype\config\ftoption.h" />
+    <ClInclude Include="..\YFramework\include\freetype\config\ftstdlib.h" />
+    <ClInclude Include="..\YFramework\include\freetype\freetype.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftadvanc.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftbbox.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftbdf.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftbitmap.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftbzip2.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftcache.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftchapters.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftcid.h" />
+    <ClInclude Include="..\YFramework\include\freetype\fterrdef.h" />
+    <ClInclude Include="..\YFramework\include\freetype\fterrors.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftgasp.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftglyph.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftgxval.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftgzip.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftimage.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftincrem.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftlcdfil.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftlist.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftlzw.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftmac.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftmm.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftmodapi.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftmoderr.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftotval.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftoutln.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftpfr.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftrender.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftsizes.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftsnames.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftstroke.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftsynth.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftsystem.h" />
+    <ClInclude Include="..\YFramework\include\freetype\fttrigon.h" />
+    <ClInclude Include="..\YFramework\include\freetype\fttypes.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftwinfnt.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ftxf86.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\autohint.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\ftcalc.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\ftdebug.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\ftdriver.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\ftgloadr.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\ftmemory.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\ftobjs.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\ftpic.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\ftrfork.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\ftserv.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\ftstream.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\fttrace.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\ftvalid.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\internal.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\psaux.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\pshints.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svbdf.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svcid.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svgldict.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svgxval.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svkern.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svmm.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svotval.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svpfr.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svpostnm.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svpscmap.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svpsinfo.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svsfnt.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svttcmap.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svtteng.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svttglyf.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svwinfnt.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\services\svxf86nm.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\sfnt.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\t1types.h" />
+    <ClInclude Include="..\YFramework\include\freetype\internal\tttypes.h" />
+    <ClInclude Include="..\YFramework\include\freetype\t1tables.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ttnameid.h" />
+    <ClInclude Include="..\YFramework\include\freetype\tttables.h" />
+    <ClInclude Include="..\YFramework\include\freetype\tttags.h" />
+    <ClInclude Include="..\YFramework\include\freetype\ttunpat.h" />
+    <ClInclude Include="..\YFramework\include\ft2build.h" />
+    <ClInclude Include="..\YFramework\include\YCLib\NativeAPI.h" />
+    <ClInclude Include="..\YFramework\include\YCLib\Platform.h" />
+    <ClInclude Include="..\YFramework\include\YCLib\ycommon.h" />
+    <ClInclude Include="..\YFramework\include\ysbuild.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Adaptor\config.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Adaptor\Font.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Adaptor\yadaptor.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Adaptor\ycont.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Adaptor\ynew.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Adaptor\yref.hpp" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\yapp.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\ybasemac.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\ycounter.hpp" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\ycutil.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\ydevice.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\yevt.hpp" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\yexcept.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\yfilesys.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\yfunc.hpp" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\ygdibase.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\ymsg.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\ymsgdef.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\yobject.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\ysdef.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\yshell.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\ystorage.hpp" />
+    <ClInclude Include="..\YFramework\include\YSLib\Core\ystring.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Helper\DSMain.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Helper\Initialization.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Helper\ShellHelper.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Helper\shlds.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Helper\yglobal.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Service\CharRenderer.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Service\TextBase.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Service\TextLayout.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Service\textmgr.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Service\TextRenderer.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Service\yblit.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Service\ydraw.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Service\yfile.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Service\yftext.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Service\ygdi.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Service\yres.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\Service\ytimer.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\button.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\ComboList.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\Console.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\form.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\label.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\menu.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\progress.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\scroll.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\Selector.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\textarea.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\textlist.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\uicontx.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\viewer.hpp" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\YBrush.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\ycomp.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\ycontrol.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\ydesktop.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\yfocus.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\ygui.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\ypanel.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\yrender.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\ystyle.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\yuicont.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\ywgtevt.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\ywgtview.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\ywidget.h" />
+    <ClInclude Include="..\YFramework\include\YSLib\UI\ywindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\YFramework\doc\ex.cpp" />
+    <ClCompile Include="..\YFramework\source\CHRLib\chrmap.cpp" />
+    <ClCompile Include="..\YFramework\source\CHRLib\chrproc.cpp" />
+    <ClCompile Include="..\YFramework\source\YCLib\NativeAPI.cpp" />
+    <ClCompile Include="..\YFramework\source\YCLib\ycommon.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Adaptor\Font.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Adaptor\ynew.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Core\yapp.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Core\ydevice.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Core\yexcept.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Core\yfilesys.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Core\ygdibase.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Core\ymsg.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Core\yobject.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Core\yshell.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Core\ystring.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Helper\DSMain.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Helper\Initialization.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Helper\ShellHelper.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Helper\shlds.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Helper\yglobal.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Service\CharRenderer.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Service\TextBase.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Service\TextLayout.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Service\textmgr.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Service\TextRenderer.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Service\yblit.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Service\ydraw.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Service\yfile.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Service\yftext.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Service\ygdi.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Service\yres.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\Service\ytimer.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\button.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\ComboList.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\Console.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\form.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\label.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\menu.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\progress.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\scroll.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\Selector.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\textarea.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\textlist.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\uicontx.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\YBrush.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\ycontrol.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\ydesktop.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\yfocus.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\ygui.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\ypanel.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\yrender.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\ystyle.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\yuicont.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\ywgtevt.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\ywgtview.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\ywidget.cpp" />
+    <ClCompile Include="..\YFramework\source\YSLib\UI\ywindow.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CDF038BE-EAE7-43A3-AF79-9B0DD85714FB}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
+    <ProjectName>YFramework_DS</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <OutDir>$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <OutDir>$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
+    <NMakePreprocessorDefinitions>DEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.2\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2\arm-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <IncludePath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.2\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2\arm-eabi;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(NMakeIncludeSearchPath)</IncludePath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
+    <ExcludePath>$(ExcludePath)</ExcludePath>
+    <NMakeBuildCommandLine>make -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
+    <LibraryPath />
+    <SourcePath />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
+    <NMakePreprocessorDefinitions>NDEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.2\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2\arm-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <NMakeBuildCommandLine>make -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
+    <IncludePath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.2\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2\arm-eabi;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(NMakeIncludeSearchPath)</IncludePath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
+    <ExcludePath>$(ExcludePath)</ExcludePath>
+    <LibraryPath />
+    <SourcePath />
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

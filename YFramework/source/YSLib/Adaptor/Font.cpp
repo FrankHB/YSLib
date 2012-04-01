@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r7584;
+\version r7593;
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since build 296 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2012-03-25 15:58 +0800;
+	2012-03-30 16:37 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -117,11 +117,11 @@ FontFamily::operator-=(Typeface& face)
 }
 
 Typeface*
-FontFamily::GetTypefacePtr(FontStyle style) const
+FontFamily::GetTypefacePtr(FontStyle fs) const
 {
-	Typeface* const p(GetTypefacePtr(FetchName(style)));
+	Typeface* const p(GetTypefacePtr(FetchName(fs)));
 
-	return p ? p : (style == FontStyle::Regular ? nullptr
+	return p ? p : (fs == FontStyle::Regular ? nullptr
 		: GetTypefacePtr("Regular"));
 }
 Typeface*
@@ -191,6 +191,7 @@ FetchDefaultTypeface() ythrow(LoggedEvent)
 
 
 FontCache::FontCache(const_path_t default_font_path, size_t cache_size)
+	: pDefaultFace()
 {
 	::FT_Error error;
 
@@ -355,12 +356,9 @@ FontCache::InitializeDefaultTypeface()
 }
 
 
-Font::Font(const FontFamily& family, const FontSize size, FontStyle style)
-	: Style(style)
+Font::Font(const FontFamily& family, const FontSize size, FontStyle fs)
+	: scaler{family.GetTypefacePtr(fs), size, size, 1, 0, 0}, style(fs)
 {
-	yunseq(scaler.face_id = family.GetTypefacePtr(style), scaler.width = size,
-		scaler.height = size, scaler.pixel = 1, scaler.x_res = 0,
-		scaler.y_res = 0);
 	if(YCL_UNLIKELY(!scaler.face_id))
 		throw LoggedEvent("Bad font;");
 }
@@ -421,9 +419,9 @@ Font::SetSize(FontSize s)
 		yunseq(scaler.width = s, scaler.height = s);
 }
 bool
-Font::SetStyle(FontStyle style)
+Font::SetStyle(FontStyle fs)
 {
-	auto pFace(GetFontFamily().GetTypefacePtr(style));
+	auto pFace(GetFontFamily().GetTypefacePtr(fs));
 
 	if(pFace)
 	{

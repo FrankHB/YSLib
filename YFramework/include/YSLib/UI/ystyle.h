@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1328;
+\version r1331;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-06-08 13:21:10 +0800;
 \par 修改时间:
-	2012-03-19 15:17 +0800;
+	2012-03-28 18:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -70,7 +70,9 @@ template<Color::MonoType r, Color::MonoType g, Color::MonoType b>
 inline void
 transform_pixel_ex(BitmapPtr dst)
 {
-	*dst ^= Color(r, g, b) & ~BITALPHA;
+	const Color d(*dst);
+
+	*dst = Color(d.GetR() ^ r, d.GetG() ^ g, d.GetB() ^ b);
 }
 
 

@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2758;
+\version r2778;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2012-03-25 15:18 +0800;
+	2012-04-01 08:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -56,32 +56,6 @@ YSL_BEGIN_NAMESPACE(Drawing)
 YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Messaging)
-
-/*!
-\brief 输入消息内容。
-\since build 210 。
-*/
-class InputContent
-{
-public:
-	KeysInfo Keys;
-	Drawing::Point CursorLocation;
-
-	yconstfn DefDeCtor(InputContent)
-	explicit yconstfn
-	InputContent(const KeysInfo&, const Drawing::Point&);
-
-	bool
-	operator==(const InputContent&) const;
-};
-
-inline yconstfn
-InputContent::InputContent(const KeysInfo& k, const Drawing::Point& pt)
-	: Keys(k), CursorLocation(pt)
-{}
-
-DefMessageTarget(SM_INPUT, InputContent)
-
 YSL_END_NAMESPACE(Messaging)
 
 

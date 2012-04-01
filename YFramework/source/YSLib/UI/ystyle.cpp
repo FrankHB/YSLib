@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1591;
+\version r1621;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2012-03-17 20:20 +0800;
+	2012-03-27 21:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -215,41 +215,35 @@ YSL_BEGIN_NAMESPACE(Components)
 YSL_BEGIN_NAMESPACE(Styles)
 
 Palette::Palette()
-	: colors(EndArea)
+	: colors{
+		{0, 0, 0}, // Null;
+		{10, 59, 118}, // Desktop;
+		{255, 255, 255}, // Window;
+		{240, 240, 240}, // Panel;
+		{237, 237, 237}, // Track;
+		{171, 171, 171}, // Workspace;
+		{160, 160, 160}, // Shadow;
+		{105, 105, 105}, // DockShadow;
+		{227, 227, 227}, // Light;
+		{100, 100, 100}, // Frame;
+		{51, 153, 255}, // Highlight;
+		{158, 62, 255}, // BorderFill;
+		ColorSpace::Aqua, // ActiveBorder;
+		{180, 180, 180}, // InactiveBorder;
+		{153, 180, 209}, // ActiveTitle;
+		{191, 205, 219}, // InactiveTitle;
+
+		{255, 255, 255}, // HighlightText;
+		{0, 0, 0}, // WindowText;
+		{0, 0, 0}, // PanelText;
+		{109, 109, 109}, // GrayText;
+		{0, 0, 0}, // TitleText;
+		{67, 78, 84}, // InactiveTitleText;
+		{0, 102, 204} // HotTracking;
+	}
 {
-	using Drawing::Color;
-
-	// TODO: use initializer-list;
-	yunseq
-	(
-		colors[Null] = Color(0, 0, 0),
-		colors[Desktop] = Color(10, 59, 118),
-		colors[Window] = Color(255, 255, 255),
-		colors[Panel] = Color(240, 240, 240),
-		colors[Track] = Color(237, 237, 237),
-		colors[Workspace] = Color(171, 171, 171),
-		colors[Shadow] = Color(160, 160, 160),
-		colors[DockShadow] = Color(105, 105, 105),
-		colors[Light] = Color(227, 227, 227),
-		colors[Frame] = Color(100, 100, 100),
-		colors[Highlight] = Color(51, 153, 255),
-		colors[BorderFill] = Color(158, 62, 255),
-		colors[ActiveBorder] = ColorSpace::Aqua,
-		colors[InactiveBorder] = Color(180, 180, 180),
 	//	colors[ActiveBorder] = Color(180, 180, 180),
-	//	colors[InactiveBorder] = Color(244, 247, 252),
-		colors[ActiveTitle] = Color(153, 180, 209),
-		colors[InactiveTitle] = Color(191, 205, 219),
-
-		colors[HighlightText] = Color(255, 255, 255),
-		colors[WindowText] = Color(0, 0, 0),
-		colors[PanelText] = Color(0, 0, 0),
-		colors[GrayText] = Color(109, 109, 109),
-		colors[TitleText] = Color(0, 0, 0),
-		colors[InactiveTitleText] = Color(67, 78, 84),
-		colors[HotTracking] = Color(0, 102, 204)
-	);
-
+	//	colors[InactiveBorder] = Color(244, 247, 252);
 	//"GradientActiveTitle"="185 209 234"
 	//"GradientInactiveTitle"="215 228 242"
 }

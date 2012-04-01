@@ -17,7 +17,6 @@
     <None Include="doc\Definitions.txt" />
     <None Include="doc\Designation.txt" />
     <None Include="doc\YSLib.txt" />
-    <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\CHRLib\chrdef.h" />

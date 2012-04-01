@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7135;
+\version r7156;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-03-26 13:05 +0800;
+	2012-04-01 08:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -126,12 +126,13 @@
  Explicit conversion operators(N2437) ；
  Unicode string literals(N2442) ；
  New function declaration syntax for deduced return types(N2541) ；
+ Initializer lists (N2672) ；
  Rvalue references v2.1(N2844+, CWG defect 1138) ；
  Lambda expressions and closures v1.1(N2927) 。
 仅使用ISO/IEC C++ 2011 中头文件 <array> 、 <chrono> 、 <forward_list> 、 <type_traits> 、 <tuple> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
 
 @1.3.2.2
- YSLib 的源代码的本体(@2.10) 是平台中立的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
+ YSLib 的源代码的本体(@2.10) 是平台中立 [Documentation::CommonRules @@2.2.2.1] 的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
 
 @1.3.2.3
 格式化输出及结构对齐时注意平台字长差异。
@@ -886,15 +887,6 @@ FetchGlobalInstance() ynothrow;
 bool
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
-void
-ShowFatalError(const char*);
-
-Drawing::FontCache&
-FetchDefaultFontCache();
-
-Devices::Screen&
-FetchDefaultScreen();
-
 这里 FetchGlobalInstance 返回类型为平台相关的应用程序类的引用。
  YSLib 在 Helper 以外（本体和 Adaptor）不依赖这些接口以外的特性。
 
@@ -911,6 +903,7 @@ FetchDefaultScreen();
 @2.10.1 基本代码依赖性：
  YSLib 文件中，文件名以 y 或 Y 起始且模块名以 Y 起始的文件为必要文件，其它为非必要文件。
 以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
+ YAdaptor 中 config.h 可以被 YAdaptor 其它文件直接包含。
 必要文件不依赖非必要头文件。
 任意 YSLib 文件可依赖于 @2.10 余下部分指定的标准库头文件以及 YBase 的头文件。
 除上述头文件外，本体的头文件不依赖于 YSLib 以外的头文件。
@@ -925,23 +918,24 @@ FetchDefaultScreen();
 @2.10.1.1 C 标准库的 C++ 标准库版本头文件依赖项：
 不在本体的必要文件中显式包含，除了以下例外：
  "ydaptor.h" 需要保证 <cstddef> 、 <cstdint> 、 <climits> 、 <cmath> 和 <ctime> 被包含；
- "ytimer.h" 包含 <chrono> 。
 
 @2.10.1.2 不在本体中显式包含，需要在 "ycont.h" 包含或提供替代品的 C++ 标准库依赖项：
  <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <utility> 和  <vector>。
-例外：同时需要使用容器和限定标准库容器/拟容器时：
+例外：同时需要使用容器和限定标准库类型时：
  "yexcept.h" 包含 <string> （鉴于复用标准库异常需要的参数类型 std::string 不一定是 "ycont.h" 配置的类型）。
 
 @2.10.1.3 不在本体的头文件中显式包含，需要在除了 "ycont.h" 的 Adaptor 的必要头文件直接或间接包含的 C++ 标准库依赖项：
  <algorithm> 、 <memory> 、 <new> 、 <type_traits> 。
+ "ydaptor.h" 需要保证 <initializer_list> 被包含。
 
 @2.10.1.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性或其它因素考虑，Adaptor 和本体不直接使用以下头文件（但 Adaptor 可能会间接依赖）：
- <fstream> 、 <iomanip> 、 <ios> 、 <iosfwd>  、 <iostream> 、 <istream> 、 <locale>、 <ostream> 、 <sstream> 、 <streambuf> 和 <strstream> 。
+ <fstream> 、 <iomanip> 、 <ios> 、 <iostream> 、 <istream> 、 <locale>、 <ostream> 、 <sstream> 、 <streambuf> 和 <strstream> 。
 
 @2.10.1.5 本体的头文件中显式包含的 C++ 标准库依赖项：
- "Core/yexcept.h" 依赖于 <exception> 和 <stdexcept> ；
- "Core/yfunc.hpp" 依赖于 <functional> 和 <typeinfo> ；
+ "Core/yexcept.h" 包含 <exception> 和 <stdexcept> ；
+ "Core/yfunc.hpp" 包含 <functional> 和 <typeinfo> ；
+ "Service/ytimer.h" 包含 <chrono> 。
 其它： <iterator> 。
 
 @2.10.1.6 本体的头文件中未限定（可能会在将来版本显式包含）的 C++ 标准库依赖项：
@@ -951,11 +945,11 @@ FetchDefaultScreen();
  "yblit.h" 依赖于 <ystdex/algorithm.hpp> 和 <ystdex/iterator.hpp> 。
 
 @2.10.3 本体内部头文件依赖性：
- Core 的头文件仅包含 Adaptor 或 Core 的头文件，或 "yglobal.h" 。
+ Core 的头文件仅包含 Adaptor 或 Core 的头文件。
  Adaptor 的头文件依赖于 Core 的 "ybasemac.h" 。
-实现源文件依赖于同名头文件，应保证包含此头文件，不应重复包含此头文件已经包含的其它头文件。
+实现源文件依赖于同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
 在 Core 中，以下依赖关系对于头文件包含是确定的：
- "ybasemac.h" 不依赖于任何头文件；
+ "ybasemac.h" 不依赖于任何其它文件；
  "ysdef.h" 依赖于 Adaptor 的 "yadaptor.h" 和 "yref.hpp" ；
 除了 "ybasemac.h" 和 "ysdef.h" 外都依赖于 "ysdef.h"；
  "yobject.h" 依赖于 "ycutil.h" 和 "yexcept.h" ；
@@ -1023,7 +1017,6 @@ FetchDefaultScreen();
 除了 YSLib 中非本体部分，不位于类作用域的自由函数 Fetch* ：语义近似于 Get*，但遵循以下附加规则：
 函数名符合模式 Fetch*Ref 的，返回类型为目标类型的引用或 const 引用类型；
 函数名符合模式 Fetch*Ptr 的，返回类型为目标类型的指针、 const 指针或对应的智能指针类型；
-特例 FetchMessage ，返回 int ；
 目标类型为 POD 类型的，返回类型为目标类型；
 其它情况返回类型为目标类型的引用或 const 引用类型。
 
@@ -1058,7 +1051,7 @@ FetchDefaultScreen();
 目前仅使用静态链接库。
 
 @5.1.1 基础库：
-基于标准库的基础库 YBase ，包含标准库扩展。
+基于标准库的基础库 YBase ，包含基于标准库的平台中立的扩展 YStandardEx。
 基于 YBase 的平台隔离用库 YCLib ，包含于 YFramework 中。
 包含平台相关的 API 包装和若干平台无关的独立子库（按头文件路径划分，参见 @5.1.3.1 ）。
 

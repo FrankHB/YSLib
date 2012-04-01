@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3896;
+\version r3920;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2012-03-25 16:56 +0800;
+	2012-04-01 08:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/Helper/yglobal.h"
-#include "YSLib/Helper/DSMain.h"
+#include "YSLib/Helper/DSMain.h" // TODO: to be removed;
 #include "YSLib/UI/ydesktop.h"
 //#include <clocale>
 
@@ -55,31 +55,6 @@ const String Application::ProductVersion(G_APP_VER);
 //@}
 
 
-namespace
-{
-	bool
-	operator==(const KeysInfo& x, const KeysInfo& y)
-	{
-		return x.Up == y.Up && x.Down == y.Down && x.Held == y.Held;
-	}
-
-	inline bool
-	operator!=(const KeysInfo& x, const KeysInfo& y)
-	{
-		return !(x == y);
-	}
-}
-
-YSL_BEGIN_NAMESPACE(Messaging)
-
-bool
-InputContent::operator==(const InputContent& rhs) const
-{
-	return Keys == rhs.Keys && CursorLocation == rhs.CursorLocation;
-}
-
-YSL_END_NAMESPACE(Messaging)
-
 Application&
 FetchAppInstance()
 {
@@ -92,10 +67,9 @@ InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 {
 	using namespace platform;
 
-	// NOTE: 'raw' used here for efficiency;
-	if(raw(FetchGlobalInstance().GetScreenUpHandle()) == &scr)
+	if(&FetchGlobalInstance().GetScreenUp() == &scr)
 		YConsoleInit(true, fc, bc);
-	else if(raw(FetchGlobalInstance().GetScreenDownHandle()) == &scr)
+	else if(&FetchGlobalInstance().GetScreenDown() == &scr)
 		YConsoleInit(false, fc, bc);
 	else
 		return false;

@@ -11,13 +11,13 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2580;
+\version r2589;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2012-03-20 16:13 +0800;
+	2012-04-01 08:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,8 +34,10 @@ Application::Application()
 {}
 Application::~Application()
 {
-	//释放主 Shell 。
-//	YReset(DefaultShellHandle);
+//	hShell = nullptr;
+	// NOTE: all shells must have been releasd;
+	YAssert(!hShell, "Active shell found @ Application::~Application");
+
 	if(ApplicationExit)
 		ApplicationExit();
 }
@@ -76,7 +78,7 @@ Application::Switch(shared_ptr<Shell>& h) ynothrow
 
 
 void
-SendMessage(const Message& msg) ynothrow
+PostMessage(const Message& msg) ynothrow
 {
 	FetchAppInstance().Queue.Push(msg);
 
@@ -89,17 +91,17 @@ SendMessage(const Message& msg) ynothrow
 
 }
 void
-SendMessage(const shared_ptr<Shell>& hShl, Messaging::ID id,
+PostMessage(const shared_ptr<Shell>& hShl, Messaging::ID id,
 	Messaging::Priority prior, const ValueObject& c) ynothrow
 {
-	SendMessage(Message(hShl, id, prior, c));
+	PostMessage(Message(hShl, id, prior, c));
 }
 
 void
 PostQuitMessage(int nExitCode, Messaging::Priority p)
 {
-	SendMessage<SM_SET>(shared_ptr<Shell>(), p, shared_ptr<Shell>());
-	SendMessage<SM_QUIT>(shared_ptr<Shell>(), p, nExitCode);
+	PostMessage<SM_SET>(shared_ptr<Shell>(), p, shared_ptr<Shell>());
+	PostMessage<SM_QUIT>(shared_ptr<Shell>(), p, nExitCode);
 }
 
 YSL_END

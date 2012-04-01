@@ -11,13 +11,13 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1715;
+\version r1720;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2012-03-02 20:42 +0800;
+	2012-03-28 20:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -38,14 +38,14 @@ YSL_BEGIN
 Unicode Encoding Scheme Signatures BOM（byte-order mark ，字节顺序标记）常量。
 \note 在 Unicode 3.2 前作为零宽无间断空格字符在对应字符集的编码单字节序列。
 \note 适用于未明确字节序或字符集的流。
-\since build 244 。
+\since build 297 。
 */
 //@{
-yconstexpr char BOM_UTF_16LE[2] = {0xFF, 0xFE};
-yconstexpr char BOM_UTF_16BE[2] = {0xFE, 0xFF};
-yconstexpr char BOM_UTF_8[3] = {0xEF, 0xBB, 0xBF};
-yconstexpr char BOM_UTF_32LE[4] = {0xFF, 0xFE, 0x00, 0x00};
-yconstexpr char BOM_UTF_32BE[4] = {0x00, 0x00, 0xFE, 0xFF};
+yconstexpr char BOM_UTF_16LE[]{"\xFF\xFE"};
+yconstexpr char BOM_UTF_16BE[]{"\xFE\xFF"};
+yconstexpr char BOM_UTF_8[]{"\xEF\xBB\xBF"};
+yconstexpr char BOM_UTF_32LE[]{"\xFF\xFE\x00\x00"};
+yconstexpr char BOM_UTF_32BE[]{"\x00\x00\xFE\xFF"};
 //@}
 
 

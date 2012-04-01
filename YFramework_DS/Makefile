@@ -1,8 +1,8 @@
-# DS Makefile for YBase -> ARM9 by Franksoft 2009 - 2012
+# DS Makefile for YFramework -> DS by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-03-21 16:19 +0800;
-# Version = r3911;
+# UTime = 2012-03-30 14:50 +0800;
+# Version = r3996;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -21,24 +21,32 @@ ifeq ($(PLATFORM),DS)
 
 endif
 
-
 export TOPDIR		?=	$(CURDIR)
 
 #----
 # TARGET is the name of the file to output
-# BUILD is the directory where object files and intermediate files will be placed
+# BUILD is the configuration name
+# RELEASE is the directory where object files and intermediate files will be placed
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 # DATA is a list of directories containing binary files embedded using bin2o
 # GRAPHICS is a list of directories containing image files to be converted with grit
 #----
 
-export TARGET		:= $(shell basename $(CURDIR))
+export TARGET		:= YFramework
+export TARGETP		:= $(TARGET)_$(PLATFORM)
+export REFDIR		:= ../$(TARGET)
 export BUILD		?= release
 export RELEASE		= $(BUILD)
-export SOURCES		:= source source/ystdex data
-export INCLUDES		:= include data
-export DATA			:= data
+export SOURCES		:= source data $(REFDIR)/source/CHRLib \
+	$(REFDIR)/source/YCLib $(REFDIR)/source/YSLib \
+	$(REFDIR)/source/YSLib/Adaptor $(REFDIR)/source/YSLib/Core \
+	$(REFDIR)/source/YSLib/Helper $(REFDIR)/source/YSLib/Service \
+	$(REFDIR)/Source/YSLib/UI
+export INCLUDES		:= include data ../YBase/include $(REFDIR)/include
+export DATA			:= data $(REFDIR)/data
+#export GRAPHICS	:= gfx
+#export MUSIC		:= music
 
 #----
 # options for code generation
@@ -61,19 +69,21 @@ CFLAGS	:=	-Wall \
  			-ffast-math \
  			$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -pedantic -DARM9
+CFLAGS	+=	$(INCLUDE) -DARM9
 LDFLAGS :=	-specs=ds_arm9.specs $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
 
 ifneq ($(BUILD),debug)
-CFLAGS	+=	-O3 -DNDEBUG
+OB	:=	-O3
+CFLAGS	+=	$(OB) -DNDEBUG
 else
 ASFLAGS	+=	-g
-CFLAGS	+=	-g -O0 -DDEBUG
+CFLAGS	+=	-g -O0 -DDEBUG -D_GLIBCXX_DEBUG
 LDFLAGS	+=	-g
 endif
 
 CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++0x \
- 			-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo
+ 			-Wctor-dtor-privacy -Wnoexcept -Wsign-promo
+# 			-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo
 
 endif
 
@@ -83,15 +93,20 @@ endif
 # export PATH		:=	/d/dev/ds/devkitARM_r11/bin:/bin
 
 #----
+# PATH to ndslib - just make a system variable called NDSLIBPATH and be done with it
+#----
+# NDSLIBPATH	:=	/d/dev/ds/ndslib/
+
+#----
 # any extra libraries we wish to link with the project
 #----
-LIBS	:=	#-lnds9 -lfat
+LIBS	:=	#-lfreetype #-lfat -lnds9
 
 #----
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #----
-LIBDIRS	:=	#$(LIBNDS)
+LIBDIRS	:=	$(LIBNDS) #lib
 
 #----
 # no real need to edit anything past this point unless you need to add additional
@@ -124,7 +139,7 @@ endif
 
 ifneq ($(strip $(DONT_BUILD_MAXMOD_SOUNDBANK)), YES)
 	ifeq ($(strip $(ARM7_SELECTED)), ARM7_MAXMOD_DSWIFI)
- 		BINFILES += soundbank_bin.bin
+		BINFILES += soundbank_bin.bin
 	endif
 endif
 
@@ -143,11 +158,11 @@ MP3FILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.mp3)))
 #----
 ifeq ($(strip $(CPPFILES)),)
 #----
- 	export LD	:=	$(CC)
+	export LD	:=	$(CC)
 #----
 else
 #----
- 	export LD	:=	$(CXX)
+	export LD	:=	$(CXX)
 #----
 endif
 #----
@@ -175,7 +190,8 @@ $(BUILD):
 
 #----
 clean:
-	@echo Cleaning $(TARGET) - ARM9 ...
+	@echo Cleaning $(TARGETP) ...
+	@rm -f $(BUILD)/*.h
 	@rm -f $(BUILD)/*.d
 	@rm -f $(BUILD)/*.o
 	@rm -f $(OUTPUT)
@@ -196,8 +212,8 @@ DEPENDS	:= $(OFILES:.o=.d)
 
 $(OUTPUT)	:	$(OFILES)
 	@rm -f "$(OUTPUT)"
-	@echo Linking $(notdir $@) ...
 	@$(AR) rcs "$(OUTPUT)" $(OFILES)
+	@echo Linking $(notdir $@) ...
 
 #----
 # you need a rule like this for each extension you use as binary data

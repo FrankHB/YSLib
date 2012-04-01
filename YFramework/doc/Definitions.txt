@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11654;
+\version r11664;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-03-26 11:38 +0800;
+	2012-03-28 19:32 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -136,7 +136,7 @@ $header YCommon
 YCL_MAX_FILENAME_LENGTH
 YCL_MAX_PATH_LENGTH
 DEF_PATH_ROOT
-BITALPHA
+YCL_PIXEL_FORMAT_AXYZ1555
 } //$dir YCLib;
 
 $dir YSLib
@@ -803,7 +803,6 @@ $header Adaptor::YAdaptor
 
 	//基本输入输出接口。
 	using platform::InitVideo;
-	using platform::ScreenSynchronize;
 	using platform::WaitForInput;
 
 	//计时器和时钟。
@@ -829,12 +828,6 @@ $header Adaptor::YAdaptor
 		using namespace CHRLib;
 	} //namespace Text;
 	using Text::ucs4_t, Text::ucs2_t, Text::ucsint_t;
-
-	//! \brief 运行时平台。
-	namespace DS
-	{
-		using namespace platform_ex;
-	} //namespace DS;
 
 	//库适配器。
 
@@ -921,7 +914,7 @@ $header UI::YComponent : YMessage
 	{
 		typedef HBrush;
 
-		using Drawing::PixelType, Drawing::BitmapPtr, Drawing::ConstBitmapPtr, Drawing::ScreenBufferType, Drawing::Color;
+		using Drawing::PixelType, Drawing::BitmapPtr, Drawing::ConstBitmapPtr, Drawing::Color;
 
 		using Drawing::Point, Drawing::Vec, Drawing::Size, Drawing::Rect;
 		using Drawing::Graphics;
@@ -940,10 +933,14 @@ $header UI::YControl : UI::YWidgetEvent
 	} //namespace Components;
 } //$header UI::YControl;
 
-$header Helper::YGlobal : Core::YGDIBase
+$header Helper::DSMain : Core::YGDIBase
 {
-	using Devices::DSScreen;
-} //$header Helper::YGlobal;
+	//! \brief 运行时平台。
+	namespace DS
+	{
+		using namespace platform_ex;
+	} //namespace DS;
+} //$header Helper::DSMain;
 
 } //$code YSLib;
 

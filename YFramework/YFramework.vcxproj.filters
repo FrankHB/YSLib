@@ -95,7 +95,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Makefile" />
     <None Include="data\cp113.bin">
       <Filter>资源文件</Filter>
     </None>

@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r7684;
+\version r7674;
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since build 296 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2012-03-25 15:52 +0800;
+	2012-03-30 16:36 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -466,7 +466,11 @@ public:
 
 private:
 	mutable ::FTC_ScalerRec scaler;
-	FontStyle Style;
+	/*!
+	\brief 字体样式。
+	\since build 297 。
+	*/
+	FontStyle style;
 
 public:
 	/*!
@@ -476,10 +480,10 @@ public:
 	Font(const FontFamily& = FetchDefaultTypeface().GetFontFamily(),
 		FontSize = DefaultSize, FontStyle = FontStyle::Regular);
 
-	DefPred(const ynothrow, Bold, bool(Style & FontStyle::Bold))
-	DefPred(const ynothrow, Italic, bool(Style & FontStyle::Italic))
-	DefPred(const ynothrow, Underline, bool(Style & FontStyle::Underline))
-	DefPred(const ynothrow, Strikeout, bool(Style & FontStyle::Strikeout))
+	DefPred(const ynothrow, Bold, bool(style & FontStyle::Bold))
+	DefPred(const ynothrow, Italic, bool(style & FontStyle::Italic))
+	DefPred(const ynothrow, Underline, bool(style & FontStyle::Underline))
+	DefPred(const ynothrow, Strikeout, bool(style & FontStyle::Strikeout))
 
 	/*!
 	\brief 取跨距。
@@ -504,7 +508,7 @@ public:
 	DefGetter(const ynothrow, FontCache&, Cache, GetFontFamily().Cache)
 	DefGetterMem(const ynothrow, const FontFamily&, FontFamily, GetTypeface())
 	DefGetter(const ynothrow, FontSize, Size, FontSize(scaler.height))
-	DefGetter(const ynothrow, FontStyle, Style, Style)
+	DefGetter(const ynothrow, FontStyle, style, style)
 	/*!
 	\brief 取当前字型和大小渲染的指定字符的字形。
 	\param c 指定需要被渲染的字符。
@@ -521,7 +525,7 @@ public:
 	*/
 	FontSize
 	GetHeight() const ynothrow;
-	DefGetter(const ynothrow, StyleName, StyleName, FetchName(Style))
+	DefGetter(const ynothrow, StyleName, StyleName, FetchName(style))
 
 private:
 	/*!

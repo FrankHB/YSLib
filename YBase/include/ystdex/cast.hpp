@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r1702;
+\version r1736;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 175 。
 \par 创建时间:
 	2010-12-15 08:13:18 +0800;
 \par 修改时间:
-	2012-02-24 17:36 +0800;
+	2012-03-28 17:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "type_op.hpp"
 #include <memory>
-#include <typeinfo>
+#include <typeinfo> // for well-formedly using of dynamic_cast;
+#include <initializer_list> // for well-formedly using of std::initialize_list;
 
 namespace ystdex
 {
@@ -38,6 +39,33 @@ namespace ystdex
 	\brief 显式类型转换。
 	\since build 243 。
 	*/
+
+
+	/*!
+	\ingroup cast
+	\brief 使用匿名联合体进行的类型转换。
+	\tparam _tSrc 源类型。
+	\tparam _tDst 目标类型。
+	\pre <tt>is_pod<_tDst>::value && sizeof<_tSrc> == sizeof<_tDst></tt> 。
+	\note 无异常抛出保证。
+	\since build 297 。
+	*/
+	template<typename _tDst, typename _tSrc>
+	inline _tDst
+	union_cast(_tSrc src) ynothrow
+	{
+		static_assert(is_pod<_tDst>::value,
+			"Non-POD destination type found @ pod_cast;");
+		static_assert(sizeof(_tSrc) == sizeof(_tDst),
+			"Incompatible types found @ pod_cast;");
+
+		union
+		{
+			_tSrc src;
+			_tDst dst;
+		} u = {src};
+		return u.dst;
+	}
 
 
 	/*!
@@ -186,7 +214,7 @@ namespace ystdex
 	/*!
 	\ingroup cast
 	\brief 一般类型转换。
-	
+
 	能确保安全隐式转换时使用 static_cast ；
 	除此之外非虚基类向派生类转换使用 polymophic_downcast；
 	否则使用 dynamic_cast。

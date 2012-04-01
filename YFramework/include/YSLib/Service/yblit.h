@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r2259;
+\version r2305;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-16 19:43:24 +0800;
 \par 修改时间:
-	2012-03-26 08:45 +0800;
+	2012-03-28 19:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -403,8 +403,8 @@ struct BlitTransparentLoop
 		{
 			for(int x(0); x < delta_x; ++x)
 			{
-				if(*src_iter & BITALPHA)
-				*dst_iter = *src_iter;
+				if(FetchAlpha(*src_iter))
+					*dst_iter = *src_iter;
 				++src_iter;
 				ystdex::xcrease<_bPositiveScan>(dst_iter);
 			}
@@ -423,8 +423,8 @@ struct BlitTransparentLoop
 		{
 			for(int x(0); x < delta_x; ++x)
 			{
-				*dst_iter = ((*src_iter.base().second & 0x80) ? *src_iter : 0)
-					| BITALPHA;
+				*dst_iter = *src_iter.base().second & 0x80
+					? FetchOpaque(*src_iter) : FetchOpaque(PixelType());
 				++src_iter;
 				ystdex::xcrease<_bPositiveScan>(dst_iter);
 			}
@@ -449,14 +449,14 @@ inline void
 biltAlphaPoint(PixelType* dst_iter, IteratorPair src_iter)
 {
 	if(*src_iter.base().second >= BLT_THRESHOLD2)
-		*dst_iter = *src_iter | BITALPHA;
+		*dst_iter = FetchOpaque(*src_iter);
 }
 template<>
 inline void
 biltAlphaPoint(PixelType* dst_iter, MonoIteratorPair src_iter)
 {
 	if(*src_iter.base().second >= BLT_THRESHOLD2)
-		*dst_iter = *src_iter | BITALPHA;
+		*dst_iter = FetchOpaque(*src_iter);
 }
 
 #else
@@ -468,16 +468,17 @@ yconstexpr u8 BLT_THRESHOLD(8);
 yconstexpr u8 BLT_THRESHOLD2(128);
 yconstexpr u32 BLT_ROUND_BR(BLT_ROUND | BLT_ROUND << 16);
 
+#	ifdef YCL_PIXEL_FORMAT_AXYZ1555
 
 /*
-\brief Alpha 混合。
+\brief AXYZ1555 格式 PixelType 的 Alpha 混合。
+\since build 189 。
 
 使用下列公式进行像素的 Alpha 混合（其中 alpha = a / BLT_MAX_ALPHA）：
-*dst_iter = (1 - alpha) * d + alpha * s
+输出分量： dst := (1 - alpha) * d + alpha * s
 = ((BLT_MAX_ALPHA - a) * d + a * s) >> BLT_ALPHA_BITS
-= d + (a * (s - d) + BLT_ROUND) >> BLT_ALPHA_BITS 。
-\since build 189 。
-\todo 消除具体像素格式依赖。
+= d + ((a * (s - d) + BLT_ROUND) >> BLT_ALPHA_BITS) 。
+背景透明， 输出 Alpha 饱和。
 */
 inline u16
 blitAlphaBlend(u32 d, u32 s, u8 a)
@@ -492,19 +493,61 @@ blitAlphaBlend(u32 d, u32 s, u8 a)
 		0000000000000000 000000ggggg00000 : dg
 	分解分量至 32 位寄存器以减少总指令数。
 	*/
-	if(d & BITALPHA && a <= BLT_MAX_ALPHA - BLT_THRESHOLD)
+	if(FetchAlpha(d) && a <= BLT_MAX_ALPHA - BLT_THRESHOLD)
 	{
 		u32 dbr((d & 0x1F) | (d << 6 & 0x1F0000)), dg(d & 0x3E0);
- 
+
 		dbr += ((((s & 0x1F) | (s << 6 & 0x1F0000)) - dbr) * a + BLT_ROUND_BR)
 			>> BLT_ALPHA_BITS,
 		dg  += (((s & 0x3E0) - dg) * a + BLT_ROUND) >> BLT_ALPHA_BITS;
-		return (dbr & 0x1F) | (dg & 0x3E0) | (dbr >> 6 & 0x7C00) | BITALPHA;
+		return FetchOpaque((dbr & 0x1F) | (dg & 0x3E0) | (dbr >> 6 & 0x7C00));
 	}
 	if(a >= BLT_THRESHOLD2)
-		return s | BITALPHA;
+		return FetchOpaque(s);
 	return d;
 }
+
+#else
+
+/*
+\brief Alpha 分量混合。
+\since build 297 。
+
+输出分量： dst := (1 - alpha) * d + alpha * s
+= ((BLT_MAX_ALPHA - a) * d + a * s) >> BLT_ALPHA_BITS
+= d + ((a * (s - d) + BLT_ROUND) >> BLT_ALPHA_BITS) 。
+*/
+inline u8
+component_blend(u8 d, u8 s, u8 a)
+{
+	return d + ((a * (s - d) + BLT_ROUND) >> BLT_ALPHA_BITS);
+}
+
+/*
+\brief Alpha 混合。
+\since build 297 。
+
+使用下列公式进行像素的 Alpha 混合（其中 alpha = a / BLT_MAX_ALPHA）：
+背景透明， 输出 Alpha 饱和。
+*/
+inline PixelType
+blitAlphaBlend(PixelType d, PixelType s, u8 a)
+{
+	if(FetchAlpha(d) && a <= BLT_MAX_ALPHA - BLT_THRESHOLD)
+	{
+		const Color dc(d), sc(s);
+
+		return Color(component_blend(dc.GetR(), sc.GetR(), a),
+			component_blend(dc.GetG(), sc.GetG(), a),
+			component_blend(dc.GetB(), sc.GetB(), a),
+			0xFF);
+	}
+	if(a >= BLT_THRESHOLD2)
+		return FetchOpaque(s);
+	return d;
+}
+
+#endif
 
 PDefTmplH2(_tOut, _tIn)
 void

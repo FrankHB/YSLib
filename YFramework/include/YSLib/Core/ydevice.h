@@ -11,13 +11,13 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2921;
+\version r2930;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:39:39 +0800;
 \par 修改时间:
-	2012-03-23 10:04 +0800;
+	2012-03-30 13:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -42,8 +42,13 @@ public:
 	/*!
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
-	yconstfn
+	inline
 	GraphicDevice(SDst, SDst, Drawing::BitmapPtr = nullptr);
+	/*!
+	\brief 析构：默认实现。
+	\since build 297 。
+	*/
+	virtual DefEmptyDtor(GraphicDevice)
 
 	/*!
 	\since build 296 。
@@ -60,7 +65,7 @@ public:
 	//@}
 };
 
-yconstfn
+inline
 GraphicDevice::GraphicDevice(SDst w, SDst h, Drawing::BitmapPtr p)
 	: Graphics(p, Drawing::Size(w, h))
 {}
@@ -73,7 +78,7 @@ public:
 	/*!
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
-	yconstfn
+	inline
 	Screen(SDst, SDst, Drawing::BitmapPtr = nullptr);
 
 	/*!
@@ -92,7 +97,7 @@ public:
 	Update(Drawing::BitmapPtr);
 };
 
-yconstfn
+inline
 Screen::Screen(SDst w, SDst h, Drawing::BitmapPtr p)
 	: GraphicDevice(w, h, p)
 {}

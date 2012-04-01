@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r7397;
+\version r7401;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-03-23 12:51 +0800;
+	2012-03-30 13:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -63,7 +63,7 @@ template<typename _tIn, class _tRenderer>
 _tIn
 PrintLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 {
-	while(s != g && *s != c && *s != '\n')
+	while(s != g && ucs4_t(*s) != c && *s != '\n')
 	{
 		PrintChar(r, *s);
 		++s;
@@ -115,7 +115,7 @@ PutLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 	TextState& ts(r.GetTextState());
 	const SPos fpy(ts.PenY);
 
-	while(s != g && *s != c && fpy == ts.PenY)
+	while(s != g && ucs4_t(*s) != c && fpy == ts.PenY)
 		if(!PutChar(r, *s))
 			++s;
 	return s;
@@ -157,7 +157,7 @@ template<typename _tIn, class _tRenderer>
 _tIn
 PrintString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 {
-	while(s != g && *s != c && *s != '\n')
+	while(s != g && ucs4_t(*s) != c && *s != '\n')
 		PrintChar(r, *s++);
 	return s;
 }
@@ -206,7 +206,7 @@ PutString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 	TextState& ts(r.GetTextState());
 	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
 
-	while(s != g && *s != c && ts.PenY <= mpy)
+	while(s != g && ucs4_t(*s) != c && ts.PenY <= mpy)
 		if(!PutChar(r, *s))
 			++s;
 	return s;

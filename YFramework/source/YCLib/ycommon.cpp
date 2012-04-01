@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2680;
+\version r2702;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2012-03-26 17:25 +0800;
+	2012-03-31 22:03 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -286,23 +286,6 @@ namespace platform
 	}
 
 
-	void
-	ScreenSynchronize(PixelType* buf, const PixelType* src)
-	{
-#ifdef YCL_DS
-	//	YAssert(safe_dma_copy(buf, src, sizeof(ScreenBufferType)) == 0,
-	//		"Screen sychronize failure;");
-		DC_FlushRange(src, sizeof(ScreenBufferType));
-		dmaCopyWordsAsynch(3, src, buf, sizeof(ScreenBufferType));
-	//	std::memcpy(buf, src, sizeof(ScreenBufferType));
-#elif defined(YCL_MINGW32)
-	// TODO: impl;
-#else
-#	error Unsupported platform found!
-#endif
-	}
-
-
 	namespace
 	{
 #ifdef YCL_DS
@@ -363,6 +346,7 @@ namespace platform
 	YConsoleInit(u8 dspIndex, Color fc, Color bc)
 	{
 #ifdef YCL_DS
+#define BITALPHA BIT(15) //!<  Alpha 位。
 	//	PrintConsole* p(dspIndex ? consoleMainInit() : consoleDemoInit());
 
 		if(YCL_LIKELY(dspIndex ? consoleMainInit() : consoleDemoInit()))
@@ -422,15 +406,10 @@ namespace platform
 		touchRead(&tp);
 		//修正触摸位置。
 		if(YCL_LIKELY(tp.px != 0 && tp.py != 0))
-		{
-			--tp.px,
-			--tp.py;
-		}
+			yunseq(--tp.px, --tp.py);
 		else
-		{
-			tp.px = SCREEN_WIDTH,
-			tp.py = SCREEN_HEIGHT;
-		}
+			// NOTE: Point::Invalid;
+			yunseq(tp.px = SDst(-1), tp.py = SDst(-1));
 #elif defined(YCL_MINGW32)
 	// TODO: impl;
 #else
@@ -593,6 +572,19 @@ namespace platform_ex
 
 		//获得屏幕背景所用的显存地址。
 		return ::bgGetGfxPtr(id);
+	}
+
+	void
+	ScreenSynchronize(platform::PixelType* buf, const platform::PixelType* src)
+	{
+		typedef platform::PixelType
+			ScreenBufferType[SCREEN_WIDTH * SCREEN_HEIGHT]; //!< 主显示屏缓冲区。
+
+	//	YAssert(safe_dma_copy(buf, src, sizeof(ScreenBufferType)) == 0,
+	//		"Screen sychronize failure;");
+		DC_FlushRange(src, sizeof(ScreenBufferType));
+		dmaCopyWordsAsynch(3, src, buf, sizeof(ScreenBufferType));
+	//	std::memcpy(buf, src, sizeof(ScreenBufferType));
 	}
 #endif
 }

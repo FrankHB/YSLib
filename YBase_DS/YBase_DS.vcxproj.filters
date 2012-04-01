@@ -15,57 +15,58 @@
       </Extensions>
     </Filter>
     <Filter Include="头文件\ystdex">
-      <UniqueIdentifier>{cbbbb3e5-cc2e-4e3c-a4ae-fbe2fac7370a}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+      <UniqueIdentifier>{fc99d73f-e7a7-4a76-b291-ce69e46c7fae}</UniqueIdentifier>
     </Filter>
     <Filter Include="源文件\ystdex">
-      <UniqueIdentifier>{3eefbce0-b4c1-411d-9af0-b0d663b526db}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+      <UniqueIdentifier>{9ff3ddee-c333-4ca6-8a81-4b8b6bfa5b89}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\ydef.h">
+    <None Include="Makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\YBase\include\ystdex\algorithm.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YBase\include\ystdex\any.h">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YBase\include\ystdex\cast.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YBase\include\ystdex\cstdio.h">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YBase\include\ystdex\cstring.h">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YBase\include\ystdex\iterator.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YBase\include\ystdex\memory.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YBase\include\ystdex\operators.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YBase\include\ystdex\rational.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YBase\include\ystdex\type_op.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YBase\include\ystdex\utility.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YBase\include\ydef.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ystdex\cast.hpp">
-      <Filter>头文件\ystdex</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ystdex\iterator.hpp">
-      <Filter>头文件\ystdex</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ystdex\type_op.hpp">
-      <Filter>头文件\ystdex</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ystdex\memory.hpp">
-      <Filter>头文件\ystdex</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ystdex\utility.hpp">
-      <Filter>头文件\ystdex</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ystdex\cstdio.h">
-      <Filter>头文件\ystdex</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ystdex\cstring.h">
-      <Filter>头文件\ystdex</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ystdex\any.h">
-      <Filter>头文件\ystdex</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ystdex\algorithm.hpp">
-      <Filter>头文件\ystdex</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ystdex\rational.hpp">
-      <Filter>头文件\ystdex</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ystdex\operators.hpp">
-      <Filter>头文件\ystdex</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\ystdex\cstdio.cpp">
+    <ClCompile Include="..\YBase\source\ystdex\cstdio.cpp">
       <Filter>源文件\ystdex</Filter>
     </ClCompile>
-    <ClCompile Include="source\ystdex\cstring.cpp">
+    <ClCompile Include="..\YBase\source\ystdex\cstring.cpp">
       <Filter>源文件\ystdex</Filter>
     </ClCompile>
   </ItemGroup>

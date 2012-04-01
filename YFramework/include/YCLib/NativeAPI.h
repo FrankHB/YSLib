@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1295;
+\version r1307;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201 。
 \par 创建时间:
 	2011-04-13 20:26:21 +0800;
 \par 修改时间:
-	2012-03-26 16:45 +0800;
+	2012-03-28 19:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -38,6 +38,11 @@
 #define YCL_YCOMMON_H <ycommon.h>
 #define YSL_YSBUILD_H <YSLib/Helper/yshelper.h>
 
+/*!
+\defgroup workaround Workarounds
+\brief 名称冲突解决。
+\since build 297 。
+*/
 
 #ifdef YCL_DS
 
@@ -60,6 +65,14 @@
 #include <string.h>
 #include <time.h>
 #include <sys/stat.h>
+
+/*!
+\ingroup workaround
+\brief 禁止使用 DialogBox 宏。
+\note 使用 ::DialogBoxA 或 ::DialogBoxW 代替。
+\since build 297 。
+*/
+#undef DialogBox
 
 
 #define NAME_MAX 256

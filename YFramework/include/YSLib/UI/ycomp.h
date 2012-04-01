@@ -16,13 +16,13 @@
 /*!	\file ycomp.h
 \ingroup UI
 \brief 平台无关的 Shell 组件。
-\version r3267;
+\version r3268;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-19 20:05:08 +0800;
 \par 修改时间:
-	2012-03-16 15:40 +0800;
+	2012-03-28 15:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -107,7 +107,6 @@ typedef std::function<void(PaintEventArgs&&)> HBrush;
 using Drawing::PixelType;
 using Drawing::BitmapPtr;
 using Drawing::ConstBitmapPtr;
-using Drawing::ScreenBufferType;
 using Drawing::Color;
 
 using Drawing::Point;

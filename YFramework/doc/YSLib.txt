@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 说明。
-\version r2196;
+\version r2199;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-03-22 10:20 +0800;
+	2012-04-01 08:41 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -69,9 +69,9 @@ SM_TASK					0x0016
 // Shell 扩展消息。
 
 //输入消息。参考优先级 0x40 。
-//参数类型 InputContent 。
-//记录标准输入设备的输入事件。参数为输入上下文，表示按键信息等状态。
-SM_INPUT				0x4001
+//参数类型 void 。
+//指示输入设备接收用户输入并产生输入事件。
+SM_INPUT				0x00FF
 
 @2 当前非确定上层实现注意事项：
 

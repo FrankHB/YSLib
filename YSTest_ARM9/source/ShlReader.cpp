@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3931;
+\version r3959;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-03-25 14:55 +0800;
+	2012-04-01 08:42 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -199,6 +199,9 @@ namespace
 		return *p;
 	}
 
+	/*!
+	\brief 取当前设置。
+	*/
 	ReaderSetting&
 	FetchCurrentSetting()
 	{
@@ -206,13 +209,15 @@ namespace
 
 		if(!p)
 		{
+			//初始化设置。
 			p = new ReaderSetting();
+			p->Font.SetSize(14),
 			yunseq(
 				p->UpColor = Color(240, 216, 192),
 				p->DownColor = Color(192, 216, 240),
-				p->SmoothScroll = false,
+				p->SmoothScroll = true,
 				p->ScrollDuration = milliseconds(1000),
-				p->SmoothScrollDuration = milliseconds(100)
+				p->SmoothScrollDuration = milliseconds(80)
 			);
 		}
 		return *p;
@@ -433,13 +438,13 @@ SettingPanel::SettingPanel()
 	//	FetchEvent<Paint>(lblColorAreaDown).Add(BorderBrush(BorderStyle),
 	//		BoundaryPriority),
 		FetchEvent<KeyDown>(*this) += OnEvent_StopRouting<KeyEventArgs>,
-		FetchEvent<Click>(btnFontSizeDecrease) += [=, this](TouchEventArgs&&){
+		FetchEvent<Click>(btnFontSizeDecrease) += [&, this](TouchEventArgs&&){
 			auto size(lblAreaUp.Font.GetSize());
 
 			if(YCL_LIKELY(size > Font::MinimalSize))
 				set_font_size(--size);
 		},
-		FetchEvent<Click>(btnFontSizeIncrease) += [=, this](TouchEventArgs&&){
+		FetchEvent<Click>(btnFontSizeIncrease) += [&, this](TouchEventArgs&&){
 			auto size(lblAreaUp.Font.GetSize());
 
 			if(YCL_LIKELY(size < Font::MaximalSize))
@@ -598,13 +603,13 @@ ReadingList::Switch(bool is_prev)
 
 ShlReader::ShlReader(const IO::Path& pth)
 	: ShlDS(),
-	CurrentPath(pth), background_task()
+	CurrentPath(pth), fBackgroundTask()
 {}
 
 void
 ShlReader::Exit()
 {
-	background_task = nullptr;
+	fBackgroundTask = nullptr;
 	SetShellToNew<ShlExplorer>();
 }
 
@@ -612,8 +617,8 @@ void
 ShlReader::OnInput()
 {
 	ShlDS::OnInput();
-	if(background_task)
-		SendMessage<SM_TASK>(FetchShellHandle(), 0x20, background_task);
+	if(fBackgroundTask)
+		PostMessage<SM_TASK>(FetchShellHandle(), 0x20, fBackgroundTask);
 }
 
 
@@ -822,6 +827,7 @@ ShlTextReader::Execute(IndexEventArgs::ValueType idx)
 			yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(idx),
 				pnlSetting.ddlEncoding.Text = Encodings[idx].second);
 		}
+		StopAutoScroll(),
 		Hide(boxReader),
 		Show(pnlSetting << CurrentSetting);
 		break;
@@ -887,6 +893,14 @@ ShlTextReader::ShowMenu(Menu::ID id, const Point&)
 }
 
 void
+ShlTextReader::StopAutoScroll()
+{
+	Reader.AdjustScrollOffset(),
+	fBackgroundTask = nullptr,
+	Deactivate(tmrScroll);
+}
+
+void
 ShlTextReader::Switch(Encoding enc)
 {
 	if(enc != Encoding() && pTextFile && pTextFile->IsValid()
@@ -924,7 +938,7 @@ ShlTextReader::OnClick(TouchEventArgs&&)
 {
 	if(tmrScroll.IsActive())
 	{
-		Reader.AdjustScrollOffset();
+		StopAutoScroll();
 		Deactivate(tmrScroll);
 		return;
 	}
@@ -947,10 +961,12 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 	{
 		const u32 k(static_cast<KeyEventArgs::InputType>(e));
 
+		//这里可以考虑提供暂停，不调整视图。
 		if(tmrScroll.IsActive())
-			Deactivate(tmrScroll);
+			StopAutoScroll();
 		else if(k == KeySpace::Start)
 		{
+			fBackgroundTask = std::bind(&ShlTextReader::Scroll, this);
 			tmrScroll.Reset();
 			Activate(tmrScroll);
 			return;

@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2245;
+\version r2246;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2012-03-20 15:55 +0800;
+	2012-04-01 08:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -193,7 +193,7 @@ NowShellToStored()
 inline void
 SetShellTo(const shared_ptr<Shell>& hShl, Messaging::Priority p = 0x80)
 {
-	SendMessage<SM_SET>(FetchShellHandle(), p, hShl);
+	PostMessage<SM_SET>(FetchShellHandle(), p, hShl);
 }
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r1081;
+\version r1188;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:49:27 +0800;
 \par 修改时间:
-	2012-03-25 16:49 +0800;
+	2012-03-30 22:03 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -35,6 +35,13 @@
 
 YSL_BEGIN
 
+#ifndef SCREEN_WIDTH
+#	define SCREEN_WIDTH 256
+#endif
+#ifndef SCREEN_HEIGHT
+#	define SCREEN_HEIGHT 192
+#endif
+
 /*!	\defgroup CustomGlobalConstants Custom Global Constants
 \ingroup GlobalObjects
 \brief 平台相关的全局常量。
@@ -47,59 +54,6 @@ YSL_BEGIN
 */
 const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
 //@}
-
-YSL_BEGIN_NAMESPACE(Devices)
-
-/*!
-\brief DS 屏幕。
-\since 早于 build 218 。
-*/
-class DSScreen : public Screen
-{
-public:
-	typedef int BGType;
-
-private:
-	BGType bg;
-
-public:
-	/*!
-	\brief 构造：指定宽度和高度，从指定缓冲区指针。
-	*/
-	DSScreen(SDst, SDst, Drawing::BitmapPtr = nullptr);
-
-	/*!
-	\brief 复位。
-	\note 无条件初始化。
-	*/
-	static void
-	Reset();
-
-	/*!
-	\brief 取指针。
-	\note 无异常抛出。
-	\note 进行状态检查。
-	*/
-	virtual Drawing::BitmapPtr
-	GetCheckedBufferPtr() const ynothrow;
-	DefGetter(const ynothrow, const BGType&, BgID, bg)
-
-	/*!
-	\brief 更新。
-	\note 复制到屏幕。
-	*/
-	void
-	Update(Drawing::BitmapPtr);
-	/*!
-	\brief 更新。
-	\note 以纯色填充屏幕。
-	*/
-	void
-	Update(Drawing::Color = 0);
-};
-
-YSL_END_NAMESPACE(Devices)
-
 
 YSL_BEGIN_NAMESPACE(Shells)
 
@@ -136,13 +90,8 @@ YSL_END_NAMESPACE(Drawing)
 */
 class DSApplication : public Application
 {
-	friend DSApplication&
-	FetchGlobalInstance() ynothrow;
-
 private:
 	Drawing::FontCache* pFontCache; //!< 默认字体缓存。
-	shared_ptr<Devices::DSScreen> hScreenUp; //!< DS 上屏幕句柄。
-	shared_ptr<Devices::DSScreen> hScreenDown; //!< DS 上屏幕句柄。
 
 public:
 	/*!
@@ -175,30 +124,35 @@ public:
 	*/
 	Drawing::FontCache&
 	GetFontCache() const ythrow(LoggedEvent);
-	DefGetter(const ynothrow, const shared_ptr<Devices::DSScreen>&,
-		ScreenUpHandle, hScreenUp)
-	DefGetter(const ynothrow, const shared_ptr<Devices::DSScreen>&,
-		ScreenDownHandle, hScreenDown)
 	/*!
 	\brief 取上屏幕。
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
+	\since build 297 。
 	*/
-	Devices::DSScreen&
+	Devices::Screen&
 	GetScreenUp() const ynothrow;
 	/*!
 	\brief 取下屏幕。
 	\note 断言检查：句柄非空。
 	\note 无异常抛出。
+	\since build 297 。
 	*/
-	Devices::DSScreen&
+	Devices::Screen&
 	GetScreenDown() const ynothrow;
+
 	/*!
-	\brief 取默认屏幕。
-	\note 无异常抛出。
+	\brief 处理当前消息。
+	\note 优先级小于 UIResponseLimit 的消息时视为后台消息，否则为前台消息。
+	\return 循环条件。
+	\since build 297 。
+
+	若主消息队列为空，调用后台消息处理程序，否则从主消息队列取出并分发消息。
+	当取出的消息的标识为 SM_QUIT 时视为终止循环。
+	对于后台消息，分发前调用后台消息处理程序。
 	*/
-	PDefH(Devices::DSScreen&, GetDefaultScreen)
-		ImplRet(GetScreenUp())
+	bool
+	DealMessage();
 
 	/*!
 	\brief 复位默认字体缓存：使用指定路径。
@@ -207,36 +161,7 @@ public:
 	*/
 	void
 	ResetFontCache(const_path_t) ythrow(LoggedEvent);
-
-	/*!
-	\brief 运行主程序逻辑。
-	\note 优先级小于 UIResponseLimit 的消息时视为后台消息，否则为前台消息。
-	\since build 271 。
-
-	若主消息队列为空，调用后台消息处理程序，否则从主消息队列取出并分发消息。
-	当取出的消息的标识为 SM_QUIT 时退出消息循环。
-	对于后台消息，分发前调用后台消息处理程序。
-	*/
-	int
-	Run();
 };
-
-inline Devices::DSScreen&
-DSApplication::GetScreenUp() const ynothrow
-{
-	YAssert(bool(hScreenUp), "Fatal error:"
-		" null screen handle found @ DSApplication::GetScreenUp;");
-
-	return *hScreenUp;
-}
-inline Devices::DSScreen&
-DSApplication::GetScreenDown() const ynothrow
-{
-	YAssert(bool(hScreenDown), "Fatal error:"
-		" null screen handle found @ DSApplication::GetScreenDown;");
-
-	return *hScreenDown;
-}
 
 
 /*!
@@ -268,7 +193,7 @@ FetchDefaultFontCache()
 inline Devices::Screen&
 FetchDefaultScreen()
 {
-	return FetchGlobalInstance().GetDefaultScreen();
+	return FetchGlobalInstance().GetScreenUp();
 }
 
 /*!
@@ -277,6 +202,12 @@ FetchDefaultScreen()
 */
 void
 ShowFatalError(const char*);
+
+//! \brief 运行时平台。
+namespace DS
+{
+	using namespace platform_ex;
+}
 
 YSL_END
 

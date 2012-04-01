@@ -11,12 +11,12 @@
 /*!	\file ymsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version r2928;
+\version r2930;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-08 12:05:26 +0800;
 \par 修改时间:
-	2012-03-20 20:29 +0800;
+	2012-04-01 08:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -44,7 +44,7 @@ typedef enum MessageSpace
 	Quit = 0x0012,
 	Task = 0x0016,
 
-	Input = 0x4001
+	Input = 0x00FF
 
 } MessageID;
 
@@ -76,6 +76,7 @@ DefMessageTarget(SM_SET, shared_ptr<Shell>)
 DefMessageTarget(SM_PAINT, shared_ptr<Desktop>)
 DefMessageTarget(SM_QUIT, int)
 DefMessageTarget(SM_TASK, std::function<void()>)
+DefMessageTarget(SM_INPUT, void)
 
 
 template<MessageID _vID>

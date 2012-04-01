@@ -1,8 +1,8 @@
-# DS Makefile for YFramework -> ARM9 by Franksoft 2009 - 2012
+# DS Makefile for YBase -> DS by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-03-22 19:55 +0800;
-# Version = r3979;
+# UTime = 2012-03-30 12:50 +0800;
+# Version = r3940;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -21,25 +21,27 @@ ifeq ($(PLATFORM),DS)
 
 endif
 
+
 export TOPDIR		?=	$(CURDIR)
 
 #----
 # TARGET is the name of the file to output
-# BUILD is the directory where object files and intermediate files will be placed
+# BUILD is the configuration name
+# RELEASE is the directory where object files and intermediate files will be placed
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 # DATA is a list of directories containing binary files embedded using bin2o
 # GRAPHICS is a list of directories containing image files to be converted with grit
 #----
 
-export TARGET		:= $(shell basename $(CURDIR))
+export TARGET		:= YBase
+export TARGETP		:= $(TARGET)_$(PLATFORM)
+export REFDIR		:= ../$(TARGET)
 export BUILD		?= release
 export RELEASE		= $(BUILD)
-export SOURCES		:= source source/CHRLib source/YCLib source/YSLib source/YSLib/Adaptor source/YSLib/Core source/YSLib/Helper source/YSLib/Service Source/YSLib/UI data
-export INCLUDES		:= include ../YBase/include include/CHRLib include/YCLib ../YCLib/include include/YSLib data
-export DATA			:= data
-#export GRAPHICS	:= gfx
-#export MUSIC		:= music
+export SOURCES		:= source data $(REFDIR)/source $(REFDIR)/source/ystdex
+export INCLUDES		:= include data $(REFDIR)/include
+export DATA			:= data $(REFDIR)/data
 
 #----
 # options for code generation
@@ -62,21 +64,19 @@ CFLAGS	:=	-Wall \
  			-ffast-math \
  			$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM9
+CFLAGS	+=	$(INCLUDE) -pedantic -DARM9
 LDFLAGS :=	-specs=ds_arm9.specs $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
 
 ifneq ($(BUILD),debug)
-OB	:=	-O3
-CFLAGS	+=	$(OB) -DNDEBUG
+CFLAGS	+=	-O3 -DNDEBUG
 else
 ASFLAGS	+=	-g
-CFLAGS	+=	-g -O0 -DDEBUG
+CFLAGS	+=	-g -O0 -DDEBUG -D_GLIBCXX_DEBUG
 LDFLAGS	+=	-g
 endif
 
 CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++0x \
- 			-Wctor-dtor-privacy -Wnoexcept -Wsign-promo
-# 			-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo
+ 			-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo
 
 endif
 
@@ -86,20 +86,15 @@ endif
 # export PATH		:=	/d/dev/ds/devkitARM_r11/bin:/bin
 
 #----
-# PATH to ndslib - just make a system variable called NDSLIBPATH and be done with it
-#----
-# NDSLIBPATH	:=	/d/dev/ds/ndslib/
-
-#----
 # any extra libraries we wish to link with the project
 #----
-LIBS	:=	#-lfreetype #-lfat -lnds9
+LIBS	:=	#-lnds9 -lfat
 
 #----
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #----
-LIBDIRS	:=	$(LIBNDS) #lib
+LIBDIRS	:=	#$(LIBNDS)
 
 #----
 # no real need to edit anything past this point unless you need to add additional
@@ -121,21 +116,6 @@ SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 PCXFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.pcx)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
-ifeq ($(strip $(AUDIOFILES)),)
-	ifeq ($(strip $(ARM7_SELECTED)), ARM7_MAXMOD_DSWIFI)
- 		TEXT_TO_SAY_2 := No MaxMod-compatible files were found in the audio folder.
- 		TEXT_TO_SAY_3 := If you are loading the soundbank from FAT or EFS, ignore this message.
- 		TEXT_TO_SAY_4 := " "
-	endif
-	DONT_BUILD_MAXMOD_SOUNDBANK = YES
-endif
-
-ifneq ($(strip $(DONT_BUILD_MAXMOD_SOUNDBANK)), YES)
-	ifeq ($(strip $(ARM7_SELECTED)), ARM7_MAXMOD_DSWIFI)
-		BINFILES += soundbank_bin.bin
-	endif
-endif
-
 PNGFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.png)))
 PALFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.pal)))
 RAWFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.raw)))
@@ -151,11 +131,11 @@ MP3FILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.mp3)))
 #----
 ifeq ($(strip $(CPPFILES)),)
 #----
-	export LD	:=	$(CC)
+ 	export LD	:=	$(CC)
 #----
 else
 #----
-	export LD	:=	$(CXX)
+ 	export LD	:=	$(CXX)
 #----
 endif
 #----
@@ -183,7 +163,8 @@ $(BUILD):
 
 #----
 clean:
-	@echo Cleaning $(TARGET) - ARM9 ...
+	@echo Cleaning $(TARGETP) ...
+	@rm -f $(BUILD)/*.h
 	@rm -f $(BUILD)/*.d
 	@rm -f $(BUILD)/*.o
 	@rm -f $(OUTPUT)
@@ -204,8 +185,8 @@ DEPENDS	:= $(OFILES:.o=.d)
 
 $(OUTPUT)	:	$(OFILES)
 	@rm -f "$(OUTPUT)"
-	@$(AR) rcs "$(OUTPUT)" $(OFILES)
 	@echo Linking $(notdir $@) ...
+	@$(AR) rcs "$(OUTPUT)" $(OFILES)
 
 #----
 # you need a rule like this for each extension you use as binary data

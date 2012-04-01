@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2450;
+\version r2456;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-03-21 18:07 +0800;
+	2011-04-01 08:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -78,6 +78,7 @@ public:
 
 	/*!
 	\brief 析构：释放 Shell 所有权和其它资源。
+	\pre 断言检查： <tt>!GetShellHandle()</tt> 。
 	*/
 	virtual
 	~Application();
@@ -179,19 +180,20 @@ Activate(const shared_ptr<Shell>& hShl)
 
 /*!
 \brief 全局默认队列消息发送函数。
+\since build 297 。
 */
 //@{
 void
-SendMessage(const Message&) ynothrow;
+PostMessage(const Message&) ynothrow;
 void
-SendMessage(const shared_ptr<Shell>&, Messaging::ID, Messaging::Priority,
+PostMessage(const shared_ptr<Shell>&, Messaging::ID, Messaging::Priority,
 	const ValueObject& = ValueObject()) ynothrow;
 template<Messaging::MessageID _vID>
 inline void
-SendMessage(const shared_ptr<Shell>& hShl, Messaging::Priority prior,
+PostMessage(const shared_ptr<Shell>& hShl, Messaging::Priority prior,
 	const typename Messaging::SMessageMap<_vID>::TargetType& target) ynothrow
 {
-	SendMessage(hShl, _vID, prior, ValueObject(target));
+	PostMessage(hShl, _vID, prior, ValueObject(target));
 }
 //@}
 
