@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3959;
+\version r4018;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-04-01 08:42 +0800;
+	2012-04-02 17:36 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -71,8 +71,11 @@ namespace
 	shared_ptr<TextList::ListType>
 	FetchEncodingNames()
 	{
-		return make_shared<TextList::ListType>(Encodings | ystdex::get_value,
-			(Encodings + arrlen(Encodings)) | ystdex::get_value);
+		// TODO: use g++ 4.7 later;
+	//	return make_shared<TextList::ListType>(Encodings | ystdex::get_value,
+	//		(Encodings + arrlen(Encodings)) | ystdex::get_value);
+		return share_raw(new TextList::ListType(Encodings | ystdex::get_value,
+			(Encodings + arrlen(Encodings)) | ystdex::get_value));
 	}
 
 	/*!
@@ -103,8 +106,11 @@ namespace
 		const auto& mFamilies(FetchGlobalInstance().GetFontCache()
 			.GetFamilyIndices());
 
-		return make_shared<TextList::ListType>(mFamilies.cbegin()
-			| ystdex::get_key, mFamilies.cend() | ystdex::get_key);
+		// TODO: use g++ 4.7 later;
+	//	return make_shared<TextList::ListType>(mFamilies.cbegin()
+	//		| ystdex::get_key, mFamilies.cend() | ystdex::get_key);
+		return share_raw(new TextList::ListType(mFamilies.cbegin()
+			| ystdex::get_key, mFamilies.cend() | ystdex::get_key));
 	}
 
 
@@ -959,32 +965,61 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 {
 	if(e.Strategy != RoutedEventArgs::Tunnel && !mhMain.IsShowing(1u))
 	{
-		const u32 k(static_cast<KeyEventArgs::InputType>(e));
+		using namespace KeyCodes;
 
 		//这里可以考虑提供暂停，不调整视图。
 		if(tmrScroll.IsActive())
+		{
 			StopAutoScroll();
-		else if(k == KeySpace::Start)
+			return;
+		}
+
+		const auto& k(e.GetKeys());
+
+		if(k.count() != 1)
+			return;
+		if(k[Start])
 		{
 			fBackgroundTask = std::bind(&ShlTextReader::Scroll, this);
 			tmrScroll.Reset();
 			Activate(tmrScroll);
 			return;
 		}
-		switch(k)
-		{
-		case KeySpace::Enter:
+		if(k[KeyCodes::Enter])
 			Reader.UpdateView();
-			break;
-		case KeySpace::Esc:
+		else if(k[Esc])
 			Exit();
-			break;
-		case KeySpace::Up:
+		else if(k[Up])
 			Reader.Execute(DualScreenReader::LineUpScroll);
-			break;
-		case KeySpace::Down:
+		else if(k[Down])
 			Reader.Execute(DualScreenReader::LineDownScroll);
-			break;
+		else if(k[X] || k[Y])
+		{
+			auto size(Reader.GetFont().GetSize());
+
+			if(k[X] && size > Font::MinimalSize)
+				--size;
+			else if(k[Y] && size < Font::MaximalSize)
+				++size;
+			else
+				return;
+			Reader.SetFontSize(size);
+			Reader.UpdateView();
+		}
+		else if(k[L])
+		{
+			if(YCL_LIKELY(Reader.GetLineGap() != 0))
+				Reader.SetLineGap(Reader.GetLineGap() - 1);
+		}
+		else if(k[R])
+		{
+			if(YCL_LIKELY(Reader.GetLineGap() != 12))
+				Reader.SetLineGap(Reader.GetLineGap() + 1);
+		}
+		else if(k[Left])
+			Reader.Execute(DualScreenReader::ScreenUpScroll);
+		else if(k[Right])
+			Reader.Execute(DualScreenReader::ScreenDownScroll);
 /*
 		case KeySpace::PgUp:
 			Reader.Execute(DualScreenReader::ScreenUpScroll);
@@ -993,36 +1028,6 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 			Reader.Execute(DualScreenReader::ScreenDownScroll);
 			break;
 */
-		case KeySpace::X:
-		case KeySpace::Y:
-			{
-				auto size(Reader.GetFont().GetSize());
-				if(k == KeySpace::X && size > Font::MinimalSize)
-					--size;
-				else if(k == KeySpace::Y && size < Font::MaximalSize)
-					++size;
-				else
-					break;
-				Reader.SetFontSize(size);
-				Reader.UpdateView();
-			}
-			break;
-		case KeySpace::L:
-			if(YCL_LIKELY(Reader.GetLineGap() != 0))
-				Reader.SetLineGap(Reader.GetLineGap() - 1);
-			break;
-		case KeySpace::R:
-			if(YCL_LIKELY(Reader.GetLineGap() != 12))
-				Reader.SetLineGap(Reader.GetLineGap() + 1);
-			break;
-		case KeySpace::Left:
-			Reader.Execute(DualScreenReader::ScreenUpScroll);
-			break;
-		case KeySpace::Right:
-			Reader.Execute(DualScreenReader::ScreenDownScroll);
-		default:
-			break;
-		}
 	}
 }
 
@@ -1034,7 +1039,7 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth)
 	HexArea.SetRenderer(make_unique<BufferedRenderer>(true));
 	yunseq(
 		FetchEvent<KeyDown>(HexArea) += [this](KeyEventArgs&& e){
-			if(e.GetKeyCode() == KeySpace::Esc)
+			if(e.GetKeys() == 1 << KeyCodes::Esc)
 			{
 				Exit();
 				e.Handled = true; //注意不要使 CallStored 被调用多次。

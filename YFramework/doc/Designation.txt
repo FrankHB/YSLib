@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7156;
+\version r7157;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-01 08:25 +0800;
+	2012-04-01 11:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -926,7 +926,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
 @2.10.1.3 不在本体的头文件中显式包含，需要在除了 "ycont.h" 的 Adaptor 的必要头文件直接或间接包含的 C++ 标准库依赖项：
  <algorithm> 、 <memory> 、 <new> 、 <type_traits> 。
- "ydaptor.h" 需要保证 <initializer_list> 被包含。
+ "ydaptor.h" 需要保证 <bitset> 和 <initializer_list> 被包含。
 
 @2.10.1.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性或其它因素考虑，Adaptor 和本体不直接使用以下头文件（但 Adaptor 可能会间接依赖）：

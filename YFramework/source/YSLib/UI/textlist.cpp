@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1662;
+\version r1788;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-03-29 08:06 +0800;
+	2012-04-03 12:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -58,90 +58,85 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 			if(viewer.GetTotal() != 0)
 			{
+				using namespace KeyCodes;
+				const auto& k(e.GetKeys());
+
+				if(k.count() != 1)
+					return;
 				if(viewer.IsSelected())
 				{
-					switch(e.GetKeyCode())
-					{
-					case KeySpace::Enter:
+					if(k[Enter])
 						InvokeConfirmed(viewer.GetSelectedIndex());
-						break;
-					case KeySpace::Esc:
+					else if(k[Esc])
+					{
 						ClearSelected();
 						CallSelected();
-						break;
-					case KeySpace::Up:
-					case KeySpace::Down:
-					case KeySpace::PgUp:
-					case KeySpace::PgDn:
-						{
-							const auto nOld(viewer.GetSelectedIndex());
-
-							switch(e.GetKeyCode())
-							{
-							case KeySpace::Up:
-								if(viewer.GetSelectedIndex() == 0)
-								{
-									if(CyclicTraverse)
-									{
-										SelectLast();
-										break;
-									}
-								}
-								else
-									--viewer;
-								if(viewer.GetOffset() == 0)
-									AdjustTopOffset();
-								break;
-							case KeySpace::Down:
-								if(viewer.GetSelectedIndex() + 1
-									== GetList().size())
-								{
-									if(CyclicTraverse)
-									{
-										SelectFirst();
-										break;
-									}
-								}
-								else
-									++viewer;
-								if(viewer.GetOffset() == 
-									ViewerType::DifferenceType(
-									viewer.GetLength() - 1))
-									AdjustBottomOffset();
-								break;
-							case KeySpace::PgUp:
-								viewer.DecreaseSelected(
-									GetHeight() / GetItemHeight());
-								AdjustTopOffset();
-								break;
-							case KeySpace::PgDn:
-								viewer.IncreaseSelected(
-									GetHeight() / GetItemHeight());
-								AdjustBottomOffset();
-								break;
-							}
-							if(viewer.GetSelectedIndex() != nOld)
-								CallSelected();
-						}
-						break;
-					default:
-						return;
 					}
+					else if(k[Up] || k[Down] || k[PgUp] || k[PgDn])
+					{
+						const auto nOld(viewer.GetSelectedIndex());
+
+						if(k[Up])
+						{
+							if(viewer.GetSelectedIndex() == 0)
+							{
+								if(CyclicTraverse)
+								{
+									SelectLast();
+									goto end_switch;
+								}
+							}
+							else
+								--viewer;
+							if(viewer.GetOffset() == 0)
+								AdjustTopOffset();
+						}
+						else if(k[Down])
+						{
+							if(viewer.GetSelectedIndex() + 1
+								== GetList().size())
+							{
+								if(CyclicTraverse)
+								{
+									SelectFirst();
+									goto end_switch;
+								}
+							}
+							else
+								++viewer;
+							if(viewer.GetOffset() ==
+								ViewerType::DifferenceType(
+								viewer.GetLength() - 1))
+								AdjustBottomOffset();
+						}
+						else if(k[PgUp])
+						{
+							viewer.DecreaseSelected(
+								GetHeight() / GetItemHeight());
+							AdjustTopOffset();
+						}
+						else
+						{
+							viewer.IncreaseSelected(
+								GetHeight() / GetItemHeight());
+							AdjustBottomOffset();
+						}
+						if(viewer.GetSelectedIndex() != nOld)
+							CallSelected();
+					}
+					else
+						return;
 				}
 				else
-					switch(e.GetKeyCode())
-					{
-					case KeySpace::Up:
-					case KeySpace::PgUp:
+				{
+					if(k[Up] || k[PgUp])
 						SelectLast();
-						break;
-					case KeySpace::Down:
-					case KeySpace::PgDn:
+					else if(k[Down] || k[PgDn])
 						SelectFirst();
-						break;
-					default:
+					else
 						return;
-					}
+				}
+end_switch:
 				UpdateView();
 			}
 		},
@@ -369,8 +364,10 @@ TextList::PaintItems(const PaintContext& pc)
 void
 TextList::ResetView()
 {
-	viewer.MoveViewerToBegin();
-	if(viewer.IsSelected())
+	bool b(viewer.IsSelected());
+
+	viewer.Reset();
+	if(b)
 		viewer.SetSelectedIndex(0);
 	top_offset = 0;
 	UpdateView();

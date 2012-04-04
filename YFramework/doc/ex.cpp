@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3558; *build 297 rev 38;
+\version r3576; *build 298 rev 26;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-01 08:50 +0800;
+	2012-04-04 08:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -363,272 +363,250 @@ $using:
 
 $DONE:
 r1:
-/ @ \u ShlReader $=
+/ @ \h YCommon $=
 (
-	/ @ protected \m background_task -> protected \m fBackgroundTask
-		@ \cl ShlReader;
-	* missing automatic scrolling response @ text reader @ \cl ShlTextReader
-		$since b296 $=
+	+ \inc \h <bitset>,
+	+ yconstexpr std::size_t KeyBitsetWidth;
+	+ typedef std::bitset<KeyBitsetWidth> NativeInputType;
 	(
-		+ \mf StopAutoScroll;
-		/ \impl @ \mf (OnClick, OnKeyDown)
-	);
-	+ $comp adjusting reader when key is down
+		+ \ns \o extern NativeInputType KeyState, OldKeyState;
+		+ \f \i (FetchKeyUpStete, FetchKeyDownStete)
+	),
+	+ \f !\i UpdateKeyStates,
+	/ \tr @ \f (WriteKeys, WaitFor*)
+	/ \cl KeyCode -> typedef NativeInputType KeyCode,
+	+ \ns KeyCodes,
+	+ typedef NativeSet @ \ns KeyCodes,
+	- \ns KeySpace
 );
+/ \tr @ (InputEventArgs, KeyEventArgs) @ \u YWidgetEvent,
+/ \tr using @ \h YAdaptor,
+/ \tr \impl @ \impl \u (Shell_DS, Menu, HexBrowser, Scroll, TextList, ShlReader,
+	Shells);
 
 r2:
-/ stopping automatic scrolling when setting panel entered $=
-	(/ \impl @ \mf ShlTextReader::Execute @ \impl \u ShlReader);
-* $comp smooth scrolling wrong behavior when the delay set less than before
-	$since b292;
+* \impl @ \ctor TextList $since r1;
 
 r3:
-+ \ft pod_cast @ \h Cast,
-/ @ \h YCommon $=
-(
-	/ typedef ::COLORREF PixelType -> typedef ::RGBQUAD PixelType when defined
-		YCL_MINGW32,
-	+ \inh u32 @ typedef ColorSpace::ColorSet;
-	/ @ \cl Color $=
-	(
-		- \de \arg @ \ctor with 1 \arg;
-		+ \de \ctor,
-		/ \impl @ \mf \op PixelType,
-		+ yconstfn \ctor Color(ColorSet) when defined YCL_MINGW32
-	)
-);
+- typedef NativeInputType KeyCode @ \h YCommon;
+/ \a KeyCode => KeyInput,
+/ \a NativeInputType => KeyInput,
+/ \a GetKeyCode => GetKeys;
 
 r4:
-+ \inc \h <initializer_list> @ \h YCommon;
-/ \impl @ \ctor Palette @ \impl \u YStyle ^ initializer lists;
-
-r5:
 /= test 1 ^ \conf release;
 
-r6:
-/ fork \proj \ref YBase_DS ~ YBase,
-/ fork \proj \ref YFramework_DS ~ YFramework;
-/ @ Makefile @ \proj (YBase_DS, YFramework_DS, YSTest_ARM9);
+r5:
+/ @ \impl \u YCommon when defined(YCL_MINGW32)
+{
+	+ \inc \h <mutex>;
+	+ \o std::mutex KeyMutex @ \un \ns;
+	/ \impl @ \f UpdateKeyStates()
+},
+/ \impl @ \impl \u (Shells, ShlReader, Scroll, TextList, Menu, HexBrowser);
 
-r7:
+r6:
 /= test 2 ^ \conf release;
 
-r8:
-- \a using '*::ScreenBufferType';
-/ typedef ScreenBufferType @ \h YCommon >> \impl
-	@ \f ScreenSynchronize @ \impl \u,
-/ \f ScreenSynchronize @ \ns platform => \ns platform_ex @ \u YCommon;
-/ \tr @ \h YAdaptor $=
+r7:
+/ \impl @ \mf ShlDS::OnGotMessage @ \impl \u Shell_DS;
+- using platform::KeysInfo @ \h YAdaptor;
+/ @ \u YCommon $=
 (
-	- using platform::ScreenSynchronize;
-	/ \ns DS >> \h DSMain
+	- \f WriteKeys;
+	- \st KeysInfo
 );
-/ \tr \impl @ \mf DSScreen::Update @ \impl \u DSMain;
+
+r8:
+/= test 3 ^ \conf release;
 
 r9:
-/ @ \h YCast $=
+/ @ \impl \u YCommon when defined YCL_MINGW32 $=
 (
-	+ \inc \h <initializer_list>;
-	/ pod_cast -> union_cast
+	+ \h <mmsystem.h>,
+	/ \impl @ \f (GetTicks, GetHighResolutionTicks)
 ),
-/ @ \h YCommon $=
 (
-	/ \inc \h <initializer_list> >> \h Cast;
-	/ \mac DefColorH_ when defined YCL_MINGW32,
-	/ @ \cl Color $=
+	+ \mac (yconstraint, yassume) @ \h YDefinition;
+	^ yconstraint @ \h (YString, CharacterMapping, StaticMapping),
+	^ yassume @ (\h Cast, \impl \u CStandardIO),
+	/ @ \u NativeAPI when defined(YCL_MINGW32) $=
 	(
-		* \ctor with alpha value $since b;
-		/ \impl @ \mf \op PixelType ^ union_cast when defined YCL_MINGW32,
-		/ \impl @ \mf \ctor when defined YCL_MINGW32
-	)
+		/ linkage of \a POSIX compliant APIs @ \h NativeAPI
+			-> "extern C" ~ implicit "extern C++";
+		- \f (getcwd, chdir, rmdir, mkdir, stat),
+		(
+			+ \ns platform::replace;
+			+ \f \i makedir @ \ns platform::replace;
+			+ \mac mkdir
+		),
+		+ \as @ \impl @ \f readdir,
+		/ \impl @ \f opendir
+	);
 );
 
 r10:
-/ @ \h YCommon $=
+- using (platform::DEF_PATH_DELIMITER, platform::DEF_PATH_SEPERATOR)
+	@ \h YAdaptor;
+/ @ \h NativeAPI when defined(YCL_MINGW32) $=
 (
-	+ \mac YCL_PIXEL_ALPHA;
-	/ \mac BITALPHA => \impl \u
-);
-/ \tr \impl @ \h YBlit,
-/ \tr \impl @ \ft transform_pixel_ex @ \h YStyle,
-/ \tr \impl @ \f RenderChar @ \impl \u CharRenderer;
+	+ undef \mac DrawText,
+	+ undef \mac PostMessage;
+	+ confirming \mac \def UNICODE,
+	/ \tr @ typedef \st (dirent, DIR)
+),
+/ \tr \impl @ \f readdir @ \impl \u NativeAPI;
+/ file system APIs @ \u YCommon;
+/ \tr \impl @ \u YFileSystem;
+/ \impl @ \ctor ShlExplorer ^ IO::FS_Root @ \impl \u Shells;
 
 r11:
-/= test 3;
++ \ft make_shared @ \ns ystdex @ \h Memory;
+/ using std::make_shared -> using ystdex::make_shared @ \h YReference;
+/ \tr \impl @ (\ctor ShlExplorer @ \impl \u Shells, \f (FetchEncodingNames,
+	FetchFontFamilyNames) @ \impl \u ShlReader);
+	// g++ 4.6 unimplemented feature;
 
 r12:
-/ @ \h YCommon $=
+* @ \ns YSLib @ \impl \u YNew $since b203 $=
 (
-	/ \mac YCL_PIXEL_ALPHA -> yconstfn \f FetchAlpha;
-	+ yconstfn \f FetchOpaque;
-	/ \tr \impl @ \ctor Color when defined YCL_DS
+	+ \ns \o MemoryList DebugMemoryList @ \un \ns;
+	/ \impl @ \f GetDebugMemoryList
 );
-+ using platform::(FetchAlpha, FetchOpaque) @ \h YAdaptor;
-* \tr \impl @ \h YBlit $since r10;
 
 r13:
-/= test 4 ^ \conf release;
+/ \impl @ \f FixScrollBarLayout @ \impl \u Scroll,
+* \impl @ \ctor ListBox $since b261 $= (- wrong \as);
 
 r14:
-+ '#undef DialogBox' @ \h NativeAPI when defined YCL_MINGW32,
-(
-	+ \mac YCL_PIXEL_FORMAT_AXYZ1555 @ \h YCommon when defined YCL_DS;
-	/ \impl @ \h YBlit when !defined YCL_DS;
-),
-/ 'yconstfn' -> 'inline' @ \ctor Screen @ \h YDevice;
+/= test 4 ^ \conf release;
 
 r15:
-/ !\rem DEF_PATH_ROOT @ \h YCommon when defined YCL_MINGW32,
-/ @ \h DSMain,
-/ BOM @ \h YFile_(Text);
+/ @ \cl FileList @ \u YFileSystem $=
+(
+	+ \mf \op=(const Path&),
+	(
+		- \a 2 \mf \op/=;
+		+ \mf bool \op(const Path&)
+	),
+	/ \mf \mg -> \mf ListItems
+);
+/ @ \cl FileBox $=
+(
+	/ \simp impl @ \mf GetPath,
+	/ \tr \simp \impl @ \ctor,
+	+ \mf bool SetPath(const IO::Path&)
+);
 
 r16:
-* deleted copy \ctor @ \cl BorderBrush $since b295 $=
+/ @ \u NativeAPI when defined(YCL_MINGW32) $=
 (
-	+ \exp \de copy \ctor,
-	- \exp \de move \op=
+	/ \n dirent::pwindir => lpWinDir,
+	/ \n DIR::windir => win_dir,
+	/ \n DIR::h => hNode,
+	/ \n DIR::dirname => Name
+	/ \n DIR::posixdir => POSIXDir
+),
+(
+	/ @ \cl HDirectory @ \u YCommon $=
+	(
+		/ public \s \m PATHSTR Name	-> private !\s \m const char* pName;
+		+ \mf GetName,
+		/ \impl @ \mf \op++,
+		/ \tr \impl @ \a 2 \ctor,
+		+ \i @ \mf Reset
+	);
+	/ \tr \impl @ \mf FileList::ListItems @ \impl \u YFileSystem,
+	/ \tr \impl @ \f LoadFontFileDirectory @ \impl \u Initialization
 );
 
 r17:
-+ typedef int KeySet -> typedef \en KeySet @ \ns KeySpace @ \h YCommon
-	when defined YCL_MINGW32,
-/ \impl @ \ctor TextList,
-/ \impl @ \mf ATrack::CheckArea;
+/= test 5;
 
 r18:
-/ @ \h DSMain $=
+/ @ \h NativeAPI $=
 (
-	/ \impl @ \f \i FetchDefaultScreen;
-	- \mf \i DSApplication::GetDefaultScreen
+	+ 3 \f \i IsDirectory @ \ns platform_ex when defined(YCL_MINGW32),
+	+ \f \i IsDirectory @ \ns platform_ex when defined(YCL_DS)
 );
+/ @ \cl HDirectory \u YCommon $=
+(
+	- \ctor yconstfn HDirectory(IteratorType&);
+	* broken \mf IsDirectory $since b221 $=
+	(
+		+ private \m ::dirent* p_dirent;
+		/ \smf HDirectory::IsDirectory -> !\s \c \mf,
+		/ \tr \impl @ \ctor,
+		/ \tr \simp \impl @ \mf \op++
+	);
+	- unused \sm Stat
+);
+/ \tr \impl @ (\mf FileList::ListItems @ \impl \u YFileSystem,
+	\f LoadFontFileDirectory @ \impl \u Initialization);
 
 r19:
-/ \simp \impl @ \f InitConsole @ \impl \u YGlobal;
-/ @ \u DSMain $=
+/ @ \cl HDirectory @ \u YCommon $=
 (
-	/ @ \cl DSApplication $=
-	(
-		- \decl friend DSApplication& FetchGlobalInstance() ynothrow,
-		(
-			/ \mf \i DSScreen& GetScreenUp() const ynothrow
-				-> \mf !i Screen& GetScreenUp() const ynothrow,
-			/ \mf \i DSScreen& GetScreenUp() const ynothrow
-				-> \mf !i Screen& GetScreenUp() const ynothrow,
-			(
-				- \mf (GetScreenUpHandle, GetScreenDownHandle),
-				- private \m shared_ptr<Devices::DSScreen>
-					(hScreenUp, hScreenDown),
-			);
-			/ \tr \impl @ (\ctor, \dtor)
-		)
-	);
-	/ \cl DSScreen @ \h >> \impl \u,
-	+ \o DSScreen* (pScreenUp, pScreenDown) @ \un \ns,
-	/ \tr \simp \impl @ \mf DSScreen::GetCheckedBufferPtr
+	/ \impl @ \mf (GetName, \op++);
+	- \mf pName,
+	/ \tr \impl @ \ctor#1
 );
 
 r20:
-* \impl @ \mf DSApplication::GetScreenUp $since r19;
+(
+	+ \mf void Reset() @ \clt GSequenceViewer @ \h Viewer;
+	/ \simp \impl @ \mf TextList::ResetView;
+),
+/ \a HDirectory => HFileNode,
+/ \a ValidateDirectory => ValidatePath;
 
 r21:
-/ $design \impl @ \h TextRenderer for warnings concerned to char type sign,
-/ \impl @ \ctor SettingPanel @ \impl \u ShlReader,
-/ @ \cl GraphicDevice @ \h YDevice $=
+* \impl @ \f opendir @ \impl \u NativeAPI when defined(YCL_MINGW32) $since b296;
+/ @ \u YFileSystem $=
 (
-	* missing virtual \dtor $since b296;
-	/ \tr 'yconstfn' -> 'inline' @ \ctor
+	/ @ \cl Path $=
+	(
+		+ \mf bool IsDirectory() const;
+		* \impl @ Path::\op/= $since b153
+	);
+	* \impl @ file list $since b153
 );
 
 r22:
-+ '-D_GLIBCXX_DEBUG' @ \a \mac CFLAGS @ \a debug mode @ Makefile;
-
-r23:
 /= test 5 ^ \conf release;
 
-r24:
-* accessing uninitialized member @ font cache $since $before b132;
-* $comp chashing @ MinGW32 @ initialization $since r20;
-/ @ \cl Font $=
+r23:
+/ @ \u FileSystem $=
 (
-	/ private \m Style => style,
-	/ \impl @ \ctor ^ initializer list
+	+ \mf bool NormalizeTrailingSlash() @ \cl Path;
+	/ \impl @ \mf FileList::\op/=
 );
+
+r24:
+* \impl @ \ctor @ \cl HexViewArea @ \impl \u HexBrowser $since b268;
 
 r25:
-* integer dividing by 0 @ \impl @ \f dfac2 @ \un \ns $since $before b132;
+/ \impl @ \f (OnKeyHeld, OnTouchHeld) changing holding interval;
 
 r26:
-/ @ \u DSMain $=
-(
-	/ @ \cl DSApplication @ \u DSMain $=
-	(
-		+ \mf DealMessage();
-		- \mf Run
-	);
-	/ \impl @ \f main
-);
-
-r27:
-* \impl @ \mf DSApplication::DealMessage $since r26;
-
-r28:
-/ \impl @ \mf main @ \impl \u DSMain;
-
-r29:
-* \impl @ \dtor @ \cl Shells $since b;
-
-r30-r31:
-/= test 6;
-
-r32:
-+ \as @ \dtor @ \cl Application;
-
-r33:
-/ \impl @ \f WriteCursor @ \impl \u YCommon,
-/ \simp \impl @ \f Idle @ \un \ns @ \impl \u DSMain;
-
-r34:
-/ \impl @ \mf ShlDS::OnGotMessage @ \impl \u Shell_DS,
-/ \impl @ \f Idle @ \un \ns @ \impl \u DSMain;
-
-r35:
-/ DefMessageTarget(SM_INPUT, InputContent) @ \h YGlobal
-	-> DefMessageTarget(SM_INPUT, void) @ \h YMessageDefinition,
-/ 'Input = 0x4001' @ typedef \en MessageID @ \h YMessageDefinition
-	-> 'Input = 0x00FF';
-/ \simp \impl @ \f Idle @ \un \ns @ \impl \u DSMain;
-
-r36:
-/ \a SendMessage => PostMessage,
-/ \impl @ \f FetchCurrentSetting @ \un \ns @ \impl \u ShlReader;
-
-r37:
-/ \impl @ \mf ShlDS::OnGotMessage;
-- \cl InputContent @ ns Messaging @ \u (YGlobal, DSMain);
-
-r38:
-/= test 7 ^ \conf release;
+/= test 6 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-04-01:
--7.9d;
-//Mercurial rev1-rev168: r8178;
+2012-04-04:
+-6.6d;
+//Mercurial rev1-rev168: r8204;
 
 / ...
 
 
 $NEXT_TODO:
-b298-b324:
-/ @ \h YCommon $=
-(
-	+ \inc \h <bitset>,
-	/ @ \cl KeyCode
-),
+b299-b324:
 / \impl @ \u (DSReader, ShlReader) $=
 (
+	* crashing when setting font size @ text reader $since b297,
 	/ $design \simp \impl
 ),
 - \inc \h "YSLib/Helper/DSMain.h" @ \impl \u YGlobal;
@@ -864,7 +842,8 @@ $KNOWN_ISSUE:
 * "crashing after sleeping(default behavior of closing then reopening lid) on \
 	real machine due to libnds default interrupt handler for power management"
 	$since b279;
-
+* "sorry, unimplemented: use of 'type_pack_expansion' in template"
+	@ ^ "g++ 4.6" $before $future;
 
 $RESOLVED_ENVIRONMENT_ISSUE:
 * "g++ 4.5.2 fails on compiling code with defaulted move assignment operator"
@@ -900,6 +879,19 @@ $renamed_to =>;
 $ellipse_refactoring;
 $ellipse_debug_assertion;
 
+$ref $=
+(
+b298 $=
+(
+$note "access violation examples"
+/*
+http://stackoverflow.com/questions/5955682/boostmake-shared-causes-access\
+-violation
+http://lists.cs.uiuc.edu/pipermail/cfe-dev/2011-October/017831.html
+*/
+)
+)
+
 $module_tree $=
 (
 	'YBase',
@@ -919,7 +911,12 @@ $module_tree $=
 		(
 			'CharacterMapping'
 		),
-		'YCLib',
+		'YCLib' $=
+		(
+			'native APIs',
+			'common input APIs',
+			'common file system APIs'
+		),
 		'YSLib'
 		(
 			'adaptors',
@@ -955,6 +952,96 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YCLib' $=
+		(
+			/ "native key types" @ %'common input APIs',
+			/ "file system APIs" @ %'Native APIs' $=
+			(
+				+ $design "assertions",
+				* "missing directory validation" @ "function %opendir"
+					"when defined %YCL_MINGW32" $since b296
+			);
+			/% 'common file system APIs' $=
+			(
+				/ "types and macros",
+				(
+					/ @ "file node iterator" $=
+					(
+						/ "simplified interface",
+						/ "iteration performance improved for removal of \
+							copying node names",
+						* "broken member function %IsDirectory" $since b221,
+						^ "class name %HFileNode" ~ "%HDirectory"
+					)
+				)
+			)
+		);
+		/ %'YSLib' $=
+		(
+			/ %'GUI' $=
+			(
+				/ "key events response" @ "controls"
+				* "implementation" @ "class %ListBox" $since b261
+					$= (- "wrong assertion"),
+				(
+					$dep_from "file list interface";
+					/ $design "implementation" @ "class %FileBox"
+				),
+				+ "member function %Reset" @ "class template %GSequenceViewer",
+				/ "default holding intervals"
+					// Key: (240ms, 120ms) -> (240ms, 60ms); \
+						Touch: (240ms, 60ms) -> (240ms, 80ms);
+			),
+			/ "key events response" @ "class %ShlDS" @ %'helpers'.'shells',
+			/ %'core'.'file system abstraction' $=
+			(
+				/ @ "class %Path" $=
+				(
+					* "directory path validation" $since b153;
+					+ "member function %NormalizeTrailingSlash"
+				);
+				/ "class %FileList" @ $=
+				(
+					(
+						/ "simplified interface";
+						$dep_to "file list interface"
+					),
+					* "directory path validation" $since b153,
+					/ "automatic normalizing trailing slash when validating \
+						path string"
+				)
+			)
+		)
+		/ $design "file system APIs" %'YCLib',
+		(
+			$dep_from "make_shared",
+			^ $design "%ystdex::make_shared" ^ "%std::make_shared"
+				// %std::make_shared with RTTI will enlarge size of object \
+					files. Several implementations may cause access violation, \
+					see $ref b298.
+		),
+		* $design "implementation" @ "unit %YNew" @ %'adaptors' $since b203
+	),
+	/ @ %'YBase' $=
+	(
+		+ $design "assertion macros",
+		(
+			+ "function template %ystdex::make_shared";
+			$dep_to "make_shared"
+		)
+	),
+	/ %'YReader' $=
+	(
+		/ $design "key event response" @ 'text reader',
+		* "position argument overflow (wrapped by 512KB) when scrolling"
+			@ %'hexadecimal browser' $since b268,
+	)
+),
+
+b297
 (
 	/ %'YReader'. $=
 	(

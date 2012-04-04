@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2813;
+\version r2832;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-03-26 16:11 +0800;
+	2012-04-02 12:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -157,6 +157,27 @@
 #endif
 
 
+/*!
+\def yconstraint
+\brief 约束：接口语义。
+\note 和普通断言相比强调接口契约。对于移植特定的平台实现时应予以特别注意。
+\since build 298 。
+
+运行时检查的接口语义约束断言。不满足此断言的行为是接口明确地未定义的，行为不可预测。
+*/
+#define yconstraint assert
+
+/*!
+\def yassume
+\brief 假定：环境语义。
+\note 和普通断言相比强调非接口契约。对于移植特定的平台实现时应予以特别注意。
+\since build 298 。
+
+运行时检查的环境条件约束断言。用于明确地非 yconstraint 适用的情形。
+*/
+#define yassume assert
+
+
 namespace ystdex
 {
 	/*!
@@ -181,9 +202,8 @@ namespace ystdex
 
 	/*!
 	\brief 空指针类。
-	\note 代码参考：
-	http://topic.csdn.net/u/20100924/17/ \
-		BE0C26F8-5127-46CD-9136-C9A96AAFDA76.html 。
+	\see 代码参考：http://topic.csdn.net/u/20100924/17/\
+BE0C26F8-5127-46CD-9136-C9A96AAFDA76.html 。
 	*/
 	const class nullptr_t
 	{

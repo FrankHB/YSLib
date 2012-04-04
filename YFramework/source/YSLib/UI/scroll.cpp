@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4223;
+\version r4242;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2012-03-29 08:09 +0800;
+	2012-04-02 19:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -38,46 +38,48 @@ YSL_BEGIN_NAMESPACE(Components)
 
 namespace
 {
-	pair<bool, bool>
-	FixScrollBarLayout(Size& d, const Size& s, SDst min_width, SDst min_height)
-	{
-		bool need_h(d.Width < s.Width), need_v(d.Height < s.Height);
 
-		if(need_h)
+pair<bool, bool>
+FixScrollBarLayout(Size& d, const Size& s, SDst min_width, SDst min_height)
+{
+	bool need_h(d.Width < s.Width), need_v(d.Height < s.Height);
+
+	if(need_h)
+	{
+		if(d.Height < min_height)
+			throw GeneralEvent("Scroll bar need more height.");
+		d.Height -= min_height;
+	}
+	if(need_v)
+	{
+		if(d.Width < min_width)
+			throw GeneralEvent("Scroll bar need more width.");
+		d.Width -= min_width;
+	}
+	if(need_h != need_v)
+	{
+		if(!need_h && d.Width < s.Width)
 		{
+			need_h = true;
 			if(d.Height < min_height)
 				throw GeneralEvent("Scroll bar need more height.");
 			d.Height -= min_height;
 		}
-		if(need_v)
+		if(!need_v && d.Height < s.Height)
 		{
+			need_v = true;
 			if(d.Width < min_width)
 				throw GeneralEvent("Scroll bar need more width.");
 			d.Width -= min_width;
 		}
-		if(need_h ^ need_v)
-		{
-			if(!need_h && d.Width < s.Width)
-			{
-				need_h = true;
-				if(d.Height < min_height)
-					throw GeneralEvent("Scroll bar need more height.");
-				d.Height -= min_height;
-			}
-			if(!need_v && d.Height < s.Height)
-			{
-				need_v = true;
-				if(d.Width < min_width)
-					throw GeneralEvent("Scroll bar need more width.");
-				d.Width -= min_width;
-			}
-		}
-		return pair<bool, bool>(need_h, need_v);
 	}
-
-	const SDst defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
-	const SDst defMinScrollBarHeight(16); //!< 默认最小滚动条高。
+	return pair<bool, bool>(need_h, need_v);
 }
+
+const SDst defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
+const SDst defMinScrollBarHeight(16); //!< 默认最小滚动条高。
+
+} //unnamed namespace;
 
 
 ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
@@ -423,12 +425,15 @@ HorizontalScrollBar::HorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
 {}
 
 IWidget*
-HorizontalScrollBar::GetBoundControlPtr(const KeyCode& k)
+HorizontalScrollBar::GetBoundControlPtr(const KeyInput& k)
 {
-	if(k == KeySpace::Left)
-		return &btnPrev;
-	if(k == KeySpace::Right)
-		return &btnNext;
+	if(k.count() == 1)
+	{
+		if(k[KeyCodes::Left])
+			return &btnPrev;
+		if(k[KeyCodes::Right])
+			return &btnNext;
+	}
 	return nullptr;
 }
 
@@ -438,12 +443,15 @@ VerticalScrollBar::VerticalScrollBar(const Rect& r, SDst uMinThumbLength)
 {}
 
 IWidget*
-VerticalScrollBar::GetBoundControlPtr(const KeyCode& k)
+VerticalScrollBar::GetBoundControlPtr(const KeyInput& k)
 {
-	if(k == KeySpace::Up)
-		return &btnPrev;
-	if(k == KeySpace::Down)
-		return &btnNext;
+	if(k.count() == 1)
+	{
+		if(k[KeyCodes::Up])
+			return &btnPrev;
+		if(k[KeyCodes::Down])
+			return &btnNext;
+	}
 	return nullptr;
 }
 

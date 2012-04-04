@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,14 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1897;
+\version r1913;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 173 。
 \par 创建时间:
 	2010-12-02 19:49:41 +0800;
 \par 修改时间:
-	2011-11-05 11:15 +0800;
-\par 字符集:
+	2012-04-02 18:50 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Adaptor::YNew;
@@ -25,7 +26,7 @@
 
 
 #include "YSLib/Adaptor/ynew.h"
-#include <cstdlib> //for std::atexit & std::malloc & std::free;
+#include <cstdlib> //for std::atexit, std::malloc & std::free;
 #include <cassert> //for assert;
 
 #ifdef YSL_USE_MEMORY_DEBUG
@@ -103,12 +104,22 @@ operator delete[](void* p, const std::nothrow_t& unused,
 
 YSL_BEGIN
 
+namespace
+{
+
+/*!
+\brief 调试内存列表。
+\warning 不可用于未确定初始化顺序的命名空间作用域对象。
+\since build 298 。
+*/
+static MemoryList DebugMemoryList(0);
+
+} // unnamed namespace;
+
 MemoryList&
 GetDebugMemoryList()
 {
-	static MemoryList debug_memory_list(0);
-
-	return debug_memory_list;
+	return DebugMemoryList;
 }
 
 

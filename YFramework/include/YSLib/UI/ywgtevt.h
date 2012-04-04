@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r2148;
+\version r2176;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241 。
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2012-03-21 19:17 +0800;
+	2012-04-01 15:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -127,16 +127,30 @@ typedef Drawing::Point MScreenPositionEventArgs;
 struct InputEventArgs : public RoutedEventArgs
 {
 public:
-	KeyCode Key;
+	/*!
+	\brief 包含的按键代码。
+	\since build 298 。
+	*/
+	KeyInput Keys;
 
 	/*!
 	\brief 构造：使用本机键按下对象和路由事件类型。
+	\since build 298 。
 	*/
-	InputEventArgs(IWidget&, KeyCode = 0, RoutingStrategy = Direct);
+	InputEventArgs(IWidget&, const KeyInput& = KeyInput(),
+		RoutingStrategy = Direct);
 
-	DefCvt(const ynothrow, KeyCode, Key)
+	/*!
+	\brief 转换为按键代码类型。
+	\since build 298 。
+	*/
+	DefCvt(const ynothrow, const KeyInput&, Keys)
 
-	DefGetter(const ynothrow, KeyCode, KeyCode, Key)
+	/*!
+	\brief 取按键代码。
+	\since build 298 。
+	*/
+	DefGetter(const ynothrow, const KeyInput&, Keys, Keys)
 };
 
 
@@ -148,12 +162,13 @@ public:
 struct KeyEventArgs : public InputEventArgs
 {
 public:
-	typedef KeyCode InputType; //!< 输入类型。
+	typedef KeyInput InputType; //!< 输入类型。
 
 	/*!
 	\brief 构造：使用输入类型对象和路由事件类型。
 	*/
-	KeyEventArgs(IWidget&, const InputType& = 0, RoutingStrategy = Direct);
+	KeyEventArgs(IWidget&, const InputType& = InputType(),
+		RoutingStrategy = Direct);
 };
 
 

@@ -11,13 +11,13 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version r3586;
+\version r3590;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 176 。
 \par 创建时间:
 	2010-03-21 23:09:06 +0800;
 \par 修改时间:
-	2012-03-13 10:26 +0800;
+	2012-04-02 16:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,14 +39,14 @@ using std::const_pointer_cast;
 using std::dynamic_pointer_cast;
 using std::enable_shared_from_this;
 using std::get_deleter;
-/*!
-\since build 292 。
-*/
-using std::make_shared;
 using std::shared_ptr;
 using std::static_pointer_cast;
 using std::unique_ptr;
 using std::weak_ptr;
+/*!
+\since build 298 。
+*/
+using ystdex::make_shared;
 /*!
 \since build 292 。
 */

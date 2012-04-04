@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2086;
+\version r2123;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-04-01 08:45 +0800;
+	2012-04-01 17:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -94,23 +94,26 @@ ShlDS::OnGotMessage(const Message& msg)
 		}
 		return 0;
 	case SM_INPUT:
-		//平台相关输入处理。
+		//平台相关输入处理：等待图形用户界面输入。。
 		{
-			//等待图形用户界面输入。
+			using namespace platform::KeyCodes;
+			using namespace YSL_ Components;
 
 			// NOTE: no real necessity to put input content into message queue,
 			//	for the content is serialized in form of exactly one instance
 			//	to be accepted at one time and no input signal is handled
 			//	through interrupt to be buffered.
-			static KeysInfo keys;
 			static Drawing::Point cursor_pos;
 
 			// FIXME: crashing after sleeping(default behavior of closing then
 			// reopening lid) on real machine due to LibNDS default interrupt
 			// handler for power management;
 		//	platform::AllowSleep(true);
-			platform::WriteKeys(keys);
-			if(keys.Held & KeySpace::Touch)
+			platform::UpdateKeyStates();
+
+			KeyInput keys(platform::FetchKeyUpState());
+
+			if(platform::KeyState[Touch])
 			{
 				CursorInfo cursor;
 
@@ -119,48 +122,45 @@ ShlDS::OnGotMessage(const Message& msg)
 					cursor_pos.Y = cursor.GetY());
 			}
 
-			const KeysInfo& k(keys);
 			Desktop& d(*desktop_down_ptr); // TODO: assertion & etc;
 		//	Desktop& d(FetchGlobalInstance().GetTouchableDesktop());
 
-			using namespace YSL_ KeySpace;
-			using namespace YSL_ Components;
-
 			auto& st(FetchGUIState());
 
-			if(k.Up & Touch)
+			if(keys[Touch])
 			{
 				TouchEventArgs e(d, cursor_pos);
 
 				st.ResponseTouch(e, TouchUp);
 			}
-			else if(k.Up)
+			else if(keys.any())
 			{
-				KeyEventArgs e(d, k.Up);
+				KeyEventArgs e(d, keys);
 
 				st.ResponseKey(e, KeyUp);
 			}
-			if(k.Down & Touch)
+			keys = platform::FetchKeyDownState();
+			if(keys[Touch])
 			{
 				TouchEventArgs e(d, cursor_pos);
 
 				st.ResponseTouch(e, TouchDown);
 			}
-			else if(k.Down)
+			else if(keys.any())
 			{
-				KeyEventArgs e(d, k.Down);
+				KeyEventArgs e(d, keys);
 
 				st.ResponseKey(e, KeyDown);
 			}
-			if(k.Held & Touch)
+			if(platform::KeyState[Touch])
 			{
 				TouchEventArgs e(d, cursor_pos);
 
 				st.ResponseTouch(e, TouchHeld);
 			}
-			else if(k.Held)
+			else if(platform::KeyState.any())
 			{
-				KeyEventArgs e(d, k.Held);
+				KeyEventArgs e(d, platform::KeyState);
 
 				st.ResponseKey(e, KeyHeld);
 			}

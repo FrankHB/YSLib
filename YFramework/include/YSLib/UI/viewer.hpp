@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r1202;
+\version r1212;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-04-19 23:00:28 +0800;
 \par 修改时间:
-	2012-03-17 19:26 +0800;
+	2012-04-03 12:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -109,7 +109,7 @@ public:
 		//!< 取选中的项目相对于视图中首个项目的下标偏移（未选中时为 -1 ）。
 	DefGetter(const ynothrow, SizeType, Valid, min(GetTotal() - GetHeadIndex(),
 		GetLength())) //!< 取当前视图中有效项目个数。
-	
+
 	/*!
 	\brief 设置容器。
 	\note 若容器和之前不同则重置视图。
@@ -237,6 +237,17 @@ public:
 			return true;
 		}
 		return false;
+	}
+
+	/*!
+	\brief 复位视图。
+	\since build 298 。
+	*/
+	void
+	Reset()
+	{
+		yunseq(this->head = 0, this->selected = 0, this->length = 1,
+			this->is_selected = false);
 	}
 
 	/*!

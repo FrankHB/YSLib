@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3350;
+\version r3357;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2012-03-18 13:08 +0800;
+	2012-04-02 21:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -151,6 +151,14 @@ public:
 	*/
 	IO::Path
 	GetPath() const;
+
+	/*!
+	\brief 设置路径，若成功则刷新列表。
+	\return 是否成功。
+	\since build 298 。
+	*/
+	bool
+	SetPath(const IO::Path&);
 };
 
 

@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1927;
+\version r1955;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2012-03-17 20:10 +0800;
+	2012-04-01 16:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -48,30 +48,32 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 	yunseq(
 		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 			if(pHost)
-				switch(e.GetKeyCode())
-				{
-				case KeySpace::Right:
-					if(IsSelected())
-					{
-						auto pMnu(ShowSub(GetSelectedIndex()));
+			{
+				const auto& k(e.GetKeys());
 
-						if(pMnu)
-							pMnu->SelectFirst();
+				if(k.count() == 1)
+				{
+					if(k[KeyCodes::Right])
+					{
+						if(IsSelected())
+						{
+							auto pMnu(ShowSub(GetSelectedIndex()));
+
+							if(pMnu)
+								pMnu->SelectFirst();
+						}
 					}
-					break;
-				case KeySpace::Left:
-				case KeySpace::Esc:
+					else if(k[KeyCodes::Left] || k[KeyCodes::Esc])
 					{
 						auto pMnu(GetParentPtr());
 
 						if(pMnu)
 							RequestFocus(*pMnu);
-						else if(e.GetKeyCode() == KeySpace::Esc)
+						else if(k[KeyCodes::Esc])
 							Hide();
 					}
-				default:
-					break;
 				}
+			}
 		},
 		FetchEvent<LostFocus>(*this) += [this](UIEventArgs&& e){
 			if(pHost)

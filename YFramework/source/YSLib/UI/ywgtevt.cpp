@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.cpp
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1119;
+\version r1122;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 293 。
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2012-03-15 18:40 +0800;
+	2012-04-01 15:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -32,8 +32,9 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
 
-InputEventArgs::InputEventArgs(IWidget& wgt, KeyCode k, RoutingStrategy s)
-	: RoutedEventArgs(wgt, s), Key(k)
+InputEventArgs::InputEventArgs(IWidget& wgt, const KeyInput& k,
+	RoutingStrategy s)
+	: RoutedEventArgs(wgt, s), Keys(k)
 {}
 
 

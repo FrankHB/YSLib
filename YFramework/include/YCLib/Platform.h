@@ -24,13 +24,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r1382;
+\version r1384;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 00:05:08 +0800;
 \par 修改时间:
-	2012-03-26 14:07 +0800;
+	2012-04-01 16:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -62,8 +62,8 @@
 \def YCL_PLATFORM
 \brief 目标平台。
 */
-#if defined(__MINGW32__)
-//#if defined(_WIN32)
+#ifdef __MINGW32__
+//#ifdef _WIN32
 #	define YCL_PLATFORM YCL_PLATFORM_MINGW32
 #elif !defined(YCL_PLATFORM)
 //当前默认以 DS 作为目标平台。

@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5525;
+\version r5527;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2012-03-15 16:54 +0800;
+	2012-04-01 15:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -327,7 +327,7 @@ public:
 
 	转换按键输入事件为指定部件的指针设备输入事件。
 	*/
-	std::function<IWidget*(const KeyCode&)> BoundControlPtr;
+	std::function<IWidget*(const KeyInput&)> BoundControlPtr;
 
 	/*!
 	\brief 构造：使用指定边界。
@@ -346,7 +346,7 @@ public:
 	/*!
 	\brief 取按键-指针设备输入默认事件组映射。
 	*/
-	virtual PDefH(IWidget*, GetBoundControlPtr, const KeyCode&)
+	virtual PDefH(IWidget*, GetBoundControlPtr, const KeyInput&)
 		ImplRet(nullptr)
 
 	/*!

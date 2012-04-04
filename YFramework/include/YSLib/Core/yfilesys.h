@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2239;
+\version r2284;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2012-03-21 19:08 +0800;
+	2012-04-03 14:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -42,8 +42,8 @@ const auto CP_Path(Text::CS_Default); //!< 路径编码。
 \since build 285 。
 */
 //@{
-yconstexpr const_path_t FS_Root(DEF_PATH_ROOT);
-yconstexpr const_path_t FS_Seperator(DEF_PATH_SEPERATOR);
+yconstexpr const_path_t FS_Root(YCL_PATH_ROOT);
+yconstexpr const_path_t FS_Seperator(YCL_PATH_SEPERATOR);
 yconstexpr const_path_t FS_Now(".");
 yconstexpr const_path_t FS_Parent("..");
 yconstexpr const ucs2_t* FS_Now_X(u".");
@@ -69,11 +69,83 @@ public:
 		//!< 内部字符串类型。
 //	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
 
-	static yconstexpr ucs2_t Slash = DEF_PATH_DELIMITER;
+	static yconstexpr ucs2_t Slash = YCL_PATH_DELIMITER;
 	static const Path Now;
 	static const Path Parent;
 
 public:
+	//迭代器。
+	class iterator
+		: public std::iterator<std::bidirectional_iterator_tag, Path>
+	{
+	private:
+		const value_type* ptr;
+		StringType::size_type n;
+
+		/*!
+		\brief 无参数构造。
+		\note 空迭代器。仅为兼容标准迭代器需求。
+		*/
+		iterator();
+
+	public:
+		/*!
+		\brief 构造：使用值引用。
+		*/
+		iterator(const value_type&);
+		/*!
+		\brief 复制构造。
+		*/
+		iterator(const iterator&);
+
+		/*!
+		\brief 迭代：向后遍历。
+		*/
+		iterator&
+		operator++();
+		/*!
+		\brief 迭代：向后遍历。
+		\note 构造新迭代器并返回。
+		*/
+		iterator
+		operator++(int);
+
+		/*!
+		\brief 迭代：向前遍历。
+		*/
+		iterator&
+		operator--();
+		/*!
+		\brief 迭代：向前遍历。
+		\note 构造新迭代器并返回。
+		*/
+		iterator
+		operator--(int);
+
+		/*!
+		\brief 比较：相等关系。
+		*/
+		bool
+		operator==(const iterator&) const;
+
+		/*!
+		\brief 比较：不等关系。
+		*/
+		bool
+		operator!=(const iterator&) const;
+
+		/*!
+		\brief 间接访问。
+		*/
+		value_type
+		operator*() const;
+
+		DefGetter(const ynothrow, const value_type*, Ptr, ptr)
+		DefGetter(const ynothrow, StringType::size_type, Position, n)
+	};
+
+	typedef iterator const_iterator;
+
 	//编码转换。
 //	static std::locale imbue(const std::locale&);
 //	static const codecvt_type& codecvt();
@@ -116,6 +188,13 @@ public:
 	DefPred(const ynothrow, Absolute,
 		YSLib::IsAbsolute(GetNativeString().c_str()))
 	DefPred(const ynothrow, Relative, !IsAbsolute())
+	/*!
+	\brief 判断是否表示目录。
+	\note 无视结尾分隔符。
+	\since build 298 。
+	*/
+	bool
+	IsDirectory() const;
 	/*!
 	\brief 判断是否有根名称。
 	*/
@@ -201,96 +280,7 @@ public:
 	DefGetter(const ynothrow, NativeString, NativeString,
 		GetMBCS(CP_Path)) //!< 取本地格式和编码的字符串。
 
-	//修改函数。
-
-	/*!
-	\brief 构造绝对路径。
-	*/
-	Path&
-	MakeAbsolute(const Path&);
-	/*!
-	\brief 移除文件名。
-	*/
-	Path&
-	RemoveFilename();
-	/*!
-	\brief 替换扩展名。
-	*/
-	Path&
-	ReplaceExtension(const Path& = Path());
-
-	//迭代器。
-	class iterator
-		: public std::iterator<std::bidirectional_iterator_tag, Path>
-	{
-	private:
-		const value_type* ptr;
-		StringType::size_type n;
-
-		/*!
-		\brief 无参数构造。
-		\note 空迭代器。仅为兼容标准迭代器需求。
-		*/
-		iterator();
-
-	public:
-		/*!
-		\brief 构造：使用值引用。
-		*/
-		iterator(const value_type&);
-		/*!
-		\brief 复制构造。
-		*/
-		iterator(const iterator&);
-
-		/*!
-		\brief 迭代：向后遍历。
-		*/
-		iterator&
-		operator++();
-		/*!
-		\brief 迭代：向后遍历。
-		\note 构造新迭代器并返回。
-		*/
-		iterator
-		operator++(int);
-
-		/*!
-		\brief 迭代：向前遍历。
-		*/
-		iterator&
-		operator--();
-		/*!
-		\brief 迭代：向前遍历。
-		\note 构造新迭代器并返回。
-		*/
-		iterator
-		operator--(int);
-
-		/*!
-		\brief 比较：相等关系。
-		*/
-		bool
-		operator==(const iterator&) const;
-
-		/*!
-		\brief 比较：不等关系。
-		*/
-		bool
-		operator!=(const iterator&) const;
-
-		/*!
-		\brief 间接访问。
-		*/
-		value_type
-		operator*() const;
-
-		DefGetter(const ynothrow, const value_type*, Ptr, ptr)
-		DefGetter(const ynothrow, StringType::size_type, Position, n)
-	};
-
-	typedef iterator const_iterator;
-
+	//取迭代器。
 	/*!
 	\brief 取起始迭代器。
 	*/
@@ -302,6 +292,34 @@ public:
 	*/
 	iterator
 	end() const;
+
+	//修改函数。
+
+	/*!
+	\brief 构造绝对路径。
+	*/
+	Path&
+	MakeAbsolute(const Path&);
+	/*!
+	\brief 正规化结尾分隔符：根据路径表示的实体修正结尾 Slash 。
+	\return 原路径是否改变。
+	\note 忽略空路径或仅由一个分隔符组成的路径。
+	\since build 298 。
+
+	当路径表示目录时保证以 Slash 结尾，否则若存在结尾的 Slash 则删除。
+	*/
+	bool
+	NormalizeTrailingSlash();
+	/*!
+	\brief 移除文件名。
+	*/
+	Path&
+	RemoveFilename();
+	/*!
+	\brief 替换扩展名。
+	*/
+	Path&
+	ReplaceExtension(const Path& = Path());
 };
 
 inline
@@ -570,22 +588,25 @@ ChangeDirectory(const string&);
 
 /*!
 \brief 取当前工作目录。
+\note 不含结尾分隔符。
 */
 string
 GetNowDirectory();
 
 /*!
 \brief 验证绝对路径有效性。
+\since build 298 。
 */
 bool
-ValidateDirectory(const string&);
+ValidatePath(const string&);
 /*!
 \brief 验证绝对路径有效性。
+\since build 298 。
 */
 inline bool
-ValidateDirectory(const Path& path)
+ValidatePath(const Path& path)
 {
-	return ValidateDirectory(path.GetNativeString());
+	return ValidatePath(path.GetNativeString());
 }
 
 
@@ -623,15 +644,19 @@ public:
 	virtual DefEmptyDtor(FileList)
 
 	/*!
-	\brief 导航至相对路径。
+	\brief 导航至绝对路径。
+	\note 若成功同时读取列表。
+	\since build 298 。
 	*/
 	bool
-	operator/=(const string&);
+	operator=(const Path&);
 	/*!
 	\brief 导航至相对路径。
+	\note 若成功同时读取列表。
+	\since build 298 。
 	*/
 	bool
-	operator/=(const String&);
+	operator/=(const Path&);
 
 	DefGetter(const ynothrow, const Path&, Directory, Directory) \
 		//!< 取目录的完整路径。
@@ -640,23 +665,11 @@ public:
 //	DefGetter(const ynothrow, const ListType&, List, List) //!< 取项目列表。
 
 	/*!
-	\brief 在目录中取子项目。
-	*/
-	ListType::size_type
-	LoadSubItems();
-
-	/*!
 	\brief 遍历目录中的项目，更新至列表。
 	*/
 	ListType::size_type
 	ListItems();
 };
-
-inline bool
-FileList::operator/=(const String& s)
-{
-	return *this /= s.GetMBCS(CP_Path);
-}
 
 YSL_END_NAMESPACE(IO)
 

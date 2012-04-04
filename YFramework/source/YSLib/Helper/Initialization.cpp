@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Adaptor
 \brief 程序启动时的通用初始化。
-\version r1845;
+\version r1855;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-03-25 15:57 +0800;
+	2012-04-03 12:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -48,69 +48,70 @@ EpicFail()
 
 namespace
 {
-	inline void
-	fatalError()
-	{
-		terminate();
-	}
 
-	void
-	printFailInfo(const char* t, const char* s)
-	{
-		EpicFail();
-
-		const char* line =
-			"--------------------------------";
-
-		std::printf("%s%s%s\n%s\n%s", line, t, line, s, line);
-	}
-
-	void
-	defFontFail()
-	{
-		const char* title =
-			"    Fontface Caching Failure    ";
-		const char* warning =
-			" Please make sure the fonts are "
-			" stored in correct directory.   ";
-
-		printFailInfo(title, warning);
-		fatalError();
-	}
-
-	void
-	installFail(const char* str)
-	{
-		const char* title =
-			"      Invalid Installation      ";
-		const char* warning =
-			" Please make sure the data is   "
-			" stored in correct directory.   ";
-
-		printFailInfo(title, warning);
-		std::printf(" %s\n cannot be found!\n", str);
-		fatalError();
-	}
-
-
-	/*!
-	\brief 读取字体文件目录并载入目录下指定后缀名的字体文件。
-	*/
-	void
-	LoadFontFileDirectory(FontCache& fc,
-		const_path_t path/*, const_path_t ext = "ttf"*/)
-	{
-		HDirectory dir(path);
-
-		if(dir.IsValid())
-			while((++dir).LastError == 0)
-				if(std::strcmp(HDirectory::Name, FS_Now) != 0
-					&& !HDirectory::IsDirectory()
-					/*&& IsExtendNameOf(ext, HDirectory::Name)*/)
-					fc.LoadFontFile((FontPath(path)
-						+ HDirectory::Name).c_str());
-	}
+inline void
+fatalError()
+{
+	terminate();
 }
+
+void
+printFailInfo(const char* t, const char* s)
+{
+	EpicFail();
+
+	const char* line =
+		"--------------------------------";
+
+	std::printf("%s%s%s\n%s\n%s", line, t, line, s, line);
+}
+
+void
+defFontFail()
+{
+	const char* title =
+		"    Fontface Caching Failure    ";
+	const char* warning =
+		" Please make sure the fonts are "
+		" stored in correct directory.   ";
+
+	printFailInfo(title, warning);
+	fatalError();
+}
+
+void
+installFail(const char* str)
+{
+	const char* title =
+		"      Invalid Installation      ";
+	const char* warning =
+		" Please make sure the data is   "
+		" stored in correct directory.   ";
+
+	printFailInfo(title, warning);
+	std::printf(" %s\n cannot be found!\n", str);
+	fatalError();
+}
+
+
+/*!
+\brief 读取字体文件目录并载入目录下指定后缀名的字体文件。
+*/
+void
+LoadFontFileDirectory(FontCache& fc,
+	const_path_t path/*, const_path_t ext = "ttf"*/)
+{
+	HFileNode dir(path);
+
+	if(dir.IsValid())
+		while((++dir).LastError == 0)
+			if(std::strcmp(dir.GetName(), FS_Now) != 0
+				&& !dir.IsDirectory()
+				/*&& IsExtendNameOf(ext, dir.GetName())*/)
+				fc.LoadFontFile((FontPath(path) + dir.GetName()).c_str());
+}
+
+} // unnamed namespace;
 
 void
 LibfatFail()

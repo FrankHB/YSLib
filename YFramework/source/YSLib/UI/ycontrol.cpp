@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4673;
+\version r4677;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2012-03-21 20:15 +0800;
+	2012-04-04 07:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -74,7 +74,7 @@ OnKeyHeld(KeyEventArgs&& e)
 	auto& st(FetchGUIState());
 
 	if(st.RepeatHeld(st.KeyHeldState, Timers::TimeSpan(240),
-		Timers::TimeSpan(120)))
+		Timers::TimeSpan(60)))
 		CallEvent<KeyDown>(e.GetSender(), e);
 }
 
@@ -120,7 +120,7 @@ OnTouchMove(TouchEventArgs&& e)
 		auto& st(FetchGUIState());
 
 		if(st.GetTouchDownPtr() && st.RepeatHeld(st.TouchHeldState,
-			Timers::TimeSpan(240), Timers::TimeSpan(60)))
+			Timers::TimeSpan(240), Timers::TimeSpan(80)))
 			CallEvent<TouchDown>(*st.GetTouchDownPtr(), e);
 	}
 }
@@ -155,7 +155,7 @@ namespace
 		try
 		{
 			auto pCtl(dynamic_cast<Control&>(e.GetSender())
-				.BoundControlPtr(e.GetKeyCode()));
+				.BoundControlPtr(e.GetKeys()));
 
 			return pCtl && IsEnabled(*pCtl) ? pCtl : nullptr;
 		}

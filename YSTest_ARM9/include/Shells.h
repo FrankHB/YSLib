@@ -170,7 +170,7 @@ public:
 
 private:
 	IWidget*
-	GetBoundControlPtr(const KeyCode&);
+	GetBoundControlPtr(const KeyInput&);
 
 	static void
 	OnClick_ShowWindow(TouchEventArgs&&);

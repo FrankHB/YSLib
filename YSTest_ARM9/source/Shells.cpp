@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5816;
+\version r5831;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-03-30 17:38 +0800;
+	2012-04-03 12:36 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -426,14 +426,18 @@ ShlExplorer::ShlExplorer()
 				const auto& path(fbMain.GetPath());
 				const string& s(path.GetNativeString());
 
-				if(!IO::ValidateDirectory(s) && fexists(s.c_str()))
+				if(!IO::ValidatePath(s) && fexists(s.c_str()))
 				{
 					if(GetEntryType(s) == EnrtySpace::Text
 						&& !chkHex.IsTicked())
-						SetShellTo(make_shared<ShlTextReader>(path));
+					// TODO: use g++ 4.7 later;
+					//	SetShellTo(make_shared<ShlTextReader>(path));
+						SetShellTo(share_raw(new ShlTextReader(path)));
 					//	SetShellToNew<ShlTextReader>(path);
 					else
-						SetShellTo(make_shared<ShlHexBrowser>(path));
+					// TODO: use g++ 4.7 later;
+					//	SetShellTo(make_shared<ShlHexBrowser>(path));
+						SetShellTo(share_raw(new ShlHexBrowser(path)));
 					//	SetShellToNew<ShlHexBrowser>(path);
 				}
 			}
@@ -471,7 +475,7 @@ ShlExplorer::ShlExplorer()
 		dsk_dn.Background = ImageBrush(FetchImage(2)),
 	// init-seg 2;
 		lblTitle.Text = "文件列表：请选择一个文件。",
-		lblPath.Text = "/",
+		lblPath.Text = IO::FS_Root,
 	//	lblTitle.Transparent = true,
 	//	lblPath.Transparent = true;
 		btnTest.Text = u"测试(X)",
@@ -761,12 +765,12 @@ ShlExplorer::TFormExtra::TFormExtra()
 			}
 		},
 		FetchEvent<KeyPress>(btnDragTest) += [](KeyEventArgs&& e){
-			u32 k(static_cast<KeyEventArgs::InputType>(e));
+			const auto& k(e.GetKeys());
 			char strt[100];
 			auto& lbl(polymorphic_downcast<Label&>(e.GetSender()));
 
 			lbl.SetTransparent(!lbl.IsTransparent());
-			std::sprintf(strt, "%d;\n", k);
+			std::sprintf(strt, "%lu;\n", k.to_ulong());
 			lbl.Text = strt;
 			Invalidate(lbl);
 #if 0
@@ -813,12 +817,15 @@ ShlExplorer::OnPaint()
 }
 
 IWidget*
-ShlExplorer::GetBoundControlPtr(const KeyCode& k)
+ShlExplorer::GetBoundControlPtr(const KeyInput& k)
 {
-	if(k == KeySpace::X)
-		return &btnTest;
-	if(k == KeySpace::A)
-		return &btnOK;
+	if(k.count() == 1)
+	{
+		if(k[KeyCodes::X])
+			return &btnTest;
+		if(k[KeyCodes::A])
+			return &btnOK;
+	}
 	return nullptr;
 }
 

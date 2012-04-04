@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2296;
+\version r2301;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2012-03-28 19:07 +0800;
+	2012-04-03 12:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -124,13 +124,11 @@ YSL_BEGIN
 	using platform::const_path_t;
 	using platform::path_t;
 
-	using platform::HDirectory;
+	using platform::HFileNode;
 	using platform::IsAbsolute;
 	using platform::GetRootNameLength;
 
 	//文件系统常量。
-	using platform::DEF_PATH_DELIMITER;
-	using platform::DEF_PATH_SEPERATOR;
 	using platform::PATHSTR;
 	using platform::FILENAMESTR;
 
@@ -144,9 +142,8 @@ YSL_BEGIN
 	using platform::StartTicks;
 
 	//输入类型。
-	namespace KeySpace = platform::KeySpace;
-	using platform::KeyCode;
-	using platform::KeysInfo;
+	namespace KeyCodes = platform::KeyCodes;
+	using platform::KeyInput;
 	using platform::CursorInfo;
 
 //! \brief 设计模式。

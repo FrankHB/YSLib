@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1472;
+\version r1489;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2012-03-18 13:54 +0800;
+	2012-04-03 17:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -51,29 +51,28 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 	VerticalScrollBar.SetSmallDelta(1);
 	yunseq(
 		VerticalScrollBar.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
-			LocateViewPosition(SDst(round(e.GetValue())));
+			LocateViewPosition(round(e.GetValue()));
 		},
 		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
-			const auto key(e.GetKeyCode());
+			using namespace KeyCodes;
+
+			const auto& k(e.GetKeys());
+
+			if(k.count() != 1)
+				return;
+
 			ScrollCategory t(ScrollCategory::SmallDecrement);
 
-			switch(key)
-			{
-				case KeySpace::Down:
-					t = ScrollCategory::SmallIncrement;
-					break;
-				case KeySpace::PgUp:
-					t = ScrollCategory::LargeDecrement;
-					break;
-				case KeySpace::PgDn:
-					t = ScrollCategory::LargeIncrement;
-				case KeySpace::Up:
-					break;
-				default:
-					return;
-			}
-			VerticalScrollBar.LocateThumb(key == KeySpace::Up || key
-				== KeySpace::Down ? VerticalScrollBar.GetSmallDelta()
+			if(k[Down])
+				t = ScrollCategory::SmallIncrement;
+			else if(k[PgUp])
+				t = ScrollCategory::LargeDecrement;
+			else if(k[PgDn])
+				t = ScrollCategory::LargeIncrement;
+			else if(!k[Up])
+				return;
+			VerticalScrollBar.LocateThumb(k[Up] || k[Down]
+				? VerticalScrollBar.GetSmallDelta()
 				: VerticalScrollBar.GetLargeDelta(), t);
 			RequestFocus(*this);
 			e.Handled = true;

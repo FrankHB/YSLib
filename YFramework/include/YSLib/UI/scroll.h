@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3435;
+\version r3437;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2012-03-18 13:06 +0800;
+	2012-04-01 15:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -388,7 +388,7 @@ public:
 
 protected:
 	virtual IWidget*
-	GetBoundControlPtr(const KeyCode&);
+	GetBoundControlPtr(const KeyInput&);
 };
 
 
@@ -408,7 +408,7 @@ public:
 
 protected:
 	virtual IWidget*
-	GetBoundControlPtr(const KeyCode&);
+	GetBoundControlPtr(const KeyInput&);
 };
 
 

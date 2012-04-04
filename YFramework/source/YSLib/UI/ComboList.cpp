@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3940;
+\version r3957;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-03-26 08:34 +0800;
+	2012-04-02 21:14 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -68,9 +68,6 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 		{
 			const Size view_arena(GetWidth() - defMinScrollBarWidth,
 				lstText.GetFullViewHeight());
-
-			YAssert(view_arena.Height > 1, "Invalid size found"
-				" @ ListBox::ListBox;");
 
 			SetSizeOf(lstText, FixLayout(view_arena));
 			if(view_arena.Height > lstText.GetHeight())
@@ -130,10 +127,7 @@ FileBox::FileBox(const Rect& r)
 {
 	GetConfirmed() += [this](IndexEventArgs&& e){
 		if(Contains(e) && bool(*this /= GetList()[e.Value]))
-		{
-			ListItems();
 			ResetView();
-		}
 	};
 	ListItems();
 	UpdateView();
@@ -142,9 +136,19 @@ FileBox::FileBox(const Rect& r)
 IO::Path
 FileBox::GetPath() const
 {
-	if(IsSelected() && GetSelectedIndex() >= 0)
-		return Directory / (GetList()[GetSelectedIndex()]);
-	return Directory;
+	return IsSelected() && GetSelectedIndex() >= 0
+		? Directory / (GetList()[GetSelectedIndex()]) : Directory;
+}
+
+bool
+FileBox::SetPath(const IO::Path& pth)
+{
+	if(FileList::operator=(pth))
+	{
+		UpdateView();
+		return true;
+	}
+	return false;
 }
 
 

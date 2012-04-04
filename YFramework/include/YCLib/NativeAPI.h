@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1307;
+\version r1447;
 \author FrankHB<frankhb1989@gmail.com>
-\since build 201 。
+\since build 202 。
 \par 创建时间:
 	2011-04-13 20:26:21 +0800;
 \par 修改时间:
-	2012-03-28 19:27 +0800;
+	2012-04-03 09:49 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -44,6 +44,16 @@
 \since build 297 。
 */
 
+
+#ifdef YCL_API_USE_UNISTD
+#include <unistd.h>
+#endif
+
+#ifdef YCL_API_USE_SYS_DIR
+#include <sys/dir.h>
+#endif
+
+
 #ifdef YCL_DS
 
 #include <nds.h>
@@ -56,9 +66,30 @@
 #include "efs_lib.h"
 #endif
 
+namespace platform_ex
+{
+
+/*!
+\brief 判断 ::dirent 指定的节点是否为目录。
+\since build 298 。
+*/
+inline bool
+IsDirectory(::dirent& d)
+{
+	return d.d_type & DT_DIR;
+}
+
+} // namespace platform_ex;
+
+
 #elif defined(YCL_PLATFORM_MINGW32)
 
+#ifndef UNICODE
+#	define UNICODE 1
+#endif
+
 #include <Windows.h>
+#include <Windowsx.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,6 +104,20 @@
 \since build 297 。
 */
 #undef DialogBox
+
+/*!
+\ingroup workaround
+\brief 禁止使用 DrawText 宏。
+\since build 298 。
+*/
+#undef DrawText
+
+/*!
+\ingroup workaround
+\brief 禁止使用 PostMessage 宏。
+\since build 298 。
+*/
+#undef PostMessage
 
 
 #define NAME_MAX 256
@@ -97,6 +142,30 @@
 #define		S_IXOTH 0
 
 
+/*!
+\brief 平台替代命名空间。
+\since build 298 。
+*/
+namespace platform_replace
+{
+
+/*!
+\brief 修正 MinGW 中的 mkdir 参数问题。
+
+忽略第二参数。
+*/
+inline int
+makedir(char const* dir, mode_t)
+{
+	return ::mkdir(dir);
+}
+
+} // namespace platform_replace;
+
+
+extern "C"
+{
+
 typedef int8_t s8;
 typedef int16_t s16;
 typedef int32_t s32;
@@ -107,24 +176,42 @@ typedef uint32_t u32;
 typedef uint64_t u64;
 
 
-
-
 typedef struct dirent
 {
 	long d_ino;
 	off_t d_off;
 	unsigned short d_reclen;
 	char d_name[NAME_MAX + 1];
-	::LPWIN32_FIND_DATA pwindir;
+	/*!
+	\brief Win32 文件查找信息指针。
+	\since build 298 。
+	*/
+	::LPWIN32_FIND_DATAA lpWinDir;
 } dirent;
 
 
 typedef struct DIR
 {
-	char dirname[NAME_MAX];
-	HANDLE h;
-	::WIN32_FIND_DATA windir;
-	dirent posixdir;
+	/*!
+	\brief 目录名称。
+	\since build 298 。
+	*/
+	char Name[NAME_MAX];
+	/*!
+	\brief 节点句柄。
+	\since build 298 。
+	*/
+	::HANDLE hNode;
+	/*!
+	\brief Win32 文件查找信息。
+	\since build 298 。
+	*/
+	::WIN32_FIND_DATAA WinDir;
+	/*!
+	\brief POSIX 目录信息。
+	\since build 298 。
+	*/
+	dirent POSIXDir;
 } DIR;
 
 
@@ -140,29 +227,50 @@ rewinddir(DIR*);
 int
 closedir(DIR*);
 
-char*
-getcwd(char*, size_t);
+/*!
+\def mkdir
+\brief 修正 MinGW 中的 mkdir 参数问题。
+\see platform_replace::makedir
+\since build 298 。
+*/
+#define mkdir platform_replace::makedir
 
-int
-chdir(char*);
+} // extern "C";
 
-int
-rmdir(char*);
 
-int
-mkdir(char*, mode_t);
+namespace platform_ex
+{
 
-int
-stat(char*, struct stat*);
+/*!
+\brief 判断 WIN32_FIND_DATAA 指定的节点是否为目录。
+\since build 298 。
+*/
+inline bool
+IsDirectory(const ::WIN32_FIND_DATAA& d)
+{
+	return d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+}
+/*!
+\brief 判断 ::dirent 指定的节点是否为目录。
+\since build 298 。
+*/
+inline bool
+IsDirectory(::dirent& d)
+{
+	return d.lpWinDir && IsDirectory(*d.lpWinDir);
+}
+/*!
+\brief 判断 ::DIR 指定的节点是否为目录。
+\since build 298 。
+*/
+inline bool
+IsDirectory(::DIR& d)
+{
+	return IsDirectory(d.WinDir);
+}
 
-#endif
+} // namespace platform_ex;
 
-#ifdef YCL_API_USE_UNISTD
-#include <unistd.h>
-#endif
-
-#ifdef YCL_API_USE_SYS_DIR
-#include <sys/dir.h>
 #endif
 
 #endif
