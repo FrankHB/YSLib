@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7157;
+\version r7173;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-01 11:29 +0800;
+	2012-04-07 14:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -202,8 +202,8 @@
 界面实现使用称为 Shell-Widget 的模式，是精简的主动模型-视图-控制器模式的变体，参照窗体-控件模式。但架构模式无本质变化。
 界面实现解决的三个问题：安排状态(state) 、逻辑(logic) 和同步(synchronization) ，都可以在运行期配置。
 为了方便复用，这些属性有如下分类：
-根据是否依赖于具体的 Widget 实例分为公共的和实例的；
-根据是否被所有 Widget 类共用分为公用的和专用的。
+根据是否依赖于具体的 Widget 实例分为实例的和公共的；
+根据是否能被所有 Widget 类共用分为公用的和专用的。
 这些属性也适用于用于实现的构件。
 强化了编译期可配置性。
 基于性能考虑，底层不实现观察者模式。
@@ -472,7 +472,7 @@
 
 @2.5.9.1 YSLib 标准事件处理实现概述：
 仅实现同步事件。
-相关概念说明参见 [Documentation::CommonRules @@2.4.1.1] 。
+相关概念说明参见 [Documentation::CommonRules @@2.5.1.1] 。
 
 @2.5.9.1.1 单播版本（自 build 204 起被移除）：
 添加事件订阅和移除事件订阅的时间复杂度为 O(1) ，同普通的函数指针赋值。调用事件处理器的时间复杂度为 O(1) ，同普通的函数指针调用。
@@ -600,7 +600,7 @@
 
 @2.7.2.1 默认 GUI 事件：
 即 YWidgetEvent 单元中定义的标准部件事件，发送对象类型为 IWidget 。
-参数类型总是 UIEventArgs 的派生类，包含发送对象类型，通过 UIEventArgs::GetSender 取得发送对象的引用。
+参数类型总是 UIEventArgs 及其派生类，包含发送对象类型，通过 UIEventArgs::GetSender 取得发送对象的引用。
 事件依赖项仅对非映射事件使用。相关类参见 @2.5.9 。
 默认 GUI 事件使用 Core::YEvent 等单元实现，和 YWidget 、 YControl 和 YGUI 单元相关。
 在 YWidgetEvent 单元中的枚举类型 typedef 名称 VisualEvent 定义了标准控件事件空间，其中定义了标准控件事件，包含视图变更事件、 GUI 输入/输出事件和焦点事件。
@@ -631,7 +631,7 @@
 @2.7.2.1.2.1 基本按键输入事件：
 基本按键输入事件包含 KeyUp 、 KeyDown 和 KeyHeld 。
 
-@2.7.2.1.2.2 基本触摸输入事件：
+@2.7.2.1.2.2 基本指针设备输入（触摸屏输入）事件：
 基本指针设备输入事件包含 TouchUp 、 TouchDown 和 TouchHeld 。
 默认通过 GUIState 实现的 TouchHeld 事件当且仅当触摸移动的部件和开始接触时不同时，事件发送者和订阅者不同。订阅者总是开始接触时的部件。
 
@@ -640,7 +640,7 @@
 
 @2.7.2.1.2.4 输入事件路由：
 事件路由通过 YGUI 单元中的 GUIState 类实现。包括按键输入事件 KeyUp 、 KeyDown 、 KeyHeld 和 KeyPress；指针设备（屏幕光标定位设备）接触事件 TouchUp 、TouchDown 、 TouchHeld 、 TouchMove 和 Click 。
-触发过程：由 YGlobal 等单元完成平台相关的用户输入信号捕获并向 YGUI 单元的 GUIState 类的全局实例传递，后者处理后生成对应输入事件。
+触发过程：由 Helper 中的单元完成平台相关的用户输入信号捕获并向 YGUI 单元的 GUIState 类的全局实例传递，后者处理后生成对应输入事件。
 当用户按键时，触发 KeyDown 事件；持续时触发 KeyHeld 事件；结束时依次触发 KeyPress 和 KeyUp 事件。
 当用户使用指针设备（包括触摸屏）输入时，触发 TouchDown 事件；持续时触发 TouchHeld 事件；持续且移动时可触发 TouchMove 事件；结束时依次触发 Click 和 TouchUp 事件。
 注意非直接事件路由中 TouchHeld 不被触发。当 TouchHeld 被触发时，即使路由策略是 Direct ，也有可能因为其它部件移动而导致状态不一致。因此在 TouchHeld 的事件处理器中需要注意校验发送者是否符合预期。
@@ -842,7 +842,7 @@
 @2.8 服务系统：
 位于 "/Service" 。
 对以上组成部分提供内部和外部的常用功能的实现与封装。
-提供了附属的类型和函数供用户程序使用。
+提供辅助性接口供用户程序使用。
 
 @2.8.1 计时器服务 YTimer
 
@@ -867,15 +867,13 @@
 
 @2.8.6 扩展服务
 
-@2.8.6.1文本管理类 TextManager
+@2.8.6.1 文本管理类 TextManager
 
 @2.9 助手(Helper) 系统：
 位于 "/Helper" 。
 与以上系统不同，这个系统是平台相关的，一般由库用户自行配置。
- YGlobal 是不可缺少的，它封装了必要的全局变量。
+ YGlobal 是不可缺少的，它封装了必要的全局对象。
  main 函数由 Helper 的其它源文件封装，或由用户提供。
- Helper 以外的头文件和所有必要文件(@2.10.1) 不包含 Helper 的头文件，但其它源文件可能包含 YGlobal 单元头文件。
- "yhelper.h" 中含有可能被 YSLib 本体(@2.10) 使用的默认接口，包括类名 Global 和 InputContext ， 以及其中 Global 的若干成员方法。其它由平台实现定义。
 
 @2.9.1 YGlobal 单元：
 平台相关的全局对象和函数定义。除了以下接口，其它都是不确定的：
@@ -900,16 +898,16 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 其中 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元的重新编译。
 因此除非是用来实现基本功能的外部的库，新增的平台相关的部分应尽量放在 Helper 而不是 Adaptor 中。
 
-@2.10.1 基本代码依赖性：
+@2.10.1 基本代码依赖性（适用于 YFramework ）：
  YSLib 文件中，文件名以 y 或 Y 起始且模块名以 Y 起始的文件为必要文件，其它为非必要文件。
 以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
- YAdaptor 中 config.h 可以被 YAdaptor 其它文件直接包含。
-必要文件不依赖非必要头文件。
-任意 YSLib 文件可依赖于 @2.10 余下部分指定的标准库头文件以及 YBase 的头文件。
-除上述头文件外，本体的头文件不依赖于 YSLib 以外的头文件。
-非本体的头文件可依赖于以下指定的其它头文件（例如支持环境的平台相关的运行时库）：
- Adaptor 头文件可能依赖于 <YCLib/ycommon.h> 、 CHRLib 、 YSLib 头文件；
- Helper 头文件、 Adaptor 和本体文件的源文件(.cpp) 可能依赖于 YCLib 、 YSLib 头文件。
+ Adaptor 中的 config.h 可以被 Adaptor 中的头文件直接包含。
+任意 YFramework 文件可依赖 @2.10 余下部分指定的标准库头文件以及 YBase 头文件。
+必要文件不依赖非必要文件。
+ Adaptor 头文件不依赖 Helper 文件或 <YCLib/ycommon.h> 以外的 YCLib 文件。
+ Adaptor 文件可依赖 YFramework 文件或标准库实现的非标准头文件。
+ Helper 文件和本体的非必要源文件可依赖 YCLib 文件。
+除上述文件外，本体头文件不依赖 YSLib 以外的文件。
 注： ISO C++ 2011 直接指定的依赖项：
  <algorithm> 、 <array> 、 <string> 、 <random> 、 <vector> 包含 <initializer_list> ；
  <ios> 包含 <iosfwd> ；

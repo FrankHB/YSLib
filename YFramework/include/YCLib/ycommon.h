@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3418;
+\version r3552;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-04-03 12:33 +0800;
+	2012-04-07 20:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -154,6 +154,26 @@ mmbset(void*, int, std::size_t);
 */
 void*
 mmbcpy(void*, const void*, std::size_t);
+
+
+/*!
+\brief 以 UTF-8 文件名打开文件。
+\param filename 文件名，意义同 std::fopen 。
+\param mode 打开模式，具体行为取决于实现。
+\pre 断言检查：<tt>filename && mode && *mode != 0</tt> 。
+\since build 299 。
+*/
+std::FILE*
+ufopen(const char* filename, const char* mode);
+
+/*!
+\brief 判断指定 UTF-8 路径的文件是否存在。
+\note 使用 ufopen 实现。
+\pre 断言检查：参数非空。
+\since build 299 。
+*/
+bool
+ufexists(const char*);
 
 /*!
 \brief 当 buf 非空时取当前工作目录复制至 buf 起始的长为 t 的缓冲区中。
@@ -461,49 +481,6 @@ yconstexpr std::size_t KeyBitsetWidth(256);
 */
 typedef std::bitset<KeyBitsetWidth> KeyInput;
 
-/*!
-\brief 按键缓冲。
-\since build 298 。
-*/
-extern KeyInput KeyState, OldKeyState;
-
-/*!
-\brief 清除按键缓冲。
-\since build 298 。
-*/
-inline void
-ClearKeyStates()
-{
-	yunseq(KeyState = 0, OldKeyState = 0);
-}
-
-/*!
-\brief 取键按下状态。
-\since build 298 。
-*/
-inline KeyInput
-FetchKeyDownState()
-{
-	return KeyState &~ OldKeyState;
-}
-
-/*!
-\brief 取键释放状态。
-\since build 298 。
-*/
-inline KeyInput
-FetchKeyUpState()
-{
-	return (KeyState ^ OldKeyState) & ~KeyState;
-}
-
-/*!
-\brief 更新按键状态。
-\since build 298 。
-*/
-void
-UpdateKeyStates();
-
 
 /*!
 \brief 本机按键编码。
@@ -600,43 +577,6 @@ typedef ::CURSORINFO CursorInfo;
 #	error Unsupport platform found!
 #endif
 
-/*!
-\brief 调试模式：设置状态。
-\note 当且仅当状态为 true 时，
-	以下除 YDebugGetStatus 外的调试模式函数有效。
-*/
-void
-YDebugSetStatus(bool = true);
-
-/*!
-\brief 调试模式：取得状态。
-*/
-bool
-YDebugGetStatus();
-
-/*!
-\brief 调试模式：显示控制台（fc 为前景色，bc 为背景色）。
-*/
-void
-YDebugBegin(Color fc = ColorSpace::White, Color bc = ColorSpace::Blue);
-
-/*!
-\brief 调试模式：按键继续。
-*/
-void
-YDebug();
-/*!
-\brief 调试模式：显示控制台字符串，按键继续。
-*/
-void
-YDebug(const char*);
-
-/*!
-\brief 调试模式 printf ：显示控制台格式化输出 ，按键继续。
-*/
-int
-yprintf(const char*, ...)
-	YCL_ATTRIBUTE((format (printf, 1, 2)));
 
 //断言。
 #ifdef YCL_USE_YASSERT
@@ -807,20 +747,6 @@ YConsoleInit(u8 dspIndex,
 
 
 /*!
-\brief 等待任意按键。
-*/
-void
-WaitForInput();
-
-/*!
-\brief 写入当前指针设备信息。
-\since build 272 。
-*/
-void
-WriteCursor(CursorInfo&);
-
-
-/*!
 \brief 开始 tick 计时。
 */
 void
@@ -873,65 +799,6 @@ using ::touchRead;
 */
 bool
 AllowSleep(bool);
-
-
-/*!
-\brief 等待掩码指定的按键。
-\since build 298 。
-*/
-void
-WaitForKey(platform::KeyInput);
-
-/*!
-\brief 等待任意按键（除触摸屏、翻盖外）。
-*/
-inline void
-WaitForKeypad()
-{
-	WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y | KEY_L | KEY_R
-		| KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN
-		| KEY_START | KEY_SELECT);
-}
-
-/*!
-\brief 等待任意按键（除 L 、 R 和翻盖外）。
-*/
-inline void
-WaitForFrontKey()
-{
-	WaitForKey(KEY_TOUCH | KEY_A | KEY_B | KEY_X | KEY_Y
-		| KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN
-		| KEY_START | KEY_SELECT);
-}
-
-/*!
-\brief 等待任意按键（除 L 、 R 、触摸屏和翻盖外）。
-*/
-inline void
-WaitForFrontKeypad()
-{
-	WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y
-		| KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN
-		|KEY_START | KEY_SELECT);
-}
-
-/*!
-\brief 等待方向键。
-*/
-inline void
-WaitForArrowKey()
-{
-	WaitForKey(KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN);
-}
-
-/*!
-\brief 等待按键 A 、 B 、 X 、 Y 键。
-*/
-inline void
-WaitForABXY()
-{
-	WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y);
-}
 
 
 /*!

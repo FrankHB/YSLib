@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright (C) by Franksoft 2009 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,14 @@
 \ingroup Core
 \brief 平台无关的文件抽象。
 \since 早于 build 132 。
-\version r1390;
+\version r1394;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:51 +0800;
 \par 修改时间:
-	2011-12-30 10:12 +0800;
-\par 字符集:
+	2012-04-07 18:49 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YFile;
@@ -59,7 +60,7 @@ bool
 File::Open(const_path_t p, bool is_text)
 {
 	Close();
-	if((fp = std::fopen(p, is_text ? "r" : "rb")))
+	if((fp = ufopen(p, is_text ? "r" : "rb")))
 	{
 		Seek(0, SEEK_END);
 		fsize = GetPosition();

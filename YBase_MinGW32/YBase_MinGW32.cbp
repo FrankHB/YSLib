@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="YBase_MinGW32" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="debug">
+				<Option output="debug\libYBase" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="debug\" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-DDEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+				</Compiler>
+			</Target>
+			<Target title="release">
+				<Option output="release\libYBase" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="release\" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-DNDEBUG" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-mthreads" />
+		</Compiler>
+		<Unit filename="..\YBase\include\ydef.h" />
+		<Unit filename="..\YBase\include\ystdex\algorithm.hpp" />
+		<Unit filename="..\YBase\include\ystdex\any.h" />
+		<Unit filename="..\YBase\include\ystdex\cast.hpp" />
+		<Unit filename="..\YBase\include\ystdex\cstdio.h" />
+		<Unit filename="..\YBase\include\ystdex\cstring.h" />
+		<Unit filename="..\YBase\include\ystdex\iterator.hpp" />
+		<Unit filename="..\YBase\include\ystdex\memory.hpp" />
+		<Unit filename="..\YBase\include\ystdex\operators.hpp" />
+		<Unit filename="..\YBase\include\ystdex\rational.hpp" />
+		<Unit filename="..\YBase\include\ystdex\type_op.hpp" />
+		<Unit filename="..\YBase\include\ystdex\utility.hpp" />
+		<Unit filename="..\YBase\source\ystdex\cstdio.cpp" />
+		<Unit filename="..\YBase\source\ystdex\cstring.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

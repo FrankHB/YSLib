@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2617;
+\version r2620;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2012-04-02 13:07 +0800;
+	2012-04-08 07:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -58,7 +58,9 @@ inline bool
 FillByte(_tIn& i, _tState& st)
 {
 	static_assert(std::is_explicitly_convertible<decltype(*i), byte>::value,
-		"Invalid mapping source type found @ CHRLib::GetByteOf;");
+		"Invalid mapping source type found;");
+	static_assert(!std::is_volatile<typename std::remove_reference<
+		_tState>::type>::value, "Volatile state is unsupported;");
 
 	if(YCL_UNLIKELY(is_undereferencable(i)))
 		return false;

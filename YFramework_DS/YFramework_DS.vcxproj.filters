@@ -576,6 +576,12 @@
     <ClInclude Include="..\YFramework\include\freetype\internal\services\svxf86nm.h">
       <Filter>头文件\freetype\internal\services</Filter>
     </ClInclude>
+    <ClInclude Include="..\YFramework\include\YCLib\Input.h">
+      <Filter>头文件\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YFramework\include\YCLib\Debug.h">
+      <Filter>头文件\YCLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\YFramework\doc\ex.cpp">
@@ -751,6 +757,12 @@
     </ClCompile>
     <ClCompile Include="..\YFramework\source\CHRLib\chrproc.cpp">
       <Filter>源文件\CHRLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\YFramework\source\YCLib\Input.cpp">
+      <Filter>源文件\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\YFramework\source\YCLib\Debug.cpp">
+      <Filter>源文件\YCLib</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

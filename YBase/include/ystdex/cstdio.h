@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r1275;
+\version r1277;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2011-09-21 08:30:08 +0800;
 \par 修改时间:
-	2012-03-22 22:08 +0800;
+	2012-04-07 19:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -47,11 +47,12 @@ namespace ystdex
 
 	/*!
 	\brief 判断指定路径的文件是否存在。
-	\note 使用 ISO C 标准库实现。
-	\since 早于 build 132 。
+	\note 使用 std::fopen 标准库实现。
+	\pre 断言检查：参数非空。
+	\since build 299 。
 	*/
 	bool
-	fexists(const_path_t);
+	fexists(const char*);
 
 
 	/*!

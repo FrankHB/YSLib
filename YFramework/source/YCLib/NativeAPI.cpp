@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1356;
+\version r1381;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-26 13:36:28 +0800;
 \par 修改时间:
-	2012-04-03 13:53 +0800;
+	2012-04-07 19:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,9 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include "CHRLib/chrproc.h"
+
+using namespace CHRLib;
 
 namespace
 {
@@ -47,11 +50,19 @@ extern "C"
 DIR*
 opendir(const char* name)
 {
+	static_assert(sizeof(wchar_t) == sizeof(ucs2_t), "Wrong character type!");
+
 	yassume(name);
 //	yassume(name[std::strlen(name) - 1] != '\\');
 
-	const auto r(::GetFileAttributesA(name));
+	const auto wstr(reinterpret_cast<wchar_t*>(ucsdup(name)));
 
+	if(!wstr)
+		return nullptr;
+
+	const auto r(::GetFileAttributesW(wstr));
+
+	std::free(wstr);
 	if(r != INVALID_FILE_ATTRIBUTES && r & FILE_ATTRIBUTE_DIRECTORY)
 	{
 		const auto dir(static_cast<DIR*>(std::malloc(sizeof(DIR))));
@@ -69,6 +80,8 @@ opendir(const char* name)
 dirent*
 readdir(DIR* dir)
 {
+	static_assert(sizeof(wchar_t) == sizeof(ucs2_t), "Wrong character type!");
+
 	if(dir->hNode == 0)
 	{
 		// NOTE: see MSDN "FindFirstFile function";
@@ -76,21 +89,32 @@ readdir(DIR* dir)
 		yconstraint(*dir->Name != '\0');
 		yconstraint(dir->Name[std::strlen(dir->Name) - 1] != '\\');
 
-		if((dir->hNode = ::FindFirstFileA(dir->Name, &dir->WinDir))
+		const auto wstr(reinterpret_cast<wchar_t*>(ucsdup(dir->Name)));
+
+		if(!wstr)
+			return nullptr;
+		if((dir->hNode = ::FindFirstFileW(wstr, &dir->WinDir))
 			== reinterpret_cast<void*>(0xFFFFFFFF))
 			dir->hNode = NULL;
+		std::free(wstr);
 	}
-	else if(!::FindNextFileA(dir->hNode, &dir->WinDir))
+	else if(!::FindNextFileW(dir->hNode, &dir->WinDir))
 		dir->hNode = NULL;
 	if(dir->hNode && dir->hNode != reinterpret_cast<void*>(0xFFFFFFFF))
 	{
 		yassume(dir->WinDir.cFileName);
+
+		const auto str(static_cast<char*>(std::malloc(
+			std::wcslen(dir->WinDir.cFileName) << 2)));
+
+		UCS2ToMBCS(str, reinterpret_cast<const ucs2_t*>(dir->WinDir.cFileName));
+
 		// NOTE: see http://pubs.opengroup.org/onlinepubs/009695399/basedefs/
 //dirent.hNode.html for details;
-		yassume(std::strlen(dir->WinDir.cFileName)
-			< sizeof(dir->POSIXDir.d_name));
+		yassume(std::strlen(str) < sizeof(dir->POSIXDir.d_name));
 
-		std::strcpy(dir->POSIXDir.d_name, dir->WinDir.cFileName);
+		std::strcpy(dir->POSIXDir.d_name, str);
+		std::free(str);
 		dir->POSIXDir.d_reclen = std::strlen(dir->POSIXDir.d_name);
 		yunseq(dir->POSIXDir.d_off = 0, dir->POSIXDir.d_ino = 0);
 	}

@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief YCLib C++ 标准库扩展。
-\version r1075;
+\version r1077;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2011-09-21 08:38:51 +0800;
 \par 修改时间:
-	2012-04-02 13:05 +0800;
+	2012-04-07 19:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,11 +31,11 @@ namespace ystdex
 {
 
 bool
-fexists(const_path_t path)
+fexists(const char* path)
 {
-	std::FILE* file(std::fopen(path, "rb"));
+	yconstraint(path);
 
-	if(file)
+	if(const auto file = std::fopen(path, "rb"))
 	{
 		std::fclose(file);
 		return true;

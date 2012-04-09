@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1788;
+\version r1791;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-04-03 12:13 +0800;
+	2012-04-07 16:49 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -65,7 +65,8 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 					return;
 				if(viewer.IsSelected())
 				{
-					if(k[Enter])
+					// NOTE: do not confuse with Components::Enter;
+					if(k[KeyCodes::Enter])
 						InvokeConfirmed(viewer.GetSelectedIndex());
 					else if(k[Esc])
 					{

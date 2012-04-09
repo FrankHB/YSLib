@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="YSTest 工作空间">
+		<Project filename="YBase/YBase.cbp" />
 		<Project filename="YFramework/YFramework.cbp" />
-		<Project filename="YSTest/YSTest.cbp" active="1">
-			<Depends filename="YSTest_ARM7/YSTest_ARM7.cbp" />
-			<Depends filename="YSTest_ARM9/YSTest_ARM9.cbp" />
+		<Project filename="YBase_DS/YBase_DS.cbp" />
+		<Project filename="YFramework_DS/YFramework_DS.cbp">
+			<Depends filename="YBase_DS/YBase_DS.cbp" />
 		</Project>
 		<Project filename="YSTest_ARM7/YSTest_ARM7.cbp" />
 		<Project filename="YSTest_ARM9/YSTest_ARM9.cbp">
 			<Depends filename="YFramework_DS/YFramework_DS.cbp" />
 		</Project>
-		<Project filename="YBase/YBase.cbp" />
-		<Project filename="YBase_DS/YBase_DS.cbp" />
-		<Project filename="YFramework_DS/YFramework_DS.cbp">
-			<Depends filename="YBase_DS/YBase_DS.cbp" />
+		<Project filename="YSTest_DS/YSTest_DS.cbp">
+			<Depends filename="YSTest_ARM7/YSTest_ARM7.cbp" />
+			<Depends filename="YSTest_ARM9/YSTest_ARM9.cbp" />
+		</Project>
+		<Project filename="YBase_MinGW32/YBase_MinGW32.cbp" />
+		<Project filename="YFramework_MinGW32/YFramework_MinGW32.cbp">
+			<Depends filename="YBase_MinGW32/YBase_MinGW32.cbp" />
+		</Project>
+		<Project filename="YSTest_MinGW32/YSTest_MinGW32.cbp" active="1">
+			<Depends filename="YFramework_MinGW32/YFramework_MinGW32.cbp" />
 		</Project>
 	</Workspace>
 </CodeBlocks_workspace_file>

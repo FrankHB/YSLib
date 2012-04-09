@@ -1,8 +1,8 @@
-# DS Makefile for YShell by Franksoft 2009 - 2011
+# DS Makefile for YShell by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-11-12 21:26:30 +0800;
-# UTime = 2012-01-06 16:48 +0800;
-# Version = r3264;
+# UTime = 2012-04-06 07:43 +0800;
+# Version = r3267;
 
 # This makefile is written based on devkitPro example template.
 
@@ -25,7 +25,8 @@ export TOPDIR		?=	$(CURDIR)/..
 
 #----
 
-export TARGET		:=	$(shell basename $(CURDIR))
+export TARGET		:=	YSTest
+#export TARGET		:=	$(shell basename $(CURDIR))
 export BUILD		?=	release
 export RELEASE		=	$(BUILD)
 export GBUILD		=	$(CURDIR)/$(BUILD)/$(TARGET)

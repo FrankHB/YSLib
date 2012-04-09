@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2864;
+\version r3035;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2012-04-03 12:33 +0800;
+	2012-04-07 19:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -25,13 +25,13 @@
 */
 
 
-#include "YCLib/ycommon.h"
-#include <cstdarg>
+#include "YCLib/Debug.h"
 #include <cstring>
 #include <cerrno>
 #ifdef YCL_MINGW32
-#include <mutex>
+#include <CHRLib/chrproc.h>
 #include <mmsystem.h> // for multimedia timers;
+#include <Shlwapi.h> // for ::PathIsRelative;
 #endif
 
 namespace platform
@@ -55,6 +55,60 @@ mmbcpy(void* d, const void* s, std::size_t t)
 //	return safe_dma_copy(d, s, t) != 0 ? std::memcpy(d, s, t) : d;
 #endif
 	return std::memcpy(d, s, t);
+}
+
+
+std::FILE*
+ufopen(const char* filename, const char* mode)
+{
+	yconstraint(filename),
+	yconstraint(mode);
+	yconstraint(*mode != '\0');
+
+#ifdef YCL_DS
+	return std::fopen(filename, mode);
+#elif defined(YCL_MINGW32)
+	using namespace CHRLib;
+
+	static_assert(sizeof(wchar_t) == sizeof(ucs2_t), "Wrong character type!");
+
+	const auto wname(reinterpret_cast<wchar_t*>(ucsdup(filename)));
+	wchar_t tmp[5];
+	auto wmode(&tmp[0]);
+
+	if(YCL_UNLIKELY(std::strlen(mode) > 4))
+		wmode = reinterpret_cast<wchar_t*>(ucsdup(mode));
+	else
+		CHRLib::MBCSToUCS2(reinterpret_cast<ucs2_t*>(wmode), mode);
+
+	const auto fp(::_wfopen(wname, wmode));
+
+	if(wmode != tmp)
+		std::free(wmode);
+	std::free(wname);
+	return fp;
+#else
+#	error Unsupported platform found!
+#endif
+}
+
+bool
+ufexists(const char* path)
+{
+#ifdef YCL_DS
+	return ystdex::fexists(path);
+#elif defined(YCL_MINGW32)
+	yconstraint(path);
+
+	if(const auto file = ufopen(path, "rb"))
+	{
+		std::fclose(file);
+		return true;
+	}
+	return false;
+#else
+#	error Unsupported platform found!
+#endif
 }
 
 char*
@@ -104,70 +158,6 @@ terminate()
 #endif
 }
 
-namespace
-{
-	static bool bDebugStatus(false);
-}
-
-void
-YDebugSetStatus(bool s)
-{
-	bDebugStatus = s;
-}
-
-bool
-YDebugGetStatus()
-{
-	return bDebugStatus;
-}
-
-void
-YDebugBegin(Color fc, Color bc)
-{
-	if(bDebugStatus)
-		YConsoleInit(false, fc, bc);
-}
-
-void
-YDebug()
-{
-	if(bDebugStatus)
-	{
-		YDebugBegin();
-		WaitForInput();
-	}
-}
-void
-YDebug(const char* s)
-{
-	if(bDebugStatus)
-	{
-		YDebugBegin();
-		std::puts(s);
-		WaitForInput();
-	}
-}
-
-int
-yprintf(const char* str, ...)
-{
-	int t = -1;
-
-	if(bDebugStatus)
-	{
-		YDebugBegin();
-
-		va_list list;
-
-		va_start(list, str);
-
-		t = std::vprintf(str, list);
-
-		va_end(list);
-		WaitForInput();
-	}
-	return t;
-}
 
 #ifdef YCL_USE_YASSERT
 
@@ -231,9 +221,10 @@ IsAbsolute(const_path_t path)
 {
 #ifdef YCL_DS
 	return std::strchr(path, '/') == path
-		|| std::strstr(path, "fat:/") == path;
+		|| std::strstr(path, "fat:/") == path
+		|| std::strstr(path, "sd:/");
 #elif defined(YCL_MINGW32)
-	// TODO: impl;
+	return !::PathIsRelativeA(path);
 	return false;
 #else
 #	error Unsupported platform found!
@@ -322,65 +313,6 @@ YConsoleInit(u8 dspIndex, Color fc, Color bc)
 		bg_palette[0]	= bc | BITALPHA;
 		bg_palette[255]	= fc | BITALPHA;
 	}
-#elif defined(YCL_MINGW32)
-// TODO: impl;
-#else
-#	error Unsupported platform found!
-#endif
-}
-
-
-KeyInput KeyState, OldKeyState;
-#ifdef YCL_MINGW32
-namespace
-{
-	std::mutex KeyMutex;
-}
-#endif
-
-void
-UpdateKeyStates()
-{
-#ifdef YCL_MINGW32
-	std::lock_guard<std::mutex> lck(KeyMutex);
-
-#endif
-	OldKeyState = KeyState;
-#ifdef YCL_DS
-	KeyState = ::keysCurrent();
-#elif defined(YCL_MINGW32)
-	for(std::size_t i(0); i < KeyBitsetWidth; ++i)
-		KeyState.set(i, ::GetAsyncKeyState(i) & 0x8000);
-#endif
-}
-
-void
-WaitForInput()
-{
-#ifdef YCL_DS
-	while(true)
- 	{
-		UpdateKeyStates();
-		if(FetchKeyDownState().any())
-			break;
- 		platform_ex::swiWaitForVBlank();
-	};
-#else
-	std::getchar();
-#endif
-}
-
-void
-WriteCursor(CursorInfo& tp)
-{
-#ifdef YCL_DS
-	touchRead(&tp);
-	//修正触摸位置。
-	if(YCL_LIKELY(tp.px != 0 && tp.py != 0))
-		yunseq(--tp.px, --tp.py);
-	else
-		// NOTE: Point::Invalid;
-		yunseq(tp.px = SDst(-1), tp.py = SDst(-1));
 #elif defined(YCL_MINGW32)
 // TODO: impl;
 #else
@@ -550,19 +482,6 @@ AllowSleep(bool b)
 			b ? PM_REQ_SLEEP_ENABLE : PM_REQ_SLEEP_DISABLE);
 	}
 	return b_old;
-}
-
-
-void
-WaitForKey(platform::KeyInput mask)
-{
-	while(true)
- 	{
-		platform::UpdateKeyStates();
-		if((platform::FetchKeyDownState() & mask).any())
-			break;
- 		swiWaitForVBlank();
-	};
 }
 
 

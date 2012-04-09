@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11679;
+\version r11683;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-04-03 12:34 +0800;
+	2012-04-07 19:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -777,6 +777,10 @@ $header Adaptor::YAdaptor
 	//基本实用例程。
 	using platform::mmbset;
 	using platform::mmbcpy;
+
+	//文件系统例程。
+	using platform::ufopen;	
+	using platform::ufexists;	
 	using platform::direxists;
 	using platform::chdir;
 	using platform::getcwd_n;
@@ -801,9 +805,8 @@ $header Adaptor::YAdaptor
 	using platform::PATHSTR;
 	using platform::FILENAMESTR;
 
-	//基本输入输出接口。
+	//基本输出接口。
 	using platform::InitVideo;
-	using platform::WaitForInput;
 
 	//计时器和时钟。
 	using platform::GetTicks;

@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1447;
+\version r1459;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 202 。
 \par 创建时间:
 	2011-04-13 20:26:21 +0800;
 \par 修改时间:
-	2012-04-03 09:49 +0800;
+	2012-04-07 18:39 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -184,9 +184,9 @@ typedef struct dirent
 	char d_name[NAME_MAX + 1];
 	/*!
 	\brief Win32 文件查找信息指针。
-	\since build 298 。
+	\since build 299 。
 	*/
-	::LPWIN32_FIND_DATAA lpWinDir;
+	::LPWIN32_FIND_DATAW lpWinDir;
 } dirent;
 
 
@@ -204,9 +204,9 @@ typedef struct DIR
 	::HANDLE hNode;
 	/*!
 	\brief Win32 文件查找信息。
-	\since build 298 。
+	\since build 299 。
 	*/
-	::WIN32_FIND_DATAA WinDir;
+	::WIN32_FIND_DATAW WinDir;
 	/*!
 	\brief POSIX 目录信息。
 	\since build 298 。
@@ -247,6 +247,15 @@ namespace platform_ex
 */
 inline bool
 IsDirectory(const ::WIN32_FIND_DATAA& d)
+{
+	return d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+}
+/*!
+\brief 判断 WIN32_FIND_DATAW 指定的节点是否为目录。
+\since build 299 。
+*/
+inline bool
+IsDirectory(const ::WIN32_FIND_DATAW& d)
 {
 	return d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
 }

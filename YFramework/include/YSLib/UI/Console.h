@@ -11,13 +11,13 @@
 /*!	\file Console.h
 \ingroup UI
 \brief 基于平台中立接口的控制台实现。
-\version r1110;
+\version r1115;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2011-04-19 23:00:29 +0800;
 \par 修改时间:
-	2012-03-25 17:08 +0800;
+	2012-04-07 14:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -84,12 +84,6 @@ inline
 Console::~Console()
 {
 	Deactivate(*this);
-}
-
-inline void
-Console::Pause()
-{
-	WaitForInput();
 }
 
 YSL_END_NAMESPACE(Components)

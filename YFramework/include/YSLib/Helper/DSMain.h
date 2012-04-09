@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r1188;
+\version r1207;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:49:27 +0800;
 \par 修改时间:
-	2012-03-30 22:03 +0800;
+	2012-04-07 14:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include "../Core/ydevice.h"
 #include "shlds.h"
 #include "../UI/Label.h"
+#include "../../YCLib/Input.h"
 
 YSL_BEGIN
 
@@ -126,7 +127,7 @@ public:
 	GetFontCache() const ythrow(LoggedEvent);
 	/*!
 	\brief 取上屏幕。
-	\note 断言检查：句柄非空。
+	\pre 断言检查：句柄非空。
 	\note 无异常抛出。
 	\since build 297 。
 	*/
@@ -134,7 +135,7 @@ public:
 	GetScreenUp() const ynothrow;
 	/*!
 	\brief 取下屏幕。
-	\note 断言检查：句柄非空。
+	\pre 断言检查：句柄非空。
 	\note 无异常抛出。
 	\since build 297 。
 	*/
@@ -163,6 +164,15 @@ public:
 	ResetFontCache(const_path_t) ythrow(LoggedEvent);
 };
 
+
+/*!
+\brief 向指定桌面分发响应输入状态。
+\since build 299 。
+
+指定平台相关的用户界面输入处理。
+*/
+void
+DispatchInput(Desktop&);
 
 /*!
 \brief 取平台相关的全局资源。
@@ -195,6 +205,13 @@ FetchDefaultScreen()
 {
 	return FetchGlobalInstance().GetScreenUp();
 }
+
+/*!
+\brief 以指定前景色和背景色初始化指定屏幕的控制台。
+\since build 148 。
+*/
+bool
+InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
 /*!
 \brief 显示致命错误。

@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="YSTest"
+	Name="YSTest_DS"
 	ProjectGUID="{2843D63B-952F-4EB3-9620-D1B97301898F}"
-	RootNamespace="YSTest"
+	RootNamespace="YSTest_DS"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>

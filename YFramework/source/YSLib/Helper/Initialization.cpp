@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Adaptor
 \brief 程序启动时的通用初始化。
-\version r1855;
+\version r1856;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-04-03 12:34 +0800;
+	2012-04-07 15:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include "YSLib/Adaptor/Font.h"
 #include "YSLib/Core/yapp.h"
 #include "YSLib/Helper/DSMain.h"
+#include "YCLib/Debug.h"
 
 using namespace ystdex;
 using namespace platform;

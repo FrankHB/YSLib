@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r7593;
+\version r7594;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2012-03-30 16:37 +0800;
+	2012-04-07 14:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,7 @@
 #include "YSLib/Core/yexcept.h"
 #include "YSLib/Core/yfilesys.h"
 #include "YSLib/Helper/DSMain.h"
+#include "YCLib/Debug.h"
 #include <algorithm> // for std::for_each;
 //#include FT_BITMAP_H
 //#include FT_GLYPH_H
@@ -95,7 +96,7 @@ simpleFaceRequester(::FTC_FaceID face_id, ::FT_Library library,
 	::FT_Set_Transform(face, &fontFace->matrix, nullptr);
 #endif
 	if(YCL_UNLIKELY(error))
-		yprintf("Face request error: %08x\n", error);
+		platform::yprintf("Face request error: %08x\n", error);
 	return error;
 }
 

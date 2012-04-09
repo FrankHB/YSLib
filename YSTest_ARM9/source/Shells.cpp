@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5831;
+\version r5840;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-04-03 12:36 +0800;
+	2012-04-07 19:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -340,7 +340,7 @@ namespace
 	ReaderPathFilter(const string& path)
 	{
 		const auto ext(IO::GetExtensionOf(path).c_str());
-		
+
 		return !strcasecmp(ext, "txt")
 			|| !strcasecmp(ext, "c")
 			|| !strcasecmp(ext, "cpp")
@@ -426,7 +426,7 @@ ShlExplorer::ShlExplorer()
 				const auto& path(fbMain.GetPath());
 				const string& s(path.GetNativeString());
 
-				if(!IO::ValidatePath(s) && fexists(s.c_str()))
+				if(!IO::ValidatePath(s) && ufexists(s.c_str()))
 				{
 					if(GetEntryType(s) == EnrtySpace::Text
 						&& !chkHex.IsTicked())
@@ -475,11 +475,13 @@ ShlExplorer::ShlExplorer()
 		dsk_dn.Background = ImageBrush(FetchImage(2)),
 	// init-seg 2;
 		lblTitle.Text = "文件列表：请选择一个文件。",
-		lblPath.Text = IO::FS_Root,
+		// TODO: show current working directory properly;
+		lblPath.Text = IO::GetNowDirectory(),
 	//	lblTitle.Transparent = true,
 	//	lblPath.Transparent = true;
 		btnTest.Text = u"测试(X)",
-		btnOK.Text = u"确定(A)"
+		btnOK.Text = u"确定(A)",
+		fbMain.SetPath(IO::GetNowDirectory())
 	);
 	// init-seg 3;
 	yunseq(
@@ -673,8 +675,9 @@ ShlExplorer::TFormExtra::TFormExtra()
 			Invalidate(btnDragTest);
 		},
 		FetchEvent<TouchDown>(btnDragTest) += [this](TouchEventArgs&&){
-			struct mallinfo t(mallinfo());
 			char strMemory[40];
+#ifndef YCL_MINGW32
+			struct mallinfo t(mallinfo());
 
 			/*	std::sprintf(strMemory, "%d,%d,%d,%d,%d;",
 					t.arena,    // total space allocated from system 2742496
@@ -697,7 +700,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 				t.uordblks,
 				t.fordblks,
 				t.keepcost);
-
+#endif
 			auto& lblA(FetchShell<ShlExplorer>().lblA);
 
 			lblA.Text = strMemory;
@@ -783,7 +786,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 			Hide(*this);
 		},
 		FetchEvent<Click>(btnExit) += [](TouchEventArgs&&){
-			PostQuitMessage(0);
+			YSL_ PostQuitMessage(0);
 		}
 	);
 }
@@ -821,9 +824,9 @@ ShlExplorer::GetBoundControlPtr(const KeyInput& k)
 {
 	if(k.count() == 1)
 	{
-		if(k[KeyCodes::X])
+		if(k[YCL_KEY(X)])
 			return &btnTest;
-		if(k[KeyCodes::A])
+		if(k[YCL_KEY(A)])
 			return &btnOK;
 	}
 	return nullptr;

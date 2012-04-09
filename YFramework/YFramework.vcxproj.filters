@@ -595,6 +595,12 @@
     <ClInclude Include="include\YSLib\UI\Console.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
+    <ClInclude Include="include\YCLib\Input.h">
+      <Filter>头文件\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YCLib\Debug.h">
+      <Filter>头文件\YCLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -769,6 +775,12 @@
       <Filter>源文件\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YCLib\NativeAPI.cpp">
+      <Filter>源文件\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\Input.cpp">
+      <Filter>源文件\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\Debug.cpp">
       <Filter>源文件\YCLib</Filter>
     </ClCompile>
   </ItemGroup>

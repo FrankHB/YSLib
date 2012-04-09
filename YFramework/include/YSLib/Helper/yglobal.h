@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2778;
+\version r2784;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2012-04-01 08:47 +0800;
+	2012-04-05 07:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -57,16 +57,6 @@ YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Messaging)
 YSL_END_NAMESPACE(Messaging)
-
-
-//全局函数。
-
-/*!
-\brief 以指定前景色和背景色初始化指定屏幕的控制台。
-\since build 148 。
-*/
-bool
-InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
 YSL_END
 

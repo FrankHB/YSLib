@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3576; *build 298 rev 26;
+\version r3576; *build 299 rev 17;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-04 08:38 +0800;
+	2012-04-09 10:36 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -363,247 +363,131 @@ $using:
 
 $DONE:
 r1:
-/ @ \h YCommon $=
-(
-	+ \inc \h <bitset>,
-	+ yconstexpr std::size_t KeyBitsetWidth;
-	+ typedef std::bitset<KeyBitsetWidth> NativeInputType;
-	(
-		+ \ns \o extern NativeInputType KeyState, OldKeyState;
-		+ \f \i (FetchKeyUpStete, FetchKeyDownStete)
-	),
-	+ \f !\i UpdateKeyStates,
-	/ \tr @ \f (WriteKeys, WaitFor*)
-	/ \cl KeyCode -> typedef NativeInputType KeyCode,
-	+ \ns KeyCodes,
-	+ typedef NativeSet @ \ns KeyCodes,
-	- \ns KeySpace
-);
-/ \tr @ (InputEventArgs, KeyEventArgs) @ \u YWidgetEvent,
-/ \tr using @ \h YAdaptor,
-/ \tr \impl @ \impl \u (Shell_DS, Menu, HexBrowser, Scroll, TextList, ShlReader,
-	Shells);
++ \inc \h YGUI @ \impl \u DSMain;
++ \f void DispatchInput() @ \u DSMain;
+/ \simp \impl @ \mf ShlDS::OnGotMessage ^ \f DispatchInput;
 
 r2:
-* \impl @ \ctor TextList $since r1;
+/ \impl @ \f FetchAppInstance @ \impl \u YGlobal >> \impl \u DSMain,
+/ \f InitConsole @ \u YGlobal >> \u DSMain;
+/ \inc \h DSMain @ \h YGlobal -> YApplication,
+/ \tr \inc \h YGlobal -> DSMain @ \h Console;
 
 r3:
-- typedef NativeInputType KeyCode @ \h YCommon;
-/ \a KeyCode => KeyInput,
-/ \a NativeInputType => KeyInput,
-/ \a GetKeyCode => GetKeys;
+/ @ \cl Application $=
+(
+	- \mf BackupMessage,
+	- \mf RecoverMessageQueue;
+	- protected \m BackupQueue,
+	/ \tr \impl @ \ctor
+);
+* shells not destroyed before the application class destruction $since b269 $=
+	(/ \impl @ (\f main, \dtor DSApplication) @ \impl \u DSMain);
 
 r4:
 /= test 1 ^ \conf release;
 
-r5:
-/ @ \impl \u YCommon when defined(YCL_MINGW32)
-{
-	+ \inc \h <mutex>;
-	+ \o std::mutex KeyMutex @ \un \ns;
-	/ \impl @ \f UpdateKeyStates()
-},
-/ \impl @ \impl \u (Shells, ShlReader, Scroll, TextList, Menu, HexBrowser);
-
-r6:
-/= test 2 ^ \conf release;
+r5-r6:
+/ \proj YSTest => YSTest_DS,
+/ \impl @ \u (Shells, ShlReader, GBKEX, DSMain)
+	for complatibility with defined(YCL_MINGW32);
++ MinGW32 \proj (YBase_MinGW32, YFramework_MinGW32, YSTest_MinGW32)
+	@ Code::Blocks workspace;
 
 r7:
-/ \impl @ \mf ShlDS::OnGotMessage @ \impl \u Shell_DS;
-- using platform::KeysInfo @ \h YAdaptor;
-/ @ \u YCommon $=
-(
-	- \f WriteKeys;
-	- \st KeysInfo
-);
+* \impl @ \f InitConsole @ \impl \u DSMain @ defined YCL_DS $since r6;
+/= test 2 ^ \conf release;
 
 r8:
-/= test 3 ^ \conf release;
+/ @ \impl \u YCommon $=
+(
+	+ \inc \h <Shlwapi.h> @ defined YCL_MINGW32;
+	/ \impl @ \f IsAbsolute @ \u YCommon
+)
+/ \impl @ \ctor ShlExplorer @ \impl \u Shells;
 
 r9:
-/ @ \impl \u YCommon when defined YCL_MINGW32 $=
-(
-	+ \h <mmsystem.h>,
-	/ \impl @ \f (GetTicks, GetHighResolutionTicks)
-),
-(
-	+ \mac (yconstraint, yassume) @ \h YDefinition;
-	^ yconstraint @ \h (YString, CharacterMapping, StaticMapping),
-	^ yassume @ (\h Cast, \impl \u CStandardIO),
-	/ @ \u NativeAPI when defined(YCL_MINGW32) $=
-	(
-		/ linkage of \a POSIX compliant APIs @ \h NativeAPI
-			-> "extern C" ~ implicit "extern C++";
-		- \f (getcwd, chdir, rmdir, mkdir, stat),
-		(
-			+ \ns platform::replace;
-			+ \f \i makedir @ \ns platform::replace;
-			+ \mac mkdir
-		),
-		+ \as @ \impl @ \f readdir,
-		/ \impl @ \f opendir
-	);
-);
+* \impl @ \dtor Shell $since $before b132 $= (- \as);
 
 r10:
-- using (platform::DEF_PATH_DELIMITER, platform::DEF_PATH_SEPERATOR)
-	@ \h YAdaptor;
-/ @ \h NativeAPI when defined(YCL_MINGW32) $=
+* @ defined YCL_MINGW32 $since b298 $=
 (
-	+ undef \mac DrawText,
-	+ undef \mac PostMessage;
-	+ confirming \mac \def UNICODE,
-	/ \tr @ typedef \st (dirent, DIR)
+	* wrong context buffer pointer initialized \impl @ \ctor DSScreen
+		@ \impl \u DSMain;
+	* $comp screen direct writing test fail;
 ),
-/ \tr \impl @ \f readdir @ \impl \u NativeAPI;
-/ file system APIs @ \u YCommon;
-/ \tr \impl @ \u YFileSystem;
-/ \impl @ \ctor ShlExplorer ^ IO::FS_Root @ \impl \u Shells;
+(
+	+ \u Input["Input.h, Input.cpp"] @ \dir YCLib;
+	/ @ \u YCommon $=
+	(
+		/ \f 'WaitFor*' @ \ns (platform, platform_ex) >> \h Input;
+		/ (\o (KeyState, OldKeyState), \f (ClearKeyStates, FetchKeyDownState,
+			FetchKeyUpState, UpdateKeyStates, WriteCursor)) @ \ns platform
+			>> \ns platform_ex @ \h Input
+	);
+	/ \inc \h <mutex> @ \impl \u YCommon >> \impl \u Input
+);
+(
+	+ \u Debug["Debug.h", "Debug.cpp"] @ \dir YCLib;
+	/ \f 'YDebug*' @ \u YCommon >> \u Debug,
+	/ \impl \h <cstdarg> @ \impl \u >> \impl \u Debug;
+	/ @ \h Shells $=
+	(
+		+ \tr \inc \h <YCLib/Debug.h>,
+		+ using platform::WaitForInput
+	),
+	/ \inc \h "YCLib/ycommon.h" -> "YCLib/Debug.h" @ \impl \u YCommon,
+	/ \tr \impl @ \impl \u (Font, DSMain, Initialization)
+),
+- \tr using platform::WaitForInput @ \h YAdaptor,
+(
+	+ \inc \h Input @ \h DSMain;
+	/ \tr \impl @ \impl \u Console
+);
 
 r11:
-+ \ft make_shared @ \ns ystdex @ \h Memory;
-/ using std::make_shared -> using ystdex::make_shared @ \h YReference;
-/ \tr \impl @ (\ctor ShlExplorer @ \impl \u Shells, \f (FetchEncodingNames,
-	FetchFontFamilyNames) @ \impl \u ShlReader);
-	// g++ 4.6 unimplemented feature;
+/= test 3 ^ \conf release;
 
 r12:
-* @ \ns YSLib @ \impl \u YNew $since b203 $=
-(
-	+ \ns \o MemoryList DebugMemoryList @ \un \ns;
-	/ \impl @ \f GetDebugMemoryList
-);
+* \impl @ \ctor TextList $since b298;
 
 r13:
-/ \impl @ \f FixScrollBarLayout @ \impl \u Scroll,
-* \impl @ \ctor ListBox $since b261 $= (- wrong \as);
-
-r14:
-/= test 4 ^ \conf release;
-
-r15:
-/ @ \cl FileList @ \u YFileSystem $=
+/ @ \u NativeAPI @ defined YCL_MINGW32 $=
 (
-	+ \mf \op=(const Path&),
-	(
-		- \a 2 \mf \op/=;
-		+ \mf bool \op(const Path&)
-	),
-	/ \mf \mg -> \mf ListItems
-);
-/ @ \cl FileBox $=
-(
-	/ \simp impl @ \mf GetPath,
-	/ \tr \simp \impl @ \ctor,
-	+ \mf bool SetPath(const IO::Path&)
-);
+	/ '*WIN32_FIND_DATAA' -> '*WIN32_FIND_DATAW' @ typedef \st (dirent, DIR),
+	/ \tr \impl @ \f (opendir, readdir),
+	+ \f \i bool IsDirectory(const ::WIN32_FIND_DATAW&) @ \ns platform_ex
+),
+/ \f bool fexists(const_path_t) @ \u CStandardIO -> bool fexists(const char*),
++ \f (ufopen, ufexists) @ \u YCommon;
++ using platform::(ufopen, ufexists) @ \h YAdaptor;
+/ \impl @ \mf File::Open @ \impl \u File,
+/ \impl @ \ctor ShlExplorer @ \impl \u Shells;
+
+r14-r15:
+/= test 4,
+* \impl @ \f MBCToUC#2 @ \impl \u CharacterProcessing $since b248,
++ \as @ \ft FillByte @ \h StaticMapping;
 
 r16:
-/ @ \u NativeAPI when defined(YCL_MINGW32) $=
-(
-	/ \n dirent::pwindir => lpWinDir,
-	/ \n DIR::windir => win_dir,
-	/ \n DIR::h => hNode,
-	/ \n DIR::dirname => Name
-	/ \n DIR::posixdir => POSIXDir
-),
-(
-	/ @ \cl HDirectory @ \u YCommon $=
-	(
-		/ public \s \m PATHSTR Name	-> private !\s \m const char* pName;
-		+ \mf GetName,
-		/ \impl @ \mf \op++,
-		/ \tr \impl @ \a 2 \ctor,
-		+ \i @ \mf Reset
-	);
-	/ \tr \impl @ \mf FileList::ListItems @ \impl \u YFileSystem,
-	/ \tr \impl @ \f LoadFontFileDirectory @ \impl \u Initialization
-);
+/ \impl @ \f DispatchInput @ \impl \u DSMain;
 
 r17:
-/= test 5;
-
-r18:
-/ @ \h NativeAPI $=
-(
-	+ 3 \f \i IsDirectory @ \ns platform_ex when defined(YCL_MINGW32),
-	+ \f \i IsDirectory @ \ns platform_ex when defined(YCL_DS)
-);
-/ @ \cl HDirectory \u YCommon $=
-(
-	- \ctor yconstfn HDirectory(IteratorType&);
-	* broken \mf IsDirectory $since b221 $=
-	(
-		+ private \m ::dirent* p_dirent;
-		/ \smf HDirectory::IsDirectory -> !\s \c \mf,
-		/ \tr \impl @ \ctor,
-		/ \tr \simp \impl @ \mf \op++
-	);
-	- unused \sm Stat
-);
-/ \tr \impl @ (\mf FileList::ListItems @ \impl \u YFileSystem,
-	\f LoadFontFileDirectory @ \impl \u Initialization);
-
-r19:
-/ @ \cl HDirectory @ \u YCommon $=
-(
-	/ \impl @ \mf (GetName, \op++);
-	- \mf pName,
-	/ \tr \impl @ \ctor#1
-);
-
-r20:
-(
-	+ \mf void Reset() @ \clt GSequenceViewer @ \h Viewer;
-	/ \simp \impl @ \mf TextList::ResetView;
-),
-/ \a HDirectory => HFileNode,
-/ \a ValidateDirectory => ValidatePath;
-
-r21:
-* \impl @ \f opendir @ \impl \u NativeAPI when defined(YCL_MINGW32) $since b296;
-/ @ \u YFileSystem $=
-(
-	/ @ \cl Path $=
-	(
-		+ \mf bool IsDirectory() const;
-		* \impl @ Path::\op/= $since b153
-	);
-	* \impl @ file list $since b153
-);
-
-r22:
 /= test 5 ^ \conf release;
-
-r23:
-/ @ \u FileSystem $=
-(
-	+ \mf bool NormalizeTrailingSlash() @ \cl Path;
-	/ \impl @ \mf FileList::\op/=
-);
-
-r24:
-* \impl @ \ctor @ \cl HexViewArea @ \impl \u HexBrowser $since b268;
-
-r25:
-/ \impl @ \f (OnKeyHeld, OnTouchHeld) changing holding interval;
-
-r26:
-/= test 6 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-04-04:
--6.6d;
-//Mercurial rev1-rev168: r8204;
+2012-04-09:
+-9.1d;
+//Mercurial rev1-rev171: r8221;
 
 / ...
 
 
 $NEXT_TODO:
-b299-b324:
+b300-b324:
 / \impl @ \u (DSReader, ShlReader) $=
 (
 	* crashing when setting font size @ text reader $since b297,
@@ -688,7 +572,7 @@ b401-b768:
 ),
 + debugging $=
 (
-	+ headers,
+	/ more APIs,
 	+ namespaces
 ),
 / $low_prior tests and examples $=
@@ -909,13 +793,15 @@ $module_tree $=
 	(
 		'CHRLib'
 		(
-			'CharacterMapping'
+			'CharacterMapping',
+			'encoding conversion'
 		),
 		'YCLib' $=
 		(
 			'native APIs',
 			'common input APIs',
-			'common file system APIs'
+			'common file system APIs',
+			'debug helpers'
 		),
 		'YSLib'
 		(
@@ -955,6 +841,85 @@ $now
 (
 	/ %'YFramework' $=
 	(
+		/ %'YSLib' $=
+		(
+			/ %'helpers' $=
+			(
+				/ $design "input dispatching" @ "member function \
+					%ShlDS::OnGotMessage" >> %'DS main unit' ~ %'shells for DS',
+				/ "function %InitConsole" @ %'global helper unit'
+					>> 'DS main unit',
+				/ %'DS main unit' $=
+				(
+					* "shells not destroyed before the application class \
+						destruction" $since b269,
+					* "wrong context buffer pointer initialized" @ "constructor"
+						@ "class %DSScreen" @ "defined %YCL_MINGW32" $since b298
+				)
+			),
+			/ "improved implementation" @ "function %IsAbsolute"
+				@ %'YCLib'.'common file system APIs' $=
+			(
+				+ "support for absolute path beginning with 'sd:/'"
+					@ "defined %YCL_DS",
+				+ "implementation" @ "defined %YCL_MINGW32"
+			),
+			* "destructor" @ "class %Shell" @ %'core'.'shell abstraction'
+				$since $before b132 $= (- "wrong assertion"),
+			* @ %GUI $since b298 $=
+			(
+				/ "constructor implementation" @ "class %TextList";
+				* $comp "missing response to 'Enter' key"
+					@ "class %(TextList, ListBox, Menu, DropDownList)"
+			),
+			/ %'CHRLib' $=
+			(
+				+ $design "static assertion for volatile type"
+					@ "function template %FillByte" @ "header %smap.hpp",
+					// To avoid undefined behavior.
+				* "EOF not checked for distinguishing with invalid source \
+					state and raising by conversion" @ "character conversion \
+					for source type %std::FILE*" @ 'encoding conversion'
+					$since b248
+					// End valid byte in the file is always untouched. This \
+						would probably cause infinite loop in buffering \
+						file with size less than block size in text file \
+						reader, for there is no check for EOF in the \
+						loop for conversion while reading from the file.
+			)
+		),
+		/ %'YCLib' $=
+		(
+			/ %'common input APIs' $=
+			(
+				+ "header %Input.h for several input APIs";
+				/ "APIs moved"
+			),
+			/ %'debug helpers' $=
+			(
+				+ "header %Debug.h for debugging and diagnose";
+				/ "APIs moved"
+			),
+			(
+				+ "wide character string path support"
+					^ %'CHRLib'.'encoding conversion'
+					@ %'common file system APIs' @ "defined %YCL_MINGW32"
+				$dep_to "wide character string path"
+			)
+		)
+	),
+	/ %'YReader'.'shells test example' $=
+	(
+		$dep_from "wide character string path";
+		+ "wide character string path support" @ "defined %YCL_MINGW32"
+	),
+	+ $design "MinGW32 projects" @ "Code::Blocks workspace"
+),
+
+b298
+(
+	/ %'YFramework' $=
+	(
 		/ %'YCLib' $=
 		(
 			/ "native key types" @ %'common input APIs',
@@ -962,7 +927,7 @@ $now
 			(
 				+ $design "assertions",
 				* "missing directory validation" @ "function %opendir"
-					"when defined %YCL_MINGW32" $since b296
+					@ "defined %YCL_MINGW32" $since b296
 			);
 			/% 'common file system APIs' $=
 			(
@@ -1242,7 +1207,7 @@ b295
 			/ $design "refreshing" ^ "border brush" @ "class %ProgressBar",
 			* "memory leak" $since b243
 				$= (+ "missing destructor" @ "class %AController"),
-			+ $design "copy and move assignment ooperator" @ "class %View" 
+			+ $design "copy and move assignment ooperator" @ "class %View"
 		),
 		/ %'core'.'shell abstraction' $=
 		(
@@ -1914,7 +1879,7 @@ b279
 		/ @ "setting panel" $=
 		(
 			/ "control appearance" !^ ("border", ^ "the top desktop")
-			+ "text color setting" 
+			+ "text color setting"
 		)
 	)
 ),
@@ -1941,7 +1906,7 @@ b278
 				+ "forced background painting ignorance state"
 					@ "class %BufferedRenderer"
 			),
-			+ $design "sequence function application function template %seq_apply" 
+			+ $design "sequence function application function template %seq_apply"
 				@ "header %yfunc.hpp",
 			+ "helper function object class %ContainerSetter",
 			/ $design "default idle handler implementation"
@@ -2030,7 +1995,7 @@ b276
 	/ %'YReader'.'text reader' $=
 	(
 		/ $design "simplified implementation",
-		/ "control appearance" @ "setting panel" ^ "border" 
+		/ "control appearance" @ "setting panel" ^ "border"
 	)
 ),
 

@@ -2,60 +2,45 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="YFramework_DS" />
-		<Option makefile_is_custom="1" />
+		<Option title="YFramework_MinGW32" />
 		<Option pch_mode="2" />
-		<Option compiler="gnu_armeabi_gcc_compiler" />
-		<MakeCommands>
-			<Build command="$make -f $makefile -r BUILD=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
-			<CompileFile command="$make -f $makefile $file" />
-			<Clean command="$make -f $makefile -r BUILD=$target clean" />
-			<DistClean command="$make -f $makefile distclean$target" />
-			<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
-			<SilentBuild command="$make -s -f $makefile -r BUILD=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
-		</MakeCommands>
+		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug">
-				<Option type="4" />
-				<Option compiler="gnu_armeabi_gcc_compiler" />
+				<Option output="debug\libYFramework" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="debug\" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-DDEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG" />
 				</Compiler>
-				<MakeCommands>
-					<Build command="$make -f $makefile -r BUILD=$target" />
-					<CompileFile command="$make -f $makefile $file" />
-					<Clean command="$make -f $makefile -r BUILD=$target clean" />
-					<DistClean command="$make -f $makefile distclean$target" />
-					<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
-					<SilentBuild command="$make -s -f $makefile -r BUILD=$target" />
-				</MakeCommands>
 			</Target>
 			<Target title="release">
-				<Option output="release\YFramework_DS" prefix_auto="1" extension_auto="1" />
+				<Option output="release\libYFramework" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
 				<Option object_output="release\" />
-				<Option type="1" />
-				<Option compiler="gnu_armeabi_gcc_compiler" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 				</Linker>
-				<MakeCommands>
-					<Build command="$make -f $makefile -r BUILD=$target" />
-					<CompileFile command="$make -f $makefile $file" />
-					<Clean command="$make -f $makefile -r BUILD=$target clean" />
-					<DistClean command="$make -f $makefile distclean$target" />
-					<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
-					<SilentBuild command="$make -s -f $makefile -r BUILD=$target" />
-				</MakeCommands>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-mthreads" />
 		</Compiler>
-		<Unit filename="..\YFramework\data\cp113.bin" />
-		<Unit filename="..\YFramework\data\default_font.bin" />
 		<Unit filename="..\YFramework\include\CHRLib\chrdef.h" />
 		<Unit filename="..\YFramework\include\CHRLib\chrmap.h" />
 		<Unit filename="..\YFramework\include\CHRLib\chrproc.h" />
@@ -277,19 +262,13 @@
 		<Unit filename="..\YFramework\source\YSLib\UI\ywgtview.cpp" />
 		<Unit filename="..\YFramework\source\YSLib\UI\ywidget.cpp" />
 		<Unit filename="..\YFramework\source\YSLib\UI\ywindow.cpp" />
-		<Unit filename="Makefile" />
+		<Unit filename="cp113.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="cp113.h" />
 		<Extensions>
-			<DoxyBlocks>
-				<comment_style block="1" line="1" />
-				<doxyfile_project />
-				<doxyfile_build />
-				<doxyfile_warnings />
-				<doxyfile_output />
-				<doxyfile_dot />
-				<general />
-			</DoxyBlocks>
 			<code_completion />
-			<envvars set="default" />
+			<envvars />
 			<debugger />
 			<lib_finder disable_auto="1" />
 		</Extensions>

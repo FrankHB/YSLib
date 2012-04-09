@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2301;
+\version r2306;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2012-04-03 12:33 +0800;
+	2012-04-07 19:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -104,6 +104,10 @@ YSL_BEGIN
 	//基本实用例程。
 	using platform::mmbset;
 	using platform::mmbcpy;
+
+	//文件系统例程。
+	using platform::ufopen;
+	using platform::ufexists;
 	using platform::direxists;
 	using platform::chdir;
 	using platform::getcwd_n;
@@ -132,9 +136,8 @@ YSL_BEGIN
 	using platform::PATHSTR;
 	using platform::FILENAMESTR;
 
-	//基本输入输出接口。
+	//基本输出接口。
 	using platform::InitVideo;
-	using platform::WaitForInput;
 
 	//计时器和时钟。
 	using platform::GetTicks;

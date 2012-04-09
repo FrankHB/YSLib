@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4018;
+\version r4024;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-04-02 17:36 +0800;
+	2012-04-08 14:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -143,7 +143,7 @@ namespace
 		GRL_ScrollDurations,
 		GRL_SmoothScrollDurations
 	};
-	
+
 
 	/*!
 	\since build 292 。
@@ -978,7 +978,7 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 
 		if(k.count() != 1)
 			return;
-		if(k[Start])
+		if(k[YCL_KEY_Start])
 		{
 			fBackgroundTask = std::bind(&ShlTextReader::Scroll, this);
 			tmrScroll.Reset();
@@ -993,25 +993,25 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 			Reader.Execute(DualScreenReader::LineUpScroll);
 		else if(k[Down])
 			Reader.Execute(DualScreenReader::LineDownScroll);
-		else if(k[X] || k[Y])
+		else if(k[YCL_KEY(X)] || k[YCL_KEY(Y)])
 		{
 			auto size(Reader.GetFont().GetSize());
 
-			if(k[X] && size > Font::MinimalSize)
+			if(k[YCL_KEY(X)] && size > Font::MinimalSize)
 				--size;
-			else if(k[Y] && size < Font::MaximalSize)
+			else if(k[YCL_KEY(Y)] && size < Font::MaximalSize)
 				++size;
 			else
 				return;
 			Reader.SetFontSize(size);
 			Reader.UpdateView();
 		}
-		else if(k[L])
+		else if(k[YCL_KEY(L)])
 		{
 			if(YCL_LIKELY(Reader.GetLineGap() != 0))
 				Reader.SetLineGap(Reader.GetLineGap() - 1);
 		}
-		else if(k[R])
+		else if(k[YCL_KEY(R)])
 		{
 			if(YCL_LIKELY(Reader.GetLineGap() != 12))
 				Reader.SetLineGap(Reader.GetLineGap() + 1);

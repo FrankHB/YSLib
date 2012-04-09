@@ -108,6 +108,8 @@
     <ClInclude Include="include\freetype\tttags.h" />
     <ClInclude Include="include\freetype\ttunpat.h" />
     <ClInclude Include="include\ft2build.h" />
+    <ClInclude Include="include\YCLib\Debug.h" />
+    <ClInclude Include="include\YCLib\Input.h" />
     <ClInclude Include="include\YCLib\NativeAPI.h" />
     <ClInclude Include="include\YCLib\Platform.h" />
     <ClInclude Include="include\YCLib\ycommon.h" />
@@ -184,6 +186,8 @@
     <ClCompile Include="doc\ex.cpp" />
     <ClCompile Include="source\CHRLib\chrmap.cpp" />
     <ClCompile Include="source\CHRLib\chrproc.cpp" />
+    <ClCompile Include="source\YCLib\Debug.cpp" />
+    <ClCompile Include="source\YCLib\Input.cpp" />
     <ClCompile Include="source\YCLib\NativeAPI.cpp" />
     <ClCompile Include="source\YCLib\ycommon.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\Font.cpp" />

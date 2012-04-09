@@ -11,13 +11,13 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2589;
+\version r2603;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2012-04-01 08:21 +0800;
+	2012-04-05 08:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,7 @@
 YSL_BEGIN
 
 Application::Application()
-	: Queue(), BackupQueue(), hShell(), msg()
+	: Queue(), hShell(), msg()
 {}
 Application::~Application()
 {
@@ -42,13 +42,6 @@ Application::~Application()
 		ApplicationExit();
 }
 
-errno_t
-Application::BackupMessage(const Message& msg)
-{
-	BackupQueue.Push(msg);
-	return -!msg.IsValid();
-}
-
 int
 Application::Dispatch(const Message& msg)
 {
@@ -57,12 +50,6 @@ Application::Dispatch(const Message& msg)
 	YAssert(bool(hShl), "Null shell handle found @ DispatchMessage;");
 
 	return hShl->OnGotMessage(msg);
-}
-
-void
-Application::RecoverMessageQueue()
-{
-	Queue.Merge(BackupQueue);
 }
 
 bool

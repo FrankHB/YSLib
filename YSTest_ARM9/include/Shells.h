@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3657;
+\version r3674;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-03-25 15:26 +0800;
+	2012-04-07 14:43 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,6 +34,7 @@
 
 #include <YSLib/Helper/shlds.h>
 #include <YSLib/Helper/ShellHelper.h>
+#include <YCLib/Debug.h>
 
 YSL_BEGIN
 
@@ -47,6 +48,20 @@ YSL_END
 
 YSL_BEGIN_NAMESPACE(YReader)
 
+/*!
+\defgroup YCL_KEY_OVERRIDE YCLib Key Overridden Values
+\since build 299 。
+*/
+//@{
+#ifndef YCL_DS
+#	define YCL_KEY(X) 'X'
+#	define YCL_KEY_Start 'P'
+#else
+#	define YCL_KEY(X) KeyCodes::X
+#	define YCL_KEY_Start KeyCodes::Start
+#endif
+//@}
+
 //全局常量。
 //extern CPATH DEF_DIRECTORY;
 
@@ -58,6 +73,7 @@ using namespace Drawing;
 using namespace DS;
 using namespace DS::Components;
 
+using platform::WaitForInput;
 using platform::YDebugSetStatus;
 
 

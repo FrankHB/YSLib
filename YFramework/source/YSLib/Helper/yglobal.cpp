@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3920;
+\version r3941;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2012-04-01 08:45 +0800;
+	2012-04-06 07:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/Helper/yglobal.h"
-#include "YSLib/Helper/DSMain.h" // TODO: to be removed;
+#include "YSLib/Core/yapp.h"
 #include "YSLib/UI/ydesktop.h"
 //#include <clocale>
 
@@ -53,28 +53,6 @@ const String Application::ProductVersion(G_APP_VER);
 */
 //@{
 //@}
-
-
-Application&
-FetchAppInstance()
-{
-	return FetchGlobalInstance();
-}
-
-
-bool
-InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
-{
-	using namespace platform;
-
-	if(&FetchGlobalInstance().GetScreenUp() == &scr)
-		YConsoleInit(true, fc, bc);
-	else if(&FetchGlobalInstance().GetScreenDown() == &scr)
-		YConsoleInit(false, fc, bc);
-	else
-		return false;
-	return true;
-}
 
 YSL_END
 
