@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r1207;
+\version r1223;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:49:27 +0800;
 \par 修改时间:
-	2012-04-07 14:33 +0800;
+	2012-04-11 08:23 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -55,27 +55,6 @@ YSL_BEGIN
 */
 const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
 //@}
-
-YSL_BEGIN_NAMESPACE(Shells)
-
-/*!
-\brief 主 Shell 。
-\since 早于 build 132 。
-*/
-class MainShell : public DS::ShlDS
-{
-public:
-	typedef ShlDS ParentType;
-
-	Components::Label lblTitle, lblStatus, lblDetails;
-
-	/*!
-	\brief 无参数构造。
-	*/
-	MainShell();
-};
-
-YSL_END_NAMESPACE(Shells)
 
 
 //前向声明。

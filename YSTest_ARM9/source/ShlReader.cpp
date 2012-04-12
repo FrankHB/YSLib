@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4024;
+\version r4048;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-04-08 14:51 +0800;
+	2012-04-10 17:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -45,15 +45,7 @@ namespace
 	\brief 编码信息项目。
 	\since build 290 。
 	*/
-	struct EncodingInfoItem
-	{
-		typedef Text::Encoding first_type;
-		typedef const ucs2_t* second_type;
-
-		first_type first;
-		second_type second;
-	};
-
+	typedef std::pair<Text::Encoding, const ucs2_t*> EncodingInfoItem;
 
 	using namespace Text::CharSet;
 
@@ -87,12 +79,11 @@ namespace
 	{
 		if(YCL_LIKELY(i < arrlen(Encodings)))
 		{
-			const auto enc(Encodings[i].first);
-			const String ustr(Encodings[i].second);
+			const auto& pr(Encodings[i]);
 			char str[32];
 
-			std::sprintf(str, "%d: %s", enc,
-				ustr.GetMBCS().c_str());
+			std::sprintf(str, "%d: %s", pr.first,
+				String(pr.second).GetMBCS().c_str());
 
 			return String(str);
 		}
@@ -444,13 +435,15 @@ SettingPanel::SettingPanel()
 	//	FetchEvent<Paint>(lblColorAreaDown).Add(BorderBrush(BorderStyle),
 	//		BoundaryPriority),
 		FetchEvent<KeyDown>(*this) += OnEvent_StopRouting<KeyEventArgs>,
-		FetchEvent<Click>(btnFontSizeDecrease) += [&, this](TouchEventArgs&&){
+		FetchEvent<Click>(btnFontSizeDecrease)
+			+= [this, set_font_size](TouchEventArgs&&){
 			auto size(lblAreaUp.Font.GetSize());
 
 			if(YCL_LIKELY(size > Font::MinimalSize))
 				set_font_size(--size);
 		},
-		FetchEvent<Click>(btnFontSizeIncrease) += [&, this](TouchEventArgs&&){
+		FetchEvent<Click>(btnFontSizeIncrease)
+			+= [this, set_font_size](TouchEventArgs&&){
 			auto size(lblAreaUp.Font.GetSize());
 
 			if(YCL_LIKELY(size < Font::MaximalSize))
@@ -631,7 +624,7 @@ ShlReader::OnInput()
 ShlTextReader::ShlTextReader(const IO::Path& pth)
 	: ShlReader(pth),
 	LastRead(FetchLastRead()), CurrentSetting(FetchCurrentSetting()),
-	tmrScroll(FetchTimerSetting(CurrentSetting)), Reader(),
+	tmrScroll(FetchTimerSetting(CurrentSetting)), tmrInput(), Reader(),
 	boxReader(Rect(0, 160, 256, 32)), boxTextInfo(), pnlSetting(),
 	pTextFile(), mhMain(GetDesktopDown())
 {
@@ -755,7 +748,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 		dsk_dn.Background = SolidBrush(CurrentSetting.DownColor),
 		FetchEvent<Click>(dsk_dn).Add(*this, &ShlTextReader::OnClick),
 		FetchEvent<KeyDown>(dsk_dn).Add(*this, &ShlTextReader::OnKeyDown),
-		FetchEvent<KeyHeld>(dsk_dn) += OnKeyHeld
+		FetchEvent<KeyHeld>(dsk_dn) += OnEvent_Call<KeyDown>
 	);
 	Reader.Attach(dsk_up, dsk_dn),
 	dsk_dn += boxReader,
@@ -774,6 +767,8 @@ ShlTextReader::~ShlTextReader()
 {
 	LastRead.Insert(CurrentPath, Reader.GetTopPosition());
 
+	// NOTE: individual desktops simplified the cleanup;
+#if 0
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
@@ -787,7 +782,7 @@ ShlTextReader::~ShlTextReader()
 		FetchEvent<Click>(dsk_dn).Remove(*this, &ShlTextReader::OnClick),
 		FetchEvent<KeyDown>(dsk_dn).Remove(*this,
 			&ShlTextReader::OnKeyDown),
-		FetchEvent<KeyHeld>(dsk_dn) -= OnKeyHeld
+		FetchEvent<KeyHeld>(dsk_dn) -= OnEvent_Call<KeyDown>
 	);
 	Reader.Detach();
 	yunseq(
@@ -795,6 +790,7 @@ ShlTextReader::~ShlTextReader()
 		dsk_dn -= boxTextInfo,
 		dsk_dn -= pnlSetting
 	);
+#endif
 }
 
 void
@@ -963,7 +959,9 @@ ShlTextReader::OnClick(TouchEventArgs&&)
 void
 ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 {
-	if(e.Strategy != RoutedEventArgs::Tunnel && !mhMain.IsShowing(1u))
+	if(e.Strategy != RoutedEventArgs::Tunnel && !mhMain.IsShowing(1u)
+		&& RepeatHeld(tmrInput, FetchGUIState().KeyHeldState,
+		Timers::TimeSpan(240), Timers::TimeSpan(60)))
 	{
 		using namespace KeyCodes;
 

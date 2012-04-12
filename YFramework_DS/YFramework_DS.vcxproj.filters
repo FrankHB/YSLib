@@ -8,16 +8,16 @@
     <None Include="..\YFramework\data\default_font.bin">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="..\YFramework\doc\CommonRules.txt">
+    <None Include="..\doc\CommonRules.txt">
       <Filter>文档</Filter>
     </None>
-    <None Include="..\YFramework\doc\Definitions.txt">
+    <None Include="..\doc\Definitions.txt">
       <Filter>文档</Filter>
     </None>
-    <None Include="..\YFramework\doc\Designation.txt">
+    <None Include="..\doc\Designation.txt">
       <Filter>文档</Filter>
     </None>
-    <None Include="..\YFramework\doc\YSLib.txt">
+    <None Include="..\doc\YSLib.txt">
       <Filter>文档</Filter>
     </None>
   </ItemGroup>
@@ -584,9 +584,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\YFramework\doc\ex.cpp">
-      <Filter>文档</Filter>
-    </ClCompile>
     <ClCompile Include="..\YFramework\source\YSLib\Adaptor\Font.cpp">
       <Filter>源文件\YSLib\Adaptor</Filter>
     </ClCompile>
@@ -763,6 +760,9 @@
     </ClCompile>
     <ClCompile Include="..\YFramework\source\YCLib\Debug.cpp">
       <Filter>源文件\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\doc\ex.cpp">
+      <Filter>文档</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3774;
+\version r3775;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-03-17 20:23 +0800;
+	2011-04-12 21:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -154,7 +154,7 @@ namespace
 		size_t dst_offset, ptrdiff_t offset, size_t n)
 	{
 		YAssert(n != 0, "Invalid number of lines found @ CopyScrollArea;");
-		YAssert(n <= std::abs(offset), "Invalid offset found"
+		YAssert(n <= size_t(std::abs(offset)), "Invalid offset found"
 			" @ CopyScrollArea;");
 
 		const SDst w(src_area.GetWidth());

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2334;
+\version r2339;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-03-27 08:01 +0800;
+	2012-04-09 21:35 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -423,6 +423,12 @@ protected:
 	\since build 289 。
 	*/
 	Timers::Timer tmrScroll;
+	/*!
+	\brief 按键计时器。
+	\note 独立计时，排除路由事件干扰。
+	\since build 300 。
+	*/
+	InputTimer tmrInput;
 
 public:
 	DualScreenReader Reader;

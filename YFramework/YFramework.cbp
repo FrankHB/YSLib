@@ -56,11 +56,6 @@
 		</Compiler>
 		<Unit filename="data\cp113.bin" />
 		<Unit filename="data\default_font.bin" />
-		<Unit filename="doc\CommonRules.txt" />
-		<Unit filename="doc\Definitions.txt" />
-		<Unit filename="doc\Designation.txt" />
-		<Unit filename="doc\YSLib.txt" />
-		<Unit filename="doc\ex.cpp" />
 		<Unit filename="include\CHRLib\chrdef.h" />
 		<Unit filename="include\CHRLib\chrmap.h" />
 		<Unit filename="include\CHRLib\chrproc.h" />

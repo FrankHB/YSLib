@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r1076;
+\version r1078;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 299 。
 \par 创建时间:
 	2012-04-07 13:38:36 +0800;
 \par 修改时间:
-	2012-04-07 15:03 +0800;
+	2012-04-10 13:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -92,7 +92,8 @@ UpdateKeyStates()
 #ifdef YCL_DS
 	KeyState = ::keysCurrent();
 #elif defined(YCL_MINGW32)
-	for(std::size_t i(0); i < platform::KeyBitsetWidth; ++i)
+	// NOTE: 0x00 and 0xFF should be invalid;
+	for(std::size_t i(1); i < platform::KeyBitsetWidth - 1; ++i)
 		KeyState.set(i, ::GetAsyncKeyState(i) & 0x8000);
 #endif
 }

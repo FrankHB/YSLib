@@ -1,5 +1,13 @@
 ﻿>Franksoft YSLib PreAlpha 更新说明
 ====
+>PreAlpha 3
+====
+2012-04-12
+增加 MinGW 动态链接库。
+增加配置文件生成，文件名为config.txt，编码为UTF-8（默认生成的有 BOM ，不过读取的不限，反正没 BOM 全 ASCII 按 ANSI 读也一样，有非 ASCII 字符一般能自动猜出来……）。
+当前配置文件内容只有三行路径，依次为程序工作目录（初始化完毕后getcwd()取得的目录），矢量字体路径（会优先读取此路径的字体文件），矢量字体目录（会读取此目录下所有字体文件）。路径长度不超过 80 字节（多了会被截断）。
+默认配置内容硬编码于 YSLib/Helper/Initialization.cpp 。
+====
 >PreAlpha 2
 ====
 2012-04-09
@@ -25,7 +33,7 @@
 使用 Code::Blocks 打开工作空间文件直接生成（暂不支持 Visual Studio 生成）。
 其它注意事项：
 已确认 DeSmuMe SVN r4030 起有 bug 打开 .nds 后无法正确读取文件。
-配置文件路径仍然是硬编码的（见 YSTest_ARM9/soutce/GBKEX.cpp ），根目录为 "H:\\NDS\\EFSRoot" ，所以运行的时候可能有些麻烦……
+配置文件默认路径仍然是硬编码的（见YSLib/Helper/Initialization），根目录为 "H:\\NDS\\EFSRoot" ，所以运行的时候可能有些麻烦……
 本机程序←→×之类的无法显示（大概也是 freetype 问题），于是有些按钮没文本看起来是空的……= =
 ====
 2011-04-11

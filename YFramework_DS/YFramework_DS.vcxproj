@@ -11,16 +11,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\doc\CommonRules.txt" />
+    <None Include="..\doc\Definitions.txt" />
+    <None Include="..\doc\Designation.txt" />
+    <None Include="..\doc\YSLib.txt" />
     <None Include="..\YFramework\data\cp113.bin">
       <FileType>Document</FileType>
     </None>
     <None Include="..\YFramework\data\default_font.bin">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\YFramework\doc\CommonRules.txt" />
-    <None Include="..\YFramework\doc\Definitions.txt" />
-    <None Include="..\YFramework\doc\Designation.txt" />
-    <None Include="..\YFramework\doc\YSLib.txt" />
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
@@ -188,7 +188,7 @@
     <ClInclude Include="..\YFramework\include\YSLib\UI\ywindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\YFramework\doc\ex.cpp" />
+    <ClCompile Include="..\doc\ex.cpp" />
     <ClCompile Include="..\YFramework\source\CHRLib\chrmap.cpp" />
     <ClCompile Include="..\YFramework\source\CHRLib\chrproc.cpp" />
     <ClCompile Include="..\YFramework\source\YCLib\Debug.cpp" />

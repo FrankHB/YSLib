@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug">
-				<Option output="debug\libYBase" prefix_auto="1" extension_auto="1" />
+				<Option output="debug\YBase" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="debug\" />
 				<Option type="2" />
@@ -20,10 +20,39 @@
 				</Compiler>
 			</Target>
 			<Target title="release">
-				<Option output="release\libYBase" prefix_auto="1" extension_auto="1" />
+				<Option output="release\YBase" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="release\" />
 				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-DNDEBUG" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="debug_DLL">
+				<Option output="debug\YBase" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="debug" />
+				<Option object_output="debug\" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-DDEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+				</Compiler>
+			</Target>
+			<Target title="release_DLL">
+				<Option output="release\YBase" prefix_auto="1" extension_auto="1" />
+				<Option object_output="release\" />
+				<Option type="3" />
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Compiler>

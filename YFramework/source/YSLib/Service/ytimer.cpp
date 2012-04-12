@@ -11,12 +11,12 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r1711;
+\version r1712;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2012-03-17 20:07 +0800;
+	2012-04-10 17:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -88,7 +88,7 @@ Timer::IsActive() const
 }
 
 void
-Timer::SetInterval(TimeSpan i)
+Timer::SetInterval(const Duration& i)
 {
 	nInterval = i;
 	if(YCL_UNLIKELY(nInterval == Duration::zero()))

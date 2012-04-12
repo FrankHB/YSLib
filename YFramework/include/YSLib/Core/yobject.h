@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3340;
+\version r3365;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-22 22:08 +0800;
+	2012-04-10 10:49 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -74,7 +74,8 @@ public:
 	//	Create = 0,
 		Destroy = 1,
 		Clone = 2,
-		Equality = 3
+		Equality = 3,
+		TypeCheck = 4
 	} OpType;
 	typedef bool (*ManagerType)(void*&, void*&, OpType);
 
@@ -110,8 +111,35 @@ private:
 				return AreEqual(*static_cast<const _type*>(x),
 					*static_cast<const _type*>(y));
 				return false;
+			case TypeCheck:
+#ifdef YSL_DLL
+				return x ? *static_cast<const std::type_info*>(x)
+					== typeid(GManager): false;
+#else
+				return false;
+#endif
 			}
 			return false;
+		}
+
+		/*!
+		\brief 检查类型是否相等。
+		\since build 300 。
+		*/
+		static bool
+		CheckType(ManagerType m)
+		{
+			YAssert(m, "Null pointer found"
+				" @ ValueObject::GManager::CheckType;");
+
+#ifdef YSL_DLL
+			const void *p(&typeid(GManager));
+			void* q(nullptr);
+
+			return m(const_cast<void*&>(p), q, TypeCheck);
+#else
+			return m == GManager::Do;
+#endif
 		}
 	};
 
@@ -173,7 +201,7 @@ public:
 	GetObject() const
 	{
 		YAssert(obj_ptr, "Null pointer found @ ValueObject::GetObject;");
-		YAssert(GManager<_type>::Do == manager, "Invalid type found"
+		YAssert(GManager<_type>::CheckType(manager), "Invalid type found"
 			" @ ValueObject::GetObject;");
 
 		return *static_cast<const _type*>(obj_ptr);
@@ -183,7 +211,7 @@ public:
 	GetObject()
 	{
 		YAssert(obj_ptr, "Null pointer found @ ValueObject::GetObject;");
-		YAssert(GManager<_type>::Do == manager, "Invalid type found"
+		YAssert(GManager<_type>::CheckType(manager), "Invalid type found"
 			" @ ValueObject::GetObject;");
 
 		return *static_cast<_type*>(obj_ptr);

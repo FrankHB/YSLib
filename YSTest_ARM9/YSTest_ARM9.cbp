@@ -62,7 +62,6 @@
 		<Unit filename="include\ShlReader.h" />
 		<Unit filename="source\ColorPicker.cpp" />
 		<Unit filename="source\DSReader.cpp" />
-		<Unit filename="source\GBKEX.cpp" />
 		<Unit filename="source\HexBrowser.cpp" />
 		<Unit filename="source\Shells.cpp" />
 		<Unit filename="source\ShlReader.cpp" />

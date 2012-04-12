@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3576; *build 299 rev 17;
+\version r3577; *build 300 rev 15;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-09 10:36 +0800;
+	2012-04-12 21:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -276,6 +276,7 @@ $using:
 ),
 \u YGUI
 (
+	\cl InputTimer,
 	\cl GUIState
 ),
 \u YBrush
@@ -363,137 +364,167 @@ $using:
 
 $DONE:
 r1:
-+ \inc \h YGUI @ \impl \u DSMain;
-+ \f void DispatchInput() @ \u DSMain;
-/ \simp \impl @ \mf ShlDS::OnGotMessage ^ \f DispatchInput;
-
-r2:
-/ \impl @ \f FetchAppInstance @ \impl \u YGlobal >> \impl \u DSMain,
-/ \f InitConsole @ \u YGlobal >> \u DSMain;
-/ \inc \h DSMain @ \h YGlobal -> YApplication,
-/ \tr \inc \h YGlobal -> DSMain @ \h Console;
-
-r3:
-/ @ \cl Application $=
+/ @ \u YGUI $=
 (
-	- \mf BackupMessage,
-	- \mf RecoverMessageQueue;
-	- protected \m BackupQueue,
-	/ \tr \impl @ \ctor
+	+ \cl InputTimer;
+	/ @ \cl GUIState $=
+	(
+		(
+			/ typedef \en HeldStateType >> \cl InputTimer;
+			/ \tr \a HeldStateType -> InputTimer::HeldStateType
+		),
+		/ public \m Timers::Timer HeldTimer -> public \m InputTimer HeldTimer,
+		/ \tr \impl @ \ctor,
+		- \impl @ \mf RepeatHeld,
+		/ \impl @ \mf (Reset, ResetHeldState)
+	)
 );
-* shells not destroyed before the application class destruction $since b269 $=
-	(/ \impl @ (\f main, \dtor DSApplication) @ \impl \u DSMain);
+/ \tr \impl @ \impl \u YControl;
+
+r2-r3:
++ \ft<VisualEvent _vID, class _tEventArgs> \i void OnEvent_Call(_tEventArgs&&)
+	@ \h YControl,
++ \f bool RepeatHeld(InputTimer&, InputTimer::HeldStateType&,
+	const Timers::TimeSpan&, const Timers::TimeSpan&) @ \u YGUI;
+/ @ \cl ShlTextReader @ \impl \u ShlReader $=
+(
+	+ protected \m InputTimer tmrInput,
+	/ \impl @ \ctor,
+	/ \simp \impl @ \dtor,
+	/ \impl @ \mf OnKeyDown
+	$comp "abnormal delaying on responding event %KeyHeld" $since b271
+);
 
 r4:
 /= test 1 ^ \conf release;
 
-r5-r6:
-/ \proj YSTest => YSTest_DS,
-/ \impl @ \u (Shells, ShlReader, GBKEX, DSMain)
-	for complatibility with defined(YCL_MINGW32);
-+ MinGW32 \proj (YBase_MinGW32, YFramework_MinGW32, YSTest_MinGW32)
-	@ Code::Blocks workspace;
+r5:
+* crashing when setting font size @ text reader $since b297
+	$= (* \impl @ \ctor SettingPanel @ \u ShlReader);
+
+r6:
+* \impl @ \f UpdateKeyStates @ \impl \u Input @ defined YCL_MINGW32 $since b299,
+/ \un \ns @ \impl \u ShlReader $=
+(
+	/ \simp \impl @ \f FetchEncodingString,
+	/ \st EncodingInfoItem ->
+		typedef std::pair<Text::Encoding, const ucs2_t*> EncodingInfoItem
+),
+(
+	/ @ \cl Timer $=
+	(
+		/ \decl @ \mf SetInterval,
+		+ \mf SetInterval#2
+	),
+	/ @ \cl InputTimer
+	(
+		/ typedef Timers::Duration Duration;
+		/ \simp \tp @ \param @ \mf
+	)
+);
 
 r7:
-* \impl @ \f InitConsole @ \impl \u DSMain @ defined YCL_DS $since r6;
-/= test 2 ^ \conf release;
+- \a \s \c \m with \tp String @ \cl Application;
+- \a 3 extern \o \decl 'G_' @ \impl \u YGlobal;
+/ \tr \impl @ \impl \u Main,
+/ \tr \impl @ \ctor ShlExplorer @ \impl \u Shells;
 
 r8:
-/ @ \impl \u YCommon $=
+/ @ \impl \u DSMain $=
 (
-	+ \inc \h <Shlwapi.h> @ defined YCL_MINGW32;
-	/ \impl @ \f IsAbsolute @ \u YCommon
-)
-/ \impl @ \ctor ShlExplorer @ \impl \u Shells;
+	/ \impl @ (\ctor, \dtor) @ \cl DSApplication,
+	/ \impl @ \g \f main
+);
 
 r9:
-* \impl @ \dtor Shell $since $before b132 $= (- \as);
+/ @ \impl \u DSMain $=
+(
+	/ @ \un \ns @ defined YCL_MINGW32 $=
+	(
+		+ std::thread HostThread,
+		+ \f FetchHostThread,
+		- \o hInstance,
+		/ \tr \impl @ \f InitializeWindow
+	),
+	/ \tr \impl @ (\f WinMain, (\ctor, \dtor) @ \cl DSApplication)
+		@ defined YCL_MINGW32;
+	/ (main function, debug functions, \cl Log) >> ARM9_Main,
+);
 
 r10:
-* @ defined YCL_MINGW32 $since b298 $=
+/ \u GBKEX @ \proj YSTest_ARM9 >> \dir Helper  @ \lib YSLib @ \proj YFramework,
++ \rem \mac YSL_DLL @ \h Configuration,
+/ @ \cl ValueObject $=
 (
-	* wrong context buffer pointer initialized \impl @ \ctor DSScreen
-		@ \impl \u DSMain;
-	* $comp screen direct writing test fail;
-),
-(
-	+ \u Input["Input.h, Input.cpp"] @ \dir YCLib;
-	/ @ \u YCommon $=
-	(
-		/ \f 'WaitFor*' @ \ns (platform, platform_ex) >> \h Input;
-		/ (\o (KeyState, OldKeyState), \f (ClearKeyStates, FetchKeyDownState,
-			FetchKeyUpState, UpdateKeyStates, WriteCursor)) @ \ns platform
-			>> \ns platform_ex @ \h Input
-	);
-	/ \inc \h <mutex> @ \impl \u YCommon >> \impl \u Input
+	+ \en \c TypeCheck = 4 @ typedef \en OpType;
+	+ \smf CheckType @ \stt GManager,
+	/ \impl @ \a 2 \mft GetObject
 );
-(
-	+ \u Debug["Debug.h", "Debug.cpp"] @ \dir YCLib;
-	/ \f 'YDebug*' @ \u YCommon >> \u Debug,
-	/ \impl \h <cstdarg> @ \impl \u >> \impl \u Debug;
-	/ @ \h Shells $=
-	(
-		+ \tr \inc \h <YCLib/Debug.h>,
-		+ using platform::WaitForInput
-	),
-	/ \inc \h "YCLib/ycommon.h" -> "YCLib/Debug.h" @ \impl \u YCommon,
-	/ \tr \impl @ \impl \u (Font, DSMain, Initialization)
-),
-- \tr using platform::WaitForInput @ \h YAdaptor,
-(
-	+ \inc \h Input @ \h DSMain;
-	/ \tr \impl @ \impl \u Console
-);
++ target ('debug_DLL', 'release_DLL') @ MinGW32 \proj @ Colde::Blocks;
 
 r11:
-/= test 3 ^ \conf release;
+/= test 2 ^ \conf release;
 
 r12:
-* \impl @ \ctor TextList $since b298;
+/ \simp \impl @ \ctor DSApplication @ \impl \u DSMain,
+/ \simp \impl @ \f CheckInstall @ \impl \u Initialization;
+- public \sm Application::CommonAppDataPath @ (\h YApplication,
+	\impl \u YGlobal);
+/ \a \def @ \u GBKEX >> \impl \u Initialization;
+- \decl @ \o DEF_DIRECTORY @ \h YGlobal;
+- \u GBKEX @ \dir Helper @ \lib YSLib;
 
 r13:
-/ @ \u NativeAPI @ defined YCL_MINGW32 $=
+* crashing after closing console window @ defined YCL_MINGW32 @\impl \u DSMain
+	$since r9 $=
 (
-	/ '*WIN32_FIND_DATAA' -> '*WIN32_FIND_DATAW' @ typedef \st (dirent, DIR),
-	/ \tr \impl @ \f (opendir, readdir),
-	+ \f \i bool IsDirectory(const ::WIN32_FIND_DATAW&) @ \ns platform_ex
+	/ @ \un \ns	$=
+	(
+		/ \o std::thread HostThread -> std::thread* pHostThread,
+		/ \f std::thread FetchHostThread() -> void HostTask()
+	),
+	/ \tr \impl @ (\ctor, \dtor) @ \cl DSApplication
 ),
-/ \f bool fexists(const_path_t) @ \u CStandardIO -> bool fexists(const char*),
-+ \f (ufopen, ufexists) @ \u YCommon;
-+ using platform::(ufopen, ufexists) @ \h YAdaptor;
-/ \impl @ \mf File::Open @ \impl \u File,
-/ \impl @ \ctor ShlExplorer @ \impl \u Shells;
+- \a 2 extern \decl 'DEF_' @ \h Initialization,
+/ @ \impl \u Initialization $=
+(
+	/ \a \o 'DEF_*' -> \mac,
+	+ \inc \h File_(Text);
+	+ \f CheckConfiguration @ \un \ns;
+	/ \impl @ \f CheckInstall,
+	/ \tr \impl @ \f InitializeSystemFontCache
+);
 
-r14-r15:
-/= test 4,
-* \impl @ \f MBCToUC#2 @ \impl \u CharacterProcessing $since b248,
-+ \as @ \ft FillByte @ \h StaticMapping;
+r14:
+(
+	^ "updated devkitARM release 38" ~ "devkitARM release 37" @ "platform %DS",
+	^ "updated libnds 1.5.4 with default arm7 0.5.23"
+		~ "libnds 1.5.1 with default arm7 0.5.21" @ "platform %DS";
+	/ \tr \impl @ (YSTest_ARM7, YFramework, YSTest_ARM9, YBase)
+		makefile $= (- '-mno-fpu' @ \mac LDFLAGS)
+),
+/ \tr \as @ \f CopyScrollArea @ \un \ns @ \impl \u DSReader;
 
-r16:
-/ \impl @ \f DispatchInput @ \impl \u DSMain;
-
-r17:
-/= test 5 ^ \conf release;
+r15:
+/= test 3 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-04-09:
--9.1d;
-//Mercurial rev1-rev171: r8221;
+2012-04-12:
+-8.8d;
+//Mercurial rev1-rev172: r8236;
 
 / ...
 
 
 $NEXT_TODO:
-b300-b324:
+b301-b324:
 / \impl @ \u (DSReader, ShlReader) $=
 (
-	* crashing when setting font size @ text reader $since b297,
 	/ $design \simp \impl
 ),
-- \inc \h "YSLib/Helper/DSMain.h" @ \impl \u YGlobal;
 + dynamic character mapper loader for \u CharacterMapping;
 
 
@@ -536,6 +567,8 @@ b325-b400:
 ),
 / @ "GUI" $=
 (
+	+ generic timers multiplexing for input holding events,
+		// To resolve routed events repeating preemption.
 	+ viewer models,
 	/ fully \impl @ \cl Form,
 	+ icons,
@@ -838,6 +871,52 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ %'GUI' $=
+			(
+				/ @ "unit %YGUI" $=
+				(
+					+ "input timer class %InputTimer";
+					+ "input timer API for repeating key input"
+				),
+				+ "function template %OnEvent_Call for forwarding event calling"
+					@ "unit %YControl"
+			),
+			- "static const objects" @ "class %Application"
+				@ %'core'.'application abstraction'
+		),
+		* "key updating" @ "defined %YCL_MINGW32"
+			@ %'YCLib'.'common input APIs' $since b299
+			// It seems that sometimes %GetAsyncKeyState reads unexpected
+			//	virtual key value like '0xFF'.
+	);
+	/ %'YReader'.'text reader' $=
+	(
+		* "abnormal delaying on responding event %KeyHeld" $since b271,
+			// Since the event routing strategy was not %Tunnel.
+		* "crashing when setting font size" $since b297
+	),
+	(
+		/ $design "reduce several global objects";
+		/ $design "deprecated unit %GBKEX.cpp" >> "library %YSLib"
+			~ "project %YSTest_ARM9";
+		+ "dynamic linked library targets" @ "Code::Blocks projects for MinGW32"
+	),
+	/ "directory configurations" >> "unit %Initialization" @ "directory %Helper"
+		~ "file %GBKEX.cpp";
+	- "deprecated file %GBKEX.cpp";
+	/ $doc "directory %doc moved to top directory",
+	- $doc @ "Code::Blocks project file",
+	^ "updated devkitARM release 38" ~ "devkitARM release 37" @ "platform %DS",
+	^ "updated libnds 1.5.4 with default arm7 0.5.23"
+		~ "libnds 1.5.1 with default arm7 0.5.21" @ "platform %DS"
+),
+
+b299
 (
 	/ %'YFramework' $=
 	(

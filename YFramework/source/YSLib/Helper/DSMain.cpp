@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r1601;
+\version r1856;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-04-08 14:21 +0800;
+	2012-04-12 19:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -42,106 +42,6 @@
 //#include <clocale>
 
 YSL_BEGIN
-
-namespace
-{
-	//! \brief 程序日志类。
-	class Log : private noncopyable
-	{
-	public:
-		/*!
-		\brief 无参数构造：默认实现。
-		*/
-		yconstfn DefDeCtor(Log)
-		/*!
-		\brief 析构：空实现。
-		*/
-		virtual DefEmptyDtor(Log)
-
-		/*!
-		\brief 输出 char 字符。
-		*/
-		Log&
-		operator<<(char);
-		/*!
-		\brief 输出字符指针表示的字符串。
-		*/
-		Log&
-		operator<<(const char*);
-		/*!
-		\brief 输出字符串。
-		*/
-		Log&
-		operator<<(const string&);
-
-		/*!
-		\brief 提示错误。
-		*/
-		void
-		Error(const char*);
-		/*!
-		\brief 提示错误。
-		*/
-		void
-		Error(const string&);
-		/*!
-		\brief 提示致命错误。
-		\note 中止程序。
-		*/
-		void
-		FatalError(const char*);
-		/*!
-		\brief 提示致命错误。
-		\note 中止程序。
-		*/
-		void
-		FatalError(const string&);
-	};
-
-	Log& Log::operator<<(char)
-	{
-		return *this;
-	}
-	Log& Log::operator<<(const char*)
-	{
-		return *this;
-	}
-	Log& Log::operator<<(const string& s)
-	{
-		return operator<<(s);
-	}
-
-	void
-	Log::Error(const char*)
-	{}
-	void
-	Log::Error(const string& s)
-	{
-		Error(s.c_str());
-	}
-
-	void
-	Log::FatalError(const char* s)
-	{
-		ShowFatalError(s);
-	}
-	void
-	Log::FatalError(const string& s)
-	{
-		FatalError(s.c_str());
-	}
-}
-
-
-//! 非 YSLib 声明的平台相关函数。
-//@{
-/*!
-\brief Shell 对象释放函数。
-*/
-extern void
-ReleaseShells();
-//@}
-
 
 YSL_BEGIN_NAMESPACE(Devices)
 class DSScreen;
@@ -192,11 +92,6 @@ private:
 
 
 /*!
-\brief 本机实例。
-\since build 299 。
-*/
-::HINSTANCE hInstance;
-/*!
 \brief 本机主窗口。
 \since build 299 。
 */
@@ -211,6 +106,12 @@ std::mutex g_mutex;
 \since build 299 。
 */
 std::condition_variable g_cond;
+
+/*!
+\brief 宿主背景线程指针。
+\since build 300 。
+*/
+std::thread* pHostThread;
 
 #endif
 
@@ -467,6 +368,7 @@ WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 void
 InitializeMainWindow()
 {
+	::HINSTANCE hInstance(::GetModuleHandleW(NULL));
 	::WNDCLASSEX wCl;
 	const auto wnd_class_name(L"YSTest_Class");
 	const auto wnd_title(L"YSTest");
@@ -510,6 +412,29 @@ InitializeMainWindow()
 	}
 	::ShowWindow(hWindow, SW_SHOWNORMAL);
 }
+
+
+/*!
+\since build 300 。
+\todo 使用 g++ 4.7 之后版本直接创建线程。
+*/
+void
+HostTask()
+{
+	YSL_ InitializeMainWindow();
+
+	::MSG host_msg; //!< 本机消息类型。
+
+	while(true)
+	{
+		if(::PeekMessage(&host_msg, NULL, 0, 0, PM_REMOVE))
+			::DispatchMessage(&host_msg);
+		else
+		//	std::this_thread::yield();
+			std::this_thread::sleep_for(host_sleep);
+	}
+}
+
 
 } // unnamed namespace;
 #endif
@@ -559,12 +484,12 @@ DSApplication::DSApplication()
 #	endif
 		if(!fatInitDefault())
 			LibfatFail();
-		IO::ChangeDirectory(Application::CommonAppDataPath
-			.GetNativeString());
 #	ifdef USE_EFS
 	}
 #	endif
-
+#elif defined(YCL_MINGW32)
+	//启动本机消息循环线程后完成应用程序实例其它部分的初始化（注意顺序）。
+	pHostThread = new std::thread(HostTask);
 #endif
 
 	//检查程序是否被正确安装。
@@ -595,18 +520,18 @@ DSApplication::DSApplication()
 			g_cond.wait(lck, []{return bool(hWindow);});
 	}
 #endif
-	/*
-	需要保证主 Shell 句柄在应用程序实例初始化之后初始化，
-	因为 MainShell 的基类 Shell 的构造函数
-	调用了 Application 的非静态成员函数。
-	*/
-	if(YCL_UNLIKELY(!FetchAppInstance().Switch(
-		make_shared<Shells::MainShell>())))
-		throw LoggedEvent("Failed launching the main shell;");
 }
 
 DSApplication::~DSApplication()
 {
+#ifdef YCL_MINGW32
+	YAssert(pHostThread, "Null thread pointer found"
+		" @ DSApplication::~DSApplication;");
+
+	pHostThread->detach();
+	delete pHostThread;
+#endif
+
 	//等待并确保所有 Shell 被释放。
 //	hShell = nullptr;
 
@@ -615,8 +540,6 @@ DSApplication::~DSApplication()
 	//清理消息队列（必要，保证所有Shell在Application前析构）。
 	Queue.Clear();
 
-	//释放 Shell （同上，且避免资源泄漏）。
-	YSL_ ReleaseShells();
 	//当主 Shell 句柄为静态存储期对象时需要通过 reset 释放。
 
 	//释放默认字体资源。
@@ -838,149 +761,6 @@ ShowFatalError(const char* s)
 	terminate();
 }
 
-#ifdef YSL_USE_MEMORY_DEBUG
-
-namespace
-{
-	void
-	OnExit_DebugMemory_continue()
-	{
-		std::fflush(stderr);
-		std::puts("Input to continue...");
-		platform::WaitForInput();
-	}
-
-	/*!
-	\brief 内存调试退出函数。
-	*/
-	void
-	OnExit_DebugMemory()
-	{
-		using namespace platform;
-
-		YDebugSetStatus();
-		YDebugBegin();
-		std::puts("Normal exit;");
-
-	//	std::FILE* fp(std::freopen("memdbg.log", "w", stderr));
-		MemoryList& debug_memory_list(GetDebugMemoryList());
-		const typename MemoryList::MapType& Map(debug_memory_list.Blocks);
-	//	MemoryList::MapType::size_type s(DebugMemory.GetSize());
-
-		if(!Map.empty())
-		{
-			std::fprintf(stderr, "%i memory leak(s) detected:\n", Map.size());
-
-			MemoryList::MapType::size_type n(0);
-
-			for(auto i(Map.cbegin()); i != Map.cend(); ++i)
-			{
-				if(n++ < 4)
-					debug_memory_list.Print(i, stderr);
-				else
-				{
-					n = 0;
-					OnExit_DebugMemory_continue();
-				}
-			}
-		//	DebugMemory.PrintAll(stderr);
-		//	DebugMemory.PrintAll(fp);
-			OnExit_DebugMemory_continue();
-		}
-
-		const typename MemoryList::ListType&
-			List(debug_memory_list.DuplicateDeletedBlocks);
-
-		if(!List.empty())
-		{
-			std::fprintf(stderr, "%i duplicate memory deleting(s) detected:\n",
-				List.size());
-
-			MemoryList::ListType::size_type n(0);
-
-			for(auto i(List.cbegin()); i != List.cend(); ++i)
-			{
-				if(n++ < 4)
-					debug_memory_list.Print(i, stderr);
-				else
-				{
-					n = 0;
-					OnExit_DebugMemory_continue();
-				}
-			}
-		//	DebugMemory.PrintAllDuplicate(stderr);
-		//	DebugMemory.PrintAllDuplicate(fp);
-		}
-	//	std::fclose(fp);
-		std::puts("Input to terminate...");
-		WaitForInput();
-	}
-}
-
-#endif
 
 YSL_END
-
-int
-#ifdef YCL_MINGW32
-WINAPI
-WinMain(HINSTANCE hThis, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmd)
-#else
-main(int argc, char* argv[])
-#endif
-{
-	using namespace YSL;
-
-#ifdef YCL_MINGW32
-	hInstance = hThis;
-#endif
-
-	Log log;
-
-	try
-	{
-		{
-#ifdef YCL_MINGW32
-			//启动本机消息循环线程后初始化应用程序实例（注意顺序）。
-			std::thread native_loop([&]{
-				YSL_ InitializeMainWindow();
-
-				::MSG host_msg; //!< 本机消息类型。
-
-				while(true)
-				{
-					if(::PeekMessage(&host_msg, NULL, 0, 0, PM_REMOVE))
-						::DispatchMessage(&host_msg);
-					else
-					//	std::this_thread::yield();
-						std::this_thread::sleep_for(host_sleep);
-				}
-			});
-#endif
-			//应用程序实例。
-			DSApplication theApp;
-
-			//主体：消息循环。
-			while(theApp.DealMessage())
-				;
-#ifdef YCL_MINGW32
-			native_loop.detach();
-#endif
-		}
-
-	#ifdef YSL_USE_MEMORY_DEBUG
-		OnExit_DebugMemory();
-	#endif
-	}
-	catch(std::exception& e)
-	{
-		log.FatalError(e.what());
-	}
-	catch(...)
-	{
-		log.FatalError("Unhandled exception @ int main(int, char*[]);");
-	}
-	// TODO: return exit code properly;
-	return 0;
-}
 

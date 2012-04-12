@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5840;
+\version r5841;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-04-07 19:54 +0800;
+	2012-04-10 20:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -449,7 +449,7 @@ ShlExplorer::ShlExplorer()
 			Enable(btnOK, CheckReaderEnability(fbMain, chkHex));
 			SetInvalidationOf(GetDesktopDown());
 		},
-		lblA.Text = Application::ProductName,
+		lblA.Text = "YReader",
 		lblB.Text = "程序测试"
 	);
 	lblB.SetTransparent(true);

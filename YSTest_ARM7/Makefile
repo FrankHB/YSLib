@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM7 by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-03-30 14:51 +0800;
-# Version = r3351;
+# UTime = 2012-04-12 20:59 +0800;
+# Version = r3352;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -52,7 +52,7 @@ CFLAGS	:=	-Wall \
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM7
-LDFLAGS :=	-specs=ds_arm7.specs $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
+LDFLAGS :=	-specs=ds_arm7.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 ifneq ($(BUILD),debug)
 CFLAGS	+=	-O3 -DNDEBUG

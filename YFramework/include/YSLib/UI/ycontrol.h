@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5527;
+\version r5540;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2012-04-01 15:40 +0800;
+	2012-04-09 20:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -215,6 +215,20 @@ CallEvent(IWidget& wgt, _tEventArgs&& e)
 
 
 //公共事件处理器。
+
+/*!
+\brief 处理事件：直接转发至发送者。
+\tparam _vID 指定转发的目标事件。
+\tparam _tEventArgs 事件参数类型。
+\warning 不应使用于自身以免无限递归。
+\since build 300 。
+*/
+template<VisualEvent _vID, class _tEventArgs>
+inline void
+OnEvent_Call(_tEventArgs&& e)
+{
+	CallEvent<_vID>(e.GetSender(), e);
+}
 
 /*
 \brief 处理事件：停止事件路由。

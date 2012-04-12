@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4167;
+\version r4233;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-17 20:19 +0800;
+	2012-04-10 17:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -35,17 +35,13 @@ using namespace Components;
 
 YSL_BEGIN_NAMESPACE(Components)
 
-GUIState::GUIState() ynothrow
-	: KeyHeldState(Free), TouchHeldState(Free),
-	DraggingOffset(Vec::Invalid), HeldTimer(Timers::TimeSpan(1000U)),
-	ControlLocation(Point::Invalid),
-	LastControlLocation(Point::Invalid), Colors(),
-	p_KeyDown(), p_TouchDown(), control_entered(false)
+InputTimer::InputTimer(const Duration& d)
+	: timer(d)
 {}
 
 bool
-GUIState::RepeatHeld(HeldStateType& s,
-	Timers::TimeSpan InitialDelay, Timers::TimeSpan RepeatedDelay)
+InputTimer::Refresh(HeldStateType& s,
+	const Duration& initial_delay, const Duration& repeated_delay)
 {
 	//三状态自动机。
 	switch(s)
@@ -56,18 +52,18 @@ GUIState::RepeatHeld(HeldStateType& s,
 		始终为 false ，导致状态无法转移。
 		*/
 		s = Pressed;
-		HeldTimer.SetInterval(InitialDelay); //初始键按下延迟。
-		Activate(HeldTimer);
+		timer.SetInterval(initial_delay); //初始键按下延迟。
+		Activate(timer);
 		break;
 
 	case Pressed:
 	case Held:
-		if(YCL_UNLIKELY(HeldTimer.Refresh()))
+		if(YCL_UNLIKELY(timer.Refresh()))
 		{
 			if(s == Pressed)
 			{
 				s = Held;
-				HeldTimer.SetInterval(RepeatedDelay); //重复键按下延迟。
+				timer.SetInterval(repeated_delay); //重复键按下延迟。
 			}
 			return true;
 		}
@@ -77,22 +73,48 @@ GUIState::RepeatHeld(HeldStateType& s,
 }
 
 void
+InputTimer::Reset()
+{
+	Deactivate(timer);
+	timer.SetInterval(Timers::TimeSpan(1000));
+}
+
+
+bool
+RepeatHeld(InputTimer& tmr, InputTimer::HeldStateType& st,
+	const Timers::Duration& initial_delay,
+	const Timers::Duration& repeated_delay)
+{
+	const bool b(st == InputTimer::Free);
+
+	return tmr.Refresh(st, initial_delay, repeated_delay) || b;
+}
+
+
+GUIState::GUIState() ynothrow
+	: KeyHeldState(InputTimer::Free), TouchHeldState(InputTimer::Free),
+	DraggingOffset(Vec::Invalid), HeldTimer(),
+	ControlLocation(Point::Invalid),
+	LastControlLocation(Point::Invalid), Colors(),
+	p_KeyDown(), p_TouchDown(), control_entered(false)
+{}
+
+void
 GUIState::Reset()
 {
-	yunseq(KeyHeldState = Free, TouchHeldState = Free,
-		DraggingOffset = Vec::Invalid);
-	HeldTimer.SetInterval(Timers::TimeSpan(1000));
-	Deactivate(HeldTimer);
+	yunseq(KeyHeldState = InputTimer::Free, TouchHeldState = InputTimer::Free,
+		DraggingOffset = Vec::Invalid),
+	HeldTimer.Reset();
 	yunseq(ControlLocation = Point::Invalid,
 		LastControlLocation = Point::Invalid,
 		p_TouchDown = nullptr, p_KeyDown = nullptr);
 }
 
 void
-GUIState::ResetHeldState(HeldStateType& s)
+GUIState::ResetHeldState(InputTimer::HeldStateType& s)
 {
-	Deactivate(HeldTimer);
-	s = Free;
+	s = InputTimer::Free,
+	HeldTimer.Reset();
 }
 
 void

@@ -11,13 +11,13 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief 库编译配置。
-\version r1585;
+\version r1589;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 161 。
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2012-04-01 08:23 +0800;
+	2012-04-10 10:23 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -46,6 +46,12 @@
 
 // YSLib 选项。
 
+/*!
+\def YSL_DLL
+\brief 使用动态链接库。
+\since build 300 。
+*/
+//#define YSL_DLL
 //#define YSL_MULTITHREAD //!< 多线程。
 
 #define YSL_USE_COPY_ON_WRITE //!< 写时复制。

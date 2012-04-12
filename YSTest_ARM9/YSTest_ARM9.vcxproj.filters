@@ -22,9 +22,6 @@
     <ClCompile Include="source\DSReader.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="source\GBKEX.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="source\main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>

@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r3941;
+\version r3948;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2012-04-06 07:46 +0800;
+	2012-04-12 16:26 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,13 +34,6 @@ YSL_BEGIN
 
 //全局常量。
 extern const char* DEF_DIRECTORY; //!< 默认目录。
-extern const char* G_COMP_NAME; //!< 制作组织名称。
-extern const char* G_APP_NAME; //!< 产品名称。
-extern const char* G_APP_VER; //!< 产品版本。
-const IO::Path Application::CommonAppDataPath(DEF_DIRECTORY);
-const String Application::CompanyName(G_COMP_NAME);
-const String Application::ProductName(G_APP_NAME);
-const String Application::ProductVersion(G_APP_VER);
 
 //全局变量。
 #ifdef YSL_USE_MEMORY_DEBUG

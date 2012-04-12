@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2459;
+\version r2464;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-04-07 10:15 +0800;
+	2011-04-12 16:26 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -42,12 +42,6 @@ using Messaging::MessageQueue;
 class Application : private noncopyable
 {
 public:
-	//全局常量。
-	static const IO::Path CommonAppDataPath; //!< 程序默认路径。
-	static const String CompanyName; //!< 制作组织名称。
-	static const String ProductName; //!< 产品名称。
-	static const String ProductVersion; //!< 产品版本。
-
 	MessageQueue Queue; //!< 主消息队列：在程序实例中实现以保证单线程。
 
 protected:

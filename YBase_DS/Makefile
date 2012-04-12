@@ -1,8 +1,8 @@
 # DS Makefile for YBase -> DS by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-03-30 12:50 +0800;
-# Version = r3940;
+# UTime = 2012-04-12 21:11 +0800;
+# Version = r3941;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -65,7 +65,7 @@ CFLAGS	:=	-Wall \
  			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -pedantic -DARM9
-LDFLAGS :=	-specs=ds_arm9.specs $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
+LDFLAGS :=	-specs=ds_arm9.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 ifneq ($(BUILD),debug)
 CFLAGS	+=	-O3 -DNDEBUG

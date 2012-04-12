@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2797;
+\version r2860;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-20 09:15 +0800;
+	2012-04-10 17:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -37,13 +37,16 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 /*!
-\brief 图形用户界面公共状态。
+\brief 输入计时器。
 \warning 非虚析构。
-\since build 287 。
+\since build 300 。
+
+实现两段延时的持续输入状态计时器。
 */
-class GUIState
+class InputTimer
 {
 public:
+	typedef Timers::Duration Duration;
 	/*!
 	\brief 输入保持状态。
 	*/
@@ -54,9 +57,56 @@ public:
 		Held = 2
 	} HeldStateType;
 
-	HeldStateType KeyHeldState, TouchHeldState; //!< 输入接触状态。
+private:
+	Timers::Timer timer;
+
+public:
+	InputTimer(const Duration& = Timers::TimeSpan(1000U));
+
+	/*!
+	\brief 重复检测输入接触保持状态。
+	*/
+	bool
+	Refresh(HeldStateType&, const Duration& = Timers::TimeSpan(240),
+		const Duration& = Timers::TimeSpan(120));
+
+	/*!
+	\brief 复位状态。
+	*/
+	void
+	Reset();
+};
+
+
+/*!
+\brief 向指定计时器传递参数，根据状态重复按键。
+\return 当且仅当结果为 true 时或之前状态为 HeldStateType::Free 时为 true 。
+\since build 300 。
+*/
+bool
+RepeatHeld(InputTimer&, InputTimer::HeldStateType&,
+	const Timers::Duration&, const Timers::Duration&);
+
+
+/*!
+\brief 图形用户界面公共状态。
+\warning 非虚析构。
+\since build 287 。
+*/
+class GUIState
+{
+public:
+	/*!
+	\brief 输入接触状态。
+	\since build 300 。
+	*/
+	InputTimer::HeldStateType KeyHeldState, TouchHeldState;
 	Drawing::Vec DraggingOffset; //!< 拖放偏移量。
-	Timers::Timer HeldTimer; //!< 输入接触保持计时器。
+	/*!
+	\brief 输入接触保持计时器。
+	\since build 300 。
+	*/
+	InputTimer HeldTimer;
 	Drawing::Point ControlLocation, LastControlLocation; \
 		//!< 最近两次的指针设备操作时的控件全局位置（屏幕坐标）。
 	Components::Styles::Palette Colors; //!< 调色板。
@@ -78,12 +128,6 @@ public:
 		//独立屏幕焦点指针。
 
 	/*!
-	\brief 重复检测输入接触保持事件。
-	*/
-	bool
-	RepeatHeld(HeldStateType&, Timers::TimeSpan = 240, Timers::TimeSpan = 120);
-
-	/*!
 	\brief 复位图形用户界面状态。
 	\note 需要在没有销毁时自动释放焦点的相关控件对象被销毁后立即调用，
 		以避免处理无效指针。
@@ -95,7 +139,7 @@ public:
 	\brief 复位接触保持状态。
 	*/
 	void
-	ResetHeldState(HeldStateType&);
+	ResetHeldState(InputTimer::HeldStateType&);
 
 private:
 	void

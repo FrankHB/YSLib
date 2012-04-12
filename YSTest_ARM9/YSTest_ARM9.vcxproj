@@ -16,7 +16,6 @@
   <ItemGroup>
     <ClCompile Include="source\ColorPicker.cpp" />
     <ClCompile Include="source\DSReader.cpp" />
-    <ClCompile Include="source\GBKEX.cpp" />
     <ClCompile Include="source\HexBrowser.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\Shells.cpp" />

@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1813;
+\version r1826;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2012-03-21 18:10 +0800;
+	2012-04-10 17:36 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -137,9 +137,16 @@ public:
 
 	/*!
 	\brief 设置时间间隔。
+	\since build 300 。
 	*/
 	void
-	SetInterval(TimeSpan);
+	SetInterval(const TimeSpan&);
+	/*!
+	\brief 设置时间间隔。
+	\since build 300 。
+	*/
+	void
+	SetInterval(const Duration&);
 
 	/*!
 	\brief 刷新。
@@ -182,6 +189,12 @@ inline
 Timer::~Timer()
 {
 	Deactivate(*this);
+}
+
+inline void
+Timer::SetInterval(const TimeSpan& i)
+{
+	SetInterval(static_cast<const Duration&>(i));
 }
 
 inline void

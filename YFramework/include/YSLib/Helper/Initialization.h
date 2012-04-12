@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Adaptor
 \brief 程序启动时的通用初始化。
-\version r1559;
+\version r1562;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-03-25 15:56 +0800;
+	2012-04-12 19:37 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,10 +31,6 @@
 #include "../Core/ysdef.h"
 
 YSL_BEGIN
-
-//默认字型路径和目录。
-extern const_path_t DEF_FONT_PATH;
-extern const_path_t DEF_FONT_DIRECTORY;
 
 /*!
 \brief 初始化系统字体缓存：

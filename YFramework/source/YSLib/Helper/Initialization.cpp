@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Adaptor
 \brief 程序启动时的通用初始化。
-\version r1856;
+\version r1933;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-04-07 15:00 +0800;
+	2012-04-12 20:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,6 +30,7 @@
 #include "YSLib/Core/yapp.h"
 #include "YSLib/Helper/DSMain.h"
 #include "YCLib/Debug.h"
+#include "YSLib/Service/yftext.h" // for BOM_UTF8;
 
 using namespace ystdex;
 using namespace platform;
@@ -112,6 +113,48 @@ LoadFontFileDirectory(FontCache& fc,
 				fc.LoadFontFile((FontPath(path) + dir.GetName()).c_str());
 }
 
+/*!
+\since build 300 。
+*/
+void
+CheckConfiguration()
+{
+#ifdef YCL_DS
+#	define ROOTW
+#	define DEF_DIRECTORY ROOTW "/Data/"
+	//const char* DEF_FONT_NAME = ROOTW "方正姚体";
+	//const_path_t DEF_FONT_PATH = ROOTW "/Font/FZYTK.TTF";
+#	define DEF_FONT_PATH ROOTW "/Font/FZYTK.TTF"
+#	define DEF_FONT_DIRECTORY ROOTW "/Font/"
+#else
+#	define ROOTW "H:\\NDS\\EFSRoot"
+#	define DEF_DIRECTORY ROOTW "\\Data\\"
+	//const char* DEF_FONT_NAME = "方正姚体";
+	//const_path_t DEF_FONT_PATH = ROOTW "\\Font\\FZYTK.TTF";
+#	define DEF_FONT_PATH ROOTW "\\Font\\FZYTK.TTF"
+#	define DEF_FONT_DIRECTORY ROOTW "\\Font\\"
+#endif
+#define CONF_PATH "config.txt"
+
+	if(!ufexists(CONF_PATH))
+	{
+		std::puts("Creating configuration file...");
+
+		const auto fp(ufopen(CONF_PATH, "w"));
+
+		if(!fp)
+			throw LoggedEvent("Cannot create file.");
+
+		std::fprintf(fp, "%s%s\n%s\n%s\n", BOM_UTF_8,
+			DEF_DIRECTORY, DEF_FONT_PATH, DEF_FONT_DIRECTORY);
+		std::fclose(fp);
+	}
+	else
+		std::printf("Found configuration file '%s'.\n", CONF_PATH);
+}
+
+char def_dir[80], font_path[80], font_dir[80];
+
 } // unnamed namespace;
 
 void
@@ -148,16 +191,16 @@ void
 InitializeSystemFontCache()
 {
 	puts("Loading font files...");
-	FetchGlobalInstance().ResetFontCache(DEF_FONT_PATH);
+	FetchGlobalInstance().ResetFontCache(font_path);
 	// TODO: 使用不依赖于 YGlobal 未确定接口的实现。
 
 	auto& fc(FetchDefaultFontCache());
 
-	if(DEF_FONT_PATH && fc.LoadFontFile(FontPath(DEF_FONT_PATH)))
+	if(*font_path &&fc.LoadFontFile(FontPath(font_path)))
 		fc.LoadTypefaces();
-	if(DEF_FONT_DIRECTORY)
+	if(*font_dir)
 	{
-		LoadFontFileDirectory(fc, DEF_FONT_DIRECTORY);
+		LoadFontFileDirectory(fc, font_dir);
 		fc.LoadTypefaces();
 	}
 	fc.InitializeDefaultTypeface();
@@ -179,15 +222,48 @@ void
 CheckInstall()
 {
 	puts("Checking installation...");
+	try
+	{
+		CheckConfiguration();
 
-	const auto& dir_str(Application::CommonAppDataPath.GetNativeString());
-	const auto dir(dir_str.c_str());
+		TextFile tf(CONF_PATH);
 
-	std::printf("Trying entering directory %s ...\n", dir);
-	if(!direxists(dir))
+		if(YCL_LIKELY(tf.IsValid()))
+		{
+			if(YCL_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
+				throw LoggedEvent("Wrong encoding of configuration file!");
+
+			const auto fp(tf.GetPtr());
+
+			std::fgets(def_dir, 80, fp);
+			std::fgets(font_path, 80, fp);
+			std::fgets(font_dir, 80, fp);
+			if(*def_dir && *font_path && *font_dir)
+			{
+				def_dir[std::strlen(def_dir) - 1] = '\0';
+				font_path[std::strlen(font_path) - 1] = '\0';
+				font_dir[std::strlen(font_dir) - 1] = '\0';
+				std::printf("Loaded default directory:\n%s\n", def_dir);
+				std::printf("Loaded default font path:\n%s\n", font_path);
+				std::printf("Loaded default font directory:\n%s\n", font_dir);
+			}
+			else
+				throw LoggedEvent("Empty path loaded!");
+		}
+		else
+			throw LoggedEvent("Configuration loading failure.");
+	}
+	catch(LoggedEvent& e)
+	{
+		std::puts("Error occured.");
+		std::puts(e.what());
+		installFail("Loading configuration");
+	}
+	std::printf("Trying entering directory %s ...\n", def_dir);
+	if(!direxists(def_dir))
 		installFail("Default data directory");
-	if(!(fexists(DEF_FONT_PATH)
-		|| direxists(DEF_FONT_DIRECTORY)))
+	if(!(fexists(font_path)
+		|| direxists(font_dir)))
 		installFail("Default font");
 	puts("OK!");
 }
