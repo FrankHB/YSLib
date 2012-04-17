@@ -11,13 +11,13 @@
 /*!	\file Console.h
 \ingroup UI
 \brief 基于平台中立接口的控制台实现。
-\version r1115;
+\version r1127;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2011-04-19 23:00:29 +0800;
 \par 修改时间:
-	2012-04-07 14:18 +0800;
+	2012-04-13 19:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -46,15 +46,23 @@ public:
 	\since build 296 。
 	*/
 	explicit
-	Console(Devices::Screen&, bool = true,
-		Drawing::Color = Drawing::ColorSpace::White,
-		Drawing::Color = Drawing::ColorSpace::Black);
+	Console(Devices::Screen& scr, bool a = true,
+		Drawing::Color fc = Drawing::ColorSpace::White,
+		Drawing::Color bc = Drawing::ColorSpace::Black)
+		: Screen(scr)
+	{
+		if(a)
+			Activate(*this, fc, bc);
+	}
 	/*!
 	\brief 析构。
 	\note 自动停用。
 	*/
 	virtual
-	~Console();
+	~Console()
+	{
+		Deactivate(*this);
+	}
 
 	/*!
 	\brief 激活：使用指定屏幕、有效性、前景色和背景色。
@@ -72,19 +80,6 @@ public:
 	void
 	Pause();
 };
-
-inline
-Console::Console(Devices::Screen& scr, bool a, Drawing::Color fc, Drawing::Color bc)
-	: Screen(scr)
-{
-	if(a)
-		Activate(*this, fc, bc);
-}
-inline
-Console::~Console()
-{
-	Deactivate(*this);
-}
 
 YSL_END_NAMESPACE(Components)
 

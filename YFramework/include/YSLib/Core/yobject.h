@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3365;
+\version r3377;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-04-10 10:49 +0800;
+	2012-04-13 19:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -154,7 +154,9 @@ public:
 	\since build 296 。
 	*/
 	yconstfn
-	ValueObject() ynothrow;
+	ValueObject() ynothrow
+		: manager(nullptr), obj_ptr(nullptr)
+	{}
 	/*!
 	\brief 构造：使用对象左值引用。
 	\pre obj 可被复制构造。
@@ -179,10 +181,17 @@ public:
 	\since build 296 。
 	*/
 	ValueObject(ValueObject&&) ynothrow;
-	~ValueObject();
+	~ValueObject()
+	{
+		Clear();
+	}
 
 	ValueObject&
-	operator=(const ValueObject&);
+	operator=(const ValueObject& c)
+	{
+		ValueObject(c).Swap(*this);
+		return *this;
+	}
 	/*!
 	\brief 转移构造。
 	\note 无异常抛出。
@@ -248,23 +257,6 @@ public:
 	void
 	Swap(ValueObject&) ynothrow;
 };
-
-yconstfn
-ValueObject::ValueObject() ynothrow
-	: manager(nullptr), obj_ptr(nullptr)
-{}
-inline
-ValueObject::~ValueObject()
-{
-	Clear();
-}
-
-inline ValueObject&
-ValueObject::operator=(const ValueObject& c)
-{
-	ValueObject(c).Swap(*this);
-	return *this;
-}
 
 
 /*!

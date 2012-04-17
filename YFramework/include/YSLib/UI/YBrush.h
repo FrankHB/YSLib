@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r1218;
+\version r1230;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 293 。
 \par 创建时间:
 	2012-01-10 19:55:30 +0800;
 \par 修改时间:
-	2012-03-28 21:48 +0800;
+	2012-04-13 19:41 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -44,16 +44,13 @@ class SolidBrush
 public:
 	Drawing::Color Color;
 
-	SolidBrush(Drawing::Color);
+	SolidBrush(Drawing::Color c)
+		: Color(c)
+	{}
 
 	void
 	operator()(PaintEventArgs&&);
 };
-
-inline
-SolidBrush::SolidBrush(Drawing::Color c)
-	: Color(c)
-{}
 
 
 /*!
@@ -66,8 +63,12 @@ public:
 	mutable shared_ptr<Drawing::Image> Image;
 
 	yconstfn DefDeCtor(ImageBrush)
-	ImageBrush(const shared_ptr<Drawing::Image>&);
-	ImageBrush(shared_ptr<Drawing::Image>&&);
+	ImageBrush(const shared_ptr<Drawing::Image>& h)
+		: Image(h)
+	{}
+	ImageBrush(shared_ptr<Drawing::Image>&& h)
+		: Image(std::move(h))
+	{}
 	DefDeCopyCtor(ImageBrush)
 	DefDeMoveCtor(ImageBrush)
 
@@ -77,15 +78,6 @@ public:
 	void
 	operator()(PaintEventArgs&&);
 };
-
-inline
-ImageBrush::ImageBrush(const shared_ptr<Drawing::Image>& h)
-	: Image(h)
-{}
-inline
-ImageBrush::ImageBrush(shared_ptr<Drawing::Image>&& h)
-	: Image(std::move(h))
-{}
 
 
 /*!
@@ -126,18 +118,15 @@ public:
 	\brief 初始化；使用指定边框样式。
 	\since build 295 。
 	*/
-	BorderBrush(const BorderStyle&);
+	BorderBrush(const BorderStyle& style)
+		: Style(style)
+	{}
 
 	inline DefDeCopyAssignment(BorderBrush)
 
 	void
 	operator()(PaintEventArgs&&);
 };
-
-inline
-BorderBrush::BorderBrush(const BorderStyle& style)
-	: Style(style)
-{}
 
 YSL_END_NAMESPACE(Components)
 

@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1669;
+\version r1676;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2012-03-05 14:43 +0800;
+	2012-04-13 18:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -35,13 +35,11 @@
 CHRLIB_BEGIN
 
 //
-/*
-char*			U2A(char*);
-size_t			UTF16toUTF8(byte*, const u16*);
-size_t			UTF8toUTF16(u16*, const byte*);
-bool			ustrcmp(char* tgr, char* src);
-byte*		str_value(size_t v);
-*/
+#if 0
+size_t	UTF16toUTF8(byte*, const u16*);
+size_t	UTF8toUTF16(u16*, const byte*);
+bool	u8cmp(char*, char*);
+#endif
 
 /*!
 \brief 判断整数类型字符是否为 ASCII 字符。

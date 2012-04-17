@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3552;
+\version r3597;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-04-07 20:00 +0800;
+	2012-04-13 18:37 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -376,22 +376,34 @@ public:
 	\brief 取红色分量。
 	*/
 	yconstfn MonoType
-	GetR() const;
+	GetR() const
+	{
+		return r;
+	}
 	/*!
 	\brief 取绿色分量。
 	*/
 	yconstfn MonoType
-	GetG() const;
+	GetG() const
+	{
+		return g;
+	}
 	/*!
 	\brief 取蓝色分量。
 	*/
 	yconstfn MonoType
-	GetB() const;
+	GetB() const
+	{
+		return b;
+	}
 	/*!
 	\brief 取 alpha 分量。
 	*/
 	yconstfn AlphaType
-	GetA() const;
+	GetA() const
+	{
+		return a;
+	}
 };
 
 yconstfn
@@ -432,27 +444,6 @@ Color::operator PixelType() const
 #else
 #	error Unsupport platform found!
 #endif
-}
-
-yconstfn Color::MonoType
-Color::GetR() const
-{
-	return r;
-}
-yconstfn Color::MonoType
-Color::GetG() const
-{
-	return g;
-}
-yconstfn Color::MonoType
-Color::GetB() const
-{
-	return b;
-}
-yconstfn Color::AlphaType
-Color::GetA() const
-{
-	return a;
 }
 
 #ifdef YCL_DS
@@ -549,24 +540,20 @@ typedef struct CursorInfo : public ::touchPosition
 	\brief 取横坐标。
 	*/
 	SDst
-	GetX() const;
+	GetX() const
+	{
+		return px;
+	}
 	/*!
 	\brief 取纵坐标。
 	*/
 	SDst
-	GetY() const;
+	GetY() const
+	{
+		return py;
+	}
 } CursorInfo;
 
-inline SDst
-CursorInfo::GetX() const
-{
-	return px;
-}
-inline SDst
-CursorInfo::GetY() const
-{
-	return py;
-}
 #elif defined(YCL_MINGW32)
 /*!
 \brief 屏幕指针设备光标信息。
@@ -625,7 +612,11 @@ public:
 	\brief 构造：使用路径字符串。
 	*/
 	explicit
-	HFileNode(const_path_t = nullptr);
+	HFileNode(const_path_t path = nullptr)
+		: dir(), p_dirent()
+	{
+		Open(path);
+	}
 	/*!
 	\brief 复制构造：默认实现。
 	\note 浅复制。
@@ -634,7 +625,10 @@ public:
 	/*!
 	\brief 析构。
 	*/
-	~HFileNode();
+	~HFileNode()
+	{
+		Close();
+	}
 
 	/*!
 	\brief 迭代：向后遍历。
@@ -645,13 +639,19 @@ public:
 	\brief 迭代：向前遍历。
 	*/
 	HFileNode
-	operator++(int);
+	operator++(int)
+	{
+		return ++HFileNode(*this);
+	}
 
 	/*!
 	\brief 判断文件系统节点有效性。
 	*/
 	bool
-	IsValid() const;
+	IsValid() const
+	{
+		return dir;
+	}
 	/*!
 
 	\brief 从节点状态信息判断是否为目录。
@@ -665,7 +665,10 @@ public:
 	\since build 298 。
 	*/
 	const char*
-	GetName() const;
+	GetName() const
+	{
+		return p_dirent ? p_dirent->d_name : ".";
+	}
 
 	/*!
 	\brief 打开。
@@ -683,45 +686,11 @@ public:
 	\brief 复位。
 	*/
 	void
-	Reset();
+	Reset()
+	{
+		::rewinddir(dir);
+	}
 };
-
-inline
-HFileNode::HFileNode(const_path_t path)
-	: dir(), p_dirent()
-{
-	Open(path);
-}
-inline
-HFileNode::~HFileNode()
-{
-	Close();
-}
-
-inline HFileNode
-HFileNode::operator++(int)
-{
-	return ++HFileNode(*this);
-}
-
-inline bool
-HFileNode::IsValid() const
-{
-	return dir;
-}
-
-inline const char*
-HFileNode::GetName() const
-{
-	return p_dirent ? p_dirent->d_name : ".";
-}
-
-inline void
-HFileNode::Reset()
-{
-	::rewinddir(dir);
-}
-
 
 
 /*!

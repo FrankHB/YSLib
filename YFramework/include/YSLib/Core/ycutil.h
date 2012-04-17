@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2789;
+\version r2791;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-03-17 19:12 +0800;
+	2012-04-17 08:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -433,8 +433,8 @@ struct delete_second_mem_debug
 
 #endif
 
-/*
-! \brief 带置空指针操作的 delete 仿函数。
+/*!
+\brief 带置空指针操作的 delete 仿函数。
 \since build 154 。
 */
 struct safe_delete_obj

@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1507;
+\version r1516;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2012-03-18 21:40 +0800;
+	2012-04-13 19:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -145,7 +145,10 @@ public:
 	\brief 按接触点设置选中项目。
 	*/
 	void
-	SetSelected(const Point&);
+	SetSelected(const Point& pt)
+	{
+		SetSelected(pt.X, pt.Y);
+	}
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
@@ -199,7 +202,10 @@ public:
 	\return 选择的项目索引，若无效则为 static_cast<Viewer::IndexType>(-1) 。
 	*/
 	ListType::size_type
-	CheckPoint(const Point&);
+	CheckPoint(const Point& pt)
+	{
+		return CheckPoint(pt.X, pt.Y);
+	}
 
 	PDefH(void, ClearSelected)
 		ImplBodyMem(viewer, ClearSelected)
@@ -281,18 +287,6 @@ private:
 	void
 	InvokeConfirmed(ListType::size_type);
 };
-
-inline void
-TextList::SetSelected(const Point& pt)
-{
-	SetSelected(pt.X, pt.Y);
-}
-
-inline TextList::ListType::size_type
-TextList::CheckPoint(const Point& pt)
-{
-	return CheckPoint(pt.X, pt.Y);
-}
 
 
 /*!

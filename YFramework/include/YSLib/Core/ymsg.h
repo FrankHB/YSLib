@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2545;
+\version r2594;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-03-23 13:24 +0800;
+	2012-04-13 19:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -92,27 +92,43 @@ public:
 	DefDeMoveCtor(Message)
 
 	Message&
-	operator=(const ValueObject&);
+	operator=(const ValueObject& c)
+	{
+		content = c;
+		return *this;
+	}
 	/*!
 	\brief 成员赋值：使用值类型对象。
 	\note 无异常抛出。
 	\since build 296 。
 	*/
 	Message&
-	operator=(ValueObject&&) ynothrow;
+	operator=(ValueObject&& c) ynothrow
+	{
+		content = std::move(c);
+		return *this;
+	}
 	/*
 	\brief 复制赋值。
 	\since build 296 。
 	*/
 	Message&
-	operator=(const Message&);
+	operator=(const Message& msg)
+	{
+		Message(msg).Swap(*this);
+		return *this;
+	}
 	/*
 	\brief 转移赋值。
 	\note 无异常抛出。
 	\since build 296 。
 	*/
 	Message&
-	operator=(Message&&) ynothrow;
+	operator=(Message&& msg) ynothrow
+	{
+		msg.Swap(*this);
+		return *this;
+	}
 
 	/*!
 	\brief 比较：相等关系。
@@ -147,39 +163,11 @@ public:
 	\brief 更新消息时间戳。
 	*/
 	void
-	UpdateTimestamp();
+	UpdateTimestamp()
+	{
+		timestamp = std::clock();
+	}
 };
-
-inline Message&
-Message::operator=(const ValueObject& c)
-{
-	content = c;
-	return *this;
-}
-inline Message&
-Message::operator=(ValueObject&& c) ynothrow
-{
-	content = std::move(c);
-	return *this;
-}
-inline Message&
-Message::operator=(const Message& msg)
-{
-	Message(msg).Swap(*this);
-	return *this;
-}
-inline Message&
-Message::operator=(Message&& msg) ynothrow
-{
-	msg.Swap(*this);
-	return *this;
-}
-
-inline void
-Message::UpdateTimestamp()
-{
-	timestamp = std::clock();
-}
 
 /*!
 \brief 消息优先级比较函数。
@@ -241,7 +229,11 @@ public:
 	\since build 271 。
 	*/
 	void
-	Peek(Message& msg) const;
+	Peek(Message& msg) const
+	{
+		if(YCL_LIKELY(!empty()))
+			msg = *begin();
+	}
 	/*
 	\brief 从消息队列中取消息。
 	\param lpMsg 接收消息信息的 Message 结构指针。
@@ -259,13 +251,21 @@ public:
 	\note 消息队列为空时忽略。
 	*/
 	void
-	Pop();
+	Pop()
+	{
+		if(YCL_LIKELY(!empty()))
+			erase(begin());
+	}
 
 	/*!
 	\brief 若消息 msg 有效，插入 msg 至消息队列中。
 	*/
 	void
-	Push(const Message& msg);
+	Push(const Message& msg)
+	{
+		if(msg.IsValid())
+			insert(msg);
+	}
 
 	/*!
 	\brief 移除指定 Shell 关联的不大于指定优先级的消息。
@@ -275,28 +275,6 @@ public:
 	void
 	Remove(Shell*, Priority);
 };
-
-inline void
-MessageQueue::Peek(Message& msg) const
-{
-	if(YCL_LIKELY(!empty()))
-		msg = *begin();
-}
-
-inline void
-MessageQueue::Push(const Message& msg)
-{
-	if(msg.IsValid())
-		insert(msg);
-}
-
-inline void
-MessageQueue::Pop()
-{
-	if(YCL_LIKELY(!empty()))
-		erase(begin());
-}
-
 
 YSL_END_NAMESPACE(Messaging)
 

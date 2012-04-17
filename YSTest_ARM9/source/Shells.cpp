@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5841;
+\version r5844;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-04-10 20:30 +0800;
+	2012-04-17 09:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -395,7 +395,7 @@ namespace
 }
 
 
-ShlExplorer::ShlExplorer()
+ShlExplorer::ShlExplorer(const IO::Path& path)
 	: ShlDS(),
 	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(12, 80, 240, 22)),
 	fbMain(Rect(4, 6, 248, 128)),
@@ -476,12 +476,12 @@ ShlExplorer::ShlExplorer()
 	// init-seg 2;
 		lblTitle.Text = "文件列表：请选择一个文件。",
 		// TODO: show current working directory properly;
-		lblPath.Text = IO::GetNowDirectory(),
+		lblPath.Text = path,
 	//	lblTitle.Transparent = true,
 	//	lblPath.Transparent = true;
 		btnTest.Text = u"测试(X)",
 		btnOK.Text = u"确定(A)",
-		fbMain.SetPath(IO::GetNowDirectory())
+		fbMain.SetPath(path)
 	);
 	// init-seg 3;
 	yunseq(

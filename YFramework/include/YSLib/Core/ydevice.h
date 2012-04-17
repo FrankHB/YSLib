@@ -11,13 +11,13 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2930;
+\version r2936;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:39:39 +0800;
 \par 修改时间:
-	2012-03-30 13:39 +0800;
+	2012-04-13 18:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -43,7 +43,9 @@ public:
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
 	inline
-	GraphicDevice(SDst, SDst, Drawing::BitmapPtr = nullptr);
+	GraphicDevice(SDst w, SDst h, Drawing::BitmapPtr p = nullptr)
+		: Graphics(p, Drawing::Size(w, h))
+	{}
 	/*!
 	\brief 析构：默认实现。
 	\since build 297 。
@@ -65,11 +67,6 @@ public:
 	//@}
 };
 
-inline
-GraphicDevice::GraphicDevice(SDst w, SDst h, Drawing::BitmapPtr p)
-	: Graphics(p, Drawing::Size(w, h))
-{}
-
 
 //屏幕。
 class Screen : public GraphicDevice
@@ -78,8 +75,9 @@ public:
 	/*!
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
 	*/
-	inline
-	Screen(SDst, SDst, Drawing::BitmapPtr = nullptr);
+	Screen(SDst w, SDst h, Drawing::BitmapPtr p = nullptr)
+		: GraphicDevice(w, h, p)
+	{}
 
 	/*!
 	\brief 取指针。
@@ -96,11 +94,6 @@ public:
 	virtual void
 	Update(Drawing::BitmapPtr);
 };
-
-inline
-Screen::Screen(SDst w, SDst h, Drawing::BitmapPtr p)
-	: GraphicDevice(w, h, p)
-{}
 
 YSL_END_NAMESPACE(Devices)
 

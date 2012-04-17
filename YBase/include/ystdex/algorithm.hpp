@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1309;
+\version r1313;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 254 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-03-05 15:10 +0800;
+	2012-04-13 17:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -144,15 +144,15 @@ namespace ystdex
 	\since build 274 。
 	*/
 	//@{
-	template<class _tCon, typename... _tParams>
+	template<class _tContainer, typename... _tParams>
 	inline void
-	assign(_tCon& con, _tParams&&... args)
+	assign(_tContainer& con, _tParams&&... args)
 	{
 		con.assign(yforward(args)...);
 	}
-	template<class _tCon, typename _type, size_t _vN>
+	template<class _tContainer, typename _type, size_t _vN>
 	inline void
-	assign(_tCon& con, const _type(&arr)[_vN])
+	assign(_tContainer& con, const _type(&arr)[_vN])
 	{
 		con.assign(arr, arr + _vN);
 	}

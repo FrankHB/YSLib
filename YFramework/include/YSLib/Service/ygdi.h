@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r4233;
+\version r4280;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2012-03-26 10:24 +0800;
+	2012-04-13 19:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -49,7 +49,9 @@ struct Padding
 	\since build 286 。
 	*/
 	yconstfn explicit
-	Padding(SDst = 0, SDst = 0, SDst = 0, SDst = 0);
+	Padding(SDst l = 0, SDst r = 0, SDst t = 0, SDst b = 0)
+		: Left(l), Right(r), Top(t), Bottom(b)
+	{}
 
 	/*!
 	\brief 加法赋值：对应分量调用 operator+= 。
@@ -57,11 +59,6 @@ struct Padding
 	Padding&
 	operator+=(const Padding&);
 };
-
-yconstfn
-Padding::Padding(SDst l, SDst r, SDst t, SDst b)
-	: Left(l), Right(r), Top(t), Bottom(b)
-{}
 
 /*!
 \brief 加法：对应分量调用 operator+ 。
@@ -163,21 +160,32 @@ public:
 	\brief 析构：释放资源。
 	*/
 	virtual
-	~BitmapBuffer();
+	~BitmapBuffer()
+	{
+		ydelete_array(pBuffer);
+	}
 
 	/*
 	\brief 复制赋值：使用复制构造函数和交换函数。
 	\since build 296 。
 	*/
 	BitmapBuffer&
-	operator=(const BitmapBuffer&);
+	operator=(const BitmapBuffer& buf)
+	{
+		BitmapBuffer(buf).Swap(*this);
+		return *this;
+	}
 	/*
 	\brief 转移赋值：使用转移构造函数和交换函数。
 	\note 无异常抛出。
 	\since build 296 。
 	*/
 	BitmapBuffer&
-	operator=(BitmapBuffer&&) ynothrow;
+	operator=(BitmapBuffer&& buf) ynothrow
+	{
+		buf.Swap(*this);
+		return *this;
+	}
 
 	/*!
 	\since build 296 。
@@ -219,33 +227,11 @@ public:
 	\since build 296 。
 	*/
 	void
-	Swap(BitmapBuffer&) ynothrow;
+	Swap(BitmapBuffer& buf) ynothrow
+	{
+		std::swap<Graphics>(*this, buf);
+	}
 };
-
-inline
-BitmapBuffer::~BitmapBuffer()
-{
-	ydelete_array(pBuffer);
-}
-
-inline BitmapBuffer&
-BitmapBuffer::operator=(const BitmapBuffer& buf)
-{
-	BitmapBuffer(buf).Swap(*this);
-	return *this;
-}
-inline BitmapBuffer&
-BitmapBuffer::operator=(BitmapBuffer&& buf) ynothrow
-{
-	buf.Swap(*this);
-	return *this;
-}
-
-inline void
-BitmapBuffer::Swap(BitmapBuffer& buf) ynothrow
-{
-	std::swap<Graphics>(*this, buf);
-}
 
 
 /*!
@@ -263,7 +249,9 @@ public:
 	\brief 无参数构造。
 	\note 零初始化。
 	*/
-	BitmapBufferEx();
+	BitmapBufferEx()
+		: BitmapBuffer(), pBufferAlpha()
+	{}
 	/*!
 	\brief 构造：使用指定位图指针和大小。
 	*/
@@ -279,21 +267,32 @@ public:
 	\brief 析构：释放资源。
 	*/
 	virtual
-	~BitmapBufferEx();
+	~BitmapBufferEx()
+	{
+		ydelete_array(pBufferAlpha);
+	}
 
 	/*
 	\brief 复制赋值：使用复制构造函数和交换函数。
 	\since build 296 。
 	*/
 	BitmapBufferEx&
-	operator=(const BitmapBufferEx&);
+	operator=(const BitmapBufferEx& buf)
+	{
+		BitmapBufferEx(buf).Swap(*this);
+		return *this;
+	}
 	/*
 	\brief 转移赋值：使用转移构造函数和交换函数。
 	\note 无异常抛出。
 	\since build 296 。
 	*/
 	BitmapBufferEx&
-	operator=(BitmapBufferEx&&) ynothrow;
+	operator=(BitmapBufferEx&& buf) ynothrow
+	{
+		buf.Swap(*this);
+		return *this;
+	}
 
 	DefGetter(const ynothrow, u8*, BufferAlphaPtr, pBufferAlpha) \
 		//!< 取 Alpha 缓冲区的指针。
@@ -320,38 +319,12 @@ public:
 	\since build 296 。
 	*/
 	void
-	Swap(BitmapBufferEx&) ynothrow;
+	Swap(BitmapBufferEx& buf) ynothrow
+	{
+		std::swap<BitmapBuffer>(*this, buf),
+		std::swap(pBufferAlpha, buf.pBufferAlpha);
+	}
 };
-
-inline
-BitmapBufferEx::BitmapBufferEx()
-	: BitmapBuffer(), pBufferAlpha()
-{}
-inline
-BitmapBufferEx::~BitmapBufferEx()
-{
-	ydelete_array(pBufferAlpha);
-}
-
-inline BitmapBufferEx&
-BitmapBufferEx::operator=(const BitmapBufferEx& buf)
-{
-	BitmapBufferEx(buf).Swap(*this);
-	return *this;
-}
-inline BitmapBufferEx&
-BitmapBufferEx::operator=(BitmapBufferEx&& buf) ynothrow
-{
-	buf.Swap(*this);
-	return *this;
-}
-
-inline void
-BitmapBufferEx::Swap(BitmapBufferEx& buf) ynothrow
-{
-	std::swap<BitmapBuffer>(*this, buf),
-	std::swap(pBufferAlpha, buf.pBufferAlpha);
-}
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2173;
+\version r2203;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2012-03-21 19:27 +0800;
+	2012-04-13 20:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -98,8 +98,10 @@ public:
 	\brief 构造：使用指定边界和字体。
 	*/
 	explicit
-	Label(const Rect& = Rect::Empty,
-		const Drawing::Font& = FetchPrototype<Drawing::Font>());
+	Label(const Rect& r = Rect::Empty,
+		const Drawing::Font& fnt = FetchPrototype<Drawing::Font>())
+		: Widget(r), MLabel(fnt)
+	{}
 	inline DefDeMoveCtor(Label)
 
 	/*!
@@ -109,11 +111,6 @@ public:
 	virtual void
 	Refresh(PaintEventArgs&&);
 };
-
-inline
-Label::Label(const Rect& r, const Drawing::Font& fnt)
-	: Widget(r), MLabel(fnt)
-{}
 
 
 /*!
@@ -158,16 +155,17 @@ public:
 	GetItemPtr(IndexType) const;
 	/*!
 	\brief 取项目行高。
+	\since build 301 。
 	*/
-	SDst
-	GetItemHeight() const;
+	DefGetter(const ynothrow, SDst, ItemHeight,
+		GetTextLineHeightExOf(text_state))
 
 protected:
 	/*!
 	\brief 取文本状态。
+	\since build 301 。
 	*/
-	Drawing::TextState&
-	GetTextState();
+	DefGetter(ynothrow, Drawing::TextState&, TextState, text_state)
 
 public:
 	/*!
@@ -183,7 +181,11 @@ public:
 	\since build 292 。
 	*/
 	void
-	SetList(const shared_ptr<ListType>&);
+	SetList(const shared_ptr<ListType>& h)
+	{
+		if(YCL_LIKELY(h))
+			hList = h;
+	}
 
 	/*!
 	\brief 刷新文本状态。
@@ -191,23 +193,6 @@ public:
 	void
 	RefreshTextState();
 };
-
-inline SDst
-MTextList::GetItemHeight() const
-{
-	return GetTextLineHeightExOf(text_state);
-}
-inline Drawing::TextState&
-MTextList::GetTextState()
-{
-	return text_state;
-}
-inline void
-MTextList::SetList(const shared_ptr<ListType>& h)
-{
-	if(YCL_LIKELY(h))
-		hList = h;
-}
 
 YSL_END_NAMESPACE(Components)
 

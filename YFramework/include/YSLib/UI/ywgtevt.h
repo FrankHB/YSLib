@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r2176;
+\version r2204;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241 。
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2012-04-01 15:54 +0800;
+	2012-04-13 20:27 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -58,7 +58,9 @@ private:
 
 public:
 	explicit
-	UIEventArgs(IWidget&);
+	UIEventArgs(IWidget& wgt)
+		: pSender(&wgt)
+	{}
 	/*!
 	\brief 复制构造：默认实现。
 	\since build 295 。
@@ -75,11 +77,6 @@ public:
 	PDefH(void, SetSender, IWidget& wgt)
 		ImplExpr(pSender = &wgt)
 };
-
-inline
-UIEventArgs::UIEventArgs(IWidget& wgt)
-	: pSender(&wgt)
-{}
 
 
 /*!
@@ -101,14 +98,11 @@ public:
 	RoutingStrategy Strategy; //!< 事件路由策略。
 	bool Handled; //!< 事件已经被处理。
 
-	RoutedEventArgs(IWidget&, RoutingStrategy = Direct);
+	RoutedEventArgs(IWidget& wgt, RoutingStrategy strategy = Direct)
+		: UIEventArgs(wgt),
+		Strategy(strategy), Handled(false)
+	{}
 };
-
-inline
-RoutedEventArgs::RoutedEventArgs(IWidget& wgt, RoutingStrategy strategy)
-	: UIEventArgs(wgt),
-	Strategy(strategy), Handled(false)
-{}
 
 
 /*!
@@ -231,15 +225,11 @@ struct PaintContext
 		//指定需要保证被刷新的边界区域。
 
 	inline DefDeCtor(PaintContext)
-	PaintContext(const Drawing::Graphics&, const Drawing::Point&,
-		const Drawing::Rect&);
+	PaintContext(const Drawing::Graphics& g, const Drawing::Point& pt,
+		const Drawing::Rect& r)
+		: Target(g), Location(pt), ClipArea(r)
+	{}
 };
-
-inline
-PaintContext::PaintContext(const Drawing::Graphics& g,
-	const Drawing::Point& pt, const Drawing::Rect& r)
-	: Target(g), Location(pt), ClipArea(r)
-{}
 
 
 /*!
@@ -386,7 +376,9 @@ public:
 	/*!
 	\brief 构造：使用指定可用性。
 	*/
-	AController(bool = true);
+	AController(bool b = true)
+		: enabled(b)
+	{}
 	/*!
 	\brief 析构：空实现。
 	\since build 295 。
@@ -405,7 +397,10 @@ public:
 	\throw 忽略加入任何事件项。
 	*/
 	virtual EventMapping::ItemType&
-	GetItemRef(const VisualEvent&, EventMapping::MappedType(&)());
+	GetItemRef(const VisualEvent& id, EventMapping::MappedType(&)())
+	{
+		return GetItem(id);
+	}
 
 	DefSetter(bool, Enabled, enabled)
 
@@ -415,27 +410,13 @@ public:
 	\warning 断言：禁止直接使用。
 	*/
 	virtual AController*
-	Clone();
+	Clone()
+	{
+		YAssert(false, "Invalid call @ AController::Clone;");
+
+		return nullptr;
+	}
 };
-
-inline
-AController::AController(bool b)
-	: enabled(b)
-{}
-
-inline AController*
-AController::Clone()
-{
-	YAssert(false, "Invalid call @ AController::Clone;");
-
-	return nullptr;
-}
-
-inline EventMapping::ItemType&
-AController::GetItemRef(const VisualEvent& id, EventMapping::MappedType(&)())
-{
-	return GetItem(id);
-}
 
 
 template<class _tEventHandler>

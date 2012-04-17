@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7176;
+\version r7177;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-12 20:56 +0800;
+	2012-04-13 17:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -1187,6 +1187,9 @@ BASE_EXTENSIONS += ftsynth.c
 对于支持实现对应 Shell 的窗口封装为窗体（Form）类（一般继承自 Window 类），在此自定义类中添加所需的 GUI 部件的定义，并实现界面效果。
 在响应 SM_ACTIVATED 的处理过程中添加需要初始化的资源或子 Shell ，在 SM_DEACTIVATED 的处理过程中添加退出程序或转移线程控制权的指令。
 在响应输入等事件消息的处理过程中添加对应的代码。
+
+@7.1 初始化：
+需要保证主 Shell 句柄在应用程序实例初始化之后初始化，基类 Shell 的构造函数调用了 Application 的非静态成员函数。
 
 */
 ////

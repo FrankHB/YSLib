@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2339;
+\version r2342;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-04-09 21:35 +0800;
+	2012-04-13 19:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -269,15 +269,12 @@ public:
 	IO::Path Path;
 	size_t Position;
 
-	BookMark(const IO::Path&, size_t);
+	BookMark(const IO::Path& path, size_t pos)
+		: Path(path), Position(pos)
+	{}
 	DefDeCopyCtor(BookMark)
 	DefDeMoveCtor(BookMark)
 };
-
-inline
-BookMark::BookMark(const IO::Path& path, size_t pos)
-	: Path(path), Position(pos)
-{}
 
 
 /*!

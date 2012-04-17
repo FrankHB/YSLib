@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1520;
+\version r1523;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2012-03-23 08:41 +0800;
+	2012-04-13 19:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -104,7 +104,9 @@ public:
 	\brief 构造：指定是否忽略上层缓冲区背景。
 	\since build 278 。
 	*/
-	BufferedRenderer(bool = false);
+	BufferedRenderer(bool b = false)
+		: rInvalidated(), Buffer(), IgnoreBackground(b)
+	{}
 	DefDeCopyCtor(BufferedRenderer)
 	DefDeMoveCtor(BufferedRenderer)
 	virtual DefClone(BufferedRenderer, Clone)
@@ -169,11 +171,6 @@ public:
 	Rect
 	Validate(IWidget& wgt, IWidget& sender, const PaintContext&);
 };
-
-inline
-BufferedRenderer::BufferedRenderer(bool b)
-	: rInvalidated(), Buffer(), IgnoreBackground(b)
-{}
 
 YSL_END_NAMESPACE(Components)
 

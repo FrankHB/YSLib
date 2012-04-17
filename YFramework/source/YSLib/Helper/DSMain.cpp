@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r1856;
+\version r1866;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-04-12 19:09 +0800;
+	2012-04-13 17:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -464,16 +464,6 @@ DSApplication::DSApplication()
 	//初始化主控制台。
 	platform::YConsoleInit(true, ColorSpace::Lime);
 
-#	if 0
-	// TODO: review locale APIs compatibility;
-	if(!setlocale(LC_ALL, "zh_CN.GBK"))
-	{
-		EpicFail();
-		platform::yprintf("setlocale() with %s failed.\n", "zh_CN.GBK");
-		terminate();
-	}
-#	endif
-
 	//初始化文件系统。
 	//初始化 EFSLib 和 LibFAT 。
 	//当 .nds 文件大于32MB时， EFS 行为异常。
@@ -490,6 +480,17 @@ DSApplication::DSApplication()
 #elif defined(YCL_MINGW32)
 	//启动本机消息循环线程后完成应用程序实例其它部分的初始化（注意顺序）。
 	pHostThread = new std::thread(HostTask);
+#endif
+
+#if 0
+	// TODO: review locale APIs compatibility;
+	static yconstexpr char locale_str[]{"zh_CN.GBK"};
+
+	if(!setlocale(LC_ALL, locale_str))
+	{
+		EpicFail();
+		throw LoggedEvent("setlocale() with %s failed.\n", locale_str);
+	}
 #endif
 
 	//检查程序是否被正确安装。

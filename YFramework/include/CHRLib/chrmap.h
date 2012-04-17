@@ -11,13 +11,13 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r2246;
+\version r2249;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2012-04-02 13:07 +0800;
+	2012-04-13 18:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -98,13 +98,10 @@ struct ConversionState
 	} Value;
 
 	yconstfn
-	ConversionState(size_t = 0);
+	ConversionState(size_t n= 0)
+		: Count(n), Value()
+	{}
 };
-
-yconstfn
-ConversionState::ConversionState(size_t n)
-	: Count(n), Value()
-{}
 
 yconstfn std::uint_fast8_t&
 GetCountOf(ConversionState& st)

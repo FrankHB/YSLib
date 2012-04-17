@@ -11,13 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r2083;
+\version r2097;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 173 。
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2012-03-21 18:07 +0800;
+	2012-04-13 18:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -48,12 +48,12 @@
 #include <ystdex/utility.hpp> // for ystdex::noncopyable;
 
 
-/*//@{*/
+#if 0
+//@{
 /*	\defgroup YSLMemoryDebugFunctions YSLib Memory Debug Functions
 \brief 调试用重载 ::operator new 和 ::operator delete 。
 \since build 173 。
 */
-/*
 void*
 operator new(std::size_t, const char*, int) throw (std::bad_alloc);
 void*
@@ -70,8 +70,8 @@ void
 operator delete(void*, const std::nothrow_t&, const char*, int) throw();
 void
 operator delete[](void*, const std::nothrow_t&, const char*, int) throw();
-*/
-/*//@}*/
+//@}
+#endif
 
 
 YSL_BEGIN
@@ -102,7 +102,9 @@ public:
 		int line;
 	
 		explicit
-		BlockInfo(std::size_t, const char*, int);
+		BlockInfo(std::size_t s, const char* f, int l)
+			: size(s), file(f), line(l)
+		{}
 	};
 
 	/*
@@ -118,7 +120,9 @@ public:
 
 	public:
 		explicit yconstfn
-		NewRecorder(const char*, int, MemoryList& = GetDebugMemoryList());
+		NewRecorder(const char* f, int l, MemoryList& b = GetDebugMemoryList())
+			: blocks(b), file(f), line(l)
+		{}
 
 	public:
 		/*!
@@ -168,16 +172,6 @@ public:
 	void
 	PrintAllDuplicate(std::FILE*);
 };
-
-inline
-MemoryList::BlockInfo::BlockInfo(std::size_t s, const char* f, int l)
-	: size(s), file(f), line(l)
-{}
-
-yconstfn
-MemoryList::NewRecorder::NewRecorder(const char* f, int l, MemoryList& b)
-	: blocks(b), file(f), line(l)
-{}
 
 YSL_END
 

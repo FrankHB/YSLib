@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r1754;
+\version r1820;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-03-21 19:42 +0800;
+	2012-04-16 18:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -91,6 +91,85 @@ namespace ystdex
 	arrlen(_type(&&)[_vN])
 	{
 		return _vN;
+	}
+	//@}
+
+
+	/*!
+	\brief 按标识调用函数，保证调用一次。
+	\note 类似 std::call_once ，但不保证线程安全性。
+	\since build 301 。
+	
+	当标识为 true 时候无作用，否则调用函数。
+	*/
+	template<typename _fCallable, typename... _tParams>
+	void
+	call_once(bool& b, _fCallable f, _tParams&&... args)
+	{
+		if(!b)
+		{
+			f(yforward(args)...);
+			b = true;
+		}
+	}
+
+
+	/*!
+	\brief 参数化静态对象。
+	\since build 301 。
+	*/
+	//@{
+	template<typename _type, typename...>
+	inline _type&
+	parameterize_static_object()
+	{
+		static _type obj;
+
+		return obj;
+	}
+	template<typename _type, size_t...>
+	inline _type&
+	parameterize_static_object()
+	{
+		static _type obj;
+
+		return obj;
+	}
+	//@}
+
+
+	/*!
+	\brief 取标识和初始化调用指定的对象。
+	\tparam _tKeys 参数化标识。
+	\tparam _fInit 初始化调用类型。
+	\tparam _tParams 初始化参数类型。
+	\return 初始化后的对象的左值引用。
+	\since build 301 。
+	*/
+	//@{
+	template<typename... _tKeys, typename _fInit, typename... _tParams>
+	inline auto
+	get_init(_fInit f, _tParams&&... args) -> decltype(f(yforward(args)...))&
+	{
+		typedef decltype(f(yforward(args)...)) obj_type;
+
+		auto& p(parameterize_static_object<obj_type*, _tKeys...>());
+
+		if(!p)
+			p = new obj_type(f(yforward(args)...));
+		return *p;
+	}
+	template<size_t... _vKeys, typename _fInit, typename... _tParams>
+	inline auto
+	get_init(_fInit f, _tParams&&... args) -> decltype(f(yforward(args)...))&
+	{
+		typedef decltype(f(yforward(args)...)) obj_type;
+
+		auto& p(parameterize_static_object<obj_type*, _vKeys...>());
+
+		if(!p)
+			p = new obj_type(f(yforward(args)...));
+		return *p;
 	}
 	//@}
 

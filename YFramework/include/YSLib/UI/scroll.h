@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3437;
+\version r3448;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2012-04-01 15:38 +0800;
+	2012-04-13 19:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -75,11 +75,18 @@ public:
 	\brief 构造：使用指定事件源、滚动事件类型和值。
 	\note 值等于旧值。
 	*/
-	ScrollEventArgs(IWidget&, ScrollCategory, ValueType);
+	ScrollEventArgs(IWidget& wgt, ScrollCategory t, ValueType val)
+		: UIEventArgs(wgt), pair<float, float>(val, float()),
+		Category(t)
+	{}
 	/*!
 	\brief 构造：使用指定事件源、滚动事件类型、值和旧值。
 	*/
-	ScrollEventArgs(IWidget&, ScrollCategory, ValueType, ValueType);
+	ScrollEventArgs(IWidget& wgt, ScrollCategory t, ValueType val,
+		ValueType old_val)
+		: UIEventArgs(wgt), pair<float, float>(val, old_val),
+		Category(t)
+	{}
 
 	/*!
 	\brief 取值。
@@ -103,20 +110,6 @@ public:
 	*/
 	DefSetter(ValueType, OldValue, first)
 };
-
-inline
-ScrollEventArgs::ScrollEventArgs(IWidget& wgt, ScrollCategory t,
-	ScrollEventArgs::ValueType val)
-	: UIEventArgs(wgt), pair<float, float>(val, float()),
-	Category(t)
-{}
-inline
-ScrollEventArgs::ScrollEventArgs(IWidget& wgt, ScrollCategory t,
-	ScrollEventArgs::ValueType val, ScrollEventArgs::ValueType old_val)
-	: UIEventArgs(wgt), pair<float, float>(val, old_val),
-	Category(t)
-{}
-
 
 DeclDelegate(HScrollEvent, ScrollEventArgs)
 

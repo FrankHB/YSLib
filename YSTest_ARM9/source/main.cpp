@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2454;
+\version r2666;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-04-11 08:40 +0800;
+	2012-04-17 07:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -50,11 +50,9 @@ using std::puts;
 
 YSL_BEGIN
 
-#if 0
-const char* G_COMP_NAME = "Franksoft";
-const char* G_APP_NAME = "YShell Test";
-const char* G_APP_VER = "0.2600";
-#endif
+#define G_COMP_NAME u"Franksoft"
+#define G_APP_NAME u"YReader"
+#define G_APP_VER u"build 301"
 
 //调试功能。
 namespace
@@ -75,86 +73,102 @@ public:
 
 	/*!
 	\brief 输出 char 字符。
+	\todo 实现。
 	*/
 	Log&
-	operator<<(char);
+	operator<<(char)
+	{
+		return *this;
+	}
 	/*!
 	\brief 输出字符指针表示的字符串。
+	\todo 实现。
 	*/
 	Log&
-	operator<<(const char*);
+	operator<<(const char*)
+	{
+		return *this;
+	}
 	/*!
 	\brief 输出字符串。
 	*/
 	Log&
-	operator<<(const string&);
+	operator<<(const string& s)
+	{
+		return operator<<(s.c_str());
+	}
 
 	/*!
 	\brief 提示错误。
+	\todo 实现。
 	*/
 	void
-	Error(const char*);
+	Error(const char*)
+	{}
 	/*!
 	\brief 提示错误。
 	*/
 	void
-	Error(const string&);
+	Error(const string& s)
+	{
+		Error(s.c_str());
+	}
 	/*!
 	\brief 提示致命错误。
 	\note 中止程序。
 	*/
 	void
-	FatalError(const char*);
+	FatalError(const char* s)
+	{
+		ShowFatalError(s);
+	}
 	/*!
 	\brief 提示致命错误。
 	\note 中止程序。
 	*/
 	void
-	FatalError(const string&);
+	FatalError(const string& s)
+	{
+		FatalError(s.c_str());
+	}
 };
 
-Log& Log::operator<<(char)
-{
-	return *this;
-}
-Log& Log::operator<<(const char*)
-{
-	return *this;
-}
-Log& Log::operator<<(const string& s)
-{
-	return operator<<(s);
-}
 
-void
-Log::Error(const char*)
-{}
-void
-Log::Error(const string& s)
-{
-	Error(s.c_str());
-}
-
-void
-Log::FatalError(const char* s)
-{
-	ShowFatalError(s);
-}
-void
-Log::FatalError(const string& s)
-{
-	FatalError(s.c_str());
-}
+#ifdef YSL_USE_MEMORY_DEBUG
 
 void
 OnExit_DebugMemory_continue()
 {
-	std::fflush(stderr);
 	std::puts("Input to continue...");
 	platform::WaitForInput();
 }
 
-#ifdef YSL_USE_MEMORY_DEBUG
+/*!
+\since build 301 。
+*/
+template<std::size_t _vN, class _tContainer>
+void
+OnExit_DebugMemory_print(_tContainer& con, const char* item_name)
+{
+	if(!con.empty())
+	{
+		std::fprintf(stderr, "%i %s(s) detected:\n", con.size(), item_name);
+
+		typename _tContainer::size_type n(0);
+
+		for(auto i(con.cbegin()); i != con.cend(); ++i)
+		{
+			if(n++ < _vN)
+				GetDebugMemoryList().Print(i, stderr);
+			else
+			{
+				n = 0;
+				OnExit_DebugMemory_continue();
+			}
+		}
+		OnExit_DebugMemory_continue();
+	}
+}
 
 /*!
 \brief 内存调试退出函数。
@@ -169,60 +183,32 @@ OnExit_DebugMemory()
 	std::puts("Normal exit;");
 
 //	std::FILE* fp(std::freopen("memdbg.log", "w", stderr));
-	MemoryList& debug_memory_list(GetDebugMemoryList());
-	const typename MemoryList::MapType& Map(debug_memory_list.Blocks);
-//	MemoryList::MapType::size_type s(DebugMemory.GetSize());
-
-	if(!Map.empty())
-	{
-		std::fprintf(stderr, "%i memory leak(s) detected:\n", Map.size());
-
-		MemoryList::MapType::size_type n(0);
-
-		for(auto i(Map.cbegin()); i != Map.cend(); ++i)
-		{
-			if(n++ < 4)
-				debug_memory_list.Print(i, stderr);
-			else
-			{
-				n = 0;
-				OnExit_DebugMemory_continue();
-			}
-		}
-	//	DebugMemory.PrintAll(stderr);
-	//	DebugMemory.PrintAll(fp);
-		OnExit_DebugMemory_continue();
-	}
-
-	const typename MemoryList::ListType&
-		List(debug_memory_list.DuplicateDeletedBlocks);
-
-	if(!List.empty())
-	{
-		std::fprintf(stderr, "%i duplicate memory deleting(s) detected:\n",
-			List.size());
-
-		MemoryList::ListType::size_type n(0);
-
-		for(auto i(List.cbegin()); i != List.cend(); ++i)
-		{
-			if(n++ < 4)
-				debug_memory_list.Print(i, stderr);
-			else
-			{
-				n = 0;
-				OnExit_DebugMemory_continue();
-			}
-		}
-	//	DebugMemory.PrintAllDuplicate(stderr);
-	//	DebugMemory.PrintAllDuplicate(fp);
-	}
+	OnExit_DebugMemory_print<4>(GetDebugMemoryList().Blocks, "memory leak");
+	OnExit_DebugMemory_print<4>(GetDebugMemoryList().DuplicateDeletedBlocks,
+		"duplicate memory deleting");
+#if 0
+	DebugMemory.PrintAll(stderr);
+	DebugMemory.PrintAll(fp);
+	DebugMemory.PrintAllDuplicate(stderr);
+	DebugMemory.PrintAllDuplicate(fp);
+#endif
 //	std::fclose(fp);
 	std::puts("Input to terminate...");
 	WaitForInput();
 }
 
 #endif
+
+/*!
+\since build 301 。
+*/
+void
+Repaint(Desktop& dsk)
+{
+	SetInvalidationOf(dsk);
+	dsk.Validate();
+	dsk.Update();
+}
 
 } // unnamed namespace;
 
@@ -235,89 +221,6 @@ OnExit_DebugMemory()
 extern void
 ReleaseShells();
 //@}
-
-
-using namespace Components;
-using namespace Drawing;
-
-YSL_BEGIN_NAMESPACE(Shells)
-
-/*!
-\brief 主 Shell 。
-\since 早于 build 132 。
-*/
-class MainShell : public DS::ShlDS
-{
-public:
-	typedef ShlDS ParentType;
-
-	Components::Label lblTitle, lblStatus, lblDetails;
-
-	/*!
-	\brief 无参数构造。
-	*/
-	MainShell();
-};
-
-MainShell::MainShell()
-	: ShlDS(),
-	lblTitle(Rect(50, 20, 100, 22)),
-	lblStatus(Rect(60, 80, 80, 22)),
-	lblDetails(Rect(30, 20, 160, 22))
-{
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
-
-	platform::YDebugSetStatus(true);
-
-	dsk_up += lblTitle;
-	dsk_up += lblStatus;
-	dsk_dn += lblDetails;
-	yunseq(
-	//	dsk_up.Background = FetchImage(1),
-		dsk_up.Background = SolidBrush(Color(240, 216, 192)),
-	//	dsk_dn.Background = Color(240, 216, 240),
-		dsk_dn.Background
-			= SolidBrush(FetchGUIState().Colors[Styles::Desktop]),
-		lblTitle.Text = "YReader",
-		lblStatus.Text = "Loading...",
-		lblDetails.Text = u"初始化中，请稍后……",
-		lblDetails.ForeColor = ColorSpace::White
-	);
-	lblDetails.SetTransparent(true);
-	SetInvalidationOf(dsk_up);
-	yunseq(dsk_up.Validate(), dsk_dn.Validate());
-	dsk_up.Update(),
-	dsk_dn.Update();
-	//初始化所有图像资源。
-
-	auto& pb(*(ynew ProgressBar(Rect(8, 168, 240, 16), 10)));
-
-	dsk_up += pb;
-	for(size_t i(0); i < 10; ++i)
-	{
-		pb.SetValue(i);
-//		Invalidate(pb);
-		dsk_up.Background
-			= SolidBrush(Color(255 - i * 255 / 10, 216, 192));
-		SetInvalidationOf(dsk_up);
-		Invalidate(dsk_up);
-		dsk_up.Validate();
-		dsk_up.Update();
-		YReader::FetchImage(i);
-	}
-	pb.SetValue(10);
-	Invalidate(dsk_up);
-	dsk_up.Validate();
-	dsk_up.Update();
-	dsk_up -= pb;
-	ydelete(&pb);
-//	yunseq(GetDesktopUp().Background = nullptr,
-//		GetDesktopDown().Background = nullptr);
-	YReader::SetShellToNew<YReader::ShlExplorer>();
-}
-
-YSL_END_NAMESPACE(Shells)
 
 YSL_END
 
@@ -339,13 +242,50 @@ main(int argc, char* argv[])
 			//应用程序实例。
 			DSApplication theApp;
 
-			/*
-			需要保证主 Shell 句柄在应用程序实例初始化之后初始化，
-			因为 MainShell 的基类 Shell 的构造函数
-			调用了 Application 的非静态成员函数。
-			*/
+			platform::YDebugSetStatus(true);
+			{
+				using namespace YSL_ Components;
+
+				Desktop dsk_up(theApp.GetScreenUp()),
+					dsk_dn(theApp.GetScreenDown());
+				Label lblTitle(Rect(50, 20, 100, 22)),
+					lblStatus(Rect(60, 80, 120, 22)),
+					lblDetails(Rect(30, 20, 160, 22));
+				ProgressBar pb(Rect(8, 168, 240, 16), 10);
+
+				dsk_up += lblTitle;
+				dsk_up += lblStatus;
+				dsk_dn += lblDetails;
+				dsk_up += pb;
+				yunseq(
+					dsk_up.Background = SolidBrush(Color(240, 216, 192)),
+					dsk_dn.Background
+						= SolidBrush(FetchGUIState().Colors[Styles::Desktop]),
+					//Color(240, 216, 240),
+					lblTitle.Text = G_APP_NAME,
+					lblStatus.Text = u"Now loading...",
+					lblDetails.Text = u"初始化中，请稍后……",
+					lblDetails.ForeColor = Drawing::ColorSpace::White
+				);
+				lblDetails.SetTransparent(true);
+				SetInvalidationOf(dsk_up);
+				yunseq(dsk_up.Validate(), dsk_dn.Validate());
+				dsk_up.Update(), dsk_dn.Update();
+				//初始化所有图像资源。
+				for(size_t i(0); i < 10; ++i)
+				{
+					pb.SetValue(i);
+			//		Invalidate(pb);
+					dsk_up.Background
+						= SolidBrush(Color(255 - i * 255 / 10, 216, 192));
+					Repaint(dsk_up);
+					YReader::FetchImage(i);
+				}
+				pb.SetValue(10);
+				Repaint(dsk_up);
+			}
 			if(YCL_UNLIKELY(!FetchAppInstance().Switch(
-				make_shared<Shells::MainShell>())))
+				make_shared<YReader::ShlExplorer>())))
 				throw LoggedEvent("Failed launching the main shell;");
 			//主体：消息循环。
 			while(theApp.DealMessage())
@@ -364,7 +304,7 @@ main(int argc, char* argv[])
 	}
 	catch(...)
 	{
-		log.FatalError("Unhandled exception @ int main(int, char*[]);");
+		log.FatalError("Unhandled exception @ main function;");
 	}
 	// TODO: return exit code properly;
 	return 0;

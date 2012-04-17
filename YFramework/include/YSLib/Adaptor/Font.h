@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r7674;
+\version r7677;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2012-03-30 16:36 +0800;
+	2012-04-13 18:41 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -253,7 +253,9 @@ public:
 	\brief 使用本机类型对象构造字符位图对象。
 	*/
 	yconstfn
-	CharBitmap(const NativeType&);
+	CharBitmap(const NativeType& b)
+		: bitmap(b)
+	{}
 
 	yconstfn DefCvt(const ynothrow, NativeType, bitmap)
 
@@ -267,11 +269,6 @@ public:
 	yconstfn DefGetter(const ynothrow, SignedScaleType, YAdvance,
 		bitmap->yadvance)
 };
-
-yconstfn
-CharBitmap::CharBitmap(const NativeType& b)
-	: bitmap(b)
-{}
 
 
 /*!

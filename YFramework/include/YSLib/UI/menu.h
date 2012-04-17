@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1760;
+\version r1770;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2012-03-21 18:56 +0800;
+	2012-04-13 19:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -256,7 +256,12 @@ public:
 	\pre 断言： Contains(mnu) 。
 	*/
 	void
-	Show(Menu& mnu, ZOrderType = DefaultMenuZOrder);
+	Show(Menu& mnu, ZOrderType z = DefaultMenuZOrder)
+	{
+		YAssert(Contains(mnu), "Menu is not contained @ MenuHost::Show;");
+
+		ShowRaw(mnu, z);
+	}
 
 	/*!
 	\brief 按指定 Z 顺序显示菜单组中的所有菜单。
@@ -282,7 +287,12 @@ public:
 	\pre 断言： Contains(mnu) 。
 	*/
 	void
-	Hide(Menu& mnu);
+	Hide(Menu& mnu)
+	{
+		YAssert(Contains(mnu), "Menu is not contained @ MenuHost::HideRaw;");
+
+		HideRaw(mnu);
+	}
 
 	/*!
 	\brief 隐藏菜单组中的所有菜单。
@@ -307,22 +317,6 @@ public:
 	void
 	HideUnrelated(Menu& mnu, Menu& mnuParent);
 };
-
-inline void
-MenuHost::Show(Menu& mnu, ZOrderType z)
-{
-	YAssert(Contains(mnu), "Menu is not contained @ MenuHost::Show;");
-
-	ShowRaw(mnu, z);
-}
-
-inline void
-MenuHost::Hide(Menu& mnu)
-{
-	YAssert(Contains(mnu), "Menu is not contained @ MenuHost::HideRaw;");
-
-	HideRaw(mnu);
-}
 
 YSL_END_NAMESPACE(Components)
 

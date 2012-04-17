@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2165;
+\version r2169;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-03-25 15:38 +0800;
+	2012-04-13 19:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -57,14 +57,11 @@ public:
 	\brief 执行命令行。
 	*/
 	int
-	ExecuteCommand(const String&);
+	ExecuteCommand(const String& s)
+	{
+		return ExecuteCommand(s.c_str());
+	}
 };
-
-inline int
-ShlCLI::ExecuteCommand(const String& s)
-{
-	return ExecuteCommand(s.c_str());
-}
 
 YSL_END_NAMESPACE(Shells)
 

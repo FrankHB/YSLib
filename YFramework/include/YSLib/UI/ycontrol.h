@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5540;
+\version r5549;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2012-04-09 20:44 +0800;
+	2012-04-13 19:42 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -49,9 +49,15 @@ protected:
 
 public:
 	explicit
-	Controller(bool);
-	Controller(bool, const EventMapping::MapType&);
-	Controller(bool, EventMapping::MapType&&);
+	Controller(bool b)
+		: AController(b), EventMap()
+	{}
+	Controller(bool b, const EventMapping::MapType& m)
+		: AController(b), EventMap(m)
+	{}
+	Controller(bool b, EventMapping::MapType&& m)
+		: AController(b), EventMap(std::move(m))
+	{}
 
 	ImplI(AController) PDefH(EventMapping::ItemType&, GetItem,
 		const VisualEvent& id)
@@ -63,19 +69,6 @@ public:
 
 	ImplI(AController) DefClone(Controller, Clone)
 };
-
-inline
-Controller::Controller(bool b)
-	: AController(b), EventMap()
-{}
-inline
-Controller::Controller(bool b, const EventMapping::MapType& m)
-	: AController(b), EventMap(m)
-{}
-inline
-Controller::Controller(bool b, EventMapping::MapType&& m)
-	: AController(b), EventMap(std::move(m))
-{}
 
 
 /*!

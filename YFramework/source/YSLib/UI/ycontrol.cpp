@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4679;
+\version r4695;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2012-04-09 12:59 +0800;
+	2012-04-13 20:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -222,24 +222,14 @@ Control::Control(const Rect& r)
 	BoundControlPtr(std::bind(&Control::GetBoundControlPtr, this,
 		std::placeholders::_1))
 {
-//	const auto& h([this](UIEventArgs&&){
-//		Invalidate(*this);
-//	});
-// FIXME: code above causes g++ 4.6 internal compiler error: 
-//	 in gimple_expand_cfg, at cfgexpand.c:4063
+	const auto h([this](UIEventArgs&&){
+		Invalidate(*this);
+	});
 	yunseq(
-		FetchEvent<Move>(*this) += [this](UIEventArgs&&){
-			Invalidate(*this);
-		},
-		FetchEvent<Resize>(*this) += [this](UIEventArgs&&){
-			Invalidate(*this);
-		},
-		FetchEvent<GotFocus>(*this) += [this](UIEventArgs&&){
-			Invalidate(*this);
-		},
-		FetchEvent<LostFocus>(*this) += [this](UIEventArgs&&){
-			Invalidate(*this);
-		}
+		FetchEvent<Move>(*this) += h,
+		FetchEvent<Resize>(*this) += h,
+		FetchEvent<GotFocus>(*this) += h,
+		FetchEvent<LostFocus>(*this) += h
 	);
 }
 Control::Control(const Control& ctl)

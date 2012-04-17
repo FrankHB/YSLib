@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2284;
+\version r2359;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2012-04-03 14:53 +0800;
+	2012-04-13 18:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -86,17 +86,23 @@ public:
 		\brief 无参数构造。
 		\note 空迭代器。仅为兼容标准迭代器需求。
 		*/
-		iterator();
+		iterator()
+			: ptr(), n(StringType::npos)
+		{}
 
 	public:
 		/*!
 		\brief 构造：使用值引用。
 		*/
-		iterator(const value_type&);
+		iterator(const value_type& p)
+			: ptr(&p), n(StringType::npos)
+		{}
 		/*!
 		\brief 复制构造。
 		*/
-		iterator(const iterator&);
+		iterator(const iterator& i)
+			: ptr(i.ptr), n(i.n)
+		{}
 
 		/*!
 		\brief 迭代：向后遍历。
@@ -108,7 +114,10 @@ public:
 		\note 构造新迭代器并返回。
 		*/
 		iterator
-		operator++(int);
+		operator++(int)
+		{
+			return ++iterator(*this);
+		}
 
 		/*!
 		\brief 迭代：向前遍历。
@@ -120,19 +129,28 @@ public:
 		\note 构造新迭代器并返回。
 		*/
 		iterator
-		operator--(int);
+		operator--(int)
+		{
+			return --iterator(*this);
+		}
 
 		/*!
 		\brief 比较：相等关系。
 		*/
 		bool
-		operator==(const iterator&) const;
+		operator==(const iterator& i) const
+		{
+			return ptr == i.ptr && n == i.n;
+		}
 
 		/*!
 		\brief 比较：不等关系。
 		*/
 		bool
-		operator!=(const iterator&) const;
+		operator!=(const iterator& i) const
+		{
+			return !(*this == i);
+		}
 
 		/*!
 		\brief 间接访问。
@@ -162,11 +180,19 @@ public:
 	\brief 转移构造：默认实现。
 	*/
 	inline DefDeMoveCtor(Path)
-	Path(const ucs2_t*);
-	Path(const NativePathCharType*);
-	Path(const NativeString&);
+	Path(const ucs2_t* pathstr)
+		: String(pathstr)
+	{}
+	Path(const NativePathCharType* pathstr)
+		: String(pathstr, CP_Path)
+	{}
+	Path(const NativeString& pathstr)
+		: String(pathstr, CP_Path)
+	{}
 	template<class _tString>
-	Path(const _tString&);
+	Path(const _tString& pathstr)
+		: String(pathstr)
+	{}
 	inline DefDeDtor(Path)
 
 	/*!
@@ -199,42 +225,66 @@ public:
 	\brief 判断是否有根名称。
 	*/
 	bool
-	HasRootName() const;
+	HasRootName() const
+	{
+		return !GetRootName().empty();
+	}
 	/*!
 	\brief 判断是否有根目录。
 	*/
 	bool
-	HasRootDirectory() const;
+	HasRootDirectory() const
+	{
+		return !GetRootDirectory().empty();
+	}
 	/*!
 	\brief 判断是否有根路径。
 	*/
 	bool
-	HasRootPath() const;
+	HasRootPath() const
+	{
+		return !GetRootPath().empty();
+	}
 	/*!
 	\brief 判断是否有相对路径。
 	*/
 	bool
-	HasRelativePath() const;
+	HasRelativePath() const
+	{
+		return !GetRelativePath().empty();
+	}
 	/*!
 	\brief 判断是否有父路径。
 	*/
 	bool
-	HasParentPath() const;
+	HasParentPath() const
+	{
+		return !GetParentPath().empty();
+	}
 	/*!
 	\brief 判断是否有文件名。
 	*/
 	bool
-	HasFilename() const;
+	HasFilename() const
+	{
+		return !GetFilename().empty();
+	}
 	/*!
 	\brief 判断是否有主文件名。
 	*/
 	bool
-	HasStem() const;
+	HasStem() const
+	{
+		return !GetStem().empty();
+	}
 	/*!
 	\brief 判断是否有扩展名。
 	*/
 	bool
-	HasExtension() const;
+	HasExtension() const
+	{
+		return !GetExtension().empty();
+	}
 
 	//路径分解。
 	/*!
@@ -285,13 +335,19 @@ public:
 	\brief 取起始迭代器。
 	*/
 	iterator
-	begin() const;
+	begin() const
+	{
+		return ++iterator(*this);
+	}
 
 	/*!
 	\brief 取终止迭代器。
 	*/
 	iterator
-	end() const;
+	end() const
+	{
+		return iterator(*this);
+	}
 
 	//修改函数。
 
@@ -322,161 +378,55 @@ public:
 	ReplaceExtension(const Path& = Path());
 };
 
-inline
-Path::Path(const ucs2_t* pathstr)
-	: String(pathstr)
-{}
-inline
-Path::Path(const NativePathCharType* pathstr)
-	: String(pathstr, CP_Path)
-{}
-inline
-Path::Path(const NativeString& pathstr)
-	: String(pathstr, CP_Path)
-{}
-template<class _tString>
-inline
-Path::Path(const _tString& pathstr)
-	: String(pathstr)
-{}
-
 inline bool
-Path::HasRootName() const
+operator==(const Path& x, const Path& y)
 {
-	return !GetRootName().empty();
+	return x.GetNativeString() == y.GetNativeString();
 }
 inline bool
-Path::HasRootDirectory() const
+operator!=(const Path& x, const Path& y)
 {
-	return !GetRootDirectory().empty();
+	return !(x == y);
 }
 inline bool
-Path::HasRootPath() const
+operator<(const Path& x, const Path& y)
 {
-	return !GetRootPath().empty();
+	return x.GetNativeString() < y.GetNativeString();
 }
 inline bool
-Path::HasRelativePath() const
+operator<=(const Path& x, const Path& y)
 {
-	return !GetRelativePath().empty();
+	return !(y < x);
+}
+inline bool operator>(const Path& x, const Path& y)
+{
+	return y < x;
 }
 inline bool
-Path::HasParentPath() const
+operator>=(const Path& x, const Path& y)
 {
-	return !GetParentPath().empty();
-}
-inline bool
-Path::HasFilename() const
-{
-	return !GetFilename().empty();
-}
-inline bool
-Path::HasStem() const
-{
-	return !GetStem().empty();
-}
-inline bool
-Path::HasExtension() const
-{
-	return !GetExtension().empty();
-}
-
-inline
-Path::iterator::iterator()
-	: ptr(), n(StringType::npos)
-{}
-inline
-Path::iterator::iterator(const value_type& p)
-	: ptr(&p), n(StringType::npos)
-{}
-inline
-Path::iterator::iterator(const iterator& i)
-	: ptr(i.ptr), n(i.n)
-{}
-
-inline Path::iterator
-Path::iterator::operator++(int)
-{
-	return ++iterator(*this);
-}
-
-inline Path::iterator
-Path::iterator::operator--(int)
-{
-	return --iterator(*this);
-}
-
-inline bool
-Path::iterator::operator==(const iterator& rhs) const
-{
-	return ptr == rhs.ptr && n == rhs.n;
-}
-
-inline bool
-Path::iterator::operator!=(const iterator& rhs) const
-{
-	return !(*this == rhs);
-}
-
-inline Path::iterator
-Path::begin() const
-{
-	return ++iterator(*this);
-}
-
-inline Path::iterator
-Path::end() const
-{
-	return iterator(*this);
-}
-
-
-inline bool
-operator==(const Path& lhs, const Path& rhs)
-{
-	return lhs.GetNativeString() == rhs.GetNativeString();
-}
-inline bool
-operator!=(const Path& lhs, const Path& rhs)
-{
-	return !(lhs == rhs);
-}
-inline bool
-operator<(const Path& lhs, const Path& rhs)
-{
-	return lhs.GetNativeString() < rhs.GetNativeString();
-}
-inline bool
-operator<=(const Path& lhs, const Path& rhs)
-{
-	return !(rhs < lhs);
-}
-inline bool operator>(const Path& lhs, const Path& rhs)
-{
-	return rhs < lhs;
-}
-inline bool
-operator>=(const Path& lhs, const Path& rhs)
-{
-	return !(lhs < rhs);
+	return !(x < y);
 }
 
 inline Path
-operator/(const Path& lhs, const Path& rhs)
+operator/(const Path& x, const Path& y)
 {
-	return Path(lhs) /= rhs;
+	return Path(x) /= y;
 }
 
 /*!
 \brief 交换。
 */
 inline void
-swap(Path& lhs, Path& rhs)
+swap(Path& x, Path& y)
 {
-	lhs.swap(rhs);
+	x.swap(y);
 }
-//bool lexicographical_compare(Path::iterator, Path::iterator,
-//							 Path::iterator, Path::iterator);
+
+#if 0
+bool lexicographical_compare(Path::iterator, Path::iterator,
+	Path::iterator, Path::iterator);
+#endif
 
 
 /*!

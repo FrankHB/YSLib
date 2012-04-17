@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3577; *build 300 rev 15;
+\version r3585; *build 301 rev 13;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-12 21:04 +0800;
+	2012-04-17 09:41 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -143,6 +143,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \inv ::= invoke
 \k ::= keywords
 \lib ::= library
+\lit ::= literals
 \ln ::= lines
 \loc ::= local
 \m ::= members
@@ -160,7 +161,9 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \or ::= overridden
 \param ::= parameters
 \param.de ::= default parameters
+\post ::= postfix
 \pre ::= prepared
+\pref ::= prefix
 \proj ::= projects
 \pt ::= points
 \ptr ::= pointers
@@ -364,193 +367,145 @@ $using:
 
 $DONE:
 r1:
-/ @ \u YGUI $=
+/ \impl @ \ctor DSApplication @ \impl \u DSMain,
+/ @ \impl \u @ ARM9_Main $=
 (
-	+ \cl InputTimer;
-	/ @ \cl GUIState $=
+	/ @ \un \ns $=
 	(
+		/ \simp \impl @ \f OnExit_DebugMemory_continue,
 		(
-			/ typedef \en HeldStateType >> \cl InputTimer;
-			/ \tr \a HeldStateType -> InputTimer::HeldStateType
-		),
-		/ public \m Timers::Timer HeldTimer -> public \m InputTimer HeldTimer,
-		/ \tr \impl @ \ctor,
-		- \impl @ \mf RepeatHeld,
-		/ \impl @ \mf (Reset, ResetHeldState)
+			+ \ft OnExit_DebugMemory_print;
+			/ \simp \impl @ \f OnExit_DebugMemory ^ \ft OnExit_DebugMemory_print
+		)
+	),
+	(
+		/ \cl MainShell @ \ns YSLib::Shells -> \st ShlLoad @ main function;
+		/ \tr \impl @ main function
 	)
-);
-/ \tr \impl @ \impl \u YControl;
+),
+/ \tp \param \n @ \ft assign @ \h Algorithm;
+/ \a (\mf, \mft) \impl @ \h >> (\st, \cl, \clt);
 
-r2-r3:
-+ \ft<VisualEvent _vID, class _tEventArgs> \i void OnEvent_Call(_tEventArgs&&)
-	@ \h YControl,
-+ \f bool RepeatHeld(InputTimer&, InputTimer::HeldStateType&,
-	const Timers::TimeSpan&, const Timers::TimeSpan&) @ \u YGUI;
-/ @ \cl ShlTextReader @ \impl \u ShlReader $=
+r2:
+/ @ (\mf HexView::GetItemHeight @ \h HexBrowser,
+	MTextList::(GetItemHeight, GetTextState) @ \h Label) $=
 (
-	+ protected \m InputTimer tmrInput,
-	/ \impl @ \ctor,
-	/ \simp \impl @ \dtor,
-	/ \impl @ \mf OnKeyDown
-	$comp "abnormal delaying on responding event %KeyHeld" $since b271
-);
+	/ \simp \decl ^ \mac DefGetter,
+	+ 'ynothrow'
+),
+/ \simp \impl @ \ctor Control,
++ using std::round @ \h YAdaptor;
 
-r4:
+r3:
 /= test 1 ^ \conf release;
 
+r4:
+/ \impl @ main function @ \impl \u ARM9_Main $=
+(
+	/ \simp \impl;
+	- \cl ShlLoad
+);
+
 r5:
-* crashing when setting font size @ text reader $since b297
-	$= (* \impl @ \ctor SettingPanel @ \u ShlReader);
+/ @ \impl \u ARM9_Main $=
+(
+	+ \f void Repaint(Desktop&) @ \un \ns;
+	/ \simp \impl @ main function
+);
 
 r6:
-* \impl @ \f UpdateKeyStates @ \impl \u Input @ defined YCL_MINGW32 $since b299,
-/ \un \ns @ \impl \u ShlReader $=
+/ @ \impl \u ARM9_Main $=
 (
-	/ \simp \impl @ \f FetchEncodingString,
-	/ \st EncodingInfoItem ->
-		typedef std::pair<Text::Encoding, const ucs2_t*> EncodingInfoItem
-),
-(
-	/ @ \cl Timer $=
+	/ \simp \impl @ \f OnExit_DebugMemory,	
 	(
-		/ \decl @ \mf SetInterval,
-		+ \mf SetInterval#2
-	),
-	/ @ \cl InputTimer
-	(
-		/ typedef Timers::Duration Duration;
-		/ \simp \tp @ \param @ \mf
+		+ \mac G_COMP_NAME,
+		+ \mac G_APP_NAME,
+		+ \mac G_APP_VER;
+		/ \impl @ main \f
 	)
 );
 
 r7:
-- \a \s \c \m with \tp String @ \cl Application;
-- \a 3 extern \o \decl 'G_' @ \impl \u YGlobal;
-/ \tr \impl @ \impl \u Main,
-/ \tr \impl @ \ctor ShlExplorer @ \impl \u Shells;
+/ @ \h Utilities $=
+(
+	+ \ft template<typename _fCallable, typename... _tParams> void
+		call_once(bool&, _fCallable, _tParams&&...),
+	(
+		+ \ft<typename, typename...> \i _type& parameterize_static_object();
+		+ \ft<typename..., typename, typename...> \i auto get_init(_fInit,
+			_tParams&&...) -> decltype(f(yforward(args)...))&,
+	),
+	(
+		+ \ft<typename, size_t...> \i _type& parameterize_static_object();
+		+ \ft<size_t..., typename, typename...> \i auto get_init(_fInit,
+			_tParams&&...) -> decltype(f(yforward(args)...))&
+	)
+);
+/ \simp \impl @ \impl \u ShlReader $=
+(
+	- \en GRLs,
+	- \f QueryList,
+	/ \tr \impl @ \ctor SettingPanel
+);
 
 r8:
-/ @ \impl \u DSMain $=
-(
-	/ \impl @ (\ctor, \dtor) @ \cl DSApplication,
-	/ \impl @ \g \f main
-);
-
-r9:
-/ @ \impl \u DSMain $=
-(
-	/ @ \un \ns @ defined YCL_MINGW32 $=
-	(
-		+ std::thread HostThread,
-		+ \f FetchHostThread,
-		- \o hInstance,
-		/ \tr \impl @ \f InitializeWindow
-	),
-	/ \tr \impl @ (\f WinMain, (\ctor, \dtor) @ \cl DSApplication)
-		@ defined YCL_MINGW32;
-	/ (main function, debug functions, \cl Log) >> ARM9_Main,
-);
-
-r10:
-/ \u GBKEX @ \proj YSTest_ARM9 >> \dir Helper  @ \lib YSLib @ \proj YFramework,
-+ \rem \mac YSL_DLL @ \h Configuration,
-/ @ \cl ValueObject $=
-(
-	+ \en \c TypeCheck = 4 @ typedef \en OpType;
-	+ \smf CheckType @ \stt GManager,
-	/ \impl @ \a 2 \mft GetObject
-);
-+ target ('debug_DLL', 'release_DLL') @ MinGW32 \proj @ Colde::Blocks;
-
-r11:
 /= test 2 ^ \conf release;
 
+r9:
+/ @ \impl \u ShlReader $=
+(
+	+ \ft \i SetBufferRendererAndText @ \un \ns;
+	/ \simp \impl \ctor ReaderBox ^ (SetBufferRendererAndText, \pref 'u' \lit)
+),
+/ \impl @ \ctor DialogPanel ^ \pref 'u' \lit;
+
+r10:
+/ \impl @ \impl \u ARM9_Main,
+/ \simp \sm @ \stt iterator_operations @ \h Iterator
+	^ constexpr brace-initializer,
+* $doc @ \stt safe_delete_obj  @ \h YCoreUtilities $since b263;
+
+r11:
+/ yconstfn u32 GetAreaOf(const Size&) -> yconstfn auto GetAreaOf(const Size&)
+	@ \h YGDIBase;
+
 r12:
-/ \simp \impl @ \ctor DSApplication @ \impl \u DSMain,
-/ \simp \impl @ \f CheckInstall @ \impl \u Initialization;
-- public \sm Application::CommonAppDataPath @ (\h YApplication,
-	\impl \u YGlobal);
-/ \a \def @ \u GBKEX >> \impl \u Initialization;
-- \decl @ \o DEF_DIRECTORY @ \h YGlobal;
-- \u GBKEX @ \dir Helper @ \lib YSLib;
+/ @ \ctor ShlExplorer() \cl ShlExplorer
+	@ \u Shells -> ShlExplorer(const IO::Path& = IO::GetNowDirectory());
+/ \impl @ \mf ShlReader::Exit @ \impl \u ShlReader;
 
 r13:
-* crashing after closing console window @ defined YCL_MINGW32 @\impl \u DSMain
-	$since r9 $=
-(
-	/ @ \un \ns	$=
-	(
-		/ \o std::thread HostThread -> std::thread* pHostThread,
-		/ \f std::thread FetchHostThread() -> void HostTask()
-	),
-	/ \tr \impl @ (\ctor, \dtor) @ \cl DSApplication
-),
-- \a 2 extern \decl 'DEF_' @ \h Initialization,
-/ @ \impl \u Initialization $=
-(
-	/ \a \o 'DEF_*' -> \mac,
-	+ \inc \h File_(Text);
-	+ \f CheckConfiguration @ \un \ns;
-	/ \impl @ \f CheckInstall,
-	/ \tr \impl @ \f InitializeSystemFontCache
-);
-
-r14:
-(
-	^ "updated devkitARM release 38" ~ "devkitARM release 37" @ "platform %DS",
-	^ "updated libnds 1.5.4 with default arm7 0.5.23"
-		~ "libnds 1.5.1 with default arm7 0.5.21" @ "platform %DS";
-	/ \tr \impl @ (YSTest_ARM7, YFramework, YSTest_ARM9, YBase)
-		makefile $= (- '-mno-fpu' @ \mac LDFLAGS)
-),
-/ \tr \as @ \f CopyScrollArea @ \un \ns @ \impl \u DSReader;
-
-r15:
+/ \impl @ \mf SetSize @ \cl (BitmapBuffer, BitmapBufferEx);
 /= test 3 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-04-12:
--8.8d;
-//Mercurial rev1-rev172: r8236;
+2012-04-16:
+-8.9d;
+//Mercurial rev1-rev173: r8249;
 
 / ...
 
 
 $NEXT_TODO:
-b301-b324:
-/ \impl @ \u (DSReader, ShlReader) $=
-(
-	/ $design \simp \impl
-),
+b302-b324:
 + dynamic character mapper loader for \u CharacterMapping;
 
 
 $TODO:
-b325-b400:
+b325-b384:
 / $design $low_prior robustness and cleanness $=
 (
 	/ noncopyable GUIState,
 	* (copy, move) @ \cl Menu,
-	/ @ \ns platform @ \u YCommon $=
-	(
-		/ \ac @ \inh touchPosition @ \cl CursorState,
-		+ \exp \init @ \m @ \cl KeysInfo
-	),
-	/ access control @ \inh @ \clt deref_comp,
-	/ \ctor @ Font ^ initializer_list,
-	/ \mf \vt Clone -> \amf @ \cl AController ^ g++ 4.7,
-	+ 'yconstexpr' @ \s \m Graphics::Invalid
-),
-/ improving pedantic compatiblity $=
-(
-	/ \mac with no \arg
+	/ access control @ \inh @ \clt deref_comp
 ),
 + $design $low_prior helpers $=
 (
 	+ noinstance base class,
+	+ nonmovable base class,
 ),
 / services $=
 (
@@ -558,34 +513,42 @@ b325-b400:
 ),
 / $low_prior YReader $=
 (
+	/ \simp \impl @ \u (DSReader, ShlReader),
 	+ bookmarks manager,
 	+ settings manager,
 	+ reading history,
-	/ improving performance when reader box shown,
 	+ improved smooth scrolling with lower limit of scrolling cycle supported,
 	/ improved tests and examples
 ),
 / @ "GUI" $=
 (
-	+ generic timers multiplexing for input holding events,
-		// To resolve routed events repeating preemption.
 	+ viewer models,
 	/ fully \impl @ \cl Form,
-	+ icons,
-	+ formal abstraction of rectangular hit test,
-	+ key accelerators,
-	+ widgets for RTC
+	+ icons
 ),
 / project structure $=
 (
 	/ build command @ \a \conf proj YBase,
-	+ Microsoft Windows(mingw-win32) port
+	+ Microsoft Windows(MinGW32) port with free hosted window size
 );
 
-b401-b768:
-/ memory fragment issues,
-^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework
-	when (^ g++),
+b385-b768:
+/ improving pedantic compatiblity $=
+(
+	/ \mac with no \arg
+),
+/ $design $low_prior robustness and cleanness $=
+(
+	/ @ \ns platform @ \u YCommon $=
+	(
+		/ \ac @ \inh touchPosition @ \cl CursorInfo,
+		+ \exp \init @ \m @ \cl KeysInfo
+	),
+	/ \impl @ \ctor \t fixed_point#2 @ \h Rational ^ 'std::llround' ~ '::llround',
+	/ \mf \vt Clone -> \amf @ \cl AController ^ g++ 4.7 later,
+	+ 'yconstexpr' @ \s \m Graphics::Invalid,
+	/ reconsidered 1st parameter type(without rvalue \ref) for %seq_apply
+),
 / completeness of core abstraction $=
 (
 	+ shell session;
@@ -603,7 +566,7 @@ b401-b768:
 	),
 	/ fully \impl @ encoding checking
 ),
-+ debugging $=
+/ debugging $=
 (
 	/ more APIs,
 	+ namespaces
@@ -615,7 +578,12 @@ b401-b768:
 ),
 / @ "GUI" $=
 (
-	+ GUI brushes $=
+	+ generic timers multiplexing for input holding events,
+		// To resolve routed events repeating preemption.
+	+ formal abstraction of rectangular hit test,
+	+ key accelerators,
+	+ widgets for RTC,
+	/ GUI brushes $=
 	(
 		+ more base class templates,
 		+ transformations
@@ -629,6 +597,9 @@ b401-b768:
 );
 
 b769-b1256:
+^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework
+	when (^ g++),
+/ memory fragment issues,
 / basic routines $=
 (
 	/ ystdex::fixed_point $=
@@ -753,14 +724,15 @@ $KNOWN_ISSUE:
 	bitmap glyph like simson.ttc" $since b185,
 * "g++ 4.6.1 internal error for closure object in constructors" $since b253,
 	// g++ 4.6.2 tested @ b293.
+* "<cmath> cannot use 'std::*' names" @ "!defined %_GLIBCXX_USE_C99_MATH_TR1"
+	@ "libstdc++ with g++ 4.6";
 * "g++ 4.6.1 ignores non-explicit conversion templates when there exists \
 	non-template explicit conversion function" $since b260,
-* "<cmath> cannot use 'std::*' names" @ "libstdc++ with g++4.6",
 * "crashing after sleeping(default behavior of closing then reopening lid) on \
 	real machine due to libnds default interrupt handler for power management"
 	$since b279;
 * "sorry, unimplemented: use of 'type_pack_expansion' in template"
-	@ ^ "g++ 4.6" $before $future;
+	@ ^ "g++ (4.6, 4.7)" $before $future;
 
 $RESOLVED_ENVIRONMENT_ISSUE:
 * "g++ 4.5.2 fails on compiling code with defaulted move assignment operator"
@@ -842,6 +814,7 @@ $module_tree $=
 			'core'
 			(
 				'basic objects',
+				'core utilities',
 				'devices',
 				'messaging',
 				'events',
@@ -862,6 +835,7 @@ $module_tree $=
 	),
 	'YReader'
 	(
+		'main',
 		'initialization',
 		'file explorer',
 		'shells test example',
@@ -871,6 +845,47 @@ $module_tree $=
 );
 
 $now
+(
+	/ $design "all %inline member outside of class or class template definition"
+		@ "headers" >> "class or class template definition"
+	/ %'YBase'.'YStandardEx' $=
+	(
+		/ %'Utilities' $=
+		(
+			+ "function template %call_once",
+				// Just like std::call_once but without thread safety guarantee.
+			(
+				+ "function template %parameterize_static_object";
+				+ "function template %get_init";
+				% dep_to "get_init"
+			)
+		),
+		/ $design "simplified implementation" ^ "constexpr brace-initializers"
+			@ "class template %iterator_operations" @ %'Iterator'
+	),
+	/ %'YReader' $=
+	(
+		/ $design "simplified implementation" @ %'main',
+		(
+			/ $dep_from "get_init";
+			/ $design "simplified implementation" @ %'text reader',
+		),
+		+ "recovering path on exiting reader" $=
+		(
+			+ "initialized with path argument" @ "class %ShlExplorer";
+			/ "set shell path on exiting" @ "class %ShlReader"
+		)
+	)
+	/ %'YFramework'.'core' $=
+	(
+		* $doc @ "class template %safe_delete_obj" @ %'core utilities'
+			$since b263
+		/ "completed proper result type" @ "function %GetAreaOf"
+			@ "header ygdibase.h"
+	)
+),
+
+b300
 (
 	/ %'YFramework' $=
 	(

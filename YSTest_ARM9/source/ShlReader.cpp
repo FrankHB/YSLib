@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4048;
+\version r4110;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-04-10 17:18 +0800;
+	2012-04-17 09:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -126,42 +126,6 @@ namespace
 
 
 	/*!
-	\since build 292 。
-	*/
-	enum GRLs
-	{
-		GRL_EncodingNames,
-		GRL_ScrollDurations,
-		GRL_SmoothScrollDurations
-	};
-
-
-	/*!
-	\since build 292 。
-	*/
-	shared_ptr<TextList::ListType>
-	QueryList(enum GRLs res_id)
-	{
-		static shared_ptr<TextList::ListType> handles[3] = {
-			FetchEncodingNames(), FetchScrollDurations(false),
-			FetchScrollDurations(true)};
-
-		switch(res_id)
-		{
-		case GRL_EncodingNames:
-			return handles[0];
-		case GRL_ScrollDurations:
-			return handles[1];
-		case GRL_SmoothScrollDurations:
-			return handles[2];
-		}
-
-		YAssert(false, "No resources found @ QueryList;");
-
-		return nullptr;
-	};
-
-	/*!
 	\brief 更新列表。
 	\since build 293 。
 	*/
@@ -169,8 +133,10 @@ namespace
 	UpdateScrollDropDownList(DropDownList& ddl, bool b, const milliseconds& d,
 		const milliseconds& d_s)
 	{
-		ddl.SetList(QueryList(b ? GRL_SmoothScrollDurations
-			: GRL_ScrollDurations));
+		using ystdex::get_init;
+
+		ddl.SetList(b ? get_init<false>(FetchScrollDurations, false)
+			: get_init<true>(FetchScrollDurations, true));
 		ddl.Text = ddl.GetList()[(b ? d_s.count() / 20U : d.count() / 200U)
 			- 2U],
 		Invalidate(ddl);
@@ -258,6 +224,18 @@ namespace
 	}
 
 
+	/*!
+	\since build 301 。
+	*/
+	template<class _tWidget>
+	inline void
+	SetBufferRendererAndText(_tWidget& wgt, const String& s)
+	{
+		wgt.SetRenderer(make_unique<BufferedRenderer>()),
+		wgt.Text = s;
+	}
+
+
 	// MR -> MNU_READER;
 	yconstexpr Menu::IndexType MR_Return(0),
 		MR_Setting(1),
@@ -280,16 +258,11 @@ ReaderBox::ReaderBox(const Rect& r)
 	SetRenderer(make_unique<BufferedRenderer>()),
 	seq_apply(ContainerSetter(*this),
 		btnMenu, btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
-	btnMenu.SetRenderer(make_unique<BufferedRenderer>()),
-	btnMenu.Text = "M",
-	btnInfo.SetRenderer(make_unique<BufferedRenderer>()),
-	btnInfo.Text = "I",
-	btnReturn.SetRenderer(make_unique<BufferedRenderer>()),
-	btnReturn.Text = "R",
-	btnPrev.SetRenderer(make_unique<BufferedRenderer>()),
-	btnPrev.Text = "←",
-	btnNext.SetRenderer(make_unique<BufferedRenderer>()),
-	btnNext.Text = "→",
+	SetBufferRendererAndText(btnMenu, u"M"),
+	SetBufferRendererAndText(btnInfo, u"I"),
+	SetBufferRendererAndText(btnReturn, u"R"),
+	SetBufferRendererAndText(btnPrev, u"←"),
+	SetBufferRendererAndText(btnNext, u"→");
 	pbReader.ForeColor = Color(192, 192, 64),
 	lblProgress.SetRenderer(make_unique<BufferedRenderer>()),
 	lblProgress.SetTransparent(true),
@@ -396,7 +369,7 @@ SettingPanel::SettingPanel()
 	btnSetUpBack(Rect(20, 64, 80, 22)), btnSetDownBack(Rect(148, 64, 80, 22)),
 	btnTextColor(Rect(20, 96, 80, 22)),
 	ddlFont(Rect(148, 96, 80, 22), FetchFontFamilyNames()),
-	ddlEncoding(Rect(20, 128, 192, 22), QueryList(GRL_EncodingNames)),
+	ddlEncoding(Rect(20, 128, 192, 22), FetchEncodingNames()),
 	chkSmoothScroll(Rect(20, 160, 16, 16)),
 	lblSmoothScroll(Rect(36, 160, 60, 20)),
 	ddlScrollTiming(Rect(96, 160, 128, 22)),
@@ -609,7 +582,9 @@ void
 ShlReader::Exit()
 {
 	fBackgroundTask = nullptr;
-	SetShellToNew<ShlExplorer>();
+	// TODO: use template %SetShellToNew;
+//	SetShellToNew<ShlExplorer>();
+	SetShellTo(ystdex::make_shared<ShlExplorer>(CurrentPath / u".."));
 }
 
 void

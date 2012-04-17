@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1352;
+\version r1374;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:13:04 +0800;
 \par 修改时间:
-	2012-03-25 14:13 +0800;
+	2012-04-13 20:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -53,14 +53,22 @@ private:
 	unique_ptr<File> pSource;
 
 public:
-	HexModel();
-	HexModel(const_path_t);
+	HexModel()
+		: pSource(new File())
+	{}
+	HexModel(const_path_t path)
+		: pSource(new File(path))
+	{}
 	DefDelCopyCtor(HexModel)
 	DefDeMoveCtor(HexModel)
 
 	DefDeMoveAssignment(HexModel)
 	HexModel&
-	operator=(unique_ptr<File>&&);
+	operator=(unique_ptr<File>&& file_ptr)
+	{
+		pSource = std::move(file_ptr);
+		return *this;
+	}
 
 	DefPredMem(const ynothrow, Valid, GetSource())
 
@@ -78,21 +86,6 @@ public:
 
 	DefFwdFn(const, int, CheckEOF, GetSource().CheckEOF())
 };
-
-inline
-HexModel::HexModel()
-	: pSource(new File())
-{}
-inline
-HexModel::HexModel(const_path_t path)
-	: pSource(new File(path))
-{}
-inline HexModel&
-HexModel::operator=(unique_ptr<File>&& pFile)
-{
-	pSource = std::move(pFile);
-	return *this;
-}
 
 
 /*!
@@ -122,8 +115,8 @@ public:
 	/*!
 	\brief 取项目行高。
 	*/
-	SDst
-	GetItemHeight() const;
+	DefGetter(const ynothrow, SDst, ItemHeight,
+		GetTextLineHeightExOf(TextState))
 	DefGetter(const ynothrow, IndexType, ItemNum, item_num)
 
 protected:
@@ -141,12 +134,6 @@ protected:
 	PDefH(IndexType, UpdateItemNum, SDst h)
 		ImplRet(item_num = FetchResizedLineN(TextState, h))
 };
-
-inline SDst
-HexView::GetItemHeight() const
-{
-	return GetTextLineHeightExOf(TextState);
-}
 
 
 /*!

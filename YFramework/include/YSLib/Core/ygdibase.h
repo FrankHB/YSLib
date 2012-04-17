@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1917;
+\version r1962;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2012-03-26 08:56 +0800;
+	2012-04-17 09:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -249,12 +249,16 @@ public:
 	\note 零初始化。
 	*/
 	yconstfn
-	Size();
+	Size()
+		: Width(0), Height(0)
+	{}
 	/*!
 	\brief 复制构造。
 	*/
 	yconstfn
-	Size(const Size&);
+	Size(const Size& s)
+		: Width(s.Width), Height(s.Height)
+	{}
 	/*!
 	\brief 构造：使用 Rect 对象。
 	\since build 296 。
@@ -322,15 +326,6 @@ public:
 	}
 };
 
-yconstfn
-Size::Size()
-	: Width(0), Height(0)
-{}
-yconstfn
-Size::Size(const Size& s)
-	: Width(s.Width), Height(s.Height)
-{}
-
 /*!
 \brief 比较：屏幕区域大小相等关系。
 \since build 161 。
@@ -378,10 +373,9 @@ Transpose(_tBinary& obj)
 /*!
 \brief 取面积。
 \since build 231 。
-\todo 确定任意精度的返回值类型。
 */
-yconstfn u32
-GetAreaOf(const Size& s)
+yconstfn auto
+GetAreaOf(const Size& s) -> decltype(s.Width * s.Height)
 {
 	return s.Width * s.Height;
 }
@@ -434,7 +428,9 @@ public:
 	\note 零初始化。
 	*/
 	yconstfn
-	Rect();
+	Rect()
+		: Point(), Size()
+	{}
 	/*!
 	\brief 复制构造：默认实现。
 	*/
@@ -443,38 +439,58 @@ public:
 	\brief 构造：使用屏幕二维点。
 	*/
 	explicit yconstfn
-	Rect(const Point&);
+	Rect(const Point& pt)
+		: Point(pt), Size()
+	{}
 	/*!
 	\brief 构造：使用 Size 对象。
 	*/
 	explicit yconstfn
-	Rect(const Size&);
+	Rect(const Size& s)
+		: Point(), Size(s)
+	{}
 	/*!
 	\brief 构造：使用屏幕二维点和 Size 对象。
 	*/
 	yconstfn
-	Rect(const Point&, const Size&);
+	Rect(const Point& pt, const Size& s)
+		: Point(pt), Size(s)
+	{}
 	/*!
 	\brief 构造：使用屏幕二维点和表示长宽的两个 SDst 值。
 	*/
 	yconstfn
-	Rect(const Point&, SDst, SDst);
+	Rect(const Point& pt, SDst w, SDst h)
+		: Point(pt.X, pt.Y), Size(w, h)
+	{}
 	/*!
 	\brief 构造：使用表示位置的两个 SPos 值和 Size 对象。
 	*/
 	yconstfn
-	Rect(SPos, SPos, const Size&);
+	Rect(SPos x, SPos y, const Size& s)
+		: Point(x, y), Size(s.Width, s.Height)
+	{}
 	/*!
 	\brief 构造：使用表示位置的两个 SPos 值和表示大小的两个 SDst 值。
 	*/
 	yconstfn
-	Rect(SPos, SPos, SDst, SDst);
+	Rect(SPos x, SPos y, SDst w, SDst h)
+		: Point(x, y), Size(w, h)
+	{}
 
 	DefDeCopyAssignment(Rect)
 	Rect&
-	operator=(const Point&);
+	operator=(const Point& pt)
+	{
+		yunseq(X = pt.X, Y = pt.Y);
+		return *this;
+	}
 	Rect&
-	operator=(const Size&);
+	operator=(const Size& s)
+	{
+		yunseq(Width = s.Width, Height = s.Height);
+		return *this;
+	}
 
 	/*!
 	\brief 判断点 (px, py) 是否在矩形内或边上。
@@ -548,48 +564,6 @@ public:
 	*/
 	DefGetter(ynothrow, Size&, SizeRef, static_cast<Size&>(*this))
 };
-
-yconstfn
-Rect::Rect()
-	: Point(), Size()
-{}
-yconstfn
-Rect::Rect(const Point& pt)
-	: Point(pt), Size()
-{}
-yconstfn
-Rect::Rect(const Size& s)
-	: Point(), Size(s)
-{}
-yconstfn
-Rect::Rect(const Point& pt, const Size& s)
-	: Point(pt), Size(s)
-{}
-yconstfn
-Rect::Rect(const Point& pt, SDst w, SDst h)
-	: Point(pt.X, pt.Y), Size(w, h)
-{}
-yconstfn
-Rect::Rect(SPos x, SPos y, const Size& s)
-	: Point(x, y), Size(s.Width, s.Height)
-{}
-yconstfn
-Rect::Rect(SPos x, SPos y, SDst w, SDst h)
-	: Point(x, y), Size(w, h)
-{}
-
-inline Rect&
-Rect::operator=(const Point& pt)
-{
-	yunseq(X = pt.X, Y = pt.Y);
-	return *this;
-}
-inline Rect&
-Rect::operator=(const Size& s)
-{
-	yunseq(Width = s.Width, Height = s.Height);
-	return *this;
-}
 
 /*!
 \brief 比较：屏幕正则矩形相等关系。
@@ -685,12 +659,16 @@ public:
 	\brief 构造：使用指定位图指针和大小。
 	*/
 	explicit yconstfn
-	Graphics(BitmapPtr = nullptr, const Size& = Size::Zero);
+	Graphics(BitmapPtr b = nullptr, const Size& s = Size::Zero)
+		: pBuffer(b), size(s)
+	{}
 	/*!
 	\brief 复制构造：浅复制。
 	*/
 	yconstfn
-	Graphics(const Graphics&);
+	Graphics(const Graphics& g)
+		: pBuffer(g.pBuffer), size(g.size)
+	{}
 	/*!
 	\brief 析构：空实现。
 	*/
@@ -723,15 +701,6 @@ public:
 	BitmapPtr
 	at(size_t) const ythrow(GeneralEvent, std::out_of_range);
 };
-
-yconstfn
-Graphics::Graphics(BitmapPtr b, const Size& s)
-	: pBuffer(b), size(s)
-{}
-yconstfn
-Graphics::Graphics(const Graphics& g)
-	: pBuffer(g.pBuffer), size(g.size)
-{}
 
 
 /*!

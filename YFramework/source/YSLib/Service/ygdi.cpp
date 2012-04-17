@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3557;
+\version r3559;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2012-03-26 10:25 +0800;
+	2012-04-17 09:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -117,7 +117,7 @@ BitmapBuffer::BitmapBuffer(BitmapBuffer&& buf) ynothrow
 void
 BitmapBuffer::SetSize(SDst w, SDst h)
 {
-	u32 s(w * h);
+	decltype(GetAreaOf(GetSize())) s(w * h);
 
 	if(YCL_UNLIKELY(s == 0))
 	{
@@ -184,7 +184,7 @@ BitmapBufferEx::BitmapBufferEx(BitmapBufferEx&& buf) ynothrow
 void
 BitmapBufferEx::SetSize(SDst w, SDst h)
 {
-	u32 s(w * h);
+	decltype(GetAreaOf(GetSize())) s(w * h);
 
 	if(YCL_UNLIKELY(s == 0))
 	{

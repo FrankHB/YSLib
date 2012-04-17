@@ -11,13 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r1453;
+\version r1479;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 258 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-21 20:12 +0800;
+	2012-04-13 19:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -44,15 +44,12 @@ protected:
 	Drawing::Orientation Orientation;
 
 	explicit
-	MOriented(Drawing::Orientation);
+	MOriented(Drawing::Orientation o)
+		: Orientation(o)
+	{}
 
 	DefGetter(const ynothrow, Drawing::Orientation, Orientation, Orientation)
 };
-
-inline
-MOriented::MOriented(Drawing::Orientation o)
-	: Orientation(o)
-{}
 
 
 /*!
@@ -157,9 +154,19 @@ public:
 	/*!
 	\brief 构造：使用指定边界、前景色和背景色。
 	*/
-	View(const Rect& = Rect::Empty);
-	View(const View&);
-	View(View&&);
+	View(const Rect& r = Rect::Empty)
+		: visual(r), pContainer(), pDependency(), pFocusing()
+	{}
+	View(const View& v)
+		: visual(v.visual), pContainer(), pDependency(), pFocusing()
+	{}
+	View(View&& v)
+		: visual(v.visual), pContainer(v.pContainer), pDependency(v.pDependency),
+		pFocusing(v.pFocusing)
+	{
+		yunseq(v.pContainer = nullptr, v.pDependency = nullptr,
+			v.pFocusing = nullptr);
+	}
 	virtual DefClone(View, Clone)
 	virtual DefEmptyDtor(View)
 
@@ -168,13 +175,21 @@ public:
 	\since build 295 。
 	*/
 	View&
-	operator=(const View&);
+	operator=(const View& v)
+	{
+		visual = v.visual;
+		return *this;
+	}
 	/*!
 	\brief 转移赋值：仅可视状态。
 	\since build 295 。
 	*/
 	View&
-	operator=(View&&);
+	operator=(View&& v)
+	{
+		visual = std::move(v.visual);
+		return *this;
+	}
 
 	bool
 	IsVisible() const ynothrow;
@@ -203,36 +218,6 @@ public:
 	PDefH(void, SetSize, SDst w, SDst h)
 		ImplBodyMem(visual, SetSize, Size(w, h))
 };
-
-inline
-View::View(const Rect& r)
-	: visual(r), pContainer(), pDependency(), pFocusing()
-{}
-inline
-View::View(const View& v)
-	: visual(v.visual), pContainer(), pDependency(), pFocusing()
-{}
-inline
-View::View(View&& v)
-	: visual(v.visual), pContainer(v.pContainer), pDependency(v.pDependency),
-	pFocusing(v.pFocusing)
-{
-	yunseq(v.pContainer = nullptr, v.pDependency = nullptr,
-		v.pFocusing = nullptr);
-}
-
-inline View&
-View::operator=(const View& v)
-{
-	visual = v.visual;
-	return *this;
-}
-inline View&
-View::operator=(View&& v)
-{
-	visual = std::move(v.visual);
-	return *this;
-}
 
 YSL_END_NAMESPACE(Components)
 

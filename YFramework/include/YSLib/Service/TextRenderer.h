@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r7401;
+\version r7427;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-03-30 13:18 +0800;
+	2012-04-13 19:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -241,29 +241,23 @@ public:
 	TextState& State;
 	SDst Height;
 
-	EmptyTextRenderer(TextState&, SDst);
+	EmptyTextRenderer(TextState& ts, SDst h)
+		: State(ts), Height(h)
+	{}
 
 	/*!
 	\brief 渲染单个字符：仅移动笔，不绘制。
 	*/
 	void
-	operator()(ucs4_t);
+	operator()(ucs4_t c)
+	{
+		MovePen(State, c);
+	}
 
 	DefGetter(const ynothrow, const TextState&, TextState, State)
 	DefGetter(ynothrow, TextState&, TextState, State)
 	DefGetter(const ynothrow, SDst, Height, Height)
 };
-
-inline
-EmptyTextRenderer::EmptyTextRenderer(TextState& ts, SDst h)
-	: State(ts), Height(h)
-{}
-
-inline void
-EmptyTextRenderer::operator()(ucs4_t c)
-{
-	MovePen(State, c);
-}
 
 
 /*!
@@ -314,18 +308,27 @@ public:
 	const Graphics& Buffer;
 	Rect ClipArea;
 
-	TextRenderer(TextState&, const Graphics&);
+	TextRenderer(TextState& ts, const Graphics& g)
+		: GTextRendererBase<TextRenderer>(),
+		State(ts), Buffer(g), ClipArea(Point::Zero, g.GetSize())
+	{}
 	/*
 	\brief 构造：使用文本状态、图形接口上下文和指定区域边界。
 	\since build 265 。
 	*/
-	TextRenderer(TextState&, const Graphics&, const Rect&);
+	TextRenderer(TextState& ts, const Graphics& g, const Rect& mask)
+		: GTextRendererBase<TextRenderer>(),
+		State(ts), Buffer(g), ClipArea(mask)
+	{}
 
 	/*!
 	\brief 渲染单个字符。
 	*/
 	void
-	operator()(ucs4_t);
+	operator()(ucs4_t c)
+	{
+		RenderChar(c, State, TextRenderer::GetContext(), ClipArea, nullptr);
+	}
 
 	ImplS(GTextRendererBase) DefGetter(const ynothrow, const TextState&,
 		TextState, State)
@@ -342,23 +345,6 @@ public:
 	void
 	ClearLine(u16 l, SDst n);
 };
-
-inline
-TextRenderer::TextRenderer(TextState& ts, const Graphics& g)
-	: GTextRendererBase<TextRenderer>(),
-	State(ts), Buffer(g), ClipArea(Point::Zero, g.GetSize())
-{}
-inline
-TextRenderer::TextRenderer(TextState& ts, const Graphics& g, const Rect& mask)
-	: GTextRendererBase<TextRenderer>(),
-	State(ts), Buffer(g), ClipArea(mask)
-{}
-
-inline void
-TextRenderer::operator()(ucs4_t c)
-{
-	RenderChar(c, State, TextRenderer::GetContext(), ClipArea, nullptr);
-}
 
 
 /*!
@@ -401,7 +387,11 @@ public:
 	\brief 从文本状态中恢复状态。
 	*/
 	TextRegion&
-	operator=(const TextState&);
+	operator=(const TextState& ts)
+	{
+		TextState::operator=(ts);
+		return *this;
+	}
 	/*!
 	\brief 复制赋值：默认实现。
 	\since build 296 。
@@ -417,7 +407,11 @@ public:
 	\brief 渲染单个字符。
 	*/
 	void
-	operator()(ucs4_t);
+	operator()(ucs4_t c)
+	{
+		RenderChar(c, *this, *this, Rect(Point::Zero, GetSize()),
+			GetBufferAlphaPtr());
+	}
 
 	ImplS(GTextRendererBase) DefGetter(const ynothrow, const TextState&,
 		TextState, *this)
@@ -463,19 +457,6 @@ public:
 	Scroll(ptrdiff_t n, SDst h);
 };
 
-inline TextRegion&
-TextRegion::operator=(const TextState& ts)
-{
-	TextState::operator=(ts);
-	return *this;
-}
-
-inline void
-TextRegion::operator()(ucs4_t c)
-{
-	RenderChar(c, *this, *this, Rect(Point::Zero, GetSize()),
-		GetBufferAlphaPtr());
-}
 
 /*!
 \brief 绘制文本。

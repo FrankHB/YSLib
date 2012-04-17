@@ -11,13 +11,13 @@
 /*!	\file uicontx.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1180;
+\version r1181;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192 。
 \par 创建时间:
 	2011-02-21 09:01:13 +0800;
 \par 修改时间:
-	2012-03-18 21:46 +0800;
+	2012-04-17 07:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -65,7 +65,7 @@ DialogPanel::DialogPanel(const Rect& r)
 	*this += btnClose,
 	*this += btnOK,
 	yunseq(
-		btnOK.Text = "○",
+		btnOK.Text = u"○",
 		FetchEvent<Paint>(*this).Add(BorderBrush(), BackgroundPriority),
 		FetchEvent<Click>(btnOK) += [this](TouchEventArgs&&){
 			Close(*this);

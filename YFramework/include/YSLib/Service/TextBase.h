@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r7393;
+\version r7386;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-03-25 15:58 +0800;
+	2012-04-13 19:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -54,8 +54,9 @@ public:
 	\brief 构造：使用指定字体家族、字体大小和颜色。
 	*/
 	explicit
-	PenStyle(const Drawing::Font& = FetchPrototype<Drawing::Font>(),
-		Drawing::Color = Drawing::ColorSpace::White);
+	PenStyle(const Drawing::Font& font = FetchPrototype<Drawing::Font>(),
+		Drawing::Color c = Drawing::ColorSpace::White)
+	{}
 	/*!
 	\brief 析构：空实现。
 	*/
@@ -64,11 +65,6 @@ public:
 	DefGetterMem(const ynothrow, const FontFamily&, FontFamily, Font)
 	DefGetterMem(const ynothrow, FontCache&, Cache, Font)
 };
-
-inline
-PenStyle::PenStyle(const Drawing::Font& font, Drawing::Color c)
-	: Font(font), Color(c)
-{}
 
 
 /*!
@@ -107,12 +103,20 @@ public:
 	\brief 赋值：笔样式。
 	*/
 	TextState&
-	operator=(const PenStyle& ps);
+	operator=(const PenStyle& ps)
+	{
+		PenStyle::operator=(ps);
+		return *this;
+	}
 	/*!
 	\brief 赋值：边距。
 	*/
 	TextState&
-	operator=(const Padding& ms);
+	operator=(const Padding& ms)
+	{
+		Margin = ms;
+		return *this;
+	}
 
 	/*!
 	\brief 打印换行。
@@ -134,19 +138,6 @@ public:
 	void
 	ResetForBounds(const Rect&, const Size&, const Padding&);
 };
-
-inline TextState&
-TextState::operator=(const PenStyle& ps)
-{
-	PenStyle::operator=(ps);
-	return *this;
-}
-inline TextState&
-TextState::operator=(const Padding& ms)
-{
-	Margin = ms;
-	return *this;
-}
 
 
 /*!
