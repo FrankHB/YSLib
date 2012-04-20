@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4110;
+\version r4113;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-04-17 09:30 +0800;
+	2012-04-17 17:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -575,12 +575,15 @@ ReadingList::Switch(bool is_prev)
 
 ShlReader::ShlReader(const IO::Path& pth)
 	: ShlDS(),
-	CurrentPath(pth), fBackgroundTask()
+	CurrentPath(pth), fBackgroundTask(), bExit()
 {}
 
 void
 ShlReader::Exit()
 {
+	if(bExit)
+		return;
+	bExit = true;
 	fBackgroundTask = nullptr;
 	// TODO: use template %SetShellToNew;
 //	SetShellToNew<ShlExplorer>();

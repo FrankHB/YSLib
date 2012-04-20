@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4242;
+\version r4268;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2012-04-02 19:20 +0800;
+	2012-04-19 16:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -402,18 +402,10 @@ AScrollBar::Refresh(PaintEventArgs&& e)
 	Rect r(PaintChild(btnPrev, e));
 
 	if(!r.IsUnstrictlyEmpty())
-	{
-		WndDrawArrow(e.Target, Rect(e.Location + GetLocationOf(btnPrev),
-			GetSizeOf(btnPrev)), 4, pTrack->GetOrientation() == Horizontal
-			? RDeg180 : RDeg90, ForeColor),
 		e.ClipArea = Unite(e.ClipArea, r);
-	}
 	if(!(r = PaintChild(btnNext, e)).IsUnstrictlyEmpty())
 	{
 		Unite(e.ClipArea, PaintChild(btnNext, e));
-		WndDrawArrow(e.Target, Rect(e.Location + GetLocationOf(btnNext),
-			GetSizeOf(btnNext)), 4, pTrack->GetOrientation() == Horizontal
-			? RDeg0 : RDeg270, ForeColor),
 		e.ClipArea = Unite(e.ClipArea, r);
 	}
 	e.ClipArea = Unite(e.ClipArea, PaintChild(*pTrack, e));
@@ -422,7 +414,17 @@ AScrollBar::Refresh(PaintEventArgs&& e)
 
 HorizontalScrollBar::HorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
 	: AScrollBar(r, uMinThumbLength, Horizontal)
-{}
+{
+	using namespace std;
+	using namespace placeholders;
+
+	yunseq(
+		FetchEvent<Paint>(btnPrev) += bind(DrawArrow, _1, ref(btnPrev), 4,
+			RDeg180, ref(ForeColor)),
+		FetchEvent<Paint>(btnNext) += bind(DrawArrow, _1, ref(btnNext), 4,
+			RDeg0, ref(ForeColor))
+	);
+}
 
 IWidget*
 HorizontalScrollBar::GetBoundControlPtr(const KeyInput& k)
@@ -440,7 +442,17 @@ HorizontalScrollBar::GetBoundControlPtr(const KeyInput& k)
 
 VerticalScrollBar::VerticalScrollBar(const Rect& r, SDst uMinThumbLength)
 	: AScrollBar(r, uMinThumbLength, Vertical)
-{}
+{
+	using namespace std;
+	using namespace placeholders;
+
+	yunseq(
+		FetchEvent<Paint>(btnPrev) += bind(DrawArrow, _1, ref(btnPrev), 4,
+			RDeg90, ref(ForeColor)),
+		FetchEvent<Paint>(btnNext) += bind(DrawArrow, _1, ref(btnNext), 4,
+			RDeg270, ref(ForeColor))
+	);
+}
 
 IWidget*
 VerticalScrollBar::GetBoundControlPtr(const KeyInput& k)

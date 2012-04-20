@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1331;
+\version r1364;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-06-08 13:21:10 +0800;
 \par 修改时间:
-	2012-03-28 18:08 +0800;
+	2012-04-19 15:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -51,15 +51,23 @@ DrawRectRoundCorner(const Graphics&, const Point&, const Size&, Color);
 */
 void
 RectDrawArrow(const Graphics&, const Point&, SDst, Rotation = RDeg0,
-	Color c = Drawing::ColorSpace::Black);
+	Color c = ColorSpace::Black);
 
 /*!
-\brief 在指定图形接口上下文的窗口上画箭头。
-\since build 215 。
+\brief 在指定图形接口上下文上画箭头。
+\since build 302 。
 */
 void
-WndDrawArrow(const Graphics&, const Rect&, SDst, Rotation = RDeg0,
-	Color c = Drawing::ColorSpace::Black);
+DrawArrow(const Graphics&, const Rect&, SDst = 4, Rotation = RDeg0,
+	Color = ColorSpace::Black);
+
+/*!
+\brief 在指定图形接口上下文中的指定点为边框左上角使用指定颜色绘制交叉直线段（“×”）。
+\note 若不满足长和宽都大于 8 则忽略。
+\since build 302 。
+*/
+void
+DrawCross(const Graphics&, const Point&, const Size&, Color);
 
 
 /*!
@@ -76,7 +84,15 @@ transform_pixel_ex(BitmapPtr dst)
 }
 
 
-//平台无关色彩系统转换。
+//平台无关色彩系统类型和转换。
+
+/*!
+\brief 色调。
+\note 角度制，值 360 对应一个圆周。
+\since build 302 。
+*/
+typedef ystdex::fixed_point<u16, 9> Hue;
+
 
 /*!
 \brief HSL 颜色。
@@ -86,10 +102,9 @@ typedef struct
 {
 	/*!
 	\brief 色调。
-	\since build 276 。
-	\note 角度制，值 360 对应一个圆周。
+	\since build 302 。
 	*/
-	ystdex::fixed_point<u16, 9> h;
+	Hue h;
 	/*!
 	\brief 饱和度和亮度。
 	\note 最大有效值为 1 。

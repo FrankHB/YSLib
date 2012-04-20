@@ -11,13 +11,13 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1269;
+\version r1279;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192 。
 \par 创建时间:
 	2011-02-21 08:59:34 +0800;
 \par 修改时间:
-	2012-03-18 21:43 +0800;
+	2012-04-18 22:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -42,7 +42,11 @@ YSL_BEGIN_NAMESPACE(Components)
 class DialogBox : public Control
 {
 protected:
-	CloseButton btnClose;
+	/*!
+	\brief 关闭按钮。
+	\since build 302 。
+	*/
+	Thumb btnClose;
 
 public:
 	explicit
@@ -67,7 +71,11 @@ public:
 class DialogPanel : public Panel
 {
 public:
-	CloseButton btnClose;
+	/*!
+	\brief 关闭按钮。
+	\since build 302 。
+	*/
+	Thumb btnClose;
 	Button btnOK;
 
 	explicit

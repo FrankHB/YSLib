@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3585; *build 301 rev 13;
+\version r3585; *build 302 rev 14;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-17 09:41 +0800;
+	2012-04-20 11:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -367,135 +367,146 @@ $using:
 
 $DONE:
 r1:
-/ \impl @ \ctor DSApplication @ \impl \u DSMain,
-/ @ \impl \u @ ARM9_Main $=
+/ @ \u YStyle $=
+(
+	(
+		/ \simp \impl @ \f ColorToHSL,
+		* \impl @ \f HSLToColor $since b276
+	),
+	(
+		+ typedef ystdex::fixed_point<u16, 9> Hue;
+		/ \m ystdex::fixed_point<u16, 9> h @ \st hsl_t -> Hue h
+	)
+),
+/ @ \u Button $=
 (
 	/ @ \un \ns $=
 	(
-		/ \simp \impl @ \f OnExit_DebugMemory_continue,
-		(
-			+ \ft OnExit_DebugMemory_print;
-			/ \simp \impl @ \f OnExit_DebugMemory ^ \ft OnExit_DebugMemory_print
-		)
+		+ \f \i change_hue;
+		/ \f RectDrawButton
 	),
 	(
-		/ \cl MainShell @ \ns YSLib::Shells -> \st ShlLoad @ main function;
-		/ \tr \impl @ main function
+		/ !\rem \h YStyle @ \h Button;
+		+ \m Drawing::Hue Hue @ \cl Thumb
 	)
-),
-/ \tp \param \n @ \ft assign @ \h Algorithm;
-/ \a (\mf, \mft) \impl @ \h >> (\st, \cl, \clt);
+	/ \tr \impl @ \mf Refresh @ \cl Thumb,
+	/ \tr \impl @ \ctor (Thumb, CloseButton)
+);
 
 r2:
-/ @ (\mf HexView::GetItemHeight @ \h HexBrowser,
-	MTextList::(GetItemHeight, GetTextState) @ \h Label) $=
+/ @ \u Button $=
 (
-	/ \simp \decl ^ \mac DefGetter,
-	+ 'ynothrow'
-),
-/ \simp \impl @ \ctor Control,
-+ using std::round @ \h YAdaptor;
+	+ \mf DefPred(const ynothrow, Pressed, bPressed) @ \cl Thumb,
+	/ @ \un \ns $=
+	(
+		+ using Drawing::Hue,
+		/ \simp \a \f;
+		+ \f DrawButtonBackground
+	);
+	/ \tr \impl @ \ctor (Thumb, CloseButton);
+	- \m Drawing::Hue Hue @ \cl Thumb
+);
 
 r3:
-/= test 1 ^ \conf release;
++ \f void DrawCross(const Graphics&, const Point&, const Size&, Color)
+	@ \u YStyle;
+/ \simp \impl @ \mf CloseButton::Refresh;
 
 r4:
-/ \impl @ main function @ \impl \u ARM9_Main $=
+/ @ \u Button $=
 (
-	/ \simp \impl;
-	- \cl ShlLoad
+	/ \f DrawButtonBackground @ \un \ns
+		-> \f DrawThumbBackground @ \ns Components;
+	/ \tr \impl @ \ctor (Thumb, CloseButton)
 );
 
 r5:
-/ @ \impl \u ARM9_Main $=
+/ @ \u Button $=
 (
-	+ \f void Repaint(Desktop&) @ \un \ns;
-	/ \simp \impl @ main function
+	+ \f DrawThumbCross;
+	/ @ \cl CloseButton $=
+	(
+		- \mf Refresh,
+		/ \impl @ \ctor
+	)
 );
 
 r6:
-/ @ \impl \u ARM9_Main $=
+/ @ \u Button $=
 (
-	/ \simp \impl @ \f OnExit_DebugMemory,	
-	(
-		+ \mac G_COMP_NAME,
-		+ \mac G_APP_NAME,
-		+ \mac G_APP_VER;
-		/ \impl @ main \f
-	)
+	/ @ \ctor Thumb;
+	/ \simp \impl @ \ctor CloseButton
 );
 
 r7:
-/ @ \h Utilities $=
+/ @ \u Button $=
 (
-	+ \ft template<typename _fCallable, typename... _tParams> void
-		call_once(bool&, _fCallable, _tParams&&...),
-	(
-		+ \ft<typename, typename...> \i _type& parameterize_static_object();
-		+ \ft<typename..., typename, typename...> \i auto get_init(_fInit,
-			_tParams&&...) -> decltype(f(yforward(args)...))&,
-	),
-	(
-		+ \ft<typename, size_t...> \i _type& parameterize_static_object();
-		+ \ft<size_t..., typename, typename...> \i auto get_init(_fInit,
-			_tParams&&...) -> decltype(f(yforward(args)...))&
-	)
+	+ \f DecorateAsCloseButton(Thumb&);
+	- \cl CloseButton
 );
-/ \simp \impl @ \impl \u ShlReader $=
+/ \tr @ \u UIContainerEx $=
 (
-	- \en GRLs,
-	- \f QueryList,
-	/ \tr \impl @ \ctor SettingPanel
+	/ \a CloseButton -> Thumb,
+	/ \tr \impl @ \ctor (DialogBox, DialogPanel)
 );
 
 r8:
-/= test 2 ^ \conf release;
+/= test 1 ^ \conf release;
 
 r9:
-/ @ \impl \u ShlReader $=
-(
-	+ \ft \i SetBufferRendererAndText @ \un \ns;
-	/ \simp \impl \ctor ReaderBox ^ (SetBufferRendererAndText, \pref 'u' \lit)
-),
-/ \impl @ \ctor DialogPanel ^ \pref 'u' \lit;
+/ \f DrawThumbCross @ \u Button \mg -> \f DecorateAsCloseButton;
 
 r10:
-/ \impl @ \impl \u ARM9_Main,
-/ \simp \sm @ \stt iterator_operations @ \h Iterator
-	^ constexpr brace-initializer,
-* $doc @ \stt safe_delete_obj  @ \h YCoreUtilities $since b263;
+/ \f WndDrawArrow @ \u YStyle => \f DrawArrow,
+/ \inc \h YDraw @ \impl \u YWidget -> \h YStyle;
++ \f DrawArrow @ \u YWidget;
+/ @ \impl \u Scroll $=
+(
+	/ \impl @ \ctor @ (HorizontalScrollBar, VerticalScrollBar);
+	/ \simp \impl @ \mf AScrollBar::Refresh
+);
 
 r11:
-/ yconstfn u32 GetAreaOf(const Size&) -> yconstfn auto GetAreaOf(const Size&)
-	@ \h YGDIBase;
+/ @ \u ShlReader
+(
+	+ \m @ ShlReader,
+	/ \tr \impl @ \ctor ShlReader;
+	/ \impl @ \mf ShlReader::Exit;
+	* $comp Exit called more than once @ reader $since b300
+);
 
 r12:
-/ @ \ctor ShlExplorer() \cl ShlExplorer
-	@ \u Shells -> ShlExplorer(const IO::Path& = IO::GetNowDirectory());
-/ \impl @ \mf ShlReader::Exit @ \impl \u ShlReader;
+/= test 2 ^ \conf release;
 
 r13:
-/ \impl @ \mf SetSize @ \cl (BitmapBuffer, BitmapBufferEx);
+/ \impl @ \ft \i SetShellTo @ \h ShellHelper;
+
+r14:
 /= test 3 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-04-16:
--8.9d;
-//Mercurial rev1-rev173: r8249;
+2012-04-20:
+-10.1d;
+//Mercurial rev1-rev174: r8263;
 
 / ...
 
 
 $NEXT_TODO:
-b302-b324:
+b303-b332:
+/ YReader $=
+(
+	/ \simp \impl @ \u (DSReader, ShlReader),
+	+ bookmarks manager
+),
 + dynamic character mapper loader for \u CharacterMapping;
 
 
 $TODO:
-b325-b384:
+b333-b384:
 / $design $low_prior robustness and cleanness $=
 (
 	/ noncopyable GUIState,
@@ -513,8 +524,6 @@ b325-b384:
 ),
 / $low_prior YReader $=
 (
-	/ \simp \impl @ \u (DSReader, ShlReader),
-	+ bookmarks manager,
 	+ settings manager,
 	+ reading history,
 	+ improved smooth scrolling with lower limit of scrolling cycle supported,
@@ -846,6 +855,37 @@ $module_tree $=
 
 $now
 (
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'GUI' $=
+		(
+			/ @ "unit %YStyle" $=
+			(
+				+ "typedef %hue" @ "unit %YStyle"
+				* "overflow on boundary saturation or light value"
+					@ "function %HSLToColor" $since b276,
+			);
+			/ @ "unit %Button"
+			(
+				+ "hue settings for button painting",
+				- "class %CloseButton"
+			),
+			(
+				+ "function %DrawArrow" @ "unit %YWidget";
+				/ $design "simplified arrow painting" @ "scroll bar buttons"
+			)
+		),
+		/ "shell switching helper function" %'helpers'
+			// Destination shell handle message post to set shell is set \
+				to null to avoid potentional dead lock in Message loop when \
+				called more than once.
+	),
+	* "infinite loop after pressing %Esc" @ "main UI" @ %'YReader'.'text reader'
+		$since b300
+),
+
+b301
+(
 	/ $design "all %inline member outside of class or class template definition"
 		@ "headers" >> "class or class template definition"
 	/ %'YBase'.'YStandardEx' $=
@@ -853,7 +893,8 @@ $now
 		/ %'Utilities' $=
 		(
 			+ "function template %call_once",
-				// Just like std::call_once but without thread safety guarantee.
+				// Just like %std::call_once, but with no thread safety \
+					guarantee.
 			(
 				+ "function template %parameterize_static_object";
 				+ "function template %get_init";
@@ -906,8 +947,8 @@ b300
 		),
 		* "key updating" @ "defined %YCL_MINGW32"
 			@ %'YCLib'.'common input APIs' $since b299
-			// It seems that sometimes %GetAsyncKeyState reads unexpected
-			//	virtual key value like '0xFF'.
+			// It seems that sometimes %GetAsyncKeyState reads unexpected \
+				virtual key value like '0xFF'.
 	);
 	/ %'YReader'.'text reader' $=
 	(

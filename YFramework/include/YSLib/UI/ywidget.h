@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6511;
+\version r6518;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-19 11:55 +0800;
+	2012-04-19 15:37 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -237,6 +237,14 @@ CheckWidget(IWidget& wgt, const Point& pt, bool(&f)(const IWidget&));
 */
 void
 Close(IWidget&);
+
+/*!
+\brief 在指定部件中心画箭头。
+\since build 302 。
+*/
+void
+DrawArrow(PaintEventArgs&&, IWidget&, SDst = 4, Drawing::Rotation
+	= Drawing::RDeg0, Drawing::Color = Drawing::ColorSpace::Black);
 
 /*!
 \brief 隐藏部件。

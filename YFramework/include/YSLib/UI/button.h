@@ -11,13 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3131;
+\version r3191;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2012-03-18 18:13 +0800;
+	2012-04-19 14:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "ycontrol.h"
 #include "label.h"
-//#include "ystyle.h"
+#include "ystyle.h"
 
 YSL_BEGIN
 
@@ -44,19 +44,44 @@ class Thumb : public Control
 {
 protected:
 	/*!
-	\brief 键按下状态：表示当前是否处于按下状态
+	\brief 按下状态：表示按钮当前是否处于按下状态。
 	\since build 288 。
 	*/
 	bool bPressed;
 
 public:
 	/*!
-	\brief 构造：使用指定边界。
+	\brief 构造：使用指定边界和色调。
+	\since build 302 。
 	*/
 	explicit
-	Thumb(const Rect& = Rect::Empty);
+	Thumb(const Rect& = Rect::Empty, Drawing::Hue = 180);
 	inline DefDeMoveCtor(Thumb)
+
+	/*!
+	\brief 判断按钮当前是否处于按下状态。
+	\since build 302 。
+	*/
+	DefPred(const ynothrow, Pressed, bPressed)
 };
+
+
+/*!
+\brief 绘制指定色调的基本按钮背景。
+\since build 302 。
+*/
+void
+DrawThumbBackground(PaintEventArgs&& e, Thumb&, Hue);
+
+
+/*!
+\brief 装饰 Thumb 为关闭按钮。
+\since build 302 。
+
+在指定 Thumb 上增加 Click 事件响应：关闭父容器；增加 Paint 事件响应：绘制“×”。
+*/
+void
+DecorateAsCloseButton(Thumb&);
 
 
 /*!
@@ -83,29 +108,6 @@ public:
 	Button(const Rect& = Rect::Empty,
 		const Drawing::Font& = FetchPrototype<Drawing::Font>());
 	inline DefDeMoveCtor(Button)
-
-	/*!
-	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
-	*/
-	virtual void
-	Refresh(PaintEventArgs&&);
-};
-
-
-/*!
-\brief 关闭按钮。
-\since build 276 。
-*/
-class CloseButton : public Thumb
-{
-public:
-	/*!
-	\brief 构造：使用指定边界和字体。
-	*/
-	explicit
-	CloseButton(const Rect& = Rect::Empty);
-	inline DefDeMoveCtor(CloseButton)
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。

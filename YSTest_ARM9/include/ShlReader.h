@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2342;
+\version r2348;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-04-13 19:52 +0800;
+	2012-04-19 17:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -366,12 +366,18 @@ protected:
 	\since build 296 。
 	*/
 	IO::Path CurrentPath;
-
 	/*!
 	\brief 背景任务：用于滚屏。
 	\since build 297 。
 	*/
 	std::function<void()> fBackgroundTask;
+	/*!
+	\brief 退出标识。
+	\since build 302 。
+
+	用于保证对一个实例只进行一次有效切换的标识。
+	*/
+	bool bExit;
 
 public:
 	/*!

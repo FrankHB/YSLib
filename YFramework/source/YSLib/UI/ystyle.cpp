@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1621;
+\version r1634;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2012-03-27 21:58 +0800;
+	2012-04-19 15:35 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -108,7 +108,7 @@ RectDrawArrow(const Graphics& g, const Point& pt, SDst half_size, Rotation rot,
 }
 
 void
-WndDrawArrow(const Graphics& g, const Rect& r, SDst half_size, Rotation rot,
+DrawArrow(const Graphics& g, const Rect& r, SDst half_size, Rotation rot,
 	Color c)
 {
 	SPos x(r.X), y(r.Y);
@@ -130,6 +130,19 @@ WndDrawArrow(const Graphics& g, const Rect& r, SDst half_size, Rotation rot,
 		break;
 	}
 	RectDrawArrow(g, Point(x, y), half_size, rot, c);
+}
+
+void
+DrawCross(const Graphics& g, const Point& pt, const Size& s, Color c)
+{
+	if(YCL_LIKELY(s.Width > 8 && s.Height > 8))
+	{
+		const SPos xmin(pt.X + 4), xmax(xmin + s.Width - 8),
+			ymin(pt.Y + 4), ymax(ymin + s.Height - 8);
+
+		DrawLineSeg(g, xmin, ymin, xmax, ymax, c),
+		DrawLineSeg(g, xmax - 1, ymin, xmin - 1, ymax, c);
+	}
 }
 
 
@@ -169,24 +182,21 @@ ColorToHSL(Color c)
 		if(h < 0)
 			h += 0x6;
 	}
-
-	const hsl_t res = {h * 60, s, l};
-
-	return res;
+	return {h * 60, s, l};
 }
 
 Color
 HSLToColor(hsl_t c)
 {
 	if(c.s == 0)
-		return Color(c.l * 0x100, c.l * 0x100, c.l * 0x100);
+		return c.l > 255.F / 0x100 ? Color(0xFF, 0xFF, 0xFF)
+			: Color(c.l * 0x100, c.l * 0x100, c.l * 0x100);
 
 	typedef float mid_t; //中间类型。
 
 	mid_t t2((c.l < 0.5 ? c.l * (1 + c.s) : (c.l + c.s - c.l * c.s)) * 0x100),
 		t1((c.l * 0x200) - t2);
-	mid_t t3(c.h); //角度制，即值 360 对应一个圆周。
-	mid_t tmp[3] = {t3 + 120, t3, t3 - 120}; \
+	mid_t tmp[3] = {c.h + 120, c.h, c.h - 120}; \
 		// tmp 每个元素对应一个 RGB 分量，值 360 对应一个圆周。
 	float dc[3]; //对应 RGB 分量。
 
@@ -204,6 +214,8 @@ HSLToColor(hsl_t c)
 			dc[i] = t1 + (t2 - t1) * (240 - tmp[i]) / 60;
 		else
 			dc[i] = t1;
+		if(dc[i] > 0xFF)
+			dc[i] = 0xFF;
 	}
 	return Color(dc[0], dc[1], dc[2]);
 }

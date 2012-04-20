@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1955;
+\version r1956;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2012-04-01 16:51 +0800;
+	2012-04-19 14:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -215,7 +215,7 @@ Menu::PaintItem(const Graphics& g, const Rect& mask, const Rect& r,
 	GetTextState().Color = t;
 	if(YCL_LIKELY(r.Width > 16))
 		if(mSubMenus.find(i) != mSubMenus.end())
-			WndDrawArrow(g, Rect(r.X + r.Width - 16, r.Y, 16, r.Height), 4,
+			DrawArrow(g, Rect(r.X + r.Width - 16, r.Y, 16, r.Height), 4,
 				RDeg0, ForeColor);
 }
 

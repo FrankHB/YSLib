@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1523;
+\version r1525;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2012-04-13 19:44 +0800;
+	2012-04-18 19:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -82,9 +82,9 @@ public:
 
 /*!
 \brief 带缓冲的部件渲染器。
+\since build 237 。
 
 缓冲渲染策略：保存部件渲染状态和有效的图形接口上下文。
-\since build 237 。
 */
 class BufferedRenderer : public Renderer
 {
@@ -155,7 +155,7 @@ public:
 
 	/*!
 	\brief 更新至指定图形设备上下文的指定点。
-	\note 调用 wgt 的 Refresh 刷新。
+	\note 复制显示缓冲区内容。
 	*/
 	void
 	UpdateTo(const PaintContext&) const;

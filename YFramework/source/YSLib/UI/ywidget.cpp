@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5408;
+\version r5429;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-26 09:30 +0800;
+	2012-04-19 15:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/UI/ydesktop.h"
-#include "YSLib/Service/ydraw.h"
+#include "YSLib/UI/ystyle.h"
 
 YSL_BEGIN
 
@@ -93,6 +93,14 @@ Close(IWidget& wgt)
 	Hide(wgt);
 	if(const auto pCon = FetchContainerPtr(wgt))
 		ClearFocusingOf(*pCon);
+}
+
+void
+DrawArrow(PaintEventArgs&& e, IWidget& wgt, SDst half_size, Rotation rot,
+	Color c)
+{
+	Drawing::DrawArrow(e.Target, Rect(e.Location, GetSizeOf(wgt)), half_size,
+		rot, c);
 }
 
 void
