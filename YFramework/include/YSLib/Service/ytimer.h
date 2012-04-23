@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1834;
+\version r1842;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2012-04-13 19:25 +0800;
+	2012-04-21 22:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -150,6 +150,16 @@ public:
 	*/
 	void
 	SetInterval(const Duration&);
+
+	/*!
+	\brief 延迟。
+	\since build 303 。
+	*/
+	void
+	Delay(const Duration& d)
+	{
+		nBase += d;
+	}
 
 	/*!
 	\brief 刷新。

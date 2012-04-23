@@ -11,35 +11,33 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r1866;
+\version r1909;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-04-13 17:22 +0800;
+	2012-04-22 22:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YSLib::Helper::DSMain;
+	Helper::DSMain;
 */
 
 
-#include "YSLib/Helper/DSMain.h"
-#include "YSLib/Helper/yglobal.h"
-#include "YSLib/Helper/Initialization.h"
-#include "YSLib/UI/ydesktop.h"
-#include "YSLib/Helper/shlds.h"
-#include "YSLib/UI/ygui.h"
-#include "YCLib/Input.h"
-#include "YCLib/Debug.h"
+#include "Helper/DSMain.h"
+#include "Helper/yglobal.h"
+#include "Helper/Initialization.h"
+#include <YSLib/UI/ydesktop.h>
+#include "Helper/shlds.h"
+#include <YSLib/UI/ygui.h>
+#include <YCLib/Debug.h>
 #ifdef YCL_MINGW32
 #include <thread>
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
 #endif
-//#include <clocale>
 
 YSL_BEGIN
 
@@ -450,57 +448,15 @@ DSApplication::DSApplication()
 	YSL_ pApp = this;
 
 	//全局初始化。
-
-	//设置默认异常终止函数。
-	std::set_terminate(terminate);
-
-#ifdef YCL_DS
-	//启用设备。
-	::powerOn(POWER_ALL);
-
-	//启用 LibNDS 默认异常处理。
-	::defaultExceptionHandler();
-
-	//初始化主控制台。
-	platform::YConsoleInit(true, ColorSpace::Lime);
-
-	//初始化文件系统。
-	//初始化 EFSLib 和 LibFAT 。
-	//当 .nds 文件大于32MB时， EFS 行为异常。
-#	ifdef USE_EFS
-	if(!::EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, nullptr))
-	{
-		//如果初始化 EFS 失败则初始化 FAT 。
-#	endif
-		if(!fatInitDefault())
-			LibfatFail();
-#	ifdef USE_EFS
-	}
-#	endif
-#elif defined(YCL_MINGW32)
+	InitializeEnviornment();
+#if defined(YCL_MINGW32)
 	//启动本机消息循环线程后完成应用程序实例其它部分的初始化（注意顺序）。
 	pHostThread = new std::thread(HostTask);
 #endif
-
-#if 0
-	// TODO: review locale APIs compatibility;
-	static yconstexpr char locale_str[]{"zh_CN.GBK"};
-
-	if(!setlocale(LC_ALL, locale_str))
-	{
-		EpicFail();
-		throw LoggedEvent("setlocale() with %s failed.\n", locale_str);
-	}
-#endif
-
 	//检查程序是否被正确安装。
 	CheckInstall();
 
-	//初始化系统字体资源。
-	InitializeSystemFontCache();
-
 	//初始化系统设备。
-	//初始化显示设备。
 	try
 	{
 		pScreenUp = new DSScreen(MainScreenWidth, MainScreenHeight);
@@ -510,6 +466,8 @@ DSApplication::DSApplication()
 	{
 		throw LoggedEvent("Screen initialization failed.");
 	}
+	//初始化系统字体资源。
+	InitializeSystemFontCache();
 #ifdef YCL_MINGW32
 	pScreenDown->Offset.Y = MainScreenHeight;
 

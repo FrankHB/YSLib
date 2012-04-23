@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.cpp
 \ingroup YReader
 \brief Shell 拾色器。
-\version r1214;
+\version r1226;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2012-01-06 21:37:51 +0800;
 \par 修改时间:
-	2012-03-18 21:56 +0800;
+	2012-04-21 18:32 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -50,13 +50,8 @@ ColorBox::ColorBox(const Point& pt, Color c)
 			trBlue.GetValue()));
 	});
 
-	*this += ctlColorArea,
-	*this += trRed,
-	*this += trGreen,
-	*this += trBlue,
-	*this += lblRed,
-	*this += lblGreen,
-	*this += lblBlue,
+	AddWidgets(*this, ctlColorArea, trRed, trGreen, trBlue, lblRed, lblGreen,
+		lblBlue),
 	trRed.SetMaxValue(255),
 	trGreen.SetMaxValue(255),
 	trBlue.SetMaxValue(255),
@@ -90,11 +85,11 @@ ColorBox::SetColor(Color c)
 	char str[7];
 
 	// FIXME: snprintf shall be a member of namespace std;
-	/*std::*/snprintf(str, 7, "R: %d", c.GetR());
+	/*std*/::snprintf(str, 7, "R: %d", c.GetR());
 	lblRed.Text = str;
-	/*std::*/snprintf(str, 7, "G: %d", c.GetG());
+	/*std*/::snprintf(str, 7, "G: %d", c.GetG());
 	lblGreen.Text = str;
-	/*std::*/snprintf(str, 7, "B: %d", c.GetB());
+	/*std*/::snprintf(str, 7, "B: %d", c.GetB());
 	lblBlue.Text = str;
 
 	Invalidate(ctlColorArea),

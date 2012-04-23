@@ -9,28 +9,29 @@
 */
 
 /*!	\file Initialization.cpp
-\ingroup Adaptor
+\ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1933;
+\version r2024;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-04-12 20:20 +0800;
+	2012-04-23 10:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YSLib::Helper::Initialization;
+	Helper::Initialization;
 */
 
 
-#include "YSLib/Helper/Initialization.h"
-#include "YSLib/Adaptor/Font.h"
-#include "YSLib/Core/yapp.h"
-#include "YSLib/Helper/DSMain.h"
-#include "YCLib/Debug.h"
-#include "YSLib/Service/yftext.h" // for BOM_UTF8;
+#include "Helper/Initialization.h"
+#include <YSLib/Adaptor/Font.h>
+#include <YSLib/Core/yapp.h>
+#include "Helper/DSMain.h"
+#include <YCLib/Debug.h>
+#include <YSLib/Service/yftext.h> // for BOM_UTF8;
+//#include <clocale>
 
 using namespace ystdex;
 using namespace platform;
@@ -41,15 +42,18 @@ YSL_BEGIN
 using namespace Drawing;
 using namespace IO;
 
+namespace
+{
+
+/*!
+\brief 初始化失败公用程序。
+*/
 void
 EpicFail()
 {
 	YDebugSetStatus();
 	YDebugBegin();
 }
-
-namespace
-{
 
 inline void
 fatalError()
@@ -71,11 +75,11 @@ printFailInfo(const char* t, const char* s)
 void
 defFontFail()
 {
-	const char* title =
+	yconstexpr const char* title =
 		"    Fontface Caching Failure    ";
-	const char* warning =
-		" Please make sure the fonts are "
-		" stored in correct directory.   ";
+	yconstexpr const char* warning =
+		" Please make sure the fonts are\n"
+		" stored in correct directory.\n";
 
 	printFailInfo(title, warning);
 	fatalError();
@@ -84,11 +88,11 @@ defFontFail()
 void
 installFail(const char* str)
 {
-	const char* title =
+	yconstexpr const char* title =
 		"      Invalid Installation      ";
-	const char* warning =
-		" Please make sure the data is   "
-		" stored in correct directory.   ";
+	yconstexpr const char* warning =
+		" Please make sure the data is\n"
+		" stored in correct directory.\n";
 
 	printFailInfo(title, warning);
 	std::printf(" %s\n cannot be found!\n", str);
@@ -153,73 +157,137 @@ CheckConfiguration()
 		std::printf("Found configuration file '%s'.\n", CONF_PATH);
 }
 
-char def_dir[80], font_path[80], font_dir[80];
-
-} // unnamed namespace;
-
+#ifdef YCL_DS
 void
-LibfatFail()
+libfatFail()
 {
-	const char* title =
+	yconstexpr const char* title =
 		"         LibFAT Failure         ";
-	const char* warning =
-		" An error is preventing the     "
-		" program from accessing         "
-		" external files.                "
-		"                                "
-		" If you're using an emulator,   "
-		" make sure it supports DLDI     "
-		" and that it's activated.       "
-		"                                "
-		" In case you're seeing this     "
-		" screen on a real DS, make sure "
-		" you've applied the correct     "
-		" DLDI patch (most modern        "
-		" flashcards do this             "
-		" automatically).                "
-		"                                "
-		" Note: Some cards only          "
-		" autopatch .nds files stored in "
-		" the root folder of the card.   ";
+	yconstexpr const char* warning =
+		" An error is preventing the\n"
+		" program from accessing\n"
+		" external files.\n"
+		"\n"
+		" If you're using an emulator,\n"
+		" make sure it supports DLDI\n"
+		" and that it's activated.\n"
+		"\n"
+		" In case you're seeing this\n"
+		" screen on a real DS, make sure\n"
+		" you've applied the correct\n"
+		" DLDI patch (most modern\n"
+		" flashcards do this\n"
+		" automatically).\n"
+		"\n"
+		" Note: Some cards only\n"
+		" autopatch .nds files stored in\n"
+		" the root folder of the card.\n";
 
 	printFailInfo(title, warning);
 	fatalError();
 }
+#endif
+
+char def_dir[80], font_path[80], font_dir[80];
+
+} // unnamed namespace;
 
 
 void
-InitializeSystemFontCache()
+InitializeEnviornment() ynothrow
+{
+	//设置默认异常终止函数。
+	std::set_terminate(terminate);
+	try
+	{
+#ifdef YCL_DS
+		//启用设备。
+		::powerOn(POWER_ALL);
+
+		//启用 LibNDS 默认异常处理。
+		::defaultExceptionHandler();
+
+		//初始化主控制台。
+		platform::YConsoleInit(true, ColorSpace::Lime);
+
+		//初始化文件系统。
+		//初始化 EFSLib 和 LibFAT 。
+		//当 .nds 文件大于32MB时， EFS 行为异常。
+#	ifdef USE_EFS
+		if(!::EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, nullptr))
+		{
+			//如果初始化 EFS 失败则初始化 FAT 。
+#	endif
+			if(!::fatInitDefault())
+				libfatFail();
+#	ifdef USE_EFS
+		}
+#	endif
+#endif
+#if 0
+		// TODO: review locale APIs compatibility;
+		static yconstexpr char locale_str[]{"zh_CN.GBK"};
+
+		if(!setlocale(LC_ALL, locale_str))
+		{
+			throw LoggedEvent("setlocale() with %s failed.\n", locale_str);
+		}
+#endif
+	}
+	catch(LoggedEvent& e)
+	{
+		puts(e.what());
+		EpicFail();
+	}
+	catch(...)
+	{
+		EpicFail();
+	}
+}
+
+void
+InitializeSystemFontCache() ynothrow
 {
 	puts("Loading font files...");
-	FetchGlobalInstance().ResetFontCache(font_path);
-	// TODO: 使用不依赖于 YGlobal 未确定接口的实现。
-
-	auto& fc(FetchDefaultFontCache());
-
-	if(*font_path &&fc.LoadFontFile(FontPath(font_path)))
-		fc.LoadTypefaces();
-	if(*font_dir)
+	try
 	{
-		LoadFontFileDirectory(fc, font_dir);
-		fc.LoadTypefaces();
+		FetchGlobalInstance().ResetFontCache(font_path);
+		// TODO: 使用不依赖于 YGlobal 未确定接口的实现。
+
+		auto& fc(FetchDefaultFontCache());
+
+		if(*font_path &&fc.LoadFontFile(FontPath(font_path)))
+			fc.LoadTypefaces();
+		if(*font_dir)
+		{
+			LoadFontFileDirectory(fc, font_dir);
+			fc.LoadTypefaces();
+		}
+		fc.InitializeDefaultTypeface();
+			if(FetchDefaultFontCache().GetFaces().size() == 0)
+				throw LoggedEvent("No font loaded.");
+		std::printf("%u font file(s) are loaded\nsuccessfully.\n",
+			fc.GetPaths().size());
+		puts("Setting default font face...");
+		if(const auto* const pf = fc.GetDefaultTypefacePtr())
+			std::printf("\"%s\":\"%s\",\nsuccessfully.\n",
+				pf->GetFamilyName().c_str(), pf->GetStyleName().c_str());
+		else
+			throw LoggedEvent("failed.");
 	}
-	fc.InitializeDefaultTypeface();
-	CheckSystemFontCache();
-	std::printf("%u font file(s) are loaded\nsuccessfully.\n",
-		fc.GetPaths().size());
-	puts("Setting default font face...");
-	if(const auto* const pf = fc.GetDefaultTypefacePtr())
-		std::printf("\"%s\":\"%s\",\nsuccessfully.\n",
-			pf->GetFamilyName().c_str(), pf->GetStyleName().c_str());
-	else
+	catch(LoggedEvent& e)
 	{
-		puts("failed.");
+		puts(e.what());
+		defFontFail();
+	}
+	catch(...)
+	{
 		defFontFail();
 	}
 }
 
 void
-CheckInstall()
+CheckInstall() ynothrow
 {
 	puts("Checking installation...");
 	try
@@ -231,7 +299,7 @@ CheckInstall()
 		if(YCL_LIKELY(tf.IsValid()))
 		{
 			if(YCL_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
-				throw LoggedEvent("Wrong encoding of configuration file!");
+				throw LoggedEvent("Wrong encoding of configuration file.");
 
 			const auto fp(tf.GetPtr());
 
@@ -243,20 +311,25 @@ CheckInstall()
 				def_dir[std::strlen(def_dir) - 1] = '\0';
 				font_path[std::strlen(font_path) - 1] = '\0';
 				font_dir[std::strlen(font_dir) - 1] = '\0';
-				std::printf("Loaded default directory:\n%s\n", def_dir);
-				std::printf("Loaded default font path:\n%s\n", font_path);
-				std::printf("Loaded default font directory:\n%s\n", font_dir);
+				std::printf("Loaded default directory:\n%s\n"
+					"Loaded default font path:\n%s\n"
+					"Loaded default font directory:\n%s\n",
+					def_dir, font_path, font_dir);
 			}
 			else
 				throw LoggedEvent("Empty path loaded!");
 		}
 		else
-			throw LoggedEvent("Configuration loading failure.");
+			throw LoggedEvent("Configuration file loading failed.");
 	}
 	catch(LoggedEvent& e)
 	{
-		std::puts("Error occured.");
+		std::puts("Error occured:");
 		std::puts(e.what());
+		installFail("Loading configuration");
+	}
+	catch(...)
+	{
 		installFail("Loading configuration");
 	}
 	std::printf("Trying entering directory %s ...\n", def_dir);
@@ -266,19 +339,6 @@ CheckInstall()
 		|| direxists(font_dir)))
 		installFail("Default font");
 	puts("OK!");
-}
-
-void
-CheckSystemFontCache()
-{
-	try
-	{
-		if(FetchDefaultFontCache().GetFaces().size() > 0)
-			return;
-	}
-	catch(...)
-	{}
-	defFontFail();
 }
 
 YSL_END

@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11687;
+\version r11782;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-04-13 21:08 +0800;
+	2012-04-22 21:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,76 +34,81 @@
 
 以下为附加语法和语义说明。
 
-类预处理器语法：
-#region $name_exp //表示字符序列 $name_exp 标记的位置，可用于标记段落。供文档规格化工具使用。
-其它预处理指令同语言标准。
-
-外部语义链接标记符：
 $ //作用于受限制的字符序列（语言规范中定义的标识符或关键字）前，表示此字符序列不由编译程序提供语义实现。
+
+$region $name_expr //表示字符序列 $name_expr 标记的位置，可用于标记段落。供文档规格化工具使用。
+
 $import //导入实体。
 $export //导出实体，显式使用表示强调无论实现如何，应向外部提供形式上和之后说明一致的接口。
 
-全局域关键字：
-$code {} //表示（源）代码段。
+$code {} //表示（源）代码片段。
 $unit $unit_n //单元：指称一个编译单元（一般应为语言规范中定义的翻译单元）。单元名称 $unit_n 为可变部分，是语言规范中定义的标识符或关键字。
-$header $header_n //头文件：指称一个头文件。头文件名标识字符序列 $header_n 是可变部分，同语言标准中 #include $header_n 的用法。
+$header $header_n //头文件：指称一个头文件。头文件名标识字符序列 $header_n 是可变部分，同语言标准中 #include $header_n 的用法，或为通配符。
+$dir //表示目录。
+$dir //表示目录。
 
 */
 
-#region synopsis(begin)
+$region $synopsis $begin
 
-//平台定义文件（platform.h）定义示例。
+// YBase 既定内部宏污染列表。
 
-$code $header <platform.h> {
-
-
-//$example:
-$import $header <nds/ndstypes.h>;
-
-//像素类型。
-$import type $pixeltype;
-
-$import typedef signed char s8;
-$import typedef unsigned char u8;
-$import typedef signed short s16;
-$import typedef unsigned short u16;
-$import typedef signed long s32;
-$import typedef unsigned long u32;
-
-//主屏幕的宽与高。
-extern const u16 $SCREEN_WIDTH, $SCREEN_HEIGHT;
-
-
-// $ API （可分离于 <api.h> 中）定义示例：
-//$example:
-$import $header <fat.h>, <unistd.h>, <sys/dir.h>;
-
-#define YCL_YCOMMON_H <ycommon.h>
-#define YSL_YSBUILD_H <YSLib/Helper/yshelper.h>
-
-} //$code;
-
-
-//既定内部宏污染列表。
-$herder *
+$dir YBase
 {
-INCLUDED_*_
+$header YDefinition
+{
+YCL_USE_YASSERT
+YCL_IMPL_CPP
+YCL_IMPL_MSCPP
+YCL_IMPL_GNUCPP
+YCL_HAS_BUILTIN_NULLPTR
+YCL_HAS_CONSTEXPR
+YCL_USE_EXCEPTION_SPECIFICATION
+ythrow(*)?
+yconstexpr
+yconstexprf
+yconstraint
+yassume
+yforward(_expr)
+yunseq
 }
-
-$header Platform
-{
-YCL_YCOMMON_H
-YSL_YSBUILD_H
-}
-
-$dir YCLib
-{
 $dir ystdex
 {
 $header Utilities
 {
 }
 } //$dir ystdex;
+} //$dir YBase;
+
+// YFramework 既定内部宏污染列表。
+$herder *
+{
+YCL_INC_*
+YSL_INC_*
+}
+
+$dir YCLib
+{
+$header Platform
+{
+YCL_YCOMMON_H
+YSL_YSBUILD_H
+}
+$header YCommon
+{
+YCL_MAX_FILENAME_LENGTH
+YCL_MAX_PATH_LENGTH
+YCL_PATH_DELIMITER
+YCL_PATH_SEPERATOR
+YCL_PATH_ROOT
+YCL_PIXEL_FORMAT_AXYZ1555
+} //$dir YCLib;
+$header Input
+{
+YCL_KEY*
+}
+} //$dir YCLib;
+
 $dir CHRLib
 {
 $header CHRLib
@@ -116,32 +121,6 @@ CHRLIB_BEGIN_NAMESPACE(s)
 CHRLIB_END_NAMESPACE(s)
 }
 } //$dir CHRLib;
-$header YDefinition
-{
-YCL_USE_YASSERT
-YCL_IMPL_CPP
-YCL_IMPL_MSCPP
-YCL_IMPL_GNUCPP
-YCL_HAS_BUILTIN_NULLPTR
-YCL_HAS_CONSTEXPR
-YSL_USE_EXCEPTION_SPECIFICATION
-ythrow(*)?
-yconstexpr
-yconstexprf
-yconstraint
-yassume
-yforward(_expr)
-yunseq
-}
-$header YCommon
-{
-YCL_MAX_FILENAME_LENGTH
-YCL_MAX_PATH_LENGTH
-YCL_PATH_DELIMITER
-YCL_PATH_SEPERATOR
-YCL_PATH_ROOT
-YCL_PIXEL_FORMAT_AXYZ1555
-} //$dir YCLib;
 
 $dir YSLib
 {
@@ -273,6 +252,8 @@ $unit YGDI
 YSL_FAST_BLIT
 }
 } //$dir Shell;
+} //$dir YSLib;
+
 $dir Helper
 {
 $header YShellHelper
@@ -280,10 +261,9 @@ $header YShellHelper
 DefDynInitRef(_t, _n, _e)
 }
 } //$dir Helper;
-} //$dir YSLib;
 
 
-//非本体或 YGlobal 定义列表。
+// YFramework 中非 YSLib 本体或 YGlobal 定义列表。
 
 //非本体类列表。
 $header Core::YShellDefinition
@@ -292,7 +272,7 @@ $header Core::YShellDefinition
 	{}
 } //$header Core::YShellDefinition;
 
-//非本体函数列表。
+//非 YSLib 本体函数列表。
 $header Core::YApplication
 {
 	extern Application&
@@ -344,45 +324,45 @@ $dir CHRLib
 
 $unit CharacterMapping
 {
-	namespace CHRLib
-	{
-		namespace CharSet
-		{
-		//别名。
-		const Encoding
-			iso_ir_6(US_ASCII), ISO646_US(US_ASCII), ASCII(US_ASCII), us(US_ASCII),
-				IBM367(US_ASCII), cp367(US_ASCII), csASCII(US_ASCII),
-			MS_Kanji(SHIFT_JIS), csShiftJIS(SHIFT_JIS), windows_932_(SHIFT_JIS),
-			iso_ir_149(KS_C_5601_1987), KS_C_5601_1989(KS_C_5601_1987),
-				KSC_5601(KS_C_5601_1987), korean(KS_C_5601_1987),
-				csKSC56011987(KS_C_5601_1987), windows_949_(KS_C_5601_1987),
-			windows_65001_(UTF_8),
-			CP936(GBK), MS936(GBK), windows_936(GBK),
-			windows_54936_(GB18030),
+namespace CHRLib
+{
+namespace CharSet
+{
+//别名。
+const Encoding
+	iso_ir_6(US_ASCII), ISO646_US(US_ASCII), ASCII(US_ASCII), us(US_ASCII),
+		IBM367(US_ASCII), cp367(US_ASCII), csASCII(US_ASCII),
+	MS_Kanji(SHIFT_JIS), csShiftJIS(SHIFT_JIS), windows_932_(SHIFT_JIS),
+	iso_ir_149(KS_C_5601_1987), KS_C_5601_1989(KS_C_5601_1987),
+		KSC_5601(KS_C_5601_1987), korean(KS_C_5601_1987),
+		csKSC56011987(KS_C_5601_1987), windows_949_(KS_C_5601_1987),
+	windows_65001_(UTF_8),
+	CP936(GBK), MS936(GBK), windows_936(GBK),
+	windows_54936_(GB18030),
 
-			csUnicode(ISO_10646_UCS_2),
-			csUCS4(ISO_10646_UCS_4),
-			csUnicodeASCII(ISO_10646_UCS_Basic),
-			windows_1201_(UTF_16BE),
-			windows_1200_(UTF_16LE),
+	csUnicode(ISO_10646_UCS_2),
+	csUCS4(ISO_10646_UCS_4),
+	csUnicodeASCII(ISO_10646_UCS_Basic),
+	windows_1201_(UTF_16BE),
+	windows_1200_(UTF_16LE),
 
-			csGB2312(GB2312), EUC_CN_(GB2312), windows_51936_(GB2312),
-			windows_950_(Big5);
-		}
+	csGB2312(GB2312), EUC_CN_(GB2312), windows_51936_(GB2312),
+	windows_950_(Big5);
+} // namespace CharSet;
 
-		//默认字符集。
-		const Encoding CP_Default = CharSet::UTF_8;
-		const Encoding CP_Local = CharSet::GBK;
+//默认字符集。
+const Encoding CP_Default = CharSet::UTF_8;
+const Encoding CP_Local = CharSet::GBK;
 
-		//编码转换表。
-		const byte cp17[] = {0};
-		extern "C"
-		{
-			extern const byte cp113[];
-			//extern const byte cp2026[13658];
-		}
-		const byte cp2026[] = {0};
-	}
+//编码转换表。
+const byte cp17[] = {0};
+extern "C"
+{
+	extern const byte cp113[];
+	//extern const byte cp2026[13658];
+}
+const byte cp2026[] = {0};
+} // namespace CHRLib;
 }
 
 } //$dir CHRLib;
@@ -458,14 +438,14 @@ $unit YFileSystem
 
 $unit YApplication
 {
-	class Application
-	{
-		//全局常量。
-		static const IO::Path CommonAppDataPath; //!< 程序默认路径。
-		static const String CompanyName; //!< 制作组织名称。
-		static const String ProductName; //!< 产品名称。
-		static const String ProductVersion; //!< 产品版本。
-	};
+class Application
+{
+//全局常量。
+static const IO::Path CommonAppDataPath; //!< 程序默认路径。
+static const String CompanyName; //!< 制作组织名称。
+static const String ProductName; //!< 产品名称。
+static const String ProductVersion; //!< 产品版本。
+};
 }
 
 $header YStorage
@@ -497,7 +477,7 @@ $unit YTimer
 // std 命名空间扩展。
 namespace std
 {
-} //namespace std;
+} // namespace std;
 
 //命名空间单元分布。
 
@@ -505,76 +485,78 @@ namespace std
 
 namespace Components
 {
-	$unit UI::YComponents;
-	$unit UI::YRenderer;
-	$unit UI::YWidgetEvent;
-	$unit UI::YWidgetView;
-	$unit UI::YBrush;
-	$unit UI::YWidget;
-	$unit UI::YControl;
-	$unit UI::YUIContainer;
-	$unit UI::YWindow;
-	$unit UI::YDesktop;
-	$unit UI::Label;
-	$unit UI::Button;
-	$unit UI::CheckBox;
-	$unit UI::UIContainerEx;
-	$unit UI::Panel;
-	$unit UI::TextList;
-	$unit UI::Menu;
-	$unit UI::ListBox;
-	$unit UI::Form;
-	namespace Styles
-	{
-		$unit UI::YStyle;
-	} //namespace Styles;
-}
+$unit UI::YComponents;
+$unit UI::YRenderer;
+$unit UI::YWidgetEvent;
+$unit UI::YWidgetView;
+$unit UI::YBrush;
+$unit UI::YWidget;
+$unit UI::YControl;
+$unit UI::YUIContainer;
+$unit UI::YWindow;
+$unit UI::YDesktop;
+$unit UI::Label;
+$unit UI::Button;
+$unit UI::CheckBox;
+$unit UI::UIContainerEx;
+$unit UI::Panel;
+$unit UI::TextList;
+$unit UI::Menu;
+$unit UI::ListBox;
+$unit UI::Form;
+
+namespace Styles
+{
+$unit UI::YStyle;
+} // namespace Styles;
+
+} // namespace Components;
 
 namespace Devices
 {
-	$unit Core::YDevice;
-} //namespace Devices;
+$unit Core::YDevice;
+} // namespace Devices;
 
 namespace Drawing
 {
-	$unit Adaptor::YFont;
-	$unit Core::YObject;
-	$unit Core::YResourse;
-} //namespace Drawing;
+$unit Adaptor::YFont;
+$unit Core::YObject;
+$unit Core::YResourse;
+} // namespace Drawing;
 
 namespace Messaging
 {
-	$unit Core::YMessage;
-} //namespace Messaging;
+$unit Core::YMessage;
+} // namespace Messaging;
 
 namespace IO
 {
-	$unit Core::YFile;
-} //namespace IO;
+$unit Core::YFile;
+} // namespace IO;
 
 namespace Shells
 {
-	$unit Core::YShell;
-	$unit UI::YComponent;
-} //namespace Shells;
+$unit Core::YShell;
+$unit UI::YComponent;
+} // namespace Shells;
 
 namespace Timers
 {
-	$unit Service::YTimer;
-} //namespace Timers;
+$unit Service::YTimer;
+} // namespace Timers;
 
 namespace Text
 {
-	$unit Core::YString;
-	$unit Service::YTextManager;
-} //namespace Text;
+$unit Core::YString;
+$unit Service::YTextManager;
+} // namespace Text;
 
 // YCLib 全局命名空间污染列表。
 
 $header "ydef.h"
 {
 #ifndef YCL_HAS_BUILTIN_NULLPTR
-	using ystdex::nullptr;
+using ystdex::nullptr;
 #endif
 } //$header "ydef.h";
 
@@ -586,18 +568,22 @@ $header <platform.h>
 
 $header <ystdex/rational.hpp>
 {
-	template<typename _tBase, ystdex::size_t _vInt, ystdex::size_t _vFrac>
-	std::numeric_limits<ystdex::fixed_point>
+
+template<typename _tBase, ystdex::size_t _vInt, ystdex::size_t _vFrac>
+std::numeric_limits<ystdex::fixed_point>;
+
 } //$header <rational.hpp>
 
 //既定 ystdex 命名空间污染列表。
 
 $header YDefinition
 {
-	using std::ptrdiff_t;
-	using std::size_t;
-	using std::wint_t;
-	using ::ssize_t;
+
+using std::ptrdiff_t;
+using std::size_t;
+using std::wint_t;
+using ::ssize_t;
+
 } //$header YDefinition;
 
 $header YStandardExtend
@@ -607,116 +593,118 @@ $header YStandardExtend
 
 $header YStandardExtend::TypeOperation : header YStandardExtend
 {
-	using std::integral_constant;
-	using std::true_t;
-	using std::false_t;
 
-	using std::is_void;
-	using std::is_integral;
-	using std::is_floating_point;
-	using std::is_array;
-	using std::is_pointer;
-	using std::is_lvalue_reference;
-	using std::is_rvalue_reference;
-	using std::is_m_object_pointer;
-	using std::is_m_function_pointer;
-	using std::is_enum;
-	using std::is_class;
-	using std::is_union;
-	using std::is_function;
+using std::integral_constant;
+using std::true_t;
+using std::false_t;
 
-	using std::is_reference;
-	using std::is_arithmetic;
-	using std::is_fundamental;
-	using std::is_object;
-	using std::is_scalar;
-	using std::is_compound;
-	using std::is_m_pointer;
+using std::is_void;
+using std::is_integral;
+using std::is_floating_point;
+using std::is_array;
+using std::is_pointer;
+using std::is_lvalue_reference;
+using std::is_rvalue_reference;
+using std::is_m_object_pointer;
+using std::is_m_function_pointer;
+using std::is_enum;
+using std::is_class;
+using std::is_union;
+using std::is_function;
 
-	using std::is_const;
-	using std::is_volatile;
-	using std::is_trivial;
+using std::is_reference;
+using std::is_arithmetic;
+using std::is_fundamental;
+using std::is_object;
+using std::is_scalar;
+using std::is_compound;
+using std::is_m_pointer;
+
+using std::is_const;
+using std::is_volatile;
+using std::is_trivial;
 //	using std::is_trivially_copyable;
-	using std::is_standard_layout;
-	using std::is_pod;
-	using std::is_literal_type;
-	using std::is_empty;
-	using std::is_polymorphic;
-	using std::is_abstract;
+using std::is_standard_layout;
+using std::is_pod;
+using std::is_literal_type;
+using std::is_empty;
+using std::is_polymorphic;
+using std::is_abstract;
 
-	using std::is_signed;
-	using std::is_unsigned;
+using std::is_signed;
+using std::is_unsigned;
 
-	using std::is_constructible;
-	/*
-	using std::is_default_constructible;
-	using std::is_copy_constructible;
-	using std::is_move_constructible;
+using std::is_constructible;
+/*
+using std::is_default_constructible;
+using std::is_copy_constructible;
+using std::is_move_constructible;
 
-	using std::is_assignable;
-	using std::is_copy_assignable;
-	using std::is_move_assignable;
+using std::is_assignable;
+using std::is_copy_assignable;
+using std::is_move_assignable;
 
-	using std::is_destructible;
+using std::is_destructible;
 
-	using std::is_trivially_constructible;
-	using std::is_trivially_default_constructible;
-	using std::is_trivially_copy_constructible;
-	using std::is_trivially_move_constructible;
+using std::is_trivially_constructible;
+using std::is_trivially_default_constructible;
+using std::is_trivially_copy_constructible;
+using std::is_trivially_move_constructible;
 
-	using std::is_trivially_assignable;
-	using std::is_trivially_copy_assignable;
-	using std::is_trivially_move_assignable;
-	using std::is_trivially_destructible;
+using std::is_trivially_assignable;
+using std::is_trivially_copy_assignable;
+using std::is_trivially_move_assignable;
+using std::is_trivially_destructible;
 
-	using std::is_nothrow_constructible;
-	using std::is_nothrow_default_constructible;
-	using std::is_nothrow_copy_constructible;
-	using std::is_nothrow_move_constructible;
+using std::is_nothrow_constructible;
+using std::is_nothrow_default_constructible;
+using std::is_nothrow_copy_constructible;
+using std::is_nothrow_move_constructible;
 
-	using std::is_nothrow_assignable;
-	using std::is_nothrow_copy_assignable;
-	using std::is_nothrow_move_assignable;
+using std::is_nothrow_assignable;
+using std::is_nothrow_copy_assignable;
+using std::is_nothrow_move_assignable;
 
-	using std::is_nothrow_destructible;
-	*/
-	using std::has_virtual_destructor;
+using std::is_nothrow_destructible;
+*/
+using std::has_virtual_destructor;
 
-	using std::alignment_of;
-	using std::rank;
-	using std::extent;
+using std::alignment_of;
+using std::rank;
+using std::extent;
 
-	using std::is_same;
-	using std::is_b_of;
-	using std::is_convertible;
+using std::is_same;
+using std::is_b_of;
+using std::is_convertible;
 
-	using std::remove_const;
-	using std::remove_volatile;
-	using std::remove_cv;
-	using std::add_const;
-	using std::add_volatile;
-	using std::add_cv;
+using std::remove_const;
+using std::remove_volatile;
+using std::remove_cv;
+using std::add_const;
+using std::add_volatile;
+using std::add_cv;
 
-	using std::remove_reference;
-	using std::add_lvalue_reference;
-	using std::add_rvalue_reference;
+using std::remove_reference;
+using std::add_lvalue_reference;
+using std::add_rvalue_reference;
 
-	using std::make_signed;
-	using std::make_unsigned;
+using std::make_signed;
+using std::make_unsigned;
 
-	using std::remove_extent;
-	using std::remove_all_extents;
+using std::remove_extent;
+using std::remove_all_extents;
 
-	using std::remove_pointer;
-	using std::add_pointer;
+using std::remove_pointer;
+using std::add_pointer;
 
-	using std::aligned_storage;
-	using std::decay;
-	using std::enable_if;
-	using std::conditional;
-	using std::common_t;
+using std::aligned_storage;
+using std::decay;
+using std::enable_if;
+using std::conditional;
+using std::common_t;
 //	using std::underlying_t;
-	using std::result_of;
+using std::result_of;
+
 } //$header YStandardExtend::TypeOperation;
 
 //既定 platform 命名空间污染列表。
@@ -733,120 +721,126 @@ $header "ycommon.h"
 
 $header Adaptor::YAdaptor
 {
-	//目标平台中立接口。
+//目标平台中立接口。
 
-	//通用数据类型。
-	typedef std::uint8_t	u8;
-	typedef std::uint16_t	u16;
-	typedef std::uint32_t	u32;
-	typedef std::uint64_t	u64;
-	typedef std::int8_t		s8;
-	typedef std::int16_t	s16;
-	typedef std::int32_t	s32;
-	typedef std::int64_t	s64;
-	typedef volatile u8		vu8;
-	typedef volatile u16	vu16;
-	typedef volatile u32	vu32;
-	typedef volatile u64	vu64;
-	typedef volatile s8		vs8;
-	typedef volatile s16	vs16;
-	typedef volatile s32	vs32;
-	typedef volatile s64	vs64;
+//通用数据类型。
+typedef std::uint8_t	u8;
+typedef std::uint16_t	u16;
+typedef std::uint32_t	u32;
+typedef std::uint64_t	u64;
+typedef std::int8_t		s8;
+typedef std::int16_t	s16;
+typedef std::int32_t	s32;
+typedef std::int64_t	s64;
+typedef volatile u8		vu8;
+typedef volatile u16	vu16;
+typedef volatile u32	vu32;
+typedef volatile u64	vu64;
+typedef volatile s8		vs8;
+typedef volatile s16	vs16;
+typedef volatile s32	vs32;
+typedef volatile s64	vs64;
 
-	//实用类型。
-	using ystdex::noncopyable;
-	using ystdex::nullptr_t;
+//调用分派。
+using ystdex::seq_apply;
+using ystdex::unseq_apply;
 
-	//数学库函数。
-	// TODO: using std::round for libstd++ with g++ 4.7 later
-	//	@ !defined _GLIBCXX_USE_C99_MATH_TR1;
-	using ::round;
+//实用类型。
+using ystdex::noncopyable;
+using ystdex::nullptr_t;
 
-	//算法。
-	using std::min;
-	using std::max;
+//数学库函数。
+// TODO: using std::round for libstd++ with g++ 4.7 later
+//	@ !defined _GLIBCXX_USE_C99_MATH_TR1;
+using ::round;
 
-	//助手功能。
-	using ystdex::arrlen;
+//算法。
+using std::min;
+using std::max;
+
+//助手功能。
+using ystdex::arrlen;
 
 
-	//非目标平台中立接口。
+//非目标平台中立接口。
 
-	//特殊数据类型。
-	using ystdex::errno_t;
-	using ystdex::ptrdiff_t;
-	using ystdex::size_t;
-	using ystdex::ssize_t;
-	using ystdex::wint_t;
+//特殊数据类型。
+using ystdex::errno_t;
+using ystdex::ptrdiff_t;
+using ystdex::size_t;
+using ystdex::ssize_t;
+using ystdex::wint_t;
 
-	//基本实用例程。
-	using platform::mmbset;
-	using platform::mmbcpy;
+//基本实用例程。
+using platform::mmbset;
+using platform::mmbcpy;
 
-	//文件系统例程。
-	using platform::ufopen;	
-	using platform::ufexists;	
-	using platform::direxists;
-	using platform::chdir;
-	using platform::getcwd_n;
+//文件系统例程。
+using platform::ufopen;	
+using platform::ufexists;	
+using platform::direxists;
+using platform::chdir;
+using platform::getcwd_n;
 
-	//系统处理函数。
-	using platform::terminate;
+//系统处理函数。
+using platform::terminate;
 
-	//基本图形定义。
-	using platform::SPos;
-	using platform::SDst;
+//基本图形定义。
+using platform::SPos;
+using platform::SDst;
 
-	//文件系统抽象。
-	using platform::NativePathCharType;
-	using platform::const_path_t;
-	using platform::path_t;
+//文件系统抽象。
+using platform::NativePathCharType;
+using platform::const_path_t;
+using platform::path_t;
 
-	using platform::HFileNode;
-	using platform::IsAbsolute;
-	using platform::GetRootNameLength;
+using platform::HFileNode;
+using platform::IsAbsolute;
+using platform::GetRootNameLength;
 
-	//文件系统常量。
-	using platform::PATHSTR;
-	using platform::FILENAMESTR;
+//文件系统常量。
+using platform::PATHSTR;
+using platform::FILENAMESTR;
 
-	//基本输出接口。
-	using platform::InitVideo;
+//基本输出接口。
+using platform::InitVideo;
 
-	//计时器和时钟。
-	using platform::GetTicks;
-	using platform::GetHighResolutionTicks;
-	using platform::StartTicks;
+//计时器和时钟。
+using platform::GetTicks;
+using platform::GetHighResolutionTicks;
+using platform::StartTicks;
 
-	//输入类型。
-	namespace KeyCodes = platform::KeyCodes;
-	using platform::KeyCode;
-	using platform::CursorInfo;
+//输入类型。
+namespace KeyCodes = platform::KeyCodes;
+using platform::KeyCode;
+using platform::CursorInfo;
 
-	namespace Drawing
-	{
-		using platform::BitmapPtr, ConstBitmapPtr;
-		using platform::Color;
-		namespace ColorSpace = platform::ColorSpace;
-	} //namespace Drawing;
+namespace Drawing
+{
 
-	namespace Text
-	{
-		using namespace CHRLib;
-	} //namespace Text;
-	using Text::ucs4_t, Text::ucs2_t, Text::ucsint_t;
+using platform::BitmapPtr, ConstBitmapPtr;
+using platform::Color;
+namespace ColorSpace = platform::ColorSpace;
 
-	//库适配器。
+} // namespace Drawing;
 
-	// Function 。
-	//using Loki::Function;
+namespace Text
+{
+	using namespace CHRLib;
+} // namespace Text;
+using Text::ucs4_t, Text::ucs2_t, Text::ucsint_t;
+
+//库适配器。
+
+// Function 。
+//using Loki::Function;
 
 //! \brief 设计模式。
 YSL_BEGIN_NAMESPACE(Pattern)
 YSL_END_NAMESPACE(Pattern)
 
-	//使用 Loki 小对象。
-	//using Loki::SmallObject;
+//使用 Loki 小对象。
+//using Loki::SmallObject;
 
 } //$header Adaptor::YAdaptor;
 
@@ -857,7 +851,7 @@ $Adaptor::Container : Adaptor::YAdaptor
 #else
 	using std::vector
 #endif
-	using std::pair, std::tuple, std::make_pair, std::make_tuple;
+	using std::forward_as_tuple, std::get, std::ignore, std::make_pair, std::make_tuple, std::pair, std::tie, std::tuple, std::tuple_cat;
 	using std::list, std::map, std::set, std::stack, std::queue, std::priority_queue, std::unordered_map, std::unordered_set;
 } //$header Adaptor::Container;
 
@@ -925,7 +919,7 @@ $header UI::YComponent : YMessage
 
 		using Drawing::Point, Drawing::Vec, Drawing::Size, Drawing::Rect;
 		using Drawing::Graphics;
-	} //namespace Components;
+	} // namespace Components;
 } //$header UI::YComponent;
 
 $header UI::YWidget : UI::YComponent, UI::YRenderer, UI::YFocus, Core::YResource, UI::YWidgetEvent
@@ -937,7 +931,7 @@ $header UI::YControl : UI::YWidgetEvent
 	namespace Components
 	{
 		using namespace Drawing;
-	} //namespace Components;
+	} // namespace Components;
 } //$header UI::YControl;
 
 $header Helper::DSMain : Core::YGDIBase
@@ -946,12 +940,12 @@ $header Helper::DSMain : Core::YGDIBase
 	namespace DS
 	{
 		using namespace platform_ex;
-	} //namespace DS;
+	} // namespace DS;
 } //$header Helper::DSMain;
 
 } //$code YSLib;
 
 ///
 
-#region synopsis(end)
+$region $synopsis $end;
 

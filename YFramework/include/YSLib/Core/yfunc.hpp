@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1803;
+\version r1820;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2012-03-17 19:14 +0800;
+	2012-04-20 21:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -33,23 +33,6 @@
 #include <typeinfo>
 
 YSL_BEGIN
-
-/*!
-\brief 顺序递归调用。
-\since build 278 。
-*/
-//@{
-template<typename _tFunc>
-void
-seq_apply(_tFunc&&)
-{}
-template<typename _tFunc, typename _type, typename... _tParams>
-inline void
-seq_apply(_tFunc&& f, _type&& arg, _tParams&&... args)
-{
-	f(arg), seq_apply(f, yforward(args)...);
-}
-//@}
 
 /* \brief 调用时动态类型检查仿函数模板。
 PDefTH3(_type, _tArg, _tRet)
@@ -270,18 +253,18 @@ public:
 
 
 /*! \brief 逆向柯里化：在参数列表起始添加一个形式参数。
-template<class _tFunc, typename _tParm>
+template<class _fCallable, typename _tParm>
 struct InversedCurrying
 {
-	typedef typename _tFunc::Result Result;
-	typedef typename _tFunc::Parm1 Parm1;
+	typedef typename _fCallable::Result Result;
+	typedef typename _fCallable::Parm1 Parm1;
 
-	_tFunc f;
+	_fCallable f;
 
 	/!
 	\brief 构造：使用函数对象。
 	/
-	InversedCurrying(_tFunc f_)
+	InversedCurrying(_fCallable f_)
 		: f(f_)
 	{}
 

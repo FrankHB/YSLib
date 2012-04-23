@@ -9,60 +9,54 @@
 */
 
 /*!	\file Initialization.h
-\ingroup Adaptor
+\ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1562;
+\version r1594;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-04-12 19:37 +0800;
+	2012-04-23 10:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YSLib::Helper::Initialization;
+	Helper::Initialization;
 */
 
 
 #ifndef YSL_INC_HELPERR_INITIALIZATION_H_
 #define YSL_INC_HELPERR_INITIALIZATION_H_
 
-#include "../Core/ysdef.h"
+#include <YSLib/Core/ysdef.h>
 
 YSL_BEGIN
 
 /*!
-\brief 初始化系统字体缓存：
+\brief 初始化环境。
+\note 无异常抛出。所有异常处理都在本函数内完成。
+\since build 303 。
+*/
+void
+InitializeEnviornment() ynothrow;
+
+/*!
+\brief 初始化系统字体缓存。
+\note 无异常抛出。所有异常处理都在本函数内完成。
+\since build 303 。
 
 以默认字型路径创建默认字体缓存并加载默认字型目录中的字体文件。
 */
 void
-InitializeSystemFontCache();
-
-/*!
-\brief 初始化失败公用程序。
-*/
-void
-EpicFail();
-
-/*!
-\brief LibFAT 失败。
-*/
-void
-LibfatFail();
+InitializeSystemFontCache() ynothrow;
 
 /*!
 \brief 检查安装完整性。
+\note 无异常抛出。所有异常处理都在本函数内完成。
+\since build 303 。
 */
 void
-CheckInstall();
-
-/*!
-\brief 检查系统字体缓存。
-*/
-void
-CheckSystemFontCache();
+CheckInstall() ynothrow;
 
 YSL_END
 

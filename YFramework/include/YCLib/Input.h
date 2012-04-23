@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r1121;
+\version r1135;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 299 。
 \par 创建时间:
 	2012-04-07 13:37:05 +0800;
 \par 修改时间:
-	2012-04-07 14:40 +0800;
+	2012-04-22 16:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -35,6 +35,21 @@ using platform::KeyInput;
 
 namespace platform
 {
+
+/*!
+\defgroup YCL_KEY_OVERRIDE YCLib Key Overridden Values
+\brief 覆盖键值。
+\since build 299 。
+*/
+//@{
+#ifndef YCL_DS
+#	define YCL_KEY(X) (#X [0])
+#	define YCL_KEY_Start 'P'
+#else
+#	define YCL_KEY(X) KeyCodes::X
+#	define YCL_KEY_Start KeyCodes::Start
+#endif
+//@}
 
 /*!
 \brief 等待任意按键。

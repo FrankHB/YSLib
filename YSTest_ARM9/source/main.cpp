@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2666;
+\version r2670;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-04-17 07:38 +0800;
+	2012-04-21 20:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -253,10 +253,8 @@ main(int argc, char* argv[])
 					lblDetails(Rect(30, 20, 160, 22));
 				ProgressBar pb(Rect(8, 168, 240, 16), 10);
 
-				dsk_up += lblTitle;
-				dsk_up += lblStatus;
+				AddWidgets(dsk_up, lblTitle, lblStatus, pb);
 				dsk_dn += lblDetails;
-				dsk_up += pb;
 				yunseq(
 					dsk_up.Background = SolidBrush(Color(240, 216, 192)),
 					dsk_dn.Background

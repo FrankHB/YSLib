@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2348;
+\version r2354;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-04-19 17:40 +0800;
+	2012-04-21 16:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -541,12 +541,6 @@ public:
 	\since build 296 。
 	*/
 	ShlHexBrowser(const IO::Path&);
-	/*!
-	\brief 析构：释放资源。
-	\since build 286 。
-	*/
-	virtual
-	~ShlHexBrowser();
 };
 
 YSL_END_NAMESPACE(YReader)

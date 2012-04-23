@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7177;
+\version r7202;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-13 17:58 +0800;
+	2012-04-22 12:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -132,7 +132,7 @@
 仅使用ISO/IEC C++ 2011 中头文件 <array> 、 <chrono> 、 <forward_list> 、 <type_traits> 、 <tuple> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
 
 @1.3.2.2
- YSLib 的源代码的本体(@2.10) 是平台中立 [Documentation::CommonRules @@2.2.2.1] 的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
+ YSLib 的源代码的本体(@2.9) 是平台中立 [Documentation::CommonRules @@2.2.2.1] 的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
 
 @1.3.2.3
 格式化输出及结构对齐时注意平台字长差异。
@@ -272,11 +272,11 @@
 由于在一个焦点上下文中可能包含多个子上下文（参见 @1.6.2.2.1 ），因此可能有多个焦点。
 对于视图树而言，通过迭代访问焦点对象可以得到唯一的路径，称为焦点活动路径；其中的焦点称为活动路径焦点。末端的活动路径焦点称为活动焦点，在确定状态下若存在，则是唯一的。
 
-@2 实现概览：
+@2 框架实现概览：
 外部库参见 @5 。
 编译单元简称单元，是一组包含源代码的文本文件，包含一个源文件（默认后缀名 .cpp ）和若干个头文件，经过预处理后成为翻译单元(translation unit) 。
 编译单元可以包含类/结构体等类型，以及 API（Application Programming Interface ，应用程序编程接口）的实现。
-关于一些文件的文件名的额外约定参见 @2.10.1 。
+关于一些文件的文件名的额外约定参见 @2.9.1 。
 多个编译单元组成一个系统，置于文件系统的同一个目录中。
 
 @2.1 名称规则：
@@ -869,42 +869,19 @@
 
 @2.8.6.1 文本管理类 TextManager
 
-@2.9 助手(Helper) 系统：
-位于 "/Helper" 。
-与以上系统不同，这个系统是平台相关的，一般由库用户自行配置。
- YGlobal 是不可缺少的，它封装了必要的全局对象。
- main 函数由 Helper 的其它源文件封装，或由用户提供。
+@2.9 本体和文件依赖性：
+本体是以上 YSLib 构成单元中，除了 Adaptor 以外的部分的总称，是平台中立的。
+非本体是本体在 YSLib 中的补集，即 Adaptor ，接口是平台中立的。
+ Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元的重新编译。
+因此除非是用来实现基本功能的外部的库，新增的平台相关的部分应尽量放在外部的 Helper 库(@5.2.4) 而不是 Adaptor 中。
 
-@2.9.1 YGlobal 单元：
-平台相关的全局对象和函数定义。除了以下接口，其它都是不确定的：
-const SDst MainScreenWidth, MainScreenHeight;
-
-unspecified_class_type&
-FetchGlobalInstance() ynothrow;
-
-bool
-InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
-
-这里 FetchGlobalInstance 返回类型为平台相关的应用程序类的引用。
- YSLib 在 Helper 以外（本体和 Adaptor）不依赖这些接口以外的特性。
-
-@2.9.2 Application 派生类：
-适应于具体平台的应用程序实例抽象。
-包含默认消息循环等。
-
-@2.10 本体与非本体：
-本体是以上 YSLib 构成单元中，除了 Adaptor 和 Helper 以外的部分的总称。
-非本体是本体在 YSLib 中的补集，即 Adaptor 和 Helper 。
-其中 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元的重新编译。
-因此除非是用来实现基本功能的外部的库，新增的平台相关的部分应尽量放在 Helper 而不是 Adaptor 中。
-
-@2.10.1 基本代码依赖性（适用于 YFramework ）：
+@2.9.1 基本代码依赖性（适用于 YFramework ）：
  YSLib 文件中，文件名以 y 或 Y 起始且模块名以 Y 起始的文件为必要文件，其它为非必要文件。
 以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
  Adaptor 中的 config.h 可以被 Adaptor 中的头文件直接包含。
-任意 YFramework 文件可依赖 @2.10 余下部分指定的标准库头文件以及 YBase 头文件。
+任意 YFramework 文件可依赖 @2.9 余下部分指定的标准库头文件以及 YBase 头文件。
 必要文件不依赖非必要文件。
- Adaptor 头文件不依赖 Helper 文件或 <YCLib/ycommon.h> 以外的 YCLib 文件。
+ Adaptor 头文件不依赖 Helper 头文件或 <YCLib/ycommon.h> 以外的 YCLib 文件。
  Adaptor 文件可依赖 YFramework 文件或标准库实现的非标准头文件。
  Helper 文件和本体的非必要源文件可依赖 YCLib 文件。
 除上述文件外，本体头文件不依赖 YSLib 以外的文件。
@@ -913,36 +890,36 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
  <ios> 包含 <iosfwd> ；
  <bitset> 包含 <string> 和 <iosfwd> 。
 
-@2.10.1.1 C 标准库的 C++ 标准库版本头文件依赖项：
+@2.9.1.1 C 标准库的 C++ 标准库版本头文件依赖项：
 不在本体的必要文件中显式包含，除了以下例外：
  "ydaptor.h" 需要保证 <cstddef> 、 <cstdint> 、 <climits> 、 <cmath> 和 <ctime> 被包含；
 
-@2.10.1.2 不在本体中显式包含，需要在 "ycont.h" 包含或提供替代品的 C++ 标准库依赖项：
+@2.9.1.2 不在本体中显式包含，需要在 "ycont.h" 包含或提供替代品的 C++ 标准库依赖项：
  <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <utility> 和  <vector>。
 例外：同时需要使用容器和限定标准库类型时：
  "yexcept.h" 包含 <string> （鉴于复用标准库异常需要的参数类型 std::string 不一定是 "ycont.h" 配置的类型）。
 
-@2.10.1.3 不在本体的头文件中显式包含，需要在除了 "ycont.h" 的 Adaptor 的必要头文件直接或间接包含的 C++ 标准库依赖项：
+@2.9.1.3 不在本体的头文件中显式包含，需要在除了 "ycont.h" 的 Adaptor 的必要头文件直接或间接包含的 C++ 标准库依赖项：
  <algorithm> 、 <memory> 、 <new> 、 <type_traits> 。
  "ydaptor.h" 需要保证 <bitset> 和 <initializer_list> 被包含。
 
-@2.10.1.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
+@2.9.1.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性或其它因素考虑，Adaptor 和本体不直接使用以下头文件（但 Adaptor 可能会间接依赖）：
  <fstream> 、 <iomanip> 、 <ios> 、 <iostream> 、 <istream> 、 <locale>、 <ostream> 、 <sstream> 、 <streambuf> 和 <strstream> 。
 
-@2.10.1.5 本体的头文件中显式包含的 C++ 标准库依赖项：
+@2.9.1.5 本体的头文件中显式包含的 C++ 标准库依赖项：
  "Core/yexcept.h" 包含 <exception> 和 <stdexcept> ；
  "Core/yfunc.hpp" 包含 <functional> 和 <typeinfo> ；
  "Service/ytimer.h" 包含 <chrono> 。
 其它： <iterator> 。
 
-@2.10.1.6 本体的头文件中未限定（可能会在将来版本显式包含）的 C++ 标准库依赖项：
+@2.9.1.6 本体的头文件中未限定（可能会在将来版本显式包含）的 C++ 标准库依赖项：
  <atomic> 、 <bitset> 、 <codecvt> 、 <complex> 、 <condition_variable> 、 <future> 、 <limits> 、 <mutex> 、 <numeric> 、 <random> 、 <ratio> 、 <system_error> 、 <thread> 、 <typeindex> 和 <valarray> 。
 
-@2.10.2 本体头文件对 YBase 依赖性：
+@2.9.2 本体头文件对 YBase 依赖性：
  "yblit.h" 依赖于 <ystdex/algorithm.hpp> 和 <ystdex/iterator.hpp> 。
 
-@2.10.3 本体内部头文件依赖性：
+@2.9.3 本体内部头文件依赖性：
  Core 的头文件仅包含 Adaptor 或 Core 的头文件。
  Adaptor 的头文件依赖于 Core 的 "ybasemac.h" 。
 实现源文件依赖于同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
@@ -1044,9 +1021,10 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 参见 [Documentation::CommonRules @@4.6] 。
 
 @5 程序部署和配置：
+以下如无特别说明，根路径取 YFramework 包含目录或源代码目录。
 
 @5.1 支持库概述：
-目前仅使用静态链接库。
+目前仅使用静态链接库链接至静态或动态目标。
 
 @5.1.1 基础库：
 基于标准库的基础库 YBase ，包含基于标准库的平台中立的扩展 YStandardEx。
@@ -1162,6 +1140,30 @@ BASE_EXTENSIONS += ftsynth.c
 
 @5.1.3.3
 图形库：修正的 Anti-Grain Geometry 库 V2.4 。
+已移除。
+
+@5.1.4 助手(Helper) 库：
+位于 "/Helper" 。
+平台相关的外部库，可以加入插件等，一般由库用户自行配置。
+ YGlobal 是不可缺少的，它封装了必要的全局对象。
+ main 函数由 Helper 的其它源文件封装，或由用户提供。
+
+@5.1.4.1 YGlobal 单元：
+平台相关的全局对象和函数定义。除了以下接口，其它都是不确定的：
+const SDst MainScreenWidth, MainScreenHeight;
+
+unspecified_class_type&
+FetchGlobalInstance() ynothrow;
+
+bool
+InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
+
+这里 FetchGlobalInstance 返回类型为平台相关的应用程序类的引用。
+ YSLib 不依赖这些接口以外的特性。
+
+@5.1.4.2 Application 派生类：
+适应于具体平台的应用程序实例抽象。
+包含默认消息循环等。
 
 @5.2 平台文件：
 引入平台相关特性。

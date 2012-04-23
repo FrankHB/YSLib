@@ -91,6 +91,11 @@
 		<Unit filename="..\YFramework\include\CHRLib\chrproc.h" />
 		<Unit filename="..\YFramework\include\CHRLib\encoding.h" />
 		<Unit filename="..\YFramework\include\CHRLib\smap.hpp" />
+		<Unit filename="..\YFramework\include\Helper\DSMain.h" />
+		<Unit filename="..\YFramework\include\Helper\Initialization.h" />
+		<Unit filename="..\YFramework\include\Helper\ShellHelper.h" />
+		<Unit filename="..\YFramework\include\Helper\shlds.h" />
+		<Unit filename="..\YFramework\include\Helper\yglobal.h" />
 		<Unit filename="..\YFramework\include\YCLib\Debug.h" />
 		<Unit filename="..\YFramework\include\YCLib\Input.h" />
 		<Unit filename="..\YFramework\include\YCLib\NativeAPI.h" />
@@ -119,11 +124,6 @@
 		<Unit filename="..\YFramework\include\YSLib\Core\yshell.h" />
 		<Unit filename="..\YFramework\include\YSLib\Core\ystorage.hpp" />
 		<Unit filename="..\YFramework\include\YSLib\Core\ystring.h" />
-		<Unit filename="..\YFramework\include\YSLib\Helper\DSMain.h" />
-		<Unit filename="..\YFramework\include\YSLib\Helper\Initialization.h" />
-		<Unit filename="..\YFramework\include\YSLib\Helper\ShellHelper.h" />
-		<Unit filename="..\YFramework\include\YSLib\Helper\shlds.h" />
-		<Unit filename="..\YFramework\include\YSLib\Helper\yglobal.h" />
 		<Unit filename="..\YFramework\include\YSLib\Service\CharRenderer.h" />
 		<Unit filename="..\YFramework\include\YSLib\Service\TextBase.h" />
 		<Unit filename="..\YFramework\include\YSLib\Service\TextLayout.h" />
@@ -250,6 +250,11 @@
 		<Unit filename="..\YFramework\include\ysbuild.h" />
 		<Unit filename="..\YFramework\source\CHRLib\chrmap.cpp" />
 		<Unit filename="..\YFramework\source\CHRLib\chrproc.cpp" />
+		<Unit filename="..\YFramework\source\Helper\DSMain.cpp" />
+		<Unit filename="..\YFramework\source\Helper\Initialization.cpp" />
+		<Unit filename="..\YFramework\source\Helper\ShellHelper.cpp" />
+		<Unit filename="..\YFramework\source\Helper\shlds.cpp" />
+		<Unit filename="..\YFramework\source\Helper\yglobal.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Debug.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Input.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\NativeAPI.cpp" />
@@ -265,11 +270,6 @@
 		<Unit filename="..\YFramework\source\YSLib\Core\yobject.cpp" />
 		<Unit filename="..\YFramework\source\YSLib\Core\yshell.cpp" />
 		<Unit filename="..\YFramework\source\YSLib\Core\ystring.cpp" />
-		<Unit filename="..\YFramework\source\YSLib\Helper\DSMain.cpp" />
-		<Unit filename="..\YFramework\source\YSLib\Helper\Initialization.cpp" />
-		<Unit filename="..\YFramework\source\YSLib\Helper\ShellHelper.cpp" />
-		<Unit filename="..\YFramework\source\YSLib\Helper\shlds.cpp" />
-		<Unit filename="..\YFramework\source\YSLib\Helper\yglobal.cpp" />
 		<Unit filename="..\YFramework\source\YSLib\Service\CharRenderer.cpp" />
 		<Unit filename="..\YFramework\source\YSLib\Service\TextBase.cpp" />
 		<Unit filename="..\YFramework\source\YSLib\Service\TextLayout.cpp" />

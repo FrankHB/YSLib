@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2860;
+\version r2866;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-04-10 17:40 +0800;
+	2012-04-21 22:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -62,6 +62,13 @@ private:
 
 public:
 	InputTimer(const Duration& = Timers::TimeSpan(1000U));
+
+	/*!
+	\brief 延迟。
+	\since build 302 。
+	*/
+	PDefH(void, Delay, const Duration& d)
+		ImplBodyMem(timer, Delay, d)
 
 	/*!
 	\brief 重复检测输入接触保持状态。

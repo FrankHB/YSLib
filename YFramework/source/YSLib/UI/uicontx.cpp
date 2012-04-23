@@ -11,13 +11,13 @@
 /*!	\file uicontx.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1185;
+\version r1193;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192 。
 \par 创建时间:
 	2011-02-21 09:01:13 +0800;
 \par 修改时间:
-	2012-04-18 22:26 +0800;
+	2012-04-22 19:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -63,8 +63,7 @@ DialogPanel::DialogPanel(const Rect& r)
 	btnClose(Rect(GetWidth() - 20, 4, 16, 16), 330),
 	btnOK(Rect(GetWidth() - 40, 4, 16, 16))
 {
-	*this += btnClose,
-	*this += btnOK,
+	AddWidgets(*this, btnClose, btnOK),
 	DecorateAsCloseButton(btnClose),
 	yunseq(
 		btnOK.Text = u"○",

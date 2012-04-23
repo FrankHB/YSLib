@@ -1,8 +1,8 @@
 # DS Makefile for YFramework -> DS by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-04-12 21:10 +0800;
-# Version = r3997;
+# UTime = 2012-04-22 11:53 +0800;
+# Version = r4000;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -41,8 +41,8 @@ export RELEASE		= $(BUILD)
 export SOURCES		:= source data $(REFDIR)/source/CHRLib \
 	$(REFDIR)/source/YCLib $(REFDIR)/source/YSLib \
 	$(REFDIR)/source/YSLib/Adaptor $(REFDIR)/source/YSLib/Core \
-	$(REFDIR)/source/YSLib/Helper $(REFDIR)/source/YSLib/Service \
-	$(REFDIR)/Source/YSLib/UI
+	$(REFDIR)/source/YSLib/Service $(REFDIR)/Source/YSLib/UI \
+	$(REFDIR)/source/Helper
 export INCLUDES		:= include data ../YBase/include $(REFDIR)/include
 export DATA			:= data $(REFDIR)/data
 #export GRAPHICS	:= gfx

@@ -9,24 +9,23 @@
 */
 
 /*!	\defgroup Helper Helper
-\ingroup YSLib
 \brief YSLib 助手模块。
 */
 
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2784;
+\version r2791;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2012-04-05 07:46 +0800;
+	2012-04-22 11:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YSLib::Helper::YGlobal;
+	Helper::YGlobal;
 */
 
 
@@ -36,9 +35,9 @@
 //包含 YCLib 公用部分。
 #include <YCLib/ycommon.h>
 
-#include "../Core/ygdibase.h"
-#include "../Core/ymsgdef.h"
-#include "../Core/ydevice.h"
+#include <YSLib/Core/ygdibase.h>
+#include <YSLib/Core/ymsgdef.h>
+#include <YSLib/Core/ydevice.h>
 
 YSL_BEGIN
 

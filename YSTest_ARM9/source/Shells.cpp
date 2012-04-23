@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5844;
+\version r6089;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-04-17 09:24 +0800;
+	2012-04-22 21:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -45,99 +45,106 @@ DeclResource(GR_BGs)
 
 namespace
 {
-	using namespace YReader;
 
-	Color
-	GenerateRandomColor()
-	{
-	//使用 std::time(0) 初始化随机数种子在 DeSmuMe 上无效。
-	//	std::srand(std::time(0));
-		return Color(std::rand(), std::rand(), std::rand(), 1);
-	}
+using namespace YReader;
 
-	//测试函数。
-
-	//背景测试。
-	void
-	dfa(BitmapPtr buf, SDst x, SDst y)
-	{
-		//hypY1
-		buf[y * MainScreenWidth + x] = Color(
-			~(x * y) >> 2,
-			x | y | 128,
-			240 - ((x & y) >> 1)
-		);
-	}
-	void
-	dfap(BitmapPtr buf, SDst x, SDst y)
-	{
-		//bza1BRGx
-		buf[y * MainScreenWidth + x] = Color(
-			(x << 4) / (y | 1),
-			(x | y << 1) % (y + 2),
-			(~y | x << 1) % 27 + 3
-		);
-	}
-	void
-	dfac1(BitmapPtr buf, SDst x, SDst y)
-	{
-		//fl1RBGx
-		buf[y * MainScreenWidth + x] = Color(
-			x + y * y,
-			(x & y) ^ (x | y),
-			x * x + y
-		);
-	}
-	void
-	dfac1p(BitmapPtr buf, SDst x, SDst y)
-	{
-		//rz3GRBx
-		buf[y * MainScreenWidth + x] = Color(
-			(x * y) | x,
-			(x * y) | y,
-			(x ^ y) * (x ^ y)
-		);
-	}
-	void
-	dfac2(BitmapPtr buf, SDst x, SDst y)
-	{
-		//v1BGRx1
-		buf[y * MainScreenWidth + x] = Color(
-			(x << 4) / ((y & 1) | 1),
-			~x % 101 + y,
-			(x + y) % (((y - 2) & 1) | 129) + (x << 2)
-		);
-	}
-	void
-	dfac2p(BitmapPtr buf, SDst x, SDst y)
-	{
-		//arz1x
-		buf[y * MainScreenWidth + x] = Color(
-			(x | y) % (y + 2),
-			(~y | x) % 27 + 3,
-			(x << 6) / (y | 1)
-		);
-	}
-
-	template<typename _tTarget>
-	_tTarget&
-	FetchGlobalResource(ResourceIndex idx)
-	{
-		if(GlobalResourceMap[idx].IsEmpty())
-			GlobalResourceMap[idx] = MakeValueObjectByPtr(new _tTarget());
-		return GlobalResourceMap[GR_BGs].GetObject<_tTarget>();
-	}
-
-	shared_ptr<Image>&
-	FetchGlobalImage(size_t idx)
-	{
-		auto& spi(FetchGlobalResource<array<shared_ptr<Image>, 10>>(GR_BGs));
-
-		YAssert(IsInInterval(idx, 10u), "Array index out of range"
-			" @ FetchGlobalImage;");
-		return spi[idx];
-	}
+Color
+GenerateRandomColor()
+{
+//使用 std::time(0) 初始化随机数种子在 DeSmuMe 上无效。
+//	std::srand(std::time(0));
+	return Color(std::rand(), std::rand(), std::rand(), 1);
 }
+
+//测试函数。
+
+//背景测试。
+void
+dfa(BitmapPtr buf, SDst x, SDst y)
+{
+	//hypY1
+	buf[y * MainScreenWidth + x] = Color(
+		~(x * y) >> 2,
+		x | y | 128,
+		240 - ((x & y) >> 1)
+	);
+}
+
+void
+dfap(BitmapPtr buf, SDst x, SDst y)
+{
+	//bza1BRGx
+	buf[y * MainScreenWidth + x] = Color(
+		(x << 4) / (y | 1),
+		(x | y << 1) % (y + 2),
+		(~y | x << 1) % 27 + 3
+	);
+}
+
+void
+dfac1(BitmapPtr buf, SDst x, SDst y)
+{
+	//fl1RBGx
+	buf[y * MainScreenWidth + x] = Color(
+		x + y * y,
+		(x & y) ^ (x | y),
+		x * x + y
+	);
+}
+
+void
+dfac1p(BitmapPtr buf, SDst x, SDst y)
+{
+	//rz3GRBx
+	buf[y * MainScreenWidth + x] = Color(
+		(x * y) | x,
+		(x * y) | y,
+		(x ^ y) * (x ^ y)
+	);
+}
+
+void
+dfac2(BitmapPtr buf, SDst x, SDst y)
+{
+	//v1BGRx1
+	buf[y * MainScreenWidth + x] = Color(
+		(x << 4) / ((y & 1) | 1),
+		~x % 101 + y,
+		(x + y) % (((y - 2) & 1) | 129) + (x << 2)
+	);
+}
+
+void
+dfac2p(BitmapPtr buf, SDst x, SDst y)
+{
+	//arz1x
+	buf[y * MainScreenWidth + x] = Color(
+		(x | y) % (y + 2),
+		(~y | x) % 27 + 3,
+		(x << 6) / (y | 1)
+	);
+}
+
+template<typename _tTarget>
+_tTarget&
+FetchGlobalResource(ResourceIndex idx)
+{
+	if(GlobalResourceMap[idx].IsEmpty())
+		GlobalResourceMap[idx] = MakeValueObjectByPtr(new _tTarget());
+	return GlobalResourceMap[GR_BGs].GetObject<_tTarget>();
+}
+
+shared_ptr<Image>&
+FetchGlobalImage(size_t idx)
+{
+	auto& spi(FetchGlobalResource<array<shared_ptr<Image>, 10>>(GR_BGs));
+
+	YAssert(IsInInterval(idx, 10u), "Array index out of range"
+		" @ FetchGlobalImage;");
+	return spi[idx];
+}
+
+} // unnamed namespace;
 
 YSL_END_NAMESPACE(YReader)
 
@@ -182,15 +189,6 @@ FetchImage(size_t i)
 }
 
 
-void
-RemoveGlobalTasks(Shell& shl)
-{
-	auto& app(FetchGlobalInstance());
-
-	app.Queue.Remove(&shl, app.UIResponseLimit);
-}
-
-
 FPSCounter::FPSCounter(u64 s)
 	: last_tick(GetHighResolutionTicks()), now_tick(), refresh_count(1),
 	MinimalInterval(s)
@@ -219,180 +217,100 @@ FPSCounter::Refresh()
 
 namespace
 {
-	shared_ptr<TextList::ListType>
-	GenerateList(const String& str)
+
+shared_ptr<TextList::ListType>
+GenerateList(const String& str)
+{
+	auto p(new TextList::ListType());
+
+	p->push_back(str);
+
+	char cstr[40];
+
+	std::sprintf(cstr, "%p;", p);
+	p->push_back(cstr);
+	return share_raw(p);
+}
+
+void
+SwitchVisible(IWidget& wgt)
+{
+	SetVisibleOf(wgt, !IsVisible(wgt));
+	Invalidate(wgt);
+}
+
+
+namespace EnrtySpace
+{
+	typedef enum
 	{
-		auto p(new TextList::ListType());
+		Empty,
+		Now,
+		Parent,
+		Directory,
+		Text,
+		Hex
+	} EntryType;
+}
 
-		p->push_back(str);
+bool
+ReaderPathFilter(const string& path)
+{
+	const auto ext(IO::GetExtensionOf(path).c_str());
 
-		char cstr[40];
+	return !strcasecmp(ext, "txt")
+		|| !strcasecmp(ext, "c")
+		|| !strcasecmp(ext, "cpp")
+		|| !strcasecmp(ext, "h")
+		|| !strcasecmp(ext, "hpp")
+		|| !strcasecmp(ext, "ini")
+		|| !strcasecmp(ext, "xml");
+}
 
-		std::sprintf(cstr, "%p;", p);
-		p->push_back(cstr);
-		return share_raw(p);
-	}
+EnrtySpace::EntryType
+GetEntryType(const string& path)
+{
+	using namespace EnrtySpace;
 
-	void
-	SwitchVisible(IWidget& wgt)
-	{
-		SetVisibleOf(wgt, !IsVisible(wgt));
-		Invalidate(wgt);
-	}
+	if(path.length() == 0)
+		return Empty;
+	if(path == IO::FS_Now)
+		return Now;
+	if(path == IO::FS_Parent)
+		return Parent;
+	if(*path.rbegin() == YCL_PATH_DELIMITER)
+		return Directory;
+	if(ReaderPathFilter(path))
+		return Text;
+	return Hex;
+}
+EnrtySpace::EntryType
+GetEntryType(const IO::Path& path)
+{
+	return GetEntryType(path.GetNativeString());
+}
 
-
-	class TestObj
-	{
-	public:
-		shared_ptr<Desktop> h;
-		Color c;
-		Point l;
-		Size s;
-		String str;
-		TextRegion tr;
-
-	public:
-		TestObj(const shared_ptr<Desktop>&);
-
-		void
-		Fill();
-
-		static void
-		Pause()
-		{
-			WaitForInput();
-		}
-
-		void
-		Blit() const;
-
-		void
-		Test1(Color);
-
-		void
-		Test2();
-
-		void
-		Test3(Color);
-	};
-
-	TestObj::TestObj(const shared_ptr<Desktop>& h_)
-		: h(h_),
-		c(ColorSpace::White),
-		l(20, 32), s(120, 90)
-	{
-		tr.SetSize(s.Width, s.Height);
-	}
-
-	void
-	TestObj::Fill()
-	{
-		const auto& g(h->GetScreen().GetContext());
-
-		FillRect(g, l, s, c);
-	}
-
-	void
-	TestObj::Blit() const
-	{
-		BlitTo(h->GetScreen().GetBufferPtr(), tr,
-			h->GetScreen().GetSize(), l, Point::Zero, tr.GetSize());
-	}
-
-	void
-	TestObj::Test1(Color c)
-	{
-		Fill();
-		tr.ClearImage();
-		tr.ResetPen();
-		tr.Color = c;
-	}
-
-	void
-	TestObj::Test2()
-	{
-		PutLine(tr, str);
-		Blit();
-		Pause();
-	}
-
-	void
-	TestObj::Test3(Color c)
-	{
-		Test1(c);
-		Test2();
-	}
-
-	namespace EnrtySpace
-	{
-		typedef enum
-		{
-			Empty,
-			Now,
-			Parent,
-			Directory,
-			Text,
-			Hex
-		} EntryType;
-	}
-
-	bool
-	ReaderPathFilter(const string& path)
-	{
-		const auto ext(IO::GetExtensionOf(path).c_str());
-
-		return !strcasecmp(ext, "txt")
-			|| !strcasecmp(ext, "c")
-			|| !strcasecmp(ext, "cpp")
-			|| !strcasecmp(ext, "h")
-			|| !strcasecmp(ext, "hpp")
-			|| !strcasecmp(ext, "ini")
-			|| !strcasecmp(ext, "xml");
-	}
-
-	EnrtySpace::EntryType
-	GetEntryType(const string& path)
+bool
+CheckReaderEnability(FileBox& fb, CheckBox& hex)
+{
+	if(fb.IsSelected())
 	{
 		using namespace EnrtySpace;
 
-		if(path.length() == 0)
-			return Empty;
-		if(path == IO::FS_Now)
-			return Now;
-		if(path == IO::FS_Parent)
-			return Parent;
-		if(*path.rbegin() == '/')
-			return Directory;
-		if(ReaderPathFilter(path))
-			return Text;
-		return Hex;
-	}
-	EnrtySpace::EntryType
-	GetEntryType(const IO::Path& path)
-	{
-		return GetEntryType(path.GetNativeString());
-	}
-
-	bool
-	CheckReaderEnability(FileBox& fb, CheckBox& hex)
-	{
-		if(fb.IsSelected())
+		switch(GetEntryType(fb.GetList()[fb.GetSelectedIndex()]))
 		{
-			using namespace EnrtySpace;
-
-			switch(GetEntryType(fb.GetList()[fb.GetSelectedIndex()]))
-			{
-			case Text:
-				return true;
-			case Hex:
-				return hex.IsTicked();
-			default:
-				;
-			}
+		case Text:
+			return true;
+		case Hex:
+			return hex.IsTicked();
+		default:
+			;
 		}
-		return false;
 	}
+	return false;
 }
+
+} // unnamed namespace;
 
 
 ShlExplorer::ShlExplorer(const IO::Path& path)
@@ -401,13 +319,38 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
 	chkFPS(Rect(208, 144, 16, 16)), chkHex(Rect(232, 144, 16, 16)),
-	pWndTest(), pWndExtra(),
-	lblA(Rect(5, 20, 200, 22)), lblB(Rect(5, 120, 72, 22)),
+	pWndTest(make_unique<TFormTest>()), pWndExtra(make_unique<TFormExtra>()),
+	lblA(Rect(16, 44, 200, 22)), lblB(Rect(5, 120, 72, 22)),
 	mhMain(*GetDesktopDownHandle()), fpsCounter(500000000ULL)
 {
+	auto& dsk_up(GetDesktopUp());
+	auto& dsk_dn(GetDesktopDown());
+
+	AddWidgets(dsk_up, lblTitle, lblPath, lblA, lblB),
+	AddWidgets(dsk_dn, fbMain, btnTest, btnOK, chkFPS, chkHex),
+	AddWidgetsZ(dsk_dn, DefaultWindowZOrder, *pWndTest, *pWndExtra),
 	//对 fbMain 启用缓存。
-	fbMain.SetRenderer(make_unique<BufferedRenderer>(true));
+	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
+	lblB.SetTransparent(true),
+	SetVisibleOf(*pWndTest, false),
+	SetVisibleOf(*pWndExtra, false),
 	yunseq(
+		tie(dsk_up.Background, dsk_dn.Background, lblTitle.Text, lblPath.Text,
+			btnTest.Text, btnOK.Text, lblA.Text, lblB.Text) = forward_as_tuple(
+			ImageBrush(FetchImage(1)), ImageBrush(FetchImage(2)),
+			u"YReader", path, u"测试(X)", u"确定(A)",
+			u"文件列表：请选择一个文件。", u"程序测试"),
+		fbMain.SetPath(path),
+		Enable(btnTest, true),
+		Enable(btnOK, false),
+	// TODO: show current working directory properly;
+	//	lblTitle.Transparent = true,
+	//	lblPath.Transparent = true,
+		dsk_dn.BoundControlPtr = std::bind(&ShlExplorer::GetBoundControlPtr,
+			this, std::placeholders::_1),
+		FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave,
+		FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown,
+		FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click,
 		fbMain.GetViewChanged() += [this](UIEventArgs&&){
 			lblPath.Text = fbMain.GetPath();
 			Invalidate(lblPath);
@@ -448,65 +391,11 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 		FetchEvent<Click>(chkHex) += [this](TouchEventArgs&&){
 			Enable(btnOK, CheckReaderEnability(fbMain, chkHex));
 			SetInvalidationOf(GetDesktopDown());
-		},
-		lblA.Text = "YReader",
-		lblB.Text = "程序测试"
+		}
 	);
-	lblB.SetTransparent(true);
-	yunseq(Enable(btnTest, true), Enable(btnOK, false));
-
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
-
-	// parent-init-seg 0;
-	dsk_up += lblTitle,
-	dsk_up += lblPath;
-	dsk_dn += fbMain,
-	dsk_dn += btnTest,
-	dsk_dn += btnOK,
-	dsk_dn += chkFPS,
-	dsk_dn += chkHex;
-	dsk_up += lblA,
-	dsk_up += lblB;
-	// init-seg 1;
-		//g_c_dn = SolidBrush(Color(120, 120, 248));
-	yunseq(
-		dsk_up.Background = ImageBrush(FetchImage(1)),
-		dsk_dn.Background = ImageBrush(FetchImage(2)),
-	// init-seg 2;
-		lblTitle.Text = "文件列表：请选择一个文件。",
-		// TODO: show current working directory properly;
-		lblPath.Text = path,
-	//	lblTitle.Transparent = true,
-	//	lblPath.Transparent = true;
-		btnTest.Text = u"测试(X)",
-		btnOK.Text = u"确定(A)",
-		fbMain.SetPath(path)
-	);
-	// init-seg 3;
-	yunseq(
-		dsk_dn.BoundControlPtr = std::bind(&ShlExplorer::GetBoundControlPtr,
-			this, std::placeholders::_1),
-		FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave,
-		FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown,
-		FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click
-	);
-	RequestFocusCascade(fbMain);
-	// init-seg 4;
-	yunseq(
-		pWndTest = make_unique<TFormTest>(),
-		pWndExtra = make_unique<TFormExtra>()
-	);
-	SetVisibleOf(*pWndTest, false),
-	SetVisibleOf(*pWndExtra, false);
-	dsk_dn += *pWndTest,
-	dsk_dn += *pWndExtra;
+	RequestFocusCascade(fbMain),
+	SetInvalidationOf(dsk_up),
 	SetInvalidationOf(dsk_dn);
-	// init-seg 5;
-/*	Menu& mnu(*(ynew Menu(Rect::Empty, GenerateList(u"TestMenuItem0"), 1u)));
-
-	FetchEvent<Click>(mnu) += OnClick_ShowWindow;
-	mhMain += mnu;*/
 	// FIXME: memory leaks;
 	mhMain += *(ynew Menu(Rect::Empty, GenerateList(u"A:MenuItem"), 1u)),
 	mhMain += *(ynew Menu(Rect::Empty, GenerateList(u"B:MenuItem"), 2u));
@@ -524,23 +413,15 @@ ShlExplorer::TFormTest::TFormTest()
 	btnNextBackground(Rect(95, 64, 30, 22))
 //Rect(120, 32, 96, 22)
 {
-	*this += btnEnterTest,
-	*this += btnMenuTest,
-	*this += btnShowWindow,
-	*this += btnPrevBackground,
-	*this += btnNextBackground,
-	yunseq(
-		Background = SolidBrush(Color(248, 248, 120)),
-		btnEnterTest.Text = u"边界测试",
-		btnEnterTest.HorizontalAlignment = TextAlignment::Right,
-		btnEnterTest.VerticalAlignment = TextAlignment::Up,
-		btnMenuTest.Text = u"菜单测试",
-		btnShowWindow.Text = u"显示/隐藏窗口",
-		btnShowWindow.HorizontalAlignment = TextAlignment::Left,
-		btnShowWindow.VerticalAlignment = TextAlignment::Down,
-		btnPrevBackground.Text = "<<",
-		btnNextBackground.Text = ">>"
-	);
+	AddWidgets(*this, btnEnterTest, btnMenuTest, btnShowWindow,
+		btnPrevBackground, btnNextBackground),
+	tie(Background, btnEnterTest.Text, btnEnterTest.HorizontalAlignment,
+		btnEnterTest.VerticalAlignment, btnMenuTest.Text, btnShowWindow.Text,
+		btnShowWindow.HorizontalAlignment, btnShowWindow.VerticalAlignment,
+		btnPrevBackground.Text, btnNextBackground.Text) = forward_as_tuple(
+		SolidBrush(Color(248, 248, 120)), u"边界测试",
+		TextAlignment::Right, TextAlignment::Up, u"菜单测试", u"显示/隐藏窗口",
+		TextAlignment::Left, TextAlignment::Down, u"<<", u">>"),
 	SetInvalidationOf(*this);
 
 	static int up_i(1);
@@ -643,20 +524,17 @@ ShlExplorer::TFormExtra::TFormExtra()
 	btnClose(Rect(13, 82, 60, 22)),
 	btnExit(Rect(83, 82, 60, 22))
 {
-	*this += btnDragTest,
-	*this += btnTestEx,
-	*this += btnClose,
-	*this += btnExit;
+	AddWidgets(*this, btnDragTest, btnTestEx, btnClose, btnExit),
 	yunseq(
 		btnDragTest.Text = u"测试拖放控件",
 		btnDragTest.HorizontalAlignment = TextAlignment::Left,
-		btnTestEx.Text = u"直接屏幕绘制测试",
+		btnTestEx.Text = u"附加测试",
 		btnClose.Text = u"关闭",
 		btnExit.Text = u"退出",
 		Background = SolidBrush(Color(248, 120, 120)),
 		//	btnDragTest.Enabled = false,
 		btnClose.Background = SolidBrush(Color(176, 184, 192))
-	);
+	),
 	SetInvalidationOf(*this);
 	yunseq(
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
@@ -667,7 +545,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 		},
 		FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging,
 		FetchEvent<Move>(btnDragTest) += [this](UIEventArgs&&){
-			char sloc[20];
+			char sloc[30];
 
 			std::sprintf(sloc, "(%d, %d);", btnDragTest.GetX(),
 				btnDragTest.GetY());
@@ -675,98 +553,29 @@ ShlExplorer::TFormExtra::TFormExtra()
 			Invalidate(btnDragTest);
 		},
 		FetchEvent<TouchDown>(btnDragTest) += [this](TouchEventArgs&&){
-			char strMemory[40];
 #ifndef YCL_MINGW32
+			char strMemory[40];
 			struct mallinfo t(mallinfo());
 
-			/*	std::sprintf(strMemory, "%d,%d,%d,%d,%d;",
-					t.arena,    // total space allocated from system 2742496
-					t.ordblks,  // number of non-inuse chunks 37
-					t.smblks,   // unused -- always zero 0
-					t.hblks,    // number of mmapped regions 0
-					t.hblkhd   // total space in mmapped regions 0
-				);*/
-			/*	std::sprintf(strMemory, "%d,%d,%d,%d,%d;",
-					t.usmblks,  // unused -- always zero 0
-					t.fsmblks,  // unused -- always zero 0
-					t.uordblks, // total allocated space 2413256, 1223768
-					t.fordblks, // total non-inuse space 329240, 57760
-					t.keepcost // top-most, releasable (via malloc_trim) space
-					//46496,23464
-					);*/
 			std::sprintf(strMemory, "%d,%d,%d,%d,%d;",
-				t.arena,
-				t.ordblks,
-				t.uordblks,
-				t.fordblks,
-				t.keepcost);
-#endif
+				t.arena, t.ordblks, t.uordblks, t.fordblks, t.keepcost);
 			auto& lblA(FetchShell<ShlExplorer>().lblA);
 
 			lblA.Text = strMemory;
 			Invalidate(lblA);
+#endif
 		},
 		FetchEvent<TouchMove>(btnDragTest) += OnTouchMove_Dragging,
 		FetchEvent<Click>(btnDragTest) += [this](TouchEventArgs&&){
-#if 0
-			auto hList(FetchShell<ShlExplorer>().hFontFamilyNames);
-			char strtf[0x100];
-
-			std::sprintf(strtf, "1/%d;%s;", hList->size(),
-				(*hList)[0].GetMBCS().c_str());
-#endif
 			yunseq(
-//				btnDragTest.Text = strtf,
 				btnDragTest.ForeColor = GenerateRandomColor(),
 				btnClose.ForeColor = GenerateRandomColor()
 			);
 			Invalidate(*this);
 		//	Enable(btnClose);
 		},
-		FetchEvent<Click>(btnTestEx) += [this](TouchEventArgs&& e){
-			using namespace Drawing;
-			using namespace ColorSpace;
-
-			TestObj t(FetchShell<ShlExplorer>().GetDesktopDownHandle());
-
-			t.str = u"Abc测试";
-			switch(e.X * 4 / btnTestEx.GetWidth())
-			{
-			case 0:
-				t.Fill();
-				t.Pause();
-			//	Drawing::Fill(tr.GetGraphics(), ColorSpace::Black);
-				t.Test2();
-				t.Test3(Black);
-				t.Test3(Blue);
-			case 1:
-				t.tr.SetSize(t.s.Width, t.s.Height);
-			//	t.Pause();
-			//	Drawing::Fill(t.tr.GetGraphics(), ColorSpace::Black);
-				t.Test3(White);
-				t.Test3(Black);
-				t.Test3(Red);
-				break;
-			case 2:
-				t.c = Lime;
-				t.Fill();
-				t.Pause();
-			//	Drawing::Fill(t.tr.GetGraphics(), ColorSpace::Black);
-				t.Test2();
-				t.Test3(Black);
-				t.Test3(Blue);
-			case 3:
-				t.c = Lime;
-				t.tr.SetSize(t.s.Width, t.s.Height);
-			//	t.Pause();
-			//	Drawing::Fill(t.tr.GetGraphics(), ColorSpace::Black);
-				t.Test3(White);
-				t.Test3(Black);
-				t.Test3(Red);
-			default:
-				break;
-			}
-		},
+	//	FetchEvent<Click>(btnTestEx) += [this](TouchEventArgs&& e){
+	//	},
 		FetchEvent<KeyPress>(btnDragTest) += [](KeyEventArgs&& e){
 			const auto& k(e.GetKeys());
 			char strt[100];
@@ -776,11 +585,6 @@ ShlExplorer::TFormExtra::TFormExtra()
 			std::sprintf(strt, "%lu;\n", k.to_ulong());
 			lbl.Text = strt;
 			Invalidate(lbl);
-#if 0
-			Button& lbl(static_cast<Button&>(e.GetSender()));
-
-			lbl.Text = u"测试键盘...";
-#endif
 		},
 		FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
 			Hide(*this);

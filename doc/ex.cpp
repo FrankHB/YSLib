@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3585; *build 302 rev 14;
+\version r3562; *build 303 rev 51;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-20 11:17 +0800;
+	2012-04-23 10:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -367,136 +367,226 @@ $using:
 
 $DONE:
 r1:
-/ @ \u YStyle $=
 (
+	/ @ \h TypeOperation $=
 	(
-		/ \simp \impl @ \f ColorToHSL,
-		* \impl @ \f HSLToColor $since b276
-	),
+		+ \stt variadic_sequence;
+		+ \stt make_natrual_sequence
+	);
+	/ @ \h Utilities $=
 	(
-		+ typedef ystdex::fixed_point<u16, 9> Hue;
-		/ \m ystdex::fixed_point<u16, 9> h @ \st hsl_t -> Hue h
+		/ \inh \h YDefinition -> \h TypeOperation,
+		+ \inc \h <tuple>;
+		+ \clt unseq_dispatcher @ \ns details;
+		+ \ft unseq_apply @ \h Utilities
+	);
+	/ \ft seq_apply @ \h YFunc >> \h Utilities;
+	+ using ystdex::(seq_apply, unseq_apply) @ \h YAdaptor,
+	/ @ \h ShellHelper $=
+	(
+		/ @ \cl (ChildPainter, ContainerSetter) $=
+		(
+			/ \m ^ std::reference_wrapper ~ raw \ref,
+			- \tr 'yconstfn' @ \ctor,
+			/ \tr \impl @ \op()
+		),
+		/ \tr \impl @ \mf ContainerSetter::\op()
 	)
-),
-/ @ \u Button $=
-(
-	/ @ \un \ns $=
-	(
-		+ \f \i change_hue;
-		/ \f RectDrawButton
-	),
-	(
-		/ !\rem \h YStyle @ \h Button;
-		+ \m Drawing::Hue Hue @ \cl Thumb
-	)
-	/ \tr \impl @ \mf Refresh @ \cl Thumb,
-	/ \tr \impl @ \ctor (Thumb, CloseButton)
 );
+/ \a seq_apply @ \impl \u ShlReader -> unseq_apply;
 
 r2:
-/ @ \u Button $=
-(
-	+ \mf DefPred(const ynothrow, Pressed, bPressed) @ \cl Thumb,
-	/ @ \un \ns $=
-	(
-		+ using Drawing::Hue,
-		/ \simp \a \f;
-		+ \f DrawButtonBackground
-	);
-	/ \tr \impl @ \ctor (Thumb, CloseButton);
-	- \m Drawing::Hue Hue @ \cl Thumb
-);
+/= test 1 ^ \conf release;
 
 r3:
-+ \f void DrawCross(const Graphics&, const Point&, const Size&, Color)
-	@ \u YStyle;
-/ \simp \impl @ \mf CloseButton::Refresh;
-
-r4:
-/ @ \u Button $=
+/ \a make_natrual_sequence => make_natural_sequence,
 (
-	/ \f DrawButtonBackground @ \un \ns
-		-> \f DrawThumbBackground @ \ns Components;
-	/ \tr \impl @ \ctor (Thumb, CloseButton)
+	+ \ft (AddWidgets, AddWidgetsZ, RemoveWidgets) @ \h YUIContainer;
+	/ \simp \impl @ \impl \u (ShlReader, ColorPicker, Shells) ^ \ft AddWidgets
 );
 
+r4:
+/= test 2 ^ \conf release;
+
 r5:
-/ @ \u Button $=
+/ @ \h Utilities $=
 (
-	+ \f DrawThumbCross;
-	/ @ \cl CloseButton $=
-	(
-		- \mf Refresh,
-		/ \impl @ \ctor
-	)
+	/ \simp \impl @ \mf unseq_dispatcher::call @ \ns ystdex::details;
+	- \inc \h <tuple>
 );
 
 r6:
-/ @ \u Button $=
+/ @ \h Utilities $=
 (
-	/ @ \ctor Thumb;
-	/ \simp \impl @ \ctor CloseButton
+	- typedef type @ \stt variadic_sequence
+	+ \stt make_successor,
+	/ \tr \impl @ \stt make_natural_sequence
 );
 
 r7:
-/ @ \u Button $=
-(
-	+ \f DecorateAsCloseButton(Thumb&);
-	- \cl CloseButton
-);
-/ \tr @ \u UIContainerEx $=
-(
-	/ \a CloseButton -> Thumb,
-	/ \tr \impl @ \ctor (DialogBox, DialogPanel)
-);
+/= test 3 ^ \conf release;
 
 r8:
-/= test 1 ^ \conf release;
++ \i @ 3 \ft @ \h YUIContainer;
+/= test 4 ^ \conf release;
 
 r9:
-/ \f DrawThumbCross @ \u Button \mg -> \f DecorateAsCloseButton;
+* $design @ \ft (parameterize_static_object, get_init) for ambiguous overloading
+	with \em \tp \arg \li $since b301;
+/ \f FetchCurrentSetting @ \un \ns \mg -> \ctor ShlTextReader
+	@ \impl \u ShlReader;
 
 r10:
-/ \f WndDrawArrow @ \u YStyle => \f DrawArrow,
-/ \inc \h YDraw @ \impl \u YWidget -> \h YStyle;
-+ \f DrawArrow @ \u YWidget;
-/ @ \impl \u Scroll $=
+/ @ \impl \u ShlReader $=
 (
-	/ \impl @ \ctor @ (HorizontalScrollBar, VerticalScrollBar);
-	/ \simp \impl @ \mf AScrollBar::Refresh
+	/ @ \un \ns $= (/ \f FetchScrollDurations \mg
+		-> \f UpdateScrollDropDownList)
+	/ \f FetchLastRead @ \un \ns \mg -> \ctor ShlTextReader
 );
 
 r11:
-/ @ \u ShlReader
+/ @ \u ShlReader $=
 (
-	+ \m @ ShlReader,
-	/ \tr \impl @ \ctor ShlReader;
-	/ \impl @ \mf ShlReader::Exit;
-	* $comp Exit called more than once @ reader $since b300
+	/ \simp \impl @ \ctor ShlTextReader ^ AddWidgets @ \impl \u,
+	- \dtor @ \cl ShlHexBrowser
 );
 
 r12:
-/= test 2 ^ \conf release;
+/= test 5 ^ \conf release;
 
 r13:
-/ \impl @ \ft \i SetShellTo @ \h ShellHelper;
+/ @ \impl \u ShlReader $=
+(
+	/ \f FetchEncodingNames @ \un \ns \mg -> \ctor SettingPanel,
+	/ @ \un \ns $=
+	(
+		+ \en MNU_READER \inh Menu::IndexType,
+		/ \a 'MR_*' -> \m @ \en MNU_READER
+	),
+	(
+		/ \decl @ \ft SetBufferRendererAndText @ \un \ns,
+		/ \impl @ \cl ReaderBox
+	)
+);
 
-r14:
-/= test 3 ^ \conf release;
+r14-r30:
+/ \impl @ \mf ShlTextReader::OnKeyDown \impl \u ShlReader,
+(
+	* $design / \mac YCL_KEY(X) @ \h Shells $since @ defined YCL_DS b299;
+	* key 'Y' no respond $since b299,
+	* wrong font size set when responding key ('X', 'Y') and boundary font size
+		reached $since b299
+),
+/= test 6,
+/ \simp \impl @ main \f @ \impl \u ARM9_Main ^ AddWidgets;
+
+r31:
++ \mf void Delay(const Duration&) @ \cl (Timer; InputTimer);
+* %KeyDown responded more than once when the input waiting interval
+	is smaller than actual delay $since b300
+	$= (/\impl @ \mf ShlTextReader::OnKeyDown \impl \u ShlReader);
+
+r32:
+/= test 7 ^ \conf release;
+
+r33:
+/ @ \impl \u Shells $=
+(
+	/ \simp \impl @ \ctor ShlExplorer::TFormExtra;
+	- \cl TestObj @ \un \ns
+);
+
+r34:
+(
+	/ \dir Helper @ \dir YSLib -> \dir @ \proj YFramework;
+	/ \tr @ Makefile @ \proj YFramework_DS,
+	/ \tr \inc \h @ \h YSLib::Build,
+	/ \tr @ \proj YSTest_ARM9;
+),
+/ \mac @ \h YEvent;
+
+r35:
+/= test 8 ^ \conf release;
+
+r36:
+/ \simp \impl @ \ctor (ShlExplorer, ShlExplorer::TFormTest) @ \impl \u Shells
+	^ (AddWidgets, AddWidgetsZ, std::tie, std::forward_as_tuple);
+
+r37:
+* slash-ended item not recognized as directory @ file box @ defined YCL_MINGW32
+	$since b299 $= (\impl @ GetEntryType @ \un \ns @ \impl \u Shells),
+/ \a \mac YCL_KEY* @ \h Shells >> \h Input;
+
+r38-r40:
+/ \impl @ \ctor ShlExplorer @ \impl \u Shells;
+
+r41:
+/ \simp \impl @ \ctor DialogPanel,
+/ \simp \ctor SettingPanel @ \impl \u ShlReader
+	^ (std::tie, std::forward_as_tuple);
+
+r42:
+/ \impl @ \ctor ShlExplorer @ \impl \u ShlExplorer;
+/= test 9 ^ \conf release;
+
+r43:
+/ @ \u ShlExplorer $=
+(
+	/ \f RemoveGlobalTasks @ \ns YReader 
+		>> \ns YSLib @ \u ShellHelper,
+	- typedef ShlDS ParentType @ \cl ShlExplorer
+);
+
+r44:
+* \impl @ \ctor SettingPanel $since r41;
+
+r45-r46:
+/= test 10;
+
+r47:
++ using std::(tie, forward_as_tuple, get, ignore, tuple_cat) @ \h YContainer,
+* \impl @ \ft RemoveWidgets @ \h YUIContainer;
+/ \simp \impl @ \impl \u (ShlReader, Shells);
+
+r48:
+/= test 11 ^ \conf release;
+
+r49:
+/ @ \u Initialization $=
+(
+	+ \f InitializeEnviornment,
+	/ \f (EpicFail, LibfatFail, CheckSystemFontCache)
+		@ \u Initialization >> \un \ns @ \impl \u
+),
+/ \simp \impl @ \ctor DSApplication;
+
+r50:
+/ @ \u Initialization $=
+(
+	/ \f CheckSystemFontCache @ \un \ns mg -> \f InitializeSystemFontCache;
+	/ \impl @ \f (InitializeSystemFontCache, InitializeEnviornment,
+		CheckInstall),
+	/ \f LibfatFail @ \un \ns -> \f libfatFail;
+	+ ynothrow @ \f (InitializeSystemFontCache, InitializeEnviornment,
+		CheckInstall)
+);
+
+r51:
+/= test 12 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-04-20:
--10.1d;
-//Mercurial rev1-rev174: r8263;
+2012-04-23:
+-8.2d;
+//Mercurial rev1-rev175: r8314;
 
 / ...
 
 
 $NEXT_TODO:
-b303-b332:
+b304-b332:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -831,16 +921,17 @@ $module_tree $=
 				'file system abstraction',
 				'application abstraction'
 			),
-			'helpers'
-			(
-				'global helper unit',
-				'shells for DS';
-				'DS main unit'
-			),
 			'services',
 			'GUI',
 			'UI styles'
 		)
+		'Helper'
+		(
+			'global helper unit',
+			'shells for DS';
+			'DS main unit',
+			'initialization'
+		),
 	),
 	'YReader'
 	(
@@ -854,6 +945,75 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YBase' $=
+	(
+		(
+			+ "variadic meta types and operations";
+			+ "unsequenced call function template %unseq_apply",
+		)
+		* $design "ambiguous overloading with empty template argument list"
+			@ "function template %(parameterize_static_object, get_init)"
+			$since b301;
+	);
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ %'GUI' $=
+			(
+				+ "function template %(AddWidgets, AddWidgetsZ, RemoveWidgets)"
+					@ "header %yuicont.h" @ %'GUI',
+				(
+					$dep_from "timer delay";
+					+ "member function %Delay" @ "class %InputTimer"
+					$dep_from "input timer delay";
+				)
+			),
+			(
+				+ "member function %Delay" @ "class %Timer" @ %'services'
+				$dep_to "timer delay";
+			),
+			(
+				/ %'helpers' >> %$$'Helper';
+				$dep_to "helpers"
+			)
+		),
+		+ "adapting macros for DS and MinGW32" @ %'YCLib'.'common input APIs',
+		(
+			$dep_from "helpers";
+			/ $design "simplified interfaces" @ %'initialization'
+		)
+	);
+	/ %'YReader' $=
+	(
+		$design "simplified implementation",
+		/ %'text reader' $=
+		(
+			* @ defined YCL_DS $since b299
+			(
+				* $design "wrong implementation" @ "macro %YCL_KEY(X)"
+					@ "header Shells.h";
+				* "key 'Y' no respond",
+				* "wrong font size set when responding key ('X', 'Y') and \
+				  boundary font size reached"
+			)
+			(
+				$dep_from "input timer delay";
+				* "%KeyDown responded more than once when the input waiting \
+					interval is smaller than actual delay" $since b300;
+					// ('X', 'Y') on DS delayed and led to over setting \
+						of font size.
+			),
+		),
+		- "direct UI drawing test" @ %'shells test example',
+			// It has never been compatible on MinGW32.
+		* "slash-ended item not recognized as directory" @ defined YCL_MINGW32
+			@ %'file explorer' $since b299
+	)
+),
+
+b302
 (
 	/ %'YFramework'.'YSLib' $=
 	(
@@ -3616,7 +3776,7 @@ b208
 	^ "rvalue references as parameter types of event handlers",
 	/ "set default font size smaller",
 	+ "vertical alignment" @ "labeled controls",
-	* "fatel error" @ "direct UI drawing testing"
+	* "fatel error" @ "direct UI drawing test"
 ),
 
 b207
@@ -3726,7 +3886,7 @@ b201
 
 b200
 (
-	* "direct drawing test",
+	* "direct UI drawing test",
 	/ "test UI view",
 	* "%KeyHeld response" $since b199,
 	+ "direct desktop drawing for %ShlSetting"
@@ -3973,58 +4133,6 @@ b1_b131
 
 //---- temp code;
 	// TODO: remove '*printf';
-
-	static Timers::Timer Timer(1250);
-
-	if(Timer.Refresh())
-	{
-	//	InitYSConsole();
-	//	YDebugBegin();
-		std::printf("time : %u ticks\n", GetTicks());
-		std::printf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
-			"W : %u;\nL : %lx;\n", msg.GetMessageID(),
-			msg.GetPriority(), msg.GetObjectID(), msg.GetWParam(),
-			msg.GetLParam());
-		WaitForInput();
-	//	StartTicks();
-	}
-
-// ShlReader::OnActivated;
-
-			FetchEvent<TouchDown>(mnu) += [&, this](TouchEventArgs&&){
-				char strt[60];
-				auto& dsk(this->GetDesktopDown());
-				auto& g(dsk.GetScreen());
-				using namespace ColorSpace;
-				{
-					const Rect r(0, 172, 72, 20);
-					auto& evt(FetchEvent<TouchDown>(mnu));
-					u32 t(evt.GetSize());
-
-					std::sprintf(strt, "n=%u", t);
-					FillRect(g, r, Blue);
-					DrawText(g, r, strt, Padding(), White);
-				}
-				WaitForInput();
-			};
-			mhMain += *new Menu(Rect::Empty, GenerateList("a"), 1u);
-			mhMain[1u] += make_pair(1u, &mhMain[2u]);
-
-	auto cc(Reader.GetColor());
-	Reader.SetColor(Color((cc & (15 << 5)) >> 2, (cc & 29) << 3,
-		(cc&(31 << 10)) >> 7));
-
-
-	YDebugBegin();
-	std::printf("time : %u ticks\n", GetTicks());
-	std::printf("Message : 0x%04X;\nPrior : 0x%02X;\nObj : %d\n"
-		"W : %u;\nL : %lx;\n", msg.GetMessageID(), msg.GetPriority(),
-		msg.GetObjectID(), msg.GetWParam(), msg.GetLParam());
-	WaitForInput();
-
-	InitYSConsole();
-	std::printf("%d,(%d,%d)\n",msg.GetWParam(),
-		msg.GetCursorLocation().X, msg.GetCursorLocation().Y);
 
 #endif
 

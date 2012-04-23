@@ -12,24 +12,24 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2182;
+\version r2187;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-04-04 13:25 +0800;
+	2012-04-22 11:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YSLib::Helper::Shell_DS;
+	Helper::Shell_DS;
 */
 
 
-#include "YSLib/Helper/DSMain.h"
-#include "YSLib/Helper/yglobal.h"
-#include "YSLib/UI/ydesktop.h"
-#include "YSLib/UI/ygui.h"
+#include "Helper/DSMain.h"
+#include "Helper/yglobal.h"
+#include <YSLib/UI/ydesktop.h>
+#include <YSLib/UI/ygui.h>
 
 YSL_BEGIN
 

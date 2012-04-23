@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2679;
+\version r2722;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2012-03-25 14:59 +0800;
+	2012-04-22 21:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -227,6 +227,49 @@ protected:
 	void
 	PaintVisibleChildren(PaintEventArgs&);
 };
+
+
+/*!
+\brief 向部件容器添加子部件。
+\note 不保证顺序。
+\since build 303 。
+*/
+template<class _tContainer, class... _tWidgets>
+inline void
+AddWidgets(_tContainer& con, _tWidgets&... wgts)
+{
+	unseq_apply(std::bind(static_cast<void(_tContainer::*)(IWidget&)>(
+		&_tContainer::operator+=), std::ref(con), std::placeholders::_1),
+		std::forward<IWidget&>(wgts)...);
+}
+
+/*!
+\brief 向部件容器添加指定 Z 顺序的子部件。
+\note 不保证顺序。
+\since build 303 。
+*/
+template<class _tContainer, class... _tWidgets>
+inline void
+AddWidgetsZ(_tContainer& con, ZOrderType z, _tWidgets&... wgts)
+{
+	unseq_apply(std::bind(static_cast<void(_tContainer::*)(IWidget&, ZOrderType)
+		>(&_tContainer::Add), std::ref(con), std::placeholders::_1, z),
+		std::forward<IWidget&>(wgts)...);
+}
+
+/*!
+\brief 从部件容器移除子部件。
+\note 不保证顺序。
+\since build 303 。
+*/
+template<class _tContainer, class... _tWidgets>
+inline void
+RemoveWidgets(_tContainer& con, _tWidgets&... wgts)
+{
+	unseq_apply(std::bind(static_cast<bool(_tContainer::*)(IWidget&)>(
+		&_tContainer::operator-=), std::ref(con), std::placeholders::_1),
+		std::forward<IWidget&>(wgts)...);
+}
 
 YSL_END_NAMESPACE(Components)
 

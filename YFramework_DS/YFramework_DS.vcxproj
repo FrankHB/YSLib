@@ -113,6 +113,11 @@
     <ClInclude Include="..\YFramework\include\freetype\tttags.h" />
     <ClInclude Include="..\YFramework\include\freetype\ttunpat.h" />
     <ClInclude Include="..\YFramework\include\ft2build.h" />
+    <ClInclude Include="..\YFramework\include\Helper\DSMain.h" />
+    <ClInclude Include="..\YFramework\include\Helper\Initialization.h" />
+    <ClInclude Include="..\YFramework\include\Helper\ShellHelper.h" />
+    <ClInclude Include="..\YFramework\include\Helper\shlds.h" />
+    <ClInclude Include="..\YFramework\include\Helper\yglobal.h" />
     <ClInclude Include="..\YFramework\include\YCLib\Debug.h" />
     <ClInclude Include="..\YFramework\include\YCLib\Input.h" />
     <ClInclude Include="..\YFramework\include\YCLib\NativeAPI.h" />
@@ -142,11 +147,6 @@
     <ClInclude Include="..\YFramework\include\YSLib\Core\yshell.h" />
     <ClInclude Include="..\YFramework\include\YSLib\Core\ystorage.hpp" />
     <ClInclude Include="..\YFramework\include\YSLib\Core\ystring.h" />
-    <ClInclude Include="..\YFramework\include\YSLib\Helper\DSMain.h" />
-    <ClInclude Include="..\YFramework\include\YSLib\Helper\Initialization.h" />
-    <ClInclude Include="..\YFramework\include\YSLib\Helper\ShellHelper.h" />
-    <ClInclude Include="..\YFramework\include\YSLib\Helper\shlds.h" />
-    <ClInclude Include="..\YFramework\include\YSLib\Helper\yglobal.h" />
     <ClInclude Include="..\YFramework\include\YSLib\Service\CharRenderer.h" />
     <ClInclude Include="..\YFramework\include\YSLib\Service\TextBase.h" />
     <ClInclude Include="..\YFramework\include\YSLib\Service\TextLayout.h" />
@@ -191,6 +191,11 @@
     <ClCompile Include="..\doc\ex.cpp" />
     <ClCompile Include="..\YFramework\source\CHRLib\chrmap.cpp" />
     <ClCompile Include="..\YFramework\source\CHRLib\chrproc.cpp" />
+    <ClCompile Include="..\YFramework\source\Helper\DSMain.cpp" />
+    <ClCompile Include="..\YFramework\source\Helper\Initialization.cpp" />
+    <ClCompile Include="..\YFramework\source\Helper\ShellHelper.cpp" />
+    <ClCompile Include="..\YFramework\source\Helper\shlds.cpp" />
+    <ClCompile Include="..\YFramework\source\Helper\yglobal.cpp" />
     <ClCompile Include="..\YFramework\source\YCLib\Debug.cpp" />
     <ClCompile Include="..\YFramework\source\YCLib\Input.cpp" />
     <ClCompile Include="..\YFramework\source\YCLib\NativeAPI.cpp" />
@@ -206,11 +211,6 @@
     <ClCompile Include="..\YFramework\source\YSLib\Core\yobject.cpp" />
     <ClCompile Include="..\YFramework\source\YSLib\Core\yshell.cpp" />
     <ClCompile Include="..\YFramework\source\YSLib\Core\ystring.cpp" />
-    <ClCompile Include="..\YFramework\source\YSLib\Helper\DSMain.cpp" />
-    <ClCompile Include="..\YFramework\source\YSLib\Helper\Initialization.cpp" />
-    <ClCompile Include="..\YFramework\source\YSLib\Helper\ShellHelper.cpp" />
-    <ClCompile Include="..\YFramework\source\YSLib\Helper\shlds.cpp" />
-    <ClCompile Include="..\YFramework\source\YSLib\Helper\yglobal.cpp" />
     <ClCompile Include="..\YFramework\source\YSLib\Service\CharRenderer.cpp" />
     <ClCompile Include="..\YFramework\source\YSLib\Service\TextBase.cpp" />
     <ClCompile Include="..\YFramework\source\YSLib\Service\TextLayout.cpp" />

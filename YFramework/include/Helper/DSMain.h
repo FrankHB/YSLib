@@ -11,28 +11,28 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r1223;
+\version r1231;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:49:27 +0800;
 \par 修改时间:
-	2012-04-11 08:23 +0800;
+	2012-04-22 11:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YSLib::Helper::DSMain;
+	Helper::DSMain;
 */
 
 
 #ifndef YSL_INC_HELPER_DSMAIN_H_
 #define YSL_INC_HELPER_DSMAIN_H_
 
-#include "../Core/yapp.h"
-#include "../Core/ydevice.h"
+#include <YSLib/Core/yapp.h>
+#include <YSLib/Core/ydevice.h>
 #include "shlds.h"
-#include "../UI/Label.h"
-#include "../../YCLib/Input.h"
+#include <YSLib/UI/Label.h>
+#include <YCLib/Input.h>
 
 YSL_BEGIN
 

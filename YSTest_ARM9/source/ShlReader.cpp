@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4113;
+\version r4346;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-04-17 17:40 +0800;
+	2012-04-22 21:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -41,75 +41,68 @@ namespace
 {
 //	ResourceMap GlobalResourceMap;
 
-	/*!
-	\brief 编码信息项目。
-	\since build 290 。
-	*/
-	typedef std::pair<Text::Encoding, const ucs2_t*> EncodingInfoItem;
+/*!
+\brief 编码信息项目。
+\since build 290 。
+*/
+typedef std::pair<Text::Encoding, const ucs2_t*> EncodingInfoItem;
 
-	using namespace Text::CharSet;
+using namespace Text::CharSet;
 
-	/*!
-	\brief 编码信息。
-	\since build 290 。
-	*/
-	yconstexpr EncodingInfoItem Encodings[] = {{UTF_8, u"UTF-8"}, {GBK, u"GBK"},
-		{UTF_16BE, u"UTF-16 Big Endian"}, {UTF_16LE, u"UTF-16 Little Endian"},
-		{UTF_32BE, u"UTF-32 Big Endian"}, {UTF_32LE, u"UTF-16 Little Endian"}};
+/*!
+\brief 编码信息。
+\since build 290 。
+*/
+yconstexpr EncodingInfoItem Encodings[] = {{UTF_8, u"UTF-8"}, {GBK, u"GBK"},
+	{UTF_16BE, u"UTF-16 Big Endian"}, {UTF_16LE, u"UTF-16 Little Endian"},
+	{UTF_32BE, u"UTF-32 Big Endian"}, {UTF_32LE, u"UTF-16 Little Endian"}};
 
-	/*!
-	\since build 290 。
-	*/
-	shared_ptr<TextList::ListType>
-	FetchEncodingNames()
+/*!
+\brief 取编码字符串。
+\since build 290 。
+*/
+String
+FetchEncodingString(MTextList::IndexType i)
+{
+	if(YCL_LIKELY(i < arrlen(Encodings)))
 	{
-		// TODO: use g++ 4.7 later;
-	//	return make_shared<TextList::ListType>(Encodings | ystdex::get_value,
-	//		(Encodings + arrlen(Encodings)) | ystdex::get_value);
-		return share_raw(new TextList::ListType(Encodings | ystdex::get_value,
-			(Encodings + arrlen(Encodings)) | ystdex::get_value));
+		const auto& pr(Encodings[i]);
+		char str[32];
+
+		std::sprintf(str, "%d: %s", pr.first,
+			String(pr.second).GetMBCS().c_str());
+
+		return String(str);
 	}
-
-	/*!
-	\brief 取编码字符串。
-	\since build 290 。
-	*/
-	String
-	FetchEncodingString(MTextList::IndexType i)
-	{
-		if(YCL_LIKELY(i < arrlen(Encodings)))
-		{
-			const auto& pr(Encodings[i]);
-			char str[32];
-
-			std::sprintf(str, "%d: %s", pr.first,
-				String(pr.second).GetMBCS().c_str());
-
-			return String(str);
-		}
-		return u"---";
-	}
+	return u"---";
+}
 
 
-	shared_ptr<TextList::ListType>
-	FetchFontFamilyNames()
-	{
-		const auto& mFamilies(FetchGlobalInstance().GetFontCache()
-			.GetFamilyIndices());
+shared_ptr<TextList::ListType>
+FetchFontFamilyNames()
+{
+	const auto& mFamilies(FetchGlobalInstance().GetFontCache()
+		.GetFamilyIndices());
 
-		// TODO: use g++ 4.7 later;
-	//	return make_shared<TextList::ListType>(mFamilies.cbegin()
-	//		| ystdex::get_key, mFamilies.cend() | ystdex::get_key);
-		return share_raw(new TextList::ListType(mFamilies.cbegin()
-			| ystdex::get_key, mFamilies.cend() | ystdex::get_key));
-	}
+	// TODO: use g++ 4.7 later;
+//	return make_shared<TextList::ListType>(mFamilies.cbegin()
+//		| ystdex::get_key, mFamilies.cend() | ystdex::get_key);
+	return share_raw(new TextList::ListType(mFamilies.cbegin()
+		| ystdex::get_key, mFamilies.cend() | ystdex::get_key));
+}
 
 
-	/*!
-	\since build 292 。
-	*/
-	shared_ptr<TextList::ListType>
-	FetchScrollDurations(bool is_smooth)
+/*!
+\brief 更新列表。
+\since build 293 。
+*/
+void
+UpdateScrollDropDownList(DropDownList& ddl, bool b, const milliseconds& d,
+	const milliseconds& d_s)
+{
+	using ystdex::get_init;
+
+	static yconstexpr auto fetch_scroll_durations([](bool is_smooth)
 	{
 		const auto postfix(is_smooth ? u"毫秒/像素行" : u"毫秒/文本行");
 		auto& lst(*new TextList::ListType(10U));
@@ -122,129 +115,88 @@ namespace
 			return String(str) + postfix;
 		});
 		return share_raw(&lst);
-	}
+	});
 
-
-	/*!
-	\brief 更新列表。
-	\since build 293 。
-	*/
-	void
-	UpdateScrollDropDownList(DropDownList& ddl, bool b, const milliseconds& d,
-		const milliseconds& d_s)
-	{
-		using ystdex::get_init;
-
-		ddl.SetList(b ? get_init<false>(FetchScrollDurations, false)
-			: get_init<true>(FetchScrollDurations, true));
-		ddl.Text = ddl.GetList()[(b ? d_s.count() / 20U : d.count() / 200U)
-			- 2U],
-		Invalidate(ddl);
-	}
-
-	/*!
-	\since build 293 。
-	*/
-	milliseconds
-	FetchTimerSetting(const ReaderSetting& s)
-	{
-		return s.SmoothScroll ? s.SmoothScrollDuration
-			: s.ScrollDuration;
-	}
-
-	ReadingList&
-	FetchLastRead()
-	{
-		static ReadingList* p;
-
-		if(!p)
-			p = new ReadingList();
-		return *p;
-	}
-
-	/*!
-	\brief 取当前设置。
-	*/
-	ReaderSetting&
-	FetchCurrentSetting()
-	{
-		static ReaderSetting* p;
-
-		if(!p)
-		{
-			//初始化设置。
-			p = new ReaderSetting();
-			p->Font.SetSize(14),
-			yunseq(
-				p->UpColor = Color(240, 216, 192),
-				p->DownColor = Color(192, 216, 240),
-				p->SmoothScroll = true,
-				p->ScrollDuration = milliseconds(1000),
-				p->SmoothScrollDuration = milliseconds(80)
-			);
-		}
-		return *p;
-	}
-
-
-	yconstexpr const char* DefaultTimeFormat("%04u-%02u-%02u %02u:%02u:%02u");
-
-	inline void
-	snftime(char* buf, size_t n, const std::tm& tm,
-		const char* format = DefaultTimeFormat)
-	{
-		// FIXME: correct behavior for time with BC date(i.e. tm_year < -1900);
-		// FIXME: snprintf shall be a member of namespace std;
-		/*std*/::snprintf(buf, n, format, tm.tm_year + 1900,
-			tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-	}
-
-	const char*
-	TranslateTime(const std::tm& tm, const char* format = DefaultTimeFormat)
-	{
-		static char str[80];
-
-		/*
-		NOTE: 'std::strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", &tm)'
-			is correct but make the object file too large;
-		*/
-		snftime(str, 80, tm, format);
-		return str;
-	}
-	const char*
-	TranslateTime(const std::time_t& t,
-		const char* format = DefaultTimeFormat) ythrow(GeneralEvent)
-	{
-		auto p(std::localtime(&t));
-
-		if(YCL_UNLIKELY(!p))
-			throw GeneralEvent("Get broken-down time object failed"
-				" @ TranslateTime#2;");
-		return TranslateTime(*p, format);
-	}
-
-
-	/*!
-	\since build 301 。
-	*/
-	template<class _tWidget>
-	inline void
-	SetBufferRendererAndText(_tWidget& wgt, const String& s)
-	{
-		wgt.SetRenderer(make_unique<BufferedRenderer>()),
-		wgt.Text = s;
-	}
-
-
-	// MR -> MNU_READER;
-	yconstexpr Menu::IndexType MR_Return(0),
-		MR_Setting(1),
-		MR_FileInfo(2),
-		MR_LineUp(3),
-		MR_LineDown(4),
-		MR_ScreenUp(5),
-		MR_ScreenDown(6);
+	ddl.SetList(b ? get_init<false>(fetch_scroll_durations, false)
+		: get_init<true>(fetch_scroll_durations, true));
+	ddl.Text = ddl.GetList()[(b ? d_s.count() / 20U : d.count() / 200U)
+		- 2U],
+	Invalidate(ddl);
 }
+
+/*!
+\since build 293 。
+*/
+milliseconds
+FetchTimerSetting(const ReaderSetting& s)
+{
+	return s.SmoothScroll ? s.SmoothScrollDuration : s.ScrollDuration;
+}
+
+
+yconstexpr const char* DefaultTimeFormat("%04u-%02u-%02u %02u:%02u:%02u");
+
+inline void
+snftime(char* buf, size_t n, const std::tm& tm,
+	const char* format = DefaultTimeFormat)
+{
+	// FIXME: correct behavior for time with BC date(i.e. tm_year < -1900);
+	// FIXME: snprintf shall be a member of namespace std;
+	/*std*/::snprintf(buf, n, format, tm.tm_year + 1900,
+		tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+}
+
+const char*
+TranslateTime(const std::tm& tm, const char* format = DefaultTimeFormat)
+{
+	static char str[80];
+
+	// NOTE: 'std::strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", &tm)'
+	//	is correct but make the object file too large;
+	snftime(str, 80, tm, format);
+	return str;
+}
+const char*
+TranslateTime(const std::time_t& t,
+	const char* format = DefaultTimeFormat) ythrow(GeneralEvent)
+{
+	auto p(std::localtime(&t));
+
+	if(YCL_UNLIKELY(!p))
+		throw GeneralEvent("Get broken-down time object failed"
+			" @ TranslateTime#2;");
+	return TranslateTime(*p, format);
+}
+
+
+/*!
+\since build 301 。
+*/
+template<class _tWidget>
+inline void
+SetBufferRendererAndText(_tWidget& wgt, const String& s)
+{
+	wgt.SetRenderer(make_unique<BufferedRenderer>()),
+	wgt.Text = s;
+}
+
+
+/*
+\brief 文本阅读器菜单项。
+\since build 303 。
+*/
+enum MNU_READER : Menu::IndexType
+{
+	MR_Return = 0,
+	MR_Setting,
+	MR_FileInfo,
+	MR_LineUp,
+	MR_LineDown,
+	MR_ScreenUp,
+	MR_ScreenDown
+};
+
+} // unnamed namespace;
 
 
 ReaderBox::ReaderBox(const Rect& r)
@@ -256,7 +208,7 @@ ReaderBox::ReaderBox(const Rect& r)
 {
 	SetTransparent(true),
 	SetRenderer(make_unique<BufferedRenderer>()),
-	seq_apply(ContainerSetter(*this),
+	unseq_apply(ContainerSetter(*this),
 		btnMenu, btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
 	SetBufferRendererAndText(btnMenu, u"M"),
 	SetBufferRendererAndText(btnInfo, u"I"),
@@ -274,16 +226,6 @@ IWidget*
 ReaderBox::GetTopWidgetPtr(const Point& pt,
 	bool(&f)(const IWidget&))
 {
-/*
-#define DefTuple(_n, ...) \
-	const auto _n = std::make_tuple(__VA_ARGS__);
-
-DefTuple(pWidgets,
-		&ShlReader::ReaderPanel::btnMenu,
-		&ShlReader::ReaderPanel::pbReader,
-		&ShlReader::ReaderPanel::lblProgress
-	)
-*/
 	IWidget* const pWidgets[] = {&btnMenu, &btnInfo, &btnReturn, &btnPrev,
 		&btnNext, &pbReader};
 
@@ -296,7 +238,7 @@ DefTuple(pWidgets,
 void
 ReaderBox::Refresh(PaintEventArgs&& e)
 {
-	seq_apply(ChildPainter(e),
+	unseq_apply(ChildPainter(e),
 		btnMenu, btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
 	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
@@ -330,7 +272,7 @@ TextInfoBox::TextInfoBox()
 	lblTop(Rect(4, 60, 192, 18)),
 	lblBottom(Rect(4, 80, 192, 18))
 {
-	seq_apply(ContainerSetter(*this), lblEncoding, lblSize);
+	unseq_apply(ContainerSetter(*this), lblEncoding, lblSize);
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
 }
 
@@ -339,7 +281,7 @@ TextInfoBox::Refresh(PaintEventArgs&& e)
 {
 	DialogBox::Refresh(std::move(e));
 
-	seq_apply(ChildPainter(e), lblEncoding, lblSize, lblTop, lblBottom);
+	unseq_apply(ChildPainter(e), lblEncoding, lblSize, lblTop, lblBottom);
 	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
@@ -369,7 +311,9 @@ SettingPanel::SettingPanel()
 	btnSetUpBack(Rect(20, 64, 80, 22)), btnSetDownBack(Rect(148, 64, 80, 22)),
 	btnTextColor(Rect(20, 96, 80, 22)),
 	ddlFont(Rect(148, 96, 80, 22), FetchFontFamilyNames()),
-	ddlEncoding(Rect(20, 128, 192, 22), FetchEncodingNames()),
+	ddlEncoding(Rect(20, 128, 192, 22), share_raw(new
+		TextList::ListType(Encodings | ystdex::get_value, (Encodings
+		+ arrlen(Encodings)) | ystdex::get_value))),
 	chkSmoothScroll(Rect(20, 160, 16, 16)),
 	lblSmoothScroll(Rect(36, 160, 60, 20)),
 	ddlScrollTiming(Rect(96, 160, 128, 22)),
@@ -384,25 +328,18 @@ SettingPanel::SettingPanel()
 		Invalidate(lblAreaDown);
 	});
 
-	*this += btnFontSizeDecrease,
-	*this += btnFontSizeIncrease,
-	*this += btnSetUpBack,
-	*this += btnSetDownBack,
-	*this += btnTextColor,
-	*this += ddlFont,
-	*this += ddlEncoding,
-	*this += chkSmoothScroll,
-	*this += lblSmoothScroll,
-	*this += ddlScrollTiming,
+	AddWidgets(*this, btnFontSizeDecrease, btnFontSizeIncrease, btnSetUpBack,
+		btnSetDownBack, btnTextColor, ddlFont, ddlEncoding, chkSmoothScroll,
+		lblSmoothScroll, ddlScrollTiming),
 	Add(boxColor, 112U),
 	SetVisibleOf(boxColor, false);
 	yunseq(
-		btnFontSizeDecrease.Text = u"减小字体",
-		btnFontSizeIncrease.Text = u"增大字体",
-		btnSetUpBack.Text = u"上屏颜色...",
-		btnSetDownBack.Text = u"下屏颜色...",
-		btnTextColor.Text = u"文字颜色...",
-		lblSmoothScroll.Text = u"平滑滚屏",
+		std::tie(btnFontSizeDecrease.Text, btnFontSizeIncrease.Text,
+			btnSetUpBack.Text, btnSetDownBack.Text, btnTextColor.Text,
+			lblSmoothScroll.Text)
+		= std::forward_as_tuple(
+			u"减小字体", u"增大字体", u"上屏颜色...", u"下屏颜色...",
+			u"文字颜色...", u"平滑滚屏"),
 	//	FetchEvent<Paint>(lblColorAreaUp).Add(BorderBrush(BorderStyle),
 	//		BoundaryPriority),
 	//	FetchEvent<Paint>(lblColorAreaDown).Add(BorderBrush(BorderStyle),
@@ -507,7 +444,7 @@ SettingPanel::UpdateInfo()
 {
 	char str[20];
 
-	/*std::*/snprintf(str, 20, "%u 。", lblAreaUp.Font.GetSize());
+	/*std*/::snprintf(str, 20, "%u 。", lblAreaUp.Font.GetSize());
 
 	String ustr(str);
 
@@ -525,11 +462,8 @@ FileInfoPanel::FileInfoPanel()
 {
 	Background = SolidBrush(ColorSpace::Silver);
 	lblOperations.Text = "<↑↓> 滚动一行 <LR> 滚动一屏 <B>退出";
-	*this += lblPath,
-	*this += lblSize,
-	*this += lblAccessTime,
-	*this += lblModifiedTime,
-	*this += lblOperations;
+	AddWidgets(*this, lblPath, lblSize, lblAccessTime, lblModifiedTime,
+		lblOperations);
 }
 
 
@@ -601,7 +535,12 @@ ShlReader::OnInput()
 
 ShlTextReader::ShlTextReader(const IO::Path& pth)
 	: ShlReader(pth),
-	LastRead(FetchLastRead()), CurrentSetting(FetchCurrentSetting()),
+	LastRead(ystdex::parameterize_static_object<ReadingList>()),
+	CurrentSetting(ystdex::get_init<>([]{
+			return ReaderSetting{Color(240, 216, 192), Color(192, 216, 240),
+				Color(), Font(FetchDefaultTypeface().GetFontFamily(), 14),
+				true, milliseconds(1000), milliseconds(80)};
+		})),
 	tmrScroll(FetchTimerSetting(CurrentSetting)), tmrInput(), Reader(),
 	boxReader(Rect(0, 160, 256, 32)), boxTextInfo(), pnlSetting(),
 	pTextFile(), mhMain(GetDesktopDown())
@@ -611,11 +550,10 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 	const auto exit_setting([this](TouchEventArgs&&){
 		auto& dsk_up(GetDesktopUp());
 
-		yunseq(dsk_up.Background = pnlSetting.lblAreaUp.Background,
-			GetDesktopDown().Background
-			= pnlSetting.lblAreaDown.Background,
-		dsk_up -= pnlSetting.lblAreaUp,
-		dsk_up -= pnlSetting.lblAreaDown);
+		tie(dsk_up.Background, GetDesktopDown().Background)
+			= forward_as_tuple(pnlSetting.lblAreaUp.Background,
+			pnlSetting.lblAreaDown.Background),
+		RemoveWidgets(dsk_up, pnlSetting.lblAreaUp, pnlSetting.lblAreaDown),
 		Reader.SetVisible(true),
 		boxReader.UpdateData(Reader),
 		boxTextInfo.UpdateData(Reader),
@@ -729,9 +667,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 		FetchEvent<KeyHeld>(dsk_dn) += OnEvent_Call<KeyDown>
 	);
 	Reader.Attach(dsk_up, dsk_dn),
-	dsk_dn += boxReader,
-	dsk_dn += boxTextInfo,
-	dsk_dn += pnlSetting;
+	AddWidgets(dsk_dn, boxReader, boxTextInfo, pnlSetting);
 	LoadFile(pth);
 	LastRead.DropSubsequent();
 	UpdateButtons();
@@ -744,31 +680,6 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 ShlTextReader::~ShlTextReader()
 {
 	LastRead.Insert(CurrentPath, Reader.GetTopPosition());
-
-	// NOTE: individual desktops simplified the cleanup;
-#if 0
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
-
-	yunseq(
-		CurrentSetting.UpColor
-			= dsk_up.Background.target<SolidBrush>()->Color,
-		CurrentSetting.DownColor
-			= dsk_dn.Background.target<SolidBrush>()->Color,
-		CurrentSetting.FontColor = Reader.GetColor(),
-		CurrentSetting.Font = Reader.GetFont(),
-		FetchEvent<Click>(dsk_dn).Remove(*this, &ShlTextReader::OnClick),
-		FetchEvent<KeyDown>(dsk_dn).Remove(*this,
-			&ShlTextReader::OnKeyDown),
-		FetchEvent<KeyHeld>(dsk_dn) -= OnEvent_Call<KeyDown>
-	);
-	Reader.Detach();
-	yunseq(
-		dsk_up -= boxReader,
-		dsk_dn -= boxTextInfo,
-		dsk_dn -= pnlSetting
-	);
-#endif
 }
 
 void
@@ -781,31 +692,28 @@ ShlTextReader::Execute(IndexEventArgs::ValueType idx)
 		break;
 	case MR_Setting:
 		Reader.SetVisible(false),
-		yunseq(
-			pnlSetting.lblAreaUp.ForeColor = Reader.GetColor(),
-			pnlSetting.lblAreaUp.Background = GetDesktopUp().Background,
-			pnlSetting.lblAreaUp.Font = Reader.GetFont(),
-			pnlSetting.lblAreaDown.ForeColor = Reader.GetColor(),
-			pnlSetting.lblAreaDown.Background
-				= GetDesktopDown().Background,
-			pnlSetting.lblAreaDown.Font = Reader.GetFont(),
-			pnlSetting.ddlFont.Text = Reader.GetFont().GetFamilyName()
-		);
+		tie(pnlSetting.lblAreaUp.ForeColor, pnlSetting.lblAreaUp.Background,
+			pnlSetting.lblAreaUp.Font, pnlSetting.lblAreaDown.ForeColor,
+			pnlSetting.lblAreaDown.Background, pnlSetting.lblAreaDown.Font,
+			pnlSetting.ddlFont.Text) = forward_as_tuple(
+			Reader.GetColor(), GetDesktopUp().Background, Reader.GetFont(),
+			Reader.GetColor(), GetDesktopDown().Background, Reader.GetFont(),
+			Reader.GetFont().GetFamilyName());
 		pnlSetting.UpdateInfo();
 		{
 			auto& dsk_up(GetDesktopUp());
 
 			dsk_up.Background = SolidBrush(ColorSpace::White);
-			dsk_up += pnlSetting.lblAreaUp,
-			dsk_up += pnlSetting.lblAreaDown;
+			AddWidgets(dsk_up, pnlSetting.lblAreaUp, pnlSetting.lblAreaDown);
 		}
 		{
 			const auto idx(std::find(Encodings | get_key,
 				(Encodings + arrlen(Encodings)) | get_key,
 				Reader.GetEncoding()) - Encodings);
 
-			yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(idx),
-				pnlSetting.ddlEncoding.Text = Encodings[idx].second);
+			tie(pnlSetting.lblAreaDown.Text, pnlSetting.ddlEncoding.Text)
+				= forward_as_tuple(FetchEncodingString(idx),
+				Encodings[idx].second);
 		}
 		StopAutoScroll(),
 		Hide(boxReader),
@@ -937,11 +845,14 @@ ShlTextReader::OnClick(TouchEventArgs&&)
 void
 ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 {
+	using namespace Timers;
+	using namespace KeyCodes;
+
 	if(e.Strategy != RoutedEventArgs::Tunnel && !mhMain.IsShowing(1u)
 		&& RepeatHeld(tmrInput, FetchGUIState().KeyHeldState,
-		Timers::TimeSpan(240), Timers::TimeSpan(60)))
+		TimeSpan(240), TimeSpan(60)))
 	{
-		using namespace KeyCodes;
+		const auto ntick(HighResolutionClock::now());
 
 		//这里可以考虑提供暂停，不调整视图。
 		if(tmrScroll.IsActive())
@@ -973,9 +884,15 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 		{
 			auto size(Reader.GetFont().GetSize());
 
-			if(k[YCL_KEY(X)] && size > Font::MinimalSize)
-				--size;
-			else if(k[YCL_KEY(Y)] && size < Font::MaximalSize)
+			e.Handled = true;
+			if(k[YCL_KEY(X)])
+			{
+				if(YCL_LIKELY(size > Font::MinimalSize))
+					--size;
+				else
+					return;
+			}
+			else if(YCL_LIKELY(size < Font::MaximalSize))
 				++size;
 			else
 				return;
@@ -993,17 +910,15 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 				Reader.SetLineGap(Reader.GetLineGap() + 1);
 		}
 		else if(k[Left])
+	//	else if(k[PgUp])
 			Reader.Execute(DualScreenReader::ScreenUpScroll);
 		else if(k[Right])
+	//	else if(k[PgDn])
 			Reader.Execute(DualScreenReader::ScreenDownScroll);
-/*
-		case KeySpace::PgUp:
-			Reader.Execute(DualScreenReader::ScreenUpScroll);
-			break;
-		case KeySpace::PgDn:
-			Reader.Execute(DualScreenReader::ScreenDownScroll);
-			break;
-*/
+		else
+			return;
+		tmrInput.Delay(HighResolutionClock::now() - ntick);
+		e.Handled = true;
 	}
 }
 
@@ -1041,26 +956,16 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth)
 
 	//在 DeSmuMe 上无效； iDSL + DSTT 上访问时间精确不到日，修改时间正常。
 	::stat(path_str.c_str(), &file_stat);
-	pnlFileInfo.lblAccessTime.Text = u"访问时间："
-		+ String(TranslateTime(file_stat.st_atime));
-	pnlFileInfo.lblModifiedTime.Text = u"修改时间："
-		+ String(TranslateTime(file_stat.st_mtime));
+	tie(pnlFileInfo.lblAccessTime.Text, pnlFileInfo.lblModifiedTime.Text)
+		= forward_as_tuple(u"访问时间："
+		+ String(TranslateTime(file_stat.st_atime)),
+		u"修改时间：" + String(TranslateTime(file_stat.st_mtime)));
 	dsk_up += pnlFileInfo;
 	HexArea.Load(path_str.c_str());
 	HexArea.UpdateData(0);
 	HexArea.ViewChanged(HexViewArea::ViewArgs(HexArea, true));
 	dsk_dn += HexArea;
 	RequestFocusCascade(HexArea);
-}
-
-ShlHexBrowser::~ShlHexBrowser()
-{
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
-
-	dsk_up -= pnlFileInfo;
-	HexArea.Reset();
-	dsk_dn -= HexArea;
 }
 
 YSL_END_NAMESPACE(YReader)

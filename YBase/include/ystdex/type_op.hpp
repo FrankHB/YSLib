@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r1352;
+\version r1398;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2012-03-04 19:47 +0800;
+	2012-04-21 14:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,212 +31,213 @@
 
 namespace ystdex
 {
-/*
-	using std::tr1::add_reference;
 
-	using std::tr1::has_nothrow_assign;
-	using std::tr1::has_nothrow_constructor;
-	using std::tr1::has_nothrow_copy;
-	using std::tr1::has_trivial_assign;
-	using std::tr1::has_trivial_constructor;
-	using std::tr1::has_trivial_copy;
-	using std::tr1::has_trivial_destructor;
+/*
+using std::tr1::add_reference;
+
+using std::tr1::has_nothrow_assign;
+using std::tr1::has_nothrow_constructor;
+using std::tr1::has_nothrow_copy;
+using std::tr1::has_trivial_assign;
+using std::tr1::has_trivial_constructor;
+using std::tr1::has_trivial_copy;
+using std::tr1::has_trivial_destructor;
 */
 
-	using std::integral_constant;
-	using std::true_type;
-	using std::false_type;
+using std::integral_constant;
+using std::true_type;
+using std::false_type;
 
-	using std::is_void;
-	using std::is_integral;
-	using std::is_floating_point;
-	using std::is_array;
-	using std::is_pointer;
-	using std::is_lvalue_reference;
-	using std::is_rvalue_reference;
-	using std::is_member_object_pointer;
-	using std::is_member_function_pointer;
-	using std::is_enum;
-	using std::is_class;
-	using std::is_union;
-	using std::is_function;
+using std::is_void;
+using std::is_integral;
+using std::is_floating_point;
+using std::is_array;
+using std::is_pointer;
+using std::is_lvalue_reference;
+using std::is_rvalue_reference;
+using std::is_member_object_pointer;
+using std::is_member_function_pointer;
+using std::is_enum;
+using std::is_class;
+using std::is_union;
+using std::is_function;
 
-	using std::is_reference;
-	using std::is_arithmetic;
-	using std::is_fundamental;
-	using std::is_object;
-	using std::is_scalar;
-	using std::is_compound;
-	using std::is_member_pointer;
+using std::is_reference;
+using std::is_arithmetic;
+using std::is_fundamental;
+using std::is_object;
+using std::is_scalar;
+using std::is_compound;
+using std::is_member_pointer;
 
-	using std::is_const;
-	using std::is_volatile;
-	using std::is_trivial;
+using std::is_const;
+using std::is_volatile;
+using std::is_trivial;
 //	using std::is_trivially_copyable;
-	using std::is_standard_layout;
-	using std::is_pod;
-	using std::is_literal_type;
-	using std::is_empty;
-	using std::is_polymorphic;
-	using std::is_abstract;
+using std::is_standard_layout;
+using std::is_pod;
+using std::is_literal_type;
+using std::is_empty;
+using std::is_polymorphic;
+using std::is_abstract;
 
-	using std::is_signed;
-	using std::is_unsigned;
+using std::is_signed;
+using std::is_unsigned;
 
-	using std::is_constructible;
-	/*
-	using std::is_default_constructible;
-	using std::is_copy_constructible;
-	using std::is_move_constructible;
+using std::is_constructible;
+/*
+using std::is_default_constructible;
+using std::is_copy_constructible;
+using std::is_move_constructible;
 
-	using std::is_assignable;
-	using std::is_copy_assignable;
-	using std::is_move_assignable;
+using std::is_assignable;
+using std::is_copy_assignable;
+using std::is_move_assignable;
 
-	using std::is_destructible;
+using std::is_destructible;
 
-	using std::is_trivially_constructible;
-	using std::is_trivially_default_constructible;
-	using std::is_trivially_copy_constructible;
-	using std::is_trivially_move_constructible;
+using std::is_trivially_constructible;
+using std::is_trivially_default_constructible;
+using std::is_trivially_copy_constructible;
+using std::is_trivially_move_constructible;
 
-	using std::is_trivially_assignable;
-	using std::is_trivially_copy_assignable;
-	using std::is_trivially_move_assignable;
-	using std::is_trivially_destructible;
+using std::is_trivially_assignable;
+using std::is_trivially_copy_assignable;
+using std::is_trivially_move_assignable;
+using std::is_trivially_destructible;
 
-	using std::is_nothrow_constructible;
-	using std::is_nothrow_default_constructible;
-	using std::is_nothrow_copy_constructible;
-	using std::is_nothrow_move_constructible;
+using std::is_nothrow_constructible;
+using std::is_nothrow_default_constructible;
+using std::is_nothrow_copy_constructible;
+using std::is_nothrow_move_constructible;
 
-	using std::is_nothrow_assignable;
-	using std::is_nothrow_copy_assignable;
-	using std::is_nothrow_move_assignable;
+using std::is_nothrow_assignable;
+using std::is_nothrow_copy_assignable;
+using std::is_nothrow_move_assignable;
 
-	using std::is_nothrow_destructible;
-	*/
-	using std::has_virtual_destructor;
+using std::is_nothrow_destructible;
+*/
+using std::has_virtual_destructor;
 
-	using std::alignment_of;
-	using std::rank;
-	using std::extent;
+using std::alignment_of;
+using std::rank;
+using std::extent;
 
-	using std::is_same;
-	using std::is_base_of;
-	using std::is_convertible;
+using std::is_same;
+using std::is_base_of;
+using std::is_convertible;
 
-	using std::remove_const;
-	using std::remove_volatile;
-	using std::remove_cv;
-	using std::add_const;
-	using std::add_volatile;
-	using std::add_cv;
+using std::remove_const;
+using std::remove_volatile;
+using std::remove_cv;
+using std::add_const;
+using std::add_volatile;
+using std::add_cv;
 
-	using std::remove_reference;
-	using std::add_lvalue_reference;
-	using std::add_rvalue_reference;
+using std::remove_reference;
+using std::add_lvalue_reference;
+using std::add_rvalue_reference;
 
-	using std::make_signed;
-	using std::make_unsigned;
+using std::make_signed;
+using std::make_unsigned;
 
-	using std::remove_extent;
-	using std::remove_all_extents;
+using std::remove_extent;
+using std::remove_all_extents;
 
-	using std::remove_pointer;
-	using std::add_pointer;
+using std::remove_pointer;
+using std::add_pointer;
 
-	using std::aligned_storage;
-	using std::decay;
-	using std::enable_if;
-	using std::conditional;
-	using std::common_type;
+using std::aligned_storage;
+using std::decay;
+using std::enable_if;
+using std::conditional;
+using std::common_type;
 //	using std::underlying_type;
-	using std::result_of;
+using std::result_of;
 
 
-	/*!	\defgroup template_meta_programing Template Meta Programing
-	\brief 模板元编程。
-	\since build 288 。
-	*/
+/*!	\defgroup template_meta_programing Template Meta Programing
+\brief 模板元编程。
+\since build 288 。
+*/
 
-	/*!	\defgroup meta_types Meta Types
-	\ingroup template_meta_programing
-	\brief 元类型。
-	\since build 288 。
-	*/
+/*!	\defgroup meta_types Meta Types
+\ingroup template_meta_programing
+\brief 元类型。
+\since build 288 。
+*/
 
-	/*!	\defgroup meta_operations Meta Operations
-	\ingroup template_meta_programing
-	\brief 元操作。
-	\since build 288 。
-	*/
+/*!	\defgroup meta_operations Meta Operations
+\ingroup template_meta_programing
+\brief 元操作。
+\since build 288 。
+*/
 
 
-	/*!
-	\ingroup meta_operations
-	\brief 移除指针和引用类型。
-	\since build 175 。
-	*/
-	template<typename _type>
-	struct remove_rp
+/*!
+\ingroup meta_operations
+\brief 移除指针和引用类型。
+\since build 175 。
+*/
+template<typename _type>
+struct remove_rp
+{
+	typedef typename remove_pointer<typename remove_reference<_type>
+		::type>::type type;
+};
+
+
+/*!
+\ingroup meta_operations
+\brief 判断指定类型是否有非空虚基类。
+\since build 175 。
+*/
+template<class _type>
+struct has_nonempty_virtual_base
+{
+	static_assert(std::is_class<_type>::value,
+		"Non-class type found @ ystdex::has_nonempty_virtual_base;");
+
+private:
+	struct A : _type
 	{
-		typedef typename remove_pointer<typename remove_reference<_type>
-			::type>::type type;
+		~A() throw()
+		{}
+	};
+	struct B : _type
+	{
+		~B() throw()
+		{}
+	};
+	struct C : A, B
+	{
+		~C() throw()
+		{}
 	};
 
+public:
+	static yconstexpr bool value = sizeof(C) < sizeof(A) + sizeof(B);
+};
 
-	/*!
-	\ingroup meta_operations
-	\brief 判断指定类型是否有非空虚基类。
-	\since build 175 。
-	*/
-	template<class _type>
-	struct has_nonempty_virtual_base
+
+/*!
+\ingroup meta_operations
+\brief 判断指定的两个类类型是否有非空虚基类。
+\since build 175 。
+*/
+template<class _type1, class _type2>
+struct has_common_nonempty_virtual_base
+{
+	static_assert(std::is_class<_type1>::value
+		&& std::is_class<_type2>::value,
+		"Non-class type found @ ystdex::has_common_nonempty_virtual_base;");
+
+private:
+	struct A : virtual _type1
 	{
-		static_assert(std::is_class<_type>::value,
-			"Non-class type found @ ystdex::has_nonempty_virtual_base;");
-
-	private:
-		struct A : _type
-		{
-			~A() throw()
-			{}
-		};
-		struct B : _type
-		{
-			~B() throw()
-			{}
-		};
-		struct C : A, B
-		{
-			~C() throw()
-			{}
-		};
-
-	public:
-		static yconstexpr bool value = sizeof(C) < sizeof(A) + sizeof(B);
+		~A() throw()
+		{}
 	};
-
-
-	/*!
-	\ingroup meta_operations
-	\brief 判断指定的两个类类型是否有非空虚基类。
-	\since build 175 。
-	*/
-	template<class _type1, class _type2>
-	struct has_common_nonempty_virtual_base
-	{
-		static_assert(std::is_class<_type1>::value
-			&& std::is_class<_type2>::value,
-			"Non-class type found @ ystdex::has_common_nonempty_virtual_base;");
-
-	private:
-		struct A : virtual _type1
-		{
-			~A() throw()
-			{}
-		};
 
 #ifdef __GNUC__
 #	if YCL_IMPL_GNUCPP >= 40600
@@ -252,203 +253,250 @@ namespace ystdex
 #	endif
 #endif
 
-		struct B : virtual _type2
-		{
-			~B() throw()
-			{}
-		};
-		struct C : A, B
-		{
-			~C() throw()
-			{}
-		};
+	struct B : virtual _type2
+	{
+		~B() throw()
+		{}
+	};
+	struct C : A, B
+	{
+		~C() throw()
+		{}
+	};
 
 #if defined(YCL_IMPL_GNUCPP) && YCL_IMPL_GNUCPP >= 40600
 //#	pragma GCC diagnostic warning "-Wextra"
 #	pragma GCC diagnostic pop
 #endif
 
-	public:
-		static yconstexpr bool value = sizeof(C) < sizeof(A) + sizeof(B);
-	};
+public:
+	static yconstexpr bool value = sizeof(C) < sizeof(A) + sizeof(B);
+};
 
 
-	/*!
-	\ingroup meta_operations
-	\brief 数组类型退化。
-	\since build 290 。
+/*!
+\ingroup meta_operations
+\brief 数组类型退化。
+\since build 290 。
 
-	参数为数组类型时同 std::decay ，否则结果类型为参数。
-	*/
-	template<typename _type>
-	struct array_decay
-	{
-		typedef typename conditional<is_array<_type>::value,
-			typename decay<_type>::type, _type>::type type;
-	};
-
-
-	/*!
-	\ingroup meta_operations
-	\brief 保持修饰符的类型退化。
-	\since build 290 。
-
-	参数移除引用后为数组或函数类型时同 std::decay ，否则结果为参数。
-	*/
-	template<typename _type>
-	struct qualified_decay
-	{
-	private:
-		typedef typename remove_reference<_type>::type value_type;
-
-	public:
-		typedef typename conditional<is_function<value_type>::value
-			|| is_array<value_type>::value, typename decay<_type>::type,
-			_type>::type type;
-	};
+参数为数组类型时同 std::decay ，否则结果类型为参数。
+*/
+template<typename _type>
+struct array_decay
+{
+	typedef typename conditional<is_array<_type>::value,
+		typename decay<_type>::type, _type>::type type;
+};
 
 
-	/*!
-	\ingroup meta_operations
-	\brief 数组及数组引用类型退化。
-	\since build 290 。
+/*!
+\ingroup meta_operations
+\brief 保持修饰符的类型退化。
+\since build 290 。
 
-	参数为非引用类型时同 array_decay ，
-	否则结果为被引用的类型的 array_decay 结果的引用。
-	*/
-	//@{
-	template<typename _type>
-	struct array_ref_decay
-	{
-		typedef typename array_decay<_type>::type type;
-	};
+参数移除引用后为数组或函数类型时同 std::decay ，否则结果为参数。
+*/
+template<typename _type>
+struct qualified_decay
+{
+private:
+	typedef typename remove_reference<_type>::type value_type;
 
-	template<typename _type>
-	struct array_ref_decay<_type&>
-	{
-		typedef typename array_decay<_type>::type type;
-		typedef typename array_decay<_type>::type& reference;
-	};
-
-	template<typename _type>
-	struct array_ref_decay<_type&&>
-	{
-		typedef typename array_decay<_type>::type type;
-		typedef typename array_decay<_type>::type&& reference;
-	};
-	//@}
+public:
+	typedef typename conditional<is_function<value_type>::value
+		|| is_array<value_type>::value, typename decay<_type>::type,
+		_type>::type type;
+};
 
 
-	/*!
-	\ingroup meta_operations
-	\brief 取指定整数类型的位宽度。
-	\since build 260 。
-	*/
-	template<typename _tInt>
-	struct integer_width
-		: public integral_constant<size_t, sizeof(_tInt) * CHAR_BIT>
-	{};
+/*!
+\ingroup meta_operations
+\brief 数组及数组引用类型退化。
+\since build 290 。
+
+参数为非引用类型时同 array_decay ，
+否则结果为被引用的类型的 array_decay 结果的引用。
+*/
+//@{
+template<typename _type>
+struct array_ref_decay
+{
+	typedef typename array_decay<_type>::type type;
+};
+
+template<typename _type>
+struct array_ref_decay<_type&>
+{
+	typedef typename array_decay<_type>::type type;
+	typedef typename array_decay<_type>::type& reference;
+};
+
+template<typename _type>
+struct array_ref_decay<_type&&>
+{
+	typedef typename array_decay<_type>::type type;
+	typedef typename array_decay<_type>::type&& reference;
+};
+//@}
 
 
-	/*!
-	\ingroup meta_operations
-	\brief 取指定整数类型和条件表达式对应的有符号或无符号整数类型。
-	\since build 260 。
-	*/
-	//@{
-	template<typename _type, bool>
-	struct make_signed_c
-	{
-		typedef typename std::make_signed<_type>::type type;
-	};
-
-	template<typename _type>
-	struct make_signed_c<_type, false>
-	{
-		typedef typename std::make_unsigned<_type>::type type;
-	};
-	//@}
+/*!
+\ingroup meta_operations
+\brief 取指定整数类型的位宽度。
+\since build 260 。
+*/
+template<typename _tInt>
+struct integer_width
+	: public integral_constant<size_t, sizeof(_tInt) * CHAR_BIT>
+{};
 
 
-	/*!
-	\ingroup meta_operations
-	\brief 取按指定宽度的整数类型。
-	\since build 260 。
-	*/
-	//@{
-	template<size_t>
-	struct make_fixed_width_int
-	{
-		typedef int type;
-		typedef unsigned unsigned_type;
-	};
+/*!
+\ingroup meta_operations
+\brief 取指定整数类型和条件表达式对应的有符号或无符号整数类型。
+\since build 260 。
+*/
+//@{
+template<typename _type, bool>
+struct make_signed_c
+{
+	typedef typename std::make_signed<_type>::type type;
+};
 
-	template<>
-	struct make_fixed_width_int<8U>
-	{
-		typedef std::int8_t type;
-		typedef std::uint8_t unsigned_type;
-	};
-
-	template<>
-	struct make_fixed_width_int<16U>
-	{
-		typedef std::int16_t type;
-		typedef std::uint16_t unsigned_type;
-	};
-
-	template<>
-	struct make_fixed_width_int<32U>
-	{
-		typedef std::int32_t type;
-		typedef std::uint32_t unsigned_type;
-	};
-
-	template<>
-	struct make_fixed_width_int<64U>
-	{
-		typedef std::int64_t type;
-		typedef std::uint64_t unsigned_type;
-	};
-	//@}
+template<typename _type>
+struct make_signed_c<_type, false>
+{
+	typedef typename std::make_unsigned<_type>::type type;
+};
+//@}
 
 
-	/*!
-	\ingroup meta
-	\brief 标记。
-	*/
-	//@{
-	/*!
-	\ingroup meta_types
-	\brief 自然数标记。
-	*/
-	//@{
-	template<size_t _vN>
-	struct n_tag
-	{
-		typedef n_tag<_vN - 1> type;
-	};
+/*!
+\ingroup meta_operations
+\brief 取按指定宽度的整数类型。
+\since build 260 。
+*/
+//@{
+template<size_t>
+struct make_fixed_width_int
+{
+	typedef int type;
+	typedef unsigned unsigned_type;
+};
 
-	template<>
-	struct n_tag<0>
-	{
-		typedef void type;
-	};
-	//@}
+template<>
+struct make_fixed_width_int<8U>
+{
+	typedef std::int8_t type;
+	typedef std::uint8_t unsigned_type;
+};
 
-	/*!
-	\ingroup meta_types
-	\brief 第一分量标记。
-	*/
-	typedef n_tag<0> first_tag;
+template<>
+struct make_fixed_width_int<16U>
+{
+	typedef std::int16_t type;
+	typedef std::uint16_t unsigned_type;
+};
 
-	/*!
-	\ingroup meta_types
-	\brief 第二分量标记。
-	*/
-	typedef n_tag<1> second_tag;
-	//@}
-}
+template<>
+struct make_fixed_width_int<32U>
+{
+	typedef std::int32_t type;
+	typedef std::uint32_t unsigned_type;
+};
+
+template<>
+struct make_fixed_width_int<64U>
+{
+	typedef std::int64_t type;
+	typedef std::uint64_t unsigned_type;
+};
+//@}
+
+
+/*!
+\ingroup meta
+\brief 标记。
+*/
+//@{
+/*!
+\ingroup meta_types
+\brief 自然数标记。
+*/
+//@{
+template<size_t _vN>
+struct n_tag
+{
+	typedef n_tag<_vN - 1> type;
+};
+
+template<>
+struct n_tag<0>
+{
+	typedef void type;
+};
+//@}
+
+/*!
+\ingroup meta_types
+\brief 第一分量标记。
+*/
+typedef n_tag<0> first_tag;
+
+/*!
+\ingroup meta_types
+\brief 第二分量标记。
+*/
+typedef n_tag<1> second_tag;
+
+/*!
+\ingroup meta_types
+\brief 变量参数标记。
+\since build 303 。
+*/
+template<size_t... _vSeq>
+struct variadic_sequence
+{};
+//@}
+
+
+/*!
+\ingroup meta_operations
+\brief 取自然数变量标记后继。
+\since build 303 。
+*/
+//@{
+template<class>
+struct make_successor;
+
+template<size_t... _vSeq>
+struct make_successor<variadic_sequence<_vSeq...>>
+{
+	typedef variadic_sequence<_vSeq..., sizeof...(_vSeq)> type;
+};
+//@}
+
+
+/*!
+\ingroup meta_operations
+\brief 取自然数变量标记序列。
+\since build 303 。
+*/
+//@{
+template<size_t _vN>
+struct make_natural_sequence
+{
+	typedef typename make_successor<typename
+		make_natural_sequence<_vN - 1>::type>::type type;
+};
+template<>
+struct make_natural_sequence<0>
+{
+	typedef variadic_sequence<> type;
+};
+//@}
+
+} // namespace ystdex;
 
 #endif
 

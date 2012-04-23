@@ -11,24 +11,24 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2249;
+\version r2272;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2012-04-19 20:50 +0800;
+	2012-04-22 17:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YSLib::Helper::ShellHelper;
+	Helper::ShellHelper;
 */
 
 
 #ifndef YSL_INC_HELPER_SHELLHELPER_H_
 #define YSL_INC_HELPER_SHELLHELPER_H_
 
-#include "../../ysbuild.h"
+#include "../ysbuild.h"
 #include <ystdex/cast.hpp>
 
 YSL_BEGIN
@@ -42,9 +42,12 @@ YSL_BEGIN_NAMESPACE(Components)
 struct ContainerSetter
 {
 public:
-	IWidget& Container;
+	/*!
+	\brief 容器。
+	\since build 302 。
+	*/
+	std::reference_wrapper<IWidget> Container;
 
-	yconstfn
 	ContainerSetter(IWidget& con)
 		: Container(con)
 	{}
@@ -52,7 +55,7 @@ public:
 	void
 	operator()(IWidget& wgt)
 	{
-		SetContainerPtrOf(wgt, &Container);
+		SetContainerPtrOf(wgt, &Container.get());
 	}
 };
 
@@ -64,9 +67,12 @@ public:
 struct ChildPainter
 {
 public:
-	const PaintContext& Context;
+	/*!
+	\brief 绘制上下文。
+	\since build 302 。
+	*/
+	std::reference_wrapper<const PaintContext> Context;
 
-	yconstfn
 	ChildPainter(const PaintContext& pc)
 		: Context(pc)
 	{}
@@ -296,6 +302,13 @@ CreateRawBitmap(const _tPixel* s, size_t n)
 }
 
 YSL_END_NAMESPACE(Drawing)
+
+/*!
+\brief 从全局消息队列中移除所有从属于指定 Shell 的后台 SM_TASK 消息。
+\since build 295 。
+*/
+void
+RemoveGlobalTasks(Shell&);
 
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r7594;
+\version r7595;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2012-04-07 14:53 +0800;
+	2012-04-22 11:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,7 @@
 #include "YSLib/Core/yapp.h"
 #include "YSLib/Core/yexcept.h"
 #include "YSLib/Core/yfilesys.h"
-#include "YSLib/Helper/DSMain.h"
+#include <Helper/DSMain.h>
 #include "YCLib/Debug.h"
 #include <algorithm> // for std::for_each;
 //#include FT_BITMAP_H

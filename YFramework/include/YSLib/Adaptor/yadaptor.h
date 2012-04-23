@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2312;
+\version r2315;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2012-04-13 21:08 +0800;
+	2012-04-20 21:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -79,6 +79,10 @@ typedef volatile s8		vs8;
 typedef volatile s16	vs16;
 typedef volatile s32	vs32;
 typedef volatile s64	vs64;
+
+//调用分派。
+using ystdex::seq_apply;
+using ystdex::unseq_apply;
 
 //实用类型。
 using ystdex::noncopyable;

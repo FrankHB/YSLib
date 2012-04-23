@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,14 @@
 /*!	\file ycont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version r1631;
+\version r1642;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 161 。
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2011-11-05 10:53 +0800;
-\par 字符集:
+	2012-04-22 21:09 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Adaptor::YContainer;
@@ -80,11 +81,15 @@ YSL_END
 
 YSL_BEGIN
 
-using std::pair;
-using std::tuple;
+using std::forward_as_tuple;
+using std::get;
+using std::ignore;
 using std::make_pair;
 using std::make_tuple;
-
+using std::pair;
+using std::tie;
+using std::tuple;
+using std::tuple_cat;
 
 
 using std::array;

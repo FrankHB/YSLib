@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1459;
+\version r1460;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 202 。
 \par 创建时间:
 	2011-04-13 20:26:21 +0800;
 \par 修改时间:
-	2012-04-07 18:39 +0800;
+	2012-04-22 11:54 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@
 #endif
 
 #define YCL_YCOMMON_H <ycommon.h>
-#define YSL_YSBUILD_H <YSLib/Helper/yshelper.h>
+#define YSL_YSBUILD_H <ysbuild.h>
 
 /*!
 \defgroup workaround Workarounds

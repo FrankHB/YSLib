@@ -37,9 +37,6 @@
     <Filter Include="头文件\YSLib\Service">
       <UniqueIdentifier>{8e995e23-d436-4c0e-9408-cfe948f869f8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\YSLib\Helper">
-      <UniqueIdentifier>{258f7435-040a-49ee-8154-e98a36aa6097}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\YSLib\Adaptor">
       <UniqueIdentifier>{3cab8df1-34bf-4cb8-9165-9d58a8db1054}</UniqueIdentifier>
     </Filter>
@@ -85,14 +82,17 @@
     <Filter Include="源文件\YSLib\Service">
       <UniqueIdentifier>{eaa2ff05-5128-4c80-9fc2-2308056d79d4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\YSLib\Helper">
-      <UniqueIdentifier>{3a0e79a5-ce22-4962-be2c-a0fa13a6730f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="源文件\YCLib">
       <UniqueIdentifier>{fde094de-879d-4f51-91a2-ab96fac21188}</UniqueIdentifier>
     </Filter>
     <Filter Include="源文件\CHRLib">
       <UniqueIdentifier>{5c668777-7615-4bfe-aea2-976e37bb5ded}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Helper">
+      <UniqueIdentifier>{258f7435-040a-49ee-8154-e98a36aa6097}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Helper">
+      <UniqueIdentifier>{3a0e79a5-ce22-4962-be2c-a0fa13a6730f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -269,21 +269,6 @@
     </ClInclude>
     <ClInclude Include="..\YFramework\include\YSLib\Service\ytimer.h">
       <Filter>头文件\YSLib\Service</Filter>
-    </ClInclude>
-    <ClInclude Include="..\YFramework\include\YSLib\Helper\DSMain.h">
-      <Filter>头文件\YSLib\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\YFramework\include\YSLib\Helper\Initialization.h">
-      <Filter>头文件\YSLib\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\YFramework\include\YSLib\Helper\ShellHelper.h">
-      <Filter>头文件\YSLib\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\YFramework\include\YSLib\Helper\shlds.h">
-      <Filter>头文件\YSLib\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\YFramework\include\YSLib\Helper\yglobal.h">
-      <Filter>头文件\YSLib\Helper</Filter>
     </ClInclude>
     <ClInclude Include="..\YFramework\include\YSLib\Adaptor\config.h">
       <Filter>头文件\YSLib\Adaptor</Filter>
@@ -582,6 +567,21 @@
     <ClInclude Include="..\YFramework\include\YCLib\Debug.h">
       <Filter>头文件\YCLib</Filter>
     </ClInclude>
+    <ClInclude Include="..\YFramework\include\Helper\DSMain.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YFramework\include\Helper\Initialization.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YFramework\include\Helper\ShellHelper.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YFramework\include\Helper\shlds.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YFramework\include\Helper\yglobal.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\YFramework\source\YSLib\Adaptor\Font.cpp">
@@ -728,21 +728,6 @@
     <ClCompile Include="..\YFramework\source\YSLib\Service\ytimer.cpp">
       <Filter>源文件\YSLib\Service</Filter>
     </ClCompile>
-    <ClCompile Include="..\YFramework\source\YSLib\Helper\DSMain.cpp">
-      <Filter>源文件\YSLib\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="..\YFramework\source\YSLib\Helper\Initialization.cpp">
-      <Filter>源文件\YSLib\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="..\YFramework\source\YSLib\Helper\ShellHelper.cpp">
-      <Filter>源文件\YSLib\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="..\YFramework\source\YSLib\Helper\shlds.cpp">
-      <Filter>源文件\YSLib\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="..\YFramework\source\YSLib\Helper\yglobal.cpp">
-      <Filter>源文件\YSLib\Helper</Filter>
-    </ClCompile>
     <ClCompile Include="..\YFramework\source\YCLib\NativeAPI.cpp">
       <Filter>源文件\YCLib</Filter>
     </ClCompile>
@@ -763,6 +748,21 @@
     </ClCompile>
     <ClCompile Include="..\doc\ex.cpp">
       <Filter>文档</Filter>
+    </ClCompile>
+    <ClCompile Include="..\YFramework\source\Helper\DSMain.cpp">
+      <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\YFramework\source\Helper\Initialization.cpp">
+      <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\YFramework\source\Helper\ShellHelper.cpp">
+      <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\YFramework\source\Helper\shlds.cpp">
+      <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\YFramework\source\Helper\yglobal.cpp">
+      <Filter>源文件\Helper</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
